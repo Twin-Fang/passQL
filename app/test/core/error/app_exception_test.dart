@@ -23,11 +23,12 @@ DioException _of(DioExceptionType type, {Object? error}) => DioException(
 
 void main() {
   group('연결 오류', () {
-    test('타임아웃 3종은 모두 timeout 으로 분류한다', () {
+    test('타임아웃 종류는 모두 timeout 으로 분류한다', () {
       for (final t in [
         DioExceptionType.connectionTimeout,
         DioExceptionType.sendTimeout,
         DioExceptionType.receiveTimeout,
+        DioExceptionType.transformTimeout,
       ]) {
         final e = AppException.from(_of(t));
         expect(e.code, ErrorCode.timeout);

@@ -58,6 +58,8 @@ class AppException implements Exception {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
+      // dio 5.10+ 에서 추가된 종류. 응답 변환이 오래 걸린 경우도 사용자에게는 지연이다.
+      case DioExceptionType.transformTimeout:
         return AppException._of(ErrorCode.timeout, cause: e);
       case DioExceptionType.connectionError:
         return AppException._of(ErrorCode.network, cause: e);
