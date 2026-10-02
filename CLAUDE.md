@@ -20,7 +20,7 @@ passQL은 **4개 스택을 한 레포에서 관리하는 모노레포**다. 작�
 | 종류 | 위치 |
 |------|------|
 | 제품 기획 (PRD·ROADMAP·SCREEN-SPEC) | `docs/product/` |
-| 작업 리포트·이슈 산출물 | `docs/suh-template/{report,issue}/` |
+| 작업 리포트·이슈 산출물 | `docs/projectops/{report,issue}/` |
 | 스킬 산출물 (계획·스펙) | `docs/superpowers/{plans,specs}/` |
 | 분석 리포트 | `docs/reports/` |
 
