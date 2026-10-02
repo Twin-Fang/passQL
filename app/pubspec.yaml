@@ -15,7 +15,6 @@ dependencies:
   freezed_annotation: ^2.4.4
   json_annotation: ^4.9.0
   # 로컬 저장소
-  shared_preferences: ^2.3.4
   # 네트워크 & 인증
   dio: ^5.9.0
   retrofit: 4.7.3

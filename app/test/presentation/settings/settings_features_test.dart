@@ -21,7 +21,6 @@ import 'package:passql_app/presentation/widgets/settings/choice_mode_tile.dart';
 import 'package:passql_app/presentation/widgets/settings/nickname_edit_sheet.dart';
 import 'package:passql_app/presentation/widgets/settings/wrong_notes_section.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/pump_app.dart';
 
@@ -104,7 +103,6 @@ ProviderContainer _container(_FakeMemberApi api, {ChoiceGenerationMode mode = Ch
 
 void main() {
   setUp(() {
-    SharedPreferences.setMockInitialValues({});
     // 닉네임 변경은 로그인 세션(보안 저장소)에 반영되므로 테스트용 저장소를 쓴다.
     FlutterSecureStorage.setMockInitialValues({});
   });
@@ -120,14 +118,6 @@ void main() {
       expect(c.read(authProvider).value?.nickname, '새닉네임');
       // 닉네임 상태는 세션을 따라가므로 갱신이 반영될 때까지 기다린다.
       expect(await c.read(nicknameNotifierProvider.future), '새닉네임');
-    });
-
-    test('닉네임은 로그인 세션을 기준으로 하므로 로컬 캐시가 계정 간에 섞이지 않는다', () async {
-      // 이전 계정이 남긴 캐시 값이 있어도 현재 세션의 닉네임이 보인다.
-      SharedPreferences.setMockInitialValues({'member_nickname': '이전계정닉네임'});
-      final c = _container(_FakeMemberApi());
-
-      expect(await c.read(nicknameNotifierProvider.future), '기존닉네임');
     });
 
     test('서버가 쿨다운으로 거절하면 서버 문구를 담은 AppException 을 던지고 상태는 유지한다', () async {
