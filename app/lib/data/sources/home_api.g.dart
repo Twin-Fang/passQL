@@ -18,9 +18,9 @@ class _HomeApiClient implements HomeApiClient {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<GreetingResponse> getGreeting(String memberUuid) async {
+  Future<GreetingResponse> getGreeting() async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'memberUuid': memberUuid};
+    final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<GreetingResponse>(

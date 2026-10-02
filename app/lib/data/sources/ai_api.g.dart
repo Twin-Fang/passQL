@@ -18,14 +18,10 @@ class _AiApiClient implements AiApiClient {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<AiResult> explainError(
-    String memberUuid,
-    Map<String, dynamic> body,
-  ) async {
+  Future<AiResult> explainError(Map<String, dynamic> body) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{r'X-Member-UUID': memberUuid};
-    _headers.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body);
     final _options = _setStreamType<AiResult>(
@@ -50,14 +46,10 @@ class _AiApiClient implements AiApiClient {
   }
 
   @override
-  Future<AiResult> diffExplain(
-    String memberUuid,
-    Map<String, dynamic> body,
-  ) async {
+  Future<AiResult> diffExplain(Map<String, dynamic> body) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{r'X-Member-UUID': memberUuid};
-    _headers.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body);
     final _options = _setStreamType<AiResult>(

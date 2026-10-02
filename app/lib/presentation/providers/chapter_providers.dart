@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/network/dio_client.dart';
+import '../../core/network/api_providers.dart';
 import '../../data/models/question/submit_result.dart';
 import '../../data/sources/question_api.dart';
 
@@ -169,7 +169,6 @@ class ChapterNotifier extends StateNotifier<ChapterState> {
 final chapterProvider = StateNotifierProvider.autoDispose
     .family<ChapterNotifier, ChapterState, String>(
   (ref, topicCode) {
-    final dio = ref.read(dioProvider);
-    return ChapterNotifier(QuestionApiClient(dio));
+    return ChapterNotifier(ref.read(questionApiProvider));
   },
 );

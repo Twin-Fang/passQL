@@ -18,10 +18,9 @@ class _QuestionApiClient implements QuestionApiClient {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<TodayQuestionResponse> getTodayQuestion(String? memberUuid) async {
+  Future<TodayQuestionResponse> getTodayQuestion() async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'memberUuid': memberUuid};
-    queryParameters.removeWhere((k, v) => v == null);
+    final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<TodayQuestionResponse>(
@@ -47,19 +46,15 @@ class _QuestionApiClient implements QuestionApiClient {
 
   @override
   Future<RecommendationsResponse> getRecommendations(
-    int? size,
-    String? excludeQuestionUuid,
+    RecommendationsRequest body,
   ) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{
-      r'size': size,
-      r'excludeQuestionUuid': excludeQuestionUuid,
-    };
-    queryParameters.removeWhere((k, v) => v == null);
+    final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    const Map<String, dynamic>? _data = null;
+    final _data = <String, dynamic>{};
+    _data.addAll(body.toJson());
     final _options = _setStreamType<RecommendationsResponse>(
-      Options(method: 'GET', headers: _headers, extra: _extra)
+      Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
             '/questions/recommendations',
@@ -178,12 +173,10 @@ class _QuestionApiClient implements QuestionApiClient {
   Future<SubmitResult> submitAnswer(
     String questionUuid,
     SubmitRequest body,
-    String memberUuid,
   ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{r'X-Member-UUID': memberUuid};
-    _headers.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
     final _data = body;
     final _options = _setStreamType<SubmitResult>(
       Options(method: 'POST', headers: _headers, extra: _extra)

@@ -10,5 +10,5 @@ abstract class HomeApiClient {
 
   /// 홈 화면 인사 메시지.
   @GET('/home/greeting')
-  Future<GreetingResponse> getGreeting(@Query('memberUuid') String memberUuid);
+  Future<GreetingResponse> getGreeting();
 }

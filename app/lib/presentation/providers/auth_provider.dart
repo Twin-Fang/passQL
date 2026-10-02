@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/auth/auth_session.dart';
 import '../../core/auth/social_sign_in.dart';
 import '../../core/auth/token_store.dart';
+import '../../core/error/app_exception.dart';
 import '../../core/network/dio_client.dart';
 
 /// 로그인 세션 상태. null 이면 로그아웃 상태.
@@ -28,8 +29,9 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
       await ref.read(tokenStoreProvider).save(result.session);
       state = AsyncData(result.session);
       return true;
-    } on DioException {
-      throw const SocialSignInException('로그인에 실패했어요. 잠시 후 다시 시도해 주세요.');
+    } on DioException catch (e) {
+      // 네트워크/서버 오류를 사용자용 문구로 통일해 화면에 전달한다.
+      throw SocialSignInException(e.asAppException.message);
     }
   }
 

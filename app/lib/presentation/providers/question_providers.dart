@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/network/dio_client.dart';
+import '../../core/network/api_providers.dart';
 import '../../data/models/question/choice_item.dart';
 import '../../data/models/question/execute_request.dart';
 import '../../data/models/question/execute_result.dart';
@@ -10,14 +10,12 @@ import '../../data/models/question/submit_request.dart';
 import '../../data/models/question/submit_result.dart';
 import '../../data/sources/question_api.dart';
 import '../../data/sources/sse_question_client.dart';
-import 'member_store.dart';
 
 /// 문제 상세 로딩 Provider. autoDispose로 화면 이탈 시 캐시 해제.
 final questionDetailProvider =
     FutureProvider.autoDispose.family<QuestionDetail, String>(
   (ref, questionUuid) async {
-    final dio = ref.read(dioProvider);
-    return QuestionApiClient(dio).getQuestion(questionUuid);
+    return ref.read(questionApiProvider).getQuestion(questionUuid);
   },
 );
 
@@ -105,19 +103,15 @@ class QuestionInteractionNotifier
   final String _questionUuid;
   final QuestionApiClient _questionApi;
   final SseQuestionClient _sseClient;
-  final String _memberUuid;
-
   StreamSubscription<SseEvent>? _sseSub;
 
   QuestionInteractionNotifier({
     required String questionUuid,
     required QuestionApiClient questionApi,
     required SseQuestionClient sseClient,
-    required String memberUuid,
   })  : _questionUuid = questionUuid,
         _questionApi = questionApi,
         _sseClient = sseClient,
-        _memberUuid = memberUuid,
         super(const QuestionInteractionState());
 
   /// 기존 OK 선택지 세트를 바로 사용 (SSE 불필요).
@@ -140,7 +134,6 @@ class QuestionInteractionNotifier
     _sseSub = _sseClient
         .generateChoices(
           questionUuid: _questionUuid,
-          memberUuid: _memberUuid,
         )
         .listen(
           _onSseEvent,
@@ -212,7 +205,8 @@ class QuestionInteractionNotifier
   }
 
   /// 답안 제출. 성공 시 SubmitResult 반환, 실패 시 null 반환.
-  Future<SubmitResult?> submit() async {
+  /// [sessionUuid]는 연습/챕터 세션 단위 AI 코멘트 집계용이며 단건 풀이는 생략한다.
+  Future<SubmitResult?> submit({String? sessionUuid}) async {
     final choiceSetId = state.activeChoiceSetId;
     final selectedKey = state.selectedChoiceKey;
     if (choiceSetId == null || selectedKey == null) return null;
@@ -224,8 +218,8 @@ class QuestionInteractionNotifier
         SubmitRequest(
           choiceSetId: choiceSetId,
           selectedChoiceKey: selectedKey,
+          sessionUuid: sessionUuid,
         ),
-        _memberUuid,
       );
       return result;
     } catch (_) {
@@ -246,14 +240,10 @@ class QuestionInteractionNotifier
 final questionInteractionProvider = StateNotifierProvider.autoDispose
     .family<QuestionInteractionNotifier, QuestionInteractionState, String>(
   (ref, questionUuid) {
-    final dio = ref.read(dioProvider);
-    final memberUuid =
-        ref.read(memberStoreProvider).valueOrNull ?? '';
     return QuestionInteractionNotifier(
       questionUuid: questionUuid,
-      questionApi: QuestionApiClient(dio),
-      sseClient: SseQuestionClient(dio),
-      memberUuid: memberUuid,
+      questionApi: ref.read(questionApiProvider),
+      sseClient: ref.read(sseQuestionClientProvider),
     );
   },
 );

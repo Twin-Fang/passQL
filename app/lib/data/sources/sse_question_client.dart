@@ -16,7 +16,6 @@ class SseQuestionClient {
   /// 에러 발생 시 스트림에 SseErrorEvent yield 후 종료.
   Stream<SseEvent> generateChoices({
     required String questionUuid,
-    required String memberUuid,
   }) async* {
     Response<ResponseBody> response;
     try {
@@ -25,7 +24,6 @@ class SseQuestionClient {
         options: Options(
           responseType: ResponseType.stream,
           headers: {
-            'X-Member-UUID': memberUuid,
             'Accept': 'text/event-stream',
           },
         ),

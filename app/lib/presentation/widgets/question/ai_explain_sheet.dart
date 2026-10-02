@@ -3,9 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/app_colors.dart';
 import '../../../core/text_styles.dart';
-import '../../../core/network/dio_client.dart';
-import '../../../data/sources/ai_api.dart';
-import '../../../presentation/providers/member_store.dart';
+import '../../../core/network/api_providers.dart';
 
 /// AI 해설 바텀시트. questionUuid와 요청 payload를 받아 AI 해설을 표시.
 /// isErrorExplain=true: explain-error 엔드포인트
@@ -53,12 +51,10 @@ class _AiExplainSheetState extends ConsumerState<AiExplainSheet> {
 
   Future<void> _fetchExplain() async {
     try {
-      final dio = ref.read(dioProvider);
-      final memberUuid = ref.read(memberStoreProvider).valueOrNull ?? '';
-      final client = AiApiClient(dio);
+      final client = ref.read(aiApiProvider);
       final result = widget.isErrorExplain
-          ? await client.explainError(memberUuid, widget.payload)
-          : await client.diffExplain(memberUuid, widget.payload);
+          ? await client.explainError(widget.payload)
+          : await client.diffExplain(widget.payload);
       if (mounted) setState(() { _text = result.text; _isLoading = false; });
     } catch (_) {
       if (mounted) setState(() { _error = 'AI 해설을 불러올 수 없어요'; _isLoading = false; });

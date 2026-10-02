@@ -4,9 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/app_colors.dart';
 import '../../../core/text_styles.dart';
-import '../../../core/network/dio_client.dart';
+import '../../../core/network/api_providers.dart';
 import '../../../data/models/ai/similar_question.dart';
-import '../../../data/sources/ai_api.dart';
 import '../../../router/app_routes.dart';
 
 /// 유사 문제 리스트 섹션. 화면 진입 후 비동기 로드.
@@ -32,9 +31,8 @@ class _SimilarQuestionsSectionState
 
   Future<void> _load() async {
     try {
-      final dio = ref.read(dioProvider);
       final result =
-          await AiApiClient(dio).getSimilar(widget.questionUuid, 3);
+          await ref.read(aiApiProvider).getSimilar(widget.questionUuid, 3);
       if (mounted) setState(() => _questions = result);
     } catch (_) {
       // 유사 문제는 옵션 — 실패 시 섹션 미표시

@@ -228,7 +228,7 @@ class _InfoRow extends StatelessWidget {
               ],
             ),
           ),
-          if (action != null) action!,
+          ?action,
         ],
       ),
     );

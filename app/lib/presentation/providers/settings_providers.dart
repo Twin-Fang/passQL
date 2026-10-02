@@ -1,11 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../core/network/dio_client.dart';
-import '../../data/sources/member_api.dart';
-import 'member_store.dart';
+import '../../core/network/api_providers.dart';
+import 'auth_provider.dart';
 
-/// MemberStore와 공유하는 닉네임 캐시 키 — 변경 시 member_store.dart와 동기화 필요
+/// 닉네임 재생성 결과를 캐시하는 키.
 const _kNickname = 'member_nickname';
 
 /// 설정 화면 데이터 집계 모델
@@ -23,22 +22,18 @@ class SettingsData {
 
 /// 설정 화면 초기 데이터 로딩 Provider
 ///
-/// UUID는 MemberStore에서, 닉네임은 GET /members/me, 버전은 PackageInfo에서 조회.
+/// 회원 정보는 GET /members/me, 버전은 PackageInfo에서 조회.
 final settingsDataProvider = FutureProvider<SettingsData>((ref) async {
-  final memberUuid =
-      await ref.read(memberStoreProvider.notifier).getOrRegister();
-
-  final dio = ref.read(dioProvider);
-  final client = MemberApiClient(dio);
+  final client = ref.read(memberApiProvider);
 
   // 타입 안전한 개별 await — Future.wait + dynamic 캐스트 패턴 제거
-  final me = await client.getMe(memberUuid);
+  final me = await client.getMe();
   final info = await PackageInfo.fromPlatform();
 
   return SettingsData(
-    memberUuid: memberUuid,
+    memberUuid: me.memberUuid,
     nickname: me.nickname,
-    version: '${info.version}-MVP',
+    version: info.version,
   );
 });
 
@@ -50,18 +45,17 @@ class NicknameNotifier extends AsyncNotifier<String?> {
   Future<String?> build() async {
     // 초기값은 캐시에서 로드
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_kNickname);
+    final cached = prefs.getString(_kNickname);
+    if (cached != null) return cached;
+    return (await ref.read(authProvider.future))?.nickname;
   }
 
   Future<void> regenerate() async {
-    final memberUuid =
-        await ref.read(memberStoreProvider.notifier).getOrRegister();
-    final dio = ref.read(dioProvider);
-    final client = MemberApiClient(dio);
+    final client = ref.read(memberApiProvider);
 
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      final response = await client.regenerateNickname(memberUuid);
+      final response = await client.regenerateNickname();
       // 로컬 캐시 업데이트
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_kNickname, response.nickname);
