@@ -25,6 +25,14 @@ class AuthSession {
   final String memberUuid;
   final String nickname;
 
+  /// 닉네임만 바뀌는 경우(변경, 재생성)에는 나머지 정보는 유지한다.
+  AuthSession withNickname(String nickname) => AuthSession(
+    accessToken: accessToken,
+    refreshToken: refreshToken,
+    memberUuid: memberUuid,
+    nickname: nickname,
+  );
+
   /// 재발급 시에는 토큰만 바뀌므로 나머지 정보는 유지한다.
   AuthSession withTokens({
     required String accessToken,

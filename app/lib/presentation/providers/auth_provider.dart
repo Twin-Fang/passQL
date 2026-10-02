@@ -35,6 +35,13 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
     }
   }
 
+  /// 닉네임이 바뀌었을 때 세션에 반영한다. 닉네임 화면은 이 값을 기준으로 그려진다.
+  Future<void> updateNickname(String nickname) async {
+    await ref.read(tokenStoreProvider).updateNickname(nickname);
+    final current = state.valueOrNull;
+    if (current != null) state = AsyncData(current.withNickname(nickname));
+  }
+
   /// 로그아웃. 서버 폐기가 실패해도 기기에서는 반드시 세션을 지운다.
   Future<void> signOut() async {
     final store = ref.read(tokenStoreProvider);
@@ -47,6 +54,8 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
       }
     }
     await store.clear();
+    // Firebase/Google 쪽 로그인 상태도 정리해야 다음 로그인에서 계정을 고를 수 있다.
+    await ref.read(socialSignInProvider).signOut();
     state = const AsyncData(null);
   }
 

@@ -67,6 +67,13 @@ class TokenStore {
     );
   }
 
+  /// 닉네임이 바뀌었을 때 저장된 세션에 반영한다. 세션이 없으면 아무것도 하지 않는다.
+  Future<void> updateNickname(String nickname) async {
+    final current = await read();
+    if (current == null) return;
+    await save(current.withNickname(nickname));
+  }
+
   /// 로그아웃 또는 세션 만료 시 전체 삭제.
   Future<void> clear() async {
     await _storage.delete(key: _kAccess);

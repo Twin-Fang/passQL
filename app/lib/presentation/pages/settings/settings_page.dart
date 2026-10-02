@@ -6,6 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/app_colors.dart';
 import '../../../core/text_styles.dart';
 import '../../../router/app_routes.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/settings_providers.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/settings/choice_mode_tile.dart';
@@ -15,6 +16,31 @@ import '../../widgets/settings/wrong_notes_section.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
+
+  /// 실수로 누르는 것을 막기 위해 한 번 확인한 뒤 로그아웃한다.
+  /// 로그아웃되면 라우터가 자동으로 로그인 화면으로 보낸다.
+  Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('로그아웃할까요?'),
+        content: const Text('다시 로그인하면 기록은 그대로 이어져요.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('로그아웃'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await ref.read(authProvider.notifier).signOut();
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -108,6 +134,13 @@ class SettingsPage extends ConsumerWidget {
                 title: '건의사항',
                 description: '앱에 바라는 점을 보내고, 처리 상태를 확인해요',
                 onTap: () => context.push(AppRoutes.feedback),
+              ),
+              const SizedBox(height: 16),
+              // 로그아웃
+              SettingsLinkTile(
+                title: '로그아웃',
+                description: '이 기기에서 로그아웃해요',
+                onTap: () => _confirmSignOut(context, ref),
               ),
               const SizedBox(height: 40),
               // 하단 푸터

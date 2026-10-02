@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/error/app_exception.dart';
 import '../../core/network/api_providers.dart';
@@ -9,9 +8,6 @@ import '../../data/models/member/choice_generation_mode.dart';
 import '../../data/models/member/choice_mode_models.dart';
 import '../../data/models/member/nickname_models.dart';
 import 'auth_provider.dart';
-
-/// 닉네임 재생성/변경 결과를 캐시하는 키.
-const _kNickname = 'member_nickname';
 
 /// 설정 화면 데이터 집계 모델
 class SettingsData {
@@ -48,17 +44,13 @@ final settingsDataProvider = FutureProvider<SettingsData>((ref) async {
 
 /// 닉네임 Notifier. 재생성·직접 변경 결과를 한곳에서 반영한다.
 ///
-/// 서버가 거절하면(중복, 쿨다운, 형식 등) [AppException] 을 던져
+/// 닉네임의 기준은 로그인 세션이다. 따로 캐시하지 않아서 계정을 바꿔도 이전 계정의
+/// 닉네임이 남지 않는다. 서버가 거절하면(중복, 쿨다운, 형식 등) [AppException] 을 던져
 /// 화면이 `message` 를 그대로 보여줄 수 있게 한다.
 class NicknameNotifier extends AsyncNotifier<String?> {
   @override
-  Future<String?> build() async {
-    // 초기값은 캐시에서 로드, 없으면 로그인 세션의 닉네임
-    final prefs = await SharedPreferences.getInstance();
-    final cached = prefs.getString(_kNickname);
-    if (cached != null) return cached;
-    return (await ref.read(authProvider.future))?.nickname;
-  }
+  Future<String?> build() async =>
+      (await ref.watch(authProvider.future))?.nickname;
 
   /// 서버가 만든 랜덤 닉네임으로 교체한다.
   Future<void> regenerate() async {
@@ -67,7 +59,7 @@ class NicknameNotifier extends AsyncNotifier<String?> {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       final response = await client.regenerateNickname();
-      await _cache(response.nickname);
+      await ref.read(authProvider.notifier).updateNickname(response.nickname);
       return response.nickname;
     });
   }
@@ -82,22 +74,16 @@ class NicknameNotifier extends AsyncNotifier<String?> {
     }
   }
 
-  /// 닉네임 직접 변경. 성공하면 상태와 캐시를 새 값으로 바꾼다.
+  /// 닉네임 직접 변경. 성공하면 로그인 세션의 닉네임을 새 값으로 바꾼다.
   Future<void> change(String nickname) async {
     try {
       final res = await ref
           .read(memberApiProvider)
           .changeNickname(NicknameChangeRequest(nickname));
-      await _cache(res.nickname);
-      state = AsyncData(res.nickname);
+      await ref.read(authProvider.notifier).updateNickname(res.nickname);
     } on DioException catch (e) {
       throw e.asAppException;
     }
-  }
-
-  Future<void> _cache(String nickname) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_kNickname, nickname);
   }
 }
 

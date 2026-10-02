@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/core/auth/auth_session.dart';
+import 'package:passql_app/core/auth/social_sign_in.dart';
 import 'package:passql_app/presentation/pages/login/login_page.dart';
 import 'package:passql_app/presentation/providers/auth_provider.dart';
 import 'package:passql_app/router/app_router.dart';
@@ -11,7 +12,11 @@ import 'package:passql_app/router/app_router.dart';
 /// 라우터 전체를 올려 인증 가드와 로그인 화면 동작을 검증한다.
 Widget _app() => ProviderScope(
   // 저장된 세션이 없는 상태(첫 실행)로 시작한다.
-  overrides: [authProvider.overrideWith(_SignedOutAuth.new)],
+  overrides: [
+    authProvider.overrideWith(_SignedOutAuth.new),
+    // 로그인 설정이 없는 상태를 재현한다(실제 Firebase 는 테스트에서 쓰지 않는다).
+    socialSignInProvider.overrideWithValue(const UnconfiguredSocialSignIn()),
+  ],
   child: ScreenUtilInit(
     designSize: const Size(390, 844),
     builder: (_, _) => MaterialApp.router(routerConfig: AppRouter.router),

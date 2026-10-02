@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'auth_session.dart';
+import 'firebase_social_sign_in.dart';
 
 /// 소셜 로그인 실패. 화면에 그대로 보여줄 수 있는 메시지를 담는다.
 class SocialSignInException implements Exception {
@@ -19,9 +20,12 @@ class SocialSignInException implements Exception {
 abstract interface class SocialSignIn {
   /// 사용자가 취소하면 null, 실패하면 [SocialSignInException].
   Future<String?> fetchIdToken(SocialProvider provider);
+
+  /// 소셜 쪽 로그인 상태도 함께 정리한다. 실패해도 예외를 던지지 않는다.
+  Future<void> signOut();
 }
 
-/// Firebase 설정(google-services.json 등)이 들어오기 전까지 쓰는 자리 표시 구현.
+/// 로그인 설정이 없는 환경(테스트 등)에서 쓰는 자리 표시 구현.
 class UnconfiguredSocialSignIn implements SocialSignIn {
   const UnconfiguredSocialSignIn();
 
@@ -29,8 +33,12 @@ class UnconfiguredSocialSignIn implements SocialSignIn {
   Future<String?> fetchIdToken(SocialProvider provider) {
     throw const SocialSignInException('로그인 설정이 아직 완료되지 않았어요.');
   }
+
+  @override
+  Future<void> signOut() async {}
 }
 
+/// 운영 기본값은 Firebase 로그인이다. 테스트에서는 가짜 구현으로 교체한다.
 final socialSignInProvider = Provider<SocialSignIn>(
-  (ref) => const UnconfiguredSocialSignIn(),
+  (ref) => FirebaseSocialSignIn(),
 );
