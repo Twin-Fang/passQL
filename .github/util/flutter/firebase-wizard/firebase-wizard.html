@@ -7,10 +7,59 @@
     <script type="application/json" id="versionJson">
 {
   "name": "Firebase App Distribution Setup Wizard",
-  "version": "1.0.0",
+  "version": "1.3.0",
   "description": "Flutter Android 앱을 Firebase App Distribution에 배포하기 위한 설정 마법사",
-  "lastUpdated": "2026-05-15",
+  "lastUpdated": "2026-07-27",
   "changelog": [
+    {
+      "version": "1.3.0",
+      "date": "2026-07-27",
+      "changes": [
+        "3종 마법사 공통 자산 도입 — ../_shared/wizard.css(컴포넌트 CSS)와 wizard-common.js(공통 유틸)를 함께 로드",
+        "377줄 중복 CSS 제거 — testflight/playstore가 글자 단위로 같던 스타일을 단일 정본으로 통합",
+        "공통 유틸 중복 정의 제거 — escapeHtml/showToast/copyToClipboard 등 셋 중 가장 안전한 구현으로 통일",
+        "escapeHtml을 null 안전 + 따옴표까지 이스케이프하는 구현으로 통일 (속성 보간 시 XSS 여지 제거)",
+        "showToast를 DOM에 #toast가 없어도 동작하도록 통일 (요소 누락 시 예외로 죽던 문제 제거)",
+        "클립보드 복사에 execCommand 폴백 추가 — file://로 열었을 때 복사가 실패하던 문제 해결",
+        "localStorage 저장 실패(용량 초과) 시 마법사가 죽지 않고 안내만 하도록 변경",
+        "구 레포명(SUH-DEVOPS-TEMPLATE) 링크를 projectops로 교정",
+        "존재하지 않는 경로를 가리키던 secrets-converter 링크를 github-secrets-converter로 교정",
+        "version-sync.sh 3종 통일 — python3 미존재 환경 폴백 추가, 죽은 코드 제거, 주입 전 JSON 유효성 검증 추가",
+        "Python CLI를 명명 플래그로 통일 (--project-path 등) — 구 위치인자 호출도 계속 지원",
+        "--dry-run / --no-backup / --non-interactive 3종 공통 지원",
+        "--dry-run에 메모리 오버레이 도입 — 실제 실행과 동일한 경로를 타면서 디스크는 건드리지 않음",
+        "시작 화면에 예상 소요 시간·준비물·완료 산출물·문서 링크·중단 후 재개 안내 추가",
+        "_shared/check-consistency.py 추가 — 3종이 다시 갈라지면 즉시 검출",
+        "_shared/test_wizard_cli.py 추가 — CLI 계약과 dry-run 안전성 회귀 테스트 11종",
+        "단계 인디케이터를 3종 공통 마크업으로 교체 — .step-indicator가 다른 마법사와 반대 의미로 쓰이던 충돌 해소",
+        "보안 경고 배너 추가 (입력값이 브라우저에만 남는다는 안내)",
+        "변경 이력 모달 추가 — 버전 배지 클릭으로 열람",
+        "진행률 표시(updateProgress) 추가 — 완료 단계가 체크로 표시됨",
+        "내보내기 함수명을 downloadAsJson/Txt/Zip으로 통일 (다른 마법사와 동일)"
+      ]
+    },
+    {
+      "version": "1.2.0",
+      "date": "2026-07-21",
+      "changes": [
+        "앱 등록 시 Flutter 아이콘 오선택 방지 안내 추가 - App Distribution은 SDK 통합 불필요",
+        "App Distribution 미활성화 시 404가 발생함을 경고로 명시 - 권한 문제로 오인하기 쉬움",
+        "Firebase Console에서 받은 Admin SDK 키도 IAM 역할 부여가 별도로 필요함을 명시",
+        "다른 프로젝트의 Service Account는 재사용 불가함을 안내",
+        "테스터 그룹의 표시 이름과 실제 별칭(alias)이 다름을 명시 - 배포에는 소문자 별칭 사용",
+        "배포 전 권한 사전 검증 방법 및 응답 코드별 원인 진단표 추가",
+        "단계 이동 제약 제거 - 어느 단계로든 자유롭게 이동 가능 (다른 마법사와 동작 일치)"
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-07-20",
+      "changes": [
+        "setup 스크립트를 Python 단일 파일(firebase-wizard.py)로 통합",
+        "sh/ps1 이중 관리 제거",
+        "테스트도 Python으로 통합 (test/setup-script-test.py)"
+      ]
+    },
     {
       "version": "1.0.0",
       "date": "2026-05-15",
@@ -29,12 +78,14 @@
     "android_sdk": ">=33",
     "firebase_app_distribution": "GA"
   },
-  "repository": "https://github.com/Cassiiopeia/SUH-DEVOPS-TEMPLATE"
+  "repository": "https://github.com/Cassiiopeia/projectops"
 }
 
     </script>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <!-- 공통 자산 (3종 마법사 공유) — _shared/check-consistency.py가 정합성을 검증한다 -->
+    <link rel="stylesheet" href="../_shared/wizard.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -63,27 +114,31 @@
         }
     </script>
     <style>
+        /* Firebase 마법사 고유 스타일 — 공통 컴포넌트는 ../_shared/wizard.css 참조 */
         body { background: #0f172a; color: #e2e8f0; font-family: 'Pretendard Variable', sans-serif; }
-        .file-upload { border: 2px dashed #475569; border-radius: 0.75rem; padding: 1.5rem; text-align: center; cursor: pointer; transition: all 0.2s; }
+        /* 브랜드 색을 입힌 파일 업로드 (공통 .file-upload 위에 덮어쓴다) */
         .file-upload:hover { border-color: #FFA000; background: rgba(255, 160, 0, 0.05); }
         .file-upload.dragover { border-color: #FFA000; background: rgba(255, 160, 0, 0.1); }
-        .file-upload .icon { font-size: 2rem; margin-bottom: 0.5rem; }
-        .step-indicator { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 2rem; }
-        .step-dot { width: 2.25rem; height: 2.25rem; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-weight: 700; cursor: pointer; transition: all 0.2s; }
-        .step-dot.active { background: #FFA000; color: #0f172a; }
-        .step-dot.completed { background: #22c55e; color: #0f172a; }
-        .step-dot.pending { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
-        .step-line { width: 2rem; height: 2px; background: #334155; }
-        .step-line.completed { background: #22c55e; }
-        .skip-btn { color: #94a3b8; font-size: 0.875rem; cursor: pointer; padding: 0.5rem 1rem; }
-        .skip-btn:hover { color: #FFA000; }
-        .fade-in { animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: #1e293b; border: 1px solid #334155; padding: 0.75rem 1.5rem; border-radius: 0.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-        .toast.show { opacity: 1; }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
+    <!-- 보안 경고 — 입력값이 이 브라우저에만 남는다는 점을 알린다 -->
+    <div id="securityWarning" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-yellow-900/90 border border-yellow-700 text-yellow-200 px-6 py-3 rounded-lg shadow-xl z-50 max-w-2xl hidden">
+        <div class="flex items-center gap-3">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <div class="flex-1">
+                <p class="text-sm font-medium">이 페이지를 닫으면 입력한 데이터가 사라집니다 (localStorage에 임시 저장됨)</p>
+            </div>
+            <button onclick="closeSecurityWarning()" class="text-yellow-400 hover:text-yellow-200">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
     <div class="max-w-4xl mx-auto">
         <!-- 헤더 -->
         <header class="mb-8 text-center">
@@ -91,23 +146,54 @@
                 🔥 <span class="bg-gradient-to-r from-firebase-primary to-firebase-accent bg-clip-text text-transparent">Firebase App Distribution 배포 마법사</span>
             </h1>
             <p class="text-slate-400 mb-3">Flutter Android 테스트 빌드를 Firebase로 자동 배포하는 5단계 설정</p>
-            <a href="https://github.com/Cassiiopeia/SUH-DEVOPS-TEMPLATE" target="_blank" rel="noopener"
-               class="text-xs text-slate-500 hover:text-slate-300">
-               SUH-DEVOPS-TEMPLATE GitHub →
-            </a>
+            <p class="text-zinc-400 text-sm flex items-center justify-center gap-3">
+                <a href="https://github.com/Cassiiopeia/projectops" target="_blank" rel="noopener"
+                   class="text-xs text-slate-500 hover:text-slate-300">projectops GitHub →</a>
+                <span class="text-slate-600">|</span>
+                <button onclick="openChangelogModal()" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-firebase-primary/20 hover:bg-firebase-primary/30 border border-firebase-primary/30 rounded-full text-xs text-firebase-accent transition cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                    <span id="versionBadge">v1.2.0</span>
+                </button>
+            </p>
         </header>
 
-        <!-- Step Indicator -->
-        <div class="step-indicator" id="stepIndicator">
-            <div class="step-dot active" data-step="1" onclick="goToStep(1)">1</div>
-            <div class="step-line"></div>
-            <div class="step-dot pending" data-step="2" onclick="goToStep(2)">2</div>
-            <div class="step-line"></div>
-            <div class="step-dot pending" data-step="3" onclick="goToStep(3)">3</div>
-            <div class="step-line"></div>
-            <div class="step-dot pending" data-step="4" onclick="goToStep(4)">4</div>
-            <div class="step-line"></div>
-            <div class="step-dot pending" data-step="5" onclick="goToStep(5)">5</div>
+        <!-- 첫 사용자 안내 — 시작 전에 규모·준비물·산출물을 먼저 보여준다 -->
+        <div class="wizard-meta">
+            <span>⏱️ 예상 소요 <strong>15~25분</strong></span>
+            <span class="text-slate-600">·</span>
+            <span>📑 <strong>5단계</strong></span>
+            <span class="text-slate-600">·</span>
+            <span>🎒 준비물 <strong>Firebase 프로젝트(무료) · Flutter 프로젝트 · 서명 키스토어</strong></span>
+        </div>
+        <div class="wizard-meta" style="margin-top:-0.5rem">
+            <span>🎁 완료하면 <strong>Service Account base64 + GitHub Secrets 2종, 워크플로우 값 치환 명령</strong>을 받습니다</span>
+            <span class="text-slate-600">·</span>
+            <a href="../../../../docs/FLUTTER-FIREBASE-WIZARD.md" target="_blank" rel="noopener" class="text-firebase-accent hover:underline">📖 문서로 자세히 보기 →</a>
+        </div>
+        <p class="resume-hint">진행 상황은 이 브라우저에 자동 저장됩니다. 창을 닫았다가 다시 열면 이어서 진행할 수 있어요.</p>
+
+        <!-- Progress Steps (5단계) — 구조는 3종 공통 계약이다. _shared/wizard.css 참조 -->
+        <div class="flex justify-between mb-8 px-2 overflow-x-auto">
+            <div class="step-indicator flex flex-col items-center flex-1 relative min-w-[40px]" data-step="1">
+                <div class="step-circle w-8 h-8 rounded-full bg-firebase-primary text-slate-900 flex items-center justify-center font-bold text-xs z-10">1</div>
+                <span class="text-[9px] mt-1 text-firebase-accent text-center hidden md:block">Console</span>
+            </div>
+            <div class="step-indicator flex flex-col items-center flex-1 relative min-w-[40px]" data-step="2">
+                <div class="step-circle w-8 h-8 rounded-full bg-slate-700 text-slate-400 flex items-center justify-center font-bold text-xs z-10">2</div>
+                <span class="text-[9px] mt-1 text-slate-500 text-center hidden md:block">SA 발급</span>
+            </div>
+            <div class="step-indicator flex flex-col items-center flex-1 relative min-w-[40px]" data-step="3">
+                <div class="step-circle w-8 h-8 rounded-full bg-slate-700 text-slate-400 flex items-center justify-center font-bold text-xs z-10">3</div>
+                <span class="text-[9px] mt-1 text-slate-500 text-center hidden md:block">앱 정보</span>
+            </div>
+            <div class="step-indicator flex flex-col items-center flex-1 relative min-w-[40px]" data-step="4">
+                <div class="step-circle w-8 h-8 rounded-full bg-slate-700 text-slate-400 flex items-center justify-center font-bold text-xs z-10">4</div>
+                <span class="text-[9px] mt-1 text-slate-500 text-center hidden md:block">파일 업로드</span>
+            </div>
+            <div class="step-indicator flex flex-col items-center flex-1 relative min-w-[40px]" data-step="5">
+                <div class="step-circle w-8 h-8 rounded-full bg-slate-700 text-slate-400 flex items-center justify-center font-bold text-xs z-10">5</div>
+                <span class="text-[9px] mt-1 text-slate-500 text-center hidden md:block">Secrets</span>
+            </div>
         </div>
 
         <!-- ========================================== -->
@@ -147,30 +233,82 @@
 
                 <div class="bg-slate-700/50 border border-slate-600 rounded-lg p-4">
                     <p class="text-sm font-medium text-firebase-accent mb-2">2) Android 앱 등록</p>
+                    <div class="mb-3 p-3 bg-red-900/30 border border-red-700 rounded">
+                        <p class="text-xs text-red-300 font-bold mb-1">⚠️ Flutter 아이콘이 아니라 Android 아이콘을 고르세요</p>
+                        <p class="text-[11px] text-slate-400">
+                            앱 추가 화면에 <span class="text-slate-300">Flutter</span> 항목이 보이지만, 이걸 누르면
+                            <code class="text-slate-300">flutterfire configure</code> CLI로 Firebase SDK를 앱에 통합하는 절차로 넘어갑니다.
+                        </p>
+                        <p class="text-[11px] text-slate-400 mt-1">
+                            <span class="text-green-400 font-bold">App Distribution은 APK만 업로드하면 되므로 SDK 통합이 필요 없습니다.</span>
+                            Android 아이콘(🤖)으로 등록하세요.
+                        </p>
+                    </div>
                     <ol class="text-xs text-slate-300 list-decimal list-inside space-y-1">
-                        <li>프로젝트 개요 → Android 아이콘 클릭</li>
-                        <li>Android 패키지 이름 (예: <code class="text-yellow-400">com.example.app</code>)</li>
-                        <li>SHA-1 인증서 지문 입력 (선택)</li>
-                        <li><strong class="text-green-400">google-services.json</strong> 다운로드 → Step 4에서 업로드</li>
-                        <li>등록 후 좌측 하단 "톱니바퀴 → 프로젝트 설정"에서 <strong class="text-yellow-400">앱 ID</strong> (예: <code>1:905...:android:abc</code>) 복사 → Step 3에서 사용</li>
+                        <li>좌측 상단 <span class="text-yellow-400">프로젝트 개요</span> 클릭</li>
+                        <li>앱 추가 아이콘 중 <span class="text-green-400 font-bold">Android(🤖)</span> 선택</li>
+                        <li>Android 패키지 이름 (예: <code class="text-yellow-400">kr.mycompany.myapp</code>)
+                            <div class="text-slate-500 text-[10px] mt-0.5">
+                                <code class="text-slate-400">android/app/build.gradle.kts</code>의 <code class="text-slate-400">applicationId</code>와 동일해야 합니다
+                            </div>
+                        </li>
+                        <li>SHA-1 인증서 지문은 <span class="text-slate-400">비워도 됩니다</span> (App Distribution에 불필요)</li>
+                        <li><span class="text-yellow-400">앱 등록</span> 클릭 → <strong class="text-green-400">google-services.json</strong> 다운로드 → Step 4에서 업로드</li>
+                        <li class="pl-4">
+                            <div class="mt-1 p-2 bg-slate-800/50 rounded border-l-4 border-emerald-500">
+                                <span class="text-emerald-400 font-bold text-[11px]">이후 SDK 설치 단계는 건너뛰세요</span>
+                                <div class="text-slate-500 text-[10px] mt-0.5">
+                                    "Firebase SDK 추가" · "다음 단계로 이동" 화면은 App Distribution만 쓸 경우 불필요합니다.
+                                </div>
+                            </div>
+                        </li>
+                        <li>좌측 하단 "톱니바퀴 → 프로젝트 설정"에서 <strong class="text-yellow-400">앱 ID</strong> (예: <code>1:905...:android:abc</code>) 복사 → Step 3에서 사용</li>
                     </ol>
                 </div>
 
                 <div class="bg-slate-700/50 border border-slate-600 rounded-lg p-4">
                     <p class="text-sm font-medium text-firebase-accent mb-2">3) App Distribution 활성화</p>
+                    <div class="mb-3 p-3 bg-red-900/30 border border-red-700 rounded">
+                        <p class="text-xs text-red-300 font-bold mb-1">⚠️ 이 단계를 건너뛰면 배포가 404로 실패합니다</p>
+                        <p class="text-[11px] text-slate-400">
+                            앱 등록과 권한 부여를 모두 마쳐도, App Distribution 자체를 활성화하지 않으면
+                            업로드 API가 <code class="text-slate-300">404 Requested entity was not found</code>를 반환합니다.
+                            권한 문제로 오인하기 쉬우니 반드시 확인하세요.
+                        </p>
+                    </div>
                     <ol class="text-xs text-slate-300 list-decimal list-inside space-y-1">
-                        <li>좌측 메뉴 → "출시 및 모니터링" → "App Distribution"</li>
-                        <li>"시작하기" 클릭 → 활성화 완료</li>
+                        <li>좌측 메뉴 → <span class="text-yellow-400">"출시 및 모니터링"</span> → <span class="text-yellow-400">"App Distribution"</span></li>
+                        <li><span class="text-green-400 font-bold">"시작하기"</span> 클릭 → 활성화 완료</li>
+                        <li>활성화되면 "테스터 및 그룹" 탭이 나타납니다 — 이게 성공 신호입니다</li>
                     </ol>
                 </div>
 
                 <div class="bg-slate-700/50 border border-slate-600 rounded-lg p-4">
                     <p class="text-sm font-medium text-firebase-accent mb-2">4) 테스터 그룹 생성</p>
                     <ol class="text-xs text-slate-300 list-decimal list-inside space-y-1">
-                        <li>App Distribution → 상단 탭 "테스터 및 그룹"</li>
-                        <li>"새 그룹" 클릭 → 그룹명 입력 (예: <code class="text-yellow-400">romrom</code>) → Step 3에서 사용</li>
-                        <li>그룹에 테스터 이메일 추가</li>
+                        <li>App Distribution → 상단 탭 <span class="text-yellow-400">"테스터 및 그룹"</span></li>
+                        <li>좌측 <span class="text-yellow-400">"그룹 추가"</span> 클릭 → 그룹명 입력 (예: <code class="text-yellow-400">testers</code>)</li>
+                        <li>그룹에 테스터 이메일 추가
+                            <div class="text-slate-500 text-[10px] mt-0.5">
+                                "모든 테스터"에만 추가하면 그룹 배포가 되지 않습니다. 반드시 <span class="text-slate-400">그룹 안에</span> 넣으세요.
+                            </div>
+                        </li>
                     </ol>
+                    <div class="mt-3 p-3 bg-red-900/30 border border-red-700 rounded">
+                        <p class="text-[11px] text-red-300 font-bold mb-1">⚠️ Step 3에 넣을 값은 "표시 이름"이 아니라 "그룹 별칭"입니다</p>
+                        <p class="text-[11px] text-slate-400">
+                            Firebase는 그룹을 만들 때 입력한 이름을 <span class="text-slate-300">소문자 별칭(alias)</span>으로 따로 저장합니다.
+                            배포에 쓰이는 값은 이 별칭입니다.
+                        </p>
+                        <div class="bg-slate-900 rounded p-2 mt-2 font-mono text-[10px]">
+                            <div class="text-slate-500">화면 표시 이름 : <span class="text-slate-400">AcmeTeam</span></div>
+                            <div class="text-slate-500">실제 별칭     : <span class="text-green-400">acmeteam</span>  ← 이 값을 사용</div>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-2">
+                            그룹을 클릭했을 때 주소창 URL 끝에 보이는 값이 별칭입니다.
+                            대소문자·공백이 다르면 <code class="text-slate-300">group not found</code>로 배포가 실패합니다.
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -217,6 +355,24 @@
                         <li>이름: <code class="text-yellow-400">firebase-app-distribution-uploader</code> (예시)</li>
                         <li>"만들고 계속하기" → 역할은 일단 비워도 OK → "완료"</li>
                     </ol>
+                    <div class="mt-3 p-3 bg-slate-800/50 rounded border-l-4 border-blue-500">
+                        <p class="text-[11px] text-blue-300 font-bold mb-1">💡 Firebase Console에서 받은 키도 쓸 수 있습니다</p>
+                        <p class="text-[11px] text-slate-400">
+                            Firebase Console → 프로젝트 설정 → <span class="text-slate-300">서비스 계정</span> 탭 →
+                            "새 비공개 키 생성"으로 받은 <code class="text-slate-300">firebase-adminsdk-*</code> 키도 사용 가능합니다.
+                        </p>
+                        <p class="text-[11px] text-red-300 mt-1">
+                            ⚠️ 단, 그 키에는 App Distribution 권한이 <span class="font-bold">자동 부여되지 않습니다.</span>
+                            아래 3번 IAM 단계를 반드시 수행하세요.
+                        </p>
+                    </div>
+                    <div class="mt-2 p-3 bg-slate-800/50 rounded border-l-4 border-orange-500">
+                        <p class="text-[11px] text-orange-300 font-bold mb-1">⚠️ 다른 프로젝트의 키는 재사용할 수 없습니다</p>
+                        <p class="text-[11px] text-slate-400">
+                            Play Store 배포용 키가 있어도 Firebase 프로젝트가 다르면 쓸 수 없습니다.
+                            Service Account는 소속 프로젝트에 종속되며, 다른 프로젝트 리소스에는 접근 권한이 없습니다.
+                        </p>
+                    </div>
                 </div>
 
                 <div class="bg-yellow-900/30 border border-yellow-700 rounded-lg p-4">
@@ -249,6 +405,26 @@
                         <label class="flex items-center gap-2"><input type="checkbox" class="accent-firebase-primary"> Service Account 생성 완료</label>
                         <label class="flex items-center gap-2"><input type="checkbox" class="accent-firebase-primary"> JSON 키 다운로드 완료 (저장 위치 확인)</label>
                         <label class="flex items-center gap-2"><input type="checkbox" class="accent-firebase-primary"> "Firebase App Distribution Admin" 역할 부여 완료</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" class="accent-firebase-primary"> App Distribution 활성화 완료 (Step 1의 3번)</label>
+                    </div>
+
+                    <div class="mt-3 pt-3 border-t border-slate-600">
+                        <p class="text-xs text-slate-300 font-medium mb-2">🔍 배포 전에 미리 확인하기 (권장)</p>
+                        <p class="text-[11px] text-slate-500 mb-2">
+                            아래 명령으로 실제 접근 권한을 확인할 수 있습니다. 여기서 실패하면 배포도 실패합니다.
+                        </p>
+                        <div class="bg-slate-900 rounded p-2 font-mono text-[10px] overflow-x-auto">
+                            <div class="text-slate-500"># gcloud CLI가 있는 경우</div>
+                            <div class="text-green-400 break-all">gcloud auth activate-service-account --key-file=키파일.json</div>
+                            <div class="text-green-400 break-all">gcloud projects get-iam-policy 프로젝트ID --flatten="bindings[].members" \</div>
+                            <div class="text-green-400 break-all">&nbsp;&nbsp;--filter="bindings.members:$(python3 -c "import json,sys;print(json.load(open('키파일.json'))['client_email'])")"</div>
+                        </div>
+                        <div class="mt-2 p-2 bg-slate-800/50 rounded text-[10px] text-slate-400">
+                            <div class="text-slate-300 mb-1">응답 코드로 원인 구분:</div>
+                            <div>• <code class="text-red-400">403 permission denied</code> → IAM 역할 미부여 (위 3번)</div>
+                            <div>• <code class="text-orange-400">404 not found</code> → App Distribution 미활성화 (Step 1의 3번)</div>
+                            <div>• <code class="text-green-400">200 OK</code> → 정상, 배포 가능</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -282,10 +458,14 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-2 text-slate-300">FIREBASE_TESTER_GROUP <span class="text-red-400">*</span></label>
-                    <input type="text" id="firebaseTesterGroupInput" placeholder="예: romrom"
+                    <input type="text" id="firebaseTesterGroupInput" placeholder="예: testers"
                         class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-sm font-mono focus:border-firebase-primary outline-none"
                         oninput="onFirebaseTesterGroupChange(this.value)">
-                    <p class="text-xs text-slate-500 mt-1">App Distribution → 테스터 및 그룹 → 그룹명</p>
+                    <p class="text-xs text-slate-500 mt-1">App Distribution → 테스터 및 그룹 → 그룹 별칭</p>
+                    <p class="text-xs text-red-400 mt-1">
+                        ⚠️ 화면에 보이는 표시 이름이 아니라 <span class="font-bold">소문자 별칭</span>입니다
+                        (예: 표시 <code class="text-slate-400">AcmeTeam</code> → 입력 <code class="text-green-400">acmeteam</code>)
+                    </p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-2 text-slate-300">프로젝트 경로 (setup 스크립트 실행 위치)</label>
@@ -305,12 +485,12 @@
                 </div>
 
                 <div id="osCmdBash" class="hidden">
-                    <pre class="bg-slate-900 rounded p-3 text-xs font-mono text-green-400 overflow-x-auto" id="cmdBashCode">./firebase-wizard-setup.sh --project-path . --app-id "" --tester-group ""</pre>
+                    <pre class="bg-slate-900 rounded p-3 text-xs font-mono text-green-400 overflow-x-auto" id="cmdBashCode">python3 .github/util/flutter/firebase-wizard/firebase-wizard.py setup --project-path . --app-id "" --tester-group ""</pre>
                     <button class="mt-2 px-3 py-1 bg-firebase-primary text-slate-900 rounded text-xs hover:opacity-90" onclick="copyCode(this)">복사</button>
                 </div>
 
                 <div id="osCmdPs" class="hidden">
-                    <pre class="bg-slate-900 rounded p-3 text-xs font-mono text-green-400 overflow-x-auto" id="cmdPsCode">.\firebase-wizard-setup.ps1 -ProjectPath . -AppId "" -TesterGroup ""</pre>
+                    <pre class="bg-slate-900 rounded p-3 text-xs font-mono text-green-400 overflow-x-auto" id="cmdPsCode">python .github\util\flutter\firebase-wizard\firebase-wizard.py setup --project-path . --app-id "" --tester-group ""</pre>
                     <button class="mt-2 px-3 py-1 bg-firebase-primary text-slate-900 rounded text-xs hover:opacity-90" onclick="copyCode(this)">복사</button>
                 </div>
             </div>
@@ -426,9 +606,9 @@
             <div class="bg-slate-700/50 border border-slate-600 rounded-lg p-4 mb-6">
                 <p class="text-sm font-medium text-blue-400 mb-3">📥 산출물 다운로드</p>
                 <div class="flex flex-wrap gap-2">
-                    <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded text-xs" onclick="exportJson()">📋 JSON</button>
-                    <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded text-xs" onclick="exportTxt()">📝 TXT</button>
-                    <button class="px-4 py-2 bg-firebase-primary text-slate-900 hover:opacity-90 rounded text-xs font-bold" onclick="exportZip()">📦 ZIP (setup 스크립트 포함, 권장)</button>
+                    <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded text-xs" onclick="downloadAsJson()">📋 JSON</button>
+                    <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded text-xs" onclick="downloadAsTxt()">📝 TXT</button>
+                    <button class="px-4 py-2 bg-firebase-primary text-slate-900 hover:opacity-90 rounded text-xs font-bold" onclick="downloadAsZip()">📦 ZIP (setup 스크립트 포함, 권장)</button>
                 </div>
             </div>
 
@@ -439,14 +619,39 @@
         </div>
 
         <footer class="text-center text-xs text-slate-500 mt-8">
-            Made with 🔥 Firebase | <a href="https://github.com/Cassiiopeia/SUH-DEVOPS-TEMPLATE" target="_blank" class="hover:text-slate-300">View on GitHub →</a>
+            Made with 🔥 Firebase | <a href="https://github.com/Cassiiopeia/projectops" target="_blank" class="hover:text-slate-300">View on GitHub →</a>
         </footer>
     </div>
 
     <!-- Toast -->
-    <div id="toast" class="toast"></div>
 
     <!-- JS -->
+    <!-- 변경 이력 모달 — 껍데기는 여기 소유, 내용은 공통 openChangelogModal()이 채운다 -->
+    <div id="changelogModal" class="modal-backdrop hidden" onclick="closeChangelogModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 500px;">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-firebase-primary to-firebase-accent flex items-center justify-center text-slate-900 text-lg">🔥</div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Changelog</h3>
+                        <p class="text-xs text-slate-400">Firebase App Distribution Setup Wizard</p>
+                    </div>
+                </div>
+                <button class="text-slate-400 hover:text-slate-200 hover:bg-slate-700 p-2 rounded-lg transition" onclick="closeChangelogModal()">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="changelogContent" class="space-y-4"></div>
+            <div class="mt-6 pt-4 border-t border-slate-700 flex justify-between items-center text-xs text-slate-500">
+                <span id="changelogLastUpdated"></span>
+                <a href="https://github.com/Cassiiopeia/projectops" target="_blank" class="text-firebase-accent hover:opacity-80 transition">View on GitHub →</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="../_shared/wizard-common.js"></script>
     <script src="firebase-wizard.js"></script>
 </body>
 </html>

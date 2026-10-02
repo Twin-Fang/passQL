@@ -11,6 +11,7 @@ const state = {
     currentStep: 1,
     totalSteps: 9,
     projectPath: '',
+    repoRoot: '',
     bundleId: '',
     teamId: '',
     profileName: '',
@@ -85,6 +86,7 @@ function restoreUIFromState() {
     // 입력 필드 복원
     const inputs = {
         'projectPath': state.projectPath,
+        'repoRoot': state.repoRoot,
         'bundleId': state.bundleId,
         'bundleId-confirm': state.bundleId,
         'teamId': state.teamId,
@@ -155,24 +157,6 @@ function restoreUIFromState() {
 // Security Warning
 // ============================================
 
-function showSecurityWarning() {
-    const dismissed = localStorage.getItem(STORAGE_WARNING_KEY);
-    if (!dismissed) {
-        const warning = document.getElementById('securityWarning');
-        if (warning) {
-            warning.classList.remove('hidden');
-        }
-    }
-}
-
-function closeSecurityWarning() {
-    const warning = document.getElementById('securityWarning');
-    if (warning) {
-        warning.classList.add('hidden');
-        localStorage.setItem(STORAGE_WARNING_KEY, 'true');
-    }
-}
-
 // ============================================
 // DOM Utility Functions
 // ============================================
@@ -185,40 +169,39 @@ function $$(selector) {
     return document.querySelectorAll(selector);
 }
 
-function getInputValue(id) {
-    const element = document.getElementById(id);
-    return element?.value?.trim() || '';
-}
+/**
+ * Team ID 실시간 검증.
+ * 복붙 중 마지막 글자가 누락된 9자리 입력이 잦은데, 그대로 Secret에 들어가면
+ * 빌드 서명 단계에서야 팀 불일치로 실패해 원인 추적이 어렵다. 입력 시점에 잡는다.
+ */
+function validateTeamId(input) {
+    const warning = document.getElementById('teamId-warning');
+    if (!warning) return;
 
-function setElementText(id, text) {
-    const element = document.getElementById(id);
-    if (element) {
-        element.textContent = text;
+    const value = (input.value || '').trim().toUpperCase();
+    input.value = value;
+
+    // 미입력 상태에서는 경고를 띄우지 않는다 (입력 전부터 빨간 글씨는 노이즈)
+    if (value.length === 0) {
+        warning.className = 'text-xs mt-1 hidden';
+        return;
     }
-}
 
-function setElementHtml(id, html) {
-    const element = document.getElementById(id);
-    if (element) {
-        element.innerHTML = html;
+    if (value.length < 10) {
+        warning.textContent = `⚠️ ${value.length}자리 - Team ID는 10자리입니다. 마지막 글자가 빠지지 않았는지 확인하세요.`;
+        warning.className = 'text-xs mt-1 text-red-400';
+    } else if (!/^[A-Z0-9]{10}$/.test(value)) {
+        warning.textContent = '⚠️ Team ID는 영문 대문자와 숫자 10자리입니다.';
+        warning.className = 'text-xs mt-1 text-red-400';
+    } else {
+        warning.textContent = '✅ 형식이 올바릅니다';
+        warning.className = 'text-xs mt-1 text-green-400';
     }
 }
 
 // ============================================
 // File Upload & Base64 Conversion
 // ============================================
-
-function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            const base64 = reader.result.split(',')[1];
-            resolve(base64);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-}
 
 // .p12 파일 업로드
 async function handleP12Upload(event) {
@@ -303,30 +286,6 @@ async function handleP8File(file) {
     }
 }
 
-// Drag & Drop 설정
-function setupDragAndDrop() {
-    document.querySelectorAll('.file-upload').forEach(el => {
-        el.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            el.classList.add('dragover');
-        });
-
-        el.addEventListener('dragleave', () => {
-            el.classList.remove('dragover');
-        });
-
-        el.addEventListener('drop', (e) => {
-            e.preventDefault();
-            el.classList.remove('dragover');
-            const file = e.dataTransfer.files[0];
-
-            if (el.id === 'p12-upload') handleP12File(file);
-            if (el.id === 'provision-upload') handleProvisionFile(file);
-            if (el.id === 'p8-upload') handleP8File(file);
-        });
-    });
-}
-
 // ============================================
 // Folder Selection (File System Access API)
 // ============================================
@@ -335,15 +294,21 @@ async function selectProjectFolder() {
     if ('showDirectoryPicker' in window) {
         try {
             const dirHandle = await window.showDirectoryPicker();
-            const projectPath = dirHandle.name;
+            const folderName = dirHandle.name;
 
-            const input = document.getElementById('projectPath');
-            if (input) {
-                input.value = `선택된 폴더: ${projectPath} (터미널에서 실제 경로를 사용하세요)`;
-                input.placeholder = '선택된 폴더를 확인하고 실제 경로를 입력하세요';
+            // 브라우저는 보안상 절대경로를 주지 않는다 (폴더명만 얻을 수 있음).
+            // 입력칸에 안내문을 써넣으면 실제 경로를 덮어써 폴백(/path/to/project)이 나가므로,
+            // 입력칸은 건드리지 않고 힌트 영역에만 폴더명을 표시한다.
+            const hint = document.getElementById('projectPath-hint');
+            if (hint) {
+                hint.innerHTML = `선택한 폴더: <span class="text-yellow-400 font-mono">${folderName}</span> — 아래 칸에 이 폴더의 <span class="text-yellow-400">절대경로</span>를 입력하세요 (터미널에서 <code class="text-slate-300">pwd</code>)`;
+                hint.classList.remove('hidden');
             }
 
-            showToast(`폴더 "${projectPath}" 선택됨`);
+            const input = document.getElementById('projectPath');
+            if (input) input.focus();
+
+            showToast(`폴더 "${folderName}" 선택됨 - 절대경로를 입력해주세요`);
         } catch (err) {
             if (err.name !== 'AbortError') {
                 console.error('폴더 선택 오류:', err);
@@ -360,71 +325,6 @@ async function selectProjectFolder() {
 // ============================================
 // Clipboard Functions
 // ============================================
-
-async function copyToClipboard(text) {
-    try {
-        await navigator.clipboard.writeText(text);
-        showToast('클립보드에 복사되었습니다!');
-        return true;
-    } catch (err) {
-        // Fallback
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        showToast('클립보드에 복사되었습니다!');
-        return true;
-    }
-}
-
-function copyCode(button) {
-    const codeBlock = button.closest('.code-block');
-    const pre = codeBlock?.querySelector('pre');
-    if (!pre) return;
-
-    const text = pre.textContent || '';
-
-    navigator.clipboard.writeText(text).then(() => {
-        const originalText = button.textContent;
-        button.textContent = '복사됨!';
-        button.classList.add('bg-green-600');
-        setTimeout(() => {
-            button.textContent = originalText;
-            button.classList.remove('bg-green-600');
-        }, 2000);
-    }).catch(() => {
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        showToast('복사되었습니다!');
-    });
-}
-
-function showToast(message) {
-    const existingToast = document.querySelector('.toast');
-    if (existingToast) {
-        existingToast.remove();
-    }
-
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-        toast.classList.add('show');
-    }, 10);
-
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
 
 // ============================================
 // Navigation Functions
@@ -618,6 +518,7 @@ function resetWizard() {
     if (confirm('모든 데이터를 초기화하시겠습니까?')) {
         state.currentStep = 1;
         state.projectPath = '';
+        state.repoRoot = '';
         state.bundleId = '';
         state.teamId = '';
         state.profileName = '';
@@ -633,7 +534,7 @@ function resetWizard() {
         clearState();
 
         // UI 초기화
-        const inputs = ['projectPath', 'bundleId', 'bundleId-confirm', 'teamId', 'profileName', 'profileName-confirm', 'appName', 'p12-password', 'api-key-id', 'issuer-id'];
+        const inputs = ['projectPath', 'repoRoot', 'bundleId', 'bundleId-confirm', 'teamId', 'profileName', 'profileName-confirm', 'appName', 'p12-password', 'api-key-id', 'issuer-id'];
         inputs.forEach(id => {
             const input = document.getElementById(id);
             if (input) input.value = '';
@@ -669,8 +570,20 @@ function saveCurrentStepData() {
         case 1:
             // Step 1: 시작하기 - 프로젝트 경로
             state.projectPath = getInputValue('projectPath');
+            // 구버전이 입력칸에 써넣던 안내문이 남아 있으면 경로로 쓰지 않는다
             if (state.projectPath.startsWith('선택된 폴더:')) {
                 state.projectPath = '';
+            }
+            // 상대경로는 Step 8 명령어에서 cd 실패로 이어지므로 미리 걸러낸다
+            if (state.projectPath && !isAbsolutePath(state.projectPath)) {
+                showToast('절대경로를 입력해주세요 (예: /Users/이름/projects/myapp)');
+                state.projectPath = '';
+            }
+            // 모노레포에서만 채우는 선택 입력 — 비어 있으면 Flutter 루트를 그대로 쓴다
+            state.repoRoot = getInputValue('repoRoot');
+            if (state.repoRoot && !isAbsolutePath(state.repoRoot)) {
+                showToast('레포 루트도 절대경로로 입력해주세요');
+                state.repoRoot = '';
             }
             break;
         case 2:
@@ -716,13 +629,37 @@ function saveCurrentStepData() {
 // ============================================
 
 function generateInitCommand() {
-    const projectPath = state.projectPath || '/path/to/project';
+    // 경로 미입력 시 placeholder가 그대로 나가면 cd 실패로 이어진다.
+    // 명령어를 감추는 대신 배너로 무엇을 채워야 하는지 알린다.
+    const pathMissing = !state.projectPath;
+    const projectPath = state.projectPath || '<<Step 1에서 프로젝트 절대경로를 입력하세요>>';
     const bundleId = state.bundleId || 'com.example.app';
     const teamId = state.teamId || 'TEAM_ID';
     const profileName = state.profileName || 'Profile Name';
     const usesNonExemptEncryption = state.encryptionType === 'standard' ? 'true' : 'false';
 
-    const cmd = `cd "${projectPath}" && bash ".github/util/flutter/testflight-wizard/testflight-wizard-setup.sh" "${projectPath}" "${bundleId}" "${teamId}" "${profileName}" "${usesNonExemptEncryption}"`;
+    const warning = document.getElementById('initCmd-warning');
+    if (warning) {
+        warning.classList.toggle('hidden', !pathMissing);
+    }
+
+    // 스크립트(.github/...)는 레포 루트 기준인데 pubspec.yaml은 Flutter 루트 기준이다.
+    // 모노레포(예: repo/client/)에서는 두 위치가 달라, cd 지점을 레포 루트로 잡고
+    // Flutter 루트는 인자로 따로 넘겨야 양쪽 다 해결된다.
+    const repoRoot = state.repoRoot || projectPath;
+    const isMonorepo = !!state.repoRoot && state.repoRoot !== state.projectPath;
+
+    const monoNote = document.getElementById('initCmd-mono');
+    if (monoNote) {
+        monoNote.classList.toggle('hidden', !isMonorepo);
+    }
+    const isWindows = /^[A-Za-z]:[\\/]/.test(repoRoot);
+    const python = isWindows ? 'python' : 'python3';
+    const scriptPath = isWindows
+        ? '.github\\util\\flutter\\testflight-wizard\\testflight-wizard.py'
+        : '.github/util/flutter/testflight-wizard/testflight-wizard.py';
+
+    const cmd = `cd "${repoRoot}" && ${python} "${scriptPath}" setup "${projectPath}" "${bundleId}" "${teamId}" "${profileName}" "${usesNonExemptEncryption}"`;
     setElementText('initCmd', cmd);
 }
 
@@ -800,7 +737,7 @@ function downloadAsJson() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast('✅ JSON 파일 다운로드 완료!');
+    showToast('✅ JSON 파일 다운로드 완료! Secret 등록 후 이 파일은 반드시 삭제하세요.');
 }
 
 function downloadAsTxt() {
@@ -865,7 +802,7 @@ function downloadAsTxt() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast('✅ TXT 파일 다운로드 완료!');
+    showToast('✅ TXT 파일 다운로드 완료! Secret 등록 후 이 파일은 반드시 삭제하세요.');
 }
 
 // ============================================
@@ -925,11 +862,6 @@ function copyAllSecrets() {
 // ZIP Export Functions
 // ============================================
 
-function getDateString() {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-}
-
 function generateReadme() {
     return `# iOS TestFlight 배포 설정 백업
 
@@ -961,10 +893,12 @@ Team ID: ${state.teamId || '(미설정)'}
 1. GitHub 저장소 → Settings → Secrets and variables → Actions
 2. \`github-secrets/\` 폴더 내 각 파일의 내용을 Secret으로 등록
 3. Secret 이름은 파일명에서 .txt를 제외한 이름 사용
+4. Secret 등록이 끝나면 다운로드한 github-secrets 파일과 폴더를 반드시 삭제하세요. 인증서와 키가 그대로 들어 있습니다
 
 ## ⚠️ 주의사항
 
 - 이 파일들에는 민감한 정보가 포함되어 있습니다
+- Secret 등록이 끝나면 github-secrets 파일을 삭제하세요. 인증서와 키가 그대로 들어 있습니다
 - 안전한 장소에 보관하고, Git에 커밋하지 마세요
 - 필요한 경우 암호화하여 보관하세요
 `;
@@ -1375,70 +1309,6 @@ window.addEventListener('beforeunload', (e) => {
 // Changelog Modal Functions
 // ============================================
 
-// 버전 정보는 index.html의 <script id="versionJson"> 에서 로드
-function getVersionData() {
-    const scriptEl = document.getElementById('versionJson');
-    if (scriptEl) {
-        try {
-            return JSON.parse(scriptEl.textContent);
-        } catch (e) {
-            console.error('버전 정보 파싱 실패:', e);
-        }
-    }
-    return null;
-}
-
-function openChangelogModal() {
-    const modal = document.getElementById('changelogModal');
-    const content = document.getElementById('changelogContent');
-    const lastUpdated = document.getElementById('changelogLastUpdated');
-
-    const data = getVersionData();
-    if (!data) {
-        content.innerHTML = '<div class="text-center text-red-400 py-4">버전 정보를 불러올 수 없습니다.</div>';
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-        return;
-    }
-
-    // Build changelog HTML (simple timeline without color dots)
-    let html = '';
-    data.changelog.forEach((release, index) => {
-        const isLatest = index === 0;
-
-        html += `
-            <div class="pb-4 ${index < data.changelog.length - 1 ? 'border-b border-slate-700 mb-4' : ''}">
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="text-white font-semibold">v${release.version}</span>
-                    ${isLatest ? '<span class="px-2 py-0.5 text-xs bg-blue-500/20 text-blue-400 rounded-full">Latest</span>' : ''}
-                    <span class="text-slate-500 text-xs">${release.date}</span>
-                </div>
-                <ul class="space-y-1.5 pl-2">
-                    ${release.changes.map(change => `
-                        <li class="text-sm text-slate-400 flex items-start gap-2">
-                            <span class="text-slate-600 mt-1">•</span>
-                            <span>${change}</span>
-                        </li>
-                    `).join('')}
-                </ul>
-            </div>
-        `;
-    });
-
-    content.innerHTML = html;
-    lastUpdated.textContent = `Last updated: ${data.lastUpdated}`;
-
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeChangelogModal(event) {
-    if (event && event.target !== event.currentTarget) return;
-    const modal = document.getElementById('changelogModal');
-    modal.classList.add('hidden');
-    document.body.style.overflow = '';
-}
-
 // ESC 키로 changelog 모달도 닫기
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
@@ -1466,45 +1336,6 @@ const TEXT_EXTENSIONS = ['.json', '.yml', '.yaml', '.env', '.txt', '.xml', '.pli
 
 // 바이너리 파일 확장자 (Base64 인코딩 - echo $SECRET | base64 -d 로 사용)
 const BINARY_EXTENSIONS = ['.jks', '.keystore', '.p12', '.mobileprovision', '.p8', '.cer', '.pfx', '.pem', '.der', '.key', '.crt'];
-
-/**
- * 파일 확장자로 파일 타입 결정
- * @param {string} fileName 파일명
- * @returns {'text' | 'binary'} 파일 타입
- */
-function getFileType(fileName) {
-    const lowerName = fileName.toLowerCase();
-    // .env로 시작하는 파일은 텍스트로 처리 (.env.production, .env.local 등)
-    if (lowerName === '.env' || lowerName.startsWith('.env.')) return 'text';
-
-    const ext = '.' + fileName.split('.').pop().toLowerCase();
-    if (TEXT_EXTENSIONS.includes(ext)) return 'text';
-    if (BINARY_EXTENSIONS.includes(ext)) return 'binary';
-    // 알 수 없는 확장자는 바이너리로 처리 (안전)
-    return 'binary';
-}
-
-/**
- * 파일명으로 키 이름 자동 생성
- * @param {string} fileName 파일명
- * @param {'text' | 'binary'} fileType 파일 타입
- * @returns {string} GitHub Secrets 키 이름
- */
-function generateKeyName(fileName, fileType) {
-    // 파일명에서 확장자 제거 후 대문자+언더스코어로 변환
-    const baseName = fileName
-        .replace(/\.[^/.]+$/, '')  // 확장자 제거
-        .toUpperCase()
-        .replace(/[^A-Z0-9]/g, '_')
-        .replace(/_+/g, '_')
-        .replace(/^_|_$/g, '');  // 앞뒤 언더스코어 제거
-
-    // 바이너리 파일만 _BASE64 접미사 추가
-    if (fileType === 'binary') {
-        return baseName + '_BASE64';
-    }
-    return baseName;
-}
 
 /**
  * 파일을 타입에 따라 처리
@@ -1624,17 +1455,6 @@ function copyCustomSecretValue(index) {
             showToast('❌ 클립보드 복사 실패');
         });
     }
-}
-
-/**
- * HTML 이스케이프 (XSS 방지)
- * @param {string} text 이스케이프할 텍스트
- * @returns {string} 이스케이프된 텍스트
- */
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
 }
 
 /**

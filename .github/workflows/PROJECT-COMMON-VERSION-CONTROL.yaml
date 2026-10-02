@@ -3,8 +3,14 @@
 # 버전 자동 관리 워크플로우 v2.1
 # ===================================================================
 #
-# 이 워크플로우는 다양한 프로젝트 타입에서 main 브랜치에 푸시될 때마다
+# [안전망] main(프로덕션)에 릴리스 PR을 거치지 않은 직접 push가 발생했을 때만
 # patch 버전을 자동으로 증가시키고 모든 관련 파일을 동기화합니다.
+# 정상 릴리스(develop→main PR)의 버전 증가는 RELEASE-CHANGELOG이 머지 전에 수행하며,
+# 그 머지 push는 version.yml 변경을 포함하므로 이 워크플로우는 가드에 의해 건너뜁니다.
+#
+# [의도적] 이 안전망은 semver 자동 승격(options.semver_auto, #546)을 적용하지 않고 항상 patch입니다.
+# 릴리스 PR을 거치지 않은 비권장 경로라 커밋 제목의 컨벤션 준수를 신뢰할 수 없기 때문입니다.
+# 커밋 기반 major/minor 승격은 RELEASE-CHANGELOG(정상 릴리스 경로)에서만 일어납니다.
 #
 # ===================================================================
 # 주요 개선사항:
@@ -26,7 +32,7 @@
 
 name: PROJECT-VERSION-CONTROL
 
-# 동시 실행 방지 (https://github.com/Cassiiopeia/SUH-DEVOPS-TEMPLATE/issues/63)
+# 동시 실행 방지 (https://github.com/Cassiiopeia/projectops/issues/63)
 concurrency:
   group: version-increment
   cancel-in-progress: false
@@ -56,13 +62,33 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.repository.default_branch || 'main' }}
 
+      - name: 릴리스 머지 여부 확인 (안전망 가드)
+        id: release_guard
+        run: |
+          BEFORE="${{ github.event.before }}"
+          # 브랜치 신규 생성(zero SHA)·강제 push 등으로 BEFORE가 없으면 직전 커밋 1개만 검사
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BEFORE" 2>/dev/null; then
+            RANGE="HEAD^..HEAD"
+          else
+            RANGE="$BEFORE..HEAD"
+          fi
+          if git diff --name-only $RANGE 2>/dev/null | grep -qx "version.yml"; then
+            echo "is_release_merge=true" >> $GITHUB_OUTPUT
+            echo "✅ 릴리스 머지 감지 (push에 version.yml 변경 포함) — 버전 증가 건너뜀"
+          else
+            echo "is_release_merge=false" >> $GITHUB_OUTPUT
+            echo "⚠️ main 직접 push 감지 — 안전망 버전 증가 실행"
+          fi
+
       - name: 버전 관리 스크립트 권한 설정
+        if: steps.release_guard.outputs.is_release_merge != 'true'
         run: |
           chmod +x .github/scripts/version_manager.sh
           echo "버전 관리 스크립트 권한 설정 완료"
 
       - name: 현재 버전 확인 및 동기화
         id: current_version
+        if: steps.release_guard.outputs.is_release_merge != 'true'
         run: |
           echo "🔍 현재 버전 확인 및 동기화 중..."
           CURRENT_VERSION=$(./.github/scripts/version_manager.sh get | tail -n 1)
@@ -75,6 +101,7 @@ jobs:
 
       - name: 새 버전 계산 및 업데이트
         id: version
+        if: steps.release_guard.outputs.is_release_merge != 'true'
         run: |
           echo "⬆️ 패치 버전 증가 중..."
           NEW_VERSION=$(./.github/scripts/version_manager.sh increment | tail -n 1)
@@ -87,11 +114,14 @@ jobs:
 
       - name: 프로젝트 타입 확인
         id: project_info
+        if: steps.release_guard.outputs.is_release_merge != 'true'
         run: |
           if [ -f "version.yml" ]; then
-            PROJECT_TYPE=$(grep "^project_type:" version.yml | sed 's/project_type: *"\([^"]*\)".*/\1/')
-            # 멀티타입 — project_types 배열을 csv로 추출, 없으면 단수 키 fallback
+            # 멀티타입 — project_types 배열을 csv로 추출 (v4.1.0 SSOT: 단수 project_type 키는 읽지 않음)
             PROJECT_TYPES=$(grep "^project_types:" version.yml 2>/dev/null | sed -E 's/.*\[([^]]*)\].*/\1/' | tr -d '" ' || echo "")
+            # primary 타입 = 배열 첫 항목
+            PROJECT_TYPE=$(echo "$PROJECT_TYPES" | cut -d',' -f1)
+            [ -z "$PROJECT_TYPE" ] && PROJECT_TYPE="unknown"
             [ -z "$PROJECT_TYPES" ] && PROJECT_TYPES="$PROJECT_TYPE"
             echo "project_type=$PROJECT_TYPE" >> $GITHUB_OUTPUT
             echo "project_types=$PROJECT_TYPES" >> $GITHUB_OUTPUT
@@ -103,6 +133,7 @@ jobs:
           fi
 
       - name: 변경사항 확인 및 커밋
+        if: steps.release_guard.outputs.is_release_merge != 'true'
         run: |
           echo "📝 Git 설정 및 변경사항 확인 중..."
           git config --local user.email "action@github.com"
@@ -158,12 +189,24 @@ jobs:
           fi
 
       - name: Git 태그 생성
+        if: steps.release_guard.outputs.is_release_merge != 'true'
         run: |
           NEW_VERSION="${{ steps.version.outputs.new_version }}"
+
+          # 버전이 비면 이름이 "v" 뿐인 태그가 올라가고 성공으로 보고된다 (#545).
+          if [ -z "$NEW_VERSION" ]; then
+            echo "::error::릴리스 버전이 비어 있습니다 — 태그를 만들지 않고 중단합니다."
+            exit 1
+          fi
+          if ! printf '%s' "$NEW_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
+            echo "::error::릴리스 버전이 semver 모양이 아닙니다: '$NEW_VERSION'"
+            exit 1
+          fi
+
           TAG_NAME="v$NEW_VERSION"
-          
+
           echo "🏷️ Git 태그 생성 중: $TAG_NAME"
-          
+
           # 기존 태그 확인
           if git tag -l | grep -q "^$TAG_NAME$"; then
             echo "⚠️ 태그 $TAG_NAME이 이미 존재합니다. 건너뛰기."
@@ -174,6 +217,13 @@ jobs:
               echo "❌ 태그 생성 실패: $TAG_NAME"
               exit 1
             fi
+          fi
+
+          # 실제로 원격에 올라갔는지 본다 — push 가 조용히 실패하면
+          # 전부 초록불인데 태그만 없는 상태가 된다 (#545 의 실사고).
+          if ! git ls-remote --tags origin "refs/tags/$TAG_NAME" | grep -q "$TAG_NAME"; then
+            echo "::error::태그 $TAG_NAME 가 원격에 없습니다 — 릴리스가 누락됐습니다."
+            exit 1
           fi
 
       - name: 버전 업데이트 완료 요약
@@ -188,7 +238,7 @@ jobs:
           echo "  🆙 새 버전: ${{ steps.version.outputs.new_version }}"
           echo "  🔖 Git 태그: v${{ steps.version.outputs.new_version }}"
           echo "  📝 커밋: ${{ github.sha }}"
-          echo "  🌿 브랜치: ${{ github.ref_name }}"
+          echo "  🌿 브랜치: $GITHUB_REF_NAME"
           echo "  🕐 시간: $(date '+%Y-%m-%d %H:%M:%S UTC')"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo ""

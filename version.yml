@@ -38,7 +38,6 @@
 version: "0.0.204"
 version_code: 204 # app build number
 project_types: ["spring", "flutter", "react", "python"] # 멀티타입 배열 — 첫 항목이 primary, 직접 편집 가능
-project_type: "spring" # project_types[0] 자동 미러 — 직접 수정 금지 (spring, flutter, next, react, react-native, react-native-expo, node, python, basic)
 project_paths: # 타입별 프로젝트 폴더 (레포 루트 기준 상대경로)
   spring: "server" # server/build.gradle
   flutter: "app" # app/pubspec.yaml

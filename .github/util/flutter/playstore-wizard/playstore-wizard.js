@@ -9,28 +9,34 @@
 
 let detectedOS = 'mac'; // 기본값: Mac
 
-function detectOS() {
-    const userAgent = navigator.userAgent || navigator.appVersion || navigator.platform;
-    
-    if (/Win/i.test(userAgent)) {
-        return 'windows';
-    } else if (/Mac/i.test(userAgent)) {
-        return 'mac';
-    } else if (/Linux/i.test(userAgent)) {
-        return 'linux';
-    }
-    return 'mac'; // 기본값: Mac
-}
-
 // ============================================
 // State Management
 // ============================================
+
+/**
+ * 마법사 스크립트(.github/util/...)는 레포 루트 기준인데
+ * pubspec.yaml은 Flutter 루트 기준이다. 모노레포(repo/client 등)에서는
+ * 두 위치가 달라 cd 대상과 인자를 분리해야 한다.
+ */
+function getRepoRoot() {
+    return state.repoRoot || state.projectPath || '/path/to/your/project';
+}
+
+
+/** 레포 루트 입력 시 state 반영 + 명령어 갱신 (모노레포에서만 채운다) */
+function onRepoRootInput(el) {
+    const v = (el.value || '').trim();
+    state.repoRoot = v;
+    saveState();
+    if (typeof updateCommandsForOS === 'function') updateCommandsForOS();
+}
 
 const state = {
     currentStep: 1,
     maxReachedStep: 1, // 도달한 최대 단계 (이전 단계로 돌아가도 유지)
     totalSteps: 7, // Step 1~7 (프로젝트, Keystore, AAB 빌드, 앱 생성, AAB 업로드, Service Account, 완료)
     projectPath: '',
+    repoRoot: '',      // 모노레포: .github가 있는 레포 루트 (비면 projectPath와 동일)
     detectedOS: 'mac', // OS 감지 결과
     // Project Info
     applicationId: '',
@@ -126,6 +132,7 @@ function restoreUIFromState() {
     // 입력 필드 복원
     const inputs = {
         'projectPath': state.projectPath,
+        'repoRoot': state.repoRoot,
         'applicationId': state.applicationId,
         'keyAlias': state.keyAlias,
         'storePassword': state.storePassword,
@@ -224,24 +231,6 @@ function restoreUIFromState() {
 // Security Warning
 // ============================================
 
-function showSecurityWarning() {
-    const dismissed = localStorage.getItem(STORAGE_WARNING_KEY);
-    if (!dismissed) {
-        const warning = document.getElementById('securityWarning');
-        if (warning) {
-            warning.classList.remove('hidden');
-        }
-    }
-}
-
-function closeSecurityWarning() {
-    const warning = document.getElementById('securityWarning');
-    if (warning) {
-        warning.classList.add('hidden');
-        localStorage.setItem(STORAGE_WARNING_KEY, 'true');
-    }
-}
-
 // ============================================
 // DOM Utility Functions
 // ============================================
@@ -254,40 +243,9 @@ function $$(selector) {
     return document.querySelectorAll(selector);
 }
 
-function getInputValue(id) {
-    const element = document.getElementById(id);
-    return element?.value?.trim() || '';
-}
-
-function setElementText(id, text) {
-    const element = document.getElementById(id);
-    if (element) {
-        element.textContent = text;
-    }
-}
-
-function setElementHtml(id, html) {
-    const element = document.getElementById(id);
-    if (element) {
-        element.innerHTML = html;
-    }
-}
-
 // ============================================
 // File Upload & Base64 Conversion
 // ============================================
-
-function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            const base64 = reader.result.split(',')[1];
-            resolve(base64);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-}
 
 // Keystore 파일 업로드
 async function handleKeystoreUpload(input) {
@@ -389,30 +347,6 @@ function handleGoogleServicesUpload(input) {
         showToast('✅ google-services.json 업로드 완료');
     };
     reader.readAsText(file);
-}
-
-// Drag & Drop 설정
-function setupDragAndDrop() {
-    document.querySelectorAll('.file-upload').forEach(el => {
-        el.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            el.classList.add('dragover');
-        });
-
-        el.addEventListener('dragleave', () => {
-            el.classList.remove('dragover');
-        });
-
-        el.addEventListener('drop', (e) => {
-            e.preventDefault();
-            el.classList.remove('dragover');
-            const input = el.querySelector('input');
-            if (input && e.dataTransfer.files.length > 0) {
-                input.files = e.dataTransfer.files;
-                input.dispatchEvent(new Event('change'));
-            }
-        });
-    });
 }
 
 // ============================================
@@ -552,7 +486,7 @@ function updateCommandsForOS() {
         }
         
         if (windowsCommandEl) {
-            windowsCommandEl.textContent = `cd "${winPath}"; powershell -ExecutionPolicy Bypass -File .github\\util\\flutter\\playstore-wizard\\playstore-wizard-setup.ps1`;
+            windowsCommandEl.textContent = `cd "${toWinPath(getRepoRoot())}"; python .github\\util\\flutter\\playstore-wizard\\playstore-wizard.py setup`;
         }
         
         // Windows 사용자에게 관리자 권한 안내 표시
@@ -578,7 +512,7 @@ function updateCommandsForOS() {
         }
         
         if (macCommandEl) {
-            macCommandEl.textContent = `cd "${unixPath}" && bash .github/util/flutter/playstore-wizard/playstore-wizard-setup.sh`;
+            macCommandEl.textContent = `cd "${getRepoRoot()}" && python3 .github/util/flutter/playstore-wizard/playstore-wizard.py setup`;
         }
     }
 }
@@ -608,50 +542,6 @@ function updateOSBadge() {
 // Clipboard Functions
 // ============================================
 
-async function copyToClipboard(text) {
-    try {
-        await navigator.clipboard.writeText(text);
-        showToast('클립보드에 복사되었습니다!');
-        return true;
-    } catch (err) {
-        // Fallback
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        showToast('클립보드에 복사되었습니다!');
-        return true;
-    }
-}
-
-function copyCode(button) {
-    const codeBlock = button.closest('.code-block');
-    const pre = codeBlock?.querySelector('pre');
-    if (!pre) return;
-
-    const text = pre.textContent || '';
-
-    navigator.clipboard.writeText(text).then(() => {
-        const originalText = button.textContent;
-        button.textContent = '복사됨!';
-        button.classList.add('bg-green-600');
-        setTimeout(() => {
-            button.textContent = originalText;
-            button.classList.remove('bg-green-600');
-        }, 2000);
-    }).catch(() => {
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        showToast('복사되었습니다!');
-    });
-}
-
 function copySecret(name) {
     const value = state[name] || '';
     if (!value) {
@@ -662,27 +552,6 @@ function copySecret(name) {
     navigator.clipboard.writeText(value).then(() => {
         showToast(`✅ ${name} 복사 완료!`);
     });
-}
-
-function showToast(message) {
-    const existingToast = document.querySelector('.toast');
-    if (existingToast) {
-        existingToast.remove();
-    }
-
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-        toast.classList.add('show');
-    }, 10);
-
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
 }
 
 // ============================================
@@ -887,6 +756,7 @@ cd "${winPath}"; flutter build appbundle --release`;
 function restoreInputValues() {
     const inputs = {
         'projectPath': state.projectPath,
+        'repoRoot': state.repoRoot,
         'keyAlias': state.keyAlias,
         'storePassword': state.storePassword,
         'keyPassword': state.keyPassword,
@@ -1013,7 +883,7 @@ function resetWizard() {
         }
 
         // UI 초기화
-        const inputs = ['projectPath', 'applicationId', 'keyAlias', 'storePassword', 'keyPassword', 'certCN', 'certO', 'certL', 'certC', 'envFileContent', 'scriptOutput'];
+        const inputs = ['projectPath', 'repoRoot', 'applicationId', 'keyAlias', 'storePassword', 'keyPassword', 'certCN', 'certO', 'certL', 'certC', 'envFileContent', 'scriptOutput'];
         inputs.forEach(id => {
             const input = document.getElementById(id);
             if (input) {
@@ -1028,7 +898,7 @@ function resetWizard() {
         // Application ID 입력 필드 placeholder 복원
         const applicationIdInput = document.getElementById('applicationId');
         if (applicationIdInput) {
-            applicationIdInput.placeholder = '예: com.example.app 또는 kr.suhsaechan.suh_devops_template';
+            applicationIdInput.placeholder = '예: kr.mycompany.myapp';
         }
         
         // 유효기간 초기화
@@ -1166,7 +1036,7 @@ function generateSetupCommand() {
             return str.replace(/"/g, '`"').replace(/\$/g, '`$');
         };
         
-        cmd = `cd "${winPath}"; powershell -ExecutionPolicy Bypass -File .github\\util\\flutter\\playstore-wizard\\playstore-wizard-setup.ps1 "${escapePowerShell(winPath)}" "${escapePowerShell(applicationId)}" "${escapePowerShell(keyAlias)}" "${escapePowerShell(storePassword)}" "${escapePowerShell(keyPassword)}" "${validityDays}" "${escapePowerShell(certCN)}" "${escapePowerShell(certO)}" "${escapePowerShell(certL)}" "${certC}"`;
+        cmd = `cd "${toWinPath(getRepoRoot())}"; python .github\\util\\flutter\\playstore-wizard\\playstore-wizard.py setup "${escapePowerShell(winPath)}" "${escapePowerShell(applicationId)}" "${escapePowerShell(keyAlias)}" "${escapePowerShell(storePassword)}" "${escapePowerShell(keyPassword)}" "${validityDays}" "${escapePowerShell(certCN)}" "${escapePowerShell(certO)}" "${escapePowerShell(certL)}" "${certC}"`;
     } else {
         // Mac/Linux Bash 명령어
         // 특수문자 이스케이프 처리
@@ -1174,7 +1044,7 @@ function generateSetupCommand() {
             return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\$/g, '\\$');
         };
         
-        cmd = `cd "${projectPath}" && bash .github/util/flutter/playstore-wizard/playstore-wizard-setup.sh "${escapeBash(projectPath)}" "${escapeBash(applicationId)}" "${escapeBash(keyAlias)}" "${escapeBash(storePassword)}" "${escapeBash(keyPassword)}" "${validityDays}" "${escapeBash(certCN)}" "${escapeBash(certO)}" "${escapeBash(certL)}" "${certC}"`;
+        cmd = `cd "${getRepoRoot()}" && python3 .github/util/flutter/playstore-wizard/playstore-wizard.py setup "${escapeBash(projectPath)}" "${escapeBash(applicationId)}" "${escapeBash(keyAlias)}" "${escapeBash(storePassword)}" "${escapeBash(keyPassword)}" "${validityDays}" "${escapeBash(certCN)}" "${escapeBash(certO)}" "${escapeBash(certL)}" "${certC}"`;
     }
 
     const setupCmdEl = document.getElementById('setupCmd');
@@ -1224,12 +1094,12 @@ function generateApplicationIdDetectionCommand(projectPath) {
         const escapePowerShell = (str) => {
             return str.replace(/"/g, '`"').replace(/\$/g, '`$');
         };
-        cmd = `cd "${winPath}"; powershell -ExecutionPolicy Bypass -File .github\\util\\flutter\\playstore-wizard\\detect-application-id.ps1 "${escapePowerShell(winPath)}"`;
+        cmd = `cd "${toWinPath(getRepoRoot())}"; python .github\\util\\flutter\\playstore-wizard\\playstore-wizard.py detect-app-id "${escapePowerShell(winPath)}"`;
     } else {
         const escapeBash = (str) => {
             return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\$/g, '\\$');
         };
-        cmd = `cd "${projectPath}" && bash .github/util/flutter/playstore-wizard/detect-application-id.sh "${escapeBash(projectPath)}"`;
+        cmd = `cd "${getRepoRoot()}" && python3 .github/util/flutter/playstore-wizard/playstore-wizard.py detect-app-id "${escapeBash(projectPath)}"`;
     }
     
     // 명령어 표시
@@ -1441,13 +1311,13 @@ function generateKeystoreCreationCommand() {
             return str.replace(/"/g, '`"').replace(/\$/g, '`$');
         };
         
-        cmd = `cd "${winPath}"; powershell -ExecutionPolicy Bypass -File .github\\util\\flutter\\playstore-wizard\\playstore-wizard-setup.ps1 "${escapePowerShell(winPath)}" "${escapePowerShell(applicationId)}" "${escapePowerShell(keyAlias)}" "${escapePowerShell(storePassword)}" "${escapePowerShell(keyPassword)}" "${validityDays}" "${escapePowerShell(certCN)}" "${escapePowerShell(certO)}" "${escapePowerShell(certL)}" "${certC}"`;
+        cmd = `cd "${toWinPath(getRepoRoot())}"; python .github\\util\\flutter\\playstore-wizard\\playstore-wizard.py setup "${escapePowerShell(winPath)}" "${escapePowerShell(applicationId)}" "${escapePowerShell(keyAlias)}" "${escapePowerShell(storePassword)}" "${escapePowerShell(keyPassword)}" "${validityDays}" "${escapePowerShell(certCN)}" "${escapePowerShell(certO)}" "${escapePowerShell(certL)}" "${certC}"`;
     } else {
         const escapeBash = (str) => {
             return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\$/g, '\\$');
         };
         
-        cmd = `cd "${projectPath}" && bash .github/util/flutter/playstore-wizard/playstore-wizard-setup.sh "${escapeBash(projectPath)}" "${escapeBash(applicationId)}" "${escapeBash(keyAlias)}" "${escapeBash(storePassword)}" "${escapeBash(keyPassword)}" "${validityDays}" "${escapeBash(certCN)}" "${escapeBash(certO)}" "${escapeBash(certL)}" "${certC}"`;
+        cmd = `cd "${getRepoRoot()}" && python3 .github/util/flutter/playstore-wizard/playstore-wizard.py setup "${escapeBash(projectPath)}" "${escapeBash(applicationId)}" "${escapeBash(keyAlias)}" "${escapeBash(storePassword)}" "${escapeBash(keyPassword)}" "${validityDays}" "${escapeBash(certCN)}" "${escapeBash(certO)}" "${escapeBash(certL)}" "${certC}"`;
     }
     
     // 명령어 표시 (항상 보이므로 hidden 처리 불필요)
@@ -1873,11 +1743,6 @@ function downloadConfig() {
 // ZIP Export Functions
 // ============================================
 
-function getDateString() {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-}
-
 function generateReadme() {
     return `# Play Store 배포 설정 백업
 
@@ -2118,69 +1983,6 @@ function importFromJson(event) {
 // Changelog Modal Functions
 // ============================================
 
-function getVersionData() {
-    const scriptEl = document.getElementById('versionJson');
-    if (scriptEl) {
-        try {
-            return JSON.parse(scriptEl.textContent);
-        } catch (e) {
-            console.error('버전 정보 파싱 실패:', e);
-        }
-    }
-    return null;
-}
-
-function openChangelogModal() {
-    const modal = document.getElementById('changelogModal');
-    const content = document.getElementById('changelogContent');
-    const lastUpdated = document.getElementById('changelogLastUpdated');
-
-    const data = getVersionData();
-    if (!data) {
-        content.innerHTML = '<div class="text-center text-red-400 py-4">버전 정보를 불러올 수 없습니다.</div>';
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-        return;
-    }
-
-    // Build changelog HTML
-    let html = '';
-    data.changelog.forEach((release, index) => {
-        const isLatest = index === 0;
-
-        html += `
-            <div class="pb-4 ${index < data.changelog.length - 1 ? 'border-b border-slate-700 mb-4' : ''}">
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="text-white font-semibold">v${release.version}</span>
-                    ${isLatest ? '<span class="px-2 py-0.5 text-xs bg-blue-500/20 text-blue-400 rounded-full">Latest</span>' : ''}
-                    <span class="text-slate-500 text-xs">${release.date}</span>
-                </div>
-                <ul class="space-y-1.5 pl-2">
-                    ${release.changes.map(change => `
-                        <li class="text-sm text-slate-400 flex items-start gap-2">
-                            <span class="text-slate-600 mt-1">•</span>
-                            <span>${change}</span>
-                        </li>
-                    `).join('')}
-                </ul>
-            </div>
-        `;
-    });
-
-    content.innerHTML = html;
-    lastUpdated.textContent = `Last updated: ${data.lastUpdated}`;
-
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeChangelogModal(event) {
-    if (event && event.target !== event.currentTarget) return;
-    const modal = document.getElementById('changelogModal');
-    modal.classList.add('hidden');
-    document.body.style.overflow = '';
-}
-
 // ============================================
 // Input Event Handlers
 // ============================================
@@ -2194,7 +1996,7 @@ function setupInputHandlers() {
     });
 
     // 입력 필드 변경 시 저장
-    const inputIds = ['projectPath', 'keyAlias', 'storePassword', 'keyPassword', 'certCN', 'certO', 'certL', 'certC', 'envFileContent', 'scriptOutput'];
+    const inputIds = ['projectPath', 'repoRoot', 'keyAlias', 'storePassword', 'keyPassword', 'certCN', 'certO', 'certL', 'certC', 'envFileContent', 'scriptOutput'];
     inputIds.forEach(id => {
         const input = document.getElementById(id);
         if (input) {
@@ -2367,45 +2169,6 @@ const TEXT_EXTENSIONS = ['.json', '.yml', '.yaml', '.env', '.txt', '.xml', '.pli
 const BINARY_EXTENSIONS = ['.jks', '.keystore', '.p12', '.mobileprovision', '.p8', '.cer', '.pfx', '.pem', '.der', '.key', '.crt'];
 
 /**
- * 파일 확장자로 파일 타입 결정
- * @param {string} fileName 파일명
- * @returns {'text' | 'binary'} 파일 타입
- */
-function getFileType(fileName) {
-    const lowerName = fileName.toLowerCase();
-    // .env로 시작하는 파일은 텍스트로 처리 (.env.production, .env.local 등)
-    if (lowerName === '.env' || lowerName.startsWith('.env.')) return 'text';
-
-    const ext = '.' + fileName.split('.').pop().toLowerCase();
-    if (TEXT_EXTENSIONS.includes(ext)) return 'text';
-    if (BINARY_EXTENSIONS.includes(ext)) return 'binary';
-    // 알 수 없는 확장자는 바이너리로 처리 (안전)
-    return 'binary';
-}
-
-/**
- * 파일명으로 키 이름 자동 생성
- * @param {string} fileName 파일명
- * @param {'text' | 'binary'} fileType 파일 타입
- * @returns {string} GitHub Secrets 키 이름
- */
-function generateKeyName(fileName, fileType) {
-    // 파일명에서 확장자 제거 후 대문자+언더스코어로 변환
-    const baseName = fileName
-        .replace(/\.[^/.]+$/, '')  // 확장자 제거
-        .toUpperCase()
-        .replace(/[^A-Z0-9]/g, '_')
-        .replace(/_+/g, '_')
-        .replace(/^_|_$/g, '');  // 앞뒤 언더스코어 제거
-
-    // 바이너리 파일만 _BASE64 접미사 추가
-    if (fileType === 'binary') {
-        return baseName + '_BASE64';
-    }
-    return baseName;
-}
-
-/**
  * 파일을 타입에 따라 처리
  * @param {File} file 파일 객체
  * @returns {Promise<{value: string, type: 'text' | 'binary', hint: string}>}
@@ -2523,17 +2286,6 @@ function copyCustomSecretValue(index) {
             showToast('❌ 클립보드 복사 실패');
         });
     }
-}
-
-/**
- * HTML 이스케이프 (XSS 방지)
- * @param {string} text 이스케이프할 텍스트
- * @returns {string} 이스케이프된 텍스트
- */
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
 }
 
 /**
