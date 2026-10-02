@@ -1,46 +1,31 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../core/network/dio_client.dart';
-import '../../data/sources/member_api.dart';
 
-/// 회원 UUID를 SharedPreferences에 저장·관리하는 AsyncNotifier.
+import 'auth_provider.dart';
+
+/// 로그인한 회원의 UUID 를 제공한다.
 ///
-/// 앱 시작 시 저장된 UUID를 읽음.
-/// UUID 없으면 /members/register 호출 후 저장.
+/// 서버가 JWT 기반 인증으로 바뀌어 앱이 UUID 를 직접 발급받지 않는다.
+/// 기존 API 호출부(memberUuid 인자)가 정리되기 전까지(#328) 호환용으로 유지한다.
 class MemberStore extends AsyncNotifier<String?> {
-  static const _kMemberUuid = 'member_uuid';
-  static const _kNickname = 'member_nickname';
-
   @override
   Future<String?> build() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_kMemberUuid);
+    final session = await ref.watch(authProvider.future);
+    return session?.memberUuid;
   }
 
-  /// UUID 반환. 없으면 서버 등록 후 반환.
+  /// 로그인된 회원 UUID. 로그인 전에 호출하면 오류.
   Future<String> getOrRegister() async {
-    final existing = await future;
-    if (existing != null) return existing;
-    return _register();
+    final uuid = await future;
+    if (uuid == null) {
+      throw StateError('로그인이 필요합니다.');
+    }
+    return uuid;
   }
 
-  Future<String> _register() async {
-    final dio = ref.read(dioProvider);
-    final client = MemberApiClient(dio);
-    final response = await client.register();
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_kMemberUuid, response.memberUuid);
-    await prefs.setString(_kNickname, response.nickname);
-
-    state = AsyncData(response.memberUuid);
-    return response.memberUuid;
-  }
-
-  /// 캐시된 닉네임 조회 (로컬 저장값).
+  /// 캐시된 닉네임 조회.
   Future<String?> getCachedNickname() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_kNickname);
+    final session = await ref.read(authProvider.future);
+    return session?.nickname;
   }
 }
 

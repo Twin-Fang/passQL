@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../presentation/pages/home/home_page.dart';
+import '../presentation/pages/login/login_page.dart';
 import '../presentation/pages/questions/topic_list_page.dart';
 import '../presentation/pages/questions/chapter_page.dart';
 import '../presentation/pages/questions/question_detail_page.dart';
@@ -24,10 +25,28 @@ final _shellKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
 /// - ShellRoute: 바텀 탭 4개 (홈/문제/통계/설정)
 /// - 루트 라우트: 풀스크린 페이지 (챕터, 문제 상세, 결과, 연습)
 abstract final class AppRouter {
+  /// 로그인 여부. main 에서 인증 상태를 구독해 갱신하고, 값이 바뀌면 라우터가 redirect 를 다시 평가한다.
+  static final ValueNotifier<bool> authenticated = ValueNotifier<bool>(false);
+
   static final GoRouter router = GoRouter(
     navigatorKey: _rootKey,
     initialLocation: AppRoutes.home,
+    refreshListenable: authenticated,
+    // 로그인 안 했으면 로그인 화면으로, 로그인 했는데 로그인 화면이면 홈으로 보낸다.
+    redirect: (_, state) {
+      final atLogin = state.matchedLocation == AppRoutes.login;
+      if (!authenticated.value && !atLogin) return AppRoutes.login;
+      if (authenticated.value && atLogin) return AppRoutes.home;
+      return null;
+    },
     routes: [
+      // 로그인
+      GoRoute(
+        path: AppRoutes.login,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const LoginPage(),
+      ),
+
       // 탭 쉘
       ShellRoute(
         navigatorKey: _shellKey,

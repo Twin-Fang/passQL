@@ -1,0 +1,148 @@
+import 'dart:io' show Platform;
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+import '../../../core/app_colors.dart';
+import '../../../core/auth/auth_session.dart';
+import '../../../core/auth/social_sign_in.dart';
+import '../../../core/text_styles.dart';
+import '../../providers/auth_provider.dart';
+
+/// 소셜 로그인 화면.
+///
+/// 로그인 성공 시 라우터의 인증 redirect 가 홈으로 보내므로 여기서 직접 이동하지 않는다.
+class LoginPage extends ConsumerStatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  ConsumerState<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends ConsumerState<LoginPage> {
+  SocialProvider? _loading;
+  String? _error;
+
+  Future<void> _signIn(SocialProvider provider) async {
+    setState(() {
+      _loading = provider;
+      _error = null;
+    });
+    try {
+      await ref.read(authProvider.notifier).signIn(provider);
+    } on SocialSignInException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } finally {
+      if (mounted) setState(() => _loading = null);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final busy = _loading != null;
+    return Scaffold(
+      backgroundColor: AppColors.white,
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24.w),
+          child: Column(
+            children: [
+              const Spacer(flex: 3),
+              Image.asset('assets/logo.png', width: 96.w, height: 96.w),
+              SizedBox(height: 20.h),
+              Text('passQL', style: AppTextStyles.semibold_44),
+              SizedBox(height: 8.h),
+              Text(
+                'SQL 자격증, 문제로 합격까지',
+                style: AppTextStyles.paragraph_14.copyWith(
+                  color: AppColors.black700,
+                ),
+              ),
+              const Spacer(flex: 4),
+              if (_error != null)
+                Padding(
+                  padding: EdgeInsets.only(bottom: 12.h),
+                  child: Text(
+                    _error!,
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.paragraph_14.copyWith(
+                      color: Colors.red,
+                    ),
+                  ),
+                ),
+              _SocialButton(
+                label: 'Google로 계속하기',
+                icon: FontAwesomeIcons.google,
+                loading: _loading == SocialProvider.google,
+                onPressed: busy ? null : () => _signIn(SocialProvider.google),
+              ),
+              // iOS 에서 소셜 로그인을 제공하면 Sign in with Apple 도 필수(App Store 심사 규정).
+              if (Platform.isIOS) ...[
+                SizedBox(height: 12.h),
+                _SocialButton(
+                  label: 'Apple로 계속하기',
+                  icon: FontAwesomeIcons.apple,
+                  dark: true,
+                  loading: _loading == SocialProvider.apple,
+                  onPressed: busy ? null : () => _signIn(SocialProvider.apple),
+                ),
+              ],
+              SizedBox(height: 32.h),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SocialButton extends StatelessWidget {
+  const _SocialButton({
+    required this.label,
+    required this.icon,
+    required this.loading,
+    required this.onPressed,
+    this.dark = false,
+  });
+
+  final String label;
+  final FaIconData icon;
+  final bool loading;
+  final bool dark;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = dark ? AppColors.white : AppColors.black900;
+    return SizedBox(
+      width: double.infinity,
+      height: 52.h,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: dark ? AppColors.black900 : AppColors.white,
+          side: BorderSide(color: AppColors.black900.withValues(alpha: 0.2)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+        ),
+        child: loading
+            ? SizedBox(
+                width: 20.w,
+                height: 20.w,
+                child: CircularProgressIndicator(strokeWidth: 2, color: fg),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  FaIcon(icon, size: 18.sp, color: fg),
+                  SizedBox(width: 10.w),
+                  Text(label, style: AppTextStyles.paragraph_14.copyWith(color: fg)),
+                ],
+              ),
+      ),
+    );
+  }
+}

@@ -1,4 +1,4 @@
-package com.example.passql_app
+package kr.suhsaechan.passql
 
 import io.flutter.embedding.android.FlutterActivity
 

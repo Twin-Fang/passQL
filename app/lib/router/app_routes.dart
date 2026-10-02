@@ -2,6 +2,9 @@
 ///
 /// 문자열 경로를 직접 사용하는 대신 이 클래스를 참조한다 — 오타 방지.
 abstract final class AppRoutes {
+  // 인증
+  static const String login = '/login';
+
   // 탭 루트
   static const String home = '/home';
   static const String questions = '/questions';
