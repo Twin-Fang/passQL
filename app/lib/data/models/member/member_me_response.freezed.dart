@@ -22,7 +22,12 @@ MemberMeResponse _$MemberMeResponseFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$MemberMeResponse {
   String get memberUuid => throw _privateConstructorUsedError;
-  String get nickname => throw _privateConstructorUsedError;
+  String get nickname =>
+      throw _privateConstructorUsedError; // 서버에 새 값이 생겨도 앱이 깨지지 않도록 모르는 값은 practice 로 받는다.
+  @JsonKey(unknownEnumValue: ChoiceGenerationMode.practice)
+  ChoiceGenerationMode? get choiceGenerationMode =>
+      throw _privateConstructorUsedError;
+  DateTime? get nicknameChangedAt => throw _privateConstructorUsedError;
 
   /// Serializes this MemberMeResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -41,7 +46,13 @@ abstract class $MemberMeResponseCopyWith<$Res> {
     $Res Function(MemberMeResponse) then,
   ) = _$MemberMeResponseCopyWithImpl<$Res, MemberMeResponse>;
   @useResult
-  $Res call({String memberUuid, String nickname});
+  $Res call({
+    String memberUuid,
+    String nickname,
+    @JsonKey(unknownEnumValue: ChoiceGenerationMode.practice)
+    ChoiceGenerationMode? choiceGenerationMode,
+    DateTime? nicknameChangedAt,
+  });
 }
 
 /// @nodoc
@@ -58,7 +69,12 @@ class _$MemberMeResponseCopyWithImpl<$Res, $Val extends MemberMeResponse>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? memberUuid = null, Object? nickname = null}) {
+  $Res call({
+    Object? memberUuid = null,
+    Object? nickname = null,
+    Object? choiceGenerationMode = freezed,
+    Object? nicknameChangedAt = freezed,
+  }) {
     return _then(
       _value.copyWith(
             memberUuid: null == memberUuid
@@ -69,6 +85,14 @@ class _$MemberMeResponseCopyWithImpl<$Res, $Val extends MemberMeResponse>
                 ? _value.nickname
                 : nickname // ignore: cast_nullable_to_non_nullable
                       as String,
+            choiceGenerationMode: freezed == choiceGenerationMode
+                ? _value.choiceGenerationMode
+                : choiceGenerationMode // ignore: cast_nullable_to_non_nullable
+                      as ChoiceGenerationMode?,
+            nicknameChangedAt: freezed == nicknameChangedAt
+                ? _value.nicknameChangedAt
+                : nicknameChangedAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
           )
           as $Val,
     );
@@ -84,7 +108,13 @@ abstract class _$$MemberMeResponseImplCopyWith<$Res>
   ) = __$$MemberMeResponseImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String memberUuid, String nickname});
+  $Res call({
+    String memberUuid,
+    String nickname,
+    @JsonKey(unknownEnumValue: ChoiceGenerationMode.practice)
+    ChoiceGenerationMode? choiceGenerationMode,
+    DateTime? nicknameChangedAt,
+  });
 }
 
 /// @nodoc
@@ -100,7 +130,12 @@ class __$$MemberMeResponseImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? memberUuid = null, Object? nickname = null}) {
+  $Res call({
+    Object? memberUuid = null,
+    Object? nickname = null,
+    Object? choiceGenerationMode = freezed,
+    Object? nicknameChangedAt = freezed,
+  }) {
     return _then(
       _$MemberMeResponseImpl(
         memberUuid: null == memberUuid
@@ -111,6 +146,14 @@ class __$$MemberMeResponseImplCopyWithImpl<$Res>
             ? _value.nickname
             : nickname // ignore: cast_nullable_to_non_nullable
                   as String,
+        choiceGenerationMode: freezed == choiceGenerationMode
+            ? _value.choiceGenerationMode
+            : choiceGenerationMode // ignore: cast_nullable_to_non_nullable
+                  as ChoiceGenerationMode?,
+        nicknameChangedAt: freezed == nicknameChangedAt
+            ? _value.nicknameChangedAt
+            : nicknameChangedAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
       ),
     );
   }
@@ -122,6 +165,9 @@ class _$MemberMeResponseImpl implements _MemberMeResponse {
   const _$MemberMeResponseImpl({
     required this.memberUuid,
     required this.nickname,
+    @JsonKey(unknownEnumValue: ChoiceGenerationMode.practice)
+    this.choiceGenerationMode,
+    this.nicknameChangedAt,
   });
 
   factory _$MemberMeResponseImpl.fromJson(Map<String, dynamic> json) =>
@@ -131,10 +177,16 @@ class _$MemberMeResponseImpl implements _MemberMeResponse {
   final String memberUuid;
   @override
   final String nickname;
+  // 서버에 새 값이 생겨도 앱이 깨지지 않도록 모르는 값은 practice 로 받는다.
+  @override
+  @JsonKey(unknownEnumValue: ChoiceGenerationMode.practice)
+  final ChoiceGenerationMode? choiceGenerationMode;
+  @override
+  final DateTime? nicknameChangedAt;
 
   @override
   String toString() {
-    return 'MemberMeResponse(memberUuid: $memberUuid, nickname: $nickname)';
+    return 'MemberMeResponse(memberUuid: $memberUuid, nickname: $nickname, choiceGenerationMode: $choiceGenerationMode, nicknameChangedAt: $nicknameChangedAt)';
   }
 
   @override
@@ -145,12 +197,22 @@ class _$MemberMeResponseImpl implements _MemberMeResponse {
             (identical(other.memberUuid, memberUuid) ||
                 other.memberUuid == memberUuid) &&
             (identical(other.nickname, nickname) ||
-                other.nickname == nickname));
+                other.nickname == nickname) &&
+            (identical(other.choiceGenerationMode, choiceGenerationMode) ||
+                other.choiceGenerationMode == choiceGenerationMode) &&
+            (identical(other.nicknameChangedAt, nicknameChangedAt) ||
+                other.nicknameChangedAt == nicknameChangedAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, memberUuid, nickname);
+  int get hashCode => Object.hash(
+    runtimeType,
+    memberUuid,
+    nickname,
+    choiceGenerationMode,
+    nicknameChangedAt,
+  );
 
   /// Create a copy of MemberMeResponse
   /// with the given fields replaced by the non-null parameter values.
@@ -173,6 +235,9 @@ abstract class _MemberMeResponse implements MemberMeResponse {
   const factory _MemberMeResponse({
     required final String memberUuid,
     required final String nickname,
+    @JsonKey(unknownEnumValue: ChoiceGenerationMode.practice)
+    final ChoiceGenerationMode? choiceGenerationMode,
+    final DateTime? nicknameChangedAt,
   }) = _$MemberMeResponseImpl;
 
   factory _MemberMeResponse.fromJson(Map<String, dynamic> json) =
@@ -181,7 +246,12 @@ abstract class _MemberMeResponse implements MemberMeResponse {
   @override
   String get memberUuid;
   @override
-  String get nickname;
+  String get nickname; // 서버에 새 값이 생겨도 앱이 깨지지 않도록 모르는 값은 practice 로 받는다.
+  @override
+  @JsonKey(unknownEnumValue: ChoiceGenerationMode.practice)
+  ChoiceGenerationMode? get choiceGenerationMode;
+  @override
+  DateTime? get nicknameChangedAt;
 
   /// Create a copy of MemberMeResponse
   /// with the given fields replaced by the non-null parameter values.

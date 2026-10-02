@@ -4,6 +4,9 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/data/models/home/recommendations_request.dart';
+import 'package:passql_app/data/models/member/choice_generation_mode.dart';
+import 'package:passql_app/data/models/member/choice_mode_models.dart';
+import 'package:passql_app/data/models/member/nickname_models.dart';
 import 'package:passql_app/data/models/question/submit_request.dart';
 import 'package:passql_app/data/sources/member_api.dart';
 import 'package:passql_app/data/sources/progress_api.dart';
@@ -99,5 +102,42 @@ void main() {
     await ignoreParse(ProgressApiClient(dio).getAiComment(sessionUuid: 's-9'));
     expect(capture.last!.path, '/progress/ai-comment');
     expect(capture.last!.queryParameters['sessionUuid'], 's-9');
+  });
+
+  test('닉네임 중복확인은 GET 쿼리, 변경은 PATCH 본문으로 보낸다', () async {
+    await ignoreParse(MemberApiClient(dio).checkNickname('새닉네임'));
+    expect(capture.last!.method, 'GET');
+    expect(capture.last!.path, '/members/me/nickname/check');
+    expect(capture.last!.queryParameters['nickname'], '새닉네임');
+
+    await ignoreParse(
+      MemberApiClient(dio).changeNickname(const NicknameChangeRequest('새닉네임')),
+    );
+    expect(capture.last!.method, 'PATCH');
+    expect(capture.last!.path, '/members/me/nickname');
+    expect(jsonDecode(jsonEncode(capture.last!.data)), {'nickname': '새닉네임'});
+  });
+
+  test('선택지 생성 모드는 서버 enum 이름으로 PATCH 한다', () async {
+    for (final entry in {
+      ChoiceGenerationMode.real: 'REAL',
+      ChoiceGenerationMode.practice: 'PRACTICE',
+    }.entries) {
+      await ignoreParse(
+        MemberApiClient(dio).updateChoiceGenerationMode(ChoiceModeRequest(entry.key)),
+      );
+      expect(capture.last!.method, 'PATCH');
+      expect(capture.last!.path, '/members/me/settings/choice-generation-mode');
+      expect(
+        jsonDecode(jsonEncode(capture.last!.data)),
+        {'choiceGenerationMode': entry.value},
+      );
+    }
+  });
+
+  test('오답 노트는 size 만 쿼리로 보낸다', () async {
+    await ignoreParse(ProgressApiClient(dio).getWrongQuestions(size: 20));
+    expect(capture.last!.path, '/progress/wrong-questions');
+    expect(capture.last!.queryParameters, {'size': 20});
   });
 }

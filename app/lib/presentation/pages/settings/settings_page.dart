@@ -5,6 +5,10 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/app_colors.dart';
 import '../../../core/text_styles.dart';
 import '../../providers/settings_providers.dart';
+import '../../widgets/common/app_toast.dart';
+import '../../widgets/settings/choice_mode_tile.dart';
+import '../../widgets/settings/nickname_edit_sheet.dart';
+import '../../widgets/settings/wrong_notes_section.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -72,26 +76,29 @@ class SettingsPage extends ConsumerWidget {
                       );
                       // async gap 이후 위젯이 unmount됐을 수 있으므로 체크
                       if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            '디바이스 ID가 복사되었습니다.',
-                            style: AppTextStyles.paragraph_14.copyWith(
-                              color: Colors.white,
-                            ),
-                          ),
-                          backgroundColor: AppColors.toastBg,
-                          behavior: SnackBarBehavior.floating,
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
+                      showAppToast(context, '회원 ID가 복사되었습니다.');
                     },
                     onRegenerateNickname: () => ref
                         .read(nicknameNotifierProvider.notifier)
                         .regenerate(),
+                    onEditNickname: () async {
+                      final changed = await NicknameEditSheet.show(
+                        context,
+                        nickname,
+                      );
+                      if (changed == true && context.mounted) {
+                        showAppToast(context, '닉네임이 변경됐어요');
+                      }
+                    },
                   );
                 },
               ),
+              const SizedBox(height: 16),
+              // 선택지 생성 방식
+              const ChoiceModeTile(),
+              const SizedBox(height: 16),
+              // 오답 노트
+              const WrongNotesSection(),
               const SizedBox(height: 40),
               // 하단 푸터
               const _Footer(),
@@ -112,6 +119,7 @@ class _InfoCard extends StatelessWidget {
     required this.isRegenerating,
     required this.onCopyUuid,
     required this.onRegenerateNickname,
+    required this.onEditNickname,
   });
 
   final String memberUuid;
@@ -121,6 +129,7 @@ class _InfoCard extends StatelessWidget {
   // async 콜백 — Clipboard.setData 이후 context.mounted 체크를 위해 Future<void> 사용
   final Future<void> Function() onCopyUuid;
   final VoidCallback onRegenerateNickname;
+  final VoidCallback onEditNickname;
 
   @override
   Widget build(BuildContext context) {
@@ -138,7 +147,7 @@ class _InfoCard extends StatelessWidget {
       child: Column(
         children: [
           _InfoRow(
-            label: '디바이스 ID',
+            label: '회원 ID',
             value: truncatedUuid,
             valueStyle: AppTextStyles.paragraph_14.copyWith(
               color: AppColors.textPrimary,
@@ -171,10 +180,25 @@ class _InfoCard extends StatelessWidget {
                       ),
                     ),
                   )
-                : IconButton(
-                    icon: const FaIcon(FontAwesomeIcons.arrowsRotate, size: 16),
-                    color: AppColors.textCaption,
-                    onPressed: onRegenerateNickname,
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        tooltip: '닉네임 직접 변경',
+                        icon: const FaIcon(FontAwesomeIcons.pen, size: 16),
+                        color: AppColors.textCaption,
+                        onPressed: onEditNickname,
+                      ),
+                      IconButton(
+                        tooltip: '랜덤 닉네임',
+                        icon: const FaIcon(
+                          FontAwesomeIcons.arrowsRotate,
+                          size: 16,
+                        ),
+                        color: AppColors.textCaption,
+                        onPressed: onRegenerateNickname,
+                      ),
+                    ],
                   ),
           ),
           const Divider(height: 1, color: AppColors.borderDefault),

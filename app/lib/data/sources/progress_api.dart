@@ -3,6 +3,7 @@ import 'package:retrofit/retrofit.dart';
 import '../models/progress/progress_response.dart';
 import '../models/progress/heatmap_response.dart';
 import '../models/progress/topic_analysis_response.dart';
+import '../models/progress/wrong_questions_response.dart';
 import '../models/progress/ai_comment_response.dart';
 
 part 'progress_api.g.dart';
@@ -30,5 +31,11 @@ abstract class ProgressApiClient {
   @GET('/progress/ai-comment')
   Future<AiCommentResponse> getAiComment({
     @Query('sessionUuid') String? sessionUuid,
+  });
+
+  /// 최근 오답 노트. 같은 문제는 가장 최근 오답 시각 기준으로 한 번만 내려온다.
+  @GET('/progress/wrong-questions')
+  Future<WrongQuestionsResponse> getWrongQuestions({
+    @Query('size') int? size,
   });
 }
