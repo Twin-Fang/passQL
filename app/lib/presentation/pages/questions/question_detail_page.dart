@@ -6,6 +6,7 @@ import '../../../core/app_colors.dart';
 import '../../../core/text_styles.dart';
 import '../../../data/models/question/question_detail.dart';
 import '../../../data/models/question/sse_event.dart';
+import '../../../presentation/providers/learning_refresh.dart';
 import '../../../presentation/providers/question_providers.dart';
 import '../../../router/app_routes.dart';
 import '../../widgets/question/ai_explain_sheet.dart';
@@ -202,6 +203,8 @@ class _QuestionDetailBody extends ConsumerWidget {
     final result = await notifier.submit();
     if (!context.mounted) return;
     if (result != null) {
+      // 풀이 결과가 홈과 통계에 반영되도록 캐시를 비운다.
+      refreshLearningData(ref.invalidate);
       context.push(
         AppRoutes.questionResult(questionUuid),
         extra: result,

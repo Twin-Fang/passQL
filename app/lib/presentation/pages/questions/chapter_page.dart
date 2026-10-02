@@ -8,6 +8,7 @@ import '../../../data/models/question/question_detail.dart';
 import '../../../data/models/question/sse_event.dart';
 import '../../../presentation/flows/question_flow.dart';
 import '../../../presentation/providers/chapter_providers.dart';
+import '../../../presentation/providers/learning_refresh.dart';
 import '../../../presentation/providers/question_providers.dart';
 import '../../widgets/chapter/chapter_app_bar.dart';
 import '../../widgets/chapter/chapter_feedback_bar.dart';
@@ -40,9 +41,16 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
   /// 이번 풀이의 세션 식별자. 화면이 다시 그려져도 바뀌지 않도록 상태에 둔다.
   final String _sessionUuid = const Uuid().v4();
 
+  /// 이 화면에서 답안을 한 번이라도 제출했는지. 벗어날 때 학습 현황을 갱신할지 정한다.
+  bool _submittedAny = false;
+
+  /// dispose 시점에는 ref 를 쓸 수 없으므로 컨테이너를 미리 잡아 둔다.
+  late final ProviderContainer _container;
+
   @override
   void initState() {
     super.initState();
+    _container = ProviderScope.containerOf(context, listen: false);
     // 첫 프레임 이후 문제 목록 로드
     Future.microtask(() {
       if (!mounted) return;
@@ -91,6 +99,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     if (!mounted) return;
 
     if (result != null) {
+      _submittedAny = true;
       final durationMs =
           DateTime.now().difference(startTime).inMilliseconds;
       chapterNotifier.onSubmitted(result, durationMs, selectedKey);
@@ -117,6 +126,14 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
       totalDurationMs: totalDurationMs,
     );
     widget.flow.onCompleted(context, ref, summary, _sessionUuid);
+  }
+
+  @override
+  void dispose() {
+    // 챕터는 문제를 여러 번 제출하므로 매번이 아니라 화면을 벗어날 때 한 번만 갱신한다.
+    // (중간에 나가도, 끝까지 풀고 결과 화면으로 가도 같은 경로를 탄다.)
+    if (_submittedAny) refreshLearningData(_container.invalidate);
+    super.dispose();
   }
 
   @override

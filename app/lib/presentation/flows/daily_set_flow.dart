@@ -10,7 +10,6 @@ import '../../data/models/daily_set/daily_set_models.dart';
 import '../../router/app_routes.dart';
 import '../providers/chapter_providers.dart';
 import '../providers/daily_set_providers.dart';
-import '../providers/home_providers.dart';
 import 'question_flow.dart';
 
 /// 데일리 세트 결과 화면에 넘기는 값.
@@ -92,9 +91,9 @@ class DailySetFlow extends QuestionFlow {
       }
     }
 
-    // 홈 카드(완료 표시)와 순위를 최신으로 맞춘다.
+    // 순위를 최신으로 맞춘다. 홈 카드(완료 표시)와 학습 현황은 풀이 화면을 벗어날 때
+    // ChapterPage 가 한 번에 갱신하므로 여기서 다시 하지 않는다.
     ref
-      ..invalidate(homeDataProvider)
       ..invalidate(dailySetTodayProvider)
       ..invalidate(leaderboardProvider);
 
