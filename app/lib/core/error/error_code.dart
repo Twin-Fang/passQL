@@ -27,6 +27,9 @@ enum ErrorCode {
   nicknameInvalid,
   nicknameForbidden,
 
+  // 신고
+  reportAlreadyExists,
+
   // 데일리 세트
   dailySetAlreadyCompleted,
   dailySetNotFound,
@@ -55,6 +58,7 @@ abstract final class ErrorCodeMapper {
     'NICKNAME_COOLDOWN': ErrorCode.nicknameCooldown,
     'NICKNAME_INVALID': ErrorCode.nicknameInvalid,
     'NICKNAME_FORBIDDEN': ErrorCode.nicknameForbidden,
+    'REPORT_ALREADY_EXISTS': ErrorCode.reportAlreadyExists,
     'DAILY_SET_ALREADY_COMPLETED': ErrorCode.dailySetAlreadyCompleted,
     'DAILY_SET_NOT_FOUND': ErrorCode.dailySetNotFound,
     'AI_UNAVAILABLE': ErrorCode.aiUnavailable,

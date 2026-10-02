@@ -10,7 +10,9 @@ import 'package:passql_app/data/models/member/nickname_models.dart';
 import 'package:passql_app/data/models/question/submit_request.dart';
 import 'package:passql_app/data/models/feedback/feedback_models.dart';
 import 'package:passql_app/data/sources/feedback_api.dart';
+import 'package:passql_app/data/models/report/report_models.dart';
 import 'package:passql_app/data/sources/member_api.dart';
+import 'package:passql_app/data/sources/report_api.dart';
 import 'package:passql_app/data/sources/progress_api.dart';
 import 'package:passql_app/data/sources/question_api.dart';
 
@@ -152,5 +154,28 @@ void main() {
     await ignoreParse(FeedbackApiClient(dio).getMyFeedbacks());
     expect(capture.last!.method, 'GET');
     expect(capture.last!.path, '/feedback/me');
+  });
+
+  test('신고는 POST 본문으로, 신고 여부는 submissionUuid 쿼리로 조회한다', () async {
+    await ignoreParse(
+      ReportApiClient(dio).submitReport(
+        'q-1',
+        const ReportRequest(
+          submissionUuid: 'sub-1',
+          categories: [ReportCategory.wrongAnswer],
+        ),
+      ),
+    );
+    expect(capture.last!.method, 'POST');
+    expect(capture.last!.path, '/questions/q-1/report');
+    expect(jsonDecode(jsonEncode(capture.last!.data)), {
+      'submissionUuid': 'sub-1',
+      'categories': ['WRONG_ANSWER'],
+    });
+
+    await ignoreParse(ReportApiClient(dio).getReportStatus('q-1', 'sub-1'));
+    expect(capture.last!.method, 'GET');
+    expect(capture.last!.path, '/questions/q-1/report/status');
+    expect(capture.last!.queryParameters, {'submissionUuid': 'sub-1'});
   });
 }

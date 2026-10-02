@@ -122,6 +122,7 @@ class AppException implements Exception {
     ErrorCode.nicknameCooldown: '변경 후 3일간 바꿀 수 없어요.',
     ErrorCode.nicknameInvalid: '한글, 영문, 숫자만 사용 가능해요 (2~10자).',
     ErrorCode.nicknameForbidden: '사용할 수 없는 닉네임이에요.',
+    ErrorCode.reportAlreadyExists: '이미 신고한 문제예요.',
     ErrorCode.dailySetAlreadyCompleted: '오늘의 세트를 이미 완료했어요.',
     ErrorCode.dailySetNotFound: '오늘의 세트가 아직 준비되지 않았어요.',
     ErrorCode.aiUnavailable: 'AI 기능을 잠시 사용할 수 없어요.',

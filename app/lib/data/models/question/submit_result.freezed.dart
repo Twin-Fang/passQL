@@ -27,7 +27,12 @@ mixin _$SubmitResult {
   ExecuteResult? get selectedResult => throw _privateConstructorUsedError;
   ExecuteResult? get correctResult => throw _privateConstructorUsedError;
   String? get correctSql => throw _privateConstructorUsedError;
-  String? get selectedSql => throw _privateConstructorUsedError;
+  String? get selectedSql =>
+      throw _privateConstructorUsedError; // 저장된 제출의 UUID. 문제 신고가 어떤 제출에 대한 것인지 가리킨다.
+  String? get submissionUuid =>
+      throw _privateConstructorUsedError; // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  String? get choiceSetUuid => throw _privateConstructorUsedError;
 
   /// Serializes this SubmitResult to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -54,6 +59,9 @@ abstract class $SubmitResultCopyWith<$Res> {
     ExecuteResult? correctResult,
     String? correctSql,
     String? selectedSql,
+    String? submissionUuid,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    String? choiceSetUuid,
   });
 
   $ExecuteResultCopyWith<$Res>? get selectedResult;
@@ -82,6 +90,8 @@ class _$SubmitResultCopyWithImpl<$Res, $Val extends SubmitResult>
     Object? correctResult = freezed,
     Object? correctSql = freezed,
     Object? selectedSql = freezed,
+    Object? submissionUuid = freezed,
+    Object? choiceSetUuid = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -112,6 +122,14 @@ class _$SubmitResultCopyWithImpl<$Res, $Val extends SubmitResult>
             selectedSql: freezed == selectedSql
                 ? _value.selectedSql
                 : selectedSql // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            submissionUuid: freezed == submissionUuid
+                ? _value.submissionUuid
+                : submissionUuid // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            choiceSetUuid: freezed == choiceSetUuid
+                ? _value.choiceSetUuid
+                : choiceSetUuid // ignore: cast_nullable_to_non_nullable
                       as String?,
           )
           as $Val,
@@ -164,6 +182,9 @@ abstract class _$$SubmitResultImplCopyWith<$Res>
     ExecuteResult? correctResult,
     String? correctSql,
     String? selectedSql,
+    String? submissionUuid,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    String? choiceSetUuid,
   });
 
   @override
@@ -193,6 +214,8 @@ class __$$SubmitResultImplCopyWithImpl<$Res>
     Object? correctResult = freezed,
     Object? correctSql = freezed,
     Object? selectedSql = freezed,
+    Object? submissionUuid = freezed,
+    Object? choiceSetUuid = freezed,
   }) {
     return _then(
       _$SubmitResultImpl(
@@ -224,6 +247,14 @@ class __$$SubmitResultImplCopyWithImpl<$Res>
             ? _value.selectedSql
             : selectedSql // ignore: cast_nullable_to_non_nullable
                   as String?,
+        submissionUuid: freezed == submissionUuid
+            ? _value.submissionUuid
+            : submissionUuid // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        choiceSetUuid: freezed == choiceSetUuid
+            ? _value.choiceSetUuid
+            : choiceSetUuid // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -240,6 +271,8 @@ class _$SubmitResultImpl implements _SubmitResult {
     this.correctResult,
     this.correctSql,
     this.selectedSql,
+    this.submissionUuid,
+    @JsonKey(includeFromJson: false, includeToJson: false) this.choiceSetUuid,
   });
 
   factory _$SubmitResultImpl.fromJson(Map<String, dynamic> json) =>
@@ -259,10 +292,17 @@ class _$SubmitResultImpl implements _SubmitResult {
   final String? correctSql;
   @override
   final String? selectedSql;
+  // 저장된 제출의 UUID. 문제 신고가 어떤 제출에 대한 것인지 가리킨다.
+  @override
+  final String? submissionUuid;
+  // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final String? choiceSetUuid;
 
   @override
   String toString() {
-    return 'SubmitResult(isCorrect: $isCorrect, correctKey: $correctKey, rationale: $rationale, selectedResult: $selectedResult, correctResult: $correctResult, correctSql: $correctSql, selectedSql: $selectedSql)';
+    return 'SubmitResult(isCorrect: $isCorrect, correctKey: $correctKey, rationale: $rationale, selectedResult: $selectedResult, correctResult: $correctResult, correctSql: $correctSql, selectedSql: $selectedSql, submissionUuid: $submissionUuid, choiceSetUuid: $choiceSetUuid)';
   }
 
   @override
@@ -283,7 +323,11 @@ class _$SubmitResultImpl implements _SubmitResult {
             (identical(other.correctSql, correctSql) ||
                 other.correctSql == correctSql) &&
             (identical(other.selectedSql, selectedSql) ||
-                other.selectedSql == selectedSql));
+                other.selectedSql == selectedSql) &&
+            (identical(other.submissionUuid, submissionUuid) ||
+                other.submissionUuid == submissionUuid) &&
+            (identical(other.choiceSetUuid, choiceSetUuid) ||
+                other.choiceSetUuid == choiceSetUuid));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -297,6 +341,8 @@ class _$SubmitResultImpl implements _SubmitResult {
     correctResult,
     correctSql,
     selectedSql,
+    submissionUuid,
+    choiceSetUuid,
   );
 
   /// Create a copy of SubmitResult
@@ -322,6 +368,9 @@ abstract class _SubmitResult implements SubmitResult {
     final ExecuteResult? correctResult,
     final String? correctSql,
     final String? selectedSql,
+    final String? submissionUuid,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    final String? choiceSetUuid,
   }) = _$SubmitResultImpl;
 
   factory _SubmitResult.fromJson(Map<String, dynamic> json) =
@@ -340,7 +389,12 @@ abstract class _SubmitResult implements SubmitResult {
   @override
   String? get correctSql;
   @override
-  String? get selectedSql;
+  String? get selectedSql; // 저장된 제출의 UUID. 문제 신고가 어떤 제출에 대한 것인지 가리킨다.
+  @override
+  String? get submissionUuid; // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  String? get choiceSetUuid;
 
   /// Create a copy of SubmitResult
   /// with the given fields replaced by the non-null parameter values.

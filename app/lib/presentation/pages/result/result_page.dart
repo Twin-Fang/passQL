@@ -8,6 +8,7 @@ import '../../../data/models/question/submit_result.dart';
 import '../../widgets/question/ai_explain_sheet.dart';
 import '../../widgets/question/execute_result_card.dart';
 import '../../widgets/result/similar_questions_section.dart';
+import '../../widgets/report/report_button.dart';
 
 /// 정답/오답 피드백 화면.
 /// GoRouterState.extra로 SubmitResult를 받아 렌더링. API 재호출 없음.
@@ -81,6 +82,20 @@ class ResultPage extends ConsumerWidget {
               _AiDiffExplainButton(
                 questionUuid: questionUuid,
                 selectedKey: result.correctKey ?? '',
+              ),
+
+            // 문제 신고
+            if (questionUuid.isNotEmpty && result.submissionUuid != null)
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12.w),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: ReportButton(
+                    questionUuid: questionUuid,
+                    submissionUuid: result.submissionUuid!,
+                    choiceSetUuid: result.choiceSetUuid,
+                  ),
+                ),
               ),
 
             // 유사 문제 (비동기 로드)

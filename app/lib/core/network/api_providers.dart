@@ -8,6 +8,7 @@ import '../../data/sources/member_api.dart';
 import '../../data/sources/meta_api.dart';
 import '../../data/sources/progress_api.dart';
 import '../../data/sources/question_api.dart';
+import '../../data/sources/report_api.dart';
 import '../../data/sources/sse_question_client.dart';
 import 'dio_client.dart';
 
@@ -22,6 +23,10 @@ final questionApiProvider = Provider<QuestionApiClient>(
 
 final sseQuestionClientProvider = Provider<SseQuestionClient>(
   (ref) => SseQuestionClient(ref.watch(dioProvider)),
+);
+
+final reportApiProvider = Provider<ReportApiClient>(
+  (ref) => ReportApiClient(ref.watch(dioProvider)),
 );
 
 final progressApiProvider = Provider<ProgressApiClient>(

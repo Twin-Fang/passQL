@@ -221,7 +221,8 @@ class QuestionInteractionNotifier
           sessionUuid: sessionUuid,
         ),
       );
-      return result;
+      // 신고 시 어떤 선택지 세트를 풀었는지 알려야 하므로 결과에 붙여 둔다.
+      return result.copyWith(choiceSetUuid: choiceSetId);
     } catch (_) {
       state = state.copyWith(isSubmitting: false);
       return null;
