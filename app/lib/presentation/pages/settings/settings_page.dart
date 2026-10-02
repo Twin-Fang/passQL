@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/app_colors.dart';
 import '../../../core/text_styles.dart';
+import '../../../router/app_routes.dart';
 import '../../providers/settings_providers.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/settings/choice_mode_tile.dart';
 import '../../widgets/settings/nickname_edit_sheet.dart';
+import '../../widgets/settings/settings_link_tile.dart';
 import '../../widgets/settings/wrong_notes_section.dart';
 
 class SettingsPage extends ConsumerWidget {
@@ -99,6 +102,13 @@ class SettingsPage extends ConsumerWidget {
               const SizedBox(height: 16),
               // 오답 노트
               const WrongNotesSection(),
+              const SizedBox(height: 16),
+              // 건의사항
+              SettingsLinkTile(
+                title: '건의사항',
+                description: '앱에 바라는 점을 보내고, 처리 상태를 확인해요',
+                onTap: () => context.push(AppRoutes.feedback),
+              ),
               const SizedBox(height: 40),
               // 하단 푸터
               const _Footer(),

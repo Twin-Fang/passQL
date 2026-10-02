@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/sources/ai_api.dart';
+import '../../data/sources/feedback_api.dart';
 import '../../data/sources/exam_schedule_api.dart';
 import '../../data/sources/home_api.dart';
 import '../../data/sources/member_api.dart';
@@ -41,6 +42,10 @@ final aiApiProvider = Provider<AiApiClient>(
 
 final metaApiProvider = Provider<MetaApiClient>(
   (ref) => MetaApiClient(ref.watch(dioProvider)),
+);
+
+final feedbackApiProvider = Provider<FeedbackApiClient>(
+  (ref) => FeedbackApiClient(ref.watch(dioProvider)),
 );
 
 final examScheduleApiProvider = Provider<ExamScheduleApiClient>(

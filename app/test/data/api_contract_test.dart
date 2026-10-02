@@ -8,6 +8,8 @@ import 'package:passql_app/data/models/member/choice_generation_mode.dart';
 import 'package:passql_app/data/models/member/choice_mode_models.dart';
 import 'package:passql_app/data/models/member/nickname_models.dart';
 import 'package:passql_app/data/models/question/submit_request.dart';
+import 'package:passql_app/data/models/feedback/feedback_models.dart';
+import 'package:passql_app/data/sources/feedback_api.dart';
 import 'package:passql_app/data/sources/member_api.dart';
 import 'package:passql_app/data/sources/progress_api.dart';
 import 'package:passql_app/data/sources/question_api.dart';
@@ -139,5 +141,16 @@ void main() {
     await ignoreParse(ProgressApiClient(dio).getWrongQuestions(size: 20));
     expect(capture.last!.path, '/progress/wrong-questions');
     expect(capture.last!.queryParameters, {'size': 20});
+  });
+
+  test('건의는 POST 본문의 content 로 보내고, 내 목록은 GET /feedback/me 로 받는다', () async {
+    await ignoreParse(FeedbackApiClient(dio).submit(const FeedbackSubmitRequest('내용')));
+    expect(capture.last!.method, 'POST');
+    expect(capture.last!.path, '/feedback');
+    expect(jsonDecode(jsonEncode(capture.last!.data)), {'content': '내용'});
+
+    await ignoreParse(FeedbackApiClient(dio).getMyFeedbacks());
+    expect(capture.last!.method, 'GET');
+    expect(capture.last!.path, '/feedback/me');
   });
 }

@@ -11,6 +11,10 @@ abstract final class AppRoutes {
   static const String stats = '/stats';
   static const String settings = '/settings';
 
+  // 설정 서브 라우트
+  /// 건의사항 작성/내역.
+  static const String feedback = '/settings/feedback';
+
   // 문제 탭 서브 라우트
   /// 토픽 선택 후 챕터 플로우. topic(topicCode), topicName 쿼리 파라미터.
   static const String questionChapter = '/questions/chapter';

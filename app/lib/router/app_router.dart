@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../presentation/pages/feedback/feedback_page.dart';
 import '../presentation/pages/home/home_page.dart';
 import '../presentation/pages/login/login_page.dart';
 import '../presentation/pages/questions/topic_list_page.dart';
@@ -73,6 +74,13 @@ abstract final class AppRouter {
                 const NoTransitionPage(child: SettingsPage()),
           ),
         ],
+      ),
+
+      // 풀스크린: 건의사항
+      GoRoute(
+        path: AppRoutes.feedback,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const FeedbackPage(),
       ),
 
       // 풀스크린: 챕터 플로우 (/questions/chapter?topic=CODE&topicName=NAME)
