@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../presentation/flows/daily_set_flow.dart';
+import '../presentation/flows/question_flow.dart';
+import '../presentation/pages/daily_set/daily_set_result_page.dart';
+import '../presentation/pages/daily_set/leaderboard_page.dart';
 import '../presentation/pages/feedback/feedback_page.dart';
 import '../presentation/pages/home/home_page.dart';
 import '../presentation/pages/login/login_page.dart';
@@ -91,10 +95,29 @@ abstract final class AppRouter {
         builder: (_, state) {
           final params = state.uri.queryParameters;
           return ChapterPage(
-            topicCode: params['topic'] ?? '',
-            topicName: params['topicName'] ?? '문제 풀기',
+            flow: TopicFlow(
+              topicCode: params['topic'] ?? '',
+              topicName: params['topicName'] ?? '문제 풀기',
+            ),
           );
         },
+      ),
+
+      // 풀스크린: 오늘의 세트 풀이 / 결과 / 리더보드
+      GoRoute(
+        path: AppRoutes.dailySet,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const ChapterPage(flow: DailySetFlow()),
+      ),
+      GoRoute(
+        path: AppRoutes.dailySetResult,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => DailySetResultPage(extra: state.extra),
+      ),
+      GoRoute(
+        path: AppRoutes.leaderboard,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const LeaderboardPage(),
       ),
 
       // 풀스크린: 문제 상세 + 결과

@@ -4,7 +4,7 @@ import '../../core/network/safe_call.dart';
 import '../../data/models/home/greeting_response.dart';
 import '../../data/models/home/recommendations_request.dart';
 import '../../data/models/home/recommendations_response.dart';
-import '../../data/models/home/today_question_response.dart';
+import '../../data/models/daily_set/daily_set_models.dart';
 import '../../data/models/progress/heatmap_response.dart';
 import '../../data/models/progress/progress_response.dart';
 import '../../data/models/exam/exam_schedule_response.dart';
@@ -14,7 +14,7 @@ import '../../data/models/exam/exam_schedule_response.dart';
 class HomeData {
   final GreetingResponse? greeting;
   final ProgressResponse? progress;
-  final TodayQuestionResponse? todayQuestion;
+  final DailySetTodayResponse? dailySet;
   final RecommendationsResponse? recommendations;
   final ExamScheduleResponse? examSchedule;
   final HeatmapResponse? heatmap;
@@ -22,7 +22,7 @@ class HomeData {
   const HomeData({
     this.greeting,
     this.progress,
-    this.todayQuestion,
+    this.dailySet,
     this.recommendations,
     this.examSchedule,
     this.heatmap,
@@ -44,7 +44,7 @@ final homeDataProvider = FutureProvider<HomeData>((ref) async {
   final results = await Future.wait([
     safeCall(homeClient.getGreeting()),
     safeCall(progressClient.getProgress()),
-    safeCall(questionClient.getTodayQuestion()),
+    safeCall(ref.read(dailySetApiProvider).getToday()),
     safeCall(questionClient.getRecommendations(
       const RecommendationsRequest(size: 3),
     )),
@@ -55,7 +55,7 @@ final homeDataProvider = FutureProvider<HomeData>((ref) async {
   return HomeData(
     greeting: results[0] as GreetingResponse?,
     progress: results[1] as ProgressResponse?,
-    todayQuestion: results[2] as TodayQuestionResponse?,
+    dailySet: results[2] as DailySetTodayResponse?,
     recommendations: results[3] as RecommendationsResponse?,
     examSchedule: results[4] as ExamScheduleResponse?,
     heatmap: results[5] as HeatmapResponse?,

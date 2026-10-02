@@ -11,6 +11,8 @@ import 'package:passql_app/data/models/question/submit_request.dart';
 import 'package:passql_app/data/models/feedback/feedback_models.dart';
 import 'package:passql_app/data/sources/feedback_api.dart';
 import 'package:passql_app/data/models/report/report_models.dart';
+import 'package:passql_app/data/models/daily_set/daily_set_models.dart';
+import 'package:passql_app/data/sources/daily_set_api.dart';
 import 'package:passql_app/data/sources/member_api.dart';
 import 'package:passql_app/data/sources/report_api.dart';
 import 'package:passql_app/data/sources/progress_api.dart';
@@ -177,5 +179,35 @@ void main() {
     expect(capture.last!.method, 'GET');
     expect(capture.last!.path, '/questions/q-1/report/status');
     expect(capture.last!.queryParameters, {'submissionUuid': 'sub-1'});
+  });
+
+  test('데일리 세트는 오늘 조회, 완료 점수 등록, 순위 조회 요청을 보낸다', () async {
+    await ignoreParse(DailySetApiClient(dio).getToday());
+    expect(capture.last!.method, 'GET');
+    expect(capture.last!.path, '/daily-set/today');
+
+    await ignoreParse(
+      DailySetApiClient(dio).complete(
+        const DailySetCompleteRequest(correctCount: 4, sessionUuid: 's-1'),
+      ),
+    );
+    expect(capture.last!.method, 'POST');
+    expect(capture.last!.path, '/daily-set/complete');
+    expect(jsonDecode(jsonEncode(capture.last!.data)), {'correctCount': 4, 'sessionUuid': 's-1'});
+
+    await ignoreParse(DailySetApiClient(dio).getLeaderboard());
+    expect(capture.last!.method, 'GET');
+    expect(capture.last!.path, '/daily-set/leaderboard');
+  });
+
+  test('답안 제출 시 세션 UUID 를 함께 보낸다 (데일리 세트 풀이)', () async {
+    await ignoreParse(
+      QuestionApiClient(dio).submitAnswer(
+        'q-1',
+        const SubmitRequest(choiceSetId: 'cs', selectedChoiceKey: 'A', sessionUuid: 'sess-1'),
+      ),
+    );
+    final wire = jsonDecode(jsonEncode(capture.last!.data)) as Map;
+    expect(wire['sessionUuid'], 'sess-1');
   });
 }

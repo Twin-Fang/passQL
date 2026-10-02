@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
-import '../models/home/today_question_response.dart';
 import '../models/home/recommendations_request.dart';
 import '../models/home/recommendations_response.dart';
 import '../models/question/question_detail.dart';
@@ -15,13 +14,6 @@ part 'question_api.g.dart';
 @RestApi()
 abstract class QuestionApiClient {
   factory QuestionApiClient(Dio dio, {String baseUrl}) = _QuestionApiClient;
-
-  /// 오늘의 데일리 챌린지 문제.
-  ///
-  /// 주의: 서버에서 이 엔드포인트는 제거되고 `/daily-set/today`로 대체되었다.
-  /// 홈 카드를 데일리 세트로 교체할 때(#332) 함께 정리한다.
-  @GET('/questions/today')
-  Future<TodayQuestionResponse> getTodayQuestion();
 
   /// 추천 문제 N개.
   ///

@@ -15,6 +15,16 @@ abstract final class AppRoutes {
   /// 건의사항 작성/내역.
   static const String feedback = '/settings/feedback';
 
+  // 데일리 세트
+  /// 오늘의 세트 풀이.
+  static const String dailySet = '/daily-set';
+
+  /// 오늘의 세트 결과.
+  static const String dailySetResult = '/daily-set/result';
+
+  /// 리더보드.
+  static const String leaderboard = '/leaderboard';
+
   // 문제 탭 서브 라우트
   /// 토픽 선택 후 챕터 플로우. topic(topicCode), topicName 쿼리 파라미터.
   static const String questionChapter = '/questions/chapter';
