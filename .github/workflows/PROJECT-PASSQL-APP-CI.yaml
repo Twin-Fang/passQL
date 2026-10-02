@@ -1,0 +1,62 @@
+# ===================================================================
+# passQL 앱(Flutter) CI - 정적 분석과 테스트
+# ===================================================================
+# app/ 이 바뀐 변경(PR, main 푸시)에서 분석과 테스트가 통과하는지 확인한다.
+# 스토어 배포나 서명은 하지 않는다(그건 별도 워크플로우).
+#
+# - 생성 코드(.g.dart, .freezed.dart)는 저장소에 커밋되어 있어 build_runner 를 돌리지 않는다.
+# - Firebase 설정 파일(google-services.json 등)은 분석/테스트에 필요하지 않다.
+# - .env 는 pubspec 에 에셋으로 선언되어 있어, CI 에서는 자리 표시 값으로 만든다.
+
+name: PASSQL-APP-CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - '.github/workflows/PROJECT-PASSQL-APP-CI.yaml'
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - '.github/workflows/PROJECT-PASSQL-APP-CI.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: passql-app-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze-and-test:
+    name: 분석과 테스트
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Flutter 설정
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.9'
+          channel: stable
+          cache: true
+
+      - name: 자리 표시 .env 생성
+        run: echo 'BACKEND_BASE_URL=https://example.invalid/api' > .env
+
+      - name: 의존성 설치
+        run: flutter pub get
+
+      - name: 정적 분석
+        run: flutter analyze
+
+      - name: 테스트
+        run: flutter test
