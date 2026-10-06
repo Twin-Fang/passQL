@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../../../core/app_colors.dart';
 import '../../../core/auth/auth_session.dart';
@@ -87,10 +88,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               // iOS 에서 소셜 로그인을 제공하면 Sign in with Apple 도 필수(App Store 심사 규정).
               if (Platform.isIOS) ...[
                 SizedBox(height: 12.h),
-                _SocialButton(
-                  label: 'Apple로 계속하기',
-                  icon: FontAwesomeIcons.apple,
-                  dark: true,
+                // Apple 의 디자인 가이드(로고, 문구, 비율)를 지키려면 공식 버튼 위젯을 써야 한다.
+                _AppleButton(
                   loading: _loading == SocialProvider.apple,
                   onPressed: busy ? null : () => _signIn(SocialProvider.apple),
                 ),
@@ -114,25 +113,23 @@ class _SocialButton extends StatelessWidget {
     required this.icon,
     required this.loading,
     required this.onPressed,
-    this.dark = false,
   });
 
   final String label;
   final FaIconData icon;
   final bool loading;
-  final bool dark;
   final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
-    final fg = dark ? AppColors.white : AppColors.black900;
+    final fg = AppColors.black900;
     return SizedBox(
       width: double.infinity,
       height: 52.h,
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          backgroundColor: dark ? AppColors.black900 : AppColors.white,
+          backgroundColor: AppColors.white,
           side: BorderSide(color: AppColors.black900.withValues(alpha: 0.2)),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.r),
@@ -183,6 +180,46 @@ class _LegalNotice extends StatelessWidget {
         ),
         Text('에 동의하게 돼요', style: style),
       ],
+    );
+  }
+}
+
+/// Apple 공식 로그인 버튼. 진행 중에는 같은 크기의 로딩 표시로 바꿔 레이아웃이 흔들리지 않게 한다.
+class _AppleButton extends StatelessWidget {
+  const _AppleButton({required this.loading, required this.onPressed});
+
+  final bool loading;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    if (loading) {
+      return SizedBox(
+        width: double.infinity,
+        height: 52.h,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: Colors.black,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+            ),
+          ),
+        ),
+      );
+    }
+    return SizedBox(
+      width: double.infinity,
+      child: SignInWithAppleButton(
+        onPressed: onPressed,
+        text: 'Apple로 계속하기',
+        height: 52.h,
+        style: SignInWithAppleButtonStyle.black,
+      ),
     );
   }
 }
