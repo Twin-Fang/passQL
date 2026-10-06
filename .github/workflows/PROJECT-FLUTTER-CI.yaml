@@ -44,11 +44,8 @@
 name: PROJECT-Flutter-CI
 
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened]
-  push:
-    branches: [main]
+  # 저장소 루트에서 앱을 찾는 일반 템플릿이라 모노레포(app/)에서는 실패한다. 자동 실행을 껐다(수동 실행만 가능).
+  # 앱 분석/테스트는 PROJECT-PASSQL-APP-CI 가 한다.
   workflow_dispatch:
     inputs:
       analyze_only:

@@ -4,6 +4,7 @@ import '../../../core/app_colors.dart';
 import '../../../core/text_styles.dart';
 import '../../../data/models/question/submit_result.dart';
 import '../question/ai_explain_sheet.dart';
+import '../report/report_button.dart';
 
 /// 제출 후 인라인 피드백 바.
 ///
@@ -87,6 +88,16 @@ class ChapterFeedbackBar extends StatelessWidget {
                     ),
                   ),
                 ],
+                // 신고는 어떤 제출인지 알아야 하므로 제출 UUID 가 있을 때만 보여준다.
+                if (result.submissionUuid != null)
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ReportButton(
+                      questionUuid: questionUuid,
+                      submissionUuid: result.submissionUuid!,
+                      choiceSetUuid: result.choiceSetUuid,
+                    ),
+                  ),
               ],
             ),
           ),

@@ -47,3 +47,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Firebase 앱 설정 (환경별 값. 받는 방법은 docs/FIREBASE-SETUP.md)
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist

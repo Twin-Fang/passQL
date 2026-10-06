@@ -13,7 +13,10 @@ import com.passql.member.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,6 +35,13 @@ public class MemberController implements MemberControllerDocs {
     @GetMapping("/me")
     public MemberMeResponse getMe(@AuthMember LoginMember loginMember) {
         return memberService.getMe(loginMember.memberUuid());
+    }
+
+    /** 회원 탈퇴. 성공하면 본문 없이 204. */
+    @DeleteMapping("/me")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void withdraw(@AuthMember LoginMember loginMember) {
+        memberService.withdraw(loginMember.memberUuid());
     }
 
     @PostMapping("/me/regenerate-nickname")

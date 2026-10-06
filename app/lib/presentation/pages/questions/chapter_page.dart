@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/app_colors.dart';
 import '../../../core/text_styles.dart';
 import '../../../data/models/question/question_detail.dart';
 import '../../../data/models/question/sse_event.dart';
+import '../../../presentation/flows/question_flow.dart';
 import '../../../presentation/providers/chapter_providers.dart';
+import '../../../presentation/providers/learning_refresh.dart';
 import '../../../presentation/providers/question_providers.dart';
 import '../../widgets/chapter/chapter_app_bar.dart';
 import '../../widgets/chapter/chapter_feedback_bar.dart';
@@ -17,18 +18,14 @@ import '../../widgets/question/execute_result_card.dart';
 import '../../widgets/question/schema_section.dart';
 import '../../widgets/question/sse_loading_widget.dart';
 
-/// 챕터 플로우 메인 페이지 (풀스크린).
+/// 문제 풀이 플로우 메인 페이지 (풀스크린).
 ///
-/// 토픽에서 size=10 문제를 순서대로 풀고, 마지막 제출 후 PracticeResultPage로 이동.
+/// 문제 묶음을 순서대로 풀고 마지막 제출 후 흐름(`QuestionFlow`)이 정한 곳으로 이동한다.
+/// 토픽 챕터, 데일리 세트가 이 화면을 함께 쓴다.
 class ChapterPage extends ConsumerStatefulWidget {
-  final String topicCode;
-  final String topicName;
+  final QuestionFlow flow;
 
-  const ChapterPage({
-    super.key,
-    required this.topicCode,
-    required this.topicName,
-  });
+  const ChapterPage({super.key, required this.flow});
 
   @override
   ConsumerState<ChapterPage> createState() => _ChapterPageState();
@@ -41,15 +38,25 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
   /// 현재 문제 진입 시각 — 제출 소요시간 계산에 사용.
   DateTime _questionStartTime = DateTime.now();
 
+  /// 이번 풀이의 세션 식별자. 화면이 다시 그려져도 바뀌지 않도록 상태에 둔다.
+  final String _sessionUuid = const Uuid().v4();
+
+  /// 이 화면에서 답안을 한 번이라도 제출했는지. 벗어날 때 학습 현황을 갱신할지 정한다.
+  bool _submittedAny = false;
+
+  /// dispose 시점에는 ref 를 쓸 수 없으므로 컨테이너를 미리 잡아 둔다.
+  late final ProviderContainer _container;
+
   @override
   void initState() {
     super.initState();
+    _container = ProviderScope.containerOf(context, listen: false);
     // 첫 프레임 이후 문제 목록 로드
     Future.microtask(() {
       if (!mounted) return;
       ref
-          .read(chapterProvider(widget.topicCode).notifier)
-          .loadQuestions(widget.topicCode);
+          .read(chapterProvider(widget.flow.id).notifier)
+          .load(() => widget.flow.loadQuestionUuids(ref));
     });
   }
 
@@ -86,10 +93,13 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
             '';
     final startTime = _questionStartTime;
 
-    final result = await interactionNotifier.submit();
+    final result = await interactionNotifier.submit(
+      sessionUuid: widget.flow.tracksSession ? _sessionUuid : null,
+    );
     if (!mounted) return;
 
     if (result != null) {
+      _submittedAny = true;
       final durationMs =
           DateTime.now().difference(startTime).inMilliseconds;
       chapterNotifier.onSubmitted(result, durationMs, selectedKey);
@@ -107,27 +117,33 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     }
   }
 
-  /// 챕터 완료 — PracticeResultPage로 이동.
-  void _navigateToResult(List<ChapterResult> results) {
+  /// 마지막 문제까지 끝남 — 이후 처리는 흐름이 정한다.
+  void _complete(List<ChapterResult> results) {
     final totalDurationMs = results.fold(0, (sum, r) => sum + r.durationMs);
     final summary = ChapterSummary(
-      topicName: widget.topicName,
+      topicName: widget.flow.title,
       results: results,
       totalDurationMs: totalDurationMs,
     );
-    // sessionId는 라우트 파라미터 충족용으로만 사용 (내부에서 참조 안 함)
-    final sessionId = 'chapter-${const Uuid().v4()}';
-    context.go('/practice/$sessionId/result', extra: summary);
+    widget.flow.onCompleted(context, ref, summary, _sessionUuid);
+  }
+
+  @override
+  void dispose() {
+    // 챕터는 문제를 여러 번 제출하므로 매번이 아니라 화면을 벗어날 때 한 번만 갱신한다.
+    // (중간에 나가도, 끝까지 풀고 결과 화면으로 가도 같은 경로를 탄다.)
+    if (_submittedAny) refreshLearningData(_container.invalidate);
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final chapter = ref.watch(chapterProvider(widget.topicCode));
-    final chapterNotifier =
-        ref.read(chapterProvider(widget.topicCode).notifier);
+    final flowId = widget.flow.id;
+    final chapter = ref.watch(chapterProvider(flowId));
+    final chapterNotifier = ref.read(chapterProvider(flowId).notifier);
 
     // 인덱스 변경 시 타이머 리셋
-    ref.listen<ChapterState>(chapterProvider(widget.topicCode), (prev, next) {
+    ref.listen<ChapterState>(chapterProvider(flowId), (prev, next) {
       if ((prev?.currentIndex ?? -1) != next.currentIndex) {
         _questionStartTime = DateTime.now();
       }
@@ -135,13 +151,13 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
 
     // 로딩 중
     if (chapter.isLoadingList) {
-      return _LoadingScaffold(topicName: widget.topicName);
+      return _LoadingScaffold(topicName: widget.flow.title);
     }
 
     // 에러 또는 빈 목록
     if (chapter.listError != null || chapter.questionUuids.isEmpty) {
       return _ErrorScaffold(
-        topicName: widget.topicName,
+        topicName: widget.flow.title,
         message: chapter.listError ?? '문제가 없어요',
       );
     }
@@ -155,7 +171,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     return Scaffold(
       backgroundColor: AppColors.pageBg,
       appBar: ChapterAppBar(
-        topicName: widget.topicName,
+        topicName: widget.flow.title,
         currentIndex: chapter.currentIndex,
         total: chapter.questionUuids.length,
         isAnswered: chapter.isAnswered,
@@ -260,7 +276,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
                   isLastQuestion: chapter.isLastQuestion,
                   onNext: () {
                     if (chapter.isLastQuestion) {
-                      _navigateToResult(chapter.results);
+                      _complete(chapter.results);
                     } else {
                       chapterNotifier.nextQuestion();
                     }

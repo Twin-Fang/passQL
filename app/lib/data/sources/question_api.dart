@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
-import '../models/home/today_question_response.dart';
+import '../models/home/recommendations_request.dart';
 import '../models/home/recommendations_response.dart';
 import '../models/question/question_detail.dart';
 import '../models/question/question_list_response.dart';
@@ -15,17 +15,13 @@ part 'question_api.g.dart';
 abstract class QuestionApiClient {
   factory QuestionApiClient(Dio dio, {String baseUrl}) = _QuestionApiClient;
 
-  /// 오늘의 데일리 챌린지 문제.
-  @GET('/questions/today')
-  Future<TodayQuestionResponse> getTodayQuestion(
-    @Query('memberUuid') String? memberUuid,
-  );
-
-  /// 랜덤 추천 문제 N개.
-  @GET('/questions/recommendations')
+  /// 추천 문제 N개.
+  ///
+  /// 제외 목록이 쿼리스트링으로 누적되면 서버 헤더 한도(8KB)를 넘어 400이 나므로
+  /// 서버가 POST 본문으로 받는다.
+  @POST('/questions/recommendations')
   Future<RecommendationsResponse> getRecommendations(
-    @Query('size') int? size,
-    @Query('excludeQuestionUuid') String? excludeQuestionUuid,
+    @Body() RecommendationsRequest body,
   );
 
   /// 문제 목록 조회 (페이지네이션). topic, difficulty는 선택 필터.
@@ -50,11 +46,10 @@ abstract class QuestionApiClient {
     @Body() ExecuteRequest body,
   );
 
-  /// 답안 제출. 헤더 X-Member-UUID 필수.
+  /// 답안 제출. 회원은 토큰으로 식별한다.
   @POST('/questions/{questionUuid}/submit')
   Future<SubmitResult> submitAnswer(
     @Path('questionUuid') String questionUuid,
     @Body() SubmitRequest body,
-    @Header('X-Member-UUID') String memberUuid,
   );
 }

@@ -2,11 +2,31 @@
 ///
 /// 문자열 경로를 직접 사용하는 대신 이 클래스를 참조한다 — 오타 방지.
 abstract final class AppRoutes {
+  // 인증
+  static const String login = '/login';
+
+  /// 약관 열람. [type] 은 LegalType.serverValue. 로그인 전에도 접근할 수 있다.
+  static String legal(String type) => '/legal/$type';
+
   // 탭 루트
   static const String home = '/home';
   static const String questions = '/questions';
   static const String stats = '/stats';
   static const String settings = '/settings';
+
+  // 설정 서브 라우트
+  /// 건의사항 작성/내역.
+  static const String feedback = '/settings/feedback';
+
+  // 데일리 세트
+  /// 오늘의 세트 풀이.
+  static const String dailySet = '/daily-set';
+
+  /// 오늘의 세트 결과.
+  static const String dailySetResult = '/daily-set/result';
+
+  /// 리더보드.
+  static const String leaderboard = '/leaderboard';
 
   // 문제 탭 서브 라우트
   /// 토픽 선택 후 챕터 플로우. topic(topicCode), topicName 쿼리 파라미터.

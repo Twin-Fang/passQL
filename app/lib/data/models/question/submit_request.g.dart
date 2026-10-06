@@ -10,10 +10,12 @@ _$SubmitRequestImpl _$$SubmitRequestImplFromJson(Map<String, dynamic> json) =>
     _$SubmitRequestImpl(
       choiceSetId: json['choiceSetId'] as String,
       selectedChoiceKey: json['selectedChoiceKey'] as String,
+      sessionUuid: json['sessionUuid'] as String?,
     );
 
 Map<String, dynamic> _$$SubmitRequestImplToJson(_$SubmitRequestImpl instance) =>
     <String, dynamic>{
       'choiceSetId': instance.choiceSetId,
       'selectedChoiceKey': instance.selectedChoiceKey,
+      'sessionUuid': instance.sessionUuid,
     };

@@ -14,12 +14,8 @@ name: PROJECT-PYTHON-CI
 # 트리거 설정
 # ===================================================================
 on:
-  push:
-    branches:
-      - main  # main 브랜치 push 시 빌드 검증
-  pull_request:
-    branches:
-      - main  # main 브랜치로의 PR 시 빌드 검증
+  # 모노레포 구조에 맞지 않는 일반 템플릿이라 push/PR 자동 실행을 껐다(수동 실행만 가능).
+  # 실제 검증은 PROJECT-PYTHON-AI-CI (ai/**) 가 한다.
   workflow_dispatch:  # 수동 실행 허용
 
 # ===================================================================

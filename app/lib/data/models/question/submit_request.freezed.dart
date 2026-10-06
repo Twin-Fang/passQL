@@ -22,7 +22,9 @@ SubmitRequest _$SubmitRequestFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$SubmitRequest {
   String get choiceSetId => throw _privateConstructorUsedError;
-  String get selectedChoiceKey => throw _privateConstructorUsedError;
+  String get selectedChoiceKey =>
+      throw _privateConstructorUsedError; // 연습/챕터 세션 단위 AI 코멘트 집계용. 단건 풀이면 null.
+  String? get sessionUuid => throw _privateConstructorUsedError;
 
   /// Serializes this SubmitRequest to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -41,7 +43,11 @@ abstract class $SubmitRequestCopyWith<$Res> {
     $Res Function(SubmitRequest) then,
   ) = _$SubmitRequestCopyWithImpl<$Res, SubmitRequest>;
   @useResult
-  $Res call({String choiceSetId, String selectedChoiceKey});
+  $Res call({
+    String choiceSetId,
+    String selectedChoiceKey,
+    String? sessionUuid,
+  });
 }
 
 /// @nodoc
@@ -58,7 +64,11 @@ class _$SubmitRequestCopyWithImpl<$Res, $Val extends SubmitRequest>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? choiceSetId = null, Object? selectedChoiceKey = null}) {
+  $Res call({
+    Object? choiceSetId = null,
+    Object? selectedChoiceKey = null,
+    Object? sessionUuid = freezed,
+  }) {
     return _then(
       _value.copyWith(
             choiceSetId: null == choiceSetId
@@ -69,6 +79,10 @@ class _$SubmitRequestCopyWithImpl<$Res, $Val extends SubmitRequest>
                 ? _value.selectedChoiceKey
                 : selectedChoiceKey // ignore: cast_nullable_to_non_nullable
                       as String,
+            sessionUuid: freezed == sessionUuid
+                ? _value.sessionUuid
+                : sessionUuid // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -84,7 +98,11 @@ abstract class _$$SubmitRequestImplCopyWith<$Res>
   ) = __$$SubmitRequestImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String choiceSetId, String selectedChoiceKey});
+  $Res call({
+    String choiceSetId,
+    String selectedChoiceKey,
+    String? sessionUuid,
+  });
 }
 
 /// @nodoc
@@ -100,7 +118,11 @@ class __$$SubmitRequestImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? choiceSetId = null, Object? selectedChoiceKey = null}) {
+  $Res call({
+    Object? choiceSetId = null,
+    Object? selectedChoiceKey = null,
+    Object? sessionUuid = freezed,
+  }) {
     return _then(
       _$SubmitRequestImpl(
         choiceSetId: null == choiceSetId
@@ -111,6 +133,10 @@ class __$$SubmitRequestImplCopyWithImpl<$Res>
             ? _value.selectedChoiceKey
             : selectedChoiceKey // ignore: cast_nullable_to_non_nullable
                   as String,
+        sessionUuid: freezed == sessionUuid
+            ? _value.sessionUuid
+            : sessionUuid // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -122,6 +148,7 @@ class _$SubmitRequestImpl implements _SubmitRequest {
   const _$SubmitRequestImpl({
     required this.choiceSetId,
     required this.selectedChoiceKey,
+    this.sessionUuid,
   });
 
   factory _$SubmitRequestImpl.fromJson(Map<String, dynamic> json) =>
@@ -131,10 +158,13 @@ class _$SubmitRequestImpl implements _SubmitRequest {
   final String choiceSetId;
   @override
   final String selectedChoiceKey;
+  // 연습/챕터 세션 단위 AI 코멘트 집계용. 단건 풀이면 null.
+  @override
+  final String? sessionUuid;
 
   @override
   String toString() {
-    return 'SubmitRequest(choiceSetId: $choiceSetId, selectedChoiceKey: $selectedChoiceKey)';
+    return 'SubmitRequest(choiceSetId: $choiceSetId, selectedChoiceKey: $selectedChoiceKey, sessionUuid: $sessionUuid)';
   }
 
   @override
@@ -145,12 +175,15 @@ class _$SubmitRequestImpl implements _SubmitRequest {
             (identical(other.choiceSetId, choiceSetId) ||
                 other.choiceSetId == choiceSetId) &&
             (identical(other.selectedChoiceKey, selectedChoiceKey) ||
-                other.selectedChoiceKey == selectedChoiceKey));
+                other.selectedChoiceKey == selectedChoiceKey) &&
+            (identical(other.sessionUuid, sessionUuid) ||
+                other.sessionUuid == sessionUuid));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, choiceSetId, selectedChoiceKey);
+  int get hashCode =>
+      Object.hash(runtimeType, choiceSetId, selectedChoiceKey, sessionUuid);
 
   /// Create a copy of SubmitRequest
   /// with the given fields replaced by the non-null parameter values.
@@ -170,6 +203,7 @@ abstract class _SubmitRequest implements SubmitRequest {
   const factory _SubmitRequest({
     required final String choiceSetId,
     required final String selectedChoiceKey,
+    final String? sessionUuid,
   }) = _$SubmitRequestImpl;
 
   factory _SubmitRequest.fromJson(Map<String, dynamic> json) =
@@ -178,7 +212,9 @@ abstract class _SubmitRequest implements SubmitRequest {
   @override
   String get choiceSetId;
   @override
-  String get selectedChoiceKey;
+  String get selectedChoiceKey; // 연습/챕터 세션 단위 AI 코멘트 집계용. 단건 풀이면 null.
+  @override
+  String? get sessionUuid;
 
   /// Create a copy of SubmitRequest
   /// with the given fields replaced by the non-null parameter values.

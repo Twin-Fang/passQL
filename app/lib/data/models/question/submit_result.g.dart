@@ -20,6 +20,7 @@ _$SubmitResultImpl _$$SubmitResultImplFromJson(
       : ExecuteResult.fromJson(json['correctResult'] as Map<String, dynamic>),
   correctSql: json['correctSql'] as String?,
   selectedSql: json['selectedSql'] as String?,
+  submissionUuid: json['submissionUuid'] as String?,
 );
 
 Map<String, dynamic> _$$SubmitResultImplToJson(_$SubmitResultImpl instance) =>
@@ -31,4 +32,5 @@ Map<String, dynamic> _$$SubmitResultImplToJson(_$SubmitResultImpl instance) =>
       'correctResult': instance.correctResult,
       'correctSql': instance.correctSql,
       'selectedSql': instance.selectedSql,
+      'submissionUuid': instance.submissionUuid,
     };

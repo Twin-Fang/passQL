@@ -6,6 +6,7 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../../core/app_colors.dart';
 import '../../../core/text_styles.dart';
+import '../../../router/app_routes.dart';
 import '../../providers/home_providers.dart';
 import '../../widgets/home/exam_schedule_card.dart';
 import '../../widgets/home/fallback_stats_section.dart';
@@ -13,7 +14,7 @@ import '../../widgets/home/greeting_section.dart';
 import '../../widgets/home/heatmap_widget.dart';
 import '../../widgets/home/readiness_card.dart';
 import '../../widgets/home/recommendations_section.dart';
-import '../../widgets/home/today_question_card.dart';
+import '../../widgets/home/daily_set_card.dart';
 
 /// 홈 화면.
 /// homeDataProvider에서 6개 API 병렬 결과를 받아 렌더링.
@@ -72,13 +73,11 @@ class _HomeScrollView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: TodayQuestionCard(
-                  todayQuestion: data.todayQuestion,
-                  onTap: data.todayQuestion?.question != null
-                      ? () => context.push(
-                          '/questions/${data.todayQuestion!.question!.questionUuid}',
-                        )
-                      : () => context.go('/questions'),
+                child: DailySetCard(
+                  dailySet: data.dailySet,
+                  onStart: () => context.push(AppRoutes.dailySet),
+                  onViewResult: () => context.push(AppRoutes.dailySetResult),
+                  onBrowse: () => context.go(AppRoutes.questions),
                 ),
               ),
               SizedBox(width: 12.w),

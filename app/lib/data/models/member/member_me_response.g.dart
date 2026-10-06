@@ -11,6 +11,14 @@ _$MemberMeResponseImpl _$$MemberMeResponseImplFromJson(
 ) => _$MemberMeResponseImpl(
   memberUuid: json['memberUuid'] as String,
   nickname: json['nickname'] as String,
+  choiceGenerationMode: $enumDecodeNullable(
+    _$ChoiceGenerationModeEnumMap,
+    json['choiceGenerationMode'],
+    unknownValue: ChoiceGenerationMode.practice,
+  ),
+  nicknameChangedAt: json['nicknameChangedAt'] == null
+      ? null
+      : DateTime.parse(json['nicknameChangedAt'] as String),
 );
 
 Map<String, dynamic> _$$MemberMeResponseImplToJson(
@@ -18,4 +26,12 @@ Map<String, dynamic> _$$MemberMeResponseImplToJson(
 ) => <String, dynamic>{
   'memberUuid': instance.memberUuid,
   'nickname': instance.nickname,
+  'choiceGenerationMode':
+      _$ChoiceGenerationModeEnumMap[instance.choiceGenerationMode],
+  'nicknameChangedAt': instance.nicknameChangedAt?.toIso8601String(),
+};
+
+const _$ChoiceGenerationModeEnumMap = {
+  ChoiceGenerationMode.practice: 'PRACTICE',
+  ChoiceGenerationMode.real: 'REAL',
 };

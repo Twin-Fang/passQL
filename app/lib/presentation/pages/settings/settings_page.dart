@@ -1,13 +1,78 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/app_colors.dart';
 import '../../../core/text_styles.dart';
+import '../../../router/app_routes.dart';
+import '../../../core/error/app_exception.dart';
+import '../../../data/models/legal/legal_models.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/settings_providers.dart';
+import '../../widgets/common/app_toast.dart';
+import '../../widgets/settings/choice_mode_tile.dart';
+import '../../widgets/settings/nickname_edit_sheet.dart';
+import '../../widgets/settings/settings_link_tile.dart';
+import '../../widgets/settings/wrong_notes_section.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
+
+  /// 되돌릴 수 없는 작업이라 안내 후 한 번 더 확인받는다. 실패하면 사유를 알리고 계정은 그대로 둔다.
+  Future<void> _confirmWithdraw(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('정말 탈퇴할까요?'),
+        content: const Text(
+          '계정과 개인정보가 삭제되고 되돌릴 수 없어요.\n같은 계정으로 다시 가입하면 새 계정으로 시작해요.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('탈퇴하기'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      // 성공하면 로그인 상태가 풀려 라우터가 로그인 화면으로 보낸다.
+      await ref.read(authProvider.notifier).withdraw();
+    } on AppException catch (e) {
+      if (context.mounted) showAppToast(context, e.message);
+    }
+  }
+
+  /// 실수로 누르는 것을 막기 위해 한 번 확인한 뒤 로그아웃한다.
+  /// 로그아웃되면 라우터가 자동으로 로그인 화면으로 보낸다.
+  Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('로그아웃할까요?'),
+        content: const Text('다시 로그인하면 기록은 그대로 이어져요.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('로그아웃'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await ref.read(authProvider.notifier).signOut();
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -72,25 +137,62 @@ class SettingsPage extends ConsumerWidget {
                       );
                       // async gap 이후 위젯이 unmount됐을 수 있으므로 체크
                       if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            '디바이스 ID가 복사되었습니다.',
-                            style: AppTextStyles.paragraph_14.copyWith(
-                              color: Colors.white,
-                            ),
-                          ),
-                          backgroundColor: AppColors.toastBg,
-                          behavior: SnackBarBehavior.floating,
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
+                      showAppToast(context, '회원 ID가 복사되었습니다.');
                     },
                     onRegenerateNickname: () => ref
                         .read(nicknameNotifierProvider.notifier)
                         .regenerate(),
+                    onEditNickname: () async {
+                      final changed = await NicknameEditSheet.show(
+                        context,
+                        nickname,
+                      );
+                      if (changed == true && context.mounted) {
+                        showAppToast(context, '닉네임이 변경됐어요');
+                      }
+                    },
                   );
                 },
+              ),
+              const SizedBox(height: 16),
+              // 선택지 생성 방식
+              const ChoiceModeTile(),
+              const SizedBox(height: 16),
+              // 오답 노트
+              const WrongNotesSection(),
+              const SizedBox(height: 16),
+              // 건의사항
+              SettingsLinkTile(
+                title: '건의사항',
+                description: '앱에 바라는 점을 보내고, 처리 상태를 확인해요',
+                onTap: () => context.push(AppRoutes.feedback),
+              ),
+              const SizedBox(height: 16),
+              // 약관
+              SettingsLinkTile(
+                title: '이용약관',
+                description: '서비스 이용 조건을 확인해요',
+                onTap: () => context.push(AppRoutes.legal(LegalType.termsOfService.serverValue)),
+              ),
+              const SizedBox(height: 16),
+              SettingsLinkTile(
+                title: '개인정보처리방침',
+                description: '수집하는 정보와 사용 방법을 확인해요',
+                onTap: () => context.push(AppRoutes.legal(LegalType.privacyPolicy.serverValue)),
+              ),
+              const SizedBox(height: 16),
+              // 로그아웃
+              SettingsLinkTile(
+                title: '로그아웃',
+                description: '이 기기에서 로그아웃해요',
+                onTap: () => _confirmSignOut(context, ref),
+              ),
+              const SizedBox(height: 16),
+              // 회원 탈퇴 (스토어 심사 필수)
+              SettingsLinkTile(
+                title: '회원 탈퇴',
+                description: '계정과 개인정보를 삭제해요',
+                onTap: () => _confirmWithdraw(context, ref),
               ),
               const SizedBox(height: 40),
               // 하단 푸터
@@ -112,6 +214,7 @@ class _InfoCard extends StatelessWidget {
     required this.isRegenerating,
     required this.onCopyUuid,
     required this.onRegenerateNickname,
+    required this.onEditNickname,
   });
 
   final String memberUuid;
@@ -121,6 +224,7 @@ class _InfoCard extends StatelessWidget {
   // async 콜백 — Clipboard.setData 이후 context.mounted 체크를 위해 Future<void> 사용
   final Future<void> Function() onCopyUuid;
   final VoidCallback onRegenerateNickname;
+  final VoidCallback onEditNickname;
 
   @override
   Widget build(BuildContext context) {
@@ -138,7 +242,7 @@ class _InfoCard extends StatelessWidget {
       child: Column(
         children: [
           _InfoRow(
-            label: '디바이스 ID',
+            label: '회원 ID',
             value: truncatedUuid,
             valueStyle: AppTextStyles.paragraph_14.copyWith(
               color: AppColors.textPrimary,
@@ -171,10 +275,25 @@ class _InfoCard extends StatelessWidget {
                       ),
                     ),
                   )
-                : IconButton(
-                    icon: const FaIcon(FontAwesomeIcons.arrowsRotate, size: 16),
-                    color: AppColors.textCaption,
-                    onPressed: onRegenerateNickname,
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        tooltip: '닉네임 직접 변경',
+                        icon: const FaIcon(FontAwesomeIcons.pen, size: 16),
+                        color: AppColors.textCaption,
+                        onPressed: onEditNickname,
+                      ),
+                      IconButton(
+                        tooltip: '랜덤 닉네임',
+                        icon: const FaIcon(
+                          FontAwesomeIcons.arrowsRotate,
+                          size: 16,
+                        ),
+                        color: AppColors.textCaption,
+                        onPressed: onRegenerateNickname,
+                      ),
+                    ],
                   ),
           ),
           const Divider(height: 1, color: AppColors.borderDefault),
@@ -228,7 +347,7 @@ class _InfoRow extends StatelessWidget {
               ],
             ),
           ),
-          if (action != null) action!,
+          ?action,
         ],
       ),
     );

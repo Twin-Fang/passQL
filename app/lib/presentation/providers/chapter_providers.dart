@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/network/dio_client.dart';
+import '../../core/error/app_exception.dart';
 import '../../data/models/question/submit_result.dart';
-import '../../data/sources/question_api.dart';
 
 // ─── 데이터 모델 ────────────────────────────────────────────────
 
@@ -105,28 +104,23 @@ class ChapterState {
 // ─── Notifier ────────────────────────────────────────────────────
 
 class ChapterNotifier extends StateNotifier<ChapterState> {
-  final QuestionApiClient _questionApi;
+  ChapterNotifier() : super(const ChapterState());
 
-  ChapterNotifier(this._questionApi) : super(const ChapterState());
-
-  /// 토픽 코드로 문제 UUID 목록 로드 (page=0, size=10).
-  Future<void> loadQuestions(String topicCode) async {
+  /// 풀 문제 UUID 목록을 불러온다. 목록을 어디서 가져오는지는 흐름(`QuestionFlow`)이 정한다.
+  ///
+  /// 실패하면 사용자에게 보여줄 문구를 상태에 담는다(예: 오늘의 세트 이미 완료).
+  Future<void> load(Future<List<String>> Function() loader) async {
     state = state.copyWith(isLoadingList: true, clearError: true);
     try {
-      final response = await _questionApi.getQuestions(
-        0,
-        10,
-        topic: topicCode,
-      );
-      final uuids = response.content.map((q) => q.questionUuid).toList();
+      final uuids = await loader();
       state = state.copyWith(
         questionUuids: uuids,
         isLoadingList: false,
       );
-    } catch (_) {
+    } catch (e) {
       state = state.copyWith(
         isLoadingList: false,
-        listError: '문제를 불러올 수 없어요',
+        listError: e.asAppException.message,
       );
     }
   }
@@ -165,11 +159,8 @@ class ChapterNotifier extends StateNotifier<ChapterState> {
   }
 }
 
-/// topicCode별 ChapterNotifier provider. autoDispose로 이탈 시 해제.
+/// 풀이 흐름별 ChapterNotifier provider. 키는 `QuestionFlow.id`. autoDispose로 이탈 시 해제.
 final chapterProvider = StateNotifierProvider.autoDispose
     .family<ChapterNotifier, ChapterState, String>(
-  (ref, topicCode) {
-    final dio = ref.read(dioProvider);
-    return ChapterNotifier(QuestionApiClient(dio));
-  },
+  (ref, flowId) => ChapterNotifier(),
 );

@@ -8,6 +8,7 @@ changelog_manager.py
   - update-from-summary: CodeRabbit Summary Markdown을 파싱하여 CHANGELOG.json 갱신
   - generate-md        : CHANGELOG.json을 기반으로 CHANGELOG.md 재생성
   - export             : 특정 버전의 릴리즈 노트를 생성하여 stdout 또는 파일로 저장
+  - classify-bump      : 커밋 제목 목록으로 semver 승격 폭(major/minor/patch) 판단
 
 사용 예:
   python3 changelog_manager.py update-from-summary
@@ -22,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import html
+import io
 import json
 import os
 import re
@@ -234,6 +236,10 @@ def cmd_update_from_summary() -> int:
     project_types = [t.strip() for t in project_types_csv.split(',') if t.strip()]
     if not project_types and project_type:
         project_types = [project_type]
+    # VERSION 없이 기록하면 version: null 릴리스가 남아 이후 모든 판정이 오염된다
+    if not version:
+        print("❌ VERSION 환경변수가 필요합니다", file=sys.stderr)
+        return 1
     today = os.environ.get('TODAY')
     pr_number_raw = os.environ.get('PR_NUMBER')
     timestamp = os.environ.get('TIMESTAMP')
@@ -243,15 +249,20 @@ def cmd_update_from_summary() -> int:
     except ValueError:
         pr_number = None
 
-    # 입력 파일 찾기 (pr_body.md 우선, 폴백으로 summary_section.html)
-    input_file = None
-    for filename in ['pr_body.md', 'summary_section.html']:
-        if os.path.isfile(filename):
-            input_file = filename
-            break
+    # 입력 파일 찾기.
+    # PR_BODY_PATH가 있으면 그것을 먼저 본다 (#564) — 워크플로우가 임시 파일을 워킹트리 밖
+    # ($RUNNER_TEMP)에 두기 때문이다. 루트에 두면 릴리스 커밋의 git add -A에 딸려가
+    # 저장소가 오염된다. env가 없으면 종전처럼 cwd에서 찾는다(하위호환).
+    candidates = []
+    env_path = os.environ.get('PR_BODY_PATH')
+    if env_path:
+        candidates.append(env_path)
+    candidates += ['pr_body.md', 'summary_section.html']
+
+    input_file = next((f for f in candidates if os.path.isfile(f)), None)
 
     if not input_file:
-        print("❌ 입력 파일을 찾을 수 없습니다 (pr_body.md 또는 summary_section.html)")
+        print(f"❌ 입력 파일을 찾을 수 없습니다 (확인한 경로: {', '.join(candidates)})")
         return 1
 
     try:
@@ -300,7 +311,11 @@ def cmd_update_from_summary() -> int:
         try:
             with open('CHANGELOG.json', 'r', encoding='utf-8') as f:
                 changelog_data = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
+        except json.JSONDecodeError as e:
+            # 깨진 파일을 빈 구조로 덮어쓰면 기존 이력이 사라진다 — 사람이 고치도록 중단
+            print(f"❌ CHANGELOG.json이 손상되어 갱신하지 않습니다 (직접 복구 필요): {e}", file=sys.stderr)
+            return 1
+        except FileNotFoundError:
             changelog_data = {
                 "metadata": {
                     "lastUpdated": timestamp,
@@ -312,12 +327,20 @@ def cmd_update_from_summary() -> int:
                 "releases": [],
             }
 
+        if not isinstance(changelog_data.get("metadata"), dict) or not isinstance(changelog_data.get("releases", []), list):
+            print("❌ CHANGELOG.json 구조가 올바르지 않아 갱신하지 않습니다", file=sys.stderr)
+            return 1
+
         changelog_data["metadata"]["lastUpdated"] = timestamp
         changelog_data["metadata"]["currentVersion"] = version
         changelog_data["metadata"]["projectType"] = project_type
         changelog_data["metadata"]["projectTypes"] = project_types
-        changelog_data["metadata"]["totalReleases"] = len(changelog_data.get("releases", [])) + 1
-        changelog_data.setdefault("releases", []).insert(0, new_release)
+        # 같은 버전은 교체한다 — 워크플로우 재실행·PR 갱신에도 결과가 같아야 한다(멱등)
+        releases = [r for r in changelog_data.get("releases", [])
+                    if not (isinstance(r, dict) and str(r.get("version")) == str(version))]
+        releases.insert(0, new_release)
+        changelog_data["releases"] = releases
+        changelog_data["metadata"]["totalReleases"] = len(releases)
 
         with open('CHANGELOG.json', 'w', encoding='utf-8') as f:
             json.dump(changelog_data, f, indent=2, ensure_ascii=False)
@@ -337,7 +360,8 @@ def cmd_generate_md() -> int:
         with open('CHANGELOG.json', 'r', encoding='utf-8') as f:
             data = json.load(f)
 
-        with open('CHANGELOG.md', 'w', encoding='utf-8') as f:
+        # 메모리에서 전부 만든 뒤 한 번에 쓴다 — 중간 예외로 CHANGELOG.md가 잘리지 않게
+        with io.StringIO() as f:
             f.write("# Changelog\n\n")
 
             metadata = data.get('metadata', {})
@@ -390,6 +414,9 @@ def cmd_generate_md() -> int:
 
                 f.write("---\n\n")
 
+            with open('CHANGELOG.md', 'w', encoding='utf-8') as out:
+                out.write(f.getvalue())
+
         print("✅ CHANGELOG.md 재생성 완료!")
         return 0
 
@@ -425,8 +452,9 @@ def cmd_export_release_notes(version: str, output_path: str | None) -> int:
                 else:
                     body = (matched.get('raw_summary') or '').strip()
                 notes_text = (header + (body or "")).strip()
-    except Exception:
-        pass
+    except Exception as e:
+        # 삼키면 폴백 사유를 알 수 없다 — 사유만 stderr에 남기고 다음 경로로 간다
+        print(f"[warn] CHANGELOG.json에서 노트를 만들지 못해 폴백합니다: {e}", file=sys.stderr)
 
     # 2) CHANGELOG.md 폴백
     if not notes_text and os.path.isfile('CHANGELOG.md'):
@@ -437,12 +465,14 @@ def cmd_export_release_notes(version: str, output_path: str | None) -> int:
             m = pattern.search(md)
             if m:
                 start = m.end()
-                next_m = re.search(r"^## \\[", md[start:], re.MULTILINE)
+                next_m = re.search(r"^## \[", md[start:], re.MULTILINE)
                 section = md[start: start + next_m.start()] if next_m else md[start:]
                 body = section.strip()
+                # 섹션 사이 구분선(---)은 스토어 릴리스 노트에 필요 없다
+                body = re.sub(r'\n*-{3,}\s*$', '', body).strip()
                 notes_text = (f"버전 {version} 업데이트\n\n" + body).strip()
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[warn] CHANGELOG.md에서 노트를 만들지 못해 폴백합니다: {e}", file=sys.stderr)
 
     # 3) 최종 폴백
     if not notes_text:
@@ -453,6 +483,75 @@ def cmd_export_release_notes(version: str, output_path: str | None) -> int:
             f.write(notes_text)
     else:
         sys.stdout.write(notes_text + "\n")
+    return 0
+
+
+# --------------------- semver 승격 폭 판정 (이슈 #546) ---------------------
+#
+# 릴리스 노트 렌더링(changelog_providers 사다리)과는 분리된 경로다. 여기서는 버킷을
+# 구성하거나 문구를 다듬지 않고 "major/minor/patch 중 무엇인가"만 판정한다. 두 경로를
+# 합치면 릴리스 노트 생성이 이원화되어 드리프트가 난다.
+#
+# 커밋 제목 한 줄만 본다(수집이 %s라 본문에 접근할 수 없다). Conventional Commits 조항
+# 13이 `!` 마커 단독으로도 breaking 표기를 인정하므로, BREAKING CHANGE 푸터 미지원은
+# 표준이 허용하는 부분집합이다.
+
+# tier-1: projectops 컨벤션 "제목 : type[!] : 내용 [URL]".
+# 타입 앞 콜론에 공백이 선행해야 하므로 제목 안의 맨몸 콜론("v1:2" 등)에서 잘리지 않는다.
+_BUMP_TIER1_RE = re.compile(
+    r'^.+?\s:\s*(feat|fix|chore|docs|refactor|test)(!)?\s*:\s*.+$', re.IGNORECASE
+)
+# tier-2: Conventional Commits "type(scope)[!]: 내용".
+_BUMP_TIER2_RE = re.compile(
+    r'^(feat|fix|chore|docs|refactor|test|perf|style|build|ci)(?:\([^)]*\))?(!)?:\s*.+$', re.IGNORECASE
+)
+
+
+def classify_bump_level(lines: list[str]) -> str:
+    """커밋 제목 목록에서 semver 승격 폭을 규칙 기반으로 판단(결정적 — AI 미사용).
+
+    - 타입 뒤 `!` 마커(두 컨벤션 모두) → major (즉시 확정)
+    - feat 타입 → minor
+    - 그 외(매칭 실패·자유형식 포함) → patch
+    """
+    level = 'patch'
+
+    for raw_line in lines:
+        line = raw_line.strip()
+        if not line or '[skip ci]' in line or line.startswith('Merge '):
+            continue
+
+        # tier-1을 먼저 시도한다 — 제목이 앞에 붙는 우리 컨벤션이 우선이다.
+        matched = _BUMP_TIER1_RE.match(line)
+        if matched:
+            commit_type, breaking = matched.group(1), matched.group(2)
+        else:
+            matched = _BUMP_TIER2_RE.match(line)
+            if not matched:
+                continue
+            commit_type, breaking = matched.group(1), matched.group(2)
+
+        if breaking:
+            return 'major'  # 최고 등급 — 더 볼 필요 없다
+        if commit_type.lower() == 'feat':  # 대소문자 비구분 (#686)
+            level = 'minor'
+
+    return level
+
+
+def cmd_classify_bump(commits_file: str) -> int:
+    """커밋 목록 파일을 읽어 승격 폭을 stdout 마지막 줄에 출력.
+
+    파일을 읽지 못하면 patch로 떨어진다 — 판정 실패가 릴리스를 막지 않게 하기 위함이다.
+    """
+    try:
+        with open(commits_file, 'r', encoding='utf-8') as f:
+            commit_lines = [line.rstrip('\n').rstrip('\r') for line in f]
+    except Exception as e:
+        print(f"[warn] 커밋 목록을 읽지 못했습니다 ({e}) — patch로 처리합니다", file=sys.stderr)
+        commit_lines = []
+
+    print(classify_bump_level(commit_lines))
     return 0
 
 
@@ -473,6 +572,11 @@ def main(argv: list[str] | None = None) -> int:
     p_export.add_argument('--version', required=True, help='버전 번호')
     p_export.add_argument('--output', help='출력 파일 경로 (없으면 stdout)')
 
+    p_classify_bump = sub.add_parser(
+        'classify-bump', help='커밋 목록으로 semver 승격 폭(major/minor/patch) 판단')
+    p_classify_bump.add_argument(
+        '--commits-file', required=True, help='커밋 제목 목록 파일 (한 줄당 1개)')
+
     args = parser.parse_args(argv)
 
     if args.command == 'update-from-summary':
@@ -481,6 +585,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_generate_md()
     if args.command == 'export':
         return cmd_export_release_notes(args.version, args.output)
+    if args.command == 'classify-bump':
+        return cmd_classify_bump(args.commits_file)
     return 2
 
 

@@ -1,0 +1,55 @@
+# ===================================================================
+# 운영 서비스 헬스체크 - passQL
+# ===================================================================
+# 운영 서버가 내려가 있어도 아무도 모르던 문제(2026-08 NAS 재부팅 후 7주간 502)를 막기 위한 감시.
+# 1시간마다 운영 API를 확인하고, 실패하면 이 워크플로우가 실패 처리되어 GitHub 알림(이메일)이 간다.
+# 별도 서버 없이 GitHub 호스트 러너에서 돈다.
+#
+# 확인 대상
+#  - /actuator/health : 서버 프로세스가 떠 있는지
+#  - /api/meta/topics : 서버가 DB 까지 정상 조회하는지 (공개 API)
+
+name: PASSQL-HEALTH-CHECK
+
+on:
+  schedule:
+    - cron: '7 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  API_BASE: https://api.passql.suhsaechan.kr
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 운영 API 상태 확인
+        run: |
+          set -u
+          # 배포 직후 재시작 같은 일시적 502 를 장애로 오인하지 않도록 3회 재시도한다.
+          check() {
+            local path="$1"
+            for attempt in 1 2 3; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "${API_BASE}${path}" || echo 000)
+              if [ "$code" = "200" ]; then
+                echo "정상: ${path} (HTTP 200)"
+                return 0
+              fi
+              echo "시도 ${attempt}/3 실패: ${path} (HTTP ${code})"
+              [ "$attempt" -lt 3 ] && sleep 30
+            done
+            return 1
+          }
+
+          failed=0
+          check "/actuator/health" || failed=1
+          check "/api/meta/topics" || failed=1
+
+          if [ "$failed" -ne 0 ]; then
+            echo "::error::운영 API 헬스체크 실패. 시놀로지의 passql-back 컨테이너와 DB 상태를 확인하세요."
+            exit 1
+          fi

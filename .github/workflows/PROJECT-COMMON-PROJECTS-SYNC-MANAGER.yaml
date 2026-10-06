@@ -12,10 +12,10 @@
 # _GITHUB_PAT_TOKEN: Projects API용 PAT (권한: repo, project)
 # ===================================================================
 #
-# 🚀 빠른 시작:
+# 🚀 빠른 시작 (워크플로우 파일은 수정하지 않습니다):
 # 1. _GITHUB_PAT_TOKEN Secret 설정
-# 2. 아래 env 섹션의 PROJECT_URL 주석 해제
-# 3. GitHub Projects URL 입력
+# 2. Settings → Secrets and variables → Actions → Variables 탭
+# 3. PROJECT_URL 변수에 GitHub Projects URL 등록
 # 4. 끝!
 #
 # 지원 URL 형식:
@@ -50,15 +50,26 @@ concurrency:
   group: projects-sync-${{ github.event.issue.number || github.event.inputs.issue_number }}
   cancel-in-progress: true
 
+permissions:
+  # GITHUB_TOKEN 으로는 읽기만 한다. 명시해 두면 레포 기본값이 나중에 write 로 바뀌어도
+  # 이 워크플로우가 필요 이상의 권한을 갖지 않는다 (#595).
+  contents: read
+
 env:
   # 동기화할 Status Label 목록 (JSON 배열)
   # projects-sync-wizard에서 설정한 값과 동일해야 합니다
   STATUS_LABELS: '["작업전", "작업중", "담당자확인", "피드백", "작업완료", "보류", "취소"]'
 
-  # ============================================
+  # ===================================================================
   # GitHub Projects 연동 설정
+  # ===================================================================
   #
-  # 사용하려면 아래 주석을 해제하고 URL을 입력하세요.
+  # 사용하려면 레포 설정에 변수를 등록하세요 (파일 수정 불필요):
+  #   Settings → Secrets and variables → Actions → Variables → New repository variable
+  #   Name: PROJECT_URL   /   Value: 아래 형식의 보드 URL
+  #
+  # 변수를 등록하지 않으면 이 워크플로우는 안내 로그만 남기고 조용히 종료됩니다.
+  # (워크플로우 파일에 URL을 직접 적지 마세요 — 커밋되어 레포 간에 섞입니다)
   #
   # 지원 URL 형식:
   # - Organization: https://github.com/orgs/{org}/projects/{number}
@@ -66,16 +77,17 @@ env:
   # - /views/{id} 경로가 포함되어도 됩니다
   #
   # 예시:
-  # - https://github.com/orgs/MapSee-Lab/projects/1
-  # - https://github.com/orgs/TEAM-ROMROM/projects/6/views/2
-  # - https://github.com/users/Cassiiopeia/projects/2
+  # - https://github.com/orgs/{조직}/projects/1
+  # - https://github.com/orgs/{조직}/projects/6/views/2
+  # - https://github.com/users/{사용자}/projects/2
   #
   # ⚠️ Organization 프로젝트 사용 시:
   # - 이 워크플로우를 사용하는 모든 레포에 동일한 라벨이 필요합니다
   # - .github/config/issue-labels.yml 파일로 라벨을 관리하세요
   # - 자세한 내용: docs/PROJECTS-SYNC.md
-  # ============================================
-  # PROJECT_URL: 'https://github.com/orgs/YOUR-ORG/projects/1'
+  # ===================================================================
+
+  PROJECT_URL: ${{ vars.PROJECT_URL }}
 
 jobs:
   sync-label-to-status:
@@ -87,17 +99,39 @@ jobs:
        contains(fromJSON('["작업전", "작업중", "담당자확인", "피드백", "작업완료", "보류", "취소"]'), github.event.label.name))
 
     steps:
+      # Projects 연동은 선택 기능이다. PAT Secret 과 PROJECT_URL 변수가 둘 다 있어야만 동작하고,
+      # 하나라도 없으면 안내만 남기고 성공으로 끝낸다 (미설정 레포에서 라벨마다 실패 메일이 가는 것을 막는다, #667).
+      # secrets 는 job-level if 에서 읽을 수 없어 첫 step 에서 판정해 outputs 로 넘긴다.
+      - name: 🔎 Projects 연동 설정 확인
+        id: config
+        env:
+          HAS_PAT: ${{ secrets._GITHUB_PAT_TOKEN != '' }}
+          HAS_PROJECT_URL: ${{ vars.PROJECT_URL != '' }}
+        run: |
+          if [ "$HAS_PAT" = "true" ] && [ "$HAS_PROJECT_URL" = "true" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Projects 동기화가 설정되지 않아 건너뜁니다 (선택 기능). 사용하려면 Secret _GITHUB_PAT_TOKEN 과 Variable PROJECT_URL 을 모두 등록하세요."
+            [ "$HAS_PAT" = "true" ] || echo "  - 없음: Secret _GITHUB_PAT_TOKEN (권한: repo, project)"
+            [ "$HAS_PROJECT_URL" = "true" ] || echo "  - 없음: Variable PROJECT_URL (Settings > Secrets and variables > Actions > Variables)"
+          fi
+
       - name: 🔍 Get Issue Info
         id: issue
+        if: steps.config.outputs.enabled == 'true'
+        env:
+          INPUT_ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "issue_number=${{ github.event.inputs.issue_number }}" >> $GITHUB_OUTPUT
+            echo "issue_number=$INPUT_ISSUE_NUMBER" >> $GITHUB_OUTPUT
           else
             echo "issue_number=${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
           fi
 
       - name: 🏷️ Get Current Labels
         id: labels
+        if: steps.config.outputs.enabled == 'true'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets._GITHUB_PAT_TOKEN }}
@@ -125,7 +159,7 @@ jobs:
             }
 
       - name: 📋 Update Projects Status
-        if: steps.labels.outputs.status_label != ''
+        if: steps.config.outputs.enabled == 'true' && steps.labels.outputs.status_label != ''
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets._GITHUB_PAT_TOKEN }}
@@ -175,7 +209,8 @@ jobs:
 
             if (!projectUrl) {
               console.log('⚠️ PROJECT_URL이 설정되지 않았습니다.');
-              console.log('   워크플로우 환경 변수에서 PROJECT_URL 주석을 해제하세요.');
+              console.log('   Settings → Secrets and variables → Actions → Variables 에서');
+              console.log('   PROJECT_URL 변수를 등록하세요 (워크플로우 파일 수정 불필요).');
               console.log('');
               console.log('💡 지원 URL 형식:');
               console.log('   - Organization: https://github.com/orgs/{org}/projects/{number}');

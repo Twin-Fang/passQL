@@ -19,10 +19,8 @@
 name: PROJECT-REACT-CICD
 
 on:
-  push:
-    branches:
-      - deploy
-    paths: ['client/**']
+  # 모노레포 구조에 맞지 않는 일반 템플릿이라 push/PR 자동 실행을 껐다(수동 실행만 가능).
+  # 실제 검증은 Vercel 자동 배포 (client 는 시놀로지 배포를 쓰지 않음) 가 한다.
   workflow_dispatch:
 
 env:

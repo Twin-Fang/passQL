@@ -18,9 +18,9 @@ class _ProgressApiClient implements ProgressApiClient {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<ProgressResponse> getProgress(String memberUuid) async {
+  Future<ProgressResponse> getProgress() async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'memberUuid': memberUuid};
+    final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<ProgressResponse>(
@@ -45,17 +45,9 @@ class _ProgressApiClient implements ProgressApiClient {
   }
 
   @override
-  Future<HeatmapResponse> getHeatmap(
-    String memberUuid,
-    String? from,
-    String? to,
-  ) async {
+  Future<HeatmapResponse> getHeatmap(String? from, String? to) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{
-      r'memberUuid': memberUuid,
-      r'from': from,
-      r'to': to,
-    };
+    final queryParameters = <String, dynamic>{r'from': from, r'to': to};
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
@@ -81,9 +73,9 @@ class _ProgressApiClient implements ProgressApiClient {
   }
 
   @override
-  Future<TopicAnalysisResponse> getTopicAnalysis(String memberUuid) async {
+  Future<TopicAnalysisResponse> getTopicAnalysis() async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'memberUuid': memberUuid};
+    final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<TopicAnalysisResponse>(
@@ -108,9 +100,10 @@ class _ProgressApiClient implements ProgressApiClient {
   }
 
   @override
-  Future<AiCommentResponse> getAiComment(String memberUuid) async {
+  Future<AiCommentResponse> getAiComment({String? sessionUuid}) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'memberUuid': memberUuid};
+    final queryParameters = <String, dynamic>{r'sessionUuid': sessionUuid};
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<AiCommentResponse>(
@@ -127,6 +120,34 @@ class _ProgressApiClient implements ProgressApiClient {
     late AiCommentResponse _value;
     try {
       _value = AiCommentResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<WrongQuestionsResponse> getWrongQuestions({int? size}) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'size': size};
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<WrongQuestionsResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/progress/wrong-questions',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late WrongQuestionsResponse _value;
+    try {
+      _value = WrongQuestionsResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;

@@ -1,23 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/network/dio_client.dart';
+import '../../core/network/api_providers.dart';
+import '../../core/network/safe_call.dart';
 import '../../data/models/home/greeting_response.dart';
+import '../../data/models/home/recommendations_request.dart';
 import '../../data/models/home/recommendations_response.dart';
-import '../../data/models/home/today_question_response.dart';
+import '../../data/models/daily_set/daily_set_models.dart';
 import '../../data/models/progress/heatmap_response.dart';
 import '../../data/models/progress/progress_response.dart';
 import '../../data/models/exam/exam_schedule_response.dart';
-import '../../data/sources/exam_schedule_api.dart';
-import '../../data/sources/home_api.dart';
-import '../../data/sources/progress_api.dart';
-import '../../data/sources/question_api.dart';
-import 'member_store.dart';
 
 /// 홈 화면에 필요한 모든 API 응답을 담는 집계 모델.
 /// 각 필드는 nullable — API 실패 시 해당 섹션을 graceful하게 숨김 처리.
 class HomeData {
   final GreetingResponse? greeting;
   final ProgressResponse? progress;
-  final TodayQuestionResponse? todayQuestion;
+  final DailySetTodayResponse? dailySet;
   final RecommendationsResponse? recommendations;
   final ExamScheduleResponse? examSchedule;
   final HeatmapResponse? heatmap;
@@ -25,52 +22,40 @@ class HomeData {
   const HomeData({
     this.greeting,
     this.progress,
-    this.todayQuestion,
+    this.dailySet,
     this.recommendations,
     this.examSchedule,
     this.heatmap,
   });
 }
 
-/// API 호출 실패를 null로 처리하는 헬퍼.
-Future<T?> _safe<T>(Future<T> call) async {
-  try {
-    return await call;
-  } catch (_) {
-    return null;
-  }
-}
-
 /// 홈 화면 데이터 Provider.
 ///
-/// memberStoreProvider에서 UUID를 읽어 6개 API를 병렬 호출.
+/// 6개 API를 병렬 호출. 회원은 요청의 토큰으로 식별된다.
 /// 개별 API 실패는 null로 처리 — 전체 화면 에러 방지.
 final homeDataProvider = FutureProvider<HomeData>((ref) async {
-  final memberUuid =
-      await ref.watch(memberStoreProvider.notifier).getOrRegister();
-
-  final dio = ref.read(dioProvider);
-  final homeClient = HomeApiClient(dio);
-  final progressClient = ProgressApiClient(dio);
-  final questionClient = QuestionApiClient(dio);
-  final examClient = ExamScheduleApiClient(dio);
+  final homeClient = ref.read(homeApiProvider);
+  final progressClient = ref.read(progressApiProvider);
+  final questionClient = ref.read(questionApiProvider);
+  final examClient = ref.read(examScheduleApiProvider);
 
   // 6개 API 병렬 호출.
-  // getRecommendations(size, excludeQuestionUuid) — 둘 다 positional 파라미터.
-  // getHeatmap(memberUuid, from, to) — from/to는 nullable String.
+  // getHeatmap(from, to) — from/to는 nullable String.
   final results = await Future.wait([
-    _safe(homeClient.getGreeting(memberUuid)),
-    _safe(progressClient.getProgress(memberUuid)),
-    _safe(questionClient.getTodayQuestion(memberUuid)),
-    _safe(questionClient.getRecommendations(3, null)),
-    _safe(examClient.getSelectedSchedule()),
-    _safe(progressClient.getHeatmap(memberUuid, null, null)),
+    safeCall(homeClient.getGreeting()),
+    safeCall(progressClient.getProgress()),
+    safeCall(ref.read(dailySetApiProvider).getToday()),
+    safeCall(questionClient.getRecommendations(
+      const RecommendationsRequest(size: 3),
+    )),
+    safeCall(examClient.getSelectedSchedule()),
+    safeCall(progressClient.getHeatmap(null, null)),
   ]);
 
   return HomeData(
     greeting: results[0] as GreetingResponse?,
     progress: results[1] as ProgressResponse?,
-    todayQuestion: results[2] as TodayQuestionResponse?,
+    dailySet: results[2] as DailySetTodayResponse?,
     recommendations: results[3] as RecommendationsResponse?,
     examSchedule: results[4] as ExamScheduleResponse?,
     heatmap: results[5] as HeatmapResponse?,

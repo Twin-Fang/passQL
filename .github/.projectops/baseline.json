@@ -1,0 +1,54 @@
+{
+  "templateVersion": "4.31.5",
+  "installedAt": "2026-10-02 14:36:51",
+  "files": {
+    "PROJECT-COMMON-PROJECTS-SYNC-MANAGER.yaml": {
+      "installed": "sha256:89fae9869f12628a740a323a43fcb90db366784cad144c497f5145b50552557a",
+      "rendered": "sha256:89fae9869f12628a740a323a43fcb90db366784cad144c497f5145b50552557a"
+    },
+    "PROJECT-COMMON-QA-ISSUE-CREATION-BOT.yaml": {
+      "installed": "sha256:2f315e4c0eff9d0debae2be38e9e70d309ae3fd6454e97bb5a95219584fbc935",
+      "rendered": "sha256:2f315e4c0eff9d0debae2be38e9e70d309ae3fd6454e97bb5a95219584fbc935"
+    },
+    "PROJECT-COMMON-README-VERSION-UPDATE.yaml": {
+      "installed": "sha256:ac73ea3d293d1e10e00ff1f14ca690fd34872022e5d37bf5273d3bd3172c0600",
+      "rendered": "sha256:ac73ea3d293d1e10e00ff1f14ca690fd34872022e5d37bf5273d3bd3172c0600"
+    },
+    "PROJECT-COMMON-RELEASE-CHANGELOG.yaml": {
+      "installed": "sha256:a3639979b3ea4628c28e34b421b1c6874fd80786aafe4be18f82ff0b1888ceb4",
+      "rendered": "sha256:a3639979b3ea4628c28e34b421b1c6874fd80786aafe4be18f82ff0b1888ceb4"
+    },
+    "PROJECT-COMMON-SUH-ISSUE-HELPER.yaml": {
+      "installed": "sha256:bc1de988342d128378c093b6ae8be872dbd6da6921cc4b6fb47bf910f514e7a5",
+      "rendered": "sha256:bc1de988342d128378c093b6ae8be872dbd6da6921cc4b6fb47bf910f514e7a5"
+    },
+    "PROJECT-COMMON-SYNC-ISSUE-LABELS.yaml": {
+      "installed": "sha256:fb6339e50e4f48973d68abafebe205a6af4a120b7e9972ae6663db81079b1aad",
+      "rendered": "sha256:fb6339e50e4f48973d68abafebe205a6af4a120b7e9972ae6663db81079b1aad"
+    },
+    "PROJECT-COMMON-VERSION-CONTROL.yaml": {
+      "installed": "sha256:bf7ac51b4e847ed3c4bf0957da72da424910939fc5b5b723b99bb77f753c91ab",
+      "rendered": "sha256:bf7ac51b4e847ed3c4bf0957da72da424910939fc5b5b723b99bb77f753c91ab"
+    },
+    "PROJECT-COMMON-TEMPLATE-UTIL-VERSION-SYNC.yml": {
+      "installed": "sha256:6b224aac9b4a23b8c95d9b14ff5049ae1e75f674a20686cb4d9a22ef4ad78e3e",
+      "rendered": "sha256:6b224aac9b4a23b8c95d9b14ff5049ae1e75f674a20686cb4d9a22ef4ad78e3e"
+    },
+    "PROJECT-FLUTTER-IOS-ASC-STATUS.yaml": {
+      "installed": "sha256:029ddcdd189ebc048d31ff0d1e155ea1ec4f9d7e76ac2068d05d66e6a36c28f1",
+      "rendered": "sha256:029ddcdd189ebc048d31ff0d1e155ea1ec4f9d7e76ac2068d05d66e6a36c28f1"
+    },
+    "PROJECT-FLUTTER-PROJECTOPS-APP-BUILD-TRIGGER.yaml": {
+      "installed": "sha256:395adbb14d865932b75e949546bb69abd35f496af74e487799e92bd9da2a83d0",
+      "rendered": "sha256:395adbb14d865932b75e949546bb69abd35f496af74e487799e92bd9da2a83d0"
+    },
+    "PROJECT-COMMON-AI-PR-SUMMARY.yaml": {
+      "installed": "sha256:8f37b156a5422c1c9178632494c329da30732b30b998650f82994b0d024cfc08",
+      "rendered": "sha256:8f37b156a5422c1c9178632494c329da30732b30b998650f82994b0d024cfc08"
+    },
+    "PROJECT-COMMON-SECRET-FILE-UPLOAD.yaml": {
+      "installed": "sha256:23ce49e13e0be4d52a816be316001e9c1f7694ebaf0c7185395323e2cbc8537c",
+      "rendered": "sha256:23ce49e13e0be4d52a816be316001e9c1f7694ebaf0c7185395323e2cbc8537c"
+    }
+  }
+}
