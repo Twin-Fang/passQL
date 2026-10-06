@@ -9,7 +9,11 @@ import com.passql.question.dto.DailySetCompleteResponse;
 import com.passql.question.dto.LeaderboardEntry;
 import com.passql.question.dto.LeaderboardResponse;
 import com.passql.question.entity.DailySetSubmission;
+import com.passql.question.entity.DailyChallenge;
+import com.passql.question.repository.DailyChallengeRepository;
 import com.passql.question.repository.DailySetSubmissionRepository;
+import com.passql.submission.entity.Submission;
+import com.passql.submission.repository.SubmissionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -27,6 +31,8 @@ public class DailySetService {
 
     private final DailySetSubmissionRepository dailySetSubmissionRepository;
     private final MemberRepository memberRepository;
+    private final SubmissionRepository submissionRepository;
+    private final DailyChallengeRepository dailyChallengeRepository;
 
     @Transactional
     public DailySetCompleteResponse complete(UUID memberUuid, DailySetCompleteRequest request) {
@@ -37,12 +43,15 @@ public class DailySetService {
             throw new CustomException(ErrorCode.DAILY_SET_ALREADY_COMPLETED);
         }
 
+        // 클라이언트가 보낸 점수는 믿지 않고, 이 세션에서 실제로 채점된 제출 기록으로 서버가 계산한다.
+        int correctCount = countVerifiedCorrect(memberUuid, request.sessionUuid(), today);
+
         try {
             dailySetSubmissionRepository.saveAndFlush(
                     DailySetSubmission.builder()
                             .memberUuid(memberUuid)
                             .challengeDate(today)
-                            .correctCount(request.correctCount())
+                            .correctCount(correctCount)
                             .completedAt(LocalDateTime.now())
                             .build());
         } catch (DataIntegrityViolationException e) {
@@ -60,7 +69,35 @@ public class DailySetService {
             rank++;
         }
 
-        return new DailySetCompleteResponse(request.correctCount(), rank, board.size());
+        return new DailySetCompleteResponse(correctCount, rank, board.size());
+    }
+
+    /**
+     * 오늘의 세트 문제에 대한 이 세션의 제출만 집계한다.
+     * - 오늘 세트에 없는 문제나 다른 회원의 세션은 세지 않는다.
+     * - 같은 문제를 여러 번 제출했으면 첫 제출만 인정한다(맞을 때까지 반복 제출 방지).
+     * - 인정할 제출이 하나도 없으면 완료로 볼 수 없다.
+     */
+    private int countVerifiedCorrect(UUID memberUuid, UUID sessionUuid, LocalDate today) {
+        if (sessionUuid == null) {
+            throw new CustomException(ErrorCode.INVALID_REQUEST);
+        }
+        Set<UUID> todaysQuestions = dailyChallengeRepository
+                .findByChallengeDateOrderBySortOrderAsc(today).stream()
+                .map(DailyChallenge::getQuestionUuid)
+                .collect(Collectors.toSet());
+
+        Map<UUID, Submission> firstByQuestion = new LinkedHashMap<>();
+        for (Submission s : submissionRepository
+                .findByMemberUuidAndSessionUuidOrderBySubmittedAtAsc(memberUuid, sessionUuid)) {
+            if (todaysQuestions.contains(s.getQuestionUuid())) {
+                firstByQuestion.putIfAbsent(s.getQuestionUuid(), s);
+            }
+        }
+        if (firstByQuestion.isEmpty()) {
+            throw new CustomException(ErrorCode.INVALID_REQUEST);
+        }
+        return (int) firstByQuestion.values().stream().filter(Submission::getIsCorrect).count();
     }
 
     public LeaderboardResponse getLeaderboard(UUID memberUuid) {
