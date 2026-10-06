@@ -407,7 +407,7 @@ void main() {
     await tester.tap(find.byType(Switch));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('풀 때마다 AI가'), findsOneWidget);
+    expect(find.textContaining('매번 AI가'), findsOneWidget);
     expect(api.calls, ['mode:REAL']);
   });
 }

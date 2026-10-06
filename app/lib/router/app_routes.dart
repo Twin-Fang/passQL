@@ -18,6 +18,8 @@ abstract final class AppRoutes {
   /// 건의사항 작성/내역.
   static const String feedback = '/settings/feedback';
 
+  static const String wrongNotes = '/settings/wrong-notes';
+
   // 데일리 세트
   /// 오늘의 세트 풀이.
   static const String dailySet = '/daily-set';

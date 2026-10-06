@@ -17,6 +17,7 @@ import '../presentation/pages/practice/practice_page.dart';
 import '../presentation/pages/practice/practice_result_page.dart';
 import '../presentation/pages/stats/stats_page.dart';
 import '../presentation/pages/settings/settings_page.dart';
+import '../presentation/pages/settings/wrong_notes_page.dart';
 import '../presentation/widgets/app_shell.dart';
 import 'app_routes.dart';
 
@@ -95,6 +96,13 @@ abstract final class AppRouter {
         path: AppRoutes.feedback,
         parentNavigatorKey: _rootKey,
         builder: (_, _) => const FeedbackPage(),
+      ),
+
+      // 풀스크린: 오답 노트 (설정에서 진입)
+      GoRoute(
+        path: AppRoutes.wrongNotes,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const WrongNotesPage(),
       ),
 
       // 풀스크린: 챕터 플로우 (/questions/chapter?topic=CODE&topicName=NAME)

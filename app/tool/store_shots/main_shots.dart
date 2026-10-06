@@ -213,22 +213,30 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
 
-  // 로그인된 상태로 시작하기 위해 세션을 키체인에 미리 넣는다.
+  // 로그인 화면을 찍을 때는 세션을 지워 비로그인 상태로 시작하고, 그 외에는 로그인된 상태로 시작한다.
+  final route = _readRoute();
+  final loggedOut = route.startsWith('/login');
   final store = TokenStore();
-  await store.save(const AuthSession(
-    accessToken: 'shots-access',
-    refreshToken: 'shots-refresh',
-    memberUuid: '55555555-0000-4000-8000-000000000001',
-    nickname: '새찬',
-  ));
+  if (loggedOut) {
+    await store.clear();
+  } else {
+    await store.save(const AuthSession(
+      accessToken: 'shots-access',
+      refreshToken: 'shots-refresh',
+      memberUuid: '55555555-0000-4000-8000-000000000001',
+      nickname: '새찬',
+    ));
+  }
 
   final container = ProviderContainer(overrides: [
     dioProvider.overrideWith((ref) => Dio(BaseOptions(baseUrl: 'http://shots.local/api'))..httpClientAdapter = _FakeAdapter()),
   ]);
   await container.read(authProvider.future);
-  AppRouter.authenticated.value = true;
+  AppRouter.authenticated.value = !loggedOut;
 
   runApp(UncontrolledProviderScope(container: container, child: const PassqlApp()));
   // 첫 프레임 이후 지정한 화면으로 이동한다.
-  Timer(const Duration(milliseconds: 2000), () => AppRouter.router.go(_readRoute()));
+  if (!loggedOut) {
+    Timer(const Duration(milliseconds: 2000), () => AppRouter.router.go(route));
+  }
 }
