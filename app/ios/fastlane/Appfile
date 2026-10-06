@@ -1,0 +1,23 @@
+# ===================================================================
+# Fastlane Appfile - 앱 정보 설정
+# ===================================================================
+#
+# 이 파일은 환경변수를 통해 앱 정보를 설정합니다.
+# GitHub Actions에서 Secrets를 통해 값이 주입됩니다.
+#
+# ===================================================================
+
+# App Identifier (Bundle ID)
+# GitHub Secret: IOS_BUNDLE_ID
+app_identifier(ENV["IOS_BUNDLE_ID"] || "com.coldredrice.passql")
+
+# Apple Developer Team ID
+# GitHub Secret: APPLE_TEAM_ID
+team_id(ENV["APPLE_TEAM_ID"] || "CUK22HY6YC")
+
+# App Store Connect Team ID (일반적으로 team_id와 동일)
+# 여러 팀에 속한 경우에만 별도 설정 필요
+# itc_team_id(ENV["ITC_TEAM_ID"])
+
+# Apple ID (App Store Connect API Key 사용 시 불필요)
+# apple_id(ENV["APPLE_ID"])

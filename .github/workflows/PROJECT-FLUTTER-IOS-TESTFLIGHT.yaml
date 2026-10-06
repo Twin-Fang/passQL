@@ -206,6 +206,17 @@ jobs:
             release "${{ env.ENV_FILE_PATH }}" \
             --config "${{ github.workspace }}/.github/config/build-profile.json"
 
+      - name: Create Firebase config files
+        env:
+          GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
+        run: |
+          if [ -z "$GOOGLE_SERVICE_INFO_PLIST_BASE64" ]; then
+            echo "::error::GOOGLE_SERVICE_INFO_PLIST_BASE64 시크릿이 없습니다. 없으면 앱이 시작할 때 Firebase 초기화에 실패합니다."
+            exit 1
+          fi
+          echo "$GOOGLE_SERVICE_INFO_PLIST_BASE64" | base64 --decode > ios/Runner/GoogleService-Info.plist
+          echo "GoogleService-Info.plist created"
+
       - name: Create Secrets.xcconfig file
         env:
           SECRETS_XCCONFIG_CONTENT: ${{ secrets.SECRETS_XCCONFIG }}
@@ -296,6 +307,7 @@ jobs:
           path: |
             ${{ env.APP_ROOT }}/${{ env.ENV_FILE_PATH }}
             ${{ env.APP_ROOT }}/ios/Flutter/Secrets.xcconfig
+            ${{ env.APP_ROOT }}/ios/Runner/GoogleService-Info.plist
             ${{ env.APP_ROOT }}/pubspec.yaml
             ${{ env.APP_ROOT }}/lib/
             ${{ env.APP_ROOT }}/assets/
