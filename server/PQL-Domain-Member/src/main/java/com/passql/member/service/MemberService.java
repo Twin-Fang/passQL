@@ -3,6 +3,7 @@ package com.passql.member.service;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.common.util.NicknameGenerator;
+import com.passql.member.auth.repository.RefreshTokenRepository;
 import com.passql.member.constant.MemberStatus;
 import com.passql.member.dto.MemberMeResponse;
 import com.passql.member.constant.ChoiceGenerationMode;
@@ -41,6 +42,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final NicknameGenerator nicknameGenerator;
     private final MemberSuspendHistoryRepository memberSuspendHistoryRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     /** 본인 정보 조회 + last_seen_at throttled 갱신. */
     @Transactional
@@ -73,6 +75,32 @@ public class MemberService {
         }
         log.warn("Suspended member access blocked: uuid={}, until={}", member.getMemberUuid(), until);
         throw new CustomException(ErrorCode.MEMBER_SUSPENDED);
+    }
+
+    /**
+     * 회원 탈퇴(앱스토어 심사 필수 기능).
+     *
+     * <p>개인정보(이메일, 소셜 식별자)는 즉시 비우고 닉네임은 익명화한다.
+     * 풀이 기록은 통계 보존을 위해 남기되 더 이상 본인과 연결되지 않는다.
+     * 소셜 식별자를 비우므로 같은 계정으로 다시 로그인하면 새 회원으로 가입된다.
+     * 발급된 리프레시 토큰은 삭제해 즉시 재발급을 막는다(액세스 토큰은 만료까지 유효하나
+     * 이후 회원 조회가 모두 MEMBER_NOT_FOUND 로 거절된다).
+     */
+    @Transactional
+    public void withdraw(UUID memberUuid) {
+        Member member = findActiveMember(memberUuid);
+
+        member.setStatus(MemberStatus.WITHDRAWN);
+        member.setWithdrawnAt(LocalDateTime.now());
+        // 닉네임은 유니크라 회원 UUID 일부를 붙여 익명화한다.
+        member.setNickname("탈퇴회원_" + memberUuid.toString().substring(0, 8));
+        member.setEmail(null);
+        member.setEmailVerified(false);
+        member.setProviderUserId("withdrawn:" + memberUuid);
+        member.softDelete("SELF_WITHDRAW");
+
+        refreshTokenRepository.delete(memberUuid);
+        log.info("Member withdrawn: uuid={}", memberUuid);
     }
 
     /** 닉네임 재생성. */

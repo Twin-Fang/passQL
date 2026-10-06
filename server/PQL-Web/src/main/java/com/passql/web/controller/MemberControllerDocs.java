@@ -65,6 +65,18 @@ public interface MemberControllerDocs {
   )
   NicknameRegenerateResponse regenerateNickname(@AuthMember LoginMember loginMember);
 
+  @Operation(
+      summary = "회원 탈퇴",
+      description = """
+          ## 설명
+          - 본인 계정을 탈퇴 처리한다. 이메일과 소셜 식별자는 즉시 비우고 닉네임은 익명화한다.
+          - 리프레시 토큰이 삭제되어 이후 토큰 재발급이 불가능하다.
+          - 같은 소셜 계정으로 다시 로그인하면 새 회원으로 가입된다.
+          - 성공 시 204(본문 없음).
+          """
+  )
+  void withdraw(@AuthMember LoginMember loginMember);
+
   @ApiLogs({
       @ApiLog(date = "2026.04.25", author = Author.SUHSAECHAN, issueNumber = 287, description = "닉네임 중복 확인 API 추가"),
   })
