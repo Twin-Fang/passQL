@@ -7,14 +7,20 @@
 # ★ 마법사 우선 아키텍처 ★
 # - 빌드에 필요한 설정 파일들은 웹 마법사가 생성합니다
 # - 워크플로우는 마법사가 생성한 파일들을 그대로 사용합니다
-# - 마법사 경로: .github/util/flutter/ios-testflight-setup-wizard/index.html
+# - 마법사 경로: .github/util/flutter/testflight-wizard/testflight-wizard.html
 #   (브라우저에서 열어서 사용)
 #
 # 빌드 파이프라인:
-#   1. flutter build ios --no-codesign (Flutter 빌드)
-#   2. xcodebuild archive (Xcode 아카이브 생성)
-#   3. xcodebuild -exportArchive (IPA 생성, ExportOptions.plist 사용)
-#   4. fastlane deploy (마법사 생성 Fastfile 사용, DEPLOY_MODE에 따라 TestFlight/심사 제출)
+#   0. 준비 job: version.yml 버전이 App Store에서 이미 출시되어 닫혔으면 빌드 전에 실패로 멈춘다
+#      (릴리스는 버전을 몰래 바꾸지 않는다. version.yml 버전을 올린 뒤 다시 실행한다)
+#   1. flutter build ios --no-codesign (Flutter 빌드, 임시 빌드 번호)
+#   2. ios_release.py archive-upload --phase build (번호 결정, 아카이브, IPA 생성, 번들 번호 검증)
+#   3. ios_release.py archive-upload --phase upload (fastlane deploy 호출, 마법사 생성 Fastfile 사용,
+#      DEPLOY_MODE에 따라 TestFlight/심사 제출, 번호 거부 시 새 번호로 재시도.
+#      버전이 닫혔다는 거부는 릴리스에서는 재시도하지 않고 실패)
+#
+# 빌드 번호는 .github/scripts/build_number.py 규칙(시각 기반, 항상 증가)으로 아카이브 직전에 정해지며
+# version.yml의 version_code는 쓰지 않는다 (#643).
 #
 # ===================================================================
 # 🔑 필수 GitHub Secrets
@@ -40,7 +46,7 @@
 # ===================================================================
 #
 # 1. 웹 마법사 실행:
-#    브라우저에서 .github/util/flutter/ios-testflight-setup-wizard/index.html 열기
+#    브라우저에서 .github/util/flutter/testflight-wizard/testflight-wizard.html 열기
 #    → 필요한 정보 입력 후 설정 파일 다운로드
 #
 # 2. GitHub Secrets 설정 (위 목록 참고)
@@ -49,19 +55,14 @@
 #    git add ios/
 #    git commit -m "chore: iOS TestFlight 배포 설정"
 #
-# 4. deploy 브랜치로 푸시하여 배포 시작
+# 4. main 브랜치로 푸시하여 배포 시작
 #
 # ===================================================================
 
 name: PROJECT-iOS-TestFlight-Deploy
 
 on:
-  push:
-    branches: ["deploy"]
-  workflow_run:
-    workflows: ["CHANGELOG 자동 업데이트"]
-    types: [completed]
-    branches: [main]
+  # 자동 실행을 껐다(수동 실행만 가능). 서명키/스토어 준비 전이거나 이 프로젝트에 해당하지 않는 배포다.
   workflow_dispatch:
     inputs:
       deploy_mode:
@@ -73,13 +74,24 @@ on:
           - store_only
           - store_prepare
           - store_submit
+      whats_new_override:
+        description: "이번 실행만 App Store '새로운 기능' 문구를 이 값으로 (비우면 env STORE_WHATS_NEW_OVERRIDE 규칙을 따른다)"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  # GITHUB_TOKEN 으로는 읽기만 한다. 명시해 두면 레포 기본값이 나중에 write 로 바뀌어도
+  # 이 워크플로우가 필요 이상의 권한을 갖지 않는다 (#595).
+  contents: read
 
 # ============================================
 # 🔧 프로젝트별 설정 (아래 값들을 수정하세요)
 # ============================================
 env:
-  FLUTTER_ROOT: "app"
-  FLUTTER_VERSION: "3.35.5"
+  # FLUTTER_ROOT는 Flutter SDK 경로용 공식 변수라 충돌 — APP_ROOT로 분리
+  APP_ROOT: "app"
+  FLUTTER_VERSION: "3.38.9"
   XCODE_VERSION: "26.0"
   PROJECT_TYPE: "flutter"
 
@@ -90,14 +102,29 @@ env:
   ENV_FILE_PATH: ".env"
 
   # ============================================
-  # 📝 TestFlight Changelog 설정
+  # 📝 배포 모드 — main 배포 시 App Store 어디까지 올릴지
   # ============================================
-  SKIP_WAITING_FOR_BUILD_PROCESSING: "false"
+  #   store_only    : TestFlight 업로드까지만 (기본)
+  #   store_prepare : + App Store Connect 버전 생성·빌드 연결·문구 입력 (제출 버튼은 사람이 누른다)
+  #   store_submit  : + 심사 자동 제출, 승인되면 자동 출시
+  # 값은 레포 변수 IOS_DEPLOY_MODE 에서 읽는다 (Settings → Secrets and variables → Actions → Variables).
+  # 코드가 아니라 레포 변수에 두는 이유: 급할 때 배포 없이 자동 제출을 바로 끌 수 있어야 한다 (값을 store_only 로).
+  # 수동 실행(workflow_dispatch)에서 고른 값이 있으면 그것이 우선한다.
+  DEPLOY_MODE: ${{ github.event.inputs.deploy_mode || vars.IOS_DEPLOY_MODE || 'store_only' }}
 
   # ============================================
-  # 📝 배포 모드 (store_only | store_prepare | store_submit)
+  # 📝 스토어 '새로운 기능(What's New)' 문구 덮어쓰기
   # ============================================
-  DEPLOY_MODE: ${{ github.event.inputs.deploy_mode || vars.IOS_DEPLOY_MODE || 'store_only' }}
+  # store_prepare / store_submit 때 App Store 의 '이 버전의 새로운 기능' 칸에 들어갈 문구다.
+  #   값이 있으면 → 버전과 상관없이 매번 이 문구를 그대로 넣는다.
+  #   ""(빈 문자열)이면 → 덮어쓰지 않고 CHANGELOG.json 의 해당 버전 항목을 넣는다.
+  # 이 칸은 사용자뿐 아니라 App Review 심사자도 본다. 변경 내용을 자세히 적으면 심사자가 그 기능을 골라 확인하므로,
+  # 필요 이상 알리고 싶지 않으면 한 줄 고정 문구를 쓴다. 또 App Store 는 직전 '출시' 이후 여러 버전이 한꺼번에 나가서
+  # CHANGELOG 한 버전 항목만으로는 실제 변경과 어긋나기 쉽다.
+  # 이 값은 TestFlight 'What to Test'(내부 테스터용)에는 영향이 없다 — 거기는 항상 CHANGELOG 를 쓴다.
+  # 수동 실행 입력 whats_new_override 에 값을 주면 그 실행만 그 문구가 우선한다.
+  # Android(PROJECT-FLUTTER-ANDROID-PLAYSTORE-CICD.yaml)에도 같은 이름의 설정이 있다. 두 곳을 함께 바꾼다.
+  STORE_WHATS_NEW_OVERRIDE: ""
 
 jobs:
   prepare-build:
@@ -105,89 +132,135 @@ jobs:
     runs-on: macos-26
     defaults:
       run:
-        working-directory: ${{ env.FLUTTER_ROOT }}
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
+        shell: bash
+        working-directory: ${{ env.APP_ROOT }}
+    timeout-minutes: 30
 
     outputs:
       version: ${{ steps.current_version.outputs.version }}
-      build_number: ${{ steps.current_version.outputs.build_number }}
       project_type: ${{ steps.current_version.outputs.project_type }}
+      # 빌드가 다른 job 에서 돌므로 컴파일타임 플래그를 output 으로 넘긴다 (#603)
+      build_flags: ${{ steps.build_profile.outputs.build_flags }}
+      # 뒤 job 이 같은 커밋을 체크아웃하도록 SHA 를 넘긴다 (준비와 빌드 사이에 main 이 움직여도 어긋나지 않게)
+      commit_sha: ${{ steps.commit.outputs.commit_sha }}
 
     steps:
+      # 사전 점검 (#666)
+      # 신규 설치 직후에는 배포용 Secret 이 없는 것이 정상이다. 그대로 두면 빌드를 끝까지 돌린 뒤
+      # 서명, 업로드 단계에서 원인을 짚기 어려운 에러로 실패하므로, 빌드 전에 무엇이 없는지 알린다.
+      # Secret 이 모두 있으면 이 step 은 그대로 통과하며 이후 동작은 달라지지 않는다.
+      - name: 배포 Secret 사전 점검
+        working-directory: ${{ github.workspace }}   # 체크아웃 전이라 APP_ROOT 가 아직 없을 수 있다
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          fail=0
+          for name in APPLE_CERTIFICATE_BASE64 APPLE_CERTIFICATE_PASSWORD APPLE_PROVISIONING_PROFILE_BASE64 APP_STORE_CONNECT_API_KEY_BASE64 APP_STORE_CONNECT_API_KEY_ID APP_STORE_CONNECT_ISSUER_ID; do
+            if [ -z "${!name}" ]; then
+              echo "::error title=배포 사전 점검::Secret ${name} 이(가) 없습니다. iOS 서명 및 업로드에 필요합니다. .github/util/flutter/testflight-wizard 의 안내로 만들어 Settings > Secrets and variables > Actions 에 등록하세요."
+              fail=1
+            fi
+          done
+          [ "$fail" = "0" ] || exit 1
+          echo "✅ 사전 점검 통과"
+
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
-          ref: deploy
+          ref: main
           fetch-depth: 0
 
       - name: Pull latest changes
-        run: git pull origin deploy
+        run: git pull origin main
+
+      # pull 이후의 HEAD 를 고정한다. 뒤 job 은 브랜치명이 아니라 이 SHA 로 체크아웃한다.
+      - name: HEAD SHA 고정
+        id: commit
+        run: |
+          SHA=$(git rev-parse HEAD)
+          echo "commit_sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "📌 빌드 대상 커밋: $SHA"
 
       - name: Select Xcode version
         run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
 
       - name: Create .env file
+        env:
+          ENV_CONTENT: ${{ secrets.ENV_FILE || secrets.ENV }}
         run: |
-          cat << 'EOF' > ${{ env.ENV_FILE_PATH }}
-          ${{ secrets.ENV_FILE || secrets.ENV }}
-          EOF
+          printf '%s\n' "$ENV_CONTENT" > ${{ env.ENV_FILE_PATH }}
           echo "✅ ${{ env.ENV_FILE_PATH }} file created"
 
+      # 빌드 프로파일 — 런타임(.env)과 컴파일타임(dart-define)을 한 곳에서 정한다 (#603)
+      # 고쳐진 .env 는 아티팩트로, 플래그는 job output 으로 빌드 job 에 간다.
+      # 설정(.github/config/build-profile.json)이 없는 저장소에서는 아무 일도 하지 않는다.
+      - name: 빌드 프로파일 적용 (release)
+        id: build_profile
+        run: |
+          python3 "${{ github.workspace }}/.github/scripts/apply_build_profile.py" \
+            release "${{ env.ENV_FILE_PATH }}" \
+            --config "${{ github.workspace }}/.github/config/build-profile.json"
+
       - name: Create Secrets.xcconfig file
+        env:
+          SECRETS_XCCONFIG_CONTENT: ${{ secrets.SECRETS_XCCONFIG }}
         run: |
           mkdir -p ios/Flutter
-          if [ -n "${{ secrets.SECRETS_XCCONFIG }}" ]; then
-            echo "${{ secrets.SECRETS_XCCONFIG }}" > ios/Flutter/Secrets.xcconfig
+          if [ -n "$SECRETS_XCCONFIG_CONTENT" ]; then
+            echo "$SECRETS_XCCONFIG_CONTENT" > ios/Flutter/Secrets.xcconfig
             echo "Secrets.xcconfig created"
           else
             echo "// No secrets provided" > ios/Flutter/Secrets.xcconfig
           fi
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          cache: true
-
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-flutter-pub-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: ${{ runner.os }}-flutter-pub-
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: "3.1"
-          bundler-cache: true
-
-      - name: Install CocoaPods
-        run: |
-          gem install cocoapods
-          cd ios && pod install
-
       - name: 버전 관리 스크립트 권한 설정
-        working-directory: ${{ github.workspace }}   # 레포 루트 자산(.github/scripts)은 FLUTTER_ROOT가 아닌 레포 루트 기준
+        working-directory: ${{ github.workspace }}   # 레포 루트 자산(.github/scripts)은 APP_ROOT가 아닌 레포 루트 기준
         run: |
           chmod +x ./.github/scripts/version_manager.sh
           chmod +x ./.github/scripts/changelog_manager.py
 
+      # 사전 점검용 App Store Connect 키. 키가 없거나 깨져도 준비 단계를 막지 않는다
+      # (점검이 version.yml 버전으로 폴백하고, 빌드 단계에서 다시 설치한다).
+      - name: Setup App Store Connect API Key
+        env:
+          API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+        run: |
+          if [ -n "$API_KEY_BASE64" ] && [ -n "$API_KEY_ID" ]; then
+            KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_${API_KEY_ID}.p8"
+            mkdir -p "$(dirname "$KEY_PATH")"
+            if echo "$API_KEY_BASE64" | base64 --decode > "$KEY_PATH"; then
+              echo "ASC_KEY_PATH=$KEY_PATH" >> "$GITHUB_ENV"
+            else
+              echo "::warning::App Store Connect 키를 해석하지 못해 version.yml 버전으로 진행합니다"
+            fi
+          else
+            echo "ℹ️ App Store Connect 키 시크릿이 없어 version.yml 버전으로 진행합니다"
+          fi
+
       - name: 현재 버전 정보 가져오기
         id: current_version
         working-directory: ${{ github.workspace }}   # version_manager.sh가 레포 루트 version.yml을 읽어야 함
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_IDENTIFIER: ${{ secrets.IOS_BUNDLE_ID || vars.IOS_BUNDLE_ID }}
         run: |
           VERSION=$(./.github/scripts/version_manager.sh get | tail -n 1)
-          BUILD_NUMBER=$(./.github/scripts/version_manager.sh get-code | tail -n 1)
 
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
           echo "project_type=${{ env.PROJECT_TYPE }}" >> $GITHUB_OUTPUT
 
-          echo "📋 버전: $VERSION (빌드번호: $BUILD_NUMBER)"
+          echo "📋 버전: $VERSION"
+
+          # 이미 출시되어 닫힌 버전이면 이 스텝이 실패해 job 을 멈춘다 (12~18분 빌드 뒤 Apple 거부를 피한다).
+          # 릴리스는 버전을 대신 올리지 않는다. 빌드 번호는 여기서 정하지 않고 아카이브 직전에 정해진다.
+          python3 .github/scripts/ios_release.py precheck-version --mode release \
+            --version "$VERSION" --bundle-id "$APP_IDENTIFIER"
 
       - name: 릴리즈 노트 생성
         id: release_notes
@@ -199,14 +272,11 @@ jobs:
             python3 ./.github/scripts/changelog_manager.py generate-md
             python3 ./.github/scripts/changelog_manager.py export --version $VERSION --output final_release_notes.txt
 
-            if [ -s final_release_notes.txt ]; then
-              echo "RELEASE_NOTES_FOUND=true" >> $GITHUB_ENV
-            else
-              echo "RELEASE_NOTES_FOUND=false" >> $GITHUB_ENV
+            # 추출 결과가 비면 기본 문구로 대체
+            if [ ! -s final_release_notes.txt ]; then
               echo "v$VERSION 업데이트" > final_release_notes.txt
             fi
           else
-            echo "RELEASE_NOTES_FOUND=false" >> $GITHUB_ENV
             echo "v$VERSION 업데이트" > final_release_notes.txt
           fi
 
@@ -221,34 +291,41 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: project-files
+          # 모노레포 대응: 산출물은 APP_ROOT 기준이라 경로 prefix가 필요하다.
+          # (없으면 레포 루트에서 찾아 0건 → if-no-files-found 기본값 warn으로 조용히 통과)
           path: |
-            ${{ env.ENV_FILE_PATH }}
-            ios/Flutter/Secrets.xcconfig
-            pubspec.yaml
-            lib/
-            assets/
+            ${{ env.APP_ROOT }}/${{ env.ENV_FILE_PATH }}
+            ${{ env.APP_ROOT }}/ios/Flutter/Secrets.xcconfig
+            ${{ env.APP_ROOT }}/pubspec.yaml
+            ${{ env.APP_ROOT }}/lib/
+            ${{ env.APP_ROOT }}/assets/
           retention-days: 1
+          include-hidden-files: true   # .env가 숨김 파일이라 기본값 false면 누락된다
+          # assets/ 등 일부 경로는 프로젝트마다 없을 수 있어 warn 유지.
+          # (전체 0건이어도 통과하지만, 경로 prefix 수정으로 실제 누락은 해소됨)
+          if-no-files-found: warn
 
   # ============================================
-  # iOS 빌드 (xcodebuild 직접 사용)
+  # iOS 빌드와 TestFlight 배포 (서명 후 업로드까지 한 job)
   # ============================================
-  build-ios:
-    name: iOS 앱 빌드
+  # 번호 거부 시 아카이브부터 다시 해야 하므로 빌드와 배포를 한 job 에 둔다 (#643).
+  build-upload-ios:
+    name: iOS 빌드 및 TestFlight 배포
     runs-on: macos-26
     defaults:
       run:
-        working-directory: ${{ env.FLUTTER_ROOT }}
+        shell: bash
+        working-directory: ${{ env.APP_ROOT }}
+    timeout-minutes: 120
     needs: prepare-build
 
     steps:
+      # 준비 job 이 고정한 커밋으로 체크아웃한다 (pull 하지 않는다)
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
-          ref: deploy
+          ref: ${{ needs.prepare-build.outputs.commit_sha }}
           fetch-depth: 0
-
-      - name: Pull latest changes
-        run: git pull origin deploy
 
       - name: Select Xcode version
         run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
@@ -268,20 +345,27 @@ jobs:
           echo "=== Initializing Xcode components ==="
           xcrun simctl list >/dev/null 2>&1 || true
           echo "=== Downloading iOS platform ==="
-          xcodebuild -downloadPlatform iOS
+          # ⚠️ 설치 여부를 미리 판정해 건너뛰면 안 된다 (showsdks가 잡는 SDK와
+          #    기기 빌드용 디바이스 플랫폼은 별개). 조건 없이 항상 다운로드한다.
+          for i in 1 2 3; do
+            xcodebuild -downloadPlatform iOS && break
+            echo "⚠️ 시도 $i 실패 - 재시도"
+            sleep 15
+          done
 
       - name: Download project files
         uses: actions/download-artifact@v4
         with:
           name: project-files
+          # 업로드 시 APP_ROOT prefix가 붙으므로 레포 루트에 풀면 원래 위치로 복원된다
           path: .
 
       - name: Ensure .env file exists
+        env:
+          ENV_CONTENT: ${{ secrets.ENV_FILE || secrets.ENV }}
         run: |
           if [ ! -f "${{ env.ENV_FILE_PATH }}" ]; then
-            cat << 'EOF' > ${{ env.ENV_FILE_PATH }}
-          ${{ secrets.ENV_FILE || secrets.ENV }}
-          EOF
+            printf '%s\n' "$ENV_CONTENT" > ${{ env.ENV_FILE_PATH }}
             echo "✅ ${{ env.ENV_FILE_PATH }} file created (fallback)"
           fi
 
@@ -310,7 +394,13 @@ jobs:
       - name: Install CocoaPods
         run: |
           gem install cocoapods
-          cd ios && pod install
+          # 플러그인 의존성이 없는 프로젝트는 Flutter가 Podfile을 만들지 않는다.
+          # 이 경우 pod install은 불필요하므로 건너뛴다 (없으면 실패하던 문제).
+          if [ -f ios/Podfile ]; then
+            cd ios && pod install
+          else
+            echo "ℹ️ ios/Podfile 없음 - CocoaPods 의존성이 없는 프로젝트이므로 건너뜁니다"
+          fi
 
       - name: Import Code-Signing Certificates
         uses: Apple-Actions/import-codesign-certs@v2
@@ -319,8 +409,10 @@ jobs:
           p12-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
 
       - name: Install Provisioning Profile
+        env:
+          PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
         run: |
-          echo "${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > profile.mobileprovision
+          echo "$PROVISIONING_PROFILE_BASE64" | base64 --decode > profile.mobileprovision
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
           uuid=$(grep -A1 -a "UUID" profile.mobileprovision | grep string | sed -e "s/<string>//" -e "s/<\/string>//" -e "s/[[:space:]]//g")
@@ -338,69 +430,24 @@ jobs:
           # xcode-select만으로는 서브프로세스에 전파되지 않아 명시적으로 지정
           DEVELOPER_DIR: /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
         run: |
+          BUILD_FLAGS="${{ needs.prepare-build.outputs.build_flags }}"
+          echo "📦 Flutter 빌드... ${BUILD_FLAGS:+(플래그: $BUILD_FLAGS)}"
+          # 빌드 번호 1 은 임시값이다. 최종 번호는 archive-upload 가 아카이브 시점에 정해 주입한다.
+          # shellcheck disable=SC2086  # 플래그는 공백으로 갈라져야 한다
           flutter build ios --release --no-codesign \
             --build-name="${{ needs.prepare-build.outputs.version }}" \
-            --build-number="${{ needs.prepare-build.outputs.build_number }}"
+            --build-number=1 \
+            $BUILD_FLAGS
 
-      - name: Create Archive
-        env:
-          IOS_PROVISIONING_PROFILE_NAME: ${{ secrets.IOS_PROVISIONING_PROFILE_NAME }}
-          # xcode-select만으로는 서브프로세스에 전파되지 않아 명시적으로 지정
-          DEVELOPER_DIR: /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
-        run: |
-          cd ios
-          xcodebuild -workspace Runner.xcworkspace \
-            -scheme Runner \
-            -archivePath build/Runner.xcarchive \
-            -destination 'generic/platform=iOS' \
-            archive \
-            CODE_SIGN_STYLE=Manual \
-            PROVISIONING_PROFILE_SPECIFIER="$IOS_PROVISIONING_PROFILE_NAME" \
-            CODE_SIGN_IDENTITY="Apple Distribution"
-
-      - name: Export IPA
-        run: |
-          cd ios
-          xcodebuild -exportArchive \
-            -archivePath build/Runner.xcarchive \
-            -exportPath build/ipa \
-            -exportOptionsPlist ExportOptions.plist
-
-      - name: Upload IPA artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-ipa
-          path: ${{ env.FLUTTER_ROOT }}/ios/build/ipa/*.ipa
-          retention-days: 1
-
-  # ============================================
-  # TestFlight 배포 (마법사 생성 Fastfile 사용)
-  # ============================================
-  deploy-testflight:
-    name: TestFlight 배포
-    runs-on: macos-26
-    defaults:
-      run:
-        working-directory: ${{ env.FLUTTER_ROOT }}
-    needs: [prepare-build, build-ios]
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-        with:
-          ref: deploy
-          fetch-depth: 0
-
+      # 번호 결정 시 최근 빌드 번호 조회와 업로드에 쓰는 App Store Connect 키 (fastlane 도 같은 파일을 쓴다)
       - name: Setup App Store Connect API Key
+        env:
+          API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
         run: |
           mkdir -p ~/.appstoreconnect/private_keys
-          echo "${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}" | base64 --decode > ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}.p8
-
-      - name: Download IPA artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ios-ipa
-          path: ${{ env.FLUTTER_ROOT }}/ios/build/ipa/
+          echo "$API_KEY_BASE64" | base64 --decode > ~/.appstoreconnect/private_keys/AuthKey_${API_KEY_ID}.p8
+          echo "ASC_KEY_PATH=$HOME/.appstoreconnect/private_keys/AuthKey_${API_KEY_ID}.p8" >> "$GITHUB_ENV"
 
       - name: Download release notes
         uses: actions/download-artifact@v4
@@ -413,34 +460,57 @@ jobs:
           if [ ! -f "ios/fastlane/Fastfile" ]; then
             echo "❌ ios/fastlane/Fastfile이 없습니다!"
             echo "웹 마법사를 실행하여 설정 파일을 생성하세요:"
-            echo "  브라우저에서 .github/util/flutter/ios-testflight-setup-wizard/index.html 열기"
+            echo "  브라우저에서 .github/util/flutter/testflight-wizard/testflight-wizard.html 열기"
             exit 1
           fi
           echo "✅ Fastfile 확인됨: ios/fastlane/Fastfile"
 
       - name: Install Fastlane
-        working-directory: ${{ env.FLUTTER_ROOT }}/ios
+        working-directory: ${{ env.APP_ROOT }}/ios
         run: |
           # multi_json: google-apis transitive 의존성이 선언 누락한 upstream 버그 회피 (gemspec 미선언 → Gem::LoadError)
           printf 'source "https://rubygems.org"\ngem "fastlane"\ngem "multi_json"\n' > Gemfile
           bundle install
           echo "✅ Fastlane installed (Bundler)"
 
-      - name: Upload to TestFlight (+ App Store Submit if store_submit)
+      # 아카이브, IPA export, 번들 번호 검증까지. 빌드 번호는 여기서 정해진다 (build_number.py 규칙).
+      # APP_ROOT 가 레포 루트 기준 상대 경로라 스크립트는 레포 루트에서 실행한다.
+      - name: IPA 빌드
+        id: build_phase
+        working-directory: ${{ github.workspace }}
         env:
+          VERSION: ${{ needs.prepare-build.outputs.version }}
+          # 릴리스는 닫힌 버전이면 재시도 없이 실패한다
+          MODE: release
+          IOS_PROVISIONING_PROFILE_NAME: ${{ secrets.IOS_PROVISIONING_PROFILE_NAME }}
+          APP_IDENTIFIER: ${{ secrets.IOS_BUNDLE_ID || vars.IOS_BUNDLE_ID }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          # xcode-select만으로는 서브프로세스에 전파되지 않아 명시적으로 지정
+          DEVELOPER_DIR: /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
+        run: python3 "$GITHUB_WORKSPACE/.github/scripts/ios_release.py" archive-upload --phase build
+
+      # TestFlight 업로드 (마법사 생성 Fastfile 의 deploy lane, DEPLOY_MODE 에 따라 심사 제출까지).
+      # 번호가 거부되면 ios_release.py 가 새 번호로 아카이브부터 다시 한다 (최대 5회).
+      - name: Upload to TestFlight (+ App Store Submit if store_submit)
+        id: upload_phase
+        working-directory: ${{ github.workspace }}
+        env:
+          APP_IDENTIFIER_VALUE: ${{ secrets.IOS_BUNDLE_ID || vars.IOS_BUNDLE_ID }}
+          VERSION: ${{ needs.prepare-build.outputs.version }}
+          MODE: release
+          IOS_PROVISIONING_PROFILE_NAME: ${{ secrets.IOS_PROVISIONING_PROFILE_NAME }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          # 재시도 시 다시 아카이브하므로 xcodebuild 에도 필요하다
+          DEVELOPER_DIR: /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          SKIP_WAITING_FOR_BUILD_PROCESSING: ${{ env.SKIP_WAITING_FOR_BUILD_PROCESSING }}
+          APP_ROOT: ${{ env.APP_ROOT }}   # 아래 스크립트가 셸 변수로 참조한다
+          STORE_WHATS_NEW_OVERRIDE: ${{ env.STORE_WHATS_NEW_OVERRIDE }}
+          INPUT_WHATS_NEW_OVERRIDE: ${{ github.event.inputs.whats_new_override }}
         run: |
-          # IPA 절대경로 탐색
-          IPA_PATH=$(find "$GITHUB_WORKSPACE/${FLUTTER_ROOT}/ios/build/ipa" -name "*.ipa" | head -1)
-          echo "📦 Found IPA at: $IPA_PATH"
-
-          if [ ! -f "$IPA_PATH" ]; then
-            echo "❌ IPA 파일을 찾을 수 없습니다!"; ls -la ios/build/ipa/ || true; exit 1
-          fi
-
-          # Release notes 준비 (final_release_notes.txt·truncate 스크립트는 레포 루트 기준 — working-directory가 FLUTTER_ROOT이므로 절대경로 사용)
+          # Release notes 준비 (final_release_notes.txt·truncate 스크립트는 레포 루트 기준 — working-directory가 APP_ROOT이므로 절대경로 사용)
           if [ -f "$GITHUB_WORKSPACE/final_release_notes.txt" ]; then
             # App Store Connect "What to Test" 한도(4000 바이트)에 맞춰 절단 (마진 두어 3800byte)
             bash "$GITHUB_WORKSPACE/.github/scripts/truncate_release_notes.sh" "$GITHUB_WORKSPACE/final_release_notes.txt" 3800 byte
@@ -452,30 +522,48 @@ jobs:
             echo "📝 기본 Release Notes: $RELEASE_NOTES"
           fi
 
-          export APP_STORE_CONNECT_API_KEY_ID="${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}"
-          export APP_STORE_CONNECT_ISSUER_ID="${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}"
-          export API_KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}.p8"
-          export IPA_PATH="$IPA_PATH"
+          # IPA_PATH, BUILD_NUMBER, APP_VERSION 은 스크립트가 최종값으로 채운다.
+          export APP_STORE_CONNECT_API_KEY_ID="$APP_STORE_CONNECT_API_KEY_ID"
+          export APP_STORE_CONNECT_ISSUER_ID="$APP_STORE_CONNECT_ISSUER_ID"
+          export API_KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
           export RELEASE_NOTES="$RELEASE_NOTES"
-          export APP_IDENTIFIER="${{ secrets.IOS_BUNDLE_ID || vars.IOS_BUNDLE_ID }}"
+          export APP_IDENTIFIER="$APP_IDENTIFIER_VALUE"
           export DEPLOY_MODE="${{ env.DEPLOY_MODE }}"
-          export APP_VERSION="${{ needs.prepare-build.outputs.version }}"
-          export BUILD_NUMBER="${{ needs.prepare-build.outputs.build_number }}"
+          # 수동 실행 입력이 있으면 그 실행만 우선한다. 값은 step env 로 받아 셸 주입을 막는다.
+          if [ -n "$(printf '%s' "$INPUT_WHATS_NEW_OVERRIDE" | tr -d '[:space:]')" ]; then
+            export STORE_WHATS_NEW_OVERRIDE="$INPUT_WHATS_NEW_OVERRIDE"
+          fi
 
           echo "🔧 DEPLOY_MODE: $DEPLOY_MODE / APP_IDENTIFIER: $APP_IDENTIFIER"
-          cd ios
-          bundle exec fastlane deploy
+          # `bundle exec fastlane deploy` 는 아래 스크립트가 ios/ 에서 호출한다 (재시도 때마다 다시 부름).
+          python3 "$GITHUB_WORKSPACE/.github/scripts/ios_release.py" archive-upload --phase upload
 
       - name: Notify TestFlight Upload Success
         if: success()
         run: |
           echo "✅ TestFlight 업로드 성공!"
-          echo "📱 버전: ${{ needs.prepare-build.outputs.version }}"
-          echo "🔢 빌드번호: ${{ needs.prepare-build.outputs.build_number }}"
-          echo "📝 커밋: ${{ github.sha }}"
+          echo "📱 버전: ${{ steps.upload_phase.outputs.version || needs.prepare-build.outputs.version }}"
+          echo "🔢 빌드번호: ${{ steps.upload_phase.outputs.build_number || steps.build_phase.outputs.build_number }}"
+          echo "📝 커밋: ${{ needs.prepare-build.outputs.commit_sha }}"
 
       - name: Notify on Failure
         if: failure()
         run: |
           echo "❌ TestFlight 업로드 실패!"
           echo "로그를 확인해주세요."
+
+      # 이 워크플로우는 댓글을 달지 않으므로 실패 사유를 실행 요약과 에러 주석에 남긴다.
+      # 사유는 env 로 받는다 (스크립트 소스에 직접 넣으면 값 안의 따옴표 등이 셸을 깨뜨린다).
+      - name: 실패 사유 요약
+        if: failure()
+        env:
+          REASON: ${{ steps.upload_phase.outputs.reason_line || steps.build_phase.outputs.reason_line }}
+        run: |
+          if [ -n "$REASON" ]; then
+            {
+              echo "## iOS 릴리스 실패"
+              echo ""
+              echo "$REASON"
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::$REASON"
+          fi

@@ -53,6 +53,7 @@ name: PROJECT-PYTHON-SIMPLE-CICD
 # 트리거 설정
 # ===================================================================
 on:
+  # 자동 실행을 껐다(수동 실행만 가능). 서명키/스토어 준비 전이거나 이 프로젝트에 해당하지 않는 배포다.
   # ⚠️ passQL AI 실배포는 PROJECT-PYTHON-AI-CICD가 담당 —
   # 이 템플릿의 env(PROJECT_NAME/DEPLOY_PORT)를 passql-ai에 맞게 설정하기 전까지
   # push 트리거를 활성화하지 말 것 (이중 배포 방지)

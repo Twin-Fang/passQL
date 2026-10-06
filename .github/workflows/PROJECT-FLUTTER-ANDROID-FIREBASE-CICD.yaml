@@ -50,12 +50,7 @@
 name: PROJECT-FLUTTER-ANDROID-FIREBASE-APPDIST-CICD
 
 on:
-  push:
-    branches: ["deploy"]
-  workflow_run:
-    workflows: ["CHANGELOG 자동 업데이트"]
-    types: [completed]
-    branches: [main]
+  # 자동 실행을 껐다(수동 실행만 가능). 서명키/스토어 준비 전이거나 이 프로젝트에 해당하지 않는 배포다.
   workflow_dispatch:
 
 env:

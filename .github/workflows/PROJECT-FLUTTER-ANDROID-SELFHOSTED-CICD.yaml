@@ -22,6 +22,7 @@
 name: PROJECT-Android-SelfHosted-CICD
 
 on:
+  # 자동 실행을 껐다(수동 실행만 가능). 서명키/스토어 준비 전이거나 이 프로젝트에 해당하지 않는 배포다.
   # ⚠️ Flutter 앱은 아직 개발 중 — deploy마다 APK 빌드가 돌지 않도록
   # 자동 트리거 비활성화 (앱 배포 시작 시 주석 해제)
   # push:
