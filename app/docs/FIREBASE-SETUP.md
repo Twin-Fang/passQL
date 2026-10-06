@@ -5,19 +5,19 @@
 
 | 파일 | 위치 | 앱 ID |
 |---|---|---|
-| `google-services.json` | `android/app/` | `1:662424763183:android:fbecdd636daa8ef423bfda` |
-| `GoogleService-Info.plist` | `ios/Runner/` | `1:662424763183:ios:0d246719760816ba23bfda` |
+| `google-services.json` | `android/app/` | `1:662424763183:android:75cef576d6ae3d9323bfda` |
+| `GoogleService-Info.plist` | `ios/Runner/` | `1:662424763183:ios:d586deaa2258e9f123bfda` |
 
-앱 ID(패키지/번들 ID)는 `kr.suhsaechan.passql` 이다.
+앱 ID(패키지/번들 ID)는 `com.coldredrice.passql` 이다.
 
 ## 받기
 
 Firebase CLI 가 프로젝트 `passql` 에 로그인되어 있어야 한다(`firebase login`).
 
 ```bash
-firebase apps:sdkconfig ANDROID 1:662424763183:android:fbecdd636daa8ef423bfda \
+firebase apps:sdkconfig ANDROID 1:662424763183:android:75cef576d6ae3d9323bfda \
   --project passql --out android/app/google-services.json
-firebase apps:sdkconfig IOS 1:662424763183:ios:0d246719760816ba23bfda \
+firebase apps:sdkconfig IOS 1:662424763183:ios:d586deaa2258e9f123bfda \
   --project passql --out ios/Runner/GoogleService-Info.plist
 ```
 
@@ -29,7 +29,7 @@ firebase apps:sdkconfig IOS 1:662424763183:ios:0d246719760816ba23bfda \
 # 디버그 키 지문 확인
 keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android | grep SHA1
 # 등록
-firebase apps:android:sha:create 1:662424763183:android:fbecdd636daa8ef423bfda <SHA-1> --project passql
+firebase apps:android:sha:create 1:662424763183:android:75cef576d6ae3d9323bfda <SHA-1> --project passql
 ```
 
 릴리스 키스토어를 만들면 그 SHA-1 도 같은 방법으로 등록한 뒤 `google-services.json` 을 다시 받는다.

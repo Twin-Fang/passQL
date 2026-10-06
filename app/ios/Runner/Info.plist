@@ -48,7 +48,7 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>GIDClientID</key>
-	<string>662424763183-6c6aufi4l619q0faot4uafpn03ub56nj.apps.googleusercontent.com</string>
+	<string>662424763183-7e27721u2hpq32d1jffb106d5532hgvd.apps.googleusercontent.com</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -56,7 +56,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.662424763183-6c6aufi4l619q0faot4uafpn03ub56nj</string>
+				<string>com.googleusercontent.apps.662424763183-7e27721u2hpq32d1jffb106d5532hgvd</string>
 			</array>
 		</dict>
 	</array>
