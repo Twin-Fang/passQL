@@ -7,6 +7,7 @@ import '../presentation/pages/daily_set/daily_set_result_page.dart';
 import '../presentation/pages/daily_set/leaderboard_page.dart';
 import '../presentation/pages/feedback/feedback_page.dart';
 import '../presentation/pages/home/home_page.dart';
+import '../presentation/pages/legal/legal_page.dart';
 import '../presentation/pages/login/login_page.dart';
 import '../presentation/pages/questions/topic_list_page.dart';
 import '../presentation/pages/questions/chapter_page.dart';
@@ -40,11 +41,20 @@ abstract final class AppRouter {
     // 로그인 안 했으면 로그인 화면으로, 로그인 했는데 로그인 화면이면 홈으로 보낸다.
     redirect: (_, state) {
       final atLogin = state.matchedLocation == AppRoutes.login;
+      // 약관은 가입 전에도 읽을 수 있어야 한다(App Store 5.1.1).
+      if (state.matchedLocation.startsWith('/legal/')) return null;
       if (!authenticated.value && !atLogin) return AppRoutes.login;
       if (authenticated.value && atLogin) return AppRoutes.home;
       return null;
     },
     routes: [
+      // 약관
+      GoRoute(
+        path: '/legal/:type',
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => LegalPage(typeValue: state.pathParameters['type']!),
+      ),
+
       // 로그인
       GoRoute(
         path: AppRoutes.login,

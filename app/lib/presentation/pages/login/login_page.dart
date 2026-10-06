@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/app_colors.dart';
 import '../../../core/auth/auth_session.dart';
 import '../../../core/auth/social_sign_in.dart';
 import '../../../core/text_styles.dart';
+import '../../../data/models/legal/legal_models.dart';
+import '../../../router/app_routes.dart';
 import '../../providers/auth_provider.dart';
 
 /// 소셜 로그인 화면.
@@ -89,7 +92,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   onPressed: busy ? null : () => _signIn(SocialProvider.apple),
                 ),
               ],
-              SizedBox(height: 32.h),
+              SizedBox(height: 16.h),
+              _LegalNotice(
+                onOpen: (type) => context.push(AppRoutes.legal(type.serverValue)),
+              ),
+              SizedBox(height: 24.h),
             ],
           ),
         ),
@@ -143,6 +150,36 @@ class _SocialButton extends StatelessWidget {
                 ],
               ),
       ),
+    );
+  }
+}
+
+/// 계속하면 약관에 동의하는 것으로 본다는 안내와 열람 링크.
+class _LegalNotice extends StatelessWidget {
+  const _LegalNotice({required this.onOpen});
+
+  final void Function(LegalType type) onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = AppTextStyles.tag_12.copyWith(color: AppColors.black700);
+    final link = style.copyWith(decoration: TextDecoration.underline);
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text('계속하면 ', style: style),
+        GestureDetector(
+          onTap: () => onOpen(LegalType.termsOfService),
+          child: Text('이용약관', style: link),
+        ),
+        Text(' 및 ', style: style),
+        GestureDetector(
+          onTap: () => onOpen(LegalType.privacyPolicy),
+          child: Text('개인정보처리방침', style: link),
+        ),
+        Text('에 동의하게 돼요', style: style),
+      ],
     );
   }
 }

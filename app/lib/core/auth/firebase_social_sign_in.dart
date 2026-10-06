@@ -50,6 +50,26 @@ class FirebaseSocialSignIn implements SocialSignIn {
   }
 
   @override
+  Future<bool> revokeAccessForWithdrawal() async {
+    final isApple = _auth.currentUser?.providerData.any((p) => p.providerId == 'apple.com') ?? false;
+    if (!isApple) return true;
+    try {
+      final rawNonce = _randomNonce();
+      final apple = await SignInWithApple.getAppleIDCredential(
+        scopes: const [],
+        nonce: sha256.convert(utf8.encode(rawNonce)).toString(),
+      );
+      await _auth.revokeTokenWithAuthorizationCode(apple.authorizationCode);
+      return true;
+    } on SignInWithAppleAuthorizationException catch (e) {
+      if (e.code == AuthorizationErrorCode.canceled) return false;
+      throw const SocialSignInException('Apple 인증에 실패했어요. 잠시 후 다시 시도해 주세요.');
+    } on FirebaseAuthException catch (e) {
+      throw SocialSignInException(_firebaseMessage(e));
+    }
+  }
+
+  @override
   Future<void> signOut() async {
     // 한쪽이 실패해도 다른 쪽은 정리한다. 기기에서 로그아웃되는 것이 우선이다.
     try {

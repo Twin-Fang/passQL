@@ -65,6 +65,9 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
   /// 서버 요청이 실패하면(네트워크 등) 세션을 그대로 두고 [AppException] 을 던져
   /// 사용자가 다시 시도할 수 있게 한다. 지워지지 않은 계정을 로그아웃만 시키면 안 된다.
   Future<void> withdraw() async {
+    // Apple 사용자는 토큰 회수를 위해 재인증이 필요하다. 취소하면 탈퇴를 진행하지 않는다.
+    final granted = await ref.read(socialSignInProvider).revokeAccessForWithdrawal();
+    if (!granted) return;
     try {
       await ref.read(memberApiProvider).withdraw();
     } on DioException catch (e) {

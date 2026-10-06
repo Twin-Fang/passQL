@@ -21,6 +21,13 @@ abstract interface class SocialSignIn {
   /// 사용자가 취소하면 null, 실패하면 [SocialSignInException].
   Future<String?> fetchIdToken(SocialProvider provider);
 
+  /// 회원 탈퇴 전에 소셜 쪽 접근 권한을 회수한다.
+  ///
+  /// Apple 은 계정 삭제 시 토큰 폐기를 요구한다(App Store 5.1.1(v)). Apple 로그인 사용자는
+  /// 본인 확인을 위해 Apple 인증을 다시 거친다. 사용자가 취소하면 false 를 돌려주고 탈퇴를 중단한다.
+  /// 회수할 것이 없는 경우(Google 등)는 true 다.
+  Future<bool> revokeAccessForWithdrawal();
+
   /// 소셜 쪽 로그인 상태도 함께 정리한다. 실패해도 예외를 던지지 않는다.
   Future<void> signOut();
 }
@@ -33,6 +40,9 @@ class UnconfiguredSocialSignIn implements SocialSignIn {
   Future<String?> fetchIdToken(SocialProvider provider) {
     throw const SocialSignInException('로그인 설정이 아직 완료되지 않았어요.');
   }
+
+  @override
+  Future<bool> revokeAccessForWithdrawal() async => true;
 
   @override
   Future<void> signOut() async {}

@@ -31,6 +31,15 @@ class _FakeSocial implements SocialSignIn {
     return token;
   }
 
+  bool revokeGranted = true;
+  int revokes = 0;
+
+  @override
+  Future<bool> revokeAccessForWithdrawal() async {
+    revokes++;
+    return revokeGranted;
+  }
+
   @override
   Future<void> signOut() async => signOuts++;
 }
@@ -216,6 +225,27 @@ void main() {
       expect(social.signOuts, 1);
       expect(await store.read(), isNull);
       expect(c.read(authProvider).value, isNull);
+    });
+
+    test('Apple 재인증을 취소하면 서버에 탈퇴를 요청하지 않고 계정을 그대로 둔다', () async {
+      final social = _FakeSocial()..revokeGranted = false;
+      final member = _FakeMemberApi();
+      final c = await signedIn(social, member);
+
+      await c.read(authProvider.notifier).withdraw();
+
+      expect(social.revokes, 1);
+      expect(member.withdrawCalls, 0);
+      expect(c.read(authProvider).value, isNotNull);
+    });
+
+    test('탈퇴 전에 소셜 접근 권한을 먼저 회수한다', () async {
+      final social = _FakeSocial();
+      final c = await signedIn(social, _FakeMemberApi());
+
+      await c.read(authProvider.notifier).withdraw();
+
+      expect(social.revokes, 1);
     });
 
     test('서버 요청이 실패하면 세션을 그대로 두고 사유를 알린다 (지워지지 않은 계정을 로그아웃만 시키지 않는다)', () async {

@@ -7,6 +7,7 @@ import '../../../core/app_colors.dart';
 import '../../../core/text_styles.dart';
 import '../../../router/app_routes.dart';
 import '../../../core/error/app_exception.dart';
+import '../../../data/models/legal/legal_models.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/settings_providers.dart';
 import '../../widgets/common/app_toast.dart';
@@ -165,6 +166,19 @@ class SettingsPage extends ConsumerWidget {
                 title: '건의사항',
                 description: '앱에 바라는 점을 보내고, 처리 상태를 확인해요',
                 onTap: () => context.push(AppRoutes.feedback),
+              ),
+              const SizedBox(height: 16),
+              // 약관
+              SettingsLinkTile(
+                title: '이용약관',
+                description: '서비스 이용 조건을 확인해요',
+                onTap: () => context.push(AppRoutes.legal(LegalType.termsOfService.serverValue)),
+              ),
+              const SizedBox(height: 16),
+              SettingsLinkTile(
+                title: '개인정보처리방침',
+                description: '수집하는 정보와 사용 방법을 확인해요',
+                onTap: () => context.push(AppRoutes.legal(LegalType.privacyPolicy.serverValue)),
               ),
               const SizedBox(height: 16),
               // 로그아웃

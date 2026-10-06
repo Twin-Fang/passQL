@@ -5,6 +5,9 @@ abstract final class AppRoutes {
   // 인증
   static const String login = '/login';
 
+  /// 약관 열람. [type] 은 LegalType.serverValue. 로그인 전에도 접근할 수 있다.
+  static String legal(String type) => '/legal/$type';
+
   // 탭 루트
   static const String home = '/home';
   static const String questions = '/questions';
