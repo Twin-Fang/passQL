@@ -6,6 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/app_colors.dart';
 import '../../../core/text_styles.dart';
 import '../../../router/app_routes.dart';
+import '../../../core/error/app_exception.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/settings_providers.dart';
 import '../../widgets/common/app_toast.dart';
@@ -16,6 +17,36 @@ import '../../widgets/settings/wrong_notes_section.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
+
+  /// 되돌릴 수 없는 작업이라 안내 후 한 번 더 확인받는다. 실패하면 사유를 알리고 계정은 그대로 둔다.
+  Future<void> _confirmWithdraw(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('정말 탈퇴할까요?'),
+        content: const Text(
+          '계정과 개인정보가 삭제되고 되돌릴 수 없어요.\n같은 계정으로 다시 가입하면 새 계정으로 시작해요.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('탈퇴하기'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      // 성공하면 로그인 상태가 풀려 라우터가 로그인 화면으로 보낸다.
+      await ref.read(authProvider.notifier).withdraw();
+    } on AppException catch (e) {
+      if (context.mounted) showAppToast(context, e.message);
+    }
+  }
 
   /// 실수로 누르는 것을 막기 위해 한 번 확인한 뒤 로그아웃한다.
   /// 로그아웃되면 라우터가 자동으로 로그인 화면으로 보낸다.
@@ -141,6 +172,13 @@ class SettingsPage extends ConsumerWidget {
                 title: '로그아웃',
                 description: '이 기기에서 로그아웃해요',
                 onTap: () => _confirmSignOut(context, ref),
+              ),
+              const SizedBox(height: 16),
+              // 회원 탈퇴 (스토어 심사 필수)
+              SettingsLinkTile(
+                title: '회원 탈퇴',
+                description: '계정과 개인정보를 삭제해요',
+                onTap: () => _confirmWithdraw(context, ref),
               ),
               const SizedBox(height: 40),
               // 하단 푸터

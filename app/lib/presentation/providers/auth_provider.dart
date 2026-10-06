@@ -5,6 +5,7 @@ import '../../core/auth/auth_session.dart';
 import '../../core/auth/social_sign_in.dart';
 import '../../core/auth/token_store.dart';
 import '../../core/error/app_exception.dart';
+import '../../core/network/api_providers.dart';
 import '../../core/network/dio_client.dart';
 
 /// 로그인 세션 상태. null 이면 로그아웃 상태.
@@ -55,6 +56,21 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
     }
     await store.clear();
     // Firebase/Google 쪽 로그인 상태도 정리해야 다음 로그인에서 계정을 고를 수 있다.
+    await ref.read(socialSignInProvider).signOut();
+    state = const AsyncData(null);
+  }
+
+  /// 회원 탈퇴. 서버가 계정을 지운 뒤에만 기기의 세션을 정리한다.
+  ///
+  /// 서버 요청이 실패하면(네트워크 등) 세션을 그대로 두고 [AppException] 을 던져
+  /// 사용자가 다시 시도할 수 있게 한다. 지워지지 않은 계정을 로그아웃만 시키면 안 된다.
+  Future<void> withdraw() async {
+    try {
+      await ref.read(memberApiProvider).withdraw();
+    } on DioException catch (e) {
+      throw e.asAppException;
+    }
+    await ref.read(tokenStoreProvider).clear();
     await ref.read(socialSignInProvider).signOut();
     state = const AsyncData(null);
   }

@@ -6,7 +6,9 @@ import 'package:passql_app/core/auth/auth_session.dart';
 import 'package:passql_app/core/auth/social_sign_in.dart';
 import 'package:passql_app/core/auth/token_store.dart';
 import 'package:passql_app/core/network/dio_client.dart';
+import 'package:passql_app/core/network/api_providers.dart';
 import 'package:passql_app/data/sources/auth_api.dart';
+import 'package:passql_app/data/sources/member_api.dart';
 import 'package:passql_app/presentation/providers/auth_provider.dart';
 import 'package:passql_app/presentation/providers/daily_set_providers.dart';
 import 'package:passql_app/presentation/providers/home_providers.dart';
@@ -71,6 +73,21 @@ ProviderContainer _container(_FakeSocial social, _FakeAuthApi api, TokenStore st
   );
   addTearDown(c.dispose);
   return c;
+}
+
+class _FakeMemberApi implements MemberApiClient {
+  _FakeMemberApi({this.error});
+  DioException? error;
+  int withdrawCalls = 0;
+
+  @override
+  Future<void> withdraw() async {
+    withdrawCalls++;
+    if (error != null) throw error!;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }
 
 void main() {
@@ -169,6 +186,53 @@ void main() {
 
       final restarted = _container(_FakeSocial(), _FakeAuthApi(), TokenStore());
       expect(await restarted.read(authProvider.future), isNull);
+    });
+  });
+
+  group('회원 탈퇴', () {
+    Future<ProviderContainer> signedIn(_FakeSocial social, _FakeMemberApi member) async {
+      final c = ProviderContainer(
+        overrides: [
+          socialSignInProvider.overrideWithValue(social),
+          authApiProvider.overrideWithValue(_FakeAuthApi()),
+          memberApiProvider.overrideWithValue(member),
+          tokenStoreProvider.overrideWithValue(store),
+        ],
+      );
+      addTearDown(c.dispose);
+      await c.read(authProvider.future);
+      await c.read(authProvider.notifier).signIn(SocialProvider.google);
+      return c;
+    }
+
+    test('서버가 계정을 지우면 기기 세션과 소셜 로그인 상태를 모두 지운다', () async {
+      final social = _FakeSocial();
+      final member = _FakeMemberApi();
+      final c = await signedIn(social, member);
+
+      await c.read(authProvider.notifier).withdraw();
+
+      expect(member.withdrawCalls, 1);
+      expect(social.signOuts, 1);
+      expect(await store.read(), isNull);
+      expect(c.read(authProvider).value, isNull);
+    });
+
+    test('서버 요청이 실패하면 세션을 그대로 두고 사유를 알린다 (지워지지 않은 계정을 로그아웃만 시키지 않는다)', () async {
+      final member = _FakeMemberApi(
+        error: DioException(
+          requestOptions: RequestOptions(path: '/members/me'),
+          type: DioExceptionType.connectionError,
+        ),
+      );
+      final c = await signedIn(_FakeSocial(), member);
+
+      await expectLater(
+        c.read(authProvider.notifier).withdraw(),
+        throwsA(isA<Exception>().having((e) => e.toString(), 'message', contains('네트워크'))),
+      );
+      expect((await store.read())?.memberUuid, 'member-1');
+      expect(c.read(authProvider).value, isNotNull);
     });
   });
 

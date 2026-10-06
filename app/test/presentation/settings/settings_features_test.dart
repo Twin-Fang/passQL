@@ -53,6 +53,9 @@ class _FakeMemberApi implements MemberApiClient {
   }
 
   @override
+  Future<void> withdraw() => throw UnimplementedError();
+
+  @override
   Future<MemberMeResponse> getMe() => throw UnimplementedError();
 
   @override

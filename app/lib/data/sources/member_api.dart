@@ -15,6 +15,10 @@ abstract class MemberApiClient {
   @GET('/members/me')
   Future<MemberMeResponse> getMe();
 
+  /// 회원 탈퇴. 성공하면 서버가 204 를 돌려주고 이후 이 계정의 토큰은 쓸 수 없다.
+  @DELETE('/members/me')
+  Future<void> withdraw();
+
   /// 닉네임 사용 가능 여부(중복) 확인.
   @GET('/members/me/nickname/check')
   Future<NicknameCheckResponse> checkNickname(
