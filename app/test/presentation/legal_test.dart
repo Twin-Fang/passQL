@@ -15,6 +15,19 @@ void main() {
     expect(blocks[2].text, '항목 A');
   });
 
+  test('줄바꿈이 역슬래시+n 글자로 저장된 본문도 조항별로 나눈다', () {
+    // 운영 DB 에 실제로 이렇게 저장돼 한 덩어리로 보이던 문제의 회귀 테스트.
+    final blocks = LegalText.parse(r'## 제1조 (목적)\n본 약관은 목적을 정합니다.\n\n## 제2조 (이용)\n이용 조건');
+    expect(blocks.map((b) => b.kind), [
+      LegalBlockKind.heading,
+      LegalBlockKind.paragraph,
+      LegalBlockKind.heading,
+      LegalBlockKind.paragraph,
+    ]);
+    expect(blocks.first.text, '제1조 (목적)');
+    expect(blocks.last.text, '이용 조건');
+  });
+
   test('서버 약관 종류 값을 앱 종류로 바꾼다', () {
     expect(LegalType.fromServerValue('PRIVACY_POLICY'), LegalType.privacyPolicy);
     expect(LegalType.fromServerValue('TERMS_OF_SERVICE'), LegalType.termsOfService);
