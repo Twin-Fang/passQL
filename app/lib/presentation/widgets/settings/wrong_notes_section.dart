@@ -12,7 +12,10 @@ import '../../providers/wrong_questions_provider.dart';
 
 /// 오답 노트 섹션. 최근에 틀린 문제를 보여주고, 누르면 그 문제로 이동한다.
 class WrongNotesSection extends ConsumerWidget {
-  const WrongNotesSection({super.key});
+  const WrongNotesSection({super.key, this.showHeader = true});
+
+  /// 앱바에 이미 제목이 있는 전용 화면에서는 카드 안 제목을 숨긴다.
+  final bool showHeader;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,27 +30,28 @@ class WrongNotesSection extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-            child: Row(
-              children: [
-                Text(
-                  '오답 노트',
-                  style: AppTextStyles.label_16.copyWith(
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                if (async.valueOrNull case final data?)
+          if (showHeader)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Row(
+                children: [
                   Text(
-                    '${data.totalCount}',
-                    style: AppTextStyles.paragraph_14.copyWith(
-                      color: AppColors.brandIndigo,
+                    '오답 노트',
+                    style: AppTextStyles.label_16.copyWith(
+                      color: AppColors.textPrimary,
                     ),
                   ),
-              ],
+                  const SizedBox(width: 8),
+                  if (async.valueOrNull case final data?)
+                    Text(
+                      '${data.totalCount}',
+                      style: AppTextStyles.paragraph_14.copyWith(
+                        color: AppColors.brandIndigo,
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
           async.when(
             loading: () => const Padding(
               padding: EdgeInsets.all(24),
@@ -68,7 +72,9 @@ class WrongNotesSection extends ConsumerWidget {
                 ? const _Message(text: '아직 틀린 문제가 없어요. 문제를 풀면 오답이 여기에 쌓여요')
                 : Column(
                     children: [
-                      for (final item in data.items) _WrongRow(item: item),
+                      // 제목이 없으면 첫 행의 윗줄이 카드 테두리와 겹치므로 그리지 않는다.
+                      for (final (i, item) in data.items.indexed)
+                        _WrongRow(item: item, topBorder: showHeader || i > 0),
                     ],
                   ),
           ),
@@ -79,9 +85,10 @@ class WrongNotesSection extends ConsumerWidget {
 }
 
 class _WrongRow extends StatelessWidget {
-  const _WrongRow({required this.item});
+  const _WrongRow({required this.item, this.topBorder = true});
 
   final WrongQuestionItem item;
+  final bool topBorder;
 
   @override
   Widget build(BuildContext context) {
@@ -96,8 +103,10 @@ class _WrongRow extends StatelessWidget {
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-        decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: AppColors.borderDefault)),
+        decoration: BoxDecoration(
+          border: topBorder
+              ? const Border(top: BorderSide(color: AppColors.borderDefault))
+              : null,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

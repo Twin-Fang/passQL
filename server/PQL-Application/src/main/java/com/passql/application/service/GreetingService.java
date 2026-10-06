@@ -5,7 +5,7 @@ import com.passql.application.dto.GreetingResponse;
 import com.passql.member.entity.Member;
 import com.passql.member.repository.MemberRepository;
 import com.passql.meta.entity.ExamSchedule;
-import com.passql.meta.repository.ExamScheduleRepository;
+import com.passql.meta.service.ExamScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +27,7 @@ public class GreetingService {
     private static final String FALLBACK_NICKNAME = "회원";
 
     private final MemberRepository memberRepository;
-    private final ExamScheduleRepository examScheduleRepository;
+    private final ExamScheduleService examScheduleService;
 
     public GreetingResponse getGreeting(UUID memberUuid) {
         Member member = (memberUuid != null)
@@ -50,7 +50,8 @@ public class GreetingService {
             );
         }
 
-        Optional<ExamSchedule> selectedExam = examScheduleRepository.findFirstByIsSelectedTrue();
+        // 지난 시험이 선택돼 있으면 다가오는 시험으로 넘어간 일정을 쓴다(홈 시험 카드와 같은 기준).
+        Optional<ExamSchedule> selectedExam = examScheduleService.findEffectiveSchedule();
         if (selectedExam.isEmpty()) {
             return new GreetingResponse(
                     nickname,
