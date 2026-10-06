@@ -87,8 +87,8 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  # 임시 아이콘(브랜드 색 + QL). 디자인이 나오면(#317) 이 파일만 교체하고 다시 생성한다.
+  # 정식 아이콘(#317 정사각형 로고). 교체할 때는 이 파일만 바꾸고 `dart run flutter_launcher_icons` 로 다시 생성한다.
   image_path: "assets/app_icon_1024.png"
-  adaptive_icon_background: "#4F46E5"
+  adaptive_icon_background: "#060C26"
   adaptive_icon_foreground: "assets/app_icon_512.png"
   remove_alpha_ios: true
