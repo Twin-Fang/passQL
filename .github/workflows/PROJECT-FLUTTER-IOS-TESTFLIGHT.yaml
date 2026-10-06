@@ -369,8 +369,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: project-files
-          # 업로드 시 APP_ROOT prefix가 붙으므로 레포 루트에 풀면 원래 위치로 복원된다
-          path: .
+          # upload-artifact 는 파일들의 공통 상위 경로(app/)를 떼고 저장한다.
+          # 따라서 레포 루트가 아니라 APP_ROOT 에 풀어야 원래 위치(app/ios/Runner/...)로 복원된다 (passQL #348 실측).
+          path: ${{ env.APP_ROOT }}
 
       - name: Ensure .env file exists
         env:

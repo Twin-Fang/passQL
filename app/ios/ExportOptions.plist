@@ -9,7 +9,7 @@
     <key>provisioningProfiles</key>
     <dict>
         <key>com.coldredrice.passql</key>
-        <string>iOS Team Store Provisioning Profile: com.coldredrice.passql</string>
+        <string>passql-appstore-manual</string>
     </dict>
     <key>signingStyle</key>
     <string>manual</string>
