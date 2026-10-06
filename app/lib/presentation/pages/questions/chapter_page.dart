@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/app_colors.dart';
 import '../../../core/text_styles.dart';
@@ -11,6 +12,7 @@ import '../../../presentation/providers/chapter_providers.dart';
 import '../../../presentation/providers/learning_refresh.dart';
 import '../../../presentation/providers/question_providers.dart';
 import '../../widgets/chapter/chapter_app_bar.dart';
+import '../../widgets/common/app_toast.dart';
 import '../../widgets/chapter/chapter_feedback_bar.dart';
 import '../../widgets/question/ai_explain_sheet.dart';
 import '../../widgets/question/choice_card.dart';
@@ -40,6 +42,9 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
 
   /// 이번 풀이의 세션 식별자. 화면이 다시 그려져도 바뀌지 않도록 상태에 둔다.
   final String _sessionUuid = const Uuid().v4();
+
+  /// 마지막 문제 이후 완료 처리(점수 등록 등)가 진행 중인지. 중복 실행과 연타를 막는다.
+  bool _completing = false;
 
   /// 이 화면에서 답안을 한 번이라도 제출했는지. 벗어날 때 학습 현황을 갱신할지 정한다.
   bool _submittedAny = false;
@@ -118,14 +123,23 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
   }
 
   /// 마지막 문제까지 끝남 — 이후 처리는 흐름이 정한다.
-  void _complete(List<ChapterResult> results) {
+  Future<void> _complete(List<ChapterResult> results) async {
+    if (_completing) return;
+    setState(() => _completing = true);
     final totalDurationMs = results.fold(0, (sum, r) => sum + r.durationMs);
     final summary = ChapterSummary(
       topicName: widget.flow.title,
       results: results,
       totalDurationMs: totalDurationMs,
     );
-    widget.flow.onCompleted(context, ref, summary, _sessionUuid);
+    try {
+      await widget.flow.onCompleted(context, ref, summary, _sessionUuid);
+    } catch (_) {
+      // 완료 처리에서 예상 밖 오류가 나도 화면이 멈추지 않게 하고, 다시 시도할 수 있게 잠금을 푼다.
+      if (mounted) showAppToast(context, '완료 처리에 실패했어요. 다시 시도해 주세요.');
+    } finally {
+      if (mounted) setState(() => _completing = false);
+    }
   }
 
   @override
@@ -159,6 +173,10 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
       return _ErrorScaffold(
         topicName: widget.flow.title,
         message: chapter.listError ?? '문제가 없어요',
+        // 문제 목록을 다시 불러온다. (오늘의 세트를 이미 끝냈다면 다시 불러도 같은 안내가 나온다)
+        onRetry: () => ref
+            .read(chapterProvider(widget.flow.id).notifier)
+            .load(() => widget.flow.loadQuestionUuids(ref)),
       );
     }
 
@@ -168,7 +186,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     final interactionNotifier =
         ref.read(questionInteractionProvider(currentUuid).notifier);
 
-    return Scaffold(
+    final scaffold = Scaffold(
       backgroundColor: AppColors.pageBg,
       appBar: ChapterAppBar(
         topicName: widget.flow.title,
@@ -179,12 +197,9 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
       body: detailAsync.when(
         loading: () =>
             const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Text(
-            '문제를 불러올 수 없어요',
-            style: AppTextStyles.paragraph_14
-                .copyWith(color: AppColors.textSecondary),
-          ),
+        error: (e, _) => _RetryView(
+          message: '문제를 불러올 수 없어요',
+          onRetry: () => ref.invalidate(questionDetailProvider(currentUuid)),
         ),
         data: (question) {
           // 최초 1회 선택지 초기화
@@ -275,6 +290,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
                   selectedChoiceKey: chapter.lastSelectedKey ?? '',
                   isLastQuestion: chapter.isLastQuestion,
                   onNext: () {
+                    if (_completing) return;
                     if (chapter.isLastQuestion) {
                       _complete(chapter.results);
                     } else {
@@ -286,6 +302,16 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
           );
         },
       ),
+    );
+
+    // 완료 처리(점수 등록)가 길어질 수 있어, 진행 중에는 화면을 잠그고 로딩을 보여준다.
+    if (!_completing) return scaffold;
+    return Stack(
+      children: [
+        scaffold,
+        const ModalBarrier(dismissible: false, color: Colors.black26),
+        const Center(child: CircularProgressIndicator()),
+      ],
     );
   }
 }
@@ -314,7 +340,12 @@ class _LoadingScaffold extends StatelessWidget {
 class _ErrorScaffold extends StatelessWidget {
   final String topicName;
   final String message;
-  const _ErrorScaffold({required this.topicName, required this.message});
+  final VoidCallback onRetry;
+  const _ErrorScaffold({
+    required this.topicName,
+    required this.message,
+    required this.onRetry,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -326,11 +357,38 @@ class _ErrorScaffold extends StatelessWidget {
         total: 10,
         isAnswered: false,
       ),
-      body: Center(
-        child: Text(
-          message,
-          style: AppTextStyles.paragraph_14
-              .copyWith(color: AppColors.textSecondary),
+      body: _RetryView(message: message, onRetry: onRetry),
+    );
+  }
+}
+
+/// 오류 문구와 "다시 시도", "홈으로" 버튼. 풀이 화면에서 막다른 길이 생기지 않게 한다.
+class _RetryView extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+  const _RetryView({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(32.r),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.paragraph_14
+                  .copyWith(color: AppColors.textSecondary),
+            ),
+            SizedBox(height: 16.h),
+            OutlinedButton(onPressed: onRetry, child: const Text('다시 시도')),
+            TextButton(
+              onPressed: () => GoRouter.of(context).go('/home'),
+              child: const Text('홈으로'),
+            ),
+          ],
         ),
       ),
     );
@@ -438,9 +496,8 @@ class _ChoicesSection extends StatelessWidget {
     if (interaction.sseError != null) {
       return _SseErrorSection(
         error: interaction.sseError!,
-        onRetry: interaction.sseError!.retryable
-            ? () => notifier.startSseGeneration()
-            : null,
+        // 재시도가 소용없는 오류여도 다시 눌러 볼 수 있게 두어 막다른 길을 만들지 않는다.
+        onRetry: () => notifier.startSseGeneration(),
       );
     }
 

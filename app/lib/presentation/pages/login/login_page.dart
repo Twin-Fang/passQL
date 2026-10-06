@@ -37,6 +37,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       await ref.read(authProvider.notifier).signIn(provider);
     } on SocialSignInException catch (e) {
       if (mounted) setState(() => _error = e.message);
+    } catch (_) {
+      // 저장소 쓰기 실패, 응답 형식 오류 등 예상 밖 오류도 사용자에게 알린다(조용히 멈추지 않는다).
+      if (mounted) setState(() => _error = '로그인에 실패했어요. 잠시 후 다시 시도해 주세요.');
     } finally {
       if (mounted) setState(() => _loading = null);
     }

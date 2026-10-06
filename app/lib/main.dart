@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'core/app_theme.dart';
+import 'core/auth/install_guard.dart';
+import 'core/auth/token_store.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/session_reset.dart';
 import 'router/app_router.dart';
@@ -16,6 +18,8 @@ Future<void> main() async {
   await Firebase.initializeApp();
 
   // 앱 렌더링 전 저장된 로그인 세션을 읽어, 첫 화면이 깜빡이지 않게 한다.
+  // 재설치 직후라면 키체인에 남은 이전 로그인을 지운 뒤 세션을 읽는다.
+  await resetSecureStorageOnFreshInstall(TokenStore());
   final container = ProviderContainer();
   await container.read(authProvider.future);
 

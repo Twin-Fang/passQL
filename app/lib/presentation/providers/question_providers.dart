@@ -143,6 +143,16 @@ class QuestionInteractionNotifier
               sseError: SseErrorEvent('STREAM_ERROR', true),
             );
           },
+          // complete/error 이벤트 없이 스트림이 끝난 경우(프록시 타임아웃, 네트워크 전환 등)에도
+          // 스피너가 영원히 남지 않도록 재시도 가능한 오류로 바꾼다.
+          onDone: () {
+            if (state.isGeneratingChoices) {
+              state = state.copyWith(
+                isGeneratingChoices: false,
+                sseError: SseErrorEvent('STREAM_CLOSED', true),
+              );
+            }
+          },
         );
   }
 
