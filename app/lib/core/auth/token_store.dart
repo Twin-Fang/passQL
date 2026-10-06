@@ -25,10 +25,22 @@ class TokenStore {
   Future<AuthSession?> read() async {
     if (_loaded) return _cache;
 
-    final access = await _storage.read(key: _kAccess);
-    final refresh = await _storage.read(key: _kRefresh);
-    final uuid = await _storage.read(key: _kMemberUuid);
-    final nickname = await _storage.read(key: _kNickname);
+    String? access, refresh, uuid, nickname;
+    try {
+      access = await _storage.read(key: _kAccess);
+      refresh = await _storage.read(key: _kRefresh);
+      uuid = await _storage.read(key: _kMemberUuid);
+      nickname = await _storage.read(key: _kNickname);
+    } catch (_) {
+      // 기기 이전이나 백업 복원으로 암호화 키가 사라지면 읽기가 예외를 던진다.
+      // 앱이 켜지지 않는 것보다 로그인 화면으로 가는 것이 낫다. 읽을 수 없는 저장분은 지운다.
+      try {
+        await _storage.deleteAll();
+      } catch (_) {}
+      _cache = null;
+      _loaded = true;
+      return null;
+    }
 
     // 일부만 남은 깨진 상태는 로그인 안 된 것으로 취급한다.
     if (access == null || refresh == null || uuid == null) {

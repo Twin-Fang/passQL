@@ -6,6 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/app_colors.dart';
 import '../../../core/text_styles.dart';
 import '../../../router/app_routes.dart';
+import '../../../core/auth/social_sign_in.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../data/models/legal/legal_models.dart';
 import '../../providers/auth_provider.dart';
@@ -40,13 +41,33 @@ class SettingsPage extends ConsumerWidget {
         ],
       ),
     );
-    if (confirmed != true) return;
+    if (confirmed != true || !context.mounted) return;
+
+    // 성공하면 이 화면이 사라지므로, 대화상자를 닫을 네비게이터를 미리 잡아 둔다.
+    final navigator = Navigator.of(context, rootNavigator: true);
+    // 진행 중에는 화면을 잠가 중복 탭을 막는다.
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const PopScope(
+        canPop: false,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+    );
+    String? failure;
     try {
       // 성공하면 로그인 상태가 풀려 라우터가 로그인 화면으로 보낸다.
       await ref.read(authProvider.notifier).withdraw();
     } on AppException catch (e) {
-      if (context.mounted) showAppToast(context, e.message);
+      failure = e.message;
+    } on SocialSignInException catch (e) {
+      failure = e.message;
+    } catch (_) {
+      failure = '탈퇴에 실패했어요. 잠시 후 다시 시도해 주세요.';
     }
+    // 잠금 대화상자를 닫는다. 성공해서 화면이 바뀐 경우에도 닫혀야 한다.
+    navigator.maybePop();
+    if (failure != null && context.mounted) showAppToast(context, failure);
   }
 
   /// 실수로 누르는 것을 막기 위해 한 번 확인한 뒤 로그아웃한다.

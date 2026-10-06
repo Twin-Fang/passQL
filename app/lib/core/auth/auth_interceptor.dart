@@ -61,7 +61,14 @@ class AuthInterceptor extends Interceptor {
       return handler.next(err);
     }
 
-    final newAccessToken = await _refreshOnce();
+    // 이 요청이 나간 뒤 다른 요청이 이미 토큰을 갱신했다면(보낸 토큰 != 현재 토큰),
+    // 재발급을 또 하지 않고 현재 토큰으로 바로 재시도한다. 불필요한 토큰 회전을 막는다.
+    final current = await tokenStore.read();
+    final sent = options.headers['Authorization'];
+    final newAccessToken =
+        (current != null && sent != null && sent != 'Bearer ${current.accessToken}')
+        ? current.accessToken
+        : await _refreshOnce();
     if (newAccessToken == null) {
       return handler.next(err);
     }
@@ -92,10 +99,14 @@ class AuthInterceptor extends Interceptor {
         refreshToken: result.refreshToken,
       );
       return result.accessToken;
-    } on DioException {
-      // refreshToken 도 만료/폐기됨 → 다시 로그인해야 한다.
-      await tokenStore.clear();
-      onSessionExpired();
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      // 서버가 refreshToken 을 거부했을 때만(401/403) 세션을 지운다 → 다시 로그인해야 한다.
+      // 네트워크 끊김, 타임아웃, 5xx 는 일시적일 수 있으므로 로그인을 유지하고 원래 오류만 전달한다.
+      if (status == 401 || status == 403) {
+        await tokenStore.clear();
+        onSessionExpired();
+      }
       return null;
     }
   }

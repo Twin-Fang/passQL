@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/core/auth/auth_interceptor.dart';
@@ -167,4 +167,69 @@ void main() {
     expect(reissueCalls(), 1);
     expect(adapter.calls.where((c) => c.path == '/progress').length, 2);
   });
+
+  test('재발급 중 네트워크가 끊겨도 로그인은 유지하고 만료 처리하지 않는다', () async {
+    adapter = _FakeAdapter((o) {
+      if (o.path == '/auth/reissue') throw DioException(requestOptions: o, type: DioExceptionType.connectionError);
+      return _json(401, {});
+    });
+    final plain = Dio(BaseOptions(baseUrl: 'https://test'))..httpClientAdapter = adapter;
+    final d = Dio(BaseOptions(baseUrl: 'https://test'))..httpClientAdapter = adapter;
+    d.interceptors.add(AuthInterceptor(
+      tokenStore: store, authApi: AuthApi(plain), retryDio: d, onSessionExpired: () => expiredCount++,
+    ));
+
+    await expectLater(d.get<dynamic>('/progress'), throwsA(isA<DioException>()));
+
+    expect((await store.read())?.refreshToken, 'old-refresh');
+    expect(expiredCount, 0);
+  });
+
+  test('재발급이 서버 오류(5xx)여도 로그인은 유지한다', () async {
+    adapter = _FakeAdapter((o) => o.path == '/auth/reissue' ? _json(502, {}) : _json(401, {}));
+    final plain = Dio(BaseOptions(baseUrl: 'https://test'))..httpClientAdapter = adapter;
+    final d = Dio(BaseOptions(baseUrl: 'https://test'))..httpClientAdapter = adapter;
+    d.interceptors.add(AuthInterceptor(
+      tokenStore: store, authApi: AuthApi(plain), retryDio: d, onSessionExpired: () => expiredCount++,
+    ));
+
+    await expectLater(d.get<dynamic>('/progress'), throwsA(isA<DioException>()));
+
+    expect(await store.read(), isNotNull);
+    expect(expiredCount, 0);
+  });
+
+  test('다른 요청이 이미 토큰을 갱신했다면 재발급 없이 새 토큰으로 바로 재시도한다', () async {
+    // 옛 토큰으로 나간 요청이 늦게 401 을 받는 상황: 저장소는 이미 새 토큰
+    adapter = _FakeAdapter((o) {
+      final auth = o.headers['Authorization'];
+      return auth == 'Bearer fresh-access' ? _json(200, {'ok': true}) : _json(401, {});
+    });
+    final plain = Dio(BaseOptions(baseUrl: 'https://test'))..httpClientAdapter = adapter;
+    final d = Dio(BaseOptions(baseUrl: 'https://test'))..httpClientAdapter = adapter;
+    d.interceptors.add(AuthInterceptor(
+      tokenStore: store, authApi: AuthApi(plain), retryDio: d, onSessionExpired: () => expiredCount++,
+    ));
+    await store.updateTokens(accessToken: 'fresh-access', refreshToken: 'fresh-refresh');
+
+    final res = await d.get<dynamic>('/progress', options: Options(headers: {'Authorization': 'Bearer old-access'}));
+
+    expect(res.statusCode, 200);
+    expect(adapter.calls.where((c) => c.path == '/auth/reissue'), isEmpty);
+  });
+
+  test('보안 저장소를 읽지 못해도(키 유실 등) 예외 없이 로그인 안 된 상태로 시작한다', () async {
+    final broken = TokenStore(_ThrowingStorage());
+
+    expect(await broken.read(), isNull);
+    // 한 번 실패한 뒤에는 계속 같은 결과를 돌려준다.
+    expect(await broken.read(), isNull);
+  });
+}
+
+/// 모든 호출이 예외를 던지는 저장소(백업 복원으로 암호화 키가 사라진 상황).
+class _ThrowingStorage implements FlutterSecureStorage {
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw PlatformException(code: 'keystore', message: 'cannot decrypt');
 }
