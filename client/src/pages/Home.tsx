@@ -37,6 +37,24 @@ function parseGreetingLines(message: string, nickname: string): React.ReactNode[
   });
 }
 
+// 홈 카드 공통 실패 상태 — 히트맵 영역과 같은 문구·재시도 방식으로 맞춘다 (#399)
+function HomeCardError({ title, onRetry }: { title: string; onRetry: () => void }) {
+  return (
+    <div className="bg-surface-card border border-border rounded-2xl p-4 sm:p-6 h-full flex flex-col justify-center gap-2">
+      <p className="text-sm text-text-secondary">{title}</p>
+      <p className="text-sm text-text-caption">불러오지 못했어요</p>
+      <button
+        type="button"
+        className="btn-compact inline-flex items-center gap-1.5 self-start"
+        onClick={onRetry}
+      >
+        <RefreshCw size={12} />
+        재시도
+      </button>
+    </div>
+  );
+}
+
 export default function Home() {
   const stagger = useStagger();
   // 각 섹션의 stagger 결과를 미리 선언 — 동일 인덱스 이중 호출 방지
@@ -56,7 +74,13 @@ export default function Home() {
   } = useProgress();
   useMember();
   const { data: greeting } = useGreeting();
-  const { data: dailySet } = useDailySet();
+  // 실패를 빈 데이터처럼 보여주지 않도록 로딩·에러를 함께 받는다 (#399)
+  const {
+    data: dailySet,
+    isLoading: dailySetLoading,
+    isError: dailySetError,
+    refetch: refetchDailySet,
+  } = useDailySet();
   // 버튼 1회전 트리거 — 애니메이션 클래스를 뗐다 붙이기 위해 별도 state 사용
   const [spinning, setSpinning] = useState(false);
   // 카드 페이드인 재트리거 — key가 바뀌면 카드 목록이 재마운트되어 애니메이션 재실행
@@ -87,7 +111,12 @@ export default function Home() {
       return [...prev, ...newUuids].slice(-30);
     });
   }, [recommendedQuestions]);
-  const { data: schedule } = useSelectedSchedule();
+  const {
+    data: schedule,
+    isLoading: scheduleLoading,
+    isError: scheduleError,
+    refetch: refetchSchedule,
+  } = useSelectedSchedule();
   const {
     data: heatmap,
     isLoading: heatmapLoading,
@@ -126,7 +155,8 @@ export default function Home() {
               i === 0 ? <span key={i} className="block">{line}</span> : null
             )
           ) : (
-            <span>안녕하세요, {displayName}</span>
+            // 이름을 모를 때 "안녕하세요,"처럼 쉼표만 남지 않게 한다 (#399)
+            <span>{displayName ? `안녕하세요, ${displayName}` : "안녕하세요"}</span>
           )}
         </h1>
       </section>
@@ -153,7 +183,11 @@ export default function Home() {
 
       {/* ③ 시험 일정 + 오늘의 문제 카드 섹션 — 시험 일정을 앞에 배치 */}
       <section className={`grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 ${s2.className}`}>
-        {schedule ? (
+        {scheduleLoading ? (
+          <div className="skeleton h-full min-h-28 rounded-2xl" />
+        ) : scheduleError ? (
+          <HomeCardError title="시험 일정" onRetry={() => refetchSchedule()} />
+        ) : schedule ? (
           // 인디고 단색 카드 — D-day를 전면에 강조해 시험 긴박감 전달
           <div className="h-full rounded-xl p-4 sm:p-6 flex flex-col justify-center relative overflow-hidden bg-brand">
             {/* 배경 장식 원 — 단색 배경의 단조로움을 덜어주는 subtle한 레이어 */}
@@ -183,7 +217,11 @@ export default function Home() {
             <p className="text-sm text-text-caption mt-1">선택된 일정 없음</p>
           </div>
         )}
-        {dailySet?.questions && dailySet.questions.length > 0 ? (
+        {dailySetLoading ? (
+          <div className="skeleton h-full min-h-28 rounded-2xl" />
+        ) : dailySetError ? (
+          <HomeCardError title="오늘의 데일리 세트" onRetry={() => refetchDailySet()} />
+        ) : dailySet?.questions && dailySet.questions.length > 0 ? (
           dailySet.alreadyCompleted ? (
             // 완료 상태: 회색 dimmed 카드 — 이미 끝난 항목임을 시각적으로 표현
             <div className="h-full flex flex-col gap-2 rounded-xl p-5 cursor-default bg-[#F3F4F6] border border-border">
