@@ -1,0 +1,6 @@
+# 로그인 뒤 학습 화면은 색인 대상이 아니다 — 첫 화면(로그인)과 법적 고지만 허용
+User-agent: *
+Allow: /$
+Allow: /login
+Allow: /legal/
+Disallow: /
