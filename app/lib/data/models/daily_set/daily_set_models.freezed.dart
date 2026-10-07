@@ -26,7 +26,9 @@ mixin _$DailySetTodayResponse {
   List<QuestionSummary> get questions => throw _privateConstructorUsedError;
   bool get alreadyCompleted =>
       throw _privateConstructorUsedError; // 이미 완료했을 때의 정답 수. 아직이면 null.
-  int? get correctCount => throw _privateConstructorUsedError;
+  int? get correctCount =>
+      throw _privateConstructorUsedError; // 이미 완료했을 때 문제별 정답 여부(questions 순서). 기록을 못 찾은 문제는 null.
+  List<bool?>? get results => throw _privateConstructorUsedError;
 
   /// Serializes this DailySetTodayResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -49,6 +51,7 @@ abstract class $DailySetTodayResponseCopyWith<$Res> {
     List<QuestionSummary> questions,
     bool alreadyCompleted,
     int? correctCount,
+    List<bool?>? results,
   });
 }
 
@@ -73,6 +76,7 @@ class _$DailySetTodayResponseCopyWithImpl<
     Object? questions = null,
     Object? alreadyCompleted = null,
     Object? correctCount = freezed,
+    Object? results = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -88,6 +92,10 @@ class _$DailySetTodayResponseCopyWithImpl<
                 ? _value.correctCount
                 : correctCount // ignore: cast_nullable_to_non_nullable
                       as int?,
+            results: freezed == results
+                ? _value.results
+                : results // ignore: cast_nullable_to_non_nullable
+                      as List<bool?>?,
           )
           as $Val,
     );
@@ -107,6 +115,7 @@ abstract class _$$DailySetTodayResponseImplCopyWith<$Res>
     List<QuestionSummary> questions,
     bool alreadyCompleted,
     int? correctCount,
+    List<bool?>? results,
   });
 }
 
@@ -128,6 +137,7 @@ class __$$DailySetTodayResponseImplCopyWithImpl<$Res>
     Object? questions = null,
     Object? alreadyCompleted = null,
     Object? correctCount = freezed,
+    Object? results = freezed,
   }) {
     return _then(
       _$DailySetTodayResponseImpl(
@@ -143,6 +153,10 @@ class __$$DailySetTodayResponseImplCopyWithImpl<$Res>
             ? _value.correctCount
             : correctCount // ignore: cast_nullable_to_non_nullable
                   as int?,
+        results: freezed == results
+            ? _value._results
+            : results // ignore: cast_nullable_to_non_nullable
+                  as List<bool?>?,
       ),
     );
   }
@@ -155,7 +169,9 @@ class _$DailySetTodayResponseImpl implements _DailySetTodayResponse {
     final List<QuestionSummary> questions = const [],
     this.alreadyCompleted = false,
     this.correctCount,
-  }) : _questions = questions;
+    final List<bool?>? results,
+  }) : _questions = questions,
+       _results = results;
 
   factory _$DailySetTodayResponseImpl.fromJson(Map<String, dynamic> json) =>
       _$$DailySetTodayResponseImplFromJson(json);
@@ -175,10 +191,21 @@ class _$DailySetTodayResponseImpl implements _DailySetTodayResponse {
   // 이미 완료했을 때의 정답 수. 아직이면 null.
   @override
   final int? correctCount;
+  // 이미 완료했을 때 문제별 정답 여부(questions 순서). 기록을 못 찾은 문제는 null.
+  final List<bool?>? _results;
+  // 이미 완료했을 때 문제별 정답 여부(questions 순서). 기록을 못 찾은 문제는 null.
+  @override
+  List<bool?>? get results {
+    final value = _results;
+    if (value == null) return null;
+    if (_results is EqualUnmodifiableListView) return _results;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
 
   @override
   String toString() {
-    return 'DailySetTodayResponse(questions: $questions, alreadyCompleted: $alreadyCompleted, correctCount: $correctCount)';
+    return 'DailySetTodayResponse(questions: $questions, alreadyCompleted: $alreadyCompleted, correctCount: $correctCount, results: $results)';
   }
 
   @override
@@ -193,7 +220,8 @@ class _$DailySetTodayResponseImpl implements _DailySetTodayResponse {
             (identical(other.alreadyCompleted, alreadyCompleted) ||
                 other.alreadyCompleted == alreadyCompleted) &&
             (identical(other.correctCount, correctCount) ||
-                other.correctCount == correctCount));
+                other.correctCount == correctCount) &&
+            const DeepCollectionEquality().equals(other._results, _results));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -203,6 +231,7 @@ class _$DailySetTodayResponseImpl implements _DailySetTodayResponse {
     const DeepCollectionEquality().hash(_questions),
     alreadyCompleted,
     correctCount,
+    const DeepCollectionEquality().hash(_results),
   );
 
   /// Create a copy of DailySetTodayResponse
@@ -228,6 +257,7 @@ abstract class _DailySetTodayResponse implements DailySetTodayResponse {
     final List<QuestionSummary> questions,
     final bool alreadyCompleted,
     final int? correctCount,
+    final List<bool?>? results,
   }) = _$DailySetTodayResponseImpl;
 
   factory _DailySetTodayResponse.fromJson(Map<String, dynamic> json) =
@@ -238,7 +268,9 @@ abstract class _DailySetTodayResponse implements DailySetTodayResponse {
   @override
   bool get alreadyCompleted; // 이미 완료했을 때의 정답 수. 아직이면 null.
   @override
-  int? get correctCount;
+  int? get correctCount; // 이미 완료했을 때 문제별 정답 여부(questions 순서). 기록을 못 찾은 문제는 null.
+  @override
+  List<bool?>? get results;
 
   /// Create a copy of DailySetTodayResponse
   /// with the given fields replaced by the non-null parameter values.

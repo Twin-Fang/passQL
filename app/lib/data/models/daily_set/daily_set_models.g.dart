@@ -16,6 +16,7 @@ _$DailySetTodayResponseImpl _$$DailySetTodayResponseImplFromJson(
       const [],
   alreadyCompleted: json['alreadyCompleted'] as bool? ?? false,
   correctCount: (json['correctCount'] as num?)?.toInt(),
+  results: (json['results'] as List<dynamic>?)?.map((e) => e as bool?).toList(),
 );
 
 Map<String, dynamic> _$$DailySetTodayResponseImplToJson(
@@ -24,6 +25,7 @@ Map<String, dynamic> _$$DailySetTodayResponseImplToJson(
   'questions': instance.questions,
   'alreadyCompleted': instance.alreadyCompleted,
   'correctCount': instance.correctCount,
+  'results': instance.results,
 };
 
 _$DailySetCompleteResponseImpl _$$DailySetCompleteResponseImplFromJson(
