@@ -187,6 +187,9 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     final interactionNotifier =
         ref.read(questionInteractionProvider(currentUuid).notifier);
 
+    // 한 문제라도 제출했거나 2번째 문제 이상이면 "풀이 시작"으로 본다.
+    final started = chapter.currentIndex > 0 || chapter.isAnswered;
+
     final scaffold = Scaffold(
       backgroundColor: AppColors.pageBg,
       appBar: ChapterAppBar(
@@ -194,6 +197,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
         currentIndex: chapter.currentIndex,
         total: chapter.questionUuids.length,
         isAnswered: chapter.isAnswered,
+        confirmExit: started,
       ),
       body: detailAsync.when(
         loading: () =>
@@ -306,13 +310,25 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     );
 
     // 완료 처리(점수 등록)가 길어질 수 있어, 진행 중에는 화면을 잠그고 로딩을 보여준다.
-    if (!_completing) return scaffold;
-    return Stack(
-      children: [
-        scaffold,
-        const ModalBarrier(dismissible: false, color: Colors.black26),
-        const Center(child: CircularProgressIndicator()),
-      ],
+    final body = !_completing
+        ? scaffold
+        : Stack(
+            children: [
+              scaffold,
+              const ModalBarrier(dismissible: false, color: Colors.black26),
+              const Center(child: CircularProgressIndicator()),
+            ],
+          );
+    // 시스템 뒤로가기(Android 백 버튼, iOS 스와이프)도 홈 아이콘과 같은 확인을 거친다.
+    return PopScope(
+      canPop: !started,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        if (await confirmChapterExit(context) && context.mounted) {
+          context.go('/home');
+        }
+      },
+      child: body,
     );
   }
 }

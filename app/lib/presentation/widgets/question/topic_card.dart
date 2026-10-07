@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/app_colors.dart';
 import '../../../core/text_styles.dart';
 import '../../../data/models/meta/topic_tree.dart';
@@ -13,8 +14,9 @@ class TopicCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeSubtopicCount =
-        topic.subtopics.where((s) => s.isActive == true).length;
+    final activeSubtopicCount = topic.subtopics
+        .where((s) => s.isActive == true)
+        .length;
 
     return GestureDetector(
       onTap: onTap,
@@ -32,18 +34,31 @@ class TopicCard extends StatelessWidget {
             // 토픽 이름
             Text(
               topic.displayName,
-              style: AppTextStyles.label_16
-                  .copyWith(color: AppColors.textPrimary),
+              style: AppTextStyles.label_16.copyWith(
+                color: AppColors.textPrimary,
+              ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
             SizedBox(height: 8.h),
-            // 서브토픽 개수
-            Text(
-              '$activeSubtopicCount개 서브토픽',
-              style: AppTextStyles.tag_12
-                  .copyWith(color: AppColors.textSecondary),
-            ),
+            // 서브토픽이 있을 때만 개수를 보여 준다(없으면 "0개"만 반복돼 의미가 없다).
+            // 개수 문구가 없을 땐 눌러서 들어간다는 힌트로 화살표를 둔다.
+            if (activeSubtopicCount > 0)
+              Text(
+                '$activeSubtopicCount개 서브토픽',
+                style: AppTextStyles.tag_12.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              )
+            else
+              Align(
+                alignment: Alignment.centerRight,
+                child: FaIcon(
+                  FontAwesomeIcons.chevronRight,
+                  size: 12.r,
+                  color: AppColors.textCaption,
+                ),
+              ),
           ],
         ),
       ),

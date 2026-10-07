@@ -22,8 +22,15 @@ public final class ReadinessConstants {
     /** 커버리지·고른학습 판정 기준 일수 (최근 N일 내 푼 토픽) */
     public static final int COVERAGE_WINDOW_DAYS = 14;
 
-    /** 시도 이력이 전혀 없을 때의 Recency 바닥값 */
+    /** 15일 넘게 쉰 경우의 Recency 바닥값 (마지막 학습이 오래됐어도 쌓은 실력은 일부 인정) */
     public static final double RECENCY_DEFAULT = 0.70;
+
+    /**
+     * 시도 이력이 전혀 없을 때의 Recency.
+     * 바닥값(0.70)을 쓰면 신규 사용자 화면에 "최신성 70%"가 떠 혼란스러워 0으로 둔다 (#373).
+     * accuracy·coverage가 0이라 score에는 영향이 없다.
+     */
+    public static final double RECENCY_NONE = 0.0;
 
     // ── Recency 감쇠 테이블 ──────────────────────────────────────────
 

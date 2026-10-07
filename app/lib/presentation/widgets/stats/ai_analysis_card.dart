@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/app_colors.dart';
 import '../../../core/text_styles.dart';
 import '../../../data/models/progress/ai_comment_response.dart';
+import '../question/markdown_lite_text.dart';
 
 /// AI 영역 분석 카드.
 /// /progress/ai-comment API 응답을 그대로 표시.
@@ -59,13 +60,8 @@ class AiAnalysisCard extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 6.h),
-                Text(
-                  comment,
-                  style: AppTextStyles.paragraph_14.copyWith(
-                    color: AppColors.textSecondary,
-                    height: 1.5,
-                  ),
-                ),
+                // AI 코멘트의 `토픽명` 같은 마크다운 기호를 강조 표시로 바꿔 보여 준다.
+                MarkdownLiteText(comment),
               ],
             ),
           ),

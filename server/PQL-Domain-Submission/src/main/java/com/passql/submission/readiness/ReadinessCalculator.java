@@ -80,7 +80,7 @@ public final class ReadinessCalculator {
     }
 
     private static double computeRecency(LocalDate lastStudiedAt, LocalDate today) {
-        if (lastStudiedAt == null) return ReadinessConstants.RECENCY_DEFAULT;
+        if (lastStudiedAt == null) return ReadinessConstants.RECENCY_NONE;
 
         long days = ChronoUnit.DAYS.between(lastStudiedAt, today);
         if (days < 0) {

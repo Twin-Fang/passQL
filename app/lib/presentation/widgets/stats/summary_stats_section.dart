@@ -15,17 +15,22 @@ class SummaryStatsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final solved = progress?.solvedCount ?? 0;
-    final rate =
-        progress != null ? (progress!.correctRate * 100).round() : 0;
+    final rate = progress != null ? (progress!.correctRate * 100).round() : 0;
     final streak = progress?.streakDays ?? 0;
 
     return Row(
       children: [
-        Expanded(child: _StatCard(value: '$solved문제', label: '푼 문제')),
+        Expanded(
+          child: _StatCard(value: '$solved문제', label: '푼 문제'),
+        ),
         SizedBox(width: 12.w),
-        Expanded(child: _StatCard(value: '$rate%', label: '합격 준비도')),
+        Expanded(
+          child: _StatCard(value: '$rate%', label: '정답률'),
+        ),
         SizedBox(width: 12.w),
-        Expanded(child: _StatCard(value: '$streak일', label: '연속 학습')),
+        Expanded(
+          child: _StatCard(value: '$streak일', label: '연속 학습'),
+        ),
       ],
     );
   }

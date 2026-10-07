@@ -260,6 +260,7 @@ class _Composer extends StatelessWidget {
                   enabled: !sending,
                   minLines: 1,
                   maxLines: 4,
+                  inputFormatters: FeedbackValidator.inputFormatters,
                   onChanged: (_) => onChanged(),
                   decoration: const InputDecoration(
                     hintText: '앱에 바라는 점을 자유롭게 적어주세요',

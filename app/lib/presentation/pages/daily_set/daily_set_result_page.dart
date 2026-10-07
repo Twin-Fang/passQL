@@ -70,10 +70,16 @@ class _RecordBody extends ConsumerWidget {
             onAction: () => context.go(AppRoutes.dailySet),
           );
         }
+        // 다시 열어도 완료 직후처럼 문제별 결과를 보여준다. 기록이 빠진 문제가 있으면
+        // 정오를 지어내지 않도록 목록 자체를 숨긴다.
+        final results = data.results;
+        final complete = results != null &&
+            results.isNotEmpty &&
+            results.every((r) => r != null);
         return _ResultBody(
           correctCount: data.correctCount ?? 0,
           total: data.questions.length,
-          results: const [],
+          results: complete ? results.cast<bool>() : const [],
         );
       },
     );
