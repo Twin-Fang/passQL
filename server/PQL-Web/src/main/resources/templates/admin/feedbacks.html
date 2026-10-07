@@ -7,8 +7,8 @@
 
 <th:block layout:fragment="content">
 
-    <!-- 요약 배지 + 새로고침 -->
-    <div class="flex items-center gap-2 mb-4">
+    <!-- 요약 배지 + 새로고침 — 좁은 폭에서는 줄바꿈 (#409) -->
+    <div class="flex flex-wrap items-center gap-2 mb-4">
         <div class="badge badge-neutral badge-lg">
             전체 <span class="ml-1 font-bold" th:text="${feedbacks.totalElements}">0</span>
         </div>
