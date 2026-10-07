@@ -79,6 +79,14 @@ async function fetchOnce<T>(
   }
 }
 
+// 토큰을 정리하고 로그인 화면으로 보낸다. 이미 로그인 화면이면 새로고침 루프를 막기 위해 이동하지 않는다
+function forceLogout() {
+  useAuthStore.getState().clearTokens();
+  if (window.location.pathname !== "/login") {
+    window.location.href = "/login";
+  }
+}
+
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
@@ -102,7 +110,11 @@ export async function apiFetch<T>(
     }
 
     const refreshToken = getRefreshToken();
-    if (!refreshToken) throw err;
+    // 재발급 수단이 없으면 무효 토큰을 든 채 홈에 갇히므로 바로 로그아웃 처리 (#398)
+    if (!refreshToken) {
+      forceLogout();
+      throw err;
+    }
 
     useAuthStore.setState({ isRefreshing: true });
     try {
@@ -117,9 +129,8 @@ export async function apiFetch<T>(
       return fetchOnce<T>(path, options, result.accessToken);
     } catch {
       // refresh도 실패하면 로그아웃 처리
-      store.clearTokens();
       useAuthStore.setState({ isRefreshing: false });
-      window.location.href = "/login";
+      forceLogout();
       throw err;
     }
   }
