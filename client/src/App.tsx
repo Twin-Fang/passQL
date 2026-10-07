@@ -15,6 +15,7 @@ import MyPage from "./pages/MyPage";
 import Settings from "./pages/Settings";
 import SettingsFeedback from "./pages/SettingsFeedback";
 import Login from "./pages/Login";
+import RouteError from "./pages/RouteError";
 import { isAuthenticated } from "./stores/authStore";
 
 /** 인증 필수 가드 — 미로그인 시 /login으로 redirect */
@@ -28,75 +29,83 @@ function RedirectIfAuth() {
 }
 
 const router = createBrowserRouter([
-  // 로그인 페이지 — 인증 후 접근 시 홈으로 redirect
   {
-    element: <RedirectIfAuth />,
+    // 모든 라우트를 감싸 렌더 예외·없는 경로를 기본 개발자 화면 대신 RouteError로 받는다 (#397)
+    errorElement: <RouteError />,
     children: [
-      { path: "login", element: <Login /> },
-    ],
-  },
-  // 인증 필수 영역
-  {
-    element: <RequireAuth />,
-    children: [
+      // 로그인 페이지 — 인증 후 접근 시 홈으로 redirect
       {
-        element: <AppLayout />,
+        element: <RedirectIfAuth />,
         children: [
-          { index: true, element: <Home /> },
-          { path: "questions", element: <CategoryCards /> },
-          { path: "stats", element: <Stats /> },
-          { path: "mypage", element: <MyPage /> },
+          { path: "login", element: <Login /> },
         ],
       },
-      // AppLayout 밖: 전체화면 몰입형 화면 (문제 풀이는 집중 모드)
+      // 인증 필수 영역
       {
-        path: "questions/:questionUuid",
-        element: <QuestionDetail />,
+        element: <RequireAuth />,
+        children: [
+          {
+            element: <AppLayout />,
+            children: [
+              { index: true, element: <Home /> },
+              { path: "questions", element: <CategoryCards /> },
+              { path: "stats", element: <Stats /> },
+              { path: "mypage", element: <MyPage /> },
+            ],
+          },
+          // AppLayout 밖: 전체화면 몰입형 화면 (문제 풀이는 집중 모드)
+          {
+            path: "questions/:questionUuid",
+            element: <QuestionDetail />,
+          },
+          // 구 라우트 — /daily-set으로 redirect (북마크/외부 링크 호환)
+          {
+            path: "daily-challenge",
+            element: <Navigate to="/daily-set" replace />,
+          },
+          {
+            path: "daily-set",
+            element: <DailySet />,
+          },
+          {
+            path: "daily-set/result",
+            element: <DailySetResult />,
+          },
+          {
+            path: "leaderboard",
+            element: <Leaderboard />,
+          },
+          {
+            path: "questions/:questionUuid/result",
+            element: <AnswerFeedback />,
+          },
+          {
+            path: "practice/:sessionId",
+            element: <PracticeSet />,
+          },
+          {
+            path: "practice/:sessionId/result",
+            element: <PracticeResult />,
+          },
+          // 홈 추천 문제 — DailyChallenge 패턴의 단건 풀이 모드
+          {
+            path: "recommendation/:questionUuid",
+            element: <RecommendationPractice />,
+          },
+          // 설정 서브페이지 — 마이페이지 톱니바퀴 진입 (탭바 없는 몰입형)
+          {
+            path: "settings",
+            element: <Settings />,
+          },
+          // 건의사항 서브페이지 — AppLayout 밖 독립 라우트 (탭바 없는 몰입형)
+          {
+            path: "settings/feedback",
+            element: <SettingsFeedback />,
+          },
+        ],
       },
-      // 구 라우트 — /daily-set으로 redirect (북마크/외부 링크 호환)
-      {
-        path: "daily-challenge",
-        element: <Navigate to="/daily-set" replace />,
-      },
-      {
-        path: "daily-set",
-        element: <DailySet />,
-      },
-      {
-        path: "daily-set/result",
-        element: <DailySetResult />,
-      },
-      {
-        path: "leaderboard",
-        element: <Leaderboard />,
-      },
-      {
-        path: "questions/:questionUuid/result",
-        element: <AnswerFeedback />,
-      },
-      {
-        path: "practice/:sessionId",
-        element: <PracticeSet />,
-      },
-      {
-        path: "practice/:sessionId/result",
-        element: <PracticeResult />,
-      },
-      // 홈 추천 문제 — DailyChallenge 패턴의 단건 풀이 모드
-      {
-        path: "recommendation/:questionUuid",
-        element: <RecommendationPractice />,
-      },
-      // 설정 서브페이지 — 마이페이지 톱니바퀴 진입 (탭바 없는 몰입형)
-      {
-        path: "settings",
-        element: <Settings />,
-      },
-      // 건의사항 서브페이지 — AppLayout 밖 독립 라우트 (탭바 없는 몰입형)
-      {
-        path: "settings/feedback",
-        element: <SettingsFeedback />,
-      },
+      // 없는 경로 — 로그인 여부와 무관하게 404 안내
+      { path: "*", element: <RouteError notFound /> },
     ],
   },
 ]);

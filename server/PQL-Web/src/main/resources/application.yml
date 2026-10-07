@@ -18,6 +18,14 @@ spring:
 
 server:
   port: 8080
+  # DSM 리버스 프록시의 X-Forwarded-Proto를 반영해야 리다이렉트가 https로 나간다 (#389)
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      cookie:
+        # 관리자 세션 쿠키를 HTTPS로만 전송하고 교차 사이트 전송을 막는다 (#389)
+        secure: true
+        same-site: lax
 
 suhapilog:
   enabled: true
@@ -29,6 +37,10 @@ suhapilog:
 suh-logger:
   exclude-patterns:
     - "generate-choices"
+    # 인증 응답 본문(액세스·리프레시 토큰, CSRF 토큰)이 로그에 평문으로 남지 않게 제외 (#396)
+    - "auth/login"
+    - "auth/reissue"
+    - "admin/login"
 
 springdoc:
   swagger-ui:
