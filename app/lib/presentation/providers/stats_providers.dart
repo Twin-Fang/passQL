@@ -20,11 +20,12 @@ class StatsData {
 final statsDataProvider = FutureProvider<StatsData>((ref) async {
   final progressClient = ref.read(progressApiProvider);
 
-  final results = await Future.wait([
-    safeCall(progressClient.getProgress()),
-    safeCall(progressClient.getTopicAnalysis()),
-    safeCall(progressClient.getAiComment()),
-  ]);
+  // 진행 현황(progress)이 실패하면 "0문제·0%"로 그려져 기록이 사라진 것처럼 보이므로 오류로 처리한다 (#375).
+  final results = await safeCallAll([
+    progressClient.getProgress(),
+    progressClient.getTopicAnalysis(),
+    progressClient.getAiComment(),
+  ], required: {0});
 
   return StatsData(
     progress: results[0] as ProgressResponse?,

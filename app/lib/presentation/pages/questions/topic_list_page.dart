@@ -45,11 +45,21 @@ class TopicListPage extends ConsumerWidget {
             Expanded(
               child: topicsAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
+                // 다시 시도할 방법이 없으면 탭을 오가야 해서 버튼을 둔다 (#375).
                 error: (e, _) => Center(
-                  child: Text(
-                    '토픽을 불러올 수 없어요',
-                    style: AppTextStyles.paragraph_14
-                        .copyWith(color: AppColors.textSecondary),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '토픽을 불러올 수 없어요',
+                        style: AppTextStyles.paragraph_14
+                            .copyWith(color: AppColors.textSecondary),
+                      ),
+                      TextButton(
+                        onPressed: () => ref.invalidate(topicsProvider),
+                        child: const Text('다시 시도'),
+                      ),
+                    ],
                   ),
                 ),
                 data: (topics) => GridView.builder(

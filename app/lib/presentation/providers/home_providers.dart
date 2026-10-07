@@ -41,15 +41,14 @@ final homeDataProvider = FutureProvider<HomeData>((ref) async {
 
   // 6개 API 병렬 호출.
   // getHeatmap(from, to) — from/to는 nullable String.
-  final results = await Future.wait([
-    safeCall(homeClient.getGreeting()),
-    safeCall(progressClient.getProgress()),
-    safeCall(ref.read(dailySetApiProvider).getToday()),
-    safeCall(questionClient.getRecommendations(
-      const RecommendationsRequest(size: 3),
-    )),
-    safeCall(examClient.getSelectedSchedule()),
-    safeCall(progressClient.getHeatmap(null, null)),
+  // 개별 실패는 해당 섹션만 숨기지만, 전부 실패하면(서버 장애·네트워크 끊김) 오류 화면을 띄운다 (#375).
+  final results = await safeCallAll([
+    homeClient.getGreeting(),
+    progressClient.getProgress(),
+    ref.read(dailySetApiProvider).getToday(),
+    questionClient.getRecommendations(const RecommendationsRequest(size: 3)),
+    examClient.getSelectedSchedule(),
+    progressClient.getHeatmap(null, null),
   ]);
 
   return HomeData(
