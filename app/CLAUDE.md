@@ -1,118 +1,84 @@
 # passQL App (Flutter)
 
+SQLD·SQLP 학습 서비스 passQL의 모바일 앱. 서버(`server/`)와만 통신한다 (AI 서버 직접 호출 금지).
+앱 ID `com.coldredrice.passql` (Android/iOS 동일), 한국 대상 출시.
+
 ## Tech Stack
 
 - **Flutter** 3.x + **Dart** SDK ^3.9.2
-- **상태관리**: flutter_riverpod ^2.6.1 + riverpod_annotation (코드 생성)
-- **라우팅**: go_router ^17.0.1
-- **HTTP 클라이언트**: Dio ^5.9.0 + Retrofit 4.7.3
-- **인증**: Firebase Auth ^6.1.3 + Google Sign-In + Apple Sign-In
-- **지도**: google_maps_flutter ^2.14.0
-- **실시간 통신**: stomp_dart_client ^3.0.1 (WebSocket/STOMP)
-- **불변 데이터 모델**: freezed ^2.5.7 + json_serializable
-- **코드 생성**: build_runner ^2.4.14
-
-## 주요 패키지 요약
-
-| 카테고리    | 패키지                                                                                                                                   |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| 상태관리    | flutter_riverpod, riverpod_annotation, riverpod_generator                                                                                |
-| 네트워크    | dio, retrofit, retrofit_generator                                                                                                        |
-| 인증        | firebase_auth, google_sign_in, sign_in_with_apple, flutter_secure_storage                                                                |
-| 라우팅      | go_router                                                                                                                                |
-| 지도/위치   | google_maps_flutter, geolocator                                                                                                          |
-| 알림/푸시   | firebase_messaging, flutter_local_notifications                                                                                          |
-| Firebase    | firebase_core, firebase_remote_config, firebase_crashlytics                                                                              |
-| 데이터 모델 | freezed_annotation, json_annotation                                                                                                      |
-| UI          | flutter_screenutil, flutter_svg, animations, shimmer, toggle_switch                                                                      |
-| QR          | qr_flutter (생성), mobile_scanner (스캔)                                                                                                 |
-| 기타        | shared_preferences, flutter_dotenv, uuid, package_info_plus, device_info_plus, vibration, url_launcher, share_plus, font_awesome_flutter |
+- **상태관리**: flutter_riverpod ^2.6 (+ riverpod_annotation)
+- **라우팅**: go_router ^17
+- **HTTP**: Dio ^5.9 + Retrofit (코드 생성)
+- **모델**: freezed + json_serializable
+- **인증**: Firebase Auth + Google Sign-In + Sign in with Apple, 토큰은 flutter_secure_storage
+- **UI**: flutter_screenutil, flutter_svg, shimmer, fl_chart(레이더 차트), font_awesome_flutter
+- **폰트**: Pretendard (`assets/fonts`)
 
 ## Project Structure
 
 ```
 lib/
-├── main.dart               # 앱 진입점
-├── core/                   # 공통 유틸리티, 상수, 테마
-│   ├── constants/
-│   ├── theme/
-│   └── utils/
-├── data/                   # API 클라이언트, 모델, 리포지토리
-│   ├── models/             # freezed 데이터 모델
-│   ├── repositories/       # 리포지토리 구현체
-│   └── sources/            # Retrofit API 정의
-├── domain/                 # 비즈니스 로직, 유스케이스
-├── presentation/           # UI 레이어
-│   ├── pages/              # 화면 단위 컴포넌트
-│   ├── widgets/            # 공용 위젯
-│   └── providers/          # Riverpod 프로바이더
-└── router/                 # go_router 라우팅 설정
-assets/
-├── fonts/                  # Pretendard, Moneygraphy 폰트
-├── icons/                  # SVG 아이콘
-└── .env                    # 환경 변수
-docs/                       # API 문서 및 기획 문서
+├── main.dart               # 진입점, 세션 복원, 라우터 연동
+├── core/
+│   ├── auth/               # 토큰 저장, 인터셉터(Bearer·재발급), 소셜 로그인, 설치 가드
+│   ├── error/              # ErrorCode, AppException (서버 오류를 사용자 문구로 변환)
+│   ├── network/            # dio_client, api_providers, safe_call
+│   └── utils/ validation/
+├── data/
+│   ├── models/             # freezed 데이터 모델 (도메인별 폴더)
+│   └── sources/            # Retrofit API 정의, SSE 클라이언트
+├── presentation/
+│   ├── flows/              # 문제 풀이 흐름 공통화 (question_flow, daily_set_flow)
+│   ├── pages/              # login, home, questions, practice, result, stats, settings,
+│   │                       # daily_set(결과·리더보드), feedback, legal
+│   ├── providers/          # Riverpod 프로바이더 (계정 전환 시 session_reset으로 초기화)
+│   └── widgets/            # 공용 위젯 (settings_group 등)
+└── router/                 # app_router, app_routes
+tool/store_shots/           # 스토어 스크린샷용 가짜 API 진입점 (운영 코드 아님)
 ```
+
+## 인증 구조
+
+- 로그인: `POST /auth/login {authProvider, idToken}` → access/refresh JWT. 이후 요청은 `Authorization: Bearer`.
+- 401이면 인터셉터가 refresh로 재발급, 실패하면 로그아웃 처리(라우터가 로그인 화면으로 보냄).
+- 회원 탈퇴는 서버 삭제 + 소셜 접근 권한 회수(Apple 토큰 revoke) 후 세션 삭제.
 
 ## 코드 생성
 
 모델/API 변경 후 반드시 실행:
 
 ```bash
-flutter pub run build_runner build --delete-conflicting-outputs
-# 또는 watch 모드
-flutter pub run build_runner watch --delete-conflicting-outputs
+dart run build_runner build --delete-conflicting-outputs
 ```
 
-## Local Skills (`.agents/skills/`)
+## 테스트·검증
 
-### flutter-dart-code-review
+```bash
+flutter analyze        # 정적 분석 (무이슈 유지)
+flutter test           # 단위·위젯 테스트
+flutter run -d <기기>  # 실행. app/.env 에 BACKEND_BASE_URL 필요
+```
 
-Flutter/Dart 코드 리뷰 시 참조. 위젯 best practice, 상태관리 패턴, Dart 이디엄.
+- 화면 캡처는 `tool/store_shots/main_shots.dart` 로 가짜 API를 붙여 시뮬레이터에서 찍는다
+  (`/tmp/passql_shot_route.txt` 에 경로를 적고 launch). 로그인 이후 실제 동작은 Maestro 실계정 E2E로 확인한다.
 
-### find-skills
+## 릴리스
 
-새로운 스킬이 필요할 때 `npx skills find [query]`로 검색.
+- iOS: GitHub Actions `PROJECT-FLUTTER-IOS-TESTFLIGHT` (workflow_dispatch). 수동 서명 프로파일 사용. 자세한 내용 `docs/ios-release/README.md`.
+- Android: 업로드 키로 서명한 AAB를 Play Console에 올린다. `docs/android-release/`, Firebase 설정은 `docs/FIREBASE-SETUP.md`.
+- 비밀 파일(`.env`, `google-services.json`, `GoogleService-Info.plist`, 키스토어)은 커밋하지 않는다.
 
 ## 금지 규칙
 
-- **`git push` 절대 금지** — 어떤 상황에서도 원격에 push하지 않는다
-- **커밋 시 Co-Authored-By 태그 금지** — 커밋 메시지에 절대 추가하지 않는다
-- **파일 삭제 시 반드시 사용자 허락** — 확인 없이 파일을 삭제하지 않는다
-- **모르면 모른다고 말하기** — 확실하지 않은 내용을 추측하지 않는다
-- **답변은 항상 한국어로** — 코드/커맨드 제외 모든 응답은 한국어
-- **코드 주석 필수** — 실무 수준의 간결한 한국어 주석 작성 (WHY 중심, 과하지 않게)
-- **절대 이모지를 사용하지말고 아이콘 사용** - 앱아이콘이나, flutter awesome icon 사용
-
-## Icon Policy
-
-- 코드에서 이모지(emoji) 사용 절대 금지.
-- UI 아이콘은 `font_awesome_flutter` 또는 Flutter 기본 `Icons` 사용.
-- SVG 아이콘은 `flutter_svg` 패키지로 렌더링.
-
-## Rules (`.claude/rules/`)
-
-### api-guide
-
-API 연동 시 반드시 참조. 엔드포인트 스펙, 코드 패턴, 에러 처리 규칙 포함.
-
-- 프론트는 백엔드(Spring)하고만 통신. AI 서버 직접 호출 금지.
-- 새 API 추가 시 Retrofit 인터페이스 정의 후 코드 생성 사용.
+- **`git push`는 사용자가 요청한 경우에만**
+- **커밋 시 Co-Authored-By 태그 금지**
+- **파일 삭제 시 반드시 사용자 허락**
+- **모르면 모른다고 말하기** — 추측하지 않는다
+- **답변은 항상 한국어로** — 코드/커맨드 제외
+- **코드 주석 필수** — 간결한 한국어, WHY 중심
+- **이모지 금지** — 아이콘은 `font_awesome_flutter` 또는 `Icons`, SVG는 `flutter_svg`
 
 ## Git Conventions
 
-- 커밋 메시지에 반드시 이슈 태그를 붙인다. 형식: `<type>: <description> #<issue-number>`
-- 예: `feat: 카테고리 연습 모드 추가 #41`
-
-## Commands
-
-```bash
-flutter run                          # 개발 서버 (연결된 기기/에뮬레이터)
-flutter run --flavor dev             # dev 플레이버 실행
-flutter build apk --release          # Android 릴리즈 빌드
-flutter build ipa --release          # iOS 릴리즈 빌드
-flutter test                         # 전체 테스트 실행
-flutter analyze                      # 정적 분석
-flutter pub get                      # 패키지 설치
-flutter pub run build_runner build --delete-conflicting-outputs  # 코드 생성
-```
+- 커밋 메시지에 이슈 링크를 붙인다. 형식: `<이슈 제목> : <type> : <설명> <이슈 URL>` (`/pro-commit` 사용)
+- 모든 작업은 이슈로 시작하고 수정 전후 이미지를 이슈에 남긴다.

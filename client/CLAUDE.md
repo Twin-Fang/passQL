@@ -14,7 +14,7 @@
 - `src/pages/` — 페이지 컴포넌트
 - `src/components/` — 공용 컴포넌트
 - `src/types/` — TypeScript 타입 정의
-- `docs/` — API 문서 및 기획 문서
+- `docs/` — 로컬 전용 기획 문서(.gitignore, 레포에 올리지 않음)
 
 ## Local Skills (`.agents/skills/`)
 

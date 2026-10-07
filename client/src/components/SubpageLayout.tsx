@@ -18,7 +18,7 @@ interface SubpageLayoutProps {
 /**
  * 탭바 없는 서브페이지 공통 레이아웃
  * - ArrowLeft 뒤로가기 헤더 + 콘텐츠 영역
- * - AppLayout 밖 독립 라우트 전용 (DevPage, SettingsFeedback 등)
+ * - AppLayout 밖 독립 라우트 전용 (SettingsFeedback 등)
  * - fullHeight=true: 채팅형 전체 화면 레이아웃 (h-screen, 하단 고정 입력 지원)
  */
 export default function SubpageLayout({
