@@ -27,6 +27,7 @@ from src.models.ai_response import (
     IndexQuestionResponse,
     IndexQuestionsBulkResponse,
     IndexStatusResponse,
+    PruneIndexResponse,
     RecommendedQuestion,
     RecommendResponse,
     SimilarItem,
@@ -493,7 +494,25 @@ class AiService:
             db_question_count=len(db_uuid_set),
             unindexed_count=len(unindexed),
             unindexed_uuids=unindexed,
+            orphan_count=len(qdrant_uuid_set - db_uuid_set),
         )
+
+    async def prune_index(self, req: IndexStatusRequest) -> PruneIndexResponse:
+        """
+        Java가 넘긴 활성 문제 UUID에 없는 Qdrant 포인트(고아 벡터)를 삭제한다 (#412).
+
+        문제 삭제·비활성 때 벡터를 지우는 경로가 없어, 남은 벡터가 추천 결과 상위를 차지했다.
+        활성 목록이 비어 있으면 컬렉션 전체 삭제가 되므로 거부한다 — 호출부 버그로 색인이 날아가는 것을 막는다.
+        """
+        if not req.question_uuids:
+            raise CustomError("활성 문제 UUID 목록이 비어 있어 정리를 거부합니다")
+
+        qdrant_ids = await qdrant_search_client.scroll_all_ids(self.QUESTION_COLLECTION)
+        orphans = sorted(set(qdrant_ids) - set(req.question_uuids))
+        await qdrant_search_client.delete_points(self.QUESTION_COLLECTION, orphans)
+
+        logger.info(f"[prune-index] 고아 벡터 삭제: {len(orphans)}개 (활성 {len(req.question_uuids)}개 기준)")
+        return PruneIndexResponse(deleted_count=len(orphans), deleted_uuids=orphans)
 
 
 # 싱글턴 인스턴스

@@ -4,6 +4,7 @@ import com.passql.ai.client.AiGatewayClient;
 import com.passql.ai.dto.IndexQuestionsBulkResult;
 import com.passql.ai.dto.IndexStatusRequest;
 import com.passql.ai.dto.IndexStatusResult;
+import com.passql.ai.dto.PruneIndexResult;
 import com.passql.question.service.QuestionGenerateService;
 import com.passql.question.service.QuestionService;
 import lombok.RequiredArgsConstructor;
@@ -64,9 +65,12 @@ public class AdminEmbeddingController {
         log.info("[admin-embeddings] 전체 재색인 시작");
         try {
             IndexQuestionsBulkResult result = questionGenerateService.reindexAll();
+            // 재색인은 추가만 하므로 삭제·비활성 문제의 벡터는 따로 정리한다 (#412)
+            PruneIndexResult pruned = questionGenerateService.pruneIndex();
             redirectAttrs.addFlashAttribute("successMessage",
-                    String.format("전체 색인 완료: %d개 성공, %d개 실패",
-                            result.succeeded(), result.failed()));
+                    String.format("전체 색인 완료: %d개 성공, %d개 실패, 남은 벡터 %s",
+                            result.succeeded(), result.failed(),
+                            pruned != null ? pruned.deletedCount() + "개 정리" : "정리 실패"));
             log.info("[admin-embeddings] 전체 재색인 완료: succeeded={}, failed={}",
                     result.succeeded(), result.failed());
         } catch (Exception e) {
