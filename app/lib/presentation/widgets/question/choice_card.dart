@@ -170,25 +170,31 @@ class ResultRowsTable extends StatelessWidget {
           border: Border.all(color: AppColors.borderDefault),
           borderRadius: BorderRadius.circular(8.r),
         ),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Table(
-            defaultColumnWidth: const IntrinsicColumnWidth(),
-            border: const TableBorder(
-              horizontalInside: BorderSide(color: AppColors.borderDefault),
-            ),
-            children: [
-              TableRow(
-                decoration: const BoxDecoration(color: AppColors.codeBg),
-                children: [for (final c in columns) box(c, head)],
-              ),
-              for (final r in rows)
-                TableRow(
-                  children: [
-                    for (final c in columns) box('${r[c] ?? ''}', cell),
-                  ],
+        // 열이 적어 표가 카드보다 좁으면 오른쪽이 비어 보이므로, 최소 폭을 카드 폭에 맞춰 남는 폭을 열에 나눠 준다.
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth),
+              child: Table(
+                defaultColumnWidth: const IntrinsicColumnWidth(),
+                border: const TableBorder(
+                  horizontalInside: BorderSide(color: AppColors.borderDefault),
                 ),
-            ],
+                children: [
+                  TableRow(
+                    decoration: const BoxDecoration(color: AppColors.codeBg),
+                    children: [for (final c in columns) box(c, head)],
+                  ),
+                  for (final r in rows)
+                    TableRow(
+                      children: [
+                        for (final c in columns) box('${r[c] ?? ''}', cell),
+                      ],
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

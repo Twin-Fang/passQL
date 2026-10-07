@@ -1,3 +1,4 @@
+import '../question/stem_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -112,7 +113,7 @@ class _WrongRow extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              item.stemPreview,
+              stripCodeFences(item.stemPreview),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.paragraph_14.copyWith(
