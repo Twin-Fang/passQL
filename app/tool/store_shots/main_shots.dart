@@ -174,6 +174,16 @@ Object? _respond(RequestOptions o) {
     return {'memberUuid': '55555555-0000-4000-8000-000000000001', 'nickname': '새찬', 'choiceGenerationMode': 'PRACTICE'};
   }
   if (RegExp(r'/questions/[^/]+/report/status$').hasMatch(p)) return {'reported': false};
+  if (p.endsWith('/questions/22222222-0000-4000-8000-000000000004') && o.method == 'GET') {
+    return {
+      ..._detail(),
+      'questionUuid': '22222222-0000-4000-8000-000000000004',
+      'topicName': '윈도우 함수',
+      'difficulty': 3,
+      'stem': '다음 SQL의 실행 결과로 올바른 것은?\n\nSELECT NAME, SAL, DENSE_RANK() OVER (ORDER BY SAL DESC) DRNK, RANK() OVER (ORDER BY SAL DESC) RNK FROM EMP;',
+      'choiceSets': [],
+    };
+  }
   if (RegExp(r'/questions/[^/]+$').hasMatch(p) && o.method == 'GET') return _detail();
   if (p.endsWith('/questions')) {
     return {'content': _questions, 'totalElements': 4, 'totalPages': 1, 'number': 0, 'last': true};
@@ -181,7 +191,24 @@ Object? _respond(RequestOptions o) {
   return null;
 }
 
-String _sse() {
+/// 실행 결과형(RESULT_MATCH) 문제: 선택지 본문이 결과 표 JSON 이다.
+List<Map<String, dynamic>> _resultMatchChoices() {
+  String rows(List<List<Object>> r) => jsonEncode([
+        for (final x in r) {'NAME': x[0], 'SAL': x[1], 'DRNK': x[2], 'RNK': x[3]},
+      ]);
+  return [
+    {'key': 'A', 'kind': 'TEXT', 'body': rows([['홍길동', 5000, 1, 1], ['김영희', 5000, 1, 1], ['이철수', 3000, 2, 3]]), 'isCorrect': true, 'sortOrder': 1},
+    {'key': 'B', 'kind': 'TEXT', 'body': rows([['홍길동', 5000, 1, 1], ['김영희', 5000, 1, 1], ['이철수', 3000, 2, 2]]), 'isCorrect': false, 'sortOrder': 2},
+    {'key': 'C', 'kind': 'TEXT', 'body': rows([['홍길동', 5000, 1, 1], ['김영희', 5000, 2, 2], ['이철수', 3000, 3, 3]]), 'isCorrect': false, 'sortOrder': 3},
+    {'key': 'D', 'kind': 'TEXT', 'body': rows([['홍길동', 5000, 1, 1], ['김영희', 5000, 1, 2], ['이철수', 3000, 3, 3]]), 'isCorrect': false, 'sortOrder': 4},
+  ];
+}
+
+String _sse({bool resultMatch = false}) {
+  if (resultMatch) {
+    final complete = jsonEncode({'choices': _resultMatchChoices(), 'choiceSetId': '33333333-0000-4000-8000-000000000010'});
+    return 'event:status\ndata:{"message":"선택지를 준비하고 있어요"}\n\nevent:complete\ndata:$complete\n\n';
+  }
   final choices = [
     for (final c in (_detail()['choiceSets'] as List).first['items'] as List)
       {...c as Map<String, dynamic>, 'isCorrect': c['key'] == 'A', 'rationale': c['key'] == 'A' ? 'WHERE 절로 행을 먼저 거릅니다.' : '이 절은 이 상황에 맞지 않습니다.'},
@@ -195,7 +222,9 @@ class _FakeAdapter implements HttpClientAdapter {
   @override
   Future<ResponseBody> fetch(RequestOptions options, Stream<List<int>>? requestStream, Future<void>? cancelFuture) async {
     if (options.path.endsWith('/generate-choices')) {
-      return ResponseBody.fromString(_sse(), 200, headers: {Headers.contentTypeHeader: ['text/event-stream']});
+      // ...0004 문제는 실행 결과형(RESULT_MATCH)으로 응답한다.
+      final rm = options.path.contains('000000000004');
+      return ResponseBody.fromString(_sse(resultMatch: rm), 200, headers: {Headers.contentTypeHeader: ['text/event-stream']});
     }
     final body = _respond(options);
     return ResponseBody.fromString(

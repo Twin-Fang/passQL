@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/app_colors.dart';
@@ -5,6 +7,7 @@ import '../../../core/text_styles.dart';
 import '../../../data/models/question/choice_item.dart';
 
 /// 개별 선택지 카드. kind="SQL"이면 코드 블록, kind="TEXT"이면 텍스트.
+/// TEXT 이면서 본문이 결과 행 JSON 배열이면(실행 결과형, RESULT_MATCH) 작은 표로 보여 준다.
 /// isSelected=true이면 인디고 테두리 강조.
 class ChoiceCard extends StatelessWidget {
   final ChoiceItem item;
@@ -20,6 +23,7 @@ class ChoiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resultRows = item.kind == 'SQL' ? null : parseResultRows(item.body);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -55,8 +59,9 @@ class ChoiceCard extends StatelessWidget {
                 child: Text(
                   item.key,
                   style: AppTextStyles.tag10Bold.copyWith(
-                    color:
-                        isSelected ? AppColors.cardBg : AppColors.textSecondary,
+                    color: isSelected
+                        ? AppColors.cardBg
+                        : AppColors.textSecondary,
                   ),
                 ),
               ),
@@ -66,10 +71,13 @@ class ChoiceCard extends StatelessWidget {
             Expanded(
               child: item.kind == 'SQL'
                   ? _SqlBody(sql: item.body, isSelected: isSelected)
+                  : resultRows != null
+                  ? ResultRowsTable(rows: resultRows)
                   : Text(
                       item.body,
-                      style: AppTextStyles.paragraph_14
-                          .copyWith(color: AppColors.textPrimary),
+                      style: AppTextStyles.paragraph_14.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
                     ),
             ),
           ],
@@ -101,6 +109,87 @@ class _SqlBody extends StatelessWidget {
           fontSize: 13.sp,
           color: AppColors.textPrimary,
           height: 1.5,
+        ),
+      ),
+    );
+  }
+}
+
+/// 선택지 본문이 결과 행 JSON 배열(`[{"COL": 값, ...}]`)이면 행 목록을, 아니면 null 을 돌려준다.
+/// 웹(ResultMatchTable)과 같은 판별 기준을 쓴다.
+List<Map<String, dynamic>>? parseResultRows(String body) {
+  final text = body.trim();
+  if (!text.startsWith('[')) return null;
+  try {
+    final decoded = jsonDecode(text);
+    if (decoded is! List) return null;
+    if (decoded.any((e) => e is! Map)) return null;
+    return [for (final e in decoded) Map<String, dynamic>.from(e as Map)];
+  } catch (_) {
+    return null;
+  }
+}
+
+/// 실행 결과형 선택지 표. 열이 많아도 잘리지 않게 가로로 스크롤한다.
+class ResultRowsTable extends StatelessWidget {
+  const ResultRowsTable({super.key, required this.rows});
+
+  final List<Map<String, dynamic>> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    if (rows.isEmpty) {
+      return Text(
+        '(결과 없음)',
+        style: AppTextStyles.paragraph_14.copyWith(
+          color: AppColors.textSecondary,
+        ),
+      );
+    }
+    // 열 순서는 첫 행의 키 순서를 따른다(JSON 순서 유지).
+    final columns = rows.first.keys.toList();
+    final head = AppTextStyles.tag12Semibold.copyWith(
+      color: AppColors.textSecondary,
+    );
+    final cell = TextStyle(
+      fontFamily: 'JetBrainsMono',
+      fontSize: 12.sp,
+      color: AppColors.textPrimary,
+    );
+
+    Widget box(String text, TextStyle style) => Padding(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+      child: Text(text, style: style),
+    );
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8.r),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.cardBg,
+          border: Border.all(color: AppColors.borderDefault),
+          borderRadius: BorderRadius.circular(8.r),
+        ),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Table(
+            defaultColumnWidth: const IntrinsicColumnWidth(),
+            border: const TableBorder(
+              horizontalInside: BorderSide(color: AppColors.borderDefault),
+            ),
+            children: [
+              TableRow(
+                decoration: const BoxDecoration(color: AppColors.codeBg),
+                children: [for (final c in columns) box(c, head)],
+              ),
+              for (final r in rows)
+                TableRow(
+                  children: [
+                    for (final c in columns) box('${r[c] ?? ''}', cell),
+                  ],
+                ),
+            ],
+          ),
         ),
       ),
     );
