@@ -2,11 +2,14 @@ package com.passql.common.exception;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
+import com.passql.common.exception.constant.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -68,10 +71,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(
         HttpMessageNotReadableException e, HttpServletRequest request) {
-        log.error("HttpMessageNotReadableException 발생: {}", e.getMessage());
+        // 파서 메시지에 컨트롤러 시그니처가 섞여 나가므로 응답에는 고정 문구만 쓴다 (#393)
+        log.warn("HttpMessageNotReadableException 발생: path={}, message={}", request.getRequestURI(), e.getMessage());
         ErrorResponse errorResponse = ErrorResponse.builder()
             .errorCode("MESSAGE_NOT_READABLE")
-            .message("요청 본문을 읽을 수 없습니다: " + e.getMessage())
+            .message("요청 본문을 읽을 수 없습니다. 형식을 확인해주세요")
             .build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
@@ -108,6 +112,31 @@ public class GlobalExceptionHandler {
             .message(String.format("요청하신 리소스를 찾을 수 없습니다: %s %s", e.getHttpMethod(), e.getRequestURL()))
             .build();
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMediaTypeNotSupportedException(
+        HttpMediaTypeNotSupportedException e, HttpServletRequest request) {
+        // 미지원 Content-Type이 처리되지 않은 예외로 떨어져 500이 나던 문제 (#393)
+        log.warn("HttpMediaTypeNotSupportedException 발생: path={}, contentType={}",
+            request.getRequestURI(), e.getContentType());
+        ErrorResponse errorResponse = ErrorResponse.builder()
+            .errorCode(ErrorCode.UNSUPPORTED_MEDIA_TYPE.name())
+            .message(ErrorCode.UNSUPPORTED_MEDIA_TYPE.getMessage())
+            .build();
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(errorResponse);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleHttpRequestMethodNotSupportedException(
+        HttpRequestMethodNotSupportedException e, HttpServletRequest request) {
+        log.warn("HttpRequestMethodNotSupportedException 발생: path={}, method={}",
+            request.getRequestURI(), request.getMethod());
+        ErrorResponse errorResponse = ErrorResponse.builder()
+            .errorCode(ErrorCode.METHOD_NOT_ALLOWED.name())
+            .message(ErrorCode.METHOD_NOT_ALLOWED.getMessage())
+            .build();
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(errorResponse);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
