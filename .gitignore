@@ -122,3 +122,9 @@ app/docs/superpowers/
 
 # 도구 업데이트 때 생기는 백업 파일
 *.bak
+
+# 해커톤 시절 기획·분석 문서(현재 서비스와 다름)는 로컬에만 둔다. (#338)
+docs/product/
+docs/reports/
+client/docs/
+server/docs/apilog/

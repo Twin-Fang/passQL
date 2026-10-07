@@ -19,10 +19,8 @@ passQL은 **4개 스택을 한 레포에서 관리하는 모노레포**다. 작�
 
 | 종류 | 위치 |
 |------|------|
-| 제품 기획 (PRD·ROADMAP·SCREEN-SPEC) | `docs/product/` |
-| 작업 리포트·이슈 산출물 | `docs/projectops/{report,issue}/` (로컬 전용, .gitignore) |
-| 스킬 산출물 (계획·스펙) | `docs/superpowers/{plans,specs}/` (로컬 전용, .gitignore) |
-| 분석 리포트 | `docs/reports/` |
+| 앱 PRD, 스토어 출시·Firebase 가이드 | `app/docs/` |
+| AI 작업 산출물 (이슈 초안·계획·스펙·캡처) | `docs/projectops/`, `docs/superpowers/` — 로컬 전용(.gitignore), 결과는 GitHub 이슈에 남긴다 |
 
 스택 전용 문서는 각 스택 폴더 내부(`{stack}/docs/`, `{stack}/.claude/rules/`)에 둔다.
 
