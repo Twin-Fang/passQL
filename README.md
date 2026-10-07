@@ -8,10 +8,17 @@
 
 SQLD·SQLP 수험생을 위한 AI 실행형 SQL 학습 서비스 — 문제은행이 아니라, 실행형 훈련기입니다.
 
-AI가 함정 오답을 만들고, 모든 선택지를 **PostgreSQL 샌드박스**에서 실제로 실행해 정답이 하나인지 검증합니다.
+AI가 함정 오답을 만들고, 실행형 문제는 모든 선택지를 **PostgreSQL 샌드박스**에서 실제로 실행해 정답이 하나인지 검증합니다.
 <sub>`NVL`·`SYSDATE` 같은 Oracle 함수는 PostgreSQL 문법으로 자동 변환합니다. 변환할 수 없는 Oracle 전용 문법은 개념 문제로 출제합니다.</sub>
 
 [**웹에서 바로 써보기**](https://passql.vercel.app/)
+
+[![Web](https://img.shields.io/badge/Web-Live-2ea44f)](https://passql.vercel.app/)
+[![API Docs](https://img.shields.io/badge/API-Swagger-85EA2D)](https://api.passql.suhsaechan.kr/docs/swagger-ui/index.html)
+[![License](https://img.shields.io/badge/license-source--available-lightgrey)](LICENSE)
+
+**문제 192개** (직접 실행하는 실행형 93 · 개념형 99) · **SQLD 출제 토픽 9개**
+<sub>운영 DB 기준, 2026-10-08 측정</sub>
 <!-- TODO: 스토어 공개 후 배지 추가
  · [Google Play](PLAY_STORE_URL) · [App Store](APP_STORE_URL) -->
 
