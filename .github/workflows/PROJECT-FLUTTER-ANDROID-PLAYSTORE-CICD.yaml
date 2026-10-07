@@ -15,6 +15,8 @@
 # RELEASE_KEY_PASSWORD: key 비밀번호
 # GOOGLE_SERVICES_JSON: Firebase google-services.json
 # GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64: Play Console 서비스 계정 (base64)
+#   └ passQL: GCP 프로젝트 passql 의 play-publisher@passql.iam.gserviceaccount.com
+#     (Play Console 권한: passQL 앱 정보 보기 + 테스트 트랙 출시. 프로덕션 출시 권한 없음 — #376)
 # ===================================================================
 
 name: PROJECT-FLUTTER-ANDROID-PLAYSTORE-INTERNAL-CICD
