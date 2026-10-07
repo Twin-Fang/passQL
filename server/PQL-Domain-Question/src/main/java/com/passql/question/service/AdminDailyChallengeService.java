@@ -106,7 +106,9 @@ public class AdminDailyChallengeService {
                 .findByChallengeDateOrderBySortOrderAsc(date);
         if (!existing.isEmpty()) return;
 
-        List<Question> active = questionRepository.findByIsActiveTrue();
+        // 선택지 생성이 불가능한 문제는 데일리 세트에서 제외 (#358). 전부 불가면 기존 방식으로 폴백
+        List<Question> active = questionRepository.findPlayableActive();
+        if (active.isEmpty()) active = questionRepository.findByIsActiveTrue();
         if (active.isEmpty()) return;
 
         Map<UUID, List<Question>> byTopic = active.stream()

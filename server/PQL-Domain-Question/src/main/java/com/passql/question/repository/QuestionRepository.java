@@ -15,6 +15,13 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
 
     List<Question> findByIsActiveTrue();
 
+    // 선택지 생성 불가(FAILED만 있고 OK 없음) 문제 제외한 활성 문제 — 데일리 세트 자동 선정용 (#358)
+    @Query(value = "SELECT * FROM question WHERE is_active = true "
+            + "AND NOT (EXISTS (SELECT 1 FROM question_choice_set f WHERE f.question_uuid = question.question_uuid AND f.status = 'FAILED') "
+            + "AND NOT EXISTS (SELECT 1 FROM question_choice_set o WHERE o.question_uuid = question.question_uuid AND o.status = 'OK'))",
+            nativeQuery = true)
+    List<Question> findPlayableActive();
+
     /** 대시보드 집계용 — 전체 활성 문제 수 count 쿼리 */
     long countByIsActiveTrue();
 
@@ -45,13 +52,14 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
             Pageable pageable
     );
 
+    // 선택지 생성이 실패만 한 문제(FAILED 있고 OK 없음)는 풀 수 없으므로 추천·데일리 후보에서 제외 (#358)
     // PostgreSQL: RAND() 대신 RANDOM() 사용
-    @Query(value = "SELECT * FROM question WHERE is_active = true ORDER BY RANDOM() LIMIT :size", nativeQuery = true)
+    @Query(value = "SELECT * FROM question WHERE is_active = true AND NOT (EXISTS (SELECT 1 FROM question_choice_set f WHERE f.question_uuid = question.question_uuid AND f.status = 'FAILED') AND NOT EXISTS (SELECT 1 FROM question_choice_set o WHERE o.question_uuid = question.question_uuid AND o.status = 'OK')) ORDER BY RANDOM() LIMIT :size", nativeQuery = true)
     List<Question> findRandomActive(@Param("size") int size);
 
     // 복수 UUID 제외 — 세션 내 이미 추천된 문제를 제외할 때 사용
     // CAST(... AS varchar): 프로젝트 기존 패턴 통일 (::text 캐스팅 대신)
-    @Query(value = "SELECT * FROM question WHERE is_active = true AND CAST(question_uuid AS varchar) NOT IN (:excludeUuids) ORDER BY RANDOM() LIMIT :size", nativeQuery = true)
+    @Query(value = "SELECT * FROM question WHERE is_active = true AND CAST(question_uuid AS varchar) NOT IN (:excludeUuids) AND NOT (EXISTS (SELECT 1 FROM question_choice_set f WHERE f.question_uuid = question.question_uuid AND f.status = 'FAILED') AND NOT EXISTS (SELECT 1 FROM question_choice_set o WHERE o.question_uuid = question.question_uuid AND o.status = 'OK')) ORDER BY RANDOM() LIMIT :size", nativeQuery = true)
     List<Question> findRandomActiveExcludingList(@Param("size") int size, @Param("excludeUuids") List<String> excludeUuids);
 
     @Query("SELECT q.questionUuid FROM Question q WHERE q.isActive = true ORDER BY q.createdAt ASC")
