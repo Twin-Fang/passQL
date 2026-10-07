@@ -45,6 +45,9 @@
                     <div>
                         <p class="text-sm text-base-content/60">Qdrant 색인 수</p>
                         <p class="text-3xl font-bold text-success mt-1" th:text="${status.collectionPointsCount}">0</p>
+                        <!-- 활성 문제에 없는 벡터 — 전체 색인 때 함께 정리된다 (#412) -->
+                        <p class="text-xs mt-1 text-warning" th:if="${status.orphanCount > 0}"
+                           th:text="'남은 벡터 ' + ${status.orphanCount} + '개 · 전체 색인 시 정리'">남은 벡터 0개</p>
                     </div>
                     <div class="p-3 bg-success/10 rounded-full">
                         <i data-lucide="layers" class="size-6 text-success"></i>

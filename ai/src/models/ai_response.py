@@ -104,3 +104,11 @@ class IndexStatusResponse(BaseModel):
     db_question_count: int         # Java가 전달한 DB 문제 수
     unindexed_count: int           # 미색인 문제 수
     unindexed_uuids: list[str]     # 미색인 문제 UUID 목록
+    # Qdrant에만 있는 포인트 수 — 삭제·비활성 문제의 남은 벡터. 추천 top_k 슬롯을 잡아먹는다 (#412)
+    orphan_count: int = 0
+
+
+class PruneIndexResponse(BaseModel):
+    """고아 벡터 정리 결과 (#412)."""
+    deleted_count: int             # 삭제한 포인트 수
+    deleted_uuids: list[str]       # 삭제한 포인트 UUID 목록

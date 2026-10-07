@@ -165,6 +165,21 @@ public class AiGatewayClient {
         }
     }
 
+    /**
+     * 활성 문제 UUID에 없는 Qdrant 포인트(고아 벡터)를 삭제한다 (#412).
+     * 정리 실패가 삭제·재색인 흐름을 막지 않도록 null을 반환한다 — 다음 정리 때 다시 지워진다.
+     */
+    public PruneIndexResult pruneIndex(IndexStatusRequest request) {
+        try {
+            PruneIndexResult result = postToPython("/api/ai/prune-index", request, PruneIndexResult.class);
+            log.info("[AiGateway] pruneIndex 완료: deleted_count={}", result.deletedCount());
+            return result;
+        } catch (Exception e) {
+            log.warn("[AiGateway] pruneIndex 실패 (null 반환): error={}", e.getMessage());
+            return null;
+        }
+    }
+
     // ========================
     //  내부 HTTP 처리
     // ========================

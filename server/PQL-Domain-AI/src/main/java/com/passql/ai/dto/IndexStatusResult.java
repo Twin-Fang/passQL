@@ -11,5 +11,6 @@ public record IndexStatusResult(
         int collectionPointsCount,  // Qdrant 현재 포인트 수
         int dbQuestionCount,        // Java가 전달한 DB 문제 수
         int unindexedCount,         // 미색인 문제 수
-        List<String> unindexedUuids // 미색인 문제 UUID 목록
+        List<String> unindexedUuids, // 미색인 문제 UUID 목록
+        int orphanCount             // Qdrant에만 남은 포인트 수 — 삭제·비활성 문제의 벡터 (#412)
 ) {}
