@@ -17,3 +17,31 @@ Future<T?> safeCall<T>(Future<T> call, {String? label}) async {
     return null;
   }
 }
+
+/// 한 화면을 채우는 여러 호출을 함께 실행한다. 각 결과는 실패하면 null.
+///
+/// 다만 **전부 실패**했거나 [required] 에 든 핵심 호출이 실패하면 첫 오류를 던진다.
+/// 서버 장애·네트워크 끊김 때 화면이 "데이터 없음"(0문제, 준비 중 등)으로 그려지면
+/// 사용자가 기록이 사라졌다고 오해하므로, 이때는 오류 화면(다시 시도)이 보여야 한다 (#375).
+Future<List<Object?>> safeCallAll(
+  List<Future<Object?>> calls, {
+  Set<int> required = const {},
+}) async {
+  final errors = <int, AppException>{};
+  final results = await Future.wait([
+    for (var i = 0; i < calls.length; i++)
+      calls[i].then<Object?>((v) => v).catchError((Object e) {
+        final error = e.asAppException;
+        if (error.isUnauthorized) throw error;
+        debugPrint('[safeCallAll:$i] $error');
+        errors[i] = error;
+        return null;
+      }),
+  ]);
+  if (errors.isNotEmpty) {
+    final requiredFailed = required.where(errors.containsKey);
+    if (requiredFailed.isNotEmpty) throw errors[requiredFailed.first]!;
+    if (errors.length == calls.length) throw errors.values.first;
+  }
+  return results;
+}

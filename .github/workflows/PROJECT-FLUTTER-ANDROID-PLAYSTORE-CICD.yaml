@@ -179,10 +179,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: project-files
+          # 모노레포 대응: upload-artifact 는 defaults.run.working-directory 를 따르지 않고 레포 루트 기준으로 찾는다.
+          # prefix 가 없으면 0건 → 기본값 warn 으로 조용히 통과하고 다음 job 의 다운로드가 실패한다 (passQL #376).
           path: |
-            pubspec.yaml
-            lib/
-            assets/
+            ${{ env.FLUTTER_ROOT }}/pubspec.yaml
+            ${{ env.FLUTTER_ROOT }}/lib/
+            ${{ env.FLUTTER_ROOT }}/assets/
+          if-no-files-found: error
           retention-days: 1
 
   build-android:
@@ -208,7 +211,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: project-files
-          path: .
+          # upload 시 공통 상위 경로(app/)가 떼어져 저장되므로 FLUTTER_ROOT 에 풀어야 원래 위치로 복원된다.
+          path: ${{ env.FLUTTER_ROOT }}
 
       # .env 파일 생성 (보안을 위해 아티팩트가 아닌 시크릿에서 생성)
       - name: Create .env file
