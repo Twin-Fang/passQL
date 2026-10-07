@@ -9,6 +9,15 @@ import { fetchLegal, type LegalType } from "../api/legal";
 import MarkdownText from "../components/MarkdownText";
 import logo from "../assets/logo/logo.png";
 
+// 내부 enum(APPLE·KAKAO) 대신 사용자에게 보일 제공자 이름 (#401)
+const PROVIDER_LABEL: Record<AuthProvider, string> = {
+  GOOGLE: "Google",
+  KAKAO: "카카오",
+  NAVER: "네이버",
+  GITHUB: "GitHub",
+  APPLE: "Apple",
+};
+
 export default function Login() {
   const navigate = useNavigate();
   const setTokens = useAuthStore((s) => s.setTokens);
@@ -46,7 +55,7 @@ export default function Login() {
   };
 
   const handleUnavailable = (provider: AuthProvider) => {
-    setError(`${provider} 로그인은 준비 중입니다.`);
+    setError(`${PROVIDER_LABEL[provider]} 로그인은 준비 중입니다.`);
   };
 
   return (
@@ -124,17 +133,19 @@ export default function Login() {
             </button>
           </div>
 
-          {error && (
-            <p className="mt-4 text-[#EF4444] text-sm text-center">{error}</p>
-          )}
+          {/* 자리를 미리 잡아 오류가 떠도 카드가 위로 밀리지 않게 하고, 대비 AA(4.5:1) 이상 색을 쓴다 (#401) */}
+          <p className="mt-4 min-h-5 text-[#DC2626] text-sm text-center" role="alert" aria-live="polite">
+            {error}
+          </p>
         </div>
 
         {/* 약관 동의 안내 */}
-        <p className="mt-6 text-center text-[#9CA3AF] text-xs">
+        {/* #9CA3AF는 배경 대비 2.45:1이라 AA 미달 → #6B7280(약 4.6:1) (#401) */}
+        <p className="mt-6 text-center text-[#6B7280] text-xs">
           로그인하면{" "}
           <button
             type="button"
-            className="underline underline-offset-2 hover:text-[#6B7280] transition-colors"
+            className="inline-block py-3.5 -my-3.5 underline underline-offset-2 hover:text-[#374151] transition-colors"
             onClick={() => setLegalModal("TERMS_OF_SERVICE")}
           >
             이용약관
@@ -142,7 +153,7 @@ export default function Login() {
           {" "}및{" "}
           <button
             type="button"
-            className="underline underline-offset-2 hover:text-[#6B7280] transition-colors"
+            className="inline-block py-3.5 -my-3.5 underline underline-offset-2 hover:text-[#374151] transition-colors"
             onClick={() => setLegalModal("PRIVACY_POLICY")}
           >
             개인정보처리방침
