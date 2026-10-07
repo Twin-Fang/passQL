@@ -21,27 +21,9 @@ public class AiService {
     private final QdrantSearchClient qdrantSearchClient;
     private final PromptService promptService;
 
-    @CircuitBreaker(name = "ai", fallbackMethod = "explainErrorFallback")
-    public AiResult explainError(UUID memberUuid, UUID questionUuid, String sql, String errorMessage) {
-        throw new UnsupportedOperationException("TODO");
-    }
-
-    @CircuitBreaker(name = "ai", fallbackMethod = "diffExplainFallback")
-    public AiResult diffExplain(UUID memberUuid, UUID questionUuid, String selectedChoiceKey) {
-        throw new UnsupportedOperationException("TODO");
-    }
+    // 오류·선택지 해설은 AiExplainService(PQL-Application)로 옮겼다. 여기에는 유사 문제 검색만 남긴다.
 
     public List<SimilarQuestion> getSimilar(UUID questionUuid, int k) {
         throw new UnsupportedOperationException("TODO");
-    }
-
-    public AiResult explainErrorFallback(UUID memberUuid, UUID questionUuid, String sql, String errorMessage, Exception e) {
-        log.warn("AI circuit breaker fallback (explainError): {}", e.getMessage());
-        return new AiResult("AI 기능이 일시적으로 사용 불가합니다.", 0);
-    }
-
-    public AiResult diffExplainFallback(UUID memberUuid, UUID questionUuid, String selectedChoiceKey, Exception e) {
-        log.warn("AI circuit breaker fallback (diffExplain): {}", e.getMessage());
-        return new AiResult("AI 기능이 일시적으로 사용 불가합니다.", 0);
     }
 }
