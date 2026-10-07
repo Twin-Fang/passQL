@@ -21,7 +21,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
     // Firebase Admin SDK (FirebaseConfig가 PQL-Web/config에 위치)
-    implementation 'com.google.firebase:firebase-admin:9.3.0'
+    implementation 'com.google.firebase:firebase-admin:9.11.0'
 }
 
 tasks.named('bootJar') {

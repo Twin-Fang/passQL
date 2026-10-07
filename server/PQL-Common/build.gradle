@@ -22,14 +22,14 @@ dependencies {
     api 'org.postgresql:postgresql'
     api 'org.flywaydb:flyway-core'
     api 'org.flywaydb:flyway-database-postgresql'
-    api 'io.github.resilience4j:resilience4j-spring-boot3:2.3.0'
-    api 'io.qdrant:client:1.13.0'
+    api 'io.github.resilience4j:resilience4j-spring-boot3:2.4.0'
+    api 'io.qdrant:client:1.19.0'
     api 'me.suhsaechan:suh-random-engine:1.1.0'
     api 'kr.suhsaechan:suh-logger:2.0.1'
     api 'kr.suhsaechan:suh-api-log:2.0.1'
 
     // Google Gemini Java SDK
-    api('com.google.genai:google-genai:1.46.0') {
+    api('com.google.genai:google-genai:1.75.0') {
         exclude group: 'org.slf4j'
     }
 }
