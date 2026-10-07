@@ -2,6 +2,7 @@ package com.passql.application.service;
 
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.member.constant.MemberStatus;
 import com.passql.member.entity.Member;
 import com.passql.member.repository.MemberRepository;
 import com.passql.question.dto.DailySetCompleteRequest;
@@ -59,8 +60,7 @@ public class DailySetService {
             throw new CustomException(ErrorCode.DAILY_SET_ALREADY_COMPLETED);
         }
 
-        List<DailySetSubmission> board = dailySetSubmissionRepository
-                .findByChallengeDateOrderByScore(today);
+        List<DailySetSubmission> board = visibleBoard(today);
 
         // 제출자의 현재 순위 계산 (1-based)
         int rank = 1;
@@ -102,8 +102,7 @@ public class DailySetService {
 
     public LeaderboardResponse getLeaderboard(UUID memberUuid) {
         LocalDate today = LocalDate.now();
-        List<DailySetSubmission> board = dailySetSubmissionRepository
-                .findByChallengeDateOrderByScore(today);
+        List<DailySetSubmission> board = visibleBoard(today);
 
         List<UUID> memberUuids = board.stream().map(DailySetSubmission::getMemberUuid).toList();
         Map<UUID, String> nicknameMap = memberRepository.findAllById(memberUuids).stream()
@@ -123,5 +122,19 @@ public class DailySetService {
         }
 
         return new LeaderboardResponse(today, entries, myEntry);
+    }
+
+    /**
+     * 순위에 보일 기록만 남긴다. 탈퇴한 회원(또는 회원 정보가 없는 기록)은 제외한다 (#377).
+     * 탈퇴 안내에서 "계정과 개인정보가 삭제된다"고 했으므로 익명 닉네임으로도 노출하지 않는다.
+     */
+    private List<DailySetSubmission> visibleBoard(LocalDate date) {
+        List<DailySetSubmission> board = dailySetSubmissionRepository.findByChallengeDateOrderByScore(date);
+        Set<UUID> active = memberRepository
+                .findAllById(board.stream().map(DailySetSubmission::getMemberUuid).toList()).stream()
+                .filter(m -> m.getStatus() != MemberStatus.WITHDRAWN)
+                .map(Member::getMemberUuid)
+                .collect(Collectors.toSet());
+        return board.stream().filter(s -> active.contains(s.getMemberUuid())).toList();
     }
 }
