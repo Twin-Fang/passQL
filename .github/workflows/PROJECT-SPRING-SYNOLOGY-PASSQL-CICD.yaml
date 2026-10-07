@@ -124,7 +124,9 @@ jobs:
             echo $PW | sudo -S mkdir -p "${{ env.VOLUME_HOST_PATH }}"
 
             echo "🚀 컨테이너 실행 중..."
+            # NAS 재부팅 후 자동 기동되도록 재시작 정책 고정 (#337: 정책 no로 7주간 502 장애)
             echo $PW | sudo -S docker run -d \
+              --restart unless-stopped \
               -p ${PORT}:8080 \
               --name $CONTAINER_NAME \
               -e TZ=Asia/Seoul \
