@@ -37,6 +37,10 @@ suhapilog:
 suh-logger:
   exclude-patterns:
     - "generate-choices"
+    # 인증 응답 본문(액세스·리프레시 토큰, CSRF 토큰)이 로그에 평문으로 남지 않게 제외 (#396)
+    - "auth/login"
+    - "auth/reissue"
+    - "admin/login"
 
 springdoc:
   swagger-ui:
