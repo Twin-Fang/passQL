@@ -34,11 +34,16 @@ class AppShell extends StatelessWidget {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: (index) => context.go(_tabs[index].path),
+        // 아이콘만으로 구분되므로 글자는 숨긴다. 라벨은 접근성(스크린리더·롱프레스 툴팁)용으로 남긴다.
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        iconSize: 24,
         items: _tabs
             .map(
               (tab) => BottomNavigationBarItem(
-                icon: FaIcon(tab.icon),
+                icon: FaIcon(tab.icon, size: 22),
                 label: tab.label,
+                tooltip: tab.label,
               ),
             )
             .toList(),
