@@ -181,6 +181,10 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
                 height: 48,
                 child: OutlinedButton(
                   onPressed: _canCheck ? _check : null,
+                  // 앱 테마의 최소 폭이 무한대(Size.fromHeight)라 가로 Row 안에서 레이아웃이 깨진다.
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(88, 48),
+                  ),
                   child: _checking
                       ? const SizedBox(
                           width: 16,
