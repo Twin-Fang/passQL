@@ -92,16 +92,24 @@
 <script th:inline="javascript">
     const uuid = [[${choiceSet.choiceSetUuid}]];
 
+    // 응답을 보지 않고 새로고침하면 실패가 화면에 드러나지 않는다 (#391)
+    async function requestAndReload(url, label) {
+        const res = await fetch(url, {method: 'PUT'});
+        if (!res.ok) {
+            alert(label + ' 실패 (' + res.status + ')');
+            return;
+        }
+        location.reload();
+    }
+
     async function disableSet() {
         if (!confirm('비활성화하시겠습니까?')) return;
-        await fetch('/admin/choice-sets/' + uuid + '/disable', {method: 'PUT'});
-        location.reload();
+        await requestAndReload('/admin/choice-sets/' + uuid + '/disable', '비활성화');
     }
 
     async function promoteSet() {
         if (!confirm('재사용 풀로 승격하시겠습니까?')) return;
-        await fetch('/admin/choice-sets/' + uuid + '/promote', {method: 'PUT'});
-        location.reload();
+        await requestAndReload('/admin/choice-sets/' + uuid + '/promote', '승격');
     }
 
     lucide.createIcons();
