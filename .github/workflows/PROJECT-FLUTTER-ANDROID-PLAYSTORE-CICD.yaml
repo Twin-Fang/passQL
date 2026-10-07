@@ -46,6 +46,9 @@ env:
   # Flutter 루트 경로(레포 루트 기준). 단일레포면 ".", 모노레포면 "app" 등.
   # 통합 시점에 integrator의 flutter-root resolver가 project_paths.flutter 값으로 1회 치환.
   FLUTTER_ROOT: "app"
+  # 앱 폴더 경로. FLUTTER_ROOT 는 subosito/flutter-action 이 Flutter SDK 경로로 덮어쓰므로
+  # (그 뒤 단계에서 env.FLUTTER_ROOT 가 SDK를 가리킴) 경로 지정에는 이 값을 쓴다 (passQL #376).
+  APP_DIR: "app"
   # 배포 모드 (store_only | store_prepare | store_submit)
   DEPLOY_MODE: ${{ github.event.inputs.deploy_mode || vars.ANDROID_DEPLOY_MODE || 'store_only' }}
 
@@ -55,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ${{ env.FLUTTER_ROOT }}
+        working-directory: ${{ env.APP_DIR }}
     # CHANGELOG 워크플로우가 성공한 경우에만 실행
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
 
@@ -182,9 +185,9 @@ jobs:
           # 모노레포 대응: upload-artifact 는 defaults.run.working-directory 를 따르지 않고 레포 루트 기준으로 찾는다.
           # prefix 가 없으면 0건 → 기본값 warn 으로 조용히 통과하고 다음 job 의 다운로드가 실패한다 (passQL #376).
           path: |
-            ${{ env.FLUTTER_ROOT }}/pubspec.yaml
-            ${{ env.FLUTTER_ROOT }}/lib/
-            ${{ env.FLUTTER_ROOT }}/assets/
+            ${{ env.APP_DIR }}/pubspec.yaml
+            ${{ env.APP_DIR }}/lib/
+            ${{ env.APP_DIR }}/assets/
           if-no-files-found: error
           retention-days: 1
 
@@ -194,7 +197,7 @@ jobs:
     needs: prepare-build
     defaults:
       run:
-        working-directory: ${{ env.FLUTTER_ROOT }}
+        working-directory: ${{ env.APP_DIR }}
 
     steps:
       - name: Checkout repository
@@ -211,8 +214,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: project-files
-          # upload 시 공통 상위 경로(app/)가 떼어져 저장되므로 FLUTTER_ROOT 에 풀어야 원래 위치로 복원된다.
-          path: ${{ env.FLUTTER_ROOT }}
+          # upload 시 공통 상위 경로(app/)가 떼어져 저장되므로 APP_DIR 에 풀어야 원래 위치로 복원된다.
+          path: ${{ env.APP_DIR }}
 
       # .env 파일 생성 (보안을 위해 아티팩트가 아닌 시크릿에서 생성)
       - name: Create .env file
@@ -512,7 +515,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-aab
-          path: ${{ env.FLUTTER_ROOT }}/build/app/outputs/bundle/release/app-release.aab
+          path: ${{ env.APP_DIR }}/build/app/outputs/bundle/release/app-release.aab
           retention-days: 1
 
   deploy-playstore:
@@ -521,7 +524,7 @@ jobs:
     needs: [prepare-build, build-android]
     defaults:
       run:
-        working-directory: ${{ env.FLUTTER_ROOT }}
+        working-directory: ${{ env.APP_DIR }}
 
     steps:
       - name: Checkout repository
@@ -542,7 +545,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: android-aab
-          path: ${{ env.FLUTTER_ROOT }}/build/app/outputs/bundle/release/
+          path: ${{ env.APP_DIR }}/build/app/outputs/bundle/release/
 
       # 릴리즈 노트 다운로드
       - name: Download release notes
@@ -558,7 +561,7 @@ jobs:
           ruby-version: "3.4.1"
 
       - name: Install Fastlane
-        working-directory: ${{ env.FLUTTER_ROOT }}/android
+        working-directory: ${{ env.APP_DIR }}/android
         run: |
           # multi_json: google-apis transitive 의존성이 선언 누락한 upstream 버그 회피 (gemspec 미선언 → Gem::LoadError)
           printf 'source "https://rubygems.org"\ngem "fastlane"\ngem "multi_json"\n' > Gemfile
