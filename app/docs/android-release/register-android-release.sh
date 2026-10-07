@@ -12,7 +12,7 @@ ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 CLI=$(find ~/.claude/plugins/cache -type f -path "*projectops/*/skills/pro-github/scripts/github_cli.py" 2>/dev/null | sort -V | tail -1)
 
 prop() { grep "^$1=" "$KEY_PROPS" | cut -d= -f2-; }
-set_secret() { SECRET_VALUE="$2" PYTHONIOENCODING=utf-8 python3 "$CLI" secrets set passQL-Lab passQL "$1" >/dev/null && echo "등록: $1"; }
+set_secret() { SECRET_VALUE="$2" PYTHONIOENCODING=utf-8 python3 "$CLI" secrets set Twin-Fang passQL "$1" >/dev/null && echo "등록: $1"; }
 
 # 1) 업로드 키 SHA-1 을 Firebase Android 앱에 등록 → 구글 로그인이 릴리스 빌드에서도 동작한다
 SHA1=$(keytool -list -v -keystore "$D/upload-keystore.jks" -alias upload -storepass "$(prop storePassword)" 2>/dev/null | grep "SHA1:" | awk '{print $2}')

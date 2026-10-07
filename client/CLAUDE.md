@@ -88,8 +88,8 @@ API 연동 시 반드시 참조. 엔드포인트 스펙, 코드 패턴, 에러 �
 
 **예시**:
 ```
-소셜 로그인 구현 : feat : Google OAuth 연동 추가 https://github.com/passQL-Lab/passQL/issues/274
-로그인 페이지 레이아웃 파괴 버그 : fix : tokens.css spacing 변수 충돌 해결 https://github.com/passQL-Lab/passQL/issues/277
+소셜 로그인 구현 : feat : Google OAuth 연동 추가 https://github.com/Twin-Fang/passQL/issues/274
+로그인 페이지 레이아웃 파괴 버그 : fix : tokens.css spacing 변수 충돌 해결 https://github.com/Twin-Fang/passQL/issues/277
 ```
 
 - 이슈가 없는 경우 이슈 URL 생략 가능

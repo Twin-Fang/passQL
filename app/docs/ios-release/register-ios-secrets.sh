@@ -10,7 +10,7 @@
 # 사용법: bash app/docs/ios-release/register-ios-secrets.sh
 set -euo pipefail
 
-REPO_OWNER="passQL-Lab"; REPO_NAME="passQL"
+REPO_OWNER="Twin-Fang"; REPO_NAME="passQL"
 BUNDLE_ID="com.coldredrice.passql"
 ASC_KEY_ID="9S3Y25UVZN"
 ASC_ISSUER_ID="5e4f25aa-151d-4c7b-8a0a-bdca9408b91b"   # App Store Connect > 사용자 및 액세스 > 통합 > Issuer ID
