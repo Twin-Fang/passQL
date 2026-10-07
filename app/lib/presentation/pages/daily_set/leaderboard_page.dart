@@ -86,15 +86,25 @@ class LeaderboardPage extends ConsumerWidget {
                     ),
                   ),
                 )
-              else
+              else ...[
+                // 제목이 없으면 참가자가 나뿐일 때 "내 순위"와 같은 행이 두 번 나온 것처럼 보인다.
+                Text(
+                  '전체 순위 · ${data.entries.length}명',
+                  style: AppTextStyles.tag_12.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 4),
                 for (final entry in data.entries)
                   LeaderboardRow(
                     entry: entry,
                     // 내 기록은 목록에서도 눈에 띄게 한다.
-                    highlight: data.myEntry != null &&
+                    highlight:
+                        data.myEntry != null &&
                         data.myEntry!.rank == entry.rank &&
                         data.myEntry!.nickname == entry.nickname,
                   ),
+              ],
             ],
           ),
         ),

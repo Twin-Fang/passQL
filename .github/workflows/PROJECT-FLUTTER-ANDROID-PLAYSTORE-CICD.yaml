@@ -236,14 +236,17 @@ jobs:
       # key.properties 생성 (Release 서명 정보)
       - name: Create key.properties
         run: |
+          # build.gradle.kts 는 storeFile 을 app 모듈(android/app) 기준 file() 로 읽는다.
+          # app/ 접두사를 붙이면 android/app/app/keystore 를 찾아 서명 검증이 실패한다 (passQL #376).
           cat > android/key.properties << EOF
-          storeFile=app/keystore/key.jks
+          storeFile=keystore/key.jks
           storePassword=${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
           keyAlias=${{ secrets.RELEASE_KEY_ALIAS }}
           keyPassword=${{ secrets.RELEASE_KEY_PASSWORD }}
           EOF
           echo "✅ key.properties 생성 완료"
-          cat android/key.properties
+          # 비밀번호 줄을 로그에 남기지 않도록 키 이름만 확인한다.
+          sed 's/=.*/=<hidden>/' android/key.properties
 
       # Google-services.json 생성
       - name: Create Google-services.json
