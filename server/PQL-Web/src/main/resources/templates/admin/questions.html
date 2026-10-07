@@ -50,7 +50,8 @@
                 </button>
                 <a th:href="@{/admin/questions}" class="btn btn-sm btn-ghost">초기화</a>
 
-                <div class="ml-auto flex gap-2 items-center">
+                <!-- 좁은 폭에서는 액션 버튼도 줄바꿈 (#409) -->
+                <div class="ml-auto flex flex-wrap gap-2 items-center">
                     <!-- 선택 색인 버튼: 체크박스 선택 시 활성화 -->
                     <button type="button" id="indexSelectedBtn" class="btn btn-sm btn-warning btn-outline" onclick="indexSelected()" disabled>
                         <i data-lucide="zap" class="size-4"></i>

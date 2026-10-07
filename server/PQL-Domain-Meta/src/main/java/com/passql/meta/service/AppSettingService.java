@@ -21,7 +21,7 @@ public class AppSettingService {
 
     public static final String REDIS_PREFIX = "passql:settings:";
 
-    // settingKey에 이 문자열이 포함되면 값을 마스킹 처리
+    // settingKey 구분자(. _ -) 단위 조각이 이 단어로 끝나면 값을 마스킹 처리
     private static final Set<String> MASK_KEYWORDS = Set.of("key", "secret", "password", "token");
 
     private final AppSettingRepository appSettingRepository;
@@ -73,10 +73,17 @@ public class AppSettingService {
         redisTemplate.opsForValue().set(REDIS_PREFIX + key, value);
     }
 
-    /** key에 민감 키워드가 포함되면 true — UI에서 마스킹 처리 */
+    /**
+     * key의 조각 중 민감 키워드로 끝나는 것이 있으면 true — UI에서 마스킹 처리.
+     * 단순 포함 검사는 ai.default_max_tokens 같은 일반 설정까지 잠갔다 (#408).
+     */
     public static boolean isSensitiveKey(String key) {
-        String lower = key.toLowerCase();
-        return MASK_KEYWORDS.stream().anyMatch(lower::contains);
+        for (String part : key.toLowerCase().split("[._-]")) {
+            for (String keyword : MASK_KEYWORDS) {
+                if (part.endsWith(keyword)) return true;
+            }
+        }
+        return false;
     }
 
     /** 민감 값 마스킹: 마지막 3자리만 보여주고 앞은 * 처리 */

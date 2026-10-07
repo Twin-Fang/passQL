@@ -7,16 +7,16 @@
 
 <th:block layout:fragment="content">
 
-    <!-- 헤더 바 -->
-    <div class="flex items-center gap-3 mb-4">
+    <!-- 헤더 바 — 좁은 폭에서는 줄바꿈해 가로 넘침을 막는다 (#409) -->
+    <div class="flex flex-wrap items-center gap-3 mb-4">
         <!-- 미처리만 보기 토글 -->
         <label class="flex items-center gap-2 cursor-pointer select-none">
             <input type="checkbox" id="pendingOnly" class="toggle toggle-sm toggle-warning" checked/>
-            <span class="text-sm font-medium">미처리만 보기</span>
+            <span class="text-sm font-medium whitespace-nowrap">미처리만 보기</span>
         </label>
 
         <!-- 요약 배지 (JS로 채움) -->
-        <div id="summaryBadges" class="flex gap-2"></div>
+        <div id="summaryBadges" class="flex flex-wrap gap-2"></div>
 
         <button class="btn btn-sm btn-ghost ml-auto" onclick="loadReports()">
             <i data-lucide="refresh-cw" class="size-4"></i>새로고침
