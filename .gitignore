@@ -112,3 +112,13 @@ coverage/
 # SUH-DEVOPS-TEMPLATE: Auto-added entries
 # ====================================================================
 /.claude/settings.local.json
+
+# AI 작업 산출물(계획·설계·이슈 초안·캡처)은 로컬에서만 쓰고 레포에는 올리지 않는다.
+# 결과는 GitHub 이슈에 남기므로 중복 보관하지 않는다. (#338)
+docs/superpowers/
+docs/projectops/
+client/docs/superpowers/
+app/docs/superpowers/
+
+# 도구 업데이트 때 생기는 백업 파일
+*.bak
