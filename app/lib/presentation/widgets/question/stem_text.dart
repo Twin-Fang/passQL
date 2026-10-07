@@ -7,11 +7,12 @@ import '../../../core/text_styles.dart';
 /// 지문 안의 ```lang ... ``` 블록 분리용 정규식.
 final RegExp _fenceRe = RegExp(r'```[A-Za-z]*\r?\n?([\s\S]*?)```');
 
-/// 목록 미리보기용: 코드 펜스 표시(```sql, ```)만 걷어내고 내용은 한 줄로 합친다.
+/// 목록 미리보기용: 코드 펜스(```sql, ```)와 인라인 백틱을 걷어내고 내용은 한 줄로 합친다.
 /// 잘린 미리보기는 닫는 펜스가 없을 수 있어 남은 ``` 도 함께 지운다.
 String stripCodeFences(String text) {
   return text
       .replaceAll(RegExp(r'```[A-Za-z]*'), '')
+      .replaceAll('`', '')
       .replaceAll(RegExp(r'\s*\n\s*'), ' ')
       .trim();
 }
@@ -30,14 +31,7 @@ class StemText extends StatelessWidget {
     void addText(String raw) {
       final t = raw.trim();
       if (t.isEmpty) return;
-      children.add(
-        Text(
-          t,
-          style: AppTextStyles.paragraph_14.copyWith(
-            color: AppColors.textPrimary,
-          ),
-        ),
-      );
+      children.add(InlineCodeText(t));
     }
 
     for (final m in _fenceRe.allMatches(stem)) {
@@ -55,9 +49,12 @@ class StemText extends StatelessWidget {
       if (i > 0) spaced.add(SizedBox(height: 12.h));
       spaced.add(children[i]);
     }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: spaced,
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: spaced,
+      ),
     );
   }
 }
@@ -81,12 +78,49 @@ class _CodeBox extends StatelessWidget {
         code,
         style: AppTextStyles.paragraph_14.copyWith(
           color: AppColors.textPrimary,
-          fontFamily: 'Menlo',
-          fontFamilyFallback: const ['Courier', 'monospace'],
+          fontFamily: 'JetBrainsMono',
           fontSize: 12.sp,
           height: 1.5,
         ),
       ),
     );
+  }
+}
+
+/// 인라인 코드(`키워드`)를 고정폭 + 연한 배경으로 강조하는 일반 글.
+/// 백틱은 표시하지 않는다. 짝이 맞지 않는 백틱은 글자 그대로 둔다.
+class InlineCodeText extends StatelessWidget {
+  const InlineCodeText(this.text, {super.key, this.style});
+
+  final String text;
+  final TextStyle? style;
+
+  static final RegExp _inlineRe = RegExp(r'`([^`\n]+)`');
+
+  @override
+  Widget build(BuildContext context) {
+    final base =
+        style ??
+        AppTextStyles.paragraph_14.copyWith(color: AppColors.textPrimary);
+    final spans = <InlineSpan>[];
+    var cursor = 0;
+    for (final m in _inlineRe.allMatches(text)) {
+      if (m.start > cursor) {
+        spans.add(TextSpan(text: text.substring(cursor, m.start)));
+      }
+      spans.add(
+        TextSpan(
+          text: m.group(1),
+          style: TextStyle(
+            fontFamily: 'JetBrainsMono',
+            fontSize: (base.fontSize ?? 14) * 0.92,
+            backgroundColor: AppColors.black100,
+          ),
+        ),
+      );
+      cursor = m.end;
+    }
+    if (cursor < text.length) spans.add(TextSpan(text: text.substring(cursor)));
+    return Text.rich(TextSpan(style: base, children: spans));
   }
 }

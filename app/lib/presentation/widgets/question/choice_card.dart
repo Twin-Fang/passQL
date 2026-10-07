@@ -1,3 +1,4 @@
+import 'stem_text.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -73,12 +74,7 @@ class ChoiceCard extends StatelessWidget {
                   ? _SqlBody(sql: item.body, isSelected: isSelected)
                   : resultRows != null
                   ? ResultRowsTable(rows: resultRows)
-                  : Text(
-                      item.body,
-                      style: AppTextStyles.paragraph_14.copyWith(
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
+                  : InlineCodeText(item.body),
             ),
           ],
         ),
