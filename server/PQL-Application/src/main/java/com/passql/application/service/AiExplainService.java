@@ -44,8 +44,17 @@ public class AiExplainService {
     // 같은 문제·같은 선택은 해설이 같으므로 하루 동안 재사용해 호출 비용을 줄인다.
     private static final long CACHE_TTL_HOURS = 24;
 
-    /** 해설 형식 지시. DB 프롬프트 뒤에 붙여 모바일에서 읽기 좋은 길이로 맞춘다. */
-    private static final String FORMAT_GUIDE = """
+    /**
+     * 답변 규칙. DB 프롬프트(system) 뒤 사용자 프롬프트 끝에 붙인다.
+     * lite 모델 3종 비교(#356)에서 이 규칙을 넣었을 때 '옳지 않은 것' 문제의 방향 오해와 엉뚱한 팁이 사라졌다.
+     */
+    private static final String ANSWER_RULES = """
+
+            [답변 규칙]
+            - 문제가 '옳지 않은 것', '틀린 것', '나머지와 다른 것'을 묻는 경우: 정답 선택지가 '틀린 설명/결과가 다른 쿼리'이다. 학습자가 고른 선택지는 왜 답이 될 수 없는지(옳은 설명이거나 결과가 같은 이유)를 설명한다.
+            - 샘플 데이터가 있으면 실제 행을 근거로 결과를 비교한다.
+            - 이 문제와 직접 관련된 개념만 설명하고 다른 주제 팁은 덧붙이지 않는다.
+            - 수식 기호(LaTeX, $ 기호)는 쓰지 않는다.
 
             [답변 형식]
             - 한국어, 마크다운 사용 가능
@@ -81,7 +90,7 @@ public class AiExplainService {
         if (cached != null) return new AiResult(cached, 0);
 
         PromptTemplate prompt = promptService.getActivePrompt(PROMPT_DIFF);
-        String userPrompt = buildDiffPrompt(question, selected, correct, selectedKey);
+        String userPrompt = buildDiffPrompt(question, items, selected, correct, selectedKey);
         String text = call(prompt, userPrompt, "diffExplain", questionUuid);
         writeCache(cacheKey, text);
         return new AiResult(text, prompt.getVersion());
@@ -102,6 +111,9 @@ public class AiExplainService {
                 테이블 구조:
                 %s
 
+                샘플 데이터:
+                %s
+
                 학습자가 실행한 SQL:
                 %s
 
@@ -109,42 +121,49 @@ public class AiExplainService {
                 %s
 
                 오류가 난 원인과 고치는 방법을 설명해 주세요.
-                """.formatted(nz(question.getStem()), nz(question.getSchemaDdl()), nz(sql), nz(errorMessage))
-                + FORMAT_GUIDE;
+                """.formatted(nz(question.getStem()), nz(question.getSchemaDdl()), nz(question.getSchemaSampleData()),
+                        nz(sql), nz(errorMessage))
+                + ANSWER_RULES;
         String text = call(prompt, userPrompt, "explainError", questionUuid);
         writeCache(cacheKey, text);
         return new AiResult(text, prompt.getVersion());
     }
 
-    /** 고른 답과 정답을 함께 보여 주고 비교 해설을 요청한다. 세트를 못 찾으면 문제 정보만으로 설명한다. */
-    private String buildDiffPrompt(Question q, QuestionChoiceSetItem selected, QuestionChoiceSetItem correct, String selectedKey) {
+    /**
+     * 문제·샘플 데이터·전체 선택지·고른 답·정답을 함께 넘긴다.
+     * 전체 선택지와 샘플 데이터가 있어야 '나머지와 다른 것' 같은 문제를 실제 결과로 비교할 수 있다(#356 실험).
+     */
+    private String buildDiffPrompt(Question q, List<QuestionChoiceSetItem> items,
+                                   QuestionChoiceSetItem selected, QuestionChoiceSetItem correct, String selectedKey) {
         StringBuilder sb = new StringBuilder();
         sb.append("문제: ").append(nz(q.getStem())).append("\n\n");
-        if (q.getSchemaDdl() != null && !q.getSchemaDdl().isBlank()) {
-            sb.append("테이블 구조:\n").append(q.getSchemaDdl()).append("\n\n");
-        }
-        if (q.getAnswerSql() != null && !q.getAnswerSql().isBlank()) {
-            sb.append("정답 SQL:\n").append(q.getAnswerSql()).append("\n\n");
-        }
-        if (selected != null) {
-            sb.append("학습자가 고른 선택지(").append(selected.getChoiceKey()).append("):\n")
-              .append(nz(selected.getBody())).append("\n\n");
-        } else if (selectedKey != null) {
-            sb.append("학습자가 고른 선택지: ").append(selectedKey).append("\n\n");
-        }
-        if (correct != null) {
-            sb.append("정답 선택지(").append(correct.getChoiceKey()).append("):\n")
-              .append(nz(correct.getBody())).append("\n");
-            if (correct.getRationale() != null && !correct.getRationale().isBlank()) {
-                sb.append("정답 근거(참고): ").append(correct.getRationale()).append("\n");
+        appendIfPresent(sb, "테이블 구조", q.getSchemaDdl());
+        appendIfPresent(sb, "샘플 데이터", q.getSchemaSampleData());
+        appendIfPresent(sb, "기준 SQL", q.getAnswerSql());
+        if (!items.isEmpty()) {
+            sb.append("선택지 전체:\n");
+            for (QuestionChoiceSetItem i : items) {
+                sb.append(i.getChoiceKey()).append(". ").append(nz(i.getBody())).append("\n");
             }
             sb.append("\n");
         }
+        String sel = selected != null ? selected.getChoiceKey() : selectedKey;
+        if (sel != null) sb.append("학습자가 고른 선택지: ").append(sel).append("\n");
+        if (correct != null) {
+            sb.append("정답 선택지: ").append(correct.getChoiceKey()).append("\n");
+            if (correct.getRationale() != null && !correct.getRationale().isBlank()) {
+                sb.append("정답 근거(참고): ").append(correct.getRationale()).append("\n");
+            }
+        }
         boolean isCorrect = selected != null && correct != null && selected.getChoiceKey().equals(correct.getChoiceKey());
-        sb.append(isCorrect
-                ? "학습자는 정답을 골랐습니다. 이 선택지가 왜 맞는지, 다른 선택지와 무엇이 다른지 설명해 주세요."
-                : "학습자가 고른 선택지가 왜 틀렸는지, 정답 선택지가 왜 맞는지 비교해서 설명해 주세요.");
-        return sb + FORMAT_GUIDE;
+        sb.append("\n").append(isCorrect
+                ? "학습자는 정답을 골랐습니다. 이 선택지가 왜 답인지, 다른 선택지와 무엇이 다른지 설명해 주세요."
+                : "학습자가 고른 선택지가 왜 답이 아닌지, 정답 선택지가 왜 답인지 비교해서 설명해 주세요.");
+        return sb + ANSWER_RULES;
+    }
+
+    private static void appendIfPresent(StringBuilder sb, String label, String value) {
+        if (value != null && !value.isBlank()) sb.append(label).append(":\n").append(value).append("\n\n");
     }
 
     private String call(PromptTemplate prompt, String userPrompt, String kind, UUID questionUuid) {
@@ -154,8 +173,8 @@ public class AiExplainService {
                     // DB 프롬프트에 줄바꿈이 '\n' 글자로 저장된 경우가 있어 실제 줄바꿈으로 바꾼다.
                     prompt.getSystemPrompt().replace("\\n", "\n"),
                     userPrompt,
-                    prompt.getTemperature() != null ? prompt.getTemperature() : 0.5f,
-                    prompt.getMaxTokens() != null ? Math.max(prompt.getMaxTokens(), 768) : 768);
+                    prompt.getTemperature() != null ? prompt.getTemperature() : 0.3f,
+                    prompt.getMaxTokens() != null ? Math.max(prompt.getMaxTokens(), 1024) : 1024);
             if (text == null || text.isBlank()) throw new IllegalStateException("빈 응답");
             return text.trim();
         } catch (Exception e) {

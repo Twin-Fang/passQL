@@ -78,7 +78,9 @@ class AiExplainServiceTest {
         assertEquals("튜터\n입니다", sys.getValue(), "DB 프롬프트의 '\\n' 글자를 줄바꿈으로 바꾼다");
         assertTrue(user.getValue().contains("오답 결과표"));
         assertTrue(user.getValue().contains("정답 결과표"));
-        assertTrue(user.getValue().contains("왜 틀렸는지"));
+        assertTrue(user.getValue().contains("왜 답이 아닌지"));
+        assertTrue(user.getValue().contains("선택지 전체"), "전체 선택지를 넘겨 결과를 비교하게 한다");
+        assertTrue(user.getValue().contains("옳지 않은 것"), "문제 방향 규칙을 붙인다");
         verify(ops).set(anyString(), eq("C는 동점 처리가 다릅니다."), anyLong(), any());
     }
 
