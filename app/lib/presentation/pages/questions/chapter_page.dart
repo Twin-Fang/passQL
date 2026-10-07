@@ -1,3 +1,4 @@
+import '../../widgets/question/stem_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -459,11 +460,7 @@ class _StemSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: AppColors.borderDefault),
       ),
-      child: Text(
-        stem,
-        style: AppTextStyles.paragraph_14
-            .copyWith(color: AppColors.textPrimary),
-      ),
+      child: StemText(stem),
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/app_colors.dart';
 import '../../../core/text_styles.dart';
 import '../../../core/network/api_providers.dart';
+import 'markdown_lite_text.dart';
 
 /// AI 해설 바텀시트. questionUuid와 요청 payload를 받아 AI 해설을 표시.
 /// isErrorExplain=true: explain-error 엔드포인트
@@ -109,11 +110,7 @@ class _AiExplainSheetState extends ConsumerState<AiExplainSheet> {
                         : SingleChildScrollView(
                             controller: scrollController,
                             padding: EdgeInsets.all(20.w),
-                            child: Text(
-                              _text ?? '',
-                              style: AppTextStyles.paragraph_14
-                                  .copyWith(color: AppColors.textPrimary),
-                            ),
+                            child: MarkdownLiteText(_text ?? ''),
                           ),
               ),
             ],

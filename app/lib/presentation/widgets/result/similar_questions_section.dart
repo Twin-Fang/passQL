@@ -1,3 +1,4 @@
+import '../question/stem_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -101,7 +102,7 @@ class _SimilarCard extends StatelessWidget {
                     ),
                   SizedBox(height: 4.h),
                   Text(
-                    question.stem ?? '문제 보기',
+                    stripCodeFences(question.stem ?? '문제 보기'),
                     style: AppTextStyles.paragraph_14
                         .copyWith(color: AppColors.textPrimary),
                     maxLines: 2,
