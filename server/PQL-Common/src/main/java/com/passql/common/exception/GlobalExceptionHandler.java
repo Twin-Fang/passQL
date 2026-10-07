@@ -31,8 +31,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ErrorResponse> handleCustomException(CustomException e, HttpServletRequest request) {
         String errorCode = e.getErrorCode() != null ? e.getErrorCode().name() : null;
-        log.error("[예외 처리] CustomException 발생: errorCode={}, message={}, path={}, method={}",
-            errorCode, e.getMessage(), request.getRequestURI(), request.getMethod());
+        // 4xx는 클라이언트 요청 문제라 WARN, 5xx만 ERROR — 실제 장애가 묻히지 않게 한다 (#395)
+        if (e.getStatus() != null && e.getStatus().is5xxServerError()) {
+            log.error("[예외 처리] CustomException 발생: errorCode={}, message={}, path={}, method={}",
+                errorCode, e.getMessage(), request.getRequestURI(), request.getMethod());
+        } else {
+            log.warn("[예외 처리] CustomException 발생: errorCode={}, message={}, path={}, method={}",
+                errorCode, e.getMessage(), request.getRequestURI(), request.getMethod());
+        }
         ErrorResponse errorResponse = ErrorResponse.builder()
             .errorCode(errorCode)
             .message(e.getMessage())
@@ -43,7 +49,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
         IllegalArgumentException e, HttpServletRequest request) {
-        log.error("IllegalArgumentException 발생: {}", e.getMessage(), e);
+        log.warn("IllegalArgumentException 발생: path={}, message={}", request.getRequestURI(), e.getMessage());
         ErrorResponse errorResponse = ErrorResponse.builder()
             .errorCode("ILLEGAL_ARGUMENT")
             .message(e.getMessage())
@@ -59,7 +65,7 @@ public class GlobalExceptionHandler {
             .stream()
             .map(DefaultMessageSourceResolvable::getDefaultMessage)
             .collect(Collectors.joining(", "));
-        log.error("[예외 처리] Validation 실패: message={}, path={}, method={}",
+        log.warn("[예외 처리] Validation 실패: message={}, path={}, method={}",
             errorMessage, request.getRequestURI(), request.getMethod());
         ErrorResponse errorResponse = ErrorResponse.builder()
             .errorCode("VALIDATION_ERROR")
@@ -84,7 +90,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMissingServletRequestParameterException(
         MissingServletRequestParameterException e, HttpServletRequest request)
         throws MissingServletRequestParameterException {
-        log.error("MissingServletRequestParameterException 발생: {}", e.getMessage());
+        log.warn("MissingServletRequestParameterException 발생: path={}, message={}", request.getRequestURI(), e.getMessage());
         ErrorResponse errorResponse = ErrorResponse.builder()
             .errorCode("MISSING_PARAMETER")
             .message("필수 파라미터가 누락되었습니다: " + e.getParameterName())
@@ -95,7 +101,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(
         MethodArgumentTypeMismatchException e, HttpServletRequest request) {
-        log.error("MethodArgumentTypeMismatchException 발생: {}", e.getMessage());
+        log.warn("MethodArgumentTypeMismatchException 발생: path={}, message={}", request.getRequestURI(), e.getMessage());
         ErrorResponse errorResponse = ErrorResponse.builder()
             .errorCode("TYPE_MISMATCH")
             .message(String.format("파라미터 '%s'의 값 '%s'가 올바른 형식이 아닙니다", e.getName(), e.getValue()))
@@ -106,7 +112,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoHandlerFoundException(
         NoHandlerFoundException e, HttpServletRequest request) throws NoHandlerFoundException {
-        log.error("NoHandlerFoundException 발생: {}", e.getMessage());
+        log.warn("NoHandlerFoundException 발생: {}", e.getMessage());
         ErrorResponse errorResponse = ErrorResponse.builder()
             .errorCode("NOT_FOUND")
             .message(String.format("요청하신 리소스를 찾을 수 없습니다: %s %s", e.getHttpMethod(), e.getRequestURL()))
