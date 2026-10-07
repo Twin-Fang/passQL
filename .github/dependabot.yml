@@ -1,0 +1,44 @@
+# 의존성 업데이트 자동 PR 설정
+# - 월 1회, 생태계별로 마이너·패치를 한 PR로 묶어 PR 폭주를 막는다
+# - 메이저 업데이트는 호환성 검토가 필요하므로 개별 PR로 받는다
+version: 2
+updates:
+  # Backend (Spring 멀티모듈)
+  - package-ecosystem: "gradle"
+    directory: "/server"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    groups:
+      server-minor-patch:
+        update-types: ["minor", "patch"]
+
+  # Frontend (React + Vite)
+  - package-ecosystem: "npm"
+    directory: "/client"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    groups:
+      client-minor-patch:
+        update-types: ["minor", "patch"]
+
+  # App (Flutter)
+  - package-ecosystem: "pub"
+    directory: "/app"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    groups:
+      app-minor-patch:
+        update-types: ["minor", "patch"]
+
+  # AI Server (FastAPI, pyproject.toml)
+  - package-ecosystem: "pip"
+    directory: "/ai"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    groups:
+      ai-minor-patch:
+        update-types: ["minor", "patch"]
