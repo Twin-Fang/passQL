@@ -3,6 +3,7 @@ package com.passql.web.config;
 import com.passql.member.auth.presentation.security.JwtAuthenticationFilter;
 import com.passql.member.auth.infrastructure.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -30,6 +31,10 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
+
+    // 허용 Origin — 운영 웹·Vercel 미리보기·로컬 개발만. 모바일 앱은 Origin을 보내지 않아 무관 (#394)
+    @Value("${cors.allowed-origin-patterns:https://passql.vercel.app,https://passql-*.vercel.app,http://localhost:*,http://127.0.0.1:*}")
+    private List<String> allowedOriginPatterns;
 
     @Bean
     @Order(2)
@@ -67,7 +72,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedOriginPatterns(allowedOriginPatterns);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
