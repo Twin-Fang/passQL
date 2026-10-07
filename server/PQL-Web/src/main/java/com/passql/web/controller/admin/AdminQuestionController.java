@@ -161,6 +161,8 @@ public class AdminQuestionController {
     public String delete(@PathVariable UUID uuid, RedirectAttributes redirectAttributes) {
         try {
             adminQuestionDeleteService.deleteQuestionCascade(uuid);
+            // 커밋 뒤 벡터 정리 — 남기면 추천 결과에 삭제된 문제가 섞인다 (#412)
+            questionGenerateService.pruneIndex();
             redirectAttributes.addFlashAttribute("successMessage", "문제가 삭제되었습니다.");
         } catch (CustomException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
@@ -177,6 +179,8 @@ public class AdminQuestionController {
             @RequestBody ExportRequest request) {
         AdminQuestionDeleteService.BulkDeleteResult result =
                 adminQuestionDeleteService.bulkDeleteQuestions(request.questionUuids());
+        // 문제마다가 아니라 일괄삭제 끝에 한 번만 정리한다 (#412)
+        if (result.deleted() > 0) questionGenerateService.pruneIndex();
         return ResponseEntity.ok(result);
     }
 

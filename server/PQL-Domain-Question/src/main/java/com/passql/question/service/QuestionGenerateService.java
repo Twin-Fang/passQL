@@ -233,6 +233,22 @@ public class QuestionGenerateService {
     }
 
     /**
+     * 활성 문제에 없는 Qdrant 벡터(삭제·비활성 문제)를 정리한다 (#412).
+     * 문제 삭제 직후와 전체 재색인 뒤에 호출한다. 활성 문제가 0개면 컬렉션을 비우게 되므로 건너뛴다.
+     *
+     * @return 정리 결과, 건너뛰었거나 AI 서버 실패면 null
+     */
+    @Transactional(readOnly = true)
+    public PruneIndexResult pruneIndex() {
+        List<String> activeUuids = questionRepository.findAllActiveQuestionUuids();
+        if (activeUuids.isEmpty()) {
+            log.warn("[prune-index] 활성 문제 0개 — 정리 건너뜀");
+            return null;
+        }
+        return aiGatewayClient.pruneIndex(new IndexStatusRequest(activeUuids));
+    }
+
+    /**
      * 선택한 문제 UUID 목록을 Qdrant에 재색인한다 (관리자 "선택 색인" 버튼용).
      * 타임아웃 문제를 방지하기 위해 1개씩 순차 전송한다.
      * 존재하지 않는 UUID는 조용히 스킵한다.

@@ -24,6 +24,7 @@ from src.models.ai_response import (
     IndexQuestionResponse,
     IndexQuestionsBulkResponse,
     IndexStatusResponse,
+    PruneIndexResponse,
     RecommendResponse,
     SimilarResponse,
     TestPromptResponse,
@@ -341,3 +342,32 @@ async def index_status(
     except Exception as e:
         logger.error(f"[index-status] 예기치 않은 오류: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="서버 내부 오류가 발생했습니다")
+
+
+@router.post(
+    "/prune-index",
+    response_model=PruneIndexResponse,
+    status_code=200,
+)
+async def prune_index(
+    request: IndexStatusRequest,
+    _: None = Depends(verify_api_key),
+):
+    """
+    활성 문제 UUID 목록에 없는 Qdrant 포인트(고아 벡터)를 삭제한다 (#412).
+
+    - POST /api/ai/prune-index
+    - Header: X-API-Key: {AI_SERVER_API_KEY}
+    - Body: IndexStatusRequest (Java의 활성 문제 UUID 전체)
+    - 성공: 200 + PruneIndexResponse
+    """
+    logger.info(f"[prune-index] keep_count={len(request.question_uuids)}")
+    try:
+        return await ai_service.prune_index(request)
+    except CustomError as e:
+        logger.error(f"[prune-index] 실패: {e.message}")
+        raise HTTPException(status_code=500, detail=e.message)
+    except Exception as e:
+        logger.error(f"[prune-index] 예기치 않은 오류: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="서버 내부 오류가 발생했습니다")
+

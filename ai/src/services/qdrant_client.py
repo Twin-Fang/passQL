@@ -371,6 +371,28 @@ class QdrantSearchClient:
             logger.error(f"Qdrant upsert 예기치 않은 오류: {e}")
             raise CustomError(f"Qdrant upsert 예기치 않은 오류: {e}")
 
+    async def delete_points(self, collection: str, point_ids: list[str]) -> None:
+        """
+        Qdrant 컬렉션에서 포인트를 ID로 삭제한다 (고아 벡터 정리용).
+
+        Raises:
+            CustomError: API 호출 실패 시
+        """
+        if not point_ids:
+            return
+        url = f"{self.base_url}/collections/{collection}/points/delete?wait=true"
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(url, json={"points": point_ids}, headers=self._headers())
+                response.raise_for_status()
+            logger.info(f"[qdrant] delete_points 완료: collection={collection}, count={len(point_ids)}")
+        except httpx.HTTPStatusError as e:
+            logger.error(f"[qdrant] delete_points HTTP 오류: {e.response.status_code} - {e.response.text}")
+            raise CustomError(f"Qdrant delete_points HTTP 오류: {e.response.status_code}")
+        except httpx.RequestError as e:
+            logger.error(f"[qdrant] delete_points 요청 오류: {e}")
+            raise CustomError(f"Qdrant delete_points 요청 오류: {e}")
+
 
 # 싱글턴 인스턴스
 qdrant_search_client = QdrantSearchClient()
