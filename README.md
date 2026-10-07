@@ -1,22 +1,43 @@
 <div align="center">
 
+<img src="https://raw.githubusercontent.com/Twin-Fang/passQL/gh-pages/icon/mark.png" width="96" alt="passQL" />
+
 # passQL
 
 **읽는 SQL 공부는 끝. 이제 직접 실행하며 합격하세요.**
 
-> AI가 정답 실행결과를 보고 함정 오답을 역설계합니다.
-> 당신은 SQLD 시험과 동일한 Oracle SQL 환경에서 직접 실행하며 검증합니다.
+SQLD·SQLP 수험생을 위한 AI 실행형 SQL 학습 서비스 — 문제은행이 아니라, 실행형 훈련기입니다.
 
-<!-- AUTO-VERSION-SECTION: DO NOT EDIT MANUALLY -->
-## 최신 버전 : v0.0.242 (2026-10-07)
+AI가 함정 오답을 만들고, 실행형 문제는 모든 선택지를 **PostgreSQL 샌드박스**에서 실제로 실행해 정답이 하나인지 검증합니다.
+<sub>`NVL`·`SYSDATE` 같은 Oracle 함수는 PostgreSQL 문법으로 자동 변환합니다. 변환할 수 없는 Oracle 전용 문법은 개념 문제로 출제합니다.</sub>
 
-[전체 버전 기록 보기](CHANGELOG.md)
+[**웹에서 바로 써보기**](https://passql.vercel.app/)
 
-[**Live Demo**](https://passql.vercel.app/) · [**Admin**](https://api.passql.suhsaechan.kr/admin/questions) · [**API Docs**](https://api.passql.suhsaechan.kr/docs/swagger-ui/index.html)
+[![Web](https://img.shields.io/badge/Web-Live-2ea44f)](https://passql.vercel.app/)
+[![API Docs](https://img.shields.io/badge/API-Swagger-85EA2D)](https://api.passql.suhsaechan.kr/docs/swagger-ui/index.html)
+[![License](https://img.shields.io/badge/license-source--available-lightgrey)](LICENSE)
+
+**문제 192개** (직접 실행하는 실행형 93 · 개념형 99) · **SQLD 출제 토픽 9개**
+<sub>운영 DB 기준, 2026-10-08 측정</sub>
+<!-- TODO: 스토어 공개 후 배지 추가
+ · [Google Play](PLAY_STORE_URL) · [App Store](APP_STORE_URL) -->
+
+<table>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/gh-pages/shots/home.jpg" width="200" alt="홈" /></td>
+    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/gh-pages/shots/questions.jpg" width="200" alt="문제 목록" /></td>
+    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/gh-pages/shots/detail.jpg" width="200" alt="문제 풀이와 실행 결과" /></td>
+    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/gh-pages/shots/rank.jpg" width="200" alt="오늘의 순위" /></td>
+  </tr>
+  <tr align="center">
+    <td>홈</td><td>문제</td><td>직접 실행·채점</td><td>오늘의 순위</td>
+  </tr>
+</table>
 
 </div>
 
 ---
+
 
 ## passQL은 무엇인가
 
@@ -89,6 +110,39 @@ AI가 정답 SQL을 실행하고, 그 결과를 보고 수험생이 헷갈리기
 | **Vector Search** | bge-m3 · Qdrant |
 | **Database** | PostgreSQL · Redis |
 | **Infra / CI** | Synology NAS · Docker · GitHub Actions |
+
+---
+
+## 로컬에서 돌려보기
+
+스택별 실행 방법은 각 폴더의 안내를 따릅니다.
+
+| 스택 | 폴더 | 안내 |
+|---|---|---|
+| Web | `client/` | [client/CLAUDE.md](client/CLAUDE.md) |
+| Backend | `server/` | [server/CLAUDE.md](server/CLAUDE.md) |
+| AI Server | `ai/` | [ai/CLAUDE.md](ai/CLAUDE.md) |
+| App | `app/` | [app/CLAUDE.md](app/CLAUDE.md) |
+
+```bash
+# Web (client/.env.example 을 복사해 .env 작성)
+cd client && npm install && npm run dev
+
+# AI Server (ai/CLAUDE.md 의 환경변수 필요)
+cd ai && uvicorn src.main:app --reload
+
+# App (app/.env 에 BACKEND_BASE_URL 필요)
+cd app && flutter run -d <기기>
+```
+
+Backend(Spring)는 PostgreSQL·Redis·Qdrant와 Gemini API 키가 필요합니다. 설정은 [server/CLAUDE.md](server/CLAUDE.md)를 따릅니다.
+
+---
+
+<!-- AUTO-VERSION-SECTION: DO NOT EDIT MANUALLY -->
+## 최신 버전 : v0.0.242 (2026-10-07)
+
+[전체 버전 기록 보기](CHANGELOG.md) · [Admin](https://api.passql.suhsaechan.kr/admin/questions) · [API Docs](https://api.passql.suhsaechan.kr/docs/swagger-ui/index.html)
 
 ---
 
