@@ -24,7 +24,7 @@ dependencies:
   # UI/UX
   flutter_screenutil: ^5.9.3
   flutter_svg: ^2.2.1
-  shimmer: ^3.0.0
+  shimmer: ^4.0.0
   font_awesome_flutter: ^11.0.0
   # 차트
   fl_chart: ^0.70.0
