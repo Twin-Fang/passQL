@@ -1,0 +1,194 @@
+/* passQL — 앱과 같은 톤 (이슈 #359)
+   색은 앱의 AppColors(pageBg, brandIndigo)에서 가져왔다. */
+
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+
+:root {
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --surface-2: #f3f4f6;
+  --line: #e5e7eb;
+  --text: #111827;
+  --muted: #6b7280;
+  --dim: #9ca3af;
+  --mint: #4f46e5;
+  --amber: #4f46e5;
+  --radius: 20px;
+  --max: 1080px;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Pretendard Variable", Pretendard, -apple-system, system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+}
+
+a { color: var(--mint); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.wrap { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+.narrow { max-width: 760px; }
+
+/* ── 상단 바 ── */
+.nav {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(250, 250, 250, 0.85);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+.nav-in {
+  max-width: var(--max); margin: 0 auto; padding: 14px 24px;
+  display: flex; align-items: center; gap: 12px;
+}
+.nav-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--text); }
+.nav-brand:hover { text-decoration: none; }
+.brand-mark { display: block; width: 24px; height: 24px; border-radius: 6px; }
+.nav-links { margin-left: auto; display: flex; gap: 22px; font-size: 15px; }
+.nav-links a { color: var(--muted); }
+.nav-links a:hover { color: var(--text); text-decoration: none; }
+
+/* ── 첫 화면 ── */
+.hero { padding: 92px 0 80px; position: relative; overflow: hidden; }
+.hero::before {
+  content: ""; position: absolute; left: 50%; top: -220px;
+  width: 760px; height: 560px; transform: translateX(-50%);
+  background: radial-gradient(closest-side, rgba(79, 70, 229, 0.16), transparent 72%);
+  pointer-events: none;
+}
+.hero-in { position: relative; display: grid; grid-template-columns: 1fr 340px; gap: 64px; align-items: center; }
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 15px; border-radius: 999px;
+  background: rgba(79, 70, 229, 0.1); border: 1px solid rgba(79, 70, 229, 0.24);
+  color: var(--mint); font-size: 14px; font-weight: 600;
+}
+h1 {
+  margin: 22px 0 0; font-size: 56px; line-height: 1.16;
+  letter-spacing: -1.8px; font-weight: 800;
+}
+h1 .hl { color: var(--mint); }
+.lead { margin: 22px 0 0; font-size: 19px; color: var(--muted); max-width: 30em; }
+.cta { margin-top: 34px; display: flex; gap: 12px; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 14px 26px; border-radius: 14px; font-weight: 700; font-size: 16px;
+}
+.btn-primary { background: var(--amber); color: #ffffff; }
+.btn-primary:hover { text-decoration: none; filter: brightness(1.06); }
+.btn-ghost { border: 1px solid var(--line); color: var(--text); }
+.btn-ghost:hover { text-decoration: none; background: var(--surface); }
+.note { margin-top: 14px; font-size: 14px; color: var(--dim); }
+
+.phone {
+  border-radius: 34px; overflow: hidden; border: 1px solid var(--line);
+  box-shadow: 0 24px 60px rgba(17, 24, 39, 0.16);
+  background: var(--surface); display: block;
+  /* height:auto 가 없으면 html 의 height="1080" 속성이 높이를 못박아,
+     폭만 줄고 높이는 그대로라 세로로 늘어난다 (실측 0.45 → 0.307) */
+  width: 100%; height: auto;
+}
+
+/* ── 핵심 가치 ── */
+.pitch { padding: 56px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--surface); }
+.pitch p { margin: 0; font-size: 26px; line-height: 1.55; font-weight: 600; letter-spacing: -0.6px; }
+.pitch .sub { margin-top: 16px; font-size: 17px; font-weight: 400; color: var(--muted); }
+
+/* ── 섹션 ── */
+section { padding: 88px 0; }
+h2 { font-size: 34px; letter-spacing: -1px; margin: 0 0 12px; font-weight: 800; }
+.sec-lead { margin: 0 0 44px; color: var(--muted); font-size: 17px; }
+
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.card {
+  padding: 28px; border-radius: var(--radius);
+  background: var(--surface); border: 1px solid var(--line);
+}
+.card h3 { margin: 16px 0 8px; font-size: 19px; font-weight: 700; }
+.card p { margin: 0; color: var(--muted); font-size: 16px; }
+.ico {
+  width: 42px; height: 42px; border-radius: 12px;
+  background: rgba(79, 70, 229, 0.11); color: var(--mint);
+  display: grid; place-items: center;
+}
+
+/* ── 화면 모음 ── */
+/* 한 줄에 3장. 요즘 폰이 9:20 이라 4장을 늘어놓으면 장당 폭이 좁아져
+   과하게 길쭉해 보인다 */
+.shots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.shot figcaption { margin-top: 12px; font-size: 14px; color: var(--dim); text-align: center; }
+
+/* ── 개인정보 강조 ── */
+.privacy-box {
+  padding: 40px; border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(79, 70, 229, 0.07), rgba(79, 70, 229, 0.02));
+  border: 1px solid rgba(79, 70, 229, 0.2);
+}
+.privacy-box h2 { margin-bottom: 14px; }
+.plist { margin: 22px 0 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.plist li { display: flex; gap: 12px; align-items: flex-start; color: var(--muted); }
+.plist .tick { color: var(--mint); flex-shrink: 0; margin-top: 3px; }
+
+/* ── 바닥 ── */
+footer { border-top: 1px solid var(--line); padding: 44px 0 64px; color: var(--dim); font-size: 15px; }
+.foot-in { display: flex; gap: 26px; flex-wrap: wrap; align-items: center; }
+.foot-in .sp { margin-left: auto; }
+
+/* ── 문서(처리방침) ── */
+.doc { padding: 56px 0 96px; }
+.doc h1 { font-size: 40px; margin: 0; }
+.doc .sub { color: var(--muted); margin: 10px 0 0; }
+.doc h2 {
+  font-size: 22px; margin: 52px 0 14px; padding-top: 22px;
+  border-top: 1px solid var(--line); letter-spacing: -0.4px;
+}
+.doc h3 { font-size: 17px; margin: 28px 0 8px; color: var(--mint); }
+.doc p, .doc li { color: var(--muted); }
+.doc strong { color: var(--text); }
+.doc ul { padding-left: 20px; }
+.doc table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 15px; }
+.doc th, .doc td {
+  text-align: left; padding: 12px 14px;
+  border-bottom: 1px solid var(--line); vertical-align: top;
+}
+.doc th { color: var(--text); font-weight: 600; background: var(--surface); }
+.doc td { color: var(--muted); }
+.callout {
+  margin: 26px 0; padding: 22px 24px; border-radius: 14px;
+  background: rgba(79, 70, 229, 0.07); border: 1px solid rgba(79, 70, 229, 0.2);
+}
+.callout p { color: var(--text); margin: 0; }
+.updated { margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--line); color: var(--dim); font-size: 14px; }
+
+/* ── 좁은 화면 ── */
+@media (max-width: 900px) {
+  .hero-in { grid-template-columns: 1fr; gap: 44px; }
+  .hero-art { max-width: 300px; }
+  h1 { font-size: 40px; letter-spacing: -1.2px; }
+  .grid { grid-template-columns: 1fr; }
+  .shots { grid-template-columns: repeat(2, 1fr); }
+  .pitch p { font-size: 21px; }
+  section { padding: 64px 0; }
+  .privacy-box { padding: 28px; }
+}
+
+@media (max-width: 520px) {
+  body { font-size: 16px; }
+  .wrap { padding: 0 18px; }
+  .nav-in { padding: 12px 18px; }
+  .nav-links { gap: 16px; font-size: 14px; }
+  h1 { font-size: 33px; }
+  h2 { font-size: 27px; }
+  .doc h1 { font-size: 30px; }
+  .shots { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .doc table { font-size: 14px; }
+  .doc th, .doc td { padding: 10px 8px; }
+}
