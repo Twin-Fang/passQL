@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/app_colors.dart';
+import '../../../core/topic_icons.dart';
 import '../../../core/text_styles.dart';
 import '../../../data/models/meta/topic_tree.dart';
 
@@ -31,6 +32,22 @@ class TopicCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            // 토픽 구분을 빠르게 하는 아이콘 칩(웹 카테고리 버튼과 동일한 인상)
+            Container(
+              width: 36.r,
+              height: 36.r,
+              decoration: BoxDecoration(
+                color: AppColors.accentLight,
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+              alignment: Alignment.center,
+              child: FaIcon(
+                topicIconFor(topic.code),
+                size: 16.r,
+                color: AppColors.brandIndigo,
+              ),
+            ),
+            SizedBox(height: 12.h),
             // 토픽 이름
             Text(
               topic.displayName,
