@@ -28,6 +28,12 @@ import java.util.stream.Collectors;
 @RestControllerAdvice(basePackages = "com.passql")
 public class GlobalExceptionHandler {
 
+    /**
+     * 5xx 로 응답한 예외의 요약을 담는 요청 속성. 핸들러가 응답을 만들면 예외가 필터까지 올라가지 않으므로
+     * RequestTraceFilter 가 서버 오류 기록(#440)에 원인을 남길 수 있도록 여기서 넘겨준다.
+     */
+    public static final String ERROR_DETAIL_ATTR = "passql.error.detail";
+
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ErrorResponse> handleCustomException(CustomException e, HttpServletRequest request) {
         String errorCode = e.getErrorCode() != null ? e.getErrorCode().name() : null;
@@ -35,6 +41,7 @@ public class GlobalExceptionHandler {
         if (e.getStatus() != null && e.getStatus().is5xxServerError()) {
             log.error("[예외 처리] CustomException 발생: errorCode={}, message={}, path={}, method={}",
                 errorCode, e.getMessage(), request.getRequestURI(), request.getMethod());
+            request.setAttribute(ERROR_DETAIL_ATTR, errorCode + ": " + e.getMessage());
         } else {
             log.warn("[예외 처리] CustomException 발생: errorCode={}, message={}, path={}, method={}",
                 errorCode, e.getMessage(), request.getRequestURI(), request.getMethod());

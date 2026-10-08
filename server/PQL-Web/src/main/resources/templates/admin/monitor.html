@@ -35,14 +35,16 @@
             </div>
             <div class="stat-desc">최근 24시간</div>
         </div>
-        <div class="stat bg-base-100 shadow rounded-box">
-            <div class="stat-figure text-info">
-                <i data-lucide="bot" class="size-8"></i>
+        <!-- 서버 오류(5xx·미처리 예외) — 아래 "최근 서버 오류" 표와 같은 데이터 (#440) -->
+        <a href="#server-errors" class="stat bg-base-100 shadow rounded-box hover:bg-base-200">
+            <div class="stat-figure" th:classappend="${serverErrorCount24h > 0} ? 'text-error' : 'text-success'">
+                <i data-lucide="server-crash" class="size-8"></i>
             </div>
-            <div class="stat-title text-xs">AI 호출</div>
-            <div class="stat-value text-info text-2xl" th:text="${monitorStats?.aiCallCount ?: 0}">0</div>
-            <div class="stat-desc">최근 24시간</div>
-        </div>
+            <div class="stat-title text-xs">서버 오류</div>
+            <div class="stat-value text-2xl" th:classappend="${serverErrorCount24h > 0} ? 'text-error' : 'text-success'"
+                 th:text="${serverErrorCount24h}">0</div>
+            <div class="stat-desc">최근 24시간 (5xx)</div>
+        </a>
     </div>
 
     <!-- 최근 실행 로그 -->
@@ -101,131 +103,79 @@
                         </td>
                     </tr>
 
-                    <!-- Placeholder -->
-                    <th:block th:if="${executionLogs == null}">
-                        <tr>
-                            <td class="font-mono text-xs">a1b2c3d4...</td>
-                            <td class="font-mono">42</td>
-                            <td class="font-mono font-bold">C</td>
-                            <td><span class="badge badge-xs badge-success">OK</span></td>
-                            <td class="font-mono text-xs">-</td>
-                            <td>234</td>
-                            <td class="text-xs">04-06 12:05:33</td>
-                        </tr>
-                        <tr>
-                            <td class="font-mono text-xs">e5f6g7h8...</td>
-                            <td class="font-mono">17</td>
-                            <td class="font-mono font-bold">A</td>
-                            <td><span class="badge badge-xs badge-error">ERROR</span></td>
-                            <td class="font-mono text-xs">SQL_SYNTAX</td>
-                            <td class="text-warning font-bold">4523</td>
-                            <td class="text-xs">04-06 12:03:11</td>
-                        </tr>
-                        <tr>
-                            <td class="font-mono text-xs">i9j0k1l2...</td>
-                            <td class="font-mono">5</td>
-                            <td class="font-mono font-bold">B</td>
-                            <td><span class="badge badge-xs badge-success">OK</span></td>
-                            <td class="font-mono text-xs">-</td>
-                            <td>89</td>
-                            <td class="text-xs">04-06 12:00:44</td>
-                        </tr>
-                        <tr>
-                            <td class="font-mono text-xs">m3n4o5p6...</td>
-                            <td class="font-mono">99</td>
-                            <td class="font-mono font-bold">D</td>
-                            <td><span class="badge badge-xs badge-warning">TIMEOUT</span></td>
-                            <td class="font-mono text-xs">SANDBOX_TIMEOUT</td>
-                            <td class="text-warning font-bold">5001</td>
-                            <td class="text-xs">04-06 11:58:02</td>
-                        </tr>
-                        <tr>
-                            <td class="font-mono text-xs">q7r8s9t0...</td>
-                            <td class="font-mono">33</td>
-                            <td class="font-mono font-bold">E</td>
-                            <td><span class="badge badge-xs badge-success">OK</span></td>
-                            <td class="font-mono text-xs">-</td>
-                            <td>156</td>
-                            <td class="text-xs">04-06 11:55:19</td>
-                        </tr>
-                    </th:block>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- AI 호출 현황 -->
+    <!-- 최근 서버 오류 (#440) -->
+    <div id="server-errors" class="card bg-base-100 shadow mb-4">
+        <div class="card-body p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <h3 class="card-title text-base">
+                    <i data-lucide="server-crash" class="size-5"></i>
+                    최근 서버 오류 (최근 50건)
+                </h3>
+                <span class="text-xs text-base-content/60">
+                    30일 보관 · 상세 스택은 요청 ID로 컨테이너 로그(<code>logs/*.log.gz</code>)에서 검색
+                </span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead>
+                    <tr>
+                        <th class="whitespace-nowrap">발생일시</th>
+                        <th class="whitespace-nowrap">요청 ID</th>
+                        <th class="whitespace-nowrap">회원</th>
+                        <th class="whitespace-nowrap">요청</th>
+                        <th class="whitespace-nowrap">상태</th>
+                        <th>원인</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="err : ${serverErrors}">
+                        <td class="text-xs whitespace-nowrap" th:text="${#temporals.format(err.occurredAt, 'MM-dd HH:mm:ss')}">10-08 12:00:00</td>
+                        <td class="font-mono text-xs whitespace-nowrap" th:text="${err.requestId ?: '-'}">1863ca21</td>
+                        <td class="font-mono text-xs" th:text="${err.memberId ?: '-'}">-</td>
+                        <td class="font-mono text-xs">
+                            <span class="font-bold" th:text="${err.method}">GET</span>
+                            <span class="break-all" th:text="${err.uri}">/api/x</span>
+                        </td>
+                        <td><span class="badge badge-xs badge-error" th:text="${err.status}">500</span></td>
+                        <td class="text-xs break-all max-w-md" th:text="${err.detail ?: '-'}">-</td>
+                    </tr>
+                    <tr th:if="${serverErrors.isEmpty()}">
+                        <td colspan="6" class="text-center text-base-content/50 py-8">
+                            <i data-lucide="check-circle-2" class="size-8 mx-auto mb-2 text-success"></i>
+                            <p>최근 30일 동안 기록된 서버 오류가 없습니다.</p>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI 호출 현황 — 실측값만 둔다. 미구현(-1) 카드는 화면만 차지해 제거 (#440) -->
     <div class="card bg-base-100 shadow">
         <div class="card-body p-4">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="card-title text-base">
-                    <i data-lucide="bot" class="size-5"></i>
-                    AI 호출 현황
-                </h3>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <!-- Gemini 직접 호출 (서버 기동 후 누적) -->
-                <div class="border border-base-300 rounded-lg p-4">
-                    <div class="flex items-center gap-2 mb-2">
+            <h3 class="card-title text-base mb-3">
+                <i data-lucide="bot" class="size-5"></i>
+                AI 호출 현황
+            </h3>
+            <div class="flex flex-wrap items-end gap-6">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
                         <i data-lucide="sparkles" class="size-4 text-primary"></i>
-                        <span class="font-medium text-sm">Gemini</span>
-                        <span class="badge badge-primary badge-xs">실측</span>
+                        <span class="font-medium text-sm">Gemini 호출</span>
                     </div>
                     <p class="text-2xl font-bold" th:text="${aiStats?.geminiCallCount ?: 0}">0</p>
-                    <p class="text-xs text-base-content/50 mt-1">기동 후 누적 호출</p>
                 </div>
-
-                <!-- explain_error (미구현) -->
-                <div class="border border-base-300 rounded-lg p-4 opacity-50">
-                    <div class="flex items-center gap-2 mb-2">
-                        <i data-lucide="alert-circle" class="size-4 text-error"></i>
-                        <span class="font-medium text-sm">explain_error</span>
-                        <span class="badge badge-ghost badge-xs">미구현</span>
-                    </div>
-                    <p class="text-2xl font-bold text-base-content/40">-</p>
-                    <p class="text-xs text-base-content/50 mt-1">오늘 호출 수</p>
-                    <div class="mt-3 flex items-center gap-2">
-                        <span class="text-xs text-base-content/40">성공률:</span>
-                        <span class="badge badge-ghost badge-sm">N/A</span>
-                    </div>
-                </div>
-
-                <!-- diff_explain (미구현) -->
-                <div class="border border-base-300 rounded-lg p-4 opacity-50">
-                    <div class="flex items-center gap-2 mb-2">
-                        <i data-lucide="git-compare" class="size-4 text-warning"></i>
-                        <span class="font-medium text-sm">diff_explain</span>
-                        <span class="badge badge-ghost badge-xs">미구현</span>
-                    </div>
-                    <p class="text-2xl font-bold text-base-content/40">-</p>
-                    <p class="text-xs text-base-content/50 mt-1">오늘 호출 수</p>
-                    <div class="mt-3 flex items-center gap-2">
-                        <span class="text-xs text-base-content/40">성공률:</span>
-                        <span class="badge badge-ghost badge-sm">N/A</span>
-                    </div>
-                </div>
-
-                <!-- similar / Qdrant (미구현) -->
-                <div class="border border-base-300 rounded-lg p-4 opacity-50">
-                    <div class="flex items-center gap-2 mb-2">
-                        <i data-lucide="search" class="size-4 text-info"></i>
-                        <span class="font-medium text-sm">similar (Qdrant)</span>
-                        <span class="badge badge-ghost badge-xs">미구현</span>
-                    </div>
-                    <p class="text-2xl font-bold text-base-content/40">-</p>
-                    <p class="text-xs text-base-content/50 mt-1">오늘 호출 수</p>
-                    <div class="mt-3 flex items-center gap-2">
-                        <span class="text-xs text-base-content/40">평균 k:</span>
-                        <span class="badge badge-ghost badge-sm">N/A</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-4 p-3 bg-base-200 rounded-lg text-sm text-base-content/60">
-                <i data-lucide="info" class="size-4 inline mr-1"></i>
-                Gemini 호출 수는 서버 기동 후 인메모리 누적값입니다. explain_error · diff_explain · Qdrant similar 통계는 AiService 구현 후 연결 예정입니다.
+                <p class="text-xs text-base-content/60 flex-1 min-w-48">
+                    현재 서버 컨테이너가 뜬 뒤(마지막 배포 이후) 메모리에 누적한 값이라 배포하면 0부터 다시 셉니다.
+                    AI 해설·코멘트·선택지 생성 폴백이 Gemini 를 부를 때마다 올라갑니다.
+                </p>
             </div>
         </div>
     </div>

@@ -28,7 +28,8 @@ public class AdminSecurityConfig {
     @Order(1)
     public SecurityFilterChain adminFilterChain(HttpSecurity http) throws Exception {
         http
-            .securityMatcher("/admin/**")
+            // 운영 Swagger(/docs/swagger, /docs/api-docs)는 API 전체 구조를 드러내므로 관리자 로그인 뒤로 둔다 (#440)
+            .securityMatcher("/admin/**", "/docs/**")
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/admin/login").permitAll()
                 .anyRequest().hasRole("ADMIN")
