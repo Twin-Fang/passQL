@@ -8,9 +8,10 @@
 # 정상 릴리스(develop→main PR)의 버전 증가는 RELEASE-CHANGELOG이 머지 전에 수행하며,
 # 그 머지 push는 version.yml 변경을 포함하므로 이 워크플로우는 가드에 의해 건너뜁니다.
 #
-# [의도적] 이 안전망은 semver 자동 승격(options.semver_auto, #546)을 적용하지 않고 항상 patch입니다.
-# 릴리스 PR을 거치지 않은 비권장 경로라 커밋 제목의 컨벤션 준수를 신뢰할 수 없기 때문입니다.
-# 커밋 기반 major/minor 승격은 RELEASE-CHANGELOG(정상 릴리스 경로)에서만 일어납니다.
+# [passQL 수정] 이 레포는 develop 없이 작업 PR을 main에 바로 머지하므로 이 경로가 사실상 유일한 버전 승격이다.
+# 그래서 options.semver_auto가 true면 이번 push 구간 커밋 제목을 RELEASE-CHANGELOG와 같은 규칙
+# (changelog_manager.py classify-bump: `type!` → major, feat → minor, 그 외 → patch)으로 분류한다.
+# 키가 없거나 false면 원래대로 항상 patch. 템플릿 업데이트 때 이 수정이 덮이지 않았는지 확인할 것.
 #
 # ===================================================================
 # 주요 개선사항:
@@ -72,6 +73,7 @@ jobs:
           else
             RANGE="$BEFORE..HEAD"
           fi
+          echo "range=$RANGE" >> $GITHUB_OUTPUT
           if git diff --name-only $RANGE 2>/dev/null | grep -qx "version.yml"; then
             echo "is_release_merge=true" >> $GITHUB_OUTPUT
             echo "✅ 릴리스 머지 감지 (push에 version.yml 변경 포함) — 버전 증가 건너뜀"
@@ -103,8 +105,16 @@ jobs:
         id: version
         if: steps.release_guard.outputs.is_release_merge != 'true'
         run: |
-          echo "⬆️ 패치 버전 증가 중..."
-          NEW_VERSION=$(./.github/scripts/version_manager.sh increment | tail -n 1)
+          # semver_auto 판정 — RELEASE-CHANGELOG와 같은 정규식으로 version.yml에서 읽는다
+          SEMVER_AUTO=$(python3 -c 'import re; t=open("version.yml",encoding="utf-8").read(); m=re.search(r"metadata:.*?template:.*?options:.*?semver_auto:\s*\"?(true|false)", t, re.S); print(m.group(1) if m else "false")' 2>/dev/null || echo "false")
+          BUMP="patch"
+          if [ "$SEMVER_AUTO" = "true" ]; then
+            git log --pretty=%s ${{ steps.release_guard.outputs.range }} > "$RUNNER_TEMP/commits.txt" 2>/dev/null || true
+            BUMP=$(python3 .github/scripts/changelog_manager.py classify-bump \
+                     --commits-file "$RUNNER_TEMP/commits.txt" | tail -n 1)
+          fi
+          echo "⬆️ 버전 증가 중 (semver_auto=$SEMVER_AUTO, 승격 폭=$BUMP)..."
+          NEW_VERSION=$(./.github/scripts/version_manager.sh increment --bump "$BUMP" | tail -n 1)
           if [ -z "$NEW_VERSION" ]; then
             echo "❌ 버전 업데이트 실패"
             exit 1
@@ -148,7 +158,11 @@ jobs:
           else
             echo "📤 변경사항 커밋 중..."
             REPO_NAME=$(basename "${{ github.repository }}")
-            COMMIT_MSG="$REPO_NAME 버전 정보 관리: chore: 버전 ${{ steps.version.outputs.new_version }} [skip ci]"
+            NEW_VERSION="${{ steps.version.outputs.new_version }}"
+            # 커밋 메시지는 version.yml 의 언어로 만든다 (#787). 카탈로그가 없으면 기존 한국어 문구.
+            COMMIT_TITLE=$(python3 .github/scripts/i18n/messages.py get release.commit.version_control --var repo="$REPO_NAME" --var version="$NEW_VERSION" 2>/dev/null) \
+              || COMMIT_TITLE="$REPO_NAME 버전 정보 관리: chore: 버전 $NEW_VERSION"
+            COMMIT_MSG="$COMMIT_TITLE [skip ci]"
 
             if git commit -m "$COMMIT_MSG"; then
               # Race Condition 방지: pull-rebase 후 push (최대 3회 재시도)
