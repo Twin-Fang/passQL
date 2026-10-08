@@ -144,6 +144,14 @@ jobs:
             export PATH=$PATH:/usr/local/bin
             SUDO() { echo "$SERVER_PASSWORD" | sudo -S "$@"; }
             ROUTER="${PROJECT_NAME}"
+            # 구 컨테이너를 지우면 로그도 사라진다 — 지우기 직전 볼륨에 압축 보관하고 30일 지난 것은 정리 (#436)
+            LOG_DIR="${VOLUME_HOST_PATH}/logs"
+            archive_logs() {
+              SUDO mkdir -p "${LOG_DIR}"
+              F="${LOG_DIR}/$1-$(date +%Y%m%d-%H%M%S).log.gz"
+              SUDO sh -c "docker logs --timestamps '$1' 2>&1 | gzip > '${F}'" && echo "🗄️ $1 로그 보관: ${F}" || echo "⚠️ $1 로그 보관 실패 (배포는 계속)"
+              SUDO find "${LOG_DIR}" -name '*.log.gz' -mtime +30 -delete 2>/dev/null || true
+            }
 
             echo "📥 이미지 Pull: ${IMAGE}"
             SUDO docker pull "${IMAGE}"
@@ -215,6 +223,7 @@ jobs:
             if SUDO docker ps -a --format '{{.Names}}' | grep -qx "${OLD_NAME}"; then
               SUDO docker exec "${OLD_NAME}" touch /tmp/.pops-drain >/dev/null 2>&1 || true
               echo "⏱️ in-flight 대기 ${IN_FLIGHT_WAIT}초"; sleep ${IN_FLIGHT_WAIT}
+              archive_logs "${OLD_NAME}"
               SUDO docker rm -f "${OLD_NAME}"
               echo "🗑️ ${OLD_NAME} 제거"
             fi

@@ -150,6 +150,12 @@ jobs:
             echo "🧹 기존 컨테이너 확인 중..."
             if echo $PW | sudo -S docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}\$"; then
               echo "⚠️ 컨테이너 $CONTAINER_NAME 존재 → 삭제 중..."
+              # 지우면 로그도 사라진다 — 볼륨에 압축 보관하고 30일 지난 것은 정리 (#436)
+              LOG_DIR=/volume1/projects/passql/ai/logs
+              LOG_FILE="$LOG_DIR/$CONTAINER_NAME-$(date +%Y%m%d-%H%M%S).log.gz"
+              echo $PW | sudo -S mkdir -p "$LOG_DIR"
+              echo $PW | sudo -S sh -c "docker logs --timestamps $CONTAINER_NAME 2>&1 | gzip > $LOG_FILE" && echo "🗄️ 로그 보관: $LOG_FILE" || echo "⚠️ 로그 보관 실패 (배포는 계속)"
+              echo $PW | sudo -S find "$LOG_DIR" -name '*.log.gz' -mtime +30 -delete 2>/dev/null || true
               echo $PW | sudo -S docker rm -f $CONTAINER_NAME
               echo "✅ 컨테이너 삭제 완료"
             else
