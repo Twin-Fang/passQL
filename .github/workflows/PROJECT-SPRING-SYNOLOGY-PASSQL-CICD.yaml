@@ -19,9 +19,24 @@ env:
   JAVA_VERSION: "21"
   GRADLE_OPTS: "-Dspring.profiles.active=prod"
   APPLICATION_YML_DIR: "server/PQL-Web/src/main/resources"
-  DEPLOY_PORT: "8097"
+  # 무중단 배포(Blue-Green): 시놀로지 Traefik(8079)이 Host 라벨로 라우팅한다.
+  # DSM 리버스 프록시는 api.passql.suhsaechan.kr → localhost:8079 로 연결한다 (구 8097 직결 대체)
+  SERVICE_DOMAIN: "api.passql.suhsaechan.kr"
+  CONTAINER_INTERNAL_PORT: "8080"
+  TRAEFIK_NETWORK: "traefik-network"
+  TRAEFIK_ENTRYPOINT: "web"
+  TRAEFIK_INTERNAL_PORT: "8079"
+  HEALTHCHECK_PATH: "/actuator/health"
+  HEALTHCHECK_MAX_RETRIES: "48"      # 5초 × 48 = 최대 4분 (실측 기동 약 45초)
+  HEALTHCHECK_RETRY_INTERVAL: "5"
+  IN_FLIGHT_WAIT: "10"               # 구 컨테이너가 처리 중인 요청을 끝낼 시간
   VOLUME_HOST_PATH: "/volume1/projects/passql/backend"
   VOLUME_CONTAINER_PATH: "/mnt"
+
+# 배포가 겹치면 두 실행이 같은 색 슬롯을 지운다 — 한 번에 하나만
+concurrency:
+  group: passql-back-deploy
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -90,13 +105,28 @@ jobs:
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
   deploy:
-    name: 원격 서버 배포
+    name: Blue-Green 무중단 배포
     needs: build
     runs-on: ubuntu-latest
-
     steps:
       - name: Deploy
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          PROJECT_NAME: ${{ env.PROJECT_NAME }}
+          IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.PROJECT_NAME }}-${{ env.DOCKER_IMAGE_PREFIX }}:${{ github.ref_name }}
+          SERVICE_DOMAIN: ${{ env.SERVICE_DOMAIN }}
+          SPRING_PROFILE: ${{ env.SPRING_PROFILE }}
+          CONTAINER_INTERNAL_PORT: ${{ env.CONTAINER_INTERNAL_PORT }}
+          TRAEFIK_NETWORK: ${{ env.TRAEFIK_NETWORK }}
+          TRAEFIK_ENTRYPOINT: ${{ env.TRAEFIK_ENTRYPOINT }}
+          TRAEFIK_INTERNAL_PORT: ${{ env.TRAEFIK_INTERNAL_PORT }}
+          HEALTHCHECK_PATH: ${{ env.HEALTHCHECK_PATH }}
+          HEALTHCHECK_MAX_RETRIES: ${{ env.HEALTHCHECK_MAX_RETRIES }}
+          HEALTHCHECK_RETRY_INTERVAL: ${{ env.HEALTHCHECK_RETRY_INTERVAL }}
+          IN_FLIGHT_WAIT: ${{ env.IN_FLIGHT_WAIT }}
+          VOLUME_HOST_PATH: ${{ env.VOLUME_HOST_PATH }}
+          VOLUME_CONTAINER_PATH: ${{ env.VOLUME_CONTAINER_PATH }}
+          SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
@@ -104,47 +134,80 @@ jobs:
           port: 2022
           command_timeout: 600s
           timeout: 60s
+          envs: PROJECT_NAME,IMAGE,SERVICE_DOMAIN,SPRING_PROFILE,CONTAINER_INTERNAL_PORT,TRAEFIK_NETWORK,TRAEFIK_ENTRYPOINT,TRAEFIK_INTERNAL_PORT,HEALTHCHECK_PATH,HEALTHCHECK_MAX_RETRIES,HEALTHCHECK_RETRY_INTERVAL,IN_FLIGHT_WAIT,VOLUME_HOST_PATH,VOLUME_CONTAINER_PATH,SERVER_PASSWORD
+          # projectops PROJECT-SPRING-NONSTOP-TRAEFIK-CICD 흐름을 passQL 모노레포·볼륨에 맞춘 것.
+          # 새 색 컨테이너를 띄워 Traefik 경유 헬스체크가 통과한 뒤에만 구 색을 내린다 — 실패하면 구 색이 계속 서비스한다.
           script: |
             set -e
             export PATH=$PATH:/usr/local/bin
-            export PW=${{ secrets.SERVER_PASSWORD }}
-            BRANCH=${{ github.ref_name }}
-            PROJECT_NAME="${{ env.PROJECT_NAME }}"
-            CONTAINER_NAME="${PROJECT_NAME}"
-            PORT=${{ env.DEPLOY_PORT }}
+            SUDO() { echo "$SERVER_PASSWORD" | sudo -S "$@"; }
+            ROUTER="${PROJECT_NAME}"
 
-            echo "⬇️ Docker 이미지 풀 중..."
-            echo $PW | sudo -S docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${PROJECT_NAME}-${{ env.DOCKER_IMAGE_PREFIX }}:${BRANCH}
+            echo "📥 이미지 Pull: ${IMAGE}"
+            SUDO docker pull "${IMAGE}"
 
-            if echo $PW | sudo -S docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}\$"; then
-              echo "🧹 기존 컨테이너 삭제 중..."
-              echo $PW | sudo -S docker rm -f $CONTAINER_NAME
-            fi
+            # 현재 서비스 중인 색 판별 (구 단일 컨테이너 passql-back 은 이름이 달라 잡히지 않는다)
+            ACTIVE=$(SUDO docker ps --filter "name=^${PROJECT_NAME}-(blue|green)$" --format '{{.Names}}' | head -1 || true)
+            if [ "$ACTIVE" = "${PROJECT_NAME}-blue" ]; then NEW=green; OLD=blue; else NEW=blue; OLD=green; fi
+            NEW_NAME="${PROJECT_NAME}-${NEW}"; OLD_NAME="${PROJECT_NAME}-${OLD}"
+            echo "🎨 active=${ACTIVE:-none} → new=${NEW_NAME}"
 
-            echo $PW | sudo -S mkdir -p "${{ env.VOLUME_HOST_PATH }}"
+            SUDO docker rm -f "${NEW_NAME}" 2>/dev/null || true
+            SUDO mkdir -p "${VOLUME_HOST_PATH}"
 
-            echo "🚀 컨테이너 실행 중..."
-            # NAS 재부팅 후 자동 기동되도록 재시작 정책 고정 (#337: 정책 no로 7주간 502 장애)
-            echo $PW | sudo -S docker run -d \
+            # drain 표식이 있으면 unhealthy → Traefik이 새 요청을 보내지 않는다
+            HEALTH_URL="http://127.0.0.1:${CONTAINER_INTERNAL_PORT}${HEALTHCHECK_PATH}"
+            HEALTH_CMD="[ -f /tmp/.pops-drain ] && exit 1; wget -q -O /dev/null ${HEALTH_URL}"
+
+            echo "🐳 새 컨테이너 기동: ${NEW_NAME}"
+            SUDO docker run -d \
+              --name "${NEW_NAME}" \
               --restart unless-stopped \
-              -p ${PORT}:8080 \
-              --name $CONTAINER_NAME \
+              --health-cmd "${HEALTH_CMD}" \
+              --health-interval 5s \
+              --health-timeout 3s \
+              --health-retries 3 \
+              --health-start-period 120s \
+              --network "${TRAEFIK_NETWORK}" \
+              --label "traefik.enable=true" \
+              --label "traefik.http.routers.${ROUTER}.rule=Host(\`${SERVICE_DOMAIN}\`)" \
+              --label "traefik.http.routers.${ROUTER}.entrypoints=${TRAEFIK_ENTRYPOINT}" \
+              --label "traefik.http.services.${ROUTER}.loadbalancer.server.port=${CONTAINER_INTERNAL_PORT}" \
               -e TZ=Asia/Seoul \
-              -e "SPRING_PROFILES_ACTIVE=${{ env.SPRING_PROFILE }}" \
+              -e "SPRING_PROFILES_ACTIVE=${SPRING_PROFILE}" \
               -v /etc/localtime:/etc/localtime:ro \
-              -v ${{ env.VOLUME_HOST_PATH }}:${{ env.VOLUME_CONTAINER_PATH }} \
-              ${{ secrets.DOCKERHUB_USERNAME }}/${PROJECT_NAME}-${{ env.DOCKER_IMAGE_PREFIX }}:${BRANCH}
+              -v "${VOLUME_HOST_PATH}:${VOLUME_CONTAINER_PATH}" \
+              "${IMAGE}"
 
-            echo "⏳ 컨테이너 초기화 대기 중... (15초)"
-            sleep 15
-
-            echo "🏥 헬스체크 중..."
-            if echo $PW | sudo -S docker ps --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}\$"; then
-              echo "✅ 컨테이너 정상 실행 중"
-            else
-              echo "❌ 컨테이너 실행 실패"
-              echo $PW | sudo -S docker logs $CONTAINER_NAME || true
-              exit 1
+            # 컨테이너 자체 헬스(healthy)와 Traefik 경유 응답(200)이 모두 확인돼야 전환으로 본다
+            OK=false
+            for i in $(seq 1 ${HEALTHCHECK_MAX_RETRIES}); do
+              sleep ${HEALTHCHECK_RETRY_INTERVAL}
+              STATE=$(SUDO docker inspect --format '{{.State.Status}}/{{if .State.Health}}{{.State.Health.Status}}{{end}}' "${NEW_NAME}" 2>/dev/null || echo "missing/")
+              if [ "${STATE%%/*}" = "exited" ]; then
+                echo "❌ ${NEW_NAME} 종료됨 — 로그:"; SUDO docker logs --tail 200 "${NEW_NAME}"; exit 1
+              fi
+              CODE=$(curl -s -m 5 -o /dev/null -w '%{http_code}' -H "Host: ${SERVICE_DOMAIN}" "http://localhost:${TRAEFIK_INTERNAL_PORT}${HEALTHCHECK_PATH}" || echo 000)
+              if [ "${STATE#*/}" = "healthy" ] && [ "$CODE" = "200" ]; then
+                echo "✅ 헬스체크 통과 (${i}회) state=${STATE} http=${CODE}"; OK=true; break
+              fi
+              echo "⏳ ${i}/${HEALTHCHECK_MAX_RETRIES} state=${STATE} http=${CODE}"
+            done
+            if [ "$OK" != "true" ]; then
+              echo "❌ 헬스체크 타임아웃 — ${NEW_NAME} 로그 (구 색은 그대로 서비스 중):"
+              SUDO docker logs --tail 200 "${NEW_NAME}"; exit 1
             fi
 
-            echo "✅ 배포 완료: http://${{ secrets.SERVER_HOST }}:${PORT}"
+            # 구 색 정리: drain 표식 → in-flight 대기 → 제거
+            if SUDO docker ps -a --format '{{.Names}}' | grep -qx "${OLD_NAME}"; then
+              SUDO docker exec "${OLD_NAME}" touch /tmp/.pops-drain >/dev/null 2>&1 || true
+              echo "⏱️ in-flight 대기 ${IN_FLIGHT_WAIT}초"; sleep ${IN_FLIGHT_WAIT}
+              SUDO docker rm -f "${OLD_NAME}"
+              echo "🗑️ ${OLD_NAME} 제거"
+            fi
+
+            # 구 단일 컨테이너(8097 직결)는 DSM 프록시를 8079로 옮긴 뒤 수동으로 지운다 — 자동 삭제하면 전환 전 장애가 난다
+            if SUDO docker ps -a --format '{{.Names}}' | grep -qx "${PROJECT_NAME}"; then
+              echo "⚠️ 구 컨테이너 ${PROJECT_NAME}(8097) 남아 있음 — DSM 프록시 전환 확인 후 수동 삭제"
+            fi
+            echo "✅ 무중단 배포 완료: active=${NEW_NAME} (https://${SERVICE_DOMAIN})"
