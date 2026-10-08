@@ -4,6 +4,8 @@ import MarkdownText from "./MarkdownText";
 interface AiExplanationSheetProps {
   readonly isOpen: boolean;
   readonly isLoading: boolean;
+  // 요청 실패 시 빈 화면 대신 안내를 보여 준다 (#354)
+  readonly isError?: boolean;
   readonly text: string;
   readonly onClose: () => void;
 }
@@ -19,7 +21,7 @@ function LoadingSkeleton() {
   );
 }
 
-export default function AiExplanationSheet({ isOpen, isLoading, text, onClose }: AiExplanationSheetProps) {
+export default function AiExplanationSheet({ isOpen, isLoading, isError = false, text, onClose }: AiExplanationSheetProps) {
   if (!isOpen) return null;
 
   return (
@@ -41,13 +43,18 @@ export default function AiExplanationSheet({ isOpen, isLoading, text, onClose }:
             </button>
           </div>
           <div className="px-5 py-4">
-            {isLoading ? <LoadingSkeleton /> : (
+            {isLoading ? <LoadingSkeleton /> : isError ? (
+              <p role="alert" className="py-8 text-center text-sm text-text-secondary">
+                AI 해설을 불러올 수 없어요. 잠시 후 다시 시도해 주세요.
+              </p>
+            ) : (
               <MarkdownText text={text} className="text-[15px] leading-relaxed text-body" />
             )}
           </div>
-          {!isLoading && text && (
+          {!isLoading && !isError && text && (
             <div className="px-5 pb-4 text-right">
-              <span className="text-caption text-xs">프롬프트 v1 · qwen2.5:7b</span>
+              {/* 모델·프롬프트 버전은 서버 설정이 바뀌면 틀려지므로 고정 문구로 적지 않는다 */}
+              <span className="text-caption text-xs">AI가 만든 해설이에요. 참고용으로 봐 주세요.</span>
             </div>
           )}
         </div>

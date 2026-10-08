@@ -81,7 +81,7 @@ void main() {
     expect(find.text('10월 2일 09:10'), findsOneWidget);
   });
 
-  testWidgets('내용이 없으면 보낼 수 없고, 500자를 넘으면 글자 수를 경고한다', (tester) async {
+  testWidgets('내용이 없으면 보낼 수 없고, 500자를 넘겨 입력해도 500자에서 멈춘다', (tester) async {
     await _open(tester, _FakeFeedbackApi());
     IconButton send() => tester.widget<IconButton>(find.byType(IconButton));
 
@@ -91,10 +91,12 @@ void main() {
     await tester.pump();
     expect(send().onPressed, isNull);
 
+    // 500자 입력 제한(#374)이 생겨 501자를 넣어도 500자에서 잘린다 — 넘쳐서 막히는 대신 한도에서 멈춘다
     await tester.enterText(find.byType(TextField), '가' * 501);
     await tester.pump();
-    expect(send().onPressed, isNull);
-    expect(find.text('501/500'), findsOneWidget);
+    expect(find.text('500/500'), findsOneWidget);
+    expect(find.text('501/500'), findsNothing);
+    expect(send().onPressed, isNotNull);
 
     await tester.enterText(find.byType(TextField), '좋아요');
     await tester.pump();

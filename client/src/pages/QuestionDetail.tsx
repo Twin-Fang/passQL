@@ -477,6 +477,7 @@ export default function QuestionDetail({
       <AiExplanationSheet
         isOpen={aiSheetOpen}
         isLoading={explainMutation.isPending}
+        isError={explainMutation.isError}
         text={aiText}
         onClose={() => setAiSheetOpen(false)}
       />

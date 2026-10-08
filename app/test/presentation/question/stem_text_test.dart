@@ -17,7 +17,7 @@ void main() {
     await tester.pumpWidget(
       ScreenUtilInit(
         designSize: const Size(390, 844),
-        builder: (_, __) => const MaterialApp(
+        builder: (_, _) => const MaterialApp(
           home: Scaffold(
             body: StemText(
               '다음 SQL의 결과는?\n\n```sql\nSELECT NAME\nFROM EMP;\n```',
@@ -35,7 +35,7 @@ void main() {
     await tester.pumpWidget(
       ScreenUtilInit(
         designSize: const Size(390, 844),
-        builder: (_, __) => const MaterialApp(
+        builder: (_, _) => const MaterialApp(
           home: Scaffold(body: InlineCodeText('`PIVOT`과 `UNPIVOT`에 대한 설명')),
         ),
       ),
@@ -51,7 +51,7 @@ void main() {
     await tester.pumpWidget(
       ScreenUtilInit(
         designSize: const Size(390, 844),
-        builder: (_, __) => const MaterialApp(
+        builder: (_, _) => const MaterialApp(
           home: Scaffold(
             body: StemText('`PIVOT`과 `UNPIVOT`에 대한 설명 중 옳지 않은 것은?'),
           ),
