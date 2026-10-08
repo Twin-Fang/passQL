@@ -1210,7 +1210,25 @@ jobs:
             echo "type=issue_closed" >> $GITHUB_OUTPUT
           fi
 
+      # 닫힘 이벤트마다 무조건 삭제·댓글을 달아 프리뷰를 만든 적 없는 이슈·PR에도
+      # "삭제 완료" 알림 메일이 쏟아졌다 → 이 번호에 배포 완료 댓글이 있을 때만 진행한다
+      - name: 프리뷰 배포 이력 확인
+        id: had_preview
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            if (context.eventName === 'issue_comment') return 'true';  // 명시적 destroy 명령
+            const number = ${{ steps.pr_number.outputs.number }};
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner, repo: context.repo.repo, issue_number: number, per_page: 100,
+            });
+            const had = comments.some(c => (c.body || '').includes('Preview 배포 완료'));
+            core.info(`#${number} 프리뷰 배포 이력: ${had}`);
+            return had ? 'true' : 'false';
+
       - name: 컨테이너 & 이미지 삭제
+        if: steps.had_preview.outputs.result == 'true'
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -1246,9 +1264,10 @@ jobs:
 
       - name: 삭제 완료 코멘트
         if: |
+          steps.had_preview.outputs.result == 'true' && (
           github.event_name == 'issue_comment' ||
           (github.event_name == 'pull_request' && github.event.action == 'closed') ||
-          (github.event_name == 'issues' && github.event.action == 'closed')
+          (github.event_name == 'issues' && github.event.action == 'closed'))
         uses: actions/github-script@v7
         with:
           script: |

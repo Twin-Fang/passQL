@@ -12,7 +12,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,8 +23,8 @@ public class JwtTokenProvider {
     private static final String CLAIM_ROLE = "role";
 
     private final JwtProperties jwtProperties;
-    private final Key accessKey;
-    private final Key refreshKey;
+    private final SecretKey accessKey;
+    private final SecretKey refreshKey;
 
     public JwtTokenProvider(JwtProperties jwtProperties) {
         this.jwtProperties = jwtProperties;
@@ -36,10 +36,10 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + jwtProperties.access().expiration().toMillis());
         return Jwts.builder()
-                .setSubject(member.getMemberUuid().toString())
+                .subject(member.getMemberUuid().toString())
                 .claim(CLAIM_ROLE, member.getRole().name())
-                .setIssuedAt(now)
-                .setExpiration(expiry)
+                .issuedAt(now)
+                .expiration(expiry)
                 .signWith(accessKey)
                 .compact();
     }
@@ -48,9 +48,9 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + jwtProperties.refresh().expiration().toMillis());
         return Jwts.builder()
-                .setSubject(member.getMemberUuid().toString())
-                .setIssuedAt(now)
-                .setExpiration(expiry)
+                .subject(member.getMemberUuid().toString())
+                .issuedAt(now)
+                .expiration(expiry)
                 .signWith(refreshKey)
                 .compact();
     }
@@ -71,8 +71,7 @@ public class JwtTokenProvider {
     public Optional<UUID> getMemberUuidFromRefreshTokenSilently(String token) {
         try {
             return Optional.of(UUID.fromString(
-                    Jwts.parserBuilder().setSigningKey(refreshKey).build()
-                            .parseClaimsJws(token).getBody().getSubject()));
+                    parseClaims(token, refreshKey).getSubject()));
         } catch (ExpiredJwtException e) {
             return Optional.of(UUID.fromString(e.getClaims().getSubject()));
         } catch (JwtException | IllegalArgumentException e) {
@@ -86,8 +85,7 @@ public class JwtTokenProvider {
 
     private Claims getAccessClaims(String token) {
         try {
-            return Jwts.parserBuilder().setSigningKey(accessKey).build()
-                    .parseClaimsJws(token).getBody();
+            return parseClaims(token, accessKey);
         } catch (ExpiredJwtException e) {
             throw new CustomException(ErrorCode.ACCESS_TOKEN_EXPIRED);
         } catch (IllegalArgumentException e) {
@@ -99,8 +97,7 @@ public class JwtTokenProvider {
 
     private Claims getRefreshClaims(String token) {
         try {
-            return Jwts.parserBuilder().setSigningKey(refreshKey).build()
-                    .parseClaimsJws(token).getBody();
+            return parseClaims(token, refreshKey);
         } catch (ExpiredJwtException e) {
             throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
         } catch (IllegalArgumentException e) {
@@ -108,5 +105,11 @@ public class JwtTokenProvider {
         } catch (JwtException e) {
             throw new CustomException(ErrorCode.INVALID_TOKEN);
         }
+    }
+
+    /** jjwt 0.12+ API: parserBuilder()/parseClaimsJws() 제거됨 → parser().verifyWith()/parseSignedClaims()로 서명 검증 후 payload 반환. */
+    private Claims parseClaims(String token, SecretKey key) {
+        return Jwts.parser().verifyWith(key).build()
+                .parseSignedClaims(token).getPayload();
     }
 }
