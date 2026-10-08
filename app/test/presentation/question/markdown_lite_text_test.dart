@@ -8,7 +8,7 @@ void main() {
     await tester.pumpWidget(
       ScreenUtilInit(
         designSize: const Size(390, 844),
-        builder: (_, __) => const MaterialApp(
+        builder: (_, _) => const MaterialApp(
           home: Scaffold(
             body: MarkdownLiteText(
               '**기억할 포인트**\n* **C번**: `PIVOT`은 집계가 필요\n- 열 → 행 변환',
