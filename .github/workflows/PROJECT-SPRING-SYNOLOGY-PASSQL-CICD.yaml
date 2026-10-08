@@ -29,7 +29,9 @@ env:
   HEALTHCHECK_PATH: "/actuator/health"
   HEALTHCHECK_MAX_RETRIES: "48"      # 5초 × 48 = 최대 4분 (실측 기동 약 45초)
   HEALTHCHECK_RETRY_INTERVAL: "5"
-  IN_FLIGHT_WAIT: "10"               # 구 컨테이너가 처리 중인 요청을 끝낼 시간
+  # drain 표식 후 구 컨테이너가 unhealthy(5초 간격 × 3회 ≈ 15초)가 돼야 Traefik이 트래픽을 끊는다.
+  # 10초면 끊기기 전에 지워져 요청 1건이 실패했다(probe 210회 중 1회) → 여유를 두고 25초
+  IN_FLIGHT_WAIT: "25"
   VOLUME_HOST_PATH: "/volume1/projects/passql/backend"
   VOLUME_CONTAINER_PATH: "/mnt"
 
