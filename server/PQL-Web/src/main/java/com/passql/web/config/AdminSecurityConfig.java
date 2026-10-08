@@ -2,6 +2,7 @@ package com.passql.web.config;
 
 import com.passql.web.config.admin.AdminUserDetailsService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -18,6 +19,7 @@ import org.springframework.security.web.SecurityFilterChain;
  */
 @Configuration
 @RequiredArgsConstructor
+@Slf4j
 public class AdminSecurityConfig {
 
     private final AdminUserDetailsService adminUserDetailsService;
@@ -35,7 +37,11 @@ public class AdminSecurityConfig {
                 .loginPage("/admin/login")
                 .loginProcessingUrl("/admin/login")
                 .defaultSuccessUrl("/admin", true)
-                .failureUrl("/admin/login?error=true")
+                // 실패만 기록한다 — 무차별 대입을 추적할 수 있게 (#406). 입력한 아이디는 남기지 않는다
+                .failureHandler((request, response, e) -> {
+                    log.warn("[admin-auth] 관리자 로그인 실패: ip={}, reason={}", request.getRemoteAddr(), e.getClass().getSimpleName());
+                    response.sendRedirect(request.getContextPath() + "/admin/login?error=true");
+                })
                 .usernameParameter("username")
                 .passwordParameter("password")
             )
