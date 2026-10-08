@@ -140,6 +140,8 @@ h2 { font-size: 34px; letter-spacing: -1px; margin: 0 0 12px; font-weight: 800; 
 /* ── 바닥 ── */
 footer { border-top: 1px solid var(--line); padding: 44px 0 64px; color: var(--dim); font-size: 15px; }
 .foot-in { display: flex; gap: 26px; flex-wrap: wrap; align-items: center; }
+/* 링크를 한 묶음으로 둬야 좁은 폭에서 '문의'만 홀로 다음 줄로 밀리지 않는다 (#404) */
+.foot-links { display: flex; gap: 22px; flex-wrap: wrap; }
 .foot-in .sp { margin-left: auto; }
 
 /* ── 문서(처리방침) ── */
@@ -153,7 +155,8 @@ footer { border-top: 1px solid var(--line); padding: 44px 0 64px; color: var(--d
 .doc h3 { font-size: 17px; margin: 28px 0 8px; color: var(--mint); }
 .doc p, .doc li { color: var(--muted); }
 .doc strong { color: var(--text); }
-.doc ul { padding-left: 20px; }
+.doc ul, .doc ol { padding-left: 20px; }
+.doc ol li + li { margin-top: 6px; }
 .doc table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 15px; }
 .doc th, .doc td {
   text-align: left; padding: 12px 14px;
@@ -171,7 +174,7 @@ footer { border-top: 1px solid var(--line); padding: 44px 0 64px; color: var(--d
 /* ── 좁은 화면 ── */
 @media (max-width: 900px) {
   .hero-in { grid-template-columns: 1fr; gap: 44px; }
-  .hero-art { max-width: 300px; }
+  .hero-art { max-width: 300px; margin: 0 auto; }
   h1 { font-size: 40px; letter-spacing: -1.2px; }
   .grid { grid-template-columns: 1fr; }
   .shots { grid-template-columns: repeat(2, 1fr); }
@@ -188,7 +191,15 @@ footer { border-top: 1px solid var(--line); padding: 44px 0 64px; color: var(--d
   h1 { font-size: 33px; }
   h2 { font-size: 27px; }
   .doc h1 { font-size: 30px; }
-  .shots { grid-template-columns: 1fr 1fr; gap: 12px; }
   .doc table { font-size: 14px; }
   .doc th, .doc td { padding: 10px 8px; }
+  /* 바닥: 이름 / 링크 2열 / 플랫폼 순으로 세로로 쌓는다 */
+  .foot-in { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .foot-links { display: grid; grid-template-columns: auto auto; gap: 10px 28px; }
+  .foot-in .sp { margin-left: 0; }
+}
+
+/* 폰 폭에서 2열이면 장당 160px 남짓이라 글자를 읽을 수 없다 → 1열로 크게 (#404) */
+@media (max-width: 480px) {
+  .shots { grid-template-columns: 1fr; gap: 28px; max-width: 300px; margin: 0 auto; }
 }
