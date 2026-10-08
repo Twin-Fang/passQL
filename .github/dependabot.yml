@@ -39,6 +39,27 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+      # pub 묶음에 freezed 4·riverpod 3 같은 major가 섞여 와 pub get이 깨졌다(#420).
+      # 코드 생성 계열은 서로 묶여 있어 Flutter SDK 업그레이드·마이그레이션 때 한꺼번에 올린다
+      - dependency-name: "freezed"
+        versions: [">=3.0.0"]
+      - dependency-name: "freezed_annotation"
+        versions: [">=3.0.0"]
+      - dependency-name: "flutter_riverpod"
+        versions: [">=3.0.0"]
+      - dependency-name: "riverpod_annotation"
+        versions: [">=3.0.0"]
+      - dependency-name: "riverpod_generator"
+        versions: [">=3.0.0"]
+      - dependency-name: "retrofit_generator"
+        versions: [">=10.0.0"]
+      # freezed 2(source_gen 2·build 2)와 함께 쓸 수 없는 버전
+      - dependency-name: "json_annotation"
+        versions: [">=4.10.0"]
+      - dependency-name: "json_serializable"
+        versions: [">=6.11.0"]
+      - dependency-name: "build_runner"
+        versions: [">=2.16.0"]
     groups:
       app-minor-patch:
         update-types: ["minor", "patch"]
