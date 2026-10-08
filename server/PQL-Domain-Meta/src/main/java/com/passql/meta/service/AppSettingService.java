@@ -2,6 +2,7 @@ package com.passql.meta.service;
 
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.meta.dto.AppLinksResponse;
 import com.passql.meta.dto.SettingView;
 import com.passql.meta.entity.AppSetting;
 import com.passql.meta.repository.AppSettingRepository;
@@ -24,6 +25,10 @@ public class AppSettingService {
     // settingKey 구분자(. _ -) 단위 조각이 이 단어로 끝나면 값을 마스킹 처리
     private static final Set<String> MASK_KEYWORDS = Set.of("key", "secret", "password", "token");
 
+    // 스토어 링크 — 출시 후 관리자 설정에서 URL만 넣으면 웹 안내가 노출된다 (#433)
+    public static final String STORE_ANDROID_URL = "store.android_url";
+    public static final String STORE_IOS_URL = "store.ios_url";
+
     private final AppSettingRepository appSettingRepository;
     private final StringRedisTemplate redisTemplate;
 
@@ -37,6 +42,23 @@ public class AppSettingService {
 
         redisTemplate.opsForValue().set(REDIS_PREFIX + key, value);
         return value;
+    }
+
+    /** 공개 스토어 링크. 비었거나 https 가 아니면 null — 잘못 넣은 값이 웹 링크로 나가지 않게 한다. */
+    public AppLinksResponse getAppLinks() {
+        return new AppLinksResponse(httpsUrlOrNull(STORE_ANDROID_URL), httpsUrlOrNull(STORE_IOS_URL));
+    }
+
+    private String httpsUrlOrNull(String key) {
+        String value;
+        try {
+            value = getString(key);
+        } catch (CustomException e) {
+            // 마이그레이션 전 환경에서도 공개 API 가 500 이 되지 않게 "링크 없음"으로 본다
+            return null;
+        }
+        String trimmed = value == null ? "" : value.trim();
+        return trimmed.startsWith("https://") ? trimmed : null;
     }
 
     public int getInt(String key) { return Integer.parseInt(getString(key)); }

@@ -38,3 +38,8 @@ export function updateChoiceGenerationMode(
     body: JSON.stringify({ choiceGenerationMode: mode }),
   });
 }
+
+// 회원 탈퇴 — 성공 시 204. 이후 이 계정의 토큰은 쓸 수 없다 (#433)
+export function withdraw(): Promise<void> {
+  return apiFetch("/members/me", { method: "DELETE" });
+}

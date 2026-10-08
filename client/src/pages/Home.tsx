@@ -16,6 +16,7 @@ import {
   useHeatmap,
 } from "../hooks/useHome";
 import { useStagger } from "../hooks/useStagger";
+import AppDownloadBanner from "../components/AppDownloadBanner";
 
 /**
  * greeting 메시지의 {nickname}을 강조 span으로 치환하고
@@ -182,6 +183,9 @@ export default function Home() {
       </section>
 
       {/* ③ 시험 일정 + 오늘의 문제 카드 섹션 — 시험 일정을 앞에 배치 */}
+      {/* 앱 출시 안내 — 스토어 링크가 설정됐을 때만 보인다 (#433) */}
+      <AppDownloadBanner />
+
       <section className={`grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 ${s2.className}`}>
         {scheduleLoading ? (
           <div className="skeleton h-full min-h-28 rounded-2xl" />
