@@ -1,74 +1,86 @@
 # ===================================================================
-# 프로젝트 버전 관리 파일
+# Project version management file
 # ===================================================================
 #
-# 이 파일은 다양한 프로젝트 타입에서 버전 정보를 중앙 관리하기 위한 파일입니다.
-# GitHub Actions 워크플로우가 이 파일을 읽어 자동으로 버전을 관리합니다.
+# This file keeps version information in one place for every project type.
+# GitHub Actions workflows read this file and manage the version automatically.
 #
-# 사용법:
-# 1. version: "1.0.0" - 사용자에게 표시되는 버전
-# 2. version_code: 1 - Play Store/App Store 빌드 번호 (1부터 자동 증가)
-# 3. project_types: 프로젝트 타입 배열 — 첫 항목이 primary
-# 4. project_paths: 타입별 프로젝트 폴더 (레포 루트 기준 상대경로, 모노레포용)
+# Usage:
+# 1. version: "1.0.0" - the version shown to users
+# 2. version_code: 1 - Play Store/App Store build number (auto-incremented from 1)
+# 3. project_types: array of project types, the first entry is the primary one
+# 4. project_paths: project folder per type (relative to the repo root, for monorepos)
 #
-# 자동 버전 업데이트:
-# - version_code: 매 빌드마다 자동으로 1씩 증가 (아래 판정과 무관)
-# - 버전 승격 폭은 metadata.template.options.semver_auto 가 정합니다
-#   semver_auto: true  -> 릴리스 구간 커밋 제목으로 판정
-#                         "제목 : feat! : 내용" 또는 "feat!:" -> major (x+1.0.0)
-#                         "제목 : feat : 내용"  또는 "feat:"  -> minor (x.y+1.0)
-#                         그 외(fix/docs/chore/refactor/test) -> patch (x.y.z+1)
-#   키 없음 / false     -> 항상 patch +1
-# - 위 판정과 무관하게 version 값을 직접 수정해도 됩니다
+# Automatic version updates:
+# - version_code: incremented by 1 on every build (independent of the rules below)
+# - How far the version is bumped is decided by metadata.template.options.semver_auto
+#   semver_auto: true  -> decided by the commit titles in the release range
+#                         "title : feat! : body" or "feat!:" -> major (x+1.0.0)
+#                         "title : feat : body"  or "feat:"  -> minor (x.y+1.0)
+#                         anything else (fix/docs/chore/refactor/test) -> patch (x.y.z+1)
+#   key missing / false -> always patch +1
+# - You may edit the version value by hand regardless of the rules above
 #
-# 프로젝트 타입별 동기화 파일:
+# Files synced per project type:
 # - spring: build.gradle (version = "x.y.z")
-# - flutter: pubspec.yaml (version: x.y.z+i, buildNumber 포함)
+# - flutter: pubspec.yaml (version: x.y.z+i, includes buildNumber)
 # - react/node: package.json ("version": "x.y.z")
-# - react-native: iOS Info.plist 또는 Android build.gradle
+# - react-native: iOS Info.plist or Android build.gradle
 # - react-native-expo: app.json (expo.version)
 # - python: pyproject.toml (version = "x.y.z")
-# - basic/기타: version.yml 파일만 사용
+# - basic/other: only this version.yml file is used
 #
-# 연관된 워크플로우:
+# Related workflows:
 # - .github/workflows/PROJECT-VERSION-CONTROL.yaml
 # - .github/workflows/PROJECT-README-VERSION-UPDATE.yaml
 # - .github/workflows/PROJECT-RELEASE-CHANGELOG.yaml
 #
-# 주의사항:
-# - project_types는 최초 설정 후 변경하지 마세요
-# - 버전은 항상 높은 버전으로 자동 동기화됩니다
+# Notes:
+# - Do not change project_types after the initial setup
+# - The version is always synced automatically to the highest one
 # ===================================================================
 
 version: "0.0.251"
-version_code: 251 # app build number
-project_types: ["spring","flutter","react","python"]   # 멀티타입 배열 — 첫 항목이 primary, 직접 편집 가능
-project_paths:                # 타입별 프로젝트 폴더 (레포 루트 기준 상대경로)
+version_code: 251  # app build number
+project_types: ["spring","flutter","react","python"]   # array of types, first entry is primary, safe to edit by hand
+project_paths:                # project folder per type (relative to the repo root)
   spring: "server"   # server/build.gradle
   flutter: "app"   # app/pubspec.yaml
   react: "client"   # client/package.json
   python: "ai"   # ai/pyproject.toml
 metadata:
-  last_updated: "2026-10-08 00:27:14"
-  last_updated_by: "Cassiiopeia"
+  last_updated: "2026-10-08 00:32:54"
+  last_updated_by: "template_integrator"
   default_branch: "main"
   integrated_from: "projectops"
-  integration_date: "2026-10-06"
+  integration_date: "2026-10-08"
   template:
     source: "projectops"
-    version: "4.31.5"
-    mode: "full"   # 통합 범위(full/version/workflows) — 업데이트 모드 재실행 기준
-    integrated_date: "2026-10-06"
-    last_update_date: "2026-10-06"
+    version: "4.36.4"
+    mode: "full"   # install scope (full/version/workflows), used when re-running update mode
+    integrated_date: "2026-10-08"
+    last_update_date: "2026-10-08"
     options:
-      intent: "app"   # 프로젝트 성격(app/library/both/none/manual) — 배포 질문 유도 기준
+      intent: "app"   # project kind (app/library/both/none/manual), drives the deploy questions
       deploy: "docker-ssh"
       publish: []
       secret_backup: true
-      semver_auto: false   # 커밋 제목으로 버전 승격 폭 결정 (false면 항상 patch)
+      semver_auto: true   # decide the version bump from commit titles (false means always patch)
+      projects_sync: true   # GitHub Projects 상태 동기화 워크플로우 포함 여부
+      language: ko   # issue/PR template language (en | ko)
+      label_style: ko   # status label style (en: status: todo / ko: Korean names)
       code_review:
         coderabbit: false
         ai_summary: true
       changelog:
         provider: "commit"
         base_url: ""
+
+deploy:                          # deploy settings remembered by the wizard (non-sensitive, safe to edit by hand)
+  spring:
+    PROJECT_NAME: "passQL"
+    SERVICE_DOMAIN: "api.passql.suhsaechan.kr"
+    JAVA_VERSION: "21"
+    VOLUME_HOST_PATH: "/volume1/projects/passQL"
+    SSH_AUTH_METHOD: "password"
+    VOLUME_CONTAINER_PATH: "/mnt/passQL"
