@@ -1,8 +1,8 @@
 package com.passql.member.auth;
 
 import com.passql.member.auth.application.AuthService;
-import com.passql.member.auth.application.dto.LoginCommand;
-import com.passql.member.auth.application.dto.LoginResult;
+import com.passql.member.auth.application.dto.command.LoginCommand;
+import com.passql.member.auth.application.dto.result.LoginResult;
 import com.passql.member.auth.infrastructure.jwt.JwtTokenProvider;
 import com.passql.member.auth.repository.RefreshTokenRepository;
 import com.passql.member.constant.AuthProvider;
@@ -103,7 +103,7 @@ class AuthServiceTest {
         String fakeExpiredToken = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MTcwMDAwMDAwMX0.fake";
 
         try {
-            UUID uuid = jwtTokenProvider.getMemberUuidFromRefreshTokenSilently(fakeExpiredToken);
+            Optional<UUID> uuid = jwtTokenProvider.getMemberUuidFromRefreshTokenSilently(fakeExpiredToken);
             superLog("silent 파싱 결과: " + uuid);
         } catch (Exception e) {
             // 완전히 잘못된 토큰은 예외 발생 가능 — silent는 만료만 허용
@@ -127,13 +127,13 @@ class AuthServiceTest {
         superLog("저장 완료: key=refresh_token:" + testUuid);
 
         // 조회
-        Optional<String> found = refreshTokenRepository.findByMemberUuid(testUuid);
+        Optional<String> found = Optional.ofNullable(refreshTokenRepository.findByMemberUuid(testUuid));
         superLog("조회 결과: " + found.orElse("없음"));
         lineLog("저장/조회 일치: " + found.map(t -> t.equals(testToken)).orElse(false));
 
         // 삭제
         refreshTokenRepository.delete(testUuid);
-        Optional<String> afterDelete = refreshTokenRepository.findByMemberUuid(testUuid);
+        Optional<String> afterDelete = Optional.ofNullable(refreshTokenRepository.findByMemberUuid(testUuid));
         superLog("삭제 후 조회: " + afterDelete.orElse("없음 (정상)"));
         lineLog("삭제 확인: " + afterDelete.isEmpty());
     }
@@ -169,7 +169,7 @@ class AuthServiceTest {
         superLog("RefreshToken Redis 저장 UUID: " + newMember.getMemberUuid());
 
         // Redis에 저장됐는지 확인
-        Optional<String> stored = refreshTokenRepository.findByMemberUuid(newMember.getMemberUuid());
+        Optional<String> stored = Optional.ofNullable(refreshTokenRepository.findByMemberUuid(newMember.getMemberUuid()));
         lineLog("RefreshToken Redis 저장 확인: " + stored.isPresent());
 
         // 정리
@@ -213,7 +213,7 @@ class AuthServiceTest {
         refreshTokenRepository.save(member.getMemberUuid(), refreshToken, jwtTokenProvider.getRefreshTokenExpirationMillis());
 
         // Redis에서 조회 후 새 AccessToken 발급 시뮬레이션
-        Optional<String> stored = refreshTokenRepository.findByMemberUuid(member.getMemberUuid());
+        Optional<String> stored = Optional.ofNullable(refreshTokenRepository.findByMemberUuid(member.getMemberUuid()));
         lineLog("RefreshToken 조회: " + stored.isPresent());
 
         if (stored.isPresent() && stored.get().equals(refreshToken)) {
@@ -239,15 +239,13 @@ class AuthServiceTest {
         String refreshToken = jwtTokenProvider.createRefreshToken(member);
         refreshTokenRepository.save(member.getMemberUuid(), refreshToken, jwtTokenProvider.getRefreshTokenExpirationMillis());
 
-        superLog("로그아웃 전 Redis 조회: " + refreshTokenRepository.findByMemberUuid(member.getMemberUuid()).isPresent());
+        superLog("로그아웃 전 Redis 조회: " + Optional.ofNullable(refreshTokenRepository.findByMemberUuid(member.getMemberUuid())).isPresent());
 
         // 로그아웃 — UUID silent 파싱 후 삭제 시뮬레이션
-        UUID uuidFromToken = jwtTokenProvider.getMemberUuidFromRefreshTokenSilently(refreshToken);
-        if (uuidFromToken != null) {
-            refreshTokenRepository.delete(uuidFromToken);
-        }
+        jwtTokenProvider.getMemberUuidFromRefreshTokenSilently(refreshToken)
+                .ifPresent(refreshTokenRepository::delete);
 
-        boolean afterLogout = refreshTokenRepository.findByMemberUuid(member.getMemberUuid()).isEmpty();
+        boolean afterLogout = Optional.ofNullable(refreshTokenRepository.findByMemberUuid(member.getMemberUuid())).isEmpty();
         superLog("로그아웃 후 Redis 삭제 확인: " + afterLogout);
         lineLog("로그아웃 테스트 완료: " + afterLogout);
     }

@@ -31,7 +31,7 @@ class ReadinessCalculatorTest {
     }
 
     @Test
-    void 1문제만_맞히면_coverage_비율만큼_score() {
+    void 한_문제만_맞히면_coverage_비율만큼_score() {
         // accuracy=1.0, coverage=1/9≈0.11, recency=1.0 → base≈0.11, bonus=1.0 → score≈0.11
         ReadinessCalculator.ReadinessResult result = ReadinessCalculator.calculate(
             List.of(true),

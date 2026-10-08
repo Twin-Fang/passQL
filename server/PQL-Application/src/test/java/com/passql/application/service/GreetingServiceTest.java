@@ -6,8 +6,9 @@ import static kr.suhsaechan.suhlogger.util.SuhLogger.timeLog;
 
 import com.passql.application.constant.GreetingMessageType;
 import com.passql.application.dto.GreetingResponse;
-import com.passql.member.dto.MemberRegisterResponse;
-import com.passql.member.service.MemberService;
+import com.passql.member.constant.AuthProvider;
+import com.passql.member.entity.Member;
+import com.passql.member.repository.MemberRepository;
 import com.passql.web.PassqlApplication;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,7 @@ import java.util.UUID;
 class GreetingServiceTest {
 
     @Autowired GreetingService greetingService;
-    @Autowired MemberService memberService;
+    @Autowired MemberRepository memberRepository;
 
     @Test
     @Transactional
@@ -84,9 +85,18 @@ class GreetingServiceTest {
         }
     }
 
+    /**
+     * 익명 가입 API(memberService.register)가 소셜 로그인 전환으로 사라져, 가입 흐름과 같은 Member.signUp으로 만든다 (#405).
+     */
+    private Member 테스트_회원_저장() {
+        return memberRepository.save(Member.signUp(
+                "test-google-" + UUID.randomUUID(), AuthProvider.GOOGLE,
+                "greeting-test@passql.kr", true, "인사말테스트"));
+    }
+
     public void 정상_회원_인사말_반환_테스트() {
         lineLog("정상 회원 등록 후 인사말 조회 → 전체 응답 눈으로 확인");
-        MemberRegisterResponse registered = memberService.register();
+        Member registered = 테스트_회원_저장();
         lineLog("등록된 회원 UUID: " + registered.getMemberUuid());
         lineLog("등록된 닉네임: " + registered.getNickname());
 
@@ -100,7 +110,7 @@ class GreetingServiceTest {
 
     public void 정상_회원_반복호출_다양성_확인_테스트() {
         lineLog("같은 회원으로 10회 호출 → 응답 다양성 눈으로 확인 (랜덤 풀 동작)");
-        MemberRegisterResponse registered = memberService.register();
+        Member registered = 테스트_회원_저장();
         lineLog("등록된 닉네임: " + registered.getNickname());
 
         for (int i = 0; i < 10; i++) {
