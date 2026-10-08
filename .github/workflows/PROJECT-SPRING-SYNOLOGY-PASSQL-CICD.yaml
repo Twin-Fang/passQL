@@ -156,7 +156,7 @@ jobs:
             SUDO mkdir -p "${VOLUME_HOST_PATH}"
 
             # HTTP(80) 요청은 DSM 80 항목이 X-Forwarded-Proto: http 를 달아 8079로 보낸다 (#389).
-            # 그 헤더가 있을 때만 https로 영구 리다이렉트 — 헤더 없는 헬스체크·443 경로는 기존 라우터로 간다
+            # X-Forwarded-Proto 가 http 일 때만 https로 영구 리다이렉트 — 443 경로(https)는 기존 라우터로 간다
             # drain 표식이 있으면 unhealthy → Traefik이 새 요청을 보내지 않는다
             HEALTH_URL="http://127.0.0.1:${CONTAINER_INTERNAL_PORT}${HEALTHCHECK_PATH}"
             HEALTH_CMD="[ -f /tmp/.pops-drain ] && exit 1; wget -q -O /dev/null ${HEALTH_URL}"
@@ -196,7 +196,9 @@ jobs:
               if [ "${STATE%%/*}" = "exited" ]; then
                 echo "❌ ${NEW_NAME} 종료됨 — 로그:"; SUDO docker logs --tail 200 "${NEW_NAME}"; exit 1
               fi
-              CODE=$(curl -s -m 5 -o /dev/null -w '%{http_code}' -H "Host: ${SERVICE_DOMAIN}" "http://localhost:${TRAEFIK_INTERNAL_PORT}${HEALTHCHECK_PATH}" || echo 000)
+              # Traefik은 헤더 없는 평문 요청에 X-Forwarded-Proto: http 를 스스로 붙여 리다이렉트 라우터에 걸린다(301).
+              # 실제 HTTPS 트래픽(DSM 443 항목)과 같은 헤더로 확인한다
+              CODE=$(curl -s -m 5 -o /dev/null -w '%{http_code}' -H "Host: ${SERVICE_DOMAIN}" -H "X-Forwarded-Proto: https" "http://localhost:${TRAEFIK_INTERNAL_PORT}${HEALTHCHECK_PATH}" || echo 000)
               if [ "${STATE#*/}" = "healthy" ] && [ "$CODE" = "200" ]; then
                 echo "✅ 헬스체크 통과 (${i}회) state=${STATE} http=${CODE}"; OK=true; break
               fi
