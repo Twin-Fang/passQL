@@ -40,8 +40,8 @@
 # - The version is always synced automatically to the highest one
 # ===================================================================
 
-version: "0.0.251"
-version_code: 251  # app build number
+version: "0.1.0"
+version_code: 252 # app build number
 project_types: ["spring","flutter","react","python"]   # array of types, first entry is primary, safe to edit by hand
 project_paths:                # project folder per type (relative to the repo root)
   spring: "server"   # server/build.gradle
@@ -49,8 +49,8 @@ project_paths:                # project folder per type (relative to the repo ro
   react: "client"   # client/package.json
   python: "ai"   # ai/pyproject.toml
 metadata:
-  last_updated: "2026-10-08 00:32:54"
-  last_updated_by: "template_integrator"
+  last_updated: "2026-10-08 09:41:52"
+  last_updated_by: "suhsaechan"
   default_branch: "main"
   integrated_from: "projectops"
   integration_date: "2026-10-08"
