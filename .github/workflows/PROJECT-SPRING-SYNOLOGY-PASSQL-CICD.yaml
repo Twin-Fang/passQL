@@ -155,6 +155,8 @@ jobs:
             SUDO docker rm -f "${NEW_NAME}" 2>/dev/null || true
             SUDO mkdir -p "${VOLUME_HOST_PATH}"
 
+            # HTTP(80) 요청은 DSM 80 항목이 X-Forwarded-Proto: http 를 달아 8079로 보낸다 (#389).
+            # 그 헤더가 있을 때만 https로 영구 리다이렉트 — 헤더 없는 헬스체크·443 경로는 기존 라우터로 간다
             # drain 표식이 있으면 unhealthy → Traefik이 새 요청을 보내지 않는다
             HEALTH_URL="http://127.0.0.1:${CONTAINER_INTERNAL_PORT}${HEALTHCHECK_PATH}"
             HEALTH_CMD="[ -f /tmp/.pops-drain ] && exit 1; wget -q -O /dev/null ${HEALTH_URL}"
@@ -173,6 +175,13 @@ jobs:
               --label "traefik.http.routers.${ROUTER}.rule=Host(\`${SERVICE_DOMAIN}\`)" \
               --label "traefik.http.routers.${ROUTER}.entrypoints=${TRAEFIK_ENTRYPOINT}" \
               --label "traefik.http.services.${ROUTER}.loadbalancer.server.port=${CONTAINER_INTERNAL_PORT}" \
+              --label "traefik.http.routers.${ROUTER}-http.rule=Host(\`${SERVICE_DOMAIN}\`) && Header(\`X-Forwarded-Proto\`, \`http\`)" \
+              --label "traefik.http.routers.${ROUTER}-http.entrypoints=${TRAEFIK_ENTRYPOINT}" \
+              --label "traefik.http.routers.${ROUTER}-http.priority=1000" \
+              --label "traefik.http.routers.${ROUTER}-http.middlewares=${ROUTER}-https" \
+              --label "traefik.http.routers.${ROUTER}-http.service=${ROUTER}" \
+              --label "traefik.http.middlewares.${ROUTER}-https.redirectscheme.scheme=https" \
+              --label "traefik.http.middlewares.${ROUTER}-https.redirectscheme.permanent=true" \
               -e TZ=Asia/Seoul \
               -e "SPRING_PROFILES_ACTIVE=${SPRING_PROFILE}" \
               -v /etc/localtime:/etc/localtime:ro \
