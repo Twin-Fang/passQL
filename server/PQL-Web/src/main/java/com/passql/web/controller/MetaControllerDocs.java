@@ -2,6 +2,7 @@ package com.passql.web.controller;
 
 import com.passql.common.dto.Author;
 import com.passql.meta.constant.LegalType;
+import com.passql.meta.dto.AppLinksResponse;
 import com.passql.meta.dto.LegalResponse;
 import com.passql.meta.dto.TopicTree;
 import com.passql.meta.entity.ConceptTag;
@@ -76,4 +77,23 @@ public interface MetaControllerDocs {
           """
   )
   ResponseEntity<LegalResponse> getLegal(@PathVariable LegalType type);
+
+  @ApiLogs({
+      @ApiLog(date = "2026.10.08", author = Author.SUHSAECHAN, issueNumber = 433, description = "스토어 다운로드 링크 조회 API 추가 — 웹 앱 출시 안내용"),
+  })
+  @Operation(
+      summary = "스토어 다운로드 링크 조회",
+      description = """
+          ## 인증(JWT): **불필요**
+
+          ## 요청 파라미터
+          - 없음
+
+          ## 반환값 (AppLinksResponse)
+          - androidUrl: Google Play 링크 (없으면 null)
+          - iosUrl: App Store 링크 (없으면 null)
+          - 관리자 설정 store.android_url / store.ios_url 값. 비었거나 https 가 아니면 null
+          """
+  )
+  ResponseEntity<AppLinksResponse> getAppLinks();
 }
