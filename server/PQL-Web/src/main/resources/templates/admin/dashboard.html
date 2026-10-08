@@ -6,6 +6,15 @@
 
 <th:block layout:fragment="content">
 
+    <!-- 시험 일정 공고 확인 필요 알림 (#411) -->
+    <a th:each="alert : ${examAlerts}" href="/admin/exam-schedules"
+       class="alert mb-4 hover:brightness-95"
+       th:classappend="${alert.level.name() == 'ERROR'} ? 'alert-error' : 'alert-warning'">
+        <i data-lucide="calendar-clock" class="size-5"></i>
+        <span><b th:text="${alert.certType.name()} + ' 시험 일정'">SQLD 시험 일정</b> — <span th:text="${alert.message}">확인 필요</span></span>
+        <span class="btn btn-xs btn-ghost">확인하기</span>
+    </a>
+
     <!-- ==============================
          1) 핵심 지표 카드 (Row 1)
          ============================== -->
