@@ -8,14 +8,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -31,6 +29,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final ApiSecurityErrorHandler apiSecurityErrorHandler;
 
     // 허용 Origin — 운영 웹·Vercel 미리보기·로컬 개발만. 모바일 앱은 Origin을 보내지 않아 무관 (#394)
     @Value("${cors.allowed-origin-patterns:https://passql.vercel.app,https://passql-*.vercel.app,http://localhost:*,http://127.0.0.1:*}")
@@ -54,12 +53,12 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/meta/**").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex
-                // 미인증 요청은 403 대신 401 반환
-                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                // 미인증 401·권한 없음 403을 표준 본문과 WARN 로그로 응답 (#406)
+                .authenticationEntryPoint(apiSecurityErrorHandler)
+                .accessDeniedHandler(apiSecurityErrorHandler)
             )
             .addFilterBefore(
                 new JwtAuthenticationFilter(jwtTokenProvider),
