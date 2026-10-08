@@ -1,6 +1,7 @@
 package com.passql.web.controller.admin;
 
 import com.passql.ai.client.GeminiClient;
+import com.passql.meta.service.ExamScheduleCoverageService;
 import com.passql.application.dto.DashboardStats;
 import com.passql.application.service.AdminDashboardService;
 import com.passql.submission.service.SubmissionService;
@@ -24,6 +25,7 @@ public class AdminDashboardController {
     private final AdminDashboardService adminDashboardService;
     private final SubmissionService submissionService;
     private final GeminiClient geminiClient;
+    private final ExamScheduleCoverageService examCoverageService;
 
     @GetMapping({"", "/"})
     public String dashboard(Model model) {
@@ -43,6 +45,8 @@ public class AdminDashboardController {
 
         model.addAttribute("stats", stats);
         model.addAttribute("recentLogs", submissionService.getRecentLogs());
+        // 시험 일정 공고 확인이 필요하면 대시보드 상단에 알린다 (#411)
+        model.addAttribute("examAlerts", examCoverageService.getAlerts());
         model.addAttribute("currentMenu", "dashboard");
         model.addAttribute("pageTitle", "대시보드");
         return "admin/dashboard";
