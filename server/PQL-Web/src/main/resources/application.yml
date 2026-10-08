@@ -7,6 +7,10 @@ spring:
         enabled: true
   profiles:
     active: prod
+  output:
+    ansi:
+      # 컨테이너 로그에 색상 코드가 섞이면 grep·보관 파일 읽기가 어렵다 (#436)
+      enabled: never
   flyway:
     enabled: true
     baseline-on-migrate: true
@@ -15,6 +19,11 @@ spring:
     # DB가 이미 높은 버전까지 적용된 뒤 낮은 번호 마이그레이션이 늦게 추가되면
     # 기본 설정은 조용히 스킵함 (V0_0_95 로그인 장애 원인) — 반드시 유지
     out-of-order: true
+
+# 모든 로그 줄 레벨 뒤에 [요청ID|회원ID]를 붙인다 — RequestTraceFilter·JwtAuthenticationFilter가 MDC를 채운다 (#436)
+logging:
+  pattern:
+    level: "%5p [%X{rid:--}|%X{mid:--}]"
 
 server:
   port: 8080
@@ -41,6 +50,8 @@ suh-logger:
     - "auth/login"
     - "auth/reissue"
     - "admin/login"
+    # Docker 헬스체크(5초 간격)가 요청 로그의 99%를 차지해 실제 요청이 묻힌다 (#436)
+    - "actuator/health"
 
 springdoc:
   swagger-ui:
