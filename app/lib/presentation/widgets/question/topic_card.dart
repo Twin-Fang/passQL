@@ -19,63 +19,77 @@ class TopicCard extends StatelessWidget {
         .where((s) => s.isActive == true)
         .length;
 
+    final accent = topicAccentFor(topic.code);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
           color: AppColors.cardBg,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(16.r),
           border: Border.all(color: AppColors.borderDefault),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // 토픽 구분을 빠르게 하는 아이콘 칩(웹 카테고리 버튼과 동일한 인상)
-            Container(
-              width: 36.r,
-              height: 36.r,
-              decoration: BoxDecoration(
-                color: AppColors.accentLight,
-                borderRadius: BorderRadius.circular(10.r),
-              ),
-              alignment: Alignment.center,
-              child: FaIcon(
-                topicIconFor(topic.code),
-                size: 16.r,
-                color: AppColors.brandIndigo,
-              ),
-            ),
-            SizedBox(height: 12.h),
-            // 토픽 이름
-            Text(
-              topic.displayName,
-              style: AppTextStyles.label_16.copyWith(
-                color: AppColors.textPrimary,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            SizedBox(height: 8.h),
-            // 서브토픽이 있을 때만 개수를 보여 준다(없으면 "0개"만 반복돼 의미가 없다).
-            // 개수 문구가 없을 땐 눌러서 들어간다는 힌트로 화살표를 둔다.
-            if (activeSubtopicCount > 0)
-              Text(
-                '$activeSubtopicCount개 서브토픽',
-                style: AppTextStyles.tag_12.copyWith(
-                  color: AppColors.textSecondary,
+            // 아이콘 칩 + 이동 화살표: 서브토픽 유무와 상관없이 모든 카드에서 같은 자리
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  width: 44.r,
+                  height: 44.r,
+                  decoration: BoxDecoration(
+                    color: accent.bg,
+                    borderRadius: BorderRadius.circular(14.r),
+                  ),
+                  alignment: Alignment.center,
+                  child: FaIcon(
+                    topicIconFor(topic.code),
+                    size: 20.r,
+                    color: accent.fg,
+                  ),
                 ),
-              )
-            else
-              Align(
-                alignment: Alignment.centerRight,
-                child: FaIcon(
+                FaIcon(
                   FontAwesomeIcons.chevronRight,
                   size: 12.r,
                   color: AppColors.textCaption,
                 ),
+              ],
+            ),
+            // 이름이 두 줄이 돼도 카드 높이를 넘지 않도록 Flexible로 감싼다
+            Flexible(
+              child: Text(
+                topic.displayName,
+                style: AppTextStyles.label_16.copyWith(
+                  color: AppColors.textPrimary,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
+            ),
+            // 서브토픽이 있을 때만 개수 알약을 보여 준다(없으면 "0개"만 반복돼 의미가 없다)
+            if (activeSubtopicCount > 0)
+              // 글자가 커져도 알약이 두 줄로 꺾이지 않고 한 줄로 줄어들게 한다
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+                  decoration: BoxDecoration(
+                    color: accent.bg,
+                    borderRadius: BorderRadius.circular(20.r),
+                  ),
+                  child: Text(
+                    '$activeSubtopicCount개 서브토픽',
+                    style: AppTextStyles.tag_12.copyWith(color: accent.fg),
+                  ),
+                ),
+              )
+            else
+              SizedBox(height: 20.h),
           ],
         ),
       ),

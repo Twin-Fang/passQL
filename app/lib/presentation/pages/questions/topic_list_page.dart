@@ -28,16 +28,18 @@ class TopicListPage extends ConsumerWidget {
               padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 8.h),
               child: Text(
                 '문제',
-                style: AppTextStyles.heading_24
-                    .copyWith(color: AppColors.textPrimary),
+                style: AppTextStyles.heading_24.copyWith(
+                  color: AppColors.textPrimary,
+                ),
               ),
             ),
             Padding(
               padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 16.h),
               child: Text(
                 '학습할 토픽을 선택하세요',
-                style: AppTextStyles.paragraph_14
-                    .copyWith(color: AppColors.textSecondary),
+                style: AppTextStyles.paragraph_14.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
             ),
 
@@ -52,8 +54,9 @@ class TopicListPage extends ConsumerWidget {
                     children: [
                       Text(
                         '토픽을 불러올 수 없어요',
-                        style: AppTextStyles.paragraph_14
-                            .copyWith(color: AppColors.textSecondary),
+                        style: AppTextStyles.paragraph_14.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                       TextButton(
                         onPressed: () => ref.invalidate(topicsProvider),
@@ -63,12 +66,20 @@ class TopicListPage extends ConsumerWidget {
                   ),
                 ),
                 data: (topics) => GridView.builder(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.w,
+                    vertical: 8.h,
+                  ),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     crossAxisSpacing: 12.w,
                     mainAxisSpacing: 12.h,
-                    childAspectRatio: 1.4,
+                    // 비율 고정이면 큰 글자·긴 이름에서 이름이 잘려서, 글자 배율만큼 높이를 키운다
+                    mainAxisExtent:
+                        148.h *
+                        MediaQuery.textScalerOf(
+                          context,
+                        ).scale(1).clamp(1.0, 2.0),
                   ),
                   itemCount: topics.length,
                   itemBuilder: (_, i) {
