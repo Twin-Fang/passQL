@@ -140,7 +140,7 @@ Backend(Spring)는 PostgreSQL·Redis·Qdrant와 Gemini API 키가 필요합니�
 ---
 
 <!-- AUTO-VERSION-SECTION: DO NOT EDIT MANUALLY -->
-## 최신 버전 : v0.0.250 (2026-10-08)
+## 최신 버전 : v0.1.0 (2026-10-08)
 
 [전체 버전 기록 보기](CHANGELOG.md) · [Admin](https://api.passql.suhsaechan.kr/admin/questions) · [API Docs](https://api.passql.suhsaechan.kr/docs/swagger-ui/index.html)
 

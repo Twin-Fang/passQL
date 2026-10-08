@@ -1,22 +1,22 @@
 {
-  "templateVersion": "4.31.5",
-  "installedAt": "2026-10-02 14:36:51",
+  "templateVersion": "4.36.4",
+  "installedAt": "2026-10-08 00:32:54",
   "files": {
     "PROJECT-COMMON-PROJECTS-SYNC-MANAGER.yaml": {
-      "installed": "sha256:89fae9869f12628a740a323a43fcb90db366784cad144c497f5145b50552557a",
-      "rendered": "sha256:89fae9869f12628a740a323a43fcb90db366784cad144c497f5145b50552557a"
+      "installed": "sha256:2c73e8737700f4ddfc9942580783e03360197d7c6333dd85129831d22bcc56e9",
+      "rendered": "sha256:2c73e8737700f4ddfc9942580783e03360197d7c6333dd85129831d22bcc56e9"
     },
     "PROJECT-COMMON-QA-ISSUE-CREATION-BOT.yaml": {
-      "installed": "sha256:2f315e4c0eff9d0debae2be38e9e70d309ae3fd6454e97bb5a95219584fbc935",
-      "rendered": "sha256:2f315e4c0eff9d0debae2be38e9e70d309ae3fd6454e97bb5a95219584fbc935"
+      "installed": "sha256:f389db9772ea2ea4f8cea17f085dfbcb7875de95f6430249bf393f4599c97549",
+      "rendered": "sha256:f389db9772ea2ea4f8cea17f085dfbcb7875de95f6430249bf393f4599c97549"
     },
     "PROJECT-COMMON-README-VERSION-UPDATE.yaml": {
-      "installed": "sha256:ac73ea3d293d1e10e00ff1f14ca690fd34872022e5d37bf5273d3bd3172c0600",
-      "rendered": "sha256:ac73ea3d293d1e10e00ff1f14ca690fd34872022e5d37bf5273d3bd3172c0600"
+      "installed": "sha256:8c26d3dbe0dc61e93e3a9976c3670aea2ec4631c3181da555eb8db27d7f510c9",
+      "rendered": "sha256:8c26d3dbe0dc61e93e3a9976c3670aea2ec4631c3181da555eb8db27d7f510c9"
     },
     "PROJECT-COMMON-RELEASE-CHANGELOG.yaml": {
-      "installed": "sha256:a3639979b3ea4628c28e34b421b1c6874fd80786aafe4be18f82ff0b1888ceb4",
-      "rendered": "sha256:a3639979b3ea4628c28e34b421b1c6874fd80786aafe4be18f82ff0b1888ceb4"
+      "installed": "sha256:08cd7ab3f72bfd03b799aaae238d093248b853e2e5742a9ea79c95609e7d65eb",
+      "rendered": "sha256:08cd7ab3f72bfd03b799aaae238d093248b853e2e5742a9ea79c95609e7d65eb"
     },
     "PROJECT-COMMON-SUH-ISSUE-HELPER.yaml": {
       "installed": "sha256:bc1de988342d128378c093b6ae8be872dbd6da6921cc4b6fb47bf910f514e7a5",
@@ -27,8 +27,8 @@
       "rendered": "sha256:fb6339e50e4f48973d68abafebe205a6af4a120b7e9972ae6663db81079b1aad"
     },
     "PROJECT-COMMON-VERSION-CONTROL.yaml": {
-      "installed": "sha256:bf7ac51b4e847ed3c4bf0957da72da424910939fc5b5b723b99bb77f753c91ab",
-      "rendered": "sha256:bf7ac51b4e847ed3c4bf0957da72da424910939fc5b5b723b99bb77f753c91ab"
+      "installed": "sha256:22f1631b1564910f78ba845c2d1674645bf5e1e111e47a5f76f569e4bef16c20",
+      "rendered": "sha256:22f1631b1564910f78ba845c2d1674645bf5e1e111e47a5f76f569e4bef16c20"
     },
     "PROJECT-COMMON-TEMPLATE-UTIL-VERSION-SYNC.yml": {
       "installed": "sha256:6b224aac9b4a23b8c95d9b14ff5049ae1e75f674a20686cb4d9a22ef4ad78e3e",
@@ -49,6 +49,18 @@
     "PROJECT-COMMON-SECRET-FILE-UPLOAD.yaml": {
       "installed": "sha256:23ce49e13e0be4d52a816be316001e9c1f7694ebaf0c7185395323e2cbc8537c",
       "rendered": "sha256:23ce49e13e0be4d52a816be316001e9c1f7694ebaf0c7185395323e2cbc8537c"
+    },
+    "PROJECT-COMMON-CLOSE-ISSUES-ON-RELEASE.yaml": {
+      "installed": "sha256:46a27c3172768bdc1014f8ac015c9e803381c0f422214081128f295ec4ce50ce",
+      "rendered": "sha256:46a27c3172768bdc1014f8ac015c9e803381c0f422214081128f295ec4ce50ce"
+    },
+    "PROJECT-SPRING-NONSTOP-NGINX-CICD.yaml": {
+      "installed": "sha256:d391fa403c0ca49566a9564340c7b5325483270ecda03e31658f853f44acfc15",
+      "rendered": "sha256:d391fa403c0ca49566a9564340c7b5325483270ecda03e31658f853f44acfc15"
+    },
+    "PROJECT-SPRING-NONSTOP-TRAEFIK-CICD.yaml": {
+      "installed": "sha256:5f075a1d77fa023e74acbd3c6a75d7af0770d51d6e7a2e9c3cd088589b3b42fa",
+      "rendered": "sha256:5f075a1d77fa023e74acbd3c6a75d7af0770d51d6e7a2e9c3cd088589b3b42fa"
     }
   }
 }

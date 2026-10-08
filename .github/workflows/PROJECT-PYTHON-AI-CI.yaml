@@ -45,6 +45,11 @@ jobs:
       - name: Docker 빌드환경 설정
         uses: docker/setup-buildx-action@v3
 
+      # Dockerfile이 COPY .env.prod 를 요구하지만 실제 파일은 배포 워크플로우가 Secret으로 만든다.
+      # 빌드 검증에는 값이 필요 없으므로 빈 파일로 대신한다 — 없으면 ai/** 변경마다 CI가 실패했다
+      - name: 빌드 검증용 빈 .env.prod 생성
+        run: touch ai/.env.prod
+
       - name: Docker 이미지 빌드 검증 (push 없음)
         uses: docker/build-push-action@v5
         with:
