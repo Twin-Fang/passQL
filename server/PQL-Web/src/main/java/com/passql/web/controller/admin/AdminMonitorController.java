@@ -2,7 +2,7 @@ package com.passql.web.controller.admin;
 
 import com.passql.ai.client.GeminiClient;
 import com.passql.ai.dto.AiStats;
-import com.passql.submission.dto.MonitorStats;
+import com.passql.meta.service.ServerErrorLogService;
 import com.passql.submission.service.SubmissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -17,20 +17,17 @@ public class AdminMonitorController {
 
     private final SubmissionService submissionService;
     private final GeminiClient geminiClient;
+    private final ServerErrorLogService serverErrorLogService;
 
     @GetMapping
     public String dashboard(Model model) {
-        MonitorStats raw = submissionService.getStats24h();
-        long geminiCount = geminiClient.getCallCount();
-
-        // aiCallCount에 실제 Gemini 호출 횟수 반영
-        MonitorStats monitorStats = new MonitorStats(
-                raw.successCount(), raw.failCount(), raw.avgElapsedMs(), geminiCount);
-
         model.addAttribute("executionLogs", submissionService.getRecentLogs());
-        model.addAttribute("monitorStats", monitorStats);
-        // Gemini 누적 호출 횟수 포함, 나머지 AI 기능은 미구현(-1)
-        model.addAttribute("aiStats", AiStats.withGeminiCount(geminiCount));
+        model.addAttribute("monitorStats", submissionService.getStats24h());
+        // Gemini 호출 수는 인메모리 누적값(배포마다 0) — 화면에 그 사실을 함께 안내한다
+        model.addAttribute("aiStats", new AiStats(geminiClient.getCallCount()));
+        // 5xx·미처리 예외 기록 (#440)
+        model.addAttribute("serverErrors", serverErrorLogService.findRecent());
+        model.addAttribute("serverErrorCount24h", serverErrorLogService.countLast24h());
         model.addAttribute("currentMenu", "monitor");
         model.addAttribute("pageTitle", "모니터링");
         return "admin/monitor";
