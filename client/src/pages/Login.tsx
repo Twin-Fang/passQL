@@ -5,7 +5,7 @@ import { firebaseAuth, googleProvider } from "../lib/firebase";
 import { login, type AuthProvider } from "../api/auth";
 import { useAuthStore } from "../stores/authStore";
 import { ApiError } from "../api/client";
-import { fetchLegal, type LegalType } from "../api/legal";
+import { fetchLegal, LEGAL_TITLE, type LegalType } from "../api/legal";
 import MarkdownText from "../components/MarkdownText";
 import logo from "../assets/logo/logo.png";
 
@@ -194,18 +194,30 @@ function LegalModal({
     return () => dialog.removeEventListener("close", handleClose);
   }, [onClose]);
 
-  // 약관 내용 fetch
+  // 다시 시도 버튼이 값을 올려 같은 type으로 재요청하게 한다
+  const [retryKey, setRetryKey] = useState(0);
+
+  // 약관 내용 fetch — 모달이 닫혀 언마운트되면 늦게 온 응답은 버린다
   useEffect(() => {
+    let cancelled = false;
     setLoading(true);
     setFetchError(false);
     fetchLegal(type)
       .then((data) => {
+        if (cancelled) return;
         setTitle(data.title);
         setContent(data.content);
       })
-      .catch(() => setFetchError(true))
-      .finally(() => setLoading(false));
-  }, [type]);
+      .catch(() => {
+        if (!cancelled) setFetchError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [type, retryKey]);
 
   return (
     <dialog ref={dialogRef} className="modal modal-bottom sm:modal-middle">
@@ -213,7 +225,8 @@ function LegalModal({
         {/* 헤더 */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#E5E7EB] shrink-0">
           <h3 className="text-base font-bold text-[#111827]">
-            {title ?? (loading ? "" : "약관")}
+            {/* 실패해도 사용자가 연 문서 이름을 보여 준다 (#403) */}
+            {title ?? LEGAL_TITLE[type]}
           </h3>
           <form method="dialog">
             <button
@@ -234,9 +247,18 @@ function LegalModal({
             </div>
           )}
           {fetchError && (
-            <p className="text-sm text-[#EF4444] text-center py-8">
-              약관을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
-            </p>
+            <div className="flex flex-col items-center gap-3 py-8">
+              <p className="text-sm text-[#EF4444] text-center">
+                {LEGAL_TITLE[type]}을 불러오지 못했습니다.
+              </p>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline border-[#4F46E5] text-[#4F46E5] hover:bg-[#EEF2FF] hover:border-[#4F46E5]"
+                onClick={() => setRetryKey((k) => k + 1)}
+              >
+                다시 시도
+              </button>
+            </div>
           )}
           {!loading && !fetchError && content && (
             <div className="prose prose-sm max-w-none text-[#374151]">
