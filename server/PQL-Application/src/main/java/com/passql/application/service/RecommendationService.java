@@ -3,6 +3,7 @@ package com.passql.application.service;
 import com.passql.ai.client.AiGatewayClient;
 import com.passql.ai.dto.RecommendRequest;
 import com.passql.ai.dto.RecommendResult;
+import com.passql.ai.dto.SimilarQuestion;
 import com.passql.question.dto.RecommendationsResponse;
 import com.passql.question.service.QuestionService;
 import com.passql.submission.repository.SubmissionRepository;
@@ -13,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.UUID;
 
 /**
@@ -37,6 +40,40 @@ public class RecommendationService {
     private static final int WRONG_QUESTION_LIMIT = 10;
     // Qdrant must_not 필터에 포함할 최근 풀이 문제 수 — 전량 전송 시 페이로드 과부하 방지
     private static final int SOLVED_QUESTION_LIMIT = 200;
+
+    // 유사 문제 최대 개수 — 결과 화면 섹션은 3개를 요청한다
+    private static final int SIMILAR_MAX = 5;
+
+    /**
+     * 기준 문제와 벡터가 가까운 문제 (#442).
+     *
+     * <p>AI 서버 recommend(오답 벡터 평균 검색 + must_not 제외)를 그대로 쓴다. 기준 문제 하나를
+     * 쿼리 원본과 제외 목록에 함께 넣으면 그 문제 벡터로 검색하되 자기 자신은 빠진다.
+     * 결과 화면의 보조 섹션이라 실패해도 빈 목록을 돌려 화면만 숨긴다(500 금지).
+     */
+    public List<SimilarQuestion> findSimilar(UUID questionUuid, int k) {
+        int clamped = Math.max(1, Math.min(k, SIMILAR_MAX));
+        String self = questionUuid.toString();
+        try {
+            RecommendResult result = aiGatewayClient.recommend(
+                    new RecommendRequest(clamped, List.of(self), List.of(self)));
+            if (result == null || result.items() == null || result.items().isEmpty()) {
+                // 기준 문제 벡터가 아직 색인되지 않은 경우 등 — 정상적인 "없음"
+                return List.of();
+            }
+            // 점수 순서를 유지한 채 UUID → 점수 (중복 방지)
+            Map<String, Double> scores = new LinkedHashMap<>();
+            result.items().forEach(item -> scores.putIfAbsent(item.questionUuid(), item.score()));
+            // 비활성·삭제된 문제는 getRecommendationsByUuids 가 걸러낸다
+            return questionService.getRecommendationsByUuids(new ArrayList<>(scores.keySet())).questions().stream()
+                    .map(q -> new SimilarQuestion(q.questionUuid(), q.stemPreview(), q.topicName(),
+                            scores.getOrDefault(q.questionUuid().toString(), 0.0)))
+                    .toList();
+        } catch (Exception e) {
+            log.warn("[similar] 유사 문제 검색 실패, 빈 목록 반환: questionUuid={}, error={}", questionUuid, e.getMessage());
+            return List.of();
+        }
+    }
 
     /**
      * 개인화 문제 추천.
