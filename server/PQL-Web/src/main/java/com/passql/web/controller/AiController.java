@@ -2,8 +2,8 @@ package com.passql.web.controller;
 
 import com.passql.ai.dto.AiResult;
 import com.passql.ai.dto.SimilarQuestion;
-import com.passql.ai.service.AiService;
 import com.passql.application.service.AiExplainService;
+import com.passql.application.service.RecommendationService;
 import com.passql.member.auth.presentation.annotation.AuthMember;
 import com.passql.member.auth.presentation.security.LoginMember;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +19,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AiController implements AiControllerDocs {
 
-    private final AiService aiService;
     // 해설은 문제·제출 정보가 필요해 애플리케이션 계층 서비스가 맡는다.
     private final AiExplainService aiExplainService;
+    // 유사 문제는 문제 요약 조합이 필요해 추천 서비스가 맡는다 (#442). AiService.getSimilar 는 미구현(TODO)이었다
+    private final RecommendationService recommendationService;
 
     @PostMapping("/explain-error")
     public ResponseEntity<AiResult> explainError(
@@ -49,6 +50,6 @@ public class AiController implements AiControllerDocs {
         @PathVariable UUID questionUuid,
         @RequestParam(defaultValue = "5") int k
     ) {
-        return ResponseEntity.ok(aiService.getSimilar(questionUuid, k));
+        return ResponseEntity.ok(recommendationService.findSimilar(questionUuid, k));
     }
 }
