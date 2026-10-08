@@ -30,34 +30,34 @@ import sys
 import urllib.error
 import urllib.request
 
+from i18n.messages import resolve_language, t
+
 MARKER = "<!-- PROJECTOPS-AI-SUMMARY -->"
 
-# 앱 심사로 이어지는 레포에서만 붙는 안내. 리뷰어가 무게를 다르게 잡도록 한다.
-APP_RELEASE_NOTICE = (
-    "> 📱 이 저장소는 앱스토어·플레이스토어 심사로 이어집니다. "
-    "이 변경은 다음 릴리스에 포함되어 심사에 들어갑니다."
-)
+# 앱 심사로 이어지는 레포에서만 붙는 안내(pr_summary.app_release). 리뷰어가 무게를 다르게 잡도록 한다.
 
 
 def extract_body(raw: str) -> str:
     """릴리스 노트 껍데기에서 항목 본문만 꺼낸다.
 
-    provider 사다리는 `## 릴리스 노트` 아래에 항목을 쓰고 HTML 주석으로 감싼다.
+    provider 사다리는 `## Summary by CodeRabbit` 다음 제목(언어별: `릴리스 노트`, `Release notes` …)
+    아래에 항목을 쓰고 HTML 주석으로 감싼다. 제목 문구에 의존하면 언어가 늘 때마다 깨지므로
+    `Summary by CodeRabbit`이 아닌 첫 `##` 제목을 본문 시작으로 본다.
     구조가 달라지면(다른 provider 등) 원문을 그대로 쓴다 — 요약이 없는 것보다는 낫다.
     """
-    m = re.search(r"##\s*릴리스 노트\s*\n(.*?)(?:\n<!--|\Z)", raw, re.S)
+    m = re.search(r"^##[ \t]+(?!Summary by CodeRabbit)[^\n]+\n(.*?)(?:\n<!--|\Z)", raw, re.S | re.M)
     body = m.group(1) if m else raw
     # 주변 HTML 주석 줄 제거 (남아 있으면 댓글에 빈 줄만 생긴다)
     body = "\n".join(l for l in body.split("\n") if not l.strip().startswith("<!--"))
     return body.strip()
 
 
-def build_comment(raw: str, app_release: bool) -> str:
-    parts = [MARKER, "", "## 🤖 변경 요약", ""]
+def build_comment(raw: str, app_release: bool, lang: str | None = None) -> str:
+    lang = lang or resolve_language()
+    parts = [MARKER, "", f"## {t('pr_summary.heading', lang)}", ""]
     if app_release:
-        parts += [APP_RELEASE_NOTICE, ""]
-    parts += [extract_body(raw), "", "---",
-              "<sub>커밋 내역을 자동 요약한 내용입니다. 새 커밋이 올라오면 이 댓글이 갱신됩니다.</sub>"]
+        parts += [t("pr_summary.app_release", lang), ""]
+    parts += [extract_body(raw), "", "---", t("pr_summary.footer", lang)]
     return "\n".join(parts)
 
 
