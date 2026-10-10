@@ -2,7 +2,7 @@
 # Flutter Android Play Store 내부 테스트 배포 워크플로우
 # ===================================================================
 #
-# deploy 브랜치 푸시 시 Android AAB를 빌드하고
+# 수동 실행 시 main 브랜치로 Android AAB를 빌드하고
 # Play Store 내부 테스트에 자동 배포합니다.
 #
 # ===================================================================
@@ -91,11 +91,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
-          ref: deploy
+          ref: main
           fetch-depth: 0
 
       - name: Pull latest changes
-        run: git pull origin deploy
+        run: git pull origin main
 
       - name: Create .env file
         env:
@@ -223,11 +223,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
-          ref: deploy
+          ref: main
           fetch-depth: 0
 
       - name: Pull latest changes
-        run: git pull origin deploy
+        run: git pull origin main
 
       # 프로젝트 파일들 다운로드
       - name: Download project files
@@ -553,7 +553,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
-          ref: deploy
+          ref: main
           fetch-depth: 0
 
       # Service Account JSON 설정
