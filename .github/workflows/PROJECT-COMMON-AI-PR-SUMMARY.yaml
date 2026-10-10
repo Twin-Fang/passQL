@@ -33,7 +33,7 @@ on:
     # 존재할 수 없어 이 워크플로우가 한 번도 실행되지 못했다 (#565).
     # 릴리스 PR(develop→main)은 base가 main이라 자연히 제외되고, 그 덕에 머지 타이밍에
     # run이 잘려 실패로 남던 문제도 사라진다.
-    branches: ["develop"]
+    branches: ["deploy"]
 
 permissions:
   contents: read

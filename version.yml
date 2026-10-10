@@ -56,10 +56,10 @@ metadata:
   integration_date: "2026-10-08"
   template:
     source: "projectops"
-    version: "4.36.4"
+    version: "4.40.0"
     mode: "full"   # install scope (full/version/workflows), used when re-running update mode
     integrated_date: "2026-10-08"
-    last_update_date: "2026-10-08"
+    last_update_date: "2026-10-10"
     options:
       intent: "app"   # project kind (app/library/both/none/manual), drives the deploy questions
       deploy: "docker-ssh"

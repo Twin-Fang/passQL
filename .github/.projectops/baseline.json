@@ -1,6 +1,6 @@
 {
-  "templateVersion": "4.36.4",
-  "installedAt": "2026-10-08 00:32:54",
+  "templateVersion": "4.40.0",
+  "installedAt": "2026-10-10 02:31:14",
   "files": {
     "PROJECT-COMMON-PROJECTS-SYNC-MANAGER.yaml": {
       "installed": "sha256:2c73e8737700f4ddfc9942580783e03360197d7c6333dd85129831d22bcc56e9",
@@ -11,20 +11,20 @@
       "rendered": "sha256:f389db9772ea2ea4f8cea17f085dfbcb7875de95f6430249bf393f4599c97549"
     },
     "PROJECT-COMMON-README-VERSION-UPDATE.yaml": {
-      "installed": "sha256:8c26d3dbe0dc61e93e3a9976c3670aea2ec4631c3181da555eb8db27d7f510c9",
-      "rendered": "sha256:8c26d3dbe0dc61e93e3a9976c3670aea2ec4631c3181da555eb8db27d7f510c9"
+      "installed": "sha256:63a3cb5daa7943226552c84b4c1fbe60c35f0942e8e85a3556bf474802e65de9",
+      "rendered": "sha256:63a3cb5daa7943226552c84b4c1fbe60c35f0942e8e85a3556bf474802e65de9"
     },
     "PROJECT-COMMON-RELEASE-CHANGELOG.yaml": {
-      "installed": "sha256:08cd7ab3f72bfd03b799aaae238d093248b853e2e5742a9ea79c95609e7d65eb",
-      "rendered": "sha256:08cd7ab3f72bfd03b799aaae238d093248b853e2e5742a9ea79c95609e7d65eb"
+      "installed": "sha256:81d55db45bc8bafd3d8f0eec0c36cdcbdfad2e3e8f525b2e13a558388b8fcf14",
+      "rendered": "sha256:81d55db45bc8bafd3d8f0eec0c36cdcbdfad2e3e8f525b2e13a558388b8fcf14"
     },
     "PROJECT-COMMON-SUH-ISSUE-HELPER.yaml": {
       "installed": "sha256:bc1de988342d128378c093b6ae8be872dbd6da6921cc4b6fb47bf910f514e7a5",
       "rendered": "sha256:bc1de988342d128378c093b6ae8be872dbd6da6921cc4b6fb47bf910f514e7a5"
     },
     "PROJECT-COMMON-SYNC-ISSUE-LABELS.yaml": {
-      "installed": "sha256:fb6339e50e4f48973d68abafebe205a6af4a120b7e9972ae6663db81079b1aad",
-      "rendered": "sha256:fb6339e50e4f48973d68abafebe205a6af4a120b7e9972ae6663db81079b1aad"
+      "installed": "sha256:5cc522f2ece77939ea9fe65e8897bb0e008e7fb08afb424cf442d0398a80aeb0",
+      "rendered": "sha256:5cc522f2ece77939ea9fe65e8897bb0e008e7fb08afb424cf442d0398a80aeb0"
     },
     "PROJECT-COMMON-VERSION-CONTROL.yaml": {
       "installed": "sha256:22f1631b1564910f78ba845c2d1674645bf5e1e111e47a5f76f569e4bef16c20",
@@ -43,8 +43,8 @@
       "rendered": "sha256:395adbb14d865932b75e949546bb69abd35f496af74e487799e92bd9da2a83d0"
     },
     "PROJECT-COMMON-AI-PR-SUMMARY.yaml": {
-      "installed": "sha256:8f37b156a5422c1c9178632494c329da30732b30b998650f82994b0d024cfc08",
-      "rendered": "sha256:8f37b156a5422c1c9178632494c329da30732b30b998650f82994b0d024cfc08"
+      "installed": "sha256:6e7fc0c13f3a7eb3e9241d370b83e3ee479b5a6b21cd80308cd005c177412fd1",
+      "rendered": "sha256:6e7fc0c13f3a7eb3e9241d370b83e3ee479b5a6b21cd80308cd005c177412fd1"
     },
     "PROJECT-COMMON-SECRET-FILE-UPLOAD.yaml": {
       "installed": "sha256:23ce49e13e0be4d52a816be316001e9c1f7694ebaf0c7185395323e2cbc8537c",
@@ -61,6 +61,34 @@
     "PROJECT-SPRING-NONSTOP-TRAEFIK-CICD.yaml": {
       "installed": "sha256:5f075a1d77fa023e74acbd3c6a75d7af0770d51d6e7a2e9c3cd088589b3b42fa",
       "rendered": "sha256:5f075a1d77fa023e74acbd3c6a75d7af0770d51d6e7a2e9c3cd088589b3b42fa"
+    },
+    "PROJECT-SPRING-PR-PREVIEW.yaml": {
+      "installed": "sha256:631c62cb0dcc74563bae6ef6f10d28e55e8a7d9fa48ab6355398c8605491d119",
+      "rendered": "sha256:631c62cb0dcc74563bae6ef6f10d28e55e8a7d9fa48ab6355398c8605491d119"
+    },
+    "PROJECT-SPRING-SIMPLE-CICD.yaml": {
+      "installed": "sha256:a08c5f367349fc412c8a12a9481d611665fe7a568f52e4c03853cc2aaa6b0abd",
+      "rendered": "sha256:a08c5f367349fc412c8a12a9481d611665fe7a568f52e4c03853cc2aaa6b0abd"
+    },
+    "PROJECT-REACT-CI.yaml": {
+      "installed": "sha256:40ee2737ac926f642e0c2b73b2fe5f7fd766fafe06d9a52d43400d2841b224b4",
+      "rendered": "sha256:40ee2737ac926f642e0c2b73b2fe5f7fd766fafe06d9a52d43400d2841b224b4"
+    },
+    "PROJECT-REACT-CICD.yaml": {
+      "installed": "sha256:df52662f167a15695f0d44bbfac70bf08ee497bec3f392713e4d76cc5336c34e",
+      "rendered": "sha256:df52662f167a15695f0d44bbfac70bf08ee497bec3f392713e4d76cc5336c34e"
+    },
+    "PROJECT-PYTHON-CI.yaml": {
+      "installed": "sha256:fae1cfd8a29f44bfc91aa055b57216a769adb09ffd9817a21e5d864882e5f539",
+      "rendered": "sha256:fae1cfd8a29f44bfc91aa055b57216a769adb09ffd9817a21e5d864882e5f539"
+    },
+    "PROJECT-PYTHON-PR-PREVIEW.yaml": {
+      "installed": "sha256:e1022f1c0ef88db9446b03850db1296dab98f93277c1c9c4758dfb84ae0ad3d0",
+      "rendered": "sha256:e1022f1c0ef88db9446b03850db1296dab98f93277c1c9c4758dfb84ae0ad3d0"
+    },
+    "PROJECT-PYTHON-SIMPLE-CICD.yaml": {
+      "installed": "sha256:1880578f6fd21eeb2b7752c9264bc3247769b257462c031485641fb520e088eb",
+      "rendered": "sha256:1880578f6fd21eeb2b7752c9264bc3247769b257462c031485641fb520e088eb"
     }
   }
 }
