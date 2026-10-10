@@ -56,7 +56,7 @@ metadata:
   integration_date: "2026-10-08"
   template:
     source: "projectops"
-    version: "4.40.0"
+    version: "4.44.1"
     mode: "full"   # install scope (full/version/workflows), used when re-running update mode
     integrated_date: "2026-10-08"
     last_update_date: "2026-10-10"
