@@ -23,14 +23,8 @@ class ResultPage extends ConsumerWidget {
     if (result == null) {
       return Scaffold(
         appBar: PqNavBar(
-          leading: CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: () => context.pop(),
-            child: Semantics(
-              label: '닫기',
-              child: const Icon(CupertinoIcons.xmark),
-            ),
-          ),
+          leading: PqNavLeading.close,
+          onLeadingTap: () => context.pop(),
         ),
         body: PqStatusView.empty(
           icon: CupertinoIcons.exclamationmark_circle,
@@ -47,7 +41,8 @@ class ResultPage extends ConsumerWidget {
 
     // AI 해설 버튼 — 오답 항상, 정답 + CONCEPT_ONLY 표시.
     // 정답 + EXECUTABLE (correctSql/correctResult 있음)은 표시 안 함.
-    final showAi = questionUuid.isNotEmpty &&
+    final showAi =
+        questionUuid.isNotEmpty &&
         (!isCorrect ||
             (result.correctSql == null && result.correctResult == null));
 

@@ -122,7 +122,7 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
         PqSpace.md,
         PqSpace.xxs,
         PqSpace.md,
-        PqSpace.md + MediaQuery.of(context).viewInsets.bottom,
+        PqSpace.md,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

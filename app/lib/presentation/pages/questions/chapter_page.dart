@@ -346,15 +346,8 @@ class _FlowStatusScaffold extends StatelessWidget {
     return Scaffold(
       appBar: PqNavBar(
         title: topicName,
-        leading: CupertinoButton(
-          padding: EdgeInsets.zero,
-          minimumSize: Size.zero,
-          onPressed: () => GoRouter.of(context).go('/home'),
-          child: Semantics(
-            label: '닫기',
-            child: Icon(CupertinoIcons.xmark, color: context.pq.label),
-          ),
-        ),
+        leading: PqNavLeading.close,
+        onLeadingTap: () => GoRouter.of(context).go('/home'),
       ),
       body: body,
     );

@@ -90,7 +90,7 @@ class _AiExplainSheetState extends ConsumerState<AiExplainSheet> {
         PqSpace.md,
         PqSpace.xs,
         PqSpace.md,
-        MediaQuery.paddingOf(context).bottom + PqSpace.md,
+        PqSpace.md,
       ),
       child: MarkdownLiteText(_text ?? ''),
     );

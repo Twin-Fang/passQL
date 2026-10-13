@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -54,7 +56,18 @@ Future<T?> showPqSheet<T>(
             ],
           ),
         ),
-        Flexible(child: builder(sheetContext)),
+        // 하단 여백은 여기서 한 번만: 키보드가 올라오면 키보드 높이, 아니면 홈 인디케이터 높이.
+        Flexible(
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: math.max(
+                MediaQuery.viewInsetsOf(sheetContext).bottom,
+                MediaQuery.viewPaddingOf(sheetContext).bottom,
+              ),
+            ),
+            child: builder(sheetContext),
+          ),
+        ),
       ],
     ),
   );

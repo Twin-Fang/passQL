@@ -4,11 +4,51 @@ import '../pq_theme.dart';
 import '../tokens/pq_metrics.dart';
 import '../tokens/pq_type.dart';
 
+/// 상단 바 왼쪽 버튼 종류. 모양은 [PqNavButton] 한 곳에서만 정한다.
+enum PqNavLeading { none, back, close }
+
+/// 상단 바 뒤로/닫기 버튼. 아이콘·색·크기·탭 영역·시맨틱을 모든 화면에서 통일한다.
+class PqNavButton extends StatelessWidget {
+  const PqNavButton({super.key, required this.kind, this.onTap})
+    : assert(kind != PqNavLeading.none);
+  final PqNavLeading kind;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isBack = kind == PqNavLeading.back;
+    return Semantics(
+      button: true,
+      label: isBack ? '뒤로' : '닫기',
+      excludeSemantics: true,
+      child: CupertinoButton(
+        // 탭 영역 최소 44 보장
+        padding: EdgeInsets.zero,
+        minimumSize: const Size(PqSize.navBar, PqSize.navBar),
+        // onTap 이 없으면 라우트 스택 기준으로 닫는다.
+        onPressed: onTap ?? () => Navigator.of(context).maybePop(),
+        child: Icon(
+          isBack ? CupertinoIcons.chevron_back : CupertinoIcons.xmark,
+          size: 22,
+          color: context.pq.label,
+        ),
+      ),
+    );
+  }
+}
+
 /// 하위 화면 상단 바. 배경은 화면 배경과 같게 두어 iOS 의 scroll-edge 모양을 낸다.
 class PqNavBar extends StatelessWidget implements PreferredSizeWidget {
-  const PqNavBar({super.key, this.title, this.leading, this.trailing});
+  const PqNavBar({
+    super.key,
+    this.title,
+    this.leading = PqNavLeading.none,
+    this.onLeadingTap,
+    this.trailing,
+  });
   final String? title;
-  final Widget? leading;
+  final PqNavLeading leading;
+  final VoidCallback? onLeadingTap;
   final Widget? trailing;
 
   @override
@@ -22,7 +62,11 @@ class PqNavBar extends StatelessWidget implements PreferredSizeWidget {
       transitionBetweenRoutes: false,
       backgroundColor: c.background,
       border: null,
-      leading: leading,
+      // 자동 뒤로가기 버튼은 모양이 달라 막고, 필요한 화면이 leading 으로 명시한다.
+      automaticallyImplyLeading: false,
+      leading: leading == PqNavLeading.none
+          ? null
+          : PqNavButton(kind: leading, onTap: onLeadingTap),
       trailing: trailing,
       // Cupertino 기본 글꼴 대신 토큰 글꼴·색을 직접 지정한다(다크 테마 색 보장).
       middle: title == null

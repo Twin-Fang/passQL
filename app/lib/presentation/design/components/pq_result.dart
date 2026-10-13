@@ -193,16 +193,8 @@ class PqResultScaffold extends StatelessWidget {
       extendBody: true,
       appBar: PqNavBar(
         title: title,
-        leading: onClose == null
-            ? null
-            : CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: onClose,
-                child: Semantics(
-                  label: '닫기',
-                  child: const Icon(CupertinoIcons.xmark),
-                ),
-              ),
+        leading: onClose == null ? PqNavLeading.none : PqNavLeading.close,
+        onLeadingTap: onClose,
       ),
       // extendBody 가 하단 바 높이를 body padding 에 더하므로 Scaffold 안쪽 context 에서 읽는다.
       body: Builder(

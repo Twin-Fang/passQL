@@ -42,15 +42,8 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
       extendBody: true,
       appBar: PqNavBar(
         title: detailAsync.valueOrNull?.topicName ?? '문제 풀기',
-        leading: CupertinoButton(
-          padding: EdgeInsets.zero,
-          minimumSize: Size.zero,
-          onPressed: () => context.pop(),
-          child: Semantics(
-            label: '뒤로',
-            child: Icon(CupertinoIcons.chevron_back, color: context.pq.label),
-          ),
-        ),
+        leading: PqNavLeading.back,
+        onLeadingTap: () => context.pop(),
       ),
       body: detailAsync.when(
         loading: () => PqStatusView.loading(),

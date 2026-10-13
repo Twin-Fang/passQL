@@ -68,7 +68,7 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: const PqNavBar(title: '의견 보내기'),
+      appBar: PqNavBar(title: '의견 보내기', leading: PqNavLeading.back),
       body: Column(
         children: [
           Expanded(

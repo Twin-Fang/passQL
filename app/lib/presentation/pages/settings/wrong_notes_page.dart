@@ -14,7 +14,7 @@ class WrongNotesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.pq.background,
-      appBar: const PqNavBar(title: '오답 노트'),
+      appBar: PqNavBar(title: '오답 노트', leading: PqNavLeading.back),
       body: const SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(

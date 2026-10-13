@@ -20,7 +20,7 @@ class LegalPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.pq.background,
-      appBar: PqNavBar(title: type?.label ?? '약관'),
+      appBar: PqNavBar(title: type?.label ?? '약관', leading: PqNavLeading.back),
       body: SafeArea(
         child: type == null
             ? PqStatusView.empty(

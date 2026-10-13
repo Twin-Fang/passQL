@@ -20,7 +20,8 @@ class PracticeResultPage extends StatelessWidget {
       return Scaffold(
         appBar: PqNavBar(
           title: '챕터 결과',
-          leading: _CloseButton(onPressed: () => context.go('/home')),
+          leading: PqNavLeading.close,
+          onLeadingTap: () => context.go('/home'),
         ),
         body: PqStatusView.empty(
           icon: CupertinoIcons.exclamationmark_circle,
@@ -103,23 +104,9 @@ class PracticeResultPage extends StatelessWidget {
         ),
       ],
       // 기존 마지막 단계 버튼(홈으로 이동)을 그대로 옮겼다.
-      actions: [
-        PqButton(label: '완료', onPressed: () => context.go('/home')),
-      ],
+      actions: [PqButton(label: '완료', onPressed: () => context.go('/home'))],
     );
   }
-}
-
-class _CloseButton extends StatelessWidget {
-  const _CloseButton({required this.onPressed});
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) => CupertinoButton(
-    padding: EdgeInsets.zero,
-    onPressed: onPressed,
-    child: Semantics(label: '닫기', child: const Icon(CupertinoIcons.xmark)),
-  );
 }
 
 /// 숫자 + 라벨 지표 카드.
@@ -182,8 +169,9 @@ class _Analysis extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.pq;
     final accuracy = total > 0 ? (correctCount / total * 100).round() : 0;
-    final avgSec =
-        total > 0 ? (totalDurationMs / total / 1000).toStringAsFixed(1) : '0';
+    final avgSec = total > 0
+        ? (totalDurationMs / total / 1000).toStringAsFixed(1)
+        : '0';
 
     final String feedback;
     if (accuracy >= 90) {

@@ -18,7 +18,7 @@ class LeaderboardPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: const PqNavBar(title: '오늘의 순위'),
+      appBar: PqNavBar(title: '오늘의 순위', leading: PqNavLeading.back),
       body: SafeArea(
         child: board.when(
           loading: () => const PqStatusView.loading(),

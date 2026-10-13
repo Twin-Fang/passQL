@@ -75,7 +75,8 @@ class _RecordBody extends ConsumerWidget {
         // 다시 열어도 완료 직후처럼 문제별 결과를 보여준다. 기록이 빠진 문제가 있으면
         // 정오를 지어내지 않도록 목록 자체를 숨긴다.
         final results = data.results;
-        final complete = results != null &&
+        final complete =
+            results != null &&
             results.isNotEmpty &&
             results.every((r) => r != null);
         return _ResultBody(
@@ -94,8 +95,10 @@ class _StatusScaffold extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) =>
-      Scaffold(appBar: const PqNavBar(title: '오늘의 세트'), body: Center(child: child));
+  Widget build(BuildContext context) => Scaffold(
+    appBar: const PqNavBar(title: '오늘의 세트'),
+    body: Center(child: child),
+  );
 }
 
 class _ResultBody extends ConsumerWidget {

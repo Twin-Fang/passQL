@@ -93,7 +93,7 @@ class _ReportSheetState extends ConsumerState<ReportSheet> {
         PqSpace.md,
         PqSpace.xxs,
         PqSpace.md,
-        PqSpace.md + MediaQuery.of(context).viewInsets.bottom,
+        PqSpace.md,
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -111,16 +111,20 @@ class _ReportSheetState extends ConsumerState<ReportSheet> {
             PqGroupedSection(
               children: [
                 for (final category in ReportCategory.values)
-                  PqListRow(
-                    title: category.label,
-                    trailing: _selected.contains(category)
-                        ? Icon(
-                            CupertinoIcons.checkmark,
-                            size: 18,
-                            color: c.accent,
-                          )
-                        : null,
-                    onTap: _sending ? null : () => _toggle(category),
+                  // 고른 사유를 스크린리더가 알 수 있게 selected 를 노출한다.
+                  Semantics(
+                    selected: _selected.contains(category),
+                    child: PqListRow(
+                      title: category.label,
+                      trailing: _selected.contains(category)
+                          ? Icon(
+                              CupertinoIcons.checkmark,
+                              size: 18,
+                              color: c.accent,
+                            )
+                          : null,
+                      onTap: _sending ? null : () => _toggle(category),
+                    ),
                   ),
               ],
             ),

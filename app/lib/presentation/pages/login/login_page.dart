@@ -109,24 +109,33 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 }
 
-/// 워드마크. logo.png 는 불투명한 흰 배경이라 그대로 두면 회색 배경 위에서 사각형이 비친다.
-/// 라이트는 곱하기 블렌드로 흰 배경을 화면 배경색에 녹이고, 다크는 밝기를 알파로 바꿔
-/// 배경을 지우고 글자를 흰색으로 만든다(Q 그라데이션은 옅어짐 — 투명 다크 로고 에셋 필요).
+/// 워드마크. logo.png 는 불투명한 흰 배경이라 라이트는 곱하기 블렌드로 배경색에 녹인다.
+/// 다크는 색 행렬 필터가 화면 전체를 흰색으로 덮는 문제가 실측돼(시뮬레이터),
+/// 텍스트 워드마크로 대체한다. TODO: 전용 다크 로고 에셋 필요.
 class _Wordmark extends StatelessWidget {
   const _Wordmark();
 
   @override
   Widget build(BuildContext context) {
+    final c = context.pq;
     final dark = Theme.of(context).brightness == Brightness.dark;
+    if (dark) {
+      return Text.rich(
+        TextSpan(
+          style: PqType.title1.copyWith(color: c.label),
+          children: [
+            const TextSpan(text: 'pass'),
+            TextSpan(
+              text: 'QL',
+              style: PqType.title1.copyWith(color: c.accent),
+            ),
+          ],
+        ),
+        semanticsLabel: 'passQL',
+      );
+    }
     return ColorFiltered(
-      colorFilter: dark
-          ? const ColorFilter.matrix(<double>[
-              0, 0, 0, 0, 255, //
-              0, 0, 0, 0, 255,
-              0, 0, 0, 0, 255,
-              -0.33, -0.33, -0.33, 0, 255,
-            ])
-          : ColorFilter.mode(context.pq.background, BlendMode.multiply),
+      colorFilter: ColorFilter.mode(c.background, BlendMode.multiply),
       child: Image.asset('assets/logo.png', height: 44),
     );
   }

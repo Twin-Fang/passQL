@@ -37,24 +37,16 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         PqNavBar(
           title: '${currentIndex + 1} / $total',
-          leading: CupertinoButton(
-            padding: EdgeInsets.zero,
-            minimumSize: Size.zero,
-            onPressed: () async {
-              if (confirmExit && !await confirmChapterExit(context)) return;
-              if (context.mounted) context.go('/home');
-            },
-            child: Semantics(
-              label: '닫기',
-              child: Icon(CupertinoIcons.xmark, color: c.label),
-            ),
-          ),
+          leading: PqNavLeading.close,
+          onLeadingTap: () async {
+            if (confirmExit && !await confirmChapterExit(context)) return;
+            if (context.mounted) context.go('/home');
+          },
           // 토픽 이름은 보조 정보라 오른쪽 작은 뱃지로 둔다.
           trailing: PqBadge(text: topicName),
         ),

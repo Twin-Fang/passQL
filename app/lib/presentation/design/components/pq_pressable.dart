@@ -23,7 +23,10 @@ class _PqPressableState extends State<PqPressable> {
   bool _down = false;
 
   void _set(bool v) {
-    if (widget.onTap != null && _down != v) setState(() => _down = v);
+    // 해제(false)는 onTap 이 사라져도 항상 허용해 흐림이 남지 않게 한다.
+    if ((!v || widget.onTap != null) && _down != v) {
+      setState(() => _down = v);
+    }
   }
 
   @override
