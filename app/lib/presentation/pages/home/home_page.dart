@@ -99,8 +99,9 @@ class _HomeContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final children = <Widget>[
-      // 시험 상황 배지 (EXAM_DAY / URGENT / COUNTDOWN 일 때만)
-      if (data.greeting != null) GreetingSection(greeting: data.greeting!),
+      // 인사 둘째 줄 본문 + 시험 상황 배지 (있을 때만)
+      if (data.greeting != null && GreetingSection.hasContent(data.greeting!))
+        GreetingSection(greeting: data.greeting!),
 
       // 2열 카드: 오늘의 세트 + 시험 일정 (높이를 맞춘다)
       IntrinsicHeight(
@@ -168,13 +169,9 @@ class _HomeSkeleton extends StatelessWidget {
         delegate: SliverChildListDelegate.fixed([
           Row(
             children: [
-              Expanded(
-                child: PqSkeletonBox(height: 140, radius: PqRadius.lg),
-              ),
+              Expanded(child: PqSkeletonBox(height: 140, radius: PqRadius.lg)),
               SizedBox(width: PqSpace.sm),
-              Expanded(
-                child: PqSkeletonBox(height: 140, radius: PqRadius.lg),
-              ),
+              Expanded(child: PqSkeletonBox(height: 140, radius: PqRadius.lg)),
             ],
           ),
           SizedBox(height: PqSpace.md),

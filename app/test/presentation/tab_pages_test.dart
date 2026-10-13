@@ -27,7 +27,7 @@ import '../helpers/pump_app.dart';
 final _homeData = HomeData(
   greeting: const GreetingResponse(
     nickname: '찬',
-    message: '{nickname}님, 안녕하세요',
+    message: '{nickname}님,\nSQLD D-12! 지금이 골든타임이에요',
     messageType: 'COUNTDOWN',
   ),
   progress: const ProgressResponse(
@@ -149,27 +149,30 @@ void main() {
 
   for (final entry in cases.entries) {
     for (final dark in [false, true]) {
-      testWidgets('${entry.key} 화면: large title 바 1개, ${dark ? '다크' : '라이트'} 예외 없음',
-          (tester) async {
-        await _pump(
-          tester,
-          entry.value.$1,
-          entry.value.$2,
-          theme: dark ? PqTheme.dark : PqTheme.light,
-        );
-        expect(find.byType(CupertinoSliverNavigationBar), findsOneWidget);
-        expect(tester.takeException(), isNull);
-      });
+      testWidgets(
+        '${entry.key} 화면: large title 바 1개, ${dark ? '다크' : '라이트'} 예외 없음',
+        (tester) async {
+          await _pump(
+            tester,
+            entry.value.$1,
+            entry.value.$2,
+            theme: dark ? PqTheme.dark : PqTheme.light,
+          );
+          expect(find.byType(CupertinoSliverNavigationBar), findsOneWidget);
+          // 인사 둘째 줄이 잘리지 않고 본문으로 보인다.
+          if (entry.key == '홈') {
+            expect(find.textContaining('D-12'), findsOneWidget);
+          }
+          expect(tester.takeException(), isNull);
+        },
+      );
     }
   }
 
   testWidgets('통계 화면은 320pt 폭에서도 예외 없다', (tester) async {
-    await _pump(
-      tester,
-      const StatsPage(),
-      [statsDataProvider.overrideWith((ref) async => _statsData)],
-      size: const Size(320, 640),
-    );
+    await _pump(tester, const StatsPage(), [
+      statsDataProvider.overrideWith((ref) async => _statsData),
+    ], size: const Size(320, 640));
     expect(tester.takeException(), isNull);
   });
 }
