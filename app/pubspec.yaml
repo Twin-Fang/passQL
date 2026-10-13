@@ -90,5 +90,5 @@ flutter_launcher_icons:
   # 정식 아이콘(#317 정사각형 로고). 교체할 때는 이 파일만 바꾸고 `dart run flutter_launcher_icons` 로 다시 생성한다.
   image_path: "assets/app_icon_1024.png"
   adaptive_icon_background: "#060C26"
-  adaptive_icon_foreground: "assets/app_icon_512.png"
+  adaptive_icon_foreground: "assets/app_icon_foreground.png"
   remove_alpha_ios: true
