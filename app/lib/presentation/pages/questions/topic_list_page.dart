@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/app_colors.dart';
-import '../../../core/text_styles.dart';
 import '../../../presentation/providers/topic_providers.dart';
 import '../../../router/app_routes.dart';
+import '../../design/design.dart';
 import '../../widgets/question/topic_card.dart';
 
 /// 문제 탭 1단계 — 토픽 선택 화면.
-/// 토픽 카드 탭 시 /questions/list?topic=CODE&topicName=NAME으로 이동.
+/// 토픽 행 탭 시 /questions/list?topic=CODE&topicName=NAME으로 이동.
 class TopicListPage extends ConsumerWidget {
   const TopicListPage({super.key});
 
@@ -18,86 +16,49 @@ class TopicListPage extends ConsumerWidget {
     final topicsAsync = ref.watch(topicsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.pageBg,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 헤더
-            Padding(
-              padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 8.h),
-              child: Text(
-                '문제',
-                style: AppTextStyles.heading_24.copyWith(
-                  color: AppColors.textPrimary,
-                ),
+      backgroundColor: context.pq.background,
+      body: PqLargeTitleScrollView(
+        title: '문제',
+        slivers: [
+          topicsAsync.when(
+            loading: () => const SliverFillRemaining(
+              hasScrollBody: false,
+              child: PqStatusView.loading(),
+            ),
+            // 다시 시도할 방법이 없으면 탭을 오가야 해서 버튼을 둔다 (#375).
+            error: (e, _) => SliverFillRemaining(
+              hasScrollBody: false,
+              child: PqStatusView.error(
+                message: '토픽을 불러올 수 없어요',
+                onRetry: () => ref.invalidate(topicsProvider),
               ),
             ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 16.h),
-              child: Text(
-                '학습할 토픽을 선택하세요',
-                style: AppTextStyles.paragraph_14.copyWith(
-                  color: AppColors.textSecondary,
-                ),
+            data: (topics) => SliverPadding(
+              padding: const EdgeInsets.fromLTRB(
+                PqSpace.md,
+                PqSpace.md,
+                PqSpace.md,
+                0,
               ),
-            ),
-
-            // 토픽 그리드
-            Expanded(
-              child: topicsAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                // 다시 시도할 방법이 없으면 탭을 오가야 해서 버튼을 둔다 (#375).
-                error: (e, _) => Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '토픽을 불러올 수 없어요',
-                        style: AppTextStyles.paragraph_14.copyWith(
-                          color: AppColors.textSecondary,
+              sliver: SliverToBoxAdapter(
+                child: PqGroupedSection(
+                  header: '학습할 토픽을 선택하세요',
+                  children: [
+                    for (final topic in topics)
+                      TopicCard(
+                        topic: topic,
+                        onTap: () => context.push(
+                          '${AppRoutes.questionChapter}'
+                          '?topic=${topic.code}'
+                          '&topicName=${Uri.encodeComponent(topic.displayName)}',
                         ),
                       ),
-                      TextButton(
-                        onPressed: () => ref.invalidate(topicsProvider),
-                        child: const Text('다시 시도'),
-                      ),
-                    ],
-                  ),
-                ),
-                data: (topics) => GridView.builder(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 20.w,
-                    vertical: 8.h,
-                  ),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12.w,
-                    mainAxisSpacing: 12.h,
-                    // 비율 고정이면 큰 글자·긴 이름에서 이름이 잘려서, 글자 배율만큼 높이를 키운다
-                    mainAxisExtent:
-                        148.h *
-                        MediaQuery.textScalerOf(
-                          context,
-                        ).scale(1).clamp(1.0, 2.0),
-                  ),
-                  itemCount: topics.length,
-                  itemBuilder: (_, i) {
-                    final topic = topics[i];
-                    return TopicCard(
-                      topic: topic,
-                      onTap: () => context.push(
-                        '${AppRoutes.questionChapter}'
-                        '?topic=${topic.code}'
-                        '&topicName=${Uri.encodeComponent(topic.displayName)}',
-                      ),
-                    );
-                  },
+                  ],
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

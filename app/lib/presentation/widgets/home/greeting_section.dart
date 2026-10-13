@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../core/app_colors.dart';
-import '../../../core/text_styles.dart';
 import '../../../data/models/home/greeting_response.dart';
+import '../../design/design.dart';
 
-/// 홈 화면 상단 인사 섹션.
-/// greeting.message의 {nickname}을 실제 닉네임으로 치환.
-/// messageType에 따라 서브 텍스트 배지 표시.
+/// 홈 화면 인사 영역.
+/// 인사 문구 자체는 large title 로 올라가고(`resolveMessage`), 여기서는
+/// messageType 에 따른 서브 배지만 그린다. 배지가 없으면 아무것도 그리지 않는다.
 class GreetingSection extends StatelessWidget {
   final GreetingResponse greeting;
 
   const GreetingSection({super.key, required this.greeting});
+
+  /// {nickname} 플레이스홀더를 실제 닉네임으로 치환한 인사 문구.
+  static String resolveMessage(GreetingResponse greeting) =>
+      greeting.message.replaceAll('{nickname}', greeting.nickname);
 
   /// messageType별 서브 텍스트. null이면 배지 숨김.
   String? get _subText {
@@ -26,43 +28,17 @@ class GreetingSection extends StatelessWidget {
     }
   }
 
-  /// {nickname} 플레이스홀더를 실제 닉네임으로 치환.
-  String get _resolvedMessage =>
-      greeting.message.replaceAll('{nickname}', greeting.nickname);
-
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          _resolvedMessage,
-          style: AppTextStyles.heading_24.copyWith(
-            color: AppColors.textPrimary,
-            height: 1.4,
-          ),
-        ),
-        if (_subText != null) ...[
-          SizedBox(height: 8.h),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-            decoration: BoxDecoration(
-              color: greeting.messageType == 'EXAM_DAY'
-                  ? AppColors.errorLight
-                  : AppColors.warningLight,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(
-              _subText!,
-              style: AppTextStyles.tag12Semibold.copyWith(
-                color: greeting.messageType == 'EXAM_DAY'
-                    ? AppColors.errorText
-                    : AppColors.warningText,
-              ),
-            ),
-          ),
-        ],
-      ],
+    final sub = _subText;
+    if (sub == null) return const SizedBox.shrink();
+    final c = context.pq;
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: PqBadge(
+        text: sub,
+        color: greeting.messageType == 'EXAM_DAY' ? c.wrong : c.warning,
+      ),
     );
   }
 }

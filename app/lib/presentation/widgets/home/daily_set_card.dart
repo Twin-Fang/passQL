@@ -1,10 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
-import '../../../core/app_colors.dart';
-import '../../../core/text_styles.dart';
+import 'package:flutter/cupertino.dart';
 import '../../../data/models/daily_set/daily_set_models.dart';
+import '../../design/design.dart';
 
 /// 홈 화면의 오늘의 세트 카드.
 ///
@@ -32,6 +28,7 @@ class DailySetCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.pq;
     final data = dailySet;
     final completed = data?.alreadyCompleted ?? false;
     final total = data?.questions.length ?? 0;
@@ -43,105 +40,60 @@ class DailySetCard extends StatelessWidget {
         ? onStart
         : onBrowse;
 
-    return GestureDetector(
+    // 카드 전체와 버튼이 같은 동작을 하도록 하나의 콜백을 공유한다.
+    return PqCard(
       onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        height: double.infinity,
-        padding: EdgeInsets.all(16.r),
-        decoration: BoxDecoration(
-          color: AppColors.cardBg,
-          border: Border.all(color: AppColors.borderDefault),
-          borderRadius: BorderRadius.circular(12.r),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                FaIcon(
-                  FontAwesomeIcons.fire,
-                  size: 14.sp,
-                  color: AppColors.warning,
-                ),
-                SizedBox(width: 6.w),
-                Text(
-                  '오늘의 세트',
-                  style: AppTextStyles.tag12Semibold.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                if (completed) ...[
-                  const Spacer(),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
-                    decoration: BoxDecoration(
-                      color: AppColors.successLight,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      '완료',
-                      style: AppTextStyles.tag10Bold.copyWith(
-                        color: AppColors.successText,
-                      ),
-                    ),
-                  ),
-                ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(CupertinoIcons.flame_fill, size: 14, color: c.warning),
+              const SizedBox(width: PqSpace.xxs),
+              Text(
+                '오늘의 세트',
+                style: PqType.captionSemibold.copyWith(color: c.secondaryLabel),
+              ),
+              if (completed) ...[
+                const Spacer(),
+                PqBadge(text: '완료', color: c.correctText),
               ],
-            ),
-            SizedBox(height: 12.h),
-            if (completed) ...[
-              Text(
-                '${data?.correctCount ?? 0} / $total 정답',
-                style: AppTextStyles.label_16.copyWith(
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              SizedBox(height: 8.h),
-              Text(
-                '결과와 순위 보기 →',
-                style: AppTextStyles.tag12Semibold.copyWith(
-                  color: AppColors.brandIndigo,
-                ),
-              ),
-            ] else if (available) ...[
-              Text(
-                '오늘의 $total문제',
-                style: AppTextStyles.label_16.copyWith(
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              SizedBox(height: 4.h),
-              Text(
-                '모두 같은 문제로 겨뤄요',
-                style: AppTextStyles.paragraph_14.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              SizedBox(height: 8.h),
-              Text(
-                '풀어보기 →',
-                style: AppTextStyles.tag12Semibold.copyWith(
-                  color: AppColors.brandIndigo,
-                ),
-              ),
-            ] else ...[
-              Text(
-                '오늘의 세트를 준비 중이에요.\n문제 목록에서 풀어보세요.',
-                style: AppTextStyles.paragraph_14.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              SizedBox(height: 8.h),
-              Text(
-                '문제 풀기 →',
-                style: AppTextStyles.tag12Semibold.copyWith(
-                  color: AppColors.brandIndigo,
-                ),
-              ),
             ],
+          ),
+          const SizedBox(height: PqSpace.sm),
+          if (completed) ...[
+            Text(
+              '${data?.correctCount ?? 0} / $total 정답',
+              style: PqType.headline.copyWith(color: c.label),
+            ),
+          ] else if (available) ...[
+            Text(
+              '오늘의 $total문제',
+              style: PqType.headline.copyWith(color: c.label),
+            ),
+            const SizedBox(height: PqSpace.xxs),
+            Text(
+              '모두 같은 문제로 겨뤄요',
+              style: PqType.subheadline.copyWith(color: c.secondaryLabel),
+            ),
+          ] else ...[
+            Text(
+              '오늘의 세트를 준비 중이에요.\n문제 목록에서 풀어보세요.',
+              style: PqType.subheadline.copyWith(color: c.secondaryLabel),
+            ),
           ],
-        ),
+          const SizedBox(height: PqSpace.sm),
+          PqButton(
+            label: completed
+                ? '결과와 순위 보기'
+                : available
+                ? '풀어보기'
+                : '문제 풀기',
+            onPressed: onTap,
+            variant: PqButtonVariant.tinted,
+            size: PqButtonSize.small,
+          ),
+        ],
       ),
     );
   }

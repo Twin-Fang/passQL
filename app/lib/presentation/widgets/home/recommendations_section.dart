@@ -1,13 +1,10 @@
-import '../question/stem_text.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../../../core/app_colors.dart';
-import '../../../core/text_styles.dart';
+import 'package:flutter/cupertino.dart';
 import '../../../data/models/home/question_summary.dart';
+import '../../design/design.dart';
+import '../question/stem_text.dart';
 
 /// 홈 화면 추천 문제 리스트.
-/// 최대 3개 문제를 카드 형태로 표시.
+/// 최대 3개 문제를 grouped 섹션 행으로 표시.
 class RecommendationsSection extends StatelessWidget {
   final List<QuestionSummary> questions;
   final void Function(String questionUuid)? onQuestionTap;
@@ -35,44 +32,26 @@ class RecommendationsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     if (questions.isEmpty) return const SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return PqGroupedSection(
+      header: '추천 문제',
       children: [
-        Row(
-          children: [
-            FaIcon(
-              FontAwesomeIcons.lightbulb,
-              size: 14.sp,
-              color: AppColors.brandIndigo,
-            ),
-            SizedBox(width: 8.w),
-            Text(
-              '추천 문제',
-              style: AppTextStyles.subHeading_18.copyWith(
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 12.h),
-        ...questions.map(
-          (q) => _QuestionCard(
+        for (final q in questions)
+          _QuestionRow(
             question: q,
             difficultyStars: _difficultyStars(q.difficulty),
             onTap: () => onQuestionTap?.call(q.questionUuid),
           ),
-        ),
       ],
     );
   }
 }
 
-class _QuestionCard extends StatelessWidget {
+class _QuestionRow extends StatelessWidget {
   final QuestionSummary question;
   final String difficultyStars;
   final VoidCallback? onTap;
 
-  const _QuestionCard({
+  const _QuestionRow({
     required this.question,
     required this.difficultyStars,
     this.onTap,
@@ -80,16 +59,11 @@ class _QuestionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final c = context.pq;
+    return PqPressable(
       onTap: onTap,
-      child: Container(
-        margin: EdgeInsets.only(bottom: 8.h),
-        padding: EdgeInsets.all(16.r),
-        decoration: BoxDecoration(
-          color: AppColors.cardBg,
-          border: Border.all(color: AppColors.borderDefault),
-          borderRadius: BorderRadius.circular(12.r),
-        ),
+      child: Padding(
+        padding: const EdgeInsets.all(PqSpace.md),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -98,48 +72,34 @@ class _QuestionCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (question.topicName != null)
-                    Container(
-                      margin: EdgeInsets.only(bottom: 6.h),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 8.w,
-                        vertical: 2.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.accentLight,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        question.topicName!,
-                        style: AppTextStyles.tag_10.copyWith(
-                          color: AppColors.brandIndigo,
-                        ),
-                      ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: PqSpace.xs),
+                      child: PqBadge(text: question.topicName!),
                     ),
                   Text(
                     stripCodeFences(question.stemPreview ?? ''),
-                    style: AppTextStyles.paragraph_14.copyWith(
-                      color: AppColors.textPrimary,
-                    ),
+                    style: PqType.subheadline.copyWith(color: c.label),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 6.h),
+                  const SizedBox(height: PqSpace.xxs),
                   Text(
                     difficultyStars,
-                    style: AppTextStyles.tag_10.copyWith(
-                      color: AppColors.warning,
+                    style: PqType.caption.copyWith(
+                      color: c.warning,
                       letterSpacing: 2,
                     ),
                   ),
                 ],
               ),
             ),
+            const SizedBox(width: PqSpace.xs),
             Padding(
-              padding: EdgeInsets.only(left: 8.w, top: 2.h),
-              child: FaIcon(
-                FontAwesomeIcons.chevronRight,
-                size: 12.sp,
-                color: AppColors.textCaption,
+              padding: const EdgeInsets.only(top: PqSpace.xxs),
+              child: Icon(
+                CupertinoIcons.chevron_forward,
+                size: 14,
+                color: c.tertiaryLabel,
               ),
             ),
           ],

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import '../../../core/app_colors.dart';
-import '../../../core/text_styles.dart';
 import '../../../data/models/progress/progress_response.dart';
+import '../../design/design.dart';
 
 /// 상단 3개 요약 통계 카드 Row.
 /// solvedCount / correctRate(%) / streakDays
@@ -23,11 +20,11 @@ class SummaryStatsSection extends StatelessWidget {
         Expanded(
           child: _StatCard(value: '$solved문제', label: '푼 문제'),
         ),
-        SizedBox(width: 12.w),
+        const SizedBox(width: PqSpace.sm),
         Expanded(
           child: _StatCard(value: '$rate%', label: '정답률'),
         ),
-        SizedBox(width: 12.w),
+        const SizedBox(width: PqSpace.sm),
         Expanded(
           child: _StatCard(value: '$streak일', label: '연속 학습'),
         ),
@@ -45,27 +42,27 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 20.h),
-      decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: AppColors.borderDefault),
+    final c = context.pq;
+    return PqCard(
+      padding: const EdgeInsets.symmetric(
+        vertical: PqSpace.lg,
+        horizontal: PqSpace.xs,
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            value,
-            style: AppTextStyles.heading_24.copyWith(
-              color: AppColors.textPrimary,
+          // 좁은 폭(320pt)이나 큰 글자에서 숫자가 넘치지 않게 줄여 맞춘다.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: PqType.title2.copyWith(color: c.label),
             ),
           ),
-          SizedBox(height: 6.h),
+          const SizedBox(height: PqSpace.xxs),
           Text(
             label,
-            style: AppTextStyles.tag_12.copyWith(
-              color: AppColors.textSecondary,
-            ),
+            style: PqType.caption.copyWith(color: c.secondaryLabel),
           ),
         ],
       ),

@@ -1,39 +1,55 @@
-import 'package:flutter/painting.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter/cupertino.dart';
 
 /// 토픽 코드 → 아이콘 매핑. 웹 `client/src/constants/topicIcons.ts`와 같은 의미의 아이콘을 쓴다.
-const Map<String, FaIconData> _topicIconMap = {
-  'data_modeling': FontAwesomeIcons.database,
-  'sql_basic_select': FontAwesomeIcons.table,
-  'sql_ddl_dml_tcl': FontAwesomeIcons.penToSquare,
-  'sql_function': FontAwesomeIcons.squareRootVariable,
-  'sql_join': FontAwesomeIcons.objectGroup,
-  'sql_subquery': FontAwesomeIcons.layerGroup,
-  'sql_group_aggregate': FontAwesomeIcons.chartColumn,
-  'sql_window': FontAwesomeIcons.tableCellsLarge,
-  'sql_hierarchy_pivot': FontAwesomeIcons.sitemap,
+const Map<String, IconData> _topicIconMap = {
+  'data_modeling': CupertinoIcons.tray_2,
+  'sql_basic_select': CupertinoIcons.table,
+  'sql_ddl_dml_tcl': CupertinoIcons.pencil_ellipsis_rectangle,
+  'sql_function': CupertinoIcons.function,
+  'sql_join': CupertinoIcons.rectangle_on_rectangle,
+  'sql_subquery': CupertinoIcons.square_stack_3d_up,
+  'sql_group_aggregate': CupertinoIcons.chart_bar,
+  'sql_window': CupertinoIcons.square_grid_2x2,
+  'sql_hierarchy_pivot': CupertinoIcons.list_bullet_indent,
 };
 
 /// 서버에서 새 토픽이 추가돼도 화면이 깨지지 않도록 모르는 코드는 물음표로 대체한다.
-FaIconData topicIconFor(String code) =>
-    _topicIconMap[code] ?? FontAwesomeIcons.circleQuestion;
+IconData topicIconFor(String code) =>
+    _topicIconMap[code] ?? CupertinoIcons.question_circle;
 
-/// 토픽 카드 색(연한 배경 + 진한 전경). 토픽이 색으로 구분되도록 코드별로 다르게 둔다.
-typedef TopicAccent = ({Color bg, Color fg});
+/// Apple 시스템 색 (라이트, 다크) 쌍. 이 파일이 토픽 색 팔레트의 유일한 정의 위치다.
+typedef _Pair = (Color, Color);
 
-const Map<String, TopicAccent> _topicAccentMap = {
-  'data_modeling': (bg: Color(0xFFE0F2FE), fg: Color(0xFF0284C7)),
-  'sql_basic_select': (bg: Color(0xFFEEF2FF), fg: Color(0xFF4F46E5)),
-  'sql_ddl_dml_tcl': (bg: Color(0xFFFFEDD5), fg: Color(0xFFEA580C)),
-  'sql_function': (bg: Color(0xFFF3E8FF), fg: Color(0xFF9333EA)),
-  'sql_join': (bg: Color(0xFFDCFCE7), fg: Color(0xFF16A34A)),
-  'sql_subquery': (bg: Color(0xFFFCE7F3), fg: Color(0xFFDB2777)),
-  'sql_group_aggregate': (bg: Color(0xFFFEF9C3), fg: Color(0xFFCA8A04)),
-  'sql_window': (bg: Color(0xFFCCFBF1), fg: Color(0xFF0D9488)),
-  'sql_hierarchy_pivot': (bg: Color(0xFFFEE2E2), fg: Color(0xFFDC2626)),
+const Map<String, _Pair> _palette = {
+  'red': (Color(0xFFFF3B30), Color(0xFFFF453A)),
+  'orange': (Color(0xFFFF9500), Color(0xFFFF9F0A)),
+  'yellow': (Color(0xFFFFCC00), Color(0xFFFFD60A)),
+  'green': (Color(0xFF34C759), Color(0xFF30D158)),
+  'mint': (Color(0xFF00C7BE), Color(0xFF63E6E2)),
+  'teal': (Color(0xFF30B0C7), Color(0xFF40CBE0)),
+  'cyan': (Color(0xFF32ADE6), Color(0xFF64D2FF)),
+  'blue': (Color(0xFF007AFF), Color(0xFF0A84FF)),
+  'indigo': (Color(0xFF5856D6), Color(0xFF5E5CE6)),
+  'purple': (Color(0xFFAF52DE), Color(0xFFBF5AF2)),
+  'pink': (Color(0xFFFF2D55), Color(0xFFFF375F)),
+  'brown': (Color(0xFFA2845E), Color(0xFFAC8E68)),
 };
 
-/// 모르는 코드는 앱 기본 보라 톤으로 대체한다.
-TopicAccent topicAccentFor(String code) =>
-    _topicAccentMap[code] ??
-    (bg: const Color(0xFFEEF2FF), fg: const Color(0xFF4F46E5));
+/// 토픽마다 색조를 달리해 목록에서 색으로 구분되게 한다(이전 20색 → 가장 가까운 시스템 색조).
+const Map<String, String> _topicHue = {
+  'data_modeling': 'cyan',
+  'sql_basic_select': 'indigo',
+  'sql_ddl_dml_tcl': 'orange',
+  'sql_function': 'purple',
+  'sql_join': 'green',
+  'sql_subquery': 'pink',
+  'sql_group_aggregate': 'yellow',
+  'sql_window': 'teal',
+  'sql_hierarchy_pivot': 'red',
+};
+
+/// 토픽 아이콘 타일 배경색. 모르는 코드는 앱 기본 강조 색조(indigo)로 대체한다.
+Color topicColor(String code, Brightness brightness) {
+  final pair = _palette[_topicHue[code] ?? 'indigo']!;
+  return brightness == Brightness.dark ? pair.$2 : pair.$1;
+}

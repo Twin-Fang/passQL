@@ -1,10 +1,8 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../core/app_colors.dart';
-import '../../../core/text_styles.dart';
 import '../../../data/models/progress/topic_stat.dart';
+import '../../design/design.dart';
 
 /// 영역별 분석 레이더(스파이더) 차트 섹션.
 /// topicStats가 없으면 빈 상태 메시지 표시.
@@ -15,41 +13,20 @@ class RadarChartSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(20.r),
-      decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: AppColors.borderDefault),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '영역별 분석',
-            style: AppTextStyles.subHeading_18.copyWith(
-              color: AppColors.textPrimary,
-            ),
-          ),
-          SizedBox(height: 20.h),
-          _buildChart(),
-        ],
-      ),
-    );
+    return PqCard(title: '영역별 분석', child: _buildChart(context));
   }
 
-  Widget _buildChart() {
+  Widget _buildChart(BuildContext context) {
+    final c = context.pq;
     final stats = topicStats;
 
     if (stats == null || stats.isEmpty) {
       return SizedBox(
-        height: 220.h,
+        height: 220,
         child: Center(
           child: Text(
             '아직 학습 데이터가 없습니다',
-            style: AppTextStyles.paragraph_14.copyWith(
-              color: AppColors.textCaption,
-            ),
+            style: PqType.subheadline.copyWith(color: c.secondaryLabel),
           ),
         ),
       );
@@ -60,46 +37,34 @@ class RadarChartSection extends StatelessWidget {
     final labels = stats.map((s) => s.displayName).toList();
 
     return SizedBox(
-      height: 260.h,
+      height: 260,
       child: RadarChart(
         RadarChartData(
           radarShape: RadarShape.polygon,
           tickCount: 4,
           // tick 숫자 레이블 숨김 — 수치보다 형태로 파악
-          ticksTextStyle: const TextStyle(
+          ticksTextStyle: PqType.caption.copyWith(
             fontSize: 0,
             color: Colors.transparent,
           ),
-          gridBorderData: BorderSide(
-            color: AppColors.borderDefault,
-            width: 1,
-          ),
-          radarBorderData: BorderSide(
-            color: AppColors.borderMuted,
-            width: 1,
-          ),
+          gridBorderData: BorderSide(color: c.separator, width: 1),
+          radarBorderData: BorderSide(color: c.separator, width: 1),
           titlePositionPercentageOffset: 0.25,
-          titleTextStyle: AppTextStyles.tag_10.copyWith(
-            color: AppColors.textSecondary,
-          ),
+          titleTextStyle: PqType.caption.copyWith(color: c.secondaryLabel),
           getTitle: (index, angle) {
             final label = labels[index];
             // '/' 기준으로 줄바꿈 처리 (긴 토픽명 대응)
             final parts = label.split(' / ');
-            return RadarChartTitle(
-              text: parts.join('\n'),
-              angle: 0,
-            );
+            return RadarChartTitle(text: parts.join('\n'), angle: 0);
           },
           dataSets: [
             RadarDataSet(
-              // 인디고 15% 불투명도로 채움
-              fillColor: AppColors.brandIndigo.withValues(alpha: 0.15),
-              borderColor: AppColors.brandIndigo,
+              // 강조색 15% 불투명도로 채움
+              fillColor: c.accent.withValues(alpha: 0.15),
+              borderColor: c.accent,
               borderWidth: 2,
               entryRadius: 3,
-              dataEntries:
-                  values.map((v) => RadarEntry(value: v)).toList(),
+              dataEntries: values.map((v) => RadarEntry(value: v)).toList(),
             ),
           ],
         ),
