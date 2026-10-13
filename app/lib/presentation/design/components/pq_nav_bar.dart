@@ -58,30 +58,38 @@ class PqLargeTitleScrollView extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.pq;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
-    return CustomScrollView(
-      physics: const AlwaysScrollableScrollPhysics(
-        parent: BouncingScrollPhysics(),
-      ),
-      slivers: [
-        CupertinoSliverNavigationBar(
-          transitionBetweenRoutes: false,
-          largeTitle:
-              largeTitle ??
-              Text(title, style: PqType.largeTitle.copyWith(color: c.label)),
-          middle: Text(title, style: PqType.headline.copyWith(color: c.label)),
-          alwaysShowMiddle: false,
-          trailing: trailing,
-          backgroundColor: c.glass,
-          border: Border(
-            bottom: BorderSide(color: c.separator, width: PqSize.hairline),
-          ),
+    // 화면 배경색을 알려 주면 펼친 상태에선 바 배경·경계선이 투명하고,
+    // 접힐 때만 글래스와 헤어라인이 나타난다(iOS scroll-edge 모양).
+    return CupertinoPageScaffoldBackgroundColor(
+      color: c.background,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
         ),
-        if (onRefresh != null)
-          CupertinoSliverRefreshControl(onRefresh: onRefresh),
-        ...slivers,
-        // 탭 바(extendBody) 뒤로 마지막 콘텐츠가 가려지지 않게 한다.
-        SliverToBoxAdapter(child: SizedBox(height: bottomInset + PqSpace.xl)),
-      ],
+        slivers: [
+          CupertinoSliverNavigationBar(
+            transitionBetweenRoutes: false,
+            largeTitle:
+                largeTitle ??
+                Text(title, style: PqType.largeTitle.copyWith(color: c.label)),
+            middle: Text(
+              title,
+              style: PqType.headline.copyWith(color: c.label),
+            ),
+            alwaysShowMiddle: false,
+            trailing: trailing,
+            backgroundColor: c.glass,
+            border: Border(
+              bottom: BorderSide(color: c.separator, width: PqSize.hairline),
+            ),
+          ),
+          if (onRefresh != null)
+            CupertinoSliverRefreshControl(onRefresh: onRefresh),
+          ...slivers,
+          // 탭 바(extendBody) 뒤로 마지막 콘텐츠가 가려지지 않게 한다.
+          SliverToBoxAdapter(child: SizedBox(height: bottomInset + PqSpace.xl)),
+        ],
+      ),
     );
   }
 }

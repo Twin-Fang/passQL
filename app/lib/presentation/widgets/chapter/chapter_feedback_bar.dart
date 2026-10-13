@@ -60,15 +60,15 @@ class _ChapterFeedbackBarState extends State<ChapterFeedbackBar> {
     return PqBottomActionBar(
       top: Row(
         children: [
-          Flexible(
+          // 결과 문구가 남는 폭을 먼저 차지하고 버튼은 자기 폭만 쓴다.
+          Expanded(
             child: PqResultMark(
               correct: _result.isCorrect,
               label: _result.isCorrect
                   ? '정답이에요'
-                  : '오답이에요 · 정답 ${_result.correctKey ?? '-'}',
+                  : '오답이에요 · 정답\u00A0${_result.correctKey ?? '-'}',
             ),
           ),
-          const Spacer(),
           if (_showAiButton)
             PqButton(
               label: 'AI 해설',

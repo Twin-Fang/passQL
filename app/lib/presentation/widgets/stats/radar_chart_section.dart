@@ -47,6 +47,8 @@ class RadarChartSection extends StatelessWidget {
             fontSize: 0,
             color: Colors.transparent,
           ),
+          // 눈금 링·격자·외곽선 모두 separator 토큰의 얇은 선으로 통일
+          tickBorderData: BorderSide(color: c.separator, width: 1),
           gridBorderData: BorderSide(color: c.separator, width: 1),
           radarBorderData: BorderSide(color: c.separator, width: 1),
           titlePositionPercentageOffset: 0.25,

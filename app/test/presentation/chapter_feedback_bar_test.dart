@@ -27,7 +27,7 @@ void main() {
         ),
       ),
     );
-    expect(find.text('오답이에요 · 정답 C'), findsOneWidget);
+    expect(find.text('오답이에요 · 정답\u00A0C'), findsOneWidget);
     expect(find.text('AI 해설'), findsOneWidget);
     await tester.tap(find.text('결과 보기'));
     expect(next, 1);

@@ -269,6 +269,26 @@ void main() {
     });
   });
 
+  testWidgets('PqCodeBlock은 기본 줄바꿈, wrap:false면 가로 스크롤', (tester) async {
+    const sql =
+        'SELECT a_very_long_column_name FROM a_very_long_table_name WHERE x = 1;';
+    Future<void> pump(bool wrap) => tester.pumpWidget(
+      MaterialApp(
+        theme: PqTheme.light,
+        home: Scaffold(
+          body: SizedBox(
+            width: 120,
+            child: PqCodeBlock(code: sql, wrap: wrap),
+          ),
+        ),
+      ),
+    );
+    await pump(true);
+    expect(find.byType(SingleChildScrollView), findsNothing);
+    await pump(false);
+    expect(find.byType(SingleChildScrollView), findsOneWidget);
+  });
+
   testWidgets('다크 테마에서 모든 컴포넌트가 예외 없이 그려진다', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
