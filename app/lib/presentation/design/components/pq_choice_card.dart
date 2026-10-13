@@ -16,11 +16,15 @@ class PqChoiceCard extends StatelessWidget {
     required this.child,
     required this.state,
     this.onTap,
+    this.onGradedTap,
   });
   final String keyLabel;
   final Widget child;
   final PqChoiceState state;
   final VoidCallback? onTap;
+
+  /// 채점 뒤(정답/오답/흐림) 탭 동작. 없으면 채점 뒤에는 눌리지 않는다. 시각 상태는 바뀌지 않는다.
+  final VoidCallback? onGradedTap;
 
   bool get _graded =>
       state == PqChoiceState.correct ||
@@ -127,7 +131,7 @@ class PqChoiceCard extends StatelessWidget {
         selected: state == PqChoiceState.selected,
         child: PqPressable(
           semanticLabel: _semanticLabel,
-          onTap: _graded ? null : onTap,
+          onTap: _graded ? onGradedTap : onTap,
           child: card,
         ),
       ),

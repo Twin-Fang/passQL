@@ -14,11 +14,15 @@ class ChoiceCard extends StatelessWidget {
   final PqChoiceState state;
   final VoidCallback onTap;
 
+  /// 채점 뒤 탭(예: 다른 선택지의 SQL 실행 결과 보기). 없으면 채점 뒤에는 눌리지 않는다.
+  final VoidCallback? onGradedTap;
+
   const ChoiceCard({
     super.key,
     required this.item,
     required this.state,
     required this.onTap,
+    this.onGradedTap,
   });
 
   @override
@@ -39,6 +43,7 @@ class ChoiceCard extends StatelessWidget {
         keyLabel: item.key,
         state: state,
         onTap: onTap,
+        onGradedTap: onGradedTap,
         child: body,
       ),
     );
@@ -77,28 +82,39 @@ List<Map<String, dynamic>>? parseResultRows(String body) {
 
 /// 실행 결과형 선택지 표. 열이 많아도 잘리지 않게 가로로 스크롤한다.
 class ResultRowsTable extends StatelessWidget {
-  const ResultRowsTable({super.key, required this.rows});
+  /// 열 이름이 유일한 Map 행(선택지 JSON)용.
+  ResultRowsTable({super.key, required List<Map<String, dynamic>> rows})
+    : columns = rows.isEmpty ? const [] : rows.first.keys.toList(),
+      _rows = [
+        for (final r in rows) [for (final k in rows.first.keys) r[k]],
+      ];
 
-  final List<Map<String, dynamic>> rows;
+  /// 열 목록과 위치 기준 행(SQL 실행 결과용). 같은 이름의 열이 있어도 값이 사라지지 않는다.
+  const ResultRowsTable.positional({
+    super.key,
+    required this.columns,
+    required List<List<Object?>> rows,
+  }) : _rows = rows;
+
+  final List<String> columns;
+  final List<List<Object?>> _rows;
 
   @override
   Widget build(BuildContext context) {
     final c = context.pq;
-    if (rows.isEmpty) {
+    if (columns.isEmpty) {
       return Text(
         '(결과 없음)',
         style: PqType.subheadline.copyWith(color: c.secondaryLabel),
       );
     }
-    // 열 순서는 첫 행의 키 순서를 따른다(JSON 순서 유지).
-    final columns = rows.first.keys.toList();
     final head = PqType.captionSemibold.copyWith(color: c.secondaryLabel);
     final cell = PqType.code.copyWith(fontSize: 12, color: c.label);
 
     Widget box(String text, TextStyle style) => Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: PqSpace.xs + 2,
-        vertical: PqSpace.xxs + 2,
+        horizontal: PqSpace.sm,
+        vertical: PqSpace.xs,
       ),
       child: Text(text, style: style),
     );
@@ -127,10 +143,11 @@ class ResultRowsTable extends StatelessWidget {
                     decoration: BoxDecoration(color: c.fill),
                     children: [for (final col in columns) box(col, head)],
                   ),
-                  for (final r in rows)
+                  for (final r in _rows)
                     TableRow(
                       children: [
-                        for (final col in columns) box('${r[col] ?? ''}', cell),
+                        for (var i = 0; i < columns.length; i++)
+                          box(i < r.length ? '${r[i] ?? ''}' : '', cell),
                       ],
                     ),
                 ],

@@ -225,6 +225,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
                   submitResult: chapter.isAnswered
                       ? chapter.lastSubmitResult
                       : null,
+                  gradedSelectedKey: chapter.lastSelectedKey,
                   // 재시도가 소용없는 오류여도 다시 눌러 볼 수 있게 두어 막다른 길을 만들지 않는다.
                   alwaysAllowRetry: true,
                 ),
@@ -305,18 +306,19 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     );
 
     // 완료 처리(점수 등록)가 길어질 수 있어, 진행 중에는 화면을 잠그고 로딩을 보여준다.
-    final body = !_completing
-        ? scaffold
-        : Stack(
-            children: [
-              scaffold,
-              ModalBarrier(
-                dismissible: false,
-                color: context.pq.label.withValues(alpha: 0.2),
-              ),
-              const Center(child: CupertinoActivityIndicator(radius: 14)),
-            ],
-          );
+    // 트리 모양을 고정한다. 완료 처리 여부로 Scaffold 의 부모가 바뀌면 피드백 바가 다시 만들어져 햅틱이 또 울린다.
+    final body = Stack(
+      children: [
+        scaffold,
+        if (_completing) ...[
+          ModalBarrier(
+            dismissible: false,
+            color: context.pq.label.withValues(alpha: 0.2),
+          ),
+          const Center(child: CupertinoActivityIndicator(radius: 14)),
+        ],
+      ],
+    );
     // 시스템 뒤로가기(Android 백 버튼, iOS 스와이프)도 홈 아이콘과 같은 확인을 거친다.
     return PopScope(
       canPop: !started,

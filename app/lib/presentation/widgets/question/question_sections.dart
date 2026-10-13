@@ -93,6 +93,9 @@ class QuestionChoices extends StatelessWidget {
   final bool isExecutable;
   final SubmitResult? submitResult;
 
+  /// 채점 뒤 선택 키. 채점 뒤 탭은 선택 상태를 바꾸므로 화면 표시는 제출 당시 키로 고정한다.
+  final String? gradedSelectedKey;
+
   /// true면 재시도가 불가능한 오류여도 "다시 시도"를 보여 막다른 길을 만들지 않는다.
   final bool alwaysAllowRetry;
 
@@ -102,6 +105,7 @@ class QuestionChoices extends StatelessWidget {
     required this.notifier,
     required this.isExecutable,
     this.submitResult,
+    this.gradedSelectedKey,
     this.alwaysAllowRetry = false,
   });
 
@@ -131,7 +135,9 @@ class QuestionChoices extends StatelessWidget {
           item: item,
           state: choiceStateFor(
             key: item.key,
-            selectedKey: interaction.selectedChoiceKey,
+            selectedKey: submitResult != null
+                ? gradedSelectedKey
+                : interaction.selectedChoiceKey,
             result: submitResult,
           ),
           onTap: () => notifier.selectChoice(
@@ -139,6 +145,14 @@ class QuestionChoices extends StatelessWidget {
             sql: item.kind == 'SQL' ? item.body : null,
             isExecutable: isExecutable,
           ),
+          // 채점 뒤에도 다른 선택지의 SQL 실행 결과를 볼 수 있게 한다(채점 표시는 그대로).
+          onGradedTap: submitResult != null && isExecutable
+              ? () => notifier.selectChoice(
+                  choiceKey: item.key,
+                  sql: item.kind == 'SQL' ? item.body : null,
+                  isExecutable: isExecutable,
+                )
+              : null,
         );
       }).toList(),
     );

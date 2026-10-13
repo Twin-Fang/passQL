@@ -84,14 +84,6 @@ class _SuccessContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.pq;
-    // 표 위젯이 기대하는 형태(열 이름 -> 값)로 바꾼다. NULL 은 빈칸 대신 'NULL' 로 보인다.
-    final rows = [
-      for (final r in result.rows)
-        {
-          for (var i = 0; i < result.columns.length; i++)
-            result.columns[i]: i < r.length ? (r[i] ?? 'NULL') : '',
-        },
-    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -104,8 +96,13 @@ class _SuccessContent extends StatelessWidget {
         ),
         if (result.columns.isNotEmpty) ...[
           const SizedBox(height: PqSpace.xs),
-          // 행이 없으면 ResultRowsTable 이 '(결과 없음)'을 보여 준다.
-          ResultRowsTable(rows: rows),
+          // 행이 0개여도 열 이름 헤더는 보여 준다. 위치 기준이라 같은 이름의 열도 모두 나온다.
+          ResultRowsTable.positional(
+            columns: result.columns,
+            rows: [
+              for (final r in result.rows) [for (final v in r) v ?? 'NULL'],
+            ],
+          ),
         ],
       ],
     );
