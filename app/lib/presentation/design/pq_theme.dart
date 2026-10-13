@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'tokens/pq_colors.dart';
+import 'tokens/pq_metrics.dart';
 import 'tokens/pq_type.dart';
 
 /// MaterialApp 에 넣는 라이트/다크 테마. Material 위젯이 남아 있어도 Apple 느낌이 나도록
@@ -38,7 +39,8 @@ abstract final class PqTheme {
       highlightColor: Colors.transparent,
       splashColor: Colors.transparent,
       pageTransitionsTheme: transitions,
-      dividerTheme: DividerThemeData(color: c.separator, thickness: 0.5, space: 0.5),
+      bottomSheetTheme: BottomSheetThemeData(dragHandleColor: c.tertiaryLabel),
+      dividerTheme: DividerThemeData(color: c.separator, thickness: PqSize.hairline, space: PqSize.hairline),
       appBarTheme: AppBarTheme(
         backgroundColor: c.background,
         foregroundColor: c.label,

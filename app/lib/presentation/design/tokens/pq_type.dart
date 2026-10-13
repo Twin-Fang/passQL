@@ -34,6 +34,8 @@ abstract final class PqType {
   static final captionSemibold = _t(_semibold, 12, 16);
   static const code = TextStyle(
     fontFamily: 'JetBrainsMono',
+    // 폰트 에셋이 없어도 고정폭이 유지되도록 시스템 모노스페이스로 대체한다.
+    fontFamilyFallback: ['Menlo', 'Courier', 'monospace'],
     fontSize: 14,
     height: 20 / 14,
   );
