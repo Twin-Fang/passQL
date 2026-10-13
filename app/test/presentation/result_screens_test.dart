@@ -20,8 +20,10 @@ Future<void> expectResultScaffold(
   WidgetTester tester,
   Widget page, {
   List<Override> overrides = const [],
+  ThemeData? theme,
+  Size size = const Size(320, 640),
 }) async {
-  tester.view.physicalSize = const Size(320, 640);
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   await pumpApp(
@@ -29,6 +31,7 @@ Future<void> expectResultScaffold(
     ProviderScope(
       overrides: overrides,
       child: MaterialApp.router(
+        theme: theme,
         routerConfig: GoRouter(
           routes: [
             GoRoute(path: '/', builder: (_, _) => page),
@@ -51,8 +54,16 @@ void main() {
         extra: ChapterSummary(
           topicName: 'JOIN',
           results: [
-            ChapterResult(questionUuid: 'a', isCorrect: true, durationMs: 12000),
-            ChapterResult(questionUuid: 'b', isCorrect: false, durationMs: 18000),
+            ChapterResult(
+              questionUuid: 'a',
+              isCorrect: true,
+              durationMs: 12000,
+            ),
+            ChapterResult(
+              questionUuid: 'b',
+              isCorrect: false,
+              durationMs: 18000,
+            ),
           ],
           totalDurationMs: 30000,
         ),
@@ -87,7 +98,9 @@ void main() {
         leaderboardProvider.overrideWith(
           (ref) async => const LeaderboardResponse(
             date: '2026-10-02',
-            entries: [LeaderboardEntry(rank: 1, nickname: '민트', correctCount: 5)],
+            entries: [
+              LeaderboardEntry(rank: 1, nickname: '민트', correctCount: 5),
+            ],
           ),
         ),
       ],
@@ -102,7 +115,11 @@ void main() {
     await expectResultScaffold(
       tester,
       const ResultPage(
-        extra: SubmitResult(isCorrect: true, correctKey: 'A', correctSql: 'SELECT 1'),
+        extra: SubmitResult(
+          isCorrect: true,
+          correctKey: 'A',
+          correctSql: 'SELECT 1',
+        ),
       ),
     );
     final marks = tester.widgetList<PqResultMark>(find.byType(PqResultMark));
@@ -115,7 +132,11 @@ void main() {
     await expectResultScaffold(
       tester,
       const ResultPage(
-        extra: SubmitResult(isCorrect: false, correctKey: 'C', correctSql: 'SELECT 1'),
+        extra: SubmitResult(
+          isCorrect: false,
+          correctKey: 'C',
+          correctSql: 'SELECT 1',
+        ),
       ),
     );
     expect(find.text('오답이에요'), findsOneWidget);

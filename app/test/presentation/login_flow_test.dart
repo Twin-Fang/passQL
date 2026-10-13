@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/core/auth/auth_session.dart';
@@ -17,10 +16,7 @@ Widget _app() => ProviderScope(
     // 로그인 설정이 없는 상태를 재현한다(실제 Firebase 는 테스트에서 쓰지 않는다).
     socialSignInProvider.overrideWithValue(const UnconfiguredSocialSignIn()),
   ],
-  child: ScreenUtilInit(
-    designSize: const Size(390, 844),
-    builder: (_, _) => MaterialApp.router(routerConfig: AppRouter.router),
-  ),
+  child: MaterialApp.router(routerConfig: AppRouter.router),
 );
 
 class _SignedOutAuth extends AuthNotifier {

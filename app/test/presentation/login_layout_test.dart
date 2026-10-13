@@ -6,18 +6,18 @@ import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/pages/login/login_page.dart';
 import 'package:passql_app/presentation/providers/auth_provider.dart';
 
-class _SignedOutAuth extends AuthNotifier {
+class SignedOutAuth extends AuthNotifier {
   @override
   Future<AuthSession?> build() async => null;
 }
 
-Future<void> _pump(WidgetTester tester, ThemeData theme) async {
+Future<void> pumpLogin(WidgetTester tester, ThemeData theme) async {
   tester.view.physicalSize = const Size(390, 844);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [authProvider.overrideWith(_SignedOutAuth.new)],
+      overrides: [authProvider.overrideWith(SignedOutAuth.new)],
       child: MaterialApp(theme: theme, home: const LoginPage()),
     ),
   );
@@ -25,8 +25,10 @@ Future<void> _pump(WidgetTester tester, ThemeData theme) async {
 }
 
 void main() {
-  testWidgets('Google 버튼은 화면 55~80% 지점에 있고 약관 문구는 하단 inset 안에 있다', (tester) async {
-    await _pump(tester, PqTheme.light);
+  testWidgets('Google 버튼은 화면 55~80% 지점에 있고 약관 문구는 하단 inset 안에 있다', (
+    tester,
+  ) async {
+    await pumpLogin(tester, PqTheme.light);
 
     final button = tester.getCenter(find.text('Google로 계속하기'));
     expect(button.dy / 844, inInclusiveRange(0.55, 0.80));
@@ -36,7 +38,7 @@ void main() {
   });
 
   testWidgets('다크 테마에서도 예외 없이 그려진다', (tester) async {
-    await _pump(tester, PqTheme.dark);
+    await pumpLogin(tester, PqTheme.dark);
 
     expect(tester.takeException(), isNull);
     expect(find.text('Google로 계속하기'), findsOneWidget);

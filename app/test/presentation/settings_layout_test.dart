@@ -11,7 +11,7 @@ import 'package:passql_app/presentation/providers/auth_provider.dart';
 import 'package:passql_app/presentation/providers/settings_providers.dart';
 import 'package:passql_app/presentation/providers/wrong_questions_provider.dart';
 
-class _SignedInAuth extends AuthNotifier {
+class SignedInAuth extends AuthNotifier {
   @override
   Future<AuthSession?> build() async => const AuthSession(
     accessToken: 'a',
@@ -21,14 +21,14 @@ class _SignedInAuth extends AuthNotifier {
   );
 }
 
-Future<void> _pump(WidgetTester tester, ThemeData theme) async {
+Future<void> pumpSettings(WidgetTester tester, ThemeData theme) async {
   // 목록이 길어 아래 행(회원 탈퇴)까지 한 번에 그려지도록 화면을 키운다.
   await tester.binding.setSurfaceSize(const Size(400, 1600));
   addTearDown(() => tester.binding.setSurfaceSize(null));
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        authProvider.overrideWith(_SignedInAuth.new),
+        authProvider.overrideWith(SignedInAuth.new),
         settingsDataProvider.overrideWith(
           (ref) async => const SettingsData(
             memberUuid: 'm-1',
@@ -48,8 +48,10 @@ Future<void> _pump(WidgetTester tester, ThemeData theme) async {
 }
 
 void main() {
-  testWidgets('설정은 large title 바와 grouped 섹션으로 구성되고 회원 탈퇴는 오답색이다', (tester) async {
-    await _pump(tester, PqTheme.light);
+  testWidgets('설정은 large title 바와 grouped 섹션으로 구성되고 회원 탈퇴는 오답색이다', (
+    tester,
+  ) async {
+    await pumpSettings(tester, PqTheme.light);
 
     expect(find.byType(CupertinoSliverNavigationBar), findsOneWidget);
     expect(find.byType(PqGroupedSection), findsAtLeastNWidgets(2));
@@ -60,7 +62,7 @@ void main() {
   });
 
   testWidgets('다크 테마에서도 예외 없이 그려진다', (tester) async {
-    await _pump(tester, PqTheme.dark);
+    await pumpSettings(tester, PqTheme.dark);
 
     expect(tester.takeException(), isNull);
     expect(find.byType(PqGroupedSection), findsAtLeastNWidgets(2));

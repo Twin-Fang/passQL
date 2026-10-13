@@ -24,7 +24,7 @@ import 'package:passql_app/presentation/providers/topic_providers.dart';
 
 import '../helpers/pump_app.dart';
 
-final _homeData = HomeData(
+final homeData = HomeData(
   greeting: const GreetingResponse(
     nickname: '찬',
     message: '{nickname}님,\nSQLD D-12! 지금이 골든타임이에요',
@@ -74,7 +74,7 @@ final _homeData = HomeData(
   ),
 );
 
-const _statsData = StatsData(
+const statsData = StatsData(
   progress: ProgressResponse(solvedCount: 12, correctRate: 0.6, streakDays: 3),
   topicAnalysis: TopicAnalysisResponse(
     topicStats: [
@@ -101,7 +101,7 @@ const _statsData = StatsData(
   aiComment: AiCommentResponse(comment: '`JOIN` 토픽이 강해요.'),
 );
 
-const _topics = [
+const topics = [
   TopicTree(
     topicUuid: 't1',
     code: 'sql_join',
@@ -135,15 +135,15 @@ void main() {
   final cases = <String, (Widget, List<Override>)>{
     '홈': (
       const HomePage(),
-      [homeDataProvider.overrideWith((ref) async => _homeData)],
+      [homeDataProvider.overrideWith((ref) async => homeData)],
     ),
     '문제': (
       const TopicListPage(),
-      [topicsProvider.overrideWith((ref) async => _topics)],
+      [topicsProvider.overrideWith((ref) async => topics)],
     ),
     '통계': (
       const StatsPage(),
-      [statsDataProvider.overrideWith((ref) async => _statsData)],
+      [statsDataProvider.overrideWith((ref) async => statsData)],
     ),
   };
 
@@ -171,7 +171,7 @@ void main() {
 
   testWidgets('통계 화면은 320pt 폭에서도 예외 없다', (tester) async {
     await _pump(tester, const StatsPage(), [
-      statsDataProvider.overrideWith((ref) async => _statsData),
+      statsDataProvider.overrideWith((ref) async => statsData),
     ], size: const Size(320, 640));
     expect(tester.takeException(), isNull);
   });

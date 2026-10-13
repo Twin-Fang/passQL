@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:passql_app/presentation/widgets/chapter/chapter_app_bar.dart';
@@ -24,10 +23,7 @@ Widget _app({required bool confirmExit}) {
       ),
     ],
   );
-  return ScreenUtilInit(
-    designSize: const Size(390, 844),
-    builder: (_, _) => MaterialApp.router(routerConfig: router),
-  );
+  return MaterialApp.router(routerConfig: router);
 }
 
 void main() {

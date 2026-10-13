@@ -14,7 +14,6 @@ import '../../design/design.dart';
 import '../../providers/auth_provider.dart';
 
 /// 소셜 로그인 화면.
-
 ///
 /// 로그인 성공 시 라우터의 인증 redirect 가 홈으로 보내므로 여기서 직접 이동하지 않는다.
 class LoginPage extends ConsumerStatefulWidget {

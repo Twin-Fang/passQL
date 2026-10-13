@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/core/network/api_providers.dart';
 import 'package:passql_app/data/models/ai/ai_result.dart';
@@ -28,33 +27,40 @@ class _FakeAiApi implements AiApiClient {
   }
 
   @override
-  Future<AiResult> diffExplain(Map<String, dynamic> body) => _answer('diff-explain', body);
+  Future<AiResult> diffExplain(Map<String, dynamic> body) =>
+      _answer('diff-explain', body);
 
   @override
-  Future<AiResult> explainError(Map<String, dynamic> body) => _answer('explain-error', body);
+  Future<AiResult> explainError(Map<String, dynamic> body) =>
+      _answer('explain-error', body);
 
   @override
-  Future<List<SimilarQuestion>> getSimilar(String questionUuid, int k) => throw UnimplementedError();
+  Future<List<SimilarQuestion>> getSimilar(String questionUuid, int k) =>
+      throw UnimplementedError();
 }
 
 /// 실제 호출부와 같이 AiExplainSheet.show 로 공용 시트를 연다.
-Future<void> _open(WidgetTester tester, _FakeAiApi api, {required bool isErrorExplain, Map<String, dynamic>? payload}) async {
+Future<void> _open(
+  WidgetTester tester,
+  _FakeAiApi api, {
+  required bool isErrorExplain,
+  Map<String, dynamic>? payload,
+}) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [aiApiProvider.overrideWithValue(api)],
-      child: ScreenUtilInit(
-        designSize: const Size(390, 844),
-        builder: (_, _) => MaterialApp(
-          home: Scaffold(
-            body: Builder(
-              builder: (context) => TextButton(
-                onPressed: () => AiExplainSheet.show(
-                  context,
-                  payload: payload ?? const {'questionUuid': 'q-1', 'selectedChoiceKey': 'D'},
-                  isErrorExplain: isErrorExplain,
-                ),
-                child: const Text('열기'),
+      child: MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => AiExplainSheet.show(
+                context,
+                payload:
+                    payload ??
+                    const {'questionUuid': 'q-1', 'selectedChoiceKey': 'D'},
+                isErrorExplain: isErrorExplain,
               ),
+              child: const Text('열기'),
             ),
           ),
         ),
@@ -67,14 +73,18 @@ Future<void> _open(WidgetTester tester, _FakeAiApi api, {required bool isErrorEx
 }
 
 void main() {
-  testWidgets('오답 해설: 로딩 후 서버가 준 해설 본문을 보여 주고 diff-explain 을 부른다 (#354)', (tester) async {
+  testWidgets('오답 해설: 로딩 후 서버가 준 해설 본문을 보여 주고 diff-explain 을 부른다 (#354)', (
+    tester,
+  ) async {
     final api = _FakeAiApi(reply: Completer<AiResult>());
     await _open(tester, api, isErrorExplain: false);
 
     expect(find.text('AI 해설'), findsOneWidget);
     expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
 
-    api.reply!.complete(const AiResult(text: '## 왜 틀렸나\nRANK는 동점이면 순위를 건너뜁니다.', promptVersion: 2));
+    api.reply!.complete(
+      const AiResult(text: '## 왜 틀렸나\nRANK는 동점이면 순위를 건너뜁니다.', promptVersion: 2),
+    );
     await tester.pumpAndSettle();
 
     expect(find.byType(CupertinoActivityIndicator), findsNothing);
@@ -86,8 +96,16 @@ void main() {
 
   testWidgets('SQL 오류 해설: explain-error 로 SQL 과 오류 메시지를 보낸다', (tester) async {
     final api = _FakeAiApi(reply: Completer<AiResult>());
-    await _open(tester, api, isErrorExplain: true,
-        payload: const {'questionUuid': 'q-1', 'sql': 'SELEC 1', 'errorMessage': 'syntax error'});
+    await _open(
+      tester,
+      api,
+      isErrorExplain: true,
+      payload: const {
+        'questionUuid': 'q-1',
+        'sql': 'SELEC 1',
+        'errorMessage': 'syntax error',
+      },
+    );
 
     api.reply!.complete(const AiResult(text: 'SELECT 철자를 확인하세요.'));
     await tester.pumpAndSettle();

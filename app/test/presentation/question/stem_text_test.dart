@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:passql_app/presentation/widgets/question/stem_text.dart';
 
 void main() {
@@ -15,14 +14,9 @@ void main() {
 
   testWidgets('StemText: 펜스 글자는 보이지 않고 코드 내용은 보인다', (tester) async {
     await tester.pumpWidget(
-      ScreenUtilInit(
-        designSize: const Size(390, 844),
-        builder: (_, _) => const MaterialApp(
-          home: Scaffold(
-            body: StemText(
-              '다음 SQL의 결과는?\n\n```sql\nSELECT NAME\nFROM EMP;\n```',
-            ),
-          ),
+      const MaterialApp(
+        home: Scaffold(
+          body: StemText('다음 SQL의 결과는?\n\n```sql\nSELECT NAME\nFROM EMP;\n```'),
         ),
       ),
     );
@@ -33,11 +27,8 @@ void main() {
 
   testWidgets('InlineCodeText: 백틱은 숨기고 키워드는 남긴다', (tester) async {
     await tester.pumpWidget(
-      ScreenUtilInit(
-        designSize: const Size(390, 844),
-        builder: (_, _) => const MaterialApp(
-          home: Scaffold(body: InlineCodeText('`PIVOT`과 `UNPIVOT`에 대한 설명')),
-        ),
+      const MaterialApp(
+        home: Scaffold(body: InlineCodeText('`PIVOT`과 `UNPIVOT`에 대한 설명')),
       ),
     );
     expect(find.textContaining('`', findRichText: true), findsNothing);
@@ -49,13 +40,8 @@ void main() {
 
   testWidgets('StemText: 펜스 없는 지문의 인라인 백틱도 숨긴다', (tester) async {
     await tester.pumpWidget(
-      ScreenUtilInit(
-        designSize: const Size(390, 844),
-        builder: (_, _) => const MaterialApp(
-          home: Scaffold(
-            body: StemText('`PIVOT`과 `UNPIVOT`에 대한 설명 중 옳지 않은 것은?'),
-          ),
-        ),
+      const MaterialApp(
+        home: Scaffold(body: StemText('`PIVOT`과 `UNPIVOT`에 대한 설명 중 옳지 않은 것은?')),
       ),
     );
     expect(find.textContaining('`', findRichText: true), findsNothing);

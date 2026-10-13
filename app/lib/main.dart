@@ -2,7 +2,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'core/auth/install_guard.dart';
 import 'core/auth/token_store.dart';
@@ -36,10 +35,7 @@ Future<void> main() async {
   }, fireImmediately: true);
 
   runApp(
-    UncontrolledProviderScope(
-      container: container,
-      child: const PassqlApp(),
-    ),
+    UncontrolledProviderScope(container: container, child: const PassqlApp()),
   );
 }
 
@@ -48,19 +44,14 @@ class PassqlApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScreenUtilInit(
-      // iPhone 15 기준 디자인 사이즈
-      designSize: const Size(390, 844),
-      minTextAdapt: true,
-      builder: (_, _) => MaterialApp.router(
-        title: 'passQL',
-        debugShowCheckedModeBanner: false,
-        theme: PqTheme.light,
-        darkTheme: PqTheme.dark,
-        // 화면을 모두 토큰으로 옮기기 전까지는 라이트로 고정한다. Task 9 에서 system 으로 연다.
-        themeMode: ThemeMode.light,
-        routerConfig: AppRouter.router,
-      ),
+    return MaterialApp.router(
+      title: 'passQL',
+      debugShowCheckedModeBanner: false,
+      theme: PqTheme.light,
+      darkTheme: PqTheme.dark,
+      // 시스템 라이트/다크 설정을 따른다.
+      themeMode: ThemeMode.system,
+      routerConfig: AppRouter.router,
     );
   }
 }

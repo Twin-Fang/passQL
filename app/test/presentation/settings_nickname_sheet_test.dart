@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:passql_app/core/app_theme.dart';
+import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/widgets/settings/nickname_edit_sheet.dart';
 
 void main() {
@@ -10,16 +9,13 @@ void main() {
   testWidgets('닉네임 변경 시트가 앱 테마에서도 예외 없이 뜬다', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
-        child: ScreenUtilInit(
-          designSize: const Size(390, 844),
-          builder: (_, _) => MaterialApp(
-            theme: AppTheme.light,
-            home: Builder(
-              builder: (context) => Scaffold(
-                body: TextButton(
-                  onPressed: () => NicknameEditSheet.show(context, '카시오페아'),
-                  child: const Text('open'),
-                ),
+        child: MaterialApp(
+          theme: PqTheme.light,
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () => NicknameEditSheet.show(context, '카시오페아'),
+                child: const Text('open'),
               ),
             ),
           ),
