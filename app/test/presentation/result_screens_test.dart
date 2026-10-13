@@ -58,7 +58,10 @@ void main() {
         ),
       ),
     );
-    expect(find.text('1'), findsWidgets);
+    expect(
+      find.descendant(of: find.byType(PqScoreHeader), matching: find.text('1')),
+      findsOneWidget,
+    );
     expect(find.text(' / 2'), findsOneWidget);
     expect(find.byType(PageView), findsNothing);
     // 문항 행은 스크롤 밖에 있을 수 있어 skipOffstage 를 끈다.
@@ -104,6 +107,18 @@ void main() {
     );
     final marks = tester.widgetList<PqResultMark>(find.byType(PqResultMark));
     expect(marks.where((m) => m.large).length, 1);
+    expect(find.text('정답이에요'), findsOneWidget);
     expect(find.text('정답'), findsOneWidget);
+  });
+
+  testWidgets('단건 결과: 오답이면 정답 키를 보여 준다', (tester) async {
+    await expectResultScaffold(
+      tester,
+      const ResultPage(
+        extra: SubmitResult(isCorrect: false, correctKey: 'C', correctSql: 'SELECT 1'),
+      ),
+    );
+    expect(find.text('오답이에요'), findsOneWidget);
+    expect(find.text('정답 (C)'), findsOneWidget);
   });
 }

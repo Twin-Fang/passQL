@@ -51,6 +51,11 @@ class ResultPage extends ConsumerWidget {
         (!isCorrect ||
             (result.correctSql == null && result.correctResult == null));
 
+    // 오답이면 정답 선택지 키를 제목에 다시 보여 준다(기존 헤더 문구 보존).
+    final correctTitle = !isCorrect && result.correctKey != null
+        ? '정답 (${result.correctKey})'
+        : '정답';
+
     return PqResultScaffold(
       title: '채점 결과',
       onClose: () => context.go('/home'),
@@ -69,12 +74,12 @@ class ResultPage extends ConsumerWidget {
         // EXECUTABLE: 정답 SQL, CONCEPT_ONLY: 정답 키만 텍스트로.
         if (result.correctSql != null)
           PqCard(
-            title: '정답',
+            title: correctTitle,
             child: PqCodeBlock(code: result.correctSql!),
           )
         else
           PqCard(
-            title: '정답',
+            title: correctTitle,
             child: Text(
               result.correctKey ?? '-',
               style: PqType.callout.copyWith(color: c.label),

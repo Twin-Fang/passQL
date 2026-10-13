@@ -68,5 +68,7 @@ class _SimilarQuestionsSectionState
 /// PqListRow 는 줄 수 제한이 없어, 긴 지문이 목록을 밀어내지 않게 한 줄 요약으로 줄인다.
 String _preview(String stem) {
   final flat = stem.replaceAll(RegExp(r'\s+'), ' ').trim();
-  return flat.length > 60 ? '${flat.substring(0, 60)}…' : flat;
+  // 서로게이트 쌍·결합 문자를 쪼개지 않게 grapheme 단위로 자른다.
+  final chars = flat.characters;
+  return chars.length > 60 ? '${chars.take(60)}…' : flat;
 }

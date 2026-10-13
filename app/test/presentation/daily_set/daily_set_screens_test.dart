@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:passql_app/data/models/daily_set/daily_set_models.dart';
 import 'package:passql_app/data/models/home/question_summary.dart';
+import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/flows/daily_set_flow.dart';
 import 'package:passql_app/presentation/pages/daily_set/daily_set_result_page.dart';
 import 'package:passql_app/presentation/pages/daily_set/leaderboard_page.dart';
@@ -132,6 +133,10 @@ void main() {
 
       // 점수 고리가 점수와 ' / 총점'을 별개 Text 로 그린다.
       expect(find.text(' / 3'), findsOneWidget);
+      expect(
+        find.descendant(of: find.byType(PqScoreHeader), matching: find.text('2')),
+        findsOneWidget,
+      );
       expect(find.text('문제별 결과'), findsOneWidget);
       expect(find.text('정답'), findsNWidgets(2)); // 정답 행 2 (점수 라벨은 고리 아래 정답률로 대체)
       expect(find.text('오답'), findsOneWidget);
@@ -189,6 +194,10 @@ void main() {
       );
 
       expect(find.text(' / 5'), findsOneWidget);
+      expect(
+        find.descendant(of: find.byType(PqScoreHeader), matching: find.text('4')),
+        findsOneWidget,
+      );
       expect(find.text('문제별 결과'), findsNothing); // 기록에는 문제별 정오답이 없다
     });
 
