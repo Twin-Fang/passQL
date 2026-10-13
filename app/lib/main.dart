@@ -4,9 +4,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'core/app_theme.dart';
 import 'core/auth/install_guard.dart';
 import 'core/auth/token_store.dart';
+import 'presentation/design/design.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/session_reset.dart';
 import 'router/app_router.dart';
@@ -55,7 +55,10 @@ class PassqlApp extends StatelessWidget {
       builder: (_, _) => MaterialApp.router(
         title: 'passQL',
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
+        theme: PqTheme.light,
+        darkTheme: PqTheme.dark,
+        // 화면을 모두 토큰으로 옮기기 전까지는 라이트로 고정한다. Task 9 에서 system 으로 연다.
+        themeMode: ThemeMode.light,
         routerConfig: AppRouter.router,
       ),
     );
