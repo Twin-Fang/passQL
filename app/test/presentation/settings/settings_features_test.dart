@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,6 +15,7 @@ import 'package:passql_app/data/models/member/nickname_models.dart';
 import 'package:passql_app/data/models/member/nickname_regenerate_response.dart';
 import 'package:passql_app/data/models/progress/wrong_questions_response.dart';
 import 'package:passql_app/data/sources/member_api.dart';
+import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/providers/auth_provider.dart';
 import 'package:passql_app/presentation/providers/settings_providers.dart';
 import 'package:passql_app/presentation/providers/wrong_questions_provider.dart';
@@ -71,6 +73,10 @@ class _SignedInAuth extends AuthNotifier {
     nickname: '기존닉네임',
   );
 }
+
+/// 시트 안 PqButton 을 라벨로 찾는다(버튼 종류가 바뀌어도 활성 여부만 본다).
+PqButton _button(WidgetTester tester, String label) =>
+    tester.widget<PqButton>(find.widgetWithText(PqButton, label));
 
 DioException _serverError(int status, String code, String message) {
   final opts = RequestOptions(path: '/x');
@@ -211,8 +217,8 @@ void main() {
       await tester.pump();
 
       expect(find.textContaining('2~10자'), findsWidgets);
-      expect(tester.widget<OutlinedButton>(find.byType(OutlinedButton)).onPressed, isNull);
-      expect(tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed, isNull);
+      expect(_button(tester, '중복확인').onPressed, isNull);
+      expect(_button(tester, '저장').onPressed, isNull);
     });
 
     testWidgets('중복확인을 통과해야 저장할 수 있고, 저장하면 닫히며 true 를 돌려준다', (tester) async {
@@ -223,7 +229,7 @@ void main() {
       await tester.enterText(find.byType(TextField), '새닉네임');
       await tester.pump();
       // 확인 전에는 저장 불가
-      expect(tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed, isNull);
+      expect(_button(tester, '저장').onPressed, isNull);
 
       await tester.tap(find.text('중복확인'));
       await tester.pumpAndSettle();
@@ -246,7 +252,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('이미 사용 중인 닉네임이에요'), findsOneWidget);
-      expect(tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed, isNull);
+      expect(_button(tester, '저장').onPressed, isNull);
     });
 
     testWidgets('확인 뒤 글자를 바꾸면 다시 확인해야 한다', (tester) async {
@@ -259,7 +265,7 @@ void main() {
       await tester.enterText(find.byType(TextField), '새닉네임2');
       await tester.pump();
 
-      expect(tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed, isNull);
+      expect(_button(tester, '저장').onPressed, isNull);
     });
 
     testWidgets('서버가 쿨다운으로 거절하면 사유를 보여주고 시트를 유지한다', (tester) async {
@@ -404,7 +410,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('검증된 선택지를 먼저'), findsOneWidget);
 
-    await tester.tap(find.byType(Switch));
+    await tester.tap(find.byType(CupertinoSwitch));
     await tester.pumpAndSettle();
 
     expect(find.textContaining('매번 AI가'), findsOneWidget);

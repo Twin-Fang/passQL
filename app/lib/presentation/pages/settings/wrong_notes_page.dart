@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/app_colors.dart';
-import '../../../core/text_styles.dart';
+import '../../design/design.dart';
 import '../../widgets/settings/wrong_notes_section.dart';
 
 /// 오답 노트 화면.
@@ -14,17 +13,16 @@ class WrongNotesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.pageBg,
-      appBar: AppBar(
-        backgroundColor: AppColors.pageBg,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        foregroundColor: AppColors.textPrimary,
-        title: Text('오답 노트', style: AppTextStyles.label_16),
-      ),
+      backgroundColor: context.pq.background,
+      appBar: const PqNavBar(title: '오답 노트'),
       body: const SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(20, 8, 20, 32),
+          padding: EdgeInsets.fromLTRB(
+            PqSpace.md,
+            PqSpace.xs,
+            PqSpace.md,
+            PqSpace.xl,
+          ),
           child: WrongNotesSection(showHeader: false),
         ),
       ),

@@ -1,174 +1,131 @@
-import '../question/stem_text.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/app_colors.dart';
 import '../../../core/error/app_exception.dart';
-import '../../../core/text_styles.dart';
 import '../../../core/utils/relative_time.dart';
 import '../../../data/models/progress/wrong_questions_response.dart';
 import '../../../router/app_routes.dart';
+import '../../design/design.dart';
 import '../../providers/wrong_questions_provider.dart';
+import '../question/stem_text.dart';
 
 /// 오답 노트 섹션. 최근에 틀린 문제를 보여주고, 누르면 그 문제로 이동한다.
 class WrongNotesSection extends ConsumerWidget {
   const WrongNotesSection({super.key, this.showHeader = true});
 
-  /// 앱바에 이미 제목이 있는 전용 화면에서는 카드 안 제목을 숨긴다.
+  /// 내비게이션 바에 이미 제목이 있는 전용 화면에서는 섹션 제목을 숨긴다.
   final bool showHeader;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.pq;
     final async = ref.watch(wrongQuestionsProvider);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderDefault),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (showHeader)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-              child: Row(
-                children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (showHeader)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              PqSpace.md,
+              0,
+              PqSpace.md,
+              PqSpace.xs,
+            ),
+            child: Row(
+              children: [
+                Text('오답 노트', style: PqType.headline.copyWith(color: c.label)),
+                const SizedBox(width: PqSpace.xs),
+                if (async.valueOrNull case final data?)
                   Text(
-                    '오답 노트',
-                    style: AppTextStyles.label_16.copyWith(
-                      color: AppColors.textPrimary,
-                    ),
+                    '${data.totalCount}',
+                    style: PqType.subheadline.copyWith(color: c.accent),
                   ),
-                  const SizedBox(width: 8),
-                  if (async.valueOrNull case final data?)
-                    Text(
-                      '${data.totalCount}',
-                      style: AppTextStyles.paragraph_14.copyWith(
-                        color: AppColors.brandIndigo,
-                      ),
-                    ),
-                ],
-              ),
+              ],
             ),
-          async.when(
-            loading: () => const Padding(
-              padding: EdgeInsets.all(24),
-              child: Center(
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-            ),
-            error: (e, _) => _Message(
-              text: e.asAppException.message,
-              actionLabel: '다시 시도',
-              onAction: () => ref.invalidate(wrongQuestionsProvider),
-            ),
-            data: (data) => data.items.isEmpty
-                ? const _Message(text: '아직 틀린 문제가 없어요. 문제를 풀면 오답이 여기에 쌓여요')
-                : Column(
-                    children: [
-                      // 제목이 없으면 첫 행의 윗줄이 카드 테두리와 겹치므로 그리지 않는다.
-                      for (final (i, item) in data.items.indexed)
-                        _WrongRow(item: item, topBorder: showHeader || i > 0),
-                    ],
-                  ),
           ),
-        ],
-      ),
+        async.when(
+          loading: () => const Padding(
+            padding: EdgeInsets.all(PqSpace.xl),
+            child: PqStatusView.loading(),
+          ),
+          error: (e, _) => PqStatusView.error(
+            message: e.asAppException.message,
+            onRetry: () => ref.invalidate(wrongQuestionsProvider),
+          ),
+          data: (data) => data.items.isEmpty
+              ? PqStatusView.empty(
+                  icon: CupertinoIcons.checkmark_seal,
+                  title: '아직 틀린 문제가 없어요',
+                  message: '문제를 풀면 오답이 여기에 쌓여요',
+                )
+              : PqGroupedSection(
+                  children: [
+                    for (final item in data.items) _WrongRow(item: item),
+                  ],
+                ),
+        ),
+      ],
     );
   }
 }
 
 class _WrongRow extends StatelessWidget {
-  const _WrongRow({required this.item, this.topBorder = true});
+  const _WrongRow({required this.item});
 
   final WrongQuestionItem item;
-  final bool topBorder;
 
   @override
   Widget build(BuildContext context) {
+    final c = context.pq;
     final when = formatRelativeDay(item.lastWrongAt);
     final meta = [
       if (item.topicName != null) item.topicName!,
       if (when.isNotEmpty) when,
     ].join(' · ');
 
-    return InkWell(
+    return PqPressable(
       onTap: () => context.push(AppRoutes.questionDetail(item.questionUuid)),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-        decoration: BoxDecoration(
-          border: topBorder
-              ? const Border(top: BorderSide(color: AppColors.borderDefault))
-              : null,
+      semanticLabel: item.stemPreview,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: PqSpace.md,
+          vertical: PqSpace.sm,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Text(
-              stripCodeFences(item.stemPreview),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.paragraph_14.copyWith(
-                color: AppColors.textPrimary,
+            // 아이콘만 쓰면 오답 표식이 글자 없이 들어간다(PqResultMark 는 라벨이 붙는다).
+            Icon(CupertinoIcons.xmark_circle_fill, size: 20, color: c.wrong),
+            const SizedBox(width: PqSpace.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    stripCodeFences(item.stemPreview),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: PqType.subheadline.copyWith(color: c.label),
+                  ),
+                  if (meta.isNotEmpty) ...[
+                    const SizedBox(height: PqSpace.xxs),
+                    Text(
+                      meta,
+                      style: PqType.caption.copyWith(color: c.tertiaryLabel),
+                    ),
+                  ],
+                ],
               ),
             ),
-            if (meta.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                meta,
-                style: AppTextStyles.tag_12.copyWith(
-                  color: AppColors.textCaption,
-                ),
-              ),
-            ],
+            const SizedBox(width: PqSpace.xs),
+            Icon(
+              CupertinoIcons.chevron_forward,
+              size: 14,
+              color: c.tertiaryLabel,
+            ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _Message extends StatelessWidget {
-  const _Message({required this.text, this.actionLabel, this.onAction});
-
-  final String text;
-  final String? actionLabel;
-  final VoidCallback? onAction;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            text,
-            style: AppTextStyles.paragraph_14.copyWith(
-              color: AppColors.textSecondary,
-            ),
-          ),
-          if (actionLabel != null) ...[
-            const SizedBox(height: 12),
-            GestureDetector(
-              onTap: onAction,
-              child: Text(
-                actionLabel!,
-                style: AppTextStyles.paragraph_14.copyWith(
-                  color: AppColors.brandIndigo,
-                ),
-              ),
-            ),
-          ],
-        ],
       ),
     );
   }

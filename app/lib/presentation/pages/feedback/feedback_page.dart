@@ -1,16 +1,15 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-import '../../../core/app_colors.dart';
 import '../../../core/error/app_exception.dart';
-import '../../../core/text_styles.dart';
 import '../../../core/utils/date_format.dart';
 import '../../../core/validation/feedback_validator.dart';
 import '../../../data/models/feedback/feedback_models.dart';
+import '../../design/design.dart';
 import '../../providers/feedback_providers.dart';
 
-/// 건의사항 화면. 채팅처럼 내가 보낸 건의가 쌓이고, 아래에서 새 건의를 보낸다.
+/// 의견 보내기 화면. 채팅처럼 내가 보낸 건의가 쌓이고, 아래에서 새 건의를 보낸다.
 class FeedbackPage extends ConsumerStatefulWidget {
   const FeedbackPage({super.key});
 
@@ -64,69 +63,82 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.pq;
     final list = ref.watch(feedbackListProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.pageBg,
-      appBar: AppBar(
-        backgroundColor: AppColors.pageBg,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        foregroundColor: AppColors.textPrimary,
-        title: Text('건의사항', style: AppTextStyles.label_16),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: list.when(
-                // 전송 후 목록을 다시 받는 동안에도 기존 목록을 유지한다.
-                skipLoadingOnReload: true,
-                skipLoadingOnRefresh: true,
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => _Notice(
-                  text: e.asAppException.message,
-                  actionLabel: '다시 시도',
-                  onAction: () => ref.invalidate(feedbackListProvider),
-                ),
-                data: (items) {
-                  if (items.isEmpty) {
-                    return const _Notice(text: '아직 보낸 건의가 없어요\n앱에 바라는 점을 자유롭게 남겨 주세요');
-                  }
-                  // 타이핑으로 다시 그려질 때 스크롤이 튀지 않도록, 개수가 바뀔 때만 이동한다.
-                  if (items.length != _lastCount) {
-                    _lastCount = items.length;
-                    _scrollToBottom();
-                  }
-                  return ListView.separated(
-                    controller: _scroll,
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                    itemCount: items.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 14),
-                    itemBuilder: (_, i) => _FeedbackBubble(item: items[i]),
+      backgroundColor: c.background,
+      appBar: const PqNavBar(title: '의견 보내기'),
+      body: Column(
+        children: [
+          Expanded(
+            child: list.when(
+              // 전송 후 목록을 다시 받는 동안에도 기존 목록을 유지한다.
+              skipLoadingOnReload: true,
+              skipLoadingOnRefresh: true,
+              loading: () => const PqStatusView.loading(),
+              error: (e, _) => PqStatusView.error(
+                message: e.asAppException.message,
+                onRetry: () => ref.invalidate(feedbackListProvider),
+              ),
+              data: (items) {
+                if (items.isEmpty) {
+                  return PqStatusView.empty(
+                    icon: CupertinoIcons.chat_bubble_text,
+                    title: '아직 보낸 건의가 없어요',
+                    message: '앱에 바라는 점을 자유롭게 남겨 주세요',
                   );
-                },
+                }
+                // 타이핑으로 다시 그려질 때 스크롤이 튀지 않도록, 개수가 바뀔 때만 이동한다.
+                if (items.length != _lastCount) {
+                  _lastCount = items.length;
+                  _scrollToBottom();
+                }
+                return ListView.separated(
+                  controller: _scroll,
+                  padding: const EdgeInsets.fromLTRB(
+                    PqSpace.md,
+                    PqSpace.sm,
+                    PqSpace.md,
+                    PqSpace.sm,
+                  ),
+                  itemCount: items.length,
+                  separatorBuilder: (_, _) =>
+                      const SizedBox(height: PqSpace.sm),
+                  itemBuilder: (_, i) => _FeedbackBubble(item: items[i]),
+                );
+              },
+            ),
+          ),
+          if (_error != null)
+            Container(
+              width: double.infinity,
+              color: c.wrongTint,
+              padding: const EdgeInsets.symmetric(
+                horizontal: PqSpace.md,
+                vertical: PqSpace.xs,
+              ),
+              child: Text(
+                _error!,
+                style: PqType.footnote.copyWith(color: c.wrongText),
               ),
             ),
-            if (_error != null)
-              Container(
-                width: double.infinity,
-                color: AppColors.red100,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                child: Text(
-                  _error!,
-                  style: AppTextStyles.tag_12.copyWith(color: AppColors.red),
-                ),
-              ),
-            _Composer(
+          // 입력창은 하단 액션 바의 윗줄에 둬서 키보드가 올라와도 버튼과 함께 움직인다.
+          PqBottomActionBar(
+            top: _Composer(
               controller: _controller,
               sending: _sending,
-              canSend: _canSend,
               onChanged: () => setState(() {}),
-              onSend: _send,
             ),
-          ],
-        ),
+            actions: [
+              PqButton(
+                label: '보내기',
+                loading: _sending,
+                onPressed: _canSend ? _send : null,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -140,29 +152,20 @@ class _FeedbackBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.pq;
     final (bubble, text, pillBg, pillText) = switch (item.status) {
       FeedbackStatus.pending => (
-        AppColors.brandIndigo,
-        Colors.white,
-        Colors.white24,
-        Colors.white,
+        c.accent,
+        c.onAccent,
+        c.onAccent.withValues(alpha: 0.24),
+        c.onAccent,
       ),
-      FeedbackStatus.reviewed => (
-        AppColors.brandIndigo.withValues(alpha: 0.1),
-        AppColors.textPrimary,
-        AppColors.brandIndigo,
-        Colors.white,
-      ),
-      FeedbackStatus.applied => (
-        AppColors.successLight,
-        AppColors.textPrimary,
-        AppColors.successText,
-        Colors.white,
-      ),
+      FeedbackStatus.reviewed => (c.accentTint, c.label, c.accent, c.onAccent),
+      FeedbackStatus.applied => (c.correctTint, c.label, c.correct, c.onAccent),
     };
     final captionColor = item.status == FeedbackStatus.pending
-        ? Colors.white70
-        : AppColors.textCaption;
+        ? c.onAccent.withValues(alpha: 0.7)
+        : c.tertiaryLabel;
 
     return Align(
       alignment: Alignment.centerRight,
@@ -171,14 +174,20 @@ class _FeedbackBubble extends StatelessWidget {
           maxWidth: MediaQuery.of(context).size.width * 0.82,
         ),
         child: Container(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+          padding: const EdgeInsets.fromLTRB(
+            PqSpace.sm,
+            PqSpace.sm,
+            PqSpace.sm,
+            PqSpace.xs,
+          ),
           decoration: BoxDecoration(
             color: bubble,
+            // 보낸 쪽(오른쪽 아래) 모서리만 작게 둬 말풍선 꼬리처럼 보이게 한다.
             borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(16),
-              topRight: Radius.circular(16),
-              bottomLeft: Radius.circular(16),
-              bottomRight: Radius.circular(3),
+              topLeft: Radius.circular(PqRadius.lg),
+              topRight: Radius.circular(PqRadius.lg),
+              bottomLeft: Radius.circular(PqRadius.lg),
+              bottomRight: Radius.circular(PqSpace.xxs),
             ),
           ),
           child: Column(
@@ -186,29 +195,29 @@ class _FeedbackBubble extends StatelessWidget {
             children: [
               Text(
                 item.content,
-                style: AppTextStyles.paragraph_14.copyWith(color: text),
+                style: PqType.subheadline.copyWith(color: text),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: PqSpace.xs),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     formatMonthDayTime(item.createdAt),
-                    style: AppTextStyles.tag_12.copyWith(color: captionColor),
+                    style: PqType.caption.copyWith(color: captionColor),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: PqSpace.xs),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
+                      horizontal: PqSpace.xs,
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
                       color: pillBg,
-                      borderRadius: BorderRadius.circular(99),
+                      borderRadius: BorderRadius.circular(PqRadius.capsule),
                     ),
                     child: Text(
                       item.status.label,
-                      style: AppTextStyles.tag_12.copyWith(color: pillText),
+                      style: PqType.caption.copyWith(color: pillText),
                     ),
                   ),
                 ],
@@ -221,122 +230,51 @@ class _FeedbackBubble extends StatelessWidget {
   }
 }
 
-/// 하단 입력 영역: 입력창, 글자 수, 보내기 버튼.
+/// 입력 영역: 카드 안의 입력창과 글자 수.
 class _Composer extends StatelessWidget {
   const _Composer({
     required this.controller,
     required this.sending,
-    required this.canSend,
     required this.onChanged,
-    required this.onSend,
   });
 
   final TextEditingController controller;
   final bool sending;
-  final bool canSend;
   final VoidCallback onChanged;
-  final VoidCallback onSend;
 
   @override
   Widget build(BuildContext context) {
+    final c = context.pq;
     final length = FeedbackValidator.normalize(controller.text).length;
     final over = length > FeedbackValidator.maxLength;
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
-      decoration: const BoxDecoration(
-        color: AppColors.cardBg,
-        border: Border(top: BorderSide(color: AppColors.borderDefault)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+    return PqCard(
+      padding: const EdgeInsets.all(PqSpace.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  controller: controller,
-                  enabled: !sending,
-                  minLines: 1,
-                  maxLines: 4,
-                  inputFormatters: FeedbackValidator.inputFormatters,
-                  onChanged: (_) => onChanged(),
-                  decoration: const InputDecoration(
-                    hintText: '앱에 바라는 점을 자유롭게 적어주세요',
-                    border: InputBorder.none,
-                    isDense: true,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '$length/${FeedbackValidator.maxLength}',
-                  style: AppTextStyles.tag_12.copyWith(
-                    color: over ? AppColors.red : AppColors.textCaption,
-                  ),
-                ),
-              ],
+          TextField(
+            controller: controller,
+            enabled: !sending,
+            minLines: 1,
+            maxLines: 4,
+            inputFormatters: FeedbackValidator.inputFormatters,
+            onChanged: (_) => onChanged(),
+            style: PqType.body.copyWith(color: c.label),
+            cursorColor: c.accent,
+            decoration: InputDecoration.collapsed(
+              hintText: '앱에 바라는 점을 자유롭게 적어주세요',
+              hintStyle: PqType.body.copyWith(color: c.tertiaryLabel),
             ),
           ),
-          IconButton(
-            tooltip: '보내기',
-            onPressed: canSend ? onSend : null,
-            icon: sending
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : FaIcon(
-                    FontAwesomeIcons.paperPlane,
-                    size: 18,
-                    color: canSend
-                        ? AppColors.brandIndigo
-                        : AppColors.textCaption,
-                  ),
+          const SizedBox(height: PqSpace.xxs),
+          Text(
+            '$length/${FeedbackValidator.maxLength}',
+            style: PqType.caption.copyWith(
+              color: over ? c.wrongText : c.tertiaryLabel,
+            ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _Notice extends StatelessWidget {
-  const _Notice({required this.text, this.actionLabel, this.onAction});
-
-  final String text;
-  final String? actionLabel;
-  final VoidCallback? onAction;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              text,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.paragraph_14.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            if (actionLabel != null) ...[
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: onAction,
-                child: Text(
-                  actionLabel!,
-                  style: AppTextStyles.paragraph_14.copyWith(
-                    color: AppColors.brandIndigo,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
       ),
     );
   }

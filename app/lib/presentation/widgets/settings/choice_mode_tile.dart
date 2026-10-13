@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/app_colors.dart';
 import '../../../core/error/app_exception.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../data/models/member/choice_generation_mode.dart';
+import '../../design/design.dart';
 import '../../providers/settings_providers.dart';
 import '../common/app_toast.dart';
 import 'settings_group.dart';
@@ -18,19 +17,21 @@ class ChoiceModeTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.pq;
     final mode = ref.watch(choiceModeProvider);
     final isReal = mode.valueOrNull == ChoiceGenerationMode.real;
 
     // 설정 그룹 안의 한 줄로 그린다(카드는 SettingsGroup 이 맡는다).
     return SettingsRow(
-      icon: FontAwesomeIcons.bolt,
+      icon: CupertinoIcons.bolt_fill,
+      iconColor: c.accent,
       title: '실전 모드',
       // 한 줄에 들어가도록 짧게 쓴다(두 줄이면 스위치 옆에서 어색하게 끊긴다).
       subtitle: isReal ? '매번 AI가 새 선택지를 만들어요' : '검증된 선택지를 먼저 써요',
       showChevron: false,
-      trailing: Switch.adaptive(
+      trailing: CupertinoSwitch(
         value: isReal,
-        activeTrackColor: AppColors.brandIndigo,
+        activeTrackColor: c.accent,
         // 불러오는 중에는 값을 모르므로 조작을 막는다.
         onChanged: mode.hasValue
             ? (value) => _change(context, ref, value)

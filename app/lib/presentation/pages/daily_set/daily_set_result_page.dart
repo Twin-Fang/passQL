@@ -192,46 +192,61 @@ class _ResultBody extends ConsumerWidget {
 
 /// 순위 한 줄. 결과 화면과 리더보드가 함께 쓴다.
 class LeaderboardRow extends StatelessWidget {
-  const LeaderboardRow({super.key, required this.entry, this.highlight = false});
+  const LeaderboardRow({
+    super.key,
+    required this.entry,
+    this.highlight = false,
+    this.inset = PqSpace.xxs,
+  });
 
   final LeaderboardEntry entry;
   final bool highlight;
 
+  /// 좌우 여백. 카드 안에서는 좁게, grouped 목록에서는 행 규격(16)으로 쓴다.
+  final double inset;
+
   @override
   Widget build(BuildContext context) {
     final c = context.pq;
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: PqSpace.xs, horizontal: PqSpace.xxs),
-      decoration: highlight
-          ? BoxDecoration(
-              color: c.accentTint,
-              borderRadius: BorderRadius.circular(PqRadius.sm),
-            )
-          : null,
-      child: Row(
-        children: [
-          SizedBox(
-            width: PqSpace.xxl,
-            child: Text(
-              '${entry.rank}',
-              style: PqType.subheadline.copyWith(
-                color: entry.rank <= 3 ? c.accent : c.tertiaryLabel,
-                fontFeatures: PqType.tabular,
+    // grouped 목록 행과 같은 높이·여백. 내 행은 배경만 accentTint 로 바꾼다.
+    return ColoredBox(
+      color: highlight ? c.accentTint : Colors.transparent,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: PqSize.rowMin),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            vertical: PqSpace.sm,
+            horizontal: inset,
+          ),
+          child: Row(
+            children: [
+              SizedBox(
+                width: PqSpace.xxl,
+                child: Text(
+                  '${entry.rank}',
+                  style: PqType.headline.copyWith(
+                    color: entry.rank <= 3 ? c.accent : c.tertiaryLabel,
+                    fontFeatures: PqType.tabular,
+                  ),
+                ),
               ),
-            ),
+              Expanded(
+                child: Text(
+                  entry.nickname,
+                  overflow: TextOverflow.ellipsis,
+                  style: PqType.body.copyWith(color: c.label),
+                ),
+              ),
+              Text(
+                '${entry.correctCount}점',
+                style: PqType.bodyMedium.copyWith(
+                  color: c.accent,
+                  fontFeatures: PqType.tabular,
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            child: Text(
-              entry.nickname,
-              overflow: TextOverflow.ellipsis,
-              style: PqType.subheadline.copyWith(color: c.label),
-            ),
-          ),
-          Text(
-            '${entry.correctCount}점',
-            style: PqType.subheadlineSemibold.copyWith(color: c.accent),
-          ),
-        ],
+        ),
       ),
     );
   }
