@@ -16,11 +16,16 @@ class PqCodeBlock extends StatelessWidget {
     final style = PqType.code.copyWith(color: c.label);
     return Container(
       width: double.infinity,
-      decoration: BoxDecoration(color: c.fill, borderRadius: BorderRadius.circular(PqRadius.sm)),
+      decoration: BoxDecoration(
+        color: c.fill,
+        borderRadius: BorderRadius.circular(PqRadius.sm),
+      ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.all(PqSpace.sm),
-        child: selectable ? SelectableText(code, style: style) : Text(code, style: style),
+        child: selectable
+            ? SelectableText(code, style: style)
+            : Text(code, style: style),
       ),
     );
   }

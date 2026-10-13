@@ -29,15 +29,25 @@ class PqCard extends StatelessWidget {
     final body = Container(
       width: double.infinity,
       padding: padding,
-      decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(PqRadius.lg)),
+      decoration: BoxDecoration(
+        color: c.card,
+        borderRadius: BorderRadius.circular(PqRadius.lg),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (title != null) ...[
-            Row(children: [
-              Expanded(child: Text(title!, style: PqType.headline.copyWith(color: c.label))),
-              ?trailing,
-            ]),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title!,
+                    style: PqType.headline.copyWith(color: c.label),
+                  ),
+                ),
+                ?trailing,
+              ],
+            ),
             const SizedBox(height: PqSpace.sm),
           ],
           child,

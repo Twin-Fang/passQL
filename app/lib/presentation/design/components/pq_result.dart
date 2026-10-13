@@ -100,7 +100,9 @@ class PqScoreHeader extends StatelessWidget {
               child: child,
             ),
             // 좁은 폭·큰 글자에서도 고리 안에 머물도록 줄여서 맞춘다.
-            child: Center(
+            child: Padding(
+              // 고리 두께 12 + 여유 8 안쪽에서만 줄어들게 한다.
+              padding: const EdgeInsets.all(12 + 8),
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Row(

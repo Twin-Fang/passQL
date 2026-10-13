@@ -1,10 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-
 /// iOS 처럼 누르는 동안 살짝 흐려지는 피드백. 잉크 물결 대신 이 하나로 통일한다.
 class PqPressable extends StatefulWidget {
-  const PqPressable({super.key, required this.child, this.onTap, this.semanticLabel, this.button = true});
+  const PqPressable({
+    super.key,
+    required this.child,
+    this.onTap,
+    this.semanticLabel,
+    this.button = true,
+  });
   final Widget child;
   final VoidCallback? onTap;
   final String? semanticLabel;

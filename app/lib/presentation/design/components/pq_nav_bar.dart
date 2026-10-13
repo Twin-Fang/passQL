@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import '../pq_theme.dart';
 import '../tokens/pq_metrics.dart';
+import '../tokens/pq_type.dart';
 
 /// 하위 화면 상단 바. 배경은 화면 배경과 같게 두어 iOS 의 scroll-edge 모양을 낸다.
 class PqNavBar extends StatelessWidget implements PreferredSizeWidget {
@@ -23,7 +24,15 @@ class PqNavBar extends StatelessWidget implements PreferredSizeWidget {
       border: null,
       leading: leading,
       trailing: trailing,
-      middle: title == null ? null : Text(title!, maxLines: 1, overflow: TextOverflow.ellipsis),
+      // Cupertino 기본 글꼴 대신 토큰 글꼴·색을 직접 지정한다(다크 테마 색 보장).
+      middle: title == null
+          ? null
+          : Text(
+              title!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: PqType.headline.copyWith(color: c.label),
+            ),
     );
   }
 }
@@ -50,18 +59,25 @@ class PqLargeTitleScrollView extends StatelessWidget {
     final c = context.pq;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     return CustomScrollView(
-      physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
       slivers: [
         CupertinoSliverNavigationBar(
           transitionBetweenRoutes: false,
-          largeTitle: largeTitle ?? Text(title),
-          middle: Text(title),
+          largeTitle:
+              largeTitle ??
+              Text(title, style: PqType.largeTitle.copyWith(color: c.label)),
+          middle: Text(title, style: PqType.headline.copyWith(color: c.label)),
           alwaysShowMiddle: false,
           trailing: trailing,
           backgroundColor: c.glass,
-          border: Border(bottom: BorderSide(color: c.separator, width: PqSize.hairline)),
+          border: Border(
+            bottom: BorderSide(color: c.separator, width: PqSize.hairline),
+          ),
         ),
-        if (onRefresh != null) CupertinoSliverRefreshControl(onRefresh: onRefresh),
+        if (onRefresh != null)
+          CupertinoSliverRefreshControl(onRefresh: onRefresh),
         ...slivers,
         // 탭 바(extendBody) 뒤로 마지막 콘텐츠가 가려지지 않게 한다.
         SliverToBoxAdapter(child: SizedBox(height: bottomInset + PqSpace.xl)),

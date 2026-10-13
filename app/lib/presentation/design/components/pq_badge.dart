@@ -35,17 +35,19 @@ class PqProgressBar extends StatelessWidget {
       borderRadius: BorderRadius.circular(PqRadius.capsule),
       child: SizedBox(
         height: 4,
-        child: Stack(children: [
-          Positioned.fill(child: ColoredBox(color: c.fill)),
-          AnimatedFractionallySizedBox(
-            duration: PqMotion.fast,
-            curve: PqMotion.curve,
-            widthFactor: value.clamp(0, 1),
-            heightFactor: 1,
-            alignment: Alignment.centerLeft,
-            child: ColoredBox(color: c.accent),
-          ),
-        ]),
+        child: Stack(
+          children: [
+            Positioned.fill(child: ColoredBox(color: c.fill)),
+            AnimatedFractionallySizedBox(
+              duration: PqMotion.fast,
+              curve: PqMotion.curve,
+              widthFactor: value.clamp(0, 1),
+              heightFactor: 1,
+              alignment: Alignment.centerLeft,
+              child: ColoredBox(color: c.accent),
+            ),
+          ],
+        ),
       ),
     );
   }

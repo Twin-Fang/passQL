@@ -28,10 +28,12 @@ class PqGroupedSection extends StatelessWidget {
     for (var i = 0; i < children.length; i++) {
       rows.add(children[i]);
       if (i < children.length - 1) {
-        rows.add(Padding(
-          padding: EdgeInsets.only(left: separatorIndent),
-          child: Container(height: PqSize.hairline, color: c.separator),
-        ));
+        rows.add(
+          Padding(
+            padding: EdgeInsets.only(left: separatorIndent),
+            child: Container(height: PqSize.hairline, color: c.separator),
+          ),
+        );
       }
     }
     return Column(
@@ -40,16 +42,25 @@ class PqGroupedSection extends StatelessWidget {
         if (header != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(PqSpace.md, 0, PqSpace.md, 6),
-            child: Text(header!, style: PqType.footnote.copyWith(color: c.secondaryLabel)),
+            child: Text(
+              header!,
+              style: PqType.footnote.copyWith(color: c.secondaryLabel),
+            ),
           ),
         ClipRRect(
           borderRadius: BorderRadius.circular(PqRadius.lg),
-          child: ColoredBox(color: c.card, child: Column(children: rows)),
+          child: ColoredBox(
+            color: c.card,
+            child: Column(children: rows),
+          ),
         ),
         if (footer != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(PqSpace.md, 6, PqSpace.md, 0),
-            child: Text(footer!, style: PqType.footnote.copyWith(color: c.secondaryLabel)),
+            child: Text(
+              footer!,
+              style: PqType.footnote.copyWith(color: c.secondaryLabel),
+            ),
           ),
       ],
     );
@@ -82,32 +93,57 @@ class PqListRow extends StatelessWidget {
     final row = ConstrainedBox(
       constraints: const BoxConstraints(minHeight: PqSize.rowMin),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: PqSpace.md, vertical: 11),
-        child: Row(children: [
-          if (leading != null) ...[leading!, const SizedBox(width: PqSpace.sm)],
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(title, style: PqType.body.copyWith(color: destructive ? c.wrong : c.label)),
-                if (subtitle != null)
-                  Text(subtitle!, style: PqType.footnote.copyWith(color: c.secondaryLabel)),
-              ],
+        padding: const EdgeInsets.symmetric(
+          horizontal: PqSpace.md,
+          vertical: 11,
+        ),
+        child: Row(
+          children: [
+            if (leading != null) ...[
+              leading!,
+              const SizedBox(width: PqSpace.sm),
+            ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: PqType.body.copyWith(
+                      color: destructive ? c.wrong : c.label,
+                    ),
+                  ),
+                  if (subtitle != null)
+                    Text(
+                      subtitle!,
+                      style: PqType.footnote.copyWith(color: c.secondaryLabel),
+                    ),
+                ],
+              ),
             ),
-          ),
-          if (trailing != null) ...[
-            const SizedBox(width: PqSpace.xs),
-            DefaultTextStyle(style: PqType.body.copyWith(color: c.secondaryLabel), child: trailing!),
+            if (trailing != null) ...[
+              const SizedBox(width: PqSpace.xs),
+              DefaultTextStyle(
+                style: PqType.body.copyWith(color: c.secondaryLabel),
+                child: trailing!,
+              ),
+            ],
+            if (chevron) ...[
+              const SizedBox(width: PqSpace.xs),
+              Icon(
+                CupertinoIcons.chevron_forward,
+                size: 14,
+                color: c.tertiaryLabel,
+              ),
+            ],
           ],
-          if (chevron) ...[
-            const SizedBox(width: PqSpace.xs),
-            Icon(CupertinoIcons.chevron_forward, size: 14, color: c.tertiaryLabel),
-          ],
-        ]),
+        ),
       ),
     );
-    return onTap == null ? row : PqPressable(onTap: onTap, semanticLabel: title, child: row);
+    return onTap == null
+        ? row
+        : PqPressable(onTap: onTap, semanticLabel: title, child: row);
   }
 }
 
@@ -119,9 +155,12 @@ class PqIconTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        width: PqSize.iconTile,
-        height: PqSize.iconTile,
-        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(PqRadius.iconTile)),
-        child: Icon(icon, size: 17, color: Colors.white),
-      );
+    width: PqSize.iconTile,
+    height: PqSize.iconTile,
+    decoration: BoxDecoration(
+      color: color,
+      borderRadius: BorderRadius.circular(PqRadius.iconTile),
+    ),
+    child: Icon(icon, size: 17, color: Colors.white),
+  );
 }

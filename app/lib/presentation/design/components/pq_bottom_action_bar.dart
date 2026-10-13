@@ -18,17 +18,24 @@ class PqBottomActionBar extends StatelessWidget {
         top: false,
         minimum: const EdgeInsets.only(bottom: PqSpace.md),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(PqSpace.md, PqSpace.sm, PqSpace.md, 0),
+          padding: const EdgeInsets.fromLTRB(
+            PqSpace.md,
+            PqSpace.sm,
+            PqSpace.md,
+            0,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (top != null) ...[top!, const SizedBox(height: PqSpace.sm)],
-              Row(children: [
-                for (var i = 0; i < actions.length; i++) ...[
-                  if (i > 0) const SizedBox(width: PqSpace.sm),
-                  Expanded(child: actions[i]),
+              Row(
+                children: [
+                  for (var i = 0; i < actions.length; i++) ...[
+                    if (i > 0) const SizedBox(width: PqSpace.sm),
+                    Expanded(child: actions[i]),
+                  ],
                 ],
-              ]),
+              ),
             ],
           ),
         ),
