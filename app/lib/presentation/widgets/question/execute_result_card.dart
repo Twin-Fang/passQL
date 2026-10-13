@@ -8,10 +8,17 @@ class ExecuteResultCard extends StatelessWidget {
   final ExecuteResult result;
   final VoidCallback? onAiExplainTap;
 
+  /// 바깥 여백. 이미 좌우 inset 이 있는 목록 안에서는 가로를 0 으로 줄인다.
+  final EdgeInsetsGeometry margin;
+
   const ExecuteResultCard({
     super.key,
     required this.result,
     this.onAiExplainTap,
+    this.margin = const EdgeInsets.symmetric(
+      horizontal: PqSpace.md,
+      vertical: PqSpace.xxs,
+    ),
   });
 
   bool get _isError => result.errorCode != null && result.errorCode!.isNotEmpty;
@@ -20,10 +27,7 @@ class ExecuteResultCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // 부모 Column 안에서 내용 폭으로 줄지 않게 선택지 카드와 같은 폭으로 편다(PqCard 가 width 를 채운다).
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: PqSpace.md,
-        vertical: PqSpace.xxs,
-      ),
+      padding: margin,
       child: PqCard(
         child: _isError
             ? _ErrorContent(result: result, onAiTap: onAiExplainTap)
