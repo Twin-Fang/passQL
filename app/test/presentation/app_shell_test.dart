@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/widgets/app_shell.dart';
 
 void main() {
@@ -12,20 +14,21 @@ void main() {
           builder: (_, _, child) => AppShell(child: child),
           routes: [
             for (final p in ['/home', '/questions', '/stats', '/settings'])
-              GoRoute(path: p, builder: (_, _) => const SizedBox()),
+              GoRoute(path: p, builder: (_, _) => Text(p)),
           ],
         ),
       ],
     );
-    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.pumpWidget(MaterialApp.router(theme: PqTheme.light, routerConfig: router));
     await tester.pumpAndSettle();
 
-    // 라벨 표시는 끄고(화면에 글자 없음), 탭 4개는 접근성 라벨로 남긴다
-    final bar = tester.widget<BottomNavigationBar>(
-      find.byType(BottomNavigationBar),
-    );
-    expect(bar.showSelectedLabels, isFalse);
-    expect(bar.showUnselectedLabels, isFalse);
-    expect(bar.items.map((e) => e.label), ['홈', '문제', '통계', '설정']);
+    expect(find.byType(PqTabBar), findsOneWidget);
+    for (final label in ['홈', '문제', '통계', '설정']) {
+      expect(find.text(label), findsNothing);
+      expect(find.bySemanticsLabel(label), findsOneWidget);
+    }
+    await tester.tap(find.byIcon(CupertinoIcons.chart_bar));
+    await tester.pumpAndSettle();
+    expect(find.text('/stats'), findsOneWidget);
   });
 }
