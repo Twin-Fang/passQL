@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../core/app_colors.dart';
-import '../../../core/text_styles.dart';
+import '../../design/design.dart';
 
 /// 스키마 DDL 섹션. 접을 수 있는 ExpansionTile.
 /// schemaDdl이 있을 때만 표시.
@@ -14,61 +12,50 @@ class SchemaSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (schemaDdl == null || schemaDdl!.isEmpty) return const SizedBox.shrink();
+    final c = context.pq;
 
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
-      decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: AppColors.borderDefault),
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: PqSpace.md,
+        vertical: PqSpace.xs,
       ),
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          tilePadding: EdgeInsets.symmetric(horizontal: 16.w),
-          title: Text(
-            '스키마 보기',
-            style: AppTextStyles.paragraph14Semibold
-                .copyWith(color: AppColors.textPrimary),
-          ),
-          children: [
-            Container(
-              width: double.infinity,
-              margin: EdgeInsets.fromLTRB(12.w, 0, 12.w, 12.h),
-              padding: EdgeInsets.all(12.w),
-              decoration: BoxDecoration(
-                color: AppColors.codeBg,
-                borderRadius: BorderRadius.circular(8.r),
-                border: Border(
-                  left: BorderSide(
-                    color: AppColors.brandIndigo,
-                    width: 4.w,
-                  ),
-                ),
-              ),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Text(
-                  schemaDdl!,
-                  style: TextStyle(
-                    fontFamily: 'JetBrainsMono',
-                    fontSize: 13.sp,
-                    color: AppColors.textPrimary,
-                    height: 1.5,
-                  ),
-                ),
-              ),
+      child: PqCard(
+        padding: EdgeInsets.zero,
+        child: Theme(
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            tilePadding: const EdgeInsets.symmetric(horizontal: PqSpace.md),
+            shape: const Border(),
+            collapsedShape: const Border(),
+            title: Text(
+              '스키마 보기',
+              style: PqType.subheadlineSemibold.copyWith(color: c.label),
             ),
-            if (schemaSampleData != null && schemaSampleData!.isNotEmpty)
+            children: [
               Padding(
-                padding: EdgeInsets.fromLTRB(12.w, 0, 12.w, 12.h),
-                child: Text(
-                  '샘플 데이터',
-                  style: AppTextStyles.tag_12
-                      .copyWith(color: AppColors.textSecondary),
+                padding: const EdgeInsets.fromLTRB(
+                  PqSpace.sm,
+                  0,
+                  PqSpace.sm,
+                  PqSpace.sm,
                 ),
+                child: PqCodeBlock(code: schemaDdl!),
               ),
-          ],
+              if (schemaSampleData != null && schemaSampleData!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    PqSpace.sm,
+                    0,
+                    PqSpace.sm,
+                    PqSpace.sm,
+                  ),
+                  child: Text(
+                    '샘플 데이터',
+                    style: PqType.caption.copyWith(color: c.secondaryLabel),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

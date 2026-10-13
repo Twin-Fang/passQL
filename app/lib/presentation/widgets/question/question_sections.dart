@@ -1,0 +1,211 @@
+import 'package:flutter/cupertino.dart';
+import '../../../data/models/question/question_detail.dart';
+import '../../../data/models/question/sse_event.dart';
+import '../../../data/models/question/submit_result.dart';
+import '../../providers/question_providers.dart';
+import '../../design/design.dart';
+import 'choice_card.dart';
+import 'sse_loading_widget.dart';
+import 'stem_text.dart';
+
+// 챕터 풀이(ChapterPage)와 단건 풀이(QuestionDetailPage)가 함께 쓰는 문제 화면 조각.
+
+/// 난이도 별 + 실행 모드 뱃지 + (있으면) 소주제 제목.
+class QuestionHeader extends StatelessWidget {
+  final QuestionDetail question;
+  const QuestionHeader({super.key, required this.question});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.pq;
+    final difficulty = question.difficulty ?? 1;
+    final isExecutable = question.executionMode == 'EXECUTABLE';
+    final title = question.subtopicName;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        PqSpace.md,
+        PqSpace.md,
+        PqSpace.md,
+        PqSpace.xs,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              // 난이도 표시는 색만이 아니라 채움 여부(별 모양)로도 구분된다.
+              Semantics(
+                label: '난이도 $difficulty / 3',
+                excludeSemantics: true,
+                child: Row(
+                  children: List.generate(
+                    3,
+                    (i) => Icon(
+                      i < difficulty
+                          ? CupertinoIcons.star_fill
+                          : CupertinoIcons.star,
+                      size: 16,
+                      color: i < difficulty ? c.warning : c.tertiaryLabel,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: PqSpace.xs),
+              PqBadge(
+                text: isExecutable ? 'SQL 실행' : '개념 문제',
+                color: isExecutable ? c.accent : c.secondaryLabel,
+              ),
+            ],
+          ),
+          if (title != null && title.isNotEmpty) ...[
+            const SizedBox(height: PqSpace.xs),
+            Text(title, style: PqType.title3.copyWith(color: c.label)),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// 문제 지문 카드.
+class QuestionStem extends StatelessWidget {
+  final String stem;
+  const QuestionStem({super.key, required this.stem});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: PqSpace.md,
+        vertical: PqSpace.xs,
+      ),
+      child: PqCard(child: StemText(stem)),
+    );
+  }
+}
+
+/// 선택지 영역: 생성 중 로딩 / 생성 오류 / 선택지 목록.
+/// [submitResult]가 있으면 채점 결과를 선택지 상태에 반영한다.
+class QuestionChoices extends StatelessWidget {
+  final QuestionInteractionState interaction;
+  final QuestionInteractionNotifier notifier;
+  final bool isExecutable;
+  final SubmitResult? submitResult;
+
+  /// true면 재시도가 불가능한 오류여도 "다시 시도"를 보여 막다른 길을 만들지 않는다.
+  final bool alwaysAllowRetry;
+
+  const QuestionChoices({
+    super.key,
+    required this.interaction,
+    required this.notifier,
+    required this.isExecutable,
+    this.submitResult,
+    this.alwaysAllowRetry = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (interaction.isGeneratingChoices) {
+      return SseLoadingWidget(
+        statusMessage: interaction.sseStatusMessage ?? '선택지 생성 중...',
+      );
+    }
+
+    final error = interaction.sseError;
+    if (error != null) {
+      return QuestionSseError(
+        error: error,
+        onRetry: alwaysAllowRetry || error.retryable
+            ? () => notifier.startSseGeneration()
+            : null,
+      );
+    }
+
+    if (interaction.activeChoices.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      children: interaction.activeChoices.map((item) {
+        return ChoiceCard(
+          item: item,
+          state: choiceStateFor(
+            key: item.key,
+            selectedKey: interaction.selectedChoiceKey,
+            result: submitResult,
+          ),
+          onTap: () => notifier.selectChoice(
+            choiceKey: item.key,
+            sql: item.kind == 'SQL' ? item.body : null,
+            isExecutable: isExecutable,
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+/// 선택지 생성 실패 안내.
+class QuestionSseError extends StatelessWidget {
+  final SseErrorEvent error;
+  final VoidCallback? onRetry;
+
+  const QuestionSseError({super.key, required this.error, this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: PqSpace.md,
+        vertical: PqSpace.xs,
+      ),
+      child: PqCard(
+        child: Row(
+          children: [
+            const Expanded(
+              child: PqResultMark(correct: false, label: '선택지를 만들지 못했어요'),
+            ),
+            if (onRetry != null)
+              PqButton(
+                label: '다시 시도',
+                onPressed: onRetry,
+                variant: PqButtonVariant.plain,
+                size: PqButtonSize.small,
+                expand: false,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 제출 전 하단 바. 선택지를 고르고 선택지 세트가 있을 때만 활성화된다.
+class QuestionSubmitBar extends StatelessWidget {
+  final QuestionInteractionState interaction;
+  final VoidCallback onSubmit;
+
+  const QuestionSubmitBar({
+    super.key,
+    required this.interaction,
+    required this.onSubmit,
+  });
+
+  bool get _canSubmit =>
+      interaction.selectedChoiceKey != null &&
+      interaction.activeChoiceSetId != null &&
+      !interaction.isSubmitting;
+
+  @override
+  Widget build(BuildContext context) {
+    return PqBottomActionBar(
+      actions: [
+        PqButton(
+          label: '제출',
+          onPressed: _canSubmit ? onSubmit : null,
+          loading: interaction.isSubmitting,
+        ),
+      ],
+    );
+  }
+}

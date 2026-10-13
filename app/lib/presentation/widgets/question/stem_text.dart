@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../core/app_colors.dart';
-import '../../../core/text_styles.dart';
+import '../../design/design.dart';
 
 /// 지문 안의 ```lang ... ``` 블록 분리용 정규식.
 final RegExp _fenceRe = RegExp(r'```[A-Za-z]*\r?\n?([\s\S]*?)```');
@@ -36,7 +34,7 @@ class StemText extends StatelessWidget {
 
     for (final m in _fenceRe.allMatches(stem)) {
       addText(stem.substring(cursor, m.start));
-      children.add(_CodeBox(code: (m.group(1) ?? '').trimRight()));
+      children.add(PqCodeBlock(code: (m.group(1) ?? '').trimRight()));
       cursor = m.end;
     }
     addText(stem.substring(cursor));
@@ -46,7 +44,7 @@ class StemText extends StatelessWidget {
 
     final spaced = <Widget>[];
     for (var i = 0; i < children.length; i++) {
-      if (i > 0) spaced.add(SizedBox(height: 12.h));
+      if (i > 0) spaced.add(const SizedBox(height: PqSpace.sm));
       spaced.add(children[i]);
     }
     return SizedBox(
@@ -54,34 +52,6 @@ class StemText extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: spaced,
-      ),
-    );
-  }
-}
-
-/// 긴 줄이 가로로 잘려 보이지 않도록 줄바꿈한다. 첫 줄 들여쓰기는 그대로 둔다.
-class _CodeBox extends StatelessWidget {
-  const _CodeBox({required this.code});
-
-  final String code;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: AppColors.black100,
-        borderRadius: BorderRadius.circular(8.r),
-      ),
-      child: Text(
-        code,
-        style: AppTextStyles.paragraph_14.copyWith(
-          color: AppColors.textPrimary,
-          fontFamily: 'JetBrainsMono',
-          fontSize: 12.sp,
-          height: 1.5,
-        ),
       ),
     );
   }
@@ -99,9 +69,8 @@ class InlineCodeText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final base =
-        style ??
-        AppTextStyles.paragraph_14.copyWith(color: AppColors.textPrimary);
+    final c = context.pq;
+    final base = style ?? PqType.callout.copyWith(color: c.label);
     final spans = <InlineSpan>[];
     var cursor = 0;
     for (final m in _inlineRe.allMatches(text)) {
@@ -111,10 +80,9 @@ class InlineCodeText extends StatelessWidget {
       spans.add(
         TextSpan(
           text: m.group(1),
-          style: TextStyle(
-            fontFamily: 'JetBrainsMono',
+          style: PqType.code.copyWith(
             fontSize: (base.fontSize ?? 14) * 0.92,
-            backgroundColor: AppColors.black100,
+            backgroundColor: c.fill,
           ),
         ),
       );

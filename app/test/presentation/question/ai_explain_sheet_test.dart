@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -36,6 +37,7 @@ class _FakeAiApi implements AiApiClient {
   Future<List<SimilarQuestion>> getSimilar(String questionUuid, int k) => throw UnimplementedError();
 }
 
+/// 실제 호출부와 같이 AiExplainSheet.show 로 공용 시트를 연다.
 Future<void> _open(WidgetTester tester, _FakeAiApi api, {required bool isErrorExplain, Map<String, dynamic>? payload}) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -44,15 +46,24 @@ Future<void> _open(WidgetTester tester, _FakeAiApi api, {required bool isErrorEx
         designSize: const Size(390, 844),
         builder: (_, _) => MaterialApp(
           home: Scaffold(
-            body: AiExplainSheet(
-              payload: payload ?? const {'questionUuid': 'q-1', 'selectedChoiceKey': 'D'},
-              isErrorExplain: isErrorExplain,
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => AiExplainSheet.show(
+                  context,
+                  payload: payload ?? const {'questionUuid': 'q-1', 'selectedChoiceKey': 'D'},
+                  isErrorExplain: isErrorExplain,
+                ),
+                child: const Text('열기'),
+              ),
             ),
           ),
         ),
       ),
     ),
   );
+  await tester.tap(find.text('열기'));
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 400));
 }
 
 void main() {
@@ -61,12 +72,12 @@ void main() {
     await _open(tester, api, isErrorExplain: false);
 
     expect(find.text('AI 해설'), findsOneWidget);
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
 
     api.reply!.complete(const AiResult(text: '## 왜 틀렸나\nRANK는 동점이면 순위를 건너뜁니다.', promptVersion: 2));
     await tester.pumpAndSettle();
 
-    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.byType(CupertinoActivityIndicator), findsNothing);
     expect(find.textContaining('RANK는 동점이면 순위를 건너뜁니다.'), findsOneWidget);
     expect(find.textContaining('불러올 수 없어요'), findsNothing);
     expect(api.calls, ['diff-explain']);
@@ -92,6 +103,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('AI 해설을 불러올 수 없어요'), findsOneWidget);
-    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.byType(CupertinoActivityIndicator), findsNothing);
   });
 }

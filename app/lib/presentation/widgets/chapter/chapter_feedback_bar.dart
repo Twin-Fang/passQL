@@ -1,16 +1,14 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../core/app_colors.dart';
-import '../../../core/text_styles.dart';
+import 'package:flutter/widgets.dart';
 import '../../../data/models/question/submit_result.dart';
+import '../../design/design.dart';
 import '../question/ai_explain_sheet.dart';
 import '../report/report_button.dart';
 
-/// 제출 후 인라인 피드백 바.
+/// 제출 후 하단 피드백 바.
 ///
-/// 상단: 정답/오답 표시 + AI 해설 링크 (조건부)
+/// 상단: 정답/오답 표시 + AI 해설 (조건부) + 신고
 /// 하단: 다음 문제 / 결과 보기 버튼
-class ChapterFeedbackBar extends StatelessWidget {
+class ChapterFeedbackBar extends StatefulWidget {
   final SubmitResult result;
   final String questionUuid;
 
@@ -29,102 +27,78 @@ class ChapterFeedbackBar extends StatelessWidget {
     required this.onNext,
   });
 
+  @override
+  State<ChapterFeedbackBar> createState() => _ChapterFeedbackBarState();
+}
+
+class _ChapterFeedbackBarState extends State<ChapterFeedbackBar> {
+  SubmitResult get _result => widget.result;
+
+  @override
+  void initState() {
+    super.initState();
+    // 채점 결과가 처음 나타날 때 한 번만 손끝으로 알려 준다.
+    if (_result.isCorrect) {
+      PqHaptics.correct();
+    } else {
+      PqHaptics.wrong();
+    }
+  }
+
   /// EXECUTABLE 모드 여부 — correctSql 또는 correctResult 존재 시 EXECUTABLE로 판단.
   bool get _isExecutable =>
-      result.correctSql != null || result.correctResult != null;
+      _result.correctSql != null || _result.correctResult != null;
 
   /// AI 해설 버튼 표시 조건:
   /// - 오답: 항상 표시
   /// - 정답 + CONCEPT_ONLY: 표시
   /// - 정답 + EXECUTABLE: 표시하지 않음
-  bool get _showAiButton => !result.isCorrect || !_isExecutable;
+  bool get _showAiButton => !_result.isCorrect || !_isExecutable;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        border: Border(top: BorderSide(color: AppColors.borderDefault)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    return PqBottomActionBar(
+      top: Row(
         children: [
-          // 정답/오답 피드백 영역
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.fromLTRB(20.w, 14.h, 20.w, 14.h),
-            color: result.isCorrect ? AppColors.successLight : AppColors.errorLight,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  result.isCorrect
-                      ? '정답입니다!'
-                      : '오답이에요. 정답: ${result.correctKey ?? '-'}',
-                  style: AppTextStyles.label_16.copyWith(
-                    color: result.isCorrect
-                        ? AppColors.successText
-                        : AppColors.errorText,
-                  ),
-                ),
-                if (_showAiButton) ...[
-                  SizedBox(height: 8.h),
-                  GestureDetector(
-                    onTap: () => AiExplainSheet.show(
-                      context,
-                      payload: {
-                        'questionUuid': questionUuid,
-                        'selectedChoiceKey': selectedChoiceKey,
-                      },
-                      isErrorExplain: false,
-                    ),
-                    child: Text(
-                      'AI에게 자세히 물어보기',
-                      style: AppTextStyles.paragraph_14.copyWith(
-                        color: AppColors.brandIndigo,
-                        decoration: TextDecoration.underline,
-                        decorationColor: AppColors.brandIndigo,
-                      ),
-                    ),
-                  ),
-                ],
-                // 신고는 어떤 제출인지 알아야 하므로 제출 UUID 가 있을 때만 보여준다.
-                if (result.submissionUuid != null)
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: ReportButton(
-                      questionUuid: questionUuid,
-                      submissionUuid: result.submissionUuid!,
-                      choiceSetUuid: result.choiceSetUuid,
-                    ),
-                  ),
-              ],
+          Flexible(
+            child: PqResultMark(
+              correct: _result.isCorrect,
+              label: _result.isCorrect
+                  ? '정답이에요'
+                  : '오답이에요 · 정답 ${_result.correctKey ?? '-'}',
             ),
           ),
-          // 다음 문제 / 결과 보기 버튼
-          Padding(
-            padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 24.h),
-            child: SizedBox(
-              width: double.infinity,
-              height: 44.h,
-              child: ElevatedButton(
-                onPressed: onNext,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.brandIndigo,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                ),
-                child: Text(
-                  isLastQuestion ? '결과 보기' : '다음 문제',
-                  style: AppTextStyles.label_16
-                      .copyWith(color: Colors.white),
-                ),
+          const Spacer(),
+          if (_showAiButton)
+            PqButton(
+              label: 'AI 해설',
+              variant: PqButtonVariant.plain,
+              size: PqButtonSize.small,
+              expand: false,
+              onPressed: () => AiExplainSheet.show(
+                context,
+                payload: {
+                  'questionUuid': widget.questionUuid,
+                  'selectedChoiceKey': widget.selectedChoiceKey,
+                },
+                isErrorExplain: false,
               ),
             ),
-          ),
+          // 신고는 어떤 제출인지 알아야 하므로 제출 UUID 가 있을 때만 보여준다.
+          if (_result.submissionUuid != null)
+            ReportButton(
+              questionUuid: widget.questionUuid,
+              submissionUuid: _result.submissionUuid!,
+              choiceSetUuid: _result.choiceSetUuid,
+            ),
         ],
       ),
+      actions: [
+        PqButton(
+          label: widget.isLastQuestion ? '결과 보기' : '다음',
+          onPressed: widget.onNext,
+        ),
+      ],
     );
   }
 }
