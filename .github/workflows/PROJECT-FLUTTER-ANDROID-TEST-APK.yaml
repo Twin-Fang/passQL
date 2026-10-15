@@ -454,10 +454,12 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
         run: |
-          mkdir -p android/keystore
-          echo "$KEYSTORE_BASE64" | base64 -d > android/keystore/key.jks
+          # build.gradle.kts 는 storeFile 을 app 모듈(android/app) 기준 file() 로 읽으므로 android/app/keystore 에 둔다
+          # (스토어 워크플로와 동일, passQL #376 · #456)
+          mkdir -p android/app/keystore
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/keystore/key.jks
           echo "✅ Release Keystore 생성 완료"
-          ls -la android/keystore/
+          ls -la android/app/keystore/
 
       - name: Create key.properties
         env:
