@@ -20,7 +20,7 @@ class PassqlTabItem {
 }
 
 /// 하단 탭 바. #367 결정대로 글자는 숨기고 접근성 라벨·롱프레스 툴팁만 남긴다.
-/// 높이는 [PassqlSize.tabBar] + 줄인 하단 여백([_bottomPadding]).
+/// 높이는 [PassqlSize.tabBar] + 줄인 하단 여백([_resolveBottomPadding]).
 class PassqlTabBar extends StatelessWidget {
   const PassqlTabBar({
     super.key,
@@ -38,7 +38,7 @@ class PassqlTabBar extends StatelessWidget {
     return PassqlGlass(
       hasTopHairline: true,
       child: Padding(
-        padding: EdgeInsets.only(bottom: _bottomPadding(context)),
+        padding: EdgeInsets.only(bottom: _resolveBottomPadding(context)),
         child: SizedBox(
           height: PassqlSize.tabBar,
           child: Row(
@@ -88,9 +88,9 @@ const double _insetKeepRatio = 0.6;
 
 /// 하단 여백. 홈 인디케이터·제스처 바는 일부만 비워 두고,
 /// 3버튼 내비게이션은 아이콘이 버튼에 가리지 않도록 inset 을 그대로 둔다.
-double _bottomPadding(BuildContext context) {
+double _resolveBottomPadding(BuildContext context) {
   // 기존 SafeArea 와 같은 기준(padding)을 써서 키보드가 올라올 때 동작도 그대로 둔다
-  final inset = MediaQuery.paddingOf(context).bottom;
-  if (inset > _systemButtonsInset) return inset;
-  return math.max(inset * _insetKeepRatio, 8);
+  final bottomInset = MediaQuery.paddingOf(context).bottom;
+  if (bottomInset > _systemButtonsInset) return bottomInset;
+  return math.max(bottomInset * _insetKeepRatio, PassqlSpacing.xs);
 }
