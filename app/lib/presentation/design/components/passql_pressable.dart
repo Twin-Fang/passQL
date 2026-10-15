@@ -8,12 +8,12 @@ class PassqlPressable extends StatefulWidget {
     required this.child,
     this.onTap,
     this.semanticLabel,
-    this.button = true,
+    this.isButton = true,
   });
   final Widget child;
   final VoidCallback? onTap;
   final String? semanticLabel;
-  final bool button;
+  final bool isButton;
 
   @override
   State<PassqlPressable> createState() => _PassqlPressableState();
@@ -32,7 +32,7 @@ class _PassqlPressableState extends State<PassqlPressable> {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      button: widget.button,
+      button: widget.isButton,
       enabled: widget.onTap != null,
       label: widget.semanticLabel,
       child: GestureDetector(

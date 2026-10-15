@@ -39,7 +39,7 @@ void main() {
           Center(
             child: PassqlButton(
               label: '제출',
-              loading: true,
+              isLoading: true,
               onPressed: () => taps++,
             ),
           ),
@@ -72,7 +72,7 @@ void main() {
               PassqlListRow(
                 title: '닉네임',
                 subtitle: '아주 긴 설명이 들어가도 줄바꿈된다',
-                chevron: true,
+                hasChevron: true,
                 onTap: () {},
               ),
             ],
@@ -231,7 +231,10 @@ void main() {
       await tester.tap(find.byIcon(CupertinoIcons.book));
       expect(tapped, 1);
       // 높이 = 44 + 홈 인디케이터 inset 34 의 60%
-      expect(tester.getSize(find.byType(PassqlTabBar)).height, closeTo(44 + 34 * 0.6, 0.01));
+      expect(
+        tester.getSize(find.byType(PassqlTabBar)).height,
+        closeTo(44 + 34 * 0.6, 0.01),
+      );
     });
 
     testWidgets('3버튼 내비게이션처럼 inset 이 크면 inset 을 그대로 둔다', (tester) async {
@@ -243,7 +246,11 @@ void main() {
               currentIndex: 0,
               onTap: (_) {},
               items: const [
-                PassqlTabItem(icon: CupertinoIcons.house, activeIcon: CupertinoIcons.house_fill, label: '홈'),
+                PassqlTabItem(
+                  icon: CupertinoIcons.house,
+                  activeIcon: CupertinoIcons.house_fill,
+                  label: '홈',
+                ),
               ],
             ),
           ),
@@ -297,7 +304,7 @@ void main() {
         home: Scaffold(
           body: SizedBox(
             width: 120,
-            child: PassqlCodeBlock(code: sql, wrap: wrap),
+            child: PassqlCodeBlock(code: sql, shouldWrap: wrap),
           ),
         ),
       ),
@@ -317,7 +324,7 @@ void main() {
             children: [
               PassqlCard(title: '카드', child: const Text('본문')),
               const PassqlCodeBlock(code: 'SELECT * FROM emp;'),
-              const PassqlResultMark(correct: true, large: true),
+              const PassqlResultMark(isCorrect: true, isLarge: true),
               const PassqlBadge(text: 'SQLD'),
               const PassqlProgressBar(value: 0.4),
             ],

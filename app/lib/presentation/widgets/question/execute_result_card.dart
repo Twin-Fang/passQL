@@ -50,7 +50,7 @@ class _ErrorContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const PassqlResultMark(correct: false, label: '실행 오류'),
+        const PassqlResultMark(isCorrect: false, label: '실행 오류'),
         const SizedBox(height: PassqlSpacing.xs),
         Text(
           result.errorCode ?? 'ERROR',
@@ -72,7 +72,7 @@ class _ErrorContent extends StatelessWidget {
             onPressed: onAiTap,
             variant: PassqlButtonVariant.plain,
             size: PassqlButtonSize.small,
-            expand: false,
+            isFullWidth: false,
           ),
         ],
       ],
@@ -91,12 +91,14 @@ class _SuccessContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const PassqlResultMark(correct: true, label: '실행 성공'),
+        const PassqlResultMark(isCorrect: true, label: '실행 성공'),
         const SizedBox(height: PassqlSpacing.xxs),
         Text(
           '${result.rowCount ?? result.rows.length}행 반환'
           '${result.elapsedMs != null ? ' · ${result.elapsedMs}ms' : ''}',
-          style: PassqlTypography.caption.copyWith(color: colors.secondaryLabel),
+          style: PassqlTypography.caption.copyWith(
+            color: colors.secondaryLabel,
+          ),
         ),
         if (result.columns.isNotEmpty) ...[
           const SizedBox(height: PassqlSpacing.xs),
@@ -104,7 +106,8 @@ class _SuccessContent extends StatelessWidget {
           ResultRowsTable.positional(
             columns: result.columns,
             rows: [
-              for (final row in result.rows) [for (final cellValue in row) cellValue ?? 'NULL'],
+              for (final row in result.rows)
+                [for (final cellValue in row) cellValue ?? 'NULL'],
             ],
           ),
         ],

@@ -13,7 +13,7 @@ class PassqlBottomActionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PassqlGlass(
-      topHairline: true,
+      hasTopHairline: true,
       child: SafeArea(
         top: false,
         minimum: const EdgeInsets.only(bottom: PassqlSpacing.md),
@@ -27,7 +27,10 @@ class PassqlBottomActionBar extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (top != null) ...[top!, const SizedBox(height: PassqlSpacing.sm)],
+              if (top != null) ...[
+                top!,
+                const SizedBox(height: PassqlSpacing.sm),
+              ],
               Row(
                 children: [
                   for (var i = 0; i < actions.length; i++) ...[

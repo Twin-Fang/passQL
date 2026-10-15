@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../data/sources/api_providers.dart';
 import '../providers/chapter_providers.dart';
+import '../../router/app_routes.dart';
 
 /// 문제 묶음을 순서대로 푸는 흐름의 종류.
 ///
@@ -66,6 +67,9 @@ class TopicFlow extends QuestionFlow {
     String sessionUuid,
   ) async {
     // 경로의 sessionId 는 라우트 파라미터를 채우기 위한 값일 뿐 화면에서 쓰지 않는다.
-    context.go('/practice/chapter-${const Uuid().v4()}/result', extra: summary);
+    context.go(
+      AppRoutes.practiceResult('chapter-${const Uuid().v4()}'),
+      extra: summary,
+    );
   }
 }

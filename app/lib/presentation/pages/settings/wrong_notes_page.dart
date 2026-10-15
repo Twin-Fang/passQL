@@ -23,7 +23,7 @@ class WrongNotesPage extends StatelessWidget {
             PassqlSpacing.md,
             PassqlSpacing.xl,
           ),
-          child: WrongNotesSection(showHeader: false),
+          child: WrongNotesSection(shouldShowHeader: false),
         ),
       ),
     );

@@ -21,7 +21,7 @@ class SettingsLinkTile extends StatelessWidget {
       PassqlListRow(
         title: title,
         subtitle: description,
-        chevron: true,
+        hasChevron: true,
         onTap: onTap,
       ),
     ],

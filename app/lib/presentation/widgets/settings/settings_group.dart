@@ -28,8 +28,8 @@ class SettingsRow extends StatelessWidget {
     this.subtitle,
     this.trailing,
     this.onTap,
-    this.destructive = false,
-    this.showChevron = true,
+    this.isDestructive = false,
+    this.shouldShowChevron = true,
   });
 
   final IconData icon;
@@ -44,8 +44,8 @@ class SettingsRow extends StatelessWidget {
   final VoidCallback? onTap;
 
   /// 탈퇴처럼 되돌릴 수 없는 항목은 오답색으로 구분한다.
-  final bool destructive;
-  final bool showChevron;
+  final bool isDestructive;
+  final bool shouldShowChevron;
 
   @override
   Widget build(BuildContext context) {
@@ -55,11 +55,13 @@ class SettingsRow extends StatelessWidget {
       subtitle: subtitle,
       leading: PassqlIconTile(
         icon: icon,
-        color: destructive ? colors.wrong : (iconColor ?? colors.secondaryLabel),
+        color: isDestructive
+            ? colors.wrong
+            : (iconColor ?? colors.secondaryLabel),
       ),
       trailing: trailing,
-      chevron: showChevron && onTap != null,
-      destructive: destructive,
+      hasChevron: shouldShowChevron && onTap != null,
+      isDestructive: isDestructive,
       onTap: onTap,
     );
   }

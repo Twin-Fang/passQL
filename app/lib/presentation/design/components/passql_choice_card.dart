@@ -25,7 +25,7 @@ class PassqlChoiceCard extends StatelessWidget {
   /// 채점 뒤(정답/오답/흐림) 탭 동작. 없으면 채점 뒤에는 눌리지 않는다. 시각 상태는 바뀌지 않는다.
   final VoidCallback? onGradedTap;
 
-  bool get _graded =>
+  bool get _isGraded =>
       state == PassqlChoiceState.correct ||
       state == PassqlChoiceState.wrong ||
       state == PassqlChoiceState.dimmed;
@@ -41,7 +41,12 @@ class PassqlChoiceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final (Color border, Color bg, Color keyBg, Color keyFg) = switch (state) {
+    final (
+      Color borderColor,
+      Color backgroundColor,
+      Color keyBackgroundColor,
+      Color keyForegroundColor,
+    ) = switch (state) {
       PassqlChoiceState.idle || PassqlChoiceState.dimmed => (
         colors.separator,
         colors.card,
@@ -67,16 +72,16 @@ class PassqlChoiceCard extends StatelessWidget {
         colors.onAccent,
       ),
     };
-    final emphasized =
+    final isEmphasized =
         state != PassqlChoiceState.idle && state != PassqlChoiceState.dimmed;
     final card = AnimatedContainer(
       duration: PassqlMotion.fast,
       curve: PassqlMotion.curve,
       padding: const EdgeInsets.all(PassqlSpacing.sm + 2),
       decoration: BoxDecoration(
-        color: bg,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(PassqlRadius.md),
-        border: Border.all(color: border, width: emphasized ? 1.5 : 1),
+        border: Border.all(color: borderColor, width: isEmphasized ? 1.5 : 1),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,14 +92,16 @@ class PassqlChoiceCard extends StatelessWidget {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: keyBg,
-              border: emphasized
+              color: keyBackgroundColor,
+              border: isEmphasized
                   ? null
                   : Border.all(color: colors.tertiaryLabel, width: 1.5),
             ),
             child: Text(
               keyLabel,
-              style: PassqlTypography.captionSemibold.copyWith(color: keyFg),
+              style: PassqlTypography.captionSemibold.copyWith(
+                color: keyForegroundColor,
+              ),
             ),
           ),
           const SizedBox(width: PassqlSpacing.sm),
@@ -130,7 +137,7 @@ class PassqlChoiceCard extends StatelessWidget {
         selected: state == PassqlChoiceState.selected,
         child: PassqlPressable(
           semanticLabel: _semanticLabel,
-          onTap: _graded ? onGradedTap : onTap,
+          onTap: _isGraded ? onGradedTap : onTap,
           child: card,
         ),
       ),

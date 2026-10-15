@@ -130,7 +130,9 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
         children: [
           Text(
             '변경 후 3일간은 다시 바꿀 수 없어요',
-            style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
+            style: PassqlTypography.subheadline.copyWith(
+              color: colors.secondaryLabel,
+            ),
           ),
           const SizedBox(height: PassqlSpacing.md),
           Row(
@@ -158,7 +160,9 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
                     }),
                     decoration: InputDecoration.collapsed(
                       hintText: '한글, 영문, 숫자 2~10자',
-                      hintStyle: PassqlTypography.body.copyWith(color: colors.tertiaryLabel),
+                      hintStyle: PassqlTypography.body.copyWith(
+                        color: colors.tertiaryLabel,
+                      ),
                     ).copyWith(counterText: ''),
                   ),
                 ),
@@ -168,8 +172,8 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
                 label: '중복확인',
                 variant: PassqlButtonVariant.tinted,
                 size: PassqlButtonSize.regular,
-                expand: false,
-                loading: _checking,
+                isFullWidth: false,
+                isLoading: _checking,
                 onPressed: _canCheck ? _check : null,
               ),
             ],
@@ -191,7 +195,7 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
           const SizedBox(height: PassqlSpacing.xs),
           PassqlButton(
             label: '저장',
-            loading: _saving,
+            isLoading: _saving,
             onPressed: _canSave ? _save : null,
           ),
         ],

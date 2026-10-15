@@ -30,8 +30,9 @@ class _SimilarQuestionsSectionState
 
   Future<void> _load() async {
     try {
-      final result =
-          await ref.read(aiApiProvider).getSimilar(widget.questionUuid, 3);
+      final result = await ref
+          .read(aiApiProvider)
+          .getSimilar(widget.questionUuid, 3);
       if (mounted) setState(() => _questions = result);
     } catch (_) {
       // 유사 문제는 옵션 — 실패 시 섹션 미표시
@@ -45,7 +46,7 @@ class _SimilarQuestionsSectionState
       // 로딩 중
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: PassqlSpacing.md),
-        child: Center(child: CupertinoActivityIndicator()),
+        child: Center(child: PassqlLoadingIndicator()),
       );
     }
     if (_questions!.isEmpty) return const SizedBox.shrink();
@@ -57,8 +58,9 @@ class _SimilarQuestionsSectionState
           PassqlListRow(
             title: _preview(stripCodeFences(question.stem ?? '문제 보기')),
             subtitle: question.topicName,
-            chevron: true,
-            onTap: () => context.push(AppRoutes.questionDetail(question.questionUuid)),
+            hasChevron: true,
+            onTap: () =>
+                context.push(AppRoutes.questionDetail(question.questionUuid)),
           ),
       ],
     );

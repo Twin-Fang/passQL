@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../presentation/providers/chapter_providers.dart';
+import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 
 /// 챕터 완료 결과 화면 — 점수·요약·분석·문항별 결과를 한 화면 스크롤로 보여준다.
@@ -17,12 +17,10 @@ class PracticeResultPage extends StatelessWidget {
     final summary = extra is ChapterSummary ? extra as ChapterSummary : null;
 
     if (summary == null) {
-      return Scaffold(
-        appBar: PassqlNavBar(
-          title: '챕터 결과',
-          leading: PassqlNavLeading.close,
-          onLeadingTap: () => context.go('/home'),
-        ),
+      return PassqlStatusScaffold(
+        title: '챕터 결과',
+        leading: PassqlNavLeading.close,
+        onLeadingTap: () => context.go(AppRoutes.home),
         body: PassqlStatusView.empty(
           icon: CupertinoIcons.exclamationmark_circle,
           title: '결과를 불러올 수 없어요',
@@ -30,14 +28,16 @@ class PracticeResultPage extends StatelessWidget {
       );
     }
 
-    final correctCount = summary.results.where((result) => result.isCorrect).length;
+    final correctCount = summary.results
+        .where((result) => result.isCorrect)
+        .length;
     final total = summary.results.length;
     final wrongCount = total - correctCount;
     final totalSec = (summary.totalDurationMs / 1000).round();
 
     return PassqlResultScaffold(
       title: '챕터 결과',
-      onClose: () => context.go('/home'),
+      onClose: () => context.go(AppRoutes.home),
       header: PassqlScoreHeader(
         score: correctCount,
         total: total,
@@ -88,7 +88,7 @@ class PracticeResultPage extends StatelessWidget {
             for (var i = 0; i < summary.results.length; i++)
               PassqlListRow(
                 leading: PassqlResultMark(
-                  correct: summary.results[i].isCorrect,
+                  isCorrect: summary.results[i].isCorrect,
                   label: '${i + 1}번',
                 ),
                 title: summary.results[i].isCorrect ? '정답' : '오답',
@@ -104,7 +104,9 @@ class PracticeResultPage extends StatelessWidget {
         ),
       ],
       // 기존 마지막 단계 버튼(홈으로 이동)을 그대로 옮겼다.
-      actions: [PassqlButton(label: '완료', onPressed: () => context.go('/home'))],
+      actions: [
+        PassqlButton(label: '완료', onPressed: () => context.go(AppRoutes.home)),
+      ],
     );
   }
 }
@@ -145,7 +147,9 @@ class _Metric extends StatelessWidget {
             const SizedBox(height: PassqlSpacing.xxs),
             Text(
               label,
-              style: PassqlTypography.footnote.copyWith(color: colors.secondaryLabel),
+              style: PassqlTypography.footnote.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
           ],
         ),
@@ -187,11 +191,16 @@ class _Analysis extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(feedback, style: PassqlTypography.callout.copyWith(color: colors.label)),
+        Text(
+          feedback,
+          style: PassqlTypography.callout.copyWith(color: colors.label),
+        ),
         const SizedBox(height: PassqlSpacing.xs),
         Text(
           '문제당 평균 $avgSec초 · 정확도 $accuracy%',
-          style: PassqlTypography.footnote.copyWith(color: colors.secondaryLabel),
+          style: PassqlTypography.footnote.copyWith(
+            color: colors.secondaryLabel,
+          ),
         ),
       ],
     );

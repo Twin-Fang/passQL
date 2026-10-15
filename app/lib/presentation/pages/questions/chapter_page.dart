@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +11,7 @@ import '../../widgets/chapter/chapter_app_bar.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/chapter/chapter_feedback_bar.dart';
 import '../../widgets/question/ai_explain_sheet.dart';
+import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../widgets/question/execute_result_card.dart';
 import '../../widgets/question/question_sections.dart';
@@ -113,7 +113,10 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
   Future<void> _complete(List<ChapterResult> results) async {
     if (_completing) return;
     setState(() => _completing = true);
-    final totalDurationMs = results.fold(0, (sum, result) => sum + result.durationMs);
+    final totalDurationMs = results.fold(
+      0,
+      (sum, result) => sum + result.durationMs,
+    );
     final summary = ChapterSummary(
       topicName: widget.flow.title,
       results: results,
@@ -152,16 +155,20 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
 
     // 로딩 중
     if (chapter.isLoadingList) {
-      return _FlowStatusScaffold(
-        topicName: widget.flow.title,
+      return PassqlStatusScaffold(
+        title: widget.flow.title,
+        leading: PassqlNavLeading.close,
+        onLeadingTap: () => context.go(AppRoutes.home),
         body: PassqlStatusView.loading(),
       );
     }
 
     // 에러 또는 빈 목록
     if (chapter.listError != null || chapter.questionUuids.isEmpty) {
-      return _FlowStatusScaffold(
-        topicName: widget.flow.title,
+      return PassqlStatusScaffold(
+        title: widget.flow.title,
+        leading: PassqlNavLeading.close,
+        onLeadingTap: () => context.go(AppRoutes.home),
         body: PassqlStatusView.error(
           message: chapter.listError ?? '문제가 없어요',
           // 문제 목록을 다시 불러온다. (오늘의 세트를 이미 끝냈다면 다시 불러도 같은 안내가 나온다)
@@ -190,7 +197,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
         currentIndex: chapter.currentIndex,
         total: chapter.questionUuids.length,
         isAnswered: chapter.isAnswered,
-        confirmExit: started,
+        shouldConfirmExit: started,
       ),
       body: detailAsync.when(
         loading: () => PassqlStatusView.loading(),
@@ -227,7 +234,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
                       : null,
                   gradedSelectedKey: chapter.lastSelectedKey,
                   // 재시도가 소용없는 오류여도 다시 눌러 볼 수 있게 두어 막다른 길을 만들지 않는다.
-                  alwaysAllowRetry: true,
+                  shouldAlwaysAllowRetry: true,
                 ),
                 // SQL 실행 중 로딩
                 if (interaction.isExecuting)
@@ -236,7 +243,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
                       horizontal: PassqlSpacing.md,
                       vertical: PassqlSpacing.xs,
                     ),
-                    child: CupertinoActivityIndicator(),
+                    child: PassqlLoadingIndicator(),
                   ),
                 // SQL 실행 결과
                 if (interaction.currentExecuteResult != null)
@@ -251,7 +258,9 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
                         ? () {
                             final selectedChoice = interaction.activeChoices
                                 .where(
-                                  (choice) => choice.key == interaction.selectedChoiceKey,
+                                  (choice) =>
+                                      choice.key ==
+                                      interaction.selectedChoiceKey,
                                 )
                                 .firstOrNull;
                             AiExplainSheet.show(
@@ -315,7 +324,9 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
             dismissible: false,
             color: context.passqlColors.label.withValues(alpha: 0.2),
           ),
-          const Center(child: CupertinoActivityIndicator(radius: 14)),
+          const Center(
+            child: PassqlLoadingIndicator(size: PassqlLoadingSize.blocking),
+          ),
         ],
       ],
     );
@@ -325,31 +336,10 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
         if (await confirmChapterExit(context) && context.mounted) {
-          context.go('/home');
+          context.go(AppRoutes.home);
         }
       },
       child: body,
-    );
-  }
-}
-
-// ─── 로딩 / 에러 스캐폴드 ─────────────────────────────────────────
-
-/// 문제 목록을 불러오는 동안·실패했을 때 쓰는 틀. 닫기로 홈에 갈 수 있어 막다른 길이 없다.
-class _FlowStatusScaffold extends StatelessWidget {
-  final String topicName;
-  final Widget body;
-  const _FlowStatusScaffold({required this.topicName, required this.body});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: PassqlNavBar(
-        title: topicName,
-        leading: PassqlNavLeading.close,
-        onLeadingTap: () => GoRouter.of(context).go('/home'),
-      ),
-      body: body,
     );
   }
 }

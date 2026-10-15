@@ -11,8 +11,8 @@ class PassqlListRow extends StatelessWidget {
     this.subtitle,
     this.leading,
     this.trailing,
-    this.chevron = false,
-    this.destructive = false,
+    this.hasChevron = false,
+    this.isDestructive = false,
     this.onTap,
   });
 
@@ -20,8 +20,8 @@ class PassqlListRow extends StatelessWidget {
   final String? subtitle;
   final Widget? leading;
   final Widget? trailing;
-  final bool chevron;
-  final bool destructive;
+  final bool hasChevron;
+  final bool isDestructive;
   final VoidCallback? onTap;
 
   @override
@@ -48,13 +48,15 @@ class PassqlListRow extends StatelessWidget {
                   Text(
                     title,
                     style: PassqlTypography.body.copyWith(
-                      color: destructive ? colors.wrong : colors.label,
+                      color: isDestructive ? colors.wrong : colors.label,
                     ),
                   ),
                   if (subtitle != null)
                     Text(
                       subtitle!,
-                      style: PassqlTypography.footnote.copyWith(color: colors.secondaryLabel),
+                      style: PassqlTypography.footnote.copyWith(
+                        color: colors.secondaryLabel,
+                      ),
                     ),
                 ],
               ),
@@ -62,11 +64,13 @@ class PassqlListRow extends StatelessWidget {
             if (trailing != null) ...[
               const SizedBox(width: PassqlSpacing.xs),
               DefaultTextStyle(
-                style: PassqlTypography.body.copyWith(color: colors.secondaryLabel),
+                style: PassqlTypography.body.copyWith(
+                  color: colors.secondaryLabel,
+                ),
                 child: trailing!,
               ),
             ],
-            if (chevron) ...[
+            if (hasChevron) ...[
               const SizedBox(width: PassqlSpacing.xs),
               Icon(
                 CupertinoIcons.chevron_forward,

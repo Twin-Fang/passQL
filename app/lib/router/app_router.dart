@@ -43,7 +43,7 @@ abstract final class AppRouter {
     redirect: (_, state) {
       final atLogin = state.matchedLocation == AppRoutes.login;
       // 약관은 가입 전에도 읽을 수 있어야 한다(App Store 5.1.1).
-      if (state.matchedLocation.startsWith('/legal/')) return null;
+      if (state.matchedLocation.startsWith(AppRoutes.legalPrefix)) return null;
       if (!authenticated.value && !atLogin) return AppRoutes.login;
       if (authenticated.value && atLogin) return AppRoutes.home;
       return null;
@@ -51,9 +51,11 @@ abstract final class AppRouter {
     routes: [
       // 약관
       GoRoute(
-        path: '/legal/:type',
+        path: AppRoutes.legalPattern,
         parentNavigatorKey: _rootKey,
-        builder: (_, state) => LegalPage(typeValue: state.pathParameters['type']!),
+        builder: (_, state) => LegalPage(
+          typeValue: state.pathParameters[AppRoutes.legalTypeParameter]!,
+        ),
       ),
 
       // 로그인
@@ -70,8 +72,7 @@ abstract final class AppRouter {
         routes: [
           GoRoute(
             path: AppRoutes.home,
-            pageBuilder: (_, _) =>
-                const NoTransitionPage(child: HomePage()),
+            pageBuilder: (_, _) => const NoTransitionPage(child: HomePage()),
           ),
           GoRoute(
             path: AppRoutes.questions,
@@ -80,8 +81,7 @@ abstract final class AppRouter {
           ),
           GoRoute(
             path: AppRoutes.stats,
-            pageBuilder: (_, _) =>
-                const NoTransitionPage(child: StatsPage()),
+            pageBuilder: (_, _) => const NoTransitionPage(child: StatsPage()),
           ),
           GoRoute(
             path: AppRoutes.settings,
@@ -114,8 +114,8 @@ abstract final class AppRouter {
           final params = state.uri.queryParameters;
           return ChapterPage(
             flow: TopicFlow(
-              topicCode: params['topic'] ?? '',
-              topicName: params['topicName'] ?? '문제 풀기',
+              topicCode: params[AppRoutes.topicCodeQuery] ?? '',
+              topicName: params[AppRoutes.topicNameQuery] ?? '문제 풀기',
             ),
           );
         },
@@ -140,14 +140,14 @@ abstract final class AppRouter {
 
       // 풀스크린: 문제 상세 + 결과
       GoRoute(
-        path: '/questions/:questionUuid',
+        path: AppRoutes.questionDetailPattern,
         parentNavigatorKey: _rootKey,
         builder: (_, state) => QuestionDetailPage(
-          questionUuid: state.pathParameters['questionUuid']!,
+          questionUuid: state.pathParameters[AppRoutes.questionUuidParameter]!,
         ),
         routes: [
           GoRoute(
-            path: 'result',
+            path: AppRoutes.resultSubPath,
             parentNavigatorKey: _rootKey,
             builder: (_, state) => ResultPage(extra: state.extra),
           ),
@@ -156,17 +156,16 @@ abstract final class AppRouter {
 
       // 풀스크린: 연습 모드 + 연습/챕터 결과
       GoRoute(
-        path: '/practice/:sessionId',
+        path: AppRoutes.practicePattern,
         parentNavigatorKey: _rootKey,
         builder: (_, state) => PracticePage(
-          sessionId: state.pathParameters['sessionId']!,
+          sessionId: state.pathParameters[AppRoutes.sessionIdParameter]!,
         ),
         routes: [
           GoRoute(
-            path: 'result',
+            path: AppRoutes.resultSubPath,
             parentNavigatorKey: _rootKey,
-            builder: (_, state) =>
-                PracticeResultPage(extra: state.extra),
+            builder: (_, state) => PracticeResultPage(extra: state.extra),
           ),
         ],
       ),

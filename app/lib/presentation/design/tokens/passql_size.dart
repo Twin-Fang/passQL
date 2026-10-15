@@ -9,4 +9,9 @@ abstract final class PassqlSize {
   static const double iconTile = 29;
   static const double blurSigma = 20;
   static const double hairline = 0.5;
+
+  // 로딩 표시 반지름 3단계: 버튼·행 안, 섹션·시트, 화면 잠금
+  static const double loadingIndicatorInlineRadius = 10;
+  static const double loadingIndicatorSectionRadius = 12;
+  static const double loadingIndicatorBlockingRadius = 14;
 }

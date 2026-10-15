@@ -25,7 +25,7 @@ class TopicCard extends StatelessWidget {
       title: topic.displayName,
       // 서브토픽이 있을 때만 개수를 보여 준다(없으면 "0개"만 반복돼 의미가 없다)
       subtitle: activeSubtopicCount > 0 ? '$activeSubtopicCount개 서브토픽' : null,
-      chevron: true,
+      hasChevron: true,
       onTap: onTap,
     );
   }

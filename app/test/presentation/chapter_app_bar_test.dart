@@ -17,7 +17,7 @@ Widget _app({required bool confirmExit}) {
             currentIndex: 1,
             total: 10,
             isAnswered: false,
-            confirmExit: confirmExit,
+            shouldConfirmExit: confirmExit,
           ),
         ),
       ),

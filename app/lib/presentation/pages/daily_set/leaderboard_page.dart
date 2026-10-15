@@ -42,7 +42,9 @@ class LeaderboardPage extends ConsumerWidget {
                   ),
                   child: Text(
                     data.date!,
-                    style: PassqlTypography.footnote.copyWith(color: colors.tertiaryLabel),
+                    style: PassqlTypography.footnote.copyWith(
+                      color: colors.tertiaryLabel,
+                    ),
                   ),
                 ),
               if (data.myEntry != null) ...[
@@ -51,7 +53,7 @@ class LeaderboardPage extends ConsumerWidget {
                   children: [
                     LeaderboardRow(
                       entry: data.myEntry!,
-                      highlight: true,
+                      isHighlighted: true,
                       inset: PassqlSpacing.md,
                     ),
                   ],
@@ -73,7 +75,7 @@ class LeaderboardPage extends ConsumerWidget {
                         entry: entry,
                         inset: PassqlSpacing.md,
                         // 내 기록은 목록에서도 눈에 띄게 한다.
-                        highlight:
+                        isHighlighted:
                             data.myEntry != null &&
                             data.myEntry!.rank == entry.rank &&
                             data.myEntry!.nickname == entry.nickname,

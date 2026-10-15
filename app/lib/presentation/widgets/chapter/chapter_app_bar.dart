@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
+import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 
 /// 챕터 플로우 상단 바.
@@ -15,7 +16,7 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool isAnswered;
 
   /// 풀이를 시작했으면 홈으로 나가기 전에 확인한다(실수로 눌러 흐름을 잃지 않게).
-  final bool confirmExit;
+  final bool shouldConfirmExit;
 
   const ChapterAppBar({
     super.key,
@@ -23,7 +24,7 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.currentIndex,
     required this.total,
     required this.isAnswered,
-    this.confirmExit = false,
+    this.shouldConfirmExit = false,
   });
 
   double get _progress {
@@ -44,8 +45,8 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
           title: '${currentIndex + 1} / $total',
           leading: PassqlNavLeading.close,
           onLeadingTap: () async {
-            if (confirmExit && !await confirmChapterExit(context)) return;
-            if (context.mounted) context.go('/home');
+            if (shouldConfirmExit && !await confirmChapterExit(context)) return;
+            if (context.mounted) context.go(AppRoutes.home);
           },
           // 토픽 이름은 보조 정보라 오른쪽 작은 뱃지로 둔다.
           trailing: PassqlBadge(text: topicName),
@@ -59,24 +60,11 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
 /// 풀이 중 이탈 확인. 나가기를 고르면 true.
 ///
 /// 제출한 답은 문제마다 바로 저장되므로 "기록은 남는다"고 안내한다.
-Future<bool> confirmChapterExit(BuildContext context) async {
-  final ok = await showCupertinoDialog<bool>(
-    context: context,
-    builder: (dialogContext) => CupertinoAlertDialog(
-      title: const Text('풀이를 그만할까요?'),
-      content: const Text('지금까지 제출한 답은 학습 기록에 남아요.'),
-      actions: [
-        CupertinoDialogAction(
-          onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: const Text('계속 풀기'),
-        ),
-        CupertinoDialogAction(
-          isDestructiveAction: true,
-          onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: const Text('나가기'),
-        ),
-      ],
-    ),
-  );
-  return ok ?? false;
-}
+Future<bool> confirmChapterExit(BuildContext context) =>
+    showPassqlConfirmDialog(
+      context,
+      title: '풀이를 그만할까요?',
+      message: '지금까지 제출한 답은 학습 기록에 남아요.',
+      confirmLabel: '나가기',
+      cancelLabel: '계속 풀기',
+    );

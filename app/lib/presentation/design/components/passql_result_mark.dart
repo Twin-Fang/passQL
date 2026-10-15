@@ -7,24 +7,24 @@ import '../tokens/passql_tokens.dart';
 class PassqlResultMark extends StatelessWidget {
   const PassqlResultMark({
     super.key,
-    required this.correct,
+    required this.isCorrect,
     this.label,
-    this.large = false,
+    this.isLarge = false,
   });
-  final bool correct;
+  final bool isCorrect;
   final String? label;
-  final bool large;
+  final bool isLarge;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final icon = correct
+    final icon = isCorrect
         ? CupertinoIcons.checkmark_circle_fill
         : CupertinoIcons.xmark_circle_fill;
-    final iconColor = correct ? colors.correct : colors.wrong;
-    final textColor = correct ? colors.correctText : colors.wrongText;
-    final text = label ?? (correct ? '정답' : '오답');
-    if (large) {
+    final iconColor = isCorrect ? colors.correct : colors.wrong;
+    final textColor = isCorrect ? colors.correctText : colors.wrongText;
+    final text = label ?? (isCorrect ? '정답' : '오답');
+    if (isLarge) {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -46,7 +46,9 @@ class PassqlResultMark extends StatelessWidget {
         Flexible(
           child: Text(
             text,
-            style: PassqlTypography.subheadlineSemibold.copyWith(color: textColor),
+            style: PassqlTypography.subheadlineSemibold.copyWith(
+              color: textColor,
+            ),
           ),
         ),
       ],

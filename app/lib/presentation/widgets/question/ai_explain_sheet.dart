@@ -77,10 +77,12 @@ class _AiExplainSheetState extends ConsumerState<AiExplainSheet> {
         height: 200,
         child: Center(
           child: _isLoading
-              ? const CupertinoActivityIndicator(radius: 12)
+              ? const PassqlLoadingIndicator(size: PassqlLoadingSize.section)
               : Text(
                   _error!,
-                  style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
+                  style: PassqlTypography.subheadline.copyWith(
+                    color: colors.secondaryLabel,
+                  ),
                 ),
         ),
       );

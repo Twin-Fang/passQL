@@ -28,7 +28,7 @@ class ChoiceModeTile extends ConsumerWidget {
       title: '실전 모드',
       // 한 줄에 들어가도록 짧게 쓴다(두 줄이면 스위치 옆에서 어색하게 끊긴다).
       subtitle: isReal ? '매번 AI가 새 선택지를 만들어요' : '검증된 선택지를 먼저 써요',
-      showChevron: false,
+      shouldShowChevron: false,
       trailing: CupertinoSwitch(
         value: isReal,
         activeTrackColor: colors.accent,

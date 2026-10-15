@@ -29,7 +29,7 @@ class ChoiceItemCard extends StatelessWidget {
     final resultRows = item.kind == 'SQL' ? null : parseResultRows(item.body);
     final Widget body = item.kind == 'SQL'
         // 선택 가능한 코드면 카드 탭과 길게 누르기가 겹치므로 선택은 끈다.
-        ? PassqlCodeBlock(code: item.body, selectable: false)
+        ? PassqlCodeBlock(code: item.body, isSelectable: false)
         : resultRows != null
         ? ResultRowsTable(rows: resultRows)
         : InlineCodeText(item.body);
@@ -57,7 +57,9 @@ PassqlChoiceState resolveChoiceState({
   SubmitResult? result,
 }) {
   if (result == null) {
-    return key == selectedKey ? PassqlChoiceState.selected : PassqlChoiceState.idle;
+    return key == selectedKey
+        ? PassqlChoiceState.selected
+        : PassqlChoiceState.idle;
   }
   if (key == result.correctKey) return PassqlChoiceState.correct;
   if (key == selectedKey && !result.isCorrect) return PassqlChoiceState.wrong;

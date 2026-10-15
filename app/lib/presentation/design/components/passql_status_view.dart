@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
 import 'passql_button.dart';
+import 'passql_loading_indicator.dart';
 
 /// 로딩·빈 상태·오류를 한 모양으로. 화면마다 오류 뷰를 따로 만들지 않는다.
 class PassqlStatusView extends StatelessWidget {
@@ -58,7 +59,9 @@ class PassqlStatusView extends StatelessWidget {
               const SizedBox(height: PassqlSpacing.xxs),
               Text(
                 message!,
-                style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
+                style: PassqlTypography.subheadline.copyWith(
+                  color: colors.secondaryLabel,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -69,7 +72,7 @@ class PassqlStatusView extends StatelessWidget {
                 onPressed: onRetry,
                 variant: PassqlButtonVariant.tinted,
                 size: PassqlButtonSize.small,
-                expand: false,
+                isFullWidth: false,
               ),
             ],
           ],
@@ -83,6 +86,7 @@ class _Loading extends PassqlStatusView {
   const _Loading() : super._(loading: true);
 
   @override
-  Widget build(BuildContext context) =>
-      const Center(child: CupertinoActivityIndicator(radius: 12));
+  Widget build(BuildContext context) => const Center(
+    child: PassqlLoadingIndicator(size: PassqlLoadingSize.section),
+  );
 }

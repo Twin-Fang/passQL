@@ -103,7 +103,9 @@ class _ReportSheetState extends ConsumerState<ReportSheet> {
               padding: const EdgeInsets.only(bottom: PassqlSpacing.sm),
               child: Text(
                 '해당되는 내용을 모두 골라 주세요',
-                style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
+                style: PassqlTypography.subheadline.copyWith(
+                  color: colors.secondaryLabel,
+                ),
               ),
             ),
             // 사유는 grouped 행으로, 고른 항목에는 오른쪽에 체크 표시를 붙인다.
@@ -112,7 +114,7 @@ class _ReportSheetState extends ConsumerState<ReportSheet> {
                 for (final category in ReportCategory.values)
                   PassqlCheckRow(
                     title: category.label,
-                    selected: _selected.contains(category),
+                    isSelected: _selected.contains(category),
                     onTap: _sending ? null : () => _toggle(category),
                   ),
               ],
@@ -135,7 +137,9 @@ class _ReportSheetState extends ConsumerState<ReportSheet> {
                   onChanged: (_) => setState(() => _error = null),
                   decoration: InputDecoration.collapsed(
                     hintText: '구체적인 내용을 입력해주세요',
-                    hintStyle: PassqlTypography.body.copyWith(color: colors.tertiaryLabel),
+                    hintStyle: PassqlTypography.body.copyWith(
+                      color: colors.tertiaryLabel,
+                    ),
                   ),
                 ),
               ),
@@ -148,13 +152,15 @@ class _ReportSheetState extends ConsumerState<ReportSheet> {
                     ? null
                     : Text(
                         _error!,
-                        style: PassqlTypography.caption.copyWith(color: colors.wrongText),
+                        style: PassqlTypography.caption.copyWith(
+                          color: colors.wrongText,
+                        ),
                       ),
               ),
             ),
             PassqlButton(
               label: '신고하기',
-              loading: _sending,
+              isLoading: _sending,
               onPressed: _canSubmit ? _submit : null,
             ),
           ],

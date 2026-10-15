@@ -36,7 +36,7 @@ class PassqlTabBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     return PassqlGlass(
-      topHairline: true,
+      hasTopHairline: true,
       child: Padding(
         padding: EdgeInsets.only(bottom: _bottomPadding(context)),
         child: SizedBox(

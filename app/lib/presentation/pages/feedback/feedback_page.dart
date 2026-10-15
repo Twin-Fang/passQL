@@ -19,26 +19,27 @@ class FeedbackPage extends ConsumerStatefulWidget {
 
 class _FeedbackPageState extends ConsumerState<FeedbackPage> {
   final _controller = TextEditingController();
-  final _scroll = ScrollController();
+  final _scrollController = ScrollController();
 
-  bool _sending = false;
+  bool _isSending = false;
   String? _error;
 
   /// 마지막으로 그린 건의 개수. 개수가 바뀔 때만 맨 아래로 이동한다.
-  int _lastCount = 0;
+  int _lastRenderedCount = 0;
 
   @override
   void dispose() {
     _controller.dispose();
-    _scroll.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  bool get _canSend => !_sending && FeedbackValidator.isValid(_controller.text);
+  bool get _canSend =>
+      !_isSending && FeedbackValidator.isValid(_controller.text);
 
   Future<void> _send() async {
     setState(() {
-      _sending = true;
+      _isSending = true;
       _error = null;
     });
     try {
@@ -49,14 +50,14 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
       // 입력은 지우지 않아 사용자가 바로 다시 보낼 수 있다.
       if (mounted) setState(() => _error = exception.message);
     } finally {
-      if (mounted) setState(() => _sending = false);
+      if (mounted) setState(() => _isSending = false);
     }
   }
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scroll.hasClients) {
-        _scroll.jumpTo(_scroll.position.maxScrollExtent);
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
       }
     });
   }
@@ -90,12 +91,12 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
                   );
                 }
                 // 타이핑으로 다시 그려질 때 스크롤이 튀지 않도록, 개수가 바뀔 때만 이동한다.
-                if (items.length != _lastCount) {
-                  _lastCount = items.length;
+                if (items.length != _lastRenderedCount) {
+                  _lastRenderedCount = items.length;
                   _scrollToBottom();
                 }
                 return ListView.separated(
-                  controller: _scroll,
+                  controller: _scrollController,
                   padding: const EdgeInsets.fromLTRB(
                     PassqlSpacing.md,
                     PassqlSpacing.sm,
@@ -120,20 +121,22 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
               ),
               child: Text(
                 _error!,
-                style: PassqlTypography.footnote.copyWith(color: colors.wrongText),
+                style: PassqlTypography.footnote.copyWith(
+                  color: colors.wrongText,
+                ),
               ),
             ),
           // 입력창은 하단 액션 바의 윗줄에 둬서 키보드가 올라와도 버튼과 함께 움직인다.
           PassqlBottomActionBar(
             top: _Composer(
               controller: _controller,
-              sending: _sending,
+              isSending: _isSending,
               onChanged: () => setState(() {}),
             ),
             actions: [
               PassqlButton(
                 label: '보내기',
-                loading: _sending,
+                isLoading: _isSending,
                 onPressed: _canSend ? _send : null,
               ),
             ],
@@ -160,8 +163,18 @@ class _FeedbackBubble extends StatelessWidget {
         colors.onAccent.withValues(alpha: 0.24),
         colors.onAccent,
       ),
-      FeedbackStatus.reviewed => (colors.accentTint, colors.label, colors.accent, colors.onAccent),
-      FeedbackStatus.applied => (colors.correctTint, colors.label, colors.correct, colors.onAccent),
+      FeedbackStatus.reviewed => (
+        colors.accentTint,
+        colors.label,
+        colors.accent,
+        colors.onAccent,
+      ),
+      FeedbackStatus.applied => (
+        colors.correctTint,
+        colors.label,
+        colors.correct,
+        colors.onAccent,
+      ),
     };
     final captionColor = item.status == FeedbackStatus.pending
         ? colors.onAccent.withValues(alpha: 0.7)
@@ -203,7 +216,9 @@ class _FeedbackBubble extends StatelessWidget {
                 children: [
                   Text(
                     formatMonthDayTime(item.createdAt),
-                    style: PassqlTypography.caption.copyWith(color: captionColor),
+                    style: PassqlTypography.caption.copyWith(
+                      color: captionColor,
+                    ),
                   ),
                   const SizedBox(width: PassqlSpacing.xs),
                   Container(
@@ -234,19 +249,19 @@ class _FeedbackBubble extends StatelessWidget {
 class _Composer extends StatelessWidget {
   const _Composer({
     required this.controller,
-    required this.sending,
+    required this.isSending,
     required this.onChanged,
   });
 
   final TextEditingController controller;
-  final bool sending;
+  final bool isSending;
   final VoidCallback onChanged;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final length = FeedbackValidator.normalize(controller.text).length;
-    final over = length > FeedbackValidator.maxLength;
+    final isOverLimit = length > FeedbackValidator.maxLength;
 
     return PassqlCard(
       padding: const EdgeInsets.all(PassqlSpacing.sm),
@@ -255,7 +270,7 @@ class _Composer extends StatelessWidget {
         children: [
           TextField(
             controller: controller,
-            enabled: !sending,
+            enabled: !isSending,
             minLines: 1,
             maxLines: 4,
             inputFormatters: FeedbackValidator.inputFormatters,
@@ -264,14 +279,16 @@ class _Composer extends StatelessWidget {
             cursorColor: colors.accent,
             decoration: InputDecoration.collapsed(
               hintText: '앱에 바라는 점을 자유롭게 적어주세요',
-              hintStyle: PassqlTypography.body.copyWith(color: colors.tertiaryLabel),
+              hintStyle: PassqlTypography.body.copyWith(
+                color: colors.tertiaryLabel,
+              ),
             ),
           ),
           const SizedBox(height: PassqlSpacing.xxs),
           Text(
             '$length/${FeedbackValidator.maxLength}',
             style: PassqlTypography.caption.copyWith(
-              color: over ? colors.wrongText : colors.tertiaryLabel,
+              color: isOverLimit ? colors.wrongText : colors.tertiaryLabel,
             ),
           ),
         ],

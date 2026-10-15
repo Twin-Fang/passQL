@@ -1,6 +1,5 @@
 import 'dart:io' show Platform;
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -24,12 +23,12 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  SocialProvider? _loading;
+  SocialProvider? _signingInProvider;
   String? _error;
 
   Future<void> _signIn(SocialProvider provider) async {
     setState(() {
-      _loading = provider;
+      _signingInProvider = provider;
       _error = null;
     });
     try {
@@ -40,14 +39,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       // 저장소 쓰기 실패, 응답 형식 오류 등 예상 밖 오류도 사용자에게 알린다(조용히 멈추지 않는다).
       if (mounted) setState(() => _error = '로그인에 실패했어요. 잠시 후 다시 시도해 주세요.');
     } finally {
-      if (mounted) setState(() => _loading = null);
+      if (mounted) setState(() => _signingInProvider = null);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final busy = _loading != null;
+    final isSigningIn = _signingInProvider != null;
     return Scaffold(
       backgroundColor: colors.background,
       body: SafeArea(
@@ -62,14 +61,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               const SizedBox(height: PassqlSpacing.xs),
               Text(
                 'SQL 자격증, 문제로 합격까지',
-                style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
+                style: PassqlTypography.subheadline.copyWith(
+                  color: colors.secondaryLabel,
+                ),
               ),
               const SizedBox(height: 48),
               _SocialButton(
                 label: 'Google로 계속하기',
                 logo: SvgPicture.string(_googleLogoSvg, width: 20, height: 20),
-                loading: _loading == SocialProvider.google,
-                onPressed: busy ? null : () => _signIn(SocialProvider.google),
+                isLoading: _signingInProvider == SocialProvider.google,
+                onPressed: isSigningIn
+                    ? null
+                    : () => _signIn(SocialProvider.google),
               ),
               // iOS 에서 소셜 로그인을 제공하면 Sign in with Apple 도 필수(App Store 심사 규정).
               // Apple HIG 는 흰 바탕+검정 로고 변형을 허용하므로 Google 버튼과 같은 모양으로 맞춘다.
@@ -81,10 +84,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     _appleLogoSvg,
                     width: 18,
                     height: 20,
-                    colorFilter: ColorFilter.mode(colors.label, BlendMode.srcIn),
+                    colorFilter: ColorFilter.mode(
+                      colors.label,
+                      BlendMode.srcIn,
+                    ),
                   ),
-                  loading: _loading == SocialProvider.apple,
-                  onPressed: busy ? null : () => _signIn(SocialProvider.apple),
+                  isLoading: _signingInProvider == SocialProvider.apple,
+                  onPressed: isSigningIn
+                      ? null
+                      : () => _signIn(SocialProvider.apple),
                 ),
               ],
               if (_error != null) ...[
@@ -92,7 +100,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 Text(
                   _error!,
                   textAlign: TextAlign.center,
-                  style: PassqlTypography.footnote.copyWith(color: colors.wrongText),
+                  style: PassqlTypography.footnote.copyWith(
+                    color: colors.wrongText,
+                  ),
                 ),
               ],
               const Spacer(flex: 9),
@@ -133,19 +143,19 @@ class _SocialButton extends StatelessWidget {
   const _SocialButton({
     required this.label,
     required this.logo,
-    required this.loading,
+    required this.isLoading,
     required this.onPressed,
   });
 
   final String label;
   final Widget logo;
-  final bool loading;
+  final bool isLoading;
   final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final dark = context.isDark;
+    final isDarkMode = context.isDark;
     return PassqlPressable(
       onTap: onPressed,
       semanticLabel: label,
@@ -155,12 +165,12 @@ class _SocialButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: PassqlSpacing.lg),
         decoration: BoxDecoration(
           // 라이트는 card+테두리, 다크는 cardElevated 로 배경과 구분한다.
-          color: dark ? colors.cardElevated : colors.card,
+          color: isDarkMode ? colors.cardElevated : colors.card,
           borderRadius: BorderRadius.circular(PassqlRadius.md),
-          border: dark ? null : Border.all(color: colors.separator),
+          border: isDarkMode ? null : Border.all(color: colors.separator),
         ),
-        child: loading
-            ? const Center(child: CupertinoActivityIndicator())
+        child: isLoading
+            ? const Center(child: PassqlLoadingIndicator())
             : Stack(
                 alignment: Alignment.center,
                 children: [
@@ -168,7 +178,12 @@ class _SocialButton extends StatelessWidget {
                     alignment: Alignment.centerLeft,
                     child: SizedBox(width: 24, child: Center(child: logo)),
                   ),
-                  Text(label, style: PassqlTypography.headline.copyWith(color: colors.label)),
+                  Text(
+                    label,
+                    style: PassqlTypography.headline.copyWith(
+                      color: colors.label,
+                    ),
+                  ),
                 ],
               ),
       ),
@@ -184,7 +199,9 @@ class _LegalNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = PassqlTypography.caption.copyWith(color: context.passqlColors.secondaryLabel);
+    final style = PassqlTypography.caption.copyWith(
+      color: context.passqlColors.secondaryLabel,
+    );
     final link = style.copyWith(decoration: TextDecoration.underline);
     return Wrap(
       alignment: WrapAlignment.center,

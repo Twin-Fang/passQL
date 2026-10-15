@@ -46,7 +46,9 @@ class QuestionHeader extends StatelessWidget {
                           ? CupertinoIcons.star_fill
                           : CupertinoIcons.star,
                       size: 16,
-                      color: i < difficulty ? colors.warning : colors.tertiaryLabel,
+                      color: i < difficulty
+                          ? colors.warning
+                          : colors.tertiaryLabel,
                     ),
                   ),
                 ),
@@ -60,7 +62,10 @@ class QuestionHeader extends StatelessWidget {
           ),
           if (title != null && title.isNotEmpty) ...[
             const SizedBox(height: PassqlSpacing.xs),
-            Text(title, style: PassqlTypography.title3.copyWith(color: colors.label)),
+            Text(
+              title,
+              style: PassqlTypography.title3.copyWith(color: colors.label),
+            ),
           ],
         ],
       ),
@@ -97,7 +102,7 @@ class QuestionChoices extends StatelessWidget {
   final String? gradedSelectedKey;
 
   /// true면 재시도가 불가능한 오류여도 "다시 시도"를 보여 막다른 길을 만들지 않는다.
-  final bool alwaysAllowRetry;
+  final bool shouldAlwaysAllowRetry;
 
   const QuestionChoices({
     super.key,
@@ -106,7 +111,7 @@ class QuestionChoices extends StatelessWidget {
     required this.isExecutable,
     this.submitResult,
     this.gradedSelectedKey,
-    this.alwaysAllowRetry = false,
+    this.shouldAlwaysAllowRetry = false,
   });
 
   @override
@@ -121,7 +126,7 @@ class QuestionChoices extends StatelessWidget {
     if (error != null) {
       return QuestionSseError(
         error: error,
-        onRetry: alwaysAllowRetry || error.retryable
+        onRetry: shouldAlwaysAllowRetry || error.retryable
             ? () => notifier.startSseGeneration()
             : null,
       );
@@ -177,7 +182,7 @@ class QuestionSseError extends StatelessWidget {
         child: Row(
           children: [
             const Expanded(
-              child: PassqlResultMark(correct: false, label: '선택지를 만들지 못했어요'),
+              child: PassqlResultMark(isCorrect: false, label: '선택지를 만들지 못했어요'),
             ),
             if (onRetry != null)
               PassqlButton(
@@ -185,7 +190,7 @@ class QuestionSseError extends StatelessWidget {
                 onPressed: onRetry,
                 variant: PassqlButtonVariant.plain,
                 size: PassqlButtonSize.small,
-                expand: false,
+                isFullWidth: false,
               ),
           ],
         ),
@@ -217,7 +222,7 @@ class QuestionSubmitBar extends StatelessWidget {
         PassqlButton(
           label: '제출',
           onPressed: _canSubmit ? onSubmit : null,
-          loading: interaction.isSubmitting,
+          isLoading: interaction.isSubmitting,
         ),
       ],
     );

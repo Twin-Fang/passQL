@@ -63,7 +63,7 @@ class _ChapterFeedbackBarState extends State<ChapterFeedbackBar> {
           // 결과 문구가 남는 폭을 먼저 차지하고 버튼은 자기 폭만 쓴다.
           Expanded(
             child: PassqlResultMark(
-              correct: _result.isCorrect,
+              isCorrect: _result.isCorrect,
               label: _result.isCorrect
                   ? '정답이에요'
                   : '오답이에요 · 정답\u00A0${_result.correctKey ?? '-'}',
@@ -74,7 +74,7 @@ class _ChapterFeedbackBarState extends State<ChapterFeedbackBar> {
               label: 'AI 해설',
               variant: PassqlButtonVariant.plain,
               size: PassqlButtonSize.small,
-              expand: false,
+              isFullWidth: false,
               onPressed: () => AiExplainSheet.show(
                 context,
                 payload: {

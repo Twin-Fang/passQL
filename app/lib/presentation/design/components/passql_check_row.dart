@@ -9,24 +9,28 @@ class PassqlCheckRow extends StatelessWidget {
   const PassqlCheckRow({
     super.key,
     required this.title,
-    required this.selected,
+    required this.isSelected,
     this.subtitle,
     this.onTap,
   });
 
   final String title;
   final String? subtitle;
-  final bool selected;
+  final bool isSelected;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) => Semantics(
-    selected: selected,
+    selected: isSelected,
     child: PassqlListRow(
       title: title,
       subtitle: subtitle,
-      trailing: selected
-          ? Icon(CupertinoIcons.checkmark, size: 18, color: context.passqlColors.accent)
+      trailing: isSelected
+          ? Icon(
+              CupertinoIcons.checkmark,
+              size: 18,
+              color: context.passqlColors.accent,
+            )
           : null,
       onTap: onTap,
     ),

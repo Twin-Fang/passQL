@@ -12,10 +12,10 @@ import '../question/stem_text.dart';
 
 /// 오답 노트 섹션. 최근에 틀린 문제를 보여주고, 누르면 그 문제로 이동한다.
 class WrongNotesSection extends ConsumerWidget {
-  const WrongNotesSection({super.key, this.showHeader = true});
+  const WrongNotesSection({super.key, this.shouldShowHeader = true});
 
   /// 내비게이션 바에 이미 제목이 있는 전용 화면에서는 섹션 제목을 숨긴다.
-  final bool showHeader;
+  final bool shouldShowHeader;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -25,7 +25,7 @@ class WrongNotesSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (showHeader)
+        if (shouldShowHeader)
           Padding(
             padding: const EdgeInsets.fromLTRB(
               PassqlSpacing.md,
@@ -35,12 +35,19 @@ class WrongNotesSection extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                Text('오답 노트', style: PassqlTypography.headline.copyWith(color: colors.label)),
+                Text(
+                  '오답 노트',
+                  style: PassqlTypography.headline.copyWith(
+                    color: colors.label,
+                  ),
+                ),
                 const SizedBox(width: PassqlSpacing.xs),
                 if (wrongQuestionsAsync.valueOrNull case final data?)
                   Text(
                     '${data.totalCount}',
-                    style: PassqlTypography.subheadline.copyWith(color: colors.accent),
+                    style: PassqlTypography.subheadline.copyWith(
+                      color: colors.accent,
+                    ),
                   ),
               ],
             ),
@@ -96,7 +103,11 @@ class _WrongRow extends StatelessWidget {
         child: Row(
           children: [
             // 아이콘만 쓰면 오답 표식이 글자 없이 들어간다(PassqlResultMark 는 라벨이 붙는다).
-            Icon(CupertinoIcons.xmark_circle_fill, size: 20, color: colors.wrong),
+            Icon(
+              CupertinoIcons.xmark_circle_fill,
+              size: 20,
+              color: colors.wrong,
+            ),
             const SizedBox(width: PassqlSpacing.sm),
             Expanded(
               child: Column(
@@ -106,13 +117,17 @@ class _WrongRow extends StatelessWidget {
                     stripCodeFences(item.stemPreview),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: PassqlTypography.subheadline.copyWith(color: colors.label),
+                    style: PassqlTypography.subheadline.copyWith(
+                      color: colors.label,
+                    ),
                   ),
                   if (meta.isNotEmpty) ...[
                     const SizedBox(height: PassqlSpacing.xxs),
                     Text(
                       meta,
-                      style: PassqlTypography.caption.copyWith(color: colors.tertiaryLabel),
+                      style: PassqlTypography.caption.copyWith(
+                        color: colors.tertiaryLabel,
+                      ),
                     ),
                   ],
                 ],

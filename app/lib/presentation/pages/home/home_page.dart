@@ -85,7 +85,9 @@ class _GreetingTitle extends StatelessWidget {
       text,
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
-      style: PassqlTypography.largeTitle.copyWith(color: context.passqlColors.label),
+      style: PassqlTypography.largeTitle.copyWith(
+        color: context.passqlColors.label,
+      ),
     );
   }
 }
@@ -142,12 +144,17 @@ class _HomeContent extends StatelessWidget {
           data.recommendations!.questions.isNotEmpty)
         RecommendationsSection(
           questions: data.recommendations!.questions,
-          onQuestionTap: (uuid) => context.push('/questions/$uuid'),
+          onQuestionTap: (uuid) => context.push(AppRoutes.questionDetail(uuid)),
         ),
     ];
 
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(PassqlSpacing.md, PassqlSpacing.md, PassqlSpacing.md, 0),
+      padding: const EdgeInsets.fromLTRB(
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+        0,
+      ),
       sliver: SliverList.separated(
         itemCount: children.length,
         itemBuilder: (_, i) => children[i],
@@ -164,14 +171,23 @@ class _HomeSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const SliverPadding(
-      padding: EdgeInsets.fromLTRB(PassqlSpacing.md, PassqlSpacing.md, PassqlSpacing.md, 0),
+      padding: EdgeInsets.fromLTRB(
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+        0,
+      ),
       sliver: SliverList(
         delegate: SliverChildListDelegate.fixed([
           Row(
             children: [
-              Expanded(child: PassqlSkeletonBox(height: 140, radius: PassqlRadius.lg)),
+              Expanded(
+                child: PassqlSkeletonBox(height: 140, radius: PassqlRadius.lg),
+              ),
               SizedBox(width: PassqlSpacing.sm),
-              Expanded(child: PassqlSkeletonBox(height: 140, radius: PassqlRadius.lg)),
+              Expanded(
+                child: PassqlSkeletonBox(height: 140, radius: PassqlRadius.lg),
+              ),
             ],
           ),
           SizedBox(height: PassqlSpacing.md),

@@ -70,7 +70,10 @@ void main() {
       ),
     );
     expect(
-      find.descendant(of: find.byType(PassqlScoreHeader), matching: find.text('1')),
+      find.descendant(
+        of: find.byType(PassqlScoreHeader),
+        matching: find.text('1'),
+      ),
       findsOneWidget,
     );
     expect(find.text(' / 2'), findsOneWidget);
@@ -122,8 +125,10 @@ void main() {
         ),
       ),
     );
-    final marks = tester.widgetList<PassqlResultMark>(find.byType(PassqlResultMark));
-    expect(marks.where((m) => m.large).length, 1);
+    final marks = tester.widgetList<PassqlResultMark>(
+      find.byType(PassqlResultMark),
+    );
+    expect(marks.where((m) => m.isLarge).length, 1);
     expect(find.text('정답이에요'), findsOneWidget);
     expect(find.text('정답'), findsOneWidget);
   });

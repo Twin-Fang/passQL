@@ -48,9 +48,10 @@ class TopicListPage extends ConsumerWidget {
                       TopicCard(
                         topic: topic,
                         onTap: () => context.push(
-                          '${AppRoutes.questionChapter}'
-                          '?topic=${topic.code}'
-                          '&topicName=${Uri.encodeComponent(topic.displayName)}',
+                          AppRoutes.questionChapterOf(
+                            topicCode: topic.code,
+                            topicName: topic.displayName,
+                          ),
                         ),
                       ),
                   ],

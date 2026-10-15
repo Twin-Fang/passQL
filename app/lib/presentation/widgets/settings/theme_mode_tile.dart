@@ -41,14 +41,19 @@ class _ThemeModeSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final current = ref.watch(themeModeProvider);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(PassqlSpacing.md, 0, PassqlSpacing.md, PassqlSpacing.md),
+      padding: const EdgeInsets.fromLTRB(
+        PassqlSpacing.md,
+        0,
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+      ),
       child: PassqlGroupedSection(
         children: [
           for (final mode in ThemeMode.values)
             PassqlCheckRow(
               title: themeModeLabel(mode),
               subtitle: mode == ThemeMode.system ? '기기의 라이트/다크 설정을 따라요' : null,
-              selected: mode == current,
+              isSelected: mode == current,
               onTap: () {
                 PassqlHaptics.playSelection();
                 ref.read(themeModeProvider.notifier).setMode(mode);

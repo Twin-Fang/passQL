@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../data/models/question/submit_result.dart';
+import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../widgets/question/ai_explain_sheet.dart';
 import '../../widgets/question/execute_result_card.dart';
@@ -21,11 +21,9 @@ class ResultPage extends ConsumerWidget {
     final result = extra is SubmitResult ? extra as SubmitResult : null;
 
     if (result == null) {
-      return Scaffold(
-        appBar: PassqlNavBar(
-          leading: PassqlNavLeading.close,
-          onLeadingTap: () => context.pop(),
-        ),
+      return PassqlStatusScaffold(
+        leading: PassqlNavLeading.close,
+        onLeadingTap: () => context.pop(),
         body: PassqlStatusView.empty(
           icon: CupertinoIcons.exclamationmark_circle,
           title: '결과를 불러올 수 없어요',
@@ -35,7 +33,8 @@ class ResultPage extends ConsumerWidget {
 
     // questionUuid는 GoRouterState pathParameters에서 꺼낸다.
     final goRouterState = GoRouterState.of(context);
-    final questionUuid = goRouterState.pathParameters['questionUuid'] ?? '';
+    final questionUuid =
+        goRouterState.pathParameters[AppRoutes.questionUuidParameter] ?? '';
     final isCorrect = result.isCorrect;
     final colors = context.passqlColors;
 
@@ -53,10 +52,10 @@ class ResultPage extends ConsumerWidget {
 
     return PassqlResultScaffold(
       title: '채점 결과',
-      onClose: () => context.go('/home'),
+      onClose: () => context.go(AppRoutes.home),
       header: PassqlResultMark(
-        correct: isCorrect,
-        large: true,
+        isCorrect: isCorrect,
+        isLarge: true,
         label: isCorrect ? '정답이에요' : '오답이에요',
       ),
       sections: [
@@ -123,7 +122,7 @@ class ResultPage extends ConsumerWidget {
             ),
           ),
         // 기존 동작(닫기 = 홈 이동)을 그대로 유지한다.
-        PassqlButton(label: '닫기', onPressed: () => context.go('/home')),
+        PassqlButton(label: '닫기', onPressed: () => context.go(AppRoutes.home)),
       ],
     );
   }

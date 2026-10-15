@@ -10,17 +10,20 @@ class PassqlGlass extends StatelessWidget {
   const PassqlGlass({
     super.key,
     required this.child,
-    this.topHairline = false,
-    this.bottomHairline = false,
+    this.hasTopHairline = false,
+    this.hasBottomHairline = false,
   });
   final Widget child;
-  final bool topHairline;
-  final bool bottomHairline;
+  final bool hasTopHairline;
+  final bool hasBottomHairline;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final side = BorderSide(color: colors.separator, width: PassqlSize.hairline);
+    final hairlineSide = BorderSide(
+      color: colors.separator,
+      width: PassqlSize.hairline,
+    );
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(
@@ -31,8 +34,8 @@ class PassqlGlass extends StatelessWidget {
           decoration: BoxDecoration(
             color: colors.glass,
             border: Border(
-              top: topHairline ? side : BorderSide.none,
-              bottom: bottomHairline ? side : BorderSide.none,
+              top: hasTopHairline ? hairlineSide : BorderSide.none,
+              bottom: hasBottomHairline ? hairlineSide : BorderSide.none,
             ),
           ),
           child: child,

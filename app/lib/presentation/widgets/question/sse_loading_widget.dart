@@ -18,12 +18,14 @@ class SseLoadingWidget extends StatelessWidget {
       child: PassqlCard(
         child: Row(
           children: [
-            const CupertinoActivityIndicator(),
+            const PassqlLoadingIndicator(),
             const SizedBox(width: PassqlSpacing.sm),
             Expanded(
               child: Text(
                 statusMessage,
-                style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
+                style: PassqlTypography.subheadline.copyWith(
+                  color: colors.secondaryLabel,
+                ),
               ),
             ),
           ],
