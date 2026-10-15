@@ -13,34 +13,29 @@ import 'auth_provider.dart';
 class SettingsData {
   final String memberUuid;
   final String nickname;
-  final String version;
   final ChoiceGenerationMode choiceMode;
 
   const SettingsData({
     required this.memberUuid,
     required this.nickname,
-    required this.version,
     required this.choiceMode,
   });
 }
 
-/// 설정 화면 초기 데이터 로딩 Provider
-///
-/// 회원 정보는 GET /members/me, 버전은 PackageInfo에서 조회.
+/// 설정 화면 회원 데이터: GET /members/me > 회원 ID·닉네임·선택지 모드
 final settingsDataProvider = FutureProvider<SettingsData>((ref) async {
-  final client = ref.read(memberApiProvider);
-
-  // 타입 안전한 개별 await — Future.wait + dynamic 캐스트 패턴 제거
-  final me = await client.getMe();
-  final info = await PackageInfo.fromPlatform();
-
+  final me = await ref.read(memberApiProvider).getMe();
   return SettingsData(
     memberUuid: me.memberUuid,
     nickname: me.nickname,
-    version: info.version,
     choiceMode: me.choiceGenerationMode ?? ChoiceGenerationMode.practice,
   );
 });
+
+/// 앱 버전 (PackageInfo). 회원 API 실패와 무관하게 설정 화면에 표시
+final appVersionProvider = FutureProvider<String>(
+  (ref) async => (await PackageInfo.fromPlatform()).version,
+);
 
 /// 닉네임 Notifier. 재생성·직접 변경 결과를 한곳에서 반영한다.
 ///
@@ -53,15 +48,18 @@ class NicknameNotifier extends AsyncNotifier<String?> {
       (await ref.watch(authProvider.future))?.nickname;
 
   /// 서버가 만든 랜덤 닉네임으로 교체한다.
+  /// 실패하면 이전 닉네임으로 되돌리고 [AppException] 을 던져 화면이 문구를 보여 줄 수 있게 한다.
   Future<void> regenerate() async {
-    final client = ref.read(memberApiProvider);
-
+    final previousNickname = state.valueOrNull;
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
-      final response = await client.regenerateNickname();
+    try {
+      final response = await ref.read(memberApiProvider).regenerateNickname();
       await ref.read(authProvider.notifier).updateNickname(response.nickname);
-      return response.nickname;
-    });
+      state = AsyncData(response.nickname);
+    } catch (exception) {
+      state = AsyncData(previousNickname);
+      throw exception.asAppException;
+    }
   }
 
   /// 닉네임 사용 가능 여부. 이미 쓰는 닉네임이면 false.

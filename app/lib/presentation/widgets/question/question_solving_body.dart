@@ -5,11 +5,12 @@ import '../../../data/models/question/submit_result.dart';
 import '../../design/design.dart';
 import '../../providers/question_providers.dart';
 import 'ai_explain_sheet.dart';
+import 'execute_failure_card.dart';
 import 'execute_result_card.dart';
 import 'question_sections.dart';
 import 'schema_section.dart';
 
-/// 문제 풀이 본문 스크롤: 머리 > 스키마(실행형) > 지문 > 선택지 > 실행 중 표시 > 실행 결과
+/// 문제 풀이 본문 스크롤: 머리 > 스키마(실행형) > 지문 > 선택지 > 실행 중 표시 > 실행 결과 또는 실패
 /// 챕터 풀이(ChapterPage)와 단건 풀이(QuestionDetailPage)가 함께 쓴다. 제출 바는 Scaffold 하단에 따로 붙는다.
 class QuestionSolvingBody extends StatelessWidget {
   const QuestionSolvingBody({
@@ -101,6 +102,12 @@ class QuestionSolvingBody extends StatelessWidget {
             onAiExplainTap: hasExecutionError
                 ? () => _openExecutionErrorExplanation(context)
                 : null,
+          ),
+        // SQL 실행 요청 실패 (네트워크·5xx·SANDBOX_TIMEOUT 등)
+        if (interaction.executeFailure != null)
+          ExecuteFailureCard(
+            message: interaction.executeFailure!.message,
+            onRetry: notifier.retryExecution,
           ),
       ],
     );

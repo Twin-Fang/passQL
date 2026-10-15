@@ -26,6 +26,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   SocialProvider? _signingInProvider;
   String? _error;
 
+  @override
+  void initState() {
+    super.initState();
+    // 세션 종료 안내(이용 제한 등) 표시 > 다음 진입에 다시 뜨지 않게 비움 (빌드 중 provider 변경 불가라 첫 프레임 뒤)
+    _error = ref.read(loginNoticeProvider);
+    if (_error != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(loginNoticeProvider.notifier).state = null;
+      });
+    }
+  }
+
   Future<void> _signIn(SocialProvider provider) async {
     setState(() {
       _signingInProvider = provider;

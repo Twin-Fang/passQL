@@ -33,10 +33,10 @@ Future<void> pumpSettings(WidgetTester tester, ThemeData theme) async {
           (ref) async => const SettingsData(
             memberUuid: 'm-1',
             nickname: '기존닉네임',
-            version: '1.0.0',
             choiceMode: ChoiceGenerationMode.practice,
           ),
         ),
+        appVersionProvider.overrideWith((ref) async => '1.0.0'),
         wrongQuestionsProvider.overrideWith(
           (ref) async => const WrongQuestionsResponse(totalCount: 3),
         ),

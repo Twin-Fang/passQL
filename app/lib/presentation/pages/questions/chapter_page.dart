@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
+import '../../../core/error/app_exception.dart';
+import '../../../data/models/question/submit_result.dart';
 import '../../../presentation/flows/question_flow.dart';
 import '../../../presentation/providers/chapter_providers.dart';
 import '../../../presentation/providers/learning_refresh.dart';
@@ -68,27 +70,30 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     });
   }
 
-  /// 제출: 선택 키 고정 > 서버 제출 > 결과 기록(성공) 또는 토스트(실패)
+  /// 제출: 선택 키 고정 > 서버 제출 > 결과 기록(성공) 또는 원인별 토스트(실패)
   Future<void> _submitCurrentQuestion(String currentUuid) async {
     // 선택 키 미리 저장 (제출 후 interaction state가 바뀔 수 있으므로)
     final selectedKey =
         ref.read(questionInteractionProvider(currentUuid)).selectedChoiceKey ??
         '';
-    final submitResult = await ref
-        .read(questionInteractionProvider(currentUuid).notifier)
-        .submit(
-          sessionUuid: widget.flow.shouldTrackSession ? _sessionUuid : null,
-        );
-    if (!mounted) return;
-
-    if (submitResult != null) {
-      _hasSubmittedAny = true;
-      ref
-          .read(chapterProvider(widget.flow.id).notifier)
-          .recordSubmission(submitResult, selectedKey);
-    } else {
-      showAppToast(context, '제출에 실패했어요. 다시 시도해 주세요.');
+    final SubmitResult? submitResult;
+    try {
+      submitResult = await ref
+          .read(questionInteractionProvider(currentUuid).notifier)
+          .submit(
+            sessionUuid: widget.flow.shouldTrackSession ? _sessionUuid : null,
+          );
+    } on AppException catch (exception) {
+      // 실패 원인별 문구 (네트워크, 서버 오류, 입력 오류 등)
+      if (mounted) showAppToast(context, exception.message);
+      return;
     }
+    if (!mounted || submitResult == null) return;
+
+    _hasSubmittedAny = true;
+    ref
+        .read(chapterProvider(widget.flow.id).notifier)
+        .recordSubmission(submitResult, selectedKey);
   }
 
   /// 마지막 문제까지 끝남 — 요약을 만들어 이후 처리는 흐름에 맡긴다.

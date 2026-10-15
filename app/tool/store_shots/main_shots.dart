@@ -4,6 +4,7 @@
 // 앱 전체를 그대로 띄우되 Dio 를 가짜 어댑터로 바꿔 canned 응답을 돌려준다.
 // 빌드: flutter build ios --simulator -t tool/store_shots/main_shots.dart
 // 촬영: echo /stats > /tmp/passql_shot_route.txt && xcrun simctl launch <기기> com.coldredrice.passql
+// 연출 2종(경로 대신 적음): execute-fail(SQL 실행 실패 카드), chapter-result(문제 목록 > 챕터 > 챕터 결과)
 // 운영 코드(lib/)에는 영향이 없고, 빌드 산출물에도 포함되지 않는다.
 import 'dart:async';
 import 'dart:convert';
@@ -18,8 +19,11 @@ import 'package:passql_app/core/auth/token_store.dart';
 import 'package:passql_app/core/network/dio_client.dart';
 import 'package:passql_app/main.dart' show PassqlApp;
 import 'package:passql_app/presentation/providers/auth_provider.dart';
+import 'package:passql_app/presentation/providers/chapter_providers.dart';
+import 'package:passql_app/presentation/providers/question_providers.dart';
 import 'package:passql_app/presentation/providers/theme_mode_provider.dart';
 import 'package:passql_app/router/app_router.dart';
+import 'package:passql_app/router/app_routes.dart';
 
 // 시뮬레이터는 호스트 파일시스템을 그대로 보므로, 이 파일에 적은 경로로 이동한다.
 // 같은 빌드로 화면만 바꿔 여러 장을 찍기 위한 장치다.
@@ -175,6 +179,7 @@ Object? _respond(RequestOptions o) {
     return {'memberUuid': '55555555-0000-4000-8000-000000000001', 'nickname': '새찬', 'choiceGenerationMode': 'PRACTICE'};
   }
   if (RegExp(r'/questions/[^/]+/report/status$').hasMatch(p)) return {'reported': false};
+  if (p.endsWith('/questions/$_executableQuestionUuid') && o.method == 'GET') return _executableDetail();
   if (p.endsWith('/questions/22222222-0000-4000-8000-000000000004') && o.method == 'GET') {
     return {
       ..._detail(),
@@ -190,6 +195,23 @@ Object? _respond(RequestOptions o) {
     return {'content': _questions, 'totalElements': 4, 'totalPages': 1, 'number': 0, 'last': true};
   }
   return null;
+}
+
+/// 실행형(EXECUTABLE) 문제: execute-fail 연출용, 실행 API 는 SANDBOX_TIMEOUT 으로 실패
+const _executableQuestionUuid = '22222222-0000-4000-8000-000000000005';
+const _executableChoiceSql = 'SELECT ENAME FROM EMP WHERE SAL >= 3000;';
+
+Map<String, dynamic> _executableDetail() {
+  final detail = _detail();
+  final choiceSet = Map<String, dynamic>.from((detail['choiceSets'] as List).first as Map);
+  return {
+    ...detail,
+    'questionUuid': _executableQuestionUuid,
+    'executionMode': 'EXECUTABLE',
+    'choiceSets': [
+      {...choiceSet, 'status': 'OK'},
+    ],
+  };
 }
 
 /// 실행 결과형(RESULT_MATCH) 문제: 선택지 본문이 결과 표 JSON 이다.
@@ -226,6 +248,13 @@ class _FakeAdapter implements HttpClientAdapter {
       // ...0004 문제는 실행 결과형(RESULT_MATCH)으로 응답한다.
       final rm = options.path.contains('000000000004');
       return ResponseBody.fromString(_sse(resultMatch: rm), 200, headers: {Headers.contentTypeHeader: ['text/event-stream']});
+    }
+    if (options.path.endsWith('/execute')) {
+      return ResponseBody.fromString(
+        jsonEncode({'errorCode': 'SANDBOX_TIMEOUT', 'message': 'sandbox timeout'}),
+        500,
+        headers: {Headers.contentTypeHeader: [Headers.jsonContentType]},
+      );
     }
     final body = _respond(options);
     return ResponseBody.fromString(
@@ -268,6 +297,39 @@ Future<void> main() async {
   runApp(UncontrolledProviderScope(container: container, child: const PassqlApp()));
   // 첫 프레임 이후 지정한 화면으로 이동한다.
   if (!loggedOut) {
-    Timer(const Duration(milliseconds: 2000), () => AppRouter.router.go(route));
+    Timer(const Duration(milliseconds: 2000), () => _openRoute(route, container));
+  }
+}
+
+/// 경로 이동 또는 연출(execute-fail, chapter-result)
+Future<void> _openRoute(String route, ProviderContainer container) async {
+  const settleDelay = Duration(milliseconds: 1500);
+  switch (route) {
+    case 'execute-fail':
+      // 실행형 문제 > 선택지 A 선택 > 실행 API 실패
+      AppRouter.router.go(AppRoutes.questionDetail(_executableQuestionUuid));
+      await Future<void>.delayed(settleDelay);
+      await container
+          .read(questionInteractionProvider(_executableQuestionUuid).notifier)
+          .selectChoice(choiceKey: 'A', sql: _executableChoiceSql, isExecutable: true);
+    case 'chapter-result':
+      // 문제 목록 > 챕터 진입 > 마지막 제출 뒤와 같은 교체 이동(TopicFlow.onCompleted)
+      AppRouter.router.go(AppRoutes.questions);
+      await Future<void>.delayed(settleDelay);
+      AppRouter.router.push(AppRoutes.questionChapterOf(topicCode: 'sql_join', topicName: 'JOIN'));
+      await Future<void>.delayed(settleDelay);
+      AppRouter.router.pushReplacement(
+        AppRoutes.chapterResult,
+        extra: ChapterSummary(
+          topicName: 'JOIN',
+          results: [
+            for (var i = 0; i < 10; i++)
+              ChapterResult(questionUuid: 'q-$i', isCorrect: i % 4 != 3, durationMs: 8000 + i * 900),
+          ],
+          totalDurationMs: 124000,
+        ),
+      );
+    default:
+      AppRouter.router.go(route);
   }
 }

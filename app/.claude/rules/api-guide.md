@@ -34,6 +34,7 @@ pages·widgets·flows ──> providers(Riverpod) ──> data/sources(Retrofit 
 - 401: 재발급(`POST /auth/reissue`)을 한 번만 수행하고 대기 요청이 결과를 공유, 성공하면 원래 요청 재시도
 - 재발급이 401/403 으로 거부되면 세션 삭제 > `SessionExpirySignal.announceExpired()` > `AuthNotifier` 가 로그아웃 상태로 > 라우터가 로그인 화면으로
 - 네트워크 끊김·5xx 로 재발급이 실패하면 로그인을 유지하고 원래 오류만 전달
+- 403 `MEMBER_SUSPENDED`(이용 제한): `MemberSuspensionInterceptor` > `MemberSuspensionSignal` > `AuthNotifier` 가 세션 정리·로그아웃 > 로그인 화면이 안내 문구(`loginNoticeProvider`) 표시 (#484)
 
 ## 3. 새 엔드포인트 추가 순서
 

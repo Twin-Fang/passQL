@@ -43,4 +43,23 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('Google로 계속하기'), findsOneWidget);
   });
+
+  testWidgets('세션 종료 안내(이용 제한)가 있으면 한 번 보여 주고 비운다 (#484)', (tester) async {
+    final container = ProviderContainer(
+      overrides: [authProvider.overrideWith(SignedOutAuth.new)],
+    );
+    addTearDown(container.dispose);
+    container.read(loginNoticeProvider.notifier).state = '이용이 제한된 계정이에요.';
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(theme: PassqlTheme.light, home: const LoginPage()),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('이용이 제한된 계정이에요.'), findsOneWidget);
+    expect(container.read(loginNoticeProvider), isNull);
+  });
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:uuid/uuid.dart';
 
 import '../providers/chapter_providers.dart';
 import '../providers/topic_providers.dart';
@@ -63,10 +62,7 @@ class TopicFlow extends QuestionFlow {
     ChapterSummary summary,
     String sessionUuid,
   ) async {
-    // 경로의 sessionId 는 라우트 파라미터를 채우기 위한 값일 뿐 화면에서 쓰지 않는다.
-    context.go(
-      AppRoutes.practiceResult('chapter-${const Uuid().v4()}'),
-      extra: summary,
-    );
+    // 챕터 화면 자리를 결과로 교체 (뒤로 가기 > 챕터 진입 전 화면)
+    context.pushReplacement(AppRoutes.chapterResult, extra: summary);
   }
 }
