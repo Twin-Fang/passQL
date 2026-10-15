@@ -5,6 +5,7 @@ import type { LucideIcon } from "lucide-react";
 import logo from "../assets/logo/logo.png";
 import MobileHeader from "./MobileHeader";
 import TeamModal from "./TeamModal";
+import NoticeBanner from "./NoticeBanner";
 
 const NAV_ITEMS: readonly {
   readonly to: string;
@@ -90,6 +91,8 @@ export default function AppLayout() {
         <MobileHeader onTeamClick={() => setTeamModalOpen(true)} />
         <main className="flex-1 lg:py-8 pb-16 lg:pb-8">
           <div className="mx-auto max-w-180 px-4 lg:px-0">
+            {/* 관리자 공지 (탭 전환에도 유지) (#464) */}
+            <NoticeBanner />
             <Outlet key={location.pathname} />
           </div>
         </main>

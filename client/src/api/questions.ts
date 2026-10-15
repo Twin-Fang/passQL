@@ -1,4 +1,4 @@
-import { apiFetch, BASE_URL } from "./client";
+import { apiFetch, BASE_URL, reportMaintenanceIfDetected } from "./client";
 import { getAccessToken } from "../stores/authStore";
 import type {
   Page,
@@ -87,6 +87,9 @@ export function generateChoices(
       );
 
       if (!response.ok) {
+        // 점검 차단 503 도 apiFetch 와 같은 지점에서 점검 화면 전환
+        const errorBody = await response.json().catch(() => null);
+        reportMaintenanceIfDetected(response.status, errorBody);
         callbacks.onError({ code: `HTTP_${response.status}`, message: `서버 오류 (${response.status})`, retryable: response.status >= 500 });
         return;
       }

@@ -1,6 +1,7 @@
 import { getAccessToken, getRefreshToken, useAuthStore } from "../stores/authStore";
 import { reissue } from "./auth";
 import { PRODUCTION_API_BASE_URL } from "../constants/siteUrls";
+import { useMaintenanceStore } from "../stores/maintenanceStore";
 
 // DEV 환경에서는 Vite 프록시(/api)를 사용하고, prod 환경에서는 실제 API 서버를 기본값으로 사용
 export const BASE_URL = import.meta.env.VITE_API_BASE_URL
@@ -30,6 +31,27 @@ function log(label: string, method: string, path: string, data?: unknown) {
   console.groupCollapsed(`%c[API ${label}] ${method} ${path}`, style);
   if (data !== undefined) console.log(data);
   console.groupEnd();
+}
+
+// 서버 점검 차단 응답: 503 + errorCode (MaintenanceModeFilter, #464)
+const MAINTENANCE_HTTP_STATUS = 503;
+const MAINTENANCE_ERROR_CODE = "SERVICE_UNDER_MAINTENANCE";
+
+/** 점검 차단 응답이면 true (503 + errorCode 일치) */
+export function isMaintenanceResponse(status: number, body: unknown): boolean {
+  return (
+    status === MAINTENANCE_HTTP_STATUS &&
+    typeof body === "object" &&
+    body !== null &&
+    (body as { errorCode?: unknown }).errorCode === MAINTENANCE_ERROR_CODE
+  );
+}
+
+/** 오류 응답 > 점검 차단이면 점검 화면 전환 (apiFetch·SSE 공통 진입점) */
+export function reportMaintenanceIfDetected(status: number, body: unknown): void {
+  if (isMaintenanceResponse(status, body)) {
+    useMaintenanceStore.getState().markMaintenanceDetectedByApi();
+  }
 }
 
 export class ApiError extends Error {
@@ -75,6 +97,7 @@ async function fetchOnce<T>(
     if (!res.ok) {
       const body = await res.json().catch(() => null);
       log("ERR", method, path, { status: res.status, body });
+      reportMaintenanceIfDetected(res.status, body);
       throw new ApiError(res.status, body);
     }
 

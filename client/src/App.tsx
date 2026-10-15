@@ -16,6 +16,7 @@ import Settings from "./pages/Settings";
 import SettingsFeedback from "./pages/SettingsFeedback";
 import Login from "./pages/Login";
 import RouteError from "./pages/RouteError";
+import MaintenanceGate from "./components/MaintenanceGate";
 import { isAuthenticated } from "./stores/authStore";
 
 /** 인증 필수 가드 — 미로그인 시 /login으로 redirect */
@@ -111,5 +112,10 @@ const router = createBrowserRouter([
 ]);
 
 export default function App() {
-  return <RouterProvider router={router} />;
+  // 점검 중이면 라우터 전체를 점검 화면으로 대체 (#464)
+  return (
+    <MaintenanceGate>
+      <RouterProvider router={router} />
+    </MaintenanceGate>
+  );
 }
