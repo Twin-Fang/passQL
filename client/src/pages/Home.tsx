@@ -171,12 +171,12 @@ export default function Home() {
             )}
         </h1>
         {greeting?.messageType === "EXAM_DAY" && (
-          <p className="text-sm font-medium mt-1 text-sem-error-text">
+          <p className="text-sm font-medium mt-1 text-semantic-error-text">
             오늘 시험이에요!
           </p>
         )}
         {greeting?.messageType === "URGENT" && (
-          <p className="text-sm font-medium mt-1 text-sem-warning-text">
+          <p className="text-sm font-medium mt-1 text-semantic-warning-text">
             시험이 얼마 남지 않았어요
           </p>
         )}
@@ -231,7 +231,7 @@ export default function Home() {
             <div className="h-full flex flex-col gap-2 rounded-xl p-5 cursor-default bg-[#F3F4F6] border border-border">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-text-secondary">오늘의 데일리 세트</p>
-                <span className="flex items-center gap-1 text-xs font-semibold text-sem-success-text">
+                <span className="flex items-center gap-1 text-xs font-semibold text-semantic-success-text">
                   <Check size={11} strokeWidth={3} />
                   완료
                 </span>
@@ -273,7 +273,7 @@ export default function Home() {
           <h2 className="text-sm text-text-secondary">학습 현황</h2>
           {/* streak는 progress 에러 시 0 fallback → 뱃지 자연스럽게 미표시 */}
           {streak > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-bold bg-sem-warning-light text-sem-warning-text">
+            <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-bold bg-semantic-warning-light text-semantic-warning-text">
               {/* fill 속성으로 불꽃 아이콘을 꽉 채운 스타일로 표시 */}
               <Flame size={14} fill="currentColor" />
               연속 {streak}일

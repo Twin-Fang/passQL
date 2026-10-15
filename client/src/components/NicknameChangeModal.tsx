@@ -128,9 +128,9 @@ export default function NicknameChangeModal({
   // 중복확인 버튼: 미확인이면 primary, 통과면 success 테두리, 실패면 error 테두리
   const checkBtnClass =
     checkResult === true
-      ? "btn btn-sm h-12 px-3 shrink-0 border border-sem-success text-sem-success bg-transparent"
+      ? "btn btn-sm h-12 px-3 shrink-0 border border-semantic-success text-semantic-success bg-transparent"
       : checkResult === false
-      ? "btn btn-sm h-12 px-3 shrink-0 border border-sem-error text-sem-error bg-transparent"
+      ? "btn btn-sm h-12 px-3 shrink-0 border border-semantic-error text-semantic-error bg-transparent"
       : "btn btn-sm h-12 px-3 shrink-0 border border-brand bg-brand text-white";
 
   // 상태 메시지
@@ -140,8 +140,8 @@ export default function NicknameChangeModal({
   const statusTextClass = isSameAsCurrent
     ? "text-text-caption"
     : errorMsg
-    ? "text-sem-error"
-    : "text-sem-success";
+    ? "text-semantic-error"
+    : "text-semantic-success";
 
   return (
     // 오버레이 — 클릭 시 닫힘

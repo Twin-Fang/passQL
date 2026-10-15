@@ -60,7 +60,7 @@ export default function FeedbackItem({ item, className }: FeedbackItemProps) {
       ? "bg-brand text-white"
       : status === "REVIEWED"
       ? "bg-brand-light border border-[#C7D2FE] text-text-primary"
-      : "bg-sem-success-light border border-[#BBF7D0] text-text-primary";
+      : "bg-semantic-success-light border border-[#BBF7D0] text-text-primary";
 
   // 상태 pill
   const pillClass =
@@ -68,7 +68,7 @@ export default function FeedbackItem({ item, className }: FeedbackItemProps) {
       ? "bg-white/20 text-white"
       : status === "REVIEWED"
       ? "bg-brand text-white"
-      : "bg-sem-success-text text-white";
+      : "bg-semantic-success-text text-white";
 
   // 시간 색상
   const timeClass = status === "PENDING" ? "text-white/60" : "text-text-caption";

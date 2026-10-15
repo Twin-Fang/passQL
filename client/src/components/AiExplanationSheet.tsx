@@ -30,7 +30,7 @@ export default function AiExplanationSheet({ isOpen, isLoading, isError = false,
       <div className="fixed inset-x-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[520px] md:max-h-[80vh] z-50">
         <div className="bg-surface-card rounded-t-2xl md:rounded-xl max-h-[90vh] md:max-h-[80vh] overflow-y-auto">
           <div className="md:hidden flex justify-center pt-3">
-            <div className="w-10 h-1 rounded-full bg-border-muted" />
+            <div className="w-10 h-1 rounded-full bg-border" />
           </div>
           <div className="sticky top-0 bg-surface-card flex items-center justify-between px-4 py-3 border-b border-border z-10">
             <h2 className="text-lg font-bold text-text-primary">AI 해설</h2>

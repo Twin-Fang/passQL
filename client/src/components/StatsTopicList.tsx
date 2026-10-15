@@ -9,10 +9,10 @@ interface StatsTopicListProps {
 
 // 정답률에 따라 색상 클래스 결정
 function getRateColor(rate: number): { badge: string; bar: string } {
-  if (rate >= 0.8) return { badge: "text-sem-success-text bg-sem-success-light", bar: "bg-sem-success" };
-  if (rate >= 0.6) return { badge: "text-brand bg-accent-light",                  bar: "bg-brand" };
-  if (rate >= 0.4) return { badge: "text-sem-warning-text bg-sem-warning-light",  bar: "bg-sem-warning" };
-  return           { badge: "text-sem-error-text bg-sem-error-light",             bar: "bg-sem-error" };
+  if (rate >= 0.8) return { badge: "text-semantic-success-text bg-semantic-success-light", bar: "bg-semantic-success" };
+  if (rate >= 0.6) return { badge: "text-brand bg-brand-light",                  bar: "bg-brand" };
+  if (rate >= 0.4) return { badge: "text-semantic-warning-text bg-semantic-warning-light",  bar: "bg-semantic-warning" };
+  return           { badge: "text-semantic-error-text bg-semantic-error-light",             bar: "bg-semantic-error" };
 }
 
 // ? 팝오버 — portal로 body에 렌더링해 stacking context 격리 문제 회피
@@ -65,7 +65,7 @@ function TopicListPopover({
           </p>
         </div>
         <div className="flex items-start gap-2">
-          <div className="w-2 h-2 rounded-sm bg-sem-error mt-0.5 shrink-0" />
+          <div className="w-2 h-2 rounded-sm bg-semantic-error mt-0.5 shrink-0" />
           <p className="text-xs text-gray-300 leading-relaxed">
             <span className="text-white font-semibold">색상 뱃지</span> — 정답률을 나타내요. 빨간색일수록 취약한 영역이에요
           </p>
@@ -78,10 +78,10 @@ function TopicListPopover({
 
 // 범례 항목
 const LEGEND = [
-  { color: "bg-sem-success", label: "80%↑" },
+  { color: "bg-semantic-success", label: "80%↑" },
   { color: "bg-brand",       label: "60%↑" },
-  { color: "bg-sem-warning", label: "40%↑" },
-  { color: "bg-sem-error",   label: "취약" },
+  { color: "bg-semantic-warning", label: "40%↑" },
+  { color: "bg-semantic-error",   label: "취약" },
 ] as const;
 
 export default function StatsTopicList({ topicStats }: StatsTopicListProps) {

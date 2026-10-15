@@ -77,12 +77,12 @@ export default function FeedbackForm({ disabled = false }: FeedbackFormProps) {
 
       {/* 전송 실패 인라인 에러 */}
       {mutation.isError && (
-        <div className="flex items-center gap-2 mt-2 px-3 py-2 bg-sem-error-light border border-[#FCA5A5] rounded-lg text-[10px] text-sem-error-text">
+        <div className="flex items-center gap-2 mt-2 px-3 py-2 bg-semantic-error-light border border-[#FCA5A5] rounded-lg text-[10px] text-semantic-error-text">
           <AlertTriangle size={13} className="shrink-0" />
           <span className="flex-1">전송에 실패했어요</span>
           <button
             type="button"
-            className="bg-white border border-[#FCA5A5] text-sem-error-text px-2 py-1 rounded-md text-[11px] font-bold"
+            className="bg-white border border-[#FCA5A5] text-semantic-error-text px-2 py-1 rounded-md text-[11px] font-bold"
             onClick={handleRetry}
           >
             재시도

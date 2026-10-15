@@ -147,7 +147,7 @@ export const SchemaViewer = memo(function SchemaViewer({
                 {/* 스키마 구조 카드 */}
                 <div className="rounded-xl border border-border bg-surface-card overflow-hidden">
                   {/* 테이블 헤더 — 아이콘 + 테이블명 */}
-                  <div className="px-3 py-1.5 flex items-center gap-1.5 text-sm font-semibold font-mono bg-accent-light text-brand border-b border-border">
+                  <div className="px-3 py-1.5 flex items-center gap-1.5 text-sm font-semibold font-mono bg-brand-light text-brand border-b border-border">
                     <Table2 size={14} />
                     {table.tableName}
                   </div>
@@ -157,7 +157,7 @@ export const SchemaViewer = memo(function SchemaViewer({
                         {table.columns.map((col, idx) => (
                           <tr
                             key={col.name}
-                            className={`border-b border-border last:border-0 ${idx % 2 === 1 ? "bg-surface-page" : ""}`}
+                            className={`border-b border-border last:border-0 ${idx % 2 === 1 ? "bg-surface" : ""}`}
                           >
                             {/* 컬럼명(제약조건) 형태로 표현 — ID(PK), DEPT_ID(FK) */}
                             <td className="px-2 py-0.5 font-mono font-medium text-body">
@@ -182,14 +182,14 @@ export const SchemaViewer = memo(function SchemaViewer({
                 {hasSample && (
                   <div className="rounded-xl border border-border bg-surface-card overflow-hidden">
                     {/* 샘플 데이터 헤더 — 스키마 카드와 동일한 스타일 */}
-                    <div className="px-3 py-1.5 flex items-center gap-1.5 text-sm font-semibold font-mono bg-accent-light text-brand border-b border-border">
+                    <div className="px-3 py-1.5 flex items-center gap-1.5 text-sm font-semibold font-mono bg-brand-light text-brand border-b border-border">
                       <Table2 size={14} />
                       {table.tableName}
                     </div>
                     <div className="overflow-x-auto">
                       <table className="text-sm whitespace-nowrap w-full border-collapse">
                         <thead>
-                          <tr className="bg-surface-page">
+                          <tr className="bg-surface">
                             {table.columns.map((col) => (
                               <th
                                 key={col.name}
@@ -204,7 +204,7 @@ export const SchemaViewer = memo(function SchemaViewer({
                           {rows.map((row, i) => (
                             <tr
                               key={i}
-                              className={`border-b border-border last:border-0 ${i % 2 === 1 ? "bg-surface-page" : ""}`}
+                              className={`border-b border-border last:border-0 ${i % 2 === 1 ? "bg-surface" : ""}`}
                             >
                               {row.map((cell, j) => (
                                 <td key={j} className="px-2 py-0.5 font-mono tabular-nums text-body">

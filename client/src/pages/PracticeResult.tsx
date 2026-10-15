@@ -161,7 +161,7 @@ export default function PracticeResult() {
 
   const step1 = (
     <>
-      <span className="inline-block bg-accent-light text-brand text-sm font-medium px-3.5 py-1 rounded-full mb-8">
+      <span className="inline-block bg-brand-light text-brand text-sm font-medium px-3.5 py-1 rounded-full mb-8">
         {store.topicName}
       </span>
       <ScoreCountUp
@@ -213,7 +213,7 @@ export default function PracticeResult() {
       {aiComment !== false && (
         <>
           <div className="flex justify-center mb-5">
-            <span className="inline-flex items-center gap-2 bg-accent-light text-brand text-base font-semibold px-5 py-2 rounded-full">
+            <span className="inline-flex items-center gap-2 bg-brand-light text-brand text-base font-semibold px-5 py-2 rounded-full">
               <Sparkles size={16} />
               AI 리포트
             </span>

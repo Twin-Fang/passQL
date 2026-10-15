@@ -1,3 +1,4 @@
+/* daisyUI 테마: 색 값은 tokens.css 변수 참조만 (값 사본 금지, #462) */
 @plugin "daisyui/theme" {
   name: "passql";
   default: true;
@@ -5,36 +6,36 @@
   color-scheme: light;
 
   /* Surface */
-  --color-base-100: oklch(100% 0 0);         /* #FFFFFF - card/component surface */
-  --color-base-200: oklch(98.2% 0 0);        /* #FAFAFA - page background */
-  --color-base-300: oklch(92.1% 0.003 247);  /* #E5E7EB - borders */
-  --color-base-content: oklch(17.1% 0.02 256); /* #111827 - primary text */
+  --color-base-100: var(--color-surface-card);
+  --color-base-200: var(--color-surface);
+  --color-base-300: var(--color-border);
+  --color-base-content: var(--color-text-primary);
 
-  /* Primary: Deep Indigo */
-  --color-primary: oklch(50.6% 0.23 277);    /* #4F46E5 */
-  --color-primary-content: oklch(100% 0 0);  /* #FFFFFF */
+  /* Primary: 브랜드 */
+  --color-primary: var(--color-brand);
+  --color-primary-content: var(--color-on-brand);
 
   /* Secondary */
-  --color-secondary: oklch(65.1% 0.18 277);  /* #818CF8 - accent medium */
-  --color-secondary-content: oklch(100% 0 0);
+  --color-secondary: var(--color-brand-medium);
+  --color-secondary-content: var(--color-on-brand);
 
   /* Accent */
-  --color-accent: oklch(95.4% 0.03 277);     /* #EEF2FF - accent light */
-  --color-accent-content: oklch(50.6% 0.23 277); /* #4F46E5 */
+  --color-accent: var(--color-brand-light);
+  --color-accent-content: var(--color-brand);
 
-  /* Neutral */
-  --color-neutral: oklch(24.7% 0.02 256);    /* #1F2937 - toast bg */
-  --color-neutral-content: oklch(100% 0 0);
+  /* Neutral: 토스트·말풍선 */
+  --color-neutral: var(--color-surface-inverse);
+  --color-neutral-content: var(--color-text-inverse);
 
-  /* Semantic */
-  --color-info: oklch(62.3% 0.18 249);
-  --color-info-content: oklch(100% 0 0);
-  --color-success: oklch(62.7% 0.19 145);    /* #22C55E */
-  --color-success-content: oklch(100% 0 0);
-  --color-warning: oklch(79.5% 0.18 86);     /* #F59E0B */
-  --color-warning-content: oklch(17.1% 0.02 256);
-  --color-error: oklch(57.7% 0.24 27);       /* #EF4444 */
-  --color-error-content: oklch(100% 0 0);
+  /* Semantic (info 는 앱에 없음 > 브랜드 색) */
+  --color-info: var(--color-brand);
+  --color-info-content: var(--color-on-brand);
+  --color-success: var(--color-semantic-success);
+  --color-success-content: var(--color-on-brand);
+  --color-warning: var(--color-semantic-warning);
+  --color-warning-content: var(--color-text-primary);
+  --color-error: var(--color-semantic-error);
+  --color-error-content: var(--color-on-brand);
 
   /* Geometry */
   --radius-selector: 999px;

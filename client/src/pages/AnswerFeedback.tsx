@@ -487,7 +487,7 @@ export default function AnswerFeedback() {
       </div>
 
       {/* fixed bottom 버튼 — 항상 인디고(btn-primary) */}
-      <div className="fixed bottom-0 inset-x-0 z-20 bg-surface-page">
+      <div className="fixed bottom-0 inset-x-0 z-20 bg-surface">
         <div className="mx-auto max-w-180 px-4 py-4">
           <button
             type="button"
