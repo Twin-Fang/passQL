@@ -5,6 +5,7 @@ import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.meta.dto.TopicCreateRequest;
 import com.passql.meta.dto.TopicTree;
 import com.passql.meta.dto.TopicUpdateRequest;
 import com.passql.meta.entity.ConceptDoc;
@@ -82,6 +83,54 @@ public class MetaService {
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.CONCEPT_DOC, saved.getConceptDocUuid(),
                 AdminAuditAction.CREATE, null, AdminAuditEvent.summary("tagKey", tagKey, "title", title)));
         return saved;
+    }
+
+    /** 토픽 추가 (#479): 코드 중복 검사 > 활성 토픽 생성 */
+    @Transactional
+    public Topic createTopic(TopicCreateRequest request) {
+        if (topicRepository.existsByCode(request.code())) {
+            throw new CustomException(ErrorCode.TOPIC_DUPLICATE);
+        }
+        Topic topic = topicRepository.save(Topic.builder()
+                .code(request.code())
+                .displayName(request.displayName())
+                .sortOrder(request.sortOrder())
+                .isActive(true)
+                .build());
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.TOPIC, topic.getCode(), AdminAuditAction.CREATE,
+                null, toTopicAuditSummary(topic)));
+        return topic;
+    }
+
+    /** 서브토픽 추가 (#479): 상위 토픽 확인 > 코드 중복 검사(전체 서브토픽 기준 유니크) > 활성 서브토픽 생성 */
+    @Transactional
+    public Subtopic createSubtopic(String topicCode, TopicCreateRequest request) {
+        Topic topic = topicRepository.findByCode(topicCode)
+                .orElseThrow(() -> new CustomException(ErrorCode.TOPIC_NOT_FOUND));
+        if (subtopicRepository.findByCode(request.code()).isPresent()) {
+            throw new CustomException(ErrorCode.TOPIC_DUPLICATE);
+        }
+        Subtopic subtopic = subtopicRepository.save(Subtopic.builder()
+                .topicUuid(topic.getTopicUuid())
+                .code(request.code())
+                .displayName(request.displayName())
+                .sortOrder(request.sortOrder())
+                .isActive(true)
+                .build());
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.TOPIC, topicCode + "/" + subtopic.getCode(),
+                AdminAuditAction.CREATE, null, AdminAuditEvent.summary("displayName", subtopic.getDisplayName(),
+                        "sortOrder", subtopic.getSortOrder())));
+        return subtopic;
+    }
+
+    /** 개념 문서 삭제 (#479, 행 삭제, 감사 로그에 제목·본문 앞부분 보관) */
+    @Transactional
+    public void deleteDoc(UUID conceptDocUuid) {
+        ConceptDoc doc = conceptDocRepository.findById(conceptDocUuid)
+                .orElseThrow(() -> new CustomException(ErrorCode.RESOURCE_NOT_FOUND));
+        conceptDocRepository.delete(doc);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.CONCEPT_DOC, conceptDocUuid, AdminAuditAction.DELETE,
+                AdminAuditEvent.summary("title", doc.getTitle(), "bodyMd", doc.getBodyMd()), null));
     }
 
     /** 토픽 편집 — displayName, sortOrder, isActive 수정 */

@@ -8,6 +8,7 @@ import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.constant.CertType;
 import com.passql.meta.dto.ExamScheduleCreateRequest;
 import com.passql.meta.dto.ExamScheduleResponse;
+import com.passql.meta.dto.ExamScheduleUpdateRequest;
 import com.passql.meta.entity.ExamSchedule;
 import com.passql.meta.repository.ExamScheduleRepository;
 import lombok.RequiredArgsConstructor;
@@ -93,6 +94,22 @@ public class ExamScheduleService {
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.EXAM_SCHEDULE, saved.getExamScheduleUuid(),
                 AdminAuditAction.CREATE, null, toScheduleAuditSummary(saved)));
         return ExamScheduleResponse.from(saved);
+    }
+
+    /** 시험 일정 수정 (#479): 회차 바뀌면 중복 검사 > 회차·시험일 교체 */
+    @Transactional
+    public void updateSchedule(UUID examScheduleUuid, ExamScheduleUpdateRequest request) {
+        ExamSchedule schedule = examScheduleRepository.findById(examScheduleUuid)
+                .orElseThrow(() -> new CustomException(ErrorCode.EXAM_SCHEDULE_NOT_FOUND));
+        boolean isRoundChanged = !schedule.getRound().equals(request.round());
+        if (isRoundChanged && examScheduleRepository.existsByCertTypeAndRound(schedule.getCertType(), request.round())) {
+            throw new CustomException(ErrorCode.EXAM_SCHEDULE_DUPLICATE);
+        }
+        Map<String, Object> before = toScheduleAuditSummary(schedule);
+        schedule.setRound(request.round());
+        schedule.setExamDate(request.examDate());
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.EXAM_SCHEDULE, examScheduleUuid,
+                AdminAuditAction.UPDATE, before, toScheduleAuditSummary(schedule)));
     }
 
     @Transactional

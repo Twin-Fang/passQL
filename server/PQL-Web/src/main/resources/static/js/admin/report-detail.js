@@ -4,6 +4,25 @@
  */
 let pendingReportUuids = [];
 
+// 신고 상태 > 배지 (PENDING 미처리, RESOLVED 처리완료, DISMISSED 기각)
+const REPORT_STATUS_BADGE = {
+    PENDING: '<span class="badge badge-warning badge-sm">미처리</span>',
+    RESOLVED: '<span class="badge badge-success badge-sm">처리완료</span>',
+    DISMISSED: '<span class="badge badge-ghost badge-sm">기각</span>'
+};
+
+/** 신고 1건 기각 (보정·비활성화 없이 종료) */
+async function dismissReport(reportUuid) {
+    if (!await AdminUi.confirmDanger('이 신고를 기각합니다. 제출 보정이나 문제 비활성화는 하지 않습니다.', { confirmLabel: '기각' })) return;
+    try {
+        await AdminApi.post(`/admin/api/reports/${reportUuid}/dismiss`);
+        AdminUi.toast('신고를 기각했습니다.');
+        loadDetail();
+    } catch (error) {
+        AdminUi.showError(error);
+    }
+}
+
 async function loadDetail() {
     if (!questionUuid) {
         showError('questionUuid가 없습니다.');
@@ -62,9 +81,11 @@ function renderReportList(reports) {
     reportCount.textContent = reports.length + '건';
 
     reportList.innerHTML = reports.map(r => {
-        const statusBadge = r.status === 'PENDING'
-            ? '<span class="badge badge-warning badge-sm">미처리</span>'
-            : '<span class="badge badge-success badge-sm">처리완료</span>';
+        const statusBadge = REPORT_STATUS_BADGE[r.status] || REPORT_STATUS_BADGE.RESOLVED;
+        // 미처리 건만 기각 버튼 (#479)
+        const dismissButton = r.status === 'PENDING'
+            ? `<button class="btn btn-xs btn-ghost text-base-content/60" onclick="dismissReport('${r.reportUuid}')">기각</button>`
+            : '';
 
         const categories = (r.categories || []).map(c => {
             const labelMap = {
@@ -85,8 +106,9 @@ function renderReportList(reports) {
             ? r.createdAt.substring(0, 16).replace('T', ' ')
             : '-';
 
-        const memberShort = r.memberUuid
-            ? r.memberUuid.substring(0, 8) + '…'
+        // 회원 상세 링크 (#479)
+        const memberLink = r.memberUuid
+            ? `<a class="link link-hover" href="/admin/members/${r.memberUuid}">${r.memberUuid.substring(0, 8)}…</a>`
             : '-';
 
         const choiceSetShort = r.choiceSetUuid
@@ -109,10 +131,10 @@ function renderReportList(reports) {
                             ${statusBadge}
                             ${categories}
                         </div>
-                        <span class="text-xs text-base-content/40 shrink-0">${createdDate}</span>
+                        <span class="flex items-center gap-1 shrink-0">${dismissButton}<span class="text-xs text-base-content/40">${createdDate}</span></span>
                     </div>
                     ${detail}
-                    <div class="text-xs text-base-content/40 mt-1">회원: ${memberShort}</div>
+                    <div class="text-xs text-base-content/40 mt-1">회원: ${memberLink}</div>
                     ${choiceSetSection}
                 </div>`;
     }).join('');

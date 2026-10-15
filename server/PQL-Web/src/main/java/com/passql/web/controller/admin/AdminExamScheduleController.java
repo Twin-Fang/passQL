@@ -3,10 +3,12 @@ package com.passql.web.controller.admin;
 import com.passql.meta.constant.CertType;
 import com.passql.meta.dto.ExamScheduleCreateRequest;
 import com.passql.meta.dto.ExamScheduleResponse;
+import com.passql.meta.dto.ExamScheduleUpdateRequest;
 import com.passql.meta.service.ExamScheduleCoverageService;
 import com.passql.meta.service.ExamScheduleService;
 import com.passql.web.support.AdminMenu;
 import com.passql.web.support.AdminPage;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -53,6 +55,15 @@ public class AdminExamScheduleController {
     public String markChecked() {
         coverageService.markChecked();
         return "redirect:/admin/exam-schedules";
+    }
+
+    /** 회차·시험일 수정 (#479) */
+    @PutMapping("/{uuid}")
+    @ResponseBody
+    public ResponseEntity<Void> update(@PathVariable("uuid") UUID uuid,
+                                       @Valid @RequestBody ExamScheduleUpdateRequest request) {
+        examScheduleService.updateSchedule(uuid, request);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{uuid}/select")

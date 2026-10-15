@@ -64,9 +64,28 @@ public class FeedbackService {
         return FeedbackListResponse.of(feedbacks);
     }
 
-    public Page<FeedbackAdminResponse> getAllFeedbacks(Pageable pageable) {
-        return feedbackRepository.findAllByOrderByCreatedAtDesc(pageable)
-            .map(FeedbackAdminResponse::from);
+    /** 관리자 건의 목록 (status null 이면 전체, 최신순) */
+    public Page<FeedbackAdminResponse> getFeedbacksForAdmin(FeedbackStatus status, Pageable pageable) {
+        Page<Feedback> feedbacks = status == null
+            ? feedbackRepository.findAllByOrderByCreatedAtDesc(pageable)
+            : feedbackRepository.findByStatusOrderByCreatedAtDesc(status, pageable);
+        return feedbacks.map(FeedbackAdminResponse::from);
+    }
+
+    /** 미처리(PENDING) 건의 수 — 대시보드 카드 */
+    public long countPending() {
+        return feedbackRepository.countByStatus(FeedbackStatus.PENDING);
+    }
+
+    /** 관리자 메모 저장 (공백만이면 삭제) */
+    @Transactional
+    public void updateAdminMemo(UUID feedbackUuid, String adminMemo) {
+        Feedback feedback = feedbackRepository.findById(feedbackUuid)
+            .orElseThrow(() -> new CustomException(ErrorCode.FEEDBACK_NOT_FOUND));
+        String previousMemo = feedback.getAdminMemo();
+        feedback.setAdminMemo(adminMemo == null || adminMemo.isBlank() ? null : adminMemo.trim());
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.FEEDBACK, feedbackUuid, AdminAuditAction.UPDATE,
+            AdminAuditEvent.summary("adminMemo", previousMemo), AdminAuditEvent.summary("adminMemo", feedback.getAdminMemo())));
     }
 
     public Map<FeedbackStatus, Long> countByStatus() {

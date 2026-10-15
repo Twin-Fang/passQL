@@ -21,7 +21,15 @@
         <div class="badge badge-success badge-lg">
             적용됨 <span class="ml-1 font-bold" th:text="${appliedCount}">0</span>
         </div>
-        <button class="btn btn-sm btn-ghost ml-auto" onclick="location.reload()">
+        <!-- 상태 필터 (#479) -->
+        <div class="join ml-auto">
+            <a th:href="@{/admin/feedbacks}" class="join-item btn btn-sm"
+               th:classappend="${selectedStatus == null} ? 'btn-active'">전체</a>
+            <a th:each="s : ${statuses}" th:href="@{/admin/feedbacks(status=${s.name()})}"
+               class="join-item btn btn-sm" th:classappend="${selectedStatus == s} ? 'btn-active'"
+               th:text="${s.name()}">PENDING</a>
+        </div>
+        <button class="btn btn-sm btn-ghost" onclick="location.reload()">
             <i data-lucide="refresh-cw" class="size-4"></i>새로고침
         </button>
     </div>
@@ -57,7 +65,11 @@
                                   th:data-member="${f.memberUuid}"
                                   th:data-status="${f.status}"
                                   th:data-created="${f.createdAt != null ? #temporals.format(f.createdAt, 'yyyy-MM-dd HH:mm') : '-'}"
+                                  th:data-memo="${f.adminMemo}"
+                                  th:data-updated-by="${f.updatedBy}"
+                                  th:data-member-href="@{/admin/members/{uuid}(uuid=${f.memberUuid})}"
                                   onclick="openModal(this)">내용</span>
+                            <span th:if="${f.adminMemo != null}" class="badge badge-ghost badge-xs mt-1">메모 있음</span>
                         </td>
                         <!-- 상태 배지 -->
                         <td>
@@ -100,12 +112,12 @@
             <!-- 페이지네이션 -->
             <div class="flex justify-center p-4" th:if="${feedbacks != null and feedbacks.totalPages > 1}">
                 <div class="join">
-                    <a th:href="@{/admin/feedbacks(page=${feedbacks.number - 1})}"
+                    <a th:href="@{/admin/feedbacks(page=${feedbacks.number - 1}, status=${selectedStatus})}"
                        class="join-item btn btn-sm"
                        th:classappend="${feedbacks.first} ? 'btn-disabled'">«</a>
                     <button class="join-item btn btn-sm btn-active"
                             th:text="${feedbacks.number + 1} + ' / ' + ${feedbacks.totalPages}">1 / 10</button>
-                    <a th:href="@{/admin/feedbacks(page=${feedbacks.number + 1})}"
+                    <a th:href="@{/admin/feedbacks(page=${feedbacks.number + 1}, status=${selectedStatus})}"
                        class="join-item btn btn-sm"
                        th:classappend="${feedbacks.last} ? 'btn-disabled'">»</a>
                 </div>
@@ -120,7 +132,7 @@
             <div class="space-y-2 text-sm">
                 <div class="flex gap-2">
                     <span class="text-base-content/60 w-20 shrink-0">회원 UUID</span>
-                    <span id="modalMember" class="font-mono break-all"></span>
+                    <a id="modalMember" class="link link-primary font-mono break-all" href="#"></a>
                 </div>
                 <div class="flex gap-2">
                     <span class="text-base-content/60 w-20 shrink-0">상태</span>
@@ -134,11 +146,18 @@
                     <span class="text-base-content/60 w-20 shrink-0">내용</span>
                     <p id="modalContent" class="whitespace-pre-wrap break-all"></p>
                 </div>
+                <!-- 관리자 메모 (답변·처리 내용, 앱 미노출) -->
+                <div class="mt-4">
+                    <label class="text-base-content/60 text-xs">관리자 메모 <span class="text-base-content/40">(앱에 보이지 않음, 1000자)</span></label>
+                    <textarea id="modalMemo" class="textarea textarea-bordered w-full text-sm mt-1" rows="4" maxlength="1000"></textarea>
+                    <p id="modalMemoUpdatedBy" class="text-xs text-base-content/40"></p>
+                </div>
             </div>
             <div class="modal-action">
                 <form method="dialog">
                     <button class="btn btn-sm">닫기</button>
                 </form>
+                <button class="btn btn-sm btn-primary" onclick="saveMemo()">메모 저장</button>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop"><button>close</button></form>
@@ -150,12 +169,26 @@
     <script>
         lucide.createIcons();
 
+        let modalFeedbackUuid = null;
+
         function openModal(el) {
-            document.getElementById('modalMember').textContent = el.dataset.member;
+            modalFeedbackUuid = el.dataset.uuid;
+            const memberLink = document.getElementById('modalMember');
+            memberLink.textContent = el.dataset.member;
+            memberLink.href = el.dataset.memberHref;
+            document.getElementById('modalMemo').value = el.dataset.memo || '';
+            document.getElementById('modalMemoUpdatedBy').textContent = el.dataset.updatedBy ? '마지막 수정: ' + el.dataset.updatedBy : '';
             document.getElementById('modalStatus').textContent = el.dataset.status;
             document.getElementById('modalCreated').textContent = el.dataset.created;
             document.getElementById('modalContent').textContent = el.dataset.content;
             document.getElementById('feedbackModal').showModal();
+        }
+
+        function saveMemo() {
+            const adminMemo = document.getElementById('modalMemo').value;
+            AdminApi.put('/admin/feedbacks/' + modalFeedbackUuid + '/memo', { adminMemo })
+                .then(() => AdminUi.reloadWithToast('메모를 저장했습니다.'))
+                .catch(error => AdminUi.showError(error));
         }
 
         function updateStatus(uuid) {

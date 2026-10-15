@@ -1,5 +1,6 @@
 package com.passql.web.controller.admin;
 
+import com.passql.meta.dto.TopicCreateRequest;
 import com.passql.meta.dto.TopicUpdateRequest;
 import com.passql.meta.service.MetaService;
 import com.passql.web.support.AdminMenu;
@@ -27,6 +28,23 @@ public class AdminTopicController {
             model.addAttribute("subtopics", metaService.getSubtopics(topicCode));
         }
         return "admin/topics";
+    }
+
+    /** 토픽 추가 (#479) */
+    @PostMapping
+    @ResponseBody
+    public ResponseEntity<Void> createTopic(@Valid @RequestBody TopicCreateRequest request) {
+        metaService.createTopic(request);
+        return ResponseEntity.ok().build();
+    }
+
+    /** 서브토픽 추가 (#479) */
+    @PostMapping("/{topicCode}/subtopics")
+    @ResponseBody
+    public ResponseEntity<Void> createSubtopic(@PathVariable String topicCode,
+                                               @Valid @RequestBody TopicCreateRequest request) {
+        metaService.createSubtopic(topicCode, request);
+        return ResponseEntity.ok().build();
     }
 
     /** 토픽 편집 — displayName, sortOrder, isActive 수정 */

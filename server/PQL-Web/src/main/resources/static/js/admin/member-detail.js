@@ -1,5 +1,5 @@
 /**
- * 회원 상세 화면: 탭 전환, 제재 적용·해제
+ * 회원 상세 화면: 탭 전환, 제재 적용·해제, 관리자 탈퇴 처리
  * memberUuid 는 members/detail.html 인라인 스크립트가 선언
  */
 
@@ -27,5 +27,13 @@ async function unsuspendMember() {
     if (!await AdminUi.confirmDanger('제재를 해제합니다. 회원이 바로 앱을 다시 쓸 수 있습니다.', { confirmLabel: '해제' })) return;
     AdminApi.post(`/admin/members/${memberUuid}/unsuspend`)
         .then(() => AdminUi.reloadWithToast('제재를 해제했습니다.'))
+        .catch(error => AdminUi.showError(error));
+}
+
+async function withdrawMember() {
+    if (!await AdminUi.confirmDanger('닉네임·이메일·소셜 식별자를 익명화하고 로그인을 막습니다.\n풀이 기록은 통계용으로 남고, 되돌릴 수 없습니다.',
+        { title: '회원을 탈퇴 처리할까요?', confirmLabel: '탈퇴 처리' })) return;
+    AdminApi.post(`/admin/members/${memberUuid}/withdraw`)
+        .then(() => AdminUi.navigateWithToast('/admin/members', '탈퇴 처리했습니다.'))
         .catch(error => AdminUi.showError(error));
 }

@@ -36,7 +36,7 @@ class AdminQuestionDeleteServiceTest {
         assertThat(result.skipped()).isEqualTo(2);
         assertThat(activeQuestion.getIsActive()).isFalse();
         // 하드 삭제 경로 없음 (회원 제출·실행 로그 보존)
-        verify(questionRepository, never()).delete(any());
+        verify(questionRepository, never()).delete(any(Question.class));
         verify(questionRepository, never()).deleteAll(any());
     }
 }

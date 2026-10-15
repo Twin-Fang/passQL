@@ -44,6 +44,23 @@
                     </select>
                 </div>
 
+                <!-- 활성 여부 필터 (비활성 = 삭제 처리된 문제, 복구 가능) -->
+                <div class="form-control">
+                    <label class="label label-text text-xs">상태</label>
+                    <select name="activeState" class="select select-sm select-bordered w-28">
+                        <option value="ACTIVE" th:selected="${condition.activeState == null or condition.activeState == 'ACTIVE'}">활성</option>
+                        <option value="INACTIVE" th:selected="${condition.activeState == 'INACTIVE'}">비활성</option>
+                        <option value="ALL" th:selected="${condition.activeState == 'ALL'}">전체</option>
+                    </select>
+                </div>
+
+                <!-- 지문 검색 (부분 일치, 대소문자 무시) -->
+                <div class="form-control">
+                    <label class="label label-text text-xs">지문 검색</label>
+                    <input type="text" name="keyword" class="input input-sm input-bordered w-48"
+                           th:value="${condition.keyword}" placeholder="예: GROUP BY"/>
+                </div>
+
                 <button type="submit" class="btn btn-sm btn-primary">
                     <i data-lucide="search" class="size-4"></i>
                     검색
@@ -144,8 +161,9 @@
                         <th class="w-28">토픽</th>
                         <th class="w-20">난이도</th>
                         <th class="w-28">실행 모드</th>
+                        <th class="w-20">상태</th>
                         <th class="w-32">생성일</th>
-                        <th class="w-16">편집</th>
+                        <th class="w-24">관리</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -173,54 +191,29 @@
                                   class="badge badge-sm"
                                   th:text="${q.executionMode != null and q.executionMode.name() == 'EXECUTABLE'} ? '실행형' : '개념형'">개념형</span>
                         </td>
+                        <td>
+                            <span th:if="${q.isActive}" class="badge badge-success badge-sm">활성</span>
+                            <span th:unless="${q.isActive}" class="badge badge-ghost badge-sm">비활성</span>
+                        </td>
                         <td class="text-xs" th:text="${q.createdAt != null ? #temporals.format(q.createdAt, 'yyyy-MM-dd') : '-'}">2026-04-01</td>
-                        <td onclick="event.stopPropagation()">
+                        <td onclick="event.stopPropagation()" class="flex gap-1">
                             <a th:href="@{/admin/questions/{uuid}/edit(uuid=${q.questionUuid})}"
                                class="btn btn-xs btn-ghost" title="편집">
                                 <i data-lucide="pencil" class="size-3"></i>
                             </a>
+                            <button th:unless="${q.isActive}" type="button" class="btn btn-xs btn-success btn-outline"
+                                    th:data-uuid="${q.questionUuid}" onclick="restoreQuestion(this.dataset.uuid)">복구</button>
                         </td>
                     </tr>
 
                     <!-- Empty state -->
                     <tr th:if="${questions == null or questions.isEmpty()}">
-                        <td colspan="8" class="text-center text-base-content/50 py-12">
+                        <td colspan="9" class="text-center text-base-content/50 py-12">
                             <i data-lucide="file-x" class="size-10 mx-auto mb-2 opacity-40"></i>
                             <p>문제가 없습니다.</p>
                         </td>
                     </tr>
 
-                    <!-- Placeholder data -->
-                    <tr th:if="${questions == null}">
-                        <td><input type="checkbox" class="checkbox checkbox-xs" disabled/></td>
-                        <td class="font-mono text-xs">1</td>
-                        <td class="text-sm">다음 중 employees 테이블에서 부서별 평균 급여를 구하는...</td>
-                        <td><span class="badge badge-outline badge-sm">SELECT</span></td>
-                        <td><span class="badge badge-sm badge-warning">Lv.3</span></td>
-                        <td><span class="badge badge-sm badge-primary">실행형</span></td>
-                        <td class="text-xs">2026-04-01</td>
-                        <td>
-                            <div class="flex gap-1">
-                                <button class="btn btn-xs btn-ghost"><i data-lucide="eye" class="size-3"></i></button>
-                                <button class="btn btn-xs btn-ghost"><i data-lucide="pencil" class="size-3"></i></button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr th:if="${questions == null}">
-                        <td><input type="checkbox" class="checkbox checkbox-xs" disabled/></td>
-                        <td class="font-mono text-xs">2</td>
-                        <td class="text-sm">GROUP BY와 HAVING을 사용하여 조건을 만족하는 그룹만...</td>
-                        <td><span class="badge badge-outline badge-sm">GROUP_BY</span></td>
-                        <td><span class="badge badge-sm badge-info">Lv.2</span></td>
-                        <td><span class="badge badge-sm badge-ghost">개념형</span></td>
-                        <td class="text-xs">2026-04-02</td>
-                        <td>
-                            <div class="flex gap-1">
-                                <button class="btn btn-xs btn-ghost"><i data-lucide="eye" class="size-3"></i></button>
-                                <button class="btn btn-xs btn-ghost"><i data-lucide="pencil" class="size-3"></i></button>
-                            </div>
-                        </td>
-                    </tr>
                     </tbody>
                 </table>
             </div>
@@ -228,12 +221,12 @@
             <!-- Pagination -->
             <div class="flex justify-center p-4" th:if="${questions != null and questions.totalPages > 1}">
                 <div class="join">
-                    <a th:href="@{/admin/questions(page=${questions.number - 1}, topic=${param.topic}, difficulty=${param.difficulty})}"
+                    <a th:href="@{/admin/questions(page=${questions.number - 1}, topic=${condition.topic}, difficulty=${condition.difficulty}, executionMode=${condition.executionMode}, keyword=${condition.keyword}, activeState=${condition.activeState})}"
                        class="join-item btn btn-sm"
                        th:classappend="${questions.first} ? 'btn-disabled'">«</a>
                     <button class="join-item btn btn-sm btn-active"
                             th:text="${questions.number + 1} + ' / ' + ${questions.totalPages}">1 / 10</button>
-                    <a th:href="@{/admin/questions(page=${questions.number + 1}, topic=${param.topic}, difficulty=${param.difficulty})}"
+                    <a th:href="@{/admin/questions(page=${questions.number + 1}, topic=${condition.topic}, difficulty=${condition.difficulty}, executionMode=${condition.executionMode}, keyword=${condition.keyword}, activeState=${condition.activeState})}"
                        class="join-item btn btn-sm"
                        th:classappend="${questions.last} ? 'btn-disabled'">»</a>
                 </div>
@@ -249,6 +242,7 @@
 <th:block layout:fragment="js">
 <script th:src="@{/js/admin/question-import-export.js}"></script>
 <script th:src="@{/js/admin/question-list.js}"></script>
+<script th:src="@{/js/admin/question-activation.js}"></script>
 <script>lucide.createIcons();</script>
 </th:block>
 </html>

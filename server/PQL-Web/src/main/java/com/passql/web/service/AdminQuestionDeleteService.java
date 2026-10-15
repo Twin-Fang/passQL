@@ -21,7 +21,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 관리자 문제 삭제: 비활성화(is_active=false)로 처리, 행은 지우지 않음
+ * 관리자 문제 삭제·복구: 삭제는 비활성화(is_active=false), 행은 지우지 않음, 복구는 다시 활성화
  * 회원 제출·실행 로그·신고·데일리 이력 보존, 사용자 노출(목록·추천·데일리 후보·벡터 색인)에서만 제외
  */
 @Slf4j
@@ -45,6 +45,20 @@ public class AdminQuestionDeleteService {
         question.deactivate();
         publishDeactivated(question);
         log.info("[question deactivate] done : questionUuid={}", questionUuid);
+    }
+
+    /** 비활성 문제 1건 복구 (이미 활성이면 그대로) */
+    @Transactional
+    public void restoreQuestion(UUID questionUuid) {
+        Question question = questionRepository.findById(questionUuid)
+                .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
+        if (Boolean.TRUE.equals(question.getIsActive())) {
+            return;
+        }
+        question.restore();
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.QUESTION, questionUuid,
+                AdminAuditAction.RESTORE, AdminAuditEvent.summary("isActive", false), AdminAuditEvent.summary("isActive", true)));
+        log.info("[question restore] done : questionUuid={}", questionUuid);
     }
 
     /**

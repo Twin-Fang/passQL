@@ -40,6 +40,17 @@ public class QuestionReportService {
             LocalDateTime latestReportedAt
     ) {}
 
+    /** 관리자 신고 목록 한 페이지 + 필터 범위 전체 합계 (요약 배지용) */
+    public record ReportSummaryPage(
+            List<ReportSummaryRow> content,
+            int page,
+            int size,
+            long totalElements,
+            int totalPages,
+            long totalReportCount,
+            long pendingReportCount
+    ) {}
+
     private final QuestionReportRepository questionReportRepository;
     private final QuestionRepository questionRepository;
     private final SubmissionRepository submissionRepository;
@@ -117,6 +128,39 @@ public class QuestionReportService {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * 관리자: 문제별 집계 한 페이지 (집계 행은 신고된 문제 수만큼이라 메모리에서 자름, #479)
+     */
+    public ReportSummaryPage getReportSummaryPage(String status, int page, int size) {
+        List<ReportSummaryRow> rows = getReportSummaries(status);
+        int fromIndex = Math.min(page * size, rows.size());
+        int toIndex = Math.min(fromIndex + size, rows.size());
+        int totalPages = (int) Math.ceil(rows.size() / (double) size);
+        long totalReportCount = rows.stream().mapToLong(ReportSummaryRow::totalCount).sum();
+        long pendingReportCount = rows.stream().mapToLong(ReportSummaryRow::pendingCount).sum();
+        return new ReportSummaryPage(rows.subList(fromIndex, toIndex), page, size, rows.size(), totalPages,
+                totalReportCount, pendingReportCount);
+    }
+
+    /** 미처리 신고 수 — 대시보드 카드 */
+    public long countPendingReports() {
+        return questionReportRepository.countByStatus(ReportStatus.PENDING);
+    }
+
+    /** 관리자: 신고 기각 (보정·비활성화 없이 종료), 처리자 = 로그인한 관리자 아이디 */
+    @Transactional
+    public void dismissReport(UUID reportUuid, String resolvedByAdminUsername) {
+        QuestionReport report = questionReportRepository.findById(reportUuid)
+                .orElseThrow(() -> new CustomException(ErrorCode.REPORT_NOT_FOUND));
+        if (!report.isPending()) {
+            throw new CustomException(ErrorCode.REPORT_ALREADY_RESOLVED);
+        }
+        report.dismiss(resolvedByAdminUsername);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.REPORT, reportUuid, AdminAuditAction.DISMISS,
+                AdminAuditEvent.summary("status", ReportStatus.PENDING),
+                AdminAuditEvent.summary("status", ReportStatus.DISMISSED, "questionUuid", report.getQuestionUuid())));
+    }
+
     /** 관리자: 특정 문제 신고 건 목록 */
     public List<QuestionReport> getReportsByQuestion(UUID questionUuid) {
         return questionReportRepository.findByQuestionUuidOrderByCreatedAtDesc(questionUuid);
@@ -139,7 +183,7 @@ public class QuestionReportService {
         QuestionReport report = questionReportRepository.findById(reportUuid)
                 .orElseThrow(() -> new CustomException(ErrorCode.REPORT_NOT_FOUND));
 
-        if (report.getStatus() == ReportStatus.RESOLVED) {
+        if (!report.isPending()) {
             throw new CustomException(ErrorCode.REPORT_ALREADY_RESOLVED);
         }
 

@@ -113,7 +113,14 @@
                                       rows="8"
                                       th:name="'doc_' + ${doc.conceptDocUuid}"
                                       th:text="${doc.bodyMd}"></textarea>
-                            <div class="flex justify-end mt-2">
+                            <div class="flex justify-end gap-2 mt-2">
+                                <button type="button" class="btn btn-sm btn-ghost text-error"
+                                        th:data-uuid="${doc.conceptDocUuid}"
+                                        th:data-title="${doc.title}"
+                                        onclick="deleteDoc(this.dataset)">
+                                    <i data-lucide="trash-2" class="size-4"></i>
+                                    삭제
+                                </button>
                                 <button type="button" class="btn btn-sm btn-primary"
                                         th:data-uuid="${doc.conceptDocUuid}"
                                         onclick="saveDoc(this.dataset.uuid)">
@@ -204,6 +211,13 @@ GROUP BY department_id;
 <th:block layout:fragment="js">
     <script>
         lucide.createIcons();
+
+        async function deleteDoc(dataset) {
+            if (!await AdminUi.confirmDanger('"' + (dataset.title || '제목 없음') + '" 개념 문서를 삭제합니다. 되돌릴 수 없습니다.', { confirmLabel: '삭제' })) return;
+            AdminApi.delete('/admin/concepts/' + dataset.uuid)
+                .then(() => AdminUi.reloadWithToast('개념 문서를 삭제했습니다.'))
+                .catch(error => AdminUi.showError(error));
+        }
 
         function saveDoc(docId) {
             const body = document.querySelector(`textarea[name="doc_${docId}"]`).value;

@@ -44,4 +44,12 @@ public class AdminConceptController {
         metaService.updateDocBody(uuid, body.get("bodyMd"));
         return ResponseEntity.ok().build();
     }
+
+    /** 개념 문서 삭제 (#479) */
+    @DeleteMapping("/{uuid}")
+    @ResponseBody
+    public ResponseEntity<Void> deleteDoc(@PathVariable UUID uuid) {
+        metaService.deleteDoc(uuid);
+        return ResponseEntity.ok().build();
+    }
 }

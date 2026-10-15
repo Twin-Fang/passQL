@@ -1,5 +1,8 @@
 package com.passql.member.service;
 
+import com.passql.common.audit.AdminAuditEvent;
+import com.passql.common.audit.constant.AdminAuditAction;
+import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.common.util.AdminRequestContext;
@@ -21,6 +24,7 @@ import com.passql.member.repository.MemberRepository;
 import com.passql.member.repository.MemberSuspendHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,10 +45,15 @@ public class MemberService {
     /** UNIQUE 충돌(nickname race) 재시도 횟수. */
     private static final int UNIQUE_CONFLICT_RETRY = 3;
 
+    // 탈퇴 삭제 사유 (member.deleted_by): 본인, 관리자
+    private static final String SELF_WITHDRAW_REASON = "SELF_WITHDRAW";
+    private static final String ADMIN_WITHDRAW_REASON = "ADMIN_WITHDRAW";
+
     private final MemberRepository memberRepository;
     private final NicknameGenerator nicknameGenerator;
     private final MemberSuspendHistoryRepository memberSuspendHistoryRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /** 본인 정보 조회 + last_seen_at throttled 갱신. */
     @Transactional
@@ -90,8 +99,22 @@ public class MemberService {
      */
     @Transactional
     public void withdraw(UUID memberUuid) {
-        Member member = findActiveMember(memberUuid);
+        anonymizeAndWithdraw(findActiveMember(memberUuid), SELF_WITHDRAW_REASON);
+    }
 
+    /** 관리자 탈퇴 처리 (#479): 본인 탈퇴와 같은 익명화 + 삭제 사유 ADMIN_WITHDRAW + 감사 기록 */
+    @Transactional
+    public void withdrawByAdmin(UUID memberUuid) {
+        Member member = findActiveMember(memberUuid);
+        String nicknameBeforeWithdraw = member.getNickname();
+        anonymizeAndWithdraw(member, ADMIN_WITHDRAW_REASON);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.MEMBER, memberUuid, AdminAuditAction.WITHDRAW,
+            AdminAuditEvent.summary("nickname", nicknameBeforeWithdraw), AdminAuditEvent.summary("status", MemberStatus.WITHDRAWN)));
+    }
+
+    /** 탈퇴 공통: 상태·개인정보 익명화 > 소프트 삭제(사유) > 리프레시 토큰 삭제 */
+    private void anonymizeAndWithdraw(Member member, String deleteReason) {
+        UUID memberUuid = member.getMemberUuid();
         member.setStatus(MemberStatus.WITHDRAWN);
         member.setWithdrawnAt(LocalDateTime.now());
         // 닉네임은 유니크라 회원 UUID 일부를 붙여 익명화한다.
@@ -99,7 +122,7 @@ public class MemberService {
         member.setEmail(null);
         member.setEmailVerified(false);
         member.setProviderUserId("withdrawn:" + memberUuid);
-        member.softDelete("SELF_WITHDRAW");
+        member.softDelete(deleteReason);
 
         refreshTokenRepository.delete(memberUuid);
         log.info("Member withdrawn: uuid={}", memberUuid);

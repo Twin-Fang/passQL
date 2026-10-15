@@ -13,6 +13,9 @@ import com.passql.meta.repository.TopicRepository;
 import com.passql.question.constant.ChoiceSetPolicy;
 import com.passql.question.constant.ChoiceSetSource;
 import com.passql.question.constant.ExecutionMode;
+import com.passql.question.constant.QuestionActiveFilter;
+import com.passql.question.dto.AdminQuestionListItem;
+import com.passql.question.dto.AdminQuestionSearchCondition;
 import com.passql.question.dto.ChoiceSetGenerateResponse;
 import com.passql.question.dto.QuestionDetail;
 import com.passql.question.dto.QuestionSummary;
@@ -33,9 +36,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -65,6 +70,43 @@ public class QuestionService {
                 ? ExecutionMode.fromRequestValue(mode)
                 : null;
         return questionRepository.findByFilters(topicUuid, difficulty, executionMode, pageable).map(this::toSummary);
+    }
+
+    /** 관리자 문제 목록: 토픽·난이도·모드·지문 검색어·활성 여부 필터 */
+    public Page<AdminQuestionListItem> searchQuestionsForAdmin(AdminQuestionSearchCondition condition, Pageable pageable) {
+        Specification<Question> specification = toActiveFilterSpecification(
+                QuestionActiveFilter.fromRequestValueOrActive(condition.getActiveState()));
+        if (StringUtils.hasText(condition.getTopic())) {
+            UUID topicUuid = topicRepository.findByCode(condition.getTopic()).map(Topic::getTopicUuid).orElse(null);
+            specification = specification.and((root, query, builder) -> builder.equal(root.get("topicUuid"), topicUuid));
+        }
+        if (condition.getDifficulty() != null) {
+            specification = specification.and((root, query, builder) -> builder.equal(root.get("difficulty"), condition.getDifficulty()));
+        }
+        if (StringUtils.hasText(condition.getExecutionMode())) {
+            ExecutionMode executionMode = ExecutionMode.fromRequestValue(condition.getExecutionMode());
+            specification = specification.and((root, query, builder) -> builder.equal(root.get("executionMode"), executionMode));
+        }
+        if (StringUtils.hasText(condition.getKeyword())) {
+            String likePattern = "%" + condition.getKeyword().trim().toLowerCase() + "%";
+            specification = specification.and((root, query, builder) -> builder.like(builder.lower(root.get("stem")), likePattern));
+        }
+        return questionRepository.findAll(specification, pageable)
+                .map(question -> AdminQuestionListItem.of(toSummary(question), question.getIsActive()));
+    }
+
+    /** 활성 여부 필터 > 조건 (ALL 은 조건 없음) */
+    private Specification<Question> toActiveFilterSpecification(QuestionActiveFilter activeFilter) {
+        return switch (activeFilter) {
+            case ACTIVE -> (root, query, builder) -> builder.isTrue(root.get("isActive"));
+            case INACTIVE -> (root, query, builder) -> builder.isFalse(root.get("isActive"));
+            case ALL -> (root, query, builder) -> builder.conjunction();
+        };
+    }
+
+    /** 문제 활성 여부 (관리자 상세 화면 비활성화·복구 버튼용) */
+    public boolean isQuestionActive(UUID questionUuid) {
+        return Boolean.TRUE.equals(getQuestionEntity(questionUuid).getIsActive());
     }
 
     public QuestionDetail getQuestion(UUID questionUuid) {

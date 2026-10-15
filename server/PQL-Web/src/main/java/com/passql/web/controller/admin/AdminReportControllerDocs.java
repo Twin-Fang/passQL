@@ -2,6 +2,7 @@ package com.passql.web.controller.admin;
 
 import com.passql.common.dto.Author;
 import com.passql.web.dto.report.AdminReportDetailResponse;
+import com.passql.web.dto.report.AdminReportPageResponse;
 import com.passql.web.dto.report.AdminReportSummary;
 import com.passql.web.dto.report.ResolveRequest;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,6 +23,7 @@ public interface AdminReportControllerDocs {
 
     @ApiLogs({
         @ApiLog(date = "2026.04.13", author = Author.SUHSAECHAN, issueNumber = 34, description = "관리자 문제 신고 집계 목록 API 추가"),
+        @ApiLog(date = "2026.10.16", author = Author.SUHSAECHAN, issueNumber = 479, description = "페이지네이션(page, size)과 필터 범위 합계, DISMISSED 상태 추가"),
     })
     @Operation(
         summary = "문제별 신고 집계 목록 조회",
@@ -30,9 +32,15 @@ public interface AdminReportControllerDocs {
 
             ## 쿼리 파라미터
             - **`status`**: 신고 상태 필터 (선택, 미입력 시 전체 조회)
-              - PENDING / RESOLVED
+              - PENDING / RESOLVED / DISMISSED
+            - **`page`**: 페이지 번호 (0부터, 기본 0)
+            - **`size`**: 페이지 크기 (기본 20, 최대 100)
 
-            ## 반환값 (List<AdminReportSummary>)
+            ## 반환값 (AdminReportPageResponse)
+            - **`content`**: 현재 페이지 집계 목록 (아래 항목)
+            - **`page`**, **`size`**, **`totalElements`**(신고된 문제 수), **`totalPages`**
+            - **`totalReportCount`**, **`pendingReportCount`**: 필터 범위 전체 신고·미처리 합계
+
             - **`questionUuid`**: 문제 UUID
             - **`questionStem`**: 문제 본문 (삭제된 문제는 "(삭제된 문제)")
             - **`totalCount`**: 전체 신고 수
@@ -41,8 +49,10 @@ public interface AdminReportControllerDocs {
             - **`latestReportedAt`**: 가장 최근 신고 시각
             """
     )
-    ResponseEntity<List<AdminReportSummary>> getReportSummaries(
-        @RequestParam(required = false) String status
+    ResponseEntity<AdminReportPageResponse> getReportSummaries(
+        @RequestParam(required = false) String status,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size
     );
 
     @ApiLogs({
@@ -99,5 +109,29 @@ public interface AdminReportControllerDocs {
         @PathVariable UUID reportUuid,
         Principal adminPrincipal,
         @RequestBody ResolveRequest request
+    );
+
+    @ApiLogs({
+        @ApiLog(date = "2026.10.16", author = Author.SUHSAECHAN, issueNumber = 479, description = "관리자 신고 기각(dismiss) API 추가"),
+    })
+    @Operation(
+        summary = "신고 기각 (dismiss)",
+        description = """
+            ## 인증: 관리자 세션 (ADMIN)
+
+            ## 경로 변수
+            - **`reportUuid`**: 기각할 신고 UUID
+
+            ## 동작
+            - 상태 DISMISSED, 보정 범위 NONE, 처리자 = 로그인한 관리자 아이디 (제출 보정·문제 비활성화 없음)
+
+            ## 에러
+            - 404 REPORT_NOT_FOUND: 신고 없음
+            - 400 REPORT_ALREADY_RESOLVED: 이미 처리·기각된 신고
+            """
+    )
+    ResponseEntity<Void> dismissReport(
+        @PathVariable UUID reportUuid,
+        Principal adminPrincipal
     );
 }

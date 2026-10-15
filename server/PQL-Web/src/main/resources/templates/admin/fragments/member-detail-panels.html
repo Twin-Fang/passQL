@@ -98,6 +98,10 @@
                             onclick="document.getElementById('suspendModal').showModal()">
                         <i data-lucide="shield-ban" class="size-4"></i>제재 적용
                     </button>
+                    <!-- 관리자 탈퇴 처리 (#479): 개인정보 익명화, 풀이 기록 보존 -->
+                    <button class="btn btn-outline btn-error btn-sm w-full gap-2" onclick="withdrawMember()">
+                        <i data-lucide="user-x" class="size-4"></i>탈퇴 처리
+                    </button>
                 </div>
             </div>
         </div>
