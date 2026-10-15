@@ -149,15 +149,13 @@ public class SubmissionService {
         return executionLogRepository.findTop20ByOrderByExecutedAtDesc();
     }
 
+    /** 최근 24시간 SQL 실행 집계 (DB 집계 쿼리 1회, 행을 메모리로 올리지 않음) */
     public MonitorStats getStats24h() {
-        LocalDateTime since = LocalDateTime.now().minusHours(24);
-        List<ExecutionLog> logs = executionLogRepository.findByExecutedAtAfter(since);
-        long successCount = logs.stream().filter(l -> "OK".equals(l.getStatus())).count();
-        long failCount = logs.stream().filter(l -> !"OK".equals(l.getStatus())).count();
-        double avgMs = logs.stream()
-                .filter(l -> l.getElapsedMs() != null)
-                .mapToLong(ExecutionLog::getElapsedMs)
-                .average().orElse(0);
-        return new MonitorStats(successCount, failCount, avgMs, 0L);
+        List<Object[]> rows = executionLogRepository.aggregateSince(LocalDateTime.now().minusHours(24));
+        Object[] row = rows.isEmpty() ? new Object[]{0L, 0L, null} : rows.get(0);
+        long totalCount = row[0] == null ? 0 : ((Number) row[0]).longValue();
+        long successCount = row[1] == null ? 0 : ((Number) row[1]).longValue();
+        double averageElapsedMilliseconds = row[2] == null ? 0 : ((Number) row[2]).doubleValue();
+        return new MonitorStats(successCount, totalCount - successCount, averageElapsedMilliseconds);
     }
 }

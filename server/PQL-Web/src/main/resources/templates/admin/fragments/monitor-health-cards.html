@@ -1,0 +1,53 @@
+<!doctype html>
+<!-- 모니터링 상태 카드 (#475): 구성 요소 3종(AI 서버, Qdrant, Redis) + resilience4j 서킷 -->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<th:block th:fragment="health-cards">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div th:each="component : ${systemHealth.components}" class="card bg-base-100 shadow">
+            <div class="card-body p-4">
+                <div class="flex items-center justify-between">
+                    <span class="font-semibold" th:text="${component.componentName}">AI 서버</span>
+                    <span class="badge" th:classappend="${component.isUp} ? 'badge-success' : 'badge-error'"
+                          th:text="${component.isUp} ? '정상' : '장애'">정상</span>
+                </div>
+                <p class="text-xs text-base-content/60 break-all" th:text="${component.detail}">GET /health 200</p>
+                <p class="text-xs text-base-content/40" th:text="'응답 ' + ${component.latencyMilliseconds} + 'ms'">응답 0ms</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow mb-6">
+        <div class="card-body p-4">
+            <h3 class="card-title text-base mb-2">
+                <i data-lucide="zap" class="size-5"></i>
+                서킷 브레이커
+            </h3>
+            <p class="text-xs text-base-content/60 mb-2">OPEN 이면 AI 서버 호출을 막고 Gemini 대체 경로로 보냅니다. 실패율 -1 은 판정할 호출 수가 아직 부족함을 뜻합니다.</p>
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead>
+                    <tr><th>이름</th><th>상태</th><th>실패율</th><th>최근 창 호출</th><th>실패</th><th>차단된 호출</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="breaker : ${systemHealth.circuitBreakers}">
+                        <td class="font-mono text-xs" th:text="${breaker.circuitBreakerName}">aiServer</td>
+                        <td>
+                            <span class="badge badge-sm"
+                                  th:classappend="${breaker.isOpen()} ? 'badge-error' : (${breaker.state == 'HALF_OPEN'} ? 'badge-warning' : 'badge-success')"
+                                  th:text="${breaker.state}">CLOSED</span>
+                        </td>
+                        <td th:text="${breaker.failureRatePercent < 0} ? '-' : ${#numbers.formatDecimal(breaker.failureRatePercent, 1, 1)} + '%'">0%</td>
+                        <td th:text="${breaker.bufferedCallCount}">0</td>
+                        <td th:text="${breaker.failedCallCount}">0</td>
+                        <td th:text="${breaker.notPermittedCallCount}">0</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(systemHealth.circuitBreakers)}">
+                        <td colspan="6" class="text-center text-base-content/50 py-4">아직 생성된 서킷이 없습니다 (첫 AI 호출 때 생성).</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</th:block>
+</html>

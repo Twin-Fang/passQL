@@ -6,7 +6,10 @@
 
 <th:block layout:fragment="content">
 
-    <!-- 요약 카드 -->
+    <!-- 구성 요소·서킷 상태 (#475) -->
+    <th:block th:replace="~{admin/fragments/monitor-health-cards :: health-cards}"></th:block>
+
+    <!-- 요약 카드 (SQL 실행 최근 24시간, DB 집계) -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="stat bg-base-100 shadow rounded-box">
             <div class="stat-figure text-primary">
@@ -28,7 +31,7 @@
             <div class="stat-figure text-warning">
                 <i data-lucide="timer" class="size-8"></i>
             </div>
-            <div class="stat-title text-xs">평균 응답시간</div>
+            <div class="stat-title text-xs">SQL 평균 실행 시간</div>
             <div class="stat-value text-warning text-2xl">
                 <span th:text="${monitorStats?.avgElapsedMs != null ? #numbers.formatDecimal(monitorStats.avgElapsedMs, 1, 0) : 0}">0</span>
                 <span class="text-sm">ms</span>
