@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/error/app_exception.dart';
 import '../../core/error/error_code.dart';
+import '../../core/monitoring/app_analytics.dart';
 import '../../core/network/safe_call.dart';
 import '../../data/sources/api_providers.dart';
 import '../../core/validation/report_validator.dart';
@@ -62,6 +63,7 @@ class ReportSubmitter {
       final error = exception.asAppException;
       if (error.code != ErrorCode.reportAlreadyExists) throw error;
     }
+    _ref.read(appAnalyticsProvider).logQuestionReported();
     _ref.invalidate(reportStatusProvider(target));
   }
 }

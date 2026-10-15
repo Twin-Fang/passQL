@@ -24,6 +24,13 @@ const Map<String, List<String>> _forbiddenImportsByLayer = {
 /// 명시적 예외: {파일 경로: 이유}. 비어 있는 것이 정상
 const Map<String, String> _allowedReverseImports = {};
 
+/// 오류·분석 수집 SDK: core/monitoring 의 공통 지점만 직접 import (나머지는 공통 지점 경유)
+const List<String> _monitoringSdkPackages = [
+  'package:firebase_crashlytics/',
+  'package:firebase_analytics/',
+];
+const String _monitoringDirectory = 'lib/core/monitoring/';
+
 void main() {
   test('안쪽 계층(core·data·design)은 바깥 계층을 import 하지 않는다', () {
     final violations = <String>[];
@@ -55,6 +62,21 @@ void main() {
               '${normalizedPath(file)}:$lineNumber > $importedPath',
             );
           }
+        }
+      }
+    }
+    expect(violations, isEmpty, reason: violations.join('\n'));
+  });
+
+  test('오류·분석 수집 SDK 는 core/monitoring 에서만 import 한다', () {
+    final violations = <String>[];
+    for (final file in handWrittenDartFiles('lib')) {
+      final path = normalizedPath(file);
+      if (path.startsWith(_monitoringDirectory)) continue;
+      final lines = file.readAsLinesSync();
+      for (var lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+        if (_monitoringSdkPackages.any(lines[lineIndex].contains)) {
+          violations.add('$path:${lineIndex + 1}');
         }
       }
     }

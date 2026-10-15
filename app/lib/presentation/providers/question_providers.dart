@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/error/app_exception.dart';
+import '../../core/monitoring/app_analytics.dart';
 import '../../data/sources/api_providers.dart';
 import '../../data/models/question/choice_item.dart';
 import '../../data/models/question/execute_request.dart';
@@ -268,6 +269,7 @@ class QuestionInteractionNotifier
               sessionUuid: sessionUuid,
             ),
           );
+      _logAnswerSubmitted(submitResult.isCorrect);
       // 신고 시 어떤 선택지 세트를 풀었는지 알려야 하므로 결과에 붙여 둔다.
       return submitResult.copyWith(choiceSetUuid: choiceSetId);
     } catch (exception) {
@@ -275,6 +277,17 @@ class QuestionInteractionNotifier
       state = state.copyWith(isSubmitting: false);
       throw exception.asAppException;
     }
+  }
+
+  /// 제출 결과 분석 기록 (토픽 이름: 화면이 이미 불러온 문제 상세에서만, 새로 요청하지 않음)
+  void _logAnswerSubmitted(bool isCorrect) {
+    final detailProvider = questionDetailProvider(_questionUuid);
+    final topicName = ref.exists(detailProvider)
+        ? ref.read(detailProvider).valueOrNull?.topicName
+        : null;
+    ref
+        .read(appAnalyticsProvider)
+        .logAnswerSubmitted(isCorrect: isCorrect, topicName: topicName);
   }
 }
 

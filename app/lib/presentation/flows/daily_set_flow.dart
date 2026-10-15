@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/monitoring/app_analytics.dart';
 import '../../data/models/daily_set/daily_set_models.dart';
 import '../../router/app_routes.dart';
 import '../providers/chapter_providers.dart';
@@ -61,6 +62,12 @@ class DailySetFlow extends QuestionFlow {
     final completion = await ref
         .read(dailySetServiceProvider)
         .submitCompletion(correctCount: correctCount, sessionUuid: sessionUuid);
+    ref
+        .read(appAnalyticsProvider)
+        .logDailySetCompleted(
+          correctCount: correctCount,
+          questionCount: summary.results.length,
+        );
 
     if (!context.mounted) return;
     context.go(

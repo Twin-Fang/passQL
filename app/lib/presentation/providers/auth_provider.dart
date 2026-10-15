@@ -7,6 +7,7 @@ import '../../core/auth/session_expiry_signal.dart';
 import '../../core/auth/social_sign_in.dart';
 import '../../core/auth/token_store.dart';
 import '../../core/error/app_exception.dart';
+import '../../core/monitoring/app_analytics.dart';
 import '../../data/sources/api_providers.dart';
 import '../../core/network/dio_client.dart';
 
@@ -45,6 +46,7 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
           .login(provider: provider, idToken: idToken);
       await ref.read(tokenStoreProvider).save(result.session);
       state = AsyncData(result.session);
+      ref.read(appAnalyticsProvider).logLoginCompleted(provider.name);
       return true;
     } on DioException catch (exception) {
       // 네트워크/서버 오류를 사용자용 문구로 통일해 화면에 전달한다.
