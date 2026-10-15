@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/core/auth/auth_session.dart';
+import 'package:passql_app/core/auth/member_suspension_signal.dart';
 import 'package:passql_app/core/auth/session_expiry_signal.dart';
 import 'package:passql_app/core/auth/social_sign_in.dart';
 import 'package:passql_app/core/auth/token_store.dart';
@@ -209,6 +210,21 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(container.read(authProvider).value, isNull);
+    });
+
+    test('이용 제한 신호를 받으면 안내 문구를 남기고 세션·소셜 로그인을 지운 뒤 로그아웃한다 (#484)', () async {
+      final social = _FakeSocial();
+      final container = await signedIn(social, _FakeAuthApi());
+
+      container
+          .read(memberSuspensionSignalProvider)
+          .announceSuspended('이용이 제한된 계정이에요.');
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(authProvider).value, isNull);
+      expect(container.read(loginNoticeProvider), '이용이 제한된 계정이에요.');
+      expect(await store.read(), isNull);
+      expect(social.signOuts, 1);
     });
 
     test('다시 시작해도 로그아웃 상태가 유지된다 (저장소에서 세션을 읽지 못한다)', () async {

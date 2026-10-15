@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/auth/auth_session.dart';
+import '../../core/auth/member_suspension_signal.dart';
 import '../../core/auth/session_expiry_signal.dart';
 import '../../core/auth/social_sign_in.dart';
 import '../../core/auth/token_store.dart';
@@ -21,6 +22,12 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
         .expirations
         .listen((_) => expire());
     ref.onDispose(expirySubscription.cancel);
+    // 네트워크 계층의 이용 제한 신호 > 안내 문구 보관 후 로그아웃
+    final suspensionSubscription = ref
+        .read(memberSuspensionSignalProvider)
+        .suspensionNotices
+        .listen(endSessionBySuspension);
+    ref.onDispose(suspensionSubscription.cancel);
     return ref.read(tokenStoreProvider).read();
   }
 
@@ -89,8 +96,22 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
 
   /// 재발급 실패 등으로 세션이 이미 지워진 뒤 상태만 로그아웃으로 맞춘다.
   void expire() => state = const AsyncData(null);
+
+  /// 이용 제한 회원 로그아웃: 로그인 화면 안내 문구 보관 > 로그아웃 상태 > 기기 세션·소셜 로그인 정리
+  /// 서버 토큰 폐기는 생략 (제재 회원은 회원 API 가 거부됨)
+  Future<void> endSessionBySuspension(String noticeMessage) async {
+    // 동시 요청 여러 건이 같은 응답을 받아도 한 번만 처리
+    if (state.valueOrNull == null) return;
+    ref.read(loginNoticeProvider.notifier).state = noticeMessage;
+    state = const AsyncData(null);
+    await ref.read(tokenStoreProvider).clear();
+    await ref.read(socialSignInProvider).signOut();
+  }
 }
 
 final authProvider = AsyncNotifierProvider<AuthNotifier, AuthSession?>(
   AuthNotifier.new,
 );
+
+/// 로그인 화면에 한 번 보여 줄 세션 종료 안내 (이용 제한 등, null이면 없음). 표시 후 로그인 화면이 비움
+final loginNoticeProvider = StateProvider<String?>((ref) => null);

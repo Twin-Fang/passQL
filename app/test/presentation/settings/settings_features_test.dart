@@ -61,7 +61,6 @@ ProviderContainer _container(
         (ref) async => SettingsData(
           memberUuid: 'm-1',
           nickname: '기존닉네임',
-          version: '1.0.0',
           choiceMode: mode,
         ),
       ),
@@ -411,7 +410,6 @@ void main() {
             (ref) async => const SettingsData(
               memberUuid: 'm',
               nickname: 'n',
-              version: '1',
               choiceMode: ChoiceGenerationMode.practice,
             ),
           ),

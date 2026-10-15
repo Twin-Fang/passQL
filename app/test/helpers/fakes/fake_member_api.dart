@@ -12,12 +12,14 @@ class FakeMemberApi implements MemberApiClient {
     this.changeNicknameError,
     this.choiceModeError,
     this.withdrawError,
+    this.regenerateNicknameError,
   });
 
   bool isNicknameAvailable;
   DioException? changeNicknameError;
   DioException? choiceModeError;
   DioException? withdrawError;
+  DioException? regenerateNicknameError;
 
   /// 호출 기록 (check:닉네임, change:닉네임, mode:값)
   final calls = <String>[];
@@ -54,6 +56,9 @@ class FakeMemberApi implements MemberApiClient {
   Future<MemberMeResponse> getMe() => throw UnimplementedError();
 
   @override
-  Future<NicknameRegenerateResponse> regenerateNickname() =>
-      throw UnimplementedError();
+  Future<NicknameRegenerateResponse> regenerateNickname() async {
+    calls.add('regenerate');
+    if (regenerateNicknameError != null) throw regenerateNicknameError!;
+    return const NicknameRegenerateResponse(nickname: '랜덤닉네임');
+  }
 }
