@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/auth/install_guard.dart';
 import 'core/auth/token_store.dart';
+import 'core/monitoring/firebase_crash_reporter.dart';
 import 'presentation/design/design.dart';
 import 'presentation/providers/auth_provider.dart';
+import 'presentation/providers/monitoring_member_sync.dart';
 import 'presentation/providers/theme_mode_provider.dart';
 import 'presentation/providers/session_reset.dart';
 import 'router/app_router.dart';
@@ -16,6 +18,7 @@ Future<void> main() async {
   await dotenv.load(fileName: '.env');
   // google-services.json / GoogleService-Info.plist 의 설정으로 초기화한다.
   await Firebase.initializeApp();
+  await startFirebaseCrashReporting();
 
   // 앱 렌더링 전 저장된 로그인 세션을 읽어, 첫 화면이 깜빡이지 않게 한다.
   // 재설치 직후라면 키체인에 남은 이전 로그인을 지운 뒤 세션을 읽는다.
@@ -38,6 +41,7 @@ Future<void> main() async {
       resetUserScopedProviders(container.invalidate);
     }
   }, fireImmediately: true);
+  syncMonitoringMemberWithAuth(container);
 
   runApp(
     UncontrolledProviderScope(container: container, child: const PassqlApp()),

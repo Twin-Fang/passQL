@@ -24,6 +24,8 @@ plugins {
     id("org.jetbrains.kotlin.android") version "2.2.20" apply false
     // google-services.json 을 읽어 Firebase/구글 로그인 설정을 앱에 주입한다.
     id("com.google.gms.google-services") version "4.4.2" apply false
+    // 릴리스 빌드 매핑 파일 Crashlytics 업로드 (스택트레이스 복원)
+    id("com.google.firebase.crashlytics") version "3.0.6" apply false
 }
 
 include(":app")
