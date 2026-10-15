@@ -1,22 +1,32 @@
 import { getAccessToken, getRefreshToken, useAuthStore } from "../stores/authStore";
 import { reissue } from "./auth";
+import { PRODUCTION_API_BASE_URL } from "../constants/siteUrls";
 
 // DEV 환경에서는 Vite 프록시(/api)를 사용하고, prod 환경에서는 실제 API 서버를 기본값으로 사용
 export const BASE_URL = import.meta.env.VITE_API_BASE_URL
-  ?? (import.meta.env.DEV ? "/api" : "https://api.passql.suhsaechan.kr/api");
+  ?? (import.meta.env.DEV ? "/api" : PRODUCTION_API_BASE_URL);
 const TIMEOUT_MS = 25_000;
 const IS_DEV = import.meta.env.DEV;
 
 // auth 관련 경로는 토큰 자동 주입 및 401 재시도에서 제외
 const AUTH_PATHS = ["/auth/login", "/auth/reissue", "/auth/logout"];
 
+// 개발 로그 라벨 > 색 토큰 (요청 브랜드, 응답 성공, 그 외 오류)
+const LOG_COLOR_TOKEN_BY_LABEL: Readonly<Record<string, string>> = {
+  REQ: "--color-brand",
+  RES: "--color-semantic-success",
+};
+const LOG_ERROR_COLOR_TOKEN = "--color-semantic-error";
+
+/** 색 토큰 이름 > 현재 값 (콘솔 %c 는 CSS 변수를 해석하지 못함) */
+function readColorToken(tokenName: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(tokenName).trim();
+}
+
 function log(label: string, method: string, path: string, data?: unknown) {
   if (!IS_DEV) return;
-  const style = label === "REQ"
-    ? "color:#4F46E5;font-weight:bold"
-    : label === "RES"
-      ? "color:#22C55E;font-weight:bold"
-      : "color:#EF4444;font-weight:bold";
+  const colorToken = LOG_COLOR_TOKEN_BY_LABEL[label] ?? LOG_ERROR_COLOR_TOKEN;
+  const style = `color:${readColorToken(colorToken)};font-weight:bold`;
   console.groupCollapsed(`%c[API ${label}] ${method} ${path}`, style);
   if (data !== undefined) console.log(data);
   console.groupEnd();

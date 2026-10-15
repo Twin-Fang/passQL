@@ -12,7 +12,7 @@ export const StarRating = memo(function StarRating({ level }: StarRatingProps) {
         <Star
           key={i}
           size={14}
-          className={i < level ? "fill-[var(--color-semantic-warning)] text-[var(--color-semantic-warning)]" : "text-border"}
+          className={i < level ? "fill-semantic-warning text-semantic-warning" : "text-border"}
         />
       ))}
     </span>

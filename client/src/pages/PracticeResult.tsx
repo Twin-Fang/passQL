@@ -263,8 +263,8 @@ export default function PracticeResult() {
                     key={r.questionUuid}
                     className={`border rounded-[10px] overflow-hidden transition-all duration-350 ease-out ${
                       r.isCorrect
-                        ? "bg-green-50 border-green-200"
-                        : "bg-red-50 border-red-200"
+                        ? "bg-semantic-success-light border-semantic-success-border"
+                        : "bg-semantic-error-light border-semantic-error-border"
                     } ${visibleCards[i] ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}
                   >
                     <button
@@ -273,7 +273,7 @@ export default function PracticeResult() {
                       onClick={() => setOpenIndex(isOpen ? null : i)}
                     >
                       <span
-                        className={`text-sm font-bold w-5 text-center shrink-0 ${r.isCorrect ? "text-green-600" : "text-red-500"}`}
+                        className={`text-sm font-bold w-5 text-center shrink-0 ${r.isCorrect ? "text-semantic-success-text" : "text-semantic-error-text"}`}
                       >
                         {i + 1}
                       </span>
@@ -284,7 +284,7 @@ export default function PracticeResult() {
                         </p>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <span className={`text-xs font-medium ${r.isCorrect ? "text-green-600" : "text-red-400"}`}>
+                        <span className={`text-xs font-medium ${r.isCorrect ? "text-semantic-success-text" : "text-semantic-error-text"}`}>
                           {r.isCorrect ? "정답" : "오답"}
                         </span>
                         {isOpen ? (
@@ -301,12 +301,12 @@ export default function PracticeResult() {
                       className={`grid transition-all duration-300 ease-out ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
                     >
                       <div className="overflow-hidden">
-                        <div className={`px-3 pb-3 pt-2 border-t space-y-2 ${r.isCorrect ? "border-green-200" : "border-red-200"}`}>
+                        <div className={`px-3 pb-3 pt-2 border-t space-y-2 ${r.isCorrect ? "border-semantic-success-border" : "border-semantic-error-border"}`}>
                           <p className="text-sm text-text-secondary leading-relaxed">
                             {q?.stemPreview}
                           </p>
                           <p
-                            className={`text-xs font-medium ${r.isCorrect ? "text-green-600" : "text-red-500"}`}
+                            className={`text-xs font-medium ${r.isCorrect ? "text-semantic-success-text" : "text-semantic-error-text"}`}
                           >
                             내 답: {r.selectedChoiceBody}
                           </p>
@@ -317,8 +317,8 @@ export default function PracticeResult() {
                               returnPath: `/practice/${sessionId}`,
                               initialStep: 1,
                             }}
-                            className={`inline-flex items-center justify-center gap-1.5 w-full text-sm font-bold text-white rounded-lg h-9 mt-1 transition-opacity hover:opacity-90 ${
-                              r.isCorrect ? "bg-green-500" : "bg-red-500"
+                            className={`inline-flex items-center justify-center gap-1.5 w-full text-sm font-bold text-on-brand rounded-lg h-9 mt-1 transition-opacity hover:opacity-90 ${
+                              r.isCorrect ? "bg-semantic-success" : "bg-semantic-error"
                             }`}
                           >
                             <RotateCcw size={14} /> 다시 풀기

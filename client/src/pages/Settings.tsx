@@ -97,7 +97,7 @@ export default function Settings() {
                     onClick={() => updateMode("PRACTICE")}
                     className={`text-xs px-3 py-1 rounded-md font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                       currentMode === "PRACTICE"
-                        ? "bg-brand text-white"
+                        ? "bg-brand text-on-brand"
                         : "text-text-caption hover:text-text-secondary"
                     }`}
                   >
@@ -109,7 +109,7 @@ export default function Settings() {
                     onClick={() => updateMode("REAL")}
                     className={`text-xs px-3 py-1 rounded-md font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                       currentMode === "REAL"
-                        ? "bg-brand text-white"
+                        ? "bg-brand text-on-brand"
                         : "text-text-caption hover:text-text-secondary"
                     }`}
                   >

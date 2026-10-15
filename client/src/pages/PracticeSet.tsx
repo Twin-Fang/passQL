@@ -11,6 +11,7 @@ import PracticeFeedbackBar from "../components/PracticeFeedbackBar";
 import ReportModal from "../components/ReportModal";
 import ConfirmModal from "../components/ConfirmModal";
 import LoadingOverlay from "../components/LoadingOverlay";
+import ProgressBar from "../components/ProgressBar";
 import type { ChoiceItem, SubmitResult } from "../types/api";
 
 function WaitingForQuestion({ topicName }: { readonly topicName: string }) {
@@ -196,12 +197,11 @@ export default function PracticeSet() {
             <span className="badge-topic">{topicName}</span>
           </div>
         </div>
-        <div className="w-full h-1.5 bg-border rounded-full overflow-hidden">
-          <div
-            className="h-full bg-brand rounded-full transition-all duration-300"
-            style={{ width: `${((displayIndex + 1) / totalQuestions) * 100}%` }}
-          />
-        </div>
+        <ProgressBar
+          fillPercent={((displayIndex + 1) / totalQuestions) * 100}
+          trackClassName="h-1.5 bg-border"
+          fillClassName="bg-brand transition-all duration-300"
+        />
       </div>
 
       {displayQuestion ? (

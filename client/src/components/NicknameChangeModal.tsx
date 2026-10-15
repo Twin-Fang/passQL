@@ -131,7 +131,7 @@ export default function NicknameChangeModal({
       ? "btn btn-sm h-12 px-3 shrink-0 border border-semantic-success text-semantic-success bg-transparent"
       : checkResult === false
       ? "btn btn-sm h-12 px-3 shrink-0 border border-semantic-error text-semantic-error bg-transparent"
-      : "btn btn-sm h-12 px-3 shrink-0 border border-brand bg-brand text-white";
+      : "btn btn-sm h-12 px-3 shrink-0 border border-brand bg-brand text-on-brand";
 
   // 상태 메시지
   const statusMsg = isSameAsCurrent
@@ -146,7 +146,7 @@ export default function NicknameChangeModal({
   return (
     // 오버레이 — 클릭 시 닫힘
     <div
-      className="fixed inset-0 z-40 bg-black/50"
+      className="fixed inset-0 z-40 bg-scrim"
       onClick={onClose}
     >
       {/* 바텀시트 — 클릭 이벤트 버블링 방지 */}

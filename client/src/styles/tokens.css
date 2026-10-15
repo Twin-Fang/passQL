@@ -61,6 +61,11 @@
   --color-heat-3: color-mix(in srgb, var(--color-brand) 65%, white);
   --color-heat-4: var(--color-brand);
 
+  /* ── 리더보드 1~3위 메달 (앱에 없는 웹 전용 값) ── */
+  --color-medal-gold: #EAB308;
+  --color-medal-silver: #9CA3AF;
+  --color-medal-bronze: #D97706;
+
   /* ── 외부 로그인 제공사 버튼 (각 사 브랜드 가이드 지정값) ── */
   --color-social-kakao: #FEE500;
   --color-social-kakao-label: #191919;

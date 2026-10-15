@@ -59,9 +59,9 @@ export default function Leaderboard() {
                   }`}
                 >
                   <span className={`w-8 text-center font-bold text-sm ${
-                    entry.rank === 1 ? "text-yellow-500" :
-                    entry.rank === 2 ? "text-gray-400" :
-                    entry.rank === 3 ? "text-amber-600" : "text-text-caption"
+                    entry.rank === 1 ? "text-medal-gold" :
+                    entry.rank === 2 ? "text-medal-silver" :
+                    entry.rank === 3 ? "text-medal-bronze" : "text-text-caption"
                   }`}>
                     {/* 상위 3위는 트로피 아이콘, 그 외는 순위 숫자 표시 */}
                     {entry.rank <= 3 ? <Trophy size={16} className="mx-auto" /> : entry.rank}

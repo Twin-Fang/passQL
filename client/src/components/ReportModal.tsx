@@ -151,7 +151,7 @@ export default function ReportModal({
           </button>
           <button type="button" className="btn-report" onClick={handleSubmit} disabled={!canSubmit}>
             {loading ? (
-              <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span className="inline-block w-4 h-4 border-2 border-on-brand border-t-transparent rounded-full animate-spin" />
             ) : (
               "신고하기"
             )}

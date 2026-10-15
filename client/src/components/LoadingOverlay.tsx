@@ -25,7 +25,7 @@ export default function LoadingOverlay({ topicName, staticMessage, subMessage, i
   }, [topicName, staticMessage]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim">
       <div className="bg-surface-card rounded-xl p-10 text-center max-w-[360px] w-[90%]">
         <div className="w-12 h-12 border-3 border-brand-light border-t-brand rounded-full animate-spin mx-auto mb-5" />
         {!staticMessage && (

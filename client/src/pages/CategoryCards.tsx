@@ -103,7 +103,7 @@ export default function CategoryCards() {
           onClick={() => setShowEmptyModal(false)}
         >
           <div
-            className="w-full max-w-[320px] bg-white border border-border rounded-2xl px-6 py-7 space-y-4"
+            className="w-full max-w-[320px] bg-surface-card border border-border rounded-2xl px-6 py-7 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="space-y-1.5 text-center">

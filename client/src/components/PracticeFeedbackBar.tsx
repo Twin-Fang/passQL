@@ -87,7 +87,7 @@ export default function PracticeFeedbackBar({
               // 오답 컨텍스트에서 다시 풀기 — 에러 색상으로 구분, 정답이면 인디고 유지
               <button
                 type="button"
-                className={`flex-1 h-11 rounded-lg font-bold text-base text-white transition-opacity hover:opacity-90 ${
+                className={`flex-1 h-11 rounded-lg font-bold text-base text-on-brand transition-opacity hover:opacity-90 ${
                   isCorrect ? "feedback-bar-next--correct" : "feedback-bar-next--error"
                 }`}
                 onClick={guard(onSecondary)}
@@ -101,7 +101,7 @@ export default function PracticeFeedbackBar({
                 onSecondary
                   // 보조 버튼: outline 스타일 — 탈출 경로임을 시각적으로 약화
                   ? "flex-1 feedback-bar-next-outline"
-                  : `w-full text-white ${isCorrect ? "feedback-bar-next--correct" : "feedback-bar-next--error"}`
+                  : `w-full text-on-brand ${isCorrect ? "feedback-bar-next--correct" : "feedback-bar-next--error"}`
               }`}
               onClick={guard(onNext)}
             >

@@ -120,7 +120,7 @@ export default function MyPage() {
       <section className={`bg-surface-card border border-border rounded-2xl p-5 flex items-center gap-4 ${s1.className}`}>
         {/* 아바타 */}
         <div className="w-14 h-14 rounded-[14px] bg-brand flex items-center justify-center shrink-0">
-          <span className="text-2xl font-bold text-white">{avatarLetter}</span>
+          <span className="text-2xl font-bold text-on-brand">{avatarLetter}</span>
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-lg font-bold text-text-primary truncate">
@@ -208,7 +208,7 @@ export default function MyPage() {
       {/* Toast */}
       {toastMsg && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
-          <div className="bg-brand text-white text-sm font-medium px-4 py-2.5 rounded-lg shadow-md whitespace-nowrap">
+          <div className="bg-brand text-on-brand text-sm font-medium px-4 py-2.5 rounded-lg shadow-md whitespace-nowrap">
             {toastMsg}
           </div>
         </div>
