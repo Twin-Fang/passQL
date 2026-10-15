@@ -64,6 +64,28 @@ void main() {
       expect(e.isRetryable, isFalse);
     });
 
+    test('서버 GlobalExceptionHandler 문자열 코드도 코드만으로 분류한다(서버 계약)', () {
+      const expectedByServerCode = {
+        'ILLEGAL_ARGUMENT': ErrorCode.validation,
+        'VALIDATION_ERROR': ErrorCode.validation,
+        'MESSAGE_NOT_READABLE': ErrorCode.validation,
+        'MISSING_PARAMETER': ErrorCode.validation,
+        'TYPE_MISMATCH': ErrorCode.validation,
+        'RESOURCE_NOT_FOUND': ErrorCode.notFound,
+        'NOT_FOUND': ErrorCode.notFound,
+        'DATA_INTEGRITY_VIOLATION': ErrorCode.conflict,
+        'GENERATION_FAILED': ErrorCode.aiUnavailable,
+        'CHOICE_SET_GENERATION_FAILED': ErrorCode.aiUnavailable,
+      };
+      expectedByServerCode.forEach((serverCode, expectedCode) {
+        expect(
+          ErrorCodeMapper.fromServerCode(serverCode),
+          expectedCode,
+          reason: serverCode,
+        );
+      });
+    });
+
     test('앱이 모르는 새 서버 코드도 상태코드로 분류하고 원문 코드를 남긴다', () {
       final e = AppException.from(
         _bad(409, {'errorCode': 'SOMETHING_NEW', 'message': '새 충돌'}),

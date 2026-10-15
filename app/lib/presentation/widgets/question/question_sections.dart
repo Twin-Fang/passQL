@@ -126,7 +126,7 @@ class QuestionChoices extends StatelessWidget {
     if (error != null) {
       return QuestionSseError(
         error: error,
-        onRetry: shouldAlwaysAllowRetry || error.retryable
+        onRetry: shouldAlwaysAllowRetry || error.isRetryable
             ? () => notifier.startSseGeneration()
             : null,
       );

@@ -47,7 +47,7 @@ void main() {
     await Future<void>.delayed(Duration.zero);
 
     expect(notifier.state.isGeneratingChoices, isFalse);
-    expect(notifier.state.sseError?.retryable, isTrue);
+    expect(notifier.state.sseError?.isRetryable, isTrue);
     expect(notifier.state.sseError?.code, 'STREAM_CLOSED');
   });
 
