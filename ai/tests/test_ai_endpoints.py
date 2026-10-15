@@ -1,5 +1,8 @@
 """AI 엔드포인트 동작 고정: 인증, 응답 형태, 오류 응답 (외부 클라이언트는 가짜로 대체)"""
+from src.core.config import settings
+from src.services import ai_service as question_service_module
 from src.services.gemini_client import gemini_client
+from src.services.ollama_client import ollama_client
 from src.services.qdrant_client import qdrant_search_client
 
 LLM_CONFIG = {
@@ -111,7 +114,7 @@ def test_recommend_searches_with_average_vector_excluding_solved(api_client, mon
         "items": [{"question_uuid": "recommended-1", "score": 0.9}],
         "query_source_count": 2,
     }
-    assert search_calls == [("passql_questions", [2.0, 4.0], 2, ["solved-1"])]
+    assert search_calls == [(settings.QDRANT_COLLECTION, [2.0, 4.0], 2, ["solved-1"])]
 
 
 def test_index_status_reports_unindexed_and_orphan_counts(api_client, monkeypatch):
@@ -154,3 +157,54 @@ def test_prune_index_deletes_only_orphans(api_client, monkeypatch):
     assert response.status_code == 200
     assert response.json() == {"deleted_count": 2, "deleted_uuids": ["orphan-1", "orphan-2"]}
     assert deleted_point_ids == ["orphan-1", "orphan-2"]
+
+
+INDEX_QUESTION_REQUEST = {
+    "question_uuid": "question-1",
+    "topic_display_name": "JOIN",
+    "difficulty": 2,
+    "stem": "문제 본문",
+}
+
+
+def _fake_index_question_dependencies(monkeypatch, embedding_vector: list[float]) -> dict:
+    """색인 경로 외부 호출 가짜 대체 (관리자 임베딩 모델 설정, Ollama, Qdrant)"""
+    recorded_calls = {"embed_models": [], "upserted_point_ids": []}
+
+    async def fake_create_collection_if_not_exists(collection, vector_size):
+        return False
+
+    async def fake_get_vector(collection, point_id):
+        return None
+
+    async def fake_embed(model, text):
+        recorded_calls["embed_models"].append(model)
+        return embedding_vector
+
+    async def fake_upsert(collection, point_id, vector, payload):
+        recorded_calls["upserted_point_ids"].append(point_id)
+
+    monkeypatch.setattr(question_service_module, "get_ollama_embed_model", lambda: "admin-embed-model")
+    monkeypatch.setattr(qdrant_search_client, "create_collection_if_not_exists", fake_create_collection_if_not_exists)
+    monkeypatch.setattr(qdrant_search_client, "get_vector", fake_get_vector)
+    monkeypatch.setattr(qdrant_search_client, "upsert", fake_upsert)
+    monkeypatch.setattr(ollama_client, "embed", fake_embed)
+    return recorded_calls
+
+
+def test_index_question_embeds_with_admin_configured_model(api_client, monkeypatch):
+    recorded_calls = _fake_index_question_dependencies(
+        monkeypatch, [0.0] * settings.EMBEDDING_VECTOR_DIMENSION
+    )
+    response = api_client.post("/api/ai/index-question", json=INDEX_QUESTION_REQUEST)
+    assert response.status_code == 200
+    assert response.json() == {"question_uuid": "question-1", "created": True}
+    assert recorded_calls == {"embed_models": ["admin-embed-model"], "upserted_point_ids": ["question-1"]}
+
+
+def test_index_question_rejects_embedding_dimension_mismatch(api_client, monkeypatch):
+    recorded_calls = _fake_index_question_dependencies(monkeypatch, [0.0, 1.0])
+    response = api_client.post("/api/ai/index-question", json=INDEX_QUESTION_REQUEST)
+    assert response.status_code == 500
+    assert response.json()["detail"].startswith("임베딩 차원 불일치")
+    assert recorded_calls["upserted_point_ids"] == []

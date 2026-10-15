@@ -12,37 +12,18 @@ _env_file_primary = f".env.{_env}"
 _env_file = _env_file_primary if os.path.exists(_env_file_primary) else ".env"
 
 
-def _read_raw(key: str) -> str:
-    """
-    pydantic 이스케이프 없이 raw 값을 읽는다.
-    우선순위: 시스템 환경변수 > .env 파일 직접 파싱
-    백슬래시 등 특수문자가 포함된 값(Qdrant API 키 등)에 사용한다.
-    """
-    val = os.environ.get(key)
-    if val is not None:
-        return val
-    try:
-        with open(_env_file, "rb") as f:
-            for line in f:
-                line = line.rstrip(b"\n").rstrip(b"\r")
-                prefix = f"{key}=".encode()
-                if line.startswith(prefix):
-                    return line[len(prefix):].decode()
-    except FileNotFoundError:
-        pass
-    return ""
-
-
 class Settings(BaseSettings):
     # Ollama 설정
     OLLAMA_API_URL: str = "https://ai.suhsaechan.kr"
     OLLAMA_API_KEY: str = ""
-    OLLAMA_CHAT_MODEL: str = "qwen2.5:7b"
     OLLAMA_EMBED_MODEL: str = "qwen3-embedding:4b"
+    # 임베딩 벡터 차원 (OLLAMA_EMBED_MODEL 에 묶임 — 모델 바꾸면 함께 바꾸고 컬렉션 재생성·재색인)
+    EMBEDDING_VECTOR_DIMENSION: int = 2560
     OLLAMA_TIMEOUT_SEC: int = 60
 
-    # Qdrant 설정 (API 키는 pydantic 우회 — _read_raw로 직접 읽음)
+    # Qdrant 설정
     QDRANT_URL: str = "http://localhost:6333"
+    QDRANT_API_KEY: str = ""
     QDRANT_COLLECTION: str = "passql_questions"
 
     # AI 서버 인증
@@ -50,7 +31,6 @@ class Settings(BaseSettings):
 
     # Google Gemini 설정 (API Key는 환경변수 전용)
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-2.5-flash-lite"
 
     # Redis 설정 (Spring과 공유 - 모델명 등 수정 가능한 설정값)
     REDIS_HOST: str = "localhost"
@@ -65,6 +45,3 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-# 백슬래시 등 특수문자가 포함되어 pydantic이 이스케이프 처리하는 키는 직접 노출
-# qdrant_client.py 등에서 settings.QDRANT_API_KEY 대신 이 값을 사용한다
-QDRANT_API_KEY: str = _read_raw("QDRANT_API_KEY")

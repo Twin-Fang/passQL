@@ -29,6 +29,7 @@ from src.models.ai_response import (
 from src.services.ollama_client import ollama_client
 from src.services.qdrant_client import qdrant_search_client
 from src.services.gemini_client import gemini_client
+from src.services.redis_settings import get_ollama_embed_model
 from src.core.config import settings
 from src.core.exceptions import CustomError
 
@@ -196,11 +197,6 @@ class AiService:
 
     # === RAG 기반 개인화 추천 ===
 
-    # Qdrant 컬렉션명 상수
-    QUESTION_COLLECTION = "passql_questions"
-    # qwen3-embedding:4b 임베딩 차원
-    EMBED_DIM = 2560
-
     def _build_embed_text(self, req: IndexQuestionRequest) -> str:
         """
         문제 임베딩용 텍스트를 조합한다.
@@ -222,7 +218,7 @@ class AiService:
 
     async def index_question(self, req: IndexQuestionRequest) -> IndexQuestionResponse:
         """
-        문제 1개를 qwen3-embedding:4b으로 임베딩하여 Qdrant passql_questions 컬렉션에 적재.
+        문제 1개 임베딩 > Qdrant 문제 컬렉션(settings.QDRANT_COLLECTION) 업서트.
 
         컬렉션이 없으면 자동 생성한다.
 
@@ -239,16 +235,23 @@ class AiService:
 
         # 컬렉션 없으면 자동 생성
         await qdrant_search_client.create_collection_if_not_exists(
-            self.QUESTION_COLLECTION, self.EMBED_DIM
+            settings.QDRANT_COLLECTION, settings.EMBEDDING_VECTOR_DIMENSION
         )
 
         # 기존 벡터 존재 여부로 created 판단
-        existing = await qdrant_search_client.get_vector(self.QUESTION_COLLECTION, req.question_uuid)
+        existing = await qdrant_search_client.get_vector(settings.QDRANT_COLLECTION, req.question_uuid)
         created = existing is None
 
         # 임베딩 텍스트 생성 → qwen3-embedding:4b으로 임베딩
         embed_text = self._build_embed_text(req)
-        vector = await ollama_client.embed(model=settings.OLLAMA_EMBED_MODEL, text=embed_text)
+        embed_model = get_ollama_embed_model()
+        vector = await ollama_client.embed(model=embed_model, text=embed_text)
+        # 차원 불일치 (관리자가 임베딩 모델만 바꾼 경우) — Qdrant 업서트 전에 원인 명시
+        if len(vector) != settings.EMBEDDING_VECTOR_DIMENSION:
+            raise CustomError(
+                f"임베딩 차원 불일치: model={embed_model}, dimension={len(vector)}, "
+                f"expected={settings.EMBEDDING_VECTOR_DIMENSION}"
+            )
 
         # Qdrant upsert (question_uuid를 point_id로 사용)
         payload = {
@@ -259,7 +262,7 @@ class AiService:
             "tag_keys": req.tag_keys,
         }
         await qdrant_search_client.upsert(
-            collection=self.QUESTION_COLLECTION,
+            collection=settings.QDRANT_COLLECTION,
             point_id=req.question_uuid,
             vector=vector,
             payload=payload,
@@ -331,7 +334,7 @@ class AiService:
         # 오답 문제 벡터 수집
         source_vectors: list[list[float]] = []
         for uuid in req.recent_wrong_question_uuids:
-            vec = await qdrant_search_client.get_vector(self.QUESTION_COLLECTION, uuid)
+            vec = await qdrant_search_client.get_vector(settings.QDRANT_COLLECTION, uuid)
             if vec:
                 source_vectors.append(vec)
 
@@ -349,7 +352,7 @@ class AiService:
 
         # 이미 푼 문제 제외하여 Qdrant 검색
         results = await qdrant_search_client.search(
-            collection=self.QUESTION_COLLECTION,
+            collection=settings.QDRANT_COLLECTION,
             vector=query_vector,
             top_k=req.size,
             must_not_ids=req.solved_question_uuids if req.solved_question_uuids else None,
@@ -384,7 +387,7 @@ class AiService:
         logger.info(f"[index-status] 요청: db_uuid_count={len(req.question_uuids)}")
 
         # Qdrant에서 현재 색인된 모든 UUID 수집
-        qdrant_ids = await qdrant_search_client.scroll_all_ids(self.QUESTION_COLLECTION)
+        qdrant_ids = await qdrant_search_client.scroll_all_ids(settings.QDRANT_COLLECTION)
         qdrant_uuid_set = set(qdrant_ids)
         db_uuid_set = set(req.question_uuids)
 
@@ -419,9 +422,9 @@ class AiService:
         if not req.question_uuids:
             raise CustomError("활성 문제 UUID 목록이 비어 있어 정리를 거부합니다")
 
-        qdrant_ids = await qdrant_search_client.scroll_all_ids(self.QUESTION_COLLECTION)
+        qdrant_ids = await qdrant_search_client.scroll_all_ids(settings.QDRANT_COLLECTION)
         orphans = sorted(set(qdrant_ids) - set(req.question_uuids))
-        await qdrant_search_client.delete_points(self.QUESTION_COLLECTION, orphans)
+        await qdrant_search_client.delete_points(settings.QDRANT_COLLECTION, orphans)
 
         logger.info(f"[prune-index] 고아 벡터 삭제: {len(orphans)}개 (활성 {len(req.question_uuids)}개 기준)")
         return PruneIndexResponse(deleted_count=len(orphans), deleted_uuids=orphans)
