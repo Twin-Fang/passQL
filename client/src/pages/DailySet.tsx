@@ -11,6 +11,7 @@ import QuestionDetail from "./QuestionDetail";
 import PracticeFeedbackBar from "../components/PracticeFeedbackBar";
 import ConfirmModal from "../components/ConfirmModal";
 import LoadingOverlay from "../components/LoadingOverlay";
+import ProgressBar from "../components/ProgressBar";
 import type { ChoiceItem, SubmitResult } from "../types/api";
 
 export default function DailySet() {
@@ -137,12 +138,11 @@ export default function DailySet() {
           </span>
           <div />
         </div>
-        <div className="w-full h-1.5 bg-border rounded-full overflow-hidden">
-          <div
-            className="h-full bg-brand rounded-full transition-all duration-300"
-            style={{ width: `${progressPct}%` }}
-          />
-        </div>
+        <ProgressBar
+          fillPercent={progressPct}
+          trackClassName="h-1.5 bg-border"
+          fillClassName="bg-brand transition-all duration-300"
+        />
       </div>
 
       {/* 피드백바 높이(~200px)만큼 bottom padding — 마지막 초이스카드가 가려지지 않게 */}

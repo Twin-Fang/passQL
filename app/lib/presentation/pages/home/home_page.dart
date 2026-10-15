@@ -1,24 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shimmer/shimmer.dart';
 
-import '../../../core/app_colors.dart';
-import '../../../core/text_styles.dart';
 import '../../../router/app_routes.dart';
+import '../../design/design.dart';
 import '../../providers/home_providers.dart';
+import '../../widgets/home/daily_set_card.dart';
 import '../../widgets/home/exam_schedule_card.dart';
 import '../../widgets/home/fallback_stats_section.dart';
 import '../../widgets/home/greeting_section.dart';
 import '../../widgets/home/heatmap_widget.dart';
 import '../../widgets/home/readiness_card.dart';
 import '../../widgets/home/recommendations_section.dart';
-import '../../widgets/home/daily_set_card.dart';
 
 /// 홈 화면.
 /// homeDataProvider에서 6개 API 병렬 결과를 받아 렌더링.
-/// 로딩 중: shimmer 스켈레톤 / 에러: 재시도 버튼.
+/// 로딩 중: 스켈레톤 / 에러: 재시도 버튼 / 성공: pull-to-refresh.
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
@@ -27,207 +24,194 @@ class HomePage extends ConsumerWidget {
     final homeAsync = ref.watch(homeDataProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.pageBg,
-      body: SafeArea(
-        child: homeAsync.when(
-          loading: () => const _HomeSkeletonLoader(),
-          error: (error, _) =>
-              _HomeErrorView(onRetry: () => ref.invalidate(homeDataProvider)),
-          data: (data) => RefreshIndicator(
-            color: AppColors.brandIndigo,
-            onRefresh: () async {
-              ref.invalidate(homeDataProvider);
-              await ref.read(homeDataProvider.future);
-            },
-            child: _HomeScrollView(data: data),
-          ),
+      backgroundColor: context.passqlColors.background,
+      body: homeAsync.when(
+        loading: () => const _HomeShell(slivers: [_HomeSkeleton()]),
+        error: (error, _) => _HomeShell(
+          slivers: [
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: PassqlStatusView.error(
+                message: '데이터를 불러오지 못했어요.',
+                onRetry: () => ref.invalidate(homeDataProvider),
+              ),
+            ),
+          ],
+        ),
+        data: (data) => _HomeShell(
+          // 인사 문구를 large title 로 올린다. 없으면 '홈'.
+          largeTitle: data.greeting == null
+              ? null
+              : _GreetingTitle(GreetingSection.resolveMessage(data.greeting!)),
+          onRefresh: () async {
+            ref.invalidate(homeDataProvider);
+            await ref.read(homeDataProvider.future);
+          },
+          slivers: [_HomeContent(data: data)],
         ),
       ),
     );
   }
 }
 
-/// 스크롤 가능한 홈 콘텐츠.
-class _HomeScrollView extends StatelessWidget {
-  final HomeData data;
+/// large title 바 + 좌우 inset 을 공통으로 쓰는 틀.
+class _HomeShell extends StatelessWidget {
+  final Widget? largeTitle;
+  final Future<void> Function()? onRefresh;
+  final List<Widget> slivers;
 
-  const _HomeScrollView({required this.data});
+  const _HomeShell({this.largeTitle, this.onRefresh, required this.slivers});
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: EdgeInsets.fromLTRB(16.w, 24.h, 16.w, 32.h),
-      children: [
-        // 인사 섹션
-        if (data.greeting != null)
-          Padding(
-            padding: EdgeInsets.only(bottom: 24.h),
-            child: GreetingSection(greeting: data.greeting!),
-          ),
-
-        // 2열 카드 그리드: 오늘의 문제 + 시험 일정
-        Padding(
-          padding: EdgeInsets.only(bottom: 16.h),
-          child: IntrinsicHeight(
-            child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: DailySetCard(
-                  dailySet: data.dailySet,
-                  onStart: () => context.push(AppRoutes.dailySet),
-                  onViewResult: () => context.push(AppRoutes.dailySetResult),
-                  onBrowse: () => context.go(AppRoutes.questions),
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(child: ExamScheduleCard(schedule: data.examSchedule)),
-            ],
-          ),
-          ),
-        ),
-
-        // 합격 준비도 카드 (readiness 있을 때)
-        if (data.progress?.readiness != null)
-          Padding(
-            padding: EdgeInsets.only(bottom: 16.h),
-            child: ReadinessCard(readiness: data.progress!.readiness!),
-          ),
-
-        // readiness 없을 때 Fallback 통계 카드
-        if (data.progress != null && data.progress!.readiness == null)
-          Padding(
-            padding: EdgeInsets.only(bottom: 16.h),
-            child: FallbackStatsSection(
-              solvedCount: data.progress!.solvedCount,
-              correctRate: data.progress!.correctRate,
-            ),
-          ),
-
-        // 히트맵
-        Padding(
-          padding: EdgeInsets.only(bottom: 24.h),
-          child: HeatmapWidget(
-            heatmap: data.heatmap,
-            streakDays: data.progress?.streakDays ?? 0,
-          ),
-        ),
-
-        // 추천 문제 섹션
-        if (data.recommendations != null &&
-            data.recommendations!.questions.isNotEmpty)
-          RecommendationsSection(
-            questions: data.recommendations!.questions,
-            onQuestionTap: (uuid) => context.push('/questions/$uuid'),
-          ),
-      ],
+    return PassqlLargeTitleScrollView(
+      title: '홈',
+      largeTitle: largeTitle,
+      onRefresh: onRefresh,
+      slivers: slivers,
     );
   }
 }
 
-/// 로딩 중 shimmer 스켈레톤.
-class _HomeSkeletonLoader extends StatelessWidget {
-  const _HomeSkeletonLoader();
+/// 인사 문구 large title. 길면 한 줄로 줄여 바 높이를 지킨다.
+class _GreetingTitle extends StatelessWidget {
+  final String text;
+
+  const _GreetingTitle(this.text);
 
   @override
   Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: AppColors.borderDefault,
-      highlightColor: AppColors.cardBg,
-      child: ListView(
-        padding: EdgeInsets.fromLTRB(16.w, 24.h, 16.w, 32.h),
-        children: [
-          // 인사 섹션
-          Container(
-            height: 60.h,
-            decoration: BoxDecoration(
-              color: AppColors.cardBg,
-              borderRadius: BorderRadius.circular(8.r),
+    return Text(
+      text,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: PassqlTypography.largeTitle.copyWith(
+        color: context.passqlColors.label,
+      ),
+    );
+  }
+}
+
+/// 홈 카드 목록. 카드 사이 간격은 PassqlSpacing.md.
+class _HomeContent extends StatelessWidget {
+  final HomeData data;
+
+  const _HomeContent({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final children = <Widget>[
+      // 인사 둘째 줄 본문 + 시험 상황 배지 (있을 때만)
+      if (data.greeting != null && GreetingSection.hasContent(data.greeting!))
+        GreetingSection(greeting: data.greeting!),
+
+      // 2열 카드: 오늘의 세트 + 시험 일정 (높이를 맞춘다)
+      IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: DailySetCard(
+                dailySet: data.dailySet,
+                onStart: () => context.push(AppRoutes.dailySet),
+                onViewResult: () => context.push(AppRoutes.dailySetResult),
+                onBrowse: () => context.go(AppRoutes.questions),
+              ),
             ),
-          ),
-          SizedBox(height: 24.h),
-          // 2열 카드
+            const SizedBox(width: PassqlSpacing.sm),
+            Expanded(child: ExamScheduleCard(schedule: data.examSchedule)),
+          ],
+        ),
+      ),
+
+      // 합격 준비도 카드 (readiness 있을 때)
+      if (data.progress?.readiness != null)
+        ReadinessCard(readiness: data.progress!.readiness!),
+
+      // readiness 없을 때 Fallback 통계 카드
+      if (data.progress != null && data.progress!.readiness == null)
+        FallbackStatsSection(
+          solvedCount: data.progress!.solvedCount,
+          correctRate: data.progress!.correctRate,
+        ),
+
+      HeatmapWidget(
+        heatmap: data.heatmap,
+        streakDays: data.progress?.streakDays ?? 0,
+      ),
+
+      if (data.recommendations != null &&
+          data.recommendations!.questions.isNotEmpty)
+        RecommendationsSection(
+          questions: data.recommendations!.questions,
+          onQuestionTap: (uuid) => context.push(AppRoutes.questionDetail(uuid)),
+        ),
+    ];
+
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+        0,
+      ),
+      sliver: SliverList.separated(
+        itemCount: children.length,
+        itemBuilder: (_, i) => children[i],
+        separatorBuilder: (_, _) => const SizedBox(height: PassqlSpacing.md),
+      ),
+    );
+  }
+}
+
+/// 로딩 중 스켈레톤. 실제 카드와 같은 높이로 자리를 잡는다.
+// 스켈레톤 자리 높이: 실제 카드(오늘의 세트·시험 일정 2열, 준비도, 히트맵) 높이와 맞춤
+const double _dualCardHeight = 140;
+const double _readinessCardHeight = 180;
+const double _heatmapCardHeight = 160;
+
+class _HomeSkeleton extends StatelessWidget {
+  const _HomeSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SliverPadding(
+      padding: EdgeInsets.fromLTRB(
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+        0,
+      ),
+      sliver: SliverList(
+        delegate: SliverChildListDelegate.fixed([
           Row(
             children: [
               Expanded(
-                child: Container(
-                  height: 140.h,
-                  decoration: BoxDecoration(
-                    color: AppColors.cardBg,
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
+                child: PassqlSkeletonBox(
+                  height: _dualCardHeight,
+                  radius: PassqlRadius.lg,
                 ),
               ),
-              SizedBox(width: 12.w),
+              SizedBox(width: PassqlSpacing.sm),
               Expanded(
-                child: Container(
-                  height: 140.h,
-                  decoration: BoxDecoration(
-                    color: AppColors.cardBg,
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
+                child: PassqlSkeletonBox(
+                  height: _dualCardHeight,
+                  radius: PassqlRadius.lg,
                 ),
               ),
             ],
           ),
-          SizedBox(height: 16.h),
-          // 준비도 카드
-          Container(
-            height: 180.h,
-            decoration: BoxDecoration(
-              color: AppColors.cardBg,
-              borderRadius: BorderRadius.circular(12.r),
-            ),
+          SizedBox(height: PassqlSpacing.md),
+          PassqlSkeletonBox(
+            height: _readinessCardHeight,
+            radius: PassqlRadius.lg,
           ),
-          SizedBox(height: 16.h),
-          // 히트맵
-          Container(
-            height: 160.h,
-            decoration: BoxDecoration(
-              color: AppColors.cardBg,
-              borderRadius: BorderRadius.circular(12.r),
-            ),
+          SizedBox(height: PassqlSpacing.md),
+          PassqlSkeletonBox(
+            height: _heatmapCardHeight,
+            radius: PassqlRadius.lg,
           ),
-        ],
-      ),
-    );
-  }
-}
-
-/// API 에러 시 재시도 뷰.
-class _HomeErrorView extends StatelessWidget {
-  final VoidCallback onRetry;
-
-  const _HomeErrorView({required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            '데이터를 불러오지 못했어요.',
-            style: AppTextStyles.paragraph_14.copyWith(
-              color: AppColors.textSecondary,
-            ),
-          ),
-          SizedBox(height: 16.h),
-          GestureDetector(
-            onTap: onRetry,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
-              decoration: BoxDecoration(
-                color: AppColors.brandIndigo,
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              child: Text(
-                '다시 시도',
-                style: AppTextStyles.label_16.copyWith(color: AppColors.cardBg),
-              ),
-            ),
-          ),
-        ],
+        ]),
       ),
     );
   }

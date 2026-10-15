@@ -2,9 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:passql_app/core/network/api_providers.dart';
+import 'package:passql_app/data/sources/api_providers.dart';
 import 'package:passql_app/data/models/feedback/feedback_models.dart';
 import 'package:passql_app/data/sources/feedback_api.dart';
+import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/pages/feedback/feedback_page.dart';
 
 import '../../helpers/pump_app.dart';
@@ -83,7 +84,7 @@ void main() {
 
   testWidgets('내용이 없으면 보낼 수 없고, 500자를 넘겨 입력해도 500자에서 멈춘다', (tester) async {
     await _open(tester, _FakeFeedbackApi());
-    IconButton send() => tester.widget<IconButton>(find.byType(IconButton));
+    PassqlButton send() => tester.widget<PassqlButton>(find.byType(PassqlButton));
 
     expect(send().onPressed, isNull);
 
@@ -109,7 +110,7 @@ void main() {
 
     await tester.enterText(find.byType(TextField), '  다크모드 부탁해요  ');
     await tester.pump();
-    await tester.tap(find.byType(IconButton));
+    await tester.tap(find.byType(PassqlButton));
     await tester.pumpAndSettle();
 
     expect(api.submitted, ['다크모드 부탁해요']);
@@ -128,7 +129,7 @@ void main() {
 
     await tester.enterText(find.byType(TextField), '쓰던 내용');
     await tester.pump();
-    await tester.tap(find.byType(IconButton));
+    await tester.tap(find.byType(PassqlButton));
     await tester.pumpAndSettle();
 
     expect(find.text('네트워크 연결을 확인해 주세요.'), findsOneWidget);

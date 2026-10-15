@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/data/models/progress/ai_comment_response.dart';
 import 'package:passql_app/presentation/widgets/stats/ai_analysis_card.dart';
 import 'package:passql_app/presentation/widgets/stats/summary_stats_section.dart';
 
-Widget _host(Widget child) => ScreenUtilInit(
-  designSize: const Size(390, 844),
-  builder: (_, _) => MaterialApp(home: Scaffold(body: child)),
-);
+Widget _host(Widget child) => MaterialApp(home: Scaffold(body: child));
 
 void main() {
   testWidgets('요약 카드: 정답률 값은 "정답률" 라벨로 표시한다', (tester) async {

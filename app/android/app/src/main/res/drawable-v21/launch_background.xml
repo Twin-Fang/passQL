@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Modify this file to customize your launch splash screen -->
+<!-- Android 11 이하 시작 화면: 배경색 + 가운데 로고 (12+ 시스템 스플래시는 앱 아이콘 사용, 여기 미적용) -->
+<!-- 로고 사본은 brand/generate_brand_assets_for_all_platforms.py 가 생성 (라이트 drawable-{밀도}, 다크 drawable-night-{밀도}) -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="?android:colorBackground" />
+    <item android:drawable="@color/splash_background" />
 
-    <!-- You can insert your own image assets here -->
-    <!-- <item>
+    <item>
         <bitmap
             android:gravity="center"
-            android:src="@mipmap/launch_image" />
-    </item> -->
+            android:src="@drawable/launch_logo" />
+    </item>
 </layer-list>

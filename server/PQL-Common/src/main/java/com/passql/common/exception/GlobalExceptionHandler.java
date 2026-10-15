@@ -6,7 +6,6 @@ import com.passql.common.exception.constant.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -34,6 +33,9 @@ public class GlobalExceptionHandler {
      */
     public static final String ERROR_DETAIL_ATTR = "passql.error.detail";
 
+    // 처리되지 않은 예외 응답 문구 (내부 메시지 노출 방지용 고정값)
+    private static final String UNHANDLED_EXCEPTION_MESSAGE = "서버 내부 오류가 발생했습니다";
+
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ErrorResponse> handleCustomException(CustomException e, HttpServletRequest request) {
         String errorCode = e.getErrorCode() != null ? e.getErrorCode().name() : null;
@@ -46,22 +48,14 @@ public class GlobalExceptionHandler {
             log.warn("[예외 처리] CustomException 발생: errorCode={}, message={}, path={}, method={}",
                 errorCode, e.getMessage(), request.getRequestURI(), request.getMethod());
         }
-        ErrorResponse errorResponse = ErrorResponse.builder()
-            .errorCode(errorCode)
-            .message(e.getMessage())
-            .build();
-        return ResponseEntity.status(e.getStatus()).body(errorResponse);
+        return toResponse(e.getErrorCode(), e.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
         IllegalArgumentException e, HttpServletRequest request) {
         log.warn("IllegalArgumentException 발생: path={}, message={}", request.getRequestURI(), e.getMessage());
-        ErrorResponse errorResponse = ErrorResponse.builder()
-            .errorCode("ILLEGAL_ARGUMENT")
-            .message(e.getMessage())
-            .build();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return toResponse(ErrorCode.ILLEGAL_ARGUMENT, e.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -74,11 +68,7 @@ public class GlobalExceptionHandler {
             .collect(Collectors.joining(", "));
         log.warn("[예외 처리] Validation 실패: message={}, path={}, method={}",
             errorMessage, request.getRequestURI(), request.getMethod());
-        ErrorResponse errorResponse = ErrorResponse.builder()
-            .errorCode("VALIDATION_ERROR")
-            .message(errorMessage)
-            .build();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return toResponse(ErrorCode.VALIDATION_ERROR, errorMessage);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -86,11 +76,7 @@ public class GlobalExceptionHandler {
         HttpMessageNotReadableException e, HttpServletRequest request) {
         // 파서 메시지에 컨트롤러 시그니처가 섞여 나가므로 응답에는 고정 문구만 쓴다 (#393)
         log.warn("HttpMessageNotReadableException 발생: path={}, message={}", request.getRequestURI(), e.getMessage());
-        ErrorResponse errorResponse = ErrorResponse.builder()
-            .errorCode("MESSAGE_NOT_READABLE")
-            .message("요청 본문을 읽을 수 없습니다. 형식을 확인해주세요")
-            .build();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return toResponse(ErrorCode.MESSAGE_NOT_READABLE);
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
@@ -98,33 +84,24 @@ public class GlobalExceptionHandler {
         MissingServletRequestParameterException e, HttpServletRequest request)
         throws MissingServletRequestParameterException {
         log.warn("MissingServletRequestParameterException 발생: path={}, message={}", request.getRequestURI(), e.getMessage());
-        ErrorResponse errorResponse = ErrorResponse.builder()
-            .errorCode("MISSING_PARAMETER")
-            .message("필수 파라미터가 누락되었습니다: " + e.getParameterName())
-            .build();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return toResponse(ErrorCode.MISSING_PARAMETER,
+            ErrorCode.MISSING_PARAMETER.getMessage() + ": " + e.getParameterName());
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(
         MethodArgumentTypeMismatchException e, HttpServletRequest request) {
         log.warn("MethodArgumentTypeMismatchException 발생: path={}, message={}", request.getRequestURI(), e.getMessage());
-        ErrorResponse errorResponse = ErrorResponse.builder()
-            .errorCode("TYPE_MISMATCH")
-            .message(String.format("파라미터 '%s'의 값 '%s'가 올바른 형식이 아닙니다", e.getName(), e.getValue()))
-            .build();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return toResponse(ErrorCode.TYPE_MISMATCH,
+            String.format("파라미터 '%s'의 값 '%s'가 올바른 형식이 아닙니다", e.getName(), e.getValue()));
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoHandlerFoundException(
         NoHandlerFoundException e, HttpServletRequest request) throws NoHandlerFoundException {
         log.warn("NoHandlerFoundException 발생: {}", e.getMessage());
-        ErrorResponse errorResponse = ErrorResponse.builder()
-            .errorCode("NOT_FOUND")
-            .message(String.format("요청하신 리소스를 찾을 수 없습니다: %s %s", e.getHttpMethod(), e.getRequestURL()))
-            .build();
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        return toResponse(ErrorCode.RESOURCE_NOT_FOUND,
+            String.format("요청하신 리소스를 찾을 수 없습니다: %s %s", e.getHttpMethod(), e.getRequestURL()));
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
@@ -133,11 +110,7 @@ public class GlobalExceptionHandler {
         // 미지원 Content-Type이 처리되지 않은 예외로 떨어져 500이 나던 문제 (#393)
         log.warn("HttpMediaTypeNotSupportedException 발생: path={}, contentType={}",
             request.getRequestURI(), e.getContentType());
-        ErrorResponse errorResponse = ErrorResponse.builder()
-            .errorCode(ErrorCode.UNSUPPORTED_MEDIA_TYPE.name())
-            .message(ErrorCode.UNSUPPORTED_MEDIA_TYPE.getMessage())
-            .build();
-        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(errorResponse);
+        return toResponse(ErrorCode.UNSUPPORTED_MEDIA_TYPE);
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
@@ -145,11 +118,7 @@ public class GlobalExceptionHandler {
         HttpRequestMethodNotSupportedException e, HttpServletRequest request) {
         log.warn("HttpRequestMethodNotSupportedException 발생: path={}, method={}",
             request.getRequestURI(), request.getMethod());
-        ErrorResponse errorResponse = ErrorResponse.builder()
-            .errorCode(ErrorCode.METHOD_NOT_ALLOWED.name())
-            .message(ErrorCode.METHOD_NOT_ALLOWED.getMessage())
-            .build();
-        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(errorResponse);
+        return toResponse(ErrorCode.METHOD_NOT_ALLOWED);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
@@ -157,20 +126,22 @@ public class GlobalExceptionHandler {
         DataIntegrityViolationException e, HttpServletRequest request) {
         log.error("[예외 처리] DataIntegrityViolationException 발생: path={}, method={}",
             request.getRequestURI(), request.getMethod(), e);
-        ErrorResponse errorResponse = ErrorResponse.builder()
-            .errorCode("DATA_INTEGRITY_VIOLATION")
-            .message("데이터 무결성 제약을 위반했습니다")
-            .build();
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+        return toResponse(ErrorCode.DATA_INTEGRITY_VIOLATION);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e, HttpServletRequest request) throws Exception {
         log.error("처리되지 않은 예외 발생: {}", e.getMessage(), e);
-        ErrorResponse errorResponse = ErrorResponse.builder()
-            .errorCode("INTERNAL_SERVER_ERROR")
-            .message("서버 내부 오류가 발생했습니다")
-            .build();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        return toResponse(ErrorCode.INTERNAL_SERVER_ERROR, UNHANDLED_EXCEPTION_MESSAGE);
+    }
+
+    /** ErrorCode > 상태 코드·기본 메시지 응답 */
+    private ResponseEntity<ErrorResponse> toResponse(ErrorCode errorCode) {
+        return toResponse(errorCode, errorCode.getMessage());
+    }
+
+    /** ErrorCode + 상황별 메시지 > 응답 (상태 코드는 ErrorCode 기준) */
+    private ResponseEntity<ErrorResponse> toResponse(ErrorCode errorCode, String message) {
+        return ResponseEntity.status(errorCode.getStatus()).body(ErrorResponse.of(errorCode, message));
     }
 }

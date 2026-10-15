@@ -1,16 +1,15 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-import '../../../core/app_colors.dart';
 import '../../../core/error/app_exception.dart';
-import '../../../core/text_styles.dart';
 import '../../../core/utils/date_format.dart';
 import '../../../core/validation/feedback_validator.dart';
 import '../../../data/models/feedback/feedback_models.dart';
+import '../../design/design.dart';
 import '../../providers/feedback_providers.dart';
 
-/// 건의사항 화면. 채팅처럼 내가 보낸 건의가 쌓이고, 아래에서 새 건의를 보낸다.
+/// 의견 보내기 화면. 채팅처럼 내가 보낸 건의가 쌓이고, 아래에서 새 건의를 보낸다.
 class FeedbackPage extends ConsumerStatefulWidget {
   const FeedbackPage({super.key});
 
@@ -20,113 +19,129 @@ class FeedbackPage extends ConsumerStatefulWidget {
 
 class _FeedbackPageState extends ConsumerState<FeedbackPage> {
   final _controller = TextEditingController();
-  final _scroll = ScrollController();
+  final _scrollController = ScrollController();
 
-  bool _sending = false;
+  bool _isSending = false;
   String? _error;
 
   /// 마지막으로 그린 건의 개수. 개수가 바뀔 때만 맨 아래로 이동한다.
-  int _lastCount = 0;
+  int _lastRenderedCount = 0;
 
   @override
   void dispose() {
     _controller.dispose();
-    _scroll.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  bool get _canSend => !_sending && FeedbackValidator.isValid(_controller.text);
+  bool get _canSend =>
+      !_isSending && FeedbackValidator.isValid(_controller.text);
 
   Future<void> _send() async {
     setState(() {
-      _sending = true;
+      _isSending = true;
       _error = null;
     });
     try {
       await ref.read(feedbackSubmitterProvider).submit(_controller.text);
       if (!mounted) return;
       _controller.clear();
-    } on AppException catch (e) {
+    } on AppException catch (exception) {
       // 입력은 지우지 않아 사용자가 바로 다시 보낼 수 있다.
-      if (mounted) setState(() => _error = e.message);
+      if (mounted) setState(() => _error = exception.message);
     } finally {
-      if (mounted) setState(() => _sending = false);
+      if (mounted) setState(() => _isSending = false);
     }
   }
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scroll.hasClients) {
-        _scroll.jumpTo(_scroll.position.maxScrollExtent);
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.passqlColors;
     final list = ref.watch(feedbackListProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.pageBg,
-      appBar: AppBar(
-        backgroundColor: AppColors.pageBg,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        foregroundColor: AppColors.textPrimary,
-        title: Text('건의사항', style: AppTextStyles.label_16),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: list.when(
-                // 전송 후 목록을 다시 받는 동안에도 기존 목록을 유지한다.
-                skipLoadingOnReload: true,
-                skipLoadingOnRefresh: true,
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => _Notice(
-                  text: e.asAppException.message,
-                  actionLabel: '다시 시도',
-                  onAction: () => ref.invalidate(feedbackListProvider),
-                ),
-                data: (items) {
-                  if (items.isEmpty) {
-                    return const _Notice(text: '아직 보낸 건의가 없어요\n앱에 바라는 점을 자유롭게 남겨 주세요');
-                  }
-                  // 타이핑으로 다시 그려질 때 스크롤이 튀지 않도록, 개수가 바뀔 때만 이동한다.
-                  if (items.length != _lastCount) {
-                    _lastCount = items.length;
-                    _scrollToBottom();
-                  }
-                  return ListView.separated(
-                    controller: _scroll,
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                    itemCount: items.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 14),
-                    itemBuilder: (_, i) => _FeedbackBubble(item: items[i]),
+      backgroundColor: colors.background,
+      appBar: PassqlNavBar(title: '의견 보내기', leading: PassqlNavLeading.back),
+      body: Column(
+        children: [
+          Expanded(
+            child: list.when(
+              // 전송 후 목록을 다시 받는 동안에도 기존 목록을 유지한다.
+              skipLoadingOnReload: true,
+              skipLoadingOnRefresh: true,
+              loading: () => const PassqlStatusView.loading(),
+              error: (error, _) => PassqlStatusView.error(
+                message: error.asAppException.message,
+                onRetry: () => ref.invalidate(feedbackListProvider),
+              ),
+              data: (items) {
+                if (items.isEmpty) {
+                  return PassqlStatusView.empty(
+                    icon: CupertinoIcons.chat_bubble_text,
+                    title: '아직 보낸 건의가 없어요',
+                    message: '앱에 바라는 점을 자유롭게 남겨 주세요',
                   );
-                },
-              ),
+                }
+                // 타이핑으로 다시 그려질 때 스크롤이 튀지 않도록, 개수가 바뀔 때만 이동한다.
+                if (items.length != _lastRenderedCount) {
+                  _lastRenderedCount = items.length;
+                  _scrollToBottom();
+                }
+                return ListView.separated(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.fromLTRB(
+                    PassqlSpacing.md,
+                    PassqlSpacing.sm,
+                    PassqlSpacing.md,
+                    PassqlSpacing.sm,
+                  ),
+                  itemCount: items.length,
+                  separatorBuilder: (_, _) =>
+                      const SizedBox(height: PassqlSpacing.sm),
+                  itemBuilder: (_, i) => _FeedbackBubble(item: items[i]),
+                );
+              },
             ),
-            if (_error != null)
-              Container(
-                width: double.infinity,
-                color: AppColors.red100,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                child: Text(
-                  _error!,
-                  style: AppTextStyles.tag_12.copyWith(color: AppColors.red),
+          ),
+          if (_error != null)
+            Container(
+              width: double.infinity,
+              color: colors.wrongTint,
+              padding: const EdgeInsets.symmetric(
+                horizontal: PassqlSpacing.md,
+                vertical: PassqlSpacing.xs,
+              ),
+              child: Text(
+                _error!,
+                style: PassqlTypography.footnote.copyWith(
+                  color: colors.wrongText,
                 ),
               ),
-            _Composer(
-              controller: _controller,
-              sending: _sending,
-              canSend: _canSend,
-              onChanged: () => setState(() {}),
-              onSend: _send,
             ),
-          ],
-        ),
+          // 입력창은 하단 액션 바의 윗줄에 둬서 키보드가 올라와도 버튼과 함께 움직인다.
+          PassqlBottomActionBar(
+            top: _Composer(
+              controller: _controller,
+              isSending: _isSending,
+              onChanged: () => setState(() {}),
+            ),
+            actions: [
+              PassqlButton(
+                label: '보내기',
+                isLoading: _isSending,
+                onPressed: _canSend ? _send : null,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -140,29 +155,30 @@ class _FeedbackBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.passqlColors;
     final (bubble, text, pillBg, pillText) = switch (item.status) {
       FeedbackStatus.pending => (
-        AppColors.brandIndigo,
-        Colors.white,
-        Colors.white24,
-        Colors.white,
+        colors.accent,
+        colors.onAccent,
+        colors.onAccent.withValues(alpha: 0.24),
+        colors.onAccent,
       ),
       FeedbackStatus.reviewed => (
-        AppColors.brandIndigo.withValues(alpha: 0.1),
-        AppColors.textPrimary,
-        AppColors.brandIndigo,
-        Colors.white,
+        colors.accentTint,
+        colors.label,
+        colors.accent,
+        colors.onAccent,
       ),
       FeedbackStatus.applied => (
-        AppColors.successLight,
-        AppColors.textPrimary,
-        AppColors.successText,
-        Colors.white,
+        colors.correctTint,
+        colors.label,
+        colors.correct,
+        colors.onAccent,
       ),
     };
     final captionColor = item.status == FeedbackStatus.pending
-        ? Colors.white70
-        : AppColors.textCaption;
+        ? colors.onAccent.withValues(alpha: 0.7)
+        : colors.tertiaryLabel;
 
     return Align(
       alignment: Alignment.centerRight,
@@ -171,14 +187,20 @@ class _FeedbackBubble extends StatelessWidget {
           maxWidth: MediaQuery.of(context).size.width * 0.82,
         ),
         child: Container(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+          padding: const EdgeInsets.fromLTRB(
+            PassqlSpacing.sm,
+            PassqlSpacing.sm,
+            PassqlSpacing.sm,
+            PassqlSpacing.xs,
+          ),
           decoration: BoxDecoration(
             color: bubble,
+            // 보낸 쪽(오른쪽 아래) 모서리만 작게 둬 말풍선 꼬리처럼 보이게 한다.
             borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(16),
-              topRight: Radius.circular(16),
-              bottomLeft: Radius.circular(16),
-              bottomRight: Radius.circular(3),
+              topLeft: Radius.circular(PassqlRadius.lg),
+              topRight: Radius.circular(PassqlRadius.lg),
+              bottomLeft: Radius.circular(PassqlRadius.lg),
+              bottomRight: Radius.circular(PassqlSpacing.xxs),
             ),
           ),
           child: Column(
@@ -186,29 +208,31 @@ class _FeedbackBubble extends StatelessWidget {
             children: [
               Text(
                 item.content,
-                style: AppTextStyles.paragraph_14.copyWith(color: text),
+                style: PassqlTypography.subheadline.copyWith(color: text),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: PassqlSpacing.xs),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     formatMonthDayTime(item.createdAt),
-                    style: AppTextStyles.tag_12.copyWith(color: captionColor),
+                    style: PassqlTypography.caption.copyWith(
+                      color: captionColor,
+                    ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: PassqlSpacing.xs),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
+                      horizontal: PassqlSpacing.xs,
+                      vertical: PassqlSpacing.hairlineGap,
                     ),
                     decoration: BoxDecoration(
                       color: pillBg,
-                      borderRadius: BorderRadius.circular(99),
+                      borderRadius: BorderRadius.circular(PassqlRadius.capsule),
                     ),
                     child: Text(
                       item.status.label,
-                      style: AppTextStyles.tag_12.copyWith(color: pillText),
+                      style: PassqlTypography.caption.copyWith(color: pillText),
                     ),
                   ),
                 ],
@@ -221,122 +245,53 @@ class _FeedbackBubble extends StatelessWidget {
   }
 }
 
-/// 하단 입력 영역: 입력창, 글자 수, 보내기 버튼.
+/// 입력 영역: 카드 안의 입력창과 글자 수.
 class _Composer extends StatelessWidget {
   const _Composer({
     required this.controller,
-    required this.sending,
-    required this.canSend,
+    required this.isSending,
     required this.onChanged,
-    required this.onSend,
   });
 
   final TextEditingController controller;
-  final bool sending;
-  final bool canSend;
+  final bool isSending;
   final VoidCallback onChanged;
-  final VoidCallback onSend;
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.passqlColors;
     final length = FeedbackValidator.normalize(controller.text).length;
-    final over = length > FeedbackValidator.maxLength;
+    final isOverLimit = length > FeedbackValidator.maxLength;
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
-      decoration: const BoxDecoration(
-        color: AppColors.cardBg,
-        border: Border(top: BorderSide(color: AppColors.borderDefault)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+    return PassqlCard(
+      padding: const EdgeInsets.all(PassqlSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  controller: controller,
-                  enabled: !sending,
-                  minLines: 1,
-                  maxLines: 4,
-                  inputFormatters: FeedbackValidator.inputFormatters,
-                  onChanged: (_) => onChanged(),
-                  decoration: const InputDecoration(
-                    hintText: '앱에 바라는 점을 자유롭게 적어주세요',
-                    border: InputBorder.none,
-                    isDense: true,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '$length/${FeedbackValidator.maxLength}',
-                  style: AppTextStyles.tag_12.copyWith(
-                    color: over ? AppColors.red : AppColors.textCaption,
-                  ),
-                ),
-              ],
+          TextField(
+            controller: controller,
+            enabled: !isSending,
+            minLines: 1,
+            maxLines: 4,
+            inputFormatters: FeedbackValidator.inputFormatters,
+            onChanged: (_) => onChanged(),
+            style: PassqlTypography.body.copyWith(color: colors.label),
+            cursorColor: colors.accent,
+            decoration: InputDecoration.collapsed(
+              hintText: '앱에 바라는 점을 자유롭게 적어주세요',
+              hintStyle: PassqlTypography.body.copyWith(
+                color: colors.tertiaryLabel,
+              ),
             ),
           ),
-          IconButton(
-            tooltip: '보내기',
-            onPressed: canSend ? onSend : null,
-            icon: sending
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : FaIcon(
-                    FontAwesomeIcons.paperPlane,
-                    size: 18,
-                    color: canSend
-                        ? AppColors.brandIndigo
-                        : AppColors.textCaption,
-                  ),
+          const SizedBox(height: PassqlSpacing.xxs),
+          Text(
+            '$length/${FeedbackValidator.maxLength}',
+            style: PassqlTypography.caption.copyWith(
+              color: isOverLimit ? colors.wrongText : colors.tertiaryLabel,
+            ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _Notice extends StatelessWidget {
-  const _Notice({required this.text, this.actionLabel, this.onAction});
-
-  final String text;
-  final String? actionLabel;
-  final VoidCallback? onAction;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              text,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.paragraph_14.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            if (actionLabel != null) ...[
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: onAction,
-                child: Text(
-                  actionLabel!,
-                  style: AppTextStyles.paragraph_14.copyWith(
-                    color: AppColors.brandIndigo,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
       ),
     );
   }

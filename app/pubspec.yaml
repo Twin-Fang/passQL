@@ -1,7 +1,7 @@
 name: passql_app
 description: "passQL - SQL 학습 앱"
 publish_to: none
-version: 0.5.1+266
+version: 0.10.0+277
 environment:
   sdk: ^3.9.2
 dependencies:
@@ -22,10 +22,8 @@ dependencies:
   flutter_dotenv: ^6.0.0
   uuid: ^4.5.2
   # UI/UX
-  flutter_screenutil: ^5.9.3
   flutter_svg: ^2.2.1
   shimmer: ^3.0.0
-  font_awesome_flutter: ^11.0.0
   # 차트
   fl_chart: ^0.70.0
   # 외부 링크
@@ -56,6 +54,7 @@ flutter:
   assets:
     - .env
     - assets/logo.png
+    - assets/logo_dark.png
   fonts:
     - family: Pretendard-Thin
       fonts:
@@ -90,5 +89,5 @@ flutter_launcher_icons:
   # 정식 아이콘(#317 정사각형 로고). 교체할 때는 이 파일만 바꾸고 `dart run flutter_launcher_icons` 로 다시 생성한다.
   image_path: "assets/app_icon_1024.png"
   adaptive_icon_background: "#060C26"
-  adaptive_icon_foreground: "assets/app_icon_512.png"
+  adaptive_icon_foreground: "assets/app_icon_foreground.png"
   remove_alpha_ios: true

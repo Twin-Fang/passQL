@@ -57,21 +57,21 @@ export default function FeedbackItem({ item, className }: FeedbackItemProps) {
   // 버블 배경+텍스트
   const bubbleClass =
     status === "PENDING"
-      ? "bg-brand text-white"
+      ? "bg-brand text-on-brand"
       : status === "REVIEWED"
-      ? "bg-brand-light border border-[#C7D2FE] text-text-primary"
-      : "bg-sem-success-light border border-[#BBF7D0] text-text-primary";
+      ? "bg-brand-light border border-brand-border text-text-primary"
+      : "bg-semantic-success-light border border-semantic-success-border text-text-primary";
 
   // 상태 pill
   const pillClass =
     status === "PENDING"
-      ? "bg-white/20 text-white"
+      ? "bg-on-brand/20 text-on-brand"
       : status === "REVIEWED"
-      ? "bg-brand text-white"
-      : "bg-sem-success-text text-white";
+      ? "bg-brand text-on-brand"
+      : "bg-semantic-success-text text-on-brand";
 
   // 시간 색상
-  const timeClass = status === "PENDING" ? "text-white/60" : "text-text-caption";
+  const timeClass = status === "PENDING" ? "text-on-brand/60" : "text-text-caption";
 
   return (
     <div className={`flex justify-end${className ? ` ${className}` : ""}`}>

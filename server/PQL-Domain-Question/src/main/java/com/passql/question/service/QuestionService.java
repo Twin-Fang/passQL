@@ -1,5 +1,6 @@
 package com.passql.question.service;
 
+import com.passql.common.util.TextPreview;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.entity.Subtopic;
@@ -9,6 +10,7 @@ import com.passql.meta.repository.TopicRepository;
 import com.passql.question.constant.ChoiceSetPolicy;
 import com.passql.question.constant.ChoiceSetSource;
 import com.passql.question.constant.ExecutionMode;
+import com.passql.question.dto.ChoiceSetGenerateResponse;
 import com.passql.question.dto.QuestionDetail;
 import com.passql.question.dto.QuestionSummary;
 import com.passql.question.dto.RecommendationsResponse;
@@ -54,7 +56,7 @@ public class QuestionService {
                 ? topicRepository.findByCode(topicCode).map(Topic::getTopicUuid).orElse(null)
                 : null;
         ExecutionMode executionMode = (mode != null && !mode.isBlank())
-                ? ExecutionMode.valueOf(mode)
+                ? ExecutionMode.fromRequestValue(mode)
                 : null;
         return questionRepository.findByFilters(topicUuid, difficulty, executionMode, pageable).map(this::toSummary);
     }
@@ -100,6 +102,20 @@ public class QuestionService {
                 q.getHint(),
                 choiceSets
         );
+    }
+
+    /** 풀이용 선택지 세트 > 응답 (정답 여부·해설 제외) */
+    public ChoiceSetGenerateResponse getChoiceSetForSolving(UUID choiceSetUuid) {
+        List<ChoiceSetGenerateResponse.ChoiceItem> choiceItems = choiceSetItemRepository
+                .findByChoiceSetUuidOrderBySortOrderAsc(choiceSetUuid)
+                .stream()
+                .map(item -> new ChoiceSetGenerateResponse.ChoiceItem(
+                        item.getChoiceKey(),
+                        item.getKind().name(),
+                        item.getBody(),
+                        item.getSortOrder()))
+                .toList();
+        return new ChoiceSetGenerateResponse(choiceSetUuid, choiceItems);
     }
 
     public Question getQuestionEntity(UUID questionUuid) {
@@ -178,7 +194,7 @@ public class QuestionService {
 
     public QuestionSummary toSummary(Question q) {
         String stem = q.getStem();
-        String preview = stem == null ? "" : (stem.length() > 100 ? stem.substring(0, 100) : stem);
+        String preview = TextPreview.truncate(stem, TextPreview.QUESTION_SUMMARY_STEM_LENGTH);
         Topic topic = q.getTopicUuid() != null ? topicRepository.findById(q.getTopicUuid()).orElse(null) : null;
         return new QuestionSummary(
                 q.getQuestionUuid(),

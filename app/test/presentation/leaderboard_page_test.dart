@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/data/models/daily_set/daily_set_models.dart';
 import 'package:passql_app/presentation/pages/daily_set/leaderboard_page.dart';
@@ -20,10 +19,7 @@ void main() {
             ),
           ),
         ],
-        child: ScreenUtilInit(
-          designSize: const Size(390, 844),
-          builder: (_, _) => const MaterialApp(home: LeaderboardPage()),
-        ),
+        child: const MaterialApp(home: LeaderboardPage()),
       ),
     );
     await tester.pumpAndSettle();

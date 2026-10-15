@@ -24,7 +24,7 @@ class SseQuestionClient {
           headers: {'Accept': 'text/event-stream'},
         ),
       );
-    } catch (e) {
+    } catch (_) {
       yield SseErrorEvent('CONNECT_FAILED', true);
       return;
     }
@@ -38,41 +38,42 @@ class SseQuestionClient {
 
     // 줄 단위 스트림을 SSE 규격대로 이벤트로 바꾼다. (파싱 규칙은 [parseSseLines] 참고)
     await for (final data in parseSseLines(lineStream)) {
-      final event = _parse(data.event, data.data);
+      final event = toSseEvent(data.event, data.data);
       if (event != null) yield event;
     }
   }
+}
 
-  /// SSE [eventType]과 raw JSON 문자열로 이벤트 객체 생성.
-  /// eventType이 없으면 json['type'] 필드로 폴백.
-  SseEvent? _parse(String eventType, String raw) {
-    try {
-      final json = jsonDecode(raw) as Map<String, dynamic>;
-      // event: 필드 우선, 없으면 json body의 type 필드 폴백
-      final type = eventType.isNotEmpty ? eventType : json['type'] as String?;
-      switch (type) {
-        case 'status':
-          return SseStatusEvent(json['message'] as String? ?? '처리 중...');
-        case 'complete':
-          final rawChoices = json['choices'] as List<dynamic>? ?? [];
-          final choices = rawChoices
-              .map((e) => ChoiceItem.fromJson(e as Map<String, dynamic>))
-              .toList();
-          return SseCompleteEvent(
-            choices,
-            json['choiceSetId'] as String? ?? '',
-          );
-        case 'error':
-          return SseErrorEvent(
-            json['code'] as String? ?? 'UNKNOWN',
-            json['retryable'] as bool? ?? false,
-          );
-        default:
-          return null;
-      }
-    } catch (_) {
-      return null;
+/// SSE 이벤트 이름 + data JSON > 이벤트 객체 (모르는 이벤트·깨진 JSON 은 null)
+/// eventType이 없으면 json['type'] 필드로 폴백.
+SseEvent? toSseEvent(String eventType, String raw) {
+  try {
+    final json = jsonDecode(raw) as Map<String, dynamic>;
+    // event: 필드 우선, 없으면 json body의 type 필드 폴백
+    final type = eventType.isNotEmpty ? eventType : json['type'] as String?;
+    switch (type) {
+      case 'status':
+        return SseStatusEvent(json['message'] as String? ?? '처리 중...');
+      case 'complete':
+        final rawChoices = json['choices'] as List<dynamic>? ?? [];
+        final choices = rawChoices
+            .map(
+              (choiceJson) =>
+                  ChoiceItem.fromJson(choiceJson as Map<String, dynamic>),
+            )
+            .toList();
+        return SseCompleteEvent(choices, json['choiceSetId'] as String? ?? '');
+      case 'error':
+        // 서버가 errorCode 와 code 를 함께 보내는 경우가 있어 errorCode 를 우선한다.
+        return SseErrorEvent(
+          json['errorCode'] as String? ?? json['code'] as String? ?? 'UNKNOWN',
+          json['retryable'] as bool? ?? false,
+        );
+      default:
+        return null;
     }
+  } catch (_) {
+    return null;
   }
 }
 

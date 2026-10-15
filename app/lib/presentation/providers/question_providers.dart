@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/network/api_providers.dart';
+import '../../data/sources/api_providers.dart';
 import '../../data/models/question/choice_item.dart';
 import '../../data/models/question/execute_request.dart';
 import '../../data/models/question/execute_result.dart';
@@ -8,16 +8,12 @@ import '../../data/models/question/question_detail.dart';
 import '../../data/models/question/sse_event.dart';
 import '../../data/models/question/submit_request.dart';
 import '../../data/models/question/submit_result.dart';
-import '../../data/sources/question_api.dart';
-import '../../data/sources/sse_question_client.dart';
 
 /// 문제 상세 로딩 Provider. autoDispose로 화면 이탈 시 캐시 해제.
-final questionDetailProvider =
-    FutureProvider.autoDispose.family<QuestionDetail, String>(
-  (ref, questionUuid) async {
-    return ref.read(questionApiProvider).getQuestion(questionUuid);
-  },
-);
+final questionDetailProvider = FutureProvider.autoDispose
+    .family<QuestionDetail, String>((ref, questionUuid) async {
+      return ref.read(questionApiProvider).getQuestion(questionUuid);
+    });
 
 // ─── 인터랙션 상태 ───────────────────────────────────────────────────
 
@@ -97,22 +93,34 @@ class QuestionInteractionState {
   }
 }
 
-/// 문제 인터랙션 Notifier. questionUuid별로 autoDispose family 생성.
+/// 문제 풀이 상호작용: 선택지 준비(기존 세트 재사용 또는 SSE 생성) > 선택·실행 > 제출
+/// questionUuid별 autoDispose family.
 class QuestionInteractionNotifier
-    extends StateNotifier<QuestionInteractionState> {
-  final String _questionUuid;
-  final QuestionApiClient _questionApi;
-  final SseQuestionClient _sseClient;
-  StreamSubscription<SseEvent>? _sseSub;
+    extends AutoDisposeFamilyNotifier<QuestionInteractionState, String> {
+  /// 바로 쓸 수 있는 선택지 세트 상태값 (서버 choice_set.status)
+  static const _readyChoiceSetStatus = 'OK';
 
-  QuestionInteractionNotifier({
-    required String questionUuid,
-    required QuestionApiClient questionApi,
-    required SseQuestionClient sseClient,
-  })  : _questionUuid = questionUuid,
-        _questionApi = questionApi,
-        _sseClient = sseClient,
-        super(const QuestionInteractionState());
+  StreamSubscription<SseEvent>? _sseSubscription;
+
+  String get _questionUuid => arg;
+
+  @override
+  QuestionInteractionState build(String questionUuid) {
+    ref.onDispose(() => _sseSubscription?.cancel());
+    return const QuestionInteractionState();
+  }
+
+  /// 선택지 준비: 바로 쓸 수 있는 세트가 있으면 재사용, 없으면 SSE 로 새로 생성
+  void initializeChoices(QuestionDetail question) {
+    final readyChoiceSet = question.choiceSets
+        .where((choiceSet) => choiceSet.status == _readyChoiceSetStatus)
+        .firstOrNull;
+    if (readyChoiceSet != null) {
+      useExistingChoiceSet(readyChoiceSet.choiceSetUuid, readyChoiceSet.items);
+    } else {
+      startSseGeneration();
+    }
+  }
 
   /// 기존 OK 선택지 세트를 바로 사용 (SSE 불필요).
   void useExistingChoiceSet(String choiceSetId, List<ChoiceItem> items) {
@@ -130,11 +138,10 @@ class QuestionInteractionNotifier
       sseStatusMessage: '선택지 생성 중...',
     );
 
-    await _sseSub?.cancel();
-    _sseSub = _sseClient
-        .generateChoices(
-          questionUuid: _questionUuid,
-        )
+    await _sseSubscription?.cancel();
+    _sseSubscription = ref
+        .read(sseQuestionClientProvider)
+        .generateChoices(questionUuid: _questionUuid)
         .listen(
           _onSseEvent,
           onError: (_) {
@@ -167,10 +174,10 @@ class QuestionInteractionNotifier
           activeChoices: choices,
           clearSseError: true,
         );
-      case final SseErrorEvent err:
+      case final SseErrorEvent errorEvent:
         state = state.copyWith(
           isGeneratingChoices: false,
-          sseError: err,
+          sseError: errorEvent,
         );
     }
   }
@@ -189,27 +196,27 @@ class QuestionInteractionNotifier
     if (!isExecutable || sql == null || sql.isEmpty) return;
 
     // 캐시 HIT: API 호출 없이 결과 재사용.
-    final cached = state.executeCache[sql];
-    if (cached != null) {
-      state = state.copyWith(currentExecuteResult: cached);
+    final cachedResult = state.executeCache[sql];
+    if (cachedResult != null) {
+      state = state.copyWith(currentExecuteResult: cachedResult);
       return;
     }
 
     // 캐시 MISS: POST /execute 호출.
     state = state.copyWith(isExecuting: true);
     try {
-      final result = await _questionApi.executeChoice(
-        _questionUuid,
-        ExecuteRequest(sql: sql),
-      );
+      final executeResult = await ref
+          .read(questionApiProvider)
+          .executeChoice(_questionUuid, ExecuteRequest(sql: sql));
       final newCache = Map<String, ExecuteResult>.from(state.executeCache)
-        ..[sql] = result;
+        ..[sql] = executeResult;
       state = state.copyWith(
         executeCache: newCache,
-        currentExecuteResult: result,
+        currentExecuteResult: executeResult,
         isExecuting: false,
       );
     } catch (_) {
+      // 실행 실패는 결과 카드 없이 둔다(인증 만료는 인터셉터가 세션 만료 신호로 처리)
       state = state.copyWith(isExecuting: false);
     }
   }
@@ -223,38 +230,28 @@ class QuestionInteractionNotifier
 
     state = state.copyWith(isSubmitting: true);
     try {
-      final result = await _questionApi.submitAnswer(
-        _questionUuid,
-        SubmitRequest(
-          choiceSetId: choiceSetId,
-          selectedChoiceKey: selectedKey,
-          sessionUuid: sessionUuid,
-        ),
-      );
+      final submitResult = await ref
+          .read(questionApiProvider)
+          .submitAnswer(
+            _questionUuid,
+            SubmitRequest(
+              choiceSetId: choiceSetId,
+              selectedChoiceKey: selectedKey,
+              sessionUuid: sessionUuid,
+            ),
+          );
       // 신고 시 어떤 선택지 세트를 풀었는지 알려야 하므로 결과에 붙여 둔다.
-      return result.copyWith(choiceSetUuid: choiceSetId);
+      return submitResult.copyWith(choiceSetUuid: choiceSetId);
     } catch (_) {
+      // 실패는 호출 측이 토스트로 알린다(인증 만료는 인터셉터가 세션 만료 신호로 처리)
       state = state.copyWith(isSubmitting: false);
       return null;
     }
   }
-
-  @override
-  void dispose() {
-    _sseSub?.cancel();
-    super.dispose();
-  }
-
 }
 
 /// questionUuid별 인터랙션 Provider.
-final questionInteractionProvider = StateNotifierProvider.autoDispose
+final questionInteractionProvider = NotifierProvider.autoDispose
     .family<QuestionInteractionNotifier, QuestionInteractionState, String>(
-  (ref, questionUuid) {
-    return QuestionInteractionNotifier(
-      questionUuid: questionUuid,
-      questionApi: ref.read(questionApiProvider),
-      sseClient: ref.read(sseQuestionClientProvider),
+      QuestionInteractionNotifier.new,
     );
-  },
-);

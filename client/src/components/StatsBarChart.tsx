@@ -1,4 +1,3 @@
-import { type CSSProperties } from "react";
 import {
   BarChart,
   Bar,
@@ -8,14 +7,12 @@ import {
   Cell,
 } from "recharts";
 import type { TopicStat } from "../types/api";
+import { CHART_COLOR, CHART_COLOR_BY_TONE } from "../constants/chartColors";
+import { toCorrectRateTone } from "../constants/correctRateTone";
 
-// 정답률에 따라 막대 색상 결정 (80%↑ 초록, 60%↑ 인디고, 40%↑ 주황, 그 이하 빨강)
-function getBarColor(rate: number): string {
-  if (rate >= 0.8) return "#22C55E";
-  if (rate >= 0.6) return "#4F46E5";
-  if (rate >= 0.4) return "#F59E0B";
-  return "#EF4444";
-}
+// 차트 높이 (px): 최소 256, 토픽 1개당 32
+const MINIMUM_CHART_HEIGHT_PIXELS = 256;
+const ROW_HEIGHT_PIXELS = 32;
 
 interface StatsBarChartProps {
   readonly topicStats: readonly TopicStat[];
@@ -31,22 +28,22 @@ export default function StatsBarChart({ topicStats }: StatsBarChartProps) {
   return (
     <div className="bg-surface-card border border-border rounded-2xl p-4 sm:p-6">
       <h2 className="text-lg font-bold mb-4">카테고리별 문제 수</h2>
-      <div
-        className="w-full [height:var(--chart-h)]"
-        style={{ "--chart-h": `${Math.max(256, topicStats.length * 32)}px` } as CSSProperties}
-      >
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="w-full">
+        <ResponsiveContainer
+          width="100%"
+          height={Math.max(MINIMUM_CHART_HEIGHT_PIXELS, topicStats.length * ROW_HEIGHT_PIXELS)}
+        >
           <BarChart data={data} layout="vertical" margin={{ left: 10, right: 20 }}>
-            <XAxis type="number" tick={{ fontSize: 11, fill: "#9CA3AF" }} />
+            <XAxis type="number" tick={{ fontSize: 11, fill: CHART_COLOR.axisTick }} />
             <YAxis
               type="category"
               dataKey="name"
-              tick={{ fontSize: 11, fill: "#6B7280" }}
+              tick={{ fontSize: 11, fill: CHART_COLOR.axisLabel }}
               width={70}
             />
             <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={14}>
               {data.map((entry) => (
-                <Cell key={entry.name} fill={getBarColor(entry.rate)} />
+                <Cell key={entry.name} fill={CHART_COLOR_BY_TONE[toCorrectRateTone(entry.rate)]} />
               ))}
             </Bar>
           </BarChart>

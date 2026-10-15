@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/app_colors.dart';
 import '../../../core/error/app_exception.dart';
-import '../../../core/text_styles.dart';
 import '../../../core/validation/nickname_validator.dart';
+import '../../design/design.dart';
 import '../../providers/settings_providers.dart';
 
 /// 닉네임 직접 변경 바텀시트.
@@ -17,13 +16,9 @@ class NicknameEditSheet extends ConsumerStatefulWidget {
   final String currentNickname;
 
   static Future<bool?> show(BuildContext context, String currentNickname) {
-    return showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.cardBg,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+    return showPassqlSheet<bool>(
+      context,
+      title: '닉네임 변경',
       builder: (_) => NicknameEditSheet(currentNickname: currentNickname),
     );
   }
@@ -87,9 +82,9 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
           error: !available,
         );
       });
-    } on AppException catch (e) {
+    } on AppException catch (exception) {
       if (!mounted) return;
-      setState(() => _setMessage(e.message, error: true));
+      setState(() => _setMessage(exception.message, error: true));
     } finally {
       if (mounted) setState(() => _checking = false);
     }
@@ -104,18 +99,19 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
       await ref.read(nicknameNotifierProvider.notifier).change(_value);
       if (!mounted) return;
       Navigator.of(context).pop(true);
-    } on AppException catch (e) {
+    } on AppException catch (exception) {
       // 쿨다운(NICKNAME_COOLDOWN) 등 서버 거절 사유가 그대로 보인다.
       if (!mounted) return;
       setState(() {
         _saving = false;
-        _setMessage(e.message, error: true);
+        _setMessage(exception.message, error: true);
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.passqlColors;
     final formatError = NicknameValidator.validate(_value);
     final hint = formatError ?? _message;
     final hintIsError = formatError != null || _messageIsError;
@@ -123,119 +119,84 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
     return Padding(
       // 키보드가 올라와도 입력창이 가려지지 않게 한다.
       padding: EdgeInsets.fromLTRB(
-        20,
-        20,
-        20,
-        20 + MediaQuery.of(context).viewInsets.bottom,
+        PassqlSpacing.md,
+        PassqlSpacing.xxs,
+        PassqlSpacing.md,
+        PassqlSpacing.md,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('닉네임 변경', style: AppTextStyles.heading_24),
-          const SizedBox(height: 4),
           Text(
             '변경 후 3일간은 다시 바꿀 수 없어요',
-            style: AppTextStyles.paragraph_14.copyWith(
-              color: AppColors.textSecondary,
+            style: PassqlTypography.subheadline.copyWith(
+              color: colors.secondaryLabel,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: PassqlSpacing.md),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: TextField(
-                  controller: _controller,
-                  autofocus: true,
-                  maxLength: NicknameValidator.maxLength,
-                  onChanged: (_) => setState(() {
-                    // 확인한 값과 달라지면 이전 결과 안내는 지운다.
-                    if (_verified != _value) _setMessage(null);
-                  }),
-                  decoration: InputDecoration(
-                    counterText: '',
-                    hintText: '한글, 영문, 숫자 2~10자',
-                    filled: true,
-                    fillColor: AppColors.pageBg,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(
-                        color: AppColors.borderDefault,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: PassqlSpacing.md,
+                    vertical: PassqlSpacing.sm,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colors.fill,
+                    borderRadius: BorderRadius.circular(PassqlRadius.md),
+                  ),
+                  child: TextField(
+                    controller: _controller,
+                    autofocus: true,
+                    maxLength: NicknameValidator.maxLength,
+                    style: PassqlTypography.body.copyWith(color: colors.label),
+                    cursorColor: colors.accent,
+                    onChanged: (_) => setState(() {
+                      // 확인한 값과 달라지면 이전 결과 안내는 지운다.
+                      if (_verified != _value) _setMessage(null);
+                    }),
+                    decoration: InputDecoration.collapsed(
+                      hintText: '한글, 영문, 숫자 2~10자',
+                      hintStyle: PassqlTypography.body.copyWith(
+                        color: colors.tertiaryLabel,
                       ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(
-                        color: AppColors.borderDefault,
-                      ),
-                    ),
+                    ).copyWith(counterText: ''),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              SizedBox(
-                height: 48,
-                child: OutlinedButton(
-                  onPressed: _canCheck ? _check : null,
-                  // 앱 테마의 최소 폭이 무한대(Size.fromHeight)라 가로 Row 안에서 레이아웃이 깨진다.
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(88, 48),
-                  ),
-                  child: _checking
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('중복확인'),
-                ),
+              const SizedBox(width: PassqlSpacing.xs),
+              PassqlButton(
+                label: '중복확인',
+                variant: PassqlButtonVariant.tinted,
+                size: PassqlButtonSize.regular,
+                isFullWidth: false,
+                isLoading: _checking,
+                onPressed: _canCheck ? _check : null,
               ),
             ],
           ),
           SizedBox(
-            height: 28,
+            height: PassqlSize.messageSlotHeight,
             child: Align(
               alignment: Alignment.centerLeft,
               child: hint == null
                   ? null
                   : Text(
                       hint,
-                      style: AppTextStyles.tag_12.copyWith(
-                        color: hintIsError
-                            ? AppColors.red
-                            : AppColors.brandIndigo,
+                      style: PassqlTypography.caption.copyWith(
+                        color: hintIsError ? colors.wrongText : colors.accent,
                       ),
                     ),
             ),
           ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton(
-              onPressed: _canSave ? _save : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.brandIndigo,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: _saving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text('저장'),
-            ),
+          const SizedBox(height: PassqlSpacing.xs),
+          PassqlButton(
+            label: '저장',
+            isLoading: _saving,
+            onPressed: _canSave ? _save : null,
           ),
         ],
       ),

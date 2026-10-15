@@ -1,0 +1,12 @@
+{
+  "accent": {
+    "light": "#5856D6",
+    "dark": "#5E5CE6"
+  },
+  "appIconBackground": "#060C26",
+  "splashBackground": {
+    "light": "#FFFFFF",
+    "dark": "#000000"
+  },
+  "openGraphBackground": "#FFFFFF"
+}

@@ -1,22 +1,24 @@
-import { useState, useRef, useEffect, type CSSProperties } from "react";
-import { createPortal } from "react-dom";
+import { useState, useRef, useEffect } from "react";
 import { HelpCircle } from "lucide-react";
 import type { TopicStat } from "../types/api";
+import AnchoredPopover from "./AnchoredPopover";
+import ProgressBar from "./ProgressBar";
+import { toCorrectRateTone, type CorrectRateTone } from "../constants/correctRateTone";
 
 interface StatsTopicListProps {
   readonly topicStats: readonly TopicStat[];
 }
 
-// 정답률에 따라 색상 클래스 결정
-function getRateColor(rate: number): { badge: string; bar: string } {
-  if (rate >= 0.8) return { badge: "text-sem-success-text bg-sem-success-light", bar: "bg-sem-success" };
-  if (rate >= 0.6) return { badge: "text-brand bg-accent-light",                  bar: "bg-brand" };
-  if (rate >= 0.4) return { badge: "text-sem-warning-text bg-sem-warning-light",  bar: "bg-sem-warning" };
-  return           { badge: "text-sem-error-text bg-sem-error-light",             bar: "bg-sem-error" };
-}
+// 정답률 구간 > 뱃지·막대 색 클래스
+const RATE_COLOR_CLASS_BY_TONE: Readonly<Record<CorrectRateTone, { badge: string; bar: string }>> = {
+  success: { badge: "text-semantic-success-text bg-semantic-success-light", bar: "bg-semantic-success" },
+  brand: { badge: "text-brand bg-brand-light", bar: "bg-brand" },
+  warning: { badge: "text-semantic-warning-text bg-semantic-warning-light", bar: "bg-semantic-warning" },
+  error: { badge: "text-semantic-error-text bg-semantic-error-light", bar: "bg-semantic-error" },
+};
 
-// ? 팝오버 — portal로 body에 렌더링해 stacking context 격리 문제 회피
-const POPOVER_WIDTH = 240; // w-60 = 240px
+// ? 팝오버 폭 (px)
+const TOPIC_LIST_POPOVER_WIDTH_PIXELS = 240;
 
 function TopicListPopover({
   open,
@@ -25,63 +27,33 @@ function TopicListPopover({
   open: boolean;
   anchorRef: React.RefObject<HTMLButtonElement | null>;
 }) {
-  const [pos, setPos] = useState({ top: 0, left: 0, arrowLeft: 0 });
-
-  useEffect(() => {
-    if (!open || !anchorRef.current) return;
-    // fixed 포지셔닝 — getBoundingClientRect()는 이미 뷰포트 기준이므로 scrollY 불필요
-    const rect = anchorRef.current.getBoundingClientRect();
-    const btnCenterX = rect.left + rect.width / 2;
-    const rawLeft = btnCenterX - 24;
-    const clampedLeft = Math.min(rawLeft, window.innerWidth - POPOVER_WIDTH - 8);
-    const finalLeft = Math.max(8, clampedLeft);
-    const arrowLeft = btnCenterX - finalLeft - 6;
-
-    setPos({
-      top: rect.bottom + 8,
-      left: finalLeft,
-      arrowLeft,
-    });
-  }, [open, anchorRef]);
-
-  if (!open) return null;
-
-  return createPortal(
-    <div
-      className="animate-popover-in fixed w-60 bg-[#1F2937] text-white rounded-xl p-3 z-[9999] shadow-lg"
-      style={{ top: pos.top, left: pos.left }}
-    >
-      {/* 화살표 위치를 버튼 중앙으로 동적 계산 */}
-      <div
-        className="absolute -top-1.5 w-3 h-1.5 bg-[#1F2937] [clip-path:polygon(50%_0%,0%_100%,100%_100%)]"
-        style={{ left: pos.arrowLeft }}
-      />
+  return (
+    <AnchoredPopover isOpen={open} anchorRef={anchorRef} widthPixels={TOPIC_LIST_POPOVER_WIDTH_PIXELS} alignment="start">
       <p className="text-xs font-bold mb-2">어떻게 보나요?</p>
       <div className="flex flex-col gap-2">
         <div className="flex items-start gap-2">
           <div className="w-2 h-2 rounded-sm bg-brand mt-0.5 shrink-0" />
-          <p className="text-xs text-gray-300 leading-relaxed">
-            <span className="text-white font-semibold">막대 길이</span> — 해당 토픽을 얼마나 많이 풀었는지 나타내요
+          <p className="text-xs text-text-inverse-secondary leading-relaxed">
+            <span className="text-text-inverse font-semibold">막대 길이</span> — 해당 토픽을 얼마나 많이 풀었는지 나타내요
           </p>
         </div>
         <div className="flex items-start gap-2">
-          <div className="w-2 h-2 rounded-sm bg-sem-error mt-0.5 shrink-0" />
-          <p className="text-xs text-gray-300 leading-relaxed">
-            <span className="text-white font-semibold">색상 뱃지</span> — 정답률을 나타내요. 빨간색일수록 취약한 영역이에요
+          <div className="w-2 h-2 rounded-sm bg-semantic-error mt-0.5 shrink-0" />
+          <p className="text-xs text-text-inverse-secondary leading-relaxed">
+            <span className="text-text-inverse font-semibold">색상 뱃지</span> — 정답률을 나타내요. 빨간색일수록 취약한 영역이에요
           </p>
         </div>
       </div>
-    </div>,
-    document.body
+    </AnchoredPopover>
   );
 }
 
 // 범례 항목
 const LEGEND = [
-  { color: "bg-sem-success", label: "80%↑" },
+  { color: "bg-semantic-success", label: "80%↑" },
   { color: "bg-brand",       label: "60%↑" },
-  { color: "bg-sem-warning", label: "40%↑" },
-  { color: "bg-sem-error",   label: "취약" },
+  { color: "bg-semantic-warning", label: "40%↑" },
+  { color: "bg-semantic-error",   label: "취약" },
 ] as const;
 
 export default function StatsTopicList({ topicStats }: StatsTopicListProps) {
@@ -122,7 +94,7 @@ export default function StatsTopicList({ topicStats }: StatsTopicListProps) {
       <div className="flex flex-col gap-3.5">
         {topicStats.map((stat) => {
           const unsolved = stat.solvedCount === 0;
-          const colors = unsolved ? null : getRateColor(stat.correctRate);
+          const colors = unsolved ? null : RATE_COLOR_CLASS_BY_TONE[toCorrectRateTone(stat.correctRate)];
           const barWidth = unsolved ? 0 : Math.round((stat.solvedCount / maxSolved) * 100);
 
           return (
@@ -142,15 +114,12 @@ export default function StatsTopicList({ topicStats }: StatsTopicListProps) {
                   </div>
                 )}
               </div>
-              {/* 진행 바 — div 기반 (색상 클래스 동적 적용을 위해 daisyUI progress 대신 사용) */}
-              <div className="w-full h-2 bg-surface-code rounded-full overflow-hidden">
-                {!unsolved && (
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 [width:var(--bar-w)] ${colors!.bar}`}
-                    style={{ "--bar-w": `${barWidth}%` } as CSSProperties}
-                  />
-                )}
-              </div>
+              {/* 진행 바 — 미학습은 빈 트랙 */}
+              <ProgressBar
+                fillPercent={barWidth}
+                trackClassName="h-2 bg-surface-code"
+                fillClassName={colors ? `transition-all duration-500 ${colors.bar}` : ""}
+              />
             </div>
           );
         })}

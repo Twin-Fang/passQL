@@ -97,7 +97,7 @@ export default function Settings() {
                     onClick={() => updateMode("PRACTICE")}
                     className={`text-xs px-3 py-1 rounded-md font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                       currentMode === "PRACTICE"
-                        ? "bg-brand text-white"
+                        ? "bg-brand text-on-brand"
                         : "text-text-caption hover:text-text-secondary"
                     }`}
                   >
@@ -109,7 +109,7 @@ export default function Settings() {
                     onClick={() => updateMode("REAL")}
                     className={`text-xs px-3 py-1 rounded-md font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                       currentMode === "REAL"
-                        ? "bg-brand text-white"
+                        ? "bg-brand text-on-brand"
                         : "text-text-caption hover:text-text-secondary"
                     }`}
                   >
@@ -182,13 +182,13 @@ export default function Settings() {
               onClick={handleLogout}
               className="flex items-center justify-between px-4 py-3.5 w-full text-left cursor-pointer hover:bg-surface active:bg-surface transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span className="text-sm font-medium text-sem-error">
+              <span className="text-sm font-medium text-semantic-error">
                 {logoutLoading ? "로그아웃 중..." : "로그아웃"}
               </span>
               {logoutLoading ? (
-                <span className="w-4 h-4 inline-block border-2 border-sem-error border-t-transparent rounded-full animate-spin" />
+                <span className="w-4 h-4 inline-block border-2 border-semantic-error border-t-transparent rounded-full animate-spin" />
               ) : (
-                <LogOut size={16} className="text-sem-error" />
+                <LogOut size={16} className="text-semantic-error" />
               )}
             </button>
             {/* 회원 탈퇴 — 되돌릴 수 없으므로 확인 모달을 거친다 */}
@@ -209,7 +209,7 @@ export default function Settings() {
             </button>
           </div>
           {withdrawError && (
-            <p role="alert" className="px-4 pt-2 text-xs text-sem-error">
+            <p role="alert" className="px-4 pt-2 text-xs text-semantic-error">
               {withdrawError}
             </p>
           )}

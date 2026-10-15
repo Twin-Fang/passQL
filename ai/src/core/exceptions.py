@@ -10,12 +10,12 @@ class CustomError(Exception):
     간단하게 에러 메시지만 전달하여 사용합니다.
 
     Examples:
-        >>> raise CustomError("Ollama 응답 생성에 실패했습니다")
+        >>> raise CustomError("Ollama 임베딩 생성에 실패했습니다")
         >>> raise CustomError("Qdrant 벡터 검색에 실패했습니다")
 
     Usage:
         try:
-            result = await ollama_client.chat(...)
+            vector = await ollama_client.embed(...)
         except CustomError as e:
             logger.error(f"처리 실패: {e.message}", exc_info=True)
     """

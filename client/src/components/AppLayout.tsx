@@ -31,7 +31,7 @@ function SidebarNav() {
               to={item.to}
               end={item.to === "/"}
               className={({ isActive }) =>
-                // 활성: accent 배경(#EEF2FF) + primary 텍스트(#4F46E5)
+                // 활성: accent 배경(brand-light) + primary 텍스트(brand)
                 // 비활성: 회색 텍스트 + hover 시 base-200 배경
                 `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   isActive

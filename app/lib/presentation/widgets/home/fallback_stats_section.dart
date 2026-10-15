@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../core/app_colors.dart';
-import '../../../core/text_styles.dart';
+import '../../design/design.dart';
 
 /// readiness 없을 때 표시하는 통계 2열 카드.
 class FallbackStatsSection extends StatelessWidget {
@@ -14,99 +12,46 @@ class FallbackStatsSection extends StatelessWidget {
     required this.correctRate,
   });
 
+  /// 큰 숫자 + 작은 단위 한 줄.
+  Widget _value(BuildContext context, String number, String unit) {
+    final colors = context.passqlColors;
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: number,
+            style: PassqlTypography.title1.copyWith(color: colors.label),
+          ),
+          TextSpan(
+            text: ' $unit',
+            style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
-          child: Container(
-            padding: EdgeInsets.all(16.r),
-            decoration: BoxDecoration(
-              color: AppColors.cardBg,
-              border: Border.all(color: AppColors.borderDefault),
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '푼 문제',
-                  style: AppTextStyles.tag12Semibold.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: '$solvedCount',
-                        style: AppTextStyles.semibold_28.copyWith(
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      TextSpan(
-                        text: ' 개',
-                        style: AppTextStyles.paragraph_14.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          child: PassqlCard(
+            title: '푼 문제',
+            child: _value(context, '$solvedCount', '개'),
           ),
         ),
-        SizedBox(width: 12.w),
+        const SizedBox(width: PassqlSpacing.sm),
         Expanded(
-          child: Container(
-            padding: EdgeInsets.all(16.r),
-            decoration: BoxDecoration(
-              color: AppColors.cardBg,
-              border: Border.all(color: AppColors.borderDefault),
-              borderRadius: BorderRadius.circular(12.r),
-            ),
+          child: PassqlCard(
+            title: '정답률',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '정답률',
-                  style: AppTextStyles.tag12Semibold.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: '${(correctRate * 100).round()}',
-                        style: AppTextStyles.semibold_28.copyWith(
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      TextSpan(
-                        text: ' %',
-                        style: AppTextStyles.paragraph_14.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 6.h),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4.r),
-                  child: LinearProgressIndicator(
-                    value: correctRate.clamp(0.0, 1.0),
-                    backgroundColor: AppColors.accentLight,
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                      AppColors.brandIndigo,
-                    ),
-                    minHeight: 6,
-                  ),
-                ),
+                _value(context, '${(correctRate * 100).round()}', '%'),
+                const SizedBox(height: PassqlSpacing.xs),
+                PassqlProgressBar(value: correctRate),
               ],
             ),
           ),

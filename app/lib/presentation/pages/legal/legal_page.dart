@@ -1,10 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/app_colors.dart';
 import '../../../core/error/app_exception.dart';
-import '../../../core/text_styles.dart';
 import '../../../data/models/legal/legal_models.dart';
+import '../../design/design.dart';
 import '../../providers/legal_providers.dart';
 
 /// 이용약관 / 개인정보처리방침 열람 화면.
@@ -19,70 +19,83 @@ class LegalPage extends ConsumerWidget {
     final type = LegalType.fromServerValue(typeValue);
 
     return Scaffold(
-      backgroundColor: AppColors.white,
-      appBar: AppBar(
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        foregroundColor: AppColors.textPrimary,
-        title: Text(type?.label ?? '약관', style: AppTextStyles.label_16),
+      backgroundColor: context.passqlColors.background,
+      appBar: PassqlNavBar(
+        title: type?.label ?? '약관',
+        leading: PassqlNavLeading.back,
       ),
       body: SafeArea(
         child: type == null
-            ? const _Message(text: '존재하지 않는 문서예요')
+            ? PassqlStatusView.empty(
+                icon: CupertinoIcons.doc_text,
+                title: '존재하지 않는 문서예요',
+              )
             : ref
                   .watch(legalDocumentProvider(type))
                   .when(
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => _Message(
-                      text: e.asAppException.message,
-                      actionLabel: '다시 시도',
-                      onAction: () => ref.invalidate(legalDocumentProvider(type)),
+                    loading: () => const PassqlStatusView.loading(),
+                    error: (error, _) => PassqlStatusView.error(
+                      message: error.asAppException.message,
+                      onRetry: () =>
+                          ref.invalidate(legalDocumentProvider(type)),
                     ),
                     data: (doc) => ListView(
-                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
-                      children: LegalText.parse(doc.content).map(_block).toList(),
+                      padding: const EdgeInsets.fromLTRB(
+                        PassqlSpacing.md,
+                        0,
+                        PassqlSpacing.md,
+                        PassqlSpacing.xxl,
+                      ),
+                      children: LegalText.parse(
+                        doc.content,
+                      ).map((block) => _buildBlock(context, block)).toList(),
                     ),
                   ),
       ),
     );
   }
 
-  // 긴 법률 문서를 편하게 읽도록 본문은 15pt·넉넉한 줄 간격, 조항 제목은 굵게 띄운다.
-  Widget _block(LegalBlock b) {
-    final body = AppTextStyles.paragraph_14.copyWith(
-      fontSize: 15,
-      height: 1.65,
-      color: AppColors.black800,
-    );
-    switch (b.kind) {
+  // 긴 법률 문서를 편하게 읽도록 본문은 넉넉한 줄 간격, 조항 제목은 굵게 띄운다.
+  Widget _buildBlock(BuildContext context, LegalBlock block) {
+    final colors = context.passqlColors;
+    final body = PassqlTypography.legalBody.copyWith(color: colors.label);
+    switch (block.kind) {
       case LegalBlockKind.heading:
         return Padding(
-          padding: const EdgeInsets.only(top: 24, bottom: 8),
+          padding: const EdgeInsets.only(
+            top: PassqlSpacing.xl,
+            bottom: PassqlSpacing.xs,
+          ),
           child: Text(
-            b.text,
-            style: AppTextStyles.subHeading_18.copyWith(color: AppColors.textPrimary),
+            block.text,
+            style: PassqlTypography.headline.copyWith(color: colors.label),
           ),
         );
       case LegalBlockKind.bullet:
         return Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 6),
+          padding: const EdgeInsets.only(
+            left: PassqlSpacing.xxs,
+            bottom: _bulletBottomGap,
+          ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('•  ', style: body),
-              Expanded(child: Text(b.text, style: body)),
+              Expanded(child: Text(block.text, style: body)),
             ],
           ),
         );
       case LegalBlockKind.paragraph:
         return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Text(b.text, style: body),
+          padding: const EdgeInsets.only(bottom: PassqlSpacing.sm),
+          child: Text(block.text, style: body),
         );
     }
   }
 }
+
+/// 목록 항목 사이 간격 (문단 간격 sm 보다 촘촘하게)
+const double _bulletBottomGap = 6;
 
 enum LegalBlockKind { heading, bullet, paragraph }
 
@@ -102,7 +115,12 @@ abstract final class LegalText {
       final line = raw.trim();
       if (line.isEmpty) continue;
       if (line.startsWith('#')) {
-        blocks.add(LegalBlock(LegalBlockKind.heading, line.replaceFirst(RegExp(r'^#+\s*'), '')));
+        blocks.add(
+          LegalBlock(
+            LegalBlockKind.heading,
+            line.replaceFirst(RegExp(r'^#+\s*'), ''),
+          ),
+        );
       } else if (line.startsWith('- ') || line.startsWith('* ')) {
         blocks.add(LegalBlock(LegalBlockKind.bullet, line.substring(2)));
       } else {
@@ -110,35 +128,5 @@ abstract final class LegalText {
       }
     }
     return blocks;
-  }
-}
-
-class _Message extends StatelessWidget {
-  const _Message({required this.text, this.actionLabel, this.onAction});
-
-  final String text;
-  final String? actionLabel;
-  final VoidCallback? onAction;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(text, textAlign: TextAlign.center, style: AppTextStyles.paragraph_14.copyWith(color: AppColors.textSecondary)),
-            if (actionLabel != null) ...[
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: onAction,
-                child: Text(actionLabel!, style: AppTextStyles.paragraph_14.copyWith(color: AppColors.brandIndigo)),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
   }
 }

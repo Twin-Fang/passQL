@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/network/api_providers.dart';
+import '../../data/sources/api_providers.dart';
 import '../../data/models/progress/wrong_questions_response.dart';
 
 /// 오답 노트에 한 번에 보여줄 최대 개수.

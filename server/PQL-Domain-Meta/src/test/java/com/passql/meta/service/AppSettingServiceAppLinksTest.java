@@ -1,5 +1,6 @@
 package com.passql.meta.service;
 
+import com.passql.meta.constant.AppSettingKeys;
 import com.passql.meta.dto.AppLinksResponse;
 import com.passql.meta.entity.AppSetting;
 import com.passql.meta.repository.AppSettingRepository;
@@ -40,16 +41,16 @@ class AppSettingServiceAppLinksTest {
 
     @Test
     void 출시_전_빈_값이면_둘_다_null() {
-        stub(AppSettingService.STORE_ANDROID_URL, "");
-        stub(AppSettingService.STORE_IOS_URL, "  ");
+        stub(AppSettingKeys.STORE_ANDROID_URL, "");
+        stub(AppSettingKeys.STORE_IOS_URL, "  ");
 
         assertThat(service.getAppLinks()).isEqualTo(new AppLinksResponse(null, null));
     }
 
     @Test
     void https_링크만_내보내고_공백은_다듬는다() {
-        stub(AppSettingService.STORE_ANDROID_URL, " https://play.google.com/store/apps/details?id=com.coldredrice.passql ");
-        stub(AppSettingService.STORE_IOS_URL, "javascript:alert(1)");
+        stub(AppSettingKeys.STORE_ANDROID_URL, " https://play.google.com/store/apps/details?id=com.coldredrice.passql ");
+        stub(AppSettingKeys.STORE_IOS_URL, "javascript:alert(1)");
 
         AppLinksResponse links = service.getAppLinks();
 

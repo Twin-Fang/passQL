@@ -1,5 +1,7 @@
 package com.passql.question.service;
 
+import com.passql.common.util.UuidUtils;
+import com.passql.meta.constant.AppSettingKeys;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.service.AppSettingService;
@@ -31,9 +33,6 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class SandboxPool {
 
-    private static final String KEY_CONCURRENCY  = "sandbox.pool.concurrency";
-    private static final String KEY_WAIT_SECONDS = "sandbox.pool.wait_seconds";
-
     @Value("${sandbox.datasource.url-template}")
     private String urlTemplate;
 
@@ -50,7 +49,7 @@ public class SandboxPool {
 
     @PostConstruct
     public void init() {
-        int concurrency = appSettingService.getInt(KEY_CONCURRENCY);
+        int concurrency = appSettingService.getInt(AppSettingKeys.SANDBOX_POOL_CONCURRENCY);
         this.semaphore = new Semaphore(concurrency, true);
         this.adminDataSource = buildAdminDataSource();
         log.info("[SandboxPool] initialized — concurrency={}", concurrency);
@@ -61,7 +60,7 @@ public class SandboxPool {
      * 슬롯이 없으면 app_setting의 sandbox.pool.wait_seconds 초 대기한다.
      */
     public String acquire() {
-        int waitSeconds = appSettingService.getInt(KEY_WAIT_SECONDS);
+        int waitSeconds = appSettingService.getInt(AppSettingKeys.SANDBOX_POOL_WAIT_SECONDS);
 
         try {
             boolean acquired = semaphore.tryAcquire(waitSeconds, TimeUnit.SECONDS);
@@ -74,7 +73,7 @@ public class SandboxPool {
             throw new CustomException(ErrorCode.SANDBOX_SETUP_FAILED, "샌드박스 슬롯 획득 중 인터럽트 발생");
         }
 
-        String dbName = "sandbox_" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        String dbName = "sandbox_" + UuidUtils.toShortForm(UUID.randomUUID());
         try {
             // PostgreSQL은 CREATE DATABASE를 트랜잭션 밖(autocommit=true)에서 실행해야 한다
             try (Connection conn = adminDataSource.getConnection()) {

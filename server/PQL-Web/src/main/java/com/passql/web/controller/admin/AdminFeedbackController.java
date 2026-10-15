@@ -1,7 +1,6 @@
 package com.passql.web.controller.admin;
 
-import com.passql.common.exception.CustomException;
-import com.passql.common.exception.constant.ErrorCode;
+import com.passql.web.support.AdminPageRequest;
 import com.passql.meta.constant.FeedbackStatus;
 import com.passql.meta.dto.FeedbackStatusUpdateRequest;
 import com.passql.meta.service.FeedbackService;
@@ -26,10 +25,9 @@ public class AdminFeedbackController {
     @GetMapping
     public String list(Model model,
                        @RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "20") int size) {
-        int clampedPage = Math.max(0, page);
-        int clampedSize = Math.min(Math.max(1, size), 100);
-        Pageable pageable = PageRequest.of(clampedPage, clampedSize, Sort.unsorted()); // 정렬은 findAllByOrderByCreatedAtDesc 메서드명에서 처리
+                       @RequestParam(defaultValue = AdminPageRequest.DEFAULT_PAGE_SIZE) int size) {
+        // 정렬은 findAllByOrderByCreatedAtDesc 메서드명에서 처리
+        Pageable pageable = AdminPageRequest.of(page, size, Sort.unsorted());
 
         var statusCounts = feedbackService.countByStatus();
         model.addAttribute("feedbacks", feedbackService.getAllFeedbacks(pageable));
@@ -46,13 +44,7 @@ public class AdminFeedbackController {
     @ResponseBody
     public ResponseEntity<Void> updateStatus(@PathVariable UUID feedbackUuid,
                                               @RequestBody FeedbackStatusUpdateRequest request) {
-        FeedbackStatus status;
-        try {
-            status = FeedbackStatus.valueOf(request.getStatus());
-        } catch (IllegalArgumentException e) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
-        }
-        feedbackService.updateStatus(feedbackUuid, status);
+        feedbackService.updateStatus(feedbackUuid, FeedbackStatus.fromRequestValue(request.getStatus()));
         return ResponseEntity.ok().build();
     }
 }

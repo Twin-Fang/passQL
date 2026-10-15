@@ -1,5 +1,7 @@
 package com.passql.question.service;
 
+import com.passql.common.util.RequestEnumParser;
+import com.passql.common.util.TextPreview;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.entity.Topic;
@@ -47,7 +49,7 @@ public class QuestionImportExportService {
                     .map(Topic::getTopicUuid)
                     .orElseThrow(() -> new CustomException(ErrorCode.TOPIC_NOT_FOUND));
         }
-        ExecutionMode mode = parseExecutionModeSafe(executionMode);
+        ExecutionMode mode = toExecutionModeOrNull(executionMode);
 
         List<Question> questions = questionRepository.findByFiltersAll(
                 topicUuid, difficulty, mode, PageRequest.ofSize(EXPORT_LIMIT));
@@ -155,7 +157,7 @@ public class QuestionImportExportService {
                 continue;
             }
 
-            ExecutionMode mode = parseExecutionModeSafe(item.executionMode());
+            ExecutionMode mode = toExecutionModeOrNull(item.executionMode());
             if (mode == null) {
                 skipped++;
                 continue;
@@ -172,7 +174,7 @@ public class QuestionImportExportService {
                 mode = ExecutionMode.CONCEPT_ONLY;
             }
 
-            ChoiceSetPolicy policy = parseChoiceSetPolicySafe(item.choiceSetPolicy());
+            ChoiceSetPolicy policy = toChoiceSetPolicyOrAiOnly(item.choiceSetPolicy());
 
             if (item.questionUuid() != null && questionRepository.existsById(item.questionUuid())) {
                 questionService.updateQuestion(
@@ -234,7 +236,7 @@ public class QuestionImportExportService {
         }
 
         // executionMode 유효성
-        ExecutionMode mode = parseExecutionModeSafe(item.executionMode());
+        ExecutionMode mode = toExecutionModeOrNull(item.executionMode());
         if (mode == null) {
             return new ImportItemResult(index, stemPreview, item.topicCode(), item.difficulty(),
                     item.executionMode(), "FAIL", null, null,
@@ -315,8 +317,7 @@ public class QuestionImportExportService {
     }
 
     private String truncateStem(String stem) {
-        if (stem == null) return "";
-        return stem.length() > 50 ? stem.substring(0, 50) + "..." : stem;
+        return TextPreview.truncateWithEllipsis(stem, TextPreview.SHORT_STEM_LENGTH);
     }
 
     // NVL( 패턴: 대소문자 무관, 함수명과 괄호 사이 공백 허용
@@ -418,27 +419,20 @@ public class QuestionImportExportService {
     }
 
     /**
-     * choiceSetPolicy 문자열을 안전하게 파싱. null이거나 유효하지 않으면 AI_ONLY 반환.
+     * choiceSetPolicy 문자열 > enum (비었거나 모르는 값 > AI_ONLY)
+     * 옛 내보내기 파일 호환: 정책 칸이 없거나 폐기된 값이어도 가져오기는 진행
      */
-    private ChoiceSetPolicy parseChoiceSetPolicySafe(String value) {
-        if (value == null || value.isBlank()) return ChoiceSetPolicy.AI_ONLY;
-        try {
-            return ChoiceSetPolicy.valueOf(value);
-        } catch (IllegalArgumentException e) {
-            return ChoiceSetPolicy.AI_ONLY;
-        }
+    private ChoiceSetPolicy toChoiceSetPolicyOrAiOnly(String value) {
+        ChoiceSetPolicy policy = RequestEnumParser.parseOrNull(ChoiceSetPolicy.class, value);
+        return policy != null ? policy : ChoiceSetPolicy.AI_ONLY;
     }
 
     /**
-     * executionMode 문자열을 안전하게 파싱. 유효하지 않으면 null 반환.
+     * executionMode 문자열 > enum (비었거나 모르는 값 > null)
+     * 가져오기는 항목별 FAIL·건너뜀으로 보고하고, 내보내기 필터는 조건 없음으로 처리하므로 예외 대신 null
      */
-    private ExecutionMode parseExecutionModeSafe(String value) {
-        if (value == null || value.isBlank()) return null;
-        try {
-            return ExecutionMode.valueOf(value);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+    private ExecutionMode toExecutionModeOrNull(String value) {
+        return RequestEnumParser.parseOrNull(ExecutionMode.class, value);
     }
 
     /**

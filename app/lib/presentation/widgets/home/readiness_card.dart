@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../core/app_colors.dart';
-import '../../../core/text_styles.dart';
 import '../../../data/models/progress/readiness_response.dart';
+import '../../design/design.dart';
 
 /// toneKey → 한국어 코멘트 텍스트.
 const Map<String, String> _toneMessages = {
@@ -25,80 +23,56 @@ class ReadinessCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.passqlColors;
     final scorePercent = (readiness.score * 100).round();
     final message = _toneMessages[readiness.toneKey] ?? '';
 
-    return Container(
-      padding: EdgeInsets.all(20.r),
-      decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        border: Border.all(color: AppColors.borderDefault),
-        borderRadius: BorderRadius.circular(12.r),
-      ),
+    return PassqlCard(
+      title: '합격 준비도',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '합격 준비도',
-            style: AppTextStyles.tag12Semibold.copyWith(
-              color: AppColors.textSecondary,
-            ),
-          ),
-          SizedBox(height: 12.h),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
             children: [
               Text(
                 '$scorePercent',
-                style: AppTextStyles.semibold_44.copyWith(
-                  color: AppColors.brandIndigo,
+                style: PassqlTypography.scoreNumber.copyWith(
+                  color: colors.accent,
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.only(bottom: 8.h, left: 2.w),
-                child: Text(
-                  '%',
-                  style: AppTextStyles.heading_20.copyWith(
-                    color: AppColors.brandIndigo,
-                  ),
-                ),
+              const SizedBox(width: PassqlSpacing.xxs),
+              Text(
+                '%',
+                style: PassqlTypography.title3.copyWith(color: colors.accent),
               ),
             ],
           ),
-          SizedBox(height: 8.h),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4.r),
-            child: LinearProgressIndicator(
-              value: readiness.score.clamp(0.0, 1.0),
-              backgroundColor: AppColors.accentLight,
-              valueColor: const AlwaysStoppedAnimation<Color>(
-                AppColors.brandIndigo,
-              ),
-              minHeight: 8,
-            ),
-          ),
-          SizedBox(height: 12.h),
+          const SizedBox(height: PassqlSpacing.xs),
+          PassqlProgressBar(value: readiness.score),
+          const SizedBox(height: PassqlSpacing.sm),
           if (message.isNotEmpty)
             Text(
               message,
-              style: AppTextStyles.paragraph_14.copyWith(
-                color: AppColors.textSecondary,
+              style: PassqlTypography.subheadline.copyWith(
+                color: colors.secondaryLabel,
               ),
             ),
-          SizedBox(height: 16.h),
+          const SizedBox(height: PassqlSpacing.md),
           Row(
             children: [
               _MetricChip(
                 label: '정확도',
                 value: '${(readiness.accuracy * 100).round()}%',
               ),
-              SizedBox(width: 8.w),
+              const SizedBox(width: PassqlSpacing.xs),
               _MetricChip(
                 label: '범위',
                 value:
                     '${readiness.coveredTopicCount}/${readiness.activeTopicCount}',
               ),
-              SizedBox(width: 8.w),
+              const SizedBox(width: PassqlSpacing.xs),
               _MetricChip(
                 label: '최신성',
                 value: '${(readiness.recency * 100).round()}%',
@@ -119,27 +93,27 @@ class _MetricChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.passqlColors;
     return Expanded(
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 8.h),
+        padding: const EdgeInsets.symmetric(vertical: PassqlSpacing.xs),
         decoration: BoxDecoration(
-          color: AppColors.pageBg,
-          border: Border.all(color: AppColors.borderDefault),
-          borderRadius: BorderRadius.circular(8.r),
+          color: colors.fill,
+          borderRadius: BorderRadius.circular(PassqlRadius.sm),
         ),
         child: Column(
           children: [
             Text(
               value,
-              style: AppTextStyles.paragraph14Semibold.copyWith(
-                color: AppColors.textPrimary,
+              style: PassqlTypography.subheadlineSemibold.copyWith(
+                color: colors.label,
               ),
             ),
-            SizedBox(height: 2.h),
+            const SizedBox(height: PassqlSpacing.hairlineGap),
             Text(
               label,
-              style: AppTextStyles.tag_10.copyWith(
-                color: AppColors.textCaption,
+              style: PassqlTypography.caption.copyWith(
+                color: colors.secondaryLabel,
               ),
             ),
           ],

@@ -1,5 +1,6 @@
 package com.passql.question.service;
 
+import com.passql.meta.constant.AppSettingKeys;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.service.AppSettingService;
@@ -9,6 +10,9 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class SqlSafetyValidator {
+    // 설정 조회 실패 시 SQL 최대 길이 (문자 수, 마이그레이션 기본값과 같은 값)
+    private static final int DEFAULT_SQL_MAX_LENGTH = 2000;
+
     private final AppSettingService appSettingService;
 
     public void validate(String sql) {
@@ -36,9 +40,9 @@ public class SqlSafetyValidator {
         // 최대 길이 제한 (app_setting에서 읽되, 실패 시 기본값 2000 사용)
         int maxLength;
         try {
-            maxLength = appSettingService.getInt("sandbox.sql_max_length");
+            maxLength = appSettingService.getInt(AppSettingKeys.SANDBOX_SQL_MAX_LENGTH);
         } catch (Exception e) {
-            maxLength = 2000;
+            maxLength = DEFAULT_SQL_MAX_LENGTH;
         }
         if (sql.length() > maxLength) {
             throw new CustomException(ErrorCode.TOO_LONG);

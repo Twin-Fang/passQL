@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/app_colors.dart';
 import '../../../core/error/app_exception.dart';
-import '../../../core/text_styles.dart';
 import '../../../core/validation/report_validator.dart';
 import '../../../data/models/report/report_models.dart';
+import '../../design/design.dart';
 import '../../providers/report_providers.dart';
 
 /// 문제 신고 바텀시트.
@@ -23,13 +22,9 @@ class ReportSheet extends ConsumerStatefulWidget {
     required ReportTarget target,
     String? choiceSetUuid,
   }) {
-    return showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.cardBg,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+    return showPassqlSheet<bool>(
+      context,
+      title: '문제 신고',
       builder: (_) => ReportSheet(target: target, choiceSetUuid: choiceSetUuid),
     );
   }
@@ -78,106 +73,95 @@ class _ReportSheetState extends ConsumerState<ReportSheet> {
           );
       if (!mounted) return;
       Navigator.of(context).pop(true);
-    } on AppException catch (e) {
+    } on AppException catch (exception) {
       if (!mounted) return;
       setState(() {
         _sending = false;
-        _error = e.message;
+        _error = exception.message;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.passqlColors;
     final showDetail = _selected.contains(ReportCategory.etc);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        20,
-        20,
-        20,
-        20 + MediaQuery.of(context).viewInsets.bottom,
+        PassqlSpacing.md,
+        PassqlSpacing.xxs,
+        PassqlSpacing.md,
+        PassqlSpacing.md,
       ),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('문제 신고', style: AppTextStyles.heading_24),
-            const SizedBox(height: 4),
-            Text(
-              '해당되는 내용을 모두 골라 주세요',
-              style: AppTextStyles.paragraph_14.copyWith(
-                color: AppColors.textSecondary,
+            Padding(
+              padding: const EdgeInsets.only(bottom: PassqlSpacing.sm),
+              child: Text(
+                '해당되는 내용을 모두 골라 주세요',
+                style: PassqlTypography.subheadline.copyWith(
+                  color: colors.secondaryLabel,
+                ),
               ),
             ),
-            const SizedBox(height: 12),
-            for (final category in ReportCategory.values)
-              CheckboxListTile(
-                value: _selected.contains(category),
-                onChanged: _sending ? null : (_) => _toggle(category),
-                title: Text(category.label, style: AppTextStyles.paragraph_14),
-                activeColor: AppColors.brandIndigo,
-                contentPadding: EdgeInsets.zero,
-                controlAffinity: ListTileControlAffinity.leading,
-                dense: true,
-              ),
+            // 사유는 grouped 행으로, 고른 항목에는 오른쪽에 체크 표시를 붙인다.
+            PassqlGroupedSection(
+              children: [
+                for (final category in ReportCategory.values)
+                  PassqlCheckRow(
+                    title: category.label,
+                    isSelected: _selected.contains(category),
+                    onTap: _sending ? null : () => _toggle(category),
+                  ),
+              ],
+            ),
             if (showDetail) ...[
-              const SizedBox(height: 8),
-              TextField(
-                controller: _detail,
-                enabled: !_sending,
-                maxLines: 3,
-                maxLength: ReportValidator.maxDetailLength,
-                onChanged: (_) => setState(() => _error = null),
-                decoration: InputDecoration(
-                  hintText: '구체적인 내용을 입력해주세요',
-                  filled: true,
-                  fillColor: AppColors.pageBg,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: AppColors.borderDefault),
+              const SizedBox(height: PassqlSpacing.sm),
+              Container(
+                padding: const EdgeInsets.all(PassqlSpacing.sm),
+                decoration: BoxDecoration(
+                  color: colors.fill,
+                  borderRadius: BorderRadius.circular(PassqlRadius.md),
+                ),
+                child: TextField(
+                  controller: _detail,
+                  enabled: !_sending,
+                  maxLines: 3,
+                  maxLength: ReportValidator.maxDetailLength,
+                  style: PassqlTypography.body.copyWith(color: colors.label),
+                  cursorColor: colors.accent,
+                  onChanged: (_) => setState(() => _error = null),
+                  decoration: InputDecoration.collapsed(
+                    hintText: '구체적인 내용을 입력해주세요',
+                    hintStyle: PassqlTypography.body.copyWith(
+                      color: colors.tertiaryLabel,
+                    ),
                   ),
                 ),
               ),
             ],
             SizedBox(
-              height: 28,
+              height: PassqlSize.messageSlotHeight,
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: _error == null
                     ? null
                     : Text(
                         _error!,
-                        style: AppTextStyles.tag_12.copyWith(
-                          color: AppColors.red,
+                        style: PassqlTypography.caption.copyWith(
+                          color: colors.wrongText,
                         ),
                       ),
               ),
             ),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _canSubmit ? _submit : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.brandIndigo,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: _sending
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text('신고하기'),
-              ),
+            PassqlButton(
+              label: '신고하기',
+              isLoading: _sending,
+              onPressed: _canSubmit ? _submit : null,
             ),
           ],
         ),

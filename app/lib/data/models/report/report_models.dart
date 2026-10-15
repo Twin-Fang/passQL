@@ -47,7 +47,7 @@ class ReportRequest {
 
   Map<String, dynamic> toJson() => {
     'submissionUuid': submissionUuid,
-    'categories': [for (final c in categories) c.serverValue],
+    'categories': [for (final category in categories) category.serverValue],
     // 값이 없는 선택 항목은 아예 보내지 않는다.
     'choiceSetUuid': ?choiceSetUuid,
     'detail': ?detail,

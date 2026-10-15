@@ -1,48 +1,77 @@
-@theme {
+/* 웹 색 토큰 단일 원본 (#462)
+ * 값 원본: 앱 app/lib/presentation/design/tokens/pq_colors.dart 의 light 값
+ * 웹은 다크 모드 없음 > dark 값 미사용. 앱 값을 바꾸면 이 파일도 함께 변경
+ * 파생 색(연한 배경·테두리·히트맵)은 color-mix 로 원본 색에서 계산 > 손 변환 사본 금지
+ * 화면 코드는 hex 대신 이 토큰의 Tailwind 클래스(bg-brand 등)만 사용 (eslint·designTokens.test 로 강제)
+ * static: 클래스에서 안 쓰는 변수도 :root 에 출력 (theme.css·components.css·차트가 var() 로 참조) */
+@theme static {
   /* ── Fonts ── */
   --font-ui: "Pretendard Variable", "Pretendard", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
-  /* ── Page & Surface ── */
-  --color-surface: #FAFAFA;
+  /* ── 배경·표면 (앱 background, card, fill) ── */
+  --color-surface: #F2F2F7;
   --color-surface-card: #FFFFFF;
-  --color-surface-code: #F3F4F6;
-  --color-surface-zebra: #FAFAFA;
+  --color-surface-code: rgb(120 120 128 / 0.12);
+  --color-surface-zebra: color-mix(in srgb, var(--color-surface) 50%, var(--color-surface-card));
+  /* 어두운 말풍선·토스트 배경 (앱 dark card) */
+  --color-surface-inverse: #1C1C1E;
 
-  /* ── Brand ── */
-  --color-brand: #4F46E5;
-  --color-brand-light: #EEF2FF;
-  --color-brand-medium: #818CF8;
+  /* ── 브랜드 (앱 accent, onAccent, accentTint 12%) ── */
+  --color-brand: #5856D6;
+  --color-on-brand: #FFFFFF;
+  --color-brand-light: color-mix(in srgb, var(--color-brand) 12%, transparent);
+  --color-brand-medium: color-mix(in srgb, var(--color-brand) 65%, white);
+  --color-brand-border: color-mix(in srgb, var(--color-brand) 30%, white);
 
-  /* ── Text ── */
-  --color-text-primary: #111827;
-  --color-text-secondary: #6B7280;
-  --color-text-caption: #9CA3AF;
+  /* ── 글자 (앱 label, secondaryLabel) ── */
+  --color-text-primary: #000000;
+  --color-text-secondary: #6C6C70;
+  /* 앱에 없는 웹 전용 3단계 글자색 (iOS systemGray, 흰 바탕 대비 3.3) */
+  --color-text-caption: #8E8E93;
+  /* 어두운 배경 위 글자 (앱 dark label, dark secondaryLabel) */
+  --color-text-inverse: #FFFFFF;
+  --color-text-inverse-secondary: #AEAEB2;
 
-  /* ── Border ── */
-  --color-border: #E5E7EB;
-  --color-border-muted: #D1D5DB;
+  /* ── 테두리 (앱 separator) ── */
+  --color-border: rgb(60 60 67 / 0.29);
 
-  /* ── Semantic ── */
-  --color-sem-success: #22C55E;
-  --color-sem-success-light: #F0FDF4;
-  --color-sem-success-text: #16A34A;
-  --color-sem-error: #EF4444;
-  --color-sem-error-light: #FEF2F2;
-  --color-sem-error-text: #DC2626;
-  --color-sem-warning: #F59E0B;
-  --color-sem-warning-light: #FEF3C7;
-  --color-sem-warning-text: #D97706;
+  /* ── 의미 색 (앱 correct·wrong·warning, 연한 배경 = 앱 tint 비율) ── */
+  --color-semantic-success: #34C759;
+  --color-semantic-success-text: #1F7A35;
+  --color-semantic-success-light: color-mix(in srgb, var(--color-semantic-success) 12%, transparent);
+  --color-semantic-success-border: color-mix(in srgb, var(--color-semantic-success) 40%, white);
+  --color-semantic-error: #FF3B30;
+  --color-semantic-error-text: #D70015;
+  --color-semantic-error-light: color-mix(in srgb, var(--color-semantic-error) 10%, transparent);
+  --color-semantic-error-border: color-mix(in srgb, var(--color-semantic-error) 40%, white);
+  --color-semantic-warning: #FF9500;
+  /* 앱에 없는 값: warning 60% + 검정 (흰 바탕 대비 4.5 이상) */
+  --color-semantic-warning-text: color-mix(in srgb, var(--color-semantic-warning) 60%, black);
+  --color-semantic-warning-light: color-mix(in srgb, var(--color-semantic-warning) 12%, transparent);
+  --color-semantic-warning-border: color-mix(in srgb, var(--color-semantic-warning) 40%, white);
 
-  /* ── Toast ── */
-  --color-toast-bg: #1F2937;
+  /* ── 반투명 덮개 (모달·시트 뒤 배경) ── */
+  --color-scrim: color-mix(in srgb, var(--color-text-primary) 40%, transparent);
 
-  /* ── Heatmap (5 levels) ── */
-  --color-heat-0: #F5F5F5;
-  --color-heat-1: #EEF2FF;
-  --color-heat-2: #C7D2FE;
-  --color-heat-3: #818CF8;
-  --color-heat-4: #4F46E5;
+  /* ── 히트맵 5단계 (0, 1, 2~3, 4~5, 6+문제) — 브랜드 색 농도 ── */
+  --color-heat-0: var(--color-surface-code);
+  --color-heat-1: color-mix(in srgb, var(--color-brand) 15%, white);
+  --color-heat-2: color-mix(in srgb, var(--color-brand) 35%, white);
+  --color-heat-3: color-mix(in srgb, var(--color-brand) 65%, white);
+  --color-heat-4: var(--color-brand);
+
+  /* ── 리더보드 1~3위 메달 (앱에 없는 웹 전용 값) ── */
+  --color-medal-gold: #EAB308;
+  --color-medal-silver: #9CA3AF;
+  --color-medal-bronze: #D97706;
+
+  /* ── 외부 로그인 제공사 버튼 (각 사 브랜드 가이드 지정값) ── */
+  --color-social-kakao: #FEE500;
+  --color-social-kakao-label: #191919;
+  --color-social-naver: #03C75A;
+  --color-social-github: #24292E;
+  --color-social-apple: #000000;
 
   /* ── Transitions ── */
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);

@@ -1,44 +1,35 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../core/app_colors.dart';
-import '../../../core/text_styles.dart';
+import 'package:flutter/cupertino.dart';
+import '../../design/design.dart';
 
 /// SSE 선택지 생성 중 로딩 상태. 스피너 + 상태 메시지.
 class SseLoadingWidget extends StatelessWidget {
   final String statusMessage;
 
-  const SseLoadingWidget({
-    super.key,
-    this.statusMessage = '선택지 생성 중...',
-  });
+  const SseLoadingWidget({super.key, this.statusMessage = '선택지 생성 중...'});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: AppColors.borderDefault),
+    final colors = context.passqlColors;
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: PassqlSpacing.md,
+        vertical: PassqlSpacing.xs,
       ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 20.w,
-            height: 20.w,
-            child: const CircularProgressIndicator(
-              strokeWidth: 2,
-              color: AppColors.brandIndigo,
+      child: PassqlCard(
+        child: Row(
+          children: [
+            const PassqlLoadingIndicator(),
+            const SizedBox(width: PassqlSpacing.sm),
+            Expanded(
+              child: Text(
+                statusMessage,
+                style: PassqlTypography.subheadline.copyWith(
+                  color: colors.secondaryLabel,
+                ),
+              ),
             ),
-          ),
-          SizedBox(width: 12.w),
-          Text(
-            statusMessage,
-            style: AppTextStyles.paragraph_14
-                .copyWith(color: AppColors.textSecondary),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

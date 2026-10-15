@@ -1,5 +1,6 @@
 package com.passql.member.service;
 
+import com.passql.common.util.UuidUtils;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.common.util.NicknameGenerator;
@@ -93,7 +94,7 @@ public class MemberService {
         member.setStatus(MemberStatus.WITHDRAWN);
         member.setWithdrawnAt(LocalDateTime.now());
         // 닉네임은 유니크라 회원 UUID 일부를 붙여 익명화한다.
-        member.setNickname("탈퇴회원_" + memberUuid.toString().substring(0, 8));
+        member.setNickname("탈퇴회원_" + UuidUtils.toShortForm(memberUuid));
         member.setEmail(null);
         member.setEmailVerified(false);
         member.setProviderUserId("withdrawn:" + memberUuid);

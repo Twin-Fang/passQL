@@ -29,8 +29,8 @@ export default function DailySetResult() {
             <div key={r.questionUuid} className="flex items-center gap-3">
               <span className="text-xs text-text-caption w-6">{i + 1}</span>
               {r.isCorrect
-                ? <CheckCircle size={16} className="text-sem-success-text flex-shrink-0" />
-                : <XCircle size={16} className="text-sem-error-text flex-shrink-0" />}
+                ? <CheckCircle size={16} className="text-semantic-success-text flex-shrink-0" />
+                : <XCircle size={16} className="text-semantic-error-text flex-shrink-0" />}
               <span className={`text-sm ${r.isCorrect ? "text-text-primary" : "text-text-secondary"}`}>
                 {r.isCorrect ? "정답" : "오답"}
               </span>

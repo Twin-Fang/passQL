@@ -2,17 +2,14 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../core/app_colors.dart';
 import '../../../core/auth/auth_session.dart';
 import '../../../core/auth/social_sign_in.dart';
-import '../../../core/text_styles.dart';
 import '../../../data/models/legal/legal_models.dart';
 import '../../../router/app_routes.dart';
+import '../../design/design.dart';
 import '../../providers/auth_provider.dart';
 
 /// 소셜 로그인 화면.
@@ -26,90 +23,98 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  SocialProvider? _loading;
+  SocialProvider? _signingInProvider;
   String? _error;
 
   Future<void> _signIn(SocialProvider provider) async {
     setState(() {
-      _loading = provider;
+      _signingInProvider = provider;
       _error = null;
     });
     try {
       await ref.read(authProvider.notifier).signIn(provider);
-    } on SocialSignInException catch (e) {
-      if (mounted) setState(() => _error = e.message);
+    } on SocialSignInException catch (exception) {
+      if (mounted) setState(() => _error = exception.message);
     } catch (_) {
       // 저장소 쓰기 실패, 응답 형식 오류 등 예상 밖 오류도 사용자에게 알린다(조용히 멈추지 않는다).
       if (mounted) setState(() => _error = '로그인에 실패했어요. 잠시 후 다시 시도해 주세요.');
     } finally {
-      if (mounted) setState(() => _loading = null);
+      if (mounted) setState(() => _signingInProvider = null);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final busy = _loading != null;
+    final colors = context.passqlColors;
+    final isSigningIn = _signingInProvider != null;
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24.w),
+          padding: const EdgeInsets.symmetric(horizontal: PassqlSpacing.xl),
           child: Column(
             children: [
-              const Spacer(flex: 3),
+              // 로고+버튼 묶음을 세로 중앙보다 조금 아래(55%)에 둔다 — 화면이 커도 버튼이 바닥에 붙지 않게.
+              const Spacer(flex: 11),
               // 워드마크 이미지에 앱 이름이 이미 들어 있으므로 이름 텍스트를 따로 두지 않는다.
-              Image.asset('assets/logo.png', height: 44.h),
-              SizedBox(height: 14.h),
+              const PassqlLogo(height: PassqlSize.loginLogoHeight),
+              const SizedBox(height: PassqlSpacing.xs),
               Text(
                 'SQL 자격증, 문제로 합격까지',
-                style: AppTextStyles.paragraph_14.copyWith(
-                  fontSize: 15.sp,
-                  color: AppColors.textSecondary,
+                style: PassqlTypography.subheadline.copyWith(
+                  color: colors.secondaryLabel,
                 ),
               ),
-              const Spacer(flex: 4),
-              if (_error != null)
-                Padding(
-                  padding: EdgeInsets.only(bottom: 12.h),
-                  child: Text(
-                    _error!,
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.paragraph_14.copyWith(
-                      color: Colors.red,
-                    ),
-                  ),
-                ),
+              const SizedBox(height: _logoToButtonsGap),
               _SocialButton(
                 label: 'Google로 계속하기',
                 logo: SvgPicture.string(
                   _googleLogoSvg,
-                  width: 20.w,
-                  height: 20.w,
+                  width: _googleLogoSize,
+                  height: _googleLogoSize,
                 ),
-                loading: _loading == SocialProvider.google,
-                onPressed: busy ? null : () => _signIn(SocialProvider.google),
+                isLoading: _signingInProvider == SocialProvider.google,
+                onPressed: isSigningIn
+                    ? null
+                    : () => _signIn(SocialProvider.google),
               ),
               // iOS 에서 소셜 로그인을 제공하면 Sign in with Apple 도 필수(App Store 심사 규정).
               // Apple HIG 는 흰 바탕+검정 로고 변형을 허용하므로 Google 버튼과 같은 모양으로 맞춘다.
               if (Platform.isIOS) ...[
-                SizedBox(height: 12.h),
+                const SizedBox(height: PassqlSpacing.sm),
                 _SocialButton(
                   label: 'Apple로 계속하기',
-                  logo: FaIcon(
-                    FontAwesomeIcons.apple,
-                    size: 22.sp,
-                    color: AppColors.black,
+                  logo: SvgPicture.string(
+                    _appleLogoSvg,
+                    width: _appleLogoWidth,
+                    height: _appleLogoHeight,
+                    colorFilter: ColorFilter.mode(
+                      colors.label,
+                      BlendMode.srcIn,
+                    ),
                   ),
-                  loading: _loading == SocialProvider.apple,
-                  onPressed: busy ? null : () => _signIn(SocialProvider.apple),
+                  isLoading: _signingInProvider == SocialProvider.apple,
+                  onPressed: isSigningIn
+                      ? null
+                      : () => _signIn(SocialProvider.apple),
                 ),
               ],
-              SizedBox(height: 16.h),
+              if (_error != null) ...[
+                const SizedBox(height: PassqlSpacing.sm),
+                Text(
+                  _error!,
+                  textAlign: TextAlign.center,
+                  style: PassqlTypography.footnote.copyWith(
+                    color: colors.wrongText,
+                  ),
+                ),
+              ],
+              const Spacer(flex: 9),
               _LegalNotice(
                 onOpen: (type) =>
                     context.push(AppRoutes.legal(type.serverValue)),
               ),
-              SizedBox(height: 24.h),
+              const SizedBox(height: PassqlSpacing.md),
             ],
           ),
         ),
@@ -117,6 +122,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 }
+
+// 로그인 화면 배치: 로고 묶음 <-> 버튼 간격, 제공자 로고 크기(공식 가이드 비율), 로고 칸 폭(문구 위치 고정)
+const double _logoToButtonsGap = 48;
+const double _googleLogoSize = 20;
+const double _appleLogoWidth = 18;
+const double _appleLogoHeight = 20;
+const double _logoSlotWidth = 24;
 
 /// Google 공식 'G' 로고(4색). 브랜드 가이드상 색을 바꾸지 않고 그대로 쓴다.
 const _googleLogoSvg = '''
@@ -128,61 +140,62 @@ const _googleLogoSvg = '''
 </svg>
 ''';
 
+/// Apple 공식 로고. 경로가 viewBox 위쪽(잎사귀)으로 조금 넘어가 y 시작을 -100 으로 잡았다.
+/// 색은 코드에서 입히므로 fill 을 두지 않는다.
+const _appleLogoSvg = '''
+<svg viewBox="0 -100 814 1110" xmlns="http://www.w3.org/2000/svg">
+<path d="M702 960c-54.2 52.6-114 44.4-171 19.6-60.6-25.3-116-26.9-180 0-79.7 34.4-121.8 24.4-169.5-19.6-270-278-230-701 76.7-717 74.5 4 126.8 41.4 171 44.8 65.4-13.3 128-51.4 197.7-46.5 83.9 6.8 147 40 188 99.9-172.9 103.7-131.9 331.4 26.6 395.2-31.6 83-72.5 165.5-140.6 227.6zM423 149.5C414.9 25.9 515.4-76 631.3-86c14.9 142.6-129.4 249-208.3 235.5z"/>
+</svg>
+''';
+
 /// 소셜 로그인 버튼 공통 모양. 로고는 왼쪽에 고정하고 문구는 가운데에 둬서
 /// 제공자마다 로고 폭이 달라도 문구 위치가 흔들리지 않게 한다.
 class _SocialButton extends StatelessWidget {
   const _SocialButton({
     required this.label,
     required this.logo,
-    required this.loading,
+    required this.isLoading,
     required this.onPressed,
   });
 
   final String label;
   final Widget logo;
-  final bool loading;
+  final bool isLoading;
   final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 54.h,
-      child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          backgroundColor: AppColors.white,
-          // 진행 중(비활성)에도 흐려지지 않게 같은 색을 유지한다.
-          disabledBackgroundColor: AppColors.white,
-          side: const BorderSide(color: AppColors.borderMuted),
-          padding: EdgeInsets.symmetric(horizontal: 20.w),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-          ),
+    final colors = context.passqlColors;
+    final isDarkMode = context.isDark;
+    return PassqlPressable(
+      onTap: onPressed,
+      semanticLabel: label,
+      child: Container(
+        width: double.infinity,
+        height: PassqlSize.buttonLarge,
+        padding: const EdgeInsets.symmetric(horizontal: PassqlSpacing.lg),
+        decoration: BoxDecoration(
+          // 라이트는 card+테두리, 다크는 cardElevated 로 배경과 구분한다.
+          color: isDarkMode ? colors.cardElevated : colors.card,
+          borderRadius: BorderRadius.circular(PassqlRadius.md),
+          border: isDarkMode ? null : Border.all(color: colors.separator),
         ),
-        child: loading
-            ? SizedBox(
-                width: 20.w,
-                height: 20.w,
-                child: const CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: AppColors.textPrimary,
-                ),
-              )
+        child: isLoading
+            ? const Center(child: PassqlLoadingIndicator())
             : Stack(
                 alignment: Alignment.center,
                 children: [
                   Align(
                     alignment: Alignment.centerLeft,
                     child: SizedBox(
-                      width: 24.w,
+                      width: _logoSlotWidth,
                       child: Center(child: logo),
                     ),
                   ),
                   Text(
                     label,
-                    style: AppTextStyles.label16Medium.copyWith(
-                      color: AppColors.textPrimary,
+                    style: PassqlTypography.headline.copyWith(
+                      color: colors.label,
                     ),
                   ),
                 ],
@@ -200,7 +213,9 @@ class _LegalNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = AppTextStyles.tag_12.copyWith(color: AppColors.black700);
+    final style = PassqlTypography.caption.copyWith(
+      color: context.passqlColors.secondaryLabel,
+    );
     final link = style.copyWith(decoration: TextDecoration.underline);
     return Wrap(
       alignment: WrapAlignment.center,

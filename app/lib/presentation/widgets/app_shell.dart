@@ -1,52 +1,58 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
-typedef _TabInfo = ({String path, FaIconData icon, String label});
+import '../../router/app_routes.dart';
+import '../design/design.dart';
 
 /// ShellRoute builder에서 사용하는 바텀 네비게이션 쉘.
 ///
 /// 탭 선택 상태는 현재 라우트 경로로 결정한다 — 별도 상태 불필요.
+/// extendBody 로 콘텐츠가 글래스 탭 바 뒤로 지나가게 한다.
 class AppShell extends StatelessWidget {
   final Widget child;
 
   const AppShell({super.key, required this.child});
 
-  static const List<_TabInfo> _tabs = [
-    (path: '/home', icon: FontAwesomeIcons.house, label: '홈'),
-    (path: '/questions', icon: FontAwesomeIcons.book, label: '문제'),
-    (path: '/stats', icon: FontAwesomeIcons.chartSimple, label: '통계'),
-    (path: '/settings', icon: FontAwesomeIcons.gear, label: '설정'),
+  static const _items = [
+    PassqlTabItem(
+      icon: CupertinoIcons.house,
+      activeIcon: CupertinoIcons.house_fill,
+      label: '홈',
+    ),
+    PassqlTabItem(
+      icon: CupertinoIcons.book,
+      activeIcon: CupertinoIcons.book_fill,
+      label: '문제',
+    ),
+    PassqlTabItem(
+      icon: CupertinoIcons.chart_bar,
+      activeIcon: CupertinoIcons.chart_bar_fill,
+      label: '통계',
+    ),
+    PassqlTabItem(
+      icon: CupertinoIcons.gear,
+      activeIcon: CupertinoIcons.gear_solid,
+      label: '설정',
+    ),
   ];
 
   /// 현재 경로에서 탭 인덱스 결정. 매칭 없으면 0(홈) 반환.
   int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
-    final idx = _tabs.indexWhere((t) => location.startsWith(t.path));
-    return idx < 0 ? 0 : idx;
+    final tabIndex = AppRoutes.tabRoots.indexWhere(location.startsWith);
+    return tabIndex < 0 ? 0 : tabIndex;
   }
 
   @override
   Widget build(BuildContext context) {
-    final currentIndex = _currentIndex(context);
     return Scaffold(
+      extendBody: true,
       body: child,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: (index) => context.go(_tabs[index].path),
-        // 아이콘만으로 구분되므로 글자는 숨긴다. 라벨은 접근성(스크린리더·롱프레스 툴팁)용으로 남긴다.
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        iconSize: 24,
-        items: _tabs
-            .map(
-              (tab) => BottomNavigationBarItem(
-                icon: FaIcon(tab.icon, size: 22),
-                label: tab.label,
-                tooltip: tab.label,
-              ),
-            )
-            .toList(),
+      bottomNavigationBar: PassqlTabBar(
+        items: _items,
+        currentIndex: _currentIndex(context),
+        onTap: (index) => context.go(AppRoutes.tabRoots[index]),
       ),
     );
   }

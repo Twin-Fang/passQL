@@ -1,20 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../core/app_colors.dart';
-import '../../../core/text_styles.dart';
 import '../../../data/models/home/greeting_response.dart';
+import '../../design/design.dart';
 
-/// 홈 화면 상단 인사 섹션.
-/// greeting.message의 {nickname}을 실제 닉네임으로 치환.
-/// messageType에 따라 서브 텍스트 배지 표시.
+/// 홈 화면 인사 영역.
+/// 첫 줄은 large title 로 올라가고(`resolveMessage`), 여기서는 둘째 줄 본문과
+/// messageType 에 따른 서브 배지를 그린다. 둘 다 없으면 호출 측이 목록에 넣지 않는다.
 class GreetingSection extends StatelessWidget {
   final GreetingResponse greeting;
 
   const GreetingSection({super.key, required this.greeting});
 
-  /// messageType별 서브 텍스트. null이면 배지 숨김.
-  String? get _subText {
-    switch (greeting.messageType) {
+  /// {nickname} 치환 후 줄 단위로 나눈다. 서버는 "닉네임님,\n본문" 두 줄로 보낸다.
+  static List<String> _lines(GreetingResponse greeting) =>
+      greeting.message.replaceAll('{nickname}', greeting.nickname).split('\n');
+
+  /// large title 에 넣는 첫 줄. `\n`이 없으면 전체 문구.
+  static String resolveMessage(GreetingResponse greeting) => _lines(greeting).first;
+
+  /// 둘째 줄 이후 본문. 비어 있으면 null.
+  static String? resolveBody(GreetingResponse greeting) {
+    final lines = _lines(greeting);
+    if (lines.length < 2) return null;
+    final body = lines.sublist(1).join('\n').trim();
+    return body.isEmpty ? null : body;
+  }
+
+  /// 본문이나 배지 중 그릴 것이 있는지. 없으면 목록에 넣지 않는다.
+  static bool hasContent(GreetingResponse greeting) =>
+      resolveBody(greeting) != null || _subTextFor(greeting.messageType) != null;
+
+  static String? _subTextFor(String type) {
+    switch (type) {
       case 'EXAM_DAY':
         return '오늘 시험이에요!';
       case 'URGENT':
@@ -26,42 +42,23 @@ class GreetingSection extends StatelessWidget {
     }
   }
 
-  /// {nickname} 플레이스홀더를 실제 닉네임으로 치환.
-  String get _resolvedMessage =>
-      greeting.message.replaceAll('{nickname}', greeting.nickname);
-
   @override
   Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    final body = resolveBody(greeting);
+    final sub = _subTextFor(greeting.messageType);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          _resolvedMessage,
-          style: AppTextStyles.heading_24.copyWith(
-            color: AppColors.textPrimary,
-            height: 1.4,
+        // 줄 제한 없이 그려 둘째 줄이 잘리지 않게 한다.
+        if (body != null)
+          Text(body, style: PassqlTypography.title3.copyWith(color: colors.secondaryLabel)),
+        if (body != null && sub != null) const SizedBox(height: PassqlSpacing.xs),
+        if (sub != null)
+          PassqlBadge(
+            text: sub,
+            color: greeting.messageType == 'EXAM_DAY' ? colors.wrong : colors.warning,
           ),
-        ),
-        if (_subText != null) ...[
-          SizedBox(height: 8.h),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-            decoration: BoxDecoration(
-              color: greeting.messageType == 'EXAM_DAY'
-                  ? AppColors.errorLight
-                  : AppColors.warningLight,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(
-              _subText!,
-              style: AppTextStyles.tag12Semibold.copyWith(
-                color: greeting.messageType == 'EXAM_DAY'
-                    ? AppColors.errorText
-                    : AppColors.warningText,
-              ),
-            ),
-          ),
-        ],
       ],
     );
   }

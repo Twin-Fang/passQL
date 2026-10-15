@@ -49,10 +49,26 @@ enum ErrorCode {
 abstract final class ErrorCodeMapper {
   /// 서버 ErrorCode enum 이름 → 앱 ErrorCode.
   static const Map<String, ErrorCode> _byServerCode = {
+    // 인증 (상태코드 401 로도 분류되지만 코드가 원본)
+    'UNAUTHORIZED': ErrorCode.unauthorized,
+    'UNAUTHENTICATED_REQUEST': ErrorCode.unauthorized,
+    'ACCESS_TOKEN_EXPIRED': ErrorCode.unauthorized,
+    'INVALID_TOKEN': ErrorCode.unauthorized,
     'MEMBER_SUSPENDED': ErrorCode.memberSuspended,
     'ACCESS_DENIED': ErrorCode.forbidden,
+    // 입력 오류: ErrorCode enum 2종 + GlobalExceptionHandler 문자열 코드 5종
     'INVALID_REQUEST': ErrorCode.validation,
     'INVALID_INPUT_VALUE': ErrorCode.validation,
+    'ILLEGAL_ARGUMENT': ErrorCode.validation,
+    'VALIDATION_ERROR': ErrorCode.validation,
+    'MESSAGE_NOT_READABLE': ErrorCode.validation,
+    'MISSING_PARAMETER': ErrorCode.validation,
+    'TYPE_MISMATCH': ErrorCode.validation,
+    // 없음: ErrorCode enum + GlobalExceptionHandler 문자열 코드(NoResourceFound)
+    'RESOURCE_NOT_FOUND': ErrorCode.notFound,
+    'NOT_FOUND': ErrorCode.notFound,
+    // 충돌: DB 제약 위반(GlobalExceptionHandler 409)
+    'DATA_INTEGRITY_VIOLATION': ErrorCode.conflict,
     'RATE_LIMITED': ErrorCode.rateLimited,
     'NICKNAME_DUPLICATE': ErrorCode.nicknameDuplicate,
     'NICKNAME_COOLDOWN': ErrorCode.nicknameCooldown,
@@ -61,11 +77,15 @@ abstract final class ErrorCodeMapper {
     'REPORT_ALREADY_EXISTS': ErrorCode.reportAlreadyExists,
     'DAILY_SET_ALREADY_COMPLETED': ErrorCode.dailySetAlreadyCompleted,
     'DAILY_SET_NOT_FOUND': ErrorCode.dailySetNotFound,
+    // AI 사용 불가: 서버 연결 실패, 대체 경로 실패, 선택지 생성 실패(SSE GENERATION_FAILED 포함)
     'AI_UNAVAILABLE': ErrorCode.aiUnavailable,
     'AI_SERVER_UNAVAILABLE': ErrorCode.aiUnavailable,
     'AI_FALLBACK_FAILED': ErrorCode.aiUnavailable,
+    'GENERATION_FAILED': ErrorCode.aiUnavailable,
+    'CHOICE_SET_GENERATION_FAILED': ErrorCode.aiUnavailable,
     'AI_TIMEOUT': ErrorCode.aiTimeout,
     'SANDBOX_TIMEOUT': ErrorCode.sandboxTimeout,
+    'INTERNAL_SERVER_ERROR': ErrorCode.serverError,
   };
 
   static ErrorCode fromServerCode(String? serverCode) =>

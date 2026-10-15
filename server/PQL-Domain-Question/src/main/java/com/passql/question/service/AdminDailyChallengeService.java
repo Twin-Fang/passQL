@@ -1,5 +1,6 @@
 package com.passql.question.service;
 
+import com.passql.common.util.TextPreview;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.question.dto.DailyChallengeItem;
@@ -43,7 +44,7 @@ public class AdminDailyChallengeService {
                             q.getQuestionUuid(),
                             questionService.toSummary(q).topicName(),
                             q.getDifficulty(),
-                            q.getStem() == null ? "" : (q.getStem().length() > 80 ? q.getStem().substring(0, 80) : q.getStem())
+                            TextPreview.truncate(q.getStem(), TextPreview.DAILY_CHALLENGE_STEM_LENGTH)
                     );
                 })
                 .filter(Objects::nonNull)
@@ -86,7 +87,7 @@ public class AdminDailyChallengeService {
                     date, dc.getSortOrder(), q.getQuestionUuid(),
                     questionService.toSummary(q).topicName(),
                     q.getDifficulty(),
-                    q.getStem() == null ? "" : (q.getStem().length() > 80 ? q.getStem().substring(0, 80) : q.getStem())
+                    TextPreview.truncate(q.getStem(), TextPreview.DAILY_CHALLENGE_STEM_LENGTH)
             );
         }).toList();
     }

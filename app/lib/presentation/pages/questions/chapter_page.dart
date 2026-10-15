@@ -1,25 +1,19 @@
-import '../../widgets/question/stem_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
-import '../../../core/app_colors.dart';
-import '../../../core/text_styles.dart';
-import '../../../data/models/question/question_detail.dart';
-import '../../../data/models/question/sse_event.dart';
 import '../../../presentation/flows/question_flow.dart';
 import '../../../presentation/providers/chapter_providers.dart';
 import '../../../presentation/providers/learning_refresh.dart';
 import '../../../presentation/providers/question_providers.dart';
 import '../../widgets/chapter/chapter_app_bar.dart';
+import '../../../data/models/question/question_detail.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/chapter/chapter_feedback_bar.dart';
-import '../../widgets/question/ai_explain_sheet.dart';
-import '../../widgets/question/choice_card.dart';
-import '../../widgets/question/execute_result_card.dart';
-import '../../widgets/question/schema_section.dart';
-import '../../widgets/question/sse_loading_widget.dart';
+import '../../../router/app_routes.dart';
+import '../../design/design.dart';
+import '../../widgets/question/question_sections.dart';
+import '../../widgets/question/question_solving_body.dart';
 
 /// 문제 풀이 플로우 메인 페이지 (풀스크린).
 ///
@@ -35,20 +29,17 @@ class ChapterPage extends ConsumerStatefulWidget {
 }
 
 class _ChapterPageState extends ConsumerState<ChapterPage> {
-  /// SSE를 이미 초기화한 questionUuid Set — 중복 초기화 방지.
-  final Set<String> _initializedUuids = {};
-
-  /// 현재 문제 진입 시각 — 제출 소요시간 계산에 사용.
-  DateTime _questionStartTime = DateTime.now();
+  /// 선택지를 이미 준비한 questionUuid — 중복 준비 방지.
+  final Set<String> _choiceInitializedUuids = {};
 
   /// 이번 풀이의 세션 식별자. 화면이 다시 그려져도 바뀌지 않도록 상태에 둔다.
   final String _sessionUuid = const Uuid().v4();
 
   /// 마지막 문제 이후 완료 처리(점수 등록 등)가 진행 중인지. 중복 실행과 연타를 막는다.
-  bool _completing = false;
+  bool _isCompleting = false;
 
   /// 이 화면에서 답안을 한 번이라도 제출했는지. 벗어날 때 학습 현황을 갱신할지 정한다.
-  bool _submittedAny = false;
+  bool _hasSubmittedAny = false;
 
   /// dispose 시점에는 ref 를 쓸 수 없으므로 컨테이너를 미리 잡아 둔다.
   late final ProviderContainer _container;
@@ -66,80 +57,54 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     });
   }
 
-  /// 현재 문제의 선택지를 초기화 — OK 세트 있으면 재사용, 없으면 SSE 시작.
-  void _initChoicesIfNeeded(String uuid, QuestionDetail question) {
-    if (_initializedUuids.contains(uuid)) return;
-    _initializedUuids.add(uuid);
+  /// 현재 문제의 선택지 준비를 첫 프레임 뒤 한 번만 요청 (재사용·생성 판단은 notifier 몫)
+  void _initializeChoicesOnce(String questionUuid, QuestionDetail question) {
+    if (!_choiceInitializedUuids.add(questionUuid)) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final notifier = ref.read(questionInteractionProvider(uuid).notifier);
-      final okSet = question.choiceSets
-          .where((cs) => cs.status == 'OK')
-          .toList();
-      if (okSet.isNotEmpty) {
-        notifier.useExistingChoiceSet(
-          okSet.first.choiceSetUuid,
-          okSet.first.items,
-        );
-      } else {
-        notifier.startSseGeneration();
-      }
+      ref
+          .read(questionInteractionProvider(questionUuid).notifier)
+          .initializeChoices(question);
     });
   }
 
-  /// 제출 처리 — 결과 받으면 ChapterNotifier에 전달, 실패 시 스낵바.
-  Future<void> _handleSubmit(
-    String currentUuid,
-    QuestionInteractionNotifier interactionNotifier,
-    ChapterNotifier chapterNotifier,
-  ) async {
+  /// 제출: 선택 키 고정 > 서버 제출 > 결과 기록(성공) 또는 토스트(실패)
+  Future<void> _submitCurrentQuestion(String currentUuid) async {
     // 선택 키 미리 저장 (제출 후 interaction state가 바뀔 수 있으므로)
     final selectedKey =
         ref.read(questionInteractionProvider(currentUuid)).selectedChoiceKey ??
-            '';
-    final startTime = _questionStartTime;
-
-    final result = await interactionNotifier.submit(
-      sessionUuid: widget.flow.tracksSession ? _sessionUuid : null,
-    );
+        '';
+    final submitResult = await ref
+        .read(questionInteractionProvider(currentUuid).notifier)
+        .submit(
+          sessionUuid: widget.flow.shouldTrackSession ? _sessionUuid : null,
+        );
     if (!mounted) return;
 
-    if (result != null) {
-      _submittedAny = true;
-      final durationMs =
-          DateTime.now().difference(startTime).inMilliseconds;
-      chapterNotifier.onSubmitted(result, durationMs, selectedKey);
+    if (submitResult != null) {
+      _hasSubmittedAny = true;
+      ref
+          .read(chapterProvider(widget.flow.id).notifier)
+          .recordSubmission(submitResult, selectedKey);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: AppColors.toastBg,
-          content: Text(
-            '제출에 실패했어요. 다시 시도해 주세요.',
-            style: AppTextStyles.paragraph_14
-                .copyWith(color: Colors.white),
-          ),
-        ),
-      );
+      showAppToast(context, '제출에 실패했어요. 다시 시도해 주세요.');
     }
   }
 
-  /// 마지막 문제까지 끝남 — 이후 처리는 흐름이 정한다.
-  Future<void> _complete(List<ChapterResult> results) async {
-    if (_completing) return;
-    setState(() => _completing = true);
-    final totalDurationMs = results.fold(0, (sum, r) => sum + r.durationMs);
-    final summary = ChapterSummary(
-      topicName: widget.flow.title,
-      results: results,
-      totalDurationMs: totalDurationMs,
-    );
+  /// 마지막 문제까지 끝남 — 요약을 만들어 이후 처리는 흐름에 맡긴다.
+  Future<void> _complete() async {
+    if (_isCompleting) return;
+    setState(() => _isCompleting = true);
+    final summary = ref
+        .read(chapterProvider(widget.flow.id).notifier)
+        .buildSummary(widget.flow.title);
     try {
       await widget.flow.onCompleted(context, ref, summary, _sessionUuid);
     } catch (_) {
       // 완료 처리에서 예상 밖 오류가 나도 화면이 멈추지 않게 하고, 다시 시도할 수 있게 잠금을 푼다.
       if (mounted) showAppToast(context, '완료 처리에 실패했어요. 다시 시도해 주세요.');
     } finally {
-      if (mounted) setState(() => _completing = false);
+      if (mounted) setState(() => _isCompleting = false);
     }
   }
 
@@ -147,7 +112,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
   void dispose() {
     // 챕터는 문제를 여러 번 제출하므로 매번이 아니라 화면을 벗어날 때 한 번만 갱신한다.
     // (중간에 나가도, 끝까지 풀고 결과 화면으로 가도 같은 경로를 탄다.)
-    if (_submittedAny) refreshLearningData(_container.invalidate);
+    if (_hasSubmittedAny) refreshLearningData(_container.invalidate);
     super.dispose();
   }
 
@@ -157,469 +122,130 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     final chapter = ref.watch(chapterProvider(flowId));
     final chapterNotifier = ref.read(chapterProvider(flowId).notifier);
 
-    // 인덱스 변경 시 타이머 리셋
-    ref.listen<ChapterState>(chapterProvider(flowId), (prev, next) {
-      if ((prev?.currentIndex ?? -1) != next.currentIndex) {
-        _questionStartTime = DateTime.now();
-      }
-    });
-
     // 로딩 중
     if (chapter.isLoadingList) {
-      return _LoadingScaffold(topicName: widget.flow.title);
+      return PassqlStatusScaffold(
+        title: widget.flow.title,
+        leading: PassqlNavLeading.close,
+        onLeadingTap: () => context.go(AppRoutes.home),
+        body: PassqlStatusView.loading(),
+      );
     }
 
     // 에러 또는 빈 목록
     if (chapter.listError != null || chapter.questionUuids.isEmpty) {
-      return _ErrorScaffold(
-        topicName: widget.flow.title,
-        message: chapter.listError ?? '문제가 없어요',
-        // 문제 목록을 다시 불러온다. (오늘의 세트를 이미 끝냈다면 다시 불러도 같은 안내가 나온다)
-        onRetry: () => ref
-            .read(chapterProvider(widget.flow.id).notifier)
-            .load(() => widget.flow.loadQuestionUuids(ref)),
+      return PassqlStatusScaffold(
+        title: widget.flow.title,
+        leading: PassqlNavLeading.close,
+        onLeadingTap: () => context.go(AppRoutes.home),
+        body: PassqlStatusView.error(
+          message: chapter.listError ?? '문제가 없어요',
+          // 문제 목록을 다시 불러온다. (오늘의 세트를 이미 끝냈다면 다시 불러도 같은 안내가 나온다)
+          onRetry: () => ref
+              .read(chapterProvider(widget.flow.id).notifier)
+              .load(() => widget.flow.loadQuestionUuids(ref)),
+        ),
       );
     }
 
     final currentUuid = chapter.questionUuids[chapter.currentIndex];
     final detailAsync = ref.watch(questionDetailProvider(currentUuid));
     final interaction = ref.watch(questionInteractionProvider(currentUuid));
-    final interactionNotifier =
-        ref.read(questionInteractionProvider(currentUuid).notifier);
+    final interactionNotifier = ref.read(
+      questionInteractionProvider(currentUuid).notifier,
+    );
 
     // 한 문제라도 제출했거나 2번째 문제 이상이면 "풀이 시작"으로 본다.
-    final started = chapter.currentIndex > 0 || chapter.isAnswered;
+    final hasStarted = chapter.currentIndex > 0 || chapter.isAnswered;
 
     final scaffold = Scaffold(
-      backgroundColor: AppColors.pageBg,
+      // 하단 바(글래스) 뒤로 본문이 비쳐 보이도록 body 를 바 아래까지 확장한다.
+      extendBody: true,
       appBar: ChapterAppBar(
         topicName: widget.flow.title,
         currentIndex: chapter.currentIndex,
         total: chapter.questionUuids.length,
         isAnswered: chapter.isAnswered,
-        confirmExit: started,
+        shouldConfirmExit: hasStarted,
       ),
       body: detailAsync.when(
-        loading: () =>
-            const Center(child: CircularProgressIndicator()),
-        error: (e, _) => _RetryView(
+        loading: () => PassqlStatusView.loading(),
+        error: (error, _) => PassqlStatusView.error(
           message: '문제를 불러올 수 없어요',
           onRetry: () => ref.invalidate(questionDetailProvider(currentUuid)),
         ),
         data: (question) {
-          // 최초 1회 선택지 초기화
-          _initChoicesIfNeeded(currentUuid, question);
-
-          return Column(
-            children: [
-              // 스크롤 가능한 문제 본문
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _HeaderSection(question: question),
-                      if (question.executionMode == 'EXECUTABLE')
-                        SchemaSection(
-                          schemaDdl: question.schemaDdl,
-                          schemaSampleData: question.schemaSampleData,
-                        ),
-                      _StemSection(stem: question.stem),
-                      _ChoicesSection(
-                        interaction: interaction,
-                        notifier: interactionNotifier,
-                        question: question,
-                        questionUuid: currentUuid,
-                        isExecutable: question.executionMode == 'EXECUTABLE',
-                        buildContext: context,
-                      ),
-                      // SQL 실행 중 로딩
-                      if (interaction.isExecuting)
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 20.w, vertical: 8.h),
-                          child: const LinearProgressIndicator(
-                            color: AppColors.brandIndigo,
-                          ),
-                        ),
-                      // SQL 실행 결과
-                      if (interaction.currentExecuteResult != null)
-                        ExecuteResultCard(
-                          result: interaction.currentExecuteResult!,
-                          onAiExplainTap: interaction
-                                      .currentExecuteResult!.errorCode
-                                      ?.isNotEmpty ==
-                                  true
-                              ? () {
-                                  final selectedChoice = interaction
-                                      .activeChoices
-                                      .where((c) =>
-                                          c.key ==
-                                          interaction.selectedChoiceKey)
-                                      .firstOrNull;
-                                  AiExplainSheet.show(
-                                    context,
-                                    payload: {
-                                      'questionUuid': currentUuid,
-                                      'sql': selectedChoice?.body ?? '',
-                                      'errorMessage': interaction
-                                              .currentExecuteResult!
-                                              .errorMessage ??
-                                          '',
-                                    },
-                                    isErrorExplain: true,
-                                  );
-                                }
-                              : null,
-                        ),
-                      SizedBox(height: 80.h),
-                    ],
-                  ),
-                ),
-              ),
-
-              // 하단 바 — 미제출: 제출 버튼 / 제출 완료: 피드백 바
-              if (!chapter.isAnswered)
-                _ChapterSubmitBar(
-                  interaction: interaction,
-                  onSubmit: () => _handleSubmit(
-                    currentUuid,
-                    interactionNotifier,
-                    chapterNotifier,
-                  ),
-                )
-              else
-                ChapterFeedbackBar(
-                  result: chapter.lastSubmitResult!,
-                  questionUuid: currentUuid,
-                  selectedChoiceKey: chapter.lastSelectedKey ?? '',
-                  isLastQuestion: chapter.isLastQuestion,
-                  onNext: () {
-                    if (_completing) return;
-                    if (chapter.isLastQuestion) {
-                      _complete(chapter.results);
-                    } else {
-                      chapterNotifier.nextQuestion();
-                    }
-                  },
-                ),
-            ],
+          _initializeChoicesOnce(currentUuid, question);
+          // Scaffold 안쪽 context 여야 extendBody 가 더한 하단 바 높이를 읽는다.
+          return Builder(
+            builder: (context) => QuestionSolvingBody(
+              questionUuid: currentUuid,
+              question: question,
+              interaction: interaction,
+              notifier: interactionNotifier,
+              // 제출 후에는 정답/오답을 선택지에 표시한다.
+              submitResult: chapter.isAnswered
+                  ? chapter.lastSubmitResult
+                  : null,
+              gradedSelectedKey: chapter.lastSelectedKey,
+              // 재시도가 소용없는 오류여도 다시 눌러 볼 수 있게 두어 막다른 길을 만들지 않는다.
+              shouldAlwaysAllowRetry: true,
+            ),
           );
         },
       ),
+      // 하단 바 — 미제출: 제출 버튼 / 제출 완료: 피드백 바
+      bottomNavigationBar: detailAsync.hasValue
+          ? (!chapter.isAnswered
+                ? QuestionSubmitBar(
+                    interaction: interaction,
+                    onSubmit: () => _submitCurrentQuestion(currentUuid),
+                  )
+                : ChapterFeedbackBar(
+                    // 문제가 바뀔 때마다 새로 만들어 햅틱이 다시 울리게 한다.
+                    key: ValueKey(currentUuid),
+                    result: chapter.lastSubmitResult!,
+                    questionUuid: currentUuid,
+                    selectedChoiceKey: chapter.lastSelectedKey ?? '',
+                    isLastQuestion: chapter.isLastQuestion,
+                    onNext: () {
+                      if (_isCompleting) return;
+                      if (chapter.isLastQuestion) {
+                        _complete();
+                      } else {
+                        chapterNotifier.nextQuestion();
+                      }
+                    },
+                  ))
+          : null,
     );
 
     // 완료 처리(점수 등록)가 길어질 수 있어, 진행 중에는 화면을 잠그고 로딩을 보여준다.
-    final body = !_completing
-        ? scaffold
-        : Stack(
-            children: [
-              scaffold,
-              const ModalBarrier(dismissible: false, color: Colors.black26),
-              const Center(child: CircularProgressIndicator()),
-            ],
-          );
+    // 트리 모양을 고정한다. 완료 처리 여부로 Scaffold 의 부모가 바뀌면 피드백 바가 다시 만들어져 햅틱이 또 울린다.
+    final body = Stack(
+      children: [
+        scaffold,
+        if (_isCompleting) ...[
+          ModalBarrier(
+            dismissible: false,
+            color: context.passqlColors.label.withValues(alpha: 0.2),
+          ),
+          const Center(
+            child: PassqlLoadingIndicator(size: PassqlLoadingSize.blocking),
+          ),
+        ],
+      ],
+    );
     // 시스템 뒤로가기(Android 백 버튼, iOS 스와이프)도 홈 아이콘과 같은 확인을 거친다.
     return PopScope(
-      canPop: !started,
+      canPop: !hasStarted,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
         if (await confirmChapterExit(context) && context.mounted) {
-          context.go('/home');
+          context.go(AppRoutes.home);
         }
       },
       child: body,
-    );
-  }
-}
-
-// ─── 로딩 / 에러 스캐폴드 ─────────────────────────────────────────
-
-class _LoadingScaffold extends StatelessWidget {
-  final String topicName;
-  const _LoadingScaffold({required this.topicName});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.pageBg,
-      appBar: ChapterAppBar(
-        topicName: topicName,
-        currentIndex: 0,
-        total: 10,
-        isAnswered: false,
-      ),
-      body: const Center(child: CircularProgressIndicator()),
-    );
-  }
-}
-
-class _ErrorScaffold extends StatelessWidget {
-  final String topicName;
-  final String message;
-  final VoidCallback onRetry;
-  const _ErrorScaffold({
-    required this.topicName,
-    required this.message,
-    required this.onRetry,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.pageBg,
-      appBar: ChapterAppBar(
-        topicName: topicName,
-        currentIndex: 0,
-        total: 10,
-        isAnswered: false,
-      ),
-      body: _RetryView(message: message, onRetry: onRetry),
-    );
-  }
-}
-
-/// 오류 문구와 "다시 시도", "홈으로" 버튼. 풀이 화면에서 막다른 길이 생기지 않게 한다.
-class _RetryView extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-  const _RetryView({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.all(32.r),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.paragraph_14
-                  .copyWith(color: AppColors.textSecondary),
-            ),
-            SizedBox(height: 16.h),
-            OutlinedButton(onPressed: onRetry, child: const Text('다시 시도')),
-            TextButton(
-              onPressed: () => GoRouter.of(context).go('/home'),
-              child: const Text('홈으로'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─── 문제 본문 위젯 (QuestionDetailPage의 private 위젯 재현) ─────────
-
-class _HeaderSection extends StatelessWidget {
-  final QuestionDetail question;
-  const _HeaderSection({required this.question});
-
-  @override
-  Widget build(BuildContext context) {
-    final difficulty = question.difficulty ?? 1;
-    final isExecutable = question.executionMode == 'EXECUTABLE';
-
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 8.h),
-      child: Row(
-        children: [
-          Row(
-            children: List.generate(3, (i) {
-              return Icon(
-                Icons.star,
-                size: 16.sp,
-                color: i < difficulty
-                    ? AppColors.warning
-                    : AppColors.borderDefault,
-              );
-            }),
-          ),
-          SizedBox(width: 8.w),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
-            decoration: BoxDecoration(
-              color: isExecutable
-                  ? AppColors.accentLight
-                  : AppColors.borderDefault,
-              borderRadius: BorderRadius.circular(999.r),
-            ),
-            child: Text(
-              isExecutable ? 'SQL 실행' : '개념 문제',
-              style: AppTextStyles.tag_12.copyWith(
-                color: isExecutable
-                    ? AppColors.brandIndigo
-                    : AppColors.textSecondary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StemSection extends StatelessWidget {
-  final String stem;
-  const _StemSection({required this.stem});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: AppColors.borderDefault),
-      ),
-      child: StemText(stem),
-    );
-  }
-}
-
-class _ChoicesSection extends StatelessWidget {
-  final QuestionInteractionState interaction;
-  final QuestionInteractionNotifier notifier;
-  final QuestionDetail question;
-  final String questionUuid;
-  final bool isExecutable;
-  final BuildContext buildContext;
-
-  const _ChoicesSection({
-    required this.interaction,
-    required this.notifier,
-    required this.question,
-    required this.questionUuid,
-    required this.isExecutable,
-    required this.buildContext,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (interaction.isGeneratingChoices) {
-      return SseLoadingWidget(
-        statusMessage: interaction.sseStatusMessage ?? '선택지 생성 중...',
-      );
-    }
-
-    if (interaction.sseError != null) {
-      return _SseErrorSection(
-        error: interaction.sseError!,
-        // 재시도가 소용없는 오류여도 다시 눌러 볼 수 있게 두어 막다른 길을 만들지 않는다.
-        onRetry: () => notifier.startSseGeneration(),
-      );
-    }
-
-    if (interaction.activeChoices.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      children: interaction.activeChoices.map((item) {
-        return ChoiceCard(
-          item: item,
-          isSelected: interaction.selectedChoiceKey == item.key,
-          onTap: () => notifier.selectChoice(
-            choiceKey: item.key,
-            sql: item.kind == 'SQL' ? item.body : null,
-            isExecutable: isExecutable,
-          ),
-        );
-      }).toList(),
-    );
-  }
-}
-
-class _SseErrorSection extends StatelessWidget {
-  final SseErrorEvent error;
-  final VoidCallback? onRetry;
-
-  const _SseErrorSection({required this.error, this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: AppColors.errorLight,
-        borderRadius: BorderRadius.circular(8.r),
-        border: Border(left: BorderSide(color: AppColors.error, width: 4.w)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '선택지 생성에 실패했어요',
-            style: AppTextStyles.paragraph14Semibold
-                .copyWith(color: AppColors.errorText),
-          ),
-          if (onRetry != null) ...[
-            SizedBox(height: 8.h),
-            GestureDetector(
-              onTap: onRetry,
-              child: Text(
-                '다시 시도',
-                style: AppTextStyles.paragraph_14
-                    .copyWith(color: AppColors.brandIndigo),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-// ─── 제출 버튼 ────────────────────────────────────────────────────
-
-class _ChapterSubmitBar extends StatelessWidget {
-  final QuestionInteractionState interaction;
-  final VoidCallback onSubmit;
-
-  const _ChapterSubmitBar({
-    required this.interaction,
-    required this.onSubmit,
-  });
-
-  bool get _canSubmit =>
-      interaction.selectedChoiceKey != null &&
-      interaction.activeChoiceSetId != null &&
-      !interaction.isSubmitting;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 24.h),
-      decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        border: Border(top: BorderSide(color: AppColors.borderDefault)),
-      ),
-      child: SizedBox(
-        width: double.infinity,
-        height: 44.h,
-        child: ElevatedButton(
-          onPressed: _canSubmit ? onSubmit : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.brandIndigo,
-            disabledBackgroundColor: AppColors.borderDefault,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-          ),
-          child: interaction.isSubmitting
-              ? const CircularProgressIndicator(color: Colors.white)
-              : Text(
-                  '답안 제출하기',
-                  style: AppTextStyles.label_16
-                      .copyWith(color: Colors.white),
-                ),
-        ),
-      ),
     );
   }
 }

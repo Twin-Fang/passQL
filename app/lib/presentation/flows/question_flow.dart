@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../core/network/api_providers.dart';
 import '../providers/chapter_providers.dart';
+import '../providers/topic_providers.dart';
+import '../../router/app_routes.dart';
 
 /// 문제 묶음을 순서대로 푸는 흐름의 종류.
 ///
@@ -23,7 +24,7 @@ abstract class QuestionFlow {
 
   /// 서버에 세션 단위로 기록해야 하는 흐름인지.
   /// true 면 답안을 제출할 때 같은 세션 UUID 를 함께 보낸다.
-  bool get tracksSession => false;
+  bool get shouldTrackSession => false;
 
   /// 풀 문제의 UUID 목록. 실패하면 사용자에게 보여줄 수 있는 예외를 던진다.
   Future<List<String>> loadQuestionUuids(WidgetRef ref);
@@ -51,11 +52,8 @@ class TopicFlow extends QuestionFlow {
   String get title => topicName;
 
   @override
-  Future<List<String>> loadQuestionUuids(WidgetRef ref) async {
-    final response = await ref
-        .read(questionApiProvider)
-        .getQuestions(0, 10, topic: topicCode);
-    return response.content.map((q) => q.questionUuid).toList();
+  Future<List<String>> loadQuestionUuids(WidgetRef ref) {
+    return ref.read(topicChapterServiceProvider).fetchQuestionUuids(topicCode);
   }
 
   @override
@@ -66,6 +64,9 @@ class TopicFlow extends QuestionFlow {
     String sessionUuid,
   ) async {
     // 경로의 sessionId 는 라우트 파라미터를 채우기 위한 값일 뿐 화면에서 쓰지 않는다.
-    context.go('/practice/chapter-${const Uuid().v4()}/result', extra: summary);
+    context.go(
+      AppRoutes.practiceResult('chapter-${const Uuid().v4()}'),
+      extra: summary,
+    );
   }
 }

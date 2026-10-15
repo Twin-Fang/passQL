@@ -1,10 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter/cupertino.dart';
 
-import '../../../core/app_colors.dart';
-import '../../../core/text_styles.dart';
 import '../../../data/models/progress/ai_comment_response.dart';
+import '../../design/design.dart';
 import '../question/markdown_lite_text.dart';
 
 /// AI 영역 분석 카드.
@@ -22,51 +19,14 @@ class AiAnalysisCard extends StatelessWidget {
     // AI 코멘트 없으면 카드 숨김
     if (comment == null) return const SizedBox.shrink();
 
-    return Container(
-      padding: EdgeInsets.all(16.r),
-      decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: AppColors.borderDefault),
+    return PassqlCard(
+      title: 'AI 영역 분석',
+      trailing: PassqlIconTile(
+        icon: CupertinoIcons.sparkles,
+        color: context.passqlColors.accent,
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 로봇 아이콘 뱃지
-          Container(
-            width: 36.r,
-            height: 36.r,
-            decoration: BoxDecoration(
-              color: AppColors.accentLight,
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-            child: Center(
-              child: FaIcon(
-                FontAwesomeIcons.robot,
-                size: 16.r,
-                color: AppColors.brandIndigo,
-              ),
-            ),
-          ),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'AI 영역 분석',
-                  style: AppTextStyles.paragraph14Semibold.copyWith(
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                SizedBox(height: 6.h),
-                // AI 코멘트의 `토픽명` 같은 마크다운 기호를 강조 표시로 바꿔 보여 준다.
-                MarkdownLiteText(comment),
-              ],
-            ),
-          ),
-        ],
-      ),
+      // AI 코멘트의 `토픽명` 같은 마크다운 기호를 강조 표시로 바꿔 보여 준다.
+      child: MarkdownLiteText(comment),
     );
   }
 }

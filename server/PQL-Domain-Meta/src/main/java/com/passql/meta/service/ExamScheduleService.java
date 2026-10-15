@@ -70,7 +70,7 @@ public class ExamScheduleService {
 
     @Transactional
     public ExamScheduleResponse createSchedule(ExamScheduleCreateRequest request) {
-        CertType certType = CertType.valueOf(request.getCertType());
+        CertType certType = CertType.fromRequestValue(request.getCertType());
 
         if (examScheduleRepository.existsByCertTypeAndRound(certType, request.getRound())) {
             throw new CustomException(ErrorCode.EXAM_SCHEDULE_DUPLICATE);

@@ -6,13 +6,14 @@ import com.passql.question.entity.QuestionReport;
 import com.passql.web.dto.report.AdminReportDetailResponse;
 import com.passql.web.dto.report.AdminReportSummary;
 import com.passql.web.dto.report.ResolveRequest;
+import com.passql.common.exception.CustomException;
+import com.passql.common.exception.constant.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -42,11 +43,8 @@ public class AdminReportController implements AdminReportControllerDocs {
     public ResponseEntity<AdminReportDetailResponse> getReportDetail(
             @PathVariable UUID questionUuid) {
 
-        Optional<Question> questionOpt = questionReportService.getQuestion(questionUuid);
-        if (questionOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        Question question = questionOpt.get();
+        Question question = questionReportService.getQuestion(questionUuid)
+                .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
         List<QuestionReport> reports = questionReportService.getReportsByQuestion(questionUuid);
 
         AdminReportDetailResponse.QuestionInfo questionInfo =

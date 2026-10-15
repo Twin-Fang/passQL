@@ -11,12 +11,13 @@ import PracticeFeedbackBar from "../components/PracticeFeedbackBar";
 import ReportModal from "../components/ReportModal";
 import ConfirmModal from "../components/ConfirmModal";
 import LoadingOverlay from "../components/LoadingOverlay";
+import ProgressBar from "../components/ProgressBar";
 import type { ChoiceItem, SubmitResult } from "../types/api";
 
 function WaitingForQuestion({ topicName }: { readonly topicName: string }) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6">
-      <div className="w-10 h-10 border-3 border-accent-light border-t-brand rounded-full animate-spin" />
+      <div className="w-10 h-10 border-3 border-brand-light border-t-brand rounded-full animate-spin" />
       <p className="text-body text-center">{getRandomMessage(topicName)}</p>
       <p className="text-xs text-text-caption">잠시만 기다려주세요</p>
     </div>
@@ -196,12 +197,11 @@ export default function PracticeSet() {
             <span className="badge-topic">{topicName}</span>
           </div>
         </div>
-        <div className="w-full h-1.5 bg-border rounded-full overflow-hidden">
-          <div
-            className="h-full bg-brand rounded-full transition-all duration-300"
-            style={{ width: `${((displayIndex + 1) / totalQuestions) * 100}%` }}
-          />
-        </div>
+        <ProgressBar
+          fillPercent={((displayIndex + 1) / totalQuestions) * 100}
+          trackClassName="h-1.5 bg-border"
+          fillClassName="bg-brand transition-all duration-300"
+        />
       </div>
 
       {displayQuestion ? (

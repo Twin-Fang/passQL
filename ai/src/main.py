@@ -4,7 +4,9 @@ FastAPI 애플리케이션 진입점
 import time
 import logging
 from contextlib import asynccontextmanager
+from importlib.metadata import PackageNotFoundError, version
 from fastapi import FastAPI, Request
+from src.core.exception_handlers import register_exception_handlers
 from src.core.logging import setup_logging
 from src.apis.ai_router import router as ai_router
 from src.apis.health_router import router as health_router
@@ -12,6 +14,17 @@ from src.apis.health_router import router as health_router
 # 로깅 초기화
 setup_logging(log_level="INFO")
 logger = logging.getLogger(__name__)
+
+# pyproject.toml [project].name (버전 원본: version.yml > CI 가 pyproject version 동기화)
+PACKAGE_NAME = "passql-ai"
+
+
+def read_package_version() -> str:
+    """설치된 패키지 메타데이터 > 버전 문자열 (미설치 로컬 실행은 0.0.0)"""
+    try:
+        return version(PACKAGE_NAME)
+    except PackageNotFoundError:
+        return "0.0.0"
 
 
 @asynccontextmanager
@@ -36,12 +49,14 @@ async def lifespan(app: FastAPI):
 # FastAPI 앱 생성 (lifespan 컨텍스트 적용)
 app = FastAPI(
     title="passQL AI Server",
-    description="passQL의 SQL 오류 설명, diff 해설, 유사 문제 검색 AI 서버입니다.",
-    version="0.0.1",
+    description="passQL AI 서버: 문제·선택지 생성, 프롬프트 테스트, RAG 색인·추천·정리",
+    version=read_package_version(),
     lifespan=lifespan,
     docs_url="/docs/swagger",
     redoc_url="/docs/redoc"
 )
+
+register_exception_handlers(app)
 
 # 라우터 등록
 app.include_router(ai_router)

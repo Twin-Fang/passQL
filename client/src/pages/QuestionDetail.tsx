@@ -470,7 +470,7 @@ export default function QuestionDetail({
       )}
 
       {/* fixed bottom 제출 버튼 — PracticeFeedbackBar(z-30)가 제출 후 자연스럽게 덮음 */}
-      <div className="fixed bottom-0 inset-x-0 z-20 bg-surface-page">
+      <div className="fixed bottom-0 inset-x-0 z-20 bg-surface">
         <div className="mx-auto max-w-120 px-4 py-4">{submitButton}</div>
       </div>
 

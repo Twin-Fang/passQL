@@ -1,5 +1,6 @@
 package com.passql.question.service;
 
+import com.passql.common.util.TextPreview;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.passql.ai.dto.GeneratedChoiceDto;
@@ -106,12 +107,10 @@ public class SandboxValidator {
             if (!bodyTrimmed.startsWith("SELECT") && !bodyTrimmed.startsWith("WITH")) {
                 log.warn("[validateStandard] body가 SQL 쿼리가 아님 (스킵): key={}, bodyPreview={}",
                         choice.key(),
-                        choice.body() != null && choice.body().length() > 50
-                                ? choice.body().substring(0, 50) + "..."
-                                : choice.body());
+                        TextPreview.truncateWithEllipsis(choice.body(), TextPreview.LOG_CHOICE_BODY_LENGTH));
                 validations.add(new ChoiceValidation(
                         choice.key(), "ERROR", List.of(), 0, false,
-                        "body가 SQL 쿼리가 아닙니다: " + bodyTrimmed.substring(0, Math.min(30, bodyTrimmed.length()))));
+                        "body가 SQL 쿼리가 아닙니다: " + TextPreview.truncate(bodyTrimmed, TextPreview.ERROR_MESSAGE_CHOICE_BODY_LENGTH)));
                 continue;
             }
 
@@ -244,7 +243,7 @@ public class SandboxValidator {
             } catch (Exception e) {
                 log.warn("[validateResultMatch] JSON 파싱 실패: key={}, bodyPreview={}",
                         choice.key(),
-                        body.length() > 50 ? body.substring(0, 50) + "..." : body);
+                        TextPreview.truncateWithEllipsis(body, TextPreview.LOG_CHOICE_BODY_LENGTH));
                 validations.add(new ChoiceValidation(
                         choice.key(), "ERROR", List.of(), 0, false,
                         "body가 JSON 배열이 아닙니다: " + e.getMessage()));

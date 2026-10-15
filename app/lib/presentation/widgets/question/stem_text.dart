@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../core/app_colors.dart';
-import '../../../core/text_styles.dart';
+import '../../design/design.dart';
 
 /// 지문 안의 ```lang ... ``` 블록 분리용 정규식.
 final RegExp _fenceRe = RegExp(r'```[A-Za-z]*\r?\n?([\s\S]*?)```');
@@ -29,15 +27,15 @@ class StemText extends StatelessWidget {
     var cursor = 0;
 
     void addText(String raw) {
-      final t = raw.trim();
-      if (t.isEmpty) return;
-      children.add(InlineCodeText(t));
+      final trimmed = raw.trim();
+      if (trimmed.isEmpty) return;
+      children.add(InlineCodeText(trimmed));
     }
 
-    for (final m in _fenceRe.allMatches(stem)) {
-      addText(stem.substring(cursor, m.start));
-      children.add(_CodeBox(code: (m.group(1) ?? '').trimRight()));
-      cursor = m.end;
+    for (final match in _fenceRe.allMatches(stem)) {
+      addText(stem.substring(cursor, match.start));
+      children.add(PassqlCodeBlock(code: (match.group(1) ?? '').trimRight()));
+      cursor = match.end;
     }
     addText(stem.substring(cursor));
 
@@ -46,7 +44,7 @@ class StemText extends StatelessWidget {
 
     final spaced = <Widget>[];
     for (var i = 0; i < children.length; i++) {
-      if (i > 0) spaced.add(SizedBox(height: 12.h));
+      if (i > 0) spaced.add(const SizedBox(height: PassqlSpacing.sm));
       spaced.add(children[i]);
     }
     return SizedBox(
@@ -54,34 +52,6 @@ class StemText extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: spaced,
-      ),
-    );
-  }
-}
-
-/// 긴 줄이 가로로 잘려 보이지 않도록 줄바꿈한다. 첫 줄 들여쓰기는 그대로 둔다.
-class _CodeBox extends StatelessWidget {
-  const _CodeBox({required this.code});
-
-  final String code;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: AppColors.black100,
-        borderRadius: BorderRadius.circular(8.r),
-      ),
-      child: Text(
-        code,
-        style: AppTextStyles.paragraph_14.copyWith(
-          color: AppColors.textPrimary,
-          fontFamily: 'JetBrainsMono',
-          fontSize: 12.sp,
-          height: 1.5,
-        ),
       ),
     );
   }
@@ -99,26 +69,24 @@ class InlineCodeText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final base =
-        style ??
-        AppTextStyles.paragraph_14.copyWith(color: AppColors.textPrimary);
+    final colors = context.passqlColors;
+    final base = style ?? PassqlTypography.callout.copyWith(color: colors.label);
     final spans = <InlineSpan>[];
     var cursor = 0;
-    for (final m in _inlineRe.allMatches(text)) {
-      if (m.start > cursor) {
-        spans.add(TextSpan(text: text.substring(cursor, m.start)));
+    for (final match in _inlineRe.allMatches(text)) {
+      if (match.start > cursor) {
+        spans.add(TextSpan(text: text.substring(cursor, match.start)));
       }
       spans.add(
         TextSpan(
-          text: m.group(1),
-          style: TextStyle(
-            fontFamily: 'JetBrainsMono',
+          text: match.group(1),
+          style: PassqlTypography.code.copyWith(
             fontSize: (base.fontSize ?? 14) * 0.92,
-            backgroundColor: AppColors.black100,
+            backgroundColor: colors.fill,
           ),
         ),
       );
-      cursor = m.end;
+      cursor = match.end;
     }
     if (cursor < text.length) spans.add(TextSpan(text: text.substring(cursor)));
     return Text.rich(TextSpan(style: base, children: spans));

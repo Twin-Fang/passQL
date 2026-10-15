@@ -1,5 +1,6 @@
 package com.passql.member.auth.presentation.security;
 
+import com.passql.common.util.UuidUtils;
 import com.passql.member.auth.infrastructure.jwt.JwtTokenProvider;
 import com.passql.member.constant.MemberRole;
 import jakarta.servlet.FilterChain;
@@ -50,7 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         );
                 SecurityContextHolder.getContext().setAuthentication(authentication);
                 // 이후 로그 줄에 회원을 붙인다. 전체 UUID 대신 앞 8자리 — 추적엔 충분하고 로그가 짧아진다
-                MDC.put(MDC_MEMBER_ID, memberUuid.toString().substring(0, 8));
+                MDC.put(MDC_MEMBER_ID, UuidUtils.toShortForm(memberUuid));
             } catch (Exception e) {
                 // 유효하지 않은 토큰 — SecurityContext 비우고 다음 필터로 진행
                 // 인증 필요 경로는 SecurityConfig에서 401 처리

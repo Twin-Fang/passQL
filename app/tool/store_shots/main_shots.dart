@@ -18,6 +18,7 @@ import 'package:passql_app/core/auth/token_store.dart';
 import 'package:passql_app/core/network/dio_client.dart';
 import 'package:passql_app/main.dart' show PassqlApp;
 import 'package:passql_app/presentation/providers/auth_provider.dart';
+import 'package:passql_app/presentation/providers/theme_mode_provider.dart';
 import 'package:passql_app/router/app_router.dart';
 
 // 시뮬레이터는 호스트 파일시스템을 그대로 보므로, 이 파일에 적은 경로로 이동한다.
@@ -258,6 +259,7 @@ Future<void> main() async {
   }
 
   final container = ProviderContainer(overrides: [
+    initialThemeModeProvider.overrideWithValue(await loadSavedThemeMode()),
     dioProvider.overrideWith((ref) => Dio(BaseOptions(baseUrl: 'http://shots.local/api'))..httpClientAdapter = _FakeAdapter()),
   ]);
   await container.read(authProvider.future);

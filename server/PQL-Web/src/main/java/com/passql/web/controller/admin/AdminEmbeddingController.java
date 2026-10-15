@@ -5,6 +5,8 @@ import com.passql.ai.dto.IndexQuestionsBulkResult;
 import com.passql.ai.dto.IndexStatusRequest;
 import com.passql.ai.dto.IndexStatusResult;
 import com.passql.ai.dto.PruneIndexResult;
+import com.passql.common.exception.CustomException;
+import com.passql.common.exception.constant.ErrorCode;
 import com.passql.question.service.QuestionGenerateService;
 import com.passql.question.service.QuestionService;
 import lombok.RequiredArgsConstructor;
@@ -84,6 +86,7 @@ public class AdminEmbeddingController {
      * 선택한 문제 UUID 목록을 Qdrant에 재색인한다.
      * questions.html의 체크박스 선택 후 "선택 색인" 버튼에서 호출된다.
      * JSON API — 응답은 { succeeded, failed } 형태로 반환한다.
+     * 실패 응답: 표준 {errorCode, message} (GlobalExceptionHandler)
      */
     @PostMapping("/index-selected")
     @ResponseBody
@@ -91,25 +94,17 @@ public class AdminEmbeddingController {
             @RequestBody Map<String, List<String>> body) {
         List<String> uuids = body.get("uuids");
         if (uuids == null || uuids.isEmpty()) {
-            log.warn("[admin-embeddings] 선택 색인 요청: UUID 목록 없음");
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "색인할 문제가 선택되지 않았습니다."));
+            throw new CustomException(ErrorCode.EMBEDDING_INDEX_TARGET_EMPTY);
         }
 
         log.info("[admin-embeddings] 선택 재색인 시작: count={}", uuids.size());
-        try {
-            IndexQuestionsBulkResult result = questionGenerateService.reindexSelected(uuids);
-            log.info("[admin-embeddings] 선택 재색인 완료: succeeded={}, failed={}",
-                    result.succeeded(), result.failed());
-            return ResponseEntity.ok(Map.of(
-                    "succeeded", result.succeeded(),
-                    "failed", result.failed(),
-                    "failedUuids", result.failedUuids()
-            ));
-        } catch (Exception e) {
-            log.error("[admin-embeddings] 선택 재색인 오류: {}", e.getMessage());
-            return ResponseEntity.internalServerError()
-                    .body(Map.of("error", e.getMessage()));
-        }
+        IndexQuestionsBulkResult result = questionGenerateService.reindexSelected(uuids);
+        log.info("[admin-embeddings] 선택 재색인 완료: succeeded={}, failed={}",
+                result.succeeded(), result.failed());
+        return ResponseEntity.ok(Map.of(
+                "succeeded", result.succeeded(),
+                "failed", result.failed(),
+                "failedUuids", result.failedUuids()
+        ));
     }
 }

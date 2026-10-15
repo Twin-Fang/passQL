@@ -16,20 +16,20 @@ class AuthApi {
     required SocialProvider provider,
     required String idToken,
   }) async {
-    final res = await _dio.post<Map<String, dynamic>>(
+    final response = await _dio.post<Map<String, dynamic>>(
       '/auth/login',
       data: {'authProvider': provider.serverValue, 'idToken': idToken},
     );
-    return LoginResult.fromJson(res.data!);
+    return LoginResult.fromJson(response.data!);
   }
 
   /// refreshToken 으로 토큰 재발급.
   Future<ReissueResult> reissue(String refreshToken) async {
-    final res = await _dio.post<Map<String, dynamic>>(
+    final response = await _dio.post<Map<String, dynamic>>(
       '/auth/reissue',
       data: {'refreshToken': refreshToken},
     );
-    return ReissueResult.fromJson(res.data!);
+    return ReissueResult.fromJson(response.data!);
   }
 
   /// 서버 측 refreshToken 폐기.

@@ -10,14 +10,14 @@ const TEAM_MEMBERS = [
     role: "PM · Frontend",
     githubUrl: "https://github.com/EM-H20",
     handle: "EM-H20",
-    roleClass: "bg-blue-50 text-blue-600",
+    roleClass: "bg-brand-light text-brand",
   },
   {
     name: "서새찬",
     role: "Backend · AI",
     githubUrl: "https://github.com/Cassiiopeia",
     handle: "Cassiiopeia",
-    roleClass: "bg-purple-50 text-purple-600",
+    roleClass: "bg-surface-code text-text-primary",
   },
 ] as const;
 
@@ -41,7 +41,7 @@ export default function TeamModal({ onClose }: TeamModalProps) {
           </div>
           <button
             onClick={onClose}
-            className="flex items-center justify-center w-7 h-7 rounded-full hover:bg-gray-100 text-text-caption transition-colors"
+            className="flex items-center justify-center w-7 h-7 rounded-full hover:bg-surface text-text-caption transition-colors"
             aria-label="닫기"
           >
             <X size={14} />
