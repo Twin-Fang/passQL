@@ -104,7 +104,9 @@
         <aside class="bg-base-100 min-h-full w-64 border-r border-base-300">
             <!-- Logo -->
             <div class="flex items-center gap-3 px-4 py-4 border-b border-base-300">
-                <img th:src="@{/images/logo.png}" alt="passQL" class="h-8 w-auto"/>
+                <!-- 테마별 로고 (data-theme: light 기본 로고, dark pass 흰색 로고) -->
+                <img th:src="@{/images/logo.png}" alt="passQL" class="h-8 w-auto [[data-theme=dark]_&]:hidden"/>
+                <img th:src="@{/images/logo_dark.png}" alt="passQL" class="h-8 w-auto hidden [[data-theme=dark]_&]:block"/>
                 <span class="badge badge-primary badge-sm">Admin</span>
             </div>
 

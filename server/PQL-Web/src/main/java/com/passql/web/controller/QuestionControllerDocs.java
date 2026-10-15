@@ -79,10 +79,12 @@ public interface QuestionControllerDocs {
 
   @ApiLogs({
       @ApiLog(date = "2026.04.10", author = Author.SUHSAECHAN, issueNumber = 69,
-              description = "SSE 선택지 생성 엔드포인트 추가")
+              description = "SSE 선택지 생성 엔드포인트 추가"),
+      @ApiLog(date = "2026.10.15", author = Author.SUHSAECHAN, issueNumber = 460,
+              description = "error 이벤트에 errorCode 필드 추가 (ErrorCode enum 값, 기존 code 필드는 출시 앱 호환으로 같은 값 유지)")
   })
   @Operation(summary = "AI 선택지 세트 생성 (SSE)",
-      description = "AI가 4지선다 선택지를 실시간 생성. SSE 이벤트: status(generating/validating), complete(choiceSetId+choices), error. " +
+      description = "AI가 4지선다 선택지를 실시간 생성. SSE 이벤트: status(generating/validating), complete(choiceSetId+choices), error(errorCode, code(구버전 호환), message, retryable). " +
           "생성된 세트는 DB에 저장되어 관리자 화면에서 조회 가능. JWT 인증 필요.")
   SseEmitter generateChoices(
       @PathVariable UUID questionUuid,

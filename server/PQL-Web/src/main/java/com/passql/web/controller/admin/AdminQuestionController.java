@@ -1,5 +1,6 @@
 package com.passql.web.controller.admin;
 
+import com.passql.web.support.AdminPageRequest;
 import com.passql.ai.dto.GeneratedChoiceDto;
 import com.passql.ai.dto.GenerateQuestionFullResult;
 import com.passql.ai.dto.QuestionFullContextDto;
@@ -16,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -52,9 +52,8 @@ public class AdminQuestionController {
                        @RequestParam(required = false) Integer difficulty,
                        @RequestParam(required = false) String executionMode,
                        @RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "20") int size) {
-        int clampedSize = Math.min(size, 100);
-        Pageable pageable = PageRequest.of(page, clampedSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+                       @RequestParam(defaultValue = AdminPageRequest.DEFAULT_PAGE_SIZE) int size) {
+        Pageable pageable = AdminPageRequest.newestFirst(page, size);
         model.addAttribute("questions", questionService.getQuestions(topic, null, difficulty, executionMode, pageable));
         model.addAttribute("topics", metaService.getTopicTree());
         model.addAttribute("currentMenu", "questions");
@@ -92,8 +91,8 @@ public class AdminQuestionController {
             @RequestParam(required = false) String hint,
             @RequestParam(required = false) String choiceSetPolicy
     ) {
-        ChoiceSetPolicy policy = parseChoiceSetPolicy(choiceSetPolicy);
-        ExecutionMode mode = parseExecutionMode(executionMode);
+        ChoiceSetPolicy policy = toChoiceSetPolicyOrAiOnly(choiceSetPolicy);
+        ExecutionMode mode = ExecutionMode.fromRequestValue(executionMode);
 
         // 1:1 치환 가능한 Oracle 문법을 PostgreSQL 호환으로 변환 (NVL→COALESCE, SYSDATE→NOW())
         String savedDdl       = importExportService.translateOracleToPostgres(schemaDdl);
@@ -153,7 +152,7 @@ public class AdminQuestionController {
             @RequestParam String executionMode
     ) {
         questionService.updateQuestion(uuid, stem, schemaDisplay, schemaDdl, schemaSampleData, schemaIntent,
-                answerSql, hint, difficulty, parseExecutionMode(executionMode), topicUuid, subtopicUuid);
+                answerSql, hint, difficulty, ExecutionMode.fromRequestValue(executionMode), topicUuid, subtopicUuid);
         return "redirect:/admin/questions/" + uuid;
     }
 
@@ -282,7 +281,7 @@ public class AdminQuestionController {
             ));
         }
 
-        ChoiceSetPolicy policy = parseChoiceSetPolicy(choiceSetPolicy);
+        ChoiceSetPolicy policy = toChoiceSetPolicyOrAiOnly(choiceSetPolicy);
 
         questionGenerateService.createQuestionWithSeedSet(
                 topicUuid, subtopicUuid, difficulty,
@@ -292,20 +291,8 @@ public class AdminQuestionController {
         return "redirect:/admin/questions";
     }
 
-    private ExecutionMode parseExecutionMode(String value) {
-        try {
-            return ExecutionMode.valueOf(value);
-        } catch (IllegalArgumentException e) {
-            throw new CustomException(ErrorCode.QUESTION_GENERATE_INPUT_INVALID);
-        }
-    }
-
-    private ChoiceSetPolicy parseChoiceSetPolicy(String value) {
-        if (value == null) return ChoiceSetPolicy.AI_ONLY;
-        try {
-            return ChoiceSetPolicy.valueOf(value);
-        } catch (IllegalArgumentException e) {
-            throw new CustomException(ErrorCode.QUESTION_GENERATE_INPUT_INVALID);
-        }
+    /** 정책 미입력 > AI_ONLY, 그 외는 fromRequestValue 규칙 */
+    private ChoiceSetPolicy toChoiceSetPolicyOrAiOnly(String requestValue) {
+        return requestValue == null ? ChoiceSetPolicy.AI_ONLY : ChoiceSetPolicy.fromRequestValue(requestValue);
     }
 }

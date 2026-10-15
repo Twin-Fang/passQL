@@ -1,5 +1,6 @@
 package com.passql.submission.service;
 
+import com.passql.common.util.TextPreview;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.member.repository.MemberRepository;
@@ -210,6 +211,6 @@ public class ProgressService {
             .replaceAll("```[\\s\\S]*?```", "[SQL]")
             .replaceAll("\n", " ")
             .trim();
-        return cleaned.length() > 50 ? cleaned.substring(0, 50) + "..." : cleaned;
+        return TextPreview.truncateWithEllipsis(cleaned, TextPreview.SHORT_STEM_LENGTH);
     }
 }

@@ -22,7 +22,7 @@ public class ExamScheduleController implements ExamScheduleControllerDocs {
     @GetMapping
     public ResponseEntity<List<ExamScheduleResponse>> getSchedules(
             @RequestParam(value = "certType", required = false) String certType) {
-        CertType type = (certType != null) ? CertType.valueOf(certType) : null;
+        CertType type = (certType != null) ? CertType.fromRequestValue(certType) : null;
         return ResponseEntity.ok(examScheduleService.getAllSchedules(type));
     }
 

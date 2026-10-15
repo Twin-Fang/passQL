@@ -19,6 +19,14 @@ public enum ErrorCode {
     UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "지원하지 않는 미디어 타입입니다."),
     DATABASE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 오류가 발생했습니다."),
 
+    // Request (GlobalExceptionHandler 프레임워크 예외 변환용, 와이어 코드는 앱·웹이 파싱)
+    ILLEGAL_ARGUMENT(HttpStatus.BAD_REQUEST, "잘못된 인자입니다."),
+    VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "입력값 검증에 실패했습니다."),
+    MESSAGE_NOT_READABLE(HttpStatus.BAD_REQUEST, "요청 본문을 읽을 수 없습니다. 형식을 확인해주세요"),
+    MISSING_PARAMETER(HttpStatus.BAD_REQUEST, "필수 파라미터가 누락되었습니다"),
+    TYPE_MISMATCH(HttpStatus.BAD_REQUEST, "파라미터 형식이 올바르지 않습니다."),
+    DATA_INTEGRITY_VIOLATION(HttpStatus.CONFLICT, "데이터 무결성 제약을 위반했습니다"),
+
     // External
     EXTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY, "외부 API 호출 중 오류가 발생했습니다."),
     NETWORK_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "네트워크 통신 오류가 발생했습니다."),
@@ -41,6 +49,8 @@ public enum ErrorCode {
     QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "문제를 찾을 수 없습니다."),
     SANDBOX_DB_NOT_FOUND(HttpStatus.NOT_FOUND, "샌드박스 DB를 찾을 수 없습니다."),
     SETTING_NOT_FOUND(HttpStatus.NOT_FOUND, "설정값을 찾을 수 없습니다."),
+    SETTING_SENSITIVE_UPDATE_FORBIDDEN(HttpStatus.FORBIDDEN, "민감 설정은 이 경로로 수정할 수 없습니다."),
+    EMBEDDING_INDEX_TARGET_EMPTY(HttpStatus.BAD_REQUEST, "색인할 문제가 선택되지 않았습니다."),
     PROMPT_NOT_FOUND(HttpStatus.NOT_FOUND, "프롬프트 템플릿을 찾을 수 없습니다."),
     TOPIC_NOT_FOUND(HttpStatus.NOT_FOUND, "토픽을 찾을 수 없습니다."),
     EXAM_SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "시험 일정을 찾을 수 없습니다."),
@@ -66,6 +76,8 @@ public enum ErrorCode {
     AI_RESPONSE_PARSE_FAILED(HttpStatus.BAD_GATEWAY, "AI 응답을 해석할 수 없습니다."),
     AI_STRUCTURED_SCHEMA_VIOLATION(HttpStatus.BAD_GATEWAY, "AI가 스키마에 맞지 않는 응답을 반환했습니다."),
 
+    // SSE 선택지 생성 중 예상 못 한 실패 (error 이벤트로만 전달)
+    GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "선택지 생성에 실패했습니다"),
     CHOICE_SET_GENERATION_FAILED(HttpStatus.UNPROCESSABLE_ENTITY, "선택지 세트 생성에 실패했습니다. 다시 시도해주세요."),
     CHOICE_SET_VALIDATION_NO_CORRECT(HttpStatus.UNPROCESSABLE_ENTITY, "생성된 선택지 중 정답이 없습니다."),
     CHOICE_SET_VALIDATION_MULTIPLE_CORRECT(HttpStatus.UNPROCESSABLE_ENTITY, "생성된 선택지 중 정답이 여러 개입니다."),

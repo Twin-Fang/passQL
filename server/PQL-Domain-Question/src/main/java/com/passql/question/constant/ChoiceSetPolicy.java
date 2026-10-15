@@ -1,5 +1,7 @@
 package com.passql.question.constant;
 
+import com.passql.common.util.RequestEnumParser;
+
 /**
  * 문제가 선택지를 어떻게 공급받는지 결정하는 정책.
  * MVP는 AI_ONLY 만 동작. CURATED_ONLY/HYBRID 는 스키마 예약.
@@ -11,5 +13,10 @@ public enum ChoiceSetPolicy {
     CURATED_ONLY,
     HYBRID,
     ODD_ONE_OUT,
-    RESULT_MATCH
+    RESULT_MATCH;
+
+    /** 요청값 > ChoiceSetPolicy (null·공백·없는 값 > INVALID_INPUT_VALUE) */
+    public static ChoiceSetPolicy fromRequestValue(String requestValue) {
+        return RequestEnumParser.parse(ChoiceSetPolicy.class, requestValue);
+    }
 }

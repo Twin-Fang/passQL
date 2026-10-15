@@ -39,9 +39,8 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // /quiz/** 레거시 SSR 화면은 어떤 체인에도 없어 무인증으로 열려 있었다 → JWT 체인에 넣어 차단 (#390)
             // Swagger 실제 경로는 /docs/** 라 관리자 체인(AdminSecurityConfig)에서 다룬다 — 옛 기본 경로 설정은 제거 (#440)
-            .securityMatcher("/api/**", "/actuator/**", "/quiz/**")
+            .securityMatcher("/api/**", "/actuator/**")
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session ->

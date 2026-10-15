@@ -1,34 +1,30 @@
 package com.passql.common.exception;
 
 import com.passql.common.exception.constant.ErrorCode;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * API 에러 응답 표준 형식.
+ * API 에러 응답 표준 형식: {errorCode, message}
+ * 생성은 ErrorCode 기반 정적 팩토리만 허용 (문자열 코드 직접 지정 불가)
  */
 @Getter
-@Builder
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ErrorResponse {
 
     private String errorCode;
     private String message;
 
-    public static ErrorResponse getResponse(ErrorCode errorCode) {
-        return ErrorResponse.builder()
-            .errorCode(errorCode.name())
-            .message(errorCode.getMessage())
-            .build();
+    /** ErrorCode > 기본 메시지 응답 */
+    public static ErrorResponse of(ErrorCode errorCode) {
+        return new ErrorResponse(errorCode.name(), errorCode.getMessage());
     }
 
-    public static ErrorResponse getResponse(ErrorCode errorCode, String additionalMessage) {
-        return ErrorResponse.builder()
-            .errorCode(errorCode.name())
-            .message(errorCode.getMessage() + " - " + additionalMessage)
-            .build();
+    /** ErrorCode + 상황별 메시지 (검증 실패 필드, 파라미터 이름 등) */
+    public static ErrorResponse of(ErrorCode errorCode, String message) {
+        return new ErrorResponse(errorCode.name(), message);
     }
 }

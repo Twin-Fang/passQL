@@ -24,7 +24,7 @@ public class AdminExamScheduleController {
 
     @GetMapping
     public String list(@RequestParam(value = "certType", required = false) String certType, Model model) {
-        CertType type = (certType != null && !certType.isEmpty()) ? CertType.valueOf(certType) : null;
+        CertType type = (certType != null && !certType.isEmpty()) ? CertType.fromRequestValue(certType) : null;
         List<ExamScheduleResponse> schedules = examScheduleService.getAllSchedules(type);
 
         model.addAttribute("schedules", schedules);

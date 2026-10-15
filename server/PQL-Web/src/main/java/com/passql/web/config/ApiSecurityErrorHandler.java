@@ -47,6 +47,6 @@ public class ApiSecurityErrorHandler implements AuthenticationEntryPoint, Access
         response.setStatus(errorCode.getStatus().value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        objectMapper.writeValue(response.getWriter(), ErrorResponse.getResponse(errorCode));
+        objectMapper.writeValue(response.getWriter(), ErrorResponse.of(errorCode));
     }
 }
