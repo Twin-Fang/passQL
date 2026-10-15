@@ -25,7 +25,8 @@ public enum AdminMenu {
     LEGAL("legal", "약관 관리"),
     SETTINGS("settings", "앱 설정"),
     EMBEDDINGS("embeddings", "임베딩 인덱스 관리"),
-    MONITOR("monitor", "모니터링");
+    MONITOR("monitor", "모니터링"),
+    ADMIN_ACCOUNTS("admin-accounts", "관리자 계정");
 
     // layout.html 사이드바 활성 표시용 코드
     private final String code;

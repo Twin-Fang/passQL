@@ -49,6 +49,9 @@
 
             <!-- Right side -->
             <div class="flex-none flex items-center gap-2">
+                <!-- 로그인 관리자 (VIEWER 는 조회 전용 표시) -->
+                <span th:if="${currentAdminUsername}" class="hidden sm:inline text-sm text-base-content/70" th:text="${currentAdminUsername}">admin</span>
+                <span th:if="${canWriteAdmin == false}" class="badge badge-warning badge-sm">조회 전용</span>
                 <!-- Dark mode toggle -->
                 <label class="swap swap-rotate btn btn-ghost btn-circle">
                     <input type="checkbox" id="themeToggle"/>
@@ -178,6 +181,12 @@
                     <a th:href="@{/admin/monitor}" th:classappend="${currentMenu == 'monitor'} ? 'active'">
                         <i data-lucide="activity" class="size-5"></i>
                         모니터링
+                    </a>
+                </li>
+                <li th:if="${canWriteAdmin}">
+                    <a th:href="@{/admin/accounts}" th:classappend="${currentMenu == 'admin-accounts'} ? 'active'">
+                        <i data-lucide="user-cog" class="size-5"></i>
+                        관리자 계정
                     </a>
                 </li>
                 <div class="divider my-1"></div>
