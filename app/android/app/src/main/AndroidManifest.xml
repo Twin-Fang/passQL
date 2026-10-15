@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 서버 API 통신 (릴리스 빌드는 플러그인 병합에 기대지 않고 직접 선언) -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:allowBackup="false"
         android:label="passQL"

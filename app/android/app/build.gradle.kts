@@ -53,15 +53,31 @@ android {
 
     buildTypes {
         release {
-            // key.properties 가 있으면 릴리스 키로 서명한다. 없으면(개발 중 `flutter run --release`)
-            // 디버그 키로 서명해 빌드는 되게 한다. 이 상태의 APK/AAB 는 스토어에 올릴 수 없다.
-            signingConfig = if (keystoreProperties.isNotEmpty()) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+            // 릴리스는 항상 릴리스 키로 서명 (키가 없으면 아래 검사 작업이 빌드를 멈춤)
+            signingConfig = signingConfigs.getByName("release")
         }
     }
+}
+
+// 릴리스 서명 준비 여부: key.properties 와 그 storeFile(android/app 기준 경로)이 모두 있어야 함
+val releaseKeystoreFile = keystoreProperties.getProperty("storeFile")?.let { file(it) }
+val isReleaseKeystoreReady = releaseKeystoreFile?.exists() == true
+
+// 릴리스 빌드(assemble/bundle Release) 시작 전 검사: 디버그 키로 조용히 서명된 산출물 차단
+// 디버그 빌드는 이 작업을 거치지 않음. CI 는 android/key.properties(storeFile=keystore/key.jks)를 만든 뒤 빌드
+val verifyReleaseKeystore by tasks.registering {
+    doLast {
+        if (!isReleaseKeystoreReady) {
+            throw GradleException(
+                "Release keystore missing: create android/key.properties " +
+                    "(storeFile, storePassword, keyAlias, keyPassword) and the storeFile " +
+                    "relative to android/app. Use a debug build for local runs."
+            )
+        }
+    }
+}
+tasks.matching { it.name == "preReleaseBuild" }.configureEach {
+    dependsOn(verifyReleaseKeystore)
 }
 
 dependencies {

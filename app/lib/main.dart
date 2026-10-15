@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/auth/install_guard.dart';
 import 'core/auth/token_store.dart';
+import 'core/network/dio_client.dart';
 import 'presentation/design/design.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/theme_mode_provider.dart';
@@ -14,6 +15,8 @@ import 'router/app_router.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
+  // 서버 주소 누락은 첫 요청이 아니라 시작 시점에 실패
+  readBackendBaseUrl();
   // google-services.json / GoogleService-Info.plist 의 설정으로 초기화한다.
   await Firebase.initializeApp();
 

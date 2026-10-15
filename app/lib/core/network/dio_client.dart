@@ -10,13 +10,28 @@ import '../auth/member_suspension_signal.dart';
 import '../auth/session_expiry_signal.dart';
 import '../auth/token_store.dart';
 
+// .env: 서버 API 주소 키 (예: https://api.example.com/api)
+const String backendBaseUrlEnvKey = 'BACKEND_BASE_URL';
+
+/// .env 서버 주소 읽기. 비어 있으면 빈 주소로 요청이 나가지 않게 즉시 실패
+/// main 에서 앱 시작 직후 한 번 호출해 설정 누락을 첫 화면 전에 드러냄
+String readBackendBaseUrl() {
+  final baseUrl = dotenv.maybeGet(backendBaseUrlEnvKey)?.trim() ?? '';
+  if (baseUrl.isEmpty) {
+    throw StateError(
+      '$backendBaseUrlEnvKey is empty: set it in app/.env before building',
+    );
+  }
+  return baseUrl;
+}
+
 /// 공통 Dio 생성.
 ///
 /// baseUrl은 .env의 BACKEND_BASE_URL에서 읽음.
 /// 타임아웃 25초, JSON Content-Type 기본 설정.
 /// 디버그 빌드에서는 LogInterceptor로 요청/응답 전체 로그 출력.
 Dio _buildDio() {
-  final baseUrl = dotenv.env['BACKEND_BASE_URL'] ?? '';
+  final baseUrl = readBackendBaseUrl();
   final dio = Dio(
     BaseOptions(
       baseUrl: baseUrl,
