@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -64,11 +65,12 @@ public class AdminReportController implements AdminReportControllerDocs {
     @PostMapping("/{reportUuid}/resolve")
     public ResponseEntity<Void> resolveReport(
             @PathVariable UUID reportUuid,
-            @RequestHeader(value = "X-Member-UUID", required = false) UUID adminMemberUuid,
+            Principal adminPrincipal,
             @RequestBody ResolveRequest request) {
 
+        // 처리자: 관리자 세션 인증 주체 (클라이언트 헤더 신뢰 안 함)
         questionReportService.resolveReport(
-                reportUuid, adminMemberUuid,
+                reportUuid, adminPrincipal.getName(),
                 request.correctionScope(), request.deactivateQuestion());
 
         return ResponseEntity.ok().build();

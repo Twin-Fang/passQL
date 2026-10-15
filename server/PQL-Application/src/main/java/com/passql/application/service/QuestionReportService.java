@@ -122,9 +122,9 @@ public class QuestionReportService {
         return questionRepository.findById(questionUuid);
     }
 
-    /** 관리자: 신고 처리 (resolve) */
+    /** 관리자: 신고 처리 (resolve), 처리자 = 로그인한 관리자 아이디 */
     @Transactional
-    public void resolveReport(UUID reportUuid, UUID adminMemberUuid,
+    public void resolveReport(UUID reportUuid, String resolvedByAdminUsername,
                               CorrectionScope correctionScope, Boolean deactivateQuestion) {
         // correctionScope null 입력 방어 — null이면 DB에 null이 저장되어 데이터 정합성 오염
         if (correctionScope == null) {
@@ -143,7 +143,7 @@ public class QuestionReportService {
         }
 
         // 1. 신고 상태 변경
-        report.resolve(adminMemberUuid, correctionScope);
+        report.resolve(resolvedByAdminUsername, correctionScope);
 
         // 2. 문제 비활성화
         if (Boolean.TRUE.equals(deactivateQuestion)) {

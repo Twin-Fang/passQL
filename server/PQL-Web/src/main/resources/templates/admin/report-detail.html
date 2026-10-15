@@ -245,7 +245,6 @@
 
             const correctionScope = document.querySelector('input[name="correctionScope"]:checked').value;
             const deactivateQuestion = document.getElementById('deactivateQuestion').checked;
-            const adminMemberUuid = localStorage.getItem('memberUuid');
 
             const resultEl = document.getElementById('resolveResult');
 
@@ -257,13 +256,10 @@
 
             for (const reportUuid of pendingReportUuids) {
                 try {
-                    // X-Member-UUID가 없어도 동작하도록 optional 처리 (mock 환경)
-                    const headers = { 'Content-Type': 'application/json' };
-                    if (adminMemberUuid) headers['X-Member-UUID'] = adminMemberUuid;
-
+                    // 처리자는 서버가 관리자 세션에서 읽음
                     const res = await fetch(`/admin/api/reports/${reportUuid}/resolve`, {
                         method: 'POST',
-                        headers,
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             correctionScope: correctionScope,
                             deactivateQuestion: deactivateQuestion
