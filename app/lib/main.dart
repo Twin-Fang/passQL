@@ -57,6 +57,8 @@ class PassqlApp extends ConsumerWidget {
       // 설정 > 화면 모드에서 고른 값(기본: 시스템 설정 따르기).
       themeMode: ref.watch(themeModeProvider),
       routerConfig: AppRouter.router,
+      // 시스템 글자 크기는 상한까지만 반영
+      builder: PassqlTextScaleLimit.wrap,
     );
   }
 }
