@@ -6,23 +6,6 @@ from typing import Any, Optional
 from pydantic import BaseModel, Field
 
 
-class AiResponse(BaseModel):
-    """일반 AI 텍스트 응답"""
-    text: str
-    prompt_version: int = 0
-
-
-class SimilarItem(BaseModel):
-    """유사 문제 단일 항목"""
-    question_id: int
-    score: float
-
-
-class SimilarResponse(BaseModel):
-    """유사 문제 검색 응답"""
-    items: list[SimilarItem]
-
-
 # === 실시간 선택지 세트 생성 (신규) ===
 
 

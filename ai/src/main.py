@@ -36,7 +36,7 @@ async def lifespan(app: FastAPI):
 # FastAPI 앱 생성 (lifespan 컨텍스트 적용)
 app = FastAPI(
     title="passQL AI Server",
-    description="passQL의 SQL 오류 설명, diff 해설, 유사 문제 검색 AI 서버입니다.",
+    description="passQL AI 서버: 문제·선택지 생성, 프롬프트 테스트, RAG 색인·추천·정리",
     version="0.0.1",
     lifespan=lifespan,
     docs_url="/docs/swagger",
