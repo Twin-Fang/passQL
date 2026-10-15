@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 로그 형식 단일 원본: prod JSON 한 줄, 그 외 프로필 사람이 읽는 패턴 (#476) -->
+<configuration>
+
+    <!-- 레벨 뒤 [요청ID|회원ID] — RequestTraceFilter·JwtAuthenticationFilter가 MDC rid·mid 채움 (#436) -->
+    <property name="LOG_LEVEL_PATTERN" value="%5p [%X{rid:--}|%X{mid:--}]"/>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- prod: docker logs 수집 전제 콘솔 JSON (MDC rid·mid, 행동 이벤트 kv 필드 포함) -->
+    <springProfile name="prod">
+        <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <timeZone>Asia/Seoul</timeZone>
+                <fieldNames>
+                    <version>[ignore]</version>
+                    <levelValue>[ignore]</levelValue>
+                </fieldNames>
+                <!-- 스택 한 줄 JSON 크기 제한 (원인 예외 먼저, 예외당 40프레임) -->
+                <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                    <maxDepthPerThrowable>40</maxDepthPerThrowable>
+                    <rootCauseFirst>true</rootCauseFirst>
+                </throwableConverter>
+            </encoder>
+        </appender>
+        <root level="INFO">
+            <appender-ref ref="JSON_CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- dev·local 등: Spring Boot 기본 콘솔 패턴 + 위 LOG_LEVEL_PATTERN -->
+    <springProfile name="!prod">
+        <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+</configuration>

@@ -2,6 +2,7 @@ package com.passql.application.service;
 
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.MemberActivityLogger;
 import com.passql.member.constant.MemberStatus;
 import com.passql.member.entity.Member;
 import com.passql.member.repository.MemberRepository;
@@ -69,6 +70,7 @@ public class DailySetService {
             rank++;
         }
 
+        MemberActivityLogger.recordDailySetCompleted(memberUuid, correctCount, rank);
         return new DailySetCompleteResponse(correctCount, rank, board.size());
     }
 

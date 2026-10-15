@@ -2,6 +2,7 @@ package com.passql.meta.service;
 
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.MemberActivityLogger;
 import com.passql.meta.constant.FeedbackStatus;
 import com.passql.meta.dto.FeedbackAdminResponse;
 import com.passql.meta.dto.FeedbackListResponse;
@@ -50,7 +51,7 @@ public class FeedbackService {
             .build();
 
         Feedback saved = feedbackRepository.save(feedback);
-        log.info("[FeedbackService] 건의사항 제출 완료: feedbackUuid={}, memberUuid={}", saved.getFeedbackUuid(), memberUuid);
+        MemberActivityLogger.recordFeedbackSubmitted(memberUuid, saved.getFeedbackUuid());
         return FeedbackSubmitResponse.from(saved);
     }
 
