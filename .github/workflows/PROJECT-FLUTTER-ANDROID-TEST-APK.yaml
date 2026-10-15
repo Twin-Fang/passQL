@@ -8,12 +8,19 @@
 # 주요 특징:
 # - workflow_dispatch로 수동 실행 또는 repository_dispatch로 트리거
 # - 버전은 version.yml에서 동적으로 읽어 사용 (운영 버전과 동일, 빌드 번호로 구분)
+# - 빌드 번호는 build_number.py가 정하는 시각 기반 값 (2024-01-01 UTC부터 지난 초)
 # - 브랜치명에서 이슈 번호 자동 추출 (YYYYMMDD_#이슈번호_내용 형식)
 # - GitHub API로 이슈 정보 가져와서 빌드 정보에 포함
 # - APK 파일만 생성 (Play Store 배포 제거)
 # - 아티팩트로 업로드하여 다운로드 가능 (최대 500MB/아티팩트)
 # - 아티팩트 이름에 브랜치명 포함하여 구분 용이
 # - Firebase App Distribution 연동 (FIREBASE_SERVICE_ACCOUNT_JSON_BASE64 시크릿 있을 때)
+#
+# ⚠️ 브랜치 규칙 의존:
+# 이 워크플로우는 브랜치명 `YYYYMMDD_#이슈번호_제목` 형식에서 이슈 번호를 추출합니다.
+# 이슈 생성 시 SUH-ISSUE-HELPER 댓글이 제안하는 브랜치명을 그대로 사용하세요.
+# 형식이 다르면: 이슈 연동 빌드 정보가 누락됩니다 (빌드 자체는 진행).
+# 상세: docs/BRANCH-CONVENTION.md (템플릿 레포)
 #
 # 사용 방법:
 # 1. 기능 브랜치로 체크아웃
@@ -54,16 +61,35 @@ on:
   repository_dispatch:
     types: [build-android-app]
 
+# ⚠️ repository_dispatch 는 **기본 브랜치(main)의 워크플로 정의**로 실행된다 (#595).
+#    이 파일을 develop 에서 고치고 테스트 빌드를 다시 걸면 **여전히 옛 정의가 돈다** —
+#    고친 게 안 먹은 것처럼 보여 원인을 엉뚱한 데서 찾게 된다.
+#    반드시 기본 브랜치에 반영된 뒤에 확인할 것. (build 대상 브랜치와는 별개다)
+
+permissions:
+  # 이슈·PR에 진행 상황 댓글을 단다. 명시하지 않으면 레포 기본값을 따르는데,
+  # GitHub 신규 레포 기본값은 read 라서 **댓글 다는 순간 실패**한다 (#595).
+  #   RequestError [HttpError]: Resource not accessible by integration
+  contents: read
+  issues: write
+  pull-requests: write
+
 # ===================================================================
 # 🔧 프로젝트별 설정 (아래 값들을 수정하세요)
 # ===================================================================
 env:
-  FLUTTER_VERSION: "3.35.5"
+  FLUTTER_VERSION: "3.38.9"
   JAVA_VERSION: "17"
   ENV_FILE_PATH: ".env"
-  FIREBASE_APP_ID: "{FIREBASE_APP_ID}"
-  FIREBASE_TESTER_GROUP: "{TESTER_GROUP}"
+  # Firebase 프로젝트 passql 의 Android 앱(com.coldredrice.passql, PassQL-Android-Prod)
+  FIREBASE_APP_ID: "1:662424763183:android:75cef576d6ae3d9323bfda"
+  # App Distribution 테스터 그룹 별칭(alias). 콘솔에서 같은 별칭으로 그룹을 만들어야 한다 (#456)
+  FIREBASE_TESTER_GROUP: "testers"
 
+  # Flutter 루트 경로(레포 루트 기준). 단일레포면 ".", 모노레포면 "app" 등.
+  # 통합 시점에 integrator의 flutter-root resolver가 project_paths.flutter 값으로 1회 치환.
+  # FLUTTER_ROOT는 Flutter SDK 경로용 공식 변수라 충돌 — APP_ROOT로 분리
+  APP_ROOT: "app"
 jobs:
   prepare-test-build:
     name: 테스트 빌드 준비
@@ -76,21 +102,28 @@ jobs:
       issue_number: ${{ steps.issue_info.outputs.issue_number }}
       branch_name: ${{ steps.issue_info.outputs.branch_name }}
       commit_hash: ${{ steps.build_info.outputs.commit_hash }}
+      commit_sha: ${{ steps.build_info.outputs.commit_sha }}
       pr_number: ${{ steps.build_info.outputs.pr_number }}
       build_number: ${{ steps.build_info.outputs.build_number }}
       progress_comment_id: ${{ steps.progress_comment.outputs.comment_id }}
       progress_start_time: ${{ steps.progress_comment.outputs.start_time }}
       firebase_available: ${{ steps.firebase_check.outputs.available }}
 
+    defaults:
+      run:
+        working-directory: ${{ env.APP_ROOT }}
     steps:
       - name: 브랜치 존재 여부 사전 확인
         id: verify_branch
         if: github.event_name == 'repository_dispatch'
         uses: actions/github-script@v7
+        env:
+          # 외부에서 온 브랜치명은 스크립트 소스에 넣지 않고 env 로 전달 (#646)
+          BRANCH_NAME: ${{ github.event.client_payload.branch_name }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const branchName = '${{ github.event.client_payload.branch_name }}';
+            const branchName = process.env.BRANCH_NAME;
             const prNumber = '${{ github.event.client_payload.pr_number }}';
             const runId = '${{ github.run_id }}';
             const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}`;
@@ -119,7 +152,7 @@ jobs:
                   '',
                   '### 💡 확인 사항',
                   '1. 브랜치가 원격 저장소에 push되었는지 확인하세요',
-                  '2. "Guide by SUH-LAB" 댓글의 브랜치명이 올바른지 확인하세요',
+                  '2. "Guide by ProjectOps" 댓글의 브랜치명이 올바른지 확인하세요',
                   '3. 브랜치명에 오타가 없는지 확인하세요',
                   '',
                   `🔗 [워크플로우 로그](${runUrl})`
@@ -140,6 +173,9 @@ jobs:
 
       - name: Check Firebase credentials
         id: firebase_check
+        # checkout 전에 실행되므로 APP_ROOT 디렉터리가 아직 없다.
+        # Secret 유무만 확인하는 스텝이라 레포 루트에서 실행한다.
+        working-directory: ${{ github.workspace }}
         env:
           FIREBASE_SECRET: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON_BASE64 }}
         run: |
@@ -204,23 +240,29 @@ jobs:
           ref: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.branch_name || github.ref }}
 
       - name: Pull latest changes
+        env:
+          BRANCH_NAME: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.branch_name || github.ref_name }}
         run: |
-          BRANCH_NAME="${{ github.event_name == 'repository_dispatch' && github.event.client_payload.branch_name || github.ref_name }}"
           echo "🌿 브랜치: $BRANCH_NAME"
           git pull origin "$BRANCH_NAME" || echo "⚠️ Pull 실패 (이미 최신 상태일 수 있음)"
 
       # 브랜치명에서 이슈 번호 추출 및 GitHub API로 이슈 정보 가져오기
       - name: 브랜치명에서 이슈 정보 추출
         id: issue_info
+        env:
+          # 브랜치명은 스크립트 소스에 직접 넣지 않고 env 로 받는다 (#646)
+          DISPATCH_BRANCH: ${{ github.event.client_payload.branch_name }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
           # repository_dispatch인 경우 client_payload에서 브랜치명 가져오기
           if [ "${{ github.event_name }}" == "repository_dispatch" ]; then
-            BRANCH_NAME="${{ github.event.client_payload.branch_name }}"
+            BRANCH_NAME="$DISPATCH_BRANCH"
             ISSUE_NUMBER="${{ github.event.client_payload.issue_number }}"
           else
-            BRANCH_NAME="${{ github.ref_name }}"
+            BRANCH_NAME="$REF_NAME"
             # 브랜치명에서 이슈 번호 추출 (#387 형식)
-            ISSUE_NUMBER=$(echo "$BRANCH_NAME" | sed -n 's/.*#\([0-9]*\).*/\1/p')
+            # 브랜치 이름의 **첫** `#번호` 를 쓴다. 탐욕 매칭(`.*#`)은 제목에 `#` 이 또 있으면 마지막 번호를 잡았다.
+            ISSUE_NUMBER=$(echo "$BRANCH_NAME" | sed -n 's/^[^#]*#\([0-9][0-9]*\).*/\1/p')
           fi
 
           echo "🌿 브랜치명: $BRANCH_NAME"
@@ -257,35 +299,42 @@ jobs:
 
       # 버전 관리 스크립트 권한 설정
       - name: 버전 관리 스크립트 권한 설정
+        working-directory: ${{ github.workspace }}   # 레포 루트 자산(.github/scripts·version.yml)은 APP_ROOT가 아닌 레포 루트 기준
         run: chmod +x ./.github/scripts/version_manager.sh
+
+      # 빌드 번호는 build_number.py 한 곳에서만 정한다 (시각 기반, 1초 단위 단조 증가)
+      - name: 빌드 번호 결정
+        id: build_no
+        working-directory: ${{ github.workspace }}   # build_number.py는 레포 루트 자산
+        run: python3 .github/scripts/build_number.py next
 
       # 빌드 정보 생성
       - name: 빌드 정보 생성
+        working-directory: ${{ github.workspace }}   # 레포 루트 자산(.github/scripts·version.yml)은 APP_ROOT가 아닌 레포 루트 기준
         id: build_info
         run: |
           # version_manager.sh로 버전 가져오기 (프로덕션 워크플로우와 동일한 방식)
           VERSION=$(./.github/scripts/version_manager.sh get | tail -n 1)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-          COMMIT_SHA="${{ github.sha }}"
+          # repository_dispatch 컨텍스트 커밋은 기본 브랜치 것이라 실제 빌드한 HEAD를 직접 읽는다
+          COMMIT_SHA=$(git rev-parse HEAD)
           COMMIT_SHORT=$(echo "$COMMIT_SHA" | cut -c1-7)
+          BUILD_NUMBER="${{ steps.build_no.outputs.build_number }}"
           BUILD_DATE=$(date '+%Y-%m-%d %H:%M:%S')
 
-          # repository_dispatch 이벤트인 경우 PR 번호를 빌드 번호로 사용
+          # repository_dispatch 이벤트인 경우 진행 댓글을 달 PR 번호를 받는다 (빌드 번호와 무관)
           if [ "${{ github.event_name }}" == "repository_dispatch" ]; then
-            BUILD_NUMBER="${{ github.event.client_payload.build_number }}"
             PR_NUMBER="${{ github.event.client_payload.pr_number }}"
             echo "📋 repository_dispatch 이벤트 감지"
             echo "  PR 번호: #$PR_NUMBER"
-            echo "  빌드 번호: $BUILD_NUMBER (PR 번호 사용)"
           else
-            BUILD_NUMBER="${{ github.run_number }}"
             PR_NUMBER=""
             echo "📋 workflow_dispatch 이벤트 감지"
-            echo "  빌드 번호: $BUILD_NUMBER (기본값)"
           fi
 
           echo "commit_hash=$COMMIT_SHORT" >> $GITHUB_OUTPUT
+          echo "commit_sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
           echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
           echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
           echo "build_date=$BUILD_DATE" >> $GITHUB_OUTPUT
@@ -298,20 +347,87 @@ jobs:
           echo "  커밋 해시: $COMMIT_SHORT"
           echo "  빌드 날짜: $BUILD_DATE"
 
+      # 취소 처리 (#648): 댓글을 만든 준비 job 이 실행 중일 때 취소된 경우. 준비 job 은 needs 가 없어 같은 job 의 스텝 출력으로 ID 를 읽는다. 이 스텝이 뒤의 스텝들 끝에 있어야 어느 시점에 취소돼도 잡힌다.
+      - name: 진행 상황 업데이트 - 취소 (준비 job)
+        if: cancelled() && github.event_name == 'repository_dispatch' && steps.progress_comment.outputs.comment_id != ''
+        continue-on-error: true
+        uses: actions/github-script@v7
+        env:
+          COMMENT_ID: ${{ steps.progress_comment.outputs.comment_id }}
+          START_TIME: ${{ steps.progress_comment.outputs.start_time }}
+          BRANCH_NAME: ${{ github.event.client_payload.branch_name }}
+          RUN_ID: ${{ github.run_id }}
+          FIREBASE_AVAILABLE: ${{ steps.firebase_check.outputs.available }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const commentId = parseInt(process.env.COMMENT_ID, 10);
+            const startTime = parseInt(process.env.START_TIME, 10);
+            const branchName = process.env.BRANCH_NAME;
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${process.env.RUN_ID}`;
+            const firebaseAvailable = process.env.FIREBASE_AVAILABLE === 'true';
+            // 성공/실패 스텝이 이미 최종 상태를 쓴 댓글은 덮어쓰지 않는다
+            const { data: current } = await github.rest.issues.getComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: commentId
+            });
+            if (!(current.body || '').startsWith('## 🤖 Android APK 빌드 중...')) {
+              console.log('이미 최종 상태 댓글이라 취소 갱신을 건너뜀');
+              return;
+            }
+
+            let duration = '-';
+            if (!Number.isNaN(startTime)) {
+              const elapsed = Date.now() - startTime;
+              const minutes = Math.floor(elapsed / 60000);
+              const seconds = Math.floor((elapsed % 60000) / 1000);
+              duration = minutes > 0 ? `${minutes}분 ${seconds}초` : `${seconds}초`;
+            }
+
+            const body = [
+              '## 🤖 🚫 Android APK 빌드 취소됨',
+              '',
+              '| 단계 | 상태 | 소요 시간 |',
+              '|------|------|----------|',
+              '| 🔧 준비 | ⏸️ 취소됨 | - |',
+              '| 🔨 APK 빌드 | ⏸️ 취소됨 | - |',
+              '| 📤 GitHub 아티팩트 업로드 | ⏸️ 취소됨 | - |',
+              ...(firebaseAvailable ? ['| 🔥 Firebase App Distribution | ⏸️ 취소됨 | - |'] : []),
+              '',
+              `- 브랜치: \`${branchName}\``,
+              `- 총 소요 시간: ${duration}`,
+              '',
+              '🚫 **빌드가 취소되었습니다.** 새 빌드가 시작되었거나 수동으로 취소된 것입니다.',
+              '',
+              `🔗 [워크플로우 실행 로그 확인](${runUrl})`
+            ].join('\n');
+
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: commentId,
+              body: body
+            });
+
+            console.log('🚫 진행 상황 업데이트 완료: 취소됨');
+
   build-android-test:
     name: Android 테스트 APK 빌드
     runs-on: ubuntu-latest
     needs: prepare-test-build
 
+    defaults:
+      run:
+        working-directory: ${{ env.APP_ROOT }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          ref: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.branch_name || github.ref }}
-
-      - name: Pull latest changes
-        run: git pull origin ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.branch_name || github.ref_name }}
+          # 준비 job이 고정한 SHA로 받는다. 브랜치명으로 받으면 그 사이 push된 커밋이 섞여
+          # 댓글과 build-info에 표시한 커밋과 실제 빌드한 코드가 달라지므로 pull도 하지 않는다.
+          ref: ${{ needs.prepare-test-build.outputs.commit_sha }}
 
       - name: Create .env file
         env:
@@ -319,6 +435,20 @@ jobs:
         run: |
           printf '%s\n' "$ENV_CONTENT" > ${{ env.ENV_FILE_PATH }}
           echo "✅ ${{ env.ENV_FILE_PATH }} file created"
+
+      # 빌드 프로파일 — 런타임(.env)과 컴파일타임(dart-define)을 한 곳에서 정한다 (#603)
+      #
+      # 예전에는 .env 만 고치고 dart-define 은 빌드 명령에 따로 적었다. 그래서
+      # **한쪽만 적용돼도 빌드가 통과했다** — .env 에 개발 플래그가 찍혔는데 설치해 보면
+      # 디버깅 도구가 없었다. 로그만 봐서는 알 수 없었다.
+      #
+      # 설정(.github/config/build-profile.json)이 없는 저장소에서는 아무 일도 하지 않는다.
+      - name: 빌드 프로파일 적용 (test)
+        id: build_profile
+        run: |
+          python3 "${{ github.workspace }}/.github/scripts/apply_build_profile.py" \
+            test "${{ env.ENV_FILE_PATH }}" \
+            --config "${{ github.workspace }}/.github/config/build-profile.json"
 
       - name: Setup Release Keystore
         env:
@@ -335,7 +465,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
-          cat > android/key.properties << EOF
+          cat << EOF | sed -E 's/^ {10}//' > android/key.properties
           storeFile=keystore/key.jks
           storePassword=$STORE_PASSWORD
           keyAlias=$KEY_ALIAS
@@ -359,7 +489,7 @@ jobs:
 
       # Flutter 설정
       - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
@@ -395,14 +525,20 @@ jobs:
 
       # Gradle 셋업
       - name: Setup Gradle
-        working-directory: android
+        working-directory: ${{ env.APP_ROOT }}/android
         run: |
-          chmod +x gradlew
-          echo "✅ Gradle wrapper permissions set"
+          # Flutter 기본 .gitignore가 gradlew를 제외하므로 CI 체크아웃 시 없을 수 있다.
+          # flutter build가 자체 Gradle을 쓰므로 없어도 빌드는 진행된다.
+          if [ -f gradlew ]; then
+            chmod +x gradlew
+            echo "✅ Gradle wrapper permissions set"
+          else
+            echo "ℹ️ gradlew 없음 - Flutter 내장 Gradle을 사용합니다"
+          fi
 
       # Java 설정
       - name: Set up Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: "temurin"
           java-version: ${{ env.JAVA_VERSION }}
@@ -414,7 +550,7 @@ jobs:
 
       # Ruby 설정
       - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1
         with:
           ruby-version: "3.4.1"
           bundler-cache: true
@@ -426,7 +562,7 @@ jobs:
 
       # Fastlane 설치 (Bundler 방식 - gem 충돌 방지)
       - name: Install Fastlane
-        working-directory: android
+        working-directory: ${{ env.APP_ROOT }}/android
         run: |
           # multi_json: google-apis transitive 의존성이 선언 누락한 upstream 버그 회피 (gemspec 미선언 → Gem::LoadError)
           printf 'source "https://rubygems.org"\ngem "fastlane"\ngem "multi_json"\n' > Gemfile
@@ -486,12 +622,14 @@ jobs:
 
       - name: Generate APK filename
         id: apk_filename
+        env:
+          # 이슈 제목은 따옴표나 $(...) 가 들어올 수 있어 env 로 전달 (#646)
+          ISSUE_TITLE: ${{ needs.prepare-test-build.outputs.issue_title }}
         run: |
           REPO_NAME="${{ github.event.repository.name }}"
           COMMIT_SHORT="${{ needs.prepare-test-build.outputs.commit_hash }}"
           BUILD_NUMBER="${{ needs.prepare-test-build.outputs.build_number }}"
           ISSUE_NUMBER="${{ needs.prepare-test-build.outputs.issue_number }}"
-          ISSUE_TITLE="${{ needs.prepare-test-build.outputs.issue_title }}"
 
           # 이슈 제목 정제
           CLEAN_TITLE=""
@@ -542,14 +680,27 @@ jobs:
       # APK 빌드 (Fastlane 또는 직접 빌드)
       - name: Build APK
         run: |
-          # Fastlane Fastfile이 있으면 사용, 없으면 직접 빌드
-          if [ -f "android/fastlane/Fastfile" ]; then
-            echo "📦 Fastlane을 사용하여 빌드..."
-            cd android
-            bundle exec fastlane build --verbose || flutter build apk --release
+          # 마법사가 까는 Fastfile 에는 `build` lane 이 없다 (#601).
+          # 있는 것: build_aab · deploy_internal · promote_internal_to_production · validate
+          # 그래서 무턱대고 부르면 "Could not find lane" 으로 죽는다.
+          # 직접 만든 Fastfile 에 build 가 있으면 그것을 쓰고, 없으면 flutter 로 빌드한다.
+          BUILD_FLAGS="${{ steps.build_profile.outputs.build_flags }}"
+          if [ -f "android/fastlane/Fastfile" ] \
+             && grep -qE '^[[:space:]]*lane[[:space:]]*:build([[:space:]]|$)' android/fastlane/Fastfile; then
+            # fastlane lane 은 빌드 명령을 자기가 만든다 — 여기서 dart-define 을 넘길 자리가 없다.
+            # 조용히 빠뜨리면 이 스텝이 고치려던 바로 그 사고("한쪽만 적용")가 다시 난다.
+            if [ -n "$BUILD_FLAGS" ]; then
+              echo "::error::빌드 프로파일이 컴파일타임 플래그를 지정했는데 fastlane build lane 으로 빌드하려 합니다."
+              echo "::error::lane 안에서 flutter build 에 \$BUILD_FLAGS 를 넘기도록 Fastfile 을 고치거나, build lane 을 지워 Flutter 직접 빌드를 쓰세요."
+              exit 1
+            fi
+            echo "📦 Fastlane build lane 으로 빌드..."
+            # 서브셸로 감싼다 — cd 가 새어 나가면 뒤 명령이 엉뚱한 곳에서 돈다
+            ( cd android && bundle exec fastlane build --verbose )
           else
-            echo "📦 Flutter 직접 빌드..."
-            flutter build apk --release
+            echo "📦 Flutter 직접 빌드... ${BUILD_FLAGS:+(플래그: $BUILD_FLAGS)}"
+            # shellcheck disable=SC2086  # 플래그는 공백으로 갈라져야 한다
+            flutter build apk --release $BUILD_FLAGS
           fi
           ls -la ./build/app/outputs/flutter-apk/ || true
           echo "✅ APK built"
@@ -628,46 +779,53 @@ jobs:
 
       # 빌드 정보 파일 생성
       - name: Create build info file
+        # ⚠️ heredoc 을 쓰지 않는다 (#597).
+        #    `<< EOF` 의 종료자는 **컬럼 0** 이어야 하는데, if 블록 안에 두면 들여쓰게 된다.
+        #    그러면 셸이 종료자를 못 찾고 스크립트 끝까지 읽어 `syntax error: unexpected
+        #    end of file` 로 죽는다. `<<-` 로 바꿔도 탭만 허용해 해결되지 않는다.
+        #    (딸려 있던 `sed -E 's/^ {10}//'` 도 실은 아무 일도 안 했다 — YAML의 `run: |`
+        #     이 공통 들여쓰기를 이미 걷어내기 때문이다.)
+        env:
+          # 이슈 제목을 셸 소스에 직접 박으면 큰따옴표나 $(...) 가 들어왔을 때
+          # 문자열이 깨지거나 명령이 실행된다. 값으로 넘겨 "$VAR" 로 받는다.
+          BUILD_NUMBER: ${{ needs.prepare-test-build.outputs.build_number }}
+          PR_NUMBER: ${{ needs.prepare-test-build.outputs.pr_number }}
+          COMMIT_SHORT: ${{ needs.prepare-test-build.outputs.commit_hash }}
+          ISSUE_NUMBER: ${{ needs.prepare-test-build.outputs.issue_number }}
+          ISSUE_TITLE: ${{ needs.prepare-test-build.outputs.issue_title }}
+          ISSUE_URL: ${{ needs.prepare-test-build.outputs.issue_url }}
+          BUILD_BRANCH: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.branch_name || github.ref_name }}
         run: |
-          BUILD_NUMBER="${{ needs.prepare-test-build.outputs.build_number }}"
-          PR_NUMBER="${{ needs.prepare-test-build.outputs.pr_number }}"
-          BRANCH_NAME="${{ github.event_name == 'repository_dispatch' && github.event.client_payload.branch_name || github.ref_name }}"
-          COMMIT_SHA="${{ github.sha }}"
-          COMMIT_SHORT="${{ needs.prepare-test-build.outputs.commit_hash }}"
+          BRANCH_NAME="$BUILD_BRANCH"
+          COMMIT_SHA="${{ needs.prepare-test-build.outputs.commit_sha }}"
           BUILD_DATE=$(date '+%Y-%m-%d %H:%M:%S')
 
-          cat > build-info.txt << EOF
-          테스트 APK 빌드 정보
-
-          빌드 번호: #$BUILD_NUMBER
-          EOF
+          {
+            echo "테스트 APK 빌드 정보"
+            echo ""
+            echo "빌드 번호: #$BUILD_NUMBER"
+          } > build-info.txt
 
           if [ -n "$PR_NUMBER" ]; then
-            cat >> build-info.txt << EOF
-          PR 번호: #$PR_NUMBER
-          EOF
+            echo "PR 번호: #$PR_NUMBER" >> build-info.txt
           fi
 
-          cat >> build-info.txt << EOF
-          브랜치: $BRANCH_NAME
-          커밋: $COMMIT_SHORT
-          전체 커밋 해시: $COMMIT_SHA
-          빌드 날짜: $BUILD_DATE
-
-          EOF
+          {
+            echo "브랜치: $BRANCH_NAME"
+            echo "커밋: $COMMIT_SHORT"
+            echo "전체 커밋 해시: $COMMIT_SHA"
+            echo "빌드 날짜: $BUILD_DATE"
+            echo ""
+          } >> build-info.txt
 
           # 이슈 정보가 있으면 추가
-          if [ -n "${{ needs.prepare-test-build.outputs.issue_number }}" ]; then
-            ISSUE_NUMBER="${{ needs.prepare-test-build.outputs.issue_number }}"
-            ISSUE_TITLE="${{ needs.prepare-test-build.outputs.issue_title }}"
-            ISSUE_URL="${{ needs.prepare-test-build.outputs.issue_url }}"
-
-            cat >> build-info.txt << EOF
-          관련 이슈:
-          - #$ISSUE_NUMBER: $ISSUE_TITLE
-          - URL: $ISSUE_URL
-
-          EOF
+          if [ -n "$ISSUE_NUMBER" ]; then
+            {
+              echo "관련 이슈:"
+              echo "- #$ISSUE_NUMBER: $ISSUE_TITLE"
+              echo "- URL: $ISSUE_URL"
+              echo ""
+            } >> build-info.txt
           fi
 
           echo "📋 빌드 정보 파일 생성 완료:"
@@ -675,13 +833,15 @@ jobs:
 
       # 빌드 메타데이터 파일 생성 (댓글 작성 워크플로우용)
       - name: Create build metadata file
+        env:
+          BUILD_BRANCH: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.branch_name || github.ref_name }}
         run: |
-          cat > build-metadata.json << EOF
+          cat << EOF | sed -E 's/^ {10}//' > build-metadata.json
           {
             "pr_number": "${{ needs.prepare-test-build.outputs.pr_number }}",
             "build_number": "${{ needs.prepare-test-build.outputs.build_number }}",
             "issue_number": "${{ needs.prepare-test-build.outputs.issue_number }}",
-            "branch_name": "${{ github.event_name == 'repository_dispatch' && github.event.client_payload.branch_name || github.ref_name }}"
+            "branch_name": "$BUILD_BRANCH"
           }
           EOF
           cat build-metadata.json
@@ -692,9 +852,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.apk_filename.outputs.artifact_name }}
+          # 아티팩트 액션은 defaults를 따르지 않고 항상 레포 루트 기준이라 APP_ROOT prefix가 필요
           path: |
-            ./android/app/build/outputs/apk/release/*.apk
-            build-info.txt
+            ${{ env.APP_ROOT }}/android/app/build/outputs/apk/release/*.apk
+            ${{ env.APP_ROOT }}/build-info.txt
             build-metadata.json
           retention-days: 7
           if-no-files-found: error
@@ -727,12 +888,15 @@ jobs:
         id: firebase_upload
         if: needs.prepare-test-build.outputs.firebase_available == 'true'
         continue-on-error: true
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        uses: wzieba/Firebase-Distribution-Github-Action@bd494989dd4bec0343f78adee87fe66e48279ad6 # v1
         with:
           appId: ${{ env.FIREBASE_APP_ID }}
-          serviceCredentialsFile: firebase-service-account.json
+          # ⚠️ uses: 액션은 job의 defaults.working-directory를 따르지 않고
+          #    항상 레포 루트 기준으로 경로를 해석한다.
+          #    자격증명·APK는 APP_ROOT에서 생성되므로 prefix가 필요하다.
+          serviceCredentialsFile: ${{ env.APP_ROOT }}/firebase-service-account.json
           groups: ${{ env.FIREBASE_TESTER_GROUP }}
-          file: ./android/app/build/outputs/apk/release/${{ steps.apk_filename.outputs.apk_name }}
+          file: ${{ env.APP_ROOT }}/android/app/build/outputs/apk/release/${{ steps.apk_filename.outputs.apk_name }}
           releaseNotes: |
             테스트 빌드 #${{ needs.prepare-test-build.outputs.build_number }}
             브랜치: ${{ needs.prepare-test-build.outputs.branch_name }}
@@ -773,6 +937,8 @@ jobs:
       - name: 진행 상황 최종 업데이트 - 성공
         if: success() && github.event_name == 'repository_dispatch' && github.event.client_payload.pr_number != '' && needs.prepare-test-build.outputs.progress_comment_id != ''
         uses: actions/github-script@v7
+        env:
+          BRANCH_NAME: ${{ needs.prepare-test-build.outputs.branch_name }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -784,7 +950,7 @@ jobs:
             const step4Elapsed = '${{ steps.firebase_time.outputs.elapsed }}';
             const prNumber = parseInt('${{ github.event.client_payload.pr_number }}');
             const buildNumber = '${{ needs.prepare-test-build.outputs.build_number }}';
-            const branchName = '${{ needs.prepare-test-build.outputs.branch_name }}';
+            const branchName = process.env.BRANCH_NAME;
             const commitHash = '${{ needs.prepare-test-build.outputs.commit_hash }}';
             const issueNumber = '${{ needs.prepare-test-build.outputs.issue_number }}';
             const runId = '${{ github.run_id }}';
@@ -886,6 +1052,8 @@ jobs:
       - name: 진행 상황 최종 업데이트 - 실패
         if: failure() && github.event_name == 'repository_dispatch' && github.event.client_payload.pr_number != '' && needs.prepare-test-build.outputs.progress_comment_id != ''
         uses: actions/github-script@v7
+        env:
+          BRANCH_NAME: ${{ needs.prepare-test-build.outputs.branch_name }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -896,7 +1064,7 @@ jobs:
             const prNumber = parseInt('${{ github.event.client_payload.pr_number }}');
             const buildNumber = '${{ needs.prepare-test-build.outputs.build_number }}';
             const version = '${{ needs.prepare-test-build.outputs.version }}';
-            const branchName = '${{ needs.prepare-test-build.outputs.branch_name }}';
+            const branchName = process.env.BRANCH_NAME;
             const issueNumber = '${{ needs.prepare-test-build.outputs.issue_number }}';
             const runId = '${{ github.run_id }}';
             const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}`;
@@ -975,13 +1143,15 @@ jobs:
       # 콘솔 알림
       - name: Notify Build Success
         if: success()
+        env:
+          BUILD_BRANCH: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.branch_name || github.ref_name }}
         run: |
           echo "✅ Android 테스트 APK 빌드 성공!"
           echo "빌드 번호: ${{ needs.prepare-test-build.outputs.build_number }}"
           if [ -n "${{ needs.prepare-test-build.outputs.pr_number }}" ]; then
             echo "PR 번호: ${{ needs.prepare-test-build.outputs.pr_number }}"
           fi
-          echo "브랜치: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.branch_name || github.ref_name }}"
+          echo "브랜치: $BUILD_BRANCH"
           echo "커밋: ${{ needs.prepare-test-build.outputs.commit_hash }}"
           if [ -n "${{ needs.prepare-test-build.outputs.issue_url }}" ]; then
             echo "관련 이슈: ${{ needs.prepare-test-build.outputs.issue_url }}"
@@ -994,3 +1164,70 @@ jobs:
         run: |
           echo "❌ Android 테스트 APK 빌드 실패!"
           echo "로그를 확인해주세요."
+
+      # 취소 처리 (#648): 빌드 job 이 실행 중일 때 취소된 경우. success()/failure() 스텝은 취소 시 돌지 않아 이 스텝이 유일한 정리 경로다. 준비 job 은 이미 끝났으므로 준비는 완료로 표시한다.
+      - name: 진행 상황 업데이트 - 취소 (빌드 job)
+        if: cancelled() && github.event_name == 'repository_dispatch' && needs.prepare-test-build.outputs.progress_comment_id != ''
+        continue-on-error: true
+        uses: actions/github-script@v7
+        env:
+          COMMENT_ID: ${{ needs.prepare-test-build.outputs.progress_comment_id }}
+          START_TIME: ${{ needs.prepare-test-build.outputs.progress_start_time }}
+          BRANCH_NAME: ${{ needs.prepare-test-build.outputs.branch_name }}
+          RUN_ID: ${{ github.run_id }}
+          STEP1_ELAPSED: ${{ steps.progress_step1.outputs.elapsed }}
+          FIREBASE_AVAILABLE: ${{ needs.prepare-test-build.outputs.firebase_available }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const commentId = parseInt(process.env.COMMENT_ID, 10);
+            const startTime = parseInt(process.env.START_TIME, 10);
+            const branchName = process.env.BRANCH_NAME;
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${process.env.RUN_ID}`;
+            const step1Elapsed = process.env.STEP1_ELAPSED;
+            const firebaseAvailable = process.env.FIREBASE_AVAILABLE === 'true';
+            // 성공/실패 스텝이 이미 최종 상태를 쓴 댓글은 덮어쓰지 않는다
+            const { data: current } = await github.rest.issues.getComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: commentId
+            });
+            if (!(current.body || '').startsWith('## 🤖 Android APK 빌드 중...')) {
+              console.log('이미 최종 상태 댓글이라 취소 갱신을 건너뜀');
+              return;
+            }
+
+            let duration = '-';
+            if (!Number.isNaN(startTime)) {
+              const elapsed = Date.now() - startTime;
+              const minutes = Math.floor(elapsed / 60000);
+              const seconds = Math.floor((elapsed % 60000) / 1000);
+              duration = minutes > 0 ? `${minutes}분 ${seconds}초` : `${seconds}초`;
+            }
+
+            const body = [
+              '## 🤖 🚫 Android APK 빌드 취소됨',
+              '',
+              '| 단계 | 상태 | 소요 시간 |',
+              '|------|------|----------|',
+              `| 🔧 준비 | ✅ 완료 | ${step1Elapsed || '-'} |`,
+              '| 🔨 APK 빌드 | ⏸️ 취소됨 | - |',
+              '| 📤 GitHub 아티팩트 업로드 | ⏸️ 취소됨 | - |',
+              ...(firebaseAvailable ? ['| 🔥 Firebase App Distribution | ⏸️ 취소됨 | - |'] : []),
+              '',
+              `- 브랜치: \`${branchName}\``,
+              `- 총 소요 시간: ${duration}`,
+              '',
+              '🚫 **빌드가 취소되었습니다.** 새 빌드가 시작되었거나 수동으로 취소된 것입니다.',
+              '',
+              `🔗 [워크플로우 실행 로그 확인](${runUrl})`
+            ].join('\n');
+
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: commentId,
+              body: body
+            });
+
+            console.log('🚫 진행 상황 업데이트 완료: 취소됨');
