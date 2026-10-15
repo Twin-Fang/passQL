@@ -8,6 +8,7 @@ import 'home_api.dart';
 import 'member_api.dart';
 import 'meta_api.dart';
 import 'progress_api.dart';
+import 'push_token_api.dart';
 import 'question_api.dart';
 import 'report_api.dart';
 import 'sse_question_client.dart';
@@ -60,4 +61,8 @@ final dailySetApiProvider = Provider<DailySetApiClient>(
 
 final examScheduleApiProvider = Provider<ExamScheduleApiClient>(
   (ref) => ExamScheduleApiClient(ref.watch(dioProvider)),
+);
+
+final pushTokenApiProvider = Provider<PushTokenApiClient>(
+  (ref) => PushTokenApiClient(ref.watch(dioProvider)),
 );

@@ -42,6 +42,10 @@
         <meta-data
             android:name="google_analytics_adid_collection_enabled"
             android:value="false" />
+        <!-- 푸시 알림 기본 채널 (MainActivity 가 생성) -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="@string/default_notification_channel_id" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
@@ -54,4 +58,6 @@
             <data android:mimeType="text/plain"/>
         </intent>
     </queries>
+    <!-- Android 13+ 알림 표시 권한 (로그인 후 1회 요청) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 </manifest>

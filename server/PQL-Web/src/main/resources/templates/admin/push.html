@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<th:block layout:fragment="title">푸시 발송</th:block>
+
+<th:block layout:fragment="content">
+
+    <!-- 요약 배지 -->
+    <div class="flex flex-wrap items-center gap-2 mb-4">
+        <div class="badge badge-neutral badge-lg">
+            수신 동의 기기 <span class="ml-1 font-bold" th:text="${pushEnabledDeviceCount}">0</span>
+        </div>
+        <div class="badge badge-ghost badge-lg">
+            발송 이력 <span class="ml-1 font-bold" th:text="${histories.totalElements}">0</span>
+        </div>
+    </div>
+
+    <!-- 발송 폼 -->
+    <div class="card bg-base-100 shadow mb-6">
+        <div class="card-body gap-4">
+            <h2 class="card-title text-base">새 알림 보내기</h2>
+
+            <label class="form-control w-full">
+                <div class="label"><span class="label-text">제목</span>
+                    <span class="label-text-alt"><span id="titleLength">0</span>/100</span></div>
+                <input id="pushTitle" type="text" maxlength="100" class="input input-bordered w-full"
+                       placeholder="예: 오늘의 세트가 준비됐어요"/>
+            </label>
+
+            <label class="form-control w-full">
+                <div class="label"><span class="label-text">본문</span>
+                    <span class="label-text-alt"><span id="bodyLength">0</span>/500</span></div>
+                <textarea id="pushBody" maxlength="500" rows="3" class="textarea textarea-bordered w-full"
+                          placeholder="예: 3문제로 실력을 확인해 보세요"></textarea>
+            </label>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- 대상: 전체 / 특정 회원 -->
+                <label class="form-control w-full">
+                    <div class="label"><span class="label-text">대상</span></div>
+                    <select id="pushAudience" class="select select-bordered w-full" onchange="syncConditionalFields()">
+                        <option th:each="a : ${audiences}" th:value="${a.name()}" th:text="${a.label}">전체</option>
+                    </select>
+                </label>
+                <label class="form-control w-full hidden" id="memberUuidField">
+                    <div class="label"><span class="label-text">회원 UUID</span></div>
+                    <input id="pushMemberUuid" type="text" class="input input-bordered w-full font-mono text-sm"
+                           placeholder="회원 상세의 UUID 전체"/>
+                </label>
+
+                <!-- 앱 내 이동 경로 (허용 목록) -->
+                <label class="form-control w-full">
+                    <div class="label"><span class="label-text">탭하면 이동할 화면</span></div>
+                    <select id="pushLinkTarget" class="select select-bordered w-full" onchange="syncConditionalFields()">
+                        <option th:each="t : ${linkTargets}" th:value="${t.name()}" th:text="${t.label}"
+                                th:data-question-required="${t.isQuestionUuidRequired()}">홈</option>
+                    </select>
+                </label>
+                <label class="form-control w-full hidden" id="questionUuidField">
+                    <div class="label"><span class="label-text">문제 UUID</span></div>
+                    <input id="pushQuestionUuid" type="text" class="input input-bordered w-full font-mono text-sm"
+                           placeholder="문제 상세의 UUID 전체"/>
+                </label>
+            </div>
+
+            <div class="flex justify-end">
+                <button class="btn btn-primary gap-1" onclick="openConfirm()">
+                    <i data-lucide="send" class="size-4"></i>발송
+                </button>
+            </div>
+
+            <!-- 발송 결과 -->
+            <div id="sendResult" class="alert hidden"></div>
+        </div>
+    </div>
+
+    <!-- 발송 이력 -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-0">
+            <div class="overflow-x-auto">
+                <table class="table table-sm table-fixed w-full">
+                    <thead>
+                    <tr>
+                        <th class="w-36">발송 시각</th>
+                        <th class="w-auto">제목 / 본문</th>
+                        <th class="w-32">대상</th>
+                        <th class="w-28">이동</th>
+                        <th class="w-40">결과 (성공/실패/삭제)</th>
+                        <th class="w-28">관리자</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="h : ${histories}">
+                        <td class="text-xs" th:text="${#temporals.format(h.sentAt, 'yyyy-MM-dd HH:mm')}">2026-10-15 10:00</td>
+                        <td>
+                            <div class="font-semibold truncate" th:text="${h.title}">제목</div>
+                            <div class="text-xs text-base-content/60 truncate" th:text="${h.body}">본문</div>
+                        </td>
+                        <td class="text-xs">
+                            <span th:text="${h.audience.label}">전체</span>
+                            <a th:if="${h.targetMemberUuid != null}"
+                               th:href="@{/admin/members/{uuid}(uuid=${h.targetMemberUuid})}"
+                               class="link link-hover font-mono block"
+                               th:text="${#strings.substring(h.targetMemberUuid.toString(), 0, 8)}">550e8400</a>
+                        </td>
+                        <td class="text-xs" th:text="${h.linkTarget.label}">홈</td>
+                        <td class="text-xs">
+                            <span th:text="${h.targetDeviceCount}">0</span>대 ·
+                            <span class="text-success" th:text="${h.successCount}">0</span> /
+                            <span class="text-error" th:text="${h.failureCount}">0</span> /
+                            <span th:text="${h.removedTokenCount}">0</span>
+                        </td>
+                        <td class="text-xs truncate" th:text="${h.sentByAdmin}">admin</td>
+                    </tr>
+
+                    <!-- Empty state -->
+                    <tr th:if="${histories.isEmpty()}">
+                        <td colspan="6" class="text-center text-base-content/50 py-12">
+                            <i data-lucide="bell" class="size-10 mx-auto mb-2 opacity-40"></i>
+                            <p>발송 이력이 없습니다.</p>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <div class="flex justify-center p-4" th:if="${histories.totalPages > 1}">
+                <div class="join">
+                    <a th:href="@{/admin/push(page=${histories.number - 1})}"
+                       class="join-item btn btn-sm"
+                       th:classappend="${histories.first} ? 'btn-disabled'">«</a>
+                    <button class="join-item btn btn-sm btn-active"
+                            th:text="${histories.number + 1} + ' / ' + ${histories.totalPages}">1 / 10</button>
+                    <a th:href="@{/admin/push(page=${histories.number + 1})}"
+                       class="join-item btn btn-sm"
+                       th:classappend="${histories.last} ? 'btn-disabled'">»</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 발송 전 확인 모달 -->
+    <dialog id="confirmModal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg mb-4">이 알림을 보낼까요?</h3>
+            <div class="space-y-2 text-sm">
+                <div class="flex gap-2"><span class="text-base-content/60 w-20 shrink-0">대상</span><span id="confirmAudience"></span></div>
+                <div class="flex gap-2"><span class="text-base-content/60 w-20 shrink-0">이동</span><span id="confirmLink"></span></div>
+                <div class="flex gap-2"><span class="text-base-content/60 w-20 shrink-0">제목</span><span id="confirmTitle" class="break-all"></span></div>
+                <div class="flex gap-2"><span class="text-base-content/60 w-20 shrink-0">본문</span><p id="confirmBody" class="whitespace-pre-wrap break-all"></p></div>
+            </div>
+            <p class="text-xs text-warning mt-4">발송 후에는 취소할 수 없습니다.</p>
+            <div class="modal-action">
+                <form method="dialog"><button class="btn btn-sm">취소</button></form>
+                <button id="confirmSendButton" class="btn btn-sm btn-primary" onclick="sendPush()">보내기</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+</th:block>
+
+<th:block layout:fragment="js">
+    <script th:inline="javascript">
+        lucide.createIcons();
+
+        // 전체 발송 확인 문구용 수신 동의 기기 수
+        const pushEnabledDeviceCount = /*[[${pushEnabledDeviceCount}]]*/ 0;
+        const titleInput = document.getElementById('pushTitle');
+        const bodyInput = document.getElementById('pushBody');
+        const audienceSelect = document.getElementById('pushAudience');
+        const linkTargetSelect = document.getElementById('pushLinkTarget');
+
+        // 글자 수 표시
+        titleInput.addEventListener('input', () => document.getElementById('titleLength').textContent = titleInput.value.length);
+        bodyInput.addEventListener('input', () => document.getElementById('bodyLength').textContent = bodyInput.value.length);
+
+        function isMemberAudience() {
+            return audienceSelect.value === 'MEMBER';
+        }
+
+        function isQuestionLinkSelected() {
+            return linkTargetSelect.selectedOptions[0].dataset.questionRequired === 'true';
+        }
+
+        // 조건부 입력칸 (회원 UUID, 문제 UUID)
+        function syncConditionalFields() {
+            document.getElementById('memberUuidField').classList.toggle('hidden', !isMemberAudience());
+            document.getElementById('questionUuidField').classList.toggle('hidden', !isQuestionLinkSelected());
+        }
+
+        function buildRequest() {
+            return {
+                title: titleInput.value.trim(),
+                body: bodyInput.value.trim(),
+                audience: audienceSelect.value,
+                targetMemberUuid: isMemberAudience() ? document.getElementById('pushMemberUuid').value.trim() : null,
+                linkTarget: linkTargetSelect.value,
+                linkQuestionUuid: isQuestionLinkSelected() ? document.getElementById('pushQuestionUuid').value.trim() : null
+            };
+        }
+
+        // 발송 전 확인 (필수값 > 요약 표시)
+        function openConfirm() {
+            const request = buildRequest();
+            if (!request.title || !request.body) {
+                alert('제목과 본문을 입력해 주세요.');
+                return;
+            }
+            document.getElementById('confirmAudience').textContent = isMemberAudience()
+                ? '특정 회원 ' + request.targetMemberUuid
+                : '전체 (수신 동의 기기 ' + pushEnabledDeviceCount + '대)';
+            document.getElementById('confirmLink').textContent = linkTargetSelect.selectedOptions[0].textContent
+                + (request.linkQuestionUuid ? ' ' + request.linkQuestionUuid : '');
+            document.getElementById('confirmTitle').textContent = request.title;
+            document.getElementById('confirmBody').textContent = request.body;
+            document.getElementById('confirmModal').showModal();
+        }
+
+        // 발송 > 결과 표시 (성공·실패 공통으로 버튼 복구)
+        function sendPush() {
+            const button = document.getElementById('confirmSendButton');
+            button.disabled = true;
+            fetch('/admin/push/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(buildRequest())
+            }).then(res => res.json().then(body => ({ ok: res.ok, body })))
+              .then(({ ok, body }) => {
+                  document.getElementById('confirmModal').close();
+                  if (ok) {
+                      showResult('alert-success', '발송 완료: 대상 ' + body.targetDeviceCount + '대, 성공 ' + body.successCount
+                          + ', 실패 ' + body.failureCount + ', 만료 토큰 삭제 ' + body.removedTokenCount
+                          + ' (새로고침하면 이력에 보입니다)');
+                  } else {
+                      showResult('alert-error', body.message || '발송에 실패했습니다.');
+                  }
+              })
+              .catch(() => {
+                  document.getElementById('confirmModal').close();
+                  showResult('alert-error', '네트워크 오류가 발생했습니다.');
+              })
+              .finally(() => button.disabled = false);
+        }
+
+        function showResult(alertClass, message) {
+            const resultBox = document.getElementById('sendResult');
+            resultBox.className = 'alert ' + alertClass;
+            resultBox.textContent = message;
+        }
+
+        syncConditionalFields();
+    </script>
+</th:block>
+</html>

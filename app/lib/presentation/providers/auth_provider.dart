@@ -9,6 +9,7 @@ import '../../core/auth/token_store.dart';
 import '../../core/error/app_exception.dart';
 import '../../core/monitoring/app_analytics.dart';
 import '../../core/network/api_call.dart';
+import '../../data/push/push_notification_service.dart';
 import '../../data/sources/api_providers.dart';
 import '../../core/network/dio_client.dart';
 
@@ -67,6 +68,8 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
     final store = ref.read(tokenStoreProvider);
     final session = await store.read();
     if (session != null) {
+      // 액세스 토큰이 살아 있을 때 이 기기 알림 끊기 (실패해도 진행)
+      await ref.read(pushNotificationServiceProvider).unregisterDevice();
       try {
         await ref.read(authApiProvider).logout(session.refreshToken);
       } on DioException {
@@ -87,6 +90,8 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
     // Apple 사용자는 토큰 회수를 위해 재인증이 필요하다. 취소하면 탈퇴를 진행하지 않는다.
     final granted = await ref.read(socialSignInProvider).revokeAccessForWithdrawal();
     if (!granted) return;
+    // 탈퇴 후엔 인증이 끊겨 삭제 요청을 못 보내므로 먼저 (서버도 탈퇴 시 전부 삭제)
+    await ref.read(pushNotificationServiceProvider).unregisterDevice();
     await callApiThrowingAppException(ref.read(memberApiProvider).withdraw());
     await ref.read(tokenStoreProvider).clear();
     await ref.read(socialSignInProvider).signOut();

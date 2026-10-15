@@ -133,6 +133,9 @@ public enum ErrorCode {
     ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN(HttpStatus.FORBIDDEN, "자기 계정의 역할·사용 여부는 바꿀 수 없습니다."),
     ADMIN_PASSWORD_TOO_WEAK(HttpStatus.BAD_REQUEST, "비밀번호는 10자 이상, 영문과 숫자를 함께 써야 합니다."),
     ADMIN_WRITE_FORBIDDEN(HttpStatus.FORBIDDEN, "조회 전용 관리자는 변경할 수 없습니다."),
+    // Push
+    PUSH_TARGET_MEMBER_REQUIRED(HttpStatus.BAD_REQUEST, "특정 회원 발송은 올바른 회원 UUID가 필요합니다."),
+    PUSH_LINK_QUESTION_REQUIRED(HttpStatus.BAD_REQUEST, "문제 상세 이동은 올바른 문제 UUID가 필요합니다."),
 
     // Auth
     EXPIRED_FIREBASE_TOKEN(HttpStatus.UNAUTHORIZED, "Firebase 토큰이 만료되었습니다."),
