@@ -1,10 +1,12 @@
 package com.passql.web.controller;
 
 import com.passql.meta.constant.LegalType;
+import com.passql.meta.dto.AppConfigResponse;
 import com.passql.meta.dto.AppLinksResponse;
 import com.passql.meta.dto.LegalResponse;
 import com.passql.meta.dto.TopicTree;
 import com.passql.meta.entity.ConceptTag;
+import com.passql.meta.service.AppOperationService;
 import com.passql.meta.service.AppSettingService;
 import com.passql.meta.service.LegalService;
 import com.passql.meta.service.MetaService;
@@ -22,6 +24,7 @@ public class MetaController implements MetaControllerDocs {
     private final MetaService metaService;
     private final LegalService legalService;
     private final AppSettingService appSettingService;
+    private final AppOperationService appOperationService;
 
     @GetMapping("/meta/topics")
     public ResponseEntity<List<TopicTree>> getTopics() {
@@ -43,5 +46,11 @@ public class MetaController implements MetaControllerDocs {
     @GetMapping("/meta/app-links")
     public ResponseEntity<AppLinksResponse> getAppLinks() {
         return ResponseEntity.ok(appSettingService.getAppLinks());
+    }
+
+    /** 앱 시작 설정 (버전 정책·점검·공지) — 인증 불필요, 점검 중에도 응답 (#464) */
+    @GetMapping("/meta/app-config")
+    public ResponseEntity<AppConfigResponse> getAppConfig() {
+        return ResponseEntity.ok(appOperationService.getAppConfig());
     }
 }

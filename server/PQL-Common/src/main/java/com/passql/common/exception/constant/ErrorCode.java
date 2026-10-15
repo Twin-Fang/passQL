@@ -108,6 +108,13 @@ public enum ErrorCode {
     FEEDBACK_CONTENT_EMPTY(HttpStatus.BAD_REQUEST, "건의사항 내용을 입력해 주세요."),
     FEEDBACK_CONTENT_TOO_LONG(HttpStatus.BAD_REQUEST, "건의사항은 500자 이하로 입력해 주세요."),
 
+    // App Operation (점검·버전·공지)
+    SERVICE_UNDER_MAINTENANCE(HttpStatus.SERVICE_UNAVAILABLE, "서비스 점검 중입니다. 잠시 후 다시 이용해 주세요."),
+    APP_VERSION_FORMAT_INVALID(HttpStatus.BAD_REQUEST, "버전은 x.y.z 형식의 숫자로 입력해 주세요."),
+    APP_NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "공지를 찾을 수 없습니다."),
+    APP_NOTICE_INPUT_INVALID(HttpStatus.BAD_REQUEST, "공지 제목과 본문을 확인해 주세요."),
+    APP_NOTICE_PERIOD_INVALID(HttpStatus.BAD_REQUEST, "공지 종료 시각은 시작 시각 이후여야 합니다."),
+
     // === Import/Export ===
     IMPORT_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "한 번에 최대 100건까지 가져올 수 있습니다."),
     EXPORT_NO_DATA(HttpStatus.NOT_FOUND, "내보낼 문제가 없습니다."),
