@@ -67,4 +67,14 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(PassqlGroupedSection), findsAtLeastNWidgets(2));
   });
+
+  testWidgets('오픈소스 라이선스를 누르면 라이선스 화면이 열린다', (tester) async {
+    await pumpSettings(tester, PassqlTheme.light);
+
+    await tester.tap(find.text('오픈소스 라이선스'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LicensePage), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

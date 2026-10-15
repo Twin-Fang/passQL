@@ -31,6 +31,7 @@ dependencies:
   # 실시간 통신
   # 기기 & 앱 정보
   package_info_plus: ^9.0.0
+  device_info_plus: ^12.4.0
   # 유틸리티
   firebase_core: ^4.15.0
   firebase_auth: ^6.7.0
@@ -55,6 +56,9 @@ flutter:
     - .env
     - assets/logo.png
     - assets/logo_dark.png
+    # 오픈소스 라이선스 화면에 싣는 글꼴 라이선스 (OFL)
+    - assets/fonts/JetBrainsMono-OFL.txt
+    - assets/fonts/Pretendard-OFL.txt
   # 굵기 토큰(passql_typography.dart)이 쓰는 4종만 등록. 굵기를 추가하면 파일·토큰을 함께 추가
   fonts:
     - family: Pretendard-Regular
