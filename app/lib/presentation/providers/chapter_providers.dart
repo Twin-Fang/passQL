@@ -95,16 +95,25 @@ class ChapterState {
           ? null
           : (lastSubmitResult ?? this.lastSubmitResult),
       isAnswered: isAnswered ?? this.isAnswered,
-      lastSelectedKey:
-          clearSelectedKey ? null : (lastSelectedKey ?? this.lastSelectedKey),
+      lastSelectedKey: clearSelectedKey
+          ? null
+          : (lastSelectedKey ?? this.lastSelectedKey),
     );
   }
 }
 
 // ─── Notifier ────────────────────────────────────────────────────
 
-class ChapterNotifier extends StateNotifier<ChapterState> {
-  ChapterNotifier() : super(const ChapterState());
+/// 문제 묶음 풀이 진행: 목록 불러오기 > 제출 기록(소요 시간 포함) > 다음 문제 > 완료 요약
+class ChapterNotifier extends AutoDisposeFamilyNotifier<ChapterState, String> {
+  /// 현재 문제를 보기 시작한 시각. 제출 소요 시간 계산 기준(화면에 그리지 않아 상태 밖에 둔다)
+  DateTime _questionStartedAt = DateTime.now();
+
+  @override
+  ChapterState build(String flowId) {
+    _questionStartedAt = DateTime.now();
+    return const ChapterState();
+  }
 
   /// 풀 문제 UUID 목록을 불러온다. 목록을 어디서 가져오는지는 흐름(`QuestionFlow`)이 정한다.
   ///
@@ -112,44 +121,43 @@ class ChapterNotifier extends StateNotifier<ChapterState> {
   Future<void> load(Future<List<String>> Function() loader) async {
     state = state.copyWith(isLoadingList: true, clearError: true);
     try {
-      final uuids = await loader();
+      final questionUuids = await loader();
       state = state.copyWith(
-        questionUuids: uuids,
+        questionUuids: questionUuids,
         isLoadingList: false,
       );
-    } catch (e) {
+    } catch (exception) {
       state = state.copyWith(
         isLoadingList: false,
-        listError: e.asAppException.message,
+        listError: exception.asAppException.message,
       );
     }
   }
 
-  /// 현재 문제 제출 완료 처리 — results에 추가, 피드백 상태 설정.
-  void onSubmitted(
-    SubmitResult result,
-    int durationMs,
-    String selectedKey,
-  ) {
-    final uuid = state.questionUuids[state.currentIndex];
-    final newResults = [
-      ...state.results,
-      ChapterResult(
-        questionUuid: uuid,
-        isCorrect: result.isCorrect,
-        durationMs: durationMs,
-      ),
-    ];
+  /// 현재 문제 제출 기록: 소요 시간 계산 > results 추가 > 피드백 상태
+  void recordSubmission(SubmitResult result, String selectedKey) {
+    final durationMs = DateTime.now()
+        .difference(_questionStartedAt)
+        .inMilliseconds;
+    final currentQuestionUuid = state.questionUuids[state.currentIndex];
     state = state.copyWith(
-      results: newResults,
+      results: [
+        ...state.results,
+        ChapterResult(
+          questionUuid: currentQuestionUuid,
+          isCorrect: result.isCorrect,
+          durationMs: durationMs,
+        ),
+      ],
       lastSubmitResult: result,
       isAnswered: true,
       lastSelectedKey: selectedKey,
     );
   }
 
-  /// 다음 문제로 이동 — currentIndex 증가, 피드백 초기화.
+  /// 다음 문제로 이동 — currentIndex 증가, 피드백 초기화, 소요 시간 기준 재설정.
   void nextQuestion() {
+    _questionStartedAt = DateTime.now();
     state = state.copyWith(
       currentIndex: state.currentIndex + 1,
       clearSubmitResult: true,
@@ -157,10 +165,18 @@ class ChapterNotifier extends StateNotifier<ChapterState> {
       clearSelectedKey: true,
     );
   }
+
+  /// 완료 요약: 지금까지의 결과 + 총 소요 시간
+  ChapterSummary buildSummary(String topicName) => ChapterSummary(
+    topicName: topicName,
+    results: state.results,
+    totalDurationMs: state.results.fold(
+      0,
+      (sum, result) => sum + result.durationMs,
+    ),
+  );
 }
 
 /// 풀이 흐름별 ChapterNotifier provider. 키는 `QuestionFlow.id`. autoDispose로 이탈 시 해제.
-final chapterProvider = StateNotifierProvider.autoDispose
-    .family<ChapterNotifier, ChapterState, String>(
-  (ref, flowId) => ChapterNotifier(),
-);
+final chapterProvider = NotifierProvider.autoDispose
+    .family<ChapterNotifier, ChapterState, String>(ChapterNotifier.new);

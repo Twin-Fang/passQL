@@ -22,7 +22,7 @@ class ReportSheet extends ConsumerStatefulWidget {
     required ReportTarget target,
     String? choiceSetUuid,
   }) {
-    return showPqSheet<bool>(
+    return showPassqlSheet<bool>(
       context,
       title: '문제 신고',
       builder: (_) => ReportSheet(target: target, choiceSetUuid: choiceSetUuid),
@@ -73,26 +73,26 @@ class _ReportSheetState extends ConsumerState<ReportSheet> {
           );
       if (!mounted) return;
       Navigator.of(context).pop(true);
-    } on AppException catch (e) {
+    } on AppException catch (exception) {
       if (!mounted) return;
       setState(() {
         _sending = false;
-        _error = e.message;
+        _error = exception.message;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     final showDetail = _selected.contains(ReportCategory.etc);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        PqSpace.md,
-        PqSpace.xxs,
-        PqSpace.md,
-        PqSpace.md,
+        PassqlSpacing.md,
+        PassqlSpacing.xxs,
+        PassqlSpacing.md,
+        PassqlSpacing.md,
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -100,61 +100,67 @@ class _ReportSheetState extends ConsumerState<ReportSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.only(bottom: PqSpace.sm),
+              padding: const EdgeInsets.only(bottom: PassqlSpacing.sm),
               child: Text(
                 '해당되는 내용을 모두 골라 주세요',
-                style: PqType.subheadline.copyWith(color: c.secondaryLabel),
+                style: PassqlTypography.subheadline.copyWith(
+                  color: colors.secondaryLabel,
+                ),
               ),
             ),
             // 사유는 grouped 행으로, 고른 항목에는 오른쪽에 체크 표시를 붙인다.
-            PqGroupedSection(
+            PassqlGroupedSection(
               children: [
                 for (final category in ReportCategory.values)
-                  PqCheckRow(
+                  PassqlCheckRow(
                     title: category.label,
-                    selected: _selected.contains(category),
+                    isSelected: _selected.contains(category),
                     onTap: _sending ? null : () => _toggle(category),
                   ),
               ],
             ),
             if (showDetail) ...[
-              const SizedBox(height: PqSpace.sm),
+              const SizedBox(height: PassqlSpacing.sm),
               Container(
-                padding: const EdgeInsets.all(PqSpace.sm),
+                padding: const EdgeInsets.all(PassqlSpacing.sm),
                 decoration: BoxDecoration(
-                  color: c.fill,
-                  borderRadius: BorderRadius.circular(PqRadius.md),
+                  color: colors.fill,
+                  borderRadius: BorderRadius.circular(PassqlRadius.md),
                 ),
                 child: TextField(
                   controller: _detail,
                   enabled: !_sending,
                   maxLines: 3,
                   maxLength: ReportValidator.maxDetailLength,
-                  style: PqType.body.copyWith(color: c.label),
-                  cursorColor: c.accent,
+                  style: PassqlTypography.body.copyWith(color: colors.label),
+                  cursorColor: colors.accent,
                   onChanged: (_) => setState(() => _error = null),
                   decoration: InputDecoration.collapsed(
                     hintText: '구체적인 내용을 입력해주세요',
-                    hintStyle: PqType.body.copyWith(color: c.tertiaryLabel),
+                    hintStyle: PassqlTypography.body.copyWith(
+                      color: colors.tertiaryLabel,
+                    ),
                   ),
                 ),
               ),
             ],
             SizedBox(
-              height: 28,
+              height: PassqlSize.messageSlotHeight,
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: _error == null
                     ? null
                     : Text(
                         _error!,
-                        style: PqType.caption.copyWith(color: c.wrongText),
+                        style: PassqlTypography.caption.copyWith(
+                          color: colors.wrongText,
+                        ),
                       ),
               ),
             ),
-            PqButton(
+            PassqlButton(
               label: '신고하기',
-              loading: _sending,
+              isLoading: _sending,
               onPressed: _canSubmit ? _submit : null,
             ),
           ],

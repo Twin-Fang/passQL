@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/error/app_exception.dart';
 import '../../core/error/error_code.dart';
-import '../../core/network/api_providers.dart';
+import '../../data/sources/api_providers.dart';
 import '../../core/validation/feedback_validator.dart';
 import '../../data/models/feedback/feedback_models.dart';
 
@@ -12,8 +12,8 @@ import '../../data/models/feedback/feedback_models.dart';
 /// 화면을 벗어나면 해제되어 다시 열 때 처리 상태(대기/확인됨/반영됨)를 새로 받는다.
 final feedbackListProvider =
     FutureProvider.autoDispose<List<FeedbackItem>>((ref) async {
-      final res = await ref.read(feedbackApiProvider).getMyFeedbacks();
-      return [...res.items]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      final response = await ref.read(feedbackApiProvider).getMyFeedbacks();
+      return [...response.items]..sort((earlier, later) => earlier.createdAt.compareTo(later.createdAt));
     });
 
 /// 건의 전송. 성공하면 목록을 다시 불러온다.
@@ -33,8 +33,8 @@ class FeedbackSubmitter {
     }
     try {
       await _ref.read(feedbackApiProvider).submit(FeedbackSubmitRequest(content));
-    } on DioException catch (e) {
-      throw e.asAppException;
+    } on DioException catch (exception) {
+      throw exception.asAppException;
     }
     _ref.invalidate(feedbackListProvider);
   }

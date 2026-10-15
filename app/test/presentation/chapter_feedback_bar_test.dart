@@ -4,12 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/data/models/question/execute_result.dart';
 import 'package:passql_app/data/models/question/submit_result.dart';
 import 'package:passql_app/presentation/design/design.dart';
-import 'package:passql_app/presentation/widgets/question/choice_card.dart';
+import 'package:passql_app/presentation/widgets/question/result_rows_table.dart';
 import 'package:passql_app/presentation/widgets/chapter/chapter_feedback_bar.dart';
 import 'package:passql_app/presentation/widgets/question/execute_result_card.dart';
 
 Widget _wrap(Widget child) => MaterialApp(
-  theme: PqTheme.light,
+  theme: PassqlTheme.light,
   home: Scaffold(bottomNavigationBar: child),
 );
 
@@ -57,7 +57,7 @@ void main() {
   testWidgets('실행 결과 카드는 성공/오류를 라벨로 구분한다', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        theme: PqTheme.light,
+        theme: PassqlTheme.light,
         home: Scaffold(
           body: Column(
             children: [
@@ -115,7 +115,7 @@ void main() {
     // ChapterPage 와 같은 모양: 항상 Stack, 완료 중일 때만 형제가 추가된다.
     await tester.pumpWidget(
       MaterialApp(
-        theme: PqTheme.light,
+        theme: PassqlTheme.light,
         home: ValueListenableBuilder<bool>(
           valueListenable: extra,
           builder: (_, completing, _) => Stack(
@@ -138,7 +138,7 @@ void main() {
   testWidgets('실행 결과 표는 이름이 같은 열의 값을 모두 보여 준다', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        theme: PqTheme.light,
+        theme: PassqlTheme.light,
         home: const Scaffold(
           body: ResultRowsTable.positional(
             columns: ['deptno', 'deptno'],
@@ -157,7 +157,7 @@ void main() {
   testWidgets('행이 0개여도 열 이름 헤더는 보여 준다', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        theme: PqTheme.light,
+        theme: PassqlTheme.light,
         home: Scaffold(
           body: ExecuteResultCard(
             result: ExecuteResult(
@@ -177,11 +177,11 @@ void main() {
   testWidgets('채점 뒤 탭은 onGradedTap 이 있을 때만 동작하고 시각 상태는 그대로다', (tester) async {
     var normal = 0, graded = 0;
     Widget card({VoidCallback? onGradedTap}) => MaterialApp(
-      theme: PqTheme.light,
+      theme: PassqlTheme.light,
       home: Scaffold(
-        body: PqChoiceCard(
+        body: PassqlChoiceCard(
           keyLabel: 'B',
-          state: PqChoiceState.dimmed,
+          state: PassqlChoiceState.dimmed,
           onTap: () => normal++,
           onGradedTap: onGradedTap,
           child: const Text('선택지 본문'),

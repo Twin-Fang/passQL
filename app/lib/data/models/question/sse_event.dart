@@ -18,7 +18,8 @@ class SseCompleteEvent extends SseEvent {
 
 /// 선택지 생성 실패. retryable=true면 재시도 버튼 표시.
 class SseErrorEvent extends SseEvent {
+  /// 서버 오류 코드 (예: GENERATION_FAILED, CHOICE_SET_GENERATION_FAILED, 앱 내부 STREAM_CLOSED)
   final String code;
-  final bool retryable;
-  SseErrorEvent(this.code, this.retryable);
+  final bool isRetryable;
+  SseErrorEvent(this.code, this.isRetryable);
 }

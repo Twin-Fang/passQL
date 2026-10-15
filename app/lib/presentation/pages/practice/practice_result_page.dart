@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../presentation/providers/chapter_providers.dart';
+import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 
 /// 챕터 완료 결과 화면 — 점수·요약·분석·문항별 결과를 한 화면 스크롤로 보여준다.
@@ -17,28 +17,28 @@ class PracticeResultPage extends StatelessWidget {
     final summary = extra is ChapterSummary ? extra as ChapterSummary : null;
 
     if (summary == null) {
-      return Scaffold(
-        appBar: PqNavBar(
-          title: '챕터 결과',
-          leading: PqNavLeading.close,
-          onLeadingTap: () => context.go('/home'),
-        ),
-        body: PqStatusView.empty(
+      return PassqlStatusScaffold(
+        title: '챕터 결과',
+        leading: PassqlNavLeading.close,
+        onLeadingTap: () => context.go(AppRoutes.home),
+        body: PassqlStatusView.empty(
           icon: CupertinoIcons.exclamationmark_circle,
           title: '결과를 불러올 수 없어요',
         ),
       );
     }
 
-    final correctCount = summary.results.where((r) => r.isCorrect).length;
+    final correctCount = summary.results
+        .where((result) => result.isCorrect)
+        .length;
     final total = summary.results.length;
     final wrongCount = total - correctCount;
     final totalSec = (summary.totalDurationMs / 1000).round();
 
-    return PqResultScaffold(
+    return PassqlResultScaffold(
       title: '챕터 결과',
-      onClose: () => context.go('/home'),
-      header: PqScoreHeader(
+      onClose: () => context.go(AppRoutes.home),
+      header: PassqlScoreHeader(
         score: correctCount,
         total: total,
         caption: summary.topicName,
@@ -51,30 +51,30 @@ class PracticeResultPage extends StatelessWidget {
               child: _Metric(
                 value: '$correctCount',
                 label: '정답',
-                color: context.pq.correctText,
+                color: context.passqlColors.correctText,
               ),
             ),
-            const SizedBox(width: PqSpace.sm),
+            const SizedBox(width: PassqlSpacing.sm),
             Expanded(
               child: _Metric(
                 value: '$wrongCount',
                 label: '오답',
                 color: wrongCount > 0
-                    ? context.pq.wrongText
-                    : context.pq.secondaryLabel,
+                    ? context.passqlColors.wrongText
+                    : context.passqlColors.secondaryLabel,
               ),
             ),
-            const SizedBox(width: PqSpace.sm),
+            const SizedBox(width: PassqlSpacing.sm),
             Expanded(
               child: _Metric(
                 value: '$totalSec초',
                 label: '소요 시간',
-                color: context.pq.label,
+                color: context.passqlColors.label,
               ),
             ),
           ],
         ),
-        PqCard(
+        PassqlCard(
           title: '분석',
           child: _Analysis(
             total: total,
@@ -82,21 +82,21 @@ class PracticeResultPage extends StatelessWidget {
             totalDurationMs: summary.totalDurationMs,
           ),
         ),
-        PqGroupedSection(
+        PassqlGroupedSection(
           header: '문항별 결과',
           children: [
             for (var i = 0; i < summary.results.length; i++)
-              PqListRow(
-                leading: PqResultMark(
-                  correct: summary.results[i].isCorrect,
+              PassqlListRow(
+                leading: PassqlResultMark(
+                  isCorrect: summary.results[i].isCorrect,
                   label: '${i + 1}번',
                 ),
                 title: summary.results[i].isCorrect ? '정답' : '오답',
                 trailing: Text(
                   '${(summary.results[i].durationMs / 1000).toStringAsFixed(1)}초',
-                  style: PqType.subheadline.copyWith(
-                    color: context.pq.secondaryLabel,
-                    fontFeatures: PqType.tabular,
+                  style: PassqlTypography.subheadline.copyWith(
+                    color: context.passqlColors.secondaryLabel,
+                    fontFeatures: PassqlTypography.tabular,
                   ),
                 ),
               ),
@@ -104,7 +104,9 @@ class PracticeResultPage extends StatelessWidget {
         ),
       ],
       // 기존 마지막 단계 버튼(홈으로 이동)을 그대로 옮겼다.
-      actions: [PqButton(label: '완료', onPressed: () => context.go('/home'))],
+      actions: [
+        PassqlButton(label: '완료', onPressed: () => context.go(AppRoutes.home)),
+      ],
     );
   }
 }
@@ -122,11 +124,11 @@ class _Metric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
-    return PqCard(
+    final colors = context.passqlColors;
+    return PassqlCard(
       padding: const EdgeInsets.symmetric(
-        horizontal: PqSpace.sm,
-        vertical: PqSpace.md,
+        horizontal: PassqlSpacing.sm,
+        vertical: PassqlSpacing.md,
       ),
       child: SizedBox(
         width: double.infinity,
@@ -136,16 +138,18 @@ class _Metric extends StatelessWidget {
               fit: BoxFit.scaleDown,
               child: Text(
                 value,
-                style: PqType.title2.copyWith(
+                style: PassqlTypography.title2.copyWith(
                   color: color,
-                  fontFeatures: PqType.tabular,
+                  fontFeatures: PassqlTypography.tabular,
                 ),
               ),
             ),
-            const SizedBox(height: PqSpace.xxs),
+            const SizedBox(height: PassqlSpacing.xxs),
             Text(
               label,
-              style: PqType.footnote.copyWith(color: c.secondaryLabel),
+              style: PassqlTypography.footnote.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
           ],
         ),
@@ -167,7 +171,7 @@ class _Analysis extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     final accuracy = total > 0 ? (correctCount / total * 100).round() : 0;
     final avgSec = total > 0
         ? (totalDurationMs / total / 1000).toStringAsFixed(1)
@@ -187,11 +191,16 @@ class _Analysis extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(feedback, style: PqType.callout.copyWith(color: c.label)),
-        const SizedBox(height: PqSpace.xs),
+        Text(
+          feedback,
+          style: PassqlTypography.callout.copyWith(color: colors.label),
+        ),
+        const SizedBox(height: PassqlSpacing.xs),
         Text(
           '문제당 평균 $avgSec초 · 정확도 $accuracy%',
-          style: PqType.footnote.copyWith(color: c.secondaryLabel),
+          style: PassqlTypography.footnote.copyWith(
+            color: colors.secondaryLabel,
+          ),
         ),
       ],
     );

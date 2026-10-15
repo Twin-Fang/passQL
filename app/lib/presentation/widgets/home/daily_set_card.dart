@@ -28,7 +28,7 @@ class DailySetCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     final data = dailySet;
     final completed = data?.alreadyCompleted ?? false;
     final total = data?.questions.length ?? 0;
@@ -41,57 +41,67 @@ class DailySetCard extends StatelessWidget {
         : onBrowse;
 
     // 카드 전체와 버튼이 같은 동작을 하도록 하나의 콜백을 공유한다.
-    return PqCard(
+    return PassqlCard(
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(CupertinoIcons.flame_fill, size: 14, color: c.warning),
-              const SizedBox(width: PqSpace.xxs),
+              Icon(
+                CupertinoIcons.flame_fill,
+                size: PassqlIconSize.xs,
+                color: colors.warning,
+              ),
+              const SizedBox(width: PassqlSpacing.xxs),
               Text(
                 '오늘의 세트',
-                style: PqType.captionSemibold.copyWith(color: c.secondaryLabel),
+                style: PassqlTypography.captionSemibold.copyWith(
+                  color: colors.secondaryLabel,
+                ),
               ),
               if (completed) ...[
                 const Spacer(),
-                PqBadge(text: '완료', color: c.correctText),
+                PassqlBadge(text: '완료', color: colors.correctText),
               ],
             ],
           ),
-          const SizedBox(height: PqSpace.sm),
+          const SizedBox(height: PassqlSpacing.sm),
           if (completed) ...[
             Text(
               '${data?.correctCount ?? 0} / $total 정답',
-              style: PqType.headline.copyWith(color: c.label),
+              style: PassqlTypography.headline.copyWith(color: colors.label),
             ),
           ] else if (available) ...[
             Text(
               '오늘의 $total문제',
-              style: PqType.headline.copyWith(color: c.label),
+              style: PassqlTypography.headline.copyWith(color: colors.label),
             ),
-            const SizedBox(height: PqSpace.xxs),
+            const SizedBox(height: PassqlSpacing.xxs),
             Text(
               '모두 같은 문제로 겨뤄요',
-              style: PqType.subheadline.copyWith(color: c.secondaryLabel),
+              style: PassqlTypography.subheadline.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
           ] else ...[
             Text(
               '오늘의 세트를 준비 중이에요.\n문제 목록에서 풀어보세요.',
-              style: PqType.subheadline.copyWith(color: c.secondaryLabel),
+              style: PassqlTypography.subheadline.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
           ],
-          const SizedBox(height: PqSpace.sm),
-          PqButton(
+          const SizedBox(height: PassqlSpacing.sm),
+          PassqlButton(
             label: completed
                 ? '결과와 순위 보기'
                 : available
                 ? '풀어보기'
                 : '문제 풀기',
             onPressed: onTap,
-            variant: PqButtonVariant.tinted,
-            size: PqButtonSize.small,
+            variant: PassqlButtonVariant.tinted,
+            size: PassqlButtonSize.small,
           ),
         ],
       ),

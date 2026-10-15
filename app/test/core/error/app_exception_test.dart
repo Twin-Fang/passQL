@@ -30,47 +30,77 @@ void main() {
         DioExceptionType.receiveTimeout,
         DioExceptionType.transformTimeout,
       ]) {
-        final e = AppException.from(_of(t));
-        expect(e.code, ErrorCode.timeout);
-        expect(e.isNetwork, isTrue);
-        expect(e.isRetryable, isTrue);
+        final exception = AppException.from(_of(t));
+        expect(exception.code, ErrorCode.timeout);
+        expect(exception.isNetwork, isTrue);
+        expect(exception.isRetryable, isTrue);
       }
     });
 
     test('연결 실패와 소켓 오류는 network 로 분류한다', () {
-      expect(AppException.from(_of(DioExceptionType.connectionError)).code, ErrorCode.network);
       expect(
-        AppException.from(_of(DioExceptionType.unknown, error: const SocketException('x'))).code,
+        AppException.from(_of(DioExceptionType.connectionError)).code,
+        ErrorCode.network,
+      );
+      expect(
+        AppException.from(
+          _of(DioExceptionType.unknown, error: const SocketException('x')),
+        ).code,
         ErrorCode.network,
       );
     });
 
     test('Dio 가 아닌 오류는 unknown 이고 원인을 보존한다', () {
-      final e = AppException.from(StateError('boom'));
-      expect(e.code, ErrorCode.unknown);
-      expect(e.cause, isA<StateError>());
+      final exception = AppException.from(StateError('boom'));
+      expect(exception.code, ErrorCode.unknown);
+      expect(exception.cause, isA<StateError>());
     });
   });
 
   group('서버 응답 오류', () {
     test('서버 errorCode 를 앱 분류와 사용자 메시지로 옮긴다', () {
-      final e = AppException.from(
-        _bad(400, {'errorCode': 'NICKNAME_COOLDOWN', 'message': '변경 후 3일간 바꿀 수 없어요'}),
+      final exception = AppException.from(
+        _bad(400, {
+          'errorCode': 'NICKNAME_COOLDOWN',
+          'message': '변경 후 3일간 바꿀 수 없어요',
+        }),
       );
-      expect(e.code, ErrorCode.nicknameCooldown);
-      expect(e.message, '변경 후 3일간 바꿀 수 없어요');
-      expect(e.serverCode, 'NICKNAME_COOLDOWN');
-      expect(e.statusCode, 400);
-      expect(e.isRetryable, isFalse);
+      expect(exception.code, ErrorCode.nicknameCooldown);
+      expect(exception.message, '변경 후 3일간 바꿀 수 없어요');
+      expect(exception.serverCode, 'NICKNAME_COOLDOWN');
+      expect(exception.statusCode, 400);
+      expect(exception.isRetryable, isFalse);
+    });
+
+    test('서버 GlobalExceptionHandler 문자열 코드도 코드만으로 분류한다(서버 계약)', () {
+      const expectedByServerCode = {
+        'ILLEGAL_ARGUMENT': ErrorCode.validation,
+        'VALIDATION_ERROR': ErrorCode.validation,
+        'MESSAGE_NOT_READABLE': ErrorCode.validation,
+        'MISSING_PARAMETER': ErrorCode.validation,
+        'TYPE_MISMATCH': ErrorCode.validation,
+        'RESOURCE_NOT_FOUND': ErrorCode.notFound,
+        'NOT_FOUND': ErrorCode.notFound,
+        'DATA_INTEGRITY_VIOLATION': ErrorCode.conflict,
+        'GENERATION_FAILED': ErrorCode.aiUnavailable,
+        'CHOICE_SET_GENERATION_FAILED': ErrorCode.aiUnavailable,
+      };
+      expectedByServerCode.forEach((serverCode, expectedCode) {
+        expect(
+          ErrorCodeMapper.fromServerCode(serverCode),
+          expectedCode,
+          reason: serverCode,
+        );
+      });
     });
 
     test('앱이 모르는 새 서버 코드도 상태코드로 분류하고 원문 코드를 남긴다', () {
-      final e = AppException.from(
+      final exception = AppException.from(
         _bad(409, {'errorCode': 'SOMETHING_NEW', 'message': '새 충돌'}),
       );
-      expect(e.code, ErrorCode.conflict);
-      expect(e.serverCode, 'SOMETHING_NEW');
-      expect(e.message, '새 충돌');
+      expect(exception.code, ErrorCode.conflict);
+      expect(exception.serverCode, 'SOMETHING_NEW');
+      expect(exception.message, '새 충돌');
     });
 
     test('401 은 unauthorized, 429 는 rateLimited 로 분류한다', () {
@@ -79,18 +109,23 @@ void main() {
     });
 
     test('5xx 는 서버 메시지가 있어도 기본 문구를 쓰고 재시도 가능으로 본다', () {
-      final e = AppException.from(
-        _bad(500, {'errorCode': 'INTERNAL_SERVER_ERROR', 'message': 'NPE at line 3'}),
+      final exception = AppException.from(
+        _bad(500, {
+          'errorCode': 'INTERNAL_SERVER_ERROR',
+          'message': 'NPE at line 3',
+        }),
       );
-      expect(e.code, ErrorCode.serverError);
-      expect(e.message, isNot(contains('NPE')));
-      expect(e.isRetryable, isTrue);
+      expect(exception.code, ErrorCode.serverError);
+      expect(exception.message, isNot(contains('NPE')));
+      expect(exception.isRetryable, isTrue);
     });
 
     test('프록시가 준 HTML 502 도 사용자 문구로 바꾼다', () {
-      final e = AppException.from(_bad(502, '<html>Bad Gateway</html>'));
-      expect(e.code, ErrorCode.serverError);
-      expect(e.message, isNot(contains('html')));
+      final exception = AppException.from(
+        _bad(502, '<html>Bad Gateway</html>'),
+      );
+      expect(exception.code, ErrorCode.serverError);
+      expect(exception.message, isNot(contains('html')));
     });
   });
 

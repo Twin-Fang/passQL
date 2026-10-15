@@ -23,11 +23,11 @@ class ReadinessCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     final scorePercent = (readiness.score * 100).round();
     final message = _toneMessages[readiness.toneKey] ?? '';
 
-    return PqCard(
+    return PassqlCard(
       title: '합격 준비도',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,34 +38,41 @@ class ReadinessCard extends StatelessWidget {
             children: [
               Text(
                 '$scorePercent',
-                style: PqType.scoreNumber.copyWith(color: c.accent),
+                style: PassqlTypography.scoreNumber.copyWith(
+                  color: colors.accent,
+                ),
               ),
-              const SizedBox(width: PqSpace.xxs),
-              Text('%', style: PqType.title3.copyWith(color: c.accent)),
+              const SizedBox(width: PassqlSpacing.xxs),
+              Text(
+                '%',
+                style: PassqlTypography.title3.copyWith(color: colors.accent),
+              ),
             ],
           ),
-          const SizedBox(height: PqSpace.xs),
-          PqProgressBar(value: readiness.score),
-          const SizedBox(height: PqSpace.sm),
+          const SizedBox(height: PassqlSpacing.xs),
+          PassqlProgressBar(value: readiness.score),
+          const SizedBox(height: PassqlSpacing.sm),
           if (message.isNotEmpty)
             Text(
               message,
-              style: PqType.subheadline.copyWith(color: c.secondaryLabel),
+              style: PassqlTypography.subheadline.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
-          const SizedBox(height: PqSpace.md),
+          const SizedBox(height: PassqlSpacing.md),
           Row(
             children: [
               _MetricChip(
                 label: '정확도',
                 value: '${(readiness.accuracy * 100).round()}%',
               ),
-              const SizedBox(width: PqSpace.xs),
+              const SizedBox(width: PassqlSpacing.xs),
               _MetricChip(
                 label: '범위',
                 value:
                     '${readiness.coveredTopicCount}/${readiness.activeTopicCount}',
               ),
-              const SizedBox(width: PqSpace.xs),
+              const SizedBox(width: PassqlSpacing.xs),
               _MetricChip(
                 label: '최신성',
                 value: '${(readiness.recency * 100).round()}%',
@@ -86,24 +93,28 @@ class _MetricChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: PqSpace.xs),
+        padding: const EdgeInsets.symmetric(vertical: PassqlSpacing.xs),
         decoration: BoxDecoration(
-          color: c.fill,
-          borderRadius: BorderRadius.circular(PqRadius.sm),
+          color: colors.fill,
+          borderRadius: BorderRadius.circular(PassqlRadius.sm),
         ),
         child: Column(
           children: [
             Text(
               value,
-              style: PqType.subheadlineSemibold.copyWith(color: c.label),
+              style: PassqlTypography.subheadlineSemibold.copyWith(
+                color: colors.label,
+              ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: PassqlSpacing.hairlineGap),
             Text(
               label,
-              style: PqType.caption.copyWith(color: c.secondaryLabel),
+              style: PassqlTypography.caption.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
           ],
         ),

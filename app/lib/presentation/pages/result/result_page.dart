@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../data/models/question/submit_result.dart';
+import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../widgets/question/ai_explain_sheet.dart';
 import '../../widgets/question/execute_result_card.dart';
@@ -21,12 +21,10 @@ class ResultPage extends ConsumerWidget {
     final result = extra is SubmitResult ? extra as SubmitResult : null;
 
     if (result == null) {
-      return Scaffold(
-        appBar: PqNavBar(
-          leading: PqNavLeading.close,
-          onLeadingTap: () => context.pop(),
-        ),
-        body: PqStatusView.empty(
+      return PassqlStatusScaffold(
+        leading: PassqlNavLeading.close,
+        onLeadingTap: () => context.pop(),
+        body: PassqlStatusView.empty(
           icon: CupertinoIcons.exclamationmark_circle,
           title: '결과를 불러올 수 없어요',
         ),
@@ -35,9 +33,10 @@ class ResultPage extends ConsumerWidget {
 
     // questionUuid는 GoRouterState pathParameters에서 꺼낸다.
     final goRouterState = GoRouterState.of(context);
-    final questionUuid = goRouterState.pathParameters['questionUuid'] ?? '';
+    final questionUuid =
+        goRouterState.pathParameters[AppRoutes.questionUuidParameter] ?? '';
     final isCorrect = result.isCorrect;
-    final c = context.pq;
+    final colors = context.passqlColors;
 
     // AI 해설 버튼 — 오답 항상, 정답 + CONCEPT_ONLY 표시.
     // 정답 + EXECUTABLE (correctSql/correctResult 있음)은 표시 안 함.
@@ -51,33 +50,33 @@ class ResultPage extends ConsumerWidget {
         ? '정답 (${result.correctKey})'
         : '정답';
 
-    return PqResultScaffold(
+    return PassqlResultScaffold(
       title: '채점 결과',
-      onClose: () => context.go('/home'),
-      header: PqResultMark(
-        correct: isCorrect,
-        large: true,
+      onClose: () => context.go(AppRoutes.home),
+      header: PassqlResultMark(
+        isCorrect: isCorrect,
+        isLarge: true,
         label: isCorrect ? '정답이에요' : '오답이에요',
       ),
       sections: [
         // 오답일 때만 내가 고른 SQL 을 보여 준다.
         if (!isCorrect && result.selectedSql != null)
-          PqCard(
+          PassqlCard(
             title: '내 답',
-            child: PqCodeBlock(code: result.selectedSql!),
+            child: PassqlCodeBlock(code: result.selectedSql!),
           ),
         // EXECUTABLE: 정답 SQL, CONCEPT_ONLY: 정답 키만 텍스트로.
         if (result.correctSql != null)
-          PqCard(
+          PassqlCard(
             title: correctTitle,
-            child: PqCodeBlock(code: result.correctSql!),
+            child: PassqlCodeBlock(code: result.correctSql!),
           )
         else
-          PqCard(
+          PassqlCard(
             title: correctTitle,
             child: Text(
               result.correctKey ?? '-',
-              style: PqType.callout.copyWith(color: c.label),
+              style: PassqlTypography.callout.copyWith(color: colors.label),
             ),
           ),
         // 카드가 이미 좌우 inset 을 가지므로 목록 inset 과 겹치지 않게 가로 여백을 뺀다.
@@ -87,11 +86,11 @@ class ResultPage extends ConsumerWidget {
             margin: EdgeInsets.zero,
           ),
         if (result.rationale != null && result.rationale!.isNotEmpty)
-          PqCard(
+          PassqlCard(
             title: '해설',
             child: Text(
               result.rationale!,
-              style: PqType.callout.copyWith(color: c.label),
+              style: PassqlTypography.callout.copyWith(color: colors.label),
             ),
           ),
         // 문제 신고
@@ -110,9 +109,9 @@ class ResultPage extends ConsumerWidget {
       ],
       actions: [
         if (showAi)
-          PqButton(
+          PassqlButton(
             label: 'AI 해설',
-            variant: PqButtonVariant.tinted,
+            variant: PassqlButtonVariant.tinted,
             onPressed: () => AiExplainSheet.show(
               context,
               payload: {
@@ -123,7 +122,7 @@ class ResultPage extends ConsumerWidget {
             ),
           ),
         // 기존 동작(닫기 = 홈 이동)을 그대로 유지한다.
-        PqButton(label: '닫기', onPressed: () => context.go('/home')),
+        PassqlButton(label: '닫기', onPressed: () => context.go(AppRoutes.home)),
       ],
     );
   }

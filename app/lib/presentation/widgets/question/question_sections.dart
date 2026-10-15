@@ -4,7 +4,7 @@ import '../../../data/models/question/sse_event.dart';
 import '../../../data/models/question/submit_result.dart';
 import '../../providers/question_providers.dart';
 import '../../design/design.dart';
-import 'choice_card.dart';
+import 'choice_item_card.dart';
 import 'sse_loading_widget.dart';
 import 'stem_text.dart';
 
@@ -17,17 +17,17 @@ class QuestionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     final difficulty = question.difficulty ?? 1;
     final isExecutable = question.executionMode == 'EXECUTABLE';
     final title = question.subtopicName;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-        PqSpace.md,
-        PqSpace.md,
-        PqSpace.md,
-        PqSpace.xs,
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+        PassqlSpacing.xs,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,22 +45,27 @@ class QuestionHeader extends StatelessWidget {
                       i < difficulty
                           ? CupertinoIcons.star_fill
                           : CupertinoIcons.star,
-                      size: 16,
-                      color: i < difficulty ? c.warning : c.tertiaryLabel,
+                      size: PassqlIconSize.sm,
+                      color: i < difficulty
+                          ? colors.warning
+                          : colors.tertiaryLabel,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: PqSpace.xs),
-              PqBadge(
+              const SizedBox(width: PassqlSpacing.xs),
+              PassqlBadge(
                 text: isExecutable ? 'SQL 실행' : '개념 문제',
-                color: isExecutable ? c.accent : c.secondaryLabel,
+                color: isExecutable ? colors.accent : colors.secondaryLabel,
               ),
             ],
           ),
           if (title != null && title.isNotEmpty) ...[
-            const SizedBox(height: PqSpace.xs),
-            Text(title, style: PqType.title3.copyWith(color: c.label)),
+            const SizedBox(height: PassqlSpacing.xs),
+            Text(
+              title,
+              style: PassqlTypography.title3.copyWith(color: colors.label),
+            ),
           ],
         ],
       ),
@@ -77,10 +82,10 @@ class QuestionStem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: PqSpace.md,
-        vertical: PqSpace.xs,
+        horizontal: PassqlSpacing.md,
+        vertical: PassqlSpacing.xs,
       ),
-      child: PqCard(child: StemText(stem)),
+      child: PassqlCard(child: StemText(stem)),
     );
   }
 }
@@ -97,7 +102,7 @@ class QuestionChoices extends StatelessWidget {
   final String? gradedSelectedKey;
 
   /// true면 재시도가 불가능한 오류여도 "다시 시도"를 보여 막다른 길을 만들지 않는다.
-  final bool alwaysAllowRetry;
+  final bool shouldAlwaysAllowRetry;
 
   const QuestionChoices({
     super.key,
@@ -106,7 +111,7 @@ class QuestionChoices extends StatelessWidget {
     required this.isExecutable,
     this.submitResult,
     this.gradedSelectedKey,
-    this.alwaysAllowRetry = false,
+    this.shouldAlwaysAllowRetry = false,
   });
 
   @override
@@ -121,7 +126,7 @@ class QuestionChoices extends StatelessWidget {
     if (error != null) {
       return QuestionSseError(
         error: error,
-        onRetry: alwaysAllowRetry || error.retryable
+        onRetry: shouldAlwaysAllowRetry || error.isRetryable
             ? () => notifier.startSseGeneration()
             : null,
       );
@@ -131,9 +136,9 @@ class QuestionChoices extends StatelessWidget {
 
     return Column(
       children: interaction.activeChoices.map((item) {
-        return ChoiceCard(
+        return ChoiceItemCard(
           item: item,
-          state: choiceStateFor(
+          state: resolveChoiceState(
             key: item.key,
             selectedKey: submitResult != null
                 ? gradedSelectedKey
@@ -170,22 +175,22 @@ class QuestionSseError extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: PqSpace.md,
-        vertical: PqSpace.xs,
+        horizontal: PassqlSpacing.md,
+        vertical: PassqlSpacing.xs,
       ),
-      child: PqCard(
+      child: PassqlCard(
         child: Row(
           children: [
             const Expanded(
-              child: PqResultMark(correct: false, label: '선택지를 만들지 못했어요'),
+              child: PassqlResultMark(isCorrect: false, label: '선택지를 만들지 못했어요'),
             ),
             if (onRetry != null)
-              PqButton(
+              PassqlButton(
                 label: '다시 시도',
                 onPressed: onRetry,
-                variant: PqButtonVariant.plain,
-                size: PqButtonSize.small,
-                expand: false,
+                variant: PassqlButtonVariant.plain,
+                size: PassqlButtonSize.small,
+                isFullWidth: false,
               ),
           ],
         ),
@@ -212,12 +217,12 @@ class QuestionSubmitBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PqBottomActionBar(
+    return PassqlBottomActionBar(
       actions: [
-        PqButton(
+        PassqlButton(
           label: '제출',
           onPressed: _canSubmit ? onSubmit : null,
-          loading: interaction.isSubmitting,
+          isLoading: interaction.isSubmitting,
         ),
       ],
     );

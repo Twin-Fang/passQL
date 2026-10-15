@@ -19,11 +19,11 @@ class AiAnalysisCard extends StatelessWidget {
     // AI 코멘트 없으면 카드 숨김
     if (comment == null) return const SizedBox.shrink();
 
-    return PqCard(
+    return PassqlCard(
       title: 'AI 영역 분석',
-      trailing: PqIconTile(
+      trailing: PassqlIconTile(
         icon: CupertinoIcons.sparkles,
-        color: context.pq.accent,
+        color: context.passqlColors.accent,
       ),
       // AI 코멘트의 `토픽명` 같은 마크다운 기호를 강조 표시로 바꿔 보여 준다.
       child: MarkdownLiteText(comment),

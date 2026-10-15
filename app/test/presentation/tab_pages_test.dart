@@ -125,7 +125,7 @@ Future<void> _pump(
     tester,
     ProviderScope(
       overrides: overrides,
-      child: MaterialApp(theme: theme ?? PqTheme.light, home: page),
+      child: MaterialApp(theme: theme ?? PassqlTheme.light, home: page),
     ),
   );
   await tester.pump();
@@ -156,7 +156,7 @@ void main() {
             tester,
             entry.value.$1,
             entry.value.$2,
-            theme: dark ? PqTheme.dark : PqTheme.light,
+            theme: dark ? PassqlTheme.dark : PassqlTheme.light,
           );
           expect(find.byType(CupertinoSliverNavigationBar), findsOneWidget);
           // 인사 둘째 줄이 잘리지 않고 본문으로 보인다.

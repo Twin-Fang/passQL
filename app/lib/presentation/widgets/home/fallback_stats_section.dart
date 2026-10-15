@@ -14,17 +14,17 @@ class FallbackStatsSection extends StatelessWidget {
 
   /// 큰 숫자 + 작은 단위 한 줄.
   Widget _value(BuildContext context, String number, String unit) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     return Text.rich(
       TextSpan(
         children: [
           TextSpan(
             text: number,
-            style: PqType.title1.copyWith(color: c.label),
+            style: PassqlTypography.title1.copyWith(color: colors.label),
           ),
           TextSpan(
             text: ' $unit',
-            style: PqType.subheadline.copyWith(color: c.secondaryLabel),
+            style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
           ),
         ],
       ),
@@ -37,21 +37,21 @@ class FallbackStatsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
-          child: PqCard(
+          child: PassqlCard(
             title: '푼 문제',
             child: _value(context, '$solvedCount', '개'),
           ),
         ),
-        const SizedBox(width: PqSpace.sm),
+        const SizedBox(width: PassqlSpacing.sm),
         Expanded(
-          child: PqCard(
+          child: PassqlCard(
             title: '정답률',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _value(context, '${(correctRate * 100).round()}', '%'),
-                const SizedBox(height: PqSpace.xs),
-                PqProgressBar(value: correctRate),
+                const SizedBox(height: PassqlSpacing.xs),
+                PassqlProgressBar(value: correctRate),
               ],
             ),
           ),

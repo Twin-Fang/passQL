@@ -49,37 +49,37 @@ class AppException implements Exception {
     );
   }
 
-  factory AppException._fromDio(DioException e) {
+  factory AppException._fromDio(DioException dioException) {
     // 인터셉터가 이미 변환해 둔 경우 그대로 쓴다.
-    final inner = e.error;
+    final inner = dioException.error;
     if (inner is AppException) return inner;
 
-    switch (e.type) {
+    switch (dioException.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
       // dio 5.10+ 에서 추가된 종류. 응답 변환이 오래 걸린 경우도 사용자에게는 지연이다.
       case DioExceptionType.transformTimeout:
-        return AppException._of(ErrorCode.timeout, cause: e);
+        return AppException._of(ErrorCode.timeout, cause: dioException);
       case DioExceptionType.connectionError:
-        return AppException._of(ErrorCode.network, cause: e);
+        return AppException._of(ErrorCode.network, cause: dioException);
       case DioExceptionType.cancel:
-        return AppException._of(ErrorCode.cancelled, cause: e);
+        return AppException._of(ErrorCode.cancelled, cause: dioException);
       case DioExceptionType.badResponse:
-        return AppException._fromResponse(e);
+        return AppException._fromResponse(dioException);
       case DioExceptionType.badCertificate:
       case DioExceptionType.unknown:
         // 오프라인 등으로 소켓 단계에서 실패하면 unknown 으로 올라오는 경우가 있다.
         if (inner is SocketException) {
-          return AppException._of(ErrorCode.network, cause: e);
+          return AppException._of(ErrorCode.network, cause: dioException);
         }
-        return AppException._of(ErrorCode.unknown, cause: e);
+        return AppException._of(ErrorCode.unknown, cause: dioException);
     }
   }
 
-  factory AppException._fromResponse(DioException e) {
-    final status = e.response?.statusCode;
-    final data = e.response?.data;
+  factory AppException._fromResponse(DioException dioException) {
+    final status = dioException.response?.statusCode;
+    final data = dioException.response?.data;
 
     String? serverCode;
     String? serverMessage;
@@ -101,7 +101,7 @@ class AppException implements Exception {
       message: useServerMessage ? serverMessage : _defaultMessages[code]!,
       statusCode: status,
       serverCode: serverCode,
-      cause: e,
+      cause: dioException,
     );
   }
 
@@ -138,7 +138,7 @@ class AppException implements Exception {
   String toString() => 'AppException($code, $statusCode, $serverCode): $message';
 }
 
-/// 어떤 오류든 `e.asAppException` 으로 바로 변환한다.
+/// 어떤 오류든 `error.asAppException` 으로 바로 변환한다.
 extension AppExceptionX on Object {
   AppException get asAppException => AppException.from(this);
 }

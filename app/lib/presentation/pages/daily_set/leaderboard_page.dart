@@ -13,67 +13,69 @@ class LeaderboardPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     final board = ref.watch(leaderboardProvider);
 
     return Scaffold(
-      backgroundColor: c.background,
-      appBar: PqNavBar(title: '오늘의 순위', leading: PqNavLeading.back),
+      backgroundColor: colors.background,
+      appBar: PassqlNavBar(title: '오늘의 순위', leading: PassqlNavLeading.back),
       body: SafeArea(
         child: board.when(
-          loading: () => const PqStatusView.loading(),
-          error: (e, _) => PqStatusView.error(
-            message: e.asAppException.message,
+          loading: () => const PassqlStatusView.loading(),
+          error: (error, _) => PassqlStatusView.error(
+            message: error.asAppException.message,
             onRetry: () => ref.invalidate(leaderboardProvider),
           ),
           data: (data) => ListView(
             padding: const EdgeInsets.fromLTRB(
-              PqSpace.md,
-              PqSpace.xs,
-              PqSpace.md,
-              PqSpace.xl,
+              PassqlSpacing.md,
+              PassqlSpacing.xs,
+              PassqlSpacing.md,
+              PassqlSpacing.xl,
             ),
             children: [
               if (data.date != null)
                 Padding(
                   padding: const EdgeInsets.only(
-                    left: PqSpace.md,
-                    bottom: PqSpace.sm,
+                    left: PassqlSpacing.md,
+                    bottom: PassqlSpacing.sm,
                   ),
                   child: Text(
                     data.date!,
-                    style: PqType.footnote.copyWith(color: c.tertiaryLabel),
+                    style: PassqlTypography.footnote.copyWith(
+                      color: colors.tertiaryLabel,
+                    ),
                   ),
                 ),
               if (data.myEntry != null) ...[
-                PqGroupedSection(
+                PassqlGroupedSection(
                   header: '내 순위',
                   children: [
                     LeaderboardRow(
                       entry: data.myEntry!,
-                      highlight: true,
-                      inset: PqSpace.md,
+                      isHighlighted: true,
+                      inset: PassqlSpacing.md,
                     ),
                   ],
                 ),
-                const SizedBox(height: PqSpace.xl),
+                const SizedBox(height: PassqlSpacing.xl),
               ],
               if (data.entries.isEmpty)
-                PqStatusView.empty(
+                PassqlStatusView.empty(
                   icon: CupertinoIcons.rosette,
                   title: '아직 완료한 사람이 없어요',
                 )
               else
                 // 제목이 없으면 참가자가 나뿐일 때 "내 순위"와 같은 행이 두 번 나온 것처럼 보인다.
-                PqGroupedSection(
+                PassqlGroupedSection(
                   header: '전체 순위 · ${data.entries.length}명',
                   children: [
                     for (final entry in data.entries)
                       LeaderboardRow(
                         entry: entry,
-                        inset: PqSpace.md,
+                        inset: PassqlSpacing.md,
                         // 내 기록은 목록에서도 눈에 띄게 한다.
-                        highlight:
+                        isHighlighted:
                             data.myEntry != null &&
                             data.myEntry!.rank == entry.rank &&
                             data.myEntry!.nickname == entry.nickname,

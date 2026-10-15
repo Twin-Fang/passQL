@@ -4,8 +4,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/sources/auth_api.dart';
-import '../../presentation/providers/auth_provider.dart';
 import '../auth/auth_interceptor.dart';
+import '../auth/session_expiry_signal.dart';
 import '../auth/token_store.dart';
 
 /// 공통 Dio 생성.
@@ -63,8 +63,8 @@ final dioProvider = Provider<Dio>((ref) {
       tokenStore: ref.watch(tokenStoreProvider),
       authApi: ref.watch(authApiProvider),
       retryDio: dio,
-      // 세션 만료 시 인증 상태를 로그아웃으로 바꿔 라우터가 로그인 화면으로 보내게 한다.
-      onSessionExpired: () => ref.read(authProvider.notifier).expire(),
+      // 세션 만료 신호만 보냄 (인증 상태 변경은 구독하는 AuthNotifier 몫)
+      onSessionExpired: ref.read(sessionExpirySignalProvider).announceExpired,
     ),
   );
   return dio;

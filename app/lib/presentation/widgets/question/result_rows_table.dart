@@ -1,0 +1,115 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+
+import '../../design/design.dart';
+
+/// 선택지 본문이 결과 행 JSON 배열(`[{"COL": 값, ...}]`)이면 행 목록을, 아니면 null 을 돌려준다.
+/// 웹(ResultMatchTable)과 같은 판별 기준을 쓴다.
+List<Map<String, dynamic>>? parseResultRows(String body) {
+  final text = body.trim();
+  if (!text.startsWith('[')) return null;
+  try {
+    final decoded = jsonDecode(text);
+    if (decoded is! List) return null;
+    if (decoded.any((row) => row is! Map)) return null;
+    return [for (final row in decoded) Map<String, dynamic>.from(row as Map)];
+  } catch (_) {
+    return null;
+  }
+}
+
+/// 실행 결과형 선택지 표. 열이 많아도 잘리지 않게 가로로 스크롤한다.
+class ResultRowsTable extends StatelessWidget {
+  /// 열 이름이 유일한 Map 행(선택지 JSON)용.
+  ResultRowsTable({super.key, required List<Map<String, dynamic>> rows})
+    : columns = rows.isEmpty ? const [] : rows.first.keys.toList(),
+      _rows = [
+        for (final row in rows)
+          [for (final column in rows.first.keys) row[column]],
+      ];
+
+  /// 열 목록과 위치 기준 행(SQL 실행 결과용). 같은 이름의 열이 있어도 값이 사라지지 않는다.
+  const ResultRowsTable.positional({
+    super.key,
+    required this.columns,
+    required List<List<Object?>> rows,
+  }) : _rows = rows;
+
+  final List<String> columns;
+  final List<List<Object?>> _rows;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    if (columns.isEmpty) {
+      return Text(
+        '(결과 없음)',
+        style: PassqlTypography.subheadline.copyWith(
+          color: colors.secondaryLabel,
+        ),
+      );
+    }
+    final headerStyle = PassqlTypography.captionSemibold.copyWith(
+      color: colors.secondaryLabel,
+    );
+    final cellStyle = PassqlTypography.codeCompact.copyWith(
+      color: colors.label,
+    );
+
+    Widget buildCell(String text, TextStyle style) => Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: PassqlSpacing.sm,
+        vertical: PassqlSpacing.xs,
+      ),
+      child: Text(text, style: style),
+    );
+
+    return ClipRRect(
+      borderRadius: const BorderRadius.all(Radius.circular(PassqlRadius.sm)),
+      child: Container(
+        decoration: BoxDecoration(
+          color: colors.card,
+          border: Border.all(color: colors.separator),
+          borderRadius: const BorderRadius.all(
+            Radius.circular(PassqlRadius.sm),
+          ),
+        ),
+        // 열이 적어 표가 카드보다 좁으면 오른쪽이 비어 보이므로, 최소 폭을 카드 폭에 맞춰 남는 폭을 열에 나눠 준다.
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth),
+              child: Table(
+                defaultColumnWidth: const IntrinsicColumnWidth(),
+                border: TableBorder(
+                  horizontalInside: BorderSide(color: colors.separator),
+                ),
+                children: [
+                  TableRow(
+                    decoration: BoxDecoration(color: colors.fill),
+                    children: [
+                      for (final column in columns)
+                        buildCell(column, headerStyle),
+                    ],
+                  ),
+                  for (final row in _rows)
+                    TableRow(
+                      children: [
+                        for (var i = 0; i < columns.length; i++)
+                          buildCell(
+                            i < row.length ? '${row[i] ?? ''}' : '',
+                            cellStyle,
+                          ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

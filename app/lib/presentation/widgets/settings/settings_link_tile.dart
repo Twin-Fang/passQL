@@ -16,12 +16,12 @@ class SettingsLinkTile extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => PqGroupedSection(
+  Widget build(BuildContext context) => PassqlGroupedSection(
     children: [
-      PqListRow(
+      PassqlListRow(
         title: title,
         subtitle: description,
-        chevron: true,
+        hasChevron: true,
         onTap: onTap,
       ),
     ],

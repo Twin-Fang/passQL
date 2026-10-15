@@ -51,20 +51,20 @@ void main() {
   testWidgets('설정은 large title 바와 grouped 섹션으로 구성되고 회원 탈퇴는 오답색이다', (
     tester,
   ) async {
-    await pumpSettings(tester, PqTheme.light);
+    await pumpSettings(tester, PassqlTheme.light);
 
     expect(find.byType(CupertinoSliverNavigationBar), findsOneWidget);
-    expect(find.byType(PqGroupedSection), findsAtLeastNWidgets(2));
+    expect(find.byType(PassqlGroupedSection), findsAtLeastNWidgets(2));
     expect(
       tester.widget<Text>(find.text('회원 탈퇴')).style!.color,
-      PqColors.light.wrong,
+      PassqlColors.light.wrong,
     );
   });
 
   testWidgets('다크 테마에서도 예외 없이 그려진다', (tester) async {
-    await pumpSettings(tester, PqTheme.dark);
+    await pumpSettings(tester, PassqlTheme.dark);
 
     expect(tester.takeException(), isNull);
-    expect(find.byType(PqGroupedSection), findsAtLeastNWidgets(2));
+    expect(find.byType(PassqlGroupedSection), findsAtLeastNWidgets(2));
   });
 }

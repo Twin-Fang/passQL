@@ -22,10 +22,10 @@ class ThemeModeTile extends ConsumerWidget {
     final mode = ref.watch(themeModeProvider);
     return SettingsRow(
       icon: CupertinoIcons.circle_lefthalf_fill,
-      iconColor: context.pq.accent,
+      iconColor: context.passqlColors.accent,
       title: '화면 모드',
       trailing: Text(themeModeLabel(mode)),
-      onTap: () => showPqSheet<void>(
+      onTap: () => showPassqlSheet<void>(
         context,
         title: '화면 모드',
         builder: (_) => const _ThemeModeSheet(),
@@ -41,16 +41,21 @@ class _ThemeModeSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final current = ref.watch(themeModeProvider);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(PqSpace.md, 0, PqSpace.md, PqSpace.md),
-      child: PqGroupedSection(
+      padding: const EdgeInsets.fromLTRB(
+        PassqlSpacing.md,
+        0,
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+      ),
+      child: PassqlGroupedSection(
         children: [
           for (final mode in ThemeMode.values)
-            PqCheckRow(
+            PassqlCheckRow(
               title: themeModeLabel(mode),
               subtitle: mode == ThemeMode.system ? '기기의 라이트/다크 설정을 따라요' : null,
-              selected: mode == current,
+              isSelected: mode == current,
               onTap: () {
-                PqHaptics.selection();
+                PassqlHaptics.playSelection();
                 ref.read(themeModeProvider.notifier).setMode(mode);
                 Navigator.of(context).pop();
               },

@@ -38,14 +38,14 @@ class FirebaseSocialSignIn implements SocialSignIn {
       return token;
     } on SocialSignInException {
       rethrow;
-    } on GoogleSignInException catch (e) {
-      if (e.code == GoogleSignInExceptionCode.canceled) return null;
+    } on GoogleSignInException catch (exception) {
+      if (exception.code == GoogleSignInExceptionCode.canceled) return null;
       throw SocialSignInException(_failure('Google'));
-    } on SignInWithAppleAuthorizationException catch (e) {
-      if (e.code == AuthorizationErrorCode.canceled) return null;
+    } on SignInWithAppleAuthorizationException catch (exception) {
+      if (exception.code == AuthorizationErrorCode.canceled) return null;
       throw SocialSignInException(_failure('Apple'));
-    } on FirebaseAuthException catch (e) {
-      throw SocialSignInException(_firebaseMessage(e));
+    } on FirebaseAuthException catch (exception) {
+      throw SocialSignInException(_firebaseMessage(exception));
     }
   }
 
@@ -61,11 +61,11 @@ class FirebaseSocialSignIn implements SocialSignIn {
       );
       await _auth.revokeTokenWithAuthorizationCode(apple.authorizationCode);
       return true;
-    } on SignInWithAppleAuthorizationException catch (e) {
-      if (e.code == AuthorizationErrorCode.canceled) return false;
+    } on SignInWithAppleAuthorizationException catch (exception) {
+      if (exception.code == AuthorizationErrorCode.canceled) return false;
       throw const SocialSignInException('Apple 인증에 실패했어요. 잠시 후 다시 시도해 주세요.');
-    } on FirebaseAuthException catch (e) {
-      throw SocialSignInException(_firebaseMessage(e));
+    } on FirebaseAuthException catch (exception) {
+      throw SocialSignInException(_firebaseMessage(exception));
     }
   }
 
@@ -121,7 +121,7 @@ class FirebaseSocialSignIn implements SocialSignIn {
   static String _failure(String provider) =>
       '$provider 로그인에 실패했어요. 잠시 후 다시 시도해 주세요.';
 
-  static String _firebaseMessage(FirebaseAuthException e) => switch (e.code) {
+  static String _firebaseMessage(FirebaseAuthException exception) => switch (exception.code) {
     'network-request-failed' => '네트워크 연결을 확인해 주세요.',
     'user-disabled' => '이용이 제한된 계정이에요.',
     'account-exists-with-different-credential' => '이미 다른 방법으로 가입된 계정이에요.',

@@ -1,13 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/network/api_providers.dart';
+
 import '../../design/design.dart';
+import '../../providers/ai_providers.dart';
 import 'markdown_lite_text.dart';
 
 /// AI 해설 바텀시트. questionUuid와 요청 payload를 받아 AI 해설을 표시.
 /// isErrorExplain=true: explain-error 엔드포인트
 /// isErrorExplain=false: diff-explain 엔드포인트
-class AiExplainSheet extends ConsumerStatefulWidget {
+class AiExplainSheet extends ConsumerWidget {
   final Map<String, dynamic> payload;
   final bool isErrorExplain;
 
@@ -17,13 +18,16 @@ class AiExplainSheet extends ConsumerStatefulWidget {
     required this.isErrorExplain,
   });
 
+  /// 본문이 없을 때(로딩·오류)도 시트가 납작해지지 않게 두는 최소 높이
+  static const double _placeholderHeight = 200;
+
   static Future<void> show(
     BuildContext context, {
     required Map<String, dynamic> payload,
     required bool isErrorExplain,
   }) {
     // 손잡이·제목·닫기는 공용 시트가 그린다.
-    return showPqSheet<void>(
+    return showPassqlSheet<void>(
       context,
       title: 'AI 해설',
       builder: (_) =>
@@ -32,67 +36,43 @@ class AiExplainSheet extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<AiExplainSheet> createState() => _AiExplainSheetState();
-}
-
-class _AiExplainSheetState extends ConsumerState<AiExplainSheet> {
-  String? _text;
-  bool _isLoading = true;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchExplain();
-  }
-
-  Future<void> _fetchExplain() async {
-    try {
-      final client = ref.read(aiApiProvider);
-      final result = widget.isErrorExplain
-          ? await client.explainError(widget.payload)
-          : await client.diffExplain(widget.payload);
-      if (mounted) {
-        setState(() {
-          _text = result.text;
-          _isLoading = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _error = 'AI 해설을 불러올 수 없어요';
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.pq;
-    if (_isLoading || _error != null) {
-      // 본문이 없을 때도 시트가 납작해지지 않게 최소 높이를 둔다.
-      return SizedBox(
-        height: 200,
-        child: Center(
-          child: _isLoading
-              ? const CupertinoActivityIndicator(radius: 12)
-              : Text(
-                  _error!,
-                  style: PqType.subheadline.copyWith(color: c.secondaryLabel),
-                ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.passqlColors;
+    final explanationAsync = ref.watch(
+      aiExplanationProvider(
+        AiExplanationRequest(
+          isErrorExplanation: isErrorExplain,
+          payload: payload,
         ),
-      );
-    }
-    return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(
-        PqSpace.md,
-        PqSpace.xs,
-        PqSpace.md,
-        PqSpace.md,
       ),
-      child: MarkdownLiteText(_text ?? ''),
+    );
+    return explanationAsync.when(
+      loading: () => const SizedBox(
+        height: _placeholderHeight,
+        child: Center(
+          child: PassqlLoadingIndicator(size: PassqlLoadingSize.section),
+        ),
+      ),
+      error: (_, _) => SizedBox(
+        height: _placeholderHeight,
+        child: Center(
+          child: Text(
+            'AI 해설을 불러올 수 없어요',
+            style: PassqlTypography.subheadline.copyWith(
+              color: colors.secondaryLabel,
+            ),
+          ),
+        ),
+      ),
+      data: (explanationText) => SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(
+          PassqlSpacing.md,
+          PassqlSpacing.xs,
+          PassqlSpacing.md,
+          PassqlSpacing.md,
+        ),
+        child: MarkdownLiteText(explanationText),
+      ),
     );
   }
 }

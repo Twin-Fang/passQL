@@ -39,9 +39,9 @@ class _ChapterFeedbackBarState extends State<ChapterFeedbackBar> {
     super.initState();
     // 채점 결과가 처음 나타날 때 한 번만 손끝으로 알려 준다.
     if (_result.isCorrect) {
-      PqHaptics.correct();
+      PassqlHaptics.playCorrectAnswer();
     } else {
-      PqHaptics.wrong();
+      PassqlHaptics.playWrongAnswer();
     }
   }
 
@@ -57,24 +57,24 @@ class _ChapterFeedbackBarState extends State<ChapterFeedbackBar> {
 
   @override
   Widget build(BuildContext context) {
-    return PqBottomActionBar(
+    return PassqlBottomActionBar(
       top: Row(
         children: [
           // 결과 문구가 남는 폭을 먼저 차지하고 버튼은 자기 폭만 쓴다.
           Expanded(
-            child: PqResultMark(
-              correct: _result.isCorrect,
+            child: PassqlResultMark(
+              isCorrect: _result.isCorrect,
               label: _result.isCorrect
                   ? '정답이에요'
                   : '오답이에요 · 정답\u00A0${_result.correctKey ?? '-'}',
             ),
           ),
           if (_showAiButton)
-            PqButton(
+            PassqlButton(
               label: 'AI 해설',
-              variant: PqButtonVariant.plain,
-              size: PqButtonSize.small,
-              expand: false,
+              variant: PassqlButtonVariant.plain,
+              size: PassqlButtonSize.small,
+              isFullWidth: false,
               onPressed: () => AiExplainSheet.show(
                 context,
                 payload: {
@@ -94,7 +94,7 @@ class _ChapterFeedbackBarState extends State<ChapterFeedbackBar> {
         ],
       ),
       actions: [
-        PqButton(
+        PassqlButton(
           label: widget.isLastQuestion ? '결과 보기' : '다음',
           onPressed: widget.onNext,
         ),

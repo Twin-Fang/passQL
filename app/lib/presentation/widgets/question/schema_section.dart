@@ -12,46 +12,46 @@ class SchemaSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (schemaDdl == null || schemaDdl!.isEmpty) return const SizedBox.shrink();
-    final c = context.pq;
+    final colors = context.passqlColors;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: PqSpace.md,
-        vertical: PqSpace.xs,
+        horizontal: PassqlSpacing.md,
+        vertical: PassqlSpacing.xs,
       ),
-      child: PqCard(
+      child: PassqlCard(
         padding: EdgeInsets.zero,
         child: Theme(
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
-            tilePadding: const EdgeInsets.symmetric(horizontal: PqSpace.md),
+            tilePadding: const EdgeInsets.symmetric(horizontal: PassqlSpacing.md),
             shape: const Border(),
             collapsedShape: const Border(),
             title: Text(
               '스키마 보기',
-              style: PqType.subheadlineSemibold.copyWith(color: c.label),
+              style: PassqlTypography.subheadlineSemibold.copyWith(color: colors.label),
             ),
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(
-                  PqSpace.sm,
+                  PassqlSpacing.sm,
                   0,
-                  PqSpace.sm,
-                  PqSpace.sm,
+                  PassqlSpacing.sm,
+                  PassqlSpacing.sm,
                 ),
-                child: PqCodeBlock(code: schemaDdl!),
+                child: PassqlCodeBlock(code: schemaDdl!),
               ),
               if (schemaSampleData != null && schemaSampleData!.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
-                    PqSpace.sm,
+                    PassqlSpacing.sm,
                     0,
-                    PqSpace.sm,
-                    PqSpace.sm,
+                    PassqlSpacing.sm,
+                    PassqlSpacing.sm,
                   ),
                   child: Text(
                     '샘플 데이터',
-                    style: PqType.caption.copyWith(color: c.secondaryLabel),
+                    style: PassqlTypography.caption.copyWith(color: colors.secondaryLabel),
                   ),
                 ),
             ],

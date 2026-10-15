@@ -10,6 +10,9 @@ import '../../design/design.dart';
 import '../../flows/daily_set_flow.dart';
 import '../../providers/daily_set_providers.dart';
 
+/// 상단 바·점수 머리에 쓰는 화면 이름
+const _dailySetTitle = '오늘의 세트';
+
 /// 오늘의 세트 결과 화면.
 ///
 /// 풀이를 막 끝냈으면 `extra` 로 [DailySetOutcome] 을 받아 문제별 결과까지 보여준다.
@@ -27,7 +30,7 @@ class DailySetResultPage extends ConsumerWidget {
       return _ResultBody(
         correctCount: outcome.correctCount,
         total: outcome.results.length,
-        results: outcome.results.map((r) => r.isCorrect).toList(),
+        results: outcome.results.map((result) => result.isCorrect).toList(),
         saveError: outcome.saveError,
       );
     }
@@ -44,28 +47,33 @@ class _RecordBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return today.when(
-      loading: () => const _StatusScaffold(child: PqStatusView.loading()),
-      error: (e, _) => _StatusScaffold(
-        child: PqStatusView.error(
-          message: e.asAppException.message,
+      loading: () => const PassqlStatusScaffold(
+        title: _dailySetTitle,
+        body: PassqlStatusView.loading(),
+      ),
+      error: (error, _) => PassqlStatusScaffold(
+        title: _dailySetTitle,
+        body: PassqlStatusView.error(
+          message: error.asAppException.message,
           onRetry: () => ref.invalidate(dailySetTodayProvider),
         ),
       ),
       data: (data) {
         if (!data.alreadyCompleted) {
-          return _StatusScaffold(
-            child: Column(
+          return PassqlStatusScaffold(
+            title: _dailySetTitle,
+            body: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                PqStatusView.empty(
+                PassqlStatusView.empty(
                   icon: CupertinoIcons.calendar,
                   title: '아직 오늘의 세트를 풀지 않았어요',
                 ),
-                PqButton(
+                PassqlButton(
                   label: '풀어보기',
-                  variant: PqButtonVariant.tinted,
-                  size: PqButtonSize.small,
-                  expand: false,
+                  variant: PassqlButtonVariant.tinted,
+                  size: PassqlButtonSize.small,
+                  isFullWidth: false,
                   onPressed: () => context.go(AppRoutes.dailySet),
                 ),
               ],
@@ -78,7 +86,7 @@ class _RecordBody extends ConsumerWidget {
         final complete =
             results != null &&
             results.isNotEmpty &&
-            results.every((r) => r != null);
+            results.every((isCorrect) => isCorrect != null);
         return _ResultBody(
           correctCount: data.correctCount ?? 0,
           total: data.questions.length,
@@ -87,18 +95,6 @@ class _RecordBody extends ConsumerWidget {
       },
     );
   }
-}
-
-/// 로딩·오류·미완료처럼 결과 틀을 쓸 수 없는 상태의 공통 껍데기.
-class _StatusScaffold extends StatelessWidget {
-  const _StatusScaffold({required this.child});
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: const PqNavBar(title: '오늘의 세트'),
-    body: Center(child: child),
-  );
 }
 
 class _ResultBody extends ConsumerWidget {
@@ -120,59 +116,65 @@ class _ResultBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     final board = ref.watch(leaderboardProvider);
     final myRank = board.valueOrNull?.myEntry?.rank;
 
-    return PqResultScaffold(
-      title: '오늘의 세트',
-      header: PqScoreHeader(
+    return PassqlResultScaffold(
+      title: _dailySetTitle,
+      header: PassqlScoreHeader(
         score: correctCount,
         total: total,
-        caption: '오늘의 세트',
+        caption: _dailySetTitle,
       ),
       sections: [
         if (saveError != null)
-          PqCard(
-            child: PqResultMark(
-              correct: false,
+          PassqlCard(
+            child: PassqlResultMark(
+              isCorrect: false,
               label: '순위에 반영하지 못했어요. $saveError',
             ),
           ),
         if (results.isNotEmpty)
-          PqGroupedSection(
+          PassqlGroupedSection(
             header: '문제별 결과',
             children: [
               for (var i = 0; i < results.length; i++)
-                PqListRow(
+                PassqlListRow(
                   title: '${i + 1}번',
-                  trailing: PqResultMark(correct: results[i]),
+                  trailing: PassqlResultMark(isCorrect: results[i]),
                 ),
             ],
           ),
-        PqCard(
+        PassqlCard(
           title: '오늘의 순위',
           trailing: myRank == null
               ? null
               : Text(
                   '내 순위 $myRank위',
-                  style: PqType.footnoteSemibold.copyWith(color: c.accent),
+                  style: PassqlTypography.footnoteSemibold.copyWith(
+                    color: colors.accent,
+                  ),
                 ),
           child: board.when(
             loading: () => const Padding(
-              padding: EdgeInsets.all(PqSpace.sm),
-              child: Center(child: CupertinoActivityIndicator()),
+              padding: EdgeInsets.all(PassqlSpacing.sm),
+              child: Center(child: PassqlLoadingIndicator()),
             ),
-            error: (e, _) => Text(
-              e.asAppException.message,
-              style: PqType.subheadline.copyWith(color: c.secondaryLabel),
+            error: (error, _) => Text(
+              error.asAppException.message,
+              style: PassqlTypography.subheadline.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
             data: (data) => Column(
               children: [
                 if (data.entries.isEmpty)
                   Text(
                     '아직 순위가 없어요',
-                    style: PqType.subheadline.copyWith(color: c.secondaryLabel),
+                    style: PassqlTypography.subheadline.copyWith(
+                      color: colors.secondaryLabel,
+                    ),
                   ),
                 for (final entry in data.entries.take(3))
                   LeaderboardRow(entry: entry),
@@ -182,12 +184,12 @@ class _ResultBody extends ConsumerWidget {
         ),
       ],
       actions: [
-        PqButton(
+        PassqlButton(
           label: '전체 순위',
-          variant: PqButtonVariant.tinted,
+          variant: PassqlButtonVariant.tinted,
           onPressed: () => context.push(AppRoutes.leaderboard),
         ),
-        PqButton(label: '홈으로', onPressed: () => context.go(AppRoutes.home)),
+        PassqlButton(label: '홈으로', onPressed: () => context.go(AppRoutes.home)),
       ],
     );
   }
@@ -198,38 +200,40 @@ class LeaderboardRow extends StatelessWidget {
   const LeaderboardRow({
     super.key,
     required this.entry,
-    this.highlight = false,
-    this.inset = PqSpace.xxs,
+    this.isHighlighted = false,
+    this.inset = PassqlSpacing.xxs,
   });
 
   final LeaderboardEntry entry;
-  final bool highlight;
+  final bool isHighlighted;
 
   /// 좌우 여백. 카드 안에서는 좁게, grouped 목록에서는 행 규격(16)으로 쓴다.
   final double inset;
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     // grouped 목록 행과 같은 높이·여백. 내 행은 배경만 accentTint 로 바꾼다.
     return ColoredBox(
-      color: highlight ? c.accentTint : Colors.transparent,
+      color: isHighlighted ? colors.accentTint : Colors.transparent,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: PqSize.rowMin),
+        constraints: const BoxConstraints(minHeight: PassqlSize.rowMin),
         child: Padding(
           padding: EdgeInsets.symmetric(
-            vertical: PqSpace.sm,
+            vertical: PassqlSpacing.sm,
             horizontal: inset,
           ),
           child: Row(
             children: [
               SizedBox(
-                width: PqSpace.xxl,
+                width: PassqlSpacing.xxl,
                 child: Text(
                   '${entry.rank}',
-                  style: PqType.headline.copyWith(
-                    color: entry.rank <= 3 ? c.accent : c.tertiaryLabel,
-                    fontFeatures: PqType.tabular,
+                  style: PassqlTypography.headline.copyWith(
+                    color: entry.rank <= 3
+                        ? colors.accent
+                        : colors.tertiaryLabel,
+                    fontFeatures: PassqlTypography.tabular,
                   ),
                 ),
               ),
@@ -237,14 +241,14 @@ class LeaderboardRow extends StatelessWidget {
                 child: Text(
                   entry.nickname,
                   overflow: TextOverflow.ellipsis,
-                  style: PqType.body.copyWith(color: c.label),
+                  style: PassqlTypography.body.copyWith(color: colors.label),
                 ),
               ),
               Text(
                 '${entry.correctCount}점',
-                style: PqType.bodyMedium.copyWith(
-                  color: c.accent,
-                  fontFeatures: PqType.tabular,
+                style: PassqlTypography.bodyMedium.copyWith(
+                  color: colors.accent,
+                  fontFeatures: PassqlTypography.tabular,
                 ),
               ),
             ],

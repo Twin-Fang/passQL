@@ -23,27 +23,27 @@ class ReportButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     final target = (questionUuid: questionUuid, submissionUuid: submissionUuid);
     final reported =
         ref.watch(reportStatusProvider(target)).valueOrNull ?? false;
-    final color = reported ? c.tertiaryLabel : c.secondaryLabel;
+    final color = reported ? colors.tertiaryLabel : colors.secondaryLabel;
 
     return CupertinoButton(
       padding: const EdgeInsets.symmetric(
-        horizontal: PqSpace.sm,
-        vertical: PqSpace.xs,
+        horizontal: PassqlSpacing.sm,
+        vertical: PassqlSpacing.xs,
       ),
-      minimumSize: const Size(44, 44),
+      minimumSize: const Size.square(PassqlSize.minTouchTarget),
       onPressed: reported ? null : () => _open(context, target),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(CupertinoIcons.flag, size: 14, color: color),
-          const SizedBox(width: PqSpace.xxs),
+          Icon(CupertinoIcons.flag, size: PassqlIconSize.xs, color: color),
+          const SizedBox(width: PassqlSpacing.xxs),
           Text(
             reported ? '신고 완료' : '문제 신고',
-            style: PqType.caption.copyWith(color: color),
+            style: PassqlTypography.caption.copyWith(color: color),
           ),
         ],
       ),

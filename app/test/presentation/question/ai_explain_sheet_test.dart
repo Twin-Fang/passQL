@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:passql_app/core/network/api_providers.dart';
+import 'package:passql_app/data/sources/api_providers.dart';
 import 'package:passql_app/data/models/ai/ai_result.dart';
 import 'package:passql_app/data/models/ai/similar_question.dart';
 import 'package:passql_app/data/sources/ai_api.dart';

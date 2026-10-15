@@ -10,7 +10,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         child: MaterialApp(
-          theme: PqTheme.light,
+          theme: PassqlTheme.light,
           home: Builder(
             builder: (context) => Scaffold(
               body: TextButton(

@@ -14,16 +14,16 @@ class HeatmapWidget extends StatelessWidget {
   /// 날짜 문자열 키로 빠른 조회를 위한 Map 생성.
   Map<String, HeatmapEntry> _buildEntryMap() {
     final entries = heatmap?.entries ?? [];
-    return {for (final e in entries) e.date: e};
+    return {for (final entry in entries) entry.date: entry};
   }
 
   /// solvedCount → 히트맵 색상 (5단계). 0단계는 fill, 나머지는 accent 알파 단계.
-  Color _colorForCount(PqColors c, int count) {
-    if (count == 0) return c.fill;
-    if (count <= 1) return c.accent.withValues(alpha: 0.25);
-    if (count <= 3) return c.accent.withValues(alpha: 0.5);
-    if (count <= 6) return c.accent.withValues(alpha: 0.75);
-    return c.accent;
+  Color _colorForCount(PassqlColors colors, int count) {
+    if (count == 0) return colors.fill;
+    if (count <= 1) return colors.accent.withValues(alpha: 0.25);
+    if (count <= 3) return colors.accent.withValues(alpha: 0.5);
+    if (count <= 6) return colors.accent.withValues(alpha: 0.75);
+    return colors.accent;
   }
 
   /// 오늘 기준 35일 전부터 날짜 리스트 생성.
@@ -38,7 +38,7 @@ class HeatmapWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     final entryMap = _buildEntryMap();
     final days = _buildDays();
     const weekLabels = ['일', '월', '화', '수', '목', '금', '토'];
@@ -46,15 +46,19 @@ class HeatmapWidget extends StatelessWidget {
     // 월 레이블 열 너비
     const double monthLabelWidth = 28;
 
-    return PqCard(
+    return PassqlCard(
       title: '학습 현황',
       trailing: streakDays > 0
           ? Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(CupertinoIcons.flame_fill, size: 12, color: c.warning),
-                const SizedBox(width: PqSpace.xxs),
-                PqBadge(text: '$streakDays일 연속', color: c.warning),
+                Icon(
+                  CupertinoIcons.flame_fill,
+                  size: PassqlIconSize.xxs,
+                  color: colors.warning,
+                ),
+                const SizedBox(width: PassqlSpacing.xxs),
+                PassqlBadge(text: '$streakDays일 연속', color: colors.warning),
               ],
             )
           : null,
@@ -70,14 +74,16 @@ class HeatmapWidget extends StatelessWidget {
                   child: Center(
                     child: Text(
                       label,
-                      style: PqType.caption.copyWith(color: c.secondaryLabel),
+                      style: PassqlTypography.caption.copyWith(
+                        color: colors.secondaryLabel,
+                      ),
                     ),
                   ),
                 );
               }),
             ],
           ),
-          const SizedBox(height: PqSpace.xxs),
+          const SizedBox(height: PassqlSpacing.xxs),
 
           // 5주 그리드 — 각 행 왼쪽에 월 레이블
           ...List.generate(5, (week) {
@@ -90,7 +96,7 @@ class HeatmapWidget extends StatelessWidget {
             final monthLabel = showMonth ? '${firstDay.month}월' : '';
 
             return Padding(
-              padding: const EdgeInsets.only(bottom: PqSpace.xxs),
+              padding: const EdgeInsets.only(bottom: PassqlSpacing.xxs),
               child: Row(
                 children: [
                   // 월 레이블
@@ -98,14 +104,16 @@ class HeatmapWidget extends StatelessWidget {
                     width: monthLabelWidth,
                     child: Text(
                       monthLabel,
-                      style: PqType.caption.copyWith(color: c.secondaryLabel),
+                      style: PassqlTypography.caption.copyWith(
+                        color: colors.secondaryLabel,
+                      ),
                     ),
                   ),
 
                   // 7개 날짜 셀
                   ...List.generate(7, (dayOfWeek) {
-                    final idx = week * 7 + dayOfWeek;
-                    final date = days[idx];
+                    final dayIndex = week * 7 + dayOfWeek;
+                    final date = days[dayIndex];
                     final key = _toDateKey(date);
                     final count = entryMap[key]?.solvedCount ?? 0;
 
@@ -116,18 +124,22 @@ class HeatmapWidget extends StatelessWidget {
                       child: AspectRatio(
                         aspectRatio: 1,
                         child: Container(
-                          margin: const EdgeInsets.all(2),
+                          margin: const EdgeInsets.all(
+                            PassqlSpacing.hairlineGap,
+                          ),
                           decoration: BoxDecoration(
-                            color: _colorForCount(c, count),
-                            borderRadius: BorderRadius.circular(PqRadius.sm),
+                            color: _colorForCount(colors, count),
+                            borderRadius: BorderRadius.circular(
+                              PassqlRadius.sm,
+                            ),
                           ),
                           child: Center(
                             child: Text(
                               '${date.day}',
-                              style: PqType.caption.copyWith(
+                              style: PassqlTypography.caption.copyWith(
                                 color: isDeep
-                                    ? c.onAccent
-                                    : c.secondaryLabel,
+                                    ? colors.onAccent
+                                    : colors.secondaryLabel,
                               ),
                             ),
                           ),

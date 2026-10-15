@@ -27,15 +27,15 @@ class StemText extends StatelessWidget {
     var cursor = 0;
 
     void addText(String raw) {
-      final t = raw.trim();
-      if (t.isEmpty) return;
-      children.add(InlineCodeText(t));
+      final trimmed = raw.trim();
+      if (trimmed.isEmpty) return;
+      children.add(InlineCodeText(trimmed));
     }
 
-    for (final m in _fenceRe.allMatches(stem)) {
-      addText(stem.substring(cursor, m.start));
-      children.add(PqCodeBlock(code: (m.group(1) ?? '').trimRight()));
-      cursor = m.end;
+    for (final match in _fenceRe.allMatches(stem)) {
+      addText(stem.substring(cursor, match.start));
+      children.add(PassqlCodeBlock(code: (match.group(1) ?? '').trimRight()));
+      cursor = match.end;
     }
     addText(stem.substring(cursor));
 
@@ -44,7 +44,7 @@ class StemText extends StatelessWidget {
 
     final spaced = <Widget>[];
     for (var i = 0; i < children.length; i++) {
-      if (i > 0) spaced.add(const SizedBox(height: PqSpace.sm));
+      if (i > 0) spaced.add(const SizedBox(height: PassqlSpacing.sm));
       spaced.add(children[i]);
     }
     return SizedBox(
@@ -69,24 +69,24 @@ class InlineCodeText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
-    final base = style ?? PqType.callout.copyWith(color: c.label);
+    final colors = context.passqlColors;
+    final base = style ?? PassqlTypography.callout.copyWith(color: colors.label);
     final spans = <InlineSpan>[];
     var cursor = 0;
-    for (final m in _inlineRe.allMatches(text)) {
-      if (m.start > cursor) {
-        spans.add(TextSpan(text: text.substring(cursor, m.start)));
+    for (final match in _inlineRe.allMatches(text)) {
+      if (match.start > cursor) {
+        spans.add(TextSpan(text: text.substring(cursor, match.start)));
       }
       spans.add(
         TextSpan(
-          text: m.group(1),
-          style: PqType.code.copyWith(
+          text: match.group(1),
+          style: PassqlTypography.code.copyWith(
             fontSize: (base.fontSize ?? 14) * 0.92,
-            backgroundColor: c.fill,
+            backgroundColor: colors.fill,
           ),
         ),
       );
-      cursor = m.end;
+      cursor = match.end;
     }
     if (cursor < text.length) spans.add(TextSpan(text: text.substring(cursor)));
     return Text.rich(TextSpan(style: base, children: spans));

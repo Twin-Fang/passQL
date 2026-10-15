@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:passql_app/data/models/question/sse_event.dart';
 import 'package:passql_app/data/sources/sse_question_client.dart';
 
 Future<List<SseRawEvent>> parse(List<String> lines) =>
@@ -55,5 +56,18 @@ void main() {
 
   test('data 없이 이벤트 이름만 있으면 내보내지 않는다', () async {
     expect(await parse(['event:status', '']), isEmpty);
+  });
+
+  test('error 이벤트는 errorCode 를 우선하고, 없으면 code 를 쓴다', () {
+    final withBoth = toSseEvent(
+      'error',
+      '{"errorCode":"CHOICE_SET_GENERATION_FAILED","code":"OLD","retryable":true}',
+    );
+    final codeOnly = toSseEvent('error', '{"code":"GENERATION_FAILED"}');
+
+    expect((withBoth as SseErrorEvent).code, 'CHOICE_SET_GENERATION_FAILED');
+    expect(withBoth.isRetryable, isTrue);
+    expect((codeOnly as SseErrorEvent).code, 'GENERATION_FAILED');
+    expect(codeOnly.isRetryable, isFalse);
   });
 }

@@ -9,21 +9,23 @@ class SseLoadingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: PqSpace.md,
-        vertical: PqSpace.xs,
+        horizontal: PassqlSpacing.md,
+        vertical: PassqlSpacing.xs,
       ),
-      child: PqCard(
+      child: PassqlCard(
         child: Row(
           children: [
-            const CupertinoActivityIndicator(),
-            const SizedBox(width: PqSpace.sm),
+            const PassqlLoadingIndicator(),
+            const SizedBox(width: PassqlSpacing.sm),
             Expanded(
               child: Text(
                 statusMessage,
-                style: PqType.subheadline.copyWith(color: c.secondaryLabel),
+                style: PassqlTypography.subheadline.copyWith(
+                  color: colors.secondaryLabel,
+                ),
               ),
             ),
           ],

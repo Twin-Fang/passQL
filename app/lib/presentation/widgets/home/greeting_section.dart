@@ -11,23 +11,23 @@ class GreetingSection extends StatelessWidget {
   const GreetingSection({super.key, required this.greeting});
 
   /// {nickname} 치환 후 줄 단위로 나눈다. 서버는 "닉네임님,\n본문" 두 줄로 보낸다.
-  static List<String> _lines(GreetingResponse g) =>
-      g.message.replaceAll('{nickname}', g.nickname).split('\n');
+  static List<String> _lines(GreetingResponse greeting) =>
+      greeting.message.replaceAll('{nickname}', greeting.nickname).split('\n');
 
   /// large title 에 넣는 첫 줄. `\n`이 없으면 전체 문구.
-  static String resolveMessage(GreetingResponse g) => _lines(g).first;
+  static String resolveMessage(GreetingResponse greeting) => _lines(greeting).first;
 
   /// 둘째 줄 이후 본문. 비어 있으면 null.
-  static String? resolveBody(GreetingResponse g) {
-    final lines = _lines(g);
+  static String? resolveBody(GreetingResponse greeting) {
+    final lines = _lines(greeting);
     if (lines.length < 2) return null;
     final body = lines.sublist(1).join('\n').trim();
     return body.isEmpty ? null : body;
   }
 
   /// 본문이나 배지 중 그릴 것이 있는지. 없으면 목록에 넣지 않는다.
-  static bool hasContent(GreetingResponse g) =>
-      resolveBody(g) != null || _subTextFor(g.messageType) != null;
+  static bool hasContent(GreetingResponse greeting) =>
+      resolveBody(greeting) != null || _subTextFor(greeting.messageType) != null;
 
   static String? _subTextFor(String type) {
     switch (type) {
@@ -44,7 +44,7 @@ class GreetingSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     final body = resolveBody(greeting);
     final sub = _subTextFor(greeting.messageType);
     return Column(
@@ -52,12 +52,12 @@ class GreetingSection extends StatelessWidget {
       children: [
         // 줄 제한 없이 그려 둘째 줄이 잘리지 않게 한다.
         if (body != null)
-          Text(body, style: PqType.title3.copyWith(color: c.secondaryLabel)),
-        if (body != null && sub != null) const SizedBox(height: PqSpace.xs),
+          Text(body, style: PassqlTypography.title3.copyWith(color: colors.secondaryLabel)),
+        if (body != null && sub != null) const SizedBox(height: PassqlSpacing.xs),
         if (sub != null)
-          PqBadge(
+          PassqlBadge(
             text: sub,
-            color: greeting.messageType == 'EXAM_DAY' ? c.wrong : c.warning,
+            color: greeting.messageType == 'EXAM_DAY' ? colors.wrong : colors.warning,
           ),
       ],
     );
