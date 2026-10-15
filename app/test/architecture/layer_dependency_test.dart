@@ -31,6 +31,10 @@ const List<String> _monitoringSdkPackages = [
 ];
 const String _monitoringDirectory = 'lib/core/monitoring/';
 
+/// 푸시 SDK: core/push 의 공통 지점만 직접 import (나머지는 PushNotificationService 경유)
+const String _pushSdkPackage = 'package:firebase_messaging/';
+const String _pushDirectory = 'lib/core/push/';
+
 void main() {
   test('안쪽 계층(core·data·design)은 바깥 계층을 import 하지 않는다', () {
     final violations = <String>[];
@@ -76,6 +80,21 @@ void main() {
       final lines = file.readAsLinesSync();
       for (var lineIndex = 0; lineIndex < lines.length; lineIndex++) {
         if (_monitoringSdkPackages.any(lines[lineIndex].contains)) {
+          violations.add('$path:${lineIndex + 1}');
+        }
+      }
+    }
+    expect(violations, isEmpty, reason: violations.join('\n'));
+  });
+
+  test('푸시 SDK 는 core/push 에서만 import 한다', () {
+    final violations = <String>[];
+    for (final file in handWrittenDartFiles('lib')) {
+      final path = normalizedPath(file);
+      if (path.startsWith(_pushDirectory)) continue;
+      final lines = file.readAsLinesSync();
+      for (var lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+        if (lines[lineIndex].contains(_pushSdkPackage)) {
           violations.add('$path:${lineIndex + 1}');
         }
       }

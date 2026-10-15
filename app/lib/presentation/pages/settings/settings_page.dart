@@ -11,6 +11,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/settings_providers.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/settings/choice_mode_tile.dart';
+import '../../widgets/settings/push_notification_tile.dart';
 import '../../widgets/settings/theme_mode_tile.dart';
 import '../../widgets/settings/nickname_edit_sheet.dart';
 import '../../widgets/settings/profile_card.dart';
@@ -123,6 +124,8 @@ class SettingsPage extends ConsumerWidget {
                 const SettingsGroup(title: '학습', children: [ChoiceModeTile()]),
                 const SizedBox(height: PassqlSpacing.xl),
                 const SettingsGroup(title: '화면', children: [ThemeModeTile()]),
+                const SizedBox(height: PassqlSpacing.xl),
+                const SettingsGroup(title: '알림', children: [PushNotificationTile()]),
                 const SizedBox(height: PassqlSpacing.xl),
                 SettingsGroup(
                   title: '기록',

@@ -40,6 +40,7 @@ dependencies:
   shared_preferences: ^2.5.5
   firebase_crashlytics: ^5.4.0
   firebase_analytics: ^12.6.0
+  firebase_messaging: ^16.7.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

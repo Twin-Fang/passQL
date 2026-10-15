@@ -16,6 +16,7 @@ import 'package:passql_app/presentation/providers/session_reset.dart';
 import 'package:passql_app/presentation/providers/stats_providers.dart';
 
 import '../helpers/fakes/fake_member_api.dart';
+import '../helpers/fakes/fake_push.dart';
 
 /// 소셜 로그인 결과를 정해 둘 수 있는 가짜 구현.
 class _FakeSocial implements SocialSignIn {
@@ -86,6 +87,7 @@ ProviderContainer _container(
     overrides: [
       socialSignInProvider.overrideWithValue(social),
       authApiProvider.overrideWithValue(api),
+      pushTokenApiProvider.overrideWithValue(FakePushTokenApi()),
       tokenStoreProvider.overrideWithValue(store),
     ],
   );
@@ -229,6 +231,7 @@ void main() {
         overrides: [
           socialSignInProvider.overrideWithValue(social),
           authApiProvider.overrideWithValue(_FakeAuthApi()),
+          pushTokenApiProvider.overrideWithValue(FakePushTokenApi()),
           memberApiProvider.overrideWithValue(member),
           tokenStoreProvider.overrideWithValue(store),
         ],
