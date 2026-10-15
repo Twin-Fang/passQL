@@ -1,5 +1,6 @@
 package com.passql.web.init;
 
+import com.passql.meta.constant.AppSettingKeys;
 import com.passql.meta.service.AppSettingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,8 +29,8 @@ public class AppInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        appSettingService.syncSettingToRedis("ai.gemini_api_key", geminiApiKeyFromYml);
-        appSettingService.syncSettingToRedis("sandbox.pool.concurrency", String.valueOf(sandboxConcurrencyFromYml));
-        appSettingService.syncSettingToRedis("sandbox.pool.wait_seconds", String.valueOf(sandboxWaitSecondsFromYml));
+        appSettingService.syncSettingToRedis(AppSettingKeys.AI_GEMINI_API_KEY, geminiApiKeyFromYml);
+        appSettingService.syncSettingToRedis(AppSettingKeys.SANDBOX_POOL_CONCURRENCY, String.valueOf(sandboxConcurrencyFromYml));
+        appSettingService.syncSettingToRedis(AppSettingKeys.SANDBOX_POOL_WAIT_SECONDS, String.valueOf(sandboxWaitSecondsFromYml));
     }
 }

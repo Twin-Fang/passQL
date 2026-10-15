@@ -1,5 +1,6 @@
 package com.passql.meta.service;
 
+import com.passql.meta.constant.AppSettingKeys;
 import com.passql.common.exception.CustomException;
 import com.passql.meta.constant.CertType;
 import com.passql.meta.dto.ExamCoverage;
@@ -32,8 +33,6 @@ public class ExamScheduleCoverageService {
 
     /** 공식 시험 일정 공고 페이지 (SQLD·SQLP 모두 데이터자격검정 사이트) */
     public static final String OFFICIAL_SCHEDULE_URL = "https://www.dataq.or.kr/www/accept/schedule.do";
-    /** AppSetting 키 — 마지막으로 공고를 확인한 날짜(yyyy-MM-dd) */
-    public static final String CHECKED_AT_KEY = "exam.announcement_checked_at";
     /** 등록된 마지막 시험이 이 일수 안으로 다가오면 다음 회차 공고를 확인하라고 알린다 */
     static final int WARN_DAYS = 60;
     /** 마지막 공고 확인이 이 일수보다 오래되면 화면에서 다시 확인을 권한다 */
@@ -103,7 +102,7 @@ public class ExamScheduleCoverageService {
     /** 마지막으로 공고를 확인한 날짜. 기록이 없거나 형식이 깨졌으면 empty. */
     public Optional<LocalDate> getCheckedAt() {
         try {
-            return Optional.of(LocalDate.parse(appSettingService.getString(CHECKED_AT_KEY).trim()));
+            return Optional.of(LocalDate.parse(appSettingService.getString(AppSettingKeys.EXAM_ANNOUNCEMENT_CHECKED_AT).trim()));
         } catch (CustomException | java.time.format.DateTimeParseException | NullPointerException e) {
             // 마이그레이션 전이거나 빈 값(최초) — 화면에서 "기록 없음"으로 보여 준다
             return Optional.empty();
@@ -120,7 +119,7 @@ public class ExamScheduleCoverageService {
     @Transactional
     public LocalDate markChecked() {
         LocalDate today = LocalDate.now(KST);
-        appSettingService.save(CHECKED_AT_KEY, today.toString());
+        appSettingService.save(AppSettingKeys.EXAM_ANNOUNCEMENT_CHECKED_AT, today.toString());
         log.info("[exam-schedule] 공고 확인 기록: {}", today);
         return today;
     }
