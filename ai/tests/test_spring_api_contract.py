@@ -62,3 +62,11 @@ def test_spring_called_endpoints_are_post_only():
 def test_spring_called_endpoint_schemas_match_snapshot():
     expected_contract = json.loads(SNAPSHOT_PATH.read_text(encoding="utf-8"))
     assert build_spring_called_endpoint_contract() == expected_contract
+
+
+def test_app_version_comes_from_package_metadata():
+    from importlib.metadata import version
+
+    from src.main import PACKAGE_NAME
+
+    assert app.version == version(PACKAGE_NAME)
