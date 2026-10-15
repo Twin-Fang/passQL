@@ -6,5 +6,6 @@ public record SettingView(
         String valueText,
         String category,
         String description,
-        boolean sensitive
+        boolean sensitive,
+        boolean isRestartRequired
 ) {}
