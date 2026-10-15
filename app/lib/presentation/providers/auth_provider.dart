@@ -7,6 +7,7 @@ import '../../core/auth/session_expiry_signal.dart';
 import '../../core/auth/social_sign_in.dart';
 import '../../core/auth/token_store.dart';
 import '../../core/error/app_exception.dart';
+import '../../core/network/api_call.dart';
 import '../../data/sources/api_providers.dart';
 import '../../core/network/dio_client.dart';
 
@@ -40,15 +41,15 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
     if (idToken == null) return false;
 
     try {
-      final result = await ref
-          .read(authApiProvider)
-          .login(provider: provider, idToken: idToken);
+      final result = await callApiThrowingAppException(
+        ref.read(authApiProvider).login(provider: provider, idToken: idToken),
+      );
       await ref.read(tokenStoreProvider).save(result.session);
       state = AsyncData(result.session);
       return true;
-    } on DioException catch (exception) {
+    } on AppException catch (exception) {
       // 네트워크/서버 오류를 사용자용 문구로 통일해 화면에 전달한다.
-      throw SocialSignInException(exception.asAppException.message);
+      throw SocialSignInException(exception.message);
     }
   }
 
@@ -84,11 +85,7 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
     // Apple 사용자는 토큰 회수를 위해 재인증이 필요하다. 취소하면 탈퇴를 진행하지 않는다.
     final granted = await ref.read(socialSignInProvider).revokeAccessForWithdrawal();
     if (!granted) return;
-    try {
-      await ref.read(memberApiProvider).withdraw();
-    } on DioException catch (exception) {
-      throw exception.asAppException;
-    }
+    await callApiThrowingAppException(ref.read(memberApiProvider).withdraw());
     await ref.read(tokenStoreProvider).clear();
     await ref.read(socialSignInProvider).signOut();
     state = const AsyncData(null);

@@ -1,7 +1,7 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/error/app_exception.dart';
+import '../../core/network/api_call.dart';
 import '../../core/error/error_code.dart';
 import '../../core/utils/app_device_summary.dart';
 import '../../data/sources/api_providers.dart';
@@ -46,13 +46,11 @@ class FeedbackSubmitter {
       content,
       deviceSummary,
     );
-    try {
-      await _ref
+    await callApiThrowingAppException(
+      _ref
           .read(feedbackApiProvider)
-          .submit(FeedbackSubmitRequest(contentWithDeviceSummary));
-    } on DioException catch (exception) {
-      throw exception.asAppException;
-    }
+          .submit(FeedbackSubmitRequest(contentWithDeviceSummary)),
+    );
     _ref.invalidate(feedbackListProvider);
   }
 

@@ -132,7 +132,14 @@ class QuestionChoices extends StatelessWidget {
       );
     }
 
-    if (interaction.activeChoices.isEmpty) return const SizedBox.shrink();
+    if (interaction.activeChoices.isEmpty) {
+      // 세트 준비 전(첫 프레임)은 비워 두고, 준비됐는데 선택지가 0개면 안내 + 새로 만들기
+      if (interaction.activeChoiceSetId == null) return const SizedBox.shrink();
+      return PassqlStatusView.error(
+        message: '이 문제의 선택지가 비어 있어요',
+        onRetry: () => notifier.startSseGeneration(),
+      );
+    }
 
     return Column(
       children: interaction.activeChoices.map((item) {
