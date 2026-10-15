@@ -7,6 +7,9 @@ abstract final class PassqlTypography {
   static const _medium = 'Pretendard-Medium';
   static const _semibold = 'Pretendard-SemiBold';
   static const _bold = 'Pretendard-Bold';
+  // 코드 글꼴 (pubspec 등록, Regular·Bold 2종)
+  static const _code = 'JetBrainsMono';
+  static const _codeFallback = ['Menlo', 'Courier', 'monospace'];
 
   static TextStyle _t(
     String family,
@@ -36,23 +39,23 @@ abstract final class PassqlTypography {
   static final caption = _t(_regular, 12, 16);
   static final captionSemibold = _t(_semibold, 12, 16);
   static const code = TextStyle(
-    fontFamily: 'JetBrainsMono',
-    // 폰트 에셋이 없어도 고정폭이 유지되도록 시스템 모노스페이스로 대체한다.
-    fontFamilyFallback: ['Menlo', 'Courier', 'monospace'],
+    fontFamily: _code,
+    // 한글 등 코드 글꼴에 없는 글자는 시스템 고정폭 글꼴로 대체
+    fontFamilyFallback: _codeFallback,
     fontSize: 14,
     height: 20 / 14,
   );
   // 결과 표 셀처럼 좁은 칸의 코드
   static const codeCompact = TextStyle(
-    fontFamily: 'JetBrainsMono',
-    fontFamilyFallback: ['Menlo', 'Courier', 'monospace'],
+    fontFamily: _code,
+    fontFamilyFallback: _codeFallback,
     fontSize: 12,
     height: 20 / 14, // code 와 같은 줄 높이 비율
   );
   // 실행 오류 코드처럼 눈에 띄어야 하는 코드
   static const codeEmphasis = TextStyle(
-    fontFamily: 'JetBrainsMono',
-    fontFamilyFallback: ['Menlo', 'Courier', 'monospace'],
+    fontFamily: _code,
+    fontFamilyFallback: _codeFallback,
     fontSize: 13,
     fontWeight: FontWeight.w700,
     height: 20 / 14, // code 와 같은 줄 높이 비율

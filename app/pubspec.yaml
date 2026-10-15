@@ -55,16 +55,8 @@ flutter:
     - .env
     - assets/logo.png
     - assets/logo_dark.png
+  # 굵기 토큰(passql_typography.dart)이 쓰는 4종만 등록. 굵기를 추가하면 파일·토큰을 함께 추가
   fonts:
-    - family: Pretendard-Thin
-      fonts:
-        - asset: assets/fonts/Pretendard-Thin.ttf
-    - family: Pretendard-ExtraLight
-      fonts:
-        - asset: assets/fonts/Pretendard-ExtraLight.ttf
-    - family: Pretendard-Light
-      fonts:
-        - asset: assets/fonts/Pretendard-Light.ttf
     - family: Pretendard-Regular
       fonts:
         - asset: assets/fonts/Pretendard-Regular.ttf
@@ -77,12 +69,12 @@ flutter:
     - family: Pretendard-Bold
       fonts:
         - asset: assets/fonts/Pretendard-Bold.ttf
-    - family: Pretendard-ExtraBold
+    # 코드 글꼴: 합자 없는 NL 판(SQL 의 <>, >=, != 를 기호 그대로 표시). 라이선스 assets/fonts/JetBrainsMono-OFL.txt
+    - family: JetBrainsMono
       fonts:
-        - asset: assets/fonts/Pretendard-ExtraBold.ttf
-    - family: Pretendard-Black
-      fonts:
-        - asset: assets/fonts/Pretendard-Black.ttf
+        - asset: assets/fonts/JetBrainsMonoNL-Regular.ttf
+        - asset: assets/fonts/JetBrainsMonoNL-Bold.ttf
+          weight: 700
 flutter_launcher_icons:
   android: true
   ios: true
