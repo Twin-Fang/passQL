@@ -19,28 +19,59 @@ SQLD·SQLP 학습 서비스 passQL의 모바일 앱. 서버(`server/`)와만 통
 ```
 lib/
 ├── main.dart               # 진입점, 세션 복원, 라우터 연동
-├── core/
-│   ├── auth/               # 토큰 저장, 인터셉터(Bearer·재발급), 소셜 로그인, 설치 가드
-│   ├── error/              # ErrorCode, AppException (서버 오류를 사용자 문구로 변환)
-│   ├── network/            # dio_client, api_providers, safe_call
+├── core/                   # 공통·인프라. presentation·router 를 import 하지 않는다
+│   ├── auth/               # 토큰 저장, 인터셉터(Bearer·재발급), 세션 만료 신호, 소셜 로그인, 설치 가드
+│   ├── error/              # ErrorCode(서버 코드 매핑), AppException (서버 오류를 사용자 문구로 변환)
+│   ├── network/            # dio_client, safe_call(safeCall·safeCallAll·SafeCallSlot)
 │   └── utils/ validation/
-├── data/
+├── data/                   # presentation·router 를 import 하지 않는다
 │   ├── models/             # freezed 데이터 모델 (도메인별 폴더)
-│   └── sources/            # Retrofit API 정의, SSE 클라이언트
+│   └── sources/            # Retrofit API 정의, api_providers(클라이언트 Provider), SSE 클라이언트
 ├── presentation/
+│   ├── design/             # Passql 디자인 시스템 (아래 절 참고)
 │   ├── flows/              # 문제 풀이 흐름 공통화 (question_flow, daily_set_flow)
 │   ├── pages/              # login, home, questions, practice, result, stats, settings,
 │   │                       # daily_set(결과·리더보드), feedback, legal
-│   ├── providers/          # Riverpod 프로바이더 (계정 전환 시 session_reset으로 초기화)
-│   └── widgets/            # 공용 위젯 (settings_group 등)
-└── router/                 # app_router, app_routes
+│   ├── providers/          # Riverpod Provider·Notifier·Service (계정 전환 시 session_reset으로 초기화)
+│   └── widgets/            # 화면 조각 (설정 그룹, 문제 풀이 본문 등)
+└── router/                 # app_router, app_routes(모든 경로 상수)
+test/
+├── architecture/           # 규칙 테스트 (아래 절 참고)
+└── helpers/fakes/          # 공용 가짜 (FakeHttpClientAdapter, FakeMemberApi)
 tool/store_shots/           # 스토어 스크린샷용 가짜 API 진입점 (운영 코드 아님)
 ```
+
+## Passql 디자인 시스템
+
+`Passql` 접두사 = passQL 앱 디자인 시스템 소속. 디자인 시스템 밖 클래스에는 붙이지 않는다.
+
+```
+tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·모션)
+  > theme(PassqlTheme, context.passqlColors, context.isDark)
+  > components(PassqlButton, PassqlCard, showPassqlSheet, showPassqlConfirmDialog,
+               PassqlLoadingIndicator, PassqlStatusView, PassqlStatusScaffold 등)
+  > 화면(pages·widgets: 토큰과 컴포넌트만 조합)
+```
+
+- 화면은 `presentation/design/design.dart` 하나만 import 한다.
+- 값의 원본은 `lib/presentation/design/tokens/`. 문서에 값을 복사하지 않는다.
+- 상세 규칙: `.claude/rules/Design.md`, API 연동: `.claude/rules/api-guide.md`
+
+## 규칙 테스트 (test/architecture)
+
+문서로만 둔 규칙은 무너지므로 소스 스캔 테스트로 강제한다. `flutter test` 에 포함된다.
+
+| 테스트 | 막는 것 |
+|---|---|
+| `design_system_rules_test.dart` | pages·widgets·flows 에서 `Color(0x`, `Colors.white/black`, `Image.asset(`, `showModalBottomSheet(`, `showCupertinoDialog(`, `CupertinoActivityIndicator(` 직접 사용, `go('/...')`·`push('/...')` 라우트 문자열 |
+| `layer_dependency_test.dart` | core·data 의 presentation·router import, design 의 providers·pages·widgets·flows import, 화면의 `data/sources` 직접 import |
+
+- 예외는 각 테스트의 allow-list(`_allowedUsages`, `_allowedReverseImports`)에 파일과 **이유**를 적어서만 둔다. 비어 있는 것이 정상이다.
 
 ## 인증 구조
 
 - 로그인: `POST /auth/login {authProvider, idToken}` → access/refresh JWT. 이후 요청은 `Authorization: Bearer`.
-- 401이면 인터셉터가 refresh로 재발급, 실패하면 로그아웃 처리(라우터가 로그인 화면으로 보냄).
+- 401이면 인터셉터가 refresh로 재발급, 실패하면 세션 만료 신호(`SessionExpirySignal`) > `AuthNotifier` 로그아웃 > 라우터가 로그인 화면으로 보냄.
 - 회원 탈퇴는 서버 삭제 + 소셜 접근 권한 회수(Apple 토큰 revoke) 후 세션 삭제.
 
 ## 코드 생성
