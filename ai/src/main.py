@@ -5,6 +5,7 @@ import time
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
+from src.core.exception_handlers import register_exception_handlers
 from src.core.logging import setup_logging
 from src.apis.ai_router import router as ai_router
 from src.apis.health_router import router as health_router
@@ -42,6 +43,8 @@ app = FastAPI(
     docs_url="/docs/swagger",
     redoc_url="/docs/redoc"
 )
+
+register_exception_handlers(app)
 
 # 라우터 등록
 app.include_router(ai_router)

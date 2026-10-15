@@ -1,4 +1,4 @@
-"""src.services.redis_settings
+"""src.clients.redis_app_setting_client
 Spring과 공유하는 Redis에서 app_setting 값을 읽어오는 클라이언트.
 
 Redis 키 형식: passql:settings:{setting_key}

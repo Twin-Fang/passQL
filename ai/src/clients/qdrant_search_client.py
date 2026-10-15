@@ -1,4 +1,4 @@
-"""src.services.qdrant_client
+"""src.clients.qdrant_search_client
 Qdrant 벡터 DB 클라이언트 (search / upsert)
 """
 import logging

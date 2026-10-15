@@ -1,4 +1,4 @@
-"""src.services.gemini_client
+"""src.clients.gemini_client
 Google Gemini API 클라이언트 (google-genai SDK)
 """
 import logging
@@ -9,7 +9,7 @@ from google.genai import types
 
 from src.core.config import settings
 from src.core.exceptions import CustomError
-from src.services.redis_settings import get_gemini_api_key
+from src.clients.redis_app_setting_client import get_gemini_api_key
 
 logger = logging.getLogger(__name__)
 

@@ -1,9 +1,9 @@
 """AI 엔드포인트 동작 고정: 인증, 응답 형태, 오류 응답 (외부 클라이언트는 가짜로 대체)"""
 from src.core.config import settings
-from src.services import ai_service as question_service_module
-from src.services.gemini_client import gemini_client
-from src.services.ollama_client import ollama_client
-from src.services.qdrant_client import qdrant_search_client
+from src.clients.gemini_client import gemini_client
+from src.clients.ollama_client import ollama_client
+from src.clients.qdrant_search_client import qdrant_search_client
+from src.services import question_vector_index_service as question_vector_index_service_module
 
 LLM_CONFIG = {
     "model": "gemini-test",
@@ -184,7 +184,7 @@ def _fake_index_question_dependencies(monkeypatch, embedding_vector: list[float]
     async def fake_upsert(collection, point_id, vector, payload):
         recorded_calls["upserted_point_ids"].append(point_id)
 
-    monkeypatch.setattr(question_service_module, "get_ollama_embed_model", lambda: "admin-embed-model")
+    monkeypatch.setattr(question_vector_index_service_module, "get_ollama_embed_model", lambda: "admin-embed-model")
     monkeypatch.setattr(qdrant_search_client, "create_collection_if_not_exists", fake_create_collection_if_not_exists)
     monkeypatch.setattr(qdrant_search_client, "get_vector", fake_get_vector)
     monkeypatch.setattr(qdrant_search_client, "upsert", fake_upsert)

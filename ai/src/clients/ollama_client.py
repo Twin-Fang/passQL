@@ -1,4 +1,4 @@
-"""src.services.ollama_client
+"""src.clients.ollama_client
 Ollama API 클라이언트 (임베딩 전용)
 """
 import logging
