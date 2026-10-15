@@ -32,6 +32,17 @@ public final class AppSettingKeys {
         return RESTART_REQUIRED_KEYS.contains(key);
     }
 
+    // app_setting: 앱 최소 지원 버전 (x.y.z, 미만이면 업데이트 전까지 사용 차단, 0.0.0 이면 차단 없음)
+    public static final String APP_MINIMUM_VERSION_IOS = "app.minimum_version.ios";
+    public static final String APP_MINIMUM_VERSION_ANDROID = "app.minimum_version.android";
+    // app_setting: 앱 권장 버전 (x.y.z, 미만이면 닫을 수 있는 업데이트 안내, 0.0.0 이면 안내 없음)
+    public static final String APP_RECOMMENDED_VERSION_IOS = "app.recommended_version.ios";
+    public static final String APP_RECOMMENDED_VERSION_ANDROID = "app.recommended_version.android";
+    // app_setting: 점검 여부 (true 점검 중, false 정상)
+    public static final String APP_MAINTENANCE_ENABLED = "app.maintenance.enabled";
+    // app_setting: 점검 화면 문구 (비면 앱 기본 문구)
+    public static final String APP_MAINTENANCE_MESSAGE = "app.maintenance.message";
+
     private AppSettingKeys() {
     }
 }

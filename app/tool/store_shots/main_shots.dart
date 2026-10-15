@@ -5,6 +5,8 @@
 // 빌드: flutter build ios --simulator -t tool/store_shots/main_shots.dart
 // 촬영: echo /stats > /tmp/passql_shot_route.txt && xcrun simctl launch <기기> com.coldredrice.passql
 // 연출 2종(경로 대신 적음): execute-fail(SQL 실행 실패 카드), chapter-result(문제 목록 > 챕터 > 챕터 결과)
+// 앱 시작 설정 상황: echo maintenance > /tmp/passql_shot_app_config.txt
+//   (force_update | recommended_update | maintenance | notice, 없거나 그 외는 정상)
 // 운영 코드(lib/)에는 영향이 없고, 빌드 산출물에도 포함되지 않는다.
 import 'dart:async';
 import 'dart:convert';
@@ -22,8 +24,10 @@ import 'package:passql_app/presentation/providers/auth_provider.dart';
 import 'package:passql_app/presentation/providers/chapter_providers.dart';
 import 'package:passql_app/presentation/providers/question_providers.dart';
 import 'package:passql_app/presentation/providers/theme_mode_provider.dart';
+import 'package:passql_app/router/app_launch_gate_routing.dart';
 import 'package:passql_app/router/app_router.dart';
 import 'package:passql_app/router/app_routes.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // 시뮬레이터는 호스트 파일시스템을 그대로 보므로, 이 파일에 적은 경로로 이동한다.
 // 같은 빌드로 화면만 바꿔 여러 장을 찍기 위한 장치다.
@@ -33,6 +37,48 @@ String _readRoute() {
   } catch (_) {
     return '/home';
   }
+}
+
+// 앱 시작 설정 상황 (/meta/app-config 가짜 응답 선택)
+String _readAppConfigScenario() {
+  try {
+    return File('/tmp/passql_shot_app_config.txt').readAsStringSync().trim();
+  } catch (_) {
+    return '';
+  }
+}
+
+final _appConfigScenario = _readAppConfigScenario();
+
+// 상황별 /meta/app-config 응답: 강제 업데이트·권장 업데이트·점검·공지
+Map<String, dynamic> _appConfig() {
+  final minimumVersion = _appConfigScenario == 'force_update' ? '99.0.0' : '0.0.0';
+  final recommendedVersion = _appConfigScenario == 'recommended_update' ? '99.0.0' : '0.0.0';
+  Map<String, dynamic> platform(String storeUrl) => {
+    'minimumVersion': minimumVersion,
+    'recommendedVersion': recommendedVersion,
+    'storeUrl': storeUrl,
+  };
+  return {
+    'ios': platform('https://apps.apple.com/kr/app/passql/id0000000000'),
+    'android': platform('https://play.google.com/store/apps/details?id=com.coldredrice.passql'),
+    'maintenance': {
+      'isUnderMaintenance': _appConfigScenario == 'maintenance',
+      'message': '서버 안정화 작업으로 10월 16일 02:00 ~ 04:00 동안 점검해요.\n이용에 불편을 드려 죄송해요.',
+    },
+    'notices': [
+      if (_appConfigScenario == 'notice')
+        {
+          'noticeUuid': '66666666-0000-4000-8000-000000000001',
+          'title': '제58회 SQLD 시험 대비 문제 업데이트 안내',
+          'body': '시험이 한 달 앞으로 다가왔어요.\n\n윈도우 함수·계층형 질의 문제 40개를 새로 추가했어요. 문제 탭에서 바로 풀어 보세요.',
+          'startsAt': null,
+          'endsAt': null,
+          'isActive': true,
+          'isImportant': true,
+        },
+    ],
+  };
 }
 
 const _topics = [
@@ -169,6 +215,7 @@ Object? _respond(RequestOptions o) {
   if (p.endsWith('/questions/recommendations')) {
     return {'questions': _questions.take(3).toList()};
   }
+  if (p.endsWith('/meta/app-config')) return _appConfig();
   if (p.endsWith('/meta/topics')) {
     return [
       for (var i = 0; i < _topics.length; i++)
@@ -293,6 +340,11 @@ Future<void> main() async {
   ]);
   await container.read(authProvider.future);
   AppRouter.authenticated.value = !loggedOut;
+  // 권장 업데이트·공지는 한 번 닫으면 기록돼 다시 안 뜸 > 촬영마다 기록 초기화
+  if (_appConfigScenario == 'recommended_update' || _appConfigScenario == 'notice') {
+    await (await SharedPreferences.getInstance()).clear();
+  }
+  await AppLaunchGateRouting.bindAndLoad(container);
 
   runApp(UncontrolledProviderScope(container: container, child: const PassqlApp()));
   // 첫 프레임 이후 지정한 화면으로 이동한다.

@@ -41,6 +41,7 @@ enum ErrorCode {
 
   // 서버 내부
   serverError,
+  serviceUnderMaintenance,
 
   unknown,
 }
@@ -86,6 +87,7 @@ abstract final class ErrorCodeMapper {
     'AI_TIMEOUT': ErrorCode.aiTimeout,
     'SANDBOX_TIMEOUT': ErrorCode.sandboxTimeout,
     'INTERNAL_SERVER_ERROR': ErrorCode.serverError,
+    'SERVICE_UNDER_MAINTENANCE': ErrorCode.serviceUnderMaintenance,
   };
 
   static ErrorCode fromServerCode(String? serverCode) =>

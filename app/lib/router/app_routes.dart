@@ -21,6 +21,10 @@ abstract final class AppRoutes {
   /// 약관 열람. [type] 은 LegalType.serverValue. 로그인 전에도 접근할 수 있다.
   static String legal(String type) => '$legalPrefix$type';
 
+  // 앱 시작 차단 화면 (점검·강제 업데이트, 로그인 여부와 무관)
+  static const String forceUpdate = '/force-update';
+  static const String maintenance = '/maintenance';
+
   // 탭 루트
   static const String home = '/home';
   static const String questions = '/questions';

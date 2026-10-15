@@ -1,0 +1,179 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../core/utils/app_version.dart';
+import '../../data/models/meta/app_config.dart';
+import '../../data/sources/api_providers.dart';
+
+/// 앱 시작 분기 3종: 정상, 강제 업데이트 차단, 점검 차단
+enum AppLaunchGate { open, forceUpdate, maintenance }
+
+/// 앱 시작 판정 결과: 분기 + 화면 문구·스토어 링크·권장 버전
+@immutable
+class AppLaunchDecision {
+  const AppLaunchDecision({
+    required this.gate,
+    required this.currentVersion,
+    required this.versionPolicy,
+    required this.maintenanceMessage,
+    required this.notices,
+  });
+
+  /// 설정을 못 받았을 때: 차단 없음
+  const AppLaunchDecision.open({required this.currentVersion})
+    : gate = AppLaunchGate.open,
+      versionPolicy = const AppPlatformVersionPolicy(),
+      maintenanceMessage = defaultMaintenanceMessage,
+      notices = const [];
+
+  // 관리자 문구가 비었을 때의 점검 문구
+  static const String defaultMaintenanceMessage =
+      '더 나은 서비스를 위해 점검하고 있어요.\n잠시 후 다시 이용해 주세요.';
+
+  final AppLaunchGate gate;
+  final String currentVersion;
+
+  /// 현재 플랫폼(iOS·Android)의 버전 정책
+  final AppPlatformVersionPolicy versionPolicy;
+  final String maintenanceMessage;
+  final List<AppNotice> notices;
+
+  /// 권장 버전보다 낮으면 true (차단 중이면 false)
+  bool get shouldRecommendUpdate =>
+      gate == AppLaunchGate.open &&
+      AppVersion.isLowerThan(currentVersion, versionPolicy.recommendedVersion);
+}
+
+/// 앱 시작 판정: 점검 > 최소 버전 미만 > 정상 순 (설정 없음 > 정상)
+AppLaunchDecision decideAppLaunch({
+  required AppConfig? config,
+  required String currentVersion,
+  required bool isIos,
+}) {
+  if (config == null) {
+    return AppLaunchDecision.open(currentVersion: currentVersion);
+  }
+  final versionPolicy = isIos ? config.ios : config.android;
+  final message = config.maintenance.message.trim();
+
+  final AppLaunchGate gate;
+  if (config.maintenance.isUnderMaintenance) {
+    gate = AppLaunchGate.maintenance;
+  } else if (AppVersion.isLowerThan(
+    currentVersion,
+    versionPolicy.minimumVersion,
+  )) {
+    gate = AppLaunchGate.forceUpdate;
+  } else {
+    gate = AppLaunchGate.open;
+  }
+  return AppLaunchDecision(
+    gate: gate,
+    currentVersion: currentVersion,
+    versionPolicy: versionPolicy,
+    maintenanceMessage: message.isEmpty
+        ? AppLaunchDecision.defaultMaintenanceMessage
+        : message,
+    notices: config.notices,
+  );
+}
+
+// 앱 시작 설정 조회 최대 대기 (첫 화면이 이 이상 늦어지지 않게)
+const Duration _appConfigTimeout = Duration(seconds: 4);
+
+/// 설치된 앱 버전 (x.y.z)
+final currentAppVersionProvider = FutureProvider<String>((ref) async {
+  final packageInfo = await PackageInfo.fromPlatform();
+  return packageInfo.version;
+});
+
+/// 앱 시작 설정 1회 조회. 네트워크·서버 오류·시간 초과면 null (앱 사용을 막지 않음)
+final appConfigProvider = FutureProvider<AppConfig?>((ref) async {
+  try {
+    return await ref
+        .read(metaApiProvider)
+        .getAppConfig()
+        .timeout(_appConfigTimeout);
+  } catch (error) {
+    // 공개 API 라 인증 만료가 없음 > 모든 실패를 "설정 없음"으로 처리
+    debugPrint('[app config] fetch failed, launch without gate : $error');
+    return null;
+  }
+});
+
+/// 앱 시작 판정 (설정 + 현재 버전 + 플랫폼)
+final appLaunchDecisionProvider = FutureProvider<AppLaunchDecision>((
+  ref,
+) async {
+  final config = await ref.watch(appConfigProvider.future);
+  final currentVersion = await ref.watch(currentAppVersionProvider.future);
+  return decideAppLaunch(
+    config: config,
+    currentVersion: currentVersion,
+    isIos: defaultTargetPlatform == TargetPlatform.iOS,
+  );
+});
+
+// SharedPreferences: 권장 업데이트 안내를 닫은 권장 버전 (같은 버전이면 다시 안 띄움)
+const _dismissedRecommendedVersionKey = 'dismissed_recommended_version';
+// SharedPreferences: 닫은 공지 noticeUuid 목록
+const _dismissedNoticeUuidsKey = 'dismissed_notice_uuids';
+
+/// 권장 업데이트 안내를 띄울 권장 버전. 띄울 필요 없거나 이미 닫은 버전이면 null
+final recommendedUpdateVersionToPromptProvider = FutureProvider<String?>((
+  ref,
+) async {
+  final decision = await ref.watch(appLaunchDecisionProvider.future);
+  if (!decision.shouldRecommendUpdate) return null;
+  final preferences = await SharedPreferences.getInstance();
+  final recommendedVersion = decision.versionPolicy.recommendedVersion;
+  final isAlreadyDismissed =
+      preferences.getString(_dismissedRecommendedVersionKey) ==
+      recommendedVersion;
+  return isAlreadyDismissed ? null : recommendedVersion;
+});
+
+/// 권장 업데이트 안내를 띄웠다고 기록 (업데이트·나중에 공통)
+Future<void> saveRecommendedUpdatePrompted(String recommendedVersion) async {
+  final preferences = await SharedPreferences.getInstance();
+  await preferences.setString(
+    _dismissedRecommendedVersionKey,
+    recommendedVersion,
+  );
+}
+
+/// 홈에 띄울 공지 1건 (닫지 않은 것 중 서버 순서상 첫 번째, 없으면 null)
+final homeNoticeProvider =
+    AsyncNotifierProvider<HomeNoticeNotifier, AppNotice?>(
+      HomeNoticeNotifier.new,
+    );
+
+class HomeNoticeNotifier extends AsyncNotifier<AppNotice?> {
+  @override
+  Future<AppNotice?> build() async {
+    final decision = await ref.watch(appLaunchDecisionProvider.future);
+    final dismissedNoticeUuids = await _readDismissedNoticeUuids();
+    return decision.notices
+        .where((notice) => !dismissedNoticeUuids.contains(notice.noticeUuid))
+        .firstOrNull;
+  }
+
+  /// 공지 닫기: 저장 > 다음 공지로 교체
+  Future<void> dismiss(String noticeUuid) async {
+    final preferences = await SharedPreferences.getInstance();
+    final dismissedNoticeUuids = await _readDismissedNoticeUuids();
+    await preferences.setStringList(
+      _dismissedNoticeUuidsKey,
+      {...dismissedNoticeUuids, noticeUuid}.toList(),
+    );
+    ref.invalidateSelf();
+  }
+
+  Future<Set<String>> _readDismissedNoticeUuids() async {
+    final preferences = await SharedPreferences.getInstance();
+    return (preferences.getStringList(_dismissedNoticeUuidsKey) ?? const [])
+        .toSet();
+  }
+}
