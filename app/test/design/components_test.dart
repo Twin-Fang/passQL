@@ -230,8 +230,27 @@ void main() {
       expect(find.bySemanticsLabel('문제'), findsOneWidget);
       await tester.tap(find.byIcon(CupertinoIcons.book));
       expect(tapped, 1);
-      // 높이 = 49 + 하단 inset 34
-      expect(tester.getSize(find.byType(PqTabBar)).height, 49 + 34);
+      // 높이 = 44 + 홈 인디케이터 inset 34 의 60%
+      expect(tester.getSize(find.byType(PqTabBar)).height, closeTo(44 + 34 * 0.6, 0.01));
+    });
+
+    testWidgets('3버튼 내비게이션처럼 inset 이 크면 inset 을 그대로 둔다', (tester) async {
+      await tester.pumpWidget(
+        host(
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: PqTabBar(
+              currentIndex: 0,
+              onTap: (_) {},
+              items: const [
+                PqTabItem(icon: CupertinoIcons.house, activeIcon: CupertinoIcons.house_fill, label: '홈'),
+              ],
+            ),
+          ),
+          bottomInset: 48,
+        ),
+      );
+      expect(tester.getSize(find.byType(PqTabBar)).height, 44 + 48);
     });
   });
 
