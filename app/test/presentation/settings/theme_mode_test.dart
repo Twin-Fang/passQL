@@ -27,7 +27,7 @@ void main() {
       UncontrolledProviderScope(
         container: container,
         child: MaterialApp(
-          theme: PqTheme.light,
+          theme: PassqlTheme.light,
           home: const Scaffold(body: ThemeModeTile()),
         ),
       ),

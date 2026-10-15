@@ -34,8 +34,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     });
     try {
       await ref.read(authProvider.notifier).signIn(provider);
-    } on SocialSignInException catch (e) {
-      if (mounted) setState(() => _error = e.message);
+    } on SocialSignInException catch (exception) {
+      if (mounted) setState(() => _error = exception.message);
     } catch (_) {
       // 저장소 쓰기 실패, 응답 형식 오류 등 예상 밖 오류도 사용자에게 알린다(조용히 멈추지 않는다).
       if (mounted) setState(() => _error = '로그인에 실패했어요. 잠시 후 다시 시도해 주세요.');
@@ -46,23 +46,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     final busy = _loading != null;
     return Scaffold(
-      backgroundColor: c.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: PqSpace.xl),
+          padding: const EdgeInsets.symmetric(horizontal: PassqlSpacing.xl),
           child: Column(
             children: [
               // 로고+버튼 묶음을 세로 중앙보다 조금 아래(55%)에 둔다 — 화면이 커도 버튼이 바닥에 붙지 않게.
               const Spacer(flex: 11),
               // 워드마크 이미지에 앱 이름이 이미 들어 있으므로 이름 텍스트를 따로 두지 않는다.
-              const PqLogo(height: 44),
-              const SizedBox(height: PqSpace.xs),
+              const PassqlLogo(height: 44),
+              const SizedBox(height: PassqlSpacing.xs),
               Text(
                 'SQL 자격증, 문제로 합격까지',
-                style: PqType.subheadline.copyWith(color: c.secondaryLabel),
+                style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
               ),
               const SizedBox(height: 48),
               _SocialButton(
@@ -74,25 +74,25 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               // iOS 에서 소셜 로그인을 제공하면 Sign in with Apple 도 필수(App Store 심사 규정).
               // Apple HIG 는 흰 바탕+검정 로고 변형을 허용하므로 Google 버튼과 같은 모양으로 맞춘다.
               if (Platform.isIOS) ...[
-                const SizedBox(height: PqSpace.sm),
+                const SizedBox(height: PassqlSpacing.sm),
                 _SocialButton(
                   label: 'Apple로 계속하기',
                   logo: SvgPicture.string(
                     _appleLogoSvg,
                     width: 18,
                     height: 20,
-                    colorFilter: ColorFilter.mode(c.label, BlendMode.srcIn),
+                    colorFilter: ColorFilter.mode(colors.label, BlendMode.srcIn),
                   ),
                   loading: _loading == SocialProvider.apple,
                   onPressed: busy ? null : () => _signIn(SocialProvider.apple),
                 ),
               ],
               if (_error != null) ...[
-                const SizedBox(height: PqSpace.sm),
+                const SizedBox(height: PassqlSpacing.sm),
                 Text(
                   _error!,
                   textAlign: TextAlign.center,
-                  style: PqType.footnote.copyWith(color: c.wrongText),
+                  style: PassqlTypography.footnote.copyWith(color: colors.wrongText),
                 ),
               ],
               const Spacer(flex: 9),
@@ -100,7 +100,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 onOpen: (type) =>
                     context.push(AppRoutes.legal(type.serverValue)),
               ),
-              const SizedBox(height: PqSpace.md),
+              const SizedBox(height: PassqlSpacing.md),
             ],
           ),
         ),
@@ -144,20 +144,20 @@ class _SocialButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     final dark = context.isDark;
-    return PqPressable(
+    return PassqlPressable(
       onTap: onPressed,
       semanticLabel: label,
       child: Container(
         width: double.infinity,
-        height: PqSize.buttonLarge,
-        padding: const EdgeInsets.symmetric(horizontal: PqSpace.lg),
+        height: PassqlSize.buttonLarge,
+        padding: const EdgeInsets.symmetric(horizontal: PassqlSpacing.lg),
         decoration: BoxDecoration(
           // 라이트는 card+테두리, 다크는 cardElevated 로 배경과 구분한다.
-          color: dark ? c.cardElevated : c.card,
-          borderRadius: BorderRadius.circular(PqRadius.md),
-          border: dark ? null : Border.all(color: c.separator),
+          color: dark ? colors.cardElevated : colors.card,
+          borderRadius: BorderRadius.circular(PassqlRadius.md),
+          border: dark ? null : Border.all(color: colors.separator),
         ),
         child: loading
             ? const Center(child: CupertinoActivityIndicator())
@@ -168,7 +168,7 @@ class _SocialButton extends StatelessWidget {
                     alignment: Alignment.centerLeft,
                     child: SizedBox(width: 24, child: Center(child: logo)),
                   ),
-                  Text(label, style: PqType.headline.copyWith(color: c.label)),
+                  Text(label, style: PassqlTypography.headline.copyWith(color: colors.label)),
                 ],
               ),
       ),
@@ -184,7 +184,7 @@ class _LegalNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = PqType.caption.copyWith(color: context.pq.secondaryLabel);
+    final style = PassqlTypography.caption.copyWith(color: context.passqlColors.secondaryLabel);
     final link = style.copyWith(decoration: TextDecoration.underline);
     return Wrap(
       alignment: WrapAlignment.center,

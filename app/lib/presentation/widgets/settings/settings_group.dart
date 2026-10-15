@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../design/design.dart';
 
-/// 설정 화면의 묶음. 디자인 시스템의 [PqGroupedSection] 을 기존 이름으로 감싼 얇은 래퍼다.
+/// 설정 화면의 묶음. 디자인 시스템의 [PassqlGroupedSection] 을 기존 이름으로 감싼 얇은 래퍼다.
 class SettingsGroup extends StatelessWidget {
   const SettingsGroup({super.key, this.title, required this.children});
 
@@ -10,10 +10,10 @@ class SettingsGroup extends StatelessWidget {
   final List<Widget> children;
 
   @override
-  Widget build(BuildContext context) => PqGroupedSection(
+  Widget build(BuildContext context) => PassqlGroupedSection(
     header: title,
     // 아이콘 타일(29) + 좌측 inset(16) + 간격(12) 만큼 들여 쓴 iOS 설정 앱식 구분선.
-    separatorIndent: PqSpace.md + PqSize.iconTile + PqSpace.sm,
+    separatorIndent: PassqlSpacing.md + PassqlSize.iconTile + PassqlSpacing.sm,
     children: children,
   );
 }
@@ -49,13 +49,13 @@ class SettingsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
-    return PqListRow(
+    final colors = context.passqlColors;
+    return PassqlListRow(
       title: title,
       subtitle: subtitle,
-      leading: PqIconTile(
+      leading: PassqlIconTile(
         icon: icon,
-        color: destructive ? c.wrong : (iconColor ?? c.secondaryLabel),
+        color: destructive ? colors.wrong : (iconColor ?? colors.secondaryLabel),
       ),
       trailing: trailing,
       chevron: showChevron && onTap != null,

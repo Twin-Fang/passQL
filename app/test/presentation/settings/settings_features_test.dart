@@ -74,9 +74,9 @@ class _SignedInAuth extends AuthNotifier {
   );
 }
 
-/// 시트 안 PqButton 을 라벨로 찾는다(버튼 종류가 바뀌어도 활성 여부만 본다).
-PqButton _button(WidgetTester tester, String label) =>
-    tester.widget<PqButton>(find.widgetWithText(PqButton, label));
+/// 시트 안 PassqlButton 을 라벨로 찾는다(버튼 종류가 바뀌어도 활성 여부만 본다).
+PassqlButton _button(WidgetTester tester, String label) =>
+    tester.widget<PassqlButton>(find.widgetWithText(PassqlButton, label));
 
 DioException _serverError(int status, String code, String message) {
   final opts = RequestOptions(path: '/x');

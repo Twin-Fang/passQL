@@ -55,7 +55,7 @@ class TopicFlow extends QuestionFlow {
     final response = await ref
         .read(questionApiProvider)
         .getQuestions(0, 10, topic: topicCode);
-    return response.content.map((q) => q.questionUuid).toList();
+    return response.content.map((question) => question.questionUuid).toList();
   }
 
   @override

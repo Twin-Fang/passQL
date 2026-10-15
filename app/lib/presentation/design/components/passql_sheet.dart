@@ -3,17 +3,16 @@ import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../pq_theme.dart';
-import '../tokens/pq_metrics.dart';
-import '../tokens/pq_type.dart';
+import '../passql_theme.dart';
+import '../tokens/passql_tokens.dart';
 
 /// 모달 시트 공통 모양: 손잡이 + 제목 + 닫기. 긴 본문 가독성을 위해 글래스 대신 불투명 배경을 쓴다.
-Future<T?> showPqSheet<T>(
+Future<T?> showPassqlSheet<T>(
   BuildContext context, {
   required String title,
   required WidgetBuilder builder,
 }) {
-  final c = context.pq;
+  final colors = context.passqlColors;
   return showModalBottomSheet<T>(
     context: context,
     // 탭 화면 안에서 열어도 하단 탭 바 위에 뜨도록 최상위 Navigator 에 띄운다.
@@ -21,37 +20,37 @@ Future<T?> showPqSheet<T>(
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
-    backgroundColor: c.cardElevated,
+    backgroundColor: colors.cardElevated,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(PqRadius.lg)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(PassqlRadius.lg)),
     ),
     builder: (sheetContext) => Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(
-            PqSpace.md,
+            PassqlSpacing.md,
             0,
-            PqSpace.xs,
-            PqSpace.xs,
+            PassqlSpacing.xs,
+            PassqlSpacing.xs,
           ),
           child: Row(
             children: [
               Expanded(
                 child: Text(
                   title,
-                  style: PqType.headline.copyWith(color: c.label),
+                  style: PassqlTypography.headline.copyWith(color: colors.label),
                 ),
               ),
               CupertinoButton(
-                padding: const EdgeInsets.all(PqSpace.xs),
+                padding: const EdgeInsets.all(PassqlSpacing.xs),
                 onPressed: () => Navigator.of(sheetContext).pop(),
                 child: Semantics(
                   label: '닫기',
                   child: Icon(
                     CupertinoIcons.xmark_circle_fill,
                     size: 28,
-                    color: c.tertiaryLabel,
+                    color: colors.tertiaryLabel,
                   ),
                 ),
               ),

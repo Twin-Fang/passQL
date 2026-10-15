@@ -12,13 +12,13 @@ double contrast(Color fg, Color bg) {
 }
 
 void main() {
-  group('PqColors', () {
+  group('PassqlColors', () {
     test('강조색은 Apple systemIndigo 라이트/다크 값이다', () {
-      expect(PqColors.light.accent, const Color(0xFF5856D6));
-      expect(PqColors.dark.accent, const Color(0xFF5E5CE6));
+      expect(PassqlColors.light.accent, const Color(0xFF5856D6));
+      expect(PassqlColors.dark.accent, const Color(0xFF5E5CE6));
     });
 
-    for (final entry in {'light': PqColors.light, 'dark': PqColors.dark}.entries) {
+    for (final entry in {'light': PassqlColors.light, 'dark': PassqlColors.dark}.entries) {
       final c = entry.value;
       test('${entry.key}: 본문·보조 글자가 카드와 배경 위에서 4.5:1 이상', () {
         for (final bg in [c.background, c.card]) {
@@ -38,8 +38,8 @@ void main() {
     }
 
     test('lerp 는 양 끝에서 원래 값을 돌려준다', () {
-      expect(PqColors.light.lerp(PqColors.dark, 0).accent, PqColors.light.accent);
-      expect(PqColors.light.lerp(PqColors.dark, 1).accent, PqColors.dark.accent);
+      expect(PassqlColors.light.lerp(PassqlColors.dark, 0).accent, PassqlColors.light.accent);
+      expect(PassqlColors.light.lerp(PassqlColors.dark, 1).accent, PassqlColors.dark.accent);
     });
   });
 }

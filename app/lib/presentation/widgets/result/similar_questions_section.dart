@@ -44,28 +44,28 @@ class _SimilarQuestionsSectionState
     if (_questions == null) {
       // 로딩 중
       return const Padding(
-        padding: EdgeInsets.symmetric(vertical: PqSpace.md),
+        padding: EdgeInsets.symmetric(vertical: PassqlSpacing.md),
         child: Center(child: CupertinoActivityIndicator()),
       );
     }
     if (_questions!.isEmpty) return const SizedBox.shrink();
 
-    return PqGroupedSection(
+    return PassqlGroupedSection(
       header: '비슷한 문제',
       children: [
-        for (final q in _questions!)
-          PqListRow(
-            title: _preview(stripCodeFences(q.stem ?? '문제 보기')),
-            subtitle: q.topicName,
+        for (final question in _questions!)
+          PassqlListRow(
+            title: _preview(stripCodeFences(question.stem ?? '문제 보기')),
+            subtitle: question.topicName,
             chevron: true,
-            onTap: () => context.push(AppRoutes.questionDetail(q.questionUuid)),
+            onTap: () => context.push(AppRoutes.questionDetail(question.questionUuid)),
           ),
       ],
     );
   }
 }
 
-/// PqListRow 는 줄 수 제한이 없어, 긴 지문이 목록을 밀어내지 않게 한 줄 요약으로 줄인다.
+/// PassqlListRow 는 줄 수 제한이 없어, 긴 지문이 목록을 밀어내지 않게 한 줄 요약으로 줄인다.
 String _preview(String stem) {
   final flat = stem.replaceAll(RegExp(r'\s+'), ' ').trim();
   // 서로게이트 쌍·결합 문자를 쪼개지 않게 grapheme 단위로 자른다.

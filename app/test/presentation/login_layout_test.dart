@@ -28,7 +28,7 @@ void main() {
   testWidgets('Google 버튼은 화면 55~80% 지점에 있고 약관 문구는 하단 inset 안에 있다', (
     tester,
   ) async {
-    await pumpLogin(tester, PqTheme.light);
+    await pumpLogin(tester, PassqlTheme.light);
 
     final button = tester.getCenter(find.text('Google로 계속하기'));
     expect(button.dy / 844, inInclusiveRange(0.55, 0.80));
@@ -38,7 +38,7 @@ void main() {
   });
 
   testWidgets('다크 테마에서도 예외 없이 그려진다', (tester) async {
-    await pumpLogin(tester, PqTheme.dark);
+    await pumpLogin(tester, PassqlTheme.dark);
 
     expect(tester.takeException(), isNull);
     expect(find.text('Google로 계속하기'), findsOneWidget);

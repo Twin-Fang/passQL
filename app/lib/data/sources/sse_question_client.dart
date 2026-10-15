@@ -24,7 +24,7 @@ class SseQuestionClient {
           headers: {'Accept': 'text/event-stream'},
         ),
       );
-    } catch (e) {
+    } catch (_) {
       yield SseErrorEvent('CONNECT_FAILED', true);
       return;
     }
@@ -56,7 +56,7 @@ class SseQuestionClient {
         case 'complete':
           final rawChoices = json['choices'] as List<dynamic>? ?? [];
           final choices = rawChoices
-              .map((e) => ChoiceItem.fromJson(e as Map<String, dynamic>))
+              .map((choiceJson) => ChoiceItem.fromJson(choiceJson as Map<String, dynamic>))
               .toList();
           return SseCompleteEvent(
             choices,

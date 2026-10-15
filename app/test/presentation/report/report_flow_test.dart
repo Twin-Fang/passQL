@@ -81,7 +81,7 @@ void main() {
 
     await tester.tap(find.text('문제 신고'));
     await tester.pumpAndSettle();
-    PqButton submit() => tester.widget<PqButton>(find.widgetWithText(PqButton, '신고하기'));
+    PassqlButton submit() => tester.widget<PassqlButton>(find.widgetWithText(PassqlButton, '신고하기'));
     expect(submit().onPressed, isNull); // 사유 선택 전
 
     await tester.tap(find.text('정답이 잘못된 것 같아요'));
@@ -112,7 +112,7 @@ void main() {
     await tester.tap(find.text('기타'));
     await tester.pump();
     expect(find.byType(TextField), findsOneWidget);
-    expect(tester.widget<PqButton>(find.widgetWithText(PqButton, '신고하기')).onPressed, isNull);
+    expect(tester.widget<PassqlButton>(find.widgetWithText(PassqlButton, '신고하기')).onPressed, isNull);
 
     await tester.enterText(find.byType(TextField), '  보기에 오타가 있어요  ');
     await tester.pump();

@@ -7,7 +7,7 @@ import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/widgets/question/topic_card.dart';
 
 Widget _host(TopicTree topic) => MaterialApp(
-  theme: PqTheme.light,
+  theme: PassqlTheme.light,
   home: Scaffold(
     body: TopicCard(topic: topic, onTap: () {}),
   ),
@@ -15,7 +15,7 @@ Widget _host(TopicTree topic) => MaterialApp(
 
 /// 행 안의 아이콘 타일(색 배경) 데코레이션 색.
 Color _tileColor(WidgetTester tester) {
-  final tile = tester.widget<PqIconTile>(find.byType(PqIconTile));
+  final tile = tester.widget<PassqlIconTile>(find.byType(PassqlIconTile));
   return tile.color;
 }
 
@@ -51,7 +51,7 @@ void main() {
         const TopicTree(topicUuid: 't', code: 'sql_join', displayName: 'JOIN'),
       ),
     );
-    final tile = tester.widget<PqIconTile>(find.byType(PqIconTile));
+    final tile = tester.widget<PassqlIconTile>(find.byType(PassqlIconTile));
     expect(tile.icon, topicIconFor('sql_join'));
     expect(tile.icon, CupertinoIcons.rectangle_on_rectangle);
   });
@@ -62,7 +62,7 @@ void main() {
         const TopicTree(topicUuid: 't', code: 'unknown', displayName: '신규'),
       ),
     );
-    final tile = tester.widget<PqIconTile>(find.byType(PqIconTile));
+    final tile = tester.widget<PassqlIconTile>(find.byType(PassqlIconTile));
     expect(tile.icon, CupertinoIcons.question_circle);
   });
 
@@ -85,7 +85,7 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       MaterialApp(
-        theme: PqTheme.light,
+        theme: PassqlTheme.light,
         builder: (ctx, child) => MediaQuery(
           data: MediaQuery.of(
             ctx,

@@ -24,14 +24,14 @@ class HomePage extends ConsumerWidget {
     final homeAsync = ref.watch(homeDataProvider);
 
     return Scaffold(
-      backgroundColor: context.pq.background,
+      backgroundColor: context.passqlColors.background,
       body: homeAsync.when(
         loading: () => const _HomeShell(slivers: [_HomeSkeleton()]),
         error: (error, _) => _HomeShell(
           slivers: [
             SliverFillRemaining(
               hasScrollBody: false,
-              child: PqStatusView.error(
+              child: PassqlStatusView.error(
                 message: '데이터를 불러오지 못했어요.',
                 onRetry: () => ref.invalidate(homeDataProvider),
               ),
@@ -64,7 +64,7 @@ class _HomeShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PqLargeTitleScrollView(
+    return PassqlLargeTitleScrollView(
       title: '홈',
       largeTitle: largeTitle,
       onRefresh: onRefresh,
@@ -85,12 +85,12 @@ class _GreetingTitle extends StatelessWidget {
       text,
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
-      style: PqType.largeTitle.copyWith(color: context.pq.label),
+      style: PassqlTypography.largeTitle.copyWith(color: context.passqlColors.label),
     );
   }
 }
 
-/// 홈 카드 목록. 카드 사이 간격은 PqSpace.md.
+/// 홈 카드 목록. 카드 사이 간격은 PassqlSpacing.md.
 class _HomeContent extends StatelessWidget {
   final HomeData data;
 
@@ -116,7 +116,7 @@ class _HomeContent extends StatelessWidget {
                 onBrowse: () => context.go(AppRoutes.questions),
               ),
             ),
-            const SizedBox(width: PqSpace.sm),
+            const SizedBox(width: PassqlSpacing.sm),
             Expanded(child: ExamScheduleCard(schedule: data.examSchedule)),
           ],
         ),
@@ -147,11 +147,11 @@ class _HomeContent extends StatelessWidget {
     ];
 
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(PqSpace.md, PqSpace.md, PqSpace.md, 0),
+      padding: const EdgeInsets.fromLTRB(PassqlSpacing.md, PassqlSpacing.md, PassqlSpacing.md, 0),
       sliver: SliverList.separated(
         itemCount: children.length,
         itemBuilder: (_, i) => children[i],
-        separatorBuilder: (_, _) => const SizedBox(height: PqSpace.md),
+        separatorBuilder: (_, _) => const SizedBox(height: PassqlSpacing.md),
       ),
     );
   }
@@ -164,20 +164,20 @@ class _HomeSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const SliverPadding(
-      padding: EdgeInsets.fromLTRB(PqSpace.md, PqSpace.md, PqSpace.md, 0),
+      padding: EdgeInsets.fromLTRB(PassqlSpacing.md, PassqlSpacing.md, PassqlSpacing.md, 0),
       sliver: SliverList(
         delegate: SliverChildListDelegate.fixed([
           Row(
             children: [
-              Expanded(child: PqSkeletonBox(height: 140, radius: PqRadius.lg)),
-              SizedBox(width: PqSpace.sm),
-              Expanded(child: PqSkeletonBox(height: 140, radius: PqRadius.lg)),
+              Expanded(child: PassqlSkeletonBox(height: 140, radius: PassqlRadius.lg)),
+              SizedBox(width: PassqlSpacing.sm),
+              Expanded(child: PassqlSkeletonBox(height: 140, radius: PassqlRadius.lg)),
             ],
           ),
-          SizedBox(height: PqSpace.md),
-          PqSkeletonBox(height: 180, radius: PqRadius.lg),
-          SizedBox(height: PqSpace.md),
-          PqSkeletonBox(height: 160, radius: PqRadius.lg),
+          SizedBox(height: PassqlSpacing.md),
+          PassqlSkeletonBox(height: 180, radius: PassqlRadius.lg),
+          SizedBox(height: PassqlSpacing.md),
+          PassqlSkeletonBox(height: 160, radius: PassqlRadius.lg),
         ]),
       ),
     );

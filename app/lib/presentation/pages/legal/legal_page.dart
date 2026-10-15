@@ -19,33 +19,33 @@ class LegalPage extends ConsumerWidget {
     final type = LegalType.fromServerValue(typeValue);
 
     return Scaffold(
-      backgroundColor: context.pq.background,
-      appBar: PqNavBar(title: type?.label ?? '약관', leading: PqNavLeading.back),
+      backgroundColor: context.passqlColors.background,
+      appBar: PassqlNavBar(title: type?.label ?? '약관', leading: PassqlNavLeading.back),
       body: SafeArea(
         child: type == null
-            ? PqStatusView.empty(
+            ? PassqlStatusView.empty(
                 icon: CupertinoIcons.doc_text,
                 title: '존재하지 않는 문서예요',
               )
             : ref
                   .watch(legalDocumentProvider(type))
                   .when(
-                    loading: () => const PqStatusView.loading(),
-                    error: (e, _) => PqStatusView.error(
-                      message: e.asAppException.message,
+                    loading: () => const PassqlStatusView.loading(),
+                    error: (error, _) => PassqlStatusView.error(
+                      message: error.asAppException.message,
                       onRetry: () =>
                           ref.invalidate(legalDocumentProvider(type)),
                     ),
                     data: (doc) => ListView(
                       padding: const EdgeInsets.fromLTRB(
-                        PqSpace.md,
+                        PassqlSpacing.md,
                         0,
-                        PqSpace.md,
-                        PqSpace.xxl,
+                        PassqlSpacing.md,
+                        PassqlSpacing.xxl,
                       ),
                       children: LegalText.parse(
                         doc.content,
-                      ).map((b) => _block(context, b)).toList(),
+                      ).map((block) => _buildBlock(context, block)).toList(),
                     ),
                   ),
       ),
@@ -53,30 +53,30 @@ class LegalPage extends ConsumerWidget {
   }
 
   // 긴 법률 문서를 편하게 읽도록 본문은 넉넉한 줄 간격, 조항 제목은 굵게 띄운다.
-  Widget _block(BuildContext context, LegalBlock b) {
-    final c = context.pq;
-    final body = PqType.body.copyWith(height: 1.55, color: c.label);
-    switch (b.kind) {
+  Widget _buildBlock(BuildContext context, LegalBlock block) {
+    final colors = context.passqlColors;
+    final body = PassqlTypography.body.copyWith(height: 1.55, color: colors.label);
+    switch (block.kind) {
       case LegalBlockKind.heading:
         return Padding(
-          padding: const EdgeInsets.only(top: PqSpace.xl, bottom: PqSpace.xs),
-          child: Text(b.text, style: PqType.headline.copyWith(color: c.label)),
+          padding: const EdgeInsets.only(top: PassqlSpacing.xl, bottom: PassqlSpacing.xs),
+          child: Text(block.text, style: PassqlTypography.headline.copyWith(color: colors.label)),
         );
       case LegalBlockKind.bullet:
         return Padding(
-          padding: const EdgeInsets.only(left: PqSpace.xxs, bottom: 6),
+          padding: const EdgeInsets.only(left: PassqlSpacing.xxs, bottom: 6),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('•  ', style: body),
-              Expanded(child: Text(b.text, style: body)),
+              Expanded(child: Text(block.text, style: body)),
             ],
           ),
         );
       case LegalBlockKind.paragraph:
         return Padding(
-          padding: const EdgeInsets.only(bottom: PqSpace.sm),
-          child: Text(b.text, style: body),
+          padding: const EdgeInsets.only(bottom: PassqlSpacing.sm),
+          child: Text(block.text, style: body),
         );
     }
   }

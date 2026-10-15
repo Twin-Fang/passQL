@@ -2,14 +2,14 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../pq_haptics.dart';
-import '../pq_theme.dart';
-import '../tokens/pq_metrics.dart';
-import 'pq_glass.dart';
-import 'pq_pressable.dart';
+import '../passql_haptics.dart';
+import '../passql_theme.dart';
+import '../tokens/passql_tokens.dart';
+import 'passql_glass.dart';
+import 'passql_pressable.dart';
 
-class PqTabItem {
-  const PqTabItem({
+class PassqlTabItem {
+  const PassqlTabItem({
     required this.icon,
     required this.activeIcon,
     required this.label,
@@ -20,27 +20,27 @@ class PqTabItem {
 }
 
 /// 하단 탭 바. #367 결정대로 글자는 숨기고 접근성 라벨·롱프레스 툴팁만 남긴다.
-/// 높이는 [PqSize.tabBar] + 줄인 하단 여백([_bottomPadding]).
-class PqTabBar extends StatelessWidget {
-  const PqTabBar({
+/// 높이는 [PassqlSize.tabBar] + 줄인 하단 여백([_bottomPadding]).
+class PassqlTabBar extends StatelessWidget {
+  const PassqlTabBar({
     super.key,
     required this.items,
     required this.currentIndex,
     required this.onTap,
   });
-  final List<PqTabItem> items;
+  final List<PassqlTabItem> items;
   final int currentIndex;
   final ValueChanged<int> onTap;
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
-    return PqGlass(
+    final colors = context.passqlColors;
+    return PassqlGlass(
       topHairline: true,
       child: Padding(
         padding: EdgeInsets.only(bottom: _bottomPadding(context)),
         child: SizedBox(
-          height: PqSize.tabBar,
+          height: PassqlSize.tabBar,
           child: Row(
             children: [
               for (var i = 0; i < items.length; i++)
@@ -50,10 +50,10 @@ class PqTabBar extends StatelessWidget {
                     excludeFromSemantics: true,
                     child: Semantics(
                       selected: i == currentIndex,
-                      child: PqPressable(
+                      child: PassqlPressable(
                         semanticLabel: items[i].label,
                         onTap: () {
-                          if (i != currentIndex) PqHaptics.selection();
+                          if (i != currentIndex) PassqlHaptics.playSelection();
                           onTap(i);
                         },
                         child: Center(
@@ -63,8 +63,8 @@ class PqTabBar extends StatelessWidget {
                                 : items[i].icon,
                             size: 24,
                             color: i == currentIndex
-                                ? c.accent
-                                : c.secondaryLabel,
+                                ? colors.accent
+                                : colors.secondaryLabel,
                           ),
                         ),
                       ),

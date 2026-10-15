@@ -19,10 +19,10 @@ void main() {
         ),
       ],
     );
-    await tester.pumpWidget(MaterialApp.router(theme: PqTheme.light, routerConfig: router));
+    await tester.pumpWidget(MaterialApp.router(theme: PassqlTheme.light, routerConfig: router));
     await tester.pumpAndSettle();
 
-    expect(find.byType(PqTabBar), findsOneWidget);
+    expect(find.byType(PassqlTabBar), findsOneWidget);
     for (final label in ['홈', '문제', '통계', '설정']) {
       expect(find.text(label), findsNothing);
       expect(find.bySemanticsLabel(label), findsOneWidget);

@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 /// 앱 전체 색 토큰. 화면은 hex 값이 아니라 이 의미 이름으로만 색을 고른다.
 /// 값은 iOS 시스템 색(라이트/다크 쌍)을 따르고, 글자색은 대비 4.5:1을 넘게 조정했다.
 @immutable
-class PqColors extends ThemeExtension<PqColors> {
-  const PqColors({
+class PassqlColors extends ThemeExtension<PassqlColors> {
+  const PassqlColors({
     required this.accent,
     required this.onAccent,
     required this.accentTint,
@@ -46,7 +46,7 @@ class PqColors extends ThemeExtension<PqColors> {
   final Color fill;
   final Color glass;
 
-  static const light = PqColors(
+  static const light = PassqlColors(
     accent: Color(0xFF5856D6),
     onAccent: Color(0xFFFFFFFF),
     accentTint: Color(0x1F5856D6),
@@ -70,7 +70,7 @@ class PqColors extends ThemeExtension<PqColors> {
     glass: Color(0xB3F9F9F9),
   );
 
-  static const dark = PqColors(
+  static const dark = PassqlColors(
     accent: Color(0xFF5E5CE6),
     onAccent: Color(0xFFFFFFFF),
     accentTint: Color(0x335E5CE6),
@@ -93,7 +93,7 @@ class PqColors extends ThemeExtension<PqColors> {
   );
 
   @override
-  PqColors copyWith({Color? accent}) => PqColors(
+  PassqlColors copyWith({Color? accent}) => PassqlColors(
         accent: accent ?? this.accent,
         onAccent: onAccent,
         accentTint: accentTint,
@@ -116,29 +116,29 @@ class PqColors extends ThemeExtension<PqColors> {
       );
 
   @override
-  PqColors lerp(ThemeExtension<PqColors>? other, double t) {
-    if (other is! PqColors) return this;
-    Color l(Color a, Color b) => Color.lerp(a, b, t)!;
-    return PqColors(
-      accent: l(accent, other.accent),
-      onAccent: l(onAccent, other.onAccent),
-      accentTint: l(accentTint, other.accentTint),
-      correct: l(correct, other.correct),
-      correctText: l(correctText, other.correctText),
-      correctTint: l(correctTint, other.correctTint),
-      wrong: l(wrong, other.wrong),
-      wrongText: l(wrongText, other.wrongText),
-      wrongTint: l(wrongTint, other.wrongTint),
-      warning: l(warning, other.warning),
-      label: l(label, other.label),
-      secondaryLabel: l(secondaryLabel, other.secondaryLabel),
-      tertiaryLabel: l(tertiaryLabel, other.tertiaryLabel),
-      background: l(background, other.background),
-      card: l(card, other.card),
-      cardElevated: l(cardElevated, other.cardElevated),
-      separator: l(separator, other.separator),
-      fill: l(fill, other.fill),
-      glass: l(glass, other.glass),
+  PassqlColors lerp(ThemeExtension<PassqlColors>? other, double t) {
+    if (other is! PassqlColors) return this;
+    Color lerpColor(Color from, Color to) => Color.lerp(from, to, t)!;
+    return PassqlColors(
+      accent: lerpColor(accent, other.accent),
+      onAccent: lerpColor(onAccent, other.onAccent),
+      accentTint: lerpColor(accentTint, other.accentTint),
+      correct: lerpColor(correct, other.correct),
+      correctText: lerpColor(correctText, other.correctText),
+      correctTint: lerpColor(correctTint, other.correctTint),
+      wrong: lerpColor(wrong, other.wrong),
+      wrongText: lerpColor(wrongText, other.wrongText),
+      wrongTint: lerpColor(wrongTint, other.wrongTint),
+      warning: lerpColor(warning, other.warning),
+      label: lerpColor(label, other.label),
+      secondaryLabel: lerpColor(secondaryLabel, other.secondaryLabel),
+      tertiaryLabel: lerpColor(tertiaryLabel, other.tertiaryLabel),
+      background: lerpColor(background, other.background),
+      card: lerpColor(card, other.card),
+      cardElevated: lerpColor(cardElevated, other.cardElevated),
+      separator: lerpColor(separator, other.separator),
+      fill: lerpColor(fill, other.fill),
+      glass: lerpColor(glass, other.glass),
     );
   }
 }

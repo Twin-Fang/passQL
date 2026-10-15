@@ -7,7 +7,7 @@ import '../../data/models/meta/topic_tree.dart';
 final topicsProvider = FutureProvider<List<TopicTree>>((ref) async {
   final topics = await ref.read(metaApiProvider).getTopics();
   return topics
-      .where((t) => t.isActive == true)
+      .where((topic) => topic.isActive == true)
       .toList()
-    ..sort((a, b) => (a.sortOrder ?? 0).compareTo(b.sortOrder ?? 0));
+    ..sort((first, second) => (first.sortOrder ?? 0).compareTo(second.sortOrder ?? 0));
 });

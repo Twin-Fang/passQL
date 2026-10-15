@@ -117,10 +117,10 @@ class ChapterNotifier extends StateNotifier<ChapterState> {
         questionUuids: uuids,
         isLoadingList: false,
       );
-    } catch (e) {
+    } catch (exception) {
       state = state.copyWith(
         isLoadingList: false,
-        listError: e.asAppException.message,
+        listError: exception.asAppException.message,
       );
     }
   }

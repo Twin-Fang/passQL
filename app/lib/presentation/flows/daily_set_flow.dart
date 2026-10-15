@@ -63,7 +63,7 @@ class DailySetFlow extends QuestionFlow {
         message: '오늘의 세트가 아직 준비되지 않았어요.',
       );
     }
-    return today.questions.map((q) => q.questionUuid).toList();
+    return today.questions.map((question) => question.questionUuid).toList();
   }
 
   @override
@@ -73,7 +73,7 @@ class DailySetFlow extends QuestionFlow {
     ChapterSummary summary,
     String sessionUuid,
   ) async {
-    final correct = summary.results.where((r) => r.isCorrect).length;
+    final correct = summary.results.where((result) => result.isCorrect).length;
 
     DailySetCompleteResponse? completed;
     String? saveError;
@@ -83,8 +83,8 @@ class DailySetFlow extends QuestionFlow {
           .complete(
             DailySetCompleteRequest(correctCount: correct, sessionUuid: sessionUuid),
           );
-    } on DioException catch (e) {
-      final error = e.asAppException;
+    } on DioException catch (exception) {
+      final error = exception.asAppException;
       // 이미 등록된 경우는 결과를 그대로 보여주면 되고, 그 외는 순위 미반영을 알린다.
       if (error.code != ErrorCode.dailySetAlreadyCompleted) {
         saveError = error.message;

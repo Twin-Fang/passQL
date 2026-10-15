@@ -1,20 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../pq_theme.dart';
-import '../tokens/pq_metrics.dart';
-import '../tokens/pq_type.dart';
-import 'pq_pressable.dart';
+import '../passql_theme.dart';
+import '../tokens/passql_tokens.dart';
+import 'passql_pressable.dart';
 
 /// 그림자 없이 배경 대비로만 구분되는 카드.
-class PqCard extends StatelessWidget {
-  const PqCard({
+class PassqlCard extends StatelessWidget {
+  const PassqlCard({
     super.key,
     required this.child,
     this.title,
     this.trailing,
     this.onTap,
-    this.padding = const EdgeInsets.all(PqSpace.md),
+    this.padding = const EdgeInsets.all(PassqlSpacing.md),
   });
 
   final Widget child;
@@ -25,13 +24,13 @@ class PqCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     final body = Container(
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
-        color: c.card,
-        borderRadius: BorderRadius.circular(PqRadius.lg),
+        color: colors.card,
+        borderRadius: BorderRadius.circular(PassqlRadius.lg),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,18 +41,18 @@ class PqCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title!,
-                    style: PqType.headline.copyWith(color: c.label),
+                    style: PassqlTypography.headline.copyWith(color: colors.label),
                   ),
                 ),
                 ?trailing,
               ],
             ),
-            const SizedBox(height: PqSpace.sm),
+            const SizedBox(height: PassqlSpacing.sm),
           ],
           child,
         ],
       ),
     );
-    return onTap == null ? body : PqPressable(onTap: onTap, child: body);
+    return onTap == null ? body : PassqlPressable(onTap: onTap, child: body);
   }
 }

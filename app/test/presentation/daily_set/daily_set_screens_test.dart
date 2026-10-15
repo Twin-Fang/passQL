@@ -134,7 +134,7 @@ void main() {
       // 점수 고리가 점수와 ' / 총점'을 별개 Text 로 그린다.
       expect(find.text(' / 3'), findsOneWidget);
       expect(
-        find.descendant(of: find.byType(PqScoreHeader), matching: find.text('2')),
+        find.descendant(of: find.byType(PassqlScoreHeader), matching: find.text('2')),
         findsOneWidget,
       );
       expect(find.text('문제별 결과'), findsOneWidget);
@@ -195,7 +195,7 @@ void main() {
 
       expect(find.text(' / 5'), findsOneWidget);
       expect(
-        find.descendant(of: find.byType(PqScoreHeader), matching: find.text('4')),
+        find.descendant(of: find.byType(PassqlScoreHeader), matching: find.text('4')),
         findsOneWidget,
       );
       expect(find.text('문제별 결과'), findsNothing); // 기록에는 문제별 정오답이 없다

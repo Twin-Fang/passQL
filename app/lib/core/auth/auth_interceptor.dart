@@ -78,8 +78,8 @@ class AuthInterceptor extends Interceptor {
       options.headers['Authorization'] = 'Bearer $newAccessToken';
       final response = await retryDio.fetch<dynamic>(options);
       handler.resolve(response);
-    } on DioException catch (e) {
-      handler.next(e);
+    } on DioException catch (exception) {
+      handler.next(exception);
     }
   }
 
@@ -99,8 +99,8 @@ class AuthInterceptor extends Interceptor {
         refreshToken: result.refreshToken,
       );
       return result.accessToken;
-    } on DioException catch (e) {
-      final status = e.response?.statusCode;
+    } on DioException catch (exception) {
+      final status = exception.response?.statusCode;
       // 서버가 refreshToken 을 거부했을 때만(401/403) 세션을 지운다 → 다시 로그인해야 한다.
       // 네트워크 끊김, 타임아웃, 5xx 는 일시적일 수 있으므로 로그인을 유지하고 원래 오류만 전달한다.
       if (status == 401 || status == 403) {

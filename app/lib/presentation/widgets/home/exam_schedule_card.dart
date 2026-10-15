@@ -38,47 +38,47 @@ class ExamScheduleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
-    return PqCard(
+    final colors = context.passqlColors;
+    return PassqlCard(
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(CupertinoIcons.calendar, size: 14, color: c.accent),
-              const SizedBox(width: PqSpace.xxs),
+              Icon(CupertinoIcons.calendar, size: 14, color: colors.accent),
+              const SizedBox(width: PassqlSpacing.xxs),
               Text(
                 '시험 일정',
-                style: PqType.captionSemibold.copyWith(color: c.secondaryLabel),
+                style: PassqlTypography.captionSemibold.copyWith(color: colors.secondaryLabel),
               ),
             ],
           ),
-          const SizedBox(height: PqSpace.sm),
+          const SizedBox(height: PassqlSpacing.sm),
           if (schedule != null) ...[
             Text(
               _dday(schedule!.examDate),
-              style: PqType.title1.copyWith(color: c.accent),
+              style: PassqlTypography.title1.copyWith(color: colors.accent),
             ),
-            const SizedBox(height: PqSpace.xs),
+            const SizedBox(height: PassqlSpacing.xs),
             Text(
               '${schedule!.certType} ${schedule!.round}회',
-              style: PqType.subheadlineSemibold.copyWith(color: c.label),
+              style: PassqlTypography.subheadlineSemibold.copyWith(color: colors.label),
             ),
-            const SizedBox(height: PqSpace.xxs),
+            const SizedBox(height: PassqlSpacing.xxs),
             Text(
               _formatDate(schedule!.examDate),
-              style: PqType.caption.copyWith(color: c.secondaryLabel),
+              style: PassqlTypography.caption.copyWith(color: colors.secondaryLabel),
             ),
           ] else ...[
             Text(
               '선택된 일정 없음',
-              style: PqType.subheadline.copyWith(color: c.secondaryLabel),
+              style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
             ),
-            const SizedBox(height: PqSpace.xs),
+            const SizedBox(height: PassqlSpacing.xs),
             Text(
               '일정 선택하기',
-              style: PqType.captionSemibold.copyWith(color: c.accent),
+              style: PassqlTypography.captionSemibold.copyWith(color: colors.accent),
             ),
           ],
         ],

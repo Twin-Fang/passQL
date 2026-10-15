@@ -33,24 +33,24 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   // 내비게이션 바 + 진행 막대(4) 높이
   @override
-  Size get preferredSize => const Size.fromHeight(PqSize.navBar + 4);
+  Size get preferredSize => const Size.fromHeight(PassqlSize.navBar + 4);
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        PqNavBar(
+        PassqlNavBar(
           title: '${currentIndex + 1} / $total',
-          leading: PqNavLeading.close,
+          leading: PassqlNavLeading.close,
           onLeadingTap: () async {
             if (confirmExit && !await confirmChapterExit(context)) return;
             if (context.mounted) context.go('/home');
           },
           // 토픽 이름은 보조 정보라 오른쪽 작은 뱃지로 둔다.
-          trailing: PqBadge(text: topicName),
+          trailing: PassqlBadge(text: topicName),
         ),
-        PqProgressBar(value: _progress),
+        PassqlProgressBar(value: _progress),
       ],
     );
   }

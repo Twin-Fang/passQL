@@ -14,15 +14,15 @@ class MarkdownLiteText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
-    final base = PqType.subheadline.copyWith(color: c.label, height: 1.6);
+    final colors = context.passqlColors;
+    final base = PassqlTypography.subheadline.copyWith(color: colors.label, height: 1.6);
     final lines = text.replaceAll('\r\n', '\n').split('\n');
     final children = <Widget>[];
     for (final line in lines) {
       if (line.trim().isEmpty) {
         // 연속 빈 줄이 여러 번 간격을 만들지 않게 한 번만 둔다.
         if (children.isNotEmpty && children.last is! SizedBox) {
-          children.add(const SizedBox(height: PqSpace.sm));
+          children.add(const SizedBox(height: PassqlSpacing.sm));
         }
         continue;
       }
@@ -30,15 +30,15 @@ class MarkdownLiteText extends StatelessWidget {
       if (bullet != null) {
         children.add(
           Padding(
-            padding: const EdgeInsets.only(top: PqSpace.xxs),
+            padding: const EdgeInsets.only(top: PassqlSpacing.xxs),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  width: PqSpace.md,
+                  width: PassqlSpacing.md,
                   child: Text('•', style: base),
                 ),
-                Expanded(child: _rich(bullet.group(1)!, base, c)),
+                Expanded(child: _rich(bullet.group(1)!, base, colors)),
               ],
             ),
           ),
@@ -46,8 +46,8 @@ class MarkdownLiteText extends StatelessWidget {
       } else {
         children.add(
           Padding(
-            padding: const EdgeInsets.only(top: PqSpace.xxs),
-            child: _rich(line, base, c),
+            padding: const EdgeInsets.only(top: PassqlSpacing.xxs),
+            child: _rich(line, base, colors),
           ),
         );
       }
@@ -58,19 +58,19 @@ class MarkdownLiteText extends StatelessWidget {
     );
   }
 
-  Widget _rich(String line, TextStyle base, PqColors c) {
+  Widget _rich(String line, TextStyle base, PassqlColors colors) {
     final spans = <InlineSpan>[];
     var cursor = 0;
-    for (final m in _inlineRe.allMatches(line)) {
-      if (m.start > cursor) {
-        spans.add(TextSpan(text: line.substring(cursor, m.start)));
+    for (final match in _inlineRe.allMatches(line)) {
+      if (match.start > cursor) {
+        spans.add(TextSpan(text: line.substring(cursor, match.start)));
       }
-      if (m.group(1) != null) {
+      if (match.group(1) != null) {
         spans.add(
           TextSpan(
-            text: m.group(1),
-            style: PqType.subheadlineSemibold.copyWith(
-              color: c.label,
+            text: match.group(1),
+            style: PassqlTypography.subheadlineSemibold.copyWith(
+              color: colors.label,
               height: 1.6,
             ),
           ),
@@ -78,15 +78,15 @@ class MarkdownLiteText extends StatelessWidget {
       } else {
         spans.add(
           TextSpan(
-            text: m.group(2),
-            style: PqType.code.copyWith(
+            text: match.group(2),
+            style: PassqlTypography.code.copyWith(
               fontSize: (base.fontSize ?? 14) * 0.92,
-              backgroundColor: c.fill,
+              backgroundColor: colors.fill,
             ),
           ),
         );
       }
-      cursor = m.end;
+      cursor = match.end;
     }
     if (cursor < line.length) spans.add(TextSpan(text: line.substring(cursor)));
     return Text.rich(TextSpan(style: base, children: spans));

@@ -40,14 +40,14 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
     return Scaffold(
       // 하단 제출 바(글래스) 뒤로 본문이 비쳐 보이도록 body 를 바 아래까지 확장한다.
       extendBody: true,
-      appBar: PqNavBar(
+      appBar: PassqlNavBar(
         title: detailAsync.valueOrNull?.topicName ?? '문제 풀기',
-        leading: PqNavLeading.back,
+        leading: PassqlNavLeading.back,
         onLeadingTap: () => context.pop(),
       ),
       body: detailAsync.when(
-        loading: () => PqStatusView.loading(),
-        error: (e, _) => PqStatusView.error(
+        loading: () => PassqlStatusView.loading(),
+        error: (error, _) => PassqlStatusView.error(
           message: '문제를 불러올 수 없어요',
           onRetry: () =>
               ref.invalidate(questionDetailProvider(widget.questionUuid)),
@@ -130,7 +130,7 @@ class _QuestionDetailBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       padding: EdgeInsets.only(
-        bottom: MediaQuery.paddingOf(context).bottom + PqSpace.xl,
+        bottom: MediaQuery.paddingOf(context).bottom + PassqlSpacing.xl,
       ),
       children: [
         // 난이도 + 실행 모드 뱃지
@@ -157,8 +157,8 @@ class _QuestionDetailBody extends StatelessWidget {
         if (interaction.isExecuting)
           const Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: PqSpace.md,
-              vertical: PqSpace.xs,
+              horizontal: PassqlSpacing.md,
+              vertical: PassqlSpacing.xs,
             ),
             child: CupertinoActivityIndicator(),
           ),
@@ -171,7 +171,7 @@ class _QuestionDetailBody extends StatelessWidget {
                 ? () {
                     final selectedKey = interaction.selectedChoiceKey;
                     final selectedChoice = interaction.activeChoices
-                        .where((c) => c.key == selectedKey)
+                        .where((choice) => choice.key == selectedKey)
                         .firstOrNull;
                     AiExplainSheet.show(
                       context,

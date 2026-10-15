@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Apple Dynamic Type 단계를 Pretendard로 옮긴 글자 스타일. 색은 넣지 않는다(위젯이 토큰으로 정한다).
 /// 굵기마다 폰트 패밀리가 따로 등록돼 있어 fontWeight 대신 family로 굵기를 고른다.
-abstract final class PqType {
+abstract final class PassqlTypography {
   static const _regular = 'Pretendard-Regular';
   static const _medium = 'Pretendard-Medium';
   static const _semibold = 'Pretendard-SemiBold';

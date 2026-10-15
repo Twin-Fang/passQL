@@ -5,7 +5,7 @@ import '../../../data/models/meta/topic_tree.dart';
 import '../../design/design.dart';
 
 /// 토픽 선택 행. displayName + 서브토픽 개수 표시.
-/// PqGroupedSection 안에서 쓰는 목록 행이다.
+/// PassqlGroupedSection 안에서 쓰는 목록 행이다.
 class TopicCard extends StatelessWidget {
   final TopicTree topic;
   final VoidCallback onTap;
@@ -15,11 +15,11 @@ class TopicCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final activeSubtopicCount = topic.subtopics
-        .where((s) => s.isActive == true)
+        .where((subtopic) => subtopic.isActive == true)
         .length;
 
-    return PqListRow(
-      leading: PqIconTile(
+    return PassqlListRow(
+      leading: PassqlIconTile(
         icon: topicIconFor(topic.code),
         color: topicColor(topic.code, Theme.of(context).brightness),
       ),

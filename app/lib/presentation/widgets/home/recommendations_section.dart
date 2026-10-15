@@ -32,14 +32,14 @@ class RecommendationsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     if (questions.isEmpty) return const SizedBox.shrink();
 
-    return PqGroupedSection(
+    return PassqlGroupedSection(
       header: '추천 문제',
       children: [
-        for (final q in questions)
+        for (final question in questions)
           _QuestionRow(
-            question: q,
-            difficultyStars: _difficultyStars(q.difficulty),
-            onTap: () => onQuestionTap?.call(q.questionUuid),
+            question: question,
+            difficultyStars: _difficultyStars(question.difficulty),
+            onTap: () => onQuestionTap?.call(question.questionUuid),
           ),
       ],
     );
@@ -59,11 +59,11 @@ class _QuestionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
-    return PqPressable(
+    final colors = context.passqlColors;
+    return PassqlPressable(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.all(PqSpace.md),
+        padding: const EdgeInsets.all(PassqlSpacing.md),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -73,33 +73,33 @@ class _QuestionRow extends StatelessWidget {
                 children: [
                   if (question.topicName != null)
                     Padding(
-                      padding: const EdgeInsets.only(bottom: PqSpace.xs),
-                      child: PqBadge(text: question.topicName!),
+                      padding: const EdgeInsets.only(bottom: PassqlSpacing.xs),
+                      child: PassqlBadge(text: question.topicName!),
                     ),
                   Text(
                     stripCodeFences(question.stemPreview ?? ''),
-                    style: PqType.subheadline.copyWith(color: c.label),
+                    style: PassqlTypography.subheadline.copyWith(color: colors.label),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: PqSpace.xxs),
+                  const SizedBox(height: PassqlSpacing.xxs),
                   Text(
                     difficultyStars,
-                    style: PqType.caption.copyWith(
-                      color: c.warning,
+                    style: PassqlTypography.caption.copyWith(
+                      color: colors.warning,
                       letterSpacing: 2,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: PqSpace.xs),
+            const SizedBox(width: PassqlSpacing.xs),
             Padding(
-              padding: const EdgeInsets.only(top: PqSpace.xxs),
+              padding: const EdgeInsets.only(top: PassqlSpacing.xxs),
               child: Icon(
                 CupertinoIcons.chevron_forward,
                 size: 14,
-                color: c.tertiaryLabel,
+                color: colors.tertiaryLabel,
               ),
             ),
           ],

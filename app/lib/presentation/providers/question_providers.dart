@@ -167,10 +167,10 @@ class QuestionInteractionNotifier
           activeChoices: choices,
           clearSseError: true,
         );
-      case final SseErrorEvent err:
+      case final SseErrorEvent errorEvent:
         state = state.copyWith(
           isGeneratingChoices: false,
-          sseError: err,
+          sseError: errorEvent,
         );
     }
   }

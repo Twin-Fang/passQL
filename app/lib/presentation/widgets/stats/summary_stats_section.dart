@@ -20,11 +20,11 @@ class SummaryStatsSection extends StatelessWidget {
         Expanded(
           child: _StatCard(value: '$solved문제', label: '푼 문제'),
         ),
-        const SizedBox(width: PqSpace.sm),
+        const SizedBox(width: PassqlSpacing.sm),
         Expanded(
           child: _StatCard(value: '$rate%', label: '정답률'),
         ),
-        const SizedBox(width: PqSpace.sm),
+        const SizedBox(width: PassqlSpacing.sm),
         Expanded(
           child: _StatCard(value: '$streak일', label: '연속 학습'),
         ),
@@ -42,11 +42,11 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
-    return PqCard(
+    final colors = context.passqlColors;
+    return PassqlCard(
       padding: const EdgeInsets.symmetric(
-        vertical: PqSpace.lg,
-        horizontal: PqSpace.xs,
+        vertical: PassqlSpacing.lg,
+        horizontal: PassqlSpacing.xs,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -56,13 +56,13 @@ class _StatCard extends StatelessWidget {
             fit: BoxFit.scaleDown,
             child: Text(
               value,
-              style: PqType.title2.copyWith(color: c.label),
+              style: PassqlTypography.title2.copyWith(color: colors.label),
             ),
           ),
-          const SizedBox(height: PqSpace.xxs),
+          const SizedBox(height: PassqlSpacing.xxs),
           Text(
             label,
-            style: PqType.caption.copyWith(color: c.secondaryLabel),
+            style: PassqlTypography.caption.copyWith(color: colors.secondaryLabel),
           ),
         ],
       ),

@@ -42,7 +42,7 @@ Future<void> expectResultScaffold(
     ),
   );
   await tester.pumpAndSettle();
-  expect(find.byType(PqResultScaffold), findsOneWidget);
+  expect(find.byType(PassqlResultScaffold), findsOneWidget);
   expect(tester.takeException(), isNull);
 }
 
@@ -70,13 +70,13 @@ void main() {
       ),
     );
     expect(
-      find.descendant(of: find.byType(PqScoreHeader), matching: find.text('1')),
+      find.descendant(of: find.byType(PassqlScoreHeader), matching: find.text('1')),
       findsOneWidget,
     );
     expect(find.text(' / 2'), findsOneWidget);
     expect(find.byType(PageView), findsNothing);
     // 문항 행은 스크롤 밖에 있을 수 있어 skipOffstage 를 끈다.
-    expect(find.byType(PqListRow, skipOffstage: false), findsNWidgets(2));
+    expect(find.byType(PassqlListRow, skipOffstage: false), findsNWidgets(2));
     await tester.tap(find.text('완료'));
     await tester.pumpAndSettle();
     expect(find.text('홈 화면'), findsOneWidget);
@@ -122,7 +122,7 @@ void main() {
         ),
       ),
     );
-    final marks = tester.widgetList<PqResultMark>(find.byType(PqResultMark));
+    final marks = tester.widgetList<PassqlResultMark>(find.byType(PassqlResultMark));
     expect(marks.where((m) => m.large).length, 1);
     expect(find.text('정답이에요'), findsOneWidget);
     expect(find.text('정답'), findsOneWidget);

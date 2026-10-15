@@ -16,32 +16,32 @@ class TopicListPage extends ConsumerWidget {
     final topicsAsync = ref.watch(topicsProvider);
 
     return Scaffold(
-      backgroundColor: context.pq.background,
-      body: PqLargeTitleScrollView(
+      backgroundColor: context.passqlColors.background,
+      body: PassqlLargeTitleScrollView(
         title: '문제',
         slivers: [
           topicsAsync.when(
             loading: () => const SliverFillRemaining(
               hasScrollBody: false,
-              child: PqStatusView.loading(),
+              child: PassqlStatusView.loading(),
             ),
             // 다시 시도할 방법이 없으면 탭을 오가야 해서 버튼을 둔다 (#375).
-            error: (e, _) => SliverFillRemaining(
+            error: (error, _) => SliverFillRemaining(
               hasScrollBody: false,
-              child: PqStatusView.error(
+              child: PassqlStatusView.error(
                 message: '토픽을 불러올 수 없어요',
                 onRetry: () => ref.invalidate(topicsProvider),
               ),
             ),
             data: (topics) => SliverPadding(
               padding: const EdgeInsets.fromLTRB(
-                PqSpace.md,
-                PqSpace.md,
-                PqSpace.md,
+                PassqlSpacing.md,
+                PassqlSpacing.md,
+                PassqlSpacing.md,
                 0,
               ),
               sliver: SliverToBoxAdapter(
-                child: PqGroupedSection(
+                child: PassqlGroupedSection(
                   header: '학습할 토픽을 선택하세요',
                   children: [
                     for (final topic in topics)

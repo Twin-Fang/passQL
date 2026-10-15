@@ -30,9 +30,9 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
       await ref.read(tokenStoreProvider).save(result.session);
       state = AsyncData(result.session);
       return true;
-    } on DioException catch (e) {
+    } on DioException catch (exception) {
       // 네트워크/서버 오류를 사용자용 문구로 통일해 화면에 전달한다.
-      throw SocialSignInException(e.asAppException.message);
+      throw SocialSignInException(exception.asAppException.message);
     }
   }
 
@@ -70,8 +70,8 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
     if (!granted) return;
     try {
       await ref.read(memberApiProvider).withdraw();
-    } on DioException catch (e) {
-      throw e.asAppException;
+    } on DioException catch (exception) {
+      throw exception.asAppException;
     }
     await ref.read(tokenStoreProvider).clear();
     await ref.read(socialSignInProvider).signOut();

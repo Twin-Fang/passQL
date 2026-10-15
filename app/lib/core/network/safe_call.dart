@@ -10,8 +10,8 @@ import '../error/app_exception.dart';
 Future<T?> safeCall<T>(Future<T> call, {String? label}) async {
   try {
     return await call;
-  } catch (e) {
-    final error = e.asAppException;
+  } catch (exception) {
+    final error = exception.asAppException;
     if (error.isUnauthorized) rethrow;
     debugPrint('[safeCall${label != null ? ':$label' : ''}] $error');
     return null;
@@ -30,8 +30,8 @@ Future<List<Object?>> safeCallAll(
   final errors = <int, AppException>{};
   final results = await Future.wait([
     for (var i = 0; i < calls.length; i++)
-      calls[i].then<Object?>((v) => v).catchError((Object e) {
-        final error = e.asAppException;
+      calls[i].then<Object?>((v) => v).catchError((Object exception) {
+        final error = exception.asAppException;
         if (error.isUnauthorized) throw error;
         debugPrint('[safeCallAll:$i] $error');
         errors[i] = error;

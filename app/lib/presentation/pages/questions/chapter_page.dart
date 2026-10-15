@@ -113,7 +113,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
   Future<void> _complete(List<ChapterResult> results) async {
     if (_completing) return;
     setState(() => _completing = true);
-    final totalDurationMs = results.fold(0, (sum, r) => sum + r.durationMs);
+    final totalDurationMs = results.fold(0, (sum, result) => sum + result.durationMs);
     final summary = ChapterSummary(
       topicName: widget.flow.title,
       results: results,
@@ -154,7 +154,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     if (chapter.isLoadingList) {
       return _FlowStatusScaffold(
         topicName: widget.flow.title,
-        body: PqStatusView.loading(),
+        body: PassqlStatusView.loading(),
       );
     }
 
@@ -162,7 +162,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     if (chapter.listError != null || chapter.questionUuids.isEmpty) {
       return _FlowStatusScaffold(
         topicName: widget.flow.title,
-        body: PqStatusView.error(
+        body: PassqlStatusView.error(
           message: chapter.listError ?? '문제가 없어요',
           // 문제 목록을 다시 불러온다. (오늘의 세트를 이미 끝냈다면 다시 불러도 같은 안내가 나온다)
           onRetry: () => ref
@@ -193,8 +193,8 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
         confirmExit: started,
       ),
       body: detailAsync.when(
-        loading: () => PqStatusView.loading(),
-        error: (e, _) => PqStatusView.error(
+        loading: () => PassqlStatusView.loading(),
+        error: (error, _) => PassqlStatusView.error(
           message: '문제를 불러올 수 없어요',
           onRetry: () => ref.invalidate(questionDetailProvider(currentUuid)),
         ),
@@ -207,7 +207,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
           return Builder(
             builder: (context) => ListView(
               padding: EdgeInsets.only(
-                bottom: MediaQuery.paddingOf(context).bottom + PqSpace.xl,
+                bottom: MediaQuery.paddingOf(context).bottom + PassqlSpacing.xl,
               ),
               children: [
                 QuestionHeader(question: question),
@@ -233,8 +233,8 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
                 if (interaction.isExecuting)
                   const Padding(
                     padding: EdgeInsets.symmetric(
-                      horizontal: PqSpace.md,
-                      vertical: PqSpace.xs,
+                      horizontal: PassqlSpacing.md,
+                      vertical: PassqlSpacing.xs,
                     ),
                     child: CupertinoActivityIndicator(),
                   ),
@@ -251,7 +251,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
                         ? () {
                             final selectedChoice = interaction.activeChoices
                                 .where(
-                                  (c) => c.key == interaction.selectedChoiceKey,
+                                  (choice) => choice.key == interaction.selectedChoiceKey,
                                 )
                                 .firstOrNull;
                             AiExplainSheet.show(
@@ -313,7 +313,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
         if (_completing) ...[
           ModalBarrier(
             dismissible: false,
-            color: context.pq.label.withValues(alpha: 0.2),
+            color: context.passqlColors.label.withValues(alpha: 0.2),
           ),
           const Center(child: CupertinoActivityIndicator(radius: 14)),
         ],
@@ -344,9 +344,9 @@ class _FlowStatusScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PqNavBar(
+      appBar: PassqlNavBar(
         title: topicName,
-        leading: PqNavLeading.close,
+        leading: PassqlNavLeading.close,
         onLeadingTap: () => GoRouter.of(context).go('/home'),
       ),
       body: body,

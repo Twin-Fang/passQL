@@ -16,10 +16,10 @@ typedef ReportTarget = ({String questionUuid, String submissionUuid});
 final reportStatusProvider = FutureProvider.autoDispose
     .family<bool, ReportTarget>((ref, target) async {
       try {
-        final res = await ref
+        final response = await ref
             .read(reportApiProvider)
             .getReportStatus(target.questionUuid, target.submissionUuid);
-        return res.reported;
+        return response.reported;
       } on DioException {
         return false;
       }
@@ -57,8 +57,8 @@ class ReportSubmitter {
               detail: ReportValidator.detailFor(categories, detail),
             ),
           );
-    } on DioException catch (e) {
-      final error = e.asAppException;
+    } on DioException catch (exception) {
+      final error = exception.asAppException;
       if (error.code != ErrorCode.reportAlreadyExists) throw error;
     }
     _ref.invalidate(reportStatusProvider(target));

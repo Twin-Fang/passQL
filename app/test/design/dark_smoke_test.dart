@@ -26,7 +26,7 @@ import '../presentation/tab_pages_test.dart' show homeData, statsData, topics;
 /// - 예외(실측으로 확인되면 여기에 사유와 함께 추가): 현재 없음.
 ///   아이콘 타일/로고의 흰색 고정은 Text 가 아니라 Icon 이라 걸리지 않는다.
 Set<Color> _allowedTextColors() {
-  final c = PqColors.dark;
+  final c = PassqlColors.dark;
   return {
     c.label, c.secondaryLabel, c.tertiaryLabel, c.accent, c.onAccent,
     c.correctText, c.wrongText, c.correct, c.wrong, c.warning,
@@ -61,7 +61,7 @@ Future<void> _pumpTab(
   await tester.pumpWidget(
     ProviderScope(
       overrides: overrides,
-      child: MaterialApp(theme: PqTheme.dark, home: page),
+      child: MaterialApp(theme: PassqlTheme.dark, home: page),
     ),
   );
   await tester.pump();
@@ -90,12 +90,12 @@ void main() {
   });
 
   testWidgets('설정 다크', (tester) async {
-    await pumpSettings(tester, PqTheme.dark);
+    await pumpSettings(tester, PassqlTheme.dark);
     _expectNoLightText(tester);
   });
 
   testWidgets('로그인 다크', (tester) async {
-    await pumpLogin(tester, PqTheme.dark);
+    await pumpLogin(tester, PassqlTheme.dark);
     _expectNoLightText(tester);
   });
 
@@ -120,7 +120,7 @@ void main() {
           totalDurationMs: 30000,
         ),
       ),
-      theme: PqTheme.dark,
+      theme: PassqlTheme.dark,
     );
     _expectNoLightText(tester);
   });
@@ -147,7 +147,7 @@ void main() {
           ),
         ),
       ],
-      theme: PqTheme.dark,
+      theme: PassqlTheme.dark,
     );
     _expectNoLightText(tester);
   });

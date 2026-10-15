@@ -19,8 +19,8 @@ class WrongNotesSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.pq;
-    final async = ref.watch(wrongQuestionsProvider);
+    final colors = context.passqlColors;
+    final wrongQuestionsAsync = ref.watch(wrongQuestionsProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -28,39 +28,39 @@ class WrongNotesSection extends ConsumerWidget {
         if (showHeader)
           Padding(
             padding: const EdgeInsets.fromLTRB(
-              PqSpace.md,
+              PassqlSpacing.md,
               0,
-              PqSpace.md,
-              PqSpace.xs,
+              PassqlSpacing.md,
+              PassqlSpacing.xs,
             ),
             child: Row(
               children: [
-                Text('오답 노트', style: PqType.headline.copyWith(color: c.label)),
-                const SizedBox(width: PqSpace.xs),
-                if (async.valueOrNull case final data?)
+                Text('오답 노트', style: PassqlTypography.headline.copyWith(color: colors.label)),
+                const SizedBox(width: PassqlSpacing.xs),
+                if (wrongQuestionsAsync.valueOrNull case final data?)
                   Text(
                     '${data.totalCount}',
-                    style: PqType.subheadline.copyWith(color: c.accent),
+                    style: PassqlTypography.subheadline.copyWith(color: colors.accent),
                   ),
               ],
             ),
           ),
-        async.when(
+        wrongQuestionsAsync.when(
           loading: () => const Padding(
-            padding: EdgeInsets.all(PqSpace.xl),
-            child: PqStatusView.loading(),
+            padding: EdgeInsets.all(PassqlSpacing.xl),
+            child: PassqlStatusView.loading(),
           ),
-          error: (e, _) => PqStatusView.error(
-            message: e.asAppException.message,
+          error: (error, _) => PassqlStatusView.error(
+            message: error.asAppException.message,
             onRetry: () => ref.invalidate(wrongQuestionsProvider),
           ),
           data: (data) => data.items.isEmpty
-              ? PqStatusView.empty(
+              ? PassqlStatusView.empty(
                   icon: CupertinoIcons.checkmark_seal,
                   title: '아직 틀린 문제가 없어요',
                   message: '문제를 풀면 오답이 여기에 쌓여요',
                 )
-              : PqGroupedSection(
+              : PassqlGroupedSection(
                   children: [
                     for (final item in data.items) _WrongRow(item: item),
                   ],
@@ -78,26 +78,26 @@ class _WrongRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     final when = formatRelativeDay(item.lastWrongAt);
     final meta = [
       if (item.topicName != null) item.topicName!,
       if (when.isNotEmpty) when,
     ].join(' · ');
 
-    return PqPressable(
+    return PassqlPressable(
       onTap: () => context.push(AppRoutes.questionDetail(item.questionUuid)),
       semanticLabel: item.stemPreview,
       child: Padding(
         padding: const EdgeInsets.symmetric(
-          horizontal: PqSpace.md,
-          vertical: PqSpace.sm,
+          horizontal: PassqlSpacing.md,
+          vertical: PassqlSpacing.sm,
         ),
         child: Row(
           children: [
-            // 아이콘만 쓰면 오답 표식이 글자 없이 들어간다(PqResultMark 는 라벨이 붙는다).
-            Icon(CupertinoIcons.xmark_circle_fill, size: 20, color: c.wrong),
-            const SizedBox(width: PqSpace.sm),
+            // 아이콘만 쓰면 오답 표식이 글자 없이 들어간다(PassqlResultMark 는 라벨이 붙는다).
+            Icon(CupertinoIcons.xmark_circle_fill, size: 20, color: colors.wrong),
+            const SizedBox(width: PassqlSpacing.sm),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,23 +106,23 @@ class _WrongRow extends StatelessWidget {
                     stripCodeFences(item.stemPreview),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: PqType.subheadline.copyWith(color: c.label),
+                    style: PassqlTypography.subheadline.copyWith(color: colors.label),
                   ),
                   if (meta.isNotEmpty) ...[
-                    const SizedBox(height: PqSpace.xxs),
+                    const SizedBox(height: PassqlSpacing.xxs),
                     Text(
                       meta,
-                      style: PqType.caption.copyWith(color: c.tertiaryLabel),
+                      style: PassqlTypography.caption.copyWith(color: colors.tertiaryLabel),
                     ),
                   ],
                 ],
               ),
             ),
-            const SizedBox(width: PqSpace.xs),
+            const SizedBox(width: PassqlSpacing.xs),
             Icon(
               CupertinoIcons.chevron_forward,
               size: 14,
-              color: c.tertiaryLabel,
+              color: colors.tertiaryLabel,
             ),
           ],
         ),

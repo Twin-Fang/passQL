@@ -16,7 +16,7 @@ class NicknameEditSheet extends ConsumerStatefulWidget {
   final String currentNickname;
 
   static Future<bool?> show(BuildContext context, String currentNickname) {
-    return showPqSheet<bool>(
+    return showPassqlSheet<bool>(
       context,
       title: '닉네임 변경',
       builder: (_) => NicknameEditSheet(currentNickname: currentNickname),
@@ -82,9 +82,9 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
           error: !available,
         );
       });
-    } on AppException catch (e) {
+    } on AppException catch (exception) {
       if (!mounted) return;
-      setState(() => _setMessage(e.message, error: true));
+      setState(() => _setMessage(exception.message, error: true));
     } finally {
       if (mounted) setState(() => _checking = false);
     }
@@ -99,19 +99,19 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
       await ref.read(nicknameNotifierProvider.notifier).change(_value);
       if (!mounted) return;
       Navigator.of(context).pop(true);
-    } on AppException catch (e) {
+    } on AppException catch (exception) {
       // 쿨다운(NICKNAME_COOLDOWN) 등 서버 거절 사유가 그대로 보인다.
       if (!mounted) return;
       setState(() {
         _saving = false;
-        _setMessage(e.message, error: true);
+        _setMessage(exception.message, error: true);
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     final formatError = NicknameValidator.validate(_value);
     final hint = formatError ?? _message;
     final hintIsError = formatError != null || _messageIsError;
@@ -119,10 +119,10 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
     return Padding(
       // 키보드가 올라와도 입력창이 가려지지 않게 한다.
       padding: EdgeInsets.fromLTRB(
-        PqSpace.md,
-        PqSpace.xxs,
-        PqSpace.md,
-        PqSpace.md,
+        PassqlSpacing.md,
+        PassqlSpacing.xxs,
+        PassqlSpacing.md,
+        PassqlSpacing.md,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -130,44 +130,44 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
         children: [
           Text(
             '변경 후 3일간은 다시 바꿀 수 없어요',
-            style: PqType.subheadline.copyWith(color: c.secondaryLabel),
+            style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
           ),
-          const SizedBox(height: PqSpace.md),
+          const SizedBox(height: PassqlSpacing.md),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: PqSpace.md,
-                    vertical: PqSpace.sm,
+                    horizontal: PassqlSpacing.md,
+                    vertical: PassqlSpacing.sm,
                   ),
                   decoration: BoxDecoration(
-                    color: c.fill,
-                    borderRadius: BorderRadius.circular(PqRadius.md),
+                    color: colors.fill,
+                    borderRadius: BorderRadius.circular(PassqlRadius.md),
                   ),
                   child: TextField(
                     controller: _controller,
                     autofocus: true,
                     maxLength: NicknameValidator.maxLength,
-                    style: PqType.body.copyWith(color: c.label),
-                    cursorColor: c.accent,
+                    style: PassqlTypography.body.copyWith(color: colors.label),
+                    cursorColor: colors.accent,
                     onChanged: (_) => setState(() {
                       // 확인한 값과 달라지면 이전 결과 안내는 지운다.
                       if (_verified != _value) _setMessage(null);
                     }),
                     decoration: InputDecoration.collapsed(
                       hintText: '한글, 영문, 숫자 2~10자',
-                      hintStyle: PqType.body.copyWith(color: c.tertiaryLabel),
+                      hintStyle: PassqlTypography.body.copyWith(color: colors.tertiaryLabel),
                     ).copyWith(counterText: ''),
                   ),
                 ),
               ),
-              const SizedBox(width: PqSpace.xs),
-              PqButton(
+              const SizedBox(width: PassqlSpacing.xs),
+              PassqlButton(
                 label: '중복확인',
-                variant: PqButtonVariant.tinted,
-                size: PqButtonSize.regular,
+                variant: PassqlButtonVariant.tinted,
+                size: PassqlButtonSize.regular,
                 expand: false,
                 loading: _checking,
                 onPressed: _canCheck ? _check : null,
@@ -182,14 +182,14 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
                   ? null
                   : Text(
                       hint,
-                      style: PqType.caption.copyWith(
-                        color: hintIsError ? c.wrongText : c.accent,
+                      style: PassqlTypography.caption.copyWith(
+                        color: hintIsError ? colors.wrongText : colors.accent,
                       ),
                     ),
             ),
           ),
-          const SizedBox(height: PqSpace.xs),
-          PqButton(
+          const SizedBox(height: PassqlSpacing.xs),
+          PassqlButton(
             label: '저장',
             loading: _saving,
             onPressed: _canSave ? _save : null,

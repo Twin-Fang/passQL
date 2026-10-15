@@ -72,10 +72,10 @@ class SettingsPage extends ConsumerWidget {
     try {
       // 성공하면 로그인 상태가 풀려 라우터가 로그인 화면으로 보낸다.
       await ref.read(authProvider.notifier).withdraw();
-    } on AppException catch (e) {
-      failure = e.message;
-    } on SocialSignInException catch (e) {
-      failure = e.message;
+    } on AppException catch (exception) {
+      failure = exception.message;
+    } on SocialSignInException catch (exception) {
+      failure = exception.message;
     } catch (_) {
       failure = '탈퇴에 실패했어요. 잠시 후 다시 시도해 주세요.';
     }
@@ -100,7 +100,7 @@ class SettingsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     final settingsAsync = ref.watch(settingsDataProvider);
     final nicknameAsync = ref.watch(nicknameNotifierProvider);
     final wrongCount = ref
@@ -110,15 +110,15 @@ class SettingsPage extends ConsumerWidget {
     final data = settingsAsync.valueOrNull;
 
     return Scaffold(
-      backgroundColor: c.background,
-      body: PqLargeTitleScrollView(
+      backgroundColor: colors.background,
+      body: PassqlLargeTitleScrollView(
         title: '설정',
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(
-              PqSpace.md,
-              PqSpace.md,
-              PqSpace.md,
+              PassqlSpacing.md,
+              PassqlSpacing.md,
+              PassqlSpacing.md,
               0,
             ),
             sliver: SliverList.list(
@@ -126,7 +126,7 @@ class SettingsPage extends ConsumerWidget {
                 // 프로필: 닉네임만 보여 주고, 내부 식별자(회원 ID)는 하단으로 내린다.
                 settingsAsync.when(
                   loading: () => const _ProfileSkeleton(),
-                  error: (e, _) => _ProfileError(
+                  error: (error, _) => _ProfileError(
                     onRetry: () => ref.invalidate(settingsDataProvider),
                   ),
                   data: (data) {
@@ -150,24 +150,24 @@ class SettingsPage extends ConsumerWidget {
                     );
                   },
                 ),
-                const SizedBox(height: PqSpace.xl),
+                const SizedBox(height: PassqlSpacing.xl),
                 const SettingsGroup(title: '학습', children: [ChoiceModeTile()]),
-                const SizedBox(height: PqSpace.xl),
+                const SizedBox(height: PassqlSpacing.xl),
                 const SettingsGroup(title: '화면', children: [ThemeModeTile()]),
-                const SizedBox(height: PqSpace.xl),
+                const SizedBox(height: PassqlSpacing.xl),
                 SettingsGroup(
                   title: '기록',
                   children: [
                     SettingsRow(
                       icon: CupertinoIcons.book,
-                      iconColor: c.wrong,
+                      iconColor: colors.wrong,
                       title: '오답 노트',
                       trailing: wrongCount == null ? null : Text('$wrongCount'),
                       onTap: () => context.push(AppRoutes.wrongNotes),
                     ),
                   ],
                 ),
-                const SizedBox(height: PqSpace.xl),
+                const SizedBox(height: PassqlSpacing.xl),
                 SettingsGroup(
                   title: '정보',
                   children: [
@@ -199,7 +199,7 @@ class SettingsPage extends ConsumerWidget {
                       ),
                   ],
                 ),
-                const SizedBox(height: PqSpace.xl),
+                const SizedBox(height: PassqlSpacing.xl),
                 SettingsGroup(
                   children: [
                     SettingsRow(
@@ -210,7 +210,7 @@ class SettingsPage extends ConsumerWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: PqSpace.xl),
+                const SizedBox(height: PassqlSpacing.xl),
                 // 회원 탈퇴 (스토어 심사 필수)
                 SettingsGroup(
                   children: [
@@ -223,7 +223,7 @@ class SettingsPage extends ConsumerWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: PqSpace.xl),
+                const SizedBox(height: PassqlSpacing.xl),
                 _Footer(memberUuid: data?.memberUuid),
               ],
             ),
@@ -250,9 +250,9 @@ class _ProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     final initial = nickname.isEmpty ? '?' : nickname.characters.first;
-    return PqCard(
+    return PassqlCard(
       child: Row(
         children: [
           Container(
@@ -260,21 +260,21 @@ class _ProfileCard extends StatelessWidget {
             height: 52,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: c.accentTint,
+              color: colors.accentTint,
               shape: BoxShape.circle,
             ),
             child: Text(
               initial,
-              style: PqType.title3.copyWith(color: c.accent),
+              style: PassqlTypography.title3.copyWith(color: colors.accent),
             ),
           ),
-          const SizedBox(width: PqSpace.sm),
+          const SizedBox(width: PassqlSpacing.sm),
           Expanded(
             child: Text(
               nickname,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: PqType.headline.copyWith(color: c.label),
+              style: PassqlTypography.headline.copyWith(color: colors.label),
             ),
           ),
           if (isRegenerating)
@@ -295,15 +295,15 @@ class _ProfileCard extends StatelessWidget {
                   child: Icon(
                     CupertinoIcons.arrow_clockwise,
                     size: 20,
-                    color: c.tertiaryLabel,
+                    color: colors.tertiaryLabel,
                   ),
                 ),
               ),
             ),
-          PqButton(
+          PassqlButton(
             label: '편집',
-            variant: PqButtonVariant.plain,
-            size: PqButtonSize.small,
+            variant: PassqlButtonVariant.plain,
+            size: PassqlButtonSize.small,
             expand: false,
             onPressed: onEdit,
           ),
@@ -319,7 +319,7 @@ class _ProfileSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      const PqSkeletonBox(height: 84, radius: PqRadius.lg);
+      const PassqlSkeletonBox(height: 84, radius: PassqlRadius.lg);
 }
 
 class _ProfileError extends StatelessWidget {
@@ -328,8 +328,8 @@ class _ProfileError extends StatelessWidget {
   final VoidCallback onRetry;
 
   @override
-  Widget build(BuildContext context) => PqCard(
-    child: PqStatusView.error(message: '정보를 불러오지 못했습니다.', onRetry: onRetry),
+  Widget build(BuildContext context) => PassqlCard(
+    child: PassqlStatusView.error(message: '정보를 불러오지 못했습니다.', onRetry: onRetry),
   );
 }
 
@@ -341,12 +341,12 @@ class _Footer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
-    final caption = PqType.caption.copyWith(color: c.tertiaryLabel);
+    final colors = context.passqlColors;
+    final caption = PassqlTypography.caption.copyWith(color: colors.tertiaryLabel);
     return Column(
       children: [
-        const PqLogo(height: 20),
-        const SizedBox(height: PqSpace.xs),
+        const PassqlLogo(height: 20),
+        const SizedBox(height: PassqlSpacing.xs),
         if (memberUuid != null)
           GestureDetector(
             onTap: () async {
@@ -355,7 +355,7 @@ class _Footer extends StatelessWidget {
               showAppToast(context, '회원 ID가 복사되었습니다.');
             },
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: PqSpace.xxs),
+              padding: const EdgeInsets.symmetric(vertical: PassqlSpacing.xxs),
               child: Text('회원 ID $memberUuid', style: caption),
             ),
           ),

@@ -15,17 +15,17 @@ class AppShell extends StatelessWidget {
 
   static const _paths = ['/home', '/questions', '/stats', '/settings'];
   static const _items = [
-    PqTabItem(icon: CupertinoIcons.house, activeIcon: CupertinoIcons.house_fill, label: '홈'),
-    PqTabItem(icon: CupertinoIcons.book, activeIcon: CupertinoIcons.book_fill, label: '문제'),
-    PqTabItem(icon: CupertinoIcons.chart_bar, activeIcon: CupertinoIcons.chart_bar_fill, label: '통계'),
-    PqTabItem(icon: CupertinoIcons.gear, activeIcon: CupertinoIcons.gear_solid, label: '설정'),
+    PassqlTabItem(icon: CupertinoIcons.house, activeIcon: CupertinoIcons.house_fill, label: '홈'),
+    PassqlTabItem(icon: CupertinoIcons.book, activeIcon: CupertinoIcons.book_fill, label: '문제'),
+    PassqlTabItem(icon: CupertinoIcons.chart_bar, activeIcon: CupertinoIcons.chart_bar_fill, label: '통계'),
+    PassqlTabItem(icon: CupertinoIcons.gear, activeIcon: CupertinoIcons.gear_solid, label: '설정'),
   ];
 
   /// 현재 경로에서 탭 인덱스 결정. 매칭 없으면 0(홈) 반환.
   int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
-    final idx = _paths.indexWhere(location.startsWith);
-    return idx < 0 ? 0 : idx;
+    final tabIndex = _paths.indexWhere(location.startsWith);
+    return tabIndex < 0 ? 0 : tabIndex;
   }
 
   @override
@@ -33,7 +33,7 @@ class AppShell extends StatelessWidget {
     return Scaffold(
       extendBody: true,
       body: child,
-      bottomNavigationBar: PqTabBar(
+      bottomNavigationBar: PassqlTabBar(
         items: _items,
         currentIndex: _currentIndex(context),
         onTap: (index) => context.go(_paths[index]),

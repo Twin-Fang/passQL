@@ -13,15 +13,15 @@ class WrongNotesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.pq.background,
-      appBar: PqNavBar(title: '오답 노트', leading: PqNavLeading.back),
+      backgroundColor: context.passqlColors.background,
+      appBar: PassqlNavBar(title: '오답 노트', leading: PassqlNavLeading.back),
       body: const SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
-            PqSpace.md,
-            PqSpace.xs,
-            PqSpace.md,
-            PqSpace.xl,
+            PassqlSpacing.md,
+            PassqlSpacing.xs,
+            PassqlSpacing.md,
+            PassqlSpacing.xl,
           ),
           child: WrongNotesSection(showHeader: false),
         ),

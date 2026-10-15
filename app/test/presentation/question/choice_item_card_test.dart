@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/data/models/question/choice_item.dart';
 import 'package:passql_app/data/models/question/submit_result.dart';
 import 'package:passql_app/presentation/design/design.dart';
-import 'package:passql_app/presentation/widgets/question/choice_card.dart';
+import 'package:passql_app/presentation/widgets/question/choice_item_card.dart';
+import 'package:passql_app/presentation/widgets/question/result_rows_table.dart';
 
 import '../../helpers/pump_app.dart';
 
@@ -22,38 +23,38 @@ void main() {
   });
 
   test('채점 전에는 선택한 것만 selected', () {
-    expect(choiceStateFor(key: 'A', selectedKey: 'A'), PqChoiceState.selected);
-    expect(choiceStateFor(key: 'B', selectedKey: 'A'), PqChoiceState.idle);
+    expect(resolveChoiceState(key: 'A', selectedKey: 'A'), PassqlChoiceState.selected);
+    expect(resolveChoiceState(key: 'B', selectedKey: 'A'), PassqlChoiceState.idle);
   });
 
   test('오답 제출 후: 정답 correct, 내 선택 wrong, 나머지 dimmed', () {
     final r = result(isCorrect: false, correctKey: 'C');
-    expect(choiceStateFor(key: 'C', selectedKey: 'A', result: r), PqChoiceState.correct);
-    expect(choiceStateFor(key: 'A', selectedKey: 'A', result: r), PqChoiceState.wrong);
-    expect(choiceStateFor(key: 'B', selectedKey: 'A', result: r), PqChoiceState.dimmed);
+    expect(resolveChoiceState(key: 'C', selectedKey: 'A', result: r), PassqlChoiceState.correct);
+    expect(resolveChoiceState(key: 'A', selectedKey: 'A', result: r), PassqlChoiceState.wrong);
+    expect(resolveChoiceState(key: 'B', selectedKey: 'A', result: r), PassqlChoiceState.dimmed);
   });
 
   test('정답 제출 후: 내 선택이 correct, 나머지 dimmed', () {
     final r = result(isCorrect: true, correctKey: 'A');
-    expect(choiceStateFor(key: 'A', selectedKey: 'A', result: r), PqChoiceState.correct);
-    expect(choiceStateFor(key: 'B', selectedKey: 'A', result: r), PqChoiceState.dimmed);
+    expect(resolveChoiceState(key: 'A', selectedKey: 'A', result: r), PassqlChoiceState.correct);
+    expect(resolveChoiceState(key: 'B', selectedKey: 'A', result: r), PassqlChoiceState.dimmed);
   });
 
   testWidgets('SQL 선택지는 코드 블록으로, 글자 크기 2배에서도 넘치지 않는다', (tester) async {
     await tester.pumpWidget(MaterialApp(
-      theme: PqTheme.light,
+      theme: PassqlTheme.light,
       home: MediaQuery(
         data: const MediaQueryData(size: Size(390, 844), textScaler: TextScaler.linear(2)),
         child: Scaffold(
-          body: ChoiceCard(
+          body: ChoiceItemCard(
             item: const ChoiceItem(key: 'A', kind: 'SQL', body: 'SELECT ename FROM emp WHERE sal > 1000;'),
-            state: PqChoiceState.idle,
+            state: PassqlChoiceState.idle,
             onTap: () {},
           ),
         ),
       ),
     ));
-    expect(find.byType(PqCodeBlock), findsOneWidget);
+    expect(find.byType(PassqlCodeBlock), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -62,13 +63,13 @@ void main() {
       tester,
       MaterialApp(
         home: Scaffold(
-          body: ChoiceCard(
+          body: ChoiceItemCard(
             item: const ChoiceItem(
               key: 'A',
               kind: 'TEXT',
               body: '[{"NAME":"홍길동","RNK":1},{"NAME":"김영희","RNK":1}]',
             ),
-            state: PqChoiceState.idle,
+            state: PassqlChoiceState.idle,
             onTap: () {},
           ),
         ),

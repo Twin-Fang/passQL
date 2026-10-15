@@ -1,23 +1,22 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../pq_theme.dart';
-import '../tokens/pq_metrics.dart';
-import '../tokens/pq_type.dart';
-import 'pq_pressable.dart';
+import '../passql_theme.dart';
+import '../tokens/passql_tokens.dart';
+import 'passql_pressable.dart';
 
-enum PqButtonVariant { filled, tinted, plain, destructive }
+enum PassqlButtonVariant { filled, tinted, plain, destructive }
 
-enum PqButtonSize { large, regular, small }
+enum PassqlButtonSize { large, regular, small }
 
 /// 앱의 모든 버튼. 화면에서 ElevatedButton 등을 직접 꾸미지 않는다.
-class PqButton extends StatelessWidget {
-  const PqButton({
+class PassqlButton extends StatelessWidget {
+  const PassqlButton({
     super.key,
     required this.label,
     required this.onPressed,
-    this.variant = PqButtonVariant.filled,
-    this.size = PqButtonSize.large,
+    this.variant = PassqlButtonVariant.filled,
+    this.size = PassqlButtonSize.large,
     this.loading = false,
     this.icon,
     this.expand = true,
@@ -25,36 +24,36 @@ class PqButton extends StatelessWidget {
 
   final String label;
   final VoidCallback? onPressed;
-  final PqButtonVariant variant;
-  final PqButtonSize size;
+  final PassqlButtonVariant variant;
+  final PassqlButtonSize size;
   final bool loading;
   final IconData? icon;
   final bool expand;
 
   @override
   Widget build(BuildContext context) {
-    final c = context.pq;
+    final colors = context.passqlColors;
     final enabled = onPressed != null && !loading;
     final (Color bg, Color fg) = switch (variant) {
-      _ when !enabled && variant != PqButtonVariant.plain => (
-        c.fill,
-        c.tertiaryLabel,
+      _ when !enabled && variant != PassqlButtonVariant.plain => (
+        colors.fill,
+        colors.tertiaryLabel,
       ),
-      _ when !enabled => (Colors.transparent, c.tertiaryLabel),
-      PqButtonVariant.filled => (c.accent, c.onAccent),
-      PqButtonVariant.tinted => (c.accentTint, c.accent),
-      PqButtonVariant.plain => (Colors.transparent, c.accent),
-      PqButtonVariant.destructive => (c.wrongTint, c.wrong),
+      _ when !enabled => (Colors.transparent, colors.tertiaryLabel),
+      PassqlButtonVariant.filled => (colors.accent, colors.onAccent),
+      PassqlButtonVariant.tinted => (colors.accentTint, colors.accent),
+      PassqlButtonVariant.plain => (Colors.transparent, colors.accent),
+      PassqlButtonVariant.destructive => (colors.wrongTint, colors.wrong),
     };
     final minHeight = switch (size) {
-      PqButtonSize.large => PqSize.buttonLarge,
-      PqButtonSize.regular => PqSize.buttonRegular,
-      PqButtonSize.small => PqSize.buttonSmall,
+      PassqlButtonSize.large => PassqlSize.buttonLarge,
+      PassqlButtonSize.regular => PassqlSize.buttonRegular,
+      PassqlButtonSize.small => PassqlSize.buttonSmall,
     };
     final text =
-        (size == PqButtonSize.small
-                ? PqType.subheadlineSemibold
-                : PqType.headline)
+        (size == PassqlButtonSize.small
+                ? PassqlTypography.subheadlineSemibold
+                : PassqlTypography.headline)
             .copyWith(color: fg);
     final content = loading
         ? CupertinoActivityIndicator(color: fg)
@@ -63,14 +62,14 @@ class PqButton extends StatelessWidget {
             children: [
               if (icon != null) ...[
                 Icon(icon, size: 18, color: fg),
-                const SizedBox(width: PqSpace.xs),
+                const SizedBox(width: PassqlSpacing.xs),
               ],
               Flexible(
                 child: Text(label, style: text, textAlign: TextAlign.center),
               ),
             ],
           );
-    return PqPressable(
+    return PassqlPressable(
       onTap: enabled ? onPressed : null,
       semanticLabel: label,
       child: ConstrainedBox(
@@ -83,13 +82,13 @@ class PqButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: bg,
             borderRadius: BorderRadius.circular(
-              size == PqButtonSize.small ? PqRadius.capsule : PqRadius.md,
+              size == PassqlButtonSize.small ? PassqlRadius.capsule : PassqlRadius.md,
             ),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: PqSpace.md,
-              vertical: PqSpace.xs,
+              horizontal: PassqlSpacing.md,
+              vertical: PassqlSpacing.xs,
             ),
             // heightFactor 가 없으면 Center 가 세로로 가득 차 버튼이 화면 높이만큼 늘어난다.
             child: Center(

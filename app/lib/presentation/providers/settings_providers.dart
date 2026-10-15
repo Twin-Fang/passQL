@@ -67,22 +67,22 @@ class NicknameNotifier extends AsyncNotifier<String?> {
   /// 닉네임 사용 가능 여부. 이미 쓰는 닉네임이면 false.
   Future<bool> isAvailable(String nickname) async {
     try {
-      final res = await ref.read(memberApiProvider).checkNickname(nickname);
-      return res.available;
-    } on DioException catch (e) {
-      throw e.asAppException;
+      final response = await ref.read(memberApiProvider).checkNickname(nickname);
+      return response.available;
+    } on DioException catch (exception) {
+      throw exception.asAppException;
     }
   }
 
   /// 닉네임 직접 변경. 성공하면 로그인 세션의 닉네임을 새 값으로 바꾼다.
   Future<void> change(String nickname) async {
     try {
-      final res = await ref
+      final response = await ref
           .read(memberApiProvider)
           .changeNickname(NicknameChangeRequest(nickname));
-      await ref.read(authProvider.notifier).updateNickname(res.nickname);
-    } on DioException catch (e) {
-      throw e.asAppException;
+      await ref.read(authProvider.notifier).updateNickname(response.nickname);
+    } on DioException catch (exception) {
+      throw exception.asAppException;
     }
   }
 }
@@ -109,9 +109,9 @@ class ChoiceModeNotifier extends AsyncNotifier<ChoiceGenerationMode> {
       await ref
           .read(memberApiProvider)
           .updateChoiceGenerationMode(ChoiceModeRequest(mode));
-    } on DioException catch (e) {
+    } on DioException catch (exception) {
       if (previous != null) state = AsyncData(previous);
-      throw e.asAppException;
+      throw exception.asAppException;
     }
   }
 }

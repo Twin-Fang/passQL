@@ -52,8 +52,8 @@ class PassqlApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'passQL',
       debugShowCheckedModeBanner: false,
-      theme: PqTheme.light,
-      darkTheme: PqTheme.dark,
+      theme: PassqlTheme.light,
+      darkTheme: PassqlTheme.dark,
       // 설정 > 화면 모드에서 고른 값(기본: 시스템 설정 따르기).
       themeMode: ref.watch(themeModeProvider),
       routerConfig: AppRouter.router,
