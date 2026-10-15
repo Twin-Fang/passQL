@@ -39,12 +39,12 @@ function updateExportButtonState() {
         exportLabel.textContent = count > 0 ? `선택 내보내기 (${count})` : '선택 내보내기';
     }
 
-    // 선택 삭제 버튼 상태
+    // 선택 비활성화 버튼 상태
     const deleteBtn = document.getElementById('deleteSelectedBtn');
     const deleteLabel = document.getElementById('deleteSelectedLabel');
     if (deleteBtn && deleteLabel) {
         deleteBtn.disabled = count === 0;
-        deleteLabel.textContent = count > 0 ? `선택 삭제 (${count})` : '선택 삭제';
+        deleteLabel.textContent = count > 0 ? `선택 비활성화 (${count})` : '선택 비활성화';
     }
 
     // 선택 색인 버튼 상태
@@ -99,16 +99,15 @@ async function indexSelected() {
     }
 }
 
-// ── 선택 일괄삭제 ─────────────────────────────────────────────
+// ── 선택 일괄 비활성화 ─────────────────────────────────────────
 
 /**
- * 선택된 문제들을 일괄삭제한다.
- * 확인 모달을 먼저 열고, 사용자가 확정하면 API 호출 후 페이지를 새로고침한다.
+ * 선택 문제 일괄 비활성화: 확인 모달 > 확정 시 API 호출 > 새로고침 (회원 기록 보존)
  */
 function deleteSelected() {
     const uuids = getSelectedUuids();
     if (uuids.length === 0) {
-        alert('삭제할 문제를 선택해주세요.');
+        alert('비활성화할 문제를 선택해주세요.');
         return;
     }
     // 확인 모달에 선택 개수를 표시하고 열기
@@ -118,7 +117,7 @@ function deleteSelected() {
 }
 
 /**
- * 일괄삭제 확인 후 실제 API를 호출한다.
+ * 일괄 비활성화 확인 후 API 호출
  */
 async function confirmBulkDelete() {
     const uuids = getSelectedUuids();
@@ -128,7 +127,7 @@ async function confirmBulkDelete() {
     const confirmBtn = document.getElementById('bulkDeleteConfirmBtn');
     if (confirmBtn) {
         confirmBtn.disabled = true;
-        confirmBtn.innerHTML = '<span class="loading loading-spinner loading-xs"></span> 삭제 중...';
+        confirmBtn.innerHTML = '<span class="loading loading-spinner loading-xs"></span> 비활성화 중...';
     }
 
     try {
@@ -141,8 +140,8 @@ async function confirmBulkDelete() {
         // ok 체크를 json 파싱 전에 수행 — 에러 응답이 HTML일 때 파싱 오류 방지
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}));
-            alert(err.message || '일괄삭제 실패');
-            if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = '삭제'; }
+            alert(err.message || '일괄 비활성화 실패');
+            if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = '비활성화'; }
             return;
         }
 
@@ -150,14 +149,14 @@ async function confirmBulkDelete() {
         document.getElementById('bulkDeleteModal').close();
 
         // 결과 알림 후 새로고침
-        const msg = `삭제 완료: ${result.deleted}건 삭제, ${result.skipped}건 스킵`;
+        const msg = `비활성화 완료: ${result.deactivated}건 비활성화, ${result.skipped}건 건너뜀`;
         alert(msg);
         location.reload();
     } catch (e) {
-        alert('삭제 오류: ' + e.message);
+        alert('비활성화 오류: ' + e.message);
         document.getElementById('bulkDeleteModal').close();
         // 네트워크 오류 등 예외 시 버튼 상태 복구
-        if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = '삭제'; }
+        if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = '비활성화'; }
     }
 }
 
