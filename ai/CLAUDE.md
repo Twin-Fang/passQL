@@ -66,7 +66,8 @@ tests/                            # pytest (계약 스냅샷·엔드포인트·�
 
 - 모든 설정은 `src/core/config.py`의 `settings` 한 곳에서 읽는다 (시스템 환경변수 > `.env.{ENVIRONMENT}` > `.env`).
 - 관리자 화면에서 바꾸는 값(Redis `passql:settings:*`)은 `redis_app_setting_client`만 읽는다:
-  `ai.gemini_api_key`, `ai.ollama_embed_model`. 없으면 `settings` 값.
+  `ai.gemini_api_key`. 없으면 `settings` 값.
+- 임베딩 모델은 `.env`의 `OLLAMA_EMBED_MODEL` 하나만 쓴다(관리자 설정 `ai.ollama_embed_model`은 읽지 않음, 운영 DB 값 `bge-m3`는 미사용 잔재).
 - Gemini 모델·프롬프트는 Spring이 요청마다 `llm_config`로 내려준다.
 - `EMBEDDING_VECTOR_DIMENSION`은 임베딩 모델에 묶여 있다. 모델을 바꾸면 차원도 바꾸고 Qdrant 컬렉션을 재생성·재색인한다.
 

@@ -5,7 +5,6 @@ import logging
 
 from src.clients.ollama_client import ollama_client
 from src.clients.qdrant_search_client import qdrant_search_client
-from src.clients.redis_app_setting_client import get_ollama_embed_model
 from src.core.config import settings
 from src.core.exceptions import CustomError
 from src.models.ai_request import (
@@ -73,11 +72,11 @@ class QuestionVectorIndexService:
         existing = await qdrant_search_client.get_vector(settings.QDRANT_COLLECTION, req.question_uuid)
         created = existing is None
 
-        # 임베딩 텍스트 생성 → qwen3-embedding:4b으로 임베딩
+        # 임베딩 (모델은 .env 한 곳: 컬렉션 차원과 묶여 있어 관리자 설정으로 바꾸지 않음)
         embed_text = self._build_embed_text(req)
-        embed_model = get_ollama_embed_model()
+        embed_model = settings.OLLAMA_EMBED_MODEL
         vector = await ollama_client.embed(model=embed_model, text=embed_text)
-        # 차원 불일치 (관리자가 임베딩 모델만 바꾼 경우) — Qdrant 업서트 전에 원인 명시
+        # 차원 불일치 (.env 모델만 바꾼 경우) > 업서트 전 원인 명시
         if len(vector) != settings.EMBEDDING_VECTOR_DIMENSION:
             raise CustomError(
                 f"임베딩 차원 불일치: model={embed_model}, dimension={len(vector)}, "

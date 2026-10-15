@@ -72,7 +72,3 @@ def get_setting(key: str, fallback: str) -> str:
 def get_gemini_api_key() -> str:
     return get_setting("ai.gemini_api_key", settings.GEMINI_API_KEY)
 
-
-def get_ollama_embed_model() -> str:
-    """관리자 설정 ai.ollama_embed_model > .env OLLAMA_EMBED_MODEL"""
-    return get_setting("ai.ollama_embed_model", settings.OLLAMA_EMBED_MODEL)

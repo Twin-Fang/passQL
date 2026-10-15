@@ -3,7 +3,6 @@ from src.core.config import settings
 from src.clients.gemini_client import gemini_client
 from src.clients.ollama_client import ollama_client
 from src.clients.qdrant_search_client import qdrant_search_client
-from src.services import question_vector_index_service as question_vector_index_service_module
 
 LLM_CONFIG = {
     "model": "gemini-test",
@@ -184,7 +183,6 @@ def _fake_index_question_dependencies(monkeypatch, embedding_vector: list[float]
     async def fake_upsert(collection, point_id, vector, payload):
         recorded_calls["upserted_point_ids"].append(point_id)
 
-    monkeypatch.setattr(question_vector_index_service_module, "get_ollama_embed_model", lambda: "admin-embed-model")
     monkeypatch.setattr(qdrant_search_client, "create_collection_if_not_exists", fake_create_collection_if_not_exists)
     monkeypatch.setattr(qdrant_search_client, "get_vector", fake_get_vector)
     monkeypatch.setattr(qdrant_search_client, "upsert", fake_upsert)
@@ -192,14 +190,14 @@ def _fake_index_question_dependencies(monkeypatch, embedding_vector: list[float]
     return recorded_calls
 
 
-def test_index_question_embeds_with_admin_configured_model(api_client, monkeypatch):
+def test_index_question_embeds_with_env_configured_model(api_client, monkeypatch):
     recorded_calls = _fake_index_question_dependencies(
         monkeypatch, [0.0] * settings.EMBEDDING_VECTOR_DIMENSION
     )
     response = api_client.post("/api/ai/index-question", json=INDEX_QUESTION_REQUEST)
     assert response.status_code == 200
     assert response.json() == {"question_uuid": "question-1", "created": True}
-    assert recorded_calls == {"embed_models": ["admin-embed-model"], "upserted_point_ids": ["question-1"]}
+    assert recorded_calls == {"embed_models": [settings.OLLAMA_EMBED_MODEL], "upserted_point_ids": ["question-1"]}
 
 
 def test_index_question_rejects_embedding_dimension_mismatch(api_client, monkeypatch):
