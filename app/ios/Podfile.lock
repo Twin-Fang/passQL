@@ -21,6 +21,9 @@ PODS:
   - Firebase/Crashlytics (12.19.0):
     - Firebase/CoreOnly
     - FirebaseCrashlytics (~> 12.19.0)
+  - Firebase/Messaging (12.19.0):
+    - Firebase/CoreOnly
+    - FirebaseMessaging (~> 12.19.0)
   - firebase_analytics (12.6.0):
     - firebase_core
     - FirebaseAnalytics (= 12.19.0)
@@ -34,6 +37,10 @@ PODS:
     - Flutter
   - firebase_crashlytics (5.4.0):
     - Firebase/Crashlytics (= 12.19.0)
+    - firebase_core
+    - Flutter
+  - firebase_messaging (16.7.0):
+    - Firebase/Messaging (= 12.19.0)
     - firebase_core
     - Flutter
   - FirebaseAnalytics (12.19.0):
@@ -87,6 +94,15 @@ PODS:
     - GoogleUtilities/Environment (~> 8.1)
     - GoogleUtilities/UserDefaults (~> 8.1)
     - PromisesObjC (~> 2.4)
+  - FirebaseMessaging (12.19.0):
+    - FirebaseCore (~> 12.19.0)
+    - FirebaseInstallations (~> 12.19.0)
+    - GoogleDataTransport (~> 10.1)
+    - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
+    - GoogleUtilities/Environment (~> 8.1)
+    - GoogleUtilities/Reachability (~> 8.1)
+    - GoogleUtilities/UserDefaults (~> 8.1)
+    - nanopb (~> 3.30910.0)
   - FirebaseRemoteConfigInterop (12.19.0)
   - FirebaseSessions (12.19.0):
     - FirebaseCore (~> 12.19.0)
@@ -200,6 +216,7 @@ DEPENDENCIES:
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_crashlytics (from `.symlinks/plugins/firebase_crashlytics/ios`)
+  - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
   - Flutter (from `Flutter`)
   - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
   - google_sign_in_ios (from `.symlinks/plugins/google_sign_in_ios/darwin`)
@@ -222,6 +239,7 @@ SPEC REPOS:
     - FirebaseCoreInternal
     - FirebaseCrashlytics
     - FirebaseInstallations
+    - FirebaseMessaging
     - FirebaseRemoteConfigInterop
     - FirebaseSessions
     - GoogleAdsOnDeviceConversion
@@ -247,6 +265,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/firebase_core/ios"
   firebase_crashlytics:
     :path: ".symlinks/plugins/firebase_crashlytics/ios"
+  firebase_messaging:
+    :path: ".symlinks/plugins/firebase_messaging/ios"
   Flutter:
     :path: Flutter
   flutter_secure_storage:
@@ -271,6 +291,7 @@ SPEC CHECKSUMS:
   firebase_auth: 09023e4cff3162bed3375fb2f4f350b07c422206
   firebase_core: 55de508663ceda7d1dc369a32b327a5655019ae2
   firebase_crashlytics: 289a6a01605d663873a978d9daaa3648edc3f3b5
+  firebase_messaging: df68cb5feefa02766144a50fa5348362a0127008
   FirebaseAnalytics: e9f8c369447e453da23f0455a06e4910bad10de0
   FirebaseAppCheckInterop: bd4b791ffaed7ae719304af6369d243ddee5e4a0
   FirebaseAuth: 8c38236f67e5e3dd6aacf3e0c46b3eed31e9c820
@@ -280,6 +301,7 @@ SPEC CHECKSUMS:
   FirebaseCoreInternal: 656b1c2fd5a1c5976183dc54b73deda78fb26ee3
   FirebaseCrashlytics: 5c8e09beebcd41913b35250cd0e533b58e4961a0
   FirebaseInstallations: f70a49eed611f5602f373e40974b3b01556ac217
+  FirebaseMessaging: c15f48126adbe8b4d3238a5e1fa24bab3ad3e472
   FirebaseRemoteConfigInterop: 90659b3cac8f6de884f2d930fbdbeb711533e142
   FirebaseSessions: 39bcaa7c16b5d8b91d58f495f29ce2988d2f915c
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467

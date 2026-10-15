@@ -22,6 +22,7 @@ import com.passql.member.dto.NicknameCheckResponse;
 import com.passql.member.dto.NicknameRegenerateResponse;
 import com.passql.member.entity.Member;
 import com.passql.member.entity.MemberSuspendHistory;
+import com.passql.member.repository.MemberPushTokenRepository;
 import com.passql.member.repository.MemberRepository;
 import com.passql.member.repository.MemberSuspendHistoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +57,7 @@ public class MemberService {
     private final MemberSuspendHistoryRepository memberSuspendHistoryRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final MemberPushTokenRepository memberPushTokenRepository;
 
     /** 본인 정보 조회 + last_seen_at throttled 갱신. */
     @Transactional
@@ -127,6 +129,8 @@ public class MemberService {
         member.softDelete(deleteReason);
 
         refreshTokenRepository.delete(memberUuid);
+        // 탈퇴 회원 기기로 알림 발송 차단
+        memberPushTokenRepository.deleteAllByMemberUuid(memberUuid);
         MemberActivityLogger.recordMemberWithdrawn(memberUuid);
     }
 

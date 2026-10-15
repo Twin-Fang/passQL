@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 푸시 알림 기본 채널 (서버 PushDataKeys.ANDROID_CHANNEL_ID 와 같은 값) -->
+    <string name="default_notification_channel_id" translatable="false">passql_general</string>
+    <string name="default_notification_channel_name">passQL 알림</string>
+</resources>

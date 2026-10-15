@@ -1,7 +1,7 @@
 name: passql_app
 description: "passQL - SQL 학습 앱"
 publish_to: none
-version: 0.13.0+281
+version: 0.14.0+282
 environment:
   sdk: ^3.9.2
 dependencies:
@@ -42,6 +42,7 @@ dependencies:
   shared_preferences: ^2.5.5
   firebase_crashlytics: ^5.4.0
   firebase_analytics: ^12.6.0
+  firebase_messaging: ^16.7.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

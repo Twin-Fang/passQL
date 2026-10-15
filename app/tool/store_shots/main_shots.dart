@@ -13,16 +13,19 @@ import 'dart:convert';
 import 'dart:io' show File;
 
 import 'package:dio/dio.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:passql_app/core/auth/auth_session.dart';
 import 'package:passql_app/core/auth/token_store.dart';
 import 'package:passql_app/core/network/dio_client.dart';
+import 'package:passql_app/core/push/firebase_push_messaging_client.dart';
 import 'package:passql_app/main.dart' show PassqlApp;
 import 'package:passql_app/presentation/providers/auth_provider.dart';
 import 'package:passql_app/presentation/providers/chapter_providers.dart';
 import 'package:passql_app/presentation/providers/question_providers.dart';
+import 'package:passql_app/presentation/providers/push_notification_providers.dart';
 import 'package:passql_app/presentation/providers/theme_mode_provider.dart';
 import 'package:passql_app/router/app_launch_gate_routing.dart';
 import 'package:passql_app/router/app_router.dart';
@@ -318,6 +321,9 @@ class _FakeAdapter implements HttpClientAdapter {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
+  // 푸시 알림 탭 이동·포그라운드 토스트 확인용 (xcrun simctl push)
+  await Firebase.initializeApp();
+  await startFirebasePushMessaging();
 
   // 로그인 화면을 찍을 때는 세션을 지워 비로그인 상태로 시작하고, 그 외에는 로그인된 상태로 시작한다.
   final route = _readRoute();
@@ -347,6 +353,7 @@ Future<void> main() async {
   await AppLaunchGateRouting.bindAndLoad(container);
 
   runApp(UncontrolledProviderScope(container: container, child: const PassqlApp()));
+  startPushNotificationSync(container, AppRouter.router);
   // 첫 프레임 이후 지정한 화면으로 이동한다.
   if (!loggedOut) {
     Timer(const Duration(milliseconds: 2000), () => _openRoute(route, container));

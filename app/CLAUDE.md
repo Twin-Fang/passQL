@@ -26,6 +26,7 @@ lib/
 │   ├── monitoring/         # 오류 수집(CrashReporter)·분석(AppAnalytics, 이벤트 이름 상수) 공통 지점
 │   ├── network/            # dio_client, safe_call(safeCall·safeCallAll·SafeCallSlot),
 │   │                       # api_call(callApiThrowingAppException: Dio 오류 > AppException 공통 변환)
+│   ├── push/               # 푸시 SDK 포트(PushMessagingClient)·이동 허용 목록(PushLink). 등록·삭제는 data/push/PushNotificationService
 │   └── utils/ validation/
 ├── data/                   # presentation·router 를 import 하지 않는다
 │   ├── models/             # freezed 데이터 모델 (도메인별 폴더)
@@ -67,7 +68,7 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 | 테스트 | 막는 것 |
 |---|---|
 | `design_system_rules_test.dart` | pages·widgets·flows 에서 `Color(0x`, `Colors.white/black`, `Image.asset(`, `showModalBottomSheet(`, `showCupertinoDialog(`, `CupertinoActivityIndicator(` 직접 사용, `go('/...')`·`push('/...')` 라우트 문자열 |
-| `layer_dependency_test.dart` | core·data 의 presentation·router import, design 의 providers·pages·widgets·flows import, 화면의 `data/sources` 직접 import, core/monitoring 밖의 Crashlytics·Analytics SDK 직접 import |
+| `layer_dependency_test.dart` | core·data 의 presentation·router import, design 의 providers·pages·widgets·flows import, 화면의 `data/sources` 직접 import, core/monitoring 밖의 Crashlytics·Analytics SDK 직접 import, core/push 밖의 firebase_messaging 직접 import |
 
 - 예외는 각 테스트의 allow-list(`_allowedUsages`, `_allowedReverseImports`)에 파일과 **이유**를 적어서만 둔다. 비어 있는 것이 정상이다.
 
