@@ -2,6 +2,7 @@ package com.passql.application.service;
 
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.MemberActivityLogger;
 import com.passql.question.constant.CorrectionScope;
 import com.passql.question.constant.ReportCategory;
 import com.passql.question.constant.ReportStatus;
@@ -66,6 +67,7 @@ public class QuestionReportService {
                 .detail(detail)
                 .build();
         questionReportRepository.save(report);
+        MemberActivityLogger.recordQuestionReported(memberUuid, questionUuid, categories);
     }
 
     /** 신고 여부 조회 — questionUuid + memberUuid + submissionUuid 3중 조건으로 정합성 보장 */

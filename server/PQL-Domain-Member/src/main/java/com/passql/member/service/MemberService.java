@@ -1,5 +1,6 @@
 package com.passql.member.service;
 
+import com.passql.common.util.MemberActivityLogger;
 import com.passql.common.util.UuidUtils;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
@@ -101,7 +102,7 @@ public class MemberService {
         member.softDelete("SELF_WITHDRAW");
 
         refreshTokenRepository.delete(memberUuid);
-        log.info("Member withdrawn: uuid={}", memberUuid);
+        MemberActivityLogger.recordMemberWithdrawn(memberUuid);
     }
 
     /** 닉네임 재생성. */

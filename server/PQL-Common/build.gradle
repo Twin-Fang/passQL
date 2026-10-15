@@ -27,6 +27,8 @@ dependencies {
     api 'me.suhsaechan:suh-random-engine:1.1.0'
     api 'kr.suhsaechan:suh-logger:2.0.3'
     api 'kr.suhsaechan:suh-api-log:2.0.1'
+    // prod JSON 로그 인코더·행동 이벤트 구조화 필드(kv) (#476)
+    api 'net.logstash.logback:logstash-logback-encoder:8.1'
 
     // Google Gemini Java SDK
     api('com.google.genai:google-genai:1.75.0') {

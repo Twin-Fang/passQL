@@ -2,6 +2,7 @@ package com.passql.submission.service;
 
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.MemberActivityLogger;
 import com.passql.question.constant.ExecutionMode;
 import com.passql.question.dto.ExecuteResult;
 import com.passql.question.dto.SubmitResult;
@@ -128,6 +129,7 @@ public class SubmissionService {
         // 7. AI 코멘트 캐시: 세션 단위(ai-comment:{memberUuid}:{sessionUuid})로 전환됨.
         //    새 세션 시작 시 새 sessionUuid로 요청이 오므로 별도 evict 불필요.
 
+        MemberActivityLogger.recordAnswerSubmitted(memberUuid, questionUuid, isCorrect);
         return new SubmitResult(
                 isCorrect,
                 correct != null ? correct.getChoiceKey() : null,

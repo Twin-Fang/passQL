@@ -34,6 +34,9 @@ env:
   IN_FLIGHT_WAIT: "25"
   VOLUME_HOST_PATH: "/volume1/projects/passql/backend"
   VOLUME_CONTAINER_PATH: "/mnt"
+  # 컨테이너 로그 로테이션 (#476): NAS 기본 db 드라이버는 크기 제한 불가 > json-file 고정
+  CONTAINER_LOG_MAX_SIZE: "20m"      # 파일당 최대 크기
+  CONTAINER_LOG_MAX_FILE: "5"        # 보관 파일 수 (컨테이너당 최대 100MB)
 
 # 배포가 겹치면 두 실행이 같은 색 슬롯을 지운다 — 한 번에 하나만
 concurrency:
@@ -128,6 +131,8 @@ jobs:
           IN_FLIGHT_WAIT: ${{ env.IN_FLIGHT_WAIT }}
           VOLUME_HOST_PATH: ${{ env.VOLUME_HOST_PATH }}
           VOLUME_CONTAINER_PATH: ${{ env.VOLUME_CONTAINER_PATH }}
+          CONTAINER_LOG_MAX_SIZE: ${{ env.CONTAINER_LOG_MAX_SIZE }}
+          CONTAINER_LOG_MAX_FILE: ${{ env.CONTAINER_LOG_MAX_FILE }}
           SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -136,7 +141,7 @@ jobs:
           port: 2022
           command_timeout: 600s
           timeout: 60s
-          envs: PROJECT_NAME,IMAGE,SERVICE_DOMAIN,SPRING_PROFILE,CONTAINER_INTERNAL_PORT,TRAEFIK_NETWORK,TRAEFIK_ENTRYPOINT,TRAEFIK_INTERNAL_PORT,HEALTHCHECK_PATH,HEALTHCHECK_MAX_RETRIES,HEALTHCHECK_RETRY_INTERVAL,IN_FLIGHT_WAIT,VOLUME_HOST_PATH,VOLUME_CONTAINER_PATH,SERVER_PASSWORD
+          envs: PROJECT_NAME,IMAGE,SERVICE_DOMAIN,SPRING_PROFILE,CONTAINER_INTERNAL_PORT,TRAEFIK_NETWORK,TRAEFIK_ENTRYPOINT,TRAEFIK_INTERNAL_PORT,HEALTHCHECK_PATH,HEALTHCHECK_MAX_RETRIES,HEALTHCHECK_RETRY_INTERVAL,IN_FLIGHT_WAIT,VOLUME_HOST_PATH,VOLUME_CONTAINER_PATH,CONTAINER_LOG_MAX_SIZE,CONTAINER_LOG_MAX_FILE,SERVER_PASSWORD
           # projectops PROJECT-SPRING-NONSTOP-TRAEFIK-CICD 흐름을 passQL 모노레포·볼륨에 맞춘 것.
           # 새 색 컨테이너를 띄워 Traefik 경유 헬스체크가 통과한 뒤에만 구 색을 내린다 — 실패하면 구 색이 계속 서비스한다.
           script: |
@@ -144,7 +149,8 @@ jobs:
             export PATH=$PATH:/usr/local/bin
             SUDO() { echo "$SERVER_PASSWORD" | sudo -S "$@"; }
             ROUTER="${PROJECT_NAME}"
-            # 구 컨테이너를 지우면 로그도 사라진다 — 지우기 직전 볼륨에 압축 보관하고 30일 지난 것은 정리 (#436)
+            # 실행 중 로그는 docker 로테이션(max-size·max-file)이 상한 관리, 컨테이너 삭제 시 남은 로그는 볼륨에 압축 보관 (#436, #476)
+            # 보관본: {VOLUME_HOST_PATH}/logs/{컨테이너}-{yyyyMMdd-HHmmss}.log.gz, 30일 지난 것 정리
             LOG_DIR="${VOLUME_HOST_PATH}/logs"
             archive_logs() {
               SUDO mkdir -p "${LOG_DIR}"
@@ -175,6 +181,9 @@ jobs:
             SUDO docker run -d \
               --name "${NEW_NAME}" \
               --restart unless-stopped \
+              --log-driver json-file \
+              --log-opt "max-size=${CONTAINER_LOG_MAX_SIZE}" \
+              --log-opt "max-file=${CONTAINER_LOG_MAX_FILE}" \
               --health-cmd "${HEALTH_CMD}" \
               --health-interval 5s \
               --health-timeout 3s \
