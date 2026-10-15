@@ -179,6 +179,12 @@
                     </a>
                 </li>
                 <li>
+                    <a th:href="@{/admin/app-operation}" th:classappend="${currentMenu == 'app-operation'} ? 'active'">
+                        <i data-lucide="megaphone" class="size-5"></i>
+                        앱 운영
+                    </a>
+                </li>
+                <li>
                     <a th:href="@{/admin/settings}" th:classappend="${currentMenu == 'settings'} ? 'active'">
                         <i data-lucide="settings" class="size-5"></i>
                         앱 설정

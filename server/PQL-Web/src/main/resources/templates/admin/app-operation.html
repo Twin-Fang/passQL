@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<th:block layout:fragment="title">앱 운영</th:block>
+
+<th:block layout:fragment="content">
+    <div class="space-y-4">
+
+        <!-- 점검·버전 설정 -->
+        <div class="card bg-base-100 shadow">
+            <div class="card-body p-4 space-y-4">
+                <h3 class="card-title text-base">
+                    <i data-lucide="wrench" class="size-5"></i>
+                    점검 · 버전 설정
+                </h3>
+
+                <!-- 점검 -->
+                <div class="rounded-box border border-base-300 p-4 space-y-3">
+                    <label class="flex items-center gap-3 cursor-pointer w-fit">
+                        <input type="checkbox" id="isMaintenanceEnabled" class="toggle toggle-error"
+                               th:checked="${operationSettings.isMaintenanceEnabled}"/>
+                        <span class="font-semibold">점검 모드</span>
+                        <span id="maintenanceBadge" class="badge badge-error badge-sm"
+                              th:classappend="${operationSettings.isMaintenanceEnabled} ? '' : 'hidden'">점검 중</span>
+                    </label>
+                    <p class="text-xs text-base-content/60">
+                        켜면 앱은 점검 화면을 띄우고, 서버는 /api/meta·/api/auth 외 회원 API 를 503 으로 막습니다. 관리자 페이지는 영향 없음.
+                    </p>
+                    <textarea id="maintenanceMessage" class="textarea textarea-bordered w-full" rows="3" maxlength="500"
+                              placeholder="점검 문구 (비우면 앱 기본 문구: 더 나은 서비스를 위해 점검 중이에요)"
+                              th:text="${operationSettings.maintenanceMessage}"></textarea>
+                </div>
+
+                <!-- 버전 (플랫폼별) -->
+                <div class="grid gap-4 md:grid-cols-2">
+                    <div class="rounded-box border border-base-300 p-4 space-y-2">
+                        <h4 class="font-semibold flex items-center gap-2"><i data-lucide="apple" class="size-4"></i>iOS</h4>
+                        <label class="form-control">
+                            <span class="label-text text-xs">최소 지원 버전 (미만이면 사용 차단)</span>
+                            <input type="text" id="iosMinimumVersion" class="input input-bordered input-sm font-mono version-input"
+                                   placeholder="0.0.0" th:value="${operationSettings.iosMinimumVersion}"/>
+                        </label>
+                        <label class="form-control">
+                            <span class="label-text text-xs">권장 버전 (미만이면 업데이트 안내)</span>
+                            <input type="text" id="iosRecommendedVersion" class="input input-bordered input-sm font-mono version-input"
+                                   placeholder="0.0.0" th:value="${operationSettings.iosRecommendedVersion}"/>
+                        </label>
+                    </div>
+                    <div class="rounded-box border border-base-300 p-4 space-y-2">
+                        <h4 class="font-semibold flex items-center gap-2"><i data-lucide="smartphone" class="size-4"></i>Android</h4>
+                        <label class="form-control">
+                            <span class="label-text text-xs">최소 지원 버전 (미만이면 사용 차단)</span>
+                            <input type="text" id="androidMinimumVersion" class="input input-bordered input-sm font-mono version-input"
+                                   placeholder="0.0.0" th:value="${operationSettings.androidMinimumVersion}"/>
+                        </label>
+                        <label class="form-control">
+                            <span class="label-text text-xs">권장 버전 (미만이면 업데이트 안내)</span>
+                            <input type="text" id="androidRecommendedVersion" class="input input-bordered input-sm font-mono version-input"
+                                   placeholder="0.0.0" th:value="${operationSettings.androidRecommendedVersion}"/>
+                        </label>
+                    </div>
+                </div>
+                <p class="text-xs text-base-content/60">버전은 x.y.z 숫자 형식. 0.0.0 이면 차단·안내 없음. 스토어 링크는 앱 설정의 store.* 값을 사용.</p>
+
+                <div class="flex justify-end">
+                    <button class="btn btn-primary btn-sm" onclick="saveOperationSettings()">
+                        <i data-lucide="save" class="size-4"></i>
+                        저장
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 공지 -->
+        <div class="card bg-base-100 shadow">
+            <div class="card-body p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="card-title text-base">
+                        <i data-lucide="megaphone" class="size-5"></i>
+                        공지
+                    </h3>
+                    <button class="btn btn-sm btn-primary" onclick="openNoticeModal(null)">
+                        <i data-lucide="plus" class="size-4"></i>
+                        새 공지
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="table table-sm">
+                        <thead>
+                        <tr>
+                            <th>제목</th>
+                            <th class="w-48">노출 기간 (KST)</th>
+                            <th class="w-20">중요</th>
+                            <th class="w-20">상태</th>
+                            <th class="w-36">액션</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="notice : ${notices}" th:classappend="${notice.isActive} ? '' : 'opacity-50'">
+                            <td>
+                                <div class="font-semibold" th:text="${notice.title}">공지 제목</div>
+                                <div class="text-xs text-base-content/60 line-clamp-1" th:text="${notice.body}">본문</div>
+                            </td>
+                            <td class="text-xs font-mono">
+                                <span th:text="${notice.startsAt != null} ? ${#temporals.format(notice.startsAt, 'yyyy-MM-dd HH:mm')} : '즉시'">즉시</span>
+                                ~
+                                <span th:text="${notice.endsAt != null} ? ${#temporals.format(notice.endsAt, 'yyyy-MM-dd HH:mm')} : '무기한'">무기한</span>
+                            </td>
+                            <td><span th:if="${notice.isImportant}" class="badge badge-warning badge-sm">중요</span></td>
+                            <td>
+                                <span th:if="${notice.isActive}" class="badge badge-success badge-sm">활성</span>
+                                <span th:unless="${notice.isActive}" class="badge badge-ghost badge-sm">비활성</span>
+                            </td>
+                            <td class="flex gap-1">
+                                <button class="btn btn-xs btn-ghost"
+                                        th:data-uuid="${notice.noticeUuid}"
+                                        th:data-title="${notice.title}"
+                                        th:data-body="${notice.body}"
+                                        th:data-starts-at="${notice.startsAt != null} ? ${#temporals.format(notice.startsAt, 'yyyy-MM-dd''T''HH:mm')} : ''"
+                                        th:data-ends-at="${notice.endsAt != null} ? ${#temporals.format(notice.endsAt, 'yyyy-MM-dd''T''HH:mm')} : ''"
+                                        th:data-is-active="${notice.isActive}"
+                                        th:data-is-important="${notice.isImportant}"
+                                        onclick="openNoticeModal(this.dataset)">
+                                    <i data-lucide="pencil" class="size-3"></i>
+                                    수정
+                                </button>
+                                <button class="btn btn-xs btn-ghost"
+                                        th:data-uuid="${notice.noticeUuid}"
+                                        th:data-next-active="${!notice.isActive}"
+                                        onclick="changeNoticeActive(this.dataset.uuid, this.dataset.nextActive === 'true')"
+                                        th:text="${notice.isActive} ? '비활성화' : '활성화'">비활성화</button>
+                            </td>
+                        </tr>
+                        <tr th:if="${notices.isEmpty()}">
+                            <td colspan="5" class="text-center text-base-content/50 py-6">등록된 공지가 없습니다.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 공지 등록·수정 모달 -->
+    <dialog id="noticeModal" class="modal">
+        <div class="modal-box space-y-3">
+            <h3 class="font-bold text-lg" id="noticeModalTitle">새 공지</h3>
+            <input type="hidden" id="noticeUuid"/>
+            <label class="form-control">
+                <span class="label-text text-xs">제목 (100자 이내)</span>
+                <input type="text" id="noticeTitle" class="input input-bordered input-sm w-full" maxlength="100"/>
+            </label>
+            <label class="form-control">
+                <span class="label-text text-xs">본문 (2000자 이내)</span>
+                <textarea id="noticeBody" class="textarea textarea-bordered w-full" rows="5" maxlength="2000"></textarea>
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+                <label class="form-control">
+                    <span class="label-text text-xs">노출 시작 (비우면 즉시)</span>
+                    <input type="datetime-local" id="noticeStartsAt" class="input input-bordered input-sm"/>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs">노출 종료 (비우면 무기한)</span>
+                    <input type="datetime-local" id="noticeEndsAt" class="input input-bordered input-sm"/>
+                </label>
+            </div>
+            <div class="flex gap-6">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="noticeIsActive" class="checkbox checkbox-sm" checked/>
+                    <span class="text-sm">활성</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="noticeIsImportant" class="checkbox checkbox-sm"/>
+                    <span class="text-sm">중요 (맨 앞 노출)</span>
+                </label>
+            </div>
+            <div class="modal-action">
+                <form method="dialog"><button class="btn btn-sm">취소</button></form>
+                <button class="btn btn-sm btn-primary" onclick="saveNotice()">저장</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <!-- 저장 결과 알림 -->
+    <div id="toast" class="toast toast-end hidden z-50">
+        <div id="toastAlert" class="alert alert-success">
+            <span id="toastMessage"></span>
+        </div>
+    </div>
+</th:block>
+
+<th:block layout:fragment="js">
+    <script>
+        lucide.createIcons();
+
+        // 버전 형식: 숫자 3개 (x.y.z) — 서버 AppOperationService 와 같은 규칙
+        const VERSION_PATTERN = /^\d{1,4}\.\d{1,4}\.\d{1,4}$/;
+        const VERSION_INPUT_IDS = ['iosMinimumVersion', 'iosRecommendedVersion', 'androidMinimumVersion', 'androidRecommendedVersion'];
+
+        // 점검 토글 > 배지 즉시 반영 (저장 전 미리보기)
+        document.getElementById('isMaintenanceEnabled').addEventListener('change', (event) => {
+            document.getElementById('maintenanceBadge').classList.toggle('hidden', !event.target.checked);
+        });
+
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastAlert').className = 'alert ' + (type === 'error' ? 'alert-error' : 'alert-success');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 4000);
+        }
+
+        // 실패 응답 본문(ErrorResponse) 의 message 우선
+        async function readErrorMessage(response, fallbackMessage) {
+            try {
+                const body = await response.json();
+                return body.message || fallbackMessage;
+            } catch (e) {
+                return fallbackMessage;
+            }
+        }
+
+        // 점검·버전 저장: 형식 검증 > PUT > 결과 알림
+        async function saveOperationSettings() {
+            let hasInvalidVersion = false;
+            VERSION_INPUT_IDS.forEach(id => {
+                const input = document.getElementById(id);
+                const isValid = VERSION_PATTERN.test(input.value.trim());
+                input.classList.toggle('input-error', !isValid);
+                if (!isValid) hasInvalidVersion = true;
+            });
+            if (hasInvalidVersion) {
+                showToast('버전은 x.y.z 형식의 숫자로 입력해 주세요.', 'error');
+                return;
+            }
+            const isMaintenanceEnabled = document.getElementById('isMaintenanceEnabled').checked;
+            if (isMaintenanceEnabled && !confirm('점검 모드를 켠 상태로 저장합니다. 앱 사용과 회원 API 가 막힙니다. 계속할까요?')) {
+                return;
+            }
+            const request = {
+                iosMinimumVersion: document.getElementById('iosMinimumVersion').value.trim(),
+                iosRecommendedVersion: document.getElementById('iosRecommendedVersion').value.trim(),
+                androidMinimumVersion: document.getElementById('androidMinimumVersion').value.trim(),
+                androidRecommendedVersion: document.getElementById('androidRecommendedVersion').value.trim(),
+                isMaintenanceEnabled: isMaintenanceEnabled,
+                maintenanceMessage: document.getElementById('maintenanceMessage').value
+            };
+            const response = await fetch('/admin/app-operation/settings', {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(request)
+            });
+            if (response.ok) {
+                showToast('저장했습니다.', 'success');
+            } else {
+                showToast(await readErrorMessage(response, '저장에 실패했습니다.'), 'error');
+            }
+        }
+
+        // 공지 모달 열기 (dataset 없으면 새 공지)
+        function openNoticeModal(dataset) {
+            document.getElementById('noticeModalTitle').textContent = dataset ? '공지 수정' : '새 공지';
+            document.getElementById('noticeUuid').value = dataset ? dataset.uuid : '';
+            document.getElementById('noticeTitle').value = dataset ? dataset.title : '';
+            document.getElementById('noticeBody').value = dataset ? dataset.body : '';
+            document.getElementById('noticeStartsAt').value = dataset ? dataset.startsAt : '';
+            document.getElementById('noticeEndsAt').value = dataset ? dataset.endsAt : '';
+            document.getElementById('noticeIsActive').checked = dataset ? dataset.isActive === 'true' : true;
+            document.getElementById('noticeIsImportant').checked = dataset ? dataset.isImportant === 'true' : false;
+            document.getElementById('noticeModal').showModal();
+        }
+
+        // 공지 저장: uuid 있으면 수정(PUT), 없으면 등록(POST)
+        async function saveNotice() {
+            const noticeUuid = document.getElementById('noticeUuid').value;
+            const request = {
+                title: document.getElementById('noticeTitle').value,
+                body: document.getElementById('noticeBody').value,
+                startsAt: document.getElementById('noticeStartsAt').value || null,
+                endsAt: document.getElementById('noticeEndsAt').value || null,
+                isActive: document.getElementById('noticeIsActive').checked,
+                isImportant: document.getElementById('noticeIsImportant').checked
+            };
+            const url = noticeUuid ? '/admin/app-operation/notices/' + encodeURIComponent(noticeUuid) : '/admin/app-operation/notices';
+            const response = await fetch(url, {
+                method: noticeUuid ? 'PUT' : 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(request)
+            });
+            if (response.ok) {
+                location.reload();
+            } else {
+                showToast(await readErrorMessage(response, '공지 저장에 실패했습니다.'), 'error');
+            }
+        }
+
+        async function changeNoticeActive(noticeUuid, isActive) {
+            const response = await fetch('/admin/app-operation/notices/' + encodeURIComponent(noticeUuid) + '/active', {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({isActive: isActive})
+            });
+            if (response.ok) {
+                location.reload();
+            } else {
+                showToast(await readErrorMessage(response, '상태 변경에 실패했습니다.'), 'error');
+            }
+        }
+    </script>
+</th:block>
+</html>
