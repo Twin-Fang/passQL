@@ -36,7 +36,9 @@ class PqGroupedSection extends StatelessWidget {
         );
       }
     }
+    // 내용 높이만 차지한다. 기본(max)이면 시트처럼 높이 제한이 있는 곳에서 남은 공간을 다 채운다.
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (header != null)
@@ -162,5 +164,35 @@ class PqIconTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(PqRadius.iconTile),
     ),
     child: Icon(icon, size: 17, color: Colors.white),
+  );
+}
+
+/// 고르는 목록의 한 줄. 고른 항목에는 오른쪽에 체크를 붙이고, 스크린리더에 선택 상태를 알린다.
+/// 신고 사유(여러 개)·화면 모드(하나)처럼 시트에서 항목을 고르는 곳은 이 줄을 쓴다.
+class PqCheckRow extends StatelessWidget {
+  const PqCheckRow({
+    super.key,
+    required this.title,
+    required this.selected,
+    this.subtitle,
+    this.onTap,
+  });
+
+  final String title;
+  final String? subtitle;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    selected: selected,
+    child: PqListRow(
+      title: title,
+      subtitle: subtitle,
+      trailing: selected
+          ? Icon(CupertinoIcons.checkmark, size: 18, color: context.pq.accent)
+          : null,
+      onTap: onTap,
+    ),
   );
 }

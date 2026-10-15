@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -111,20 +110,10 @@ class _ReportSheetState extends ConsumerState<ReportSheet> {
             PqGroupedSection(
               children: [
                 for (final category in ReportCategory.values)
-                  // 고른 사유를 스크린리더가 알 수 있게 selected 를 노출한다.
-                  Semantics(
+                  PqCheckRow(
+                    title: category.label,
                     selected: _selected.contains(category),
-                    child: PqListRow(
-                      title: category.label,
-                      trailing: _selected.contains(category)
-                          ? Icon(
-                              CupertinoIcons.checkmark,
-                              size: 18,
-                              color: c.accent,
-                            )
-                          : null,
-                      onTap: _sending ? null : () => _toggle(category),
-                    ),
+                    onTap: _sending ? null : () => _toggle(category),
                   ),
               ],
             ),

@@ -16,6 +16,8 @@ Future<T?> showPqSheet<T>(
   final c = context.pq;
   return showModalBottomSheet<T>(
     context: context,
+    // 탭 화면 안에서 열어도 하단 탭 바 위에 뜨도록 최상위 Navigator 에 띄운다.
+    useRootNavigator: true,
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
