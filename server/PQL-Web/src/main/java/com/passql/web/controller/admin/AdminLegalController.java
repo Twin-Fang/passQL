@@ -25,6 +25,8 @@ public class AdminLegalController implements AdminLegalControllerDocs {
     public String list(Model model) {
         model.addAttribute("legals", legalService.findAll());
         model.addAttribute("legalTypes", LegalType.values());
+        // 약관 종류별 이전 본문 (수정 시 보관, #469)
+        model.addAttribute("historiesByType", legalService.findRecentHistoriesByType());
         return "admin/legal";
     }
 

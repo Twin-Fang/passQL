@@ -1,5 +1,8 @@
 package com.passql.meta.service;
 
+import com.passql.common.audit.AdminAuditEvent;
+import com.passql.common.audit.constant.AdminAuditAction;
+import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.dto.TopicTree;
@@ -13,10 +16,12 @@ import com.passql.meta.repository.ConceptTagRepository;
 import com.passql.meta.repository.SubtopicRepository;
 import com.passql.meta.repository.TopicRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -29,6 +34,7 @@ public class MetaService {
     private final SubtopicRepository subtopicRepository;
     private final ConceptTagRepository conceptTagRepository;
     private final ConceptDocRepository conceptDocRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public List<TopicTree> getTopicTree() {
         // 관리자 화면에서는 비활성 토픽도 포함해 전체 목록을 표시 (비활성화 후 되돌릴 수 없는 문제 방지)
@@ -72,7 +78,10 @@ public class MetaService {
                 .embeddingVersion(EMBEDDING_VERSION)
                 .isActive(true)
                 .build();
-        return conceptDocRepository.save(doc);
+        ConceptDoc saved = conceptDocRepository.save(doc);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.CONCEPT_DOC, saved.getConceptDocUuid(),
+                AdminAuditAction.CREATE, null, AdminAuditEvent.summary("tagKey", tagKey, "title", title)));
+        return saved;
     }
 
     /** 토픽 편집 — displayName, sortOrder, isActive 수정 */
@@ -80,15 +89,26 @@ public class MetaService {
     public void updateTopic(String code, TopicUpdateRequest request) {
         Topic topic = topicRepository.findByCode(code)
                 .orElseThrow(() -> new CustomException(ErrorCode.TOPIC_NOT_FOUND));
+        Map<String, Object> before = toTopicAuditSummary(topic);
         topic.setDisplayName(request.displayName());
         topic.setSortOrder(request.sortOrder());
         topic.setIsActive(request.isActive());
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.TOPIC, code, AdminAuditAction.UPDATE,
+                before, toTopicAuditSummary(topic)));
+    }
+
+    private Map<String, Object> toTopicAuditSummary(Topic topic) {
+        return AdminAuditEvent.summary("displayName", topic.getDisplayName(), "sortOrder", topic.getSortOrder(),
+                "isActive", topic.getIsActive());
     }
 
     @Transactional
     public void updateDocBody(UUID conceptDocUuid, String bodyMd) {
         ConceptDoc doc = conceptDocRepository.findById(conceptDocUuid)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 ConceptDoc: " + conceptDocUuid));
+        Map<String, Object> before = AdminAuditEvent.summary("bodyMd", doc.getBodyMd());
         doc.setBodyMd(bodyMd);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.CONCEPT_DOC, conceptDocUuid,
+                AdminAuditAction.UPDATE, before, AdminAuditEvent.summary("bodyMd", bodyMd)));
     }
 }

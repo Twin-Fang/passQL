@@ -1,5 +1,8 @@
 package com.passql.meta.service;
 
+import com.passql.common.audit.AdminAuditEvent;
+import com.passql.common.audit.constant.AdminAuditAction;
+import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.constant.CertType;
@@ -9,12 +12,14 @@ import com.passql.meta.entity.ExamSchedule;
 import com.passql.meta.repository.ExamScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,6 +33,7 @@ public class ExamScheduleService {
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final ExamScheduleRepository examScheduleRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public List<ExamScheduleResponse> getSchedulesByCertType(CertType certType) {
         return examScheduleRepository.findByCertTypeOrderByRoundAsc(certType).stream()
@@ -84,6 +90,8 @@ public class ExamScheduleService {
                 .build();
 
         ExamSchedule saved = examScheduleRepository.save(schedule);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.EXAM_SCHEDULE, saved.getExamScheduleUuid(),
+                AdminAuditAction.CREATE, null, toScheduleAuditSummary(saved)));
         return ExamScheduleResponse.from(saved);
     }
 
@@ -96,6 +104,8 @@ public class ExamScheduleService {
                 .ifPresent(current -> current.setIsSelected(false));
 
         target.setIsSelected(true);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.EXAM_SCHEDULE, examScheduleUuid,
+                AdminAuditAction.ACTIVATE, null, toScheduleAuditSummary(target)));
     }
 
     @Transactional
@@ -104,5 +114,13 @@ public class ExamScheduleService {
                 .orElseThrow(() -> new CustomException(ErrorCode.EXAM_SCHEDULE_NOT_FOUND));
 
         examScheduleRepository.delete(schedule);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.EXAM_SCHEDULE, examScheduleUuid,
+                AdminAuditAction.DELETE, toScheduleAuditSummary(schedule), null));
+    }
+
+    /** 감사 기록용 일정 요약 */
+    private Map<String, Object> toScheduleAuditSummary(ExamSchedule schedule) {
+        return AdminAuditEvent.summary("certType", schedule.getCertType(), "round", schedule.getRound(),
+                "examDate", schedule.getExamDate());
     }
 }

@@ -1,15 +1,16 @@
 package com.passql.member.service;
 
-import com.passql.common.util.UuidUtils;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.AdminRequestContext;
 import com.passql.common.util.NicknameGenerator;
+import com.passql.common.util.UuidUtils;
 import com.passql.member.auth.repository.RefreshTokenRepository;
-import com.passql.member.constant.MemberStatus;
-import com.passql.member.dto.MemberMeResponse;
 import com.passql.member.constant.ChoiceGenerationMode;
+import com.passql.member.constant.MemberStatus;
 import com.passql.member.dto.ChoiceGenerationModeUpdateRequest;
 import com.passql.member.dto.ChoiceGenerationModeUpdateResponse;
+import com.passql.member.dto.MemberMeResponse;
 import com.passql.member.dto.NicknameChangeRequest;
 import com.passql.member.dto.NicknameChangeResponse;
 import com.passql.member.dto.NicknameCheckResponse;
@@ -70,7 +71,7 @@ public class MemberService {
         if (until != null && until.isBefore(LocalDateTime.now())) {
             member.setStatus(MemberStatus.ACTIVE);
             member.setSuspendUntil(null);
-            memberSuspendHistoryRepository.save(MemberSuspendHistory.ofUnsuspend(member.getMemberUuid()));
+            memberSuspendHistoryRepository.save(MemberSuspendHistory.ofUnsuspend(member.getMemberUuid(), AdminRequestContext.SYSTEM_ACTOR));
             log.info("Member auto-unsuspended on getMe: uuid={}", member.getMemberUuid());
             return;
         }

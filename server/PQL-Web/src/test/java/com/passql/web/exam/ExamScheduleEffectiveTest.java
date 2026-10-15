@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
 class ExamScheduleEffectiveTest {
 
     private final ExamScheduleRepository repo = mock(ExamScheduleRepository.class);
-    private final ExamScheduleService service = new ExamScheduleService(repo);
+    private final ExamScheduleService service = new ExamScheduleService(repo, event -> { });
     private final LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
     private ExamSchedule exam(int round, LocalDate date, boolean selected) {

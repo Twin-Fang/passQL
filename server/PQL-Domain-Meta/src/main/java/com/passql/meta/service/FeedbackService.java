@@ -1,5 +1,8 @@
 package com.passql.meta.service;
 
+import com.passql.common.audit.AdminAuditEvent;
+import com.passql.common.audit.constant.AdminAuditAction;
+import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.constant.FeedbackStatus;
@@ -11,6 +14,7 @@ import com.passql.meta.entity.Feedback;
 import com.passql.meta.repository.FeedbackRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,6 +32,7 @@ import java.util.UUID;
 public class FeedbackService {
 
     private final FeedbackRepository feedbackRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public FeedbackSubmitResponse submit(UUID memberUuid, FeedbackSubmitRequest request) {
@@ -78,7 +83,10 @@ public class FeedbackService {
     public void updateStatus(UUID feedbackUuid, FeedbackStatus status) {
         Feedback feedback = feedbackRepository.findById(feedbackUuid)
             .orElseThrow(() -> new CustomException(ErrorCode.FEEDBACK_NOT_FOUND));
+        FeedbackStatus previousStatus = feedback.getStatus();
         feedback.setStatus(status);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.FEEDBACK, feedbackUuid, AdminAuditAction.STATUS_CHANGE,
+            AdminAuditEvent.summary("status", previousStatus), AdminAuditEvent.summary("status", status)));
         log.info("[FeedbackService] 건의사항 상태 변경: feedbackUuid={}, status={}", feedbackUuid, status);
     }
 }

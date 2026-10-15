@@ -1,11 +1,15 @@
 package com.passql.web.service;
 
+import com.passql.common.audit.AdminAuditEvent;
+import com.passql.common.audit.constant.AdminAuditAction;
+import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.question.entity.Question;
 import com.passql.question.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +35,7 @@ public class AdminQuestionDeleteService {
     private static final String SKIP_REASON_ALREADY_INACTIVE = "이미 비활성화됨";
 
     private final QuestionRepository questionRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /** 문제 1건 비활성화 (이미 비활성이면 그대로) */
     @Transactional
@@ -38,6 +43,7 @@ public class AdminQuestionDeleteService {
         Question question = questionRepository.findById(questionUuid)
                 .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
         question.deactivate();
+        publishDeactivated(question);
         log.info("[question deactivate] done : questionUuid={}", questionUuid);
     }
 
@@ -63,12 +69,18 @@ public class AdminQuestionDeleteService {
                 continue;
             }
             question.deactivate();
+            publishDeactivated(question);
             deactivatedCount++;
         }
 
         log.info("[question deactivate] bulk done : total={}, deactivated={}, skipped={}",
                 questionUuids.size(), deactivatedCount, skippedReasons.size());
         return new BulkDeactivateResult(deactivatedCount, skippedReasons.size(), skippedReasons);
+    }
+
+    private void publishDeactivated(Question question) {
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.QUESTION, question.getQuestionUuid(),
+                AdminAuditAction.DEACTIVATE, AdminAuditEvent.summary("isActive", true), AdminAuditEvent.summary("isActive", false)));
     }
 
     /** 일괄 비활성화 결과 (deactivated: 처리 건수, skipped: 건너뜀 건수, errors: 건너뜀 사유) */

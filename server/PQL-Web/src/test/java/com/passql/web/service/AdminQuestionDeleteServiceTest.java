@@ -18,7 +18,7 @@ import static org.mockito.Mockito.when;
 class AdminQuestionDeleteServiceTest {
 
     private final QuestionRepository questionRepository = mock(QuestionRepository.class);
-    private final AdminQuestionDeleteService adminQuestionDeleteService = new AdminQuestionDeleteService(questionRepository);
+    private final AdminQuestionDeleteService adminQuestionDeleteService = new AdminQuestionDeleteService(questionRepository, event -> { });
 
     @Test
     void 일괄_비활성화는_활성_문제만_끄고_없는_문제와_이미_비활성은_건너뛴다() {

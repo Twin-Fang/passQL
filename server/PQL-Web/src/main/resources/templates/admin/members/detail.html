@@ -126,6 +126,7 @@
                                     <th class="w-24">액션</th>
                                     <th>사유</th>
                                     <th class="w-40">만료일</th>
+                                    <th class="w-28">처리</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -140,9 +141,10 @@
                                     <td class="text-xs" th:text="${h.reason != null ? h.reason : '—'}">—</td>
                                     <td class="text-xs text-base-content/60"
                                         th:text="${h.suspendUntil != null ? #temporals.format(h.suspendUntil, 'yyyy-MM-dd HH:mm') : '—'}">—</td>
+                                    <td class="text-xs font-mono" th:text="${h.actedByAdminUsername ?: '—'}">—</td>
                                 </tr>
                                 <tr th:if="${member.suspendHistories.isEmpty()}">
-                                    <td colspan="4" class="text-center text-base-content/40 py-12">
+                                    <td colspan="5" class="text-center text-base-content/40 py-12">
                                         <div class="flex flex-col items-center gap-2">
                                             <i data-lucide="shield-check" class="size-8 opacity-30"></i>
                                             <span>제재 이력이 없습니다.</span>

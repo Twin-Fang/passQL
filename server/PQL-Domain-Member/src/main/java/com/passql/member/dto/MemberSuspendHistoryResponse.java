@@ -11,7 +11,8 @@ public record MemberSuspendHistoryResponse(
     SuspendAction action,
     String reason,
     LocalDateTime suspendUntil,
-    LocalDateTime actedAt
+    LocalDateTime actedAt,
+    String actedByAdminUsername
 ) {
     public static MemberSuspendHistoryResponse from(MemberSuspendHistory h) {
         return new MemberSuspendHistoryResponse(
@@ -19,7 +20,8 @@ public record MemberSuspendHistoryResponse(
             h.getAction(),
             h.getReason(),
             h.getSuspendUntil(),
-            h.getActedAt()
+            h.getActedAt(),
+            h.getActedByAdminUsername()
         );
     }
 }

@@ -183,6 +183,12 @@
                         모니터링
                     </a>
                 </li>
+                <li>
+                    <a th:href="@{/admin/audit-logs}" th:classappend="${currentMenu == 'audit-logs'} ? 'active'">
+                        <i data-lucide="scroll-text" class="size-5"></i>
+                        감사 로그
+                    </a>
+                </li>
                 <li th:if="${canWriteAdmin}">
                     <a th:href="@{/admin/accounts}" th:classappend="${currentMenu == 'admin-accounts'} ? 'active'">
                         <i data-lucide="user-cog" class="size-5"></i>

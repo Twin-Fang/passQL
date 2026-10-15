@@ -1,7 +1,11 @@
 package com.passql.member.service;
 
+import com.passql.common.audit.AdminAuditEvent;
+import com.passql.common.audit.constant.AdminAuditAction;
+import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.AdminRequestContext;
 import com.passql.member.constant.MemberStatus;
 import com.passql.member.dto.MemberAdminDetailResponse;
 import com.passql.member.dto.MemberAdminListResponse;
@@ -16,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +41,7 @@ public class MemberAdminService {
 
     private final MemberRepository memberRepository;
     private final MemberSuspendHistoryRepository suspendHistoryRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /** self-injection: @Transactional(REQUIRES_NEW) 가 AOP 프록시를 거치게 하기 위함. */
     @Autowired
@@ -89,7 +95,9 @@ public class MemberAdminService {
         member.setStatus(MemberStatus.SUSPENDED);
         member.setSuspendUntil(suspendUntil);
 
-        suspendHistoryRepository.save(MemberSuspendHistory.ofSuspend(memberUuid, reason, suspendUntil));
+        suspendHistoryRepository.save(MemberSuspendHistory.ofSuspend(memberUuid, reason, suspendUntil, AdminRequestContext.findAdminUsernameOrSystem()));
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.MEMBER, memberUuid, AdminAuditAction.SUSPEND,
+            null, AdminAuditEvent.summary("reason", reason, "suspendUntil", suspendUntil)));
         log.info("Member suspended: uuid={}, until={}, reason={}", memberUuid, suspendUntil, reason);
     }
 
@@ -103,7 +111,8 @@ public class MemberAdminService {
         member.setStatus(MemberStatus.ACTIVE);
         member.setSuspendUntil(null);
 
-        suspendHistoryRepository.save(MemberSuspendHistory.ofUnsuspend(memberUuid));
+        suspendHistoryRepository.save(MemberSuspendHistory.ofUnsuspend(memberUuid, AdminRequestContext.findAdminUsernameOrSystem()));
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.MEMBER, memberUuid, AdminAuditAction.UNSUSPEND));
         log.info("Member unsuspended (manual): uuid={}", memberUuid);
     }
 
@@ -149,7 +158,7 @@ public class MemberAdminService {
         }
         member.setStatus(MemberStatus.ACTIVE);
         member.setSuspendUntil(null);
-        suspendHistoryRepository.save(MemberSuspendHistory.ofUnsuspend(memberUuid));
+        suspendHistoryRepository.save(MemberSuspendHistory.ofUnsuspend(memberUuid, AdminRequestContext.SYSTEM_ACTOR));
         log.info("Member auto-unsuspended: uuid={}", memberUuid);
     }
 }

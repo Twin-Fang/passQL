@@ -1,5 +1,8 @@
 package com.passql.meta.service;
 
+import com.passql.common.audit.AdminAuditEvent;
+import com.passql.common.audit.constant.AdminAuditAction;
+import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.dto.PromptTemplateSaveRequest;
@@ -8,11 +11,13 @@ import com.passql.meta.repository.PromptTemplateRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,6 +26,7 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class PromptService {
     private final PromptTemplateRepository promptTemplateRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Cacheable(value = "prompts", key = "#keyName")
     public PromptTemplate getActivePrompt(String keyName) {
@@ -46,7 +52,10 @@ public class PromptService {
                 .isActive(request.isActiveChecked())
                 .build();
         applySaveRequest(template, request);
-        return promptTemplateRepository.save(template);
+        PromptTemplate saved = promptTemplateRepository.save(template);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.PROMPT, saved.getPromptTemplateUuid(),
+                AdminAuditAction.CREATE, null, toPromptAuditSummary(saved)));
+        return saved;
     }
 
     /** 프롬프트 수정 (관리자 폼 요청 > 기존 행 덮어쓰기) */
@@ -55,11 +64,23 @@ public class PromptService {
     public PromptTemplate update(UUID uuid, PromptTemplateSaveRequest request) {
         PromptTemplate existing = promptTemplateRepository.findById(uuid)
                 .orElseThrow(() -> new CustomException(ErrorCode.PROMPT_NOT_FOUND));
+        Map<String, Object> before = toPromptAuditSummary(existing);
         existing.setKeyName(request.keyName());
         existing.setVersion(request.version());
         existing.setIsActive(request.isActiveChecked());
         applySaveRequest(existing, request);
-        return promptTemplateRepository.save(existing);
+        PromptTemplate saved = promptTemplateRepository.save(existing);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.PROMPT, uuid, AdminAuditAction.UPDATE,
+                before, toPromptAuditSummary(saved)));
+        return saved;
+    }
+
+    /** 감사 기록용 프롬프트 요약 (본문은 앞부분만) */
+    private Map<String, Object> toPromptAuditSummary(PromptTemplate template) {
+        return AdminAuditEvent.summary("keyName", template.getKeyName(), "version", template.getVersion(),
+                "isActive", template.getIsActive(), "model", template.getModel(),
+                "temperature", template.getTemperature(), "maxTokens", template.getMaxTokens(),
+                "systemPrompt", template.getSystemPrompt(), "userTemplate", template.getUserTemplate());
     }
 
     /** 폼 요청 > 모델·프롬프트 본문·생성 파라미터 반영 */
@@ -87,5 +108,7 @@ public class PromptService {
             sibling.setIsActive(sibling.getPromptTemplateUuid().equals(promptTemplateUuid));
             promptTemplateRepository.save(sibling);
         }
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.PROMPT, promptTemplateUuid, AdminAuditAction.ACTIVATE,
+                null, AdminAuditEvent.summary("keyName", target.getKeyName(), "version", target.getVersion())));
     }
 }

@@ -1,8 +1,11 @@
 package com.passql.question.service;
 
-import com.passql.common.util.TextPreview;
+import com.passql.common.audit.AdminAuditEvent;
+import com.passql.common.audit.constant.AdminAuditAction;
+import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.TextPreview;
 import com.passql.meta.entity.Subtopic;
 import com.passql.meta.entity.Topic;
 import com.passql.meta.repository.SubtopicRepository;
@@ -27,6 +30,7 @@ import com.passql.question.repository.QuestionChoiceSetRepository;
 import com.passql.question.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -36,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -50,6 +55,7 @@ public class QuestionService {
     private final DailyChallengeRepository dailyChallengeRepository;
     private final TopicRepository topicRepository;
     private final SubtopicRepository subtopicRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public Page<QuestionSummary> getQuestions(String topicCode, String subtopic, Integer difficulty, String mode, Pageable pageable) {
         UUID topicUuid = (topicCode != null && !topicCode.isBlank())
@@ -214,6 +220,7 @@ public class QuestionService {
                                UUID topicUuid, UUID subtopicUuid) {
         Question q = questionRepository.findById(questionUuid)
                 .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
+        Map<String, Object> before = QuestionAuditSummary.of(q);
         q.setStem(stem);
         q.setSchemaDisplay(schemaDisplay);
         q.setSchemaDdl(schemaDdl);
@@ -225,6 +232,8 @@ public class QuestionService {
         q.setExecutionMode(executionMode);
         q.setTopicUuid(topicUuid);
         q.setSubtopicUuid(subtopicUuid);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.QUESTION, questionUuid, AdminAuditAction.UPDATE,
+                before, QuestionAuditSummary.of(q)));
     }
 
     @Transactional

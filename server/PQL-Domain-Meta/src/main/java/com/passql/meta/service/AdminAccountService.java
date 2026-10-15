@@ -1,5 +1,8 @@
 package com.passql.meta.service;
 
+import com.passql.common.audit.AdminAuditEvent;
+import com.passql.common.audit.constant.AdminAuditAction;
+import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.constant.AdminRole;
@@ -10,6 +13,7 @@ import com.passql.meta.entity.AdminAccount;
 import com.passql.meta.repository.AdminAccountRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -17,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -40,6 +45,7 @@ public class AdminAccountService {
 
     private final AdminAccountRepository adminAccountRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ApplicationEventPublisher eventPublisher;
 
     public Optional<AdminAccount> findByUsername(String username) {
         return adminAccountRepository.findByUsername(username);
@@ -110,6 +116,8 @@ public class AdminAccountService {
         AdminAccount account = adminAccountRepository.save(
                 AdminAccount.create(request.username(), passwordEncoder.encode(request.password()), role, false));
         log.info("[admin account] created : username={}, role={}", account.getUsername(), role);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.ADMIN_ACCOUNT, account.getUsername(),
+                AdminAuditAction.CREATE, null, AdminAuditEvent.summary("role", role)));
         return account;
     }
 
@@ -120,8 +128,11 @@ public class AdminAccountService {
         if (account.getUsername().equals(actingAdminUsername)) {
             throw new CustomException(ErrorCode.ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN);
         }
+        Map<String, Object> before = AdminAuditEvent.summary("role", account.getRole(), "isEnabled", account.getIsEnabled());
         account.setRole(AdminRole.fromRequestValue(request.role()));
         account.setIsEnabled(request.isEnabled());
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.ADMIN_ACCOUNT, account.getUsername(),
+                AdminAuditAction.UPDATE, before, AdminAuditEvent.summary("role", account.getRole(), "isEnabled", account.getIsEnabled())));
         log.info("[admin account] updated : username={}, role={}, enabled={}",
                 account.getUsername(), account.getRole(), account.getIsEnabled());
         return account;
@@ -135,6 +146,7 @@ public class AdminAccountService {
         account.setPasswordHash(passwordEncoder.encode(newPassword));
         account.unlock();
         log.info("[admin account] password reset : username={}", account.getUsername());
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.ADMIN_ACCOUNT, account.getUsername(), AdminAuditAction.PASSWORD_RESET));
         return account;
     }
 
@@ -145,6 +157,7 @@ public class AdminAccountService {
                 .orElseThrow(() -> new CustomException(ErrorCode.ADMIN_ACCOUNT_NOT_FOUND));
         account.unlock();
         log.info("[admin account] unlocked : username={}", account.getUsername());
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.ADMIN_ACCOUNT, account.getUsername(), AdminAuditAction.UNLOCK));
         return account;
     }
 

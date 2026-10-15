@@ -58,6 +58,26 @@
                          th:text="${legal.content}"></pre>
                 </div>
 
+                <!-- 이전 본문 이력 (수정 시 자동 보관, 최근 20건) -->
+                <details class="mt-3" th:with="histories=${historiesByType.get(legal.type)}">
+                    <summary class="cursor-pointer text-xs text-base-content/60">
+                        <i data-lucide="history" class="size-3 inline"></i>
+                        이전 버전 <span th:text="${#lists.size(histories)}">0</span>건
+                    </summary>
+                    <div th:if="${#lists.isEmpty(histories)}" class="text-xs text-base-content/50 mt-2">보관된 이전 버전이 없습니다.</div>
+                    <div th:each="h : ${histories}" class="border border-base-300 rounded mt-2">
+                        <details>
+                            <summary class="cursor-pointer text-xs px-3 py-2 flex flex-wrap gap-2">
+                                <span th:text="${#temporals.format(h.archivedAt, 'yyyy-MM-dd HH:mm')} + ' 교체'">2026-10-15 교체</span>
+                                <span class="text-base-content/50" th:text="'수정: ' + ${h.createdBy}">수정: admin</span>
+                                <span class="badge badge-ghost badge-xs" th:text="${h.status.name()}">PUBLISHED</span>
+                                <span class="font-medium" th:text="${h.title}">제목</span>
+                            </summary>
+                            <pre class="bg-base-200 p-3 text-xs whitespace-pre-wrap max-h-64 overflow-y-auto font-mono" th:text="${h.content}"></pre>
+                        </details>
+                    </div>
+                </details>
+
                 <!-- 본문 편집 textarea (편집 모드) -->
                 <div th:id="'edit_' + ${legal.type}" class="hidden">
                     <label class="text-xs text-base-content/60 mb-1 block">본문 (Markdown)</label>

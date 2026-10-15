@@ -1,5 +1,8 @@
 package com.passql.application.service;
 
+import com.passql.common.audit.AdminAuditEvent;
+import com.passql.common.audit.constant.AdminAuditAction;
+import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.question.constant.CorrectionScope;
@@ -7,10 +10,11 @@ import com.passql.question.constant.ReportCategory;
 import com.passql.question.constant.ReportStatus;
 import com.passql.question.entity.Question;
 import com.passql.question.entity.QuestionReport;
-import com.passql.question.repository.QuestionRepository;
 import com.passql.question.repository.QuestionReportRepository;
+import com.passql.question.repository.QuestionRepository;
 import com.passql.submission.repository.SubmissionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +43,7 @@ public class QuestionReportService {
     private final QuestionReportRepository questionReportRepository;
     private final QuestionRepository questionRepository;
     private final SubmissionRepository submissionRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /** 사용자 신고 제출 */
     @Transactional
@@ -144,6 +149,10 @@ public class QuestionReportService {
 
         // 1. 신고 상태 변경
         report.resolve(resolvedByAdminUsername, correctionScope);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.REPORT, reportUuid, AdminAuditAction.RESOLVE,
+                AdminAuditEvent.summary("status", ReportStatus.PENDING),
+                AdminAuditEvent.summary("status", report.getStatus(), "correctionScope", correctionScope,
+                        "deactivateQuestion", deactivateQuestion, "questionUuid", report.getQuestionUuid())));
 
         // 2. 문제 비활성화
         if (Boolean.TRUE.equals(deactivateQuestion)) {

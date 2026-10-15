@@ -31,6 +31,11 @@ public final class AdminPageRequest {
         return of(page, size, sortByNewestFirst());
     }
 
+    /** 보정된 page·size + 지정 시각 필드 최신순 (BaseEntity 미상속 기록 테이블용, 예: occurredAt) */
+    public static Pageable newestFirstBy(int page, int size, String timeField) {
+        return of(page, size, Sort.by(Sort.Direction.DESC, timeField));
+    }
+
     /** 최신 등록순 정렬 (createdAt DESC) */
     public static Sort sortByNewestFirst() {
         return Sort.by(Sort.Direction.DESC, CREATED_AT_FIELD);
