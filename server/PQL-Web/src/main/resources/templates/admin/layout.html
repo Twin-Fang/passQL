@@ -124,6 +124,7 @@
                         회원 관리
                     </a>
                 </li>
+                <li><a th:href="@{/admin/push}" th:classappend="${currentMenu == 'push'} ? 'active'"><i data-lucide="bell" class="size-5"></i>푸시 발송</a></li>
                 <li>
                     <a th:href="@{/admin/questions}" th:classappend="${currentMenu == 'questions'} ? 'active'">
                         <i data-lucide="book-open" class="size-5"></i>
