@@ -14,6 +14,8 @@ abstract final class PassqlSize {
   static const double scoreRingStroke = 12;
   static const double loginLogoHeight = 44;
   static const double footerLogoHeight = 20;
+  // 오픈소스 라이선스 화면 상단 로고 높이
+  static const double licensePageLogoHeight = 32;
   static const double messageSlotHeight =
       28; // 입력 아래 안내·오류 한 줄 자리 (나타나도 레이아웃이 밀리지 않게 고정)
   static const double iconTile = 29;

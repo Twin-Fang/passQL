@@ -13,6 +13,7 @@ import '../../widgets/common/app_toast.dart';
 import '../../widgets/settings/choice_mode_tile.dart';
 import '../../widgets/settings/theme_mode_tile.dart';
 import '../../widgets/settings/nickname_edit_sheet.dart';
+import '../../widgets/settings/open_source_licenses.dart';
 import '../../widgets/settings/profile_card.dart';
 import '../../widgets/settings/settings_footer.dart';
 import '../../providers/wrong_questions_provider.dart';
@@ -165,6 +166,14 @@ class SettingsPage extends ConsumerWidget {
                       title: '개인정보처리방침',
                       onTap: () => context.push(
                         AppRoutes.legal(LegalType.privacyPolicy.serverValue),
+                      ),
+                    ),
+                    SettingsRow(
+                      icon: CupertinoIcons.doc_on_clipboard,
+                      title: '오픈소스 라이선스',
+                      onTap: () => showOpenSourceLicenses(
+                        context,
+                        appVersion: appVersion,
                       ),
                     ),
                     if (appVersion != null)

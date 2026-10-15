@@ -1,7 +1,7 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/error/app_exception.dart';
+import '../../core/network/api_call.dart';
 import '../../core/error/error_code.dart';
 import '../../core/monitoring/app_analytics.dart';
 import '../../core/network/safe_call.dart';
@@ -48,20 +48,21 @@ class ReportSubmitter {
       );
     }
     try {
-      await _ref
-          .read(reportApiProvider)
-          .submitReport(
-            target.questionUuid,
-            ReportRequest(
-              submissionUuid: target.submissionUuid,
-              choiceSetUuid: choiceSetUuid,
-              categories: categories.toList(),
-              detail: ReportValidator.detailFor(categories, detail),
+      await callApiThrowingAppException(
+        _ref
+            .read(reportApiProvider)
+            .submitReport(
+              target.questionUuid,
+              ReportRequest(
+                submissionUuid: target.submissionUuid,
+                choiceSetUuid: choiceSetUuid,
+                categories: categories.toList(),
+                detail: ReportValidator.detailFor(categories, detail),
+              ),
             ),
-          );
-    } on DioException catch (exception) {
-      final error = exception.asAppException;
-      if (error.code != ErrorCode.reportAlreadyExists) throw error;
+      );
+    } on AppException catch (error) {
+      if (error.code != ErrorCode.reportAlreadyExists) rethrow;
     }
     _ref.read(appAnalyticsProvider).logQuestionReported();
     _ref.invalidate(reportStatusProvider(target));

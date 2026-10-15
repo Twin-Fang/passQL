@@ -1,7 +1,7 @@
 name: passql_app
 description: "passQL - SQL 학습 앱"
 publish_to: none
-version: 0.11.0+278
+version: 0.12.0+280
 environment:
   sdk: ^3.9.2
 dependencies:
@@ -11,7 +11,6 @@ dependencies:
   go_router: ^17.0.1
   # 상태관리
   flutter_riverpod: ^2.6.1
-  riverpod_annotation: ^2.6.1
   freezed_annotation: ^2.4.4
   json_annotation: ^4.9.0
   # 로컬 저장소
@@ -32,6 +31,8 @@ dependencies:
   # 실시간 통신
   # 기기 & 앱 정보
   package_info_plus: ^9.0.0
+  # 12.4.0+ 는 iOS 26.1 SDK API(isiOSAppOnVision)를 써서 Xcode 26.0(CI)·16 에서 빌드 실패 > 12.3.0 고정
+  device_info_plus: 12.3.0
   # 유틸리티
   firebase_core: ^4.15.0
   firebase_auth: ^6.7.0
@@ -46,7 +47,6 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   build_runner: ^2.4.14
-  riverpod_generator: ^2.6.2
   freezed: ^2.5.7
   json_serializable: ^6.9.2
   retrofit_generator: ^9.1.8
@@ -58,16 +58,11 @@ flutter:
     - .env
     - assets/logo.png
     - assets/logo_dark.png
+    # 오픈소스 라이선스 화면에 싣는 글꼴 라이선스 (OFL)
+    - assets/fonts/JetBrainsMono-OFL.txt
+    - assets/fonts/Pretendard-OFL.txt
+  # 굵기 토큰(passql_typography.dart)이 쓰는 4종만 등록. 굵기를 추가하면 파일·토큰을 함께 추가
   fonts:
-    - family: Pretendard-Thin
-      fonts:
-        - asset: assets/fonts/Pretendard-Thin.ttf
-    - family: Pretendard-ExtraLight
-      fonts:
-        - asset: assets/fonts/Pretendard-ExtraLight.ttf
-    - family: Pretendard-Light
-      fonts:
-        - asset: assets/fonts/Pretendard-Light.ttf
     - family: Pretendard-Regular
       fonts:
         - asset: assets/fonts/Pretendard-Regular.ttf
@@ -80,12 +75,12 @@ flutter:
     - family: Pretendard-Bold
       fonts:
         - asset: assets/fonts/Pretendard-Bold.ttf
-    - family: Pretendard-ExtraBold
+    # 코드 글꼴: 합자 없는 NL 판(SQL 의 <>, >=, != 를 기호 그대로 표시). 라이선스 assets/fonts/JetBrainsMono-OFL.txt
+    - family: JetBrainsMono
       fonts:
-        - asset: assets/fonts/Pretendard-ExtraBold.ttf
-    - family: Pretendard-Black
-      fonts:
-        - asset: assets/fonts/Pretendard-Black.ttf
+        - asset: assets/fonts/JetBrainsMonoNL-Regular.ttf
+        - asset: assets/fonts/JetBrainsMonoNL-Bold.ttf
+          weight: 700
 flutter_launcher_icons:
   android: true
   ios: true

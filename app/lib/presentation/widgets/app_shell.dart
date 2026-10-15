@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../router/app_routes.dart';
 import '../design/design.dart';
 import 'app_gate/recommended_update_prompter.dart';
+import 'common/app_lifecycle_refresher.dart';
 
 /// ShellRoute builder에서 사용하는 바텀 네비게이션 쉘.
 ///
@@ -47,14 +48,17 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      // 탭 첫 진입 시 권장 업데이트 안내 1회 (#464)
-      body: RecommendedUpdatePrompter(child: child),
-      bottomNavigationBar: PassqlTabBar(
-        items: _items,
-        currentIndex: _currentIndex(context),
-        onTap: (index) => context.go(AppRoutes.tabRoots[index]),
+    // 다음 날 복귀하면 어제 세트·인사말이 남지 않게 갱신 (#483)
+    return AppLifecycleRefresher(
+      child: Scaffold(
+        extendBody: true,
+        // 탭 첫 진입 시 권장 업데이트 안내 1회 (#464)
+        body: RecommendedUpdatePrompter(child: child),
+        bottomNavigationBar: PassqlTabBar(
+          items: _items,
+          currentIndex: _currentIndex(context),
+          onTap: (index) => context.go(AppRoutes.tabRoots[index]),
+        ),
       ),
     );
   }

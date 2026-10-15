@@ -1,8 +1,8 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../core/error/app_exception.dart';
+import '../../core/network/api_call.dart';
 import '../../data/sources/api_providers.dart';
 import '../../data/models/member/choice_generation_mode.dart';
 import '../../data/models/member/choice_mode_models.dart';
@@ -64,24 +64,18 @@ class NicknameNotifier extends AsyncNotifier<String?> {
 
   /// 닉네임 사용 가능 여부. 이미 쓰는 닉네임이면 false.
   Future<bool> isAvailable(String nickname) async {
-    try {
-      final response = await ref.read(memberApiProvider).checkNickname(nickname);
-      return response.available;
-    } on DioException catch (exception) {
-      throw exception.asAppException;
-    }
+    final response = await callApiThrowingAppException(
+      ref.read(memberApiProvider).checkNickname(nickname),
+    );
+    return response.available;
   }
 
   /// 닉네임 직접 변경. 성공하면 로그인 세션의 닉네임을 새 값으로 바꾼다.
   Future<void> change(String nickname) async {
-    try {
-      final response = await ref
-          .read(memberApiProvider)
-          .changeNickname(NicknameChangeRequest(nickname));
-      await ref.read(authProvider.notifier).updateNickname(response.nickname);
-    } on DioException catch (exception) {
-      throw exception.asAppException;
-    }
+    final response = await callApiThrowingAppException(
+      ref.read(memberApiProvider).changeNickname(NicknameChangeRequest(nickname)),
+    );
+    await ref.read(authProvider.notifier).updateNickname(response.nickname);
   }
 }
 
@@ -104,12 +98,14 @@ class ChoiceModeNotifier extends AsyncNotifier<ChoiceGenerationMode> {
 
     state = AsyncData(mode);
     try {
-      await ref
-          .read(memberApiProvider)
-          .updateChoiceGenerationMode(ChoiceModeRequest(mode));
-    } on DioException catch (exception) {
+      await callApiThrowingAppException(
+        ref
+            .read(memberApiProvider)
+            .updateChoiceGenerationMode(ChoiceModeRequest(mode)),
+      );
+    } on AppException {
       if (previous != null) state = AsyncData(previous);
-      throw exception.asAppException;
+      rethrow;
     }
   }
 }
