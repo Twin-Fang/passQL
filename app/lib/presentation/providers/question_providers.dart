@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/error/app_exception.dart';
 import '../../data/sources/api_providers.dart';
 import '../../data/models/question/choice_item.dart';
 import '../../data/models/question/execute_request.dart';
@@ -37,6 +38,9 @@ class QuestionInteractionState {
   /// SQL 실행 중 여부.
   final bool isExecuting;
 
+  /// SQL 실행 API 실패 사유 (네트워크·5xx·SANDBOX_TIMEOUT 등, null이면 실패 없음)
+  final AppException? executeFailure;
+
   /// SSE 선택지 생성 중 여부.
   final bool isGeneratingChoices;
 
@@ -56,6 +60,7 @@ class QuestionInteractionState {
     this.executeCache = const {},
     this.currentExecuteResult,
     this.isExecuting = false,
+    this.executeFailure,
     this.isGeneratingChoices = false,
     this.sseStatusMessage,
     this.sseError,
@@ -70,6 +75,8 @@ class QuestionInteractionState {
     ExecuteResult? currentExecuteResult,
     bool clearExecuteResult = false,
     bool? isExecuting,
+    AppException? executeFailure,
+    bool clearExecuteFailure = false,
     bool? isGeneratingChoices,
     String? sseStatusMessage,
     SseErrorEvent? sseError,
@@ -85,6 +92,9 @@ class QuestionInteractionState {
           ? null
           : (currentExecuteResult ?? this.currentExecuteResult),
       isExecuting: isExecuting ?? this.isExecuting,
+      executeFailure: clearExecuteFailure
+          ? null
+          : (executeFailure ?? this.executeFailure),
       isGeneratingChoices: isGeneratingChoices ?? this.isGeneratingChoices,
       sseStatusMessage: sseStatusMessage ?? this.sseStatusMessage,
       sseError: clearSseError ? null : (sseError ?? this.sseError),
@@ -191,10 +201,25 @@ class QuestionInteractionNotifier
     state = state.copyWith(
       selectedChoiceKey: choiceKey,
       clearExecuteResult: true,
+      clearExecuteFailure: true,
     );
 
     if (!isExecutable || sql == null || sql.isEmpty) return;
+    await _executeSql(sql);
+  }
 
+  /// 실행 실패 카드의 다시 시도: 현재 선택지 SQL 재실행
+  Future<void> retryExecution() async {
+    final selectedChoice = state.activeChoices
+        .where((choice) => choice.key == state.selectedChoiceKey)
+        .firstOrNull;
+    if (selectedChoice == null || state.isExecuting) return;
+    state = state.copyWith(clearExecuteFailure: true);
+    await _executeSql(selectedChoice.body);
+  }
+
+  /// SQL 실행: 캐시 우선 > POST /execute > 결과 또는 실패 사유 저장
+  Future<void> _executeSql(String sql) async {
     // 캐시 HIT: API 호출 없이 결과 재사용.
     final cachedResult = state.executeCache[sql];
     if (cachedResult != null) {
@@ -215,13 +240,16 @@ class QuestionInteractionNotifier
         currentExecuteResult: executeResult,
         isExecuting: false,
       );
-    } catch (_) {
-      // 실행 실패는 결과 카드 없이 둔다(인증 만료는 인터셉터가 세션 만료 신호로 처리)
-      state = state.copyWith(isExecuting: false);
+    } catch (exception) {
+      // 실패 사유를 담아 오류 카드로 표시 (인증 만료는 인터셉터가 세션 만료 신호로 처리)
+      state = state.copyWith(
+        isExecuting: false,
+        executeFailure: exception.asAppException,
+      );
     }
   }
 
-  /// 답안 제출. 성공 시 SubmitResult 반환, 실패 시 null 반환.
+  /// 답안 제출. 성공 시 SubmitResult, 선택 전이면 null, API 실패 시 [AppException] 던짐.
   /// [sessionUuid]는 연습/챕터 세션 단위 AI 코멘트 집계용이며 단건 풀이는 생략한다.
   Future<SubmitResult?> submit({String? sessionUuid}) async {
     final choiceSetId = state.activeChoiceSetId;
@@ -242,10 +270,10 @@ class QuestionInteractionNotifier
           );
       // 신고 시 어떤 선택지 세트를 풀었는지 알려야 하므로 결과에 붙여 둔다.
       return submitResult.copyWith(choiceSetUuid: choiceSetId);
-    } catch (_) {
-      // 실패는 호출 측이 토스트로 알린다(인증 만료는 인터셉터가 세션 만료 신호로 처리)
+    } catch (exception) {
+      // 원인별 문구는 호출 측이 토스트로 표시 (인증 만료는 인터셉터가 세션 만료 신호로 처리)
       state = state.copyWith(isSubmitting: false);
-      return null;
+      throw exception.asAppException;
     }
   }
 }
