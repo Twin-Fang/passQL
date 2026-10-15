@@ -33,17 +33,18 @@ public class ApiSecurityErrorHandler implements AuthenticationEntryPoint, Access
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException e) throws IOException {
         log.warn("[auth] 인증 실패: {} {} ip={}", request.getMethod(), request.getRequestURI(), request.getRemoteAddr());
-        write(response, ErrorCode.UNAUTHORIZED);
+        writeErrorResponse(response, ErrorCode.UNAUTHORIZED);
     }
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
                        AccessDeniedException e) throws IOException {
         log.warn("[auth] 접근 거부: {} {} ip={}", request.getMethod(), request.getRequestURI(), request.getRemoteAddr());
-        write(response, ErrorCode.ACCESS_DENIED);
+        writeErrorResponse(response, ErrorCode.ACCESS_DENIED);
     }
 
-    private void write(HttpServletResponse response, ErrorCode errorCode) throws IOException {
+    /** ErrorCode > 표준 오류 본문 응답 (API 체인 필터 공통) */
+    public void writeErrorResponse(HttpServletResponse response, ErrorCode errorCode) throws IOException {
         response.setStatus(errorCode.getStatus().value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());

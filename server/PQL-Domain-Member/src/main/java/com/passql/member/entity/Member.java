@@ -128,4 +128,10 @@ public class Member extends SoftDeletableBaseEntity {
         if (nicknameChangedAt == null) return false;
         return LocalDateTime.now().isBefore(nicknameChangedAt.plusDays(3));
     }
+
+    // 제재 효력 여부: SUSPENDED 이면서 만료 전 (만료 시각 없으면 영구)
+    public boolean isSuspensionInEffectAt(LocalDateTime now) {
+        if (status != MemberStatus.SUSPENDED) return false;
+        return suspendUntil == null || !suspendUntil.isBefore(now);
+    }
 }

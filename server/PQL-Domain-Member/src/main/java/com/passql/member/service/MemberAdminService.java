@@ -15,6 +15,7 @@ import com.passql.member.repository.MemberSuspendHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -76,6 +77,7 @@ public class MemberAdminService {
 
     /** 회원 제재. suspendUntil은 null 불가, 과거 시각 불가. */
     @Transactional
+    @CacheEvict(value = MemberSuspensionService.SUSPENSION_CACHE_NAME, key = "#memberUuid")
     public void suspendMember(UUID memberUuid, String reason, LocalDateTime suspendUntil) {
         if (suspendUntil == null || suspendUntil.isBefore(LocalDateTime.now())) {
             throw new CustomException(ErrorCode.INVALID_SUSPEND_UNTIL);
@@ -93,6 +95,7 @@ public class MemberAdminService {
 
     /** 회원 제재 해제 (수동) */
     @Transactional
+    @CacheEvict(value = MemberSuspensionService.SUSPENSION_CACHE_NAME, key = "#memberUuid")
     public void unsuspendMember(UUID memberUuid) {
         Member member = memberRepository.findByMemberUuidAndIsDeletedFalse(memberUuid)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
