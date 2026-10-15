@@ -26,11 +26,19 @@ import '../presentation/tab_pages_test.dart' show homeData, statsData, topics;
 /// - 예외(실측으로 확인되면 여기에 사유와 함께 추가): 현재 없음.
 ///   아이콘 타일/로고의 흰색 고정은 Text 가 아니라 Icon 이라 걸리지 않는다.
 Set<Color> _allowedTextColors() {
-  final c = PassqlColors.dark;
+  final colors = PassqlColors.dark;
   return {
-    c.label, c.secondaryLabel, c.tertiaryLabel, c.accent, c.onAccent,
-    c.correctText, c.wrongText, c.correct, c.wrong, c.warning,
-    c.background, // 토스트 글자
+    colors.label,
+    colors.secondaryLabel,
+    colors.tertiaryLabel,
+    colors.accent,
+    colors.onAccent,
+    colors.correctText,
+    colors.wrongText,
+    colors.correct,
+    colors.wrong,
+    colors.warning,
+    colors.background, // 토스트 글자
   };
 }
 

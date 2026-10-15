@@ -153,28 +153,28 @@ ProviderContainer _container({
   _FakeDailySetApi? daily,
   _FakeQuestionApi? question,
 }) {
-  final c = ProviderContainer(
+  final container = ProviderContainer(
     overrides: [
       dailySetApiProvider.overrideWithValue(daily ?? _FakeDailySetApi()),
       if (question != null) questionApiProvider.overrideWithValue(question),
     ],
   );
-  addTearDown(c.dispose);
-  return c;
+  addTearDown(container.dispose);
+  return container;
 }
 
 void main() {
   group('데일리 세트 흐름: 문제 목록', () {
     // 흐름 코드는 WidgetRef.read 만 쓰므로, Provider 안에서 어댑터로 감싸 호출한다.
-    Future<List<String>> load(ProviderContainer c) {
+    Future<List<String>> load(ProviderContainer container) {
       final p = FutureProvider<List<String>>(
         (ref) => const DailySetFlow().loadQuestionUuids(_RefAdapter(ref)),
       );
-      return c.read(p.future);
+      return container.read(p.future);
     }
 
     test('오늘의 문제 UUID 를 순서대로 돌려준다', () async {
-      final c = _container(
+      final container = _container(
         daily: _FakeDailySetApi(
           today: const DailySetTodayResponse(
             questions: [
@@ -184,11 +184,11 @@ void main() {
           ),
         ),
       );
-      expect(await load(c), ['q1', 'q2']);
+      expect(await load(container), ['q1', 'q2']);
     });
 
     test('이미 완료했으면 완료 안내 예외를 던진다', () async {
-      final c = _container(
+      final container = _container(
         daily: _FakeDailySetApi(
           today: const DailySetTodayResponse(
             questions: [QuestionSummary(questionUuid: 'q1')],
@@ -197,7 +197,7 @@ void main() {
         ),
       );
       await expectLater(
-        load(c),
+        load(container),
         throwsA(
           isA<AppException>().having(
             (e) => e.code,
@@ -209,9 +209,9 @@ void main() {
     });
 
     test('세트가 아직 없으면 준비 중 예외를 던진다', () async {
-      final c = _container(daily: _FakeDailySetApi());
+      final container = _container(daily: _FakeDailySetApi());
       await expectLater(
-        load(c),
+        load(container),
         throwsA(
           isA<AppException>().having(
             (e) => e.code,
@@ -293,10 +293,10 @@ void main() {
 
     testWidgets('해당 토픽의 문제를 불러오고, 끝나면 연습 결과 화면으로 요약을 넘긴다', (tester) async {
       final question = _FakeQuestionApi();
-      final c = _container(question: question);
+      final container = _container(question: question);
       const flow = TopicFlow(topicCode: 'JOIN', topicName: '조인');
 
-      final received = await _complete(tester, flow, c);
+      final received = await _complete(tester, flow, container);
 
       expect(received, isA<ChapterSummary>());
       expect((received as ChapterSummary).topicName, '오늘의 세트');
