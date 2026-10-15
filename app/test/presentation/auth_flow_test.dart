@@ -3,10 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/core/auth/auth_session.dart';
+import 'package:passql_app/core/auth/session_expiry_signal.dart';
 import 'package:passql_app/core/auth/social_sign_in.dart';
 import 'package:passql_app/core/auth/token_store.dart';
 import 'package:passql_app/core/network/dio_client.dart';
-import 'package:passql_app/core/network/api_providers.dart';
+import 'package:passql_app/data/sources/api_providers.dart';
 import 'package:passql_app/data/sources/auth_api.dart';
 import 'package:passql_app/data/sources/member_api.dart';
 import 'package:passql_app/presentation/providers/auth_provider.dart';
@@ -187,6 +188,15 @@ void main() {
       expect(social.signOuts, 1);
       expect(await store.read(), isNull);
       expect(c.read(authProvider).value, isNull);
+    });
+
+    test('네트워크 계층의 세션 만료 신호를 받으면 로그아웃 상태가 된다', () async {
+      final container = await signedIn(_FakeSocial(), _FakeAuthApi());
+
+      container.read(sessionExpirySignalProvider).announceExpired();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(authProvider).value, isNull);
     });
 
     test('다시 시작해도 로그아웃 상태가 유지된다 (저장소에서 세션을 읽지 못한다)', () async {

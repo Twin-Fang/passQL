@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:passql_app/core/error/app_exception.dart';
 import 'package:passql_app/core/error/error_code.dart';
-import 'package:passql_app/core/network/api_providers.dart';
+import 'package:passql_app/data/sources/api_providers.dart';
 import 'package:passql_app/data/models/daily_set/daily_set_models.dart';
 import 'package:passql_app/data/models/home/question_summary.dart';
 import 'package:passql_app/data/models/question/question_list_response.dart';

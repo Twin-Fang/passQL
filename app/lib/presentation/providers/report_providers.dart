@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/error/app_exception.dart';
 import '../../core/error/error_code.dart';
-import '../../core/network/api_providers.dart';
+import '../../data/sources/api_providers.dart';
 import '../../core/validation/report_validator.dart';
 import '../../data/models/report/report_models.dart';
 

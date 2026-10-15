@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:passql_app/core/topic_icons.dart';
 import 'package:passql_app/data/models/meta/topic_tree.dart';
 import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/widgets/question/topic_card.dart';
@@ -72,10 +71,10 @@ void main() {
         const TopicTree(topicUuid: 't', code: 'sql_join', displayName: 'JOIN'),
       ),
     );
-    expect(_tileColor(tester), topicColor('sql_join', Brightness.light));
+    expect(_tileColor(tester), topicColorFor('sql_join', Brightness.light));
     expect(
-      topicColor('sql_join', Brightness.light),
-      isNot(topicColor('sql_window', Brightness.light)),
+      topicColorFor('sql_join', Brightness.light),
+      isNot(topicColorFor('sql_window', Brightness.light)),
     );
   });
 

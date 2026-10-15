@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../core/error/app_exception.dart';
-import '../../core/network/api_providers.dart';
+import '../../data/sources/api_providers.dart';
 import '../../data/models/member/choice_generation_mode.dart';
 import '../../data/models/member/choice_mode_models.dart';
 import '../../data/models/member/nickname_models.dart';

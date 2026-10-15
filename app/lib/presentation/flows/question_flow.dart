@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../core/network/api_providers.dart';
+import '../../data/sources/api_providers.dart';
 import '../providers/chapter_providers.dart';
 
 /// 문제 묶음을 순서대로 푸는 흐름의 종류.

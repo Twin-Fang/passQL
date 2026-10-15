@@ -24,3 +24,4 @@ export 'components/passql_sheet.dart';
 export 'components/passql_skeleton_box.dart';
 export 'components/passql_status_view.dart';
 export 'components/passql_tab_bar.dart';
+export 'topic_appearance.dart';

@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:passql_app/core/network/api_providers.dart';
+import 'package:passql_app/data/sources/api_providers.dart';
 import 'package:passql_app/data/models/report/report_models.dart';
 import 'package:passql_app/data/sources/report_api.dart';
 import 'package:passql_app/presentation/design/design.dart';

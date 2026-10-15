@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/network/api_providers.dart';
+import '../../data/sources/api_providers.dart';
 import '../../core/network/safe_call.dart';
 import '../../data/models/progress/progress_response.dart';
 import '../../data/models/progress/topic_analysis_response.dart';

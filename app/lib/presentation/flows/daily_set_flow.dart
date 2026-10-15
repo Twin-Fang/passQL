@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/error/app_exception.dart';
 import '../../core/error/error_code.dart';
-import '../../core/network/api_providers.dart';
+import '../../data/sources/api_providers.dart';
 import '../../data/models/daily_set/daily_set_models.dart';
 import '../../router/app_routes.dart';
 import '../providers/chapter_providers.dart';

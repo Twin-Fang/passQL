@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/network/api_providers.dart';
+import '../../data/sources/api_providers.dart';
 import '../../data/models/question/choice_item.dart';
 import '../../data/models/question/execute_request.dart';
 import '../../data/models/question/execute_result.dart';

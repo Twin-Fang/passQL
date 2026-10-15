@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/network/api_providers.dart';
+import '../../../data/sources/api_providers.dart';
 import '../../../data/models/ai/similar_question.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';

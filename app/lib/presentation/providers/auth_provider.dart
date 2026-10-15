@@ -2,10 +2,11 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/auth/auth_session.dart';
+import '../../core/auth/session_expiry_signal.dart';
 import '../../core/auth/social_sign_in.dart';
 import '../../core/auth/token_store.dart';
 import '../../core/error/app_exception.dart';
-import '../../core/network/api_providers.dart';
+import '../../data/sources/api_providers.dart';
 import '../../core/network/dio_client.dart';
 
 /// 로그인 세션 상태. null 이면 로그아웃 상태.
@@ -13,7 +14,15 @@ import '../../core/network/dio_client.dart';
 /// 앱 시작 시 보안 저장소의 세션을 읽어 초기 상태로 삼는다.
 class AuthNotifier extends AsyncNotifier<AuthSession?> {
   @override
-  Future<AuthSession?> build() => ref.read(tokenStoreProvider).read();
+  Future<AuthSession?> build() {
+    // 네트워크 계층의 세션 만료 신호 > 로그아웃 상태 (라우터가 로그인 화면으로 보냄)
+    final expirySubscription = ref
+        .read(sessionExpirySignalProvider)
+        .expirations
+        .listen((_) => expire());
+    ref.onDispose(expirySubscription.cancel);
+    return ref.read(tokenStoreProvider).read();
+  }
 
   /// 소셜 로그인 → 서버 로그인 → 세션 저장.
   ///

@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
+import 'tokens/passql_colors.dart';
+
 /// 토픽 코드 → 아이콘 매핑. 웹 `client/src/constants/topicIcons.ts`와 같은 의미의 아이콘을 쓴다.
 const Map<String, IconData> _topicIconMap = {
   'data_modeling': CupertinoIcons.tray_2,
@@ -17,22 +19,23 @@ const Map<String, IconData> _topicIconMap = {
 IconData topicIconFor(String code) =>
     _topicIconMap[code] ?? CupertinoIcons.question_circle;
 
-/// Apple 시스템 색 (라이트, 다크) 쌍. 이 파일이 토픽 색 팔레트의 유일한 정의 위치다.
-typedef _Pair = (Color, Color);
+/// Apple 시스템 색 (라이트, 다크) 쌍. 토픽 색 팔레트의 유일한 정의 위치
+/// PassqlColors 와 같은 색(red·orange·green·indigo)은 색 토큰을 그대로 참조
+typedef _LightDarkColorPair = (Color, Color);
 
-const Map<String, _Pair> _palette = {
-  'red': (Color(0xFFFF3B30), Color(0xFFFF453A)),
-  'orange': (Color(0xFFFF9500), Color(0xFFFF9F0A)),
-  'yellow': (Color(0xFFFFCC00), Color(0xFFFFD60A)),
-  'green': (Color(0xFF34C759), Color(0xFF30D158)),
-  'mint': (Color(0xFF00C7BE), Color(0xFF63E6E2)),
-  'teal': (Color(0xFF30B0C7), Color(0xFF40CBE0)),
-  'cyan': (Color(0xFF32ADE6), Color(0xFF64D2FF)),
-  'blue': (Color(0xFF007AFF), Color(0xFF0A84FF)),
-  'indigo': (Color(0xFF5856D6), Color(0xFF5E5CE6)),
-  'purple': (Color(0xFFAF52DE), Color(0xFFBF5AF2)),
-  'pink': (Color(0xFFFF2D55), Color(0xFFFF375F)),
-  'brown': (Color(0xFFA2845E), Color(0xFFAC8E68)),
+final Map<String, _LightDarkColorPair> _palette = {
+  'red': (PassqlColors.light.wrong, PassqlColors.dark.wrong),
+  'orange': (PassqlColors.light.warning, PassqlColors.dark.warning),
+  'yellow': (const Color(0xFFFFCC00), const Color(0xFFFFD60A)),
+  'green': (PassqlColors.light.correct, PassqlColors.dark.correct),
+  'mint': (const Color(0xFF00C7BE), const Color(0xFF63E6E2)),
+  'teal': (const Color(0xFF30B0C7), const Color(0xFF40CBE0)),
+  'cyan': (const Color(0xFF32ADE6), const Color(0xFF64D2FF)),
+  'blue': (const Color(0xFF007AFF), const Color(0xFF0A84FF)),
+  'indigo': (PassqlColors.light.accent, PassqlColors.dark.accent),
+  'purple': (const Color(0xFFAF52DE), const Color(0xFFBF5AF2)),
+  'pink': (const Color(0xFFFF2D55), const Color(0xFFFF375F)),
+  'brown': (const Color(0xFFA2845E), const Color(0xFFAC8E68)),
 };
 
 /// 토픽마다 색조를 달리해 목록에서 색으로 구분되게 한다(이전 20색 → 가장 가까운 시스템 색조).
@@ -49,7 +52,7 @@ const Map<String, String> _topicHue = {
 };
 
 /// 토픽 아이콘 타일 배경색. 모르는 코드는 앱 기본 강조 색조(indigo)로 대체한다.
-Color topicColor(String code, Brightness brightness) {
-  final pair = _palette[_topicHue[code] ?? 'indigo']!;
-  return brightness == Brightness.dark ? pair.$2 : pair.$1;
+Color topicColorFor(String code, Brightness brightness) {
+  final colorPair = _palette[_topicHue[code] ?? 'indigo']!;
+  return brightness == Brightness.dark ? colorPair.$2 : colorPair.$1;
 }

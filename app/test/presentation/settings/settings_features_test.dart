@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:passql_app/core/error/app_exception.dart';
 import 'package:passql_app/core/error/error_code.dart';
 import 'package:passql_app/core/auth/auth_session.dart';
-import 'package:passql_app/core/network/api_providers.dart';
+import 'package:passql_app/data/sources/api_providers.dart';
 import 'package:passql_app/data/models/member/choice_generation_mode.dart';
 import 'package:passql_app/data/models/member/choice_mode_models.dart';
 import 'package:passql_app/data/models/member/member_me_response.dart';

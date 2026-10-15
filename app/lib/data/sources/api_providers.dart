@@ -1,17 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/sources/ai_api.dart';
-import '../../data/sources/feedback_api.dart';
-import '../../data/sources/daily_set_api.dart';
-import '../../data/sources/exam_schedule_api.dart';
-import '../../data/sources/home_api.dart';
-import '../../data/sources/member_api.dart';
-import '../../data/sources/meta_api.dart';
-import '../../data/sources/progress_api.dart';
-import '../../data/sources/question_api.dart';
-import '../../data/sources/report_api.dart';
-import '../../data/sources/sse_question_client.dart';
-import 'dio_client.dart';
+import 'ai_api.dart';
+import 'feedback_api.dart';
+import 'daily_set_api.dart';
+import 'exam_schedule_api.dart';
+import 'home_api.dart';
+import 'member_api.dart';
+import 'meta_api.dart';
+import 'progress_api.dart';
+import 'question_api.dart';
+import 'report_api.dart';
+import 'sse_question_client.dart';
+import '../../core/network/dio_client.dart';
 
 /// API 클라이언트 Provider 모음.
 ///

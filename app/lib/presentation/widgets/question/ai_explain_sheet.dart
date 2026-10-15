@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/network/api_providers.dart';
+import '../../../data/sources/api_providers.dart';
 import '../../design/design.dart';
 import 'markdown_lite_text.dart';
 

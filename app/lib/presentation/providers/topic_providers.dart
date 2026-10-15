@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/network/api_providers.dart';
+import '../../data/sources/api_providers.dart';
 import '../../data/models/meta/topic_tree.dart';
 
 /// 토픽 목록 Provider. staleTime 없음 — 탭 진입 시 1회 로드.
