@@ -9,6 +9,7 @@ import com.passql.meta.repository.TopicRepository;
 import com.passql.question.constant.ChoiceSetPolicy;
 import com.passql.question.constant.ChoiceSetSource;
 import com.passql.question.constant.ExecutionMode;
+import com.passql.question.dto.ChoiceSetGenerateResponse;
 import com.passql.question.dto.QuestionDetail;
 import com.passql.question.dto.QuestionSummary;
 import com.passql.question.dto.RecommendationsResponse;
@@ -100,6 +101,20 @@ public class QuestionService {
                 q.getHint(),
                 choiceSets
         );
+    }
+
+    /** 풀이용 선택지 세트 > 응답 (정답 여부·해설 제외) */
+    public ChoiceSetGenerateResponse getChoiceSetForSolving(UUID choiceSetUuid) {
+        List<ChoiceSetGenerateResponse.ChoiceItem> choiceItems = choiceSetItemRepository
+                .findByChoiceSetUuidOrderBySortOrderAsc(choiceSetUuid)
+                .stream()
+                .map(item -> new ChoiceSetGenerateResponse.ChoiceItem(
+                        item.getChoiceKey(),
+                        item.getKind().name(),
+                        item.getBody(),
+                        item.getSortOrder()))
+                .toList();
+        return new ChoiceSetGenerateResponse(choiceSetUuid, choiceItems);
     }
 
     public Question getQuestionEntity(UUID questionUuid) {
