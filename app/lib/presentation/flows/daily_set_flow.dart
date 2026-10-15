@@ -1,11 +1,7 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/error/app_exception.dart';
-import '../../core/error/error_code.dart';
-import '../../data/sources/api_providers.dart';
 import '../../data/models/daily_set/daily_set_models.dart';
 import '../../router/app_routes.dart';
 import '../providers/chapter_providers.dart';
@@ -46,25 +42,11 @@ class DailySetFlow extends QuestionFlow {
 
   // 한 번의 풀이를 하나의 세션으로 묶어 서버에 알린다.
   @override
-  bool get tracksSession => true;
+  bool get shouldTrackSession => true;
 
   @override
-  Future<List<String>> loadQuestionUuids(WidgetRef ref) async {
-    final today = await ref.read(dailySetApiProvider).getToday();
-    if (today.alreadyCompleted) {
-      throw const AppException(
-        code: ErrorCode.dailySetAlreadyCompleted,
-        message: '오늘의 세트를 이미 완료했어요.',
-      );
-    }
-    if (today.questions.isEmpty) {
-      throw const AppException(
-        code: ErrorCode.dailySetNotFound,
-        message: '오늘의 세트가 아직 준비되지 않았어요.',
-      );
-    }
-    return today.questions.map((question) => question.questionUuid).toList();
-  }
+  Future<List<String>> loadQuestionUuids(WidgetRef ref) =>
+      ref.read(dailySetServiceProvider).fetchTodayQuestionUuids();
 
   @override
   Future<void> onCompleted(
@@ -73,38 +55,21 @@ class DailySetFlow extends QuestionFlow {
     ChapterSummary summary,
     String sessionUuid,
   ) async {
-    final correct = summary.results.where((result) => result.isCorrect).length;
-
-    DailySetCompleteResponse? completed;
-    String? saveError;
-    try {
-      completed = await ref
-          .read(dailySetApiProvider)
-          .complete(
-            DailySetCompleteRequest(correctCount: correct, sessionUuid: sessionUuid),
-          );
-    } on DioException catch (exception) {
-      final error = exception.asAppException;
-      // 이미 등록된 경우는 결과를 그대로 보여주면 되고, 그 외는 순위 미반영을 알린다.
-      if (error.code != ErrorCode.dailySetAlreadyCompleted) {
-        saveError = error.message;
-      }
-    }
-
-    // 순위를 최신으로 맞춘다. 홈 카드(완료 표시)와 학습 현황은 풀이 화면을 벗어날 때
-    // ChapterPage 가 한 번에 갱신하므로 여기서 다시 하지 않는다.
-    ref
-      ..invalidate(dailySetTodayProvider)
-      ..invalidate(leaderboardProvider);
+    final correctCount = summary.results
+        .where((result) => result.isCorrect)
+        .length;
+    final completion = await ref
+        .read(dailySetServiceProvider)
+        .submitCompletion(correctCount: correctCount, sessionUuid: sessionUuid);
 
     if (!context.mounted) return;
     context.go(
       AppRoutes.dailySetResult,
       extra: DailySetOutcome(
         results: summary.results,
-        correctCount: correct,
-        completed: completed,
-        saveError: saveError,
+        correctCount: correctCount,
+        completed: completion.completed,
+        saveError: completion.saveErrorMessage,
       ),
     );
   }

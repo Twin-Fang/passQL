@@ -42,21 +42,29 @@ final homeDataProvider = FutureProvider<HomeData>((ref) async {
   // 6개 API 병렬 호출.
   // getHeatmap(from, to) — from/to는 nullable String.
   // 개별 실패는 해당 섹션만 숨기지만, 전부 실패하면(서버 장애·네트워크 끊김) 오류 화면을 띄운다 (#375).
-  final results = await safeCallAll([
-    homeClient.getGreeting(),
-    progressClient.getProgress(),
-    ref.read(dailySetApiProvider).getToday(),
+  final greeting = SafeCallSlot(homeClient.getGreeting());
+  final progress = SafeCallSlot(progressClient.getProgress());
+  final dailySet = SafeCallSlot(ref.read(dailySetApiProvider).getToday());
+  final recommendations = SafeCallSlot(
     questionClient.getRecommendations(const RecommendationsRequest(size: 3)),
-    examClient.getSelectedSchedule(),
-    progressClient.getHeatmap(null, null),
+  );
+  final examSchedule = SafeCallSlot(examClient.getSelectedSchedule());
+  final heatmap = SafeCallSlot(progressClient.getHeatmap(null, null));
+  await safeCallAll([
+    greeting,
+    progress,
+    dailySet,
+    recommendations,
+    examSchedule,
+    heatmap,
   ]);
 
   return HomeData(
-    greeting: results[0] as GreetingResponse?,
-    progress: results[1] as ProgressResponse?,
-    dailySet: results[2] as DailySetTodayResponse?,
-    recommendations: results[3] as RecommendationsResponse?,
-    examSchedule: results[4] as ExamScheduleResponse?,
-    heatmap: results[5] as HeatmapResponse?,
+    greeting: greeting.value,
+    progress: progress.value,
+    dailySet: dailySet.value,
+    recommendations: recommendations.value,
+    examSchedule: examSchedule.value,
+    heatmap: heatmap.value,
   );
 });

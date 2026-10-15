@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/error/app_exception.dart';
 import '../../core/error/error_code.dart';
+import '../../core/network/safe_call.dart';
 import '../../data/sources/api_providers.dart';
 import '../../core/validation/report_validator.dart';
 import '../../data/models/report/report_models.dart';
@@ -13,16 +14,16 @@ typedef ReportTarget = ({String questionUuid, String submissionUuid});
 /// 이 제출을 이미 신고했는지. 화면을 벗어나면 해제된다.
 ///
 /// 상태 확인이 실패해도 신고 자체를 막지 않는다(서버가 중복을 거절하므로 안전하다).
+/// 인증 만료는 safeCall 이 다시 던진다.
 final reportStatusProvider = FutureProvider.autoDispose
     .family<bool, ReportTarget>((ref, target) async {
-      try {
-        final response = await ref
+      final reportStatus = await safeCall(
+        ref
             .read(reportApiProvider)
-            .getReportStatus(target.questionUuid, target.submissionUuid);
-        return response.reported;
-      } on DioException {
-        return false;
-      }
+            .getReportStatus(target.questionUuid, target.submissionUuid),
+        label: 'reportStatus',
+      );
+      return reportStatus?.reported ?? false;
     });
 
 /// 신고 전송.

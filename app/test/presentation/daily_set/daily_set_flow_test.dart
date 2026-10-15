@@ -9,6 +9,7 @@ import 'package:passql_app/data/sources/api_providers.dart';
 import 'package:passql_app/data/models/daily_set/daily_set_models.dart';
 import 'package:passql_app/data/models/home/question_summary.dart';
 import 'package:passql_app/data/models/question/question_list_response.dart';
+import 'package:passql_app/data/models/question/submit_result.dart';
 import 'package:passql_app/data/sources/daily_set_api.dart';
 import 'package:passql_app/data/sources/question_api.dart';
 import 'package:passql_app/presentation/flows/daily_set_flow.dart';
@@ -37,14 +38,17 @@ class _FakeDailySetApi implements DailySetApiClient {
   Future<DailySetTodayResponse> getToday() async => today;
 
   @override
-  Future<DailySetCompleteResponse> complete(DailySetCompleteRequest body) async {
+  Future<DailySetCompleteResponse> complete(
+    DailySetCompleteRequest body,
+  ) async {
     completeRequests.add(body);
     if (completeError != null) throw completeError!;
     return completeResult;
   }
 
   @override
-  Future<LeaderboardResponse> getLeaderboard() async => const LeaderboardResponse();
+  Future<LeaderboardResponse> getLeaderboard() async =>
+      const LeaderboardResponse();
 }
 
 class _FakeQuestionApi implements QuestionApiClient {
@@ -98,7 +102,12 @@ const _summary = ChapterSummary(
 );
 
 /// 흐름의 완료 처리를 실행하고, 이동한 곳에 전달된 값을 돌려준다.
-Future<Object?> _complete(WidgetTester tester, QuestionFlow flow, ProviderContainer container, {String sessionUuid = 'sess-1'}) async {
+Future<Object?> _complete(
+  WidgetTester tester,
+  QuestionFlow flow,
+  ProviderContainer container, {
+  String sessionUuid = 'sess-1',
+}) async {
   Object? received;
   final router = GoRouter(
     routes: [
@@ -106,7 +115,8 @@ Future<Object?> _complete(WidgetTester tester, QuestionFlow flow, ProviderContai
         path: '/',
         builder: (_, _) => Consumer(
           builder: (context, ref, _) => TextButton(
-            onPressed: () => flow.onCompleted(context, ref, _summary, sessionUuid),
+            onPressed: () =>
+                flow.onCompleted(context, ref, _summary, sessionUuid),
             child: const Text('끝내기'),
           ),
         ),
@@ -139,7 +149,10 @@ Future<Object?> _complete(WidgetTester tester, QuestionFlow flow, ProviderContai
   return received;
 }
 
-ProviderContainer _container({_FakeDailySetApi? daily, _FakeQuestionApi? question}) {
+ProviderContainer _container({
+  _FakeDailySetApi? daily,
+  _FakeQuestionApi? question,
+}) {
   final c = ProviderContainer(
     overrides: [
       dailySetApiProvider.overrideWithValue(daily ?? _FakeDailySetApi()),
@@ -164,7 +177,10 @@ void main() {
       final c = _container(
         daily: _FakeDailySetApi(
           today: const DailySetTodayResponse(
-            questions: [QuestionSummary(questionUuid: 'q1'), QuestionSummary(questionUuid: 'q2')],
+            questions: [
+              QuestionSummary(questionUuid: 'q1'),
+              QuestionSummary(questionUuid: 'q2'),
+            ],
           ),
         ),
       );
@@ -182,7 +198,13 @@ void main() {
       );
       await expectLater(
         load(c),
-        throwsA(isA<AppException>().having((e) => e.code, 'code', ErrorCode.dailySetAlreadyCompleted)),
+        throwsA(
+          isA<AppException>().having(
+            (e) => e.code,
+            'code',
+            ErrorCode.dailySetAlreadyCompleted,
+          ),
+        ),
       );
     });
 
@@ -190,7 +212,13 @@ void main() {
       final c = _container(daily: _FakeDailySetApi());
       await expectLater(
         load(c),
-        throwsA(isA<AppException>().having((e) => e.code, 'code', ErrorCode.dailySetNotFound)),
+        throwsA(
+          isA<AppException>().having(
+            (e) => e.code,
+            'code',
+            ErrorCode.dailySetNotFound,
+          ),
+        ),
       );
     });
   });
@@ -198,9 +226,17 @@ void main() {
   group('데일리 세트 흐름: 완료 처리', () {
     testWidgets('정답 수와 세션을 서버에 보내고, 순위와 함께 결과 화면으로 이동한다', (tester) async {
       final api = _FakeDailySetApi(
-        completeResult: const DailySetCompleteResponse(correctCount: 2, rank: 5, totalParticipants: 40),
+        completeResult: const DailySetCompleteResponse(
+          correctCount: 2,
+          rank: 5,
+          totalParticipants: 40,
+        ),
       );
-      final received = await _complete(tester, const DailySetFlow(), _container(daily: api));
+      final received = await _complete(
+        tester,
+        const DailySetFlow(),
+        _container(daily: api),
+      );
 
       expect(api.completeRequests.single.correctCount, 2); // 3문제 중 2개 정답
       expect(api.completeRequests.single.sessionUuid, 'sess-1');
@@ -214,10 +250,15 @@ void main() {
 
     testWidgets('이미 등록된 점수(409)는 오류로 보지 않고 결과를 보여준다', (tester) async {
       final api = _FakeDailySetApi(
-        completeError: _serverError(409, 'DAILY_SET_ALREADY_COMPLETED', '오늘의 데일리 세트를 이미 완료했습니다.'),
+        completeError: _serverError(
+          409,
+          'DAILY_SET_ALREADY_COMPLETED',
+          '오늘의 데일리 세트를 이미 완료했습니다.',
+        ),
       );
       final outcome =
-          await _complete(tester, const DailySetFlow(), _container(daily: api)) as DailySetOutcome;
+          await _complete(tester, const DailySetFlow(), _container(daily: api))
+              as DailySetOutcome;
 
       expect(outcome.saveError, isNull);
       expect(outcome.completed, isNull);
@@ -232,7 +273,8 @@ void main() {
         ),
       );
       final outcome =
-          await _complete(tester, const DailySetFlow(), _container(daily: api)) as DailySetOutcome;
+          await _complete(tester, const DailySetFlow(), _container(daily: api))
+              as DailySetOutcome;
 
       expect(outcome.saveError, '네트워크 연결을 확인해 주세요.');
       expect(outcome.correctCount, 2); // 풀이 결과는 잃지 않는다
@@ -245,8 +287,8 @@ void main() {
       const a = TopicFlow(topicCode: 'SQL_BASIC', topicName: '기본');
       const b = TopicFlow(topicCode: 'JOIN', topicName: '조인');
       expect(a.id, isNot(b.id));
-      expect(a.tracksSession, isFalse);
-      expect(const DailySetFlow().tracksSession, isTrue);
+      expect(a.shouldTrackSession, isFalse);
+      expect(const DailySetFlow().shouldTrackSession, isTrue);
     });
 
     testWidgets('해당 토픽의 문제를 불러오고, 끝나면 연습 결과 화면으로 요약을 넘긴다', (tester) async {
@@ -263,35 +305,61 @@ void main() {
   });
 
   group('ChapterNotifier.load', () {
+    /// 컨테이너에서 흐름 1개의 notifier 를 꺼낸다(autoDispose 유지용 구독 포함).
+    ChapterNotifier chapterNotifier() {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container.listen(chapterProvider('flow-1'), (_, _) {});
+      return container.read(chapterProvider('flow-1').notifier);
+    }
+
     test('불러오기에 성공하면 목록을 담는다', () async {
-      final n = ChapterNotifier();
-      await n.load(() async => ['a', 'b']);
-      expect(n.state.questionUuids, ['a', 'b']);
-      expect(n.state.isLoadingList, isFalse);
-      expect(n.state.listError, isNull);
+      final notifier = chapterNotifier();
+      await notifier.load(() async => ['a', 'b']);
+      expect(notifier.state.questionUuids, ['a', 'b']);
+      expect(notifier.state.isLoadingList, isFalse);
+      expect(notifier.state.listError, isNull);
     });
 
     test('흐름이 던진 사용자용 문구를 그대로 오류로 담는다', () async {
-      final n = ChapterNotifier();
-      await n.load(
+      final notifier = chapterNotifier();
+      await notifier.load(
         () => throw const AppException(
           code: ErrorCode.dailySetAlreadyCompleted,
           message: '오늘의 세트를 이미 완료했어요.',
         ),
       );
-      expect(n.state.listError, '오늘의 세트를 이미 완료했어요.');
-      expect(n.state.isLoadingList, isFalse);
+      expect(notifier.state.listError, '오늘의 세트를 이미 완료했어요.');
+      expect(notifier.state.isLoadingList, isFalse);
+    });
+
+    test('제출을 기록하면 결과가 쌓이고 완료 요약에 합산된다', () async {
+      final notifier = chapterNotifier();
+      await notifier.load(() async => ['a', 'b']);
+
+      notifier.recordSubmission(const SubmitResult(isCorrect: true), 'A');
+      notifier.nextQuestion();
+      notifier.recordSubmission(const SubmitResult(isCorrect: false), 'B');
+      final summary = notifier.buildSummary('조인');
+
+      expect(summary.topicName, '조인');
+      expect(summary.results.map((result) => result.questionUuid), ['a', 'b']);
+      expect(summary.results.map((result) => result.isCorrect), [true, false]);
+      expect(
+        summary.totalDurationMs,
+        summary.results.fold(0, (sum, result) => sum + result.durationMs),
+      );
     });
 
     test('네트워크 오류는 사용자용 문구로 바꿔 담는다', () async {
-      final n = ChapterNotifier();
-      await n.load(
+      final notifier = chapterNotifier();
+      await notifier.load(
         () => throw DioException(
           requestOptions: RequestOptions(path: '/x'),
           type: DioExceptionType.connectionTimeout,
         ),
       );
-      expect(n.state.listError, contains('응답이 늦어지고 있어요'));
+      expect(notifier.state.listError, contains('응답이 늦어지고 있어요'));
     });
   });
 }
