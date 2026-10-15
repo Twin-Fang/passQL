@@ -36,27 +36,27 @@
                 <div class="grid gap-4 md:grid-cols-2">
                     <div class="rounded-box border border-base-300 p-4 space-y-2">
                         <h4 class="font-semibold flex items-center gap-2"><i data-lucide="apple" class="size-4"></i>iOS</h4>
-                        <label class="form-control">
+                        <label class="flex flex-col gap-1">
                             <span class="label-text text-xs">최소 지원 버전 (미만이면 사용 차단)</span>
-                            <input type="text" id="iosMinimumVersion" class="input input-bordered input-sm font-mono version-input"
+                            <input type="text" id="iosMinimumVersion" class="input input-bordered input-sm font-mono version-input w-full"
                                    placeholder="0.0.0" th:value="${operationSettings.iosMinimumVersion}"/>
                         </label>
-                        <label class="form-control">
+                        <label class="flex flex-col gap-1">
                             <span class="label-text text-xs">권장 버전 (미만이면 업데이트 안내)</span>
-                            <input type="text" id="iosRecommendedVersion" class="input input-bordered input-sm font-mono version-input"
+                            <input type="text" id="iosRecommendedVersion" class="input input-bordered input-sm font-mono version-input w-full"
                                    placeholder="0.0.0" th:value="${operationSettings.iosRecommendedVersion}"/>
                         </label>
                     </div>
                     <div class="rounded-box border border-base-300 p-4 space-y-2">
                         <h4 class="font-semibold flex items-center gap-2"><i data-lucide="smartphone" class="size-4"></i>Android</h4>
-                        <label class="form-control">
+                        <label class="flex flex-col gap-1">
                             <span class="label-text text-xs">최소 지원 버전 (미만이면 사용 차단)</span>
-                            <input type="text" id="androidMinimumVersion" class="input input-bordered input-sm font-mono version-input"
+                            <input type="text" id="androidMinimumVersion" class="input input-bordered input-sm font-mono version-input w-full"
                                    placeholder="0.0.0" th:value="${operationSettings.androidMinimumVersion}"/>
                         </label>
-                        <label class="form-control">
+                        <label class="flex flex-col gap-1">
                             <span class="label-text text-xs">권장 버전 (미만이면 업데이트 안내)</span>
-                            <input type="text" id="androidRecommendedVersion" class="input input-bordered input-sm font-mono version-input"
+                            <input type="text" id="androidRecommendedVersion" class="input input-bordered input-sm font-mono version-input w-full"
                                    placeholder="0.0.0" th:value="${operationSettings.androidRecommendedVersion}"/>
                         </label>
                     </div>
@@ -103,7 +103,7 @@
                                 <div class="font-semibold" th:text="${notice.title}">공지 제목</div>
                                 <div class="text-xs text-base-content/60 line-clamp-1" th:text="${notice.body}">본문</div>
                             </td>
-                            <td class="text-xs font-mono">
+                            <td class="text-xs font-mono whitespace-nowrap">
                                 <span th:text="${notice.startsAt != null} ? ${#temporals.format(notice.startsAt, 'yyyy-MM-dd HH:mm')} : '즉시'">즉시</span>
                                 ~
                                 <span th:text="${notice.endsAt != null} ? ${#temporals.format(notice.endsAt, 'yyyy-MM-dd HH:mm')} : '무기한'">무기한</span>
@@ -113,7 +113,8 @@
                                 <span th:if="${notice.isActive}" class="badge badge-success badge-sm">활성</span>
                                 <span th:unless="${notice.isActive}" class="badge badge-ghost badge-sm">비활성</span>
                             </td>
-                            <td class="flex gap-1">
+                            <td>
+                                <div class="flex gap-1">
                                 <button class="btn btn-xs btn-ghost"
                                         th:data-uuid="${notice.noticeUuid}"
                                         th:data-title="${notice.title}"
@@ -131,6 +132,7 @@
                                         th:data-next-active="${!notice.isActive}"
                                         onclick="changeNoticeActive(this.dataset.uuid, this.dataset.nextActive === 'true')"
                                         th:text="${notice.isActive} ? '비활성화' : '활성화'">비활성화</button>
+                                </div>
                             </td>
                         </tr>
                         <tr th:if="${notices.isEmpty()}">
@@ -148,22 +150,22 @@
         <div class="modal-box space-y-3">
             <h3 class="font-bold text-lg" id="noticeModalTitle">새 공지</h3>
             <input type="hidden" id="noticeUuid"/>
-            <label class="form-control">
+            <label class="flex flex-col gap-1">
                 <span class="label-text text-xs">제목 (100자 이내)</span>
                 <input type="text" id="noticeTitle" class="input input-bordered input-sm w-full" maxlength="100"/>
             </label>
-            <label class="form-control">
+            <label class="flex flex-col gap-1">
                 <span class="label-text text-xs">본문 (2000자 이내)</span>
                 <textarea id="noticeBody" class="textarea textarea-bordered w-full" rows="5" maxlength="2000"></textarea>
             </label>
             <div class="grid grid-cols-2 gap-2">
-                <label class="form-control">
+                <label class="flex flex-col gap-1">
                     <span class="label-text text-xs">노출 시작 (비우면 즉시)</span>
-                    <input type="datetime-local" id="noticeStartsAt" class="input input-bordered input-sm"/>
+                    <input type="datetime-local" id="noticeStartsAt" class="input input-bordered input-sm w-full"/>
                 </label>
-                <label class="form-control">
+                <label class="flex flex-col gap-1">
                     <span class="label-text text-xs">노출 종료 (비우면 무기한)</span>
-                    <input type="datetime-local" id="noticeEndsAt" class="input input-bordered input-sm"/>
+                    <input type="datetime-local" id="noticeEndsAt" class="input input-bordered input-sm w-full"/>
                 </label>
             </div>
             <div class="flex gap-6">
