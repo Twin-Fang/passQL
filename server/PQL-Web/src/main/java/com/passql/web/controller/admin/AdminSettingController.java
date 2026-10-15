@@ -1,5 +1,7 @@
 package com.passql.web.controller.admin;
 
+import com.passql.common.exception.CustomException;
+import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.service.AppSettingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +31,7 @@ public class AdminSettingController {
     public ResponseEntity<Void> updateSetting(@PathVariable String key,
                                               @RequestBody Map<String, String> body) {
         if (AppSettingService.isSensitiveKey(key)) {
-            return ResponseEntity.status(403).build();
+            throw new CustomException(ErrorCode.SETTING_SENSITIVE_UPDATE_FORBIDDEN);
         }
         appSettingService.save(key, body.get("value"));
         return ResponseEntity.ok().build();

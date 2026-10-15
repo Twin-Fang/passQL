@@ -49,6 +49,8 @@ public enum ErrorCode {
     QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "문제를 찾을 수 없습니다."),
     SANDBOX_DB_NOT_FOUND(HttpStatus.NOT_FOUND, "샌드박스 DB를 찾을 수 없습니다."),
     SETTING_NOT_FOUND(HttpStatus.NOT_FOUND, "설정값을 찾을 수 없습니다."),
+    SETTING_SENSITIVE_UPDATE_FORBIDDEN(HttpStatus.FORBIDDEN, "민감 설정은 이 경로로 수정할 수 없습니다."),
+    EMBEDDING_INDEX_TARGET_EMPTY(HttpStatus.BAD_REQUEST, "색인할 문제가 선택되지 않았습니다."),
     PROMPT_NOT_FOUND(HttpStatus.NOT_FOUND, "프롬프트 템플릿을 찾을 수 없습니다."),
     TOPIC_NOT_FOUND(HttpStatus.NOT_FOUND, "토픽을 찾을 수 없습니다."),
     EXAM_SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "시험 일정을 찾을 수 없습니다."),

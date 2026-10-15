@@ -234,8 +234,8 @@
             })
             .then(r => r.json())
             .then(data => {
-                if (data.error) {
-                    showToast('오류: ' + data.error, 'error');
+                if (data.errorCode) {
+                    showToast('오류: ' + data.message, 'error');
                 } else {
                     showToast(`색인 완료: ${data.succeeded}개 성공, ${data.failed}개 실패`, 'success');
                     // 성공 시 3초 후 페이지 새로고침으로 상태 갱신
