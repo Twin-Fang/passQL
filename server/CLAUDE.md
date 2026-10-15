@@ -253,6 +253,9 @@ throw new CustomException(ErrorCode.NOT_SELECT);
 - 설정 키: `PQL-Domain-Meta` `AppSettingKeys` (app_setting 키 문자열 직접 사용 금지)
 - enum 요청값 변환: 각 enum 의 `fromRequestValue(String)` (잘못된 값 > `INVALID_INPUT_VALUE`)
 - 관리자 목록 페이지: `PQL-Web` `AdminPageRequest`
+- 관리자 화면 메뉴·제목: `@AdminPage(menu = AdminMenu.X)` (currentMenu·pageTitle 직접 넣지 않음)
+- 관리자 화면 요청·토스트·확인 창: `static/js/admin/admin-fetch.js` (`AdminApi`, `AdminUi`), `alert()`·`confirm()` 금지
+- 리다이렉트 후 저장 토스트: `AdminFlash.TOAST_MESSAGE` 플래시 속성
 - 미리보기 자르기: `TextPreview.truncate` / `truncateWithEllipsis` + 용도별 길이 상수
 - UUID 짧은 표기: `UuidUtils.toShortForm`
 
@@ -356,5 +359,5 @@ class XxxServiceTest {
 - [ ] stem/문제 형식 관련 규칙이 변경됐을 경우 아래 파일들도 함께 수정했는가?
   - `PQL-Web/src/main/resources/static/docs/question-single-guide.md` (단건 등록 가이드 MD)
   - `PQL-Web/src/main/resources/static/docs/question-bulk-guide.md` (대량 등록 가이드 MD)
-  - `PQL-Web/src/main/resources/templates/admin/question-register.html` (단건 등록 가이드 모달)
-  - `PQL-Web/src/main/resources/templates/admin/questions.html` (대량 등록 가이드 모달)
+  - `PQL-Web/src/main/resources/templates/admin/fragments/question-register-modals.html` + `static/js/admin/question-register.js` (단건 등록 가이드 모달·AI 프롬프트)
+  - `PQL-Web/src/main/resources/templates/admin/fragments/question-list-modals.html` + `static/js/admin/question-list.js` (대량 등록 가이드 모달·AI 프롬프트)

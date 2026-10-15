@@ -161,14 +161,9 @@
         function updateStatus(uuid) {
             const select = document.getElementById('select-' + uuid);
             const status = select.value;
-            fetch('/admin/feedbacks/' + uuid + '/status', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: status })
-            }).then(res => {
-                if (res.ok) location.reload();
-                else alert('상태 변경에 실패했습니다.');
-            }).catch(() => alert('네트워크 오류가 발생했습니다.'));
+            AdminApi.post('/admin/feedbacks/' + uuid + '/status', { status: status })
+                .then(() => AdminUi.reloadWithToast('상태를 변경했습니다.'))
+                .catch(error => AdminUi.showError(error));
         }
     </script>
 </th:block>

@@ -91,7 +91,7 @@
                     Step 3: 검토 &amp; 저장
                 </h2>
 
-                <form id="saveForm" action="/admin/questions" method="post">
+                <form id="saveForm" th:action="@{/admin/questions}" method="post">
                     <input type="hidden" name="topicUuid" id="topicUuidHidden" />
                     <input type="hidden" name="difficulty" id="difficultyHidden" />
                     <input type="hidden" name="schemaDdl" id="schemaDdlHidden" />
@@ -153,11 +153,11 @@
     async function generateQuestion() {
         const topicSelect = document.getElementById('topic');
         if (!topicSelect.value) {
-            alert('토픽을 선택해주세요.');
+            AdminUi.toast('토픽을 선택해주세요.', 'warning');
             return;
         }
         if (!document.getElementById('schemaDdl').value.trim()) {
-            alert('DDL을 입력해주세요.');
+            AdminUi.toast('DDL을 입력해주세요.', 'warning');
             return;
         }
 
@@ -183,16 +183,10 @@
         };
 
         try {
-            const resp = await fetch('/admin/questions/generate-full', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(body)
-            });
-            if (!resp.ok) throw new Error(await resp.text());
-            const data = await resp.json();
+            const data = await AdminApi.post('/admin/questions/generate-full', body);
             populateStep3(data);
-        } catch (e) {
-            alert('AI 생성 실패: ' + e.message);
+        } catch (error) {
+            AdminUi.showError(error, 'AI 생성 실패');
             document.getElementById('step2').classList.add('hidden');
             document.getElementById('step1').classList.remove('hidden');
         }

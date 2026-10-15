@@ -4,6 +4,8 @@ import com.passql.meta.constant.LegalStatus;
 import com.passql.meta.constant.LegalType;
 import com.passql.meta.dto.LegalUpdateRequest;
 import com.passql.meta.service.LegalService;
+import com.passql.web.support.AdminMenu;
+import com.passql.web.support.AdminPage;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +21,10 @@ public class AdminLegalController implements AdminLegalControllerDocs {
     private final LegalService legalService;
 
     @GetMapping
+    @AdminPage(menu = AdminMenu.LEGAL)
     public String list(Model model) {
         model.addAttribute("legals", legalService.findAll());
         model.addAttribute("legalTypes", LegalType.values());
-        model.addAttribute("currentMenu", "legal");
-        model.addAttribute("pageTitle", "약관 관리");
         return "admin/legal";
     }
 

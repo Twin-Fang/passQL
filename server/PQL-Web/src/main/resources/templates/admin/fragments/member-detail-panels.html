@@ -1,0 +1,134 @@
+<!doctype html>
+<!-- 회원 상세 조각 2종: 왼쪽 프로필 패널(프로필·기본 정보·제재 관리), 제재 모달 -->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<th:block th:fragment="profile-panel">
+        <!-- ===== 왼쪽: 프로필 고정 패널 ===== -->
+        <div class="w-full xl:w-80 shrink-0 flex flex-col gap-4">
+
+            <!-- 프로필 카드 -->
+            <div class="card bg-base-100 shadow">
+                <div class="card-body items-center text-center gap-3 py-8">
+                    <!-- 아바타 -->
+                    <div class="avatar placeholder">
+                        <div class="bg-primary text-primary-content rounded-full size-20 text-2xl font-bold">
+                            <span th:text="${#strings.substring(member.nickname, 0, 1)}">N</span>
+                        </div>
+                    </div>
+
+                    <!-- 닉네임 -->
+                    <div>
+                        <h2 class="text-xl font-bold" th:text="${member.nickname}">닉네임</h2>
+                        <p class="text-xs font-mono text-base-content/40 mt-1 break-all" th:text="${member.memberUuid}">uuid</p>
+                    </div>
+
+                    <!-- 상태 / 역할 배지 -->
+                    <div class="flex flex-wrap gap-2 justify-center">
+                        <span class="badge badge-md font-semibold"
+                              th:classappend="${member.status.name() == 'ACTIVE'} ? 'badge-success' : (${member.status.name() == 'SUSPENDED'} ? 'badge-error' : (${member.status.name() == 'WITHDRAWN'} ? 'badge-ghost' : 'badge-warning'))"
+                              th:text="${member.status.name()}">ACTIVE</span>
+                        <span class="badge badge-md badge-outline font-semibold"
+                              th:classappend="${member.role.name() == 'ADMIN' or member.role.name() == 'SUPER_ADMIN'} ? 'badge-primary'"
+                              th:text="${member.role.name()}">USER</span>
+                        <span th:if="${member.isTestAccount}" class="badge badge-md badge-warning">TEST</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 기본 정보 카드 -->
+            <div class="card bg-base-100 shadow">
+                <div class="card-body gap-4">
+                    <h3 class="font-bold text-sm text-base-content/70 uppercase tracking-wider">기본 정보</h3>
+                    <div class="grid grid-cols-1 gap-3">
+                        <div class="info-row">
+                            <span class="info-label">이메일</span>
+                            <span class="info-value" th:text="${member.email != null ? member.email : '—'}">—</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">이메일 인증</span>
+                            <span class="info-value">
+                                <span th:if="${member.emailVerified}" class="badge badge-xs badge-success">인증됨</span>
+                                <span th:if="${!member.emailVerified}" class="badge badge-xs badge-ghost">미인증</span>
+                            </span>
+                        </div>
+                        <div class="divider my-0"></div>
+                        <div class="info-row">
+                            <span class="info-label">인증 방식</span>
+                            <span class="info-value" th:text="${member.authProvider.name()}">ANONYMOUS</span>
+                        </div>
+                        <div class="info-row" th:if="${member.providerUserId != null}">
+                            <span class="info-label">Provider ID</span>
+                            <span class="info-value font-mono text-xs break-all" th:text="${member.providerUserId}">—</span>
+                        </div>
+                        <div class="divider my-0"></div>
+                        <div class="info-row">
+                            <span class="info-label">가입일</span>
+                            <span class="info-value" th:text="${member.createdAt != null ? #temporals.format(member.createdAt, 'yyyy-MM-dd HH:mm') : '—'}">—</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">마지막 접속</span>
+                            <span class="info-value" th:text="${member.lastSeenAt != null ? #temporals.format(member.lastSeenAt, 'yyyy-MM-dd HH:mm') : '—'}">—</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">마지막 IP</span>
+                            <span class="info-value font-mono text-xs" th:text="${member.lastLoginIp != null ? member.lastLoginIp : '—'}">—</span>
+                        </div>
+                        <div class="info-row" th:if="${member.withdrawnAt != null}">
+                            <span class="info-label">탈퇴일</span>
+                            <span class="info-value text-base-content/60" th:text="${#temporals.format(member.withdrawnAt, 'yyyy-MM-dd HH:mm')}">—</span>
+                        </div>
+                        <div class="info-row" th:if="${member.suspendUntil != null}">
+                            <span class="info-label">제재 만료</span>
+                            <span class="info-value text-error font-semibold" th:text="${#temporals.format(member.suspendUntil, 'yyyy-MM-dd HH:mm')}">—</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 제재 관리 카드 -->
+            <div class="card bg-base-100 shadow" th:if="${member.status.name() != 'WITHDRAWN'}">
+                <div class="card-body gap-3">
+                    <h3 class="font-bold text-sm text-base-content/70 uppercase tracking-wider">제재 관리</h3>
+                    <button th:if="${member.status.name() == 'SUSPENDED'}"
+                            class="btn btn-success btn-sm w-full gap-2"
+                            onclick="unsuspendMember()">
+                        <i data-lucide="shield-check" class="size-4"></i>제재 해제
+                    </button>
+                    <button th:if="${member.status.name() != 'SUSPENDED'}"
+                            class="btn btn-error btn-sm w-full gap-2"
+                            onclick="document.getElementById('suspendModal').showModal()">
+                        <i data-lucide="shield-ban" class="size-4"></i>제재 적용
+                    </button>
+                </div>
+            </div>
+        </div>
+</th:block>
+
+<th:block th:fragment="suspend-modal">
+    <!-- 제재 모달 -->
+    <dialog id="suspendModal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+                <i data-lucide="shield-ban" class="size-5 text-error"></i>회원 제재
+            </h3>
+            <div class="form-control mb-4">
+                <label class="label"><span class="label-text font-medium">제재 사유</span></label>
+                <textarea id="suspendReason" class="textarea textarea-bordered w-full" rows="3"
+                          placeholder="제재 사유를 입력하세요 (선택)"></textarea>
+            </div>
+            <div class="form-control mb-6">
+                <label class="label"><span class="label-text font-medium">제재 만료 일시 <span class="text-error">*</span></span></label>
+                <input type="datetime-local" id="suspendUntil" class="input input-bordered w-full"/>
+            </div>
+            <div class="modal-action">
+                <form method="dialog">
+                    <button class="btn btn-ghost">취소</button>
+                </form>
+                <button class="btn btn-error gap-2" onclick="suspendMember()">
+                    <i data-lucide="shield-ban" class="size-4"></i>제재 적용
+                </button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>닫기</button></form>
+    </dialog>
+</th:block>
+</html>

@@ -265,21 +265,12 @@
                 isActive: document.getElementById('editTopicActive').checked
             };
 
-            fetch(`/admin/topics/${code}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            }).then(res => {
-                if (res.ok) {
+            AdminApi.put(`/admin/topics/${encodeURIComponent(code)}`, body)
+                .then(() => {
                     document.getElementById('editTopicModal').close();
-                    // 저장 후 페이지 새로고침으로 목록 반영
-                    location.reload();
-                } else {
-                    alert('저장에 실패했습니다.');
-                }
-            }).catch(() => {
-                alert('네트워크 오류가 발생했습니다.');
-            });
+                    AdminUi.reloadWithToast('토픽을 저장했습니다.');
+                })
+                .catch(error => AdminUi.showError(error));
         }
     </script>
 </th:block>

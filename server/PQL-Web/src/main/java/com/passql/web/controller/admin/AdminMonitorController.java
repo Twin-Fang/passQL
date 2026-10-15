@@ -4,6 +4,8 @@ import com.passql.ai.client.GeminiClient;
 import com.passql.ai.dto.AiStats;
 import com.passql.meta.service.ServerErrorLogService;
 import com.passql.submission.service.SubmissionService;
+import com.passql.web.support.AdminMenu;
+import com.passql.web.support.AdminPage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,6 +22,7 @@ public class AdminMonitorController {
     private final ServerErrorLogService serverErrorLogService;
 
     @GetMapping
+    @AdminPage(menu = AdminMenu.MONITOR)
     public String dashboard(Model model) {
         model.addAttribute("executionLogs", submissionService.getRecentLogs());
         model.addAttribute("monitorStats", submissionService.getStats24h());
@@ -28,8 +31,6 @@ public class AdminMonitorController {
         // 5xx·미처리 예외 기록 (#440)
         model.addAttribute("serverErrors", serverErrorLogService.findRecent());
         model.addAttribute("serverErrorCount24h", serverErrorLogService.countLast24h());
-        model.addAttribute("currentMenu", "monitor");
-        model.addAttribute("pageTitle", "모니터링");
         return "admin/monitor";
     }
 }

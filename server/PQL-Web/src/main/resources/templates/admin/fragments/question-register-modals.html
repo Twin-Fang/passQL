@@ -1,0 +1,125 @@
+<!doctype html>
+<!-- 문제 직접 등록 화면 모달 2종: 등록 가이드(AI 변환 프롬프트), JSON 붙여넣기 -->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<th:block th:fragment="modals">
+    <!-- 가이드 모달 -->
+    <dialog id="guideModal" class="modal">
+        <div class="modal-box w-11/12 max-w-3xl max-h-[80vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-lg">문제 등록 가이드</h3>
+                <div class="flex gap-2">
+                    <a href="/docs/question-single-guide.md" download="question-single-guide.md"
+                       class="btn btn-sm btn-outline">
+                        <i data-lucide="download" class="size-4"></i>
+                        MD 파일 다운로드
+                    </a>
+                    <button type="button" class="btn btn-sm btn-ghost" onclick="copyPrompt()">
+                        <i data-lucide="copy" class="size-4"></i>
+                        AI 프롬프트 복사
+                    </button>
+                </div>
+            </div>
+
+            <!-- topicCode 목록 -->
+            <div class="mb-4">
+                <p class="font-semibold text-sm mb-2">topicCode 목록</p>
+                <div class="overflow-x-auto">
+                    <table class="table table-xs table-zebra">
+                        <thead><tr><th>topicCode</th><th>표시명</th></tr></thead>
+                        <tbody>
+                            <tr th:each="t : ${topics}">
+                                <td class="font-mono" th:text="${t.code}">-</td>
+                                <td th:text="${t.displayName}">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- JSON 스키마 -->
+            <div class="mb-4">
+                <p class="font-semibold text-sm mb-2">JSON 스키마</p>
+                <div class="mockup-code text-xs">
+<pre class="p-4">{
+  "topicCode":        "sql_basic_select",   // 위 목록에서 선택
+  "difficulty":       3,                    // 1~5 정수
+  "executionMode":    "EXECUTABLE",         // EXECUTABLE | CONCEPT_ONLY
+  "stem":             "지문 전체 텍스트",
+  "hint":             "힌트 한 줄 (없으면 null)",
+  "schemaDdl":        "CREATE TABLE ... (EXECUTABLE 필수, \\n으로 줄바꿈)",
+  "schemaSampleData": "INSERT INTO ... (선택, \\n으로 줄바꿈)",
+  "schemaIntent":     "테이블이 테스트하는 개념 한 줄 (선택)",
+  "answerSql":        "SELECT ... (EXECUTABLE 필수, 정답 선택지 SQL)"
+}</pre>
+                </div>
+            </div>
+
+            <!-- stem SQL 마크다운 규칙 -->
+            <div class="mb-4">
+                <p class="font-semibold text-sm mb-2">⚠️ stem SQL 마크다운 코드 블록 규칙</p>
+                <div class="alert alert-warning text-xs mb-2">
+                    EXECUTABLE 문제에서 stem에 SQL이 포함될 경우 반드시 <code>```sql</code> 코드 블록으로 감싸야 합니다.
+                    화면에서 마크다운으로 렌더링되어 코드 블록으로 표시됩니다.
+                </div>
+                <div class="mockup-code text-xs">
+<pre class="p-4">// ❌ 잘못된 방식
+"stem": "다음 SQL의 실행 결과로 올바른 것은?\\n\\nSELECT A.NAME FROM EMP;"
+
+// ✅ 올바른 방식
+"stem": "다음 SQL의 실행 결과로 올바른 것은?\\n\\n```sql\\nSELECT A.NAME FROM EMP;\\n```"</pre>
+                </div>
+            </div>
+
+            <!-- 테이블 이름 규칙 -->
+            <div class="mb-4">
+                <p class="font-semibold text-sm mb-2">⚠️ 테이블 이름 작성 규칙</p>
+                <div class="alert alert-info text-xs mb-2">
+                    각 문제는 <strong>독립된 Sandbox(격리된 DB)</strong>에서 실행됩니다.
+                    문제 간 테이블 이름 충돌이 없으므로, 시험 회차나 문제 번호를 테이블 이름에 포함할 필요가 없습니다.
+                </div>
+                <div class="mockup-code text-xs">
+<pre class="p-4">// ❌ 나쁜 예 — 시험 회차/문제 번호가 테이블명에 포함된 경우
+CREATE TABLE SQLD_14 (NUM INT, CODE VARCHAR(1));
+CREATE TABLE SQLD46_01_EMP (EMP_ID INT, NAME VARCHAR(50));
+
+// ✅ 좋은 예 — 역할이 드러나는 짧고 명확한 이름
+CREATE TABLE EMP (EMP_ID INT, NAME VARCHAR(50));    -- 임직원/인사 데이터
+CREATE TABLE DEPT (DEPT_ID INT, DEPT_NAME VARCHAR(50)); -- 부서 데이터
+CREATE TABLE T1 (COL1 INT, COL2 VARCHAR(1));        -- 의미 없는 더미 데이터</pre>
+                </div>
+            </div>
+
+            <!-- AI 프롬프트 -->
+            <div class="mb-4">
+                <p class="font-semibold text-sm mb-2">AI 변환 프롬프트 <span class="text-base-content/50 font-normal">(복사 후 AI에게 문제 데이터 붙여넣기)</span></p>
+                <div class="relative">
+                    <textarea id="guidePromptText" rows="10" readonly
+                              class="textarea textarea-bordered w-full font-mono text-xs bg-base-200"></textarea>
+                </div>
+                <p id="copySuccessMsg" class="text-success text-xs mt-1 hidden">복사됐습니다.</p>
+            </div>
+
+            <div class="modal-action">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('guideModal').close()">닫기</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <!-- JSON 붙여넣기 모달 -->
+    <dialog id="jsonPasteModal" class="modal">
+        <div class="modal-box w-11/12 max-w-2xl">
+            <h3 class="font-bold text-lg mb-3">JSON 붙여넣기</h3>
+            <textarea id="jsonPasteArea" rows="14"
+                      class="textarea textarea-bordered w-full font-mono text-xs"
+                      placeholder='{"topicCode":"sql_basic_select","difficulty":3,"executionMode":"EXECUTABLE","stem":"...","hint":"...","schemaDdl":"CREATE TABLE ...","schemaSampleData":"INSERT INTO ...","schemaIntent":"...","answerSql":"SELECT ..."}'></textarea>
+            <p id="jsonPasteError" class="text-error text-sm mt-1 hidden"></p>
+            <div class="modal-action">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('jsonPasteModal').close()">취소</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="applyJsonFromPaste()">적용</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+</th:block>
+</html>

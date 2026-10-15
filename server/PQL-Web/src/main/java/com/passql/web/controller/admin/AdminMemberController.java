@@ -7,6 +7,8 @@ import com.passql.member.dto.MemberSearchCondition;
 import com.passql.member.dto.MemberSuspendRequest;
 import com.passql.member.service.MemberAdminService;
 import com.passql.submission.service.SubmissionService;
+import com.passql.web.support.AdminMenu;
+import com.passql.web.support.AdminPage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +28,7 @@ public class AdminMemberController {
     private final SubmissionService submissionService;
 
     @GetMapping
+    @AdminPage(menu = AdminMenu.MEMBERS)
     public String list(MemberSearchCondition condition, Model model,
                        @RequestParam(defaultValue = "0") int page,
                        @RequestParam(defaultValue = AdminPageRequest.DEFAULT_PAGE_SIZE) int size) {
@@ -35,17 +38,14 @@ public class AdminMemberController {
         model.addAttribute("condition", condition);
         model.addAttribute("statuses", MemberStatus.values());
         model.addAttribute("roles", MemberRole.values());
-        model.addAttribute("pageTitle", "회원 관리");
-        model.addAttribute("currentMenu", "members");
         return "admin/members/list";
     }
 
     @GetMapping("/{memberUuid}")
+    @AdminPage(menu = AdminMenu.MEMBERS, title = "회원 상세")
     public String detail(@PathVariable UUID memberUuid, Model model) {
         model.addAttribute("member", memberAdminService.getMemberDetail(memberUuid));
         model.addAttribute("submissions", submissionService.getSubmissionsByMember(memberUuid));
-        model.addAttribute("pageTitle", "회원 상세");
-        model.addAttribute("currentMenu", "members");
         return "admin/members/detail";
     }
 

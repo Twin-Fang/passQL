@@ -147,31 +147,24 @@
         }
 
         function autoAssign() {
-            fetch(`/admin/daily-challenges/${selectedDate}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ questionUuids: [] })
-            })
-            .then(r => {
-                if (!r.ok) return r.json().then(e => { throw new Error(e.message || '배정 실패'); });
-                return r.json();
-            })
+            AdminApi.put(`/admin/daily-challenges/${selectedDate}`, { questionUuids: [] })
             .then(items => {
                 calendar.refetchEvents();
                 openModal(selectedDate, items);
+                AdminUi.toast('자동 배정했습니다.');
             })
-            .catch(err => alert(err.message));
+            .catch(error => AdminUi.showError(error));
         }
 
-        function unassignChallenge() {
-            if (!confirm(`${selectedDate} 배정을 해제하시겠습니까?`)) return;
-            fetch(`/admin/daily-challenges/${selectedDate}`, { method: 'DELETE' })
-            .then(r => {
-                if (!r.ok) throw new Error('해제 실패');
+        async function unassignChallenge() {
+            if (!await AdminUi.confirmDanger(`${selectedDate} 배정을 해제합니다.`, { confirmLabel: '해제' })) return;
+            AdminApi.delete(`/admin/daily-challenges/${selectedDate}`)
+            .then(() => {
                 calendar.refetchEvents();
                 closeModal();
+                AdminUi.toast('배정을 해제했습니다.');
             })
-            .catch(err => alert(err.message));
+            .catch(error => AdminUi.showError(error));
         }
     </script>
 </th:block>

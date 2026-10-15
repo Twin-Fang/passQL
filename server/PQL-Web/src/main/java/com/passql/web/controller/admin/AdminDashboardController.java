@@ -5,6 +5,8 @@ import com.passql.meta.service.ExamScheduleCoverageService;
 import com.passql.application.dto.DashboardStats;
 import com.passql.application.service.AdminDashboardService;
 import com.passql.submission.service.SubmissionService;
+import com.passql.web.support.AdminMenu;
+import com.passql.web.support.AdminPage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,6 +30,7 @@ public class AdminDashboardController {
     private final ExamScheduleCoverageService examCoverageService;
 
     @GetMapping({"", "/"})
+    @AdminPage(menu = AdminMenu.DASHBOARD)
     public String dashboard(Model model) {
         DashboardStats raw = adminDashboardService.collect();
 
@@ -47,8 +50,6 @@ public class AdminDashboardController {
         model.addAttribute("recentLogs", submissionService.getRecentLogs());
         // 시험 일정 공고 확인이 필요하면 대시보드 상단에 알린다 (#411)
         model.addAttribute("examAlerts", examCoverageService.getAlerts());
-        model.addAttribute("currentMenu", "dashboard");
-        model.addAttribute("pageTitle", "대시보드");
         return "admin/dashboard";
     }
 }

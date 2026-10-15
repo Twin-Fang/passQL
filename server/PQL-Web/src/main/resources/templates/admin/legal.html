@@ -97,32 +97,20 @@
             document.getElementById('title_row_' + type).classList.add('hidden');
         }
 
-        // layout.html의 CSRF 메타 태그에서 토큰을 읽어 PUT 요청에 포함
-        const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
-        const csrfHeaders = (csrfToken && csrfHeader) ? { [csrfHeader]: csrfToken } : {};
-
         function saveEdit(type) {
             const title = document.getElementById('title_' + type).value;
             const content = document.getElementById('content_' + type).value;
-            fetch('/admin/legal/' + encodeURIComponent(type), {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', ...csrfHeaders },
-                body: JSON.stringify({ title, content })
-            }).then(r => {
-                if (r.ok) location.reload();
-                else alert('저장 실패');
-            });
+            AdminApi.put('/admin/legal/' + encodeURIComponent(type), { title, content })
+                .then(() => AdminUi.reloadWithToast('약관을 저장했습니다. 이전 본문은 버전 이력에 보관됩니다.'))
+                .catch(error => AdminUi.showError(error));
         }
 
-        function updateStatus(type, status) {
-            fetch('/admin/legal/' + encodeURIComponent(type) + '/status?status=' + status, {
-                method: 'PUT',
-                headers: csrfHeaders
-            }).then(r => {
-                if (r.ok) location.reload();
-                else alert('상태 변경 실패');
-            });
+        async function updateStatus(type, status) {
+            const isUnpublish = status === 'DRAFT';
+            if (isUnpublish && !await AdminUi.confirmDanger('게시를 내리면 앱·웹에서 약관이 보이지 않습니다.', { confirmLabel: '초안으로 변경' })) return;
+            AdminApi.put('/admin/legal/' + encodeURIComponent(type) + '/status?status=' + status)
+                .then(() => AdminUi.reloadWithToast('게시 상태를 변경했습니다.'))
+                .catch(error => AdminUi.showError(error));
         }
     </script>
 </th:block>

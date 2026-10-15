@@ -3,6 +3,8 @@ package com.passql.web.controller.admin;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.service.AppSettingService;
+import com.passql.web.support.AdminMenu;
+import com.passql.web.support.AdminPage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -19,10 +21,9 @@ public class AdminSettingController {
     private final AppSettingService appSettingService;
 
     @GetMapping
+    @AdminPage(menu = AdminMenu.SETTINGS)
     public String list(Model model) {
         model.addAttribute("settings", appSettingService.findAllAsView());
-        model.addAttribute("currentMenu", "settings");
-        model.addAttribute("pageTitle", "앱 설정");
         return "admin/settings";
     }
 

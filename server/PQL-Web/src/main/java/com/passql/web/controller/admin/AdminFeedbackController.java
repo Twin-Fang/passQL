@@ -4,6 +4,8 @@ import com.passql.web.support.AdminPageRequest;
 import com.passql.meta.constant.FeedbackStatus;
 import com.passql.meta.dto.FeedbackStatusUpdateRequest;
 import com.passql.meta.service.FeedbackService;
+import com.passql.web.support.AdminMenu;
+import com.passql.web.support.AdminPage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +25,7 @@ public class AdminFeedbackController {
     private final FeedbackService feedbackService;
 
     @GetMapping
+    @AdminPage(menu = AdminMenu.FEEDBACKS)
     public String list(Model model,
                        @RequestParam(defaultValue = "0") int page,
                        @RequestParam(defaultValue = AdminPageRequest.DEFAULT_PAGE_SIZE) int size) {
@@ -35,8 +38,6 @@ public class AdminFeedbackController {
         model.addAttribute("pendingCount", statusCounts.get(FeedbackStatus.PENDING));
         model.addAttribute("reviewedCount", statusCounts.get(FeedbackStatus.REVIEWED));
         model.addAttribute("appliedCount", statusCounts.get(FeedbackStatus.APPLIED));
-        model.addAttribute("pageTitle", "건의사항 관리");
-        model.addAttribute("currentMenu", "feedbacks");
         return "admin/feedbacks";
     }
 
