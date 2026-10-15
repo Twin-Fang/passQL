@@ -9,6 +9,7 @@ import 'presentation/design/design.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/theme_mode_provider.dart';
 import 'presentation/providers/session_reset.dart';
+import 'router/app_launch_gate_routing.dart';
 import 'router/app_router.dart';
 
 Future<void> main() async {
@@ -38,6 +39,9 @@ Future<void> main() async {
       resetUserScopedProviders(container.invalidate);
     }
   }, fireImmediately: true);
+
+  // 앱 시작 설정 1회 조회 > 점검·강제 업데이트 차단 분기 (실패해도 진행, #464)
+  await AppLaunchGateRouting.bindAndLoad(container);
 
   runApp(
     UncontrolledProviderScope(container: container, child: const PassqlApp()),

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../router/app_routes.dart';
 import '../design/design.dart';
+import 'app_gate/recommended_update_prompter.dart';
 
 /// ShellRoute builder에서 사용하는 바텀 네비게이션 쉘.
 ///
@@ -48,7 +49,8 @@ class AppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      body: child,
+      // 탭 첫 진입 시 권장 업데이트 안내 1회 (#464)
+      body: RecommendedUpdatePrompter(child: child),
       bottomNavigationBar: PassqlTabBar(
         items: _items,
         currentIndex: _currentIndex(context),

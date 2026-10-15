@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
+import '../../providers/app_config_providers.dart';
 import '../../providers/home_providers.dart';
+import '../../widgets/home/app_notice_banner.dart';
 import '../../widgets/home/daily_set_card.dart';
 import '../../widgets/home/exam_schedule_card.dart';
 import '../../widgets/home/fallback_stats_section.dart';
@@ -93,14 +95,22 @@ class _GreetingTitle extends StatelessWidget {
 }
 
 /// 홈 카드 목록. 카드 사이 간격은 PassqlSpacing.md.
-class _HomeContent extends StatelessWidget {
+class _HomeContent extends ConsumerWidget {
   final HomeData data;
 
   const _HomeContent({required this.data});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notice = ref.watch(homeNoticeProvider).valueOrNull;
     final children = <Widget>[
+      // 관리자 공지 (닫지 않은 첫 공지, #464)
+      if (notice != null)
+        AppNoticeBanner(
+          notice: notice,
+          onDismiss: () => ref.read(homeNoticeProvider.notifier).dismiss(notice.noticeUuid),
+        ),
+
       // 인사 둘째 줄 본문 + 시험 상황 배지 (있을 때만)
       if (data.greeting != null && GreetingSection.hasContent(data.greeting!))
         GreetingSection(greeting: data.greeting!),

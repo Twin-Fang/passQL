@@ -5,6 +5,8 @@ import '../presentation/flows/daily_set_flow.dart';
 import '../presentation/flows/question_flow.dart';
 import '../presentation/pages/daily_set/daily_set_result_page.dart';
 import '../presentation/pages/daily_set/leaderboard_page.dart';
+import '../presentation/pages/app_gate/force_update_page.dart';
+import '../presentation/pages/app_gate/maintenance_page.dart';
 import '../presentation/pages/feedback/feedback_page.dart';
 import '../presentation/pages/home/home_page.dart';
 import '../presentation/pages/legal/legal_page.dart';
@@ -19,6 +21,7 @@ import '../presentation/pages/stats/stats_page.dart';
 import '../presentation/pages/settings/settings_page.dart';
 import '../presentation/pages/settings/wrong_notes_page.dart';
 import '../presentation/widgets/app_shell.dart';
+import 'app_launch_gate_routing.dart';
 import 'app_routes.dart';
 
 // 루트 네비게이터 키 — 풀스크린 라우트(탭 바깥)에서 사용
@@ -38,9 +41,13 @@ abstract final class AppRouter {
   static final GoRouter router = GoRouter(
     navigatorKey: _rootKey,
     initialLocation: AppRoutes.home,
-    refreshListenable: authenticated,
+    refreshListenable: Listenable.merge([authenticated, AppLaunchGateRouting.gate]),
     // 로그인 안 했으면 로그인 화면으로, 로그인 했는데 로그인 화면이면 홈으로 보낸다.
     redirect: (_, state) {
+      // 점검·강제 업데이트 차단이 로그인보다 우선 (#464)
+      final gateRedirect = AppLaunchGateRouting.redirectLocation(state.matchedLocation);
+      if (gateRedirect != null) return gateRedirect;
+      if (AppLaunchGateRouting.isGateLocation(state.matchedLocation)) return null;
       final atLogin = state.matchedLocation == AppRoutes.login;
       // 약관은 가입 전에도 읽을 수 있어야 한다(App Store 5.1.1).
       if (state.matchedLocation.startsWith(AppRoutes.legalPrefix)) return null;
@@ -56,6 +63,18 @@ abstract final class AppRouter {
         builder: (_, state) => LegalPage(
           typeValue: state.pathParameters[AppRoutes.legalTypeParameter]!,
         ),
+      ),
+
+      // 앱 시작 차단 화면
+      GoRoute(
+        path: AppRoutes.forceUpdate,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const ForceUpdatePage(),
+      ),
+      GoRoute(
+        path: AppRoutes.maintenance,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const MaintenancePage(),
       ),
 
       // 로그인
