@@ -56,7 +56,7 @@ public class QuestionService {
                 ? topicRepository.findByCode(topicCode).map(Topic::getTopicUuid).orElse(null)
                 : null;
         ExecutionMode executionMode = (mode != null && !mode.isBlank())
-                ? ExecutionMode.valueOf(mode)
+                ? ExecutionMode.fromRequestValue(mode)
                 : null;
         return questionRepository.findByFilters(topicUuid, difficulty, executionMode, pageable).map(this::toSummary);
     }

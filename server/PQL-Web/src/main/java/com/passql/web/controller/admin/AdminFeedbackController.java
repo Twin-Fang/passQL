@@ -1,8 +1,6 @@
 package com.passql.web.controller.admin;
 
 import com.passql.web.support.AdminPageRequest;
-import com.passql.common.exception.CustomException;
-import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.constant.FeedbackStatus;
 import com.passql.meta.dto.FeedbackStatusUpdateRequest;
 import com.passql.meta.service.FeedbackService;
@@ -46,13 +44,7 @@ public class AdminFeedbackController {
     @ResponseBody
     public ResponseEntity<Void> updateStatus(@PathVariable UUID feedbackUuid,
                                               @RequestBody FeedbackStatusUpdateRequest request) {
-        FeedbackStatus status;
-        try {
-            status = FeedbackStatus.valueOf(request.getStatus());
-        } catch (IllegalArgumentException e) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
-        }
-        feedbackService.updateStatus(feedbackUuid, status);
+        feedbackService.updateStatus(feedbackUuid, FeedbackStatus.fromRequestValue(request.getStatus()));
         return ResponseEntity.ok().build();
     }
 }

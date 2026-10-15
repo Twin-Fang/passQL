@@ -78,11 +78,7 @@ public class QuestionReportService {
     public List<ReportSummaryRow> getReportSummaries(String status) {
         // status가 주어진 경우 enum 유효성 검증 — 잘못된 값은 400 반환
         if (status != null && !status.isBlank()) {
-            try {
-                ReportStatus.valueOf(status);
-            } catch (IllegalArgumentException e) {
-                throw new CustomException(ErrorCode.INVALID_REQUEST);
-            }
+            ReportStatus.fromRequestValue(status);
         }
 
         List<Object[]> rows = (status != null && !status.isBlank())
