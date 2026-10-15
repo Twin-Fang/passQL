@@ -77,4 +77,7 @@ abstract final class PqTheme {
 extension PqContext on BuildContext {
   /// 현재 밝기의 색 토큰. 테마에 확장이 없으면(테스트 등) 라이트 값을 쓴다.
   PqColors get pq => Theme.of(this).extension<PqColors>() ?? PqColors.light;
+
+  /// 지금 다크 테마로 그리는 중인지. 밝기별 에셋·색을 고를 때 여기 한 곳만 쓴다.
+  bool get isDark => Theme.of(this).brightness == Brightness.dark;
 }

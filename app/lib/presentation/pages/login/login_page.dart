@@ -145,7 +145,7 @@ class _SocialButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.pq;
-    final dark = Theme.of(context).brightness == Brightness.dark;
+    final dark = context.isDark;
     return PqPressable(
       onTap: onPressed,
       semanticLabel: label,
