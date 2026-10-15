@@ -6,13 +6,14 @@ SQLD·SQLP 학습 서비스 passQL의 모바일 앱. 서버(`server/`)와만 통
 ## Tech Stack
 
 - **Flutter** 3.x + **Dart** SDK ^3.9.2
-- **상태관리**: flutter_riverpod ^2.6 (+ riverpod_annotation)
+- **상태관리**: flutter_riverpod ^2.6 (Provider 직접 선언, 코드 생성 미사용)
 - **라우팅**: go_router ^17
 - **HTTP**: Dio ^5.9 + Retrofit (코드 생성)
 - **모델**: freezed + json_serializable
 - **인증**: Firebase Auth + Google Sign-In + Sign in with Apple, 토큰은 flutter_secure_storage
-- **UI**: flutter_screenutil, flutter_svg, shimmer, fl_chart(레이더 차트), font_awesome_flutter
-- **폰트**: Pretendard (`assets/fonts`)
+- **UI**: flutter_svg, shimmer, fl_chart(레이더 차트), 아이콘은 CupertinoIcons
+- **기기 정보**: package_info_plus(앱 버전), device_info_plus(의견 보내기 기기 정보)
+- **폰트**: Pretendard 4굵기(Regular·Medium·SemiBold·Bold), 코드용 JetBrains Mono NL(Regular·Bold) — `assets/fonts`, 라이선스 OFL 동봉
 
 ## Project Structure
 
@@ -23,7 +24,8 @@ lib/
 │   ├── auth/               # 토큰 저장, 인터셉터(Bearer·재발급), 세션 만료 신호, 소셜 로그인, 설치 가드
 │   ├── error/              # ErrorCode(서버 코드 매핑), AppException (서버 오류를 사용자 문구로 변환)
 │   ├── monitoring/         # 오류 수집(CrashReporter)·분석(AppAnalytics, 이벤트 이름 상수) 공통 지점
-│   ├── network/            # dio_client, safe_call(safeCall·safeCallAll·SafeCallSlot)
+│   ├── network/            # dio_client, safe_call(safeCall·safeCallAll·SafeCallSlot),
+│   │                       # api_call(callApiThrowingAppException: Dio 오류 > AppException 공통 변환)
 │   └── utils/ validation/
 ├── data/                   # presentation·router 를 import 하지 않는다
 │   ├── models/             # freezed 데이터 모델 (도메인별 폴더)
@@ -109,7 +111,7 @@ flutter run -d <기기>  # 실행. app/.env 에 BACKEND_BASE_URL 필요
 - **모르면 모른다고 말하기** — 추측하지 않는다
 - **답변은 항상 한국어로** — 코드/커맨드 제외
 - **코드 주석 필수** — 간결한 한국어, WHY 중심
-- **이모지 금지** — 아이콘은 `font_awesome_flutter` 또는 `Icons`, SVG는 `flutter_svg`
+- **이모지 금지** — 아이콘은 `CupertinoIcons`(또는 `Icons`), SVG는 `flutter_svg`
 
 ## Git Conventions
 

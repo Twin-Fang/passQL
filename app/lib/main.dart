@@ -7,6 +7,7 @@ import 'core/auth/install_guard.dart';
 import 'core/auth/token_store.dart';
 import 'core/monitoring/firebase_analytics_backend.dart';
 import 'core/monitoring/firebase_crash_reporter.dart';
+import 'core/network/dio_client.dart';
 import 'presentation/design/design.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/monitoring_member_sync.dart';
@@ -19,6 +20,8 @@ import 'router/screen_view_tracker.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
+  // 서버 주소 누락은 첫 요청이 아니라 시작 시점에 실패
+  readBackendBaseUrl();
   // google-services.json / GoogleService-Info.plist 의 설정으로 초기화한다.
   await Firebase.initializeApp();
   await startFirebaseCrashReporting();
@@ -69,6 +72,8 @@ class PassqlApp extends ConsumerWidget {
       // 설정 > 화면 모드에서 고른 값(기본: 시스템 설정 따르기).
       themeMode: ref.watch(themeModeProvider),
       routerConfig: AppRouter.router,
+      // 시스템 글자 크기는 상한까지만 반영
+      builder: PassqlTextScaleLimit.wrap,
     );
   }
 }

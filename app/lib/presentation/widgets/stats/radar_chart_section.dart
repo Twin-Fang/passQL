@@ -42,43 +42,54 @@ class RadarChartSection extends StatelessWidget {
     final values = stats.map((stat) => stat.correctRate * 5).toList();
     final labels = stats.map((stat) => stat.displayName).toList();
 
-    return SizedBox(
-      height: _chartHeight,
-      child: RadarChart(
-        RadarChartData(
-          radarShape: RadarShape.polygon,
-          tickCount: 4,
-          // tick 숫자 레이블 숨김 — 수치보다 형태로 파악
-          ticksTextStyle: PassqlTypography.caption.copyWith(
-            fontSize: 0,
-            color: Colors.transparent,
-          ),
-          // 눈금 링·격자·외곽선 모두 separator 토큰의 얇은 선으로 통일
-          tickBorderData: BorderSide(color: colors.separator, width: 1),
-          gridBorderData: BorderSide(color: colors.separator, width: 1),
-          radarBorderData: BorderSide(color: colors.separator, width: 1),
-          titlePositionPercentageOffset: 0.25,
-          titleTextStyle: PassqlTypography.caption.copyWith(
-            color: colors.secondaryLabel,
-          ),
-          getTitle: (index, angle) {
-            final label = labels[index];
-            // '/' 기준으로 줄바꿈 처리 (긴 토픽명 대응)
-            final parts = label.split(' / ');
-            return RadarChartTitle(text: parts.join('\n'), angle: 0);
-          },
-          dataSets: [
-            RadarDataSet(
-              // 강조색 15% 불투명도로 채움
-              fillColor: colors.accent.withValues(alpha: 0.15),
-              borderColor: colors.accent,
-              borderWidth: 2,
-              entryRadius: 3,
-              dataEntries: values
-                  .map((radarValue) => RadarEntry(value: radarValue))
-                  .toList(),
+    // 도형 차트 > 스크린리더용 토픽별 정답률 목록
+    final screenReaderSummary = stats
+        .map(
+          (stat) => '${stat.displayName} ${(stat.correctRate * 100).round()}%',
+        )
+        .join(', ');
+    return Semantics(
+      label: '영역별 정답률: $screenReaderSummary',
+      container: true,
+      excludeSemantics: true,
+      child: SizedBox(
+        height: _chartHeight,
+        child: RadarChart(
+          RadarChartData(
+            radarShape: RadarShape.polygon,
+            tickCount: 4,
+            // tick 숫자 레이블 숨김 — 수치보다 형태로 파악
+            ticksTextStyle: PassqlTypography.caption.copyWith(
+              fontSize: 0,
+              color: Colors.transparent,
             ),
-          ],
+            // 눈금 링·격자·외곽선 모두 separator 토큰의 얇은 선으로 통일
+            tickBorderData: BorderSide(color: colors.separator, width: 1),
+            gridBorderData: BorderSide(color: colors.separator, width: 1),
+            radarBorderData: BorderSide(color: colors.separator, width: 1),
+            titlePositionPercentageOffset: 0.25,
+            titleTextStyle: PassqlTypography.caption.copyWith(
+              color: colors.secondaryLabel,
+            ),
+            getTitle: (index, angle) {
+              final label = labels[index];
+              // '/' 기준으로 줄바꿈 처리 (긴 토픽명 대응)
+              final parts = label.split(' / ');
+              return RadarChartTitle(text: parts.join('\n'), angle: 0);
+            },
+            dataSets: [
+              RadarDataSet(
+                // 강조색 15% 불투명도로 채움
+                fillColor: colors.accent.withValues(alpha: 0.15),
+                borderColor: colors.accent,
+                borderWidth: 2,
+                entryRadius: 3,
+                dataEntries: values
+                    .map((radarValue) => RadarEntry(value: radarValue))
+                    .toList(),
+              ),
+            ],
+          ),
         ),
       ),
     );

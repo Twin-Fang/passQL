@@ -1,0 +1,157 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:passql_app/data/models/member/choice_generation_mode.dart';
+import 'package:passql_app/data/models/progress/wrong_questions_response.dart';
+import 'package:passql_app/data/models/question/choice_item.dart';
+import 'package:passql_app/presentation/design/design.dart';
+import 'package:passql_app/presentation/pages/home/home_page.dart';
+import 'package:passql_app/presentation/pages/questions/topic_list_page.dart';
+import 'package:passql_app/presentation/pages/settings/settings_page.dart';
+import 'package:passql_app/presentation/pages/stats/stats_page.dart';
+import 'package:passql_app/presentation/providers/auth_provider.dart';
+import 'package:passql_app/presentation/providers/home_providers.dart';
+import 'package:passql_app/presentation/providers/settings_providers.dart';
+import 'package:passql_app/presentation/providers/stats_providers.dart';
+import 'package:passql_app/presentation/providers/topic_providers.dart';
+import 'package:passql_app/presentation/providers/wrong_questions_provider.dart';
+import 'package:passql_app/presentation/widgets/question/choice_item_card.dart';
+
+import 'settings_layout_test.dart' show SignedInAuth;
+import 'tab_pages_test.dart' show homeData, statsData, topics;
+
+// 시스템 글자 크기 최대(접근성 큰 글자) 수준 배율
+const double _systemMaximumTextScaleFactor = 2.0;
+
+/// 시스템 글자 2배 > 앱 상한(PassqlTextScaleLimit) 적용 상태로 화면 1개 그리기
+Future<void> _pumpWithLargeText(
+  WidgetTester tester,
+  Widget page,
+  List<Override> overrides, {
+  required ThemeData theme,
+  Size viewSize = const Size(390, 844),
+}) async {
+  tester.view.physicalSize = viewSize;
+  tester.view.devicePixelRatio = 1;
+  tester.platformDispatcher.textScaleFactorTestValue =
+      _systemMaximumTextScaleFactor;
+  addTearDown(tester.view.reset);
+  addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: MaterialApp(
+        theme: theme,
+        builder: PassqlTextScaleLimit.wrap,
+        home: page,
+      ),
+    ),
+  );
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 500));
+}
+
+void main() {
+  final cases = <String, (Widget, List<Override>)>{
+    '홈': (
+      const HomePage(),
+      [homeDataProvider.overrideWith((ref) async => homeData)],
+    ),
+    '문제': (
+      const TopicListPage(),
+      [topicsProvider.overrideWith((ref) async => topics)],
+    ),
+    '통계': (
+      const StatsPage(),
+      [statsDataProvider.overrideWith((ref) async => statsData)],
+    ),
+    '설정': (
+      const SettingsPage(),
+      [
+        authProvider.overrideWith(SignedInAuth.new),
+        settingsDataProvider.overrideWith(
+          (ref) async => const SettingsData(
+            memberUuid: 'm-1',
+            nickname: '기존닉네임',
+            choiceMode: ChoiceGenerationMode.practice,
+          ),
+        ),
+        appVersionProvider.overrideWith((ref) async => '1.0.0'),
+        wrongQuestionsProvider.overrideWith(
+          (ref) async => const WrongQuestionsResponse(totalCount: 3),
+        ),
+      ],
+    ),
+    '문제 풀이 선택지': (
+      Scaffold(
+        body: ListView(
+          children: [
+            for (final (key, kind, body) in const [
+              ('A', 'TEXT', '급여가 3000 이상인 사원의 이름을 조회한다'),
+              ('B', 'SQL', 'SELECT ENAME FROM EMP WHERE SAL >= 3000;'),
+            ])
+              ChoiceItemCard(
+                item: ChoiceItem(key: key, kind: kind, body: body),
+                state: PassqlChoiceState.idle,
+                onTap: () {},
+              ),
+          ],
+        ),
+      ),
+      const <Override>[],
+    ),
+  };
+
+  test('앱 글자 배율 상한은 1.4배', () {
+    final limitedScaler = const TextScaler.linear(
+      _systemMaximumTextScaleFactor,
+    ).clamp(maxScaleFactor: PassqlTextScaleLimit.maximumTextScaleFactor);
+    expect(limitedScaler.scale(10), 14);
+  });
+
+  for (final entry in cases.entries) {
+    for (final isDark in [false, true]) {
+      testWidgets(
+        '${entry.key}: 시스템 글자 최대에서 넘침 없음 (${isDark ? '다크' : '라이트'})',
+        (tester) async {
+          await _pumpWithLargeText(
+            tester,
+            entry.value.$1,
+            entry.value.$2,
+            theme: isDark ? PassqlTheme.dark : PassqlTheme.light,
+          );
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
+
+  testWidgets('히트맵은 스크린리더 요약 문구를 가진다', (tester) async {
+    final semanticsHandle = tester.ensureSemantics();
+    await _pumpWithLargeText(
+      tester,
+      const HomePage(),
+      [homeDataProvider.overrideWith((ref) async => homeData)],
+      theme: PassqlTheme.light,
+      viewSize: const Size(390, 2400),
+    );
+    expect(find.bySemanticsLabel(RegExp('최근 35일 학습 기록')), findsOneWidget);
+    semanticsHandle.dispose();
+  });
+
+  testWidgets('레이더 차트는 토픽별 정답률을 스크린리더로 읽는다', (tester) async {
+    final semanticsHandle = tester.ensureSemantics();
+    await _pumpWithLargeText(
+      tester,
+      const StatsPage(),
+      [statsDataProvider.overrideWith((ref) async => statsData)],
+      theme: PassqlTheme.light,
+      viewSize: const Size(390, 2400),
+    );
+    expect(
+      find.bySemanticsLabel(RegExp('영역별 정답률: .*JOIN 80%')),
+      findsOneWidget,
+    );
+    semanticsHandle.dispose();
+  });
+}

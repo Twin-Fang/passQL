@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'daily_set_providers.dart';
 import 'home_providers.dart';
 import 'stats_providers.dart';
 
@@ -13,4 +14,13 @@ import 'stats_providers.dart';
 void refreshLearningData(void Function(ProviderOrFamily provider) invalidate) {
   invalidate(homeDataProvider);
   invalidate(statsDataProvider);
+}
+
+/// 날짜가 바뀌면 다시 받아야 하는 데이터: 학습 현황(홈 인사말·오늘의 세트 카드 포함) > 오늘의 세트 상태·순위
+void refreshDateDependentData(
+  void Function(ProviderOrFamily provider) invalidate,
+) {
+  refreshLearningData(invalidate);
+  invalidate(dailySetTodayProvider);
+  invalidate(leaderboardProvider);
 }

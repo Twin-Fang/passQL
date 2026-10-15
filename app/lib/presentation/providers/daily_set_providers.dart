@@ -1,7 +1,7 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/error/app_exception.dart';
+import '../../core/network/api_call.dart';
 import '../../core/error/error_code.dart';
 import '../../data/models/daily_set/daily_set_models.dart';
 import '../../data/sources/api_providers.dart';
@@ -55,17 +55,18 @@ class DailySetService {
     DailySetCompleteResponse? completed;
     String? saveErrorMessage;
     try {
-      completed = await _ref
-          .read(dailySetApiProvider)
-          .complete(
-            DailySetCompleteRequest(
-              correctCount: correctCount,
-              sessionUuid: sessionUuid,
+      completed = await callApiThrowingAppException(
+        _ref
+            .read(dailySetApiProvider)
+            .complete(
+              DailySetCompleteRequest(
+                correctCount: correctCount,
+                sessionUuid: sessionUuid,
+              ),
             ),
-          );
-    } on DioException catch (exception) {
-      final error = exception.asAppException;
-      if (error.isUnauthorized) throw error;
+      );
+    } on AppException catch (error) {
+      if (error.isUnauthorized) rethrow;
       // 이미 등록된 경우는 결과를 그대로 보여주면 되고, 그 외는 순위 미반영을 알린다.
       if (error.code != ErrorCode.dailySetAlreadyCompleted) {
         saveErrorMessage = error.message;

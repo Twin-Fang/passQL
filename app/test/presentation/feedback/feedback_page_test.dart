@@ -7,6 +7,7 @@ import 'package:passql_app/data/models/feedback/feedback_models.dart';
 import 'package:passql_app/data/sources/feedback_api.dart';
 import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/pages/feedback/feedback_page.dart';
+import 'package:passql_app/presentation/providers/feedback_providers.dart';
 
 import '../../helpers/pump_app.dart';
 
@@ -48,11 +49,21 @@ FeedbackItem _item(String uuid, String content, FeedbackStatus status, int minut
       createdAt: DateTime(2026, 10, 2, 9, minute),
     );
 
-Future<void> _open(WidgetTester tester, _FakeFeedbackApi api) async {
+Future<void> _open(
+  WidgetTester tester,
+  _FakeFeedbackApi api, {
+  String? deviceSummary,
+}) async {
   await pumpApp(
     tester,
     ProviderScope(
-      overrides: [feedbackApiProvider.overrideWithValue(api)],
+      overrides: [
+        feedbackApiProvider.overrideWithValue(api),
+        // 기본은 기기 요약 없음 (본문만 비교)
+        appDeviceSummaryReaderProvider.overrideWithValue(
+          () async => deviceSummary,
+        ),
+      ],
       child: const MaterialApp(home: FeedbackPage()),
     ),
   );
@@ -116,6 +127,23 @@ void main() {
     expect(api.submitted, ['다크모드 부탁해요']);
     expect(find.text('다크모드 부탁해요'), findsOneWidget); // 말풍선
     expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, isEmpty);
+  });
+
+  testWidgets('보내면 앱·기기 요약을 본문 하단에 붙이고, 500자를 넘기면 본문만 보낸다', (tester) async {
+    const deviceSummary = '앱 0.10.0(277) · iOS 18.0 · iPhone16,2';
+    final api = _FakeFeedbackApi();
+    await _open(tester, api, deviceSummary: deviceSummary);
+
+    await tester.enterText(find.byType(TextField), '다크모드 부탁해요');
+    await tester.pump();
+    await tester.tap(find.byType(PassqlButton));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), '가' * 500);
+    await tester.pump();
+    await tester.tap(find.byType(PassqlButton));
+    await tester.pumpAndSettle();
+
+    expect(api.submitted, ['다크모드 부탁해요\n\n---\n$deviceSummary', '가' * 500]);
   });
 
   testWidgets('전송에 실패하면 사유를 보여주고 입력은 그대로 둔다', (tester) async {
