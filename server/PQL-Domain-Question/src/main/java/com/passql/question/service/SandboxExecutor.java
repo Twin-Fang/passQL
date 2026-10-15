@@ -1,5 +1,6 @@
 package com.passql.question.service;
 
+import com.passql.common.util.TextPreview;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.question.dto.ExecuteResult;
@@ -38,7 +39,7 @@ public class SandboxExecutor {
                     if (!sql.isBlank()) {
                         String normalized = normalizeDdl(sql.trim());
                         log.debug("[applyDdl] [{}/{}] 실행: {}", i + 1, tokens.length,
-                                normalized.length() > 120 ? normalized.substring(0, 120) + "..." : normalized);
+                                TextPreview.truncateWithEllipsis(normalized, TextPreview.LOG_SQL_LENGTH));
                         stmt.execute(normalized);
                     }
                 }

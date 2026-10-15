@@ -1,5 +1,6 @@
 package com.passql.application.service;
 
+import com.passql.common.util.UuidUtils;
 import com.passql.application.dto.DashboardStats;
 import com.passql.member.constant.MemberStatus;
 import com.passql.member.repository.MemberRepository;
@@ -104,7 +105,7 @@ public class AdminDashboardService {
                     String uuidStr = row[0].toString();
                     long   count   = ((Number) row[1]).longValue();
                     UUID   uuid    = UUID.fromString(uuidStr);
-                    String name    = topicNameMap.getOrDefault(uuid, uuidStr.substring(0, 8) + "…");
+                    String name    = topicNameMap.getOrDefault(uuid, UuidUtils.toShortForm(uuid) + "…");
                     return new DashboardStats.TopicQuestionCount(uuidStr, name, count);
                 })
                 .sorted(Comparator.comparingLong(DashboardStats.TopicQuestionCount::count).reversed())

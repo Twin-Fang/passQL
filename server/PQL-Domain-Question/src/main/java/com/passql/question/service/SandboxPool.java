@@ -1,5 +1,6 @@
 package com.passql.question.service;
 
+import com.passql.common.util.UuidUtils;
 import com.passql.meta.constant.AppSettingKeys;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
@@ -72,7 +73,7 @@ public class SandboxPool {
             throw new CustomException(ErrorCode.SANDBOX_SETUP_FAILED, "샌드박스 슬롯 획득 중 인터럽트 발생");
         }
 
-        String dbName = "sandbox_" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        String dbName = "sandbox_" + UuidUtils.toShortForm(UUID.randomUUID());
         try {
             // PostgreSQL은 CREATE DATABASE를 트랜잭션 밖(autocommit=true)에서 실행해야 한다
             try (Connection conn = adminDataSource.getConnection()) {

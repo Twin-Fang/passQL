@@ -1,5 +1,6 @@
 package com.passql.web.controller.admin;
 
+import com.passql.web.support.AdminPageRequest;
 import com.passql.question.dto.DailyChallengeAssignRequest;
 import com.passql.question.dto.DailyChallengeItem;
 import com.passql.question.dto.QuestionSummary;
@@ -7,7 +8,6 @@ import com.passql.question.service.AdminDailyChallengeService;
 import com.passql.question.service.QuestionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -22,6 +22,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminDailyChallengeController {
 
+    // 배정 후보로 보여 줄 최신 문제 수 (건)
+    private static final int ASSIGNABLE_QUESTION_LIMIT = 200;
+
     private final AdminDailyChallengeService adminDailyChallengeService;
     private final QuestionService questionService;
 
@@ -30,7 +33,7 @@ public class AdminDailyChallengeController {
     public String page(Model model) {
         List<QuestionSummary> activeQuestions = questionService
                 .getQuestions(null, null, null, null,
-                        PageRequest.of(0, 200, Sort.by(Sort.Direction.DESC, "createdAt")))
+                        PageRequest.of(0, ASSIGNABLE_QUESTION_LIMIT, AdminPageRequest.sortByNewestFirst()))
                 .getContent();
         model.addAttribute("activeQuestions", activeQuestions);
         model.addAttribute("pageTitle", "일일 챌린지 관리");

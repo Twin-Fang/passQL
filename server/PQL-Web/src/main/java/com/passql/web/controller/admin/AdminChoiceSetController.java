@@ -1,12 +1,12 @@
 package com.passql.web.controller.admin;
 
+import com.passql.web.support.AdminPageRequest;
 import com.passql.question.entity.QuestionChoiceSet;
 import com.passql.question.entity.QuestionChoiceSetItem;
 import com.passql.question.service.AdminChoiceSetService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -29,10 +29,8 @@ public class AdminChoiceSetController {
     @GetMapping
     public String list(Model model,
                        @RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "20") int size) {
-        int clampedSize = Math.min(size, 100);
-        model.addAttribute("choiceSets", adminChoiceSetService.getChoiceSets(
-                PageRequest.of(page, clampedSize, Sort.by(Sort.Direction.DESC, "createdAt"))));
+                       @RequestParam(defaultValue = AdminPageRequest.DEFAULT_PAGE_SIZE) int size) {
+        model.addAttribute("choiceSets", adminChoiceSetService.getChoiceSets(AdminPageRequest.newestFirst(page, size)));
         model.addAttribute("currentMenu", "choice-sets");
         model.addAttribute("pageTitle", "선택지 세트 이력");
         return "admin/choice-sets";

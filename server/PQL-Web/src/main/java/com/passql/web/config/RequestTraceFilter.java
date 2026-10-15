@@ -1,5 +1,6 @@
 package com.passql.web.config;
 
+import com.passql.common.util.UuidUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,7 +52,7 @@ public class RequestTraceFilter extends OncePerRequestFilter {
         String incoming = request.getHeader(HEADER);
         String requestId = incoming != null && SAFE_ID.matcher(incoming).matches()
                 ? incoming
-                : UUID.randomUUID().toString().substring(0, 8);
+                : UuidUtils.toShortForm(UUID.randomUUID());
         MDC.put(MDC_REQUEST_ID, requestId);
         response.setHeader(HEADER, requestId);
 

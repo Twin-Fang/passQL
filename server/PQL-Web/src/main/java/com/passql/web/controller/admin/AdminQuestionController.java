@@ -1,5 +1,6 @@
 package com.passql.web.controller.admin;
 
+import com.passql.web.support.AdminPageRequest;
 import com.passql.ai.dto.GeneratedChoiceDto;
 import com.passql.ai.dto.GenerateQuestionFullResult;
 import com.passql.ai.dto.QuestionFullContextDto;
@@ -16,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -52,9 +52,8 @@ public class AdminQuestionController {
                        @RequestParam(required = false) Integer difficulty,
                        @RequestParam(required = false) String executionMode,
                        @RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "20") int size) {
-        int clampedSize = Math.min(size, 100);
-        Pageable pageable = PageRequest.of(page, clampedSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+                       @RequestParam(defaultValue = AdminPageRequest.DEFAULT_PAGE_SIZE) int size) {
+        Pageable pageable = AdminPageRequest.newestFirst(page, size);
         model.addAttribute("questions", questionService.getQuestions(topic, null, difficulty, executionMode, pageable));
         model.addAttribute("topics", metaService.getTopicTree());
         model.addAttribute("currentMenu", "questions");

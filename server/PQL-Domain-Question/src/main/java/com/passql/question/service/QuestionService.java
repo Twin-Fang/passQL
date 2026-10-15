@@ -1,5 +1,6 @@
 package com.passql.question.service;
 
+import com.passql.common.util.TextPreview;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.entity.Subtopic;
@@ -193,7 +194,7 @@ public class QuestionService {
 
     public QuestionSummary toSummary(Question q) {
         String stem = q.getStem();
-        String preview = stem == null ? "" : (stem.length() > 100 ? stem.substring(0, 100) : stem);
+        String preview = TextPreview.truncate(stem, TextPreview.QUESTION_SUMMARY_STEM_LENGTH);
         Topic topic = q.getTopicUuid() != null ? topicRepository.findById(q.getTopicUuid()).orElse(null) : null;
         return new QuestionSummary(
                 q.getQuestionUuid(),

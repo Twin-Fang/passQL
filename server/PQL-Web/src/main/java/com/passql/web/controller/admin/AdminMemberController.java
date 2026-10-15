@@ -1,5 +1,6 @@
 package com.passql.web.controller.admin;
 
+import com.passql.web.support.AdminPageRequest;
 import com.passql.member.constant.MemberRole;
 import com.passql.member.constant.MemberStatus;
 import com.passql.member.dto.MemberSearchCondition;
@@ -9,7 +10,6 @@ import com.passql.submission.service.SubmissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,10 +28,8 @@ public class AdminMemberController {
     @GetMapping
     public String list(MemberSearchCondition condition, Model model,
                        @RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "20") int size) {
-        int clampedPage = Math.max(0, page);
-        int clampedSize = Math.min(Math.max(1, size), 100);
-        Pageable pageable = PageRequest.of(clampedPage, clampedSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+                       @RequestParam(defaultValue = AdminPageRequest.DEFAULT_PAGE_SIZE) int size) {
+        Pageable pageable = AdminPageRequest.newestFirst(page, size);
 
         model.addAttribute("members", memberAdminService.searchMembers(condition, pageable));
         model.addAttribute("condition", condition);

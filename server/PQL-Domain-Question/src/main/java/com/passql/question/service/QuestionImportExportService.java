@@ -1,5 +1,6 @@
 package com.passql.question.service;
 
+import com.passql.common.util.TextPreview;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.entity.Topic;
@@ -315,8 +316,7 @@ public class QuestionImportExportService {
     }
 
     private String truncateStem(String stem) {
-        if (stem == null) return "";
-        return stem.length() > 50 ? stem.substring(0, 50) + "..." : stem;
+        return TextPreview.truncateWithEllipsis(stem, TextPreview.SHORT_STEM_LENGTH);
     }
 
     // NVL( 패턴: 대소문자 무관, 함수명과 괄호 사이 공백 허용
