@@ -1,5 +1,6 @@
 package com.passql.web.config;
 
+import com.passql.ai.service.AiCallLogService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -8,6 +9,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Configuration
 @EnableAsync
@@ -20,6 +22,19 @@ public class AsyncConfig {
         executor.setMaxPoolSize(8);
         executor.setQueueCapacity(50);
         executor.setThreadNamePrefix("ai-prefetch-");
+        executor.initialize();
+        return executor;
+    }
+
+    /** AI 서버 호출 기록 전용 (#474): 단일 스레드, 대기 1000건 초과분은 버림 (통계용이라 요청에 영향 금지) */
+    @Bean(AiCallLogService.RECORD_EXECUTOR_NAME)
+    public Executor aiCallLogExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(1);
+        executor.setMaxPoolSize(1);
+        executor.setQueueCapacity(1000);
+        executor.setThreadNamePrefix("ai-call-log-");
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
         executor.initialize();
         return executor;
     }

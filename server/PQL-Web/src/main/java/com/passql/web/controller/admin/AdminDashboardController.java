@@ -1,9 +1,8 @@
 package com.passql.web.controller.admin;
 
-import com.passql.ai.client.GeminiClient;
-import com.passql.meta.service.ExamScheduleCoverageService;
 import com.passql.application.dto.DashboardStats;
 import com.passql.application.service.AdminDashboardService;
+import com.passql.meta.service.ExamScheduleCoverageService;
 import com.passql.submission.service.SubmissionService;
 import com.passql.web.support.AdminMenu;
 import com.passql.web.support.AdminPage;
@@ -26,25 +25,12 @@ public class AdminDashboardController {
 
     private final AdminDashboardService adminDashboardService;
     private final SubmissionService submissionService;
-    private final GeminiClient geminiClient;
     private final ExamScheduleCoverageService examCoverageService;
 
     @GetMapping({"", "/"})
     @AdminPage(menu = AdminMenu.DASHBOARD)
     public String dashboard(Model model) {
-        DashboardStats raw = adminDashboardService.collect();
-
-        // aiCallCount에 실제 Gemini 누적 호출 횟수 반영
-        DashboardStats stats = new DashboardStats(
-                raw.totalQuestions(),
-                raw.questionsByTopic(),
-                raw.totalMembers(),
-                raw.activeMembers(),
-                raw.suspendedMembers(),
-                raw.todaySubmissions(),
-                geminiClient.getCallCount(),
-                raw.errorRate()
-        );
+        DashboardStats stats = adminDashboardService.collect();
 
         model.addAttribute("stats", stats);
         model.addAttribute("recentLogs", submissionService.getRecentLogs());

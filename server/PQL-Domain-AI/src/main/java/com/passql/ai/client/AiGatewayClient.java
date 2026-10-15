@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.passql.ai.dto.*;
+import com.passql.ai.service.AiCallLogService;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -31,16 +32,19 @@ public class AiGatewayClient {
     private final RestTemplate restTemplate;
     private final ObjectMapper snakeCaseMapper;
     private final GeminiFallbackClient fallbackClient;
+    private final AiCallLogService aiCallLogService;
     private final String baseUrl;
     private final String apiKey;
 
     public AiGatewayClient(
             GeminiFallbackClient fallbackClient,
+            AiCallLogService aiCallLogService,
             @Value("${passql.ai-server.base-url:http://localhost:8001}") String baseUrl,
             @Value("${passql.ai-server.api-key:}") String apiKey,
             @Value("${passql.ai-server.timeout-ms:15000}") int timeoutMs
     ) {
         this.fallbackClient = fallbackClient;
+        this.aiCallLogService = aiCallLogService;
         this.baseUrl = baseUrl;
         this.apiKey = apiKey;
 
@@ -184,7 +188,28 @@ public class AiGatewayClient {
     //  내부 HTTP 처리
     // ========================
 
+    /** AI 서버 POST 1회 + 호출 기록 (성공·실패·지연, #474) — Python 호출의 유일한 통로 */
     private <T> T postToPython(String path, Object request, Class<T> responseType) {
+        long startedAtMilliseconds = System.currentTimeMillis();
+        try {
+            T response = exchangeWithPython(path, request, responseType);
+            aiCallLogService.record(path, true, System.currentTimeMillis() - startedAtMilliseconds, null);
+            return response;
+        } catch (RuntimeException e) {
+            aiCallLogService.record(path, false, System.currentTimeMillis() - startedAtMilliseconds, toErrorType(e));
+            throw e;
+        }
+    }
+
+    /** 실패 종류: CustomException 은 ErrorCode 이름, 그 외는 예외 클래스 이름 */
+    private String toErrorType(RuntimeException e) {
+        if (e instanceof CustomException customException) {
+            return customException.getErrorCode().name();
+        }
+        return e.getClass().getSimpleName();
+    }
+
+    private <T> T exchangeWithPython(String path, Object request, Class<T> responseType) {
         String url = baseUrl + path;
         try {
             HttpHeaders headers = new HttpHeaders();

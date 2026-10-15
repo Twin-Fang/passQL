@@ -1,7 +1,6 @@
 package com.passql.web.controller.admin;
 
-import com.passql.ai.client.GeminiClient;
-import com.passql.ai.dto.AiStats;
+import com.passql.ai.service.AiCallLogService;
 import com.passql.meta.service.ServerErrorLogService;
 import com.passql.submission.service.SubmissionService;
 import com.passql.web.support.AdminMenu;
@@ -18,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class AdminMonitorController {
 
     private final SubmissionService submissionService;
-    private final GeminiClient geminiClient;
+    private final AiCallLogService aiCallLogService;
     private final ServerErrorLogService serverErrorLogService;
 
     @GetMapping
@@ -26,8 +25,8 @@ public class AdminMonitorController {
     public String dashboard(Model model) {
         model.addAttribute("executionLogs", submissionService.getRecentLogs());
         model.addAttribute("monitorStats", submissionService.getStats24h());
-        // Gemini 호출 수는 인메모리 누적값(배포마다 0) — 화면에 그 사실을 함께 안내한다
-        model.addAttribute("aiStats", new AiStats(geminiClient.getCallCount()));
+        // AI 서버 호출 24시간 집계 (ai_call_log, 배포해도 유지, #474)
+        model.addAttribute("aiStats", aiCallLogService.getStatsLast24Hours());
         // 5xx·미처리 예외 기록 (#440)
         model.addAttribute("serverErrors", serverErrorLogService.findRecent());
         model.addAttribute("serverErrorCount24h", serverErrorLogService.countLast24h());

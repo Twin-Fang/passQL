@@ -1,0 +1,49 @@
+<!doctype html>
+<!-- 대시보드 처리·장애 지표 4종: 서버 5xx, AI 서버 실패, 미처리 신고, 미처리 건의 (#474) -->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<th:block th:fragment="attention-cards">
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+
+        <!-- 서버 5xx (최근 24시간) -->
+        <a th:href="@{/admin/monitor}" class="card bg-base-100 shadow hover:shadow-md transition-shadow">
+            <div class="card-body py-4">
+                <p class="text-sm text-base-content/60">서버 오류 5xx (24시간)</p>
+                <p class="text-2xl font-bold" th:classappend="${stats.serverErrorCount24h > 0} ? 'text-error' : 'text-success'"
+                   th:text="${stats.serverErrorCount24h}">0</p>
+                <p class="text-xs text-base-content/50">모니터링 > 최근 서버 오류</p>
+            </div>
+        </a>
+
+        <!-- AI 서버 실패 (최근 24시간) -->
+        <a th:href="@{/admin/monitor#ai}" class="card bg-base-100 shadow hover:shadow-md transition-shadow">
+            <div class="card-body py-4">
+                <p class="text-sm text-base-content/60">AI 서버 실패 (24시간)</p>
+                <p class="text-2xl font-bold" th:classappend="${stats.aiStats24h.failureCount > 0} ? 'text-error' : 'text-success'"
+                   th:text="${stats.aiStats24h.failureCount}">0</p>
+                <p class="text-xs text-base-content/50"
+                   th:text="'실패율 ' + ${#numbers.formatDecimal(stats.aiStats24h.failureRatePercent(), 1, 1)} + '%'">실패율 0%</p>
+            </div>
+        </a>
+
+        <!-- 미처리 신고 -->
+        <a th:href="@{/admin/reports}" class="card bg-base-100 shadow hover:shadow-md transition-shadow">
+            <div class="card-body py-4">
+                <p class="text-sm text-base-content/60">미처리 신고</p>
+                <p class="text-2xl font-bold" th:classappend="${stats.pendingReportCount > 0} ? 'text-warning'"
+                   th:text="${stats.pendingReportCount}">0</p>
+                <p class="text-xs text-base-content/50">신고 관리 > 미처리만 보기</p>
+            </div>
+        </a>
+
+        <!-- 미처리 건의 -->
+        <a th:href="@{/admin/feedbacks(status='PENDING')}" class="card bg-base-100 shadow hover:shadow-md transition-shadow">
+            <div class="card-body py-4">
+                <p class="text-sm text-base-content/60">미처리 건의</p>
+                <p class="text-2xl font-bold" th:classappend="${stats.pendingFeedbackCount > 0} ? 'text-warning'"
+                   th:text="${stats.pendingFeedbackCount}">0</p>
+                <p class="text-xs text-base-content/50">건의사항 > PENDING</p>
+            </div>
+        </a>
+    </div>
+</th:block>
+</html>
