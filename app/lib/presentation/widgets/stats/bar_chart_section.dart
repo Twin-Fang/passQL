@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import '../../../data/models/progress/topic_stat.dart';
 import '../../design/design.dart';
 
+// 막대 양옆 고정 칸 폭: 토픽명(2줄까지), 문제 수(세 자리까지)
+const double _topicLabelWidth = 100;
+const double _countLabelWidth = 28;
+
 /// 카테고리별 문제 수 가로 막대 차트 섹션.
 /// totalQuestionCount 기준으로 막대 길이 비율 결정.
 class BarChartSection extends StatelessWidget {
@@ -25,7 +29,9 @@ class BarChartSection extends StatelessWidget {
         child: Center(
           child: Text(
             '아직 학습 데이터가 없습니다',
-            style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
+            style: PassqlTypography.subheadline.copyWith(
+              color: colors.secondaryLabel,
+            ),
           ),
         ),
       );
@@ -46,10 +52,12 @@ class BarChartSection extends StatelessWidget {
             children: [
               // 토픽명 — 고정폭, 2줄까지 허용
               SizedBox(
-                width: 100,
+                width: _topicLabelWidth,
                 child: Text(
                   stat.displayName,
-                  style: PassqlTypography.caption.copyWith(color: colors.secondaryLabel),
+                  style: PassqlTypography.caption.copyWith(
+                    color: colors.secondaryLabel,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -60,10 +68,12 @@ class BarChartSection extends StatelessWidget {
               const SizedBox(width: PassqlSpacing.xs),
               // 문제 수 숫자
               SizedBox(
-                width: 28,
+                width: _countLabelWidth,
                 child: Text(
                   stat.totalQuestionCount.toString(),
-                  style: PassqlTypography.caption.copyWith(color: colors.secondaryLabel),
+                  style: PassqlTypography.caption.copyWith(
+                    color: colors.secondaryLabel,
+                  ),
                   textAlign: TextAlign.right,
                 ),
               ),

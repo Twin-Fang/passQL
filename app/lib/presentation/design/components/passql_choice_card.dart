@@ -87,8 +87,8 @@ class PassqlChoiceCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 24,
-            height: 24,
+            width: PassqlSize.choiceKeyBadge,
+            height: PassqlSize.choiceKeyBadge,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
@@ -112,7 +112,7 @@ class PassqlChoiceCard extends StatelessWidget {
             ExcludeSemantics(
               child: Icon(
                 CupertinoIcons.checkmark_circle_fill,
-                size: 22,
+                size: PassqlIconSize.xl,
                 color: colors.correct,
               ),
             ),
@@ -122,7 +122,7 @@ class PassqlChoiceCard extends StatelessWidget {
             ExcludeSemantics(
               child: Icon(
                 CupertinoIcons.xmark_circle_fill,
-                size: 22,
+                size: PassqlIconSize.xl,
                 color: colors.wrong,
               ),
             ),

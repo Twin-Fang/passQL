@@ -179,7 +179,7 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
             ],
           ),
           SizedBox(
-            height: 28,
+            height: PassqlSize.messageSlotHeight,
             child: Align(
               alignment: Alignment.centerLeft,
               child: hint == null

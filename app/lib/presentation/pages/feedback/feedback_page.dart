@@ -224,7 +224,7 @@ class _FeedbackBubble extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: PassqlSpacing.xs,
-                      vertical: 2,
+                      vertical: PassqlSpacing.hairlineGap,
                     ),
                     decoration: BoxDecoration(
                       color: pillBg,

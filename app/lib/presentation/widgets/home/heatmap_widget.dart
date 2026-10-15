@@ -52,7 +52,11 @@ class HeatmapWidget extends StatelessWidget {
           ? Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(CupertinoIcons.flame_fill, size: 12, color: colors.warning),
+                Icon(
+                  CupertinoIcons.flame_fill,
+                  size: PassqlIconSize.xxs,
+                  color: colors.warning,
+                ),
                 const SizedBox(width: PassqlSpacing.xxs),
                 PassqlBadge(text: '$streakDays일 연속', color: colors.warning),
               ],
@@ -70,7 +74,9 @@ class HeatmapWidget extends StatelessWidget {
                   child: Center(
                     child: Text(
                       label,
-                      style: PassqlTypography.caption.copyWith(color: colors.secondaryLabel),
+                      style: PassqlTypography.caption.copyWith(
+                        color: colors.secondaryLabel,
+                      ),
                     ),
                   ),
                 );
@@ -98,7 +104,9 @@ class HeatmapWidget extends StatelessWidget {
                     width: monthLabelWidth,
                     child: Text(
                       monthLabel,
-                      style: PassqlTypography.caption.copyWith(color: colors.secondaryLabel),
+                      style: PassqlTypography.caption.copyWith(
+                        color: colors.secondaryLabel,
+                      ),
                     ),
                   ),
 
@@ -116,10 +124,14 @@ class HeatmapWidget extends StatelessWidget {
                       child: AspectRatio(
                         aspectRatio: 1,
                         child: Container(
-                          margin: const EdgeInsets.all(2),
+                          margin: const EdgeInsets.all(
+                            PassqlSpacing.hairlineGap,
+                          ),
                           decoration: BoxDecoration(
                             color: _colorForCount(colors, count),
-                            borderRadius: BorderRadius.circular(PassqlRadius.sm),
+                            borderRadius: BorderRadius.circular(
+                              PassqlRadius.sm,
+                            ),
                           ),
                           child: Center(
                             child: Text(

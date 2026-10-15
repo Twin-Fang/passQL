@@ -105,7 +105,7 @@ class _WrongRow extends StatelessWidget {
             // 아이콘만 쓰면 오답 표식이 글자 없이 들어간다(PassqlResultMark 는 라벨이 붙는다).
             Icon(
               CupertinoIcons.xmark_circle_fill,
-              size: 20,
+              size: PassqlIconSize.lg,
               color: colors.wrong,
             ),
             const SizedBox(width: PassqlSpacing.sm),
@@ -136,7 +136,7 @@ class _WrongRow extends StatelessWidget {
             const SizedBox(width: PassqlSpacing.xs),
             Icon(
               CupertinoIcons.chevron_forward,
-              size: 14,
+              size: PassqlIconSize.xs,
               color: colors.tertiaryLabel,
             ),
           ],

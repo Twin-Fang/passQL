@@ -14,7 +14,7 @@ class PassqlProgressBar extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(PassqlRadius.capsule),
       child: SizedBox(
-        height: 4,
+        height: PassqlSize.progressBarHeight,
         child: Stack(
           children: [
             Positioned.fill(child: ColoredBox(color: colors.fill)),

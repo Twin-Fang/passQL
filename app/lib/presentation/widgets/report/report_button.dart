@@ -34,12 +34,12 @@ class ReportButton extends ConsumerWidget {
         horizontal: PassqlSpacing.sm,
         vertical: PassqlSpacing.xs,
       ),
-      minimumSize: const Size(44, 44),
+      minimumSize: const Size.square(PassqlSize.minTouchTarget),
       onPressed: reported ? null : () => _open(context, target),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(CupertinoIcons.flag, size: 14, color: color),
+          Icon(CupertinoIcons.flag, size: PassqlIconSize.xs, color: color),
           const SizedBox(width: PassqlSpacing.xxs),
           Text(
             reported ? '신고 완료' : '문제 신고',

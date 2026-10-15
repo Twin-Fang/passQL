@@ -27,12 +27,14 @@ class PassqlScoreHeader extends StatelessWidget {
         if (caption != null) ...[
           Text(
             caption!,
-            style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
+            style: PassqlTypography.subheadline.copyWith(
+              color: colors.secondaryLabel,
+            ),
           ),
           const SizedBox(height: PassqlSpacing.sm),
         ],
         SizedBox.square(
-          dimension: 168,
+          dimension: PassqlSize.scoreRing,
           child: TweenAnimationBuilder<double>(
             tween: Tween(begin: 0, end: ratio),
             duration: const Duration(milliseconds: 700),
@@ -47,8 +49,10 @@ class PassqlScoreHeader extends StatelessWidget {
             ),
             // 좁은 폭·큰 글자에서도 고리 안에 머물도록 줄여서 맞춘다.
             child: Padding(
-              // 고리 두께 12 + 여유 8 안쪽에서만 줄어들게 한다.
-              padding: const EdgeInsets.all(12 + 8),
+              // 고리 두께 + 여유(xs) 안쪽에서만 줄어들게 한다.
+              padding: const EdgeInsets.all(
+                PassqlSize.scoreRingStroke + PassqlSpacing.xs,
+              ),
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Row(
@@ -58,11 +62,15 @@ class PassqlScoreHeader extends StatelessWidget {
                   children: [
                     Text(
                       '$score',
-                      style: PassqlTypography.scoreNumber.copyWith(color: colors.label),
+                      style: PassqlTypography.scoreNumber.copyWith(
+                        color: colors.label,
+                      ),
                     ),
                     Text(
                       ' / $total',
-                      style: PassqlTypography.title3.copyWith(color: colors.secondaryLabel),
+                      style: PassqlTypography.title3.copyWith(
+                        color: colors.secondaryLabel,
+                      ),
                     ),
                   ],
                 ),
@@ -73,7 +81,9 @@ class PassqlScoreHeader extends StatelessWidget {
         const SizedBox(height: PassqlSpacing.sm),
         Text(
           '정답률 ${(ratio * 100).round()}%',
-          style: PassqlTypography.subheadlineSemibold.copyWith(color: colors.secondaryLabel),
+          style: PassqlTypography.subheadlineSemibold.copyWith(
+            color: colors.secondaryLabel,
+          ),
         ),
       ],
     );
@@ -92,7 +102,7 @@ class _RingPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const stroke = 12.0;
+    const stroke = PassqlSize.scoreRingStroke;
     final rect = Offset.zero & size;
     final arc = rect.deflate(stroke / 2);
     final base = Paint()

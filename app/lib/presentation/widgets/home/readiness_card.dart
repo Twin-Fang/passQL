@@ -38,10 +38,15 @@ class ReadinessCard extends StatelessWidget {
             children: [
               Text(
                 '$scorePercent',
-                style: PassqlTypography.scoreNumber.copyWith(color: colors.accent),
+                style: PassqlTypography.scoreNumber.copyWith(
+                  color: colors.accent,
+                ),
               ),
               const SizedBox(width: PassqlSpacing.xxs),
-              Text('%', style: PassqlTypography.title3.copyWith(color: colors.accent)),
+              Text(
+                '%',
+                style: PassqlTypography.title3.copyWith(color: colors.accent),
+              ),
             ],
           ),
           const SizedBox(height: PassqlSpacing.xs),
@@ -50,7 +55,9 @@ class ReadinessCard extends StatelessWidget {
           if (message.isNotEmpty)
             Text(
               message,
-              style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
+              style: PassqlTypography.subheadline.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
           const SizedBox(height: PassqlSpacing.md),
           Row(
@@ -98,12 +105,16 @@ class _MetricChip extends StatelessWidget {
           children: [
             Text(
               value,
-              style: PassqlTypography.subheadlineSemibold.copyWith(color: colors.label),
+              style: PassqlTypography.subheadlineSemibold.copyWith(
+                color: colors.label,
+              ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: PassqlSpacing.hairlineGap),
             Text(
               label,
-              style: PassqlTypography.caption.copyWith(color: colors.secondaryLabel),
+              style: PassqlTypography.caption.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
           ],
         ),

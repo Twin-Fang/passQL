@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import '../../../data/models/progress/topic_stat.dart';
 import '../../design/design.dart';
 
+// 차트 영역 높이: 빈 상태, 레이더 차트(토픽명 라벨 포함)
+const double _emptyChartHeight = 220;
+const double _chartHeight = 260;
+
 /// 영역별 분석 레이더(스파이더) 차트 섹션.
 /// topicStats가 없으면 빈 상태 메시지 표시.
 class RadarChartSection extends StatelessWidget {
@@ -22,11 +26,13 @@ class RadarChartSection extends StatelessWidget {
 
     if (stats == null || stats.isEmpty) {
       return SizedBox(
-        height: 220,
+        height: _emptyChartHeight,
         child: Center(
           child: Text(
             '아직 학습 데이터가 없습니다',
-            style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
+            style: PassqlTypography.subheadline.copyWith(
+              color: colors.secondaryLabel,
+            ),
           ),
         ),
       );
@@ -37,7 +43,7 @@ class RadarChartSection extends StatelessWidget {
     final labels = stats.map((stat) => stat.displayName).toList();
 
     return SizedBox(
-      height: 260,
+      height: _chartHeight,
       child: RadarChart(
         RadarChartData(
           radarShape: RadarShape.polygon,
@@ -52,7 +58,9 @@ class RadarChartSection extends StatelessWidget {
           gridBorderData: BorderSide(color: colors.separator, width: 1),
           radarBorderData: BorderSide(color: colors.separator, width: 1),
           titlePositionPercentageOffset: 0.25,
-          titleTextStyle: PassqlTypography.caption.copyWith(color: colors.secondaryLabel),
+          titleTextStyle: PassqlTypography.caption.copyWith(
+            color: colors.secondaryLabel,
+          ),
           getTitle: (index, angle) {
             final label = labels[index];
             // '/' 기준으로 줄바꿈 처리 (긴 토픽명 대응)
@@ -66,7 +74,9 @@ class RadarChartSection extends StatelessWidget {
               borderColor: colors.accent,
               borderWidth: 2,
               entryRadius: 3,
-              dataEntries: values.map((radarValue) => RadarEntry(value: radarValue)).toList(),
+              dataEntries: values
+                  .map((radarValue) => RadarEntry(value: radarValue))
+                  .toList(),
             ),
           ],
         ),

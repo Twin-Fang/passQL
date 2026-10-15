@@ -61,7 +61,7 @@ class PassqlTabBar extends StatelessWidget {
                             i == currentIndex
                                 ? items[i].activeIcon
                                 : items[i].icon,
-                            size: 24,
+                            size: PassqlIconSize.xxl,
                             color: i == currentIndex
                                 ? colors.accent
                                 : colors.secondaryLabel,

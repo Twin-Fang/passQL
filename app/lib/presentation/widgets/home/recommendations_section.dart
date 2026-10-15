@@ -46,6 +46,9 @@ class RecommendationsSection extends StatelessWidget {
   }
 }
 
+/// 난이도 별(★☆☆) 글자 사이 간격
+const double _difficultyStarSpacing = 2;
+
 class _QuestionRow extends StatelessWidget {
   final QuestionSummary question;
   final String difficultyStars;
@@ -78,7 +81,9 @@ class _QuestionRow extends StatelessWidget {
                     ),
                   Text(
                     stripCodeFences(question.stemPreview ?? ''),
-                    style: PassqlTypography.subheadline.copyWith(color: colors.label),
+                    style: PassqlTypography.subheadline.copyWith(
+                      color: colors.label,
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -87,7 +92,7 @@ class _QuestionRow extends StatelessWidget {
                     difficultyStars,
                     style: PassqlTypography.caption.copyWith(
                       color: colors.warning,
-                      letterSpacing: 2,
+                      letterSpacing: _difficultyStarSpacing,
                     ),
                   ),
                 ],
@@ -98,7 +103,7 @@ class _QuestionRow extends StatelessWidget {
               padding: const EdgeInsets.only(top: PassqlSpacing.xxs),
               child: Icon(
                 CupertinoIcons.chevron_forward,
-                size: 14,
+                size: PassqlIconSize.xs,
                 color: colors.tertiaryLabel,
               ),
             ),

@@ -145,7 +145,7 @@ class _ReportSheetState extends ConsumerState<ReportSheet> {
               ),
             ],
             SizedBox(
-              height: 28,
+              height: PassqlSize.messageSlotHeight,
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: _error == null

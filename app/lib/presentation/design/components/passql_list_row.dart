@@ -24,6 +24,9 @@ class PassqlListRow extends StatelessWidget {
   final bool isDestructive;
   final VoidCallback? onTap;
 
+  /// 한 줄 제목일 때 행 높이가 44pt 가 되는 위아래 여백 (iOS 설정 앱 규격)
+  static const double _verticalPadding = 11;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
@@ -32,7 +35,7 @@ class PassqlListRow extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: PassqlSpacing.md,
-          vertical: 11,
+          vertical: _verticalPadding,
         ),
         child: Row(
           children: [
@@ -74,7 +77,7 @@ class PassqlListRow extends StatelessWidget {
               const SizedBox(width: PassqlSpacing.xs),
               Icon(
                 CupertinoIcons.chevron_forward,
-                size: 14,
+                size: PassqlIconSize.xs,
                 color: colors.tertiaryLabel,
               ),
             ],

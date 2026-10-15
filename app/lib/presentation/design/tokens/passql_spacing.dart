@@ -1,5 +1,6 @@
-/// 간격 7단계. 화면 좌우 여백은 md(16) 하나로 고정한다.
+/// 간격 7단계 + 미세 간격 1종. 화면 좌우 여백은 md(16) 하나로 고정한다.
 abstract final class PassqlSpacing {
+  static const double hairlineGap = 2; // 숫자·라벨 사이, 히트맵 칸 사이 같은 미세 간격
   static const double xxs = 4;
   static const double xs = 8;
   static const double sm = 12;

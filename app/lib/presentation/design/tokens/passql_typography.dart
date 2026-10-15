@@ -8,15 +8,18 @@ abstract final class PassqlTypography {
   static const _semibold = 'Pretendard-SemiBold';
   static const _bold = 'Pretendard-Bold';
 
-  static TextStyle _t(String family, double size, double lineHeight,
-          {double spacing = 0}) =>
-      TextStyle(
-        fontFamily: family,
-        fontSize: size,
-        height: lineHeight / size,
-        letterSpacing: spacing,
-        leadingDistribution: TextLeadingDistribution.even,
-      );
+  static TextStyle _t(
+    String family,
+    double size,
+    double lineHeight, {
+    double spacing = 0,
+  }) => TextStyle(
+    fontFamily: family,
+    fontSize: size,
+    height: lineHeight / size,
+    letterSpacing: spacing,
+    leadingDistribution: TextLeadingDistribution.even,
+  );
 
   static final largeTitle = _t(_bold, 34, 41, spacing: -0.4);
   static final title1 = _t(_bold, 28, 34, spacing: -0.4);
@@ -39,8 +42,31 @@ abstract final class PassqlTypography {
     fontSize: 14,
     height: 20 / 14,
   );
+  // 결과 표 셀처럼 좁은 칸의 코드
+  static const codeCompact = TextStyle(
+    fontFamily: 'JetBrainsMono',
+    fontFamilyFallback: ['Menlo', 'Courier', 'monospace'],
+    fontSize: 12,
+    height: 20 / 14, // code 와 같은 줄 높이 비율
+  );
+  // 실행 오류 코드처럼 눈에 띄어야 하는 코드
+  static const codeEmphasis = TextStyle(
+    fontFamily: 'JetBrainsMono',
+    fontFamilyFallback: ['Menlo', 'Courier', 'monospace'],
+    fontSize: 13,
+    fontWeight: FontWeight.w700,
+    height: 20 / 14, // code 와 같은 줄 높이 비율
+  );
+  // 긴 글(약관·AI 해설)용 넉넉한 줄 간격 본문
+  static final legalBody = body.copyWith(height: 1.55);
+  static final explanationBody = subheadline.copyWith(height: 1.6);
+  static final explanationEmphasis = subheadlineSemibold.copyWith(height: 1.6);
   // 점수는 자릿수가 바뀌어도 폭이 흔들리지 않게 고정폭 숫자를 쓴다.
-  static final scoreNumber = _t(_bold, 56, 60, spacing: -1)
-      .copyWith(fontFeatures: const [FontFeature.tabularFigures()]);
+  static final scoreNumber = _t(
+    _bold,
+    56,
+    60,
+    spacing: -1,
+  ).copyWith(fontFeatures: const [FontFeature.tabularFigures()]);
   static final tabular = <FontFeature>[const FontFeature.tabularFigures()];
 }

@@ -26,8 +26,8 @@ class ProfileCard extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 52,
-            height: 52,
+            width: PassqlSize.avatar,
+            height: PassqlSize.avatar,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: colors.accentTint,
@@ -49,14 +49,14 @@ class ProfileCard extends StatelessWidget {
           ),
           if (isRegenerating)
             const SizedBox(
-              width: 44,
-              height: 44,
+              width: PassqlSize.minTouchTarget,
+              height: PassqlSize.minTouchTarget,
               child: Center(child: PassqlLoadingIndicator()),
             )
           else
             CupertinoButton(
               padding: EdgeInsets.zero,
-              minimumSize: const Size(44, 44),
+              minimumSize: const Size.square(PassqlSize.minTouchTarget),
               onPressed: onRegenerate,
               child: Semantics(
                 label: '랜덤 닉네임',
@@ -64,7 +64,7 @@ class ProfileCard extends StatelessWidget {
                   message: '랜덤 닉네임',
                   child: Icon(
                     CupertinoIcons.arrow_clockwise,
-                    size: 20,
+                    size: PassqlIconSize.lg,
                     color: colors.tertiaryLabel,
                   ),
                 ),
@@ -83,13 +83,18 @@ class ProfileCard extends StatelessWidget {
   }
 }
 
+/// 스켈레톤 자리 높이: 실제 프로필 카드 높이와 맞춤
+const double _profileCardHeight = 84;
+
 /// 로딩 스켈레톤 — 프로필 카드 자리 유지
 class ProfileCardSkeleton extends StatelessWidget {
   const ProfileCardSkeleton({super.key});
 
   @override
-  Widget build(BuildContext context) =>
-      const PassqlSkeletonBox(height: 84, radius: PassqlRadius.lg);
+  Widget build(BuildContext context) => const PassqlSkeletonBox(
+    height: _profileCardHeight,
+    radius: PassqlRadius.lg,
+  );
 }
 
 class ProfileCardError extends StatelessWidget {

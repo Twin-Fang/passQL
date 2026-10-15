@@ -71,7 +71,12 @@ class _StatsContent extends StatelessWidget {
     ];
 
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(PassqlSpacing.md, PassqlSpacing.md, PassqlSpacing.md, 0),
+      padding: const EdgeInsets.fromLTRB(
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+        0,
+      ),
       sliver: SliverList.separated(
         itemCount: children.length,
         itemBuilder: (_, i) => children[i],
@@ -82,30 +87,57 @@ class _StatsContent extends StatelessWidget {
 }
 
 /// 로딩 스켈레톤. 실제 카드와 같은 높이로 자리를 잡는다.
+// 스켈레톤 자리 높이: 실제 카드(요약 3칸·AI 분석, 차트 2개) 높이와 맞춤
+const double _summaryCardHeight = 80;
+const double _chartCardHeight = 280;
+
 class _StatsSkeleton extends StatelessWidget {
   const _StatsSkeleton();
 
   @override
   Widget build(BuildContext context) {
     return const SliverPadding(
-      padding: EdgeInsets.fromLTRB(PassqlSpacing.md, PassqlSpacing.md, PassqlSpacing.md, 0),
+      padding: EdgeInsets.fromLTRB(
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+        0,
+      ),
       sliver: SliverList(
         delegate: SliverChildListDelegate.fixed([
           Row(
             children: [
-              Expanded(child: PassqlSkeletonBox(height: 80, radius: PassqlRadius.lg)),
+              Expanded(
+                child: PassqlSkeletonBox(
+                  height: _summaryCardHeight,
+                  radius: PassqlRadius.lg,
+                ),
+              ),
               SizedBox(width: PassqlSpacing.sm),
-              Expanded(child: PassqlSkeletonBox(height: 80, radius: PassqlRadius.lg)),
+              Expanded(
+                child: PassqlSkeletonBox(
+                  height: _summaryCardHeight,
+                  radius: PassqlRadius.lg,
+                ),
+              ),
               SizedBox(width: PassqlSpacing.sm),
-              Expanded(child: PassqlSkeletonBox(height: 80, radius: PassqlRadius.lg)),
+              Expanded(
+                child: PassqlSkeletonBox(
+                  height: _summaryCardHeight,
+                  radius: PassqlRadius.lg,
+                ),
+              ),
             ],
           ),
           SizedBox(height: PassqlSpacing.md),
-          PassqlSkeletonBox(height: 280, radius: PassqlRadius.lg),
+          PassqlSkeletonBox(height: _chartCardHeight, radius: PassqlRadius.lg),
           SizedBox(height: PassqlSpacing.md),
-          PassqlSkeletonBox(height: 280, radius: PassqlRadius.lg),
+          PassqlSkeletonBox(height: _chartCardHeight, radius: PassqlRadius.lg),
           SizedBox(height: PassqlSpacing.md),
-          PassqlSkeletonBox(height: 80, radius: PassqlRadius.lg),
+          PassqlSkeletonBox(
+            height: _summaryCardHeight,
+            radius: PassqlRadius.lg,
+          ),
         ]),
       ),
     );

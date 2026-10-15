@@ -165,6 +165,11 @@ class _HomeContent extends StatelessWidget {
 }
 
 /// 로딩 중 스켈레톤. 실제 카드와 같은 높이로 자리를 잡는다.
+// 스켈레톤 자리 높이: 실제 카드(오늘의 세트·시험 일정 2열, 준비도, 히트맵) 높이와 맞춤
+const double _dualCardHeight = 140;
+const double _readinessCardHeight = 180;
+const double _heatmapCardHeight = 160;
+
 class _HomeSkeleton extends StatelessWidget {
   const _HomeSkeleton();
 
@@ -182,18 +187,30 @@ class _HomeSkeleton extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: PassqlSkeletonBox(height: 140, radius: PassqlRadius.lg),
+                child: PassqlSkeletonBox(
+                  height: _dualCardHeight,
+                  radius: PassqlRadius.lg,
+                ),
               ),
               SizedBox(width: PassqlSpacing.sm),
               Expanded(
-                child: PassqlSkeletonBox(height: 140, radius: PassqlRadius.lg),
+                child: PassqlSkeletonBox(
+                  height: _dualCardHeight,
+                  radius: PassqlRadius.lg,
+                ),
               ),
             ],
           ),
           SizedBox(height: PassqlSpacing.md),
-          PassqlSkeletonBox(height: 180, radius: PassqlRadius.lg),
+          PassqlSkeletonBox(
+            height: _readinessCardHeight,
+            radius: PassqlRadius.lg,
+          ),
           SizedBox(height: PassqlSpacing.md),
-          PassqlSkeletonBox(height: 160, radius: PassqlRadius.lg),
+          PassqlSkeletonBox(
+            height: _heatmapCardHeight,
+            radius: PassqlRadius.lg,
+          ),
         ]),
       ),
     );

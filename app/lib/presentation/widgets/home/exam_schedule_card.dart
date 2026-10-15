@@ -46,11 +46,17 @@ class ExamScheduleCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(CupertinoIcons.calendar, size: 14, color: colors.accent),
+              Icon(
+                CupertinoIcons.calendar,
+                size: PassqlIconSize.xs,
+                color: colors.accent,
+              ),
               const SizedBox(width: PassqlSpacing.xxs),
               Text(
                 '시험 일정',
-                style: PassqlTypography.captionSemibold.copyWith(color: colors.secondaryLabel),
+                style: PassqlTypography.captionSemibold.copyWith(
+                  color: colors.secondaryLabel,
+                ),
               ),
             ],
           ),
@@ -63,22 +69,30 @@ class ExamScheduleCard extends StatelessWidget {
             const SizedBox(height: PassqlSpacing.xs),
             Text(
               '${schedule!.certType} ${schedule!.round}회',
-              style: PassqlTypography.subheadlineSemibold.copyWith(color: colors.label),
+              style: PassqlTypography.subheadlineSemibold.copyWith(
+                color: colors.label,
+              ),
             ),
             const SizedBox(height: PassqlSpacing.xxs),
             Text(
               _formatDate(schedule!.examDate),
-              style: PassqlTypography.caption.copyWith(color: colors.secondaryLabel),
+              style: PassqlTypography.caption.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
           ] else ...[
             Text(
               '선택된 일정 없음',
-              style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
+              style: PassqlTypography.subheadline.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
             const SizedBox(height: PassqlSpacing.xs),
             Text(
               '일정 선택하기',
-              style: PassqlTypography.captionSemibold.copyWith(color: colors.accent),
+              style: PassqlTypography.captionSemibold.copyWith(
+                color: colors.accent,
+              ),
             ),
           ],
         ],

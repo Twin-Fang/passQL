@@ -32,9 +32,10 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
     return isAnswered ? (currentIndex + 1) / total : currentIndex / total;
   }
 
-  // 내비게이션 바 + 진행 막대(4) 높이
+  // 내비게이션 바 + 진행 막대 높이
   @override
-  Size get preferredSize => const Size.fromHeight(PassqlSize.navBar + 4);
+  Size get preferredSize =>
+      const Size.fromHeight(PassqlSize.navBar + PassqlSize.progressBarHeight);
 
   @override
   Widget build(BuildContext context) {

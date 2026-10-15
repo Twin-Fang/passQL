@@ -15,7 +15,7 @@ class MarkdownLiteText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final base = PassqlTypography.subheadline.copyWith(color: colors.label, height: 1.6);
+    final base = PassqlTypography.explanationBody.copyWith(color: colors.label);
     final lines = text.replaceAll('\r\n', '\n').split('\n');
     final children = <Widget>[];
     for (final line in lines) {
@@ -69,9 +69,8 @@ class MarkdownLiteText extends StatelessWidget {
         spans.add(
           TextSpan(
             text: match.group(1),
-            style: PassqlTypography.subheadlineSemibold.copyWith(
+            style: PassqlTypography.explanationEmphasis.copyWith(
               color: colors.label,
-              height: 1.6,
             ),
           ),
         );

@@ -16,6 +16,6 @@ class PassqlIconTile extends StatelessWidget {
       color: color,
       borderRadius: BorderRadius.circular(PassqlRadius.iconTile),
     ),
-    child: Icon(icon, size: 17, color: Colors.white),
+    child: Icon(icon, size: PassqlIconSize.iconTileGlyph, color: Colors.white),
   );
 }

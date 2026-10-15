@@ -25,7 +25,8 @@ class ResultRowsTable extends StatelessWidget {
   ResultRowsTable({super.key, required List<Map<String, dynamic>> rows})
     : columns = rows.isEmpty ? const [] : rows.first.keys.toList(),
       _rows = [
-        for (final row in rows) [for (final column in rows.first.keys) row[column]],
+        for (final row in rows)
+          [for (final column in rows.first.keys) row[column]],
       ];
 
   /// 열 목록과 위치 기준 행(SQL 실행 결과용). 같은 이름의 열이 있어도 값이 사라지지 않는다.
@@ -44,11 +45,17 @@ class ResultRowsTable extends StatelessWidget {
     if (columns.isEmpty) {
       return Text(
         '(결과 없음)',
-        style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
+        style: PassqlTypography.subheadline.copyWith(
+          color: colors.secondaryLabel,
+        ),
       );
     }
-    final headerStyle = PassqlTypography.captionSemibold.copyWith(color: colors.secondaryLabel);
-    final cellStyle = PassqlTypography.code.copyWith(fontSize: 12, color: colors.label);
+    final headerStyle = PassqlTypography.captionSemibold.copyWith(
+      color: colors.secondaryLabel,
+    );
+    final cellStyle = PassqlTypography.codeCompact.copyWith(
+      color: colors.label,
+    );
 
     Widget buildCell(String text, TextStyle style) => Padding(
       padding: const EdgeInsets.symmetric(
@@ -64,7 +71,9 @@ class ResultRowsTable extends StatelessWidget {
         decoration: BoxDecoration(
           color: colors.card,
           border: Border.all(color: colors.separator),
-          borderRadius: const BorderRadius.all(Radius.circular(PassqlRadius.sm)),
+          borderRadius: const BorderRadius.all(
+            Radius.circular(PassqlRadius.sm),
+          ),
         ),
         // 열이 적어 표가 카드보다 좁으면 오른쪽이 비어 보이므로, 최소 폭을 카드 폭에 맞춰 남는 폭을 열에 나눠 준다.
         child: LayoutBuilder(
@@ -80,13 +89,19 @@ class ResultRowsTable extends StatelessWidget {
                 children: [
                   TableRow(
                     decoration: BoxDecoration(color: colors.fill),
-                    children: [for (final column in columns) buildCell(column, headerStyle)],
+                    children: [
+                      for (final column in columns)
+                        buildCell(column, headerStyle),
+                    ],
                   ),
                   for (final row in _rows)
                     TableRow(
                       children: [
                         for (var i = 0; i < columns.length; i++)
-                          buildCell(i < row.length ? '${row[i] ?? ''}' : '', cellStyle),
+                          buildCell(
+                            i < row.length ? '${row[i] ?? ''}' : '',
+                            cellStyle,
+                          ),
                       ],
                     ),
                 ],

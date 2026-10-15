@@ -19,6 +19,9 @@ class PassqlGroupedSection extends StatelessWidget {
   final List<Widget> children;
   final double separatorIndent;
 
+  /// 머리·꼬리 글 <-> 묶음 카드 간격 (iOS inset grouped 규격)
+  static const double _headerFooterGap = 6;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
@@ -29,7 +32,10 @@ class PassqlGroupedSection extends StatelessWidget {
         rows.add(
           Padding(
             padding: EdgeInsets.only(left: separatorIndent),
-            child: Container(height: PassqlSize.hairline, color: colors.separator),
+            child: Container(
+              height: PassqlSize.hairline,
+              color: colors.separator,
+            ),
           ),
         );
       }
@@ -41,10 +47,17 @@ class PassqlGroupedSection extends StatelessWidget {
       children: [
         if (header != null)
           Padding(
-            padding: const EdgeInsets.fromLTRB(PassqlSpacing.md, 0, PassqlSpacing.md, 6),
+            padding: const EdgeInsets.fromLTRB(
+              PassqlSpacing.md,
+              0,
+              PassqlSpacing.md,
+              _headerFooterGap,
+            ),
             child: Text(
               header!,
-              style: PassqlTypography.footnote.copyWith(color: colors.secondaryLabel),
+              style: PassqlTypography.footnote.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
           ),
         ClipRRect(
@@ -56,10 +69,17 @@ class PassqlGroupedSection extends StatelessWidget {
         ),
         if (footer != null)
           Padding(
-            padding: const EdgeInsets.fromLTRB(PassqlSpacing.md, 6, PassqlSpacing.md, 0),
+            padding: const EdgeInsets.fromLTRB(
+              PassqlSpacing.md,
+              _headerFooterGap,
+              PassqlSpacing.md,
+              0,
+            ),
             child: Text(
               footer!,
-              style: PassqlTypography.footnote.copyWith(color: colors.secondaryLabel),
+              style: PassqlTypography.footnote.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
           ),
       ],

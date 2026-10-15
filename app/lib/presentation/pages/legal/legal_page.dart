@@ -20,7 +20,10 @@ class LegalPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.passqlColors.background,
-      appBar: PassqlNavBar(title: type?.label ?? '약관', leading: PassqlNavLeading.back),
+      appBar: PassqlNavBar(
+        title: type?.label ?? '약관',
+        leading: PassqlNavLeading.back,
+      ),
       body: SafeArea(
         child: type == null
             ? PassqlStatusView.empty(
@@ -55,16 +58,25 @@ class LegalPage extends ConsumerWidget {
   // 긴 법률 문서를 편하게 읽도록 본문은 넉넉한 줄 간격, 조항 제목은 굵게 띄운다.
   Widget _buildBlock(BuildContext context, LegalBlock block) {
     final colors = context.passqlColors;
-    final body = PassqlTypography.body.copyWith(height: 1.55, color: colors.label);
+    final body = PassqlTypography.legalBody.copyWith(color: colors.label);
     switch (block.kind) {
       case LegalBlockKind.heading:
         return Padding(
-          padding: const EdgeInsets.only(top: PassqlSpacing.xl, bottom: PassqlSpacing.xs),
-          child: Text(block.text, style: PassqlTypography.headline.copyWith(color: colors.label)),
+          padding: const EdgeInsets.only(
+            top: PassqlSpacing.xl,
+            bottom: PassqlSpacing.xs,
+          ),
+          child: Text(
+            block.text,
+            style: PassqlTypography.headline.copyWith(color: colors.label),
+          ),
         );
       case LegalBlockKind.bullet:
         return Padding(
-          padding: const EdgeInsets.only(left: PassqlSpacing.xxs, bottom: 6),
+          padding: const EdgeInsets.only(
+            left: PassqlSpacing.xxs,
+            bottom: _bulletBottomGap,
+          ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -81,6 +93,9 @@ class LegalPage extends ConsumerWidget {
     }
   }
 }
+
+/// 목록 항목 사이 간격 (문단 간격 sm 보다 촘촘하게)
+const double _bulletBottomGap = 6;
 
 enum LegalBlockKind { heading, bullet, paragraph }
 

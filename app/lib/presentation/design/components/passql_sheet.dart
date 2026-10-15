@@ -22,7 +22,9 @@ Future<T?> showPassqlSheet<T>(
     showDragHandle: true,
     backgroundColor: colors.cardElevated,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(PassqlRadius.lg)),
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(PassqlRadius.lg),
+      ),
     ),
     builder: (sheetContext) => Column(
       mainAxisSize: MainAxisSize.min,
@@ -39,7 +41,9 @@ Future<T?> showPassqlSheet<T>(
               Expanded(
                 child: Text(
                   title,
-                  style: PassqlTypography.headline.copyWith(color: colors.label),
+                  style: PassqlTypography.headline.copyWith(
+                    color: colors.label,
+                  ),
                 ),
               ),
               CupertinoButton(
@@ -49,7 +53,7 @@ Future<T?> showPassqlSheet<T>(
                   label: '닫기',
                   child: Icon(
                     CupertinoIcons.xmark_circle_fill,
-                    size: 28,
+                    size: PassqlIconSize.sheetClose,
                     color: colors.tertiaryLabel,
                   ),
                 ),

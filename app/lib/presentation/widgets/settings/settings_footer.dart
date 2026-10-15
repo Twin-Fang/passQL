@@ -18,7 +18,7 @@ class SettingsFooter extends StatelessWidget {
     );
     return Column(
       children: [
-        const PassqlLogo(height: 20),
+        const PassqlLogo(height: PassqlSize.footerLogoHeight),
         const SizedBox(height: PassqlSpacing.xs),
         if (memberUuid != null)
           GestureDetector(

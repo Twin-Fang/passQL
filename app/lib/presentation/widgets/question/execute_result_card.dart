@@ -54,9 +54,7 @@ class _ErrorContent extends StatelessWidget {
         const SizedBox(height: PassqlSpacing.xs),
         Text(
           result.errorCode ?? 'ERROR',
-          style: PassqlTypography.code.copyWith(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
+          style: PassqlTypography.codeEmphasis.copyWith(
             color: colors.wrongText,
           ),
         ),

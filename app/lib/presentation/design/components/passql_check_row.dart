@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import '../passql_theme.dart';
+import '../tokens/passql_tokens.dart';
 import 'passql_list_row.dart';
 
 /// 고르는 목록의 한 줄. 고른 항목에는 오른쪽에 체크를 붙이고, 스크린리더에 선택 상태를 알린다.
@@ -28,7 +29,7 @@ class PassqlCheckRow extends StatelessWidget {
       trailing: isSelected
           ? Icon(
               CupertinoIcons.checkmark,
-              size: 18,
+              size: PassqlIconSize.md,
               color: context.passqlColors.accent,
             )
           : null,

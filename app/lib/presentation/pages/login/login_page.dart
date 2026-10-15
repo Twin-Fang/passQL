@@ -57,7 +57,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               // 로고+버튼 묶음을 세로 중앙보다 조금 아래(55%)에 둔다 — 화면이 커도 버튼이 바닥에 붙지 않게.
               const Spacer(flex: 11),
               // 워드마크 이미지에 앱 이름이 이미 들어 있으므로 이름 텍스트를 따로 두지 않는다.
-              const PassqlLogo(height: 44),
+              const PassqlLogo(height: PassqlSize.loginLogoHeight),
               const SizedBox(height: PassqlSpacing.xs),
               Text(
                 'SQL 자격증, 문제로 합격까지',
@@ -65,10 +65,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   color: colors.secondaryLabel,
                 ),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: _logoToButtonsGap),
               _SocialButton(
                 label: 'Google로 계속하기',
-                logo: SvgPicture.string(_googleLogoSvg, width: 20, height: 20),
+                logo: SvgPicture.string(
+                  _googleLogoSvg,
+                  width: _googleLogoSize,
+                  height: _googleLogoSize,
+                ),
                 isLoading: _signingInProvider == SocialProvider.google,
                 onPressed: isSigningIn
                     ? null
@@ -82,8 +86,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   label: 'Apple로 계속하기',
                   logo: SvgPicture.string(
                     _appleLogoSvg,
-                    width: 18,
-                    height: 20,
+                    width: _appleLogoWidth,
+                    height: _appleLogoHeight,
                     colorFilter: ColorFilter.mode(
                       colors.label,
                       BlendMode.srcIn,
@@ -118,6 +122,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 }
+
+// 로그인 화면 배치: 로고 묶음 <-> 버튼 간격, 제공자 로고 크기(공식 가이드 비율), 로고 칸 폭(문구 위치 고정)
+const double _logoToButtonsGap = 48;
+const double _googleLogoSize = 20;
+const double _appleLogoWidth = 18;
+const double _appleLogoHeight = 20;
+const double _logoSlotWidth = 24;
 
 /// Google 공식 'G' 로고(4색). 브랜드 가이드상 색을 바꾸지 않고 그대로 쓴다.
 const _googleLogoSvg = '''
@@ -176,7 +187,10 @@ class _SocialButton extends StatelessWidget {
                 children: [
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: SizedBox(width: 24, child: Center(child: logo)),
+                    child: SizedBox(
+                      width: _logoSlotWidth,
+                      child: Center(child: logo),
+                    ),
                   ),
                   Text(
                     label,

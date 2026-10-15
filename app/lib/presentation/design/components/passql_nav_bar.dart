@@ -28,7 +28,7 @@ class PassqlNavButton extends StatelessWidget {
         onPressed: onTap ?? () => Navigator.of(context).maybePop(),
         child: Icon(
           isBack ? CupertinoIcons.chevron_back : CupertinoIcons.xmark,
-          size: 22,
+          size: PassqlIconSize.xl,
           color: context.passqlColors.label,
         ),
       ),

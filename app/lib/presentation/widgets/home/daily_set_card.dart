@@ -48,11 +48,17 @@ class DailySetCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(CupertinoIcons.flame_fill, size: 14, color: colors.warning),
+              Icon(
+                CupertinoIcons.flame_fill,
+                size: PassqlIconSize.xs,
+                color: colors.warning,
+              ),
               const SizedBox(width: PassqlSpacing.xxs),
               Text(
                 '오늘의 세트',
-                style: PassqlTypography.captionSemibold.copyWith(color: colors.secondaryLabel),
+                style: PassqlTypography.captionSemibold.copyWith(
+                  color: colors.secondaryLabel,
+                ),
               ),
               if (completed) ...[
                 const Spacer(),
@@ -74,12 +80,16 @@ class DailySetCard extends StatelessWidget {
             const SizedBox(height: PassqlSpacing.xxs),
             Text(
               '모두 같은 문제로 겨뤄요',
-              style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
+              style: PassqlTypography.subheadline.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
           ] else ...[
             Text(
               '오늘의 세트를 준비 중이에요.\n문제 목록에서 풀어보세요.',
-              style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
+              style: PassqlTypography.subheadline.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
           ],
           const SizedBox(height: PassqlSpacing.sm),

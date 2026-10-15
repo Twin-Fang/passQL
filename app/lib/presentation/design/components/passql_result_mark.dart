@@ -15,6 +15,9 @@ class PassqlResultMark extends StatelessWidget {
   final String? label;
   final bool isLarge;
 
+  /// 작은 표시의 아이콘 <-> 글자 간격
+  static const double _iconLabelGap = 6;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
@@ -28,7 +31,7 @@ class PassqlResultMark extends StatelessWidget {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 64, color: iconColor),
+          Icon(icon, size: PassqlIconSize.resultMarkLarge, color: iconColor),
           const SizedBox(height: PassqlSpacing.sm),
           Text(
             text,
@@ -41,8 +44,8 @@ class PassqlResultMark extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 18, color: iconColor),
-        const SizedBox(width: 6),
+        Icon(icon, size: PassqlIconSize.md, color: iconColor),
+        const SizedBox(width: _iconLabelGap),
         Flexible(
           child: Text(
             text,

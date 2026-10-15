@@ -48,7 +48,11 @@ class PassqlStatusView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 44, color: colors.tertiaryLabel),
+            Icon(
+              icon,
+              size: PassqlIconSize.statusPlaceholder,
+              color: colors.tertiaryLabel,
+            ),
             const SizedBox(height: PassqlSpacing.sm),
             Text(
               title!,

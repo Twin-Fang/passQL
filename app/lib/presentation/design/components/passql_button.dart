@@ -61,7 +61,7 @@ class PassqlButton extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (icon != null) ...[
-                Icon(icon, size: 18, color: foregroundColor),
+                Icon(icon, size: PassqlIconSize.md, color: foregroundColor),
                 const SizedBox(width: PassqlSpacing.xs),
               ],
               Flexible(

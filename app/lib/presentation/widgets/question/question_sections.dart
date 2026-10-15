@@ -45,7 +45,7 @@ class QuestionHeader extends StatelessWidget {
                       i < difficulty
                           ? CupertinoIcons.star_fill
                           : CupertinoIcons.star,
-                      size: 16,
+                      size: PassqlIconSize.sm,
                       color: i < difficulty
                           ? colors.warning
                           : colors.tertiaryLabel,
