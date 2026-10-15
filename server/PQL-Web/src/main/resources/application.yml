@@ -20,10 +20,7 @@ spring:
     # 기본 설정은 조용히 스킵함 (V0_0_95 로그인 장애 원인) — 반드시 유지
     out-of-order: true
 
-# 모든 로그 줄 레벨 뒤에 [요청ID|회원ID]를 붙인다 — RequestTraceFilter·JwtAuthenticationFilter가 MDC를 채운다 (#436)
-logging:
-  pattern:
-    level: "%5p [%X{rid:--}|%X{mid:--}]"
+# 로그 형식(패턴·prod JSON)은 logback-spring.xml 한 곳에서 관리 (#476)
 
 server:
   port: 8080

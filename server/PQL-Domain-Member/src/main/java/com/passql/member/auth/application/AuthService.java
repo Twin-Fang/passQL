@@ -2,6 +2,7 @@ package com.passql.member.auth.application;
 
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.MemberActivityLogger;
 import com.passql.common.util.NicknameGenerator;
 import com.passql.member.auth.application.dto.command.LoginCommand;
 import com.passql.member.auth.application.dto.result.LoginResult;
@@ -53,6 +54,7 @@ public class AuthService {
         Member member = existing.orElseGet(() -> registerNewMember(socialId, command.authProvider()));
 
         Tokens tokens = issueTokens(member);
+        MemberActivityLogger.recordLogin(member.getMemberUuid(), command.authProvider(), isNew);
         return LoginResult.of(member, isNew, tokens);
     }
 

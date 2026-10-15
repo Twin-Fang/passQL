@@ -2,6 +2,7 @@ package com.passql.application.service;
 
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.MemberActivityLogger;
 import com.passql.question.constant.CorrectionScope;
 import com.passql.question.constant.ReportCategory;
 import com.passql.question.constant.ReportStatus;
@@ -66,6 +67,7 @@ public class QuestionReportService {
                 .detail(detail)
                 .build();
         questionReportRepository.save(report);
+        MemberActivityLogger.recordQuestionReported(memberUuid, questionUuid, categories);
     }
 
     /** 신고 여부 조회 — questionUuid + memberUuid + submissionUuid 3중 조건으로 정합성 보장 */
@@ -122,9 +124,9 @@ public class QuestionReportService {
         return questionRepository.findById(questionUuid);
     }
 
-    /** 관리자: 신고 처리 (resolve) */
+    /** 관리자: 신고 처리 (resolve), 처리자 = 로그인한 관리자 아이디 */
     @Transactional
-    public void resolveReport(UUID reportUuid, UUID adminMemberUuid,
+    public void resolveReport(UUID reportUuid, String resolvedByAdminUsername,
                               CorrectionScope correctionScope, Boolean deactivateQuestion) {
         // correctionScope null 입력 방어 — null이면 DB에 null이 저장되어 데이터 정합성 오염
         if (correctionScope == null) {
@@ -143,7 +145,7 @@ public class QuestionReportService {
         }
 
         // 1. 신고 상태 변경
-        report.resolve(adminMemberUuid, correctionScope);
+        report.resolve(resolvedByAdminUsername, correctionScope);
 
         // 2. 문제 비활성화
         if (Boolean.TRUE.equals(deactivateQuestion)) {

@@ -1,6 +1,9 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/foundation.dart';
 
 import '../error/app_exception.dart';
+import '../monitoring/crash_reporter.dart';
 
 /// 화면 일부(카드, 섹션)를 채우는 선택적 호출용 헬퍼.
 ///
@@ -10,12 +13,30 @@ import '../error/app_exception.dart';
 Future<T?> safeCall<T>(Future<T> call, {String? label}) async {
   try {
     return await call;
-  } catch (exception) {
+  } catch (exception, stackTrace) {
     final error = exception.asAppException;
     if (error.isUnauthorized) rethrow;
-    debugPrint('[safeCall${label != null ? ':$label' : ''}] $error');
+    final logLabel = 'safeCall${label != null ? ':$label' : ''}';
+    debugPrint('[$logLabel] $error');
+    _reportSwallowedFailure(error, stackTrace, logLabel);
     return null;
   }
+}
+
+/// 삼킨 오류 중 예상 밖 오류만 치명적이지 않은 오류로 기록 (원본 예외 우선)
+void _reportSwallowedFailure(
+  AppException error,
+  StackTrace stackTrace,
+  String label,
+) {
+  if (!isUnexpectedFailure(error)) return;
+  unawaited(
+    CrashReporter.current.recordNonFatalError(
+      error.cause ?? error,
+      stackTrace,
+      reason: label,
+    ),
+  );
 }
 
 /// [safeCallAll] 에 넘기는 호출 1건. 끝나면 [value] 에 결과가 담긴다(실패하면 null).
@@ -38,10 +59,11 @@ class SafeCallSlot<T> {
   Future<void> _run(String label) async {
     try {
       value = await _call;
-    } catch (exception) {
+    } catch (exception, stackTrace) {
       final error = exception.asAppException;
       if (error.isUnauthorized) throw error;
       debugPrint('[$label] $error');
+      _reportSwallowedFailure(error, stackTrace, label);
       failure = error;
     }
   }

@@ -1,6 +1,7 @@
 package com.passql.meta.service;
 
 import com.passql.meta.constant.AppSettingKeys;
+import com.passql.meta.constant.AppSettingValueType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.dto.AppLinksResponse;
@@ -81,19 +82,33 @@ public class AppSettingService {
                             sensitive ? maskValue(s.getValueText()) : s.getValueText(),
                             s.getCategory(),
                             s.getDescription(),
-                            sensitive
+                            sensitive,
+                            AppSettingKeys.isRestartRequired(s.getSettingKey())
                     );
                 })
                 .toList();
     }
 
+    /** 설정 저장: 행 조회 > value_type 형식 검사 > DB·Redis 반영 */
     @Transactional
     public void save(String key, String value) {
         AppSetting setting = appSettingRepository.findBySettingKey(key)
                 .orElseThrow(() -> new CustomException(ErrorCode.SETTING_NOT_FOUND));
+        validateValueMatchesType(setting, value);
         setting.setValueText(value);
         appSettingRepository.save(setting);
         redisTemplate.opsForValue().set(REDIS_PREFIX + key, value);
+    }
+
+    /** 형식이 틀린 값 거부 (저장되면 getInt 등 읽는 쪽이 전부 500) */
+    private void validateValueMatchesType(AppSetting setting, String value) {
+        AppSettingValueType valueType = AppSettingValueType.fromValueType(setting.getValueType());
+        if (!valueType.isValidValue(value)) {
+            log.warn("[app-setting save] rejected 400 : value type mismatch : key={}, valueType={}",
+                    setting.getSettingKey(), valueType);
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE,
+                    setting.getSettingKey() + " 값은 " + valueType + " 형식이어야 합니다.");
+        }
     }
 
     /**

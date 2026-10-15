@@ -67,6 +67,15 @@ class SettingsPage extends ConsumerWidget {
     }
   }
 
+  /// 닉네임 재생성: 실패하면 원인 문구 토스트 (닉네임은 이전 값 유지)
+  Future<void> _regenerateNickname(BuildContext context, WidgetRef ref) async {
+    try {
+      await ref.read(nicknameNotifierProvider.notifier).regenerate();
+    } on AppException catch (exception) {
+      if (context.mounted) showAppToast(context, exception.message);
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.passqlColors;
@@ -77,6 +86,7 @@ class SettingsPage extends ConsumerWidget {
         .valueOrNull
         ?.totalCount;
     final data = settingsAsync.valueOrNull;
+    final appVersion = ref.watch(appVersionProvider).valueOrNull;
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -104,9 +114,7 @@ class SettingsPage extends ConsumerWidget {
                     return ProfileCard(
                       nickname: nickname,
                       isRegenerating: nicknameAsync.isLoading,
-                      onRegenerate: () => ref
-                          .read(nicknameNotifierProvider.notifier)
-                          .regenerate(),
+                      onRegenerate: () => _regenerateNickname(context, ref),
                       onEdit: () async {
                         final changed = await NicknameEditSheet.show(
                           context,
@@ -159,11 +167,11 @@ class SettingsPage extends ConsumerWidget {
                         AppRoutes.legal(LegalType.privacyPolicy.serverValue),
                       ),
                     ),
-                    if (data != null)
+                    if (appVersion != null)
                       SettingsRow(
                         icon: CupertinoIcons.info,
                         title: '버전',
-                        trailing: Text(data.version),
+                        trailing: Text(appVersion),
                         shouldShowChevron: false,
                       ),
                   ],

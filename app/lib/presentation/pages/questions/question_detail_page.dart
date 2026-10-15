@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/error/app_exception.dart';
+import '../../../data/models/question/submit_result.dart';
 import '../../../presentation/providers/learning_refresh.dart';
 import '../../../presentation/providers/question_providers.dart';
 import '../../../router/app_routes.dart';
@@ -78,17 +80,20 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
     BuildContext context,
     QuestionInteractionNotifier notifier,
   ) async {
-    final submitResult = await notifier.submit();
-    if (!context.mounted) return;
-    if (submitResult != null) {
-      // 풀이 결과가 홈과 통계에 반영되도록 캐시를 비운다.
-      refreshLearningData(ref.invalidate);
-      context.push(
-        AppRoutes.questionResult(widget.questionUuid),
-        extra: submitResult,
-      );
-    } else {
-      showAppToast(context, '제출에 실패했어요. 다시 시도해 주세요.');
+    final SubmitResult? submitResult;
+    try {
+      submitResult = await notifier.submit();
+    } on AppException catch (exception) {
+      // 실패 원인별 문구 (네트워크, 서버 오류, 입력 오류 등)
+      if (context.mounted) showAppToast(context, exception.message);
+      return;
     }
+    if (!context.mounted || submitResult == null) return;
+    // 풀이 결과가 홈과 통계에 반영되도록 캐시를 비운다.
+    refreshLearningData(ref.invalidate);
+    context.push(
+      AppRoutes.questionResult(widget.questionUuid),
+      extra: submitResult,
+    );
   }
 }

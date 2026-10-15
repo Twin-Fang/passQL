@@ -2,6 +2,7 @@ package com.passql.web.controller;
 
 import com.passql.common.dto.Author;
 import com.passql.meta.constant.LegalType;
+import com.passql.meta.dto.AppConfigResponse;
 import com.passql.meta.dto.AppLinksResponse;
 import com.passql.meta.dto.LegalResponse;
 import com.passql.meta.dto.TopicTree;
@@ -96,4 +97,32 @@ public interface MetaControllerDocs {
           """
   )
   ResponseEntity<AppLinksResponse> getAppLinks();
+
+  @ApiLogs({
+      @ApiLog(date = "2026.10.15", author = Author.SUHSAECHAN, issueNumber = 464, description = "앱 시작 설정 조회 API 추가 — 최소/권장 버전, 점검, 공지"),
+  })
+  @Operation(
+      summary = "앱 시작 설정 조회",
+      description = """
+          ## 인증(JWT): **불필요**
+          앱 시작 시 1회 호출. 점검 중에도 503 없이 응답한다.
+
+          ## 요청 파라미터
+          - 없음
+
+          ## 반환값 (AppConfigResponse)
+          - ios / android (AppPlatformVersionResponse)
+            - minimumVersion: 최소 지원 버전 (x.y.z). 앱 버전이 이보다 낮으면 업데이트 전까지 사용 차단
+            - recommendedVersion: 권장 버전 (x.y.z). 앱 버전이 이보다 낮으면 닫을 수 있는 업데이트 안내
+            - storeUrl: 스토어 링크 (없으면 null)
+            - 기본값 0.0.0 = 차단·안내 없음
+          - maintenance (AppMaintenanceResponse)
+            - isUnderMaintenance: 점검 중 여부. true 이면 meta·auth 외 /api 요청은 503 SERVICE_UNDER_MAINTENANCE
+            - message: 점검 문구 (비면 앱 기본 문구)
+          - notices (List<AppNoticeResponse>)
+            - 지금 노출할 공지. 중요 공지 먼저, 그다음 최근 등록 순
+            - noticeUuid, title, body, startsAt, endsAt(KST, null 가능), isActive, isImportant
+          """
+  )
+  ResponseEntity<AppConfigResponse> getAppConfig();
 }

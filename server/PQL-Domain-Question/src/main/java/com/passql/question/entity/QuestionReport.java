@@ -51,7 +51,9 @@ public class QuestionReport extends BaseEntity {
 
     private LocalDateTime resolvedAt;
 
-    private UUID resolvedBy;
+    // 처리한 관리자 로그인 아이디 (관리자는 회원이 아니라 UUID 대신 아이디 저장, 옛 resolved_by UUID 컬럼은 미사용)
+    @Column(length = 100)
+    private String resolvedByAdminUsername;
 
     @Enumerated(EnumType.STRING)
     private CorrectionScope correctionScope;
@@ -68,10 +70,10 @@ public class QuestionReport extends BaseEntity {
         this.status = ReportStatus.PENDING;
     }
 
-    public void resolve(UUID adminMemberUuid, CorrectionScope correctionScope) {
+    public void resolve(String resolvedByAdminUsername, CorrectionScope correctionScope) {
         this.status = ReportStatus.RESOLVED;
         this.resolvedAt = LocalDateTime.now();
-        this.resolvedBy = adminMemberUuid;
+        this.resolvedByAdminUsername = resolvedByAdminUsername;
         this.correctionScope = correctionScope;
     }
 }

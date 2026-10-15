@@ -51,6 +51,9 @@
                                 <span th:text="${setting.settingKey}">sql.max_length</span>
                                 <span th:if="${setting.sensitive}"
                                       class="badge badge-xs badge-error ml-1">🔒</span>
+                                <!-- 기동 시 1회만 읽는 설정 -->
+                                <span th:if="${setting.isRestartRequired()}"
+                                      class="badge badge-xs badge-warning ml-1">재시작 후 반영</span>
                             </td>
                             <td>
                                 <span class="badge badge-outline badge-xs" th:text="${setting.category}">SANDBOX</span>
@@ -71,7 +74,8 @@
                                             class="btn btn-xs btn-ghost hidden edit-actions"
                                             th:id="'btn_save_' + ${setting.settingKey}"
                                             th:data-key="${setting.settingKey}"
-                                            onclick="saveSetting(this.dataset.key)">
+                                            th:data-restart-required="${setting.isRestartRequired()}"
+                                            onclick="saveSetting(this.dataset.key, this.dataset.restartRequired === 'true')">
                                         <i data-lucide="check" class="size-3 text-success"></i>
                                     </button>
                                     <button th:if="${!setting.sensitive}"
@@ -83,6 +87,8 @@
                                         <i data-lucide="x" class="size-3 text-error"></i>
                                     </button>
                                 </div>
+                                <!-- 저장 실패 사유 (서버 형식 검사 메시지) -->
+                                <p class="text-xs text-error mt-1 hidden" th:id="'err_' + ${setting.settingKey}"></p>
                             </td>
                             <td class="text-xs text-base-content/60" th:text="${setting.description}">SQL 최대 길이 제한</td>
                             <td>
@@ -188,27 +194,34 @@
             }
         }
 
-        function saveSetting(key) {
+        // 저장: 성공 시 편집 종료 (재시작 필요 항목은 안내), 실패 시 서버 메시지를 입력칸 아래 표시
+        async function saveSetting(key, isRestartRequired) {
             const input = document.getElementById('val_' + key);
-            const value = input.value;
-            fetch('/admin/settings/' + encodeURIComponent(key), {
+            const errorText = document.getElementById('err_' + key);
+            const response = await fetch('/admin/settings/' + encodeURIComponent(key), {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({value: value})
-            }).then(r => {
-                if (r.ok) {
-                    input.setAttribute('readonly', true);
-                    document.getElementById('btn_save_' + key)?.classList.add('hidden');
-                    document.getElementById('btn_cancel_' + key)?.classList.add('hidden');
-                } else {
-                    alert('저장 실패');
-                }
+                body: JSON.stringify({value: input.value})
             });
+            if (!response.ok) {
+                const errorBody = await response.json().catch(() => ({}));
+                errorText.textContent = errorBody.message || '저장 실패';
+                errorText.classList.remove('hidden');
+                return;
+            }
+            errorText?.classList.add('hidden');
+            input.setAttribute('readonly', true);
+            document.getElementById('btn_save_' + key)?.classList.add('hidden');
+            document.getElementById('btn_cancel_' + key)?.classList.add('hidden');
+            if (isRestartRequired) {
+                alert('저장했습니다. 이 설정은 서버 재시작 후 반영됩니다.');
+            }
         }
 
         function cancelEdit(key, originalValue) {
             const input = document.getElementById('val_' + key);
             input.value = originalValue;
+            document.getElementById('err_' + key)?.classList.add('hidden');
             input.setAttribute('readonly', true);
             document.getElementById('btn_save_' + key)?.classList.add('hidden');
             document.getElementById('btn_cancel_' + key)?.classList.add('hidden');

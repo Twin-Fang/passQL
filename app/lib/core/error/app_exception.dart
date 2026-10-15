@@ -131,6 +131,7 @@ class AppException implements Exception {
     ErrorCode.aiTimeout: 'AI 응답이 늦어지고 있어요.',
     ErrorCode.sandboxTimeout: '쿼리 실행 시간이 초과되었어요.',
     ErrorCode.serverError: '서버에 연결할 수 없어요. 잠시 후 다시 시도해 주세요.',
+    ErrorCode.serviceUnderMaintenance: '서비스 점검 중이에요. 잠시 후 다시 이용해 주세요.',
     ErrorCode.unknown: '알 수 없는 오류가 발생했어요.',
   };
 

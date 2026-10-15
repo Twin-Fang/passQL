@@ -5,20 +5,22 @@ import '../presentation/flows/daily_set_flow.dart';
 import '../presentation/flows/question_flow.dart';
 import '../presentation/pages/daily_set/daily_set_result_page.dart';
 import '../presentation/pages/daily_set/leaderboard_page.dart';
+import '../presentation/pages/app_gate/force_update_page.dart';
+import '../presentation/pages/app_gate/maintenance_page.dart';
 import '../presentation/pages/feedback/feedback_page.dart';
 import '../presentation/pages/home/home_page.dart';
 import '../presentation/pages/legal/legal_page.dart';
 import '../presentation/pages/login/login_page.dart';
 import '../presentation/pages/questions/topic_list_page.dart';
 import '../presentation/pages/questions/chapter_page.dart';
+import '../presentation/pages/questions/chapter_result_page.dart';
 import '../presentation/pages/questions/question_detail_page.dart';
 import '../presentation/pages/result/result_page.dart';
-import '../presentation/pages/practice/practice_page.dart';
-import '../presentation/pages/practice/practice_result_page.dart';
 import '../presentation/pages/stats/stats_page.dart';
 import '../presentation/pages/settings/settings_page.dart';
 import '../presentation/pages/settings/wrong_notes_page.dart';
 import '../presentation/widgets/app_shell.dart';
+import 'app_launch_gate_routing.dart';
 import 'app_routes.dart';
 
 // 루트 네비게이터 키 — 풀스크린 라우트(탭 바깥)에서 사용
@@ -30,7 +32,7 @@ final _shellKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
 /// 앱 전역 라우터.
 ///
 /// - ShellRoute: 바텀 탭 4개 (홈/문제/통계/설정)
-/// - 루트 라우트: 풀스크린 페이지 (챕터, 문제 상세, 결과, 연습)
+/// - 루트 라우트: 풀스크린 페이지 (챕터, 챕터 결과, 문제 상세, 결과)
 abstract final class AppRouter {
   /// 로그인 여부. main 에서 인증 상태를 구독해 갱신하고, 값이 바뀌면 라우터가 redirect 를 다시 평가한다.
   static final ValueNotifier<bool> authenticated = ValueNotifier<bool>(false);
@@ -38,9 +40,13 @@ abstract final class AppRouter {
   static final GoRouter router = GoRouter(
     navigatorKey: _rootKey,
     initialLocation: AppRoutes.home,
-    refreshListenable: authenticated,
+    refreshListenable: Listenable.merge([authenticated, AppLaunchGateRouting.gate]),
     // 로그인 안 했으면 로그인 화면으로, 로그인 했는데 로그인 화면이면 홈으로 보낸다.
     redirect: (_, state) {
+      // 점검·강제 업데이트 차단이 로그인보다 우선 (#464)
+      final gateRedirect = AppLaunchGateRouting.redirectLocation(state.matchedLocation);
+      if (gateRedirect != null) return gateRedirect;
+      if (AppLaunchGateRouting.isGateLocation(state.matchedLocation)) return null;
       final atLogin = state.matchedLocation == AppRoutes.login;
       // 약관은 가입 전에도 읽을 수 있어야 한다(App Store 5.1.1).
       if (state.matchedLocation.startsWith(AppRoutes.legalPrefix)) return null;
@@ -56,6 +62,18 @@ abstract final class AppRouter {
         builder: (_, state) => LegalPage(
           typeValue: state.pathParameters[AppRoutes.legalTypeParameter]!,
         ),
+      ),
+
+      // 앱 시작 차단 화면
+      GoRoute(
+        path: AppRoutes.forceUpdate,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const ForceUpdatePage(),
+      ),
+      GoRoute(
+        path: AppRoutes.maintenance,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const MaintenancePage(),
       ),
 
       // 로그인
@@ -154,20 +172,11 @@ abstract final class AppRouter {
         ],
       ),
 
-      // 풀스크린: 연습 모드 + 연습/챕터 결과
+      // 풀스크린: 챕터 결과 (챕터 화면을 대신해 열림)
       GoRoute(
-        path: AppRoutes.practicePattern,
+        path: AppRoutes.chapterResult,
         parentNavigatorKey: _rootKey,
-        builder: (_, state) => PracticePage(
-          sessionId: state.pathParameters[AppRoutes.sessionIdParameter]!,
-        ),
-        routes: [
-          GoRoute(
-            path: AppRoutes.resultSubPath,
-            parentNavigatorKey: _rootKey,
-            builder: (_, state) => PracticeResultPage(extra: state.extra),
-          ),
-        ],
+        builder: (_, state) => ChapterResultPage(extra: state.extra),
       ),
     ],
   );

@@ -22,6 +22,7 @@ lib/
 ├── core/                   # 공통·인프라. presentation·router 를 import 하지 않는다
 │   ├── auth/               # 토큰 저장, 인터셉터(Bearer·재발급), 세션 만료 신호, 소셜 로그인, 설치 가드
 │   ├── error/              # ErrorCode(서버 코드 매핑), AppException (서버 오류를 사용자 문구로 변환)
+│   ├── monitoring/         # 오류 수집(CrashReporter)·분석(AppAnalytics, 이벤트 이름 상수) 공통 지점
 │   ├── network/            # dio_client, safe_call(safeCall·safeCallAll·SafeCallSlot)
 │   └── utils/ validation/
 ├── data/                   # presentation·router 를 import 하지 않는다
@@ -30,7 +31,7 @@ lib/
 ├── presentation/
 │   ├── design/             # Passql 디자인 시스템 (아래 절 참고)
 │   ├── flows/              # 문제 풀이 흐름 공통화 (question_flow, daily_set_flow)
-│   ├── pages/              # login, home, questions, practice, result, stats, settings,
+│   ├── pages/              # login, home, questions(챕터·챕터 결과), result, stats, settings,
 │   │                       # daily_set(결과·리더보드), feedback, legal
 │   ├── providers/          # Riverpod Provider·Notifier·Service (계정 전환 시 session_reset으로 초기화)
 │   └── widgets/            # 화면 조각 (설정 그룹, 문제 풀이 본문 등)
@@ -64,7 +65,7 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 | 테스트 | 막는 것 |
 |---|---|
 | `design_system_rules_test.dart` | pages·widgets·flows 에서 `Color(0x`, `Colors.white/black`, `Image.asset(`, `showModalBottomSheet(`, `showCupertinoDialog(`, `CupertinoActivityIndicator(` 직접 사용, `go('/...')`·`push('/...')` 라우트 문자열 |
-| `layer_dependency_test.dart` | core·data 의 presentation·router import, design 의 providers·pages·widgets·flows import, 화면의 `data/sources` 직접 import |
+| `layer_dependency_test.dart` | core·data 의 presentation·router import, design 의 providers·pages·widgets·flows import, 화면의 `data/sources` 직접 import, core/monitoring 밖의 Crashlytics·Analytics SDK 직접 import |
 
 - 예외는 각 테스트의 allow-list(`_allowedUsages`, `_allowedReverseImports`)에 파일과 **이유**를 적어서만 둔다. 비어 있는 것이 정상이다.
 
@@ -72,6 +73,7 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 
 - 로그인: `POST /auth/login {authProvider, idToken}` → access/refresh JWT. 이후 요청은 `Authorization: Bearer`.
 - 401이면 인터셉터가 refresh로 재발급, 실패하면 세션 만료 신호(`SessionExpirySignal`) > `AuthNotifier` 로그아웃 > 라우터가 로그인 화면으로 보냄.
+- 403 `MEMBER_SUSPENDED`면 이용 제한 신호(`MemberSuspensionSignal`) > `AuthNotifier` 로그아웃 > 로그인 화면에 안내 문구.
 - 회원 탈퇴는 서버 삭제 + 소셜 접근 권한 회수(Apple 토큰 revoke) 후 세션 삭제.
 
 ## 코드 생성

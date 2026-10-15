@@ -8,7 +8,7 @@ import 'package:passql_app/data/models/question/submit_result.dart';
 import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/flows/daily_set_flow.dart';
 import 'package:passql_app/presentation/pages/daily_set/daily_set_result_page.dart';
-import 'package:passql_app/presentation/pages/practice/practice_result_page.dart';
+import 'package:passql_app/presentation/pages/questions/chapter_result_page.dart';
 import 'package:passql_app/presentation/pages/result/result_page.dart';
 import 'package:passql_app/presentation/providers/chapter_providers.dart';
 import 'package:passql_app/presentation/providers/daily_set_providers.dart';
@@ -50,7 +50,7 @@ void main() {
   testWidgets('챕터 결과: 한 화면 스크롤에 점수 고리와 문항 행', (tester) async {
     await expectResultScaffold(
       tester,
-      const PracticeResultPage(
+      const ChapterResultPage(
         extra: ChapterSummary(
           topicName: 'JOIN',
           results: [

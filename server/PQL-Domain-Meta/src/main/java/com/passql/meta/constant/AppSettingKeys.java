@@ -1,5 +1,7 @@
 package com.passql.meta.constant;
 
+import java.util.Set;
+
 /**
  * app_setting.setting_key 단일 원본 (DB 행은 Flyway 마이그레이션이 생성, AI 서버도 같은 키로 조회)
  */
@@ -22,6 +24,24 @@ public final class AppSettingKeys {
 
     // app_setting: 시험 일정 공식 공고 마지막 확인 날짜 (yyyy-MM-dd, 비면 미확인)
     public static final String EXAM_ANNOUNCEMENT_CHECKED_AT = "exam.announcement_checked_at";
+
+    // 기동 시 1회만 읽는 키 (저장해도 서버 재시작 후 반영, 관리자 화면에 표시)
+    public static final Set<String> RESTART_REQUIRED_KEYS = Set.of(SANDBOX_POOL_CONCURRENCY);
+
+    public static boolean isRestartRequired(String key) {
+        return RESTART_REQUIRED_KEYS.contains(key);
+    }
+
+    // app_setting: 앱 최소 지원 버전 (x.y.z, 미만이면 업데이트 전까지 사용 차단, 0.0.0 이면 차단 없음)
+    public static final String APP_MINIMUM_VERSION_IOS = "app.minimum_version.ios";
+    public static final String APP_MINIMUM_VERSION_ANDROID = "app.minimum_version.android";
+    // app_setting: 앱 권장 버전 (x.y.z, 미만이면 닫을 수 있는 업데이트 안내, 0.0.0 이면 안내 없음)
+    public static final String APP_RECOMMENDED_VERSION_IOS = "app.recommended_version.ios";
+    public static final String APP_RECOMMENDED_VERSION_ANDROID = "app.recommended_version.android";
+    // app_setting: 점검 여부 (true 점검 중, false 정상)
+    public static final String APP_MAINTENANCE_ENABLED = "app.maintenance.enabled";
+    // app_setting: 점검 화면 문구 (비면 앱 기본 문구)
+    public static final String APP_MAINTENANCE_MESSAGE = "app.maintenance.message";
 
     private AppSettingKeys() {
     }

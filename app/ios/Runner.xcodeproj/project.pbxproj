@@ -205,6 +205,7 @@
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				5E67909104387DEEF74B32F1 /* [CP] Embed Pods Frameworks */,
 				2EAA23D3E12D3D35EE17994E /* [CP] Copy Pods Resources */,
+				F1C4A7D0E2B34C5D6E7F8091 /* [Crashlytics] Upload dSYM */,
 			);
 			buildRules = (
 			);
@@ -385,6 +386,29 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build";
+		};
+		F1C4A7D0E2B34C5D6E7F8091 /* [Crashlytics] Upload dSYM */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist",
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
+				"$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)",
+			);
+			name = "[Crashlytics] Upload dSYM";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Crashlytics dSYM 업로드 (Release 만, Debug·Profile 은 건너뜀)\nif [ \"${CONFIGURATION}\" != \"Release\" ]; then\n  exit 0\nfi\n\"${PODS_ROOT}/FirebaseCrashlytics/run\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

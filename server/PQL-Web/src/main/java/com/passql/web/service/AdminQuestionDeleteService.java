@@ -2,131 +2,75 @@ package com.passql.web.service;
 
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
-import com.passql.question.constant.QuizSessionStatus;
 import com.passql.question.entity.Question;
-import com.passql.question.entity.QuestionChoiceSet;
-import com.passql.question.entity.QuizSession;
-import com.passql.question.repository.DailyChallengeRepository;
-import com.passql.question.repository.QuestionChoiceRepository;
-import com.passql.question.repository.QuestionChoiceSetItemRepository;
-import com.passql.question.repository.QuestionChoiceSetRepository;
-import com.passql.question.repository.QuestionConceptTagRepository;
 import com.passql.question.repository.QuestionRepository;
-import com.passql.question.repository.QuizSessionRepository;
-import com.passql.submission.repository.ExecutionLogRepository;
-import com.passql.submission.repository.SubmissionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+/**
+ * 관리자 문제 삭제: 비활성화(is_active=false)로 처리, 행은 지우지 않음
+ * 회원 제출·실행 로그·신고·데일리 이력 보존, 사용자 노출(목록·추천·데일리 후보·벡터 색인)에서만 제외
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AdminQuestionDeleteService {
 
-    private final QuestionRepository questionRepository;
-    private final QuestionChoiceRepository questionChoiceRepository;
-    private final QuestionChoiceSetRepository choiceSetRepository;
-    private final QuestionChoiceSetItemRepository choiceSetItemRepository;
-    private final QuestionConceptTagRepository conceptTagRepository;
-    private final DailyChallengeRepository dailyChallengeRepository;
-    private final QuizSessionRepository quizSessionRepository;
-    private final SubmissionRepository submissionRepository;
-    private final ExecutionLogRepository executionLogRepository;
+    // 일괄 비활성화 건너뜀 사유
+    private static final String SKIP_REASON_NOT_FOUND = "문제 없음";
+    private static final String SKIP_REASON_ALREADY_INACTIVE = "이미 비활성화됨";
 
+    private final QuestionRepository questionRepository;
+
+    /** 문제 1건 비활성화 (이미 비활성이면 그대로) */
     @Transactional
-    public void deleteQuestionCascade(UUID questionUuid) {
-        // 0. Question 존재 확인
+    public void deactivateQuestion(UUID questionUuid) {
         Question question = questionRepository.findById(questionUuid)
                 .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
+        question.deactivate();
+        log.info("[question deactivate] done : questionUuid={}", questionUuid);
+    }
 
-        // 1. 안전장치: 진행중인 QuizSession에서 해당 문제 사용 중인지 검사
-        List<QuizSession> activeSessions = quizSessionRepository.findByStatus(QuizSessionStatus.IN_PROGRESS);
-        for (QuizSession session : activeSessions) {
-            if (session.getQuestionOrderJson() != null
-                    && session.getQuestionOrderJson().contains(questionUuid.toString())) {
-                throw new CustomException(ErrorCode.QUESTION_IN_ACTIVE_SESSION);
+    /**
+     * 선택 문제 일괄 비활성화: 한 트랜잭션에서 상태 변경만 (부분 삭제 없음)
+     * 없는 문제·이미 비활성 문제는 건너뜀 목록으로 반환
+     */
+    @Transactional
+    public BulkDeactivateResult deactivateQuestions(List<UUID> questionUuids) {
+        Map<UUID, Question> questionByUuid = questionRepository.findAllById(questionUuids).stream()
+                .collect(Collectors.toMap(Question::getQuestionUuid, Function.identity()));
+
+        int deactivatedCount = 0;
+        List<String> skippedReasons = new ArrayList<>();
+        for (UUID questionUuid : questionUuids) {
+            Question question = questionByUuid.get(questionUuid);
+            if (question == null) {
+                skippedReasons.add(questionUuid + ": " + SKIP_REASON_NOT_FOUND);
+                continue;
             }
-        }
-
-        // 2. ExecutionLog 삭제
-        executionLogRepository.deleteByQuestionUuid(questionUuid);
-
-        // 3. Submission 삭제
-        submissionRepository.deleteByQuestionUuid(questionUuid);
-
-        // 4. DailyChallenge 삭제
-        dailyChallengeRepository.deleteByQuestionUuid(questionUuid);
-
-        // 5. QuestionConceptTag 삭제
-        conceptTagRepository.deleteByQuestionUuid(questionUuid);
-
-        // 6. QuestionChoiceSetItem 삭제 (ChoiceSet UUID 목록 통해 간접 삭제)
-        List<QuestionChoiceSet> choiceSets = choiceSetRepository.findByQuestionUuidOrderByCreatedAtDesc(questionUuid);
-        if (!choiceSets.isEmpty()) {
-            List<UUID> choiceSetUuids = choiceSets.stream()
-                    .map(QuestionChoiceSet::getChoiceSetUuid)
-                    .toList();
-            choiceSetItemRepository.deleteByChoiceSetUuidIn(choiceSetUuids);
-        }
-
-        // 7. QuestionChoiceSet 삭제
-        choiceSetRepository.deleteByQuestionUuid(questionUuid);
-
-        // 8. QuestionChoice 삭제
-        questionChoiceRepository.deleteByQuestionUuid(questionUuid);
-
-        // 9. Question 본체 삭제
-        questionRepository.delete(question);
-
-        log.info("문제 삭제 완료: questionUuid={}", questionUuid);
-    }
-
-    /**
-     * 선택된 UUID 목록을 순차적으로 cascade 삭제한다.
-     * 각 문제를 독립 트랜잭션으로 처리하여 일부 실패 시 나머지 삭제는 계속 진행한다.
-     *
-     * @return 삭제 결과 요약 (deleted: 성공, skipped: 건너뜀, errors: 실패 UUID 목록)
-     */
-    public BulkDeleteResult bulkDeleteQuestions(List<UUID> questionUuids) {
-        int deleted = 0;
-        int skipped = 0;
-        List<String> errors = new ArrayList<>();
-
-        for (UUID uuid : questionUuids) {
-            try {
-                // REQUIRES_NEW: 문제별 독립 트랜잭션 → 한 건 실패가 다른 건 롤백에 영향 안 줌
-                deleteSingleInNewTransaction(uuid);
-                deleted++;
-            } catch (Exception e) {
-                // CustomException(활성세션·미존재) 및 JPA 예외 등 모두 스킵 처리
-                skipped++;
-                errors.add(uuid + ": " + e.getMessage());
-                log.warn("일괄삭제 스킵: questionUuid={}, reason={}", uuid, e.getMessage());
+            if (!Boolean.TRUE.equals(question.getIsActive())) {
+                skippedReasons.add(questionUuid + ": " + SKIP_REASON_ALREADY_INACTIVE);
+                continue;
             }
+            question.deactivate();
+            deactivatedCount++;
         }
 
-        log.info("일괄삭제 완료: total={}, deleted={}, skipped={}", questionUuids.size(), deleted, skipped);
-        return new BulkDeleteResult(deleted, skipped, errors);
+        log.info("[question deactivate] bulk done : total={}, deactivated={}, skipped={}",
+                questionUuids.size(), deactivatedCount, skippedReasons.size());
+        return new BulkDeactivateResult(deactivatedCount, skippedReasons.size(), skippedReasons);
     }
 
-    /**
-     * 단일 문제를 새 트랜잭션으로 삭제한다.
-     * bulkDeleteQuestions에서 문제별 독립 커밋을 보장하기 위해 분리.
-     */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void deleteSingleInNewTransaction(UUID questionUuid) {
-        deleteQuestionCascade(questionUuid);
-    }
-
-    /**
-     * 일괄삭제 결과 DTO.
-     */
-    public record BulkDeleteResult(int deleted, int skipped, List<String> errors) {}
+    /** 일괄 비활성화 결과 (deactivated: 처리 건수, skipped: 건너뜀 건수, errors: 건너뜀 사유) */
+    public record BulkDeactivateResult(int deactivated, int skipped, List<String> errors) {}
 }

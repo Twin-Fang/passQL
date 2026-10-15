@@ -11,9 +11,9 @@ import kr.suhsaechan.suhapilog.annotation.ApiLogs;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
 
@@ -71,6 +71,7 @@ public interface AdminReportControllerDocs {
 
     @ApiLogs({
         @ApiLog(date = "2026.04.13", author = Author.SUHSAECHAN, issueNumber = 34, description = "관리자 신고 처리(resolve) API 추가"),
+        @ApiLog(date = "2026.10.15", author = Author.SUHSAECHAN, issueNumber = 472, description = "처리자를 X-Member-UUID 헤더 대신 로그인한 관리자 아이디로 저장"),
     })
     @Operation(
         summary = "신고 처리 (resolve)",
@@ -80,8 +81,8 @@ public interface AdminReportControllerDocs {
             ## 경로 변수
             - **`reportUuid`**: 처리할 신고 UUID
 
-            ## 요청 헤더
-            - **`X-Member-UUID`**: 처리한 관리자 회원 UUID
+            ## 처리자
+            - 로그인한 관리자 아이디를 서버가 세션에서 읽어 저장 (요청 헤더 불필요)
 
             ## 요청 바디 (ResolveRequest)
             - **`correctionScope`**: 소급 보정 범위
@@ -96,7 +97,7 @@ public interface AdminReportControllerDocs {
     )
     ResponseEntity<Void> resolveReport(
         @PathVariable UUID reportUuid,
-        @RequestHeader("X-Member-UUID") UUID adminMemberUuid,
+        Principal adminPrincipal,
         @RequestBody ResolveRequest request
     );
 }
