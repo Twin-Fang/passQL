@@ -7,14 +7,18 @@ import com.passql.meta.dto.SettingView;
 import com.passql.meta.entity.AppSetting;
 import com.passql.meta.repository.AppSettingRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -93,6 +97,38 @@ public class AppSettingService {
         setting.setValueText(value);
         appSettingRepository.save(setting);
         redisTemplate.opsForValue().set(REDIS_PREFIX + key, value);
+    }
+
+    /**
+     * 기동 시 설정 동기화: DB 값 있음 > Redis 적재, DB 비어 있음 > 기본값을 DB·Redis 에 적재
+     * 행 없음(마이그레이션 누락)·기본값 없음은 경고만
+     */
+    @Transactional
+    public void syncSettingToRedis(String key, String defaultValue) {
+        Optional<AppSetting> settingOptional = appSettingRepository.findBySettingKey(key);
+        if (settingOptional.isEmpty()) {
+            log.warn("[app-setting sync] skipped : row missing, check migration : key={}", key);
+            return;
+        }
+        AppSetting setting = settingOptional.get();
+
+        // DB 값 우선 (DB가 원본)
+        if (StringUtils.hasText(setting.getValueText())) {
+            redisTemplate.opsForValue().set(REDIS_PREFIX + key, setting.getValueText());
+            log.info("[app-setting sync] warmed up : DB -> Redis : key={}", key);
+            return;
+        }
+
+        // DB 비어 있음 > 기본값(yml) 적재
+        if (!StringUtils.hasText(defaultValue)) {
+            log.warn("[app-setting sync] skipped : DB and default both empty : key={}", key);
+            return;
+        }
+        setting.setValueText(defaultValue);
+        appSettingRepository.save(setting);
+        redisTemplate.opsForValue().set(REDIS_PREFIX + key, defaultValue);
+        log.info("[app-setting sync] filled : default -> DB, Redis : key={}, value={}",
+                key, isSensitiveKey(key) ? maskValue(defaultValue) : defaultValue);
     }
 
     /**
