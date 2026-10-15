@@ -2,6 +2,7 @@ package com.passql.web.config;
 
 import com.passql.member.auth.presentation.security.JwtAuthenticationFilter;
 import com.passql.member.auth.infrastructure.jwt.JwtTokenProvider;
+import com.passql.member.service.MemberSuspensionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -30,6 +31,7 @@ public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final ApiSecurityErrorHandler apiSecurityErrorHandler;
+    private final MemberSuspensionService memberSuspensionService;
 
     // 허용 Origin — 운영 웹·Vercel 미리보기·로컬 개발만. 모바일 앱은 Origin을 보내지 않아 무관 (#394)
     @Value("${cors.allowed-origin-patterns:https://passql.vercel.app,https://passql-*.vercel.app,http://localhost:*,http://127.0.0.1:*}")
@@ -61,6 +63,11 @@ public class SecurityConfig {
             )
             .addFilterBefore(
                 new JwtAuthenticationFilter(jwtTokenProvider),
+                UsernamePasswordAuthenticationFilter.class
+            )
+            // 제재 회원 차단 (JWT 인증 직후, 모든 회원 API 공통)
+            .addFilterAfter(
+                new SuspendedMemberBlockingFilter(memberSuspensionService, apiSecurityErrorHandler),
                 UsernamePasswordAuthenticationFilter.class
             );
 

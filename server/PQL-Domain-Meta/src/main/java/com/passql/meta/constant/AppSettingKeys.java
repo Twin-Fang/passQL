@@ -1,5 +1,7 @@
 package com.passql.meta.constant;
 
+import java.util.Set;
+
 /**
  * app_setting.setting_key 단일 원본 (DB 행은 Flyway 마이그레이션이 생성, AI 서버도 같은 키로 조회)
  */
@@ -22,6 +24,13 @@ public final class AppSettingKeys {
 
     // app_setting: 시험 일정 공식 공고 마지막 확인 날짜 (yyyy-MM-dd, 비면 미확인)
     public static final String EXAM_ANNOUNCEMENT_CHECKED_AT = "exam.announcement_checked_at";
+
+    // 기동 시 1회만 읽는 키 (저장해도 서버 재시작 후 반영, 관리자 화면에 표시)
+    public static final Set<String> RESTART_REQUIRED_KEYS = Set.of(SANDBOX_POOL_CONCURRENCY);
+
+    public static boolean isRestartRequired(String key) {
+        return RESTART_REQUIRED_KEYS.contains(key);
+    }
 
     private AppSettingKeys() {
     }

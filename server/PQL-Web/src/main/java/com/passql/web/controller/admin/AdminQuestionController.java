@@ -159,10 +159,10 @@ public class AdminQuestionController {
     @DeleteMapping("/{uuid}")
     public String delete(@PathVariable UUID uuid, RedirectAttributes redirectAttributes) {
         try {
-            adminQuestionDeleteService.deleteQuestionCascade(uuid);
+            adminQuestionDeleteService.deactivateQuestion(uuid);
             // 커밋 뒤 벡터 정리 — 남기면 추천 결과에 삭제된 문제가 섞인다 (#412)
             questionGenerateService.pruneIndex();
-            redirectAttributes.addFlashAttribute("successMessage", "문제가 삭제되었습니다.");
+            redirectAttributes.addFlashAttribute("successMessage", "문제를 비활성화했습니다. 회원 풀이 기록은 보존됩니다.");
         } catch (CustomException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
@@ -170,16 +170,16 @@ public class AdminQuestionController {
     }
 
     /**
-     * 선택된 UUID 목록 일괄삭제 (JSON body: { "questionUuids": [...] }).
+     * 선택 문제 일괄 비활성화 (JSON body: { "questionUuids": [...] }), 회원 기록 보존
      */
     @DeleteMapping("/bulk")
     @ResponseBody
-    public ResponseEntity<AdminQuestionDeleteService.BulkDeleteResult> bulkDelete(
+    public ResponseEntity<AdminQuestionDeleteService.BulkDeactivateResult> bulkDelete(
             @RequestBody ExportRequest request) {
-        AdminQuestionDeleteService.BulkDeleteResult result =
-                adminQuestionDeleteService.bulkDeleteQuestions(request.questionUuids());
+        AdminQuestionDeleteService.BulkDeactivateResult result =
+                adminQuestionDeleteService.deactivateQuestions(request.questionUuids());
         // 문제마다가 아니라 일괄삭제 끝에 한 번만 정리한다 (#412)
-        if (result.deleted() > 0) questionGenerateService.pruneIndex();
+        if (result.deactivated() > 0) questionGenerateService.pruneIndex();
         return ResponseEntity.ok(result);
     }
 
