@@ -1,0 +1,73 @@
+# ===================================================================
+# passQL 브랜드 자산 검사 - brand/ 원본 <-> 플랫폼 사본 일치 확인
+# ===================================================================
+# 원본(brand/)이나 사본을 바꾼 변경(PR, main 푸시)에서 사본이 원본과 같은지 검사한다.
+# 다르면 실패하고 어긋난 파일 목록을 출력한다. 고치는 방법: python3 brand/generate_brand_assets_for_all_platforms.py
+#
+# - 사본 위치 목록의 원본은 스크립트의 list_brand_asset_copies() (아래 paths 와 함께 바꾼다)
+# - 픽셀 비교라 PNG 재인코딩 차이는 무시한다
+
+name: PASSQL-BRAND-ASSETS-CHECK
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'brand/**'
+      - 'app/assets/*.png'
+      - 'app/pubspec.yaml'
+      - 'app/ios/Runner/Assets.xcassets/LaunchImage.imageset/**'
+      - 'app/ios/Runner/Assets.xcassets/LaunchBackground.colorset/**'
+      - 'app/android/app/src/main/res/drawable*/**'
+      - 'app/android/app/src/main/res/values*/colors.xml'
+      - 'client/src/assets/logo/**'
+      - 'client/public/og-image.png'
+      - 'client/public/favicon.png'
+      - 'server/PQL-Web/src/main/resources/static/images/**'
+      - 'server/PQL-Web/src/main/resources/static/favicon.ico'
+      - '.github/workflows/PROJECT-COMMON-BRAND-ASSETS-CHECK.yaml'
+  push:
+    branches: [main]
+    paths:
+      - 'brand/**'
+      - 'app/assets/*.png'
+      - 'app/pubspec.yaml'
+      - 'app/ios/Runner/Assets.xcassets/LaunchImage.imageset/**'
+      - 'app/ios/Runner/Assets.xcassets/LaunchBackground.colorset/**'
+      - 'app/android/app/src/main/res/drawable*/**'
+      - 'app/android/app/src/main/res/values*/colors.xml'
+      - 'client/src/assets/logo/**'
+      - 'client/public/og-image.png'
+      - 'client/public/favicon.png'
+      - 'server/PQL-Web/src/main/resources/static/images/**'
+      - 'server/PQL-Web/src/main/resources/static/favicon.ico'
+      - '.github/workflows/PROJECT-COMMON-BRAND-ASSETS-CHECK.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: passql-brand-assets-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  brand-assets-check:
+    name: 브랜드 사본 검사
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # 로컬 생성과 같은 리샘플링 결과를 위해 버전 고정
+      - name: Pillow 설치
+        run: pip install 'Pillow==12.3.0'
+
+      - name: 원본 <-> 사본 비교
+        run: python3 brand/generate_brand_assets_for_all_platforms.py --check
