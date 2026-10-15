@@ -15,6 +15,7 @@ import 'package:passql_app/data/sources/question_api.dart';
 import 'package:passql_app/presentation/flows/daily_set_flow.dart';
 import 'package:passql_app/presentation/flows/question_flow.dart';
 import 'package:passql_app/presentation/providers/chapter_providers.dart';
+import 'package:passql_app/router/app_routes.dart';
 
 import '../../helpers/pump_app.dart';
 
@@ -129,10 +130,10 @@ Future<Object?> _complete(
         },
       ),
       GoRoute(
-        path: '/practice/:id/result',
+        path: AppRoutes.chapterResult,
         builder: (_, state) {
           received = state.extra;
-          return const Text('연습 결과');
+          return const Text('챕터 결과');
         },
       ),
     ],
@@ -291,7 +292,7 @@ void main() {
       expect(const DailySetFlow().shouldTrackSession, isTrue);
     });
 
-    testWidgets('해당 토픽의 문제를 불러오고, 끝나면 연습 결과 화면으로 요약을 넘긴다', (tester) async {
+    testWidgets('해당 토픽의 문제를 불러오고, 끝나면 챕터 결과 화면으로 요약을 넘긴다', (tester) async {
       final question = _FakeQuestionApi();
       final container = _container(question: question);
       const flow = TopicFlow(topicCode: 'JOIN', topicName: '조인');
@@ -300,7 +301,58 @@ void main() {
 
       expect(received, isA<ChapterSummary>());
       expect((received as ChapterSummary).topicName, '오늘의 세트');
-      expect(find.text('연습 결과'), findsOneWidget);
+      expect(find.text('챕터 결과'), findsOneWidget);
+    });
+
+    testWidgets('챕터 결과에서 시스템 뒤로 가기를 하면 챕터 진입 전 화면(문제 목록)으로 돌아간다 (#481)', (tester) async {
+      final container = _container(question: _FakeQuestionApi());
+      const flow = TopicFlow(topicCode: 'JOIN', topicName: '조인');
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, _) => TextButton(
+              onPressed: () => context.push('/chapter'),
+              child: const Text('문제 목록'),
+            ),
+          ),
+          GoRoute(
+            path: '/chapter',
+            builder: (_, _) => Consumer(
+              builder: (context, ref, _) => TextButton(
+                onPressed: () =>
+                    flow.onCompleted(context, ref, _summary, 'sess-1'),
+                child: const Text('끝내기'),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.chapterResult,
+            builder: (_, _) => const Text('챕터 결과'),
+          ),
+        ],
+      );
+      await pumpApp(
+        tester,
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      );
+
+      // 목록 > 챕터 > 결과
+      await tester.tap(find.text('문제 목록'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('끝내기'));
+      await tester.pumpAndSettle();
+      expect(find.text('챕터 결과'), findsOneWidget);
+
+      // Android 뒤로 버튼·iOS 스와이프 공통 경로(Navigator pop)
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(find.text('문제 목록'), findsOneWidget);
+      expect(find.text('끝내기'), findsNothing);
     });
   });
 

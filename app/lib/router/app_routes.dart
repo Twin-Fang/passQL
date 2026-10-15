@@ -6,7 +6,6 @@ abstract final class AppRoutes {
   // 경로·쿼리 파라미터 이름 (라우터 정의 <-> 화면 읽기 공통)
   static const String legalTypeParameter = 'type';
   static const String questionUuidParameter = 'questionUuid';
-  static const String sessionIdParameter = 'sessionId';
   static const String topicCodeQuery = 'topic';
   static const String topicNameQuery = 'topicName';
 
@@ -67,20 +66,13 @@ abstract final class AppRoutes {
   /// 문제 상세. [uuid]는 questionUuid.
   static String questionDetail(String uuid) => '$questions/$uuid';
 
-  /// 상세·연습 화면 아래 결과 하위 경로
+  /// 상세 화면 아래 결과 하위 경로
   static const String resultSubPath = 'result';
 
   /// 결과 화면. [uuid]는 questionUuid.
   static String questionResult(String uuid) =>
       '${questionDetail(uuid)}/$resultSubPath';
 
-  /// 라우터 정의용 연습 경로 패턴: /practice/:sessionId
-  static const String practicePattern = '/practice/:$sessionIdParameter';
-
-  /// 연습 모드. [sessionId]는 클라이언트 생성 UUID.
-  static String practice(String sessionId) => '/practice/$sessionId';
-
-  /// 연습 결과.
-  static String practiceResult(String sessionId) =>
-      '${practice(sessionId)}/$resultSubPath';
+  /// 챕터 결과. 챕터 화면을 대신해 열려 뒤로 가면 챕터 진입 전 화면(문제 목록)으로 돌아간다.
+  static const String chapterResult = '/chapter-result';
 }

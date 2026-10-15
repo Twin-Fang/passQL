@@ -30,7 +30,7 @@ lib/
 ├── presentation/
 │   ├── design/             # Passql 디자인 시스템 (아래 절 참고)
 │   ├── flows/              # 문제 풀이 흐름 공통화 (question_flow, daily_set_flow)
-│   ├── pages/              # login, home, questions, practice, result, stats, settings,
+│   ├── pages/              # login, home, questions(챕터·챕터 결과), result, stats, settings,
 │   │                       # daily_set(결과·리더보드), feedback, legal
 │   ├── providers/          # Riverpod Provider·Notifier·Service (계정 전환 시 session_reset으로 초기화)
 │   └── widgets/            # 화면 조각 (설정 그룹, 문제 풀이 본문 등)

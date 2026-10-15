@@ -6,7 +6,7 @@ import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/flows/daily_set_flow.dart';
 import 'package:passql_app/presentation/pages/daily_set/daily_set_result_page.dart';
 import 'package:passql_app/presentation/pages/home/home_page.dart';
-import 'package:passql_app/presentation/pages/practice/practice_result_page.dart';
+import 'package:passql_app/presentation/pages/questions/chapter_result_page.dart';
 import 'package:passql_app/presentation/pages/questions/topic_list_page.dart';
 import 'package:passql_app/presentation/pages/stats/stats_page.dart';
 import 'package:passql_app/presentation/providers/chapter_providers.dart';
@@ -110,7 +110,7 @@ void main() {
   testWidgets('챕터 결과 다크', (tester) async {
     await expectResultScaffold(
       tester,
-      const PracticeResultPage(
+      const ChapterResultPage(
         extra: ChapterSummary(
           topicName: 'JOIN',
           results: [

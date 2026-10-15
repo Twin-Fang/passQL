@@ -17,7 +17,7 @@ class ChapterResult {
   });
 }
 
-/// 챕터 완료 후 PracticeResultPage에 넘기는 요약.
+/// 챕터 완료 후 ChapterResultPage에 넘기는 요약.
 class ChapterSummary {
   final String topicName;
   final List<ChapterResult> results;

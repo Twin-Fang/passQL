@@ -11,10 +11,9 @@ import '../presentation/pages/legal/legal_page.dart';
 import '../presentation/pages/login/login_page.dart';
 import '../presentation/pages/questions/topic_list_page.dart';
 import '../presentation/pages/questions/chapter_page.dart';
+import '../presentation/pages/questions/chapter_result_page.dart';
 import '../presentation/pages/questions/question_detail_page.dart';
 import '../presentation/pages/result/result_page.dart';
-import '../presentation/pages/practice/practice_page.dart';
-import '../presentation/pages/practice/practice_result_page.dart';
 import '../presentation/pages/stats/stats_page.dart';
 import '../presentation/pages/settings/settings_page.dart';
 import '../presentation/pages/settings/wrong_notes_page.dart';
@@ -30,7 +29,7 @@ final _shellKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
 /// 앱 전역 라우터.
 ///
 /// - ShellRoute: 바텀 탭 4개 (홈/문제/통계/설정)
-/// - 루트 라우트: 풀스크린 페이지 (챕터, 문제 상세, 결과, 연습)
+/// - 루트 라우트: 풀스크린 페이지 (챕터, 챕터 결과, 문제 상세, 결과)
 abstract final class AppRouter {
   /// 로그인 여부. main 에서 인증 상태를 구독해 갱신하고, 값이 바뀌면 라우터가 redirect 를 다시 평가한다.
   static final ValueNotifier<bool> authenticated = ValueNotifier<bool>(false);
@@ -154,20 +153,11 @@ abstract final class AppRouter {
         ],
       ),
 
-      // 풀스크린: 연습 모드 + 연습/챕터 결과
+      // 풀스크린: 챕터 결과 (챕터 화면을 대신해 열림)
       GoRoute(
-        path: AppRoutes.practicePattern,
+        path: AppRoutes.chapterResult,
         parentNavigatorKey: _rootKey,
-        builder: (_, state) => PracticePage(
-          sessionId: state.pathParameters[AppRoutes.sessionIdParameter]!,
-        ),
-        routes: [
-          GoRoute(
-            path: AppRoutes.resultSubPath,
-            parentNavigatorKey: _rootKey,
-            builder: (_, state) => PracticeResultPage(extra: state.extra),
-          ),
-        ],
+        builder: (_, state) => ChapterResultPage(extra: state.extra),
       ),
     ],
   );

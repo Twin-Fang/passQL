@@ -7,10 +7,10 @@ import '../../design/design.dart';
 /// 챕터 완료 결과 화면 — 점수·요약·분석·문항별 결과를 한 화면 스크롤로 보여준다.
 ///
 /// GoRouterState.extra로 [ChapterSummary]를 받아 렌더링.
-class PracticeResultPage extends StatelessWidget {
+class ChapterResultPage extends StatelessWidget {
   final Object? extra;
 
-  const PracticeResultPage({super.key, this.extra});
+  const ChapterResultPage({super.key, this.extra});
 
   @override
   Widget build(BuildContext context) {
