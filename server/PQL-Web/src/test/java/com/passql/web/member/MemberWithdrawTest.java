@@ -9,6 +9,7 @@ import com.passql.member.auth.repository.RefreshTokenRepository;
 import com.passql.member.constant.AuthProvider;
 import com.passql.member.constant.MemberStatus;
 import com.passql.member.entity.Member;
+import com.passql.member.repository.MemberPushTokenRepository;
 import com.passql.member.repository.MemberRepository;
 import com.passql.member.repository.MemberSuspendHistoryRepository;
 import org.junit.jupiter.api.Test;
@@ -25,9 +26,10 @@ class MemberWithdrawTest {
 
     private final MemberRepository memberRepository = mock(MemberRepository.class);
     private final RefreshTokenRepository refreshTokenRepository = mock(RefreshTokenRepository.class);
+    private final MemberPushTokenRepository memberPushTokenRepository = mock(MemberPushTokenRepository.class);
     private final MemberService service = new MemberService(
             memberRepository, mock(NicknameGenerator.class),
-            mock(MemberSuspendHistoryRepository.class), refreshTokenRepository);
+            mock(MemberSuspendHistoryRepository.class), refreshTokenRepository, memberPushTokenRepository);
 
     private Member activeMember(UUID uuid) {
         Member m = Member.signUp("google-123", AuthProvider.GOOGLE, "a@b.com", true, "원래닉네임");
@@ -59,6 +61,16 @@ class MemberWithdrawTest {
         service.withdraw(uuid);
 
         verify(refreshTokenRepository).delete(uuid);
+    }
+
+    @Test
+    void 탈퇴하면_기기_푸시_토큰을_삭제해_알림을_막는다() {
+        UUID uuid = UUID.randomUUID();
+        activeMember(uuid);
+
+        service.withdraw(uuid);
+
+        verify(memberPushTokenRepository).deleteAllByMemberUuid(uuid);
     }
 
     @Test

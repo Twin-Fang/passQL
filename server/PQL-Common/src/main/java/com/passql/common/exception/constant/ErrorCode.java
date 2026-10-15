@@ -118,6 +118,10 @@ public enum ErrorCode {
     REPORT_ALREADY_RESOLVED(HttpStatus.BAD_REQUEST, "이미 처리된 신고입니다."),
     REPORT_CHOICE_SET_REQUIRED(HttpStatus.BAD_REQUEST, "선택지 세트 기준 보정은 choiceSetUuid가 필요합니다."),
 
+    // Push
+    PUSH_TARGET_MEMBER_REQUIRED(HttpStatus.BAD_REQUEST, "특정 회원 발송은 올바른 회원 UUID가 필요합니다."),
+    PUSH_LINK_QUESTION_REQUIRED(HttpStatus.BAD_REQUEST, "문제 상세 이동은 올바른 문제 UUID가 필요합니다."),
+
     // Auth
     EXPIRED_FIREBASE_TOKEN(HttpStatus.UNAUTHORIZED, "Firebase 토큰이 만료되었습니다."),
     INVALID_FIREBASE_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 Firebase 토큰입니다."),

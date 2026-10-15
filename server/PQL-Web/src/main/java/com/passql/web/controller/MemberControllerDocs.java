@@ -10,6 +10,8 @@ import com.passql.member.dto.NicknameChangeRequest;
 import com.passql.member.dto.NicknameChangeResponse;
 import com.passql.member.dto.NicknameCheckResponse;
 import com.passql.member.dto.NicknameRegenerateResponse;
+import com.passql.member.dto.PushTokenRegisterRequest;
+import com.passql.member.dto.PushTokenResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -141,4 +143,45 @@ public interface MemberControllerDocs {
   ChoiceGenerationModeUpdateResponse updateChoiceGenerationMode(
       @AuthMember LoginMember loginMember,
       @Valid @RequestBody ChoiceGenerationModeUpdateRequest request);
+
+  @ApiLogs({
+      @ApiLog(date = "2026.10.15", author = Author.SUHSAECHAN, issueNumber = 467, description = "기기 푸시 토큰 등록·갱신 API 추가"),
+  })
+  @Operation(
+      summary = "기기 푸시 토큰 등록·갱신",
+      description = """
+          ## 인증(JWT): **필요**
+
+          ## 요청 바디 (PushTokenRegisterRequest)
+          - **`token`**: FCM 등록 토큰 (최대 512자)
+          - **`platform`**: IOS / ANDROID
+          - **`isPushEnabled`**: 알림 수신 동의 (생략하면 기존 값 유지, 새 기기는 true)
+
+          ## 반환값 (PushTokenResponse)
+          - **`isPushEnabled`**: 이 기기의 알림 수신 동의 여부
+
+          ## 설명
+          - 앱 실행·로그인·토큰 갱신(onTokenRefresh) 때마다 호출한다.
+          - 같은 토큰이 다른 회원으로 등록돼 있으면 요청 회원으로 소유자를 옮기고 수신 동의를 켠다.
+          """
+  )
+  PushTokenResponse registerPushToken(@AuthMember LoginMember loginMember, @Valid @RequestBody PushTokenRegisterRequest request);
+
+  @ApiLogs({
+      @ApiLog(date = "2026.10.15", author = Author.SUHSAECHAN, issueNumber = 467, description = "기기 푸시 토큰 삭제 API 추가"),
+  })
+  @Operation(
+      summary = "기기 푸시 토큰 삭제",
+      description = """
+          ## 인증(JWT): **필요**
+
+          ## 요청 파라미터
+          - **`token`**: 삭제할 FCM 등록 토큰
+
+          ## 설명
+          - 로그아웃 직전에 호출해 이 기기로 가던 알림을 끊는다.
+          - 본인 소유 토큰만 삭제하며, 없으면 아무것도 하지 않는다. 성공 시 204(본문 없음).
+          """
+  )
+  void deletePushToken(@AuthMember LoginMember loginMember, @RequestParam String token);
 }
