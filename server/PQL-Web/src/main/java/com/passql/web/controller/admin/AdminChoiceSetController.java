@@ -4,6 +4,8 @@ import com.passql.web.support.AdminPageRequest;
 import com.passql.question.entity.QuestionChoiceSet;
 import com.passql.question.entity.QuestionChoiceSetItem;
 import com.passql.question.service.AdminChoiceSetService;
+import com.passql.web.support.AdminMenu;
+import com.passql.web.support.AdminPage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -27,23 +29,21 @@ public class AdminChoiceSetController {
     private final AdminChoiceSetService adminChoiceSetService;
 
     @GetMapping
+    @AdminPage(menu = AdminMenu.CHOICE_SETS)
     public String list(Model model,
                        @RequestParam(defaultValue = "0") int page,
                        @RequestParam(defaultValue = AdminPageRequest.DEFAULT_PAGE_SIZE) int size) {
         model.addAttribute("choiceSets", adminChoiceSetService.getChoiceSets(AdminPageRequest.newestFirst(page, size)));
-        model.addAttribute("currentMenu", "choice-sets");
-        model.addAttribute("pageTitle", "선택지 세트 이력");
         return "admin/choice-sets";
     }
 
     @GetMapping("/{uuid}")
+    @AdminPage(menu = AdminMenu.CHOICE_SETS, title = "선택지 세트 상세")
     public String detail(@PathVariable UUID uuid, Model model) {
         QuestionChoiceSet set = adminChoiceSetService.getChoiceSet(uuid);
         List<QuestionChoiceSetItem> items = adminChoiceSetService.getChoiceSetItems(uuid);
         model.addAttribute("choiceSet", set);
         model.addAttribute("items", items);
-        model.addAttribute("currentMenu", "choice-sets");
-        model.addAttribute("pageTitle", "선택지 세트 상세");
         return "admin/choice-set-detail";
     }
 

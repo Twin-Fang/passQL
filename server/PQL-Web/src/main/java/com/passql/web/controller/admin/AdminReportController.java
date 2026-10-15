@@ -1,14 +1,18 @@
 package com.passql.web.controller.admin;
 
 import com.passql.application.service.QuestionReportService;
+import com.passql.common.exception.CustomException;
+import com.passql.common.exception.constant.ErrorCode;
 import com.passql.question.entity.Question;
 import com.passql.question.entity.QuestionReport;
 import com.passql.web.dto.report.AdminReportDetailResponse;
+import com.passql.web.dto.report.AdminReportPageResponse;
 import com.passql.web.dto.report.AdminReportSummary;
 import com.passql.web.dto.report.ResolveRequest;
-import com.passql.common.exception.CustomException;
-import com.passql.common.exception.constant.ErrorCode;
+import com.passql.web.support.AdminPageRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,17 +31,24 @@ public class AdminReportController implements AdminReportControllerDocs {
     private final QuestionReportService questionReportService;
 
     @GetMapping
-    public ResponseEntity<List<AdminReportSummary>> getReportSummaries(
-            @RequestParam(required = false) String status) {
+    public ResponseEntity<AdminReportPageResponse> getReportSummaries(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = AdminPageRequest.DEFAULT_PAGE_SIZE) int size) {
 
-        // stem 조회는 Service에서 일괄 처리 (N+1 방지)
-        List<AdminReportSummary> result = questionReportService.getReportSummaries(status).stream()
+        // page·size 보정 (음수·과대 요청 방지), stem 조회는 Service에서 일괄 처리 (N+1 방지)
+        Pageable pageable = AdminPageRequest.of(page, size, Sort.unsorted());
+        QuestionReportService.ReportSummaryPage summaryPage = questionReportService.getReportSummaryPage(
+                status, pageable.getPageNumber(), pageable.getPageSize());
+        List<AdminReportSummary> content = summaryPage.content().stream()
                 .map(row -> new AdminReportSummary(
                         row.questionUuid(), row.stem(), row.totalCount(), row.pendingCount(),
                         Map.of(), row.latestReportedAt()))
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(new AdminReportPageResponse(content, summaryPage.page(), summaryPage.size(),
+                summaryPage.totalElements(), summaryPage.totalPages(),
+                summaryPage.totalReportCount(), summaryPage.pendingReportCount()));
     }
 
     @GetMapping("/{questionUuid}")
@@ -73,6 +84,13 @@ public class AdminReportController implements AdminReportControllerDocs {
                 reportUuid, adminPrincipal.getName(),
                 request.correctionScope(), request.deactivateQuestion());
 
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{reportUuid}/dismiss")
+    public ResponseEntity<Void> dismissReport(@PathVariable UUID reportUuid, Principal adminPrincipal) {
+        // 처리자: 관리자 세션 인증 주체
+        questionReportService.dismissReport(reportUuid, adminPrincipal.getName());
         return ResponseEntity.ok().build();
     }
 }

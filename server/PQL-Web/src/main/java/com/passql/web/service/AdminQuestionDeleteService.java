@@ -1,11 +1,15 @@
 package com.passql.web.service;
 
+import com.passql.common.audit.AdminAuditEvent;
+import com.passql.common.audit.constant.AdminAuditAction;
+import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.question.entity.Question;
 import com.passql.question.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +21,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 관리자 문제 삭제: 비활성화(is_active=false)로 처리, 행은 지우지 않음
+ * 관리자 문제 삭제·복구: 삭제는 비활성화(is_active=false), 행은 지우지 않음, 복구는 다시 활성화
  * 회원 제출·실행 로그·신고·데일리 이력 보존, 사용자 노출(목록·추천·데일리 후보·벡터 색인)에서만 제외
  */
 @Slf4j
@@ -31,6 +35,7 @@ public class AdminQuestionDeleteService {
     private static final String SKIP_REASON_ALREADY_INACTIVE = "이미 비활성화됨";
 
     private final QuestionRepository questionRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /** 문제 1건 비활성화 (이미 비활성이면 그대로) */
     @Transactional
@@ -38,7 +43,22 @@ public class AdminQuestionDeleteService {
         Question question = questionRepository.findById(questionUuid)
                 .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
         question.deactivate();
+        publishDeactivated(question);
         log.info("[question deactivate] done : questionUuid={}", questionUuid);
+    }
+
+    /** 비활성 문제 1건 복구 (이미 활성이면 그대로) */
+    @Transactional
+    public void restoreQuestion(UUID questionUuid) {
+        Question question = questionRepository.findById(questionUuid)
+                .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
+        if (Boolean.TRUE.equals(question.getIsActive())) {
+            return;
+        }
+        question.restore();
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.QUESTION, questionUuid,
+                AdminAuditAction.RESTORE, AdminAuditEvent.summary("isActive", false), AdminAuditEvent.summary("isActive", true)));
+        log.info("[question restore] done : questionUuid={}", questionUuid);
     }
 
     /**
@@ -63,12 +83,18 @@ public class AdminQuestionDeleteService {
                 continue;
             }
             question.deactivate();
+            publishDeactivated(question);
             deactivatedCount++;
         }
 
         log.info("[question deactivate] bulk done : total={}, deactivated={}, skipped={}",
                 questionUuids.size(), deactivatedCount, skippedReasons.size());
         return new BulkDeactivateResult(deactivatedCount, skippedReasons.size(), skippedReasons);
+    }
+
+    private void publishDeactivated(Question question) {
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.QUESTION, question.getQuestionUuid(),
+                AdminAuditAction.DEACTIVATE, AdminAuditEvent.summary("isActive", true), AdminAuditEvent.summary("isActive", false)));
     }
 
     /** 일괄 비활성화 결과 (deactivated: 처리 건수, skipped: 건너뜀 건수, errors: 건너뜀 사유) */

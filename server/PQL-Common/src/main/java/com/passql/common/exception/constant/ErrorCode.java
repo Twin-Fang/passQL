@@ -53,6 +53,7 @@ public enum ErrorCode {
     EMBEDDING_INDEX_TARGET_EMPTY(HttpStatus.BAD_REQUEST, "색인할 문제가 선택되지 않았습니다."),
     PROMPT_NOT_FOUND(HttpStatus.NOT_FOUND, "프롬프트 템플릿을 찾을 수 없습니다."),
     TOPIC_NOT_FOUND(HttpStatus.NOT_FOUND, "토픽을 찾을 수 없습니다."),
+    TOPIC_DUPLICATE(HttpStatus.CONFLICT, "이미 있는 토픽 코드입니다."),
     EXAM_SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "시험 일정을 찾을 수 없습니다."),
     EXAM_SCHEDULE_DUPLICATE(HttpStatus.CONFLICT, "이미 등록된 시험 회차입니다."),
     DAILY_CHALLENGE_QUESTION_INACTIVE(HttpStatus.UNPROCESSABLE_ENTITY, "비활성 문제는 일일 챌린지로 배정할 수 없습니다."),
@@ -124,6 +125,14 @@ public enum ErrorCode {
     REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "신고를 찾을 수 없습니다."),
     REPORT_ALREADY_RESOLVED(HttpStatus.BAD_REQUEST, "이미 처리된 신고입니다."),
     REPORT_CHOICE_SET_REQUIRED(HttpStatus.BAD_REQUEST, "선택지 세트 기준 보정은 choiceSetUuid가 필요합니다."),
+
+    // Admin Account (#478)
+    ADMIN_ACCOUNT_NOT_FOUND(HttpStatus.NOT_FOUND, "관리자 계정을 찾을 수 없습니다."),
+    ADMIN_ACCOUNT_DUPLICATE(HttpStatus.CONFLICT, "이미 있는 관리자 아이디입니다."),
+    ADMIN_ACCOUNT_ENVIRONMENT_MANAGED(HttpStatus.FORBIDDEN, "환경변수로 관리하는 기본 관리자 계정은 화면에서 바꿀 수 없습니다."),
+    ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN(HttpStatus.FORBIDDEN, "자기 계정의 역할·사용 여부는 바꿀 수 없습니다."),
+    ADMIN_PASSWORD_TOO_WEAK(HttpStatus.BAD_REQUEST, "비밀번호는 10자 이상, 영문과 숫자를 함께 써야 합니다."),
+    ADMIN_WRITE_FORBIDDEN(HttpStatus.FORBIDDEN, "조회 전용 관리자는 변경할 수 없습니다."),
 
     // Auth
     EXPIRED_FIREBASE_TOKEN(HttpStatus.UNAUTHORIZED, "Firebase 토큰이 만료되었습니다."),

@@ -6,6 +6,8 @@ import com.passql.question.dto.DailyChallengeItem;
 import com.passql.question.dto.QuestionSummary;
 import com.passql.question.service.AdminDailyChallengeService;
 import com.passql.question.service.QuestionService;
+import com.passql.web.support.AdminMenu;
+import com.passql.web.support.AdminPage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -30,14 +32,13 @@ public class AdminDailyChallengeController {
 
     /** 어드민 화면 */
     @GetMapping
+    @AdminPage(menu = AdminMenu.DAILY_CHALLENGES)
     public String page(Model model) {
         List<QuestionSummary> activeQuestions = questionService
                 .getQuestions(null, null, null, null,
                         PageRequest.of(0, ASSIGNABLE_QUESTION_LIMIT, AdminPageRequest.sortByNewestFirst()))
                 .getContent();
         model.addAttribute("activeQuestions", activeQuestions);
-        model.addAttribute("pageTitle", "일일 챌린지 관리");
-        model.addAttribute("currentMenu", "daily-challenges");
         return "admin/daily-challenges";
     }
 

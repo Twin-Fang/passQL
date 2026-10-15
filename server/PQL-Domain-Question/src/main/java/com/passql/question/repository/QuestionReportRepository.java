@@ -1,5 +1,6 @@
 package com.passql.question.repository;
 
+import com.passql.question.constant.ReportStatus;
 import com.passql.question.entity.QuestionReport;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,6 +16,8 @@ public interface QuestionReportRepository extends JpaRepository<QuestionReport, 
     boolean existsByQuestionUuidAndMemberUuidAndSubmissionUuid(UUID questionUuid, UUID memberUuid, UUID submissionUuid);
 
     List<QuestionReport> findByQuestionUuidOrderByCreatedAtDesc(UUID questionUuid);
+
+    long countByStatus(ReportStatus status);
 
     @Query(value = """
             SELECT question_uuid,

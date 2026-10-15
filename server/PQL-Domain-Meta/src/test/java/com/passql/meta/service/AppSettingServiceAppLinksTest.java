@@ -30,7 +30,7 @@ class AppSettingServiceAppLinksTest {
         ValueOperations<String, String> ops = mock(ValueOperations.class);
         when(redis.opsForValue()).thenReturn(ops);
         when(ops.get(anyString())).thenReturn(null); // 캐시 미스 → DB 조회 경로
-        service = new AppSettingService(repository, redis);
+        service = new AppSettingService(repository, redis, event -> { });
     }
 
     private void stub(String key, String value) {

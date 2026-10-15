@@ -16,6 +16,9 @@ public class FeedbackAdminResponse {
     private String content;
     private String status;
     private LocalDateTime createdAt;
+    private String adminMemo;
+    // 메모·상태를 마지막으로 바꾼 관리자 (BaseEntity.updatedBy)
+    private String updatedBy;
 
     public static FeedbackAdminResponse from(Feedback f) {
         return new FeedbackAdminResponse(
@@ -23,7 +26,9 @@ public class FeedbackAdminResponse {
             f.getMemberUuid(),
             f.getContent(),
             f.getStatus().name(),
-            f.getCreatedAt()
+            f.getCreatedAt(),
+            f.getAdminMemo(),
+            f.getUpdatedBy()
         );
     }
 }

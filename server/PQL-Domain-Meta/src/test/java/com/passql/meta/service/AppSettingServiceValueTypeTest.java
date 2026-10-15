@@ -35,7 +35,7 @@ class AppSettingServiceValueTypeTest {
         @SuppressWarnings("unchecked")
         ValueOperations<String, String> valueOperations = mock(ValueOperations.class);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        appSettingService = new AppSettingService(appSettingRepository, redisTemplate);
+        appSettingService = new AppSettingService(appSettingRepository, redisTemplate, event -> { });
     }
 
     @Test

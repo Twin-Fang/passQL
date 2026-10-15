@@ -2,6 +2,9 @@ package com.passql.question.service;
 
 import com.passql.ai.client.AiGatewayClient;
 import com.passql.ai.dto.*;
+import com.passql.common.audit.AdminAuditEvent;
+import com.passql.common.audit.constant.AdminAuditAction;
+import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.entity.PromptTemplate;
@@ -12,10 +15,10 @@ import com.passql.meta.repository.TopicRepository;
 import com.passql.meta.service.PromptService;
 import com.passql.question.constant.ChoiceKind;
 import com.passql.question.constant.ChoiceSetPolicy;
-import com.passql.question.constant.ExecutionMode;
 import com.passql.question.constant.ChoiceSetSource;
 import com.passql.question.constant.ChoiceSetStatus;
 import com.passql.question.constant.Dialect;
+import com.passql.question.constant.ExecutionMode;
 import com.passql.question.entity.Question;
 import com.passql.question.entity.QuestionChoiceSet;
 import com.passql.question.entity.QuestionChoiceSetItem;
@@ -26,6 +29,7 @@ import com.passql.question.repository.QuestionConceptTagRepository;
 import com.passql.question.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,6 +58,7 @@ public class QuestionGenerateService {
     private final QuestionConceptTagRepository questionConceptTagRepository;
     private final TopicRepository topicRepository;
     private final SubtopicRepository subtopicRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * AI에게 문제를 생성 요청한다 (저장하지 않음, 관리자 preview 용).
@@ -141,6 +146,8 @@ public class QuestionGenerateService {
                 .build();
         question = questionRepository.saveAndFlush(question);
         log.info("[question-register] saved: questionUuid={}", question.getQuestionUuid());
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.QUESTION, question.getQuestionUuid(),
+                AdminAuditAction.CREATE, null, QuestionAuditSummary.of(question)));
 
         // Qdrant 임베딩 적재 (비동기적으로 실패해도 문제 등록 흐름에 영향 없음)
         indexQuestionAsync(question);
@@ -209,6 +216,8 @@ public class QuestionGenerateService {
 
         log.info("[question-gen] saved: questionUuid={}, seedSetUuid={}",
                 question.getQuestionUuid(), seedSet.getChoiceSetUuid());
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.QUESTION, question.getQuestionUuid(),
+                AdminAuditAction.CREATE, null, QuestionAuditSummary.of(question)));
 
         // Qdrant 임베딩 적재 (비동기적으로 실패해도 문제 등록 흐름에 영향 없음)
         indexQuestionAsync(question);

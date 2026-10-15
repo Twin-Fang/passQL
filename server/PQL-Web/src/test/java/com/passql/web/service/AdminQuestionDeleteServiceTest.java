@@ -18,7 +18,7 @@ import static org.mockito.Mockito.when;
 class AdminQuestionDeleteServiceTest {
 
     private final QuestionRepository questionRepository = mock(QuestionRepository.class);
-    private final AdminQuestionDeleteService adminQuestionDeleteService = new AdminQuestionDeleteService(questionRepository);
+    private final AdminQuestionDeleteService adminQuestionDeleteService = new AdminQuestionDeleteService(questionRepository, event -> { });
 
     @Test
     void 일괄_비활성화는_활성_문제만_끄고_없는_문제와_이미_비활성은_건너뛴다() {
@@ -36,7 +36,7 @@ class AdminQuestionDeleteServiceTest {
         assertThat(result.skipped()).isEqualTo(2);
         assertThat(activeQuestion.getIsActive()).isFalse();
         // 하드 삭제 경로 없음 (회원 제출·실행 로그 보존)
-        verify(questionRepository, never()).delete(any());
+        verify(questionRepository, never()).delete(any(Question.class));
         verify(questionRepository, never()).deleteAll(any());
     }
 }

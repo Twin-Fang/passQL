@@ -41,4 +41,8 @@ public class Feedback extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private FeedbackStatus status;
+
+    // 관리자 메모 (답변·처리 내용, 앱 미노출, 최대 1000자, #479)
+    @Column(length = 1000)
+    private String adminMemo;
 }

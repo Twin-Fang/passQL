@@ -162,10 +162,10 @@
     <dialog id="newTopicModal" class="modal">
         <div class="modal-box">
             <h3 class="font-bold text-lg mb-4">토픽 추가</h3>
-            <form th:action="@{/admin/topics}" method="post" class="space-y-3">
+            <form id="newTopicForm" class="space-y-3" onsubmit="event.preventDefault(); createTopic(this)">
                 <div class="form-control">
-                    <label class="label"><span class="label-text">코드 (영문 대문자)</span></label>
-                    <input type="text" name="code" class="input input-bordered" placeholder="SELECT" required pattern="[A-Z_]+"/>
+                    <label class="label"><span class="label-text">코드 (영문 소문자·숫자·_)</span></label>
+                    <input type="text" name="code" class="input input-bordered" placeholder="sql_join" required pattern="[a-z0-9_]{2,100}"/>
                 </div>
                 <div class="form-control">
                     <label class="label"><span class="label-text">이름</span></label>
@@ -188,11 +188,11 @@
     <dialog id="newSubtopicModal" class="modal">
         <div class="modal-box">
             <h3 class="font-bold text-lg mb-4">서브토픽 추가</h3>
-            <form th:action="@{/admin/topics/subtopics}" method="post" class="space-y-3">
+            <form id="newSubtopicForm" class="space-y-3" onsubmit="event.preventDefault(); createSubtopic(this)">
                 <input type="hidden" name="topicCode" th:value="${selectedTopicCode}"/>
                 <div class="form-control">
-                    <label class="label"><span class="label-text">코드</span></label>
-                    <input type="text" name="code" class="input input-bordered" placeholder="basic_select" required/>
+                    <label class="label"><span class="label-text">코드 (영문 소문자·숫자·_)</span></label>
+                    <input type="text" name="code" class="input input-bordered" placeholder="basic_select" required pattern="[a-z0-9_]{2,100}"/>
                 </div>
                 <div class="form-control">
                     <label class="label"><span class="label-text">이름</span></label>
@@ -257,6 +257,27 @@
             document.getElementById('editTopicModal').showModal();
         }
 
+        // 추가 폼 > 요청 본문 (code, displayName, sortOrder)
+        function toTopicCreateBody(form) {
+            return {
+                code: form.code.value.trim(),
+                displayName: form.displayName.value.trim(),
+                sortOrder: parseInt(form.sortOrder.value, 10)
+            };
+        }
+
+        function createTopic(form) {
+            AdminApi.post('/admin/topics', toTopicCreateBody(form))
+                .then(() => AdminUi.reloadWithToast('토픽을 추가했습니다.'))
+                .catch(error => AdminUi.showError(error));
+        }
+
+        function createSubtopic(form) {
+            AdminApi.post('/admin/topics/' + encodeURIComponent(form.topicCode.value) + '/subtopics', toTopicCreateBody(form))
+                .then(() => AdminUi.reloadWithToast('서브토픽을 추가했습니다.'))
+                .catch(error => AdminUi.showError(error));
+        }
+
         function saveTopicEdit() {
             const code = document.getElementById('editTopicCode').textContent;
             const body = {
@@ -265,21 +286,12 @@
                 isActive: document.getElementById('editTopicActive').checked
             };
 
-            fetch(`/admin/topics/${code}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            }).then(res => {
-                if (res.ok) {
+            AdminApi.put(`/admin/topics/${encodeURIComponent(code)}`, body)
+                .then(() => {
                     document.getElementById('editTopicModal').close();
-                    // 저장 후 페이지 새로고침으로 목록 반영
-                    location.reload();
-                } else {
-                    alert('저장에 실패했습니다.');
-                }
-            }).catch(() => {
-                alert('네트워크 오류가 발생했습니다.');
-            });
+                    AdminUi.reloadWithToast('토픽을 저장했습니다.');
+                })
+                .catch(error => AdminUi.showError(error));
         }
     </script>
 </th:block>

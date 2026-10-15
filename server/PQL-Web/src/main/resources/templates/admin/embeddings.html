@@ -175,13 +175,6 @@
         </form>
     </dialog>
 
-    <!-- 선택 색인 결과 토스트 -->
-    <div id="toast" class="toast toast-end hidden z-50">
-        <div id="toastAlert" class="alert alert-success">
-            <span id="toastMessage"></span>
-        </div>
-    </div>
-
 </th:block>
 
 <th:block layout:fragment="js">
@@ -227,37 +220,14 @@
             btn.disabled = true;
             btn.innerHTML = '<span class="loading loading-spinner loading-xs"></span> 색인 중...';
 
-            fetch('/admin/embeddings/index-selected', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({uuids: uuids})
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.errorCode) {
-                    showToast('오류: ' + data.message, 'error');
-                } else {
-                    showToast(`색인 완료: ${data.succeeded}개 성공, ${data.failed}개 실패`, 'success');
-                    // 성공 시 3초 후 페이지 새로고침으로 상태 갱신
-                    setTimeout(() => location.reload(), 2000);
-                }
-            })
-            .catch(err => {
-                showToast('요청 실패: ' + err.message, 'error');
+            AdminApi.post('/admin/embeddings/index-selected', {uuids: uuids})
+            .then(data => AdminUi.reloadWithToast(`색인 완료: ${data.succeeded}개 성공, ${data.failed}개 실패`))
+            .catch(error => {
+                AdminUi.showError(error);
                 btn.disabled = false;
                 btn.innerHTML = '<i data-lucide="zap" class="size-4"></i> 선택 색인';
                 lucide.createIcons();
             });
-        }
-
-        function showToast(message, type) {
-            const toast = document.getElementById('toast');
-            const alert = document.getElementById('toastAlert');
-            const msg = document.getElementById('toastMessage');
-            alert.className = 'alert ' + (type === 'error' ? 'alert-error' : 'alert-success');
-            msg.textContent = message;
-            toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('hidden'), 4000);
         }
     </script>
 </th:block>

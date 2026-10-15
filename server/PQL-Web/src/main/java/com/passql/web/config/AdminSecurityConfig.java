@@ -1,28 +1,34 @@
 package com.passql.web.config;
 
+import com.passql.meta.constant.AdminRole;
+import com.passql.web.config.admin.AdminAccessDeniedHandler;
+import com.passql.web.config.admin.AdminLoginResultHandler;
 import com.passql.web.config.admin.AdminUserDetailsService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
  * 관리자 페이지 전용 Security filter chain.
  * /admin/** 경로에만 적용되며, 세션 기반 폼 로그인을 사용한다.
  * JWT 기반 API chain(@Order(2))과 완전 분리된다.
+ * 권한 3단계: 관리자 계정 관리 ADMIN, 조회(GET) ADMIN·VIEWER, 그 외 변경 요청 ADMIN (#478)
  */
 @Configuration
 @RequiredArgsConstructor
-@Slf4j
 public class AdminSecurityConfig {
 
+    private static final String ADMIN = AdminRole.ADMIN.toSecurityRoleName();
+    private static final String VIEWER = AdminRole.VIEWER.toSecurityRoleName();
+
     private final AdminUserDetailsService adminUserDetailsService;
+    private final AdminLoginResultHandler adminLoginResultHandler;
+    private final AdminAccessDeniedHandler adminAccessDeniedHandler;
 
     @Bean
     @Order(1)
@@ -32,20 +38,21 @@ public class AdminSecurityConfig {
             .securityMatcher("/admin/**", "/docs/**")
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/admin/login").permitAll()
-                .anyRequest().hasRole("ADMIN")
+                .requestMatchers("/admin/logout").authenticated()
+                .requestMatchers("/admin/accounts/**").hasRole(ADMIN)
+                .requestMatchers(HttpMethod.GET, "/admin/**", "/docs/**").hasAnyRole(ADMIN, VIEWER)
+                .anyRequest().hasRole(ADMIN)
             )
             .formLogin(form -> form
                 .loginPage("/admin/login")
                 .loginProcessingUrl("/admin/login")
-                .defaultSuccessUrl("/admin", true)
-                // 실패만 기록한다 — 무차별 대입을 추적할 수 있게 (#406). 입력한 아이디는 남기지 않는다
-                .failureHandler((request, response, e) -> {
-                    log.warn("[admin-auth] 관리자 로그인 실패: ip={}, reason={}", request.getRemoteAddr(), e.getClass().getSimpleName());
-                    response.sendRedirect(request.getContextPath() + "/admin/login?error=true");
-                })
-                .usernameParameter("username")
+                // 성공·실패 기록과 5회 실패 잠금 (#478), 실패 로그에 입력 아이디는 남기지 않는다 (#406)
+                .successHandler(adminLoginResultHandler)
+                .failureHandler(adminLoginResultHandler)
+                .usernameParameter(AdminLoginResultHandler.USERNAME_PARAMETER)
                 .passwordParameter("password")
             )
+            .exceptionHandling(ex -> ex.accessDeniedHandler(adminAccessDeniedHandler))
             .logout(logout -> logout
                 .logoutUrl("/admin/logout")
                 .logoutSuccessUrl("/admin/login?logout=true")
@@ -58,10 +65,5 @@ public class AdminSecurityConfig {
             .userDetailsService(adminUserDetailsService);
 
         return http.build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 }

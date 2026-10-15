@@ -1,5 +1,8 @@
 package com.passql.question.service;
 
+import com.passql.common.audit.AdminAuditEvent;
+import com.passql.common.audit.constant.AdminAuditAction;
+import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.question.constant.ChoiceSetSource;
@@ -9,12 +12,14 @@ import com.passql.question.entity.QuestionChoiceSetItem;
 import com.passql.question.repository.QuestionChoiceSetItemRepository;
 import com.passql.question.repository.QuestionChoiceSetRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -27,6 +32,7 @@ public class AdminChoiceSetService {
 
     private final QuestionChoiceSetRepository choiceSetRepository;
     private final QuestionChoiceSetItemRepository choiceSetItemRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public Page<QuestionChoiceSet> getChoiceSets(Pageable pageable) {
         return choiceSetRepository.findAll(pageable);
@@ -44,16 +50,22 @@ public class AdminChoiceSetService {
     @Transactional
     public void disableChoiceSet(UUID choiceSetUuid) {
         QuestionChoiceSet choiceSet = getChoiceSet(choiceSetUuid);
+        ChoiceSetStatus previousStatus = choiceSet.getStatus();
         choiceSet.setStatus(ChoiceSetStatus.DISABLED);
         choiceSetRepository.save(choiceSet);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.CHOICE_SET, choiceSetUuid, AdminAuditAction.DEACTIVATE,
+                AdminAuditEvent.summary("status", previousStatus), AdminAuditEvent.summary("status", ChoiceSetStatus.DISABLED)));
     }
 
     /** 관리자 큐레이션 출처로 바꾸고 재사용 가능 표시 */
     @Transactional
     public void promoteChoiceSetToReusable(UUID choiceSetUuid) {
         QuestionChoiceSet choiceSet = getChoiceSet(choiceSetUuid);
+        Map<String, Object> before = AdminAuditEvent.summary("source", choiceSet.getSource(), "isReusable", choiceSet.getIsReusable());
         choiceSet.setSource(ChoiceSetSource.ADMIN_CURATED);
         choiceSet.setIsReusable(true);
         choiceSetRepository.save(choiceSet);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.CHOICE_SET, choiceSetUuid, AdminAuditAction.UPDATE,
+                before, AdminAuditEvent.summary("source", ChoiceSetSource.ADMIN_CURATED, "isReusable", true)));
     }
 }

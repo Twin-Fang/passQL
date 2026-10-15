@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<th:block layout:fragment="title">관리자 계정</th:block>
+
+<th:block layout:fragment="content">
+
+    <!-- 권한·잠금 규칙 안내 -->
+    <div class="alert alert-info mb-4 text-sm">
+        <i data-lucide="shield" class="size-5"></i>
+        <div>
+            <p><b>ADMIN</b> 조회·변경·계정 관리 / <b>VIEWER</b> 조회만 (저장·삭제 요청은 거부)</p>
+            <p>로그인을 <b th:text="${maxFailedLoginCount}">5</b>회 연속 실패하면 <b th:text="${loginLockMinutes}">15</b>분간 잠깁니다.
+               기본 계정(환경변수)은 비밀번호를 서버 환경변수로만 바꿉니다.</p>
+        </div>
+    </div>
+
+    <!-- 계정 추가 -->
+    <div class="card bg-base-100 shadow mb-4">
+        <div class="card-body p-4">
+            <h3 class="card-title text-base mb-2"><i data-lucide="user-plus" class="size-5"></i>계정 추가</h3>
+            <div class="flex flex-wrap items-end gap-3">
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">아이디</span>
+                    <input id="newUsername" type="text" class="input input-sm input-bordered w-44" placeholder="영문·숫자 3~50자" autocomplete="off"/>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">비밀번호</span>
+                    <input id="newPassword" type="password" class="input input-sm input-bordered w-52" placeholder="10자 이상, 영문+숫자" autocomplete="new-password"/>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">역할</span>
+                    <select id="newRole" class="select select-sm select-bordered w-32">
+                        <option th:each="r : ${roles}" th:value="${r.name()}" th:text="${r.name()}"
+                                th:selected="${r.name() == 'VIEWER'}">VIEWER</option>
+                    </select>
+                </label>
+                <button type="button" class="btn btn-sm btn-primary" onclick="createAccount()">
+                    <i data-lucide="plus" class="size-4"></i>추가
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 계정 목록 -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-0">
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead>
+                    <tr>
+                        <th>아이디</th>
+                        <th class="w-28">역할</th>
+                        <th class="w-24">상태</th>
+                        <th class="w-40">마지막 로그인</th>
+                        <th class="w-32">생성</th>
+                        <th class="w-64">관리</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="a : ${accounts}">
+                        <td>
+                            <span class="font-mono text-sm" th:text="${a.username}">admin</span>
+                            <span th:if="${a.isEnvironmentManaged}" class="badge badge-ghost badge-xs ml-1">기본 계정</span>
+                            <span th:if="${a.username == currentAdminUsername}" class="badge badge-primary badge-xs ml-1">나</span>
+                        </td>
+                        <td>
+                            <select class="select select-xs select-bordered w-24"
+                                    th:id="'role-' + ${a.adminAccountUuid}"
+                                    th:disabled="${a.isEnvironmentManaged or a.username == currentAdminUsername}">
+                                <option th:each="r : ${roles}" th:value="${r.name()}" th:text="${r.name()}"
+                                        th:selected="${r == a.role}">ADMIN</option>
+                            </select>
+                        </td>
+                        <td>
+                            <span th:if="${a.isLocked}" class="badge badge-error badge-sm">잠김</span>
+                            <span th:if="${!a.isLocked and a.isEnabled}" class="badge badge-success badge-sm">사용</span>
+                            <span th:if="${!a.isLocked and !a.isEnabled}" class="badge badge-ghost badge-sm">중지</span>
+                        </td>
+                        <td class="text-xs">
+                            <span th:text="${a.lastLoginAt != null ? #temporals.format(a.lastLoginAt, 'yyyy-MM-dd HH:mm') : '-'}">-</span>
+                            <span class="block font-mono text-base-content/50" th:text="${a.lastLoginIp}"></span>
+                        </td>
+                        <td class="text-xs">
+                            <span th:text="${a.createdAt != null ? #temporals.format(a.createdAt, 'yyyy-MM-dd') : '-'}">-</span>
+                            <span class="block text-base-content/50" th:text="${a.createdBy}"></span>
+                        </td>
+                        <td>
+                            <div class="flex flex-wrap gap-1"
+                                 th:data-uuid="${a.adminAccountUuid}"
+                                 th:data-username="${a.username}"
+                                 th:data-enabled="${a.isEnabled}">
+                                <th:block th:unless="${a.isEnvironmentManaged or a.username == currentAdminUsername}">
+                                    <button class="btn btn-xs btn-primary" onclick="saveAccount(this.parentElement.dataset)">역할 저장</button>
+                                    <button class="btn btn-xs btn-outline"
+                                            th:text="${a.isEnabled} ? '사용 중지' : '사용 재개'"
+                                            onclick="toggleEnabled(this.parentElement.dataset)">사용 중지</button>
+                                </th:block>
+                                <button th:unless="${a.isEnvironmentManaged}" class="btn btn-xs btn-ghost"
+                                        onclick="resetPassword(this.parentElement.dataset)">비밀번호 재설정</button>
+                                <button th:if="${a.isLocked}" class="btn btn-xs btn-warning"
+                                        onclick="unlockAccount(this.parentElement.dataset)">잠금 해제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(accounts)}">
+                        <td colspan="6" class="text-center text-base-content/50 py-10">
+                            관리자 계정 행이 없습니다. 서버 기동 시 기본 계정이 자동으로 만들어집니다.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 비밀번호 재설정 모달 -->
+    <dialog id="passwordModal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg mb-3">비밀번호 재설정 <span id="passwordTargetName" class="font-mono"></span></h3>
+            <input id="resetPassword" type="password" class="input input-bordered w-full" placeholder="10자 이상, 영문+숫자" autocomplete="new-password"/>
+            <div class="modal-action">
+                <form method="dialog"><button class="btn btn-ghost">취소</button></form>
+                <button class="btn btn-primary" onclick="submitPasswordReset()">재설정</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+</th:block>
+
+<th:block layout:fragment="js">
+    <script th:src="@{/js/admin/admin-accounts.js}"></script>
+    <script>lucide.createIcons();</script>
+</th:block>
+</html>

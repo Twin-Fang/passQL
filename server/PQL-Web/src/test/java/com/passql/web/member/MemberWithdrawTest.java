@@ -1,7 +1,5 @@
 package com.passql.web.member;
 
-import com.passql.member.service.MemberService;
-
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.common.util.NicknameGenerator;
@@ -11,6 +9,7 @@ import com.passql.member.constant.MemberStatus;
 import com.passql.member.entity.Member;
 import com.passql.member.repository.MemberRepository;
 import com.passql.member.repository.MemberSuspendHistoryRepository;
+import com.passql.member.service.MemberService;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -27,7 +26,7 @@ class MemberWithdrawTest {
     private final RefreshTokenRepository refreshTokenRepository = mock(RefreshTokenRepository.class);
     private final MemberService service = new MemberService(
             memberRepository, mock(NicknameGenerator.class),
-            mock(MemberSuspendHistoryRepository.class), refreshTokenRepository);
+            mock(MemberSuspendHistoryRepository.class), refreshTokenRepository, event -> { });
 
     private Member activeMember(UUID uuid) {
         Member m = Member.signUp("google-123", AuthProvider.GOOGLE, "a@b.com", true, "원래닉네임");

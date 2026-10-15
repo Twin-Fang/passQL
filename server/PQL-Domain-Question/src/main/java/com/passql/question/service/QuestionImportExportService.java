@@ -1,9 +1,12 @@
 package com.passql.question.service;
 
-import com.passql.common.util.RequestEnumParser;
-import com.passql.common.util.TextPreview;
+import com.passql.common.audit.AdminAuditEvent;
+import com.passql.common.audit.constant.AdminAuditAction;
+import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.RequestEnumParser;
+import com.passql.common.util.TextPreview;
 import com.passql.meta.entity.Topic;
 import com.passql.meta.repository.TopicRepository;
 import com.passql.question.constant.ChoiceSetPolicy;
@@ -13,6 +16,7 @@ import com.passql.question.entity.Question;
 import com.passql.question.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +40,7 @@ public class QuestionImportExportService {
     private final SandboxExecutor sandboxExecutor;
     private final QuestionGenerateService questionGenerateService;
     private final QuestionService questionService;
+    private final ApplicationEventPublisher eventPublisher;
 
     // ── Export ────────────────────────────────────────────────────
 
@@ -196,6 +201,8 @@ public class QuestionImportExportService {
         }
 
         log.info("[import-batch] created={}, updated={}, skipped={}", created, updated, skipped);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.QUESTION, null, AdminAuditAction.IMPORT,
+                null, AdminAuditEvent.summary("importMode", importMode, "created", created, "updated", updated, "skipped", skipped)));
         return new ImportResult(created, updated, skipped);
     }
 

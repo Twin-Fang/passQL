@@ -24,6 +24,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import jakarta.servlet.DispatcherType;
+import java.time.Clock;
 import java.util.List;
 
 @Configuration
@@ -76,6 +77,11 @@ public class SecurityConfig {
             .addFilterAfter(
                 new SuspendedMemberBlockingFilter(memberSuspensionService, apiSecurityErrorHandler),
                 UsernamePasswordAuthenticationFilter.class
+            )
+            // 비싼 경로 요청 제한 429 (로그인·AI·SQL 실행, #478)
+            .addFilterAfter(
+                new MemberApiRateLimitFilter(apiSecurityErrorHandler, Clock.systemUTC()),
+                SuspendedMemberBlockingFilter.class
             );
 
         return http.build();

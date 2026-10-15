@@ -1,8 +1,8 @@
 package com.passql.question.entity;
 
 import com.passql.common.entity.BaseEntity;
-import com.passql.question.constant.Dialect;
 import com.passql.question.constant.ChoiceSetPolicy;
+import com.passql.question.constant.Dialect;
 import com.passql.question.constant.ExecutionMode;
 import jakarta.persistence.*;
 import lombok.*;
@@ -90,5 +90,10 @@ public class Question extends BaseEntity {
 
     public void deactivate() {
         this.isActive = false;
+    }
+
+    /** 비활성(삭제 처리) 문제 복구 */
+    public void restore() {
+        this.isActive = true;
     }
 }

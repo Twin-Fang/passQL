@@ -94,21 +94,21 @@
 
     // 응답을 보지 않고 새로고침하면 실패가 화면에 드러나지 않는다 (#391)
     async function requestAndReload(url, label) {
-        const res = await fetch(url, {method: 'PUT'});
-        if (!res.ok) {
-            alert(label + ' 실패 (' + res.status + ')');
-            return;
+        try {
+            await AdminApi.put(url);
+            AdminUi.reloadWithToast(label + ' 완료');
+        } catch (error) {
+            AdminUi.showError(error);
         }
-        location.reload();
     }
 
     async function disableSet() {
-        if (!confirm('비활성화하시겠습니까?')) return;
+        if (!await AdminUi.confirmDanger('이 선택지 세트를 비활성화합니다.', { confirmLabel: '비활성화' })) return;
         await requestAndReload('/admin/choice-sets/' + uuid + '/disable', '비활성화');
     }
 
     async function promoteSet() {
-        if (!confirm('재사용 풀로 승격하시겠습니까?')) return;
+        if (!await AdminUi.confirmDanger('재사용 풀로 승격하면 다른 회원에게도 이 선택지가 출제됩니다.', { confirmLabel: '승격' })) return;
         await requestAndReload('/admin/choice-sets/' + uuid + '/promote', '승격');
     }
 

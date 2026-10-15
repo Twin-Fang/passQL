@@ -70,6 +70,18 @@ public class QuestionReport extends BaseEntity {
         this.status = ReportStatus.PENDING;
     }
 
+    /** 기각: 보정 없이 종료 (처리자·시각은 처리완료와 같은 컬럼) */
+    public void dismiss(String resolvedByAdminUsername) {
+        this.status = ReportStatus.DISMISSED;
+        this.resolvedAt = LocalDateTime.now();
+        this.resolvedByAdminUsername = resolvedByAdminUsername;
+        this.correctionScope = CorrectionScope.NONE;
+    }
+
+    public boolean isPending() {
+        return status == ReportStatus.PENDING;
+    }
+
     public void resolve(String resolvedByAdminUsername, CorrectionScope correctionScope) {
         this.status = ReportStatus.RESOLVED;
         this.resolvedAt = LocalDateTime.now();

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<th:block layout:fragment="title">감사 로그</th:block>
+
+<th:block layout:fragment="content">
+
+    <!-- 필터 (관리자, 대상 종류, 기간) -->
+    <div class="card bg-base-100 shadow mb-4">
+        <div class="card-body p-4">
+            <form th:action="@{/admin/audit-logs}" method="get" class="flex flex-wrap items-end gap-3">
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">관리자 아이디</span>
+                    <input type="text" name="adminUsername" class="input input-sm input-bordered w-40"
+                           th:value="${condition.adminUsername}" placeholder="정확히 일치"/>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">대상 종류</span>
+                    <select name="targetType" class="select select-sm select-bordered w-40">
+                        <option value="">전체</option>
+                        <option th:each="t : ${targetTypes}" th:value="${t.name()}" th:text="${t.label}"
+                                th:selected="${condition.targetType == t.name()}">문제</option>
+                    </select>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">시작일</span>
+                    <input type="date" name="fromDate" class="input input-sm input-bordered" th:value="${condition.fromDate}"/>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">종료일</span>
+                    <input type="date" name="toDate" class="input input-sm input-bordered" th:value="${condition.toDate}"/>
+                </label>
+                <button type="submit" class="btn btn-sm btn-primary"><i data-lucide="search" class="size-4"></i>검색</button>
+                <a th:href="@{/admin/audit-logs}" class="btn btn-sm btn-ghost">초기화</a>
+                <span class="ml-auto text-sm text-base-content/60" th:text="'총 ' + ${auditLogs.totalElements} + '건'">총 0건</span>
+            </form>
+        </div>
+    </div>
+
+    <!-- 감사 로그 목록 -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-0">
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead>
+                    <tr>
+                        <th class="w-36">시각</th>
+                        <th class="w-28">관리자</th>
+                        <th class="w-28">대상</th>
+                        <th class="w-24">동작</th>
+                        <th class="w-40">대상 ID</th>
+                        <th>변경 내용 (전 → 후)</th>
+                        <th class="w-28">IP</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="log : ${auditLogs}">
+                        <td class="text-xs" th:text="${#temporals.format(log.occurredAt, 'yyyy-MM-dd HH:mm:ss')}">-</td>
+                        <td class="font-mono text-xs" th:text="${log.adminUsername}">admin</td>
+                        <td><span class="badge badge-outline badge-sm" th:text="${log.targetType.label}">문제</span></td>
+                        <td><span class="badge badge-sm" th:text="${log.action.label}">수정</span></td>
+                        <td class="font-mono text-xs break-all" th:text="${log.targetId ?: '-'}">-</td>
+                        <td>
+                            <details th:if="${log.changeSummaryJson != null}">
+                                <summary class="cursor-pointer text-xs text-primary">펼치기</summary>
+                                <pre class="text-xs whitespace-pre-wrap break-all bg-base-200 rounded p-2 mt-1 max-h-64 overflow-y-auto"
+                                     th:text="${log.changeSummaryJson}">{}</pre>
+                            </details>
+                            <span th:if="${log.changeSummaryJson == null}" class="text-xs text-base-content/40">-</span>
+                        </td>
+                        <td class="font-mono text-xs" th:text="${log.clientIp ?: '-'}">-</td>
+                    </tr>
+                    <tr th:if="${auditLogs.isEmpty()}">
+                        <td colspan="7" class="text-center text-base-content/50 py-12">조건에 맞는 감사 로그가 없습니다.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 페이지네이션 (필터 유지) -->
+            <div class="flex justify-center p-4" th:if="${auditLogs.totalPages > 1}">
+                <div class="join">
+                    <a th:href="@{/admin/audit-logs(page=${auditLogs.number - 1}, adminUsername=${condition.adminUsername}, targetType=${condition.targetType}, fromDate=${condition.fromDate}, toDate=${condition.toDate})}"
+                       class="join-item btn btn-sm" th:classappend="${auditLogs.first} ? 'btn-disabled'">«</a>
+                    <button class="join-item btn btn-sm btn-active" th:text="${auditLogs.number + 1} + ' / ' + ${auditLogs.totalPages}">1 / 1</button>
+                    <a th:href="@{/admin/audit-logs(page=${auditLogs.number + 1}, adminUsername=${condition.adminUsername}, targetType=${condition.targetType}, fromDate=${condition.fromDate}, toDate=${condition.toDate})}"
+                       class="join-item btn btn-sm" th:classappend="${auditLogs.last} ? 'btn-disabled'">»</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</th:block>
+
+<th:block layout:fragment="js">
+    <script>lucide.createIcons();</script>
+</th:block>
+</html>
