@@ -7,6 +7,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import type { TopicStat } from "../types/api";
+import { CHART_COLOR } from "../constants/chartColors";
 
 interface StatsRadarChartProps {
   readonly topicStats: readonly TopicStat[];
@@ -25,17 +26,17 @@ export default function StatsRadarChart({ topicStats }: StatsRadarChartProps) {
       <div className="w-full h-64">
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart data={data} cx="50%" cy="50%" outerRadius="70%">
-            <PolarGrid stroke="#E5E7EB" />
+            <PolarGrid stroke={CHART_COLOR.grid} />
             <PolarAngleAxis
               dataKey="subject"
-              tick={{ fontSize: 12, fill: "#6B7280" }}
+              tick={{ fontSize: 12, fill: CHART_COLOR.axisLabel }}
             />
             {/* domain 고정: 데이터 기반 자동 축소를 막아 항상 0~100 스케일 유지 */}
             <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
             <Radar
               dataKey="value"
-              stroke="#4F46E5"
-              fill="#4F46E5"
+              stroke={CHART_COLOR.brand}
+              fill={CHART_COLOR.brand}
               fillOpacity={0.2}
               strokeWidth={2}
             />

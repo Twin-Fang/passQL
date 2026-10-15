@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 
-const COLOR_SCALE = [
-  "#EF4444", "#EF4444", "#EF4444", "#EF4444",
-  "#F59E0B", "#F59E0B", "#F59E0B",
-  "#4F46E5", "#4F46E5",
-  "#22C55E", "#22C55E",
+// 맞힌 개수(0~10) > 점수 글자색 (0~3 오류, 4~6 경고, 7~8 브랜드, 9~10 성공)
+const COLOR_CLASS_SCALE = [
+  "text-semantic-error", "text-semantic-error", "text-semantic-error", "text-semantic-error",
+  "text-semantic-warning", "text-semantic-warning", "text-semantic-warning",
+  "text-brand", "text-brand",
+  "text-semantic-success", "text-semantic-success",
 ] as const;
 
 interface ScoreCountUpProps {
@@ -40,16 +41,14 @@ export default function ScoreCountUp({ target, total, onComplete }: ScoreCountUp
     return () => clearTimeout(timer);
   }, [target]);
 
-  const color = COLOR_SCALE[count] ?? COLOR_SCALE[0];
+  const colorClass = COLOR_CLASS_SCALE[count] ?? COLOR_CLASS_SCALE[0];
 
   return (
+    // 한 칸 오를 때마다 튕기듯 1.3배 확대 후 복귀
     <div
-      className="text-[96px] font-bold leading-none transition-colors duration-200"
-      style={{
-        color,
-        transform: animating ? "scale(1.3)" : "scale(1)",
-        transition: "transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s",
-      }}
+      className={`text-[96px] font-bold leading-none transition-[scale,color] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${colorClass} ${
+        animating ? "scale-130" : "scale-100"
+      }`}
     >
       {count} <span className="text-4xl font-normal text-text-caption">/ {total}</span>
     </div>

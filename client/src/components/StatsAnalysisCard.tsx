@@ -26,7 +26,7 @@ export default function StatsAnalysisCard({ comment, isLoading }: StatsAnalysisC
     <div className="bg-surface-card border border-border rounded-2xl p-4 sm:p-6">
       {/* 아이콘 + 제목 한 줄 */}
       <div className="animate-ai-header flex items-center gap-1 mb-2">
-        <div className="animate-sparkle-pop w-7 h-7 rounded-lg bg-accent-light flex items-center justify-center shrink-0">
+        <div className="animate-sparkle-pop w-7 h-7 rounded-lg bg-brand-light flex items-center justify-center shrink-0">
           <Sparkles size={14} className="text-brand" />
         </div>
         <h3 className="text-base font-bold text-text-primary">AI 한마디</h3>

@@ -1,5 +1,25 @@
 {
+  "redirects": [
+    {
+      "source": "/legal/terms.html",
+      "destination": "https://twin-fang.github.io/passQL/terms.html",
+      "permanent": true
+    },
+    {
+      "source": "/legal/privacy.html",
+      "destination": "https://twin-fang.github.io/passQL/privacy.html",
+      "permanent": true
+    },
+    {
+      "source": "/legal/delete-account.html",
+      "destination": "https://twin-fang.github.io/passQL/delete-account.html",
+      "permanent": true
+    }
+  ],
   "rewrites": [
-    { "source": "/((?!assets/)(?!.*\\.[a-zA-Z0-9]+$).*)", "destination": "/index.html" }
+    {
+      "source": "/((?!assets/)(?!.*\\.[a-zA-Z0-9]+$).*)",
+      "destination": "/index.html"
+    }
   ]
 }

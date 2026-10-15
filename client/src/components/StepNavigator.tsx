@@ -1,4 +1,5 @@
 import React, { useState, useRef, type ReactNode } from "react";
+import { useCssVariables } from "../hooks/useCssVariables";
 
 interface StepNavigatorProps {
   readonly steps: readonly ReactNode[];
@@ -12,8 +13,12 @@ export default function StepNavigator({ steps, lastButtonLabel = "카테고리 �
   // initialStep을 0..steps.length-1 범위로 clamp — 음수/초과 인덱스 방어
   const [current, setCurrent] = useState(() => Math.max(0, Math.min(initialStep, steps.length - 1)));
   const touchStartX = useRef(0);
+  // 슬라이더 — 현재 단계만큼 왼쪽 이동 (CSS 변수 --step-offset)
+  const sliderRef = useRef<HTMLDivElement>(null);
   const total = steps.length;
   const isLast = current === total - 1;
+
+  useCssVariables(sliderRef, { "--step-offset": `-${current * 100}%` });
 
   // 범위 가드 내장 — 첫/마지막 단계에서 경계 초과 호출 안전
   const goTo = (idx: number) => {
@@ -64,10 +69,7 @@ export default function StepNavigator({ steps, lastButtonLabel = "카테고리 �
 
       {/* 콘텐츠 영역 */}
       <div className="flex-1 overflow-hidden">
-        <div
-          className="step-slider"
-          style={{ "--step-offset": `-${current * 100}%` } as React.CSSProperties}
-        >
+        <div ref={sliderRef} className="step-slider">
           {steps.map((step, i) => (
             // 마지막 스텝은 콘텐츠가 길 수 있으므로 세로 스크롤 허용
             <div key={i} className={`min-w-full h-full flex flex-col items-center text-center ${i === total - 1 ? "overflow-y-auto justify-start pt-4" : "justify-center"}`}>

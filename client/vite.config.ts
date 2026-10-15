@@ -1,9 +1,11 @@
 /// <reference types="vitest" />
 import { defineConfig } from "vitest/config";
+import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import tailwindcss from "@tailwindcss/vite";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { PRODUCTION_SITE_URL } from "./src/constants/siteUrls";
 
 // version.yml을 직접 읽어 버전 추출 — package.json 동기화 문제 우회
 // process.cwd()는 빌드 실행 위치(client/)를 기준으로 하므로 CI 환경에서도 안정적
@@ -13,10 +15,18 @@ const versionYml = readFileSync(
 );
 const appVersion = versionYml.match(/^version:\s*"([^"]+)"/m)?.[1] ?? "0.0.0";
 
+/** index.html 의 %PASSQL_SITE_URL% > 운영 웹 주소 (og 태그, 원본 siteUrls.ts) */
+function injectSiteUrlIntoIndexHtml(): Plugin {
+  return {
+    name: "passql-inject-site-url",
+    transformIndexHtml: (html) => html.replaceAll("%PASSQL_SITE_URL%", PRODUCTION_SITE_URL),
+  };
+}
+
 export default defineConfig({
   // version.yml의 version 값을 빌드 시 전역 상수로 주입
   define: { __APP_VERSION__: JSON.stringify(appVersion) },
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), injectSiteUrlIntoIndexHtml()],
   server: {
     proxy: {
       "/api": {

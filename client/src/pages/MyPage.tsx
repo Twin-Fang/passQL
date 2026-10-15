@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useAuthStore } from "../stores/authStore";
 import { useStagger } from "../hooks/useStagger";
 import { useMember } from "../hooks/useMember";
-import { isNicknameCooldown, formatNicknameCooldownMessage } from "../lib/dateUtil";
+import { isNicknameCooldown, formatNicknameCooldownMessage } from "../lib/nicknameCooldown";
 import { fetchWrongQuestions } from "../api/progress";
 import NicknameChangeModal from "../components/NicknameChangeModal";
 import ErrorFallback from "../components/ErrorFallback";
@@ -21,14 +21,14 @@ function WrongQuestionRow({ item }: { readonly item: WrongQuestionItem }) {
 
   return (
     <div className="flex items-center gap-3 px-4 py-3 border-b border-border last:border-b-0">
-      <div className="w-9 h-9 rounded-[10px] bg-sem-error-light flex items-center justify-center shrink-0">
-        <XCircle size={18} className="text-sem-error" />
+      <div className="w-9 h-9 rounded-[10px] bg-semantic-error-light flex items-center justify-center shrink-0">
+        <XCircle size={18} className="text-semantic-error" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-text-primary truncate">{item.stemPreview}</p>
         <div className="flex items-center gap-1.5 mt-0.5">
           {/* 토픽 뱃지 */}
-          <span className="text-[10px] font-medium bg-accent-light text-brand px-1.5 py-0.5 rounded">
+          <span className="text-[10px] font-medium bg-brand-light text-brand px-1.5 py-0.5 rounded">
             {item.topicName}
           </span>
           <span className="text-[11px] text-text-caption">
@@ -120,7 +120,7 @@ export default function MyPage() {
       <section className={`bg-surface-card border border-border rounded-2xl p-5 flex items-center gap-4 ${s1.className}`}>
         {/* 아바타 */}
         <div className="w-14 h-14 rounded-[14px] bg-brand flex items-center justify-center shrink-0">
-          <span className="text-2xl font-bold text-white">{avatarLetter}</span>
+          <span className="text-2xl font-bold text-on-brand">{avatarLetter}</span>
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-lg font-bold text-text-primary truncate">
@@ -149,7 +149,7 @@ export default function MyPage() {
             <div className="flex items-center gap-2">
               <span className="text-[15px] font-semibold text-text-primary">오답 노트</span>
               {totalWrongCount > 0 && (
-                <span className="text-[11px] font-semibold bg-sem-error-light text-sem-error px-2 py-0.5 rounded-full">
+                <span className="text-[11px] font-semibold bg-semantic-error-light text-semantic-error px-2 py-0.5 rounded-full">
                   {totalWrongCount}개
                 </span>
               )}
@@ -208,7 +208,7 @@ export default function MyPage() {
       {/* Toast */}
       {toastMsg && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
-          <div className="bg-brand text-white text-sm font-medium px-4 py-2.5 rounded-lg shadow-md whitespace-nowrap">
+          <div className="bg-brand text-on-brand text-sm font-medium px-4 py-2.5 rounded-lg shadow-md whitespace-nowrap">
             {toastMsg}
           </div>
         </div>

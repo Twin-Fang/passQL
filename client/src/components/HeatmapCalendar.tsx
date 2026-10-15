@@ -1,13 +1,19 @@
 import { useState, useRef, useMemo } from "react";
 import type { HeatmapEntry } from "../types/api";
+import { useCssVariables } from "../hooks/useCssVariables";
 
-const HEATMAP_COLORS = [
-  "#F5F5F5",
-  "#EEF2FF",
-  "#C7D2FE",
-  "#818CF8",
-  "#4F46E5",
+// 히트맵 단계(0~4) > 칸 배경 클래스 (색 값은 tokens.css --color-heat-*)
+const HEAT_LEVEL_BACKGROUND_CLASSES = [
+  "bg-heat-0",
+  "bg-heat-1",
+  "bg-heat-2",
+  "bg-heat-3",
+  "bg-heat-4",
 ] as const;
+// 진한 칸(3단계 이상)은 흰 글자
+const DARK_HEAT_LEVEL_MINIMUM = 3;
+// 툴팁과 셀 사이 간격 (px)
+const TOOLTIP_GAP_PIXELS = 8;
 
 export function getLevel(count: number): number {
   if (count === 0) return 0;
@@ -70,19 +76,22 @@ export function HeatmapCalendar({ entries }: HeatmapCalendarProps) {
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // 컨테이너 ref — 툴팁 위치를 컨테이너 기준으로 계산
   const containerRef = useRef<HTMLDivElement>(null);
+  // 툴팁 요소 — 위치 CSS 변수 주입 대상
+  const tooltipRef = useRef<HTMLDivElement>(null);
 
-  // tooltip state가 바뀔 때만 위치 재계산
-  const tooltipStyle = useMemo((): React.CSSProperties => {
-    if (!tooltip || !containerRef.current) return { display: "none" };
+  // 툴팁 위치: 셀 중앙 위 (컨테이너 기준)
+  const tooltipPosition = useMemo(() => {
+    if (!tooltip || !containerRef.current) return { leftPixels: 0, topPixels: 0 };
     const containerRect = containerRef.current.getBoundingClientRect();
-    const cellCenterX = tooltip.cellRect.left - containerRect.left + tooltip.cellRect.width / 2;
-    const cellTopY = tooltip.cellRect.top - containerRect.top;
     return {
-      left: cellCenterX,
-      top: cellTopY - 8, // 셀 위 8px 간격
-      transform: "translateX(-50%) translateY(-100%)",
+      leftPixels: tooltip.cellRect.left - containerRect.left + tooltip.cellRect.width / 2,
+      topPixels: tooltip.cellRect.top - containerRect.top - TOOLTIP_GAP_PIXELS,
     };
   }, [tooltip]);
+  useCssVariables(tooltipRef, {
+    "--tooltip-left": `${tooltipPosition.leftPixels}px`,
+    "--tooltip-top": `${tooltipPosition.topPixels}px`,
+  });
 
   const hideTooltip = () => setTooltip(null);
 
@@ -98,11 +107,9 @@ export function HeatmapCalendar({ entries }: HeatmapCalendarProps) {
           return (
             <div
               key={date}
-              className="w-6 h-6 rounded flex items-center justify-center text-[10px] cursor-default select-none"
-              style={{
-                backgroundColor: HEATMAP_COLORS[level],
-                color: level >= 3 ? "#FFFFFF" : "#9CA3AF",
-              }}
+              className={`w-6 h-6 rounded flex items-center justify-center text-[10px] cursor-default select-none ${HEAT_LEVEL_BACKGROUND_CLASSES[level]} ${
+                level >= DARK_HEAT_LEVEL_MINIMUM ? "text-on-brand" : "text-text-caption"
+              }`}
               onMouseEnter={(e) => setTooltip({
                 date: entry.date,
                 solvedCount: entry.solvedCount,
@@ -145,12 +152,8 @@ export function HeatmapCalendar({ entries }: HeatmapCalendarProps) {
       {/* 히트맵 범례 */}
       <div className="flex items-center gap-1 mt-2 justify-end">
         <span className="text-[10px] text-text-caption">0</span>
-        {HEATMAP_COLORS.map((color) => (
-          <div
-            key={color}
-            className="w-3 h-3 rounded-sm"
-            style={{ backgroundColor: color }}
-          />
+        {HEAT_LEVEL_BACKGROUND_CLASSES.map((backgroundClass) => (
+          <div key={backgroundClass} className={`w-3 h-3 rounded-sm ${backgroundClass}`} />
         ))}
         <span className="text-[10px] text-text-caption">6+</span>
       </div>
@@ -158,29 +161,17 @@ export function HeatmapCalendar({ entries }: HeatmapCalendarProps) {
       {/* 툴팁 — hover/long press 시 셀 위에 표시 */}
       {tooltip && (
         <div
-          className="absolute z-50 pointer-events-none whitespace-nowrap rounded-lg px-3 py-2 text-xs text-white shadow-lg"
-          style={{
-            backgroundColor: "#1F2937",
-            ...tooltipStyle,
-          }}
+          ref={tooltipRef}
+          className="absolute z-50 pointer-events-none whitespace-nowrap rounded-lg px-3 py-2 text-xs text-text-inverse bg-surface-inverse shadow-lg [left:var(--tooltip-left)] [top:var(--tooltip-top)] -translate-x-1/2 -translate-y-full"
         >
           <div className="font-medium">{formatDateKo(tooltip.date)}</div>
-          <div className="mt-0.5" style={{ color: "#D1D5DB" }}>
+          <div className="mt-0.5 text-text-inverse-secondary">
             {tooltip.solvedCount > 0
               ? `${tooltip.solvedCount}문제 · 정답률 ${Math.round((tooltip.correctCount / tooltip.solvedCount) * 100)}%`
               : "풀이 없음"}
           </div>
           {/* 툴팁 하단 꼬리 삼각형 */}
-          <div
-            className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-full"
-            style={{
-              width: 0,
-              height: 0,
-              borderLeft: "5px solid transparent",
-              borderRight: "5px solid transparent",
-              borderTop: "5px solid #1F2937",
-            }}
-          />
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-full w-0 h-0 border-x-[5px] border-x-transparent border-t-[5px] border-t-surface-inverse" />
         </div>
       )}
     </div>

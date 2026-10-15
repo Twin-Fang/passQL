@@ -1,7 +1,7 @@
 import { Flame, ChevronRight, Check, RefreshCw, Sparkles } from "lucide-react";
 import { getReadinessCopy } from "../constants/readinessCopy";
 import { Link } from "react-router-dom";
-import { useState, useCallback, useEffect, type CSSProperties } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useProgress } from "../hooks/useProgress";
 import { useMember } from "../hooks/useMember";
 import { useAuthStore } from "../stores/authStore";
@@ -17,6 +17,7 @@ import {
 } from "../hooks/useHome";
 import { useStagger } from "../hooks/useStagger";
 import AppDownloadBanner from "../components/AppDownloadBanner";
+import ProgressBar from "../components/ProgressBar";
 
 /**
  * greeting 메시지의 {nickname}을 강조 span으로 치환하고
@@ -171,12 +172,12 @@ export default function Home() {
             )}
         </h1>
         {greeting?.messageType === "EXAM_DAY" && (
-          <p className="text-sm font-medium mt-1 text-sem-error-text">
+          <p className="text-sm font-medium mt-1 text-semantic-error-text">
             오늘 시험이에요!
           </p>
         )}
         {greeting?.messageType === "URGENT" && (
-          <p className="text-sm font-medium mt-1 text-sem-warning-text">
+          <p className="text-sm font-medium mt-1 text-semantic-warning-text">
             시험이 얼마 남지 않았어요
           </p>
         )}
@@ -195,12 +196,12 @@ export default function Home() {
           // 인디고 단색 카드 — D-day를 전면에 강조해 시험 긴박감 전달
           <div className="h-full rounded-xl p-4 sm:p-6 flex flex-col justify-center relative overflow-hidden bg-brand">
             {/* 배경 장식 원 — 단색 배경의 단조로움을 덜어주는 subtle한 레이어 */}
-            <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10" />
-            <div className="absolute right-4 -bottom-8 w-24 h-24 rounded-full bg-white/5" />
-            <p className="text-xs font-medium text-white/70 mb-1 relative z-10">
+            <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-on-brand/10" />
+            <div className="absolute right-4 -bottom-8 w-24 h-24 rounded-full bg-on-brand/5" />
+            <p className="text-xs font-medium text-on-brand/70 mb-1 relative z-10">
               {schedule.certType} {schedule.round}회
             </p>
-            <p className="text-3xl font-bold text-white leading-tight relative z-10">
+            <p className="text-3xl font-bold text-on-brand leading-tight relative z-10">
               {/* D-day 계산: 오늘 00:00 기준으로 시험일까지 남은 일수 */}
               {(() => {
                 const today = new Date();
@@ -213,7 +214,7 @@ export default function Home() {
                 return `D+${Math.abs(diff)}`;
               })()}
             </p>
-            <p className="text-sm text-white/70 mt-1 relative z-10">{schedule.examDate}</p>
+            <p className="text-sm text-on-brand/70 mt-1 relative z-10">{schedule.examDate}</p>
           </div>
         ) : (
           <div className="bg-surface-card border border-border rounded-2xl p-4 sm:p-6 h-full flex flex-col justify-center">
@@ -228,10 +229,10 @@ export default function Home() {
         ) : dailySet?.questions && dailySet.questions.length > 0 ? (
           dailySet.alreadyCompleted ? (
             // 완료 상태: 회색 dimmed 카드 — 이미 끝난 항목임을 시각적으로 표현
-            <div className="h-full flex flex-col gap-2 rounded-xl p-5 cursor-default bg-[#F3F4F6] border border-border">
+            <div className="h-full flex flex-col gap-2 rounded-xl p-5 cursor-default bg-surface-code border border-border">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-text-secondary">오늘의 데일리 세트</p>
-                <span className="flex items-center gap-1 text-xs font-semibold text-sem-success-text">
+                <span className="flex items-center gap-1 text-xs font-semibold text-semantic-success-text">
                   <Check size={11} strokeWidth={3} />
                   완료
                 </span>
@@ -273,7 +274,7 @@ export default function Home() {
           <h2 className="text-sm text-text-secondary">학습 현황</h2>
           {/* streak는 progress 에러 시 0 fallback → 뱃지 자연스럽게 미표시 */}
           {streak > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-bold bg-sem-warning-light text-sem-warning-text">
+            <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-bold bg-semantic-warning-light text-semantic-warning-text">
               {/* fill 속성으로 불꽃 아이콘을 꽉 채운 스타일로 표시 */}
               <Flame size={14} fill="currentColor" />
               연속 {streak}일
@@ -335,12 +336,11 @@ export default function Home() {
               {Math.round(progress.readiness.score * 100)}%
             </span>
           </div>
-          <div className="w-full h-2 rounded-full bg-border mb-3">
-            <div
-              className="h-full rounded-full bg-brand transition-all [width:var(--bar-w)]"
-              style={{ "--bar-w": `${progress.readiness.score * 100}%` } as CSSProperties}
-            />
-          </div>
+          <ProgressBar
+            fillPercent={progress.readiness.score * 100}
+            trackClassName="h-2 bg-border mb-3"
+            fillClassName="bg-brand transition-all"
+          />
           <p className="text-sm text-text-secondary">
             {getReadinessCopy(
               progress.readiness.toneKey,
@@ -367,12 +367,11 @@ export default function Home() {
               {Math.round(correctRate * 100)}%
             </span>
             <span className="text-sm text-text-secondary mt-1">정답률</span>
-            <div className="w-full mt-2 h-1 rounded-full bg-border">
-              <div
-                className="h-full rounded-full bg-brand [width:var(--bar-w)]"
-                style={{ "--bar-w": `${correctRate * 100}%` } as CSSProperties}
-              />
-            </div>
+            <ProgressBar
+              fillPercent={correctRate * 100}
+              trackClassName="mt-2 h-1 bg-border"
+              fillClassName="bg-brand"
+            />
           </div>
         </section>
       )}
@@ -388,7 +387,7 @@ export default function Home() {
               onClick={handleRefresh}
               disabled={recommendationsFetching || isRefreshing || spinning}
               onAnimationEnd={() => setSpinning(false)}
-              className="p-1 rounded hover:bg-gray-100 transition-colors disabled:opacity-40"
+              className="p-1 rounded hover:bg-surface transition-colors disabled:opacity-40"
               aria-label="추천 문제 새로고침"
             >
               <RefreshCw

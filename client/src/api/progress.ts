@@ -9,8 +9,8 @@ export function fetchHeatmap(from?: string, to?: string): Promise<HeatmapRespons
   const query = new URLSearchParams();
   if (from) query.set("from", from);
   if (to) query.set("to", to);
-  const qs = query.toString();
-  return apiFetch(`/progress/heatmap${qs ? `?${qs}` : ""}`);
+  const queryString = query.toString();
+  return apiFetch(`/progress/heatmap${queryString ? `?${queryString}` : ""}`);
 }
 
 export function fetchTopicAnalysis(): Promise<TopicAnalysisResponse> {
@@ -19,8 +19,8 @@ export function fetchTopicAnalysis(): Promise<TopicAnalysisResponse> {
 
 // sessionUuid 있으면 세션 단위 캐시 2h (결과 화면), 없으면 멤버 단위 캐시 (통계 화면)
 export function fetchAiComment(sessionUuid?: string): Promise<AiCommentResponse> {
-  const qs = sessionUuid ? `?sessionUuid=${sessionUuid}` : "";
-  return apiFetch(`/progress/ai-comment${qs}`);
+  const queryString = sessionUuid ? `?sessionUuid=${sessionUuid}` : "";
+  return apiFetch(`/progress/ai-comment${queryString}`);
 }
 
 export function fetchWrongQuestions(size = 20): Promise<WrongQuestionsResponse> {

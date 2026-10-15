@@ -47,7 +47,7 @@ export default function ConfirmModal({
     >
       {/* 모달 카드 — 클릭 이벤트 버블링 방지 */}
       <div
-        className="w-full bg-white border border-border rounded-t-2xl px-5 pt-5 pb-8 space-y-4"
+        className="w-full bg-surface-card border border-border rounded-t-2xl px-5 pt-5 pb-8 space-y-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 상단 인디케이터 */}
