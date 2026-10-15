@@ -13,3 +13,12 @@ dependencies = [
     "redis>=5.0.0",
     "google-genai>=0.3.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
