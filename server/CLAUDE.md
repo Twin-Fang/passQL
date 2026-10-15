@@ -86,24 +86,28 @@ th:data-href="@{/admin/members/{uuid}(uuid=${m.memberUuid})}"
 - SQL 작성 시 테이블/컬럼 생성은 반드시 `IF NOT EXISTS` 사용, 삭제는 `IF EXISTS` 사용
 - 시드 INSERT는 `ON DUPLICATE KEY UPDATE`로 멱등성을 보장한다
 
-### 현재 마이그레이션 이력
+### 마이그레이션 이력 확인
 
-| 버전 | 파일 | 내용 |
-|------|------|------|
-| V0_0_11 | `V0_0_11__init_schema.sql` | 초기 스키마 전체 생성 (topic, subtopic, concept_tag, concept_doc, prompt_template, app_setting, question, question_choice) |
-| V0_0_12 | `V0_0_12__add_submission_tables.sql` | submission, execution_log 테이블 추가 |
-| V0_0_16 | `V0_0_16__add_member_table.sql` | member 테이블 추가 |
-| V0_0_21 | `V0_0_21__add_concept_tag_table.sql` | question_concept_tag 매핑 테이블 추가 + 초기 시드 데이터 적재 (app_setting 13개, prompt_template 3종, topic 9개) |
+- 이력의 원본은 마이그레이션 폴더 자체다. 문서에 표로 복사하지 않는다.
+  - 확인: `ls PQL-Web/src/main/resources/db/migration | sort -V`
+  - 2026-10-15 기준 38개, 최신 `V0_4_2__add_exam_announcement_checked_setting.sql`
+- `spring.flyway.out-of-order: true`는 반드시 유지 (늦게 추가된 낮은 버전 파일이 조용히 스킵되던 로그인 장애 원인)
 
 ## 모듈 구조
 
 ```
 server/
-├── PQL-Web/          # 웹 레이어 (Controller, 설정, 리소스)
-├── PQL-Common/       # 공통 (BaseEntity 등)
-├── PQL-Domain-Meta/  # 메타 도메인 (topic, subtopic, concept, app_setting, prompt)
-└── PQL-Domain-Question/ # 문제 도메인 (question, question_choice)
+├── PQL-Web/               # 진입점: Controller, Config, 보안, 스케줄러, 기동 작업(init), 템플릿·정적 자원, Flyway
+├── PQL-Application/       # 여러 도메인을 묶는 응용 서비스 (데일리 세트, 추천, AI 해설, 선택지 생성 SSE 등)
+├── PQL-Common/            # 공통: BaseEntity, ErrorCode·CustomException·GlobalExceptionHandler, util
+├── PQL-Domain-Member/     # 회원·인증(JWT, 소셜 로그인)
+├── PQL-Domain-Question/   # 문제·선택지 세트·샌드박스 실행·문제 생성
+├── PQL-Domain-Submission/ # 제출·진척도·준비도
+├── PQL-Domain-AI/         # AI 서버 게이트웨이·Gemini 대체 경로
+└── PQL-Domain-Meta/       # 토픽·개념 태그·프롬프트·app_setting·시험 일정·약관·건의
 ```
+
+- 모듈 목록의 원본은 `settings.gradle`이다.
 
 ## BaseEntity
 
@@ -237,6 +241,21 @@ throw new SqlSafetyException("SELECT만 허용됩니다");
 throw new CustomException(ErrorCode.NOT_SELECT);
 ```
 
+### 오류 응답 규칙 (ArchitectureRuleTest 가 강제)
+
+- 응답 본문은 `ErrorResponse.of(ErrorCode)` / `ErrorResponse.of(ErrorCode, 메시지)`로만 만든다. 문자열 코드 리터럴 금지.
+- 컨트롤러에서 `Map.of("error", ...)`, `ResponseEntity.status(4xx)`, `badRequest()`·`notFound()` 같은 임의 오류 응답 금지 — `CustomException(ErrorCode.X)`를 던진다.
+- SSE 오류 이벤트는 `SseErrorEvent.of(ErrorCode, ...)`로만 만든다 (`errorCode`, 출시 앱 호환용 `code` 동일 값).
+- 앱·웹이 파싱하는 ErrorCode 이름은 와이어 계약이다. 이름을 바꾸지 않는다.
+
+### 공통 지점
+
+- 설정 키: `PQL-Domain-Meta` `AppSettingKeys` (app_setting 키 문자열 직접 사용 금지)
+- enum 요청값 변환: 각 enum 의 `fromRequestValue(String)` (잘못된 값 > `INVALID_INPUT_VALUE`)
+- 관리자 목록 페이지: `PQL-Web` `AdminPageRequest`
+- 미리보기 자르기: `TextPreview.truncate` / `truncateWithEllipsis` + 용도별 길이 상수
+- UUID 짧은 표기: `UuidUtils.toShortForm`
+
 ### ErrorCode 추가 방법
 `PQL-Common/src/main/java/com/passql/common/exception/constant/ErrorCode.java`에 카테고리에 맞게 추가:
 ```java
@@ -324,7 +343,7 @@ class XxxServiceTest {
 - [ ] Controller에서 Repository를 직접 주입하지 않았는가? (반드시 Service 경유)
 - [ ] Controller에 `@Transactional`이 없는가? (Service 레이어에만 허용)
 - [ ] Controller에 비즈니스 로직이 없는가? (3줄 이상 조건/변환 → Service로 추출)
-- [ ] API 추가/변경 시 `docs/apilog/` 에 변경 내역을 기록했는가?
+- [ ] API 추가/변경 시 Controller Docs 인터페이스에 `@ApiLog`를 추가했는가?
 - [ ] 테스트 코드에 `assertThat` 대신 `superLog()`로 결과를 출력했는가?
 - [ ] 테스트 `@Transactional`은 `mainTest()`에만 선언했는가? (세부 메서드에 중복 선언 금지)
 - [ ] 멀티모듈 테스트에 `testImplementation project(':PQL-Web')`를 추가했는가?
