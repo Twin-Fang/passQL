@@ -1,8 +1,7 @@
 [project]
 name = "passql-ai"
 version = "0.9.4"
-description = "passQL AI Server - SQL 오류 설명, diff 해설, 유사 문제 검색"
-readme = "README.md"
+description = "passQL AI Server - 문제·선택지 생성, 프롬프트 테스트, RAG 색인·추천·정리"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.118.0",
@@ -13,3 +12,12 @@ dependencies = [
     "redis>=5.0.0",
     "google-genai>=0.3.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

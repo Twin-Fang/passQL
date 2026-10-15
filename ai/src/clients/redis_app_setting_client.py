@@ -1,4 +1,4 @@
-"""src.services.redis_settings
+"""src.clients.redis_app_setting_client
 Spring과 공유하는 Redis에서 app_setting 값을 읽어오는 클라이언트.
 
 Redis 키 형식: passql:settings:{setting_key}
@@ -72,14 +72,3 @@ def get_setting(key: str, fallback: str) -> str:
 def get_gemini_api_key() -> str:
     return get_setting("ai.gemini_api_key", settings.GEMINI_API_KEY)
 
-
-def get_gemini_model() -> str:
-    return get_setting("ai.gemini_model", settings.GEMINI_MODEL)
-
-
-def get_ollama_chat_model() -> str:
-    return get_setting("ai.ollama_chat_model", settings.OLLAMA_CHAT_MODEL)
-
-
-def get_ollama_embed_model() -> str:
-    return get_setting("ai.ollama_embed_model", settings.OLLAMA_EMBED_MODEL)

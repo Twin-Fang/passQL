@@ -1,0 +1,734 @@
+{
+  "/api/ai/generate-choice-set": {
+    "request": {
+      "properties": {
+        "context": {
+          "description": "사용자 풀이용 — 기존 문제에 대한 선택지 4개 세트 생성 컨텍스트",
+          "properties": {
+            "answer_sql": {
+              "type": "string"
+            },
+            "difficulty": {
+              "maximum": 5.0,
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "question_uuid": {
+              "type": "string"
+            },
+            "schema_ddl": {
+              "type": "string"
+            },
+            "schema_intent": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "schema_sample_data": {
+              "type": "string"
+            },
+            "stem": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "question_uuid",
+            "stem",
+            "answer_sql",
+            "schema_ddl",
+            "schema_sample_data",
+            "difficulty"
+          ],
+          "type": "object"
+        },
+        "llm_config": {
+          "description": "Spring 에서 프롬프트 전문·모델·response_schema 를 포함해 내려준다.\nPython 서버는 이것을 그대로 Gemini 에 넘긴다.",
+          "properties": {
+            "max_tokens": {
+              "default": 2048,
+              "type": "integer"
+            },
+            "model": {
+              "type": "string"
+            },
+            "response_schema": {
+              "anyOf": [
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "system_prompt": {
+              "type": "string"
+            },
+            "temperature": {
+              "default": 0.8,
+              "type": "number"
+            },
+            "user_template": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "model",
+            "system_prompt",
+            "user_template"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "context",
+        "llm_config"
+      ],
+      "type": "object"
+    },
+    "response": {
+      "properties": {
+        "choices": {
+          "items": {
+            "description": "생성된 선택지 한 개",
+            "properties": {
+              "body": {
+                "type": "string"
+              },
+              "is_correct": {
+                "type": "boolean"
+              },
+              "key": {
+                "type": "string"
+              },
+              "rationale": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "key",
+              "body",
+              "is_correct",
+              "rationale"
+            ],
+            "type": "object"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "type": "array"
+        },
+        "metadata": {
+          "description": "AI 호출 메타데이터.\nJava GenerationMetadataDto와 snake_case 키로 1:1 매핑.\nmodel_name → Java modelName (SNAKE_CASE ObjectMapper 자동 변환)",
+          "properties": {
+            "completion_tokens": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "elapsed_ms": {
+              "type": "integer"
+            },
+            "model_name": {
+              "type": "string"
+            },
+            "prompt_tokens": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "raw_response_json": {
+              "anyOf": [
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "model_name",
+            "elapsed_ms"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "choices",
+        "metadata"
+      ],
+      "type": "object"
+    }
+  },
+  "/api/ai/generate-question-full": {
+    "request": {
+      "properties": {
+        "context": {
+          "description": "관리자 문제 등록용 — 전체 문제(stem+answer_sql+seed choices) 생성 컨텍스트",
+          "properties": {
+            "difficulty": {
+              "maximum": 5.0,
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "hint": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "schema_ddl": {
+              "type": "string"
+            },
+            "schema_intent": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "schema_sample_data": {
+              "type": "string"
+            },
+            "subtopic": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "topic": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "schema_ddl",
+            "schema_sample_data",
+            "topic",
+            "difficulty"
+          ],
+          "type": "object"
+        },
+        "llm_config": {
+          "description": "Spring 에서 프롬프트 전문·모델·response_schema 를 포함해 내려준다.\nPython 서버는 이것을 그대로 Gemini 에 넘긴다.",
+          "properties": {
+            "max_tokens": {
+              "default": 2048,
+              "type": "integer"
+            },
+            "model": {
+              "type": "string"
+            },
+            "response_schema": {
+              "anyOf": [
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "system_prompt": {
+              "type": "string"
+            },
+            "temperature": {
+              "default": 0.8,
+              "type": "number"
+            },
+            "user_template": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "model",
+            "system_prompt",
+            "user_template"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "context",
+        "llm_config"
+      ],
+      "type": "object"
+    },
+    "response": {
+      "properties": {
+        "answer_sql": {
+          "type": "string"
+        },
+        "metadata": {
+          "description": "AI 호출 메타데이터.\nJava GenerationMetadataDto와 snake_case 키로 1:1 매핑.\nmodel_name → Java modelName (SNAKE_CASE ObjectMapper 자동 변환)",
+          "properties": {
+            "completion_tokens": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "elapsed_ms": {
+              "type": "integer"
+            },
+            "model_name": {
+              "type": "string"
+            },
+            "prompt_tokens": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "raw_response_json": {
+              "anyOf": [
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "model_name",
+            "elapsed_ms"
+          ],
+          "type": "object"
+        },
+        "seed_choices": {
+          "items": {
+            "description": "생성된 선택지 한 개",
+            "properties": {
+              "body": {
+                "type": "string"
+              },
+              "is_correct": {
+                "type": "boolean"
+              },
+              "key": {
+                "type": "string"
+              },
+              "rationale": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "key",
+              "body",
+              "is_correct",
+              "rationale"
+            ],
+            "type": "object"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "type": "array"
+        },
+        "stem": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stem",
+        "answer_sql",
+        "seed_choices",
+        "metadata"
+      ],
+      "type": "object"
+    }
+  },
+  "/api/ai/index-question": {
+    "request": {
+      "description": "문제 1개를 Qdrant에 임베딩 적재하는 요청",
+      "properties": {
+        "difficulty": {
+          "maximum": 5.0,
+          "minimum": 1.0,
+          "type": "integer"
+        },
+        "question_uuid": {
+          "type": "string"
+        },
+        "stem": {
+          "type": "string"
+        },
+        "subtopic_display_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tag_keys": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "topic_display_name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "question_uuid",
+        "topic_display_name",
+        "difficulty",
+        "stem"
+      ],
+      "type": "object"
+    },
+    "response": {
+      "description": "문제 임베딩 적재 결과",
+      "properties": {
+        "created": {
+          "type": "boolean"
+        },
+        "question_uuid": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "question_uuid",
+        "created"
+      ],
+      "type": "object"
+    }
+  },
+  "/api/ai/index-questions-bulk": {
+    "request": {
+      "description": "여러 문제를 Qdrant에 일괄 적재하는 요청 (관리자 전체 재색인용)",
+      "properties": {
+        "questions": {
+          "items": {
+            "description": "문제 1개를 Qdrant에 임베딩 적재하는 요청",
+            "properties": {
+              "difficulty": {
+                "maximum": 5.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              "question_uuid": {
+                "type": "string"
+              },
+              "stem": {
+                "type": "string"
+              },
+              "subtopic_display_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "tag_keys": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "topic_display_name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "question_uuid",
+              "topic_display_name",
+              "difficulty",
+              "stem"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "questions"
+      ],
+      "type": "object"
+    },
+    "response": {
+      "description": "문제 일괄 적재 결과",
+      "properties": {
+        "failed": {
+          "type": "integer"
+        },
+        "failed_uuids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "succeeded": {
+          "type": "integer"
+        },
+        "total": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "total",
+        "succeeded",
+        "failed"
+      ],
+      "type": "object"
+    }
+  },
+  "/api/ai/index-status": {
+    "request": {
+      "description": "DB 전체 문제 UUID 목록 기반 색인 상태 확인 요청.\n\nJava가 DB에서 조회한 전체 문제 UUID를 전달하면\nPython이 Qdrant scroll과 비교하여 미색인 목록 반환.",
+      "properties": {
+        "question_uuids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "question_uuids"
+      ],
+      "type": "object"
+    },
+    "response": {
+      "description": "Qdrant 색인 상태 응답.\n\nDB UUID 목록과 Qdrant 포인트 UUID 비교 결과를 반환.\n관리자 화면에서 미색인 문제 탐지 및 재색인 트리거에 사용.",
+      "properties": {
+        "collection_points_count": {
+          "type": "integer"
+        },
+        "db_question_count": {
+          "type": "integer"
+        },
+        "orphan_count": {
+          "default": 0,
+          "type": "integer"
+        },
+        "unindexed_count": {
+          "type": "integer"
+        },
+        "unindexed_uuids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "collection_points_count",
+        "db_question_count",
+        "unindexed_count",
+        "unindexed_uuids"
+      ],
+      "type": "object"
+    }
+  },
+  "/api/ai/prune-index": {
+    "request": {
+      "description": "DB 전체 문제 UUID 목록 기반 색인 상태 확인 요청.\n\nJava가 DB에서 조회한 전체 문제 UUID를 전달하면\nPython이 Qdrant scroll과 비교하여 미색인 목록 반환.",
+      "properties": {
+        "question_uuids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "question_uuids"
+      ],
+      "type": "object"
+    },
+    "response": {
+      "description": "고아 벡터 정리 결과 (#412).",
+      "properties": {
+        "deleted_count": {
+          "type": "integer"
+        },
+        "deleted_uuids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "deleted_count",
+        "deleted_uuids"
+      ],
+      "type": "object"
+    }
+  },
+  "/api/ai/recommend": {
+    "request": {
+      "description": "사용자 신호 기반 개인화 문제 추천 요청\n\nJava가 Submission DB에서 사용자 신호를 집계하여 전달한다.\nPython은 임베딩 검색만 담당.",
+      "properties": {
+        "recent_wrong_question_uuids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "size": {
+          "default": 3,
+          "maximum": 5.0,
+          "minimum": 1.0,
+          "type": "integer"
+        },
+        "solved_question_uuids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "response": {
+      "description": "개인화 추천 결과",
+      "properties": {
+        "items": {
+          "items": {
+            "description": "추천 문제 단일 항목",
+            "properties": {
+              "question_uuid": {
+                "type": "string"
+              },
+              "score": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "question_uuid",
+              "score"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "query_source_count": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "items",
+        "query_source_count"
+      ],
+      "type": "object"
+    }
+  },
+  "/api/ai/test-prompt": {
+    "request": {
+      "properties": {
+        "llm_config": {
+          "description": "Spring 에서 프롬프트 전문·모델·response_schema 를 포함해 내려준다.\nPython 서버는 이것을 그대로 Gemini 에 넘긴다.",
+          "properties": {
+            "max_tokens": {
+              "default": 2048,
+              "type": "integer"
+            },
+            "model": {
+              "type": "string"
+            },
+            "response_schema": {
+              "anyOf": [
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "system_prompt": {
+              "type": "string"
+            },
+            "temperature": {
+              "default": 0.8,
+              "type": "number"
+            },
+            "user_template": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "model",
+            "system_prompt",
+            "user_template"
+          ],
+          "type": "object"
+        },
+        "variables": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "llm_config"
+      ],
+      "type": "object"
+    },
+    "response": {
+      "properties": {
+        "elapsed_ms": {
+          "type": "integer"
+        },
+        "result": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "result",
+        "elapsed_ms"
+      ],
+      "type": "object"
+    }
+  }
+}
