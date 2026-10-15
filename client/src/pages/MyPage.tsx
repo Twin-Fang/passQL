@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useAuthStore } from "../stores/authStore";
 import { useStagger } from "../hooks/useStagger";
 import { useMember } from "../hooks/useMember";
-import { isNicknameCooldown, formatNicknameCooldownMessage } from "../lib/dateUtil";
+import { isNicknameCooldown, formatNicknameCooldownMessage } from "../lib/nicknameCooldown";
 import { fetchWrongQuestions } from "../api/progress";
 import NicknameChangeModal from "../components/NicknameChangeModal";
 import ErrorFallback from "../components/ErrorFallback";
