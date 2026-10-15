@@ -387,3 +387,27 @@ export interface FeedbackSubmitResponse {
   readonly createdAt: string;
 }
 
+
+// === App Config (#464) ===
+// 웹은 점검·공지만 사용 (ios·android 버전 정책 필드는 앱 전용이라 타입에서 제외)
+export interface AppMaintenance {
+  readonly isUnderMaintenance: boolean;
+  // 관리자 점검 문구 (비면 화면 기본 문구)
+  readonly message: string | null;
+}
+
+export interface AppNotice {
+  readonly noticeUuid: string;
+  readonly title: string;
+  readonly body: string;
+  readonly startsAt: string | null; // ISO 8601 (KST LocalDateTime)
+  readonly endsAt: string | null;
+  readonly isActive: boolean;
+  readonly isImportant: boolean;
+}
+
+export interface AppConfigResponse {
+  readonly maintenance: AppMaintenance;
+  // 서버가 노출 대상만 중요 먼저 > 최근 등록 순으로 내려줌
+  readonly notices: readonly AppNotice[];
+}
