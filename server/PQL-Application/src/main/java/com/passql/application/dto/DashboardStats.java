@@ -1,5 +1,7 @@
 package com.passql.application.dto;
 
+import com.passql.ai.dto.AiStats;
+
 import java.util.List;
 
 /**
@@ -22,9 +24,14 @@ public record DashboardStats(
         // === 오늘 제출 ===
         long todaySubmissions,        // 오늘 00:00 이후 제출 건수
 
-        // === 실행 로그 (최근 24시간) ===
-        long aiCallCount,             // AI 호출 건수 (현재 0, 확장 포인트)
-        double errorRate              // SQL 실행 실패율 (%)
+        // === 최근 24시간 (#474) ===
+        AiStats aiStats24h,                      // AI 서버 호출 성공·실패·지연 (ai_call_log)
+        double sqlExecutionFailureRatePercent,   // SQL 실행 중 오류로 끝난 비율 (%, 회원 SQL 문법 오류 포함)
+        long serverErrorCount24h,                // 서버 5xx·미처리 예외 건수
+
+        // === 처리 대기 (#474) ===
+        long pendingReportCount,      // 미처리 신고 수
+        long pendingFeedbackCount     // 미처리(PENDING) 건의 수
 
 ) {
 

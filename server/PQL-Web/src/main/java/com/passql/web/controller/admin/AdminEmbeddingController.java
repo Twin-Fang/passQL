@@ -9,6 +9,8 @@ import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.question.service.QuestionGenerateService;
 import com.passql.question.service.QuestionService;
+import com.passql.web.support.AdminMenu;
+import com.passql.web.support.AdminPage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +39,7 @@ public class AdminEmbeddingController {
     private final AiGatewayClient aiGatewayClient;
 
     @GetMapping
+    @AdminPage(menu = AdminMenu.EMBEDDINGS)
     public String index(Model model) {
         log.info("[admin-embeddings] 색인 상태 페이지 요청");
 
@@ -53,8 +56,6 @@ public class AdminEmbeddingController {
         }
 
         model.addAttribute("status", status);           // null이면 화면에서 에러 배너 표시
-        model.addAttribute("currentMenu", "embeddings");
-        model.addAttribute("pageTitle", "임베딩 인덱스 관리");
         return "admin/embeddings";
     }
 

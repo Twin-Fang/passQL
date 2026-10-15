@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.passql.ai.dto.*;
+import com.passql.ai.dto.ComponentHealth;
+import com.passql.ai.service.AiCallLogService;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -28,19 +30,28 @@ import java.util.Map;
 @Component
 public class AiGatewayClient {
 
+    // 상태 확인 전용 짧은 제한 시간 (ms) — 모니터링 화면이 AI 장애에 묶이지 않게
+    private static final int HEALTH_CHECK_TIMEOUT_MILLISECONDS = 3000;
+    private static final String HEALTH_PATH = "/health";
+    private static final String INDEX_STATUS_PATH = "/api/ai/index-status";
+
     private final RestTemplate restTemplate;
+    private final RestTemplate healthCheckRestTemplate;
     private final ObjectMapper snakeCaseMapper;
     private final GeminiFallbackClient fallbackClient;
+    private final AiCallLogService aiCallLogService;
     private final String baseUrl;
     private final String apiKey;
 
     public AiGatewayClient(
             GeminiFallbackClient fallbackClient,
+            AiCallLogService aiCallLogService,
             @Value("${passql.ai-server.base-url:http://localhost:8001}") String baseUrl,
             @Value("${passql.ai-server.api-key:}") String apiKey,
             @Value("${passql.ai-server.timeout-ms:15000}") int timeoutMs
     ) {
         this.fallbackClient = fallbackClient;
+        this.aiCallLogService = aiCallLogService;
         this.baseUrl = baseUrl;
         this.apiKey = apiKey;
 
@@ -53,6 +64,11 @@ public class AiGatewayClient {
         factory.setConnectTimeout(Duration.ofMillis(timeoutMs));
         factory.setReadTimeout(Duration.ofMillis(timeoutMs));
         this.restTemplate = new RestTemplate(factory);
+
+        var healthCheckFactory = new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        healthCheckFactory.setConnectTimeout(Duration.ofMillis(HEALTH_CHECK_TIMEOUT_MILLISECONDS));
+        healthCheckFactory.setReadTimeout(Duration.ofMillis(HEALTH_CHECK_TIMEOUT_MILLISECONDS));
+        this.healthCheckRestTemplate = new RestTemplate(healthCheckFactory);
     }
 
     // ========================
@@ -181,10 +197,70 @@ public class AiGatewayClient {
     }
 
     // ========================
+    //  상태 확인 (#475, 호출 통계에 넣지 않음)
+    // ========================
+
+    /** AI 서버 GET /health (3초 제한) */
+    public ComponentHealth checkAiServerHealth() {
+        long startedAtMilliseconds = System.currentTimeMillis();
+        try {
+            ResponseEntity<String> response = healthCheckRestTemplate.getForEntity(baseUrl + HEALTH_PATH, String.class);
+            long latency = System.currentTimeMillis() - startedAtMilliseconds;
+            return response.getStatusCode().is2xxSuccessful()
+                    ? ComponentHealth.up("AI 서버", latency, "GET /health " + response.getStatusCode().value())
+                    : ComponentHealth.down("AI 서버", latency, "GET /health " + response.getStatusCode().value());
+        } catch (Exception e) {
+            return ComponentHealth.down("AI 서버", System.currentTimeMillis() - startedAtMilliseconds, e.getClass().getSimpleName());
+        }
+    }
+
+    /** Qdrant: AI 서버 index-status(빈 목록) 경유 > 컬렉션 포인트 수 (AI 서버가 Qdrant 를 읽을 수 있어야 성공) */
+    public ComponentHealth checkQdrantThroughAiServer() {
+        long startedAtMilliseconds = System.currentTimeMillis();
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            if (apiKey != null && !apiKey.isBlank()) {
+                headers.set("X-API-Key", apiKey);
+            }
+            String body = snakeCaseMapper.writeValueAsString(new IndexStatusRequest(List.of()));
+            ResponseEntity<String> response = healthCheckRestTemplate.exchange(
+                    baseUrl + INDEX_STATUS_PATH, HttpMethod.POST, new HttpEntity<>(body, headers), String.class);
+            IndexStatusResult result = snakeCaseMapper.readValue(response.getBody(), IndexStatusResult.class);
+            return ComponentHealth.up("Qdrant", System.currentTimeMillis() - startedAtMilliseconds,
+                    "포인트 " + result.collectionPointsCount() + "개 (AI 서버 경유)");
+        } catch (Exception e) {
+            return ComponentHealth.down("Qdrant", System.currentTimeMillis() - startedAtMilliseconds,
+                    "AI 서버 경유 조회 실패: " + e.getClass().getSimpleName());
+        }
+    }
+
+    // ========================
     //  내부 HTTP 처리
     // ========================
 
+    /** AI 서버 POST 1회 + 호출 기록 (성공·실패·지연, #474) — Python 호출의 유일한 통로 */
     private <T> T postToPython(String path, Object request, Class<T> responseType) {
+        long startedAtMilliseconds = System.currentTimeMillis();
+        try {
+            T response = exchangeWithPython(path, request, responseType);
+            aiCallLogService.record(path, true, System.currentTimeMillis() - startedAtMilliseconds, null);
+            return response;
+        } catch (RuntimeException e) {
+            aiCallLogService.record(path, false, System.currentTimeMillis() - startedAtMilliseconds, toErrorType(e));
+            throw e;
+        }
+    }
+
+    /** 실패 종류: CustomException 은 ErrorCode 이름, 그 외는 예외 클래스 이름 */
+    private String toErrorType(RuntimeException e) {
+        if (e instanceof CustomException customException) {
+            return customException.getErrorCode().name();
+        }
+        return e.getClass().getSimpleName();
+    }
+
+    private <T> T exchangeWithPython(String path, Object request, Class<T> responseType) {
         String url = baseUrl + path;
         try {
             HttpHeaders headers = new HttpHeaders();

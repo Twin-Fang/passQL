@@ -1,0 +1,210 @@
+<!doctype html>
+<!-- 문제 목록 화면 모달 4종: 단건 비활성화, 일괄 비활성화, 대량 JSON 가이드, JSON 붙여넣기, 가져오기 검증 결과 -->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<th:block th:fragment="modals">
+    <!-- 비활성화 확인 모달 -->
+    <dialog id="deleteModal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg text-error">문제를 비활성화하시겠습니까?</h3>
+            <p class="py-4">
+                "<span id="deleteTargetTitle" class="font-medium"></span>" 을(를) 비활성화합니다.
+            </p>
+            <p class="text-sm text-base-content/60">
+                문제 목록·추천·오늘의 문제 후보에서 빠지고, 회원의 제출 기록·실행 로그·신고 이력은 그대로 보존됩니다.
+            </p>
+            <div class="modal-action">
+                <button class="btn" onclick="document.getElementById('deleteModal').close()">취소</button>
+                <form id="deleteForm" method="post">
+                    <!-- JS 가 action 을 채우는 폼이라 CSRF 숨은 필드를 직접 둠 -->
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <input type="hidden" name="_method" value="delete"/>
+                    <button type="submit" class="btn btn-error">비활성화</button>
+                </form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <!-- 선택 일괄 비활성화 확인 모달 -->
+    <dialog id="bulkDeleteModal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg text-error">선택한 문제를 비활성화하시겠습니까?</h3>
+            <p class="py-4">
+                총 <span id="bulkDeleteCount" class="font-bold text-error">0</span>개의 문제를 비활성화합니다.
+            </p>
+            <p class="text-sm text-base-content/60">
+                문제 목록·추천·오늘의 문제 후보에서 빠지고, 회원의 제출 기록·실행 로그·신고 이력은 그대로 보존됩니다.
+            </p>
+            <div class="modal-action">
+                <button class="btn" onclick="document.getElementById('bulkDeleteModal').close()">취소</button>
+                <button id="bulkDeleteConfirmBtn" type="button" class="btn btn-error" onclick="confirmBulkDelete()">
+                    비활성화
+                </button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <!-- 대량 JSON 가이드 모달 -->
+    <dialog id="bulkGuideModal" class="modal">
+        <div class="modal-box w-11/12 max-w-3xl max-h-[80vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-lg">대량 JSON 내보내기/가져오기 가이드</h3>
+                <div class="flex gap-2">
+                    <a href="/docs/question-bulk-guide.md" download="question-bulk-guide.md"
+                       class="btn btn-sm btn-outline">
+                        <i data-lucide="download" class="size-4"></i>
+                        MD 파일 다운로드
+                    </a>
+                    <button type="button" id="copyBulkPromptBtn" class="btn btn-sm btn-ghost" onclick="copyBulkPrompt()">
+                        <i id="copyBulkPromptIcon" data-lucide="copy" class="size-4"></i>
+                        <span id="copyBulkPromptLabel">AI 프롬프트 복사</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- topicCode 목록 -->
+            <div class="mb-4">
+                <p class="font-semibold text-sm mb-2">topicCode 목록</p>
+                <div class="overflow-x-auto">
+                    <table class="table table-xs table-zebra">
+                        <thead><tr><th>topicCode</th><th>표시명</th></tr></thead>
+                        <tbody>
+                            <tr th:each="t : ${topics}">
+                                <td class="font-mono" th:text="${t.code}">-</td>
+                                <td th:text="${t.displayName}">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- JSON 배열 스키마 -->
+            <div class="mb-4">
+                <p class="font-semibold text-sm mb-2">JSON 배열 스키마</p>
+                <div class="mockup-code text-xs">
+<pre class="p-4">[
+  {
+    "questionUuid":   "xxxxxxxx-...",           // 있으면 기존 문제 업데이트, 없거나 null이면 신규 등록
+    "topicCode":      "sql_basic_select",       // 위 목록에서 선택 (필수)
+    "difficulty":     3,                        // 1~5 정수 (필수)
+    "executionMode":  "EXECUTABLE",             // EXECUTABLE | CONCEPT_ONLY (필수)
+    "stem":           "지문 전체 텍스트",          // 필수
+    "hint":           "힌트 한 줄",               // 선택
+    "schemaDdl":      "CREATE TABLE ...",       // EXECUTABLE 필수, CONCEPT_ONLY면 null
+    "schemaSampleData": "INSERT INTO ...",      // 선택
+    "schemaIntent":   "테이블 의도 한 줄",         // 선택
+    "answerSql":      "SELECT ..."              // EXECUTABLE 필수, CONCEPT_ONLY면 null
+  },
+  { ... }
+]</pre>
+                </div>
+            </div>
+
+            <!-- 주요 규칙 -->
+            <div class="mb-4">
+                <p class="font-semibold text-sm mb-2">주요 규칙</p>
+                <ul class="list-disc list-inside text-sm space-y-1">
+                    <li>JSON 파일은 <strong>배열</strong> 형태여야 합니다 <code>[{...}, {...}]</code></li>
+                    <li>한 번에 최대 <strong>100건</strong>까지 가져올 수 있습니다</li>
+                    <li>내보내기는 최대 <strong>500건</strong>까지 지원합니다</li>
+                    <li><code>questionUuid</code>가 있으면 기존 문제를 <strong>업데이트</strong>, 없으면 <strong>신규 등록</strong></li>
+                    <li><code>questionUuid</code>를 제거하면 <strong>복제/이관</strong> 용도로 활용 가능</li>
+                    <li><code>EXECUTABLE</code> 문제는 가져오기 시 <strong>Sandbox 자동 검증</strong> (DDL + 샘플데이터 적용 후 answerSql 실행 테스트)</li>
+                    <li><code>CONCEPT_ONLY</code> 문제는 Sandbox 검증을 건너뜁니다 (SKIP)</li>
+                    <li>검증 후 <strong>"전체 등록"</strong> 또는 <strong>"성공한 것만 등록"</strong>을 선택할 수 있습니다</li>
+                </ul>
+            </div>
+
+            <!-- stem SQL 마크다운 규칙 -->
+            <div class="mb-4">
+                <p class="font-semibold text-sm mb-2">⚠️ stem SQL 마크다운 코드 블록 규칙</p>
+                <div class="alert alert-warning text-xs mb-2">
+                    EXECUTABLE 문제에서 stem에 SQL이 포함될 경우 반드시 <code>```sql</code> 코드 블록으로 감싸야 합니다.
+                    화면에서 마크다운으로 렌더링되어 코드 블록으로 표시됩니다.
+                </div>
+                <div class="mockup-code text-xs">
+<pre class="p-4">// ❌ 잘못된 방식
+"stem": "다음 SQL의 실행 결과로 올바른 것은?\\n\\nSELECT A.NAME FROM EMP;"
+
+// ✅ 올바른 방식
+"stem": "다음 SQL의 실행 결과로 올바른 것은?\\n\\n```sql\\nSELECT A.NAME FROM EMP;\\n```"</pre>
+                </div>
+            </div>
+
+            <!-- 테이블 이름 규칙 -->
+            <div class="mb-4">
+                <p class="font-semibold text-sm mb-2">⚠️ 테이블 이름 작성 규칙</p>
+                <div class="alert alert-info text-xs mb-2">
+                    각 문제는 <strong>독립된 Sandbox(격리된 DB)</strong>에서 실행됩니다.
+                    문제 간 테이블 이름 충돌이 없으므로, 시험 회차나 문제 번호를 테이블 이름에 포함할 필요가 없습니다.
+                </div>
+                <div class="mockup-code text-xs">
+<pre class="p-4">// ❌ 나쁜 예 — 시험 회차/문제 번호가 테이블명에 포함된 경우
+"schemaDdl": "CREATE TABLE SQLD_14 (NUM INT, CODE VARCHAR(1));"
+
+// ✅ 좋은 예 — 역할이 드러나는 짧고 명확한 이름
+"schemaDdl": "CREATE TABLE EMP (EMP_ID INT, NAME VARCHAR(50));"  -- 임직원/인사
+"schemaDdl": "CREATE TABLE T1 (COL1 INT, COL2 VARCHAR(1));"     -- 더미 데이터</pre>
+                </div>
+            </div>
+
+            <!-- AI 프롬프트 -->
+            <div class="mb-4">
+                <p class="font-semibold text-sm mb-2">AI 변환 프롬프트 <span class="text-base-content/50 font-normal">(복사 후 AI에게 문제 데이터 붙여넣기)</span></p>
+                <div class="relative">
+                    <textarea id="bulkGuidePromptText" rows="10" readonly
+                              class="textarea textarea-bordered w-full font-mono text-xs bg-base-200"></textarea>
+                </div>
+            </div>
+
+            <div class="modal-action">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('bulkGuideModal').close()">닫기</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <!-- JSON 붙여넣기 모달 (배열 텍스트 직접 입력) -->
+    <dialog id="bulkPasteModal" class="modal">
+        <div class="modal-box w-11/12 max-w-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-lg">JSON 붙여넣기</h3>
+                <button type="button" class="btn btn-sm btn-ghost" onclick="document.getElementById('bulkPasteModal').close()">
+                    <i data-lucide="x" class="size-4"></i>
+                </button>
+            </div>
+            <p class="text-sm text-base-content/60 mb-3">
+                대량 JSON 배열을 텍스트로 직접 붙여넣어 가져옵니다. <code>[{...}, {...}]</code> 형태의 배열이어야 합니다.
+            </p>
+            <textarea id="bulkPasteArea" rows="12"
+                      class="textarea textarea-bordered w-full font-mono text-xs"
+                      placeholder='[&#10;  {&#10;    "topicCode": "sql_join",&#10;    "difficulty": 3,&#10;    "executionMode": "EXECUTABLE",&#10;    ...&#10;  }&#10;]'></textarea>
+            <p id="bulkPasteError" class="text-error text-sm mt-2 hidden"></p>
+            <div class="modal-action">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('bulkPasteModal').close()">취소</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="applyBulkFromPaste()">
+                    <i data-lucide="check" class="size-4"></i>
+                    가져오기
+                </button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <!-- 가져오기 검증 결과 모달 -->
+    <dialog id="importValidationModal" class="modal">
+        <div class="modal-box w-11/12 max-w-5xl max-h-[85vh]">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-lg">JSON 가져오기 검증 결과</h3>
+                <button type="button" class="btn btn-sm btn-ghost" onclick="document.getElementById('importValidationModal').close()">
+                    <i data-lucide="x" class="size-4"></i>
+                </button>
+            </div>
+            <div id="importModalBody"></div>
+            <div class="modal-action" id="importModalActions"></div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+</th:block>
+</html>

@@ -1,5 +1,8 @@
 package com.passql.meta.service;
 
+import com.passql.common.audit.AdminAuditEvent;
+import com.passql.common.audit.constant.AdminAuditAction;
+import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.dto.AppNoticeResponse;
@@ -8,6 +11,7 @@ import com.passql.meta.entity.AppNotice;
 import com.passql.meta.repository.AppNoticeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -15,6 +19,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -34,6 +39,7 @@ public class AppNoticeService {
     private static final int BODY_MAX_LENGTH = 2000;
 
     private final AppNoticeRepository appNoticeRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /** 지금 노출할 공지 (중요 먼저 > 최근 등록 순) */
     public List<AppNoticeResponse> getVisibleNotices() {
@@ -63,6 +69,8 @@ public class AppNoticeService {
                 .build();
         AppNotice saved = appNoticeRepository.save(notice);
         log.info("[app notice] created : uuid={}", saved.getAppNoticeUuid());
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.NOTICE, saved.getAppNoticeUuid(),
+                AdminAuditAction.CREATE, null, toAuditSummary(saved)));
         return AppNoticeResponse.from(saved);
     }
 
@@ -71,6 +79,7 @@ public class AppNoticeService {
     public AppNoticeResponse updateNotice(UUID noticeUuid, AppNoticeSaveRequest request) {
         validate(request);
         AppNotice notice = findNotice(noticeUuid);
+        Map<String, Object> before = toAuditSummary(notice);
         notice.setTitle(request.title().trim());
         notice.setBody(request.body().trim());
         notice.setStartsAt(request.startsAt());
@@ -78,6 +87,8 @@ public class AppNoticeService {
         notice.setIsActive(!Boolean.FALSE.equals(request.isActive()));
         notice.setIsImportant(Boolean.TRUE.equals(request.isImportant()));
         log.info("[app notice] updated : uuid={}", noticeUuid);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.NOTICE, noticeUuid,
+                AdminAuditAction.UPDATE, before, toAuditSummary(notice)));
         return AppNoticeResponse.from(notice);
     }
 
@@ -87,6 +98,15 @@ public class AppNoticeService {
         AppNotice notice = findNotice(noticeUuid);
         notice.setIsActive(isActive);
         log.info("[app notice] active changed : uuid={}, isActive={}", noticeUuid, isActive);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.NOTICE, noticeUuid,
+                isActive ? AdminAuditAction.ACTIVATE : AdminAuditAction.DEACTIVATE));
+    }
+
+    /** 감사 로그용 공지 요약 (제목, 본문 앞부분, 기간, 활성, 중요) */
+    private static Map<String, Object> toAuditSummary(AppNotice notice) {
+        return AdminAuditEvent.summary("title", notice.getTitle(), "body", notice.getBody(),
+                "startsAt", notice.getStartsAt(), "endsAt", notice.getEndsAt(),
+                "isActive", notice.getIsActive(), "isImportant", notice.getIsImportant());
     }
 
     private AppNotice findNotice(UUID noticeUuid) {

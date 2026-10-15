@@ -1,12 +1,22 @@
 package com.passql.ai.dto;
 
 /**
- * 모니터링 화면용 AI 호출 통계 DTO.
- *
- * <p>geminiCallCount — GeminiClient 호출 횟수 (서버 기동 이후 누적, 인메모리 → 배포마다 0).
- * 실측값이 없는 항목(-1 미구현 표시)은 화면만 차지해 제거했다 (#440).
+ * AI 서버 호출 통계 (ai_call_log DB 집계, 배포해도 유지, #474)
+ * 실패 = HTTP 오류·연결 실패·응답 해석 실패 (Gemini 대체 경로로 복구된 호출도 AI 서버 기준 실패)
  */
 public record AiStats(
-        long geminiCallCount
+        long totalCallCount,
+        long successCount,
+        long failureCount,
+        double averageLatencyMilliseconds,
+        long maxLatencyMilliseconds
 ) {
+    public static AiStats empty() {
+        return new AiStats(0, 0, 0, 0, 0);
+    }
+
+    /** 실패 비율 (%) — 호출 없으면 0 */
+    public double failureRatePercent() {
+        return totalCallCount == 0 ? 0 : failureCount * 100.0 / totalCallCount;
+    }
 }

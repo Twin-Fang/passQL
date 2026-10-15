@@ -65,7 +65,7 @@ function updateExportButtonState() {
 async function indexSelected() {
     const uuids = getSelectedUuids();
     if (uuids.length === 0) {
-        alert('색인할 문제를 선택해주세요.');
+        AdminUi.toast('색인할 문제를 선택해주세요.', 'warning');
         return;
     }
 
@@ -77,19 +77,10 @@ async function indexSelected() {
     }
 
     try {
-        const resp = await fetch('/admin/embeddings/index-selected', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({uuids})
-        });
-        const data = await resp.json();
-        if (data.error) {
-            alert('색인 오류: ' + data.error);
-        } else {
-            alert(`색인 완료: ${data.succeeded}개 성공, ${data.failed}개 실패`);
-        }
-    } catch (e) {
-        alert('색인 요청 실패: ' + e.message);
+        const data = await AdminApi.post('/admin/embeddings/index-selected', {uuids});
+        AdminUi.toast(`색인 완료: ${data.succeeded}개 성공, ${data.failed}개 실패`, data.failed > 0 ? 'warning' : 'success');
+    } catch (error) {
+        AdminUi.showError(error);
     } finally {
         if (btn && label) {
             btn.disabled = false;
@@ -107,7 +98,7 @@ async function indexSelected() {
 function deleteSelected() {
     const uuids = getSelectedUuids();
     if (uuids.length === 0) {
-        alert('비활성화할 문제를 선택해주세요.');
+        AdminUi.toast('비활성화할 문제를 선택해주세요.', 'warning');
         return;
     }
     // 확인 모달에 선택 개수를 표시하고 열기
@@ -131,29 +122,11 @@ async function confirmBulkDelete() {
     }
 
     try {
-        const resp = await fetch('/admin/questions/bulk', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ questionUuids: uuids })
-        });
-
-        // ok 체크를 json 파싱 전에 수행 — 에러 응답이 HTML일 때 파싱 오류 방지
-        if (!resp.ok) {
-            const err = await resp.json().catch(() => ({}));
-            alert(err.message || '일괄 비활성화 실패');
-            if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = '비활성화'; }
-            return;
-        }
-
-        const result = await resp.json();
+        const result = await AdminApi.delete('/admin/questions/bulk', { questionUuids: uuids });
         document.getElementById('bulkDeleteModal').close();
-
-        // 결과 알림 후 새로고침
-        const msg = `비활성화 완료: ${result.deactivated}건 비활성화, ${result.skipped}건 건너뜀`;
-        alert(msg);
-        location.reload();
-    } catch (e) {
-        alert('비활성화 오류: ' + e.message);
+        AdminUi.reloadWithToast(`비활성화 완료: ${result.deactivated}건 비활성화, ${result.skipped}건 건너뜀`);
+    } catch (error) {
+        AdminUi.showError(error);
         document.getElementById('bulkDeleteModal').close();
         // 네트워크 오류 등 예외 시 버튼 상태 복구
         if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = '비활성화'; }
@@ -169,20 +142,20 @@ async function exportByFilter() {
     try {
         const resp = await fetch('/admin/questions/export?' + params.toString());
         if (!resp.ok) {
-            const err = await resp.json();
-            alert(err.message || '내보내기 실패');
+            const err = await resp.json().catch(() => ({}));
+            AdminUi.showError(err, '내보내기 실패');
             return;
         }
         await downloadJsonBlob(resp);
-    } catch (e) {
-        alert('내보내기 오류: ' + e.message);
+    } catch (error) {
+        AdminUi.showError(error, '내보내기 오류');
     }
 }
 
 async function exportSelected() {
     const uuids = getSelectedUuids();
     if (uuids.length === 0) {
-        alert('문제를 선택해주세요.');
+        AdminUi.toast('문제를 선택해주세요.', 'warning');
         return;
     }
     try {
@@ -192,13 +165,13 @@ async function exportSelected() {
             body: JSON.stringify({ questionUuids: uuids })
         });
         if (!resp.ok) {
-            const err = await resp.json();
-            alert(err.message || '내보내기 실패');
+            const err = await resp.json().catch(() => ({}));
+            AdminUi.showError(err, '내보내기 실패');
             return;
         }
         await downloadJsonBlob(resp);
-    } catch (e) {
-        alert('내보내기 오류: ' + e.message);
+    } catch (error) {
+        AdminUi.showError(error, '내보내기 오류');
     }
 }
 
@@ -330,22 +303,22 @@ async function handleImportFile(event) {
         const text = await file.text();
         items = JSON.parse(text);
     } catch (e) {
-        alert('JSON 파싱 오류: ' + e.message);
+        AdminUi.toast('JSON 파싱 오류: ' + e.message, 'error');
         return;
     }
 
     if (!Array.isArray(items)) {
-        alert('JSON 파일은 배열 형태여야 합니다.');
+        AdminUi.toast('JSON 파일은 배열 형태여야 합니다.', 'error');
         return;
     }
 
     if (items.length === 0) {
-        alert('빈 배열입니다.');
+        AdminUi.toast('빈 배열입니다.', 'warning');
         return;
     }
 
     if (items.length > 100) {
-        alert('한 번에 최대 100건까지 가져올 수 있습니다. (현재: ' + items.length + '건)');
+        AdminUi.toast('한 번에 최대 100건까지 가져올 수 있습니다. (현재: ' + items.length + '건)', 'error');
         return;
     }
 
@@ -445,23 +418,11 @@ async function executeImport(mode) {
         : null;
 
     try {
-        const resp = await fetch('/admin/questions/import', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ items: _importOriginalItems, importMode: mode, sandboxStatuses })
-        });
-        if (!resp.ok) {
-            const err = await resp.json();
-            alert(err.message || '등록 실패');
-            actions.innerHTML = '<button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'importValidationModal\').close()">닫기</button>';
-            return;
-        }
-        const result = await resp.json();
-        alert('등록 완료: 신규 ' + result.created + '건, 수정 ' + result.updated + '건, 스킵 ' + result.skipped + '건');
+        const result = await AdminApi.post('/admin/questions/import', { items: _importOriginalItems, importMode: mode, sandboxStatuses });
         document.getElementById('importValidationModal').close();
-        location.reload();
-    } catch (e) {
-        alert('등록 오류: ' + e.message);
+        AdminUi.reloadWithToast('등록 완료: 신규 ' + result.created + '건, 수정 ' + result.updated + '건, 스킵 ' + result.skipped + '건');
+    } catch (error) {
+        AdminUi.showError(error, '등록 실패');
         actions.innerHTML = '<button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'importValidationModal\').close()">닫기</button>';
     }
 }

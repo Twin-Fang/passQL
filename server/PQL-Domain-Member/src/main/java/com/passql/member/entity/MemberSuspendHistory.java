@@ -51,23 +51,30 @@ public class MemberSuspendHistory extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime actedAt;
 
-    public static MemberSuspendHistory ofSuspend(UUID memberUuid, String reason, LocalDateTime suspendUntil) {
+    // 처리 관리자 아이디 (자동 해제 스케줄러는 system, #469)
+    @Column(length = 50)
+    private String actedByAdminUsername;
+
+    public static MemberSuspendHistory ofSuspend(UUID memberUuid, String reason, LocalDateTime suspendUntil,
+                                                 String actedByAdminUsername) {
         return MemberSuspendHistory.builder()
             .memberUuid(memberUuid)
             .action(SuspendAction.SUSPENDED)
             .reason(reason)
             .suspendUntil(suspendUntil)
             .actedAt(LocalDateTime.now())
+            .actedByAdminUsername(actedByAdminUsername)
             .build();
     }
 
-    public static MemberSuspendHistory ofUnsuspend(UUID memberUuid) {
+    public static MemberSuspendHistory ofUnsuspend(UUID memberUuid, String actedByAdminUsername) {
         return MemberSuspendHistory.builder()
             .memberUuid(memberUuid)
             .action(SuspendAction.UNSUSPENDED)
             .reason(null)
             .suspendUntil(null)
             .actedAt(LocalDateTime.now())
+            .actedByAdminUsername(actedByAdminUsername)
             .build();
     }
 }

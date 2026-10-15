@@ -1,15 +1,19 @@
 package com.passql.meta.service;
 
-import com.passql.meta.constant.AppSettingKeys;
-import com.passql.meta.constant.AppSettingValueType;
+import com.passql.common.audit.AdminAuditEvent;
+import com.passql.common.audit.constant.AdminAuditAction;
+import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.meta.constant.AppSettingKeys;
+import com.passql.meta.constant.AppSettingValueType;
 import com.passql.meta.dto.AppLinksResponse;
 import com.passql.meta.dto.SettingView;
 import com.passql.meta.entity.AppSetting;
 import com.passql.meta.repository.AppSettingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -33,6 +37,7 @@ public class AppSettingService {
 
     private final AppSettingRepository appSettingRepository;
     private final StringRedisTemplate redisTemplate;
+    private final ApplicationEventPublisher eventPublisher;
 
     public String getString(String key) {
         String cached = redisTemplate.opsForValue().get(REDIS_PREFIX + key);
@@ -95,9 +100,18 @@ public class AppSettingService {
         AppSetting setting = appSettingRepository.findBySettingKey(key)
                 .orElseThrow(() -> new CustomException(ErrorCode.SETTING_NOT_FOUND));
         validateValueMatchesType(setting, value);
+        String previousValue = setting.getValueText();
         setting.setValueText(value);
         appSettingRepository.save(setting);
         redisTemplate.opsForValue().set(REDIS_PREFIX + key, value);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.APP_SETTING, key, AdminAuditAction.UPDATE,
+                AdminAuditEvent.summary("value", toAuditValue(key, previousValue)),
+                AdminAuditEvent.summary("value", toAuditValue(key, value))));
+    }
+
+    /** 감사 기록용 값 (민감 키는 마스킹) */
+    private static String toAuditValue(String key, String value) {
+        return isSensitiveKey(key) ? maskValue(value) : value;
     }
 
     /** 형식이 틀린 값 거부 (저장되면 getInt 등 읽는 쪽이 전부 500) */

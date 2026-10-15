@@ -6,7 +6,10 @@
 
 <th:block layout:fragment="content">
 
-    <!-- 요약 카드 -->
+    <!-- 구성 요소·서킷 상태 (#475) -->
+    <th:block th:replace="~{admin/fragments/monitor-health-cards :: health-cards}"></th:block>
+
+    <!-- 요약 카드 (SQL 실행 최근 24시간, DB 집계) -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="stat bg-base-100 shadow rounded-box">
             <div class="stat-figure text-primary">
@@ -28,7 +31,7 @@
             <div class="stat-figure text-warning">
                 <i data-lucide="timer" class="size-8"></i>
             </div>
-            <div class="stat-title text-xs">평균 응답시간</div>
+            <div class="stat-title text-xs">SQL 평균 실행 시간</div>
             <div class="stat-value text-warning text-2xl">
                 <span th:text="${monitorStats?.avgElapsedMs != null ? #numbers.formatDecimal(monitorStats.avgElapsedMs, 1, 0) : 0}">0</span>
                 <span class="text-sm">ms</span>
@@ -157,26 +160,39 @@
         </div>
     </div>
 
-    <!-- AI 호출 현황 — 실측값만 둔다. 미구현(-1) 카드는 화면만 차지해 제거 (#440) -->
-    <div class="card bg-base-100 shadow">
+    <!-- AI 서버 호출 현황 (최근 24시간, ai_call_log DB 집계, 배포해도 유지, #474) -->
+    <div class="card bg-base-100 shadow" id="ai">
         <div class="card-body p-4">
             <h3 class="card-title text-base mb-3">
                 <i data-lucide="bot" class="size-5"></i>
-                AI 호출 현황
+                AI 서버 호출 (최근 24시간)
             </h3>
-            <div class="flex flex-wrap items-end gap-6">
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
                 <div>
-                    <div class="flex items-center gap-2 mb-1">
-                        <i data-lucide="sparkles" class="size-4 text-primary"></i>
-                        <span class="font-medium text-sm">Gemini 호출</span>
-                    </div>
-                    <p class="text-2xl font-bold" th:text="${aiStats?.geminiCallCount ?: 0}">0</p>
+                    <p class="text-xs text-base-content/60">전체 호출</p>
+                    <p class="text-2xl font-bold" th:text="${aiStats.totalCallCount}">0</p>
                 </div>
-                <p class="text-xs text-base-content/60 flex-1 min-w-48">
-                    현재 서버 컨테이너가 뜬 뒤(마지막 배포 이후) 메모리에 누적한 값이라 배포하면 0부터 다시 셉니다.
-                    AI 해설·코멘트·선택지 생성 폴백이 Gemini 를 부를 때마다 올라갑니다.
-                </p>
+                <div>
+                    <p class="text-xs text-base-content/60">성공</p>
+                    <p class="text-2xl font-bold text-success" th:text="${aiStats.successCount}">0</p>
+                </div>
+                <div>
+                    <p class="text-xs text-base-content/60">실패</p>
+                    <p class="text-2xl font-bold" th:classappend="${aiStats.failureCount > 0} ? 'text-error'"
+                       th:text="${aiStats.failureCount} + ' (' + ${#numbers.formatDecimal(aiStats.failureRatePercent(), 1, 1)} + '%)'">0</p>
+                </div>
+                <div>
+                    <p class="text-xs text-base-content/60">평균 지연</p>
+                    <p class="text-2xl font-bold" th:text="${#numbers.formatDecimal(aiStats.averageLatencyMilliseconds, 1, 0)} + 'ms'">0ms</p>
+                </div>
+                <div>
+                    <p class="text-xs text-base-content/60">최대 지연</p>
+                    <p class="text-2xl font-bold" th:text="${aiStats.maxLatencyMilliseconds} + 'ms'">0ms</p>
+                </div>
             </div>
+            <p class="text-xs text-base-content/60 mt-2">
+                AI 서버(Python) 요청마다 기록합니다. 실패는 연결 실패·오류 응답·해석 실패이며, Gemini 대체 경로로 복구된 호출도 실패로 셉니다.
+            </p>
         </div>
     </div>
 

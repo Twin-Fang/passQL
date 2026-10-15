@@ -198,24 +198,20 @@
         async function saveSetting(key, isRestartRequired) {
             const input = document.getElementById('val_' + key);
             const errorText = document.getElementById('err_' + key);
-            const response = await fetch('/admin/settings/' + encodeURIComponent(key), {
-                method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({value: input.value})
-            });
-            if (!response.ok) {
-                const errorBody = await response.json().catch(() => ({}));
-                errorText.textContent = errorBody.message || '저장 실패';
+            try {
+                await AdminApi.put('/admin/settings/' + encodeURIComponent(key), {value: input.value});
+            } catch (error) {
+                errorText.textContent = error.message;
                 errorText.classList.remove('hidden');
+                AdminUi.showError(error);
                 return;
             }
             errorText?.classList.add('hidden');
             input.setAttribute('readonly', true);
             document.getElementById('btn_save_' + key)?.classList.add('hidden');
             document.getElementById('btn_cancel_' + key)?.classList.add('hidden');
-            if (isRestartRequired) {
-                alert('저장했습니다. 이 설정은 서버 재시작 후 반영됩니다.');
-            }
+            AdminUi.toast(isRestartRequired ? '저장했습니다. 이 설정은 서버 재시작 후 반영됩니다.' : '저장했습니다.',
+                isRestartRequired ? 'warning' : 'success');
         }
 
         function cancelEdit(key, originalValue) {

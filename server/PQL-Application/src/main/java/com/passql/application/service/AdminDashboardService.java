@@ -1,11 +1,14 @@
 package com.passql.application.service;
 
-import com.passql.common.util.UuidUtils;
+import com.passql.ai.service.AiCallLogService;
 import com.passql.application.dto.DashboardStats;
+import com.passql.common.util.UuidUtils;
 import com.passql.member.constant.MemberStatus;
 import com.passql.member.repository.MemberRepository;
 import com.passql.meta.entity.Topic;
 import com.passql.meta.repository.TopicRepository;
+import com.passql.meta.service.FeedbackService;
+import com.passql.meta.service.ServerErrorLogService;
 import com.passql.question.repository.QuestionRepository;
 import com.passql.submission.dto.MonitorStats;
 import com.passql.submission.repository.SubmissionRepository;
@@ -36,6 +39,10 @@ public class AdminDashboardService {
     private final SubmissionRepository submissionRepository;
     private final SubmissionService submissionService;
     private final TopicRepository topicRepository;
+    private final AiCallLogService aiCallLogService;
+    private final ServerErrorLogService serverErrorLogService;
+    private final QuestionReportService questionReportService;
+    private final FeedbackService feedbackService;
 
     /**
      * 대시보드 통계를 집계해 반환한다.
@@ -47,7 +54,8 @@ public class AdminDashboardService {
      *   <li>활성 토픽 목록 (displayName 조인용)</li>
      *   <li>전체/활성/정지 회원 수 (count 쿼리, 테스트 계정 제외)</li>
      *   <li>오늘 제출 건수 (count 쿼리)</li>
-     *   <li>최근 24h 실행 로그 → 에러율 계산 (SubmissionService 위임)</li>
+     *   <li>최근 24h 실행 로그 → SQL 실행 실패율 (SubmissionService 위임)</li>
+     *   <li>최근 24h AI 호출·서버 5xx, 미처리 신고·건의 수 (#474)</li>
      * </ol>
      */
     public DashboardStats collect() {
@@ -65,10 +73,10 @@ public class AdminDashboardService {
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();
         long todaySubmissions = submissionRepository.countBySubmittedAtAfter(todayStart);
 
-        // --- 최근 24시간 실행 로그 → 에러율 (SubmissionService 재사용) ---
+        // --- 최근 24시간 SQL 실행 실패율 (회원 SQL 오류 포함, 서버 장애율 아님) ---
         MonitorStats monitorStats = submissionService.getStats24h();
         long total24h = monitorStats.successCount() + monitorStats.failCount();
-        double errorRate = total24h > 0
+        double sqlExecutionFailureRatePercent = total24h > 0
                 ? (monitorStats.failCount() * 100.0) / total24h
                 : 0.0;
 
@@ -79,8 +87,11 @@ public class AdminDashboardService {
                 activeMembers,
                 suspendedMembers,
                 todaySubmissions,
-                monitorStats.aiCallCount(),
-                errorRate
+                aiCallLogService.getStatsLast24Hours(),
+                sqlExecutionFailureRatePercent,
+                serverErrorLogService.countLast24h(),
+                questionReportService.countPendingReports(),
+                feedbackService.countPending()
         );
     }
 

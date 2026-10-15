@@ -54,45 +54,44 @@
             </div>
         </div>
 
-        <!-- AI 호출 수 -->
-        <div class="card bg-base-100 shadow">
+        <!-- AI 서버 호출 (최근 24시간, DB 집계, #474) -->
+        <a th:href="@{/admin/monitor#ai}" class="card bg-base-100 shadow hover:shadow-md transition-shadow">
             <div class="card-body">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-base-content/60">AI 호출 수</p>
-                        <p class="text-3xl font-bold text-warning mt-1"
-                           th:text="${stats?.aiCallCount ?: 0}">0</p>
-                        <!-- Gemini 인메모리 카운터라 배포하면 0부터 다시 센다 (#440) -->
-                        <p class="text-xs text-base-content/50 mt-1">마지막 배포 이후 누적</p>
+                        <p class="text-sm text-base-content/60">AI 서버 호출 (24시간)</p>
+                        <p class="text-3xl font-bold text-warning mt-1" th:text="${stats.aiStats24h.totalCallCount}">0</p>
                     </div>
                     <div class="p-3 bg-warning/10 rounded-full">
                         <i data-lucide="bot" class="size-6 text-warning"></i>
                     </div>
                 </div>
-                <p class="text-xs text-base-content/50 mt-2">오늘 AI 선택지 생성</p>
+                <p class="text-xs text-base-content/50 mt-2"
+                   th:text="'성공 ' + ${stats.aiStats24h.successCount} + ' · 평균 ' + ${#numbers.formatDecimal(stats.aiStats24h.averageLatencyMilliseconds, 1, 0)} + 'ms'">성공 0 · 평균 0ms</p>
             </div>
-        </div>
+        </a>
 
-        <!-- 에러율 -->
+        <!-- SQL 실행 실패율 (회원이 실행한 SQL 이 오류로 끝난 비율, 서버 장애율 아님) -->
         <div class="card bg-base-100 shadow">
             <div class="card-body">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-base-content/60">에러율</p>
+                        <p class="text-sm text-base-content/60">SQL 실행 실패율</p>
                         <p class="text-3xl font-bold text-error mt-1">
-                            <span th:text="${stats?.errorRate != null
-                                ? #numbers.formatDecimal(stats.errorRate, 1, 1)
-                                : '0.0'}">0.0</span>%
+                            <span th:text="${#numbers.formatDecimal(stats.sqlExecutionFailureRatePercent, 1, 1)}">0.0</span>%
                         </p>
                     </div>
                     <div class="p-3 bg-error/10 rounded-full">
-                        <i data-lucide="alert-triangle" class="size-6 text-error"></i>
+                        <i data-lucide="terminal-square" class="size-6 text-error"></i>
                     </div>
                 </div>
-                <p class="text-xs text-base-content/50 mt-2">최근 24h SQL 실행 실패율</p>
+                <p class="text-xs text-base-content/50 mt-2">최근 24시간 회원 SQL 실행 중 오류 비율 (문법 오류 포함)</p>
             </div>
         </div>
     </div>
+
+    <!-- 처리·장애 지표 4종 (클릭 시 해당 목록, #474) -->
+    <th:block th:replace="~{admin/fragments/dashboard-attention-cards :: attention-cards}"></th:block>
 
     <!-- ==============================
          2) 회원 통계 카드 (Row 2)

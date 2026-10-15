@@ -13,10 +13,22 @@
             목록으로
         </a>
         <h2 class="text-lg font-bold">문제 상세</h2>
-        <a th:href="@{/admin/questions/{uuid}/edit(uuid=${question.questionUuid})}" class="btn btn-sm btn-primary ml-auto">
-            <i data-lucide="pencil" class="size-4"></i>
-            편집
-        </a>
+        <span th:if="${isQuestionActive}" class="badge badge-success">활성</span>
+        <span th:unless="${isQuestionActive}" class="badge badge-ghost">비활성 (회원에게 노출 안 됨)</span>
+        <div class="ml-auto flex gap-2" th:data-uuid="${question.questionUuid}">
+            <button th:if="${isQuestionActive}" type="button" class="btn btn-sm btn-error btn-outline"
+                    onclick="deactivateQuestion(this.parentElement.dataset.uuid)">
+                <i data-lucide="eye-off" class="size-4"></i>비활성화
+            </button>
+            <button th:unless="${isQuestionActive}" type="button" class="btn btn-sm btn-success"
+                    onclick="restoreQuestion(this.parentElement.dataset.uuid)">
+                <i data-lucide="rotate-ccw" class="size-4"></i>복구
+            </button>
+            <a th:href="@{/admin/questions/{uuid}/edit(uuid=${question.questionUuid})}" class="btn btn-sm btn-primary">
+                <i data-lucide="pencil" class="size-4"></i>
+                편집
+            </a>
+        </div>
     </div>
 
     <!-- 기본 정보 -->
@@ -160,6 +172,7 @@
 </th:block>
 
 <th:block layout:fragment="js">
+    <script th:src="@{/js/admin/question-activation.js}"></script>
     <script>lucide.createIcons();</script>
 </th:block>
 </html>

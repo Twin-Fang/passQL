@@ -106,25 +106,23 @@
             vars[v] = document.getElementById('var_' + v).value;
         });
         try {
-            const resp = await fetch('/admin/prompts/' + promptUuid + '/test', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(vars)
-            });
-            if (!resp.ok) throw new Error(await resp.text());
-            const data = await resp.json();
+            const data = await AdminApi.post('/admin/prompts/' + promptUuid + '/test', vars);
             document.getElementById('resultText').textContent = data.result;
             document.getElementById('elapsedMs').textContent = data.elapsedMs;
             document.getElementById('resultArea').classList.remove('hidden');
-        } catch (e) {
-            alert('테스트 실패: ' + e.message);
+        } catch (error) {
+            AdminUi.showError(error, '테스트 실패');
         }
     }
 
     async function activateVersion() {
-        await fetch('/admin/prompts/' + promptUuid + '/activate', {method: 'PUT'});
-        alert('활성화 완료');
-        location.reload();
+        if (!await AdminUi.confirmDanger('이 버전을 활성화하면 같은 키의 다른 버전은 즉시 비활성화됩니다.', { confirmLabel: '활성화' })) return;
+        try {
+            await AdminApi.put('/admin/prompts/' + promptUuid + '/activate');
+            AdminUi.reloadWithToast('활성화했습니다.');
+        } catch (error) {
+            AdminUi.showError(error);
+        }
     }
 
     lucide.createIcons();

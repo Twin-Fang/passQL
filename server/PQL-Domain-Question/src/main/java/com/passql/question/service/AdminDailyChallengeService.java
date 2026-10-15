@@ -1,14 +1,18 @@
 package com.passql.question.service;
 
-import com.passql.common.util.TextPreview;
+import com.passql.common.audit.AdminAuditEvent;
+import com.passql.common.audit.constant.AdminAuditAction;
+import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.TextPreview;
 import com.passql.question.dto.DailyChallengeItem;
 import com.passql.question.entity.DailyChallenge;
 import com.passql.question.entity.Question;
 import com.passql.question.repository.DailyChallengeRepository;
 import com.passql.question.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +29,7 @@ public class AdminDailyChallengeService {
     private final DailyChallengeRepository dailyChallengeRepository;
     private final QuestionRepository questionRepository;
     private final QuestionService questionService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public List<DailyChallengeItem> getChallenges(LocalDate from, LocalDate to) {
         List<DailyChallenge> challenges = dailyChallengeRepository
@@ -81,6 +86,9 @@ public class AdminDailyChallengeService {
                             .build()));
         }
 
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.DAILY_CHALLENGE, date, AdminAuditAction.UPDATE,
+                null, AdminAuditEvent.summary("questionUuids", questionUuids)));
+
         return saved.stream().map(dc -> {
             Question q = questions.get(dc.getSortOrder());
             return new DailyChallengeItem(
@@ -95,6 +103,7 @@ public class AdminDailyChallengeService {
     @Transactional
     public void unassign(LocalDate date) {
         dailyChallengeRepository.deleteByChallengeDate(date);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.DAILY_CHALLENGE, date, AdminAuditAction.DELETE));
     }
 
     /**

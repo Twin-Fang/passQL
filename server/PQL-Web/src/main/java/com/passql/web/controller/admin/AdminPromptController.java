@@ -4,14 +4,20 @@ import com.passql.ai.client.AiGatewayClient;
 import com.passql.ai.dto.LlmConfigDto;
 import com.passql.ai.dto.TestPromptRequest;
 import com.passql.ai.dto.TestPromptResult;
+import com.passql.meta.dto.PromptTemplateSaveRequest;
 import com.passql.meta.entity.PromptTemplate;
 import com.passql.meta.service.PromptService;
+import com.passql.web.support.AdminFlash;
+import com.passql.web.support.AdminMenu;
+import com.passql.web.support.AdminPage;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Map;
 import java.util.UUID;
@@ -26,32 +32,33 @@ public class AdminPromptController {
     private final AiGatewayClient aiGatewayClient;
 
     @GetMapping
+    @AdminPage(menu = AdminMenu.PROMPTS)
     public String list(Model model) {
         model.addAttribute("promptTemplates", promptService.findAll());
-        model.addAttribute("currentMenu", "prompts");
-        model.addAttribute("pageTitle", "프롬프트 관리");
         return "admin/prompts";
     }
 
     @GetMapping("/{uuid}")
+    @AdminPage(menu = AdminMenu.PROMPTS)
     public String detail(@PathVariable UUID uuid, Model model) {
         model.addAttribute("promptTemplates", promptService.findAll());
         promptService.findById(uuid)
                 .ifPresent(pt -> model.addAttribute("selectedPrompt", pt));
-        model.addAttribute("currentMenu", "prompts");
-        model.addAttribute("pageTitle", "프롬프트 관리");
         return "admin/prompts";
     }
 
     @PostMapping
-    public String create(@ModelAttribute PromptTemplate form) {
-        PromptTemplate created = promptService.create(form);
+    public String create(@Valid @ModelAttribute PromptTemplateSaveRequest request, RedirectAttributes redirectAttributes) {
+        PromptTemplate created = promptService.create(request);
+        redirectAttributes.addFlashAttribute(AdminFlash.TOAST_MESSAGE, "프롬프트를 등록했습니다.");
         return "redirect:/admin/prompts/" + created.getPromptTemplateUuid();
     }
 
     @PutMapping("/{uuid}")
-    public String update(@PathVariable UUID uuid, @ModelAttribute PromptTemplate form) {
-        promptService.update(uuid, form);
+    public String update(@PathVariable UUID uuid, @Valid @ModelAttribute PromptTemplateSaveRequest request,
+                         RedirectAttributes redirectAttributes) {
+        promptService.update(uuid, request);
+        redirectAttributes.addFlashAttribute(AdminFlash.TOAST_MESSAGE, "프롬프트를 저장했습니다.");
         return "redirect:/admin/prompts/" + uuid;
     }
 
@@ -59,12 +66,11 @@ public class AdminPromptController {
      * 프롬프트 테스트 페이지.
      */
     @GetMapping("/{uuid}/test")
+    @AdminPage(menu = AdminMenu.PROMPTS, title = "프롬프트 테스트")
     public String testPage(@PathVariable UUID uuid, Model model) {
         promptService.findById(uuid)
                 .ifPresent(pt -> model.addAttribute("prompt", pt));
         model.addAttribute("promptTemplates", promptService.findAll());
-        model.addAttribute("currentMenu", "prompts");
-        model.addAttribute("pageTitle", "프롬프트 테스트");
         return "admin/prompt-test";
     }
 

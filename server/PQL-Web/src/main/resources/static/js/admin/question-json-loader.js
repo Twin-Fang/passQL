@@ -76,9 +76,10 @@ function applyJson(data) {
     }
 }
 
-function _doApplyJson(data) {
-    if (_jsonLoaderConfig.confirmOverwrite) {
-        if (!confirm('현재 입력된 내용을 JSON 데이터로 덮어쓰시겠습니까?')) return;
+async function _doApplyJson(data) {
+    if (_jsonLoaderConfig.confirmOverwrite
+        && !await AdminUi.confirmDanger('현재 입력된 내용을 JSON 데이터로 덮어씁니다.', { confirmLabel: '덮어쓰기' })) {
+        return;
     }
     applyJson(data);
 }
@@ -92,7 +93,7 @@ function loadJsonFile(event) {
             const data = JSON.parse(e.target.result);
             _doApplyJson(data);
         } catch (err) {
-            alert('JSON 파싱 오류: ' + err.message);
+            AdminUi.toast('JSON 파싱 오류: ' + err.message, 'error');
         }
     };
     reader.readAsText(file);
@@ -110,8 +111,8 @@ function applyJsonFromPaste() {
     const errEl = document.getElementById('jsonPasteError');
     try {
         const data = JSON.parse(raw);
-        _doApplyJson(data);
         document.getElementById('jsonPasteModal').close();
+        _doApplyJson(data);
     } catch (err) {
         errEl.textContent = 'JSON 파싱 오류: ' + err.message;
         errEl.classList.remove('hidden');

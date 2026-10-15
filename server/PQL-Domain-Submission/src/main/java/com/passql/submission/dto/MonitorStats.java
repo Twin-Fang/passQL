@@ -1,11 +1,11 @@
 package com.passql.submission.dto;
 
 /**
- * 모니터링 통계 DTO (최근 24시간 기준)
+ * SQL 실행 통계 (최근 24시간, execution_log DB 집계, #475)
+ * failCount: status 가 OK 가 아닌 실행 (회원 SQL 오류 포함)
  */
 public record MonitorStats(
         long successCount,
         long failCount,
-        double avgElapsedMs,
-        long aiCallCount
+        double avgElapsedMs
 ) {}

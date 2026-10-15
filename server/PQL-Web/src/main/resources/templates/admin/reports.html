@@ -47,6 +47,8 @@
                     </tbody>
                 </table>
             </div>
+            <!-- 페이지네이션 (JS로 채움, #479) -->
+            <div id="reportPager" class="flex justify-center p-4"></div>
         </div>
     </div>
 
@@ -60,13 +62,16 @@
         const tableBody = document.getElementById('reportTableBody');
         const summaryBadges = document.getElementById('summaryBadges');
 
-        pendingOnlyToggle.addEventListener('change', loadReports);
+        const reportPager = document.getElementById('reportPager');
+        let currentPage = 0;
 
-        async function loadReports() {
-            const pendingOnly = pendingOnlyToggle.checked;
-            const url = pendingOnly
-                ? '/admin/api/reports?status=PENDING'
-                : '/admin/api/reports';
+        pendingOnlyToggle.addEventListener('change', () => loadReports(0));
+
+        async function loadReports(page = currentPage) {
+            currentPage = page;
+            const params = new URLSearchParams({ page: String(page) });
+            if (pendingOnlyToggle.checked) params.set('status', 'PENDING');
+            const url = '/admin/api/reports?' + params.toString();
 
             tableBody.innerHTML = `
                 <tr id="loadingRow">
@@ -77,11 +82,10 @@
                 </tr>`;
 
             try {
-                const res = await fetch(url);
-                if (!res.ok) throw new Error('API 오류: ' + res.status);
-                const data = await res.json();
-                renderTable(data);
+                const data = await AdminApi.get(url);
+                renderTable(data.content);
                 renderSummary(data);
+                renderPager(data);
             } catch (e) {
                 tableBody.innerHTML = `
                     <tr>
@@ -92,9 +96,20 @@
             }
         }
 
+        function renderPager(data) {
+            if (data.totalPages <= 1) { reportPager.innerHTML = ''; return; }
+            reportPager.innerHTML = `
+                <div class="join">
+                    <button class="join-item btn btn-sm" ${data.page <= 0 ? 'disabled' : ''} onclick="loadReports(${data.page - 1})">«</button>
+                    <button class="join-item btn btn-sm btn-active">${data.page + 1} / ${data.totalPages}</button>
+                    <button class="join-item btn btn-sm" ${data.page + 1 >= data.totalPages ? 'disabled' : ''} onclick="loadReports(${data.page + 1})">»</button>
+                </div>`;
+        }
+
+        // 필터 범위 전체 합계 (페이지 합계 아님)
         function renderSummary(data) {
-            const total = data.reduce((s, r) => s + r.totalCount, 0);
-            const pending = data.reduce((s, r) => s + r.pendingCount, 0);
+            const total = data.totalReportCount;
+            const pending = data.pendingReportCount;
             summaryBadges.innerHTML = `
                 <div class="badge badge-neutral badge-lg">
                     전체 신고 <span class="ml-1 font-bold">${total}</span>
@@ -103,7 +118,7 @@
                     미처리 <span class="ml-1 font-bold">${pending}</span>
                 </div>
                 <div class="badge badge-info badge-lg">
-                    신고된 문제 <span class="ml-1 font-bold">${data.length}</span>
+                    신고된 문제 <span class="ml-1 font-bold">${data.totalElements}</span>
                 </div>`;
         }
 
@@ -147,16 +162,10 @@
             lucide.createIcons();
         }
 
-        function escapeHtml(str) {
-            return str
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;');
-        }
+        const escapeHtml = AdminUi.escapeHtml;
 
         // 초기 로드
-        loadReports();
+        loadReports(0);
     </script>
 </th:block>
 </html>

@@ -1,18 +1,23 @@
 package com.passql.web.controller.admin;
 
-import com.passql.web.support.AdminPageRequest;
-import com.passql.ai.dto.GeneratedChoiceDto;
 import com.passql.ai.dto.GenerateQuestionFullResult;
+import com.passql.ai.dto.GeneratedChoiceDto;
 import com.passql.ai.dto.QuestionFullContextDto;
+import com.passql.common.exception.CustomException;
+import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.service.MetaService;
 import com.passql.question.constant.ChoiceSetPolicy;
 import com.passql.question.constant.ExecutionMode;
 import com.passql.question.dto.*;
+import com.passql.question.dto.AdminQuestionSearchCondition;
 import com.passql.question.entity.Question;
 import com.passql.question.service.QuestionGenerateService;
 import com.passql.question.service.QuestionImportExportService;
 import com.passql.question.service.QuestionService;
 import com.passql.web.service.AdminQuestionDeleteService;
+import com.passql.web.support.AdminMenu;
+import com.passql.web.support.AdminPage;
+import com.passql.web.support.AdminPageRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -24,9 +29,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import com.passql.common.exception.CustomException;
-import com.passql.common.exception.constant.ErrorCode;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -47,33 +49,28 @@ public class AdminQuestionController {
     private final AdminQuestionDeleteService adminQuestionDeleteService;
 
     @GetMapping
-    public String list(Model model,
-                       @RequestParam(required = false) String topic,
-                       @RequestParam(required = false) Integer difficulty,
-                       @RequestParam(required = false) String executionMode,
+    @AdminPage(menu = AdminMenu.QUESTIONS)
+    public String list(Model model, AdminQuestionSearchCondition condition,
                        @RequestParam(defaultValue = "0") int page,
                        @RequestParam(defaultValue = AdminPageRequest.DEFAULT_PAGE_SIZE) int size) {
         Pageable pageable = AdminPageRequest.newestFirst(page, size);
-        model.addAttribute("questions", questionService.getQuestions(topic, null, difficulty, executionMode, pageable));
+        model.addAttribute("questions", questionService.searchQuestionsForAdmin(condition, pageable));
+        model.addAttribute("condition", condition);
         model.addAttribute("topics", metaService.getTopicTree());
-        model.addAttribute("currentMenu", "questions");
-        model.addAttribute("pageTitle", "문제 관리");
         return "admin/questions";
     }
 
     @GetMapping("/new")
+    @AdminPage(menu = AdminMenu.QUESTIONS, title = "문제 등록 (AI 생성)")
     public String newForm(Model model) {
         model.addAttribute("topics", metaService.getTopicTree());
-        model.addAttribute("currentMenu", "questions");
-        model.addAttribute("pageTitle", "문제 등록 (AI 생성)");
         return "admin/question-new";
     }
 
     @GetMapping("/register")
+    @AdminPage(menu = AdminMenu.QUESTIONS, title = "문제 직접 등록")
     public String registerForm(Model model) {
         model.addAttribute("topics", metaService.getTopicTree());
-        model.addAttribute("currentMenu", "questions");
-        model.addAttribute("pageTitle", "문제 직접 등록");
         return "admin/question-register";
     }
 
@@ -118,21 +115,20 @@ public class AdminQuestionController {
     }
 
     @GetMapping("/{uuid}")
+    @AdminPage(menu = AdminMenu.QUESTIONS, title = "문제 상세")
     public String detail(@PathVariable UUID uuid, Model model) {
         QuestionDetail question = questionService.getQuestion(uuid);
         model.addAttribute("question", question);
-        model.addAttribute("currentMenu", "questions");
-        model.addAttribute("pageTitle", "문제 상세");
+        model.addAttribute("isQuestionActive", questionService.isQuestionActive(uuid));
         return "admin/question-detail";
     }
 
     @GetMapping("/{uuid}/edit")
+    @AdminPage(menu = AdminMenu.QUESTIONS, title = "문제 편집")
     public String editForm(@PathVariable UUID uuid, Model model) {
         Question question = questionService.getQuestionEntity(uuid);
         model.addAttribute("question", question);
         model.addAttribute("topics", metaService.getTopicTree());
-        model.addAttribute("currentMenu", "questions");
-        model.addAttribute("pageTitle", "문제 편집");
         return "admin/question-edit";
     }
 
@@ -167,6 +163,24 @@ public class AdminQuestionController {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
         return "redirect:/admin/questions";
+    }
+
+    /** 비활성 문제 복구 (#479): 활성화 > 추천 색인 다시 적재 */
+    @PostMapping("/{uuid}/restore")
+    @ResponseBody
+    public ResponseEntity<Void> restore(@PathVariable UUID uuid) {
+        adminQuestionDeleteService.restoreQuestion(uuid);
+        questionGenerateService.reindexSelected(List.of(uuid.toString()));
+        return ResponseEntity.ok().build();
+    }
+
+    /** 문제 1건 비활성화 (상세 화면 JSON 요청용, 회원 기록 보존) */
+    @PostMapping("/{uuid}/deactivate")
+    @ResponseBody
+    public ResponseEntity<Void> deactivate(@PathVariable UUID uuid) {
+        adminQuestionDeleteService.deactivateQuestion(uuid);
+        questionGenerateService.pruneIndex();
+        return ResponseEntity.ok().build();
     }
 
     /**

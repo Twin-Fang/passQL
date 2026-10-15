@@ -3,8 +3,12 @@ package com.passql.web.controller.admin;
 import com.passql.meta.constant.CertType;
 import com.passql.meta.dto.ExamScheduleCreateRequest;
 import com.passql.meta.dto.ExamScheduleResponse;
+import com.passql.meta.dto.ExamScheduleUpdateRequest;
 import com.passql.meta.service.ExamScheduleCoverageService;
 import com.passql.meta.service.ExamScheduleService;
+import com.passql.web.support.AdminMenu;
+import com.passql.web.support.AdminPage;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -23,6 +27,7 @@ public class AdminExamScheduleController {
     private final ExamScheduleCoverageService coverageService;
 
     @GetMapping
+    @AdminPage(menu = AdminMenu.EXAM_SCHEDULES)
     public String list(@RequestParam(value = "certType", required = false) String certType, Model model) {
         CertType type = (certType != null && !certType.isEmpty()) ? CertType.fromRequestValue(certType) : null;
         List<ExamScheduleResponse> schedules = examScheduleService.getAllSchedules(type);
@@ -36,8 +41,6 @@ public class AdminExamScheduleController {
         model.addAttribute("checkedAt", coverageService.getCheckedAt().orElse(null));
         model.addAttribute("checkStale", coverageService.isCheckStale());
         model.addAttribute("staleDays", ExamScheduleCoverageService.STALE_CHECK_DAYS);
-        model.addAttribute("pageTitle", "시험 일정 관리");
-        model.addAttribute("currentMenu", "exam-schedules");
         return "admin/exam-schedules";
     }
 
@@ -52,6 +55,15 @@ public class AdminExamScheduleController {
     public String markChecked() {
         coverageService.markChecked();
         return "redirect:/admin/exam-schedules";
+    }
+
+    /** 회차·시험일 수정 (#479) */
+    @PutMapping("/{uuid}")
+    @ResponseBody
+    public ResponseEntity<Void> update(@PathVariable("uuid") UUID uuid,
+                                       @Valid @RequestBody ExamScheduleUpdateRequest request) {
+        examScheduleService.updateSchedule(uuid, request);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{uuid}/select")

@@ -114,7 +114,7 @@
                         <th>회차</th>
                         <th>시험일</th>
                         <th class="w-20">선택</th>
-                        <th class="w-20">액션</th>
+                        <th class="w-28">액션</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -133,7 +133,14 @@
                                    th:data-uuid="${s.examScheduleUuid}"
                                    onclick="selectSchedule(this.dataset.uuid)"/>
                         </td>
-                        <td>
+                        <td class="flex gap-1">
+                            <button class="btn btn-xs btn-ghost" title="수정"
+                                    th:data-uuid="${s.examScheduleUuid}"
+                                    th:data-round="${s.round}"
+                                    th:data-exam-date="${s.examDate}"
+                                    onclick="openEditSchedule(this.dataset)">
+                                <i data-lucide="pencil" class="size-4"></i>
+                            </button>
                             <button class="btn btn-xs btn-ghost text-error"
                                     th:data-uuid="${s.examScheduleUuid}"
                                     onclick="deleteSchedule(this.dataset.uuid)">
@@ -154,27 +161,64 @@
         </div>
     </div>
 
+    <!-- 시험 일정 수정 모달 (#479) -->
+    <dialog id="editScheduleModal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg mb-3">시험 일정 수정</h3>
+            <div class="flex flex-wrap gap-3">
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">회차</span>
+                    <input id="editRound" type="number" min="1" class="input input-sm input-bordered w-28"/>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">시험일</span>
+                    <input id="editExamDate" type="date" class="input input-sm input-bordered"/>
+                </label>
+            </div>
+            <div class="modal-action">
+                <form method="dialog"><button class="btn btn-ghost btn-sm">취소</button></form>
+                <button class="btn btn-primary btn-sm" onclick="saveSchedule()">저장</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
 </th:block>
 
 <th:block layout:fragment="js">
     <script>
         lucide.createIcons();
 
-        function selectSchedule(uuid) {
-            fetch('/admin/exam-schedules/' + uuid + '/select', { method: 'PUT' })
-                .then(res => {
-                    if (res.ok) location.reload();
-                    else alert('선택 변경에 실패했습니다.');
-                });
+        let editingScheduleUuid = null;
+
+        function openEditSchedule(dataset) {
+            editingScheduleUuid = dataset.uuid;
+            document.getElementById('editRound').value = dataset.round;
+            document.getElementById('editExamDate').value = dataset.examDate;
+            document.getElementById('editScheduleModal').showModal();
         }
 
-        function deleteSchedule(uuid) {
-            if (!confirm('정말 삭제하시겠습니까?')) return;
-            fetch('/admin/exam-schedules/' + uuid, { method: 'DELETE' })
-                .then(res => {
-                    if (res.ok) location.reload();
-                    else alert('삭제에 실패했습니다.');
-                });
+        function saveSchedule() {
+            const body = {
+                round: parseInt(document.getElementById('editRound').value, 10),
+                examDate: document.getElementById('editExamDate').value
+            };
+            AdminApi.put('/admin/exam-schedules/' + editingScheduleUuid, body)
+                .then(() => AdminUi.reloadWithToast('시험 일정을 수정했습니다.'))
+                .catch(error => AdminUi.showError(error));
+        }
+
+        function selectSchedule(uuid) {
+            AdminApi.put('/admin/exam-schedules/' + uuid + '/select')
+                .then(() => AdminUi.reloadWithToast('홈에 표시할 일정을 바꿨습니다.'))
+                .catch(error => AdminUi.showError(error));
+        }
+
+        async function deleteSchedule(uuid) {
+            if (!await AdminUi.confirmDanger('이 시험 일정을 삭제합니다. 되돌릴 수 없습니다.', { confirmLabel: '삭제' })) return;
+            AdminApi.delete('/admin/exam-schedules/' + uuid)
+                .then(() => AdminUi.reloadWithToast('시험 일정을 삭제했습니다.'))
+                .catch(error => AdminUi.showError(error));
         }
     </script>
 </th:block>
