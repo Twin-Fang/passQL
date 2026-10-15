@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../core/monitoring/app_analytics.dart';
 import '../providers/chapter_providers.dart';
 import '../providers/topic_providers.dart';
 import '../../router/app_routes.dart';
@@ -63,6 +64,15 @@ class TopicFlow extends QuestionFlow {
     ChapterSummary summary,
     String sessionUuid,
   ) async {
+    ref
+        .read(appAnalyticsProvider)
+        .logChapterCompleted(
+          topicCode: topicCode,
+          correctCount: summary.results
+              .where((result) => result.isCorrect)
+              .length,
+          questionCount: summary.results.length,
+        );
     // 경로의 sessionId 는 라우트 파라미터를 채우기 위한 값일 뿐 화면에서 쓰지 않는다.
     context.go(
       AppRoutes.practiceResult('chapter-${const Uuid().v4()}'),

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/monitoring/app_analytics.dart';
 import '../../core/network/safe_call.dart';
 import '../../data/models/ai/similar_question.dart';
 import '../../data/sources/api_providers.dart';
@@ -36,6 +37,11 @@ class AiExplanationRequest {
 /// AI 해설 본문. 시트를 닫으면 해제되고 실패는 그대로 노출(시트가 안내 문구로 표시)
 final aiExplanationProvider = FutureProvider.autoDispose
     .family<String, AiExplanationRequest>((ref, request) async {
+      ref
+          .read(appAnalyticsProvider)
+          .logAiExplanationRequested(
+            isErrorExplanation: request.isErrorExplanation,
+          );
       final aiClient = ref.read(aiApiProvider);
       final explanation = request.isErrorExplanation
           ? await aiClient.explainError(request.payload)
