@@ -10,6 +10,7 @@ export 'components/pq_card.dart';
 export 'components/pq_choice_card.dart';
 export 'components/pq_code_block.dart';
 export 'components/pq_glass.dart';
+export 'components/pq_logo.dart';
 export 'components/pq_grouped_section.dart';
 export 'components/pq_nav_bar.dart';
 export 'components/pq_pressable.dart';

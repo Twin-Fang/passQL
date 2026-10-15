@@ -54,6 +54,7 @@ flutter:
   assets:
     - .env
     - assets/logo.png
+    - assets/logo_dark.png
   fonts:
     - family: Pretendard-Thin
       fonts:

@@ -58,7 +58,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               // 로고+버튼 묶음을 세로 중앙보다 조금 아래(55%)에 둔다 — 화면이 커도 버튼이 바닥에 붙지 않게.
               const Spacer(flex: 11),
               // 워드마크 이미지에 앱 이름이 이미 들어 있으므로 이름 텍스트를 따로 두지 않는다.
-              const _Wordmark(),
+              const PqLogo(height: 44),
               const SizedBox(height: PqSpace.xs),
               Text(
                 'SQL 자격증, 문제로 합격까지',
@@ -105,38 +105,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ),
         ),
       ),
-    );
-  }
-}
-
-/// 워드마크. logo.png 는 불투명한 흰 배경이라 라이트는 곱하기 블렌드로 배경색에 녹인다.
-/// 다크는 색 행렬 필터가 화면 전체를 흰색으로 덮는 문제가 실측돼(시뮬레이터),
-/// 텍스트 워드마크로 대체한다. TODO: 전용 다크 로고 에셋 필요.
-class _Wordmark extends StatelessWidget {
-  const _Wordmark();
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.pq;
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    if (dark) {
-      return Text.rich(
-        TextSpan(
-          style: PqType.title1.copyWith(color: c.label),
-          children: [
-            const TextSpan(text: 'pass'),
-            TextSpan(
-              text: 'QL',
-              style: PqType.title1.copyWith(color: c.accent),
-            ),
-          ],
-        ),
-        semanticsLabel: 'passQL',
-      );
-    }
-    return ColorFiltered(
-      colorFilter: ColorFilter.mode(c.background, BlendMode.multiply),
-      child: Image.asset('assets/logo.png', height: 44),
     );
   }
 }

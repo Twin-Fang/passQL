@@ -345,7 +345,7 @@ class _Footer extends StatelessWidget {
     final caption = PqType.caption.copyWith(color: c.tertiaryLabel);
     return Column(
       children: [
-        Image.asset('assets/logo.png', height: 20),
+        const PqLogo(height: 20),
         const SizedBox(height: PqSpace.xs),
         if (memberUuid != null)
           GestureDetector(
