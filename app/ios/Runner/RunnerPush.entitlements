@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<!--
-  푸시 알림(APNs) 포함 entitlements. Runner.entitlements + aps-environment.
-  App ID Push Notifications 켜기 > 배포 프로파일 재생성·Secret 갱신 후에만
-  project.pbxproj CODE_SIGN_ENTITLEMENTS 3곳(Debug·Release·Profile)을 이 파일로 바꾼다 (#467).
-  먼저 바꾸면 CI 수동 서명 프로파일에 aps-environment 가 없어 archive 가 실패한다.
-  development 값은 App Store export 때 배포 프로파일의 production 으로 바뀐다.
--->
+<!-- 푸시 알림(APNs) 포함 entitlements. development 값은 App Store export 때 배포 프로파일의 production 으로 바뀐다 (#467). -->
 <plist version="1.0">
 <dict>
 	<key>aps-environment</key>
