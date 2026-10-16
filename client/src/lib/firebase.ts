@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, OAuthProvider } from "firebase/auth";
 
 // Firebase 프로젝트 설정 — env에서 주입 (VITE_ prefix 필수)
 const firebaseConfig = {
@@ -14,3 +14,5 @@ const firebaseConfig = {
 export const firebaseApp = initializeApp(firebaseConfig);
 export const firebaseAuth = getAuth(firebaseApp);
 export const googleProvider = new GoogleAuthProvider();
+// Apple 로그인 (Firebase apple.com 제공자, 웹은 Services ID 설정 필요) (#509)
+export const appleProvider = new OAuthProvider("apple.com");

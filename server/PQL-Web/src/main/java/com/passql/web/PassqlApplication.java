@@ -1,6 +1,7 @@
 package com.passql.web;
 
 import com.passql.member.auth.infrastructure.jwt.JwtProperties;
+import com.passql.member.auth.infrastructure.social.oauth.SocialLoginProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -12,7 +13,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EntityScan(basePackages = "com.passql")
 @EnableJpaRepositories(basePackages = "com.passql")
 @EnableScheduling
-@EnableConfigurationProperties(JwtProperties.class)
+@EnableConfigurationProperties({JwtProperties.class, SocialLoginProperties.class})
 public class PassqlApplication {
 
     public static void main(String[] args) {

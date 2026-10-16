@@ -149,7 +149,9 @@ public enum ErrorCode {
     REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "리프레시 토큰이 만료되었습니다."),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
     UNAUTHENTICATED_REQUEST(HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
-    UNSUPPORTED_AUTH_PROVIDER(HttpStatus.BAD_REQUEST, "지원하지 않는 소셜 플랫폼입니다.");
+    UNSUPPORTED_AUTH_PROVIDER(HttpStatus.BAD_REQUEST, "지원하지 않는 소셜 플랫폼입니다."),
+    SOCIAL_LOGIN_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "이 소셜 로그인은 아직 준비 중입니다."),
+    INVALID_SOCIAL_AUTHORIZATION_CODE(HttpStatus.UNAUTHORIZED, "소셜 로그인 인증이 만료되었거나 올바르지 않습니다.");
 
     private final HttpStatus status;
     private final String message;

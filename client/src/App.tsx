@@ -5,6 +5,7 @@ import PageLoadingFallback from "./components/PageLoadingFallback";
 // 첫 화면(홈·로그인)·오류 화면만 즉시 로딩, 나머지는 라우트별 청크 (#497)
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import AuthCallback from "./pages/AuthCallback";
 import RouteError from "./pages/RouteError";
 import MaintenanceGate from "./components/MaintenanceGate";
 import UnreadTitleSync from "./components/UnreadTitleSync";
@@ -51,6 +52,8 @@ const router = createBrowserRouter([
         element: <RedirectIfAuth />,
         children: [
           { path: "login", element: <Login /> },
+          // 소셜 인가 콜백 (카카오·네이버·GitHub, #509)
+          { path: "auth/callback/:provider", element: <AuthCallback /> },
         ],
       },
       // 인증 필수 영역
