@@ -1,5 +1,6 @@
 package com.passql.web.controller.admin;
 
+import com.passql.application.notification.MemberNotificationQueryService;
 import com.passql.meta.dto.AppNoticeResponse;
 import com.passql.meta.dto.AppNoticeSaveRequest;
 import com.passql.meta.dto.AppOperationSettingsRequest;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -24,11 +26,16 @@ public class AdminAppOperationController {
 
     private final AppOperationService appOperationService;
     private final AppNoticeService appNoticeService;
+    private final MemberNotificationQueryService memberNotificationQueryService;
 
     @GetMapping
     public String page(Model model) {
+        List<AppNoticeResponse> notices = appNoticeService.getAllNotices();
         model.addAttribute("operationSettings", appOperationService.getOperationSettings());
-        model.addAttribute("notices", appNoticeService.getAllNotices());
+        model.addAttribute("notices", notices);
+        // 공지별 읽은 회원 수 (GROUP BY 1회)
+        model.addAttribute("noticeReadCounts", memberNotificationQueryService.countReadMembersByNotice(
+                notices.stream().map(AppNoticeResponse::noticeUuid).toList()));
         model.addAttribute("currentMenu", "app-operation");
         model.addAttribute("pageTitle", "앱 운영");
         return "admin/app-operation";

@@ -93,6 +93,7 @@
                             <th>제목</th>
                             <th class="w-48">노출 기간 (KST)</th>
                             <th class="w-20">중요</th>
+                            <th class="w-24">읽은 회원</th>
                             <th class="w-20">상태</th>
                             <th class="w-36">액션</th>
                         </tr>
@@ -109,6 +110,7 @@
                                 <span th:text="${notice.endsAt != null} ? ${#temporals.format(notice.endsAt, 'yyyy-MM-dd HH:mm')} : '무기한'">무기한</span>
                             </td>
                             <td><span th:if="${notice.isImportant}" class="badge badge-warning badge-sm">중요</span></td>
+                            <td class="text-xs font-mono" th:text="${noticeReadCounts.getOrDefault(notice.noticeUuid, 0L)}">0</td>
                             <td>
                                 <span th:if="${notice.isActive}" class="badge badge-success badge-sm">활성</span>
                                 <span th:unless="${notice.isActive}" class="badge badge-ghost badge-sm">비활성</span>
@@ -136,7 +138,7 @@
                             </td>
                         </tr>
                         <tr th:if="${notices.isEmpty()}">
-                            <td colspan="5" class="text-center text-base-content/50 py-6">등록된 공지가 없습니다.</td>
+                            <td colspan="6" class="text-center text-base-content/50 py-6">등록된 공지가 없습니다.</td>
                         </tr>
                         </tbody>
                     </table>

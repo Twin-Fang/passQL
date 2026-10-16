@@ -7,6 +7,7 @@ import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.dto.AppNoticeResponse;
 import com.passql.meta.dto.AppNoticeSaveRequest;
+import com.passql.meta.dto.VisibleNoticeSummary;
 import com.passql.meta.entity.AppNotice;
 import com.passql.meta.repository.AppNoticeRepository;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +46,13 @@ public class AppNoticeService {
     public List<AppNoticeResponse> getVisibleNotices() {
         return appNoticeRepository.findVisibleNotices(LocalDateTime.now(KST)).stream()
                 .map(AppNoticeResponse::from)
+                .toList();
+    }
+
+    /** 지금 노출할 공지 요약 (알림함 공지 탭, 중요 먼저 > 최근 등록 순) */
+    public List<VisibleNoticeSummary> getVisibleNoticeSummaries() {
+        return appNoticeRepository.findVisibleNotices(LocalDateTime.now(KST)).stream()
+                .map(VisibleNoticeSummary::from)
                 .toList();
     }
 

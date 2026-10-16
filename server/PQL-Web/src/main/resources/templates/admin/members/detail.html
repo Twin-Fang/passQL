@@ -79,6 +79,10 @@
                             <i data-lucide="shield" class="size-4 mr-1"></i>제재 이력
                             <span class="badge badge-sm ml-1" th:text="${member.suspendHistories.size()}">0</span>
                         </button>
+                        <button role="tab" class="tab" id="tab-notification" onclick="switchTab('notification')">
+                            <i data-lucide="bell" class="size-4 mr-1"></i>알림
+                            <span class="badge badge-sm ml-1" th:text="${notifications.size()}">0</span>
+                        </button>
                     </div>
 
                     <!-- 제출 이력 패널 -->
@@ -150,6 +154,45 @@
                                             <span>제재 이력이 없습니다.</span>
                                         </div>
                                     </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 알림 패널: 푸시 기기 현황 + 받은 알림 (최근 50건) -->
+                    <div id="panel-notification" class="p-4 hidden">
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            <span class="badge badge-neutral">푸시 기기 <span class="ml-1 font-bold" th:text="${pushDevices.registeredDeviceCount}">0</span></span>
+                            <span class="badge badge-ghost">수신 동의 <span class="ml-1 font-bold" th:text="${pushDevices.pushEnabledDeviceCount}">0</span></span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="table table-sm">
+                                <thead>
+                                <tr>
+                                    <th class="w-40">받은 시각</th>
+                                    <th class="w-28">종류</th>
+                                    <th>제목</th>
+                                    <th class="w-32">읽음</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="n : ${notifications}" th:classappend="${n.isHidden} ? 'opacity-50'">
+                                    <td class="text-xs text-base-content/60" th:text="${#temporals.format(n.createdAt, 'yyyy-MM-dd HH:mm')}">—</td>
+                                    <td class="text-xs" th:text="${n.type}">관리자 발송</td>
+                                    <td>
+                                        <div class="font-semibold text-sm" th:text="${n.title}">제목</div>
+                                        <div class="text-xs text-base-content/60 line-clamp-1" th:text="${n.body}">본문</div>
+                                    </td>
+                                    <td class="text-xs">
+                                        <span th:if="${n.isHidden}" class="badge badge-sm badge-ghost">회수됨</span>
+                                        <span th:if="${!n.isHidden and n.isRead}" class="badge badge-sm badge-success"
+                                              th:text="${#temporals.format(n.readAt, 'MM-dd HH:mm')}">읽음</span>
+                                        <span th:if="${!n.isHidden and !n.isRead}" class="badge badge-sm badge-warning">안 읽음</span>
+                                    </td>
+                                </tr>
+                                <tr th:if="${notifications.isEmpty()}">
+                                    <td colspan="4" class="text-center text-base-content/40 py-12">받은 알림이 없습니다.</td>
                                 </tr>
                                 </tbody>
                             </table>

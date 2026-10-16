@@ -43,6 +43,13 @@ public final class AppSettingKeys {
     // app_setting: 점검 화면 문구 (비면 앱 기본 문구)
     public static final String APP_MAINTENANCE_MESSAGE = "app.maintenance.message";
 
+    // app_setting: 알림함 일반 알림 보관 기간 (일, 지난 알림은 매일 새벽 삭제)
+    public static final String NOTIFICATION_RETENTION_DAYS = "notification.retention_days";
+    // app_setting: 신고 처리 결과 자동 알림 (true 사용, false 미사용)
+    public static final String NOTIFICATION_REPORT_RESOLVED_ENABLED = "notification.report_resolved.enabled";
+    // app_setting: 오늘의 세트 리마인드 자동 알림 (true 사용, false 미사용, 발송은 후속 이슈)
+    public static final String NOTIFICATION_DAILY_SET_REMINDER_ENABLED = "notification.daily_set_reminder.enabled";
+
     private AppSettingKeys() {
     }
 }
