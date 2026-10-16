@@ -5,11 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/data/models/member/choice_generation_mode.dart';
-import 'package:passql_app/data/models/progress/wrong_questions_response.dart';
 import 'package:passql_app/data/sources/api_providers.dart';
 import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/pages/settings/settings_page.dart';
 import 'package:passql_app/presentation/providers/auth_provider.dart';
+import 'package:passql_app/presentation/providers/app_config_providers.dart';
 import 'package:passql_app/presentation/providers/settings_providers.dart';
 import 'package:passql_app/presentation/providers/wrong_questions_provider.dart';
 
@@ -32,10 +32,8 @@ Future<void> _pumpSettings(
         settingsDataProvider.overrideWith(
           (ref) async => settingsData ?? (throw Exception('members/me 실패')),
         ),
-        appVersionProvider.overrideWith((ref) async => '1.2.3'),
-        wrongQuestionsProvider.overrideWith(
-          (ref) async => const WrongQuestionsResponse(totalCount: 0),
-        ),
+        currentAppVersionProvider.overrideWith((ref) async => '1.2.3'),
+        wrongQuestionTotalCountProvider.overrideWith((ref) async => 0),
       ],
       child: MaterialApp(theme: PassqlTheme.light, home: const SettingsPage()),
     ),

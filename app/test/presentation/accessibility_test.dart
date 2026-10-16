@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/data/models/member/choice_generation_mode.dart';
-import 'package:passql_app/data/models/progress/wrong_questions_response.dart';
 import 'package:passql_app/data/models/question/choice_item.dart';
 import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/pages/home/home_page.dart';
@@ -11,6 +10,7 @@ import 'package:passql_app/presentation/pages/settings/settings_page.dart';
 import 'package:passql_app/presentation/pages/stats/stats_page.dart';
 import 'package:passql_app/presentation/providers/auth_provider.dart';
 import 'package:passql_app/presentation/providers/home_providers.dart';
+import 'package:passql_app/presentation/providers/app_config_providers.dart';
 import 'package:passql_app/presentation/providers/settings_providers.dart';
 import 'package:passql_app/presentation/providers/stats_providers.dart';
 import 'package:passql_app/presentation/providers/topic_providers.dart';
@@ -81,10 +81,8 @@ void main() {
             choiceMode: ChoiceGenerationMode.practice,
           ),
         ),
-        appVersionProvider.overrideWith((ref) async => '1.0.0'),
-        wrongQuestionsProvider.overrideWith(
-          (ref) async => const WrongQuestionsResponse(totalCount: 3),
-        ),
+        currentAppVersionProvider.overrideWith((ref) async => '1.0.0'),
+        wrongQuestionTotalCountProvider.overrideWith((ref) async => 3),
       ],
     ),
     '문제 풀이 선택지': (
@@ -140,7 +138,7 @@ void main() {
       theme: PassqlTheme.light,
       viewSize: const Size(390, 2400),
     );
-    expect(find.bySemanticsLabel(RegExp('최근 35일 학습 기록')), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp(r'최근 \d+일 학습 기록')), findsOneWidget);
     semanticsHandle.dispose();
   });
 

@@ -35,6 +35,7 @@ class DailySetResultPage extends ConsumerWidget {
           total: outcome.results.length,
           results: outcome.results.map((result) => result.isCorrect).toList(),
           saveError: outcome.saveError,
+          completedRank: outcome.completed?.rank,
         ),
       );
     }
@@ -107,6 +108,7 @@ class _ResultBody extends ConsumerWidget {
     required this.total,
     required this.results,
     this.saveError,
+    this.completedRank,
   });
 
   final int correctCount;
@@ -118,11 +120,15 @@ class _ResultBody extends ConsumerWidget {
   /// 점수 등록 실패 사유.
   final String? saveError;
 
+  /// 완료 응답의 내 순위 (풀이 직후에만, 순위표를 기다리지 않고 바로 표시)
+  final int? completedRank;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.passqlColors;
     final board = ref.watch(leaderboardProvider);
-    final myRank = board.valueOrNull?.myEntry?.rank;
+    // 내 순위: 완료 응답 우선 > 순위표의 내 줄
+    final myRank = completedRank ?? board.valueOrNull?.myEntry?.rank;
 
     return PassqlResultScaffold(
       title: _dailySetTitle,

@@ -29,16 +29,20 @@ Future<void> main() async {
   readBackendBaseUrl();
   // google-services.json / GoogleService-Info.plist 의 설정으로 초기화한다.
   await Firebase.initializeApp();
-  await startFirebaseCrashReporting();
-  await startFirebaseAnalytics();
-  await startFirebasePushMessaging();
   startAppIconBadge();
 
-  // 앱 렌더링 전 저장된 로그인 세션을 읽어, 첫 화면이 깜빡이지 않게 한다.
-  // 재설치 직후라면 키체인에 남은 이전 로그인을 지운 뒤 세션을 읽는다.
-  await resetSecureStorageOnFreshInstall(TokenStore());
-  // 저장된 화면 모드도 먼저 읽어, 첫 프레임부터 그 모드로 그린다.
-  final themeMode = await loadSavedThemeMode();
+  // 서로 무관한 시작 준비 병렬 실행 (SDK 설정 3종, 재설치 세션 정리, 화면 모드 읽기)
+  // 재설치 정리는 아래 세션 읽기(authProvider)보다 먼저 끝나야 해서 여기서 함께 기다림
+  final themeModeLoad = loadSavedThemeMode();
+  await Future.wait<void>([
+    startFirebaseCrashReporting(),
+    startFirebaseAnalytics(),
+    startFirebasePushMessaging(),
+    resetSecureStorageOnFreshInstall(TokenStore()),
+    themeModeLoad,
+  ]);
+  // 저장된 화면 모드로 첫 프레임부터 그림 (깜빡임 방지)
+  final themeMode = await themeModeLoad;
   final container = ProviderContainer(
     overrides: [initialThemeModeProvider.overrideWithValue(themeMode)],
   );

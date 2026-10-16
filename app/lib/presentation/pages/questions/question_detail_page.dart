@@ -10,6 +10,7 @@ import '../../design/design.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/question/question_sections.dart';
 import '../../widgets/question/question_solving_body.dart';
+import '../../widgets/question/question_solving_skeleton.dart';
 
 /// 문제 상세 + 풀기 화면 (풀스크린).
 /// 진입 시 GET /questions/{uuid}, 선택지 없으면 SSE 자동 시작.
@@ -43,29 +44,37 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
         leading: PassqlNavLeading.back,
         onLeadingTap: () => context.pop(),
       ),
-      body: detailAsync.when(
-        loading: () => PassqlStatusView.loading(),
-        error: (error, _) => PassqlStatusView.error(
-          message: '문제를 불러올 수 없어요',
-          onRetry: () =>
-              ref.invalidate(questionDetailProvider(widget.questionUuid)),
-        ),
-        data: (question) {
-          // 최초 1회: 선택지 준비(재사용·생성 판단은 notifier 몫)
-          if (!_isChoicesInitialized) {
-            _isChoicesInitialized = true;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              notifier.initializeChoices(question);
-            });
-          }
+      // 로딩 자리 스켈레톤 > 내용 페이드 교체
+      body: PassqlFadeSwitcher(
+        child: detailAsync.when(
+          loading: () =>
+              const QuestionSolvingSkeleton(key: ValueKey('loading')),
+          error: (error, _) => KeyedSubtree(
+            key: const ValueKey('error'),
+            child: PassqlStatusView.error(
+              message: '문제를 불러올 수 없어요',
+              onRetry: () =>
+                  ref.invalidate(questionDetailProvider(widget.questionUuid)),
+            ),
+          ),
+          data: (question) {
+            // 최초 1회: 선택지 준비(재사용·생성 판단은 notifier 몫)
+            if (!_isChoicesInitialized) {
+              _isChoicesInitialized = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                notifier.initializeChoices(question);
+              });
+            }
 
-          return QuestionSolvingBody(
-            questionUuid: widget.questionUuid,
-            question: question,
-            interaction: interaction,
-            notifier: notifier,
-          );
-        },
+            return QuestionSolvingBody(
+              key: const ValueKey('data'),
+              questionUuid: widget.questionUuid,
+              question: question,
+              interaction: interaction,
+              notifier: notifier,
+            );
+          },
+        ),
       ),
       bottomNavigationBar: detailAsync.hasValue
           ? QuestionSubmitBar(

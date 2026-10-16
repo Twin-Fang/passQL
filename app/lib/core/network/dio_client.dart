@@ -9,6 +9,7 @@ import '../auth/member_suspension_interceptor.dart';
 import '../auth/member_suspension_signal.dart';
 import '../auth/session_expiry_signal.dart';
 import '../auth/token_store.dart';
+import 'get_retry_interceptor.dart';
 
 // .env: 서버 API 주소 키 (예: https://api.example.com/api)
 const String backendBaseUrlEnvKey = 'BACKEND_BASE_URL';
@@ -25,21 +26,30 @@ String readBackendBaseUrl() {
   return baseUrl;
 }
 
+// 일반 요청 연결·응답 대기 시간
+const Duration defaultConnectTimeout = Duration(seconds: 25);
+const Duration defaultReceiveTimeout = Duration(seconds: 25);
+
+// 선택지 생성 SSE 응답 대기 (서버 SSE 제한 60초 + 여유), 일반 25초면 생성 도중 끊김
+const Duration choiceGenerationStreamReceiveTimeout = Duration(seconds: 75);
+
 /// 공통 Dio 생성.
 ///
 /// baseUrl은 .env의 BACKEND_BASE_URL에서 읽음.
-/// 타임아웃 25초, JSON Content-Type 기본 설정.
+/// 타임아웃 [defaultConnectTimeout]·[defaultReceiveTimeout], JSON Content-Type 기본 설정.
+/// 조회(GET) 연결 실패는 1회 재시도 ([GetRetryInterceptor]).
 /// 디버그 빌드에서는 LogInterceptor로 요청/응답 전체 로그 출력.
 Dio _buildDio() {
   final baseUrl = readBackendBaseUrl();
   final dio = Dio(
     BaseOptions(
       baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 25),
-      receiveTimeout: const Duration(seconds: 25),
+      connectTimeout: defaultConnectTimeout,
+      receiveTimeout: defaultReceiveTimeout,
       headers: {'Content-Type': 'application/json'},
     ),
   );
+  dio.interceptors.add(GetRetryInterceptor(retryDio: dio));
 
   // 디버그 빌드에서만 로그 출력 (릴리즈 빌드에서는 제외).
   // 토큰이 로그에 남지 않도록 요청 헤더는 출력하지 않는다.

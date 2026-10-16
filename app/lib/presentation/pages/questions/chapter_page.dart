@@ -16,6 +16,7 @@ import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../widgets/question/question_sections.dart';
 import '../../widgets/question/question_solving_body.dart';
+import '../../widgets/question/question_solving_skeleton.dart';
 
 /// 문제 풀이 플로우 메인 페이지 (풀스크린).
 ///
@@ -68,6 +69,17 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
           .read(questionInteractionProvider(questionUuid).notifier)
           .initializeChoices(question);
     });
+  }
+
+  /// 다음 문제 상세 미리 받기: 구독만 걸어 캐시 유지 (autoDispose), 넘길 때 로딩 없이 바로 표시
+  /// 선택지 준비(SSE 생성)는 비용이 커서 그 문제로 넘어간 뒤에만 시작
+  void _prefetchNextQuestionDetail(
+    List<String> questionUuids,
+    int currentIndex,
+  ) {
+    final nextIndex = currentIndex + 1;
+    if (nextIndex >= questionUuids.length) return;
+    ref.listen(questionDetailProvider(questionUuids[nextIndex]), (_, _) {});
   }
 
   /// 제출: 선택 키 고정 > 서버 제출 > 결과 기록(성공) 또는 원인별 토스트(실패)
@@ -160,6 +172,8 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
       questionInteractionProvider(currentUuid).notifier,
     );
 
+    _prefetchNextQuestionDetail(chapter.questionUuids, chapter.currentIndex);
+
     // 한 문제라도 제출했거나 2번째 문제 이상이면 "풀이 시작"으로 본다.
     final hasStarted = chapter.currentIndex > 0 || chapter.isAnswered;
 
@@ -173,56 +187,69 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
         isAnswered: chapter.isAnswered,
         shouldConfirmExit: hasStarted,
       ),
-      body: detailAsync.when(
-        loading: () => PassqlStatusView.loading(),
-        error: (error, _) => PassqlStatusView.error(
-          message: '문제를 불러올 수 없어요',
-          onRetry: () => ref.invalidate(questionDetailProvider(currentUuid)),
-        ),
-        data: (question) {
-          _initializeChoicesOnce(currentUuid, question);
-          // Scaffold 안쪽 context 여야 extendBody 가 더한 하단 바 높이를 읽는다.
-          return Builder(
-            builder: (context) => QuestionSolvingBody(
-              questionUuid: currentUuid,
-              question: question,
-              interaction: interaction,
-              notifier: interactionNotifier,
-              // 제출 후에는 정답/오답을 선택지에 표시한다.
-              submitResult: chapter.isAnswered
-                  ? chapter.lastSubmitResult
-                  : null,
-              gradedSelectedKey: chapter.lastSelectedKey,
-              // 재시도가 소용없는 오류여도 다시 눌러 볼 수 있게 두어 막다른 길을 만들지 않는다.
-              shouldAlwaysAllowRetry: true,
+      // 문제 교체: 옆으로 미끄러지며 바뀜 (문제마다 key), 같은 문제 안 로딩 > 내용은 페이드
+      body: PassqlPageSlideSwitcher(
+        child: KeyedSubtree(
+          key: ValueKey(currentUuid),
+          child: PassqlFadeSwitcher(
+            child: detailAsync.when(
+              loading: () =>
+                  const QuestionSolvingSkeleton(key: ValueKey('loading')),
+              error: (error, _) => KeyedSubtree(
+                key: const ValueKey('error'),
+                child: PassqlStatusView.error(
+                  message: '문제를 불러올 수 없어요',
+                  onRetry: () =>
+                      ref.invalidate(questionDetailProvider(currentUuid)),
+                ),
+              ),
+              data: (question) {
+                _initializeChoicesOnce(currentUuid, question);
+                // Scaffold 안쪽 context 여야 extendBody 가 더한 하단 바 높이를 읽는다.
+                return Builder(
+                  key: const ValueKey('data'),
+                  builder: (context) => QuestionSolvingBody(
+                    questionUuid: currentUuid,
+                    question: question,
+                    interaction: interaction,
+                    notifier: interactionNotifier,
+                    // 제출 후에는 정답/오답을 선택지에 표시한다.
+                    submitResult: chapter.isAnswered
+                        ? chapter.lastSubmitResult
+                        : null,
+                    gradedSelectedKey: chapter.lastSelectedKey,
+                    // 재시도가 소용없는 오류여도 다시 눌러 볼 수 있게 두어 막다른 길을 만들지 않는다.
+                    shouldAlwaysAllowRetry: true,
+                  ),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ),
       ),
       // 하단 바 — 미제출: 제출 버튼 / 제출 완료: 피드백 바
-      bottomNavigationBar: detailAsync.hasValue
-          ? (!chapter.isAnswered
-                ? QuestionSubmitBar(
-                    interaction: interaction,
-                    onSubmit: () => _submitCurrentQuestion(currentUuid),
-                  )
-                : ChapterFeedbackBar(
-                    // 문제가 바뀔 때마다 새로 만들어 햅틱이 다시 울리게 한다.
-                    key: ValueKey(currentUuid),
-                    result: chapter.lastSubmitResult!,
-                    questionUuid: currentUuid,
-                    selectedChoiceKey: chapter.lastSelectedKey ?? '',
-                    isLastQuestion: chapter.isLastQuestion,
-                    onNext: () {
-                      if (_isCompleting) return;
-                      if (chapter.isLastQuestion) {
-                        _complete();
-                      } else {
-                        chapterNotifier.nextQuestion();
-                      }
-                    },
-                  ))
-          : null,
+      // 문제 로딩 중에도 바 유지 (선택 전이라 제출 비활성), 교체 때 바가 깜빡이지 않게
+      bottomNavigationBar: !chapter.isAnswered
+          ? QuestionSubmitBar(
+              interaction: interaction,
+              onSubmit: () => _submitCurrentQuestion(currentUuid),
+            )
+          : ChapterFeedbackBar(
+              // 문제가 바뀔 때마다 새로 만들어 햅틱이 다시 울리게 한다.
+              key: ValueKey(currentUuid),
+              result: chapter.lastSubmitResult!,
+              questionUuid: currentUuid,
+              selectedChoiceKey: chapter.lastSelectedKey ?? '',
+              isLastQuestion: chapter.isLastQuestion,
+              onNext: () {
+                if (_isCompleting) return;
+                if (chapter.isLastQuestion) {
+                  _complete();
+                } else {
+                  chapterNotifier.nextQuestion();
+                }
+              },
+            ),
     );
 
     // 완료 처리(점수 등록)가 길어질 수 있어, 진행 중에는 화면을 잠그고 로딩을 보여준다.

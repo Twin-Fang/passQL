@@ -5,6 +5,7 @@ import 'home_providers.dart';
 import 'notification_inbox_providers.dart';
 import 'settings_providers.dart';
 import 'stats_providers.dart';
+import 'wrong_questions_provider.dart';
 
 /// 로그아웃하거나 다른 계정으로 로그인했을 때, 이전 사용자의 데이터가 남아 보이지 않게 한다.
 ///
@@ -13,7 +14,7 @@ import 'stats_providers.dart';
 void resetUserScopedProviders(
   void Function(ProviderOrFamily provider) invalidate,
 ) {
-  invalidate(homeDataProvider);
+  invalidateHomeData(invalidate);
   invalidate(statsDataProvider);
   invalidate(statsAiCommentProvider);
   invalidate(settingsDataProvider);
@@ -22,4 +23,5 @@ void resetUserScopedProviders(
   invalidate(dailySetTodayProvider);
   invalidate(leaderboardProvider);
   invalidate(notificationInboxProvider);
+  invalidate(wrongQuestionTotalCountProvider);
 }

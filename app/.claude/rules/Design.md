@@ -51,6 +51,7 @@ lib/presentation/design/
 | `showPassqlBlockingProgress` | 진행 중 화면 잠금 창 |
 | `PassqlLoadingIndicator` (+`PassqlLoadingSize`) | 모든 로딩 스피너 (인라인·섹션·화면 잠금 3단계) |
 | `PassqlStatusView` / `PassqlSkeletonBox` | 로딩·빈·오류 상태 한 모양, 스켈레톤 조각 |
+| `PassqlListSkeleton` | grouped 목록 로딩 자리(행 N개, 머리글) — 토픽·순위·오답 노트 |
 | `PassqlStatusScaffold` | 상태만 보여 주는 화면 틀(상단 바 + 가운데 본문) |
 | `PassqlResultMark` / `PassqlScoreHeader` / `PassqlResultScaffold` | 정답/오답 표시, 점수 고리, 결과 화면 3종 공통 틀 |
 | `PassqlChoiceCard` (+`PassqlChoiceState`) | 선택지 카드의 선택·채점 모양 (내용은 `ChoiceItemCard` 가 채움) |
@@ -58,6 +59,7 @@ lib/presentation/design/
 | `PassqlBadge` (+`PassqlBadgeKind`) / `PassqlProgressBar` | 의미별 캡슐 태그(주제·보조·완료·연속·중요·AI, 아이콘·테두리), 진행 막대 |
 | `PassqlReveal` / `passqlRevealInOrder` | 처음 그려질 때 페이드 + 위로 8px, 순번별 지연(상한 8) (#495) |
 | `PassqlFadeSwitcher` | 로딩 > 내용 같은 상태 교체 페이드 (상태마다 다른 key) |
+| `PassqlPageSlideSwitcher` | 본문 교체(다음 문제) 옆으로 미끄러짐 + 페이드 (항목마다 다른 key) |
 | `PassqlPopIn` | 톡 튀어나오는 등장 (반짝이, 결과 마크) |
 | `PassqlAiHeader` | AI 내용 머리: 반짝이 팝 + 제목 미끄러짐 |
 | `PassqlLogo` | 라이트/다크 워드마크 |
