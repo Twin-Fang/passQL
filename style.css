@@ -171,8 +171,90 @@ footer { border-top: 1px solid var(--line); padding: 44px 0 64px; color: var(--d
 .callout p { color: var(--text); margin: 0; }
 .updated { margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--line); color: var(--dim); font-size: 14px; }
 
+/* ── 상단 바 시작 버튼 (#505) ── */
+.nav-links a.nav-cta {
+  padding: 6px 14px; border-radius: 999px;
+  background: var(--mint); color: #ffffff; font-weight: 600;
+}
+.nav-links a.nav-cta:hover { color: #ffffff; filter: brightness(1.06); }
+.btn-store svg { flex-shrink: 0; }
+
+/* ── 이유 3개 ── */
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.num {
+  display: inline-grid; place-items: center; width: 32px; height: 32px;
+  border-radius: 10px; background: rgba(79, 70, 229, 0.11);
+  color: var(--mint); font-weight: 800; font-size: 15px;
+}
+
+/* ── 배경 띠 섹션 ── */
+.band { background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+
+/* ── 시험 과목 > 주제 칩 ── */
+.subjects { display: grid; grid-template-columns: 1fr 2fr; gap: 18px; }
+.subject {
+  padding: 26px; border-radius: var(--radius);
+  background: var(--bg); border: 1px solid var(--line);
+}
+.subject h3 { margin: 0 0 14px; font-size: 17px; }
+.chips { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.chips li {
+  padding: 6px 13px; border-radius: 999px; font-size: 15px; font-weight: 600;
+  background: rgba(79, 70, 229, 0.08); color: var(--mint);
+}
+
+/* ── 공부 흐름 단계 ── */
+.steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 14px; }
+.steps li {
+  display: flex; gap: 18px; align-items: flex-start;
+  padding: 22px 24px; border-radius: var(--radius);
+  background: var(--surface); border: 1px solid var(--line);
+}
+.steps h3 { margin: 0 0 4px; font-size: 18px; }
+.steps p { margin: 0; color: var(--muted); font-size: 16px; }
+.step-num {
+  flex-shrink: 0; display: grid; place-items: center; width: 36px; height: 36px;
+  border-radius: 50%; background: var(--mint); color: #ffffff; font-weight: 800;
+}
+
+/* ── 화면 설명 ── */
+.shot { margin: 0; }
+.shot figcaption strong { display: block; color: var(--text); font-size: 15px; }
+.shot figcaption span { display: block; }
+
+/* ── 자주 묻는 질문 ── */
+.faq { display: grid; gap: 10px; }
+.faq-item {
+  border-radius: 16px; background: var(--surface); border: 1px solid var(--line);
+  padding: 4px 22px;
+}
+.faq-item summary {
+  cursor: pointer; padding: 16px 0; font-weight: 700; list-style: none;
+  display: flex; justify-content: space-between; gap: 16px;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after { content: "+"; color: var(--mint); font-weight: 800; }
+.faq-item[open] summary::after { content: "−"; }
+.faq-item p { margin: 0 0 18px; color: var(--muted); }
+
+/* ── 마지막 행동 유도 ── */
+.final-cta { text-align: center; }
+.final-cta .cta { justify-content: center; }
+.final-cta .sec-lead { margin-bottom: 0; }
+
+/* ── 안내 페이지 ── */
+.hero-guide { padding: 64px 0 56px; }
+.hero-guide h1 { font-size: 46px; }
+.crumbs { margin: 0; font-size: 14px; color: var(--dim); }
+.info { width: 100%; border-collapse: collapse; font-size: 16px; }
+.info th, .info td { text-align: left; padding: 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.info th { width: 30%; color: var(--text); font-weight: 600; }
+.info td { color: var(--muted); }
+
 /* ── 좁은 화면 ── */
 @media (max-width: 900px) {
+  .grid-3, .subjects { grid-template-columns: 1fr; }
+  .hero-guide h1 { font-size: 36px; }
   .hero-in { grid-template-columns: 1fr; gap: 44px; }
   .hero-art { max-width: 300px; margin: 0 auto; }
   h1 { font-size: 40px; letter-spacing: -1.2px; }
