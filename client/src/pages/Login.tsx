@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { signInWithPopup } from "firebase/auth";
-import { firebaseAuth, googleProvider } from "../lib/firebase";
-import { login, type AuthProvider } from "../api/auth";
+import { firebaseAuth, googleProvider, appleProvider } from "../lib/firebase";
+import { fetchSocialLoginConfig, login, type AuthProvider, type AuthorizationCodeProvider } from "../api/auth";
+import { buildAuthorizeUrl } from "../lib/socialLoginRedirect";
 import { useAuthStore } from "../stores/authStore";
 import { ApiError } from "../api/client";
 import { fetchLegal, LEGAL_TITLE, type LegalType } from "../api/legal";
@@ -28,25 +29,33 @@ export default function Login() {
 
   const isLoading = loadingProvider !== null;
 
-  const handleGoogleLogin = async () => {
-    setLoadingProvider("GOOGLE");
+  /** 로그인 성공 응답 > 토큰 저장 > 홈 */
+  const completeLogin = (response: Awaited<ReturnType<typeof login>>) => {
+    setTokens({
+      accessToken: response.accessToken,
+      refreshToken: response.refreshToken,
+      memberUuid: response.memberUuid,
+      nickname: response.nickname,
+    });
+    navigate("/", { replace: true });
+  };
+
+  /** Firebase 팝업 로그인 (Google·Apple): 팝업 > ID 토큰 > 서버 로그인 */
+  const handleFirebaseLogin = async (provider: "GOOGLE" | "APPLE") => {
+    setLoadingProvider(provider);
     setError(null);
     try {
-      const result = await signInWithPopup(firebaseAuth, googleProvider);
+      const result = await signInWithPopup(firebaseAuth, provider === "GOOGLE" ? googleProvider : appleProvider);
       const idToken = await result.user.getIdToken();
-      const response = await login({ authProvider: "GOOGLE", idToken });
-      setTokens({
-        accessToken: response.accessToken,
-        refreshToken: response.refreshToken,
-        memberUuid: response.memberUuid,
-        nickname: response.nickname,
-      });
-      navigate("/", { replace: true });
+      completeLogin(await login({ authProvider: provider, idToken }));
     } catch (err) {
       if (err instanceof ApiError) {
         setError("로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
       } else if (err instanceof Error && err.message.includes("popup-closed-by-user")) {
         // 사용자가 팝업을 직접 닫은 경우 — 에러 메시지 불필요
+      } else if (err instanceof Error && err.message.includes("operation-not-allowed")) {
+        // 웹 Firebase 에 이 제공자가 아직 설정되지 않음
+        setError(`${PROVIDER_LABEL[provider]} 로그인은 준비 중입니다.`);
       } else {
         setError("로그인에 실패했습니다. 다시 시도해주세요.");
       }
@@ -55,8 +64,24 @@ export default function Login() {
     }
   };
 
-  const handleUnavailable = (provider: AuthProvider) => {
-    setError(`${PROVIDER_LABEL[provider]} 로그인은 준비 중입니다.`);
+  /** 인가 코드 로그인 (카카오·네이버·GitHub): 서버 공개 설정 확인 > 제공자 인가 페이지로 이동 (#509) */
+  const handleAuthorizationCodeLogin = async (provider: AuthorizationCodeProvider) => {
+    setLoadingProvider(provider);
+    setError(null);
+    try {
+      const configs = await fetchSocialLoginConfig();
+      const config = configs.find((item) => item.authProvider === provider);
+      if (!config?.isEnabled || !config.clientId) {
+        setError(`${PROVIDER_LABEL[provider]} 로그인은 준비 중입니다.`);
+        setLoadingProvider(null);
+        return;
+      }
+      // 페이지를 떠나므로 로딩 표시는 그대로 둔다
+      window.location.assign(buildAuthorizeUrl(provider, config.clientId));
+    } catch {
+      setError("로그인에 실패했습니다. 다시 시도해주세요.");
+      setLoadingProvider(null);
+    }
   };
 
   return (
@@ -74,7 +99,7 @@ export default function Login() {
         <div className="w-full bg-surface-card border border-border rounded-xl p-8">
           <div className="flex flex-col gap-3 w-full">
             <button
-              onClick={handleGoogleLogin}
+              onClick={() => handleFirebaseLogin("GOOGLE")}
               disabled={isLoading}
               className="btn-social btn-social--google"
             >
@@ -86,7 +111,7 @@ export default function Login() {
             </button>
 
             <button
-              onClick={() => handleUnavailable("KAKAO")}
+              onClick={() => handleAuthorizationCodeLogin("KAKAO")}
               disabled={isLoading}
               className="btn-social btn-social--kakao"
             >
@@ -98,7 +123,7 @@ export default function Login() {
             </button>
 
             <button
-              onClick={() => handleUnavailable("NAVER")}
+              onClick={() => handleAuthorizationCodeLogin("NAVER")}
               disabled={isLoading}
               className="btn-social btn-social--naver"
             >
@@ -110,7 +135,7 @@ export default function Login() {
             </button>
 
             <button
-              onClick={() => handleUnavailable("GITHUB")}
+              onClick={() => handleAuthorizationCodeLogin("GITHUB")}
               disabled={isLoading}
               className="btn-social btn-social--github"
             >
@@ -122,7 +147,7 @@ export default function Login() {
             </button>
 
             <button
-              onClick={() => handleUnavailable("APPLE")}
+              onClick={() => handleFirebaseLogin("APPLE")}
               disabled={isLoading}
               className="btn-social btn-social--apple"
             >

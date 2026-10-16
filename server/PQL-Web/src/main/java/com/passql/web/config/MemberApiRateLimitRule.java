@@ -15,6 +15,8 @@ public enum MemberApiRateLimitRule {
 
     // 소셜 로그인 (IP 당 분당 20회, 토큰 교환·외부 검증 호출)
     LOGIN(HttpMethod.POST, "/api/auth/login", 20, 60, true),
+    // 인가 코드 로그인 (IP 당 분당 20회, #509)
+    LOGIN_WITH_AUTHORIZATION_CODE(HttpMethod.POST, "/api/auth/login/code", 20, 60, true),
     // 토큰 재발급 (IP 당 분당 60회)
     TOKEN_REISSUE(HttpMethod.POST, "/api/auth/reissue", 60, 60, true),
     // AI 선택지 생성 SSE (회원당 분당 30회)

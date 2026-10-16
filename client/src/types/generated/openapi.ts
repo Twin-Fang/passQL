@@ -83,6 +83,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/login/code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["loginWithAuthorizationCode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/logout": {
         parameters: {
             query?: never;
@@ -109,6 +125,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["reissue"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/social-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getSocialLoginConfig"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1143,6 +1175,13 @@ export interface components {
             recommendedVersion: string;
             storeUrl: string;
         };
+        AuthorizationCodeLoginRequest: {
+            /** @enum {string} */
+            authProvider: "GOOGLE" | "KAKAO" | "NAVER" | "APPLE" | "GITHUB";
+            code: string;
+            redirectUri: string;
+            state?: string | null;
+        };
         ChoiceGenerationModeUpdateRequest: {
             /** @enum {string} */
             choiceGenerationMode: "PRACTICE" | "REAL";
@@ -1215,7 +1254,7 @@ export interface components {
          * @description 서버 ErrorCode enum 이름 (응답 errorCode 값)
          * @enum {string}
          */
-        ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "PROMPT_NOT_FOUND" | "TOPIC_NOT_FOUND" | "TOPIC_DUPLICATE" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER";
+        ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "PROMPT_NOT_FOUND" | "TOPIC_NOT_FOUND" | "TOPIC_DUPLICATE" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER" | "SOCIAL_LOGIN_UNAVAILABLE" | "INVALID_SOCIAL_AUTHORIZATION_CODE";
         /** @description API 에러 응답 표준 형식 */
         ErrorResponse: {
             errorCode: components["schemas"]["ErrorCode"];
@@ -1511,6 +1550,12 @@ export interface components {
             stem: string | null;
             topicName: string | null;
         };
+        SocialLoginClientConfig: {
+            /** @enum {string} */
+            authProvider: "GOOGLE" | "KAKAO" | "NAVER" | "APPLE" | "GITHUB";
+            clientId: string | null;
+            isEnabled: boolean;
+        };
         SortObject: {
             empty: boolean;
             sorted: boolean;
@@ -1713,6 +1758,30 @@ export interface operations {
             };
         };
     };
+    loginWithAuthorizationCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthorizationCodeLoginRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LoginResponse"];
+                };
+            };
+        };
+    };
     logout: {
         parameters: {
             query?: never;
@@ -1755,6 +1824,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ReissueResponse"];
+                };
+            };
+        };
+    };
+    getSocialLoginConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SocialLoginClientConfig"][];
                 };
             };
         };
