@@ -35,6 +35,15 @@ const String _monitoringDirectory = 'lib/core/monitoring/';
 const String _pushSdkPackage = 'package:firebase_messaging/';
 const String _pushDirectory = 'lib/core/push/';
 
+/// 앱 아이콘 숫자 패키지: core/notification 의 AppIconBadgeUpdater 만 직접 import
+const String _iconBadgePackage = 'package:app_badge_plus/';
+const String _notificationDirectory = 'lib/core/notification/';
+
+/// 알림함 진입 경로: 종 아이콘(PassqlNotificationBellButton)을 둔 화면만 사용 {파일: 이유}
+const Map<String, String> _allowedNotificationInboxRouteUsages = {
+  'lib/presentation/pages/home/home_page.dart': '홈 상단 종 아이콘 onPressed',
+};
+
 void main() {
   test('안쪽 계층(core·data·design)은 바깥 계층을 import 하지 않는다', () {
     final violations = <String>[];
@@ -96,6 +105,47 @@ void main() {
       for (var lineIndex = 0; lineIndex < lines.length; lineIndex++) {
         if (lines[lineIndex].contains(_pushSdkPackage)) {
           violations.add('$path:${lineIndex + 1}');
+        }
+      }
+    }
+    expect(violations, isEmpty, reason: violations.join('\n'));
+  });
+
+  test('앱 아이콘 숫자 패키지는 core/notification 에서만 import 한다', () {
+    final violations = <String>[];
+    for (final file in handWrittenDartFiles('lib')) {
+      final path = normalizedPath(file);
+      if (path.startsWith(_notificationDirectory)) continue;
+      final lines = file.readAsLinesSync();
+      for (var lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+        if (lines[lineIndex].contains(_iconBadgePackage)) {
+          violations.add('$path:${lineIndex + 1}');
+        }
+      }
+    }
+    expect(violations, isEmpty, reason: violations.join('\n'));
+  });
+
+  test('화면은 알림함 진입을 종 아이콘 컴포넌트로만 하고 직접 경로를 쓰지 않는다', () {
+    final violations = <String>[];
+    for (final directory in const [
+      'lib/presentation/pages',
+      'lib/presentation/widgets',
+      'lib/presentation/flows',
+    ]) {
+      for (final file in handWrittenDartFiles(directory)) {
+        final path = normalizedPath(file);
+        final codeLines = codeLinesOf(file);
+        final usesInboxRoute = codeLines.any(
+          (line) => line.$2.contains('AppRoutes.notificationInbox'),
+        );
+        if (!usesInboxRoute) continue;
+        final usesBellButton = codeLines.any(
+          (line) => line.$2.contains('PassqlNotificationBellButton('),
+        );
+        if (!_allowedNotificationInboxRouteUsages.containsKey(path) ||
+            !usesBellButton) {
+          violations.add(path);
         }
       }
     }

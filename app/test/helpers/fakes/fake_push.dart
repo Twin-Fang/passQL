@@ -34,6 +34,14 @@ class FakePushMessagingClient extends PushMessagingClient {
     return currentPermission;
   }
 
+  int openSettingsCount = 0;
+
+  @override
+  Future<bool> openDeviceNotificationSettings() async {
+    openSettingsCount++;
+    return true;
+  }
+
   @override
   Future<String?> fetchToken() async => token;
 
