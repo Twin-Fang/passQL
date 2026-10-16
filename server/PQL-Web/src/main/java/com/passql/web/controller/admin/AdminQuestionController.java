@@ -15,6 +15,7 @@ import com.passql.question.service.OracleSqlCompatibilityConverter;
 import com.passql.question.service.QuestionGenerateService;
 import com.passql.question.service.QuestionImportExportService;
 import com.passql.question.service.QuestionService;
+import com.passql.question.service.QuestionVectorIndexService;
 import com.passql.web.service.AdminQuestionDeleteService;
 import com.passql.web.support.AdminMenu;
 import com.passql.web.support.AdminPage;
@@ -45,6 +46,7 @@ public class AdminQuestionController {
 
     private final QuestionService questionService;
     private final QuestionGenerateService questionGenerateService;
+    private final QuestionVectorIndexService questionVectorIndexService;
     private final QuestionImportExportService importExportService;
     private final OracleSqlCompatibilityConverter oracleSqlCompatibilityConverter;
     private final MetaService metaService;
@@ -159,7 +161,7 @@ public class AdminQuestionController {
         try {
             adminQuestionDeleteService.deactivateQuestion(uuid);
             // 커밋 뒤 벡터 정리 — 남기면 추천 결과에 삭제된 문제가 섞인다 (#412)
-            questionGenerateService.pruneIndex();
+            questionVectorIndexService.pruneIndex();
             redirectAttributes.addFlashAttribute("successMessage", "문제를 비활성화했습니다. 회원 풀이 기록은 보존됩니다.");
         } catch (CustomException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
@@ -172,7 +174,7 @@ public class AdminQuestionController {
     @ResponseBody
     public ResponseEntity<Void> restore(@PathVariable UUID uuid) {
         adminQuestionDeleteService.restoreQuestion(uuid);
-        questionGenerateService.reindexSelected(List.of(uuid.toString()));
+        questionVectorIndexService.reindexSelected(List.of(uuid.toString()));
         return ResponseEntity.ok().build();
     }
 
@@ -181,7 +183,7 @@ public class AdminQuestionController {
     @ResponseBody
     public ResponseEntity<Void> deactivate(@PathVariable UUID uuid) {
         adminQuestionDeleteService.deactivateQuestion(uuid);
-        questionGenerateService.pruneIndex();
+        questionVectorIndexService.pruneIndex();
         return ResponseEntity.ok().build();
     }
 
@@ -195,7 +197,7 @@ public class AdminQuestionController {
         AdminQuestionDeleteService.BulkDeactivateResult result =
                 adminQuestionDeleteService.deactivateQuestions(request.questionUuids());
         // 문제마다가 아니라 일괄삭제 끝에 한 번만 정리한다 (#412)
-        if (result.deactivated() > 0) questionGenerateService.pruneIndex();
+        if (result.deactivated() > 0) questionVectorIndexService.pruneIndex();
         return ResponseEntity.ok(result);
     }
 

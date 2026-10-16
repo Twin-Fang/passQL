@@ -7,8 +7,8 @@ import com.passql.ai.dto.IndexStatusResult;
 import com.passql.ai.dto.PruneIndexResult;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
-import com.passql.question.service.QuestionGenerateService;
 import com.passql.question.service.QuestionService;
+import com.passql.question.service.QuestionVectorIndexService;
 import com.passql.web.support.AdminMenu;
 import com.passql.web.support.AdminPage;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ import java.util.Map;
 public class AdminEmbeddingController {
 
     private final QuestionService questionService;
-    private final QuestionGenerateService questionGenerateService;
+    private final QuestionVectorIndexService questionVectorIndexService;
     private final AiGatewayClient aiGatewayClient;
 
     @GetMapping
@@ -67,9 +67,9 @@ public class AdminEmbeddingController {
     public String indexAll(RedirectAttributes redirectAttrs) {
         log.info("[admin-embeddings] 전체 재색인 시작");
         try {
-            IndexQuestionsBulkResult result = questionGenerateService.reindexAll();
+            IndexQuestionsBulkResult result = questionVectorIndexService.reindexAll();
             // 재색인은 추가만 하므로 삭제·비활성 문제의 벡터는 따로 정리한다 (#412)
-            PruneIndexResult pruned = questionGenerateService.pruneIndex();
+            PruneIndexResult pruned = questionVectorIndexService.pruneIndex();
             redirectAttrs.addFlashAttribute("successMessage",
                     String.format("전체 색인 완료: %d개 성공, %d개 실패, 남은 벡터 %s",
                             result.succeeded(), result.failed(),
@@ -99,7 +99,7 @@ public class AdminEmbeddingController {
         }
 
         log.info("[admin-embeddings] 선택 재색인 시작: count={}", uuids.size());
-        IndexQuestionsBulkResult result = questionGenerateService.reindexSelected(uuids);
+        IndexQuestionsBulkResult result = questionVectorIndexService.reindexSelected(uuids);
         log.info("[admin-embeddings] 선택 재색인 완료: succeeded={}, failed={}",
                 result.succeeded(), result.failed());
         return ResponseEntity.ok(Map.of(
