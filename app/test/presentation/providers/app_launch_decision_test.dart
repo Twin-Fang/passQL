@@ -129,36 +129,13 @@ void main() {
     });
   });
 
-  group('저장된 닫기 기록', () {
-    const notices = [
-      AppNotice(noticeUuid: 'n1', title: '첫 공지', body: '본문'),
-      AppNotice(noticeUuid: 'n2', title: '둘째 공지', body: '본문'),
-    ];
-
+  group('저장된 안내 기록', () {
     ProviderContainer containerWith(AppConfig config) => ProviderContainer(
       overrides: [
         appConfigProvider.overrideWith((_) async => config),
         currentAppVersionProvider.overrideWith((_) async => currentVersion),
       ],
     );
-
-    test('공지를 닫으면 다음 공지, 다 닫으면 없음', () async {
-      SharedPreferences.setMockInitialValues({});
-      final container = containerWith(configOf(notices: notices));
-      addTearDown(container.dispose);
-
-      expect(
-        (await container.read(homeNoticeProvider.future))?.noticeUuid,
-        'n1',
-      );
-      await container.read(homeNoticeProvider.notifier).dismiss('n1');
-      expect(
-        (await container.read(homeNoticeProvider.future))?.noticeUuid,
-        'n2',
-      );
-      await container.read(homeNoticeProvider.notifier).dismiss('n2');
-      expect(await container.read(homeNoticeProvider.future), isNull);
-    });
 
     test('같은 권장 버전은 한 번만 안내, 권장 버전이 오르면 다시 안내', () async {
       SharedPreferences.setMockInitialValues({});

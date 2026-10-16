@@ -7,6 +7,7 @@ import 'exam_schedule_api.dart';
 import 'home_api.dart';
 import 'member_api.dart';
 import 'meta_api.dart';
+import 'notification_api.dart';
 import 'progress_api.dart';
 import 'push_token_api.dart';
 import 'question_api.dart';
@@ -65,4 +66,8 @@ final examScheduleApiProvider = Provider<ExamScheduleApiClient>(
 
 final pushTokenApiProvider = Provider<PushTokenApiClient>(
   (ref) => PushTokenApiClient(ref.watch(dioProvider)),
+);
+
+final notificationApiProvider = Provider<NotificationApiClient>(
+  (ref) => NotificationApiClient(ref.watch(dioProvider)),
 );

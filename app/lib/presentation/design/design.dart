@@ -18,6 +18,7 @@ export 'components/passql_list_row.dart';
 export 'components/passql_loading_indicator.dart';
 export 'components/passql_logo.dart';
 export 'components/passql_nav_bar.dart';
+export 'components/passql_notification_bell_button.dart';
 export 'components/passql_pressable.dart';
 export 'components/passql_progress_bar.dart';
 export 'components/passql_result_mark.dart';

@@ -9,6 +9,10 @@ abstract final class AnalyticsEventNames {
   static const String feedbackSent = 'feedback_sent';
   static const String questionReported = 'question_reported';
   static const String aiExplanationRequested = 'ai_explanation_requested';
+  static const String notificationInboxOpened = 'notification_inbox_opened';
+  static const String notificationItemOpened = 'notification_item_opened';
+  static const String notificationPermissionPrompt =
+      'notification_permission_prompt';
 }
 
 /// 분석 이벤트 파라미터 이름 (값은 문자열·숫자만, 이메일·닉네임·SQL 답안 원문 금지)
@@ -25,4 +29,13 @@ abstract final class AnalyticsParameterNames {
 
   /// AI 해설 종류: sql_error, wrong_answer
   static const String explanationType = 'explanation_type';
+
+  /// 알림함 탭: general, notice
+  static const String inboxTab = 'tab';
+
+  /// 알림 종류: ADMIN_MESSAGE, REPORT_RESOLVED, DAILY_SET_REMINDER, NOTICE
+  static const String notificationType = 'type';
+
+  /// 권한 안내 결과: accepted, later, denied
+  static const String promptResult = 'result';
 }
