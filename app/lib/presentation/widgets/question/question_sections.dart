@@ -56,7 +56,8 @@ class QuestionHeader extends StatelessWidget {
               const SizedBox(width: PassqlSpacing.xs),
               PassqlBadge(
                 text: isExecutable ? 'SQL 실행' : '개념 문제',
-                color: isExecutable ? colors.accent : colors.secondaryLabel,
+                kind: isExecutable ? PassqlBadgeKind.topic : PassqlBadgeKind.neutral,
+                icon: isExecutable ? CupertinoIcons.play_fill : CupertinoIcons.book_fill,
               ),
             ],
           ),

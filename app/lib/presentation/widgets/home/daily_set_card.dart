@@ -62,7 +62,7 @@ class DailySetCard extends StatelessWidget {
               ),
               if (completed) ...[
                 const Spacer(),
-                PassqlBadge(text: '완료', color: colors.correctText),
+                PassqlBadge(text: '완료', kind: PassqlBadgeKind.success),
               ],
             ],
           ),

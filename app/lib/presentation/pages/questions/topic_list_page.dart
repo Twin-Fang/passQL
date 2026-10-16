@@ -49,13 +49,17 @@ class TopicListPage extends ConsumerWidget {
                 child: PassqlGroupedSection(
                   header: '학습할 토픽을 선택하세요',
                   children: [
-                    for (final topic in topics)
-                      TopicCard(
-                        topic: topic,
-                        onTap: () => context.push(
-                          AppRoutes.questionChapterOf(
-                            topicCode: topic.code,
-                            topicName: topic.displayName,
+                    // 토픽 행이 위에서부터 차례로 나타난다
+                    for (final (index, topic) in topics.indexed)
+                      PassqlReveal(
+                        index: index,
+                        child: TopicCard(
+                          topic: topic,
+                          onTap: () => context.push(
+                            AppRoutes.questionChapterOf(
+                              topicCode: topic.code,
+                              topicName: topic.displayName,
+                            ),
                           ),
                         ),
                       ),

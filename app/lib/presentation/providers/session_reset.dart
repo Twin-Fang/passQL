@@ -15,6 +15,7 @@ void resetUserScopedProviders(
 ) {
   invalidate(homeDataProvider);
   invalidate(statsDataProvider);
+  invalidate(statsAiCommentProvider);
   invalidate(settingsDataProvider);
   invalidate(nicknameNotifierProvider);
   invalidate(choiceModeProvider);

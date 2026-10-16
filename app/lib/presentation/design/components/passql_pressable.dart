@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-/// iOS 처럼 누르는 동안 살짝 흐려지는 피드백. 잉크 물결 대신 이 하나로 통일한다.
+import '../tokens/passql_tokens.dart';
+
+/// 누르는 동안 살짝 흐려지고 작아지는 피드백. 잉크 물결 대신 이 하나로 통일한다.
 class PassqlPressable extends StatefulWidget {
   const PassqlPressable({
     super.key,
@@ -20,6 +22,9 @@ class PassqlPressable extends StatefulWidget {
 }
 
 class _PassqlPressableState extends State<PassqlPressable> {
+  /// 누르는 동안 불투명도
+  static const double _pressedOpacity = 0.7;
+
   bool _isPressed = false;
 
   void _setPressed(bool isPressed) {
@@ -41,10 +46,15 @@ class _PassqlPressableState extends State<PassqlPressable> {
         onTapDown: (_) => _setPressed(true),
         onTapUp: (_) => _setPressed(false),
         onTapCancel: () => _setPressed(false),
-        child: AnimatedOpacity(
-          opacity: _isPressed ? 0.55 : 1,
-          duration: const Duration(milliseconds: 120),
-          child: widget.child,
+        child: AnimatedScale(
+          scale: _isPressed ? PassqlMotion.pressedScale : 1,
+          duration: PassqlMotion.instant,
+          curve: PassqlMotion.curve,
+          child: AnimatedOpacity(
+            opacity: _isPressed ? _pressedOpacity : 1,
+            duration: PassqlMotion.instant,
+            child: widget.child,
+          ),
         ),
       ),
     );

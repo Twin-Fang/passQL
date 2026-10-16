@@ -39,7 +39,7 @@ class AppNoticeBanner extends StatelessWidget {
           ),
           const SizedBox(width: PassqlSpacing.sm),
           if (notice.isImportant) ...[
-            PassqlBadge(text: '중요', color: colors.wrong),
+            PassqlBadge(text: '중요', kind: PassqlBadgeKind.important),
             const SizedBox(width: PassqlSpacing.xs),
           ],
           Expanded(

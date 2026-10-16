@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -76,25 +75,29 @@ void main() {
   testWidgets('오답 해설: 로딩 후 서버가 준 해설 본문을 보여 주고 diff-explain 을 부른다 (#354)', (
     tester,
   ) async {
+    final semanticsHandle = tester.ensureSemantics();
     final api = _FakeAiApi(reply: Completer<AiResult>());
     await _open(tester, api, isErrorExplain: false);
 
     expect(find.text('AI 해설'), findsOneWidget);
-    expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
+    expect(find.text('AI가 해설을 쓰고 있어요'), findsOneWidget);
 
     api.reply!.complete(
       const AiResult(text: '## 왜 틀렸나\nRANK는 동점이면 순위를 건너뜁니다.', promptVersion: 2),
     );
     await tester.pumpAndSettle();
 
-    expect(find.byType(CupertinoActivityIndicator), findsNothing);
-    expect(find.textContaining('RANK는 동점이면 순위를 건너뜁니다.'), findsOneWidget);
+    expect(find.text('AI가 해설을 쓰고 있어요'), findsNothing);
+    // 단어 순차 등장 배치라 한 줄 전체는 스크린리더 라벨로 확인한다
+    expect(find.bySemanticsLabel(RegExp('RANK는 동점이면 순위를 건너뜁니다.')), findsOneWidget);
     expect(find.textContaining('불러올 수 없어요'), findsNothing);
     expect(api.calls, ['diff-explain']);
     expect(api.lastBody, {'questionUuid': 'q-1', 'selectedChoiceKey': 'D'});
+    semanticsHandle.dispose();
   });
 
   testWidgets('SQL 오류 해설: explain-error 로 SQL 과 오류 메시지를 보낸다', (tester) async {
+    final semanticsHandle = tester.ensureSemantics();
     final api = _FakeAiApi(reply: Completer<AiResult>());
     await _open(
       tester,
@@ -110,9 +113,10 @@ void main() {
     api.reply!.complete(const AiResult(text: 'SELECT 철자를 확인하세요.'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('SELECT 철자를 확인하세요.'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('SELECT 철자를 확인하세요.')), findsOneWidget);
     expect(api.calls, ['explain-error']);
     expect(api.lastBody!['sql'], 'SELEC 1');
+    semanticsHandle.dispose();
   });
 
   testWidgets('서버 실패(AI 사용 불가 등)는 빈 화면 대신 안내 문구를 보여 준다', (tester) async {
@@ -121,6 +125,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('AI 해설을 불러올 수 없어요'), findsOneWidget);
-    expect(find.byType(CupertinoActivityIndicator), findsNothing);
+    expect(find.text('AI가 해설을 쓰고 있어요'), findsNothing);
   });
 }

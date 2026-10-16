@@ -93,6 +93,7 @@ void main() {
   testWidgets('통계 다크', (tester) async {
     await _pumpTab(tester, const StatsPage(), [
       statsDataProvider.overrideWith((ref) async => statsData),
+      statsAiCommentProvider.overrideWith((ref) async => null),
     ]);
     _expectNoLightText(tester);
   });

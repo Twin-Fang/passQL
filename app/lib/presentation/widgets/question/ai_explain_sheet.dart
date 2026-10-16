@@ -38,40 +38,100 @@ class AiExplainSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.passqlColors;
-    final explanationAsync = ref.watch(
-      aiExplanationProvider(
-        AiExplanationRequest(
-          isErrorExplanation: isErrorExplain,
-          payload: payload,
-        ),
-      ),
+    final request = AiExplanationRequest(
+      isErrorExplanation: isErrorExplain,
+      payload: payload,
     );
-    return explanationAsync.when(
-      loading: () => const SizedBox(
-        height: _placeholderHeight,
-        child: Center(
-          child: PassqlLoadingIndicator(size: PassqlLoadingSize.section),
-        ),
-      ),
-      error: (_, _) => SizedBox(
-        height: _placeholderHeight,
-        child: Center(
-          child: Text(
-            'AI 해설을 불러올 수 없어요',
-            style: PassqlTypography.subheadline.copyWith(
-              color: colors.secondaryLabel,
-            ),
-          ),
+    final explanationAsync = ref.watch(aiExplanationProvider(request));
+    final Widget content = explanationAsync.when(
+      loading: () => const _AiExplanationSkeleton(key: ValueKey('loading')),
+      error: (_, _) => ConstrainedBox(
+        key: const ValueKey('error'),
+        constraints: const BoxConstraints(minHeight: _placeholderHeight),
+        child: PassqlStatusView.error(
+          message: 'AI 해설을 불러올 수 없어요',
+          onRetry: () => ref.invalidate(aiExplanationProvider(request)),
         ),
       ),
       data: (explanationText) => SingleChildScrollView(
+        key: const ValueKey('data'),
         padding: const EdgeInsets.fromLTRB(
           PassqlSpacing.md,
           PassqlSpacing.xs,
           PassqlSpacing.md,
           PassqlSpacing.md,
         ),
-        child: MarkdownLiteText(explanationText),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const PassqlPopIn(
+              child: PassqlBadge(text: 'AI가 만든 해설', kind: PassqlBadgeKind.ai),
+            ),
+            const SizedBox(height: PassqlSpacing.sm),
+            MarkdownLiteText(explanationText, isAnimated: true),
+          ],
+        ),
+      ),
+    );
+    // 로딩 > 본문으로 바뀔 때 시트 높이가 툭 변하지 않게 크기와 내용을 함께 전환
+    return AnimatedSize(
+      duration: PassqlMotion.standard,
+      curve: PassqlMotion.curve,
+      alignment: Alignment.topCenter,
+      child: ColoredBox(
+        color: colors.cardElevated,
+        child: PassqlFadeSwitcher(child: content),
+      ),
+    );
+  }
+}
+
+/// AI 해설을 기다리는 자리: 반짝이 맥박 + 글 줄 스켈레톤
+class _AiExplanationSkeleton extends StatelessWidget {
+  const _AiExplanationSkeleton({super.key});
+
+  static const double _lineHeight = 12;
+  static const List<double> _lineWidthFactors = [1, 0.92, 0.83, 0.67];
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        PassqlSpacing.md,
+        PassqlSpacing.xs,
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                CupertinoIcons.sparkles,
+                size: PassqlIconSize.md,
+                color: colors.accent,
+              ),
+              const SizedBox(width: PassqlSpacing.xs),
+              Text(
+                'AI가 해설을 쓰고 있어요',
+                style: PassqlTypography.subheadline.copyWith(
+                  color: colors.secondaryLabel,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: PassqlSpacing.md),
+          for (final widthFactor in _lineWidthFactors) ...[
+            FractionallySizedBox(
+              widthFactor: widthFactor,
+              child: const PassqlSkeletonBox(height: _lineHeight),
+            ),
+            const SizedBox(height: PassqlSpacing.xs),
+          ],
+        ],
       ),
     );
   }

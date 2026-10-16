@@ -10,16 +10,26 @@ void main() {
     final router = GoRouter(
       initialLocation: '/home',
       routes: [
-        ShellRoute(
-          builder: (_, _, child) => AppShell(child: child),
-          routes: [
+        StatefulShellRoute(
+          builder: (_, _, navigationShell) =>
+              AppShell(navigationShell: navigationShell),
+          navigatorContainerBuilder: (_, navigationShell, children) =>
+              AppTabFadeStack(
+                currentIndex: navigationShell.currentIndex,
+                children: children,
+              ),
+          branches: [
             for (final p in ['/home', '/questions', '/stats', '/settings'])
-              GoRoute(path: p, builder: (_, _) => Text(p)),
+              StatefulShellBranch(
+                routes: [GoRoute(path: p, builder: (_, _) => Text(p))],
+              ),
           ],
         ),
       ],
     );
-    await tester.pumpWidget(MaterialApp.router(theme: PassqlTheme.light, routerConfig: router));
+    await tester.pumpWidget(
+      MaterialApp.router(theme: PassqlTheme.light, routerConfig: router),
+    );
     await tester.pumpAndSettle();
 
     expect(find.byType(PassqlTabBar), findsOneWidget);
@@ -30,5 +40,7 @@ void main() {
     await tester.tap(find.byIcon(CupertinoIcons.chart_bar));
     await tester.pumpAndSettle();
     expect(find.text('/stats'), findsOneWidget);
+    // 다른 탭으로 가도 이전 탭 화면은 살아 있다(상태 유지)
+    expect(find.text('/home', skipOffstage: false), findsOneWidget);
   });
 }

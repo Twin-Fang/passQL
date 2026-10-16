@@ -14,6 +14,7 @@ void main() {
   });
 
   testWidgets('AI 영역 분석: 백틱 기호를 숨긴다', (tester) async {
+    final semanticsHandle = tester.ensureSemantics();
     await tester.pumpWidget(
       _host(
         const AiAnalysisCard(
@@ -21,10 +22,12 @@ void main() {
         ),
       ),
     );
+    // 단어 순차 등장이 끝나면 정적인 글자로 바뀐다
+    await tester.pumpAndSettle();
     expect(find.textContaining('`', findRichText: true), findsNothing);
-    expect(
-      find.textContaining('JOIN 토픽은 정답률 50%입니다.', findRichText: true),
-      findsOneWidget,
-    );
+    expect(find.text('JOIN'), findsOneWidget);
+    // 단어 순차 등장 배치라 문장 전체는 스크린리더 라벨로 확인한다
+    expect(find.bySemanticsLabel('JOIN 토픽은 정답률 50%입니다.'), findsOneWidget);
+    semanticsHandle.dispose();
   });
 }

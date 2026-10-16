@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/presentation/design/design.dart';
+import '../helpers/pump_app.dart';
 
 Widget host(Widget child, {double bottomInset = 0, double textScale = 1}) =>
     MaterialApp(
@@ -15,6 +16,7 @@ Widget host(Widget child, {double bottomInset = 0, double textScale = 1}) =>
         child: Scaffold(body: child),
       ),
     );
+
 
 void main() {
   group('PassqlButton', () {
@@ -290,6 +292,8 @@ void main() {
           ),
         ),
       );
+      // 화면 전환 지연 뒤 숫자가 0에서 10까지 올라간다
+      await pumpUntilMotionDone(tester);
       expect(tester.takeException(), isNull);
       expect(find.text('10'), findsOneWidget);
     });

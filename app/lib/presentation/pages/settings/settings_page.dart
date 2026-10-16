@@ -103,7 +103,7 @@ class SettingsPage extends ConsumerWidget {
               0,
             ),
             sliver: SliverList.list(
-              children: [
+              children: passqlRevealInOrder([
                 // 프로필: 닉네임만 보여 주고, 내부 식별자(회원 ID)는 하단으로 내린다.
                 settingsAsync.when(
                   loading: () => const ProfileCardSkeleton(),
@@ -134,7 +134,10 @@ class SettingsPage extends ConsumerWidget {
                 const SizedBox(height: PassqlSpacing.xl),
                 const SettingsGroup(title: '화면', children: [ThemeModeTile()]),
                 const SizedBox(height: PassqlSpacing.xl),
-                const SettingsGroup(title: '알림', children: [PushNotificationTile()]),
+                const SettingsGroup(
+                  title: '알림',
+                  children: [PushNotificationTile()],
+                ),
                 const SizedBox(height: PassqlSpacing.xl),
                 SettingsGroup(
                   title: '기록',
@@ -214,7 +217,7 @@ class SettingsPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: PassqlSpacing.xl),
                 SettingsFooter(memberUuid: data?.memberUuid),
-              ],
+              ]),
             ),
           ),
         ],
