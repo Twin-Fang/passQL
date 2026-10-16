@@ -23,7 +23,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,47 +43,22 @@ public class SubmissionService {
     private final ExecutionLogRepository executionLogRepository;
     private final SandboxExecutor sandboxExecutor;
     private final SandboxPool sandboxPool;
+    private final TransactionTemplate transactionTemplate;
     // AI 코멘트 캐시 무효화용 (submit 완료 시 evict)
     private final RedisTemplate<String, Object> redisTemplate;
 
-    @Transactional
+    /**
+     * 답안 제출: 채점·기록 저장(짧은 트랜잭션) > 실행형이면 양쪽 SQL 실행 비교(트랜잭션 밖) > 결과
+     * 샌드박스 실행이 수 초 걸려도 메인 DB 커넥션을 잡지 않게 나눈다 (#497)
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public SubmitResult submit(UUID memberUuid, UUID questionUuid, UUID choiceSetId, String selectedChoiceKey, UUID sessionUuid) {
-        // 1. ChoiceSet 조회
-        QuestionChoiceSet choiceSet = choiceSetRepository.findById(choiceSetId)
-                .orElseThrow(() -> new CustomException(ErrorCode.CHOICE_SET_NOT_FOUND));
-
-        // 2. 선택한 선택지 조회
-        QuestionChoiceSetItem selected = choiceSetItemRepository
-                .findByChoiceSetUuidAndChoiceKey(choiceSetId, selectedChoiceKey)
-                .orElseThrow(() -> new CustomException(ErrorCode.CHOICE_SET_ITEM_NOT_FOUND));
-
-        // 3. 정답 선택지 조회
-        List<QuestionChoiceSetItem> allItems = choiceSetItemRepository
-                .findByChoiceSetUuidOrderBySortOrderAsc(choiceSetId);
-        QuestionChoiceSetItem correct = allItems.stream()
-                .filter(item -> Boolean.TRUE.equals(item.getIsCorrect()))
-                .findFirst()
-                .orElse(null);
-
-        boolean isCorrect = Boolean.TRUE.equals(selected.getIsCorrect());
-
-        // 4. ChoiceSet 소비 시각 기록 (최초 제출 시)
-        if (choiceSet.getConsumedAt() == null) {
-            choiceSet.setConsumedAt(LocalDateTime.now());
-            choiceSetRepository.save(choiceSet);
-        }
-
-        // 5. Submission 저장 (sessionUuid 포함 — AI 코멘트 세션 집계에 사용)
-        Submission submission = Submission.builder()
-                .memberUuid(memberUuid)
-                .questionUuid(questionUuid)
-                .choiceSetUuid(choiceSetId)
-                .selectedChoiceKey(selectedChoiceKey)
-                .isCorrect(isCorrect)
-                .sessionUuid(sessionUuid)
-                .submittedAt(LocalDateTime.now())
-                .build();
-        submission = submissionRepository.save(submission);
+        GradedSubmission graded = transactionTemplate.execute(status ->
+                gradeAndRecord(memberUuid, questionUuid, choiceSetId, selectedChoiceKey, sessionUuid));
+        QuestionChoiceSetItem selected = graded.selected();
+        QuestionChoiceSetItem correct = graded.correct();
+        boolean isCorrect = graded.isCorrect();
+        Submission submission = graded.submission();
 
         // 6. EXECUTABLE 문제: 양쪽 SQL 실행 결과 비교
         ExecuteResult selectedResult = null;
@@ -143,6 +120,54 @@ public class SubmissionService {
                 // 미리 생성된 해설 (#496)
                 selected.getExplanation()
         );
+    }
+
+    /** 제출 채점 결과 + 저장된 제출 (트랜잭션 안에서 만든 값을 밖으로 넘김) */
+    private record GradedSubmission(
+            QuestionChoiceSetItem selected,
+            QuestionChoiceSetItem correct,
+            boolean isCorrect,
+            Submission submission) {}
+
+    /** 세트·선택지 조회 > 정답 판정 > 세트 소비 시각 > 제출 저장 */
+    private GradedSubmission gradeAndRecord(UUID memberUuid, UUID questionUuid, UUID choiceSetId,
+                                            String selectedChoiceKey, UUID sessionUuid) {
+        // 1. ChoiceSet 조회
+        QuestionChoiceSet choiceSet = choiceSetRepository.findById(choiceSetId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHOICE_SET_NOT_FOUND));
+
+        // 2. 선택한 선택지 조회
+        QuestionChoiceSetItem selected = choiceSetItemRepository
+                .findByChoiceSetUuidAndChoiceKey(choiceSetId, selectedChoiceKey)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHOICE_SET_ITEM_NOT_FOUND));
+
+        // 3. 정답 선택지 조회
+        List<QuestionChoiceSetItem> allItems = choiceSetItemRepository
+                .findByChoiceSetUuidOrderBySortOrderAsc(choiceSetId);
+        QuestionChoiceSetItem correct = allItems.stream()
+                .filter(item -> Boolean.TRUE.equals(item.getIsCorrect()))
+                .findFirst()
+                .orElse(null);
+
+        boolean isCorrect = Boolean.TRUE.equals(selected.getIsCorrect());
+
+        // 4. ChoiceSet 소비 시각 기록 (최초 제출 시)
+        if (choiceSet.getConsumedAt() == null) {
+            choiceSet.setConsumedAt(LocalDateTime.now());
+            choiceSetRepository.save(choiceSet);
+        }
+
+        // 5. Submission 저장 (sessionUuid 포함 — AI 코멘트 세션 집계에 사용)
+        Submission submission = submissionRepository.save(Submission.builder()
+                .memberUuid(memberUuid)
+                .questionUuid(questionUuid)
+                .choiceSetUuid(choiceSetId)
+                .selectedChoiceKey(selectedChoiceKey)
+                .isCorrect(isCorrect)
+                .sessionUuid(sessionUuid)
+                .submittedAt(LocalDateTime.now())
+                .build());
+        return new GradedSubmission(selected, correct, isCorrect, submission);
     }
 
     public List<Submission> getSubmissionsByMember(UUID memberUuid) {
