@@ -24,6 +24,13 @@ passQL은 **4개 스택을 한 레포에서 관리하는 모노레포**다. 작�
 
 스택 전용 문서는 각 스택 폴더 내부(`{stack}/docs/`, `{stack}/.claude/rules/`)에 둔다.
 
+## API 계약 단일 원본 (`api-contract/openapi.json`)
+
+- 서버 `/api/**` 스펙의 원본. 서버 API(경로·DTO·ErrorCode)를 바꾸면 갱신 > 웹 타입 재생성까지 한 커밋에.
+  - 갱신: `cd server && ./gradlew :PQL-Web:test --tests '*OpenApiContractTest*' -PupdateApiContract`
+  - 웹: `cd client && npm run gen:api` (`src/types/generated/openapi.ts`, 손으로 고치지 않음)
+- 강제: 서버 `OpenApiContractTest`(스펙 <-> 파일), 웹 CI(gen:api 후 diff 없음), 앱 `error_code_contract_test.dart`(앱 매핑 코드 ⊂ 서버 ErrorCode).
+
 ## 버전·배포 (CI 자동 관리 — 수동 수정 금지)
 
 - `version.yml` = 단일 버전 기준. `CHANGELOG.json/md`는 워크플로우가 자동 갱신.

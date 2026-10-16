@@ -5,10 +5,12 @@ on:
     branches: [ main ]
     paths:
       - 'client/**'
+      - 'api-contract/**'
   pull_request:
     branches: [ main ]
     paths:
       - 'client/**'
+      - 'api-contract/**'
 
 jobs:
   Build-Check:
@@ -28,6 +30,13 @@ jobs:
       - name: 📦 Install dependencies
         working-directory: client
         run: npm ci
+
+      # 계약 파일 > 생성 타입 재생성 후 커밋본과 차이 없어야 통과 (#458)
+      - name: API 계약 타입 최신 확인
+        working-directory: client
+        run: |
+          npm run gen:api
+          git diff --exit-code -- src/types/generated/ || (echo "src/types/generated 가 계약과 다름: npm run gen:api 후 커밋" && exit 1)
 
       - name: 🔨 Build (TypeScript + Vite)
         working-directory: client
