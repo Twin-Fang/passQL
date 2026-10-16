@@ -13,7 +13,6 @@ import com.passql.question.dto.AdminQuestionSearchCondition;
 import com.passql.question.entity.Question;
 import com.passql.question.service.OracleSqlCompatibilityConverter;
 import com.passql.question.service.QuestionGenerateService;
-import com.passql.question.service.QuestionImportExportService;
 import com.passql.question.service.QuestionService;
 import com.passql.question.service.QuestionVectorIndexService;
 import com.passql.web.service.AdminQuestionDeleteService;
@@ -24,16 +23,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -47,7 +42,6 @@ public class AdminQuestionController {
     private final QuestionService questionService;
     private final QuestionGenerateService questionGenerateService;
     private final QuestionVectorIndexService questionVectorIndexService;
-    private final QuestionImportExportService importExportService;
     private final OracleSqlCompatibilityConverter oracleSqlCompatibilityConverter;
     private final MetaService metaService;
     private final AdminQuestionDeleteService adminQuestionDeleteService;
@@ -198,59 +192,6 @@ public class AdminQuestionController {
                 adminQuestionDeleteService.deactivateQuestions(request.questionUuids());
         // 문제마다가 아니라 일괄삭제 끝에 한 번만 정리한다 (#412)
         if (result.deactivated() > 0) questionVectorIndexService.pruneIndex();
-        return ResponseEntity.ok(result);
-    }
-
-    // ── Import / Export ──────────────────────────────────────────
-
-    /**
-     * 필터 조건 기반 전체 내보내기 (JSON 파일 다운로드).
-     */
-    @GetMapping("/export")
-    @ResponseBody
-    public ResponseEntity<List<QuestionExportDto>> exportByFilter(
-            @RequestParam(required = false) String topic,
-            @RequestParam(required = false) Integer difficulty,
-            @RequestParam(required = false) String executionMode) {
-        List<QuestionExportDto> data = importExportService.exportByFilter(topic, difficulty, executionMode);
-        String filename = "passql-questions-" + LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) + ".json";
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(data);
-    }
-
-    /**
-     * 선택 UUID 기반 내보내기 (JSON 파일 다운로드).
-     */
-    @PostMapping("/export")
-    @ResponseBody
-    public ResponseEntity<List<QuestionExportDto>> exportByUuids(@RequestBody ExportRequest request) {
-        List<QuestionExportDto> data = importExportService.exportByUuids(request.questionUuids());
-        String filename = "passql-questions-" + LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) + ".json";
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(data);
-    }
-
-    /**
-     * 배치 Sandbox 검증 (가져오기 전 미리보기).
-     */
-    @PostMapping("/import/validate")
-    @ResponseBody
-    public ResponseEntity<ImportValidationResult> validateImport(@RequestBody List<QuestionExportDto> items) {
-        ImportValidationResult result = importExportService.validateBatch(items);
-        return ResponseEntity.ok(result);
-    }
-
-    /**
-     * 검증 후 실제 등록/업데이트.
-     */
-    @PostMapping("/import")
-    @ResponseBody
-    public ResponseEntity<ImportResult> importBatch(@RequestBody ImportRequest request) {
-        ImportResult result = importExportService.importBatch(request);
         return ResponseEntity.ok(result);
     }
 
