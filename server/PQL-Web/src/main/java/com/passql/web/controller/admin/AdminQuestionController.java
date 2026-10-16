@@ -115,7 +115,7 @@ public class AdminQuestionController {
     @GetMapping("/{uuid}")
     @AdminPage(menu = AdminMenu.QUESTIONS, title = "문제 상세")
     public String detail(@PathVariable UUID uuid, Model model) {
-        QuestionDetail question = questionService.getQuestion(uuid);
+        QuestionDetail question = questionService.getQuestionForAdmin(uuid);
         model.addAttribute("question", question);
         model.addAttribute("isQuestionActive", questionService.isQuestionActive(uuid));
         return "admin/question-detail";

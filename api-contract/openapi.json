@@ -2333,6 +2333,7 @@
     },
     "/api/questions/{questionUuid}" : {
       "get" : {
+        "description" : "풀이용 상세. 정답 SQL·정답 여부·해설은 내려가지 않는다(제출 응답에서만 제공).",
         "operationId" : "getQuestion",
         "parameters" : [ {
           "in" : "path",

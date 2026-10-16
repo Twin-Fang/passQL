@@ -12,6 +12,7 @@ import com.passql.meta.repository.SubtopicRepository;
 import com.passql.meta.repository.TopicRepository;
 import com.passql.question.constant.ChoiceSetPolicy;
 import com.passql.question.constant.ChoiceSetSource;
+import com.passql.question.constant.ChoiceSetStatus;
 import com.passql.question.constant.ExecutionMode;
 import com.passql.question.constant.QuestionActiveFilter;
 import com.passql.question.dto.AdminQuestionListItem;
@@ -109,45 +110,66 @@ public class QuestionService {
         return Boolean.TRUE.equals(getQuestionEntity(questionUuid).getIsActive());
     }
 
-    public QuestionDetail getQuestion(UUID questionUuid) {
-        Question q = questionRepository.findById(questionUuid)
-                .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
-
+    /** 관리자 상세: 문제 전체 + 모든 선택지 세트 (정답 여부·해설·정답 SQL 포함) */
+    public QuestionDetail getQuestionForAdmin(UUID questionUuid) {
+        Question question = getQuestionEntity(questionUuid);
         List<QuestionDetail.ChoiceSetSummary> choiceSets = choiceSetRepository
                 .findByQuestionUuidOrderByCreatedAtDesc(questionUuid)
                 .stream()
-                .map(set -> {
-                    List<QuestionDetail.ChoiceItem> items = choiceSetItemRepository
-                            .findByChoiceSetUuidOrderBySortOrderAsc(set.getChoiceSetUuid())
-                            .stream()
-                            .map(c -> new QuestionDetail.ChoiceItem(
-                                    c.getChoiceKey(), c.getKind(), c.getBody(),
-                                    c.getIsCorrect(), c.getRationale(), c.getSortOrder()))
-                            .toList();
-                    return new QuestionDetail.ChoiceSetSummary(
-                            set.getChoiceSetUuid(),
-                            set.getSource(),
-                            set.getStatus(),
-                            set.getSandboxValidationPassed(),
-                            set.getCreatedAt(),
-                            items);
-                })
+                .map(choiceSet -> toChoiceSetSummary(choiceSet, true))
                 .toList();
+        return toQuestionDetail(question, question.getAnswerSql(), choiceSets);
+    }
 
+    /**
+     * 풀이용 상세: 정답 SQL 제외, 최신 OK 세트 1개만 (정답 여부·해설 제외) (#503)
+     * 정답·해설은 제출 응답에서만 내려간다.
+     */
+    public QuestionDetail getQuestionForSolving(UUID questionUuid) {
+        Question question = getQuestionEntity(questionUuid);
+        List<QuestionDetail.ChoiceSetSummary> choiceSets = choiceSetRepository
+                .findFirstByQuestionUuidAndStatusOrderByCreatedAtDesc(questionUuid, ChoiceSetStatus.OK)
+                .map(choiceSet -> List.of(toChoiceSetSummary(choiceSet, false)))
+                .orElse(List.of());
+        return toQuestionDetail(question, null, choiceSets);
+    }
+
+    /** 선택지 세트 > 요약 (shouldIncludeAnswer=false 면 정답 여부·해설 null) */
+    private QuestionDetail.ChoiceSetSummary toChoiceSetSummary(QuestionChoiceSet choiceSet, boolean shouldIncludeAnswer) {
+        List<QuestionDetail.ChoiceItem> items = choiceSetItemRepository
+                .findByChoiceSetUuidOrderBySortOrderAsc(choiceSet.getChoiceSetUuid())
+                .stream()
+                .map(item -> new QuestionDetail.ChoiceItem(
+                        item.getChoiceKey(), item.getKind(), item.getBody(),
+                        shouldIncludeAnswer ? item.getIsCorrect() : null,
+                        shouldIncludeAnswer ? item.getRationale() : null,
+                        item.getSortOrder()))
+                .toList();
+        return new QuestionDetail.ChoiceSetSummary(
+                choiceSet.getChoiceSetUuid(),
+                choiceSet.getSource(),
+                choiceSet.getStatus(),
+                choiceSet.getSandboxValidationPassed(),
+                choiceSet.getCreatedAt(),
+                items);
+    }
+
+    private QuestionDetail toQuestionDetail(Question question, String answerSql,
+                                            List<QuestionDetail.ChoiceSetSummary> choiceSets) {
         return new QuestionDetail(
-                q.getQuestionUuid(),
-                topicName(q.getTopicUuid()),
-                subtopicName(q.getSubtopicUuid()),
-                q.getDifficulty(),
-                q.getExecutionMode(),
-                q.getChoiceSetPolicy(),
-                q.getStem(),
-                q.getSchemaDisplay(),
-                q.getSchemaDdl(),
-                q.getSchemaSampleData(),
-                q.getSchemaIntent(),
-                q.getAnswerSql(),
-                q.getHint(),
+                question.getQuestionUuid(),
+                topicName(question.getTopicUuid()),
+                subtopicName(question.getSubtopicUuid()),
+                question.getDifficulty(),
+                question.getExecutionMode(),
+                question.getChoiceSetPolicy(),
+                question.getStem(),
+                question.getSchemaDisplay(),
+                question.getSchemaDdl(),
+                question.getSchemaSampleData(),
+                question.getSchemaIntent(),
+                answerSql,
+                question.getHint(),
                 choiceSets
         );
     }

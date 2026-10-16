@@ -962,7 +962,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 문제 상세 조회 */
+        /**
+         * 문제 상세 조회
+         * @description 풀이용 상세. 정답 SQL·정답 여부·해설은 내려가지 않는다(제출 응답에서만 제공).
+         */
         get: operations["getQuestion"];
         put?: never;
         post?: never;
