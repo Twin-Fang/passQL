@@ -2,6 +2,7 @@ package com.passql.question.service;
 
 import com.passql.common.util.RequestEnumParser;
 import com.passql.meta.repository.TopicRepository;
+import com.passql.question.constant.ChoiceSetPolicy;
 import com.passql.question.constant.ExecutionMode;
 import com.passql.question.dto.ExecuteResult;
 import com.passql.question.dto.ImportItemResult;
@@ -32,6 +33,15 @@ public class QuestionImportItemValidator {
             return new ImportItemResult(index, stemPreview, item.topicCode(), item.difficulty(),
                     item.executionMode(), "FAIL", null, null,
                     "필수 필드 누락 (topicCode, difficulty, executionMode, stem)", importAction);
+        }
+
+        // 고정 보기 검증 (CURATED_ONLY 필수, #511)
+        ChoiceSetPolicy policy = RequestEnumParser.parseOrNull(ChoiceSetPolicy.class, item.choiceSetPolicy());
+        ExecutionMode requestedMode = RequestEnumParser.parseOrNull(ExecutionMode.class, item.executionMode());
+        String choiceRejectReason = CuratedChoiceValidator.findRejectReason(policy, requestedMode, item.choices());
+        if (choiceRejectReason != null) {
+            return new ImportItemResult(index, stemPreview, item.topicCode(), item.difficulty(),
+                    item.executionMode(), "FAIL", null, null, choiceRejectReason, importAction);
         }
 
         // topicCode 유효성

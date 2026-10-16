@@ -3,6 +3,7 @@ package com.passql.question.service;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.member.constant.ChoiceGenerationMode;
+import com.passql.question.constant.ChoiceSetPolicy;
 import com.passql.question.constant.ChoiceSetSource;
 import com.passql.question.constant.ChoiceSetStatus;
 import com.passql.question.constant.ExecutionMode;
@@ -38,6 +39,11 @@ public class ChoiceSetResolver {
     public QuestionChoiceSet resolveForUser(UUID questionUuid, UUID memberUuid, ChoiceGenerationMode mode) {
         Question question = questionService.getQuestionEntity(questionUuid);
 
+        // 고정 보기 정책은 실행 모드보다 먼저 (Oracle 전용 개념형도 고정 세트 출제, #511)
+        if (question.getChoiceSetPolicy() == ChoiceSetPolicy.CURATED_ONLY) {
+            return resolveCurated(question, memberUuid, mode);
+        }
+
         if (question.getExecutionMode() == ExecutionMode.CONCEPT_ONLY) {
             return resolveConcept(questionUuid, memberUuid, mode);
         }
@@ -48,9 +54,6 @@ public class ChoiceSetResolver {
                 return resolveAiOnly(questionUuid, memberUuid, mode);
             case RESULT_MATCH:
                 return resolveResultMatch(questionUuid, memberUuid, mode);
-            case CURATED_ONLY:
-                throw new CustomException(ErrorCode.CHOICE_SET_POLICY_NOT_IMPLEMENTED,
-                        "CURATED_ONLY 정책은 아직 지원되지 않습니다.");
             case HYBRID:
                 throw new CustomException(ErrorCode.CHOICE_SET_POLICY_NOT_IMPLEMENTED,
                         "HYBRID 정책은 아직 지원되지 않습니다.");
@@ -58,6 +61,27 @@ public class ChoiceSetResolver {
                 throw new CustomException(ErrorCode.CHOICE_SET_POLICY_NOT_IMPLEMENTED,
                         "알 수 없는 정책: " + question.getChoiceSetPolicy());
         }
+    }
+
+    /**
+     * 고정 보기: 관리자 검증 세트 > 모드 무관 그대로 (AI 호출·프리페치 소비 없음)
+     * 고정 세트가 없으면 사용자가 막히지 않게 실행 모드별 AI 경로로 대체
+     */
+    private QuestionChoiceSet resolveCurated(Question question, UUID memberUuid, ChoiceGenerationMode mode) {
+        UUID questionUuid = question.getQuestionUuid();
+        Optional<QuestionChoiceSet> curatedSet = choiceSetRepository
+                .findFirstByQuestionUuidAndStatusAndSourceInOrderByCreatedAtDesc(
+                        questionUuid, ChoiceSetStatus.OK, ChoiceSetSource.CURATED_SOURCES);
+        if (curatedSet.isPresent()) {
+            log.info("[resolver] curated HIT: questionUuid={}, setUuid={}", questionUuid, curatedSet.get().getChoiceSetUuid());
+            return curatedSet.get();
+        }
+
+        log.warn("[resolver] curated set missing, fallback to ai : questionUuid={}", questionUuid);
+        if (question.getExecutionMode() == ExecutionMode.CONCEPT_ONLY) {
+            return resolveConcept(questionUuid, memberUuid, mode);
+        }
+        return resolveAiOnly(questionUuid, memberUuid, mode);
     }
 
     private QuestionChoiceSet resolveConcept(UUID questionUuid, UUID memberUuid, ChoiceGenerationMode mode) {

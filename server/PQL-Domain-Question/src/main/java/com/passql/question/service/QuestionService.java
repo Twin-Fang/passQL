@@ -18,6 +18,7 @@ import com.passql.question.constant.QuestionActiveFilter;
 import com.passql.question.dto.AdminQuestionListItem;
 import com.passql.question.dto.AdminQuestionSearchCondition;
 import com.passql.question.dto.ChoiceSetGenerateResponse;
+import com.passql.question.dto.CuratedChoiceDto;
 import com.passql.question.dto.QuestionDetail;
 import com.passql.question.dto.QuestionSummary;
 import com.passql.question.dto.RecommendationsResponse;
@@ -46,6 +47,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Map;
 import java.util.UUID;
 
@@ -116,7 +118,7 @@ public class QuestionService {
         List<QuestionDetail.ChoiceSetSummary> choiceSets = choiceSetRepository
                 .findByQuestionUuidOrderByCreatedAtDesc(questionUuid)
                 .stream()
-                .map(choiceSet -> toChoiceSetSummary(choiceSet, true))
+                .map(choiceSet -> toChoiceSetSummary(choiceSet, true, false))
                 .toList();
         return toQuestionDetail(question, question.getAnswerSql(), choiceSets);
     }
@@ -127,15 +129,35 @@ public class QuestionService {
      */
     public QuestionDetail getQuestionForSolving(UUID questionUuid) {
         Question question = getQuestionEntity(questionUuid);
-        List<QuestionDetail.ChoiceSetSummary> choiceSets = choiceSetRepository
-                .findFirstByQuestionUuidAndStatusOrderByCreatedAtDesc(questionUuid, ChoiceSetStatus.OK)
-                .map(choiceSet -> List.of(toChoiceSetSummary(choiceSet, false)))
+        List<QuestionDetail.ChoiceSetSummary> choiceSets = findSolvingChoiceSet(question)
+                .map(choiceSet -> List.of(toChoiceSetSummary(choiceSet, false, isCuratedChoiceSet(question, choiceSet))))
                 .orElse(List.of());
         return toQuestionDetail(question, null, choiceSets);
     }
 
-    /** 선택지 세트 > 요약 (shouldIncludeAnswer=false 면 정답 여부·해설 null) */
-    private QuestionDetail.ChoiceSetSummary toChoiceSetSummary(QuestionChoiceSet choiceSet, boolean shouldIncludeAnswer) {
+    /** 풀이용 세트 1개: CURATED_ONLY 는 고정 세트 우선(없으면 최신 OK), 그 외 최신 OK (#511) */
+    private Optional<QuestionChoiceSet> findSolvingChoiceSet(Question question) {
+        UUID questionUuid = question.getQuestionUuid();
+        if (question.getChoiceSetPolicy() == ChoiceSetPolicy.CURATED_ONLY) {
+            Optional<QuestionChoiceSet> curatedSet = choiceSetRepository
+                    .findFirstByQuestionUuidAndStatusAndSourceInOrderByCreatedAtDesc(
+                            questionUuid, ChoiceSetStatus.OK, ChoiceSetSource.CURATED_SOURCES);
+            if (curatedSet.isPresent()) {
+                return curatedSet;
+            }
+        }
+        return choiceSetRepository.findFirstByQuestionUuidAndStatusOrderByCreatedAtDesc(questionUuid, ChoiceSetStatus.OK);
+    }
+
+    /** 고정 출제 세트 여부: 문제 정책 CURATED_ONLY + 세트 출처 고정 (#511) */
+    public static boolean isCuratedChoiceSet(Question question, QuestionChoiceSet choiceSet) {
+        return question != null && question.getChoiceSetPolicy() == ChoiceSetPolicy.CURATED_ONLY
+                && choiceSet.getSource() != null && choiceSet.getSource().isCurated();
+    }
+
+    /** 선택지 세트 > 요약 (shouldIncludeAnswer=false 면 정답 여부·해설 null, shouldShuffle 이면 표시 순서 섞기) */
+    private QuestionDetail.ChoiceSetSummary toChoiceSetSummary(QuestionChoiceSet choiceSet, boolean shouldIncludeAnswer,
+                                                               boolean shouldShuffle) {
         List<QuestionDetail.ChoiceItem> items = choiceSetItemRepository
                 .findByChoiceSetUuidOrderBySortOrderAsc(choiceSet.getChoiceSetUuid())
                 .stream()
@@ -145,6 +167,11 @@ public class QuestionService {
                         shouldIncludeAnswer ? item.getRationale() : null,
                         item.getSortOrder()))
                 .toList();
+        // 풀이용 고정 세트는 표시 순서 섞기 (관리자 화면은 저장 순서 유지)
+        if (shouldShuffle) {
+            items = ChoiceOrderShuffler.shuffle(items, (item, sortOrder) -> new QuestionDetail.ChoiceItem(
+                    item.key(), item.kind(), item.body(), item.isCorrect(), item.rationale(), sortOrder));
+        }
         return new QuestionDetail.ChoiceSetSummary(
                 choiceSet.getChoiceSetUuid(),
                 choiceSet.getSource(),
@@ -174,9 +201,35 @@ public class QuestionService {
         );
     }
 
+    /** 내보내기용 고정 보기: 최신 고정 OK 세트 > 보기 목록 (없으면 null, #511) */
+    public List<CuratedChoiceDto> findActiveCuratedChoices(UUID questionUuid) {
+        return choiceSetRepository
+                .findFirstByQuestionUuidAndStatusAndSourceInOrderByCreatedAtDesc(
+                        questionUuid, ChoiceSetStatus.OK, ChoiceSetSource.CURATED_SOURCES)
+                .map(choiceSet -> choiceSetItemRepository.findByChoiceSetUuidOrderBySortOrderAsc(choiceSet.getChoiceSetUuid())
+                        .stream()
+                        .map(item -> new CuratedChoiceDto(item.getChoiceKey(), item.getKind().name(), item.getBody(),
+                                item.getIsCorrect(), item.getRationale()))
+                        .toList())
+                .orElse(null);
+    }
+
     /** 풀이용 선택지 세트 > 응답 (정답 여부·해설 제외) */
     public ChoiceSetGenerateResponse getChoiceSetForSolving(UUID choiceSetUuid) {
-        List<ChoiceSetGenerateResponse.ChoiceItem> choiceItems = choiceSetItemRepository
+        List<ChoiceSetGenerateResponse.ChoiceItem> choiceItems = findChoiceItemsForSolving(choiceSetUuid);
+        // 고정 세트는 응답마다 표시 순서 섞기 (#511)
+        boolean isCuratedSet = choiceSetRepository.findById(choiceSetUuid)
+                .map(choiceSet -> isCuratedChoiceSet(getQuestionEntityOrNull(choiceSet.getQuestionUuid()), choiceSet))
+                .orElse(false);
+        if (isCuratedSet) {
+            choiceItems = ChoiceOrderShuffler.shuffle(choiceItems, (item, sortOrder) -> new ChoiceSetGenerateResponse.ChoiceItem(
+                    item.key(), item.kind(), item.body(), sortOrder));
+        }
+        return new ChoiceSetGenerateResponse(choiceSetUuid, choiceItems);
+    }
+
+    private List<ChoiceSetGenerateResponse.ChoiceItem> findChoiceItemsForSolving(UUID choiceSetUuid) {
+        return choiceSetItemRepository
                 .findByChoiceSetUuidOrderBySortOrderAsc(choiceSetUuid)
                 .stream()
                 .map(item -> new ChoiceSetGenerateResponse.ChoiceItem(
@@ -185,7 +238,6 @@ public class QuestionService {
                         item.getBody(),
                         item.getSortOrder()))
                 .toList();
-        return new ChoiceSetGenerateResponse(choiceSetUuid, choiceItems);
     }
 
     public Question getQuestionEntity(UUID questionUuid) {
