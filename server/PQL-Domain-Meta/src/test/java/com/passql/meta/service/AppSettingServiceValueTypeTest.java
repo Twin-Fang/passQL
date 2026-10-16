@@ -3,6 +3,8 @@ package com.passql.meta.service;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.constant.AppSettingKeys;
+import com.passql.meta.crypto.SettingSecretCipher;
+import com.passql.meta.crypto.SettingSecretCipherTest;
 import com.passql.meta.entity.AppSetting;
 import com.passql.meta.repository.AppSettingRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +37,7 @@ class AppSettingServiceValueTypeTest {
         @SuppressWarnings("unchecked")
         ValueOperations<String, String> valueOperations = mock(ValueOperations.class);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        appSettingService = new AppSettingService(appSettingRepository, redisTemplate, event -> { });
+        appSettingService = new AppSettingService(appSettingRepository, redisTemplate, event -> { }, new SettingSecretCipher(SettingSecretCipherTest.TEST_MASTER_KEY));
     }
 
     @Test
