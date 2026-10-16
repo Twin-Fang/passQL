@@ -18,6 +18,7 @@ import com.passql.question.constant.QuestionActiveFilter;
 import com.passql.question.dto.AdminQuestionListItem;
 import com.passql.question.dto.AdminQuestionSearchCondition;
 import com.passql.question.dto.ChoiceSetGenerateResponse;
+import com.passql.question.dto.CuratedChoiceDto;
 import com.passql.question.dto.QuestionDetail;
 import com.passql.question.dto.QuestionSummary;
 import com.passql.question.dto.RecommendationsResponse;
@@ -191,6 +192,19 @@ public class QuestionService {
                 question.getHint(),
                 choiceSets
         );
+    }
+
+    /** 내보내기용 고정 보기: 최신 고정 OK 세트 > 보기 목록 (없으면 null, #511) */
+    public List<CuratedChoiceDto> findActiveCuratedChoices(UUID questionUuid) {
+        return choiceSetRepository
+                .findFirstByQuestionUuidAndStatusAndSourceInOrderByCreatedAtDesc(
+                        questionUuid, ChoiceSetStatus.OK, ChoiceSetSource.CURATED_SOURCES)
+                .map(choiceSet -> choiceSetItemRepository.findByChoiceSetUuidOrderBySortOrderAsc(choiceSet.getChoiceSetUuid())
+                        .stream()
+                        .map(item -> new CuratedChoiceDto(item.getChoiceKey(), item.getKind().name(), item.getBody(),
+                                item.getIsCorrect(), item.getRationale()))
+                        .toList())
+                .orElse(null);
     }
 
     /** 풀이용 선택지 세트 > 응답 (정답 여부·해설 제외) */

@@ -44,6 +44,7 @@ public class QuestionImportExportService {
     private final ApplicationEventPublisher eventPublisher;
     private final QuestionImportItemValidator importItemValidator;
     private final OracleSqlCompatibilityConverter oracleSqlCompatibilityConverter;
+    private final CuratedChoiceSetWriter curatedChoiceSetWriter;
 
     // ── Export ────────────────────────────────────────────────────
 
@@ -192,13 +193,15 @@ public class QuestionImportExportService {
                         topicUuid, null);
                 // choiceSetPolicy는 updateQuestion에 파라미터가 없으므로 별도 업데이트
                 questionService.updateChoiceSetPolicy(item.questionUuid(), policy);
+                saveCuratedChoicesIfPresent(item.questionUuid(), item.choices());
                 updated++;
             } else {
-                questionGenerateService.createQuestionOnly(
+                Question createdQuestion = questionGenerateService.createQuestionOnly(
                         topicUuid, null, item.difficulty(), mode,
                         item.stem(), savedDdl, savedSample,
                         item.schemaIntent(), savedAnswerSql, item.hint(),
                         policy);
+                saveCuratedChoicesIfPresent(createdQuestion.getQuestionUuid(), item.choices());
                 created++;
             }
         }
@@ -226,6 +229,13 @@ public class QuestionImportExportService {
     }
 
     // ── Private helpers ──────────────────────────────────────────
+
+    /** 보기가 있으면 고정 세트 교체 (없으면 기존 세트 유지) */
+    private void saveCuratedChoicesIfPresent(UUID questionUuid, List<CuratedChoiceDto> choices) {
+        if (choices != null && !choices.isEmpty()) {
+            curatedChoiceSetWriter.replaceCuratedSet(questionUuid, choices);
+        }
+    }
 
     private String resolveImportAction(QuestionExportDto item) {
         if (item.questionUuid() != null && questionRepository.existsById(item.questionUuid())) {
@@ -278,7 +288,8 @@ public class QuestionImportExportService {
                 q.getSchemaDdl(),
                 q.getSchemaSampleData(),
                 q.getSchemaIntent(),
-                q.getAnswerSql()
+                q.getAnswerSql(),
+                questionService.findActiveCuratedChoices(q.getQuestionUuid())
         )).toList();
     }
 }
