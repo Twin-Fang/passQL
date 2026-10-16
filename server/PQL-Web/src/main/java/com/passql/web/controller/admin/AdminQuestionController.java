@@ -11,6 +11,7 @@ import com.passql.question.constant.ExecutionMode;
 import com.passql.question.dto.*;
 import com.passql.question.dto.AdminQuestionSearchCondition;
 import com.passql.question.entity.Question;
+import com.passql.question.service.OracleSqlCompatibilityConverter;
 import com.passql.question.service.QuestionGenerateService;
 import com.passql.question.service.QuestionImportExportService;
 import com.passql.question.service.QuestionService;
@@ -45,6 +46,7 @@ public class AdminQuestionController {
     private final QuestionService questionService;
     private final QuestionGenerateService questionGenerateService;
     private final QuestionImportExportService importExportService;
+    private final OracleSqlCompatibilityConverter oracleSqlCompatibilityConverter;
     private final MetaService metaService;
     private final AdminQuestionDeleteService adminQuestionDeleteService;
 
@@ -92,13 +94,13 @@ public class AdminQuestionController {
         ExecutionMode mode = ExecutionMode.fromRequestValue(executionMode);
 
         // 1:1 치환 가능한 Oracle 문법을 PostgreSQL 호환으로 변환 (NVL→COALESCE, SYSDATE→NOW())
-        String savedDdl       = importExportService.translateOracleToPostgres(schemaDdl);
-        String savedSample    = importExportService.translateOracleToPostgres(schemaSampleData);
-        String savedAnswerSql = importExportService.translateOracleToPostgres(answerSql);
+        String savedDdl       = oracleSqlCompatibilityConverter.translateOracleToPostgres(schemaDdl);
+        String savedSample    = oracleSqlCompatibilityConverter.translateOracleToPostgres(schemaSampleData);
+        String savedAnswerSql = oracleSqlCompatibilityConverter.translateOracleToPostgres(answerSql);
 
         // 치환 후에도 Oracle 전용 문법이 남아있으면 CONCEPT_ONLY로 자동 전환
         if (mode == ExecutionMode.EXECUTABLE) {
-            String oracleKeyword = importExportService.detectOracleOnlySyntax(savedAnswerSql, savedDdl, savedSample, stem);
+            String oracleKeyword = oracleSqlCompatibilityConverter.detectOracleOnlySyntax(savedAnswerSql, savedDdl, savedSample, stem);
             if (oracleKeyword != null) {
                 log.info("[register] Oracle 전용 문법 감지 → CONCEPT_ONLY 자동 전환: keyword={}", oracleKeyword);
                 mode = ExecutionMode.CONCEPT_ONLY;

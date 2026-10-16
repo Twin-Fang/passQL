@@ -9,8 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class OracleSqlCompatibilityConverterTest {
 
-    private final QuestionImportExportService converter =
-            new QuestionImportExportService(null, null, null, null, null, null, null);
+    private final OracleSqlCompatibilityConverter converter = new OracleSqlCompatibilityConverter();
 
     @Test
     void NVL과_SYSDATE는_PostgreSQL_문법으로_바꾼다() {
