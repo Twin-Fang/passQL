@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/error/app_exception.dart';
 import '../../core/push/push_link.dart';
 import '../../core/push/push_messaging_client.dart';
-import '../../core/push/push_permission_prompt_store.dart';
 import '../models/member/push_token_models.dart';
 import '../sources/api_providers.dart';
 import '../sources/push_token_api.dart';
@@ -21,21 +20,23 @@ class PushSettingException implements Exception {
   String toString() => message;
 }
 
-/// 푸시 공통 지점: 권한 1회 요청, 토큰 서버 등록·갱신 재등록, 수신 동의 변경, 로그아웃 삭제, 수신·탭 스트림
+/// 이미 거부돼 앱에서 다시 물을 수 없는 알림 권한 (기기 설정으로 안내해야 함)
+class PushPermissionDeniedException extends PushSettingException {
+  const PushPermissionDeniedException()
+    : super('기기 설정에서 passQL 알림을 허용해 주세요');
+}
+
+/// 푸시 공통 지점: 권한 확인(요청은 사용자가 고른 뒤에만), 토큰 서버 등록·갱신 재등록, 수신 동의 변경, 로그아웃 삭제, 수신·탭 스트림
 /// SDK 는 [PushMessagingClient] 로만 다룸 (테스트는 가짜 클라이언트)
 class PushNotificationService {
   PushNotificationService({
     required PushMessagingClient messagingClient,
     required PushTokenApiClient pushTokenApi,
-    PushPermissionPromptStore permissionPromptStore =
-        const PushPermissionPromptStore(),
   }) : _messagingClient = messagingClient,
-       _pushTokenApi = pushTokenApi,
-       _permissionPromptStore = permissionPromptStore;
+       _pushTokenApi = pushTokenApi;
 
   final PushMessagingClient _messagingClient;
   final PushTokenApiClient _pushTokenApi;
-  final PushPermissionPromptStore _permissionPromptStore;
 
   // 서버에 등록한 이 기기 토큰 (로그아웃 삭제·수신 동의 변경에 사용)
   String? _registeredToken;
@@ -48,10 +49,18 @@ class PushNotificationService {
 
   Future<PushLink?> takeInitialLink() => _messagingClient.takeInitialLink();
 
-  /// 로그인 회원 기기 등록: 권한(처음 1회만 요청) > 토큰 > 서버 등록 > 토큰 갱신 구독
+  /// 묻지 않고 현재 알림 권한만 읽음
+  Future<PushPermissionStatus> readPermissionStatus() =>
+      _messagingClient.readPermissionStatus();
+
+  /// 기기 설정 앱의 알림 화면 열기 (열 수 없는 플랫폼 > false)
+  Future<bool> openDeviceNotificationSettings() =>
+      _messagingClient.openDeviceNotificationSettings();
+
+  /// 로그인 회원 기기 등록: 권한 읽기(시스템 창은 띄우지 않음) > 토큰 > 서버 등록 > 토큰 갱신 구독
   /// 결과: 이 기기 수신 동의 (권한 없음·토큰 없음·서버 실패 > null)
   Future<bool?> registerDeviceForSignedInMember() async {
-    final permissionStatus = await _resolvePermissionStatus();
+    final permissionStatus = await _messagingClient.readPermissionStatus();
     if (permissionStatus != PushPermissionStatus.granted) return null;
     final token = await _messagingClient.fetchToken();
     if (token == null) return null;
@@ -64,13 +73,13 @@ class PushNotificationService {
     }
   }
 
-  /// 설정 토글: 켤 때 권한 없으면 다시 요청 > 토큰 > 서버 저장 > 저장된 값
-  /// 실패: [PushSettingException] (권한 거부·토큰 없음) / [AppException] (서버)
+  /// 켜기·끄기: 켤 때 권한 요청(사용자가 안내 시트·토글로 고른 뒤에만 호출) > 토큰 > 서버 저장 > 저장된 값
+  /// 실패: [PushPermissionDeniedException] (권한 거부) / [PushSettingException] (토큰 없음) / [AppException] (서버)
   Future<bool> updatePushEnabled(bool isEnabled) async {
     if (isEnabled &&
         await _messagingClient.requestPermission() !=
             PushPermissionStatus.granted) {
-      throw const PushSettingException('기기 설정에서 passQL 알림을 허용해 주세요');
+      throw const PushPermissionDeniedException();
     }
     final token = _registeredToken ?? await _messagingClient.fetchToken();
     if (token == null) {
@@ -99,15 +108,6 @@ class PushNotificationService {
     } on DioException {
       // 다음 로그인 회원이 같은 토큰을 등록하면 서버가 소유자를 옮김
     }
-  }
-
-  /// 처음이면 시스템 권한 요청(1회 표시), 이후엔 현재 값만 읽음
-  Future<PushPermissionStatus> _resolvePermissionStatus() async {
-    if (await _permissionPromptStore.hasPrompted()) {
-      return _messagingClient.readPermissionStatus();
-    }
-    await _permissionPromptStore.markPrompted();
-    return _messagingClient.requestPermission();
   }
 
   Future<PushTokenResponse> _registerToken(
