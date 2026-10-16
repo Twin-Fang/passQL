@@ -12,6 +12,8 @@ import PracticeFeedbackBar from "../components/PracticeFeedbackBar";
 import ConfirmModal from "../components/ConfirmModal";
 import LoadingOverlay from "../components/LoadingOverlay";
 import ProgressBar from "../components/ProgressBar";
+import PracticeTopBar from "../components/practice/PracticeTopBar";
+import PracticeQuestionScrollArea from "../components/practice/PracticeQuestionScrollArea";
 import type { ChoiceItem, SubmitResult } from "../types/api";
 
 export default function DailySet() {
@@ -123,21 +125,11 @@ export default function DailySet() {
   return (
     <div className="flex flex-col h-screen max-w-120 mx-auto w-full">
       <div className="px-4 pt-3 pb-2">
-        <div className="grid grid-cols-3 items-center mb-2">
-          <div className="justify-self-start">
-            <button
-              type="button"
-              className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-border transition-colors"
-              onClick={() => navigate("/")}
-            >
-              <Home size={18} className="text-text-secondary" />
-            </button>
-          </div>
-          <span className="text-sm font-semibold text-text-secondary text-center">
-            데일리 세트 {store.currentIndex}/{totalQuestions}
-          </span>
-          <div />
-        </div>
+        <PracticeTopBar
+          exitIcon={<Home size={18} className="text-text-secondary" />}
+          onExitClick={() => navigate("/")}
+          title={<>데일리 세트 {store.currentIndex}/{totalQuestions}</>}
+        />
         <ProgressBar
           fillPercent={progressPct}
           trackClassName="h-1.5 bg-border"
@@ -146,7 +138,7 @@ export default function DailySet() {
       </div>
 
       {/* 피드백바 높이(~200px)만큼 bottom padding — 마지막 초이스카드가 가려지지 않게 */}
-      <div className={`flex-1 overflow-y-auto px-4 transition-[padding] duration-300 ${feedback ? "pb-52" : "pb-4"}`}>
+      <PracticeQuestionScrollArea hasFeedbackBar={!!feedback}>
         {displayQuestion && (
           <QuestionDetail
             key={`${displayQuestion.questionUuid}-${store.currentIndex}`}
@@ -157,7 +149,7 @@ export default function DailySet() {
             showExecution={!!feedback}
           />
         )}
-      </div>
+      </PracticeQuestionScrollArea>
 
       {feedback && (
         <PracticeFeedbackBar

@@ -9,6 +9,8 @@ import QuestionDetail from "./QuestionDetail";
 import PracticeFeedbackBar from "../components/PracticeFeedbackBar";
 import ExitPracticeConfirmModal from "../components/practice/ExitPracticeConfirmModal";
 import LoadingOverlay from "../components/LoadingOverlay";
+import PracticeTopBar from "../components/practice/PracticeTopBar";
+import PracticeQuestionScrollArea from "../components/practice/PracticeQuestionScrollArea";
 import type { ChoiceItem, SubmitResult } from "../types/api";
 
 export default function RecommendationPractice() {
@@ -72,21 +74,11 @@ export default function RecommendationPractice() {
     <div className="flex flex-col h-screen max-w-120 mx-auto w-full">
       {/* DailyChallenge와 동일한 헤더 구조 */}
       <div className="px-4 pt-3 pb-2">
-        <div className="grid grid-cols-3 items-center mb-2">
-          <div className="justify-self-start">
-            <button
-              type="button"
-              className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-border transition-colors"
-              onClick={() => navigate("/")}
-            >
-              <Home size={18} className="text-text-secondary" />
-            </button>
-          </div>
-          <span className="text-sm font-semibold text-text-secondary text-center">
-            {isPracticeReview ? "틀린 문제" : "추천 문제"}
-          </span>
-          <div />
-        </div>
+        <PracticeTopBar
+          exitIcon={<Home size={18} className="text-text-secondary" />}
+          onExitClick={() => navigate("/")}
+          title={isPracticeReview ? "틀린 문제" : "추천 문제"}
+        />
         {/* 제출 전: 비어있음 / 제출 후: 완료 표시 */}
         <div className="w-full h-1.5 bg-border rounded-full overflow-hidden">
           <div
@@ -96,7 +88,7 @@ export default function RecommendationPractice() {
       </div>
 
       {/* 피드백바 높이만큼 bottom padding — 마지막 선택지 카드가 가려지지 않게 */}
-      <div className={`flex-1 overflow-y-auto px-4 transition-[padding] duration-300 ${feedback ? "pb-52" : "pb-4"}`}>
+      <PracticeQuestionScrollArea hasFeedbackBar={!!feedback}>
         {/* 제출 후 showExecution=true — ChoiceCard 안에 SQL 실행 버튼 표시 */}
         <QuestionDetail
           key={`${questionUuid}-${retryCount}`}
@@ -106,7 +98,7 @@ export default function RecommendationPractice() {
           onPracticeSubmit={handlePracticeSubmit}
           showExecution={!!feedback}
         />
-      </div>
+      </PracticeQuestionScrollArea>
 
       {/* 제출 후 인라인 피드백 — returnPath 있으면 "돌아가기", 없으면 "홈으로 가기" */}
       {feedback && (
