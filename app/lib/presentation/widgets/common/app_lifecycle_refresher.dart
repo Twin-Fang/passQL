@@ -2,8 +2,9 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/learning_refresh.dart';
+import '../../providers/unread_notification_providers.dart';
 
-/// 앱 복귀 감시: 포그라운드 복귀(resumed) 시 날짜가 바뀌었으면 날짜별 데이터 재조회
+/// 앱 복귀 감시: 포그라운드 복귀(resumed) 시 안 읽은 알림 개수 갱신, 날짜가 바뀌었으면 날짜별 데이터 재조회
 /// 탭 쉘을 감싸 로그인 이후 화면에서만 동작
 class AppLifecycleRefresher extends ConsumerStatefulWidget {
   const AppLifecycleRefresher({
@@ -43,6 +44,8 @@ class _AppLifecycleRefresherState extends ConsumerState<AppLifecycleRefresher>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) return;
+    // 복귀할 때마다 안 읽은 알림 개수 갱신 (날짜 변경과 무관)
+    ref.read(unreadNotificationCountProvider.notifier).refresh();
     final today = _calendarDayOf(widget.readCurrentTime());
     if (today == _lastSyncedCalendarDay) return;
     _lastSyncedCalendarDay = today;

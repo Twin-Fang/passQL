@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/fakes/fake_push.dart';
 
-/// 푸시 공통 지점: 권한 1회 요청, 토큰 등록·재등록, 수신 동의 변경, 로그아웃 삭제, 알림 이동 (#467)
+/// 푸시 공통 지점: 권한은 읽기만(요청은 켜기 때만), 토큰 등록·재등록, 수신 동의 변경, 로그아웃 삭제, 알림 이동 (#467, #491)
 void main() {
   late FakePushMessagingClient messagingClient;
   late FakePushTokenApi pushTokenApi;
@@ -16,7 +16,10 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
-    messagingClient = FakePushMessagingClient();
+    // 이미 알림을 허용한 기기 (기본)
+    messagingClient = FakePushMessagingClient(
+      currentPermission: PushPermissionStatus.granted,
+    );
     pushTokenApi = FakePushTokenApi();
     service = PushNotificationService(
       messagingClient: messagingClient,
@@ -24,22 +27,36 @@ void main() {
     );
   });
 
-  test('처음 등록은 권한을 한 번 묻고 토큰을 서버에 등록한다', () async {
+  test('이미 허용한 기기는 시스템 창 없이 토큰을 서버에 등록한다', () async {
     expect(await service.registerDeviceForSignedInMember(), isTrue);
-    expect(messagingClient.permissionRequestCount, 1);
+    expect(messagingClient.permissionRequestCount, 0);
     expect(pushTokenApi.registeredRequests.single.token, 'device-token');
     expect(pushTokenApi.registeredRequests.single.platform, 'IOS');
-
-    // 두 번째부터는 묻지 않고 현재 권한만 읽음
-    await service.registerDeviceForSignedInMember();
-    expect(messagingClient.permissionRequestCount, 1);
   });
 
-  test('권한을 거부하면 서버에 등록하지 않는다', () async {
-    messagingClient.permissionAfterRequest = PushPermissionStatus.denied;
+  test('아직 안 물었거나 거부한 기기는 권한을 요청하지 않고 등록하지 않는다', () async {
+    for (final status in [
+      PushPermissionStatus.notDetermined,
+      PushPermissionStatus.denied,
+    ]) {
+      messagingClient.currentPermission = status;
 
-    expect(await service.registerDeviceForSignedInMember(), isNull);
+      expect(await service.registerDeviceForSignedInMember(), isNull);
+    }
+    expect(messagingClient.permissionRequestCount, 0);
     expect(pushTokenApi.registeredRequests, isEmpty);
+  });
+
+  test('켜기를 고르면 그때 권한을 요청하고, 거부하면 기기 설정 안내 예외', () async {
+    messagingClient.currentPermission = PushPermissionStatus.notDetermined;
+    expect(await service.updatePushEnabled(true), isTrue);
+    expect(messagingClient.permissionRequestCount, 1);
+
+    messagingClient.permissionAfterRequest = PushPermissionStatus.denied;
+    expect(
+      () => service.updatePushEnabled(true),
+      throwsA(isA<PushPermissionDeniedException>()),
+    );
   });
 
   test('토큰이 바뀌면 다시 등록한다', () async {

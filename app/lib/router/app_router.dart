@@ -11,6 +11,7 @@ import '../presentation/pages/feedback/feedback_page.dart';
 import '../presentation/pages/home/home_page.dart';
 import '../presentation/pages/legal/legal_page.dart';
 import '../presentation/pages/login/login_page.dart';
+import '../presentation/pages/notification/notification_inbox_page.dart';
 import '../presentation/pages/questions/topic_list_page.dart';
 import '../presentation/pages/questions/chapter_page.dart';
 import '../presentation/pages/questions/chapter_result_page.dart';
@@ -114,6 +115,13 @@ abstract final class AppRouter {
         path: AppRoutes.feedback,
         parentNavigatorKey: _rootKey,
         builder: (_, _) => const FeedbackPage(),
+      ),
+
+      // 풀스크린: 알림함
+      GoRoute(
+        path: AppRoutes.notificationInbox,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const NotificationInboxPage(),
       ),
 
       // 풀스크린: 오답 노트 (설정에서 진입)
