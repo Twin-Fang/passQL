@@ -65,9 +65,8 @@ abstract final class ErrorCodeMapper {
     'MESSAGE_NOT_READABLE': ErrorCode.validation,
     'MISSING_PARAMETER': ErrorCode.validation,
     'TYPE_MISMATCH': ErrorCode.validation,
-    // 없음: ErrorCode enum + GlobalExceptionHandler 문자열 코드(NoResourceFound)
+    // 없음 (없는 경로 404 도 서버가 RESOURCE_NOT_FOUND 로 변환)
     'RESOURCE_NOT_FOUND': ErrorCode.notFound,
-    'NOT_FOUND': ErrorCode.notFound,
     // 충돌: DB 제약 위반(GlobalExceptionHandler 409)
     'DATA_INTEGRITY_VIOLATION': ErrorCode.conflict,
     'RATE_LIMITED': ErrorCode.rateLimited,
@@ -89,6 +88,9 @@ abstract final class ErrorCodeMapper {
     'INTERNAL_SERVER_ERROR': ErrorCode.serverError,
     'SERVICE_UNDER_MAINTENANCE': ErrorCode.serviceUnderMaintenance,
   };
+
+  /// 앱이 분기하는 서버 코드 목록 (계약 검사 테스트가 서버 ErrorCode 와 비교)
+  static Iterable<String> get mappedServerCodes => _byServerCode.keys;
 
   static ErrorCode fromServerCode(String? serverCode) =>
       serverCode == null ? ErrorCode.unknown : _byServerCode[serverCode] ?? ErrorCode.unknown;

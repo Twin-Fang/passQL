@@ -80,7 +80,6 @@ void main() {
         'MISSING_PARAMETER': ErrorCode.validation,
         'TYPE_MISMATCH': ErrorCode.validation,
         'RESOURCE_NOT_FOUND': ErrorCode.notFound,
-        'NOT_FOUND': ErrorCode.notFound,
         'DATA_INTEGRITY_VIOLATION': ErrorCode.conflict,
         'GENERATION_FAILED': ErrorCode.aiUnavailable,
         'CHOICE_SET_GENERATION_FAILED': ErrorCode.aiUnavailable,
