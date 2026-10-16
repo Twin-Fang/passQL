@@ -32,3 +32,6 @@ Runner/GeneratedPluginRegistrant.*
 !default.mode2v3
 !default.pbxuser
 !default.perspectivev3
+
+# AdMob 앱 ID 생성 파일 (tool/gen_ios_admob_config.sh 가 app/.env 로 생성)
+Flutter/AdMob.xcconfig

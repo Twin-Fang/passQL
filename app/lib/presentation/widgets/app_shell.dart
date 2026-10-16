@@ -2,7 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/ads/ad_placement.dart';
 import '../design/design.dart';
+import 'ads/ad_banner_slot.dart';
+import 'ads/interstitial_ad_preloader.dart';
 import 'app_gate/recommended_update_prompter.dart';
 import 'common/app_lifecycle_refresher.dart';
 import 'notification/notification_permission_prompter.dart';
@@ -38,25 +41,53 @@ class AppShell extends StatelessWidget {
     ),
   ];
 
+  /// 탭 번호 > 하단 배너 자리. 설정 탭(3)은 회원 탈퇴와 가까워 배너 없음 (null)
+  static AdPlacement? bannerPlacementOfTab(int tabIndex) => switch (tabIndex) {
+    0 => AdPlacement.bannerHome,
+    1 => AdPlacement.bannerQuestions,
+    2 => AdPlacement.bannerStats,
+    _ => null,
+  };
+
   @override
   Widget build(BuildContext context) {
+    // 풀이·결과 같은 전체 화면이 탭 쉘을 덮으면 배너 해제 (가려진 광고 노출 방지)
+    final isShellOnTop = ModalRoute.of(context)?.isCurrent ?? true;
+    final bannerPlacement = isShellOnTop
+        ? bannerPlacementOfTab(navigationShell.currentIndex)
+        : null;
     // 다음 날 복귀하면 어제 세트·인사말이 남지 않게 갱신 (#483)
     return AppLifecycleRefresher(
       child: Scaffold(
         extendBody: true,
         // 탭 첫 진입 시 권장 업데이트 안내 1회 (#464)
         // 알림 권한 안내는 홈 첫 진입 후 1회 (앱 자체 시트 > 시스템 창)
-        body: NotificationPermissionPrompter(
-          child: RecommendedUpdatePrompter(child: navigationShell),
-        ),
-        bottomNavigationBar: PassqlTabBar(
-          items: _items,
-          currentIndex: navigationShell.currentIndex,
-          // 지금 탭을 다시 누르면 그 탭의 첫 화면으로
-          onTap: (index) => navigationShell.goBranch(
-            index,
-            initialLocation: index == navigationShell.currentIndex,
+        // 결과 화면 전면 광고는 탭 화면에 들어온 뒤 미리 불러 둠
+        body: InterstitialAdPreloader(
+          child: NotificationPermissionPrompter(
+            child: RecommendedUpdatePrompter(child: navigationShell),
           ),
+        ),
+        // 배너(탭별 자리, 실패 시 높이 0) + 탭 바. extendBody 라 본문 하단 여백에 배너 높이도 반영
+        bottomNavigationBar: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (bannerPlacement != null)
+              // 탭이 바뀌면 그 자리 광고 단위로 새로 불러옴
+              AdBannerSlot(
+                key: ValueKey(bannerPlacement),
+                placement: bannerPlacement,
+              ),
+            PassqlTabBar(
+              items: _items,
+              currentIndex: navigationShell.currentIndex,
+              // 지금 탭을 다시 누르면 그 탭의 첫 화면으로
+              onTap: (index) => navigationShell.goBranch(
+                index,
+                initialLocation: index == navigationShell.currentIndex,
+              ),
+            ),
+          ],
         ),
       ),
     );

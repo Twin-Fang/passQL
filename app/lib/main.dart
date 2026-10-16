@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/ads/ad_consent.dart';
 import 'core/auth/install_guard.dart';
 import 'core/auth/token_store.dart';
 import 'core/monitoring/firebase_analytics_backend.dart';
@@ -64,6 +65,10 @@ Future<void> main() async {
 
   runApp(
     UncontrolledProviderScope(container: container, child: const PassqlApp()),
+  );
+  // iOS 추적 허용(ATT)은 첫 프레임 뒤 앱 시작 시 1회 질문 (광고 요청에만 묶으면 심사 2.1 리젝)
+  WidgetsBinding.instance.addPostFrameCallback(
+    (_) => AdConsent.requestOnLaunch(),
   );
 }
 

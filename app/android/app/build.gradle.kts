@@ -15,6 +15,17 @@ val keystoreProperties = Properties().apply {
     if (file.exists()) file.inputStream().use { load(it) }
 }
 
+// 빌드 시점 값 1개(AdMob 앱 ID)를 app/.env 에서 읽음 (커밋 제외 파일, 앱 런타임 .env 와 같은 원본)
+// 매니페스트 meta-data 는 빌드 타임에 필요해 flutter_dotenv 로는 주입 불가 > manifestPlaceholders 로 전달
+val envProperties = Properties().apply {
+    val file = rootProject.file("../.env")
+    if (file.exists()) file.reader(Charsets.UTF_8).use { load(it) }
+}
+fun envValue(key: String): String = envProperties.getProperty(key)?.trim() ?: ""
+
+// AdMob 앱 ID 미설정 시 Google 테스트 앱 ID (비어 있으면 SDK 가 앱 시작 시 종료시킴)
+val googleTestAdmobAndroidAppId = "ca-app-pub-3940256099942544~3347511713"
+
 android {
     namespace = "com.coldredrice.passql"
     compileSdk = flutter.compileSdkVersion
@@ -39,6 +50,10 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // AndroidManifest.xml 의 ${admobAppId}
+        manifestPlaceholders["admobAppId"] =
+            envValue("PASSQL_ADMOB_ANDROID_APP_ID").ifEmpty { googleTestAdmobAndroidAppId }
     }
 
     signingConfigs {

@@ -9,6 +9,7 @@ import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../flows/daily_set_flow.dart';
 import '../../providers/daily_set_providers.dart';
+import '../../widgets/ads/interstitial_ad_on_enter.dart';
 
 /// 상단 바·점수 머리에 쓰는 화면 이름
 const _dailySetTitle = '오늘의 세트';
@@ -27,11 +28,14 @@ class DailySetResultPage extends ConsumerWidget {
     final outcome = extra is DailySetOutcome ? extra as DailySetOutcome : null;
 
     if (outcome != null) {
-      return _ResultBody(
-        correctCount: outcome.correctCount,
-        total: outcome.results.length,
-        results: outcome.results.map((result) => result.isCorrect).toList(),
-        saveError: outcome.saveError,
+      // 풀이를 막 끝낸 진입에만 전면 광고 시도 (홈 '이미 완료' 카드 진입은 제외)
+      return InterstitialAdOnEnter(
+        child: _ResultBody(
+          correctCount: outcome.correctCount,
+          total: outcome.results.length,
+          results: outcome.results.map((result) => result.isCorrect).toList(),
+          saveError: outcome.saveError,
+        ),
       );
     }
     return _RecordBody(today: ref.watch(dailySetTodayProvider));
