@@ -1,5 +1,7 @@
 package com.passql.question.constant;
 
+import java.util.List;
+
 /**
  * 선택지 세트가 어떻게 생성되었는지 출처 구분.
  * - AI_RUNTIME        : 사용자 진입 시 실시간 생성
@@ -13,5 +15,13 @@ public enum ChoiceSetSource {
     AI_PREFETCH,
     AI_ADMIN_PREVIEW,
     ADMIN_SEED,
-    ADMIN_CURATED
+    ADMIN_CURATED;
+
+    /** 관리자 고정 세트 출처 2개: ADMIN_SEED, ADMIN_CURATED (CURATED_ONLY 출제·순서 섞기 대상) */
+    public static final List<ChoiceSetSource> CURATED_SOURCES = List.of(ADMIN_SEED, ADMIN_CURATED);
+
+    /** 관리자 고정 세트 여부 */
+    public boolean isCurated() {
+        return CURATED_SOURCES.contains(this);
+    }
 }

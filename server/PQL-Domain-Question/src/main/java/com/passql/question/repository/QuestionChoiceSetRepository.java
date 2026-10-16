@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -39,6 +40,11 @@ public interface QuestionChoiceSetRepository extends JpaRepository<QuestionChoic
     Optional<QuestionChoiceSet>
         findFirstByQuestionUuidAndStatusOrderByCreatedAtDesc(
             UUID questionUuid, ChoiceSetStatus status);
+
+    /** 고정 세트 조회 (#511): 특정 출처(ADMIN_SEED·ADMIN_CURATED) 중 status 일치 최신 1개 */
+    Optional<QuestionChoiceSet>
+        findFirstByQuestionUuidAndStatusAndSourceInOrderByCreatedAtDesc(
+            UUID questionUuid, ChoiceSetStatus status, Collection<ChoiceSetSource> sources);
 
     /** 프리페치 소비 마킹 — 별도 @Transactional 빈 없이 Repository 레벨에서 직접 처리. */
     @Modifying
