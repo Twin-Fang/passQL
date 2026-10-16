@@ -1,5 +1,6 @@
 package com.passql.submission.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * 홈 화면용 사용자 진도 응답.
  *
@@ -10,5 +11,5 @@ public record ProgressResponse(
     long solvedCount,
     double correctRate,
     int streakDays,
-    ReadinessResponse readiness
+    @Schema(nullable = true) ReadinessResponse readiness
 ) {}

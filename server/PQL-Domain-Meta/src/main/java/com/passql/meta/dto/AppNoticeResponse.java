@@ -1,5 +1,7 @@
 package com.passql.meta.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import com.passql.meta.entity.AppNotice;
 
 import java.time.LocalDateTime;
@@ -12,8 +14,8 @@ public record AppNoticeResponse(
         UUID noticeUuid,
         String title,
         String body,
-        LocalDateTime startsAt,
-        LocalDateTime endsAt,
+        @Schema(nullable = true) LocalDateTime startsAt,
+        @Schema(nullable = true) LocalDateTime endsAt,
         Boolean isActive,
         Boolean isImportant
 ) {

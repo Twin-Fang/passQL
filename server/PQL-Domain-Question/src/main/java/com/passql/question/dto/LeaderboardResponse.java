@@ -1,10 +1,11 @@
 package com.passql.question.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 import java.util.List;
 
 public record LeaderboardResponse(
-    LocalDate date,
+    @Schema(nullable = true) LocalDate date,
     List<LeaderboardEntry> entries,
-    LeaderboardEntry myEntry
+    @Schema(nullable = true) LeaderboardEntry myEntry
 ) {}

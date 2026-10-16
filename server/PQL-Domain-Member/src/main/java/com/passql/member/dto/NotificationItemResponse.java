@@ -1,5 +1,7 @@
 package com.passql.member.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import com.passql.member.constant.NotificationCategory;
 
 import java.time.LocalDateTime;
@@ -15,8 +17,8 @@ public record NotificationItemResponse(
         String type,
         String title,
         String body,
-        String linkTarget,
-        UUID linkQuestionUuid,
+        @Schema(nullable = true) String linkTarget,
+        @Schema(nullable = true) UUID linkQuestionUuid,
         Boolean isRead,
         LocalDateTime createdAt,
         Boolean isImportant

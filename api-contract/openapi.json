@@ -8,9 +8,10 @@
           },
           "generatedAt" : {
             "format" : "date-time",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           }
         },
+        "required" : [ "comment", "generatedAt" ],
         "type" : "object"
       },
       "AiResult" : {
@@ -23,6 +24,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "promptVersion", "text" ],
         "type" : "object"
       },
       "AppConfigResponse" : {
@@ -43,6 +45,7 @@
             "type" : "array"
           }
         },
+        "required" : [ "android", "ios", "maintenance", "notices" ],
         "type" : "object"
       },
       "AppLinksResponse" : {
@@ -54,6 +57,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "androidUrl", "iosUrl" ],
         "type" : "object"
       },
       "AppMaintenanceResponse" : {
@@ -62,9 +66,10 @@
             "type" : "boolean"
           },
           "message" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           }
         },
+        "required" : [ "isUnderMaintenance", "message" ],
         "type" : "object"
       },
       "AppNoticeResponse" : {
@@ -74,7 +79,7 @@
           },
           "endsAt" : {
             "format" : "date-time",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "isActive" : {
             "type" : "boolean"
@@ -88,12 +93,13 @@
           },
           "startsAt" : {
             "format" : "date-time",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "title" : {
             "type" : "string"
           }
         },
+        "required" : [ "body", "endsAt", "isActive", "isImportant", "noticeUuid", "startsAt", "title" ],
         "type" : "object"
       },
       "AppPlatformVersionResponse" : {
@@ -108,6 +114,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "minimumVersion", "recommendedVersion", "storeUrl" ],
         "type" : "object"
       },
       "ChoiceGenerationModeUpdateRequest" : {
@@ -127,6 +134,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "choiceGenerationMode" ],
         "type" : "object"
       },
       "ChoiceItem" : {
@@ -135,7 +143,7 @@
             "type" : "string"
           },
           "isCorrect" : {
-            "type" : "boolean"
+            "type" : [ "boolean", "null" ]
           },
           "key" : {
             "type" : "string"
@@ -145,13 +153,14 @@
             "type" : "string"
           },
           "rationale" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "sortOrder" : {
             "format" : "int32",
-            "type" : "integer"
+            "type" : [ "integer", "null" ]
           }
         },
+        "required" : [ "body", "isCorrect", "key", "kind", "rationale", "sortOrder" ],
         "type" : "object"
       },
       "ChoiceSetSummary" : {
@@ -171,7 +180,7 @@
             "type" : "array"
           },
           "sandboxValidationPassed" : {
-            "type" : "boolean"
+            "type" : [ "boolean", "null" ]
           },
           "source" : {
             "enum" : [ "AI_RUNTIME", "AI_PREFETCH", "AI_ADMIN_PREVIEW", "ADMIN_SEED", "ADMIN_CURATED" ],
@@ -182,6 +191,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "choiceSetUuid", "createdAt", "items", "sandboxValidationPassed", "source", "status" ],
         "type" : "object"
       },
       "ConceptTag" : {
@@ -224,6 +234,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "category", "conceptTagUuid", "createdAt", "createdBy", "description", "isActive", "labelKo", "sortOrder", "tagKey", "updatedAt", "updatedBy" ],
         "type" : "object"
       },
       "DailySetCompleteRequest" : {
@@ -254,6 +265,7 @@
             "type" : "integer"
           }
         },
+        "required" : [ "correctCount", "rank", "totalParticipants" ],
         "type" : "object"
       },
       "DailySetTodayResponse" : {
@@ -263,7 +275,7 @@
           },
           "correctCount" : {
             "format" : "int32",
-            "type" : "integer"
+            "type" : [ "integer", "null" ]
           },
           "questions" : {
             "items" : {
@@ -275,9 +287,10 @@
             "items" : {
               "type" : "boolean"
             },
-            "type" : "array"
+            "type" : [ "array", "null" ]
           }
         },
+        "required" : [ "alreadyCompleted", "correctCount", "questions", "results" ],
         "type" : "object"
       },
       "ErrorCode" : {
@@ -319,6 +332,7 @@
             "type" : "integer"
           }
         },
+        "required" : [ "certType", "examDate", "examScheduleUuid", "isSelected", "round" ],
         "type" : "object"
       },
       "ExecuteResult" : {
@@ -334,10 +348,10 @@
             "type" : "integer"
           },
           "errorCode" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "errorMessage" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "rowCount" : {
             "format" : "int32",
@@ -351,9 +365,10 @@
             "type" : "array"
           },
           "status" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           }
         },
+        "required" : [ "columns", "elapsedMs", "errorCode", "errorMessage", "rowCount", "rows", "status" ],
         "type" : "object"
       },
       "FeedbackItem" : {
@@ -373,6 +388,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "content", "createdAt", "feedbackUuid", "status" ],
         "type" : "object"
       },
       "FeedbackListResponse" : {
@@ -384,6 +400,7 @@
             "type" : "array"
           }
         },
+        "required" : [ "items" ],
         "type" : "object"
       },
       "FeedbackSubmitRequest" : {
@@ -408,6 +425,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "createdAt", "feedbackUuid", "status" ],
         "type" : "object"
       },
       "GreetingResponse" : {
@@ -423,6 +441,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "message", "messageType", "nickname" ],
         "type" : "object"
       },
       "HeatmapEntry" : {
@@ -440,6 +459,7 @@
             "type" : "integer"
           }
         },
+        "required" : [ "correctCount", "date", "solvedCount" ],
         "type" : "object"
       },
       "HeatmapResponse" : {
@@ -451,6 +471,7 @@
             "type" : "array"
           }
         },
+        "required" : [ "entries" ],
         "type" : "object"
       },
       "LeaderboardEntry" : {
@@ -467,13 +488,14 @@
             "type" : "integer"
           }
         },
+        "required" : [ "correctCount", "nickname", "rank" ],
         "type" : "object"
       },
       "LeaderboardResponse" : {
         "properties" : {
           "date" : {
             "format" : "date",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "entries" : {
             "items" : {
@@ -482,9 +504,14 @@
             "type" : "array"
           },
           "myEntry" : {
-            "$ref" : "#/components/schemas/LeaderboardEntry"
+            "oneOf" : [ {
+              "$ref" : "#/components/schemas/LeaderboardEntry"
+            }, {
+              "type" : "null"
+            } ]
           }
         },
+        "required" : [ "date", "entries", "myEntry" ],
         "type" : "object"
       },
       "LegalResponse" : {
@@ -504,6 +531,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "content", "status", "title", "type" ],
         "type" : "object"
       },
       "LoginRequest" : {
@@ -539,6 +567,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "accessToken", "isNewMember", "memberUuid", "nickname", "refreshToken" ],
         "type" : "object"
       },
       "LogoutRequest" : {
@@ -555,7 +584,7 @@
         "properties" : {
           "choiceGenerationMode" : {
             "enum" : [ "PRACTICE", "REAL" ],
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "createdAt" : {
             "format" : "date-time",
@@ -577,7 +606,7 @@
           },
           "nicknameChangedAt" : {
             "format" : "date-time",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "role" : {
             "type" : "string"
@@ -586,6 +615,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "choiceGenerationMode", "createdAt", "isTestAccount", "lastSeenAt", "memberUuid", "nickname", "nicknameChangedAt", "role", "status" ],
         "type" : "object"
       },
       "NicknameChangeRequest" : {
@@ -606,6 +636,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "nickname" ],
         "type" : "object"
       },
       "NicknameCheckResponse" : {
@@ -614,6 +645,7 @@
             "type" : "boolean"
           }
         },
+        "required" : [ "available" ],
         "type" : "object"
       },
       "NicknameRegenerateResponse" : {
@@ -622,6 +654,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "nickname" ],
         "type" : "object"
       },
       "NotificationItemResponse" : {
@@ -649,10 +682,10 @@
           },
           "linkQuestionUuid" : {
             "format" : "uuid",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "linkTarget" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "title" : {
             "type" : "string"
@@ -661,6 +694,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "body", "category", "createdAt", "id", "isImportant", "isRead", "linkQuestionUuid", "linkTarget", "title", "type" ],
         "type" : "object"
       },
       "NotificationPageResponse" : {
@@ -672,9 +706,10 @@
             "type" : "array"
           },
           "nextCursor" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           }
         },
+        "required" : [ "items", "nextCursor" ],
         "type" : "object"
       },
       "PageQuestionSummary" : {
@@ -721,6 +756,7 @@
             "type" : "integer"
           }
         },
+        "required" : [ "content", "empty", "first", "last", "number", "numberOfElements", "pageable", "size", "sort", "totalElements", "totalPages" ],
         "type" : "object"
       },
       "Pageable" : {
@@ -777,7 +813,11 @@
             "type" : "number"
           },
           "readiness" : {
-            "$ref" : "#/components/schemas/ReadinessResponse"
+            "oneOf" : [ {
+              "$ref" : "#/components/schemas/ReadinessResponse"
+            }, {
+              "type" : "null"
+            } ]
           },
           "solvedCount" : {
             "format" : "int64",
@@ -788,6 +828,7 @@
             "type" : "integer"
           }
         },
+        "required" : [ "correctRate", "readiness", "solvedCount", "streakDays" ],
         "type" : "object"
       },
       "PushTokenRegisterRequest" : {
@@ -814,12 +855,13 @@
             "type" : "boolean"
           }
         },
+        "required" : [ "isPushEnabled" ],
         "type" : "object"
       },
       "QuestionDetail" : {
         "properties" : {
           "answerSql" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "choiceSetPolicy" : {
             "enum" : [ "AI_ONLY", "CURATED_ONLY", "HYBRID", "ODD_ONE_OUT", "RESULT_MATCH" ],
@@ -837,37 +879,38 @@
           },
           "executionMode" : {
             "enum" : [ "EXECUTABLE", "CONCEPT_ONLY" ],
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "hint" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "questionUuid" : {
             "format" : "uuid",
             "type" : "string"
           },
           "schemaDdl" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "schemaDisplay" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "schemaIntent" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "schemaSampleData" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "stem" : {
             "type" : "string"
           },
           "subtopicName" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "topicName" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           }
         },
+        "required" : [ "answerSql", "choiceSetPolicy", "choiceSets", "difficulty", "executionMode", "hint", "questionUuid", "schemaDdl", "schemaDisplay", "schemaIntent", "schemaSampleData", "stem", "subtopicName", "topicName" ],
         "type" : "object"
       },
       "QuestionSummary" : {
@@ -882,22 +925,23 @@
           },
           "executionMode" : {
             "enum" : [ "EXECUTABLE", "CONCEPT_ONLY" ],
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "questionUuid" : {
             "format" : "uuid",
             "type" : "string"
           },
           "stemPreview" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "topicCode" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "topicName" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           }
         },
+        "required" : [ "createdAt", "difficulty", "executionMode", "questionUuid", "stemPreview", "topicCode", "topicName" ],
         "type" : "object"
       },
       "ReadinessResponse" : {
@@ -920,11 +964,11 @@
           },
           "daysUntilExam" : {
             "format" : "int32",
-            "type" : "integer"
+            "type" : [ "integer", "null" ]
           },
           "lastStudiedAt" : {
             "format" : "date-time",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "recency" : {
             "format" : "double",
@@ -951,6 +995,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "accuracy", "activeTopicCount", "coverage", "coveredTopicCount", "daysUntilExam", "lastStudiedAt", "recency", "recentAttemptCount", "retry", "score", "spread", "toneKey" ],
         "type" : "object"
       },
       "RecommendationsRequest" : {
@@ -977,6 +1022,7 @@
             "type" : "array"
           }
         },
+        "required" : [ "questions" ],
         "type" : "object"
       },
       "ReissueRequest" : {
@@ -998,6 +1044,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "accessToken", "refreshToken" ],
         "type" : "object"
       },
       "ReportRequest" : {
@@ -1029,6 +1076,7 @@
             "type" : "boolean"
           }
         },
+        "required" : [ "reported" ],
         "type" : "object"
       },
       "SimilarQuestion" : {
@@ -1042,12 +1090,13 @@
             "type" : "number"
           },
           "stem" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "topicName" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           }
         },
+        "required" : [ "questionUuid", "score", "stem", "topicName" ],
         "type" : "object"
       },
       "SortObject" : {
@@ -1091,7 +1140,7 @@
             "description" : "퀴즈 세션 UUID — AI 코멘트 세션 집계에 사용",
             "example" : "550e8400-e29b-41d4-a716-446655440001",
             "format" : "uuid",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           }
         },
         "type" : "object"
@@ -1099,31 +1148,40 @@
       "SubmitResult" : {
         "properties" : {
           "correctKey" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "correctResult" : {
-            "$ref" : "#/components/schemas/ExecuteResult"
+            "oneOf" : [ {
+              "$ref" : "#/components/schemas/ExecuteResult"
+            }, {
+              "type" : "null"
+            } ]
           },
           "correctSql" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "isCorrect" : {
             "type" : "boolean"
           },
           "rationale" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "selectedResult" : {
-            "$ref" : "#/components/schemas/ExecuteResult"
+            "oneOf" : [ {
+              "$ref" : "#/components/schemas/ExecuteResult"
+            }, {
+              "type" : "null"
+            } ]
           },
           "selectedSql" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "submissionUuid" : {
             "format" : "uuid",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           }
         },
+        "required" : [ "correctKey", "correctResult", "correctSql", "isCorrect", "rationale", "selectedResult", "selectedSql", "submissionUuid" ],
         "type" : "object"
       },
       "SubtopicItem" : {
@@ -1139,9 +1197,10 @@
           },
           "sortOrder" : {
             "format" : "int32",
-            "type" : "integer"
+            "type" : [ "integer", "null" ]
           }
         },
+        "required" : [ "code", "displayName", "isActive", "sortOrder" ],
         "type" : "object"
       },
       "TopicAnalysisResponse" : {
@@ -1153,6 +1212,7 @@
             "type" : "array"
           }
         },
+        "required" : [ "topicStats" ],
         "type" : "object"
       },
       "TopicStat" : {
@@ -1177,6 +1237,7 @@
             "type" : "integer"
           }
         },
+        "required" : [ "correctRate", "displayName", "solvedCount", "topicUuid", "totalQuestionCount" ],
         "type" : "object"
       },
       "TopicTree" : {
@@ -1192,7 +1253,7 @@
           },
           "sortOrder" : {
             "format" : "int32",
-            "type" : "integer"
+            "type" : [ "integer", "null" ]
           },
           "subtopics" : {
             "items" : {
@@ -1205,6 +1266,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "code", "displayName", "isActive", "sortOrder", "subtopics", "topicUuid" ],
         "type" : "object"
       },
       "UnreadNotificationCountResponse" : {
@@ -1222,6 +1284,7 @@
             "type" : "integer"
           }
         },
+        "required" : [ "general", "notice", "total" ],
         "type" : "object"
       },
       "WrongQuestionItem" : {
@@ -1238,9 +1301,10 @@
             "type" : "string"
           },
           "topicName" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           }
         },
+        "required" : [ "lastWrongAt", "questionUuid", "stemPreview", "topicName" ],
         "type" : "object"
       },
       "WrongQuestionsResponse" : {
@@ -1256,6 +1320,7 @@
             "type" : "integer"
           }
         },
+        "required" : [ "items", "totalCount" ],
         "type" : "object"
       }
     }
@@ -2268,6 +2333,7 @@
     },
     "/api/questions/{questionUuid}" : {
       "get" : {
+        "description" : "풀이용 상세. 정답 SQL·정답 여부·해설은 내려가지 않는다(제출 응답에서만 제공).",
         "operationId" : "getQuestion",
         "parameters" : [ {
           "in" : "path",

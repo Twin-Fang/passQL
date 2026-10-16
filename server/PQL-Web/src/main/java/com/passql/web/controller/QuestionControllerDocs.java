@@ -60,8 +60,9 @@ public interface QuestionControllerDocs {
   @ApiLogs({
       @ApiLog(date = "2026.04.07", author = Author.SUHSAECHAN, issueNumber = 1, description = "문제 상세 조회 API 추가"),
       @ApiLog(date = "2026.04.08", author = Author.SUHSAECHAN, issueNumber = 22, description = "PathVariable: Long id → UUID questionUuid. 응답 DTO(topicName/subtopicName) UUID 기반으로 변경"),
+      @ApiLog(date = "2026.10.16", author = Author.SUHSAECHAN, issueNumber = 503, description = "정답 노출 차단: answerSql·isCorrect·rationale 은 null, choiceSets 는 최신 OK 세트 1개만"),
   })
-  @Operation(summary = "문제 상세 조회")
+  @Operation(summary = "문제 상세 조회", description = "풀이용 상세. 정답 SQL·정답 여부·해설은 내려가지 않는다(제출 응답에서만 제공).")
   ResponseEntity<QuestionDetail> getQuestion(@PathVariable UUID questionUuid);
 
   @ApiLogs({

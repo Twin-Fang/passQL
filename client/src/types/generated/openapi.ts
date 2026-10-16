@@ -962,7 +962,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 문제 상세 조회 */
+        /**
+         * 문제 상세 조회
+         * @description 풀이용 상세. 정답 SQL·정답 여부·해설은 내려가지 않는다(제출 응답에서만 제공).
+         */
         get: operations["getQuestion"];
         put?: never;
         post?: never;
@@ -1102,7 +1105,7 @@ export interface components {
         AiCommentResponse: {
             comment: string;
             /** Format: date-time */
-            generatedAt: string;
+            generatedAt: string | null;
         };
         AiResult: {
             /** Format: int32 */
@@ -1121,18 +1124,18 @@ export interface components {
         };
         AppMaintenanceResponse: {
             isUnderMaintenance: boolean;
-            message: string;
+            message: string | null;
         };
         AppNoticeResponse: {
             body: string;
             /** Format: date-time */
-            endsAt: string;
+            endsAt: string | null;
             isActive: boolean;
             isImportant: boolean;
             /** Format: uuid */
             noticeUuid: string;
             /** Format: date-time */
-            startsAt: string;
+            startsAt: string | null;
             title: string;
         };
         AppPlatformVersionResponse: {
@@ -1150,13 +1153,13 @@ export interface components {
         };
         ChoiceItem: {
             body: string;
-            isCorrect: boolean;
+            isCorrect: boolean | null;
             key: string;
             /** @enum {string} */
             kind: "SQL" | "TEXT";
-            rationale: string;
+            rationale: string | null;
             /** Format: int32 */
-            sortOrder: number;
+            sortOrder: number | null;
         };
         ChoiceSetSummary: {
             /** Format: uuid */
@@ -1164,7 +1167,7 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
             items: components["schemas"]["ChoiceItem"][];
-            sandboxValidationPassed: boolean;
+            sandboxValidationPassed: boolean | null;
             /** @enum {string} */
             source: "AI_RUNTIME" | "AI_PREFETCH" | "AI_ADMIN_PREVIEW" | "ADMIN_SEED" | "ADMIN_CURATED";
             /** @enum {string} */
@@ -1204,9 +1207,9 @@ export interface components {
         DailySetTodayResponse: {
             alreadyCompleted: boolean;
             /** Format: int32 */
-            correctCount: number;
+            correctCount: number | null;
             questions: components["schemas"]["QuestionSummary"][];
-            results: boolean[];
+            results: boolean[] | null;
         };
         /**
          * @description 서버 ErrorCode enum 이름 (응답 errorCode 값)
@@ -1232,12 +1235,12 @@ export interface components {
             columns: string[];
             /** Format: int64 */
             elapsedMs: number;
-            errorCode: string;
-            errorMessage: string;
+            errorCode: string | null;
+            errorMessage: string | null;
             /** Format: int32 */
             rowCount: number;
             rows: unknown[][];
-            status: string;
+            status: string | null;
         };
         FeedbackItem: {
             content: string;
@@ -1286,9 +1289,9 @@ export interface components {
         };
         LeaderboardResponse: {
             /** Format: date */
-            date: string;
+            date: string | null;
             entries: components["schemas"]["LeaderboardEntry"][];
-            myEntry: components["schemas"]["LeaderboardEntry"];
+            myEntry: components["schemas"]["LeaderboardEntry"] | null;
         };
         LegalResponse: {
             content: string;
@@ -1315,8 +1318,8 @@ export interface components {
             refreshToken: string;
         };
         MemberMeResponse: {
-            /** @enum {string} */
-            choiceGenerationMode: "PRACTICE" | "REAL";
+            /** @enum {string|null} */
+            choiceGenerationMode: "PRACTICE" | "REAL" | null;
             /** Format: date-time */
             createdAt: string;
             isTestAccount: boolean;
@@ -1326,7 +1329,7 @@ export interface components {
             memberUuid: string;
             nickname: string;
             /** Format: date-time */
-            nicknameChangedAt: string;
+            nicknameChangedAt: string | null;
             role: string;
             status: string;
         };
@@ -1353,14 +1356,14 @@ export interface components {
             isImportant: boolean;
             isRead: boolean;
             /** Format: uuid */
-            linkQuestionUuid: string;
-            linkTarget: string;
+            linkQuestionUuid: string | null;
+            linkTarget: string | null;
             title: string;
             type: string;
         };
         NotificationPageResponse: {
             items: components["schemas"]["NotificationItemResponse"][];
-            nextCursor: string;
+            nextCursor: string | null;
         };
         PageQuestionSummary: {
             content: components["schemas"]["QuestionSummary"][];
@@ -1401,7 +1404,7 @@ export interface components {
         ProgressResponse: {
             /** Format: double */
             correctRate: number;
-            readiness: components["schemas"]["ReadinessResponse"];
+            readiness: components["schemas"]["ReadinessResponse"] | null;
             /** Format: int64 */
             solvedCount: number;
             /** Format: int32 */
@@ -1416,37 +1419,37 @@ export interface components {
             isPushEnabled: boolean;
         };
         QuestionDetail: {
-            answerSql: string;
+            answerSql: string | null;
             /** @enum {string} */
             choiceSetPolicy: "AI_ONLY" | "CURATED_ONLY" | "HYBRID" | "ODD_ONE_OUT" | "RESULT_MATCH";
             choiceSets: components["schemas"]["ChoiceSetSummary"][];
             /** Format: int32 */
             difficulty: number;
-            /** @enum {string} */
-            executionMode: "EXECUTABLE" | "CONCEPT_ONLY";
-            hint: string;
+            /** @enum {string|null} */
+            executionMode: "EXECUTABLE" | "CONCEPT_ONLY" | null;
+            hint: string | null;
             /** Format: uuid */
             questionUuid: string;
-            schemaDdl: string;
-            schemaDisplay: string;
-            schemaIntent: string;
-            schemaSampleData: string;
+            schemaDdl: string | null;
+            schemaDisplay: string | null;
+            schemaIntent: string | null;
+            schemaSampleData: string | null;
             stem: string;
-            subtopicName: string;
-            topicName: string;
+            subtopicName: string | null;
+            topicName: string | null;
         };
         QuestionSummary: {
             /** Format: date-time */
             createdAt: string;
             /** Format: int32 */
             difficulty: number;
-            /** @enum {string} */
-            executionMode: "EXECUTABLE" | "CONCEPT_ONLY";
+            /** @enum {string|null} */
+            executionMode: "EXECUTABLE" | "CONCEPT_ONLY" | null;
             /** Format: uuid */
             questionUuid: string;
-            stemPreview: string;
-            topicCode: string;
-            topicName: string;
+            stemPreview: string | null;
+            topicCode: string | null;
+            topicName: string | null;
         };
         ReadinessResponse: {
             /** Format: double */
@@ -1458,9 +1461,9 @@ export interface components {
             /** Format: int32 */
             coveredTopicCount: number;
             /** Format: int32 */
-            daysUntilExam: number;
+            daysUntilExam: number | null;
             /** Format: date-time */
-            lastStudiedAt: string;
+            lastStudiedAt: string | null;
             /** Format: double */
             recency: number;
             /** Format: int32 */
@@ -1505,8 +1508,8 @@ export interface components {
             questionUuid: string;
             /** Format: double */
             score: number;
-            stem: string;
-            topicName: string;
+            stem: string | null;
+            topicName: string | null;
         };
         SortObject: {
             empty: boolean;
@@ -1535,25 +1538,25 @@ export interface components {
              * @description 퀴즈 세션 UUID — AI 코멘트 세션 집계에 사용
              * @example 550e8400-e29b-41d4-a716-446655440001
              */
-            sessionUuid: string;
+            sessionUuid: string | null;
         };
         SubmitResult: {
-            correctKey: string;
-            correctResult: components["schemas"]["ExecuteResult"];
-            correctSql: string;
+            correctKey: string | null;
+            correctResult: components["schemas"]["ExecuteResult"] | null;
+            correctSql: string | null;
             isCorrect: boolean;
-            rationale: string;
-            selectedResult: components["schemas"]["ExecuteResult"];
-            selectedSql: string;
+            rationale: string | null;
+            selectedResult: components["schemas"]["ExecuteResult"] | null;
+            selectedSql: string | null;
             /** Format: uuid */
-            submissionUuid: string;
+            submissionUuid: string | null;
         };
         SubtopicItem: {
             code: string;
             displayName: string;
             isActive: boolean;
             /** Format: int32 */
-            sortOrder: number;
+            sortOrder: number | null;
         };
         TopicAnalysisResponse: {
             topicStats: components["schemas"]["TopicStat"][];
@@ -1574,7 +1577,7 @@ export interface components {
             displayName: string;
             isActive: boolean;
             /** Format: int32 */
-            sortOrder: number;
+            sortOrder: number | null;
             subtopics: components["schemas"]["SubtopicItem"][];
             /** Format: uuid */
             topicUuid: string;
@@ -1593,7 +1596,7 @@ export interface components {
             /** Format: uuid */
             questionUuid: string;
             stemPreview: string;
-            topicName: string;
+            topicName: string | null;
         };
         WrongQuestionsResponse: {
             items: components["schemas"]["WrongQuestionItem"][];

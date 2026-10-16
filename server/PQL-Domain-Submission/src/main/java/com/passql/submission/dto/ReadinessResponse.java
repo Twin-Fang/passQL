@@ -1,5 +1,6 @@
 package com.passql.submission.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import com.passql.submission.readiness.ToneKey;
 
 import java.time.LocalDateTime;
@@ -16,10 +17,10 @@ public record ReadinessResponse(
     double recency,
     double retry,
     double spread,
-    LocalDateTime lastStudiedAt,
+    @Schema(nullable = true) LocalDateTime lastStudiedAt,
     int recentAttemptCount,
     int coveredTopicCount,
     int activeTopicCount,
-    Integer daysUntilExam,
+    @Schema(nullable = true) Integer daysUntilExam,
     ToneKey toneKey
 ) {}

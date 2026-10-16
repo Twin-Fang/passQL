@@ -67,7 +67,7 @@ public class QuestionController implements QuestionControllerDocs {
 
     @GetMapping("/{questionUuid}")
     public ResponseEntity<QuestionDetail> getQuestion(@PathVariable UUID questionUuid) {
-        return ResponseEntity.ok(questionService.getQuestion(questionUuid));
+        return ResponseEntity.ok(questionService.getQuestionForSolving(questionUuid));
     }
 
     @PostMapping("/{questionUuid}/execute")
