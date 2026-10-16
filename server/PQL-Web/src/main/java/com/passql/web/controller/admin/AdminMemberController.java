@@ -1,11 +1,13 @@
 package com.passql.web.controller.admin;
 
+import com.passql.application.notification.MemberNotificationService;
 import com.passql.member.constant.MemberRole;
 import com.passql.member.constant.MemberStatus;
 import com.passql.member.dto.MemberSearchCondition;
 import com.passql.member.dto.MemberSuspendRequest;
 import com.passql.member.service.MemberAdminService;
 import com.passql.member.service.MemberService;
+import com.passql.member.service.PushNotificationService;
 import com.passql.submission.service.SubmissionService;
 import com.passql.web.support.AdminMenu;
 import com.passql.web.support.AdminPage;
@@ -28,6 +30,8 @@ public class AdminMemberController {
     private final MemberAdminService memberAdminService;
     private final SubmissionService submissionService;
     private final MemberService memberService;
+    private final MemberNotificationService memberNotificationService;
+    private final PushNotificationService pushNotificationService;
 
     @GetMapping
     @AdminPage(menu = AdminMenu.MEMBERS)
@@ -48,6 +52,8 @@ public class AdminMemberController {
     public String detail(@PathVariable UUID memberUuid, Model model) {
         model.addAttribute("member", memberAdminService.getMemberDetail(memberUuid));
         model.addAttribute("submissions", submissionService.getSubmissionsByMember(memberUuid));
+        model.addAttribute("notifications", memberNotificationService.findRecentNotificationsOfMember(memberUuid));
+        model.addAttribute("pushDevices", pushNotificationService.summarizeDevices(memberUuid));
         return "admin/members/detail";
     }
 

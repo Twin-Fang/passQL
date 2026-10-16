@@ -22,6 +22,7 @@ public enum AdminMenu {
     EXAM_SCHEDULES("exam-schedules", "시험 일정 관리"),
     FEEDBACKS("feedbacks", "건의사항 관리"),
     REPORTS("reports", "신고 관리"),
+    PUSH("push", "알림 발송"),
     LEGAL("legal", "약관 관리"),
     SETTINGS("settings", "앱 설정"),
     EMBEDDINGS("embeddings", "임베딩 인덱스 관리"),
