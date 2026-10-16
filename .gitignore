@@ -128,3 +128,6 @@ docs/product/
 docs/reports/
 client/docs/
 server/docs/apilog/
+
+# 앱 자산 원문 (암호화본 docs/sqld-research-encrypted 만 커밋, bash scripts/research-docs-crypt.sh)
+docs/sqld-research/
