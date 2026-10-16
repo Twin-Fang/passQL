@@ -59,6 +59,7 @@ public interface QuestionChoiceSetRepository extends JpaRepository<QuestionChoic
     /**
      * 해설 백필 대상 세트 (#496): OK + (샌드박스 검증 통과 또는 개념 문제) + 해설 없는 선택지 보유, 최신 순
      * 샌드박스 미검증(AI 판단 fallback) 세트는 틀린 해설이 퍼질 수 있어 제외
+     * CURATED_ONLY 문제의 고정 세트는 검증 근거가 해설이라 제외 (#511)
      */
     @Query("""
             select s.choiceSetUuid from QuestionChoiceSet s
@@ -67,6 +68,11 @@ public interface QuestionChoiceSetRepository extends JpaRepository<QuestionChoic
                    or exists (select q.questionUuid from Question q
                               where q.questionUuid = s.questionUuid
                                 and q.executionMode = com.passql.question.constant.ExecutionMode.CONCEPT_ONLY))
+              and not exists (select cq.questionUuid from Question cq
+                              where cq.questionUuid = s.questionUuid
+                                and cq.choiceSetPolicy = com.passql.question.constant.ChoiceSetPolicy.CURATED_ONLY
+                                and s.source in (com.passql.question.constant.ChoiceSetSource.ADMIN_SEED,
+                                                 com.passql.question.constant.ChoiceSetSource.ADMIN_CURATED))
               and exists (select i.choiceSetItemUuid from QuestionChoiceSetItem i
                           where i.choiceSetUuid = s.choiceSetUuid and i.explanation is null)
             order by s.createdAt desc

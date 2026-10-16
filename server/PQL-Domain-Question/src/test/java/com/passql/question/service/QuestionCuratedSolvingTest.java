@@ -93,4 +93,22 @@ class QuestionCuratedSolvingTest {
         assertThat(response.choices()).extracting(ChoiceSetGenerateResponse.ChoiceItem::sortOrder)
                 .containsExactly(1, 2, 3, 4);
     }
+
+    @Test
+    void aiOnlyQuestionSeedSet_keepsStoredOrder() {
+        UUID aiOnlyQuestionUuid = UUID.randomUUID();
+        UUID seedSetUuid = UUID.randomUUID();
+        when(questionRepository.findById(aiOnlyQuestionUuid)).thenReturn(Optional.of(Question.builder()
+                .questionUuid(aiOnlyQuestionUuid).choiceSetPolicy(ChoiceSetPolicy.AI_ONLY).build()));
+        when(choiceSetRepository.findById(seedSetUuid)).thenReturn(Optional.of(QuestionChoiceSet.builder()
+                .choiceSetUuid(seedSetUuid).questionUuid(aiOnlyQuestionUuid)
+                .source(ChoiceSetSource.ADMIN_SEED).status(ChoiceSetStatus.OK).build()));
+        when(choiceSetItemRepository.findByChoiceSetUuidOrderBySortOrderAsc(seedSetUuid)).thenReturn(List.of(
+                item("A", 0, true), item("B", 1, false), item("C", 2, false), item("D", 3, false)));
+
+        ChoiceSetGenerateResponse response = questionService.getChoiceSetForSolving(seedSetUuid);
+
+        assertThat(response.choices()).extracting(ChoiceSetGenerateResponse.ChoiceItem::key).containsExactly("A", "B", "C", "D");
+        assertThat(response.choices()).extracting(ChoiceSetGenerateResponse.ChoiceItem::sortOrder).containsExactly(0, 1, 2, 3);
+    }
 }

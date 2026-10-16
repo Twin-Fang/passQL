@@ -185,6 +185,14 @@ public class QuestionImportExportService {
 
             ChoiceSetPolicy policy = toChoiceSetPolicyOrAiOnly(item.choiceSetPolicy());
 
+            // 고정 보기 규칙 재확인 (전체 등록 모드도 적용, 검증 결과 목록에 의존하지 않음)
+            String choiceRejectReason = CuratedChoiceValidator.findRejectReason(policy, mode, item.choices());
+            if (choiceRejectReason != null) {
+                log.warn("[import-batch] skipped curated item : index={}, reason={}", i, choiceRejectReason);
+                skipped++;
+                continue;
+            }
+
             if (item.questionUuid() != null && questionRepository.existsById(item.questionUuid())) {
                 questionService.updateQuestion(
                         item.questionUuid(), item.stem(), null,
@@ -289,7 +297,7 @@ public class QuestionImportExportService {
                 q.getSchemaSampleData(),
                 q.getSchemaIntent(),
                 q.getAnswerSql(),
-                questionService.findActiveCuratedChoices(q.getQuestionUuid())
+                q.getChoiceSetPolicy() == ChoiceSetPolicy.CURATED_ONLY ? questionService.findActiveCuratedChoices(q.getQuestionUuid()) : null
         )).toList();
     }
 }

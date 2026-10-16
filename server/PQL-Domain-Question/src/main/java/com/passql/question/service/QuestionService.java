@@ -118,7 +118,7 @@ public class QuestionService {
         List<QuestionDetail.ChoiceSetSummary> choiceSets = choiceSetRepository
                 .findByQuestionUuidOrderByCreatedAtDesc(questionUuid)
                 .stream()
-                .map(choiceSet -> toChoiceSetSummary(choiceSet, true))
+                .map(choiceSet -> toChoiceSetSummary(choiceSet, true, false))
                 .toList();
         return toQuestionDetail(question, question.getAnswerSql(), choiceSets);
     }
@@ -130,7 +130,7 @@ public class QuestionService {
     public QuestionDetail getQuestionForSolving(UUID questionUuid) {
         Question question = getQuestionEntity(questionUuid);
         List<QuestionDetail.ChoiceSetSummary> choiceSets = findSolvingChoiceSet(question)
-                .map(choiceSet -> List.of(toChoiceSetSummary(choiceSet, false)))
+                .map(choiceSet -> List.of(toChoiceSetSummary(choiceSet, false, isCuratedChoiceSet(question, choiceSet))))
                 .orElse(List.of());
         return toQuestionDetail(question, null, choiceSets);
     }
@@ -149,8 +149,15 @@ public class QuestionService {
         return choiceSetRepository.findFirstByQuestionUuidAndStatusOrderByCreatedAtDesc(questionUuid, ChoiceSetStatus.OK);
     }
 
-    /** 선택지 세트 > 요약 (shouldIncludeAnswer=false 면 정답 여부·해설 null) */
-    private QuestionDetail.ChoiceSetSummary toChoiceSetSummary(QuestionChoiceSet choiceSet, boolean shouldIncludeAnswer) {
+    /** 고정 출제 세트 여부: 문제 정책 CURATED_ONLY + 세트 출처 고정 (#511) */
+    public static boolean isCuratedChoiceSet(Question question, QuestionChoiceSet choiceSet) {
+        return question != null && question.getChoiceSetPolicy() == ChoiceSetPolicy.CURATED_ONLY
+                && choiceSet.getSource() != null && choiceSet.getSource().isCurated();
+    }
+
+    /** 선택지 세트 > 요약 (shouldIncludeAnswer=false 면 정답 여부·해설 null, shouldShuffle 이면 표시 순서 섞기) */
+    private QuestionDetail.ChoiceSetSummary toChoiceSetSummary(QuestionChoiceSet choiceSet, boolean shouldIncludeAnswer,
+                                                               boolean shouldShuffle) {
         List<QuestionDetail.ChoiceItem> items = choiceSetItemRepository
                 .findByChoiceSetUuidOrderBySortOrderAsc(choiceSet.getChoiceSetUuid())
                 .stream()
@@ -161,7 +168,7 @@ public class QuestionService {
                         item.getSortOrder()))
                 .toList();
         // 풀이용 고정 세트는 표시 순서 섞기 (관리자 화면은 저장 순서 유지)
-        if (!shouldIncludeAnswer && choiceSet.getSource() != null && choiceSet.getSource().isCurated()) {
+        if (shouldShuffle) {
             items = ChoiceOrderShuffler.shuffle(items, (item, sortOrder) -> new QuestionDetail.ChoiceItem(
                     item.key(), item.kind(), item.body(), item.isCorrect(), item.rationale(), sortOrder));
         }
@@ -212,7 +219,7 @@ public class QuestionService {
         List<ChoiceSetGenerateResponse.ChoiceItem> choiceItems = findChoiceItemsForSolving(choiceSetUuid);
         // 고정 세트는 응답마다 표시 순서 섞기 (#511)
         boolean isCuratedSet = choiceSetRepository.findById(choiceSetUuid)
-                .map(choiceSet -> choiceSet.getSource() != null && choiceSet.getSource().isCurated())
+                .map(choiceSet -> isCuratedChoiceSet(getQuestionEntityOrNull(choiceSet.getQuestionUuid()), choiceSet))
                 .orElse(false);
         if (isCuratedSet) {
             choiceItems = ChoiceOrderShuffler.shuffle(choiceItems, (item, sortOrder) -> new ChoiceSetGenerateResponse.ChoiceItem(

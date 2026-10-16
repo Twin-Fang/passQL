@@ -37,7 +37,8 @@ public class QuestionImportItemValidator {
 
         // 고정 보기 검증 (CURATED_ONLY 필수, #511)
         ChoiceSetPolicy policy = RequestEnumParser.parseOrNull(ChoiceSetPolicy.class, item.choiceSetPolicy());
-        String choiceRejectReason = CuratedChoiceValidator.findRejectReason(policy, item.choices());
+        ExecutionMode requestedMode = RequestEnumParser.parseOrNull(ExecutionMode.class, item.executionMode());
+        String choiceRejectReason = CuratedChoiceValidator.findRejectReason(policy, requestedMode, item.choices());
         if (choiceRejectReason != null) {
             return new ImportItemResult(index, stemPreview, item.topicCode(), item.difficulty(),
                     item.executionMode(), "FAIL", null, null, choiceRejectReason, importAction);

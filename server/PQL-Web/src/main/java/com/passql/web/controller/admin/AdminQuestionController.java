@@ -88,6 +88,10 @@ public class AdminQuestionController {
     ) {
         ChoiceSetPolicy policy = toChoiceSetPolicyOrAiOnly(choiceSetPolicy);
         ExecutionMode mode = ExecutionMode.fromRequestValue(executionMode);
+        // 고정 보기는 보기 입력이 있는 JSON 가져오기로만 등록 (보기 없이 만들면 AI 보기로 대체 출제, #511)
+        if (policy == ChoiceSetPolicy.CURATED_ONLY) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "CURATED_ONLY 문제는 JSON 가져오기로 보기와 함께 등록하세요.");
+        }
 
         // 1:1 치환 가능한 Oracle 문법을 PostgreSQL 호환으로 변환 (NVL→COALESCE, SYSDATE→NOW())
         String savedDdl       = oracleSqlCompatibilityConverter.translateOracleToPostgres(schemaDdl);

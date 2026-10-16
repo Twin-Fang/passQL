@@ -9,6 +9,7 @@ import com.passql.question.entity.QuestionChoiceSetItem;
 import com.passql.question.repository.QuestionChoiceSetItemRepository;
 import com.passql.question.repository.QuestionChoiceSetRepository;
 import com.passql.question.repository.QuestionRepository;
+import com.passql.question.service.QuestionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -32,6 +33,9 @@ public class ChoiceExplanationService {
     private final QuestionChoiceSetItemRepository choiceSetItemRepository;
     private final AiExplanationGenerator explanationGenerator;
 
+    // 고정 세트 해설 프롬프트 버전 표시값 (AI 생성 아님)
+    private static final int CURATED_EXPLANATION_PROMPT_VERSION = 0;
+
     /**
      * 선택지 해설 1건: 저장본(활성 프롬프트 버전) 있으면 그대로 > 없으면 생성·저장
      * 세트에 없는 선택지 키 > INVALID_INPUT_VALUE
@@ -43,6 +47,11 @@ public class ChoiceExplanationService {
                 .findFirst()
                 .orElseThrow(() -> new CustomException(ErrorCode.INVALID_INPUT_VALUE));
 
+        // 고정 세트는 검증 근거 해설 그대로 (AI 생성·덮어쓰기 없음, #511)
+        if (isCuratedChoiceSet(question, choiceSetUuid)) {
+            String storedExplanation = selectedItem.getExplanation() != null ? selectedItem.getExplanation() : selectedItem.getRationale();
+            return new AiResult(storedExplanation, CURATED_EXPLANATION_PROMPT_VERSION);
+        }
         Integer activePromptVersion = explanationGenerator.activeChoicePromptVersion();
         if (hasCurrentExplanation(selectedItem, activePromptVersion)) {
             return new AiResult(selectedItem.getExplanation(), selectedItem.getExplanationPromptVersion());
@@ -62,6 +71,7 @@ public class ChoiceExplanationService {
         if (choiceSet == null) return 0;
         Question question = questionRepository.findById(choiceSet.getQuestionUuid()).orElse(null);
         if (question == null) return 0;
+        if (QuestionService.isCuratedChoiceSet(question, choiceSet)) return 0;
 
         List<QuestionChoiceSetItem> items = choiceSetItemRepository.findByChoiceSetUuidOrderBySortOrderAsc(choiceSetUuid);
         Integer activePromptVersion = explanationGenerator.activeChoicePromptVersion();
@@ -96,6 +106,13 @@ public class ChoiceExplanationService {
             }
         }
         return createdCount;
+    }
+
+    /** 고정 출제 세트 여부 (세트 조회 실패 시 false) */
+    private boolean isCuratedChoiceSet(Question question, UUID choiceSetUuid) {
+        return choiceSetRepository.findById(choiceSetUuid)
+                .map(choiceSet -> QuestionService.isCuratedChoiceSet(question, choiceSet))
+                .orElse(false);
     }
 
     /** 저장된 해설이 있고 활성 프롬프트 버전으로 만든 것인지 */
