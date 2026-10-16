@@ -41,7 +41,7 @@
 # ===================================================================
 
 version: "1.1.0"
-version_code: 287 # app build number
+version_code: 288 # app build number
 project_types: ["spring","flutter","react","python"]   # array of types, first entry is primary, safe to edit by hand
 project_paths:                # project folder per type (relative to the repo root)
   spring: "server"   # server/build.gradle
