@@ -7,7 +7,7 @@ import { useAuthStore } from "../stores/authStore";
 import { submitAnswer } from "../api/questions";
 import QuestionDetail from "./QuestionDetail";
 import PracticeFeedbackBar from "../components/PracticeFeedbackBar";
-import ConfirmModal from "../components/ConfirmModal";
+import ExitPracticeConfirmModal from "../components/practice/ExitPracticeConfirmModal";
 import LoadingOverlay from "../components/LoadingOverlay";
 import type { ChoiceItem, SubmitResult } from "../types/api";
 
@@ -164,12 +164,8 @@ export default function DailyChallenge() {
       )}
 
       {/* 이탈 방지 확인 모달 */}
-      <ConfirmModal
+      <ExitPracticeConfirmModal
         isOpen={blocker.state === "blocked"}
-        title="풀이를 그만할까요?"
-        description="지금 나가면 현재 풀이 기록이 저장되지 않아요."
-        cancelLabel="계속 풀기"
-        confirmLabel="나가기"
         onCancel={() => blocker.reset?.()}
         onConfirm={() => blocker.proceed?.()}
       />
