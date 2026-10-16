@@ -1,5 +1,6 @@
 package com.passql.question.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import com.passql.question.constant.ChoiceKind;
 import com.passql.question.constant.ChoiceSetPolicy;
 import com.passql.question.constant.ChoiceSetSource;
@@ -12,28 +13,28 @@ import java.util.UUID;
 
 public record QuestionDetail(
     UUID questionUuid,
-    String topicName,
-    String subtopicName,
+    @Schema(nullable = true) String topicName,
+    @Schema(nullable = true) String subtopicName,
     Integer difficulty,
-    ExecutionMode executionMode,
+    @Schema(nullable = true) ExecutionMode executionMode,
     ChoiceSetPolicy choiceSetPolicy,
     String stem,
-    String schemaDisplay,
-    String schemaDdl,
-    String schemaSampleData,
-    String schemaIntent,
-    String answerSql,
-    String hint,
+    @Schema(nullable = true) String schemaDisplay,
+    @Schema(nullable = true) String schemaDdl,
+    @Schema(nullable = true) String schemaSampleData,
+    @Schema(nullable = true) String schemaIntent,
+    @Schema(nullable = true) String answerSql,
+    @Schema(nullable = true) String hint,
     List<ChoiceSetSummary> choiceSets
 ) {
     public record ChoiceSetSummary(
         UUID choiceSetUuid,
         ChoiceSetSource source,
         ChoiceSetStatus status,
-        Boolean sandboxValidationPassed,
+        @Schema(nullable = true) Boolean sandboxValidationPassed,
         LocalDateTime createdAt,
         List<ChoiceItem> items
     ) {}
 
-    public record ChoiceItem(String key, ChoiceKind kind, String body, Boolean isCorrect, String rationale, Integer sortOrder) {}
+    public record ChoiceItem(String key, ChoiceKind kind, String body, @Schema(nullable = true) Boolean isCorrect, @Schema(nullable = true) String rationale, @Schema(nullable = true) Integer sortOrder) {}
 }

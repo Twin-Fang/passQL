@@ -2,6 +2,7 @@ package com.passql.member.dto;
 
 import com.passql.member.constant.ChoiceGenerationMode;
 import com.passql.member.entity.Member;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -20,8 +21,10 @@ public class MemberMeResponse {
     private LocalDateTime createdAt;
     private LocalDateTime lastSeenAt;
     // 닉네임 쿨다운 계산 기준 — null이면 변경 이력 없음
+    @Schema(nullable = true)
     private LocalDateTime nicknameChangedAt;
     // 선택지 생성 모드 — PRACTICE(기본): 재사용, REAL: 항상 새로 생성
+    @Schema(nullable = true)
     private ChoiceGenerationMode choiceGenerationMode;
 
     public static MemberMeResponse from(Member m) {
