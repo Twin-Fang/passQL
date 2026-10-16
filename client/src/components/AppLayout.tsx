@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
+import PageLoadingFallback from "./PageLoadingFallback";
 import { Home, BarChart3, User, Sparkles } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import logo from "../assets/logo/logo.png";
@@ -98,7 +99,10 @@ export default function AppLayout() {
             </div>
             {/* 관리자 공지 (탭 전환에도 유지) (#464) */}
             <NoticeBanner />
-            <Outlet key={location.pathname} />
+            {/* 탭 페이지 청크 대기 시 헤더·탭바 유지, 본문만 대체 */}
+            <Suspense fallback={<PageLoadingFallback />}>
+              <Outlet key={location.pathname} />
+            </Suspense>
           </div>
         </main>
       </div>

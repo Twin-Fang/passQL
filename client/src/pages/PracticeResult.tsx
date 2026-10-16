@@ -14,38 +14,43 @@ import PracticeQuestionResultList from "../components/practiceResult/PracticeQue
 export default function PracticeResult() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
-  const store = usePracticeStore();
+  // 필드별 구독: 스토어의 다른 값 변경 시 결과 화면 전체 리렌더 방지
+  const storeSessionId = usePracticeStore((state) => state.sessionId);
+  const topicName = usePracticeStore((state) => state.topicName);
+  const results = usePracticeStore((state) => state.results);
+  const questions = usePracticeStore((state) => state.questions);
+  const returnStep = usePracticeStore((state) => state.returnStep);
+  const clearReturnStep = usePracticeStore((state) => state.clearReturnStep);
+  const resetPracticeStore = usePracticeStore((state) => state.reset);
 
   // 다시 풀기 후 복귀 시 step2로 바로 진입 (기존 step3 → 통합 후 step2)
   const initialStepRef = useRef(
-    store.returnStep != null ? Math.min(store.returnStep, 1) : 0,
+    returnStep != null ? Math.min(returnStep, 1) : 0,
   );
   const initialStep = initialStepRef.current;
 
   useEffect(() => {
-    store.clearReturnStep();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    clearReturnStep();
+  }, [clearReturnStep]);
 
   const aiComment = usePracticeAiComment(sessionId);
   const { visibleStats, visibleCards, isResultListVisible, revealStatsSequentially } =
-    usePracticeResultReveal(aiComment, store.results);
+    usePracticeResultReveal(aiComment, results);
 
   const analysis = useMemo(() => {
-    const results = store.results;
     const correctCount = results.filter((r) => r.isCorrect).length;
     const totalCount = results.length;
     const totalDurationMs = results.reduce((sum, r) => sum + r.durationMs, 0);
     return { correctCount, totalCount, totalDurationMs };
-  }, [store.results]);
+  }, [results]);
 
-  if (!store.sessionId || store.sessionId !== sessionId) {
+  if (!storeSessionId || storeSessionId !== sessionId) {
     return <Navigate to="/questions" replace />;
   }
 
   const step1 = (
     <PracticeScoreSummary
-      topicName={store.topicName}
+      topicName={topicName}
       correctCount={analysis.correctCount}
       totalCount={analysis.totalCount}
       totalDurationMilliseconds={analysis.totalDurationMs}
@@ -71,8 +76,8 @@ export default function PracticeResult() {
       >
         {isResultListVisible && (
           <PracticeQuestionResultList
-            results={store.results}
-            questions={store.questions}
+            results={results}
+            questions={questions}
             sessionId={sessionId}
             visibleCards={visibleCards}
           />
@@ -89,7 +94,7 @@ export default function PracticeResult() {
         initialStep={initialStep}
         lastButtonLabel="태그 목록으로"
         onLastStep={() => {
-          store.reset();
+          resetPracticeStore();
           navigate("/questions", { replace: true });
         }}
       />

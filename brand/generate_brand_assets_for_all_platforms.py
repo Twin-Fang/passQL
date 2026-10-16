@@ -44,6 +44,9 @@ OPEN_GRAPH_SIZE_PIXELS = (1200, 630)
 OPEN_GRAPH_LOGO_WIDTH_RATIO = 0.6
 
 WEB_FAVICON_SIZE_PIXELS = 64
+
+# 웹 로고 높이: 최대 표시 높이 40px(h-10) x 3배(고밀도 화면), 원본 1336px 폭 그대로 내려보내지 않음 (#497)
+WEB_LOGO_HEIGHT_PIXELS = 120
 SERVER_FAVICON_SIZES_PIXELS = [(16, 16), (32, 32), (48, 48)]
 
 # 픽셀 비교 허용 오차 (Pillow 버전 간 리샘플링 반올림 차이)
@@ -96,6 +99,12 @@ def resize_to_width(image: Image.Image, target_width_pixels: int) -> Image.Image
     return image.resize((target_width_pixels, target_height_pixels), Image.Resampling.LANCZOS)
 
 
+def resize_to_height(image: Image.Image, target_height_pixels: int) -> Image.Image:
+    """비율 유지 축소 (폭 반올림, LANCZOS)"""
+    target_width_pixels = round(image.width * target_height_pixels / image.height)
+    return image.resize((target_width_pixels, target_height_pixels), Image.Resampling.LANCZOS)
+
+
 def build_open_graph_image() -> Image.Image:
     """밝은 배경 1200x630 가운데 가로 로고"""
     background_color = load_brand_colors()["openGraphBackground"]
@@ -133,9 +142,11 @@ def build_ios_launch_image_contents_json() -> str:
 def list_brand_asset_copies() -> list[BrandAssetCopy]:
     """원본 > 사본 전체 목록 (이 목록이 곧 사본 위치 문서)"""
     copies = [
-        # 원본 그대로 복사 (앱 로고·아이콘, 웹 로고, 관리자 로고)
+        # 원본 그대로 복사 (앱 로고·아이콘, 관리자 로고)
         BrandAssetCopy("app/assets/logo.png", copied_from=SOURCE_LOGO_HORIZONTAL),
-        BrandAssetCopy("client/src/assets/logo/logo.png", copied_from=SOURCE_LOGO_HORIZONTAL),
+        # 웹 로고: 번들 크기 절감용 축소본
+        BrandAssetCopy("client/src/assets/logo/logo.png",
+                       build_image=lambda: resize_to_height(load_logo_horizontal(), WEB_LOGO_HEIGHT_PIXELS)),
         BrandAssetCopy("server/PQL-Web/src/main/resources/static/images/logo.png", copied_from=SOURCE_LOGO_HORIZONTAL),
         BrandAssetCopy("app/assets/app_icon_1024.png", copied_from=SOURCE_APP_ICON),
         BrandAssetCopy("app/assets/app_icon_foreground.png", copied_from=SOURCE_APP_ICON_ADAPTIVE_FOREGROUND),

@@ -1,14 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchProgress } from "../api/progress";
-import { useAuthStore } from "../stores/authStore";
+import { useMemberQueryScope } from "./useMemberQueryScope";
 
 export function useProgress() {
-  const accessToken = useAuthStore((s) => s.accessToken);
+  const { memberUuid, isMemberQueryEnabled } = useMemberQueryScope();
+  // staleTime 전역 기본값 사용: 제출 훅이 제출 직후 progress 무효화 (#497)
   return useQuery({
-    queryKey: ["progress", accessToken],
+    queryKey: ["progress", memberUuid],
     queryFn: fetchProgress,
-    enabled: !!accessToken,
-    staleTime: 0,
+    enabled: isMemberQueryEnabled,
     retry: false,
   });
 }

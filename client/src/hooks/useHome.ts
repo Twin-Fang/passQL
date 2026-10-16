@@ -5,43 +5,43 @@ import { fetchTodayQuestion, fetchRecommendations } from "../api/questions";
 import { fetchSelectedSchedule } from "../api/examSchedules";
 import { fetchHeatmap } from "../api/progress";
 import { fetchDailySet, fetchLeaderboard } from "../api/dailySet";
-import { useAuthStore } from "../stores/authStore";
+import { useMemberQueryScope } from "./useMemberQueryScope";
 import type { DailySetTodayResponse, LeaderboardResponse } from "../types/api";
 
 export function useGreeting() {
-  const accessToken = useAuthStore((s) => s.accessToken);
+  const { memberUuid, isMemberQueryEnabled } = useMemberQueryScope();
   return useQuery({
-    queryKey: ["greeting", accessToken],
+    queryKey: ["greeting", memberUuid],
     queryFn: fetchGreeting,
-    enabled: !!accessToken,
+    enabled: isMemberQueryEnabled,
     staleTime: 1000 * 60 * 5,
     retry: false,
   });
 }
 
 export function useTodayQuestion() {
-  const accessToken = useAuthStore((s) => s.accessToken);
+  const { memberUuid, isMemberQueryEnabled } = useMemberQueryScope();
   return useQuery({
-    queryKey: ["todayQuestion", accessToken],
+    queryKey: ["todayQuestion", memberUuid],
     queryFn: fetchTodayQuestion,
-    enabled: !!accessToken,
+    enabled: isMemberQueryEnabled,
     staleTime: 1000 * 60 * 5,
     retry: false,
   });
 }
 
-const RECOMMENDATIONS_KEY = (accessToken: string | null) =>
-  ["recommendations", accessToken] as const;
+const RECOMMENDATIONS_KEY = (memberUuid: string | null) =>
+  ["recommendations", memberUuid] as const;
 
 export function useRecommendations() {
-  const accessToken = useAuthStore((s) => s.accessToken);
+  const { memberUuid, isMemberQueryEnabled } = useMemberQueryScope();
   // excludeUuids를 queryKey에 포함하면 seenUuids 변경마다 캐시 키가 달라져 무한 재요청 발생
   // → queryKey는 고정, excludeUuids는 useRefreshRecommendations에서 명시적 갱신 시에만 전달
   return useQuery({
-    queryKey: RECOMMENDATIONS_KEY(accessToken),
+    queryKey: RECOMMENDATIONS_KEY(memberUuid),
     queryFn: () => fetchRecommendations(3, []),
     // 미인증 상태에서 호출 방지 — null 키 캐시 엔트리 생성 방지
-    enabled: !!accessToken,
+    enabled: isMemberQueryEnabled,
     staleTime: Infinity,
     retry: false,
   });
@@ -52,13 +52,13 @@ export function useRecommendations() {
  * useRecommendations의 queryKey는 고정이므로 setQueryData로 덮어쓴다
  */
 export function useRefreshRecommendations() {
-  const accessToken = useAuthStore((s) => s.accessToken);
+  const { memberUuid } = useMemberQueryScope();
   const queryClient = useQueryClient();
-  // accessToken·queryClient 변경 시에만 새 함수 참조 생성 — Home의 handleRefresh useCallback 안정화
+  // memberUuid·queryClient 변경 시에만 새 함수 참조 생성 — Home의 handleRefresh useCallback 안정화
   return useCallback(async (excludeUuids: string[]) => {
     const data = await fetchRecommendations(3, excludeUuids);
-    queryClient.setQueryData(RECOMMENDATIONS_KEY(accessToken), data);
-  }, [accessToken, queryClient]);
+    queryClient.setQueryData(RECOMMENDATIONS_KEY(memberUuid), data);
+  }, [memberUuid, queryClient]);
 }
 
 export function useSelectedSchedule() {
@@ -79,38 +79,38 @@ function toLocalDateStr(date: Date): string {
 }
 
 export function useHeatmap() {
-  const accessToken = useAuthStore((s) => s.accessToken);
+  const { memberUuid, isMemberQueryEnabled } = useMemberQueryScope();
   const now = new Date();
   const today = toLocalDateStr(now);
   const fromDate = new Date(now);
   fromDate.setDate(fromDate.getDate() - 29);
   const from = toLocalDateStr(fromDate);
   return useQuery({
-    queryKey: ["heatmap", accessToken, from, today],
+    queryKey: ["heatmap", memberUuid, from, today],
     queryFn: () => fetchHeatmap(from, today),
-    enabled: !!accessToken,
+    enabled: isMemberQueryEnabled,
     staleTime: 1000 * 60 * 5,
     retry: false,
   });
 }
 
 export function useDailySet() {
-  const accessToken = useAuthStore((s) => s.accessToken);
+  const { memberUuid, isMemberQueryEnabled } = useMemberQueryScope();
   return useQuery<DailySetTodayResponse>({
-    queryKey: ["dailySet", accessToken],
+    queryKey: ["dailySet", memberUuid],
     queryFn: fetchDailySet,
-    enabled: !!accessToken,
+    enabled: isMemberQueryEnabled,
     staleTime: 1000 * 60 * 5,
     retry: false,
   });
 }
 
 export function useLeaderboard() {
-  const accessToken = useAuthStore((s) => s.accessToken);
+  const { memberUuid, isMemberQueryEnabled } = useMemberQueryScope();
   return useQuery<LeaderboardResponse>({
-    queryKey: ["leaderboard", accessToken],
+    queryKey: ["leaderboard", memberUuid],
     queryFn: fetchLeaderboard,
-    enabled: !!accessToken,
+    enabled: isMemberQueryEnabled,
     staleTime: 1000 * 60,
     retry: false,
   });

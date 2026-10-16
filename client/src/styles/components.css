@@ -421,6 +421,13 @@ body {
   animation: slide-up 0.25s ease-out;
 }
 
+/* 바텀시트 진입: 모바일(md 미만)만 slide-up, 데스크톱 가운데 모달은 그대로 (#497) */
+@media (width < 48rem) {
+  .animate-sheet-slide-up-mobile {
+    animation: slide-up 0.25s ease-out;
+  }
+}
+
 /* ── AnswerFeedback 결과 화면 애니메이션 ── */
 
 /* 상단 컬러 바: 좌→우 scaleX 슬라이드인 */
@@ -923,4 +930,39 @@ body {
   border: 1px solid color-mix(in srgb, var(--color-on-brand) 25%, transparent);
   /* 파란 카드 위에서 텍스트 가독성 확보 */
   background-color: color-mix(in srgb, var(--color-on-brand) 15%, transparent);
+}
+
+/* ── 동작 줄이기 설정 존중 (#497) ── */
+/* 커스텀 keyframe 애니메이션 해제 + 시작 상태가 숨김(opacity 0)인 단어 span 은 바로 표시 */
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-up,
+  .animate-sheet-slide-up-mobile,
+  .feedback-bar-anim,
+  .feedback-header-anim,
+  .feedback-card-anim-1,
+  .feedback-card-anim-2,
+  .feedback-card-anim-3,
+  .feedback-card-anim-4,
+  .animate-stagger,
+  .animate-refresh-once,
+  .animate-card-in,
+  .animate-ai-header,
+  .animate-sparkle-pop,
+  .animate-pulse-fast,
+  .animate-popover-in {
+    animation: none;
+  }
+
+  .ai-word,
+  .ai-word-visible,
+  .md-word {
+    animation: none;
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+
+  .step-slider {
+    transition: none;
+  }
 }

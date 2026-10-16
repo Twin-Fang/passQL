@@ -50,11 +50,11 @@ export default function RecommendationPractice() {
       setSubmitting(true);
       try {
         const result = await submitAnswer(questionUuid, choiceSetId, selectedChoiceKey, sessionUuid);
-        // 추천 문제·학습 현황 즉시 재조회 — 홈 복귀 시 새 목록·heatmap 반영
+        // 추천 문제·학습 현황 무효화 (복귀 시 재요청) — 홈 복귀 시 새 목록·heatmap 반영
         // excludeUuids=[]로 새 랜덤 세트를 받음 — 문제를 푼 직후이므로 의도된 동작
-        queryClient.refetchQueries({ queryKey: ["recommendations"] });
-        queryClient.refetchQueries({ queryKey: ["heatmap"] });
-        queryClient.refetchQueries({ queryKey: ["progress"] });
+        queryClient.invalidateQueries({ queryKey: ["recommendations"] });
+        queryClient.invalidateQueries({ queryKey: ["heatmap"] });
+        queryClient.invalidateQueries({ queryKey: ["progress"] });
         setFeedback(result);
       } catch {
         navigate("/", { replace: true });

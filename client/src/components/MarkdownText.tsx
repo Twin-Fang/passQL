@@ -1,4 +1,4 @@
-import { createContext, isValidElement, useContext, useRef } from "react";
+import { createContext, isValidElement, memo, useContext, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 
 // 전역 단어 인덱스 카운터 — Context로 커스텀 컴포넌트 간 공유
@@ -127,7 +127,7 @@ interface MarkdownTextProps {
   readonly className?: string;
 }
 
-export default function MarkdownText({
+function MarkdownText({
   text,
   animated = false,
   className,
@@ -150,3 +150,6 @@ export default function MarkdownText({
     content
   );
 }
+
+// 부모 리렌더(타이머·단계 상태)마다 마크다운 재파싱 방지: text·animated·className 같으면 재사용
+export default memo(MarkdownText);

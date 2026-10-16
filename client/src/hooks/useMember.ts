@@ -1,23 +1,29 @@
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchMe, regenerateNickname, checkNickname, changeNickname, updateChoiceGenerationMode } from "../api/members";
 import { useAuthStore } from "../stores/authStore";
+import { useMemberQueryScope } from "./useMemberQueryScope";
 import type { NicknameCheckResponse, NicknameChangeResponse, ChoiceGenerationMode } from "../types/api";
 
 export function useMember() {
-  const accessToken = useAuthStore((s) => s.accessToken);
+  const { memberUuid, isMemberQueryEnabled } = useMemberQueryScope();
   const setNickname = useAuthStore((s) => s.setNickname);
 
   const query = useQuery({
-    queryKey: ["member", accessToken],
+    queryKey: ["member", memberUuid],
     queryFn: fetchMe,
-    enabled: !!accessToken,
+    enabled: isMemberQueryEnabled,
     staleTime: 1000 * 60 * 10,
     retry: false,
   });
 
-  if (query.data?.nickname && query.data.nickname !== useAuthStore.getState().nickname) {
-    setNickname(query.data.nickname);
-  }
+  // 서버 닉네임 > 스토어 동기화 (렌더 중 setState 금지라 effect 에서)
+  const fetchedNickname = query.data?.nickname;
+  useEffect(() => {
+    if (fetchedNickname && fetchedNickname !== useAuthStore.getState().nickname) {
+      setNickname(fetchedNickname);
+    }
+  }, [fetchedNickname, setNickname]);
 
   return query;
 }

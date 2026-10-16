@@ -10,23 +10,21 @@ export function useAiErrorExplanation(choices: readonly ChoiceItem[], questionUu
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [explanationText, setExplanationText] = useState("");
 
-  const explainMutation = useMutation({
-    mutationFn: explainError,
-    onSuccess: (result) => setExplanationText(result.text),
-  });
+  const explainMutation = useMutation({ mutationFn: explainError });
+  const requestExplanation = explainMutation.mutate;
 
   const askAiAboutError = useCallback(
     (choiceKey: string, _errorCode: string, errorMessage: string) => {
       setIsSheetOpen(true);
       setExplanationText("");
       const choice = choices.find((c) => c.key === choiceKey);
-      explainMutation.mutate({
-        questionUuid,
-        sql: choice?.body ?? "",
-        errorMessage,
-      });
+      // 호출 단위 onSuccess: 마지막 요청 응답만 반영 (앞선 요청의 늦은 응답 무시)
+      requestExplanation(
+        { questionUuid, sql: choice?.body ?? "", errorMessage },
+        { onSuccess: (result) => setExplanationText(result.text) },
+      );
     },
-    [choices, questionUuid, explainMutation],
+    [choices, questionUuid, requestExplanation],
   );
 
   return {
