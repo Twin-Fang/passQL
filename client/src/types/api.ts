@@ -34,6 +34,8 @@ export interface SubmitResult {
   readonly correctSql: string | null;
   // 신고 기능에 사용 — 백엔드 미지원 시 undefined
   readonly submissionUuid?: string;
+  // 고른 선택지의 미리 생성된 AI 해설 (없으면 null, 있으면 짧은 근거 대신 보여 줌) (#496)
+  readonly explanation?: string | null;
 }
 
 // === SSE (선택지 생성) ===

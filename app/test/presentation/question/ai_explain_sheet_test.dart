@@ -44,6 +44,7 @@ Future<void> _open(
   _FakeAiApi api, {
   required bool isErrorExplain,
   Map<String, dynamic>? payload,
+  String? initialExplanation,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -58,6 +59,7 @@ Future<void> _open(
                     payload ??
                     const {'questionUuid': 'q-1', 'selectedChoiceKey': 'D'},
                 isErrorExplain: isErrorExplain,
+                initialExplanation: initialExplanation,
               ),
               child: const Text('열기'),
             ),
@@ -126,5 +128,22 @@ void main() {
 
     expect(find.text('AI 해설을 불러올 수 없어요'), findsOneWidget);
     expect(find.text('AI가 해설을 쓰고 있어요'), findsNothing);
+  });
+
+  testWidgets('미리 생성된 해설이 있으면 서버를 부르지 않고 바로 보여 준다 (#496)', (tester) async {
+    final semanticsHandle = tester.ensureSemantics();
+    final api = _FakeAiApi(reply: Completer<AiResult>());
+    await _open(
+      tester,
+      api,
+      isErrorExplain: false,
+      initialExplanation: 'GROUP BY 없이 HAVING 을 썼어요.',
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('AI가 해설을 쓰고 있어요'), findsNothing);
+    expect(find.bySemanticsLabel(RegExp('GROUP BY 없이 HAVING 을 썼어요.')), findsOneWidget);
+    expect(api.calls, isEmpty);
+    semanticsHandle.dispose();
   });
 }

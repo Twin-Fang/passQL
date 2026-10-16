@@ -49,4 +49,21 @@ public interface QuestionChoiceSetRepository extends JpaRepository<QuestionChoic
     @Modifying
     @Transactional
     void deleteByQuestionUuid(UUID questionUuid);
+
+    /**
+     * 해설 백필 대상 세트 (#496): OK + (샌드박스 검증 통과 또는 개념 문제) + 해설 없는 선택지 보유, 최신 순
+     * 샌드박스 미검증(AI 판단 fallback) 세트는 틀린 해설이 퍼질 수 있어 제외
+     */
+    @Query("""
+            select s.choiceSetUuid from QuestionChoiceSet s
+            where s.status = com.passql.question.constant.ChoiceSetStatus.OK
+              and (s.sandboxValidationPassed = true
+                   or exists (select q.questionUuid from Question q
+                              where q.questionUuid = s.questionUuid
+                                and q.executionMode = com.passql.question.constant.ExecutionMode.CONCEPT_ONLY))
+              and exists (select i.choiceSetItemUuid from QuestionChoiceSetItem i
+                          where i.choiceSetUuid = s.choiceSetUuid and i.explanation is null)
+            order by s.createdAt desc
+            """)
+    List<UUID> findChoiceSetUuidsMissingExplanation(org.springframework.data.domain.Pageable pageable);
 }

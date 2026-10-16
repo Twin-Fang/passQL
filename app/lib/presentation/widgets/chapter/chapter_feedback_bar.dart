@@ -82,6 +82,7 @@ class _ChapterFeedbackBarState extends State<ChapterFeedbackBar> {
                   'selectedChoiceKey': widget.selectedChoiceKey,
                 },
                 isErrorExplain: false,
+                initialExplanation: _result.explanation,
               ),
             ),
           // 신고는 어떤 제출인지 알아야 하므로 제출 UUID 가 있을 때만 보여준다.

@@ -114,11 +114,10 @@ class ResultPage extends ConsumerWidget {
             variant: PassqlButtonVariant.tinted,
             onPressed: () => AiExplainSheet.show(
               context,
-              payload: {
-                'questionUuid': questionUuid,
-                'selectedChoiceKey': result.correctKey ?? '',
-              },
+              // 고른 키는 서버가 마지막 제출에서 찾는다 (정답 키를 보내던 오류 수정, #496)
+              payload: {'questionUuid': questionUuid},
               isErrorExplain: false,
+              initialExplanation: result.explanation,
             ),
           ),
         // 기존 동작(닫기 = 홈 이동)을 그대로 유지한다.

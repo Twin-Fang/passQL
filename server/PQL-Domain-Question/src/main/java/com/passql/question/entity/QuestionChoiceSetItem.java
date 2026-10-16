@@ -62,6 +62,13 @@ public class QuestionChoiceSetItem extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String rationale;
 
+    // 이 선택지를 골랐을 때의 AI 해설 (세트 저장 직후 미리 생성, 없으면 첫 요청 때 생성) (#496)
+    @Column(columnDefinition = "TEXT")
+    private String explanation;
+
+    // 해설을 만든 diff_explain 프롬프트 버전 (활성 버전과 다르면 다시 생성)
+    private Integer explanationPromptVersion;
+
     @JdbcTypeCode(SqlTypes.JSON)  // Hibernate 6 + PostgreSQL jsonb 컬럼 호환
     @Column(columnDefinition = "JSONB")
     private String sandboxExecutionJson;

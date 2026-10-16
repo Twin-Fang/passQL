@@ -31,6 +31,7 @@ export default function AnswerFeedback() {
   const {
     isCorrect,
     rationale,
+    explanation,
     selectedSql,
     correctSql,
     executionMode,
@@ -78,7 +79,7 @@ export default function AnswerFeedback() {
         {!isExecutable ? (
           <ConceptAnswerCards isCorrect={isCorrect} selectedBody={selectedBody} correctBody={correctBody} />
         ) : null}
-        <RationaleCard rationale={rationale} />
+        <RationaleCard rationale={explanation || rationale} isAiExplanation={Boolean(explanation)} />
         {isExecutable && execution.sqlChoices.length > 0 ? (
           <SqlComparisonSection
             sqlChoices={execution.sqlChoices}
