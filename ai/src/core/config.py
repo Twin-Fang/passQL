@@ -29,8 +29,10 @@ class Settings(BaseSettings):
     # AI 서버 인증
     AI_SERVER_API_KEY: str = ""
 
-    # Google Gemini 설정 (API Key는 환경변수 전용)
+    # Google Gemini 설정 (평소 키는 DB app_setting 암호문, 이 값은 비상 대체용)
     GEMINI_API_KEY: str = ""
+    # 설정 비밀값 복호화 마스터 키 (base64 32바이트, Spring passql.setting-encryption-key 와 같은 값)
+    SETTING_ENCRYPTION_KEY: str = ""
 
     # Redis 설정 (Spring과 공유 - 모델명 등 수정 가능한 설정값)
     REDIS_HOST: str = "localhost"
