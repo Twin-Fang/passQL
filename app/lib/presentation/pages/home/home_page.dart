@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../data/models/notification/notification_models.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
-import '../../providers/app_config_providers.dart';
 import '../../providers/home_providers.dart';
+import '../../providers/notification_inbox_providers.dart';
+import '../../providers/unread_notification_providers.dart';
 import '../../widgets/home/app_notice_banner.dart';
 import '../../widgets/home/daily_set_card.dart';
 import '../../widgets/home/exam_schedule_card.dart';
@@ -46,6 +48,10 @@ class HomePage extends ConsumerWidget {
               ? null
               : _GreetingTitle(GreetingSection.resolveMessage(data.greeting!)),
           onRefresh: () async {
+            // 공지 배너(안 읽은 중요 공지)도 함께 갱신
+            ref.invalidate(
+              notificationInboxProvider(NotificationCategory.notice),
+            );
             ref.invalidate(homeDataProvider);
             await ref.read(homeDataProvider.future);
           },
@@ -56,8 +62,8 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-/// large title 바 + 좌우 inset 을 공통으로 쓰는 틀.
-class _HomeShell extends StatelessWidget {
+/// large title 바 + 좌우 inset 을 공통으로 쓰는 틀 (오른쪽 위 종 아이콘 포함).
+class _HomeShell extends ConsumerWidget {
   final Widget? largeTitle;
   final Future<void> Function()? onRefresh;
   final List<Widget> slivers;
@@ -65,11 +71,17 @@ class _HomeShell extends StatelessWidget {
   const _HomeShell({this.largeTitle, this.onRefresh, required this.slivers});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return PassqlLargeTitleScrollView(
       title: '홈',
       largeTitle: largeTitle,
       onRefresh: onRefresh,
+      trailing: PassqlNotificationBellButton(
+        unreadCount: ref.watch(
+          unreadNotificationCountProvider.select((count) => count.total),
+        ),
+        onPressed: () => context.push(AppRoutes.notificationInbox),
+      ),
       slivers: slivers,
     );
   }
@@ -102,13 +114,13 @@ class _HomeContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notice = ref.watch(homeNoticeProvider).valueOrNull;
+    final notice = ref.watch(homeNoticeProvider);
     final children = <Widget>[
-      // 관리자 공지 (닫지 않은 첫 공지, #464)
+      // 관리자 공지 (안 읽은 중요 공지 첫 건, 닫기 = 서버 읽음)
       if (notice != null)
         AppNoticeBanner(
           notice: notice,
-          onDismiss: () => ref.read(homeNoticeProvider.notifier).dismiss(notice.noticeUuid),
+          onDismiss: () => dismissHomeNotice(ref, notice.noticeUuid),
         ),
 
       // 인사 둘째 줄 본문 + 시험 상황 배지 (있을 때만)

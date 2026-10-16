@@ -6,6 +6,7 @@ import '../../router/app_routes.dart';
 import '../design/design.dart';
 import 'app_gate/recommended_update_prompter.dart';
 import 'common/app_lifecycle_refresher.dart';
+import 'notification/notification_permission_prompter.dart';
 
 /// ShellRoute builder에서 사용하는 바텀 네비게이션 쉘.
 ///
@@ -53,7 +54,10 @@ class AppShell extends StatelessWidget {
       child: Scaffold(
         extendBody: true,
         // 탭 첫 진입 시 권장 업데이트 안내 1회 (#464)
-        body: RecommendedUpdatePrompter(child: child),
+        // 알림 권한 안내는 홈 첫 진입 후 1회 (앱 자체 시트 > 시스템 창)
+        body: NotificationPermissionPrompter(
+          child: RecommendedUpdatePrompter(child: child),
+        ),
         bottomNavigationBar: PassqlTabBar(
           items: _items,
           currentIndex: _currentIndex(context),

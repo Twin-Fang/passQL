@@ -40,6 +40,9 @@ abstract final class AppRoutes {
 
   static const String wrongNotes = '/settings/wrong-notes';
 
+  /// 알림함 (알림·공지 탭). 홈 종 아이콘에서 진입
+  static const String notificationInbox = '/notifications';
+
   // 데일리 세트
   /// 오늘의 세트 풀이.
   static const String dailySet = '/daily-set';

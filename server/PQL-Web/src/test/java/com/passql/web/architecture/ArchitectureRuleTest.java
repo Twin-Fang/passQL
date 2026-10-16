@@ -39,6 +39,11 @@ class ArchitectureRuleTest {
     // Repository 직접 의존 허용 클래스 (현재 없음, 추가 시 이유 주석 필수)
     private static final Set<String> REPOSITORY_ACCESS_ALLOW_LIST = Set.of();
 
+    // 알림 저장소(member_notification, member_notice_read) 직접 사용 허용 클래스: 알림 생성·조회 서비스 2개만 (#491)
+    private static final Set<String> NOTIFICATION_REPOSITORY_ACCESS_ALLOW_LIST = Set.of(
+            "com.passql.application.notification.MemberNotificationService",
+            "com.passql.application.notification.MemberNotificationQueryService");
+
     // 서버 모듈 루트 (Gradle 테스트 작업 디렉터리 = PQL-Web)
     private static final Path SERVER_ROOT = Paths.get("..").toAbsolutePath().normalize();
 
@@ -70,6 +75,15 @@ class ArchitectureRuleTest {
                 .and().haveNameNotMatching(toAlternation(REPOSITORY_ACCESS_ALLOW_LIST))
                 .should().dependOnClassesThat().resideInAPackage("..repository..")
                 .because("컨트롤러·초기화·스케줄러는 Service 를 거쳐야 함 (server/CLAUDE.md Controller 역할 제한)")
+                .check(productionClasses);
+    }
+
+    @Test
+    void 알림_저장소는_알림_서비스_2개만_사용한다() {
+        noClasses().that().haveNameNotMatching(toAlternation(NOTIFICATION_REPOSITORY_ACCESS_ALLOW_LIST))
+                .should().dependOnClassesThat().haveFullyQualifiedName("com.passql.member.repository.MemberNotificationRepository")
+                .orShould().dependOnClassesThat().haveFullyQualifiedName("com.passql.member.repository.MemberNoticeReadRepository")
+                .because("알림 생성은 MemberNotificationService, 조회·읽음은 MemberNotificationQueryService 로만 (캐시 삭제·푸시 전달 누락 방지)")
                 .check(productionClasses);
     }
 

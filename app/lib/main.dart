@@ -8,8 +8,10 @@ import 'core/auth/token_store.dart';
 import 'core/monitoring/firebase_analytics_backend.dart';
 import 'core/monitoring/firebase_crash_reporter.dart';
 import 'core/network/dio_client.dart';
+import 'core/notification/app_icon_badge_updater.dart';
 import 'core/push/firebase_push_messaging_client.dart';
 import 'presentation/design/design.dart';
+import 'presentation/providers/app_icon_badge_sync.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/monitoring_member_sync.dart';
 import 'presentation/providers/push_notification_providers.dart';
@@ -29,6 +31,7 @@ Future<void> main() async {
   await startFirebaseCrashReporting();
   await startFirebaseAnalytics();
   await startFirebasePushMessaging();
+  startAppIconBadge();
 
   // 앱 렌더링 전 저장된 로그인 세션을 읽어, 첫 화면이 깜빡이지 않게 한다.
   // 재설치 직후라면 키체인에 남은 이전 로그인을 지운 뒤 세션을 읽는다.
@@ -54,6 +57,7 @@ Future<void> main() async {
   syncMonitoringMemberWithAuth(container);
   trackScreenViews(AppRouter.router);
   startPushNotificationSync(container, AppRouter.router);
+  startAppIconBadgeSync(container);
 
   // 앱 시작 설정 1회 조회 > 점검·강제 업데이트 차단 분기 (실패해도 진행, #464)
   await AppLaunchGateRouting.bindAndLoad(container);

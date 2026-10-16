@@ -20,6 +20,9 @@ abstract class PushMessagingClient {
   /// 시스템 권한 요청 (이미 정해졌으면 묻지 않고 현재 값)
   Future<PushPermissionStatus> requestPermission();
 
+  /// 기기 설정 앱의 알림 화면 열기 (열 수 없는 플랫폼·실패 > false)
+  Future<bool> openDeviceNotificationSettings();
+
   /// 이 기기 FCM 토큰 (발급 불가 > null: iOS APNs 미설정·시뮬레이터 등)
   Future<String?> fetchToken();
 
@@ -49,6 +52,9 @@ class NoopPushMessagingClient extends PushMessagingClient {
   @override
   Future<PushPermissionStatus> requestPermission() async =>
       PushPermissionStatus.notDetermined;
+
+  @override
+  Future<bool> openDeviceNotificationSettings() async => false;
 
   @override
   Future<String?> fetchToken() async => null;

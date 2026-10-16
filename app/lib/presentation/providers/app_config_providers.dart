@@ -118,8 +118,6 @@ final appLaunchDecisionProvider = FutureProvider<AppLaunchDecision>((
 
 // SharedPreferences: 권장 업데이트 안내를 닫은 권장 버전 (같은 버전이면 다시 안 띄움)
 const _dismissedRecommendedVersionKey = 'dismissed_recommended_version';
-// SharedPreferences: 닫은 공지 noticeUuid 목록
-const _dismissedNoticeUuidsKey = 'dismissed_notice_uuids';
 
 /// 권장 업데이트 안내를 띄울 권장 버전. 띄울 필요 없거나 이미 닫은 버전이면 null
 final recommendedUpdateVersionToPromptProvider = FutureProvider<String?>((
@@ -142,38 +140,4 @@ Future<void> saveRecommendedUpdatePrompted(String recommendedVersion) async {
     _dismissedRecommendedVersionKey,
     recommendedVersion,
   );
-}
-
-/// 홈에 띄울 공지 1건 (닫지 않은 것 중 서버 순서상 첫 번째, 없으면 null)
-final homeNoticeProvider =
-    AsyncNotifierProvider<HomeNoticeNotifier, AppNotice?>(
-      HomeNoticeNotifier.new,
-    );
-
-class HomeNoticeNotifier extends AsyncNotifier<AppNotice?> {
-  @override
-  Future<AppNotice?> build() async {
-    final decision = await ref.watch(appLaunchDecisionProvider.future);
-    final dismissedNoticeUuids = await _readDismissedNoticeUuids();
-    return decision.notices
-        .where((notice) => !dismissedNoticeUuids.contains(notice.noticeUuid))
-        .firstOrNull;
-  }
-
-  /// 공지 닫기: 저장 > 다음 공지로 교체
-  Future<void> dismiss(String noticeUuid) async {
-    final preferences = await SharedPreferences.getInstance();
-    final dismissedNoticeUuids = await _readDismissedNoticeUuids();
-    await preferences.setStringList(
-      _dismissedNoticeUuidsKey,
-      {...dismissedNoticeUuids, noticeUuid}.toList(),
-    );
-    ref.invalidateSelf();
-  }
-
-  Future<Set<String>> _readDismissedNoticeUuids() async {
-    final preferences = await SharedPreferences.getInstance();
-    return (preferences.getStringList(_dismissedNoticeUuidsKey) ?? const [])
-        .toSet();
-  }
 }

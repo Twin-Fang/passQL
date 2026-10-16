@@ -27,6 +27,9 @@ public interface MemberRepository extends JpaRepository<Member, UUID>, JpaSpecif
     List<Member> findAllByStatusAndSuspendUntilBeforeAndIsDeletedFalse(
         MemberStatus status, LocalDateTime now);
 
+    /** 알림 전체 발송 대상 수 — 탈퇴 제외 (팬아웃 INSERT 조건과 같게 유지) */
+    long countByIsDeletedFalseAndStatusNot(MemberStatus status);
+
     /** 대시보드 집계용 — 테스트 계정 제외 전체 회원 수 */
     long countByIsTestAccountFalseAndIsDeletedFalse();
 

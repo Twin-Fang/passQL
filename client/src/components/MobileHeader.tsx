@@ -1,4 +1,5 @@
 import { Users } from "lucide-react";
+import NotificationBell from "./NotificationBell";
 import logo from "../assets/logo/logo.png";
 
 interface MobileHeaderProps {
@@ -11,14 +12,17 @@ export default function MobileHeader({ onTeamClick }: MobileHeaderProps) {
     <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 bg-surface-card border-b border-border h-14">
       <img src={logo} alt="passQL" className="h-6 w-auto" />
 
-      {/* 팀 아이콘 — 모달 오픈은 부모(AppLayout)가 담당 */}
-      <button
-        onClick={onTeamClick}
-        className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-light text-brand hover:bg-brand-medium/20 transition-colors"
-        aria-label="팀 정보 보기"
-      >
-        <Users size={16} />
-      </button>
+      <div className="flex items-center gap-2">
+        <NotificationBell />
+        {/* 팀 아이콘 — 모달 오픈은 부모(AppLayout)가 담당 */}
+        <button
+          onClick={onTeamClick}
+          className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-light text-brand hover:bg-brand-medium/20 transition-colors"
+          aria-label="팀 정보 보기"
+        >
+          <Users size={16} />
+        </button>
+      </div>
     </header>
   );
 }

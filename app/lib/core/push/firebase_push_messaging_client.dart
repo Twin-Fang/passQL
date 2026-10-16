@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
+import '../utils/external_url_launcher.dart';
 import 'push_link.dart';
 import 'push_messaging_client.dart';
 
@@ -29,6 +30,21 @@ class FirebasePushMessagingClient extends PushMessagingClient {
   Future<PushPermissionStatus> requestPermission() async => _toPermissionStatus(
     (await _messaging.requestPermission()).authorizationStatus,
   );
+
+  // iOS: 이 앱의 설정 화면(알림 항목 포함)을 여는 URL
+  static const String _iosAppSettingsUrl = 'app-settings:';
+
+  @override
+  Future<bool> openDeviceNotificationSettings() async {
+    // Android 는 설정 화면을 여는 표준 URL 이 없어 안내 문구로 대신함
+    if (!Platform.isIOS) return false;
+    try {
+      return await launchExternalUrl(_iosAppSettingsUrl);
+    } catch (error) {
+      debugPrint('[push] open settings failed : $error');
+      return false;
+    }
+  }
 
   @override
   Future<String?> fetchToken() async {

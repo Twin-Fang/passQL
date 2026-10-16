@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../notification/notification_permission_prompt_result.dart';
 import 'analytics_event_names.dart';
 
 /// 분석 수집 저수준 전송: 이벤트, 화면 조회, 회원 식별자
@@ -32,7 +33,7 @@ class NoopAnalyticsBackend extends AnalyticsBackend {
   Future<void> setMemberIdentifier(String? memberUuid) async {}
 }
 
-/// 앱 분석 공통 지점: 핵심 이벤트 8종·화면 조회·회원 식별자 기록
+/// 앱 분석 공통 지점: 핵심 이벤트 11종·화면 조회·회원 식별자 기록
 /// 이벤트 이름·파라미터는 [AnalyticsEventNames]·[AnalyticsParameterNames] 한 곳에서만 씀
 class AppAnalytics {
   const AppAnalytics(this._backend);
@@ -93,6 +94,25 @@ class AppAnalytics {
             ? _sqlErrorExplanationType
             : _wrongAnswerExplanationType,
       });
+
+  /// 알림함 열림. [tabName]: general, notice
+  Future<void> logNotificationInboxOpened(String tabName) => _backend.logEvent(
+    AnalyticsEventNames.notificationInboxOpened,
+    {AnalyticsParameterNames.inboxTab: tabName},
+  );
+
+  /// 알림함 항목 열림 (제목·본문은 보내지 않음)
+  Future<void> logNotificationItemOpened(String notificationType) =>
+      _backend.logEvent(AnalyticsEventNames.notificationItemOpened, {
+        AnalyticsParameterNames.notificationType: notificationType,
+      });
+
+  /// 알림 권한 안내 결과: accepted, later, denied
+  Future<void> logNotificationPermissionPrompt(
+    NotificationPermissionPromptResult promptResult,
+  ) => _backend.logEvent(AnalyticsEventNames.notificationPermissionPrompt, {
+    AnalyticsParameterNames.promptResult: promptResult.name,
+  });
 
   Future<void> logScreenView(String screenName) =>
       _backend.logScreenView(screenName);

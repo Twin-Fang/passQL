@@ -2,8 +2,9 @@ import 'package:flutter/cupertino.dart';
 
 import '../../../data/models/meta/app_config.dart';
 import '../../design/design.dart';
+import '../notification/notice_body_sheet.dart';
 
-/// 홈 공지 배너: 탭 > 본문 시트, 닫기 > 같은 공지 다시 안 띄움
+/// 홈 공지 배너: 탭 > 본문 시트, 닫기 > 읽음 처리(같은 공지 다시 안 띄움)
 class AppNoticeBanner extends StatelessWidget {
   const AppNoticeBanner({
     super.key,
@@ -14,32 +15,15 @@ class AppNoticeBanner extends StatelessWidget {
   final AppNotice notice;
   final VoidCallback onDismiss;
 
-  void _showNoticeSheet(BuildContext context) {
-    showPassqlSheet<void>(
-      context,
-      title: notice.title,
-      builder: (sheetContext) => SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          PassqlSpacing.md,
-          0,
-          PassqlSpacing.md,
-          PassqlSpacing.lg,
-        ),
-        child: Text(
-          notice.body,
-          style: PassqlTypography.legalBody.copyWith(
-            color: sheetContext.passqlColors.label,
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     return PassqlCard(
-      onTap: () => _showNoticeSheet(context),
+      onTap: () => showNoticeBodySheet(
+        context,
+        title: notice.title,
+        body: notice.body,
+      ),
       padding: const EdgeInsets.fromLTRB(
         PassqlSpacing.md,
         PassqlSpacing.xs,

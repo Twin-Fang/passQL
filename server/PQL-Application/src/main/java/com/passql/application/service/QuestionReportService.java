@@ -1,11 +1,15 @@
 package com.passql.application.service;
 
+import com.passql.application.notification.MemberNotificationService;
+import com.passql.application.notification.NotificationSettingService;
 import com.passql.common.audit.AdminAuditEvent;
 import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.common.util.MemberActivityLogger;
+import com.passql.member.constant.MemberNotificationType;
+import com.passql.member.constant.PushLinkTarget;
 import com.passql.question.constant.CorrectionScope;
 import com.passql.question.constant.ReportCategory;
 import com.passql.question.constant.ReportStatus;
@@ -56,6 +60,14 @@ public class QuestionReportService {
     private final QuestionRepository questionRepository;
     private final SubmissionRepository submissionRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final MemberNotificationService memberNotificationService;
+    private final NotificationSettingService notificationSettingService;
+
+    // 신고 처리 결과 알림 문구 (알림함 title 100자·body 500자 이내)
+    private static final String RESOLVED_NOTIFICATION_TITLE = "신고하신 문제를 처리했어요";
+    private static final String RESOLVED_NOTIFICATION_BODY = "제보해 주신 내용을 확인하고 처리를 마쳤어요. 소중한 의견 감사합니다.";
+    private static final String DISMISSED_NOTIFICATION_TITLE = "신고하신 내용을 검토했어요";
+    private static final String DISMISSED_NOTIFICATION_BODY = "검토 결과 문제를 그대로 유지하기로 했어요. 의견 주셔서 감사합니다.";
 
     /** 사용자 신고 제출 */
     @Transactional
@@ -161,6 +173,7 @@ public class QuestionReportService {
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.REPORT, reportUuid, AdminAuditAction.DISMISS,
                 AdminAuditEvent.summary("status", ReportStatus.PENDING),
                 AdminAuditEvent.summary("status", ReportStatus.DISMISSED, "questionUuid", report.getQuestionUuid())));
+        notifyReporterOfResult(report, false, false);
     }
 
     /** 관리자: 특정 문제 신고 건 목록 */
@@ -213,5 +226,23 @@ public class QuestionReportService {
         } else if (correctionScope == CorrectionScope.CHOICE_SET_ONLY) {
             submissionRepository.correctAllByChoiceSetUuid(report.getChoiceSetUuid());
         }
+
+        // 4. 신고한 회원에게 처리 결과 알림
+        notifyReporterOfResult(report, true, Boolean.TRUE.equals(deactivateQuestion));
+    }
+
+    /**
+     * 신고 처리 결과 알림 (설정 notification.report_resolved.enabled 꺼짐이면 생략)
+     * 처리 완료 > 문제 상세 이동 (비활성화한 문제는 홈), 기각 > 문제 상세 이동
+     */
+    private void notifyReporterOfResult(QuestionReport report, boolean isResolved, boolean isQuestionDeactivated) {
+        if (!notificationSettingService.isReportResolvedEnabled()) {
+            return;
+        }
+        PushLinkTarget linkTarget = isQuestionDeactivated ? PushLinkTarget.HOME : PushLinkTarget.QUESTION_DETAIL;
+        memberNotificationService.notifyMember(report.getMemberUuid(), MemberNotificationType.REPORT_RESOLVED,
+                isResolved ? RESOLVED_NOTIFICATION_TITLE : DISMISSED_NOTIFICATION_TITLE,
+                isResolved ? RESOLVED_NOTIFICATION_BODY : DISMISSED_NOTIFICATION_BODY,
+                linkTarget, isQuestionDeactivated ? null : report.getQuestionUuid());
     }
 }

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'daily_set_providers.dart';
 import 'home_providers.dart';
+import 'notification_inbox_providers.dart';
 import 'settings_providers.dart';
 import 'stats_providers.dart';
 
@@ -9,7 +10,9 @@ import 'stats_providers.dart';
 ///
 /// 홈, 통계, 설정, 순위처럼 회원별로 달라지는 캐시를 모두 비운다.
 /// 새 회원별 Provider 를 만들면 여기에 한 줄 추가한다.
-void resetUserScopedProviders(void Function(ProviderOrFamily provider) invalidate) {
+void resetUserScopedProviders(
+  void Function(ProviderOrFamily provider) invalidate,
+) {
   invalidate(homeDataProvider);
   invalidate(statsDataProvider);
   invalidate(settingsDataProvider);
@@ -17,4 +20,5 @@ void resetUserScopedProviders(void Function(ProviderOrFamily provider) invalidat
   invalidate(choiceModeProvider);
   invalidate(dailySetTodayProvider);
   invalidate(leaderboardProvider);
+  invalidate(notificationInboxProvider);
 }

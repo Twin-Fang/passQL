@@ -1,6 +1,7 @@
 package com.passql.web.config;
 
 import com.passql.ai.service.AiCallLogService;
+import com.passql.application.notification.NotificationDispatcher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -35,6 +36,19 @@ public class AsyncConfig {
         executor.setQueueCapacity(1000);
         executor.setThreadNamePrefix("ai-call-log-");
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
+        executor.initialize();
+        return executor;
+    }
+
+    /** 알림 팬아웃·푸시 전달 전용 (#491): 대기 100건 초과분은 거절 (후처리 로그로 확인) */
+    @Bean(NotificationDispatcher.EXECUTOR_NAME)
+    public Executor notificationTaskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(1);
+        executor.setMaxPoolSize(2);
+        executor.setQueueCapacity(100);
+        executor.setThreadNamePrefix("notification-");
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
         executor.initialize();
         return executor;
     }

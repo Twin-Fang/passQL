@@ -19,6 +19,8 @@ public interface MemberPushTokenRepository extends JpaRepository<MemberPushToken
 
     List<MemberPushToken> findAllByMemberUuidAndIsPushEnabledTrue(UUID memberUuid);
 
+    List<MemberPushToken> findAllByMemberUuid(UUID memberUuid);
+
     long countByIsPushEnabledTrue();
 
     @Modifying

@@ -411,3 +411,36 @@ export interface AppConfigResponse {
   // 서버가 노출 대상만 중요 먼저 > 최근 등록 순으로 내려줌
   readonly notices: readonly AppNotice[];
 }
+
+// ── 알림함 (#491) ──
+// 알림함 두 탭: 알림(GENERAL) / 공지(NOTICE)
+export type NotificationCategory = "GENERAL" | "NOTICE";
+export type NotificationType = "ADMIN_MESSAGE" | "REPORT_RESOLVED" | "DAILY_SET_REMINDER" | "NOTICE";
+// 서버 PushLinkTarget 와 같은 값 (앱 푸시 이동 허용 목록)
+export type NotificationLinkTarget = "HOME" | "DAILY_SET" | "QUESTIONS" | "QUESTION_DETAIL" | "STATS";
+
+export interface NotificationItem {
+  // NOTICE 는 공지 UUID
+  readonly id: string;
+  readonly category: NotificationCategory;
+  readonly type: NotificationType;
+  readonly title: string;
+  readonly body: string;
+  readonly linkTarget: NotificationLinkTarget | null;
+  readonly linkQuestionUuid: string | null;
+  readonly isRead: boolean;
+  readonly createdAt: string; // ISO 8601
+  readonly isImportant: boolean;
+}
+
+export interface NotificationPage {
+  readonly items: readonly NotificationItem[];
+  // null = 마지막 페이지
+  readonly nextCursor: string | null;
+}
+
+export interface UnreadNotificationCount {
+  readonly general: number;
+  readonly notice: number;
+  readonly total: number;
+}

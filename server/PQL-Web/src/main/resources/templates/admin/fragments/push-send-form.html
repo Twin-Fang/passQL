@@ -1,0 +1,93 @@
+<!doctype html>
+<!-- 알림 발송 탭: 발송 폼 + 발송 전 확인 모달 -->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<th:block th:fragment="send-form">
+
+    <div class="card bg-base-100 shadow mb-6">
+        <div class="card-body gap-4">
+            <h2 class="card-title text-base">새 알림 보내기</h2>
+
+            <label class="form-control w-full">
+                <div class="label"><span class="label-text">제목</span>
+                    <span class="label-text-alt"><span id="titleLength">0</span>/100</span></div>
+                <input id="pushTitle" type="text" maxlength="100" class="input input-bordered w-full"
+                       placeholder="예: 오늘의 세트가 준비됐어요"/>
+            </label>
+
+            <label class="form-control w-full">
+                <div class="label"><span class="label-text">본문</span>
+                    <span class="label-text-alt"><span id="bodyLength">0</span>/500</span></div>
+                <textarea id="pushBody" maxlength="500" rows="3" class="textarea textarea-bordered w-full"
+                          placeholder="예: 3문제로 실력을 확인해 보세요"></textarea>
+            </label>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- 대상: 전체 / 특정 회원 -->
+                <label class="form-control w-full">
+                    <div class="label"><span class="label-text">대상</span></div>
+                    <select id="pushAudience" class="select select-bordered w-full" onchange="syncConditionalFields()">
+                        <option th:each="a : ${audiences}" th:value="${a.name()}" th:text="${a.label}">전체</option>
+                    </select>
+                </label>
+                <label class="form-control w-full hidden" id="memberUuidField">
+                    <div class="label"><span class="label-text">회원 UUID</span></div>
+                    <input id="pushMemberUuid" type="text" class="input input-bordered w-full font-mono text-sm"
+                           placeholder="회원 상세의 UUID 전체"/>
+                </label>
+
+                <!-- 전달 방식 -->
+                <label class="form-control w-full">
+                    <div class="label"><span class="label-text">전달 방식</span></div>
+                    <select id="pushDeliveryMode" class="select select-bordered w-full" onchange="syncConditionalFields()">
+                        <option th:each="m : ${deliveryModes}" th:value="${m.name()}" th:text="${m.label}">푸시 + 알림함</option>
+                    </select>
+                </label>
+                <div class="form-control w-full justify-end">
+                    <p id="targetCountHint" class="text-sm text-base-content/70 pb-3"></p>
+                </div>
+
+                <!-- 앱 내 이동 경로 (허용 목록) -->
+                <label class="form-control w-full">
+                    <div class="label"><span class="label-text">탭하면 이동할 화면</span></div>
+                    <select id="pushLinkTarget" class="select select-bordered w-full" onchange="syncConditionalFields()">
+                        <option th:each="t : ${linkTargets}" th:value="${t.name()}" th:text="${t.label}"
+                                th:data-question-required="${t.isQuestionUuidRequired()}">홈</option>
+                    </select>
+                </label>
+                <label class="form-control w-full hidden" id="questionUuidField">
+                    <div class="label"><span class="label-text">문제 UUID</span></div>
+                    <input id="pushQuestionUuid" type="text" class="input input-bordered w-full font-mono text-sm"
+                           placeholder="문제 상세의 UUID 전체"/>
+                </label>
+            </div>
+
+            <div class="flex justify-end">
+                <button class="btn btn-primary gap-1" th:disabled="${!canWriteAdmin}" onclick="openConfirm()">
+                    <i data-lucide="send" class="size-4"></i>발송
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 발송 전 확인 모달 -->
+    <dialog id="confirmModal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg mb-4">이 알림을 보낼까요?</h3>
+            <div class="space-y-2 text-sm">
+                <div class="flex gap-2"><span class="text-base-content/60 w-20 shrink-0">대상</span><span id="confirmAudience"></span></div>
+                <div class="flex gap-2"><span class="text-base-content/60 w-20 shrink-0">전달 방식</span><span id="confirmDeliveryMode"></span></div>
+                <div class="flex gap-2"><span class="text-base-content/60 w-20 shrink-0">이동</span><span id="confirmLink"></span></div>
+                <div class="flex gap-2"><span class="text-base-content/60 w-20 shrink-0">제목</span><span id="confirmTitle" class="break-all"></span></div>
+                <div class="flex gap-2"><span class="text-base-content/60 w-20 shrink-0">본문</span><p id="confirmBody" class="whitespace-pre-wrap break-all"></p></div>
+            </div>
+            <p class="text-xs text-warning mt-4">이미 나간 푸시는 취소할 수 없습니다. 알림함 알림은 발송 이력에서 회수(숨김)할 수 있습니다.</p>
+            <div class="modal-action">
+                <form method="dialog"><button class="btn btn-sm">취소</button></form>
+                <button id="confirmSendButton" class="btn btn-sm btn-primary" onclick="sendPush()">보내기</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+</th:block>
+</html>

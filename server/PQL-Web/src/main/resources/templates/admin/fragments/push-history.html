@@ -1,0 +1,118 @@
+<!doctype html>
+<!-- 알림 발송 탭 2종: 발송 이력(받은·읽은 회원, 회수), 알림 설정(보관 기간, 자동 알림) -->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<th:block th:fragment="history-table">
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-0">
+            <div class="overflow-x-auto">
+                <table class="table table-sm table-fixed w-full">
+                    <thead>
+                    <tr>
+                        <th class="w-32">발송 시각</th>
+                        <th class="w-auto">제목 / 본문</th>
+                        <th class="w-28">대상 / 방식</th>
+                        <th class="w-36">알림함 (받은 / 읽은)</th>
+                        <th class="w-36">푸시 (기기 · 성공/실패/삭제)</th>
+                        <th class="w-24">관리자</th>
+                        <th class="w-20">회수</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="row : ${histories}" th:with="h=${row.history}" th:classappend="${h.isRetracted} ? 'opacity-50'">
+                        <td class="text-xs" th:text="${#temporals.format(h.sentAt, 'yyyy-MM-dd HH:mm')}">2026-10-15 10:00</td>
+                        <td>
+                            <div class="font-semibold truncate" th:text="${h.title}">제목</div>
+                            <div class="text-xs text-base-content/60 truncate" th:text="${h.body}">본문</div>
+                        </td>
+                        <td class="text-xs">
+                            <span th:text="${h.audience.label}">전체</span>
+                            <a th:if="${h.targetMemberUuid != null}"
+                               th:href="@{/admin/members/{uuid}(uuid=${h.targetMemberUuid})}"
+                               class="link link-hover font-mono block"
+                               th:text="${#strings.substring(h.targetMemberUuid.toString(), 0, 8)}">550e8400</a>
+                            <span class="block text-base-content/60" th:text="${h.deliveryMode.label}">푸시 + 알림함</span>
+                        </td>
+                        <td class="text-xs">
+                            <span th:text="${h.recipientCount}">0</span>명 /
+                            <span class="text-success" th:text="${row.readCount}">0</span>명
+                            <span class="block text-base-content/60" th:text="|읽음률 ${row.readRatePercent}%|">읽음률 0%</span>
+                        </td>
+                        <td class="text-xs">
+                            <span th:text="${h.targetDeviceCount}">0</span>대 ·
+                            <span class="text-success" th:text="${h.successCount}">0</span> /
+                            <span class="text-error" th:text="${h.failureCount}">0</span> /
+                            <span th:text="${h.removedTokenCount}">0</span>
+                        </td>
+                        <td class="text-xs truncate" th:text="${h.sentByAdmin}">admin</td>
+                        <td>
+                            <span th:if="${h.isRetracted}" class="badge badge-ghost badge-sm">회수됨</span>
+                            <button th:if="${!h.isRetracted and canWriteAdmin}" class="btn btn-xs btn-outline btn-error"
+                                    th:data-uuid="${h.pushSendHistoryUuid}"
+                                    th:data-title="${h.title}"
+                                    onclick="retractPush(this.dataset.uuid, this.dataset.title)">회수</button>
+                        </td>
+                    </tr>
+
+                    <!-- Empty state -->
+                    <tr th:if="${histories.isEmpty()}">
+                        <td colspan="7" class="text-center text-base-content/50 py-12">
+                            <i data-lucide="bell" class="size-10 mx-auto mb-2 opacity-40"></i>
+                            <p>발송 이력이 없습니다.</p>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <div class="flex justify-center p-4" th:if="${histories.totalPages > 1}">
+                <div class="join">
+                    <a th:href="@{/admin/push(page=${histories.number - 1})}"
+                       class="join-item btn btn-sm"
+                       th:classappend="${histories.first} ? 'btn-disabled'">«</a>
+                    <button class="join-item btn btn-sm btn-active"
+                            th:text="${histories.number + 1} + ' / ' + ${histories.totalPages}">1 / 10</button>
+                    <a th:href="@{/admin/push(page=${histories.number + 1})}"
+                       class="join-item btn btn-sm"
+                       th:classappend="${histories.last} ? 'btn-disabled'">»</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<th:block th:fragment="notification-settings">
+    <div class="card bg-base-100 shadow">
+        <div class="card-body gap-4">
+            <h2 class="card-title text-base">알림 설정</h2>
+
+            <label class="form-control w-full max-w-xs">
+                <div class="label"><span class="label-text">알림함 보관 기간 (일)</span>
+                    <span class="label-text-alt" th:text="|${retentionMinDays}~${retentionMaxDays}일|">7~365일</span></div>
+                <input id="retentionDays" type="number" class="input input-bordered w-full"
+                       th:min="${retentionMinDays}" th:max="${retentionMaxDays}" th:value="${settings.retentionDays}"/>
+            </label>
+            <p class="text-xs text-base-content/60">보관 기간이 지난 일반 알림은 매일 새벽 4시 20분에 삭제됩니다. 공지는 노출 기간을 따릅니다.</p>
+
+            <div class="divider my-0"></div>
+            <h3 class="font-semibold text-sm">자동 알림</h3>
+            <label class="label cursor-pointer justify-start gap-3">
+                <input id="isReportResolvedEnabled" type="checkbox" class="toggle toggle-primary"
+                       th:checked="${settings.isReportResolvedEnabled}"/>
+                <span class="label-text">신고 처리 결과 (처리 완료·기각 시 신고한 회원에게 알림)</span>
+            </label>
+            <label class="label cursor-pointer justify-start gap-3">
+                <input id="isDailySetReminderEnabled" type="checkbox" class="toggle toggle-primary"
+                       th:checked="${settings.isDailySetReminderEnabled}"/>
+                <span class="label-text">오늘의 세트 리마인드 (설정만 저장, 실제 발송은 후속 이슈)</span>
+            </label>
+
+            <div class="flex justify-end">
+                <button class="btn btn-primary btn-sm gap-1" th:disabled="${!canWriteAdmin}" onclick="saveNotificationSettings()">
+                    <i data-lucide="save" class="size-4"></i>저장
+                </button>
+            </div>
+        </div>
+    </div>
+</th:block>
+</html>
