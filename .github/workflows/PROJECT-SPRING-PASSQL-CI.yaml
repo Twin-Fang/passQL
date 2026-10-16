@@ -17,11 +17,13 @@ on:
       - main
     paths:
       - 'server/**'
+      - 'api-contract/**'
   pull_request:
     branches:
       - main
     paths:
       - 'server/**'
+      - 'api-contract/**'
   workflow_dispatch:
 
 env:
@@ -57,6 +59,11 @@ jobs:
       - name: Build with Gradle (빌드 검증만)
         working-directory: server
         run: ./gradlew clean build -x test ${{ env.GRADLE_OPTS }}
+
+      # 서버 스펙 <-> api-contract/openapi.json 비교 (DB 없이 실행, 다르면 실패) (#458)
+      - name: API 계약 검사
+        working-directory: server
+        run: ./gradlew :PQL-Web:test --tests 'com.passql.web.contract.OpenApiContractTest'
 
       - name: 빌드 검증 완료
         run: |

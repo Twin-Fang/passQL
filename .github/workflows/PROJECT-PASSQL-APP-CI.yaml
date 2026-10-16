@@ -15,11 +15,13 @@ on:
     branches: [main]
     paths:
       - 'app/**'
+      - 'api-contract/**'
       - '.github/workflows/PROJECT-PASSQL-APP-CI.yaml'
   push:
     branches: [main]
     paths:
       - 'app/**'
+      - 'api-contract/**'
       - '.github/workflows/PROJECT-PASSQL-APP-CI.yaml'
   workflow_dispatch:
 
