@@ -40,7 +40,7 @@ lib/presentation/design/
 | 컴포넌트 | 처리하는 것 |
 |---|---|
 | `PassqlButton` (+Variant, Size) | 모든 버튼. 비활성·로딩(`isLoading`)·폭(`isFullWidth`) |
-| `PassqlPressable` | 누르는 동안 흐려지는 피드백 (잉크 물결 대신) |
+| `PassqlPressable` | 누르는 동안 흐려지고 살짝 작아지는 피드백 (잉크 물결 대신) |
 | `PassqlCard` | 그림자 없는 카드, 제목·우측 요소 |
 | `PassqlGroupedSection` / `PassqlListRow` / `PassqlCheckRow` / `PassqlIconTile` | iOS 설정 앱식 목록 묶음·행·선택 행·아이콘 타일 |
 | `PassqlNavBar` / `PassqlNavButton` / `PassqlLargeTitleScrollView` | 상단 바, 뒤로/닫기 버튼, 큰 제목 탭 화면 틀 |
@@ -55,7 +55,11 @@ lib/presentation/design/
 | `PassqlResultMark` / `PassqlScoreHeader` / `PassqlResultScaffold` | 정답/오답 표시, 점수 고리, 결과 화면 3종 공통 틀 |
 | `PassqlChoiceCard` (+`PassqlChoiceState`) | 선택지 카드의 선택·채점 모양 (내용은 `ChoiceItemCard` 가 채움) |
 | `PassqlCodeBlock` | SQL 표시 블록 |
-| `PassqlBadge` / `PassqlProgressBar` | 캡슐 배지, 진행 막대 |
+| `PassqlBadge` (+`PassqlBadgeKind`) / `PassqlProgressBar` | 의미별 캡슐 태그(주제·보조·완료·연속·중요·AI, 아이콘·테두리), 진행 막대 |
+| `PassqlReveal` / `passqlRevealInOrder` | 처음 그려질 때 페이드 + 위로 8px, 순번별 지연(상한 8) (#495) |
+| `PassqlFadeSwitcher` | 로딩 > 내용 같은 상태 교체 페이드 (상태마다 다른 key) |
+| `PassqlPopIn` | 톡 튀어나오는 등장 (반짝이, 결과 마크) |
+| `PassqlAiHeader` | AI 내용 머리: 반짝이 팝 + 제목 미끄러짐 |
 | `PassqlLogo` | 라이트/다크 워드마크 |
 
 ## 3. 화면 코드 규칙 (규칙 테스트가 강제)
@@ -68,6 +72,7 @@ lib/presentation/design/
 - 시트는 `showPassqlSheet`, 확인 창은 `showPassqlConfirmDialog`, 로딩은 `PassqlLoadingIndicator`. `showModalBottomSheet(`, `showCupertinoDialog(`, `CupertinoActivityIndicator(` 직접 사용 금지
 - 이동 경로는 `AppRoutes` (`lib/router/app_routes.dart`). `context.go('/...')`, `push('/...')` 문자열 금지
 - 아이콘은 `CupertinoIcons` (이모지 금지)
+- 애니메이션 시간·곡선은 `PassqlMotion` 토큰으로. `Curves.`, `duration: Duration(` 직접 사용 금지. 동작 줄이기(`PassqlMotion.isReduced`)는 공통 컴포넌트가 처리한다
 
 강제 위치: `test/architecture/design_system_rules_test.dart`. 예외가 꼭 필요하면 테스트 안 `_allowedUsages` 에 파일·패턴·이유를 적는다.
 

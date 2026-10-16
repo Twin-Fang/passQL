@@ -57,7 +57,9 @@ class GreetingSection extends StatelessWidget {
         if (sub != null)
           PassqlBadge(
             text: sub,
-            color: greeting.messageType == 'EXAM_DAY' ? colors.wrong : colors.warning,
+            kind: greeting.messageType == 'EXAM_DAY'
+                ? PassqlBadgeKind.important
+                : PassqlBadgeKind.warning,
           ),
       ],
     );

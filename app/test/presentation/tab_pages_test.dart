@@ -98,7 +98,6 @@ const statsData = StatsData(
       ),
     ],
   ),
-  aiComment: AiCommentResponse(comment: '`JOIN` 토픽이 강해요.'),
 );
 
 const topics = [
@@ -143,7 +142,12 @@ void main() {
     ),
     '통계': (
       const StatsPage(),
-      [statsDataProvider.overrideWith((ref) async => statsData)],
+      [
+        statsDataProvider.overrideWith((ref) async => statsData),
+        statsAiCommentProvider.overrideWith(
+          (ref) async => const AiCommentResponse(comment: '`JOIN` 토픽이 강해요.'),
+        ),
+      ],
     ),
   };
 
@@ -172,6 +176,9 @@ void main() {
   testWidgets('통계 화면은 320pt 폭에서도 예외 없다', (tester) async {
     await _pump(tester, const StatsPage(), [
       statsDataProvider.overrideWith((ref) async => statsData),
+      statsAiCommentProvider.overrideWith(
+        (ref) async => const AiCommentResponse(comment: '`JOIN` 토픽이 강해요.'),
+      ),
     ], size: const Size(320, 640));
     expect(tester.takeException(), isNull);
   });

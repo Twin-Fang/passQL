@@ -9,8 +9,8 @@ import '../../widgets/stats/radar_chart_section.dart';
 import '../../widgets/stats/summary_stats_section.dart';
 
 /// 통계 화면.
-/// statsDataProvider에서 progress + topicAnalysis + aiComment를 받아 렌더링.
-/// 로딩: 스켈레톤 / 에러: 재시도 버튼 / 성공: pull-to-refresh 지원.
+/// statsDataProvider(진행 현황 + 토픽 분석)로 화면을 그리고, AI 코멘트는 따로 받아 자리만 먼저 잡는다.
+/// 로딩: 스켈레톤 / 에러: 재시도 버튼 / 성공: 섹션 순차 등장, pull-to-refresh 지원.
 class StatsPage extends ConsumerWidget {
   const StatsPage({super.key});
 
@@ -20,6 +20,7 @@ class StatsPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.passqlColors.background,
+      // 스크롤 틀은 그대로 두고 내용만 바꾼다(내용은 섹션별 순차 등장)
       body: statsAsync.when(
         loading: () => const PassqlLargeTitleScrollView(
           title: '통계',
@@ -41,6 +42,7 @@ class StatsPage extends ConsumerWidget {
           title: '통계',
           onRefresh: () async {
             ref.invalidate(statsDataProvider);
+            ref.invalidate(statsAiCommentProvider);
             await ref.read(statsDataProvider.future);
           },
           slivers: [_StatsContent(data: data)],
@@ -50,7 +52,7 @@ class StatsPage extends ConsumerWidget {
   }
 }
 
-/// 통계 카드 목록. 카드 사이 간격은 PassqlSpacing.md.
+/// 통계 카드 목록: 요약 > AI 분석 > 레이더 > 막대 순서로 하나씩 등장. 카드 사이 간격은 PassqlSpacing.md.
 class _StatsContent extends StatelessWidget {
   final StatsData data;
 
@@ -58,16 +60,15 @@ class _StatsContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final children = <Widget>[
+    final sections = <Widget>[
       // 요약 통계 3개 카드
       SummaryStatsSection(progress: data.progress),
+      // AI 영역 분석 (웹과 같이 요약 바로 아래, 늦게 와도 나머지는 먼저 보인다)
+      const _StatsAiCommentSection(),
       // 레이더 차트
       RadarChartSection(topicStats: data.topicAnalysis?.topicStats),
       // 카테고리별 가로 막대
       BarChartSection(topicStats: data.topicAnalysis?.topicStats),
-      // AI 영역 분석 카드 (/progress/ai-comment 응답, 없으면 숨김)
-      if (data.aiComment?.comment != null)
-        AiAnalysisCard(aiComment: data.aiComment),
     ];
 
     return SliverPadding(
@@ -77,10 +78,53 @@ class _StatsContent extends StatelessWidget {
         PassqlSpacing.md,
         0,
       ),
-      sliver: SliverList.separated(
-        itemCount: children.length,
-        itemBuilder: (_, i) => children[i],
-        separatorBuilder: (_, _) => const SizedBox(height: PassqlSpacing.md),
+      sliver: SliverList.list(
+        children: [
+          for (var index = 0; index < sections.length; index++)
+            PassqlReveal(
+              index: index,
+              // AI 자리는 비면 간격까지 접히도록 스스로 간격을 둔다
+              child: sections[index] is _StatsAiCommentSection
+                  ? sections[index]
+                  : Padding(
+                      padding: const EdgeInsets.only(bottom: PassqlSpacing.md),
+                      child: sections[index],
+                    ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// AI 코멘트 자리: 기다리는 동안 스켈레톤, 오면 카드로 교체, 없거나 실패하면 접힘
+class _StatsAiCommentSection extends ConsumerWidget {
+  const _StatsAiCommentSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final aiCommentAsync = ref.watch(statsAiCommentProvider);
+    final aiComment = aiCommentAsync.value;
+    final Widget content;
+    if (aiCommentAsync.isLoading && aiComment == null) {
+      content = const AiAnalysisCardSkeleton(key: ValueKey('loading'));
+    } else if (aiComment?.comment == null) {
+      content = const SizedBox.shrink(key: ValueKey('empty'));
+    } else {
+      content = AiAnalysisCard(
+        key: const ValueKey('data'),
+        aiComment: aiComment,
+      );
+    }
+    final isEmpty = content is SizedBox;
+    // 카드 아래 간격도 카드와 함께 접힌다
+    return AnimatedSize(
+      duration: PassqlMotion.standard,
+      curve: PassqlMotion.curve,
+      alignment: Alignment.topCenter,
+      child: Padding(
+        padding: EdgeInsets.only(bottom: isEmpty ? 0 : PassqlSpacing.md),
+        child: PassqlFadeSwitcher(child: content),
       ),
     );
   }

@@ -27,12 +27,9 @@ import 'app_routes.dart';
 // 루트 네비게이터 키 — 풀스크린 라우트(탭 바깥)에서 사용
 final _rootKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
-// 쉘 네비게이터 키 — 탭 내 이동에서 사용
-final _shellKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
-
 /// 앱 전역 라우터.
 ///
-/// - ShellRoute: 바텀 탭 4개 (홈/문제/통계/설정)
+/// - StatefulShellRoute: 바텀 탭 4개 (홈/문제/통계/설정), 탭별 상태 유지
 /// - 루트 라우트: 풀스크린 페이지 (챕터, 챕터 결과, 문제 상세, 결과)
 abstract final class AppRouter {
   /// 로그인 여부. main 에서 인증 상태를 구독해 갱신하고, 값이 바뀌면 라우터가 redirect 를 다시 평가한다.
@@ -41,13 +38,20 @@ abstract final class AppRouter {
   static final GoRouter router = GoRouter(
     navigatorKey: _rootKey,
     initialLocation: AppRoutes.home,
-    refreshListenable: Listenable.merge([authenticated, AppLaunchGateRouting.gate]),
+    refreshListenable: Listenable.merge([
+      authenticated,
+      AppLaunchGateRouting.gate,
+    ]),
     // 로그인 안 했으면 로그인 화면으로, 로그인 했는데 로그인 화면이면 홈으로 보낸다.
     redirect: (_, state) {
       // 점검·강제 업데이트 차단이 로그인보다 우선 (#464)
-      final gateRedirect = AppLaunchGateRouting.redirectLocation(state.matchedLocation);
+      final gateRedirect = AppLaunchGateRouting.redirectLocation(
+        state.matchedLocation,
+      );
       if (gateRedirect != null) return gateRedirect;
-      if (AppLaunchGateRouting.isGateLocation(state.matchedLocation)) return null;
+      if (AppLaunchGateRouting.isGateLocation(state.matchedLocation)) {
+        return null;
+      }
       final atLogin = state.matchedLocation == AppRoutes.login;
       // 약관은 가입 전에도 읽을 수 있어야 한다(App Store 5.1.1).
       if (state.matchedLocation.startsWith(AppRoutes.legalPrefix)) return null;
@@ -84,28 +88,51 @@ abstract final class AppRouter {
         builder: (_, _) => const LoginPage(),
       ),
 
-      // 탭 쉘
-      ShellRoute(
-        navigatorKey: _shellKey,
-        builder: (_, _, child) => AppShell(child: child),
-        routes: [
-          GoRoute(
-            path: AppRoutes.home,
-            pageBuilder: (_, _) => const NoTransitionPage(child: HomePage()),
+      // 탭 쉘: 탭마다 화면 상태를 유지하고 탭 전환은 페이드 (#495)
+      StatefulShellRoute(
+        builder: (_, _, navigationShell) =>
+            AppShell(navigationShell: navigationShell),
+        navigatorContainerBuilder: (_, navigationShell, children) =>
+            AppTabFadeStack(
+              currentIndex: navigationShell.currentIndex,
+              children: children,
+            ),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.home,
+                pageBuilder: (_, _) =>
+                    const NoTransitionPage(child: HomePage()),
+              ),
+            ],
           ),
-          GoRoute(
-            path: AppRoutes.questions,
-            pageBuilder: (_, _) =>
-                const NoTransitionPage(child: TopicListPage()),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.questions,
+                pageBuilder: (_, _) =>
+                    const NoTransitionPage(child: TopicListPage()),
+              ),
+            ],
           ),
-          GoRoute(
-            path: AppRoutes.stats,
-            pageBuilder: (_, _) => const NoTransitionPage(child: StatsPage()),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.stats,
+                pageBuilder: (_, _) =>
+                    const NoTransitionPage(child: StatsPage()),
+              ),
+            ],
           ),
-          GoRoute(
-            path: AppRoutes.settings,
-            pageBuilder: (_, _) =>
-                const NoTransitionPage(child: SettingsPage()),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.settings,
+                pageBuilder: (_, _) =>
+                    const NoTransitionPage(child: SettingsPage()),
+              ),
+            ],
           ),
         ],
       ),

@@ -30,6 +30,8 @@ mixin _$SubmitResult {
   String? get selectedSql =>
       throw _privateConstructorUsedError; // 저장된 제출의 UUID. 문제 신고가 어떤 제출에 대한 것인지 가리킨다.
   String? get submissionUuid =>
+      throw _privateConstructorUsedError; // 고른 선택지의 미리 생성된 AI 해설 (있으면 해설 시트가 요청 없이 바로 보여 줌) (#496)
+  String? get explanation =>
       throw _privateConstructorUsedError; // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
   @JsonKey(includeFromJson: false, includeToJson: false)
   String? get choiceSetUuid => throw _privateConstructorUsedError;
@@ -60,6 +62,7 @@ abstract class $SubmitResultCopyWith<$Res> {
     String? correctSql,
     String? selectedSql,
     String? submissionUuid,
+    String? explanation,
     @JsonKey(includeFromJson: false, includeToJson: false)
     String? choiceSetUuid,
   });
@@ -91,6 +94,7 @@ class _$SubmitResultCopyWithImpl<$Res, $Val extends SubmitResult>
     Object? correctSql = freezed,
     Object? selectedSql = freezed,
     Object? submissionUuid = freezed,
+    Object? explanation = freezed,
     Object? choiceSetUuid = freezed,
   }) {
     return _then(
@@ -126,6 +130,10 @@ class _$SubmitResultCopyWithImpl<$Res, $Val extends SubmitResult>
             submissionUuid: freezed == submissionUuid
                 ? _value.submissionUuid
                 : submissionUuid // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            explanation: freezed == explanation
+                ? _value.explanation
+                : explanation // ignore: cast_nullable_to_non_nullable
                       as String?,
             choiceSetUuid: freezed == choiceSetUuid
                 ? _value.choiceSetUuid
@@ -183,6 +191,7 @@ abstract class _$$SubmitResultImplCopyWith<$Res>
     String? correctSql,
     String? selectedSql,
     String? submissionUuid,
+    String? explanation,
     @JsonKey(includeFromJson: false, includeToJson: false)
     String? choiceSetUuid,
   });
@@ -215,6 +224,7 @@ class __$$SubmitResultImplCopyWithImpl<$Res>
     Object? correctSql = freezed,
     Object? selectedSql = freezed,
     Object? submissionUuid = freezed,
+    Object? explanation = freezed,
     Object? choiceSetUuid = freezed,
   }) {
     return _then(
@@ -251,6 +261,10 @@ class __$$SubmitResultImplCopyWithImpl<$Res>
             ? _value.submissionUuid
             : submissionUuid // ignore: cast_nullable_to_non_nullable
                   as String?,
+        explanation: freezed == explanation
+            ? _value.explanation
+            : explanation // ignore: cast_nullable_to_non_nullable
+                  as String?,
         choiceSetUuid: freezed == choiceSetUuid
             ? _value.choiceSetUuid
             : choiceSetUuid // ignore: cast_nullable_to_non_nullable
@@ -272,6 +286,7 @@ class _$SubmitResultImpl implements _SubmitResult {
     this.correctSql,
     this.selectedSql,
     this.submissionUuid,
+    this.explanation,
     @JsonKey(includeFromJson: false, includeToJson: false) this.choiceSetUuid,
   });
 
@@ -295,6 +310,9 @@ class _$SubmitResultImpl implements _SubmitResult {
   // 저장된 제출의 UUID. 문제 신고가 어떤 제출에 대한 것인지 가리킨다.
   @override
   final String? submissionUuid;
+  // 고른 선택지의 미리 생성된 AI 해설 (있으면 해설 시트가 요청 없이 바로 보여 줌) (#496)
+  @override
+  final String? explanation;
   // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -302,7 +320,7 @@ class _$SubmitResultImpl implements _SubmitResult {
 
   @override
   String toString() {
-    return 'SubmitResult(isCorrect: $isCorrect, correctKey: $correctKey, rationale: $rationale, selectedResult: $selectedResult, correctResult: $correctResult, correctSql: $correctSql, selectedSql: $selectedSql, submissionUuid: $submissionUuid, choiceSetUuid: $choiceSetUuid)';
+    return 'SubmitResult(isCorrect: $isCorrect, correctKey: $correctKey, rationale: $rationale, selectedResult: $selectedResult, correctResult: $correctResult, correctSql: $correctSql, selectedSql: $selectedSql, submissionUuid: $submissionUuid, explanation: $explanation, choiceSetUuid: $choiceSetUuid)';
   }
 
   @override
@@ -326,6 +344,8 @@ class _$SubmitResultImpl implements _SubmitResult {
                 other.selectedSql == selectedSql) &&
             (identical(other.submissionUuid, submissionUuid) ||
                 other.submissionUuid == submissionUuid) &&
+            (identical(other.explanation, explanation) ||
+                other.explanation == explanation) &&
             (identical(other.choiceSetUuid, choiceSetUuid) ||
                 other.choiceSetUuid == choiceSetUuid));
   }
@@ -342,6 +362,7 @@ class _$SubmitResultImpl implements _SubmitResult {
     correctSql,
     selectedSql,
     submissionUuid,
+    explanation,
     choiceSetUuid,
   );
 
@@ -369,6 +390,7 @@ abstract class _SubmitResult implements SubmitResult {
     final String? correctSql,
     final String? selectedSql,
     final String? submissionUuid,
+    final String? explanation,
     @JsonKey(includeFromJson: false, includeToJson: false)
     final String? choiceSetUuid,
   }) = _$SubmitResultImpl;
@@ -391,7 +413,9 @@ abstract class _SubmitResult implements SubmitResult {
   @override
   String? get selectedSql; // 저장된 제출의 UUID. 문제 신고가 어떤 제출에 대한 것인지 가리킨다.
   @override
-  String? get submissionUuid; // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
+  String? get submissionUuid; // 고른 선택지의 미리 생성된 AI 해설 (있으면 해설 시트가 요청 없이 바로 보여 줌) (#496)
+  @override
+  String? get explanation; // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   String? get choiceSetUuid;

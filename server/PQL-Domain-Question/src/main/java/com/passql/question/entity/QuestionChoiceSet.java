@@ -23,6 +23,8 @@ import java.util.UUID;
         @Index(name = "idx_choice_set_question", columnList = "question_uuid"),
         @Index(name = "idx_choice_set_source", columnList = "source"),
         @Index(name = "idx_choice_set_status", columnList = "status"),
+        // 문제별 최신 OK 세트 조회 (#496)
+        @Index(name = "idx_choice_set_question_status_created", columnList = "question_uuid, status, created_at DESC"),
         @Index(
             name = "idx_choice_set_prefetch",
             columnList = "question_uuid, generated_for_member_uuid, consumed_at"

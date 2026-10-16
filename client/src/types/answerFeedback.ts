@@ -7,6 +7,8 @@ export interface AnswerFeedbackState {
   readonly isCorrect: boolean;
   readonly correctKey: string;
   readonly rationale: string;
+  // 미리 생성된 AI 해설 (있으면 rationale 대신 표시) (#496)
+  readonly explanation?: string | null;
   readonly selectedKey: string;
   readonly selectedSql: string | null;
   readonly correctSql: string | null;

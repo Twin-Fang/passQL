@@ -1544,6 +1544,7 @@ export interface components {
             correctKey: string | null;
             correctResult: components["schemas"]["ExecuteResult"] | null;
             correctSql: string | null;
+            explanation: string | null;
             isCorrect: boolean;
             rationale: string | null;
             selectedResult: components["schemas"]["ExecuteResult"] | null;

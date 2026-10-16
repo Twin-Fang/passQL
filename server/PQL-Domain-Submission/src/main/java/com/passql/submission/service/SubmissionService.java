@@ -139,7 +139,9 @@ public class SubmissionService {
                 correctSql,
                 selectedSql,
                 // 저장된 제출 UUID — 프론트 신고 기능에서 submissionUuid 식별에 사용
-                submission.getSubmissionUuid()
+                submission.getSubmissionUuid(),
+                // 미리 생성된 해설 (#496)
+                selected.getExplanation()
         );
     }
 

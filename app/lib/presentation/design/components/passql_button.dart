@@ -82,7 +82,10 @@ class PassqlButton extends StatelessWidget {
           minHeight: minHeight,
           minWidth: isFullWidth ? double.infinity : 0,
         ),
-        child: DecoratedBox(
+        // 활성·비활성 전환 때 배경색이 부드럽게 바뀌게 한다
+        child: AnimatedContainer(
+          duration: PassqlMotion.fast,
+          curve: PassqlMotion.curve,
           decoration: BoxDecoration(
             color: backgroundColor,
             borderRadius: BorderRadius.circular(
@@ -100,7 +103,14 @@ class PassqlButton extends StatelessWidget {
             child: Center(
               widthFactor: isFullWidth ? null : 1,
               heightFactor: 1,
-              child: content,
+              // 라벨 <-> 로딩 표시 교체
+              child: AnimatedSwitcher(
+                duration: PassqlMotion.fast,
+                child: KeyedSubtree(
+                  key: ValueKey(isLoading),
+                  child: content,
+                ),
+              ),
             ),
           ),
         ),

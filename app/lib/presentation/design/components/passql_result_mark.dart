@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
+import 'passql_pop_in.dart';
 
 /// 정답/오답 표시 한 벌. 아이콘 모양과 색을 화면마다 다르게 고르지 않게 한다.
 class PassqlResultMark extends StatelessWidget {
@@ -31,7 +32,12 @@ class PassqlResultMark extends StatelessWidget {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: PassqlIconSize.resultMarkLarge, color: iconColor),
+          // 화면 전환이 끝난 뒤 톡 튀어나온다
+          PassqlPopIn(
+            delay: PassqlMotion.afterRouteTransitionDelay,
+            isRotating: false,
+            child: Icon(icon, size: PassqlIconSize.resultMarkLarge, color: iconColor),
+          ),
           const SizedBox(height: PassqlSpacing.sm),
           Text(
             text,

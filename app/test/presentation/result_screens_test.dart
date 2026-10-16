@@ -42,6 +42,7 @@ Future<void> expectResultScaffold(
     ),
   );
   await tester.pumpAndSettle();
+  await pumpUntilMotionDone(tester);
   expect(find.byType(PassqlResultScaffold), findsOneWidget);
   expect(tester.takeException(), isNull);
 }

@@ -4,7 +4,7 @@
 // 앱 전체를 그대로 띄우되 Dio 를 가짜 어댑터로 바꿔 canned 응답을 돌려준다.
 // 빌드: flutter build ios --simulator -t tool/store_shots/main_shots.dart
 // 촬영: echo /stats > /tmp/passql_shot_route.txt && xcrun simctl launch <기기> com.coldredrice.passql
-// 연출 2종(경로 대신 적음): execute-fail(SQL 실행 실패 카드), chapter-result(문제 목록 > 챕터 > 챕터 결과)
+// 연출 3종(경로 대신 적음): execute-fail(SQL 실행 실패 카드), chapter-result(문제 목록 > 챕터 > 챕터 결과), ai-sheet(오답 AI 해설 시트)
 // 앱 시작 설정 상황: echo maintenance > /tmp/passql_shot_app_config.txt
 //   (force_update | recommended_update | maintenance | notice, 없거나 그 외는 정상)
 // 알림함 상황: echo empty > /tmp/passql_shot_notifications.txt (없거나 그 외는 알림 4건·공지 3건, 안 읽은 일부)
@@ -30,6 +30,7 @@ import 'package:passql_app/presentation/providers/chapter_providers.dart';
 import 'package:passql_app/presentation/providers/question_providers.dart';
 import 'package:passql_app/presentation/providers/push_notification_providers.dart';
 import 'package:passql_app/presentation/providers/theme_mode_provider.dart';
+import 'package:passql_app/presentation/widgets/question/ai_explain_sheet.dart';
 import 'package:passql_app/router/app_launch_gate_routing.dart';
 import 'package:passql_app/router/app_router.dart';
 import 'package:passql_app/router/app_routes.dart';
@@ -237,6 +238,14 @@ Object? _respond(RequestOptions o) {
       ],
     };
   }
+  if (p.endsWith('/ai/diff-explain') || p.endsWith('/ai/explain-error')) {
+    return {
+      'text': '**HAVING** 은 그룹으로 묶은 뒤의 결과를 거르는 조건이에요.\n\n'
+          '- 고른 답 B 는 `GROUP BY` 없이 `HAVING` 을 써서 행 단위 조건으로 동작하지 않아요.\n'
+          '- 정답 A 는 `WHERE SAL >= 3000` 으로 행마다 급여를 비교해요.\n\n'
+          '기억할 포인트: 행 조건은 WHERE, 그룹 조건은 HAVING.',
+    };
+  }
   if (p.endsWith('/progress/ai-comment')) {
     return {'comment': 'JOIN 과 서브쿼리 영역의 정답률이 좋아요. 윈도우 함수를 조금만 더 연습하면 합격권이에요!', 'generatedAt': '2026-10-07T09:00:00'};
   }
@@ -389,6 +398,10 @@ void _markNotificationsRead(RequestOptions options) {
 class _FakeAdapter implements HttpClientAdapter {
   @override
   Future<ResponseBody> fetch(RequestOptions options, Stream<List<int>>? requestStream, Future<void>? cancelFuture) async {
+    // AI 응답은 실제처럼 늦게 와서 기다리는 화면도 찍히게 한다
+    if (options.path.contains('/ai/') || options.path.endsWith('/progress/ai-comment')) {
+      await Future<void>.delayed(const Duration(milliseconds: 1500));
+    }
     if (options.path.endsWith('/generate-choices')) {
       // ...0004 문제는 실행 결과형(RESULT_MATCH)으로 응답한다.
       final rm = options.path.contains('000000000004');
@@ -495,6 +508,18 @@ Future<void> _openRoute(String route, ProviderContainer container) async {
           totalDurationMs: 124000,
         ),
       );
+    case 'ai-sheet':
+      // 실행형 문제 > 오답 AI 해설 시트 (스켈레톤 > 반짝이 태그 > 단어 순차 등장)
+      AppRouter.router.go(AppRoutes.questionDetail(_executableQuestionUuid));
+      await Future<void>.delayed(settleDelay);
+      final sheetContext = AppRouter.router.routerDelegate.navigatorKey.currentContext;
+      if (sheetContext != null && sheetContext.mounted) {
+        unawaited(AiExplainSheet.show(
+          sheetContext,
+          payload: {'questionUuid': _executableQuestionUuid, 'selectedChoiceKey': 'B'},
+          isErrorExplain: false,
+        ));
+      }
     default:
       AppRouter.router.go(route);
   }

@@ -61,19 +61,9 @@ class HeatmapWidget extends StatelessWidget {
 
     return PassqlCard(
       title: '학습 현황',
+      // 불꽃 아이콘은 태그(warning)가 함께 그린다
       trailing: streakDays > 0
-          ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  CupertinoIcons.flame_fill,
-                  size: PassqlIconSize.xxs,
-                  color: colors.warning,
-                ),
-                const SizedBox(width: PassqlSpacing.xxs),
-                PassqlBadge(text: '$streakDays일 연속', color: colors.warning),
-              ],
-            )
+          ? PassqlBadge(text: '$streakDays일 연속', kind: PassqlBadgeKind.warning)
           : null,
       // 날짜 칸 35개를 하나씩 읽지 않고 요약 1문장으로 전달
       child: Semantics(

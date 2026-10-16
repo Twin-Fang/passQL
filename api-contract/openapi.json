@@ -1160,6 +1160,9 @@
           "correctSql" : {
             "type" : [ "string", "null" ]
           },
+          "explanation" : {
+            "type" : [ "string", "null" ]
+          },
           "isCorrect" : {
             "type" : "boolean"
           },
@@ -1181,7 +1184,7 @@
             "type" : [ "string", "null" ]
           }
         },
-        "required" : [ "correctKey", "correctResult", "correctSql", "isCorrect", "rationale", "selectedResult", "selectedSql", "submissionUuid" ],
+        "required" : [ "correctKey", "correctResult", "correctSql", "explanation", "isCorrect", "rationale", "selectedResult", "selectedSql", "submissionUuid" ],
         "type" : "object"
       },
       "SubtopicItem" : {

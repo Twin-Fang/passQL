@@ -179,7 +179,8 @@ class _HomeContent extends ConsumerWidget {
       ),
       sliver: SliverList.separated(
         itemCount: children.length,
-        itemBuilder: (_, i) => children[i],
+        // 카드가 위에서부터 차례로 떠오른다
+        itemBuilder: (_, i) => PassqlReveal(index: i, child: children[i]),
         separatorBuilder: (_, _) => const SizedBox(height: PassqlSpacing.md),
       ),
     );

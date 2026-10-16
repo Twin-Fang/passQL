@@ -30,6 +30,13 @@ describe("운영 주소 단일 원본", () => {
     expect(redirectPage).toContain(`url=${publicLegalPageUrl}"`);
   });
 
+  it("robots.txt·sitemap.xml 은 운영 주소를 가리킨다 (#505)", () => {
+    const robotsText = readFileSync(join(CLIENT_ROOT, "public/robots.txt"), "utf-8");
+    expect(robotsText).toContain(`Sitemap: ${PRODUCTION_SITE_URL}/sitemap.xml`);
+    const sitemapXml = readFileSync(join(CLIENT_ROOT, "public/sitemap.xml"), "utf-8");
+    expect(sitemapXml).toContain(`<loc>${PRODUCTION_SITE_URL}/</loc>`);
+  });
+
   it("index.html 은 운영 주소를 직접 쓰지 않고 자리표시자로 받는다", () => {
     const indexHtml = readFileSync(join(CLIENT_ROOT, "index.html"), "utf-8");
     expect(indexHtml).not.toContain(PRODUCTION_SITE_URL);

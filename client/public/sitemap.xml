@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 주소 원본: src/constants/siteUrls.ts PRODUCTION_SITE_URL (siteUrls.test.ts 가 일치 검사) -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://passql.vercel.app/</loc><priority>1.0</priority></url>
+</urlset>

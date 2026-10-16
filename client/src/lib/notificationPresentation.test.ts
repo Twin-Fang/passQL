@@ -43,9 +43,9 @@ describe("toUnreadBadgeLabel / toDocumentTitle", () => {
   });
 
   it("탭 제목에 개수 반영", () => {
-    expect(toDocumentTitle(0)).toBe("passQL");
-    expect(toDocumentTitle(3)).toBe("(3) passQL");
-    expect(toDocumentTitle(120)).toBe("(99+) passQL");
+    expect(toDocumentTitle(0)).toBe("passQL · SQLD·SQLP 문제 풀이");
+    expect(toDocumentTitle(3)).toBe("(3) passQL · SQLD·SQLP 문제 풀이");
+    expect(toDocumentTitle(120)).toBe("(99+) passQL · SQLD·SQLP 문제 풀이");
   });
 });
 

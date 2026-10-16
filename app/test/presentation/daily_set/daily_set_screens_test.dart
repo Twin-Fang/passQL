@@ -46,6 +46,7 @@ Future<void> _pageOf(WidgetTester tester, Widget page, List<Override> overrides)
     ),
   );
   await tester.pumpAndSettle();
+  await pumpUntilMotionDone(tester);
 }
 
 void main() {

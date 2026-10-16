@@ -4,3 +4,5 @@ Allow: /$
 Allow: /login
 Allow: /legal/
 Disallow: /
+# 주소 원본: src/constants/siteUrls.ts PRODUCTION_SITE_URL (siteUrls.test.ts 가 일치 검사)
+Sitemap: https://passql.vercel.app/sitemap.xml

@@ -11,10 +11,12 @@ import com.passql.question.dto.ValidationReport;
 import com.passql.question.entity.Question;
 import com.passql.question.entity.QuestionChoiceSet;
 import com.passql.question.entity.QuestionChoiceSetItem;
+import com.passql.question.event.ChoiceSetReadyEvent;
 import com.passql.question.repository.QuestionChoiceSetItemRepository;
 import com.passql.question.repository.QuestionChoiceSetRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +38,7 @@ public class ChoiceSetSaveService {
 
     private final QuestionChoiceSetRepository choiceSetRepository;
     private final QuestionChoiceSetItemRepository choiceSetItemRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * EXECUTABLE 선택지 세트 성공 저장 — 샌드박스 검증 결과(ValidationReport) 기반 is_correct 적용.
@@ -81,6 +84,8 @@ public class ChoiceSetSaveService {
 
         log.info("[choice-gen] success: questionUuid={}, attempts={}, setUuid={}",
                 question.getQuestionUuid(), attempts, set.getChoiceSetUuid());
+        // 커밋 후 선택지별 AI 해설 미리 생성 (#496)
+        eventPublisher.publishEvent(new ChoiceSetReadyEvent(set.getChoiceSetUuid()));
         return set;
     }
 
@@ -126,6 +131,8 @@ public class ChoiceSetSaveService {
 
         log.info("[choice-gen-concept] success: questionUuid={}, attempts={}, setUuid={}",
                 question.getQuestionUuid(), attempts, set.getChoiceSetUuid());
+        // 커밋 후 선택지별 AI 해설 미리 생성 (#496)
+        eventPublisher.publishEvent(new ChoiceSetReadyEvent(set.getChoiceSetUuid()));
         return set;
     }
 
@@ -181,6 +188,8 @@ public class ChoiceSetSaveService {
 
         log.info("[choice-gen-result-match] success: questionUuid={}, attempts={}, setUuid={}",
                 question.getQuestionUuid(), attempts, set.getChoiceSetUuid());
+        // 커밋 후 선택지별 AI 해설 미리 생성 (#496)
+        eventPublisher.publishEvent(new ChoiceSetReadyEvent(set.getChoiceSetUuid()));
         return set;
     }
 

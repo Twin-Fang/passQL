@@ -74,10 +74,10 @@ export default function PracticeFeedbackBar({
             )}
           </div>
 
-          {/* 해설 텍스트 */}
-          {result.rationale && (
+          {/* 해설 텍스트 (미리 생성된 AI 해설 우선, #496) */}
+          {(result.explanation || result.rationale) && (
             <MarkdownText
-              text={result.rationale}
+              text={result.explanation || result.rationale}
               className="text-sm leading-relaxed mb-3 feedback-bar-rationale"
             />
           )}
