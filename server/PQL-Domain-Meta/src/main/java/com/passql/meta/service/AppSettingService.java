@@ -72,6 +72,24 @@ public class AppSettingService {
 
     public boolean getBoolean(String key) { return Boolean.parseBoolean(getString(key)); }
 
+    /** 정수 설정 (행 없음·형식 오류는 기본값 — 설정 장애로 부가 기능이 멈추지 않게) */
+    public int getIntOrDefault(String key, int defaultValue) {
+        try {
+            return getInt(key);
+        } catch (CustomException | NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
+    /** 불리언 설정 (행 없음은 기본값) */
+    public boolean getBooleanOrDefault(String key, boolean defaultValue) {
+        try {
+            return getBoolean(key);
+        } catch (CustomException e) {
+            return defaultValue;
+        }
+    }
+
     public List<AppSetting> findAll() {
         return appSettingRepository.findAll(Sort.by("category", "settingKey"));
     }

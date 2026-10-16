@@ -136,6 +136,9 @@ public enum ErrorCode {
     // Push
     PUSH_TARGET_MEMBER_REQUIRED(HttpStatus.BAD_REQUEST, "특정 회원 발송은 올바른 회원 UUID가 필요합니다."),
     PUSH_LINK_QUESTION_REQUIRED(HttpStatus.BAD_REQUEST, "문제 상세 이동은 올바른 문제 UUID가 필요합니다."),
+    // Notification Inbox (#491)
+    PUSH_SEND_HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "발송 이력을 찾을 수 없습니다."),
+    PUSH_ALREADY_RETRACTED(HttpStatus.BAD_REQUEST, "이미 회수한 발송입니다."),
 
     // Auth
     EXPIRED_FIREBASE_TOKEN(HttpStatus.UNAUTHORIZED, "Firebase 토큰이 만료되었습니다."),

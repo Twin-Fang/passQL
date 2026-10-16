@@ -8,8 +8,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * 관리자 푸시 발송 요청
+ * 관리자 발송 요청
  * audience: ALL, MEMBER(targetMemberUuid 필수) / linkTarget: PushLinkTarget 이름 (QUESTION_DETAIL 은 linkQuestionUuid 필수)
+ * deliveryMode: PUSH_AND_INBOX, INBOX_ONLY (비면 PUSH_AND_INBOX)
  */
 @Getter
 @NoArgsConstructor
@@ -33,4 +34,6 @@ public class PushSendRequest {
     private String linkTarget;
 
     private String linkQuestionUuid;
+
+    private String deliveryMode;
 }

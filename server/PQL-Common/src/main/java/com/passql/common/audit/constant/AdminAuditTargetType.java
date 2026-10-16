@@ -17,7 +17,8 @@ public enum AdminAuditTargetType {
     CONCEPT_DOC("개념 문서"),
     DAILY_CHALLENGE("일일 챌린지"),
     NOTICE("공지"),
-    ADMIN_ACCOUNT("관리자 계정");
+    ADMIN_ACCOUNT("관리자 계정"),
+    NOTIFICATION("알림");
 
     // 화면 표시 이름
     private final String label;

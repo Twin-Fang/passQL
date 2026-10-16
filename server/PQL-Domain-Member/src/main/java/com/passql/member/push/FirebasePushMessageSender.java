@@ -40,29 +40,29 @@ public class FirebasePushMessageSender implements PushMessageSender {
     private final FirebaseMessaging firebaseMessaging;
 
     @Override
-    public List<PushDeliveryResult> send(PushMessage message, List<String> tokens) {
-        List<PushDeliveryResult> results = new ArrayList<>(tokens.size());
-        for (int start = 0; start < tokens.size(); start += MAX_TOKENS_PER_BATCH) {
-            List<String> tokenChunk = tokens.subList(start, Math.min(start + MAX_TOKENS_PER_BATCH, tokens.size()));
-            results.addAll(sendChunk(message, tokenChunk));
+    public List<PushDeliveryResult> send(PushMessage message, List<PushTarget> targets) {
+        List<PushDeliveryResult> results = new ArrayList<>(targets.size());
+        for (int start = 0; start < targets.size(); start += MAX_TOKENS_PER_BATCH) {
+            List<PushTarget> targetChunk = targets.subList(start, Math.min(start + MAX_TOKENS_PER_BATCH, targets.size()));
+            results.addAll(sendChunk(message, targetChunk));
         }
         return results;
     }
 
-    /** 묶음 1회 발송 > 토큰별 결과 (응답 순서 = 토큰 순서) */
-    private List<PushDeliveryResult> sendChunk(PushMessage message, List<String> tokenChunk) {
+    /** 묶음 1회 발송 > 토큰별 결과 (응답 순서 = 대상 순서) */
+    private List<PushDeliveryResult> sendChunk(PushMessage message, List<PushTarget> targetChunk) {
         try {
             BatchResponse batchResponse = firebaseMessaging.sendEach(
-                    tokenChunk.stream().map(token -> toTokenMessage(message, token)).toList());
+                    targetChunk.stream().map(target -> toTokenMessage(message, target)).toList());
             List<SendResponse> responses = batchResponse.getResponses();
-            List<PushDeliveryResult> results = new ArrayList<>(tokenChunk.size());
-            for (int index = 0; index < tokenChunk.size(); index++) {
-                results.add(toDeliveryResult(tokenChunk.get(index), responses.get(index)));
+            List<PushDeliveryResult> results = new ArrayList<>(targetChunk.size());
+            for (int index = 0; index < targetChunk.size(); index++) {
+                results.add(toDeliveryResult(targetChunk.get(index).token(), responses.get(index)));
             }
             return results;
         } catch (FirebaseMessagingException e) {
-            log.error("[push send] batch failed : {} tokens, code={}", tokenChunk.size(), e.getMessagingErrorCode(), e);
-            return tokenChunk.stream().map(token -> PushDeliveryResult.failed(token, false)).toList();
+            log.error("[push send] batch failed : {} tokens, code={}", targetChunk.size(), e.getMessagingErrorCode(), e);
+            return targetChunk.stream().map(target -> PushDeliveryResult.failed(target.token(), false)).toList();
         }
     }
 
@@ -74,12 +74,12 @@ public class FirebasePushMessageSender implements PushMessageSender {
         return PushDeliveryResult.failed(token, errorCode != null && EXPIRED_TOKEN_ERROR_CODES.contains(errorCode));
     }
 
-    /** 알림(제목·본문) + 이동 데이터 + 플랫폼 설정 (Android 채널·우선순위, iOS 소리) */
+    /** 알림(제목·본문) + 이동 데이터 + 플랫폼 설정 (Android 채널·우선순위, iOS 소리·앱 아이콘 숫자) */
     // setToken 은 FID 대상 지정으로 대체 예정(deprecated)이나 앱 SDK 가 등록 토큰만 제공
     @SuppressWarnings("deprecation")
-    private Message toTokenMessage(PushMessage message, String token) {
+    private Message toTokenMessage(PushMessage message, PushTarget target) {
         return Message.builder()
-                .setToken(token)
+                .setToken(target.token())
                 .setNotification(Notification.builder()
                         .setTitle(message.title())
                         .setBody(message.body())
@@ -92,7 +92,7 @@ public class FirebasePushMessageSender implements PushMessageSender {
                                 .build())
                         .build())
                 .setApnsConfig(ApnsConfig.builder()
-                        .setAps(Aps.builder().setSound(DEFAULT_SOUND).build())
+                        .setAps(Aps.builder().setSound(DEFAULT_SOUND).setBadge(target.badgeCount()).build())
                         .build())
                 .build();
     }

@@ -1,6 +1,7 @@
 package com.passql.member.entity;
 
 import com.passql.common.entity.BaseEntity;
+import com.passql.member.constant.NotificationDeliveryMode;
 import com.passql.member.constant.PushAudience;
 import com.passql.member.constant.PushLinkTarget;
 import jakarta.persistence.Column;
@@ -20,7 +21,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * 관리자 푸시 발송 이력: 내용, 대상, 이동 경로, 결과 수, 발송 관리자
+ * 관리자 발송 이력: 내용, 대상, 전달 방식, 이동 경로, 결과 수, 발송 관리자, 회수 여부
+ * 결과 수는 발송 접수 때 0, 알림함 저장·푸시 전달이 끝나면 갱신
  */
 @Entity
 @Table(
@@ -80,10 +82,27 @@ public class PushSendHistory extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime sentAt;
 
-    public static PushSendHistory of(String title, String body, PushAudience audience, UUID targetMemberUuid,
-                                     PushLinkTarget linkTarget, UUID linkQuestionUuid,
-                                     int targetDeviceCount, int successCount, int failureCount,
-                                     int removedTokenCount, String sentByAdmin) {
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20, nullable = false)
+    private NotificationDeliveryMode deliveryMode;
+
+    // 알림함에 만든 행 수 (받은 회원 수)
+    @Column(nullable = false)
+    private Integer recipientCount;
+
+    // 관리자가 회수하면 true (알림함에서 숨김)
+    @Column(nullable = false)
+    private Boolean isRetracted;
+
+    private LocalDateTime retractedAt;
+
+    @Column(length = 100)
+    private String retractedBy;
+
+    /** 발송 접수: 결과 수는 0 으로 시작 */
+    public static PushSendHistory accept(String title, String body, PushAudience audience, UUID targetMemberUuid,
+                                         PushLinkTarget linkTarget, UUID linkQuestionUuid,
+                                         NotificationDeliveryMode deliveryMode, String sentByAdmin) {
         PushSendHistory history = new PushSendHistory();
         history.title = title;
         history.body = body;
@@ -91,12 +110,35 @@ public class PushSendHistory extends BaseEntity {
         history.targetMemberUuid = targetMemberUuid;
         history.linkTarget = linkTarget;
         history.linkQuestionUuid = linkQuestionUuid;
-        history.targetDeviceCount = targetDeviceCount;
-        history.successCount = successCount;
-        history.failureCount = failureCount;
-        history.removedTokenCount = removedTokenCount;
+        history.deliveryMode = deliveryMode;
+        history.targetDeviceCount = 0;
+        history.successCount = 0;
+        history.failureCount = 0;
+        history.removedTokenCount = 0;
+        history.recipientCount = 0;
+        history.isRetracted = false;
         history.sentByAdmin = sentByAdmin;
         history.sentAt = LocalDateTime.now();
         return history;
+    }
+
+    /** 알림함에 만든 행 수 기록 */
+    public void recordRecipientCount(int recipientCount) {
+        this.recipientCount = recipientCount;
+    }
+
+    /** 푸시 전달 결과 기록 */
+    public void recordDeliveryResult(int targetDeviceCount, int successCount, int failureCount, int removedTokenCount) {
+        this.targetDeviceCount = targetDeviceCount;
+        this.successCount = successCount;
+        this.failureCount = failureCount;
+        this.removedTokenCount = removedTokenCount;
+    }
+
+    /** 회수 처리 (알림함 숨김은 알림 쪽에서 처리) */
+    public void retract(String retractedByAdmin) {
+        this.isRetracted = true;
+        this.retractedAt = LocalDateTime.now();
+        this.retractedBy = retractedByAdmin;
     }
 }

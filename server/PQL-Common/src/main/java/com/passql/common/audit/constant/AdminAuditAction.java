@@ -18,7 +18,9 @@ public enum AdminAuditAction {
     RESOLVE("처리 완료"),
     DISMISS("기각"),
     PASSWORD_RESET("비밀번호 재설정"),
-    UNLOCK("잠금 해제");
+    UNLOCK("잠금 해제"),
+    SEND("발송"),
+    RETRACT("회수");
 
     // 화면 표시 이름
     private final String label;
