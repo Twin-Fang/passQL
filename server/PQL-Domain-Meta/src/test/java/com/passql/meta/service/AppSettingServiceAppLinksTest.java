@@ -2,6 +2,8 @@ package com.passql.meta.service;
 
 import com.passql.meta.constant.AppSettingKeys;
 import com.passql.meta.dto.AppLinksResponse;
+import com.passql.meta.crypto.SettingSecretCipher;
+import com.passql.meta.crypto.SettingSecretCipherTest;
 import com.passql.meta.entity.AppSetting;
 import com.passql.meta.repository.AppSettingRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +32,7 @@ class AppSettingServiceAppLinksTest {
         ValueOperations<String, String> ops = mock(ValueOperations.class);
         when(redis.opsForValue()).thenReturn(ops);
         when(ops.get(anyString())).thenReturn(null); // 캐시 미스 → DB 조회 경로
-        service = new AppSettingService(repository, redis, event -> { });
+        service = new AppSettingService(repository, redis, event -> { }, new SettingSecretCipher(SettingSecretCipherTest.TEST_MASTER_KEY));
     }
 
     private void stub(String key, String value) {
