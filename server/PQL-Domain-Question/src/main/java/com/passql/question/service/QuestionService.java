@@ -46,6 +46,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Map;
 import java.util.UUID;
 
@@ -127,11 +128,24 @@ public class QuestionService {
      */
     public QuestionDetail getQuestionForSolving(UUID questionUuid) {
         Question question = getQuestionEntity(questionUuid);
-        List<QuestionDetail.ChoiceSetSummary> choiceSets = choiceSetRepository
-                .findFirstByQuestionUuidAndStatusOrderByCreatedAtDesc(questionUuid, ChoiceSetStatus.OK)
+        List<QuestionDetail.ChoiceSetSummary> choiceSets = findSolvingChoiceSet(question)
                 .map(choiceSet -> List.of(toChoiceSetSummary(choiceSet, false)))
                 .orElse(List.of());
         return toQuestionDetail(question, null, choiceSets);
+    }
+
+    /** 풀이용 세트 1개: CURATED_ONLY 는 고정 세트 우선(없으면 최신 OK), 그 외 최신 OK (#511) */
+    private Optional<QuestionChoiceSet> findSolvingChoiceSet(Question question) {
+        UUID questionUuid = question.getQuestionUuid();
+        if (question.getChoiceSetPolicy() == ChoiceSetPolicy.CURATED_ONLY) {
+            Optional<QuestionChoiceSet> curatedSet = choiceSetRepository
+                    .findFirstByQuestionUuidAndStatusAndSourceInOrderByCreatedAtDesc(
+                            questionUuid, ChoiceSetStatus.OK, ChoiceSetSource.CURATED_SOURCES);
+            if (curatedSet.isPresent()) {
+                return curatedSet;
+            }
+        }
+        return choiceSetRepository.findFirstByQuestionUuidAndStatusOrderByCreatedAtDesc(questionUuid, ChoiceSetStatus.OK);
     }
 
     /** 선택지 세트 > 요약 (shouldIncludeAnswer=false 면 정답 여부·해설 null) */
@@ -145,6 +159,11 @@ public class QuestionService {
                         shouldIncludeAnswer ? item.getRationale() : null,
                         item.getSortOrder()))
                 .toList();
+        // 풀이용 고정 세트는 표시 순서 섞기 (관리자 화면은 저장 순서 유지)
+        if (!shouldIncludeAnswer && choiceSet.getSource() != null && choiceSet.getSource().isCurated()) {
+            items = ChoiceOrderShuffler.shuffle(items, (item, sortOrder) -> new QuestionDetail.ChoiceItem(
+                    item.key(), item.kind(), item.body(), item.isCorrect(), item.rationale(), sortOrder));
+        }
         return new QuestionDetail.ChoiceSetSummary(
                 choiceSet.getChoiceSetUuid(),
                 choiceSet.getSource(),
@@ -176,7 +195,20 @@ public class QuestionService {
 
     /** 풀이용 선택지 세트 > 응답 (정답 여부·해설 제외) */
     public ChoiceSetGenerateResponse getChoiceSetForSolving(UUID choiceSetUuid) {
-        List<ChoiceSetGenerateResponse.ChoiceItem> choiceItems = choiceSetItemRepository
+        List<ChoiceSetGenerateResponse.ChoiceItem> choiceItems = findChoiceItemsForSolving(choiceSetUuid);
+        // 고정 세트는 응답마다 표시 순서 섞기 (#511)
+        boolean isCuratedSet = choiceSetRepository.findById(choiceSetUuid)
+                .map(choiceSet -> choiceSet.getSource() != null && choiceSet.getSource().isCurated())
+                .orElse(false);
+        if (isCuratedSet) {
+            choiceItems = ChoiceOrderShuffler.shuffle(choiceItems, (item, sortOrder) -> new ChoiceSetGenerateResponse.ChoiceItem(
+                    item.key(), item.kind(), item.body(), sortOrder));
+        }
+        return new ChoiceSetGenerateResponse(choiceSetUuid, choiceItems);
+    }
+
+    private List<ChoiceSetGenerateResponse.ChoiceItem> findChoiceItemsForSolving(UUID choiceSetUuid) {
+        return choiceSetItemRepository
                 .findByChoiceSetUuidOrderBySortOrderAsc(choiceSetUuid)
                 .stream()
                 .map(item -> new ChoiceSetGenerateResponse.ChoiceItem(
@@ -185,7 +217,6 @@ public class QuestionService {
                         item.getBody(),
                         item.getSortOrder()))
                 .toList();
-        return new ChoiceSetGenerateResponse(choiceSetUuid, choiceItems);
     }
 
     public Question getQuestionEntity(UUID questionUuid) {
