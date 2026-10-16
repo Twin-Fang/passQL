@@ -26,7 +26,7 @@ export function toUnreadBadgeLabel(unreadCount: number): string | null {
   return unreadCount > BADGE_MAX_DISPLAY_COUNT ? `${BADGE_MAX_DISPLAY_COUNT}+` : String(unreadCount);
 }
 
-const APP_TITLE = "passQL";
+const APP_TITLE = "passQL · SQLD·SQLP 문제 풀이";
 
 /** 안 읽은 개수 > 브라우저 탭 제목 ("(3) passQL") */
 export function toDocumentTitle(unreadCount: number): string {
