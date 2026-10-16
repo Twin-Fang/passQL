@@ -1,23 +1,41 @@
-// 공지 배너: 중요 우선 노출, 닫기 기록 스모크 (#464)
+// 공지 배너: 안 읽은 중요 공지만 노출, 닫기 = 서버 읽음 (낙관적) (#491)
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import NoticeBanner from "./NoticeBanner";
-import type { AppConfigResponse, AppNotice } from "../types/api";
+import { useAuthStore } from "../stores/authStore";
+import type { NotificationItem } from "../types/api";
 
-function buildNotice(noticeUuid: string, title: string, isImportant: boolean): AppNotice {
-  return { noticeUuid, title, body: `${title} 본문`, startsAt: null, endsAt: null, isActive: true, isImportant };
+function buildNotice(id: string, title: string, overrides: Partial<NotificationItem>): NotificationItem {
+  return {
+    id, category: "NOTICE", type: "NOTICE", title, body: `${title} 본문`, linkTarget: null,
+    linkQuestionUuid: null, isRead: false, createdAt: "2026-10-16T09:00:00", isImportant: true, ...overrides,
+  };
 }
 
-// 서버 순서 그대로 (중요 먼저)
-const APP_CONFIG: AppConfigResponse = {
-  maintenance: { isUnderMaintenance: false, message: null },
-  notices: [buildNotice("notice-important", "중요 공지", true), buildNotice("notice-normal", "일반 공지", false)],
-};
+const NOTICES = [
+  buildNotice("read-important", "읽은 중요 공지", { isRead: true }),
+  buildNotice("normal", "일반 공지", { isImportant: false }),
+  buildNotice("unread-important", "안 읽은 중요 공지", {}),
+];
+
+/** 경로별 가짜 응답 + 읽음 요청 기록 (readStatus: 읽음 POST 응답 코드) */
+function mockFetch(readStatus: number, unreadNoticeCount: number = 2) {
+  const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.includes("/unread-count")) {
+      return new Response(JSON.stringify({ general: 0, notice: unreadNoticeCount, total: unreadNoticeCount }), { status: 200 });
+    }
+    if (init?.method === "POST") return new Response(null, { status: readStatus });
+    return new Response(JSON.stringify({ items: NOTICES, nextCursor: null }), { status: 200 });
+  });
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
 
 function renderBanner() {
-  const queryClient = new QueryClient();
-  queryClient.setQueryData(["appConfig"], APP_CONFIG);
+  useAuthStore.setState({ accessToken: "token", memberUuid: "member-1" });
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={queryClient}>
       <NoticeBanner />
@@ -26,32 +44,43 @@ function renderBanner() {
 }
 
 afterEach(() => {
-  localStorage.clear();
-  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+  useAuthStore.setState({ accessToken: null, memberUuid: null });
 });
 
 describe("NoticeBanner", () => {
-  it("중요 공지 먼저 노출, 클릭 > 본문 모달", () => {
+  it("안 읽은 중요 공지만 노출, 클릭 > 본문 모달", async () => {
+    mockFetch(204);
     renderBanner();
-    fireEvent.click(screen.getByText("중요 공지"));
-    expect(screen.getByRole("dialog")).toHaveTextContent("중요 공지 본문");
+    fireEvent.click(await screen.findByText("안 읽은 중요 공지"));
+    expect(screen.getByRole("dialog")).toHaveTextContent("안 읽은 중요 공지 본문");
+    expect(screen.queryByText("읽은 중요 공지")).not.toBeInTheDocument();
+    expect(screen.queryByText("일반 공지")).not.toBeInTheDocument();
   });
 
-  it("닫기 > 기록 저장, 다음 공지 노출, 다시 띄워도 안 보임", () => {
-    const { unmount } = renderBanner();
-    fireEvent.click(screen.getByRole("button", { name: "공지 닫기" }));
-    expect(screen.getByText("일반 공지")).toBeInTheDocument();
-    unmount();
-
+  it("닫기 > 공지 읽음 POST 후 숨김", async () => {
+    const fetchMock = mockFetch(204);
     renderBanner();
-    expect(screen.queryByText("중요 공지")).not.toBeInTheDocument();
-    expect(screen.getByText("일반 공지")).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole("button", { name: "공지 닫기" }));
+    expect(screen.queryByText("안 읽은 중요 공지")).not.toBeInTheDocument();
+    await waitFor(() => {
+      const readCall = fetchMock.mock.calls.find(([, init]) => init?.method === "POST");
+      expect(String(readCall?.[0])).toContain("/members/me/notifications/unread-important/read?category=NOTICE");
+    });
   });
 
-  it("저장소 차단 > 오류 없이 이번 화면에서만 닫힘", () => {
-    vi.spyOn(localStorage, "setItem").mockImplementation(() => { throw new Error("blocked"); });
+  it("읽음 요청 실패해도 배너는 닫힘", async () => {
+    mockFetch(500);
     renderBanner();
-    fireEvent.click(screen.getByRole("button", { name: "공지 닫기" }));
-    expect(screen.queryByText("중요 공지")).not.toBeInTheDocument();
+    fireEvent.click(await screen.findByRole("button", { name: "공지 닫기" }));
+    expect(screen.queryByText("안 읽은 중요 공지")).not.toBeInTheDocument();
+  });
+
+  it("안 읽은 공지 0건이면 목록 조회 없이 숨김", async () => {
+    const fetchMock = mockFetch(204, 0);
+    renderBanner();
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(screen.queryByRole("region", { name: "공지" })).not.toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([url]) => !String(url).includes("/unread-count"))).toBe(false);
   });
 });

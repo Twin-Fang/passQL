@@ -1,26 +1,32 @@
 import { useState } from "react";
 import { Megaphone, X } from "lucide-react";
-import { useAppConfig } from "../hooks/useAppConfig";
-import { readDismissedNoticeUuids, saveDismissedNoticeUuid } from "../lib/dismissedNoticeStorage";
+import { useMarkNotificationRead, useNotificationInbox } from "../hooks/useNotifications";
+import { useUnreadNotificationCount } from "../hooks/useUnreadNotificationCount";
 import NoticeModal from "./NoticeModal";
 
 /**
- * 공지 배너: 닫지 않은 공지 중 서버 순서상 첫 건 (중요 먼저) (#464)
- * 클릭 > 본문 모달, 닫기 > 같은 noticeUuid 다시 안 띄움
+ * 공지 배너: 안 읽은 중요 공지 첫 건 (#464, #491)
+ * 클릭 > 본문 모달 + 읽음, 닫기 > 서버 읽음 (요청 실패해도 이번 화면에서는 닫힘)
+ * 안 읽은 공지가 없으면 목록을 조회하지 않음 (IO 절약)
  */
 export default function NoticeBanner() {
-  const { data: appConfig } = useAppConfig();
-  const [dismissedNoticeUuids, setDismissedNoticeUuids] = useState(readDismissedNoticeUuids);
+  const { unreadCount } = useUnreadNotificationCount();
+  const { data: noticeInbox } = useNotificationInbox("NOTICE", unreadCount.notice > 0);
+  const { mutate: markNotificationRead } = useMarkNotificationRead();
+  // 읽음 요청 결과와 무관하게 즉시 숨길 공지 (낙관적)
+  const [closedNoticeIds, setClosedNoticeIds] = useState<ReadonlySet<string>>(new Set());
   const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
 
-  const notice = appConfig?.notices.find(
-    (candidate) => !dismissedNoticeUuids.has(candidate.noticeUuid),
-  );
+  const notice = noticeInbox?.pages
+    .flatMap((page) => page.items)
+    .find((candidate) => candidate.isImportant && !candidate.isRead && !closedNoticeIds.has(candidate.id));
   if (!notice) return null;
 
-  const onDismissPressed = () => {
+  /** 배너에서 숨기고 서버에 읽음 기록 */
+  const closeNoticeAsRead = () => {
     setIsNoticeModalOpen(false);
-    setDismissedNoticeUuids(saveDismissedNoticeUuid(notice.noticeUuid));
+    setClosedNoticeIds((closedIds) => new Set(closedIds).add(notice.id));
+    markNotificationRead({ notification: notice });
   };
 
   return (
@@ -35,16 +41,14 @@ export default function NoticeBanner() {
           className="flex-1 min-w-0 flex items-center gap-2 py-2 text-left cursor-pointer"
         >
           <Megaphone size={18} className="shrink-0 text-brand" />
-          {notice.isImportant && (
-            <span className="shrink-0 px-1.5 py-0.5 rounded-md text-xs font-semibold text-semantic-error-text bg-semantic-error-light">
-              중요
-            </span>
-          )}
+          <span className="shrink-0 px-1.5 py-0.5 rounded-md text-xs font-semibold text-semantic-error-text bg-semantic-error-light">
+            중요
+          </span>
           <span className="truncate text-sm font-semibold text-text-primary">{notice.title}</span>
         </button>
         <button
           type="button"
-          onClick={onDismissPressed}
+          onClick={closeNoticeAsRead}
           aria-label="공지 닫기"
           className="shrink-0 flex items-center justify-center w-10 h-10 text-text-caption hover:text-text-secondary cursor-pointer"
         >
@@ -52,9 +56,7 @@ export default function NoticeBanner() {
         </button>
       </section>
 
-      {isNoticeModalOpen && (
-        <NoticeModal notice={notice} onClose={() => setIsNoticeModalOpen(false)} />
-      )}
+      {isNoticeModalOpen && <NoticeModal notice={notice} onClose={closeNoticeAsRead} />}
     </>
   );
 }
