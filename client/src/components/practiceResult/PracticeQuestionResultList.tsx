@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import PracticeQuestionResultRow from "./PracticeQuestionResultRow";
 import type { PracticeQuestionResult, QuestionSummary } from "../../types/api";
 
@@ -20,6 +20,11 @@ export default function PracticeQuestionResultList({
   visibleCards,
 }: PracticeQuestionResultListProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  // questionUuid > 지문 미리보기 (행마다 find 하던 O(n²) 제거)
+  const stemPreviewByQuestionUuid = useMemo(
+    () => new Map(questions.map((question) => [question.questionUuid, question.stemPreview ?? undefined])),
+    [questions],
+  );
 
   return (
     <>
@@ -37,7 +42,7 @@ export default function PracticeQuestionResultList({
               key={result.questionUuid}
               result={result}
               questionNumber={i + 1}
-              stemPreview={questions.find((question) => question.questionUuid === result.questionUuid)?.stemPreview ?? undefined}
+              stemPreview={stemPreviewByQuestionUuid.get(result.questionUuid)}
               sessionId={sessionId}
               isOpen={isOpen}
               isVisible={!!visibleCards[i]}

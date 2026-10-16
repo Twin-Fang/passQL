@@ -29,7 +29,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+// 클래스 단위 트랜잭션 없음: AI 서버(Qdrant) 호출 동안 DB 커넥션을 잡지 않게 (#497)
 public class RecommendationService {
 
     private final AiGatewayClient aiGatewayClient;

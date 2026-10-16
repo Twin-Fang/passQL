@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
+
+import '../../core/network/dio_client.dart';
 import '../models/question/choice_item.dart';
 import '../models/question/sse_event.dart';
 
@@ -22,6 +24,8 @@ class SseQuestionClient {
         options: Options(
           responseType: ResponseType.stream,
           headers: {'Accept': 'text/event-stream'},
+          // 생성이 길어도 끊기지 않게 SSE 전용 대기 시간
+          receiveTimeout: choiceGenerationStreamReceiveTimeout,
         ),
       );
     } catch (_) {

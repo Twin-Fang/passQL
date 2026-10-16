@@ -54,9 +54,9 @@ export default function DailySet() {
     completeDailySet(correctCount, sessionUuid)
       .then(() => {
         // 데일리 세트 완료 후 관련 캐시 갱신 — 홈 화면 상태 최신화
-        queryClient.refetchQueries({ queryKey: ["dailySet"] });
-        queryClient.refetchQueries({ queryKey: ["heatmap"] });
-        queryClient.refetchQueries({ queryKey: ["progress"] });
+        queryClient.invalidateQueries({ queryKey: ["dailySet"] });
+        queryClient.invalidateQueries({ queryKey: ["heatmap"] });
+        queryClient.invalidateQueries({ queryKey: ["progress"] });
       })
       .catch(() => {})
       .finally(() => {

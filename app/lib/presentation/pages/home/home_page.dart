@@ -8,6 +8,7 @@ import '../../design/design.dart';
 import '../../providers/home_providers.dart';
 import '../../providers/notification_inbox_providers.dart';
 import '../../providers/unread_notification_providers.dart';
+import '../../widgets/common/app_toast.dart';
 import '../../widgets/home/app_notice_banner.dart';
 import '../../widgets/home/daily_set_card.dart';
 import '../../widgets/home/exam_schedule_card.dart';
@@ -29,7 +30,9 @@ class HomePage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.passqlColors.background,
+      // 새로고침 실패 시 이전 데이터 유지 (오류 화면은 첫 조회 실패에만)
       body: homeAsync.when(
+        skipError: true,
         loading: () => const _HomeShell(slivers: [_HomeSkeleton()]),
         error: (error, _) => _HomeShell(
           slivers: [
@@ -37,7 +40,7 @@ class HomePage extends ConsumerWidget {
               hasScrollBody: false,
               child: PassqlStatusView.error(
                 message: '데이터를 불러오지 못했어요.',
-                onRetry: () => ref.invalidate(homeDataProvider),
+                onRetry: () => invalidateHomeData(ref.invalidate),
               ),
             ),
           ],
@@ -52,8 +55,12 @@ class HomePage extends ConsumerWidget {
             ref.invalidate(
               notificationInboxProvider(NotificationCategory.notice),
             );
-            ref.invalidate(homeDataProvider);
-            await ref.read(homeDataProvider.future);
+            invalidateHomeData(ref.invalidate);
+            try {
+              await ref.read(homeDataProvider.future);
+            } catch (_) {
+              if (context.mounted) showAppToast(context, '새로고침하지 못했어요');
+            }
           },
           slivers: [_HomeContent(data: data)],
         ),

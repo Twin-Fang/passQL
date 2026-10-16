@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../data/models/question/question_detail.dart';
@@ -61,41 +63,72 @@ class QuestionSolvingBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final executeResult = interaction.currentExecuteResult;
-    final hasExecutionError = executeResult?.errorCode?.isNotEmpty == true;
     // Scaffold 안쪽 context 여야 extendBody 가 더한 하단 바 높이를 읽는다.
-    return ListView(
+    // 전부 미리 그림 (화면 밖 실행 결과도 자리를 알아야 스크롤로 보여 줄 수 있음)
+    return SingleChildScrollView(
       padding: EdgeInsets.only(
         bottom: MediaQuery.paddingOf(context).bottom + PassqlSpacing.xl,
       ),
-      children: [
-        // 난이도 + 실행 모드 뱃지
-        QuestionHeader(question: question),
-        // 스키마 DDL (EXECUTABLE 모드에서만 표시)
-        if (_isExecutable)
-          SchemaSection(
-            schemaDdl: question.schemaDdl,
-            schemaSampleData: question.schemaSampleData,
-          ),
-        QuestionStem(stem: question.stem),
-        QuestionChoices(
-          interaction: interaction,
-          notifier: notifier,
-          isExecutable: _isExecutable,
-          submitResult: submitResult,
-          gradedSelectedKey: gradedSelectedKey,
-          shouldAlwaysAllowRetry: shouldAlwaysAllowRetry,
-        ),
-        // SQL 실행 중 로딩
-        if (interaction.isExecuting)
-          const Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: PassqlSpacing.md,
-              vertical: PassqlSpacing.xs,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 난이도 + 실행 모드 뱃지
+          QuestionHeader(question: question),
+          // 스키마 DDL (EXECUTABLE 모드에서만 표시)
+          if (_isExecutable)
+            SchemaSection(
+              schemaDdl: question.schemaDdl,
+              schemaSampleData: question.schemaSampleData,
             ),
-            child: PassqlLoadingIndicator(),
+          QuestionStem(stem: question.stem),
+          QuestionChoices(
+            interaction: interaction,
+            notifier: notifier,
+            isExecutable: _isExecutable,
+            submitResult: submitResult,
+            gradedSelectedKey: gradedSelectedKey,
+            shouldAlwaysAllowRetry: shouldAlwaysAllowRetry,
           ),
-        // SQL 실행 결과 (오류면 AI 해설 버튼)
+          _ExecutionOutcomeSection(
+            outcomeKey: _executionOutcomeKey,
+            outcome: _buildExecutionOutcome(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 실행 영역 상태 4개: 없음, 실행 중, 결과, 요청 실패 (상태가 바뀔 때만 교체 연출)
+  Object get _executionOutcomeKey {
+    if (interaction.isExecuting) return 'executing';
+    if (interaction.currentExecuteResult != null) {
+      return interaction.currentExecuteResult!;
+    }
+    if (interaction.executeFailure != null) return 'failure';
+    return 'none';
+  }
+
+  /// 실행 영역 내용: 실행 중 로딩 > 결과(오류면 AI 해설 버튼) > 요청 실패. 없으면 null
+  Widget? _buildExecutionOutcome(BuildContext context) {
+    final executeResult = interaction.currentExecuteResult;
+    final hasExecutionError = executeResult?.errorCode?.isNotEmpty == true;
+    // SQL 실행 중 로딩
+    if (interaction.isExecuting) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: PassqlSpacing.md,
+          vertical: PassqlSpacing.xs,
+        ),
+        child: PassqlLoadingIndicator(),
+      );
+    }
+    // SQL 실행 결과와 요청 실패(네트워크·5xx·SANDBOX_TIMEOUT 등)
+    if (executeResult == null && interaction.executeFailure == null) {
+      return null;
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
         if (executeResult != null)
           ExecuteResultCard(
             result: executeResult,
@@ -103,13 +136,85 @@ class QuestionSolvingBody extends StatelessWidget {
                 ? () => _openExecutionErrorExplanation(context)
                 : null,
           ),
-        // SQL 실행 요청 실패 (네트워크·5xx·SANDBOX_TIMEOUT 등)
         if (interaction.executeFailure != null)
           ExecuteFailureCard(
             message: interaction.executeFailure!.message,
             onRetry: notifier.retryExecution,
           ),
       ],
+    );
+  }
+}
+
+/// 실행 결과 자리: 높이가 부드럽게 늘고 내용은 페이드 교체, 새 결과·실패면 그 위치까지 스크롤
+class _ExecutionOutcomeSection extends StatefulWidget {
+  const _ExecutionOutcomeSection({
+    required this.outcomeKey,
+    required this.outcome,
+  });
+
+  /// 상태 구분 값 (바뀔 때만 교체·스크롤)
+  final Object outcomeKey;
+
+  /// 보여 줄 내용. null 이면 접힘
+  final Widget? outcome;
+
+  @override
+  State<_ExecutionOutcomeSection> createState() =>
+      _ExecutionOutcomeSectionState();
+}
+
+class _ExecutionOutcomeSectionState extends State<_ExecutionOutcomeSection> {
+  /// 높이 연출이 끝난 뒤 스크롤 (끝난 크기 기준으로 보이게)
+  Timer? _revealTimer;
+
+  @override
+  void didUpdateWidget(covariant _ExecutionOutcomeSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final hasNewSettledOutcome =
+        widget.outcomeKey != oldWidget.outcomeKey &&
+        widget.outcome != null &&
+        widget.outcomeKey != 'executing';
+    if (hasNewSettledOutcome) _scheduleRevealOutcome();
+  }
+
+  /// 결과 자리를 화면 안으로 스크롤 (동작 줄이기면 즉시)
+  void _scheduleRevealOutcome() {
+    _revealTimer?.cancel();
+    final isReduced = PassqlMotion.isReduced(context);
+    _revealTimer = Timer(
+      isReduced ? Duration.zero : PassqlMotion.standard,
+      () {
+        if (!mounted) return;
+        Scrollable.ensureVisible(
+          context,
+          duration: isReduced ? Duration.zero : PassqlMotion.standard,
+          curve: PassqlMotion.curve,
+          // 이미 보이면 그대로, 아래로 벗어나 있으면 아래 끝에 맞춤
+          alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _revealTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final content = KeyedSubtree(
+      key: ValueKey(widget.outcomeKey),
+      child: widget.outcome ?? const SizedBox.shrink(),
+    );
+    if (PassqlMotion.isReduced(context)) return content;
+    return AnimatedSize(
+      duration: PassqlMotion.standard,
+      curve: PassqlMotion.curve,
+      alignment: Alignment.topCenter,
+      child: PassqlFadeSwitcher(child: content),
     );
   }
 }

@@ -24,7 +24,8 @@ CI: `.github/workflows/PROJECT-COMMON-BRAND-ASSETS-CHECK.yaml` 이 `--check` 를
 
 | 원본 | 사본 | 만드는 방법 |
 |------|------|-------------|
-| `logo_horizontal.png` | `app/assets/logo.png`, `client/src/assets/logo/logo.png`, `server/PQL-Web/src/main/resources/static/images/logo.png` | 그대로 복사 |
+| `logo_horizontal.png` | `app/assets/logo.png`, `server/PQL-Web/src/main/resources/static/images/logo.png` | 그대로 복사 |
+| `logo_horizontal.png` | `client/src/assets/logo/logo.png` | 높이 120px 축소 (웹 최대 표시 40px x 3배, 번들 크기 절감 #497) |
 | `logo_horizontal.png` | `app/assets/logo_dark.png`, `server/.../static/images/logo_dark.png` | 다크 변환: 불투명 픽셀 중 max(R,G,B)<120 이고 채도 차이<70 > 흰색, 알파 유지 (#453) |
 | `logo_horizontal.png` | `app/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage{,@2x,@3x}.png`, `LaunchImageDark{,@2x,@3x}.png`, `Contents.json` | 폭 168/336/504px, 다크는 luminosity dark |
 | `logo_horizontal.png` | `app/android/app/src/main/res/drawable-{mdpi..xxxhdpi}/launch_logo.png`, `drawable-night-{mdpi..xxxhdpi}/launch_logo.png` | 폭 168dp, Android 11 이하 시작 화면 (`launch_background.xml`) |

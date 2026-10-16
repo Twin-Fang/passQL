@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../core/error/app_exception.dart';
 import '../../core/network/api_call.dart';
@@ -31,11 +30,6 @@ final settingsDataProvider = FutureProvider<SettingsData>((ref) async {
     choiceMode: me.choiceGenerationMode ?? ChoiceGenerationMode.practice,
   );
 });
-
-/// 앱 버전 (PackageInfo). 회원 API 실패와 무관하게 설정 화면에 표시
-final appVersionProvider = FutureProvider<String>(
-  (ref) async => (await PackageInfo.fromPlatform()).version,
-);
 
 /// 닉네임 Notifier. 재생성·직접 변경 결과를 한곳에서 반영한다.
 ///

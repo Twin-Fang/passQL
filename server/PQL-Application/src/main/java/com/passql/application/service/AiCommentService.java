@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+// 클래스 단위 트랜잭션 없음: Gemini 호출 동안 DB 커넥션을 잡지 않게 (#497)
 public class AiCommentService {
 
     private static final String CACHE_KEY_PREFIX = "ai-comment:";

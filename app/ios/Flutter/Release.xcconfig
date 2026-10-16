@@ -1,2 +1,6 @@
 #include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
 #include "Generated.xcconfig"
+// AdMob 앱 ID 기본값: Google 테스트 앱 ID (Info.plist GADApplicationIdentifier, 비면 SDK 가 앱 시작 시 종료시킴)
+PASSQL_ADMOB_IOS_APP_ID=ca-app-pub-3940256099942544~1458002511
+// 실제 값은 app/.env 로 생성한 AdMob.xcconfig 가 덮어씀 (tool/gen_ios_admob_config.sh, 커밋 제외)
+#include? "AdMob.xcconfig"

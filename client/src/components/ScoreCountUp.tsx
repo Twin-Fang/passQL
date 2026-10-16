@@ -21,24 +21,37 @@ export default function ScoreCountUp({ target, total, onComplete }: ScoreCountUp
   onCompleteRef.current = onComplete;
 
   useEffect(() => {
-    if (target <= 0) {
-      setTimeout(() => onCompleteRef.current?.(), 200);
-      return;
-    }
-    let step = 0;
-    const tick = () => {
-      step++;
-      setCount(step);
-      setAnimating(true);
-      setTimeout(() => setAnimating(false), 200);
-      if (step < target) {
-        setTimeout(tick, 60 + step * 30);
-      } else {
-        setTimeout(() => onCompleteRef.current?.(), 200);
-      }
+    // 연쇄 타이머 전부 보관 > 언마운트·target 변경 시 일괄 해제 (setState·onComplete 누수 방지)
+    const pendingTimers = new Set<ReturnType<typeof setTimeout>>();
+    const schedule = (callback: () => void, delayMilliseconds: number) => {
+      const timer = setTimeout(() => {
+        pendingTimers.delete(timer);
+        callback();
+      }, delayMilliseconds);
+      pendingTimers.add(timer);
     };
-    const timer = setTimeout(tick, 200);
-    return () => clearTimeout(timer);
+
+    if (target <= 0) {
+      schedule(() => onCompleteRef.current?.(), 200);
+    } else {
+      let step = 0;
+      const tick = () => {
+        step++;
+        setCount(step);
+        setAnimating(true);
+        schedule(() => setAnimating(false), 200);
+        if (step < target) {
+          schedule(tick, 60 + step * 30);
+        } else {
+          schedule(() => onCompleteRef.current?.(), 200);
+        }
+      };
+      schedule(tick, 200);
+    }
+    return () => {
+      pendingTimers.forEach((timer) => clearTimeout(timer));
+      pendingTimers.clear();
+    };
   }, [target]);
 
   const colorClass = COLOR_CLASS_SCALE[count] ?? COLOR_CLASS_SCALE[0];

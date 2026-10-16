@@ -27,10 +27,14 @@ class TokenStore {
 
     String? access, refresh, uuid, nickname;
     try {
-      access = await _storage.read(key: _kAccess);
-      refresh = await _storage.read(key: _kRefresh);
-      uuid = await _storage.read(key: _kMemberUuid);
-      nickname = await _storage.read(key: _kNickname);
+      // 키 4개 동시 읽기 (시작 시 세션 복원 대기 단축)
+      final storedValues = await Future.wait([
+        _storage.read(key: _kAccess),
+        _storage.read(key: _kRefresh),
+        _storage.read(key: _kMemberUuid),
+        _storage.read(key: _kNickname),
+      ]);
+      [access, refresh, uuid, nickname] = storedValues;
     } catch (_) {
       // 기기 이전이나 백업 복원으로 암호화 키가 사라지면 읽기가 예외를 던진다.
       // 앱이 켜지지 않는 것보다 로그인 화면으로 가는 것이 낫다. 읽을 수 없는 저장분은 지운다.

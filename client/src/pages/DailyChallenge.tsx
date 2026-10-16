@@ -49,12 +49,12 @@ export default function DailyChallenge() {
         // 정답: 백엔드에 제출 → 완료 처리 (alreadySolvedToday=true)
         try {
           const result = await submitAnswer(today.question.questionUuid, choiceSetId, selectedChoiceKey, sessionUuid);
-          // 백그라운드에서 캐시 즉시 재조회 — 홈 복귀 시 완료 상태·추천 문제 목록·학습 현황 반영
-          queryClient.refetchQueries({ queryKey: ["todayQuestion", uuid] });
+          // 캐시 무효화 (복귀 시 재요청) — 홈 복귀 시 완료 상태·추천 문제 목록·학습 현황 반영
+          queryClient.invalidateQueries({ queryKey: ["todayQuestion", uuid] });
           // excludeUuids=[]로 새 랜덤 세트를 받음 — 데일리 챌린지 완료 후이므로 의도된 동작
-          queryClient.refetchQueries({ queryKey: ["recommendations"] });
-          queryClient.refetchQueries({ queryKey: ["heatmap"] });
-          queryClient.refetchQueries({ queryKey: ["progress"] });
+          queryClient.invalidateQueries({ queryKey: ["recommendations"] });
+          queryClient.invalidateQueries({ queryKey: ["heatmap"] });
+          queryClient.invalidateQueries({ queryKey: ["progress"] });
           setFeedback(result);
         } catch {
           navigate("/", { replace: true });

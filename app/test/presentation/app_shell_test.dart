@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:passql_app/presentation/design/design.dart';
@@ -27,8 +28,14 @@ void main() {
         ),
       ],
     );
+    // 탭 쉘의 광고 자리가 provider 를 읽음 (호스트 테스트는 광고 꺼짐)
     await tester.pumpWidget(
-      MaterialApp.router(theme: PassqlTheme.light, routerConfig: router),
+      ProviderScope(
+        child: MaterialApp.router(
+          theme: PassqlTheme.light,
+          routerConfig: router,
+        ),
+      ),
     );
     await tester.pumpAndSettle();
 

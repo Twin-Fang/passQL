@@ -1,9 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <!-- 광고 ID 미사용 (Play Console 선언과 일치, Analytics 가 병합하는 권한 제거) (#468) -->
-    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
-    <uses-permission android:name="android.permission.ACCESS_ADSERVICES_AD_ID" tools:node="remove" />
-    <uses-permission android:name="android.permission.ACCESS_ADSERVICES_ATTRIBUTION" tools:node="remove" />
+    <!-- AdMob 광고 ID 사용 (#506). Play Console '광고 ID' 선언을 '사용'으로 바꾼 뒤 업로드
+         Privacy Sandbox 권한(ACCESS_ADSERVICES_*)은 광고 SDK 가 병합 -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
     <!-- 서버 API 통신 (릴리스 빌드는 플러그인 병합에 기대지 않고 직접 선언) -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
@@ -38,6 +37,10 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- AdMob 앱 ID. 값은 build.gradle.kts 가 app/.env 로 채움 (비면 Google 테스트 앱 ID) -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
         <!-- Analytics 광고 ID 수집 끔 (#468) -->
         <meta-data
             android:name="google_analytics_adid_collection_enabled"

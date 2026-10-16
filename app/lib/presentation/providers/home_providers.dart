@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/sources/api_providers.dart';
+import '../../core/error/app_exception.dart';
 import '../../core/network/safe_call.dart';
 import '../../data/models/home/greeting_response.dart';
 import '../../data/models/home/recommendations_request.dart';
@@ -29,42 +30,100 @@ class HomeData {
   });
 }
 
-/// 홈 화면 데이터 Provider.
-///
-/// 6개 API를 병렬 호출. 회원은 요청의 토큰으로 식별된다.
-/// 개별 API 실패는 null로 처리 — 전체 화면 에러 방지.
-final homeDataProvider = FutureProvider<HomeData>((ref) async {
-  final homeClient = ref.read(homeApiProvider);
-  final progressClient = ref.read(progressApiProvider);
-  final questionClient = ref.read(questionApiProvider);
-  final examClient = ref.read(examScheduleApiProvider);
+/// 홈 데이터 중 풀이와 무관한 묶음: 인사말·추천 문제·시험 일정
+class HomeOverview {
+  final GreetingResponse? greeting;
+  final RecommendationsResponse? recommendations;
+  final ExamScheduleResponse? examSchedule;
 
-  // 6개 API 병렬 호출.
-  // getHeatmap(from, to) — from/to는 nullable String.
-  // 개별 실패는 해당 섹션만 숨기지만, 전부 실패하면(서버 장애·네트워크 끊김) 오류 화면을 띄운다 (#375).
-  final greeting = SafeCallSlot(homeClient.getGreeting());
-  final progress = SafeCallSlot(progressClient.getProgress());
-  final dailySet = SafeCallSlot(ref.read(dailySetApiProvider).getToday());
+  const HomeOverview({this.greeting, this.recommendations, this.examSchedule});
+}
+
+/// 홈 데이터 중 풀이마다 바뀌는 묶음: 진행 현황·오늘의 세트 상태·히트맵
+class HomeLearningStatus {
+  final ProgressResponse? progress;
+  final DailySetTodayResponse? dailySet;
+  final HeatmapResponse? heatmap;
+
+  const HomeLearningStatus({this.progress, this.dailySet, this.heatmap});
+}
+
+/// 인사말·추천·시험 일정 3개 병렬 호출. 날짜가 바뀌거나 직접 새로고침할 때만 다시 받는다
+final homeOverviewProvider = FutureProvider<HomeOverview>((ref) async {
+  final greeting = SafeCallSlot(ref.read(homeApiProvider).getGreeting());
   final recommendations = SafeCallSlot(
-    questionClient.getRecommendations(const RecommendationsRequest(size: 3)),
+    ref
+        .read(questionApiProvider)
+        .getRecommendations(const RecommendationsRequest(size: 3)),
   );
-  final examSchedule = SafeCallSlot(examClient.getSelectedSchedule());
-  final heatmap = SafeCallSlot(progressClient.getHeatmap(null, null));
-  await safeCallAll([
-    greeting,
-    progress,
-    dailySet,
-    recommendations,
-    examSchedule,
-    heatmap,
-  ]);
-
-  return HomeData(
+  final examSchedule = SafeCallSlot(
+    ref.read(examScheduleApiProvider).getSelectedSchedule(),
+  );
+  await safeCallAll([greeting, recommendations, examSchedule]);
+  return HomeOverview(
     greeting: greeting.value,
-    progress: progress.value,
-    dailySet: dailySet.value,
     recommendations: recommendations.value,
     examSchedule: examSchedule.value,
+  );
+});
+
+/// 진행 현황·오늘의 세트·히트맵 3개 병렬 호출. 풀이 후 갱신 대상(refreshLearningData)
+final homeLearningStatusProvider = FutureProvider<HomeLearningStatus>((
+  ref,
+) async {
+  final progressClient = ref.read(progressApiProvider);
+  final progress = SafeCallSlot(progressClient.getProgress());
+  final dailySet = SafeCallSlot(ref.read(dailySetApiProvider).getToday());
+  // getHeatmap(from, to): null 이면 서버 기본 기간
+  final heatmap = SafeCallSlot(progressClient.getHeatmap(null, null));
+  await safeCallAll([progress, dailySet, heatmap]);
+  return HomeLearningStatus(
+    progress: progress.value,
+    dailySet: dailySet.value,
     heatmap: heatmap.value,
   );
 });
+
+/// 홈 화면 데이터: [homeOverviewProvider] + [homeLearningStatusProvider] 합침
+///
+/// 한 묶음만 다시 받아도 다른 묶음은 캐시를 그대로 쓴다.
+/// 한쪽 실패는 그 섹션만 숨기고, 양쪽 다 실패(서버 장애·네트워크 끊김)하면 오류 화면 (#375).
+/// 인증 만료는 삼키지 않고 다시 던짐 (로그인 화면 전환)
+final homeDataProvider = FutureProvider<HomeData>((ref) async {
+  // 두 묶음 동시 대기 (각 오류는 결과로 받아 미처리 예외 방지)
+  final overviewOutcome = _settle(ref.watch(homeOverviewProvider.future));
+  final learningOutcome = _settle(
+    ref.watch(homeLearningStatusProvider.future),
+  );
+  final (overview, overviewError) = await overviewOutcome;
+  final (learning, learningError) = await learningOutcome;
+
+  // 실패 판정 (인증 만료 우선 > 양쪽 실패)
+  for (final error in [overviewError, learningError]) {
+    if (error is AppException && error.isUnauthorized) throw error;
+  }
+  if (overviewError != null && learningError != null) throw overviewError;
+
+  return HomeData(
+    greeting: overview?.greeting,
+    progress: learning?.progress,
+    dailySet: learning?.dailySet,
+    recommendations: overview?.recommendations,
+    examSchedule: overview?.examSchedule,
+    heatmap: learning?.heatmap,
+  );
+});
+
+/// 결과 또는 오류 > (값, 오류) 쌍
+Future<(T?, Object?)> _settle<T>(Future<T> load) => load.then<(T?, Object?)>(
+  (value) => (value, null),
+  onError: (Object error) => (null, error),
+);
+
+/// 홈 전체 다시 받기 (당겨서 새로고침·재시도·날짜 변경·계정 전환 공통)
+void invalidateHomeData(void Function(ProviderOrFamily provider) invalidate) {
+  invalidate(homeOverviewProvider);
+  invalidate(homeLearningStatusProvider);
+  // 테스트에서 합친 Provider 만 override 해도 다시 불러오도록 함께 비움
+  invalidate(homeDataProvider);
+}

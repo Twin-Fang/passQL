@@ -27,6 +27,26 @@ export default defineConfig({
   // version.yml의 version 값을 빌드 시 전역 상수로 주입
   define: { __APP_VERSION__: JSON.stringify(appVersion) },
   plugins: [react(), tailwindcss(), injectSiteUrlIntoIndexHtml()],
+  build: {
+    rolldownOptions: {
+      output: {
+        // 큰 라이브러리 별도 청크: 차트(통계), firebase(로그인), 마크다운(AI 해설) — 앱 코드 배포와 캐시 분리 (#497)
+        // react 최우선 (낮으면 공유 의존성 react-dom 이 차트·마크다운 청크로 끌려가 첫 화면에서 차트 청크까지 로드)
+        codeSplitting: {
+          groups: [
+            { name: "vendor-react", test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/, priority: 4 },
+            { name: "vendor-recharts", test: /node_modules[\\/](recharts|d3-|victory-vendor)/, priority: 3 },
+            { name: "vendor-firebase", test: /node_modules[\\/](firebase|@firebase)[\\/]/, priority: 2 },
+            {
+              name: "vendor-markdown",
+              test: /node_modules[\\/](react-markdown|remark-|unified|mdast-|micromark|hast-|unist-|vfile)/,
+              priority: 1,
+            },
+          ],
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       "/api": {

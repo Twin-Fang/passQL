@@ -4,6 +4,7 @@ import com.google.genai.Client;
 import com.google.genai.types.Content;
 import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
+import com.google.genai.types.HttpOptions;
 import com.google.genai.types.Part;
 import com.google.genai.types.Schema;
 import com.passql.common.exception.CustomException;
@@ -14,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
@@ -31,6 +34,13 @@ public class GeminiClient {
 
     /** 서버 기동 이후 Gemini API 호출 횟수 (인메모리 누적) */
     private final AtomicLong callCount = new AtomicLong(0);
+
+    // 호출 1회 응답 대기 상한 (30초, 넘으면 실패 처리해 요청 스레드를 오래 잡지 않음) (#497)
+    private static final int CALL_TIMEOUT_MILLISECONDS = 30_000;
+    // 동시 호출 상한 (8건) + 자리 대기 상한 (20초): 몰릴 때 스레드·비용 폭주 방지 (#497)
+    private static final int MAX_CONCURRENT_CALLS = 8;
+    private static final long CALL_SLOT_WAIT_SECONDS = 20;
+    private final Semaphore concurrentCallSlots = new Semaphore(MAX_CONCURRENT_CALLS, true);
 
     public GeminiClient(
             AppSettingService appSettingService,
@@ -57,7 +67,10 @@ public class GeminiClient {
             current = cachedClient;
             if (current == null || !current.apiKey().equals(apiKey)) {
                 log.info("[gemini client] rebuilt : api key changed");
-                current = new CachedClient(apiKey, Client.builder().apiKey(apiKey).build());
+                current = new CachedClient(apiKey, Client.builder()
+                        .apiKey(apiKey)
+                        .httpOptions(HttpOptions.builder().timeout(CALL_TIMEOUT_MILLISECONDS).build())
+                        .build());
                 cachedClient = current;
             }
             return current.client();
@@ -89,8 +102,7 @@ public class GeminiClient {
                 .maxOutputTokens(maxTokens)
                 .build();
 
-        GenerateContentResponse response = resolveClient().models.generateContent(model, userPrompt, config);
-        return extractText(response, model);
+        return extractText(generateWithinCallLimit(model, userPrompt, config), model);
     }
 
     /**
@@ -115,8 +127,27 @@ public class GeminiClient {
                 .responseSchema(responseSchema)
                 .build();
 
-        GenerateContentResponse response = resolveClient().models.generateContent(model, userPrompt, config);
-        return extractText(response, model);
+        return extractText(generateWithinCallLimit(model, userPrompt, config), model);
+    }
+
+    /** 동시 호출 자리 확보 > 호출 > 자리 반환 (성공·실패 공통) */
+    private GenerateContentResponse generateWithinCallLimit(String model, String userPrompt, GenerateContentConfig config) {
+        boolean hasSlot;
+        try {
+            hasSlot = concurrentCallSlots.tryAcquire(CALL_SLOT_WAIT_SECONDS, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new CustomException(ErrorCode.AI_UNAVAILABLE);
+        }
+        if (!hasSlot) {
+            log.warn("[gemini client] rejected : no call slot within {}s (limit={})", CALL_SLOT_WAIT_SECONDS, MAX_CONCURRENT_CALLS);
+            throw new CustomException(ErrorCode.AI_UNAVAILABLE);
+        }
+        try {
+            return resolveClient().models.generateContent(model, userPrompt, config);
+        } finally {
+            concurrentCallSlots.release();
+        }
     }
 
     private String extractText(GenerateContentResponse response, String model) {

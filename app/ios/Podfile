@@ -1,6 +1,10 @@
 # Uncomment this line to define a global platform for your project
 platform :ios, '15.0'
 
+# app/.env 의 iOS AdMob 앱 ID > Flutter/AdMob.xcconfig (pod install 마다 갱신, 실패해도 테스트 앱 ID 로 진행)
+system('bash', File.expand_path(File.join('..', 'tool', 'gen_ios_admob_config.sh'), __dir__)) ||
+  puts('[admob ios config] generation failed : Google test app id will be used')
+
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 

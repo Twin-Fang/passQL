@@ -52,26 +52,32 @@ class WrongNotesSection extends ConsumerWidget {
               ],
             ),
           ),
-        wrongQuestionsAsync.when(
-          loading: () => const Padding(
-            padding: EdgeInsets.all(PassqlSpacing.xl),
-            child: PassqlStatusView.loading(),
+        // 로딩 자리 스켈레톤 > 목록·빈·오류 페이드 교체
+        PassqlFadeSwitcher(
+          child: wrongQuestionsAsync.when(
+            loading: () => const PassqlListSkeleton(key: ValueKey('loading')),
+            error: (error, _) => KeyedSubtree(
+              key: const ValueKey('error'),
+              child: PassqlStatusView.error(
+                message: error.asAppException.message,
+                onRetry: () => ref.invalidate(wrongQuestionsProvider),
+              ),
+            ),
+            data: (data) => KeyedSubtree(
+              key: const ValueKey('data'),
+              child: data.items.isEmpty
+                  ? PassqlStatusView.empty(
+                      icon: CupertinoIcons.checkmark_seal,
+                      title: '아직 틀린 문제가 없어요',
+                      message: '문제를 풀면 오답이 여기에 쌓여요',
+                    )
+                  : PassqlGroupedSection(
+                      children: [
+                        for (final item in data.items) _WrongRow(item: item),
+                      ],
+                    ),
+            ),
           ),
-          error: (error, _) => PassqlStatusView.error(
-            message: error.asAppException.message,
-            onRetry: () => ref.invalidate(wrongQuestionsProvider),
-          ),
-          data: (data) => data.items.isEmpty
-              ? PassqlStatusView.empty(
-                  icon: CupertinoIcons.checkmark_seal,
-                  title: '아직 틀린 문제가 없어요',
-                  message: '문제를 풀면 오답이 여기에 쌓여요',
-                )
-              : PassqlGroupedSection(
-                  children: [
-                    for (final item in data.items) _WrongRow(item: item),
-                  ],
-                ),
         ),
       ],
     );

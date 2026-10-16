@@ -18,7 +18,7 @@ pages·widgets·flows ──> providers(Riverpod) ──> data/sources(Retrofit 
 
 | 계층 | 위치 | 하는 일 |
 |---|---|---|
-| HTTP | `lib/core/network/dio_client.dart` | Dio 생성(baseUrl·25초 타임아웃·디버그 로그), 인증 인터셉터 연결 |
+| HTTP | `lib/core/network/dio_client.dart` | Dio 생성(baseUrl·타임아웃 상수·디버그 로그), 인증 인터셉터 연결, GET 연결 실패 1회 재시도(`get_retry_interceptor.dart`) |
 | 인증 | `lib/core/auth/` | 토큰 저장, Bearer 붙이기·401 재발급, 세션 만료 신호 |
 | 클라이언트 | `lib/data/sources/*_api.dart`, `api_providers.dart` | Retrofit 클라이언트와 그 Provider |
 | 상태·업무 | `lib/presentation/providers/` | 호출·조합·캐시 무효화, 업무 규칙(`...Service`, `...Notifier`) |
@@ -56,6 +56,7 @@ pages·widgets·flows ──> providers(Riverpod) ──> data/sources(Retrofit 
 ## 5. SSE (선택지 생성)
 
 - `POST /questions/{questionUuid}/generate-choices` 를 `SseQuestionClient` 가 Dio 스트림으로 읽는다(Retrofit 미지원)
+- 응답 대기는 일반 요청보다 긴 SSE 전용 값(`choiceGenerationStreamReceiveTimeout`, 서버 SSE 제한보다 길게)
 - 이벤트 `status` / `complete` / `error`. 줄 파싱은 `parseSseLines`, 이벤트 변환은 `toSseEvent`
 - `error` 이벤트 코드는 `errorCode` 를 우선하고, 없으면 `code` 를 쓴다
 - complete/error 없이 스트림이 끝나면 재시도 가능한 오류(`STREAM_CLOSED`)로 바꿔 스피너가 남지 않게 한다

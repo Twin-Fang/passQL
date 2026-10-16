@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.UUID;
 import java.util.concurrent.Semaphore;
@@ -113,39 +115,32 @@ public class SandboxPool {
     }
 
     /**
-     * 특정 샌드박스 DB에 대한 DataSource 생성.
-     * <p>
-     * urlTemplate에 "serverTimezone=Asia/Seoul" 같은 파라미터가 포함된 경우
-     * lastIndexOf("/")를 urlTemplate 전체에 사용하면 파라미터 안의 "/"를 잘못 가리킨다.
-     * 따라서 "?" 앞의 경로 부분에서만 lastIndexOf("/")를 호출해 DB명을 교체한다.
+     * 샌드박스 DB 연결 1개 (실행 1회용): 커넥션 풀 없이 직접 연결 (#497)
+     * 매 실행마다 Hikari 풀을 만들고 닫던 비용(풀 스레드·검증 연결) 제거
      */
-    public DataSource createDataSource(String dbName) {
-        int qIdx = urlTemplate.indexOf("?");
-        String urlWithoutParams = qIdx >= 0 ? urlTemplate.substring(0, qIdx) : urlTemplate;
-        String params = qIdx >= 0 ? urlTemplate.substring(qIdx) : "";
-        String baseUrl = urlWithoutParams.substring(0, urlWithoutParams.lastIndexOf("/") + 1);
-        String url = baseUrl + dbName + params;
+    public Connection openConnection(String dbName) throws SQLException {
+        return DriverManager.getConnection(toDatabaseUrl(dbName), username, password);
+    }
+
+    private DataSource buildAdminDataSource() {
+        // admin 연결은 postgres 기본 DB를 사용한다.
         return DataSourceBuilder.create()
-                .url(url)
+                .url(toDatabaseUrl("postgres"))
                 .username(username)
                 .password(password)
                 .driverClassName("org.postgresql.Driver")
                 .build();
     }
 
-    private DataSource buildAdminDataSource() {
-        // urlTemplate은 "jdbc:postgresql://host:port/sandbox_{id}" 형태.
-        // admin 연결은 postgres 기본 DB를 사용한다.
-        int qIdx = urlTemplate.indexOf("?");
-        String urlWithoutParams = qIdx >= 0 ? urlTemplate.substring(0, qIdx) : urlTemplate;
-        String params = qIdx >= 0 ? urlTemplate.substring(qIdx) : "";
+    /**
+     * urlTemplate("jdbc:postgresql://host:port/sandbox_{id}?params") > 지정 DB 주소
+     * 파라미터 안의 "/" 를 잘못 가리키지 않게 "?" 앞 경로에서만 마지막 "/" 를 찾는다.
+     */
+    private String toDatabaseUrl(String dbName) {
+        int queryIndex = urlTemplate.indexOf("?");
+        String urlWithoutParams = queryIndex >= 0 ? urlTemplate.substring(0, queryIndex) : urlTemplate;
+        String params = queryIndex >= 0 ? urlTemplate.substring(queryIndex) : "";
         String baseUrl = urlWithoutParams.substring(0, urlWithoutParams.lastIndexOf("/") + 1);
-        String url = baseUrl + "postgres" + params;
-        return DataSourceBuilder.create()
-                .url(url)
-                .username(username)
-                .password(password)
-                .driverClassName("org.postgresql.Driver")
-                .build();
+        return baseUrl + dbName + params;
     }
 }

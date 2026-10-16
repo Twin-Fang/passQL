@@ -5,4 +5,8 @@ abstract final class PassqlHaptics {
   static Future<void> playSelection() => HapticFeedback.selectionClick();
   static Future<void> playCorrectAnswer() => HapticFeedback.mediumImpact();
   static Future<void> playWrongAnswer() => HapticFeedback.heavyImpact();
+
+  /// 채점 결과 > 정답·오답 햅틱 (챕터 피드백 바·결과 화면 공통)
+  static Future<void> playAnswerResult({required bool isCorrect}) =>
+      isCorrect ? playCorrectAnswer() : playWrongAnswer();
 }

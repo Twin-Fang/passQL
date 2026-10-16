@@ -21,7 +21,8 @@ import java.util.UUID;
     indexes = {
         @Index(name = "idx_submission_member", columnList = "member_uuid"),
         @Index(name = "idx_submission_member_submitted", columnList = "member_uuid, submitted_at"),
-        @Index(name = "idx_submission_member_question", columnList = "member_uuid, question_uuid"),
+        // 문제별 마지막 시도 조회 (#497)
+        @Index(name = "idx_submission_member_question_submitted", columnList = "member_uuid, question_uuid, submitted_at DESC"),
         @Index(name = "idx_submission_question", columnList = "question_uuid"),
         @Index(name = "idx_submission_session", columnList = "session_uuid"),
         @Index(name = "idx_submission_choice_set", columnList = "choice_set_uuid")

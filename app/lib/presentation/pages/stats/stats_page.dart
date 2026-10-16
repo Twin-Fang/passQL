@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../design/design.dart';
 import '../../providers/stats_providers.dart';
+import '../../widgets/common/app_toast.dart';
 import '../../widgets/stats/ai_analysis_card.dart';
 import '../../widgets/stats/bar_chart_section.dart';
 import '../../widgets/stats/radar_chart_section.dart';
@@ -21,7 +22,9 @@ class StatsPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: context.passqlColors.background,
       // 스크롤 틀은 그대로 두고 내용만 바꾼다(내용은 섹션별 순차 등장)
+      // 새로고침 실패 시 이전 데이터 유지 (오류 화면은 첫 조회 실패에만)
       body: statsAsync.when(
+        skipError: true,
         loading: () => const PassqlLargeTitleScrollView(
           title: '통계',
           slivers: [_StatsSkeleton()],
@@ -43,7 +46,11 @@ class StatsPage extends ConsumerWidget {
           onRefresh: () async {
             ref.invalidate(statsDataProvider);
             ref.invalidate(statsAiCommentProvider);
-            await ref.read(statsDataProvider.future);
+            try {
+              await ref.read(statsDataProvider.future);
+            } catch (_) {
+              if (context.mounted) showAppToast(context, '새로고침하지 못했어요');
+            }
           },
           slivers: [_StatsContent(data: data)],
         ),

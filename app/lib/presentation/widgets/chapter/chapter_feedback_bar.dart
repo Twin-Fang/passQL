@@ -38,11 +38,7 @@ class _ChapterFeedbackBarState extends State<ChapterFeedbackBar> {
   void initState() {
     super.initState();
     // 채점 결과가 처음 나타날 때 한 번만 손끝으로 알려 준다.
-    if (_result.isCorrect) {
-      PassqlHaptics.playCorrectAnswer();
-    } else {
-      PassqlHaptics.playWrongAnswer();
-    }
+    PassqlHaptics.playAnswerResult(isCorrect: _result.isCorrect);
   }
 
   /// EXECUTABLE 모드 여부 — correctSql 또는 correctResult 존재 시 EXECUTABLE로 판단.

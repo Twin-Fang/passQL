@@ -1,29 +1,39 @@
+import { lazy, Suspense } from "react";
 import { createBrowserRouter, RouterProvider, Navigate, Outlet } from "react-router-dom";
 import AppLayout from "./components/AppLayout";
+import PageLoadingFallback from "./components/PageLoadingFallback";
+// 첫 화면(홈·로그인)·오류 화면만 즉시 로딩, 나머지는 라우트별 청크 (#497)
 import Home from "./pages/Home";
-import CategoryCards from "./pages/CategoryCards";
-import DailySet from "./pages/DailySet";
-import DailySetResult from "./pages/DailySetResult";
-import Leaderboard from "./pages/Leaderboard";
-import PracticeSet from "./pages/PracticeSet";
-import PracticeResult from "./pages/PracticeResult";
-import QuestionDetail from "./pages/QuestionDetail";
-import AnswerFeedback from "./pages/AnswerFeedback";
-import RecommendationPractice from "./pages/RecommendationPractice";
-import Stats from "./pages/Stats";
-import MyPage from "./pages/MyPage";
-import Notifications from "./pages/Notifications";
-import Settings from "./pages/Settings";
-import SettingsFeedback from "./pages/SettingsFeedback";
 import Login from "./pages/Login";
 import RouteError from "./pages/RouteError";
 import MaintenanceGate from "./components/MaintenanceGate";
 import UnreadTitleSync from "./components/UnreadTitleSync";
 import { isAuthenticated } from "./stores/authStore";
 
+const CategoryCards = lazy(() => import("./pages/CategoryCards"));
+const DailySet = lazy(() => import("./pages/DailySet"));
+const DailySetResult = lazy(() => import("./pages/DailySetResult"));
+const Leaderboard = lazy(() => import("./pages/Leaderboard"));
+const PracticeSet = lazy(() => import("./pages/PracticeSet"));
+const PracticeResult = lazy(() => import("./pages/PracticeResult"));
+const QuestionDetail = lazy(() => import("./pages/QuestionDetail"));
+const AnswerFeedback = lazy(() => import("./pages/AnswerFeedback"));
+const RecommendationPractice = lazy(() => import("./pages/RecommendationPractice"));
+const Stats = lazy(() => import("./pages/Stats"));
+const MyPage = lazy(() => import("./pages/MyPage"));
+const Notifications = lazy(() => import("./pages/Notifications"));
+const Settings = lazy(() => import("./pages/Settings"));
+const SettingsFeedback = lazy(() => import("./pages/SettingsFeedback"));
+
 /** 인증 필수 가드 — 미로그인 시 /login으로 redirect */
 function RequireAuth() {
-  return isAuthenticated() ? <Outlet /> : <Navigate to="/login" replace />;
+  if (!isAuthenticated()) return <Navigate to="/login" replace />;
+  // AppLayout 밖 전체화면 라우트의 청크 대기 (AppLayout 안은 자체 Suspense)
+  return (
+    <Suspense fallback={<PageLoadingFallback />}>
+      <Outlet />
+    </Suspense>
+  );
 }
 
 /** 이미 로그인된 경우 /login 접근 시 홈으로 redirect */

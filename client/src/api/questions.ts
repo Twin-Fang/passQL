@@ -13,6 +13,11 @@ import type {
   ChoiceSetGenerateResponse,
 } from "../types/api";
 
+/** SSE 파싱 진단 로그: 개발 모드만 출력 (운영 콘솔 노출 차단, 실패는 onError 로 화면 전달) */
+function logSseDiagnostic(...diagnosticValues: unknown[]): void {
+  if (import.meta.env.DEV) console.debug(...diagnosticValues);
+}
+
 interface QuestionListParams {
   readonly page?: number;
   readonly size?: number;
@@ -121,10 +126,10 @@ export function generateChoices(
           }
         }
 
-        console.debug("[SSE] parseAndDispatch: event=", eventName, "dataLines=", dataLines.length);
+        logSseDiagnostic("[SSE] parseAndDispatch: event=", eventName, "dataLines=", dataLines.length);
 
         if (!eventName || dataLines.length === 0) {
-          console.debug("[SSE] 이벤트 무시: event 또는 data 없음, raw=", JSON.stringify(raw));
+          logSseDiagnostic("[SSE] 이벤트 무시: event 또는 data 없음, raw=", JSON.stringify(raw));
           return false;
         }
 
@@ -134,27 +139,27 @@ export function generateChoices(
           data = JSON.parse(rawData);
         } catch {
           // JSON 파싱 실패 — PARSE_ERROR를 terminal로 처리 후 루프 중단
-          console.error("[SSE] PARSE_ERROR: rawData=", rawData);
+          logSseDiagnostic("[SSE] PARSE_ERROR: rawData=", rawData);
           receivedTerminalEvent = true;
           callbacks.onError({ code: "PARSE_ERROR", message: "잘못된 응답 형식", retryable: false });
           return true;
         }
 
         if (eventName === "status") {
-          console.debug("[SSE] status 수신:", data);
+          logSseDiagnostic("[SSE] status 수신:", data);
           callbacks.onStatus(data as SseStatusEvent);
         } else if (eventName === "complete") {
-          console.debug("[SSE] complete 수신 → receivedTerminalEvent=true");
+          logSseDiagnostic("[SSE] complete 수신 → receivedTerminalEvent=true");
           receivedTerminalEvent = true;
           callbacks.onComplete(data as ChoiceSetGenerateResponse);
           return true; // complete 후 스트림 남은 데이터를 읽을 필요 없음
         } else if (eventName === "error") {
-          console.debug("[SSE] error 수신 → receivedTerminalEvent=true, data=", data);
+          logSseDiagnostic("[SSE] error 수신 → receivedTerminalEvent=true, data=", data);
           receivedTerminalEvent = true;
           callbacks.onError(data as SseErrorEvent);
           return true;
         } else {
-          console.debug("[SSE] 알 수 없는 이벤트 타입 무시:", eventName);
+          logSseDiagnostic("[SSE] 알 수 없는 이벤트 타입 무시:", eventName);
         }
         return false;
       };
@@ -164,7 +169,7 @@ export function generateChoices(
       const flushBuffer = (): boolean => {
         const blocks = buffer.split(/\n\n/);
         buffer = blocks.pop() ?? ""; // 마지막은 미완성 청크일 수 있으므로 보관
-        console.debug("[SSE] flushBuffer: blocks=", blocks.length, "remainder=", JSON.stringify(buffer));
+        logSseDiagnostic("[SSE] flushBuffer: blocks=", blocks.length, "remainder=", JSON.stringify(buffer));
         for (const block of blocks) {
           if (!block.trim()) continue;
           const shouldStop = parseAndDispatch(block);
@@ -175,19 +180,19 @@ export function generateChoices(
 
       while (true) {
         const { done, value } = await reader.read();
-        console.debug("[SSE] read: done=", done, "valueBytes=", value?.byteLength ?? 0);
+        logSseDiagnostic("[SSE] read: done=", done, "valueBytes=", value?.byteLength ?? 0);
 
         if (done) {
           // 스트림 종료 — 버퍼에 남은 마지막 이벤트까지 처리
           if (value) buffer += decoder.decode(value, { stream: false });
-          console.debug("[SSE] done: remaining buffer=", JSON.stringify(buffer), "receivedTerminal=", receivedTerminalEvent);
+          logSseDiagnostic("[SSE] done: remaining buffer=", JSON.stringify(buffer), "receivedTerminal=", receivedTerminalEvent);
           if (buffer.trim()) {
             buffer += "\n\n";
             flushBuffer();
           }
           // complete/error 없이 닫힌 경우 (서버 비정상 종료, abort 제외)
           if (!receivedTerminalEvent && !abortController.signal.aborted) {
-            console.error("[SSE] STREAM_CLOSED: terminal 이벤트 없이 스트림 종료");
+            logSseDiagnostic("[SSE] STREAM_CLOSED: terminal 이벤트 없이 스트림 종료");
             callbacks.onError({ code: "STREAM_CLOSED", message: "선택지 생성이 중단되었습니다", retryable: true });
           }
           break;

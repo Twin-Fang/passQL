@@ -77,12 +77,16 @@ export default function Stats() {
     staleTime: 1000 * 60 * 5,
   });
 
+  // 토픽 데이터 있을 때만 AI 코멘트 카드 렌더 > 없으면 LLM 호출 생략
+  const hasTopicStats = (topicAnalysis?.topicStats.length ?? 0) > 0;
+
   // AI 코멘트 — Stats 페이지는 세션 무관 전체 분석이므로 sessionUuid 빈 문자열 전달
   const { data: aiComment, isLoading: aiCommentLoading } = useQuery({
     queryKey: ["aiComment", uuid],
     queryFn: () => fetchAiComment(),
-    enabled: !!uuid,
+    enabled: !!uuid && hasTopicStats,
     staleTime: 1000 * 60 * 60,
+    gcTime: 1000 * 60 * 60, // staleTime 과 동일: 탭 이탈 후 재진입 시 LLM 재호출 방지
   });
 
   const readiness = progress?.readiness;

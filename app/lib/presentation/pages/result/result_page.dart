@@ -53,11 +53,7 @@ class ResultPage extends ConsumerWidget {
     return PassqlResultScaffold(
       title: '채점 결과',
       onClose: () => context.go(AppRoutes.home),
-      header: PassqlResultMark(
-        isCorrect: isCorrect,
-        isLarge: true,
-        label: isCorrect ? '정답이에요' : '오답이에요',
-      ),
+      header: _ResultHeader(isCorrect: isCorrect),
       sections: [
         // 오답일 때만 내가 고른 SQL 을 보여 준다.
         if (!isCorrect && result.selectedSql != null)
@@ -123,6 +119,33 @@ class ResultPage extends ConsumerWidget {
         // 기존 동작(닫기 = 홈 이동)을 그대로 유지한다.
         PassqlButton(label: '닫기', onPressed: () => context.go(AppRoutes.home)),
       ],
+    );
+  }
+}
+
+/// 결과 머리: 정답/오답 표시 + 처음 나타날 때 한 번 햅틱 (챕터 피드백 바와 같은 느낌)
+class _ResultHeader extends StatefulWidget {
+  const _ResultHeader({required this.isCorrect});
+
+  final bool isCorrect;
+
+  @override
+  State<_ResultHeader> createState() => _ResultHeaderState();
+}
+
+class _ResultHeaderState extends State<_ResultHeader> {
+  @override
+  void initState() {
+    super.initState();
+    PassqlHaptics.playAnswerResult(isCorrect: widget.isCorrect);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PassqlResultMark(
+      isCorrect: widget.isCorrect,
+      isLarge: true,
+      label: widget.isCorrect ? '정답이에요' : '오답이에요',
     );
   }
 }

@@ -7,6 +7,7 @@ import '../../../core/auth/social_sign_in.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../data/models/legal/legal_models.dart';
 import '../../design/design.dart';
+import '../../providers/app_config_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/settings_providers.dart';
 import '../../widgets/common/app_toast.dart';
@@ -83,12 +84,11 @@ class SettingsPage extends ConsumerWidget {
     final colors = context.passqlColors;
     final settingsAsync = ref.watch(settingsDataProvider);
     final nicknameAsync = ref.watch(nicknameNotifierProvider);
-    final wrongCount = ref
-        .watch(wrongQuestionsProvider)
-        .valueOrNull
-        ?.totalCount;
+    // 개수만 받는 가벼운 조회 (목록 전체·진입 분석 기록은 오답 노트 화면 몫)
+    final wrongCount = ref.watch(wrongQuestionTotalCountProvider).valueOrNull;
     final data = settingsAsync.valueOrNull;
-    final appVersion = ref.watch(appVersionProvider).valueOrNull;
+    // 앱 버전 원본은 시작 게이트와 같은 Provider (회원 API 실패와 무관하게 표시)
+    final appVersion = ref.watch(currentAppVersionProvider).valueOrNull;
 
     return Scaffold(
       backgroundColor: colors.background,

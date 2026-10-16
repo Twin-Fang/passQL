@@ -9,6 +9,7 @@ import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../flows/daily_set_flow.dart';
 import '../../providers/daily_set_providers.dart';
+import '../../widgets/ads/interstitial_ad_on_enter.dart';
 
 /// 상단 바·점수 머리에 쓰는 화면 이름
 const _dailySetTitle = '오늘의 세트';
@@ -27,11 +28,15 @@ class DailySetResultPage extends ConsumerWidget {
     final outcome = extra is DailySetOutcome ? extra as DailySetOutcome : null;
 
     if (outcome != null) {
-      return _ResultBody(
-        correctCount: outcome.correctCount,
-        total: outcome.results.length,
-        results: outcome.results.map((result) => result.isCorrect).toList(),
-        saveError: outcome.saveError,
+      // 풀이를 막 끝낸 진입에만 전면 광고 시도 (홈 '이미 완료' 카드 진입은 제외)
+      return InterstitialAdOnEnter(
+        child: _ResultBody(
+          correctCount: outcome.correctCount,
+          total: outcome.results.length,
+          results: outcome.results.map((result) => result.isCorrect).toList(),
+          saveError: outcome.saveError,
+          completedRank: outcome.completed?.rank,
+        ),
       );
     }
     return _RecordBody(today: ref.watch(dailySetTodayProvider));
@@ -103,6 +108,7 @@ class _ResultBody extends ConsumerWidget {
     required this.total,
     required this.results,
     this.saveError,
+    this.completedRank,
   });
 
   final int correctCount;
@@ -114,11 +120,15 @@ class _ResultBody extends ConsumerWidget {
   /// 점수 등록 실패 사유.
   final String? saveError;
 
+  /// 완료 응답의 내 순위 (풀이 직후에만, 순위표를 기다리지 않고 바로 표시)
+  final int? completedRank;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.passqlColors;
     final board = ref.watch(leaderboardProvider);
-    final myRank = board.valueOrNull?.myEntry?.rank;
+    // 내 순위: 완료 응답 우선 > 순위표의 내 줄
+    final myRank = completedRank ?? board.valueOrNull?.myEntry?.rank;
 
     return PassqlResultScaffold(
       title: _dailySetTitle,
