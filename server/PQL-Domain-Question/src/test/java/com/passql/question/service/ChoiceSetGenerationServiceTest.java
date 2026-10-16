@@ -82,8 +82,8 @@ class ChoiceSetGenerationServiceTest {
         sandboxExecutor = mock(SandboxExecutor.class);
         choiceSetGenerationService = new ChoiceSetGenerationService(
                 questionService, promptService, aiGatewayClient, sandboxValidator,
-                new ResultMatchChoiceValidator(new ObjectMapper()),
-                choiceSetSaveService, sandboxPool, sandboxExecutor);
+                new ResultMatchChoiceValidator(sandboxPool, sandboxExecutor, new ObjectMapper()),
+                choiceSetSaveService, new ChoiceSetGenerationRequestFactory());
     }
 
     @Test

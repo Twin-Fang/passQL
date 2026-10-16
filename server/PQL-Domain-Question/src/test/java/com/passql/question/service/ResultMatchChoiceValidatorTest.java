@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class ResultMatchChoiceValidatorTest {
 
-    private final ResultMatchChoiceValidator validator = new ResultMatchChoiceValidator(new ObjectMapper());
+    private final ResultMatchChoiceValidator validator = new ResultMatchChoiceValidator(null, null, new ObjectMapper());
 
     private final ExecuteResult expectedResult = new ExecuteResult("OK", List.of("ID", "NAME"),
             List.of(List.of(1, "kim"), List.of(2, "lee")), 2, 1L, null, null);

@@ -3,10 +3,13 @@ package com.passql.question.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.passql.ai.dto.GeneratedChoiceDto;
+import com.passql.common.exception.CustomException;
+import com.passql.common.exception.constant.ErrorCode;
 import com.passql.common.util.TextPreview;
 import com.passql.question.dto.ExecuteResult;
 import com.passql.question.dto.ValidationReport;
 import com.passql.question.dto.ValidationReport.ChoiceValidation;
+import com.passql.question.entity.Question;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,16 +20,42 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * RESULT_MATCH 선택지 검증: 선택지 body(JSON 배열) <-> 정답 SQL 실행 결과 비교
- * 샌드박스 재실행 없음, 열 이름 대소문자·행 순서 무시
+ * RESULT_MATCH 선택지 검증: 정답 SQL 1회 실행(기대 결과), 선택지 body(JSON 배열) <-> 기대 결과 비교
+ * 샌드박스는 기대 결과 실행에만 사용, 비교는 열 이름 대소문자·행 순서 무시
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class ResultMatchChoiceValidator {
 
+    private final SandboxPool sandboxPool;
+    private final SandboxExecutor sandboxExecutor;
     // RESULT_MATCH 검증용 JSON 파서 — 스프링 빈 주입으로 설정 일관성 보장
     private final ObjectMapper objectMapper;
+
+    /**
+     * answerSql을 Sandbox에서 실행하고 결과를 반환한다.
+     * Sandbox 획득·해제를 포함한 완전한 사이클.
+     */
+    public ExecuteResult executeExpectedResult(Question question) {
+        String dbName = sandboxPool.acquire();
+        try {
+            String setupSql = question.getSchemaDdl();
+            if (question.getSchemaSampleData() != null && !question.getSchemaSampleData().isBlank()) {
+                setupSql = setupSql + ";\n" + question.getSchemaSampleData();
+            }
+            sandboxExecutor.applyDdl(dbName, setupSql);
+
+            ExecuteResult result = sandboxExecutor.execute(dbName, question.getAnswerSql());
+            if (!"OK".equals(result.status())) {
+                throw new CustomException(ErrorCode.SANDBOX_ANSWER_SQL_FAILED,
+                        "RESULT_MATCH answerSql 실행 실패: " + result.errorMessage());
+            }
+            return result;
+        } finally {
+            sandboxPool.release(dbName);
+        }
+    }
 
     /**
      * RESULT_MATCH 검증: 각 선택지 body(JSON 배열)를 파싱하여 expected ExecuteResult와 비교.
