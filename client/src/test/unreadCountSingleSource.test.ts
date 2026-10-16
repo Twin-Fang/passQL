@@ -7,7 +7,12 @@ import { join, relative } from "node:path";
 
 const SOURCE_ROOT = join(process.cwd(), "src");
 // 호출 정의(api)와 유일한 사용처(hook)
-const ALLOWED_FILES = new Set(["api/notifications.ts", "hooks/useUnreadNotificationCount.ts"]);
+// + 서버 계약 생성 타입(경로 문자열만 있고 호출 없음, #458)
+const ALLOWED_FILES = new Set([
+  "api/notifications.ts",
+  "hooks/useUnreadNotificationCount.ts",
+  "types/generated/openapi.ts",
+]);
 
 function listSourceFiles(directory: string): string[] {
   return readdirSync(directory).flatMap((entryName) => {

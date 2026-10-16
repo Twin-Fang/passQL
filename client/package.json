@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "gen:api": "openapi-typescript ../api-contract/openapi.json --properties-required-by-default -o src/types/generated/openapi.ts"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
@@ -26,6 +27,7 @@
     "eslint": "^10.12.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "jsdom": "^29.1.1",
+    "openapi-typescript": "7.13.0",
     "tailwindcss": "^4.2.2",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.71.2",
@@ -42,5 +44,10 @@
     "react-router-dom": "^7.18.4",
     "recharts": "^3.10.1",
     "zustand": "^5.0.15"
+  },
+  "overrides": {
+    "openapi-typescript": {
+      "typescript": "$typescript"
+    }
   }
 }
