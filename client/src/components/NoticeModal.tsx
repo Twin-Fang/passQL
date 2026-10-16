@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import type { AppNotice } from "../types/api";
 
 interface NoticeModalProps {
-  readonly notice: AppNotice;
+  readonly notice: Pick<AppNotice, "title" | "body">;
   readonly onClose: () => void;
 }
 

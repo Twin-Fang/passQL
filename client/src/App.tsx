@@ -12,11 +12,13 @@ import AnswerFeedback from "./pages/AnswerFeedback";
 import RecommendationPractice from "./pages/RecommendationPractice";
 import Stats from "./pages/Stats";
 import MyPage from "./pages/MyPage";
+import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
 import SettingsFeedback from "./pages/SettingsFeedback";
 import Login from "./pages/Login";
 import RouteError from "./pages/RouteError";
 import MaintenanceGate from "./components/MaintenanceGate";
+import UnreadTitleSync from "./components/UnreadTitleSync";
 import { isAuthenticated } from "./stores/authStore";
 
 /** 인증 필수 가드 — 미로그인 시 /login으로 redirect */
@@ -52,6 +54,7 @@ const router = createBrowserRouter([
               { path: "questions", element: <CategoryCards /> },
               { path: "stats", element: <Stats /> },
               { path: "mypage", element: <MyPage /> },
+              { path: "notifications", element: <Notifications /> },
             ],
           },
           // AppLayout 밖: 전체화면 몰입형 화면 (문제 풀이는 집중 모드)
@@ -115,6 +118,7 @@ export default function App() {
   // 점검 중이면 라우터 전체를 점검 화면으로 대체 (#464)
   return (
     <MaintenanceGate>
+      <UnreadTitleSync />
       <RouterProvider router={router} />
     </MaintenanceGate>
   );
