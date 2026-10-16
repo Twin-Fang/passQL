@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../../presentation/providers/chapter_providers.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
+import '../../widgets/ads/interstitial_ad_on_enter.dart';
 
 /// 챕터 완료 결과 화면 — 점수·요약·분석·문항별 결과를 한 화면 스크롤로 보여준다.
 ///
@@ -35,78 +36,84 @@ class ChapterResultPage extends StatelessWidget {
     final wrongCount = total - correctCount;
     final totalSec = (summary.totalDurationMs / 1000).round();
 
-    return PassqlResultScaffold(
-      title: '챕터 결과',
-      onClose: () => context.go(AppRoutes.home),
-      header: PassqlScoreHeader(
-        score: correctCount,
-        total: total,
-        caption: summary.topicName,
-      ),
-      sections: [
-        // 요약 지표 3칸
-        Row(
-          children: [
-            Expanded(
-              child: _Metric(
-                value: '$correctCount',
-                label: '정답',
-                color: context.passqlColors.correctText,
-              ),
-            ),
-            const SizedBox(width: PassqlSpacing.sm),
-            Expanded(
-              child: _Metric(
-                value: '$wrongCount',
-                label: '오답',
-                color: wrongCount > 0
-                    ? context.passqlColors.wrongText
-                    : context.passqlColors.secondaryLabel,
-              ),
-            ),
-            const SizedBox(width: PassqlSpacing.sm),
-            Expanded(
-              child: _Metric(
-                value: '$totalSec초',
-                label: '소요 시간',
-                color: context.passqlColors.label,
-              ),
-            ),
-          ],
+    // 챕터를 끝까지 푼 진입에만 전면 광고 시도 (결과 없음 화면은 제외)
+    return InterstitialAdOnEnter(
+      child: PassqlResultScaffold(
+        title: '챕터 결과',
+        onClose: () => context.go(AppRoutes.home),
+        header: PassqlScoreHeader(
+          score: correctCount,
+          total: total,
+          caption: summary.topicName,
         ),
-        PassqlCard(
-          title: '분석',
-          child: _Analysis(
-            total: total,
-            correctCount: correctCount,
-            totalDurationMs: summary.totalDurationMs,
-          ),
-        ),
-        PassqlGroupedSection(
-          header: '문항별 결과',
-          children: [
-            for (var i = 0; i < summary.results.length; i++)
-              PassqlListRow(
-                leading: PassqlResultMark(
-                  isCorrect: summary.results[i].isCorrect,
-                  label: '${i + 1}번',
+        sections: [
+          // 요약 지표 3칸
+          Row(
+            children: [
+              Expanded(
+                child: _Metric(
+                  value: '$correctCount',
+                  label: '정답',
+                  color: context.passqlColors.correctText,
                 ),
-                title: summary.results[i].isCorrect ? '정답' : '오답',
-                trailing: Text(
-                  '${(summary.results[i].durationMs / 1000).toStringAsFixed(1)}초',
-                  style: PassqlTypography.subheadline.copyWith(
-                    color: context.passqlColors.secondaryLabel,
-                    fontFeatures: PassqlTypography.tabular,
+              ),
+              const SizedBox(width: PassqlSpacing.sm),
+              Expanded(
+                child: _Metric(
+                  value: '$wrongCount',
+                  label: '오답',
+                  color: wrongCount > 0
+                      ? context.passqlColors.wrongText
+                      : context.passqlColors.secondaryLabel,
+                ),
+              ),
+              const SizedBox(width: PassqlSpacing.sm),
+              Expanded(
+                child: _Metric(
+                  value: '$totalSec초',
+                  label: '소요 시간',
+                  color: context.passqlColors.label,
+                ),
+              ),
+            ],
+          ),
+          PassqlCard(
+            title: '분석',
+            child: _Analysis(
+              total: total,
+              correctCount: correctCount,
+              totalDurationMs: summary.totalDurationMs,
+            ),
+          ),
+          PassqlGroupedSection(
+            header: '문항별 결과',
+            children: [
+              for (var i = 0; i < summary.results.length; i++)
+                PassqlListRow(
+                  leading: PassqlResultMark(
+                    isCorrect: summary.results[i].isCorrect,
+                    label: '${i + 1}번',
+                  ),
+                  title: summary.results[i].isCorrect ? '정답' : '오답',
+                  trailing: Text(
+                    '${(summary.results[i].durationMs / 1000).toStringAsFixed(1)}초',
+                    style: PassqlTypography.subheadline.copyWith(
+                      color: context.passqlColors.secondaryLabel,
+                      fontFeatures: PassqlTypography.tabular,
+                    ),
                   ),
                 ),
-              ),
-          ],
-        ),
-      ],
-      // 기존 마지막 단계 버튼(홈으로 이동)을 그대로 옮겼다.
-      actions: [
-        PassqlButton(label: '완료', onPressed: () => context.go(AppRoutes.home)),
-      ],
+            ],
+          ),
+        ],
+        // 기존 마지막 단계 버튼(홈으로 이동)을 그대로 옮겼다.
+        actions: [
+          PassqlButton(
+            label: '완료',
+            onPressed: () => context.go(AppRoutes.home),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -21,6 +21,7 @@ SQLD·SQLP 학습 서비스 passQL의 모바일 앱. 서버(`server/`)와만 통
 lib/
 ├── main.dart               # 진입점, 세션 복원, 라우터 연동
 ├── core/                   # 공통·인프라. presentation·router 를 import 하지 않는다
+│   ├── ads/                # AdMob SDK 래퍼(배너·네이티브·전면 로더, ATT, 단위 ID, 전면 빈도 제한). SDK 는 여기서만 import
 │   ├── auth/               # 토큰 저장, 인터셉터(Bearer·재발급), 세션 만료 신호, 소셜 로그인, 설치 가드
 │   ├── error/              # ErrorCode(서버 코드 매핑), AppException (서버 오류를 사용자 문구로 변환)
 │   ├── monitoring/         # 오류 수집(CrashReporter)·분석(AppAnalytics, 이벤트 이름 상수) 공통 지점
@@ -68,6 +69,7 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 | 테스트 | 막는 것 |
 |---|---|
 | `design_system_rules_test.dart` | pages·widgets·flows 에서 `Color(0x`, `Colors.white/black`, `Image.asset(`, `showModalBottomSheet(`, `showCupertinoDialog(`, `CupertinoActivityIndicator(` 직접 사용, `go('/...')`·`push('/...')` 라우트 문자열 |
+| `ad_placement_rules_test.dart` | core/ads 밖의 `google_mobile_ads`·ATT import, 허용 목록(탭 쉘·토픽 목록·결과 화면 2곳·main) 밖의 광고 사용, 풀이·로그인·약관·설정·차단 화면의 광고, 사용자 정보를 실은 광고 요청 |
 | `layer_dependency_test.dart` | core·data 의 presentation·router import, design 의 providers·pages·widgets·flows import, 화면의 `data/sources` 직접 import, core/monitoring 밖의 Crashlytics·Analytics SDK 직접 import, core/push 밖의 firebase_messaging 직접 import |
 
 - 예외는 각 테스트의 allow-list(`_allowedUsages`, `_allowedReverseImports`)에 파일과 **이유**를 적어서만 둔다. 비어 있는 것이 정상이다.
@@ -78,6 +80,14 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 - 401이면 인터셉터가 refresh로 재발급, 실패하면 세션 만료 신호(`SessionExpirySignal`) > `AuthNotifier` 로그아웃 > 라우터가 로그인 화면으로 보냄.
 - 403 `MEMBER_SUSPENDED`면 이용 제한 신호(`MemberSuspensionSignal`) > `AuthNotifier` 로그아웃 > 로그인 화면에 안내 문구.
 - 회원 탈퇴는 서버 삭제 + 소셜 접근 권한 회수(Apple 토큰 revoke) 후 세션 삭제.
+
+## 광고 (AdMob, #506)
+
+- 자리 3종: 홈·문제·통계 탭 하단 배너(설정 탭 제외), 문제 탭 토픽 5개 뒤 네이티브 1칸, 오늘의 세트·챕터 결과 진입 전면(3분 간격·하루 3회, 기기 저장).
+- 허용 조건 `adsEnabledProvider`: 모바일 + 로그인. 디버그·프로필은 Google 테스트 단위 고정, 릴리스는 `.env` 값(비면 광고 없음).
+- `.env` 키: `PASSQL_ADMOB_{ANDROID|IOS}_APP_ID`, `PASSQL_ADMOB_{ANDROID|IOS}_{BANNER_HOME|BANNER_QUESTIONS|BANNER_STATS|NATIVE_QUESTIONS|INTERSTITIAL_RESULT}`.
+  앱 ID 는 빌드 타임 값: Android 는 `build.gradle.kts` 가 직접 읽고, iOS 는 `pod install` 때 `tool/gen_ios_admob_config.sh` 가 `ios/Flutter/AdMob.xcconfig`(커밋 제외)로 만든다. 비면 Google 테스트 앱 ID.
+- iOS 추적 허용(ATT)은 앱 시작 첫 프레임 뒤 1회. 거부면 비개인화 요청.
 
 ## 코드 생성
 
