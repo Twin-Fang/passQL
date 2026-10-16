@@ -43,6 +43,7 @@ public class ChoiceSetGenerationService {
     private final PromptService promptService;
     private final AiGatewayClient aiGatewayClient;
     private final SandboxValidator sandboxValidator;
+    private final ResultMatchChoiceValidator resultMatchChoiceValidator;
     private final ChoiceSetSaveService choiceSetSaveService;
     private final SandboxPool sandboxPool;
     private final SandboxExecutor sandboxExecutor;
@@ -271,7 +272,7 @@ public class ChoiceSetGenerationService {
                 log.debug("[choice-gen-result-match] AI 응답 수신: choiceCount={}", lastResult.choices().size());
 
                 // JSON 비교 검증 (Sandbox 재호출 없음)
-                ValidationReport report = sandboxValidator.validateResultMatch(lastResult.choices(), expectedResult);
+                ValidationReport report = resultMatchChoiceValidator.validate(lastResult.choices(), expectedResult);
                 log.debug("[choice-gen-result-match] 검증 완료: correctCount={}", report.correctCount());
 
                 if (report.correctCount() == 1) {

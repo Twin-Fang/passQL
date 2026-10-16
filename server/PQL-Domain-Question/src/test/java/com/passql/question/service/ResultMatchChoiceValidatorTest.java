@@ -15,14 +15,14 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class ResultMatchChoiceValidatorTest {
 
-    private final SandboxValidator validator = new SandboxValidator(null, null, new ObjectMapper());
+    private final ResultMatchChoiceValidator validator = new ResultMatchChoiceValidator(new ObjectMapper());
 
     private final ExecuteResult expectedResult = new ExecuteResult("OK", List.of("ID", "NAME"),
             List.of(List.of(1, "kim"), List.of(2, "lee")), 2, 1L, null, null);
 
     @Test
     void 열_대소문자와_행_순서와_숫자_표기가_달라도_같은_결과로_본다() {
-        ValidationReport report = validator.validateResultMatch(List.of(
+        ValidationReport report = validator.validate(List.of(
                 choice("A", "[{\"name\": \"lee\", \"id\": 2.0}, {\"Id\": 1, \"NAME\": \"kim\"}]")), expectedResult);
 
         assertThat(report.correctCount()).isEqualTo(1);
@@ -32,7 +32,7 @@ class ResultMatchChoiceValidatorTest {
 
     @Test
     void 값이나_행_수가_다르면_오답이다() {
-        ValidationReport report = validator.validateResultMatch(List.of(
+        ValidationReport report = validator.validate(List.of(
                 choice("A", "[{\"id\": 1, \"name\": \"kim\"}, {\"id\": 3, \"name\": \"lee\"}]"),
                 choice("B", "[{\"id\": 1, \"name\": \"kim\"}]")), expectedResult);
 
@@ -43,7 +43,7 @@ class ResultMatchChoiceValidatorTest {
 
     @Test
     void 본문이_비었거나_JSON_배열이_아니면_ERROR로_기록한다() {
-        ValidationReport report = validator.validateResultMatch(List.of(
+        ValidationReport report = validator.validate(List.of(
                 choice("A", " "),
                 choice("B", "SELECT 1")), expectedResult);
 

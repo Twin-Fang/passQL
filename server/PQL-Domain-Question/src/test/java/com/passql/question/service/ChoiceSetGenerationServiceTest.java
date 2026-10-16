@@ -82,6 +82,7 @@ class ChoiceSetGenerationServiceTest {
         sandboxExecutor = mock(SandboxExecutor.class);
         choiceSetGenerationService = new ChoiceSetGenerationService(
                 questionService, promptService, aiGatewayClient, sandboxValidator,
+                new ResultMatchChoiceValidator(new ObjectMapper()),
                 choiceSetSaveService, sandboxPool, sandboxExecutor);
     }
 
@@ -171,7 +172,6 @@ class ChoiceSetGenerationServiceTest {
                 new GeneratedChoiceDto("C", "not json", false, "r"),
                 new GeneratedChoiceDto("D", "[]", false, "r")), null);
         when(aiGatewayClient.generateChoiceSet(any())).thenReturn(aiResult);
-        stubResultMatchValidation(aiResult, answerResult);
         QuestionChoiceSet savedChoiceSet = mock(QuestionChoiceSet.class);
         when(choiceSetSaveService.saveResultMatch(eq(question), eq(ChoiceSetSource.AI_PREFETCH), eq(memberUuid),
                 eq(prompt), eq(aiResult), any(), eq(1))).thenReturn(savedChoiceSet);
@@ -188,13 +188,6 @@ class ChoiceSetGenerationServiceTest {
         ArgumentCaptor<ValidationReport> reportCaptor = ArgumentCaptor.forClass(ValidationReport.class);
         verify(choiceSetSaveService).saveResultMatch(any(), any(), any(), any(), any(), reportCaptor.capture(), anyInt());
         assertThat(reportCaptor.getValue().correctCount()).isEqualTo(1);
-    }
-
-    /** 결과 일치 검증 스텁 (실제 비교 로직은 ResultMatchChoiceValidatorTest 에서 고정) */
-    private void stubResultMatchValidation(GenerateChoiceSetResult aiResult, ExecuteResult answerResult) {
-        when(sandboxValidator.validateResultMatch(aiResult.choices(), answerResult))
-                .thenReturn(new SandboxValidator(null, null, new ObjectMapper())
-                        .validateResultMatch(aiResult.choices(), answerResult));
     }
 
     private Question executableQuestion() {
