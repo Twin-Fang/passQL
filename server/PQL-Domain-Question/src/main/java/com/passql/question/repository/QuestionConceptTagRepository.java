@@ -24,7 +24,7 @@ public interface QuestionConceptTagRepository extends JpaRepository<QuestionConc
 
     /**
      * 문제에 연결된 개념 태그 키 목록을 단일 쿼리로 조회 (N+1 방지).
-     * QuestionGenerateService의 indexQuestionAsync에서 사용.
+     * QuestionVectorIndexService의 색인 요청 조립에서 사용.
      */
     @Query(value =
         "SELECT ct.tag_key " +

@@ -1,37 +1,16 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { useParams, useNavigate, Navigate, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import {
-  RotateCcw,
-  Target,
-  Clock,
-  Timer,
-  Sparkles,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { useMemo, useRef, useEffect } from "react";
+import { useParams, useNavigate, Navigate } from "react-router-dom";
 import { usePracticeStore } from "../stores/practiceStore";
-import { fetchAiComment } from "../api/progress";
-import MarkdownText from "../components/MarkdownText";
-import ScoreCountUp from "../components/ScoreCountUp";
+import { usePracticeAiComment } from "../hooks/usePracticeAiComment";
+import { usePracticeResultReveal } from "../hooks/usePracticeResultReveal";
 import StepNavigator from "../components/StepNavigator";
+import PracticeScoreSummary from "../components/practiceResult/PracticeScoreSummary";
+import PracticeAiReport from "../components/practiceResult/PracticeAiReport";
+import PracticeQuestionResultList from "../components/practiceResult/PracticeQuestionResultList";
 
-function formatDuration(ms: number): string {
-  if (!Number.isFinite(ms) || ms <= 0) return "0초";
-  const sec = Math.round(ms / 1000);
-  if (sec < 60) return `${sec}초`;
-  const min = Math.floor(sec / 60);
-  const remSec = sec % 60;
-  return remSec > 0 ? `${min}분 ${remSec}초` : `${min}분`;
-}
-
-/** MarkdownText animated 단어 수 기반 총 애니메이션 시간 계산 */
-function calcAiAnimDuration(text: string): number {
-  const wordCount = text.split(/\s+/).filter(Boolean).length;
-  // startDelay 200ms + 단어 간격 55ms + 마지막 fade 300ms + 여유 300ms
-  return 200 + (wordCount - 1) * 55 + 300 + 300;
-}
-
+/**
+ * 연습 세트 결과: 1단계 점수·통계 > 2단계 AI 리포트 + 문제별 결과
+ */
 export default function PracticeResult() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
@@ -43,86 +22,14 @@ export default function PracticeResult() {
   );
   const initialStep = initialStepRef.current;
 
-  const [visibleStats, setVisibleStats] = useState<boolean[]>([
-    false,
-    false,
-    false,
-  ]);
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-  // 문제 카드 순차 등장 상태 — 인덱스별 visible 여부
-  const [visibleCards, setVisibleCards] = useState<boolean[]>([]);
-  // 문제 리스트 섹션 자체 등장 여부
-  const [resultVisible, setResultVisible] = useState(false);
-
-  // 타이머를 역할별로 분리 — scoreComplete 타이머와 AI/카드 타이머가 서로 취소하지 않도록
-  const scoreTimerIdsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const cardTimerIdsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-
   useEffect(() => {
     store.clearReturnStep();
-    return () => {
-      scoreTimerIdsRef.current.forEach(clearTimeout);
-      cardTimerIdsRef.current.forEach(clearTimeout);
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // AI 코멘트: sessionId 단위 캐시 — 세션마다 새 피드백
-  const {
-    data: aiCommentData,
-    isLoading: aiCommentLoading,
-    isError: aiCommentError,
-  } = useQuery({
-    queryKey: ["aiComment", sessionId],
-    queryFn: () => fetchAiComment(sessionId!),
-    staleTime: 1000 * 60 * 60 * 2, // 2시간 — 백엔드 Redis TTL과 맞춤
-    enabled: !!sessionId,
-    retry: 1,
-  });
-  // AI 로딩 중: null(스켈레톤), 실패: false(에러 메시지), 성공: 텍스트
-  const aiComment: string | null | false = aiCommentLoading
-    ? null
-    : aiCommentError
-      ? false
-      : (aiCommentData?.comment ?? "");
-
-  // AI 애니메이션 완료 or 실패 시 문제 카드 순차 등장
-  useEffect(() => {
-    // 로딩 중이면 대기
-    if (aiComment === null) return;
-    cardTimerIdsRef.current.forEach(clearTimeout);
-    cardTimerIdsRef.current = [];
-
-    // AI 실패 시 즉시 등장, 성공 시 애니메이션 완료 후 등장
-    const animDuration =
-      typeof aiComment === "string" && aiComment
-        ? calcAiAnimDuration(aiComment)
-        : 0;
-    const cardCount = store.results.length;
-
-    // 문제 리스트 섹션 먼저 등장
-    const sectionId = setTimeout(() => {
-      setResultVisible(true);
-      setVisibleCards(new Array(cardCount).fill(false));
-    }, animDuration);
-    cardTimerIdsRef.current.push(sectionId);
-
-    // 카드 80ms 간격 순차 등장
-    store.results.forEach((_, i) => {
-      const id = setTimeout(
-        () => {
-          setVisibleCards((prev) => {
-            const next = [...prev];
-            next[i] = true;
-            return next;
-          });
-        },
-        animDuration + 100 + i * 80,
-      );
-      cardTimerIdsRef.current.push(id);
-    });
-  }, [aiComment, store.results]);
+  const aiComment = usePracticeAiComment(sessionId);
+  const { visibleStats, visibleCards, isResultListVisible, revealStatsSequentially } =
+    usePracticeResultReveal(aiComment, store.results);
 
   const analysis = useMemo(() => {
     const results = store.results;
@@ -136,73 +43,15 @@ export default function PracticeResult() {
     return <Navigate to="/questions" replace />;
   }
 
-  const totalDuration = formatDuration(analysis.totalDurationMs);
-  const avgDuration =
-    analysis.totalCount > 0
-      ? formatDuration(
-          Math.round(analysis.totalDurationMs / analysis.totalCount),
-        )
-      : "0초";
-
-  const handleScoreComplete = useCallback(() => {
-    scoreTimerIdsRef.current.forEach(clearTimeout);
-    scoreTimerIdsRef.current = [];
-    [0, 1, 2].forEach((i) => {
-      const id = setTimeout(() => {
-        setVisibleStats((prev) => {
-          const next = [...prev];
-          next[i] = true;
-          return next;
-        });
-      }, i * 150);
-      scoreTimerIdsRef.current.push(id);
-    });
-  }, []);
-
   const step1 = (
-    <>
-      <span className="inline-block bg-brand-light text-brand text-sm font-medium px-3.5 py-1 rounded-full mb-8">
-        {store.topicName}
-      </span>
-      <ScoreCountUp
-        target={analysis.correctCount}
-        total={analysis.totalCount}
-        onComplete={handleScoreComplete}
-      />
-      <div className="flex gap-8 mt-8">
-        <div
-          className={`text-center transition-all duration-300 ease-out ${visibleStats[0] ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"}`}
-        >
-          <div className="text-lg font-bold">
-            {analysis.totalCount > 0
-              ? Math.round((analysis.correctCount / analysis.totalCount) * 100)
-              : 0}
-            %
-          </div>
-          <div className="flex items-center gap-1 text-xs text-text-caption mt-0.5 justify-center">
-            <Target size={11} className="text-text-caption" />
-            정답률
-          </div>
-        </div>
-        <div
-          className={`text-center transition-all duration-300 ease-out ${visibleStats[1] ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"}`}
-        >
-          <div className="text-lg font-bold">{totalDuration}</div>
-          <div className="flex items-center gap-1 text-xs text-text-caption mt-0.5 justify-center">
-            <Clock size={11} className="text-text-caption" />총 시간
-          </div>
-        </div>
-        <div
-          className={`text-center transition-all duration-300 ease-out ${visibleStats[2] ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"}`}
-        >
-          <div className="text-lg font-bold">{avgDuration}</div>
-          <div className="flex items-center gap-1 text-xs text-text-caption mt-0.5 justify-center">
-            <Timer size={11} className="text-text-caption" />
-            문제당 평균
-          </div>
-        </div>
-      </div>
-    </>
+    <PracticeScoreSummary
+      topicName={store.topicName}
+      correctCount={analysis.correctCount}
+      totalCount={analysis.totalCount}
+      totalDurationMilliseconds={analysis.totalDurationMs}
+      visibleStats={visibleStats}
+      onScoreCountComplete={revealStatsSequentially}
+    />
   );
 
   // Step2: AI 분석 + 문제별 결과 통합
@@ -210,127 +59,23 @@ export default function PracticeResult() {
   const step2 = (
     <div className="text-left w-full px-4">
       {/* AI 성공 시에만 뱃지 + 텍스트 표시 */}
-      {aiComment !== false && (
-        <>
-          <div className="flex justify-center mb-5">
-            <span className="inline-flex items-center gap-2 bg-brand-light text-brand text-base font-semibold px-5 py-2 rounded-full">
-              <Sparkles size={16} />
-              AI 리포트
-            </span>
-          </div>
-
-          {/* AI 텍스트 — 로딩: 스켈레톤, 성공: 단어별 fade-in */}
-          {aiComment === null ? (
-            <div className="space-y-2 animate-pulse mb-6">
-              <div className="h-4 bg-border rounded w-full" />
-              <div className="h-4 bg-border rounded w-5/6" />
-              <div className="h-4 bg-border rounded w-4/6" />
-            </div>
-          ) : (
-            <MarkdownText
-              text={aiComment as string}
-              animated
-              className="text-body leading-relaxed mb-6"
-            />
-          )}
-        </>
-      )}
+      {aiComment !== false && <PracticeAiReport aiComment={aiComment} />}
 
       {/* 문제별 결과 — AI 애니메이션 완료 후 등장 */}
       <div
         className={`transition-all duration-400 ease-out ${
-          resultVisible
+          isResultListVisible
             ? "opacity-100 translate-y-0"
             : "opacity-0 translate-y-3"
         }`}
       >
-        {resultVisible && (
-          <>
-            <div className="w-full h-px bg-border mb-3" />
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-medium text-text-caption">
-                문제별 결과
-              </p>
-            </div>
-            <div className="flex flex-col gap-2">
-              {store.results.map((r, i) => {
-                const q = store.questions.find(
-                  (q) => q.questionUuid === r.questionUuid,
-                );
-                const isOpen = openIndex === i;
-                return (
-                  <div
-                    key={r.questionUuid}
-                    className={`border rounded-[10px] overflow-hidden transition-all duration-350 ease-out ${
-                      r.isCorrect
-                        ? "bg-semantic-success-light border-semantic-success-border"
-                        : "bg-semantic-error-light border-semantic-error-border"
-                    } ${visibleCards[i] ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}
-                  >
-                    <button
-                      type="button"
-                      className="w-full flex items-center gap-3 p-3 text-left"
-                      onClick={() => setOpenIndex(isOpen ? null : i)}
-                    >
-                      <span
-                        className={`text-sm font-bold w-5 text-center shrink-0 ${r.isCorrect ? "text-semantic-success-text" : "text-semantic-error-text"}`}
-                      >
-                        {i + 1}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm truncate">{q?.stemPreview}</p>
-                        <p className="text-xs text-text-caption mt-0.5">
-                          {formatDuration(r.durationMs)}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <span className={`text-xs font-medium ${r.isCorrect ? "text-semantic-success-text" : "text-semantic-error-text"}`}>
-                          {r.isCorrect ? "정답" : "오답"}
-                        </span>
-                        {isOpen ? (
-                          <ChevronUp size={14} className="text-text-caption" />
-                        ) : (
-                          <ChevronDown
-                            size={14}
-                            className="text-text-caption"
-                          />
-                        )}
-                      </div>
-                    </button>
-                    <div
-                      className={`grid transition-all duration-300 ease-out ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
-                    >
-                      <div className="overflow-hidden">
-                        <div className={`px-3 pb-3 pt-2 border-t space-y-2 ${r.isCorrect ? "border-semantic-success-border" : "border-semantic-error-border"}`}>
-                          <p className="text-sm text-text-secondary leading-relaxed">
-                            {q?.stemPreview}
-                          </p>
-                          <p
-                            className={`text-xs font-medium ${r.isCorrect ? "text-semantic-success-text" : "text-semantic-error-text"}`}
-                          >
-                            내 답: {r.selectedChoiceBody}
-                          </p>
-                          {/* 다시 풀기 — 정답/오답 모두 재도전 가능, 색상으로 구분 */}
-                          <Link
-                            to={`/recommendation/${r.questionUuid}`}
-                            state={{
-                              returnPath: `/practice/${sessionId}`,
-                              initialStep: 1,
-                            }}
-                            className={`inline-flex items-center justify-center gap-1.5 w-full text-sm font-bold text-on-brand rounded-lg h-9 mt-1 transition-opacity hover:opacity-90 ${
-                              r.isCorrect ? "bg-semantic-success" : "bg-semantic-error"
-                            }`}
-                          >
-                            <RotateCcw size={14} /> 다시 풀기
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </>
+        {isResultListVisible && (
+          <PracticeQuestionResultList
+            results={store.results}
+            questions={store.questions}
+            sessionId={sessionId}
+            visibleCards={visibleCards}
+          />
         )}
       </div>
     </div>

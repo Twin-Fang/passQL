@@ -1,62 +1,27 @@
-import { Flame, ChevronRight, Check, RefreshCw, Sparkles } from "lucide-react";
-import { getReadinessCopy } from "../constants/readinessCopy";
-import { Link } from "react-router-dom";
-import { useState, useCallback, useEffect } from "react";
 import { useProgress } from "../hooks/useProgress";
 import { useMember } from "../hooks/useMember";
 import { useAuthStore } from "../stores/authStore";
-import { StarRating } from "../components/StarRating";
-import { HeatmapCalendar } from "../components/HeatmapCalendar";
 import {
   useGreeting,
   useDailySet,
   useRecommendations,
-  useRefreshRecommendations,
   useSelectedSchedule,
   useHeatmap,
 } from "../hooks/useHome";
 import { useStagger } from "../hooks/useStagger";
+import { useRecommendationRefresh } from "../hooks/useRecommendationRefresh";
 import AppDownloadBanner from "../components/AppDownloadBanner";
-import ProgressBar from "../components/ProgressBar";
+import HomeGreeting from "../components/home/HomeGreeting";
+import ExamScheduleCard from "../components/home/ExamScheduleCard";
+import DailySetCard from "../components/home/DailySetCard";
+import StudyStatusSection from "../components/home/StudyStatusSection";
+import ReadinessSection from "../components/home/ReadinessSection";
+import RecommendedQuestionsSection from "../components/home/RecommendedQuestionsSection";
 
 /**
- * greeting 메시지의 {nickname}을 강조 span으로 치환하고
- * \n 기준으로 줄을 분리한 ReactNode 배열을 반환한다.
- * 닉네임 강조는 백엔드 플레이스홀더 위치를 그대로 사용 — 프론트 비즈니스 로직 최소화.
+ * 홈: 인사말 > 시험 일정·데일리 세트 > 학습 현황 > 합격 준비도 > AI 추천문제
+ * 섹션별 독립 로딩·에러 처리
  */
-function parseGreetingLines(message: string, nickname: string): React.ReactNode[] {
-  const lines = message.split("\n");
-  return lines.map((line, lineIdx) => {
-    const parts = line.split("{nickname}");
-    if (parts.length === 1) return <span key={lineIdx}>{line}</span>;
-    return (
-      <span key={lineIdx}>
-        {parts[0]}
-        <span className="greeting-nickname">{nickname}</span>
-        {parts[1]}
-      </span>
-    );
-  });
-}
-
-// 홈 카드 공통 실패 상태 — 히트맵 영역과 같은 문구·재시도 방식으로 맞춘다 (#399)
-function HomeCardError({ title, onRetry }: { title: string; onRetry: () => void }) {
-  return (
-    <div className="bg-surface-card border border-border rounded-2xl p-4 sm:p-6 h-full flex flex-col justify-center gap-2">
-      <p className="text-sm text-text-secondary">{title}</p>
-      <p className="text-sm text-text-caption">불러오지 못했어요</p>
-      <button
-        type="button"
-        className="btn-compact inline-flex items-center gap-1.5 self-start"
-        onClick={onRetry}
-      >
-        <RefreshCw size={12} />
-        재시도
-      </button>
-    </div>
-  );
-}
-
 export default function Home() {
   const stagger = useStagger();
   // 각 섹션의 stagger 결과를 미리 선언 — 동일 인덱스 이중 호출 방지
@@ -83,36 +48,13 @@ export default function Home() {
     isError: dailySetError,
     refetch: refetchDailySet,
   } = useDailySet();
-  // 버튼 1회전 트리거 — 애니메이션 클래스를 뗐다 붙이기 위해 별도 state 사용
-  const [spinning, setSpinning] = useState(false);
-  // 카드 페이드인 재트리거 — key가 바뀌면 카드 목록이 재마운트되어 애니메이션 재실행
-  const [refreshKey, setRefreshKey] = useState(0);
-  // 세션 내 이미 추천된 UUID 누적 — 새로고침 시 제외 목록으로 전달
-  const [seenUuids, setSeenUuids] = useState<string[]>([]);
-
   const {
     data: recommendations,
     isLoading: recommendationsLoading,
     isError: recommendationsError,
     isFetching: recommendationsFetching,
   } = useRecommendations();
-  const refreshRecommendations = useRefreshRecommendations();
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  // 추천 결과가 도착하면 해당 UUID를 seenUuids에 누적
-  // questions 배열 참조 기준으로 의존 — recommendations 객체 전체를 넣으면
-  // 다른 필드 변경에도 effect가 실행되어 불필요한 state 업데이트 발생
-  const recommendedQuestions = recommendations?.questions;
-  useEffect(() => {
-    if (!recommendedQuestions || recommendedQuestions.length === 0) return;
-    setSeenUuids((prev) => {
-      const newUuids = recommendedQuestions
-        .map((q) => q.questionUuid)
-        .filter((uuid) => !prev.includes(uuid));
-      if (newUuids.length === 0) return prev;
-      // FIFO 30개 유지 — 무제한 누적 시 POST body 비대화 방지
-      return [...prev, ...newUuids].slice(-30);
-    });
-  }, [recommendedQuestions]);
+  const recommendationRefresh = useRecommendationRefresh(recommendations?.questions, recommendationsFetching);
   const {
     data: schedule,
     isLoading: scheduleLoading,
@@ -126,309 +68,73 @@ export default function Home() {
     refetch: refetchHeatmap,
   } = useHeatmap();
 
-  const handleRefresh = useCallback(() => {
-    if (recommendationsFetching || isRefreshing || spinning) return;
-    setSpinning(true);
-    setIsRefreshing(true);
-    // 새로고침 시에만 seenUuids를 제외 목록으로 전달 — 평소엔 queryKey 고정 유지
-    // finally로 에러 시에도 isRefreshing 복구 — 미처리 시 버튼 영구 비활성화 발생
-    refreshRecommendations(seenUuids)
-      .then(() => { setRefreshKey((k) => k + 1); })
-      .finally(() => { setIsRefreshing(false); });
-  }, [recommendationsFetching, isRefreshing, spinning, refreshRecommendations, seenUuids]);
-
   const uuid = useAuthStore((s) => s.memberUuid ?? "");
   const nickname = useAuthStore((s) => s.nickname ?? "");
   const displayName = nickname || uuid.slice(0, 8);
 
-  // progress 에러/미로드 시 0으로 안전하게 fallback
-  const solved = progress?.solvedCount ?? 0;
-  const correctRate = progress?.correctRate ?? 0;
-  const streak = progress?.streakDays ?? 0;
+  // 추천 문제: 에러 시 숨김, 초기 로딩 또는 추천 1개 이상일 때 표시
+  const shouldShowRecommendations =
+    !recommendationsError && (recommendationsLoading || (recommendations && recommendations.questions.length > 0));
 
   return (
     <div className="py-6 space-y-0">
-      {/* ① 그리팅 줄1: 첫 번째 줄만 렌더링 */}
-      {/* CSS variable(--stagger-delay) 주입 — Tailwind로 표현 불가하여 style prop 예외 허용 */}
-      <section className={`mb-1 ${s0.className}`}>
-        <h1 className="text-h2 leading-snug">
-          {greeting ? (
-            parseGreetingLines(greeting.message, greeting.nickname).map((line, i) =>
-              i === 0 ? <span key={i} className="block">{line}</span> : null
-            )
-          ) : (
-            // 이름을 모를 때 "안녕하세요,"처럼 쉼표만 남지 않게 한다 (#399)
-            <span>{displayName ? `안녕하세요, ${displayName}` : "안녕하세요"}</span>
-          )}
-        </h1>
-      </section>
-
-      {/* ② 그리팅 줄2 + 서브메시지(EXAM_DAY/URGENT) */}
-      <section className={`mb-6 ${s1.className}`}>
-        <h1 className="text-h2 leading-snug">
-          {greeting &&
-            parseGreetingLines(greeting.message, greeting.nickname).map((line, i) =>
-              i > 0 ? <span key={i} className="block">{line}</span> : null
-            )}
-        </h1>
-        {greeting?.messageType === "EXAM_DAY" && (
-          <p className="text-sm font-medium mt-1 text-semantic-error-text">
-            오늘 시험이에요!
-          </p>
-        )}
-        {greeting?.messageType === "URGENT" && (
-          <p className="text-sm font-medium mt-1 text-semantic-warning-text">
-            시험이 얼마 남지 않았어요
-          </p>
-        )}
-      </section>
+      <HomeGreeting
+        greeting={greeting}
+        displayName={displayName}
+        firstLineClassName={s0.className}
+        restLinesClassName={s1.className}
+      />
 
       {/* ③ 시험 일정 + 오늘의 문제 카드 섹션 — 시험 일정을 앞에 배치 */}
       {/* 앱 출시 안내 — 스토어 링크가 설정됐을 때만 보인다 (#433) */}
       <AppDownloadBanner />
 
       <section className={`grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 ${s2.className}`}>
-        {scheduleLoading ? (
-          <div className="skeleton h-full min-h-28 rounded-2xl" />
-        ) : scheduleError ? (
-          <HomeCardError title="시험 일정" onRetry={() => refetchSchedule()} />
-        ) : schedule ? (
-          // 인디고 단색 카드 — D-day를 전면에 강조해 시험 긴박감 전달
-          <div className="h-full rounded-xl p-4 sm:p-6 flex flex-col justify-center relative overflow-hidden bg-brand">
-            {/* 배경 장식 원 — 단색 배경의 단조로움을 덜어주는 subtle한 레이어 */}
-            <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-on-brand/10" />
-            <div className="absolute right-4 -bottom-8 w-24 h-24 rounded-full bg-on-brand/5" />
-            <p className="text-xs font-medium text-on-brand/70 mb-1 relative z-10">
-              {schedule.certType} {schedule.round}회
-            </p>
-            <p className="text-3xl font-bold text-on-brand leading-tight relative z-10">
-              {/* D-day 계산: 오늘 00:00 기준으로 시험일까지 남은 일수 */}
-              {(() => {
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const exam = new Date(schedule.examDate);
-                exam.setHours(0, 0, 0, 0);
-                const diff = Math.round((exam.getTime() - today.getTime()) / 86400000);
-                if (diff > 0) return `D-${diff}`;
-                if (diff === 0) return "D-Day";
-                return `D+${Math.abs(diff)}`;
-              })()}
-            </p>
-            <p className="text-sm text-on-brand/70 mt-1 relative z-10">{schedule.examDate}</p>
-          </div>
-        ) : (
-          <div className="bg-surface-card border border-border rounded-2xl p-4 sm:p-6 h-full flex flex-col justify-center">
-            <p className="text-sm text-text-secondary">시험 일정</p>
-            <p className="text-sm text-text-caption mt-1">선택된 일정 없음</p>
-          </div>
-        )}
-        {dailySetLoading ? (
-          <div className="skeleton h-full min-h-28 rounded-2xl" />
-        ) : dailySetError ? (
-          <HomeCardError title="오늘의 데일리 세트" onRetry={() => refetchDailySet()} />
-        ) : dailySet?.questions && dailySet.questions.length > 0 ? (
-          dailySet.alreadyCompleted ? (
-            // 완료 상태: 회색 dimmed 카드 — 이미 끝난 항목임을 시각적으로 표현
-            <div className="h-full flex flex-col gap-2 rounded-xl p-5 cursor-default bg-surface-code border border-border">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-text-secondary">오늘의 데일리 세트</p>
-                <span className="flex items-center gap-1 text-xs font-semibold text-semantic-success-text">
-                  <Check size={11} strokeWidth={3} />
-                  완료
-                </span>
-              </div>
-              <p className="text-xs text-text-caption">
-                {dailySet.correctCount !== null ? `${dailySet.correctCount} / ${dailySet.questions.length} 정답` : ""}
-              </p>
-              <Link to="/leaderboard" className="mt-auto">
-                <span className="text-xs text-brand font-semibold">순위 확인하기 →</span>
-              </Link>
-            </div>
-          ) : (
-            // 미완료 상태: 데일리 세트 페이지로 이동
-            <Link to="/daily-set" className="block">
-              <div className="bg-surface-card border border-border rounded-2xl p-4 sm:p-6 h-full flex flex-col gap-2 cursor-pointer hover:-translate-y-0.5 hover:border-brand transition-all duration-200">
-                <p className="text-sm text-text-secondary">오늘의 데일리 세트</p>
-                <p className="text-sm text-text-primary">{dailySet.questions.length}문제 도전하기</p>
-                <div className="flex items-center gap-2 mt-auto">
-                  <span className="badge-topic">{dailySet.questions[0]?.topicName}</span>
-                  <span className="text-xs text-text-caption">외 {dailySet.questions.length - 1}개 토픽</span>
-                </div>
-              </div>
-            </Link>
-          )
-        ) : (
-          // 오늘 데일리 세트 없음 — 문제 목록으로 유도
-          <Link to="/questions" className="block">
-            <div className="bg-surface-card border border-border rounded-2xl p-4 sm:p-6 h-full flex flex-col justify-center cursor-pointer hover:-translate-y-0.5 hover:border-brand transition-all duration-200">
-              <p className="text-sm text-text-secondary">오늘의 데일리 세트</p>
-              <p className="text-sm text-text-primary mt-1">오늘은 준비 중이에요</p>
-            </div>
-          </Link>
-        )}
+        <ExamScheduleCard
+          schedule={schedule}
+          isLoading={scheduleLoading}
+          isError={scheduleError}
+          onRetry={() => refetchSchedule()}
+        />
+        <DailySetCard
+          dailySet={dailySet}
+          isLoading={dailySetLoading}
+          isError={dailySetError}
+          onRetry={() => refetchDailySet()}
+        />
       </section>
 
       {/* ④ 학습 현황 섹션: heatmap 에러/로딩만 독립 처리 */}
-      <section className={`bg-surface-card border border-border rounded-2xl p-4 sm:p-6 mb-4 ${s3.className}`}>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm text-text-secondary">학습 현황</h2>
-          {/* streak는 progress 에러 시 0 fallback → 뱃지 자연스럽게 미표시 */}
-          {streak > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-bold bg-semantic-warning-light text-semantic-warning-text">
-              {/* fill 속성으로 불꽃 아이콘을 꽉 채운 스타일로 표시 */}
-              <Flame size={14} fill="currentColor" />
-              연속 {streak}일
-            </span>
-          )}
-        </div>
-
-        {/* 히트맵: 에러 시 해당 영역만 인라인 에러 표시 */}
-        {heatmapLoading ? (
-          <div className="skeleton h-16" />
-        ) : heatmapError ? (
-          /* 히트맵 영역만 실패 — 카드 구조는 유지하고 영역 안에서 재시도 유도 */
-          <div className="flex flex-col items-center gap-2 py-4 text-center">
-            <p className="text-sm text-text-caption">히트맵을 불러올 수 없습니다</p>
-            <button
-              type="button"
-              className="btn-compact inline-flex items-center gap-1.5"
-              onClick={() => refetchHeatmap()}
-            >
-              <RefreshCw size={12} />
-              재시도
-            </button>
-          </div>
-        ) : heatmap ? (
-          <HeatmapCalendar entries={heatmap.entries} />
-        ) : (
-          <div className="skeleton h-16" />
-        )}
-      </section>
+      <StudyStatusSection
+        streakDays={progress?.streakDays ?? 0}
+        heatmap={heatmap}
+        isHeatmapLoading={heatmapLoading}
+        isHeatmapError={heatmapError}
+        onRetryHeatmap={() => refetchHeatmap()}
+        staggerClassName={s3.className}
+      />
 
       {/* ⑤ 합격 준비도 / 통계 섹션: progress 에러/로딩 독립 처리 */}
-      {progressLoading ? (
-        <section className={`grid grid-cols-2 gap-3 mb-4 ${s4.className}`}>
-          <div className="skeleton h-24" />
-          <div className="skeleton h-24" />
-        </section>
-      ) : progressError ? (
-        /* progress 에러 — 로딩 skeleton과 동일한 2칸 그리드 자리에 배치해 레이아웃 안정 */
-        <section className={`bg-surface-card border border-border rounded-2xl p-4 sm:p-6 mb-4 ${s4.className}`}>
-          <p className="text-sm text-text-secondary mb-3">합격 준비도</p>
-          <div className="flex flex-col items-center gap-2 py-2 text-center">
-            <p className="text-sm text-text-caption">학습 데이터를 불러올 수 없습니다</p>
-            <button
-              type="button"
-              className="btn-compact inline-flex items-center gap-1.5"
-              onClick={() => refetchProgress()}
-            >
-              <RefreshCw size={12} />
-              재시도
-            </button>
-          </div>
-        </section>
-      ) : progress?.readiness ? (
-        // readiness 데이터가 있으면 합격 준비도 카드
-        <section className={`bg-surface-card border border-border rounded-2xl p-4 sm:p-6 mb-4 ${s4.className}`}>
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-sm text-text-secondary">합격 준비도</h2>
-            <span className="text-h1 text-brand">
-              {Math.round(progress.readiness.score * 100)}%
-            </span>
-          </div>
-          <ProgressBar
-            fillPercent={progress.readiness.score * 100}
-            trackClassName="h-2 bg-border mb-3"
-            fillClassName="bg-brand transition-all"
-          />
-          <p className="text-sm text-text-secondary">
-            {getReadinessCopy(
-              progress.readiness.toneKey,
-              progress.readiness.score,
-            )}
-          </p>
-          <div className="flex gap-4 mt-3 text-xs text-text-caption">
-            <span>맞힌 비율 {Math.round(progress.readiness.accuracy * 100)}%</span>
-            <span>
-              공부 범위 {Math.round(progress.readiness.coverage * 100)}%
-            </span>
-            <span>꾸준함 {Math.round(progress.readiness.recency * 100)}%</span>
-          </div>
-        </section>
-      ) : (
-        // readiness 없으면 간략 통계 카드
-        <section className={`grid grid-cols-2 gap-3 mb-4 ${s4.className}`}>
-          <div className="bg-surface-card border border-border rounded-2xl p-4 sm:p-6 flex flex-col items-start">
-            <span className="text-h1 text-brand">{solved}</span>
-            <span className="text-sm text-text-secondary mt-1">푼 문제</span>
-          </div>
-          <div className="bg-surface-card border border-border rounded-2xl p-4 sm:p-6 flex flex-col items-start">
-            <span className="text-h1 text-brand">
-              {Math.round(correctRate * 100)}%
-            </span>
-            <span className="text-sm text-text-secondary mt-1">정답률</span>
-            <ProgressBar
-              fillPercent={correctRate * 100}
-              trackClassName="mt-2 h-1 bg-border"
-              fillClassName="bg-brand"
-            />
-          </div>
-        </section>
-      )}
+      <ReadinessSection
+        progress={progress}
+        isLoading={progressLoading}
+        isError={progressError}
+        onRetry={() => refetchProgress()}
+        staggerClassName={s4.className}
+      />
 
       {/* ⑥ 추천 문제 섹션: 에러 시 숨김, 초기 로딩 시 스켈레톤 표시 */}
-      {!recommendationsError && (recommendationsLoading || (recommendations && recommendations.questions.length > 0)) && (
-        <section className={`mt-6 ${s5.className}`}>
-          <h2 className="text-sm text-text-secondary mb-3 flex items-center gap-2">
-            <Sparkles size={14} fill="currentColor" />
-            AI 추천문제
-            {/* 다른 추천 문제 세트를 원할 때 재요청 — staleTime 내에도 강제 refetch */}
-            <button
-              onClick={handleRefresh}
-              disabled={recommendationsFetching || isRefreshing || spinning}
-              onAnimationEnd={() => setSpinning(false)}
-              className="p-1 rounded hover:bg-surface transition-colors disabled:opacity-40"
-              aria-label="추천 문제 새로고침"
-            >
-              <RefreshCw
-                size={13}
-                className={spinning ? "animate-refresh-once" : ""}
-              />
-            </button>
-          </h2>
-          {recommendationsLoading ? (
-            // 초기 로딩 시에만 스켈레톤 — 새로고침(isFetching)은 기존 카드 유지
-            <div className="space-y-3">
-              <div className="skeleton h-[72px] rounded-2xl" />
-              <div className="skeleton h-[72px] rounded-2xl" />
-              <div className="skeleton h-[72px] rounded-2xl" />
-            </div>
-          ) : (
-            <div key={refreshKey} className="space-y-3">
-              {recommendations!.questions.map((q) => (
-                <Link
-                  key={q.questionUuid}
-                  to={`/questions/${q.questionUuid}`}
-                  className="block animate-card-in"
-                >
-                  <div className="bg-surface-card border border-border rounded-2xl p-4 sm:p-6 shadow-sm flex items-center gap-3 cursor-pointer hover:shadow-md hover:-translate-y-0.5 hover:border-brand transition-all duration-200">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-body truncate">{q.stemPreview}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="badge-topic">{q.topicName}</span>
-                        <StarRating level={q.difficulty} />
-                      </div>
-                    </div>
-                    <ChevronRight
-                      size={16}
-                      className="text-text-caption shrink-0"
-                    />
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
+      {shouldShowRecommendations && (
+        <RecommendedQuestionsSection
+          questions={recommendations?.questions}
+          isLoading={recommendationsLoading}
+          isRefreshDisabled={recommendationRefresh.isRefreshDisabled}
+          isSpinning={recommendationRefresh.isSpinning}
+          refreshKey={recommendationRefresh.refreshKey}
+          onRefresh={recommendationRefresh.refresh}
+          onSpinEnd={recommendationRefresh.stopSpinning}
+          staggerClassName={s5.className}
+        />
       )}
     </div>
   );

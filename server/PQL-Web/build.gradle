@@ -30,3 +30,15 @@ dependencies {
 tasks.named('bootJar') {
     archiveFileName = 'app.jar'
 }
+
+// API 계약 원본(레포 루트 api-contract/openapi.json) 경로·갱신 여부 > OpenApiContractTest (#458)
+// 갱신: ./gradlew :PQL-Web:test --tests '*OpenApiContractTest*' -PupdateApiContract
+def apiContractFile = rootProject.file('../api-contract/openapi.json')
+def shouldUpdateApiContract = project.hasProperty('updateApiContract')
+tasks.named('test') {
+    systemProperty 'apiContractFile', apiContractFile.absolutePath
+    systemProperty 'updateApiContract', shouldUpdateApiContract
+    // 계약 파일만 바뀌어도 다시 검사, 갱신 모드는 항상 실행
+    inputs.files(apiContractFile).optional().withPropertyName('apiContractFile')
+    outputs.upToDateWhen { !shouldUpdateApiContract }
+}

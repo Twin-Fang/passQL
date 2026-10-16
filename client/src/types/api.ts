@@ -1,63 +1,27 @@
+import type { components } from "./generated/openapi";
+
+// 서버 계약(api-contract/openapi.json) 생성 타입. 서버와 같은 모양은 아래처럼 별칭만 둔다 (#458)
+// 생성 타입과 다른 수작업 타입(null 표기·문자열 enum·웹 전용)은 그대로 유지
+type ApiSchemas = components["schemas"];
+
 // === Question ===
-export type ExecutionMode = "EXECUTABLE" | "CONCEPT_ONLY";
-export type ChoiceKind = "SQL" | "TEXT";
+export type ExecutionMode = ApiSchemas["QuestionSummary"]["executionMode"];
+export type ChoiceKind = ApiSchemas["ChoiceItem"]["kind"];
 // AI_ONLY: 일반 AI 생성 / ODD_ONE_OUT: "결과가 다른 것은?" 유형 / CURATED_ONLY/HYBRID: 미구현
 // RESULT_MATCH: "다음 SQL의 실행 결과로 올바른 것은?" 유형 — 선택지 body가 JSON 배열 결과 테이블
-export type ChoiceSetPolicy = "AI_ONLY" | "ODD_ONE_OUT" | "CURATED_ONLY" | "HYBRID" | "RESULT_MATCH";
+export type ChoiceSetPolicy = ApiSchemas["QuestionDetail"]["choiceSetPolicy"];
 
-export interface QuestionSummary {
-  readonly questionUuid: string;
-  readonly topicCode: string;
-  readonly topicName: string;
-  readonly difficulty: number;
-  readonly executionMode: ExecutionMode;
-  readonly stemPreview: string;
-  readonly createdAt: string;
-}
+export type QuestionSummary = ApiSchemas["QuestionSummary"];
 
-export interface ChoiceItem {
-  readonly key: string;
-  readonly kind: ChoiceKind;
-  readonly body: string;
-  readonly isCorrect: boolean;
-  readonly rationale: string;
-  readonly sortOrder: number;
-}
+export type ChoiceItem = ApiSchemas["ChoiceItem"];
 
-export type ChoiceSetSource =
-  | "AI_RUNTIME"
-  | "AI_PREFETCH"
-  | "AI_ADMIN_PREVIEW"
-  | "ADMIN_SEED"
-  | "ADMIN_CURATED";
+export type ChoiceSetSource = ApiSchemas["ChoiceSetSummary"]["source"];
 
-export type ChoiceSetStatus = "OK" | "DISABLED" | "REPORTED" | "DRAFT" | "FAILED";
+export type ChoiceSetStatus = ApiSchemas["ChoiceSetSummary"]["status"];
 
-export interface ChoiceSetSummary {
-  readonly choiceSetUuid: string;
-  readonly source: ChoiceSetSource;
-  readonly status: ChoiceSetStatus;
-  readonly sandboxValidationPassed: boolean;
-  readonly createdAt: string;
-  readonly items: readonly ChoiceItem[];
-}
+export type ChoiceSetSummary = ApiSchemas["ChoiceSetSummary"];
 
-export interface QuestionDetail {
-  readonly questionUuid: string;
-  readonly topicName: string;
-  readonly subtopicName: string;
-  readonly difficulty: number;
-  readonly executionMode: ExecutionMode;
-  readonly choiceSetPolicy: ChoiceSetPolicy;
-  readonly stem: string;
-  readonly schemaDisplay: string;
-  readonly schemaDdl: string;
-  readonly schemaSampleData: string;
-  readonly schemaIntent: string;
-  readonly answerSql: string;
-  readonly hint: string;
-  readonly choiceSets: readonly ChoiceSetSummary[];
-}
+export type QuestionDetail = ApiSchemas["QuestionDetail"];
 
 export interface SubmitResult {
   readonly isCorrect: boolean;
@@ -115,15 +79,7 @@ export interface Page<T> {
 }
 
 // === Progress ===
-export type ToneKey =
-  | "NO_EXAM"
-  | "ONBOARDING"
-  | "POST_EXAM"
-  | "TODAY"
-  | "SPRINT"
-  | "PUSH"
-  | "STEADY"
-  | "EARLY";
+export type ToneKey = ApiSchemas["ReadinessResponse"]["toneKey"];
 
 export interface ReadinessResponse {
   readonly score: number;
@@ -148,17 +104,9 @@ export interface ProgressResponse {
 }
 
 // === 마이페이지 오답 노트 ===
-export interface WrongQuestionItem {
-  readonly questionUuid: string;
-  readonly stemPreview: string;
-  readonly topicName: string;
-  readonly lastWrongAt: string;
-}
+export type WrongQuestionItem = ApiSchemas["WrongQuestionItem"];
 
-export interface WrongQuestionsResponse {
-  readonly items: readonly WrongQuestionItem[];
-  readonly totalCount: number;
-}
+export type WrongQuestionsResponse = ApiSchemas["WrongQuestionsResponse"];
 
 export interface CategoryStats {
   readonly code: string;
@@ -168,77 +116,28 @@ export interface CategoryStats {
 }
 
 // === Topic Analysis (Issue #79) ===
-export interface TopicStat {
-  readonly topicUuid: string;
-  readonly displayName: string;
-  readonly totalQuestionCount: number;
-  readonly correctRate: number;
-  readonly solvedCount: number;
-}
+export type TopicStat = ApiSchemas["TopicStat"];
 
-export interface TopicAnalysisResponse {
-  readonly topicStats: readonly TopicStat[];
-}
+export type TopicAnalysisResponse = ApiSchemas["TopicAnalysisResponse"];
 
-export interface AiCommentResponse {
-  readonly comment: string;
-  readonly generatedAt: string;
-}
+export type AiCommentResponse = ApiSchemas["AiCommentResponse"];
 
 // === Heatmap ===
-export interface HeatmapEntry {
-  readonly date: string;
-  readonly solvedCount: number;
-  readonly correctCount: number;
-}
+export type HeatmapEntry = ApiSchemas["HeatmapEntry"];
 
-export interface HeatmapResponse {
-  readonly entries: readonly HeatmapEntry[];
-}
+export type HeatmapResponse = ApiSchemas["HeatmapResponse"];
 
 // === Meta ===
-export interface SubtopicItem {
-  readonly code: string;
-  readonly displayName: string;
-  readonly sortOrder: number;
-  readonly isActive: boolean;
-}
+export type SubtopicItem = ApiSchemas["SubtopicItem"];
 
-export interface TopicTree {
-  readonly topicUuid: string;
-  readonly code: string;
-  readonly displayName: string;
-  readonly sortOrder: number;
-  readonly isActive: boolean;
-  readonly subtopics: readonly SubtopicItem[];
-}
+export type TopicTree = ApiSchemas["TopicTree"];
 
-export interface ConceptTag {
-  readonly conceptTagUuid: string;
-  readonly tagKey: string;
-  readonly labelKo: string;
-  readonly category: string;
-  readonly description: string;
-  readonly isActive: boolean;
-  readonly sortOrder: number;
-  readonly createdAt: string;
-  readonly updatedAt: string;
-  readonly createdBy: string;
-  readonly updatedBy: string;
-}
+export type ConceptTag = ApiSchemas["ConceptTag"];
 
 // === AI ===
-export interface AiResult {
-  readonly text: string;
-  readonly promptVersion: number;
-}
+export type AiResult = ApiSchemas["AiResult"];
 
-export interface SimilarQuestion {
-  readonly questionUuid: string;
-  readonly stem: string;
-  readonly topicName: string;
-  readonly score: number;
-}
+export type SimilarQuestion = ApiSchemas["SimilarQuestion"];
 
 // === Member ===
 export interface MemberRegisterResponse {
@@ -247,7 +146,7 @@ export interface MemberRegisterResponse {
 }
 
 // 선택지 생성 모드
-export type ChoiceGenerationMode = "PRACTICE" | "REAL";
+export type ChoiceGenerationMode = ApiSchemas["MemberMeResponse"]["choiceGenerationMode"];
 
 export interface MemberMeResponse {
   readonly memberUuid: string;
@@ -262,17 +161,11 @@ export interface MemberMeResponse {
   readonly choiceGenerationMode: ChoiceGenerationMode;
 }
 
-export interface NicknameRegenerateResponse {
-  readonly nickname: string;
-}
+export type NicknameRegenerateResponse = ApiSchemas["NicknameRegenerateResponse"];
 
-export interface NicknameCheckResponse {
-  readonly available: boolean;
-}
+export type NicknameCheckResponse = ApiSchemas["NicknameCheckResponse"];
 
-export interface NicknameChangeResponse {
-  readonly nickname: string;
-}
+export type NicknameChangeResponse = ApiSchemas["NicknameChangeResponse"];
 
 // === AI Payloads ===
 export interface ExplainErrorPayload {
@@ -299,17 +192,9 @@ export interface DailySetTodayResponse {
   readonly correctCount: number | null;
 }
 
-export interface DailySetCompleteResponse {
-  readonly correctCount: number;
-  readonly rank: number;
-  readonly totalParticipants: number;
-}
+export type DailySetCompleteResponse = ApiSchemas["DailySetCompleteResponse"];
 
-export interface LeaderboardEntry {
-  readonly rank: number;
-  readonly nickname: string;
-  readonly correctCount: number;
-}
+export type LeaderboardEntry = ApiSchemas["LeaderboardEntry"];
 
 export interface LeaderboardResponse {
   readonly date: string;
@@ -317,27 +202,15 @@ export interface LeaderboardResponse {
   readonly myEntry: LeaderboardEntry | null;
 }
 
-export interface RecommendationsResponse {
-  readonly questions: readonly QuestionSummary[];
-}
+export type RecommendationsResponse = ApiSchemas["RecommendationsResponse"];
 
 // === Home ===
-export type GreetingMessageType = "GENERAL" | "EXAM_DAY" | "URGENT" | "COUNTDOWN";
+export type GreetingMessageType = ApiSchemas["GreetingResponse"]["messageType"];
 
-export interface GreetingResponse {
-  readonly nickname: string;
-  readonly message: string;
-  readonly messageType: GreetingMessageType;
-}
+export type GreetingResponse = ApiSchemas["GreetingResponse"];
 
 // === ExamSchedule ===
-export interface ExamScheduleResponse {
-  readonly examScheduleUuid: string;
-  readonly certType: string;
-  readonly round: number;
-  readonly examDate: string;
-  readonly isSelected: boolean;
-}
+export type ExamScheduleResponse = ApiSchemas["ExamScheduleResponse"];
 
 // === Practice ===
 export interface PracticeQuestionResult {
@@ -439,8 +312,4 @@ export interface NotificationPage {
   readonly nextCursor: string | null;
 }
 
-export interface UnreadNotificationCount {
-  readonly general: number;
-  readonly notice: number;
-  readonly total: number;
-}
+export type UnreadNotificationCount = ApiSchemas["UnreadNotificationCountResponse"];

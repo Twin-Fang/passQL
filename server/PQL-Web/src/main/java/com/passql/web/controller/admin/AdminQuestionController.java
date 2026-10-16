@@ -11,9 +11,10 @@ import com.passql.question.constant.ExecutionMode;
 import com.passql.question.dto.*;
 import com.passql.question.dto.AdminQuestionSearchCondition;
 import com.passql.question.entity.Question;
+import com.passql.question.service.OracleSqlCompatibilityConverter;
 import com.passql.question.service.QuestionGenerateService;
-import com.passql.question.service.QuestionImportExportService;
 import com.passql.question.service.QuestionService;
+import com.passql.question.service.QuestionVectorIndexService;
 import com.passql.web.service.AdminQuestionDeleteService;
 import com.passql.web.support.AdminMenu;
 import com.passql.web.support.AdminPage;
@@ -22,16 +23,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -44,7 +41,8 @@ public class AdminQuestionController {
 
     private final QuestionService questionService;
     private final QuestionGenerateService questionGenerateService;
-    private final QuestionImportExportService importExportService;
+    private final QuestionVectorIndexService questionVectorIndexService;
+    private final OracleSqlCompatibilityConverter oracleSqlCompatibilityConverter;
     private final MetaService metaService;
     private final AdminQuestionDeleteService adminQuestionDeleteService;
 
@@ -92,13 +90,13 @@ public class AdminQuestionController {
         ExecutionMode mode = ExecutionMode.fromRequestValue(executionMode);
 
         // 1:1 치환 가능한 Oracle 문법을 PostgreSQL 호환으로 변환 (NVL→COALESCE, SYSDATE→NOW())
-        String savedDdl       = importExportService.translateOracleToPostgres(schemaDdl);
-        String savedSample    = importExportService.translateOracleToPostgres(schemaSampleData);
-        String savedAnswerSql = importExportService.translateOracleToPostgres(answerSql);
+        String savedDdl       = oracleSqlCompatibilityConverter.translateOracleToPostgres(schemaDdl);
+        String savedSample    = oracleSqlCompatibilityConverter.translateOracleToPostgres(schemaSampleData);
+        String savedAnswerSql = oracleSqlCompatibilityConverter.translateOracleToPostgres(answerSql);
 
         // 치환 후에도 Oracle 전용 문법이 남아있으면 CONCEPT_ONLY로 자동 전환
         if (mode == ExecutionMode.EXECUTABLE) {
-            String oracleKeyword = importExportService.detectOracleOnlySyntax(savedAnswerSql, savedDdl, savedSample, stem);
+            String oracleKeyword = oracleSqlCompatibilityConverter.detectOracleOnlySyntax(savedAnswerSql, savedDdl, savedSample, stem);
             if (oracleKeyword != null) {
                 log.info("[register] Oracle 전용 문법 감지 → CONCEPT_ONLY 자동 전환: keyword={}", oracleKeyword);
                 mode = ExecutionMode.CONCEPT_ONLY;
@@ -157,7 +155,7 @@ public class AdminQuestionController {
         try {
             adminQuestionDeleteService.deactivateQuestion(uuid);
             // 커밋 뒤 벡터 정리 — 남기면 추천 결과에 삭제된 문제가 섞인다 (#412)
-            questionGenerateService.pruneIndex();
+            questionVectorIndexService.pruneIndex();
             redirectAttributes.addFlashAttribute("successMessage", "문제를 비활성화했습니다. 회원 풀이 기록은 보존됩니다.");
         } catch (CustomException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
@@ -170,7 +168,7 @@ public class AdminQuestionController {
     @ResponseBody
     public ResponseEntity<Void> restore(@PathVariable UUID uuid) {
         adminQuestionDeleteService.restoreQuestion(uuid);
-        questionGenerateService.reindexSelected(List.of(uuid.toString()));
+        questionVectorIndexService.reindexSelected(List.of(uuid.toString()));
         return ResponseEntity.ok().build();
     }
 
@@ -179,7 +177,7 @@ public class AdminQuestionController {
     @ResponseBody
     public ResponseEntity<Void> deactivate(@PathVariable UUID uuid) {
         adminQuestionDeleteService.deactivateQuestion(uuid);
-        questionGenerateService.pruneIndex();
+        questionVectorIndexService.pruneIndex();
         return ResponseEntity.ok().build();
     }
 
@@ -193,60 +191,7 @@ public class AdminQuestionController {
         AdminQuestionDeleteService.BulkDeactivateResult result =
                 adminQuestionDeleteService.deactivateQuestions(request.questionUuids());
         // 문제마다가 아니라 일괄삭제 끝에 한 번만 정리한다 (#412)
-        if (result.deactivated() > 0) questionGenerateService.pruneIndex();
-        return ResponseEntity.ok(result);
-    }
-
-    // ── Import / Export ──────────────────────────────────────────
-
-    /**
-     * 필터 조건 기반 전체 내보내기 (JSON 파일 다운로드).
-     */
-    @GetMapping("/export")
-    @ResponseBody
-    public ResponseEntity<List<QuestionExportDto>> exportByFilter(
-            @RequestParam(required = false) String topic,
-            @RequestParam(required = false) Integer difficulty,
-            @RequestParam(required = false) String executionMode) {
-        List<QuestionExportDto> data = importExportService.exportByFilter(topic, difficulty, executionMode);
-        String filename = "passql-questions-" + LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) + ".json";
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(data);
-    }
-
-    /**
-     * 선택 UUID 기반 내보내기 (JSON 파일 다운로드).
-     */
-    @PostMapping("/export")
-    @ResponseBody
-    public ResponseEntity<List<QuestionExportDto>> exportByUuids(@RequestBody ExportRequest request) {
-        List<QuestionExportDto> data = importExportService.exportByUuids(request.questionUuids());
-        String filename = "passql-questions-" + LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) + ".json";
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(data);
-    }
-
-    /**
-     * 배치 Sandbox 검증 (가져오기 전 미리보기).
-     */
-    @PostMapping("/import/validate")
-    @ResponseBody
-    public ResponseEntity<ImportValidationResult> validateImport(@RequestBody List<QuestionExportDto> items) {
-        ImportValidationResult result = importExportService.validateBatch(items);
-        return ResponseEntity.ok(result);
-    }
-
-    /**
-     * 검증 후 실제 등록/업데이트.
-     */
-    @PostMapping("/import")
-    @ResponseBody
-    public ResponseEntity<ImportResult> importBatch(@RequestBody ImportRequest request) {
-        ImportResult result = importExportService.importBatch(request);
+        if (result.deactivated() > 0) questionVectorIndexService.pruneIndex();
         return ResponseEntity.ok(result);
     }
 
