@@ -7,6 +7,8 @@
 // 연출 2종(경로 대신 적음): execute-fail(SQL 실행 실패 카드), chapter-result(문제 목록 > 챕터 > 챕터 결과)
 // 앱 시작 설정 상황: echo maintenance > /tmp/passql_shot_app_config.txt
 //   (force_update | recommended_update | maintenance | notice, 없거나 그 외는 정상)
+// 알림함 상황: echo empty > /tmp/passql_shot_notifications.txt (없거나 그 외는 알림 4건·공지 3건, 안 읽은 일부)
+// 알림 권한 안내 시트: echo show > /tmp/passql_shot_permission.txt (없으면 "나중에"를 고른 상태로 시작해 시트를 띄우지 않음)
 // 운영 코드(lib/)에는 영향이 없고, 빌드 산출물에도 포함되지 않는다.
 import 'dart:async';
 import 'dart:convert';
@@ -21,6 +23,7 @@ import 'package:passql_app/core/auth/auth_session.dart';
 import 'package:passql_app/core/auth/token_store.dart';
 import 'package:passql_app/core/network/dio_client.dart';
 import 'package:passql_app/core/push/firebase_push_messaging_client.dart';
+import 'package:passql_app/core/push/push_permission_prompt_store.dart';
 import 'package:passql_app/main.dart' show PassqlApp;
 import 'package:passql_app/presentation/providers/auth_provider.dart';
 import 'package:passql_app/presentation/providers/chapter_providers.dart';
@@ -52,6 +55,82 @@ String _readAppConfigScenario() {
 }
 
 final _appConfigScenario = _readAppConfigScenario();
+
+// 알림함 상황 (알림·공지 가짜 응답 선택)
+String _readNotificationScenario() {
+  try {
+    return File('/tmp/passql_shot_notifications.txt').readAsStringSync().trim();
+  } catch (_) {
+    return '';
+  }
+}
+
+// 알림 권한 안내 시트를 띄울지 (show 일 때만)
+bool _readShouldShowPermissionPrompt() {
+  try {
+    return File('/tmp/passql_shot_permission.txt').readAsStringSync().trim() == 'show';
+  } catch (_) {
+    return false;
+  }
+}
+
+final _notificationScenario = _readNotificationScenario();
+
+// 읽음 처리된 알림·공지 id (읽음 API 호출 > 개수·목록에 반영)
+final _readNotificationIds = <String>{};
+
+// 알림함 가짜 항목: 알림 4건(안 읽음 2) + 공지 3건(안 읽음 1, 중요)
+List<Map<String, dynamic>> _notificationItems(String category) {
+  if (_notificationScenario == 'empty') return const [];
+  final now = DateTime.now();
+  Map<String, dynamic> item(
+    String id,
+    String type,
+    String title,
+    String body,
+    Duration ago, {
+    String? linkTarget,
+    String? linkQuestionUuid,
+    bool isImportant = false,
+  }) => {
+    'id': id,
+    'category': category,
+    'type': type,
+    'title': title,
+    'body': body,
+    'linkTarget': linkTarget,
+    'linkQuestionUuid': linkQuestionUuid,
+    'isRead': _readNotificationIds.contains(id) || id.endsWith('-read'),
+    'createdAt': now.subtract(ago).toIso8601String(),
+    'isImportant': isImportant,
+  };
+  if (category == 'NOTICE') {
+    return [
+      item('notice-1', 'NOTICE', '제58회 SQLD 대비 문제 업데이트 안내', '윈도우 함수 문제 20개가 추가됐어요. 문제 탭에서 바로 풀어 보세요.', const Duration(days: 1), isImportant: true),
+      item('notice-2-read', 'NOTICE', '10월 16일 새벽 서버 점검', '02:00 ~ 04:00 동안 점검해요.', const Duration(days: 3)),
+      item('notice-3-read', 'NOTICE', '개인정보처리방침 개정 안내', '10월 20일부터 적용돼요.', const Duration(days: 6)),
+    ];
+  }
+  return [
+    item('general-1', 'REPORT_RESOLVED', '신고하신 문제를 확인했어요', '"JOIN 결과 행 수" 문제의 정답을 수정했어요. 알려 주셔서 고마워요.', const Duration(minutes: 3), linkTarget: 'QUESTION_DETAIL', linkQuestionUuid: '22222222-0000-4000-8000-000000000002'),
+    item('general-2', 'ADMIN_MESSAGE', '이번 주 학습 리포트', '통계에서 약한 토픽을 확인해 보세요.', const Duration(hours: 2), linkTarget: 'STATS'),
+    item('general-3-read', 'DAILY_SET_REMINDER', '오늘의 세트가 준비됐어요', '3문제로 실력을 확인해 보세요.', const Duration(days: 1), linkTarget: 'DAILY_SET'),
+    item('general-4-read', 'ADMIN_MESSAGE', '시험 D-30', 'SQLD 58회까지 30일 남았어요.', const Duration(days: 2), linkTarget: 'HOME'),
+  ];
+}
+
+// 알림함 가짜 응답: 목록(탭별), 안 읽은 개수
+Object? _respondNotifications(RequestOptions o) {
+  if (o.path.endsWith('/notifications/unread-count')) {
+    int unreadOf(String category) =>
+        _notificationItems(category).where((item) => item['isRead'] != true).length;
+    final general = unreadOf('GENERAL');
+    final notice = unreadOf('NOTICE');
+    return {'general': general, 'notice': notice, 'total': general + notice};
+  }
+  final category = o.queryParameters['category'] as String? ?? 'GENERAL';
+  return {'items': _notificationItems(category), 'nextCursor': null};
+}
 
 // 상황별 /meta/app-config 응답: 강제 업데이트·권장 업데이트·점검·공지
 Map<String, dynamic> _appConfig() {
@@ -218,6 +297,9 @@ Object? _respond(RequestOptions o) {
   if (p.endsWith('/questions/recommendations')) {
     return {'questions': _questions.take(3).toList()};
   }
+  if (p.endsWith('/members/me/notifications') || p.endsWith('/members/me/notifications/unread-count')) {
+    return _respondNotifications(o);
+  }
   if (p.endsWith('/meta/app-config')) return _appConfig();
   if (p.endsWith('/meta/topics')) {
     return [
@@ -290,6 +372,19 @@ String _sse({bool resultMatch = false}) {
   return 'event:status\ndata:{"message":"선택지를 준비하고 있어요"}\n\nevent:complete\ndata:$complete\n\n';
 }
 
+// 읽음 요청 반영: 1건(id) 또는 탭 전체(read-all)
+void _markNotificationsRead(RequestOptions options) {
+  if (options.path.endsWith('/read-all')) {
+    final category = options.queryParameters['category'] as String? ?? 'GENERAL';
+    for (final item in _notificationItems(category)) {
+      _readNotificationIds.add(item['id'] as String);
+    }
+    return;
+  }
+  final segments = options.path.split('/');
+  _readNotificationIds.add(segments[segments.length - 2]);
+}
+
 /// 실서버 대신 canned JSON 을 돌려주는 어댑터.
 class _FakeAdapter implements HttpClientAdapter {
   @override
@@ -305,6 +400,11 @@ class _FakeAdapter implements HttpClientAdapter {
         500,
         headers: {Headers.contentTypeHeader: [Headers.jsonContentType]},
       );
+    }
+    // 읽음 처리(POST .../notifications/{id}/read, .../read-all) > 기록 후 204
+    if (options.method == 'POST' && options.path.contains('/members/me/notifications/')) {
+      _markNotificationsRead(options);
+      return ResponseBody.fromString('', 204);
     }
     final body = _respond(options);
     return ResponseBody.fromString(
@@ -349,6 +449,13 @@ Future<void> main() async {
   // 권장 업데이트·공지는 한 번 닫으면 기록돼 다시 안 뜸 > 촬영마다 기록 초기화
   if (_appConfigScenario == 'recommended_update' || _appConfigScenario == 'notice') {
     await (await SharedPreferences.getInstance()).clear();
+  }
+  // 알림 권한 안내 시트: show 일 때만 띄우고, 아니면 "나중에"를 고른 상태로 시작해 다른 화면 촬영을 가리지 않음
+  final shouldShowPermissionPrompt = _readShouldShowPermissionPrompt();
+  if (shouldShowPermissionPrompt) {
+    await (await SharedPreferences.getInstance()).clear();
+  } else {
+    await const PushPermissionPromptStore().deferPrompt();
   }
   await AppLaunchGateRouting.bindAndLoad(container);
 
