@@ -1,12 +1,15 @@
 package com.passql.application.service;
 
 import com.passql.common.exception.CustomException;
+import com.passql.question.constant.ChoiceSetPolicy;
 import com.passql.question.constant.ChoiceSetSource;
 import com.passql.question.constant.ChoiceSetStatus;
+import com.passql.question.entity.Question;
 import com.passql.question.entity.QuizSession;
 import com.passql.question.repository.QuestionChoiceSetRepository;
 import com.passql.question.repository.QuizSessionRepository;
 import com.passql.question.service.ChoiceSetGenerationService;
+import com.passql.question.service.QuestionService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +34,7 @@ public class PrefetchService {
     private final QuestionChoiceSetRepository choiceSetRepository;
     private final ChoiceSetGenerationService choiceSetGenerationService;
     private final ObjectMapper objectMapper;
+    private final QuestionService questionService;
 
     @Async("aiTaskExecutor")
     public void prefetchNext(UUID sessionUuid, int currentIndex) {
@@ -44,6 +48,13 @@ public class PrefetchService {
             List<String> order = objectMapper.readValue(
                     session.getQuestionOrderJson(), new TypeReference<>() {});
             UUID nextQuestionUuid = UUID.fromString(order.get(nextIndex));
+
+            // 고정 보기 문제는 AI 생성 불필요 (#511)
+            Question nextQuestion = questionService.getQuestionEntityOrNull(nextQuestionUuid);
+            if (nextQuestion != null && nextQuestion.getChoiceSetPolicy() == ChoiceSetPolicy.CURATED_ONLY) {
+                log.debug("[prefetch] skipped curated question: sessionUuid={}, nextIndex={}", sessionUuid, nextIndex);
+                return;
+            }
 
             // 이미 프리페치된 게 있으면 스킵
             boolean exists = choiceSetRepository
