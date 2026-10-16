@@ -3,6 +3,7 @@ package com.passql.web.contract;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.passql.web.config.OpenApiSchemaContractCustomizer;
 import com.passql.web.config.SwaggerConfig;
 import com.passql.web.config.WebMvcConfig;
 import org.junit.jupiter.api.Test;
@@ -138,7 +139,7 @@ class OpenApiContractTest {
             includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = RestController.class),
             // 관리자 컨트롤러는 계약 대상 아님 (/admin/**)
             excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com\\.passql\\.web\\.controller\\.admin\\..*"))
-    @Import({SwaggerConfig.class, WebMvcConfig.class})
+    @Import({SwaggerConfig.class, WebMvcConfig.class, OpenApiSchemaContractCustomizer.class})
     static class ContractContext {
 
         @Bean

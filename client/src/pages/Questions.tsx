@@ -52,7 +52,7 @@ export default function Questions() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {topics
               ?.filter((t) => t.isActive)
-              .toSorted((a, b) => a.sortOrder - b.sortOrder)
+              .toSorted((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
               .map((t) => (
                 <button
                   key={t.code}

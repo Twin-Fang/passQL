@@ -1,5 +1,6 @@
 package com.passql.question.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.UUID;
 
 // EXECUTABLE 문제: selectedResult/correctResult/selectedSql/correctSql 포함
@@ -7,11 +8,11 @@ import java.util.UUID;
 // submissionUuid: 저장된 제출 UUID — 프론트 신고 기능에서 사용
 public record SubmitResult(
     boolean isCorrect,
-    String correctKey,
-    String rationale,
-    ExecuteResult selectedResult,
-    ExecuteResult correctResult,
-    String correctSql,
-    String selectedSql,
-    UUID submissionUuid
+    @Schema(nullable = true) String correctKey,
+    @Schema(nullable = true) String rationale,
+    @Schema(nullable = true) ExecuteResult selectedResult,
+    @Schema(nullable = true) ExecuteResult correctResult,
+    @Schema(nullable = true) String correctSql,
+    @Schema(nullable = true) String selectedSql,
+    @Schema(nullable = true) UUID submissionUuid
 ) {}

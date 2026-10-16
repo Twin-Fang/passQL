@@ -105,7 +105,7 @@ export default function QuestionDetail({
       {/* 헤더: 일반 모드에서만 뒤로가기 + 메타 정보 */}
       {!practiceMode && (
         <QuestionDetailHeader
-          topicName={question.topicName}
+          topicName={question.topicName ?? ""}
           difficulty={question.difficulty}
           onBack={() => navigate(-1)}
         />
@@ -124,7 +124,7 @@ export default function QuestionDetail({
           <SchemaViewer
             schemaDisplay={question.schemaDisplay}
             schemaDdl={question.schemaDdl}
-            schemaSampleData={question.schemaSampleData}
+            schemaSampleData={question.schemaSampleData ?? undefined}
           />
         </section>
       ) : null}
@@ -178,7 +178,7 @@ export default function QuestionDetail({
       {/* 채점 중 오버레이 — API 호출 기간 동안 표시 */}
       {isSubmitPending && (
         <LoadingOverlay
-          topicName={question.topicName}
+          topicName={question.topicName ?? ""}
           staticMessage="채점 중이에요"
           subMessage="정답을 확인하고 있어요"
           isExecutable={question.executionMode === "EXECUTABLE"}

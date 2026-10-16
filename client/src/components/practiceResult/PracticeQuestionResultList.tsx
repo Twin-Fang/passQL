@@ -37,7 +37,7 @@ export default function PracticeQuestionResultList({
               key={result.questionUuid}
               result={result}
               questionNumber={i + 1}
-              stemPreview={questions.find((question) => question.questionUuid === result.questionUuid)?.stemPreview}
+              stemPreview={questions.find((question) => question.questionUuid === result.questionUuid)?.stemPreview ?? undefined}
               sessionId={sessionId}
               isOpen={isOpen}
               isVisible={!!visibleCards[i]}
