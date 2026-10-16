@@ -2,6 +2,7 @@ import { useState, memo } from "react";
 import { Terminal, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import type { ExecuteResult } from "../types/api";
 import { ResultTable } from "./ResultTable";
+import PlayIcon from "./PlayIcon";
 
 interface SqlPlaygroundProps {
   readonly onExecute: (sql: string) => Promise<ExecuteResult>;
@@ -69,9 +70,7 @@ export const SqlPlayground = memo(function SqlPlayground({
               onClick={handleExecute}
             >
               {!isExecuting && (
-                <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <polygon points="5 3 19 12 5 21 5 3" />
-                </svg>
+                <PlayIcon />
               )}
               {isExecuting ? "실행 중…" : "쿼리 실행"}
             </button>

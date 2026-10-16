@@ -3,6 +3,7 @@ import type { ChoiceItem, ExecuteResult } from "../types/api";
 import MarkdownText from "./MarkdownText";
 import { ResultTable } from "./ResultTable";
 import { ResultMatchTable } from "./ResultMatchTable";
+import PlayIcon from "./PlayIcon";
 
 interface ChoiceCardProps {
   readonly choice: ChoiceItem;
@@ -89,9 +90,7 @@ export const ChoiceCard = memo(function ChoiceCard({
                 disabled={isExecuting}
               >
                 {!isExecuting && (
-                  <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <polygon points="5 3 19 12 5 21 5 3" />
-                  </svg>
+                  <PlayIcon />
                 )}
                 {isExecuting ? "실행 중…" : "쿼리 실행"}
               </button>
