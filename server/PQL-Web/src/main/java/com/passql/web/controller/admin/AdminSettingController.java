@@ -27,6 +27,15 @@ public class AdminSettingController {
         return "admin/settings";
     }
 
+    /** 비밀 설정(예: Gemini 키) 변경: 암호화 저장, 빈 값은 400 */
+    @PutMapping("/{key}/secret")
+    @ResponseBody
+    public ResponseEntity<Void> updateSecretSetting(@PathVariable String key,
+                                                    @RequestBody Map<String, String> body) {
+        appSettingService.saveSecret(key, body.get("value"));
+        return ResponseEntity.ok().build();
+    }
+
     @PutMapping("/{key}")
     @ResponseBody
     public ResponseEntity<Void> updateSetting(@PathVariable String key,

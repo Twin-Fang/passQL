@@ -86,6 +86,21 @@
                                             onclick="cancelEdit(this.dataset.key, this.dataset.value)">
                                         <i data-lucide="x" class="size-3 text-error"></i>
                                     </button>
+                                    <!-- 비밀값(SECRET) 저장·취소: 저장하면 서버가 암호화해 보관 -->
+                                    <button th:if="${setting.sensitive and setting.valueType == 'SECRET'}"
+                                            class="btn btn-xs btn-ghost hidden edit-actions"
+                                            th:id="'btn_save_' + ${setting.settingKey}"
+                                            th:data-key="${setting.settingKey}"
+                                            onclick="saveSecretSetting(this.dataset.key)">
+                                        <i data-lucide="check" class="size-3 text-success"></i>
+                                    </button>
+                                    <button th:if="${setting.sensitive and setting.valueType == 'SECRET'}"
+                                            class="btn btn-xs btn-ghost hidden edit-actions"
+                                            th:id="'btn_cancel_' + ${setting.settingKey}"
+                                            th:data-key="${setting.settingKey}"
+                                            onclick="cancelSecretEdit(this.dataset.key)">
+                                        <i data-lucide="x" class="size-3 text-error"></i>
+                                    </button>
                                 </div>
                                 <!-- 저장 실패 사유 (서버 형식 검사 메시지) -->
                                 <p class="text-xs text-error mt-1 hidden" th:id="'err_' + ${setting.settingKey}"></p>
@@ -98,7 +113,13 @@
                                         onclick="startEdit(this.dataset.key)">
                                     <i data-lucide="pencil" class="size-3"></i>
                                 </button>
-                                <span th:if="${setting.sensitive}"
+                                <button th:if="${setting.sensitive and setting.valueType == 'SECRET'}"
+                                        class="btn btn-xs btn-ghost"
+                                        th:data-key="${setting.settingKey}"
+                                        onclick="startSecretEdit(this.dataset.key)">
+                                    <i data-lucide="key-round" class="size-3"></i>
+                                </button>
+                                <span th:if="${setting.sensitive and setting.valueType != 'SECRET'}"
                                       class="text-xs text-base-content/30">읽기전용</span>
                             </td>
                         </tr>
@@ -212,6 +233,56 @@
             document.getElementById('btn_cancel_' + key)?.classList.add('hidden');
             AdminUi.toast(isRestartRequired ? '저장했습니다. 이 설정은 서버 재시작 후 반영됩니다.' : '저장했습니다.',
                 isRestartRequired ? 'warning' : 'success');
+        }
+
+        // 비밀값 변경: 기존 키는 화면에 내려오지 않으므로 빈 비밀번호 칸으로 새 키를 입력
+        function startSecretEdit(key) {
+            const input = document.getElementById('val_' + key);
+            input.dataset.original = input.value;
+            input.type = 'password';
+            input.autocomplete = 'new-password';
+            input.value = '';
+            input.placeholder = '새 키 입력';
+            input.classList.remove('opacity-60', 'cursor-not-allowed');
+            input.removeAttribute('readonly');
+            input.focus();
+            document.getElementById('btn_save_' + key)?.classList.remove('hidden');
+            document.getElementById('btn_cancel_' + key)?.classList.remove('hidden');
+        }
+
+        function endSecretEdit(key) {
+            const input = document.getElementById('val_' + key);
+            input.type = 'text';
+            input.placeholder = '';
+            input.classList.add('opacity-60', 'cursor-not-allowed');
+            input.setAttribute('readonly', true);
+            document.getElementById('err_' + key)?.classList.add('hidden');
+            document.getElementById('btn_save_' + key)?.classList.add('hidden');
+            document.getElementById('btn_cancel_' + key)?.classList.add('hidden');
+        }
+
+        // 저장: 성공하면 마스킹된 새 값을 보려고 새로고침, 실패 사유는 입력칸 아래 표시
+        async function saveSecretSetting(key) {
+            const input = document.getElementById('val_' + key);
+            const errorText = document.getElementById('err_' + key);
+            try {
+                await AdminApi.put('/admin/settings/' + encodeURIComponent(key) + '/secret', {value: input.value});
+            } catch (error) {
+                errorText.textContent = error.message;
+                errorText.classList.remove('hidden');
+                AdminUi.showError(error);
+                return;
+            }
+            input.value = '';
+            endSecretEdit(key);
+            AdminUi.toast('저장했습니다. 다음 AI 호출부터 새 키가 적용됩니다.', 'success');
+            setTimeout(() => location.reload(), 800);
+        }
+
+        function cancelSecretEdit(key) {
+            const input = document.getElementById('val_' + key);
+            input.value = input.dataset.original ?? '';
+            endSecretEdit(key);
         }
 
         function cancelEdit(key, originalValue) {

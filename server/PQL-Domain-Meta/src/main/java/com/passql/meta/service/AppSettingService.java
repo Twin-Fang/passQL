@@ -7,6 +7,7 @@ import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.constant.AppSettingKeys;
 import com.passql.meta.constant.AppSettingValueType;
+import com.passql.meta.crypto.SettingSecretCipher;
 import com.passql.meta.dto.AppLinksResponse;
 import com.passql.meta.dto.SettingView;
 import com.passql.meta.entity.AppSetting;
@@ -38,6 +39,7 @@ public class AppSettingService {
     private final AppSettingRepository appSettingRepository;
     private final StringRedisTemplate redisTemplate;
     private final ApplicationEventPublisher eventPublisher;
+    private final SettingSecretCipher secretCipher;
 
     public String getString(String key) {
         String cached = redisTemplate.opsForValue().get(REDIS_PREFIX + key);
@@ -49,6 +51,15 @@ public class AppSettingService {
 
         redisTemplate.opsForValue().set(REDIS_PREFIX + key, value);
         return value;
+    }
+
+    /** 비밀 설정 평문 (암호문이면 복호화, 전환 전 평문은 그대로) */
+    public String getSecret(String key) {
+        return decryptIfEncrypted(key, getString(key));
+    }
+
+    private String decryptIfEncrypted(String key, String storedValue) {
+        return SettingSecretCipher.isEncrypted(storedValue) ? secretCipher.decrypt(key, storedValue) : storedValue;
     }
 
     /** 공개 스토어 링크. 비었거나 https 가 아니면 null — 잘못 넣은 값이 웹 링크로 나가지 않게 한다. */
@@ -102,7 +113,7 @@ public class AppSettingService {
                     return new SettingView(
                             s.getSettingKey(),
                             s.getValueType(),
-                            sensitive ? maskValue(s.getValueText()) : s.getValueText(),
+                            sensitive ? toMaskedDisplayValue(s) : s.getValueText(),
                             s.getCategory(),
                             s.getDescription(),
                             sensitive,
@@ -112,11 +123,26 @@ public class AppSettingService {
                 .toList();
     }
 
+    /** 민감 값 표시용: 복호화 후 마스킹 (비어 있으면 빈 칸, 복호화 실패는 안내 문구) */
+    private String toMaskedDisplayValue(AppSetting setting) {
+        String stored = setting.getValueText();
+        if (!StringUtils.hasText(stored)) return "";
+        try {
+            return maskValue(decryptIfEncrypted(setting.getSettingKey(), stored));
+        } catch (CustomException e) {
+            return "(복호화 실패)";
+        }
+    }
+
     /** 설정 저장: 행 조회 > value_type 형식 검사 > DB·Redis 반영 */
     @Transactional
     public void save(String key, String value) {
         AppSetting setting = appSettingRepository.findBySettingKey(key)
                 .orElseThrow(() -> new CustomException(ErrorCode.SETTING_NOT_FOUND));
+        // 비밀값은 saveSecret 으로만 저장 (평문 저장 방지)
+        if (isSecretSetting(setting)) {
+            throw new CustomException(ErrorCode.SETTING_SENSITIVE_UPDATE_FORBIDDEN);
+        }
         validateValueMatchesType(setting, value);
         String previousValue = setting.getValueText();
         setting.setValueText(value);
@@ -125,6 +151,68 @@ public class AppSettingService {
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.APP_SETTING, key, AdminAuditAction.UPDATE,
                 AdminAuditEvent.summary("value", toAuditValue(key, previousValue)),
                 AdminAuditEvent.summary("value", toAuditValue(key, value))));
+    }
+
+    /** 비밀 설정 저장: 행 조회 > SECRET 확인 > 빈 값 거부 > 암호화 > DB·Redis 반영 (감사 기록은 마스킹) */
+    @Transactional
+    public void saveSecret(String key, String plainValue) {
+        AppSetting setting = appSettingRepository.findBySettingKey(key)
+                .orElseThrow(() -> new CustomException(ErrorCode.SETTING_NOT_FOUND));
+        if (!isSecretSetting(setting)) {
+            throw new CustomException(ErrorCode.SETTING_SENSITIVE_UPDATE_FORBIDDEN);
+        }
+        if (!StringUtils.hasText(plainValue)) {
+            log.warn("[app-setting save-secret] rejected 400 : empty value : key={}", key);
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, key + " 값은 비워둘 수 없습니다.");
+        }
+        String trimmedValue = plainValue.trim();
+        String previousStored = setting.getValueText();
+        String encrypted = secretCipher.encrypt(key, trimmedValue);
+        setting.setValueText(encrypted);
+        appSettingRepository.save(setting);
+        redisTemplate.opsForValue().set(REDIS_PREFIX + key, encrypted);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.APP_SETTING, key, AdminAuditAction.UPDATE,
+                AdminAuditEvent.summary("value", StringUtils.hasText(previousStored) ? "***" : ""),
+                AdminAuditEvent.summary("value", maskValue(trimmedValue))));
+    }
+
+    /**
+     * 기동 시 비밀 설정 동기화: DB 평문 > 암호화로 전환, 암호문 > Redis 적재, 비어 있음 > 기본값(yml) 암호화 후 채움
+     * 행 없음·기본값 없음은 경고만
+     */
+    @Transactional
+    public void syncSecretSetting(String key, String defaultPlainValue) {
+        Optional<AppSetting> settingOptional = appSettingRepository.findBySettingKey(key);
+        if (settingOptional.isEmpty()) {
+            log.warn("[app-setting sync-secret] skipped : row missing, check migration : key={}", key);
+            return;
+        }
+        AppSetting setting = settingOptional.get();
+        String stored = setting.getValueText();
+
+        // 이미 암호문 (이중 암호화 방지)
+        if (SettingSecretCipher.isEncrypted(stored)) {
+            redisTemplate.opsForValue().set(REDIS_PREFIX + key, stored);
+            log.info("[app-setting sync-secret] warmed up : DB -> Redis : key={}", key);
+            return;
+        }
+
+        // 평문 또는 비어 있음 > 평문 원본 결정 (DB 우선, 없으면 yml)
+        String plainValue = StringUtils.hasText(stored) ? stored : defaultPlainValue;
+        if (!StringUtils.hasText(plainValue)) {
+            log.warn("[app-setting sync-secret] skipped : DB and default both empty : key={}", key);
+            return;
+        }
+        String encrypted = secretCipher.encrypt(key, plainValue.trim());
+        setting.setValueText(encrypted);
+        appSettingRepository.save(setting);
+        redisTemplate.opsForValue().set(REDIS_PREFIX + key, encrypted);
+        log.info("[app-setting sync-secret] encrypted : {} -> DB, Redis : key={}",
+                StringUtils.hasText(stored) ? "legacy plaintext" : "default", key);
+    }
+
+    private static boolean isSecretSetting(AppSetting setting) {
+        return AppSettingValueType.fromValueType(setting.getValueType()) == AppSettingValueType.SECRET;
     }
 
     /** 감사 기록용 값 (민감 키는 마스킹) */

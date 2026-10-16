@@ -7,6 +7,7 @@ Redis 키 형식: passql:settings:{setting_key}
 import logging
 import time
 import redis
+from src.clients.setting_secret_cipher import SettingSecretError, decrypt_setting_secret, is_encrypted
 from src.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -69,6 +70,17 @@ def get_setting(key: str, fallback: str) -> str:
     return fallback
 
 
+GEMINI_API_KEY_SETTING = "ai.gemini_api_key"
+
+
 def get_gemini_api_key() -> str:
-    return get_setting("ai.gemini_api_key", settings.GEMINI_API_KEY)
+    """Redis 암호문 > 복호화, 평문(전환 전)은 그대로, 복호화 실패·미설정은 env GEMINI_API_KEY"""
+    stored_value = get_setting(GEMINI_API_KEY_SETTING, settings.GEMINI_API_KEY)
+    if not is_encrypted(stored_value):
+        return stored_value
+    try:
+        return decrypt_setting_secret(GEMINI_API_KEY_SETTING, stored_value)
+    except SettingSecretError as error:
+        logger.error(f"Gemini 키 복호화 실패 — env GEMINI_API_KEY 로 대체: {error}")
+        return settings.GEMINI_API_KEY
 

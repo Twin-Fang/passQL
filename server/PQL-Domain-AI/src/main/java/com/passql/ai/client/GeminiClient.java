@@ -6,6 +6,10 @@ import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.Part;
 import com.google.genai.types.Schema;
+import com.passql.common.exception.CustomException;
+import com.passql.common.exception.constant.ErrorCode;
+import com.passql.meta.constant.AppSettingKeys;
+import com.passql.meta.service.AppSettingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -16,18 +20,48 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 public class GeminiClient {
 
-    private final Client client;
+    private final AppSettingService appSettingService;
     private final String defaultModel;
+
+    // 마지막으로 만든 클라이언트와 그때의 키 (키가 바뀌었을 때만 재생성)
+    private volatile CachedClient cachedClient;
+
+    private record CachedClient(String apiKey, Client client) {
+    }
 
     /** 서버 기동 이후 Gemini API 호출 횟수 (인메모리 누적) */
     private final AtomicLong callCount = new AtomicLong(0);
 
     public GeminiClient(
-            @Value("${gemini.api-key}") String apiKey,
+            AppSettingService appSettingService,
             @Value("${gemini.model}") String defaultModel
     ) {
-        this.client = Client.builder().apiKey(apiKey).build();
+        this.appSettingService = appSettingService;
         this.defaultModel = defaultModel;
+    }
+
+    /**
+     * 호출 시점의 최신 키로 클라이언트 반환 (관리자 화면 키 변경이 재배포 없이 반영)
+     */
+    Client resolveClient() {
+        String apiKey = appSettingService.getSecret(AppSettingKeys.AI_GEMINI_API_KEY);
+        if (apiKey == null || apiKey.isBlank()) {
+            log.error("[gemini client] rejected : api key not configured");
+            throw new CustomException(ErrorCode.AI_UNAVAILABLE);
+        }
+        CachedClient current = cachedClient;
+        if (current != null && current.apiKey().equals(apiKey)) {
+            return current.client();
+        }
+        synchronized (this) {
+            current = cachedClient;
+            if (current == null || !current.apiKey().equals(apiKey)) {
+                log.info("[gemini client] rebuilt : api key changed");
+                current = new CachedClient(apiKey, Client.builder().apiKey(apiKey).build());
+                cachedClient = current;
+            }
+            return current.client();
+        }
     }
 
     /**
@@ -55,7 +89,7 @@ public class GeminiClient {
                 .maxOutputTokens(maxTokens)
                 .build();
 
-        GenerateContentResponse response = client.models.generateContent(model, userPrompt, config);
+        GenerateContentResponse response = resolveClient().models.generateContent(model, userPrompt, config);
         return extractText(response, model);
     }
 
@@ -81,7 +115,7 @@ public class GeminiClient {
                 .responseSchema(responseSchema)
                 .build();
 
-        GenerateContentResponse response = client.models.generateContent(model, userPrompt, config);
+        GenerateContentResponse response = resolveClient().models.generateContent(model, userPrompt, config);
         return extractText(response, model);
     }
 
