@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """소개 사이트 생성 (#505): index·sqld·sqlp·404·sitemap·robots
 실행: python3 -I _src/build_site.py  (gh-pages 루트에서, 결과물 덮어쓰기)
-법적 페이지(terms·privacy·delete-account)는 손으로 관리, sitemap 에만 포함
+법적 페이지: privacy·terms 는 운영 API 본문으로 생성(site_legal.py), delete-account 는 손으로 관리
 """
 
 import datetime
@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import site_content as content  # noqa: E402
 from site_guides import render_sqld_page, render_sqlp_page  # noqa: E402
+from site_legal import LEGAL_PAGES, render_legal_page  # noqa: E402
 from site_head import (  # noqa: E402
     build_app_json_ld, build_faq_json_ld, escape, render_faq_section,
     render_footer, render_head, render_nav, render_store_buttons, render_subject_cards,
@@ -207,7 +208,9 @@ def main():
     write_file("404.html", render_not_found_page())
     write_file("sitemap.xml", render_sitemap(today_text))
     write_file("robots.txt", render_robots())
-    print(f"[site build] generated 6 files : lastmod={today_text}")
+    for path, (legal_type, description) in LEGAL_PAGES.items():
+        write_file(path, render_legal_page(path, legal_type, description))
+    print(f"[site build] generated {6 + len(LEGAL_PAGES)} files : lastmod={today_text}")
 
 
 if __name__ == "__main__":
