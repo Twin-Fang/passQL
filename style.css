@@ -1,5 +1,5 @@
-/* passQL — 앱과 같은 톤 (이슈 #359)
-   색은 앱의 AppColors(pageBg, brandIndigo)에서 가져왔다. */
+/* passQL 소개 사이트 스타일
+   강조색 원본: main 브랜치 brand/brand-colors.json accent.light (#517) */
 
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
 
@@ -11,8 +11,8 @@
   --text: #111827;
   --muted: #6b7280;
   --dim: #9ca3af;
-  --mint: #4f46e5;
-  --amber: #4f46e5;
+  --mint: #5856D6;
+  --amber: var(--mint);
   --radius: 20px;
   --max: 1080px;
 }
@@ -61,14 +61,14 @@ a:hover { text-decoration: underline; }
 .hero::before {
   content: ""; position: absolute; left: 50%; top: -220px;
   width: 760px; height: 560px; transform: translateX(-50%);
-  background: radial-gradient(closest-side, rgba(79, 70, 229, 0.16), transparent 72%);
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--mint) 16%, transparent), transparent 72%);
   pointer-events: none;
 }
 .hero-in { position: relative; display: grid; grid-template-columns: 1fr 340px; gap: 64px; align-items: center; }
 .eyebrow {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 7px 15px; border-radius: 999px;
-  background: rgba(79, 70, 229, 0.1); border: 1px solid rgba(79, 70, 229, 0.24);
+  background: color-mix(in srgb, var(--mint) 10%, transparent); border: 1px solid color-mix(in srgb, var(--mint) 24%, transparent);
   color: var(--mint); font-size: 14px; font-weight: 600;
 }
 h1 {
@@ -116,7 +116,7 @@ h2 { font-size: 34px; letter-spacing: -1px; margin: 0 0 12px; font-weight: 800; 
 .card p { margin: 0; color: var(--muted); font-size: 16px; }
 .ico {
   width: 42px; height: 42px; border-radius: 12px;
-  background: rgba(79, 70, 229, 0.11); color: var(--mint);
+  background: color-mix(in srgb, var(--mint) 11%, transparent); color: var(--mint);
   display: grid; place-items: center;
 }
 
@@ -129,8 +129,8 @@ h2 { font-size: 34px; letter-spacing: -1px; margin: 0 0 12px; font-weight: 800; 
 /* ── 개인정보 강조 ── */
 .privacy-box {
   padding: 40px; border-radius: var(--radius);
-  background: linear-gradient(180deg, rgba(79, 70, 229, 0.07), rgba(79, 70, 229, 0.02));
-  border: 1px solid rgba(79, 70, 229, 0.2);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mint) 7%, transparent), color-mix(in srgb, var(--mint) 2%, transparent));
+  border: 1px solid color-mix(in srgb, var(--mint) 20%, transparent);
 }
 .privacy-box h2 { margin-bottom: 14px; }
 .plist { margin: 22px 0 0; padding: 0; list-style: none; display: grid; gap: 12px; }
@@ -166,7 +166,7 @@ footer { border-top: 1px solid var(--line); padding: 44px 0 64px; color: var(--d
 .doc td { color: var(--muted); }
 .callout {
   margin: 26px 0; padding: 22px 24px; border-radius: 14px;
-  background: rgba(79, 70, 229, 0.07); border: 1px solid rgba(79, 70, 229, 0.2);
+  background: color-mix(in srgb, var(--mint) 7%, transparent); border: 1px solid color-mix(in srgb, var(--mint) 20%, transparent);
 }
 .callout p { color: var(--text); margin: 0; }
 .updated { margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--line); color: var(--dim); font-size: 14px; }
@@ -183,7 +183,7 @@ footer { border-top: 1px solid var(--line); padding: 44px 0 64px; color: var(--d
 .grid-3 { grid-template-columns: repeat(3, 1fr); }
 .num {
   display: inline-grid; place-items: center; width: 32px; height: 32px;
-  border-radius: 10px; background: rgba(79, 70, 229, 0.11);
+  border-radius: 10px; background: color-mix(in srgb, var(--mint) 11%, transparent);
   color: var(--mint); font-weight: 800; font-size: 15px;
 }
 
@@ -200,7 +200,7 @@ footer { border-top: 1px solid var(--line); padding: 44px 0 64px; color: var(--d
 .chips { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
 .chips li {
   padding: 6px 13px; border-radius: 999px; font-size: 15px; font-weight: 600;
-  background: rgba(79, 70, 229, 0.08); color: var(--mint);
+  background: color-mix(in srgb, var(--mint) 8%, transparent); color: var(--mint);
 }
 
 /* ── 공부 흐름 단계 ── */
