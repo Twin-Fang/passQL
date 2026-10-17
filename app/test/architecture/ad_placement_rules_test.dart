@@ -1,8 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:passql_app/core/ads/ad_placement.dart';
-import 'package:passql_app/presentation/widgets/app_shell.dart';
 
 import 'source_scan.dart';
 
@@ -16,7 +14,7 @@ const List<String> _adSdkPackages = [
 ];
 const String _adCoreDirectory = 'lib/core/ads/';
 
-/// 광고 요청(AdRequest) 조립 공통 지점: 로더 3종이 함께 사용
+/// 광고 요청(AdRequest) 조립 공통 지점: 로더 전부가 함께 사용
 const String _adRequestPreparerPath = 'lib/core/ads/ad_request_preparer.dart';
 final _adRequestConstructorPattern = RegExp(r'\bAdRequest\(');
 
@@ -31,7 +29,7 @@ const List<String> _adModulePaths = [
 const Map<String, String> _allowedAdModuleUsers = {
   'lib/main.dart': '앱 시작 첫 프레임 뒤 iOS 추적 허용 질문 1회 (광고를 그리지 않음)',
   'lib/presentation/widgets/app_shell.dart':
-      '홈·문제·통계 탭 하단 배너 + 결과 화면 전면 광고 미리 불러오기',
+      '메인 탭 4개 공통 하단 탭 바 아래 한 줄 띠 + 결과 화면 전면 광고 미리 불러오기',
   'lib/presentation/pages/questions/topic_list_page.dart': '토픽 목록 사이 네이티브 1칸',
   'lib/presentation/pages/daily_set/daily_set_result_page.dart':
       '오늘의 세트를 막 끝낸 결과 화면 진입 전면 광고',
@@ -99,17 +97,26 @@ void main() {
           _importsAdModule(file) ||
           source.contains('AdBannerSlot') ||
           source.contains('AdNativeSlot') ||
+          source.contains('AdNativeStripSlot') ||
           source.contains('InterstitialAd');
       if (mentionsAds) violations.add(path);
     }
     expect(violations, isEmpty, reason: violations.join('\n'));
   });
 
-  test('하단 배너는 홈·문제·통계 탭에만 있고 설정 탭에는 없다', () {
-    expect(AppShell.bannerPlacementOfTab(0), AdPlacement.bannerHome);
-    expect(AppShell.bannerPlacementOfTab(1), AdPlacement.bannerQuestions);
-    expect(AppShell.bannerPlacementOfTab(2), AdPlacement.bannerStats);
-    expect(AppShell.bannerPlacementOfTab(3), isNull);
+  test('하단 한 줄 띠는 탭 셸에 1개뿐이고 탭별 배너는 없다 (#527)', () {
+    final stripUsers = <String, int>{};
+    final bannerUsers = <String>[];
+    for (final file in handWrittenDartFiles('lib')) {
+      final path = normalizedPath(file);
+      if (_isAdModuleFile(path)) continue;
+      final source = file.readAsStringSync();
+      final stripCount = 'AdNativeStripSlot('.allMatches(source).length;
+      if (stripCount > 0) stripUsers[path] = stripCount;
+      if (source.contains('AdBannerSlot(')) bannerUsers.add(path);
+    }
+    expect(stripUsers, {'lib/presentation/widgets/app_shell.dart': 1});
+    expect(bannerUsers, isEmpty);
   });
 
   test('AdRequest 는 공통 준비(AdRequestPreparer) 한 곳에서만 만든다', () {

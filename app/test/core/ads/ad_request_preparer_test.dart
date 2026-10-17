@@ -59,7 +59,7 @@ void main() {
   test('단위 ID 가 없으면 SDK 를 띄우지 않고 null (광고 없음)', () async {
     final prepared = await preparerWith(
       unitId: null,
-    ).prepare(AdPlacement.bannerHome);
+    ).prepare(AdPlacement.nativeStrip);
 
     expect(prepared, isNull);
     expect(callOrder, ['unitId']);
@@ -90,7 +90,7 @@ void main() {
   test('요청에는 사용자 정보를 싣지 않는다', () async {
     final prepared = await preparerWith(
       unitId: 'unit-1',
-    ).prepare(AdPlacement.bannerStats);
+    ).prepare(AdPlacement.nativeStrip);
 
     expect(prepared!.request.keywords, isNull);
     expect(prepared.request.contentUrl, isNull);
@@ -104,7 +104,7 @@ void main() {
     );
 
     await expectLater(
-      preparer.prepare(AdPlacement.bannerHome),
+      preparer.prepare(AdPlacement.nativeStrip),
       throwsStateError,
     );
     expect(callOrder, ['unitId', 'sdk']);

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 탭 바 아래 한 줄 네이티브 광고 띠 (#527): AD 배지 > 헤드라인(1줄 말줄임) > 행동 문구 > 화살표 -->
+<!-- 루트 NativeAdView = 띠 전체가 광고 뷰 (클릭 영역이 광고 뷰 밖으로 나가지 않음) -->
+<!-- 색은 Flutter customOptions 가 PassqlStripNativeAdFactory 에서 적용 -->
+<com.google.android.gms.ads.nativead.NativeAdView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/passql_strip_ad_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- 오른쪽 끝 여백: SDK 가 위 오른쪽 모서리에 두는 AdChoices 아이콘을 화살표가 가리지 않게 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="24dp">
+
+        <TextView
+            android:id="@+id/passql_strip_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:paddingStart="6dp"
+            android:paddingTop="2dp"
+            android:paddingEnd="6dp"
+            android:paddingBottom="2dp"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/passql_strip_headline"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:textSize="14sp" />
+
+        <!-- 행동 문구 + 화살표 묶음 = 광고 callToActionView (화살표를 눌러도 광고 클릭) -->
+        <LinearLayout
+            android:id="@+id/passql_strip_call_to_action_group"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginStart="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/passql_strip_call_to_action"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/passql_strip_chevron"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_marginStart="2dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/passql_strip_chevron" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.gms.ads.nativead.NativeAdView>

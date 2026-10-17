@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -6,6 +5,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'ad_placement.dart';
 import 'ad_request_preparer.dart';
 import 'loaded_ad_view.dart';
+import 'native_ad_loading.dart';
 
 /// 네이티브 템플릿 색 6종 (화면 테마 > SDK 템플릿). 라이트·다크마다 슬롯이 채움
 class NativeAdPalette {
@@ -59,56 +59,26 @@ class GoogleAdNativeLoader implements AdNativeLoader {
     NativeAdPalette palette,
   ) async {
     if (widthDp <= 0) return null;
-    NativeAd? nativeAd;
-    try {
-      final preparedRequest = await _requestPreparer.prepare(placement);
-      if (preparedRequest == null) return null;
-
-      final loadCompleter = Completer<NativeAd?>();
-      nativeAd = NativeAd(
+    final loadedAd = await loadNativeAdOrNull(
+      requestPreparer: _requestPreparer,
+      placement: placement,
+      loadTimeout: _loadTimeout,
+      buildNativeAd: (preparedRequest, listener) => NativeAd(
         adUnitId: preparedRequest.unitId,
         request: preparedRequest.request,
         nativeTemplateStyle: _templateStyleOf(palette),
-        listener: NativeAdListener(
-          onAdLoaded: (ad) {
-            if (!loadCompleter.isCompleted) {
-              loadCompleter.complete(ad as NativeAd);
-            }
-          },
-          onAdFailedToLoad: (_, error) {
-            debugPrint(
-              '[ads native] load failed ${placement.name} : ${error.code}',
-            );
-            // 해제는 아래 null 경로 한 곳에서 (실패·시간 초과 공통)
-            if (!loadCompleter.isCompleted) loadCompleter.complete(null);
-          },
-        ),
-      );
-      await nativeAd.load();
-      final loadedAd = await loadCompleter.future.timeout(
-        _loadTimeout,
-        onTimeout: () {
-          debugPrint('[ads native] load timeout ${placement.name}');
-          return null;
-        },
-      );
-      if (loadedAd == null) {
-        await nativeAd.dispose();
-        return null;
-      }
-      return LoadedAdView(
+        listener: listener,
+      ),
+    );
+    if (loadedAd == null) return null;
+    return LoadedAdView(
+      height: templateHeight,
+      view: SizedBox(
         height: templateHeight,
-        view: SizedBox(
-          height: templateHeight,
-          child: AdWidget(ad: loadedAd),
-        ),
-        dispose: loadedAd.dispose,
-      );
-    } catch (error) {
-      debugPrint('[ads native] prepare failed ${placement.name} : $error');
-      await nativeAd?.dispose();
-      return null;
-    }
+        child: AdWidget(ad: loadedAd),
+      ),
+      dispose: loadedAd.dispose,
+    );
   }
 
   /// 앱 색 > small 템플릿 스타일 (글자 크기·글꼴은 SDK 기본)

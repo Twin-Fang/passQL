@@ -5,15 +5,15 @@ import 'package:passql_app/core/ads/ad_placement.dart';
 void main() {
   String readEnv(String key) =>
       const {
-        'PASSQL_ADMOB_ANDROID_BANNER_HOME': 'ca-app-pub-real/1',
-        'PASSQL_ADMOB_IOS_BANNER_HOME': '  ca-app-pub-real/2  ',
+        'PASSQL_ADMOB_ANDROID_NATIVE_STRIP': 'ca-app-pub-real/1',
+        'PASSQL_ADMOB_IOS_NATIVE_STRIP': '  ca-app-pub-real/2  ',
       }[key] ??
       '';
 
   test('릴리스 모드는 .env 값을 쓴다 (앞뒤 공백 제거)', () {
     expect(
       AdUnitIds.resolve(
-        placement: AdPlacement.bannerHome,
+        placement: AdPlacement.nativeStrip,
         isIos: false,
         shouldUseTestIds: false,
         readEnv: readEnv,
@@ -22,7 +22,7 @@ void main() {
     );
     expect(
       AdUnitIds.resolve(
-        placement: AdPlacement.bannerHome,
+        placement: AdPlacement.nativeStrip,
         isIos: true,
         shouldUseTestIds: false,
         readEnv: readEnv,
