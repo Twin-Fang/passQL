@@ -4,3 +4,10 @@
 PASSQL_ADMOB_IOS_APP_ID=ca-app-pub-3940256099942544~1458002511
 // 실제 값은 app/.env 로 생성한 AdMob.xcconfig 가 덮어씀 (tool/gen_ios_admob_config.sh, 커밋 제외)
 #include? "AdMob.xcconfig"
+// 소셜 로그인 기본값: 빈 값 (Info.plist kakao{키} 스킴·Nid* 설정, 비면 앱이 준비 중 안내, #509)
+KAKAO_NATIVE_APP_KEY=
+NAVER_CLIENT_ID=
+NAVER_CLIENT_SECRET=
+NAVER_CLIENT_NAME=passQL
+// 실제 값은 app/.env 로 생성한 SocialLogin.xcconfig 가 덮어씀 (tool/gen_ios_social_login_config.sh, 커밋 제외)
+#include? "SocialLogin.xcconfig"

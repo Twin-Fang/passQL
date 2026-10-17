@@ -59,7 +59,51 @@
 				<string>com.googleusercontent.apps.662424763183-7e27721u2hpq32d1jffb106d5532hgvd</string>
 			</array>
 		</dict>
+		<!-- 카카오 로그인 리다이렉트 kakao{네이티브 앱 키} (값은 Flutter/Debug·Release.xcconfig, 실제 값은 app/.env > SocialLogin.xcconfig) -->
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>kakao$(KAKAO_NATIVE_APP_KEY)</string>
+			</array>
+		</dict>
+		<!-- 네이버 앱 로그인 복귀 스킴 (NidUrlScheme 과 같은 값, 네이버 개발자 센터 iOS URL Scheme 에 등록) -->
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>passqlnaver</string>
+			</array>
+		</dict>
+		<!-- GitHub 로그인 콜백 passql://auth/callback/github (서버 redirect 허용 목록과 같은 주소) -->
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>passql</string>
+			</array>
+		</dict>
 	</array>
+	<!-- 카카오톡·네이버 앱 설치 확인과 앱 로그인 호출 -->
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>kakaokompassauth</string>
+		<string>kakaolink</string>
+		<string>naversearchapp</string>
+		<string>naversearchthirdlogin</string>
+	</array>
+	<!-- 네이버 로그인 SDK 설정 (값은 Flutter/Debug·Release.xcconfig, 실제 값은 app/.env > SocialLogin.xcconfig) -->
+	<key>NidUrlScheme</key>
+	<string>passqlnaver</string>
+	<key>NidClientID</key>
+	<string>$(NAVER_CLIENT_ID)</string>
+	<key>NidClientSecret</key>
+	<string>$(NAVER_CLIENT_SECRET)</string>
+	<key>NidAppName</key>
+	<string>$(NAVER_CLIENT_NAME)</string>
 	<!-- AdMob 앱 ID. 값은 Flutter/Debug·Release.xcconfig (실제 값은 app/.env > AdMob.xcconfig) -->
 	<key>GADApplicationIdentifier</key>
 	<string>$(PASSQL_ADMOB_IOS_APP_ID)</string>

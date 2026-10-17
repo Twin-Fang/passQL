@@ -23,6 +23,25 @@ class AuthApi {
     return LoginResult.fromJson(response.data!);
   }
 
+  /// 인가 코드로 로그인 (GitHub). 서버가 client secret 으로 코드 교환 > 신규 회원이면 자동 가입
+  Future<LoginResult> loginWithAuthorizationCode({
+    required SocialProvider provider,
+    required String code,
+    required String redirectUri,
+    required String state,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/auth/login/code',
+      data: {
+        'authProvider': provider.serverValue,
+        'code': code,
+        'redirectUri': redirectUri,
+        'state': state,
+      },
+    );
+    return LoginResult.fromJson(response.data!);
+  }
+
   /// refreshToken 으로 토큰 재발급.
   Future<ReissueResult> reissue(String refreshToken) async {
     final response = await _dio.post<Map<String, dynamic>>(

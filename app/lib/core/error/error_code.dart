@@ -14,6 +14,8 @@ enum ErrorCode {
   unauthorized,
   forbidden,
   memberSuspended,
+  // 서버에 설정이 없는 소셜 로그인 제공자 (503)
+  socialLoginUnavailable,
 
   // 요청/리소스
   validation,
@@ -57,6 +59,7 @@ abstract final class ErrorCodeMapper {
     'INVALID_TOKEN': ErrorCode.unauthorized,
     'MEMBER_SUSPENDED': ErrorCode.memberSuspended,
     'ACCESS_DENIED': ErrorCode.forbidden,
+    'SOCIAL_LOGIN_UNAVAILABLE': ErrorCode.socialLoginUnavailable,
     // 입력 오류: ErrorCode enum 2종 + GlobalExceptionHandler 문자열 코드 5종
     'INVALID_REQUEST': ErrorCode.validation,
     'INVALID_INPUT_VALUE': ErrorCode.validation,

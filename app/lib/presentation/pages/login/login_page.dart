@@ -2,7 +2,6 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/auth/auth_session.dart';
@@ -11,6 +10,8 @@ import '../../../data/models/legal/legal_models.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/auth_provider.dart';
+import 'social_login_appearance.dart';
+import 'social_login_button.dart';
 
 /// 소셜 로그인 화면.
 ///
@@ -78,37 +79,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
               ),
               const SizedBox(height: _logoToButtonsGap),
-              _SocialButton(
-                label: 'Google로 계속하기',
-                logo: SvgPicture.string(
-                  _googleLogoSvg,
-                  width: _googleLogoSize,
-                  height: _googleLogoSize,
-                ),
-                isLoading: _signingInProvider == SocialProvider.google,
-                onPressed: isSigningIn
-                    ? null
-                    : () => _signIn(SocialProvider.google),
-              ),
-              // iOS 에서 소셜 로그인을 제공하면 Sign in with Apple 도 필수(App Store 심사 규정).
-              // Apple HIG 는 흰 바탕+검정 로고 변형을 허용하므로 Google 버튼과 같은 모양으로 맞춘다.
-              if (Platform.isIOS) ...[
-                const SizedBox(height: PassqlSpacing.sm),
-                _SocialButton(
-                  label: 'Apple로 계속하기',
-                  logo: SvgPicture.string(
-                    _appleLogoSvg,
-                    width: _appleLogoWidth,
-                    height: _appleLogoHeight,
-                    colorFilter: ColorFilter.mode(
-                      colors.label,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                  isLoading: _signingInProvider == SocialProvider.apple,
-                  onPressed: isSigningIn
-                      ? null
-                      : () => _signIn(SocialProvider.apple),
+              for (final (index, provider) in _visibleProviders.indexed) ...[
+                if (index > 0) const SizedBox(height: PassqlSpacing.sm),
+                SocialLoginButton(
+                  appearance: socialLoginAppearanceFor(provider, context),
+                  isLoading: _signingInProvider == provider,
+                  onPressed: isSigningIn ? null : () => _signIn(provider),
                 ),
               ],
               if (_error != null) ...[
@@ -135,87 +111,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 }
 
-// 로그인 화면 배치: 로고 묶음 <-> 버튼 간격, 제공자 로고 크기(공식 가이드 비율), 로고 칸 폭(문구 위치 고정)
+// 로고 묶음 <-> 버튼 간격
 const double _logoToButtonsGap = 48;
-const double _googleLogoSize = 20;
-const double _appleLogoWidth = 18;
-const double _appleLogoHeight = 20;
-const double _logoSlotWidth = 24;
 
-/// Google 공식 'G' 로고(4색). 브랜드 가이드상 색을 바꾸지 않고 그대로 쓴다.
-const _googleLogoSvg = '''
-<svg viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-<path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z" fill="#4285F4"/>
-<path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z" fill="#34A853"/>
-<path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332Z" fill="#FBBC05"/>
-<path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58Z" fill="#EA4335"/>
-</svg>
-''';
-
-/// Apple 공식 로고. 경로가 viewBox 위쪽(잎사귀)으로 조금 넘어가 y 시작을 -100 으로 잡았다.
-/// 색은 코드에서 입히므로 fill 을 두지 않는다.
-const _appleLogoSvg = '''
-<svg viewBox="0 -100 814 1110" xmlns="http://www.w3.org/2000/svg">
-<path d="M702 960c-54.2 52.6-114 44.4-171 19.6-60.6-25.3-116-26.9-180 0-79.7 34.4-121.8 24.4-169.5-19.6-270-278-230-701 76.7-717 74.5 4 126.8 41.4 171 44.8 65.4-13.3 128-51.4 197.7-46.5 83.9 6.8 147 40 188 99.9-172.9 103.7-131.9 331.4 26.6 395.2-31.6 83-72.5 165.5-140.6 227.6zM423 149.5C414.9 25.9 515.4-76 631.3-86c14.9 142.6-129.4 249-208.3 235.5z"/>
-</svg>
-''';
-
-/// 소셜 로그인 버튼 공통 모양. 로고는 왼쪽에 고정하고 문구는 가운데에 둬서
-/// 제공자마다 로고 폭이 달라도 문구 위치가 흔들리지 않게 한다.
-class _SocialButton extends StatelessWidget {
-  const _SocialButton({
-    required this.label,
-    required this.logo,
-    required this.isLoading,
-    required this.onPressed,
-  });
-
-  final String label;
-  final Widget logo;
-  final bool isLoading;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    final isDarkMode = context.isDark;
-    return PassqlPressable(
-      onTap: onPressed,
-      semanticLabel: label,
-      child: Container(
-        width: double.infinity,
-        height: PassqlSize.buttonLarge,
-        padding: const EdgeInsets.symmetric(horizontal: PassqlSpacing.lg),
-        decoration: BoxDecoration(
-          // 라이트는 card+테두리, 다크는 cardElevated 로 배경과 구분한다.
-          color: isDarkMode ? colors.cardElevated : colors.card,
-          borderRadius: BorderRadius.circular(PassqlRadius.md),
-          border: isDarkMode ? null : Border.all(color: colors.separator),
-        ),
-        child: isLoading
-            ? const Center(child: PassqlLoadingIndicator())
-            : Stack(
-                alignment: Alignment.center,
-                children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: SizedBox(
-                      width: _logoSlotWidth,
-                      child: Center(child: logo),
-                    ),
-                  ),
-                  Text(
-                    label,
-                    style: PassqlTypography.headline.copyWith(
-                      color: colors.label,
-                    ),
-                  ),
-                ],
-              ),
-      ),
-    );
-  }
-}
+/// 버튼 순서: 국내 사용 빈도순 (카카오·네이버 먼저), GitHub 마지막
+/// iOS 에서 소셜 로그인을 제공하면 Sign in with Apple 도 필수(App Store 심사 규정) > iOS 만 Apple 표시
+List<SocialProvider> get _visibleProviders => [
+  SocialProvider.kakao,
+  SocialProvider.naver,
+  SocialProvider.google,
+  if (Platform.isIOS) SocialProvider.apple,
+  SocialProvider.github,
+];
 
 /// 계속하면 약관에 동의하는 것으로 본다는 안내와 열람 링크.
 class _LegalNotice extends StatelessWidget {

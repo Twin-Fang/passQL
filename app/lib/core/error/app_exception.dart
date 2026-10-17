@@ -108,6 +108,9 @@ class AppException implements Exception {
   factory AppException._of(ErrorCode code, {Object? cause}) =>
       AppException(code: code, message: _defaultMessages[code]!, cause: cause);
 
+  /// 분류별 기본 문구 (서버 응답 없이 같은 안내를 보여 줄 때)
+  static String defaultMessageFor(ErrorCode code) => _defaultMessages[code]!;
+
   /// 서버 메시지가 없을 때 쓰는 기본 문구. 새 [ErrorCode] 를 추가하면 여기도 채운다.
   static const Map<ErrorCode, String> _defaultMessages = {
     ErrorCode.network: '네트워크 연결을 확인해 주세요.',
@@ -116,6 +119,7 @@ class AppException implements Exception {
     ErrorCode.unauthorized: '로그인이 필요해요.',
     ErrorCode.forbidden: '접근 권한이 없어요.',
     ErrorCode.memberSuspended: '이용이 제한된 계정이에요.',
+    ErrorCode.socialLoginUnavailable: '아직 준비 중인 로그인 방법이에요. 다른 방법으로 로그인해 주세요.',
     ErrorCode.validation: '요청을 처리할 수 없어요. 입력을 확인해 주세요.',
     ErrorCode.notFound: '요청한 내용을 찾을 수 없어요.',
     ErrorCode.conflict: '이미 처리된 요청이에요.',

@@ -10,7 +10,7 @@ SQLD·SQLP 학습 서비스 passQL의 모바일 앱. 서버(`server/`)와만 통
 - **라우팅**: go_router ^17
 - **HTTP**: Dio ^5.9 + Retrofit (코드 생성)
 - **모델**: freezed + json_serializable
-- **인증**: Firebase Auth + Google Sign-In + Sign in with Apple, 토큰은 flutter_secure_storage
+- **인증**: Firebase Auth + Google Sign-In + Sign in with Apple, 카카오(kakao_flutter_sdk_user)·네이버(flutter_naver_login)·GitHub(flutter_web_auth_2), 토큰은 flutter_secure_storage
 - **UI**: flutter_svg, shimmer, fl_chart(레이더 차트), 아이콘은 CupertinoIcons
 - **기기 정보**: package_info_plus(앱 버전), device_info_plus(의견 보내기 기기 정보)
 - **폰트**: Pretendard 4굵기(Regular·Medium·SemiBold·Bold), 코드용 JetBrains Mono NL(Regular·Bold) — `assets/fonts`, 라이선스 OFL 동봉
@@ -77,6 +77,10 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 ## 인증 구조
 
 - 로그인: `POST /auth/login {authProvider, idToken}` → access/refresh JWT. 이후 요청은 `Authorization: Bearer`.
+  - 제공자별 재료(`SocialCredential`, #509): Google·Apple Firebase ID 토큰, 카카오·네이버 SDK 액세스 토큰(`idToken` 자리) > `/auth/login`.
+    GitHub 인가 코드(콜백 `passql://auth/callback/github`, state 대조) > `POST /auth/login/code`. 제공자 연결은 `MultiProviderSocialSignIn`.
+  - `.env` 키: `KAKAO_NATIVE_APP_KEY`, `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`, `NAVER_CLIENT_NAME`. 네이티브 SDK 설정은 빌드 타임 값:
+    Android 는 `build.gradle.kts`(manifestPlaceholders·resValue), iOS 는 `pod install` 때 `tool/gen_ios_social_login_config.sh` 가 `ios/Flutter/SocialLogin.xcconfig`(커밋 제외)로 만든다. 비면 해당 버튼은 준비 중 안내.
 - 401이면 인터셉터가 refresh로 재발급, 실패하면 세션 만료 신호(`SessionExpirySignal`) > `AuthNotifier` 로그아웃 > 라우터가 로그인 화면으로 보냄.
 - 403 `MEMBER_SUSPENDED`면 이용 제한 신호(`MemberSuspensionSignal`) > `AuthNotifier` 로그아웃 > 로그인 화면에 안내 문구.
 - 회원 탈퇴는 서버 삭제 + 소셜 접근 권한 회수(Apple 토큰 revoke) 후 세션 삭제.
