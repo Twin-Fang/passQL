@@ -48,6 +48,7 @@ void main() {
         child: Scaffold(
           body: ChoiceItemCard(
             item: const ChoiceItem(key: 'A', kind: 'SQL', body: 'SELECT ename FROM emp WHERE sal > 1000;'),
+            displayLabel: 'A',
             state: PassqlChoiceState.idle,
             onTap: () {},
           ),
@@ -69,6 +70,7 @@ void main() {
               kind: 'TEXT',
               body: '[{"NAME":"홍길동","RNK":1},{"NAME":"김영희","RNK":1}]',
             ),
+            displayLabel: 'A',
             state: PassqlChoiceState.idle,
             onTap: () {},
           ),

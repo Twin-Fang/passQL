@@ -5,6 +5,7 @@ import '../../../data/models/question/submit_result.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../widgets/question/ai_explain_sheet.dart';
+import '../../widgets/question/choice_display_label.dart';
 import '../../widgets/question/execute_result_card.dart';
 import '../../widgets/report/report_button.dart';
 import '../../widgets/result/similar_questions_section.dart';
@@ -18,7 +19,9 @@ class ResultPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final result = extra is SubmitResult ? extra as SubmitResult : null;
+    // 이동 인자: QuestionResultArguments (정답 표시 라벨 포함) 또는 옛 형식 SubmitResult
+    final arguments = extra is QuestionResultArguments ? extra as QuestionResultArguments : null;
+    final result = arguments?.result ?? (extra is SubmitResult ? extra as SubmitResult : null);
 
     if (result == null) {
       return PassqlStatusScaffold(
@@ -46,8 +49,9 @@ class ResultPage extends ConsumerWidget {
             (result.correctSql == null && result.correctResult == null));
 
     // 오답이면 정답 선택지 키를 제목에 다시 보여 준다(기존 헤더 문구 보존).
-    final correctTitle = !isCorrect && result.correctKey != null
-        ? '정답 (${result.correctKey})'
+    final correctLabel = arguments?.correctDisplayLabel ?? result.correctKey;
+    final correctTitle = !isCorrect && correctLabel != null
+        ? '정답 ($correctLabel)'
         : '정답';
 
     return PassqlResultScaffold(
@@ -71,7 +75,7 @@ class ResultPage extends ConsumerWidget {
           PassqlCard(
             title: correctTitle,
             child: Text(
-              result.correctKey ?? '-',
+              correctLabel ?? '-',
               style: PassqlTypography.callout.copyWith(color: colors.label),
             ),
           ),

@@ -15,6 +15,9 @@ class ChapterFeedbackBar extends StatefulWidget {
   /// 사용자가 선택한 선택지 키 (AI diff-explain 요청에 사용).
   final String selectedChoiceKey;
 
+  /// 정답 보기의 화면 순서 라벨 (없으면 correctKey 표시, #512)
+  final String? correctDisplayLabel;
+
   final bool isLastQuestion;
   final VoidCallback onNext;
 
@@ -23,6 +26,7 @@ class ChapterFeedbackBar extends StatefulWidget {
     required this.result,
     required this.questionUuid,
     required this.selectedChoiceKey,
+    this.correctDisplayLabel,
     required this.isLastQuestion,
     required this.onNext,
   });
@@ -62,7 +66,7 @@ class _ChapterFeedbackBarState extends State<ChapterFeedbackBar> {
               isCorrect: _result.isCorrect,
               label: _result.isCorrect
                   ? '정답이에요'
-                  : '오답이에요 · 정답\u00A0${_result.correctKey ?? '-'}',
+                  : '오답이에요 · 정답\u00A0${widget.correctDisplayLabel ?? _result.correctKey ?? '-'}',
             ),
           ),
           if (_showAiButton)

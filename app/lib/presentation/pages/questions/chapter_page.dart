@@ -12,6 +12,7 @@ import '../../widgets/chapter/chapter_app_bar.dart';
 import '../../../data/models/question/question_detail.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/chapter/chapter_feedback_bar.dart';
+import '../../widgets/question/choice_display_label.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../widgets/question/question_sections.dart';
@@ -240,6 +241,10 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
               result: chapter.lastSubmitResult!,
               questionUuid: currentUuid,
               selectedChoiceKey: chapter.lastSelectedKey ?? '',
+              correctDisplayLabel: findChoiceDisplayLabel(
+                interaction.activeChoices,
+                chapter.lastSubmitResult!.correctKey,
+              ),
               isLastQuestion: chapter.isLastQuestion,
               onNext: () {
                 if (_isCompleting) return;

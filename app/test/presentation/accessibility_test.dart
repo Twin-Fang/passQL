@@ -95,6 +95,7 @@ void main() {
             ])
               ChoiceItemCard(
                 item: ChoiceItem(key: key, kind: kind, body: body),
+                displayLabel: key,
                 state: PassqlChoiceState.idle,
                 onTap: () {},
               ),
