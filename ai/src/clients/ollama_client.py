@@ -2,7 +2,8 @@
 Ollama API 클라이언트 (임베딩 전용)
 """
 import logging
-import httpx
+
+from src.clients.shared_http_client import send_request
 from src.core.config import settings
 from src.core.exceptions import CustomError
 
@@ -51,32 +52,20 @@ class OllamaClient:
 
         logger.info(f"Ollama embed 호출: model={model}, text_length={len(text)}")
 
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(url, json=payload, headers=self._headers())
-                response.raise_for_status()
-                data = response.json()
+        response = await send_request(
+            "Ollama embed", "POST", url,
+            headers=self._headers(), json_body=payload, timeout_seconds=self.timeout,
+        )
+        data = response.json()
 
-            # Ollama /api/embed 응답: {"embeddings": [[...]], ...}
-            embeddings = data.get("embeddings", [])
-            if not embeddings or not embeddings[0]:
-                raise CustomError("Ollama embed 응답에 embeddings가 없습니다")
+        # Ollama /api/embed 응답: {"embeddings": [[...]], ...}
+        embeddings = data.get("embeddings", [])
+        if not embeddings or not embeddings[0]:
+            raise CustomError("Ollama embed 응답에 embeddings가 없습니다")
 
-            vector = embeddings[0]
-            logger.info(f"Ollama embed 응답 수신: vector_dim={len(vector)}")
-            return vector
-
-        except httpx.HTTPStatusError as e:
-            logger.error(f"Ollama embed HTTP 오류: {e.response.status_code} - {e.response.text}")
-            raise CustomError(f"Ollama embed HTTP 오류: {e.response.status_code}")
-        except httpx.RequestError as e:
-            logger.error(f"Ollama embed 요청 오류: {e}")
-            raise CustomError(f"Ollama embed 요청 오류: {e}")
-        except CustomError:
-            raise
-        except Exception as e:
-            logger.error(f"Ollama embed 예기치 않은 오류: {e}")
-            raise CustomError(f"Ollama embed 예기치 않은 오류: {e}")
+        vector = embeddings[0]
+        logger.info(f"Ollama embed 응답 수신: vector_dim={len(vector)}")
+        return vector
 
 
 # 싱글턴 인스턴스

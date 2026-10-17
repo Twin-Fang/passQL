@@ -6,6 +6,8 @@ import logging
 from contextlib import asynccontextmanager
 from importlib.metadata import PackageNotFoundError, version
 from fastapi import FastAPI, Request
+from src.clients.redis_app_setting_client import close_redis_client
+from src.clients.shared_http_client import close_shared_http_client, open_shared_http_client
 from src.core.exception_handlers import register_exception_handlers
 from src.core.logging import setup_logging
 from src.apis.ai_router import router as ai_router
@@ -30,13 +32,11 @@ def read_package_version() -> str:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    애플리케이션 수명주기 관리
-
-    앱 시작 시: 필요한 초기화 수행
-    앱 종료 시: 리소스 정리 (필요 시)
+    애플리케이션 수명주기: 시작 시 공유 HTTP 클라이언트 생성, 종료 시 HTTP·Redis 연결 정리
     """
     # ========== 시작 단계 ==========
     logger.info("=== passQL AI 서버 시작: 초기화 중 ===")
+    open_shared_http_client()
 
     logger.info("=== passQL AI 서버 준비 완료 ===")
 
@@ -44,6 +44,8 @@ async def lifespan(app: FastAPI):
 
     # ========== 종료 단계 ==========
     logger.info("=== passQL AI 서버 종료 중 ===")
+    await close_shared_http_client()
+    await close_redis_client()
 
 
 # FastAPI 앱 생성 (lifespan 컨텍스트 적용)

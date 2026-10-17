@@ -2,11 +2,20 @@
 Qdrant 벡터 DB 클라이언트 (search / upsert)
 """
 import logging
-import httpx
+
+from src.clients.shared_http_client import send_request
 from src.core.config import settings
-from src.core.exceptions import CustomError
 
 logger = logging.getLogger(__name__)
+
+# 일반 요청 응답 대기 상한 (30초)
+REQUEST_TIMEOUT_SECONDS = 30
+# scroll 은 대용량 가능 (60초)
+SCROLL_TIMEOUT_SECONDS = 60
+# scroll 1페이지 포인트 수
+SCROLL_PAGE_SIZE = 1000
+# 응답 그대로 받는 상태: 404 컬렉션·포인트 없음
+NOT_FOUND_STATUS_CODE = 404
 
 
 class QdrantSearchClient:
@@ -21,7 +30,7 @@ class QdrantSearchClient:
     def __init__(self):
         self.base_url = settings.QDRANT_URL.rstrip("/")
         self.api_key = settings.QDRANT_API_KEY
-        self.timeout = 30
+        self.timeout = REQUEST_TIMEOUT_SECONDS
 
     def _headers(self) -> dict:
         """공통 요청 헤더 반환"""
@@ -48,40 +57,29 @@ class QdrantSearchClient:
         Raises:
             CustomError: API 호출 실패 시
         """
-        check_url = f"{self.base_url}/collections/{collection}"
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                resp = await client.get(check_url, headers=self._headers())
-                if resp.status_code == 200:
-                    logger.info(f"Qdrant 컬렉션 이미 존재: {collection}")
-                    return False
+        collection_url = f"{self.base_url}/collections/{collection}"
+        check_response = await send_request(
+            "Qdrant create_collection", "GET", collection_url,
+            headers=self._headers(), timeout_seconds=self.timeout,
+            passthrough_status_codes=(NOT_FOUND_STATUS_CODE,),
+        )
+        if check_response.status_code != NOT_FOUND_STATUS_CODE:
+            logger.info(f"Qdrant 컬렉션 이미 존재: {collection}")
+            return False
 
-            # 컬렉션 없음 → 생성
-            create_url = f"{self.base_url}/collections/{collection}"
-            body = {
-                "vectors": {
-                    "size": vector_size,
-                    "distance": "Cosine",
-                }
+        # 컬렉션 없음 > 생성
+        body = {
+            "vectors": {
+                "size": vector_size,
+                "distance": "Cosine",
             }
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                resp = await client.put(create_url, json=body, headers=self._headers())
-                resp.raise_for_status()
-
-            logger.info(f"Qdrant 컬렉션 생성 완료: {collection}, dim={vector_size}")
-            return True
-
-        except httpx.HTTPStatusError as e:
-            logger.error(f"Qdrant create_collection HTTP 오류: {e.response.status_code}")
-            raise CustomError(f"Qdrant 컬렉션 생성 실패: {e.response.status_code}")
-        except httpx.RequestError as e:
-            logger.error(f"Qdrant create_collection 요청 오류: {e}")
-            raise CustomError(f"Qdrant 컬렉션 생성 요청 오류: {e}")
-        except CustomError:
-            raise
-        except Exception as e:
-            logger.error(f"Qdrant create_collection 예기치 않은 오류: {e}")
-            raise CustomError(f"Qdrant 컬렉션 생성 예기치 않은 오류: {e}")
+        }
+        await send_request(
+            "Qdrant create_collection", "PUT", collection_url,
+            headers=self._headers(), json_body=body, timeout_seconds=self.timeout,
+        )
+        logger.info(f"Qdrant 컬렉션 생성 완료: {collection}, dim={vector_size}")
+        return True
 
     async def get_vector(
         self,
@@ -102,34 +100,14 @@ class QdrantSearchClient:
             CustomError: API 호출 실패 시
         """
         url = f"{self.base_url}/collections/{collection}/points/{point_id}"
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(
-                    url,
-                    params={"with_vector": "true"},
-                    headers=self._headers(),
-                )
-                if response.status_code == 404:
-                    return None
-                response.raise_for_status()
-                data = response.json()
-
-            vector = data.get("result", {}).get("vector")
-            return vector
-
-        except httpx.HTTPStatusError as e:
-            if e.response.status_code == 404:
-                return None
-            logger.error(f"Qdrant get_vector HTTP 오류: {e.response.status_code}")
-            raise CustomError(f"Qdrant get_vector HTTP 오류: {e.response.status_code}")
-        except httpx.RequestError as e:
-            logger.error(f"Qdrant get_vector 요청 오류: {e}")
-            raise CustomError(f"Qdrant get_vector 요청 오류: {e}")
-        except CustomError:
-            raise
-        except Exception as e:
-            logger.error(f"Qdrant get_vector 예기치 않은 오류: {e}")
-            raise CustomError(f"Qdrant get_vector 예기치 않은 오류: {e}")
+        response = await send_request(
+            "Qdrant get_vector", "GET", url,
+            headers=self._headers(), params={"with_vector": "true"}, timeout_seconds=self.timeout,
+            passthrough_status_codes=(NOT_FOUND_STATUS_CODE,),
+        )
+        if response.status_code == NOT_FOUND_STATUS_CODE:
+            return None
+        return response.json().get("result", {}).get("vector")
 
     async def search(
         self,
@@ -173,27 +151,13 @@ class QdrantSearchClient:
 
         logger.info(f"Qdrant search: collection={collection}, top_k={top_k}, vector_dim={len(vector)}, must_not_count={len(must_not_ids) if must_not_ids else 0}")
 
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(url, json=payload, headers=self._headers())
-                response.raise_for_status()
-                data = response.json()
-
-            results = data.get("result", [])
-            logger.info(f"Qdrant search 완료: 결과 수={len(results)}")
-            return results
-
-        except httpx.HTTPStatusError as e:
-            logger.error(f"Qdrant search HTTP 오류: {e.response.status_code} - {e.response.text}")
-            raise CustomError(f"Qdrant search HTTP 오류: {e.response.status_code}")
-        except httpx.RequestError as e:
-            logger.error(f"Qdrant search 요청 오류: {e}")
-            raise CustomError(f"Qdrant search 요청 오류: {e}")
-        except CustomError:
-            raise
-        except Exception as e:
-            logger.error(f"Qdrant search 예기치 않은 오류: {e}")
-            raise CustomError(f"Qdrant search 예기치 않은 오류: {e}")
+        response = await send_request(
+            "Qdrant search", "POST", url,
+            headers=self._headers(), json_body=payload, timeout_seconds=self.timeout,
+        )
+        results = response.json().get("result", [])
+        logger.info(f"Qdrant search 완료: 결과 수={len(results)}")
+        return results
 
     async def get_collection_info(self, collection: str) -> dict:
         """
@@ -211,40 +175,28 @@ class QdrantSearchClient:
         """
         url = f"{self.base_url}/collections/{collection}"
         logger.debug(f"[qdrant] get_collection_info 요청: url={url}")
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                resp = await client.get(url, headers=self._headers())
-                if resp.status_code == 404:
-                    logger.info(f"[qdrant] 컬렉션 없음: {collection}")
-                    return {"points_count": 0, "vector_size": 0, "status": "not_found"}
-                resp.raise_for_status()
-                data = resp.json()
+        response = await send_request(
+            "Qdrant get_collection_info", "GET", url,
+            headers=self._headers(), timeout_seconds=self.timeout,
+            passthrough_status_codes=(NOT_FOUND_STATUS_CODE,),
+        )
+        if response.status_code == NOT_FOUND_STATUS_CODE:
+            logger.info(f"[qdrant] 컬렉션 없음: {collection}")
+            return {"points_count": 0, "vector_size": 0, "status": "not_found"}
 
-            result = data.get("result", {})
-            config = result.get("config", {}).get("params", {})
-            vectors_config = config.get("vectors", {})
-            # 단일 벡터 컬렉션 — vectors 키 없이 바로 size/distance
-            vector_size = vectors_config.get("size", 0) if isinstance(vectors_config, dict) else 0
-            points_count = result.get("points_count", 0)
-            status = result.get("status", "unknown")
+        result = response.json().get("result", {})
+        config = result.get("config", {}).get("params", {})
+        vectors_config = config.get("vectors", {})
+        # 단일 벡터 컬렉션 — vectors 키 없이 바로 size/distance
+        vector_size = vectors_config.get("size", 0) if isinstance(vectors_config, dict) else 0
+        points_count = result.get("points_count", 0)
+        status = result.get("status", "unknown")
 
-            logger.debug(
-                f"[qdrant] get_collection_info 응답: collection={collection}, "
-                f"points_count={points_count}, vector_size={vector_size}, status={status}"
-            )
-            return {"points_count": points_count, "vector_size": vector_size, "status": status}
-
-        except httpx.HTTPStatusError as e:
-            logger.error(f"[qdrant] get_collection_info HTTP 오류: {e.response.status_code}")
-            raise CustomError(f"Qdrant get_collection_info HTTP 오류: {e.response.status_code}")
-        except httpx.RequestError as e:
-            logger.error(f"[qdrant] get_collection_info 요청 오류: {e}")
-            raise CustomError(f"Qdrant get_collection_info 요청 오류: {e}")
-        except CustomError:
-            raise
-        except Exception as e:
-            logger.error(f"[qdrant] get_collection_info 예기치 않은 오류: {e}")
-            raise CustomError(f"Qdrant get_collection_info 예기치 않은 오류: {e}")
+        logger.debug(
+            f"[qdrant] get_collection_info 응답: collection={collection}, "
+            f"points_count={points_count}, vector_size={vector_size}, status={status}"
+        )
+        return {"points_count": points_count, "vector_size": vector_size, "status": status}
 
     async def scroll_all_ids(self, collection: str) -> list[str]:
         """
@@ -269,55 +221,44 @@ class QdrantSearchClient:
 
         logger.info(f"[qdrant] scroll_all_ids 시작: collection={collection}")
 
-        try:
-            async with httpx.AsyncClient(timeout=60) as client:  # scroll은 대용량 가능 — timeout 60s
-                while True:
-                    body: dict = {
-                        "limit": 1000,
-                        "with_payload": False,
-                        "with_vector": False,
-                    }
-                    if offset is not None:
-                        body["offset"] = offset
+        # 페이지 단위 수집 (next_page_offset 없을 때까지)
+        while True:
+            body: dict = {
+                "limit": SCROLL_PAGE_SIZE,
+                "with_payload": False,
+                "with_vector": False,
+            }
+            if offset is not None:
+                body["offset"] = offset
 
-                    resp = await client.post(url, json=body, headers=self._headers())
-                    if resp.status_code == 404:
-                        logger.info(f"[qdrant] scroll_all_ids: 컬렉션 없음 — 빈 목록 반환")
-                        return []
-                    resp.raise_for_status()
-                    data = resp.json()
+            response = await send_request(
+                "Qdrant scroll_all_ids", "POST", url,
+                headers=self._headers(), json_body=body, timeout_seconds=SCROLL_TIMEOUT_SECONDS,
+                passthrough_status_codes=(NOT_FOUND_STATUS_CODE,),
+            )
+            if response.status_code == NOT_FOUND_STATUS_CODE:
+                logger.info("[qdrant] scroll_all_ids: 컬렉션 없음 — 빈 목록 반환")
+                return []
 
-                    result = data.get("result", {})
-                    points = result.get("points", [])
-                    next_offset = result.get("next_page_offset")
+            result = response.json().get("result", {})
+            points = result.get("points", [])
+            next_offset = result.get("next_page_offset")
 
-                    page_ids = [str(p["id"]) for p in points if "id" in p]
-                    all_ids.extend(page_ids)
+            page_ids = [str(p["id"]) for p in points if "id" in p]
+            all_ids.extend(page_ids)
 
-                    logger.debug(
-                        f"[qdrant] scroll_all_ids page {page}: "
-                        f"offset={offset}, collected={len(page_ids)}, total_so_far={len(all_ids)}"
-                    )
-                    page += 1
+            logger.debug(
+                f"[qdrant] scroll_all_ids page {page}: "
+                f"offset={offset}, collected={len(page_ids)}, total_so_far={len(all_ids)}"
+            )
+            page += 1
 
-                    if not next_offset:
-                        break
-                    offset = next_offset
+            if not next_offset:
+                break
+            offset = next_offset
 
-            logger.info(f"[qdrant] scroll_all_ids 완료: collection={collection}, total={len(all_ids)}")
-            return all_ids
-
-        except httpx.HTTPStatusError as e:
-            logger.error(f"[qdrant] scroll_all_ids HTTP 오류: {e.response.status_code}")
-            raise CustomError(f"Qdrant scroll_all_ids HTTP 오류: {e.response.status_code}")
-        except httpx.RequestError as e:
-            logger.error(f"[qdrant] scroll_all_ids 요청 오류: {e}")
-            raise CustomError(f"Qdrant scroll_all_ids 요청 오류: {e}")
-        except CustomError:
-            raise
-        except Exception as e:
-            logger.error(f"[qdrant] scroll_all_ids 예기치 않은 오류: {e}")
-            raise CustomError(f"Qdrant scroll_all_ids 예기치 않은 오류: {e}")
+        logger.info(f"[qdrant] scroll_all_ids 완료: collection={collection}, total={len(all_ids)}")
+        return all_ids
 
     async def upsert(
         self,
@@ -352,24 +293,11 @@ class QdrantSearchClient:
 
         logger.info(f"Qdrant upsert: collection={collection}, id={point_id}, vector_dim={len(vector)}")
 
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.put(url, json=body, headers=self._headers())
-                response.raise_for_status()
-
-            logger.info(f"Qdrant upsert 완료: id={point_id}")
-
-        except httpx.HTTPStatusError as e:
-            logger.error(f"Qdrant upsert HTTP 오류: {e.response.status_code} - {e.response.text}")
-            raise CustomError(f"Qdrant upsert HTTP 오류: {e.response.status_code}")
-        except httpx.RequestError as e:
-            logger.error(f"Qdrant upsert 요청 오류: {e}")
-            raise CustomError(f"Qdrant upsert 요청 오류: {e}")
-        except CustomError:
-            raise
-        except Exception as e:
-            logger.error(f"Qdrant upsert 예기치 않은 오류: {e}")
-            raise CustomError(f"Qdrant upsert 예기치 않은 오류: {e}")
+        await send_request(
+            "Qdrant upsert", "PUT", url,
+            headers=self._headers(), json_body=body, timeout_seconds=self.timeout,
+        )
+        logger.info(f"Qdrant upsert 완료: id={point_id}")
 
     async def delete_points(self, collection: str, point_ids: list[str]) -> None:
         """
@@ -381,18 +309,11 @@ class QdrantSearchClient:
         if not point_ids:
             return
         url = f"{self.base_url}/collections/{collection}/points/delete?wait=true"
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(url, json={"points": point_ids}, headers=self._headers())
-                response.raise_for_status()
-            logger.info(f"[qdrant] delete_points 완료: collection={collection}, count={len(point_ids)}")
-        except httpx.HTTPStatusError as e:
-            logger.error(f"[qdrant] delete_points HTTP 오류: {e.response.status_code} - {e.response.text}")
-            raise CustomError(f"Qdrant delete_points HTTP 오류: {e.response.status_code}")
-        except httpx.RequestError as e:
-            logger.error(f"[qdrant] delete_points 요청 오류: {e}")
-            raise CustomError(f"Qdrant delete_points 요청 오류: {e}")
-
+        await send_request(
+            "Qdrant delete_points", "POST", url,
+            headers=self._headers(), json_body={"points": point_ids}, timeout_seconds=self.timeout,
+        )
+        logger.info(f"[qdrant] delete_points 완료: collection={collection}, count={len(point_ids)}")
 
 # 싱글턴 인스턴스
 qdrant_search_client = QdrantSearchClient()

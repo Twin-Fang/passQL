@@ -1,4 +1,5 @@
 """설정 비밀값 복호화 (#492): Java 와 공유하는 고정 벡터, 변조·AAD 불일치 거부, Gemini 키 대체 경로"""
+import asyncio
 import base64
 
 import pytest
@@ -57,22 +58,29 @@ def test_접두사로_암호문_여부_판정():
     assert not is_encrypted("")
 
 
+def _fake_get_setting(stored_value: str | None):
+    """Redis 조회 가짜: 고정 값 반환, None 이면 fallback 반환 (Redis 없음)"""
+    async def fake_get_setting(key, fallback):
+        return fallback if stored_value is None else stored_value
+    return fake_get_setting
+
+
 def test_gemini_키는_Redis_암호문을_복호화(monkeypatch):
-    monkeypatch.setattr(redis_app_setting_client, "get_setting", lambda key, fallback: FIXED_VECTOR_STORED)
-    assert redis_app_setting_client.get_gemini_api_key() == FIXED_VECTOR_PLAIN
+    monkeypatch.setattr(redis_app_setting_client, "get_setting", _fake_get_setting(FIXED_VECTOR_STORED))
+    assert asyncio.run(redis_app_setting_client.get_gemini_api_key()) == FIXED_VECTOR_PLAIN
 
 
 def test_gemini_키_평문은_그대로(monkeypatch):
-    monkeypatch.setattr(redis_app_setting_client, "get_setting", lambda key, fallback: "legacy-plain")
-    assert redis_app_setting_client.get_gemini_api_key() == "legacy-plain"
+    monkeypatch.setattr(redis_app_setting_client, "get_setting", _fake_get_setting("legacy-plain"))
+    assert asyncio.run(redis_app_setting_client.get_gemini_api_key()) == "legacy-plain"
 
 
 def test_gemini_키_복호화_실패는_env_키로_대체(monkeypatch):
     monkeypatch.setattr(settings, "SETTING_ENCRYPTION_KEY", "")
-    monkeypatch.setattr(redis_app_setting_client, "get_setting", lambda key, fallback: FIXED_VECTOR_STORED)
-    assert redis_app_setting_client.get_gemini_api_key() == "env-fallback-key"
+    monkeypatch.setattr(redis_app_setting_client, "get_setting", _fake_get_setting(FIXED_VECTOR_STORED))
+    assert asyncio.run(redis_app_setting_client.get_gemini_api_key()) == "env-fallback-key"
 
 
 def test_Redis_가_없으면_env_키(monkeypatch):
-    monkeypatch.setattr(redis_app_setting_client, "get_setting", lambda key, fallback: fallback)
-    assert redis_app_setting_client.get_gemini_api_key() == "env-fallback-key"
+    monkeypatch.setattr(redis_app_setting_client, "get_setting", _fake_get_setting(None))
+    assert asyncio.run(redis_app_setting_client.get_gemini_api_key()) == "env-fallback-key"
