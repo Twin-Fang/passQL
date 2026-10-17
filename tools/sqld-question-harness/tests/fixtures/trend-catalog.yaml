@@ -1,0 +1,6 @@
+# 테스트용 경향 카탈로그 (실제 카탈로그는 docs/sqld-research 암호화본)
+latestExamRounds: [61, 62]
+templates:
+  - {id: T01, subject: 2, name: "NOT IN 서브쿼리 + NULL"}
+  - {id: T06, subject: 2, name: "비교형 보기"}
+  - {id: T99, subject: 1, name: "테스트 전용 템플릿"}

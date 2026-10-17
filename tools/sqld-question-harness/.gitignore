@@ -1,0 +1,7 @@
+# 하네스 로컬 산출물 (검증 캐시, 실행 결과물)
+.cache/
+import.json
+explanations.json
+results.json
+report.md
+report.html

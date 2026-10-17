@@ -195,6 +195,7 @@ public class QuestionService {
                 question.getSchemaDdl(),
                 question.getSchemaSampleData(),
                 question.getSchemaIntent(),
+                SchemaPreviewParser.parse(question.getSchemaDdl(), question.getSchemaSampleData()),
                 answerSql,
                 question.getHint(),
                 choiceSets

@@ -23,6 +23,8 @@ public record QuestionDetail(
     @Schema(nullable = true) String schemaDdl,
     @Schema(nullable = true) String schemaSampleData,
     @Schema(nullable = true) String schemaIntent,
+    @Schema(description = "테이블 미리보기 (schemaDdl + schemaSampleData 해석, 스키마 없으면 빈 목록, #520)")
+    List<QuestionSchemaTable> schemaTables,
     @Schema(nullable = true) String answerSql,
     @Schema(nullable = true) String hint,
     List<ChoiceSetSummary> choiceSets
