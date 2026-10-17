@@ -1,5 +1,6 @@
 package com.passql.member.dto;
 
+import com.passql.member.constant.AuthProvider;
 import com.passql.member.constant.ChoiceGenerationMode;
 import com.passql.member.entity.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -26,6 +27,10 @@ public class MemberMeResponse {
     // 선택지 생성 모드 — PRACTICE(기본): 재사용, REAL: 항상 새로 생성
     @Schema(nullable = true)
     private ChoiceGenerationMode choiceGenerationMode;
+    // 가입 제공자 — 앱·웹 탈퇴 시 제공자별 연결 해제 분기 기준 (#516)
+    private AuthProvider authProvider;
+    // 제공자 사용자 ID (Google·Apple 은 Firebase uid) — 탈퇴 재인증 계정 <-> 현재 회원 대조, 다른 계정 revoke 방지 (#516)
+    private String providerUserId;
 
     public static MemberMeResponse from(Member m) {
         return new MemberMeResponse(
@@ -37,7 +42,9 @@ public class MemberMeResponse {
             m.getCreatedAt(),
             m.getLastSeenAt(),
             m.getNicknameChangedAt(),
-            m.getChoiceGenerationMode()
+            m.getChoiceGenerationMode(),
+            m.getAuthProvider(),
+            m.getProviderUserId()
         );
     }
 }

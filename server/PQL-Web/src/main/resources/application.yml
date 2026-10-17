@@ -63,25 +63,41 @@ admin:
   password-hash: ${ADMIN_PASSWORD_HASH:}
 
 # 인가 코드 로그인 (#509): client-id 가 비면 그 제공자는 "준비 중". 키는 application-prod.yml 또는 환경변수로만 넣는다.
-# allowed-redirect-uris: 웹 콜백({origin}/auth/callback/{provider})과 앱 콜백(passql://), 이 목록 밖 주소로는 코드를 교환하지 않는다.
+# allowed-redirect-uris: 운영 웹 콜백({origin}/auth/callback/{provider})과 앱 콜백(passql://), 이 목록 밖 주소로는 코드를 교환하지 않는다.
+# 토큰 출처 검증·연결 해제 (#516): kakao.app-id(토큰 app_id 비교, 비면 카카오 토큰 로그인 503), kakao.admin-key(탈퇴 시 연결 끊기),
+#   naver.allowed-client-ids(토큰 client_id 허용 목록, 비면 naver.client-id 만)
+# local-redirect-uris: 로컬 개발 웹 콜백 (아래 dev 프로필 문서에서만 채움, 운영 기본값은 빈 목록)
 social-login:
+  local-redirect-uris: ${SOCIAL_LOGIN_LOCAL_REDIRECT_URIS:}
   kakao:
     client-id: ${SOCIAL_LOGIN_KAKAO_CLIENT_ID:}
     client-secret: ${SOCIAL_LOGIN_KAKAO_CLIENT_SECRET:}
+    app-id: ${SOCIAL_LOGIN_KAKAO_APP_ID:}
+    admin-key: ${SOCIAL_LOGIN_KAKAO_ADMIN_KEY:}
     allowed-redirect-uris:
       - https://passql.vercel.app/auth/callback/kakao
-      - http://localhost:5173/auth/callback/kakao
   naver:
     client-id: ${SOCIAL_LOGIN_NAVER_CLIENT_ID:}
     client-secret: ${SOCIAL_LOGIN_NAVER_CLIENT_SECRET:}
+    allowed-client-ids: ${SOCIAL_LOGIN_NAVER_ALLOWED_CLIENT_IDS:}
     allowed-redirect-uris:
       - https://passql.vercel.app/auth/callback/naver
-      - http://localhost:5173/auth/callback/naver
   github:
     client-id: ${SOCIAL_LOGIN_GITHUB_CLIENT_ID:}
     client-secret: ${SOCIAL_LOGIN_GITHUB_CLIENT_SECRET:}
     allowed-redirect-uris:
       - https://passql.vercel.app/auth/callback/github
-      - http://localhost:5173/auth/callback/github
       # 앱(iOS·Android) 인증 세션 콜백 (#509)
       - passql://auth/callback/github
+
+---
+# 로컬 개발(dev 프로필) 전용: Vite 개발 서버 콜백 허용 (#516, 운영 prod 프로필에는 적용되지 않음)
+spring:
+  config:
+    activate:
+      on-profile: dev
+social-login:
+  local-redirect-uris:
+    - http://localhost:5173/auth/callback/kakao
+    - http://localhost:5173/auth/callback/naver
+    - http://localhost:5173/auth/callback/github

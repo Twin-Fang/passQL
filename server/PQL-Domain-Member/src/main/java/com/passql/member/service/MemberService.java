@@ -22,6 +22,7 @@ import com.passql.member.dto.NicknameCheckResponse;
 import com.passql.member.dto.NicknameRegenerateResponse;
 import com.passql.member.entity.Member;
 import com.passql.member.entity.MemberSuspendHistory;
+import com.passql.member.event.MemberWithdrawnEvent;
 import com.passql.member.repository.MemberPushTokenRepository;
 import com.passql.member.repository.MemberRepository;
 import com.passql.member.repository.MemberSuspendHistoryRepository;
@@ -116,9 +117,11 @@ public class MemberService {
             AdminAuditEvent.summary("nickname", nicknameBeforeWithdraw), AdminAuditEvent.summary("status", MemberStatus.WITHDRAWN)));
     }
 
-    /** 탈퇴 공통: 상태·개인정보 익명화 > 소프트 삭제(사유) > 리프레시 토큰 삭제 */
+    /** 탈퇴 공통: 연결 해제 이벤트(익명화 전 제공자 키) > 상태·개인정보 익명화 > 소프트 삭제(사유) > 전 기기 리프레시 토큰 삭제 */
     private void anonymizeAndWithdraw(Member member, String deleteReason) {
         UUID memberUuid = member.getMemberUuid();
+        // 커밋 후 제공자 연결 해제 (SocialUnlinkService, 롤백되면 실행 안 됨)
+        eventPublisher.publishEvent(new MemberWithdrawnEvent(memberUuid, member.getAuthProvider(), member.getProviderUserId()));
         member.setStatus(MemberStatus.WITHDRAWN);
         member.setWithdrawnAt(LocalDateTime.now());
         // 닉네임은 유니크라 회원 UUID 일부를 붙여 익명화한다.
@@ -128,7 +131,7 @@ public class MemberService {
         member.setProviderUserId("withdrawn:" + memberUuid);
         member.softDelete(deleteReason);
 
-        refreshTokenRepository.delete(memberUuid);
+        refreshTokenRepository.deleteAllByMemberUuid(memberUuid);
         // 탈퇴 회원 기기로 알림 발송 차단
         memberPushTokenRepository.deleteAllByMemberUuid(memberUuid);
         MemberActivityLogger.recordMemberWithdrawn(memberUuid);

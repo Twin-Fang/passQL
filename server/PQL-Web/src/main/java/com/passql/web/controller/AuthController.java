@@ -39,11 +39,11 @@ public class AuthController {
                 : ResponseEntity.ok(response);
     }
 
-    /** 인가 코드 로그인 (카카오·네이버·GitHub, #509) */
+    /** 인가 코드 로그인 (카카오·네이버·GitHub, #509), GitHub PKCE codeVerifier 선택 (#516) */
     @PostMapping("/login/code")
     public ResponseEntity<LoginResponse> loginWithAuthorizationCode(@RequestBody @Valid AuthorizationCodeLoginRequest request) {
         LoginResult result = authorizationCodeLoginService.login(
-                request.authProvider(), request.code(), request.redirectUri(), request.state());
+                request.authProvider(), request.code(), request.redirectUri(), request.state(), request.codeVerifier());
         LoginResponse response = LoginResponse.from(result);
         return result.isNewMember()
                 ? ResponseEntity.status(HttpStatus.CREATED).body(response)

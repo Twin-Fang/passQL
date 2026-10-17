@@ -7,12 +7,15 @@ import com.passql.member.auth.repository.RefreshTokenRepository;
 import com.passql.member.constant.AuthProvider;
 import com.passql.member.constant.MemberStatus;
 import com.passql.member.entity.Member;
+import com.passql.member.event.MemberWithdrawnEvent;
 import com.passql.member.repository.MemberPushTokenRepository;
 import com.passql.member.repository.MemberRepository;
 import com.passql.member.repository.MemberSuspendHistoryRepository;
 import com.passql.member.service.MemberService;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,9 +29,11 @@ class MemberWithdrawTest {
     private final MemberRepository memberRepository = mock(MemberRepository.class);
     private final RefreshTokenRepository refreshTokenRepository = mock(RefreshTokenRepository.class);
     private final MemberPushTokenRepository memberPushTokenRepository = mock(MemberPushTokenRepository.class);
+    // 발행된 이벤트 기록 (연결 해제 이벤트 확인용)
+    private final List<Object> publishedEvents = new ArrayList<>();
     private final MemberService service = new MemberService(
             memberRepository, mock(NicknameGenerator.class),
-            mock(MemberSuspendHistoryRepository.class), refreshTokenRepository, event -> { }, memberPushTokenRepository);
+            mock(MemberSuspendHistoryRepository.class), refreshTokenRepository, publishedEvents::add, memberPushTokenRepository);
 
     private Member activeMember(UUID uuid) {
         Member m = Member.signUp("google-123", AuthProvider.GOOGLE, "a@b.com", true, "원래닉네임");
@@ -53,13 +58,33 @@ class MemberWithdrawTest {
     }
 
     @Test
-    void 탈퇴하면_리프레시_토큰을_삭제해_재발급을_막는다() {
+    void 탈퇴하면_모든_기기의_리프레시_토큰을_삭제해_재발급을_막는다() {
         UUID uuid = UUID.randomUUID();
         activeMember(uuid);
 
         service.withdraw(uuid);
 
-        verify(refreshTokenRepository).delete(uuid);
+        verify(refreshTokenRepository).deleteAllByMemberUuid(uuid);
+    }
+
+    @Test
+    void 탈퇴하면_익명화_전_제공자_키로_연결_해제_이벤트를_발행한다() {
+        UUID uuid = UUID.randomUUID();
+        activeMember(uuid);
+
+        service.withdraw(uuid);
+
+        assertTrue(publishedEvents.contains(new MemberWithdrawnEvent(uuid, AuthProvider.GOOGLE, "google-123")));
+    }
+
+    @Test
+    void 관리자_탈퇴도_연결_해제_이벤트를_발행한다() {
+        UUID uuid = UUID.randomUUID();
+        activeMember(uuid);
+
+        service.withdrawByAdmin(uuid);
+
+        assertTrue(publishedEvents.contains(new MemberWithdrawnEvent(uuid, AuthProvider.GOOGLE, "google-123")));
     }
 
     @Test
@@ -80,6 +105,6 @@ class MemberWithdrawTest {
         CustomException e = assertThrows(CustomException.class, () -> service.withdraw(uuid));
 
         assertEquals(ErrorCode.MEMBER_NOT_FOUND, e.getErrorCode());
-        verify(refreshTokenRepository, never()).delete(any());
+        verify(refreshTokenRepository, never()).deleteAllByMemberUuid(any());
     }
 }

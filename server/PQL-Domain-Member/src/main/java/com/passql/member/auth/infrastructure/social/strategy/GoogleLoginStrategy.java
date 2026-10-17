@@ -12,6 +12,11 @@ public class GoogleLoginStrategy extends FirebaseLoginStrategy {
     }
 
     @Override
+    protected String expectedSignInProvider() {
+        return "google.com";
+    }
+
+    @Override
     public AuthProvider getAuthProvider() {
         return AuthProvider.GOOGLE;
     }

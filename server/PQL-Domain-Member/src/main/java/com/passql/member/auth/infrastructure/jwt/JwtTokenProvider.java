@@ -45,10 +45,16 @@ public class JwtTokenProvider {
     }
 
     public String createRefreshToken(Member member) {
+        return createRefreshToken(member, UUID.randomUUID().toString());
+    }
+
+    /** 기기 토큰 ID(jti)를 담은 refresh token (Redis 기기별 키와 짝) */
+    public String createRefreshToken(Member member, String tokenId) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + jwtProperties.refresh().expiration().toMillis());
         return Jwts.builder()
                 .subject(member.getMemberUuid().toString())
+                .id(tokenId)
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(refreshKey)
@@ -74,6 +80,22 @@ public class JwtTokenProvider {
                     parseClaims(token, refreshKey).getSubject()));
         } catch (ExpiredJwtException e) {
             return Optional.of(UUID.fromString(e.getClaims().getSubject()));
+        } catch (JwtException | IllegalArgumentException e) {
+            return Optional.empty();
+        }
+    }
+
+    /** refresh token 서명·만료 검증 > 회원 UUID + 기기 토큰 ID */
+    public RefreshTokenClaims parseRefreshToken(String token) {
+        return toRefreshTokenClaims(getRefreshClaims(token));
+    }
+
+    /** 만료된 refresh token 도 클레임 허용 (로그아웃용), 서명 오류는 empty */
+    public Optional<RefreshTokenClaims> parseRefreshTokenSilently(String token) {
+        try {
+            return Optional.of(toRefreshTokenClaims(parseClaims(token, refreshKey)));
+        } catch (ExpiredJwtException e) {
+            return Optional.of(toRefreshTokenClaims(e.getClaims()));
         } catch (JwtException | IllegalArgumentException e) {
             return Optional.empty();
         }
@@ -105,6 +127,10 @@ public class JwtTokenProvider {
         } catch (JwtException e) {
             throw new CustomException(ErrorCode.INVALID_TOKEN);
         }
+    }
+
+    private static RefreshTokenClaims toRefreshTokenClaims(Claims claims) {
+        return new RefreshTokenClaims(UUID.fromString(claims.getSubject()), claims.getId());
     }
 
     /** jjwt 0.12+ API: parserBuilder()/parseClaimsJws() 제거됨 → parser().verifyWith()/parseSignedClaims()로 서명 검증 후 payload 반환. */

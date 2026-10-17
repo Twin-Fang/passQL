@@ -12,6 +12,11 @@ public class AppleLoginStrategy extends FirebaseLoginStrategy {
     }
 
     @Override
+    protected String expectedSignInProvider() {
+        return "apple.com";
+    }
+
+    @Override
     public AuthProvider getAuthProvider() {
         return AuthProvider.APPLE;
     }

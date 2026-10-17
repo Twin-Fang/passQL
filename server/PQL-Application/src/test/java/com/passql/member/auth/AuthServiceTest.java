@@ -122,20 +122,20 @@ class AuthServiceTest {
         String testToken = "test-refresh-token-" + testUuid;
         long ttlMs = 60_000L; // 1분
 
-        // 저장
-        refreshTokenRepository.save(testUuid, testToken, ttlMs);
-        superLog("저장 완료: key=refresh_token:" + testUuid);
+        String testTokenId = "test-device";
+
+        // 저장 (기기별 키)
+        refreshTokenRepository.save(testUuid, testTokenId, testToken, ttlMs);
+        superLog("저장 완료: key=refresh_token:" + testUuid + ":" + testTokenId);
 
         // 조회
-        Optional<String> found = Optional.ofNullable(refreshTokenRepository.findByMemberUuid(testUuid));
-        superLog("조회 결과: " + found.orElse("없음"));
-        lineLog("저장/조회 일치: " + found.map(t -> t.equals(testToken)).orElse(false));
+        boolean isSaved = refreshTokenRepository.isActiveTokenId(testUuid, testTokenId);
+        superLog("기기 목록 등록: " + isSaved);
 
         // 삭제
-        refreshTokenRepository.delete(testUuid);
-        Optional<String> afterDelete = Optional.ofNullable(refreshTokenRepository.findByMemberUuid(testUuid));
-        superLog("삭제 후 조회: " + afterDelete.orElse("없음 (정상)"));
-        lineLog("삭제 확인: " + afterDelete.isEmpty());
+        refreshTokenRepository.deleteAllByMemberUuid(testUuid);
+        boolean isDeleted = !refreshTokenRepository.isActiveTokenId(testUuid, testTokenId);
+        lineLog("삭제 확인: " + isDeleted);
     }
 
     // ── AuthService 통합 테스트 (실제 Firebase idToken 없이) ──
@@ -163,17 +163,17 @@ class AuthServiceTest {
         String accessToken = jwtTokenProvider.createAccessToken(newMember);
         String refreshToken = jwtTokenProvider.createRefreshToken(newMember);
         long ttlMs = jwtTokenProvider.getRefreshTokenExpirationMillis();
-        refreshTokenRepository.save(newMember.getMemberUuid(), refreshToken, ttlMs);
+        String tokenId = jwtTokenProvider.parseRefreshToken(refreshToken).tokenId();
+        refreshTokenRepository.save(newMember.getMemberUuid(), tokenId, refreshToken, ttlMs);
 
         superLog("AccessToken 발급 길이: " + accessToken.length());
         superLog("RefreshToken Redis 저장 UUID: " + newMember.getMemberUuid());
 
         // Redis에 저장됐는지 확인
-        Optional<String> stored = Optional.ofNullable(refreshTokenRepository.findByMemberUuid(newMember.getMemberUuid()));
-        lineLog("RefreshToken Redis 저장 확인: " + stored.isPresent());
+        lineLog("RefreshToken Redis 저장 확인: " + refreshTokenRepository.isActiveTokenId(newMember.getMemberUuid(), tokenId));
 
         // 정리
-        refreshTokenRepository.delete(newMember.getMemberUuid());
+        refreshTokenRepository.deleteAllByMemberUuid(newMember.getMemberUuid());
     }
 
     public void login_기존회원_재로그인_테스트() {
@@ -210,21 +210,16 @@ class AuthServiceTest {
         memberRepository.save(member);
 
         String refreshToken = jwtTokenProvider.createRefreshToken(member);
-        refreshTokenRepository.save(member.getMemberUuid(), refreshToken, jwtTokenProvider.getRefreshTokenExpirationMillis());
+        String tokenId = jwtTokenProvider.parseRefreshToken(refreshToken).tokenId();
+        refreshTokenRepository.save(member.getMemberUuid(), tokenId, refreshToken, jwtTokenProvider.getRefreshTokenExpirationMillis());
 
-        // Redis에서 조회 후 새 AccessToken 발급 시뮬레이션
-        Optional<String> stored = Optional.ofNullable(refreshTokenRepository.findByMemberUuid(member.getMemberUuid()));
-        lineLog("RefreshToken 조회: " + stored.isPresent());
-
-        if (stored.isPresent() && stored.get().equals(refreshToken)) {
-            // 토큰 일치 확인 후 새 AccessToken 발급
-            String newAccessToken = jwtTokenProvider.createAccessToken(member);
-            superLog("새 AccessToken 발급: " + newAccessToken.substring(0, Math.min(50, newAccessToken.length())));
-            lineLog("재발급 성공");
-        }
+        // 재발급 — 저장값 비교·삭제 후 새 기기 키 발급
+        var reissued = authService.reissueTokens(refreshToken);
+        superLog("새 AccessToken 발급: " + reissued.accessToken().substring(0, Math.min(50, reissued.accessToken().length())));
+        lineLog("옛 기기 키 회전 확인: " + !refreshTokenRepository.isActiveTokenId(member.getMemberUuid(), tokenId));
 
         // 정리
-        refreshTokenRepository.delete(member.getMemberUuid());
+        refreshTokenRepository.deleteAllByMemberUuid(member.getMemberUuid());
     }
 
     public void logout_redis_삭제_테스트() {
@@ -237,15 +232,15 @@ class AuthServiceTest {
         memberRepository.save(member);
 
         String refreshToken = jwtTokenProvider.createRefreshToken(member);
-        refreshTokenRepository.save(member.getMemberUuid(), refreshToken, jwtTokenProvider.getRefreshTokenExpirationMillis());
+        String tokenId = jwtTokenProvider.parseRefreshToken(refreshToken).tokenId();
+        refreshTokenRepository.save(member.getMemberUuid(), tokenId, refreshToken, jwtTokenProvider.getRefreshTokenExpirationMillis());
 
-        superLog("로그아웃 전 Redis 조회: " + Optional.ofNullable(refreshTokenRepository.findByMemberUuid(member.getMemberUuid())).isPresent());
+        superLog("로그아웃 전 기기 목록 등록: " + refreshTokenRepository.isActiveTokenId(member.getMemberUuid(), tokenId));
 
-        // 로그아웃 — UUID silent 파싱 후 삭제 시뮬레이션
-        jwtTokenProvider.getMemberUuidFromRefreshTokenSilently(refreshToken)
-                .ifPresent(refreshTokenRepository::delete);
+        // 로그아웃 — 저장값 일치 시 그 기기 키만 삭제
+        authService.logout(refreshToken);
 
-        boolean afterLogout = Optional.ofNullable(refreshTokenRepository.findByMemberUuid(member.getMemberUuid())).isEmpty();
+        boolean afterLogout = !refreshTokenRepository.isActiveTokenId(member.getMemberUuid(), tokenId);
         superLog("로그아웃 후 Redis 삭제 확인: " + afterLogout);
         lineLog("로그아웃 테스트 완료: " + afterLogout);
     }

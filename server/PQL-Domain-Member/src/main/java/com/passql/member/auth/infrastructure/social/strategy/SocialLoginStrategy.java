@@ -8,4 +8,11 @@ public interface SocialLoginStrategy {
     String validateAndGetSocialId(String idToken);
 
     AuthProvider getAuthProvider();
+
+    /**
+     * 클라이언트가 보낸 토큰의 발급 앱 검증 (#516): 다른 앱 토큰이면 INVALID_SOCIAL_TOKEN
+     * 서버가 직접 교환한 토큰은 호출하지 않음, 기본: 검증 없음 (Firebase 는 validateAndGetSocialId 안에서 확인)
+     */
+    default void verifyIssuedForThisApp(String providerAccessToken) {
+    }
 }

@@ -2,6 +2,7 @@ package com.passql.web.config;
 
 import com.passql.ai.service.AiCallLogService;
 import com.passql.application.notification.NotificationDispatcher;
+import com.passql.member.auth.application.SocialUnlinkService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -48,6 +49,19 @@ public class AsyncConfig {
         executor.setMaxPoolSize(2);
         executor.setQueueCapacity(100);
         executor.setThreadNamePrefix("notification-");
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
+        executor.initialize();
+        return executor;
+    }
+
+    /** 탈퇴 후 제공자 연결 해제 전용 (#516): 외부 API 호출 대기 위주, 대기 100건 초과분은 거절 (탈퇴 결과에 영향 없음) */
+    @Bean(SocialUnlinkService.EXECUTOR_NAME)
+    public Executor socialUnlinkTaskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(1);
+        executor.setMaxPoolSize(2);
+        executor.setQueueCapacity(100);
+        executor.setThreadNamePrefix("social-unlink-");
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
         executor.initialize();
         return executor;
