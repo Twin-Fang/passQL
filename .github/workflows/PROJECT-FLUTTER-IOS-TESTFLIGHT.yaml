@@ -124,7 +124,7 @@ env:
   # 이 값은 TestFlight 'What to Test'(내부 테스터용)에는 영향이 없다 — 거기는 항상 CHANGELOG 를 쓴다.
   # 수동 실행 입력 whats_new_override 에 값을 주면 그 실행만 그 문구가 우선한다.
   # Android(PROJECT-FLUTTER-ANDROID-PLAYSTORE-CICD.yaml)에도 같은 이름의 설정이 있다. 두 곳을 함께 바꾼다.
-  STORE_WHATS_NEW_OVERRIDE: ""
+  STORE_WHATS_NEW_OVERRIDE: "앱 안정성과 사용성을 개선했습니다."
 
 jobs:
   prepare-build:
