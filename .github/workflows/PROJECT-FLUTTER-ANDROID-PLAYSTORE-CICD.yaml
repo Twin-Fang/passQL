@@ -61,6 +61,12 @@ env:
   # 앱 폴더 경로. FLUTTER_ROOT 는 subosito/flutter-action 이 Flutter SDK 경로로 덮어쓰므로
   # (그 뒤 단계에서 env.FLUTTER_ROOT 가 SDK를 가리킴) 경로 지정에는 이 값을 쓴다 (passQL #376).
   APP_DIR: "app"
+  # Firebase App Distribution: 스토어 빌드와 같은 버전을 테스터 그룹에도 배포 (passQL-Android-Prod, 그룹 별칭 testers) (#513)
+  FIREBASE_APP_ID: "1:662424763183:android:75cef576d6ae3d9323bfda"
+  FIREBASE_TESTER_GROUP: "testers"
+  # Play 스토어 '새로운 기능' 문구 고정: 값이 있으면 매번 이 문구, ""이면 CHANGELOG.json 해당 버전 (iOS 워크플로 같은 이름 설정과 함께 바꾼다)
+  # 스토어·심사자에게 보이는 칸만 해당. Firebase 테스터 노트는 CHANGELOG 그대로
+  STORE_WHATS_NEW_OVERRIDE: "앱 안정성과 사용성을 개선했습니다."
   # 배포 모드 (store_only | store_prepare | store_submit)
   DEPLOY_MODE: ${{ github.event.inputs.deploy_mode || vars.ANDROID_DEPLOY_MODE || 'store_only' }}
   # 트랙 승급 스위치 — DEPLOY_MODE 와 독립이다 (projectops #618).
@@ -541,6 +547,68 @@ jobs:
           path: ${{ env.APP_DIR }}/build/app/outputs/bundle/release/app-release.aab
           retention-days: 1
 
+      # Firebase App Distribution 용 APK (Firebase 가 Play 와 연동되지 않아 AAB 를 받지 못함, 같은 서명·버전)
+      - name: Build APK for Firebase App Distribution
+        run: |
+          flutter build apk \
+            --release \
+            --build-name="${{ needs.prepare-build.outputs.version }}" \
+            --build-number="${{ needs.prepare-build.outputs.version_code }}"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: ${{ env.APP_DIR }}/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 1
+
+  # 스토어 업로드와 별개 job: Firebase 배포가 실패해도 Play 배포에 영향 없음 (#513)
+  deploy-firebase:
+    name: Firebase App Distribution 테스터 배포
+    runs-on: ubuntu-latest
+    needs: [prepare-build, build-android]
+    steps:
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk
+          path: firebase-apk
+
+      - name: Download release notes
+        uses: actions/download-artifact@v4
+        with:
+          name: release-notes
+          path: .
+
+      # 서비스 계정 Secret 이 없으면 배포를 건너뛴다
+      - name: Prepare Firebase service account
+        id: firebase_credentials
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON_BASE64: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON_BASE64 }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT_JSON_BASE64" ]; then
+            echo "⏭️ FIREBASE_SERVICE_ACCOUNT_JSON_BASE64 없음 - Firebase 배포 건너뜀"
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "$FIREBASE_SERVICE_ACCOUNT_JSON_BASE64" | base64 --decode > firebase-service-account.json
+          echo "available=true" >> "$GITHUB_OUTPUT"
+
+      - name: Distribute to Firebase testers
+        if: steps.firebase_credentials.outputs.available == 'true'
+        uses: wzieba/Firebase-Distribution-Github-Action@bd494989dd4bec0343f78adee87fe66e48279ad6 # v1
+        with:
+          appId: ${{ env.FIREBASE_APP_ID }}
+          serviceCredentialsFile: firebase-service-account.json
+          groups: ${{ env.FIREBASE_TESTER_GROUP }}
+          file: firebase-apk/app-release.apk
+          releaseNotesFile: final_release_notes.txt
+
+      # 서비스 계정 파일 정리 (성공·실패 공통)
+      - name: Remove Firebase service account
+        if: always()
+        run: rm -f firebase-service-account.json
+
   deploy-playstore:
     name: Play Store 내부 테스트 배포
     runs-on: ubuntu-latest
@@ -688,7 +756,11 @@ jobs:
           CHANGELOG_DIR="android/fastlane/metadata/android/ko-KR/changelogs"
           mkdir -p "$CHANGELOG_DIR"
 
-          if [ -f "$GITHUB_WORKSPACE/final_release_notes.txt" ]; then
+          if [ -n "$STORE_WHATS_NEW_OVERRIDE" ]; then
+            # 고정 문구 우선 (env STORE_WHATS_NEW_OVERRIDE)
+            printf '%s\n' "$STORE_WHATS_NEW_OVERRIDE" > "$CHANGELOG_DIR/${VERSION_CODE}.txt"
+            echo "✅ 고정 Changelog 사용 (버전 코드: $VERSION_CODE)"
+          elif [ -f "$GITHUB_WORKSPACE/final_release_notes.txt" ]; then
             # Google Play release notes 한도(500 글자)에 맞춰 절단 (마진 두어 480자)
             # final_release_notes.txt·truncate 스크립트는 레포 루트 기준 — working-directory가 FLUTTER_ROOT이므로 절대경로 사용
             bash "$GITHUB_WORKSPACE/.github/scripts/truncate_release_notes.sh" "$GITHUB_WORKSPACE/final_release_notes.txt" 480 char
