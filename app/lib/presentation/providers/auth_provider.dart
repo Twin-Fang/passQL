@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/auth/auth_session.dart';
 import '../../core/auth/member_suspension_signal.dart';
 import '../../core/auth/session_expiry_signal.dart';
+import '../../core/auth/social_credential.dart';
 import '../../core/auth/social_sign_in.dart';
 import '../../core/auth/token_store.dart';
 import '../../core/error/app_exception.dart';
@@ -39,12 +40,14 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
   /// 사용자가 소셜 로그인을 취소하면 아무 변화 없이 false 를 반환한다.
   /// 실패 시 [SocialSignInException] 으로 화면에 보여줄 메시지를 던진다.
   Future<bool> signIn(SocialProvider provider) async {
-    final idToken = await ref.read(socialSignInProvider).fetchIdToken(provider);
-    if (idToken == null) return false;
+    final credential = await ref
+        .read(socialSignInProvider)
+        .fetchCredential(provider);
+    if (credential == null) return false;
 
     try {
       final result = await callApiThrowingAppException(
-        ref.read(authApiProvider).login(provider: provider, idToken: idToken),
+        _requestServerLogin(credential),
       );
       await ref.read(tokenStoreProvider).save(result.session);
       state = AsyncData(result.session);
@@ -54,6 +57,23 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
       // 네트워크/서버 오류를 사용자용 문구로 통일해 화면에 전달한다.
       throw SocialSignInException(exception.message);
     }
+  }
+
+  /// 로그인 재료별 서버 요청: 토큰 > /auth/login, 인가 코드 > /auth/login/code
+  Future<LoginResult> _requestServerLogin(SocialCredential credential) {
+    final authApi = ref.read(authApiProvider);
+    return switch (credential) {
+      SocialTokenCredential() => authApi.login(
+        provider: credential.provider,
+        idToken: credential.token,
+      ),
+      SocialAuthorizationCodeCredential() => authApi.loginWithAuthorizationCode(
+        provider: credential.provider,
+        code: credential.code,
+        redirectUri: credential.redirectUri,
+        state: credential.state,
+      ),
+    };
   }
 
   /// 닉네임이 바뀌었을 때 세션에 반영한다. 닉네임 화면은 이 값을 기준으로 그려진다.
@@ -88,7 +108,9 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
   /// 사용자가 다시 시도할 수 있게 한다. 지워지지 않은 계정을 로그아웃만 시키면 안 된다.
   Future<void> withdraw() async {
     // Apple 사용자는 토큰 회수를 위해 재인증이 필요하다. 취소하면 탈퇴를 진행하지 않는다.
-    final granted = await ref.read(socialSignInProvider).revokeAccessForWithdrawal();
+    final granted = await ref
+        .read(socialSignInProvider)
+        .revokeAccessForWithdrawal();
     if (!granted) return;
     // 탈퇴 후엔 인증이 끊겨 삭제 요청을 못 보내므로 먼저 (서버도 탈퇴 시 전부 삭제)
     await ref.read(pushNotificationServiceProvider).unregisterDevice();

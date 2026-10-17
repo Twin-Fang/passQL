@@ -15,8 +15,8 @@ val keystoreProperties = Properties().apply {
     if (file.exists()) file.inputStream().use { load(it) }
 }
 
-// 빌드 시점 값 1개(AdMob 앱 ID)를 app/.env 에서 읽음 (커밋 제외 파일, 앱 런타임 .env 와 같은 원본)
-// 매니페스트 meta-data 는 빌드 타임에 필요해 flutter_dotenv 로는 주입 불가 > manifestPlaceholders 로 전달
+// 빌드 시점 값(AdMob 앱 ID, 카카오 앱 키, 네이버 클라이언트)을 app/.env 에서 읽음 (커밋 제외 파일, 앱 런타임 .env 와 같은 원본)
+// 매니페스트 meta-data·URL 스킴은 빌드 타임에 필요해 flutter_dotenv 로는 주입 불가 > manifestPlaceholders·resValue 로 전달
 val envProperties = Properties().apply {
     val file = rootProject.file("../.env")
     if (file.exists()) file.reader(Charsets.UTF_8).use { load(it) }
@@ -54,6 +54,13 @@ android {
         // AndroidManifest.xml 의 ${admobAppId}
         manifestPlaceholders["admobAppId"] =
             envValue("PASSQL_ADMOB_ANDROID_APP_ID").ifEmpty { googleTestAdmobAndroidAppId }
+
+        // 카카오 로그인 리다이렉트 스킴 kakao{네이티브 앱 키} (AndroidManifest.xml 의 ${kakaoNativeAppKey}, #509)
+        manifestPlaceholders["kakaoNativeAppKey"] = envValue("KAKAO_NATIVE_APP_KEY")
+        // 네이버 SDK 설정 3개 (매니페스트 meta-data 가 @string 으로 참조, 숫자처럼 보이는 값도 문자열 유지)
+        resValue("string", "naver_client_id", envValue("NAVER_CLIENT_ID"))
+        resValue("string", "naver_client_secret", envValue("NAVER_CLIENT_SECRET"))
+        resValue("string", "naver_client_name", envValue("NAVER_CLIENT_NAME").ifEmpty { "passQL" })
     }
 
     signingConfigs {

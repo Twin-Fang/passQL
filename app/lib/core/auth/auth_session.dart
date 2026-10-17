@@ -1,7 +1,11 @@
 /// 소셜 로그인 제공자. 서버 `authProvider` 값과 1:1 대응.
 enum SocialProvider {
   google('GOOGLE'),
-  apple('APPLE');
+  apple('APPLE'),
+  // 카카오·네이버: SDK 액세스 토큰을 idToken 자리로 전달, GitHub: 인가 코드 교환 (#509)
+  kakao('KAKAO'),
+  naver('NAVER'),
+  github('GITHUB');
 
   const SocialProvider(this.serverValue);
 

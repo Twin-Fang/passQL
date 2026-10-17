@@ -1,11 +1,24 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../error/app_exception.dart';
+import '../error/error_code.dart';
 import 'auth_session.dart';
 import 'firebase_social_sign_in.dart';
+import 'github_social_sign_in.dart';
+import 'kakao_social_sign_in.dart';
+import 'multi_provider_social_sign_in.dart';
+import 'naver_social_sign_in.dart';
+import 'social_credential.dart';
 
 /// 소셜 로그인 실패. 화면에 그대로 보여줄 수 있는 메시지를 담는다.
 class SocialSignInException implements Exception {
   const SocialSignInException(this.message);
+
+  /// 설정 없는 제공자 안내 (앱 키 누락, 서버 503 SOCIAL_LOGIN_UNAVAILABLE 공통 문구)
+  SocialSignInException.preparing()
+    : message = AppException.defaultMessageFor(
+        ErrorCode.socialLoginUnavailable,
+      );
 
   final String message;
 
@@ -13,13 +26,13 @@ class SocialSignInException implements Exception {
   String toString() => message;
 }
 
-/// 소셜 제공자에서 서버 로그인에 쓸 idToken 을 받아오는 추상화.
+/// 소셜 제공자에서 서버 로그인 재료(토큰·인가 코드)를 받아오는 추상화.
 ///
-/// Firebase/Google/Apple SDK 의존을 이 인터페이스 뒤로 숨겨서,
+/// Firebase/Google/Apple/카카오/네이버/GitHub SDK 의존을 이 인터페이스 뒤로 숨겨서,
 /// 인증 흐름(토큰 저장·재발급·라우팅)을 SDK 설정과 독립적으로 테스트한다.
 abstract interface class SocialSignIn {
   /// 사용자가 취소하면 null, 실패하면 [SocialSignInException].
-  Future<String?> fetchIdToken(SocialProvider provider);
+  Future<SocialCredential?> fetchCredential(SocialProvider provider);
 
   /// 회원 탈퇴 전에 소셜 쪽 접근 권한을 회수한다.
   ///
@@ -37,7 +50,7 @@ class UnconfiguredSocialSignIn implements SocialSignIn {
   const UnconfiguredSocialSignIn();
 
   @override
-  Future<String?> fetchIdToken(SocialProvider provider) {
+  Future<SocialCredential?> fetchCredential(SocialProvider provider) {
     throw const SocialSignInException('로그인 설정이 아직 완료되지 않았어요.');
   }
 
@@ -48,7 +61,12 @@ class UnconfiguredSocialSignIn implements SocialSignIn {
   Future<void> signOut() async {}
 }
 
-/// 운영 기본값은 Firebase 로그인이다. 테스트에서는 가짜 구현으로 교체한다.
+/// 운영 기본값: 제공자별 SDK 묶음 (Google·Apple Firebase, 카카오, 네이버, GitHub). 테스트에서는 가짜 구현으로 교체
 final socialSignInProvider = Provider<SocialSignIn>(
-  (ref) => FirebaseSocialSignIn(),
+  (ref) => MultiProviderSocialSignIn(
+    firebase: FirebaseSocialSignIn(),
+    kakao: KakaoSocialSignIn(),
+    naver: NaverSocialSignIn(),
+    github: GithubSocialSignIn(),
+  ),
 );

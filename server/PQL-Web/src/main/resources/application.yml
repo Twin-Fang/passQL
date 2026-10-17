@@ -63,7 +63,7 @@ admin:
   password-hash: ${ADMIN_PASSWORD_HASH:}
 
 # 인가 코드 로그인 (#509): client-id 가 비면 그 제공자는 "준비 중". 키는 application-prod.yml 또는 환경변수로만 넣는다.
-# allowed-redirect-uris: 웹 콜백 주소({origin}/auth/callback/{provider}), 이 목록 밖 주소로는 코드를 교환하지 않는다.
+# allowed-redirect-uris: 웹 콜백({origin}/auth/callback/{provider})과 앱 콜백(passql://), 이 목록 밖 주소로는 코드를 교환하지 않는다.
 social-login:
   kakao:
     client-id: ${SOCIAL_LOGIN_KAKAO_CLIENT_ID:}
@@ -83,3 +83,5 @@ social-login:
     allowed-redirect-uris:
       - https://passql.vercel.app/auth/callback/github
       - http://localhost:5173/auth/callback/github
+      # 앱(iOS·Android) 인증 세션 콜백 (#509)
+      - passql://auth/callback/github

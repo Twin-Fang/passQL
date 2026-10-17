@@ -35,3 +35,5 @@ Runner/GeneratedPluginRegistrant.*
 
 # AdMob 앱 ID 생성 파일 (tool/gen_ios_admob_config.sh 가 app/.env 로 생성)
 Flutter/AdMob.xcconfig
+# 소셜 로그인 생성 파일 (tool/gen_ios_social_login_config.sh 가 app/.env 로 생성, 네이버 secret 포함)
+Flutter/SocialLogin.xcconfig

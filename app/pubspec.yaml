@@ -1,7 +1,7 @@
 name: passql_app
 description: "passQL - SQL 학습 앱"
 publish_to: none
-version: 1.9.1+300
+version: 1.11.0+302
 environment:
   sdk: ^3.9.2
 dependencies:
@@ -47,6 +47,9 @@ dependencies:
   # 광고 (AdMob). 9.1.0 은 iOS 에서 비공개 헤더(GoogleMobileAds_Beta.h)를 import 해 use_frameworks! 빌드 실패 > 9.0.0 고정 (#506)
   google_mobile_ads: 9.0.0
   app_tracking_transparency: ^2.0.7
+  kakao_flutter_sdk_user: 2.0.1
+  flutter_naver_login: 2.1.1
+  flutter_web_auth_2: 5.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -14,18 +14,19 @@ import 'social_sign_in.dart';
 ///
 /// 서버는 Firebase Admin SDK 로 이 토큰을 검증한 뒤 자체 JWT 를 발급한다.
 /// (웹도 같은 Firebase 프로젝트의 ID 토큰을 보낸다.)
-class FirebaseSocialSignIn implements SocialSignIn {
+/// 제공자 묶음(`MultiProviderSocialSignIn`)이 Google·Apple 요청만 넘긴다.
+class FirebaseSocialSignIn {
   FirebaseSocialSignIn({FirebaseAuth? auth}) : _auth = auth ?? FirebaseAuth.instance;
 
   final FirebaseAuth _auth;
   bool _googleReady = false;
 
-  @override
   Future<String?> fetchIdToken(SocialProvider provider) async {
     try {
       final credential = switch (provider) {
         SocialProvider.google => await _googleCredential(),
         SocialProvider.apple => await _appleCredential(),
+        _ => throw ArgumentError.value(provider, 'provider', 'Firebase 로그인은 Google·Apple 만'),
       };
       // 사용자가 중간에 취소했다.
       if (credential == null) return null;
@@ -49,7 +50,6 @@ class FirebaseSocialSignIn implements SocialSignIn {
     }
   }
 
-  @override
   Future<bool> revokeAccessForWithdrawal() async {
     final isApple = _auth.currentUser?.providerData.any((p) => p.providerId == 'apple.com') ?? false;
     if (!isApple) return true;
@@ -69,7 +69,6 @@ class FirebaseSocialSignIn implements SocialSignIn {
     }
   }
 
-  @override
   Future<void> signOut() async {
     // 한쪽이 실패해도 다른 쪽은 정리한다. 기기에서 로그아웃되는 것이 우선이다.
     try {

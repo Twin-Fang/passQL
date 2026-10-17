@@ -23,7 +23,7 @@ import '../presentation/tab_pages_test.dart' show homeData, statsData, topics;
 
 /// 다크에서 Text 가 가질 수 있는 색 허용 목록.
 /// - 글자 계열 토큰은 그대로 허용한다(brief Step 2).
-/// - 예외(실측으로 확인되면 여기에 사유와 함께 추가): 현재 없음.
+/// - 예외(실측으로 확인되면 여기에 사유와 함께 추가): 소셜 로그인 브랜드 버튼 글자(제공자 가이드 고정색, 브랜드 바탕 위).
 ///   아이콘 타일/로고의 흰색 고정은 Text 가 아니라 Icon 이라 걸리지 않는다.
 Set<Color> _allowedTextColors() {
   final colors = PassqlColors.dark;
@@ -39,6 +39,8 @@ Set<Color> _allowedTextColors() {
     colors.wrong,
     colors.warning,
     colors.background, // 토스트 글자
+    // 로그인 화면 카카오 버튼 글자 (#509). 네이버·GitHub 흰 글자는 onAccent 와 같은 값
+    PassqlSocialBrandColors.kakaoForeground,
   };
 }
 

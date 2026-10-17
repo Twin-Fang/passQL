@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/core/auth/auth_session.dart';
 import 'package:passql_app/core/auth/member_suspension_signal.dart';
 import 'package:passql_app/core/auth/session_expiry_signal.dart';
+import 'package:passql_app/core/auth/social_credential.dart';
 import 'package:passql_app/core/auth/social_sign_in.dart';
 import 'package:passql_app/core/auth/token_store.dart';
 import 'package:passql_app/core/network/dio_client.dart';
@@ -21,18 +22,27 @@ import '../helpers/fakes/fake_push.dart';
 
 /// 소셜 로그인 결과를 정해 둘 수 있는 가짜 구현.
 class _FakeSocial implements SocialSignIn {
-  _FakeSocial({this.token = 'firebase-id-token', this.error});
+  _FakeSocial({
+    this.token = 'firebase-id-token',
+    this.error,
+    this.codeCredential,
+  });
 
   String? token; // null 이면 사용자가 취소한 것
   SocialSignInException? error;
+  // 있으면 토큰 대신 인가 코드 재료 반환 (GitHub)
+  SocialAuthorizationCodeCredential? codeCredential;
   final requested = <SocialProvider>[];
   int signOuts = 0;
 
   @override
-  Future<String?> fetchIdToken(SocialProvider provider) async {
+  Future<SocialCredential?> fetchCredential(SocialProvider provider) async {
     requested.add(provider);
     if (error != null) throw error!;
-    return token;
+    if (codeCredential != null) return codeCredential;
+    final currentToken = token;
+    if (currentToken == null) return null;
+    return SocialTokenCredential(provider: provider, token: currentToken);
   }
 
   bool revokeGranted = true;
@@ -70,6 +80,34 @@ class _FakeAuthApi extends AuthApi {
         refreshToken: 'refresh-1',
         memberUuid: 'member-1',
         nickname: '새회원',
+      ),
+      isNewMember: true,
+    );
+  }
+
+  // 인가 코드 로그인 요청 기록 (provider, code, redirectUri, state)
+  final authorizationCodeLogins = <List<String>>[];
+
+  @override
+  Future<LoginResult> loginWithAuthorizationCode({
+    required SocialProvider provider,
+    required String code,
+    required String redirectUri,
+    required String state,
+  }) async {
+    authorizationCodeLogins.add([
+      provider.serverValue,
+      code,
+      redirectUri,
+      state,
+    ]);
+    if (loginError != null) throw loginError!;
+    return const LoginResult(
+      session: AuthSession(
+        accessToken: 'access-code',
+        refreshToken: 'refresh-code',
+        memberUuid: 'member-github',
+        nickname: '깃허브회원',
       ),
       isNewMember: true,
     );
@@ -120,6 +158,86 @@ void main() {
       expect(api.lastIdToken, 'firebase-id-token');
       expect(container.read(authProvider).value?.memberUuid, 'member-1');
       expect((await store.read())?.accessToken, 'access-1');
+    });
+
+    test('카카오 액세스 토큰은 토큰 로그인(/auth/login)으로 보낸다', () async {
+      final api = _FakeAuthApi();
+      final container = _container(
+        _FakeSocial(token: 'kakao-access-token'),
+        api,
+        store,
+      );
+      await container.read(authProvider.future);
+
+      await container.read(authProvider.notifier).signIn(SocialProvider.kakao);
+
+      expect(api.lastProvider, SocialProvider.kakao);
+      expect(api.lastIdToken, 'kakao-access-token');
+      expect(api.authorizationCodeLogins, isEmpty);
+    });
+
+    test('GitHub 인가 코드는 코드 로그인(/auth/login/code)으로 보내고 세션을 저장한다', () async {
+      final api = _FakeAuthApi();
+      final social = _FakeSocial(
+        codeCredential: const SocialAuthorizationCodeCredential(
+          provider: SocialProvider.github,
+          code: 'github-code',
+          redirectUri: 'passql://auth/callback/github',
+          state: 'state-1',
+        ),
+      );
+      final container = _container(social, api, store);
+      await container.read(authProvider.future);
+
+      final ok = await container
+          .read(authProvider.notifier)
+          .signIn(SocialProvider.github);
+
+      expect(ok, isTrue);
+      expect(api.lastIdToken, isNull);
+      expect(api.authorizationCodeLogins, [
+        ['GITHUB', 'github-code', 'passql://auth/callback/github', 'state-1'],
+      ]);
+      expect((await store.read())?.memberUuid, 'member-github');
+    });
+
+    test('서버에 설정 없는 제공자(503 SOCIAL_LOGIN_UNAVAILABLE)는 준비 중 안내를 던진다', () async {
+      final api = _FakeAuthApi(
+        loginError: DioException(
+          requestOptions: RequestOptions(path: '/auth/login/code'),
+          type: DioExceptionType.badResponse,
+          response: Response(
+            requestOptions: RequestOptions(path: '/auth/login/code'),
+            statusCode: 503,
+            data: {
+              'errorCode': 'SOCIAL_LOGIN_UNAVAILABLE',
+              'message': '이 소셜 로그인은 아직 준비 중입니다.',
+            },
+          ),
+        ),
+      );
+      final social = _FakeSocial(
+        codeCredential: const SocialAuthorizationCodeCredential(
+          provider: SocialProvider.github,
+          code: 'github-code',
+          redirectUri: 'passql://auth/callback/github',
+          state: 'state-1',
+        ),
+      );
+      final container = _container(social, api, store);
+      await container.read(authProvider.future);
+
+      await expectLater(
+        container.read(authProvider.notifier).signIn(SocialProvider.github),
+        throwsA(
+          isA<SocialSignInException>().having(
+            (e) => e.message,
+            'message',
+            SocialSignInException.preparing().message,
+          ),
+        ),
+      );
+      expect(await store.read(), isNull);
     });
 
     test('사용자가 소셜 로그인을 취소하면 서버를 호출하지 않고 로그인 상태도 바꾸지 않는다', () async {

@@ -4,6 +4,9 @@ platform :ios, '15.0'
 # app/.env 의 iOS AdMob 앱 ID > Flutter/AdMob.xcconfig (pod install 마다 갱신, 실패해도 테스트 앱 ID 로 진행)
 system('bash', File.expand_path(File.join('..', 'tool', 'gen_ios_admob_config.sh'), __dir__)) ||
   puts('[admob ios config] generation failed : Google test app id will be used')
+# app/.env 의 카카오 앱 키·네이버 클라이언트 > Flutter/SocialLogin.xcconfig (실패해도 빈 값으로 진행, 해당 버튼은 준비 중 안내)
+system('bash', File.expand_path(File.join('..', 'tool', 'gen_ios_social_login_config.sh'), __dir__)) ||
+  puts('[social login ios config] generation failed : empty values will be used')
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
