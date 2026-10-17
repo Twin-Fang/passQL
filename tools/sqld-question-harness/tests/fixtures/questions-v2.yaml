@@ -1,0 +1,64 @@
+# 테스트용 v2 문제 (SQLite·Oracle 공통 문법만 사용)
+schemaVersion: 2
+id: fixture_not_in_null
+topicCode: sql_subquery
+difficulty: 3
+trend: {templates: [T01], examRounds: [62], isLatestTrend: true}
+intent: NOT IN 서브쿼리에 NULL 포함 시 UNKNOWN
+trapDesign: 서브쿼리 결과에 NULL 1건을 섞어 NOT EXISTS 와 결과가 갈리게 함
+difficultyReason: 개념 2개 결합 (NOT IN 전개, 3값 논리)
+concepts: [NOT IN, NULL 3값 논리]
+stem: 다음 SQL의 실행 결과로 옳은 것은?
+tables:
+  - {name: T1, columns: [ID], rows: [[1], [2], [3]]}
+  - {name: T2, columns: [ID], rows: [[1], [null]]}
+displaySql: |
+  SELECT COUNT(*) FROM T1 WHERE ID NOT IN (SELECT ID FROM T2);
+ddl: |
+  CREATE TABLE T1 (ID NUMBER);
+  CREATE TABLE T2 (ID NUMBER);
+data: |
+  INSERT INTO T1 VALUES (1);
+  INSERT INTO T1 VALUES (2);
+  INSERT INTO T1 VALUES (3);
+  INSERT INTO T2 VALUES (1);
+  INSERT INTO T2 VALUES (NULL);
+answerSql: |
+  SELECT COUNT(*) FROM T1 WHERE ID NOT IN (SELECT ID FROM T2);
+hint: ID NOT IN (1, NULL) 은 ID <> 1 AND ID <> NULL 이다.
+choices:
+  - {body: "0", isCorrect: true, expect: {scalar: 0}, rationale: "ID <> NULL 이 UNKNOWN 이라 0건."}
+  - {body: "1", expect: {scalar: 1}, rationale: "NULL 을 무시하고 3만 남는다고 본 경우.", whyPlausible: "NULL 비교를 FALSE 로 보고 1만 제외한다고 착각"}
+  - {body: "2", expect: {scalar: 2}, rationale: "NOT EXISTS 라면 이 결과.", whyPlausible: "NOT EXISTS 와 NOT IN 을 같은 동작으로 착각"}
+  - {body: "3", expect: {scalar: 3}, rationale: "서브쿼리를 무시한 경우.", whyPlausible: "NULL 이 있으면 조건 전체가 무시된다고 착각"}
+explanation:
+  examTip: NOT IN 서브쿼리를 보면 NULL 부터 찾는다.
+---
+schemaVersion: 2
+id: fixture_row_count_pick
+topicCode: sql_join
+difficulty: 4
+trend: {templates: [T06], examRounds: [61]}
+intent: 외부조인 조건 위치에 따른 행 수
+trapDesign: ON 과 WHERE 위치만 다른 SQL 을 나란히 배치
+difficultyReason: SQL 4개 비교, 조인 방향과 필터 시점 결합
+concepts: [LEFT OUTER JOIN, ON vs WHERE]
+stem: 다음 중 결과 행 수가 가장 많은 SQL은?
+pick: max
+tables:
+  - {name: A, columns: [ID], rows: [[1], [2], [3]]}
+  - {name: B, columns: [ID, TAG], rows: [[1, X], [2, Y]]}
+ddl: |
+  CREATE TABLE A (ID NUMBER);
+  CREATE TABLE B (ID NUMBER, TAG VARCHAR2(1));
+data: |
+  INSERT INTO A VALUES (1);
+  INSERT INTO A VALUES (2);
+  INSERT INTO A VALUES (3);
+  INSERT INTO B VALUES (1, 'X');
+  INSERT INTO B VALUES (2, 'Y');
+choices:
+  - {kind: SQL, body: "SELECT A.ID FROM A LEFT OUTER JOIN B ON A.ID = B.ID AND B.TAG = 'X'", isCorrect: true, expect: {count: 3}, rationale: "ON 조건 불일치여도 A 3행 보존."}
+  - {kind: SQL, body: "SELECT A.ID FROM A LEFT OUTER JOIN B ON A.ID = B.ID WHERE B.TAG = 'X'", expect: {count: 1}, rationale: "WHERE 가 조인 후 걸러 1행.", whyPlausible: "LEFT JOIN 이면 무조건 왼쪽이 다 남는다고 착각"}
+  - {kind: SQL, body: "SELECT A.ID FROM A INNER JOIN B ON A.ID = B.ID", expect: {count: 2}, rationale: "일치 2행.", whyPlausible: "조인 키 일치 행 수만 세면 된다고 착각"}
+  - {kind: SQL, body: "SELECT B.ID FROM B WHERE B.TAG = 'Y'", expect: {count: 1}, rationale: "Y 1행.", whyPlausible: "필터 조건만 보고 행 수를 셈"}
