@@ -17,6 +17,7 @@ const QUESTION: QuestionDetailResponse = {
   schemaDdl: "",
   schemaSampleData: "",
   schemaIntent: "",
+  schemaTables: [],
   answerSql: "",
   hint: "",
   choiceSets: [

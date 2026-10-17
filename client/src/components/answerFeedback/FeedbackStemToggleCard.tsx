@@ -2,10 +2,11 @@ import { useState } from "react";
 import { BookOpen, ChevronDown } from "lucide-react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import { SchemaViewer } from "../SchemaViewer";
+import type { QuestionSchemaTable } from "../../types/api";
 
 interface FeedbackStemToggleCardProps {
   readonly stem: string;
-  readonly schemaDisplay?: string | null;
+  readonly schemaTables?: readonly QuestionSchemaTable[];
   readonly schemaDdl?: string | null;
   readonly schemaSampleData?: string | null;
 }
@@ -61,7 +62,7 @@ const STEM_MARKDOWN_COMPONENTS: Components = {
  */
 export default function FeedbackStemToggleCard({
   stem,
-  schemaDisplay,
+  schemaTables,
   schemaDdl,
   schemaSampleData,
 }: FeedbackStemToggleCardProps) {
@@ -89,16 +90,8 @@ export default function FeedbackStemToggleCard({
           <ReactMarkdown components={STEM_MARKDOWN_COMPONENTS}>
             {stem}
           </ReactMarkdown>
-          {/* 스키마가 있으면 stem 아래에 표시 — schemaDisplay 없어도 schemaDdl로 폴백 */}
-          {(schemaDisplay || schemaDdl) && (
-            <div className="mt-3">
-              <SchemaViewer
-                schemaDisplay={schemaDisplay ?? undefined}
-                schemaDdl={schemaDdl ?? undefined}
-                schemaSampleData={schemaSampleData ?? undefined}
-              />
-            </div>
-          )}
+          {/* 테이블 (스키마 없으면 렌더 안 함) */}
+          <SchemaViewer schemaTables={schemaTables} schemaDdl={schemaDdl} schemaSampleData={schemaSampleData} />
         </div>
       )}
     </div>

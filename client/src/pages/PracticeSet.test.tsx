@@ -29,7 +29,7 @@ describe("PracticeSet", () => {
       "/questions/q1": {
         questionUuid: "q1", topicName: "SELECT 기본", subtopicName: "", difficulty: 1, executionMode: "CONCEPT_ONLY",
         choiceSetPolicy: "AI_ONLY", stem: "첫 문제 지문", schemaDisplay: "", schemaDdl: "", schemaSampleData: "",
-        schemaIntent: "", answerSql: "", hint: "",
+        schemaIntent: "", schemaTables: [], answerSql: "", hint: "",
         choiceSets: [{ choiceSetUuid: "cs1", source: "AI_RUNTIME", status: "OK", sandboxValidationPassed: true, createdAt: "",
           items: [{ key: "A", kind: "TEXT", body: "보기 A", isCorrect: true, rationale: "", sortOrder: 1 }] }],
       },

@@ -40,7 +40,7 @@ export default function AnswerFeedback() {
     selectedKey,
     correctKey,
     stem,
-    schemaDisplay,
+    schemaTables,
     schemaDdl,
     schemaSampleData,
   } = state;
@@ -71,7 +71,7 @@ export default function AnswerFeedback() {
         {stem ? (
           <FeedbackStemToggleCard
             stem={stem}
-            schemaDisplay={schemaDisplay}
+            schemaTables={schemaTables}
             schemaDdl={schemaDdl}
             schemaSampleData={schemaSampleData}
           />

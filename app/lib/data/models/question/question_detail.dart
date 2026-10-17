@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'choice_set_summary.dart';
+import 'question_schema_table.dart';
 
 part 'question_detail.freezed.dart';
 part 'question_detail.g.dart';
@@ -20,6 +21,8 @@ class QuestionDetail with _$QuestionDetail {
     String? schemaDdl,
     String? schemaSampleData,
     String? schemaIntent,
+    // 테이블 미리보기 (구버전 서버면 빈 목록 > 화면이 DDL 원문으로 대체, #520)
+    @Default([]) List<QuestionSchemaTable> schemaTables,
     String? answerSql,
     String? hint,
     @Default([]) List<ChoiceSetSummary> choiceSets,
