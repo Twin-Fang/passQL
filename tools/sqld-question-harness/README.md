@@ -107,6 +107,7 @@ v1 문제(`schemaVersion` 없음)는 그대로 동작한다. v2 는 `schemaVersi
 | `trend.concept-combination` | info | v2 concepts 1개 (2026 경향: 2~3개 결합) |
 
 임계값은 `sqld_harness/constants.py` 한 곳에서 관리한다.
+정답 위치 분포는 원본 YAML 기준 참고값이다. CURATED_ONLY 세트는 풀이 응답마다 보기 순서를 섞어 실제 노출 위치는 무작위라 쏠림 경고가 나와도 재배치는 필요 없다.
 
 ## 캐시·병렬
 - 캐시 키: ddl·data·answerSql·pick·보기(body·isCorrect·expect) + 검증 규칙 버전. 지문·근거·태그·해설 수정은 Oracle 재실행 없음.
