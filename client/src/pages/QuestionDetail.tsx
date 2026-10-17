@@ -90,8 +90,6 @@ export default function QuestionDetail({
     choiceSetId !== "" &&
     !isSubmitPending;
 
-  // schemaDisplay가 없어도 schemaDdl이 있으면 SchemaViewer가 폴백으로 파싱해서 표시
-  const hasSchema = question.schemaDisplay || question.schemaDdl;
 
   // standalone 모드: 전체화면 + max-w-120 집중 레이아웃 (DailyChallenge와 동일)
   // practiceMode: DailyChallenge가 외부 컨테이너(flex-1 overflow-y-auto px-4) 제공
@@ -118,16 +116,12 @@ export default function QuestionDetail({
         onToggle={() => setIsStemOpen((prev) => !prev)}
       />
 
-      {/* 스키마 */}
-      {hasSchema ? (
-        <section className="mt-3">
-          <SchemaViewer
-            schemaDisplay={question.schemaDisplay}
-            schemaDdl={question.schemaDdl}
-            schemaSampleData={question.schemaSampleData ?? undefined}
-          />
-        </section>
-      ) : null}
+      {/* 테이블 (지문 바로 아래, 스키마 없는 개념형은 렌더 안 함) */}
+      <SchemaViewer
+        schemaTables={question.schemaTables}
+        schemaDdl={question.schemaDdl}
+        schemaSampleData={question.schemaSampleData}
+      />
 
       {/* 선택지 + SQL 실행기 */}
       {choices.length === 0 ? (

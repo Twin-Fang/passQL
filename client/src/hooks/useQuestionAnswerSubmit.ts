@@ -73,7 +73,7 @@ export function useQuestionAnswerSubmit({
             // 결과 화면에서 문제 지문/토픽/스키마 표시용 — 백엔드 추가 호출 없이 전달
             stem: question.stem,
             topicName: question.topicName,
-            schemaDisplay: question.schemaDisplay ?? null,
+            schemaTables: question.schemaTables ?? [],
             schemaDdl: question.schemaDdl ?? null,
             schemaSampleData: question.schemaSampleData ?? null,
           };

@@ -1474,9 +1474,23 @@ export interface components {
             schemaDisplay: string | null;
             schemaIntent: string | null;
             schemaSampleData: string | null;
+            /** @description 테이블 미리보기 (schemaDdl + schemaSampleData 해석, 스키마 없으면 빈 목록, #520) */
+            schemaTables: components["schemas"]["QuestionSchemaTable"][];
             stem: string;
             subtopicName: string | null;
             topicName: string | null;
+        };
+        QuestionSchemaColumn: {
+            isForeignKey: boolean;
+            isPrimaryKey: boolean;
+            name: string;
+            type: string;
+        };
+        QuestionSchemaTable: {
+            columns: components["schemas"]["QuestionSchemaColumn"][];
+            /** @description 샘플 행 목록. 행마다 columns 순서의 셀 값(문자열), SQL NULL 이면 null */
+            sampleRows: unknown[][];
+            tableName: string;
         };
         QuestionSummary: {
             /** Format: date-time */

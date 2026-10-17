@@ -30,7 +30,10 @@ mixin _$QuestionDetail {
   String? get schemaDisplay => throw _privateConstructorUsedError;
   String? get schemaDdl => throw _privateConstructorUsedError;
   String? get schemaSampleData => throw _privateConstructorUsedError;
-  String? get schemaIntent => throw _privateConstructorUsedError;
+  String? get schemaIntent =>
+      throw _privateConstructorUsedError; // 테이블 미리보기 (구버전 서버면 빈 목록 > 화면이 DDL 원문으로 대체, #520)
+  List<QuestionSchemaTable> get schemaTables =>
+      throw _privateConstructorUsedError;
   String? get answerSql => throw _privateConstructorUsedError;
   String? get hint => throw _privateConstructorUsedError;
   List<ChoiceSetSummary> get choiceSets => throw _privateConstructorUsedError;
@@ -63,6 +66,7 @@ abstract class $QuestionDetailCopyWith<$Res> {
     String? schemaDdl,
     String? schemaSampleData,
     String? schemaIntent,
+    List<QuestionSchemaTable> schemaTables,
     String? answerSql,
     String? hint,
     List<ChoiceSetSummary> choiceSets,
@@ -94,6 +98,7 @@ class _$QuestionDetailCopyWithImpl<$Res, $Val extends QuestionDetail>
     Object? schemaDdl = freezed,
     Object? schemaSampleData = freezed,
     Object? schemaIntent = freezed,
+    Object? schemaTables = null,
     Object? answerSql = freezed,
     Object? hint = freezed,
     Object? choiceSets = null,
@@ -140,6 +145,10 @@ class _$QuestionDetailCopyWithImpl<$Res, $Val extends QuestionDetail>
                 ? _value.schemaIntent
                 : schemaIntent // ignore: cast_nullable_to_non_nullable
                       as String?,
+            schemaTables: null == schemaTables
+                ? _value.schemaTables
+                : schemaTables // ignore: cast_nullable_to_non_nullable
+                      as List<QuestionSchemaTable>,
             answerSql: freezed == answerSql
                 ? _value.answerSql
                 : answerSql // ignore: cast_nullable_to_non_nullable
@@ -178,6 +187,7 @@ abstract class _$$QuestionDetailImplCopyWith<$Res>
     String? schemaDdl,
     String? schemaSampleData,
     String? schemaIntent,
+    List<QuestionSchemaTable> schemaTables,
     String? answerSql,
     String? hint,
     List<ChoiceSetSummary> choiceSets,
@@ -208,6 +218,7 @@ class __$$QuestionDetailImplCopyWithImpl<$Res>
     Object? schemaDdl = freezed,
     Object? schemaSampleData = freezed,
     Object? schemaIntent = freezed,
+    Object? schemaTables = null,
     Object? answerSql = freezed,
     Object? hint = freezed,
     Object? choiceSets = null,
@@ -254,6 +265,10 @@ class __$$QuestionDetailImplCopyWithImpl<$Res>
             ? _value.schemaIntent
             : schemaIntent // ignore: cast_nullable_to_non_nullable
                   as String?,
+        schemaTables: null == schemaTables
+            ? _value._schemaTables
+            : schemaTables // ignore: cast_nullable_to_non_nullable
+                  as List<QuestionSchemaTable>,
         answerSql: freezed == answerSql
             ? _value.answerSql
             : answerSql // ignore: cast_nullable_to_non_nullable
@@ -285,10 +300,12 @@ class _$QuestionDetailImpl implements _QuestionDetail {
     this.schemaDdl,
     this.schemaSampleData,
     this.schemaIntent,
+    final List<QuestionSchemaTable> schemaTables = const [],
     this.answerSql,
     this.hint,
     final List<ChoiceSetSummary> choiceSets = const [],
-  }) : _choiceSets = choiceSets;
+  }) : _schemaTables = schemaTables,
+       _choiceSets = choiceSets;
 
   factory _$QuestionDetailImpl.fromJson(Map<String, dynamic> json) =>
       _$$QuestionDetailImplFromJson(json);
@@ -313,6 +330,17 @@ class _$QuestionDetailImpl implements _QuestionDetail {
   final String? schemaSampleData;
   @override
   final String? schemaIntent;
+  // 테이블 미리보기 (구버전 서버면 빈 목록 > 화면이 DDL 원문으로 대체, #520)
+  final List<QuestionSchemaTable> _schemaTables;
+  // 테이블 미리보기 (구버전 서버면 빈 목록 > 화면이 DDL 원문으로 대체, #520)
+  @override
+  @JsonKey()
+  List<QuestionSchemaTable> get schemaTables {
+    if (_schemaTables is EqualUnmodifiableListView) return _schemaTables;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_schemaTables);
+  }
+
   @override
   final String? answerSql;
   @override
@@ -328,7 +356,7 @@ class _$QuestionDetailImpl implements _QuestionDetail {
 
   @override
   String toString() {
-    return 'QuestionDetail(questionUuid: $questionUuid, topicName: $topicName, subtopicName: $subtopicName, difficulty: $difficulty, executionMode: $executionMode, stem: $stem, schemaDisplay: $schemaDisplay, schemaDdl: $schemaDdl, schemaSampleData: $schemaSampleData, schemaIntent: $schemaIntent, answerSql: $answerSql, hint: $hint, choiceSets: $choiceSets)';
+    return 'QuestionDetail(questionUuid: $questionUuid, topicName: $topicName, subtopicName: $subtopicName, difficulty: $difficulty, executionMode: $executionMode, stem: $stem, schemaDisplay: $schemaDisplay, schemaDdl: $schemaDdl, schemaSampleData: $schemaSampleData, schemaIntent: $schemaIntent, schemaTables: $schemaTables, answerSql: $answerSql, hint: $hint, choiceSets: $choiceSets)';
   }
 
   @override
@@ -355,6 +383,10 @@ class _$QuestionDetailImpl implements _QuestionDetail {
                 other.schemaSampleData == schemaSampleData) &&
             (identical(other.schemaIntent, schemaIntent) ||
                 other.schemaIntent == schemaIntent) &&
+            const DeepCollectionEquality().equals(
+              other._schemaTables,
+              _schemaTables,
+            ) &&
             (identical(other.answerSql, answerSql) ||
                 other.answerSql == answerSql) &&
             (identical(other.hint, hint) || other.hint == hint) &&
@@ -378,6 +410,7 @@ class _$QuestionDetailImpl implements _QuestionDetail {
     schemaDdl,
     schemaSampleData,
     schemaIntent,
+    const DeepCollectionEquality().hash(_schemaTables),
     answerSql,
     hint,
     const DeepCollectionEquality().hash(_choiceSets),
@@ -412,6 +445,7 @@ abstract class _QuestionDetail implements QuestionDetail {
     final String? schemaDdl,
     final String? schemaSampleData,
     final String? schemaIntent,
+    final List<QuestionSchemaTable> schemaTables,
     final String? answerSql,
     final String? hint,
     final List<ChoiceSetSummary> choiceSets,
@@ -439,7 +473,9 @@ abstract class _QuestionDetail implements QuestionDetail {
   @override
   String? get schemaSampleData;
   @override
-  String? get schemaIntent;
+  String? get schemaIntent; // 테이블 미리보기 (구버전 서버면 빈 목록 > 화면이 DDL 원문으로 대체, #520)
+  @override
+  List<QuestionSchemaTable> get schemaTables;
   @override
   String? get answerSql;
   @override

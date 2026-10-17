@@ -1,4 +1,4 @@
-import type { ChoiceItem, ExecuteResult, ExecutionMode } from "./api";
+import type { ChoiceItem, ExecuteResult, ExecutionMode, QuestionSchemaTable } from "./api";
 
 /**
  * 채점 결과 화면 진입 state (QuestionDetail 제출 성공 > navigate state)
@@ -21,7 +21,7 @@ export interface AnswerFeedbackState {
   // 결과 화면 상단 문제 보기 토글용
   readonly stem?: string;
   readonly topicName?: string;
-  readonly schemaDisplay?: string | null;
+  readonly schemaTables?: readonly QuestionSchemaTable[];
   readonly schemaDdl?: string | null;
   readonly schemaSampleData?: string | null;
 }

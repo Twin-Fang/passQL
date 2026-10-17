@@ -26,6 +26,9 @@ export type QuestionDetail = ApiSchemas["QuestionDetail"];
 // selectedResult·correctResult: EXECUTABLE 문제만 non-null / explanation: 미리 생성된 AI 해설 (#496)
 export type SubmitResult = ApiSchemas["SubmitResult"];
 
+// 문제 화면 테이블 미리보기 (서버가 DDL·샘플 INSERT 를 해석해 내려줌, #520)
+export type QuestionSchemaTable = ApiSchemas["QuestionSchemaTable"];
+
 // === SSE (선택지 생성) ===
 // SSE 이벤트 본문은 OpenAPI 스키마가 없음 (응답 타입이 SseEmitter) > 웹 손타입 유지
 export type SseStatusPhase = "generating" | "validating";

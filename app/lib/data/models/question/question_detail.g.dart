@@ -18,6 +18,13 @@ _$QuestionDetailImpl _$$QuestionDetailImplFromJson(Map<String, dynamic> json) =>
       schemaDdl: json['schemaDdl'] as String?,
       schemaSampleData: json['schemaSampleData'] as String?,
       schemaIntent: json['schemaIntent'] as String?,
+      schemaTables:
+          (json['schemaTables'] as List<dynamic>?)
+              ?.map(
+                (e) => QuestionSchemaTable.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          const [],
       answerSql: json['answerSql'] as String?,
       hint: json['hint'] as String?,
       choiceSets:
@@ -40,6 +47,7 @@ Map<String, dynamic> _$$QuestionDetailImplToJson(
   'schemaDdl': instance.schemaDdl,
   'schemaSampleData': instance.schemaSampleData,
   'schemaIntent': instance.schemaIntent,
+  'schemaTables': instance.schemaTables,
   'answerSql': instance.answerSql,
   'hint': instance.hint,
   'choiceSets': instance.choiceSets,
