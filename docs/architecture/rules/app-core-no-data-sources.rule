@@ -1,0 +1,4 @@
+description=core 가 data/sources 를 import 금지 (core <-> data 순환)
+paths=app/lib/core/
+extensions=.dart
+pattern=^import .*data/sources/

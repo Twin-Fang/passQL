@@ -1,0 +1,6 @@
+description=AdRequest 조립 복사 금지 (광고 로더 공통 준비 단계 한 곳)
+paths=app/lib/
+extensions=.dart
+pattern=\bAdRequest\(
+# 공통 지점 (광고 요청 조립 유일 위치)
+exclude=app/lib/core/ads/ad_request_preparer.dart

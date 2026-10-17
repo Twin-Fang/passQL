@@ -1,0 +1,4 @@
+description=컨트롤러가 Client·Executor·Pool 직접 주입 금지 (서비스 경유)
+paths=server/PQL-Web/src/main/java/com/passql/web/controller/
+extensions=.java
+pattern=private final \w+(Client|Executor|Pool) 
