@@ -1,27 +1,25 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../data/models/question/submit_result.dart';
 import '../../../router/app_routes.dart';
+import '../../../router/result_route_arguments.dart';
 import '../../design/design.dart';
 import '../../widgets/question/ai_explain_sheet.dart';
-import '../../widgets/question/choice_display_label.dart';
 import '../../widgets/question/execute_result_card.dart';
 import '../../widgets/report/report_button.dart';
 import '../../widgets/result/similar_questions_section.dart';
 
 /// 정답/오답 피드백 화면.
-/// GoRouterState.extra로 SubmitResult를 받아 렌더링. API 재호출 없음.
+/// 이동 인자(ResultRouteArguments 가 해석)로 채점 결과를 받아 렌더링. API 재호출 없음.
 class ResultPage extends ConsumerWidget {
-  final Object? extra;
+  /// 없으면 결과 없음 화면
+  final QuestionResultArguments? arguments;
 
-  const ResultPage({super.key, this.extra});
+  const ResultPage({super.key, this.arguments});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 이동 인자: QuestionResultArguments (정답 표시 라벨 포함) 또는 옛 형식 SubmitResult
-    final arguments = extra is QuestionResultArguments ? extra as QuestionResultArguments : null;
-    final result = arguments?.result ?? (extra is SubmitResult ? extra as SubmitResult : null);
+    final result = arguments?.result;
 
     if (result == null) {
       return PassqlStatusScaffold(

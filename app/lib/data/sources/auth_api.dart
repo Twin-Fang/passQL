@@ -1,12 +1,13 @@
 import 'package:dio/dio.dart';
 
 import '../../core/auth/auth_session.dart';
+import '../../core/auth/token_reissue_client.dart';
 
 /// 인증 엔드포인트(`/auth/*`) 호출 전용 클라이언트.
 ///
 /// 인증 인터셉터가 붙지 않은 Dio 를 받아야 한다.
 /// 재발급 요청이 다시 인터셉터를 타면 401 → 재발급이 무한 반복되기 때문이다.
-class AuthApi {
+class AuthApi implements TokenReissueClient {
   AuthApi(this._dio);
 
   final Dio _dio;
@@ -46,6 +47,7 @@ class AuthApi {
   }
 
   /// refreshToken 으로 토큰 재발급.
+  @override
   Future<ReissueResult> reissue(String refreshToken) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/auth/reissue',

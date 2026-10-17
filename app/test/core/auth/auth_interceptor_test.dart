@@ -51,7 +51,7 @@ void main() {
     d.interceptors.add(
       AuthInterceptor(
         tokenStore: store,
-        authApi: AuthApi(plain),
+        tokenReissueClient: AuthApi(plain),
         retryDio: d,
         onSessionExpired: () => expiredCount++,
       ),
@@ -124,7 +124,7 @@ void main() {
     gatedDio.interceptors.add(
       AuthInterceptor(
         tokenStore: store,
-        authApi: AuthApi(plain),
+        tokenReissueClient: AuthApi(plain),
         retryDio: gatedDio,
         onSessionExpired: () => expiredCount++,
       ),
@@ -193,7 +193,7 @@ void main() {
     d.interceptors.add(
       AuthInterceptor(
         tokenStore: store,
-        authApi: AuthApi(plain),
+        tokenReissueClient: AuthApi(plain),
         retryDio: d,
         onSessionExpired: () => expiredCount++,
       ),
@@ -228,7 +228,7 @@ void main() {
     d.interceptors.add(
       AuthInterceptor(
         tokenStore: store,
-        authApi: AuthApi(plain),
+        tokenReissueClient: AuthApi(plain),
         retryDio: d,
         onSessionExpired: () => expiredCount++,
       ),
@@ -256,7 +256,7 @@ void main() {
     d.interceptors.add(
       AuthInterceptor(
         tokenStore: store,
-        authApi: AuthApi(plain),
+        tokenReissueClient: AuthApi(plain),
         retryDio: d,
         onSessionExpired: () => expiredCount++,
       ),
@@ -286,7 +286,7 @@ void main() {
     d.interceptors.add(
       AuthInterceptor(
         tokenStore: store,
-        authApi: AuthApi(plain),
+        tokenReissueClient: AuthApi(plain),
         retryDio: d,
         onSessionExpired: () => expiredCount++,
       ),

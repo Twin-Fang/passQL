@@ -19,7 +19,6 @@ class LegalPage extends ConsumerWidget {
     final type = LegalType.fromServerValue(typeValue);
 
     return Scaffold(
-      backgroundColor: context.passqlColors.background,
       appBar: PassqlNavBar(
         title: type?.label ?? '약관',
         leading: PassqlNavLeading.back,

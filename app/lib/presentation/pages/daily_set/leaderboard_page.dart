@@ -17,7 +17,6 @@ class LeaderboardPage extends ConsumerWidget {
     final board = ref.watch(leaderboardProvider);
 
     return Scaffold(
-      backgroundColor: colors.background,
       appBar: PassqlNavBar(title: '오늘의 순위', leading: PassqlNavLeading.back),
       body: SafeArea(
         // 로딩 자리 스켈레톤 > 순위 목록 페이드 교체

@@ -23,6 +23,7 @@ import '../presentation/pages/settings/wrong_notes_page.dart';
 import '../presentation/widgets/app_shell.dart';
 import 'app_launch_gate_routing.dart';
 import 'app_routes.dart';
+import 'result_route_arguments.dart';
 
 // 루트 네비게이터 키 — 풀스크린 라우트(탭 바깥)에서 사용
 final _rootKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -183,7 +184,9 @@ abstract final class AppRouter {
       GoRoute(
         path: AppRoutes.dailySetResult,
         parentNavigatorKey: _rootKey,
-        builder: (_, state) => DailySetResultPage(extra: state.extra),
+        builder: (_, state) => DailySetResultPage(
+          outcome: ResultRouteArguments.dailySetOutcomeOf(state.extra),
+        ),
       ),
       GoRoute(
         path: AppRoutes.leaderboard,
@@ -202,7 +205,9 @@ abstract final class AppRouter {
           GoRoute(
             path: AppRoutes.resultSubPath,
             parentNavigatorKey: _rootKey,
-            builder: (_, state) => ResultPage(extra: state.extra),
+            builder: (_, state) => ResultPage(
+              arguments: ResultRouteArguments.questionResultOf(state.extra),
+            ),
           ),
         ],
       ),
@@ -211,7 +216,9 @@ abstract final class AppRouter {
       GoRoute(
         path: AppRoutes.chapterResult,
         parentNavigatorKey: _rootKey,
-        builder: (_, state) => ChapterResultPage(extra: state.extra),
+        builder: (_, state) => ChapterResultPage(
+          summary: ResultRouteArguments.chapterSummaryOf(state.extra),
+        ),
       ),
     ],
   );

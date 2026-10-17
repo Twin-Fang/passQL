@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/auth/auth_session.dart';
 import '../../../core/auth/social_sign_in.dart';
+import '../../../core/monitoring/crash_reporter.dart';
 import '../../../data/models/legal/legal_models.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
@@ -48,8 +49,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       await ref.read(authProvider.notifier).signIn(provider);
     } on SocialSignInException catch (exception) {
       if (mounted) setState(() => _error = exception.message);
-    } catch (_) {
+    } catch (exception, stackTrace) {
       // 저장소 쓰기 실패, 응답 형식 오류 등 예상 밖 오류도 사용자에게 알린다(조용히 멈추지 않는다).
+      reportIfUnexpectedFailure(
+        exception,
+        stackTrace,
+        reason: 'login:${provider.name}',
+      );
       if (mounted) setState(() => _error = '로그인에 실패했어요. 잠시 후 다시 시도해 주세요.');
     } finally {
       if (mounted) setState(() => _signingInProvider = null);
@@ -61,7 +67,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final colors = context.passqlColors;
     final isSigningIn = _signingInProvider != null;
     return Scaffold(
-      backgroundColor: colors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: PassqlSpacing.xl),

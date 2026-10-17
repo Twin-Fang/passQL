@@ -21,7 +21,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:passql_app/core/auth/auth_session.dart';
 import 'package:passql_app/core/auth/token_store.dart';
-import 'package:passql_app/core/network/dio_client.dart';
+import 'package:passql_app/data/sources/api_providers.dart';
 import 'package:passql_app/core/push/firebase_push_messaging_client.dart';
 import 'package:passql_app/core/push/push_permission_prompt_store.dart';
 import 'package:passql_app/main.dart' show PassqlApp;

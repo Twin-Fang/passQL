@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 
-import '../../data/sources/auth_api.dart';
+import 'token_reissue_client.dart';
 import 'token_store.dart';
 
 /// 모든 API 요청에 Bearer 토큰을 붙이고, 401 이면 토큰을 재발급해 한 번 재시도한다.
@@ -14,19 +14,20 @@ import 'token_store.dart';
 class AuthInterceptor extends Interceptor {
   AuthInterceptor({
     required this.tokenStore,
-    required this.authApi,
+    required this.tokenReissueClient,
     required this.retryDio,
     required this.onSessionExpired,
   });
 
   final TokenStore tokenStore;
-  final AuthApi authApi;
+  final TokenReissueClient tokenReissueClient;
 
   /// 재시도에 쓰는 Dio. 원본 요청과 같은 인스턴스(인터셉터 포함)를 넘긴다.
   final Dio retryDio;
   final void Function() onSessionExpired;
 
-  static const _kRetried = 'auth_retried';
+  // RequestOptions.extra: 재발급 후 재시도한 요청 표시 (재시도는 1회만)
+  static const _retriedExtraKey = 'auth_retried';
 
   /// 진행 중인 재발급. 성공 시 새 accessToken, 실패 시 null.
   Future<String?>? _refreshing;
@@ -57,7 +58,7 @@ class AuthInterceptor extends Interceptor {
     final isUnauthorized = err.response?.statusCode == 401;
 
     // 401 이 아니거나, 인증 경로이거나, 이미 한 번 재시도한 요청이면 그대로 전달한다.
-    if (!isUnauthorized || _isAuthPath(options) || options.extra[_kRetried] == true) {
+    if (!isUnauthorized || _isAuthPath(options) || options.extra[_retriedExtraKey] == true) {
       return handler.next(err);
     }
 
@@ -74,7 +75,7 @@ class AuthInterceptor extends Interceptor {
     }
 
     try {
-      options.extra[_kRetried] = true;
+      options.extra[_retriedExtraKey] = true;
       options.headers['Authorization'] = 'Bearer $newAccessToken';
       final response = await retryDio.fetch<dynamic>(options);
       handler.resolve(response);
@@ -93,7 +94,7 @@ class AuthInterceptor extends Interceptor {
     if (session == null) return null;
 
     try {
-      final result = await authApi.reissue(session.refreshToken);
+      final result = await tokenReissueClient.reissue(session.refreshToken);
       await tokenStore.updateTokens(
         accessToken: result.accessToken,
         refreshToken: result.refreshToken,

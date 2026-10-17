@@ -80,10 +80,9 @@ class InlineCodeText extends StatelessWidget {
       spans.add(
         TextSpan(
           text: match.group(1),
-          style: PassqlTypography.code.copyWith(
-            fontSize: (base.fontSize ?? 14) * 0.92,
-            backgroundColor: colors.fill,
-          ),
+          style: PassqlTypography.inlineCodeOf(
+            base,
+          ).copyWith(backgroundColor: colors.fill),
         ),
       );
       cursor = match.end;

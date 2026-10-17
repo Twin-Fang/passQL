@@ -34,7 +34,6 @@ class LaunchBlockingView extends StatelessWidget {
     return PopScope(
       canPop: false,
       child: Scaffold(
-        backgroundColor: colors.background,
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: PassqlSpacing.xl),

@@ -1,5 +1,3 @@
-import 'dart:async' show unawaited;
-
 import 'package:flutter/foundation.dart';
 
 import '../error/app_exception.dart';
@@ -18,25 +16,9 @@ Future<T?> safeCall<T>(Future<T> call, {String? label}) async {
     if (error.isUnauthorized) rethrow;
     final logLabel = 'safeCall${label != null ? ':$label' : ''}';
     debugPrint('[$logLabel] $error');
-    _reportSwallowedFailure(error, stackTrace, logLabel);
+    reportIfUnexpectedFailure(error, stackTrace, reason: logLabel);
     return null;
   }
-}
-
-/// 삼킨 오류 중 예상 밖 오류만 치명적이지 않은 오류로 기록 (원본 예외 우선)
-void _reportSwallowedFailure(
-  AppException error,
-  StackTrace stackTrace,
-  String label,
-) {
-  if (!isUnexpectedFailure(error)) return;
-  unawaited(
-    CrashReporter.current.recordNonFatalError(
-      error.cause ?? error,
-      stackTrace,
-      reason: label,
-    ),
-  );
 }
 
 /// [safeCallAll] 에 넘기는 호출 1건. 끝나면 [value] 에 결과가 담긴다(실패하면 null).
@@ -63,7 +45,7 @@ class SafeCallSlot<T> {
       final error = exception.asAppException;
       if (error.isUnauthorized) throw error;
       debugPrint('[$label] $error');
-      _reportSwallowedFailure(error, stackTrace, label);
+      reportIfUnexpectedFailure(error, stackTrace, reason: label);
       failure = error;
     }
   }

@@ -78,24 +78,24 @@ class ChapterState {
     List<ChapterResult>? results,
     bool? isLoadingList,
     String? listError,
-    bool clearError = false,
+    bool shouldClearError = false,
     SubmitResult? lastSubmitResult,
-    bool clearSubmitResult = false,
+    bool shouldClearSubmitResult = false,
     bool? isAnswered,
     String? lastSelectedKey,
-    bool clearSelectedKey = false,
+    bool shouldClearSelectedKey = false,
   }) {
     return ChapterState(
       questionUuids: questionUuids ?? this.questionUuids,
       currentIndex: currentIndex ?? this.currentIndex,
       results: results ?? this.results,
       isLoadingList: isLoadingList ?? this.isLoadingList,
-      listError: clearError ? null : (listError ?? this.listError),
-      lastSubmitResult: clearSubmitResult
+      listError: shouldClearError ? null : (listError ?? this.listError),
+      lastSubmitResult: shouldClearSubmitResult
           ? null
           : (lastSubmitResult ?? this.lastSubmitResult),
       isAnswered: isAnswered ?? this.isAnswered,
-      lastSelectedKey: clearSelectedKey
+      lastSelectedKey: shouldClearSelectedKey
           ? null
           : (lastSelectedKey ?? this.lastSelectedKey),
     );
@@ -119,7 +119,7 @@ class ChapterNotifier extends AutoDisposeFamilyNotifier<ChapterState, String> {
   ///
   /// 실패하면 사용자에게 보여줄 문구를 상태에 담는다(예: 오늘의 세트 이미 완료).
   Future<void> load(Future<List<String>> Function() loader) async {
-    state = state.copyWith(isLoadingList: true, clearError: true);
+    state = state.copyWith(isLoadingList: true, shouldClearError: true);
     try {
       final questionUuids = await loader();
       state = state.copyWith(
@@ -160,9 +160,9 @@ class ChapterNotifier extends AutoDisposeFamilyNotifier<ChapterState, String> {
     _questionStartedAt = DateTime.now();
     state = state.copyWith(
       currentIndex: state.currentIndex + 1,
-      clearSubmitResult: true,
+      shouldClearSubmitResult: true,
       isAnswered: false,
-      clearSelectedKey: true,
+      shouldClearSelectedKey: true,
     );
   }
 

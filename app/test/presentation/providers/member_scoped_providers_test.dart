@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/core/auth/auth_session.dart';
-import 'package:passql_app/core/network/dio_client.dart';
+import 'package:passql_app/data/sources/api_providers.dart';
 import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/pages/home/home_page.dart';
 import 'package:passql_app/presentation/providers/auth_provider.dart';

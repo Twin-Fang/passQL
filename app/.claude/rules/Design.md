@@ -32,6 +32,8 @@ lib/presentation/design/
 | 글자 크기·굵기·줄 높이 | `lib/presentation/design/tokens/passql_typography.dart` |
 | 간격·모서리·크기·아이콘 크기 | `tokens/passql_spacing.dart`, `passql_radius.dart`, `passql_size.dart`, `passql_icon_size.dart` |
 | 다크 판정 | `passql_theme.dart` 의 `context.isDark` (다른 방법으로 판정하지 않는다) |
+| 화면 배경색 | 테마(`scaffoldBackgroundColor`)가 정함. `Scaffold(backgroundColor:)` 로 같은 값을 다시 넣지 않는다 |
+| 글 속 인라인 코드 크기 | `PassqlTypography.inlineCodeOf(주변 스타일)` |
 | 토픽 아이콘·색 | `topic_appearance.dart` (PassqlColors 와 같은 색은 토큰을 참조) |
 | 로고 자산 | `components/passql_logo.dart` (자산 파일 원본은 브랜드 담당 영역) |
 
@@ -63,6 +65,9 @@ lib/presentation/design/
 | `PassqlPopIn` | 톡 튀어나오는 등장 (반짝이, 결과 마크) |
 | `PassqlAiHeader` | AI 내용 머리: 반짝이 팝 + 제목 미끄러짐 |
 | `PassqlLogo` | 라이트/다크 워드마크 |
+| `PassqlNotificationBellButton` | 홈 상단 종 아이콘 + 안 읽은 개수 배지(10 이상 9+). 알림함 진입은 이 버튼으로만 (규칙 테스트) |
+| `PassqlTextScaleLimit` | 시스템 글자 크기 상한(`MaterialApp.builder` 한 곳에서 앱 전체 적용, #486) |
+| `PassqlNavLeading` / `PassqlTabItem` | 상단 바 왼쪽 버튼 종류(없음·뒤로·닫기), 탭 바 항목 |
 
 ## 3. 화면 코드 규칙 (규칙 테스트가 강제)
 

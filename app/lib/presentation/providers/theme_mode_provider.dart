@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-/// 화면 모드 저장 키. 계정과 무관한 기기 설정이라 일반 저장소(SharedPreferences)에 둔다.
-const _themeModeKey = 'theme_mode';
+import '../../core/storage/device_preferences.dart';
+import '../../core/storage/storage_keys.dart';
 
 /// 저장된 화면 모드를 읽는다. 값이 없거나 알 수 없으면 시스템 설정을 따른다.
 Future<ThemeMode> loadSavedThemeMode() async {
-  final prefs = await SharedPreferences.getInstance();
-  return ThemeMode.values.asNameMap()[prefs.getString(_themeModeKey)] ??
-      ThemeMode.system;
+  // 계정과 무관한 기기 설정 > 일반 저장소
+  final savedModeName = await DevicePreferences.readString(
+    StorageKeys.themeMode,
+  );
+  return ThemeMode.values.asNameMap()[savedModeName] ?? ThemeMode.system;
 }
 
 /// 앱 시작 시 runApp 전에 읽은 값. main 에서 override 해 첫 프레임부터 저장된 모드로 그린다(깜빡임 방지).
@@ -27,7 +28,6 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
   /// 화면에 먼저 반영하고 저장한다. 저장이 실패해도 이번 실행 동안은 고른 모드를 유지한다.
   Future<void> setMode(ThemeMode mode) async {
     state = mode;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_themeModeKey, mode.name);
+    await DevicePreferences.writeString(StorageKeys.themeMode, mode.name);
   }
 }
