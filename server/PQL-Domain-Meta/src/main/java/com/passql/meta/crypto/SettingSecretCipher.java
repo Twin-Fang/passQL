@@ -1,5 +1,6 @@
 package com.passql.meta.crypto;
 
+import com.passql.common.crypto.SecretValueCipher;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,7 @@ import java.util.Base64;
  */
 @Slf4j
 @Component
-public class SettingSecretCipher {
+public class SettingSecretCipher implements SecretValueCipher {
 
     // 암호문 접두사 (없으면 전환 전 평문)
     public static final String ENCRYPTED_PREFIX = "enc:v1:";
@@ -39,6 +40,7 @@ public class SettingSecretCipher {
     }
 
     /** 평문 > enc:v1:... (호출마다 nonce 새로 생성) */
+    @Override
     public String encrypt(String settingKey, String plainValue) {
         try {
             byte[] nonce = new byte[NONCE_BYTES];
@@ -58,6 +60,7 @@ public class SettingSecretCipher {
     }
 
     /** enc:v1:... > 평문 (형식 오류·변조·AAD 불일치는 SETTING_SECRET_DECRYPT_FAILED) */
+    @Override
     public String decrypt(String settingKey, String storedValue) {
         try {
             if (!isEncrypted(storedValue)) {

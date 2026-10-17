@@ -2,15 +2,16 @@ package com.passql.member.auth.infrastructure.social.oauth;
 
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.member.auth.domain.ProviderTokens;
+import com.passql.member.auth.infrastructure.social.SocialApiRestTemplates;
 import com.passql.member.constant.AuthProvider;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -21,22 +22,30 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 인가 코드 > 제공자 access token 교환 (#509): 카카오, 네이버, GitHub
- * 받은 access token 은 기존 로그인 전략(사용자 정보 API 검증)으로 넘긴다.
+ * 인가 코드 > 제공자 토큰 교환 (#509, #516): 카카오, 네이버, GitHub
+ * 받은 access token 은 기존 로그인 전략(사용자 정보 API 검증)으로, refresh token 은 연결 해제용 자격으로 넘긴다.
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class AuthorizationCodeExchanger {
 
     private static final String KAKAO_TOKEN_URL = "https://kauth.kakao.com/oauth/token";
     private static final String NAVER_TOKEN_URL = "https://nid.naver.com/oauth2.0/token";
     private static final String GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token";
-    // 제공자 토큰 API 연결·응답 대기 상한 (5초)
-    private static final int TIMEOUT_MILLISECONDS = 5_000;
 
     private final SocialLoginProperties socialLoginProperties;
-    private final RestTemplate restTemplate = createRestTemplate();
+    private final RestTemplate restTemplate;
+
+    @Autowired
+    public AuthorizationCodeExchanger(SocialLoginProperties socialLoginProperties) {
+        this(socialLoginProperties, SocialApiRestTemplates.create());
+    }
+
+    // 테스트에서 가짜 HTTP 서버를 붙이기 위한 생성자
+    public AuthorizationCodeExchanger(SocialLoginProperties socialLoginProperties, RestTemplate restTemplate) {
+        this.socialLoginProperties = socialLoginProperties;
+        this.restTemplate = restTemplate;
+    }
 
     /** 인가 코드 로그인을 지원하는 제공자 3개 */
     public static final List<AuthProvider> CODE_FLOW_PROVIDERS =
@@ -53,35 +62,40 @@ public class AuthorizationCodeExchanger {
         return client != null ? client : new SocialLoginProperties.ProviderClient(null, null, List.of());
     }
 
-    /** 검증(설정·redirect URI) > 제공자 토큰 API 호출 > access token */
-    public String exchangeForAccessToken(AuthProvider provider, String code, String redirectUri, String state) {
+    /**
+     * 검증(설정·redirect URI) > 제공자 토큰 API 호출 > 토큰 쌍
+     * codeVerifier: GitHub PKCE (값 있을 때만 전달)
+     */
+    public ProviderTokens exchangeForTokens(AuthProvider provider, String code, String redirectUri, String state,
+                                            String codeVerifier) {
         SocialLoginProperties.ProviderClient client = clientOf(provider);
         if (!client.isConfigured()) {
             log.warn("[social login] rejected 503 : provider not configured ({})", provider);
             throw new CustomException(ErrorCode.SOCIAL_LOGIN_UNAVAILABLE);
         }
-        if (!client.isAllowedRedirectUri(redirectUri)) {
+        if (!client.isAllowedRedirectUri(redirectUri) && !socialLoginProperties.isLocalRedirectUri(redirectUri)) {
             log.warn("[social login] rejected 400 : redirect uri not allowed ({})", provider);
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
         try {
-            String accessToken = switch (provider) {
+            ProviderTokens tokens = toProviderTokens(switch (provider) {
                 case KAKAO -> requestKakaoToken(client, code, redirectUri);
                 case NAVER -> requestNaverToken(client, code, state);
-                case GITHUB -> requestGithubToken(client, code, redirectUri);
+                case GITHUB -> requestGithubToken(client, code, redirectUri, codeVerifier);
                 default -> throw new CustomException(ErrorCode.UNSUPPORTED_AUTH_PROVIDER);
-            };
-            if (accessToken == null || accessToken.isBlank()) {
+            });
+            if (tokens == null) {
                 throw new CustomException(ErrorCode.INVALID_SOCIAL_AUTHORIZATION_CODE);
             }
-            return accessToken;
+            return tokens;
         } catch (RestClientException e) {
             log.warn("[social login] rejected 401 : code exchange failed ({}) {}", provider, e.getClass().getSimpleName());
             throw new CustomException(ErrorCode.INVALID_SOCIAL_AUTHORIZATION_CODE);
         }
     }
 
-    private String requestKakaoToken(SocialLoginProperties.ProviderClient client, String code, String redirectUri) {
+    @SuppressWarnings("rawtypes")
+    private Map requestKakaoToken(SocialLoginProperties.ProviderClient client, String code, String redirectUri) {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("grant_type", "authorization_code");
         form.add("client_id", client.clientId());
@@ -90,26 +104,33 @@ public class AuthorizationCodeExchanger {
         if (client.clientSecret() != null && !client.clientSecret().isBlank()) {
             form.add("client_secret", client.clientSecret());
         }
-        return accessTokenOf(postForm(KAKAO_TOKEN_URL, form));
+        return postForm(KAKAO_TOKEN_URL, form);
     }
 
-    private String requestNaverToken(SocialLoginProperties.ProviderClient client, String code, String state) {
+    @SuppressWarnings("rawtypes")
+    private Map requestNaverToken(SocialLoginProperties.ProviderClient client, String code, String state) {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("grant_type", "authorization_code");
         form.add("client_id", client.clientId());
         form.add("client_secret", client.clientSecret());
         form.add("code", code);
         form.add("state", state == null ? "" : state);
-        return accessTokenOf(postForm(NAVER_TOKEN_URL, form));
+        return postForm(NAVER_TOKEN_URL, form);
     }
 
-    private String requestGithubToken(SocialLoginProperties.ProviderClient client, String code, String redirectUri) {
+    @SuppressWarnings("rawtypes")
+    private Map requestGithubToken(SocialLoginProperties.ProviderClient client, String code, String redirectUri,
+                                   String codeVerifier) {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("client_id", client.clientId());
         form.add("client_secret", client.clientSecret());
         form.add("code", code);
         form.add("redirect_uri", redirectUri);
-        return accessTokenOf(postForm(GITHUB_TOKEN_URL, form));
+        // PKCE: 앱이 만든 verifier 가 있을 때만 (가로챈 코드 단독 교환 차단)
+        if (codeVerifier != null && !codeVerifier.isBlank()) {
+            form.add("code_verifier", codeVerifier);
+        }
+        return postForm(GITHUB_TOKEN_URL, form);
     }
 
     @SuppressWarnings("rawtypes")
@@ -122,16 +143,19 @@ public class AuthorizationCodeExchanger {
         return response.getBody();
     }
 
+    /** 토큰 응답 본문 > 토큰 쌍 (access token 없으면 null) */
     @SuppressWarnings("rawtypes")
-    private static String accessTokenOf(Map body) {
-        Object accessToken = body == null ? null : body.get("access_token");
-        return accessToken == null ? null : accessToken.toString();
+    private static ProviderTokens toProviderTokens(Map body) {
+        String accessToken = stringValueOf(body, "access_token");
+        if (accessToken == null || accessToken.isBlank()) {
+            return null;
+        }
+        return new ProviderTokens(accessToken, stringValueOf(body, "refresh_token"));
     }
 
-    private static RestTemplate createRestTemplate() {
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(TIMEOUT_MILLISECONDS);
-        requestFactory.setReadTimeout(TIMEOUT_MILLISECONDS);
-        return new RestTemplate(requestFactory);
+    @SuppressWarnings("rawtypes")
+    private static String stringValueOf(Map body, String key) {
+        Object value = body == null ? null : body.get(key);
+        return value == null ? null : value.toString();
     }
 }

@@ -27,6 +27,7 @@ public interface MemberControllerDocs {
   @ApiLogs({
       @ApiLog(date = "2026.04.07", author = Author.SUHSAECHAN, issueNumber = 6, description = "본인 정보 조회 API 추가"),
       @ApiLog(date = "2026.04.18", author = Author.SUHSAECHAN, issueNumber = 271, description = "memberUuid 쿼리 파라미터 → @AuthMember 토큰 기반으로 전환"),
+      @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 516, description = "응답에 가입 제공자 authProvider, 제공자 사용자 ID providerUserId 추가 (탈퇴 연결 해제 분기·재인증 계정 대조용)"),
   })
   @Operation(
       summary = "본인 정보 조회",
@@ -38,6 +39,8 @@ public interface MemberControllerDocs {
 
           ## 반환값 (MemberMeResponse)
           - 회원 정보 전체
+          - **`authProvider`**: 가입 제공자 (GOOGLE, KAKAO, NAVER, APPLE, GITHUB)
+          - **`providerUserId`**: 제공자 사용자 ID (Google·Apple 은 Firebase uid). 탈퇴 재인증 시 같은 계정인지 대조용
 
           ## 설명
           - JWT AccessToken에서 회원 UUID를 추출하여 본인 정보를 조회한다.

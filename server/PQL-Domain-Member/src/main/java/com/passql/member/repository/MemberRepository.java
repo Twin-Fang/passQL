@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,6 +23,10 @@ public interface MemberRepository extends JpaRepository<Member, UUID>, JpaSpecif
 
     Optional<Member> findByAuthProviderAndProviderUserIdAndIsDeletedFalse(
         AuthProvider authProvider, String providerUserId);
+
+    // 같은 제공자 사용자 ID 활성 회원 존재 여부 (Firebase uid 는 Google·Apple 공용이라 제공자 여러 개로 확인)
+    boolean existsByProviderUserIdAndAuthProviderInAndIsDeletedFalse(
+        String providerUserId, Collection<AuthProvider> authProviders);
 
     /** 스케줄러용: 제재 만료 회원 배치 조회 */
     List<Member> findAllByStatusAndSuspendUntilBeforeAndIsDeletedFalse(

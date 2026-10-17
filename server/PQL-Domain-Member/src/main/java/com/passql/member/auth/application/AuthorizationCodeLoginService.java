@@ -1,8 +1,8 @@
 package com.passql.member.auth.application;
 
-import com.passql.member.auth.application.dto.command.LoginCommand;
 import com.passql.member.auth.application.dto.result.LoginResult;
 import com.passql.member.auth.application.dto.result.SocialLoginClientConfig;
+import com.passql.member.auth.domain.ProviderTokens;
 import com.passql.member.auth.infrastructure.social.oauth.AuthorizationCodeExchanger;
 import com.passql.member.auth.infrastructure.social.oauth.SocialLoginProperties;
 import com.passql.member.constant.AuthProvider;
@@ -22,9 +22,11 @@ public class AuthorizationCodeLoginService {
     private final AuthorizationCodeExchanger authorizationCodeExchanger;
     private final AuthService authService;
 
-    public LoginResult login(AuthProvider authProvider, String code, String redirectUri, String state) {
-        String providerAccessToken = authorizationCodeExchanger.exchangeForAccessToken(authProvider, code, redirectUri, state);
-        return authService.login(new LoginCommand(authProvider, providerAccessToken));
+    /** 코드 > 제공자 토큰 교환(codeVerifier: GitHub PKCE, 선택) > 서버 교환 토큰 로그인 */
+    public LoginResult login(AuthProvider authProvider, String code, String redirectUri, String state, String codeVerifier) {
+        ProviderTokens exchangedTokens = authorizationCodeExchanger.exchangeForTokens(
+                authProvider, code, redirectUri, state, codeVerifier);
+        return authService.loginWithExchangedTokens(authProvider, exchangedTokens);
     }
 
     /** 공개 설정: 제공자별 사용 여부 + 공개 client ID (secret 제외) */

@@ -151,7 +151,9 @@ public enum ErrorCode {
     UNAUTHENTICATED_REQUEST(HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
     UNSUPPORTED_AUTH_PROVIDER(HttpStatus.BAD_REQUEST, "지원하지 않는 소셜 플랫폼입니다."),
     SOCIAL_LOGIN_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "이 소셜 로그인은 아직 준비 중입니다."),
-    INVALID_SOCIAL_AUTHORIZATION_CODE(HttpStatus.UNAUTHORIZED, "소셜 로그인 인증이 만료되었거나 올바르지 않습니다.");
+    INVALID_SOCIAL_AUTHORIZATION_CODE(HttpStatus.UNAUTHORIZED, "소셜 로그인 인증이 만료되었거나 올바르지 않습니다."),
+    // 다른 앱에서 발급됐거나 제공자가 다른 소셜 토큰 (#516)
+    INVALID_SOCIAL_TOKEN(HttpStatus.UNAUTHORIZED, "소셜 로그인 인증 정보가 올바르지 않습니다.");
 
     private final HttpStatus status;
     private final String message;
