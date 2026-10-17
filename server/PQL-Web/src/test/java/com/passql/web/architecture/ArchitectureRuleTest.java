@@ -19,12 +19,14 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEndingWith;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * 서버 구조 규칙 강제: 표현 계층 Repository 의존 금지, 컨트롤러 트랜잭션 금지, 오류 응답은 ErrorCode 경유만
+ * 서버 구조 규칙 강제: 표현 계층 Repository 의존 금지, 컨트롤러 인프라(Client·Executor·Pool) 의존 금지, 컨트롤러 트랜잭션 금지, 오류 응답은 ErrorCode 경유만
  * 예외는 각 allow-list 에만 (이유 주석 필수)
  */
 class ArchitectureRuleTest {
@@ -38,6 +40,9 @@ class ArchitectureRuleTest {
 
     // Repository 직접 의존 허용 클래스 (현재 없음, 추가 시 이유 주석 필수)
     private static final Set<String> REPOSITORY_ACCESS_ALLOW_LIST = Set.of();
+
+    // 컨트롤러 인프라(외부 호출 Client·샌드박스 Executor·Pool) 직접 의존 허용 클래스 (현재 없음, 추가 시 이유 주석 필수)
+    private static final Set<String> INFRASTRUCTURE_ACCESS_ALLOW_LIST = Set.of();
 
     // 알림 저장소(member_notification, member_notice_read) 직접 사용 허용 클래스: 알림 생성·조회 서비스 2개만 (#491)
     private static final Set<String> NOTIFICATION_REPOSITORY_ACCESS_ALLOW_LIST = Set.of(
@@ -75,6 +80,18 @@ class ArchitectureRuleTest {
                 .and().haveNameNotMatching(toAlternation(REPOSITORY_ACCESS_ALLOW_LIST))
                 .should().dependOnClassesThat().resideInAPackage("..repository..")
                 .because("컨트롤러·초기화·스케줄러는 Service 를 거쳐야 함 (server/CLAUDE.md Controller 역할 제한)")
+                .check(productionClasses);
+    }
+
+    @Test
+    void 컨트롤러는_Client_Executor_Pool에_직접_의존하지_않는다() {
+        noClasses().that().resideInAPackage("com.passql.web.controller..")
+                .and().haveNameNotMatching(toAlternation(INFRASTRUCTURE_ACCESS_ALLOW_LIST))
+                .should().dependOnClassesThat(resideInAPackage("com.passql..").and(
+                        simpleNameEndingWith("Client")
+                                .or(simpleNameEndingWith("Executor"))
+                                .or(simpleNameEndingWith("Pool"))))
+                .because("외부 호출·샌드박스 실행은 Service 를 거쳐야 함 (server/CLAUDE.md Controller 역할 제한)")
                 .check(productionClasses);
     }
 

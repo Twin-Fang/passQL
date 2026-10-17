@@ -1,9 +1,7 @@
 package com.passql.web.controller.admin;
 
-import com.passql.ai.client.AiGatewayClient;
-import com.passql.ai.dto.LlmConfigDto;
-import com.passql.ai.dto.TestPromptRequest;
 import com.passql.ai.dto.TestPromptResult;
+import com.passql.application.service.AdminPromptTestService;
 import com.passql.meta.dto.PromptTemplateSaveRequest;
 import com.passql.meta.entity.PromptTemplate;
 import com.passql.meta.service.PromptService;
@@ -29,7 +27,7 @@ import java.util.UUID;
 public class AdminPromptController {
 
     private final PromptService promptService;
-    private final AiGatewayClient aiGatewayClient;
+    private final AdminPromptTestService adminPromptTestService;
 
     @GetMapping
     @AdminPage(menu = AdminMenu.PROMPTS)
@@ -82,22 +80,7 @@ public class AdminPromptController {
     public ResponseEntity<TestPromptResult> testExecute(
             @PathVariable UUID uuid,
             @RequestBody Map<String, String> variables) {
-        PromptTemplate prompt = promptService.findById(uuid)
-                .orElseThrow(() -> new com.passql.common.exception.CustomException(
-                        com.passql.common.exception.constant.ErrorCode.PROMPT_NOT_FOUND));
-
-        LlmConfigDto llmConfig = new LlmConfigDto(
-                prompt.getModel(),
-                prompt.getSystemPrompt(),
-                prompt.getUserTemplate(),
-                prompt.getTemperature(),
-                prompt.getMaxTokens(),
-                null
-        );
-
-        TestPromptRequest req = new TestPromptRequest(llmConfig, variables);
-        TestPromptResult result = aiGatewayClient.testPrompt(req);
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(adminPromptTestService.testPrompt(uuid, variables));
     }
 
     /**

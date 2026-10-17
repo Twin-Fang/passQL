@@ -286,7 +286,7 @@ public class AiGatewayClient {
         } catch (Exception e) {
             log.error("[AiGateway] Python AI 서버 호출 실패: url={}, error={}", url, e.getMessage());
             throw new CustomException(ErrorCode.AI_SERVER_UNAVAILABLE,
-                    "Python AI 서버 호출 실패: " + e.getMessage());
+                    "Python AI 서버 호출 실패", e);
         }
     }
 }

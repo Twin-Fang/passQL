@@ -18,6 +18,7 @@ import com.passql.question.constant.ExecutionMode;
 import com.passql.question.entity.Question;
 import com.passql.question.entity.QuestionChoiceSet;
 import com.passql.question.entity.QuestionChoiceSetItem;
+import com.passql.question.event.QuestionSavedEvent;
 import com.passql.question.repository.QuestionChoiceSetItemRepository;
 import com.passql.question.repository.QuestionChoiceSetRepository;
 import com.passql.question.repository.QuestionRepository;
@@ -36,7 +37,7 @@ import java.util.UUID;
  * <p>
  * - AI 문제 생성 (generate) → AiGatewayClient
  * - 검수 후 저장 (createQuestionWithSeedSet) → Question + ChoiceSet + Items 트랜잭션
- * - 저장 뒤 벡터 색인 적재는 QuestionVectorIndexService
+ * - 저장 뒤 벡터 색인 적재: QuestionSavedEvent > QuestionVectorIndexService (커밋 후)
  */
 @Slf4j
 @Service
@@ -51,7 +52,6 @@ public class QuestionGenerateService {
     private final QuestionChoiceSetRepository choiceSetRepository;
     private final QuestionChoiceSetItemRepository choiceSetItemRepository;
     private final ApplicationEventPublisher eventPublisher;
-    private final QuestionVectorIndexService questionVectorIndexService;
 
     /**
      * AI에게 문제를 생성 요청한다 (저장하지 않음, 관리자 preview 용).
@@ -82,14 +82,7 @@ public class QuestionGenerateService {
                 "required", List.of("stem", "answer_sql", "seed_choices")
         );
 
-        LlmConfigDto llmConfig = new LlmConfigDto(
-                prompt.getModel(),
-                prompt.getSystemPrompt(),
-                prompt.getUserTemplate(),
-                prompt.getTemperature(),
-                prompt.getMaxTokens(),
-                responseSchema
-        );
+        LlmConfigDto llmConfig = PromptLlmConfigFactory.toLlmConfig(prompt, prompt.getUserTemplate(), responseSchema);
 
         GenerateQuestionFullRequest req = new GenerateQuestionFullRequest(context, llmConfig);
         return aiGatewayClient.generateQuestionFull(req);
@@ -142,8 +135,8 @@ public class QuestionGenerateService {
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.QUESTION, question.getQuestionUuid(),
                 AdminAuditAction.CREATE, null, QuestionAuditSummary.of(question)));
 
-        // Qdrant 임베딩 적재 (비동기적으로 실패해도 문제 등록 흐름에 영향 없음)
-        questionVectorIndexService.indexQuestionAsync(question);
+        // Qdrant 임베딩 적재 (커밋 후 비동기, 실패해도 문제 등록 흐름에 영향 없음)
+        eventPublisher.publishEvent(new QuestionSavedEvent(question.getQuestionUuid()));
 
         return question;
     }
@@ -212,8 +205,8 @@ public class QuestionGenerateService {
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.QUESTION, question.getQuestionUuid(),
                 AdminAuditAction.CREATE, null, QuestionAuditSummary.of(question)));
 
-        // Qdrant 임베딩 적재 (비동기적으로 실패해도 문제 등록 흐름에 영향 없음)
-        questionVectorIndexService.indexQuestionAsync(question);
+        // Qdrant 임베딩 적재 (커밋 후 비동기, 실패해도 문제 등록 흐름에 영향 없음)
+        eventPublisher.publishEvent(new QuestionSavedEvent(question.getQuestionUuid()));
 
         return question;
     }

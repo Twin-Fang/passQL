@@ -5,6 +5,7 @@ import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.meta.dto.ConceptTagResponse;
 import com.passql.meta.dto.TopicCreateRequest;
 import com.passql.meta.dto.TopicTree;
 import com.passql.meta.dto.TopicUpdateRequest;
@@ -54,6 +55,13 @@ public class MetaService {
 
     public List<ConceptTag> getActiveTags() {
         return conceptTagRepository.findByIsActiveTrueOrderBySortOrderAsc();
+    }
+
+    /** 활성 개념 태그 > 공개 응답 목록 (정렬 순서 유지) */
+    public List<ConceptTagResponse> getActiveTagResponses() {
+        return getActiveTags().stream()
+                .map(ConceptTagResponse::from)
+                .toList();
     }
 
     public List<Subtopic> getSubtopics(String topicCode) {

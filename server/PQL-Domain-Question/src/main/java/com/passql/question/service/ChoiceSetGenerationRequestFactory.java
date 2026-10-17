@@ -142,14 +142,7 @@ public class ChoiceSetGenerationRequestFactory {
 
     /** 프롬프트 템플릿 + 조립된 user prompt > LLM 설정 (공통 응답 스키마) */
     private LlmConfigDto toLlmConfig(PromptTemplate prompt, String userPrompt) {
-        return new LlmConfigDto(
-                prompt.getModel(),
-                prompt.getSystemPrompt(),
-                userPrompt,
-                prompt.getTemperature(),
-                prompt.getMaxTokens(),
-                CHOICE_SET_RESPONSE_SCHEMA
-        );
+        return PromptLlmConfigFactory.toLlmConfig(prompt, userPrompt, CHOICE_SET_RESPONSE_SCHEMA);
     }
 
     /**

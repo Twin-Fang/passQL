@@ -770,6 +770,7 @@ export interface paths {
          *     ## 반환값 (List<ConceptTag>)
          *     - 활성화된 개념 태그 전체 목록
          *     - 식별자는 conceptTagUuid (UUID), 비즈니스 키 tagKey 동시 노출
+         *     - 필드: conceptTagUuid, tagKey, labelKo, category, description, isActive, sortOrder
          */
         get: operations["getTags"];
         put?: never;
@@ -1219,18 +1220,12 @@ export interface components {
             category: string;
             /** Format: uuid */
             conceptTagUuid: string;
-            /** Format: date-time */
-            createdAt: string;
-            createdBy: string;
             description: string;
             isActive: boolean;
             labelKo: string;
             /** Format: int32 */
             sortOrder: number;
             tagKey: string;
-            /** Format: date-time */
-            updatedAt: string;
-            updatedBy: string;
         };
         DailySetCompleteRequest: {
             /** Format: int32 */

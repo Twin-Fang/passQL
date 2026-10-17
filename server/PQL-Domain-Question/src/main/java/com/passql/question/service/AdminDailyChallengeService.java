@@ -12,15 +12,18 @@ import com.passql.question.entity.Question;
 import com.passql.question.repository.DailyChallengeRepository;
 import com.passql.question.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -30,6 +33,7 @@ public class AdminDailyChallengeService {
     private final QuestionRepository questionRepository;
     private final QuestionService questionService;
     private final ApplicationEventPublisher eventPublisher;
+    private final DailyChallengeFallbackWriter dailyChallengeFallbackWriter;
 
     public List<DailyChallengeItem> getChallenges(LocalDate from, LocalDate to) {
         List<DailyChallenge> challenges = dailyChallengeRepository
@@ -107,10 +111,10 @@ public class AdminDailyChallengeService {
     }
 
     /**
-     * 자정 스케줄러 폴백. 이미 배정된 날짜 스킵.
-     * 토픽 round-robin으로 10문제 선정.
+     * 자정 스케줄러 폴백: 기존 배정 확인 > 토픽 round-robin 10문제 선정 > 독립 트랜잭션 저장
+     * 이미 배정된 날짜·동시 저장 중복은 무시 (트랜잭션 밖에서 판단해 rollback-only 전파 없음)
      */
-    @Transactional
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void confirmFallback(LocalDate date) {
         List<DailyChallenge> existing = dailyChallengeRepository
                 .findByChallengeDateOrderBySortOrderAsc(date);
@@ -147,15 +151,10 @@ public class AdminDailyChallengeService {
         }
 
         try {
-            for (int i = 0; i < picks.size(); i++) {
-                dailyChallengeRepository.saveAndFlush(
-                        DailyChallenge.builder()
-                                .challengeDate(date)
-                                .sortOrder(i)
-                                .questionUuid(picks.get(i))
-                                .build());
-            }
-        } catch (DataIntegrityViolationException ignored) {
+            dailyChallengeFallbackWriter.saveInOrder(date, picks);
+        } catch (DataIntegrityViolationException e) {
+            // 다른 인스턴스·요청이 같은 날짜를 먼저 저장 (저장분은 그쪽 기준 유지)
+            log.info("[daily challenge fallback] skipped duplicate : date={}", date);
         }
     }
 }
