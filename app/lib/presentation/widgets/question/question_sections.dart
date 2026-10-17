@@ -7,6 +7,7 @@ import '../../design/design.dart';
 import 'choice_item_card.dart';
 import 'sse_loading_widget.dart';
 import 'stem_text.dart';
+import 'choice_display_label.dart';
 
 // 챕터 풀이(ChapterPage)와 단건 풀이(QuestionDetailPage)가 함께 쓰는 문제 화면 조각.
 
@@ -143,9 +144,11 @@ class QuestionChoices extends StatelessWidget {
     }
 
     return Column(
-      children: interaction.activeChoices.map((item) {
+      children: interaction.activeChoices.indexed.map((entry) {
+        final (displayIndex, item) = entry;
         return ChoiceItemCard(
           item: item,
+          displayLabel: toChoiceDisplayLabel(displayIndex),
           state: resolveChoiceState(
             key: item.key,
             selectedKey: submitResult != null

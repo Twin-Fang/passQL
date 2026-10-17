@@ -1,0 +1,22 @@
+import '../../../data/models/question/choice_item.dart';
+import '../../../data/models/question/submit_result.dart';
+
+/// 보기 표시 라벨 공통: 화면 순서(0..N) > A, B, C, D (#512)
+/// 서버가 고정 보기 순서를 섞어 보내므로 choiceKey 글자 대신 표시 순서로 라벨을 붙인다. 채점은 choiceKey 그대로.
+String toChoiceDisplayLabel(int displayIndex) =>
+    String.fromCharCode('A'.codeUnitAt(0) + displayIndex);
+
+/// 보기 목록 + choiceKey > 화면 표시 라벨 (목록에 없으면 choiceKey 그대로, 키가 없으면 null)
+String? findChoiceDisplayLabel(List<ChoiceItem> choices, String? choiceKey) {
+  if (choiceKey == null) return null;
+  final displayIndex = choices.indexWhere((choice) => choice.key == choiceKey);
+  return displayIndex < 0 ? choiceKey : toChoiceDisplayLabel(displayIndex);
+}
+
+/// 문제 결과 화면 이동 인자: 채점 결과 + 정답 표시 라벨
+class QuestionResultArguments {
+  final SubmitResult result;
+  final String? correctDisplayLabel;
+
+  const QuestionResultArguments({required this.result, this.correctDisplayLabel});
+}

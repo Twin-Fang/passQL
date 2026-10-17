@@ -11,6 +11,7 @@ import '../../widgets/common/app_toast.dart';
 import '../../widgets/question/question_sections.dart';
 import '../../widgets/question/question_solving_body.dart';
 import '../../widgets/question/question_solving_skeleton.dart';
+import '../../widgets/question/choice_display_label.dart';
 
 /// 문제 상세 + 풀기 화면 (풀스크린).
 /// 진입 시 GET /questions/{uuid}, 선택지 없으면 SSE 자동 시작.
@@ -102,7 +103,13 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
     refreshLearningData(ref.invalidate);
     context.push(
       AppRoutes.questionResult(widget.questionUuid),
-      extra: submitResult,
+      extra: QuestionResultArguments(
+        result: submitResult,
+        correctDisplayLabel: findChoiceDisplayLabel(
+          ref.read(questionInteractionProvider(widget.questionUuid)).activeChoices,
+          submitResult.correctKey,
+        ),
+      ),
     );
   }
 }

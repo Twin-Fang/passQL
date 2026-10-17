@@ -10,6 +10,9 @@ import 'stem_text.dart';
 /// 선택·채점 상태의 모양은 [PassqlChoiceCard]가 정한다.
 class ChoiceItemCard extends StatelessWidget {
   final ChoiceItem item;
+
+  /// 화면 순서 라벨 (A, B, C, D) — choiceKey 와 다를 수 있음 (#512)
+  final String displayLabel;
   final PassqlChoiceState state;
   final VoidCallback onTap;
 
@@ -19,6 +22,7 @@ class ChoiceItemCard extends StatelessWidget {
   const ChoiceItemCard({
     super.key,
     required this.item,
+    required this.displayLabel,
     required this.state,
     required this.onTap,
     this.onGradedTap,
@@ -39,7 +43,7 @@ class ChoiceItemCard extends StatelessWidget {
         vertical: PassqlSpacing.xxs,
       ),
       child: PassqlChoiceCard(
-        keyLabel: item.key,
+        keyLabel: displayLabel,
         state: state,
         onTap: onTap,
         onGradedTap: onGradedTap,
