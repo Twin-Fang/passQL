@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
 import { useTopics } from "../hooks/useTopics";
 import { getTopicIcon } from "../constants/topicIcons";
-import { generatePractice } from "../api/practice";
+import { EmptyPracticeTopicError, generatePractice } from "../api/practice";
 import { usePracticeStore } from "../stores/practiceStore";
 import ErrorFallback from "../components/ErrorFallback";
 import { useStagger } from "../hooks/useStagger";
@@ -27,7 +27,7 @@ export default function CategoryCards() {
       navigate(`/practice/${sessionId}`);
     } catch (err) {
       // 문제가 없는 카테고리인 경우 안내 모달 표시
-      if (err instanceof Error && err.message.includes("풀 수 있는 문제가 없어요")) {
+      if (err instanceof EmptyPracticeTopicError) {
         setShowEmptyModal(true);
       }
     }
@@ -70,7 +70,7 @@ export default function CategoryCards() {
           {Array.from({ length: 6 }, (_, i) => (
             <div key={i} className="card-topic pointer-events-none">
               {/* daisyUI skeleton — animate-pulse 대신 shimmer 효과 */}
-              <div className="skeleton w-[52px] h-[52px] rounded-[14px] mb-3" />
+              <div className="skeleton w-[52px] h-[52px] rounded-tile-large mb-3" />
               <div className="skeleton h-4 w-3/4 rounded" />
             </div>
           ))}

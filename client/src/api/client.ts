@@ -138,12 +138,39 @@ async function reissueAccessToken(refreshToken: string): Promise<string> {
   useAuthStore.setState({ isRefreshing: true });
   try {
     const result = await reissue({ refreshToken });
-    useAuthStore.getState().setAccessToken(result.accessToken);
-    useAuthStore.setState({ refreshToken: result.refreshToken });
-    localStorage.setItem("passql_refresh_token", result.refreshToken);
+    useAuthStore.getState().setRotatedTokens(result);
     return result.accessToken;
   } finally {
     useAuthStore.setState({ isRefreshing: false });
+  }
+}
+
+/**
+ * 401 이후 재시도용 access token: 다른 요청이 이미 재발급 > 그 토큰 / 아니면 재발급 1회
+ * 재발급 불가(refresh 없음·실패)면 로그아웃 처리 후 null (apiFetch·SSE 공통 진입점)
+ */
+export async function resolveAccessTokenAfterUnauthorized(
+  requestAccessToken: string | null,
+): Promise<string | null> {
+  // 응답 대기 중 다른 요청이 이미 재발급 완료 > 새 토큰으로 재시도만 (재발급 중복 방지)
+  const currentAccessToken = getAccessToken();
+  if (currentAccessToken && currentAccessToken !== requestAccessToken && !accessTokenReissueInFlight) {
+    return currentAccessToken;
+  }
+
+  const refreshToken = getRefreshToken();
+  // 재발급 수단이 없으면 무효 토큰을 든 채 홈에 갇히므로 바로 로그아웃 처리 (#398)
+  if (!refreshToken) {
+    forceLogout();
+    return null;
+  }
+
+  try {
+    return await reissueAccessTokenOnce(refreshToken);
+  } catch {
+    // refresh도 실패하면 로그아웃 처리
+    forceLogout();
+    return null;
   }
 }
 
@@ -162,27 +189,8 @@ export async function apiFetch<T>(
       throw err;
     }
 
-    // 응답 대기 중 다른 요청이 이미 재발급 완료 > 새 토큰으로 재시도만 (재발급 중복 방지)
-    const currentAccessToken = getAccessToken();
-    if (currentAccessToken && currentAccessToken !== requestAccessToken && !accessTokenReissueInFlight) {
-      return fetchOnce<T>(path, options, currentAccessToken);
-    }
-
-    const refreshToken = getRefreshToken();
-    // 재발급 수단이 없으면 무효 토큰을 든 채 홈에 갇히므로 바로 로그아웃 처리 (#398)
-    if (!refreshToken) {
-      forceLogout();
-      throw err;
-    }
-
-    let reissuedAccessToken: string;
-    try {
-      reissuedAccessToken = await reissueAccessTokenOnce(refreshToken);
-    } catch {
-      // refresh도 실패하면 로그아웃 처리
-      forceLogout();
-      throw err;
-    }
-    return fetchOnce<T>(path, options, reissuedAccessToken);
+    const retryAccessToken = await resolveAccessTokenAfterUnauthorized(requestAccessToken);
+    if (!retryAccessToken) throw err;
+    return fetchOnce<T>(path, options, retryAccessToken);
   }
 }

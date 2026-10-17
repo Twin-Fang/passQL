@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "npm run test:architecture && tsc && vite build",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "vitest run && npm run test:architecture",
+    "test:architecture": "node --test --test-name-pattern=client- test/architecture/architecture.rules.test.mjs",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint .",

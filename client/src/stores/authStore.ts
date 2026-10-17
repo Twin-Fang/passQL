@@ -22,6 +22,7 @@ interface AuthActions {
     nickname: string;
   }) => void;
   setAccessToken: (accessToken: string) => void;
+  setRotatedTokens: (params: { accessToken: string; refreshToken: string }) => void;
   setNickname: (nickname: string) => void;
   clearTokens: () => void;
 }
@@ -44,6 +45,13 @@ export const useAuthStore = create<AuthState & AuthActions>()((set) => ({
   setAccessToken: (accessToken) => {
     localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
     set({ accessToken });
+  },
+
+  // 재발급 응답 토큰 2개 저장 (rotating refresh token, 회원 정보는 유지)
+  setRotatedTokens: ({ accessToken, refreshToken }) => {
+    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    set({ accessToken, refreshToken });
   },
 
   setNickname: (nickname) => {

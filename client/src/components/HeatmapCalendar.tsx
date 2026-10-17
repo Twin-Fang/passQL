@@ -107,7 +107,7 @@ export function HeatmapCalendar({ entries }: HeatmapCalendarProps) {
           return (
             <div
               key={date}
-              className={`w-6 h-6 rounded flex items-center justify-center text-[10px] cursor-default select-none ${HEAT_LEVEL_BACKGROUND_CLASSES[level]} ${
+              className={`w-6 h-6 rounded flex items-center justify-center text-micro cursor-default select-none ${HEAT_LEVEL_BACKGROUND_CLASSES[level]} ${
                 level >= DARK_HEAT_LEVEL_MINIMUM ? "text-on-brand" : "text-text-caption"
               }`}
               onMouseEnter={(e) => setTooltip({
@@ -151,11 +151,11 @@ export function HeatmapCalendar({ entries }: HeatmapCalendarProps) {
 
       {/* 히트맵 범례 */}
       <div className="flex items-center gap-1 mt-2 justify-end">
-        <span className="text-[10px] text-text-caption">0</span>
+        <span className="text-micro text-text-caption">0</span>
         {HEAT_LEVEL_BACKGROUND_CLASSES.map((backgroundClass) => (
           <div key={backgroundClass} className={`w-3 h-3 rounded-sm ${backgroundClass}`} />
         ))}
-        <span className="text-[10px] text-text-caption">6+</span>
+        <span className="text-micro text-text-caption">6+</span>
       </div>
 
       {/* 툴팁 — hover/long press 시 셀 위에 표시 */}

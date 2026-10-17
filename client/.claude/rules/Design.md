@@ -20,7 +20,7 @@ passQL은 라이트 모드 우선의 학습 도구 디자인 — `surface` 연�
 
 ## 2. Color Palette & Roles
 
-> 색 값은 `src/styles/tokens.css` 가 단일 원본이다 (앱 `pq_colors.dart` light 값 기준, #462). 이 문서에는 토큰 이름만 적고 hex 값을 복사하지 않는다. 코드에서는 `bg-brand`, `text-semantic-error-text` 같은 토큰 클래스만 쓰며, hex·`[#...]`·Tailwind 기본 팔레트·인라인 style 은 `npm run lint` 가 막는다.
+> 색 값은 `src/styles/tokens.css` 가 단일 원본이다 (앱 `app/lib/presentation/design/tokens/passql_colors.dart` light 값 기준, #462). 이 문서에는 토큰 이름만 적고 hex 값을 복사하지 않는다. 코드에서는 `bg-brand`, `text-semantic-error-text` 같은 토큰 클래스만 쓰며, hex·`[#...]`·Tailwind 기본 팔레트·인라인 style 은 `npm run lint` 가 막는다.
 
 ### Background Surfaces
 - **Page Background** (`surface`): 메인 캔버스. 순백이 아닌 연회색으로 눈의 피로 방지.

@@ -1,5 +1,5 @@
 /// <reference types="vitest" />
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import tailwindcss from "@tailwindcss/vite";
@@ -69,6 +69,8 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
+    // 아키텍처 규칙 테스트는 node --test 전용 (npm run test:architecture)
+    exclude: [...configDefaults.exclude, "test/architecture/**"],
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],

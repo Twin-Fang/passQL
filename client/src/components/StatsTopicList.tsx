@@ -100,15 +100,15 @@ export default function StatsTopicList({ topicStats }: StatsTopicListProps) {
           return (
             <div key={stat.topicUuid}>
               <div className="flex justify-between items-center mb-1.5">
-                <span className={`text-[13px] font-medium ${unsolved ? "text-text-caption" : "text-text-primary"}`}>
+                <span className={`text-footnote font-medium ${unsolved ? "text-text-caption" : "text-text-primary"}`}>
                   {stat.displayName}
                 </span>
                 {unsolved ? (
-                  <span className="text-[12px] text-border">미학습</span>
+                  <span className="text-caption1 text-border">미학습</span>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <span className="text-[12px] text-text-caption">{stat.solvedCount}문제</span>
-                    <span className={`text-[11px] font-semibold px-1.5 py-px rounded-full ${colors!.badge}`}>
+                    <span className="text-caption1 text-text-caption">{stat.solvedCount}문제</span>
+                    <span className={`text-caption2 font-semibold px-1.5 py-px rounded-full ${colors!.badge}`}>
                       {Math.round(stat.correctRate * 100)}%
                     </span>
                   </div>
@@ -130,7 +130,7 @@ export default function StatsTopicList({ topicStats }: StatsTopicListProps) {
         {LEGEND.map(({ color, label }) => (
           <div key={label} className="flex items-center gap-1">
             <div className={`w-2 h-2 rounded-sm ${color}`} />
-            <span className="text-[11px] text-text-caption">{label}</span>
+            <span className="text-caption2 text-text-caption">{label}</span>
           </div>
         ))}
       </div>

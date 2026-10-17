@@ -28,7 +28,7 @@ export default function PracticeQuestionResultRow({
 }: PracticeQuestionResultRowProps) {
   return (
     <div
-      className={`border rounded-[10px] overflow-hidden transition-all duration-350 ease-out ${
+      className={`border rounded-tile overflow-hidden transition-all duration-350 ease-out ${
         result.isCorrect
           ? "bg-semantic-success-light border-semantic-success-border"
           : "bg-semantic-error-light border-semantic-error-border"
