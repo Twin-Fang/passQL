@@ -29,6 +29,7 @@ class AuthApi {
     required String code,
     required String redirectUri,
     required String state,
+    required String codeVerifier,
   }) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/auth/login/code',
@@ -37,6 +38,8 @@ class AuthApi {
         'code': code,
         'redirectUri': redirectUri,
         'state': state,
+        // PKCE 원문: 서버가 토큰 교환 요청의 code_verifier 로 전달
+        'codeVerifier': codeVerifier,
       },
     );
     return LoginResult.fromJson(response.data!);

@@ -17,7 +17,6 @@ import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/monitoring_member_sync.dart';
 import 'presentation/providers/push_notification_providers.dart';
 import 'presentation/providers/theme_mode_provider.dart';
-import 'presentation/providers/session_reset.dart';
 import 'router/app_launch_gate_routing.dart';
 import 'router/app_router.dart';
 import 'router/screen_view_tracker.dart';
@@ -49,15 +48,8 @@ Future<void> main() async {
   await container.read(authProvider.future);
 
   // 인증 상태가 바뀔 때마다 라우터에 알려 로그인/홈 화면 전환을 맡긴다.
-  container.listen(authProvider, (prev, next) {
+  container.listen(authProvider, (_, next) {
     AppRouter.authenticated.value = next.valueOrNull != null;
-
-    // 로그아웃하거나 다른 계정으로 바뀌면 이전 사용자의 캐시를 비운다.
-    final before = prev?.valueOrNull?.memberUuid;
-    final after = next.valueOrNull?.memberUuid;
-    if (prev != null && before != after) {
-      resetUserScopedProviders(container.invalidate);
-    }
   }, fireImmediately: true);
   syncMonitoringMemberWithAuth(container);
   trackScreenViews(AppRouter.router);

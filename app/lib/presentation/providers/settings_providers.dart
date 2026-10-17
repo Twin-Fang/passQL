@@ -7,6 +7,7 @@ import '../../data/models/member/choice_generation_mode.dart';
 import '../../data/models/member/choice_mode_models.dart';
 import '../../data/models/member/nickname_models.dart';
 import 'auth_provider.dart';
+import 'session_reset.dart';
 
 /// 설정 화면 데이터 집계 모델
 class SettingsData {
@@ -22,7 +23,13 @@ class SettingsData {
 }
 
 /// 설정 화면 회원 데이터: GET /members/me > 회원 ID·닉네임·선택지 모드
-final settingsDataProvider = FutureProvider<SettingsData>((ref) async {
+/// 로그아웃이면 로딩 유지 (API 호출 없음)
+final settingsDataProvider = FutureProvider.autoDispose<SettingsData>((
+  ref,
+) async {
+  if (ref.watch(currentMemberUuidProvider) == null) {
+    return waitForSignedInMember();
+  }
   final me = await ref.read(memberApiProvider).getMe();
   return SettingsData(
     memberUuid: me.memberUuid,
@@ -36,7 +43,7 @@ final settingsDataProvider = FutureProvider<SettingsData>((ref) async {
 /// 닉네임의 기준은 로그인 세션이다. 따로 캐시하지 않아서 계정을 바꿔도 이전 계정의
 /// 닉네임이 남지 않는다. 서버가 거절하면(중복, 쿨다운, 형식 등) [AppException] 을 던져
 /// 화면이 `message` 를 그대로 보여줄 수 있게 한다.
-class NicknameNotifier extends AsyncNotifier<String?> {
+class NicknameNotifier extends AutoDisposeAsyncNotifier<String?> {
   @override
   Future<String?> build() async =>
       (await ref.watch(authProvider.future))?.nickname;
@@ -74,12 +81,15 @@ class NicknameNotifier extends AsyncNotifier<String?> {
 }
 
 final nicknameNotifierProvider =
-    AsyncNotifierProvider<NicknameNotifier, String?>(NicknameNotifier.new);
+    AsyncNotifierProvider.autoDispose<NicknameNotifier, String?>(
+      NicknameNotifier.new,
+    );
 
 /// 선택지 생성 모드 Notifier.
 ///
 /// 토글이 즉시 반응하도록 먼저 화면 상태를 바꾸고, 서버 저장이 실패하면 되돌린다.
-class ChoiceModeNotifier extends AsyncNotifier<ChoiceGenerationMode> {
+class ChoiceModeNotifier
+    extends AutoDisposeAsyncNotifier<ChoiceGenerationMode> {
   @override
   Future<ChoiceGenerationMode> build() async =>
       (await ref.watch(settingsDataProvider.future)).choiceMode;
@@ -105,6 +115,6 @@ class ChoiceModeNotifier extends AsyncNotifier<ChoiceGenerationMode> {
 }
 
 final choiceModeProvider =
-    AsyncNotifierProvider<ChoiceModeNotifier, ChoiceGenerationMode>(
+    AsyncNotifierProvider.autoDispose<ChoiceModeNotifier, ChoiceGenerationMode>(
       ChoiceModeNotifier.new,
     );

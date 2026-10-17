@@ -25,6 +25,7 @@ class SocialAuthorizationCodeCredential extends SocialCredential {
     required this.code,
     required this.redirectUri,
     required this.state,
+    required this.codeVerifier,
   }) : super(provider);
 
   final String code;
@@ -34,4 +35,7 @@ class SocialAuthorizationCodeCredential extends SocialCredential {
 
   /// 인가 요청에 실어 보낸 일회용 값 (앱에서 콜백과 대조 완료)
   final String state;
+
+  /// PKCE 원문 (인가 요청에는 S256 해시만 전송, 서버가 코드 교환 때 원문 전달)
+  final String codeVerifier;
 }

@@ -27,7 +27,11 @@ mixin _$MemberMeResponse {
   @JsonKey(unknownEnumValue: ChoiceGenerationMode.practice)
   ChoiceGenerationMode? get choiceGenerationMode =>
       throw _privateConstructorUsedError;
-  DateTime? get nicknameChangedAt => throw _privateConstructorUsedError;
+  DateTime? get nicknameChangedAt =>
+      throw _privateConstructorUsedError; // 로그인 제공자 서버 값 (GOOGLE, APPLE, KAKAO, NAVER, GITHUB): 탈퇴 연결 해제 분기 기준
+  String? get authProvider =>
+      throw _privateConstructorUsedError; // 제공자 회원 식별자 (GOOGLE·APPLE 은 Firebase uid): 탈퇴 재인증 계정 대조 기준
+  String? get providerUserId => throw _privateConstructorUsedError;
 
   /// Serializes this MemberMeResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -52,6 +56,8 @@ abstract class $MemberMeResponseCopyWith<$Res> {
     @JsonKey(unknownEnumValue: ChoiceGenerationMode.practice)
     ChoiceGenerationMode? choiceGenerationMode,
     DateTime? nicknameChangedAt,
+    String? authProvider,
+    String? providerUserId,
   });
 }
 
@@ -74,6 +80,8 @@ class _$MemberMeResponseCopyWithImpl<$Res, $Val extends MemberMeResponse>
     Object? nickname = null,
     Object? choiceGenerationMode = freezed,
     Object? nicknameChangedAt = freezed,
+    Object? authProvider = freezed,
+    Object? providerUserId = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -93,6 +101,14 @@ class _$MemberMeResponseCopyWithImpl<$Res, $Val extends MemberMeResponse>
                 ? _value.nicknameChangedAt
                 : nicknameChangedAt // ignore: cast_nullable_to_non_nullable
                       as DateTime?,
+            authProvider: freezed == authProvider
+                ? _value.authProvider
+                : authProvider // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            providerUserId: freezed == providerUserId
+                ? _value.providerUserId
+                : providerUserId // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -114,6 +130,8 @@ abstract class _$$MemberMeResponseImplCopyWith<$Res>
     @JsonKey(unknownEnumValue: ChoiceGenerationMode.practice)
     ChoiceGenerationMode? choiceGenerationMode,
     DateTime? nicknameChangedAt,
+    String? authProvider,
+    String? providerUserId,
   });
 }
 
@@ -135,6 +153,8 @@ class __$$MemberMeResponseImplCopyWithImpl<$Res>
     Object? nickname = null,
     Object? choiceGenerationMode = freezed,
     Object? nicknameChangedAt = freezed,
+    Object? authProvider = freezed,
+    Object? providerUserId = freezed,
   }) {
     return _then(
       _$MemberMeResponseImpl(
@@ -154,6 +174,14 @@ class __$$MemberMeResponseImplCopyWithImpl<$Res>
             ? _value.nicknameChangedAt
             : nicknameChangedAt // ignore: cast_nullable_to_non_nullable
                   as DateTime?,
+        authProvider: freezed == authProvider
+            ? _value.authProvider
+            : authProvider // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        providerUserId: freezed == providerUserId
+            ? _value.providerUserId
+            : providerUserId // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -168,6 +196,8 @@ class _$MemberMeResponseImpl implements _MemberMeResponse {
     @JsonKey(unknownEnumValue: ChoiceGenerationMode.practice)
     this.choiceGenerationMode,
     this.nicknameChangedAt,
+    this.authProvider,
+    this.providerUserId,
   });
 
   factory _$MemberMeResponseImpl.fromJson(Map<String, dynamic> json) =>
@@ -183,10 +213,16 @@ class _$MemberMeResponseImpl implements _MemberMeResponse {
   final ChoiceGenerationMode? choiceGenerationMode;
   @override
   final DateTime? nicknameChangedAt;
+  // 로그인 제공자 서버 값 (GOOGLE, APPLE, KAKAO, NAVER, GITHUB): 탈퇴 연결 해제 분기 기준
+  @override
+  final String? authProvider;
+  // 제공자 회원 식별자 (GOOGLE·APPLE 은 Firebase uid): 탈퇴 재인증 계정 대조 기준
+  @override
+  final String? providerUserId;
 
   @override
   String toString() {
-    return 'MemberMeResponse(memberUuid: $memberUuid, nickname: $nickname, choiceGenerationMode: $choiceGenerationMode, nicknameChangedAt: $nicknameChangedAt)';
+    return 'MemberMeResponse(memberUuid: $memberUuid, nickname: $nickname, choiceGenerationMode: $choiceGenerationMode, nicknameChangedAt: $nicknameChangedAt, authProvider: $authProvider, providerUserId: $providerUserId)';
   }
 
   @override
@@ -201,7 +237,11 @@ class _$MemberMeResponseImpl implements _MemberMeResponse {
             (identical(other.choiceGenerationMode, choiceGenerationMode) ||
                 other.choiceGenerationMode == choiceGenerationMode) &&
             (identical(other.nicknameChangedAt, nicknameChangedAt) ||
-                other.nicknameChangedAt == nicknameChangedAt));
+                other.nicknameChangedAt == nicknameChangedAt) &&
+            (identical(other.authProvider, authProvider) ||
+                other.authProvider == authProvider) &&
+            (identical(other.providerUserId, providerUserId) ||
+                other.providerUserId == providerUserId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -212,6 +252,8 @@ class _$MemberMeResponseImpl implements _MemberMeResponse {
     nickname,
     choiceGenerationMode,
     nicknameChangedAt,
+    authProvider,
+    providerUserId,
   );
 
   /// Create a copy of MemberMeResponse
@@ -238,6 +280,8 @@ abstract class _MemberMeResponse implements MemberMeResponse {
     @JsonKey(unknownEnumValue: ChoiceGenerationMode.practice)
     final ChoiceGenerationMode? choiceGenerationMode,
     final DateTime? nicknameChangedAt,
+    final String? authProvider,
+    final String? providerUserId,
   }) = _$MemberMeResponseImpl;
 
   factory _MemberMeResponse.fromJson(Map<String, dynamic> json) =
@@ -251,7 +295,11 @@ abstract class _MemberMeResponse implements MemberMeResponse {
   @JsonKey(unknownEnumValue: ChoiceGenerationMode.practice)
   ChoiceGenerationMode? get choiceGenerationMode;
   @override
-  DateTime? get nicknameChangedAt;
+  DateTime? get nicknameChangedAt; // 로그인 제공자 서버 값 (GOOGLE, APPLE, KAKAO, NAVER, GITHUB): 탈퇴 연결 해제 분기 기준
+  @override
+  String? get authProvider; // 제공자 회원 식별자 (GOOGLE·APPLE 은 Firebase uid): 탈퇴 재인증 계정 대조 기준
+  @override
+  String? get providerUserId;
 
   /// Create a copy of MemberMeResponse
   /// with the given fields replaced by the non-null parameter values.

@@ -13,6 +13,8 @@ class FakeMemberApi implements MemberApiClient {
     this.choiceModeError,
     this.withdrawError,
     this.regenerateNicknameError,
+    this.meAuthProvider,
+    this.meProviderUserId,
   });
 
   bool isNicknameAvailable;
@@ -21,9 +23,16 @@ class FakeMemberApi implements MemberApiClient {
   DioException? withdrawError;
   DioException? regenerateNicknameError;
 
+  /// GET /members/me 응답의 authProvider (null 이면 서버가 안 내려준 경우)
+  String? meAuthProvider;
+
+  /// GET /members/me 응답의 providerUserId (GOOGLE·APPLE 은 Firebase uid)
+  String? meProviderUserId;
+
   /// 호출 기록 (check:닉네임, change:닉네임, mode:값)
   final calls = <String>[];
   int withdrawCalls = 0;
+  int getMeCalls = 0;
 
   @override
   Future<NicknameCheckResponse> checkNickname(String nickname) async {
@@ -53,7 +62,15 @@ class FakeMemberApi implements MemberApiClient {
   }
 
   @override
-  Future<MemberMeResponse> getMe() => throw UnimplementedError();
+  Future<MemberMeResponse> getMe() async {
+    getMeCalls++;
+    return MemberMeResponse(
+      memberUuid: 'member-me',
+      nickname: '회원',
+      authProvider: meAuthProvider,
+      providerUserId: meProviderUserId,
+    );
+  }
 
   @override
   Future<NicknameRegenerateResponse> regenerateNickname() async {

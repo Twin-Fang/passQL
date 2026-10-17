@@ -5,15 +5,21 @@ import '../../core/network/api_call.dart';
 import '../../core/error/error_code.dart';
 import '../../data/models/daily_set/daily_set_models.dart';
 import '../../data/sources/api_providers.dart';
+import 'session_reset.dart';
 
 /// 오늘의 세트 상태(완료 여부, 정답 수). 결과 화면을 직접 열었을 때 쓴다.
+/// 로그아웃이면 로딩 유지 (API 호출 없음)
 final dailySetTodayProvider = FutureProvider.autoDispose<DailySetTodayResponse>(
-  (ref) => ref.read(dailySetApiProvider).getToday(),
+  (ref) => ref.watch(currentMemberUuidProvider) == null
+      ? waitForSignedInMember()
+      : ref.read(dailySetApiProvider).getToday(),
 );
 
-/// 오늘의 순위.
+/// 오늘의 순위. 로그아웃이면 로딩 유지 (API 호출 없음)
 final leaderboardProvider = FutureProvider.autoDispose<LeaderboardResponse>(
-  (ref) => ref.read(dailySetApiProvider).getLeaderboard(),
+  (ref) => ref.watch(currentMemberUuidProvider) == null
+      ? waitForSignedInMember()
+      : ref.read(dailySetApiProvider).getLeaderboard(),
 );
 
 /// 오늘의 세트 점수 등록 결과: 순위 정보(실패 시 null) + 순위 미반영 사유(성공·이미 등록 시 null)

@@ -5,6 +5,7 @@ import '../../core/network/api_call.dart';
 import '../../data/models/meta/app_config.dart';
 import '../../data/models/notification/notification_models.dart';
 import '../../data/sources/api_providers.dart';
+import 'session_reset.dart';
 import 'unread_notification_providers.dart';
 
 /// 알림함 탭 1개의 목록 상태: 불러온 항목, 다음 페이지 커서, 추가 로딩 중 여부
@@ -35,10 +36,18 @@ class NotificationInboxState {
 }
 
 /// 알림함 탭 목록: 첫 페이지 조회, 커서 무한 스크롤, 읽음 처리(화면에 먼저 반영 > 서버 > 개수 재조회)
+/// 로그아웃이면 로딩 유지 (API 호출 없음, 빈 목록을 이전 값으로 남기면 로그인 후 조회 실패가 빈 목록으로 보임)
 class NotificationInboxNotifier
-    extends FamilyAsyncNotifier<NotificationInboxState, NotificationCategory> {
+    extends
+        AutoDisposeFamilyAsyncNotifier<
+          NotificationInboxState,
+          NotificationCategory
+        > {
   @override
   Future<NotificationInboxState> build(NotificationCategory arg) async {
+    if (ref.watch(currentMemberUuidProvider) == null) {
+      return waitForSignedInMember();
+    }
     final page = await callApiThrowingAppException(
       ref
           .read(notificationApiProvider)
@@ -125,8 +134,8 @@ class NotificationInboxNotifier
   }
 }
 
-final notificationInboxProvider =
-    AsyncNotifierProvider.family<
+final notificationInboxProvider = AsyncNotifierProvider.autoDispose
+    .family<
       NotificationInboxNotifier,
       NotificationInboxState,
       NotificationCategory
@@ -134,7 +143,7 @@ final notificationInboxProvider =
 
 /// 홈 배너에 띄울 공지 1건: 안 읽은 중요 공지 중 서버 순서상 첫 번째 (없거나 조회 실패 > null)
 /// 공지 탭 목록과 같은 데이터라 읽음 처리하면 배너도 함께 사라짐
-final homeNoticeProvider = Provider<AppNotice?>((ref) {
+final homeNoticeProvider = Provider.autoDispose<AppNotice?>((ref) {
   final inbox = ref
       .watch(notificationInboxProvider(NotificationCategory.notice))
       .valueOrNull;

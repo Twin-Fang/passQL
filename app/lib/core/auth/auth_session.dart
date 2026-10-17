@@ -11,6 +11,11 @@ enum SocialProvider {
 
   /// 서버 LoginRequest.authProvider 에 그대로 전달하는 값.
   final String serverValue;
+
+  /// 서버 authProvider 값 > 제공자 (모르는 값·null > null)
+  static SocialProvider? fromServerValue(String? serverValue) => values
+      .where((provider) => provider.serverValue == serverValue)
+      .firstOrNull;
 }
 
 /// 로그인된 회원 세션.
@@ -22,6 +27,7 @@ class AuthSession {
     required this.refreshToken,
     required this.memberUuid,
     required this.nickname,
+    this.authProvider,
   });
 
   final String accessToken;
@@ -29,12 +35,25 @@ class AuthSession {
   final String memberUuid;
   final String nickname;
 
+  /// 로그인한 제공자 (탈퇴 시 연결 해제 분기 기준). 이전 버전에서 저장한 세션은 null
+  final SocialProvider? authProvider;
+
   /// 닉네임만 바뀌는 경우(변경, 재생성)에는 나머지 정보는 유지한다.
   AuthSession withNickname(String nickname) => AuthSession(
     accessToken: accessToken,
     refreshToken: refreshToken,
     memberUuid: memberUuid,
     nickname: nickname,
+    authProvider: authProvider,
+  );
+
+  /// 로그인 요청에 쓴 제공자 기록 (로그인 응답에는 제공자가 없음)
+  AuthSession withAuthProvider(SocialProvider authProvider) => AuthSession(
+    accessToken: accessToken,
+    refreshToken: refreshToken,
+    memberUuid: memberUuid,
+    nickname: nickname,
+    authProvider: authProvider,
   );
 
   /// 재발급 시에는 토큰만 바뀌므로 나머지 정보는 유지한다.
@@ -46,6 +65,7 @@ class AuthSession {
     refreshToken: refreshToken,
     memberUuid: memberUuid,
     nickname: nickname,
+    authProvider: authProvider,
   );
 }
 

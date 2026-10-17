@@ -56,6 +56,14 @@ class NaverSocialSignIn {
     } catch (_) {}
   }
 
+  /// 탈퇴 후 네이버 토큰 삭제(연동 해제) (설정 없는 빌드는 생략, 실패해도 진행: 서버도 해제)
+  Future<void> deleteToken() async {
+    if (_readClientId().isEmpty) return;
+    try {
+      await FlutterNaverLogin.logOutAndDeleteToken();
+    } catch (_) {}
+  }
+
   /// 사용자 취소 판정: Android 는 loggedOut 상태, iOS 는 cancel 문구가 담긴 error 상태
   static bool isCancelledResult(NaverLoginResult result) {
     if (result.status == NaverLoginStatus.loggedOut) return true;

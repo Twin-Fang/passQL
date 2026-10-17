@@ -41,10 +41,41 @@ class MultiProviderSocialSignIn implements SocialSignIn {
     }
   }
 
-  /// 회수 대상은 Apple 만 (Firebase 담당, 심사 5.1.1(v)). 카카오·네이버·GitHub 는 서버 회원 삭제만
+  /// 탈퇴 전 확인: Apple 재인증·계정 대조·revoke(필수), Google 계정 대조 (Firebase 담당, 심사 5.1.1(v))
+  /// 카카오·네이버·GitHub 는 확인 없음. 제공자 모름 > Firebase 로그인 기준
   @override
-  Future<bool> revokeAccessForWithdrawal() =>
-      _firebase.revokeAccessForWithdrawal();
+  Future<bool> revokeAccessForWithdrawal(
+    SocialProvider? provider, {
+    String? providerUserId,
+  }) => switch (provider) {
+    SocialProvider.apple => _firebase.revokeAppleAccess(
+      expectedUid: providerUserId,
+    ),
+    SocialProvider.google => _firebase.confirmGoogleAccount(
+      expectedUid: providerUserId,
+    ),
+    null => _firebase.revokeAppleAccessIfSignedInWithApple(
+      expectedUid: providerUserId,
+    ),
+    _ => Future.value(true),
+  };
+
+  /// 제공자별 연결 해제 (각 구현이 실패를 삼킴)
+  /// 카카오는 서버가 Admin 키로 unlink (앱 중복 해제 시 한쪽 실패 > 로그아웃만), GitHub 는 서버가 grant 삭제
+  @override
+  Future<void> disconnectAfterWithdrawal(SocialProvider? provider) async {
+    switch (provider) {
+      case SocialProvider.google:
+        await _firebase.disconnectGoogle();
+      case SocialProvider.naver:
+        await _naver.deleteToken();
+      case SocialProvider.kakao:
+      case SocialProvider.apple:
+      case SocialProvider.github:
+      case null:
+        break;
+    }
+  }
 
   /// 어느 제공자로 로그인했든 전부 정리 (각 구현이 실패를 삼킴)
   @override

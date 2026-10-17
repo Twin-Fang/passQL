@@ -7,6 +7,7 @@ import 'package:passql_app/data/sources/api_providers.dart';
 import 'package:passql_app/data/models/report/report_models.dart';
 import 'package:passql_app/data/sources/report_api.dart';
 import 'package:passql_app/presentation/design/design.dart';
+import 'package:passql_app/presentation/providers/session_reset.dart';
 import 'package:passql_app/presentation/widgets/report/report_button.dart';
 
 import '../../helpers/pump_app.dart';
@@ -51,7 +52,11 @@ Future<void> _open(WidgetTester tester, _FakeReportApi api) async {
   await pumpApp(
     tester,
     ProviderScope(
-      overrides: [reportApiProvider.overrideWithValue(api)],
+      overrides: [
+        reportApiProvider.overrideWithValue(api),
+        // 로그인 회원 (로그아웃이면 회원 API 를 부르지 않음)
+        currentMemberUuidProvider.overrideWithValue('member-test'),
+      ],
       child: const MaterialApp(
         home: Scaffold(
           body: ReportButton(

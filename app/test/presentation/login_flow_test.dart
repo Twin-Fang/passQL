@@ -37,7 +37,13 @@ class _ScriptedSocialSignIn implements SocialSignIn {
   }
 
   @override
-  Future<bool> revokeAccessForWithdrawal() async => true;
+  Future<bool> revokeAccessForWithdrawal(
+    SocialProvider? provider, {
+    String? providerUserId,
+  }) async => true;
+
+  @override
+  Future<void> disconnectAfterWithdrawal(SocialProvider? provider) async {}
 
   @override
   Future<void> signOut() async {}

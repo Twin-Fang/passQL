@@ -34,12 +34,18 @@ abstract interface class SocialSignIn {
   /// 사용자가 취소하면 null, 실패하면 [SocialSignInException].
   Future<SocialCredential?> fetchCredential(SocialProvider provider);
 
-  /// 회원 탈퇴 전에 소셜 쪽 접근 권한을 회수한다.
-  ///
-  /// Apple 은 계정 삭제 시 토큰 폐기를 요구한다(App Store 5.1.1(v)). Apple 로그인 사용자는
-  /// 본인 확인을 위해 Apple 인증을 다시 거친다. 사용자가 취소하면 false 를 돌려주고 탈퇴를 중단한다.
-  /// 회수할 것이 없는 경우(Google 등)는 true 다.
-  Future<bool> revokeAccessForWithdrawal();
+  /// 서버 탈퇴 전 확인: [provider] 가 Apple 이면 재인증 > 계정 대조 > 토큰 revoke (App Store 5.1.1(v)),
+  /// Google 이면 계정 대조. 대조 기준 [providerUserId] = 서버 회원 제공자 식별자 (Firebase uid)
+  /// 취소 > false (탈퇴 중단), 실패·다른 계정 > [SocialSignInException], 확인 대상 아님 > true
+  /// [provider] null(제공자 모름) > 기기의 Firebase 로그인 기준으로 Apple 여부 판단
+  Future<bool> revokeAccessForWithdrawal(
+    SocialProvider? provider, {
+    String? providerUserId,
+  });
+
+  /// 서버 탈퇴 성공 후 제공자 연결 해제 (최선, 실패 무시)
+  /// Google disconnect, 네이버 토큰 삭제. 카카오·GitHub 는 서버 담당, Apple 은 revoke 완료
+  Future<void> disconnectAfterWithdrawal(SocialProvider? provider);
 
   /// 소셜 쪽 로그인 상태도 함께 정리한다. 실패해도 예외를 던지지 않는다.
   Future<void> signOut();
@@ -55,7 +61,13 @@ class UnconfiguredSocialSignIn implements SocialSignIn {
   }
 
   @override
-  Future<bool> revokeAccessForWithdrawal() async => true;
+  Future<bool> revokeAccessForWithdrawal(
+    SocialProvider? provider, {
+    String? providerUserId,
+  }) async => true;
+
+  @override
+  Future<void> disconnectAfterWithdrawal(SocialProvider? provider) async {}
 
   @override
   Future<void> signOut() async {}

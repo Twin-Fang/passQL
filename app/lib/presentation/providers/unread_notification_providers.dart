@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/notification/notification_models.dart';
 import '../../data/sources/api_providers.dart';
-import 'auth_provider.dart';
+import 'session_reset.dart';
 
 /// 안 읽은 알림 개수 단일 출처 (종 아이콘·탭 개수·앱 아이콘 숫자가 모두 이 값)
 /// 로그인·회원 변경 시 조회, 이후 복귀·푸시 수신·알림함 진입·읽음 처리 때 [refresh] (화면이 따로 조회하지 않음)
@@ -20,9 +20,7 @@ class UnreadNotificationCountNotifier
     _isDisposed = false;
     _inFlightRefresh = null;
     ref.onDispose(() => _isDisposed = true);
-    final memberUuid = ref.watch(
-      authProvider.select((session) => session.valueOrNull?.memberUuid),
-    );
+    final memberUuid = ref.watch(currentMemberUuidProvider);
     if (memberUuid != null) Future.microtask(refresh);
     return const UnreadNotificationCount();
   }
@@ -33,7 +31,7 @@ class UnreadNotificationCountNotifier
   );
 
   Future<void> _fetchCount() async {
-    if (ref.read(authProvider).valueOrNull == null) return;
+    if (ref.read(currentMemberUuidProvider) == null) return;
     try {
       final count = await ref.read(notificationApiProvider).getUnreadCount();
       if (!_isDisposed) state = count;

@@ -8,6 +8,7 @@ import 'package:passql_app/data/sources/feedback_api.dart';
 import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/pages/feedback/feedback_page.dart';
 import 'package:passql_app/presentation/providers/feedback_providers.dart';
+import 'package:passql_app/presentation/providers/session_reset.dart';
 
 import '../../helpers/pump_app.dart';
 
@@ -59,6 +60,8 @@ Future<void> _open(
     ProviderScope(
       overrides: [
         feedbackApiProvider.overrideWithValue(api),
+        // 로그인 회원 (로그아웃이면 회원 API 를 부르지 않음)
+        currentMemberUuidProvider.overrideWithValue('member-test'),
         // 기본은 기기 요약 없음 (본문만 비교)
         appDeviceSummaryReaderProvider.overrideWithValue(
           () async => deviceSummary,
