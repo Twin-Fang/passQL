@@ -79,7 +79,7 @@ th:data-href="@{/admin/members/{uuid}(uuid=${m.memberUuid})}"
   - 예: `version: "0.0.11"` → `V0_0_11__add_user_table.sql`
 - **마이그레이션 파일 작성 전 반드시 프로젝트 루트 `version.yml`을 먼저 읽어 현재 버전을 확인한다**
 - **하나의 version.yml 버전당 마이그레이션 파일은 반드시 1개만 작성한다** — DDL과 DML을 분리하고 싶어도 하나의 파일에 통합할 것. Flyway는 같은 버전 prefix 파일 2개를 허용하지 않는다
-- 이미 구현된 마이그레이션이 있으면 다시 만들지 않는다 — 이력 표를 먼저 확인한 뒤 누락된 것만 추가
+- 이미 구현된 마이그레이션이 있으면 다시 만들지 않는다 — 마이그레이션 폴더를 먼저 확인한 뒤 누락된 것만 추가
 - `hibernate.ddl-auto`는 `update` 모드 — Flyway는 보조 수단, Hibernate가 실제 스키마를 관리함
 - **Entity를 추가/변경하면 반드시 대응하는 마이그레이션 파일을 함께 작성해야 한다**
 - 기존 마이그레이션 파일은 절대 수정하지 말 것 (새 버전 파일로 추가)
@@ -89,8 +89,7 @@ th:data-href="@{/admin/members/{uuid}(uuid=${m.memberUuid})}"
 ### 마이그레이션 이력 확인
 
 - 이력의 원본은 마이그레이션 폴더 자체다. 문서에 표로 복사하지 않는다.
-  - 확인: `ls PQL-Web/src/main/resources/db/migration | sort -V`
-  - 2026-10-15 기준 38개, 최신 `V0_4_2__add_exam_announcement_checked_setting.sql`
+  - 확인: `ls PQL-Web/src/main/resources/db/migration | sort -V` (개수·최신 파일명은 문서에 적지 않는다 — 늘 폴더를 본다)
 - `spring.flyway.out-of-order: true`는 반드시 유지 (늦게 추가된 낮은 버전 파일이 조용히 스킵되던 로그인 장애 원인)
 
 ## 모듈 구조
@@ -201,6 +200,7 @@ private boolean isTestAccount;
 - **Controller에서 Repository를 직접 주입하지 않는다.** 반드시 Service를 통해 호출한다.
   - 금지: `private final ConceptTagRepository conceptTagRepository;` (Controller에서)
   - 허용: `private final MetaService metaService;`
+- **Controller에서 `*Client`·`*Executor`·`*Pool`(AI 게이트웨이·샌드박스 등 인프라)을 직접 주입하지 않는다.** Service 경유 (ArchitectureRuleTest 가 강제).
 - **`@Transactional`을 Controller에 선언하지 않는다.** 트랜잭션은 Service 레이어에서만 관리한다.
 - Controller에 조건/변환 로직이 3줄 이상이면 Service 메서드로 추출한다.
 
@@ -258,6 +258,9 @@ throw new CustomException(ErrorCode.NOT_SELECT);
 - 리다이렉트 후 저장 토스트: `AdminFlash.TOAST_MESSAGE` 플래시 속성
 - 미리보기 자르기: `TextPreview.truncate` / `truncateWithEllipsis` + 용도별 길이 상수
 - UUID 짧은 표기: `UuidUtils.toShortForm`
+- 임시 샌드박스 실행: `SandboxExecutor.runInTemporarySandbox` (획득 > DDL·샘플 > 작업 > 반납, `SandboxPool.acquire` 직접 호출 금지)
+- 프롬프트 템플릿 > LLM 설정: `PromptLlmConfigFactory.toLlmConfig`
+- 예외 detail 에 `e.getMessage()` 원문을 붙이지 않는다 (응답으로 나감). 원문은 로그·cause 로만
 
 ### ErrorCode 추가 방법
 `PQL-Common/src/main/java/com/passql/common/exception/constant/ErrorCode.java`에 카테고리에 맞게 추가:
@@ -275,11 +278,11 @@ SQL_SAFETY_VIOLATION(HttpStatus.BAD_REQUEST, "허용되지 않는 SQL입니다."
 
 ## 테스트 코드 컨벤션
 
-### 철학
-- **눈으로 보는 테스트**: `assertEquals` 같은 단언문 대신 `superLog()`로 결과를 출력하고 눈으로 확인한다.
-- **통합 테스트 우선**: 실제 DB와 스프링 컨텍스트를 띄워서 진짜 동작을 검증한다.
+### 두 종류 (실제 코드 기준)
+- **단위 테스트 (대부분)**: 스프링 없이 대상 클래스를 직접 만들고 의존성은 Mockito `mock()`으로 대체한다. 결과는 AssertJ `assertThat`으로 단언한다. 규칙 테스트(`ArchitectureRuleTest`, `architecture/ArchitectureRulesTest`)도 이 방식이다.
+- **통합 테스트 (눈으로 보는 테스트)**: 실제 DB와 스프링 컨텍스트를 띄우고 `superLog()`로 결과를 출력해 눈으로 확인한다. 로컬 DB·`dev` 프로필이 필요하다.
 
-### 구조 (필수 패턴)
+### 통합 테스트 구조
 ```java
 @SpringBootTest(classes = PassqlApplication.class)
 @ActiveProfiles("dev")
@@ -308,7 +311,7 @@ class XxxServiceTest {
 }
 ```
 
-### 규칙
+### 통합 테스트 규칙
 - `@Test`는 `mainTest()` 하나만. 세부 케이스는 `timeLog(this::xxx_테스트)`로 위임한다.
 - `@Transactional`은 `@Test`(= `mainTest()`) 에 선언한다. 세부 메서드에는 붙이지 않는다.
 - 결과 출력은 `superLog(객체)` / 구분선은 `lineLog("설명")` 또는 `lineLog(null)` / 시간 측정은 `timeLog(this::메서드)`.
@@ -316,9 +319,9 @@ class XxxServiceTest {
 - 멀티모듈 프로젝트에서 `PassqlApplication`을 사용하려면 해당 모듈 `build.gradle`에 `testImplementation project(':PQL-Web')` 추가.
 - 테스트 파일 위치: 대상 클래스와 동일한 패키지 구조로 `src/test/java/` 하위에 생성.
 
-### assertThat 사용 여부
-- 기본적으로 **사용하지 않는다**. `superLog()`로 출력하고 눈으로 확인하는 것이 이 프로젝트의 스타일.
-- 단, NPE·예외 발생 여부처럼 눈으로 확인이 불가능한 경우에만 최소한으로 사용할 수 있다.
+### 단위 테스트 규칙
+- 동작을 고정하는 테스트(리팩터링 안전망, 규칙 테스트)는 `assertThat`으로 단언한다. 눈으로만 확인하면 CI가 잡지 못한다.
+- 테스트 이름은 한국어 문장형 메서드명 (`작업이_실패해도_반납한다`).
 
 ---
 
@@ -342,13 +345,13 @@ class XxxServiceTest {
 - [ ] Entity 추가/변경 시 Flyway 마이그레이션 파일도 함께 작성했는가?
 - [ ] 마이그레이션 파일 작성 전 `version.yml`을 읽어 현재 버전을 확인했는가?
 - [ ] 동일 버전으로 파일이 2개 이상 생성되지 않았는가? (버전당 파일 1개 원칙)
-- [ ] 이미 존재하는 마이그레이션을 중복 생성하지 않았는가? (이력 표 먼저 확인)
+- [ ] 이미 존재하는 마이그레이션을 중복 생성하지 않았는가? (마이그레이션 폴더 먼저 확인)
 - [ ] Controller에서 Repository를 직접 주입하지 않았는가? (반드시 Service 경유)
 - [ ] Controller에 `@Transactional`이 없는가? (Service 레이어에만 허용)
 - [ ] Controller에 비즈니스 로직이 없는가? (3줄 이상 조건/변환 → Service로 추출)
 - [ ] API 추가/변경 시 Controller Docs 인터페이스에 `@ApiLog`를 추가했는가?
-- [ ] 테스트 코드에 `assertThat` 대신 `superLog()`로 결과를 출력했는가?
-- [ ] 테스트 `@Transactional`은 `mainTest()`에만 선언했는가? (세부 메서드에 중복 선언 금지)
+- [ ] 단위 테스트는 `assertThat`으로 단언하고, 통합 테스트는 `superLog()`로 출력했는가?
+- [ ] 통합 테스트 `@Transactional`은 `mainTest()`에만 선언했는가? (세부 메서드에 중복 선언 금지)
 - [ ] 멀티모듈 테스트에 `testImplementation project(':PQL-Web')`를 추가했는가?
 - [ ] 도메인별 `XxxException` 클래스를 만들지 않았는가? (반드시 `CustomException(ErrorCode.XXX)` 사용)
 - [ ] 새 에러 타입이 필요하면 `ErrorCode` enum에 추가했는가?

@@ -3,33 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/monitoring/app_analytics.dart';
-import '../../data/models/daily_set/daily_set_models.dart';
 import '../../router/app_routes.dart';
+import '../../router/result_route_arguments.dart';
 import '../providers/chapter_providers.dart';
 import '../providers/daily_set_providers.dart';
 import 'question_flow.dart';
-
-/// 데일리 세트 결과 화면에 넘기는 값.
-class DailySetOutcome {
-  const DailySetOutcome({
-    required this.results,
-    required this.correctCount,
-    this.completed,
-    this.saveError,
-  });
-
-  /// 문제별 정오답.
-  final List<ChapterResult> results;
-
-  /// 이번에 맞힌 개수.
-  final int correctCount;
-
-  /// 서버가 돌려준 순위 정보. 점수 등록에 실패했으면 null.
-  final DailySetCompleteResponse? completed;
-
-  /// 점수 등록에 실패한 사유. 풀이 결과는 보여주되 순위 반영이 안 됐음을 알린다.
-  final String? saveError;
-}
 
 /// 오늘의 데일리 세트(전 회원 공통 5문제 안팎)를 푸는 흐름.
 class DailySetFlow extends QuestionFlow {

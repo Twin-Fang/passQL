@@ -406,6 +406,7 @@
           "items": {
             "type": "string"
           },
+          "maxItems": 100,
           "type": "array"
         },
         "topic_display_name": {
@@ -470,6 +471,7 @@
                 "items": {
                   "type": "string"
                 },
+                "maxItems": 100,
                 "type": "array"
               },
               "topic_display_name": {
@@ -484,6 +486,7 @@
             ],
             "type": "object"
           },
+          "maxItems": 1000,
           "type": "array"
         }
       },
@@ -527,6 +530,7 @@
           "items": {
             "type": "string"
           },
+          "maxItems": 200000,
           "type": "array"
         }
       },
@@ -575,6 +579,7 @@
           "items": {
             "type": "string"
           },
+          "maxItems": 200000,
           "type": "array"
         }
       },
@@ -611,6 +616,7 @@
           "items": {
             "type": "string"
           },
+          "maxItems": 100,
           "type": "array"
         },
         "size": {
@@ -623,6 +629,7 @@
           "items": {
             "type": "string"
           },
+          "maxItems": 5000,
           "type": "array"
         }
       },

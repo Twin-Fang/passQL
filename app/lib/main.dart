@@ -64,7 +64,7 @@ Future<void> main() async {
   );
   // iOS 추적 허용(ATT)은 첫 프레임 뒤 앱 시작 시 1회 질문 (광고 요청에만 묶으면 심사 2.1 리젝)
   WidgetsBinding.instance.addPostFrameCallback(
-    (_) => AdConsent.requestOnLaunch(),
+    (_) => container.read(adConsentProvider).requestOnLaunch(),
   );
 }
 

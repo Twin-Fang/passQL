@@ -82,11 +82,11 @@ export default function FeedbackItem({ item, className }: FeedbackItemProps) {
         <p className="mb-2 break-words">{item.content}</p>
         {/* 메타: 시간 + 상태 pill */}
         <div className="flex items-center justify-end gap-1.5">
-          <span className={`text-[10px] ${timeClass}`}>
+          <span className={`text-micro ${timeClass}`}>
             {formatBubbleTime(item.createdAt)}
           </span>
           <span
-            className={`text-[10px] font-semibold px-2 py-px rounded-full ${pillClass}`}
+            className={`text-micro font-semibold px-2 py-px rounded-full ${pillClass}`}
           >
             {STATUS_LABEL[status]}
           </span>

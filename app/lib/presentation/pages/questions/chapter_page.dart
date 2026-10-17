@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/error/app_exception.dart';
+import '../../../core/monitoring/crash_reporter.dart';
 import '../../../data/models/question/submit_result.dart';
 import '../../../presentation/flows/question_flow.dart';
 import '../../../presentation/providers/chapter_providers.dart';
@@ -118,8 +119,13 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
         .buildSummary(widget.flow.title);
     try {
       await widget.flow.onCompleted(context, ref, summary, _sessionUuid);
-    } catch (_) {
+    } catch (exception, stackTrace) {
       // 완료 처리에서 예상 밖 오류가 나도 화면이 멈추지 않게 하고, 다시 시도할 수 있게 잠금을 푼다.
+      reportIfUnexpectedFailure(
+        exception,
+        stackTrace,
+        reason: 'chapterComplete:${widget.flow.id}',
+      );
       if (mounted) showAppToast(context, '완료 처리에 실패했어요. 다시 시도해 주세요.');
     } finally {
       if (mounted) setState(() => _isCompleting = false);

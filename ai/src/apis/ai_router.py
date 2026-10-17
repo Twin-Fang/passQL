@@ -83,7 +83,7 @@ async def test_prompt(request: TestPromptRequest):
 )
 async def index_question(request: IndexQuestionRequest):
     """
-    문제 1개를 qwen3-embedding:4b으로 임베딩하여 Qdrant에 적재.
+    문제 1개를 settings.OLLAMA_EMBED_MODEL 로 임베딩하여 Qdrant에 적재.
 
     문제 등록/수정 시 Java 서버에서 호출한다.
     컬렉션이 없으면 자동 생성된다.

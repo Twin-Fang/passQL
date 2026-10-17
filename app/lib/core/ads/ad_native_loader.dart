@@ -1,13 +1,10 @@
 import 'dart:async';
-import 'dart:io' show Platform;
-
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-import 'ad_consent.dart';
 import 'ad_placement.dart';
-import 'ad_sdk.dart';
+import 'ad_request_preparer.dart';
 import 'loaded_ad_view.dart';
 
 /// 네이티브 템플릿 색 6종 (화면 테마 > SDK 템플릿). 라이트·다크마다 슬롯이 채움
@@ -40,16 +37,20 @@ abstract interface class AdNativeLoader {
 }
 
 final adNativeLoaderProvider = Provider<AdNativeLoader>(
-  (_) => GoogleAdNativeLoader(),
+  (ref) => GoogleAdNativeLoader(ref.watch(adRequestPreparerProvider)),
 );
 
 /// google_mobile_ads 네이티브: SDK small 템플릿이 광고 에셋을 그림 (앱이 에셋을 가공하지 않음, 정책)
 class GoogleAdNativeLoader implements AdNativeLoader {
+  GoogleAdNativeLoader(this._requestPreparer);
+
   /// small 템플릿 높이 (이보다 작으면 잘림)
   static const double templateHeight = 100;
 
   // 이 시간 안에 안 오면 포기 > 슬롯은 항목 없음
   static const _loadTimeout = Duration(seconds: 20);
+
+  final AdRequestPreparer _requestPreparer;
 
   @override
   Future<LoadedAdView?> load(
@@ -60,18 +61,13 @@ class GoogleAdNativeLoader implements AdNativeLoader {
     if (widthDp <= 0) return null;
     NativeAd? nativeAd;
     try {
-      final unitId = AdUnitIds.unitIdFor(placement, isIos: Platform.isIOS);
-      // 릴리스인데 .env 비어 있음 > 광고 없음
-      if (unitId == null) return null;
-
-      await AdSdk.ensureInitialized();
-      final isNonPersonalized = await AdConsent.shouldUseNonPersonalizedAds();
+      final preparedRequest = await _requestPreparer.prepare(placement);
+      if (preparedRequest == null) return null;
 
       final loadCompleter = Completer<NativeAd?>();
       nativeAd = NativeAd(
-        adUnitId: unitId,
-        // 요청에는 비개인화 여부만 (회원·학습 정보 미전달)
-        request: AdRequest(nonPersonalizedAds: isNonPersonalized),
+        adUnitId: preparedRequest.unitId,
+        request: preparedRequest.request,
         nativeTemplateStyle: _templateStyleOf(palette),
         listener: NativeAdListener(
           onAdLoaded: (ad) {
@@ -79,11 +75,11 @@ class GoogleAdNativeLoader implements AdNativeLoader {
               loadCompleter.complete(ad as NativeAd);
             }
           },
-          onAdFailedToLoad: (ad, error) {
+          onAdFailedToLoad: (_, error) {
             debugPrint(
               '[ads native] load failed ${placement.name} : ${error.code}',
             );
-            ad.dispose();
+            // 해제는 아래 null 경로 한 곳에서 (실패·시간 초과 공통)
             if (!loadCompleter.isCompleted) loadCompleter.complete(null);
           },
         ),
@@ -97,7 +93,7 @@ class GoogleAdNativeLoader implements AdNativeLoader {
         },
       );
       if (loadedAd == null) {
-        nativeAd.dispose();
+        await nativeAd.dispose();
         return null;
       }
       return LoadedAdView(
@@ -110,7 +106,7 @@ class GoogleAdNativeLoader implements AdNativeLoader {
       );
     } catch (error) {
       debugPrint('[ads native] prepare failed ${placement.name} : $error');
-      nativeAd?.dispose();
+      await nativeAd?.dispose();
       return null;
     }
   }

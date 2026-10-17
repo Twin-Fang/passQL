@@ -28,8 +28,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ResultMatchChoiceValidator {
 
-    private final SandboxPool sandboxPool;
     private final SandboxExecutor sandboxExecutor;
+    // 선택지 body 가 JSON 배열이 아닐 때 검증 결과 문구
+    static final String BODY_NOT_JSON_ARRAY_MESSAGE = "body가 JSON 배열이 아닙니다.";
+
     // RESULT_MATCH 검증용 JSON 파서 — 스프링 빈 주입으로 설정 일관성 보장
     private final ObjectMapper objectMapper;
 
@@ -38,23 +40,14 @@ public class ResultMatchChoiceValidator {
      * Sandbox 획득·해제를 포함한 완전한 사이클.
      */
     public ExecuteResult executeExpectedResult(Question question) {
-        String dbName = sandboxPool.acquire();
-        try {
-            String setupSql = question.getSchemaDdl();
-            if (question.getSchemaSampleData() != null && !question.getSchemaSampleData().isBlank()) {
-                setupSql = setupSql + ";\n" + question.getSchemaSampleData();
-            }
-            sandboxExecutor.applyDdl(dbName, setupSql);
-
-            ExecuteResult result = sandboxExecutor.execute(dbName, question.getAnswerSql());
-            if (!"OK".equals(result.status())) {
-                throw new CustomException(ErrorCode.SANDBOX_ANSWER_SQL_FAILED,
-                        "RESULT_MATCH answerSql 실행 실패: " + result.errorMessage());
-            }
-            return result;
-        } finally {
-            sandboxPool.release(dbName);
+        ExecuteResult result = sandboxExecutor.runInTemporarySandbox(
+                question.getSchemaDdl(), question.getSchemaSampleData(),
+                dbName -> sandboxExecutor.execute(dbName, question.getAnswerSql()));
+        if (!"OK".equals(result.status())) {
+            throw new CustomException(ErrorCode.SANDBOX_ANSWER_SQL_FAILED,
+                    "RESULT_MATCH answerSql 실행 실패: " + result.errorMessage());
         }
+        return result;
     }
 
     /**
@@ -86,12 +79,13 @@ public class ResultMatchChoiceValidator {
             try {
                 parsedRows = objectMapper.readValue(body, new TypeReference<>() {});
             } catch (Exception e) {
-                log.warn("[validateResultMatch] JSON 파싱 실패: key={}, bodyPreview={}",
+                // 파서 원문은 로그에만 (검증 결과에는 고정 문구)
+                log.warn("[validateResultMatch] JSON 파싱 실패: key={}, bodyPreview={}, error={}",
                         choice.key(),
-                        TextPreview.truncateWithEllipsis(body, TextPreview.LOG_CHOICE_BODY_LENGTH));
+                        TextPreview.truncateWithEllipsis(body, TextPreview.LOG_CHOICE_BODY_LENGTH),
+                        e.getMessage());
                 validations.add(new ChoiceValidation(
-                        choice.key(), "ERROR", List.of(), 0, false,
-                        "body가 JSON 배열이 아닙니다: " + e.getMessage()));
+                        choice.key(), "ERROR", List.of(), 0, false, BODY_NOT_JSON_ARRAY_MESSAGE));
                 continue;
             }
 

@@ -1,16 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { useCheckNickname, useChangeNickname } from "../hooks/useMember";
-import { ApiError } from "../api/client";
-
-// ApiError.body.message → 한국어 서버 메시지 우선, fallback은 기본 문구
-function extractErrorMessage(err: unknown, fallback: string): string {
-  if (err instanceof ApiError) {
-    const body = err.body as Record<string, unknown> | null;
-    if (typeof body?.message === "string") return body.message;
-  }
-  return fallback;
-}
+import { toUserErrorMessage } from "../lib/userErrorMessage";
 
 interface NicknameChangeModalProps {
   readonly isOpen: boolean;
@@ -103,7 +94,7 @@ export default function NicknameChangeModal({
       }
     } catch (err) {
       setCheckResult(false);
-      setErrorMsg(extractErrorMessage(err, "중복 확인에 실패했어요"));
+      setErrorMsg(toUserErrorMessage(err, "중복 확인에 실패했어요"));
     }
   };
 
@@ -114,7 +105,7 @@ export default function NicknameChangeModal({
       onSuccess(result.nickname);
       onClose();
     } catch (err) {
-      setErrorMsg(extractErrorMessage(err, "닉네임 변경에 실패했어요"));
+      setErrorMsg(toUserErrorMessage(err, "닉네임 변경에 실패했어요"));
     }
   };
 

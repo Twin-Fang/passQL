@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/storage/device_preferences.dart';
+import '../../core/storage/storage_keys.dart';
 import '../../core/utils/app_version.dart';
 import '../../data/models/meta/app_config.dart';
 import '../../data/sources/api_providers.dart';
@@ -116,28 +117,25 @@ final appLaunchDecisionProvider = FutureProvider<AppLaunchDecision>((
   );
 });
 
-// SharedPreferences: 권장 업데이트 안내를 닫은 권장 버전 (같은 버전이면 다시 안 띄움)
-const _dismissedRecommendedVersionKey = 'dismissed_recommended_version';
-
 /// 권장 업데이트 안내를 띄울 권장 버전. 띄울 필요 없거나 이미 닫은 버전이면 null
 final recommendedUpdateVersionToPromptProvider = FutureProvider<String?>((
   ref,
 ) async {
   final decision = await ref.watch(appLaunchDecisionProvider.future);
   if (!decision.shouldRecommendUpdate) return null;
-  final preferences = await SharedPreferences.getInstance();
   final recommendedVersion = decision.versionPolicy.recommendedVersion;
   final isAlreadyDismissed =
-      preferences.getString(_dismissedRecommendedVersionKey) ==
+      await DevicePreferences.readString(
+        StorageKeys.dismissedRecommendedVersion,
+      ) ==
       recommendedVersion;
   return isAlreadyDismissed ? null : recommendedVersion;
 });
 
 /// 권장 업데이트 안내를 띄웠다고 기록 (업데이트·나중에 공통)
 Future<void> saveRecommendedUpdatePrompted(String recommendedVersion) async {
-  final preferences = await SharedPreferences.getInstance();
-  await preferences.setString(
-    _dismissedRecommendedVersionKey,
+  await DevicePreferences.writeString(
+    StorageKeys.dismissedRecommendedVersion,
     recommendedVersion,
   );
 }

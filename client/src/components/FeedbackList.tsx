@@ -31,7 +31,7 @@ function DateDivider({ date }: { readonly date: string }) {
   return (
     <div className="flex items-center gap-2 my-1">
       <div className="flex-1 h-px bg-border" />
-      <span className="text-[11px] text-text-caption whitespace-nowrap">
+      <span className="text-caption2 text-text-caption whitespace-nowrap">
         {getDateLabel(date)}
       </span>
       <div className="flex-1 h-px bg-border" />

@@ -33,7 +33,9 @@ function renderGate() {
 }
 
 function buildAppConfig(isUnderMaintenance: boolean, message: string | null): AppConfigResponse {
-  return { maintenance: { isUnderMaintenance, message }, notices: [] };
+  // 앱 전용 버전 정책 (웹 점검 판정과 무관)
+  const platformVersion = { minimumVersion: "1.0.0", recommendedVersion: "1.0.0", storeUrl: "" };
+  return { android: platformVersion, ios: platformVersion, maintenance: { isUnderMaintenance, message }, notices: [] };
 }
 
 afterEach(() => {

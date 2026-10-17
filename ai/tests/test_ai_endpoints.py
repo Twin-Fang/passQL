@@ -1,8 +1,13 @@
 """AI 엔드포인트 동작 고정: 인증, 응답 형태, 오류 응답 (외부 클라이언트는 가짜로 대체)"""
+import pytest
+
 from src.core.config import settings
 from src.clients.gemini_client import gemini_client
 from src.clients.ollama_client import ollama_client
 from src.clients.qdrant_search_client import qdrant_search_client
+from src.models.ai_request import MAXIMUM_RECENT_WRONG_QUESTION_COUNT
+# Spring AiGatewayClient 가 부르는 경로 8개 (계약 테스트 목록 재사용)
+from tests.test_spring_api_contract import SPRING_CALLED_PATHS
 
 LLM_CONFIG = {
     "model": "gemini-test",
@@ -24,8 +29,12 @@ GENERATED_CHOICES = [
 ]
 
 
-def test_request_without_api_key_is_rejected(api_client):
-    response = api_client.post("/api/ai/recommend", json={}, headers={"X-API-Key": ""})
+@pytest.mark.parametrize("path", SPRING_CALLED_PATHS)
+@pytest.mark.parametrize("api_key_header", [{}, {"X-API-Key": ""}, {"X-API-Key": "wrong-key"}], ids=["missing", "empty", "wrong"])
+def test_request_without_valid_api_key_is_rejected(api_client, path, api_key_header):
+    # 인증은 body 검증보다 먼저 (빈 body 여도 401)
+    api_client.headers.pop("X-API-Key", None)
+    response = api_client.post(path, json={}, headers=api_key_header)
     assert response.status_code == 401
 
 
@@ -59,6 +68,22 @@ def test_generate_choice_set_schema_violation_returns_500_with_reason(api_client
     )
     assert response.status_code == 500
     assert response.json()["detail"].startswith("AI 응답 스키마 위반")
+
+
+def test_generate_choice_set_without_response_schema_returns_400(api_client):
+    llm_config_without_schema = {key: value for key, value in LLM_CONFIG.items() if key != "response_schema"}
+    response = api_client.post(
+        "/api/ai/generate-choice-set",
+        json={"context": CHOICE_SET_CONTEXT, "llm_config": llm_config_without_schema},
+    )
+    assert response.status_code == 400
+    assert response.json() == {"detail": "generate_choice_set 은 response_schema 가 필수입니다"}
+
+
+def test_recommend_rejects_oversized_uuid_list(api_client):
+    oversized_uuids = [f"wrong-{index}" for index in range(MAXIMUM_RECENT_WRONG_QUESTION_COUNT + 1)]
+    response = api_client.post("/api/ai/recommend", json={"recent_wrong_question_uuids": oversized_uuids})
+    assert response.status_code == 422
 
 
 def test_unexpected_error_returns_generic_500(api_client, monkeypatch):
@@ -137,7 +162,7 @@ def test_index_status_reports_unindexed_and_orphan_counts(api_client, monkeypatc
 
 def test_prune_index_rejects_empty_active_list(api_client):
     response = api_client.post("/api/ai/prune-index", json={"question_uuids": []})
-    assert response.status_code == 500
+    assert response.status_code == 400
     assert response.json() == {"detail": "활성 문제 UUID 목록이 비어 있어 정리를 거부합니다"}
 
 

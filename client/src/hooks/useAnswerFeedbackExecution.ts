@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useMemo } from "react";
 import { executeChoice } from "../api/questions";
+import { toUserErrorMessage } from "../lib/userErrorMessage";
 import type { AnswerFeedbackState } from "../types/answerFeedback";
 import type { ChoiceItem, ExecuteResult } from "../types/api";
 
@@ -58,7 +59,7 @@ export function useAnswerFeedbackExecution(state: AnswerFeedbackState | null) {
       resultCacheRef.current = { ...resultCacheRef.current, [choice.key]: result };
       setResultCache((prev) => ({ ...prev, [choice.key]: result }));
     } catch (err) {
-      const message = err instanceof Error ? err.message : "실행에 실패했습니다";
+      const message = toUserErrorMessage(err, "실행에 실패했습니다");
       setExecutionErrorByKey((prev) => ({ ...prev, [choice.key]: message }));
     } finally {
       executingKeyRef.current.delete(choice.key);

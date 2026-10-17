@@ -9,7 +9,6 @@ import 'package:passql_app/core/auth/session_expiry_signal.dart';
 import 'package:passql_app/core/auth/social_credential.dart';
 import 'package:passql_app/core/auth/social_sign_in.dart';
 import 'package:passql_app/core/auth/token_store.dart';
-import 'package:passql_app/core/network/dio_client.dart';
 import 'package:passql_app/data/sources/api_providers.dart';
 import 'package:passql_app/data/sources/auth_api.dart';
 import 'package:passql_app/presentation/providers/auth_provider.dart';

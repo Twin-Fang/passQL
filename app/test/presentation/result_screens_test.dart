@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:passql_app/data/models/daily_set/daily_set_models.dart';
 import 'package:passql_app/data/models/question/submit_result.dart';
 import 'package:passql_app/presentation/design/design.dart';
-import 'package:passql_app/presentation/flows/daily_set_flow.dart';
+import 'package:passql_app/router/result_route_arguments.dart';
 import 'package:passql_app/presentation/pages/daily_set/daily_set_result_page.dart';
 import 'package:passql_app/presentation/pages/questions/chapter_result_page.dart';
 import 'package:passql_app/presentation/pages/result/result_page.dart';
@@ -52,7 +52,7 @@ void main() {
     await expectResultScaffold(
       tester,
       const ChapterResultPage(
-        extra: ChapterSummary(
+        summary: ChapterSummary(
           topicName: 'JOIN',
           results: [
             ChapterResult(
@@ -90,7 +90,7 @@ void main() {
     await expectResultScaffold(
       tester,
       const DailySetResultPage(
-        extra: DailySetOutcome(
+        outcome: DailySetOutcome(
           results: [
             ChapterResult(questionUuid: 'a', isCorrect: true, durationMs: 1),
             ChapterResult(questionUuid: 'b', isCorrect: false, durationMs: 1),
@@ -119,10 +119,12 @@ void main() {
     await expectResultScaffold(
       tester,
       const ResultPage(
-        extra: SubmitResult(
-          isCorrect: true,
-          correctKey: 'A',
-          correctSql: 'SELECT 1',
+        arguments: QuestionResultArguments(
+          result: SubmitResult(
+            isCorrect: true,
+            correctKey: 'A',
+            correctSql: 'SELECT 1',
+          ),
         ),
       ),
     );
@@ -138,10 +140,12 @@ void main() {
     await expectResultScaffold(
       tester,
       const ResultPage(
-        extra: SubmitResult(
-          isCorrect: false,
-          correctKey: 'C',
-          correctSql: 'SELECT 1',
+        arguments: QuestionResultArguments(
+          result: SubmitResult(
+            isCorrect: false,
+            correctKey: 'C',
+            correctSql: 'SELECT 1',
+          ),
         ),
       ),
     );

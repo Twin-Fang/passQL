@@ -85,7 +85,7 @@ export default function DailySet() {
           result.isCorrect,
           selectedChoiceKey,
           selectedChoice?.body ?? "",
-          result.submissionUuid,
+          result.submissionUuid ?? undefined,
           choiceSetId,
         );
         setFeedback(result);

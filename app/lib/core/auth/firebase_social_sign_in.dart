@@ -20,7 +20,7 @@ class FirebaseSocialSignIn {
   FirebaseSocialSignIn({FirebaseAuth? auth}) : _auth = auth ?? FirebaseAuth.instance;
 
   final FirebaseAuth _auth;
-  bool _googleReady = false;
+  bool _isGoogleInitialized = false;
 
   Future<String?> fetchIdToken(SocialProvider provider) async {
     try {
@@ -147,7 +147,7 @@ class FirebaseSocialSignIn {
       await _auth.signOut();
     } catch (_) {}
     try {
-      if (_googleReady) await GoogleSignIn.instance.signOut();
+      if (_isGoogleInitialized) await GoogleSignIn.instance.signOut();
     } catch (_) {}
   }
 
@@ -162,10 +162,10 @@ class FirebaseSocialSignIn {
   }
 
   Future<void> _initializeGoogleOnce() async {
-    if (_googleReady) return;
+    if (_isGoogleInitialized) return;
     // Android 는 google-services.json 의 웹 클라이언트, iOS 는 Info.plist 의 GIDClientID 를 쓴다.
     await GoogleSignIn.instance.initialize();
-    _googleReady = true;
+    _isGoogleInitialized = true;
   }
 
   Future<AuthCredential?> _appleCredential() async {

@@ -5,7 +5,7 @@ import com.passql.meta.dto.AppConfigResponse;
 import com.passql.meta.dto.AppLinksResponse;
 import com.passql.meta.dto.LegalResponse;
 import com.passql.meta.dto.TopicTree;
-import com.passql.meta.entity.ConceptTag;
+import com.passql.meta.dto.ConceptTagResponse;
 import com.passql.meta.service.AppOperationService;
 import com.passql.meta.service.AppSettingService;
 import com.passql.meta.service.LegalService;
@@ -32,8 +32,8 @@ public class MetaController implements MetaControllerDocs {
     }
 
     @GetMapping("/meta/tags")
-    public ResponseEntity<List<ConceptTag>> getTags() {
-        return ResponseEntity.ok(metaService.getActiveTags());
+    public ResponseEntity<List<ConceptTagResponse>> getTags() {
+        return ResponseEntity.ok(metaService.getActiveTagResponses());
     }
 
     /** 공개 약관 조회 — type: TERMS_OF_SERVICE | PRIVACY_POLICY, 인증 불필요 */

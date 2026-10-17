@@ -26,7 +26,6 @@ class TopicListPage extends ConsumerWidget {
     final topicsAsync = ref.watch(topicsProvider);
 
     return Scaffold(
-      backgroundColor: context.passqlColors.background,
       body: PassqlLargeTitleScrollView(
         title: '문제',
         // 토픽 추가·비활성화를 앱 재시작 없이 반영

@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class ResultMatchChoiceValidatorTest {
 
-    private final ResultMatchChoiceValidator validator = new ResultMatchChoiceValidator(null, null, new ObjectMapper());
+    private final ResultMatchChoiceValidator validator = new ResultMatchChoiceValidator(null, new ObjectMapper());
 
     private final ExecuteResult expectedResult = new ExecuteResult("OK", List.of("ID", "NAME"),
             List.of(List.of(1, "kim"), List.of(2, "lee")), 2, 1L, null, null);
@@ -51,7 +51,7 @@ class ResultMatchChoiceValidatorTest {
         assertThat(report.items()).extracting(ValidationReport.ChoiceValidation::status)
                 .containsExactly("ERROR", "ERROR");
         assertThat(report.items().get(0).error()).isEqualTo("body가 비어있습니다.");
-        assertThat(report.items().get(1).error()).startsWith("body가 JSON 배열이 아닙니다: ");
+        assertThat(report.items().get(1).error()).isEqualTo(ResultMatchChoiceValidator.BODY_NOT_JSON_ARRAY_MESSAGE);
     }
 
     private GeneratedChoiceDto choice(String key, String body) {

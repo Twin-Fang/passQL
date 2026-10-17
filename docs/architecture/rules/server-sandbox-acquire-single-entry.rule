@@ -1,0 +1,4 @@
+description=샌드박스 acquire 흐름 복사 금지 (공통 실행기 한 곳)
+paths=server/PQL-Application/src/main/java/,server/PQL-Common/src/main/java/,server/PQL-Domain-AI/src/main/java/,server/PQL-Domain-Member/src/main/java/,server/PQL-Domain-Meta/src/main/java/,server/PQL-Domain-Question/src/main/java/,server/PQL-Domain-Submission/src/main/java/,server/PQL-Web/src/main/java/
+extensions=.java
+pattern=[sS]andboxPool\.acquire\(

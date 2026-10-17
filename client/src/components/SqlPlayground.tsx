@@ -3,6 +3,7 @@ import { Terminal, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import type { ExecuteResult } from "../types/api";
 import { ResultTable } from "./ResultTable";
 import PlayIcon from "./PlayIcon";
+import { toUserErrorMessage } from "../lib/userErrorMessage";
 
 interface SqlPlaygroundProps {
   readonly onExecute: (sql: string) => Promise<ExecuteResult>;
@@ -28,7 +29,7 @@ export const SqlPlayground = memo(function SqlPlayground({
     } catch (err) {
       // 네트워크 오류·5xx 등 API 호출 자체가 실패한 경우 — 이전 결과 초기화
       setResult(null);
-      setNetworkError(err instanceof Error ? err.message : "실행 요청에 실패했습니다");
+      setNetworkError(toUserErrorMessage(err, "실행 요청에 실패했습니다"));
     } finally {
       setIsExecuting(false);
     }

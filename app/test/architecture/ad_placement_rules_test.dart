@@ -16,6 +16,10 @@ const List<String> _adSdkPackages = [
 ];
 const String _adCoreDirectory = 'lib/core/ads/';
 
+/// 광고 요청(AdRequest) 조립 공통 지점: 로더 3종이 함께 사용
+const String _adRequestPreparerPath = 'lib/core/ads/ad_request_preparer.dart';
+final _adRequestConstructorPattern = RegExp(r'\bAdRequest\(');
+
 /// 광고 모듈 (SDK 래퍼·광고 위젯·허용 조건)
 const List<String> _adModulePaths = [
   'lib/core/ads/',
@@ -108,25 +112,29 @@ void main() {
     expect(AppShell.bannerPlacementOfTab(3), isNull);
   });
 
-  test('광고 요청에는 비개인화 여부만 넘기고 사용자 정보를 싣지 않는다', () {
-    for (final loaderName in const [
-      'ad_banner_loader.dart',
-      'ad_native_loader.dart',
-      'interstitial_ad_loader.dart',
-    ]) {
-      final source = File('$_adCoreDirectory$loaderName').readAsStringSync();
-      expect(
-        source,
-        contains('AdRequest(nonPersonalizedAds:'),
-        reason: loaderName,
-      );
-      for (final targetingField in const [
-        'keywords',
-        'contentUrl',
-        'customTargeting',
-      ]) {
-        expect(source, isNot(contains(targetingField)), reason: loaderName);
+  test('AdRequest 는 공통 준비(AdRequestPreparer) 한 곳에서만 만든다', () {
+    final violations = <String>[];
+    for (final file in handWrittenDartFiles('lib')) {
+      final path = normalizedPath(file);
+      if (path == _adRequestPreparerPath) continue;
+      for (final (lineNumber, codeLine) in codeLinesOf(file)) {
+        if (_adRequestConstructorPattern.hasMatch(codeLine)) {
+          violations.add('$path:$lineNumber');
+        }
       }
+    }
+    expect(violations, isEmpty, reason: violations.join('\n'));
+  });
+
+  test('광고 요청에는 비개인화 여부만 넘기고 사용자 정보를 싣지 않는다', () {
+    final source = File(_adRequestPreparerPath).readAsStringSync();
+    expect(source, contains('AdRequest(nonPersonalizedAds:'));
+    for (final targetingField in const [
+      'keywords',
+      'contentUrl',
+      'customTargeting',
+    ]) {
+      expect(source, isNot(contains(targetingField)));
     }
   });
 

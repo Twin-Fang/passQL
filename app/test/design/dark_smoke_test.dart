@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/data/models/daily_set/daily_set_models.dart';
 import 'package:passql_app/presentation/design/design.dart';
-import 'package:passql_app/presentation/flows/daily_set_flow.dart';
+import 'package:passql_app/router/result_route_arguments.dart';
 import 'package:passql_app/presentation/pages/daily_set/daily_set_result_page.dart';
 import 'package:passql_app/presentation/pages/home/home_page.dart';
 import 'package:passql_app/presentation/pages/questions/chapter_result_page.dart';
@@ -114,7 +114,7 @@ void main() {
     await expectResultScaffold(
       tester,
       const ChapterResultPage(
-        extra: ChapterSummary(
+        summary: ChapterSummary(
           topicName: 'JOIN',
           results: [
             ChapterResult(
@@ -140,7 +140,7 @@ void main() {
     await expectResultScaffold(
       tester,
       const DailySetResultPage(
-        extra: DailySetOutcome(
+        outcome: DailySetOutcome(
           results: [
             ChapterResult(questionUuid: 'a', isCorrect: true, durationMs: 1),
             ChapterResult(questionUuid: 'b', isCorrect: false, durationMs: 1),

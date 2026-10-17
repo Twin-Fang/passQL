@@ -7,16 +7,15 @@ import '../../widgets/ads/interstitial_ad_on_enter.dart';
 
 /// 챕터 완료 결과 화면 — 점수·요약·분석·문항별 결과를 한 화면 스크롤로 보여준다.
 ///
-/// GoRouterState.extra로 [ChapterSummary]를 받아 렌더링.
+/// 이동 인자 [summary] 로 렌더링 (없으면 결과 없음 화면).
 class ChapterResultPage extends StatelessWidget {
-  final Object? extra;
+  final ChapterSummary? summary;
 
-  const ChapterResultPage({super.key, this.extra});
+  const ChapterResultPage({super.key, this.summary});
 
   @override
   Widget build(BuildContext context) {
-    final summary = extra is ChapterSummary ? extra as ChapterSummary : null;
-
+    final summary = this.summary;
     if (summary == null) {
       return PassqlStatusScaffold(
         title: '챕터 결과',
@@ -106,7 +105,6 @@ class ChapterResultPage extends StatelessWidget {
             ],
           ),
         ],
-        // 기존 마지막 단계 버튼(홈으로 이동)을 그대로 옮겼다.
         actions: [
           PassqlButton(
             label: '완료',

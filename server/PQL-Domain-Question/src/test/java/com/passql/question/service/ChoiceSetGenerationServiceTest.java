@@ -21,6 +21,7 @@ import org.mockito.ArgumentCaptor;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -67,7 +68,6 @@ class ChoiceSetGenerationServiceTest {
     private AiGatewayClient aiGatewayClient;
     private SandboxValidator sandboxValidator;
     private ChoiceSetSaveService choiceSetSaveService;
-    private SandboxPool sandboxPool;
     private SandboxExecutor sandboxExecutor;
     private ChoiceSetGenerationService choiceSetGenerationService;
 
@@ -78,11 +78,10 @@ class ChoiceSetGenerationServiceTest {
         aiGatewayClient = mock(AiGatewayClient.class);
         sandboxValidator = mock(SandboxValidator.class);
         choiceSetSaveService = mock(ChoiceSetSaveService.class);
-        sandboxPool = mock(SandboxPool.class);
         sandboxExecutor = mock(SandboxExecutor.class);
         choiceSetGenerationService = new ChoiceSetGenerationService(
                 questionService, promptService, aiGatewayClient, sandboxValidator,
-                new ResultMatchChoiceValidator(sandboxPool, sandboxExecutor, new ObjectMapper()),
+                new ResultMatchChoiceValidator(sandboxExecutor, new ObjectMapper()),
                 choiceSetSaveService, new ChoiceSetGenerationRequestFactory());
     }
 
@@ -156,13 +155,15 @@ class ChoiceSetGenerationServiceTest {
     }
 
     @Test
-    void 결과_일치_문제는_정답_실행결과를_프롬프트에_치환하고_샌드박스를_반납한다() {
+    void 결과_일치_문제는_정답_실행결과를_프롬프트에_치환하고_임시_샌드박스에서_실행한다() {
         Question question = executableQuestion();
         question.setChoiceSetPolicy(ChoiceSetPolicy.RESULT_MATCH);
         PromptTemplate prompt = prompt("결과={answer_result}");
         when(questionService.getQuestionEntity(questionUuid)).thenReturn(question);
         when(promptService.getActivePrompt("generate_choice_set_result_match")).thenReturn(prompt);
-        when(sandboxPool.acquire()).thenReturn("sandbox_1");
+        // 임시 샌드박스 공통 지점: 스키마·샘플 전달 확인 후 작업을 "sandbox_1" 로 실행
+        when(sandboxExecutor.runInTemporarySandbox(eq("CREATE TABLE t (id int)"), eq("INSERT INTO t VALUES (1)"), any()))
+                .thenAnswer(invocation -> invocation.<Function<String, ExecuteResult>>getArgument(2).apply("sandbox_1"));
         ExecuteResult answerResult = new ExecuteResult("OK", List.of("ID", "NAME"),
                 List.of(List.of(1, "{x}")), 1, 3L, null, null);
         when(sandboxExecutor.execute("sandbox_1", "SELECT answer")).thenReturn(answerResult);
@@ -179,8 +180,7 @@ class ChoiceSetGenerationServiceTest {
         QuestionChoiceSet result = choiceSetGenerationService.generateResultMatch(questionUuid, memberUuid, ChoiceSetSource.AI_PREFETCH);
 
         assertThat(result).isSameAs(savedChoiceSet);
-        verify(sandboxExecutor).applyDdl("sandbox_1", "CREATE TABLE t (id int);\nINSERT INTO t VALUES (1)");
-        verify(sandboxPool).release("sandbox_1");
+        verify(sandboxExecutor).runInTemporarySandbox(eq("CREATE TABLE t (id int)"), eq("INSERT INTO t VALUES (1)"), any());
         ArgumentCaptor<GenerateChoiceSetRequest> requestCaptor = ArgumentCaptor.forClass(GenerateChoiceSetRequest.class);
         verify(aiGatewayClient).generateChoiceSet(requestCaptor.capture());
         assertThat(requestCaptor.getValue().llmConfig().userTemplate()).isEqualTo("결과=ID, NAME\n1, [x]");

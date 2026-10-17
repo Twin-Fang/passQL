@@ -20,6 +20,7 @@ import java.sql.Statement;
 import java.util.UUID;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * 샌드박스 임시 DB 풀 (MVP: create/drop 방식).
@@ -29,6 +30,7 @@ import java.util.concurrent.TimeUnit;
  * <p>
  * acquire() — 슬롯 획득 후 임시 DB 생성
  * release(dbName) — DROP DATABASE 후 슬롯 반환
+ * 외부 진입점은 runWithTemporaryDatabase 하나 (획득 > 작업 > 반납, 반납은 성공·실패 공통)
  */
 @Slf4j
 @Component
@@ -57,11 +59,21 @@ public class SandboxPool {
         log.info("[SandboxPool] initialized — concurrency={}", concurrency);
     }
 
+    /** 임시 DB 1개로 작업 실행: 획득 > 작업(dbName) > 반납 (성공·실패 공통) */
+    public <T> T runWithTemporaryDatabase(Function<String, T> databaseTask) {
+        String dbName = acquire();
+        try {
+            return databaseTask.apply(dbName);
+        } finally {
+            release(dbName);
+        }
+    }
+
     /**
      * 슬롯을 획득하고 임시 샌드박스 DB를 생성한 뒤 dbName을 반환한다.
      * 슬롯이 없으면 app_setting의 sandbox.pool.wait_seconds 초 대기한다.
      */
-    public String acquire() {
+    String acquire() {
         int waitSeconds = appSettingService.getInt(AppSettingKeys.SANDBOX_POOL_WAIT_SECONDS);
 
         try {
@@ -88,16 +100,16 @@ public class SandboxPool {
             return dbName;
         } catch (Exception e) {
             semaphore.release(); // DB 생성 실패 시 슬롯 즉시 반환
+            // 원인 메시지는 로그에만 (응답 detail 은 고정 문구)
             log.error("[SandboxPool] acquire 실패: {}", e.getMessage());
-            throw new CustomException(ErrorCode.SANDBOX_SETUP_FAILED,
-                    "샌드박스 DB 생성 실패: " + e.getMessage());
+            throw new CustomException(ErrorCode.SANDBOX_SETUP_FAILED, "샌드박스 DB 생성 실패", e);
         }
     }
 
     /**
      * 임시 샌드박스 DB를 삭제하고 슬롯을 반환한다.
      */
-    public void release(String dbName) {
+    void release(String dbName) {
         try {
             // PostgreSQL: DROP DATABASE도 autocommit=true 필요, IF EXISTS 지원
             try (Connection conn = adminDataSource.getConnection()) {

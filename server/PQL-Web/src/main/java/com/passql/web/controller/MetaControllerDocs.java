@@ -6,7 +6,7 @@ import com.passql.meta.dto.AppConfigResponse;
 import com.passql.meta.dto.AppLinksResponse;
 import com.passql.meta.dto.LegalResponse;
 import com.passql.meta.dto.TopicTree;
-import com.passql.meta.entity.ConceptTag;
+import com.passql.meta.dto.ConceptTagResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.suhsaechan.suhapilog.annotation.ApiLog;
@@ -41,6 +41,7 @@ public interface MetaControllerDocs {
   @ApiLogs({
       @ApiLog(date = "2026.04.07", author = Author.SUHSAECHAN, issueNumber = 1, description = "활성 태그 조회 API 추가"),
       @ApiLog(date = "2026.04.08", author = Author.SUHSAECHAN, issueNumber = 22, description = "ConceptTag PK 를 UUID(conceptTagUuid) 로 재작성. tagKey 는 unique 컬럼으로 보존"),
+      @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 517, description = "엔티티 대신 응답 DTO 반환 — 감사 필드(createdAt·updatedAt·createdBy·updatedBy) 제외, 스키마 이름 ConceptTag 유지"),
   })
   @Operation(
       summary = "활성 태그 조회",
@@ -53,9 +54,10 @@ public interface MetaControllerDocs {
           ## 반환값 (List<ConceptTag>)
           - 활성화된 개념 태그 전체 목록
           - 식별자는 conceptTagUuid (UUID), 비즈니스 키 tagKey 동시 노출
+          - 필드: conceptTagUuid, tagKey, labelKo, category, description, isActive, sortOrder
           """
   )
-  ResponseEntity<List<ConceptTag>> getTags();
+  ResponseEntity<List<ConceptTagResponse>> getTags();
 
   @ApiLogs({
       @ApiLog(date = "2026.04.24", author = Author.SUHSAECHAN, issueNumber = 283, description = "공개 약관 조회 API 추가 — TERMS_OF_SERVICE / PRIVACY_POLICY"),

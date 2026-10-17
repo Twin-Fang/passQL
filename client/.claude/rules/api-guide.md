@@ -1,6 +1,6 @@
 # API 연동 가이드
 
-> **스키마 원본**: 같은 레포의 `server/` 코드가 단일 원천(SSOT). 필드 목록·enum 값은 server DTO/엔티티 또는 런타임 Swagger(`/docs/swagger-ui/index.html`)에서 확인한다. 이 가이드는 **사용 방법 + 비즈니스 규칙**에 집중하며, 새 필드가 생기면 server 코드와 `src/types/api.ts`를 먼저 확인할 것.
+> **스키마 원본**: 서버 계약 `api-contract/openapi.json` (server 가 생성) > `npm run gen:api` > `src/types/generated/openapi.ts`. 필드 목록·enum 값은 생성본에서 확인한다(손으로 고치지 않음). 이 가이드는 **사용 방법 + 비즈니스 규칙**에 집중하며, 아래 표의 필드 설명보다 생성본이 우선이다.
 
 ## 아키텍처
 
@@ -11,49 +11,49 @@ Frontend ──(/api)──> Backend(Spring) ──(x-api-key)──> AI Server(
 - 프론트는 **백엔드하고만 통신**. AI 서버 직접 호출 금지.
 - Base URL: `/api` (같은 origin, 프록시)
 - 타임아웃: 25초 (`AbortController`)
-- 인증: 사용자 식별이 필요한 엔드포인트는 `X-Member-UUID` 헤더 필수
+- 인증: `Authorization: Bearer {accessToken}` — `apiFetch` 가 `authStore` 의 access token 을 자동 주입하고, 401 이면 refresh token 으로 1회 재발급 후 재시도(`resolveAccessTokenAfterUnauthorized`, SSE 도 같은 경로). 호출부는 회원 UUID 를 보내지 않는다(서버가 토큰에서 식별)
 - **프론트 비즈니스 로직 제로 원칙**: 날짜 계산(D-day), 정답 판정, 닉네임 생성, 정답률 집계 등 모든 비즈니스 로직은 백엔드 책임. 프론트는 응답을 그대로 렌더링.
 
-## 엔드포인트 전체 목록 (24개)
+## 주요 엔드포인트
 
-> 구현 상태: [O] = server 코드에 구현됨, [미구현] = 화면 명세에 필요하나 백엔드 미구현
+> 전체 경로 목록은 `src/types/generated/openapi.ts` 의 `paths`. 인증 열 O = Bearer 토큰 필요
 
 ### Members (`src/api/members.ts`)
 
-| 함수                   | 메서드 | 경로                              |      인증       | 응답 타입                    | 상태 |
-| ---------------------- | ------ | --------------------------------- | :-------------: | ---------------------------- | :--: |
-| `register()`           | POST   | `/members/register`               |        -        | `MemberRegisterResponse`     |  O   |
-| `fetchMe()`            | GET    | `/members/me`                     | O (query param) | `MemberMeResponse`           |  O   |
-| `regenerateNickname()` | POST   | `/members/me/regenerate-nickname` | O (query param) | `NicknameRegenerateResponse` |  O   |
+| 함수                   | 메서드 | 경로                              | 인증 | 응답 타입                    |
+| ---------------------- | ------ | --------------------------------- | :--: | ---------------------------- |
+| `fetchMe()`            | GET    | `/members/me`                     |  O   | `MemberMeResponse`           |
+| `regenerateNickname()` | POST   | `/members/me/regenerate-nickname` |  O   | `NicknameRegenerateResponse` |
+| `changeNickname()`     | PATCH  | `/members/me/nickname`            |  O   | `NicknameChangeResponse`     |
+| `withdraw()`           | DELETE | `/members/me`                     |  O   | -                            |
 
-- 첫 진입 시 `register` → UUID 발급 → memberStore에 저장.
+- 회원 식별은 소셜 로그인(`src/api/auth.ts` `login`·`loginWithAuthorizationCode`) 응답 토큰으로 한다. 토큰·회원 UUID·닉네임은 `authStore.setTokens` 가 저장한다.
 - `fetchMe`로 닉네임 조회 (홈, 설정 화면).
 
 ### Questions (`src/api/questions.ts`)
 
-| 함수                                                | 메서드 | 경로                                                  |      인증       | 응답 타입                 | 상태 |
-| --------------------------------------------------- | ------ | ----------------------------------------------------- | :-------------: | ------------------------- | :--: |
-| `fetchQuestions(params)`                            | GET    | `/questions?page&size&topic&subtopic&difficulty&mode` |        -        | `Page<QuestionSummary>`   |  O   |
-| `fetchQuestion(questionUuid)`                       | GET    | `/questions/{questionUuid}`                           |        -        | `QuestionDetail`          |  O   |
-| `fetchTodayQuestion(memberUuid?)`                   | GET    | `/questions/today?memberUuid`                         | O (query param) | `TodayQuestionResponse`   |  O   |
-| `fetchRecommendations(size?, excludeQuestionUuid?)` | GET    | `/questions/recommendations?size&excludeQuestionUuid` |        -        | `RecommendationsResponse` |  O   |
-| `submitAnswer(questionUuid, choiceSetId, selectedChoiceKey)` | POST | `/questions/{questionUuid}/submit`           |   O (header)    | `SubmitResult`            |  O   |
-| `executeChoice(questionUuid, sql)`                  | POST   | `/questions/{questionUuid}/execute`                   |        -        | `ExecuteResult`           |  O   |
-| `generateChoices(questionUuid)`                     | POST   | `/questions/{questionUuid}/generate-choices`          |   O (header)    | SSE stream                |  O   |
+| 함수                                                | 메서드 | 경로                                                  | 인증 | 응답 타입                 |
+| --------------------------------------------------- | ------ | ----------------------------------------------------- | :--: | ------------------------- |
+| `fetchQuestions(params)`                            | GET    | `/questions?page&size&topic&subtopic&difficulty&mode` |  -   | `Page<QuestionSummary>`   |
+| `fetchQuestion(questionUuid)`                       | GET    | `/questions/{questionUuid}`                           |  -   | `QuestionDetail`          |
+| `fetchRecommendations(size?, excludeQuestionUuids?)` | POST  | `/questions/recommendations` (body)                   |  O   | `RecommendationsResponse` |
+| `submitAnswer(questionUuid, choiceSetId, selectedChoiceKey, sessionUuid)` | POST | `/questions/{questionUuid}/submit` |  O   | `SubmitResult`            |
+| `executeChoice(questionUuid, sql)`                  | POST   | `/questions/{questionUuid}/execute`                   |  -   | `ExecuteResult`           |
+| `generateChoices(questionUuid)`                     | POST   | `/questions/{questionUuid}/generate-choices`          |  O   | SSE stream                |
 
 - `fetchQuestions`: `QuestionSummary`에 `topicCode`, `executionMode`("EXECUTABLE"|"CONCEPT_ONLY"), `createdAt` 필드 추가됨.
 - `fetchQuestion`: 응답 `QuestionDetail` 주요 필드 — `choiceSetPolicy`(`"AI_ONLY" | "ODD_ONE_OUT" | "CURATED_ONLY" | "HYBRID" | "RESULT_MATCH"`), `executionMode`(`"EXECUTABLE" | "CONCEPT_ONLY"`), `schemaDisplay`(화면 표시용 스키마 텍스트), `schemaDdl`, `schemaSampleData`, `schemaIntent`, `answerSql`, `hint`. 선택지 구조: `choiceSets: ChoiceSetSummary[]` — `ChoiceSetSummary { choiceSetUuid, source, status, sandboxValidationPassed, createdAt, items: ChoiceItem[] }`. `ChoiceItem`에 `isCorrect`, `rationale` 포함. **`choiceSetPolicy` 렌더링 분기**: `RESULT_MATCH`는 선택지 `body`가 JSON 배열 결과 테이블이므로 `ResultMatchTable` 컴포넌트로 렌더링. `ODD_ONE_OUT`은 "결과가 다른 것은?" 유형. `AI_ONLY`/`HYBRID`는 일반 선택지.
-- `fetchTodayQuestion`: 오늘의 데일리 챌린지 문제 반환. 큐레이션 행(daily_challenge)이 있으면 그 문제, 없으면 활성 문제 풀에서 날짜 시드 기반 결정적 폴백. `memberUuid`가 주어지면 오늘 해당 문제 제출 여부를 `alreadySolvedToday`로 함께 반환. 활성 문제 0개면 `{ question: null, alreadySolvedToday: false }`.
-- `fetchRecommendations`: 활성 문제 풀에서 랜덤 N개 반환. size 기본 3, 최대 5 (초과 시 5로 clamp, 1 미만은 1). `excludeQuestionUuid` 미지정 시 데일리 챌린지 자동 제외.
-- `submitAnswer`: body 필드 `choiceSetId`(UUID, 필수) + `selectedChoiceKey`. 인증 헤더 `X-Member-UUID` 필수. 응답 `SubmitResult`에 `selectedResult`/`correctResult`(ExecuteResult), `correctSql`/`selectedSql` 필드 추가됨 — EXECUTABLE 문제에서 양쪽 SQL 실행 결과 비교 가능.
-- `generateChoices`: AI가 4지선다 선택지를 실시간 SSE 스트림으로 생성. 이벤트 타입: `status`(generating/validating), `complete`(choiceSetId+choices), `error`. 헤더 `X-Member-UUID` 필수.
+- 오늘의 문제는 `/daily-set/today`(`src/api/dailySet.ts`) 를 쓴다. 서버에 `/questions/today` 는 없다.
+- `fetchRecommendations`: 활성 문제 풀에서 랜덤 N개 반환. size 기본 3, 최대 5. 제외 UUID 가 쿼리스트링 한도를 넘지 않게 POST body 로 보낸다.
+- `submitAnswer`: body `choiceSetId`(UUID, 필수) + `selectedChoiceKey` + `sessionUuid`. 응답 `SubmitResult`에 `selectedResult`/`correctResult`(ExecuteResult), `correctSql`/`selectedSql` — EXECUTABLE 문제에서 양쪽 SQL 실행 결과 비교 가능.
+- `generateChoices`: AI가 4지선다 선택지를 실시간 SSE 스트림으로 생성. 이벤트 타입: `status`(generating/validating), `complete`(choiceSetId+choices), `error`. EventSource 는 헤더를 못 붙여 `fetch` 스트림으로 Bearer 토큰을 보낸다(`apiFetch` 예외 1곳).
 
 ### AI (`src/api/ai.ts`)
 
 | 함수                              | 메서드 | 경로                           |    인증    | 응답 타입           | 상태 |
 | --------------------------------- | ------ | ------------------------------ | :--------: | ------------------- | :--: |
-| `explainError(payload)`           | POST   | `/ai/explain-error`            | O (header) | `AiResult`          |  O   |
-| `diffExplain(payload)`            | POST   | `/ai/diff-explain`             | O (header) | `AiResult`          |  O   |
+| `explainError(payload)`           | POST   | `/ai/explain-error`            |     O      | `AiResult`          |  O   |
+| `diffExplain(payload)`            | POST   | `/ai/diff-explain`             |     O      | `AiResult`          |  O   |
 | `fetchSimilar(questionUuid, k=5)` | GET    | `/ai/similar/{questionUuid}?k` |     -      | `SimilarQuestion[]` |  O   |
 
 **AI 요청 body 스펙** (백엔드가 AI 서버로 프록시 — 필드 누락 시 422):
@@ -65,7 +65,7 @@ Frontend ──(/api)──> Backend(Spring) ──(x-api-key)──> AI Server(
 | `sql` | string | O | 사용자가 작성한 SQL |
 | `errorMessage` | string | O | 발생한 에러 메시지 |
 
-- `user_uuid`는 프론트에서 전달하지 않음 (헤더 `X-Member-UUID`로 대체).
+- `user_uuid`는 프론트에서 전달하지 않음 (서버가 Bearer 토큰에서 식별).
 
 `diffExplain`:
 | 필드 | 타입 | 필수 | 설명 |
@@ -73,19 +73,20 @@ Frontend ──(/api)──> Backend(Spring) ──(x-api-key)──> AI Server(
 | `questionUuid` | string (UUID) | O | 문제 UUID |
 | `selectedChoiceKey` | string | O | 사용자가 선택한 답 키 |
 
-(프론트는 위 2개만 전달. 백엔드가 나머지 필드 `correct_key`, `question_stem`, `choice_bodies`를 자동으로 조회하고 `X-Member-UUID` 헤더에서 사용자를 식별하여 AI 서버로 프록시)
+(프론트는 위 2개만 전달. 백엔드가 나머지 필드 `correct_key`, `question_stem`, `choice_bodies`를 자동으로 조회하고 Bearer 토큰에서 사용자를 식별하여 AI 서버로 프록시)
 
 **참고**: 백엔드가 AI 서버 응답을 camelCase로 변환하여 내려줌 (`prompt_version` → `promptVersion`).
 `fetchSimilar`는 백엔드가 AI 결과를 보강 (`SimilarQuestion`에 `stem`, `topicName` 추가). 응답: `SimilarQuestion { questionUuid, stem, topicName, score }`.
 
 ### Progress (`src/api/progress.ts`)
 
-| 함수                                          | 메서드 | 경로                                   |      인증       | 응답 타입                | 상태 |
-| --------------------------------------------- | ------ | -------------------------------------- | :-------------: | ------------------------ | :--: |
-| `fetchProgress()`                             | GET    | `/progress?memberUuid`                 | O (query param) | `ProgressResponse`       |  O   |
-| `fetchTopicAnalysis()`                        | GET    | `/progress/topic-analysis?memberUuid`  | O (query param) | `TopicAnalysisResponse`  |  O   |
-| `fetchHeatmap(memberUuid, from?, to?)`        | GET    | `/progress/heatmap?memberUuid&from&to` | O (query param) | `HeatmapResponse`        |  O   |
-| `fetchAiComment()`                            | GET    | `/progress/ai-comment?memberUuid`      | O (query param) | `AiCommentResponse`      |  O   |
+| 함수                             | 메서드 | 경로                               | 인증 | 응답 타입                |
+| -------------------------------- | ------ | ---------------------------------- | :--: | ------------------------ |
+| `fetchProgress()`                | GET    | `/progress`                        |  O   | `ProgressResponse`       |
+| `fetchTopicAnalysis()`           | GET    | `/progress/topic-analysis`         |  O   | `TopicAnalysisResponse`  |
+| `fetchHeatmap(from?, to?)`       | GET    | `/progress/heatmap?from&to`        |  O   | `HeatmapResponse`        |
+| `fetchAiComment(sessionUuid?)`   | GET    | `/progress/ai-comment?sessionUuid` |  O   | `AiCommentResponse`      |
+| `fetchWrongQuestions(size?)`     | GET    | `/progress/wrong-questions?size`   |  O   | `WrongQuestionsResponse` |
 
 - `fetchProgress`: 응답 필드 `solvedCount`(int64, distinct questionUuid 기준), `correctRate`(double, 0.0~1.0 둘째자리 반올림, 마지막 시도 기준), `streakDays`(int32, 하루 그레이스 -- 오늘 미제출이어도 어제까지 연속이면 유지). 제출 이력 0건이면 `{ 0, 0.0, 0 }`. `readiness` 블록: `ReadinessResponse { score, accuracy, coverage, recency, lastStudiedAt, recentAttemptCount, coveredTopicCount, activeTopicCount, daysUntilExam, toneKey }`. score = Accuracy x Coverage x Recency (0.0~1.0). toneKey: NO_EXAM/ONBOARDING/POST_EXAM/TODAY/SPRINT/PUSH/STEADY/EARLY.
 - `fetchTopicAnalysis`: 토픽별 학습 분석. `TopicAnalysisResponse { topicStats: TopicStat[] }`. `TopicStat { topicUuid, displayName, totalQuestionCount, correctRate, solvedCount }`.
@@ -104,9 +105,9 @@ Frontend ──(/api)──> Backend(Spring) ──(x-api-key)──> AI Server(
 
 ### Home (`src/api/home.ts`)
 
-| 함수                        | 메서드 | 경로                        |      인증       | 응답 타입          | 상태 |
-| --------------------------- | ------ | --------------------------- | :-------------: | ------------------ | :--: |
-| `fetchGreeting(memberUuid)` | GET    | `/home/greeting?memberUuid` | O (query param) | `GreetingResponse` |  O   |
+| 함수              | 메서드 | 경로             | 인증 | 응답 타입          |
+| ----------------- | ------ | ---------------- | :--: | ------------------ |
+| `fetchGreeting()` | GET    | `/home/greeting` |  O   | `GreetingResponse` |
 
 - `fetchGreeting`: 홈 화면 인사 메시지 반환(#53). `GreetingResponse { nickname, message, messageType }`. `message`에 `{nickname}` 플레이스홀더 포함 -- 프론트에서 치환. `messageType`: GENERAL/COUNTDOWN/URGENT/EXAM_DAY. D-day 구간에 따라 일반 메시지와 가중치 혼합. 회원 조회 실패 시 nickname="회원" + GENERAL 폴백.
 
@@ -114,8 +115,8 @@ Frontend ──(/api)──> Backend(Spring) ──(x-api-key)──> AI Server(
 
 | 함수                      | 메서드 | 경로            |    인증    | 응답 타입               | 상태 |
 | ------------------------- | ------ | --------------- | :--------: | ----------------------- | :--: |
-| `submitFeedback(content)` | POST   | `/feedback`     | O (header) | `FeedbackSubmitResponse` |  O   |
-| `fetchMyFeedback()`       | GET    | `/feedback/me`  | O (header) | `FeedbackListResponse`  |  O   |
+| `submitFeedback(content)` | POST   | `/feedback`     |     O      | `FeedbackSubmitResponse` |  O   |
+| `fetchMyFeedback()`       | GET    | `/feedback/me`  |     O      | `FeedbackListResponse`  |  O   |
 
 - `submitFeedback`: body `{ content }` (1~500자). 응답 `{ feedbackUuid, status: "PENDING", createdAt }`.
 - `fetchMyFeedback`: 빈 목록이면 404가 아닌 200 + `{ items: [] }` 반환 (API 스펙 보장).
@@ -155,9 +156,9 @@ Frontend ──(/api)──> Backend(Spring) ──(x-api-key)──> AI Server(
 진입 시 동시 호출:
 - GET /members/me                → 닉네임
 - GET /home/greeting             → 인사 메시지
-- GET /progress?memberUuid       → 푼 문제, 정답률, 스트릭
-- GET /questions/today           → 오늘의 문제 + 풀이 여부
-- GET /questions/recommendations → 추천 문제
+- GET /progress                  → 푼 문제, 정답률, 스트릭
+- GET /daily-set/today           → 오늘의 문제 세트 + 완료 여부
+- POST /questions/recommendations → 추천 문제
 - GET /exam-schedules/selected   → 선택된 시험 일정
 ```
 
@@ -172,8 +173,8 @@ Frontend ──(/api)──> Backend(Spring) ──(x-api-key)──> AI Server(
 ## 코드 패턴 (새 엔드포인트 추가 시 필수)
 
 1. **`apiFetch<T>()` 래퍼 필수** — `fetch()` 직접 호출 금지. `src/api/client.ts`의 래퍼가 타임아웃, Content-Type, 에러 변환을 처리함.
-2. **인증 헤더** — 인증(O) 엔드포인트는 `headers: { "X-Member-UUID": getMemberUuid() }` 주입. `getMemberUuid()`는 `src/stores/memberStore.ts`에서 import.
-3. **응답 타입** — `src/types/api.ts`에 `readonly` interface로 정의. 모든 필드 `readonly` 필수.
+2. **인증 헤더** — 직접 넣지 않는다. `apiFetch` 가 Bearer 토큰 주입·401 재발급을 처리한다. 토큰·저장 키는 `src/stores/authStore.ts` 한 곳(`localStorage` 직접 접근 금지).
+3. **응답·요청 타입** — 서버 계약에서 생성된 `src/types/generated/openapi.ts` 를 `src/types/api.ts` 에서 `export type X = ApiSchemas["X"]` 별칭으로만 노출한다. `api.ts` 에 `...Response`/`...Request` interface 를 손으로 쓰지 않는다(규칙 `client-no-handwritten-api-type`). 서버가 enum 을 String 으로 내보낸 필드만 `Omit<...> & { 필드: 유니온 }` 으로 좁히고, 생성본에 스키마가 없는 웹 전용(SSE 이벤트·제네릭 `Page<T>`·화면 상태)만 손타입으로 두며 이유를 한 줄 주석으로 남긴다.
 4. **파일 위치** — 도메인별 `src/api/{domain}.ts`. 새 도메인이면 새 파일 생성.
 5. **쿼리 파라미터** — `URLSearchParams`로 조립. optional 파라미터는 `!= null` 체크 후 set.
 6. **POST body** — `JSON.stringify()` 후 body에 전달. Content-Type은 client.ts가 자동 설정.
@@ -235,6 +236,12 @@ try {
   }
 }
 ```
+
+### 화면 문구 변환
+
+- 오류 > 사용자 문구는 `src/lib/userErrorMessage.ts` 의 `toUserErrorMessage(error, fallbackMessage)` 하나만 쓴다. 4xx 는 서버 `message`, 그 외(5xx·네트워크·타임아웃)는 fallback.
+- `err.message` 를 화면에 그대로 넣지 않는다("API Error 500"·"Failed to fetch" 노출 금지).
+- 오류 종류 분기는 문구 문자열 비교 대신 오류 클래스(`instanceof`)로 한다.
 
 ### 규칙
 

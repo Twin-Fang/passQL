@@ -1,6 +1,14 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/auth/auth_interceptor.dart';
+import '../../core/auth/member_suspension_interceptor.dart';
+import '../../core/auth/member_suspension_signal.dart';
+import '../../core/auth/session_expiry_signal.dart';
+import '../../core/auth/token_store.dart';
+import '../../core/network/dio_client.dart';
 import 'ai_api.dart';
+import 'auth_api.dart';
 import 'feedback_api.dart';
 import 'daily_set_api.dart';
 import 'exam_schedule_api.dart';
@@ -13,7 +21,39 @@ import 'push_token_api.dart';
 import 'question_api.dart';
 import 'report_api.dart';
 import 'sse_question_client.dart';
-import '../../core/network/dio_client.dart';
+
+/// 인증 API 클라이언트 (인증 인터셉터 없는 Dio 사용)
+final authApiProvider = Provider<AuthApi>(
+  (ref) => AuthApi(ref.watch(plainDioProvider)),
+);
+
+/// 앱 전역 Dio 인스턴스 Provider.
+///
+/// 모든 요청에 Bearer 토큰을 붙이고 401 시 자동 재발급한다.
+/// 이용 제한(403 MEMBER_SUSPENDED) 응답은 이용 제한 신호로 알린다.
+final dioProvider = Provider<Dio>((ref) {
+  final dio = buildBackendDio();
+  dio.interceptors.insert(
+    0,
+    AuthInterceptor(
+      tokenStore: ref.watch(tokenStoreProvider),
+      tokenReissueClient: ref.watch(authApiProvider),
+      retryDio: dio,
+      // 세션 만료 신호만 보냄 (인증 상태 변경은 구독하는 AuthNotifier 몫)
+      onSessionExpired: ref.read(sessionExpirySignalProvider).announceExpired,
+    ),
+  );
+  // 이용 제한 신호만 보냄 (로그아웃·안내는 구독하는 AuthNotifier 몫)
+  dio.interceptors.insert(
+    1,
+    MemberSuspensionInterceptor(
+      onMemberSuspended: ref
+          .read(memberSuspensionSignalProvider)
+          .announceSuspended,
+    ),
+  );
+  return dio;
+});
 
 /// API 클라이언트 Provider 모음.
 ///

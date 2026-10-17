@@ -68,7 +68,7 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
           result.isCorrect,
           selectedChoiceKey,
           selectedChoiceBody,
-          result.submissionUuid,
+          result.submissionUuid ?? undefined,
           choiceSetId,
         );
         // 마지막 문제 제출 완료 시에만 갱신 — 도중 이탈은 갱신하지 않기로 결정
@@ -90,6 +90,8 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
           correctResult: null,
           selectedSql: null,
           correctSql: null,
+          submissionUuid: null,
+          explanation: null,
         };
         setFeedback(fallback);
         // 제출 실패 시 submissionUuid 없음 → 신고 버튼 미표시

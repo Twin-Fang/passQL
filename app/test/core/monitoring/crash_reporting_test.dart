@@ -74,4 +74,22 @@ void main() {
 
     expect(crashReporter.recordedReasons, isEmpty);
   });
+
+  test('화면 catch 공통 기록: 예상 밖 오류만 사유와 함께 기록한다', () {
+    reportIfUnexpectedFailure(
+      StateError('storage write failed'),
+      StackTrace.current,
+      reason: 'login:google',
+    );
+    reportIfUnexpectedFailure(
+      DioException(
+        requestOptions: RequestOptions(path: '/x'),
+        type: DioExceptionType.connectionError,
+      ),
+      StackTrace.current,
+      reason: 'chapterComplete:daily-set',
+    );
+
+    expect(crashReporter.recordedReasons, ['login:google']);
+  });
 }

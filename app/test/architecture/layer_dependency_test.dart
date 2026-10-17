@@ -2,13 +2,14 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'source_scan.dart';
 
-/// 계층 의존 방향 규칙: 바깥(presentation·router) > 안쪽(data·core) 한 방향만 허용
+/// 계층 의존 방향 규칙: 바깥(presentation·router) > data > core 한 방향만 허용
 /// 세션 만료처럼 안쪽이 바깥에 알려야 하면 core 의 신호(SessionExpirySignal)를 바깥이 구독한다.
+/// core 가 data 기능이 필요하면 core 에 포트를 두고 data 가 구현한다 (TokenReissueClient <- AuthApi).
 
 /// 계층별 import 금지 대상 3종 {검사할 폴더: [가져오면 안 되는 폴더 접두사]}
 const Map<String, List<String>> _forbiddenImportsByLayer = {
-  // 공통·인프라는 화면을 모른다
-  'lib/core': ['lib/presentation/', 'lib/router/'],
+  // 공통·인프라는 화면도 데이터 계층도 모른다 (core <-> data 순환 방지)
+  'lib/core': ['lib/presentation/', 'lib/router/', 'lib/data/'],
   // 데이터 계층도 화면을 모른다
   'lib/data': ['lib/presentation/', 'lib/router/'],
   // 디자인 시스템은 가장 아래 UI 계층: 상태·화면·라우터를 모른다
@@ -39,13 +40,17 @@ const String _pushDirectory = 'lib/core/push/';
 const String _iconBadgePackage = 'package:app_badge_plus/';
 const String _notificationDirectory = 'lib/core/notification/';
 
+/// 기기 일반 저장소 SDK: core/storage 의 DevicePreferences 만 직접 import (키는 StorageKeys 한 곳)
+const String _sharedPreferencesPackage = 'package:shared_preferences/';
+const String _storageDirectory = 'lib/core/storage/';
+
 /// 알림함 진입 경로: 종 아이콘(PassqlNotificationBellButton)을 둔 화면만 사용 {파일: 이유}
 const Map<String, String> _allowedNotificationInboxRouteUsages = {
   'lib/presentation/pages/home/home_page.dart': '홈 상단 종 아이콘 onPressed',
 };
 
 void main() {
-  test('안쪽 계층(core·data·design)은 바깥 계층을 import 하지 않는다', () {
+  test('안쪽 계층(core·data·design)은 바깥 계층을 import 하지 않는다 (core 는 data 도 금지)', () {
     final violations = <String>[];
     _forbiddenImportsByLayer.forEach((layerDirectory, forbiddenPrefixes) {
       for (final file in handWrittenDartFiles(layerDirectory)) {
@@ -119,6 +124,21 @@ void main() {
       final lines = file.readAsLinesSync();
       for (var lineIndex = 0; lineIndex < lines.length; lineIndex++) {
         if (lines[lineIndex].contains(_iconBadgePackage)) {
+          violations.add('$path:${lineIndex + 1}');
+        }
+      }
+    }
+    expect(violations, isEmpty, reason: violations.join('\n'));
+  });
+
+  test('SharedPreferences 는 core/storage 에서만 import 한다', () {
+    final violations = <String>[];
+    for (final file in handWrittenDartFiles('lib')) {
+      final path = normalizedPath(file);
+      if (path.startsWith(_storageDirectory)) continue;
+      final lines = file.readAsLinesSync();
+      for (var lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+        if (lines[lineIndex].contains(_sharedPreferencesPackage)) {
           violations.add('$path:${lineIndex + 1}');
         }
       }

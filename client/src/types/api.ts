@@ -1,7 +1,7 @@
 import type { components } from "./generated/openapi";
 
-// 서버 계약(api-contract/openapi.json) 생성 타입. 서버와 같은 모양은 아래처럼 별칭만 둔다 (#458)
-// 생성 타입과 다른 수작업 타입(null 표기·문자열 enum·웹 전용)은 그대로 유지
+// 서버 계약(api-contract/openapi.json) 생성 타입. 서버 응답·요청은 별칭만 둔다 (#458, #517)
+// 손타입은 생성본에 스키마가 없는 웹 전용(SSE 이벤트·제네릭 Page·화면 상태)만 유지
 type ApiSchemas = components["schemas"];
 
 // === Question ===
@@ -23,22 +23,11 @@ export type ChoiceSetSummary = ApiSchemas["ChoiceSetSummary"];
 
 export type QuestionDetail = ApiSchemas["QuestionDetail"];
 
-export interface SubmitResult {
-  readonly isCorrect: boolean;
-  readonly correctKey: string;
-  readonly rationale: string;
-  // EXECUTABLE 문제일 때만 non-null, CONCEPT_ONLY는 null
-  readonly selectedResult: ExecuteResult | null;
-  readonly correctResult: ExecuteResult | null;
-  readonly selectedSql: string | null;
-  readonly correctSql: string | null;
-  // 신고 기능에 사용 — 백엔드 미지원 시 undefined
-  readonly submissionUuid?: string;
-  // 고른 선택지의 미리 생성된 AI 해설 (없으면 null, 있으면 짧은 근거 대신 보여 줌) (#496)
-  readonly explanation?: string | null;
-}
+// selectedResult·correctResult: EXECUTABLE 문제만 non-null / explanation: 미리 생성된 AI 해설 (#496)
+export type SubmitResult = ApiSchemas["SubmitResult"];
 
 // === SSE (선택지 생성) ===
+// SSE 이벤트 본문은 OpenAPI 스키마가 없음 (응답 타입이 SseEmitter) > 웹 손타입 유지
 export type SseStatusPhase = "generating" | "validating";
 
 export interface SseStatusEvent {
@@ -52,23 +41,17 @@ export interface SseErrorEvent {
   readonly retryable: boolean;
 }
 
-export interface ChoiceSetGenerateResponse {
+// SSE complete 이벤트 본문 (스키마 없음)
+export interface ChoiceSetGeneratedEvent {
   readonly choiceSetId: string;
   // isCorrect, rationale은 사용자 정답 노출 방지를 위해 제외됨
   readonly choices: readonly ChoiceItem[];
 }
 
-export interface ExecuteResult {
-  readonly status: string;
-  readonly columns: readonly string[];
-  readonly rows: readonly (readonly unknown[])[];
-  readonly rowCount: number;
-  readonly elapsedMs: number;
-  readonly errorCode: string | null;
-  readonly errorMessage: string | null;
-}
+export type ExecuteResult = ApiSchemas["ExecuteResult"];
 
 // === Page ===
+// 생성본은 PageQuestionSummary 하나뿐 > 여러 목록에 쓰는 제네릭 손타입 유지
 export interface Page<T> {
   readonly content: readonly T[];
   readonly totalPages: number;
@@ -83,39 +66,14 @@ export interface Page<T> {
 // === Progress ===
 export type ToneKey = ApiSchemas["ReadinessResponse"]["toneKey"];
 
-export interface ReadinessResponse {
-  readonly score: number;
-  readonly accuracy: number;
-  readonly coverage: number;
-  readonly recency: number;
-  readonly retry: number;
-  readonly spread: number;
-  readonly lastStudiedAt: string | null;
-  readonly recentAttemptCount: number;
-  readonly coveredTopicCount: number;
-  readonly activeTopicCount: number;
-  readonly daysUntilExam: number | null;
-  readonly toneKey: ToneKey;
-}
+export type ReadinessResponse = ApiSchemas["ReadinessResponse"];
 
-export interface ProgressResponse {
-  readonly solvedCount: number;
-  readonly correctRate: number;
-  readonly streakDays: number;
-  readonly readiness: ReadinessResponse | null;
-}
+export type ProgressResponse = ApiSchemas["ProgressResponse"];
 
 // === 마이페이지 오답 노트 ===
 export type WrongQuestionItem = ApiSchemas["WrongQuestionItem"];
 
 export type WrongQuestionsResponse = ApiSchemas["WrongQuestionsResponse"];
-
-export interface CategoryStats {
-  readonly code: string;
-  readonly displayName: string;
-  readonly correctRate: number;
-  readonly solvedCount: number;
-}
 
 // === Topic Analysis (Issue #79) ===
 export type TopicStat = ApiSchemas["TopicStat"];
@@ -142,30 +100,11 @@ export type AiResult = ApiSchemas["AiResult"];
 export type SimilarQuestion = ApiSchemas["SimilarQuestion"];
 
 // === Member ===
-export interface MemberRegisterResponse {
-  readonly memberUuid: string;
-  readonly nickname: string;
-}
-
 // 선택지 생성 모드
 export type ChoiceGenerationMode = ApiSchemas["MemberMeResponse"]["choiceGenerationMode"];
 
-export interface MemberMeResponse {
-  readonly memberUuid: string;
-  readonly nickname: string;
-  readonly role: string;
-  readonly status: string;
-  readonly isTestAccount: boolean;
-  readonly createdAt: string;
-  readonly lastSeenAt: string;
-  // null이면 닉네임을 한 번도 변경하지 않은 상태
-  readonly nicknameChangedAt: string | null;
-  readonly choiceGenerationMode: ChoiceGenerationMode;
-  // 가입 제공자 (탈퇴 시 제공자 연결 해제 분기 원본, #516)
-  readonly authProvider: ApiSchemas["MemberMeResponse"]["authProvider"];
-  // 제공자 사용자 ID (Google·Apple 은 Firebase uid, 탈퇴 재인증 계정 대조용)
-  readonly providerUserId: string;
-}
+// nicknameChangedAt: null 이면 닉네임 변경 이력 없음 / authProvider: 탈퇴 시 제공자 연결 해제 분기 원본 (#516)
+export type MemberMeResponse = ApiSchemas["MemberMeResponse"];
 
 export type NicknameRegenerateResponse = ApiSchemas["NicknameRegenerateResponse"];
 
@@ -174,6 +113,7 @@ export type NicknameCheckResponse = ApiSchemas["NicknameCheckResponse"];
 export type NicknameChangeResponse = ApiSchemas["NicknameChangeResponse"];
 
 // === AI Payloads ===
+// 서버 요청 본문이 Map 이라 스키마 없음 > 웹 손타입 유지
 export interface ExplainErrorPayload {
   readonly questionUuid: string;
   readonly sql: string;
@@ -192,21 +132,14 @@ export interface TodayQuestionResponse {
 }
 
 // === Daily Set ===
-export interface DailySetTodayResponse {
-  readonly questions: readonly QuestionSummary[];
-  readonly alreadyCompleted: boolean;
-  readonly correctCount: number | null;
-}
+// results: 문제별 정답 여부 (미완료면 null)
+export type DailySetTodayResponse = ApiSchemas["DailySetTodayResponse"];
 
 export type DailySetCompleteResponse = ApiSchemas["DailySetCompleteResponse"];
 
 export type LeaderboardEntry = ApiSchemas["LeaderboardEntry"];
 
-export interface LeaderboardResponse {
-  readonly date: string;
-  readonly entries: readonly LeaderboardEntry[];
-  readonly myEntry: LeaderboardEntry | null;
-}
+export type LeaderboardResponse = ApiSchemas["LeaderboardResponse"];
 
 export type RecommendationsResponse = ApiSchemas["RecommendationsResponse"];
 
@@ -219,6 +152,7 @@ export type GreetingResponse = ApiSchemas["GreetingResponse"];
 export type ExamScheduleResponse = ApiSchemas["ExamScheduleResponse"];
 
 // === Practice ===
+// 연습 세트 결과는 서버로 보내지 않는 화면 상태 > 웹 손타입
 export interface PracticeQuestionResult {
   readonly questionUuid: string;
   readonly isCorrect: boolean;
@@ -232,90 +166,44 @@ export interface PracticeQuestionResult {
   readonly choiceSetUuid?: string;
 }
 
-export interface PracticeSubmitPayload {
-  readonly topicCode: string;
-  readonly results: readonly PracticeQuestionResult[];
-}
-
-export interface PracticeAnalysis {
-  readonly correctCount: number;
-  readonly totalCount: number;
-  readonly totalDurationMs: number;
-  readonly greeting: string;
-  readonly analysis: string;
-  readonly tip: string;
-}
-
 // === Feedback ===
+// 서버가 status 를 String 으로 내보내 계약에 enum 없음 > 웹이 아는 값 3개로 좁힘
 export type FeedbackStatus = "PENDING" | "REVIEWED" | "APPLIED";
 
-export interface FeedbackItem {
-  readonly feedbackUuid: string;
-  readonly content: string;
+export type FeedbackItem = Omit<ApiSchemas["FeedbackItem"], "status"> & {
   readonly status: FeedbackStatus;
-  readonly createdAt: string; // ISO 8601
-}
+};
 
-export interface FeedbackListResponse {
+export type FeedbackListResponse = Omit<ApiSchemas["FeedbackListResponse"], "items"> & {
   readonly items: readonly FeedbackItem[];
-}
+};
 
-export interface FeedbackSubmitResponse {
-  readonly feedbackUuid: string;
+export type FeedbackSubmitResponse = Omit<ApiSchemas["FeedbackSubmitResponse"], "status"> & {
   readonly status: FeedbackStatus;
-  readonly createdAt: string;
-}
-
+};
 
 // === App Config (#464) ===
-// 웹은 점검·공지만 사용 (ios·android 버전 정책 필드는 앱 전용이라 타입에서 제외)
-export interface AppMaintenance {
-  readonly isUnderMaintenance: boolean;
-  // 관리자 점검 문구 (비면 화면 기본 문구)
-  readonly message: string | null;
-}
+// 웹은 점검·공지만 사용 (ios·android 버전 정책은 앱 전용) / notices: 노출 대상만 중요 먼저 > 최근 등록 순
+export type AppNotice = ApiSchemas["AppNoticeResponse"];
 
-export interface AppNotice {
-  readonly noticeUuid: string;
-  readonly title: string;
-  readonly body: string;
-  readonly startsAt: string | null; // ISO 8601 (KST LocalDateTime)
-  readonly endsAt: string | null;
-  readonly isActive: boolean;
-  readonly isImportant: boolean;
-}
-
-export interface AppConfigResponse {
-  readonly maintenance: AppMaintenance;
-  // 서버가 노출 대상만 중요 먼저 > 최근 등록 순으로 내려줌
-  readonly notices: readonly AppNotice[];
-}
+export type AppConfigResponse = ApiSchemas["AppConfigResponse"];
 
 // ── 알림함 (#491) ──
 // 알림함 두 탭: 알림(GENERAL) / 공지(NOTICE)
 export type NotificationCategory = "GENERAL" | "NOTICE";
+// type·linkTarget: 서버가 String 으로 내보내 계약에 enum 없음 > 서버 enum 값으로 좁힘
 export type NotificationType = "ADMIN_MESSAGE" | "REPORT_RESOLVED" | "DAILY_SET_REMINDER" | "NOTICE";
 // 서버 PushLinkTarget 와 같은 값 (앱 푸시 이동 허용 목록)
 export type NotificationLinkTarget = "HOME" | "DAILY_SET" | "QUESTIONS" | "QUESTION_DETAIL" | "STATS";
 
-export interface NotificationItem {
-  // NOTICE 는 공지 UUID
-  readonly id: string;
-  readonly category: NotificationCategory;
+// id: NOTICE 는 공지 UUID / nextCursor: null 이면 마지막 페이지
+export type NotificationItem = Omit<ApiSchemas["NotificationItemResponse"], "type" | "linkTarget"> & {
   readonly type: NotificationType;
-  readonly title: string;
-  readonly body: string;
   readonly linkTarget: NotificationLinkTarget | null;
-  readonly linkQuestionUuid: string | null;
-  readonly isRead: boolean;
-  readonly createdAt: string; // ISO 8601
-  readonly isImportant: boolean;
-}
+};
 
-export interface NotificationPage {
+export type NotificationPage = Omit<ApiSchemas["NotificationPageResponse"], "items"> & {
   readonly items: readonly NotificationItem[];
-  // null = 마지막 페이지
-  readonly nextCursor: string | null;
-}
+};
 
 export type UnreadNotificationCount = ApiSchemas["UnreadNotificationCountResponse"];

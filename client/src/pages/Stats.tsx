@@ -40,13 +40,13 @@ function ReadinessPopover({
           { label: "고른 학습", value: readiness.spread },
         ].map(({ label, value }) => (
           <div key={label} className="flex items-center gap-2">
-            <span className="text-[11px] text-text-inverse-secondary w-16 shrink-0">{label}</span>
+            <span className="text-caption2 text-text-inverse-secondary w-16 shrink-0">{label}</span>
             <ProgressBar
               fillPercent={Math.round(value * 100)}
               trackClassName="flex-1 h-1 bg-text-inverse/15"
               fillClassName="bg-brand-medium"
             />
-            <span className="text-[11px] text-brand-medium w-7 text-right shrink-0">
+            <span className="text-caption2 text-brand-medium w-7 text-right shrink-0">
               {Math.round(value * 100)}%
             </span>
           </div>
@@ -149,16 +149,16 @@ export default function Stats() {
 
           {/* 푼 문제 */}
           <div className="flex-1 text-center py-5 px-2">
-            <div className="w-9 h-9 rounded-[10px] bg-brand-light flex items-center justify-center mx-auto mb-2">
+            <div className="w-9 h-9 rounded-tile bg-brand-light flex items-center justify-center mx-auto mb-2">
               <CheckSquare size={18} className="text-brand" />
             </div>
             <p className="text-h1 text-2xl">{progress?.solvedCount ?? 0}문제</p>
-            <p className="text-secondary text-[13px] mt-0.5">푼 문제</p>
+            <p className="text-secondary text-footnote mt-0.5">푼 문제</p>
           </div>
 
           {/* 합격 준비도 / 정답률 */}
           <div className="flex-1 text-center py-5 px-2 relative">
-            <div className="w-9 h-9 rounded-[10px] bg-brand-light flex items-center justify-center mx-auto mb-2">
+            <div className="w-9 h-9 rounded-tile bg-brand-light flex items-center justify-center mx-auto mb-2">
               <BarChart2 size={18} className="text-brand" />
             </div>
             <p className="text-h1 text-2xl">
@@ -167,7 +167,7 @@ export default function Stats() {
                 : `${Math.round((progress?.correctRate ?? 0) * 100)}%`}
             </p>
             <div className="flex items-center justify-center gap-1 mt-0.5">
-              <p className="text-secondary text-[13px]">
+              <p className="text-secondary text-footnote">
                 {readinessPercent != null ? "합격 준비도" : "정답률"}
               </p>
               {readiness && (
@@ -192,11 +192,11 @@ export default function Stats() {
 
           {/* 연속 학습 */}
           <div className="flex-1 text-center py-5 px-2">
-            <div className="w-9 h-9 rounded-[10px] bg-semantic-warning-light flex items-center justify-center mx-auto mb-2">
+            <div className="w-9 h-9 rounded-tile bg-semantic-warning-light flex items-center justify-center mx-auto mb-2">
               <Zap size={18} className="text-semantic-warning" />
             </div>
             <p className="text-h1 text-2xl">{progress?.streakDays ?? 0}일</p>
-            <p className="text-secondary text-[13px] mt-0.5">연속 학습</p>
+            <p className="text-secondary text-footnote mt-0.5">연속 학습</p>
           </div>
 
         </div>

@@ -46,8 +46,8 @@ React 성능 최적화 69개 룰. 컴포넌트 작성, 리팩토링, 코드리�
   - **예외**: `MarkdownText.tsx`의 단어 fade-in span에서 CSS custom property(`--i`) 주입 목적으로만 허용. 런타임 동적 값을 CSS에 전달하는 유일한 수단이므로 이 케이스에 한해 인정한다
   - 그 외 런타임 값(진행률·위치·이동량)은 `useCssVariables(ref, { "--이름": 값 })` 훅으로 주입하고 클래스에서 `[width:var(--이름)]`처럼 읽는다. 진행 막대는 `ProgressBar`, 버튼 아래 말풍선은 `AnchoredPopover`
 - **색 하드코딩 금지** — hex, `[#...]` 임의 색값, Tailwind 기본 팔레트(`gray-500` 등), `white`/`black` 클래스 금지. `src/styles/tokens.css` 토큰 클래스(`bg-brand`, `text-semantic-error-text` 등)만 쓴다. 필요한 색이 없으면 토큰을 먼저 추가한다
-  - 토큰 값 원본은 앱 `app/lib/presentation/design/tokens/pq_colors.dart`의 light 값이다. `theme.css`(daisyUI)는 토큰 var 참조만 둔다
-  - `npm run lint`(eslint `no-restricted-syntax`)와 `src/test/designTokens.test.ts`가 강제한다. 예외는 `eslint.config.js`에 이유와 함께 명시한 2건(Google 로고 색, MarkdownText `--i`)뿐이다
+  - 토큰 값 원본은 앱 `app/lib/presentation/design/tokens/passql_colors.dart`의 light 값이다. `theme.css`(daisyUI)는 토큰 var 참조만 둔다
+  - `npm run lint`(eslint `no-restricted-syntax`)와 `src/test/designTokens.test.ts`(앱 `passql_colors.dart`·`brand/brand-colors.json` 을 직접 읽어 대조)가 강제한다. 예외는 `eslint.config.js`에 이유와 함께 명시한 2건(Google 로고 색, MarkdownText `--i`)뿐이다
 - **운영 주소는 `src/constants/siteUrls.ts` 한 곳** — API 기본 주소, 웹 주소(index.html og 태그는 `%PASSQL_SITE_URL%`), 공개 약관(GitHub Pages). 웹 `/legal/*.html`은 `vercel.json` redirects로 GitHub Pages로 이동한다
 
 ### web-design-guidelines

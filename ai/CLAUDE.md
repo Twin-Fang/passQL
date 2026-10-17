@@ -33,11 +33,13 @@ src/
 │   ├── gemini_client.py
 │   ├── ollama_client.py          # 임베딩
 │   ├── qdrant_search_client.py
-│   └── redis_app_setting_client.py
+│   ├── redis_app_setting_client.py   # redis.asyncio (동기 redis import 금지)
+│   └── shared_http_client.py         # 공유 httpx 클라이언트(lifespan) + 재시도 + CustomError 변환
 ├── core/
 │   ├── config.py                 # 환경변수 설정 단일 원본 (컬렉션 이름·임베딩 차원 포함)
-│   ├── exception_handlers.py     # CustomError·예기치 않은 예외 > 500 공통 응답
-│   ├── exceptions.py
+│   ├── exception_handlers.py     # CustomError > 자기 status(입력 오류 400), 예기치 않은 예외 > 500
+│   ├── exceptions.py             # CustomError(status_code), InvalidRequestError(400)
+│   ├── retry.py                  # 외부 호출 일시 오류(타임아웃·429·5xx) 재시도 최대 2회
 │   └── logging.py
 ├── models/                       # 요청/응답 스키마 (Pydantic)
 │   ├── ai_request.py

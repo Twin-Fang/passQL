@@ -59,7 +59,7 @@ export default function ScoreCountUp({ target, total, onComplete }: ScoreCountUp
   return (
     // 한 칸 오를 때마다 튕기듯 1.3배 확대 후 복귀
     <div
-      className={`text-[96px] font-bold leading-none transition-[scale,color] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${colorClass} ${
+      className={`text-score-display font-bold leading-none transition-[scale,color] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${colorClass} ${
         animating ? "scale-130" : "scale-100"
       }`}
     >

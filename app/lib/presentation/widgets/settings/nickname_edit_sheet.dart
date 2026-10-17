@@ -32,10 +32,10 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
 
   /// 중복 확인을 통과한 닉네임. 입력이 바뀌면 다시 확인해야 하므로 값을 함께 기억한다.
   String? _verified;
-  bool _checking = false;
-  bool _saving = false;
+  bool _isChecking = false;
+  bool _isSaving = false;
   String? _message;
-  bool _messageIsError = false;
+  bool _isMessageError = false;
 
   @override
   void initState() {
@@ -54,45 +54,45 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
   bool get _canCheck =>
       NicknameValidator.isValid(_value) &&
       _value != widget.currentNickname &&
-      !_checking &&
-      !_saving;
+      !_isChecking &&
+      !_isSaving;
 
-  bool get _canSave => _verified == _value && !_saving;
+  bool get _canSave => _verified == _value && !_isSaving;
 
-  void _setMessage(String? message, {bool error = false}) {
+  void _setMessage(String? message, {bool isError = false}) {
     _message = message;
-    _messageIsError = error;
+    _isMessageError = isError;
   }
 
   Future<void> _check() async {
     final nickname = _value;
     setState(() {
-      _checking = true;
+      _isChecking = true;
       _setMessage(null);
     });
     try {
-      final available = await ref
+      final isAvailable = await ref
           .read(nicknameNotifierProvider.notifier)
           .isAvailable(nickname);
       if (!mounted) return;
       setState(() {
-        _verified = available ? nickname : null;
+        _verified = isAvailable ? nickname : null;
         _setMessage(
-          available ? '사용 가능한 닉네임이에요' : '이미 사용 중인 닉네임이에요',
-          error: !available,
+          isAvailable ? '사용 가능한 닉네임이에요' : '이미 사용 중인 닉네임이에요',
+          isError: !isAvailable,
         );
       });
     } on AppException catch (exception) {
       if (!mounted) return;
-      setState(() => _setMessage(exception.message, error: true));
+      setState(() => _setMessage(exception.message, isError: true));
     } finally {
-      if (mounted) setState(() => _checking = false);
+      if (mounted) setState(() => _isChecking = false);
     }
   }
 
   Future<void> _save() async {
     setState(() {
-      _saving = true;
+      _isSaving = true;
       _setMessage(null);
     });
     try {
@@ -103,8 +103,8 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
       // 쿨다운(NICKNAME_COOLDOWN) 등 서버 거절 사유가 그대로 보인다.
       if (!mounted) return;
       setState(() {
-        _saving = false;
-        _setMessage(exception.message, error: true);
+        _isSaving = false;
+        _setMessage(exception.message, isError: true);
       });
     }
   }
@@ -114,7 +114,7 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
     final colors = context.passqlColors;
     final formatError = NicknameValidator.validate(_value);
     final hint = formatError ?? _message;
-    final hintIsError = formatError != null || _messageIsError;
+    final isHintError = formatError != null || _isMessageError;
 
     return Padding(
       // 키보드가 올라와도 입력창이 가려지지 않게 한다.
@@ -173,7 +173,7 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
                 variant: PassqlButtonVariant.tinted,
                 size: PassqlButtonSize.regular,
                 isFullWidth: false,
-                isLoading: _checking,
+                isLoading: _isChecking,
                 onPressed: _canCheck ? _check : null,
               ),
             ],
@@ -187,7 +187,7 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
                   : Text(
                       hint,
                       style: PassqlTypography.caption.copyWith(
-                        color: hintIsError ? colors.wrongText : colors.accent,
+                        color: isHintError ? colors.wrongText : colors.accent,
                       ),
                     ),
             ),
@@ -195,7 +195,7 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
           const SizedBox(height: PassqlSpacing.xs),
           PassqlButton(
             label: '저장',
-            isLoading: _saving,
+            isLoading: _isSaving,
             onPressed: _canSave ? _save : null,
           ),
         ],

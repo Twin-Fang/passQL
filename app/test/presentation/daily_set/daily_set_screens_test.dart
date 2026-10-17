@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:passql_app/data/models/daily_set/daily_set_models.dart';
 import 'package:passql_app/data/models/home/question_summary.dart';
 import 'package:passql_app/presentation/design/design.dart';
-import 'package:passql_app/presentation/flows/daily_set_flow.dart';
+import 'package:passql_app/router/result_route_arguments.dart';
 import 'package:passql_app/presentation/pages/daily_set/daily_set_result_page.dart';
 import 'package:passql_app/presentation/pages/daily_set/leaderboard_page.dart';
 import 'package:passql_app/presentation/providers/chapter_providers.dart';
@@ -127,7 +127,7 @@ void main() {
       await _pageOf(
         tester,
         const DailySetResultPage(
-          extra: DailySetOutcome(results: results, correctCount: 2),
+          outcome: DailySetOutcome(results: results, correctCount: 2),
         ),
         [_boardOverride(_board(mine: _entries.last))],
       );
@@ -151,7 +151,7 @@ void main() {
       await _pageOf(
         tester,
         const DailySetResultPage(
-          extra: DailySetOutcome(
+          outcome: DailySetOutcome(
             results: results,
             correctCount: 2,
             saveError: '네트워크 연결을 확인해 주세요.',
@@ -169,7 +169,7 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
       await _pageOf(
         tester,
-        const DailySetResultPage(extra: DailySetOutcome(results: results, correctCount: 2)),
+        const DailySetResultPage(outcome: DailySetOutcome(results: results, correctCount: 2)),
         [_boardOverride(_board())],
       );
 

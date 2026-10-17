@@ -1,0 +1,4 @@
+description=localStorage·sessionStorage 직접 사용 금지 (저장 키 원본 한 곳)
+paths=client/src/
+extensions=.tsx,.ts
+pattern=\b(local|session)Storage\.

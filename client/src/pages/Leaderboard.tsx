@@ -35,7 +35,8 @@ export default function Leaderboard() {
         {leaderboard && (
           <>
             <p className="text-xs text-text-caption text-center mt-2 mb-4">
-              {leaderboard.date} 기준 · 정답 수 순
+              {/* date: 계약상 nullable > 없으면 기준일 생략 */}
+              {leaderboard.date ? `${leaderboard.date} 기준 · ` : ""}정답 수 순
             </p>
 
             {leaderboard.myEntry && (

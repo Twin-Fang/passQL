@@ -1,5 +1,5 @@
 /* 웹 색 토큰 단일 원본 (#462)
- * 값 원본: 앱 app/lib/presentation/design/tokens/pq_colors.dart 의 light 값
+ * 값 원본: 앱 app/lib/presentation/design/tokens/passql_colors.dart 의 light 값
  * 웹은 다크 모드 없음 > dark 값 미사용. 앱 값을 바꾸면 이 파일도 함께 변경
  * 파생 색(연한 배경·테두리·히트맵)은 color-mix 로 원본 색에서 계산 > 손 변환 사본 금지
  * 화면 코드는 hex 대신 이 토큰의 Tailwind 클래스(bg-brand 등)만 사용 (eslint·designTokens.test 로 강제)
@@ -72,6 +72,19 @@
   --color-social-naver: #03C75A;
   --color-social-github: #24292E;
   --color-social-apple: #000000;
+
+  /* ── 글자 크기 (Tailwind 기본 단계에 없는 값, 이름은 앱 PassqlTypography·iOS 단계 기준) ──
+   * line-height 미지정 > 부모 상속 (text-[Npx] 임의값과 같은 계산 결과) */
+  --text-micro: 10px;           /* 배지·탭 라벨·히트맵 축 (앱에 없는 웹 전용) */
+  --text-caption2: 11px;        /* 보조 라벨 (iOS caption2) */
+  --text-caption1: 12px;        /* 앱 caption */
+  --text-footnote: 13px;        /* 앱 footnote */
+  --text-subheadline: 15px;     /* 앱 subheadline */
+  --text-score-display: 96px;   /* 결과 화면 큰 점수 숫자 */
+
+  /* ── 모서리 반경 (Tailwind 기본 단계에 없는 값) ── */
+  --radius-tile: 10px;          /* 36px 아이콘 타일·결과 행 카드 */
+  --radius-tile-large: 14px;    /* 52~56px 아이콘 타일 */
 
   /* ── Transitions ── */
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);

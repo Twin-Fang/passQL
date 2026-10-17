@@ -60,6 +60,14 @@ abstract final class PassqlTypography {
     fontWeight: FontWeight.w700,
     height: 20 / 14, // code 와 같은 줄 높이 비율
   );
+  // 글 속 인라인 코드: 주변 글자 대비 크기 비율 (고정폭 글꼴이 같은 크기에서 커 보임)
+  static const double inlineCodeScale = 0.92;
+
+  /// 글 속 인라인 코드 스타일: 주변 글자 크기(없으면 code 크기) x [inlineCodeScale]
+  static TextStyle inlineCodeOf(TextStyle surrounding) => code.copyWith(
+    fontSize: (surrounding.fontSize ?? code.fontSize!) * inlineCodeScale,
+  );
+
   // 긴 글(약관·AI 해설)용 넉넉한 줄 간격 본문
   static final legalBody = body.copyWith(height: 1.55);
   static final explanationBody = subheadline.copyWith(height: 1.6);

@@ -40,6 +40,9 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class ProgressService {
 
+    // 오답 목록 기본 개수 (@RequestParam defaultValue 용 문자열 상수)
+    public static final String DEFAULT_WRONG_QUESTION_COUNT = "20";
+
     private final SubmissionRepository submissionRepository;
     private final MemberRepository memberRepository;
     private final TopicRepository topicRepository;

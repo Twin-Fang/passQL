@@ -91,7 +91,6 @@ class SettingsPage extends ConsumerWidget {
     final appVersion = ref.watch(currentAppVersionProvider).valueOrNull;
 
     return Scaffold(
-      backgroundColor: colors.background,
       body: PassqlLargeTitleScrollView(
         title: '설정',
         slivers: [

@@ -1,13 +1,9 @@
 package com.passql.web.controller.admin;
 
-import com.passql.ai.client.AiGatewayClient;
 import com.passql.ai.dto.IndexQuestionsBulkResult;
-import com.passql.ai.dto.IndexStatusRequest;
-import com.passql.ai.dto.IndexStatusResult;
 import com.passql.ai.dto.PruneIndexResult;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
-import com.passql.question.service.QuestionService;
 import com.passql.question.service.QuestionVectorIndexService;
 import com.passql.web.support.AdminMenu;
 import com.passql.web.support.AdminPage;
@@ -34,28 +30,18 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AdminEmbeddingController {
 
-    private final QuestionService questionService;
+    // 전체 재색인 실패 시 화면 문구 (원인은 서버 로그)
+    private static final String INDEX_ALL_FAILED_MESSAGE = "전체 색인 중 오류가 발생했습니다. 서버 로그를 확인하세요.";
+
     private final QuestionVectorIndexService questionVectorIndexService;
-    private final AiGatewayClient aiGatewayClient;
 
     @GetMapping
     @AdminPage(menu = AdminMenu.EMBEDDINGS)
     public String index(Model model) {
         log.info("[admin-embeddings] 색인 상태 페이지 요청");
 
-        // DB 전체 활성 문제 UUID 조회 후 AI 서버에 상태 확인 요청
-        List<String> allUuids = questionService.getAllActiveQuestionUuids();
-        log.info("[admin-embeddings] DB 활성 문제 수={}", allUuids.size());
-
-        IndexStatusResult status = null;
-        try {
-            status = aiGatewayClient.getIndexStatus(new IndexStatusRequest(allUuids));
-        } catch (Exception e) {
-            // AI 서버 장애 — 화면에 에러 배너 표시, 페이지는 정상 렌더링
-            log.warn("[admin-embeddings] AI 서버 색인 상태 조회 실패: {}", e.getMessage());
-        }
-
-        model.addAttribute("status", status);           // null이면 화면에서 에러 배너 표시
+        // AI 서버 장애면 null — 화면에 에러 배너 표시, 페이지는 정상 렌더링
+        model.addAttribute("status", questionVectorIndexService.findIndexStatusOfActiveQuestions());
         return "admin/embeddings";
     }
 
@@ -77,8 +63,8 @@ public class AdminEmbeddingController {
             log.info("[admin-embeddings] 전체 재색인 완료: succeeded={}, failed={}",
                     result.succeeded(), result.failed());
         } catch (Exception e) {
-            log.error("[admin-embeddings] 전체 재색인 오류: {}", e.getMessage());
-            redirectAttrs.addFlashAttribute("errorMessage", "전체 색인 중 오류 발생: " + e.getMessage());
+            log.error("[admin-embeddings] 전체 재색인 오류: {}", e.getMessage(), e);
+            redirectAttrs.addFlashAttribute("errorMessage", INDEX_ALL_FAILED_MESSAGE);
         }
         return "redirect:/admin/embeddings";
     }

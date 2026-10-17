@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import '../error/app_exception.dart';
 import '../error/error_code.dart';
 
@@ -39,3 +41,21 @@ class NoopCrashReporter extends CrashReporter {
 /// unknown: 응답 형식 불일치·코드 예외, serverError: 5xx
 bool isUnexpectedFailure(AppException error) =>
     error.code == ErrorCode.unknown || error.code == ErrorCode.serverError;
+
+/// 잡아서 처리한 오류 1건: 예상 밖 오류만 치명적이지 않은 오류로 기록 (원본 예외 우선, 기록 완료를 기다리지 않음)
+/// safeCall·safeCallAll·화면의 catch 공통
+void reportIfUnexpectedFailure(
+  Object exception,
+  StackTrace stackTrace, {
+  required String reason,
+}) {
+  final error = exception.asAppException;
+  if (!isUnexpectedFailure(error)) return;
+  unawaited(
+    CrashReporter.current.recordNonFatalError(
+      error.cause ?? error,
+      stackTrace,
+      reason: reason,
+    ),
+  );
+}
