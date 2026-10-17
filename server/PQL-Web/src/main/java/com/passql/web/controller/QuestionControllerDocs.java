@@ -61,6 +61,7 @@ public interface QuestionControllerDocs {
       @ApiLog(date = "2026.04.07", author = Author.SUHSAECHAN, issueNumber = 1, description = "문제 상세 조회 API 추가"),
       @ApiLog(date = "2026.04.08", author = Author.SUHSAECHAN, issueNumber = 22, description = "PathVariable: Long id → UUID questionUuid. 응답 DTO(topicName/subtopicName) UUID 기반으로 변경"),
       @ApiLog(date = "2026.10.16", author = Author.SUHSAECHAN, issueNumber = 503, description = "정답 노출 차단: answerSql·isCorrect·rationale 은 null, choiceSets 는 최신 OK 세트 1개만"),
+      @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 520, description = "schemaTables 추가: schemaDdl·schemaSampleData 를 테이블별 컬럼(이름·타입·PK·FK)·샘플 행으로 해석해 제공"),
   })
   @Operation(summary = "문제 상세 조회", description = "풀이용 상세. 정답 SQL·정답 여부·해설은 내려가지 않는다(제출 응답에서만 제공).")
   ResponseEntity<QuestionDetail> getQuestion(@PathVariable UUID questionUuid);
