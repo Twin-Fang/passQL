@@ -18,14 +18,15 @@ pages·widgets·flows ──> providers(Riverpod) ──> data/sources(Retrofit 
 
 | 계층 | 위치 | 하는 일 |
 |---|---|---|
-| HTTP | `lib/core/network/dio_client.dart` | Dio 생성(baseUrl·타임아웃 상수·디버그 로그), 인증 인터셉터 연결, GET 연결 실패 1회 재시도(`get_retry_interceptor.dart`) |
-| 인증 | `lib/core/auth/` | 토큰 저장, Bearer 붙이기·401 재발급, 세션 만료 신호 |
-| 클라이언트 | `lib/data/sources/*_api.dart`, `api_providers.dart` | Retrofit 클라이언트와 그 Provider |
+| HTTP | `lib/core/network/dio_client.dart` | Dio 생성(`buildBackendDio`: baseUrl·타임아웃 상수·디버그 로그, GET 연결 실패 1회 재시도), 인증 없는 `plainDioProvider` |
+| 인증 | `lib/core/auth/` | 토큰 저장, Bearer 붙이기·401 재발급(재발급 포트 `TokenReissueClient`), 세션 만료 신호 |
+| 클라이언트 | `lib/data/sources/*_api.dart`, `api_providers.dart` | Retrofit 클라이언트와 그 Provider, `authApiProvider`, 인증 인터셉터를 붙인 `dioProvider` 조립 |
 | 상태·업무 | `lib/presentation/providers/` | 호출·조합·캐시 무효화, 업무 규칙(`...Service`, `...Notifier`) |
 | 화면 | `lib/presentation/pages`, `widgets`, `flows` | provider 를 watch/read 만 한다 |
 
 - **화면은 API 클라이언트를 직접 부르지 않는다.** `data/sources` import 는 규칙 테스트(`test/architecture/layer_dependency_test.dart`)가 막는다.
 - **core·data 는 presentation 을 모른다.** 안쪽에서 바깥에 알려야 하면 core 에 신호를 두고 바깥이 구독한다(예: `SessionExpirySignal`).
+- **core 는 data 를 모른다.** core 가 data 기능이 필요하면 core 에 포트를 두고 data 가 구현한다(예: `TokenReissueClient` <- `AuthApi`, `ReportReason` <- `ReportCategory`).
 
 ## 2. 인증 (Bearer JWT)
 

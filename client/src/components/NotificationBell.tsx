@@ -58,7 +58,7 @@ export default function NotificationBell() {
       >
         <Bell size={20} />
         {badgeLabel && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-4.5 h-4.5 px-1 rounded-full bg-semantic-warning text-warning-content text-[10px] font-bold leading-[18px] text-center">
+          <span className="absolute -top-0.5 -right-0.5 min-w-4.5 h-4.5 px-1 rounded-full bg-semantic-warning text-warning-content text-micro font-bold leading-[18px] text-center">
             {badgeLabel}
           </span>
         )}

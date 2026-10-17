@@ -1,4 +1,4 @@
-import { apiFetch, BASE_URL, reportMaintenanceIfDetected } from "./client";
+import { apiFetch, BASE_URL, reportMaintenanceIfDetected, resolveAccessTokenAfterUnauthorized } from "./client";
 import { getAccessToken } from "../stores/authStore";
 import type {
   Page,
@@ -10,13 +10,15 @@ import type {
   RecommendationsResponse,
   SseStatusEvent,
   SseErrorEvent,
-  ChoiceSetGenerateResponse,
+  ChoiceSetGeneratedEvent,
 } from "../types/api";
 
 /** SSE 파싱 진단 로그: 개발 모드만 출력 (운영 콘솔 노출 차단, 실패는 onError 로 화면 전달) */
 function logSseDiagnostic(...diagnosticValues: unknown[]): void {
   if (import.meta.env.DEV) console.debug(...diagnosticValues);
 }
+
+const UNAUTHORIZED_HTTP_STATUS = 401;
 
 interface QuestionListParams {
   readonly page?: number;
@@ -61,6 +63,22 @@ export function fetchRecommendations(
   });
 }
 
+// SSE 요청 1회 (Bearer 토큰 주입)
+function requestChoiceGenerationStream(
+  questionUuid: string,
+  accessToken: string | null,
+  signal: AbortSignal,
+): Promise<Response> {
+  return fetch(`${BASE_URL}/questions/${questionUuid}/generate-choices`, {
+    method: "POST",
+    headers: {
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      Accept: "text/event-stream",
+    },
+    signal,
+  });
+}
+
 // SSE로 AI 선택지를 생성하고 choiceSetId를 받는다.
 // EventSource는 커스텀 헤더를 지원하지 않으므로 fetch + ReadableStream 방식 사용.
 // 반환값: cleanup 함수 (컴포넌트 unmount 시 호출해 스트림을 중단).
@@ -68,7 +86,7 @@ export function generateChoices(
   questionUuid: string,
   callbacks: {
     readonly onStatus: (event: SseStatusEvent) => void;
-    readonly onComplete: (response: ChoiceSetGenerateResponse) => void;
+    readonly onComplete: (response: ChoiceSetGeneratedEvent) => void;
     readonly onError: (event: SseErrorEvent) => void;
   },
 ): () => void {
@@ -78,18 +96,16 @@ export function generateChoices(
     let receivedTerminalEvent = false;
 
     try {
-      const accessToken = getAccessToken();
-      const response = await fetch(
-        `${BASE_URL}/questions/${questionUuid}/generate-choices`,
-        {
-          method: "POST",
-          headers: {
-            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-            Accept: "text/event-stream",
-          },
-          signal: abortController.signal,
-        },
-      );
+      const requestAccessToken = getAccessToken();
+      let response = await requestChoiceGenerationStream(questionUuid, requestAccessToken, abortController.signal);
+
+      // 401 > apiFetch 와 같은 재발급 경로로 토큰 확보 후 1회 재시도 (재발급 불가면 로그아웃 처리됨)
+      if (response.status === UNAUTHORIZED_HTTP_STATUS) {
+        const retryAccessToken = await resolveAccessTokenAfterUnauthorized(requestAccessToken);
+        if (retryAccessToken) {
+          response = await requestChoiceGenerationStream(questionUuid, retryAccessToken, abortController.signal);
+        }
+      }
 
       if (!response.ok) {
         // 점검 차단 503 도 apiFetch 와 같은 지점에서 점검 화면 전환
@@ -151,7 +167,7 @@ export function generateChoices(
         } else if (eventName === "complete") {
           logSseDiagnostic("[SSE] complete 수신 → receivedTerminalEvent=true");
           receivedTerminalEvent = true;
-          callbacks.onComplete(data as ChoiceSetGenerateResponse);
+          callbacks.onComplete(data as ChoiceSetGeneratedEvent);
           return true; // complete 후 스트림 남은 데이터를 읽을 필요 없음
         } else if (eventName === "error") {
           logSseDiagnostic("[SSE] error 수신 → receivedTerminalEvent=true, data=", data);

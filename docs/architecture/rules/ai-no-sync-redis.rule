@@ -1,0 +1,4 @@
+description=동기 redis 클라이언트 import 금지 (async 경로에서 이벤트 루프 차단)
+paths=ai/src/
+extensions=.py
+pattern=^(import redis\s*$|from redis import)

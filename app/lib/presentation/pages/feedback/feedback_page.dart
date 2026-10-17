@@ -68,7 +68,6 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
     final list = ref.watch(feedbackListProvider);
 
     return Scaffold(
-      backgroundColor: colors.background,
       appBar: PassqlNavBar(title: '의견 보내기', leading: PassqlNavLeading.back),
       body: Column(
         children: [

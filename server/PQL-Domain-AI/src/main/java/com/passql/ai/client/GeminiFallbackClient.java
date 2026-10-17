@@ -49,7 +49,7 @@ public class GeminiFallbackClient {
         } catch (Exception e) {
             log.error("[GeminiFallback] generateQuestionFull 실패: {}", e.getMessage());
             throw new CustomException(ErrorCode.AI_FALLBACK_FAILED,
-                    "Gemini 직접 호출 실패: " + e.getMessage());
+                    "Gemini 직접 호출 실패", e);
         }
     }
 
@@ -76,7 +76,7 @@ public class GeminiFallbackClient {
         } catch (Exception e) {
             log.error("[GeminiFallback] generateChoiceSet 실패: {}", e.getMessage());
             throw new CustomException(ErrorCode.AI_FALLBACK_FAILED,
-                    "Gemini 직접 호출 실패: " + e.getMessage());
+                    "Gemini 직접 호출 실패", e);
         }
     }
 
@@ -103,7 +103,7 @@ public class GeminiFallbackClient {
         } catch (Exception e) {
             log.error("[GeminiFallback] testPrompt 실패: {}", e.getMessage());
             throw new CustomException(ErrorCode.AI_FALLBACK_FAILED,
-                    "Gemini 직접 호출 실패: " + e.getMessage());
+                    "Gemini 직접 호출 실패", e);
         }
     }
 
@@ -177,8 +177,10 @@ public class GeminiFallbackClient {
             return new GenerateQuestionFullResult(stem, answerSql, choices,
                     new GenerationMetadataDto(model, null, elapsed, null, null, payload, 1));
         } catch (Exception e) {
+            // 원인 메시지는 로그에만 (응답 detail 은 고정 문구)
+            log.error("[GeminiFallback] 응답 파싱 실패: model={}, error={}", model, e.getMessage());
             throw new CustomException(ErrorCode.AI_RESPONSE_PARSE_FAILED,
-                    "Gemini fallback 응답 파싱 실패: " + e.getMessage());
+                    "Gemini fallback 응답 파싱 실패", e);
         }
     }
 
@@ -199,8 +201,10 @@ public class GeminiFallbackClient {
             return new GenerateChoiceSetResult(choices,
                     new GenerationMetadataDto(model, null, elapsed, null, null, payload, 1));
         } catch (Exception e) {
+            // 원인 메시지는 로그에만 (응답 detail 은 고정 문구)
+            log.error("[GeminiFallback] 응답 파싱 실패: model={}, error={}", model, e.getMessage());
             throw new CustomException(ErrorCode.AI_RESPONSE_PARSE_FAILED,
-                    "Gemini fallback 응답 파싱 실패: " + e.getMessage());
+                    "Gemini fallback 응답 파싱 실패", e);
         }
     }
 }

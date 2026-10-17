@@ -1,13 +1,10 @@
 import 'dart:async';
-import 'dart:io' show Platform;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-import 'ad_consent.dart';
 import 'ad_placement.dart';
-import 'ad_sdk.dart';
+import 'ad_request_preparer.dart';
 
 /// 미리 불러 둔 전면 광고 1개: 로드 시각·표시·해제
 class LoadedInterstitial {
@@ -36,29 +33,28 @@ abstract interface class InterstitialAdLoader {
 }
 
 final interstitialAdLoaderProvider = Provider<InterstitialAdLoader>(
-  (_) => GoogleInterstitialAdLoader(),
+  (ref) => GoogleInterstitialAdLoader(ref.watch(adRequestPreparerProvider)),
 );
 
-/// google_mobile_ads 전면: 단위 ID 확인 > SDK 초기화 > 개인화 여부 > 로드
+/// google_mobile_ads 전면: 공통 준비 > 로드 (시간 초과 뒤 늦게 온 광고는 해제)
 class GoogleInterstitialAdLoader implements InterstitialAdLoader {
+  GoogleInterstitialAdLoader(this._requestPreparer);
+
   // 이 시간 안에 안 오면 포기 (다음 미리 불러오기에서 재시도)
   static const _loadTimeout = Duration(seconds: 30);
+
+  final AdRequestPreparer _requestPreparer;
 
   @override
   Future<LoadedInterstitial?> load(AdPlacement placement) async {
     try {
-      final unitId = AdUnitIds.unitIdFor(placement, isIos: Platform.isIOS);
-      // 릴리스인데 .env 비어 있음 > 광고 없음
-      if (unitId == null) return null;
-
-      await AdSdk.ensureInitialized();
-      final isNonPersonalized = await AdConsent.shouldUseNonPersonalizedAds();
+      final preparedRequest = await _requestPreparer.prepare(placement);
+      if (preparedRequest == null) return null;
 
       final loadCompleter = Completer<InterstitialAd?>();
       await InterstitialAd.load(
-        adUnitId: unitId,
-        // 요청에는 비개인화 여부만 (회원·학습 정보 미전달)
-        request: AdRequest(nonPersonalizedAds: isNonPersonalized),
+        adUnitId: preparedRequest.unitId,
+        request: preparedRequest.request,
         adLoadCallback: InterstitialAdLoadCallback(
           onAdLoaded: (ad) {
             // 시간 초과 뒤 늦게 온 광고는 쓰지 않고 해제

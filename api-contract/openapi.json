@@ -233,13 +233,6 @@
             "format" : "uuid",
             "type" : "string"
           },
-          "createdAt" : {
-            "format" : "date-time",
-            "type" : "string"
-          },
-          "createdBy" : {
-            "type" : "string"
-          },
           "description" : {
             "type" : "string"
           },
@@ -255,16 +248,9 @@
           },
           "tagKey" : {
             "type" : "string"
-          },
-          "updatedAt" : {
-            "format" : "date-time",
-            "type" : "string"
-          },
-          "updatedBy" : {
-            "type" : "string"
           }
         },
-        "required" : [ "category", "conceptTagUuid", "createdAt", "createdBy", "description", "isActive", "labelKo", "sortOrder", "tagKey", "updatedAt", "updatedBy" ],
+        "required" : [ "category", "conceptTagUuid", "description", "isActive", "labelKo", "sortOrder", "tagKey" ],
         "type" : "object"
       },
       "DailySetCompleteRequest" : {
@@ -2172,7 +2158,7 @@
     },
     "/api/meta/tags" : {
       "get" : {
-        "description" : "## 인증(JWT): **불필요**\n\n## 요청 파라미터\n- 없음\n\n## 반환값 (List<ConceptTag>)\n- 활성화된 개념 태그 전체 목록\n- 식별자는 conceptTagUuid (UUID), 비즈니스 키 tagKey 동시 노출\n",
+        "description" : "## 인증(JWT): **불필요**\n\n## 요청 파라미터\n- 없음\n\n## 반환값 (List<ConceptTag>)\n- 활성화된 개념 태그 전체 목록\n- 식별자는 conceptTagUuid (UUID), 비즈니스 키 tagKey 동시 노출\n- 필드: conceptTagUuid, tagKey, labelKo, category, description, isActive, sortOrder\n",
         "operationId" : "getTags",
         "responses" : {
           "200" : {

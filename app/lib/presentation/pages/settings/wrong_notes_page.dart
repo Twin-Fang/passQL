@@ -13,7 +13,6 @@ class WrongNotesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.passqlColors.background,
       appBar: PassqlNavBar(title: '오답 노트', leading: PassqlNavLeading.back),
       body: const SafeArea(
         child: SingleChildScrollView(

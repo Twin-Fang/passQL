@@ -1,13 +1,10 @@
 import 'dart:async';
-import 'dart:io' show Platform;
-
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-import 'ad_consent.dart';
 import 'ad_placement.dart';
-import 'ad_sdk.dart';
+import 'ad_request_preparer.dart';
 import 'loaded_ad_view.dart';
 
 /// 배너 로더 포트. 테스트는 가짜로 바꿔 SDK 를 띄우지 않음
@@ -17,45 +14,61 @@ abstract interface class AdBannerLoader {
 }
 
 final adBannerLoaderProvider = Provider<AdBannerLoader>(
-  (_) => GoogleAdBannerLoader(),
+  (ref) => GoogleAdBannerLoader(ref.watch(adRequestPreparerProvider)),
 );
 
-/// google_mobile_ads 배너: 단위 ID 확인 > SDK 초기화 > 개인화 여부 > 크기 계산 > 로드
+/// google_mobile_ads 배너: 공통 준비 > 크기 계산 > 로드 (시간 초과·실패는 해제 후 null)
 class GoogleAdBannerLoader implements AdBannerLoader {
+  GoogleAdBannerLoader(this._requestPreparer);
+
+  // 이 시간 안에 안 오면 포기 > 배너 자리 없음
+  static const _loadTimeout = Duration(seconds: 20);
+
+  final AdRequestPreparer _requestPreparer;
+
   @override
   Future<LoadedAdView?> load(AdPlacement placement, int widthDp) async {
     // 폭 0 으로 적응형 크기 요청 > SDK 예외 (첫 프레임)
     if (widthDp <= 0) return null;
+    BannerAd? bannerAd;
     try {
-      final unitId = AdUnitIds.unitIdFor(placement, isIos: Platform.isIOS);
-      // 릴리스인데 .env 비어 있음 > 광고 없음
-      if (unitId == null) return null;
-
-      await AdSdk.ensureInitialized();
-      final isNonPersonalized = await AdConsent.shouldUseNonPersonalizedAds();
+      final preparedRequest = await _requestPreparer.prepare(placement);
+      if (preparedRequest == null) return null;
       final size = await AdSize.getLargeAnchoredAdaptiveBannerAdSize(widthDp);
       if (size == null) return null;
 
       final loadCompleter = Completer<BannerAd?>();
-      final bannerAd = BannerAd(
-        adUnitId: unitId,
+      bannerAd = BannerAd(
+        adUnitId: preparedRequest.unitId,
         size: size,
-        // 요청에는 비개인화 여부만 (회원·학습 정보 미전달)
-        request: AdRequest(nonPersonalizedAds: isNonPersonalized),
+        request: preparedRequest.request,
         listener: BannerAdListener(
-          onAdLoaded: (ad) => loadCompleter.complete(ad as BannerAd),
-          onAdFailedToLoad: (ad, error) {
+          onAdLoaded: (ad) {
+            if (!loadCompleter.isCompleted) {
+              loadCompleter.complete(ad as BannerAd);
+            }
+          },
+          onAdFailedToLoad: (_, error) {
             debugPrint(
               '[ads banner] load failed ${placement.name} : ${error.code}',
             );
-            ad.dispose();
-            loadCompleter.complete(null);
+            // 해제는 아래 null 경로 한 곳에서 (실패·시간 초과 공통)
+            if (!loadCompleter.isCompleted) loadCompleter.complete(null);
           },
         ),
       );
       await bannerAd.load();
-      final loadedAd = await loadCompleter.future;
-      if (loadedAd == null) return null;
+      final loadedAd = await loadCompleter.future.timeout(
+        _loadTimeout,
+        onTimeout: () {
+          debugPrint('[ads banner] load timeout ${placement.name}');
+          return null;
+        },
+      );
+      if (loadedAd == null) {
+        await bannerAd.dispose();
+        return null;
+      }
       return LoadedAdView(
         height: size.height.toDouble(),
         view: SizedBox(
@@ -68,6 +81,7 @@ class GoogleAdBannerLoader implements AdBannerLoader {
     } catch (error) {
       // 광고는 보조 요소 > 사용자 알림 없이 기록만
       debugPrint('[ads banner] prepare failed ${placement.name} : $error');
+      await bannerAd?.dispose();
       return null;
     }
   }

@@ -29,7 +29,6 @@ class HomePage extends ConsumerWidget {
     final homeAsync = ref.watch(homeDataProvider);
 
     return Scaffold(
-      backgroundColor: context.passqlColors.background,
       // 새로고침 실패 시 이전 데이터 유지 (오류 화면은 첫 조회 실패에만)
       body: homeAsync.when(
         skipError: true,

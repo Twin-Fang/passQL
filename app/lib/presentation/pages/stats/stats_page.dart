@@ -20,7 +20,6 @@ class StatsPage extends ConsumerWidget {
     final statsAsync = ref.watch(statsDataProvider);
 
     return Scaffold(
-      backgroundColor: context.passqlColors.background,
       // 스크롤 틀은 그대로 두고 내용만 바꾼다(내용은 섹션별 순차 등장)
       // 새로고침 실패 시 이전 데이터 유지 (오류 화면은 첫 조회 실패에만)
       body: statsAsync.when(

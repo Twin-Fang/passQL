@@ -1,8 +1,7 @@
 package com.passql.web.controller.admin;
 
 import com.passql.question.dto.ExecuteResult;
-import com.passql.question.service.SandboxExecutor;
-import com.passql.question.service.SandboxPool;
+import com.passql.question.service.AdminSandboxTestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -17,26 +16,12 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AdminSandboxController {
 
-    private final SandboxPool sandboxPool;
-    private final SandboxExecutor sandboxExecutor;
+    private final AdminSandboxTestService adminSandboxTestService;
 
     @PostMapping("/execute")
     public ResponseEntity<ExecuteResult> execute(@RequestBody ExecuteRequest request) {
-        String dbName = sandboxPool.acquire();
-        try {
-            // DDL + sample data 적용
-            String setupSql = request.ddl();
-            if (request.sampleData() != null && !request.sampleData().isBlank()) {
-                setupSql = setupSql + ";\n" + request.sampleData();
-            }
-            sandboxExecutor.applyDdl(dbName, setupSql);
-
-            // SQL 실행
-            ExecuteResult result = sandboxExecutor.execute(dbName, request.sql());
-            return ResponseEntity.ok(result);
-        } finally {
-            sandboxPool.release(dbName);
-        }
+        return ResponseEntity.ok(adminSandboxTestService.executeSandboxTest(
+                request.ddl(), request.sampleData(), request.sql()));
     }
 
     public record ExecuteRequest(String ddl, String sampleData, String sql) {}

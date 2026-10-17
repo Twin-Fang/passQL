@@ -21,17 +21,17 @@ function WrongQuestionRow({ item }: { readonly item: WrongQuestionItem }) {
 
   return (
     <div className="flex items-center gap-3 px-4 py-3 border-b border-border last:border-b-0">
-      <div className="w-9 h-9 rounded-[10px] bg-semantic-error-light flex items-center justify-center shrink-0">
+      <div className="w-9 h-9 rounded-tile bg-semantic-error-light flex items-center justify-center shrink-0">
         <XCircle size={18} className="text-semantic-error" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-text-primary truncate">{item.stemPreview}</p>
         <div className="flex items-center gap-1.5 mt-0.5">
           {/* 토픽 뱃지 */}
-          <span className="text-[10px] font-medium bg-brand-light text-brand px-1.5 py-0.5 rounded">
+          <span className="text-micro font-medium bg-brand-light text-brand px-1.5 py-0.5 rounded">
             {item.topicName}
           </span>
-          <span className="text-[11px] text-text-caption">
+          <span className="text-caption2 text-text-caption">
             {formatRelativeTime(item.lastWrongAt)}
           </span>
         </div>
@@ -109,7 +109,7 @@ export default function MyPage() {
         <button
           type="button"
           onClick={() => navigate("/settings")}
-          className="w-9 h-9 bg-surface-card border border-border rounded-[10px] flex items-center justify-center hover:bg-surface transition-colors"
+          className="w-9 h-9 bg-surface-card border border-border rounded-tile flex items-center justify-center hover:bg-surface transition-colors"
           aria-label="설정"
         >
           <Settings size={18} className="text-text-caption" />
@@ -119,7 +119,7 @@ export default function MyPage() {
       {/* 프로필 카드 */}
       <section className={`bg-surface-card border border-border rounded-2xl p-5 flex items-center gap-4 ${s1.className}`}>
         {/* 아바타 */}
-        <div className="w-14 h-14 rounded-[14px] bg-brand flex items-center justify-center shrink-0">
+        <div className="w-14 h-14 rounded-tile-large bg-brand flex items-center justify-center shrink-0">
           <span className="text-2xl font-bold text-on-brand">{avatarLetter}</span>
         </div>
         <div className="flex-1 min-w-0">
@@ -147,9 +147,9 @@ export default function MyPage() {
           {/* 오답 노트 헤더 */}
           <div className="flex items-center justify-between px-4 py-3.5 border-b border-border">
             <div className="flex items-center gap-2">
-              <span className="text-[15px] font-semibold text-text-primary">오답 노트</span>
+              <span className="text-subheadline font-semibold text-text-primary">오답 노트</span>
               {totalWrongCount > 0 && (
-                <span className="text-[11px] font-semibold bg-semantic-error-light text-semantic-error px-2 py-0.5 rounded-full">
+                <span className="text-caption2 font-semibold bg-semantic-error-light text-semantic-error px-2 py-0.5 rounded-full">
                   {totalWrongCount}개
                 </span>
               )}
@@ -171,7 +171,7 @@ export default function MyPage() {
             <div className="space-y-0">
               {[0, 1, 2].map((i) => (
                 <div key={i} className="flex items-center gap-3 px-4 py-3 border-b border-border last:border-b-0">
-                  <div className="w-9 h-9 rounded-[10px] bg-border animate-pulse" />
+                  <div className="w-9 h-9 rounded-tile bg-border animate-pulse" />
                   <div className="flex-1 space-y-1.5">
                     <div className="h-3.5 bg-border rounded animate-pulse w-3/4" />
                     <div className="h-3 bg-border rounded animate-pulse w-1/3" />

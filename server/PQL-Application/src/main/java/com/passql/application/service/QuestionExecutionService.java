@@ -10,7 +10,6 @@ import com.passql.question.entity.QuestionChoice;
 import com.passql.question.repository.QuestionChoiceRepository;
 import com.passql.question.service.QuestionService;
 import com.passql.question.service.SandboxExecutor;
-import com.passql.question.service.SandboxPool;
 import com.passql.question.service.SqlSafetyValidator;
 import com.passql.submission.service.SubmissionService;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +27,6 @@ public class QuestionExecutionService {
     private final QuestionService questionService;
     private final SqlSafetyValidator sqlSafetyValidator;
     private final SandboxExecutor sandboxExecutor;
-    private final SandboxPool sandboxPool;
     private final SubmissionService submissionService;
     private final QuestionChoiceRepository questionChoiceRepository;
 
@@ -55,19 +53,8 @@ public class QuestionExecutionService {
         }
 
         // sandbox_db_name 미설정: 임시 DB 생성 → DDL 적용 → 실행 → drop
-        String tempDb = sandboxPool.acquire();
-        try {
-            String setupSql = question.getSchemaDdl() != null ? question.getSchemaDdl() : "";
-            if (question.getSchemaSampleData() != null && !question.getSchemaSampleData().isBlank()) {
-                setupSql = setupSql + ";\n" + question.getSchemaSampleData();
-            }
-            if (!setupSql.isBlank()) {
-                sandboxExecutor.applyDdl(tempDb, setupSql);
-            }
-            return sandboxExecutor.execute(tempDb, sql);
-        } finally {
-            sandboxPool.release(tempDb);
-        }
+        return sandboxExecutor.runInTemporarySandbox(question.getSchemaDdl(), question.getSchemaSampleData(),
+                tempDb -> sandboxExecutor.execute(tempDb, sql));
     }
 
     /**

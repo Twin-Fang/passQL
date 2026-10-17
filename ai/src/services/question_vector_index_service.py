@@ -6,7 +6,7 @@ import logging
 from src.clients.ollama_client import ollama_client
 from src.clients.qdrant_search_client import qdrant_search_client
 from src.core.config import settings
-from src.core.exceptions import CustomError
+from src.core.exceptions import CustomError, InvalidRequestError
 from src.models.ai_request import (
     IndexQuestionRequest,
     IndexQuestionsBulkRequest,
@@ -187,7 +187,7 @@ class QuestionVectorIndexService:
         활성 목록이 비어 있으면 컬렉션 전체 삭제가 되므로 거부한다 — 호출부 버그로 색인이 날아가는 것을 막는다.
         """
         if not req.question_uuids:
-            raise CustomError("활성 문제 UUID 목록이 비어 있어 정리를 거부합니다")
+            raise InvalidRequestError("활성 문제 UUID 목록이 비어 있어 정리를 거부합니다")
 
         qdrant_ids = await qdrant_search_client.scroll_all_ids(settings.QDRANT_COLLECTION)
         orphans = sorted(set(qdrant_ids) - set(req.question_uuids))

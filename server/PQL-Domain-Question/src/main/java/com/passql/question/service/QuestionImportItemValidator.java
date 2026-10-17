@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 public class QuestionImportItemValidator {
 
     private final TopicRepository topicRepository;
-    private final SandboxPool sandboxPool;
     private final SandboxExecutor sandboxExecutor;
     private final OracleSqlCompatibilityConverter oracleSqlCompatibilityConverter;
 
@@ -95,15 +94,9 @@ public class QuestionImportItemValidator {
     private ImportItemResult executeSandboxTest(int index, QuestionExportDto item, String stemPreview,
                                                 String importAction,
                                                 String schemaDdl, String schemaSampleData, String answerSql) {
-        String dbName = null;
         try {
-            dbName = sandboxPool.acquire();
-            String setupSql = schemaDdl;
-            if (schemaSampleData != null && !schemaSampleData.isBlank()) {
-                setupSql = setupSql + ";\n" + schemaSampleData;
-            }
-            sandboxExecutor.applyDdl(dbName, setupSql);
-            ExecuteResult execResult = sandboxExecutor.execute(dbName, answerSql);
+            ExecuteResult execResult = sandboxExecutor.runInTemporarySandbox(schemaDdl, schemaSampleData,
+                    dbName -> sandboxExecutor.execute(dbName, answerSql));
 
             if ("OK".equals(execResult.status())) {
                 return new ImportItemResult(index, stemPreview, item.topicCode(), item.difficulty(),
@@ -115,13 +108,10 @@ public class QuestionImportItemValidator {
                         execResult.errorMessage(), importAction);
             }
         } catch (Exception e) {
+            // 관리자 가져오기 검증 화면 전용 사유: DDL 오류 원문 포함 (/admin 세션 인증 경로만 호출)
             return new ImportItemResult(index, stemPreview, item.topicCode(), item.difficulty(),
                     item.executionMode(), "FAIL", null, null,
-                    "Sandbox 오류: " + e.getMessage(), importAction);
-        } finally {
-            if (dbName != null) {
-                sandboxPool.release(dbName);
-            }
+                    "Sandbox 오류: " + SandboxExecutor.toAdminFailureReason(e), importAction);
         }
     }
 }

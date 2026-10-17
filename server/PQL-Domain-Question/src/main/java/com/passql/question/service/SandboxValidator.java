@@ -18,19 +18,17 @@ import java.util.*;
  * AI 생성 선택지를 샌드박스에서 실행하여 정답 여부를 검증한다.
  * <p>
  * 플로우:
- * 1. SandboxPool.acquire() → 임시 DB 획득
- * 2. DDL + sample data 적용
+ * 1~2. SandboxExecutor.runInTemporarySandbox → 임시 DB 획득 + DDL + sample data 적용
  * 3. answerSql 실행 → expected result set
  * 4. 각 choice.body 실행 → actual vs expected 비교 (정렬 무시, set 비교)
  * 5. ValidationReport 반환
- * 6. finally: SandboxPool.release()
+ * 6. 반납: runInTemporarySandbox 가 보장 (성공·실패 공통)
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class SandboxValidator {
 
-    private final SandboxPool sandboxPool;
     private final SandboxExecutor sandboxExecutor;
 
     /**
@@ -58,23 +56,11 @@ public class SandboxValidator {
             throw new CustomException(ErrorCode.SANDBOX_SETUP_FAILED, "스키마 DDL이 없어 샌드박스 검증을 실행할 수 없습니다.");
         }
 
-        String dbName = sandboxPool.acquire();
-        try {
-            // 1. 스키마 + 샘플 데이터 적용
-            String setupSql = schemaDdl;
-            if (schemaSampleData != null && !schemaSampleData.isBlank()) {
-                setupSql = setupSql + ";\n" + schemaSampleData;
-            }
-            sandboxExecutor.applyDdl(dbName, setupSql);
-
-            if (policy == ChoiceSetPolicy.ODD_ONE_OUT) {
-                return validateOddOneOut(dbName, choices);
-            } else {
-                return validateStandard(dbName, choices, answerSql);
-            }
-        } finally {
-            sandboxPool.release(dbName);
-        }
+        // 임시 샌드박스(스키마 + 샘플 적용) 안에서 정책별 검증
+        return sandboxExecutor.runInTemporarySandbox(schemaDdl, schemaSampleData, dbName ->
+                policy == ChoiceSetPolicy.ODD_ONE_OUT
+                        ? validateOddOneOut(dbName, choices)
+                        : validateStandard(dbName, choices, answerSql));
     }
 
     /**

@@ -1,4 +1,5 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import '../storage/device_preferences.dart';
+import '../storage/storage_keys.dart';
 
 /// 전면 광고 노출 기록 3개: 마지막 노출 시각, 기록한 날짜, 그날 노출 횟수
 class InterstitialShowHistory {
@@ -24,33 +25,39 @@ abstract interface class InterstitialShowHistoryStore {
 /// SharedPreferences 저장소 (계정과 무관한 기기 단위 기록)
 class SharedPreferencesInterstitialShowHistoryStore
     implements InterstitialShowHistoryStore {
-  // SharedPreferences: 마지막 전면 광고 노출 시각 (epoch 밀리초)
-  static const _lastShownAtKey = 'ads_interstitial_last_shown_at_ms';
-  // SharedPreferences: 노출 횟수를 센 날짜 (yyyy-MM-dd)
-  static const _shownDayKey = 'ads_interstitial_shown_day';
-  // SharedPreferences: 위 날짜의 노출 횟수
-  static const _shownCountKey = 'ads_interstitial_shown_count';
-
   @override
-  Future<InterstitialShowHistory> read() async {
-    final preferences = await SharedPreferences.getInstance();
-    return InterstitialShowHistory(
-      lastShownAtEpochMilliseconds: preferences.getInt(_lastShownAtKey),
-      shownDayKey: preferences.getString(_shownDayKey),
-      shownCountOfDay: preferences.getInt(_shownCountKey) ?? 0,
-    );
-  }
+  Future<InterstitialShowHistory> read() async => InterstitialShowHistory(
+    lastShownAtEpochMilliseconds: await DevicePreferences.readInt(
+      StorageKeys.interstitialLastShownAt,
+    ),
+    shownDayKey: await DevicePreferences.readString(
+      StorageKeys.interstitialShownDay,
+    ),
+    shownCountOfDay:
+        await DevicePreferences.readInt(StorageKeys.interstitialShownCount) ??
+        0,
+  );
 
   @override
   Future<void> write(InterstitialShowHistory history) async {
-    final preferences = await SharedPreferences.getInstance();
     final lastShownAt = history.lastShownAtEpochMilliseconds;
     final shownDay = history.shownDayKey;
     if (lastShownAt != null) {
-      await preferences.setInt(_lastShownAtKey, lastShownAt);
+      await DevicePreferences.writeInt(
+        StorageKeys.interstitialLastShownAt,
+        lastShownAt,
+      );
     }
-    if (shownDay != null) await preferences.setString(_shownDayKey, shownDay);
-    await preferences.setInt(_shownCountKey, history.shownCountOfDay);
+    if (shownDay != null) {
+      await DevicePreferences.writeString(
+        StorageKeys.interstitialShownDay,
+        shownDay,
+      );
+    }
+    await DevicePreferences.writeInt(
+      StorageKeys.interstitialShownCount,
+      history.shownCountOfDay,
+    );
   }
 }
 

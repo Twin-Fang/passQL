@@ -1,0 +1,6 @@
+description=SharedPreferences 직접 사용 금지 (저장 키 원본 한 곳)
+paths=app/lib/
+extensions=.dart
+pattern=SharedPreferences\.getInstance\(
+# 공통 지점 (SharedPreferences 유일 접근 위치)
+exclude=app/lib/core/storage/device_preferences.dart

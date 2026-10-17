@@ -48,7 +48,7 @@ export default function AiExplanationSheet({ isOpen, isLoading, isError = false,
                 AI 해설을 불러올 수 없어요. 잠시 후 다시 시도해 주세요.
               </p>
             ) : (
-              <MarkdownText text={text} className="text-[15px] leading-relaxed text-body" />
+              <MarkdownText text={text} className="text-subheadline leading-relaxed text-body" />
             )}
           </div>
           {!isLoading && !isError && text && (

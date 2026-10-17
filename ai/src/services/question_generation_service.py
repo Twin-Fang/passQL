@@ -7,7 +7,7 @@ import time
 from typing import Any
 
 from src.clients.gemini_client import gemini_client
-from src.core.exceptions import CustomError
+from src.core.exceptions import CustomError, InvalidRequestError
 from src.models.ai_request import (
     GenerateChoiceSetRequest,
     GenerateQuestionFullRequest,
@@ -24,6 +24,14 @@ from src.models.ai_response import (
 
 logger = logging.getLogger(__name__)
 
+# 스키마 위반 로그에 남길 AI 응답 최대 길이
+LOGGED_PAYLOAD_MAXIMUM_LENGTH = 500
+
+
+def _truncate_payload_for_log(payload: Any) -> str:
+    """AI 응답 dict > 로그용 문자열 (LOGGED_PAYLOAD_MAXIMUM_LENGTH 자 제한)"""
+    return str(payload)[:LOGGED_PAYLOAD_MAXIMUM_LENGTH]
+
 
 class QuestionGenerationService:
     """
@@ -34,14 +42,11 @@ class QuestionGenerationService:
     @staticmethod
     def _render(template: str, variables: dict) -> str:
         """단순 {var} 치환. 없는 키는 빈 문자열."""
-        try:
-            # 모든 format 실패 방지를 위해 수동 치환
-            rendered = template
-            for k, v in variables.items():
-                rendered = rendered.replace("{" + k + "}", str(v) if v is not None else "")
-            return rendered
-        except Exception as e:
-            raise CustomError(f"프롬프트 템플릿 치환 실패: {e}")
+        # str.format 은 템플릿 안 다른 중괄호(JSON 예시 등)에서 실패하므로 수동 치환
+        rendered = template
+        for k, v in variables.items():
+            rendered = rendered.replace("{" + k + "}", str(v) if v is not None else "")
+        return rendered
 
     @staticmethod
     async def _generate_structured_payload(
@@ -81,7 +86,7 @@ class QuestionGenerationService:
         user_prompt = self._render(cfg.user_template, variables)
 
         if not cfg.response_schema:
-            raise CustomError("generate_question_full 은 response_schema 가 필수입니다")
+            raise InvalidRequestError("generate_question_full 은 response_schema 가 필수입니다")
 
         logger.info(f"[generate-question-full] topic={ctx.topic}, difficulty={ctx.difficulty}")
         payload, elapsed_ms = await self._generate_structured_payload(cfg, user_prompt)
@@ -92,7 +97,7 @@ class QuestionGenerationService:
             raw_choices = payload["seed_choices"]
             seed_choices = [GeneratedChoice(**c) for c in raw_choices]
         except (KeyError, TypeError, ValueError) as e:
-            logger.error(f"generate_question_full 응답 스키마 위반: {e} payload={payload}")
+            logger.error(f"generate_question_full 응답 스키마 위반: {e} payload={_truncate_payload_for_log(payload)}")
             raise CustomError(f"AI 응답 스키마 위반: {e}")
 
         return GenerateQuestionFullResponse(
@@ -127,7 +132,7 @@ class QuestionGenerationService:
         user_prompt = self._render(cfg.user_template, variables)
 
         if not cfg.response_schema:
-            raise CustomError("generate_choice_set 은 response_schema 가 필수입니다")
+            raise InvalidRequestError("generate_choice_set 은 response_schema 가 필수입니다")
 
         logger.info(f"[generate-choice-set] question_uuid={ctx.question_uuid}")
         payload, elapsed_ms = await self._generate_structured_payload(cfg, user_prompt)
@@ -136,7 +141,7 @@ class QuestionGenerationService:
             raw_choices = payload["choices"]
             choices = [GeneratedChoice(**c) for c in raw_choices]
         except (KeyError, TypeError, ValueError) as e:
-            logger.error(f"generate_choice_set 응답 스키마 위반: {e} payload={payload}")
+            logger.error(f"generate_choice_set 응답 스키마 위반: {e} payload={_truncate_payload_for_log(payload)}")
             raise CustomError(f"AI 응답 스키마 위반: {e}")
 
         return GenerateChoiceSetResponse(

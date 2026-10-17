@@ -137,10 +137,9 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
       } else {
         addSegment(
           match.group(2)!,
-          PassqlTypography.code.copyWith(
-            fontSize: (base.fontSize ?? 14) * 0.92,
-            backgroundColor: colors.fill,
-          ),
+          PassqlTypography.inlineCodeOf(
+            base,
+          ).copyWith(backgroundColor: colors.fill),
         );
       }
       cursor = match.end;

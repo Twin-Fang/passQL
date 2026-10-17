@@ -12,7 +12,7 @@ class PassqlStatusView extends StatelessWidget {
     this.title,
     this.message,
     this.onRetry,
-    this.loading = false,
+    this.isLoading = false,
   });
 
   const factory PassqlStatusView.loading() = _Loading;
@@ -37,7 +37,9 @@ class PassqlStatusView extends StatelessWidget {
   final String? title;
   final String? message;
   final VoidCallback? onRetry;
-  final bool loading;
+
+  /// 로딩 모양(_Loading)인지
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +89,7 @@ class PassqlStatusView extends StatelessWidget {
 }
 
 class _Loading extends PassqlStatusView {
-  const _Loading() : super._(loading: true);
+  const _Loading() : super._(isLoading: true);
 
   @override
   Widget build(BuildContext context) => const Center(

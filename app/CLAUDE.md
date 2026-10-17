@@ -20,18 +20,22 @@ SQLD·SQLP 학습 서비스 passQL의 모바일 앱. 서버(`server/`)와만 통
 ```
 lib/
 ├── main.dart               # 진입점, 세션 복원, 라우터 연동
-├── core/                   # 공통·인프라. presentation·router 를 import 하지 않는다
-│   ├── ads/                # AdMob SDK 래퍼(배너·네이티브·전면 로더, ATT, 단위 ID, 전면 빈도 제한). SDK 는 여기서만 import
-│   ├── auth/               # 토큰 저장, 인터셉터(Bearer·재발급), 세션 만료 신호, 소셜 로그인, 설치 가드
+├── core/                   # 공통·인프라. data·presentation·router 를 import 하지 않는다 (필요하면 core 에 포트, data 가 구현)
+│   ├── ads/                # AdMob SDK 래퍼(배너·네이티브·전면 로더, 공통 요청 준비 AdRequestPreparer, ATT 동의 AdConsent,
+│   │                       # 단위 ID, 전면 빈도 제한). SDK 는 여기서만 import, 테스트는 Provider 포트를 가짜로 교체
+│   ├── auth/               # 토큰 저장, 인터셉터(Bearer·재발급, 재발급 포트 TokenReissueClient), 세션 만료 신호, 소셜 로그인, 설치 가드
 │   ├── error/              # ErrorCode(서버 코드 매핑), AppException (서버 오류를 사용자 문구로 변환)
-│   ├── monitoring/         # 오류 수집(CrashReporter)·분석(AppAnalytics, 이벤트 이름 상수) 공통 지점
-│   ├── network/            # dio_client, safe_call(safeCall·safeCallAll·SafeCallSlot),
+│   ├── monitoring/         # 오류 수집(CrashReporter, reportIfUnexpectedFailure)·분석(AppAnalytics, 이벤트 이름 상수) 공통 지점
+│   ├── network/            # dio_client(buildBackendDio·plainDioProvider), safe_call(safeCall·safeCallAll·SafeCallSlot),
 │   │                       # api_call(callApiThrowingAppException: Dio 오류 > AppException 공통 변환)
-│   ├── push/               # 푸시 SDK 포트(PushMessagingClient)·이동 허용 목록(PushLink). 등록·삭제는 data/push/PushNotificationService
+│   ├── notification/       # 앱 아이콘 숫자(AppIconBadgeUpdater, app_badge_plus 는 여기서만), 알림 권한 안내 결과
+│   ├── push/               # 푸시 SDK 포트(PushMessagingClient)·이동 허용 목록(PushLink)·안내 기록. 등록·삭제는 data/push/PushNotificationService
+│   ├── storage/            # 기기 저장 키 원본(StorageKeys), 일반 저장소 공통 지점(DevicePreferences, shared_preferences 는 여기서만)
 │   └── utils/ validation/
 ├── data/                   # presentation·router 를 import 하지 않는다
 │   ├── models/             # freezed 데이터 모델 (도메인별 폴더)
-│   └── sources/            # Retrofit API 정의, api_providers(클라이언트 Provider), SSE 클라이언트
+│   ├── push/               # PushNotificationService (푸시 토큰 등록·삭제, 알림 이동)
+│   └── sources/            # Retrofit API 정의, api_providers(인증 Dio·authApi·클라이언트 Provider), SSE 클라이언트
 ├── presentation/
 │   ├── design/             # Passql 디자인 시스템 (아래 절 참고)
 │   ├── flows/              # 문제 풀이 흐름 공통화 (question_flow, daily_set_flow)
@@ -39,10 +43,11 @@ lib/
 │   │                       # daily_set(결과·리더보드), feedback, legal
 │   ├── providers/          # Riverpod Provider·Notifier·Service (회원별 Provider 는 session_reset 의 currentMemberUuidProvider watch + autoDispose)
 │   └── widgets/            # 화면 조각 (설정 그룹, 문제 풀이 본문 등)
-└── router/                 # app_router, app_routes(모든 경로 상수)
+└── router/                 # app_router, app_routes(모든 경로 상수), result_route_arguments(결과 화면 이동 인자·extra 해석)
 test/
 ├── architecture/           # 규칙 테스트 (아래 절 참고)
-└── helpers/fakes/          # 공용 가짜 (FakeHttpClientAdapter, FakeMemberApi)
+├── core/ data/ design/ presentation/ router/   # lib 구조를 따르는 단위·위젯 테스트
+└── helpers/                # pump_app, fakes/(FakeHttpClientAdapter, FakeMemberApi, 푸시 가짜)
 tool/store_shots/           # 스토어 스크린샷용 가짜 API 진입점 (운영 코드 아님)
 ```
 
@@ -54,7 +59,8 @@ tool/store_shots/           # 스토어 스크린샷용 가짜 API 진입점 (�
 tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·모션)
   > theme(PassqlTheme, context.passqlColors, context.isDark)
   > components(PassqlButton, PassqlCard, showPassqlSheet, showPassqlConfirmDialog,
-               PassqlLoadingIndicator, PassqlStatusView, PassqlStatusScaffold 등)
+               PassqlLoadingIndicator, PassqlStatusView, PassqlStatusScaffold,
+               PassqlNotificationBellButton, PassqlTextScaleLimit 등 — 전체 목록은 Design.md)
   > 화면(pages·widgets: 토큰과 컴포넌트만 조합)
 ```
 
@@ -69,8 +75,10 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 | 테스트 | 막는 것 |
 |---|---|
 | `design_system_rules_test.dart` | pages·widgets·flows 에서 `Color(0x`, `Colors.white/black`, `Image.asset(`, `showModalBottomSheet(`, `showCupertinoDialog(`, `CupertinoActivityIndicator(` 직접 사용, `go('/...')`·`push('/...')` 라우트 문자열 |
-| `ad_placement_rules_test.dart` | core/ads 밖의 `google_mobile_ads`·ATT import, 허용 목록(탭 쉘·토픽 목록·결과 화면 2곳·main) 밖의 광고 사용, 풀이·로그인·약관·설정·차단 화면의 광고, 사용자 정보를 실은 광고 요청 |
-| `layer_dependency_test.dart` | core·data 의 presentation·router import, design 의 providers·pages·widgets·flows import, 화면의 `data/sources` 직접 import, core/monitoring 밖의 Crashlytics·Analytics SDK 직접 import, core/push 밖의 firebase_messaging 직접 import |
+| `ad_placement_rules_test.dart` | core/ads 밖의 `google_mobile_ads`·ATT import, 허용 목록(탭 쉘·토픽 목록·결과 화면 2곳·main) 밖의 광고 사용, 풀이·로그인·약관·설정·차단 화면의 광고, `ad_request_preparer.dart` 밖의 `AdRequest(` 조립, 사용자 정보를 실은 광고 요청 |
+| `layer_dependency_test.dart` | core 의 data·presentation·router import, data 의 presentation·router import, design 의 providers·pages·widgets·flows import, 화면의 `data/sources` 직접 import, core/monitoring 밖의 Crashlytics·Analytics SDK, core/push 밖의 firebase_messaging, core/notification 밖의 app_badge_plus, core/storage 밖의 shared_preferences 직접 import, 종 아이콘 밖의 알림함 경로 |
+| `server_api_schema_test.dart` | 앱 모델 필드 <-> `api-contract/openapi.json` 어긋남 (서버에 없는 필드, 기본값 없는 nullable, 타입 불일치, #493) |
+| `architecture_rules_test.dart` | 레포 공통 규칙(`docs/architecture/rules/*.rule`)의 새 위반·고쳐진 동결 항목 (pro-architecture-consult 템플릿) |
 
 - 예외는 각 테스트의 allow-list(`_allowedUsages`, `_allowedReverseImports`)에 파일과 **이유**를 적어서만 둔다. 비어 있는 것이 정상이다.
 

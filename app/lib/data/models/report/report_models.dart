@@ -1,7 +1,9 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../../core/validation/report_validator.dart';
+
 /// 신고 사유. 서버 `ReportCategory` 와 대응.
-enum ReportCategory {
+enum ReportCategory implements ReportReason {
   @JsonValue('WRONG_ANSWER')
   wrongAnswer('정답이 잘못된 것 같아요'),
   @JsonValue('WEIRD_QUESTION')
@@ -17,6 +19,9 @@ enum ReportCategory {
 
   /// 화면에 보여줄 문구.
   final String label;
+
+  @override
+  bool get isDetailRequired => this == ReportCategory.etc;
 
   /// 서버로 보내는 값.
   String get serverValue => switch (this) {

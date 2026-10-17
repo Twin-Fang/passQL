@@ -5,18 +5,22 @@ import com.passql.ai.dto.IndexQuestionRequest;
 import com.passql.ai.dto.IndexQuestionResult;
 import com.passql.ai.dto.IndexQuestionsBulkResult;
 import com.passql.ai.dto.IndexStatusRequest;
+import com.passql.ai.dto.IndexStatusResult;
 import com.passql.ai.dto.PruneIndexResult;
 import com.passql.meta.entity.Subtopic;
 import com.passql.meta.entity.Topic;
 import com.passql.meta.repository.SubtopicRepository;
 import com.passql.meta.repository.TopicRepository;
 import com.passql.question.entity.Question;
+import com.passql.question.event.QuestionSavedEvent;
 import com.passql.question.repository.QuestionConceptTagRepository;
 import com.passql.question.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.List;
 import java.util.UUID;
@@ -50,6 +54,19 @@ public class QuestionVectorIndexService {
                 .toList();
 
         return indexOneByOne(requests, "reindex-all");
+    }
+
+    /** 활성 문제 전체 색인 상태 조회 (AI 서버 장애 > null, 화면은 오류 배너) */
+    @Transactional(readOnly = true)
+    public IndexStatusResult findIndexStatusOfActiveQuestions() {
+        List<String> activeUuids = questionRepository.findAllActiveQuestionUuids();
+        log.info("[index-status] DB 활성 문제 수={}", activeUuids.size());
+        try {
+            return aiGatewayClient.getIndexStatus(new IndexStatusRequest(activeUuids));
+        } catch (Exception e) {
+            log.warn("[index-status] AI 서버 색인 상태 조회 실패: {}", e.getMessage());
+            return null;
+        }
     }
 
     /**
@@ -147,23 +164,34 @@ public class QuestionVectorIndexService {
         );
     }
 
+    /** 문제 저장 커밋 후 > 벡터 색인 비동기 적재 (트랜잭션 없이 발행돼도 바로 실행) */
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+    public void onQuestionSaved(QuestionSavedEvent event) {
+        indexQuestionAsync(event.questionUuid());
+    }
+
     /**
-     * 문제를 Qdrant에 임베딩 적재한다.
-     * VirtualThread로 실행하여 문제 등록 응답 속도에 영향을 주지 않는다.
+     * 문제 1건 Qdrant 적재: 가상 스레드에서 조회 > 요청 조립 > 적재
+     * 실패는 기록만 (문제 등록 응답·흐름에 영향 없음)
      */
-    public void indexQuestionAsync(Question question) {
+    public void indexQuestionAsync(UUID questionUuid) {
         Thread.startVirtualThread(() -> {
             try {
+                Question question = questionRepository.findById(questionUuid).orElse(null);
+                if (question == null) {
+                    log.warn("[question-index] 적재 대상 없음 (skip): questionUuid={}", questionUuid);
+                    return;
+                }
                 IndexQuestionRequest req = buildIndexRequest(question);
                 IndexQuestionResult result = aiGatewayClient.indexQuestion(req);
                 if (result != null) {
                     log.info("[question-index] Qdrant 적재 완료: questionUuid={}, created={}",
-                            question.getQuestionUuid(), result.created());
+                            questionUuid, result.created());
                 }
             } catch (Exception e) {
                 // 인덱싱 실패는 문제 등록 완료에 영향을 주지 않음
                 log.warn("[question-index] Qdrant 적재 실패 (non-critical): questionUuid={}, error={}",
-                        question.getQuestionUuid(), e.getMessage());
+                        questionUuid, e.getMessage());
             }
         });
     }

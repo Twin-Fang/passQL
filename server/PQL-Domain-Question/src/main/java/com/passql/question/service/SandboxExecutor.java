@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * 샌드박스 DB에서 SQL을 실행하고 결과를 반환한다.
@@ -21,6 +22,38 @@ import java.util.List;
 public class SandboxExecutor {
 
     private final SandboxPool sandboxPool;
+
+    /**
+     * 임시 샌드박스 1회 실행 공통 지점: DB 획득 > DDL + 샘플 적용 > 작업(dbName) > 반납
+     * DDL·샘플 모두 비면 적용 생략, 반납은 SandboxPool 이 보장 (성공·실패 공통)
+     */
+    public <T> T runInTemporarySandbox(String schemaDdl, String schemaSampleData, Function<String, T> sandboxTask) {
+        return sandboxPool.runWithTemporaryDatabase(dbName -> {
+            String setupSql = toSetupSql(schemaDdl, schemaSampleData);
+            if (!setupSql.isBlank()) {
+                applyDdl(dbName, setupSql);
+            }
+            return sandboxTask.apply(dbName);
+        });
+    }
+
+    /**
+     * 샌드박스 준비 실패 원인 문장 (DDL 오류 원문, 관리자 화면 전용)
+     * 공개 API 응답에는 쓰지 않음 (응답 detail 은 고정 문구)
+     */
+    public static String toAdminFailureReason(Throwable failure) {
+        Throwable cause = failure.getCause() != null ? failure.getCause() : failure;
+        return cause.getMessage();
+    }
+
+    /** DDL + 샘플 INSERT > 실행할 준비 SQL 한 덩어리 (";\n" 연결) */
+    private String toSetupSql(String schemaDdl, String schemaSampleData) {
+        String setupSql = schemaDdl != null ? schemaDdl : "";
+        if (schemaSampleData != null && !schemaSampleData.isBlank()) {
+            setupSql = setupSql + ";\n" + schemaSampleData;
+        }
+        return setupSql;
+    }
 
     /**
      * 특정 샌드박스 DB에 DDL + sample data 를 적용한다.
@@ -42,8 +75,9 @@ public class SandboxExecutor {
                 }
             }
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.SANDBOX_SETUP_FAILED,
-                    "DDL 적용 실패: " + e.getMessage());
+            // 원인 메시지는 로그·cause 에만 (응답 detail 은 고정 문구)
+            log.warn("[sandbox ddl] apply failed : db={}, error={}", dbName, e.getMessage());
+            throw new CustomException(ErrorCode.SANDBOX_SETUP_FAILED, "DDL 적용 실패", e);
         }
     }
 

@@ -3,12 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/sources/auth_api.dart';
-import '../auth/auth_interceptor.dart';
-import '../auth/member_suspension_interceptor.dart';
-import '../auth/member_suspension_signal.dart';
-import '../auth/session_expiry_signal.dart';
-import '../auth/token_store.dart';
 import 'get_retry_interceptor.dart';
 
 // .env: 서버 API 주소 키 (예: https://api.example.com/api)
@@ -39,7 +33,7 @@ const Duration choiceGenerationStreamReceiveTimeout = Duration(seconds: 75);
 /// 타임아웃 [defaultConnectTimeout]·[defaultReceiveTimeout], JSON Content-Type 기본 설정.
 /// 조회(GET) 연결 실패는 1회 재시도 ([GetRetryInterceptor]).
 /// 디버그 빌드에서는 LogInterceptor로 요청/응답 전체 로그 출력.
-Dio _buildDio() {
+Dio buildBackendDio() {
   final baseUrl = readBackendBaseUrl();
   final dio = Dio(
     BaseOptions(
@@ -72,37 +66,5 @@ Dio _buildDio() {
 /// 인증 인터셉터가 없는 Dio. `/auth/*` 호출 전용.
 ///
 /// 재발급 요청이 인증 인터셉터를 다시 타면 401 처리가 순환하므로 분리한다.
-final plainDioProvider = Provider<Dio>((ref) => _buildDio());
-
-/// 인증 API 클라이언트.
-final authApiProvider = Provider<AuthApi>(
-  (ref) => AuthApi(ref.watch(plainDioProvider)),
-);
-
-/// 앱 전역 Dio 인스턴스 Provider.
-///
-/// 모든 요청에 Bearer 토큰을 붙이고 401 시 자동 재발급한다.
-/// 이용 제한(403 MEMBER_SUSPENDED) 응답은 이용 제한 신호로 알린다.
-final dioProvider = Provider<Dio>((ref) {
-  final dio = _buildDio();
-  dio.interceptors.insert(
-    0,
-    AuthInterceptor(
-      tokenStore: ref.watch(tokenStoreProvider),
-      authApi: ref.watch(authApiProvider),
-      retryDio: dio,
-      // 세션 만료 신호만 보냄 (인증 상태 변경은 구독하는 AuthNotifier 몫)
-      onSessionExpired: ref.read(sessionExpirySignalProvider).announceExpired,
-    ),
-  );
-  // 이용 제한 신호만 보냄 (로그아웃·안내는 구독하는 AuthNotifier 몫)
-  dio.interceptors.insert(
-    1,
-    MemberSuspensionInterceptor(
-      onMemberSuspended: ref
-          .read(memberSuspensionSignalProvider)
-          .announceSuspended,
-    ),
-  );
-  return dio;
-});
+/// 인증 Dio(dioProvider)는 재발급 클라이언트(AuthApi)가 필요해 data/sources/api_providers.dart 에서 조립
+final plainDioProvider = Provider<Dio>((ref) => buildBackendDio());

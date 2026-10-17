@@ -61,7 +61,7 @@ public class ProgressController implements ProgressControllerDocs {
     @GetMapping("/wrong-questions")
     public ResponseEntity<WrongQuestionsResponse> getWrongQuestions(
         @AuthMember LoginMember loginMember,
-        @RequestParam(defaultValue = "20") int size
+        @RequestParam(defaultValue = ProgressService.DEFAULT_WRONG_QUESTION_COUNT) int size
     ) {
         return ResponseEntity.ok(progressService.getWrongQuestions(loginMember.memberUuid(), size));
     }

@@ -60,7 +60,6 @@ class _NotificationInboxPageState extends ConsumerState<NotificationInboxPage> {
   Widget build(BuildContext context) {
     final unreadCount = ref.watch(unreadNotificationCountProvider);
     return Scaffold(
-      backgroundColor: context.passqlColors.background,
       appBar: const PassqlNavBar(title: '알림함', leading: PassqlNavLeading.back),
       body: Column(
         children: [

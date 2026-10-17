@@ -13,7 +13,6 @@ import com.passql.question.repository.QuestionChoiceSetItemRepository;
 import com.passql.question.repository.QuestionChoiceSetRepository;
 import com.passql.question.repository.QuestionRepository;
 import com.passql.question.service.SandboxExecutor;
-import com.passql.question.service.SandboxPool;
 import com.passql.submission.dto.MonitorStats;
 import com.passql.submission.entity.ExecutionLog;
 import com.passql.submission.entity.Submission;
@@ -42,7 +41,6 @@ public class SubmissionService {
     private final QuestionRepository questionRepository;
     private final ExecutionLogRepository executionLogRepository;
     private final SandboxExecutor sandboxExecutor;
-    private final SandboxPool sandboxPool;
     private final TransactionTemplate transactionTemplate;
     // AI 코멘트 캐시 무효화용 (submit 완료 시 evict)
     private final RedisTemplate<String, Object> redisTemplate;
@@ -82,24 +80,17 @@ public class SubmissionService {
                     correctResult = sandboxExecutor.execute(dbName, correctSql);
                 }
             } else {
-                // sandboxDbName 미설정: SandboxPool에서 임시 DB를 빌려 DDL 적용 → 실행 → 반납
+                // sandboxDbName 미설정: 임시 DB에 DDL 적용 > 선택·정답 SQL 실행 > 반납
                 // executeChoice()와 동일한 경로 — questionUuid 폴백 DB는 존재하지 않으므로 사용 금지
-                String tempDb = sandboxPool.acquire();
-                try {
-                    String setupSql = question.getSchemaDdl() != null ? question.getSchemaDdl() : "";
-                    if (question.getSchemaSampleData() != null && !question.getSchemaSampleData().isBlank()) {
-                        setupSql = setupSql + ";\n" + question.getSchemaSampleData();
-                    }
-                    if (!setupSql.isBlank()) {
-                        sandboxExecutor.applyDdl(tempDb, setupSql);
-                    }
-                    selectedResult = sandboxExecutor.execute(tempDb, selectedSql);
-                    if (correctSql != null) {
-                        correctResult = sandboxExecutor.execute(tempDb, correctSql);
-                    }
-                } finally {
-                    sandboxPool.release(tempDb);
-                }
+                String selectedSqlToRun = selectedSql;
+                String correctSqlToRun = correctSql;
+                ChoiceExecutionResults temporaryResults = sandboxExecutor.runInTemporarySandbox(
+                        question.getSchemaDdl(), question.getSchemaSampleData(),
+                        tempDb -> new ChoiceExecutionResults(
+                                sandboxExecutor.execute(tempDb, selectedSqlToRun),
+                                correctSqlToRun != null ? sandboxExecutor.execute(tempDb, correctSqlToRun) : null));
+                selectedResult = temporaryResults.selectedResult();
+                correctResult = temporaryResults.correctResult();
             }
         }
 
@@ -121,6 +112,9 @@ public class SubmissionService {
                 selected.getExplanation()
         );
     }
+
+    /** 임시 샌드박스 1회 실행 결과: 선택 SQL·정답 SQL (정답 SQL 없으면 null) */
+    private record ChoiceExecutionResults(ExecuteResult selectedResult, ExecuteResult correctResult) {}
 
     /** 제출 채점 결과 + 저장된 제출 (트랜잭션 안에서 만든 값을 밖으로 넘김) */
     private record GradedSubmission(

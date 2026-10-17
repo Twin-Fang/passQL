@@ -6,8 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../data/models/daily_set/daily_set_models.dart';
 import '../../../router/app_routes.dart';
+import '../../../router/result_route_arguments.dart';
 import '../../design/design.dart';
-import '../../flows/daily_set_flow.dart';
 import '../../providers/daily_set_providers.dart';
 import '../../widgets/ads/interstitial_ad_on_enter.dart';
 
@@ -16,17 +16,16 @@ const _dailySetTitle = '오늘의 세트';
 
 /// 오늘의 세트 결과 화면.
 ///
-/// 풀이를 막 끝냈으면 `extra` 로 [DailySetOutcome] 을 받아 문제별 결과까지 보여준다.
-/// 홈에서 "이미 완료" 카드로 들어오면 `extra` 가 없으므로 서버의 오늘 기록을 보여준다.
+/// 풀이를 막 끝냈으면 [outcome] 으로 문제별 결과까지 보여준다.
+/// 홈에서 "이미 완료" 카드로 들어오면 [outcome] 이 없으므로 서버의 오늘 기록을 보여준다.
 class DailySetResultPage extends ConsumerWidget {
-  const DailySetResultPage({super.key, this.extra});
+  const DailySetResultPage({super.key, this.outcome});
 
-  final Object? extra;
+  final DailySetOutcome? outcome;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final outcome = extra is DailySetOutcome ? extra as DailySetOutcome : null;
-
+    final outcome = this.outcome;
     if (outcome != null) {
       // 풀이를 막 끝낸 진입에만 전면 광고 시도 (홈 '이미 완료' 카드 진입은 제외)
       return InterstitialAdOnEnter(

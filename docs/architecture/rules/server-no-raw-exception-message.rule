@@ -1,0 +1,4 @@
+description=내부 예외 메시지를 CustomException detail 에 그대로 붙이기 금지 (응답으로 노출)
+paths=server/PQL-Application/src/main/java/,server/PQL-Common/src/main/java/,server/PQL-Domain-AI/src/main/java/,server/PQL-Domain-Member/src/main/java/,server/PQL-Domain-Meta/src/main/java/,server/PQL-Domain-Question/src/main/java/,server/PQL-Domain-Submission/src/main/java/,server/PQL-Web/src/main/java/
+extensions=.java
+pattern=:\s*"\s*\+\s*e\.getMessage\(\)

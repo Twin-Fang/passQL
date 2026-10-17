@@ -36,7 +36,7 @@ class ReportSheet extends ConsumerStatefulWidget {
 class _ReportSheetState extends ConsumerState<ReportSheet> {
   final _detail = TextEditingController();
   final _selected = <ReportCategory>{};
-  bool _sending = false;
+  bool _isSending = false;
   String? _error;
 
   @override
@@ -46,7 +46,7 @@ class _ReportSheetState extends ConsumerState<ReportSheet> {
   }
 
   bool get _canSubmit =>
-      !_sending && ReportValidator.isValid(_selected, _detail.text);
+      !_isSending && ReportValidator.isValid(_selected, _detail.text);
 
   void _toggle(ReportCategory category) {
     setState(() {
@@ -59,7 +59,7 @@ class _ReportSheetState extends ConsumerState<ReportSheet> {
 
   Future<void> _submit() async {
     setState(() {
-      _sending = true;
+      _isSending = true;
       _error = null;
     });
     try {
@@ -76,7 +76,7 @@ class _ReportSheetState extends ConsumerState<ReportSheet> {
     } on AppException catch (exception) {
       if (!mounted) return;
       setState(() {
-        _sending = false;
+        _isSending = false;
         _error = exception.message;
       });
     }
@@ -85,7 +85,7 @@ class _ReportSheetState extends ConsumerState<ReportSheet> {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final showDetail = _selected.contains(ReportCategory.etc);
+    final shouldShowDetail = ReportValidator.hasDetailRequiredReason(_selected);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -115,11 +115,11 @@ class _ReportSheetState extends ConsumerState<ReportSheet> {
                   PassqlCheckRow(
                     title: category.label,
                     isSelected: _selected.contains(category),
-                    onTap: _sending ? null : () => _toggle(category),
+                    onTap: _isSending ? null : () => _toggle(category),
                   ),
               ],
             ),
-            if (showDetail) ...[
+            if (shouldShowDetail) ...[
               const SizedBox(height: PassqlSpacing.sm),
               Container(
                 padding: const EdgeInsets.all(PassqlSpacing.sm),
@@ -129,7 +129,7 @@ class _ReportSheetState extends ConsumerState<ReportSheet> {
                 ),
                 child: TextField(
                   controller: _detail,
-                  enabled: !_sending,
+                  enabled: !_isSending,
                   maxLines: 3,
                   maxLength: ReportValidator.maxDetailLength,
                   style: PassqlTypography.body.copyWith(color: colors.label),
@@ -160,7 +160,7 @@ class _ReportSheetState extends ConsumerState<ReportSheet> {
             ),
             PassqlButton(
               label: '신고하기',
-              isLoading: _sending,
+              isLoading: _isSending,
               onPressed: _canSubmit ? _submit : null,
             ),
           ],

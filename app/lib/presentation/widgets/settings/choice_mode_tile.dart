@@ -40,12 +40,18 @@ class ChoiceModeTile extends ConsumerWidget {
     );
   }
 
-  Future<void> _change(BuildContext context, WidgetRef ref, bool real) async {
+  Future<void> _change(
+    BuildContext context,
+    WidgetRef ref,
+    bool isRealMode,
+  ) async {
     try {
       await ref
           .read(choiceModeProvider.notifier)
           .setMode(
-            real ? ChoiceGenerationMode.real : ChoiceGenerationMode.practice,
+            isRealMode
+                ? ChoiceGenerationMode.real
+                : ChoiceGenerationMode.practice,
           );
     } on AppException catch (exception) {
       // 값은 Notifier 가 이전 상태로 되돌려 두었다. 이유만 알린다.
