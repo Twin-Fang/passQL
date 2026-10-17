@@ -8,12 +8,15 @@ import '../../core/utils/app_device_summary.dart';
 import '../../data/sources/api_providers.dart';
 import '../../core/validation/feedback_validator.dart';
 import '../../data/models/feedback/feedback_models.dart';
+import 'session_reset.dart';
 
 /// 내가 보낸 건의 목록. 채팅처럼 오래된 것이 위, 최신이 아래에 오도록 정렬한다.
 ///
 /// 화면을 벗어나면 해제되어 다시 열 때 처리 상태(대기/확인됨/반영됨)를 새로 받는다.
 final feedbackListProvider =
     FutureProvider.autoDispose<List<FeedbackItem>>((ref) async {
+      // 로그아웃이면 빈 목록 (API 호출 없음)
+      if (ref.watch(currentMemberUuidProvider) == null) return const [];
       final response = await ref.read(feedbackApiProvider).getMyFeedbacks();
       return [...response.items]..sort((earlier, later) => earlier.createdAt.compareTo(later.createdAt));
     });

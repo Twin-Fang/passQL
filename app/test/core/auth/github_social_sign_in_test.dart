@@ -9,8 +9,10 @@ GithubSocialSignIn _signInReturning(
   String Function(Uri authorizeUri) respond, {
   List<Uri>? openedUris,
   String state = 'fixed-state',
+  String codeVerifier = _rfcCodeVerifier,
 }) => GithubSocialSignIn(
   createState: () => state,
+  createCodeVerifier: () => codeVerifier,
   openAuthenticationBrowser:
       ({required String url, required String callbackUrlScheme}) async {
         expect(callbackUrlScheme, 'passql');
@@ -20,19 +22,50 @@ GithubSocialSignIn _signInReturning(
       },
 );
 
+// RFC 7636 부록 B 예시 (verifier > S256 challenge)
+const _rfcCodeVerifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
+const _rfcCodeChallenge = 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM';
+
 void main() {
   group('인가 주소', () {
-    test('client_id, 앱 콜백 주소, state, read:user 범위를 싣는다', () {
-      final uri = GithubSocialSignIn.buildAuthorizeUri(state: 'state-1');
+    test(
+      'client_id, 앱 콜백 주소, state, read:user 범위, PKCE S256 challenge 를 싣는다',
+      () {
+        final uri = GithubSocialSignIn.buildAuthorizeUri(
+          state: 'state-1',
+          codeChallenge: 'challenge-1',
+        );
 
-      expect(uri.origin, 'https://github.com');
-      expect(uri.path, '/login/oauth/authorize');
-      expect(uri.queryParameters, {
-        'client_id': 'Ov23liFJLvi4ZizNqLfi',
-        'redirect_uri': 'passql://auth/callback/github',
-        'state': 'state-1',
-        'scope': 'read:user',
-      });
+        expect(uri.origin, 'https://github.com');
+        expect(uri.path, '/login/oauth/authorize');
+        expect(uri.queryParameters, {
+          'client_id': 'Ov23liFJLvi4ZizNqLfi',
+          'redirect_uri': 'passql://auth/callback/github',
+          'state': 'state-1',
+          'scope': 'read:user',
+          'code_challenge': 'challenge-1',
+          'code_challenge_method': 'S256',
+        });
+      },
+    );
+
+    test(
+      'code_challenge 는 verifier 의 SHA-256 base64url(패딩 없음)이다 (RFC 7636 예시)',
+      () {
+        expect(
+          GithubSocialSignIn.buildCodeChallenge(_rfcCodeVerifier),
+          _rfcCodeChallenge,
+        );
+      },
+    );
+
+    test('code_verifier 는 매번 새로 만든 RFC 7636 비예약 문자 64자다', () {
+      final first = GithubSocialSignIn.createRandomCodeVerifier();
+      final second = GithubSocialSignIn.createRandomCodeVerifier();
+
+      expect(first, hasLength(64));
+      expect(first, matches(RegExp(r'^[0-9A-Za-z\-._~]+$')));
+      expect(first, isNot(second));
     });
 
     test('state 는 매번 새로 만든 URL 안전 문자 32자다', () {
@@ -101,6 +134,12 @@ void main() {
       expect(credential?.code, 'code-1');
       expect(credential?.state, 'fixed-state');
       expect(credential?.redirectUri, 'passql://auth/callback/github');
+      // 인가 요청에는 해시만, 서버 교환 재료에는 원문
+      expect(
+        openedUris.single.queryParameters['code_challenge'],
+        _rfcCodeChallenge,
+      );
+      expect(credential?.codeVerifier, _rfcCodeVerifier);
     });
 
     test('사용자가 인증 브라우저를 닫으면 오류 없이 null', () async {

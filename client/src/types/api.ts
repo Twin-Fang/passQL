@@ -161,6 +161,10 @@ export interface MemberMeResponse {
   // null이면 닉네임을 한 번도 변경하지 않은 상태
   readonly nicknameChangedAt: string | null;
   readonly choiceGenerationMode: ChoiceGenerationMode;
+  // 가입 제공자 (탈퇴 시 제공자 연결 해제 분기 원본, #516)
+  readonly authProvider: ApiSchemas["MemberMeResponse"]["authProvider"];
+  // 제공자 사용자 ID (Google·Apple 은 Firebase uid, 탈퇴 재인증 계정 대조용)
+  readonly providerUserId: string;
 }
 
 export type NicknameRegenerateResponse = ApiSchemas["NicknameRegenerateResponse"];

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -106,6 +108,47 @@ void main() {
 
     expect(results.every((r) => r.statusCode == 200), isTrue);
     expect(reissueCalls(), 1);
+  });
+
+  test('재발급 응답 대기 중 들어온 401 은 새 재발급 없이 진행 중 결과를 기다린다 (#516)', () async {
+    // 서버가 회전된 refresh 재사용을 감지하면 회원 세션 전체를 폐기하므로 정확히 1회만 허용
+    final reissueGate = Completer<void>();
+    final gatedAdapter = _GatedReissueAdapter(
+      reissueGate.future,
+      (request) => serverHandler(request),
+    );
+    final plain = Dio(BaseOptions(baseUrl: 'https://test'))
+      ..httpClientAdapter = gatedAdapter;
+    final gatedDio = Dio(BaseOptions(baseUrl: 'https://test'))
+      ..httpClientAdapter = gatedAdapter;
+    gatedDio.interceptors.add(
+      AuthInterceptor(
+        tokenStore: store,
+        authApi: AuthApi(plain),
+        retryDio: gatedDio,
+        onSessionExpired: () => expiredCount++,
+      ),
+    );
+
+    final responses = Future.wait([
+      gatedDio.get<dynamic>('/progress'),
+      gatedDio.get<dynamic>('/progress/heatmap'),
+      gatedDio.get<dynamic>('/questions/today'),
+    ]);
+    // 세 요청 모두 401 > 재발급 1건이 서버에서 멈춘 상태까지 진행
+    await pumpEventQueue();
+    expect(gatedAdapter.apiRequests, hasLength(3));
+    expect(gatedAdapter.reissueRequests, hasLength(1));
+
+    reissueGate.complete();
+    final results = await responses;
+
+    expect(results.every((response) => response.statusCode == 200), isTrue);
+    expect(gatedAdapter.reissueRequests, hasLength(1));
+    expect(gatedAdapter.reissueRequests.single.data, {
+      'refreshToken': 'old-refresh',
+    });
+    expect(expiredCount, 0);
   });
 
   test('재발급이 실패하면 세션을 지우고 만료를 알린다', () async {
@@ -279,4 +322,33 @@ class _ThrowingStorage implements FlutterSecureStorage {
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw PlatformException(code: 'keystore', message: 'cannot decrypt');
+}
+
+/// 재발급 요청만 [gate] 가 풀릴 때까지 응답을 미루는 가짜 서버 (동시 401 재현)
+class _GatedReissueAdapter implements HttpClientAdapter {
+  _GatedReissueAdapter(this.gate, this.respond);
+
+  final Future<void> gate;
+  final ResponseBody Function(RequestOptions options) respond;
+  final List<RequestOptions> reissueRequests = [];
+  // 재발급 외 요청 (원요청·재시도)
+  final List<RequestOptions> apiRequests = [];
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<List<int>>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    if (options.path == '/auth/reissue') {
+      reissueRequests.add(options);
+      await gate;
+    } else {
+      apiRequests.add(options);
+    }
+    return respond(options);
+  }
+
+  @override
+  void close({bool force = false}) {}
 }

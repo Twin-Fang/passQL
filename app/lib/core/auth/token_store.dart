@@ -15,6 +15,8 @@ class TokenStore {
   static const _kRefresh = 'auth_refresh_token';
   static const _kMemberUuid = 'auth_member_uuid';
   static const _kNickname = 'auth_nickname';
+  // 로그인 제공자 서버 값 (GOOGLE, APPLE, KAKAO, NAVER, GITHUB)
+  static const _kAuthProvider = 'auth_provider';
 
   final FlutterSecureStorage _storage;
 
@@ -25,16 +27,17 @@ class TokenStore {
   Future<AuthSession?> read() async {
     if (_loaded) return _cache;
 
-    String? access, refresh, uuid, nickname;
+    String? access, refresh, uuid, nickname, authProvider;
     try {
-      // 키 4개 동시 읽기 (시작 시 세션 복원 대기 단축)
+      // 키 5개 동시 읽기 (시작 시 세션 복원 대기 단축)
       final storedValues = await Future.wait([
         _storage.read(key: _kAccess),
         _storage.read(key: _kRefresh),
         _storage.read(key: _kMemberUuid),
         _storage.read(key: _kNickname),
+        _storage.read(key: _kAuthProvider),
       ]);
-      [access, refresh, uuid, nickname] = storedValues;
+      [access, refresh, uuid, nickname, authProvider] = storedValues;
     } catch (_) {
       // 기기 이전이나 백업 복원으로 암호화 키가 사라지면 읽기가 예외를 던진다.
       // 앱이 켜지지 않는 것보다 로그인 화면으로 가는 것이 낫다. 읽을 수 없는 저장분은 지운다.
@@ -55,6 +58,7 @@ class TokenStore {
         refreshToken: refresh,
         memberUuid: uuid,
         nickname: nickname ?? '',
+        authProvider: SocialProvider.fromServerValue(authProvider),
       );
     }
     _loaded = true;
@@ -67,6 +71,11 @@ class TokenStore {
     await _storage.write(key: _kRefresh, value: session.refreshToken);
     await _storage.write(key: _kMemberUuid, value: session.memberUuid);
     await _storage.write(key: _kNickname, value: session.nickname);
+    // 제공자 없는 세션은 이전 계정 값이 남지 않게 삭제
+    await _storage.write(
+      key: _kAuthProvider,
+      value: session.authProvider?.serverValue,
+    );
     _cache = session;
     _loaded = true;
   }
@@ -96,6 +105,7 @@ class TokenStore {
     await _storage.delete(key: _kRefresh);
     await _storage.delete(key: _kMemberUuid);
     await _storage.delete(key: _kNickname);
+    await _storage.delete(key: _kAuthProvider);
     _cache = null;
     _loaded = true;
   }

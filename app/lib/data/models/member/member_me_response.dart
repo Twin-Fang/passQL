@@ -17,6 +17,10 @@ class MemberMeResponse with _$MemberMeResponse {
     @JsonKey(unknownEnumValue: ChoiceGenerationMode.practice)
     ChoiceGenerationMode? choiceGenerationMode,
     DateTime? nicknameChangedAt,
+    // 로그인 제공자 서버 값 (GOOGLE, APPLE, KAKAO, NAVER, GITHUB): 탈퇴 연결 해제 분기 기준
+    String? authProvider,
+    // 제공자 회원 식별자 (GOOGLE·APPLE 은 Firebase uid): 탈퇴 재인증 계정 대조 기준
+    String? providerUserId,
   }) = _MemberMeResponse;
 
   factory MemberMeResponse.fromJson(Map<String, dynamic> json) =>

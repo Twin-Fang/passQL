@@ -1,27 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'daily_set_providers.dart';
-import 'home_providers.dart';
-import 'notification_inbox_providers.dart';
-import 'settings_providers.dart';
-import 'stats_providers.dart';
-import 'wrong_questions_provider.dart';
+import 'auth_provider.dart';
 
-/// 로그아웃하거나 다른 계정으로 로그인했을 때, 이전 사용자의 데이터가 남아 보이지 않게 한다.
-///
-/// 홈, 통계, 설정, 순위처럼 회원별로 달라지는 캐시를 모두 비운다.
-/// 새 회원별 Provider 를 만들면 여기에 한 줄 추가한다.
-void resetUserScopedProviders(
-  void Function(ProviderOrFamily provider) invalidate,
-) {
-  invalidateHomeData(invalidate);
-  invalidate(statsDataProvider);
-  invalidate(statsAiCommentProvider);
-  invalidate(settingsDataProvider);
-  invalidate(nicknameNotifierProvider);
-  invalidate(choiceModeProvider);
-  invalidate(dailySetTodayProvider);
-  invalidate(leaderboardProvider);
-  invalidate(notificationInboxProvider);
-  invalidate(wrongQuestionTotalCountProvider);
-}
+/// 로그인 회원 UUID 단일 원본 (null: 로그아웃) (#516)
+/// 회원별 Provider 전부 이 값을 watch: 회원 변경 > 재생성, 로그아웃 > API 호출 없음
+/// 회원별 Provider 는 autoDispose (구독 없을 때 해제 > 다음 회원에게 이전 회원 값이 남지 않음)
+final currentMemberUuidProvider = Provider<String?>(
+  (ref) => ref.watch(
+    authProvider.select((session) => session.valueOrNull?.memberUuid),
+  ),
+);
+
+/// 로그아웃 상태의 회원별 값 (빈 값이 없는 응답용): API 호출 없이 로딩 유지, 로그인하면 재생성
+Future<T> waitForSignedInMember<T>() => Completer<T>().future;

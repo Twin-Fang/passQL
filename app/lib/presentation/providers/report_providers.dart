@@ -8,6 +8,7 @@ import '../../core/network/safe_call.dart';
 import '../../data/sources/api_providers.dart';
 import '../../core/validation/report_validator.dart';
 import '../../data/models/report/report_models.dart';
+import 'session_reset.dart';
 
 /// 신고 대상: 어떤 문제의 어떤 제출인지.
 typedef ReportTarget = ({String questionUuid, String submissionUuid});
@@ -18,6 +19,8 @@ typedef ReportTarget = ({String questionUuid, String submissionUuid});
 /// 인증 만료는 safeCall 이 다시 던진다.
 final reportStatusProvider = FutureProvider.autoDispose
     .family<bool, ReportTarget>((ref, target) async {
+      // 로그아웃이면 미신고 (API 호출 없음)
+      if (ref.watch(currentMemberUuidProvider) == null) return false;
       final reportStatus = await safeCall(
         ref
             .read(reportApiProvider)

@@ -9,6 +9,7 @@ import '../../data/models/daily_set/daily_set_models.dart';
 import '../../data/models/progress/heatmap_response.dart';
 import '../../data/models/progress/progress_response.dart';
 import '../../data/models/exam/exam_schedule_response.dart';
+import 'session_reset.dart';
 
 /// 홈 화면에 필요한 모든 API 응답을 담는 집계 모델.
 /// 각 필드는 nullable — API 실패 시 해당 섹션을 graceful하게 숨김 처리.
@@ -49,7 +50,11 @@ class HomeLearningStatus {
 }
 
 /// 인사말·추천·시험 일정 3개 병렬 호출. 날짜가 바뀌거나 직접 새로고침할 때만 다시 받는다
-final homeOverviewProvider = FutureProvider<HomeOverview>((ref) async {
+/// 로그아웃이면 빈 묶음 (API 호출 없음)
+final homeOverviewProvider = FutureProvider.autoDispose<HomeOverview>((
+  ref,
+) async {
+  if (ref.watch(currentMemberUuidProvider) == null) return const HomeOverview();
   final greeting = SafeCallSlot(ref.read(homeApiProvider).getGreeting());
   final recommendations = SafeCallSlot(
     ref
@@ -68,9 +73,12 @@ final homeOverviewProvider = FutureProvider<HomeOverview>((ref) async {
 });
 
 /// 진행 현황·오늘의 세트·히트맵 3개 병렬 호출. 풀이 후 갱신 대상(refreshLearningData)
-final homeLearningStatusProvider = FutureProvider<HomeLearningStatus>((
-  ref,
-) async {
+/// 로그아웃이면 빈 묶음 (API 호출 없음)
+final homeLearningStatusProvider =
+    FutureProvider.autoDispose<HomeLearningStatus>((ref) async {
+  if (ref.watch(currentMemberUuidProvider) == null) {
+    return const HomeLearningStatus();
+  }
   final progressClient = ref.read(progressApiProvider);
   final progress = SafeCallSlot(progressClient.getProgress());
   final dailySet = SafeCallSlot(ref.read(dailySetApiProvider).getToday());
@@ -89,7 +97,7 @@ final homeLearningStatusProvider = FutureProvider<HomeLearningStatus>((
 /// 한 묶음만 다시 받아도 다른 묶음은 캐시를 그대로 쓴다.
 /// 한쪽 실패는 그 섹션만 숨기고, 양쪽 다 실패(서버 장애·네트워크 끊김)하면 오류 화면 (#375).
 /// 인증 만료는 삼키지 않고 다시 던짐 (로그인 화면 전환)
-final homeDataProvider = FutureProvider<HomeData>((ref) async {
+final homeDataProvider = FutureProvider.autoDispose<HomeData>((ref) async {
   // 두 묶음 동시 대기 (각 오류는 결과로 받아 미처리 예외 방지)
   final overviewOutcome = _settle(ref.watch(homeOverviewProvider.future));
   final learningOutcome = _settle(

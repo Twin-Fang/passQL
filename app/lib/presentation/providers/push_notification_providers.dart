@@ -7,7 +7,7 @@ import '../../core/push/push_permission_prompt_store.dart';
 import '../../data/push/push_notification_service.dart';
 import '../../router/push_link_routes.dart';
 import '../widgets/common/app_toast.dart';
-import 'auth_provider.dart';
+import 'session_reset.dart';
 import 'unread_notification_providers.dart';
 
 /// 이 기기 알림 수신 동의 (설정 토글). null: 로그아웃·권한 없음·등록 전
@@ -15,9 +15,7 @@ import 'unread_notification_providers.dart';
 class PushEnabledNotifier extends AsyncNotifier<bool?> {
   @override
   Future<bool?> build() async {
-    final memberUuid = ref.watch(
-      authProvider.select((session) => session.valueOrNull?.memberUuid),
-    );
+    final memberUuid = ref.watch(currentMemberUuidProvider);
     if (memberUuid == null) return null;
     return ref
         .read(pushNotificationServiceProvider)

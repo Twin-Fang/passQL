@@ -2,6 +2,7 @@ import { getAccessToken, getRefreshToken, useAuthStore } from "../stores/authSto
 import { reissue } from "./auth";
 import { PRODUCTION_API_BASE_URL } from "../constants/siteUrls";
 import { useMaintenanceStore } from "../stores/maintenanceStore";
+import { clearMemberSession } from "../lib/memberSession";
 
 // DEV 환경에서는 Vite 프록시(/api)를 사용하고, prod 환경에서는 실제 API 서버를 기본값으로 사용
 export const BASE_URL = import.meta.env.VITE_API_BASE_URL
@@ -114,9 +115,35 @@ async function fetchOnce<T>(
 
 // 토큰을 정리하고 로그인 화면으로 보낸다. 이미 로그인 화면이면 새로고침 루프를 막기 위해 이동하지 않는다
 function forceLogout() {
-  useAuthStore.getState().clearTokens();
+  // 로그인 화면에 머무는 경우(새로고침 없음)에도 이전 회원 캐시가 남지 않게 함께 정리
+  clearMemberSession();
   if (window.location.pathname !== "/login") {
     window.location.href = "/login";
+  }
+}
+
+// 진행 중 재발급 1건 (동시 401 이 같은 결과를 기다림, 서버는 회전된 refresh 재사용 시 세션 전체 폐기)
+let accessTokenReissueInFlight: Promise<string> | null = null;
+
+/** 재발급 단일 비행: 진행 중이면 그 결과 공유, 없으면 새로 1회 > 새 access token */
+function reissueAccessTokenOnce(refreshToken: string): Promise<string> {
+  accessTokenReissueInFlight ??= reissueAccessToken(refreshToken).finally(() => {
+    accessTokenReissueInFlight = null;
+  });
+  return accessTokenReissueInFlight;
+}
+
+/** refresh token > 재발급 > 토큰 2개 저장 (rotating refresh token) */
+async function reissueAccessToken(refreshToken: string): Promise<string> {
+  useAuthStore.setState({ isRefreshing: true });
+  try {
+    const result = await reissue({ refreshToken });
+    useAuthStore.getState().setAccessToken(result.accessToken);
+    useAuthStore.setState({ refreshToken: result.refreshToken });
+    localStorage.setItem("passql_refresh_token", result.refreshToken);
+    return result.accessToken;
+  } finally {
+    useAuthStore.setState({ isRefreshing: false });
   }
 }
 
@@ -125,21 +152,20 @@ export async function apiFetch<T>(
   options: RequestInit = {},
 ): Promise<T> {
   const isAuthPath = AUTH_PATHS.some((p) => path.startsWith(p));
+  const requestAccessToken = getAccessToken();
 
   try {
-    return await fetchOnce<T>(path, options, getAccessToken());
+    return await fetchOnce<T>(path, options, requestAccessToken);
   } catch (err) {
     // 인증 경로는 재시도 없음, 401이 아니면 그대로 throw
     if (isAuthPath || !(err instanceof ApiError) || err.status !== 401) {
       throw err;
     }
 
-    // 401: refreshToken으로 재발급 시도
-    const store = useAuthStore.getState();
-    if (store.isRefreshing) {
-      // 이미 갱신 중이면 잠시 후 현재 토큰으로 재시도
-      await new Promise((r) => setTimeout(r, 500));
-      return fetchOnce<T>(path, options, getAccessToken());
+    // 응답 대기 중 다른 요청이 이미 재발급 완료 > 새 토큰으로 재시도만 (재발급 중복 방지)
+    const currentAccessToken = getAccessToken();
+    if (currentAccessToken && currentAccessToken !== requestAccessToken && !accessTokenReissueInFlight) {
+      return fetchOnce<T>(path, options, currentAccessToken);
     }
 
     const refreshToken = getRefreshToken();
@@ -149,22 +175,14 @@ export async function apiFetch<T>(
       throw err;
     }
 
-    useAuthStore.setState({ isRefreshing: true });
+    let reissuedAccessToken: string;
     try {
-      const result = await reissue({ refreshToken });
-      store.setAccessToken(result.accessToken);
-      // refreshToken도 갱신 (rotating refresh token)
-      useAuthStore.setState({
-        isRefreshing: false,
-        refreshToken: result.refreshToken,
-      });
-      localStorage.setItem("passql_refresh_token", result.refreshToken);
-      return fetchOnce<T>(path, options, result.accessToken);
+      reissuedAccessToken = await reissueAccessTokenOnce(refreshToken);
     } catch {
       // refresh도 실패하면 로그아웃 처리
-      useAuthStore.setState({ isRefreshing: false });
       forceLogout();
       throw err;
     }
+    return fetchOnce<T>(path, options, reissuedAccessToken);
   }
 }

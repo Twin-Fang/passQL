@@ -37,7 +37,7 @@ lib/
 │   ├── flows/              # 문제 풀이 흐름 공통화 (question_flow, daily_set_flow)
 │   ├── pages/              # login, home, questions(챕터·챕터 결과), result, stats, settings,
 │   │                       # daily_set(결과·리더보드), feedback, legal
-│   ├── providers/          # Riverpod Provider·Notifier·Service (계정 전환 시 session_reset으로 초기화)
+│   ├── providers/          # Riverpod Provider·Notifier·Service (회원별 Provider 는 session_reset 의 currentMemberUuidProvider watch + autoDispose)
 │   └── widgets/            # 화면 조각 (설정 그룹, 문제 풀이 본문 등)
 └── router/                 # app_router, app_routes(모든 경로 상수)
 test/
@@ -78,12 +78,16 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 
 - 로그인: `POST /auth/login {authProvider, idToken}` → access/refresh JWT. 이후 요청은 `Authorization: Bearer`.
   - 제공자별 재료(`SocialCredential`, #509): Google·Apple Firebase ID 토큰, 카카오·네이버 SDK 액세스 토큰(`idToken` 자리) > `/auth/login`.
-    GitHub 인가 코드(콜백 `passql://auth/callback/github`, state 대조) > `POST /auth/login/code`. 제공자 연결은 `MultiProviderSocialSignIn`.
+    GitHub 인가 코드(콜백 `passql://auth/callback/github`, state 대조, PKCE S256) > `POST /auth/login/code`(codeVerifier 포함). 제공자 연결은 `MultiProviderSocialSignIn`.
   - `.env` 키: `KAKAO_NATIVE_APP_KEY`, `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`, `NAVER_CLIENT_NAME`. 네이티브 SDK 설정은 빌드 타임 값:
     Android 는 `build.gradle.kts`(manifestPlaceholders·resValue), iOS 는 `pod install` 때 `tool/gen_ios_social_login_config.sh` 가 `ios/Flutter/SocialLogin.xcconfig`(커밋 제외)로 만든다. 비면 해당 버튼은 준비 중 안내.
 - 401이면 인터셉터가 refresh로 재발급, 실패하면 세션 만료 신호(`SessionExpirySignal`) > `AuthNotifier` 로그아웃 > 라우터가 로그인 화면으로 보냄.
 - 403 `MEMBER_SUSPENDED`면 이용 제한 신호(`MemberSuspensionSignal`) > `AuthNotifier` 로그아웃 > 로그인 화면에 안내 문구.
-- 회원 탈퇴는 서버 삭제 + 소셜 접근 권한 회수(Apple 토큰 revoke) 후 세션 삭제.
+- 회원 탈퇴 (#516): 제공자(세션 저장값 > `/members/me` authProvider) 기준 분기. Apple·Google 은 재인증 Firebase uid <-> `/members/me` providerUserId 대조
+  (다르면 중단), Apple revoke 필수(취소·실패면 중단) > 서버 삭제 > Google disconnect·네이버 토큰 삭제(최선, 카카오는 서버 unlink·앱은 로그아웃만) > 세션 삭제.
+  회원별 로컬 저장값은 보안 저장소 세션뿐.
+- 소셜 토큰 검증 실패(INVALID_SOCIAL_TOKEN·INVALID_SOCIAL_AUTHORIZATION_CODE·INVALID/EXPIRED_FIREBASE_TOKEN)는 `socialLoginFailed` > 로그인 실패 문구.
+- 계정 범위 데이터 (#516): 회원별 Provider 는 `currentMemberUuidProvider` 를 watch(로그아웃이면 API 호출 없음) + autoDispose(이전 회원 값 미보존).
 
 ## 광고 (AdMob, #506)
 

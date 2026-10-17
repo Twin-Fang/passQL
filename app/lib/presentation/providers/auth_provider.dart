@@ -8,6 +8,7 @@ import '../../core/auth/social_credential.dart';
 import '../../core/auth/social_sign_in.dart';
 import '../../core/auth/token_store.dart';
 import '../../core/error/app_exception.dart';
+import '../../core/error/error_code.dart';
 import '../../core/monitoring/app_analytics.dart';
 import '../../core/network/api_call.dart';
 import '../../data/push/push_notification_service.dart';
@@ -49,13 +50,20 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
       final result = await callApiThrowingAppException(
         _requestServerLogin(credential),
       );
-      await ref.read(tokenStoreProvider).save(result.session);
-      state = AsyncData(result.session);
+      // 탈퇴 시 연결 해제 분기용 제공자 기록 (이전 계정 세션은 통째로 교체)
+      final session = result.session.withAuthProvider(credential.provider);
+      await ref.read(tokenStoreProvider).save(session);
+      state = AsyncData(session);
       ref.read(appAnalyticsProvider).logLoginCompleted(provider.name);
       return true;
     } on AppException catch (exception) {
       // 네트워크/서버 오류를 사용자용 문구로 통일해 화면에 전달한다.
-      throw SocialSignInException(exception.message);
+      // 소셜 토큰 검증 실패(401)는 세션 만료 문구가 아닌 로그인 실패 문구
+      throw SocialSignInException(
+        exception.code == ErrorCode.socialLoginFailed
+            ? AppException.defaultMessageFor(ErrorCode.socialLoginFailed)
+            : exception.message,
+      );
     }
   }
 
@@ -72,6 +80,7 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
         code: credential.code,
         redirectUri: credential.redirectUri,
         state: credential.state,
+        codeVerifier: credential.codeVerifier,
       ),
     };
   }
@@ -107,18 +116,48 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
   /// 서버 요청이 실패하면(네트워크 등) 세션을 그대로 두고 [AppException] 을 던져
   /// 사용자가 다시 시도할 수 있게 한다. 지워지지 않은 계정을 로그아웃만 시키면 안 된다.
   Future<void> withdraw() async {
-    // Apple 사용자는 토큰 회수를 위해 재인증이 필요하다. 취소하면 탈퇴를 진행하지 않는다.
-    final granted = await ref
-        .read(socialSignInProvider)
-        .revokeAccessForWithdrawal();
+    final socialSignIn = ref.read(socialSignInProvider);
+    final signedUpAccount = await _resolveSignedUpAccount();
+    // Apple 은 재인증·revoke, Google 은 계정 대조. 취소하면 탈퇴를 진행하지 않는다.
+    final granted = await socialSignIn.revokeAccessForWithdrawal(
+      signedUpAccount.authProvider,
+      providerUserId: signedUpAccount.providerUserId,
+    );
     if (!granted) return;
     // 탈퇴 후엔 인증이 끊겨 삭제 요청을 못 보내므로 먼저 (서버도 탈퇴 시 전부 삭제)
     await ref.read(pushNotificationServiceProvider).unregisterDevice();
     await callApiThrowingAppException(ref.read(memberApiProvider).withdraw());
+    // 제공자 연결 해제 (최선): 같은 계정 재로그인 시 동의부터 다시 > 신규 회원
+    await socialSignIn.disconnectAfterWithdrawal(signedUpAccount.authProvider);
+    // 회원별 로컬 저장값은 보안 저장소 세션뿐 (나머지 기기 저장값은 회원 무관)
     await ref.read(tokenStoreProvider).clear();
-    await ref.read(socialSignInProvider).signOut();
+    await socialSignIn.signOut();
     state = const AsyncData(null);
   }
+
+  /// 탈퇴 분기·계정 대조 기준: 제공자(세션 저장값 > /members/me), 제공자 회원 식별자(/members/me)
+  /// 카카오·네이버·GitHub 세션은 대조가 없어 조회 생략. 조회 실패 > [AppException] (탈퇴 중단)
+  Future<({SocialProvider? authProvider, String? providerUserId})>
+  _resolveSignedUpAccount() async {
+    final savedAuthProvider =
+        (await ref.read(tokenStoreProvider).read())?.authProvider;
+    if (savedAuthProvider != null &&
+        !_isAccountCheckedOnWithdrawal(savedAuthProvider)) {
+      return (authProvider: savedAuthProvider, providerUserId: null);
+    }
+    final me = await callApiThrowingAppException(
+      ref.read(memberApiProvider).getMe(),
+    );
+    return (
+      authProvider:
+          savedAuthProvider ?? SocialProvider.fromServerValue(me.authProvider),
+      providerUserId: me.providerUserId,
+    );
+  }
+
+  /// 탈퇴 재인증 계정 대조 대상 (Firebase 로그인 제공자 2개: Apple, Google)
+  static bool _isAccountCheckedOnWithdrawal(SocialProvider provider) =>
+      provider == SocialProvider.apple || provider == SocialProvider.google;
 
   /// 재발급 실패 등으로 세션이 이미 지워진 뒤 상태만 로그아웃으로 맞춘다.
   void expire() => state = const AsyncData(null);

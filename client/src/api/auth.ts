@@ -39,6 +39,8 @@ export interface AuthorizationCodeLoginRequest {
   readonly code: string;
   readonly redirectUri: string;
   readonly state: string | null;
+  // PKCE code_verifier (GitHub 만, 없으면 JSON 에서 빠짐)
+  readonly codeVerifier?: string;
 }
 
 /** 제공자 공개 설정: 사용 여부 + 공개 client ID (secret 없음) */

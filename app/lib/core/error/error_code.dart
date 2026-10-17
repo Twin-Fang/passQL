@@ -16,6 +16,8 @@ enum ErrorCode {
   memberSuspended,
   // 서버에 설정이 없는 소셜 로그인 제공자 (503)
   socialLoginUnavailable,
+  // 소셜 토큰·인가 코드 검증 실패 (401, 세션 만료와 구분: 로그인 화면 실패 문구)
+  socialLoginFailed,
 
   // 요청/리소스
   validation,
@@ -60,6 +62,11 @@ abstract final class ErrorCodeMapper {
     'MEMBER_SUSPENDED': ErrorCode.memberSuspended,
     'ACCESS_DENIED': ErrorCode.forbidden,
     'SOCIAL_LOGIN_UNAVAILABLE': ErrorCode.socialLoginUnavailable,
+    // 소셜 로그인 검증 실패 4종: 제공자 토큰, 인가 코드, Firebase 토큰 무효·만료
+    'INVALID_SOCIAL_TOKEN': ErrorCode.socialLoginFailed,
+    'INVALID_SOCIAL_AUTHORIZATION_CODE': ErrorCode.socialLoginFailed,
+    'INVALID_FIREBASE_TOKEN': ErrorCode.socialLoginFailed,
+    'EXPIRED_FIREBASE_TOKEN': ErrorCode.socialLoginFailed,
     // 입력 오류: ErrorCode enum 2종 + GlobalExceptionHandler 문자열 코드 5종
     'INVALID_REQUEST': ErrorCode.validation,
     'INVALID_INPUT_VALUE': ErrorCode.validation,

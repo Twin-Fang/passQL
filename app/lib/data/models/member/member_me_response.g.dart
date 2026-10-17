@@ -19,6 +19,8 @@ _$MemberMeResponseImpl _$$MemberMeResponseImplFromJson(
   nicknameChangedAt: json['nicknameChangedAt'] == null
       ? null
       : DateTime.parse(json['nicknameChangedAt'] as String),
+  authProvider: json['authProvider'] as String?,
+  providerUserId: json['providerUserId'] as String?,
 );
 
 Map<String, dynamic> _$$MemberMeResponseImplToJson(
@@ -29,6 +31,8 @@ Map<String, dynamic> _$$MemberMeResponseImplToJson(
   'choiceGenerationMode':
       _$ChoiceGenerationModeEnumMap[instance.choiceGenerationMode],
   'nicknameChangedAt': instance.nicknameChangedAt?.toIso8601String(),
+  'authProvider': instance.authProvider,
+  'providerUserId': instance.providerUserId,
 };
 
 const _$ChoiceGenerationModeEnumMap = {

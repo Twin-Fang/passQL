@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/core/auth/auth_session.dart';
+import 'package:passql_app/core/auth/firebase_social_sign_in.dart';
 import 'package:passql_app/core/auth/member_suspension_signal.dart';
 import 'package:passql_app/core/auth/session_expiry_signal.dart';
 import 'package:passql_app/core/auth/social_credential.dart';
@@ -12,10 +13,6 @@ import 'package:passql_app/core/network/dio_client.dart';
 import 'package:passql_app/data/sources/api_providers.dart';
 import 'package:passql_app/data/sources/auth_api.dart';
 import 'package:passql_app/presentation/providers/auth_provider.dart';
-import 'package:passql_app/presentation/providers/daily_set_providers.dart';
-import 'package:passql_app/presentation/providers/home_providers.dart';
-import 'package:passql_app/presentation/providers/session_reset.dart';
-import 'package:passql_app/presentation/providers/stats_providers.dart';
 
 import '../helpers/fakes/fake_member_api.dart';
 import '../helpers/fakes/fake_push.dart';
@@ -47,12 +44,28 @@ class _FakeSocial implements SocialSignIn {
 
   bool revokeGranted = true;
   int revokes = 0;
+  // 탈퇴 회수·연결 해제 요청 제공자 기록 (순서대로)
+  final revokedProviders = <SocialProvider?>[];
+  final revokedProviderUserIds = <String?>[];
+  final disconnectedProviders = <SocialProvider?>[];
+  // 있으면 탈퇴 확인에서 던짐 (재인증 계정 불일치 등)
+  SocialSignInException? revokeError;
 
   @override
-  Future<bool> revokeAccessForWithdrawal() async {
+  Future<bool> revokeAccessForWithdrawal(
+    SocialProvider? provider, {
+    String? providerUserId,
+  }) async {
     revokes++;
+    revokedProviders.add(provider);
+    revokedProviderUserIds.add(providerUserId);
+    if (revokeError != null) throw revokeError!;
     return revokeGranted;
   }
+
+  @override
+  Future<void> disconnectAfterWithdrawal(SocialProvider? provider) async =>
+      disconnectedProviders.add(provider);
 
   @override
   Future<void> signOut() async => signOuts++;
@@ -85,7 +98,7 @@ class _FakeAuthApi extends AuthApi {
     );
   }
 
-  // 인가 코드 로그인 요청 기록 (provider, code, redirectUri, state)
+  // 인가 코드 로그인 요청 기록 (provider, code, redirectUri, state, codeVerifier)
   final authorizationCodeLogins = <List<String>>[];
 
   @override
@@ -94,12 +107,14 @@ class _FakeAuthApi extends AuthApi {
     required String code,
     required String redirectUri,
     required String state,
+    required String codeVerifier,
   }) async {
     authorizationCodeLogins.add([
       provider.serverValue,
       code,
       redirectUri,
       state,
+      codeVerifier,
     ]);
     if (loginError != null) throw loginError!;
     return const LoginResult(
@@ -184,6 +199,7 @@ void main() {
           code: 'github-code',
           redirectUri: 'passql://auth/callback/github',
           state: 'state-1',
+          codeVerifier: 'verifier-1',
         ),
       );
       final container = _container(social, api, store);
@@ -196,9 +212,16 @@ void main() {
       expect(ok, isTrue);
       expect(api.lastIdToken, isNull);
       expect(api.authorizationCodeLogins, [
-        ['GITHUB', 'github-code', 'passql://auth/callback/github', 'state-1'],
+        [
+          'GITHUB',
+          'github-code',
+          'passql://auth/callback/github',
+          'state-1',
+          'verifier-1',
+        ],
       ]);
       expect((await store.read())?.memberUuid, 'member-github');
+      expect((await store.read())?.authProvider, SocialProvider.github);
     });
 
     test('서버에 설정 없는 제공자(503 SOCIAL_LOGIN_UNAVAILABLE)는 준비 중 안내를 던진다', () async {
@@ -222,6 +245,7 @@ void main() {
           code: 'github-code',
           redirectUri: 'passql://auth/callback/github',
           state: 'state-1',
+          codeVerifier: 'verifier-1',
         ),
       );
       final container = _container(social, api, store);
@@ -274,6 +298,43 @@ void main() {
       );
       expect(await store.read(), isNull);
     });
+
+    test(
+      '소셜 토큰 검증 실패(401 INVALID_SOCIAL_TOKEN 등)는 세션 만료가 아닌 로그인 실패 문구 (#516)',
+      () async {
+        for (final serverCode in [
+          'INVALID_SOCIAL_TOKEN',
+          'INVALID_FIREBASE_TOKEN',
+          'EXPIRED_FIREBASE_TOKEN',
+        ]) {
+          final api = _FakeAuthApi(
+            loginError: DioException(
+              requestOptions: RequestOptions(path: '/auth/login'),
+              type: DioExceptionType.badResponse,
+              response: Response(
+                requestOptions: RequestOptions(path: '/auth/login'),
+                statusCode: 401,
+                data: {'errorCode': serverCode, 'message': '유효하지 않은 토큰입니다.'},
+              ),
+            ),
+          );
+          final container = _container(_FakeSocial(), api, store);
+          await container.read(authProvider.future);
+
+          await expectLater(
+            container.read(authProvider.notifier).signIn(SocialProvider.kakao),
+            throwsA(
+              isA<SocialSignInException>().having(
+                (exception) => exception.message,
+                'message',
+                '로그인에 실패했어요. 다시 시도해 주세요.',
+              ),
+            ),
+          );
+          expect(await store.read(), isNull);
+        }
+      },
+    );
 
     test('서버 로그인이 네트워크로 실패하면 사용자용 문구를 던지고 세션을 남기지 않는다', () async {
       final api = _FakeAuthApi(
@@ -359,8 +420,9 @@ void main() {
   group('회원 탈퇴', () {
     Future<ProviderContainer> signedIn(
       _FakeSocial social,
-      FakeMemberApi member,
-    ) async {
+      FakeMemberApi member, {
+      SocialProvider provider = SocialProvider.google,
+    }) async {
       final container = ProviderContainer(
         overrides: [
           socialSignInProvider.overrideWithValue(social),
@@ -372,7 +434,7 @@ void main() {
       );
       addTearDown(container.dispose);
       await container.read(authProvider.future);
-      await container.read(authProvider.notifier).signIn(SocialProvider.google);
+      await container.read(authProvider.notifier).signIn(provider);
       return container;
     }
 
@@ -410,6 +472,121 @@ void main() {
       expect(social.revokes, 1);
     });
 
+    test('카카오·네이버·GitHub 세션은 /members/me 조회 없이 저장된 제공자로 분기한다 (#516)', () async {
+      for (final provider in [
+        SocialProvider.kakao,
+        SocialProvider.naver,
+        SocialProvider.github,
+      ]) {
+        final social = _FakeSocial();
+        final member = FakeMemberApi();
+        final container = await signedIn(social, member, provider: provider);
+
+        await container.read(authProvider.notifier).withdraw();
+
+        expect(social.revokedProviders, [provider]);
+        expect(social.disconnectedProviders, [provider]);
+        expect(member.getMeCalls, 0);
+      }
+    });
+
+    test(
+      'Apple·Google 세션은 /members/me 의 providerUserId 로 재인증 계정을 대조한다 (#516)',
+      () async {
+        for (final provider in [SocialProvider.apple, SocialProvider.google]) {
+          final social = _FakeSocial();
+          final member = FakeMemberApi(meProviderUserId: 'firebase-uid-1');
+          final container = await signedIn(social, member, provider: provider);
+
+          await container.read(authProvider.notifier).withdraw();
+
+          expect(member.getMeCalls, 1);
+          expect(social.revokedProviders, [provider]);
+          expect(social.revokedProviderUserIds, ['firebase-uid-1']);
+          expect(member.withdrawCalls, 1);
+        }
+      },
+    );
+
+    test('재인증 계정이 가입 계정과 다르면 서버 탈퇴·연결 해제 없이 안내를 던진다 (#516)', () async {
+      final social = _FakeSocial()
+        ..revokeError = const SocialSignInException(
+          FirebaseSocialSignIn.accountMismatchMessage,
+        );
+      final member = FakeMemberApi(meProviderUserId: 'firebase-uid-1');
+      final container = await signedIn(
+        social,
+        member,
+        provider: SocialProvider.apple,
+      );
+
+      await expectLater(
+        container.read(authProvider.notifier).withdraw(),
+        throwsA(
+          isA<SocialSignInException>().having(
+            (exception) => exception.message,
+            'message',
+            '가입한 계정으로 다시 인증해 주세요.',
+          ),
+        ),
+      );
+      expect(member.withdrawCalls, 0);
+      expect(social.disconnectedProviders, isEmpty);
+      expect(container.read(authProvider).value, isNotNull);
+    });
+
+    test('제공자 없는 이전 세션은 /members/me 의 authProvider 로 분기한다 (#516)', () async {
+      await store.save(
+        const AuthSession(
+          accessToken: 'access-old',
+          refreshToken: 'refresh-old',
+          memberUuid: 'member-old',
+          nickname: '이전회원',
+        ),
+      );
+      final social = _FakeSocial();
+      final member = FakeMemberApi(meAuthProvider: 'NAVER');
+      final container = ProviderContainer(
+        overrides: [
+          socialSignInProvider.overrideWithValue(social),
+          authApiProvider.overrideWithValue(_FakeAuthApi()),
+          pushTokenApiProvider.overrideWithValue(FakePushTokenApi()),
+          memberApiProvider.overrideWithValue(member),
+          tokenStoreProvider.overrideWithValue(store),
+        ],
+      );
+      addTearDown(container.dispose);
+      await container.read(authProvider.future);
+
+      await container.read(authProvider.notifier).withdraw();
+
+      expect(member.getMeCalls, 1);
+      expect(social.revokedProviders, [SocialProvider.naver]);
+      expect(social.disconnectedProviders, [SocialProvider.naver]);
+      expect(member.withdrawCalls, 1);
+    });
+
+    test('서버 탈퇴가 실패하면 제공자 연결을 끊지 않는다', () async {
+      final social = _FakeSocial();
+      final member = FakeMemberApi(
+        withdrawError: DioException(
+          requestOptions: RequestOptions(path: '/members/me'),
+          type: DioExceptionType.connectionError,
+        ),
+      );
+      final container = await signedIn(
+        social,
+        member,
+        provider: SocialProvider.kakao,
+      );
+
+      await expectLater(
+        container.read(authProvider.notifier).withdraw(),
+        throwsA(isA<Exception>()),
+      );
+      expect(social.disconnectedProviders, isEmpty);
+    });
+
     test(
       '서버 요청이 실패하면 세션을 그대로 두고 사유를 알린다 (지워지지 않은 계정을 로그아웃만 시키지 않는다)',
       () async {
@@ -435,38 +612,5 @@ void main() {
         expect(container.read(authProvider).value, isNotNull);
       },
     );
-  });
-
-  group('계정 전환 시 캐시 초기화', () {
-    test('회원별 데이터(홈, 통계, 설정, 순위 등)를 모두 다음 조회 때 다시 불러온다', () async {
-      var loads = <String, int>{};
-      int bump(String k) => loads[k] = (loads[k] ?? 0) + 1;
-      final container = ProviderContainer(
-        overrides: [
-          homeDataProvider.overrideWith((ref) async {
-            bump('home');
-            return const HomeData();
-          }),
-          statsDataProvider.overrideWith((ref) async {
-            bump('stats');
-            return const StatsData();
-          }),
-          dailySetTodayProvider.overrideWith((ref) async {
-            bump('daily');
-            throw StateError('x');
-          }),
-        ],
-      );
-      addTearDown(container.dispose);
-      await container.read(homeDataProvider.future);
-      await container.read(statsDataProvider.future);
-
-      resetUserScopedProviders(container.invalidate);
-      await container.read(homeDataProvider.future);
-      await container.read(statsDataProvider.future);
-
-      expect(loads['home'], 2);
-      expect(loads['stats'], 2);
-    });
   });
 }
