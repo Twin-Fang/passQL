@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { loginWithAuthorizationCode } from "../api/auth";
 import { useAuthStore } from "../stores/authStore";
-import { callbackUrlOf, isExpectedState, providerFromCallbackPath } from "../lib/socialLoginRedirect";
+import { callbackUrlOf, isExpectedState, providerFromCallbackPath, takeSavedCodeVerifier } from "../lib/socialLoginRedirect";
 import PageLoadingFallback from "../components/PageLoadingFallback";
 
 /**
@@ -25,12 +25,14 @@ export default function AuthCallback() {
     const provider = providerFromCallbackPath(pathProvider);
     const code = searchParams.get("code");
     const state = searchParams.get("state");
+    // 실패 경로에서도 남지 않도록 검사 전에 꺼냄 (1회용)
+    const codeVerifier = takeSavedCodeVerifier() ?? undefined;
     // 사용자가 동의 화면에서 취소했거나 state 가 다르면 교환하지 않는다
     if (!provider || !code || !isExpectedState(state)) {
       setErrorMessage("로그인을 완료하지 못했어요. 다시 시도해 주세요.");
       return;
     }
-    loginWithAuthorizationCode({ authProvider: provider, code, redirectUri: callbackUrlOf(provider), state })
+    loginWithAuthorizationCode({ authProvider: provider, code, redirectUri: callbackUrlOf(provider), state, codeVerifier })
       .then((response) => {
         setTokens({
           accessToken: response.accessToken,

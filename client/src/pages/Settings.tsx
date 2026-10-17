@@ -2,14 +2,13 @@ import { useState, useRef, useEffect } from "react";
 // Settings는 마이페이지 톱니바퀴로 진입하는 서브페이지 — 닉네임/계정 정보는 MyPage에서 관리, 여기선 문제풀이 모드·이용안내·앱정보·계정(로그아웃/탈퇴)을 다룸
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, LogOut, ExternalLink } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { signOut } from "firebase/auth";
-import { firebaseAuth } from "../lib/firebase";
 import { withdraw } from "../api/members";
 import ConfirmModal from "../components/ConfirmModal";
 import { useAppLinks } from "../hooks/useAppLinks";
-import { useAuthStore, getRefreshToken } from "../stores/authStore";
+import { getRefreshToken } from "../stores/authStore";
 import { logout } from "../api/auth";
+import { clearMemberSession } from "../lib/memberSession";
+import { revokeSocialAccessBeforeWithdraw, type SocialRevokeResult } from "../lib/socialAccountRevoke";
 import logo from "../assets/logo/logo.png";
 import { useStagger } from "../hooks/useStagger";
 import SettingsSection from "../components/SettingsSection";
@@ -18,11 +17,16 @@ import SubpageLayout from "../components/SubpageLayout";
 import { useMember, useUpdateChoiceGenerationMode } from "../hooks/useMember";
 import type { ChoiceGenerationMode } from "../types/api";
 
+// 탈퇴 중단 사유 > 안내 문구 (Apple 연결 해제 실패·취소, Apple·Google 계정 불일치)
+const WITHDRAW_STOPPED_MESSAGE: Readonly<Record<Exclude<SocialRevokeResult, "READY_TO_WITHDRAW">, string>> = {
+  CANCELLED_BY_USER: "Apple 계정 확인을 취소해 탈퇴를 멈췄어요. 탈퇴하려면 다시 시도해 주세요.",
+  REVOKE_FAILED: "Apple 연결 해제에 실패해 탈퇴를 멈췄어요. 잠시 후 다시 시도해 주세요.",
+  ACCOUNT_MISMATCH: "가입한 계정으로 다시 인증해 주세요.",
+};
+
 export default function Settings() {
   const navigate = useNavigate();
-  const clearTokens = useAuthStore((s) => s.clearTokens);
   const [logoutLoading, setLogoutLoading] = useState(false);
-  const queryClient = useQueryClient();
   // 회원 탈퇴 — 앱과 같은 흐름: 확인 → 서버 삭제 성공 시에만 세션 정리 (#433)
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [withdrawLoading, setWithdrawLoading] = useState(false);
@@ -56,15 +60,30 @@ export default function Settings() {
         await logout(refreshToken).catch(() => {});
       }
     } finally {
-      clearTokens();
+      // 다음 계정에 이전 회원 캐시·풀이 상태가 비치지 않도록 전부 정리
+      clearMemberSession();
       navigate("/login", { replace: true });
     }
   };
 
   const handleWithdraw = async () => {
+    // 제공자를 모르면 Apple 연결 해제를 건너뛸 수 있어 탈퇴하지 않는다
+    const authProvider = memberData?.authProvider;
+    const providerUserId = memberData?.providerUserId;
     setWithdrawOpen(false);
-    setWithdrawLoading(true);
     setWithdrawError(null);
+    if (!authProvider || !providerUserId) {
+      setWithdrawError("회원 정보를 불러오는 중이에요. 잠시 후 다시 시도해 주세요.");
+      return;
+    }
+    setWithdrawLoading(true);
+    // 팝업 차단 방지: 확인 클릭 직후 다른 요청 없이 재인증 팝업
+    const revokeResult = await revokeSocialAccessBeforeWithdraw(authProvider, providerUserId);
+    if (revokeResult !== "READY_TO_WITHDRAW") {
+      setWithdrawError(WITHDRAW_STOPPED_MESSAGE[revokeResult]);
+      setWithdrawLoading(false);
+      return;
+    }
     try {
       await withdraw();
     } catch {
@@ -73,11 +92,8 @@ export default function Settings() {
       setWithdrawLoading(false);
       return;
     }
-    // 이전 계정의 캐시가 다음 로그인 화면에 비치지 않도록 모두 비운다
-    queryClient.clear();
-    clearTokens();
-    // Google 세션도 끊어야 다음 로그인에서 계정을 다시 고를 수 있다
-    await signOut(firebaseAuth).catch(() => {});
+    // 같은 계정 재가입이 완전 신규처럼 보이도록 회원 캐시·저장값·Firebase 세션 정리
+    clearMemberSession();
     navigate("/login", { replace: true });
   };
 

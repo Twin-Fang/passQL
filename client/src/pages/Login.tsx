@@ -77,7 +77,7 @@ export default function Login() {
         return;
       }
       // 페이지를 떠나므로 로딩 표시는 그대로 둔다
-      window.location.assign(buildAuthorizeUrl(provider, config.clientId));
+      window.location.assign(await buildAuthorizeUrl(provider, config.clientId));
     } catch {
       setError("로그인에 실패했습니다. 다시 시도해주세요.");
       setLoadingProvider(null);
