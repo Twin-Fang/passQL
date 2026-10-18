@@ -2,6 +2,11 @@ import { useState, useCallback, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { submitAnswer } from "../api/questions";
 import { practiceAiCommentQueryOptions } from "./usePracticeAiComment";
+import {
+  buildExplanationHistoryEntry,
+  useExplanationHistoryStore,
+  type ExplanationHistoryEntry,
+} from "../stores/explanationHistoryStore";
 import type { ChoiceItem, QuestionSummary, SubmitResult } from "../types/api";
 
 interface PracticeSetSubmitOptions {
@@ -30,6 +35,9 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
   const [feedback, setFeedback] = useState<SubmitResult | null>(null);
   // 제출 시점의 choiceSetUuid — SubmitResult에 없으므로 별도 보관 (신고 API에 필요)
   const [feedbackChoiceSetUuid, setFeedbackChoiceSetUuid] = useState<string | undefined>(undefined);
+  // 피드백 바 해설 미리보기 대상 (제출 실패면 null)
+  const [feedbackExplanationEntry, setFeedbackExplanationEntry] = useState<ExplanationHistoryEntry | null>(null);
+  const addExplanationEntry = useExplanationHistoryStore((state) => state.addEntry);
   // 답안 제출 API 호출 중 화면 조작 차단
   const [submitting, setSubmitting] = useState(false);
   // 연타 방지 — React state는 async 클로저에서 stale하므로 ref로 동기 플래그 관리
@@ -60,6 +68,17 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
           // sessionId는 startSession 시 crypto.randomUUID()로 생성 — AI 코멘트 세션 집계에 사용
           storeSessionId ?? crypto.randomUUID(),
         );
+        // 해설함 등록 > 미리보기가 바로 조회 시작 (다음 문제로 넘어가도 백그라운드로 완료)
+        const explanationEntry = buildExplanationHistoryEntry({
+          questionUuid: displayQuestion.questionUuid,
+          choiceSetUuid: choiceSetId,
+          selectedChoiceKey,
+          questionNumber: currentIndex + 1,
+          choices,
+          result,
+        });
+        addExplanationEntry(explanationEntry);
+        setFeedbackExplanationEntry(explanationEntry);
         setFeedback(result);
         setFeedbackChoiceSetUuid(choiceSetId);
         // submissionUuid: 백엔드가 응답에 포함하면 전달, 없으면 undefined → 결과 화면에서 신고 버튼 미표시
@@ -95,6 +114,7 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
           structuredExplanation: null,
         };
         setFeedback(fallback);
+        setFeedbackExplanationEntry(null);
         // 제출 실패 시 submissionUuid 없음 → 신고 버튼 미표시
         submitAndAdvance(
           displayQuestion.questionUuid,
@@ -109,7 +129,7 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
         setSubmitting(false);
       }
     },
-    [displayQuestion, submitAndAdvance, currentIndex, totalQuestions, queryClient, storeSessionId],
+    [displayQuestion, submitAndAdvance, currentIndex, totalQuestions, queryClient, storeSessionId, addExplanationEntry],
   );
 
   const clearFeedbackForNextQuestion = useCallback(() => {
@@ -118,6 +138,7 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
     isProcessingRef.current = true;
     setFeedback(null);
     setFeedbackChoiceSetUuid(undefined);
+    setFeedbackExplanationEntry(null);
     setTimeout(() => {
       isProcessingRef.current = false;
     }, NEXT_QUESTION_TAP_GUARD_MILLISECONDS);
@@ -126,6 +147,7 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
   return {
     feedback,
     feedbackChoiceSetUuid,
+    feedbackExplanationEntry,
     isSubmitting: submitting,
     displayIndex,
     displayQuestion,

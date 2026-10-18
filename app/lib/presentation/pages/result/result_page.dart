@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../../../router/app_routes.dart';
 import '../../../router/result_route_arguments.dart';
 import '../../design/design.dart';
-import '../../widgets/question/ai_explain_sheet.dart';
+import '../../providers/ai_explanation_session_provider.dart';
+import '../../providers/choice_explanation_providers.dart';
+import '../../widgets/ai_explanation/ai_explanation_content.dart';
 import '../../widgets/question/execute_result_card.dart';
 import '../../widgets/report/report_button.dart';
 import '../../widgets/result/similar_questions_section.dart';
@@ -39,12 +41,21 @@ class ResultPage extends ConsumerWidget {
     final isCorrect = result.isCorrect;
     final colors = context.passqlColors;
 
-    // AI 해설 버튼 — 오답 항상, 정답 + CONCEPT_ONLY 표시.
-    // 정답 + EXECUTABLE (correctSql/correctResult 있음)은 표시 안 함.
-    final showAi =
-        questionUuid.isNotEmpty &&
-        (!isCorrect ||
-            (result.correctSql == null && result.correctResult == null));
+    // AI 해설: 제출한 선택지 세트를 알 때만 (모르면 생성 근거 카드로 대신)
+    final explanationRequest = ChoiceExplanationRequest.fromSubmission(
+      questionUuid: questionUuid,
+      result: result,
+      selectedChoiceKey: arguments?.selectedChoiceKey,
+    );
+    final explanationEntry = explanationRequest == null
+        ? null
+        : AiExplanationEntry(
+            request: explanationRequest,
+            isCorrect: isCorrect,
+            displayLabelByChoiceKey:
+                arguments?.displayLabelByChoiceKey ?? const {},
+            rationale: result.rationale,
+          );
 
     // 오답이면 정답 선택지 키를 제목에 다시 보여 준다(기존 헤더 문구 보존).
     final correctLabel = arguments?.correctDisplayLabel ?? result.correctKey;
@@ -83,7 +94,13 @@ class ResultPage extends ConsumerWidget {
             result: result.correctResult!,
             margin: EdgeInsets.zero,
           ),
-        if (result.rationale != null && result.rationale!.isNotEmpty)
+        // 해설: AI 해설 본문(실패 시 근거 폴백 포함) 또는 생성 근거
+        if (explanationEntry != null)
+          PassqlCard(
+            title: 'AI 해설',
+            child: AiExplanationContent(entry: explanationEntry),
+          )
+        else if (result.rationale != null && result.rationale!.isNotEmpty)
           PassqlCard(
             title: '해설',
             child: Text(
@@ -106,18 +123,6 @@ class ResultPage extends ConsumerWidget {
           SimilarQuestionsSection(questionUuid: questionUuid),
       ],
       actions: [
-        if (showAi)
-          PassqlButton(
-            label: 'AI 해설',
-            variant: PassqlButtonVariant.tinted,
-            onPressed: () => AiExplainSheet.show(
-              context,
-              // 고른 키는 서버가 마지막 제출에서 찾는다 (정답 키를 보내던 오류 수정, #496)
-              payload: {'questionUuid': questionUuid},
-              isErrorExplain: false,
-              initialExplanation: result.explanation,
-            ),
-          ),
         // 기존 동작(닫기 = 홈 이동)을 그대로 유지한다.
         PassqlButton(label: '닫기', onPressed: () => context.go(AppRoutes.home)),
       ],

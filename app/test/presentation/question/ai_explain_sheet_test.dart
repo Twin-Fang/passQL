@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/data/sources/api_providers.dart';
 import 'package:passql_app/data/models/ai/ai_result.dart';
+import 'package:passql_app/data/models/ai/choice_explanation_response.dart';
 import 'package:passql_app/data/models/ai/similar_question.dart';
 import 'package:passql_app/data/sources/ai_api.dart';
 import 'package:passql_app/presentation/widgets/question/ai_explain_sheet.dart';
@@ -32,6 +33,13 @@ class _FakeAiApi implements AiApiClient {
   @override
   Future<AiResult> explainError(Map<String, dynamic> body) =>
       _answer('explain-error', body);
+
+  @override
+  Future<ChoiceExplanationResponse> getChoiceExplanation(
+    String questionUuid, {
+    String? choiceSetUuid,
+    String? selectedChoiceKey,
+  }) => throw UnimplementedError();
 
   @override
   Future<List<SimilarQuestion>> getSimilar(String questionUuid, int k) =>
@@ -91,7 +99,10 @@ void main() {
 
     expect(find.text('AI가 해설을 쓰고 있어요'), findsNothing);
     // 단어 순차 등장 배치라 한 줄 전체는 스크린리더 라벨로 확인한다
-    expect(find.bySemanticsLabel(RegExp('RANK는 동점이면 순위를 건너뜁니다.')), findsOneWidget);
+    expect(
+      find.bySemanticsLabel(RegExp('RANK는 동점이면 순위를 건너뜁니다.')),
+      findsOneWidget,
+    );
     expect(find.textContaining('불러올 수 없어요'), findsNothing);
     expect(api.calls, ['diff-explain']);
     expect(api.lastBody, {'questionUuid': 'q-1', 'selectedChoiceKey': 'D'});
@@ -142,7 +153,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('AI가 해설을 쓰고 있어요'), findsNothing);
-    expect(find.bySemanticsLabel(RegExp('GROUP BY 없이 HAVING 을 썼어요.')), findsOneWidget);
+    expect(
+      find.bySemanticsLabel(RegExp('GROUP BY 없이 HAVING 을 썼어요.')),
+      findsOneWidget,
+    );
     expect(api.calls, isEmpty);
     semanticsHandle.dispose();
   });

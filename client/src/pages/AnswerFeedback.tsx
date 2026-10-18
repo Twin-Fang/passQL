@@ -6,8 +6,10 @@ import AnswerFeedbackHeader from "../components/answerFeedback/AnswerFeedbackHea
 import FeedbackStemToggleCard from "../components/answerFeedback/FeedbackStemToggleCard";
 import ConceptAnswerCards from "../components/answerFeedback/ConceptAnswerCards";
 import RationaleCard from "../components/answerFeedback/RationaleCard";
+import AiExplanationCard from "../components/answerFeedback/AiExplanationCard";
 import SqlComparisonSection from "../components/answerFeedback/SqlComparisonSection";
 import SimilarQuestionList from "../components/answerFeedback/SimilarQuestionList";
+import { buildExplanationHistoryEntry } from "../stores/explanationHistoryStore";
 import type { AnswerFeedbackState } from "../types/answerFeedback";
 
 /**
@@ -43,6 +45,8 @@ export default function AnswerFeedback() {
     schemaTables,
     schemaDdl,
     schemaSampleData,
+    choiceSetUuid,
+    structuredExplanation,
   } = state;
 
   const isExecutable = executionMode === "EXECUTABLE";
@@ -52,6 +56,28 @@ export default function AnswerFeedback() {
     selectedSql ?? choices?.find((c) => c.key === selectedKey)?.body ?? null;
   const correctBody =
     correctSql ?? choices?.find((c) => c.key === correctKey)?.body ?? null;
+
+  // AI 해설 대상: 제출 세트를 아는 진입만 (옛 state 는 해설 카드 폴백)
+  const explanationEntry = choiceSetUuid
+    ? buildExplanationHistoryEntry({
+        questionUuid: state.questionUuid,
+        choiceSetUuid,
+        selectedChoiceKey: selectedKey,
+        choices: choices ?? [],
+        result: {
+          isCorrect,
+          correctKey,
+          rationale,
+          explanation: explanation ?? null,
+          structuredExplanation: structuredExplanation ?? null,
+          selectedResult: null,
+          correctResult: null,
+          selectedSql,
+          correctSql,
+          submissionUuid: null,
+        },
+      })
+    : null;
 
   const handleBottomButtonClick = () => {
     if (isDailyChallenge) {
@@ -79,7 +105,11 @@ export default function AnswerFeedback() {
         {!isExecutable ? (
           <ConceptAnswerCards isCorrect={isCorrect} selectedBody={selectedBody} correctBody={correctBody} />
         ) : null}
-        <RationaleCard rationale={explanation || rationale} isAiExplanation={Boolean(explanation)} />
+        {explanationEntry ? (
+          <AiExplanationCard entry={explanationEntry} />
+        ) : (
+          <RationaleCard rationale={explanation || rationale} isAiExplanation={Boolean(explanation)} />
+        )}
         {isExecutable && execution.sqlChoices.length > 0 ? (
           <SqlComparisonSection
             sqlChoices={execution.sqlChoices}

@@ -104,7 +104,7 @@ const router = createBrowserRouter([
             path: "practice/:sessionId/result",
             element: <PracticeResult />,
           },
-          // 홈 추천 문제 — DailyChallenge 패턴의 단건 풀이 모드
+          // 홈 추천 문제 — 단건 풀이 모드
           {
             path: "recommendation/:questionUuid",
             element: <RecommendationPractice />,

@@ -2,6 +2,9 @@ import { useRef } from "react";
 import { Check, X, Flag } from "lucide-react";
 import type { SubmitResult } from "../types/api";
 import MarkdownText from "./MarkdownText";
+import ExplanationPreviewCard from "./aiExplanation/ExplanationPreviewCard";
+import { usePracticeBottomBarHeight } from "../hooks/usePracticeBottomBarHeight";
+import { useExplanationHistoryStore, type ExplanationHistoryEntry } from "../stores/explanationHistoryStore";
 
 interface PracticeFeedbackBarProps {
   readonly result: SubmitResult;
@@ -13,6 +16,8 @@ interface PracticeFeedbackBarProps {
   // 신고 기능 — submissionUuid 없으면 버튼 미표시
   readonly onReport?: () => void;
   readonly isReported?: Boolean;
+  // 제출 기록이 있는 해설 대상 (없으면 rationale 마크다운만, 예: 오늘의 문제 로컬 오답)
+  readonly explanationEntry?: ExplanationHistoryEntry | null;
 }
 
 export default function PracticeFeedbackBar({
@@ -23,7 +28,11 @@ export default function PracticeFeedbackBar({
   secondaryLabel,
   onReport,
   isReported,
+  explanationEntry,
 }: PracticeFeedbackBarProps) {
+  // 바 높이 공개 > 해설 하단 시트가 바 위에 붙음
+  const barRef = usePracticeBottomBarHeight();
+  const openExplanationEntry = useExplanationHistoryStore((state) => state.openEntry);
   const isCorrect = result.isCorrect;
   // 버튼 언마운트 전 이중 클릭 방지 — 한 번 눌리면 플래그 세팅, 부모 언마운트 시 자동 초기화
   const hasActedRef = useRef(false);
@@ -37,6 +46,7 @@ export default function PracticeFeedbackBar({
     <>
       {/* 해설 패널 — 하단에서 슬라이드업 (오버레이 없음: EXECUTABLE 모드에서 위 실행 버튼 접근 가능) */}
       <div
+        ref={barRef}
         className={`fixed bottom-0 inset-x-0 z-30 animate-slide-up rounded-t-2xl ${isCorrect ? "feedback-bar--correct" : "feedback-bar--error"}`}
       >
         <div className="mx-auto max-w-120 px-5 pt-5 pb-6">
@@ -74,8 +84,10 @@ export default function PracticeFeedbackBar({
             )}
           </div>
 
-          {/* 해설 텍스트 (미리 생성된 AI 해설 우선, #496) */}
-          {(result.explanation || result.rationale) && (
+          {/* AI 해설 미리보기 (#521) > 없으면 해설 텍스트 (미리 생성된 AI 해설 우선, #496) */}
+          {explanationEntry ? (
+            <ExplanationPreviewCard entry={explanationEntry} onOpen={() => openExplanationEntry(explanationEntry.id)} />
+          ) : (result.explanation || result.rationale) && (
             <MarkdownText
               text={result.explanation || result.rationale || ""}
               className="text-sm leading-relaxed mb-3 feedback-bar-rationale"

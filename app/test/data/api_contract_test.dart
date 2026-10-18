@@ -8,6 +8,7 @@ import 'package:passql_app/data/models/member/choice_mode_models.dart';
 import 'package:passql_app/data/models/member/nickname_models.dart';
 import 'package:passql_app/data/models/question/submit_request.dart';
 import 'package:passql_app/data/models/feedback/feedback_models.dart';
+import 'package:passql_app/data/sources/ai_api.dart';
 import 'package:passql_app/data/sources/feedback_api.dart';
 import 'package:passql_app/data/models/report/report_models.dart';
 import 'package:passql_app/data/models/daily_set/daily_set_models.dart';
@@ -137,6 +138,26 @@ void main() {
         'choiceGenerationMode': entry.value,
       });
     }
+  });
+
+  test('구조화 해설은 GET 쿼리로 문제·세트·보기를 보내고, 모르는 값은 빼고 보낸다 (#521)', () async {
+    await ignoreParse(
+      AiApiClient(dio).getChoiceExplanation(
+        'q-1',
+        choiceSetUuid: 'set-1',
+        selectedChoiceKey: 'B',
+      ),
+    );
+    expect(adapter.lastRequest.method, 'GET');
+    expect(adapter.lastRequest.path, '/ai/choice-explanation');
+    expect(adapter.lastRequest.queryParameters, {
+      'questionUuid': 'q-1',
+      'choiceSetUuid': 'set-1',
+      'selectedChoiceKey': 'B',
+    });
+
+    await ignoreParse(AiApiClient(dio).getChoiceExplanation('q-1'));
+    expect(adapter.lastRequest.queryParameters, {'questionUuid': 'q-1'});
   });
 
   test('오답 노트는 size 만 쿼리로 보낸다', () async {

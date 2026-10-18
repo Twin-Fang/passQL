@@ -2,14 +2,22 @@ import '../data/models/daily_set/daily_set_models.dart';
 import '../data/models/question/submit_result.dart';
 import '../presentation/providers/chapter_providers.dart';
 
-/// 문제 결과 화면 이동 인자: 채점 결과 + 정답 표시 라벨
+/// 문제 결과 화면 이동 인자: 채점 결과 + 정답 표시 라벨 + 해설용 고른 보기·보기 표시 라벨
 class QuestionResultArguments {
   final SubmitResult result;
   final String? correctDisplayLabel;
 
+  /// 고른 보기 키 (없으면 서버가 마지막 제출로 찾음)
+  final String? selectedChoiceKey;
+
+  /// choiceKey > 화면 표시 라벨, 화면 순서 (#512)
+  final Map<String, String> displayLabelByChoiceKey;
+
   const QuestionResultArguments({
     required this.result,
     this.correctDisplayLabel,
+    this.selectedChoiceKey,
+    this.displayLabelByChoiceKey = const {},
   });
 }
 
