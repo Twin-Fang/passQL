@@ -94,6 +94,22 @@ void main() {
     }
   });
 
+  testWidgets('소셜 로그인 버튼은 접근성 라벨을 한 번만 읽는다', (tester) async {
+    final semanticsHandle = tester.ensureSemantics();
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+
+    const labels = ['카카오로 계속하기', '네이버로 계속하기', 'Google로 계속하기', 'GitHub로 계속하기'];
+    for (final label in labels) {
+      final button = find.ancestor(
+        of: find.text(label),
+        matching: find.byType(SocialLoginButton),
+      );
+      expect(tester.getSemantics(button).label, label);
+    }
+    semanticsHandle.dispose();
+  });
+
   testWidgets('사용자가 소셜 로그인을 취소하면 오류 문구 없이 로그인 화면에 머문다', (tester) async {
     final socialSignIn = _ScriptedSocialSignIn();
     await tester.pumpWidget(_app(socialSignIn: socialSignIn));
