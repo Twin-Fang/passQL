@@ -28,10 +28,6 @@ class NotificationTypeAppearance {
       icon: CupertinoIcons.calendar,
       color: colors.accent,
     ),
-    NotificationType.notice when item.isImportant => NotificationTypeAppearance(
-      icon: CupertinoIcons.exclamationmark,
-      color: colors.wrong,
-    ),
     NotificationType.notice => NotificationTypeAppearance(
       icon: CupertinoIcons.info,
       color: colors.secondaryLabel,

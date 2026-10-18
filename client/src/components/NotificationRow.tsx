@@ -1,5 +1,6 @@
 import { Megaphone } from "lucide-react";
 import { formatNotificationTime } from "../lib/notificationPresentation";
+import ImportantBadge from "./ImportantBadge";
 import type { NotificationItem } from "../types/api";
 
 interface NotificationRowProps {
@@ -24,11 +25,7 @@ export default function NotificationRow({ notification, onSelected }: Notificati
         <span className="flex-1 min-w-0">
           <span className="flex items-center gap-1.5">
             {notification.category === "NOTICE" && <Megaphone size={14} className="shrink-0 text-brand" />}
-            {notification.isImportant && (
-              <span className="shrink-0 px-1.5 py-0.5 rounded-md text-xs font-semibold text-semantic-error-text bg-semantic-error-light">
-                중요
-              </span>
-            )}
+            {notification.isImportant && <ImportantBadge />}
             <span className={`truncate text-sm ${notification.isRead ? "text-text-secondary" : "font-semibold text-text-primary"}`}>
               {notification.title}
             </span>

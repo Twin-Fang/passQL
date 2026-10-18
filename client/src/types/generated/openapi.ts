@@ -775,6 +775,7 @@ export interface paths {
          *     - notices (List<AppNoticeResponse>)
          *       - 지금 노출할 공지. 중요 공지 먼저, 그다음 최근 등록 순
          *       - noticeUuid, title, body, startsAt, endsAt(KST, null 가능), isActive, isImportant
+         *       - publishedAt: 게시 시각 (노출 시작, 없으면 등록 시각, KST)
          */
         get: operations["getAppConfig"];
         put?: never;
@@ -836,6 +837,67 @@ export interface paths {
          *     - 404: 해당 type의 PUBLISHED 약관이 없는 경우
          */
         get: operations["getLegal"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/meta/notices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 공지 목록 조회
+         * @description ## 인증(JWT): **불필요**
+         *     점검 중에도 응답한다.
+         *
+         *     ## 요청 파라미터
+         *     - **`page`** (선택): 0부터 시작하는 페이지 번호, 기본 0
+         *     - **`size`** (선택): 페이지 크기, 기본 20, 최대 50
+         *
+         *     ## 반환값 (AppNoticePageResponse)
+         *     - notices (List<AppNoticeResponse>): 활성 + 노출 시작이 지난 공지 (노출 기간이 끝난 지난 공지 포함)
+         *       - 정렬: 노출 중인 중요 공지 먼저 > 게시 시각 최신 순
+         *       - body 는 마크다운 일부(굵게 **, 목록 - , 링크 [이름](https://...))
+         *     - page: 현재 페이지 번호
+         *     - hasNextPage: 다음 페이지 유무
+         */
+        get: operations["getNotices"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/meta/notices/{noticeUuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 공지 상세 조회
+         * @description ## 인증(JWT): **불필요**
+         *
+         *     ## 경로 변수
+         *     - **`noticeUuid`**: 공지 UUID
+         *
+         *     ## 반환값 (AppNoticeResponse)
+         *     - noticeUuid, title, body(마크다운 일부), startsAt, endsAt, isActive, isImportant, publishedAt
+         *
+         *     ## 에러
+         *     - 404 APP_NOTICE_NOT_FOUND: 없음·비활성·노출 시작 전 공지
+         */
+        get: operations["getNotice"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1255,6 +1317,12 @@ export interface components {
             isUnderMaintenance: boolean;
             message: string | null;
         };
+        AppNoticePageResponse: {
+            hasNextPage: boolean;
+            notices: components["schemas"]["AppNoticeResponse"][];
+            /** Format: int32 */
+            page: number;
+        };
         AppNoticeResponse: {
             body: string;
             /** Format: date-time */
@@ -1263,6 +1331,8 @@ export interface components {
             isImportant: boolean;
             /** Format: uuid */
             noticeUuid: string;
+            /** Format: date-time */
+            publishedAt: string;
             /** Format: date-time */
             startsAt: string | null;
             title: string;
@@ -2627,6 +2697,51 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["LegalResponse"];
+                };
+            };
+        };
+    };
+    getNotices: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AppNoticePageResponse"];
+                };
+            };
+        };
+    };
+    getNotice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                noticeUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AppNoticeResponse"];
                 };
             };
         };

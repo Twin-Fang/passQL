@@ -23,6 +23,8 @@ const RecommendationPractice = lazy(() => import("./pages/RecommendationPractice
 const Stats = lazy(() => import("./pages/Stats"));
 const MyPage = lazy(() => import("./pages/MyPage"));
 const Notifications = lazy(() => import("./pages/Notifications"));
+const NoticeList = lazy(() => import("./pages/NoticeList"));
+const NoticeDetail = lazy(() => import("./pages/NoticeDetail"));
 const ExamTrend = lazy(() => import("./pages/ExamTrend"));
 const Settings = lazy(() => import("./pages/Settings"));
 const SettingsFeedback = lazy(() => import("./pages/SettingsFeedback"));
@@ -121,6 +123,15 @@ const router = createBrowserRouter([
           {
             path: "settings/feedback",
             element: <SettingsFeedback />,
+          },
+          // 공지 목록·상세 (#529) — 배너·알림함 공지에서 진입, 경로는 lib/noticePresentation 과 같음
+          {
+            path: "notices",
+            element: <NoticeList />,
+          },
+          {
+            path: "notices/:noticeUuid",
+            element: <NoticeDetail />,
           },
         ],
       },

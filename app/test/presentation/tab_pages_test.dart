@@ -154,28 +154,85 @@ void main() {
 
   for (final entry in cases.entries) {
     for (final dark in [false, true]) {
-      testWidgets(
-        '${entry.key} 화면: large title 바 1개, ${dark ? '다크' : '라이트'} 예외 없음',
-        (tester) async {
-          await _pump(
-            tester,
-            entry.value.$1,
-            entry.value.$2,
-            theme: dark ? PassqlTheme.dark : PassqlTheme.light,
-          );
-          expect(find.byType(CupertinoSliverNavigationBar), findsOneWidget);
-          // 인사 둘째 줄이 잘리지 않고 본문으로 보인다.
-          if (entry.key == '홈') {
-            expect(
-              findTextContainingIgnoringWordJoiners('D-12'),
-              findsOneWidget,
-            );
-          }
-          expect(tester.takeException(), isNull);
-        },
-      );
+      testWidgets('${entry.key} 화면: 상단 바 1개, ${dark ? '다크' : '라이트'} 예외 없음', (
+        tester,
+      ) async {
+        await _pump(
+          tester,
+          entry.value.$1,
+          entry.value.$2,
+          theme: dark ? PassqlTheme.dark : PassqlTheme.light,
+        );
+        // 홈은 로고 상단 바, 나머지 탭은 큰 제목 바 (#530)
+        expect(
+          find.byType(
+            entry.key == '홈'
+                ? PassqlBrandBarScrollView
+                : CupertinoSliverNavigationBar,
+          ),
+          findsOneWidget,
+        );
+        // 인사 둘째 줄이 잘리지 않고 본문으로 보인다.
+        if (entry.key == '홈') {
+          expect(findTextContainingIgnoringWordJoiners('D-12'), findsOneWidget);
+        }
+        expect(tester.takeException(), isNull);
+      });
     }
   }
+
+  testWidgets('홈 상단: 320pt 폭·큰 글자에서 로고·종 같은 줄, 인사 말줄임 없음 (#530)', (
+    tester,
+  ) async {
+    const reportedGreeting = '오늘도 한 문제씩, 합격에 가까워지고 있어요';
+    tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          homeDataProvider.overrideWith(
+            (ref) async => HomeData(
+              greeting: const GreetingResponse(
+                nickname: '새찬',
+                message: reportedGreeting,
+                messageType: 'ENCOURAGE',
+              ),
+              progress: homeData.progress,
+              dailySet: homeData.dailySet,
+              examSchedule: homeData.examSchedule,
+            ),
+          ),
+        ],
+        child: MaterialApp(
+          theme: PassqlTheme.light,
+          // 앱과 같은 글자 배율 상한(1.4) 적용
+          builder: PassqlTextScaleLimit.wrap,
+          home: const HomePage(),
+        ),
+      ),
+    );
+    await tester.pump();
+    await pumpUntilMotionDone(tester);
+    expect(tester.takeException(), isNull);
+
+    // 상단 바: 로고 왼쪽 <-> 종 오른쪽, 같은 줄
+    final logoRect = tester.getRect(find.byType(PassqlLogo));
+    final bellRect = tester.getRect(find.byType(PassqlNotificationBellButton));
+    expect(logoRect.center.dy, closeTo(bellRect.center.dy, 0.5));
+    expect(logoRect.right, lessThan(bellRect.left));
+
+    // 인사: 줄 제한·말줄임 없음, 바 아래, 화면 폭 안
+    final greeting = findTextContainingIgnoringWordJoiners(reportedGreeting);
+    final greetingText = tester.widget<Text>(greeting);
+    expect(greetingText.maxLines, isNull);
+    expect(greetingText.overflow, isNull);
+    final greetingRect = tester.getRect(greeting);
+    expect(greetingRect.top, greaterThanOrEqualTo(bellRect.bottom));
+    expect(greetingRect.right, lessThanOrEqualTo(320 - PassqlSpacing.md));
+  });
 
   testWidgets('통계 화면은 320pt 폭에서도 예외 없다', (tester) async {
     await _pump(tester, const StatsPage(), [

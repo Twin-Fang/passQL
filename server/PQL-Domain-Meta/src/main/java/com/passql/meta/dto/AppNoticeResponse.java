@@ -8,7 +8,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * 공지 1건 (앱 노출·관리자 목록 공용)
+ * 공지 1건 (앱 노출·공지 목록·상세·관리자 목록 공용)
+ * publishedAt: 게시 시각 = 노출 시작, 없으면 등록 시각 (KST)
  */
 public record AppNoticeResponse(
         UUID noticeUuid,
@@ -17,7 +18,8 @@ public record AppNoticeResponse(
         @Schema(nullable = true) LocalDateTime startsAt,
         @Schema(nullable = true) LocalDateTime endsAt,
         Boolean isActive,
-        Boolean isImportant
+        Boolean isImportant,
+        LocalDateTime publishedAt
 ) {
     public static AppNoticeResponse from(AppNotice notice) {
         return new AppNoticeResponse(
@@ -27,7 +29,8 @@ public record AppNoticeResponse(
                 notice.getStartsAt(),
                 notice.getEndsAt(),
                 notice.getIsActive(),
-                notice.getIsImportant()
+                notice.getIsImportant(),
+                notice.resolvePublishedAt()
         );
     }
 }

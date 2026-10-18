@@ -15,6 +15,7 @@ abstract final class PassqlSize {
   static const double scoreRingStroke = 12;
   static const double loginLogoHeight = 44;
   static const double footerLogoHeight = 20;
+  static const double navBarLogoHeight = 24; // 홈 상단 바 워드마크 (바 높이 44 안, 종 아이콘과 시각 무게 맞춤)
   // 오픈소스 라이선스 화면 상단 로고 높이
   static const double licensePageLogoHeight = 32;
   static const double messageSlotHeight =
@@ -22,7 +23,7 @@ abstract final class PassqlSize {
   static const double iconTile = 29;
   static const double blurSigma = 20;
   static const double hairline = 0.5;
-  static const double notificationBadge = 18; // 종 아이콘 안 읽은 개수 배지 높이
+  static const double notificationBadge = 18; // 안 읽은 개수 배지 높이·한 자리 지름 (PassqlCountBadge)
   static const double unreadDot = 8; // 알림 항목 앞 안 읽음 점
   static const double sheetHeroCircle = 64; // 안내 시트 맨 위 대표 아이콘 원
 

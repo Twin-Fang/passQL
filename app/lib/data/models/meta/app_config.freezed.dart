@@ -427,6 +427,7 @@ mixin _$AppNotice {
   String get title => throw _privateConstructorUsedError;
   String get body => throw _privateConstructorUsedError;
   bool get isImportant => throw _privateConstructorUsedError;
+  DateTime? get publishedAt => throw _privateConstructorUsedError;
 
   /// Serializes this AppNotice to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -443,7 +444,13 @@ abstract class $AppNoticeCopyWith<$Res> {
   factory $AppNoticeCopyWith(AppNotice value, $Res Function(AppNotice) then) =
       _$AppNoticeCopyWithImpl<$Res, AppNotice>;
   @useResult
-  $Res call({String noticeUuid, String title, String body, bool isImportant});
+  $Res call({
+    String noticeUuid,
+    String title,
+    String body,
+    bool isImportant,
+    DateTime? publishedAt,
+  });
 }
 
 /// @nodoc
@@ -465,6 +472,7 @@ class _$AppNoticeCopyWithImpl<$Res, $Val extends AppNotice>
     Object? title = null,
     Object? body = null,
     Object? isImportant = null,
+    Object? publishedAt = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -484,6 +492,10 @@ class _$AppNoticeCopyWithImpl<$Res, $Val extends AppNotice>
                 ? _value.isImportant
                 : isImportant // ignore: cast_nullable_to_non_nullable
                       as bool,
+            publishedAt: freezed == publishedAt
+                ? _value.publishedAt
+                : publishedAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
           )
           as $Val,
     );
@@ -499,7 +511,13 @@ abstract class _$$AppNoticeImplCopyWith<$Res>
   ) = __$$AppNoticeImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String noticeUuid, String title, String body, bool isImportant});
+  $Res call({
+    String noticeUuid,
+    String title,
+    String body,
+    bool isImportant,
+    DateTime? publishedAt,
+  });
 }
 
 /// @nodoc
@@ -520,6 +538,7 @@ class __$$AppNoticeImplCopyWithImpl<$Res>
     Object? title = null,
     Object? body = null,
     Object? isImportant = null,
+    Object? publishedAt = freezed,
   }) {
     return _then(
       _$AppNoticeImpl(
@@ -539,6 +558,10 @@ class __$$AppNoticeImplCopyWithImpl<$Res>
             ? _value.isImportant
             : isImportant // ignore: cast_nullable_to_non_nullable
                   as bool,
+        publishedAt: freezed == publishedAt
+            ? _value.publishedAt
+            : publishedAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
       ),
     );
   }
@@ -552,6 +575,7 @@ class _$AppNoticeImpl implements _AppNotice {
     required this.title,
     required this.body,
     this.isImportant = false,
+    this.publishedAt,
   });
 
   factory _$AppNoticeImpl.fromJson(Map<String, dynamic> json) =>
@@ -566,10 +590,12 @@ class _$AppNoticeImpl implements _AppNotice {
   @override
   @JsonKey()
   final bool isImportant;
+  @override
+  final DateTime? publishedAt;
 
   @override
   String toString() {
-    return 'AppNotice(noticeUuid: $noticeUuid, title: $title, body: $body, isImportant: $isImportant)';
+    return 'AppNotice(noticeUuid: $noticeUuid, title: $title, body: $body, isImportant: $isImportant, publishedAt: $publishedAt)';
   }
 
   @override
@@ -582,13 +608,21 @@ class _$AppNoticeImpl implements _AppNotice {
             (identical(other.title, title) || other.title == title) &&
             (identical(other.body, body) || other.body == body) &&
             (identical(other.isImportant, isImportant) ||
-                other.isImportant == isImportant));
+                other.isImportant == isImportant) &&
+            (identical(other.publishedAt, publishedAt) ||
+                other.publishedAt == publishedAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, noticeUuid, title, body, isImportant);
+  int get hashCode => Object.hash(
+    runtimeType,
+    noticeUuid,
+    title,
+    body,
+    isImportant,
+    publishedAt,
+  );
 
   /// Create a copy of AppNotice
   /// with the given fields replaced by the non-null parameter values.
@@ -610,6 +644,7 @@ abstract class _AppNotice implements AppNotice {
     required final String title,
     required final String body,
     final bool isImportant,
+    final DateTime? publishedAt,
   }) = _$AppNoticeImpl;
 
   factory _AppNotice.fromJson(Map<String, dynamic> json) =
@@ -623,6 +658,8 @@ abstract class _AppNotice implements AppNotice {
   String get body;
   @override
   bool get isImportant;
+  @override
+  DateTime? get publishedAt;
 
   /// Create a copy of AppNotice
   /// with the given fields replaced by the non-null parameter values.

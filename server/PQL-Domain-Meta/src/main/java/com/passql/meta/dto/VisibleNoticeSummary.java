@@ -14,8 +14,7 @@ public record VisibleNoticeSummary(
         LocalDateTime publishedAt
 ) {
     public static VisibleNoticeSummary from(AppNotice notice) {
-        LocalDateTime publishedAt = notice.getStartsAt() != null ? notice.getStartsAt() : notice.getCreatedAt();
         return new VisibleNoticeSummary(notice.getAppNoticeUuid(), notice.getTitle(), notice.getBody(),
-                notice.getIsImportant(), publishedAt);
+                notice.getIsImportant(), notice.resolvePublishedAt());
     }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
+import 'passql_count_badge.dart';
 
 /// 종 아이콘 버튼: 안 읽은 개수가 있으면 오른쪽 위에 주황 배지(10 이상 9+)
 /// 홈 상단 바 trailing 전용. 개수는 호출 측이 단일 출처(unreadNotificationCountProvider)에서 넘김
@@ -19,9 +20,6 @@ class PassqlNotificationBellButton extends StatelessWidget {
   static const int _maximumDisplayedCount = 9;
 
   bool get _hasUnread => unreadCount > 0;
-
-  String get _badgeText =>
-      unreadCount > _maximumDisplayedCount ? '9+' : '$unreadCount';
 
   @override
   Widget build(BuildContext context) {
@@ -47,26 +45,9 @@ class PassqlNotificationBellButton extends StatelessWidget {
               Positioned(
                 top: -PassqlSpacing.xxs,
                 right: -PassqlSpacing.xs,
-                child: Container(
-                  constraints: const BoxConstraints(
-                    minWidth: PassqlSize.notificationBadge,
-                    minHeight: PassqlSize.notificationBadge,
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: PassqlSpacing.xxs,
-                  ),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: colors.warning,
-                    borderRadius: BorderRadius.circular(PassqlRadius.capsule),
-                  ),
-                  child: Text(
-                    _badgeText,
-                    style: PassqlTypography.captionSemibold.copyWith(
-                      color: colors.onAccent,
-                      height: 1,
-                    ),
-                  ),
+                child: PassqlCountBadge(
+                  count: unreadCount,
+                  maximumDisplayedCount: _maximumDisplayedCount,
                 ),
               ),
           ],

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
+import '../../../core/utils/markdown_preview.dart';
 import '../../../core/utils/relative_time.dart';
 import '../../../data/models/notification/notification_models.dart';
 import '../../design/design.dart';
@@ -27,6 +28,8 @@ class NotificationListRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final appearance = NotificationTypeAppearance.of(item, colors);
+    // 공지 본문은 마크다운 > 미리보기는 표기 제거
+    final bodyPreview = toMarkdownPreviewText(item.body);
     return PassqlPressable(
       onTap: onTap,
       semanticLabel: '${item.isRead ? '' : '안 읽은 '}${item.title}',
@@ -79,13 +82,13 @@ class NotificationListRow extends StatelessWidget {
                       ],
                     ],
                   ),
-                  if (item.body.isNotEmpty)
+                  if (bodyPreview.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(
                         top: PassqlSpacing.hairlineGap,
                       ),
                       child: Text(
-                        item.body,
+                        bodyPreview,
                         maxLines: _bodyMaximumLines,
                         overflow: TextOverflow.ellipsis,
                         style: PassqlTypography.footnote.copyWith(
