@@ -31,5 +31,23 @@ void main() {
     expect(badgeSizeShowing('2'), const Size.square(PassqlSize.notificationBadge));
     expect(badgeSizeShowing('99+').height, PassqlSize.notificationBadge);
     expect(badgeSizeShowing('99+').width, greaterThan(PassqlSize.notificationBadge));
+
+    // 선택된 탭(알림)만 주황 강조, 비선택(공지)은 중립 회색
+    Color badgeColorShowing(String label) =>
+        (tester
+                    .widget<DecoratedBox>(
+                      find
+                          .ancestor(
+                            of: find.text(label),
+                            matching: find.byType(DecoratedBox),
+                          )
+                          .first,
+                    )
+                    .decoration
+                as BoxDecoration)
+            .color!;
+    final colors = PassqlColors.light;
+    expect(badgeColorShowing('2'), colors.warning);
+    expect(badgeColorShowing('99+'), colors.fill);
   });
 }

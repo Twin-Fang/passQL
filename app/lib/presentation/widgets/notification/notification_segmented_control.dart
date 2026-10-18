@@ -94,7 +94,8 @@ class _SegmentTab extends StatelessWidget {
               ),
               if (unreadCount > 0) ...[
                 const SizedBox(width: PassqlSpacing.xxs),
-                PassqlCountBadge(count: unreadCount),
+                // 선택된 탭만 주황, 나머지는 중립 (주황이 두 군데로 눈을 나누지 않게)
+                PassqlCountBadge(count: unreadCount, isEmphasized: isSelected),
               ],
             ],
           ),
