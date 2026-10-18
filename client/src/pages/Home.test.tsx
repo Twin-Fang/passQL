@@ -35,6 +35,7 @@ describe("Home", () => {
       "/exam-schedules/selected": { examScheduleUuid: "e1", certType: "SQLD", round: 60, examDate: "2099-12-20", isSelected: true },
       "/daily-set/today": { questions: [RECOMMENDED_QUESTION], alreadyCompleted: false, correctCount: null },
       "/questions/recommendations": { questions: [RECOMMENDED_QUESTION] },
+      "/meta/app-links": { androidUrl: "https://play.example/passql", iosUrl: "https://apps.example/passql" },
     });
     renderHome();
     expect(await screen.findByText("둘째 줄")).toBeInTheDocument();
@@ -44,6 +45,10 @@ describe("Home", () => {
     expect(await screen.findByText("푼 문제")).toBeInTheDocument();
     expect(await screen.findByText("주문 수 구하기")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "추천 문제 새로고침" })).toBeInTheDocument();
+    // 앱 배너: App Store 배지 링크, Play 비공개(IS_GOOGLE_PLAY_PUBLIC=false) > 준비 중 표시·Play 링크 없음 (#531)
+    expect(await screen.findByRole("link", { name: "App Store에서 다운로드하기" })).toHaveAttribute("href", "https://apps.example/passql");
+    expect(screen.getByRole("img", { name: "Android 출시 준비 중" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Google Play에서 다운로드" })).not.toBeInTheDocument();
     // 최신 경향 추천 문제 배지·출제 경향 진입 카드 (#523)
     expect(screen.getByText(LATEST_TREND_BADGE_LABEL, { selector: "a[href='/questions/r1'] span" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /2026 SQLD 출제 경향/ })).toHaveAttribute("href", "/exam-trend");

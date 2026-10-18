@@ -32,6 +32,7 @@ CI: `.github/workflows/PROJECT-COMMON-BRAND-ASSETS-CHECK.yaml` 이 `--check` 를
 | `logo_horizontal.png` | `client/public/og-image.png` | 1200x630 흰 배경 가운데 로고 |
 | `app_icon_1024.png` | `app/assets/app_icon_1024.png` | 그대로 복사 (flutter_launcher_icons 입력) |
 | `app_icon_1024.png` | `client/public/favicon.png` (64x64), `server/PQL-Web/src/main/resources/static/favicon.ico` (16·32·48) | 축소 |
+| `app_icon_1024.png` | `client/src/assets/logo/app_icon.png` (144x144) | 축소 (웹 앱 다운로드 배너 48px x 3배, #531) |
 | `app_icon_adaptive_foreground.png` | `app/assets/app_icon_foreground.png` | 그대로 복사 (flutter_launcher_icons 입력) |
 
 ## 색 검사 (자동 수정 안 함)
