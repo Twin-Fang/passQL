@@ -20,7 +20,7 @@ void main() {
                 children: children,
               ),
           branches: [
-            for (final p in ['/home', '/questions', '/stats', '/settings'])
+            for (final p in ['/home', '/questions', '/community', '/stats', '/settings'])
               StatefulShellBranch(
                 routes: [GoRoute(path: p, builder: (_, _) => Text(p))],
               ),
@@ -40,10 +40,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(PassqlTabBar), findsOneWidget);
-    for (final label in ['홈', '문제', '통계', '설정']) {
+    for (final label in ['홈', '문제', '토론', '통계', '설정']) {
       expect(find.text(label), findsNothing);
       expect(find.bySemanticsLabel(label), findsOneWidget);
     }
+    // 5개 탭이 같은 폭으로 나뉨 (토론 탭 #543)
+    expect(find.byType(PassqlPressable), findsNWidgets(5));
+    await tester.tap(find.byIcon(CupertinoIcons.chat_bubble_2));
+    await tester.pumpAndSettle();
+    expect(find.text('/community'), findsOneWidget);
     await tester.tap(find.byIcon(CupertinoIcons.chart_bar));
     await tester.pumpAndSettle();
     expect(find.text('/stats'), findsOneWidget);

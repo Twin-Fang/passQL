@@ -63,10 +63,10 @@ abstract final class AppRoutes {
   static String noticeDetail(String noticeUuid) => '$notices/$noticeUuid';
 
   // 커뮤니티 (#525)
-  /// 커뮤니티 피드 (뜨는 토론·최신 경향·내가 푼 문제·내 의견). 홈 '오늘의 토론'·설정에서 진입
+  /// 커뮤니티 피드 (뜨는 토론·최신 경향·내가 푼 문제·내 의견). 토론 탭 루트. 홈 '오늘의 토론'은 go 로 탭 전환
   static const String community = '/community';
 
-  /// 피드를 '내 의견' 탭으로 열기 (설정 '내 의견')
+  /// 피드를 '내 의견' 칩으로 열기 (탭 안에서 go)
   static const String communityMine = '$community?$communitySourceQuery=mine';
 
   /// 라우터 정의용 문제별 의견 경로 패턴: /community/questions/:questionUuid

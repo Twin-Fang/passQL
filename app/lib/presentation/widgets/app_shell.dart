@@ -29,6 +29,11 @@ class AppShell extends StatelessWidget {
       label: '문제',
     ),
     PassqlTabItem(
+      icon: CupertinoIcons.chat_bubble_2,
+      activeIcon: CupertinoIcons.chat_bubble_2_fill,
+      label: '토론',
+    ),
+    PassqlTabItem(
       icon: CupertinoIcons.chart_bar,
       activeIcon: CupertinoIcons.chart_bar_fill,
       label: '통계',
@@ -54,7 +59,7 @@ class AppShell extends StatelessWidget {
             child: RecommendedUpdatePrompter(child: navigationShell),
           ),
         ),
-        // 탭 바 + 아래 한 줄 광고 띠(메인 탭 4개 공통, 실패 시 높이 0). extendBody 라 본문 하단 여백에 띠 높이도 반영
+        // 탭 바 + 아래 한 줄 광고 띠(메인 탭 5개 공통, 실패 시 높이 0). extendBody 라 본문 하단 여백에 띠 높이도 반영
         // 전체 화면(풀이·결과)이 셸을 덮으면 Navigator 가 셸을 offstage 로 둠 > 가려진 띠는 그려지지 않음
         bottomNavigationBar: AdNativeStripSlot(
           tabBar: PassqlTabBar(

@@ -37,7 +37,7 @@ final _rootKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
 /// 앱 전역 라우터.
 ///
-/// - StatefulShellRoute: 바텀 탭 4개 (홈/문제/통계/설정), 탭별 상태 유지
+/// - StatefulShellRoute: 바텀 탭 5개 (홈/문제/토론/통계/설정), 탭별 상태 유지
 /// - 루트 라우트: 풀스크린 페이지 (챕터, 챕터 결과, 문제 상세, 결과)
 abstract final class AppRouter {
   /// 로그인 여부. main 에서 인증 상태를 구독해 갱신하고, 값이 바뀌면 라우터가 redirect 를 다시 평가한다.
@@ -124,6 +124,21 @@ abstract final class AppRouter {
               ),
             ],
           ),
+          // 토론 탭: 커뮤니티 피드 (#543, ?source= 로 시작 칩 지정)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.community,
+                pageBuilder: (_, state) => NoTransitionPage(
+                  child: CommunityFeedPage(
+                    initialSource: CommunityFeedSource.fromServerValue(
+                      state.uri.queryParameters[AppRoutes.communitySourceQuery],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -187,16 +202,7 @@ abstract final class AppRouter {
         builder: (_, _) => const WrongNotesPage(),
       ),
 
-      // 풀스크린: 커뮤니티 피드·문제별 의견 (#525), 차단한 사용자 관리
-      GoRoute(
-        path: AppRoutes.community,
-        parentNavigatorKey: _rootKey,
-        builder: (_, state) => CommunityFeedPage(
-          initialSource: CommunityFeedSource.fromServerValue(
-            state.uri.queryParameters[AppRoutes.communitySourceQuery],
-          ),
-        ),
-      ),
+      // 풀스크린: 문제별 의견 (#525), 차단한 사용자 관리
       GoRoute(
         path: AppRoutes.communityQuestionPattern,
         parentNavigatorKey: _rootKey,
