@@ -1,7 +1,7 @@
 import { Suspense, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import PageLoadingFallback from "./PageLoadingFallback";
-import { Home, BarChart3, User, Sparkles } from "lucide-react";
+import { Home, BarChart3, User, Sparkles, MessagesSquare } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import logo from "../assets/logo/logo.png";
 import MobileHeader from "./MobileHeader";
@@ -16,6 +16,7 @@ const NAV_ITEMS: readonly {
 }[] = [
   { to: "/", label: "홈", icon: Home },
   { to: "/questions", label: "AI문제", icon: Sparkles },
+  { to: "/community", label: "토론", icon: MessagesSquare },
   { to: "/stats", label: "통계", icon: BarChart3 },
   { to: "/mypage", label: "마이페이지", icon: User },
 ] as const;

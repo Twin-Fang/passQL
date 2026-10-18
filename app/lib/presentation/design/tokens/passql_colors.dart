@@ -24,6 +24,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     required this.separator,
     required this.fill,
     required this.glass,
+    required this.imageViewerBackground,
+    required this.onImageViewer,
   });
 
   final Color accent;
@@ -45,6 +47,10 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
   final Color separator;
   final Color fill;
   final Color glass;
+
+  /// 사진 확대 뷰어 배경·그 위 글자·아이콘 (라이트·다크 모두 검정 바탕 + 흰색)
+  final Color imageViewerBackground;
+  final Color onImageViewer;
 
   static const light = PassqlColors(
     accent: Color(0xFF5856D6),
@@ -68,6 +74,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     separator: Color(0x4A3C3C43),
     fill: Color(0x1F787880),
     glass: Color(0xB3F9F9F9),
+    imageViewerBackground: Color(0xFF000000),
+    onImageViewer: Color(0xFFFFFFFF),
   );
 
   static const dark = PassqlColors(
@@ -90,6 +98,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     separator: Color(0x99545458),
     fill: Color(0x3D787880),
     glass: Color(0xB31D1D1D),
+    imageViewerBackground: Color(0xFF000000),
+    onImageViewer: Color(0xFFFFFFFF),
   );
 
   @override
@@ -113,6 +123,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
         separator: separator,
         fill: fill,
         glass: glass,
+        imageViewerBackground: imageViewerBackground,
+        onImageViewer: onImageViewer,
       );
 
   @override
@@ -139,6 +151,11 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
       separator: lerpColor(separator, other.separator),
       fill: lerpColor(fill, other.fill),
       glass: lerpColor(glass, other.glass),
+      imageViewerBackground: lerpColor(
+        imageViewerBackground,
+        other.imageViewerBackground,
+      ),
+      onImageViewer: lerpColor(onImageViewer, other.onImageViewer),
     );
   }
 }

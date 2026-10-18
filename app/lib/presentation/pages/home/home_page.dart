@@ -6,11 +6,13 @@ import '../../../core/ads/ad_placement.dart';
 import '../../../data/models/notification/notification_models.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
+import '../../providers/community_providers.dart';
 import '../../providers/home_providers.dart';
 import '../../providers/notification_inbox_providers.dart';
 import '../../providers/unread_notification_providers.dart';
 import '../../widgets/ads/ad_inline_card.dart';
 import '../../widgets/common/app_toast.dart';
+import '../../widgets/community/community_daily_discussion_card.dart';
 import '../../widgets/home/app_notice_banner.dart';
 import '../../widgets/home/daily_set_card.dart';
 import '../../widgets/home/exam_schedule_card.dart';
@@ -98,6 +100,7 @@ class _HomeContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notice = ref.watch(homeNoticeProvider);
+    final discussion = ref.watch(communityDailyDiscussionProvider).valueOrNull;
     final children = <Widget>[
       // 인사 + 본문 + 시험 상황 배지 (상단 바 아래 화면 제목 자리)
       if (data.greeting != null) GreetingSection(greeting: data.greeting!),
@@ -140,6 +143,9 @@ class _HomeContent extends ConsumerWidget {
         ),
 
       const ExamTrendEntryCard(),
+
+      // 오늘의 토론 (뜨는 토론 1위, 없으면 숨김, #525)
+      if (discussion != null) CommunityDailyDiscussionCard(card: discussion),
 
       // 학습 현황 + 인라인 광고 카드 (학습 현황 <-> 추천 문제 사이)
       // 한 항목으로 묶음 > 광고 없으면 카드 간격도 생기지 않음

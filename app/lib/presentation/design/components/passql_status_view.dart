@@ -12,6 +12,8 @@ class PassqlStatusView extends StatelessWidget {
     this.title,
     this.message,
     this.onRetry,
+    this.actionLabel,
+    this.onAction,
     this.isLoading = false,
   });
 
@@ -21,7 +23,15 @@ class PassqlStatusView extends StatelessWidget {
     required IconData icon,
     required String title,
     String? message,
-  }) => PassqlStatusView._(icon: icon, title: title, message: message);
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) => PassqlStatusView._(
+    icon: icon,
+    title: title,
+    message: message,
+    actionLabel: actionLabel,
+    onAction: onAction,
+  );
 
   factory PassqlStatusView.error({
     required String message,
@@ -37,6 +47,10 @@ class PassqlStatusView extends StatelessWidget {
   final String? title;
   final String? message;
   final VoidCallback? onRetry;
+
+  /// 빈 상태의 행동 버튼 (예: 문제 풀러 가기). 둘 다 있을 때만 표시
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   /// 로딩 모양(_Loading)인지
   final bool isLoading;
@@ -69,6 +83,16 @@ class PassqlStatusView extends StatelessWidget {
                   color: colors.secondaryLabel,
                 ),
                 textAlign: TextAlign.center,
+              ),
+            ],
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: PassqlSpacing.md),
+              PassqlButton(
+                label: actionLabel!,
+                onPressed: onAction,
+                variant: PassqlButtonVariant.tinted,
+                size: PassqlButtonSize.small,
+                isFullWidth: false,
               ),
             ],
             if (onRetry != null) ...[

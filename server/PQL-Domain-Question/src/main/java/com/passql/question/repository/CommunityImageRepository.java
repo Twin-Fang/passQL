@@ -26,5 +26,7 @@ public interface CommunityImageRepository extends JpaRepository<CommunityImage, 
     long sumStoredBytesOfOwner(@Param("memberUuid") UUID memberUuid);
 
     /** 기준 시각보다 오래된 미첨부 이미지 (오래된 순) */
+    List<CommunityImage> findByOwnerMemberUuidAndStatusNot(UUID ownerMemberUuid, CommunityImageStatus status);
+
     List<CommunityImage> findByStatusAndCreatedAtBefore(CommunityImageStatus status, LocalDateTime cutoff, Pageable pageable);
 }

@@ -34,6 +34,11 @@ enum ErrorCode {
   // 신고
   reportAlreadyExists,
 
+  // 커뮤니티: 문제를 풀기 전에는 의견을 볼 수 없음 (풀기 안내로 분기)
+  communitySolveRequired,
+  // 커뮤니티: 이미지 저장소 일시 장애 (503, 서버 문구를 그대로 보여 주려고 5xx 기본 문구와 분리)
+  communityImageUnavailable,
+
   // 데일리 세트
   dailySetAlreadyCompleted,
   dailySetNotFound,
@@ -85,6 +90,24 @@ abstract final class ErrorCodeMapper {
     'NICKNAME_INVALID': ErrorCode.nicknameInvalid,
     'NICKNAME_FORBIDDEN': ErrorCode.nicknameForbidden,
     'REPORT_ALREADY_EXISTS': ErrorCode.reportAlreadyExists,
+    'COMMUNITY_SOLVE_REQUIRED': ErrorCode.communitySolveRequired,
+    // 글 작성 거절: 내용 길이·금칙어(400), 같은 내용 반복(409), 속도·하루 한도(429)는 상태코드 분류와 서버 문구를 그대로 쓴다
+    'COMMUNITY_CONTENT_INVALID': ErrorCode.validation,
+    'COMMUNITY_CONTENT_FORBIDDEN_WORD': ErrorCode.validation,
+    'COMMUNITY_POST_DUPLICATE': ErrorCode.conflict,
+    'COMMUNITY_POST_RATE_LIMITED': ErrorCode.rateLimited,
+    'COMMUNITY_POST_DAILY_LIMIT_EXCEEDED': ErrorCode.rateLimited,
+    // 이미지 업로드 거절: 형식·크기·총용량·장수(400/413)는 입력 오류, 속도·하루 한도(429)는 제한, 저장소 장애(503)는 별도 분류
+    'COMMUNITY_IMAGE_INVALID_FORMAT': ErrorCode.validation,
+    'COMMUNITY_IMAGE_DIMENSION_EXCEEDED': ErrorCode.validation,
+    'COMMUNITY_IMAGE_QUOTA_EXCEEDED': ErrorCode.validation,
+    'COMMUNITY_IMAGE_TOO_LARGE': ErrorCode.validation,
+    'COMMUNITY_IMAGE_TOO_MANY': ErrorCode.validation,
+    'COMMUNITY_IMAGE_INVALID_ATTACHMENT': ErrorCode.validation,
+    'COMMUNITY_IMAGE_NOT_FOUND': ErrorCode.notFound,
+    'COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED': ErrorCode.rateLimited,
+    'COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED': ErrorCode.rateLimited,
+    'COMMUNITY_IMAGE_STORAGE_UNAVAILABLE': ErrorCode.communityImageUnavailable,
     'DAILY_SET_ALREADY_COMPLETED': ErrorCode.dailySetAlreadyCompleted,
     'DAILY_SET_NOT_FOUND': ErrorCode.dailySetNotFound,
     // AI 사용 불가: 서버 연결 실패, 대체 경로 실패, 선택지 생성 실패(SSE GENERATION_FAILED 포함)
