@@ -31,7 +31,7 @@ git checkout main
 그 PR이 만들어지는 순간 버전 확정·릴리스 노트 생성·자동 머지가 돌아갑니다.
 `develop`이 없으면 그 흐름이 시작되지 않습니다.
 
-> 다른 이름을 쓰고 싶으면 `version.yml`의 `metadata.deploy_branch`를 바꾸세요.
+> 다른 이름을 쓰고 싶으면 `version.yml`의 `metadata.development_branch`를 바꾸세요 (구 이름 `deploy_branch`도 같은 값으로 함께 적혀 있습니다).
 
 ---
 
@@ -157,7 +157,7 @@ npx projectops로 통합 시 자동 안내되지만, 수동으로도 설치할 �
 
 | IDE | 설치 방법 | 사용 예시 |
 |-----|----------|----------|
-| **Claude Code** | 플러그인 마켓플레이스 (CLI) | `/pro-analyze`, `/pro-review` |
+| **Claude Code** | 플러그인 마켓플레이스 (CLI) | `/pro-github`, `/pro-review` |
 | **Cursor** | `.cursor/skills/` 폴더 복사 | Skills 패널에서 선택 |
 | **Gemini CLI** | `gemini extensions install` | extension 명령 |
 | **Codex CLI** | `codex plugin marketplace add` | `/plugins`에서 확인 |
