@@ -1,10 +1,12 @@
 package com.passql.question.entity;
 
 import com.passql.common.entity.BaseEntity;
+import com.passql.question.constant.ChoiceExplanationStatus;
 import com.passql.question.constant.ChoiceSetSource;
 import com.passql.question.constant.ChoiceSetStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -31,6 +33,8 @@ import java.util.UUID;
         )
     }
 )
+// 바뀐 컬럼만 UPDATE: 제출의 소비 시각 저장이 백그라운드 해설 저장(explanation_*)을 옛 값으로 덮지 않게 (#521)
+@DynamicUpdate
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -93,4 +97,22 @@ public class QuestionChoiceSet extends BaseEntity {
 
     @Column(length = 64)
     private String lastErrorCode;
+
+    // 세트 단위 구조화 AI 해설 JSON (ChoiceSetExplanation, 조회만 하고 내부 검색 없어 TEXT) (#521)
+    @Column(columnDefinition = "TEXT")
+    private String explanationJson;
+
+    // 해설을 만든 프롬프트 버전 (ChoiceSetExplanationPrompt.PROMPT_VERSION 과 다르면 백그라운드 재생성)
+    private Integer explanationPromptVersion;
+
+    // 해설 상태 (null: 아직 요청 없음)
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private ChoiceExplanationStatus explanationStatus;
+
+    // 상태가 바뀐 시각 (GENERATING 이 오래 멈춰 있으면 다시 맡을 수 있음)
+    private LocalDateTime explanationStatusChangedAt;
+
+    // 생성 시도 횟수 (FAILED 재시도 상한 판단, 프롬프트 버전 갱신 시 1부터 다시)
+    private Integer explanationAttemptCount;
 }

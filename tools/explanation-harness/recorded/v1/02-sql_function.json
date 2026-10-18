@@ -1,0 +1,7 @@
+{
+  "source": "handwritten-fixture (Gemini 키 IP 제한으로 로컬 실호출 불가, 형식·검증 경로 확인용 수기 예시)",
+  "promptVersion": 1,
+  "attemptCount": 1,
+  "elapsedMilliseconds": 0,
+  "rawResponse": "{\"correctChoiceKey\": \"A\", \"correctReason\": \"`SAL + COMM` 은 한쪽이 NULL 이면 NULL. 1번(100+NULL)·3번(NULL+30) 행은 NULL, 2번 행만 250. `SUM` 은 NULL 을 제외해 250.\", \"keyConcepts\": [{\"name\": \"NULL 산술 연산\", \"description\": \"NULL 과 사칙연산 결과는 항상 NULL\"}, {\"name\": \"집계 함수와 NULL\", \"description\": \"`SUM`·`AVG`·`COUNT(컬럼)` 은 NULL 행 제외\"}], \"confusingPoints\": [\"`SUM(SAL) + SUM(COMM)` 은 열별로 NULL 을 먼저 빼고 더해 380\", \"NULL 이 섞여도 `SUM` 결과 전체가 NULL 이 되지는 않음\"], \"choiceAnalyses\": [{\"choiceKey\": \"A\", \"isCorrect\": true, \"reason\": \"행 단위 덧셈 후 NULL 제외 합계 250\"}, {\"choiceKey\": \"B\", \"isCorrect\": false, \"reason\": \"380 은 `SUM(SAL) + SUM(COMM)` 값\"}, {\"choiceKey\": \"C\", \"isCorrect\": false, \"reason\": \"300 은 SAL 합계만 더한 값\"}, {\"choiceKey\": \"D\", \"isCorrect\": false, \"reason\": \"`SUM` 은 NULL 행을 건너뛰어 NULL 아님\"}], \"examTip\": \"행 안 연산이 먼저, 집계는 그다음. NULL 섞인 행부터 표시\"}"
+}

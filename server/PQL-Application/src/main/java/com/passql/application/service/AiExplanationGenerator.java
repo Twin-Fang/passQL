@@ -6,24 +6,22 @@ import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.entity.PromptTemplate;
 import com.passql.meta.service.PromptService;
 import com.passql.question.entity.Question;
-import com.passql.question.entity.QuestionChoiceSetItem;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
- * AI 해설 문구 생성: 프롬프트 조립 > Gemini 호출 > 공백 정리 (저장은 호출한 쪽 책임)
- * 프롬프트는 DB(prompt_template)의 'diff_explain'·'explain_error' 활성 버전 (관리자 화면에서 변경)
+ * SQL 오류 AI 해설 문구 생성: 프롬프트 조립 > Gemini 호출 > 공백 정리 (저장은 호출한 쪽 책임)
+ * 프롬프트는 DB(prompt_template)의 'explain_error' 활성 버전 (관리자 화면에서 변경)
+ * 선택지 해설은 세트 단위 구조화 해설 ChoiceSetExplanationGenerator (#521)
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class AiExplanationGenerator {
 
-    static final String PROMPT_DIFF = "diff_explain";
     static final String PROMPT_ERROR = "explain_error";
 
     /**
@@ -49,24 +47,6 @@ public class AiExplanationGenerator {
     /** 생성된 해설 문구 + 만든 프롬프트 버전 */
     public record GeneratedExplanation(String text, Integer promptVersion) {}
 
-    /** 선택지 해설 프롬프트의 현재 활성 버전 (저장된 해설이 낡았는지 판단) */
-    public Integer activeChoicePromptVersion() {
-        return promptService.getActivePrompt(PROMPT_DIFF).getVersion();
-    }
-
-    /** 선택지 1개를 골랐을 때의 해설: 문제·샘플 데이터·전체 선택지·정답 비교 */
-    public GeneratedExplanation generateChoiceExplanation(
-            Question question, List<QuestionChoiceSetItem> items, String selectedKey) {
-        QuestionChoiceSetItem selected = items.stream()
-                .filter(item -> item.getChoiceKey().equals(selectedKey)).findFirst().orElse(null);
-        QuestionChoiceSetItem correct = items.stream()
-                .filter(item -> Boolean.TRUE.equals(item.getIsCorrect())).findFirst().orElse(null);
-        PromptTemplate prompt = promptService.getActivePrompt(PROMPT_DIFF);
-        String userPrompt = buildDiffPrompt(question, items, selected, correct, selectedKey);
-        return new GeneratedExplanation(
-                call(prompt, userPrompt, "diffExplain", question.getQuestionUuid()), prompt.getVersion());
-    }
-
     /** SQL 실행 오류 해설: 문제·스키마·실행한 SQL·오류 메시지 */
     public GeneratedExplanation generateErrorExplanation(Question question, String sql, String errorMessage) {
         PromptTemplate prompt = promptService.getActivePrompt(PROMPT_ERROR);
@@ -91,43 +71,6 @@ public class AiExplanationGenerator {
                 + ANSWER_RULES;
         return new GeneratedExplanation(
                 call(prompt, userPrompt, "explainError", question.getQuestionUuid()), prompt.getVersion());
-    }
-
-    /**
-     * 문제·샘플 데이터·전체 선택지·고른 답·정답을 함께 넘긴다.
-     * 전체 선택지와 샘플 데이터가 있어야 '나머지와 다른 것' 같은 문제를 실제 결과로 비교할 수 있다(#356 실험).
-     */
-    private String buildDiffPrompt(Question q, List<QuestionChoiceSetItem> items,
-                                   QuestionChoiceSetItem selected, QuestionChoiceSetItem correct, String selectedKey) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("문제: ").append(nz(q.getStem())).append("\n\n");
-        appendIfPresent(sb, "테이블 구조", q.getSchemaDdl());
-        appendIfPresent(sb, "샘플 데이터", q.getSchemaSampleData());
-        appendIfPresent(sb, "기준 SQL", q.getAnswerSql());
-        if (!items.isEmpty()) {
-            sb.append("선택지 전체:\n");
-            for (QuestionChoiceSetItem i : items) {
-                sb.append(i.getChoiceKey()).append(". ").append(nz(i.getBody())).append("\n");
-            }
-            sb.append("\n");
-        }
-        String sel = selected != null ? selected.getChoiceKey() : selectedKey;
-        if (sel != null) sb.append("학습자가 고른 선택지: ").append(sel).append("\n");
-        if (correct != null) {
-            sb.append("정답 선택지: ").append(correct.getChoiceKey()).append("\n");
-            if (correct.getRationale() != null && !correct.getRationale().isBlank()) {
-                sb.append("정답 근거(참고): ").append(correct.getRationale()).append("\n");
-            }
-        }
-        boolean isCorrect = selected != null && correct != null && selected.getChoiceKey().equals(correct.getChoiceKey());
-        sb.append("\n").append(isCorrect
-                ? "학습자는 정답을 골랐습니다. 이 선택지가 왜 답인지, 다른 선택지와 무엇이 다른지 설명해 주세요."
-                : "학습자가 고른 선택지가 왜 답이 아닌지, 정답 선택지가 왜 답인지 비교해서 설명해 주세요.");
-        return sb + ANSWER_RULES;
-    }
-
-    private static void appendIfPresent(StringBuilder sb, String label, String value) {
-        if (value != null && !value.isBlank()) sb.append(label).append(":\n").append(value).append("\n\n");
     }
 
     private String call(PromptTemplate prompt, String userPrompt, String kind, UUID questionUuid) {

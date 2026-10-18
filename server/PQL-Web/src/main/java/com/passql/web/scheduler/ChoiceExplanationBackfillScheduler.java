@@ -7,8 +7,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * 해설 없는 기존 선택지 세트 백필 (#496): 10분마다 최신 세트 몇 개씩 선택지 해설을 채운다
- * 한 번에 적게(세트 3개 = Gemini 최대 12회) 돌려 비용과 스케줄러 점유를 낮춘다.
+ * 해설 필요한 선택지 세트 백필 (#496, #521): 10분마다 최신 세트 몇 개씩 (해설 없음·낡은 프롬프트 버전·재시도 가능 실패)
+ * 한 번에 적게(세트 6개 = Gemini 최대 12회, 세트당 1회 + 위반 시 재시도 1회) 돌려 비용과 스케줄러 점유를 낮춘다.
  */
 @Slf4j
 @Component
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 public class ChoiceExplanationBackfillScheduler {
 
     // 실행 1회당 처리할 세트 수
-    private static final int SETS_PER_RUN = 3;
+    private static final int SETS_PER_RUN = 6;
 
     private final ChoiceExplanationService choiceExplanationService;
 

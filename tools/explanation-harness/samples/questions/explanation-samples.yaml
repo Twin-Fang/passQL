@@ -1,0 +1,314 @@
+# AI 해설 하네스 샘플 문제 (#521)
+# 형식: tools/sqld-question-harness/harness.py 문제 YAML (Oracle 실행으로 정답 검증 > samples/oracle-verified-import.json)
+# 유형 분포: 결과값 묻기 5, '나머지와 다른 것' 1, 항상 올바른 SQL 1, 트랜잭션 1, 개념형 1
+---
+id: exp_window_dense_rank
+topicCode: sql_window
+difficulty: 2
+stem: 다음 SQL 을 실행했을 때 CHOI 의 RNK 값은?
+tables:
+  - name: EMP
+    columns: [ENAME, SAL]
+    rows: [[KIM, 300], [LEE, 200], [PARK, 200], [CHOI, 100]]
+displaySql: |
+  SELECT ENAME, DENSE_RANK() OVER (ORDER BY SAL DESC) AS RNK
+  FROM EMP
+ddl: |
+  CREATE TABLE EMP (ENAME VARCHAR2(10), SAL NUMBER);
+data: |
+  INSERT INTO EMP VALUES ('KIM', 300);
+  INSERT INTO EMP VALUES ('LEE', 200);
+  INSERT INTO EMP VALUES ('PARK', 200);
+  INSERT INTO EMP VALUES ('CHOI', 100);
+answerSql: |
+  SELECT RNK FROM (SELECT ENAME, DENSE_RANK() OVER (ORDER BY SAL DESC) AS RNK FROM EMP) WHERE ENAME = 'CHOI'
+choices:
+  - body: "3"
+    isCorrect: true
+    rationale: DENSE_RANK 는 동점(LEE·PARK 2위) 뒤 순위를 건너뛰지 않아 CHOI 는 3
+    expect: {scalar: 3}
+  - body: "4"
+    rationale: RANK 였다면 동점 2명 뒤 순위를 건너뛰어 4
+    expect: {scalar: 4}
+  - body: "2"
+    rationale: 2 는 동점인 LEE·PARK 의 순위
+    expect: {scalar: 2}
+  - body: "1"
+    rationale: 1 은 최고 급여 KIM 의 순위
+    expect: {scalar: 1}
+---
+id: exp_function_null_arith
+topicCode: sql_function
+difficulty: 2
+stem: 다음 SQL 의 실행 결과는?
+tables:
+  - name: T
+    columns: [ID, SAL, COMM]
+    rows: [[1, 100, null], [2, 200, 50], [3, null, 30]]
+displaySql: |
+  SELECT SUM(SAL + COMM) FROM T
+ddl: |
+  CREATE TABLE T (ID NUMBER, SAL NUMBER, COMM NUMBER);
+data: |
+  INSERT INTO T VALUES (1, 100, NULL);
+  INSERT INTO T VALUES (2, 200, 50);
+  INSERT INTO T VALUES (3, NULL, 30);
+answerSql: |
+  SELECT SUM(SAL + COMM) FROM T
+choices:
+  - body: "250"
+    isCorrect: true
+    rationale: SAL + COMM 은 한쪽이 NULL 이면 NULL, 2번 행만 250 이고 SUM 은 NULL 을 제외
+    expect: {scalar: 250}
+  - body: "380"
+    rationale: SUM(SAL) + SUM(COMM) 처럼 열별로 먼저 더했을 때 값
+    expect: {scalar: 380}
+  - body: "300"
+    rationale: SAL 합계만 더한 값
+    expect: {scalar: 300}
+  - body: "NULL"
+    rationale: SUM 은 NULL 행을 건너뛰므로 결과 전체가 NULL 이 되지 않음
+    expect: {scalar: "NULL"}
+---
+id: exp_group_count_differs
+topicCode: sql_group_aggregate
+difficulty: 3
+stem: 부서별로 보너스를 받은 사원 수를 구하려고 한다. 다음 SQL 중 실행 결과가 나머지와 다른 것은?
+tables:
+  - name: T
+    columns: [DEPT, BONUS]
+    rows: [[A, 10], [A, null], [B, null], [B, null], [C, 5]]
+ddl: |
+  CREATE TABLE T (DEPT VARCHAR2(5), BONUS NUMBER);
+data: |
+  INSERT INTO T VALUES ('A', 10);
+  INSERT INTO T VALUES ('A', NULL);
+  INSERT INTO T VALUES ('B', NULL);
+  INSERT INTO T VALUES ('B', NULL);
+  INSERT INTO T VALUES ('C', 5);
+answerSql: |
+  SELECT DEPT, COUNT(BONUS) FROM T GROUP BY DEPT ORDER BY DEPT
+choices:
+  - kind: SQL
+    body: SELECT DEPT, COUNT(BONUS) FROM T GROUP BY DEPT ORDER BY DEPT
+    rationale: COUNT(컬럼) 은 NULL 을 세지 않아 A 1, B 0, C 1
+    expect: {same_as_answer: true}
+  - kind: SQL
+    body: SELECT DEPT, SUM(CASE WHEN BONUS IS NOT NULL THEN 1 ELSE 0 END) FROM T GROUP BY DEPT ORDER BY DEPT
+    rationale: NULL 이 아닌 행만 1 로 더해 COUNT(BONUS) 와 같은 결과
+    expect: {same_as_answer: true}
+  - kind: SQL
+    body: SELECT DEPT, COUNT(*) FROM T GROUP BY DEPT ORDER BY DEPT
+    isCorrect: true
+    rationale: COUNT(*) 는 NULL 행까지 세어 A 2, B 2, C 1 로 결과가 다름
+    expect: {same_as_answer: false}
+  - kind: SQL
+    body: SELECT DEPT, COUNT(CASE WHEN BONUS IS NOT NULL THEN 1 END) FROM T GROUP BY DEPT ORDER BY DEPT
+    rationale: 조건이 거짓이면 CASE 가 NULL 이 되어 COUNT 에서 빠지므로 같은 결과
+    expect: {same_as_answer: true}
+---
+id: exp_join_left_outer_count
+topicCode: sql_join
+difficulty: 2
+stem: 다음 SQL 의 실행 결과는?
+tables:
+  - name: DEPT
+    columns: [DEPTNO, DNAME]
+    rows: [[10, ACC], [20, RES], [30, SALES]]
+  - name: EMP
+    columns: [EMPNO, DEPTNO]
+    rows: [[1, 10], [2, 10], [3, 20], [4, null]]
+displaySql: |
+  SELECT COUNT(*)
+  FROM DEPT D LEFT OUTER JOIN EMP E ON D.DEPTNO = E.DEPTNO
+ddl: |
+  CREATE TABLE DEPT (DEPTNO NUMBER, DNAME VARCHAR2(10));
+  CREATE TABLE EMP (EMPNO NUMBER, DEPTNO NUMBER);
+data: |
+  INSERT INTO DEPT VALUES (10, 'ACC');
+  INSERT INTO DEPT VALUES (20, 'RES');
+  INSERT INTO DEPT VALUES (30, 'SALES');
+  INSERT INTO EMP VALUES (1, 10);
+  INSERT INTO EMP VALUES (2, 10);
+  INSERT INTO EMP VALUES (3, 20);
+  INSERT INTO EMP VALUES (4, NULL);
+answerSql: |
+  SELECT COUNT(*) FROM DEPT D LEFT OUTER JOIN EMP E ON D.DEPTNO = E.DEPTNO
+choices:
+  - body: "3"
+    rationale: INNER JOIN 결과 행 수 (짝 없는 SALES 제외)
+    expect: {scalar: 3}
+  - body: "4"
+    isCorrect: true
+    rationale: DEPT 기준 ACC 2행, RES 1행, 짝 없는 SALES 도 NULL 채워 1행 남아 4
+    expect: {scalar: 4}
+  - body: "5"
+    rationale: FULL OUTER JOIN 이면 부서 없는 사원 4 까지 더해 5
+    expect: {scalar: 5}
+  - body: "2"
+    rationale: 사원이 있는 부서 수일 뿐 조인 행 수가 아님
+    expect: {scalar: 2}
+---
+id: exp_set_union_count
+topicCode: sql_basic_select
+difficulty: 1
+stem: 다음 SQL 의 실행 결과 행 수는?
+tables:
+  - name: A
+    columns: [X]
+    rows: [[1], [2], [2]]
+  - name: B
+    columns: [X]
+    rows: [[2], [3]]
+displaySql: |
+  SELECT X FROM A
+  UNION
+  SELECT X FROM B
+ddl: |
+  CREATE TABLE A (X NUMBER);
+  CREATE TABLE B (X NUMBER);
+data: |
+  INSERT INTO A VALUES (1);
+  INSERT INTO A VALUES (2);
+  INSERT INTO A VALUES (2);
+  INSERT INTO B VALUES (2);
+  INSERT INTO B VALUES (3);
+answerSql: |
+  SELECT COUNT(*) FROM (SELECT X FROM A UNION SELECT X FROM B)
+choices:
+  - body: "3"
+    isCorrect: true
+    rationale: UNION 은 중복을 제거해 1, 2, 3 세 행
+    expect: {scalar: 3}
+  - body: "5"
+    rationale: UNION ALL 이면 중복 포함 5행
+    expect: {scalar: 5}
+  - body: "4"
+    rationale: A 의 중복만 남기고 B 와의 중복만 지운 잘못된 계산
+    expect: {scalar: 4}
+  - body: "2"
+    rationale: 두 테이블에 모두 있는 값(INTERSECT) 수는 1, 2 는 근거 없음
+    expect: {scalar: 2}
+---
+id: exp_oracle_rownum_topn
+topicCode: sql_subquery
+difficulty: 3
+stem: Oracle 에서 급여가 가장 높은 사원 1명의 이름을 구하려고 한다. 항상 올바른 결과를 내는 SQL 은?
+tables:
+  - name: EMP
+    columns: [ENAME, SAL]
+    rows: [[A, 100], [B, 300], [C, 200]]
+ddl: |
+  CREATE TABLE EMP (ENAME VARCHAR2(10), SAL NUMBER);
+data: |
+  INSERT INTO EMP VALUES ('A', 100);
+  INSERT INTO EMP VALUES ('B', 300);
+  INSERT INTO EMP VALUES ('C', 200);
+answerSql: |
+  SELECT ENAME FROM EMP WHERE SAL = (SELECT MAX(SAL) FROM EMP)
+choices:
+  - kind: SQL
+    body: SELECT ENAME FROM EMP WHERE ROWNUM = 1 ORDER BY SAL DESC
+    rationale: ROWNUM 은 정렬 전에 매겨져 임의의 첫 행 1개를 고른 뒤 정렬
+    expect: {same_as_answer: false}
+  - kind: SQL
+    body: SELECT ENAME FROM (SELECT ENAME FROM EMP ORDER BY SAL DESC) WHERE ROWNUM = 1
+    isCorrect: true
+    rationale: 인라인 뷰에서 먼저 정렬한 뒤 ROWNUM 1 을 잘라 최고 급여 B
+    expect: {same_as_answer: true}
+  - kind: SQL
+    body: SELECT ENAME FROM (SELECT ENAME FROM EMP ORDER BY SAL DESC) WHERE ROWNUM = 2
+    rationale: ROWNUM = 2 는 첫 행이 1 을 받지 못해 항상 0행
+    expect: {same_as_answer: false}
+  - kind: SQL
+    body: SELECT ENAME FROM EMP WHERE SAL = (SELECT MIN(SAL) FROM EMP)
+    rationale: MIN 은 가장 낮은 급여 A
+    expect: {same_as_answer: false}
+---
+id: exp_oracle_connect_by_reverse
+topicCode: sql_hierarchy_pivot
+difficulty: 3
+stem: 다음 SQL 의 실행 결과는?
+tables:
+  - name: EMP
+    columns: [EMPNO, MGR, ENAME]
+    rows: [[1, null, KING], [2, 1, JONES], [3, 2, SCOTT], [4, 1, BLAKE]]
+displaySql: |
+  SELECT COUNT(*)
+  FROM EMP
+  START WITH ENAME = 'SCOTT'
+  CONNECT BY PRIOR MGR = EMPNO
+ddl: |
+  CREATE TABLE EMP (EMPNO NUMBER, MGR NUMBER, ENAME VARCHAR2(10));
+data: |
+  INSERT INTO EMP VALUES (1, NULL, 'KING');
+  INSERT INTO EMP VALUES (2, 1, 'JONES');
+  INSERT INTO EMP VALUES (3, 2, 'SCOTT');
+  INSERT INTO EMP VALUES (4, 1, 'BLAKE');
+answerSql: |
+  SELECT COUNT(*) FROM EMP START WITH ENAME = 'SCOTT' CONNECT BY PRIOR MGR = EMPNO
+choices:
+  - body: "1"
+    rationale: PRIOR EMPNO = MGR (순방향)이었다면 SCOTT 아래 부하가 없어 1
+    expect: {scalar: 1}
+  - body: "2"
+    rationale: KING 까지 올라가지 않고 한 단계에서 멈춘 계산
+    expect: {scalar: 2}
+  - body: "3"
+    isCorrect: true
+    rationale: PRIOR MGR = EMPNO 는 역방향, SCOTT > JONES > KING 3행
+    expect: {scalar: 3}
+  - body: "4"
+    rationale: KING 에서 순방향으로 전체를 전개했을 때 행 수
+    expect: {scalar: 4}
+---
+id: exp_tcl_ddl_autocommit
+topicCode: sql_ddl_dml_tcl
+difficulty: 3
+stem: Oracle 에서 테이블 T(X NUMBER) 가 비어 있을 때 다음 문장을 순서대로 실행했다. 마지막 SELECT 결과는?
+displaySql: |
+  INSERT INTO T VALUES (1);
+  CREATE TABLE T2 (Y NUMBER);
+  ROLLBACK;
+  SELECT COUNT(*) FROM T;
+ddl: |
+  CREATE TABLE T (X NUMBER);
+answerSql: |
+  INSERT INTO T VALUES (1);
+  CREATE TABLE T2 (Y NUMBER);
+  ROLLBACK;
+  SELECT COUNT(*) FROM T;
+choices:
+  - body: "0"
+    rationale: ROLLBACK 이 INSERT 를 취소한다고 본 경우, 실제로는 DDL 이 먼저 커밋
+    expect: {scalar: 0}
+  - body: "1"
+    isCorrect: true
+    rationale: Oracle DDL(CREATE TABLE) 은 실행 전 자동 커밋, INSERT 가 확정되어 ROLLBACK 대상 아님
+    expect: {scalar: 1}
+  - body: 오류 발생
+    rationale: 모든 문장은 정상 실행
+    expect: {scalar: 오류 발생}
+  - body: "2"
+    rationale: INSERT 는 1번만 실행
+    expect: {scalar: 2}
+---
+id: exp_model_second_normal_form
+topicCode: data_modeling
+difficulty: 2
+stem: 제2정규형(2NF)에 대한 설명으로 옳은 것은?
+sourceNote: 정규화 정의 (1NF 원자값, 2NF 부분 함수 종속 제거, 3NF 이행 함수 종속 제거, BCNF 결정자 후보키)
+choices:
+  - body: 기본키가 아닌 속성이 기본키 전체에 완전 함수 종속되도록 부분 함수 종속을 제거한다
+    isCorrect: true
+    rationale: 2NF 정의, 복합 기본키 일부에만 종속된 속성을 분리
+    expect: {concept: true}
+  - body: 기본키가 아닌 속성 사이의 이행적 함수 종속을 제거한다
+    rationale: 이행 함수 종속 제거는 3NF
+    expect: {concept: true}
+  - body: 모든 속성 값이 원자값이 되도록 반복 그룹을 제거한다
+    rationale: 원자값·반복 그룹 제거는 1NF
+    expect: {concept: true}
+  - body: 모든 결정자가 후보키가 되도록 분해한다
+    rationale: 결정자가 모두 후보키여야 하는 것은 BCNF
+    expect: {concept: true}

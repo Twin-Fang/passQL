@@ -1,0 +1,389 @@
+[
+  {
+    "questionUuid": null,
+    "topicCode": "sql_window",
+    "difficulty": 2,
+    "executionMode": "CONCEPT_ONLY",
+    "choiceSetPolicy": "CURATED_ONLY",
+    "stem": "다음 SQL 을 실행했을 때 CHOI 의 RNK 값은?\n\n[EMP]\n| ENAME | SAL |\n| --- | --- |\n| KIM | 300 |\n| LEE | 200 |\n| PARK | 200 |\n| CHOI | 100 |\n\n```sql\nSELECT ENAME, DENSE_RANK() OVER (ORDER BY SAL DESC) AS RNK\nFROM EMP\n```",
+    "hint": null,
+    "schemaDdl": "CREATE TABLE EMP (ENAME VARCHAR2(10), SAL NUMBER);\n",
+    "schemaSampleData": "INSERT INTO EMP VALUES ('KIM', 300);\nINSERT INTO EMP VALUES ('LEE', 200);\nINSERT INTO EMP VALUES ('PARK', 200);\nINSERT INTO EMP VALUES ('CHOI', 100);\n",
+    "schemaIntent": null,
+    "answerSql": "SELECT RNK FROM (SELECT ENAME, DENSE_RANK() OVER (ORDER BY SAL DESC) AS RNK FROM EMP) WHERE ENAME = 'CHOI'\n",
+    "choices": [
+      {
+        "choiceKey": "A",
+        "kind": "TEXT",
+        "body": "3",
+        "isCorrect": true,
+        "rationale": "DENSE_RANK 는 동점(LEE·PARK 2위) 뒤 순위를 건너뛰지 않아 CHOI 는 3"
+      },
+      {
+        "choiceKey": "B",
+        "kind": "TEXT",
+        "body": "4",
+        "isCorrect": false,
+        "rationale": "RANK 였다면 동점 2명 뒤 순위를 건너뛰어 4"
+      },
+      {
+        "choiceKey": "C",
+        "kind": "TEXT",
+        "body": "2",
+        "isCorrect": false,
+        "rationale": "2 는 동점인 LEE·PARK 의 순위"
+      },
+      {
+        "choiceKey": "D",
+        "kind": "TEXT",
+        "body": "1",
+        "isCorrect": false,
+        "rationale": "1 은 최고 급여 KIM 의 순위"
+      }
+    ]
+  },
+  {
+    "questionUuid": null,
+    "topicCode": "sql_function",
+    "difficulty": 2,
+    "executionMode": "CONCEPT_ONLY",
+    "choiceSetPolicy": "CURATED_ONLY",
+    "stem": "다음 SQL 의 실행 결과는?\n\n[T]\n| ID | SAL | COMM |\n| --- | --- | --- |\n| 1 | 100 | NULL |\n| 2 | 200 | 50 |\n| 3 | NULL | 30 |\n\n```sql\nSELECT SUM(SAL + COMM) FROM T\n```",
+    "hint": null,
+    "schemaDdl": "CREATE TABLE T (ID NUMBER, SAL NUMBER, COMM NUMBER);\n",
+    "schemaSampleData": "INSERT INTO T VALUES (1, 100, NULL);\nINSERT INTO T VALUES (2, 200, 50);\nINSERT INTO T VALUES (3, NULL, 30);\n",
+    "schemaIntent": null,
+    "answerSql": "SELECT SUM(SAL + COMM) FROM T\n",
+    "choices": [
+      {
+        "choiceKey": "A",
+        "kind": "TEXT",
+        "body": "250",
+        "isCorrect": true,
+        "rationale": "SAL + COMM 은 한쪽이 NULL 이면 NULL, 2번 행만 250 이고 SUM 은 NULL 을 제외"
+      },
+      {
+        "choiceKey": "B",
+        "kind": "TEXT",
+        "body": "380",
+        "isCorrect": false,
+        "rationale": "SUM(SAL) + SUM(COMM) 처럼 열별로 먼저 더했을 때 값"
+      },
+      {
+        "choiceKey": "C",
+        "kind": "TEXT",
+        "body": "300",
+        "isCorrect": false,
+        "rationale": "SAL 합계만 더한 값"
+      },
+      {
+        "choiceKey": "D",
+        "kind": "TEXT",
+        "body": "NULL",
+        "isCorrect": false,
+        "rationale": "SUM 은 NULL 행을 건너뛰므로 결과 전체가 NULL 이 되지 않음"
+      }
+    ]
+  },
+  {
+    "questionUuid": null,
+    "topicCode": "sql_group_aggregate",
+    "difficulty": 3,
+    "executionMode": "CONCEPT_ONLY",
+    "choiceSetPolicy": "CURATED_ONLY",
+    "stem": "부서별로 보너스를 받은 사원 수를 구하려고 한다. 다음 SQL 중 실행 결과가 나머지와 다른 것은?\n\n[T]\n| DEPT | BONUS |\n| --- | --- |\n| A | 10 |\n| A | NULL |\n| B | NULL |\n| B | NULL |\n| C | 5 |",
+    "hint": null,
+    "schemaDdl": "CREATE TABLE T (DEPT VARCHAR2(5), BONUS NUMBER);\n",
+    "schemaSampleData": "INSERT INTO T VALUES ('A', 10);\nINSERT INTO T VALUES ('A', NULL);\nINSERT INTO T VALUES ('B', NULL);\nINSERT INTO T VALUES ('B', NULL);\nINSERT INTO T VALUES ('C', 5);\n",
+    "schemaIntent": null,
+    "answerSql": "SELECT DEPT, COUNT(BONUS) FROM T GROUP BY DEPT ORDER BY DEPT\n",
+    "choices": [
+      {
+        "choiceKey": "A",
+        "kind": "SQL",
+        "body": "SELECT DEPT, COUNT(BONUS) FROM T GROUP BY DEPT ORDER BY DEPT",
+        "isCorrect": false,
+        "rationale": "COUNT(컬럼) 은 NULL 을 세지 않아 A 1, B 0, C 1"
+      },
+      {
+        "choiceKey": "B",
+        "kind": "SQL",
+        "body": "SELECT DEPT, SUM(CASE WHEN BONUS IS NOT NULL THEN 1 ELSE 0 END) FROM T GROUP BY DEPT ORDER BY DEPT",
+        "isCorrect": false,
+        "rationale": "NULL 이 아닌 행만 1 로 더해 COUNT(BONUS) 와 같은 결과"
+      },
+      {
+        "choiceKey": "C",
+        "kind": "SQL",
+        "body": "SELECT DEPT, COUNT(*) FROM T GROUP BY DEPT ORDER BY DEPT",
+        "isCorrect": true,
+        "rationale": "COUNT(*) 는 NULL 행까지 세어 A 2, B 2, C 1 로 결과가 다름"
+      },
+      {
+        "choiceKey": "D",
+        "kind": "SQL",
+        "body": "SELECT DEPT, COUNT(CASE WHEN BONUS IS NOT NULL THEN 1 END) FROM T GROUP BY DEPT ORDER BY DEPT",
+        "isCorrect": false,
+        "rationale": "조건이 거짓이면 CASE 가 NULL 이 되어 COUNT 에서 빠지므로 같은 결과"
+      }
+    ]
+  },
+  {
+    "questionUuid": null,
+    "topicCode": "sql_join",
+    "difficulty": 2,
+    "executionMode": "CONCEPT_ONLY",
+    "choiceSetPolicy": "CURATED_ONLY",
+    "stem": "다음 SQL 의 실행 결과는?\n\n[DEPT]\n| DEPTNO | DNAME |\n| --- | --- |\n| 10 | ACC |\n| 20 | RES |\n| 30 | SALES |\n\n[EMP]\n| EMPNO | DEPTNO |\n| --- | --- |\n| 1 | 10 |\n| 2 | 10 |\n| 3 | 20 |\n| 4 | NULL |\n\n```sql\nSELECT COUNT(*)\nFROM DEPT D LEFT OUTER JOIN EMP E ON D.DEPTNO = E.DEPTNO\n```",
+    "hint": null,
+    "schemaDdl": "CREATE TABLE DEPT (DEPTNO NUMBER, DNAME VARCHAR2(10));\nCREATE TABLE EMP (EMPNO NUMBER, DEPTNO NUMBER);\n",
+    "schemaSampleData": "INSERT INTO DEPT VALUES (10, 'ACC');\nINSERT INTO DEPT VALUES (20, 'RES');\nINSERT INTO DEPT VALUES (30, 'SALES');\nINSERT INTO EMP VALUES (1, 10);\nINSERT INTO EMP VALUES (2, 10);\nINSERT INTO EMP VALUES (3, 20);\nINSERT INTO EMP VALUES (4, NULL);\n",
+    "schemaIntent": null,
+    "answerSql": "SELECT COUNT(*) FROM DEPT D LEFT OUTER JOIN EMP E ON D.DEPTNO = E.DEPTNO\n",
+    "choices": [
+      {
+        "choiceKey": "A",
+        "kind": "TEXT",
+        "body": "3",
+        "isCorrect": false,
+        "rationale": "INNER JOIN 결과 행 수 (짝 없는 SALES 제외)"
+      },
+      {
+        "choiceKey": "B",
+        "kind": "TEXT",
+        "body": "4",
+        "isCorrect": true,
+        "rationale": "DEPT 기준 ACC 2행, RES 1행, 짝 없는 SALES 도 NULL 채워 1행 남아 4"
+      },
+      {
+        "choiceKey": "C",
+        "kind": "TEXT",
+        "body": "5",
+        "isCorrect": false,
+        "rationale": "FULL OUTER JOIN 이면 부서 없는 사원 4 까지 더해 5"
+      },
+      {
+        "choiceKey": "D",
+        "kind": "TEXT",
+        "body": "2",
+        "isCorrect": false,
+        "rationale": "사원이 있는 부서 수일 뿐 조인 행 수가 아님"
+      }
+    ]
+  },
+  {
+    "questionUuid": null,
+    "topicCode": "sql_basic_select",
+    "difficulty": 1,
+    "executionMode": "CONCEPT_ONLY",
+    "choiceSetPolicy": "CURATED_ONLY",
+    "stem": "다음 SQL 의 실행 결과 행 수는?\n\n[A]\n| X |\n| --- |\n| 1 |\n| 2 |\n| 2 |\n\n[B]\n| X |\n| --- |\n| 2 |\n| 3 |\n\n```sql\nSELECT X FROM A\nUNION\nSELECT X FROM B\n```",
+    "hint": null,
+    "schemaDdl": "CREATE TABLE A (X NUMBER);\nCREATE TABLE B (X NUMBER);\n",
+    "schemaSampleData": "INSERT INTO A VALUES (1);\nINSERT INTO A VALUES (2);\nINSERT INTO A VALUES (2);\nINSERT INTO B VALUES (2);\nINSERT INTO B VALUES (3);\n",
+    "schemaIntent": null,
+    "answerSql": "SELECT COUNT(*) FROM (SELECT X FROM A UNION SELECT X FROM B)\n",
+    "choices": [
+      {
+        "choiceKey": "A",
+        "kind": "TEXT",
+        "body": "3",
+        "isCorrect": true,
+        "rationale": "UNION 은 중복을 제거해 1, 2, 3 세 행"
+      },
+      {
+        "choiceKey": "B",
+        "kind": "TEXT",
+        "body": "5",
+        "isCorrect": false,
+        "rationale": "UNION ALL 이면 중복 포함 5행"
+      },
+      {
+        "choiceKey": "C",
+        "kind": "TEXT",
+        "body": "4",
+        "isCorrect": false,
+        "rationale": "A 의 중복만 남기고 B 와의 중복만 지운 잘못된 계산"
+      },
+      {
+        "choiceKey": "D",
+        "kind": "TEXT",
+        "body": "2",
+        "isCorrect": false,
+        "rationale": "두 테이블에 모두 있는 값(INTERSECT) 수는 1, 2 는 근거 없음"
+      }
+    ]
+  },
+  {
+    "questionUuid": null,
+    "topicCode": "sql_subquery",
+    "difficulty": 3,
+    "executionMode": "CONCEPT_ONLY",
+    "choiceSetPolicy": "CURATED_ONLY",
+    "stem": "Oracle 에서 급여가 가장 높은 사원 1명의 이름을 구하려고 한다. 항상 올바른 결과를 내는 SQL 은?\n\n[EMP]\n| ENAME | SAL |\n| --- | --- |\n| A | 100 |\n| B | 300 |\n| C | 200 |",
+    "hint": null,
+    "schemaDdl": "CREATE TABLE EMP (ENAME VARCHAR2(10), SAL NUMBER);\n",
+    "schemaSampleData": "INSERT INTO EMP VALUES ('A', 100);\nINSERT INTO EMP VALUES ('B', 300);\nINSERT INTO EMP VALUES ('C', 200);\n",
+    "schemaIntent": null,
+    "answerSql": "SELECT ENAME FROM EMP WHERE SAL = (SELECT MAX(SAL) FROM EMP)\n",
+    "choices": [
+      {
+        "choiceKey": "A",
+        "kind": "SQL",
+        "body": "SELECT ENAME FROM EMP WHERE ROWNUM = 1 ORDER BY SAL DESC",
+        "isCorrect": false,
+        "rationale": "ROWNUM 은 정렬 전에 매겨져 임의의 첫 행 1개를 고른 뒤 정렬"
+      },
+      {
+        "choiceKey": "B",
+        "kind": "SQL",
+        "body": "SELECT ENAME FROM (SELECT ENAME FROM EMP ORDER BY SAL DESC) WHERE ROWNUM = 1",
+        "isCorrect": true,
+        "rationale": "인라인 뷰에서 먼저 정렬한 뒤 ROWNUM 1 을 잘라 최고 급여 B"
+      },
+      {
+        "choiceKey": "C",
+        "kind": "SQL",
+        "body": "SELECT ENAME FROM (SELECT ENAME FROM EMP ORDER BY SAL DESC) WHERE ROWNUM = 2",
+        "isCorrect": false,
+        "rationale": "ROWNUM = 2 는 첫 행이 1 을 받지 못해 항상 0행"
+      },
+      {
+        "choiceKey": "D",
+        "kind": "SQL",
+        "body": "SELECT ENAME FROM EMP WHERE SAL = (SELECT MIN(SAL) FROM EMP)",
+        "isCorrect": false,
+        "rationale": "MIN 은 가장 낮은 급여 A"
+      }
+    ]
+  },
+  {
+    "questionUuid": null,
+    "topicCode": "sql_hierarchy_pivot",
+    "difficulty": 3,
+    "executionMode": "CONCEPT_ONLY",
+    "choiceSetPolicy": "CURATED_ONLY",
+    "stem": "다음 SQL 의 실행 결과는?\n\n[EMP]\n| EMPNO | MGR | ENAME |\n| --- | --- | --- |\n| 1 | NULL | KING |\n| 2 | 1 | JONES |\n| 3 | 2 | SCOTT |\n| 4 | 1 | BLAKE |\n\n```sql\nSELECT COUNT(*)\nFROM EMP\nSTART WITH ENAME = 'SCOTT'\nCONNECT BY PRIOR MGR = EMPNO\n```",
+    "hint": null,
+    "schemaDdl": "CREATE TABLE EMP (EMPNO NUMBER, MGR NUMBER, ENAME VARCHAR2(10));\n",
+    "schemaSampleData": "INSERT INTO EMP VALUES (1, NULL, 'KING');\nINSERT INTO EMP VALUES (2, 1, 'JONES');\nINSERT INTO EMP VALUES (3, 2, 'SCOTT');\nINSERT INTO EMP VALUES (4, 1, 'BLAKE');\n",
+    "schemaIntent": null,
+    "answerSql": "SELECT COUNT(*) FROM EMP START WITH ENAME = 'SCOTT' CONNECT BY PRIOR MGR = EMPNO\n",
+    "choices": [
+      {
+        "choiceKey": "A",
+        "kind": "TEXT",
+        "body": "1",
+        "isCorrect": false,
+        "rationale": "PRIOR EMPNO = MGR (순방향)이었다면 SCOTT 아래 부하가 없어 1"
+      },
+      {
+        "choiceKey": "B",
+        "kind": "TEXT",
+        "body": "2",
+        "isCorrect": false,
+        "rationale": "KING 까지 올라가지 않고 한 단계에서 멈춘 계산"
+      },
+      {
+        "choiceKey": "C",
+        "kind": "TEXT",
+        "body": "3",
+        "isCorrect": true,
+        "rationale": "PRIOR MGR = EMPNO 는 역방향, SCOTT > JONES > KING 3행"
+      },
+      {
+        "choiceKey": "D",
+        "kind": "TEXT",
+        "body": "4",
+        "isCorrect": false,
+        "rationale": "KING 에서 순방향으로 전체를 전개했을 때 행 수"
+      }
+    ]
+  },
+  {
+    "questionUuid": null,
+    "topicCode": "sql_ddl_dml_tcl",
+    "difficulty": 3,
+    "executionMode": "CONCEPT_ONLY",
+    "choiceSetPolicy": "CURATED_ONLY",
+    "stem": "Oracle 에서 테이블 T(X NUMBER) 가 비어 있을 때 다음 문장을 순서대로 실행했다. 마지막 SELECT 결과는?\n\n```sql\nINSERT INTO T VALUES (1);\nCREATE TABLE T2 (Y NUMBER);\nROLLBACK;\nSELECT COUNT(*) FROM T;\n```",
+    "hint": null,
+    "schemaDdl": "CREATE TABLE T (X NUMBER);\n",
+    "schemaSampleData": null,
+    "schemaIntent": null,
+    "answerSql": "INSERT INTO T VALUES (1);\nCREATE TABLE T2 (Y NUMBER);\nROLLBACK;\nSELECT COUNT(*) FROM T;\n",
+    "choices": [
+      {
+        "choiceKey": "A",
+        "kind": "TEXT",
+        "body": "0",
+        "isCorrect": false,
+        "rationale": "ROLLBACK 이 INSERT 를 취소한다고 본 경우, 실제로는 DDL 이 먼저 커밋"
+      },
+      {
+        "choiceKey": "B",
+        "kind": "TEXT",
+        "body": "1",
+        "isCorrect": true,
+        "rationale": "Oracle DDL(CREATE TABLE) 은 실행 전 자동 커밋, INSERT 가 확정되어 ROLLBACK 대상 아님"
+      },
+      {
+        "choiceKey": "C",
+        "kind": "TEXT",
+        "body": "오류 발생",
+        "isCorrect": false,
+        "rationale": "모든 문장은 정상 실행"
+      },
+      {
+        "choiceKey": "D",
+        "kind": "TEXT",
+        "body": "2",
+        "isCorrect": false,
+        "rationale": "INSERT 는 1번만 실행"
+      }
+    ]
+  },
+  {
+    "questionUuid": null,
+    "topicCode": "data_modeling",
+    "difficulty": 2,
+    "executionMode": "CONCEPT_ONLY",
+    "choiceSetPolicy": "CURATED_ONLY",
+    "stem": "제2정규형(2NF)에 대한 설명으로 옳은 것은?",
+    "hint": null,
+    "schemaDdl": null,
+    "schemaSampleData": null,
+    "schemaIntent": null,
+    "answerSql": null,
+    "choices": [
+      {
+        "choiceKey": "A",
+        "kind": "TEXT",
+        "body": "기본키가 아닌 속성이 기본키 전체에 완전 함수 종속되도록 부분 함수 종속을 제거한다",
+        "isCorrect": true,
+        "rationale": "2NF 정의, 복합 기본키 일부에만 종속된 속성을 분리"
+      },
+      {
+        "choiceKey": "B",
+        "kind": "TEXT",
+        "body": "기본키가 아닌 속성 사이의 이행적 함수 종속을 제거한다",
+        "isCorrect": false,
+        "rationale": "이행 함수 종속 제거는 3NF"
+      },
+      {
+        "choiceKey": "C",
+        "kind": "TEXT",
+        "body": "모든 속성 값이 원자값이 되도록 반복 그룹을 제거한다",
+        "isCorrect": false,
+        "rationale": "원자값·반복 그룹 제거는 1NF"
+      },
+      {
+        "choiceKey": "D",
+        "kind": "TEXT",
+        "body": "모든 결정자가 후보키가 되도록 분해한다",
+        "isCorrect": false,
+        "rationale": "결정자가 모두 후보키여야 하는 것은 BCNF"
+      }
+    ]
+  }
+]
