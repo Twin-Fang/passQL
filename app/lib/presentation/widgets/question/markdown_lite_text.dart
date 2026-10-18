@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/utils/external_url_launcher.dart';
 import '../../design/design.dart';
+import '../../../core/utils/word_wrap.dart';
 
 /// 글 종류 2종 > 글자 스타일·문단 간격
 /// explanation: AI 해설(작은 본문), article: 공지 본문(큰 본문, 넓은 문단 간격, #529)
@@ -222,7 +223,16 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
     TextStyle base,
     _WordCounter wordCounter,
   ) {
-    if (!_isWordLayout) return [TextSpan(text: text, style: style)];
+    if (!_isWordLayout) {
+      // 일반 글자·강조는 단어 단위 줄바꿈, 코드 칩은 원문 그대로
+      final isCodeChip = style?.backgroundColor != null;
+      return [
+        TextSpan(
+          text: isCodeChip ? text : keepWordsTogether(text),
+          style: style,
+        ),
+      ];
+    }
     final effectiveStyle = style == null ? base : base.merge(style);
     return [
       for (final token in _tokensKeepingSpaces(text))

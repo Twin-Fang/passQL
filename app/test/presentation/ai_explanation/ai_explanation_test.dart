@@ -18,6 +18,7 @@ import 'package:passql_app/presentation/widgets/ai_explanation/ai_explanation_hi
 import 'package:passql_app/presentation/widgets/ai_explanation/ai_explanation_preview_card.dart';
 import 'package:passql_app/presentation/widgets/ai_explanation/ai_explanation_verdict.dart';
 import 'package:passql_app/presentation/widgets/chapter/chapter_feedback_bar.dart';
+import '../../helpers/text_finders.dart';
 
 /// 해설 조회 가짜: 호출마다 준비한 응답을 차례로 돌려줌 (마지막 응답은 반복), 호출 인자 기록
 class _FakeChoiceExplanationApi implements AiApiClient {
@@ -196,7 +197,7 @@ void main() {
     await tester.pump(PassqlMotion.standard);
     expect(find.text('다시 시도'), findsOneWidget);
     // 실패 시 생성 근거 폴백
-    expect(find.textContaining('생성 근거 폴백'), findsOneWidget);
+    expect(findTextContainingIgnoringWordJoiners('생성 근거 폴백'), findsOneWidget);
 
     await tester.tap(find.text('다시 시도'));
     await tester.pump();

@@ -10,6 +10,7 @@ import 'package:passql_app/presentation/pages/notice/notice_list_page.dart';
 import 'package:passql_app/router/app_routes.dart';
 
 import '../../helpers/fakes/fake_meta_api.dart';
+import '../../helpers/text_finders.dart';
 
 /// 공지 상세·목록 핵심 흐름 (#529): 배지·제목·게시일·마크다운 본문·링크, 없는 공지, 목록 행 > 상세 > 목록 (라이트·다크)
 void main() {
@@ -59,11 +60,12 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  /// 화면의 RichText 전체 글자 (굵게·링크 조각 포함)
+  /// 화면의 RichText 전체 글자 (굵게·링크 조각 포함, 단어 잇기 문자 U+2060 제외)
   String allRichText(WidgetTester tester) => tester
       .widgetList<RichText>(find.byType(RichText))
       .map((richText) => richText.text.toPlainText())
-      .join('\n');
+      .join('\n')
+      .replaceAll('\u2060', '');
 
   for (final (themeName, theme) in [
     ('라이트', PassqlTheme.light),
@@ -124,7 +126,7 @@ void main() {
 
       await tester.tap(find.text(normalNotice.title));
       await tester.pumpAndSettle();
-      expect(find.text('02:00 ~ 04:00 동안 점검해요.'), findsOneWidget);
+      expect(findTextContainingIgnoringWordJoiners('02:00 ~ 04:00 동안 점검해요.'), findsOneWidget);
 
       // 목록에서 왔으면 다른 공지 보기 = 되돌아가기
       await tester.tap(find.text('다른 공지 보기'));
