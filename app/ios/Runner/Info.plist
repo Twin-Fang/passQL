@@ -107,6 +107,9 @@
 	<!-- AdMob 앱 ID. 값은 Flutter/Debug·Release.xcconfig (실제 값은 app/.env > AdMob.xcconfig) -->
 	<key>GADApplicationIdentifier</key>
 	<string>$(PASSQL_ADMOB_IOS_APP_ID)</string>
+	<!-- 사진 선택(의견 첨부): image_picker 는 PHPicker 라 권한 팝업 없이 고른 사진만 받음, 심사용 사용 목적 문구 -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>의견에 첨부할 사진을 고르는 데 사용돼요. 고른 사진만 업로드돼요.</string>
 	<!-- 추적 허용(ATT) 팝업 안내 문구 -->
 	<key>NSUserTrackingUsageDescription</key>
 	<string>맞춤형 광고를 보여 드리는 데 사용돼요. 허용하지 않아도 모든 기능을 그대로 쓸 수 있어요.</string>

@@ -67,17 +67,23 @@ export class ApiError extends Error {
   }
 }
 
+// 응답 해석 방식: 기본 JSON, 인증이 필요한 이미지는 blob
+type ResponseKind = "json" | "blob";
+
 async function fetchOnce<T>(
   path: string,
   options: RequestInit,
   accessToken: string | null,
+  responseKind: ResponseKind,
 ): Promise<T> {
   const method = options.method ?? "GET";
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
+  // FormData 는 브라우저가 multipart boundary 를 붙이도록 Content-Type 을 비움
+  const isFormData = options.body instanceof FormData;
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
     ...(options.headers as Record<string, string>),
   };
 
@@ -86,7 +92,7 @@ async function fetchOnce<T>(
     headers["Authorization"] = `Bearer ${accessToken}`;
   }
 
-  log("REQ", method, path, options.body ? JSON.parse(options.body as string) : undefined);
+  log("REQ", method, path, options.body && !isFormData ? JSON.parse(options.body as string) : undefined);
 
   try {
     const res = await fetch(`${BASE_URL}${path}`, {
@@ -101,6 +107,8 @@ async function fetchOnce<T>(
       reportMaintenanceIfDetected(res.status, body);
       throw new ApiError(res.status, body);
     }
+
+    if (responseKind === "blob") return (await res.blob()) as T;
 
     // 204 No Content 또는 body가 없는 201 응답은 JSON 파싱 없이 반환
     const contentLength = res.headers.get("content-length");
@@ -174,15 +182,21 @@ export async function resolveAccessTokenAfterUnauthorized(
   }
 }
 
-export async function apiFetch<T>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
+export function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  return fetchWithReissue<T>(path, options, "json");
+}
+
+/** 인증이 필요한 바이너리(이미지) 조회 > Blob (401 재발급 동작은 apiFetch 와 동일) */
+export function apiFetchBlob(path: string): Promise<Blob> {
+  return fetchWithReissue<Blob>(path, {}, "blob");
+}
+
+async function fetchWithReissue<T>(path: string, options: RequestInit, responseKind: ResponseKind): Promise<T> {
   const isAuthPath = AUTH_PATHS.some((p) => path.startsWith(p));
   const requestAccessToken = getAccessToken();
 
   try {
-    return await fetchOnce<T>(path, options, requestAccessToken);
+    return await fetchOnce<T>(path, options, requestAccessToken, responseKind);
   } catch (err) {
     // 인증 경로는 재시도 없음, 401이 아니면 그대로 throw
     if (isAuthPath || !(err instanceof ApiError) || err.status !== 401) {
@@ -191,6 +205,6 @@ export async function apiFetch<T>(
 
     const retryAccessToken = await resolveAccessTokenAfterUnauthorized(requestAccessToken);
     if (!retryAccessToken) throw err;
-    return fetchOnce<T>(path, options, retryAccessToken);
+    return fetchOnce<T>(path, options, retryAccessToken, responseKind);
   }
 }

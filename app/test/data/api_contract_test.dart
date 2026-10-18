@@ -1,14 +1,20 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:passql_app/core/error/app_exception.dart';
+import 'package:passql_app/core/error/error_code.dart';
+import 'package:passql_app/data/community/community_image_compressor.dart';
 import 'package:passql_app/data/models/home/recommendations_request.dart';
 import 'package:passql_app/data/models/member/choice_generation_mode.dart';
 import 'package:passql_app/data/models/member/choice_mode_models.dart';
 import 'package:passql_app/data/models/member/nickname_models.dart';
 import 'package:passql_app/data/models/question/submit_request.dart';
 import 'package:passql_app/data/models/feedback/feedback_models.dart';
+import 'package:passql_app/data/models/community/community_models.dart';
 import 'package:passql_app/data/sources/ai_api.dart';
+import 'package:passql_app/data/sources/community_api.dart';
 import 'package:passql_app/data/sources/feedback_api.dart';
 import 'package:passql_app/data/models/report/report_models.dart';
 import 'package:passql_app/data/models/daily_set/daily_set_models.dart';
@@ -237,5 +243,162 @@ void main() {
     );
     final wire = jsonDecode(jsonEncode(adapter.lastRequest.data)) as Map;
     expect(wire['sessionUuid'], 'sess-1');
+  });
+
+  test('커뮤니티: 피드 쿼리, 의견 작성·신고 본문, 좋아요 메서드', () async {
+    await ignoreParse(
+      CommunityApiClient(
+        dio,
+      ).getFeed(source: CommunityFeedSource.solved.serverValue),
+    );
+    expect(adapter.lastRequest.path, '/community/feed');
+    expect(adapter.lastRequest.queryParameters, {'source': 'solved'});
+
+    await ignoreParse(
+      CommunityApiClient(dio).createQuestionPost(
+        'q-1',
+        const CommunityPostCreateRequest(
+          content: '헷갈려요',
+          includeSolveSnapshot: true,
+        ),
+      ),
+    );
+    expect(adapter.lastRequest.method, 'POST');
+    expect(adapter.lastRequest.path, '/community/questions/q-1/posts');
+    expect(jsonDecode(jsonEncode(adapter.lastRequest.data)), {
+      'content': '헷갈려요',
+      'includeSolveSnapshot': true,
+    });
+
+    await ignoreParse(
+      CommunityApiClient(dio).reportPost(
+        'p-1',
+        CommunityReportRequest(
+          category: CommunityReportCategory.answerSpoiler.serverValue,
+        ),
+      ),
+    );
+    expect(adapter.lastRequest.path, '/community/posts/p-1/report');
+    expect(jsonDecode(jsonEncode(adapter.lastRequest.data)), {
+      'category': 'ANSWER_SPOILER',
+    });
+
+    await ignoreParse(CommunityApiClient(dio).toggleLike('p-1'));
+    expect(adapter.lastRequest.method, 'PUT');
+    expect(adapter.lastRequest.path, '/community/posts/p-1/like');
+  });
+
+  group('커뮤니티 이미지', () {
+    // 가짜 WebP: RIFF + 크기 + WEBP 헤더 뒤에 지정 용량만큼 채움
+    Uint8List fakeWebp(int length) {
+      final bytes = Uint8List(length);
+      bytes.setRange(0, 4, 'RIFF'.codeUnits);
+      bytes.setRange(8, 12, 'WEBP'.codeUnits);
+      return bytes;
+    }
+
+    // 썸네일 크기(10KB)의 가짜 WebP 는 320x213, 그 외는 1200x800
+    Future<({int width, int height})> readFixedDimensions(
+      Uint8List bytes,
+    ) async => bytes.length == 10 * 1024
+        ? (width: 320, height: 213)
+        : (width: 1200, height: 800);
+
+    test('품질 80 > 65 > 50 순으로 낮춰 500KB 이하가 되면 멈추고, 3회 모두 넘으면 한국어 안내', () async {
+      final triedQualities = <int>[];
+      final compressor = CommunityImageCompressor(
+        readDimensions: readFixedDimensions,
+        encodeWebp:
+            (
+              source, {
+              required minWidth,
+              required minHeight,
+              required quality,
+            }) async {
+              triedQualities.add(quality);
+              // 원본 압축은 품질 50 에서만 한도 이하, 썸네일 압축(작은 한도)은 항상 통과
+              if (minWidth <= CommunityImageLimits.thumbnailLongSidePixels) {
+                return fakeWebp(10 * 1024);
+              }
+              return fakeWebp(quality == 50 ? 400 * 1024 : 900 * 1024);
+            },
+      );
+      final compressed = await compressor.compress(Uint8List(8));
+      expect(triedQualities.take(3), [80, 65, 50]);
+      expect(
+        CommunityImageCompressor.isWebpBytes(compressed.imageBytes),
+        isTrue,
+      );
+      expect(
+        compressed.imageBytes.length,
+        lessThanOrEqualTo(CommunityImageLimits.imageMaxBytes),
+      );
+
+      final alwaysTooLarge = CommunityImageCompressor(
+        readDimensions: readFixedDimensions,
+        encodeWebp:
+            (
+              source, {
+              required minWidth,
+              required minHeight,
+              required quality,
+            }) async => fakeWebp(900 * 1024),
+      );
+      expect(
+        alwaysTooLarge.compress(Uint8List(8)),
+        throwsA(
+          isA<AppException>().having(
+            (e) => e.message,
+            'message',
+            contains('용량'),
+          ),
+        ),
+      );
+      // WebP 가 아닌 결과(매직바이트 불일치)는 거절
+      expect(CommunityImageCompressor.isWebpBytes(Uint8List(32)), isFalse);
+      // EXIF 청크가 남은 WebP 는 감지
+      final withExif = BytesBuilder()
+        ..add(fakeWebp(12))
+        ..add('EXIF'.codeUnits)
+        ..add([2, 0, 0, 0, 0, 0]);
+      expect(CommunityImageCompressor.hasExifChunk(withExif.toBytes()), isTrue);
+    });
+
+    test('업로드는 첨부 순서대로 1장씩, 이미 올라간 장은 건너뛰고 실패하면 이후 장을 올리지 않는다', () async {
+      CompressedCommunityImage image() => CompressedCommunityImage(
+        imageBytes: fakeWebp(16),
+        thumbnailBytes: fakeWebp(16),
+        width: 1,
+        height: 1,
+      );
+      final drafts = [
+        CommunityImageDraft(image()),
+        CommunityImageDraft(image()),
+      ];
+      var uploadCallCount = 0;
+
+      // 1장째 성공, 2장째 실패
+      await expectLater(
+        uploadCommunityImageDrafts(drafts, (_) async {
+          uploadCallCount++;
+          if (uploadCallCount == 2) {
+            throw const AppException(
+              code: ErrorCode.rateLimited,
+              message: '잠시 후 다시',
+            );
+          }
+          return 'image-$uploadCallCount';
+        }),
+        throwsA(isA<AppException>()),
+      );
+      expect(drafts.map((d) => d.uploadedImageUuid), ['image-1', null]);
+
+      // 재시도: 1장째는 건너뛰고 2장째만 올림
+      final uuids = await uploadCommunityImageDrafts(
+        drafts,
+        (_) async => 'image-retry',
+      );
+      expect(uuids, ['image-1', 'image-retry']);
+    });
   });
 }

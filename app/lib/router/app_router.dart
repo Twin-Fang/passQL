@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../data/models/community/community_models.dart';
 import '../presentation/flows/daily_set_flow.dart';
 import '../presentation/flows/question_flow.dart';
+import '../presentation/pages/community/blocked_members_page.dart';
+import '../presentation/pages/community/community_feed_page.dart';
+import '../presentation/pages/community/community_question_page.dart';
 import '../presentation/pages/daily_set/daily_set_result_page.dart';
 import '../presentation/pages/daily_set/leaderboard_page.dart';
 import '../presentation/pages/app_gate/force_update_page.dart';
@@ -181,6 +185,29 @@ abstract final class AppRouter {
         path: AppRoutes.wrongNotes,
         parentNavigatorKey: _rootKey,
         builder: (_, _) => const WrongNotesPage(),
+      ),
+
+      // 풀스크린: 커뮤니티 피드·문제별 의견 (#525), 차단한 사용자 관리
+      GoRoute(
+        path: AppRoutes.community,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => CommunityFeedPage(
+          initialSource: CommunityFeedSource.fromServerValue(
+            state.uri.queryParameters[AppRoutes.communitySourceQuery],
+          ),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.communityQuestionPattern,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => CommunityQuestionPage(
+          questionUuid: state.pathParameters[AppRoutes.questionUuidParameter]!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.blockedMembers,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const BlockedMembersPage(),
       ),
 
       // 풀스크린: 챕터 플로우 (/questions/chapter?topic=CODE&topicName=NAME)

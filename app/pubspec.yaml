@@ -1,7 +1,7 @@
 name: passql_app
 description: "passQL - SQL 학습 앱"
 publish_to: none
-version: 1.22.1+327
+version: 1.23.0+328
 environment:
   sdk: ^3.9.2
 dependencies:
@@ -50,6 +50,8 @@ dependencies:
   kakao_flutter_sdk_user: 2.0.1
   flutter_naver_login: 2.1.1
   flutter_web_auth_2: 5.1.0
+  image_picker: ^1.2.3
+  flutter_image_compress: ^2.5.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

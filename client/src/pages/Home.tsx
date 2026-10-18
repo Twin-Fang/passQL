@@ -18,6 +18,7 @@ import StudyStatusSection from "../components/home/StudyStatusSection";
 import ReadinessSection from "../components/home/ReadinessSection";
 import RecommendedQuestionsSection from "../components/home/RecommendedQuestionsSection";
 import ExamTrendEntryCard from "../components/home/ExamTrendEntryCard";
+import TodayDiscussionCard from "../components/home/TodayDiscussionCard";
 
 /**
  * 홈: 인사말 > 시험 일정·데일리 세트 > 학습 현황 > 합격 준비도 > AI 추천문제
@@ -107,6 +108,9 @@ export default function Home() {
 
       {/* 출제 경향 진입 (#523) */}
       <ExamTrendEntryCard className={s2.className} />
+
+      {/* 오늘의 토론 (#525): HOT 1위가 없으면 숨김 */}
+      <TodayDiscussionCard className={s2.className} />
 
       {/* ④ 학습 현황 섹션: heatmap 에러/로딩만 독립 처리 */}
       <StudyStatusSection

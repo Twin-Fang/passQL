@@ -28,6 +28,9 @@ const NoticeDetail = lazy(() => import("./pages/NoticeDetail"));
 const ExamTrend = lazy(() => import("./pages/ExamTrend"));
 const Settings = lazy(() => import("./pages/Settings"));
 const SettingsFeedback = lazy(() => import("./pages/SettingsFeedback"));
+const Community = lazy(() => import("./pages/Community"));
+const CommunityQuestion = lazy(() => import("./pages/CommunityQuestion"));
+const CommunityMine = lazy(() => import("./pages/CommunityMine"));
 
 /** 인증 필수 가드 — 미로그인 시 /login으로 redirect */
 function RequireAuth() {
@@ -73,6 +76,10 @@ const router = createBrowserRouter([
               { path: "notifications", element: <Notifications /> },
               // 출제 경향 (홈·AI문제 진입, #523)
               { path: "exam-trend", element: <ExamTrend /> },
+              // 토론 (#525): 피드, 문제별 의견, 내 활동
+              { path: "community", element: <Community /> },
+              { path: "community/me", element: <CommunityMine /> },
+              { path: "community/questions/:questionUuid", element: <CommunityQuestion /> },
             ],
           },
           // AppLayout 밖: 전체화면 몰입형 화면 (문제 풀이는 집중 모드)

@@ -7,6 +7,9 @@ abstract final class PassqlSize {
   static const double navBar = 44;
   static const double bottomStrip = 44; // 탭 바 아래 한 줄 띠 (광고, #527). 띠 전체가 터치 영역이라 최소 터치 높이와 같게
   static const double rowMin = 44; // Apple 최소 터치 영역
+  static const double communityImageThumbnail = 112; // 의견 타일 첨부 썸네일 한 변
+  static const double communityImageDraftPreview = 72; // 작성 시트 첨부 미리보기 한 변
+  static const double communityImageRemoveBadge = 24; // 미리보기 제거(X) 원
   static const double minTouchTarget = 44; // 아이콘 버튼 탭 영역 (Apple HIG 최소)
   static const double progressBarHeight = 4;
   static const double choiceKeyBadge = 24; // 선택지 키(A·B·C·D) 원

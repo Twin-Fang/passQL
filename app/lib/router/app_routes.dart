@@ -7,6 +7,8 @@ abstract final class AppRoutes {
   static const String legalTypeParameter = 'type';
   static const String questionUuidParameter = 'questionUuid';
   static const String noticeUuidParameter = 'noticeUuid';
+  // 커뮤니티 피드 시작 탭 (값은 CommunityFeedSource.serverValue)
+  static const String communitySourceQuery = 'source';
   static const String topicCodeQuery = 'topic';
   static const String topicNameQuery = 'topicName';
   // 최신 출제 경향 문제만 풀기 (값 'true', #523)
@@ -44,6 +46,9 @@ abstract final class AppRoutes {
 
   static const String wrongNotes = '/settings/wrong-notes';
 
+  /// 차단한 사용자 관리 (#525). 설정에서 진입
+  static const String blockedMembers = '/settings/blocked-members';
+
   /// 알림함 (알림·공지 탭). 홈 종 아이콘에서 진입
   static const String notificationInbox = '/notifications';
 
@@ -56,6 +61,21 @@ abstract final class AppRoutes {
 
   /// 공지 상세. 홈 공지 배너·알림함 공지 항목·공지 목록에서 진입
   static String noticeDetail(String noticeUuid) => '$notices/$noticeUuid';
+
+  // 커뮤니티 (#525)
+  /// 커뮤니티 피드 (뜨는 토론·최신 경향·내가 푼 문제·내 의견). 홈 '오늘의 토론'·설정에서 진입
+  static const String community = '/community';
+
+  /// 피드를 '내 의견' 탭으로 열기 (설정 '내 의견')
+  static const String communityMine = '$community?$communitySourceQuery=mine';
+
+  /// 라우터 정의용 문제별 의견 경로 패턴: /community/questions/:questionUuid
+  static const String communityQuestionPattern =
+      '$community/questions/:$questionUuidParameter';
+
+  /// 문제별 의견 목록. [questionUuid]는 문제 UUID
+  static String communityQuestion(String questionUuid) =>
+      '$community/questions/$questionUuid';
 
   // 데일리 세트
   /// 오늘의 세트 풀이.
