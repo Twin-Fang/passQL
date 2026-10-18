@@ -155,12 +155,6 @@ class SettingsPage extends ConsumerWidget {
                   title: '토론',
                   children: [
                     SettingsRow(
-                      icon: CupertinoIcons.chat_bubble_2,
-                      iconColor: colors.accent,
-                      title: '내 의견',
-                      onTap: () => context.push(AppRoutes.communityMine),
-                    ),
-                    SettingsRow(
                       icon: CupertinoIcons.person_crop_circle_badge_xmark,
                       title: '차단한 사용자 관리',
                       onTap: () => context.push(AppRoutes.blockedMembers),

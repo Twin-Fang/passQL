@@ -21,7 +21,7 @@ class CommunityDailyDiscussionCard extends StatelessWidget {
         variant: PassqlButtonVariant.plain,
         size: PassqlButtonSize.small,
         isFullWidth: false,
-        onPressed: () => context.push(AppRoutes.community),
+        onPressed: () => context.go(AppRoutes.community),
       ),
       onTap: () => context.push(AppRoutes.communityQuestion(card.questionUuid)),
       child: Column(
