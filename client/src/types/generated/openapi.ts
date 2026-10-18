@@ -198,6 +198,210 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/community/feed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 커뮤니티 피드 조회 (문제 카드 목록)
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 쿼리 파라미터
+         *     - **`source`**: hot(뜨는 토론, 기본값) / trend(최신 경향) / solved(내가 푼 문제, 오답 먼저) / mine(내 의견)
+         *     - **`cursor`**: 이전 응답의 nextCursor (처음이면 비움)
+         *
+         *     ## 반환값 (CommunityFeedPageResponse)
+         *     - **`items`**: questionUuid, stemPreview(앞 80자·마크다운 제거), topicCode, topicName, postCount, lastActivityAt,
+         *       isSolvedByMe, myPostCount·receivedLikeCount(mine 탭만 값, 그 외 null)
+         *     - **`nextCursor`**: 다음 페이지 커서 (마지막이면 null)
+         *
+         *     ## 설명
+         *     - 페이지 크기 20 고정. hot·trend 는 서버가 60초 캐시한 후보로 카드를 조립한다.
+         *     - postCount 는 노출 중 글 수 집계(5분 주기)라 차단한 회원 글을 빼지 않는다. 글 목록에서 차단 글은 빠진다.
+         *     - 풀지 않은 문제 카드(isSolvedByMe=false)를 열면 글 목록 API 가 400 COMMUNITY_SOLVE_REQUIRED 를 준다.
+         */
+        get: operations["getFeed"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/community/posts/{postUuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * 내 글 삭제
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 에러
+         *     - 403 COMMUNITY_POST_FORBIDDEN: 본인 글이 아님
+         *     - 404 COMMUNITY_POST_NOT_FOUND
+         *     - 응답 204 (본문 없음)
+         */
+        delete: operations["deletePost"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/community/posts/{postUuid}/block-author": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 글 작성자 차단
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 설명
+         *     - 서버가 글의 작성자를 찾아 차단한다 (작성자 UUID 는 응답에 없음). 이미 차단했으면 무시(204).
+         *     - 차단하면 내 글 목록에서 그 회원 글이 빠진다. 해제는 GET/DELETE /api/members/me/blocks.
+         *
+         *     ## 에러
+         *     - 400 COMMUNITY_SELF_BLOCK_FORBIDDEN: 내 글
+         *     - 404 COMMUNITY_POST_NOT_FOUND
+         *     - 응답 204 (본문 없음)
+         */
+        post: operations["blockAuthor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/community/posts/{postUuid}/like": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * 글 좋아요 토글
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 반환값 (CommunityPostLikeResponse)
+         *     - **`isLiked`**: 토글 후 내 좋아요 여부
+         *     - **`likeCount`**: 토글 후 글 좋아요 수
+         *
+         *     ## 에러
+         *     - 400 COMMUNITY_SOLVE_REQUIRED / 404 COMMUNITY_POST_NOT_FOUND (숨김·삭제 글 포함)
+         */
+        put: operations["toggleLike"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/community/posts/{postUuid}/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 글 신고
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 요청 바디 (CommunityReportRequest)
+         *     - **`category`**: ABUSE(욕설·비방) / SPAM(광고·스팸) / ANSWER_SPOILER(정답 노출) / ETC(기타)
+         *     - **`detail`**: 상세 (선택, 최대 200자)
+         *
+         *     ## 설명
+         *     - 이미 신고한 글은 무시(204). 서로 다른 회원 3명이 신고하면 자동 숨김 후 관리자 검토.
+         *
+         *     ## 에러
+         *     - 400 COMMUNITY_SELF_REPORT_FORBIDDEN: 내 글
+         *     - 400 INVALID_INPUT_VALUE: category 오류, detail 200자 초과
+         *     - 404 COMMUNITY_POST_NOT_FOUND
+         *     - 응답 204 (본문 없음)
+         */
+        post: operations["reportPost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/community/questions/{questionUuid}/posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 문제별 글(의견) 목록 조회
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 경로 변수
+         *     - **`questionUuid`**: 문제 UUID
+         *
+         *     ## 쿼리 파라미터
+         *     - **`sort`**: latest(기본값) / likes
+         *     - **`cursor`**: 이전 응답의 nextCursor
+         *     - **`size`**: 페이지 크기 (기본 20, 최대 50)
+         *
+         *     ## 반환값 (CommunityPostPageResponse)
+         *     - **`items`**: postUuid, authorNickname, content, isMine, likeCount, isLikedByMe, solveSnapshot(없으면 null), createdAt
+         *     - **`nextCursor`**: 다음 페이지 커서 (마지막이면 null)
+         *     - solveSnapshot: isCorrect, attemptCount, solvedAt, topicCode, difficulty
+         *
+         *     ## 설명
+         *     - 숨김·삭제 글과 내가 차단한 작성자의 글은 제외. 작성자 회원 UUID 는 제공하지 않는다.
+         *
+         *     ## 에러
+         *     - 400 COMMUNITY_SOLVE_REQUIRED: 이 문제를 푼 기록이 없음 (앱이 '풀고 나서 볼 수 있어요' 안내)
+         *     - 404 QUESTION_NOT_FOUND
+         */
+        get: operations["getQuestionPosts"];
+        put?: never;
+        /**
+         * 문제별 글(의견) 작성
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 요청 바디 (CommunityPostCreateRequest)
+         *     - **`content`**: 본문 (공백 제거 후 1~500자, 금칙어 불가)
+         *     - **`includeSolveSnapshot`**: true 면 서버가 내 제출 기록으로 풀이 요약을 붙임 (클라이언트 값은 받지 않음)
+         *
+         *     ## 반환값 (201, CommunityPostItemResponse)
+         *
+         *     ## 에러
+         *     - 400 COMMUNITY_SOLVE_REQUIRED: 이 문제를 푼 기록이 없음 (스냅샷 요청 포함)
+         *     - 400 COMMUNITY_CONTENT_INVALID / COMMUNITY_CONTENT_FORBIDDEN_WORD
+         *     - 409 COMMUNITY_POST_DUPLICATE: 5분 안에 같은 내용 작성
+         *     - 429 COMMUNITY_POST_RATE_LIMITED(분당 5건) / COMMUNITY_POST_DAILY_LIMIT_EXCEEDED(하루 100건)
+         */
+        post: operations["createQuestionPost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/daily-set/complete": {
         parameters: {
             query?: never;
@@ -465,6 +669,58 @@ export interface paths {
          *     - 성공 시 204(본문 없음).
          */
         delete: operations["withdraw"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/members/me/blocks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 내 차단 목록 조회
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 반환값 (BlockedMemberResponse 배열, 최근 차단순)
+         *     - **`blockUuid`**: 차단 내역 ID (해제에 사용, 차단당한 회원 UUID 는 제공하지 않음)
+         *     - **`nickname`**: 차단한 회원 닉네임 (탈퇴했으면 탈퇴회원_xxxx)
+         *     - **`blockedAt`**: 차단 시각
+         */
+        get: operations["getMyBlocks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/members/me/blocks/{blockUuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * 차단 해제
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 경로 변수
+         *     - **`blockUuid`**: 내 차단 목록의 blockUuid
+         *
+         *     ## 에러
+         *     - 404 COMMUNITY_BLOCK_NOT_FOUND: 내 차단 내역이 아님
+         *     - 응답 204 (본문 없음)
+         */
+        delete: operations["unblock"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1350,6 +1606,13 @@ export interface components {
             redirectUri: string;
             state?: string | null;
         };
+        BlockedMemberResponse: {
+            /** Format: uuid */
+            blockUuid: string;
+            /** Format: date-time */
+            blockedAt: string;
+            nickname: string;
+        };
         ChoiceAnalysis: {
             /** @description 보기 키 (A~D) */
             choiceKey: string;
@@ -1435,6 +1698,56 @@ export interface components {
             /** @enum {string} */
             status: "OK" | "DISABLED" | "REPORTED" | "DRAFT" | "FAILED";
         };
+        CommunityFeedCardResponse: {
+            isSolvedByMe: boolean;
+            /** Format: date-time */
+            lastActivityAt: string;
+            /** Format: int32 */
+            myPostCount: number | null;
+            /** Format: int32 */
+            postCount: number;
+            /** Format: uuid */
+            questionUuid: string;
+            /** Format: int32 */
+            receivedLikeCount: number | null;
+            stemPreview: string;
+            topicCode: string | null;
+            topicName: string | null;
+        };
+        CommunityFeedPageResponse: {
+            items: components["schemas"]["CommunityFeedCardResponse"][];
+            nextCursor: string | null;
+        };
+        CommunityPostCreateRequest: {
+            content: string;
+            includeSolveSnapshot: boolean | null;
+        };
+        CommunityPostItemResponse: {
+            authorNickname: string;
+            content: string;
+            /** Format: date-time */
+            createdAt: string;
+            isLikedByMe: boolean;
+            isMine: boolean;
+            /** Format: int32 */
+            likeCount: number;
+            /** Format: uuid */
+            postUuid: string;
+            solveSnapshot: components["schemas"]["SolveSnapshot"] | null;
+        };
+        CommunityPostLikeResponse: {
+            isLiked: boolean;
+            /** Format: int32 */
+            likeCount: number;
+        };
+        CommunityPostPageResponse: {
+            items: components["schemas"]["CommunityPostItemResponse"][];
+            nextCursor: string | null;
+        };
+        CommunityReportRequest: {
+            category: string;
+            detail: string | null;
+        };
         ConceptTag: {
             category: string;
             /** Format: uuid */
@@ -1471,7 +1784,7 @@ export interface components {
          * @description 서버 ErrorCode enum 이름 (응답 errorCode 값)
          * @enum {string}
          */
-        ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "PROMPT_NOT_FOUND" | "TOPIC_NOT_FOUND" | "TOPIC_DUPLICATE" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER" | "SOCIAL_LOGIN_UNAVAILABLE" | "INVALID_SOCIAL_AUTHORIZATION_CODE" | "INVALID_SOCIAL_TOKEN";
+        ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "PROMPT_NOT_FOUND" | "TOPIC_NOT_FOUND" | "TOPIC_DUPLICATE" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "COMMUNITY_POST_NOT_FOUND" | "COMMUNITY_SOLVE_REQUIRED" | "COMMUNITY_CONTENT_INVALID" | "COMMUNITY_CONTENT_FORBIDDEN_WORD" | "COMMUNITY_POST_DUPLICATE" | "COMMUNITY_POST_RATE_LIMITED" | "COMMUNITY_POST_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_POST_FORBIDDEN" | "COMMUNITY_SELF_REPORT_FORBIDDEN" | "COMMUNITY_SELF_BLOCK_FORBIDDEN" | "COMMUNITY_BLOCK_NOT_FOUND" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER" | "SOCIAL_LOGIN_UNAVAILABLE" | "INVALID_SOCIAL_AUTHORIZATION_CODE" | "INVALID_SOCIAL_TOKEN";
         /** @description API 에러 응답 표준 형식 */
         ErrorResponse: {
             errorCode: components["schemas"]["ErrorCode"];
@@ -1854,6 +2167,15 @@ export interface components {
             clientId: string | null;
             isEnabled: boolean;
         };
+        SolveSnapshot: {
+            /** Format: int32 */
+            attemptCount: number;
+            /** Format: int32 */
+            difficulty: number;
+            isCorrect: boolean;
+            solvedAt: string;
+            topicCode: string | null;
+        };
         SortObject: {
             empty: boolean;
             sorted: boolean;
@@ -2171,6 +2493,167 @@ export interface operations {
             };
         };
     };
+    getFeed: {
+        parameters: {
+            query?: {
+                source?: string;
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommunityFeedPageResponse"];
+                };
+            };
+        };
+    };
+    deletePost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    blockAuthor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    toggleLike: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommunityPostLikeResponse"];
+                };
+            };
+        };
+    };
+    reportPost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommunityReportRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getQuestionPosts: {
+        parameters: {
+            query?: {
+                sort?: string;
+                cursor?: string;
+                size?: number;
+            };
+            header?: never;
+            path: {
+                questionUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommunityPostPageResponse"];
+                };
+            };
+        };
+    };
+    createQuestionPost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                questionUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommunityPostCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommunityPostItemResponse"];
+                };
+            };
+        };
+    };
     complete: {
         parameters: {
             query?: never;
@@ -2406,6 +2889,46 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getMyBlocks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BlockedMemberResponse"][];
+                };
+            };
+        };
+    };
+    unblock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                blockUuid: string;
+            };
             cookie?: never;
         };
         requestBody?: never;

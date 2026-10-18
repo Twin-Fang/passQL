@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { ChevronRight, MessageSquare } from "lucide-react";
 import { useSimilarQuestions } from "../hooks/useSimilarQuestions";
 import { useAnswerFeedbackExecution } from "../hooks/useAnswerFeedbackExecution";
 import AnswerFeedbackHeader from "../components/answerFeedback/AnswerFeedbackHeader";
@@ -10,6 +11,7 @@ import AiExplanationCard from "../components/answerFeedback/AiExplanationCard";
 import SqlComparisonSection from "../components/answerFeedback/SqlComparisonSection";
 import SimilarQuestionList from "../components/answerFeedback/SimilarQuestionList";
 import { buildExplanationHistoryEntry } from "../stores/explanationHistoryStore";
+import { toCommunityQuestionPath } from "../lib/communityPresentation";
 import type { AnswerFeedbackState } from "../types/answerFeedback";
 
 /**
@@ -124,6 +126,16 @@ export default function AnswerFeedback() {
             onExecuteAll={execution.executeAllChoices}
           />
         ) : null}
+
+        {/* 토론 진입 (#525): 풀이를 마친 뒤라 의견을 볼 수 있음 */}
+        <Link
+          to={toCommunityQuestionPath(state.questionUuid)}
+          className="flex items-center gap-2 bg-surface-card border border-border rounded-2xl px-4 py-3.5 text-sm font-semibold text-text-primary hover:border-brand transition-colors"
+        >
+          <MessageSquare size={16} className="text-brand" aria-hidden="true" />
+          <span className="flex-1">의견 보기</span>
+          <ChevronRight size={16} className="text-text-caption" aria-hidden="true" />
+        </Link>
 
         {/* 유사 문제 */}
         {similarQuery.data && similarQuery.data.length > 0 && (

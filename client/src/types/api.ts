@@ -230,3 +230,22 @@ export type NotificationPage = Omit<ApiSchemas["NotificationPageResponse"], "ite
 };
 
 export type UnreadNotificationCount = ApiSchemas["UnreadNotificationCountResponse"];
+
+// === 커뮤니티 (#525) ===
+export type CommunityFeedCard = ApiSchemas["CommunityFeedCardResponse"];
+
+export type CommunityFeedPage = ApiSchemas["CommunityFeedPageResponse"];
+
+export type CommunityPost = ApiSchemas["CommunityPostItemResponse"];
+
+export type CommunityPostPage = ApiSchemas["CommunityPostPageResponse"];
+
+export type CommunityPostCreatePayload = ApiSchemas["CommunityPostCreateRequest"];
+
+export type CommunityPostLike = ApiSchemas["CommunityPostLikeResponse"];
+
+export type CommunityReportPayload = ApiSchemas["CommunityReportRequest"];
+
+export type SolveSnapshot = ApiSchemas["SolveSnapshot"];
+
+export type BlockedMember = ApiSchemas["BlockedMemberResponse"];
