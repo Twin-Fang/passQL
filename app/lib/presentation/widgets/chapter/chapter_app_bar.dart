@@ -18,6 +18,9 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// 풀이를 시작했으면 홈으로 나가기 전에 확인한다(실수로 눌러 흐름을 잃지 않게).
   final bool shouldConfirmExit;
 
+  /// 토픽 뱃지 왼쪽 보조 버튼 (해설함 등)
+  final Widget? accessory;
+
   const ChapterAppBar({
     super.key,
     required this.topicName,
@@ -25,6 +28,7 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.total,
     required this.isAnswered,
     this.shouldConfirmExit = false,
+    this.accessory,
   });
 
   double get _progress {
@@ -50,7 +54,15 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
             if (context.mounted) context.go(AppRoutes.home);
           },
           // 토픽 이름은 보조 정보라 오른쪽 작은 뱃지로 둔다.
-          trailing: PassqlBadge(text: topicName),
+          trailing: accessory == null
+              ? PassqlBadge(text: topicName)
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    accessory!,
+                    Flexible(child: PassqlBadge(text: topicName)),
+                  ],
+                ),
         ),
         PassqlProgressBar(value: _progress),
       ],

@@ -14,26 +14,25 @@ Widget _wrap(Widget child) => MaterialApp(
 );
 
 void main() {
-  testWidgets('오답이면 정답 키와 AI 해설을 보여 주고, 마지막 문제면 결과 보기', (tester) async {
+  testWidgets('오답이면 정답 키를 보여 주고, 해설 항목이 없으면 미리보기 없이 결과 보기', (tester) async {
     var next = 0;
     await tester.pumpWidget(
       _wrap(
         ChapterFeedbackBar(
           result: const SubmitResult(isCorrect: false, correctKey: 'C'),
           questionUuid: 'q',
-          selectedChoiceKey: 'A',
           isLastQuestion: true,
           onNext: () => next++,
         ),
       ),
     );
     expect(find.text('오답이에요 · 정답\u00A0C'), findsOneWidget);
-    expect(find.text('AI 해설'), findsOneWidget);
+    expect(find.text('AI 해설'), findsNothing);
     await tester.tap(find.text('결과 보기'));
     expect(next, 1);
   });
 
-  testWidgets('EXECUTABLE 정답이면 AI 해설을 숨기고 다음 버튼을 보여 준다', (tester) async {
+  testWidgets('정답이면 정답 표시와 다음 버튼을 보여 준다', (tester) async {
     await tester.pumpWidget(
       _wrap(
         ChapterFeedbackBar(
@@ -43,7 +42,6 @@ void main() {
             correctSql: 'SELECT 1',
           ),
           questionUuid: 'q',
-          selectedChoiceKey: 'A',
           isLastQuestion: false,
           onNext: () {},
         ),
@@ -108,7 +106,6 @@ void main() {
       key: const ValueKey('q'),
       result: const SubmitResult(isCorrect: false, correctKey: 'C'),
       questionUuid: 'q',
-      selectedChoiceKey: 'A',
       isLastQuestion: true,
       onNext: () {},
     );

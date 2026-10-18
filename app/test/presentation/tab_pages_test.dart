@@ -23,6 +23,7 @@ import 'package:passql_app/presentation/providers/stats_providers.dart';
 import 'package:passql_app/presentation/providers/topic_providers.dart';
 
 import '../helpers/pump_app.dart';
+import '../helpers/text_finders.dart';
 
 final homeData = HomeData(
   greeting: const GreetingResponse(
@@ -165,7 +166,10 @@ void main() {
           expect(find.byType(CupertinoSliverNavigationBar), findsOneWidget);
           // 인사 둘째 줄이 잘리지 않고 본문으로 보인다.
           if (entry.key == '홈') {
-            expect(find.textContaining('D-12'), findsOneWidget);
+            expect(
+              findTextContainingIgnoringWordJoiners('D-12'),
+              findsOneWidget,
+            );
           }
           expect(tester.takeException(), isNull);
         },

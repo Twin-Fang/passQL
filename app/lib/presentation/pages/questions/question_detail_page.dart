@@ -102,13 +102,20 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
     if (!context.mounted || submitResult == null) return;
     // 풀이 결과가 홈과 통계에 반영되도록 캐시를 비운다.
     refreshLearningData(ref.invalidate);
+    final interaction = ref.read(
+      questionInteractionProvider(widget.questionUuid),
+    );
     context.push(
       AppRoutes.questionResult(widget.questionUuid),
       extra: QuestionResultArguments(
         result: submitResult,
         correctDisplayLabel: findChoiceDisplayLabel(
-          ref.read(questionInteractionProvider(widget.questionUuid)).activeChoices,
+          interaction.activeChoices,
           submitResult.correctKey,
+        ),
+        selectedChoiceKey: interaction.selectedChoiceKey,
+        displayLabelByChoiceKey: choiceDisplayLabelsOf(
+          interaction.activeChoices,
         ),
       ),
     );

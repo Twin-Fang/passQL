@@ -23,39 +23,42 @@ class SocialLoginButton extends StatelessWidget {
     return PassqlPressable(
       onTap: onPressed,
       semanticLabel: appearance.label,
-      child: Container(
-        width: double.infinity,
-        height: PassqlSize.buttonLarge,
-        padding: const EdgeInsets.symmetric(horizontal: PassqlSpacing.lg),
-        decoration: BoxDecoration(
-          color: appearance.backgroundColor,
-          borderRadius: BorderRadius.circular(PassqlRadius.md),
-          border: borderColor == null ? null : Border.all(color: borderColor),
-        ),
-        child: isLoading
-            ? Center(
-                child: PassqlLoadingIndicator(
-                  color: appearance.foregroundColor,
+      // 라벨은 semanticLabel 하나로만 읽힘 (안쪽 문구·로고 합쳐지면 라벨 두 번)
+      child: ExcludeSemantics(
+        child: Container(
+          width: double.infinity,
+          height: PassqlSize.buttonLarge,
+          padding: const EdgeInsets.symmetric(horizontal: PassqlSpacing.lg),
+          decoration: BoxDecoration(
+            color: appearance.backgroundColor,
+            borderRadius: BorderRadius.circular(PassqlRadius.md),
+            border: borderColor == null ? null : Border.all(color: borderColor),
+          ),
+          child: isLoading
+              ? Center(
+                  child: PassqlLoadingIndicator(
+                    color: appearance.foregroundColor,
+                  ),
+                )
+              : Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: SizedBox(
+                        width: _logoSlotWidth,
+                        child: Center(child: appearance.logo),
+                      ),
+                    ),
+                    Text(
+                      appearance.label,
+                      style: PassqlTypography.headline.copyWith(
+                        color: appearance.foregroundColor,
+                      ),
+                    ),
+                  ],
                 ),
-              )
-            : Stack(
-                alignment: Alignment.center,
-                children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: SizedBox(
-                      width: _logoSlotWidth,
-                      child: Center(child: appearance.logo),
-                    ),
-                  ),
-                  Text(
-                    appearance.label,
-                    style: PassqlTypography.headline.copyWith(
-                      color: appearance.foregroundColor,
-                    ),
-                  ),
-                ],
-              ),
+        ),
       ),
     );
   }

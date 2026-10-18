@@ -10,6 +10,7 @@ import '../../../router/result_route_arguments.dart';
 import '../../design/design.dart';
 import '../../providers/daily_set_providers.dart';
 import '../../widgets/ads/interstitial_ad_on_enter.dart';
+import '../../widgets/notification/study_result_seen_recorder.dart';
 
 /// 상단 바·점수 머리에 쓰는 화면 이름
 const _dailySetTitle = '오늘의 세트';
@@ -28,13 +29,16 @@ class DailySetResultPage extends ConsumerWidget {
     final outcome = this.outcome;
     if (outcome != null) {
       // 풀이를 막 끝낸 진입에만 전면 광고 시도 (홈 '이미 완료' 카드 진입은 제외)
-      return InterstitialAdOnEnter(
-        child: _ResultBody(
-          correctCount: outcome.correctCount,
-          total: outcome.results.length,
-          results: outcome.results.map((result) => result.isCorrect).toList(),
-          saveError: outcome.saveError,
-          completedRank: outcome.completed?.rank,
+      // 결과를 본 기록 > 탭 화면 복귀 때 알림 권한 사전 안내 시점
+      return StudyResultSeenRecorder(
+        child: InterstitialAdOnEnter(
+          child: _ResultBody(
+            correctCount: outcome.correctCount,
+            total: outcome.results.length,
+            results: outcome.results.map((result) => result.isCorrect).toList(),
+            saveError: outcome.saveError,
+            completedRank: outcome.completed?.rank,
+          ),
         ),
       );
     }

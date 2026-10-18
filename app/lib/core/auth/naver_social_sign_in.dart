@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_naver_login/flutter_naver_login.dart';
@@ -24,9 +25,17 @@ class NaverSocialSignIn {
     // 키 없는 빌드(CI .env 누락 등) > SDK 오류 대신 준비 중 안내
     if (_readClientId().isEmpty) throw SocialSignInException.preparing();
     try {
-      final result = await FlutterNaverLogin.logIn();
-      if (isCancelledResult(result)) return null;
+      final result = await _logIn();
+      // 취소 > null (Android SDK 는 커스텀 탭 복귀 실패도 user_cancel 로 보고해 구분 불가, 로그만 남김)
+      if (isCancelledResult(result)) {
+        debugPrint('[naver login] cancelled : status ${result.status.name}');
+        return null;
+      }
       if (result.status != NaverLoginStatus.loggedIn) {
+        debugPrint(
+          '[naver login] failed : status ${result.status.name}, '
+          'error ${sanitizeForLog(result.errorMessage)}',
+        );
         throw const SocialSignInException(_failureMessage);
       }
       // iOS 는 로그인 결과에 토큰 포함, Android 는 로그인 후 따로 조회
@@ -34,6 +43,7 @@ class NaverSocialSignIn {
           result.accessToken?.accessToken ??
           (await FlutterNaverLogin.getCurrentAccessToken()).accessToken;
       if (accessToken.isEmpty) {
+        debugPrint('[naver login] failed : empty access token');
         throw const SocialSignInException(_failureMessage);
       }
       return SocialTokenCredential(
@@ -43,8 +53,23 @@ class NaverSocialSignIn {
     } on MissingPluginException {
       // iOS Info.plist 에 Nid 설정이 없으면 플러그인 미등록
       throw SocialSignInException.preparing();
-    } on PlatformException {
+    } on PlatformException catch (error) {
+      debugPrint(
+        '[naver login] failed : platform ${sanitizeForLog(error.code)}',
+      );
       throw const SocialSignInException(_failureMessage);
+    }
+  }
+
+  /// 플러그인 로그인 호출 (네이티브 응답 null > Map 변환 TypeError, 실패 결과로 변환)
+  Future<NaverLoginResult> _logIn() async {
+    try {
+      return await FlutterNaverLogin.logIn();
+    } on TypeError {
+      return NaverLoginResult(
+        status: NaverLoginStatus.error,
+        errorMessage: 'empty native result',
+      );
     }
   }
 
@@ -71,6 +96,18 @@ class NaverSocialSignIn {
     return result.status == NaverLoginStatus.error &&
         errorMessage.contains('cancel');
   }
+
+  /// 로그용 값 정리 (null > none, 제어문자 > 공백, 100자 제한)
+  static String sanitizeForLog(String? rawValue) {
+    if (rawValue == null || rawValue.isEmpty) return 'none';
+    final singleLine = rawValue.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ');
+    return singleLine.length <= _maximumLogValueLength
+        ? singleLine
+        : singleLine.substring(0, _maximumLogValueLength);
+  }
+
+  // 로그 한 값 최대 길이 (문자 수)
+  static const int _maximumLogValueLength = 100;
 
   // .env 미로드(테스트 등)도 키 없음으로 처리
   static String _readClientIdFromEnv() {

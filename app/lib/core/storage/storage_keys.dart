@@ -1,4 +1,4 @@
-/// 기기 저장 키 원본 12개: 일반 저장소(DevicePreferences) 7개 + 보안 저장소(TokenStore) 5개
+/// 기기 저장 키 원본 15개: 일반 저장소(DevicePreferences) 10개 + 보안 저장소(TokenStore) 5개
 /// 값은 기존 설치의 저장 데이터를 읽는 키 > 문자열 값을 바꾸지 않음
 abstract final class StorageKeys {
   // ─── 일반 저장소 (SharedPreferences, 앱 삭제 시 함께 지워짐) ───
@@ -13,6 +13,12 @@ abstract final class StorageKeys {
   // 알림 권한 안내를 "나중에"로 닫은 시각 (epoch 밀리초)
   static const String pushPermissionPromptDeferredAt =
       'push_permission_prompt_deferred_at';
+  // 풀이 결과 화면을 한 번이라도 봤는지 (bool, true 만 기록)
+  static const String pushPermissionPromptStudyResultSeen =
+      'push_permission_prompt_study_result_seen';
+  // 탭 화면에 처음 들어온 시각 (epoch 밀리초, 두 번째 실행 판단)
+  static const String pushPermissionPromptFirstShellVisitAt =
+      'push_permission_prompt_first_shell_visit_at';
   // 마지막 전면 광고 노출 시각 (epoch 밀리초)
   static const String interstitialLastShownAt =
       'ads_interstitial_last_shown_at_ms';
@@ -20,6 +26,9 @@ abstract final class StorageKeys {
   static const String interstitialShownDay = 'ads_interstitial_shown_day';
   // 위 날짜의 전면 광고 노출 횟수
   static const String interstitialShownCount = 'ads_interstitial_shown_count';
+  // 결과 화면 진입 누적 횟수 (전면 광고 첫 결과 유예)
+  static const String interstitialResultEntryCount =
+      'ads_interstitial_result_entry_count';
 
   // ─── 보안 저장소 (Keychain/Keystore, 인증 세션) ───
 
