@@ -66,6 +66,8 @@ export function useQuestionAnswerSubmit({
             ...result,
             selectedKey,
             questionUuid,
+            // AI 해설 조회 대상 세트 (#521)
+            choiceSetUuid: choiceSetId,
             // executionMode는 QuestionDetail에서 전달 (SubmitResult에서 제거됨)
             executionMode: question.executionMode,
             // 선택지 본문 전달: EXECUTABLE은 SQL 실행 비교용, CONCEPT_ONLY는 선택지 텍스트 표시용

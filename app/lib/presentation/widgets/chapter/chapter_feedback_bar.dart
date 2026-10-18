@@ -1,22 +1,26 @@
 import 'package:flutter/widgets.dart';
 import '../../../data/models/question/submit_result.dart';
 import '../../design/design.dart';
-import '../question/ai_explain_sheet.dart';
+import '../../providers/ai_explanation_session_provider.dart';
+import '../ai_explanation/ai_explanation_preview_card.dart';
 import '../report/report_button.dart';
 
 /// 제출 후 하단 피드백 바.
 ///
-/// 상단: 정답/오답 표시 + AI 해설 (조건부) + 신고
+/// 상단: 정답/오답 표시 + 신고 > AI 해설 미리보기(해설이 있을 때)
 /// 하단: 다음 문제 / 결과 보기 버튼
 class ChapterFeedbackBar extends StatefulWidget {
   final SubmitResult result;
   final String questionUuid;
 
-  /// 사용자가 선택한 선택지 키 (AI diff-explain 요청에 사용).
-  final String selectedChoiceKey;
-
   /// 정답 보기의 화면 순서 라벨 (없으면 correctKey 표시, #512)
   final String? correctDisplayLabel;
+
+  /// 이 제출의 해설함 항목 (선택지 세트를 모르면 null > 미리보기 없음)
+  final AiExplanationEntry? explanationEntry;
+
+  /// 미리보기 '해설 전체 보기'
+  final VoidCallback? onOpenExplanation;
 
   final bool isLastQuestion;
   final VoidCallback onNext;
@@ -25,8 +29,9 @@ class ChapterFeedbackBar extends StatefulWidget {
     super.key,
     required this.result,
     required this.questionUuid,
-    required this.selectedChoiceKey,
     this.correctDisplayLabel,
+    this.explanationEntry,
+    this.onOpenExplanation,
     required this.isLastQuestion,
     required this.onNext,
   });
@@ -45,53 +50,40 @@ class _ChapterFeedbackBarState extends State<ChapterFeedbackBar> {
     PassqlHaptics.playAnswerResult(isCorrect: _result.isCorrect);
   }
 
-  /// EXECUTABLE 모드 여부 — correctSql 또는 correctResult 존재 시 EXECUTABLE로 판단.
-  bool get _isExecutable =>
-      _result.correctSql != null || _result.correctResult != null;
-
-  /// AI 해설 버튼 표시 조건:
-  /// - 오답: 항상 표시
-  /// - 정답 + CONCEPT_ONLY: 표시
-  /// - 정답 + EXECUTABLE: 표시하지 않음
-  bool get _showAiButton => !_result.isCorrect || !_isExecutable;
-
   @override
   Widget build(BuildContext context) {
+    final explanationEntry = widget.explanationEntry;
     return PassqlBottomActionBar(
-      top: Row(
+      top: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 결과 문구가 남는 폭을 먼저 차지하고 버튼은 자기 폭만 쓴다.
-          Expanded(
-            child: PassqlResultMark(
-              isCorrect: _result.isCorrect,
-              label: _result.isCorrect
-                  ? '정답이에요'
-                  : '오답이에요 · 정답\u00A0${widget.correctDisplayLabel ?? _result.correctKey ?? '-'}',
-            ),
-          ),
-          if (_showAiButton)
-            PassqlButton(
-              label: 'AI 해설',
-              variant: PassqlButtonVariant.plain,
-              size: PassqlButtonSize.small,
-              isFullWidth: false,
-              onPressed: () => AiExplainSheet.show(
-                context,
-                payload: {
-                  'questionUuid': widget.questionUuid,
-                  'selectedChoiceKey': widget.selectedChoiceKey,
-                },
-                isErrorExplain: false,
-                initialExplanation: _result.explanation,
+          Row(
+            children: [
+              // 결과 문구가 남는 폭을 먼저 차지하고 신고 버튼은 자기 폭만 쓴다.
+              Expanded(
+                child: PassqlResultMark(
+                  isCorrect: _result.isCorrect,
+                  label: _result.isCorrect
+                      ? '정답이에요'
+                      : '오답이에요 · 정답 ${widget.correctDisplayLabel ?? _result.correctKey ?? '-'}',
+                ),
               ),
+              // 신고는 어떤 제출인지 알아야 하므로 제출 UUID 가 있을 때만 보여준다.
+              if (_result.submissionUuid != null)
+                ReportButton(
+                  questionUuid: widget.questionUuid,
+                  submissionUuid: _result.submissionUuid!,
+                  choiceSetUuid: _result.choiceSetUuid,
+                ),
+            ],
+          ),
+          if (explanationEntry != null) ...[
+            const SizedBox(height: PassqlSpacing.xs),
+            AiExplanationPreviewCard(
+              entry: explanationEntry,
+              onOpenFullExplanation: widget.onOpenExplanation ?? () {},
             ),
-          // 신고는 어떤 제출인지 알아야 하므로 제출 UUID 가 있을 때만 보여준다.
-          if (_result.submissionUuid != null)
-            ReportButton(
-              questionUuid: widget.questionUuid,
-              submissionUuid: _result.submissionUuid!,
-              choiceSetUuid: _result.choiceSetUuid,
-            ),
+          ],
         ],
       ),
       actions: [

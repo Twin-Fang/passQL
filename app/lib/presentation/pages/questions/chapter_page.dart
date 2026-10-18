@@ -6,9 +6,13 @@ import '../../../core/error/app_exception.dart';
 import '../../../core/monitoring/crash_reporter.dart';
 import '../../../data/models/question/submit_result.dart';
 import '../../../presentation/flows/question_flow.dart';
+import '../../../presentation/providers/ai_explanation_session_provider.dart';
 import '../../../presentation/providers/chapter_providers.dart';
+import '../../../presentation/providers/choice_explanation_providers.dart';
 import '../../../presentation/providers/learning_refresh.dart';
 import '../../../presentation/providers/question_providers.dart';
+import '../../widgets/ai_explanation/ai_explanation_dock.dart';
+import '../../widgets/ai_explanation/ai_explanation_history_button.dart';
 import '../../widgets/chapter/chapter_app_bar.dart';
 import '../../../data/models/question/question_detail.dart';
 import '../../widgets/common/app_toast.dart';
@@ -84,12 +88,18 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     ref.listen(questionDetailProvider(questionUuids[nextIndex]), (_, _) {});
   }
 
-  /// 제출: 선택 키 고정 > 서버 제출 > 결과 기록(성공) 또는 원인별 토스트(실패)
+  /// 제출: 선택 키 고정 > 서버 제출 > 결과 기록(성공) + 해설함 추가 또는 원인별 토스트(실패)
   Future<void> _submitCurrentQuestion(String currentUuid) async {
-    // 선택 키 미리 저장 (제출 후 interaction state가 바뀔 수 있으므로)
-    final selectedKey =
-        ref.read(questionInteractionProvider(currentUuid)).selectedChoiceKey ??
-        '';
+    // 선택 키·보기 표시 라벨·순번 미리 저장 (제출 후 interaction state가 바뀔 수 있으므로)
+    final interactionBeforeSubmit = ref.read(
+      questionInteractionProvider(currentUuid),
+    );
+    final selectedKey = interactionBeforeSubmit.selectedChoiceKey ?? '';
+    final displayLabelByChoiceKey = choiceDisplayLabelsOf(
+      interactionBeforeSubmit.activeChoices,
+    );
+    final questionNumber =
+        ref.read(chapterProvider(widget.flow.id)).currentIndex + 1;
     final SubmitResult? submitResult;
     try {
       submitResult = await ref
@@ -108,6 +118,60 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     ref
         .read(chapterProvider(widget.flow.id).notifier)
         .recordSubmission(submitResult, selectedKey);
+    _addExplanationEntry(
+      questionUuid: currentUuid,
+      result: submitResult,
+      selectedKey: selectedKey,
+      questionNumber: questionNumber,
+      displayLabelByChoiceKey: displayLabelByChoiceKey,
+    );
+  }
+
+  /// 해설함에 이번 제출 추가 > 미리보기용 해설 조회가 바로 시작되고 다음 문제로 가도 계속됨
+  void _addExplanationEntry({
+    required String questionUuid,
+    required SubmitResult result,
+    required String selectedKey,
+    required int questionNumber,
+    required Map<String, String> displayLabelByChoiceKey,
+  }) {
+    final request = ChoiceExplanationRequest.fromSubmission(
+      questionUuid: questionUuid,
+      result: result,
+      selectedChoiceKey: selectedKey,
+    );
+    if (request == null) return;
+    ref
+        .read(aiExplanationSessionProvider.notifier)
+        .addEntry(
+          AiExplanationEntry(
+            request: request,
+            isCorrect: result.isCorrect,
+            questionNumber: questionNumber,
+            displayLabelByChoiceKey: displayLabelByChoiceKey,
+            rationale: result.rationale,
+          ),
+        );
+  }
+
+  /// 현재 문제 제출의 해설함 항목 (세트를 몰라 해설이 없으면 null)
+  AiExplanationEntry? _currentExplanationEntry(
+    String questionUuid,
+    ChapterState chapter,
+  ) {
+    final result = chapter.lastSubmitResult;
+    if (!chapter.isAnswered || result == null) return null;
+    final request = ChoiceExplanationRequest.fromSubmission(
+      questionUuid: questionUuid,
+      result: result,
+      selectedChoiceKey: chapter.lastSelectedKey,
+    );
+    if (request == null) return null;
+    return ref.watch(
+      aiExplanationSessionProvider.select(
+        (session) => session.entryById(request.id),
+      ),
+    );
   }
 
   /// 마지막 문제까지 끝남 — 요약을 만들어 이후 처리는 흐름에 맡긴다.
@@ -183,6 +247,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
 
     // 한 문제라도 제출했거나 2번째 문제 이상이면 "풀이 시작"으로 본다.
     final hasStarted = chapter.currentIndex > 0 || chapter.isAnswered;
+    final explanationEntry = _currentExplanationEntry(currentUuid, chapter);
 
     final scaffold = Scaffold(
       // 하단 바(글래스) 뒤로 본문이 비쳐 보이도록 body 를 바 아래까지 확장한다.
@@ -193,43 +258,47 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
         total: chapter.questionUuids.length,
         isAnswered: chapter.isAnswered,
         shouldConfirmExit: hasStarted,
+        accessory: const AiExplanationHistoryButton(),
       ),
       // 문제 교체: 옆으로 미끄러지며 바뀜 (문제마다 key), 같은 문제 안 로딩 > 내용은 페이드
-      body: PassqlPageSlideSwitcher(
-        child: KeyedSubtree(
-          key: ValueKey(currentUuid),
-          child: PassqlFadeSwitcher(
-            child: detailAsync.when(
-              loading: () =>
-                  const QuestionSolvingSkeleton(key: ValueKey('loading')),
-              error: (error, _) => KeyedSubtree(
-                key: const ValueKey('error'),
-                child: PassqlStatusView.error(
-                  message: '문제를 불러올 수 없어요',
-                  onRetry: () =>
-                      ref.invalidate(questionDetailProvider(currentUuid)),
-                ),
-              ),
-              data: (question) {
-                _initializeChoicesOnce(currentUuid, question);
-                // Scaffold 안쪽 context 여야 extendBody 가 더한 하단 바 높이를 읽는다.
-                return Builder(
-                  key: const ValueKey('data'),
-                  builder: (context) => QuestionSolvingBody(
-                    questionUuid: currentUuid,
-                    question: question,
-                    interaction: interaction,
-                    notifier: interactionNotifier,
-                    // 제출 후에는 정답/오답을 선택지에 표시한다.
-                    submitResult: chapter.isAnswered
-                        ? chapter.lastSubmitResult
-                        : null,
-                    gradedSelectedKey: chapter.lastSelectedKey,
-                    // 재시도가 소용없는 오류여도 다시 눌러 볼 수 있게 두어 막다른 길을 만들지 않는다.
-                    shouldAlwaysAllowRetry: true,
+      // 해설 시트는 본문 위에 떠서 하단 바를 가리지 않음 (다음 문제로 가도 유지)
+      body: AiExplanationDock(
+        child: PassqlPageSlideSwitcher(
+          child: KeyedSubtree(
+            key: ValueKey(currentUuid),
+            child: PassqlFadeSwitcher(
+              child: detailAsync.when(
+                loading: () =>
+                    const QuestionSolvingSkeleton(key: ValueKey('loading')),
+                error: (error, _) => KeyedSubtree(
+                  key: const ValueKey('error'),
+                  child: PassqlStatusView.error(
+                    message: '문제를 불러올 수 없어요',
+                    onRetry: () =>
+                        ref.invalidate(questionDetailProvider(currentUuid)),
                   ),
-                );
-              },
+                ),
+                data: (question) {
+                  _initializeChoicesOnce(currentUuid, question);
+                  // Scaffold 안쪽 context 여야 extendBody 가 더한 하단 바 높이를 읽는다.
+                  return Builder(
+                    key: const ValueKey('data'),
+                    builder: (context) => QuestionSolvingBody(
+                      questionUuid: currentUuid,
+                      question: question,
+                      interaction: interaction,
+                      notifier: interactionNotifier,
+                      // 제출 후에는 정답/오답을 선택지에 표시한다.
+                      submitResult: chapter.isAnswered
+                          ? chapter.lastSubmitResult
+                          : null,
+                      gradedSelectedKey: chapter.lastSelectedKey,
+                      // 재시도가 소용없는 오류여도 다시 눌러 볼 수 있게 두어 막다른 길을 만들지 않는다.
+                      shouldAlwaysAllowRetry: true,
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ),
@@ -246,7 +315,12 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
               key: ValueKey(currentUuid),
               result: chapter.lastSubmitResult!,
               questionUuid: currentUuid,
-              selectedChoiceKey: chapter.lastSelectedKey ?? '',
+              explanationEntry: explanationEntry,
+              onOpenExplanation: explanationEntry == null
+                  ? null
+                  : () => ref
+                        .read(aiExplanationSessionProvider.notifier)
+                        .openEntry(explanationEntry.id),
               correctDisplayLabel: findChoiceDisplayLabel(
                 interaction.activeChoices,
                 chapter.lastSubmitResult!.correctKey,

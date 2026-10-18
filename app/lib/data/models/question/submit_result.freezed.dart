@@ -32,6 +32,8 @@ mixin _$SubmitResult {
   String? get submissionUuid =>
       throw _privateConstructorUsedError; // 고른 선택지의 미리 생성된 AI 해설 (있으면 해설 시트가 요청 없이 바로 보여 줌) (#496)
   String? get explanation =>
+      throw _privateConstructorUsedError; // 구조화 해설 (있으면 미리보기·전체 해설을 요청 없이 바로 표시, #521)
+  ChoiceExplanation? get structuredExplanation =>
       throw _privateConstructorUsedError; // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
   @JsonKey(includeFromJson: false, includeToJson: false)
   String? get choiceSetUuid => throw _privateConstructorUsedError;
@@ -63,12 +65,14 @@ abstract class $SubmitResultCopyWith<$Res> {
     String? selectedSql,
     String? submissionUuid,
     String? explanation,
+    ChoiceExplanation? structuredExplanation,
     @JsonKey(includeFromJson: false, includeToJson: false)
     String? choiceSetUuid,
   });
 
   $ExecuteResultCopyWith<$Res>? get selectedResult;
   $ExecuteResultCopyWith<$Res>? get correctResult;
+  $ChoiceExplanationCopyWith<$Res>? get structuredExplanation;
 }
 
 /// @nodoc
@@ -95,6 +99,7 @@ class _$SubmitResultCopyWithImpl<$Res, $Val extends SubmitResult>
     Object? selectedSql = freezed,
     Object? submissionUuid = freezed,
     Object? explanation = freezed,
+    Object? structuredExplanation = freezed,
     Object? choiceSetUuid = freezed,
   }) {
     return _then(
@@ -135,6 +140,10 @@ class _$SubmitResultCopyWithImpl<$Res, $Val extends SubmitResult>
                 ? _value.explanation
                 : explanation // ignore: cast_nullable_to_non_nullable
                       as String?,
+            structuredExplanation: freezed == structuredExplanation
+                ? _value.structuredExplanation
+                : structuredExplanation // ignore: cast_nullable_to_non_nullable
+                      as ChoiceExplanation?,
             choiceSetUuid: freezed == choiceSetUuid
                 ? _value.choiceSetUuid
                 : choiceSetUuid // ignore: cast_nullable_to_non_nullable
@@ -171,6 +180,22 @@ class _$SubmitResultCopyWithImpl<$Res, $Val extends SubmitResult>
       return _then(_value.copyWith(correctResult: value) as $Val);
     });
   }
+
+  /// Create a copy of SubmitResult
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ChoiceExplanationCopyWith<$Res>? get structuredExplanation {
+    if (_value.structuredExplanation == null) {
+      return null;
+    }
+
+    return $ChoiceExplanationCopyWith<$Res>(_value.structuredExplanation!, (
+      value,
+    ) {
+      return _then(_value.copyWith(structuredExplanation: value) as $Val);
+    });
+  }
 }
 
 /// @nodoc
@@ -192,6 +217,7 @@ abstract class _$$SubmitResultImplCopyWith<$Res>
     String? selectedSql,
     String? submissionUuid,
     String? explanation,
+    ChoiceExplanation? structuredExplanation,
     @JsonKey(includeFromJson: false, includeToJson: false)
     String? choiceSetUuid,
   });
@@ -200,6 +226,8 @@ abstract class _$$SubmitResultImplCopyWith<$Res>
   $ExecuteResultCopyWith<$Res>? get selectedResult;
   @override
   $ExecuteResultCopyWith<$Res>? get correctResult;
+  @override
+  $ChoiceExplanationCopyWith<$Res>? get structuredExplanation;
 }
 
 /// @nodoc
@@ -225,6 +253,7 @@ class __$$SubmitResultImplCopyWithImpl<$Res>
     Object? selectedSql = freezed,
     Object? submissionUuid = freezed,
     Object? explanation = freezed,
+    Object? structuredExplanation = freezed,
     Object? choiceSetUuid = freezed,
   }) {
     return _then(
@@ -265,6 +294,10 @@ class __$$SubmitResultImplCopyWithImpl<$Res>
             ? _value.explanation
             : explanation // ignore: cast_nullable_to_non_nullable
                   as String?,
+        structuredExplanation: freezed == structuredExplanation
+            ? _value.structuredExplanation
+            : structuredExplanation // ignore: cast_nullable_to_non_nullable
+                  as ChoiceExplanation?,
         choiceSetUuid: freezed == choiceSetUuid
             ? _value.choiceSetUuid
             : choiceSetUuid // ignore: cast_nullable_to_non_nullable
@@ -287,6 +320,7 @@ class _$SubmitResultImpl implements _SubmitResult {
     this.selectedSql,
     this.submissionUuid,
     this.explanation,
+    this.structuredExplanation,
     @JsonKey(includeFromJson: false, includeToJson: false) this.choiceSetUuid,
   });
 
@@ -313,6 +347,9 @@ class _$SubmitResultImpl implements _SubmitResult {
   // 고른 선택지의 미리 생성된 AI 해설 (있으면 해설 시트가 요청 없이 바로 보여 줌) (#496)
   @override
   final String? explanation;
+  // 구조화 해설 (있으면 미리보기·전체 해설을 요청 없이 바로 표시, #521)
+  @override
+  final ChoiceExplanation? structuredExplanation;
   // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -320,7 +357,7 @@ class _$SubmitResultImpl implements _SubmitResult {
 
   @override
   String toString() {
-    return 'SubmitResult(isCorrect: $isCorrect, correctKey: $correctKey, rationale: $rationale, selectedResult: $selectedResult, correctResult: $correctResult, correctSql: $correctSql, selectedSql: $selectedSql, submissionUuid: $submissionUuid, explanation: $explanation, choiceSetUuid: $choiceSetUuid)';
+    return 'SubmitResult(isCorrect: $isCorrect, correctKey: $correctKey, rationale: $rationale, selectedResult: $selectedResult, correctResult: $correctResult, correctSql: $correctSql, selectedSql: $selectedSql, submissionUuid: $submissionUuid, explanation: $explanation, structuredExplanation: $structuredExplanation, choiceSetUuid: $choiceSetUuid)';
   }
 
   @override
@@ -346,6 +383,8 @@ class _$SubmitResultImpl implements _SubmitResult {
                 other.submissionUuid == submissionUuid) &&
             (identical(other.explanation, explanation) ||
                 other.explanation == explanation) &&
+            (identical(other.structuredExplanation, structuredExplanation) ||
+                other.structuredExplanation == structuredExplanation) &&
             (identical(other.choiceSetUuid, choiceSetUuid) ||
                 other.choiceSetUuid == choiceSetUuid));
   }
@@ -363,6 +402,7 @@ class _$SubmitResultImpl implements _SubmitResult {
     selectedSql,
     submissionUuid,
     explanation,
+    structuredExplanation,
     choiceSetUuid,
   );
 
@@ -391,6 +431,7 @@ abstract class _SubmitResult implements SubmitResult {
     final String? selectedSql,
     final String? submissionUuid,
     final String? explanation,
+    final ChoiceExplanation? structuredExplanation,
     @JsonKey(includeFromJson: false, includeToJson: false)
     final String? choiceSetUuid,
   }) = _$SubmitResultImpl;
@@ -415,7 +456,9 @@ abstract class _SubmitResult implements SubmitResult {
   @override
   String? get submissionUuid; // 고른 선택지의 미리 생성된 AI 해설 (있으면 해설 시트가 요청 없이 바로 보여 줌) (#496)
   @override
-  String? get explanation; // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
+  String? get explanation; // 구조화 해설 (있으면 미리보기·전체 해설을 요청 없이 바로 표시, #521)
+  @override
+  ChoiceExplanation? get structuredExplanation; // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   String? get choiceSetUuid;

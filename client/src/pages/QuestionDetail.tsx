@@ -16,6 +16,7 @@ import { useQuestionChoices } from "../hooks/useQuestionChoices";
 import { useChoiceExecutionCache } from "../hooks/useChoiceExecutionCache";
 import { useAiErrorExplanation } from "../hooks/useAiErrorExplanation";
 import { useQuestionAnswerSubmit } from "../hooks/useQuestionAnswerSubmit";
+import { usePracticeBottomBarHeight } from "../hooks/usePracticeBottomBarHeight";
 import type { ChoiceItem, SubmitResult } from "../types/api";
 
 interface QuestionDetailProps {
@@ -74,6 +75,9 @@ export default function QuestionDetail({
     onPracticeSubmit,
     onSubmitSuccess,
   });
+
+  // 제출 바 높이 공개 > 해설 하단 시트가 제출 버튼을 가리지 않음 (#521)
+  const submitBarRef = usePracticeBottomBarHeight();
 
   const handleSelect = useCallback((choiceKey: string, _sql: string) => {
     // 풀이 중 SQL 자동 실행 없음 — 제출 후 결과 화면에서 실행
@@ -146,7 +150,7 @@ export default function QuestionDetail({
       )}
 
       {/* fixed bottom 제출 버튼 — PracticeFeedbackBar(z-30)가 제출 후 자연스럽게 덮음 */}
-      <div className="fixed bottom-0 inset-x-0 z-20 bg-surface">
+      <div ref={submitBarRef} className="fixed bottom-0 inset-x-0 z-20 bg-surface">
         <div className="mx-auto max-w-120 px-4 py-4">
           <button
             type="button"

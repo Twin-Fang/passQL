@@ -102,6 +102,19 @@ export type AiResult = ApiSchemas["AiResult"];
 
 export type SimilarQuestion = ApiSchemas["SimilarQuestion"];
 
+// 선택지 해설 (#521): 판정 > 정답 근거 > 핵심 개념 > 헷갈리는 지점 > 보기별 판단 > 시험 팁
+// verdict 는 서버가 choiceKey 로 조립 > 화면은 표시 라벨(#512)로 다시 조립 (lib/choiceExplanationPresentation)
+export type ChoiceExplanation = ApiSchemas["ChoiceExplanation"];
+
+export type KeyConcept = ApiSchemas["KeyConcept"];
+
+export type ChoiceAnalysis = ApiSchemas["ChoiceAnalysis"];
+
+// status: READY 해설 있음 / GENERATING 생성 중(retryAfterMilliseconds 뒤 재조회) / FAILED 재시도 상한 도달
+export type ChoiceExplanationResponse = ApiSchemas["ChoiceExplanationResponse"];
+
+export type ChoiceExplanationStatus = ChoiceExplanationResponse["status"];
+
 // === Member ===
 // 선택지 생성 모드
 export type ChoiceGenerationMode = ApiSchemas["MemberMeResponse"]["choiceGenerationMode"];
