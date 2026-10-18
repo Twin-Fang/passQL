@@ -44,6 +44,11 @@ class _NotificationInboxListState extends ConsumerState<NotificationInboxList> {
     NotificationCategory.general: '최근 90일',
     NotificationCategory.notice: '노출 중인 공지',
   };
+  // 읽음 처리는 보고 있는 탭의 항목만 > 버튼 문구에 범위를 드러냄
+  static const Map<NotificationCategory, String> _markAllReadLabels = {
+    NotificationCategory.general: '알림 모두 읽음',
+    NotificationCategory.notice: '공지 모두 읽음',
+  };
   static const Map<NotificationCategory, ({String title, String message})>
   _emptyTexts = {
     NotificationCategory.general: (
@@ -135,7 +140,7 @@ class _NotificationInboxListState extends ConsumerState<NotificationInboxList> {
                   ),
                 ),
                 PassqlButton(
-                  label: '모두 읽음',
+                  label: _markAllReadLabels[widget.category]!,
                   onPressed: unreadCount > 0 ? _markAllRead : null,
                   variant: PassqlButtonVariant.plain,
                   size: PassqlButtonSize.small,
