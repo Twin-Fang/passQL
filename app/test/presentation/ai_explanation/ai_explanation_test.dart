@@ -275,6 +275,8 @@ void main() {
       await tester.tap(find.byType(AiExplanationPreviewCard));
       await tester.pump(const Duration(seconds: 1));
       expect(find.text('AI 해설 · 1번 문제'), findsOneWidget);
+      // 시트가 열려 있으면 같은 내용의 미리보기는 숨김
+      expect(find.byType(AiExplanationPreviewCard), findsNothing);
 
       // 시트가 떠 있어도 하단 바 '다음' 을 누를 수 있음
       await tester.tap(find.text('다음'));

@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/question/submit_result.dart';
 import '../../design/design.dart';
 import '../../providers/ai_explanation_session_provider.dart';
@@ -77,13 +78,25 @@ class _ChapterFeedbackBarState extends State<ChapterFeedbackBar> {
                 ),
             ],
           ),
-          if (explanationEntry != null) ...[
-            const SizedBox(height: PassqlSpacing.xs),
-            AiExplanationPreviewCard(
-              entry: explanationEntry,
-              onOpenFullExplanation: widget.onOpenExplanation ?? () {},
+          // 해설 시트가 열려 있으면 같은 내용이라 숨김 (닫히면 다시 표시)
+          if (explanationEntry != null)
+            Consumer(
+              builder: (context, ref, _) {
+                final isPanelOpen = ref.watch(
+                  aiExplanationSessionProvider.select(
+                    (session) => session.isPanelOpen,
+                  ),
+                );
+                if (isPanelOpen) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.only(top: PassqlSpacing.xs),
+                  child: AiExplanationPreviewCard(
+                    entry: explanationEntry,
+                    onOpenFullExplanation: widget.onOpenExplanation ?? () {},
+                  ),
+                );
+              },
             ),
-          ],
         ],
       ),
       actions: [
