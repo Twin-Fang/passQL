@@ -44,6 +44,8 @@ OPEN_GRAPH_SIZE_PIXELS = (1200, 630)
 OPEN_GRAPH_LOGO_WIDTH_RATIO = 0.6
 
 WEB_FAVICON_SIZE_PIXELS = 64
+# 웹 앱 아이콘 (앱 다운로드 배너): 표시 48px(w-12) x 3배 (#531)
+WEB_APP_ICON_SIZE_PIXELS = 144
 
 # 웹 로고 높이: 최대 표시 높이 40px(h-10) x 3배(고밀도 화면), 원본 1336px 폭 그대로 내려보내지 않음 (#497)
 WEB_LOGO_HEIGHT_PIXELS = 120
@@ -156,6 +158,7 @@ def list_brand_asset_copies() -> list[BrandAssetCopy]:
         # 웹 OG·파비콘, 관리자 파비콘
         BrandAssetCopy("client/public/og-image.png", build_image=build_open_graph_image),
         BrandAssetCopy("client/public/favicon.png", build_image=lambda: build_square_icon(WEB_FAVICON_SIZE_PIXELS)),
+        BrandAssetCopy("client/src/assets/logo/app_icon.png", build_image=lambda: build_square_icon(WEB_APP_ICON_SIZE_PIXELS)),
         BrandAssetCopy("server/PQL-Web/src/main/resources/static/favicon.ico",
                        build_image=build_largest_server_favicon, image_format="ICO"),
         BrandAssetCopy(f"{IOS_LAUNCH_IMAGE_DIRECTORY}/Contents.json", build_text=build_ios_launch_image_contents_json),

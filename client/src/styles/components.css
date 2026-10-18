@@ -1095,3 +1095,84 @@ body {
     transition: none;
   }
 }
+
+/* ── 앱 다운로드 배너 + 공식 스토어 배지 (#531) ── */
+.app-download-banner {
+  position: relative;
+  margin-bottom: var(--space-lg);
+  padding: var(--space-lg);
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+}
+
+/* 앱 아이콘: 모바일 40px(문구 2줄 유지), sm 이상 48px */
+.app-download-banner-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-tile);
+}
+
+@media (min-width: 640px) {
+  .app-download-banner-icon {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+/* 배지 묶음: 높이 단일 기준(Apple 최소 표시 높이 40px), 간격 12px(배지 여백 기준 높이 1/4 이상) */
+.store-badge-group {
+  --store-badge-height: 40px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+  flex-shrink: 0;
+}
+
+.store-badge-link {
+  display: inline-flex;
+  border-radius: 8px;
+  transition: opacity 150ms var(--ease-smooth);
+}
+
+.store-badge-link:hover {
+  opacity: 0.85;
+}
+
+.store-badge-link:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+/* Apple SVG: 여백 없는 129.7x40 > 높이만 지정 */
+.store-badge-app-store {
+  height: var(--store-badge-height);
+  width: auto;
+}
+
+/* Google PNG 646x250: 배지 본체 192px + 위아래 투명 여백 29px > 본체가 기준 높이가 되도록 확대 후 여백만큼 당김 */
+.store-badge-google-play {
+  height: calc(var(--store-badge-height) * 250 / 192);
+  width: auto;
+  margin-block: calc(var(--store-badge-height) * -29 / 192);
+}
+
+/* Play 비공개 중 자리 표시: 배지와 같은 높이·폭, 클릭 불가 */
+.store-badge-coming-soon {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  height: var(--store-badge-height);
+  min-width: 130px;
+  padding: 0 var(--space-md);
+  border: 1px dashed var(--color-border);
+  border-radius: 8px;
+  background-color: var(--color-surface);
+  color: var(--color-text-caption);
+  cursor: not-allowed;
+  user-select: none;
+}
