@@ -92,6 +92,7 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
           correctSql: null,
           submissionUuid: null,
           explanation: null,
+          structuredExplanation: null,
         };
         setFeedback(fallback);
         // 제출 실패 시 submissionUuid 없음 → 신고 버튼 미표시

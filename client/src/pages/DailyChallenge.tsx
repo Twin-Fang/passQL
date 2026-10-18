@@ -74,6 +74,7 @@ export default function DailyChallenge() {
           correctSql: null,
           submissionUuid: null,
           explanation: null,
+          structuredExplanation: null,
         };
         setFeedback(localResult);
         isProcessingRef.current = false;
