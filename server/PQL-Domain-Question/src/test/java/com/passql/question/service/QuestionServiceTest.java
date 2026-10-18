@@ -67,7 +67,7 @@ class QuestionServiceTest {
         lineLog("활성 문제 0개 시나리오 — Service 코드 직접 확인");
 
         long activeCount = questionService
-                .getQuestions(null, null, null, null,
+                .getQuestions(null, null, null, null, null,
                         org.springframework.data.domain.PageRequest.of(0, 1))
                 .getTotalElements();
 

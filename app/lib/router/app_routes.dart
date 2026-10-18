@@ -8,6 +8,9 @@ abstract final class AppRoutes {
   static const String questionUuidParameter = 'questionUuid';
   static const String topicCodeQuery = 'topic';
   static const String topicNameQuery = 'topicName';
+  // 최신 출제 경향 문제만 풀기 (값 'true', #523)
+  static const String latestTrendQuery = 'latestTrend';
+  static const String latestTrendQueryValue = 'true';
 
   // 인증
   static const String login = '/login';
@@ -57,13 +60,18 @@ abstract final class AppRoutes {
   /// 토픽 선택 후 챕터 플로우. topic(topicCode), topicName 쿼리 파라미터.
   static const String questionChapter = '/questions/chapter';
 
-  /// 챕터 플로우 진입: /questions/chapter?topic=CODE&topicName=NAME
+  /// 챕터 플로우 진입: /questions/chapter?topic=CODE&topicName=NAME(&latestTrend=true)
   static String questionChapterOf({
     required String topicCode,
     required String topicName,
+    bool isLatestTrendOnly = false,
   }) =>
       '$questionChapter?$topicCodeQuery=$topicCode'
-      '&$topicNameQuery=${Uri.encodeComponent(topicName)}';
+      '&$topicNameQuery=${Uri.encodeComponent(topicName)}'
+      '${isLatestTrendOnly ? '&$latestTrendQuery=$latestTrendQueryValue' : ''}';
+
+  /// 출제 경향 화면 (홈 진입 카드에서, #523)
+  static const String examTrend = '/exam-trend';
 
   // 풀스크린
   /// 라우터 정의용 문제 상세 경로 패턴: /questions/:questionUuid

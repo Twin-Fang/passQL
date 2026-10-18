@@ -27,7 +27,9 @@ public record QuestionDetail(
     List<QuestionSchemaTable> schemaTables,
     @Schema(nullable = true) String answerSql,
     @Schema(nullable = true) String hint,
-    List<ChoiceSetSummary> choiceSets
+    List<ChoiceSetSummary> choiceSets,
+    @Schema(description = "최신 출제 경향 반영 문제 여부 ('최신 경향' 배지, #523)")
+    Boolean isLatestTrend
 ) {
     public record ChoiceSetSummary(
         UUID choiceSetUuid,

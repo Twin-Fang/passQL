@@ -3,13 +3,21 @@ import 'package:flutter/material.dart';
 import '../../../data/models/meta/topic_tree.dart';
 import '../../design/design.dart';
 
-/// 토픽 선택 행. displayName + 서브토픽 개수 표시.
+/// 토픽 선택 행. displayName + 서브토픽 개수 + (최신 경향 문제 있으면) 최신 경향 배지 표시.
 /// PassqlGroupedSection 안에서 쓰는 목록 행이다.
 class TopicCard extends StatelessWidget {
   final TopicTree topic;
   final VoidCallback onTap;
 
-  const TopicCard({super.key, required this.topic, required this.onTap});
+  /// 이 토픽에 최신 출제 경향 문제가 있는지 (#523)
+  final bool hasLatestTrendQuestion;
+
+  const TopicCard({
+    super.key,
+    required this.topic,
+    required this.onTap,
+    this.hasLatestTrendQuestion = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +33,7 @@ class TopicCard extends StatelessWidget {
       title: topic.displayName,
       // 서브토픽이 있을 때만 개수를 보여 준다(없으면 "0개"만 반복돼 의미가 없다)
       subtitle: activeSubtopicCount > 0 ? '$activeSubtopicCount개 서브토픽' : null,
+      trailing: hasLatestTrendQuestion ? const PassqlLatestTrendBadge() : null,
       hasChevron: true,
       onTap: onTap,
     );

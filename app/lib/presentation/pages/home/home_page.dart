@@ -14,6 +14,7 @@ import '../../widgets/common/app_toast.dart';
 import '../../widgets/home/app_notice_banner.dart';
 import '../../widgets/home/daily_set_card.dart';
 import '../../widgets/home/exam_schedule_card.dart';
+import '../../widgets/home/exam_trend_entry_card.dart';
 import '../../widgets/home/fallback_stats_section.dart';
 import '../../widgets/home/greeting_section.dart';
 import '../../widgets/home/heatmap_widget.dart';
@@ -195,6 +196,8 @@ class _HomeContent extends ConsumerWidget {
           solvedCount: data.progress!.solvedCount,
           correctRate: data.progress!.correctRate,
         ),
+
+      const ExamTrendEntryCard(),
 
       // 학습 현황 + 인라인 광고 카드 (학습 현황 <-> 추천 문제 사이)
       // 한 항목으로 묶음 > 광고 없으면 카드 간격도 생기지 않음

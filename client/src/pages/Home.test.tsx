@@ -5,6 +5,7 @@ import Home from "./Home";
 import { renderPageForSmokeTest, stubApiResponses } from "../test/renderPageForSmokeTest";
 import { useAuthStore } from "../stores/authStore";
 import type { QuestionSummary } from "../types/api";
+import { LATEST_TREND_BADGE_LABEL } from "../components/LatestTrendBadge";
 
 const RECOMMENDED_QUESTION: QuestionSummary = {
   questionUuid: "r1",
@@ -14,6 +15,7 @@ const RECOMMENDED_QUESTION: QuestionSummary = {
   executionMode: "EXECUTABLE",
   stemPreview: "주문 수 구하기",
   createdAt: "",
+  isLatestTrend: true,
 };
 
 function renderHome() {
@@ -47,6 +49,9 @@ describe("Home", () => {
     expect(await screen.findByRole("link", { name: "App Store에서 다운로드하기" })).toHaveAttribute("href", "https://apps.example/passql");
     expect(screen.getByRole("img", { name: "Android 출시 준비 중" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Google Play에서 다운로드" })).not.toBeInTheDocument();
+    // 최신 경향 추천 문제 배지·출제 경향 진입 카드 (#523)
+    expect(screen.getByText(LATEST_TREND_BADGE_LABEL, { selector: "a[href='/questions/r1'] span" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /2026 SQLD 출제 경향/ })).toHaveAttribute("href", "/exam-trend");
   });
 
   it("API 가 실패하면 섹션마다 실패 안내와 재시도를 보여 주고 추천 문제는 숨긴다", async () => {

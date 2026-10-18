@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { useExplanationHistoryStore } from "../../stores/explanationHistoryStore";
 
 interface PracticeQuestionScrollAreaProps {
-  // 피드백바 표시 중 여부 — 바 높이(~200px)만큼 하단 여백 확보
+  // 피드백바 표시 중 여부 — 측정된 바 높이만큼 하단 여백 확보
   readonly hasFeedbackBar: boolean;
   readonly children: ReactNode;
 }
@@ -15,7 +15,7 @@ export default function PracticeQuestionScrollArea({ hasFeedbackBar, children }:
   const isExplanationPanelOpen = useExplanationHistoryStore((state) => state.isOpen);
   return (
     <div
-      className={`flex-1 overflow-y-auto px-4 transition-[padding] duration-300 ${hasFeedbackBar ? "pb-52" : "pb-4"} ${
+      className={`flex-1 overflow-y-auto px-4 transition-[padding] duration-300 ${hasFeedbackBar ? "practice-scroll--with-feedback-bar" : "pb-4"} ${
         isExplanationPanelOpen ? "practice-scroll--with-explanation-dock" : ""
       }`}
     >

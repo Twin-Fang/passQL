@@ -34,7 +34,7 @@ class RecommendationServiceSimilarTest {
     private final UUID b = UUID.randomUUID();
 
     private static QuestionSummary summary(UUID id, String stem) {
-        return new QuestionSummary(id, "WINDOW", "윈도우 함수", 2, ExecutionMode.EXECUTABLE, stem, null);
+        return new QuestionSummary(id, "WINDOW", "윈도우 함수", 2, ExecutionMode.EXECUTABLE, stem, null, false);
     }
 
     @Test

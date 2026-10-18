@@ -533,12 +533,18 @@ body {
 }
 
 /* ── 14. FeedbackBar (정답/오답 상태별 스타일) ── */
+/* 하단 고정 바는 뒤의 보기 글자가 비치지 않게 표면색 위에 상태색을 섞어 불투명하게 */
 .feedback-bar--correct {
-  background-color: var(--color-semantic-success-light);
+  background-color: color-mix(in srgb, var(--color-semantic-success) 12%, var(--color-surface));
 }
 
 .feedback-bar--error {
-  background-color: var(--color-semantic-error-light);
+  background-color: color-mix(in srgb, var(--color-semantic-error) 10%, var(--color-surface));
+}
+
+/* 피드백 바(해설 미리보기 포함)가 마지막 보기를 가리지 않게 측정된 바 높이만큼 비움 */
+.practice-scroll--with-feedback-bar {
+  padding-bottom: calc(var(--practice-bottom-bar-height, 13rem) + 1rem);
 }
 
 .feedback-bar-icon--correct {
