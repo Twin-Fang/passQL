@@ -6,8 +6,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
@@ -41,8 +39,8 @@ public class CommunityImage extends BaseEntity {
     public static final String THUMBNAIL_KEY_PREFIX = "community/thumbs/";
     private static final String WEBP_EXTENSION = ".webp";
 
+    // 객체 키에 쓰려고 서비스가 먼저 발급한 UUID (자동 생성 금지: 미리 넣은 ID로 save 하면 UPDATE 를 시도해 500)
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(updatable = false, nullable = false)
     private UUID imageUuid;
 
