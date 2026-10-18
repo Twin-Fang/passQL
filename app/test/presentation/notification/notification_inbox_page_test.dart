@@ -113,7 +113,7 @@ void main() {
   testWidgets('모두 읽음을 누르면 탭 전체가 읽음 처리된다', (tester) async {
     await pumpInbox(tester, PassqlTheme.light);
 
-    await tester.tap(find.text('모두 읽음'));
+    await tester.tap(find.text('알림 모두 읽음'));
     await tester.pumpAndSettle();
 
     expect(api.readAllRequests, ['GENERAL']);

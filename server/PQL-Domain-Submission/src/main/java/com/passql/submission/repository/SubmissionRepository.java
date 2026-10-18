@@ -1,6 +1,7 @@
 package com.passql.submission.repository;
 
 import com.passql.submission.dto.RecentAttemptProjection;
+import com.passql.submission.dto.SolvedQuestionProjection;
 import com.passql.submission.entity.Submission;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,6 +25,24 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
     /** 회원이 이 문제의 특정 선택지 세트로 마지막으로 낸 답안 (해설 조회 권한 확인: 제출한 세트만 해설 공개, #521) */
     Optional<Submission> findFirstByMemberUuidAndQuestionUuidAndChoiceSetUuidOrderBySubmittedAtDesc(
             UUID memberUuid, UUID questionUuid, UUID choiceSetUuid);
+
+    /** 커뮤니티: 이 문제를 풀어 본(제출 기록이 있는) 회원인지 */
+    boolean existsByMemberUuidAndQuestionUuid(UUID memberUuid, UUID questionUuid);
+
+    /** 커뮤니티 풀이 스냅샷: 이 문제 제출을 시간순으로 */
+    List<Submission> findByMemberUuidAndQuestionUuidOrderBySubmittedAtAsc(UUID memberUuid, UUID questionUuid);
+
+    /** 커뮤니티 카드: 후보 문제 중 내가 푼 문제 */
+    @Query("SELECT DISTINCT s.questionUuid FROM Submission s WHERE s.memberUuid = :memberUuid AND s.questionUuid IN :questionUuids")
+    List<UUID> findSolvedQuestionUuids(@Param("memberUuid") UUID memberUuid,
+                                       @Param("questionUuids") java.util.Collection<UUID> questionUuids);
+
+    /** 커뮤니티 '내가 푼 문제' 피드: 내가 푼 문제와 오답 제출 여부 */
+    @Query("""
+            SELECT s.questionUuid AS questionUuid, MAX(CASE WHEN s.isCorrect = false THEN 1 ELSE 0 END) AS hasWrongSubmission
+            FROM Submission s WHERE s.memberUuid = :memberUuid GROUP BY s.questionUuid
+            """)
+    List<SolvedQuestionProjection> findSolvedQuestionsWithWrongFlag(@Param("memberUuid") UUID memberUuid);
 
     // 기간 안의 마지막 제출 — 완료한 오늘의 세트를 다시 열 때 문제별 정오를 복원하는 데 쓴다 (#372)
     Optional<Submission> findFirstByMemberUuidAndQuestionUuidAndSubmittedAtBetweenOrderBySubmittedAtDesc(

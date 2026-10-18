@@ -127,6 +127,19 @@ public enum ErrorCode {
     REPORT_ALREADY_RESOLVED(HttpStatus.BAD_REQUEST, "이미 처리된 신고입니다."),
     REPORT_CHOICE_SET_REQUIRED(HttpStatus.BAD_REQUEST, "선택지 세트 기준 보정은 choiceSetUuid가 필요합니다."),
 
+    // Community (#525, 앱·웹이 코드명으로 안내 문구를 고름)
+    COMMUNITY_POST_NOT_FOUND(HttpStatus.NOT_FOUND, "글을 찾을 수 없습니다."),
+    COMMUNITY_SOLVE_REQUIRED(HttpStatus.BAD_REQUEST, "문제를 풀고 나서 의견을 볼 수 있어요."),
+    COMMUNITY_CONTENT_INVALID(HttpStatus.BAD_REQUEST, "내용은 1자 이상 500자 이하로 입력해 주세요."),
+    COMMUNITY_CONTENT_FORBIDDEN_WORD(HttpStatus.BAD_REQUEST, "사용할 수 없는 표현이 포함되어 있어요."),
+    COMMUNITY_POST_DUPLICATE(HttpStatus.CONFLICT, "같은 내용을 방금 작성했어요."),
+    COMMUNITY_POST_RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "글을 너무 빠르게 쓰고 있어요. 잠시 후 다시 시도해 주세요."),
+    COMMUNITY_POST_DAILY_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "하루에 쓸 수 있는 글 수를 넘었어요."),
+    COMMUNITY_POST_FORBIDDEN(HttpStatus.FORBIDDEN, "본인 글만 삭제할 수 있어요."),
+    COMMUNITY_SELF_REPORT_FORBIDDEN(HttpStatus.BAD_REQUEST, "내 글은 신고할 수 없어요."),
+    COMMUNITY_SELF_BLOCK_FORBIDDEN(HttpStatus.BAD_REQUEST, "나 자신은 차단할 수 없어요."),
+    COMMUNITY_BLOCK_NOT_FOUND(HttpStatus.NOT_FOUND, "차단 내역을 찾을 수 없습니다."),
+
     // Admin Account (#478)
     ADMIN_ACCOUNT_NOT_FOUND(HttpStatus.NOT_FOUND, "관리자 계정을 찾을 수 없습니다."),
     ADMIN_ACCOUNT_DUPLICATE(HttpStatus.CONFLICT, "이미 있는 관리자 아이디입니다."),

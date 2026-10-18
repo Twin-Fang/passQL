@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<th:block layout:fragment="title">커뮤니티 신고 관리</th:block>
+
+<th:block layout:fragment="content">
+
+    <!-- 헤더 바: 대기 글만 보기 토글, 요약 배지, 새로고침 -->
+    <div class="flex flex-wrap items-center gap-3 mb-4">
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox" id="pendingOnly" class="toggle toggle-sm toggle-warning" checked/>
+            <span class="text-sm font-medium whitespace-nowrap">검토 대기만 보기</span>
+        </label>
+        <div id="summaryBadges" class="flex flex-wrap gap-2"></div>
+        <button class="btn btn-sm btn-ghost ml-auto" onclick="loadCommunityReports()">
+            <i data-lucide="refresh-cw" class="size-4"></i>새로고침
+        </button>
+    </div>
+
+    <!-- 신고 글 목록 (JS 렌더링) -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-0">
+            <div class="overflow-x-auto">
+                <table class="table table-sm w-full">
+                    <thead>
+                    <tr>
+                        <th class="w-16">신고</th>
+                        <th class="w-28">작성자</th>
+                        <th>내용 / 신고 사유</th>
+                        <th class="w-24">상태</th>
+                        <th class="w-28">작성일</th>
+                        <th class="w-56">처리</th>
+                    </tr>
+                    </thead>
+                    <tbody id="communityReportBody">
+                    <tr>
+                        <td colspan="6" class="text-center py-12 text-base-content/50">
+                            <span class="loading loading-spinner loading-sm"></span>
+                            <span class="ml-2">로딩 중...</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="communityReportPager" class="flex justify-center p-4"></div>
+        </div>
+    </div>
+
+</th:block>
+
+<th:block layout:fragment="js">
+    <script th:src="@{/js/admin/community-reports.js}"></script>
+</th:block>
+</html>

@@ -161,6 +161,12 @@
                     </a>
                 </li>
                 <li>
+                    <a th:href="@{/admin/community/reports}" th:classappend="${currentMenu == 'community-reports'} ? 'active'">
+                        <i data-lucide="messages-square" class="size-5"></i>
+                        커뮤니티 신고
+                    </a>
+                </li>
+                <li>
                     <a th:href="@{/admin/legal}" th:classappend="${currentMenu == 'legal'} ? 'active'">
                         <i data-lucide="file-text" class="size-5"></i>
                         약관 관리
