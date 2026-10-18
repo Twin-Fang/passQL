@@ -7,7 +7,7 @@ import 'ai_explanation_content.dart';
 import 'ai_explanation_history_list.dart';
 
 /// 풀이 화면 위 비모달 해설 시트: 본문 위에 떠서 드래그로 접기·펼치기, 하단 바(다음·제출)는 가리지 않음
-/// 접힘 = 머리 한 줄, 펼침 = 해설. 다음 문제로 가도 시트·해설함은 그대로 (#521)
+/// 접힘 = 머리 한 줄, 펼침 = 해설. 다음 문제로 넘어가면 시트는 닫히고 해설함은 그대로 (#521, #538)
 /// Scaffold(extendBody) 의 body 안에 둔다: MediaQuery 하단 여백 = 하단 바 높이
 class AiExplanationDock extends ConsumerStatefulWidget {
   const AiExplanationDock({super.key, required this.child});

@@ -261,7 +261,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
         accessory: const AiExplanationHistoryButton(),
       ),
       // 문제 교체: 옆으로 미끄러지며 바뀜 (문제마다 key), 같은 문제 안 로딩 > 내용은 페이드
-      // 해설 시트는 본문 위에 떠서 하단 바를 가리지 않음 (다음 문제로 가도 유지)
+      // 해설 시트는 본문 위에 떠서 하단 바를 가리지 않음 (다음 문제로 넘어가면 닫히고 해설함에서 다시 열 수 있음)
       body: AiExplanationDock(
         child: PassqlPageSlideSwitcher(
           child: KeyedSubtree(
@@ -331,6 +331,8 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
                 if (chapter.isLastQuestion) {
                   _complete();
                 } else {
+                  // 새 문제를 풀 때는 지난 해설 시트를 닫음 (해설함·백그라운드 조회는 유지)
+                  ref.read(aiExplanationSessionProvider.notifier).closePanel();
                   chapterNotifier.nextQuestion();
                 }
               },
