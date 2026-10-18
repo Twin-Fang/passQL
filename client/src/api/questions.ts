@@ -6,7 +6,6 @@ import type {
   QuestionDetail,
   SubmitResult,
   ExecuteResult,
-  TodayQuestionResponse,
   RecommendationsResponse,
   SseStatusEvent,
   SseErrorEvent,
@@ -46,10 +45,6 @@ export function fetchQuestions(
 
 export function fetchQuestion(questionUuid: string): Promise<QuestionDetail> {
   return apiFetch(`/questions/${questionUuid}`);
-}
-
-export function fetchTodayQuestion(): Promise<TodayQuestionResponse> {
-  return apiFetch("/questions/today");
 }
 
 // GET → POST 전환: 제외 UUID가 쿼리스트링으로 무제한 누적되면 Tomcat 8KB 헤더 한도 초과 → 400 에러
