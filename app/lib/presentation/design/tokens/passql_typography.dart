@@ -72,6 +72,9 @@ abstract final class PassqlTypography {
   static final legalBody = body.copyWith(height: 1.55);
   static final explanationBody = subheadline.copyWith(height: 1.6);
   static final explanationEmphasis = subheadlineSemibold.copyWith(height: 1.6);
+  // 공지 본문처럼 화면 하나를 채우는 긴 글 (약관 본문과 같은 크기·줄 간격)
+  static final articleBody = legalBody;
+  static final articleEmphasis = headline.copyWith(height: 1.55);
   // 점수는 자릿수가 바뀌어도 폭이 흔들리지 않게 고정폭 숫자를 쓴다.
   static final scoreNumber = _t(
     _bold,

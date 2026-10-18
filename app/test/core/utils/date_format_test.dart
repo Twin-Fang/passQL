@@ -6,4 +6,9 @@ void main() {
     expect(formatMonthDayTime(DateTime(2026, 10, 2, 15, 5)), '10월 2일 15:05');
     expect(formatMonthDayTime(DateTime(2026, 1, 9, 0, 0)), '1월 9일 00:00');
   });
+
+  test('날짜를 yyyy.MM.dd 로 표기하고 월·일은 두 자리로 맞춘다', () {
+    expect(formatDottedDate(DateTime(2026, 3, 5, 23, 59)), '2026.03.05');
+    expect(formatDottedDate(DateTime(2026, 10, 18)), '2026.10.18');
+  });
 }

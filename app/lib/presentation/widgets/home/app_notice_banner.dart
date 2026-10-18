@@ -1,10 +1,11 @@
 import 'package:flutter/cupertino.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../data/models/meta/app_config.dart';
+import '../../../router/app_routes.dart';
 import '../../design/design.dart';
-import '../notification/notice_body_sheet.dart';
 
-/// 홈 공지 배너: 탭 > 본문 시트, 닫기 > 읽음 처리(같은 공지 다시 안 띄움)
+/// 홈 공지 배너: 탭 > 공지 상세 화면(#529), 닫기 > 읽음 처리(같은 공지 다시 안 띄움)
 class AppNoticeBanner extends StatelessWidget {
   const AppNoticeBanner({
     super.key,
@@ -19,11 +20,7 @@ class AppNoticeBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     return PassqlCard(
-      onTap: () => showNoticeBodySheet(
-        context,
-        title: notice.title,
-        body: notice.body,
-      ),
+      onTap: () => context.push(AppRoutes.noticeDetail(notice.noticeUuid)),
       padding: const EdgeInsets.fromLTRB(
         PassqlSpacing.md,
         PassqlSpacing.xs,

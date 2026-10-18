@@ -94,27 +94,7 @@ class _SegmentTab extends StatelessWidget {
               ),
               if (unreadCount > 0) ...[
                 const SizedBox(width: PassqlSpacing.xxs),
-                Container(
-                  constraints: const BoxConstraints(
-                    minWidth: PassqlSize.notificationBadge,
-                    minHeight: PassqlSize.notificationBadge,
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: PassqlSpacing.xxs,
-                  ),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: colors.warning,
-                    borderRadius: BorderRadius.circular(PassqlRadius.capsule),
-                  ),
-                  child: Text(
-                    '$unreadCount',
-                    style: PassqlTypography.captionSemibold.copyWith(
-                      color: colors.onAccent,
-                      height: 1,
-                    ),
-                  ),
-                ),
+                PassqlCountBadge(count: unreadCount),
               ],
             ],
           ),

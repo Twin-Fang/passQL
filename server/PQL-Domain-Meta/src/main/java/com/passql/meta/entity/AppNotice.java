@@ -53,4 +53,9 @@ public class AppNotice extends BaseEntity {
     // 중요 공지: 목록 맨 앞
     @Column(nullable = false)
     private Boolean isImportant;
+
+    /** 게시 시각: 노출 시작, 없으면 등록 시각 (KST) */
+    public LocalDateTime resolvePublishedAt() {
+        return startsAt != null ? startsAt : getCreatedAt();
+    }
 }

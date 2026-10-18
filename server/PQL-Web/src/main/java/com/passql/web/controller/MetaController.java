@@ -3,9 +3,12 @@ package com.passql.web.controller;
 import com.passql.meta.constant.LegalType;
 import com.passql.meta.dto.AppConfigResponse;
 import com.passql.meta.dto.AppLinksResponse;
+import com.passql.meta.dto.AppNoticePageResponse;
+import com.passql.meta.dto.AppNoticeResponse;
 import com.passql.meta.dto.LegalResponse;
 import com.passql.meta.dto.TopicTree;
 import com.passql.meta.dto.ConceptTagResponse;
+import com.passql.meta.service.AppNoticeService;
 import com.passql.meta.service.AppOperationService;
 import com.passql.meta.service.AppSettingService;
 import com.passql.meta.service.LegalService;
@@ -15,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
@@ -25,6 +29,7 @@ public class MetaController implements MetaControllerDocs {
     private final LegalService legalService;
     private final AppSettingService appSettingService;
     private final AppOperationService appOperationService;
+    private final AppNoticeService appNoticeService;
 
     @GetMapping("/meta/topics")
     public ResponseEntity<List<TopicTree>> getTopics() {
@@ -52,5 +57,19 @@ public class MetaController implements MetaControllerDocs {
     @GetMapping("/meta/app-config")
     public ResponseEntity<AppConfigResponse> getAppConfig() {
         return ResponseEntity.ok(appOperationService.getAppConfig());
+    }
+
+    /** 공지 목록 (지난 공지 포함, 페이지) — 인증 불필요 (#529) */
+    @GetMapping("/meta/notices")
+    public ResponseEntity<AppNoticePageResponse> getNotices(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+        return ResponseEntity.ok(appNoticeService.getPublishedNotices(page, size));
+    }
+
+    /** 공지 상세 — 인증 불필요 (#529) */
+    @GetMapping("/meta/notices/{noticeUuid}")
+    public ResponseEntity<AppNoticeResponse> getNotice(@PathVariable UUID noticeUuid) {
+        return ResponseEntity.ok(appNoticeService.getPublishedNotice(noticeUuid));
     }
 }

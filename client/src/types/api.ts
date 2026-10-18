@@ -197,6 +197,9 @@ export type FeedbackSubmitResponse = Omit<ApiSchemas["FeedbackSubmitResponse"], 
 // 웹은 점검·공지만 사용 (ios·android 버전 정책은 앱 전용) / notices: 노출 대상만 중요 먼저 > 최근 등록 순
 export type AppNotice = ApiSchemas["AppNoticeResponse"];
 
+// 공지 목록 한 페이지 (지난 공지 포함, 노출 중 중요 먼저 > 게시 최신 순, #529)
+export type AppNoticePage = ApiSchemas["AppNoticePageResponse"];
+
 export type AppConfigResponse = ApiSchemas["AppConfigResponse"];
 
 // ── 알림함 (#491) ──

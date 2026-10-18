@@ -28,7 +28,8 @@ class AppMaintenanceStatus with _$AppMaintenanceStatus {
       _$AppMaintenanceStatusFromJson(json);
 }
 
-/// 관리자가 등록한 공지 1건
+/// 관리자가 등록한 공지 1건 (본문은 마크다운 일부: 굵게·목록·링크)
+/// publishedAt: 게시 시각 = 노출 시작, 없으면 등록 시각 (KST, 구버전 서버 응답이면 null)
 @freezed
 class AppNotice with _$AppNotice {
   const factory AppNotice({
@@ -36,6 +37,7 @@ class AppNotice with _$AppNotice {
     required String title,
     required String body,
     @Default(false) bool isImportant,
+    DateTime? publishedAt,
   }) = _AppNotice;
 
   factory AppNotice.fromJson(Map<String, dynamic> json) =>
