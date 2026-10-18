@@ -49,8 +49,9 @@ class SettingsPage extends ConsumerWidget {
     } catch (_) {
       failureMessage = '탈퇴에 실패했어요. 잠시 후 다시 시도해 주세요.';
     }
-    // 잠금 대화상자를 닫는다. 성공해서 화면이 바뀐 경우에도 닫혀야 한다.
-    navigator.maybePop();
+    // 잠금 대화상자를 닫는다 (성공·실패·재인증 취소 공통).
+    // maybePop 은 PopScope(canPop: false) 를 존중해 닫지 못하므로 pop 으로 닫는다.
+    navigator.pop();
     if (failureMessage != null && context.mounted) {
       showAppToast(context, failureMessage);
     }
