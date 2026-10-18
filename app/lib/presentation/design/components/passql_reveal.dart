@@ -68,8 +68,7 @@ class _PassqlRevealState extends State<PassqlReveal>
       child: widget.child,
       builder: (_, child) {
         final value = _progress.value;
-        // 끝난 뒤에는 변환 없이 그대로 그린다
-        if (value >= 1) return child!;
+        // 끝난 뒤에도 래퍼 구조 유지 (구조가 바뀌면 자식이 다시 만들어져 광고 AdWidget 이 중복 마운트됨)
         return Opacity(
           opacity: value,
           child: Transform.translate(
