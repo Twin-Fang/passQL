@@ -42,11 +42,25 @@ class ResultRowsTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
+    // 열도 행도 없는 결과: 정당한 보기 하나로 보이게 다른 결과 표와 같은 틀 안에 표시
     if (columns.isEmpty) {
-      return Text(
-        '(결과 없음)',
-        style: PassqlTypography.subheadline.copyWith(
-          color: colors.secondaryLabel,
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(
+          horizontal: PassqlSpacing.sm,
+          vertical: PassqlSpacing.md,
+        ),
+        decoration: BoxDecoration(
+          color: colors.card,
+          border: Border.all(color: colors.separator),
+          borderRadius: const BorderRadius.all(Radius.circular(PassqlRadius.sm)),
+        ),
+        child: Text(
+          '결과 없음 · 0행',
+          textAlign: TextAlign.center,
+          style: PassqlTypography.subheadline.copyWith(
+            color: colors.secondaryLabel,
+          ),
         ),
       );
     }
