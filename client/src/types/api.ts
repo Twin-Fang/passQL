@@ -129,11 +129,6 @@ export interface DiffExplainPayload {
 }
 
 // === Today / Recommendations ===
-export interface TodayQuestionResponse {
-  readonly question: QuestionSummary | null;
-  readonly alreadySolvedToday: boolean;
-}
-
 // === Daily Set ===
 // results: 문제별 정답 여부 (미완료면 null)
 export type DailySetTodayResponse = ApiSchemas["DailySetTodayResponse"];

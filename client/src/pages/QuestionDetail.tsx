@@ -91,8 +91,8 @@ export default function QuestionDetail({
     !isSubmitPending;
 
 
-  // standalone 모드: 전체화면 + max-w-120 집중 레이아웃 (DailyChallenge와 동일)
-  // practiceMode: DailyChallenge가 외부 컨테이너(flex-1 overflow-y-auto px-4) 제공
+  // standalone 모드: 전체화면 + max-w-120 집중 레이아웃
+  // practiceMode: 외부 컨테이너(flex-1 overflow-y-auto px-4)가 감쌈
   // pb-24: fixed bottom 버튼 높이만큼 스크롤 영역 하단 여백 확보
   const containerClass = practiceMode
     ? "flex flex-col px-1 pb-24"

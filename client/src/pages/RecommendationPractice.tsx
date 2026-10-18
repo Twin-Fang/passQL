@@ -72,7 +72,7 @@ export default function RecommendationPractice() {
 
   return (
     <div className="flex flex-col h-screen max-w-120 mx-auto w-full">
-      {/* DailyChallenge와 동일한 헤더 구조 */}
+      {/* 단건 풀이 헤더 */}
       <div className="px-4 pt-3 pb-2">
         <PracticeTopBar
           exitIcon={<Home size={18} className="text-text-secondary" />}
