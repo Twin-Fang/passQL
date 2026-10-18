@@ -60,8 +60,10 @@ class _StatCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: PassqlSpacing.xxs),
-          Text(
+          // 3열 좁은 카드 > 단어 단위 줄바꿈
+          PassqlKeepAllText(
             label,
+            textAlign: TextAlign.center,
             style: PassqlTypography.caption.copyWith(color: colors.secondaryLabel),
           ),
         ],

@@ -15,7 +15,7 @@ class MainActivity : FlutterFragmentActivity() {
         createDefaultNotificationChannel()
     }
 
-    // 탭 바 아래 한 줄 광고 띠 네이티브 팩토리 등록 (#527, 엔진 수명과 함께)
+    // 네이티브 광고 팩토리 2개 등록 (엔진 수명과 함께): 탭 바 아래 한 줄 띠(#527), 문제 탭 카드 (Dart NativeAd factoryId 가 이 이름을 찾음)
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         GoogleMobileAdsPlugin.registerNativeAdFactory(
@@ -23,10 +23,16 @@ class MainActivity : FlutterFragmentActivity() {
             PassqlStripNativeAdFactory.FACTORY_ID,
             PassqlStripNativeAdFactory(this),
         )
+        GoogleMobileAdsPlugin.registerNativeAdFactory(
+            flutterEngine,
+            PassqlNativeAdFactory.FACTORY_ID,
+            PassqlNativeAdFactory(this),
+        )
     }
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
         GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, PassqlStripNativeAdFactory.FACTORY_ID)
+        GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, PassqlNativeAdFactory.FACTORY_ID)
         super.cleanUpFlutterEngine(flutterEngine)
     }
 

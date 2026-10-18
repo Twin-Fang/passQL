@@ -13,6 +13,7 @@ import 'package:passql_app/presentation/providers/settings_providers.dart';
 import 'package:passql_app/presentation/providers/stats_providers.dart';
 
 import '../../helpers/fakes/fake_http_client_adapter.dart';
+import '../../helpers/text_finders.dart';
 
 // 회원 A·B 세션 (닉네임이 홈 인사말에 그려짐)
 const _memberA = AuthSession(
@@ -77,9 +78,9 @@ Widget _app(ProviderContainer container, Widget home) =>
       child: MaterialApp(theme: PassqlTheme.light, home: home),
     );
 
-/// 닉네임이 들어간 글자 (화면 밖 large title 포함)
+/// 닉네임이 들어간 글자 (화면 밖 large title 포함, 단어 단위 줄바꿈 문장 포함)
 Finder _findNickname(AuthSession member) =>
-    find.textContaining(member.nickname, skipOffstage: false);
+    findTextContainingIgnoringWordJoiners(member.nickname, skipOffstage: false);
 
 /// 프레임마다 A 닉네임이 그려지지 않았는지 확인하며 진행
 Future<void> _pumpFramesExpectingNoMemberA(WidgetTester tester) async {

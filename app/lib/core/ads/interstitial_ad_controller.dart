@@ -42,8 +42,10 @@ class InterstitialAdController {
     });
   }
 
-  /// 결과 화면 진입 시 1회: 준비됨 + 빈도 제한 통과 > 표시 후 true, 아니면 false
+  /// 결과 화면 진입 시 1회: 진입 기록 > 준비됨 + 빈도 제한 통과 > 표시 후 true, 아니면 false
   Future<bool> showIfAllowed() async {
+    // 첫 결과 유예는 진입 횟수 기준 (광고 준비·표시 여부와 무관하게 셈)
+    await _frequencyCap.recordResultEntry();
     if (_isShowing) return false;
     _discardExpiredAd();
     final readyAd = _readyAd;

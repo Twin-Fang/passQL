@@ -10,11 +10,16 @@ import google_mobile_ads
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
-    // 탭 바 아래 한 줄 광고 띠 네이티브 팩토리 등록 (#527)
+    // 네이티브 광고 팩토리 2개 등록: 탭 바 아래 한 줄 띠(#527), 문제 탭 카드 (Dart NativeAd factoryId 가 이 이름을 찾음)
     FLTGoogleMobileAdsPlugin.registerNativeAdFactory(
       self,
       factoryId: PassqlStripNativeAdFactory.factoryId,
       nativeAdFactory: PassqlStripNativeAdFactory()
+    )
+    FLTGoogleMobileAdsPlugin.registerNativeAdFactory(
+      self,
+      factoryId: PassqlNativeAdFactory.factoryId,
+      nativeAdFactory: PassqlNativeAdFactory()
     )
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }

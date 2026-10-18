@@ -4,10 +4,12 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/ads/loaded_ad_view.dart';
+import '../../design/design.dart';
 import '../../providers/ad_providers.dart';
 
 /// 화면 안 광고 자리 공통(배너·네이티브·한 줄 띠): 폭 측정 > 로드 > 성공 시 틀과 함께 표시
 /// 로드 전·실패 시 [childWithoutAd] 만 (기본 높이 0). 실패하면 30초·60초 뒤 1회씩만 재시도
+/// 로드되면 크기 펼침 + 페이드로 등장 (아래 콘텐츠가 한 번에 밀리지 않게, 페이드는 [shouldRevealFrame] 일 때만)
 class AdViewSlot extends ConsumerStatefulWidget {
   const AdViewSlot({
     super.key,
@@ -15,6 +17,7 @@ class AdViewSlot extends ConsumerStatefulWidget {
     required this.frameBuilder,
     this.childWithoutAd = const SizedBox.shrink(),
     this.maximumAdAgeOnResume,
+    this.shouldRevealFrame = true,
   });
 
   /// 폭(dp) > 로드된 광고. 실패면 null
@@ -33,6 +36,9 @@ class AdViewSlot extends ConsumerStatefulWidget {
 
   /// 앱 복귀 때 이보다 오래 띄운 광고는 새로 받아 교체 (null = 교체 없음)
   final Duration? maximumAdAgeOnResume;
+
+  /// 로드된 틀을 페이드·슬라이드로 등장시킬지 (틀이 광고 외 상시 UI를 품으면 false, 예: 탭 바 + 띠)
+  final bool shouldRevealFrame;
 
   @override
   ConsumerState<AdViewSlot> createState() => _AdViewSlotState();
@@ -131,6 +137,17 @@ class _AdViewSlotState extends ConsumerState<AdViewSlot> {
   Widget build(BuildContext context) {
     if (!ref.watch(adsEnabledProvider)) return widget.childWithoutAd;
 
+    final isMotionReduced = PassqlMotion.isReduced(context);
+    return AnimatedSize(
+      duration: isMotionReduced ? Duration.zero : PassqlMotion.standard,
+      curve: PassqlMotion.curve,
+      alignment: Alignment.topCenter,
+      child: _buildMeasuredSlot(),
+    );
+  }
+
+  /// 폭 측정 (첫 측정 뒤 로드 예약) > 로드 전 [childWithoutAd], 로드 뒤 틀 + 등장 연출
+  Widget _buildMeasuredSlot() {
     return LayoutBuilder(
       builder: (context, constraints) {
         final widthDp = constraints.maxWidth.isFinite
@@ -143,7 +160,8 @@ class _AdViewSlotState extends ConsumerState<AdViewSlot> {
         }
         final adView = _adView;
         if (adView == null) return widget.childWithoutAd;
-        return widget.frameBuilder(context, adView);
+        final frame = widget.frameBuilder(context, adView);
+        return widget.shouldRevealFrame ? PassqlReveal(child: frame) : frame;
       },
     );
   }

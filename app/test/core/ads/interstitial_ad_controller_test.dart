@@ -55,7 +55,11 @@ void main() {
   setUp(() {
     currentTime = DateTime(2026, 10, 16, 9);
     loader = _FakeLoader(() => currentTime);
-    store = MemoryInterstitialShowHistoryStore();
+    // 첫 결과 유예가 끝난 기기 (유예는 전용 테스트)
+    store = MemoryInterstitialShowHistoryStore()
+      ..history = const InterstitialShowHistory(
+        resultEntryCount: InterstitialFrequencyCap.freeResultEntryCount,
+      );
     controller = InterstitialAdController(
       loader: loader,
       frequencyCap: InterstitialFrequencyCap(store),
@@ -78,16 +82,26 @@ void main() {
     expect(store.history.shownCountOfDay, 1);
   });
 
-  test('닫힌 뒤 다음 광고를 미리 불러 오지만 3분 안에는 보이지 않는다', () async {
+  test('설치 후 첫 결과 2회는 광고가 준비돼 있어도 보이지 않는다', () async {
+    store.history = const InterstitialShowHistory();
+    await controller.preload();
+    expect(await controller.showIfAllowed(), isFalse);
+    expect(await controller.showIfAllowed(), isFalse);
+    expect(loader.loadedAds.single.showCount, 0);
+    expect(await controller.showIfAllowed(), isTrue);
+    expect(store.history.resultEntryCount, 3);
+  });
+
+  test('닫힌 뒤 다음 광고를 미리 불러 오지만 5분 안에는 보이지 않는다', () async {
     await controller.preload();
     await controller.showIfAllowed();
     loader.loadedAds.single.close();
     await pumpEventQueue();
     expect(loader.loadedAds, hasLength(2));
 
-    currentTime = currentTime.add(const Duration(minutes: 1));
+    currentTime = currentTime.add(const Duration(minutes: 4));
     expect(await controller.showIfAllowed(), isFalse);
-    currentTime = currentTime.add(const Duration(minutes: 2));
+    currentTime = currentTime.add(const Duration(minutes: 1));
     expect(await controller.showIfAllowed(), isTrue);
   });
 
