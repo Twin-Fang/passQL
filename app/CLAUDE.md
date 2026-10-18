@@ -21,7 +21,7 @@ SQLD·SQLP 학습 서비스 passQL의 모바일 앱. 서버(`server/`)와만 통
 lib/
 ├── main.dart               # 진입점, 세션 복원, 라우터 연동
 ├── core/                   # 공통·인프라. data·presentation·router 를 import 하지 않는다 (필요하면 core 에 포트, data 가 구현)
-│   ├── ads/                # AdMob SDK 래퍼(배너·네이티브·전면 로더, 공통 요청 준비 AdRequestPreparer, ATT 동의 AdConsent,
+│   ├── ads/                # AdMob SDK 래퍼(네이티브 카드·한 줄 띠·전면 로더, 공통 요청 준비 AdRequestPreparer, ATT 동의 AdConsent,
 │   │                       # 단위 ID, 전면 빈도 제한). SDK 는 여기서만 import, 테스트는 Provider 포트를 가짜로 교체
 │   ├── auth/               # 토큰 저장, 인터셉터(Bearer·재발급, 재발급 포트 TokenReissueClient), 세션 만료 신호, 소셜 로그인, 설치 가드
 │   ├── error/              # ErrorCode(서버 코드 매핑), AppException (서버 오류를 사용자 문구로 변환)
@@ -75,7 +75,7 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 | 테스트 | 막는 것 |
 |---|---|
 | `design_system_rules_test.dart` | pages·widgets·flows 에서 `Color(0x`, `Colors.white/black`, `Image.asset(`, `showModalBottomSheet(`, `showCupertinoDialog(`, `CupertinoActivityIndicator(` 직접 사용, `go('/...')`·`push('/...')` 라우트 문자열 |
-| `ad_placement_rules_test.dart` | core/ads 밖의 `google_mobile_ads`·ATT import, 허용 목록(탭 쉘·토픽 목록·결과 화면 2곳·main) 밖의 광고 사용, 풀이·로그인·약관·설정·차단 화면의 광고, `ad_request_preparer.dart` 밖의 `AdRequest(` 조립, 사용자 정보를 실은 광고 요청 |
+| `ad_placement_rules_test.dart` | core/ads 밖의 `google_mobile_ads`·ATT import, 허용 목록(탭 쉘·토픽 목록·결과 화면 2곳·main) 밖의 광고 사용, 탭 쉘 밖·2개 이상의 한 줄 띠와 탭별 배너, 풀이·로그인·약관·설정·차단 화면의 광고, `ad_request_preparer.dart` 밖의 `AdRequest(` 조립, 사용자 정보를 실은 광고 요청 |
 | `layer_dependency_test.dart` | core 의 data·presentation·router import, data 의 presentation·router import, design 의 providers·pages·widgets·flows import, 화면의 `data/sources` 직접 import, core/monitoring 밖의 Crashlytics·Analytics SDK, core/push 밖의 firebase_messaging, core/notification 밖의 app_badge_plus, core/storage 밖의 shared_preferences 직접 import, 종 아이콘 밖의 알림함 경로 |
 | `server_api_schema_test.dart` | 앱 모델 필드 <-> `api-contract/openapi.json` 어긋남 (서버에 없는 필드, 기본값 없는 nullable, 타입 불일치, #493) |
 | `architecture_rules_test.dart` | 레포 공통 규칙(`docs/architecture/rules/*.rule`)의 새 위반·고쳐진 동결 항목 (pro-architecture-consult 템플릿) |
@@ -97,11 +97,15 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 - 소셜 토큰 검증 실패(INVALID_SOCIAL_TOKEN·INVALID_SOCIAL_AUTHORIZATION_CODE·INVALID/EXPIRED_FIREBASE_TOKEN)는 `socialLoginFailed` > 로그인 실패 문구.
 - 계정 범위 데이터 (#516): 회원별 Provider 는 `currentMemberUuidProvider` 를 watch(로그아웃이면 API 호출 없음) + autoDispose(이전 회원 값 미보존).
 
-## 광고 (AdMob, #506)
+## 광고 (AdMob, #506·#527)
 
-- 자리 3종: 홈·문제·통계 탭 하단 배너(설정 탭 제외), 문제 탭 토픽 5개 뒤 네이티브 1칸, 오늘의 세트·챕터 결과 진입 전면(3분 간격·하루 3회, 기기 저장).
+- 자리 3종: 탭 셸 하단 탭 바 아래 한 줄 네이티브 띠(메인 탭 4개 공통 1개), 문제 탭 토픽 5개 뒤 네이티브 1칸, 오늘의 세트·챕터 결과 진입 전면(3분 간격·하루 3회, 기기 저장).
+- 한 줄 띠 (#527): `AdNativeStripSlot` > `GoogleAdNativeStripLoader`(factoryId `passqlStrip`, 색·배지 문구는 customOptions) > 네이티브 팩토리
+  (Android `PassqlStripNativeAdFactory.kt` + `res/layout/passql_strip_native_ad.xml`, iOS `ios/Runner/PassqlStripNativeAdFactory.swift`, 등록은 `MainActivity`·`AppDelegate`).
+  셸 수명 동안 1회 로드(탭 전환 재로드 없음), 앱 복귀 때 1시간 넘은 광고만 교체, 라이트·다크 전환 시 다시 로드. 로드 전·실패면 탭 바만(띠 자리 0).
+  customOptions 키·factoryId 는 Dart·Kotlin·Swift 3곳이 같은 값 (바꾸면 함께 바꿈). 띠에는 AD 배지·헤드라인 필수, AdChoices 는 SDK 기본 위치(가리지 않음).
 - 허용 조건 `adsEnabledProvider`: 모바일 + 로그인. 디버그·프로필은 Google 테스트 단위 고정, 릴리스는 `.env` 값(비면 광고 없음).
-- `.env` 키: `PASSQL_ADMOB_{ANDROID|IOS}_APP_ID`, `PASSQL_ADMOB_{ANDROID|IOS}_{BANNER_HOME|BANNER_QUESTIONS|BANNER_STATS|NATIVE_QUESTIONS|INTERSTITIAL_RESULT}`.
+- `.env` 키: `PASSQL_ADMOB_{ANDROID|IOS}_APP_ID`, `PASSQL_ADMOB_{ANDROID|IOS}_{NATIVE_STRIP|NATIVE_QUESTIONS|INTERSTITIAL_RESULT}`.
   앱 ID 는 빌드 타임 값: Android 는 `build.gradle.kts` 가 직접 읽고, iOS 는 `pod install` 때 `tool/gen_ios_admob_config.sh` 가 `ios/Flutter/AdMob.xcconfig`(커밋 제외)로 만든다. 비면 Google 테스트 앱 ID.
 - iOS 추적 허용(ATT)은 앱 시작 첫 프레임 뒤 1회. 거부면 비개인화 요청.
 

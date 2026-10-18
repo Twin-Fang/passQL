@@ -5,6 +5,7 @@ abstract final class PassqlSize {
   static const double buttonSmall = 34;
   static const double tabBar = 44; // 아이콘만 있는 탭 바(#367) 기준. 글자 있는 iOS 규격은 49
   static const double navBar = 44;
+  static const double bottomStrip = 44; // 탭 바 아래 한 줄 띠 (광고, #527). 띠 전체가 터치 영역이라 최소 터치 높이와 같게
   static const double rowMin = 44; // Apple 최소 터치 영역
   static const double minTouchTarget = 44; // 아이콘 버튼 탭 영역 (Apple HIG 최소)
   static const double progressBarHeight = 4;

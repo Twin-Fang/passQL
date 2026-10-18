@@ -35,4 +35,5 @@ export 'components/passql_skeleton_box.dart';
 export 'components/passql_status_scaffold.dart';
 export 'components/passql_status_view.dart';
 export 'components/passql_tab_bar.dart';
+export 'components/passql_tab_bar_with_bottom_strip.dart';
 export 'components/passql_text_scale_limit.dart';

@@ -46,7 +46,8 @@ lib/presentation/design/
 | `PassqlCard` | 그림자 없는 카드, 제목·우측 요소 |
 | `PassqlGroupedSection` / `PassqlListRow` / `PassqlCheckRow` / `PassqlIconTile` | iOS 설정 앱식 목록 묶음·행·선택 행·아이콘 타일 |
 | `PassqlNavBar` / `PassqlNavButton` / `PassqlLargeTitleScrollView` | 상단 바, 뒤로/닫기 버튼, 큰 제목 탭 화면 틀 |
-| `PassqlTabBar` | 하단 탭 바 (아이콘만, #367) |
+| `PassqlTabBar` | 하단 탭 바 (아이콘만, #367). 하단 여백 기준 `PassqlTabBar.bottomPaddingOf` |
+| `PassqlTabBarWithBottomStrip` | 탭 바 아래 한 줄 띠(광고, #527): 순서 탭 바 > 띠(위 헤어라인·표면색 `backgroundOf`·높이 `PassqlSize.bottomStrip`) > 홈 인디케이터 여백. 내용은 `AdNativeStripSlot` 이 채움 |
 | `PassqlBottomActionBar` / `PassqlGlass` | 하단 고정 버튼 영역, 흐림 바탕(고정 크롬 전용) |
 | `showPassqlSheet` | 모달 시트(손잡이·제목·닫기·키보드 여백) |
 | `showPassqlConfirmDialog` | 취소/확인 확인 창, `isDestructive` 로 파괴적 스타일 |

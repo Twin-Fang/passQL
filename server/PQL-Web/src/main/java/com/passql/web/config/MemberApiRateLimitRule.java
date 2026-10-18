@@ -23,6 +23,8 @@ public enum MemberApiRateLimitRule {
     CHOICE_GENERATION(HttpMethod.POST, "/api/questions/*/generate-choices", 30, 60, false),
     // AI 오류 해설·차이 해설 (회원당 분당 20회)
     AI_EXPLANATION(HttpMethod.POST, "/api/ai/**", 20, 60, false),
+    // 선택지 해설 조회·생성 중 재조회 (회원당 분당 120회, 1.5초 간격 재조회 허용, 생성은 세트당 1회로 DB 가 막음, #521)
+    CHOICE_EXPLANATION_READ(HttpMethod.GET, "/api/ai/choice-explanation", 120, 60, false),
     // 샌드박스 SQL 실행 (회원당 분당 60회)
     SQL_EXECUTION(HttpMethod.POST, "/api/questions/*/execute", 60, 60, false),
     // 알림함 조회 (회원당 분당 120회, 개수·목록 재조회)

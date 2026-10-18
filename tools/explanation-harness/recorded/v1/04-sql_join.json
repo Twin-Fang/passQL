@@ -1,0 +1,7 @@
+{
+  "source": "handwritten-fixture (Gemini 키 IP 제한으로 로컬 실호출 불가, 형식·검증 경로 확인용 수기 예시)",
+  "promptVersion": 1,
+  "attemptCount": 1,
+  "elapsedMilliseconds": 0,
+  "rawResponse": "{\"correctChoiceKey\": \"B\", \"correctReason\": \"`LEFT OUTER JOIN` 은 왼쪽 DEPT 행을 모두 남김. ACC 2행, RES 1행, 짝 없는 SALES 도 EMP 쪽 NULL 로 1행, 합계 4.\", \"keyConcepts\": [{\"name\": \"LEFT OUTER JOIN\", \"description\": \"왼쪽 테이블 행 전부 유지, 짝 없으면 오른쪽 컬럼 NULL\"}, {\"name\": \"NULL 조인 조건\", \"description\": \"`DEPTNO` 가 NULL 인 사원 4 는 어떤 부서와도 같지 않음\"}], \"confusingPoints\": [\"부서 없는 사원 4 는 오른쪽에만 있어 `LEFT` 결과에 안 나옴\", \"`FULL OUTER JOIN` 이면 사원 4 까지 더해 5\"], \"choiceAnalyses\": [{\"choiceKey\": \"A\", \"isCorrect\": false, \"reason\": \"3 은 짝 없는 SALES 를 뺀 `INNER JOIN` 행 수\"}, {\"choiceKey\": \"B\", \"isCorrect\": true, \"reason\": \"DEPT 3개 전부 유지, ACC 2행 포함 4\"}, {\"choiceKey\": \"C\", \"isCorrect\": false, \"reason\": \"5 는 `FULL OUTER JOIN` 행 수\"}, {\"choiceKey\": \"D\", \"isCorrect\": false, \"reason\": \"2 는 사원이 있는 부서 수일 뿐\"}], \"examTip\": \"기준 테이블 행 수 + 1:N 으로 늘어난 행 수로 계산\"}"
+}

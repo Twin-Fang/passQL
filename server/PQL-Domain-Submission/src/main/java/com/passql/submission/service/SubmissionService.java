@@ -6,12 +6,14 @@ import com.passql.common.util.MemberActivityLogger;
 import com.passql.question.constant.ExecutionMode;
 import com.passql.question.dto.ExecuteResult;
 import com.passql.question.dto.SubmitResult;
+import com.passql.question.dto.explanation.ChoiceExplanation;
 import com.passql.question.entity.Question;
 import com.passql.question.entity.QuestionChoiceSet;
 import com.passql.question.entity.QuestionChoiceSetItem;
 import com.passql.question.repository.QuestionChoiceSetItemRepository;
 import com.passql.question.repository.QuestionChoiceSetRepository;
 import com.passql.question.repository.QuestionRepository;
+import com.passql.question.service.ChoiceExplanationComposer;
 import com.passql.question.service.SandboxExecutor;
 import com.passql.submission.dto.MonitorStats;
 import com.passql.submission.entity.ExecutionLog;
@@ -97,6 +99,10 @@ public class SubmissionService {
         // 7. AI 코멘트 캐시: 세션 단위(ai-comment:{memberUuid}:{sessionUuid})로 전환됨.
         //    새 세션 시작 시 새 sessionUuid로 요청이 오므로 별도 evict 불필요.
 
+        // 세트 구조화 해설 저장본 > 고른 보기 기준 해설 (없으면 null, 화면이 조회 API 로 받음)
+        ChoiceExplanation structuredExplanation =
+                ChoiceExplanationComposer.composeOrNull(graded.choiceSet().getExplanationJson(), selectedChoiceKey);
+
         MemberActivityLogger.recordAnswerSubmitted(memberUuid, questionUuid, isCorrect);
         return new SubmitResult(
                 isCorrect,
@@ -108,8 +114,9 @@ public class SubmissionService {
                 selectedSql,
                 // 저장된 제출 UUID — 프론트 신고 기능에서 submissionUuid 식별에 사용
                 submission.getSubmissionUuid(),
-                // 미리 생성된 해설 (#496)
-                selected.getExplanation()
+                // 미리 생성된 해설: 구조화 해설 마크다운 > 옛 보기별 해설 (#496, #521)
+                structuredExplanation != null ? ChoiceExplanationComposer.toMarkdown(structuredExplanation) : selected.getExplanation(),
+                structuredExplanation
         );
     }
 
@@ -121,7 +128,8 @@ public class SubmissionService {
             QuestionChoiceSetItem selected,
             QuestionChoiceSetItem correct,
             boolean isCorrect,
-            Submission submission) {}
+            Submission submission,
+            QuestionChoiceSet choiceSet) {}
 
     /** 세트·선택지 조회 > 정답 판정 > 세트 소비 시각 > 제출 저장 */
     private GradedSubmission gradeAndRecord(UUID memberUuid, UUID questionUuid, UUID choiceSetId,
@@ -161,7 +169,7 @@ public class SubmissionService {
                 .sessionUuid(sessionUuid)
                 .submittedAt(LocalDateTime.now())
                 .build());
-        return new GradedSubmission(selected, correct, isCorrect, submission);
+        return new GradedSubmission(selected, correct, isCorrect, submission, choiceSet);
     }
 
     public List<Submission> getSubmissionsByMember(UUID memberUuid) {

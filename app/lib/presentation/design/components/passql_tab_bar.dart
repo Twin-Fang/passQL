@@ -32,6 +32,10 @@ class PassqlTabBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
+  /// 탭 바·그 아래 띠가 쓰는 하단 여백 (화면 맨 아래 크롬 공통 기준)
+  static double bottomPaddingOf(BuildContext context) =>
+      _resolveBottomPadding(context);
+
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;

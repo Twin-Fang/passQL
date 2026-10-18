@@ -21,6 +21,10 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
     /** 회원이 이 문제에 마지막으로 낸 답안. AI 해설이 어떤 선택지 세트를 봤는지 찾을 때 쓴다. */
     Optional<Submission> findFirstByMemberUuidAndQuestionUuidOrderBySubmittedAtDesc(UUID memberUuid, UUID questionUuid);
 
+    /** 회원이 이 문제의 특정 선택지 세트로 마지막으로 낸 답안 (해설 조회 권한 확인: 제출한 세트만 해설 공개, #521) */
+    Optional<Submission> findFirstByMemberUuidAndQuestionUuidAndChoiceSetUuidOrderBySubmittedAtDesc(
+            UUID memberUuid, UUID questionUuid, UUID choiceSetUuid);
+
     // 기간 안의 마지막 제출 — 완료한 오늘의 세트를 다시 열 때 문제별 정오를 복원하는 데 쓴다 (#372)
     Optional<Submission> findFirstByMemberUuidAndQuestionUuidAndSubmittedAtBetweenOrderBySubmittedAtDesc(
             UUID memberUuid, UUID questionUuid, java.time.LocalDateTime from, java.time.LocalDateTime to);

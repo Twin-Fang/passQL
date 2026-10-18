@@ -1,0 +1,7 @@
+{
+  "source": "handwritten-fixture (Gemini 키 IP 제한으로 로컬 실호출 불가, 형식·검증 경로 확인용 수기 예시)",
+  "promptVersion": 1,
+  "attemptCount": 1,
+  "elapsedMilliseconds": 0,
+  "rawResponse": "{\"correctChoiceKey\": \"C\", \"correctReason\": \"`CONNECT BY PRIOR MGR = EMPNO` 는 현재 행의 MGR 을 EMPNO 로 가진 상위 행으로 이동하는 역방향 전개. SCOTT > JONES > KING 3행.\", \"keyConcepts\": [{\"name\": \"CONNECT BY PRIOR\", \"description\": \"`PRIOR` 가 붙은 쪽이 이미 읽은 행, 반대쪽이 다음에 찾을 행\"}, {\"name\": \"순방향·역방향\", \"description\": \"`PRIOR EMPNO = MGR` 은 부하 방향, `PRIOR MGR = EMPNO` 는 관리자 방향\"}], \"confusingPoints\": [\"`PRIOR` 위치만 바뀌어도 전개 방향이 반대\", \"`START WITH` 행도 결과 1행으로 포함\"], \"choiceAnalyses\": [{\"choiceKey\": \"A\", \"isCorrect\": false, \"reason\": \"1 은 순방향일 때 SCOTT 만 남는 경우\"}, {\"choiceKey\": \"B\", \"isCorrect\": false, \"reason\": \"KING 까지 올라가지 않은 계산\"}, {\"choiceKey\": \"C\", \"isCorrect\": true, \"reason\": \"SCOTT, JONES, KING 3행\"}, {\"choiceKey\": \"D\", \"isCorrect\": false, \"reason\": \"4 는 KING 에서 순방향 전체 전개\"}], \"examTip\": \"`PRIOR` 붙은 컬럼 = 지금 행, 그 값으로 다음 행 찾기\"}"
+}

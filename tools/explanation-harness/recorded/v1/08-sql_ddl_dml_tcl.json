@@ -1,0 +1,7 @@
+{
+  "source": "handwritten-fixture (Gemini 키 IP 제한으로 로컬 실호출 불가, 형식·검증 경로 확인용 수기 예시)",
+  "promptVersion": 1,
+  "attemptCount": 1,
+  "elapsedMilliseconds": 0,
+  "rawResponse": "{\"correctChoiceKey\": \"B\", \"correctReason\": \"Oracle 에서 `CREATE TABLE` 같은 DDL 은 실행 전 자동 커밋. 앞선 INSERT 가 확정되어 `ROLLBACK` 으로 취소되지 않아 1.\", \"keyConcepts\": [{\"name\": \"DDL 자동 커밋\", \"description\": \"Oracle DDL 은 실행 전후 암묵적 COMMIT\"}, {\"name\": \"ROLLBACK 범위\", \"description\": \"마지막 COMMIT 이후 변경만 취소\"}], \"confusingPoints\": [\"SQL Server 는 DDL 도 트랜잭션 안에서 롤백 가능, Oracle 과 다름\", \"`ROLLBACK` 은 오류 없이 실행되고 취소할 변경이 없을 뿐\"], \"choiceAnalyses\": [{\"choiceKey\": \"A\", \"isCorrect\": false, \"reason\": \"DDL 자동 커밋을 놓쳐 INSERT 취소로 본 값\"}, {\"choiceKey\": \"B\", \"isCorrect\": true, \"reason\": \"DDL 자동 커밋으로 INSERT 확정, 1행\"}, {\"choiceKey\": \"C\", \"isCorrect\": false, \"reason\": \"모든 문장 정상 실행, 오류 없음\"}, {\"choiceKey\": \"D\", \"isCorrect\": false, \"reason\": \"INSERT 는 1번만 실행\"}], \"examTip\": \"DML 뒤 DDL 이 끼면 그 앞까지 커밋된 것으로 계산\"}"
+}

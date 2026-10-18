@@ -4,6 +4,7 @@ import com.passql.ai.dto.AiResult;
 import com.passql.ai.dto.SimilarQuestion;
 import com.passql.application.service.AiExplainService;
 import com.passql.application.service.RecommendationService;
+import com.passql.question.dto.explanation.ChoiceExplanationResponse;
 import com.passql.member.auth.presentation.annotation.AuthMember;
 import com.passql.member.auth.presentation.security.LoginMember;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,17 @@ public class AiController implements AiControllerDocs {
         UUID questionUuid = UUID.fromString(body.get("questionUuid").toString());
         String selectedChoiceKey = (String) body.get("selectedChoiceKey");
         return ResponseEntity.ok(aiExplainService.diffExplain(loginMember.memberUuid(), questionUuid, selectedChoiceKey));
+    }
+
+    @GetMapping("/choice-explanation")
+    public ResponseEntity<ChoiceExplanationResponse> getChoiceExplanation(
+        @AuthMember LoginMember loginMember,
+        @RequestParam UUID questionUuid,
+        @RequestParam(required = false) UUID choiceSetUuid,
+        @RequestParam(required = false) String selectedChoiceKey
+    ) {
+        return ResponseEntity.ok(aiExplainService.getChoiceExplanation(
+            loginMember.memberUuid(), questionUuid, choiceSetUuid, selectedChoiceKey));
     }
 
     @GetMapping("/similar/{questionUuid}")

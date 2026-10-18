@@ -1,0 +1,7 @@
+{
+  "source": "handwritten-fixture (Gemini 키 IP 제한으로 로컬 실호출 불가, 형식·검증 경로 확인용 수기 예시)",
+  "promptVersion": 1,
+  "attemptCount": 1,
+  "elapsedMilliseconds": 0,
+  "rawResponse": "{\"correctChoiceKey\": \"A\", \"correctReason\": \"제2정규형은 복합 기본키의 일부에만 종속된 속성(부분 함수 종속)을 분리해 모든 일반 속성이 기본키 전체에 완전 함수 종속되게 함.\", \"keyConcepts\": [{\"name\": \"부분 함수 종속\", \"description\": \"복합 기본키 일부만으로 결정되는 속성, 2NF 에서 제거\"}, {\"name\": \"정규형 순서\", \"description\": \"1NF 원자값 > 2NF 부분 종속 제거 > 3NF 이행 종속 제거 > BCNF 결정자 후보키\"}], \"confusingPoints\": [\"이행 함수 종속 제거는 2NF 가 아닌 3NF\", \"단일 컬럼 기본키면 부분 종속이 없어 1NF 이면 곧 2NF\"], \"choiceAnalyses\": [{\"choiceKey\": \"A\", \"isCorrect\": true, \"reason\": \"부분 함수 종속 제거, 2NF 정의\"}, {\"choiceKey\": \"B\", \"isCorrect\": false, \"reason\": \"이행 함수 종속 제거는 3NF\"}, {\"choiceKey\": \"C\", \"isCorrect\": false, \"reason\": \"원자값·반복 그룹 제거는 1NF\"}, {\"choiceKey\": \"D\", \"isCorrect\": false, \"reason\": \"결정자 모두 후보키는 BCNF\"}], \"examTip\": \"정규형별 키워드: 원자값, 부분, 이행, 결정자\"}"
+}

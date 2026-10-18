@@ -1,0 +1,7 @@
+{
+  "source": "handwritten-fixture (Gemini 키 IP 제한으로 로컬 실호출 불가, 형식·검증 경로 확인용 수기 예시)",
+  "promptVersion": 1,
+  "attemptCount": 1,
+  "elapsedMilliseconds": 0,
+  "rawResponse": "{\"correctChoiceKey\": \"A\", \"correctReason\": \"`UNION` 은 두 결과를 합친 뒤 중복 제거. A 의 1, 2, 2 와 B 의 2, 3 에서 중복 2 를 한 번만 남겨 1, 2, 3 세 행.\", \"keyConcepts\": [{\"name\": \"UNION\", \"description\": \"합집합 후 중복 행 제거 (정렬 비용 발생 가능)\"}, {\"name\": \"UNION ALL\", \"description\": \"중복 포함 그대로 합침\"}], \"confusingPoints\": [\"같은 테이블 안 중복(A 의 2, 2)도 `UNION` 에서 제거\", \"`UNION ALL` 이면 3 + 2 = 5행\"], \"choiceAnalyses\": [{\"choiceKey\": \"A\", \"isCorrect\": true, \"reason\": \"중복 제거 후 1, 2, 3 세 행\"}, {\"choiceKey\": \"B\", \"isCorrect\": false, \"reason\": \"5 는 `UNION ALL` 행 수\"}, {\"choiceKey\": \"C\", \"isCorrect\": false, \"reason\": \"A 안 중복을 남긴 잘못된 계산\"}, {\"choiceKey\": \"D\", \"isCorrect\": false, \"reason\": \"2 는 근거 없는 값, 공통 값은 2 하나\"}], \"examTip\": \"`UNION` 은 결과 전체 기준 중복 제거, 테이블 안 중복도 포함\"}"
+}

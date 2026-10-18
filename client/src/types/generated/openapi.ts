@@ -4,6 +4,45 @@
  */
 
 export interface paths {
+    "/api/ai/choice-explanation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 선택지 구조화 해설 조회
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 요청 파라미터
+         *     - **`questionUuid`**: 문제 (필수)
+         *     - **`choiceSetUuid`**: 제출한 선택지 세트 (선택, 생략 시 이 문제 마지막 제출의 세트). 이 세트로 제출한 기록이 없으면 400
+         *     - **`selectedChoiceKey`**: 고른 보기 (선택, 생략 시 제출한 보기)
+         *
+         *     ## 반환값 (ChoiceExplanationResponse) — 응답은 항상 즉시
+         *     - **READY**: explanation(구조화) + text(마크다운). 고정 세트·옛 해설이면 explanation 은 null, text 만
+         *     - **GENERATING**: 생성 중. retryAfterMilliseconds 뒤 같은 요청으로 다시 조회. text 는 옛 해설이 있으면 임시 표시용
+         *     - **FAILED**: 재시도 상한(3회) 도달. text 는 옛 해설이 있으면 표시용, 없으면 null
+         *
+         *     ## explanation (ChoiceExplanation) 화면 순서
+         *     verdict(판정 한 줄, 정답 여부는 서버 정답 데이터 기준) > correctReason > keyConcepts[] > confusingPoints[] > choiceAnalyses[] > examTip
+         *     - 문장 안 `코드` 는 인라인 SQL 조각 (코드 블록 없음)
+         *
+         *     ## 동작
+         *     - 해설은 선택지 세트 저장 직후 미리 생성되어 대부분 바로 READY
+         *     - 프롬프트 버전이 바뀐 낡은 해설도 READY 로 즉시 주고 백그라운드에서 다시 만든다
+         *     - 다음 문제로 넘어가도 choiceSetUuid 로 앞 문제 해설을 계속 받을 수 있다
+         */
+        get: operations["getChoiceExplanation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ai/diff-explain": {
         parameters: {
             query?: never;
@@ -13,7 +52,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** SQL 차이 해설 */
+        /**
+         * 선택지 해설 (동기, 출시 앱 호환)
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 요청 본문
+         *     - **`questionUuid`**: 문제
+         *     - **`selectedChoiceKey`**: 고른 보기 (생략 시 마지막 제출의 보기)
+         *
+         *     ## 반환값 (AiResult)
+         *     - text: 구조화 해설을 그린 마크다운 (굵게·인라인 코드·'- ' 목록만 사용)
+         *     - 구조화 해설이 아직 없으면 옛 보기별 해설 글을 바로 주고 백그라운드 생성, 둘 다 없으면 생성 완료를 최대 25초 기다림
+         *     - 생성 실패·시간 초과 시 503 AI_UNAVAILABLE
+         */
         post: operations["diffExplain"];
         delete?: never;
         options?: never;
@@ -1186,6 +1237,61 @@ export interface components {
             redirectUri: string;
             state?: string | null;
         };
+        ChoiceAnalysis: {
+            /** @description 보기 키 (A~D) */
+            choiceKey: string;
+            /** @description 정답 보기 여부 */
+            isCorrect: boolean;
+            /** @description 맞거나 틀린 이유 한 줄 */
+            reason: string;
+        };
+        ChoiceExplanation: {
+            /** @description 보기별 판정 (보기 키 순서) */
+            choiceAnalyses: components["schemas"]["ChoiceAnalysis"][];
+            /** @description 헷갈리는 지점 1~3개 */
+            confusingPoints: string[];
+            /** @description 정답 보기 키 */
+            correctChoiceKey: string;
+            /** @description 정답 근거 (2~3문장) */
+            correctReason: string;
+            /** @description 시험 팁 한 줄 */
+            examTip: string;
+            /** @description 고른 보기가 정답인지 */
+            isSelectedCorrect: boolean;
+            /** @description 핵심 개념 1~3개 */
+            keyConcepts: components["schemas"]["KeyConcept"][];
+            /** @description 고른 보기 키 */
+            selectedChoiceKey: string;
+            /** @description 정답/오답 한 줄 판정 (서버가 정답 데이터로 조립) */
+            verdict: string;
+        };
+        ChoiceExplanationResponse: {
+            /**
+             * Format: uuid
+             * @description 해설 대상 선택지 세트
+             */
+            choiceSetUuid: string;
+            explanation: components["schemas"]["ChoiceExplanation"] | null;
+            /**
+             * Format: int32
+             * @description 해설을 만든 프롬프트 버전
+             */
+            promptVersion: number | null;
+            /**
+             * Format: int32
+             * @description GENERATING 일 때 다시 조회할 간격 (밀리초)
+             */
+            retryAfterMilliseconds: number | null;
+            /** @description 고른 보기 키 */
+            selectedChoiceKey: string;
+            /**
+             * @description 해설 상태
+             * @enum {string}
+             */
+            status: "GENERATING" | "READY" | "FAILED";
+            /** @description 마크다운 해설 (구조화 해설을 그린 글 또는 고정 세트 근거·옛 해설) */
+            text: string | null;
+        };
         ChoiceGenerationModeUpdateRequest: {
             /** @enum {string} */
             choiceGenerationMode: "PRACTICE" | "REAL";
@@ -1316,6 +1422,12 @@ export interface components {
         };
         HeatmapResponse: {
             entries: components["schemas"]["HeatmapEntry"][];
+        };
+        KeyConcept: {
+            /** @description 개념 설명 한두 줄 */
+            description: string;
+            /** @description 개념명 (예: DENSE_RANK) */
+            name: string;
         };
         LeaderboardEntry: {
             /** Format: int32 */
@@ -1609,6 +1721,7 @@ export interface components {
             rationale: string | null;
             selectedResult: components["schemas"]["ExecuteResult"] | null;
             selectedSql: string | null;
+            structuredExplanation: components["schemas"]["ChoiceExplanation"] | null;
             /** Format: uuid */
             submissionUuid: string | null;
         };
@@ -1673,6 +1786,30 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getChoiceExplanation: {
+        parameters: {
+            query: {
+                questionUuid: string;
+                choiceSetUuid?: string;
+                selectedChoiceKey?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ChoiceExplanationResponse"];
+                };
+            };
+        };
+    };
     diffExplain: {
         parameters: {
             query?: never;
