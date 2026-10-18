@@ -36,7 +36,9 @@ mixin _$QuestionDetail {
       throw _privateConstructorUsedError;
   String? get answerSql => throw _privateConstructorUsedError;
   String? get hint => throw _privateConstructorUsedError;
-  List<ChoiceSetSummary> get choiceSets => throw _privateConstructorUsedError;
+  List<ChoiceSetSummary> get choiceSets =>
+      throw _privateConstructorUsedError; // 최신 출제 경향 반영 문제 ('최신 경향' 배지, 구버전 서버면 false, #523)
+  bool get isLatestTrend => throw _privateConstructorUsedError;
 
   /// Serializes this QuestionDetail to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -70,6 +72,7 @@ abstract class $QuestionDetailCopyWith<$Res> {
     String? answerSql,
     String? hint,
     List<ChoiceSetSummary> choiceSets,
+    bool isLatestTrend,
   });
 }
 
@@ -102,6 +105,7 @@ class _$QuestionDetailCopyWithImpl<$Res, $Val extends QuestionDetail>
     Object? answerSql = freezed,
     Object? hint = freezed,
     Object? choiceSets = null,
+    Object? isLatestTrend = null,
   }) {
     return _then(
       _value.copyWith(
@@ -161,6 +165,10 @@ class _$QuestionDetailCopyWithImpl<$Res, $Val extends QuestionDetail>
                 ? _value.choiceSets
                 : choiceSets // ignore: cast_nullable_to_non_nullable
                       as List<ChoiceSetSummary>,
+            isLatestTrend: null == isLatestTrend
+                ? _value.isLatestTrend
+                : isLatestTrend // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -191,6 +199,7 @@ abstract class _$$QuestionDetailImplCopyWith<$Res>
     String? answerSql,
     String? hint,
     List<ChoiceSetSummary> choiceSets,
+    bool isLatestTrend,
   });
 }
 
@@ -222,6 +231,7 @@ class __$$QuestionDetailImplCopyWithImpl<$Res>
     Object? answerSql = freezed,
     Object? hint = freezed,
     Object? choiceSets = null,
+    Object? isLatestTrend = null,
   }) {
     return _then(
       _$QuestionDetailImpl(
@@ -281,6 +291,10 @@ class __$$QuestionDetailImplCopyWithImpl<$Res>
             ? _value._choiceSets
             : choiceSets // ignore: cast_nullable_to_non_nullable
                   as List<ChoiceSetSummary>,
+        isLatestTrend: null == isLatestTrend
+            ? _value.isLatestTrend
+            : isLatestTrend // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -304,6 +318,7 @@ class _$QuestionDetailImpl implements _QuestionDetail {
     this.answerSql,
     this.hint,
     final List<ChoiceSetSummary> choiceSets = const [],
+    this.isLatestTrend = false,
   }) : _schemaTables = schemaTables,
        _choiceSets = choiceSets;
 
@@ -354,9 +369,14 @@ class _$QuestionDetailImpl implements _QuestionDetail {
     return EqualUnmodifiableListView(_choiceSets);
   }
 
+  // 최신 출제 경향 반영 문제 ('최신 경향' 배지, 구버전 서버면 false, #523)
+  @override
+  @JsonKey()
+  final bool isLatestTrend;
+
   @override
   String toString() {
-    return 'QuestionDetail(questionUuid: $questionUuid, topicName: $topicName, subtopicName: $subtopicName, difficulty: $difficulty, executionMode: $executionMode, stem: $stem, schemaDisplay: $schemaDisplay, schemaDdl: $schemaDdl, schemaSampleData: $schemaSampleData, schemaIntent: $schemaIntent, schemaTables: $schemaTables, answerSql: $answerSql, hint: $hint, choiceSets: $choiceSets)';
+    return 'QuestionDetail(questionUuid: $questionUuid, topicName: $topicName, subtopicName: $subtopicName, difficulty: $difficulty, executionMode: $executionMode, stem: $stem, schemaDisplay: $schemaDisplay, schemaDdl: $schemaDdl, schemaSampleData: $schemaSampleData, schemaIntent: $schemaIntent, schemaTables: $schemaTables, answerSql: $answerSql, hint: $hint, choiceSets: $choiceSets, isLatestTrend: $isLatestTrend)';
   }
 
   @override
@@ -393,7 +413,9 @@ class _$QuestionDetailImpl implements _QuestionDetail {
             const DeepCollectionEquality().equals(
               other._choiceSets,
               _choiceSets,
-            ));
+            ) &&
+            (identical(other.isLatestTrend, isLatestTrend) ||
+                other.isLatestTrend == isLatestTrend));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -414,6 +436,7 @@ class _$QuestionDetailImpl implements _QuestionDetail {
     answerSql,
     hint,
     const DeepCollectionEquality().hash(_choiceSets),
+    isLatestTrend,
   );
 
   /// Create a copy of QuestionDetail
@@ -449,6 +472,7 @@ abstract class _QuestionDetail implements QuestionDetail {
     final String? answerSql,
     final String? hint,
     final List<ChoiceSetSummary> choiceSets,
+    final bool isLatestTrend,
   }) = _$QuestionDetailImpl;
 
   factory _QuestionDetail.fromJson(Map<String, dynamic> json) =
@@ -481,7 +505,9 @@ abstract class _QuestionDetail implements QuestionDetail {
   @override
   String? get hint;
   @override
-  List<ChoiceSetSummary> get choiceSets;
+  List<ChoiceSetSummary> get choiceSets; // 최신 출제 경향 반영 문제 ('최신 경향' 배지, 구버전 서버면 false, #523)
+  @override
+  bool get isLatestTrend;
 
   /// Create a copy of QuestionDetail
   /// with the given fields replaced by the non-null parameter values.

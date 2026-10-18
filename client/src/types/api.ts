@@ -29,6 +29,15 @@ export type SubmitResult = ApiSchemas["SubmitResult"];
 // 문제 화면 테이블 미리보기 (서버가 DDL·샘플 INSERT 를 해석해 내려줌, #520)
 export type QuestionSchemaTable = ApiSchemas["QuestionSchemaTable"];
 
+// === 출제 경향 (#523) ===
+export type ExamTrendReportResponse = ApiSchemas["ExamTrendReportResponse"];
+
+export type ExamTrendPattern = ApiSchemas["ExamTrendPattern"];
+
+export type ExamTrendConcept = ApiSchemas["ExamTrendConcept"];
+
+export type LatestTrendTopicCount = ApiSchemas["LatestTrendTopicCount"];
+
 // === SSE (선택지 생성) ===
 // SSE 이벤트 본문은 OpenAPI 스키마가 없음 (응답 타입이 SseEmitter) > 웹 손타입 유지
 export type SseStatusPhase = "generating" | "validating";

@@ -26,6 +26,8 @@ class QuestionDetail with _$QuestionDetail {
     String? answerSql,
     String? hint,
     @Default([]) List<ChoiceSetSummary> choiceSets,
+    // 최신 출제 경향 반영 문제 ('최신 경향' 배지, 구버전 서버면 false, #523)
+    @Default(false) bool isLatestTrend,
   }) = _QuestionDetail;
 
   factory QuestionDetail.fromJson(Map<String, dynamic> json) =>

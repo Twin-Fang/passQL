@@ -484,6 +484,137 @@
         "required" : [ "certType", "examDate", "examScheduleUuid", "isSelected", "round" ],
         "type" : "object"
       },
+      "ExamTrendConcept" : {
+        "properties" : {
+          "description" : {
+            "type" : "string"
+          },
+          "frequencyText" : {
+            "description" : "최근 4회 출제 빈도 표기 (예: 15문항 이상)",
+            "type" : "string"
+          },
+          "latestTrendQuestionCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "rank" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "topicCode" : {
+            "type" : "string"
+          },
+          "topicName" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "description", "frequencyText", "latestTrendQuestionCount", "name", "rank", "topicCode", "topicName" ],
+        "type" : "object"
+      },
+      "ExamTrendPattern" : {
+        "properties" : {
+          "description" : {
+            "type" : "string"
+          },
+          "examRoundsText" : {
+            "description" : "근거 회차 표기 (예: 58회부터 증가)",
+            "type" : "string"
+          },
+          "latestTrendQuestionCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "topicCode" : {
+            "type" : "string"
+          },
+          "topicName" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "description", "examRoundsText", "latestTrendQuestionCount", "title", "topicCode", "topicName" ],
+        "type" : "object"
+      },
+      "ExamTrendReportResponse" : {
+        "properties" : {
+          "basisDescription" : {
+            "description" : "분석 근거 회차·기간 (예: 제58~62회)",
+            "type" : "string"
+          },
+          "frequentConcepts" : {
+            "items" : {
+              "$ref" : "#/components/schemas/ExamTrendConcept"
+            },
+            "type" : "array"
+          },
+          "latestTrendQuestionCount" : {
+            "description" : "풀 수 있는 최신 경향 문제 총수",
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "latestTrendTopics" : {
+            "items" : {
+              "$ref" : "#/components/schemas/LatestTrendTopicCount"
+            },
+            "type" : "array"
+          },
+          "risingPatterns" : {
+            "items" : {
+              "$ref" : "#/components/schemas/ExamTrendPattern"
+            },
+            "type" : "array"
+          },
+          "studyTips" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "subjectShares" : {
+            "items" : {
+              "$ref" : "#/components/schemas/ExamTrendSubjectShare"
+            },
+            "type" : "array"
+          },
+          "summary" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "updatedDate" : {
+            "description" : "내용 갱신일 (yyyy-MM-dd)",
+            "type" : "string"
+          }
+        },
+        "required" : [ "basisDescription", "frequentConcepts", "latestTrendQuestionCount", "latestTrendTopics", "risingPatterns", "studyTips", "subjectShares", "summary", "title", "updatedDate" ],
+        "type" : "object"
+      },
+      "ExamTrendSubjectShare" : {
+        "properties" : {
+          "description" : {
+            "type" : "string"
+          },
+          "percent" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "questionCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "subjectName" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "description", "percent", "questionCount", "subjectName" ],
+        "type" : "object"
+      },
       "ExecuteResult" : {
         "properties" : {
           "columns" : {
@@ -635,6 +766,22 @@
           }
         },
         "required" : [ "description", "name" ],
+        "type" : "object"
+      },
+      "LatestTrendTopicCount" : {
+        "properties" : {
+          "latestTrendQuestionCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "topicCode" : {
+            "type" : "string"
+          },
+          "topicName" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "latestTrendQuestionCount", "topicCode", "topicName" ],
         "type" : "object"
       },
       "LeaderboardEntry" : {
@@ -1054,6 +1201,10 @@
           "hint" : {
             "type" : [ "string", "null" ]
           },
+          "isLatestTrend" : {
+            "description" : "최신 출제 경향 반영 문제 여부 ('최신 경향' 배지, #523)",
+            "type" : "boolean"
+          },
           "questionUuid" : {
             "format" : "uuid",
             "type" : "string"
@@ -1087,7 +1238,7 @@
             "type" : [ "string", "null" ]
           }
         },
-        "required" : [ "answerSql", "choiceSetPolicy", "choiceSets", "difficulty", "executionMode", "hint", "questionUuid", "schemaDdl", "schemaDisplay", "schemaIntent", "schemaSampleData", "schemaTables", "stem", "subtopicName", "topicName" ],
+        "required" : [ "answerSql", "choiceSetPolicy", "choiceSets", "difficulty", "executionMode", "hint", "isLatestTrend", "questionUuid", "schemaDdl", "schemaDisplay", "schemaIntent", "schemaSampleData", "schemaTables", "stem", "subtopicName", "topicName" ],
         "type" : "object"
       },
       "QuestionSchemaColumn" : {
@@ -1145,6 +1296,10 @@
             "enum" : [ "EXECUTABLE", "CONCEPT_ONLY" ],
             "type" : [ "string", "null" ]
           },
+          "isLatestTrend" : {
+            "description" : "최신 출제 경향 반영 문제 여부 ('최신 경향' 배지, #523)",
+            "type" : "boolean"
+          },
           "questionUuid" : {
             "format" : "uuid",
             "type" : "string"
@@ -1159,7 +1314,7 @@
             "type" : [ "string", "null" ]
           }
         },
-        "required" : [ "createdAt", "difficulty", "executionMode", "questionUuid", "stemPreview", "topicCode", "topicName" ],
+        "required" : [ "createdAt", "difficulty", "executionMode", "isLatestTrend", "questionUuid", "stemPreview", "topicCode", "topicName" ],
         "type" : "object"
       },
       "ReadinessResponse" : {
@@ -1963,6 +2118,49 @@
         "tags" : [ "ExamSchedule" ]
       }
     },
+    "/api/exam-trends/latest" : {
+      "get" : {
+        "description" : "경향 화면 내용. 항목별 topicCode·latestTrendQuestionCount 로 해당 토픽 최신 경향 문제 풀기 (GET /api/questions?topic=&latestTrend=true).",
+        "operationId" : "getLatestReport",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExamTrendReportResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "최신 출제 경향 조회",
+        "tags" : [ "ExamTrend" ]
+      }
+    },
+    "/api/exam-trends/latest/topics" : {
+      "get" : {
+        "description" : "최신 경향 문제가 1개 이상인 활성 토픽만, 토픽 정렬 순서.",
+        "operationId" : "getLatestTrendTopics",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/LatestTrendTopicCount"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "토픽별 최신 경향 문제 수",
+        "tags" : [ "ExamTrend" ]
+      }
+    },
     "/api/feedback" : {
       "post" : {
         "description" : "## 인증(JWT): **필요**\n\n## 요청 바디 (FeedbackSubmitRequest)\n- **`content`**: 건의사항 내용 (1자 이상 500자 이하, 필수)\n\n## 반환값 (FeedbackSubmitResponse)\n- **`feedbackUuid`**: 생성된 건의사항 UUID\n- **`status`**: 초기 상태 (항상 PENDING)\n- **`createdAt`**: 생성 시각\n\n## 에러\n- 400: content가 비어 있거나 500자 초과\n",
@@ -2651,6 +2849,7 @@
     },
     "/api/questions" : {
       "get" : {
+        "description" : "latestTrend=true 면 최신 출제 경향 문제만. 응답 isLatestTrend 는 '최신 경향' 배지 표시 여부.",
         "operationId" : "getQuestions",
         "parameters" : [ {
           "in" : "query",
@@ -2680,6 +2879,13 @@
           "required" : false,
           "schema" : {
             "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "latestTrend",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean"
           }
         }, {
           "in" : "query",
@@ -2960,6 +3166,9 @@
   }, {
     "description" : "시험 일정 조회",
     "name" : "ExamSchedule"
+  }, {
+    "description" : "SQLD 출제 경향 / 최신 경향 문제",
+    "name" : "ExamTrend"
   }, {
     "description" : "주제 트리 / 개념 태그 조회",
     "name" : "Meta"

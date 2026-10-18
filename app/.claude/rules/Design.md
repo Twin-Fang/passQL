@@ -61,7 +61,7 @@ lib/presentation/design/
 | `PassqlResultMark` / `PassqlScoreHeader` / `PassqlResultScaffold` | 정답/오답 표시, 점수 고리, 결과 화면 3종 공통 틀 |
 | `PassqlChoiceCard` (+`PassqlChoiceState`) | 선택지 카드의 선택·채점 모양 (내용은 `ChoiceItemCard` 가 채움) |
 | `PassqlCodeBlock` | SQL 표시 블록 |
-| `PassqlBadge` (+`PassqlBadgeKind`) / `PassqlProgressBar` | 의미별 캡슐 태그(주제·보조·완료·연속·중요·AI, 아이콘·테두리), 진행 막대 |
+| `PassqlBadge` (+`PassqlBadgeKind`) / `PassqlLatestTrendBadge` / `PassqlProgressBar` | 의미별 캡슐 태그(주제·보조·완료·연속·중요·AI·최신 경향, 아이콘·테두리), '최신 경향' 배지(문구 원본, #523), 진행 막대 |
 | `PassqlReveal` / `passqlRevealInOrder` | 처음 그려질 때 페이드 + 위로 8px, 순번별 지연(상한 8) (#495) |
 | `PassqlFadeSwitcher` | 로딩 > 내용 같은 상태 교체 페이드 (상태마다 다른 key) |
 | `PassqlPageSlideSwitcher` | 본문 교체(다음 문제) 옆으로 미끄러짐 + 페이드 (항목마다 다른 key) |

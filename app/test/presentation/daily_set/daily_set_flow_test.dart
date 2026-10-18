@@ -62,6 +62,7 @@ class _FakeQuestionApi implements QuestionApiClient {
     int size, {
     String? topic,
     int? difficulty,
+    bool? latestTrend,
   }) async {
     requestedTopic = topic;
     return QuestionListResponse(

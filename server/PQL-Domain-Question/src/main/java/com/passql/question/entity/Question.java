@@ -17,7 +17,8 @@ import java.util.UUID;
     indexes = {
         @Index(name = "idx_question_topic_uuid", columnList = "topic_uuid"),
         @Index(name = "idx_question_subtopic_uuid", columnList = "subtopic_uuid"),
-        @Index(name = "idx_question_active", columnList = "is_active")
+        @Index(name = "idx_question_active", columnList = "is_active"),
+        @Index(name = "idx_question_latest_trend", columnList = "is_latest_trend")
     }
 )
 @Getter
@@ -87,6 +88,11 @@ public class Question extends BaseEntity {
 
     @Column(nullable = false)
     private Boolean isActive = true;
+
+    // 최신 출제 경향 반영 문제 (관리자 일괄 지정, 앱·웹 '최신 경향' 배지·경향 화면 풀기 대상, #523)
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean isLatestTrend = false;
 
     public void deactivate() {
         this.isActive = false;

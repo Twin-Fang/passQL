@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Sparkles } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ChevronRight, Flame, Sparkles } from "lucide-react";
 import { useTopics } from "../hooks/useTopics";
 import { getTopicIcon } from "../constants/topicIcons";
 import { EmptyPracticeTopicError, generatePractice } from "../api/practice";
 import { usePracticeStore } from "../stores/practiceStore";
 import ErrorFallback from "../components/ErrorFallback";
 import { useStagger } from "../hooks/useStagger";
+import { useLatestTrendTopicCodes } from "../hooks/useExamTrend";
+import LatestTrendBadge from "../components/LatestTrendBadge";
 
 export default function CategoryCards() {
   const { data: topics, isLoading, isError, refetch } = useTopics();
@@ -14,6 +16,8 @@ export default function CategoryCards() {
   const [showEmptyModal, setShowEmptyModal] = useState(false);
   const navigate = useNavigate();
   const startSession = usePracticeStore((s) => s.startSession);
+  // 최신 경향 문제가 있는 토픽 (카드 배지, #523)
+  const latestTrendTopicCodes = useLatestTrendTopicCodes();
 
   // 섹션별 순차 페이드인 딜레이 생성
   const stagger = useStagger();
@@ -59,9 +63,18 @@ export default function CategoryCards() {
           <Sparkles size={24} fill="currentColor" />
           AI문제 풀기
         </h1>
-        <p className="text-secondary mb-6">
+        <p className="text-secondary mb-4">
           골라보세요, AI가 딱 맞는 문제를 만들어드릴게요
         </p>
+        {/* 출제 경향 진입 (#523) */}
+        <Link
+          to="/exam-trend"
+          className="mb-6 flex items-center gap-3 bg-surface-card border border-border rounded-2xl px-4 py-3 hover:border-brand transition-colors"
+        >
+          <Flame size={18} fill="currentColor" className="text-brand shrink-0" aria-hidden="true" />
+          <span className="flex-1 min-w-0 text-sm text-text-primary">2026 출제 경향과 최신 경향 문제 보기</span>
+          <ChevronRight size={16} className="text-text-caption shrink-0" aria-hidden="true" />
+        </Link>
       </section>
 
       {/* ② 카드 그리드 */}
@@ -90,6 +103,11 @@ export default function CategoryCards() {
                   <Icon size={26} className="text-brand" />
                 </div>
                 <span className="text-body font-bold">{t.displayName}</span>
+                {latestTrendTopicCodes.has(t.code) && (
+                  <span className="mt-2">
+                    <LatestTrendBadge />
+                  </span>
+                )}
               </button>
             );
           })}

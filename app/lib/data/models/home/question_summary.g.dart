@@ -16,6 +16,7 @@ _$QuestionSummaryImpl _$$QuestionSummaryImplFromJson(
   difficulty: (json['difficulty'] as num?)?.toInt(),
   executionMode: json['executionMode'] as String?,
   createdAt: json['createdAt'] as String?,
+  isLatestTrend: json['isLatestTrend'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$$QuestionSummaryImplToJson(
@@ -28,4 +29,5 @@ Map<String, dynamic> _$$QuestionSummaryImplToJson(
   'difficulty': instance.difficulty,
   'executionMode': instance.executionMode,
   'createdAt': instance.createdAt,
+  'isLatestTrend': instance.isLatestTrend,
 };

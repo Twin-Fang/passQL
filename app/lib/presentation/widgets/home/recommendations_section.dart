@@ -74,10 +74,20 @@ class _QuestionRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (question.topicName != null)
+                  // 토픽 배지 + (최신 경향이면) 최신 경향 배지 (#523)
+                  if (question.topicName != null || question.isLatestTrend)
                     Padding(
                       padding: const EdgeInsets.only(bottom: PassqlSpacing.xs),
-                      child: PassqlBadge(text: question.topicName!),
+                      child: Wrap(
+                        spacing: PassqlSpacing.xs,
+                        runSpacing: PassqlSpacing.xxs,
+                        children: [
+                          if (question.topicName != null)
+                            PassqlBadge(text: question.topicName!),
+                          if (question.isLatestTrend)
+                            const PassqlLatestTrendBadge(),
+                        ],
+                      ),
                     ),
                   Text(
                     stripCodeFences(question.stemPreview ?? ''),

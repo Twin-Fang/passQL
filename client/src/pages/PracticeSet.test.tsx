@@ -15,8 +15,8 @@ function renderPracticeSet(sessionId: string) {
 describe("PracticeSet", () => {
   beforeEach(() => {
     usePracticeStore.getState().startSession("s1", "T", "SELECT 기본", [
-      { questionUuid: "q1", topicCode: "T", topicName: "SELECT 기본", difficulty: 1, executionMode: "CONCEPT_ONLY", stemPreview: "", createdAt: "" },
-      { questionUuid: "q2", topicCode: "T", topicName: "SELECT 기본", difficulty: 1, executionMode: "CONCEPT_ONLY", stemPreview: "", createdAt: "" },
+      { questionUuid: "q1", topicCode: "T", topicName: "SELECT 기본", difficulty: 1, executionMode: "CONCEPT_ONLY", stemPreview: "", createdAt: "", isLatestTrend: false },
+      { questionUuid: "q2", topicCode: "T", topicName: "SELECT 기본", difficulty: 1, executionMode: "CONCEPT_ONLY", stemPreview: "", createdAt: "", isLatestTrend: false },
     ]);
   });
   afterEach(() => {

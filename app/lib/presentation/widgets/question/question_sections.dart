@@ -11,7 +11,7 @@ import 'choice_display_label.dart';
 
 // 챕터 풀이(ChapterPage)와 단건 풀이(QuestionDetailPage)가 함께 쓰는 문제 화면 조각.
 
-/// 난이도 별 + 실행 모드 뱃지 + (있으면) 소주제 제목.
+/// 난이도 별 + 실행 모드 뱃지 + (최신 경향이면) 최신 경향 뱃지 + (있으면) 소주제 제목.
 class QuestionHeader extends StatelessWidget {
   final QuestionDetail question;
   const QuestionHeader({super.key, required this.question});
@@ -60,6 +60,11 @@ class QuestionHeader extends StatelessWidget {
                 kind: isExecutable ? PassqlBadgeKind.topic : PassqlBadgeKind.neutral,
                 icon: isExecutable ? CupertinoIcons.play_fill : CupertinoIcons.book_fill,
               ),
+              // 최신 출제 경향 반영 문제 (#523)
+              if (question.isLatestTrend) ...[
+                const SizedBox(width: PassqlSpacing.xs),
+                const PassqlLatestTrendBadge(),
+              ],
             ],
           ),
           if (title != null && title.isNotEmpty) ...[

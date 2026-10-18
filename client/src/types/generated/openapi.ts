@@ -297,6 +297,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/exam-trends/latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 최신 출제 경향 조회
+         * @description 경향 화면 내용. 항목별 topicCode·latestTrendQuestionCount 로 해당 토픽 최신 경향 문제 풀기 (GET /api/questions?topic=&latestTrend=true).
+         */
+        get: operations["getLatestReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/exam-trends/latest/topics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 토픽별 최신 경향 문제 수
+         * @description 최신 경향 문제가 1개 이상인 활성 토픽만, 토픽 정렬 순서.
+         */
+        get: operations["getLatestTrendTopics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/feedback": {
         parameters: {
             query?: never;
@@ -1073,7 +1113,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 문제 목록 조회 */
+        /**
+         * 문제 목록 조회
+         * @description latestTrend=true 면 최신 출제 경향 문제만. 응답 isLatestTrend 는 '최신 경향' 배지 표시 여부.
+         */
         get: operations["getQuestions"];
         put?: never;
         post?: never;
@@ -1444,6 +1487,54 @@ export interface components {
             /** Format: int32 */
             round: number;
         };
+        ExamTrendConcept: {
+            description: string;
+            /** @description 최근 4회 출제 빈도 표기 (예: 15문항 이상) */
+            frequencyText: string;
+            /** Format: int32 */
+            latestTrendQuestionCount: number;
+            name: string;
+            /** Format: int32 */
+            rank: number;
+            topicCode: string;
+            topicName: string | null;
+        };
+        ExamTrendPattern: {
+            description: string;
+            /** @description 근거 회차 표기 (예: 58회부터 증가) */
+            examRoundsText: string;
+            /** Format: int32 */
+            latestTrendQuestionCount: number;
+            title: string;
+            topicCode: string;
+            topicName: string | null;
+        };
+        ExamTrendReportResponse: {
+            /** @description 분석 근거 회차·기간 (예: 제58~62회) */
+            basisDescription: string;
+            frequentConcepts: components["schemas"]["ExamTrendConcept"][];
+            /**
+             * Format: int32
+             * @description 풀 수 있는 최신 경향 문제 총수
+             */
+            latestTrendQuestionCount: number;
+            latestTrendTopics: components["schemas"]["LatestTrendTopicCount"][];
+            risingPatterns: components["schemas"]["ExamTrendPattern"][];
+            studyTips: string[];
+            subjectShares: components["schemas"]["ExamTrendSubjectShare"][];
+            summary: string;
+            title: string;
+            /** @description 내용 갱신일 (yyyy-MM-dd) */
+            updatedDate: string;
+        };
+        ExamTrendSubjectShare: {
+            description: string;
+            /** Format: int32 */
+            percent: number;
+            /** Format: int32 */
+            questionCount: number;
+            subjectName: string;
+        };
         ExecuteResult: {
             columns: string[];
             /** Format: int64 */
@@ -1498,6 +1589,12 @@ export interface components {
             description: string;
             /** @description 개념명 (예: DENSE_RANK) */
             name: string;
+        };
+        LatestTrendTopicCount: {
+            /** Format: int32 */
+            latestTrendQuestionCount: number;
+            topicCode: string;
+            topicName: string;
         };
         LeaderboardEntry: {
             /** Format: int32 */
@@ -1650,6 +1747,8 @@ export interface components {
             /** @enum {string|null} */
             executionMode: "EXECUTABLE" | "CONCEPT_ONLY" | null;
             hint: string | null;
+            /** @description 최신 출제 경향 반영 문제 여부 ('최신 경향' 배지, #523) */
+            isLatestTrend: boolean;
             /** Format: uuid */
             questionUuid: string;
             schemaDdl: string | null;
@@ -1681,6 +1780,8 @@ export interface components {
             difficulty: number;
             /** @enum {string|null} */
             executionMode: "EXECUTABLE" | "CONCEPT_ONLY" | null;
+            /** @description 최신 출제 경향 반영 문제 여부 ('최신 경향' 배지, #523) */
+            isLatestTrend: boolean;
             /** Format: uuid */
             questionUuid: string;
             stemPreview: string | null;
@@ -2172,6 +2273,46 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ExamScheduleResponse"];
+                };
+            };
+        };
+    };
+    getLatestReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExamTrendReportResponse"];
+                };
+            };
+        };
+    };
+    getLatestTrendTopics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LatestTrendTopicCount"][];
                 };
             };
         };
@@ -2759,6 +2900,7 @@ export interface operations {
                 subtopic?: string;
                 difficulty?: number;
                 mode?: string;
+                latestTrend?: boolean;
                 pageable: components["schemas"]["Pageable"];
             };
             header?: never;

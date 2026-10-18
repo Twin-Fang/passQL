@@ -12,6 +12,7 @@ import 'auth_api.dart';
 import 'feedback_api.dart';
 import 'daily_set_api.dart';
 import 'exam_schedule_api.dart';
+import 'exam_trend_api.dart';
 import 'home_api.dart';
 import 'member_api.dart';
 import 'meta_api.dart';
@@ -86,6 +87,10 @@ final memberApiProvider = Provider<MemberApiClient>(
 
 final aiApiProvider = Provider<AiApiClient>(
   (ref) => AiApiClient(ref.watch(dioProvider)),
+);
+
+final examTrendApiProvider = Provider<ExamTrendApiClient>(
+  (ref) => ExamTrendApiClient(ref.watch(dioProvider)),
 );
 
 final metaApiProvider = Provider<MetaApiClient>(

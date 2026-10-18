@@ -35,7 +35,7 @@ public class AdminDailyChallengeController {
     @AdminPage(menu = AdminMenu.DAILY_CHALLENGES)
     public String page(Model model) {
         List<QuestionSummary> activeQuestions = questionService
-                .getQuestions(null, null, null, null,
+                .getQuestions(null, null, null, null, null,
                         PageRequest.of(0, ASSIGNABLE_QUESTION_LIMIT, AdminPageRequest.sortByNewestFirst()))
                 .getContent();
         model.addAttribute("activeQuestions", activeQuestions);
