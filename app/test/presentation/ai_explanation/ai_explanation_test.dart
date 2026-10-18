@@ -207,6 +207,11 @@ void main() {
     expect(find.text('헷갈리는 지점'), findsOneWidget);
     expect(find.text('보기별 판단'), findsOneWidget);
     expect(find.text('시험 팁'), findsOneWidget);
+    // 시험 팁은 정답 근거 바로 아래, 긴 섹션(핵심 개념)보다 위
+    expect(
+      tester.getTopLeft(find.text('시험 팁')).dy,
+      lessThan(tester.getTopLeft(find.text('핵심 개념')).dy),
+    );
     expect(find.text('내 선택'), findsOneWidget);
   });
 

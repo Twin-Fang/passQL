@@ -112,6 +112,18 @@ export default function ExplanationContent({ explanation, displayLabelByChoiceKe
         <InlineMarkdownText text={explanation.correctReason} className="text-sm leading-relaxed text-text-primary" />
       </ExplanationSection>
 
+      {/* 시험 팁: 정답 근거 바로 아래 (앱 AiExplanationSections 와 같은 순서) */}
+      {explanation.examTip && (
+        <ExplanationSection
+          title="시험 팁"
+          icon={<Lightbulb size={13} />}
+          toneClassName="explanation-section--tip"
+          titleClassName="text-brand"
+        >
+          <InlineMarkdownText text={explanation.examTip} className="text-sm leading-relaxed text-text-primary" />
+        </ExplanationSection>
+      )}
+
       {explanation.keyConcepts.length > 0 && (
         <ExplanationSection title="핵심 개념" icon={<BookOpen size={13} />}>
           <dl className="space-y-2.5">
@@ -158,17 +170,6 @@ export default function ExplanationContent({ explanation, displayLabelByChoiceKe
               />
             ))}
           </ul>
-        </ExplanationSection>
-      )}
-
-      {explanation.examTip && (
-        <ExplanationSection
-          title="시험 팁"
-          icon={<Lightbulb size={13} />}
-          toneClassName="explanation-section--tip"
-          titleClassName="text-brand"
-        >
-          <InlineMarkdownText text={explanation.examTip} className="text-sm leading-relaxed text-text-primary" />
         </ExplanationSection>
       )}
 
