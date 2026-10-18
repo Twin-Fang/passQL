@@ -18,7 +18,8 @@ public enum AdminAuditTargetType {
     DAILY_CHALLENGE("일일 챌린지"),
     NOTICE("공지"),
     ADMIN_ACCOUNT("관리자 계정"),
-    NOTIFICATION("알림");
+    NOTIFICATION("알림"),
+    COMMUNITY_POST("커뮤니티 글");
 
     // 화면 표시 이름
     private final String label;

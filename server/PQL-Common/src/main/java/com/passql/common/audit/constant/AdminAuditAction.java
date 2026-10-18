@@ -20,7 +20,8 @@ public enum AdminAuditAction {
     PASSWORD_RESET("비밀번호 재설정"),
     UNLOCK("잠금 해제"),
     SEND("발송"),
-    RETRACT("회수");
+    RETRACT("회수"),
+    HIDE("숨김");
 
     // 화면 표시 이름
     private final String label;
