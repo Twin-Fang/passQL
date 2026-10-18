@@ -174,7 +174,7 @@ void main() {
     );
     expect(find.text('ename'), findsOneWidget);
     expect(find.text('sal'), findsOneWidget);
-    expect(find.text('(결과 없음)'), findsNothing);
+    expect(find.text('결과 없음 · 0행'), findsNothing);
   });
 
   testWidgets('채점 뒤 탭은 onGradedTap 이 있을 때만 동작하고 시각 상태는 그대로다', (tester) async {
