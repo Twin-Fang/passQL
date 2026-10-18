@@ -7,7 +7,8 @@ import 'ai_explanation_choice_analysis_list.dart';
 import 'ai_explanation_inline_text.dart';
 import 'ai_explanation_verdict.dart';
 
-/// 구조화 해설 본문: 판정 배지 > 정답 근거 > 핵심 개념 > 헷갈리는 지점 > 보기별 판단 > 시험 팁
+/// 구조화 해설 본문: 판정 배지 > 정답 근거 > 시험 팁 > 핵심 개념 > 헷갈리는 지점 > 보기별 판단
+/// 시험 팁은 풀이 직후 가장 먼저 기억할 한 줄이라 긴 섹션보다 앞
 /// 비어 있는 섹션은 그리지 않음
 class AiExplanationSections extends StatelessWidget {
   const AiExplanationSections({
@@ -41,6 +42,8 @@ class AiExplanationSections extends StatelessWidget {
           toneColor: colors.correctText,
           child: AiExplanationInlineText(explanation.correctReason),
         ),
+      if (explanation.examTip.trim().isNotEmpty)
+        _ExamTip(examTip: explanation.examTip),
       if (keyConcepts.isNotEmpty)
         _ExplanationSection(
           icon: CupertinoIcons.book_fill,
@@ -65,8 +68,6 @@ class AiExplanationSections extends StatelessWidget {
             entry: entry,
           ),
         ),
-      if (explanation.examTip.trim().isNotEmpty)
-        _ExamTip(examTip: explanation.examTip),
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
