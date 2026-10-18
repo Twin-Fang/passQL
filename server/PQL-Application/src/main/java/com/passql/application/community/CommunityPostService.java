@@ -6,6 +6,7 @@ import com.passql.member.entity.Member;
 import com.passql.member.repository.MemberRepository;
 import com.passql.question.constant.CommunityPostSort;
 import com.passql.question.constant.CommunityPostStatus;
+import com.passql.question.dto.community.CommunityImageResponse;
 import com.passql.question.dto.community.CommunityPostCreateRequest;
 import com.passql.question.dto.community.CommunityPostItemResponse;
 import com.passql.question.dto.community.CommunityPostPageResponse;
@@ -28,7 +29,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * 문제별 의견 글: 목록(풀이 후만), 작성(풀이 후만), 본인 삭제
+ * 문제별 의견 글: 목록(풀이 후만), 작성(풀이 후만, 이미지 최대 2장), 본인 삭제
  * 목록은 숨김·삭제 글과 내가 차단한 작성자 글을 제외, 작성자는 닉네임만 노출
  */
 @Slf4j
@@ -47,6 +48,7 @@ public class CommunityPostService {
     private final CommunitySolveService communitySolveService;
     private final CommunityContentPolicy communityContentPolicy;
     private final CommunityWriteLimiter communityWriteLimiter;
+    private final CommunityImageService communityImageService;
 
     /** 문제 의견 목록: 풀이 확인 > 정렬별 키셋 조회 > 닉네임·좋아요 여부 결합 */
     public CommunityPostPageResponse getQuestionPosts(UUID viewerMemberUuid, UUID questionUuid, String sortRequestValue,
@@ -70,7 +72,7 @@ public class CommunityPostService {
         return new CommunityPostPageResponse(toItems(pagePosts, viewerMemberUuid), nextCursor);
     }
 
-    /** 글 작성: 풀이 확인 > 작성 제한 > 내용 검증 > 중복 확인 > (스냅샷) > 저장 */
+    /** 글 작성: 풀이 확인 > 작성 제한 > 내용 검증 > 이미지 목록 검증 > 중복 확인 > (스냅샷) > 저장 > 이미지 첨부 */
     @Transactional
     public CommunityPostItemResponse createQuestionPost(UUID authorMemberUuid, UUID questionUuid,
                                                         CommunityPostCreateRequest request) {
@@ -78,6 +80,7 @@ public class CommunityPostService {
         communitySolveService.requireSolved(authorMemberUuid, questionUuid);
         communityWriteLimiter.acquireWritePermit(authorMemberUuid);
         String content = communityContentPolicy.validateAndNormalize(request == null ? null : request.content());
+        List<UUID> imageUuids = communityImageService.normalizeImageUuids(request == null ? null : request.imageUuids());
         communityWriteLimiter.assertNotRecentDuplicate(authorMemberUuid, content);
 
         String solveSnapshot = request != null && Boolean.TRUE.equals(request.includeSolveSnapshot())
@@ -85,6 +88,7 @@ public class CommunityPostService {
                 : null;
         CommunityPost saved = communityPostRepository.save(
                 CommunityPost.createQuestionOpinion(questionUuid, authorMemberUuid, content, solveSnapshot));
+        communityImageService.attachToPost(saved.getPostUuid(), authorMemberUuid, imageUuids);
         communityWriteLimiter.recordWrittenContent(authorMemberUuid, content);
         log.info("[community] post created : post={}, question={}, hasSnapshot={}",
                 saved.getPostUuid(), questionUuid, solveSnapshot != null);
@@ -102,6 +106,7 @@ public class CommunityPostService {
             throw new CustomException(ErrorCode.COMMUNITY_POST_FORBIDDEN);
         }
         post.markDeleted(null);
+        communityImageService.deleteImagesOfPost(postUuid);
         log.info("[community] post deleted by author : post={}", postUuid);
     }
 
@@ -118,6 +123,8 @@ public class CommunityPostService {
                 .collect(Collectors.toMap(Member::getMemberUuid, Member::getNickname));
         Set<UUID> likedPostUuids = posts.isEmpty() ? Set.of() : new HashSet<>(communityPostLikeRepository.findLikedPostUuids(
                 viewerMemberUuid, posts.stream().map(CommunityPost::getPostUuid).toList()));
+        Map<UUID, List<CommunityImageResponse>> imagesByPostUuid = communityImageService.getImageResponsesByPost(
+                posts.stream().map(CommunityPost::getPostUuid).toList());
         return posts.stream().map(post -> new CommunityPostItemResponse(
                 post.getPostUuid(),
                 nicknameByMemberUuid.getOrDefault(post.getAuthorMemberUuid(), "탈퇴회원"),
@@ -126,7 +133,8 @@ public class CommunityPostService {
                 post.getLikeCount(),
                 likedPostUuids.contains(post.getPostUuid()),
                 communitySolveService.parseSnapshot(post.getSolveSnapshot()),
-                post.getCreatedAt())).toList();
+                post.getCreatedAt(),
+                imagesByPostUuid.getOrDefault(post.getPostUuid(), List.of()))).toList();
     }
 
     private static int clampPageSize(Integer size) {

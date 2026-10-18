@@ -46,6 +46,7 @@ public class CommunityAdminService {
     private final CommunityReportRepository communityReportRepository;
     private final MemberRepository memberRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final CommunityImageService communityImageService;
 
     /** 신고 글 목록: 대기 신고순(많은 순) > 최신순, pendingOnly 면 검토 대기 글만 */
     public AdminCommunityPostPage getReportedPosts(boolean isPendingOnly, Pageable pageable) {
@@ -103,6 +104,7 @@ public class CommunityAdminService {
         CommunityPostStatus before = post.getStatus();
         String contentBeforeDelete = post.getContent();
         post.markDeleted(adminUsername);
+        communityImageService.deleteImagesOfPost(postUuid);
         closeReports(post, CommunityReportStatus.RESOLVED);
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.COMMUNITY_POST, postUuid, AdminAuditAction.DELETE,
                 AdminAuditEvent.summary("status", before, "content", contentBeforeDelete),
