@@ -46,10 +46,10 @@ class GreetingSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 인사: 화면 제목 급(title2), 줄 제한 없음
+        // 인사: 상단 바 로고보다 튀지 않는 title3, 줄 제한 없음
         PassqlKeepAllText(
           resolveMessage(greeting),
-          style: PassqlTypography.title2.copyWith(color: colors.label),
+          style: PassqlTypography.title3.copyWith(color: colors.label),
         ),
         // 본문: 인사보다 한 단계 낮은 보조 문장
         if (body != null) ...[
