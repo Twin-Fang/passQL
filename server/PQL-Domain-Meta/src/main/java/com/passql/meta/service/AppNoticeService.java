@@ -5,6 +5,7 @@ import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.meta.dto.AppNoticePageResponse;
 import com.passql.meta.dto.AppNoticeResponse;
 import com.passql.meta.dto.AppNoticeSaveRequest;
 import com.passql.meta.dto.VisibleNoticeSummary;
@@ -13,6 +14,8 @@ import com.passql.meta.repository.AppNoticeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -24,7 +27,8 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * 앱 공지: 노출 공지 조회(앱), 목록·등록·수정·활성 전환(관리자)
+ * 앱 공지: 노출 공지·게시 공지 목록·상세 조회(앱·웹), 목록·등록·수정·활성 전환(관리자)
+ * 사용자에게 보이는 공지 = 활성 + 노출 시작 지남 (노출 끝난 공지도 지난 공지로 목록·상세에 남음)
  */
 @Slf4j
 @Service
@@ -38,6 +42,9 @@ public class AppNoticeService {
     private static final int TITLE_MAX_LENGTH = 100;
     // 본문 최대 길이 (문자 수)
     private static final int BODY_MAX_LENGTH = 2000;
+    // 공지 목록 페이지 크기 기본값·상한 (건)
+    public static final int DEFAULT_PAGE_SIZE = 20;
+    public static final int MAX_PAGE_SIZE = 50;
 
     private final AppNoticeRepository appNoticeRepository;
     private final ApplicationEventPublisher eventPublisher;
@@ -54,6 +61,24 @@ public class AppNoticeService {
         return appNoticeRepository.findVisibleNotices(LocalDateTime.now(KST)).stream()
                 .map(VisibleNoticeSummary::from)
                 .toList();
+    }
+
+    /** 게시 공지 목록 한 페이지 (지난 공지 포함, 노출 중 중요 먼저 > 게시 최신 순) */
+    public AppNoticePageResponse getPublishedNotices(Integer page, Integer size) {
+        int pageIndex = page == null || page < 0 ? 0 : page;
+        Page<AppNotice> noticePage = appNoticeRepository.findPublishedNotices(
+                LocalDateTime.now(KST), PageRequest.of(pageIndex, clampPageSize(size)));
+        return new AppNoticePageResponse(
+                noticePage.getContent().stream().map(AppNoticeResponse::from).toList(),
+                pageIndex,
+                noticePage.hasNext());
+    }
+
+    /** 게시 공지 1건 (비활성·노출 전·없음 > APP_NOTICE_NOT_FOUND) */
+    public AppNoticeResponse getPublishedNotice(UUID noticeUuid) {
+        return appNoticeRepository.findPublishedNotice(noticeUuid, LocalDateTime.now(KST))
+                .map(AppNoticeResponse::from)
+                .orElseThrow(() -> new CustomException(ErrorCode.APP_NOTICE_NOT_FOUND));
     }
 
     /** 관리자 목록 (최근 등록 순, 비활성 포함) */
@@ -115,6 +140,13 @@ public class AppNoticeService {
         return AdminAuditEvent.summary("title", notice.getTitle(), "body", notice.getBody(),
                 "startsAt", notice.getStartsAt(), "endsAt", notice.getEndsAt(),
                 "isActive", notice.getIsActive(), "isImportant", notice.getIsImportant());
+    }
+
+    private static int clampPageSize(Integer size) {
+        if (size == null || size < 1) {
+            return DEFAULT_PAGE_SIZE;
+        }
+        return Math.min(size, MAX_PAGE_SIZE);
     }
 
     private AppNotice findNotice(UUID noticeUuid) {

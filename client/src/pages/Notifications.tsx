@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
 import { useNotificationSelection } from "../hooks/useNotificationSelection";
 import { useMarkAllNotificationsRead, useNotificationInbox } from "../hooks/useNotifications";
 import { useUnreadNotificationCount } from "../hooks/useUnreadNotificationCount";
-import NoticeModal from "../components/NoticeModal";
 import NotificationListState from "../components/NotificationListState";
 import NotificationRow from "../components/NotificationRow";
+import { NOTICE_LIST_PATH } from "../lib/noticePresentation";
 import type { NotificationCategory } from "../types/api";
 
 const INBOX_TABS: readonly { readonly category: NotificationCategory; readonly label: string; readonly emptyMessage: string }[] = [
@@ -12,13 +14,13 @@ const INBOX_TABS: readonly { readonly category: NotificationCategory; readonly l
   { category: "NOTICE", label: "공지", emptyMessage: "등록된 공지가 없어요" },
 ];
 
-/** 알림함 페이지: 알림 | 공지 탭, 탭별 안 읽은 개수, 모두 읽음, 커서 더 보기 (#491) */
+/** 알림함 페이지: 알림 | 공지 탭, 탭별 안 읽은 개수, 모두 읽음, 커서 더 보기 (#491), 공지 탭 > 지난 공지 전체 (#529) */
 export default function Notifications() {
   const [selectedCategory, setSelectedCategory] = useState<NotificationCategory>("GENERAL");
   const { unreadCount } = useUnreadNotificationCount();
   const inbox = useNotificationInbox(selectedCategory);
   const { mutate: markAllRead, isPending: isMarkingAllRead } = useMarkAllNotificationsRead();
-  const { selectNotification, openedNotice, closeOpenedNotice } = useNotificationSelection();
+  const { selectNotification } = useNotificationSelection();
 
   const selectedTab = INBOX_TABS.find((tab) => tab.category === selectedCategory) ?? INBOX_TABS[0];
   const notifications = inbox.data?.pages.flatMap((page) => page.items) ?? [];
@@ -91,7 +93,16 @@ export default function Notifications() {
         </NotificationListState>
       </div>
 
-      {openedNotice && <NoticeModal notice={openedNotice} onClose={closeOpenedNotice} />}
+      {/* 공지 탭은 노출 중 공지만 > 지난 공지까지 보는 목록 링크 */}
+      {selectedCategory === "NOTICE" && (
+        <Link
+          to={NOTICE_LIST_PATH}
+          className="mt-3 flex items-center justify-center gap-1 py-3 text-sm font-semibold text-brand hover:underline"
+        >
+          지난 공지 전체 보기
+          <ChevronRight size={16} />
+        </Link>
+      )}
     </div>
   );
 }

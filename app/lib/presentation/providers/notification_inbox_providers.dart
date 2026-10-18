@@ -156,6 +156,8 @@ final homeNoticeProvider = Provider.autoDispose<AppNotice?>((ref) {
     title: notice.title,
     body: notice.body,
     isImportant: true,
+    // 공지 탭 createdAt = 서버 게시 시각
+    publishedAt: notice.createdAt,
   );
 });
 

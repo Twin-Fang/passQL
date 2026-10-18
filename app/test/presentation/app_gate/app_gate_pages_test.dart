@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:passql_app/data/models/meta/app_config.dart';
 import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/pages/app_gate/force_update_page.dart';
 import 'package:passql_app/presentation/pages/app_gate/maintenance_page.dart';
 import 'package:passql_app/presentation/providers/app_config_providers.dart';
 import 'package:passql_app/presentation/widgets/home/app_notice_banner.dart';
+import 'package:passql_app/router/app_routes.dart';
 
 import '../../helpers/pump_app.dart';
 
@@ -62,33 +64,39 @@ void main() {
       expect(find.text('다시 확인'), findsOneWidget);
     });
 
-    testWidgets('공지 배너: 탭하면 본문 시트, 닫기 콜백 ($themeName)', (tester) async {
+    testWidgets('공지 배너: 탭하면 공지 상세로 이동, 닫기 콜백 ($themeName)', (tester) async {
       var isDismissed = false;
-      await pumpApp(
-        tester,
-        MaterialApp(
-          theme: theme,
-          home: Scaffold(
-            body: AppNoticeBanner(
-              notice: const AppNotice(
-                noticeUuid: 'n1',
-                title: '추석 연휴 안내',
-                body: '연휴 동안 답변이 늦어요.',
-                isImportant: true,
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => Scaffold(
+              body: AppNoticeBanner(
+                notice: const AppNotice(
+                  noticeUuid: 'n1',
+                  title: '추석 연휴 안내',
+                  body: '연휴 동안 답변이 늦어요.',
+                  isImportant: true,
+                ),
+                onDismiss: () => isDismissed = true,
               ),
-              onDismiss: () => isDismissed = true,
             ),
           ),
-        ),
+          GoRoute(
+            path: AppRoutes.noticeDetailPattern,
+            builder: (_, state) => Text(
+              '공지 상세 ${state.pathParameters[AppRoutes.noticeUuidParameter]}',
+            ),
+          ),
+        ],
       );
+      await pumpApp(tester, MaterialApp.router(theme: theme, routerConfig: router));
       expect(find.text('중요'), findsOneWidget);
-      await tester.tap(find.text('추석 연휴 안내'));
-      await tester.pumpAndSettle();
-      expect(find.text('연휴 동안 답변이 늦어요.'), findsOneWidget);
-      Navigator.of(tester.element(find.text('연휴 동안 답변이 늦어요.'))).pop();
-      await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('공지 닫기'));
       expect(isDismissed, isTrue);
+      await tester.tap(find.text('추석 연휴 안내'));
+      await tester.pumpAndSettle();
+      expect(find.text('공지 상세 n1'), findsOneWidget);
     });
   }
 }

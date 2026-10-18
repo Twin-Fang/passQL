@@ -105,6 +105,15 @@ function MdLi({ children }: { children?: React.ReactNode }) {
   return <li className="text-body leading-relaxed">{content}</li>;
 }
 
+function MdA({ href, children }: { href?: string; children?: React.ReactNode }) {
+  // 공지 본문 링크 (#529): 새 탭, 원래 페이지 정보 넘기지 않음
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="text-brand underline underline-offset-2 break-all">
+      {children}
+    </a>
+  );
+}
+
 // ── 컴포넌트 맵 ───────────────────────────────────────────────
 
 const MD_COMPONENTS = {
@@ -116,6 +125,7 @@ const MD_COMPONENTS = {
   ul: MdUl,
   ol: MdOl,
   li: MdLi,
+  a: MdA,
 } as const;
 
 // ── MarkdownText 메인 컴포넌트 ────────────────────────────────

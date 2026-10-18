@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../data/models/notification/notification_models.dart';
+import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/notification_inbox_providers.dart';
 import '../../providers/unread_notification_providers.dart';
@@ -11,6 +13,7 @@ import 'notification_list_row.dart';
 import 'open_notification_item.dart';
 
 /// 알림함 탭 1개의 본문: 머리글(모두 읽음) + 목록 + 당겨서 새로고침 + 커서 무한 스크롤
+/// 공지 탭은 노출 중 공지만 > 아래에 지난 공지 전체 목록 링크 (#529)
 /// 상태 4종: 로딩, 오류(다시 시도), 빈 목록, 목록
 class NotificationInboxList extends ConsumerStatefulWidget {
   const NotificationInboxList({super.key, required this.category});
@@ -165,6 +168,21 @@ class _NotificationInboxListState extends ConsumerState<NotificationInboxList> {
                       onTap: () => openNotificationItem(context, ref, item),
                     ),
                 ],
+              ),
+            ),
+          ),
+        if (widget.category == NotificationCategory.notice)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(top: PassqlSpacing.xs),
+              child: Center(
+                child: PassqlButton(
+                  label: '지난 공지 전체 보기',
+                  onPressed: () => context.push(AppRoutes.notices),
+                  variant: PassqlButtonVariant.plain,
+                  size: PassqlButtonSize.small,
+                  isFullWidth: false,
+                ),
               ),
             ),
           ),

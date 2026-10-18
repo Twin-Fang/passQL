@@ -1,7 +1,8 @@
-// 공지 배너: 안 읽은 중요 공지만 노출, 닫기 = 서버 읽음 (낙관적) (#491)
+// 공지 배너: 안 읽은 중요 공지만 노출, 클릭 > 읽음 + 상세 이동(#529), 닫기 = 서버 읽음 (낙관적) (#491)
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import NoticeBanner from "./NoticeBanner";
 import { useAuthStore } from "../stores/authStore";
 import type { NotificationItem } from "../types/api";
@@ -38,7 +39,12 @@ function renderBanner() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={queryClient}>
-      <NoticeBanner />
+      <MemoryRouter initialEntries={["/"]}>
+        <Routes>
+          <Route path="/" element={<NoticeBanner />} />
+          <Route path="/notices/:noticeUuid" element={<p>공지 상세 화면</p>} />
+        </Routes>
+      </MemoryRouter>
     </QueryClientProvider>,
   );
 }
@@ -49,13 +55,23 @@ afterEach(() => {
 });
 
 describe("NoticeBanner", () => {
-  it("안 읽은 중요 공지만 노출, 클릭 > 본문 모달", async () => {
+  it("안 읽은 중요 공지만 노출", async () => {
     mockFetch(204);
     renderBanner();
-    fireEvent.click(await screen.findByText("안 읽은 중요 공지"));
-    expect(screen.getByRole("dialog")).toHaveTextContent("안 읽은 중요 공지 본문");
+    expect(await screen.findByText("안 읽은 중요 공지")).toBeInTheDocument();
     expect(screen.queryByText("읽은 중요 공지")).not.toBeInTheDocument();
     expect(screen.queryByText("일반 공지")).not.toBeInTheDocument();
+  });
+
+  it("클릭 > 공지 읽음 POST + 공지 상세 화면 이동", async () => {
+    const fetchMock = mockFetch(204);
+    renderBanner();
+    fireEvent.click(await screen.findByText("안 읽은 중요 공지"));
+    expect(await screen.findByText("공지 상세 화면")).toBeInTheDocument();
+    await waitFor(() => {
+      const readCall = fetchMock.mock.calls.find(([, init]) => init?.method === "POST");
+      expect(String(readCall?.[0])).toContain("/members/me/notifications/unread-important/read?category=NOTICE");
+    });
   });
 
   it("닫기 > 공지 읽음 POST 후 숨김", async () => {
