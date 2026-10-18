@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Ban, Flag, Heart, MoreHorizontal, Trash2 } from "lucide-react";
+import CommunityPostImages from "./CommunityPostImages";
 import { toSolveSnapshotLabel } from "../../lib/communityPresentation";
 import { formatNotificationTime } from "../../lib/notificationPresentation";
 import type { CommunityPost } from "../../types/api";
@@ -72,6 +73,8 @@ export default function CommunityPostItem({
       )}
 
       <p className="text-sm text-text-primary whitespace-pre-wrap break-words">{post.content}</p>
+
+      <CommunityPostImages images={post.images} />
 
       <button
         type="button"

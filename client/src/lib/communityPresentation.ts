@@ -47,6 +47,19 @@ const COMMUNITY_ERROR_MESSAGE_BY_CODE: Readonly<Record<string, string>> = {
   COMMUNITY_POST_NOT_FOUND: "이미 삭제되었거나 볼 수 없는 의견이에요",
 };
 
+// 이미지 errorCode > 서버 문구가 없을 때(5xx 등) 쓰는 문구 (서버 4xx 문구가 있으면 그쪽 우선)
+const COMMUNITY_IMAGE_FALLBACK_MESSAGE_BY_CODE: Readonly<Record<string, string>> = {
+  COMMUNITY_IMAGE_INVALID_FORMAT: "WebP 사진만 올릴 수 있어요",
+  COMMUNITY_IMAGE_DIMENSION_EXCEEDED: "사진 크기가 너무 커요",
+  COMMUNITY_IMAGE_QUOTA_EXCEEDED: "사진 저장 공간을 모두 썼어요",
+  COMMUNITY_IMAGE_TOO_LARGE: "사진 용량이 너무 커요",
+  COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED: "사진을 너무 빨리 올리고 있어요. 잠시 후 다시 시도해 주세요",
+  COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED: "오늘 올릴 수 있는 사진 수를 모두 썼어요",
+  COMMUNITY_IMAGE_STORAGE_UNAVAILABLE: "지금은 사진을 올릴 수 없어요. 잠시 후 다시 시도해 주세요",
+  COMMUNITY_IMAGE_TOO_MANY: "사진은 최대 2장까지 올릴 수 있어요",
+  COMMUNITY_IMAGE_INVALID_ATTACHMENT: "첨부할 수 없는 사진이에요. 사진을 다시 선택해 주세요",
+};
+
 /** 오류 > errorCode 문자열 (없으면 null) */
 export function toErrorCode(error: unknown): string | null {
   if (!(error instanceof ApiError)) return null;
@@ -59,12 +72,17 @@ export function isSolveRequiredError(error: unknown): boolean {
   return toErrorCode(error) === "COMMUNITY_SOLVE_REQUIRED";
 }
 
-/** 커뮤니티 오류 > 사용자 문구 (코드 매핑 우선, 없으면 서버 4xx 문구, 그 외 fallback) */
+/** 커뮤니티 오류 > 사용자 문구 (코드 매핑 > 서버 4xx 문구 > 이미지 코드 문구 > fallback) */
 export function toCommunityErrorMessage(error: unknown, fallbackMessage: string): string {
   const errorCode = toErrorCode(error);
   if (errorCode && COMMUNITY_ERROR_MESSAGE_BY_CODE[errorCode]) return COMMUNITY_ERROR_MESSAGE_BY_CODE[errorCode];
-  return toUserErrorMessage(error, fallbackMessage);
+  const serverMessage = toUserErrorMessage(error, "");
+  if (serverMessage) return serverMessage;
+  return (errorCode && COMMUNITY_IMAGE_FALLBACK_MESSAGE_BY_CODE[errorCode]) || fallbackMessage;
 }
+
+/** 사진 첨부가 지원되지 않는 브라우저 안내 */
+export const COMMUNITY_IMAGE_UNSUPPORTED_NOTICE = "이 브라우저에서는 사진 첨부를 지원하지 않아요";
 
 /** 풀이 스냅샷 > 배지 문구 ("정답 · 2번째 시도에 해결" / "오답 · 3번 시도") */
 export function toSolveSnapshotLabel(snapshot: SolveSnapshot): string {

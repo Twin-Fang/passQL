@@ -1,7 +1,8 @@
-import { apiFetch } from "./client";
+import { apiFetch, apiFetchBlob } from "./client";
 import type {
   BlockedMember,
   CommunityFeedPage,
+  CommunityImageUploadResult,
   CommunityPost,
   CommunityPostCreatePayload,
   CommunityPostLike,
@@ -65,4 +66,19 @@ export function fetchBlockedMembers(): Promise<BlockedMember[]> {
 
 export function unblockMember(blockUuid: string): Promise<void> {
   return apiFetch(`/members/me/blocks/${encodeURIComponent(blockUuid)}`, { method: "DELETE" });
+}
+
+/** 이미지 업로드 (multipart: image 원본 + thumbnail, 둘 다 WebP) */
+export function uploadCommunityImage(image: Blob, thumbnail: Blob): Promise<CommunityImageUploadResult> {
+  const formData = new FormData();
+  formData.append("image", image, "image.webp");
+  formData.append("thumbnail", thumbnail, "thumbnail.webp");
+  return apiFetch("/community/images", { method: "POST", body: formData });
+}
+
+export type CommunityImageSize = "thumbnail" | "full";
+
+/** 이미지 조회: JWT 필요 > <img src> 직접 사용 불가라 Blob 으로 받음 */
+export function fetchCommunityImageBlob(imageUuid: string, size: CommunityImageSize): Promise<Blob> {
+  return apiFetchBlob(`/community/images/${encodeURIComponent(imageUuid)}?size=${size}`);
 }

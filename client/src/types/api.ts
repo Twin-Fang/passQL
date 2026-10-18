@@ -246,6 +246,10 @@ export type CommunityPostLike = ApiSchemas["CommunityPostLikeResponse"];
 
 export type CommunityReportPayload = ApiSchemas["CommunityReportRequest"];
 
+export type CommunityImage = ApiSchemas["CommunityImageResponse"];
+
+export type CommunityImageUploadResult = ApiSchemas["CommunityImageUploadResponse"];
+
 export type SolveSnapshot = ApiSchemas["SolveSnapshot"];
 
 export type BlockedMember = ApiSchemas["BlockedMemberResponse"];

@@ -8,13 +8,14 @@ import {
   fetchCommunityFeed,
   fetchCommunityPosts,
   reportCommunityPost,
+  uploadCommunityImage,
   toggleCommunityPostLike,
   unblockMember,
 } from "../api/community";
 import type { CommunityFeedSource, CommunityPostSort } from "../api/community";
 import { isSolveRequiredError } from "../lib/communityPresentation";
 import { useMemberQueryScope } from "./useMemberQueryScope";
-import type { CommunityPostCreatePayload, CommunityPostLike, CommunityPostPage, CommunityReportPayload } from "../types/api";
+import type { CommunityPostLike, CommunityPostPage, CommunityReportPayload } from "../types/api";
 
 // 회원별 캐시 키 (#516: 로그아웃·탈퇴 때 clearMemberSession 이 queryClient 를 비움)
 const communityKey = (memberUuid: string | null) => ["community", memberUuid] as const;
@@ -67,10 +68,46 @@ function useInvalidateCommunity() {
   return () => queryClient.invalidateQueries({ queryKey: communityKey(memberUuid) });
 }
 
-export function useCreateCommunityPost(questionUuid: string) {
+export interface CommunityPostImageUpload {
+  readonly attachmentId: string;
+  readonly image: Blob;
+  readonly thumbnail: Blob;
+}
+
+interface CreateCommunityPostWithImagesVariables {
+  readonly content: string;
+  readonly includeSolveSnapshot: boolean;
+  readonly imageUploads: readonly CommunityPostImageUpload[];
+  /** 이미 올린 사진 재사용 (재시도 때 중복 업로드·한도 소모 방지) */
+  readonly uploadedImageUuidByAttachmentId: Map<string, string>;
+  readonly onImageUploadProgress: (uploadedCount: number, totalCount: number) => void;
+}
+
+/** 사진 순차 업로드 > imageUuids 로 의견 작성 (실패해도 올린 사진은 호출부 Map 에 남음) */
+export function useCreateCommunityPostWithImages(questionUuid: string) {
   const invalidateCommunity = useInvalidateCommunity();
   return useMutation({
-    mutationFn: (payload: CommunityPostCreatePayload) => createCommunityPost(questionUuid, payload),
+    mutationFn: async ({
+      content,
+      includeSolveSnapshot,
+      imageUploads,
+      uploadedImageUuidByAttachmentId,
+      onImageUploadProgress,
+    }: CreateCommunityPostWithImagesVariables) => {
+      onImageUploadProgress(uploadedImageUuidByAttachmentId.size, imageUploads.length);
+      for (const { attachmentId, image, thumbnail } of imageUploads) {
+        if (uploadedImageUuidByAttachmentId.has(attachmentId)) continue;
+        const uploaded = await uploadCommunityImage(image, thumbnail);
+        uploadedImageUuidByAttachmentId.set(attachmentId, uploaded.imageUuid);
+        onImageUploadProgress(uploadedImageUuidByAttachmentId.size, imageUploads.length);
+      }
+      const imageUuids = imageUploads.map(({ attachmentId }) => uploadedImageUuidByAttachmentId.get(attachmentId) as string);
+      return createCommunityPost(questionUuid, {
+        content,
+        includeSolveSnapshot,
+        imageUuids: imageUuids.length > 0 ? imageUuids : null,
+      });
+    },
     onSuccess: invalidateCommunity,
   });
 }

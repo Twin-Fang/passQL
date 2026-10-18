@@ -232,6 +232,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/community/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 커뮤니티 이미지 업로드 (multipart)
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 요청 (multipart/form-data)
+         *     - **`image`**: WebP 원본 (500KB 이하, 긴 변 1600px 이하)
+         *     - **`thumbnail`**: WebP 썸네일 (60KB 이하, 앱이 만들어 보냄)
+         *
+         *     ## 반환값 (201, CommunityImageUploadResponse)
+         *     - **`imageUuid`**: 글 작성 요청의 `imageUuids` 에 담는다
+         *     - **`objectKey`**: 서버 저장 키 (임시 community/tmp/..., 24시간 안에 글에 붙이지 않으면 삭제)
+         *     - **`url`**, **`thumbnailUrl`**, **`width`**, **`height`**
+         *
+         *     ## 설명
+         *     - WebP 판별은 파일 앞부분(RIFF....WEBP)으로만 한다 (Content-Type 은 보지 않음). 서버는 재인코딩하지 않는다.
+         *     - 한도: 분당 5장, 하루 20장, 회원 누적 50MB
+         *
+         *     ## 에러
+         *     - 400 COMMUNITY_IMAGE_INVALID_FORMAT(WebP 아님·빈 파일) / COMMUNITY_IMAGE_DIMENSION_EXCEEDED / COMMUNITY_IMAGE_QUOTA_EXCEEDED
+         *     - 413 COMMUNITY_IMAGE_TOO_LARGE
+         *     - 429 COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED / COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED
+         *     - 503 COMMUNITY_IMAGE_STORAGE_UNAVAILABLE: 저장소 설정이 없거나 장애
+         */
+        post: operations["uploadImage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/community/images/{imageUuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 커뮤니티 이미지 조회 (서버 스트리밍, image/webp)
+         * @description ## 인증(JWT): **필요** (Authorization 헤더로 불러와야 함)
+         *
+         *     ## 쿼리 파라미터
+         *     - **`size`**: thumbnail / full(기본값)
+         *
+         *     ## 설명
+         *     - 응답 헤더 `Cache-Control: private, max-age=31536000, immutable`
+         *     - 접근: 올린 본인(미첨부), 노출 중 글의 이미지(문제 글은 풀이 후), 글 작성자 본인. 숨김·삭제 글의 이미지는 404.
+         *
+         *     ## 에러
+         *     - 400 COMMUNITY_SOLVE_REQUIRED / 404 COMMUNITY_IMAGE_NOT_FOUND / 503 COMMUNITY_IMAGE_STORAGE_UNAVAILABLE
+         */
+        get: operations["getImage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/community/posts/{postUuid}": {
         parameters: {
             query?: never;
@@ -386,14 +455,17 @@ export interface paths {
          *     ## 요청 바디 (CommunityPostCreateRequest)
          *     - **`content`**: 본문 (공백 제거 후 1~500자, 금칙어 불가)
          *     - **`includeSolveSnapshot`**: true 면 서버가 내 제출 기록으로 풀이 요약을 붙임 (클라이언트 값은 받지 않음)
+         *     - **`imageUuids`**: 업로드 API 로 올린 내 이미지 UUID, 최대 2장 (없으면 null·빈 목록)
          *
          *     ## 반환값 (201, CommunityPostItemResponse)
+         *     - 이미지가 있으면 `images`: imageUuid, url, thumbnailUrl, width, height (url 은 인증이 필요한 서버 경로)
          *
          *     ## 에러
          *     - 400 COMMUNITY_SOLVE_REQUIRED: 이 문제를 푼 기록이 없음 (스냅샷 요청 포함)
          *     - 400 COMMUNITY_CONTENT_INVALID / COMMUNITY_CONTENT_FORBIDDEN_WORD
          *     - 409 COMMUNITY_POST_DUPLICATE: 5분 안에 같은 내용 작성
          *     - 429 COMMUNITY_POST_RATE_LIMITED(분당 5건) / COMMUNITY_POST_DAILY_LIMIT_EXCEEDED(하루 100건)
+         *     - 400 COMMUNITY_IMAGE_TOO_MANY(3장 이상) / COMMUNITY_IMAGE_INVALID_ATTACHMENT(남의 이미지·이미 첨부·중복·없는 이미지)
          */
         post: operations["createQuestionPost"];
         delete?: never;
@@ -1718,8 +1790,30 @@ export interface components {
             items: components["schemas"]["CommunityFeedCardResponse"][];
             nextCursor: string | null;
         };
+        CommunityImageResponse: {
+            /** Format: int32 */
+            height: number;
+            /** Format: uuid */
+            imageUuid: string;
+            thumbnailUrl: string;
+            url: string;
+            /** Format: int32 */
+            width: number;
+        };
+        CommunityImageUploadResponse: {
+            /** Format: int32 */
+            height: number;
+            /** Format: uuid */
+            imageUuid: string;
+            objectKey: string;
+            thumbnailUrl: string;
+            url: string;
+            /** Format: int32 */
+            width: number;
+        };
         CommunityPostCreateRequest: {
             content: string;
+            imageUuids: string[] | null;
             includeSolveSnapshot: boolean | null;
         };
         CommunityPostItemResponse: {
@@ -1727,6 +1821,7 @@ export interface components {
             content: string;
             /** Format: date-time */
             createdAt: string;
+            images: components["schemas"]["CommunityImageResponse"][];
             isLikedByMe: boolean;
             isMine: boolean;
             /** Format: int32 */
@@ -1784,7 +1879,7 @@ export interface components {
          * @description 서버 ErrorCode enum 이름 (응답 errorCode 값)
          * @enum {string}
          */
-        ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "PROMPT_NOT_FOUND" | "TOPIC_NOT_FOUND" | "TOPIC_DUPLICATE" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "COMMUNITY_POST_NOT_FOUND" | "COMMUNITY_SOLVE_REQUIRED" | "COMMUNITY_CONTENT_INVALID" | "COMMUNITY_CONTENT_FORBIDDEN_WORD" | "COMMUNITY_POST_DUPLICATE" | "COMMUNITY_POST_RATE_LIMITED" | "COMMUNITY_POST_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_POST_FORBIDDEN" | "COMMUNITY_SELF_REPORT_FORBIDDEN" | "COMMUNITY_SELF_BLOCK_FORBIDDEN" | "COMMUNITY_BLOCK_NOT_FOUND" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER" | "SOCIAL_LOGIN_UNAVAILABLE" | "INVALID_SOCIAL_AUTHORIZATION_CODE" | "INVALID_SOCIAL_TOKEN";
+        ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "PROMPT_NOT_FOUND" | "TOPIC_NOT_FOUND" | "TOPIC_DUPLICATE" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "COMMUNITY_POST_NOT_FOUND" | "COMMUNITY_SOLVE_REQUIRED" | "COMMUNITY_CONTENT_INVALID" | "COMMUNITY_CONTENT_FORBIDDEN_WORD" | "COMMUNITY_POST_DUPLICATE" | "COMMUNITY_POST_RATE_LIMITED" | "COMMUNITY_POST_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_POST_FORBIDDEN" | "COMMUNITY_SELF_REPORT_FORBIDDEN" | "COMMUNITY_SELF_BLOCK_FORBIDDEN" | "COMMUNITY_BLOCK_NOT_FOUND" | "COMMUNITY_IMAGE_STORAGE_UNAVAILABLE" | "COMMUNITY_IMAGE_INVALID_FORMAT" | "COMMUNITY_IMAGE_TOO_LARGE" | "COMMUNITY_IMAGE_DIMENSION_EXCEEDED" | "COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED" | "COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_IMAGE_QUOTA_EXCEEDED" | "COMMUNITY_IMAGE_NOT_FOUND" | "COMMUNITY_IMAGE_TOO_MANY" | "COMMUNITY_IMAGE_INVALID_ATTACHMENT" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER" | "SOCIAL_LOGIN_UNAVAILABLE" | "INVALID_SOCIAL_AUTHORIZATION_CODE" | "INVALID_SOCIAL_TOKEN";
         /** @description API 에러 응답 표준 형식 */
         ErrorResponse: {
             errorCode: components["schemas"]["ErrorCode"];
@@ -2512,6 +2607,59 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CommunityFeedPageResponse"];
+                };
+            };
+        };
+    };
+    uploadImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    image: string;
+                    /** Format: binary */
+                    thumbnail: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommunityImageUploadResponse"];
+                };
+            };
+        };
+    };
+    getImage: {
+        parameters: {
+            query?: {
+                size?: string;
+            };
+            header?: never;
+            path: {
+                imageUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
                 };
             };
         };
