@@ -47,10 +47,6 @@ class HomePage extends ConsumerWidget {
           ],
         ),
         data: (data) => _HomeShell(
-          // 인사 문구가 한 줄에 들어가면 large title 로 올린다. 없거나 길면 '홈' (긴 인사는 본문 첫 줄)
-          largeTitle: _isGreetingInLargeTitle(context, data)
-              ? _GreetingTitle(GreetingSection.resolveMessage(data.greeting!))
-              : null,
           onRefresh: () async {
             // 공지 배너(안 읽은 중요 공지)도 함께 갱신
             ref.invalidate(
@@ -63,44 +59,23 @@ class HomePage extends ConsumerWidget {
               if (context.mounted) showAppToast(context, '새로고침하지 못했어요');
             }
           },
-          slivers: [
-            _HomeContent(
-              data: data,
-              isGreetingHeadlineInBody:
-                  data.greeting != null &&
-                  !_isGreetingInLargeTitle(context, data),
-            ),
-          ],
+          slivers: [_HomeContent(data: data)],
         ),
       ),
     );
   }
-
-  /// 인사 첫 줄이 large title 한 줄에 들어가는지 (폭 = 화면 - 좌우 여백, 시스템 글자 배율 반영)
-  static bool _isGreetingInLargeTitle(BuildContext context, HomeData data) {
-    final greeting = data.greeting;
-    if (greeting == null) return false;
-    return GreetingSection.fitsInLargeTitle(
-      GreetingSection.resolveMessage(greeting),
-      maxWidth: MediaQuery.sizeOf(context).width - PassqlSpacing.md * 2,
-      textScaler: MediaQuery.textScalerOf(context),
-    );
-  }
 }
 
-/// large title 바 + 좌우 inset 을 공통으로 쓰는 틀 (오른쪽 위 종 아이콘 포함).
+/// 로딩·오류·내용 공통 틀: 로고 상단 바 + 오른쪽 종 아이콘
 class _HomeShell extends ConsumerWidget {
-  final Widget? largeTitle;
   final Future<void> Function()? onRefresh;
   final List<Widget> slivers;
 
-  const _HomeShell({this.largeTitle, this.onRefresh, required this.slivers});
+  const _HomeShell({this.onRefresh, required this.slivers});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return PassqlLargeTitleScrollView(
-      title: '홈',
-      largeTitle: largeTitle,
+    return PassqlBrandBarScrollView(
       onRefresh: onRefresh,
       trailing: PassqlNotificationBellButton(
         unreadCount: ref.watch(
@@ -113,57 +88,24 @@ class _HomeShell extends ConsumerWidget {
   }
 }
 
-/// 인사 문구 large title. 길면 한 줄로 줄여 바 높이를 지킨다.
-class _GreetingTitle extends StatelessWidget {
-  final String text;
-
-  const _GreetingTitle(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: PassqlTypography.largeTitle.copyWith(
-        color: context.passqlColors.label,
-      ),
-    );
-  }
-}
-
 /// 홈 카드 목록. 카드 사이 간격은 PassqlSpacing.md.
 class _HomeContent extends ConsumerWidget {
   final HomeData data;
 
-  /// true > large title 에 못 올라간 인사 첫 줄을 본문 맨 위에 그림
-  final bool isGreetingHeadlineInBody;
-
-  const _HomeContent({
-    required this.data,
-    required this.isGreetingHeadlineInBody,
-  });
+  const _HomeContent({required this.data});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notice = ref.watch(homeNoticeProvider);
     final children = <Widget>[
+      // 인사 + 본문 + 시험 상황 배지 (상단 바 아래 화면 제목 자리)
+      if (data.greeting != null) GreetingSection(greeting: data.greeting!),
+
       // 관리자 공지 (안 읽은 중요 공지 첫 건, 닫기 = 서버 읽음)
       if (notice != null)
         AppNoticeBanner(
           notice: notice,
           onDismiss: () => dismissHomeNotice(ref, notice.noticeUuid),
-        ),
-
-      // 인사(긴 첫 줄이면 여기로) + 둘째 줄 본문 + 시험 상황 배지 (있을 때만)
-      if (data.greeting != null &&
-          GreetingSection.hasContent(
-            data.greeting!,
-            isHeadlineShown: isGreetingHeadlineInBody,
-          ))
-        GreetingSection(
-          greeting: data.greeting!,
-          isHeadlineShown: isGreetingHeadlineInBody,
         ),
 
       // 2열 카드: 오늘의 세트 + 시험 일정 (높이를 맞춘다)

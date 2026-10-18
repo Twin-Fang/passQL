@@ -15,6 +15,7 @@ abstract final class PassqlSize {
   static const double scoreRingStroke = 12;
   static const double loginLogoHeight = 44;
   static const double footerLogoHeight = 20;
+  static const double navBarLogoHeight = 24; // 홈 상단 바 워드마크 (바 높이 44 안, 종 아이콘과 시각 무게 맞춤)
   // 오픈소스 라이선스 화면 상단 로고 높이
   static const double licensePageLogoHeight = 32;
   static const double messageSlotHeight =

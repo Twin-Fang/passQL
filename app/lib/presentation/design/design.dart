@@ -5,6 +5,7 @@ export 'topic_appearance.dart';
 export 'components/passql_ai_header.dart';
 export 'components/passql_badge.dart';
 export 'components/passql_bottom_action_bar.dart';
+export 'components/passql_brand_bar_scroll_view.dart';
 export 'components/passql_button.dart';
 export 'components/passql_card.dart';
 export 'components/passql_check_row.dart';

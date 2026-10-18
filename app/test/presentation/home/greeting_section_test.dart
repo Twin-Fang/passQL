@@ -5,65 +5,44 @@ import 'package:passql_app/data/models/home/greeting_response.dart';
 import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/widgets/home/greeting_section.dart';
 
-/// 홈 인사: large title 은 한 줄 규격 > 긴 인사는 말줄임 대신 본문 맨 위에 여러 줄로
+/// 홈 인사: 인사·본문 모두 말줄임 없이 여러 줄 (#530)
 void main() {
   const longGreeting = GreetingResponse(
     nickname: '공부하는새찬',
     message: '늦은 시간에도 열심인 {nickname}님,\n오늘도 한 문제 더 풀어 볼까요?',
     messageType: 'DEFAULT',
   );
-  const shortGreeting = GreetingResponse(
-    nickname: '찬',
-    message: '{nickname}님,\n지금이 골든타임',
-    messageType: 'DEFAULT',
-  );
-  // 375pt 화면 - 좌우 여백
-  const largeTitleWidth = 375 - PassqlSpacing.md * 2;
+  // 320pt 화면 - 좌우 여백
+  const narrowContentWidth = 320 - PassqlSpacing.md * 2;
 
-  test('짧은 인사는 large title 에 들어가고 긴 인사는 들어가지 않는다', () {
+  test('{nickname} 치환 후 첫 줄은 인사, 나머지는 본문', () {
     expect(
-      GreetingSection.fitsInLargeTitle(
-        GreetingSection.resolveMessage(shortGreeting),
-        maxWidth: largeTitleWidth,
-        textScaler: TextScaler.noScaling,
-      ),
-      isTrue,
+      GreetingSection.resolveMessage(longGreeting),
+      '늦은 시간에도 열심인 공부하는새찬님,',
     );
-    expect(
-      GreetingSection.fitsInLargeTitle(
-        GreetingSection.resolveMessage(longGreeting),
-        maxWidth: largeTitleWidth,
-        textScaler: TextScaler.noScaling,
-      ),
-      isFalse,
-    );
+    expect(GreetingSection.resolveBody(longGreeting), '오늘도 한 문제 더 풀어 볼까요?');
   });
 
-  testWidgets('본문으로 내려온 인사는 말줄임 없이 전부 보인다', (tester) async {
-    expect(
-      GreetingSection.hasContent(longGreeting, isHeadlineShown: true),
-      isTrue,
-    );
+  testWidgets('좁은 폭에서도 인사·본문은 말줄임 없이 전부 보인다', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: PassqlTheme.light,
         home: const Scaffold(
           body: SizedBox(
-            width: largeTitleWidth,
-            child: GreetingSection(
-              greeting: longGreeting,
-              isHeadlineShown: true,
-            ),
+            width: narrowContentWidth,
+            child: GreetingSection(greeting: longGreeting),
           ),
         ),
       ),
     );
-    final headline = keepWordsTogether(
+    for (final line in [
       GreetingSection.resolveMessage(longGreeting),
-    );
-    final headlineText = tester.widget<Text>(find.text(headline));
-    expect(headlineText.maxLines, isNull);
-    expect(headlineText.overflow, isNull);
+      GreetingSection.resolveBody(longGreeting)!,
+    ]) {
+      final text = tester.widget<Text>(find.text(keepWordsTogether(line)));
+      expect(text.maxLines, isNull);
+      expect(text.overflow, isNull);
+    }
     expect(tester.takeException(), isNull);
   });
 }

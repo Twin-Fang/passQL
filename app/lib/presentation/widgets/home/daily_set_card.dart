@@ -55,10 +55,13 @@ class DailySetCard extends StatelessWidget {
                 color: colors.warning,
               ),
               const SizedBox(width: PassqlSpacing.xxs),
-              Text(
-                '오늘의 세트',
-                style: PassqlTypography.captionSemibold.copyWith(
-                  color: colors.secondaryLabel,
+              // 좁은 2열 카드 + 큰 글자에서 넘치지 않게 남은 폭 안에서 줄바꿈
+              Flexible(
+                child: Text(
+                  '오늘의 세트',
+                  style: PassqlTypography.captionSemibold.copyWith(
+                    color: colors.secondaryLabel,
+                  ),
                 ),
               ),
               if (completed) ...[
