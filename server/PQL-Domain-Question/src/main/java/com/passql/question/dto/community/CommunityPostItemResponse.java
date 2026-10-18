@@ -3,6 +3,7 @@ package com.passql.question.dto.community;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /** 글 1건: 작성자는 닉네임만 (회원 UUID 비노출) */
@@ -14,6 +15,7 @@ public record CommunityPostItemResponse(
         Integer likeCount,
         Boolean isLikedByMe,
         @Schema(nullable = true) SolveSnapshot solveSnapshot,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        List<CommunityImageResponse> images
 ) {
 }

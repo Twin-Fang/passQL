@@ -140,6 +140,18 @@ public enum ErrorCode {
     COMMUNITY_SELF_BLOCK_FORBIDDEN(HttpStatus.BAD_REQUEST, "나 자신은 차단할 수 없어요."),
     COMMUNITY_BLOCK_NOT_FOUND(HttpStatus.NOT_FOUND, "차단 내역을 찾을 수 없습니다."),
 
+    // Community Image (#525, 3단계)
+    COMMUNITY_IMAGE_STORAGE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "지금은 이미지를 사용할 수 없어요. 잠시 후 다시 시도해 주세요."),
+    COMMUNITY_IMAGE_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "WebP 이미지만 올릴 수 있어요."),
+    COMMUNITY_IMAGE_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE, "이미지 용량이 너무 커요."),
+    COMMUNITY_IMAGE_DIMENSION_EXCEEDED(HttpStatus.BAD_REQUEST, "이미지 크기가 너무 커요."),
+    COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "이미지를 너무 빠르게 올리고 있어요. 잠시 후 다시 시도해 주세요."),
+    COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "하루에 올릴 수 있는 이미지 수를 넘었어요."),
+    COMMUNITY_IMAGE_QUOTA_EXCEEDED(HttpStatus.BAD_REQUEST, "올릴 수 있는 이미지 총용량을 넘었어요."),
+    COMMUNITY_IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "이미지를 찾을 수 없습니다."),
+    COMMUNITY_IMAGE_TOO_MANY(HttpStatus.BAD_REQUEST, "이미지는 글당 최대 2장까지 첨부할 수 있어요."),
+    COMMUNITY_IMAGE_INVALID_ATTACHMENT(HttpStatus.BAD_REQUEST, "첨부할 수 없는 이미지가 포함되어 있어요."),
+
     // Admin Account (#478)
     ADMIN_ACCOUNT_NOT_FOUND(HttpStatus.NOT_FOUND, "관리자 계정을 찾을 수 없습니다."),
     ADMIN_ACCOUNT_DUPLICATE(HttpStatus.CONFLICT, "이미 있는 관리자 아이디입니다."),
