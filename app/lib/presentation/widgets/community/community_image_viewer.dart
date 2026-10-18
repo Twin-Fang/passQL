@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 
 import '../../../data/models/community/community_models.dart';
 import '../../design/design.dart';
@@ -47,62 +48,66 @@ class _CommunityImageViewerPageState extends State<_CommunityImageViewerPage> {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    return CupertinoPageScaffold(
-      backgroundColor: colors.background,
-      child: Stack(
-        children: [
-          PageView.builder(
-            controller: _pageController,
-            itemCount: widget.images.length,
-            onPageChanged: (index) => setState(() => _currentIndex = index),
-            itemBuilder: (_, index) => InteractiveViewer(
-              minScale: 1,
-              maxScale: 4,
-              child: Center(
-                child: CommunityAuthImage(
-                  imageUuid: widget.images[index].imageUuid,
-                  size: CommunityImageSize.full,
-                  fit: BoxFit.contain,
+    // 검정 바탕이라 상태바 아이콘은 항상 밝게
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: CupertinoPageScaffold(
+        backgroundColor: colors.imageViewerBackground,
+        child: Stack(
+          children: [
+            PageView.builder(
+              controller: _pageController,
+              itemCount: widget.images.length,
+              onPageChanged: (index) => setState(() => _currentIndex = index),
+              itemBuilder: (_, index) => InteractiveViewer(
+                minScale: 1,
+                maxScale: 4,
+                child: Center(
+                  child: CommunityAuthImage(
+                    imageUuid: widget.images[index].imageUuid,
+                    size: CommunityImageSize.full,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ),
-          ),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(PassqlSpacing.xs),
-              child: Row(
-                children: [
-                  Semantics(
-                    button: true,
-                    label: '닫기',
-                    excludeSemantics: true,
-                    child: CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      minimumSize: const Size(
-                        PassqlSize.minTouchTarget,
-                        PassqlSize.minTouchTarget,
-                      ),
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Icon(
-                        CupertinoIcons.xmark,
-                        size: PassqlIconSize.lg,
-                        color: colors.label,
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  if (widget.images.length > 1)
-                    Text(
-                      '${_currentIndex + 1}/${widget.images.length}',
-                      style: PassqlTypography.subheadline.copyWith(
-                        color: colors.secondaryLabel,
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(PassqlSpacing.xs),
+                child: Row(
+                  children: [
+                    Semantics(
+                      button: true,
+                      label: '닫기',
+                      excludeSemantics: true,
+                      child: CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(
+                          PassqlSize.minTouchTarget,
+                          PassqlSize.minTouchTarget,
+                        ),
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Icon(
+                          CupertinoIcons.xmark,
+                          size: PassqlIconSize.lg,
+                          color: colors.onImageViewer,
+                        ),
                       ),
                     ),
-                ],
+                    const Spacer(),
+                    if (widget.images.length > 1)
+                      Text(
+                        '${_currentIndex + 1}/${widget.images.length}',
+                        style: PassqlTypography.subheadline.copyWith(
+                          color: colors.onImageViewer,
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
