@@ -7,6 +7,7 @@ import '../../design/design.dart';
 import '../../providers/ai_explanation_session_provider.dart';
 import '../../providers/choice_explanation_providers.dart';
 import '../../widgets/ai_explanation/ai_explanation_content.dart';
+import '../../widgets/community/community_opinion_chip.dart';
 import '../../widgets/question/execute_result_card.dart';
 import '../../widgets/report/report_button.dart';
 import '../../widgets/result/similar_questions_section.dart';
@@ -108,15 +109,19 @@ class ResultPage extends ConsumerWidget {
               style: PassqlTypography.callout.copyWith(color: colors.label),
             ),
           ),
-        // 문제 신고
-        if (questionUuid.isNotEmpty && result.submissionUuid != null)
-          Align(
-            alignment: Alignment.centerRight,
-            child: ReportButton(
-              questionUuid: questionUuid,
-              submissionUuid: result.submissionUuid!,
-              choiceSetUuid: result.choiceSetUuid,
-            ),
+        // 의견 N 칩 + 문제 신고
+        if (questionUuid.isNotEmpty)
+          Row(
+            children: [
+              CommunityOpinionChip(questionUuid: questionUuid),
+              const Spacer(),
+              if (result.submissionUuid != null)
+                ReportButton(
+                  questionUuid: questionUuid,
+                  submissionUuid: result.submissionUuid!,
+                  choiceSetUuid: result.choiceSetUuid,
+                ),
+            ],
           ),
         // 유사 문제 (비동기 로드)
         if (questionUuid.isNotEmpty)

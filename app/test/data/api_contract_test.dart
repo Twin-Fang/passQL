@@ -8,7 +8,9 @@ import 'package:passql_app/data/models/member/choice_mode_models.dart';
 import 'package:passql_app/data/models/member/nickname_models.dart';
 import 'package:passql_app/data/models/question/submit_request.dart';
 import 'package:passql_app/data/models/feedback/feedback_models.dart';
+import 'package:passql_app/data/models/community/community_models.dart';
 import 'package:passql_app/data/sources/ai_api.dart';
+import 'package:passql_app/data/sources/community_api.dart';
 import 'package:passql_app/data/sources/feedback_api.dart';
 import 'package:passql_app/data/models/report/report_models.dart';
 import 'package:passql_app/data/models/daily_set/daily_set_models.dart';
@@ -237,5 +239,48 @@ void main() {
     );
     final wire = jsonDecode(jsonEncode(adapter.lastRequest.data)) as Map;
     expect(wire['sessionUuid'], 'sess-1');
+  });
+
+  test('커뮤니티: 피드 쿼리, 의견 작성·신고 본문, 좋아요 메서드', () async {
+    await ignoreParse(
+      CommunityApiClient(
+        dio,
+      ).getFeed(source: CommunityFeedSource.solved.serverValue),
+    );
+    expect(adapter.lastRequest.path, '/community/feed');
+    expect(adapter.lastRequest.queryParameters, {'source': 'solved'});
+
+    await ignoreParse(
+      CommunityApiClient(dio).createQuestionPost(
+        'q-1',
+        const CommunityPostCreateRequest(
+          content: '헷갈려요',
+          includeSolveSnapshot: true,
+        ),
+      ),
+    );
+    expect(adapter.lastRequest.method, 'POST');
+    expect(adapter.lastRequest.path, '/community/questions/q-1/posts');
+    expect(jsonDecode(jsonEncode(adapter.lastRequest.data)), {
+      'content': '헷갈려요',
+      'includeSolveSnapshot': true,
+    });
+
+    await ignoreParse(
+      CommunityApiClient(dio).reportPost(
+        'p-1',
+        CommunityReportRequest(
+          category: CommunityReportCategory.answerSpoiler.serverValue,
+        ),
+      ),
+    );
+    expect(adapter.lastRequest.path, '/community/posts/p-1/report');
+    expect(jsonDecode(jsonEncode(adapter.lastRequest.data)), {
+      'category': 'ANSWER_SPOILER',
+    });
+
+    await ignoreParse(CommunityApiClient(dio).toggleLike('p-1'));
+    expect(adapter.lastRequest.method, 'PUT');
+    expect(adapter.lastRequest.path, '/community/posts/p-1/like');
   });
 }

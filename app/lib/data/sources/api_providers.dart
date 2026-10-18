@@ -16,6 +16,7 @@ import 'exam_trend_api.dart';
 import 'home_api.dart';
 import 'member_api.dart';
 import 'meta_api.dart';
+import 'community_api.dart';
 import 'notification_api.dart';
 import 'progress_api.dart';
 import 'push_token_api.dart';
@@ -115,4 +116,8 @@ final pushTokenApiProvider = Provider<PushTokenApiClient>(
 
 final notificationApiProvider = Provider<NotificationApiClient>(
   (ref) => NotificationApiClient(ref.watch(dioProvider)),
+);
+
+final communityApiProvider = Provider<CommunityApiClient>(
+  (ref) => CommunityApiClient(ref.watch(dioProvider)),
 );
