@@ -189,6 +189,20 @@ public class CommunityImageService {
         deleteObjectsAfterCommit(objectKeys);
     }
 
+    /** 회원 탈퇴 시 본인 사진 전체 삭제: 이미지 DELETED > 커밋 뒤 객체 삭제 (사진에 개인정보가 담길 수 있어 글과 달리 남기지 않음) */
+    @Transactional
+    public int deleteImagesOfMember(UUID memberUuid) {
+        List<CommunityImage> images = communityImageRepository.findByOwnerMemberUuidAndStatusNot(memberUuid, CommunityImageStatus.DELETED);
+        List<String> objectKeys = new ArrayList<>();
+        for (CommunityImage image : images) {
+            objectKeys.add(image.getObjectKey());
+            objectKeys.add(image.getThumbnailKey());
+            image.markDeleted();
+        }
+        deleteObjectsAfterCommit(objectKeys);
+        return images.size();
+    }
+
     /** 24시간 지난 미첨부(TEMP) 이미지 정리 (스케줄러): 객체 삭제 > DELETED, 처리 건수 반환 */
     @Transactional
     public int cleanUpOrphanTemporaryImages(LocalDateTime now) {

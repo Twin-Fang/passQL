@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 회원 탈퇴 정리 (탈퇴 트랜잭션 안): 좋아요(수 차감 > 삭제), 신고(수 차감 > 삭제), 차단(양방향) 삭제
+ * 회원 탈퇴 정리 (탈퇴 트랜잭션 안): 좋아요(수 차감 > 삭제), 신고(수 차감 > 삭제), 차단(양방향) 삭제, 첨부 사진 삭제
  * 작성한 글은 닉네임이 익명화되어 그대로 둠
  */
 @Slf4j
@@ -22,6 +22,7 @@ public class CommunityWithdrawalCleanupListener {
     private final CommunityPostLikeRepository communityPostLikeRepository;
     private final CommunityReportRepository communityReportRepository;
     private final MemberBlockRepository memberBlockRepository;
+    private final CommunityImageService communityImageService;
 
     @EventListener
     @Transactional
@@ -31,6 +32,7 @@ public class CommunityWithdrawalCleanupListener {
         communityReportRepository.decreaseReportCountsOfMember(event.memberUuid());
         int reports = communityReportRepository.deleteAllByReporter(event.memberUuid());
         int blocks = memberBlockRepository.deleteAllInvolvingMember(event.memberUuid());
-        log.info("[community] withdrawal cleanup : likes={}, reports={}, blocks={}", likes, reports, blocks);
+        int images = communityImageService.deleteImagesOfMember(event.memberUuid());
+        log.info("[community] withdrawal cleanup : likes={}, reports={}, blocks={}, images={}", likes, reports, blocks, images);
     }
 }
