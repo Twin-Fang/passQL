@@ -18,8 +18,9 @@ import java.util.HexFormat;
 import java.util.UUID;
 
 /**
- * 글 작성 제한 (Redis): 회원당 분당 5건, 하루 100건, 같은 내용 5분 안 반복 차단
- * 키: community:rate:min:{member}, community:rate:day:{member}:{yyyy-MM-dd}, community:dup:{member}
+ * 글 작성 제한 (Redis): 회원당 분당 5건, 하루 100건, 같은 내용 5분 안 반복 차단, 이미지 업로드 분당 5장·하루 20장
+ * 키: community:rate:min:{member}, community:rate:day:{member}:{yyyy-MM-dd}, community:dup:{member},
+ *     community:img:min:{member}, community:img:day:{member}:{yyyy-MM-dd}
  * Redis 장애 시 작성은 막지 않음 (경고 로그)
  */
 @Slf4j
@@ -30,6 +31,9 @@ public class CommunityWriteLimiter {
     // 분당 작성 한도 / 하루 작성 한도
     static final int MAX_POSTS_PER_MINUTE = 5;
     static final int MAX_POSTS_PER_DAY = 100;
+    // 이미지 업로드 분당 한도 / 하루 한도
+    static final int MAX_IMAGE_UPLOADS_PER_MINUTE = 5;
+    static final int MAX_IMAGE_UPLOADS_PER_DAY = 20;
     private static final Duration MINUTE_WINDOW = Duration.ofMinutes(1);
     private static final Duration DAY_WINDOW = Duration.ofDays(1);
     // 같은 내용 반복 차단 시간
@@ -53,6 +57,24 @@ public class CommunityWriteLimiter {
             }
         } catch (DataAccessException e) {
             log.warn("[community] write limiter skipped : redis unavailable, cause={}", e.getClass().getSimpleName());
+        }
+    }
+
+    /** 업로드 시도 1회 기록 > 한도 초과면 429 (분당 COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED, 하루 COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED) */
+    public void acquireImageUploadPermit(UUID memberUuid) {
+        try {
+            long minuteCount = increase("community:img:min:" + memberUuid, MINUTE_WINDOW);
+            if (minuteCount > MAX_IMAGE_UPLOADS_PER_MINUTE) {
+                log.warn("[community image] rejected 429 : per-minute limit, member={}", memberUuid);
+                throw new CustomException(ErrorCode.COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED);
+            }
+            long dayCount = increase("community:img:day:" + memberUuid + ":" + LocalDate.now(SERVICE_ZONE), DAY_WINDOW);
+            if (dayCount > MAX_IMAGE_UPLOADS_PER_DAY) {
+                log.warn("[community image] rejected 429 : daily limit, member={}", memberUuid);
+                throw new CustomException(ErrorCode.COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED);
+            }
+        } catch (DataAccessException e) {
+            log.warn("[community image] upload limiter skipped : redis unavailable, cause={}", e.getClass().getSimpleName());
         }
     }
 

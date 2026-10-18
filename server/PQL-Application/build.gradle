@@ -15,6 +15,9 @@ dependencies {
     api project(':PQL-Domain-AI')
     api project(':PQL-Domain-Meta')
 
+    // 커뮤니티 이미지 저장소 (S3 호환 MinIO, path-style)
+    api 'software.amazon.awssdk:s3:2.31.78'
+
     // 테스트
     testImplementation project(':PQL-Web')
 }

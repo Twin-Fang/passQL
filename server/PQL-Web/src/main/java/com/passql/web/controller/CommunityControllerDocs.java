@@ -4,6 +4,7 @@ import com.passql.common.dto.Author;
 import com.passql.member.auth.presentation.annotation.AuthMember;
 import com.passql.member.auth.presentation.security.LoginMember;
 import com.passql.question.dto.community.CommunityFeedPageResponse;
+import com.passql.question.dto.community.CommunityImageUploadResponse;
 import com.passql.question.dto.community.CommunityPostCreateRequest;
 import com.passql.question.dto.community.CommunityPostItemResponse;
 import com.passql.question.dto.community.CommunityPostLikeResponse;
@@ -15,7 +16,10 @@ import kr.suhsaechan.suhapilog.annotation.ApiLog;
 import kr.suhsaechan.suhapilog.annotation.ApiLogs;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -94,14 +98,17 @@ public interface CommunityControllerDocs {
             ## 요청 바디 (CommunityPostCreateRequest)
             - **`content`**: 본문 (공백 제거 후 1~500자, 금칙어 불가)
             - **`includeSolveSnapshot`**: true 면 서버가 내 제출 기록으로 풀이 요약을 붙임 (클라이언트 값은 받지 않음)
+            - **`imageUuids`**: 업로드 API 로 올린 내 이미지 UUID, 최대 2장 (없으면 null·빈 목록)
 
             ## 반환값 (201, CommunityPostItemResponse)
+            - 이미지가 있으면 `images`: imageUuid, url, thumbnailUrl, width, height (url 은 인증이 필요한 서버 경로)
 
             ## 에러
             - 400 COMMUNITY_SOLVE_REQUIRED: 이 문제를 푼 기록이 없음 (스냅샷 요청 포함)
             - 400 COMMUNITY_CONTENT_INVALID / COMMUNITY_CONTENT_FORBIDDEN_WORD
             - 409 COMMUNITY_POST_DUPLICATE: 5분 안에 같은 내용 작성
             - 429 COMMUNITY_POST_RATE_LIMITED(분당 5건) / COMMUNITY_POST_DAILY_LIMIT_EXCEEDED(하루 100건)
+            - 400 COMMUNITY_IMAGE_TOO_MANY(3장 이상) / COMMUNITY_IMAGE_INVALID_ATTACHMENT(남의 이미지·이미 첨부·중복·없는 이미지)
             """
     )
     CommunityPostItemResponse createQuestionPost(@AuthMember LoginMember loginMember, @PathVariable UUID questionUuid,
@@ -184,4 +191,58 @@ public interface CommunityControllerDocs {
             """
     )
     void blockAuthor(@AuthMember LoginMember loginMember, @PathVariable UUID postUuid);
+
+    @ApiLogs({
+        @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 525, description = "커뮤니티 이미지 업로드 API 추가"),
+    })
+    @Operation(
+        summary = "커뮤니티 이미지 업로드 (multipart)",
+        description = """
+            ## 인증(JWT): **필요**
+
+            ## 요청 (multipart/form-data)
+            - **`image`**: WebP 원본 (500KB 이하, 긴 변 1600px 이하)
+            - **`thumbnail`**: WebP 썸네일 (60KB 이하, 앱이 만들어 보냄)
+
+            ## 반환값 (201, CommunityImageUploadResponse)
+            - **`imageUuid`**: 글 작성 요청의 `imageUuids` 에 담는다
+            - **`objectKey`**: 서버 저장 키 (임시 community/tmp/..., 24시간 안에 글에 붙이지 않으면 삭제)
+            - **`url`**, **`thumbnailUrl`**, **`width`**, **`height`**
+
+            ## 설명
+            - WebP 판별은 파일 앞부분(RIFF....WEBP)으로만 한다 (Content-Type 은 보지 않음). 서버는 재인코딩하지 않는다.
+            - 한도: 분당 5장, 하루 20장, 회원 누적 50MB
+
+            ## 에러
+            - 400 COMMUNITY_IMAGE_INVALID_FORMAT(WebP 아님·빈 파일) / COMMUNITY_IMAGE_DIMENSION_EXCEEDED / COMMUNITY_IMAGE_QUOTA_EXCEEDED
+            - 413 COMMUNITY_IMAGE_TOO_LARGE
+            - 429 COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED / COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED
+            - 503 COMMUNITY_IMAGE_STORAGE_UNAVAILABLE: 저장소 설정이 없거나 장애
+            """
+    )
+    CommunityImageUploadResponse uploadImage(@AuthMember LoginMember loginMember,
+                                             @RequestPart("image") MultipartFile image,
+                                             @RequestPart("thumbnail") MultipartFile thumbnail);
+
+    @ApiLogs({
+        @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 525, description = "커뮤니티 이미지 조회(스트리밍) API 추가"),
+    })
+    @Operation(
+        summary = "커뮤니티 이미지 조회 (서버 스트리밍, image/webp)",
+        description = """
+            ## 인증(JWT): **필요** (Authorization 헤더로 불러와야 함)
+
+            ## 쿼리 파라미터
+            - **`size`**: thumbnail / full(기본값)
+
+            ## 설명
+            - 응답 헤더 `Cache-Control: private, max-age=31536000, immutable`
+            - 접근: 올린 본인(미첨부), 노출 중 글의 이미지(문제 글은 풀이 후), 글 작성자 본인. 숨김·삭제 글의 이미지는 404.
+
+            ## 에러
+            - 400 COMMUNITY_SOLVE_REQUIRED / 404 COMMUNITY_IMAGE_NOT_FOUND / 503 COMMUNITY_IMAGE_STORAGE_UNAVAILABLE
+            """
+    )
+    ResponseEntity<byte[]> getImage(@AuthMember LoginMember loginMember, @PathVariable UUID imageUuid,
+                                    @RequestParam(required = false) String size);
 }

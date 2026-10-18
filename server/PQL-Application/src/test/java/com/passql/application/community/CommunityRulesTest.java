@@ -79,7 +79,7 @@ class CommunityRulesTest {
         CommunityPostService postService = new CommunityPostService(communityPostRepository,
                 mock(CommunityPostLikeRepository.class), questionRepository, mock(MemberRepository.class),
                 new CommunitySolveService(submissionRepository, null, null), mock(CommunityContentPolicy.class),
-                mock(CommunityWriteLimiter.class));
+                mock(CommunityWriteLimiter.class), mock(CommunityImageService.class));
 
         assertThatThrownBy(() -> postService.getQuestionPosts(viewerUuid, questionUuid, null, null, null))
                 .isInstanceOf(CustomException.class)
@@ -124,5 +124,50 @@ class CommunityRulesTest {
         assertThatThrownBy(() -> blockService.blockAuthorOfPost(authorUuid, postUuid))
                 .isInstanceOf(CustomException.class)
                 .extracting(e -> ((CustomException) e).getErrorCode()).isEqualTo(ErrorCode.COMMUNITY_SELF_BLOCK_FORBIDDEN);
+    }
+
+    @Test
+    void 이미지는_WebP_매직바이트로만_판별하고_크기_한도를_넘으면_거절한다() {
+        byte[] lossyWebp = webpHeader("VP8 ", 800, 600);
+        assertThat(CommunityImageValidator.validate(lossyWebp, CommunityImageValidator.MAX_IMAGE_BYTES).longSidePixels()).isEqualTo(800);
+
+        byte[] pngLikeBytes = new byte[64];
+        pngLikeBytes[0] = (byte) 0x89;
+        assertThatThrownBy(() -> CommunityImageValidator.validate(pngLikeBytes, CommunityImageValidator.MAX_IMAGE_BYTES))
+                .extracting(e -> ((CustomException) e).getErrorCode()).isEqualTo(ErrorCode.COMMUNITY_IMAGE_INVALID_FORMAT);
+        assertThatThrownBy(() -> CommunityImageValidator.validate(webpHeader("VP8 ", 1601, 100), CommunityImageValidator.MAX_IMAGE_BYTES))
+                .extracting(e -> ((CustomException) e).getErrorCode()).isEqualTo(ErrorCode.COMMUNITY_IMAGE_DIMENSION_EXCEEDED);
+        byte[] oversized = new byte[CommunityImageValidator.MAX_THUMBNAIL_BYTES + 1];
+        assertThatThrownBy(() -> CommunityImageValidator.validate(oversized, CommunityImageValidator.MAX_THUMBNAIL_BYTES))
+                .extracting(e -> ((CustomException) e).getErrorCode()).isEqualTo(ErrorCode.COMMUNITY_IMAGE_TOO_LARGE);
+    }
+
+    @Test
+    void 글당_이미지는_2장까지이고_중복은_거절한다() {
+        CommunityImageService imageService = new CommunityImageService(null, null, null, null, null, null);
+        UUID first = UUID.randomUUID();
+        UUID second = UUID.randomUUID();
+        assertThat(imageService.normalizeImageUuids(List.of(first, second))).containsExactly(first, second);
+        assertThatThrownBy(() -> imageService.normalizeImageUuids(List.of(first, second, UUID.randomUUID())))
+                .extracting(e -> ((CustomException) e).getErrorCode()).isEqualTo(ErrorCode.COMMUNITY_IMAGE_TOO_MANY);
+        assertThatThrownBy(() -> imageService.normalizeImageUuids(List.of(first, first)))
+                .extracting(e -> ((CustomException) e).getErrorCode()).isEqualTo(ErrorCode.COMMUNITY_IMAGE_INVALID_ATTACHMENT);
+    }
+
+    /** 테스트용 WebP 헤더: 손실(VP8 ) 형식의 가로·세로만 채움 */
+    private static byte[] webpHeader(String chunkName, int width, int height) {
+        byte[] bytes = new byte[40];
+        System.arraycopy("RIFF".getBytes(), 0, bytes, 0, 4);
+        bytes[4] = 32;
+        System.arraycopy("WEBP".getBytes(), 0, bytes, 8, 4);
+        System.arraycopy(chunkName.getBytes(), 0, bytes, 12, 4);
+        bytes[23] = (byte) 0x9d;
+        bytes[24] = 0x01;
+        bytes[25] = 0x2a;
+        bytes[26] = (byte) (width & 0xFF);
+        bytes[27] = (byte) (width >> 8);
+        bytes[28] = (byte) (height & 0xFF);
+        bytes[29] = (byte) (height >> 8);
+        return bytes;
     }
 }
