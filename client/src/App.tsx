@@ -23,6 +23,7 @@ const RecommendationPractice = lazy(() => import("./pages/RecommendationPractice
 const Stats = lazy(() => import("./pages/Stats"));
 const MyPage = lazy(() => import("./pages/MyPage"));
 const Notifications = lazy(() => import("./pages/Notifications"));
+const ExamTrend = lazy(() => import("./pages/ExamTrend"));
 const Settings = lazy(() => import("./pages/Settings"));
 const SettingsFeedback = lazy(() => import("./pages/SettingsFeedback"));
 
@@ -68,6 +69,8 @@ const router = createBrowserRouter([
               { path: "stats", element: <Stats /> },
               { path: "mypage", element: <MyPage /> },
               { path: "notifications", element: <Notifications /> },
+              // 출제 경향 (홈·AI문제 진입, #523)
+              { path: "exam-trend", element: <ExamTrend /> },
             ],
           },
           // AppLayout 밖: 전체화면 몰입형 화면 (문제 풀이는 집중 모드)

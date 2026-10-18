@@ -15,7 +15,7 @@ function renderPracticeResult(sessionId: string) {
 describe("PracticeResult", () => {
   beforeEach(() => {
     usePracticeStore.getState().startSession("s1", "T", "SELECT 기본", [
-      { questionUuid: "q1", topicCode: "T", topicName: "SELECT 기본", difficulty: 1, executionMode: "EXECUTABLE", stemPreview: "첫 문제 지문", createdAt: "" },
+      { questionUuid: "q1", topicCode: "T", topicName: "SELECT 기본", difficulty: 1, executionMode: "EXECUTABLE", stemPreview: "첫 문제 지문", createdAt: "", isLatestTrend: false },
     ]);
     usePracticeStore.setState({
       results: [{ questionUuid: "q1", isCorrect: true, selectedChoiceKey: "A", selectedChoiceBody: "SELECT 1;", durationMs: 42000 }],

@@ -33,13 +33,29 @@ public interface QuestionRepository extends JpaRepository<Question, UUID>, JpaSp
     @Query("SELECT q FROM Question q WHERE q.isActive = true" +
            " AND (:topicUuid IS NULL OR q.topicUuid = :topicUuid)" +
            " AND (:difficulty IS NULL OR q.difficulty = :difficulty)" +
-           " AND (:executionMode IS NULL OR q.executionMode = :executionMode)")
+           " AND (:executionMode IS NULL OR q.executionMode = :executionMode)" +
+           " AND (:isLatestTrend IS NULL OR q.isLatestTrend = :isLatestTrend)")
     Page<Question> findByFilters(
             @Param("topicUuid") UUID topicUuid,
             @Param("difficulty") Integer difficulty,
             @Param("executionMode") ExecutionMode executionMode,
+            @Param("isLatestTrend") Boolean isLatestTrend,
             Pageable pageable
     );
+
+    // 토픽별 활성 최신 경향 문제 수 (경향 화면·토픽 목록 배지, #523)
+    @Query("SELECT q.topicUuid AS topicUuid, COUNT(q) AS questionCount FROM Question q" +
+           " WHERE q.isActive = true AND q.isLatestTrend = true GROUP BY q.topicUuid")
+    List<TopicQuestionCountProjection> countActiveLatestTrendByTopic();
+
+    // 최신 경향 지정 후보: 활성 + 고정 보기 정책 + 고정 OK 세트 보유 (2026 경향 양산분 등록 경로, #511·#523)
+    @Query("SELECT q FROM Question q WHERE q.isActive = true" +
+           " AND q.choiceSetPolicy = com.passql.question.constant.ChoiceSetPolicy.CURATED_ONLY" +
+           " AND EXISTS (SELECT 1 FROM QuestionChoiceSet s WHERE s.questionUuid = q.questionUuid" +
+           " AND s.status = com.passql.question.constant.ChoiceSetStatus.OK" +
+           " AND s.source IN (com.passql.question.constant.ChoiceSetSource.ADMIN_SEED, com.passql.question.constant.ChoiceSetSource.ADMIN_CURATED))" +
+           " ORDER BY q.createdAt ASC")
+    List<Question> findLatestTrendCandidates();
 
     @Query("SELECT q FROM Question q WHERE q.isActive = true" +
            " AND (:topicUuid IS NULL OR q.topicUuid = :topicUuid)" +

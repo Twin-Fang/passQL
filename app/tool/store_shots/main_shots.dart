@@ -183,6 +183,37 @@ Map<String, dynamic> _summary(int i, String topic, String stem, int diff) => {
   'difficulty': diff,
   'executionMode': 'PRACTICE',
   'createdAt': '2026-10-01T09:00:00',
+  'isLatestTrend': diff >= 2,
+};
+
+const _latestTrendTopics = [
+  {'topicCode': 'sql_join', 'topicName': 'JOIN', 'latestTrendQuestionCount': 3},
+  {'topicCode': 'sql_basic_select', 'topicName': 'SELECT 기본', 'latestTrendQuestionCount': 5},
+];
+
+Map<String, dynamic> _examTrendReport() => {
+  'title': '2026 SQLD 출제 경향',
+  'basisDescription': '제58~62회(2025년 8월~2026년 8월) 시험 유형 분석',
+  'updatedDate': '2026-10-18',
+  'summary': 'SQL과 데이터를 주고 실행 결과를 따라가는 문제가 크게 늘었어요. 새 개념보다 이미 아는 개념 2~3개를 한 문제에 섞는 방식이 기본이 됐어요.',
+  'latestTrendQuestionCount': 8,
+  'subjectShares': [
+    {'subjectName': '1과목 데이터 모델링의 이해', 'questionCount': 10, 'percent': 20, 'description': '정의 암기보다 관계를 읽고 참여·식별 여부를 판정하는 상황형이 늘었어요.'},
+    {'subjectName': '2과목 SQL 기본과 활용', 'questionCount': 40, 'percent': 80, 'description': '대부분이 결과 행 수·값·오류 여부를 직접 계산하는 추적형이에요.'},
+  ],
+  'risingPatterns': [
+    {'title': '결과 비교형 보기', 'description': '보기마다 SQL을 주고 결과 행 수가 가장 많은 것, 결과가 다른 것, 오류가 나는 것을 고르는 문제예요.', 'examRoundsText': '58회부터 크게 증가', 'topicCode': 'sql_join', 'topicName': 'JOIN', 'latestTrendQuestionCount': 3},
+    {'title': 'ROWNUM·Top-N 실행 순서', 'description': 'ROWNUM 조건이 ORDER BY보다 먼저 적용되는 점을 노린 보기 고르기가 자주 나와요.', 'examRoundsText': '62회 3문항 안팎', 'topicCode': 'sql_basic_select', 'topicName': 'SELECT 기본', 'latestTrendQuestionCount': 5},
+  ],
+  'frequentConcepts': [
+    {'rank': 1, 'name': 'NULL 함정', 'description': 'NOT IN과 NULL, 집계 함수의 NULL 무시, 3값 논리', 'frequencyText': '15문항 이상', 'topicCode': 'sql_subquery', 'topicName': null, 'latestTrendQuestionCount': 0},
+    {'rank': 2, 'name': '조인', 'description': '외부조인 ON과 WHERE 조건 위치, 결과 행 수 계산', 'frequencyText': '15문항 이상', 'topicCode': 'sql_join', 'topicName': 'JOIN', 'latestTrendQuestionCount': 3},
+  ],
+  'studyTips': [
+    'SQL을 읽고 결과 표를 직접 그려 보세요. 암기보다 실행 순서와 결과 추적이 점수를 가려요.',
+    'ROWNUM은 ORDER BY보다 먼저 적용돼요. 정렬한 뒤 자르려면 인라인 뷰로 감싸야 해요.',
+  ],
+  'latestTrendTopics': _latestTrendTopics,
 };
 
 final _questions = [
@@ -203,6 +234,7 @@ Map<String, dynamic> _detail() => {
   'schemaDdl': 'CREATE TABLE EMP (EMPNO NUMBER, ENAME VARCHAR2(20), JOB VARCHAR2(20), SAL NUMBER, DEPTNO NUMBER);',
   'schemaSampleData': "INSERT INTO EMP VALUES (7788, 'SCOTT', 'ANALYST', 3000, 20);",
   'hint': 'WHERE 절에서 비교 연산자를 사용합니다.',
+  'isLatestTrend': true,
   'choiceSets': [
     {
       'choiceSetUuid': '33333333-0000-4000-8000-000000000001',
@@ -331,6 +363,9 @@ Object? _respond(RequestOptions o) {
       'choiceSets': [],
     };
   }
+  // 출제 경향 화면·토픽 목록 최신 경향 표시 (#523)
+  if (p.endsWith('/exam-trends/latest/topics')) return _latestTrendTopics;
+  if (p.endsWith('/exam-trends/latest')) return _examTrendReport();
   if (RegExp(r'/questions/[^/]+$').hasMatch(p) && o.method == 'GET') return _detail();
   if (p.endsWith('/questions')) {
     return {'content': _questions, 'totalElements': 4, 'totalPages': 1, 'number': 0, 'last': true};

@@ -26,6 +26,8 @@ interface QuestionListParams {
   readonly subtopic?: string;
   readonly difficulty?: number;
   readonly mode?: string;
+  // 최신 출제 경향 문제만 (#523)
+  readonly isLatestTrendOnly?: boolean;
 }
 
 export function fetchQuestions(
@@ -39,6 +41,7 @@ export function fetchQuestions(
   if (params.difficulty != null)
     query.set("difficulty", String(params.difficulty));
   if (params.mode) query.set("mode", params.mode);
+  if (params.isLatestTrendOnly) query.set("latestTrend", "true");
 
   return apiFetch(`/questions?${query}`);
 }

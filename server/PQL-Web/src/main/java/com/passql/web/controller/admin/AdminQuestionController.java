@@ -13,6 +13,7 @@ import com.passql.question.dto.AdminQuestionSearchCondition;
 import com.passql.question.entity.Question;
 import com.passql.question.service.OracleSqlCompatibilityConverter;
 import com.passql.question.service.QuestionGenerateService;
+import com.passql.question.service.QuestionLatestTrendService;
 import com.passql.question.service.QuestionService;
 import com.passql.question.service.QuestionVectorIndexService;
 import com.passql.web.service.AdminQuestionDeleteService;
@@ -45,6 +46,7 @@ public class AdminQuestionController {
     private final OracleSqlCompatibilityConverter oracleSqlCompatibilityConverter;
     private final MetaService metaService;
     private final AdminQuestionDeleteService adminQuestionDeleteService;
+    private final QuestionLatestTrendService questionLatestTrendService;
 
     @GetMapping
     @AdminPage(menu = AdminMenu.QUESTIONS)
@@ -183,6 +185,21 @@ public class AdminQuestionController {
         adminQuestionDeleteService.deactivateQuestion(uuid);
         questionVectorIndexService.pruneIndex();
         return ResponseEntity.ok().build();
+    }
+
+    /** 최신 경향 지정 후보 (CURATED_ONLY + 고정 OK 세트 보유 활성 문제, schemaIntent 로 양산 원본 대조, #523) */
+    @GetMapping("/latest-trend/candidates")
+    @ResponseBody
+    public ResponseEntity<List<AdminLatestTrendCandidate>> latestTrendCandidates() {
+        return ResponseEntity.ok(questionLatestTrendService.getLatestTrendCandidates());
+    }
+
+    /** 최신 경향 일괄 지정·해제 (JSON body: { "questionUuids": [...], "isLatestTrend": true }, #523) */
+    @PutMapping("/latest-trend")
+    @ResponseBody
+    public ResponseEntity<AdminLatestTrendUpdateResult> updateLatestTrend(
+            @RequestBody AdminLatestTrendUpdateRequest request) {
+        return ResponseEntity.ok(questionLatestTrendService.updateLatestTrend(request));
     }
 
     /**

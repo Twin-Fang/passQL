@@ -24,13 +24,14 @@ abstract class QuestionApiClient {
     @Body() RecommendationsRequest body,
   );
 
-  /// 문제 목록 조회 (페이지네이션). topic, difficulty는 선택 필터.
+  /// 문제 목록 조회 (페이지네이션). topic, difficulty, latestTrend(최신 경향만, #523)는 선택 필터.
   @GET('/questions')
   Future<QuestionListResponse> getQuestions(
     @Query('page') int page,
     @Query('size') int size, {
     @Query('topic') String? topic,
     @Query('difficulty') int? difficulty,
+    @Query('latestTrend') bool? latestTrend,
   });
 
   /// 문제 상세 조회.

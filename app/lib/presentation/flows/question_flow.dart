@@ -39,21 +39,31 @@ abstract class QuestionFlow {
 }
 
 /// 토픽(챕터) 하나에서 10문제를 푸는 흐름.
+/// [isLatestTrendOnly] 면 그 토픽의 최신 출제 경향 문제만 (출제 경향 화면에서 진입, #523)
 class TopicFlow extends QuestionFlow {
-  const TopicFlow({required this.topicCode, required this.topicName});
+  const TopicFlow({
+    required this.topicCode,
+    required this.topicName,
+    this.isLatestTrendOnly = false,
+  });
 
   final String topicCode;
   final String topicName;
+  final bool isLatestTrendOnly;
+
+  // 일반 챕터와 진행 상태를 섞지 않는다
+  @override
+  String get id =>
+      isLatestTrendOnly ? 'topic:$topicCode:latestTrend' : 'topic:$topicCode';
 
   @override
-  String get id => 'topic:$topicCode';
-
-  @override
-  String get title => topicName;
+  String get title => isLatestTrendOnly ? '$topicName 최신 경향' : topicName;
 
   @override
   Future<List<String>> loadQuestionUuids(WidgetRef ref) {
-    return ref.read(topicChapterServiceProvider).fetchQuestionUuids(topicCode);
+    return ref
+        .read(topicChapterServiceProvider)
+        .fetchQuestionUuids(topicCode, isLatestTrendOnly: isLatestTrendOnly);
   }
 
   @override

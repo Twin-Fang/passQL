@@ -53,6 +53,7 @@ class _QuestionApiClient implements QuestionApiClient {
     int size, {
     String? topic,
     int? difficulty,
+    bool? latestTrend,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -60,6 +61,7 @@ class _QuestionApiClient implements QuestionApiClient {
       r'size': size,
       r'topic': topic,
       r'difficulty': difficulty,
+      r'latestTrend': latestTrend,
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};

@@ -7,6 +7,7 @@ import '../presentation/pages/daily_set/daily_set_result_page.dart';
 import '../presentation/pages/daily_set/leaderboard_page.dart';
 import '../presentation/pages/app_gate/force_update_page.dart';
 import '../presentation/pages/app_gate/maintenance_page.dart';
+import '../presentation/pages/exam_trend/exam_trend_page.dart';
 import '../presentation/pages/feedback/feedback_page.dart';
 import '../presentation/pages/home/home_page.dart';
 import '../presentation/pages/legal/legal_page.dart';
@@ -152,6 +153,13 @@ abstract final class AppRouter {
         builder: (_, _) => const NotificationInboxPage(),
       ),
 
+      // 풀스크린: 출제 경향 (홈 진입 카드, #523)
+      GoRoute(
+        path: AppRoutes.examTrend,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const ExamTrendPage(),
+      ),
+
       // 풀스크린: 오답 노트 (설정에서 진입)
       GoRoute(
         path: AppRoutes.wrongNotes,
@@ -170,6 +178,9 @@ abstract final class AppRouter {
             flow: TopicFlow(
               topicCode: params[AppRoutes.topicCodeQuery] ?? '',
               topicName: params[AppRoutes.topicNameQuery] ?? '문제 풀기',
+              isLatestTrendOnly:
+                  params[AppRoutes.latestTrendQuery] ==
+                  AppRoutes.latestTrendQueryValue,
             ),
           );
         },

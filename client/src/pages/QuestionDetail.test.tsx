@@ -20,6 +20,7 @@ const QUESTION: QuestionDetailResponse = {
   schemaTables: [],
   answerSql: "",
   hint: "",
+  isLatestTrend: true,
   choiceSets: [
     {
       choiceSetUuid: "cs1",
@@ -51,10 +52,19 @@ describe("QuestionDetail", () => {
     expect(await screen.findByText("두 번째 보기")).toBeInTheDocument();
     expect(screen.getByText("회원 지문")).toBeInTheDocument();
     expect(screen.getByText("SELECT 기본")).toBeInTheDocument();
+    // 최신 경향 문제 배지 (#523)
+    expect(screen.getByText("최신 경향")).toBeInTheDocument();
     const submitButton = screen.getByRole("button", { name: "답안 제출하기" });
     expect(submitButton).toBeDisabled();
     fireEvent.click(screen.getByText("첫 번째 보기"));
     expect(submitButton).toBeEnabled();
+  });
+
+  it("최신 경향이 아닌 문제는 배지를 그리지 않는다", async () => {
+    stubApiResponses({ "/questions/q2": { ...QUESTION, questionUuid: "q2", isLatestTrend: false } });
+    renderQuestionDetail("q2");
+    expect(await screen.findByText("두 번째 보기")).toBeInTheDocument();
+    expect(screen.queryByText("최신 경향")).not.toBeInTheDocument();
   });
 
   it("선택지 세트가 없고 생성도 실패하면 실패 안내를 보여 준다", async () => {

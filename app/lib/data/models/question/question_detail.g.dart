@@ -32,6 +32,7 @@ _$QuestionDetailImpl _$$QuestionDetailImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => ChoiceSetSummary.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      isLatestTrend: json['isLatestTrend'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$QuestionDetailImplToJson(
@@ -51,4 +52,5 @@ Map<String, dynamic> _$$QuestionDetailImplToJson(
   'answerSql': instance.answerSql,
   'hint': instance.hint,
   'choiceSets': instance.choiceSets,
+  'isLatestTrend': instance.isLatestTrend,
 };
