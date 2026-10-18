@@ -42,6 +42,9 @@ _$AppNoticeImpl _$$AppNoticeImplFromJson(Map<String, dynamic> json) =>
       title: json['title'] as String,
       body: json['body'] as String,
       isImportant: json['isImportant'] as bool? ?? false,
+      publishedAt: json['publishedAt'] == null
+          ? null
+          : DateTime.parse(json['publishedAt'] as String),
     );
 
 Map<String, dynamic> _$$AppNoticeImplToJson(_$AppNoticeImpl instance) =>
@@ -50,6 +53,7 @@ Map<String, dynamic> _$$AppNoticeImplToJson(_$AppNoticeImpl instance) =>
       'title': instance.title,
       'body': instance.body,
       'isImportant': instance.isImportant,
+      'publishedAt': instance.publishedAt?.toIso8601String(),
     };
 
 _$AppConfigImpl _$$AppConfigImplFromJson(Map<String, dynamic> json) =>

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:passql_app/core/auth/auth_session.dart';
 import 'package:passql_app/core/push/push_messaging_client.dart';
 import 'package:passql_app/data/models/notification/notification_models.dart';
@@ -10,6 +11,7 @@ import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/pages/notification/notification_inbox_page.dart';
 import 'package:passql_app/presentation/providers/auth_provider.dart';
 import 'package:passql_app/presentation/widgets/notification/notification_permission_flow.dart';
+import 'package:passql_app/router/app_routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/fakes/fake_notification_api.dart';
@@ -54,7 +56,21 @@ void main() {
           notificationApiProvider.overrideWithValue(api),
           authProvider.overrideWith(_SignedInAuth.new),
         ],
-        child: MaterialApp(theme: theme, home: const NotificationInboxPage()),
+        child: MaterialApp.router(
+          theme: theme,
+          routerConfig: GoRouter(
+            routes: [
+              GoRoute(path: '/', builder: (_, _) => const NotificationInboxPage()),
+              // 공지 항목 이동 확인용 상세 자리
+              GoRoute(
+                path: AppRoutes.noticeDetailPattern,
+                builder: (_, state) => Text(
+                  '공지 상세 ${state.pathParameters[AppRoutes.noticeUuidParameter]}',
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -74,7 +90,7 @@ void main() {
     });
   }
 
-  testWidgets('항목을 누르면 읽음 처리되고, 공지는 본문 시트가 열린다', (tester) async {
+  testWidgets('항목을 누르면 읽음 처리되고, 공지는 공지 상세로 이동한다', (tester) async {
     await pumpInbox(tester, PassqlTheme.light);
 
     await tester.tap(find.text('제목 g1'));
@@ -86,8 +102,7 @@ void main() {
     await tester.tap(find.text('제목 n1'));
     await tester.pumpAndSettle();
     expect(api.readRequests, ['GENERAL:g1', 'NOTICE:n1']);
-    // 목록 미리보기 + 시트 전문
-    expect(find.text('본문 n1'), findsNWidgets(2));
+    expect(find.text('공지 상세 n1'), findsOneWidget);
   });
 
   testWidgets('모두 읽음을 누르면 탭 전체가 읽음 처리된다', (tester) async {

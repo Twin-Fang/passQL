@@ -6,6 +6,7 @@ abstract final class AppRoutes {
   // 경로·쿼리 파라미터 이름 (라우터 정의 <-> 화면 읽기 공통)
   static const String legalTypeParameter = 'type';
   static const String questionUuidParameter = 'questionUuid';
+  static const String noticeUuidParameter = 'noticeUuid';
   static const String topicCodeQuery = 'topic';
   static const String topicNameQuery = 'topicName';
 
@@ -42,6 +43,16 @@ abstract final class AppRoutes {
 
   /// 알림함 (알림·공지 탭). 홈 종 아이콘에서 진입
   static const String notificationInbox = '/notifications';
+
+  // 공지 (#529)
+  /// 공지 목록 (지난 공지 포함). 공지 상세·알림함 공지 탭에서 진입
+  static const String notices = '/notices';
+
+  /// 라우터 정의용 공지 상세 경로 패턴: /notices/:noticeUuid
+  static const String noticeDetailPattern = '$notices/:$noticeUuidParameter';
+
+  /// 공지 상세. 홈 공지 배너·알림함 공지 항목·공지 목록에서 진입
+  static String noticeDetail(String noticeUuid) => '$notices/$noticeUuid';
 
   // 데일리 세트
   /// 오늘의 세트 풀이.

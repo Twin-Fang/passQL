@@ -5,7 +5,6 @@ import { useNotificationSelection } from "../hooks/useNotificationSelection";
 import { useMarkAllNotificationsRead, useRecentNotifications } from "../hooks/useNotifications";
 import { useUnreadNotificationCount } from "../hooks/useUnreadNotificationCount";
 import { toUnreadBadgeLabel } from "../lib/notificationPresentation";
-import NoticeModal from "./NoticeModal";
 import NotificationListState from "./NotificationListState";
 import NotificationRow from "./NotificationRow";
 
@@ -16,7 +15,7 @@ export default function NotificationBell() {
   const { unreadCount } = useUnreadNotificationCount();
   const recent = useRecentNotifications(isDropdownOpen);
   const { mutate: markAllRead } = useMarkAllNotificationsRead();
-  const { selectNotification, openedNotice, closeOpenedNotice } = useNotificationSelection(() =>
+  const { selectNotification } = useNotificationSelection(() =>
     setIsDropdownOpen(false),
   );
 
@@ -105,8 +104,6 @@ export default function NotificationBell() {
           </Link>
         </div>
       )}
-
-      {openedNotice && <NoticeModal notice={openedNotice} onClose={closeOpenedNotice} />}
     </div>
   );
 }

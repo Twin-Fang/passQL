@@ -106,10 +106,11 @@ List<Map<String, dynamic>> _notificationItems(String category) {
     'isImportant': isImportant,
   };
   if (category == 'NOTICE') {
+    // 노출 중 공지만 (지난 공지는 /meta/notices 목록에만)
     return [
-      item('notice-1', 'NOTICE', '제58회 SQLD 대비 문제 업데이트 안내', '윈도우 함수 문제 20개가 추가됐어요. 문제 탭에서 바로 풀어 보세요.', const Duration(days: 1), isImportant: true),
-      item('notice-2-read', 'NOTICE', '10월 16일 새벽 서버 점검', '02:00 ~ 04:00 동안 점검해요.', const Duration(days: 3)),
-      item('notice-3-read', 'NOTICE', '개인정보처리방침 개정 안내', '10월 20일부터 적용돼요.', const Duration(days: 6)),
+      for (final notice in _fakeNotices().where((notice) => notice['isVisible'] == true))
+        item(notice['noticeUuid'] as String, 'NOTICE', notice['title'] as String, notice['body'] as String,
+            now.difference(DateTime.parse(notice['publishedAt'] as String)), isImportant: notice['isImportant'] as bool),
     ];
   }
   return [
@@ -118,6 +119,55 @@ List<Map<String, dynamic>> _notificationItems(String category) {
     item('general-3-read', 'DAILY_SET_REMINDER', '오늘의 세트가 준비됐어요', '3문제로 실력을 확인해 보세요.', const Duration(days: 1), linkTarget: 'DAILY_SET'),
     item('general-4-read', 'ADMIN_MESSAGE', '시험 D-30', 'SQLD 58회까지 30일 남았어요.', const Duration(days: 2), linkTarget: 'HOME'),
   ];
+}
+
+// 가짜 공지 (#529): 노출 중 3건(중요 1) + 노출 끝난 지난 공지 2건, 본문은 마크다운 일부
+// 순서 = 서버 정렬(노출 중 중요 먼저 > 게시 최신 순)
+List<Map<String, dynamic>> _fakeNotices() {
+  final now = DateTime.now();
+  Map<String, dynamic> notice(String uuid, String title, String body, Duration ago,
+          {bool isImportant = false, bool isVisible = true}) =>
+      {
+        'noticeUuid': uuid,
+        'title': title,
+        'body': body,
+        'startsAt': null,
+        'endsAt': null,
+        'isActive': true,
+        'isImportant': isImportant,
+        'publishedAt': now.subtract(ago).toIso8601String(),
+        'isVisible': isVisible,
+      };
+  return [
+    notice(
+      'notice-1',
+      '제58회 SQLD 대비 문제 업데이트 안내',
+      '시험이 한 달 앞으로 다가왔어요. **윈도우 함수·계층형 질의 문제 40개**를 새로 추가했어요.\n\n'
+          '이번 업데이트에서 달라진 점\n'
+          '- 윈도우 함수 20문제: `ROW_NUMBER`, `RANK`, `LAG` 위주\n'
+          '- 계층형 질의 20문제: `START WITH`, `CONNECT BY`\n'
+          '- 모든 문제에 AI 해설 제공\n\n'
+          '문제 탭에서 바로 풀어 보세요. 자세한 출제 범위는 [시험 안내 페이지](https://www.dataq.or.kr)에서 확인할 수 있어요.',
+      const Duration(days: 1),
+      isImportant: true,
+    ),
+    notice('notice-2-read', '10월 16일 새벽 서버 점검', '**02:00 ~ 04:00** 동안 서버를 점검해요.\n\n점검 중에는 풀이 기록이 저장되지 않아요.', const Duration(days: 3)),
+    notice('notice-3-read', '개인정보처리방침 개정 안내', '10월 20일부터 개정된 개인정보처리방침이 적용돼요.\n\n- 수집 항목 정리\n- 보관 기간 명시', const Duration(days: 6)),
+    notice('notice-4-old', '오늘의 세트 리더보드 오픈', '매일 3문제를 풀고 친구들과 순위를 겨뤄 보세요.', const Duration(days: 21), isVisible: false),
+    notice('notice-5-old', 'passQL 정식 출시 안내', 'SQLD·SQLP 문제 풀이 앱 passQL 이 정식 출시됐어요. **피드백**은 설정 > 건의사항으로 보내 주세요.', const Duration(days: 40), isVisible: false),
+  ];
+}
+
+// 공지 목록·상세 가짜 응답 (공지 0건 상황은 알림함 empty 와 같이)
+Object? _respondNotices(RequestOptions o) {
+  final notices = _notificationScenario == 'empty' ? const <Map<String, dynamic>>[] : _fakeNotices();
+  final detailPrefix = '/meta/notices/';
+  final detailIndex = o.path.indexOf(detailPrefix);
+  if (detailIndex >= 0) {
+    final noticeUuid = o.path.substring(detailIndex + detailPrefix.length);
+    return notices.firstWhere((notice) => notice['noticeUuid'] == noticeUuid, orElse: () => notices.first);
+  }
+  return {'notices': notices, 'page': 0, 'hasNextPage': false};
 }
 
 // 알림함 가짜 응답: 목록(탭별), 안 읽은 개수
@@ -159,6 +209,7 @@ Map<String, dynamic> _appConfig() {
           'endsAt': null,
           'isActive': true,
           'isImportant': true,
+          'publishedAt': DateTime.now().toIso8601String(),
         },
     ],
   };
@@ -310,6 +361,7 @@ Object? _respond(RequestOptions o) {
     return _respondNotifications(o);
   }
   if (p.endsWith('/meta/app-config')) return _appConfig();
+  if (p.endsWith('/meta/notices') || p.contains('/meta/notices/')) return _respondNotices(o);
   if (p.endsWith('/meta/topics')) {
     return [
       for (var i = 0; i < _topics.length; i++)

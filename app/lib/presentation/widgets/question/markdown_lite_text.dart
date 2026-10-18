@@ -1,18 +1,32 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/utils/external_url_launcher.dart';
 import '../../design/design.dart';
 
-/// AI 해설이 쓰는 마크다운 일부(굵게 `**`, 인라인 코드 `` ` ``, 목록 `* `/`- `)만 그리는 가벼운 위젯.
-/// 전체 마크다운 패키지를 들이지 않고, 해설에 실제로 나오는 표기만 처리한다.
+/// 글 종류 2종 > 글자 스타일·문단 간격
+/// explanation: AI 해설(작은 본문), article: 공지 본문(큰 본문, 넓은 문단 간격, #529)
+enum MarkdownLiteStyle { explanation, article }
+
+/// 마크다운 일부(굵게 `**`, 인라인 코드 `` ` ``, 목록 `* `/`- `, 링크 `[이름](https://...)`)만 그리는 가벼운 위젯.
+/// 전체 마크다운 패키지를 들이지 않고, AI 해설·공지 본문에 실제로 나오는 표기만 처리한다.
+/// 링크는 http·https 만 탭 가능(외부 브라우저), 그 외 주소는 이름만 글자로 둔다.
 /// isAnimated: 단어가 순서대로 흐림 > 선명, 아래 2px > 제자리로 나타남 (웹 ai-word-in)
 /// 애니메이션 모드는 끝난 뒤에도 단어 단위 배치를 유지한다(전환 시 줄바꿈이 튀지 않게, 단어 단위 줄바꿈)
 class MarkdownLiteText extends StatefulWidget {
-  const MarkdownLiteText(this.text, {super.key, this.isAnimated = false});
+  const MarkdownLiteText(
+    this.text, {
+    super.key,
+    this.isAnimated = false,
+    this.style = MarkdownLiteStyle.explanation,
+  });
 
   final String text;
   final bool isAnimated;
+  final MarkdownLiteStyle style;
 
   @override
   State<MarkdownLiteText> createState() => _MarkdownLiteTextState();
@@ -21,7 +35,10 @@ class MarkdownLiteText extends StatefulWidget {
 class _MarkdownLiteTextState extends State<MarkdownLiteText>
     with SingleTickerProviderStateMixin {
   static final RegExp _bulletRe = RegExp(r'^\s*[*-]\s+(.*)$');
-  static final RegExp _inlineRe = RegExp(r'\*\*(.+?)\*\*|`([^`\n]+)`');
+  // 굵게(1) | 코드(2) | 링크 이름(3)·주소(4)
+  static final RegExp _inlineRe = RegExp(
+    r'\*\*(.+?)\*\*|`([^`\n]+)`|\[([^\]\n]+)\]\(([^)\s]+)\)',
+  );
   static final RegExp _whitespaceRe = RegExp(r'(\s+)');
   static final RegExp _inlineMarkerRe = RegExp(r'\*\*|`');
 
@@ -29,6 +46,9 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
   static const int _maxAnimatedTokenLength = 24;
 
   AnimationController? _controller;
+
+  // 링크 탭 인식기: 그릴 때마다 새로 만들고 이전 것은 정리
+  final List<TapGestureRecognizer> _linkRecognizers = [];
 
   /// 단어 단위로 그릴지 (애니메이션 모드이고 동작 줄이기가 꺼져 있을 때)
   bool get _isWordLayout => _controller != null;
@@ -48,8 +68,18 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
   @override
   void dispose() {
     _controller?.dispose();
+    _disposeLinkRecognizers();
     super.dispose();
   }
+
+  void _disposeLinkRecognizers() {
+    for (final recognizer in _linkRecognizers) {
+      recognizer.dispose();
+    }
+    _linkRecognizers.clear();
+  }
+
+  bool get _isArticle => widget.style == MarkdownLiteStyle.article;
 
   /// 전체 시간 = 첫 지연 + (단어 수 - 1) × 간격 + 단어 하나 시간
   Duration _totalDurationOf(int wordCount) =>
@@ -63,7 +93,13 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final base = PassqlTypography.explanationBody.copyWith(color: colors.label);
+    final base = (_isArticle
+            ? PassqlTypography.articleBody
+            : PassqlTypography.explanationBody)
+        .copyWith(color: colors.label);
+    // 문단 사이(빈 줄) 간격: 긴 글은 넓게
+    final paragraphGap = _isArticle ? PassqlSpacing.md : PassqlSpacing.sm;
+    _disposeLinkRecognizers();
     final wordCounter = _WordCounter();
     final lines = widget.text.replaceAll('\r\n', '\n').split('\n');
     final children = <Widget>[];
@@ -71,7 +107,7 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
       if (line.trim().isEmpty) {
         // 연속 빈 줄이 여러 번 간격을 만들지 않게 한 번만 둔다.
         if (children.isNotEmpty && children.last is! SizedBox) {
-          children.add(const SizedBox(height: PassqlSpacing.sm));
+          children.add(SizedBox(height: paragraphGap));
         }
         continue;
       }
@@ -132,8 +168,13 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
       if (match.group(1) != null) {
         addSegment(
           match.group(1)!,
-          PassqlTypography.explanationEmphasis.copyWith(color: colors.label),
+          (_isArticle
+                  ? PassqlTypography.articleEmphasis
+                  : PassqlTypography.explanationEmphasis)
+              .copyWith(color: colors.label),
         );
+      } else if (match.group(3) != null) {
+        spans.add(_linkSpan(match.group(3)!, match.group(4)!, colors));
       } else {
         addSegment(
           match.group(2)!,
@@ -151,6 +192,26 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
     return Semantics(
       label: line.replaceAll(_inlineMarkerRe, ''),
       child: ExcludeSemantics(child: richText),
+    );
+  }
+
+  /// 링크 조각: http·https 면 강조색 밑줄 + 탭 > 외부 브라우저, 아니면 이름만 글자로
+  InlineSpan _linkSpan(String label, String url, PassqlColors colors) {
+    final uri = Uri.tryParse(url);
+    final isWebUrl = uri != null && (uri.scheme == 'https' || uri.scheme == 'http');
+    if (!isWebUrl) return TextSpan(text: label);
+    final recognizer = TapGestureRecognizer()
+      ..onTap = () => unawaited(launchExternalUrl(url));
+    _linkRecognizers.add(recognizer);
+    return TextSpan(
+      text: label,
+      style: TextStyle(
+        color: colors.accent,
+        decoration: TextDecoration.underline,
+        decorationColor: colors.accent,
+      ),
+      recognizer: recognizer,
+      semanticsLabel: '$label 링크',
     );
   }
 

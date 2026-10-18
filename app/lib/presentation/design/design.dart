@@ -22,6 +22,7 @@ export 'components/passql_loading_indicator.dart';
 export 'components/passql_logo.dart';
 export 'components/passql_nav_bar.dart';
 export 'components/passql_page_slide_switcher.dart';
+export 'components/passql_count_badge.dart';
 export 'components/passql_notification_bell_button.dart';
 export 'components/passql_pop_in.dart';
 export 'components/passql_pressable.dart';
