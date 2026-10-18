@@ -13,5 +13,7 @@ public record QuestionSummary(
     Integer difficulty,
     @Schema(nullable = true) ExecutionMode executionMode,
     @Schema(nullable = true) String stemPreview,
-    LocalDateTime createdAt
+    LocalDateTime createdAt,
+    @Schema(description = "최신 출제 경향 반영 문제 여부 ('최신 경향' 배지, #523)")
+    Boolean isLatestTrend
 ) {}

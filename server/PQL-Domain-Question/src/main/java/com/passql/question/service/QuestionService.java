@@ -65,14 +65,16 @@ public class QuestionService {
     private final SubtopicRepository subtopicRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    public Page<QuestionSummary> getQuestions(String topicCode, String subtopic, Integer difficulty, String mode, Pageable pageable) {
+    /** 문제 목록: 토픽·난이도·모드·최신 경향 필터 (isLatestTrend null 이면 전체) */
+    public Page<QuestionSummary> getQuestions(String topicCode, String subtopic, Integer difficulty, String mode,
+                                              Boolean isLatestTrend, Pageable pageable) {
         UUID topicUuid = (topicCode != null && !topicCode.isBlank())
                 ? topicRepository.findByCode(topicCode).map(Topic::getTopicUuid).orElse(null)
                 : null;
         ExecutionMode executionMode = (mode != null && !mode.isBlank())
                 ? ExecutionMode.fromRequestValue(mode)
                 : null;
-        return questionRepository.findByFilters(topicUuid, difficulty, executionMode, pageable).map(this::toSummary);
+        return questionRepository.findByFilters(topicUuid, difficulty, executionMode, isLatestTrend, pageable).map(this::toSummary);
     }
 
     /** 관리자 문제 목록: 토픽·난이도·모드·지문 검색어·활성 여부 필터 */
@@ -198,7 +200,8 @@ public class QuestionService {
                 SchemaPreviewParser.parse(question.getSchemaDdl(), question.getSchemaSampleData()),
                 answerSql,
                 question.getHint(),
-                choiceSets
+                choiceSets,
+                Boolean.TRUE.equals(question.getIsLatestTrend())
         );
     }
 
@@ -326,7 +329,8 @@ public class QuestionService {
                 q.getDifficulty(),
                 q.getExecutionMode(),
                 preview,
-                q.getCreatedAt()
+                q.getCreatedAt(),
+                Boolean.TRUE.equals(q.getIsLatestTrend())
         );
     }
 

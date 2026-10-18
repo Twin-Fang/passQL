@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { ChevronRight, RefreshCw, Sparkles } from "lucide-react";
 import { StarRating } from "../StarRating";
 import type { QuestionSummary } from "../../types/api";
+import LatestTrendBadge from "../LatestTrendBadge";
 
 interface RecommendedQuestionsSectionProps {
   readonly questions: readonly QuestionSummary[] | undefined;
@@ -67,6 +68,7 @@ export default function RecommendedQuestionsSection({
                   <p className="text-body truncate">{q.stemPreview}</p>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="badge-topic">{q.topicName}</span>
+                    {q.isLatestTrend && <LatestTrendBadge />}
                     <StarRating level={q.difficulty} />
                   </div>
                 </div>

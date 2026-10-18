@@ -14,8 +14,16 @@ interface GenerateResponse {
   readonly questions: readonly QuestionSummary[];
 }
 
-export async function generatePractice(topicCode: string): Promise<GenerateResponse> {
-  const page = await fetchQuestions({ topic: topicCode, size: 10 });
+interface GeneratePracticeOptions {
+  // 최신 출제 경향 문제만 (출제 경향 화면에서 진입, #523)
+  readonly isLatestTrendOnly?: boolean;
+}
+
+export async function generatePractice(
+  topicCode: string,
+  { isLatestTrendOnly = false }: GeneratePracticeOptions = {},
+): Promise<GenerateResponse> {
+  const page = await fetchQuestions({ topic: topicCode, size: 10, isLatestTrendOnly });
   if (page.content.length === 0) {
     throw new EmptyPracticeTopicError();
   }

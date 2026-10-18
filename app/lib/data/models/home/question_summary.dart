@@ -15,6 +15,8 @@ class QuestionSummary with _$QuestionSummary {
     int? difficulty,
     String? executionMode,
     String? createdAt,
+    // 최신 출제 경향 반영 문제 ('최신 경향' 배지, 구버전 서버면 false, #523)
+    @Default(false) bool isLatestTrend,
   }) = _QuestionSummary;
 
   factory QuestionSummary.fromJson(Map<String, dynamic> json) =>

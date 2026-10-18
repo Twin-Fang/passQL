@@ -93,6 +93,43 @@ LoadedAdView _fakeAdView({VoidCallback? onDispose}) => LoadedAdView(
   dispose: onDispose ?? () {},
 );
 
+// AdWidget 처럼 같은 광고 id 가 이미 마운트돼 있으면 빌드에서 던지는 가짜 (실제 SDK 규칙 재현)
+final _mountedFakeAdIds = <int>{};
+
+class _MountOnceAdWidget extends StatefulWidget {
+  const _MountOnceAdWidget(this.adId);
+
+  final int adId;
+
+  @override
+  State<_MountOnceAdWidget> createState() => _MountOnceAdWidgetState();
+}
+
+class _MountOnceAdWidgetState extends State<_MountOnceAdWidget> {
+  late final bool _isAlreadyMounted;
+
+  @override
+  void initState() {
+    super.initState();
+    _isAlreadyMounted = _mountedFakeAdIds.contains(widget.adId);
+    _mountedFakeAdIds.add(widget.adId);
+  }
+
+  @override
+  void dispose() {
+    _mountedFakeAdIds.remove(widget.adId);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isAlreadyMounted) {
+      throw FlutterError('AdWidget is already in the tree');
+    }
+    return const SizedBox(key: Key('fake-ad'), height: 50);
+  }
+}
+
 Widget _host({
   required List<Override> overrides,
   required Widget slot,
@@ -292,6 +329,31 @@ void main() {
       await tester.pump();
       expect(find.text('앞'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('등장 연출이 끝나는 프레임에도 같은 광고 위젯이 다시 마운트되지 않는다', (tester) async {
+      _mountedFakeAdIds.clear();
+      final loader = _FakeBannerLoader([
+        LoadedAdView(
+          height: 50,
+          view: const _MountOnceAdWidget(1),
+          dispose: () {},
+        ),
+      ]);
+      await tester.pumpWidget(
+        _host(
+          overrides: [adBannerLoaderProvider.overrideWithValue(loader)],
+          slot: const AdInlineCard(placement: AdPlacement.bannerHome),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      // 프레임 단위로 등장 연출 끝까지 (도중·끝 모두 예외 없어야 함)
+      for (var frame = 0; frame < 40; frame++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(const Key('fake-ad')), findsOneWidget);
     });
 
     testWidgets('광고가 꺼져 있으면 로더를 부르지 않고 자리도 없다', (tester) async {

@@ -20,10 +20,19 @@ class TopicChapterService {
 
   final Ref _ref;
 
-  Future<List<String>> fetchQuestionUuids(String topicCode) async {
+  /// [isLatestTrendOnly] 면 최신 출제 경향 문제만 (#523)
+  Future<List<String>> fetchQuestionUuids(
+    String topicCode, {
+    bool isLatestTrendOnly = false,
+  }) async {
     final questionPage = await _ref
         .read(questionApiProvider)
-        .getQuestions(0, chapterQuestionCount, topic: topicCode);
+        .getQuestions(
+          0,
+          chapterQuestionCount,
+          topic: topicCode,
+          latestTrend: isLatestTrendOnly ? true : null,
+        );
     return questionPage.content
         .map((question) => question.questionUuid)
         .toList();

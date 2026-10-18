@@ -31,13 +31,15 @@ public interface QuestionControllerDocs {
   @ApiLogs({
       @ApiLog(date = "2026.04.07", author = Author.SUHSAECHAN, issueNumber = 1, description = "문제 목록 조회 API 추가"),
       @ApiLog(date = "2026.04.08", author = Author.SUHSAECHAN, issueNumber = 22, description = "Entity UUID 통일 재작성: questionUuid/topicUuid 기반으로 응답 전환 (Long id → UUID)"),
+      @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 523, description = "latestTrend 필터·응답 isLatestTrend 추가 (최신 출제 경향 문제만 풀기, '최신 경향' 배지)"),
   })
-  @Operation(summary = "문제 목록 조회")
+  @Operation(summary = "문제 목록 조회", description = "latestTrend=true 면 최신 출제 경향 문제만. 응답 isLatestTrend 는 '최신 경향' 배지 표시 여부.")
   ResponseEntity<Page<QuestionSummary>> getQuestions(
       @RequestParam(required = false) String topic,
       @RequestParam(required = false) String subtopic,
       @RequestParam(required = false) Integer difficulty,
       @RequestParam(required = false) String mode,
+      @RequestParam(required = false) Boolean latestTrend,
       Pageable pageable
   );
 
@@ -62,6 +64,7 @@ public interface QuestionControllerDocs {
       @ApiLog(date = "2026.04.08", author = Author.SUHSAECHAN, issueNumber = 22, description = "PathVariable: Long id → UUID questionUuid. 응답 DTO(topicName/subtopicName) UUID 기반으로 변경"),
       @ApiLog(date = "2026.10.16", author = Author.SUHSAECHAN, issueNumber = 503, description = "정답 노출 차단: answerSql·isCorrect·rationale 은 null, choiceSets 는 최신 OK 세트 1개만"),
       @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 520, description = "schemaTables 추가: schemaDdl·schemaSampleData 를 테이블별 컬럼(이름·타입·PK·FK)·샘플 행으로 해석해 제공"),
+      @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 523, description = "isLatestTrend 추가: 최신 출제 경향 반영 문제 여부 ('최신 경향' 배지)"),
   })
   @Operation(summary = "문제 상세 조회", description = "풀이용 상세. 정답 SQL·정답 여부·해설은 내려가지 않는다(제출 응답에서만 제공).")
   ResponseEntity<QuestionDetail> getQuestion(@PathVariable UUID questionUuid);

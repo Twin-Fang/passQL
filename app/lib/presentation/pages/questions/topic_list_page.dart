@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/ads/ad_placement.dart';
 import '../../../data/models/meta/topic_tree.dart';
 import '../../../presentation/providers/ad_providers.dart';
+import '../../../presentation/providers/exam_trend_providers.dart';
 import '../../../presentation/providers/topic_providers.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
@@ -31,6 +32,7 @@ class TopicListPage extends ConsumerWidget {
         // 토픽 추가·비활성화를 앱 재시작 없이 반영
         onRefresh: () async {
           ref.invalidate(topicsProvider);
+          ref.invalidate(latestTrendQuestionCountByTopicProvider);
           await ref.read(topicsProvider.future);
         },
         slivers: [
@@ -93,13 +95,21 @@ class _TopicSections extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // 최신 경향 문제가 있는 토픽 (불러오기 전·실패면 표시 없음, #523)
+    final latestTrendTopicCodes =
+        ref
+            .watch(latestTrendQuestionCountByTopicProvider)
+            .valueOrNull
+            ?.keys
+            .toSet() ??
+        const <String>{};
     final hasNativeAdSlot =
         ref.watch(adsEnabledProvider) &&
         topics.length > _nativeAdAfterTopicCount;
     if (!hasNativeAdSlot) {
       return PassqlGroupedSection(
         header: _topicListHeader,
-        children: _topicRows(topics, firstIndex: 0),
+        children: _topicRows(topics, latestTrendTopicCodes, firstIndex: 0),
       );
     }
     final leadingTopics = topics.take(_nativeAdAfterTopicCount).toList();
@@ -109,7 +119,11 @@ class _TopicSections extends ConsumerWidget {
       children: [
         PassqlGroupedSection(
           header: _topicListHeader,
-          children: _topicRows(leadingTopics, firstIndex: 0),
+          children: _topicRows(
+            leadingTopics,
+            latestTrendTopicCodes,
+            firstIndex: 0,
+          ),
         ),
         // 광고가 뜬 때만 위 간격 (아래 간격은 묶음 사이 기본 간격)
         const AdNativeSlot(
@@ -120,6 +134,7 @@ class _TopicSections extends ConsumerWidget {
         PassqlGroupedSection(
           children: _topicRows(
             trailingTopics,
+            latestTrendTopicCodes,
             firstIndex: _nativeAdAfterTopicCount,
           ),
         ),
@@ -129,13 +144,18 @@ class _TopicSections extends ConsumerWidget {
 
   // 토픽 행이 위에서부터 차례로 나타난다 (두 묶음에 걸쳐 순번 이어짐)
   List<Widget> _topicRows(
-    List<TopicTree> rowTopics, {
+    List<TopicTree> rowTopics,
+    Set<String> latestTrendTopicCodes, {
     required int firstIndex,
   }) => [
     for (final (offset, topic) in rowTopics.indexed)
       PassqlReveal(
         index: firstIndex + offset,
-        child: TopicCard(topic: topic, onTap: () => onTopicTap(topic)),
+        child: TopicCard(
+          topic: topic,
+          onTap: () => onTopicTap(topic),
+          hasLatestTrendQuestion: latestTrendTopicCodes.contains(topic.code),
+        ),
       ),
   ];
 }

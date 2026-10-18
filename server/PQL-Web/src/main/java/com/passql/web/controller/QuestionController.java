@@ -47,9 +47,10 @@ public class QuestionController implements QuestionControllerDocs {
         @RequestParam(required = false) String subtopic,
         @RequestParam(required = false) Integer difficulty,
         @RequestParam(required = false) String mode,
+        @RequestParam(required = false) Boolean latestTrend,
         Pageable pageable
     ) {
-        return ResponseEntity.ok(questionService.getQuestions(topic, subtopic, difficulty, mode, pageable));
+        return ResponseEntity.ok(questionService.getQuestions(topic, subtopic, difficulty, mode, latestTrend, pageable));
     }
 
     // GET → POST 전환: 제외 UUID 목록이 쿼리스트링으로 누적되면 Tomcat 8KB 헤더 한도 초과 → 400 발생

@@ -118,6 +118,7 @@ export default function QuestionDetail({
         stem={question.stem}
         isStemOpen={isStemOpen}
         onToggle={() => setIsStemOpen((prev) => !prev)}
+        isLatestTrend={question.isLatestTrend}
       />
 
       {/* 테이블 (지문 바로 아래, 스키마 없는 개념형은 렌더 안 함) */}

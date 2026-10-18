@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
 
-/// 태그 의미 5종 > 색·아이콘 (화면은 의미만 고른다)
+/// 태그 의미 7종 > 색·아이콘 (화면은 의미만 고른다)
 enum PassqlBadgeKind {
   topic, // 주제·분류 (강조색, 아이콘 없음)
   neutral, // 보조 정보 (회색)
@@ -11,6 +11,7 @@ enum PassqlBadgeKind {
   warning, // 연속 학습·시험 임박
   important, // 중요 공지
   ai, // AI 생성 내용
+  latestTrend, // 최신 출제 경향 반영 문제 (#523)
 }
 
 /// 작은 캡슐 태그: 옅은 배경 + 얇은 테두리 + (선택) 아이콘
@@ -44,6 +45,7 @@ class PassqlBadge extends StatelessWidget {
       PassqlBadgeKind.warning => (colors.warning, CupertinoIcons.flame_fill),
       PassqlBadgeKind.important => (colors.wrong, CupertinoIcons.exclamationmark_circle_fill),
       PassqlBadgeKind.ai => (colors.accent, CupertinoIcons.sparkles),
+      PassqlBadgeKind.latestTrend => (colors.accent, CupertinoIcons.flame_fill),
     };
     final badgeIcon = icon ?? defaultIcon;
     return Container(
@@ -78,4 +80,16 @@ class PassqlBadge extends StatelessWidget {
       ),
     );
   }
+}
+
+/// '최신 경향' 배지: 최신 출제 경향 반영 문제·토픽 표시 (문제 머리·추천 행·토픽 행·홈 진입 카드 공통, #523)
+class PassqlLatestTrendBadge extends StatelessWidget {
+  const PassqlLatestTrendBadge({super.key});
+
+  /// 배지 문구 원본
+  static const String label = '최신 경향';
+
+  @override
+  Widget build(BuildContext context) =>
+      const PassqlBadge(text: label, kind: PassqlBadgeKind.latestTrend);
 }

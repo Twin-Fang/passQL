@@ -27,7 +27,9 @@ mixin _$QuestionSummary {
   String? get stemPreview => throw _privateConstructorUsedError;
   int? get difficulty => throw _privateConstructorUsedError;
   String? get executionMode => throw _privateConstructorUsedError;
-  String? get createdAt => throw _privateConstructorUsedError;
+  String? get createdAt =>
+      throw _privateConstructorUsedError; // 최신 출제 경향 반영 문제 ('최신 경향' 배지, 구버전 서버면 false, #523)
+  bool get isLatestTrend => throw _privateConstructorUsedError;
 
   /// Serializes this QuestionSummary to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -54,6 +56,7 @@ abstract class $QuestionSummaryCopyWith<$Res> {
     int? difficulty,
     String? executionMode,
     String? createdAt,
+    bool isLatestTrend,
   });
 }
 
@@ -79,6 +82,7 @@ class _$QuestionSummaryCopyWithImpl<$Res, $Val extends QuestionSummary>
     Object? difficulty = freezed,
     Object? executionMode = freezed,
     Object? createdAt = freezed,
+    Object? isLatestTrend = null,
   }) {
     return _then(
       _value.copyWith(
@@ -110,6 +114,10 @@ class _$QuestionSummaryCopyWithImpl<$Res, $Val extends QuestionSummary>
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
                       as String?,
+            isLatestTrend: null == isLatestTrend
+                ? _value.isLatestTrend
+                : isLatestTrend // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -133,6 +141,7 @@ abstract class _$$QuestionSummaryImplCopyWith<$Res>
     int? difficulty,
     String? executionMode,
     String? createdAt,
+    bool isLatestTrend,
   });
 }
 
@@ -157,6 +166,7 @@ class __$$QuestionSummaryImplCopyWithImpl<$Res>
     Object? difficulty = freezed,
     Object? executionMode = freezed,
     Object? createdAt = freezed,
+    Object? isLatestTrend = null,
   }) {
     return _then(
       _$QuestionSummaryImpl(
@@ -188,6 +198,10 @@ class __$$QuestionSummaryImplCopyWithImpl<$Res>
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
                   as String?,
+        isLatestTrend: null == isLatestTrend
+            ? _value.isLatestTrend
+            : isLatestTrend // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -204,6 +218,7 @@ class _$QuestionSummaryImpl implements _QuestionSummary {
     this.difficulty,
     this.executionMode,
     this.createdAt,
+    this.isLatestTrend = false,
   });
 
   factory _$QuestionSummaryImpl.fromJson(Map<String, dynamic> json) =>
@@ -223,10 +238,14 @@ class _$QuestionSummaryImpl implements _QuestionSummary {
   final String? executionMode;
   @override
   final String? createdAt;
+  // 최신 출제 경향 반영 문제 ('최신 경향' 배지, 구버전 서버면 false, #523)
+  @override
+  @JsonKey()
+  final bool isLatestTrend;
 
   @override
   String toString() {
-    return 'QuestionSummary(questionUuid: $questionUuid, topicCode: $topicCode, topicName: $topicName, stemPreview: $stemPreview, difficulty: $difficulty, executionMode: $executionMode, createdAt: $createdAt)';
+    return 'QuestionSummary(questionUuid: $questionUuid, topicCode: $topicCode, topicName: $topicName, stemPreview: $stemPreview, difficulty: $difficulty, executionMode: $executionMode, createdAt: $createdAt, isLatestTrend: $isLatestTrend)';
   }
 
   @override
@@ -247,7 +266,9 @@ class _$QuestionSummaryImpl implements _QuestionSummary {
             (identical(other.executionMode, executionMode) ||
                 other.executionMode == executionMode) &&
             (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt));
+                other.createdAt == createdAt) &&
+            (identical(other.isLatestTrend, isLatestTrend) ||
+                other.isLatestTrend == isLatestTrend));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -261,6 +282,7 @@ class _$QuestionSummaryImpl implements _QuestionSummary {
     difficulty,
     executionMode,
     createdAt,
+    isLatestTrend,
   );
 
   /// Create a copy of QuestionSummary
@@ -289,6 +311,7 @@ abstract class _QuestionSummary implements QuestionSummary {
     final int? difficulty,
     final String? executionMode,
     final String? createdAt,
+    final bool isLatestTrend,
   }) = _$QuestionSummaryImpl;
 
   factory _QuestionSummary.fromJson(Map<String, dynamic> json) =
@@ -307,7 +330,9 @@ abstract class _QuestionSummary implements QuestionSummary {
   @override
   String? get executionMode;
   @override
-  String? get createdAt;
+  String? get createdAt; // 최신 출제 경향 반영 문제 ('최신 경향' 배지, 구버전 서버면 false, #523)
+  @override
+  bool get isLatestTrend;
 
   /// Create a copy of QuestionSummary
   /// with the given fields replaced by the non-null parameter values.
