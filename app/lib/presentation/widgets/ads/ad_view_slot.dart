@@ -6,13 +6,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/ads/loaded_ad_view.dart';
 import '../../providers/ad_providers.dart';
 
-/// 화면 안 광고 자리 공통(배너·네이티브): 폭 측정 > 로드 > 성공 시 틀과 함께 표시
-/// 로드 전·실패 시 높이 0 (빈 자리 없음). 실패하면 30초·60초 뒤 1회씩만 재시도
+/// 화면 안 광고 자리 공통(배너·네이티브·한 줄 띠): 폭 측정 > 로드 > 성공 시 틀과 함께 표시
+/// 로드 전·실패 시 [childWithoutAd] 만 (기본 높이 0). 실패하면 30초·60초 뒤 1회씩만 재시도
 class AdViewSlot extends ConsumerStatefulWidget {
   const AdViewSlot({
     super.key,
     required this.loadAd,
     required this.frameBuilder,
+    this.childWithoutAd = const SizedBox.shrink(),
+    this.maximumAdAgeOnResume,
   });
 
   /// 폭(dp) > 로드된 광고. 실패면 null
@@ -26,6 +28,12 @@ class AdViewSlot extends ConsumerStatefulWidget {
   /// 로드된 광고 > 화면에 둘 틀 (여백·라벨 포함)
   final Widget Function(BuildContext context, LoadedAdView adView) frameBuilder;
 
+  /// 광고 없음(꺼짐·로드 전·실패) 때 그릴 위젯
+  final Widget childWithoutAd;
+
+  /// 앱 복귀 때 이보다 오래 띄운 광고는 새로 받아 교체 (null = 교체 없음)
+  final Duration? maximumAdAgeOnResume;
+
   @override
   ConsumerState<AdViewSlot> createState() => _AdViewSlotState();
 }
@@ -35,6 +43,8 @@ class _AdViewSlotState extends ConsumerState<AdViewSlot> {
   static const _retryDelays = [Duration(seconds: 30), Duration(seconds: 60)];
 
   LoadedAdView? _adView;
+  DateTime? _adLoadedAt;
+  AppLifecycleListener? _lifecycleListener;
   Timer? _retryTimer;
   int _retryAttemptCount = 0;
   bool _isDisposed = false;
@@ -42,8 +52,17 @@ class _AdViewSlotState extends ConsumerState<AdViewSlot> {
   int _measuredWidthDp = 0;
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.maximumAdAgeOnResume != null) {
+      _lifecycleListener = AppLifecycleListener(onResume: _refreshIfStale);
+    }
+  }
+
+  @override
   void dispose() {
     _isDisposed = true;
+    _lifecycleListener?.dispose();
     _retryTimer?.cancel();
     _adView?.dispose();
     super.dispose();
@@ -66,7 +85,10 @@ class _AdViewSlotState extends ConsumerState<AdViewSlot> {
       return;
     }
     if (loadedAdView != null) {
-      setState(() => _adView = loadedAdView);
+      setState(() {
+        _adView = loadedAdView;
+        _adLoadedAt = DateTime.now();
+      });
       return;
     }
     if (_retryAttemptCount < _retryDelays.length) {
@@ -74,9 +96,40 @@ class _AdViewSlotState extends ConsumerState<AdViewSlot> {
     }
   }
 
+  /// 앱 복귀 갱신: 오래된 광고면 새로 로드 > 성공 시 교체 후 이전 광고 해제 (실패면 그대로 유지)
+  Future<void> _refreshIfStale() async {
+    final maximumAdAge = widget.maximumAdAgeOnResume;
+    final staleAdView = _adView;
+    final loadedAt = _adLoadedAt;
+    if (maximumAdAge == null || staleAdView == null || loadedAt == null) {
+      return;
+    }
+    if (_isLoading || DateTime.now().difference(loadedAt) < maximumAdAge) {
+      return;
+    }
+    _isLoading = true;
+    LoadedAdView? freshAdView;
+    try {
+      freshAdView = await widget.loadAd(context, ref, _measuredWidthDp);
+    } catch (_) {
+      freshAdView = null;
+    }
+    _isLoading = false;
+    if (_isDisposed || freshAdView == null) {
+      freshAdView?.dispose();
+      return;
+    }
+    setState(() {
+      _adView = freshAdView;
+      _adLoadedAt = DateTime.now();
+    });
+    // 이전 광고 위젯이 트리에서 빠진 뒤 해제 (붙어 있는 광고 해제 방지)
+    WidgetsBinding.instance.addPostFrameCallback((_) => staleAdView.dispose());
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (!ref.watch(adsEnabledProvider)) return const SizedBox.shrink();
+    if (!ref.watch(adsEnabledProvider)) return widget.childWithoutAd;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -89,7 +142,7 @@ class _AdViewSlotState extends ConsumerState<AdViewSlot> {
           WidgetsBinding.instance.addPostFrameCallback((_) => _load());
         }
         final adView = _adView;
-        if (adView == null) return const SizedBox.shrink();
+        if (adView == null) return widget.childWithoutAd;
         return widget.frameBuilder(context, adView);
       },
     );
