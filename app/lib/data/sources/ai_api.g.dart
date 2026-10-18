@@ -74,6 +74,42 @@ class _AiApiClient implements AiApiClient {
   }
 
   @override
+  Future<ChoiceExplanationResponse> getChoiceExplanation(
+    String questionUuid, {
+    String? choiceSetUuid,
+    String? selectedChoiceKey,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'questionUuid': questionUuid,
+      r'choiceSetUuid': choiceSetUuid,
+      r'selectedChoiceKey': selectedChoiceKey,
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<ChoiceExplanationResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/ai/choice-explanation',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late ChoiceExplanationResponse _value;
+    try {
+      _value = ChoiceExplanationResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<List<SimilarQuestion>> getSimilar(String questionUuid, int k) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{r'k': k};

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:passql_app/core/utils/word_wrap.dart';
 import 'package:passql_app/data/models/daily_set/daily_set_models.dart';
 import 'package:passql_app/data/models/home/question_summary.dart';
 import 'package:passql_app/presentation/design/design.dart';
@@ -28,7 +29,11 @@ LeaderboardResponse _board({LeaderboardEntry? mine}) =>
 Override _boardOverride(LeaderboardResponse res) =>
     leaderboardProvider.overrideWith((ref) async => res);
 
-Future<void> _pageOf(WidgetTester tester, Widget page, List<Override> overrides) async {
+Future<void> _pageOf(
+  WidgetTester tester,
+  Widget page,
+  List<Override> overrides,
+) async {
   await pumpApp(
     tester,
     ProviderScope(
@@ -37,7 +42,10 @@ Future<void> _pageOf(WidgetTester tester, Widget page, List<Override> overrides)
         routerConfig: GoRouter(
           routes: [
             GoRoute(path: '/', builder: (_, _) => page),
-            GoRoute(path: '/leaderboard', builder: (_, _) => const Text('전체 순위 화면')),
+            GoRoute(
+              path: '/leaderboard',
+              builder: (_, _) => const Text('전체 순위 화면'),
+            ),
             GoRoute(path: '/home', builder: (_, _) => const Text('홈 화면')),
             GoRoute(path: '/daily-set', builder: (_, _) => const Text('풀이 화면')),
           ],
@@ -51,7 +59,11 @@ Future<void> _pageOf(WidgetTester tester, Widget page, List<Override> overrides)
 
 void main() {
   group('홈 카드', () {
-    Future<void> card(WidgetTester tester, DailySetTodayResponse? data, {List<String>? taps}) async {
+    Future<void> card(
+      WidgetTester tester,
+      DailySetTodayResponse? data, {
+      List<String>? taps,
+    }) async {
       await pumpApp(
         tester,
         MaterialApp(
@@ -75,12 +87,16 @@ void main() {
       await card(
         tester,
         DailySetTodayResponse(
-          questions: List.generate(5, (i) => QuestionSummary(questionUuid: 'q$i')),
+          questions: List.generate(
+            5,
+            (i) => QuestionSummary(questionUuid: 'q$i'),
+          ),
         ),
         taps: taps,
       );
 
-      expect(find.text('오늘의 5문제'), findsOneWidget);
+      // 카드 문장은 단어 단위 줄바꿈 문자열로 그려짐
+      expect(find.text(keepWordsTogether('오늘의 5문제')), findsOneWidget);
       expect(find.text('완료'), findsNothing);
       await tester.tap(find.byType(DailySetCard));
       expect(taps, ['start']);
@@ -91,7 +107,10 @@ void main() {
       await card(
         tester,
         DailySetTodayResponse(
-          questions: List.generate(5, (i) => QuestionSummary(questionUuid: 'q$i')),
+          questions: List.generate(
+            5,
+            (i) => QuestionSummary(questionUuid: 'q$i'),
+          ),
           alreadyCompleted: true,
           correctCount: 4,
         ),
@@ -99,7 +118,7 @@ void main() {
       );
 
       expect(find.text('완료'), findsOneWidget);
-      expect(find.text('4 / 5 정답'), findsOneWidget);
+      expect(find.text(keepWordsTogether('4 / 5 정답')), findsOneWidget);
       await tester.tap(find.byType(DailySetCard));
       expect(taps, ['result']);
     });
@@ -109,7 +128,7 @@ void main() {
         final taps = <String>[];
         await card(tester, data, taps: taps);
 
-        expect(find.textContaining('준비 중'), findsOneWidget);
+        expect(find.textContaining(keepWordsTogether('준비 중')), findsOneWidget);
         await tester.tap(find.byType(DailySetCard));
         expect(taps, ['browse']);
       }
@@ -135,11 +154,17 @@ void main() {
       // 점수 고리가 점수와 ' / 총점'을 별개 Text 로 그린다.
       expect(find.text(' / 3'), findsOneWidget);
       expect(
-        find.descendant(of: find.byType(PassqlScoreHeader), matching: find.text('2')),
+        find.descendant(
+          of: find.byType(PassqlScoreHeader),
+          matching: find.text('2'),
+        ),
         findsOneWidget,
       );
       expect(find.text('문제별 결과'), findsOneWidget);
-      expect(find.text('정답'), findsNWidgets(2)); // 정답 행 2 (점수 라벨은 고리 아래 정답률로 대체)
+      expect(
+        find.text('정답'),
+        findsNWidgets(2),
+      ); // 정답 행 2 (점수 라벨은 고리 아래 정답률로 대체)
       expect(find.text('오답'), findsOneWidget);
       expect(find.text('민트'), findsOneWidget);
       expect(find.text('체리'), findsOneWidget);
@@ -169,7 +194,9 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
       await _pageOf(
         tester,
-        const DailySetResultPage(outcome: DailySetOutcome(results: results, correctCount: 2)),
+        const DailySetResultPage(
+          outcome: DailySetOutcome(results: results, correctCount: 2),
+        ),
         [_boardOverride(_board())],
       );
 
@@ -179,42 +206,40 @@ void main() {
     });
 
     testWidgets('풀이 직후가 아니면 서버 기록으로 완료 결과를 보여준다', (tester) async {
-      await _pageOf(
-        tester,
-        const DailySetResultPage(),
-        [
-          dailySetTodayProvider.overrideWith(
-            (ref) async => DailySetTodayResponse(
-              questions: List.generate(5, (i) => QuestionSummary(questionUuid: 'q$i')),
-              alreadyCompleted: true,
-              correctCount: 4,
+      await _pageOf(tester, const DailySetResultPage(), [
+        dailySetTodayProvider.overrideWith(
+          (ref) async => DailySetTodayResponse(
+            questions: List.generate(
+              5,
+              (i) => QuestionSummary(questionUuid: 'q$i'),
             ),
+            alreadyCompleted: true,
+            correctCount: 4,
           ),
-          _boardOverride(_board()),
-        ],
-      );
+        ),
+        _boardOverride(_board()),
+      ]);
 
       expect(find.text(' / 5'), findsOneWidget);
       expect(
-        find.descendant(of: find.byType(PassqlScoreHeader), matching: find.text('4')),
+        find.descendant(
+          of: find.byType(PassqlScoreHeader),
+          matching: find.text('4'),
+        ),
         findsOneWidget,
       );
       expect(find.text('문제별 결과'), findsNothing); // 기록에는 문제별 정오답이 없다
     });
 
     testWidgets('아직 풀지 않았다면 풀어보기로 안내한다', (tester) async {
-      await _pageOf(
-        tester,
-        const DailySetResultPage(),
-        [
-          dailySetTodayProvider.overrideWith(
-            (ref) async => const DailySetTodayResponse(
-              questions: [QuestionSummary(questionUuid: 'q')],
-            ),
+      await _pageOf(tester, const DailySetResultPage(), [
+        dailySetTodayProvider.overrideWith(
+          (ref) async => const DailySetTodayResponse(
+            questions: [QuestionSummary(questionUuid: 'q')],
           ),
-          _boardOverride(_board()),
-        ],
-      );
+        ),
+        _boardOverride(_board()),
+      ]);
 
       expect(find.text('아직 오늘의 세트를 풀지 않았어요'), findsOneWidget);
       await tester.tap(find.text('풀어보기'));
@@ -225,11 +250,9 @@ void main() {
 
   group('리더보드', () {
     testWidgets('날짜와 순위를 보여주고, 내 기록은 위에 따로 표시한다', (tester) async {
-      await _pageOf(
-        tester,
-        const LeaderboardPage(),
-        [_boardOverride(_board(mine: _entries.last))],
-      );
+      await _pageOf(tester, const LeaderboardPage(), [
+        _boardOverride(_board(mine: _entries.last)),
+      ]);
 
       expect(find.text('2026-10-02'), findsOneWidget);
       expect(find.text('내 순위'), findsOneWidget);
@@ -239,16 +262,16 @@ void main() {
     });
 
     testWidgets('내가 아직 완료하지 않았다면 내 순위 줄이 없다', (tester) async {
-      await _pageOf(tester, const LeaderboardPage(), [_boardOverride(_board())]);
+      await _pageOf(tester, const LeaderboardPage(), [
+        _boardOverride(_board()),
+      ]);
       expect(find.text('내 순위'), findsNothing);
     });
 
     testWidgets('아무도 완료하지 않았으면 안내 문구를 보여준다', (tester) async {
-      await _pageOf(
-        tester,
-        const LeaderboardPage(),
-        [_boardOverride(const LeaderboardResponse(date: '2026-10-02'))],
-      );
+      await _pageOf(tester, const LeaderboardPage(), [
+        _boardOverride(const LeaderboardResponse(date: '2026-10-02')),
+      ]);
       expect(find.text('아직 완료한 사람이 없어요'), findsOneWidget);
     });
 

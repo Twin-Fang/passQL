@@ -1,6 +1,7 @@
 /// 알림 권한 안내 문구 (시트·설정 안내 공통 원본, 서비스 알림만 안내하고 광고·마케팅 표현 금지)
 abstract final class NotificationPermissionTexts {
   static const String sheetTitle = '중요한 소식을 알려 드릴까요?';
+  static const String sheetDescription = '공부에 꼭 필요한 소식만 보내 드릴게요';
 
   /// 받게 되는 소식 3가지
   static const List<String> receivedNewsLines = [

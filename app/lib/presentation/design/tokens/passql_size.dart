@@ -24,6 +24,7 @@ abstract final class PassqlSize {
   static const double hairline = 0.5;
   static const double notificationBadge = 18; // 안 읽은 개수 배지 높이·한 자리 지름 (PassqlCountBadge)
   static const double unreadDot = 8; // 알림 항목 앞 안 읽음 점
+  static const double sheetHeroCircle = 64; // 안내 시트 맨 위 대표 아이콘 원
 
   // 로딩 표시 반지름 3단계: 버튼·행 안, 섹션·시트, 화면 잠금
   static const double loadingIndicatorInlineRadius = 10;

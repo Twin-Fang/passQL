@@ -5,6 +5,7 @@ import '../../design/design.dart';
 /// 홈 화면의 오늘의 세트 카드.
 ///
 /// 상태는 세 가지다: 풀 수 있음 / 이미 완료 / 준비 중(불러오지 못한 경우 포함).
+/// 2열 좁은 카드라 문장은 단어 단위로만 줄바꿈 (PassqlKeepAllText)
 class DailySetCard extends StatelessWidget {
   const DailySetCard({
     super.key,
@@ -68,24 +69,24 @@ class DailySetCard extends StatelessWidget {
           ),
           const SizedBox(height: PassqlSpacing.sm),
           if (completed) ...[
-            Text(
+            PassqlKeepAllText(
               '${data?.correctCount ?? 0} / $total 정답',
               style: PassqlTypography.headline.copyWith(color: colors.label),
             ),
           ] else if (available) ...[
-            Text(
+            PassqlKeepAllText(
               '오늘의 $total문제',
               style: PassqlTypography.headline.copyWith(color: colors.label),
             ),
             const SizedBox(height: PassqlSpacing.xxs),
-            Text(
+            PassqlKeepAllText(
               '모두 같은 문제로 겨뤄요',
               style: PassqlTypography.subheadline.copyWith(
                 color: colors.secondaryLabel,
               ),
             ),
           ] else ...[
-            Text(
+            PassqlKeepAllText(
               '오늘의 세트를 준비 중이에요.\n문제 목록에서 풀어보세요.',
               style: PassqlTypography.subheadline.copyWith(
                 color: colors.secondaryLabel,

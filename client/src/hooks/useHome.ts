@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchGreeting } from "../api/home";
-import { fetchTodayQuestion, fetchRecommendations } from "../api/questions";
+import { fetchRecommendations } from "../api/questions";
 import { fetchSelectedSchedule } from "../api/examSchedules";
 import { fetchHeatmap } from "../api/progress";
 import { fetchDailySet, fetchLeaderboard } from "../api/dailySet";
@@ -13,17 +13,6 @@ export function useGreeting() {
   return useQuery({
     queryKey: ["greeting", memberUuid],
     queryFn: fetchGreeting,
-    enabled: isMemberQueryEnabled,
-    staleTime: 1000 * 60 * 5,
-    retry: false,
-  });
-}
-
-export function useTodayQuestion() {
-  const { memberUuid, isMemberQueryEnabled } = useMemberQueryScope();
-  return useQuery({
-    queryKey: ["todayQuestion", memberUuid],
-    queryFn: fetchTodayQuestion,
     enabled: isMemberQueryEnabled,
     staleTime: 1000 * 60 * 5,
     retry: false,

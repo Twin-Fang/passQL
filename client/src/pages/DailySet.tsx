@@ -14,6 +14,12 @@ import LoadingOverlay from "../components/LoadingOverlay";
 import ProgressBar from "../components/ProgressBar";
 import PracticeTopBar from "../components/practice/PracticeTopBar";
 import PracticeQuestionScrollArea from "../components/practice/PracticeQuestionScrollArea";
+import ExplanationPanel from "../components/aiExplanation/ExplanationPanel";
+import {
+  buildExplanationHistoryEntry,
+  useExplanationHistoryStore,
+  type ExplanationHistoryEntry,
+} from "../stores/explanationHistoryStore";
 import type { ChoiceItem, SubmitResult } from "../types/api";
 
 export default function DailySet() {
@@ -24,6 +30,9 @@ export default function DailySet() {
 
   const store = useDailySetStore();
   const [feedback, setFeedback] = useState<SubmitResult | null>(null);
+  // 피드백 바 해설 미리보기 대상 (#521)
+  const [feedbackExplanationEntry, setFeedbackExplanationEntry] = useState<ExplanationHistoryEntry | null>(null);
+  const addExplanationEntry = useExplanationHistoryStore((state) => state.addEntry);
   const [submitting, setSubmitting] = useState(false);
   // 연타 방지 — React state는 async 클로저에서 stale하므로 ref로 동기 플래그 관리
   const isProcessingRef = useRef(false);
@@ -88,6 +97,17 @@ export default function DailySet() {
           result.submissionUuid ?? undefined,
           choiceSetId,
         );
+        // 해설함 등록 > 미리보기 즉시 조회 시작
+        const explanationEntry = buildExplanationHistoryEntry({
+          questionUuid: displayQuestion.questionUuid,
+          choiceSetUuid: choiceSetId,
+          selectedChoiceKey,
+          questionNumber: displayIndex + 1,
+          choices,
+          result,
+        });
+        addExplanationEntry(explanationEntry);
+        setFeedbackExplanationEntry(explanationEntry);
         setFeedback(result);
       } catch {
         // 제출 실패 시 홈으로 이동 — 세션 기록 손실을 감수하고 UX 안정성 우선
@@ -97,7 +117,7 @@ export default function DailySet() {
         setSubmitting(false);
       }
     },
-    [displayQuestion, sessionUuid, store, navigate],
+    [displayQuestion, displayIndex, sessionUuid, store, navigate, addExplanationEntry],
   );
 
   // memberUuid 미사용 경고 억제 — 추후 신고 기능 등에 활용 예정
@@ -154,10 +174,14 @@ export default function DailySet() {
       {feedback && (
         <PracticeFeedbackBar
           result={feedback}
+          explanationEntry={feedbackExplanationEntry}
           nextLabel={store.currentIndex >= totalQuestions ? "결과 보기" : "다음 문제"}
           onNext={() => setFeedback(null)}
         />
       )}
+
+      {/* AI 해설 비모달 패널 — 떠 있어도 다음 문제 진행 가능 (#521) */}
+      <ExplanationPanel />
 
       {submitting && (
         <LoadingOverlay topicName="데일리 세트" staticMessage="채점 중이에요" subMessage="잠시만 기다려주세요" />

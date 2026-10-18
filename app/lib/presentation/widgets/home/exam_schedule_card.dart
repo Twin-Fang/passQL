@@ -67,28 +67,28 @@ class ExamScheduleCard extends StatelessWidget {
               style: PassqlTypography.title1.copyWith(color: colors.accent),
             ),
             const SizedBox(height: PassqlSpacing.xs),
-            Text(
+            PassqlKeepAllText(
               '${schedule!.certType} ${schedule!.round}회',
               style: PassqlTypography.subheadlineSemibold.copyWith(
                 color: colors.label,
               ),
             ),
             const SizedBox(height: PassqlSpacing.xxs),
-            Text(
+            PassqlKeepAllText(
               _formatDate(schedule!.examDate),
               style: PassqlTypography.caption.copyWith(
                 color: colors.secondaryLabel,
               ),
             ),
           ] else ...[
-            Text(
+            PassqlKeepAllText(
               '선택된 일정 없음',
               style: PassqlTypography.subheadline.copyWith(
                 color: colors.secondaryLabel,
               ),
             ),
             const SizedBox(height: PassqlSpacing.xs),
-            Text(
+            PassqlKeepAllText(
               '일정 선택하기',
               style: PassqlTypography.captionSemibold.copyWith(
                 color: colors.accent,

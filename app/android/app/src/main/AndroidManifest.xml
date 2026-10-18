@@ -10,11 +10,12 @@
         android:label="passQL"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- taskAffinity 기본값(패키지명) 유지 필수: 네이버 SDK 커스텀 탭 액티비티(singleTask)가
+             브라우저 복귀 시 affinity 로 이 태스크를 찾아 onNewIntent 받음. "" 이면 새 인스턴스 생성 > 로그인 실패 -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:taskAffinity=""
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"

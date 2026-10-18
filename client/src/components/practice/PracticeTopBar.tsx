@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import ExplanationHistoryButton from "../aiExplanation/ExplanationHistoryButton";
 
 interface PracticeTopBarProps {
   // 왼쪽 나가기 버튼 아이콘 (홈 또는 뒤로가기)
@@ -30,7 +31,11 @@ export default function PracticeTopBar({ exitIcon, exitAriaLabel, onExitClick, t
       <span className="text-sm font-semibold text-text-secondary text-center">
         {title}
       </span>
-      {trailing ?? <div />}
+      {/* 오른쪽 칸: 해설함 다시 열기(항목 있을 때) + 호출부 요소 */}
+      <div className="justify-self-end flex items-center gap-1.5">
+        <ExplanationHistoryButton />
+        {trailing}
+      </div>
     </div>
   );
 }

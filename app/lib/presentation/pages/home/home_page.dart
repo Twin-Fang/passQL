@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/ads/ad_placement.dart';
 import '../../../data/models/notification/notification_models.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/home_providers.dart';
 import '../../providers/notification_inbox_providers.dart';
 import '../../providers/unread_notification_providers.dart';
+import '../../widgets/ads/ad_inline_card.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/home/app_notice_banner.dart';
 import '../../widgets/home/daily_set_card.dart';
@@ -45,10 +47,10 @@ class HomePage extends ConsumerWidget {
           ],
         ),
         data: (data) => _HomeShell(
-          // 인사 문구를 large title 로 올린다. 없으면 '홈'.
-          largeTitle: data.greeting == null
-              ? null
-              : _GreetingTitle(GreetingSection.resolveMessage(data.greeting!)),
+          // 인사 문구가 한 줄에 들어가면 large title 로 올린다. 없거나 길면 '홈' (긴 인사는 본문 첫 줄)
+          largeTitle: _isGreetingInLargeTitle(context, data)
+              ? _GreetingTitle(GreetingSection.resolveMessage(data.greeting!))
+              : null,
           onRefresh: () async {
             // 공지 배너(안 읽은 중요 공지)도 함께 갱신
             ref.invalidate(
@@ -61,9 +63,27 @@ class HomePage extends ConsumerWidget {
               if (context.mounted) showAppToast(context, '새로고침하지 못했어요');
             }
           },
-          slivers: [_HomeContent(data: data)],
+          slivers: [
+            _HomeContent(
+              data: data,
+              isGreetingHeadlineInBody:
+                  data.greeting != null &&
+                  !_isGreetingInLargeTitle(context, data),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  /// 인사 첫 줄이 large title 한 줄에 들어가는지 (폭 = 화면 - 좌우 여백, 시스템 글자 배율 반영)
+  static bool _isGreetingInLargeTitle(BuildContext context, HomeData data) {
+    final greeting = data.greeting;
+    if (greeting == null) return false;
+    return GreetingSection.fitsInLargeTitle(
+      GreetingSection.resolveMessage(greeting),
+      maxWidth: MediaQuery.sizeOf(context).width - PassqlSpacing.md * 2,
+      textScaler: MediaQuery.textScalerOf(context),
     );
   }
 }
@@ -116,7 +136,13 @@ class _GreetingTitle extends StatelessWidget {
 class _HomeContent extends ConsumerWidget {
   final HomeData data;
 
-  const _HomeContent({required this.data});
+  /// true > large title 에 못 올라간 인사 첫 줄을 본문 맨 위에 그림
+  final bool isGreetingHeadlineInBody;
+
+  const _HomeContent({
+    required this.data,
+    required this.isGreetingHeadlineInBody,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -129,9 +155,16 @@ class _HomeContent extends ConsumerWidget {
           onDismiss: () => dismissHomeNotice(ref, notice.noticeUuid),
         ),
 
-      // 인사 둘째 줄 본문 + 시험 상황 배지 (있을 때만)
-      if (data.greeting != null && GreetingSection.hasContent(data.greeting!))
-        GreetingSection(greeting: data.greeting!),
+      // 인사(긴 첫 줄이면 여기로) + 둘째 줄 본문 + 시험 상황 배지 (있을 때만)
+      if (data.greeting != null &&
+          GreetingSection.hasContent(
+            data.greeting!,
+            isHeadlineShown: isGreetingHeadlineInBody,
+          ))
+        GreetingSection(
+          greeting: data.greeting!,
+          isHeadlineShown: isGreetingHeadlineInBody,
+        ),
 
       // 2열 카드: 오늘의 세트 + 시험 일정 (높이를 맞춘다)
       IntrinsicHeight(
@@ -163,9 +196,20 @@ class _HomeContent extends ConsumerWidget {
           correctRate: data.progress!.correctRate,
         ),
 
-      HeatmapWidget(
-        heatmap: data.heatmap,
-        streakDays: data.progress?.streakDays ?? 0,
+      // 학습 현황 + 인라인 광고 카드 (학습 현황 <-> 추천 문제 사이)
+      // 한 항목으로 묶음 > 광고 없으면 카드 간격도 생기지 않음
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          HeatmapWidget(
+            heatmap: data.heatmap,
+            streakDays: data.progress?.streakDays ?? 0,
+          ),
+          const AdInlineCard(
+            placement: AdPlacement.bannerHome,
+            padding: EdgeInsets.only(top: PassqlSpacing.md),
+          ),
+        ],
       ),
 
       if (data.recommendations != null &&

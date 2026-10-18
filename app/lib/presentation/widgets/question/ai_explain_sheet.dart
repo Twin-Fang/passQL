@@ -119,12 +119,9 @@ class _ExplanationBody extends StatelessWidget {
   }
 }
 
-/// AI 해설을 기다리는 자리: 반짝이 맥박 + 글 줄 스켈레톤
+/// AI 해설을 기다리는 자리: 반짝이 + 글 줄 스켈레톤 한 블록
 class _AiExplanationSkeleton extends StatelessWidget {
   const _AiExplanationSkeleton({super.key});
-
-  static const double _lineHeight = 12;
-  static const List<double> _lineWidthFactors = [1, 0.92, 0.83, 0.67];
 
   @override
   Widget build(BuildContext context) {
@@ -157,13 +154,7 @@ class _AiExplanationSkeleton extends StatelessWidget {
             ],
           ),
           const SizedBox(height: PassqlSpacing.md),
-          for (final widthFactor in _lineWidthFactors) ...[
-            FractionallySizedBox(
-              widthFactor: widthFactor,
-              child: const PassqlSkeletonBox(height: _lineHeight),
-            ),
-            const SizedBox(height: PassqlSpacing.xs),
-          ],
+          const PassqlTextSkeleton(),
         ],
       ),
     );

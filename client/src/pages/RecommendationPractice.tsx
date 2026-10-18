@@ -11,6 +11,12 @@ import ExitPracticeConfirmModal from "../components/practice/ExitPracticeConfirm
 import LoadingOverlay from "../components/LoadingOverlay";
 import PracticeTopBar from "../components/practice/PracticeTopBar";
 import PracticeQuestionScrollArea from "../components/practice/PracticeQuestionScrollArea";
+import ExplanationPanel from "../components/aiExplanation/ExplanationPanel";
+import {
+  buildExplanationHistoryEntry,
+  useExplanationHistoryStore,
+  type ExplanationHistoryEntry,
+} from "../stores/explanationHistoryStore";
 import type { ChoiceItem, SubmitResult } from "../types/api";
 
 export default function RecommendationPractice() {
@@ -28,6 +34,9 @@ export default function RecommendationPractice() {
   const returnInitialStep = locationState?.initialStep ?? 0;
 
   const [feedback, setFeedback] = useState<SubmitResult | null>(null);
+  // 피드백 바 해설 미리보기 대상 (#521)
+  const [feedbackExplanationEntry, setFeedbackExplanationEntry] = useState<ExplanationHistoryEntry | null>(null);
+  const addExplanationEntry = useExplanationHistoryStore((state) => state.addEntry);
   // 제출 API 호출 중 화면 조작 차단
   const [submitting, setSubmitting] = useState(false);
   // 연타 방지 — React state는 async 클로저에서 stale하므로 ref로 동기 플래그 관리
@@ -41,7 +50,7 @@ export default function RecommendationPractice() {
   const blocker = useBlocker(feedback === null && !submitting);
 
   const handlePracticeSubmit = useCallback(
-    async (selectedChoiceKey: string, choiceSetId: string, _choices: readonly ChoiceItem[]) => {
+    async (selectedChoiceKey: string, choiceSetId: string, choices: readonly ChoiceItem[]) => {
       if (!questionUuid) return;
       // 연타로 인한 중복 제출 방지
       if (isProcessingRef.current) return;
@@ -55,6 +64,16 @@ export default function RecommendationPractice() {
         queryClient.invalidateQueries({ queryKey: ["recommendations"] });
         queryClient.invalidateQueries({ queryKey: ["heatmap"] });
         queryClient.invalidateQueries({ queryKey: ["progress"] });
+        // 해설함 등록 > 미리보기 즉시 조회 시작 (다시 풀기 기록도 해설함에 남음)
+        const explanationEntry = buildExplanationHistoryEntry({
+          questionUuid,
+          choiceSetUuid: choiceSetId,
+          selectedChoiceKey,
+          choices,
+          result,
+        });
+        addExplanationEntry(explanationEntry);
+        setFeedbackExplanationEntry(explanationEntry);
         setFeedback(result);
       } catch {
         navigate("/", { replace: true });
@@ -63,7 +82,7 @@ export default function RecommendationPractice() {
         setSubmitting(false);
       }
     },
-    [questionUuid, navigate, queryClient, sessionUuid],
+    [questionUuid, navigate, queryClient, sessionUuid, addExplanationEntry],
   );
 
   if (!questionUuid) {
@@ -72,7 +91,7 @@ export default function RecommendationPractice() {
 
   return (
     <div className="flex flex-col h-screen max-w-120 mx-auto w-full">
-      {/* DailyChallenge와 동일한 헤더 구조 */}
+      {/* 단건 풀이 헤더 */}
       <div className="px-4 pt-3 pb-2">
         <PracticeTopBar
           exitIcon={<Home size={18} className="text-text-secondary" />}
@@ -104,6 +123,7 @@ export default function RecommendationPractice() {
       {feedback && (
         <PracticeFeedbackBar
           result={feedback}
+          explanationEntry={feedbackExplanationEntry}
           nextLabel={isPracticeReview ? "돌아가기" : "홈으로 가기"}
           onNext={() => {
             // location.state 대신 store를 통해 returnStep 전달 — React Router v7 state 전달 불안정 이슈 우회
@@ -123,6 +143,9 @@ export default function RecommendationPractice() {
           })}
         />
       )}
+
+      {/* AI 해설 비모달 패널 — 다시 풀기 중에도 앞 해설을 볼 수 있음 (#521) */}
+      <ExplanationPanel />
 
       {/* 채점 중 오버레이 — 제출 API 응답 전 화면 조작 차단 */}
       {submitting && (

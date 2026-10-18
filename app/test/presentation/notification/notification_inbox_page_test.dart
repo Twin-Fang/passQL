@@ -1,9 +1,12 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:passql_app/core/auth/auth_session.dart';
 import 'package:passql_app/core/push/push_messaging_client.dart';
+import 'package:passql_app/core/push/push_permission_prompt_store.dart';
+import 'package:passql_app/core/utils/word_wrap.dart';
 import 'package:passql_app/data/models/notification/notification_models.dart';
 import 'package:passql_app/data/push/push_notification_service.dart';
 import 'package:passql_app/data/sources/api_providers.dart';
@@ -11,6 +14,8 @@ import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/pages/notification/notification_inbox_page.dart';
 import 'package:passql_app/presentation/providers/auth_provider.dart';
 import 'package:passql_app/presentation/widgets/notification/notification_permission_flow.dart';
+import 'package:passql_app/presentation/widgets/notification/notification_permission_sheet.dart';
+import 'package:passql_app/presentation/widgets/notification/notification_permission_texts.dart';
 import 'package:passql_app/router/app_routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -183,8 +188,17 @@ void main() {
 
       prompt();
       await tester.pumpAndSettle();
-      expect(find.text('중요한 소식을 알려 드릴까요?'), findsOneWidget);
-      expect(find.text('알림을 꺼도 모든 기능을 쓸 수 있어요'), findsOneWidget);
+      // 시트 문장은 단어 단위 줄바꿈 문자열로 그려짐
+      expect(
+        find.text(keepWordsTogether(NotificationPermissionTexts.sheetTitle)),
+        findsOneWidget,
+      );
+      expect(
+        find.text(
+          keepWordsTogether(NotificationPermissionTexts.optionalNotice),
+        ),
+        findsOneWidget,
+      );
       await tester.tap(find.text('나중에'));
       await tester.pumpAndSettle();
 
@@ -203,6 +217,90 @@ void main() {
 
       expect(messagingClient.permissionRequestCount, 1);
       expect(messagingClient.currentPermission, PushPermissionStatus.granted);
+    });
+    testWidgets('닫기 X 없이 바깥을 눌러 닫으면 "나중에"와 같이 7일 미룬다', (tester) async {
+      late Future<void> Function() prompt;
+      await pumpPromptLauncher(tester, (launcher) => prompt = launcher);
+
+      prompt();
+      await tester.pumpAndSettle();
+      expect(find.byIcon(CupertinoIcons.xmark_circle_fill), findsNothing);
+      expect(find.bySemanticsLabel('닫기'), findsNothing);
+      // 시트 위쪽 바깥(어두운 배경) 탭
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(NotificationPermissionSheetBody), findsNothing);
+      expect(messagingClient.permissionRequestCount, 0);
+      expect(await const PushPermissionPromptStore().canPromptNow(), isFalse);
+    });
+
+    testWidgets('받는 소식 아이콘은 같은 크기·같은 색 타일이고 글자 시작선이 같다', (tester) async {
+      late Future<void> Function() prompt;
+      await pumpPromptLauncher(tester, (launcher) => prompt = launcher);
+
+      prompt();
+      await tester.pumpAndSettle();
+      final tiles = find.byType(PassqlIconTile);
+      expect(tiles, findsNWidgets(3));
+      final tileSizes = {
+        for (final element in tiles.evaluate())
+          tester.getSize(find.byWidget(element.widget)),
+      };
+      expect(tileSizes, hasLength(1));
+      final tileColors = {
+        for (final tile in tester.widgetList<PassqlIconTile>(tiles)) tile.color,
+      };
+      expect(tileColors, {PassqlColors.light.accent});
+      final textStarts = {
+        for (final line in NotificationPermissionTexts.receivedNewsLines)
+          tester.getTopLeft(find.text(keepWordsTogether(line))).dx,
+      };
+      expect(textStarts, hasLength(1));
+    });
+
+    testWidgets('작은 화면·큰 글자에서도 넘치지 않고 버튼이 보인다', (tester) async {
+      tester.view.physicalSize = const Size(320, 568);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      late Future<void> Function() prompt;
+      messagingClient = FakePushMessagingClient();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authProvider.overrideWith(_SignedInAuth.new),
+            pushNotificationServiceProvider.overrideWithValue(
+              PushNotificationService(
+                messagingClient: messagingClient,
+                pushTokenApi: FakePushTokenApi(),
+              ),
+            ),
+          ],
+          child: MaterialApp(
+            theme: PassqlTheme.light,
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: const TextScaler.linear(
+                  PassqlTextScaleLimit.maximumTextScaleFactor,
+                ),
+              ),
+              child: child!,
+            ),
+            home: Consumer(
+              builder: (context, ref, _) {
+                prompt = () => runNotificationPermissionPrompt(context, ref);
+                return const Scaffold();
+              },
+            ),
+          ),
+        ),
+      );
+      prompt();
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('알림 받기'), findsOneWidget);
+      expect(tester.getBottomLeft(find.text('나중에')).dy, lessThanOrEqualTo(568));
     });
   });
 }

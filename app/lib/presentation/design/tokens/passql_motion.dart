@@ -10,6 +10,9 @@ abstract final class PassqlMotion {
   static const emphasized = Duration(milliseconds: 450); // 반짝이·결과 마크 팝
   static const scoreFill = Duration(milliseconds: 700); // 점수 고리 차오름
 
+  // 스켈레톤 반짝임 한 바퀴 (느리고 부드럽게, 블록 전체 1개)
+  static const skeletonShimmerPeriod = Duration(milliseconds: 1600);
+
   // 곡선 3종
   static const curve = Curves.easeOutCubic; // 기본
   static const standardCurve = Curves.fastOutSlowIn; // 웹 --ease-smooth

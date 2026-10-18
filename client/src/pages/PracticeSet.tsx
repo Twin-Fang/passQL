@@ -15,6 +15,7 @@ import PracticeTopBar from "../components/practice/PracticeTopBar";
 import PracticeQuestionScrollArea from "../components/practice/PracticeQuestionScrollArea";
 import WaitingForQuestion from "../components/practice/WaitingForQuestion";
 import ExitPracticeConfirmModal from "../components/practice/ExitPracticeConfirmModal";
+import ExplanationPanel from "../components/aiExplanation/ExplanationPanel";
 
 /**
  * 연습 세트 풀이: 문제 풀이 > 피드백바(신고) > 다음 문제, 마지막 문제 후 결과 화면 이동
@@ -34,6 +35,7 @@ export default function PracticeSet() {
   const {
     feedback,
     feedbackChoiceSetUuid,
+    feedbackExplanationEntry,
     isSubmitting,
     displayIndex,
     displayQuestion,
@@ -114,6 +116,7 @@ export default function PracticeSet() {
       {feedback && (
         <PracticeFeedbackBar
           result={feedback}
+          explanationEntry={feedbackExplanationEntry}
           onNext={handleNext}
           nextLabel={feedback?.isCorrect ? "계속하기" : "확인"}
           // submissionUuid가 있고 memberUuid가 있을 때만 신고 버튼 표시
@@ -129,6 +132,9 @@ export default function PracticeSet() {
           }
         />
       )}
+
+      {/* AI 해설 비모달 패널 — 떠 있어도 다음 문제 진행 가능 (#521) */}
+      <ExplanationPanel />
 
       {/* 신고 모달 — submissionUuid를 지역 변수로 추출하여 non-null assertion 없이 타입 안전하게 렌더 */}
       {reportSubmissionUuid && report.isReportModalOpen && displayQuestion && (

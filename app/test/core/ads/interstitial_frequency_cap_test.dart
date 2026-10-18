@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/fakes/fake_interstitial_show_history_store.dart';
 
-/// 전면 광고 빈도 제한: 3분 간격, 하루 3회, 날짜 바뀌면 초기화
+/// 전면 광고 빈도 제한: 첫 결과 2회 유예, 5분 간격, 하루 3회, 날짜 바뀌면 초기화
 void main() {
   final morning = DateTime(2026, 10, 16, 9);
 
@@ -12,24 +12,46 @@ void main() {
   late InterstitialFrequencyCap frequencyCap;
 
   setUp(() {
-    store = MemoryInterstitialShowHistoryStore();
+    // 첫 결과 유예가 끝난 기기 (유예는 아래 전용 테스트)
+    store = MemoryInterstitialShowHistoryStore()
+      ..history = const InterstitialShowHistory(
+        resultEntryCount: InterstitialFrequencyCap.freeResultEntryCount + 1,
+      );
     frequencyCap = InterstitialFrequencyCap(store);
   });
 
-  test('처음에는 보여도 된다', () async {
+  test('유예가 끝났고 노출 기록이 없으면 보여도 된다', () async {
     expect(await frequencyCap.canShowAt(morning), isTrue);
   });
 
-  test('노출 뒤 3분 안에는 막고 3분이 지나면 허용한다', () async {
+  test('설치 후 첫 결과 2회는 보이지 않고 3번째 결과부터 허용한다', () async {
+    store.history = const InterstitialShowHistory();
+    await frequencyCap.recordResultEntry();
+    expect(await frequencyCap.canShowAt(morning), isFalse);
+    await frequencyCap.recordResultEntry();
+    expect(await frequencyCap.canShowAt(morning), isFalse);
+    await frequencyCap.recordResultEntry();
+    expect(await frequencyCap.canShowAt(morning), isTrue);
+  });
+
+  test('노출 기록은 결과 진입 횟수를 지우지 않는다', () async {
+    await frequencyCap.recordShownAt(morning);
+    expect(
+      store.history.resultEntryCount,
+      InterstitialFrequencyCap.freeResultEntryCount + 1,
+    );
+  });
+
+  test('노출 뒤 5분 안에는 막고 5분이 지나면 허용한다', () async {
     await frequencyCap.recordShownAt(morning);
     expect(
       await frequencyCap.canShowAt(
-        morning.add(const Duration(minutes: 2, seconds: 59)),
+        morning.add(const Duration(minutes: 4, seconds: 59)),
       ),
       isFalse,
     );
     expect(
-      await frequencyCap.canShowAt(morning.add(const Duration(minutes: 3))),
+      await frequencyCap.canShowAt(morning.add(const Duration(minutes: 5))),
       isTrue,
     );
   });
@@ -70,9 +92,11 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final preferencesStore = SharedPreferencesInterstitialShowHistoryStore();
     final preferencesCap = InterstitialFrequencyCap(preferencesStore);
+    await preferencesCap.recordResultEntry();
     await preferencesCap.recordShownAt(morning);
 
     final history = await preferencesStore.read();
+    expect(history.resultEntryCount, 1);
     expect(
       history.lastShownAtEpochMilliseconds,
       morning.millisecondsSinceEpoch,

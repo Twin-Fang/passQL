@@ -25,6 +25,8 @@ class AdNativeStripSlot extends StatelessWidget {
       key: ValueKey(context.isDark),
       maximumAdAgeOnResume: _maximumAdAgeOnResume,
       childWithoutAd: tabBar,
+      // 틀이 탭 바까지 품음 > 페이드 없이 띠 높이만 펼침 (탭 바 깜빡임 방지)
+      shouldRevealFrame: false,
       loadAd: (context, ref, _) => ref
           .read(adNativeStripLoaderProvider)
           .load(

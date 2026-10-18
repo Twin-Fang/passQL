@@ -54,6 +54,7 @@ lib/presentation/design/
 | `showPassqlBlockingProgress` | 진행 중 화면 잠금 창 |
 | `PassqlLoadingIndicator` (+`PassqlLoadingSize`) | 모든 로딩 스피너 (인라인·섹션·화면 잠금 3단계) |
 | `PassqlStatusView` / `PassqlSkeletonBox` | 로딩·빈·오류 상태 한 모양, 스켈레톤 조각 |
+| `PassqlTextSkeleton` | 글 문단 자리(줄 N개 한 블록, 반짝임 1개, 동작 줄이기면 정지) — AI 해설 대기 (#521) |
 | `PassqlListSkeleton` | grouped 목록 로딩 자리(행 N개, 머리글) — 토픽·순위·오답 노트 |
 | `PassqlStatusScaffold` | 상태만 보여 주는 화면 틀(상단 바 + 가운데 본문) |
 | `PassqlResultMark` / `PassqlScoreHeader` / `PassqlResultScaffold` | 정답/오답 표시, 점수 고리, 결과 화면 3종 공통 틀 |

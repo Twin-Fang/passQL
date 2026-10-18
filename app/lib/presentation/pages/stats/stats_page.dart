@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/ads/ad_placement.dart';
 import '../../design/design.dart';
 import '../../providers/stats_providers.dart';
+import '../../widgets/ads/ad_inline_card.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/stats/ai_analysis_card.dart';
 import '../../widgets/stats/bar_chart_section.dart';
@@ -58,7 +60,7 @@ class StatsPage extends ConsumerWidget {
   }
 }
 
-/// 통계 카드 목록: 요약 > AI 분석 > 레이더 > 막대 순서로 하나씩 등장. 카드 사이 간격은 PassqlSpacing.md.
+/// 통계 카드 목록: 요약 > AI 분석 > 레이더 > 막대 > 인라인 광고 순서로 하나씩 등장. 카드 사이 간격은 PassqlSpacing.md.
 class _StatsContent extends StatelessWidget {
   final StatsData data;
 
@@ -97,6 +99,11 @@ class _StatsContent extends StatelessWidget {
                       child: sections[index],
                     ),
             ),
+          // 콘텐츠 맨 아래 광고 1칸 (뜬 때만 아래 간격, 등장 연출은 슬롯 공통)
+          const AdInlineCard(
+            placement: AdPlacement.bannerStats,
+            padding: EdgeInsets.only(bottom: PassqlSpacing.md),
+          ),
         ],
       ),
     );

@@ -9,7 +9,7 @@ import 'loaded_ad_view.dart';
 
 /// 배너 로더 포트. 테스트는 가짜로 바꿔 SDK 를 띄우지 않음
 abstract interface class AdBannerLoader {
-  /// 화면 폭에 맞춘 고정(anchored) 적응형 배너. 실패·미설정이면 null (예외 없음)
+  /// 콘텐츠 폭에 맞춘 인라인 적응형 배너 (스크롤 목록 안 카드용). 실패·미설정이면 null (예외 없음)
   Future<LoadedAdView?> load(AdPlacement placement, int widthDp);
 }
 
@@ -17,9 +17,12 @@ final adBannerLoaderProvider = Provider<AdBannerLoader>(
   (ref) => GoogleAdBannerLoader(ref.watch(adRequestPreparerProvider)),
 );
 
-/// google_mobile_ads 배너: 공통 준비 > 크기 계산 > 로드 (시간 초과·실패는 해제 후 null)
+/// google_mobile_ads 배너: 공통 준비 > 크기 계산 > 로드 > 실제 높이 확인 (시간 초과·실패는 해제 후 null)
 class GoogleAdBannerLoader implements AdBannerLoader {
   GoogleAdBannerLoader(this._requestPreparer);
+
+  /// 인라인 배너 최대 높이 (dp). 홈 히트맵 카드 높이 수준 > 다른 카드보다 튀지 않게, 300x250 은 제외
+  static const int inlineBannerMaxHeightDp = 160;
 
   // 이 시간 안에 안 오면 포기 > 배너 자리 없음
   static const _loadTimeout = Duration(seconds: 20);
@@ -34,8 +37,10 @@ class GoogleAdBannerLoader implements AdBannerLoader {
     try {
       final preparedRequest = await _requestPreparer.prepare(placement);
       if (preparedRequest == null) return null;
-      final size = await AdSize.getLargeAnchoredAdaptiveBannerAdSize(widthDp);
-      if (size == null) return null;
+      final size = AdSize.getInlineAdaptiveBannerAdSize(
+        widthDp,
+        inlineBannerMaxHeightDp,
+      );
 
       final loadCompleter = Completer<BannerAd?>();
       bannerAd = BannerAd(
@@ -69,11 +74,18 @@ class GoogleAdBannerLoader implements AdBannerLoader {
         await bannerAd.dispose();
         return null;
       }
+      // 인라인 적응형은 요청 높이 0 > 로드 뒤 실제 크기로 틀 높이 결정
+      final platformSize = await loadedAd.getPlatformAdSize();
+      if (platformSize == null || platformSize.height <= 0) {
+        debugPrint('[ads banner] size unknown ${placement.name}');
+        await loadedAd.dispose();
+        return null;
+      }
       return LoadedAdView(
-        height: size.height.toDouble(),
+        height: platformSize.height.toDouble(),
         view: SizedBox(
-          width: size.width.toDouble(),
-          height: size.height.toDouble(),
+          width: platformSize.width.toDouble(),
+          height: platformSize.height.toDouble(),
           child: AdWidget(ad: loadedAd),
         ),
         dispose: loadedAd.dispose,

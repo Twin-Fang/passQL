@@ -11,3 +11,9 @@ String? findChoiceDisplayLabel(List<ChoiceItem> choices, String? choiceKey) {
   final displayIndex = choices.indexWhere((choice) => choice.key == choiceKey);
   return displayIndex < 0 ? choiceKey : toChoiceDisplayLabel(displayIndex);
 }
+
+/// 보기 목록 > {choiceKey: 표시 라벨} (넣는 순서 = 화면 순서, 해설 보기별 판단 정렬·라벨에 사용)
+Map<String, String> choiceDisplayLabelsOf(List<ChoiceItem> choices) => {
+  for (var displayIndex = 0; displayIndex < choices.length; displayIndex++)
+    choices[displayIndex].key: toChoiceDisplayLabel(displayIndex),
+};
