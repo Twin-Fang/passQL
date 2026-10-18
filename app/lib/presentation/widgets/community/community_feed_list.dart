@@ -26,26 +26,39 @@ class _CommunityFeedListState extends ConsumerState<CommunityFeedList> {
   // 목록 끝까지 남은 거리가 이 값 이하면 다음 페이지 요청
   static const double _loadMoreTriggerPixels = 320;
 
-  // 탭별 빈 목록 안내
-  static const Map<CommunityFeedSource, ({String title, String message})>
+  // 탭별 빈 목록 안내 + 행동 버튼 (문구는 웹 COMMUNITY_FEED_TABS 와 맞춤)
+  static const Map<
+    CommunityFeedSource,
+    ({String title, String message, String actionLabel, bool isTrendAction})
+  >
   _emptyTexts = {
     CommunityFeedSource.hot: (
-      title: '아직 뜨는 토론이 없어요',
+      title: '첫 토론을 시작해 보세요',
       message: '문제를 풀고 첫 의견을 남겨 보세요',
+      actionLabel: _solveActionLabel,
+      isTrendAction: false,
     ),
     CommunityFeedSource.trend: (
-      title: '의견이 있는 최신 경향 문제가 없어요',
-      message: '최신 경향 문제를 풀고 의견을 나눠 보세요',
+      title: '최신 경향 문제의 의견이 아직 없어요',
+      message: '출제 경향에서 최신 문제를 확인해 보세요',
+      actionLabel: '출제 경향 보기',
+      isTrendAction: true,
     ),
     CommunityFeedSource.solved: (
-      title: '의견이 있는 풀이 문제가 없어요',
-      message: '문제를 더 풀면 이곳에 모여요',
+      title: '문제를 풀면 여기에 모여요',
+      message: '풀어 본 문제의 의견이 이곳에 쌓여요',
+      actionLabel: _solveActionLabel,
+      isTrendAction: false,
     ),
     CommunityFeedSource.mine: (
       title: '아직 남긴 의견이 없어요',
       message: '푼 문제에서 헷갈린 점을 나눠 보세요',
+      actionLabel: _solveActionLabel,
+      isTrendAction: false,
     ),
   };
+
+  static const String _solveActionLabel = '문제 풀러 가기';
 
   @override
   void initState() {
@@ -95,6 +108,10 @@ class _CommunityFeedListState extends ConsumerState<CommunityFeedList> {
               icon: CupertinoIcons.chat_bubble_2,
               title: emptyText.title,
               message: emptyText.message,
+              actionLabel: emptyText.actionLabel,
+              onAction: () => emptyText.isTrendAction
+                  ? context.push(AppRoutes.examTrend)
+                  : context.go(AppRoutes.questions),
             ),
           ),
         ],
@@ -116,16 +133,17 @@ class _CommunityFeedListState extends ConsumerState<CommunityFeedList> {
           ),
           sliver: SliverList.separated(
             itemCount: feedState.items.length,
-            separatorBuilder: (_, _) => const SizedBox(height: PassqlSpacing.sm),
+            separatorBuilder: (_, _) =>
+                const SizedBox(height: PassqlSpacing.sm),
             itemBuilder: (_, index) {
               final card = feedState.items[index];
               return CommunityFeedCardTile(
                 key: ValueKey(card.questionUuid),
                 card: card,
-                shouldShowMyActivity:
-                    widget.source == CommunityFeedSource.mine,
-                onTap: () =>
-                    context.push(AppRoutes.communityQuestion(card.questionUuid)),
+                shouldShowMyActivity: widget.source == CommunityFeedSource.mine,
+                onTap: () => context.push(
+                  AppRoutes.communityQuestion(card.questionUuid),
+                ),
               );
             },
           ),

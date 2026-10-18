@@ -20,20 +20,24 @@ class CommunityChoiceChips<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: PassqlSpacing.md),
-      child: Row(
-        children: [
-          for (final value in values) ...[
-            _Chip(
-              label: labelOf(value),
-              isSelected: value == selectedValue,
-              onTap: () => onSelected(value),
-            ),
-            if (value != values.last) const SizedBox(width: PassqlSpacing.xs),
+    // 폭을 가득 채워 부모 Column 에서 가운데로 몰리지 않고 왼쪽 정렬
+    return SizedBox(
+      width: double.infinity,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: PassqlSpacing.md),
+        child: Row(
+          children: [
+            for (final value in values) ...[
+              _Chip(
+                label: labelOf(value),
+                isSelected: value == selectedValue,
+                onTap: () => onSelected(value),
+              ),
+              if (value != values.last) const SizedBox(width: PassqlSpacing.xs),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

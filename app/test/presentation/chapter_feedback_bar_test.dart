@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/data/models/question/execute_result.dart';
 import 'package:passql_app/data/models/question/submit_result.dart';
@@ -8,9 +9,12 @@ import 'package:passql_app/presentation/widgets/question/result_rows_table.dart'
 import 'package:passql_app/presentation/widgets/chapter/chapter_feedback_bar.dart';
 import 'package:passql_app/presentation/widgets/question/execute_result_card.dart';
 
-Widget _wrap(Widget child) => MaterialApp(
-  theme: PassqlTheme.light,
-  home: Scaffold(bottomNavigationBar: child),
+// 의견 칩이 provider 를 읽으므로 ProviderScope 필요
+Widget _wrap(Widget child) => ProviderScope(
+  child: MaterialApp(
+    theme: PassqlTheme.light,
+    home: Scaffold(bottomNavigationBar: child),
+  ),
 );
 
 void main() {
@@ -111,15 +115,17 @@ void main() {
     );
     // ChapterPage 와 같은 모양: 항상 Stack, 완료 중일 때만 형제가 추가된다.
     await tester.pumpWidget(
-      MaterialApp(
-        theme: PassqlTheme.light,
-        home: ValueListenableBuilder<bool>(
-          valueListenable: extra,
-          builder: (_, completing, _) => Stack(
-            children: [
-              Scaffold(bottomNavigationBar: bar()),
-              if (completing) const ModalBarrier(dismissible: false),
-            ],
+      ProviderScope(
+        child: MaterialApp(
+          theme: PassqlTheme.light,
+          home: ValueListenableBuilder<bool>(
+            valueListenable: extra,
+            builder: (_, completing, _) => Stack(
+              children: [
+                Scaffold(bottomNavigationBar: bar()),
+                if (completing) const ModalBarrier(dismissible: false),
+              ],
+            ),
           ),
         ),
       ),

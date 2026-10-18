@@ -13,6 +13,7 @@ import '../../widgets/common/app_toast.dart';
 import '../../widgets/community/community_choice_chips.dart';
 import '../../widgets/community/community_compose_sheet.dart';
 import '../../widgets/community/community_post_menu.dart';
+import '../../widgets/community/community_question_header.dart';
 import '../../widgets/community/community_post_tile.dart';
 
 /// 문제 1개의 의견 목록: 정렬(최신/좋아요순), 좋아요, 글 메뉴(삭제·신고·차단), 작성 시트
@@ -88,13 +89,15 @@ class _CommunityQuestionPageState extends ConsumerState<CommunityQuestionPage> {
           : null,
       body: isSolveRequired
           ? _SolveRequiredView(
+              questionUuid: widget.questionUuid,
               onSolveTap: () =>
                   context.push(AppRoutes.questionDetail(widget.questionUuid)),
             )
           : Column(
               children: [
+                CommunityQuestionHeader(questionUuid: widget.questionUuid),
                 Padding(
-                  padding: const EdgeInsets.only(top: PassqlSpacing.xs),
+                  padding: const EdgeInsets.only(top: PassqlSpacing.sm),
                   child: CommunityChoiceChips<CommunityPostSort>(
                     values: CommunityPostSort.values,
                     labelOf: (sort) => sort.label,
@@ -114,7 +117,7 @@ class _CommunityQuestionPageState extends ConsumerState<CommunityQuestionPage> {
                     child: Text(
                       CommunityComposeSheet.policyNotice,
                       style: PassqlTypography.footnote.copyWith(
-                        color: context.passqlColors.tertiaryLabel,
+                        color: context.passqlColors.secondaryLabel,
                       ),
                     ),
                   ),
@@ -132,9 +135,7 @@ class _CommunityQuestionPageState extends ConsumerState<CommunityQuestionPage> {
       return error == null
           ? const PassqlStatusView.loading()
           : PassqlStatusView.error(
-              message: error is AppException
-                  ? error.message
-                  : '의견을 불러오지 못했어요.',
+              message: error is AppException ? error.message : '의견을 불러오지 못했어요.',
               onRetry: () =>
                   ref.invalidate(communityQuestionPostsProvider(_query)),
             );
@@ -200,14 +201,19 @@ class _CommunityQuestionPageState extends ConsumerState<CommunityQuestionPage> {
 
 /// 풀기 전 안내: 의견 대신 풀기 유도
 class _SolveRequiredView extends StatelessWidget {
-  const _SolveRequiredView({required this.onSolveTap});
+  const _SolveRequiredView({
+    required this.questionUuid,
+    required this.onSolveTap,
+  });
 
+  final String questionUuid;
   final VoidCallback onSolveTap;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
+        CommunityQuestionHeader(questionUuid: questionUuid),
         Expanded(
           child: PassqlStatusView.empty(
             icon: CupertinoIcons.lock,

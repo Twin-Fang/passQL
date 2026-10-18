@@ -42,7 +42,8 @@ class _CommunityComposeSheetState extends ConsumerState<CommunityComposeSheet> {
     super.dispose();
   }
 
-  bool get _canSubmit => !_isSending && _contentController.text.trim().isNotEmpty;
+  bool get _canSubmit =>
+      !_isSending && _contentController.text.trim().isNotEmpty;
 
   Future<void> _submit() async {
     setState(() {
@@ -157,7 +158,7 @@ class _CommunityComposeSheetState extends ConsumerState<CommunityComposeSheet> {
                   _errorMessage ?? CommunityComposeSheet.policyNotice,
                   style: PassqlTypography.caption.copyWith(
                     color: _errorMessage == null
-                        ? colors.tertiaryLabel
+                        ? colors.secondaryLabel
                         : colors.wrongText,
                   ),
                 ),
