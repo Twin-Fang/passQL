@@ -33,6 +33,18 @@ abstract class CommunityApiClient {
     @Body() CommunityPostCreateRequest body,
   );
 
+  /// 이미지 업로드 (multipart: image=WebP 본체, thumbnail=WebP 썸네일, 성공 201)
+  @POST('/community/images')
+  Future<CommunityImageUploadResponse> uploadImage(@Body() FormData formData);
+
+  /// 이미지 바이트 조회 (JWT 필요, size=thumbnail|full, 응답 image/webp)
+  @GET('/community/images/{imageUuid}')
+  @DioResponseType(ResponseType.bytes)
+  Future<List<int>> getImageBytes(
+    @Path('imageUuid') String imageUuid, {
+    @Query('size') required String size,
+  });
+
   /// 내 글 삭제 (성공 204)
   @DELETE('/community/posts/{postUuid}')
   Future<void> deletePost(@Path('postUuid') String postUuid);

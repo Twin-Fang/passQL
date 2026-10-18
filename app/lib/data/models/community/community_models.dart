@@ -127,6 +127,46 @@ class SolveSnapshot {
   );
 }
 
+/// 글에 첨부된 이미지 1장 (본체는 imageUuid 로 인증 요청해 받음, url 은 서버 내부 경로라 직접 열지 않음)
+class CommunityPostImage {
+  const CommunityPostImage({
+    required this.imageUuid,
+    required this.width,
+    required this.height,
+  });
+
+  final String imageUuid;
+  final int width;
+  final int height;
+
+  factory CommunityPostImage.fromJson(Map<String, dynamic> json) =>
+      CommunityPostImage(
+        imageUuid: json['imageUuid'] as String,
+        width: json['width'] as int? ?? 0,
+        height: json['height'] as int? ?? 0,
+      );
+}
+
+/// 이미지 업로드 결과 (`POST /community/images`, 201): 글 작성 요청에는 imageUuid 만 사용
+class CommunityImageUploadResponse {
+  const CommunityImageUploadResponse({
+    required this.imageUuid,
+    required this.width,
+    required this.height,
+  });
+
+  final String imageUuid;
+  final int width;
+  final int height;
+
+  factory CommunityImageUploadResponse.fromJson(Map<String, dynamic> json) =>
+      CommunityImageUploadResponse(
+        imageUuid: json['imageUuid'] as String,
+        width: json['width'] as int? ?? 0,
+        height: json['height'] as int? ?? 0,
+      );
+}
+
 /// 의견 1건
 class CommunityPost {
   const CommunityPost({
@@ -138,6 +178,7 @@ class CommunityPost {
     required this.isLikedByMe,
     required this.createdAt,
     this.solveSnapshot,
+    this.images = const [],
   });
 
   final String postUuid;
@@ -148,6 +189,9 @@ class CommunityPost {
   final bool isLikedByMe;
   final SolveSnapshot? solveSnapshot;
   final DateTime createdAt;
+
+  /// 첨부 이미지 (최대 2장, 없으면 빈 목록)
+  final List<CommunityPostImage> images;
 
   CommunityPost copyWithLike({
     required bool isLikedByMe,
@@ -161,6 +205,7 @@ class CommunityPost {
     isLikedByMe: isLikedByMe,
     solveSnapshot: solveSnapshot,
     createdAt: createdAt,
+    images: images,
   );
 
   factory CommunityPost.fromJson(Map<String, dynamic> json) => CommunityPost(
@@ -174,6 +219,10 @@ class CommunityPost {
         ? null
         : SolveSnapshot.fromJson(json['solveSnapshot'] as Map<String, dynamic>),
     createdAt: _parseTime(json['createdAt']),
+    images: [
+      for (final image in json['images'] as List? ?? const [])
+        CommunityPostImage.fromJson(image as Map<String, dynamic>),
+    ],
   );
 }
 
@@ -216,14 +265,19 @@ class CommunityPostCreateRequest {
   const CommunityPostCreateRequest({
     required this.content,
     required this.includeSolveSnapshot,
+    this.imageUuids = const [],
   });
 
   final String content;
   final bool includeSolveSnapshot;
 
+  /// 업로드를 마친 이미지 UUID (최대 2장, 비면 보내지 않음)
+  final List<String> imageUuids;
+
   Map<String, dynamic> toJson() => {
     'content': content,
     'includeSolveSnapshot': includeSolveSnapshot,
+    if (imageUuids.isNotEmpty) 'imageUuids': imageUuids,
   };
 }
 

@@ -3,8 +3,9 @@ import 'package:flutter/cupertino.dart';
 import '../../../core/utils/relative_time.dart';
 import '../../../data/models/community/community_models.dart';
 import '../../design/design.dart';
+import 'community_post_images.dart';
 
-/// 의견 1건: 닉네임·시각·글 메뉴, 풀이 스냅샷 배지, 본문, 좋아요
+/// 의견 1건: 닉네임·시각·글 메뉴, 풀이 스냅샷 배지, 본문, 첨부 썸네일, 좋아요
 class CommunityPostTile extends StatelessWidget {
   const CommunityPostTile({
     super.key,
@@ -94,6 +95,7 @@ class CommunityPostTile extends StatelessWidget {
               style: PassqlTypography.body.copyWith(color: colors.label),
             ),
           ),
+          if (post.images.isNotEmpty) CommunityPostImages(images: post.images),
           _LikeButton(post: post, onTap: onLikeTap),
         ],
       ),

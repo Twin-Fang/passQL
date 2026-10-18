@@ -131,6 +131,7 @@ class AppException implements Exception {
     ErrorCode.nicknameForbidden: '사용할 수 없는 닉네임이에요.',
     ErrorCode.reportAlreadyExists: '이미 신고한 문제예요.',
     ErrorCode.communitySolveRequired: '풀고 나서 의견을 볼 수 있어요.',
+    ErrorCode.communityImageUnavailable: '지금은 이미지를 사용할 수 없어요. 잠시 후 다시 시도해 주세요.',
     ErrorCode.dailySetAlreadyCompleted: '오늘의 세트를 이미 완료했어요.',
     ErrorCode.dailySetNotFound: '오늘의 세트가 아직 준비되지 않았어요.',
     ErrorCode.aiUnavailable: 'AI 기능을 잠시 사용할 수 없어요.',

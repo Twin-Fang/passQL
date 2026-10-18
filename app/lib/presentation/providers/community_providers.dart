@@ -1,8 +1,10 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/network/api_call.dart';
 import '../../core/network/safe_call.dart';
+import '../../data/community/community_image_compressor.dart';
 import '../../data/models/community/community_models.dart';
 import '../../data/sources/api_providers.dart';
 import '../../data/sources/community_api.dart';
@@ -36,7 +38,10 @@ class CommunityFeedState {
 /// 회원별 데이터 (#516): 로그아웃이면 API 호출 없이 로딩 유지, 회원이 바뀌면 재생성
 class CommunityFeedNotifier
     extends
-        AutoDisposeFamilyAsyncNotifier<CommunityFeedState, CommunityFeedSource> {
+        AutoDisposeFamilyAsyncNotifier<
+          CommunityFeedState,
+          CommunityFeedSource
+        > {
   @override
   Future<CommunityFeedState> build(CommunityFeedSource arg) async {
     if (ref.watch(currentMemberUuidProvider) == null) {
@@ -82,10 +87,7 @@ final communityFeedProvider = AsyncNotifierProvider.autoDispose
     );
 
 /// 의견 목록 조회 조건: 문제 + 정렬
-typedef CommunityPostsQuery = ({
-  String questionUuid,
-  CommunityPostSort sort,
-});
+typedef CommunityPostsQuery = ({String questionUuid, CommunityPostSort sort});
 
 /// 의견 목록 상태: 불러온 글, 다음 커서, 추가 로딩 중 여부
 @immutable
@@ -118,7 +120,10 @@ class CommunityPostsState {
 /// 풀기 전이면 build 가 COMMUNITY_SOLVE_REQUIRED(AppException) 로 실패 > 화면이 풀기 안내로 분기
 class CommunityPostsNotifier
     extends
-        AutoDisposeFamilyAsyncNotifier<CommunityPostsState, CommunityPostsQuery> {
+        AutoDisposeFamilyAsyncNotifier<
+          CommunityPostsState,
+          CommunityPostsQuery
+        > {
   @override
   Future<CommunityPostsState> build(CommunityPostsQuery arg) async {
     if (ref.watch(currentMemberUuidProvider) == null) {
@@ -163,10 +168,32 @@ class CommunityPostsNotifier
     }
   }
 
+  /// 이미지 1장 업로드: 본체 + 썸네일 multipart > 서버 imageUuid (실패는 AppException 그대로)
+  Future<String> uploadImage(CompressedCommunityImage compressed) async {
+    final uploaded = await callApiThrowingAppException(
+      _api.uploadImage(
+        FormData.fromMap({
+          'image': MultipartFile.fromBytes(
+            compressed.imageBytes,
+            filename: 'image.webp',
+            contentType: DioMediaType('image', 'webp'),
+          ),
+          'thumbnail': MultipartFile.fromBytes(
+            compressed.thumbnailBytes,
+            filename: 'thumbnail.webp',
+            contentType: DioMediaType('image', 'webp'),
+          ),
+        }),
+      ),
+    );
+    return uploaded.imageUuid;
+  }
+
   /// 의견 작성: 서버 저장 > 이 문제의 두 정렬 목록 + 피드 다시 조회 (실패는 AppException 그대로)
   Future<void> submitPost({
     required String content,
     required bool shouldIncludeSolveSnapshot,
+    List<String> imageUuids = const [],
   }) async {
     await callApiThrowingAppException(
       _api.createQuestionPost(
@@ -174,6 +201,7 @@ class CommunityPostsNotifier
         CommunityPostCreateRequest(
           content: content,
           includeSolveSnapshot: shouldIncludeSolveSnapshot,
+          imageUuids: imageUuids,
         ),
       ),
     );
@@ -345,7 +373,8 @@ class BlockedMembersNotifier
   }
 }
 
-final blockedMembersProvider = AsyncNotifierProvider.autoDispose<
-  BlockedMembersNotifier,
-  List<BlockedMemberResponse>
->(BlockedMembersNotifier.new);
+final blockedMembersProvider =
+    AsyncNotifierProvider.autoDispose<
+      BlockedMembersNotifier,
+      List<BlockedMemberResponse>
+    >(BlockedMembersNotifier.new);
