@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { Star } from "lucide-react";
+import { MAX_QUESTION_DIFFICULTY } from "../lib/questionDifficulty";
 
 interface StarRatingProps {
   readonly level: number;
@@ -8,7 +9,7 @@ interface StarRatingProps {
 export const StarRating = memo(function StarRating({ level }: StarRatingProps) {
   return (
     <span className="flex gap-0.5">
-      {Array.from({ length: 5 }, (_, i) => (
+      {Array.from({ length: MAX_QUESTION_DIFFICULTY }, (_, i) => (
         <Star
           key={i}
           size={14}

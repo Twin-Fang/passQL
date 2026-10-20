@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import '../../../core/utils/question_difficulty.dart';
 import '../../../data/models/question/question_detail.dart';
 import '../../../data/models/question/sse_event.dart';
 import '../../../data/models/question/submit_result.dart';
@@ -19,7 +20,7 @@ class QuestionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final difficulty = question.difficulty ?? 1;
+    final difficulty = toClampedQuestionDifficulty(question.difficulty);
     final isExecutable = question.executionMode == 'EXECUTABLE';
     final title = question.subtopicName;
 
@@ -37,11 +38,11 @@ class QuestionHeader extends StatelessWidget {
             children: [
               // 난이도 표시는 색만이 아니라 채움 여부(별 모양)로도 구분된다.
               Semantics(
-                label: '난이도 $difficulty / 3',
+                label: '난이도 $difficulty / $maximumQuestionDifficulty',
                 excludeSemantics: true,
                 child: Row(
                   children: List.generate(
-                    3,
+                    maximumQuestionDifficulty,
                     (i) => Icon(
                       i < difficulty
                           ? CupertinoIcons.star_fill
