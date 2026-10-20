@@ -3,6 +3,7 @@ package com.passql.web.contract;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.passql.member.service.MemberActivityRecorder;
 import com.passql.web.config.OpenApiSchemaContractCustomizer;
 import com.passql.web.config.SwaggerConfig;
 import com.passql.web.config.WebMvcConfig;
@@ -145,6 +146,12 @@ class OpenApiContractTest {
         @Bean
         static BeanDefinitionRegistryPostProcessor controllerDependencyMockRegistrar() {
             return new ControllerDependencyMockRegistrar();
+        }
+
+        // WebMvcConfig 활동 기록 인터셉터 의존 (컨트롤러 의존 아님 > 자동 목 대상 밖)
+        @Bean
+        MemberActivityRecorder memberActivityRecorder() {
+            return Mockito.mock(MemberActivityRecorder.class);
         }
     }
 

@@ -5,4 +5,4 @@ import java.util.List;
 public record GenerateChoiceSetResult(
         List<GeneratedChoiceDto> choices,
         GenerationMetadataDto metadata
-) {}
+) implements GenerationMetadataCarrier {}

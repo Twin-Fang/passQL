@@ -1,8 +1,8 @@
 <!doctype html>
-<!-- 모니터링 상태 카드 (#475): 구성 요소 3종(AI 서버, Qdrant, Redis) + resilience4j 서킷 -->
+<!-- 모니터링 상태 카드 (#475): 구성 요소 4종(AI 서버, Qdrant, Redis, Gemini API) + resilience4j 서킷 -->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <th:block th:fragment="health-cards">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
         <div th:each="component : ${systemHealth.components}" class="card bg-base-100 shadow">
             <div class="card-body p-4">
                 <div class="flex items-center justify-between">

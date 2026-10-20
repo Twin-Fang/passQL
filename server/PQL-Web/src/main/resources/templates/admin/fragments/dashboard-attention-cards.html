@@ -1,49 +1,44 @@
 <!doctype html>
-<!-- 대시보드 처리·장애 지표 4종: 서버 5xx, AI 서버 실패, 미처리 신고, 미처리 건의 (#474) -->
+<!-- 대시보드 처리 필요 배지 띠: 서버 5xx, AI 실패, 미처리 문제 신고, 미처리 건의(서버 렌더) + 토론 신고 대기(realtime JS) + 시험 일정 알림 (#474, #557) -->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<th:block th:fragment="attention-cards">
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+<th:block th:fragment="attention-badges">
+    <section aria-label="처리 필요">
+        <h2 class="font-bold mb-2">처리 필요 <span class="text-xs font-normal text-base-content/50">0이면 회색</span></h2>
+        <div class="flex flex-wrap gap-2">
+            <!-- 서버 5xx (최근 24시간) -->
+            <a th:href="@{/admin/monitor}" class="badge badge-lg gap-1 hover:brightness-95"
+               th:classappend="${stats.serverErrorCount24h > 0} ? 'badge-error' : 'badge-ghost'"
+               th:text="'서버 5xx 24h · ' + ${#numbers.formatInteger(stats.serverErrorCount24h, 1, 'COMMA')}">서버 5xx 24h · 0</a>
 
-        <!-- 서버 5xx (최근 24시간) -->
-        <a th:href="@{/admin/monitor}" class="card bg-base-100 shadow hover:shadow-md transition-shadow">
-            <div class="card-body py-4">
-                <p class="text-sm text-base-content/60">서버 오류 5xx (24시간)</p>
-                <p class="text-2xl font-bold" th:classappend="${stats.serverErrorCount24h > 0} ? 'text-error' : 'text-success'"
-                   th:text="${stats.serverErrorCount24h}">0</p>
-                <p class="text-xs text-base-content/50">모니터링 > 최근 서버 오류</p>
-            </div>
-        </a>
+            <!-- AI 실패 (최근 24시간, 실패율은 툴팁) -->
+            <a th:href="@{/admin/monitor#ai}" class="badge badge-lg gap-1 hover:brightness-95"
+               th:classappend="${stats.aiStats24h.failureCount > 0} ? 'badge-error' : 'badge-ghost'"
+               th:title="'실패율 ' + ${#numbers.formatDecimal(stats.aiStats24h.failureRatePercent(), 1, 1)} + '%'"
+               th:text="'AI 실패 24h · ' + ${#numbers.formatInteger(stats.aiStats24h.failureCount, 1, 'COMMA')}">AI 실패 24h · 0</a>
 
-        <!-- AI 서버 실패 (최근 24시간) -->
-        <a th:href="@{/admin/monitor#ai}" class="card bg-base-100 shadow hover:shadow-md transition-shadow">
-            <div class="card-body py-4">
-                <p class="text-sm text-base-content/60">AI 서버 실패 (24시간)</p>
-                <p class="text-2xl font-bold" th:classappend="${stats.aiStats24h.failureCount > 0} ? 'text-error' : 'text-success'"
-                   th:text="${stats.aiStats24h.failureCount}">0</p>
-                <p class="text-xs text-base-content/50"
-                   th:text="'실패율 ' + ${#numbers.formatDecimal(stats.aiStats24h.failureRatePercent(), 1, 1)} + '%'">실패율 0%</p>
-            </div>
-        </a>
+            <!-- 미처리 문제 신고 -->
+            <a th:href="@{/admin/reports}" class="badge badge-lg gap-1 hover:brightness-95"
+               th:classappend="${stats.pendingReportCount > 0} ? 'badge-warning' : 'badge-ghost'"
+               th:text="'미처리 문제 신고 · ' + ${#numbers.formatInteger(stats.pendingReportCount, 1, 'COMMA')}">미처리 문제 신고 · 0</a>
 
-        <!-- 미처리 신고 -->
-        <a th:href="@{/admin/reports}" class="card bg-base-100 shadow hover:shadow-md transition-shadow">
-            <div class="card-body py-4">
-                <p class="text-sm text-base-content/60">미처리 신고</p>
-                <p class="text-2xl font-bold" th:classappend="${stats.pendingReportCount > 0} ? 'text-warning'"
-                   th:text="${stats.pendingReportCount}">0</p>
-                <p class="text-xs text-base-content/50">신고 관리 > 미처리만 보기</p>
-            </div>
-        </a>
+            <!-- 미처리 건의 (PENDING) -->
+            <a th:href="@{/admin/feedbacks(status='PENDING')}" class="badge badge-lg gap-1 hover:brightness-95"
+               th:classappend="${stats.pendingFeedbackCount > 0} ? 'badge-warning' : 'badge-ghost'"
+               th:text="'미처리 건의 · ' + ${#numbers.formatInteger(stats.pendingFeedbackCount, 1, 'COMMA')}">미처리 건의 · 0</a>
 
-        <!-- 미처리 건의 -->
-        <a th:href="@{/admin/feedbacks(status='PENDING')}" class="card bg-base-100 shadow hover:shadow-md transition-shadow">
-            <div class="card-body py-4">
-                <p class="text-sm text-base-content/60">미처리 건의</p>
-                <p class="text-2xl font-bold" th:classappend="${stats.pendingFeedbackCount > 0} ? 'text-warning'"
-                   th:text="${stats.pendingFeedbackCount}">0</p>
-                <p class="text-xs text-base-content/50">건의사항 > PENDING</p>
-            </div>
-        </a>
-    </div>
+            <!-- 토론 신고 대기 (realtime 응답 pendingCommunityReportCount 로 채움) -->
+            <a th:href="@{/admin/community/reports}" id="pendingCommunityReportBadge"
+               class="badge badge-lg badge-ghost gap-1 hover:brightness-95">토론 신고 대기 · -</a>
+
+            <!-- 시험 일정 공고 확인 필요 (#411, ERROR 는 빨강) -->
+            <a th:each="alert : ${examAlerts}" th:href="@{/admin/exam-schedules}"
+               class="badge badge-lg gap-1 h-auto min-h-8 py-1 whitespace-normal text-left hover:brightness-95"
+               th:classappend="${alert.level.name() == 'ERROR'} ? 'badge-error' : 'badge-warning'"
+               th:title="${alert.message}">
+                <i data-lucide="calendar-clock" class="size-4"></i>
+                <span th:text="${alert.certType.name()} + ' 시험 일정 · ' + ${alert.message}">SQLD 시험 일정 · 확인 필요</span>
+            </a>
+        </div>
+    </section>
 </th:block>
 </html>

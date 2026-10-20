@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * AI 호출 기록 보관 기간(30일) 정리 (#474)
+ * AI 호출 기록 보관 기간(400일) 정리 (#474, #557)
  */
 @Slf4j
 @Component

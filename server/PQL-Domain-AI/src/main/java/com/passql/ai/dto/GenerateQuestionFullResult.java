@@ -7,4 +7,4 @@ public record GenerateQuestionFullResult(
         String answerSql,
         List<GeneratedChoiceDto> seedChoices,
         GenerationMetadataDto metadata
-) {}
+) implements GenerationMetadataCarrier {}
