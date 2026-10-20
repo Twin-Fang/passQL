@@ -20,7 +20,7 @@ public final class StreakCalculator {
         if (dates == null || dates.isEmpty()) {
             return 0;
         }
-        // KST 기준 오늘 날짜 — 서버 컨테이너의 기본 타임존(UTC)에 의존하지 않도록 명시
+        // KST 기준 오늘 날짜 (JVM 기본 타임존과 무관하게 명시)
         LocalDate today = LocalDate.now(ReadinessConstants.ZONE);
         int streak = 0;
         LocalDate expected = today;

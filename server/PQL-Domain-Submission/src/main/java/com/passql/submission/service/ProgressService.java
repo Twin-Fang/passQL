@@ -26,8 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.HashMap;
@@ -66,7 +64,7 @@ public class ProgressService {
     }
 
     private ReadinessResponse buildReadiness(UUID memberUuid) {
-        // KST 기준 오늘 날짜 — 서버 컨테이너의 기본 타임존(UTC)에 의존하지 않도록 명시
+        // KST 기준 오늘 날짜 (JVM 기본 타임존과 무관하게 명시)
         LocalDate today = LocalDate.now(ReadinessConstants.ZONE);
 
         // 최근 N개 시도 (정답 여부 + 시각) — 단일 쿼리
@@ -88,12 +86,8 @@ public class ProgressService {
 
         int activeTopicCount = topicRepository.findByIsActiveTrueOrderBySortOrderAsc().size();
 
-        // KST 자정을 UTC LocalDateTime으로 변환 — atStartOfDay()만 쓰면 UTC 자정으로 DB 전달되어 9시간 오차 발생
-        LocalDateTime since = ZonedDateTime.of(
-                today.minusDays(ReadinessConstants.COVERAGE_WINDOW_DAYS).atStartOfDay(),
-                ReadinessConstants.ZONE
-            ).withZoneSameInstant(ZoneOffset.UTC)
-            .toLocalDateTime();
+        // KST 자정 그대로 비교 (submitted_at 은 서버 로컬 KST 저장값, #560)
+        LocalDateTime since = today.minusDays(ReadinessConstants.COVERAGE_WINDOW_DAYS).atStartOfDay();
         long coveredLong = submissionRepository.countDistinctRecentActiveTopicsByMemberUuid(
             memberUuid.toString(), since
         );
@@ -153,7 +147,7 @@ public class ProgressService {
             throw new CustomException(ErrorCode.MEMBER_NOT_FOUND);
         }
 
-        // KST 기준 오늘 날짜 — 서버가 UTC Docker 컨테이너에서 실행되므로 타임존 명시 필수
+        // KST 기준 오늘 날짜 (JVM 기본 타임존과 무관하게 명시)
         LocalDate today = LocalDate.now(ReadinessConstants.ZONE);
         LocalDate effectiveFrom = (from != null) ? from : today.minusDays(30);
         LocalDate effectiveTo = (to != null) ? to : today;
@@ -162,14 +156,9 @@ public class ProgressService {
             return new HeatmapResponse(Collections.emptyList());
         }
 
-        // KST 자정을 UTC LocalDateTime으로 변환하여 DB 쿼리 범위 설정
-        // submitted_at은 TIMESTAMP(타임존 없음)이지만 서버가 UTC로 저장하므로 KST→UTC 변환 필요
-        LocalDateTime fromDateTime = ZonedDateTime.of(effectiveFrom.atStartOfDay(), ReadinessConstants.ZONE)
-            .withZoneSameInstant(ZoneOffset.UTC)
-            .toLocalDateTime();
-        LocalDateTime toDateTimeExclusive = ZonedDateTime.of(effectiveTo.plusDays(1).atStartOfDay(), ReadinessConstants.ZONE)
-            .withZoneSameInstant(ZoneOffset.UTC)
-            .toLocalDateTime();
+        // 조회 범위: KST 자정 그대로 (submitted_at 은 서버 로컬 KST 저장값, 컨테이너 TZ=Asia/Seoul, #560)
+        LocalDateTime fromDateTime = effectiveFrom.atStartOfDay();
+        LocalDateTime toDateTimeExclusive = effectiveTo.plusDays(1).atStartOfDay();
 
         List<Object[]> rows = submissionRepository.findHeatmapByMemberUuid(
             memberUuid.toString(), fromDateTime, toDateTimeExclusive

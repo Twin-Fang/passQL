@@ -65,9 +65,9 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
     @Query(value = "WITH latest AS (SELECT question_uuid, is_correct, ROW_NUMBER() OVER (PARTITION BY question_uuid ORDER BY submitted_at DESC) rn FROM submission WHERE member_uuid = CAST(:memberUuid AS uuid)) SELECT COALESCE(AVG(CASE WHEN is_correct=true THEN 1.0 ELSE 0.0 END),0) FROM latest WHERE rn=1", nativeQuery = true)
     Double calculateCorrectRateByMemberUuid(@Param("memberUuid") String memberUuid);
 
-    // KST 기준 날짜 추출 — JPQL FUNCTION('DATE')은 타임존 지정 불가이므로 네이티브 쿼리로 전환
+    // 풀이 날짜 목록 (submitted_at 은 서버 로컬 KST 저장값, 컨테이너 TZ=Asia/Seoul > 변환 없이 DATE) (#560)
     @Query(value =
-        "SELECT DISTINCT DATE(s.submitted_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') " +
+        "SELECT DISTINCT DATE(s.submitted_at) " +
         "FROM submission s " +
         "WHERE s.member_uuid = CAST(:memberUuid AS uuid) " +
         "ORDER BY 1 DESC",
@@ -126,16 +126,15 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
      * @return Object[] = { java.sql.Date date, long solvedCount, long correctCount }
      */
     @Query(value =
-        // PostgreSQL: submitted_at은 UTC TIMESTAMP로 저장되므로 KST(Asia/Seoul)로 변환 후 DATE 추출
-        // AT TIME ZONE 'UTC' → AT TIME ZONE 'Asia/Seoul': TIMESTAMP → TIMESTAMPTZ → KST TIMESTAMP
-        "SELECT DATE(s.submitted_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') AS date, " +
+        // submitted_at 은 서버 로컬 KST 저장값 (컨테이너 TZ=Asia/Seoul) > 변환 없이 DATE (#560)
+        "SELECT DATE(s.submitted_at) AS date, " +
         "       COUNT(*)              AS solved_count, " +
         "       SUM(CASE WHEN s.is_correct THEN 1 ELSE 0 END) AS correct_count " +
         "FROM submission s " +
         "WHERE s.member_uuid = CAST(:memberUuid AS uuid) " +
         "  AND s.submitted_at >= :fromDate " +
         "  AND s.submitted_at < :toDateExclusive " +
-        "GROUP BY DATE(s.submitted_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') " +
+        "GROUP BY DATE(s.submitted_at) " +
         "ORDER BY date ASC",
         nativeQuery = true)
     List<Object[]> findHeatmapByMemberUuid(
