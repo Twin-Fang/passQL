@@ -9,7 +9,9 @@ class StemMarkdownTable {
 }
 
 /// 표 구분 줄 (| --- | :---: |)
-final RegExp _separatorRowRe = RegExp(r'^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)*\|?$');
+final RegExp _separatorRowRe = RegExp(
+  r'^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)*\|?$',
+);
 
 bool _isTableRowLine(String line) => line.trim().startsWith('|');
 

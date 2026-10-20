@@ -7,6 +7,7 @@ import '../../../data/models/question/submit_result.dart';
 import '../../design/design.dart';
 import '../../providers/question_providers.dart';
 import 'ai_explain_sheet.dart';
+import 'choice_display_label.dart';
 import 'execute_failure_card.dart';
 import 'execute_result_card.dart';
 import 'question_sections.dart';
@@ -134,6 +135,10 @@ class QuestionSolvingBody extends StatelessWidget {
         if (executeResult != null)
           ExecuteResultCard(
             result: executeResult,
+            executedChoiceLabel: findChoiceDisplayLabel(
+              interaction.activeChoices,
+              interaction.selectedChoiceKey,
+            ),
             onAiExplainTap: hasExecutionError
                 ? () => _openExecutionErrorExplanation(context)
                 : null,
@@ -184,14 +189,11 @@ class _ExecutionOutcomeSectionState extends State<_ExecutionOutcomeSection> {
   void _scheduleRevealOutcome() {
     _revealTimer?.cancel();
     final isReduced = PassqlMotion.isReduced(context);
-    _revealTimer = Timer(
-      isReduced ? Duration.zero : PassqlMotion.standard,
-      () {
-        if (!mounted) return;
-        // 이미 보이면 그대로, 가려져 있으면 하단 바 바로 위까지
-        revealAboveBottomBar(context);
-      },
-    );
+    _revealTimer = Timer(isReduced ? Duration.zero : PassqlMotion.standard, () {
+      if (!mounted) return;
+      // 이미 보이면 그대로, 가려져 있으면 하단 바 바로 위까지
+      revealAboveBottomBar(context);
+    });
   }
 
   @override

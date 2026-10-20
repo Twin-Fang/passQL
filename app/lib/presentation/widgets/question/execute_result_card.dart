@@ -8,6 +8,9 @@ class ExecuteResultCard extends StatelessWidget {
   final ExecuteResult result;
   final VoidCallback? onAiExplainTap;
 
+  /// 실행한 보기 표시 라벨(A~D). 있으면 머리에 "보기 B 실행 결과" 처럼 표시 (#554)
+  final String? executedChoiceLabel;
+
   /// 바깥 여백. 이미 좌우 inset 이 있는 목록 안에서는 가로를 0 으로 줄인다.
   final EdgeInsetsGeometry margin;
 
@@ -15,6 +18,7 @@ class ExecuteResultCard extends StatelessWidget {
     super.key,
     required this.result,
     this.onAiExplainTap,
+    this.executedChoiceLabel,
     this.margin = const EdgeInsets.symmetric(
       horizontal: PassqlSpacing.md,
       vertical: PassqlSpacing.xxs,
@@ -23,6 +27,11 @@ class ExecuteResultCard extends StatelessWidget {
 
   bool get _isError => result.errorCode != null && result.errorCode!.isNotEmpty;
 
+  /// 결과 표시 문구: 실행한 보기가 있으면 앞에 붙임 ("보기 B · 실행 성공")
+  String _markLabelOf(String outcomeLabel) => executedChoiceLabel == null
+      ? outcomeLabel
+      : '보기 $executedChoiceLabel · $outcomeLabel';
+
   @override
   Widget build(BuildContext context) {
     // 부모 Column 안에서 내용 폭으로 줄지 않게 선택지 카드와 같은 폭으로 편다(PassqlCard 가 width 를 채운다).
@@ -30,8 +39,12 @@ class ExecuteResultCard extends StatelessWidget {
       padding: margin,
       child: PassqlCard(
         child: _isError
-            ? _ErrorContent(result: result, onAiTap: onAiExplainTap)
-            : _SuccessContent(result: result),
+            ? _ErrorContent(
+                result: result,
+                onAiTap: onAiExplainTap,
+                markLabel: _markLabelOf('실행 오류'),
+              )
+            : _SuccessContent(result: result, markLabel: _markLabelOf('실행 성공')),
       ),
     );
   }
@@ -41,8 +54,13 @@ class ExecuteResultCard extends StatelessWidget {
 class _ErrorContent extends StatelessWidget {
   final ExecuteResult result;
   final VoidCallback? onAiTap;
+  final String markLabel;
 
-  const _ErrorContent({required this.result, this.onAiTap});
+  const _ErrorContent({
+    required this.result,
+    this.onAiTap,
+    required this.markLabel,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +68,7 @@ class _ErrorContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const PassqlResultMark(isCorrect: false, label: '실행 오류'),
+        PassqlResultMark(isCorrect: false, label: markLabel),
         const SizedBox(height: PassqlSpacing.xs),
         Text(
           result.errorCode ?? 'ERROR',
@@ -81,7 +99,8 @@ class _ErrorContent extends StatelessWidget {
 /// 성공 결과: 행 수 요약 + 컬럼 헤더/데이터 행 표.
 class _SuccessContent extends StatelessWidget {
   final ExecuteResult result;
-  const _SuccessContent({required this.result});
+  final String markLabel;
+  const _SuccessContent({required this.result, required this.markLabel});
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +108,7 @@ class _SuccessContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const PassqlResultMark(isCorrect: true, label: '실행 성공'),
+        PassqlResultMark(isCorrect: true, label: markLabel),
         const SizedBox(height: PassqlSpacing.xxs),
         Text(
           '${result.rowCount ?? result.rows.length}행 반환'

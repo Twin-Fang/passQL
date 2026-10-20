@@ -95,7 +95,6 @@ class _SampleRowsTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final cellStyle = PassqlTypography.codeCompact.copyWith(color: colors.label);
     final nullCellStyle = PassqlTypography.codeCompact.copyWith(color: colors.tertiaryLabel);
 
     return ClipRRect(
@@ -124,7 +123,7 @@ class _SampleRowsTable extends StatelessWidget {
                         for (var columnIndex = 0; columnIndex < columns.length; columnIndex++)
                           _buildValueCell(
                             columnIndex < row.length ? row[columnIndex] : null,
-                            cellStyle: cellStyle,
+                            cellColor: colors.label,
                             nullCellStyle: nullCellStyle,
                           ),
                       ],
@@ -139,11 +138,11 @@ class _SampleRowsTable extends StatelessWidget {
   }
 
   /// 셀 값 > 글자 (null 이면 흐린 NULL)
-  Widget _buildValueCell(Object? value, {required TextStyle cellStyle, required TextStyle nullCellStyle}) {
+  Widget _buildValueCell(Object? value, {required Color cellColor, required TextStyle nullCellStyle}) {
     return _TableCellPadding(
       child: value == null
           ? Text(SchemaTablePreview.nullCellLabel, style: nullCellStyle)
-          : Text('$value', style: cellStyle),
+          : Text('$value', style: toTableCellTextStyle('$value', color: cellColor)),
     );
   }
 }

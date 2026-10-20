@@ -80,10 +80,14 @@ class InlineCodeText extends StatelessWidget {
 
   static final RegExp _inlineRe = RegExp(r'`([^`\n]+)`');
 
+  /// 줄바꿈 안 되는 공백 (U+00A0)
+  static const String _nonBreakingSpace = '\u00A0';
+
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final base = style ?? PassqlTypography.callout.copyWith(color: colors.label);
+    final base =
+        style ?? PassqlTypography.callout.copyWith(color: colors.label);
     final spans = <InlineSpan>[];
     var cursor = 0;
     for (final match in _inlineRe.allMatches(text)) {
@@ -92,7 +96,8 @@ class InlineCodeText extends StatelessWidget {
       }
       spans.add(
         TextSpan(
-          text: match.group(1),
+          // 코드 안 공백은 줄바꿈 안 되는 공백으로: 'GROUP BY' 가 두 줄로 갈라지지 않게 (#554)
+          text: match.group(1)!.replaceAll(' ', _nonBreakingSpace),
           style: PassqlTypography.inlineCodeOf(
             base,
           ).copyWith(backgroundColor: colors.fill),
