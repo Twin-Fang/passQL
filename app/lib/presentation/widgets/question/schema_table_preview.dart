@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../data/models/question/question_schema_column.dart';
 import '../../../data/models/question/question_schema_table.dart';
 import '../../design/design.dart';
+import 'result_rows_table.dart';
 
 /// 테이블 1개 미리보기: 이름·샘플 행 수 > 컬럼 머리글(이름, PK·FK, 타입) + 샘플 행 표 (처음 5행 + 더 보기)
 /// 열이 많거나 글자가 커도 잘리지 않게 가로 스크롤
@@ -15,7 +16,7 @@ class SchemaTablePreview extends StatefulWidget {
   static const int initialSampleRowCount = 5;
 
   /// SQL NULL 셀 표시 문구 (실행 결과 표와 같은 표기)
-  static const String nullCellLabel = 'NULL';
+  static const String nullCellLabel = sqlNullCellLabel;
 
   @override
   State<SchemaTablePreview> createState() => _SchemaTablePreviewState();

@@ -105,7 +105,7 @@ class _SuccessContent extends StatelessWidget {
             columns: result.columns,
             rows: [
               for (final row in result.rows)
-                [for (final cellValue in row) cellValue ?? 'NULL'],
+                [for (final cellValue in row) cellValue],
             ],
           ),
         ],

@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 
 import '../../design/design.dart';
 
+/// SQL NULL 셀 표시 문구 (스키마 표, 실행 결과, 결과형 보기 공통)
+const String sqlNullCellLabel = 'NULL';
+
 /// 선택지 본문이 결과 행 JSON 배열(`[{"COL": 값, ...}]`)이면 행 목록을, 아니면 null 을 돌려준다.
 /// 웹(ResultMatchTable)과 같은 판별 기준을 쓴다.
 List<Map<String, dynamic>>? parseResultRows(String body) {
@@ -70,6 +73,10 @@ class ResultRowsTable extends StatelessWidget {
     final cellStyle = PassqlTypography.codeCompact.copyWith(
       color: colors.label,
     );
+    // NULL 은 흐린 색 문구로 빈 문자열('')과 구분
+    final nullCellStyle = PassqlTypography.codeCompact.copyWith(
+      color: colors.tertiaryLabel,
+    );
 
     Widget buildCell(String text, TextStyle style) => Padding(
       padding: const EdgeInsets.symmetric(
@@ -112,10 +119,13 @@ class ResultRowsTable extends StatelessWidget {
                     TableRow(
                       children: [
                         for (var i = 0; i < columns.length; i++)
-                          buildCell(
-                            i < row.length ? '${row[i] ?? ''}' : '',
-                            cellStyle,
-                          ),
+                          if (i < row.length && row[i] == null)
+                            buildCell(sqlNullCellLabel, nullCellStyle)
+                          else
+                            buildCell(
+                              i < row.length ? '${row[i]}' : '',
+                              cellStyle,
+                            ),
                       ],
                     ),
                 ],

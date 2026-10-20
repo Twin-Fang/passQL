@@ -907,6 +907,11 @@ body {
   color: var(--color-on-brand);
 }
 
+/* 선택된 결과형 보기 위 NULL 셀: 반전 색에서도 일반 값보다 흐리게 */
+.data-table--inverted td.result-table-null {
+  color: color-mix(in srgb, var(--color-on-brand) 70%, transparent);
+}
+
 .data-table--inverted tr {
   border-bottom-color: color-mix(in srgb, var(--color-on-brand) 15%, transparent);
 }

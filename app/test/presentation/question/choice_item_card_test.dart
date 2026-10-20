@@ -56,6 +56,26 @@ void main() {
     expect(find.text('(결과 없음)'), findsNothing);
   });
 
+  testWidgets('결과 보기의 NULL 은 빈칸이 아니라 NULL 로, 빈 문자열은 빈칸으로 보인다 (#549)', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      theme: PassqlTheme.light,
+      home: Scaffold(
+        body: ChoiceItemCard(
+          item: const ChoiceItem(
+            key: 'A',
+            kind: 'RESULT',
+            body: '[{"ID":1,"BONUS":null,"MEMO":""}]',
+          ),
+          displayLabel: 'A',
+          state: PassqlChoiceState.idle,
+          onTap: () {},
+        ),
+      ),
+    ));
+    expect(find.text(sqlNullCellLabel), findsOneWidget);
+    expect(find.text(''), findsOneWidget);
+  });
+
   testWidgets('SQL 선택지는 코드 블록으로, 글자 크기 2배에서도 넘치지 않는다', (tester) async {
     await tester.pumpWidget(MaterialApp(
       theme: PassqlTheme.light,
