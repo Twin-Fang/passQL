@@ -89,9 +89,15 @@ class AiExplanationPreviewCard extends ConsumerWidget {
                   : PassqlMotion.standard,
               curve: PassqlMotion.curve,
               alignment: Alignment.topCenter,
-              child: PassqlFadeSwitcher(
-                alignment: Alignment.topLeft,
-                child: body,
+              // 최소 높이 고정: 해설 길이와 무관하게 하단 피드백 바 높이 일정 (#551)
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: _previewBodyMinHeightOf(context, previewStyle),
+                ),
+                child: PassqlFadeSwitcher(
+                  alignment: Alignment.topLeft,
+                  child: body,
+                ),
               ),
             ),
           ],
@@ -99,6 +105,17 @@ class AiExplanationPreviewCard extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// 미리보기 본문 최소 높이: 판정 1줄 + 간격 + 근거 N줄 (글자 크기 설정 반영)
+double _previewBodyMinHeightOf(BuildContext context, TextStyle previewStyle) {
+  final textScaler = MediaQuery.textScalerOf(context);
+  double lineHeightOf(TextStyle style) =>
+      textScaler.scale(style.fontSize ?? 0) * (style.height ?? 1);
+  return lineHeightOf(PassqlTypography.subheadlineSemibold) +
+      PassqlSpacing.hairlineGap +
+      lineHeightOf(previewStyle) *
+          AiExplanationPreviewCard._reasonPreviewLineCount;
 }
 
 /// 머리: 반짝이 + 'AI 해설' + 오른쪽 '전체 보기 >'
