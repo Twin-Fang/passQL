@@ -81,6 +81,21 @@ class DailySetScoreVerificationTest {
     }
 
     @Test
+    void 앱을_다시_켜_새_세션으로_다시_풀어도_오늘_첫_제출로_채점한다() {
+        todaysSet(q1, q2);
+        // 새 세션에서는 둘 다 정답이지만, 앞 세션의 오늘 첫 제출은 q1 오답 (#561)
+        submissions(sub(q1, true), sub(q2, true));
+        List<Submission> todaysSubmissions = List.of(sub(q1, false), sub(q1, true), sub(q2, true));
+        when(submissionRepo.findByMemberUuidAndQuestionUuidInAndSubmittedAtGreaterThanEqualOrderBySubmittedAtAsc(
+                eq(member), any(), any()))
+                .thenReturn(todaysSubmissions);
+
+        DailySetCompleteResponse res = service.complete(member, new DailySetCompleteRequest(2, session));
+
+        assertEquals(1, res.correctCount());
+    }
+
+    @Test
     void 오늘_세트에_없는_문제의_제출은_세지_않는다() {
         todaysSet(q1);
         submissions(sub(q1, true), sub(UUID.randomUUID(), true), sub(UUID.randomUUID(), true));
