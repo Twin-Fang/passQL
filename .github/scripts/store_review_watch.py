@@ -20,7 +20,7 @@ GITHUB_API = "https://api.github.com"
 
 
 def cmd_android_status(args: argparse.Namespace) -> int:
-    """Play 트랙 목록 > {tracks: {이름: [버전·상태]}, hasProductionTrack}"""
+    """Play 트랙 목록 > {tracks: {이름: [버전·상태]}, hasProductionRelease}"""
     from google.auth.transport.requests import AuthorizedSession
     from google.oauth2 import service_account
 
@@ -38,7 +38,8 @@ def cmd_android_status(args: argparse.Namespace) -> int:
         track["track"]: [f"{release.get('name')}({release.get('status')})" for release in track.get("releases", [])]
         for track in tracks
     }
-    print(json.dumps({"tracks": summary, "hasProductionTrack": "production" in summary}, ensure_ascii=False))
+    # 승인 전에도 빈 production 트랙이 목록에 올 수 있어, 릴리스가 있어야 출시된 것으로 본다
+    print(json.dumps({"tracks": summary, "hasProductionRelease": bool(summary.get("production"))}, ensure_ascii=False))
     return 0
 
 
@@ -62,7 +63,7 @@ def _to_state(ios_status: dict, android_status: dict) -> dict:
     return {
         "ios": f"{latest.get('version')} {latest.get('appStoreState')}" if latest else "조회 실패",
         "android": android_status.get("tracks") if android_status else "조회 실패",
-        "androidProduction": android_status.get("hasProductionTrack") if android_status else None,
+        "androidProduction": android_status.get("hasProductionRelease") if android_status else None,
     }
 
 
@@ -75,7 +76,7 @@ def _to_headline(state: dict) -> str:
     if ios_code in IOS_REJECTED_STATES:
         return f"[거절] iOS 심사 거절: {ios_text}"
     if state.get("androidProduction"):
-        return "[승인] Android 프로덕션 트랙 열림 (프로덕션 액세스 승인)"
+        return "[출시] Android 프로덕션 트랙에 릴리스 등록"
     return f"[변경] 스토어 상태 변경: iOS {ios_text}"
 
 
@@ -118,7 +119,7 @@ def cmd_notify(args: argparse.Namespace) -> int:
     body = (f"### {_to_headline(state)}\n\n"
             f"- iOS(App Store): `{state['ios']}`\n"
             f"- Android(Play) 트랙:\n{android_lines}\n"
-            f"- Android 프로덕션 트랙: {'열림' if state['androidProduction'] else '없음(프로덕션 액세스 승인 전)'}\n\n"
+            f"- Android 프로덕션 릴리스: {'있음' if state['androidProduction'] else '없음 (프로덕션 액세스 승인 메일은 계정 소유자에게 옴, #568)'}\n\n"
             f"{STATE_MARKER_PREFIX}{json.dumps(state, ensure_ascii=False)}{STATE_MARKER_SUFFIX}")
     _github("POST", f"/repos/{repository}/issues/{args.issue}/comments", token, {"body": body})
     print(f"[store watch] changed : {json.dumps(last_state, ensure_ascii=False)} -> {json.dumps(state, ensure_ascii=False)}")
