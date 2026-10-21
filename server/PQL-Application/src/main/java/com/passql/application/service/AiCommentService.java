@@ -17,7 +17,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
@@ -37,6 +39,8 @@ public class AiCommentService {
     private static final String PROMPT_KEY_STATS = "ai_comment_stats";
     /** 결과 화면 AI 코멘트 프롬프트 키 — 세션 결과 + 누적 통계 통합 */
     private static final String PROMPT_KEY_SESSION = "ai_comment";
+    // 프롬프트 날짜 형식 (yyyy-MM-dd)
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     /** 통계 화면 최근 활동 기간 (일) */
     private static final int RECENT_ACTIVITY_DAYS = 7;
 
@@ -126,10 +130,7 @@ public class AiCommentService {
         return response;
     }
 
-    /**
-     * 최근 7일 학습 현황을 텍스트로 변환.
-     * "최근 7일 풀이 수: N문제 / 최근 활동일: YYYY-MM-DD" 형태로 반환.
-     */
+    /** 최근 7일 학습 현황 조회 > 프롬프트용 텍스트 */
     private String buildRecentActivitySummary(UUID memberUuid) {
         LocalDateTime since = LocalDateTime.now().minusDays(RECENT_ACTIVITY_DAYS);
         List<Object[]> rows = submissionRepository.findRecentActivityStats(memberUuid.toString(), since);
@@ -137,13 +138,24 @@ public class AiCommentService {
         Object[] row = rows.isEmpty() ? new Object[]{null, null} : rows.get(0);
 
         long recentCount = row[0] != null ? ((Number) row[0]).longValue() : 0L;
-        String lastActiveDate = row[1] != null
-                ? ((java.sql.Timestamp) row[1]).toLocalDateTime()
-                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                : "없음";
+        // submitted_at 은 서버 로컬(KST) 저장값 (#560)
+        LocalDate lastActiveDate = row[1] != null ? ((java.sql.Timestamp) row[1]).toLocalDateTime().toLocalDate() : null;
+        return toRecentActivitySummary(recentCount, lastActiveDate, LocalDate.now());
+    }
 
-        return "최근 " + RECENT_ACTIVITY_DAYS + "일 풀이 수: " + recentCount + "문제\n"
-                + "최근 활동일: " + lastActiveDate;
+    /**
+     * 최근 활동 > 프롬프트 텍스트 (오늘 날짜와 며칠 전인지 함께, 모델이 최근 활동일을 과거로 오해하지 않게 #567)
+     * "오늘: 2026-10-21 / 최근 7일 풀이 수: 3문제 / 최근 활동일: 2026-10-21 (오늘)"
+     */
+    static String toRecentActivitySummary(long recentCount, LocalDate lastActiveDate, LocalDate today) {
+        String lastActiveText = "없음";
+        if (lastActiveDate != null) {
+            long daysAgo = ChronoUnit.DAYS.between(lastActiveDate, today);
+            lastActiveText = lastActiveDate.format(DATE_FORMAT) + (daysAgo <= 0 ? " (오늘)" : " (" + daysAgo + "일 전)");
+        }
+        return "오늘: " + today.format(DATE_FORMAT) + "\n"
+                + "최근 " + RECENT_ACTIVITY_DAYS + "일 풀이 수: " + recentCount + "문제\n"
+                + "최근 활동일: " + lastActiveText;
     }
 
     /** 세션 내 제출 목록을 "토픽명: 정답/오답" 형태 텍스트로 변환 */
