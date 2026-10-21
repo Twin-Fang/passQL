@@ -9,7 +9,6 @@ import 'package:passql_app/presentation/pages/settings/settings_page.dart';
 import 'package:passql_app/presentation/providers/auth_provider.dart';
 import 'package:passql_app/presentation/providers/app_config_providers.dart';
 import 'package:passql_app/presentation/providers/settings_providers.dart';
-import 'package:passql_app/presentation/providers/wrong_questions_provider.dart';
 
 class SignedInAuth extends AuthNotifier {
   @override
@@ -41,7 +40,6 @@ Future<void> pumpSettings(
           ),
         ),
         currentAppVersionProvider.overrideWith((ref) async => '1.0.0'),
-        wrongQuestionTotalCountProvider.overrideWith((ref) async => 3),
         ...extraOverrides,
       ],
       child: MaterialApp(theme: theme, home: const SettingsPage()),
@@ -62,25 +60,6 @@ void main() {
       tester.widget<Text>(find.text('회원 탈퇴')).style!.color,
       PassqlColors.light.wrong,
     );
-  });
-
-  testWidgets('오답 노트 행은 개수만 조회해 보여 주고 목록(진입 분석 기록)은 불러오지 않는다', (
-    tester,
-  ) async {
-    var wrongListLoads = 0;
-    await pumpSettings(
-      tester,
-      PassqlTheme.light,
-      extraOverrides: [
-        wrongQuestionsProvider.overrideWith((ref) async {
-          wrongListLoads++;
-          throw StateError('settings must not load the wrong-notes list');
-        }),
-      ],
-    );
-
-    expect(find.text('3'), findsOneWidget);
-    expect(wrongListLoads, 0);
   });
 
   testWidgets('다크 테마에서도 예외 없이 그려진다', (tester) async {

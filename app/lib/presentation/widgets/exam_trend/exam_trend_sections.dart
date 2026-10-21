@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import '../../../data/models/exam_trend/exam_trend_report_response.dart';
 import '../../design/design.dart';
 
-// 출제 경향 화면 조각 (#523): 요약 카드, 과목 비중, 늘어난 유형, 자주 나오는 개념, 공부 팁
+// 출제 경향 화면 조각 (#523): 과목 비중, 늘어난 유형, 자주 나오는 개념, 공부 팁
 
 /// 백분율 > 진행 막대 값 (0~1)
 const double _percentDenominator = 100;
@@ -13,52 +13,6 @@ const double _rankColumnWidth = 32;
 
 /// 강조색으로 그리는 상위 순위 수 (1~3위)
 const int _highlightedRankCount = 3;
-
-/// 요약 카드: 최신 경향 배지 + 제목 + 근거 회차 + 요약 + 풀 수 있는 최신 경향 문제 수
-class ExamTrendSummaryCard extends StatelessWidget {
-  const ExamTrendSummaryCard({super.key, required this.report});
-
-  final ExamTrendReportResponse report;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    return PassqlCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const PassqlLatestTrendBadge(),
-          const SizedBox(height: PassqlSpacing.xs),
-          Text(
-            report.title,
-            style: PassqlTypography.title2.copyWith(color: colors.label),
-          ),
-          const SizedBox(height: PassqlSpacing.xxs),
-          Text(
-            '${report.basisDescription} · ${report.updatedDate} 갱신',
-            style: PassqlTypography.caption.copyWith(
-              color: colors.secondaryLabel,
-            ),
-          ),
-          const SizedBox(height: PassqlSpacing.sm),
-          Text(
-            report.summary,
-            style: PassqlTypography.subheadline.copyWith(color: colors.label),
-          ),
-          if (report.latestTrendQuestionCount > 0) ...[
-            const SizedBox(height: PassqlSpacing.sm),
-            Text(
-              '최신 경향 문제 ${report.latestTrendQuestionCount}개를 풀 수 있어요',
-              style: PassqlTypography.footnoteSemibold.copyWith(
-                color: colors.accent,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
 
 /// 과목별 비중: 과목명 + 문항 수·백분율 + 진행 막대 + 설명
 class ExamTrendSubjectShareSection extends StatelessWidget {

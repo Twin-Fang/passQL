@@ -52,6 +52,7 @@ Future<GoRouter> _pumpQuestionsTab(
   WidgetTester tester,
   QuestionsTabView view, {
   bool isReportFailing = false,
+  List<Override> extraOverrides = const [],
 }) async {
   tester.view.physicalSize = const Size(390, 844);
   tester.view.devicePixelRatio = 1;
@@ -84,6 +85,7 @@ Future<GoRouter> _pumpQuestionsTab(
         examTrendReportProvider.overrideWith(
           (ref) async => isReportFailing ? throw Exception('boom') : _report,
         ),
+        ...extraOverrides,
       ],
       child: MaterialApp.router(theme: PassqlTheme.light, routerConfig: router),
     ),
@@ -101,6 +103,22 @@ void main() {
     for (final view in QuestionsTabView.values) {
       expect(find.text(view.label), findsOneWidget);
     }
+  });
+
+  testWidgets('오답 노트 행은 개수만 조회하고 목록(진입 분석 기록)은 불러오지 않는다', (tester) async {
+    var wrongListLoads = 0;
+    await _pumpQuestionsTab(
+      tester,
+      QuestionsTabView.byTopic,
+      extraOverrides: [
+        wrongQuestionsProvider.overrideWith((ref) async {
+          wrongListLoads++;
+          throw StateError('questions tab must not load the wrong-notes list');
+        }),
+      ],
+    );
+    expect(find.text('7'), findsOneWidget);
+    expect(wrongListLoads, 0);
   });
 
   testWidgets('최신 경향: 총 문제 수·유형·공부 팁, 토픽 목록 없음', (tester) async {
