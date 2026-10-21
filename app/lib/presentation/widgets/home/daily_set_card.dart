@@ -13,6 +13,7 @@ class DailySetCard extends StatelessWidget {
     required this.onStart,
     required this.onViewResult,
     required this.onBrowse,
+    required this.onViewLeaderboard,
   });
 
   /// null 이면 불러오지 못한 것으로 보고 준비 중으로 표시한다.
@@ -26,6 +27,9 @@ class DailySetCard extends StatelessWidget {
 
   /// 세트가 없을 때 문제 목록으로 이동.
   final VoidCallback onBrowse;
+
+  /// 오늘의 전체 순위 보기 (세트가 있을 때 완료 전에도 노출).
+  final VoidCallback onViewLeaderboard;
 
   @override
   Widget build(BuildContext context) {
@@ -109,6 +113,14 @@ class DailySetCard extends StatelessWidget {
             variant: PassqlButtonVariant.tinted,
             size: PassqlButtonSize.small,
           ),
+          // 순위 보조 진입 (세트가 있는 상태: 풀 수 있음·완료)
+          if (completed || available)
+            PassqlButton(
+              label: '순위 보기',
+              onPressed: onViewLeaderboard,
+              variant: PassqlButtonVariant.plain,
+              size: PassqlButtonSize.small,
+            ),
         ],
       ),
     );

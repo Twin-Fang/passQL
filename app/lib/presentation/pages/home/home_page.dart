@@ -133,6 +133,7 @@ class _HomeContent extends ConsumerWidget {
                 onStart: () => context.push(AppRoutes.dailySet),
                 onViewResult: () => context.push(AppRoutes.dailySetResult),
                 onBrowse: () => context.go(AppRoutes.questions),
+                onViewLeaderboard: () => context.push(AppRoutes.leaderboard),
               ),
             ),
             const SizedBox(width: PassqlSpacing.sm),

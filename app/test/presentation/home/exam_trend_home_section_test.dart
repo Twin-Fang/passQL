@@ -95,6 +95,12 @@ void main() {
     expect(viewAllCount, 1);
   });
 
+  testWidgets("'전체' 버튼은 스크린리더에 '이번 시험 출제 경향 전체 보기'로 읽힌다", (tester) async {
+    await _pumpSection(tester, _report);
+
+    expect(find.bySemanticsLabel('이번 시험 출제 경향 전체 보기'), findsOneWidget);
+  });
+
   testWidgets('늘어난 유형이 비어도 카드 없이 예외 없이 그려진다', (tester) async {
     await _pumpSection(tester, _report.copyWith(risingPatterns: const []));
 
