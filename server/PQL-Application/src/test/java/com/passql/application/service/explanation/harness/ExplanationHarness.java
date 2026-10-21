@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.passql.ai.client.GeminiClient;
+import com.passql.ai.service.AiCallLogService;
 import com.passql.application.service.explanation.ChoiceSetExplanationGenerationResult;
 import com.passql.application.service.explanation.ChoiceSetExplanationGenerator;
 import com.passql.application.service.explanation.ChoiceSetExplanationPrompt;
@@ -235,7 +236,7 @@ public final class ExplanationHarness {
         when(promptService.getActivePrompt(anyString())).thenReturn(PromptTemplate.builder()
                 .keyName("diff_explain").version(0).model(model == null || model.isBlank() ? DEFAULT_LIVE_MODEL : model)
                 .systemPrompt("").temperature(LIVE_TEMPERATURE).maxTokens(LIVE_MAX_TOKENS).build());
-        return new ChoiceSetExplanationGenerator(new GeminiClient(appSettingService, DEFAULT_LIVE_MODEL), promptService);
+        return new ChoiceSetExplanationGenerator(new GeminiClient(appSettingService, mock(AiCallLogService.class), DEFAULT_LIVE_MODEL), promptService);
     }
 
     static Path recordedDirectoryForCurrentVersion(Path harnessDirectory) {

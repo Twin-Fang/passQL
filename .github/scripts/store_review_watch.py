@@ -2,6 +2,7 @@
 """
 스토어 심사 상태 감시 (#569): iOS 심사 상태 + Android 트랙 조회 > 이전 상태와 다르면 추적 이슈에 댓글
 - android-status: Play Developer API 트랙 조회 (편집을 열어 읽기만 하고 버림)
+- android-promote: alpha 최신 릴리스가 production 에 없으면 production 으로 승급 시도 (프로덕션 액세스 승인 전이면 거부되고 넘어감, #568)
 - notify: 상태 요약 > 이슈 댓글의 숨김 표식(마지막 상태)과 비교 > 바뀐 경우만 댓글
 """
 import argparse
@@ -41,6 +42,49 @@ def cmd_android_status(args: argparse.Namespace) -> int:
     # 승인 전에도 빈 production 트랙이 목록에 올 수 있어, 릴리스가 있어야 출시된 것으로 본다
     print(json.dumps({"tracks": summary, "hasProductionRelease": bool(summary.get("production"))}, ensure_ascii=False))
     return 0
+
+
+def cmd_android_promote(args: argparse.Namespace) -> int:
+    """alpha 최신 릴리스 > production 승급 (이미 있으면 그대로, 승인 전 FAILED_PRECONDITION 이면 대기)"""
+    from google.auth.transport.requests import AuthorizedSession
+    from google.oauth2 import service_account
+
+    credentials = service_account.Credentials.from_service_account_file(
+        args.key, scopes=["https://www.googleapis.com/auth/androidpublisher"])
+    session = AuthorizedSession(credentials)
+    base = f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{args.package}"
+    edit_id = session.post(f"{base}/edits").json()["id"]
+    try:
+        tracks = {track["track"]: track for track in session.get(f"{base}/edits/{edit_id}/tracks").json().get("tracks", [])}
+        alpha_releases = tracks.get("alpha", {}).get("releases", [])
+        if not alpha_releases:
+            print(json.dumps({"result": "no_alpha_release"}))
+            return 0
+        alpha_release = alpha_releases[0]
+        production_codes = {code for release in tracks.get("production", {}).get("releases", [])
+                            for code in release.get("versionCodes", [])}
+        if set(alpha_release.get("versionCodes", [])) <= production_codes:
+            print(json.dumps({"result": "already_promoted", "release": alpha_release.get("name")}))
+            return 0
+
+        # alpha 와 같은 빌드·출시 노트로 production 전체 출시 (Google 심사 후 공개)
+        production_release = {key: alpha_release[key] for key in ("name", "versionCodes", "releaseNotes") if key in alpha_release}
+        production_release["status"] = "completed"
+        update = session.put(f"{base}/edits/{edit_id}/tracks/production",
+                             json={"track": "production", "releases": [production_release]})
+        if update.status_code == 400 and "FAILED_PRECONDITION" in update.text:
+            print(json.dumps({"result": "access_pending", "release": alpha_release.get("name")}))
+            return 0
+        update.raise_for_status()
+        commit = session.post(f"{base}/edits/{edit_id}:commit")
+        commit.raise_for_status()
+        edit_id = None
+        print(json.dumps({"result": "promoted", "release": alpha_release.get("name")}, ensure_ascii=False))
+        return 0
+    finally:
+        # 커밋하지 않은 편집은 버린다
+        if edit_id:
+            session.delete(f"{base}/edits/{edit_id}")
 
 
 def _read_last_json_line(path: str) -> dict:
@@ -132,12 +176,16 @@ def main() -> int:
     android = commands.add_parser("android-status")
     android.add_argument("--key", required=True)
     android.add_argument("--package", required=True)
+    promote = commands.add_parser("android-promote")
+    promote.add_argument("--key", required=True)
+    promote.add_argument("--package", required=True)
     notify = commands.add_parser("notify")
     notify.add_argument("--ios", required=True)
     notify.add_argument("--android", required=True)
     notify.add_argument("--issue", type=int, required=True)
     args = parser.parse_args()
-    return cmd_android_status(args) if args.command == "android-status" else cmd_notify(args)
+    handlers = {"android-status": cmd_android_status, "android-promote": cmd_android_promote, "notify": cmd_notify}
+    return handlers[args.command](args)
 
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@ package com.passql.web.config;
 import com.passql.ai.service.AiCallLogService;
 import com.passql.application.notification.NotificationDispatcher;
 import com.passql.member.auth.application.SocialUnlinkService;
+import com.passql.member.service.MemberActivityHourService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -36,6 +37,19 @@ public class AsyncConfig {
         executor.setMaxPoolSize(1);
         executor.setQueueCapacity(1000);
         executor.setThreadNamePrefix("ai-call-log-");
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
+        executor.initialize();
+        return executor;
+    }
+
+    /** 회원 시간대별 활동 기록 전용 (#557): 단일 스레드, 대기 1000건 초과분은 버림 (통계용이라 요청에 영향 금지) */
+    @Bean(MemberActivityHourService.RECORD_EXECUTOR_NAME)
+    public Executor memberActivityExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(1);
+        executor.setMaxPoolSize(1);
+        executor.setQueueCapacity(1000);
+        executor.setThreadNamePrefix("member-activity-");
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
         executor.initialize();
         return executor;

@@ -3,6 +3,7 @@ package com.passql.ai.client;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.passql.ai.constant.AiCallSource;
 import com.passql.ai.dto.*;
 import com.passql.ai.dto.ComponentHealth;
 import com.passql.ai.service.AiCallLogService;
@@ -239,17 +240,29 @@ public class AiGatewayClient {
     //  내부 HTTP 처리
     // ========================
 
-    /** AI 서버 POST 1회 + 호출 기록 (성공·실패·지연, #474) — Python 호출의 유일한 통로 */
+    /** AI 서버 POST 1회 + 호출 기록 (성공·실패·지연·모델·토큰, #474, #557) — Python 호출의 유일한 통로 */
     private <T> T postToPython(String path, Object request, Class<T> responseType) {
         long startedAtMilliseconds = System.currentTimeMillis();
         try {
             T response = exchangeWithPython(path, request, responseType);
-            aiCallLogService.record(path, true, System.currentTimeMillis() - startedAtMilliseconds, null);
+            recordSuccess(path, System.currentTimeMillis() - startedAtMilliseconds, response);
             return response;
         } catch (RuntimeException e) {
-            aiCallLogService.record(path, false, System.currentTimeMillis() - startedAtMilliseconds, toErrorType(e));
+            aiCallLogService.record(AiCallSource.AI_SERVER, path, null, false,
+                    System.currentTimeMillis() - startedAtMilliseconds, toErrorType(e), null, null);
             throw e;
         }
+    }
+
+    /** 성공 기록 (생성 메타데이터가 있는 응답이면 모델·토큰 수 포함, 없으면 null) */
+    private void recordSuccess(String path, long latencyMilliseconds, Object response) {
+        GenerationMetadataDto metadata = response instanceof GenerationMetadataCarrier carrier ? carrier.metadata() : null;
+        if (metadata == null) {
+            aiCallLogService.record(AiCallSource.AI_SERVER, path, null, true, latencyMilliseconds, null, null, null);
+            return;
+        }
+        aiCallLogService.record(AiCallSource.AI_SERVER, path, metadata.modelName(), true, latencyMilliseconds, null,
+                metadata.promptTokens(), metadata.completionTokens());
     }
 
     /** 실패 종류: CustomException 은 ErrorCode 이름, 그 외는 예외 클래스 이름 */

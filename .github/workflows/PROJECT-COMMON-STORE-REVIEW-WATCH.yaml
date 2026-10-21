@@ -1,6 +1,7 @@
 name: PROJECT-COMMON-STORE-REVIEW-WATCH
 
 # 스토어 심사 상태 감시 (#569): 30분마다 iOS 심사 상태·Android 트랙을 조회해 바뀌었을 때만 추적 이슈에 댓글
+# Android 는 프로덕션 액세스 승인 뒤 alpha 최신 빌드를 production 으로 자동 승급 (#568), iOS 는 store_submit 이 승인 즉시 자동 출시
 # 추적 이슈를 구독하면 GitHub 알림 메일로 심사 통과·거절을 받는다
 on:
   schedule:
@@ -50,6 +51,8 @@ jobs:
           pip install --quiet google-auth requests
           KEY_PATH="$RUNNER_TEMP/play.json"
           echo "$PLAY_KEY_BASE64" | base64 --decode > "$KEY_PATH"
+          # 프로덕션 액세스 승인 뒤 자동 출시: alpha 최신 빌드를 production 으로 (승인 전이면 거부되고 넘어감, #568)
+          python3 .github/scripts/store_review_watch.py android-promote --key "$KEY_PATH" --package "$ANDROID_PACKAGE" || echo "::warning::Android 자동 승급 실패"
           python3 .github/scripts/store_review_watch.py android-status --key "$KEY_PATH" --package "$ANDROID_PACKAGE" > "$RUNNER_TEMP/android.json" || echo "::warning::Android 상태 조회 실패"
           rm -f "$KEY_PATH"
 

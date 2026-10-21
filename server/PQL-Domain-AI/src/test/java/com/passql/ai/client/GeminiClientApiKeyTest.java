@@ -1,5 +1,6 @@
 package com.passql.ai.client;
 
+import com.passql.ai.service.AiCallLogService;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.constant.AppSettingKeys;
@@ -21,7 +22,7 @@ class GeminiClientApiKeyTest {
     @BeforeEach
     void setUp() {
         appSettingService = mock(AppSettingService.class);
-        geminiClient = new GeminiClient(appSettingService, "gemini-test-model");
+        geminiClient = new GeminiClient(appSettingService, mock(AiCallLogService.class), "gemini-test-model");
     }
 
     @Test
