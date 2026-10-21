@@ -8,6 +8,12 @@ import '../../design/design.dart';
 /// 백분율 > 진행 막대 값 (0~1)
 const double _percentDenominator = 100;
 
+/// 순위 숫자 칸 폭 (두 자리 순위까지 제목 시작선이 같도록)
+const double _rankColumnWidth = 32;
+
+/// 강조색으로 그리는 상위 순위 수 (1~3위)
+const int _highlightedRankCount = 3;
+
 /// 요약 카드: 최신 경향 배지 + 제목 + 근거 회차 + 요약 + 풀 수 있는 최신 경향 문제 수
 class ExamTrendSummaryCard extends StatelessWidget {
   const ExamTrendSummaryCard({super.key, required this.report});
@@ -160,7 +166,8 @@ class ExamTrendConceptSection extends StatelessWidget {
       children: [
         for (final concept in concepts)
           ExamTrendSolvableRow(
-            title: '${concept.rank}. ${concept.name}',
+            title: concept.name,
+            rank: concept.rank,
             caption: concept.frequencyText,
             description: concept.description,
             topicCode: concept.topicCode,
@@ -184,6 +191,7 @@ class ExamTrendSolvableRow extends StatelessWidget {
     required this.topicName,
     required this.latestTrendQuestionCount,
     required this.onSolveTopic,
+    this.rank,
   });
 
   final String title;
@@ -193,6 +201,9 @@ class ExamTrendSolvableRow extends StatelessWidget {
   final String? topicName;
   final int latestTrendQuestionCount;
   final void Function(String topicCode, String topicName) onSolveTopic;
+
+  /// 순위 (있으면 왼쪽에 큰 숫자, 1~3위만 강조색)
+  final int? rank;
 
   bool get _canSolve => topicName != null && latestTrendQuestionCount > 0;
 
@@ -204,6 +215,21 @@ class ExamTrendSolvableRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (rank != null) ...[
+            SizedBox(
+              width: _rankColumnWidth,
+              child: Text(
+                '$rank',
+                style: PassqlTypography.title2.copyWith(
+                  color: rank! <= _highlightedRankCount
+                      ? colors.accent
+                      : colors.secondaryLabel,
+                  fontFeatures: PassqlTypography.tabular,
+                ),
+              ),
+            ),
+            const SizedBox(width: PassqlSpacing.xs),
+          ],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -283,7 +309,9 @@ class ExamTrendStudyTipSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(top: PassqlSpacing.hairlineGap),
+                  padding: const EdgeInsets.only(
+                    top: PassqlSpacing.hairlineGap,
+                  ),
                   child: Icon(
                     CupertinoIcons.lightbulb_fill,
                     size: PassqlIconSize.sm,
