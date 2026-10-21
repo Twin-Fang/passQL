@@ -172,7 +172,7 @@ public class QuestionService {
                 .toList();
         // 풀이용 고정 세트는 표시 순서 섞기 (관리자 화면은 저장 순서 유지)
         if (shouldShuffle) {
-            items = ChoiceOrderShuffler.shuffle(items, (item, sortOrder) -> new QuestionDetail.ChoiceItem(
+            items = ChoiceOrderShuffler.shuffle(items, QuestionDetail.ChoiceItem::body, (item, sortOrder) -> new QuestionDetail.ChoiceItem(
                     item.key(), item.kind(), item.body(), item.isCorrect(), item.rationale(), sortOrder));
         }
         return new QuestionDetail.ChoiceSetSummary(
@@ -227,7 +227,7 @@ public class QuestionService {
                 .map(choiceSet -> isCuratedChoiceSet(getQuestionEntityOrNull(choiceSet.getQuestionUuid()), choiceSet))
                 .orElse(false);
         if (isCuratedSet) {
-            choiceItems = ChoiceOrderShuffler.shuffle(choiceItems, (item, sortOrder) -> new ChoiceSetGenerateResponse.ChoiceItem(
+            choiceItems = ChoiceOrderShuffler.shuffle(choiceItems, ChoiceSetGenerateResponse.ChoiceItem::body, (item, sortOrder) -> new ChoiceSetGenerateResponse.ChoiceItem(
                     item.key(), item.kind(), item.body(), sortOrder));
         }
         return new ChoiceSetGenerateResponse(choiceSetUuid, choiceItems);
