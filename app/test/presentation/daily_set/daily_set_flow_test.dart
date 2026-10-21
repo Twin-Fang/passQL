@@ -306,7 +306,9 @@ void main() {
       expect(find.text('챕터 결과'), findsOneWidget);
     });
 
-    testWidgets('챕터 결과에서 시스템 뒤로 가기를 하면 챕터 진입 전 화면(문제 목록)으로 돌아간다 (#481)', (tester) async {
+    testWidgets('챕터 결과에서 시스템 뒤로 가기를 하면 챕터 진입 전 화면(문제 목록)으로 돌아간다 (#481)', (
+      tester,
+    ) async {
       final container = _container(question: _FakeQuestionApi());
       const flow = TopicFlow(topicCode: 'JOIN', topicName: '조인');
       final router = GoRouter(
@@ -369,10 +371,31 @@ void main() {
 
     test('불러오기에 성공하면 목록을 담는다', () async {
       final notifier = chapterNotifier();
-      await notifier.load(() async => ['a', 'b']);
+      await notifier.load(
+        () async => const ChapterStart(questionUuids: ['a', 'b']),
+      );
       expect(notifier.state.questionUuids, ['a', 'b']);
       expect(notifier.state.isLoadingList, isFalse);
       expect(notifier.state.listError, isNull);
+    });
+
+    test('이미 푼 문제가 있으면 결과로 채우고 다음 문제부터 이어 푼다 (#566)', () async {
+      final notifier = chapterNotifier();
+      await notifier.load(
+        () async => const ChapterStart(
+          questionUuids: ['a', 'b', 'c'],
+          resumedCorrectness: [true, false],
+        ),
+      );
+      expect(notifier.state.currentIndex, 2);
+      expect(notifier.state.results.map((result) => result.isCorrect), [
+        true,
+        false,
+      ]);
+      expect(notifier.state.results.map((result) => result.questionUuid), [
+        'a',
+        'b',
+      ]);
     });
 
     test('흐름이 던진 사용자용 문구를 그대로 오류로 담는다', () async {
@@ -389,7 +412,9 @@ void main() {
 
     test('제출을 기록하면 결과가 쌓이고 완료 요약에 합산된다', () async {
       final notifier = chapterNotifier();
-      await notifier.load(() async => ['a', 'b']);
+      await notifier.load(
+        () async => const ChapterStart(questionUuids: ['a', 'b']),
+      );
 
       notifier.recordSubmission(const SubmitResult(isCorrect: true), 'A');
       notifier.nextQuestion();

@@ -30,6 +30,17 @@ class ChapterSummary {
   });
 }
 
+/// 풀이 시작 정보: 풀 문제 목록 + 앞에서부터 이미 푼 문제의 정답 여부 (이어 풀기, #566)
+class ChapterStart {
+  final List<String> questionUuids;
+  final List<bool> resumedCorrectness;
+
+  const ChapterStart({
+    required this.questionUuids,
+    this.resumedCorrectness = const [],
+  });
+}
+
 // ─── 상태 ────────────────────────────────────────────────────────
 
 class ChapterState {
@@ -115,15 +126,26 @@ class ChapterNotifier extends AutoDisposeFamilyNotifier<ChapterState, String> {
     return const ChapterState();
   }
 
-  /// 풀 문제 UUID 목록을 불러온다. 목록을 어디서 가져오는지는 흐름(`QuestionFlow`)이 정한다.
+  /// 풀 문제 목록과 이어 풀 위치를 불러온다. 어디서 가져오는지는 흐름(`QuestionFlow`)이 정한다.
   ///
+  /// 이미 푼 문제는 결과로 채우고 그다음 문제부터 시작한다(소요 시간은 0, #566).
   /// 실패하면 사용자에게 보여줄 문구를 상태에 담는다(예: 오늘의 세트 이미 완료).
-  Future<void> load(Future<List<String>> Function() loader) async {
+  Future<void> load(Future<ChapterStart> Function() loader) async {
     state = state.copyWith(isLoadingList: true, shouldClearError: true);
     try {
-      final questionUuids = await loader();
+      final start = await loader();
+      _questionStartedAt = DateTime.now();
       state = state.copyWith(
-        questionUuids: questionUuids,
+        questionUuids: start.questionUuids,
+        results: [
+          for (var index = 0; index < start.resumedCorrectness.length; index++)
+            ChapterResult(
+              questionUuid: start.questionUuids[index],
+              isCorrect: start.resumedCorrectness[index],
+              durationMs: 0,
+            ),
+        ],
+        currentIndex: start.resumedCorrectness.length,
         isLoadingList: false,
       );
     } catch (exception) {

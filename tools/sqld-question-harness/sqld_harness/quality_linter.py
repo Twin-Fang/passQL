@@ -45,6 +45,7 @@ def lint_question(question):
     _check_wrong_choice_plausibility(question, add)
     _check_choice_length_balance(question, add)
     _check_numeric_choice_order(question, add)
+    _check_duplicate_choice_bodies(question, add)
     _check_stem_clarity(question, add)
     _check_table_shape(question, add)
     _check_table_matches_data(question, add)
@@ -95,7 +96,22 @@ def _check_numeric_choice_order(question, add):
     if bodies and all(NUMERIC_BODY_PATTERN.match(body) for body in bodies):
         numbers = [float(body) for body in bodies]
         if numbers != sorted(numbers):
-            add(SEVERITY_INFO, "balance.numeric-order", f"숫자 보기 오름차순 배치 권장: {', '.join(bodies)}")
+            add(SEVERITY_WARNING, "balance.numeric-order", f"숫자 보기 오름차순 배치 필요: {', '.join(bodies)}")
+
+
+def _check_duplicate_choice_bodies(question, add):
+    """같은 내용 보기 2개 금지 (결과 JSON 은 공백 무시, SQL·글은 연속 공백 하나로 비교, #555)"""
+    seen_keys_by_body = {}
+    for index, choice in enumerate(get_choices(question)[: len(CHOICE_KEYS)]):
+        body = str(choice.get("body", "")).strip()
+        if not body:
+            continue
+        comparable_body = re.sub(r"\s+", "", body) if body[0] in "[{" else re.sub(r"\s+", " ", body)
+        if comparable_body in seen_keys_by_body:
+            add(SEVERITY_ERROR, "choice.duplicate-body",
+                f"{seen_keys_by_body[comparable_body]} 와 {CHOICE_KEYS[index]} 보기 내용이 같음 (사실상 3지선다)")
+        else:
+            seen_keys_by_body[comparable_body] = CHOICE_KEYS[index]
 
 
 def _check_stem_clarity(question, add):

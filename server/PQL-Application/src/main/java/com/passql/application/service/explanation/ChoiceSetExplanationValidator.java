@@ -41,6 +41,8 @@ public final class ChoiceSetExplanationValidator {
     // "정답은 B", "정답: B" 같은 정답 키 언급 (D 뒤 영문이 이어지는 DENSE_RANK 등은 제외)
     private static final Pattern CORRECT_KEY_MENTION_PATTERN =
             Pattern.compile("정답(?:은|는|이|:)?\\s*\\(?([A-D])\\)?(?![A-Za-z_])");
+    // 학습자에게 안 보이는 입력 섹션 이름: 해설에 나오면 위반 > 재생성 (#555)
+    private static final List<String> INTERNAL_INPUT_LABELS = List.of("기준 SQL", "생성 근거");
     private static final String CODE_FENCE = "```";
     private static final String LATEX_DOLLAR = "$";
 
@@ -58,6 +60,7 @@ public final class ChoiceSetExplanationValidator {
         validateFactsAgainstAnswerKey(explanation, items, violations);
         validateLengths(explanation, violations, warnings);
         validateStyle(explanation, warnings);
+        validateNoInternalInputLabels(explanation, violations);
         return new ExplanationValidationResult(List.copyOf(violations), List.copyOf(warnings));
     }
 
@@ -136,6 +139,15 @@ public final class ChoiceSetExplanationValidator {
         if (politeEndingCount > 0) warnings.add("서술 어미(~습니다/~해요) " + politeEndingCount + "곳");
         if (allTexts(explanation).anyMatch(text -> text.contains(CODE_FENCE))) warnings.add("코드 블록(```) 사용");
         if (allTexts(explanation).anyMatch(text -> text.contains(LATEX_DOLLAR))) warnings.add("수식 기호($) 사용");
+    }
+
+    /** 내부 입력 이름 노출 (위반: 학습자는 기준 SQL·생성 근거를 볼 수 없음) */
+    private static void validateNoInternalInputLabels(ChoiceSetExplanation explanation, List<String> violations) {
+        for (String label : INTERNAL_INPUT_LABELS) {
+            if (allTexts(explanation).anyMatch(text -> text.contains(label))) {
+                violations.add("학습자에게 보이지 않는 '" + label + "' 언급, 지문·보기·표의 말로만 설명");
+            }
+        }
     }
 
     /** 해설의 모든 문장 필드 (빈 값 제외) */

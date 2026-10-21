@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:passql_app/presentation/design/design.dart';
+import 'package:passql_app/presentation/widgets/question/result_rows_table.dart';
 import 'package:passql_app/presentation/widgets/question/stem_text.dart';
 
 void main() {
@@ -23,6 +25,23 @@ void main() {
     expect(find.textContaining('```'), findsNothing);
     expect(find.text('다음 SQL의 결과는?'), findsOneWidget);
     expect(find.textContaining('SELECT NAME'), findsOneWidget);
+  });
+
+  testWidgets('StemText: 마크다운 표는 파이프 원문이 아니라 표로, NULL 칸은 NULL 로 보인다 (#550)', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: PassqlTheme.light,
+        home: const Scaffold(
+          body: StemText('[EMP]\n| ID | BONUS |\n| --- | --- |\n| 1 | NULL |\n| 2 | 50 |\n\n결과는?'),
+        ),
+      ),
+    );
+    expect(find.textContaining('|'), findsNothing);
+    expect(find.textContaining('---'), findsNothing);
+    expect(find.byType(ResultRowsTable), findsOneWidget);
+    expect(find.text('BONUS'), findsOneWidget);
+    expect(find.text(sqlNullCellLabel), findsOneWidget);
+    expect(find.text('결과는?'), findsOneWidget);
   });
 
   testWidgets('InlineCodeText: 백틱은 숨기고 키워드는 남긴다', (tester) async {

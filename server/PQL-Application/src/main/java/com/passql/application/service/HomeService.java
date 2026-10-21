@@ -1,6 +1,7 @@
 package com.passql.application.service;
 
 import com.passql.question.dto.DailySetTodayResponse;
+import com.passql.question.dto.QuestionSummary;
 import com.passql.question.entity.DailyChallenge;
 import com.passql.question.repository.DailyChallengeRepository;
 import com.passql.question.repository.DailySetSubmissionRepository;
@@ -32,7 +33,7 @@ public class HomeService {
                 .findByChallengeDateOrderBySortOrderAsc(today);
 
         if (challenges.isEmpty()) {
-            return new DailySetTodayResponse(List.of(), false, null, null);
+            return new DailySetTodayResponse(List.of(), false, null, null, null);
         }
 
         boolean alreadyCompleted = memberUuid != null &&
@@ -73,6 +74,21 @@ public class HomeService {
                     .toList();
         }
 
-        return new DailySetTodayResponse(questions, alreadyCompleted, correctCount, results);
+        List<Boolean> answeredResults = memberUuid != null && !alreadyCompleted
+                ? toAnsweredResults(memberUuid, questions, today)
+                : null;
+        return new DailySetTodayResponse(questions, alreadyCompleted, correctCount, results, answeredResults);
+    }
+
+    /** 풀다 만 세트 > 문제별 오늘 첫 제출 정답 여부 (미제출 null, 완료 채점과 같은 기준 #561) */
+    private List<Boolean> toAnsweredResults(UUID memberUuid, List<QuestionSummary> questions, LocalDate today) {
+        Map<UUID, Boolean> firstResultByQuestion = new HashMap<>();
+        for (Submission submission : submissionRepository
+                .findByMemberUuidAndQuestionUuidInAndSubmittedAtGreaterThanEqualOrderBySubmittedAtAsc(
+                        memberUuid, questions.stream().map(QuestionSummary::questionUuid).toList(),
+                        today.atStartOfDay())) {
+            firstResultByQuestion.putIfAbsent(submission.getQuestionUuid(), submission.getIsCorrect());
+        }
+        return questions.stream().map(question -> firstResultByQuestion.get(question.questionUuid())).toList();
     }
 }

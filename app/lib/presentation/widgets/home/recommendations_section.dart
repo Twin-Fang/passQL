@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import '../../../core/utils/question_difficulty.dart';
 import '../../../data/models/home/question_summary.dart';
 import '../../design/design.dart';
 import '../question/stem_text.dart';
@@ -15,19 +16,6 @@ class RecommendationsSection extends StatelessWidget {
     this.onQuestionTap,
   });
 
-  String _difficultyStars(int? difficulty) {
-    switch (difficulty) {
-      case 1:
-        return '★☆☆';
-      case 2:
-        return '★★☆';
-      case 3:
-        return '★★★';
-      default:
-        return '★☆☆';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     if (questions.isEmpty) return const SizedBox.shrink();
@@ -38,7 +26,7 @@ class RecommendationsSection extends StatelessWidget {
         for (final question in questions)
           _QuestionRow(
             question: question,
-            difficultyStars: _difficultyStars(question.difficulty),
+            difficultyStars: toDifficultyStarText(question.difficulty),
             onTap: () => onQuestionTap?.call(question.questionUuid),
           ),
       ],
@@ -46,7 +34,7 @@ class RecommendationsSection extends StatelessWidget {
   }
 }
 
-/// 난이도 별(★☆☆) 글자 사이 간격
+/// 난이도 별(★★☆☆☆) 글자 사이 간격
 const double _difficultyStarSpacing = 2;
 
 class _QuestionRow extends StatelessWidget {

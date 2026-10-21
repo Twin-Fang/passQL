@@ -7,10 +7,12 @@ import '../../../data/models/question/submit_result.dart';
 import '../../design/design.dart';
 import '../../providers/question_providers.dart';
 import 'ai_explain_sheet.dart';
+import 'choice_display_label.dart';
 import 'execute_failure_card.dart';
 import 'execute_result_card.dart';
 import 'question_sections.dart';
 import 'schema_section.dart';
+import 'reveal_above_bottom_bar.dart';
 
 /// 문제 풀이 본문 스크롤: 머리 > 지문 > 테이블(실행형) > 선택지 > 실행 중 표시 > 실행 결과 또는 실패
 /// 챕터 풀이(ChapterPage)와 단건 풀이(QuestionDetailPage)가 함께 쓴다. 제출 바는 Scaffold 하단에 따로 붙는다.
@@ -133,6 +135,10 @@ class QuestionSolvingBody extends StatelessWidget {
         if (executeResult != null)
           ExecuteResultCard(
             result: executeResult,
+            executedChoiceLabel: findChoiceDisplayLabel(
+              interaction.activeChoices,
+              interaction.selectedChoiceKey,
+            ),
             onAiExplainTap: hasExecutionError
                 ? () => _openExecutionErrorExplanation(context)
                 : null,
@@ -183,19 +189,11 @@ class _ExecutionOutcomeSectionState extends State<_ExecutionOutcomeSection> {
   void _scheduleRevealOutcome() {
     _revealTimer?.cancel();
     final isReduced = PassqlMotion.isReduced(context);
-    _revealTimer = Timer(
-      isReduced ? Duration.zero : PassqlMotion.standard,
-      () {
-        if (!mounted) return;
-        Scrollable.ensureVisible(
-          context,
-          duration: isReduced ? Duration.zero : PassqlMotion.standard,
-          curve: PassqlMotion.curve,
-          // 이미 보이면 그대로, 아래로 벗어나 있으면 아래 끝에 맞춤
-          alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
-        );
-      },
-    );
+    _revealTimer = Timer(isReduced ? Duration.zero : PassqlMotion.standard, () {
+      if (!mounted) return;
+      // 이미 보이면 그대로, 가려져 있으면 하단 바 바로 위까지
+      revealAboveBottomBar(context);
+    });
   }
 
   @override

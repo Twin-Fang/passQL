@@ -29,6 +29,10 @@ abstract class QuestionFlow {
   /// 풀 문제의 UUID 목록. 실패하면 사용자에게 보여줄 수 있는 예외를 던진다.
   Future<List<String>> loadQuestionUuids(WidgetRef ref);
 
+  /// 풀이 시작 정보. 기본은 처음부터, 이어 풀기가 있는 흐름만 덮어쓴다 (#566)
+  Future<ChapterStart> loadStart(WidgetRef ref) async =>
+      ChapterStart(questionUuids: await loadQuestionUuids(ref));
+
   /// 마지막 문제 제출 후 처리. [sessionUuid] 는 이번 풀이의 세션 식별자다.
   Future<void> onCompleted(
     BuildContext context,

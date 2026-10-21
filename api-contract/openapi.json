@@ -643,6 +643,12 @@
           "alreadyCompleted" : {
             "type" : "boolean"
           },
+          "answeredResults" : {
+            "items" : {
+              "type" : "boolean"
+            },
+            "type" : [ "array", "null" ]
+          },
           "correctCount" : {
             "format" : "int32",
             "type" : [ "integer", "null" ]
@@ -660,7 +666,7 @@
             "type" : [ "array", "null" ]
           }
         },
-        "required" : [ "alreadyCompleted", "correctCount", "questions", "results" ],
+        "required" : [ "alreadyCompleted", "answeredResults", "correctCount", "questions", "results" ],
         "type" : "object"
       },
       "ErrorCode" : {

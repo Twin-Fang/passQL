@@ -135,11 +135,8 @@ class _ResultBody extends ConsumerWidget {
 
     return PassqlResultScaffold(
       title: _dailySetTitle,
-      header: PassqlScoreHeader(
-        score: correctCount,
-        total: total,
-        caption: _dailySetTitle,
-      ),
+      // 상단 바 제목이 이미 '오늘의 세트' 라 고리 위 캡션은 생략 (#554)
+      header: PassqlScoreHeader(score: correctCount, total: total),
       sections: [
         if (saveError != null)
           PassqlCard(

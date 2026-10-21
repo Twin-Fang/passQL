@@ -18,7 +18,7 @@ import java.util.Map;
 public final class ChoiceSetExplanationPrompt {
 
     // 프롬프트 버전: 올리면 저장된 해설이 낡은 것으로 보고 백그라운드 재생성
-    public static final int PROMPT_VERSION = 1;
+    public static final int PROMPT_VERSION = 2;
 
     private static final String RESOURCE_DIRECTORY = "/ai-prompts/choice-set-explanation/";
     private static final String SYSTEM_INSTRUCTION_TEMPLATE = readResource("system-instruction.md");
@@ -45,8 +45,14 @@ public final class ChoiceSetExplanationPrompt {
         return Schema.fromJson(RESPONSE_SCHEMA_JSON);
     }
 
-    /** 문제 입력: 지문 > 테이블 구조 > 샘플 데이터 > 기준 SQL > 보기 전체([정답]/[오답] + 생성 근거) */
+    /** 문제 입력 (실행 근거 없음) */
     public static String buildUserPrompt(Question question, List<QuestionChoiceSetItem> items) {
+        return buildUserPrompt(question, items, Map.of());
+    }
+
+    /** 문제 입력: 지문 > 테이블 구조 > 샘플 데이터 > 기준 SQL > 보기 전체([정답]/[오답] + 실행 결과 + 생성 근거) */
+    public static String buildUserPrompt(Question question, List<QuestionChoiceSetItem> items,
+                                         Map<String, String> resultSummaryByChoiceKey) {
         StringBuilder prompt = new StringBuilder();
         prompt.append("[문제]\n").append(nullToEmpty(question.getStem()).trim()).append("\n\n");
         appendSectionIfPresent(prompt, "테이블 구조", question.getSchemaDdl());
@@ -57,6 +63,10 @@ public final class ChoiceSetExplanationPrompt {
             String correctLabel = Boolean.TRUE.equals(item.getIsCorrect()) ? "[정답]" : "[오답]";
             prompt.append(item.getChoiceKey()).append(". ").append(correctLabel).append(" ")
                     .append(nullToEmpty(item.getBody()).trim()).append("\n");
+            String resultSummary = resultSummaryByChoiceKey.get(item.getChoiceKey());
+            if (resultSummary != null) {
+                prompt.append("   실행 결과(샘플 데이터 실측): ").append(resultSummary).append("\n");
+            }
             if (item.getRationale() != null && !item.getRationale().isBlank()) {
                 prompt.append("   생성 근거(참고): ").append(item.getRationale().trim()).append("\n");
             }

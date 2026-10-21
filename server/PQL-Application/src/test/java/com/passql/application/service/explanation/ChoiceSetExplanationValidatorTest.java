@@ -43,6 +43,15 @@ class ChoiceSetExplanationValidatorTest {
     }
 
     @Test
+    void 학습자에게_안_보이는_기준_SQL_을_언급하면_위반() {
+        ExplanationValidationResult result = ChoiceSetExplanationValidator.validate(
+                explanation("A", "기준 SQL 과 같은 결과라 정답은 A.", analyses("A")), items);
+
+        assertThat(result.isValid()).isFalse();
+        assertThat(result.violations()).anyMatch(violation -> violation.contains("기준 SQL"));
+    }
+
+    @Test
     void 정답_키가_다르면_위반() {
         ExplanationValidationResult result = ChoiceSetExplanationValidator.validate(
                 explanation("B", "근거", analyses("A")), items);

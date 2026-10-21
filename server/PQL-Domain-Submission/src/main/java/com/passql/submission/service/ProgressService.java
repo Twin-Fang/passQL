@@ -1,5 +1,6 @@
 package com.passql.submission.service;
 
+import com.passql.common.util.MarkdownTextStripper;
 import com.passql.common.util.TextPreview;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
@@ -207,10 +208,10 @@ public class ProgressService {
         return new WrongQuestionsResponse(items, totalCount);
     }
 
-    // 마크다운 코드 블록/줄바꿈 제거 후 50자 미리보기
+    // 마크다운 표 > [표], 코드 블록 > [SQL], 줄바꿈 제거 후 50자 미리보기
     private String buildStemPreview(String stem) {
         if (stem == null) return "";
-        String cleaned = stem
+        String cleaned = MarkdownTextStripper.replaceTables(stem)
             .replaceAll("```[\\s\\S]*?```", "[SQL]")
             .replaceAll("\n", " ")
             .trim();
