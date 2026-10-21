@@ -9,8 +9,8 @@ import threading
 
 from .sql_script import normalize_rows, split_sql_script
 
-# Oracle Free 컨테이너 접속 (docker run -p 1521:1521 gvenzl/oracle-free:23-slim-faststart)
-ORACLE_DSN = os.environ.get("SQLD_HARNESS_DSN", "localhost:1521/FREEPDB1")
+# Oracle XE 21c 컨테이너 접속 (시험 기준 19c 와 문법 동작 같음, docker run -p 1522:1521 gvenzl/oracle-xe:21-slim-faststart)
+ORACLE_DSN = os.environ.get("SQLD_HARNESS_DSN", "localhost:1522/XEPDB1")
 ORACLE_ADMIN_USER = os.environ.get("SQLD_HARNESS_ADMIN_USER", "system")
 ORACLE_ADMIN_PASSWORD = os.environ.get("SQLD_HARNESS_ADMIN_PASSWORD", "harness")
 # 문제별 임시 스키마: SQLDQ_{id 앞 17자}_{id 해시 6자} (30자 이내, 병렬 실행 시 이름 충돌 방지)
