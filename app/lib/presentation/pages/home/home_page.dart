@@ -10,7 +10,6 @@ import '../../providers/community_providers.dart';
 import '../../providers/exam_trend_providers.dart';
 import '../../providers/home_providers.dart';
 import '../../providers/notification_inbox_providers.dart';
-import '../../providers/session_reset.dart';
 import '../../providers/unread_notification_providers.dart';
 import '../../widgets/ads/ad_inline_card.dart';
 import '../../widgets/common/app_toast.dart';
@@ -107,11 +106,8 @@ class _HomeContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final notice = ref.watch(homeNoticeProvider);
     final discussion = ref.watch(communityDailyDiscussionProvider).valueOrNull;
-    // 로그아웃 전환 중에는 토큰 없는 재요청을 막기 위해 조회하지 않음
-    final examTrendReportAsync = ref.watch(currentMemberUuidProvider) == null
-        ? null
-        : ref.watch(examTrendReportProvider);
-    final examTrendReport = examTrendReportAsync?.valueOrNull;
+    final examTrendReportAsync = ref.watch(examTrendReportProvider);
+    final examTrendReport = examTrendReportAsync.valueOrNull;
     final dailyStudyTip = examTrendReport == null
         ? null
         : selectDailyStudyTip(examTrendReport.studyTips, DateTime.now());
@@ -169,7 +165,7 @@ class _HomeContent extends ConsumerWidget {
           ),
           onViewAll: () => context.go(QuestionsTabView.latestTrend.location),
         )
-      else if (examTrendReportAsync?.isLoading ?? false)
+      else if (examTrendReportAsync.isLoading)
         const PassqlSkeletonBox(
           height: _examTrendSectionHeight,
           radius: PassqlRadius.lg,
@@ -222,13 +218,14 @@ class _HomeContent extends ConsumerWidget {
   }
 }
 
+// 출제 경향 섹션 로딩 자리 높이: 머리 + 요약 + 캡션 + 유형 카드 가로 목록
+const double _examTrendSectionHeight = 340;
+
 /// 로딩 중 스켈레톤. 실제 카드와 같은 높이로 자리를 잡는다.
 // 스켈레톤 자리 높이: 실제 카드(오늘의 세트·시험 일정 2열, 준비도, 히트맵) 높이와 맞춤
 const double _dualCardHeight = 140;
 const double _readinessCardHeight = 180;
 const double _heatmapCardHeight = 160;
-// 출제 경향 섹션 로딩 자리 높이: 머리 + 요약 + 캡션 + 유형 카드 가로 목록
-const double _examTrendSectionHeight = 340;
 
 class _HomeSkeleton extends StatelessWidget {
   const _HomeSkeleton();
