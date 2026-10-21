@@ -3,15 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:passql_app/data/models/exam_trend/exam_trend_report_response.dart';
+import 'package:passql_app/data/models/member/choice_generation_mode.dart';
 import 'package:passql_app/data/models/meta/topic_tree.dart';
 import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/router/questions_tab_view.dart';
 import 'package:passql_app/presentation/pages/questions/topic_list_page.dart';
+import 'package:passql_app/data/sources/api_providers.dart';
 import 'package:passql_app/presentation/providers/exam_trend_providers.dart';
+import 'package:passql_app/presentation/providers/settings_providers.dart';
 import 'package:passql_app/presentation/providers/topic_providers.dart';
 import 'package:passql_app/presentation/providers/wrong_questions_provider.dart';
 import 'package:passql_app/presentation/widgets/exam_trend/concept_ranking_tab_view.dart';
 
+import '../../helpers/fakes/fake_member_api.dart';
 import '../../helpers/pump_app.dart';
 
 const _topics = [
@@ -53,6 +57,7 @@ Future<GoRouter> _pumpQuestionsTab(
   QuestionsTabView view, {
   bool isReportFailing = false,
   List<Override> extraOverrides = const [],
+  FakeMemberApi? memberApi,
 }) async {
   tester.view.physicalSize = const Size(390, 844);
   tester.view.devicePixelRatio = 1;
@@ -79,6 +84,15 @@ Future<GoRouter> _pumpQuestionsTab(
       overrides: [
         topicsProvider.overrideWith((ref) async => _topics),
         wrongQuestionTotalCountProvider.overrideWith((ref) async => 7),
+        // 풀이 모드 행·설정 타일이 읽는 같은 원본 (기본 연습)
+        memberApiProvider.overrideWithValue(memberApi ?? FakeMemberApi()),
+        settingsDataProvider.overrideWith(
+          (ref) async => const SettingsData(
+            memberUuid: 'm',
+            nickname: 'n',
+            choiceMode: ChoiceGenerationMode.practice,
+          ),
+        ),
         latestTrendQuestionCountByTopicProvider.overrideWith(
           (ref) async => <String, int>{},
         ),
@@ -105,6 +119,42 @@ void main() {
     }
   });
 
+  testWidgets('공통 영역: 3개 보기 모두에서 오답 노트와 풀이 모드 행이 보인다', (tester) async {
+    for (final view in QuestionsTabView.values) {
+      await _pumpQuestionsTab(tester, view);
+      expect(find.text('오답 노트'), findsOneWidget, reason: view.label);
+      expect(find.text('풀이 모드'), findsOneWidget, reason: view.label);
+      expect(find.text('연습'), findsOneWidget, reason: view.label);
+    }
+  });
+
+  testWidgets('풀이 모드 행을 누르면 설정이 읽는 같은 Provider 가 실전으로 바뀐다', (tester) async {
+    final memberApi = FakeMemberApi();
+    await _pumpQuestionsTab(
+      tester,
+      QuestionsTabView.latestTrend,
+      memberApi: memberApi,
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(TopicListPage)),
+    );
+    expect(
+      container.read(choiceModeProvider).valueOrNull,
+      ChoiceGenerationMode.practice,
+    );
+
+    await tester.tap(find.text('풀이 모드'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('실전'), findsOneWidget);
+    expect(find.text('매번 AI가 새 선택지를 만들어요'), findsOneWidget);
+    expect(
+      container.read(choiceModeProvider).valueOrNull,
+      ChoiceGenerationMode.real,
+    );
+    expect(memberApi.calls, ['mode:REAL']);
+  });
+
   testWidgets('오답 노트 행은 개수만 조회하고 목록(진입 분석 기록)은 불러오지 않는다', (tester) async {
     var wrongListLoads = 0;
     await _pumpQuestionsTab(
@@ -127,7 +177,6 @@ void main() {
     expect(find.text('결과 비교형 보기'), findsOneWidget);
     expect(find.text('결과 표를 직접 그려 보세요.'), findsOneWidget);
     expect(find.text('학습할 토픽을 선택하세요'), findsNothing);
-    expect(find.text('오답 노트'), findsNothing);
   });
 
   testWidgets('개념 TOP 10: 1위와 6위 이름, 머리글 개수 하나', (tester) async {

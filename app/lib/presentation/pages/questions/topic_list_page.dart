@@ -11,6 +11,7 @@ import '../../design/design.dart';
 import '../../widgets/ads/ad_native_slot.dart';
 import '../../widgets/exam_trend/concept_ranking_tab_view.dart';
 import '../../widgets/exam_trend/latest_trend_tab_view.dart';
+import '../../widgets/question/choice_mode_shortcut_row.dart';
 import '../../widgets/question/questions_tab_segmented_control.dart';
 import '../../widgets/question/topic_card.dart';
 import '../../widgets/question/wrong_notes_shortcut_row.dart';
@@ -23,7 +24,8 @@ const int _nativeAdAfterTopicCount = 5;
 const _topicListHeader = '학습할 토픽을 선택하세요';
 
 /// 문제 탭: 보기 3개 (주제별 | 최신 경향 | 개념 TOP 10)
-/// 주제별 > 오답 노트 바로가기 + 토픽 선택 (토픽 행 탭 시 /questions/chapter?topic=CODE&topicName=NAME 이동)
+/// 공통(모든 보기) > 세그먼트 아래 오답 노트 + 풀이 모드 행
+/// 주제별 > 토픽 선택 (토픽 행 탭 시 /questions/chapter?topic=CODE&topicName=NAME 이동)
 /// 최신 경향·개념 TOP 10 > 출제 경향 응답 (행 탭 시 그 토픽의 최신 경향 문제 풀기)
 class TopicListPage extends ConsumerWidget {
   const TopicListPage({super.key, this.view = QuestionsTabView.byTopic});
@@ -63,6 +65,15 @@ class TopicListPage extends ConsumerWidget {
               ),
             ),
           ),
+          const SliverPadding(
+            padding: EdgeInsets.fromLTRB(
+              PassqlSpacing.md,
+              PassqlSpacing.md,
+              PassqlSpacing.md,
+              0,
+            ),
+            sliver: SliverToBoxAdapter(child: _CommonShortcutSection()),
+          ),
           ...switch (view) {
             QuestionsTabView.byTopic => _topicSlivers(context, ref),
             QuestionsTabView.latestTrend ||
@@ -92,7 +103,7 @@ class TopicListPage extends ConsumerWidget {
       SliverPadding(
         padding: const EdgeInsets.fromLTRB(
           PassqlSpacing.md,
-          PassqlSpacing.md,
+          PassqlSpacing.lg,
           PassqlSpacing.md,
           0,
         ),
@@ -100,8 +111,6 @@ class TopicListPage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const WrongNotesShortcutRow(),
-              const SizedBox(height: PassqlSpacing.lg),
               PassqlFadeSwitcher(
                 child: switch (topicsAsync.valueOrNull) {
                   null => const PassqlListSkeleton(
@@ -191,6 +200,18 @@ class TopicListPage extends ConsumerWidget {
           },
         ),
       ),
+    );
+  }
+}
+
+/// 세그먼트 아래 공통 영역: 오답 노트 + 풀이 모드 (보기와 상관없이 항상 보임)
+class _CommonShortcutSection extends StatelessWidget {
+  const _CommonShortcutSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return const PassqlGroupedSection(
+      children: [WrongNotesShortcutRow(), ChoiceModeShortcutRow()],
     );
   }
 }
