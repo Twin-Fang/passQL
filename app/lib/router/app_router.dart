@@ -11,7 +11,6 @@ import '../presentation/pages/daily_set/daily_set_result_page.dart';
 import '../presentation/pages/daily_set/leaderboard_page.dart';
 import '../presentation/pages/app_gate/force_update_page.dart';
 import '../presentation/pages/app_gate/maintenance_page.dart';
-import '../presentation/pages/exam_trend/exam_trend_page.dart';
 import '../presentation/pages/feedback/feedback_page.dart';
 import '../presentation/pages/home/home_page.dart';
 import '../presentation/pages/legal/legal_page.dart';
@@ -19,6 +18,7 @@ import '../presentation/pages/login/login_page.dart';
 import '../presentation/pages/notice/notice_detail_page.dart';
 import '../presentation/pages/notice/notice_list_page.dart';
 import '../presentation/pages/notification/notification_inbox_page.dart';
+import '../presentation/pages/questions/questions_tab_view.dart';
 import '../presentation/pages/questions/topic_list_page.dart';
 import '../presentation/pages/questions/chapter_page.dart';
 import '../presentation/pages/questions/chapter_result_page.dart';
@@ -119,8 +119,13 @@ abstract final class AppRouter {
             routes: [
               GoRoute(
                 path: AppRoutes.questions,
-                pageBuilder: (_, _) =>
-                    const NoTransitionPage(child: TopicListPage()),
+                pageBuilder: (_, state) => NoTransitionPage(
+                  child: TopicListPage(
+                    view: QuestionsTabView.fromQueryValue(
+                      state.uri.queryParameters[AppRoutes.questionsViewQuery],
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -188,11 +193,10 @@ abstract final class AppRouter {
         ),
       ),
 
-      // 풀스크린: 출제 경향 (홈 진입 카드, #523)
+      // 옛 출제 경향 경로 > 문제 탭 '최신 경향' 보기 (#574)
       GoRoute(
         path: AppRoutes.examTrend,
-        parentNavigatorKey: _rootKey,
-        builder: (_, _) => const ExamTrendPage(),
+        redirect: (_, _) => QuestionsTabView.latestTrend.location,
       ),
 
       // 풀스크린: 오답 노트 (설정에서 진입)

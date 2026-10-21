@@ -10,6 +10,7 @@ import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../widgets/ads/ad_native_slot.dart';
 import '../../widgets/question/topic_card.dart';
+import 'questions_tab_view.dart';
 
 /// 네이티브 광고를 끼우는 위치: 토픽 5개 뒤 (그 뒤에 토픽이 하나라도 남을 때만)
 const int _nativeAdAfterTopicCount = 5;
@@ -20,7 +21,10 @@ const _topicListHeader = '학습할 토픽을 선택하세요';
 /// 문제 탭 1단계 — 토픽 선택 화면.
 /// 토픽 행 탭 시 /questions/list?topic=CODE&topicName=NAME으로 이동.
 class TopicListPage extends ConsumerWidget {
-  const TopicListPage({super.key});
+  const TopicListPage({super.key, this.view = QuestionsTabView.byTopic});
+
+  /// 현재 보기 (세그먼트 화면 분기는 이후 단계에서 사용)
+  final QuestionsTabView view;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
