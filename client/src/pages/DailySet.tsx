@@ -42,10 +42,11 @@ export default function DailySet() {
   const initialized = useRef(false);
   useEffect(() => {
     if (dailySet?.questions && dailySet.questions.length > 0 && !initialized.current) {
-      store.startSession(sessionUuid, dailySet.questions);
+      // 풀다 만 세트면 이미 푼 문제 다음부터 이어 푼다 (#566)
+      store.startSession(sessionUuid, dailySet.questions, dailySet.answeredResults);
       initialized.current = true;
     }
-  }, [dailySet?.questions, sessionUuid, store]);
+  }, [dailySet?.questions, dailySet?.answeredResults, sessionUuid, store]);
 
   const totalQuestions = store.questions.length;
   // 피드백 표시 중엔 현재 문제(이전 인덱스)를 보여주어야 함
