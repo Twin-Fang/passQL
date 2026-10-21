@@ -56,13 +56,14 @@ public class AiCommentService {
      * - sessionUuid 있음(결과 화면): 'ai_comment' 프롬프트, 세션 결과 + 누적 토픽 통계
      * - sessionUuid 없음(통계 화면): 'ai_comment_stats' 프롬프트, 최근 7일 활동 + 누적 토픽 통계
      *
-     * 캐시 키: ai-comment:{memberUuid}:{sessionUuid} / ai-comment:{memberUuid}:stats
+     * 캐시 키: ai-comment:{memberUuid}:{sessionUuid} / ai-comment:{memberUuid}:stats:{최근 활동 요약 해시}
      */
     public AiCommentResponse getAiComment(UUID memberUuid, UUID sessionUuid) {
-        // 통계 화면은 별도 캐시 키 사용 — 세션 결과 화면과 충돌 방지
+        // 통계 화면: 최근 활동(오늘 날짜·풀이 수·마지막 활동일)이 바뀌면 새 키 > 새로 푼 뒤 옛 코멘트가 남지 않게 (#567)
+        String recentActivitySummary = sessionUuid == null ? buildRecentActivitySummary(memberUuid) : null;
         String cacheKey = sessionUuid != null
                 ? CACHE_KEY_PREFIX + memberUuid + ":" + sessionUuid
-                : CACHE_KEY_PREFIX + memberUuid + ":stats";
+                : CACHE_KEY_PREFIX + memberUuid + ":stats:" + Integer.toHexString(recentActivitySummary.hashCode());
 
         Object cached = redisTemplate.opsForValue().get(cacheKey);
         if (cached != null) {
@@ -96,7 +97,6 @@ public class AiCommentService {
                     .replace("{topicStats}", topicStats);
         } else {
             // 통계 화면: 최근 7일 활동 데이터 변수 치환
-            String recentActivitySummary = buildRecentActivitySummary(memberUuid);
             userPrompt = prompt.getUserTemplate()
                     .replace("{topicStats}", topicStats)
                     .replace("{recentActivity}", recentActivitySummary);

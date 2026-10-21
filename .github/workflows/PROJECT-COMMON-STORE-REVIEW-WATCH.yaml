@@ -1,0 +1,61 @@
+name: PROJECT-COMMON-STORE-REVIEW-WATCH
+
+# 스토어 심사 상태 감시 (#569): 30분마다 iOS 심사 상태·Android 트랙을 조회해 바뀌었을 때만 추적 이슈에 댓글
+# 추적 이슈를 구독하면 GitHub 알림 메일로 심사 통과·거절을 받는다
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+# 이슈 댓글 쓰기만 필요
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: store-review-watch
+  cancel-in-progress: true
+
+env:
+  # 알림을 받는 추적 이슈 번호 (#570, 닫지 않고 구독)
+  STORE_WATCH_ISSUE: "570"
+  ANDROID_PACKAGE: "com.coldredrice.passql"
+
+jobs:
+  watch:
+    name: 스토어 심사 상태 감시
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      # iOS: 키가 없거나 조회가 실패해도 Android 감시는 계속
+      - name: iOS 심사 상태 조회
+        env:
+          API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID || vars.IOS_BUNDLE_ID }}
+        run: |
+          KEY_PATH="$RUNNER_TEMP/AuthKey_${ASC_KEY_ID}.p8"
+          echo "$API_KEY_BASE64" | base64 --decode > "$KEY_PATH"
+          export ASC_KEY_PATH="$KEY_PATH"
+          python3 .github/scripts/ios_release.py asc-status --bundle-id "$BUNDLE_ID" > "$RUNNER_TEMP/ios.json" 2>/dev/null || echo "::warning::iOS 상태 조회 실패"
+          rm -f "$KEY_PATH"
+
+      - name: Android 트랙 조회
+        env:
+          PLAY_KEY_BASE64: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64 }}
+        run: |
+          pip install --quiet google-auth requests
+          KEY_PATH="$RUNNER_TEMP/play.json"
+          echo "$PLAY_KEY_BASE64" | base64 --decode > "$KEY_PATH"
+          python3 .github/scripts/store_review_watch.py android-status --key "$KEY_PATH" --package "$ANDROID_PACKAGE" > "$RUNNER_TEMP/android.json" || echo "::warning::Android 상태 조회 실패"
+          rm -f "$KEY_PATH"
+
+      - name: 바뀌었으면 추적 이슈에 댓글
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 .github/scripts/store_review_watch.py notify \
+            --ios "$RUNNER_TEMP/ios.json" --android "$RUNNER_TEMP/android.json" --issue "$STORE_WATCH_ISSUE"
