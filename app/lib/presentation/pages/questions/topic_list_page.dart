@@ -41,7 +41,12 @@ class TopicListPage extends ConsumerWidget {
           ref.invalidate(topicsProvider);
           ref.invalidate(latestTrendQuestionCountByTopicProvider);
           ref.invalidate(examTrendReportProvider);
-          await ref.read(topicsProvider.future);
+          // 보기에 맞는 데이터만 기다림 (주제별 > 토픽, 최신 경향·개념 TOP 10 > 출제 경향)
+          await switch (view) {
+            QuestionsTabView.byTopic => ref.read(topicsProvider.future),
+            QuestionsTabView.latestTrend || QuestionsTabView.conceptRanking =>
+              ref.read(examTrendReportProvider.future),
+          };
         },
         slivers: [
           SliverPadding(
@@ -125,6 +130,7 @@ class TopicListPage extends ConsumerWidget {
   // 최신 경향·개념 TOP 10: 같은 출제 경향 응답, 보기마다 다른 key 로 페이드 교체
   Widget _examTrendSliver(BuildContext context, WidgetRef ref) {
     final reportAsync = ref.watch(examTrendReportProvider);
+    final isAdsEnabled = ref.watch(adsEnabledProvider);
 
     void onSolveTopic(String topicCode, String topicName) => context.push(
       AppRoutes.questionChapterOf(
@@ -149,11 +155,25 @@ class TopicListPage extends ConsumerWidget {
                 key: ValueKey('${view.queryValue}-data'),
                 concepts: value.frequentConcepts,
                 onSolveTopic: onSolveTopic,
+                // 5위 <-> 6위 네이티브 1칸 (광고 위 간격은 광고 쪽, 광고 꺼짐 > 자리 없음)
+                adSlot: isAdsEnabled
+                    ? const AdNativeSlot(
+                        placement: AdPlacement.nativeQuestions,
+                        padding: EdgeInsets.only(top: PassqlSpacing.md),
+                      )
+                    : null,
               ),
               _ => LatestTrendTabView(
                 key: ValueKey('${view.queryValue}-data'),
                 report: value,
                 onSolveTopic: onSolveTopic,
+                // 늘어난 유형 <-> 공부 팁 네이티브 1칸
+                adSlot: isAdsEnabled
+                    ? const AdNativeSlot(
+                        placement: AdPlacement.nativeQuestions,
+                        padding: EdgeInsets.only(top: PassqlSpacing.md),
+                      )
+                    : null,
               ),
             },
             AsyncError() => KeyedSubtree(

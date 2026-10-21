@@ -20,7 +20,7 @@ class LatestTrendTabView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sections = <Widget>[
+    final sectionsBeforeAd = <Widget>[
       _LatestTrendHeader(report: report),
       if (report.subjectShares.isNotEmpty)
         ExamTrendSubjectShareSection(subjectShares: report.subjectShares),
@@ -29,7 +29,8 @@ class LatestTrendTabView extends StatelessWidget {
           patterns: report.risingPatterns,
           onSolveTopic: onSolveTopic,
         ),
-      ?adSlot,
+    ];
+    final sectionsAfterAd = <Widget>[
       if (report.studyTips.isNotEmpty)
         ExamTrendStudyTipSection(studyTips: report.studyTips),
     ];
@@ -37,9 +38,15 @@ class LatestTrendTabView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // 섹션이 위에서부터 차례로 떠오른다
-        for (final (index, section) in sections.indexed) ...[
+        for (final (index, section) in sectionsBeforeAd.indexed) ...[
           if (index > 0) const SizedBox(height: PassqlSpacing.lg),
           PassqlReveal(index: index, child: section),
+        ],
+        // 광고 자리 (간격 없이 붙임: 광고가 안 뜨면 높이 0 > 위아래 간격이 겹치지 않음)
+        ?adSlot,
+        for (final (offset, section) in sectionsAfterAd.indexed) ...[
+          const SizedBox(height: PassqlSpacing.lg),
+          PassqlReveal(index: sectionsBeforeAd.length + offset, child: section),
         ],
       ],
     );
