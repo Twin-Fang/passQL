@@ -27,11 +27,11 @@ class StatsPage extends ConsumerWidget {
       body: statsAsync.when(
         skipError: true,
         loading: () => const PassqlLargeTitleScrollView(
-          title: '통계',
+          title: '기록',
           slivers: [_StatsSkeleton()],
         ),
         error: (error, _) => PassqlLargeTitleScrollView(
-          title: '통계',
+          title: '기록',
           slivers: [
             SliverFillRemaining(
               hasScrollBody: false,
@@ -43,7 +43,7 @@ class StatsPage extends ConsumerWidget {
           ],
         ),
         data: (data) => PassqlLargeTitleScrollView(
-          title: '통계',
+          title: '기록',
           onRefresh: () async {
             ref.invalidate(statsDataProvider);
             ref.invalidate(statsAiCommentProvider);

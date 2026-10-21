@@ -4,7 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 /// 광고 자리 5종: 형식이 아니라 배치별로 광고 단위를 나눈다 (콘솔에서 자리별 수익 비교)
 /// .env 키: PASSQL_ADMOB_{ANDROID|IOS}_{envSuffix}
 enum AdPlacement {
-  // 탭 셸 하단 탭 바 아래 한 줄 네이티브 띠 (메인 탭 4개 공통 1개, #527)
+  // 탭 셸 하단 탭 바 아래 한 줄 네이티브 띠 (메인 탭 5개 공통 1개, #527)
   nativeStrip('NATIVE_STRIP'),
   // 콘텐츠 안 인라인 배너 카드 2곳: 홈 학습 현황 > 추천 문제 사이, 통계 맨 아래 (설정 탭은 회원 탈퇴와 가까워 제외)
   bannerHome('BANNER_HOME'),

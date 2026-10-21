@@ -20,7 +20,7 @@ class WrongNotesShortcutRow extends ConsumerWidget {
         PassqlListRow(
           title: '오답 노트',
           leading: PassqlIconTile(
-            icon: CupertinoIcons.book,
+            icon: CupertinoIcons.xmark_circle,
             color: colors.wrong,
           ),
           trailing: wrongCount == null ? null : Text('$wrongCount'),

@@ -99,7 +99,7 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 
 ## 광고 (AdMob, #506·#527)
 
-- 자리 4종: 탭 셸 하단 탭 바 아래 한 줄 네이티브 띠(메인 탭 4개 공통 1개), 콘텐츠 안 인라인 배너 카드 `AdInlineCard`(홈 학습 현황 <-> 추천 문제 사이, 통계 맨 아래),
+- 자리 4종: 탭 셸 하단 탭 바 아래 한 줄 네이티브 띠(메인 탭 5개 공통 1개), 콘텐츠 안 인라인 배너 카드 `AdInlineCard`(홈 학습 현황 <-> 추천 문제 사이, 통계 맨 아래),
   문제 탭 네이티브 3칸(주제별 토픽 5개 뒤, 최신 경향 유형 <-> 공부 팁, 개념 TOP 10 5위 <-> 6위), 오늘의 세트·챕터 결과 진입 전면(설치 후 첫 결과 2회 제외·5분 간격·하루 3회, 기기 저장). 화면 안 광고는 '광고' 라벨(`AdLabel`) 필수.
 - 한 줄 띠 (#527): `AdNativeStripSlot` > `GoogleAdNativeStripLoader`(factoryId `passqlStrip`, 색·배지 문구는 customOptions) > 네이티브 팩토리
   (Android `PassqlStripNativeAdFactory.kt` + `res/layout/passql_strip_native_ad.xml`, iOS `ios/Runner/PassqlStripNativeAdFactory.swift`, 등록은 `MainActivity`·`AppDelegate`).

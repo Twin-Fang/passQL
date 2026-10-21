@@ -89,7 +89,7 @@ class SettingsPage extends ConsumerWidget {
 
     return Scaffold(
       body: PassqlLargeTitleScrollView(
-        title: '설정',
+        title: 'MY',
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(
@@ -130,9 +130,17 @@ class SettingsPage extends ConsumerWidget {
                 const SizedBox(height: PassqlSpacing.xl),
                 const SettingsGroup(title: '화면', children: [ThemeModeTile()]),
                 const SizedBox(height: PassqlSpacing.xl),
-                const SettingsGroup(
+                SettingsGroup(
                   title: '알림',
-                  children: [PushNotificationTile()],
+                  children: [
+                    // 알림함 안에 공지 탭이 있어 한 행으로 둘 다 안내
+                    SettingsRow(
+                      icon: CupertinoIcons.bell,
+                      title: '알림함·공지',
+                      onTap: () => context.push(AppRoutes.notificationInbox),
+                    ),
+                    const PushNotificationTile(),
+                  ],
                 ),
                 const SizedBox(height: PassqlSpacing.xl),
                 SettingsGroup(
