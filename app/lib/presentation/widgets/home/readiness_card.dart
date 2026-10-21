@@ -32,22 +32,29 @@ class ReadinessCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                '$scorePercent',
-                style: PassqlTypography.scoreNumber.copyWith(
-                  color: colors.accent,
+          // 점수와 % 를 한 번에 읽음
+          Semantics(
+            label: '합격 준비도 $scorePercent%',
+            excludeSemantics: true,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  '$scorePercent',
+                  style: PassqlTypography.scoreNumber.copyWith(
+                    color: colors.accentText,
+                  ),
                 ),
-              ),
-              const SizedBox(width: PassqlSpacing.xxs),
-              Text(
-                '%',
-                style: PassqlTypography.title3.copyWith(color: colors.accent),
-              ),
-            ],
+                const SizedBox(width: PassqlSpacing.xxs),
+                Text(
+                  '%',
+                  style: PassqlTypography.title3.copyWith(
+                    color: colors.accentText,
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: PassqlSpacing.xs),
           PassqlProgressBar(value: readiness.score),
@@ -94,29 +101,34 @@ class _MetricChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
+    // 라벨 > 값 순서로 한 번에 읽음 (화면은 값이 위)
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: PassqlSpacing.xs),
-        decoration: BoxDecoration(
-          color: colors.fill,
-          borderRadius: BorderRadius.circular(PassqlRadius.sm),
-        ),
-        child: Column(
-          children: [
-            Text(
-              value,
-              style: PassqlTypography.subheadlineSemibold.copyWith(
-                color: colors.label,
+      child: Semantics(
+        label: '$label $value',
+        excludeSemantics: true,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: PassqlSpacing.xs),
+          decoration: BoxDecoration(
+            color: colors.fill,
+            borderRadius: BorderRadius.circular(PassqlRadius.sm),
+          ),
+          child: Column(
+            children: [
+              Text(
+                value,
+                style: PassqlTypography.subheadlineSemibold.copyWith(
+                  color: colors.label,
+                ),
               ),
-            ),
-            const SizedBox(height: PassqlSpacing.hairlineGap),
-            Text(
-              label,
-              style: PassqlTypography.caption.copyWith(
-                color: colors.secondaryLabel,
+              const SizedBox(height: PassqlSpacing.hairlineGap),
+              Text(
+                label,
+                style: PassqlTypography.caption.copyWith(
+                  color: colors.secondaryLabel,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

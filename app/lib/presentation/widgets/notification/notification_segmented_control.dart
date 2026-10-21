@@ -3,8 +3,7 @@ import 'package:flutter/cupertino.dart';
 import '../../../data/models/notification/notification_models.dart';
 import '../../design/design.dart';
 
-/// 알림함 탭 전환 (알림 | 공지): 탭별 안 읽은 개수 배지, 선택한 탭은 카드색 알약
-/// 알림함 전용 (디자인 시스템 세그먼트는 아직 3곳째가 아니라 이 화면에만 둠)
+/// 알림함 탭 전환 (알림 | 공지): 탭별 안 읽은 개수 배지, 모양·시맨틱은 PassqlSegmentedControl
 class NotificationSegmentedControl extends StatelessWidget {
   const NotificationSegmentedControl({
     super.key,
@@ -23,84 +22,34 @@ class NotificationSegmentedControl extends StatelessWidget {
     NotificationCategory.notice: '공지',
   };
 
-  // 선택 알약 안쪽 여백 (트랙과 알약 사이)
-  static const double _trackPadding = 2;
-
   @override
   Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    return Container(
-      padding: const EdgeInsets.all(_trackPadding),
-      decoration: BoxDecoration(
-        color: colors.fill,
-        borderRadius: BorderRadius.circular(PassqlRadius.md),
-      ),
-      child: Row(
-        children: [
-          for (final category in NotificationCategory.values)
-            Expanded(
-              child: _SegmentTab(
-                label: _tabLabels[category]!,
-                unreadCount: unreadCountOf(category),
-                isSelected: category == selectedCategory,
-                onTap: () => onSelected(category),
-              ),
-            ),
-        ],
-      ),
+    return PassqlSegmentedControl<NotificationCategory>(
+      segments: [
+        for (final category in NotificationCategory.values)
+          _segmentOf(category, unreadCountOf(category)),
+      ],
+      selectedValue: selectedCategory,
+      onSelected: onSelected,
     );
   }
-}
 
-class _SegmentTab extends StatelessWidget {
-  const _SegmentTab({
-    required this.label,
-    required this.unreadCount,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  final String label;
-  final int unreadCount;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    return Semantics(
-      button: true,
-      selected: isSelected,
-      label: unreadCount > 0 ? '$label, 안 읽음 $unreadCount개' : label,
-      excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Container(
-          height: PassqlSize.buttonSmall,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: isSelected ? colors.cardElevated : null,
-            borderRadius: BorderRadius.circular(PassqlRadius.sm),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label,
-                style: PassqlTypography.subheadlineSemibold.copyWith(
-                  color: isSelected ? colors.label : colors.secondaryLabel,
-                ),
-              ),
-              if (unreadCount > 0) ...[
-                const SizedBox(width: PassqlSpacing.xxs),
-                // 선택된 탭만 주황, 나머지는 중립 (주황이 두 군데로 눈을 나누지 않게)
-                PassqlCountBadge(count: unreadCount, isEmphasized: isSelected),
-              ],
-            ],
-          ),
-        ),
-      ),
+  /// 카테고리 > 세그먼트 (안 읽은 개수 있으면 라벨에 개수, 오른쪽에 배지)
+  PassqlSegment<NotificationCategory> _segmentOf(
+    NotificationCategory category,
+    int unreadCount,
+  ) {
+    final label = _tabLabels[category]!;
+    final hasUnread = unreadCount > 0;
+    return PassqlSegment(
+      value: category,
+      label: label,
+      semanticLabel: hasUnread ? '$label, 안 읽음 $unreadCount개' : label,
+      // 선택된 탭만 주황, 나머지는 중립 (주황이 두 군데로 눈을 나누지 않게)
+      trailingBuilder: hasUnread
+          ? (isSelected) =>
+                PassqlCountBadge(count: unreadCount, isEmphasized: isSelected)
+          : null,
     );
   }
 }

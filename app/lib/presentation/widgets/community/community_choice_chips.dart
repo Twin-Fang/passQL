@@ -62,6 +62,8 @@ class _Chip extends StatelessWidget {
       child: PassqlPressable(
         onTap: onTap,
         semanticLabel: label,
+        // 보이는 칩은 34, 누르는 영역은 44
+        hasMinimumTouchTarget: true,
         child: Container(
           height: PassqlSize.buttonSmall,
           padding: const EdgeInsets.symmetric(horizontal: PassqlSpacing.sm),
@@ -73,7 +75,7 @@ class _Chip extends StatelessWidget {
           child: Text(
             label,
             style: PassqlTypography.subheadlineSemibold.copyWith(
-              color: isSelected ? colors.accent : colors.secondaryLabel,
+              color: isSelected ? colors.accentText : colors.secondaryLabel,
             ),
           ),
         ),

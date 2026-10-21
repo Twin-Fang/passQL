@@ -163,7 +163,7 @@ class _ResultBody extends ConsumerWidget {
               : Text(
                   '내 순위 $myRank위',
                   style: PassqlTypography.footnoteSemibold.copyWith(
-                    color: colors.accent,
+                    color: colors.accentText,
                   ),
                 ),
           child: board.when(
@@ -241,8 +241,8 @@ class LeaderboardRow extends StatelessWidget {
                   '${entry.rank}',
                   style: PassqlTypography.headline.copyWith(
                     color: entry.rank <= 3
-                        ? colors.accent
-                        : colors.tertiaryLabel,
+                        ? colors.accentText
+                        : colors.secondaryLabel,
                     fontFeatures: PassqlTypography.tabular,
                   ),
                 ),
@@ -257,7 +257,7 @@ class LeaderboardRow extends StatelessWidget {
               Text(
                 '${entry.correctCount}점',
                 style: PassqlTypography.bodyMedium.copyWith(
-                  color: colors.accent,
+                  color: colors.accentText,
                   fontFeatures: PassqlTypography.tabular,
                 ),
               ),

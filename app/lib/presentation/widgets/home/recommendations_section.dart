@@ -86,11 +86,17 @@ class _QuestionRow extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: PassqlSpacing.xxs),
-                  Text(
-                    difficultyStars,
-                    style: PassqlTypography.caption.copyWith(
-                      color: colors.warning,
-                      letterSpacing: _difficultyStarSpacing,
+                  // 별 글리프 대신 '난이도 N / 5' 로 읽음
+                  Semantics(
+                    label:
+                        '난이도 ${toClampedQuestionDifficulty(question.difficulty)} / $maximumQuestionDifficulty',
+                    excludeSemantics: true,
+                    child: Text(
+                      difficultyStars,
+                      style: PassqlTypography.caption.copyWith(
+                        color: colors.warningText,
+                        letterSpacing: _difficultyStarSpacing,
+                      ),
                     ),
                   ),
                 ],

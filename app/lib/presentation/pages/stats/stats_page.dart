@@ -132,7 +132,7 @@ class _StatsAiCommentSection extends ConsumerWidget {
     final isEmpty = content is SizedBox;
     // 카드 아래 간격도 카드와 함께 접힌다
     return AnimatedSize(
-      duration: PassqlMotion.standard,
+      duration: PassqlMotion.durationOf(context, PassqlMotion.standard),
       curve: PassqlMotion.curve,
       alignment: Alignment.topCenter,
       child: Padding(
@@ -160,42 +160,54 @@ class _StatsSkeleton extends StatelessWidget {
         PassqlSpacing.md,
         0,
       ),
-      sliver: SliverList(
-        delegate: SliverChildListDelegate.fixed([
-          Row(
+      // 스켈레톤 조각 대신 '불러오는 중' 한 번
+      sliver: SliverToBoxAdapter(
+        child: PassqlLoadingSemantics(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: PassqlSkeletonBox(
-                  height: _summaryCardHeight,
-                  radius: PassqlRadius.lg,
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: PassqlSkeletonBox(
+                      height: _summaryCardHeight,
+                      radius: PassqlRadius.lg,
+                    ),
+                  ),
+                  SizedBox(width: PassqlSpacing.sm),
+                  Expanded(
+                    child: PassqlSkeletonBox(
+                      height: _summaryCardHeight,
+                      radius: PassqlRadius.lg,
+                    ),
+                  ),
+                  SizedBox(width: PassqlSpacing.sm),
+                  Expanded(
+                    child: PassqlSkeletonBox(
+                      height: _summaryCardHeight,
+                      radius: PassqlRadius.lg,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(width: PassqlSpacing.sm),
-              Expanded(
-                child: PassqlSkeletonBox(
-                  height: _summaryCardHeight,
-                  radius: PassqlRadius.lg,
-                ),
+              SizedBox(height: PassqlSpacing.md),
+              PassqlSkeletonBox(
+                height: _chartCardHeight,
+                radius: PassqlRadius.lg,
               ),
-              SizedBox(width: PassqlSpacing.sm),
-              Expanded(
-                child: PassqlSkeletonBox(
-                  height: _summaryCardHeight,
-                  radius: PassqlRadius.lg,
-                ),
+              SizedBox(height: PassqlSpacing.md),
+              PassqlSkeletonBox(
+                height: _chartCardHeight,
+                radius: PassqlRadius.lg,
+              ),
+              SizedBox(height: PassqlSpacing.md),
+              PassqlSkeletonBox(
+                height: _summaryCardHeight,
+                radius: PassqlRadius.lg,
               ),
             ],
           ),
-          SizedBox(height: PassqlSpacing.md),
-          PassqlSkeletonBox(height: _chartCardHeight, radius: PassqlRadius.lg),
-          SizedBox(height: PassqlSpacing.md),
-          PassqlSkeletonBox(height: _chartCardHeight, radius: PassqlRadius.lg),
-          SizedBox(height: PassqlSpacing.md),
-          PassqlSkeletonBox(
-            height: _summaryCardHeight,
-            radius: PassqlRadius.lg,
-          ),
-        ]),
+        ),
       ),
     );
   }

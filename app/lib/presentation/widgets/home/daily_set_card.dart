@@ -44,6 +44,8 @@ class DailySetCard extends StatelessWidget {
     // 카드 전체와 버튼이 같은 동작을 하도록 하나의 콜백을 공유한다.
     return PassqlCard(
       onTap: onTap,
+      // 같은 동작의 안쪽 버튼만 스크린리더에 노출 (포커스 2번 방지)
+      isCardTapExposedToScreenReader: false,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

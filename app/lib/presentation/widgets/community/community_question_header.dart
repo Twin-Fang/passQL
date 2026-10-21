@@ -65,7 +65,7 @@ class CommunityQuestionHeader extends ConsumerWidget {
                     Text(
                       '문제 다시 보기',
                       style: PassqlTypography.subheadlineSemibold.copyWith(
-                        color: colors.accent,
+                        color: colors.accentText,
                       ),
                     ),
                   ],

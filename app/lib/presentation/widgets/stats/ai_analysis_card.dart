@@ -41,31 +41,33 @@ class AiAnalysisCardSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PassqlCard(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: const [
-              PassqlSkeletonBox(
-                width: PassqlSize.iconTile,
-                height: PassqlSize.iconTile,
-                radius: PassqlRadius.iconTile,
-              ),
-              SizedBox(width: PassqlSpacing.xs),
-              PassqlSkeletonBox(width: _titleWidth, height: _lineHeight),
-            ],
-          ),
-          const SizedBox(height: PassqlSpacing.sm),
-          for (final widthFactor in _lineWidthFactors) ...[
-            FractionallySizedBox(
-              widthFactor: widthFactor,
-              child: const PassqlSkeletonBox(height: _lineHeight),
+    return PassqlLoadingSemantics(
+      child: PassqlCard(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: const [
+                PassqlSkeletonBox(
+                  width: PassqlSize.iconTile,
+                  height: PassqlSize.iconTile,
+                  radius: PassqlRadius.iconTile,
+                ),
+                SizedBox(width: PassqlSpacing.xs),
+                PassqlSkeletonBox(width: _titleWidth, height: _lineHeight),
+              ],
             ),
-            const SizedBox(height: PassqlSpacing.xs),
+            const SizedBox(height: PassqlSpacing.sm),
+            for (final widthFactor in _lineWidthFactors) ...[
+              FractionallySizedBox(
+                widthFactor: widthFactor,
+                child: const PassqlSkeletonBox(height: _lineHeight),
+              ),
+              const SizedBox(height: PassqlSpacing.xs),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

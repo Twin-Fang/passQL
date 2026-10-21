@@ -7,8 +7,16 @@ import '../../design/design.dart';
 /// 카드 폭: 화면 폭보다 작게 잡아 가로 목록에서 다음 카드가 화면 끝에 걸쳐 보이게 함
 const double _cardWidth = 236;
 
-/// 카드 안쪽 높이: 머리 + 제목 1줄 + 설명 2줄 + 하단 문구가 들어가고, 하단 문구는 이 높이의 맨 아래에 고정
-const double _cardContentHeight = 136;
+/// 글자 배율 1.0 기준 카드 안쪽 높이: 머리 + 제목 1줄 + 설명 2줄 + 하단 문구, 하단 문구는 맨 아래 고정
+const double _baseCardContentHeight = 136;
+
+/// 배율 따라 늘어나는 글자 줄 (머리 배지 1줄, 제목 1줄, 설명 2줄, 하단 1줄): (스타일, 줄 수)
+final List<(TextStyle, int)> _scalingTextLines = [
+  (PassqlTypography.captionSemibold, 1),
+  (PassqlTypography.subheadlineSemibold, _titleMaxLines),
+  (PassqlTypography.footnote, _descriptionMaxLines),
+  (PassqlTypography.footnoteSemibold, 1),
+];
 
 /// 제목 최대 줄 수
 const int _titleMaxLines = 1;
@@ -28,8 +36,22 @@ class ExamTrendPatternCard extends StatelessWidget {
   final ExamTrendPattern pattern;
   final void Function(String topicCode, String topicName) onSolveTopic;
 
-  /// 카드 전체 높이 (안쪽 높이 + 위아래 카드 여백): 가로 목록 높이 기준
-  static const double totalHeight = _cardContentHeight + PassqlSpacing.md * 2;
+  /// 카드 전체 높이 (안쪽 높이 + 위아래 카드 여백): 가로 목록 높이 기준, 글자 배율 반영
+  static double totalHeightOf(BuildContext context) =>
+      _contentHeightOf(MediaQuery.textScalerOf(context)) + PassqlSpacing.md * 2;
+
+  /// 안쪽 높이 = 1.0 기준 높이 + 글자 줄마다 (배율 적용 줄 높이 - 1.0 줄 높이)
+  /// 고정 높이라 1.4 배율에서 하단 문구가 카드 밖으로 넘치던 문제 보정
+  static double _contentHeightOf(TextScaler textScaler) {
+    var extraHeight = 0.0;
+    for (final (style, lineCount) in _scalingTextLines) {
+      final fontSize = style.fontSize!;
+      final lineHeightRatio = style.height ?? 1;
+      extraHeight +=
+          (textScaler.scale(fontSize) - fontSize) * lineHeightRatio * lineCount;
+    }
+    return _baseCardContentHeight + extraHeight;
+  }
 
   bool get _canSolve =>
       pattern.topicName != null && pattern.latestTrendQuestionCount > 0;
@@ -44,7 +66,7 @@ class ExamTrendPatternCard extends StatelessWidget {
             ? () => onSolveTopic(pattern.topicCode, pattern.topicName!)
             : null,
         child: SizedBox(
-          height: _cardContentHeight,
+          height: _contentHeightOf(MediaQuery.textScalerOf(context)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -96,7 +118,7 @@ class ExamTrendPatternCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: PassqlTypography.footnoteSemibold.copyWith(
-                          color: colors.accent,
+                          color: colors.accentText,
                         ),
                       ),
                     ),

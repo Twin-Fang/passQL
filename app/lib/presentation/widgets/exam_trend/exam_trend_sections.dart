@@ -194,7 +194,7 @@ class ExamTrendSolvableRow extends StatelessWidget {
                   softWrap: false,
                   style: PassqlTypography.title2.copyWith(
                     color: rank! <= _highlightedRankCount
-                        ? colors.accent
+                        ? colors.accentText
                         : colors.secondaryLabel,
                     fontFeatures: PassqlTypography.tabular,
                   ),
@@ -233,7 +233,7 @@ class ExamTrendSolvableRow extends StatelessWidget {
                   Text(
                     '$topicName 최신 경향 문제 $latestTrendQuestionCount개 풀기',
                     style: PassqlTypography.footnoteSemibold.copyWith(
-                      color: colors.accent,
+                      color: colors.accentText,
                     ),
                   ),
                 ],
@@ -257,7 +257,14 @@ class ExamTrendSolvableRow extends StatelessWidget {
     if (!_canSolve) return row;
     return PassqlPressable(
       onTap: () => onSolveTopic(topicCode, topicName!),
-      semanticLabel: '$title, $topicName 최신 경향 문제 풀기',
+      // 화면 글자(순위·제목·근거·설명·문제 수)를 한 문장으로
+      semanticLabel: [
+        if (rank != null) '$rank위',
+        title,
+        caption,
+        description,
+        '$topicName 최신 경향 문제 $latestTrendQuestionCount개 풀기',
+      ].join(', '),
       child: row,
     );
   }

@@ -73,7 +73,7 @@ class AdNativeSlot extends StatelessWidget {
       bodyColor: colors.secondaryLabel,
       mediaBackgroundColor: colors.fill,
       callToActionBackgroundColor: colors.accentTint,
-      callToActionTextColor: colors.accent,
+      callToActionTextColor: colors.accentText,
       mediaCornerRadius: PassqlRadius.md,
       callToActionCornerRadius: PassqlRadius.capsule,
       callToActionHeight: PassqlSize.buttonSmall,

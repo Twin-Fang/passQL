@@ -207,9 +207,9 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
     return TextSpan(
       text: label,
       style: TextStyle(
-        color: colors.accent,
+        color: colors.accentText,
         decoration: TextDecoration.underline,
-        decorationColor: colors.accent,
+        decorationColor: colors.accentText,
       ),
       recognizer: recognizer,
       semanticsLabel: '$label 링크',

@@ -64,7 +64,7 @@ class ExamScheduleCard extends StatelessWidget {
           if (schedule != null) ...[
             Text(
               _dday(schedule!.examDate),
-              style: PassqlTypography.title1.copyWith(color: colors.accent),
+              style: PassqlTypography.title1.copyWith(color: colors.accentText),
             ),
             const SizedBox(height: PassqlSpacing.xs),
             PassqlKeepAllText(
@@ -91,7 +91,7 @@ class ExamScheduleCard extends StatelessWidget {
             PassqlKeepAllText(
               '일정 선택하기',
               style: PassqlTypography.captionSemibold.copyWith(
-                color: colors.accent,
+                color: colors.accentText,
               ),
             ),
           ],

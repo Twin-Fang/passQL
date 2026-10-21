@@ -155,9 +155,11 @@ class _HomeContent extends ConsumerWidget {
           onViewAll: () => context.go(QuestionsTabView.latestTrend.location),
         )
       else if (examTrendReportAsync.isLoading)
-        const PassqlSkeletonBox(
-          height: _examTrendSectionHeight,
-          radius: PassqlRadius.lg,
+        const PassqlLoadingSemantics(
+          child: PassqlSkeletonBox(
+            height: _examTrendSectionHeight,
+            radius: PassqlRadius.lg,
+          ),
         ),
 
       // 오늘의 공부 팁 (팁 없으면 숨김)
@@ -239,36 +241,42 @@ class _HomeSkeleton extends StatelessWidget {
         PassqlSpacing.md,
         0,
       ),
-      sliver: SliverList(
-        delegate: SliverChildListDelegate.fixed([
-          Row(
+      // 스켈레톤 조각 대신 '불러오는 중' 한 번
+      sliver: SliverToBoxAdapter(
+        child: PassqlLoadingSemantics(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: PassqlSkeletonBox(
-                  height: _dualCardHeight,
-                  radius: PassqlRadius.lg,
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: PassqlSkeletonBox(
+                      height: _dualCardHeight,
+                      radius: PassqlRadius.lg,
+                    ),
+                  ),
+                  SizedBox(width: PassqlSpacing.sm),
+                  Expanded(
+                    child: PassqlSkeletonBox(
+                      height: _dualCardHeight,
+                      radius: PassqlRadius.lg,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(width: PassqlSpacing.sm),
-              Expanded(
-                child: PassqlSkeletonBox(
-                  height: _dualCardHeight,
-                  radius: PassqlRadius.lg,
-                ),
+              SizedBox(height: PassqlSpacing.md),
+              PassqlSkeletonBox(
+                height: _readinessCardHeight,
+                radius: PassqlRadius.lg,
+              ),
+              SizedBox(height: PassqlSpacing.md),
+              PassqlSkeletonBox(
+                height: _heatmapCardHeight,
+                radius: PassqlRadius.lg,
               ),
             ],
           ),
-          SizedBox(height: PassqlSpacing.md),
-          PassqlSkeletonBox(
-            height: _readinessCardHeight,
-            radius: PassqlRadius.lg,
-          ),
-          SizedBox(height: PassqlSpacing.md),
-          PassqlSkeletonBox(
-            height: _heatmapCardHeight,
-            radius: PassqlRadius.lg,
-          ),
-        ]),
+        ),
       ),
     );
   }

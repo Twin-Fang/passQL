@@ -53,7 +53,8 @@ void main() {
     expect(find.byType(PassqlGroupedSection), findsAtLeastNWidgets(2));
     expect(
       tester.widget<Text>(find.text('회원 탈퇴')).style!.color,
-      PassqlColors.light.wrong,
+      // 글자는 대비 4.5 이상인 오답 글자색 (채움색 wrong 은 흰 바탕 3.5)
+      PassqlColors.light.wrongText,
     );
   });
 

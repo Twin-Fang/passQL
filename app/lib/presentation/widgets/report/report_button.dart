@@ -27,7 +27,8 @@ class ReportButton extends ConsumerWidget {
     final target = (questionUuid: questionUuid, submissionUuid: submissionUuid);
     final reported =
         ref.watch(reportStatusProvider(target)).valueOrNull ?? false;
-    final color = reported ? colors.tertiaryLabel : colors.secondaryLabel;
+    // 신고 완료는 문구로 구분 (흐린 색은 대비 미달)
+    final color = colors.secondaryLabel;
 
     return CupertinoButton(
       padding: const EdgeInsets.symmetric(

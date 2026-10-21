@@ -30,9 +30,16 @@ class NotificationListRow extends StatelessWidget {
     final appearance = NotificationTypeAppearance.of(item, colors);
     // 공지 본문은 마크다운 > 미리보기는 표기 제거
     final bodyPreview = toMarkdownPreviewText(item.body);
+    final elapsedText = formatNotificationElapsed(item.createdAt, now: now);
     return PassqlPressable(
       onTap: onTap,
-      semanticLabel: '${item.isRead ? '' : '안 읽은 '}${item.title}',
+      // 읽는 순서: 안 읽음·중요 > 제목 > 본문 미리보기 > 경과 시간 (화면 글자는 덮음)
+      semanticLabel: [
+        '${item.isRead ? '' : '안 읽은 '}${item.title}',
+        if (item.isImportant) '중요',
+        if (bodyPreview.isNotEmpty) bodyPreview,
+        elapsedText,
+      ].join(', '),
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: PassqlSpacing.md,
@@ -99,9 +106,9 @@ class NotificationListRow extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: PassqlSpacing.xxs),
                     child: Text(
-                      formatNotificationElapsed(item.createdAt, now: now),
+                      elapsedText,
                       style: PassqlTypography.caption.copyWith(
-                        color: colors.tertiaryLabel,
+                        color: colors.secondaryLabel,
                       ),
                     ),
                   ),

@@ -24,8 +24,8 @@ class ExamTrendHomeSection extends StatelessWidget {
   /// '전체' 버튼 문구 원본
   static const String viewAllLabel = '전체';
 
-  /// 가로 목록 높이: 유형 카드 높이와 같게
-  static const double _patternListHeight = ExamTrendPatternCard.totalHeight;
+  /// '전체' 버튼 스크린리더 문구 (무엇의 전체인지 포함)
+  static const String viewAllSemanticLabel = '$title 전체 보기';
 
   @override
   Widget build(BuildContext context) {
@@ -69,8 +69,9 @@ class ExamTrendHomeSection extends StatelessWidget {
             // 유형 카드: 좌우 끝까지 흐르고 다음 카드가 오른쪽에 걸쳐 보임
             if (report.risingPatterns.isNotEmpty) ...[
               const SizedBox(height: PassqlSpacing.sm),
+              // 가로 목록 높이: 유형 카드 높이와 같게 (글자 배율 반영)
               SizedBox(
-                height: _patternListHeight,
+                height: ExamTrendPatternCard.totalHeightOf(context),
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(
@@ -108,15 +109,19 @@ class ExamTrendHomeSection extends StatelessWidget {
           child: Row(
             children: [
               Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    title,
-                    maxLines: 1,
-                    softWrap: false,
-                    style: PassqlTypography.subheadlineSemibold.copyWith(
-                      color: colors.label,
+                // 제목 이동(로터·제목 탐색)용 머리글
+                child: Semantics(
+                  header: true,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      softWrap: false,
+                      style: PassqlTypography.subheadlineSemibold.copyWith(
+                        color: colors.label,
+                      ),
                     ),
                   ),
                 ),
@@ -126,25 +131,30 @@ class ExamTrendHomeSection extends StatelessWidget {
             ],
           ),
         ),
-        CupertinoButton(
-          padding: EdgeInsets.zero,
-          minimumSize: const Size(0, PassqlSize.minTouchTarget),
-          onPressed: onViewAll,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                viewAllLabel,
-                style: PassqlTypography.footnoteSemibold.copyWith(
-                  color: colors.accent,
+        PassqlSemanticButton(
+          label: viewAllSemanticLabel,
+          onTap: onViewAll,
+          child: CupertinoButton(
+            padding: EdgeInsets.zero,
+            // 글자 폭이 좁아도 누르는 영역은 44x44
+            minimumSize: const Size.square(PassqlSize.minTouchTarget),
+            onPressed: onViewAll,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  viewAllLabel,
+                  style: PassqlTypography.footnoteSemibold.copyWith(
+                    color: colors.accentText,
+                  ),
                 ),
-              ),
-              Icon(
-                CupertinoIcons.chevron_forward,
-                size: PassqlIconSize.xs,
-                color: colors.accent,
-              ),
-            ],
+                Icon(
+                  CupertinoIcons.chevron_forward,
+                  size: PassqlIconSize.xs,
+                  color: colors.accentText,
+                ),
+              ],
+            ),
           ),
         ),
       ],

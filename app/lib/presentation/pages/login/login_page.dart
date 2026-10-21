@@ -146,17 +146,55 @@ class _LegalNotice extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         Text('계속하면 ', style: style),
-        GestureDetector(
+        _LegalLink(
+          label: '이용약관',
+          style: link,
           onTap: () => onOpen(LegalType.termsOfService),
-          child: Text('이용약관', style: link),
         ),
         Text(' 및 ', style: style),
-        GestureDetector(
+        _LegalLink(
+          label: '개인정보처리방침',
+          style: link,
           onTap: () => onOpen(LegalType.privacyPolicy),
-          child: Text('개인정보처리방침', style: link),
         ),
         Text('에 동의하게 돼요', style: style),
       ],
+    );
+  }
+}
+
+/// 약관 열람 링크 한 개: 링크 시맨틱 + 글자 높이가 작아도 누르는 영역은 높이 44
+class _LegalLink extends StatelessWidget {
+  const _LegalLink({
+    required this.label,
+    required this.style,
+    required this.onTap,
+  });
+
+  final String label;
+  final TextStyle style;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return PassqlSemanticButton(
+      label: label,
+      isLink: true,
+      onTap: onTap,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minHeight: PassqlSize.minTouchTarget,
+          ),
+          child: Center(
+            widthFactor: 1,
+            heightFactor: 1,
+            child: Text(label, style: style),
+          ),
+        ),
+      ),
     );
   }
 }

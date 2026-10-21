@@ -84,7 +84,7 @@ class _LatestTrendHeader extends StatelessWidget {
             Text(
               '최신 경향 문제 총 ${report.latestTrendQuestionCount}개',
               style: PassqlTypography.footnoteSemibold.copyWith(
-                color: colors.accent,
+                color: colors.accentText,
               ),
             ),
           ],

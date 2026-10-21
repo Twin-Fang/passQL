@@ -67,7 +67,7 @@ class PassqlStatusView extends StatelessWidget {
             Icon(
               icon,
               size: PassqlIconSize.statusPlaceholder,
-              color: colors.tertiaryLabel,
+              color: colors.iconSecondary,
             ),
             const SizedBox(height: PassqlSpacing.sm),
             Text(

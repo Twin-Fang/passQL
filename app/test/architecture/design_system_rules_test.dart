@@ -36,6 +36,24 @@ final _bannedPatterns = <String, (RegExp, String)>{
   ),
 };
 
+/// 여러 줄에 걸친 금지 패턴 3종(접근성 감사 C1·C2·C4) > 대신 쓸 공통 지점
+final _bannedMultilinePatterns = <String, (RegExp, String)>{
+  '글자 tertiaryLabel': (
+    RegExp(r'copyWith\(\s*color:\s*\w+\.tertiaryLabel\b'),
+    '글자는 secondaryLabel, 기능 아이콘은 iconSecondary (tertiaryLabel 대비 1.7)',
+  ),
+  '글자 accent': (
+    RegExp(r'copyWith\(\s*color:\s*\w+\.accent\s*[,)]'),
+    'accentText (다크 accent 글자 대비 3.4)',
+  ),
+  '탭 동작 없는 버튼 시맨틱': (
+    RegExp(
+      r'Semantics\((?:(?!\bchild:)[\s\S])*?\bbutton:\s*true(?:(?!\bchild:)[\s\S])*?\bexcludeSemantics:\s*true|Semantics\((?:(?!\bchild:)[\s\S])*?\bexcludeSemantics:\s*true(?:(?!\bchild:)[\s\S])*?\bbutton:\s*true',
+    ),
+    'PassqlSemanticButton (excludeSemantics 는 자식 탭 동작까지 지움)',
+  ),
+};
+
 /// 명시적 예외: {파일 경로: {패턴 이름: 이유}}. 비어 있는 것이 정상
 const Map<String, Map<String, String>> _allowedUsages = {
   'lib/presentation/widgets/common/app_toast.dart': {
@@ -66,6 +84,25 @@ void main() {
             }
           });
         }
+      }
+    }
+    expect(violations, isEmpty, reason: violations.join('\n'));
+  });
+
+  test('화면 코드는 읽는 글자색·버튼 시맨틱을 대비·탭 동작이 보장된 공통 지점으로만 쓴다', () {
+    final violations = <String>[];
+    for (final directory in _screenCodeDirectories) {
+      for (final file in handWrittenDartFiles(directory)) {
+        final path = normalizedPath(file);
+        final code = codeLinesOf(file).map((line) => line.$2).join('\n');
+        _bannedMultilinePatterns.forEach((patternName, rule) {
+          final (pattern, replacement) = rule;
+          for (final match in pattern.allMatches(code)) {
+            final lineNumber =
+                '\n'.allMatches(code.substring(0, match.start)).length + 1;
+            violations.add('$path:~$lineNumber $patternName > $replacement');
+          }
+        });
       }
     }
     expect(violations, isEmpty, reason: violations.join('\n'));

@@ -52,14 +52,13 @@ class CommunityPostTile extends StatelessWidget {
               Text(
                 formatNotificationElapsed(post.createdAt),
                 style: PassqlTypography.footnote.copyWith(
-                  color: colors.tertiaryLabel,
+                  color: colors.secondaryLabel,
                 ),
               ),
               const Spacer(),
-              Semantics(
-                button: true,
+              PassqlSemanticButton(
                 label: '글 메뉴',
-                excludeSemantics: true,
+                onTap: onMenuTap,
                 child: CupertinoButton(
                   padding: EdgeInsets.zero,
                   minimumSize: const Size(
@@ -70,7 +69,7 @@ class CommunityPostTile extends StatelessWidget {
                   child: Icon(
                     CupertinoIcons.ellipsis,
                     size: PassqlIconSize.lg,
-                    color: colors.tertiaryLabel,
+                    color: colors.iconSecondary,
                   ),
                 ),
               ),
@@ -112,14 +111,13 @@ class _LikeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final tone = post.isLikedByMe ? colors.accent : colors.secondaryLabel;
+    final tone = post.isLikedByMe ? colors.accentText : colors.secondaryLabel;
     return Align(
       alignment: Alignment.centerLeft,
-      child: Semantics(
-        button: true,
-        selected: post.isLikedByMe,
+      child: PassqlSemanticButton(
+        isSelected: post.isLikedByMe,
         label: '좋아요 ${post.likeCount}개',
-        excludeSemantics: true,
+        onTap: onTap,
         child: CupertinoButton(
           padding: EdgeInsets.zero,
           minimumSize: const Size(
