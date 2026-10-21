@@ -78,13 +78,13 @@ void main() {
     final titleParagraph = tester.renderObject<RenderParagraph>(titleFinder);
     expect(titleParagraph.didExceedMaxLines, isFalse);
 
-    // 줄어든 비율 (보이는 너비 / 원래 너비) 90% 이상
+    // 줄어든 비율 (보이는 너비 / 원래 너비) 85% 이상 (배지와 '전체' 사이 간격 확보 후 기준)
     final visibleWidth = tester
         .getSize(
           find.ancestor(of: titleFinder, matching: find.byType(FittedBox)),
         )
         .width;
-    expect(visibleWidth / titleParagraph.size.width, greaterThanOrEqualTo(0.9));
+    expect(visibleWidth / titleParagraph.size.width, greaterThanOrEqualTo(0.85));
   });
 
   testWidgets("'전체'를 누르면 onViewAll 이 1회 호출된다", (tester) async {

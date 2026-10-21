@@ -314,6 +314,21 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('풀이 화면'), findsOneWidget);
     });
+
+    testWidgets('아직 풀지 않은 상태에도 닫기 버튼으로 흐름을 나갈 수 있다', (tester) async {
+      await _pageOf(tester, const DailySetResultPage(), [
+        dailySetTodayProvider.overrideWith(
+          (ref) async => const DailySetTodayResponse(
+            questions: [QuestionSummary(questionUuid: 'q')],
+          ),
+        ),
+        _boardOverride(_board()),
+      ]);
+
+      await tester.tap(find.bySemanticsLabel('닫기'));
+      await tester.pumpAndSettle();
+      expect(find.text('홈 화면'), findsOneWidget);
+    });
   });
 
   group('리더보드', () {

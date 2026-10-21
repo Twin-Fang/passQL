@@ -131,6 +131,8 @@ class ExamTrendHomeSection extends StatelessWidget {
             ],
           ),
         ),
+        // 배지 묶음 <-> '전체' 버튼 사이 간격 (큰 글자에서 맞닿지 않게)
+        const SizedBox(width: PassqlSpacing.xxs),
         PassqlSemanticButton(
           label: viewAllSemanticLabel,
           onTap: onViewAll,

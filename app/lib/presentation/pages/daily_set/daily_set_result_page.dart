@@ -56,12 +56,16 @@ class _RecordBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return today.when(
-      loading: () => const PassqlStatusScaffold(
+      loading: () => PassqlStatusScaffold(
         title: _dailySetTitle,
+        leading: PassqlNavLeading.close,
+        onLeadingTap: () => leaveSolvingFlow(context),
         body: PassqlStatusView.loading(),
       ),
       error: (error, _) => PassqlStatusScaffold(
         title: _dailySetTitle,
+        leading: PassqlNavLeading.close,
+        onLeadingTap: () => leaveSolvingFlow(context),
         body: PassqlStatusView.error(
           message: error.asAppException.message,
           onRetry: () => ref.invalidate(dailySetTodayProvider),
@@ -71,6 +75,8 @@ class _RecordBody extends ConsumerWidget {
         if (!data.alreadyCompleted) {
           return PassqlStatusScaffold(
             title: _dailySetTitle,
+            leading: PassqlNavLeading.close,
+            onLeadingTap: () => leaveSolvingFlow(context),
             body: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
