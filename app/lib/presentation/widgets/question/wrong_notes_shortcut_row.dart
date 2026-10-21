@@ -6,7 +6,7 @@ import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/wrong_questions_provider.dart';
 
-/// 문제 탭 상단 오답 노트 바로가기: 오답 개수 + 탭 > 오답 노트 화면 (설정 탭 행과 같은 모양)
+/// 문제 탭 상단 오답 노트 바로가기: 오답 개수 + 탭 > 오답 노트 화면 (그룹 섹션 안의 목록 행 1개)
 class WrongNotesShortcutRow extends ConsumerWidget {
   const WrongNotesShortcutRow({super.key});
 

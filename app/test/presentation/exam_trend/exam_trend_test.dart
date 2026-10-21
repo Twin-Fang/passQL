@@ -152,9 +152,32 @@ void main() {
     );
     expect(find.text('조인 문제 3개'), findsOneWidget);
     expect(find.text('58회부터 증가'), findsOneWidget);
+    expect(find.text('행 수가 가장 많은 것 고르기'), findsOneWidget);
 
     await tester.tap(find.text('조인 문제 3개'));
     expect(solvedTopics, [('sql_join', '조인')]);
+  });
+
+  testWidgets('유형 카드는 긴 제목·설명도 고정 높이 안에 말줄임으로 담는다', (tester) async {
+    await tester.pumpWidget(
+      _host(
+        ExamTrendPatternCard(
+          pattern: const ExamTrendPattern(
+            title: '관리 구문 최종 상태 추적과 아주 긴 제목이 한 줄을 넘는 경우',
+            description:
+                'MERGE의 DELETE 절, INSERT FIRST, COMMIT 뒤 SAVEPOINT, 중첩 ROLE 회수 후 결과를 물어요. 설명이 두 줄을 넘는 경우도 말줄임으로 담아요.',
+            examRoundsText: '62회 관리 구문 9문항',
+            topicCode: 'sql_ddl_dml_tcl',
+            topicName: 'DDL / DML / TCL',
+            latestTrendQuestionCount: 12,
+          ),
+          onSolveTopic: (_, _) {},
+        ),
+      ),
+    );
+    // 넘침 예외 없이 그려지고 하단 문구가 보임
+    expect(tester.takeException(), isNull);
+    expect(find.text('DDL / DML / TCL 문제 12개'), findsOneWidget);
   });
 
   testWidgets('토픽 이름이 없는 유형 카드는 문제 수 문구도 탭도 없다', (tester) async {

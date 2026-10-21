@@ -7,13 +7,16 @@ import '../../design/design.dart';
 /// 카드 폭: 화면 폭보다 작게 잡아 가로 목록에서 다음 카드가 화면 끝에 걸쳐 보이게 함
 const double _cardWidth = 236;
 
-/// 카드 안쪽 높이: 머리 + 제목 2줄 + 하단 문구가 들어가고, 하단 문구는 이 높이의 맨 아래에 고정
+/// 카드 안쪽 높이: 머리 + 제목 1줄 + 설명 2줄 + 하단 문구가 들어가고, 하단 문구는 이 높이의 맨 아래에 고정
 const double _cardContentHeight = 136;
 
 /// 제목 최대 줄 수
-const int _titleMaxLines = 2;
+const int _titleMaxLines = 1;
 
-/// 홈 가로 목록의 늘어난 유형 카드: 토픽 아이콘 + 회차 배지 + 제목 + 하단 "토픽명 문제 N개 >"
+/// 설명 최대 줄 수
+const int _descriptionMaxLines = 2;
+
+/// 홈 가로 목록의 늘어난 유형 카드: 토픽 아이콘 + 회차 배지 + 제목 + 설명 + 하단 "토픽명 문제 N개 >"
 /// 문제 있는 유형만 탭 > 그 토픽 최신 경향 풀기, 없으면 하단 문구·탭 없음
 class ExamTrendPatternCard extends StatelessWidget {
   const ExamTrendPatternCard({
@@ -71,6 +74,15 @@ class ExamTrendPatternCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: PassqlTypography.subheadlineSemibold.copyWith(
                   color: colors.label,
+                ),
+              ),
+              const SizedBox(height: PassqlSpacing.xxs),
+              Text(
+                pattern.description,
+                maxLines: _descriptionMaxLines,
+                overflow: TextOverflow.ellipsis,
+                style: PassqlTypography.footnote.copyWith(
+                  color: colors.secondaryLabel,
                 ),
               ),
               const Spacer(),
