@@ -62,7 +62,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
       if (!mounted) return;
       ref
           .read(chapterProvider(widget.flow.id).notifier)
-          .load(() => widget.flow.loadQuestionUuids(ref));
+          .load(() => widget.flow.loadStart(ref));
     });
   }
 
@@ -231,7 +231,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
           // 문제 목록을 다시 불러온다. (오늘의 세트를 이미 끝냈다면 다시 불러도 같은 안내가 나온다)
           onRetry: () => ref
               .read(chapterProvider(widget.flow.id).notifier)
-              .load(() => widget.flow.loadQuestionUuids(ref)),
+              .load(() => widget.flow.loadStart(ref)),
         ),
       );
     }

@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { isSqlNullCell, toSqlCellText } from "../lib/sqlCellPresentation";
 
 interface ResultMatchTableProps {
   /** JSON 배열 형태의 선택지 body 문자열 */
@@ -60,7 +61,9 @@ export const ResultMatchTable = memo(function ResultMatchTable({ body, inverted 
             {rows.map((row, i) => (
               <tr key={i}>
                 {columns.map((col) => (
-                  <td key={col}>{String(row[col] ?? "")}</td>
+                  <td key={col} className={isSqlNullCell(row[col]) ? "result-table-null" : ""}>
+                    {toSqlCellText(row[col])}
+                  </td>
                 ))}
               </tr>
             ))}

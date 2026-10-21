@@ -1,6 +1,7 @@
 import { memo, useState } from "react";
 import { ChevronDown, Table2 } from "lucide-react";
 import type { QuestionSchemaTable } from "../types/api";
+import { isSqlNullCell, toSqlCellText } from "../lib/sqlCellPresentation";
 
 // 테이블별 처음에 보여 줄 샘플 행 수 (나머지는 더 보기)
 export const INITIAL_SAMPLE_ROW_COUNT = 5;
@@ -94,8 +95,8 @@ function SchemaTableCard({ table }: { readonly table: QuestionSchemaTable }) {
                 {table.columns.map((column, columnIndex) => {
                   const cell = row[columnIndex];
                   return (
-                    <td key={column.name} className={cell == null ? "result-table-null" : "font-mono"}>
-                      {cell == null ? "NULL" : String(cell)}
+                    <td key={column.name} className={isSqlNullCell(cell) ? "result-table-null" : "font-mono"}>
+                      {toSqlCellText(cell)}
                     </td>
                   );
                 })}

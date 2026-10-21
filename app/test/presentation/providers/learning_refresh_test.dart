@@ -55,7 +55,7 @@ void main() {
     expect(statsLoads, 1);
   });
 
-  test('풀이 후 갱신은 학습 현황·통계만 다시 받고 인사말·추천·일정·AI 코멘트는 캐시 유지', () async {
+  test('풀이 후 갱신은 학습 현황·통계·통계 AI 코멘트를 다시 받고 인사말·추천·일정은 캐시 유지 (#567)', () async {
     await readAll();
 
     refreshLearningData(container.invalidate);
@@ -64,7 +64,7 @@ void main() {
     expect(learningStatusLoads, 2);
     expect(statsLoads, 2);
     expect(overviewLoads, 1);
-    expect(aiCommentLoads, 1);
+    expect(aiCommentLoads, 2);
   });
 
   test('날짜가 바뀌면 홈 전체를 다시 받는다', () async {

@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { Check, AlertTriangle } from "lucide-react";
 import type { ExecuteResult } from "../types/api";
+import { isSqlNullCell, toSqlCellText } from "../lib/sqlCellPresentation";
 
 interface ResultTableProps {
   readonly result: ExecuteResult;
@@ -55,8 +56,8 @@ export const ResultTable = memo(function ResultTable({ result, onAskAi, inverted
                 {result.rows.map((row, i) => (
                   <tr key={i}>
                     {(row as unknown[]).map((cell, j) => (
-                      <td key={j} className={cell == null ? "result-table-null" : ""}>
-                        {cell == null ? "NULL" : String(cell)}
+                      <td key={j} className={isSqlNullCell(cell) ? "result-table-null" : ""}>
+                        {toSqlCellText(cell)}
                       </td>
                     ))}
                   </tr>

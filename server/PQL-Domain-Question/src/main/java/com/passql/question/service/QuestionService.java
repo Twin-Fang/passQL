@@ -5,6 +5,7 @@ import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.MarkdownTextStripper;
 import com.passql.common.util.TextPreview;
 import com.passql.meta.entity.Subtopic;
 import com.passql.meta.entity.Topic;
@@ -171,7 +172,7 @@ public class QuestionService {
                 .toList();
         // 풀이용 고정 세트는 표시 순서 섞기 (관리자 화면은 저장 순서 유지)
         if (shouldShuffle) {
-            items = ChoiceOrderShuffler.shuffle(items, (item, sortOrder) -> new QuestionDetail.ChoiceItem(
+            items = ChoiceOrderShuffler.shuffle(items, QuestionDetail.ChoiceItem::body, (item, sortOrder) -> new QuestionDetail.ChoiceItem(
                     item.key(), item.kind(), item.body(), item.isCorrect(), item.rationale(), sortOrder));
         }
         return new QuestionDetail.ChoiceSetSummary(
@@ -226,7 +227,7 @@ public class QuestionService {
                 .map(choiceSet -> isCuratedChoiceSet(getQuestionEntityOrNull(choiceSet.getQuestionUuid()), choiceSet))
                 .orElse(false);
         if (isCuratedSet) {
-            choiceItems = ChoiceOrderShuffler.shuffle(choiceItems, (item, sortOrder) -> new ChoiceSetGenerateResponse.ChoiceItem(
+            choiceItems = ChoiceOrderShuffler.shuffle(choiceItems, ChoiceSetGenerateResponse.ChoiceItem::body, (item, sortOrder) -> new ChoiceSetGenerateResponse.ChoiceItem(
                     item.key(), item.kind(), item.body(), sortOrder));
         }
         return new ChoiceSetGenerateResponse(choiceSetUuid, choiceItems);
@@ -320,7 +321,7 @@ public class QuestionService {
 
     public QuestionSummary toSummary(Question q) {
         String stem = q.getStem();
-        String preview = TextPreview.truncate(stem, TextPreview.QUESTION_SUMMARY_STEM_LENGTH);
+        String preview = TextPreview.truncate(MarkdownTextStripper.replaceTables(stem), TextPreview.QUESTION_SUMMARY_STEM_LENGTH);
         Topic topic = q.getTopicUuid() != null ? topicRepository.findById(q.getTopicUuid()).orElse(null) : null;
         return new QuestionSummary(
                 q.getQuestionUuid(),

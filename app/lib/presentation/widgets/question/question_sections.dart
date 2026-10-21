@@ -1,10 +1,12 @@
 import 'package:flutter/cupertino.dart';
+import '../../../core/utils/question_difficulty.dart';
 import '../../../data/models/question/question_detail.dart';
 import '../../../data/models/question/sse_event.dart';
 import '../../../data/models/question/submit_result.dart';
 import '../../providers/question_providers.dart';
 import '../../design/design.dart';
 import 'choice_item_card.dart';
+import 'reveal_above_bottom_bar.dart';
 import 'sse_loading_widget.dart';
 import 'stem_text.dart';
 import 'choice_display_label.dart';
@@ -19,7 +21,7 @@ class QuestionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final difficulty = question.difficulty ?? 1;
+    final difficulty = toClampedQuestionDifficulty(question.difficulty);
     final isExecutable = question.executionMode == 'EXECUTABLE';
     final title = question.subtopicName;
 
@@ -37,11 +39,11 @@ class QuestionHeader extends StatelessWidget {
             children: [
               // 난이도 표시는 색만이 아니라 채움 여부(별 모양)로도 구분된다.
               Semantics(
-                label: '난이도 $difficulty / 3',
+                label: '난이도 $difficulty / $maximumQuestionDifficulty',
                 excludeSemantics: true,
                 child: Row(
                   children: List.generate(
-                    3,
+                    maximumQuestionDifficulty,
                     (i) => Icon(
                       i < difficulty
                           ? CupertinoIcons.star_fill
@@ -57,8 +59,12 @@ class QuestionHeader extends StatelessWidget {
               const SizedBox(width: PassqlSpacing.xs),
               PassqlBadge(
                 text: isExecutable ? 'SQL 실행' : '개념 문제',
-                kind: isExecutable ? PassqlBadgeKind.topic : PassqlBadgeKind.neutral,
-                icon: isExecutable ? CupertinoIcons.play_fill : CupertinoIcons.book_fill,
+                kind: isExecutable
+                    ? PassqlBadgeKind.topic
+                    : PassqlBadgeKind.neutral,
+                icon: isExecutable
+                    ? CupertinoIcons.play_fill
+                    : CupertinoIcons.book_fill,
               ),
               // 최신 출제 경향 반영 문제 (#523)
               if (question.isLatestTrend) ...[
@@ -151,29 +157,33 @@ class QuestionChoices extends StatelessWidget {
     return Column(
       children: interaction.activeChoices.indexed.map((entry) {
         final (displayIndex, item) = entry;
-        return ChoiceItemCard(
-          item: item,
-          displayLabel: toChoiceDisplayLabel(displayIndex),
-          state: resolveChoiceState(
-            key: item.key,
-            selectedKey: submitResult != null
-                ? gradedSelectedKey
-                : interaction.selectedChoiceKey,
-            result: submitResult,
+        // 채점 직후 정답 보기를 하단 피드백 바 위로 (#551)
+        return RevealAboveBottomBarOnTrigger(
+          shouldReveal: item.key == submitResult?.correctKey,
+          child: ChoiceItemCard(
+            item: item,
+            displayLabel: toChoiceDisplayLabel(displayIndex),
+            state: resolveChoiceState(
+              key: item.key,
+              selectedKey: submitResult != null
+                  ? gradedSelectedKey
+                  : interaction.selectedChoiceKey,
+              result: submitResult,
+            ),
+            onTap: () => notifier.selectChoice(
+              choiceKey: item.key,
+              sql: item.kind == 'SQL' ? item.body : null,
+              isExecutable: isExecutable,
+            ),
+            // 채점 뒤에도 다른 선택지의 SQL 실행 결과를 볼 수 있게 한다(채점 표시는 그대로).
+            onGradedTap: submitResult != null && isExecutable
+                ? () => notifier.selectChoice(
+                    choiceKey: item.key,
+                    sql: item.kind == 'SQL' ? item.body : null,
+                    isExecutable: isExecutable,
+                  )
+                : null,
           ),
-          onTap: () => notifier.selectChoice(
-            choiceKey: item.key,
-            sql: item.kind == 'SQL' ? item.body : null,
-            isExecutable: isExecutable,
-          ),
-          // 채점 뒤에도 다른 선택지의 SQL 실행 결과를 볼 수 있게 한다(채점 표시는 그대로).
-          onGradedTap: submitResult != null && isExecutable
-              ? () => notifier.selectChoice(
-                  choiceKey: item.key,
-                  sql: item.kind == 'SQL' ? item.body : null,
-                  isExecutable: isExecutable,
-                )
-              : null,
         );
       }).toList(),
     );

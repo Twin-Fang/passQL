@@ -1870,6 +1870,7 @@ export interface components {
         };
         DailySetTodayResponse: {
             alreadyCompleted: boolean;
+            answeredResults: boolean[] | null;
             /** Format: int32 */
             correctCount: number | null;
             questions: components["schemas"]["QuestionSummary"][];

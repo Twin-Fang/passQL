@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 선택지 세트 구조화 해설 생성 (#521): 프롬프트 조립 > Gemini JSON 응답 > 파싱 > 검증 > 위반 있으면 위반 목록 붙여 1회 재시도
@@ -39,11 +40,17 @@ public class ChoiceSetExplanationGenerator {
     private final GeminiClient geminiClient;
     private final PromptService promptService;
 
-    /** 세트 1개 해설 생성: 시도마다 호출 > 파싱 > 검증, 통과하면 바로 반환 */
+    /** 세트 1개 해설 생성 (실행 근거 없음) */
     public ChoiceSetExplanationGenerationResult generate(Question question, List<QuestionChoiceSetItem> items) {
+        return generate(question, items, Map.of());
+    }
+
+    /** 세트 1개 해설 생성: 보기별 실행 결과를 근거로 넣고 시도마다 호출 > 파싱 > 검증, 통과하면 바로 반환 */
+    public ChoiceSetExplanationGenerationResult generate(Question question, List<QuestionChoiceSetItem> items,
+                                                         Map<String, String> resultSummaryByChoiceKey) {
         long startedAt = System.currentTimeMillis();
         PromptTemplate modelSetting = promptService.getActivePrompt(MODEL_SETTING_PROMPT_KEY);
-        String userPrompt = ChoiceSetExplanationPrompt.buildUserPrompt(question, items);
+        String userPrompt = ChoiceSetExplanationPrompt.buildUserPrompt(question, items, resultSummaryByChoiceKey);
 
         ChoiceSetExplanation lastExplanation = null;
         String lastRawResponse = null;

@@ -13,7 +13,9 @@ class PassqlProgressBar extends StatelessWidget {
     final colors = context.passqlColors;
     return ClipRRect(
       borderRadius: BorderRadius.circular(PassqlRadius.capsule),
+      // 폭 고정: 가운데 정렬 Column 안에서도 트랙이 전체 폭, 채움은 왼쪽부터 (#552)
       child: SizedBox(
+        width: double.infinity,
         height: PassqlSize.progressBarHeight,
         child: Stack(
           children: [

@@ -27,6 +27,11 @@ class DailySetFlow extends QuestionFlow {
   Future<List<String>> loadQuestionUuids(WidgetRef ref) =>
       ref.read(dailySetServiceProvider).fetchTodayQuestionUuids();
 
+  // 풀다 만 세트는 이미 푼 문제 다음부터 (#566)
+  @override
+  Future<ChapterStart> loadStart(WidgetRef ref) =>
+      ref.read(dailySetServiceProvider).fetchTodayStart();
+
   @override
   Future<void> onCompleted(
     BuildContext context,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../data/models/question/question_schema_column.dart';
 import '../../../data/models/question/question_schema_table.dart';
 import '../../design/design.dart';
+import 'result_rows_table.dart';
 
 /// 테이블 1개 미리보기: 이름·샘플 행 수 > 컬럼 머리글(이름, PK·FK, 타입) + 샘플 행 표 (처음 5행 + 더 보기)
 /// 열이 많거나 글자가 커도 잘리지 않게 가로 스크롤
@@ -15,7 +16,7 @@ class SchemaTablePreview extends StatefulWidget {
   static const int initialSampleRowCount = 5;
 
   /// SQL NULL 셀 표시 문구 (실행 결과 표와 같은 표기)
-  static const String nullCellLabel = 'NULL';
+  static const String nullCellLabel = sqlNullCellLabel;
 
   @override
   State<SchemaTablePreview> createState() => _SchemaTablePreviewState();
@@ -94,7 +95,6 @@ class _SampleRowsTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final cellStyle = PassqlTypography.codeCompact.copyWith(color: colors.label);
     final nullCellStyle = PassqlTypography.codeCompact.copyWith(color: colors.tertiaryLabel);
 
     return ClipRRect(
@@ -123,7 +123,7 @@ class _SampleRowsTable extends StatelessWidget {
                         for (var columnIndex = 0; columnIndex < columns.length; columnIndex++)
                           _buildValueCell(
                             columnIndex < row.length ? row[columnIndex] : null,
-                            cellStyle: cellStyle,
+                            cellColor: colors.label,
                             nullCellStyle: nullCellStyle,
                           ),
                       ],
@@ -138,11 +138,11 @@ class _SampleRowsTable extends StatelessWidget {
   }
 
   /// 셀 값 > 글자 (null 이면 흐린 NULL)
-  Widget _buildValueCell(Object? value, {required TextStyle cellStyle, required TextStyle nullCellStyle}) {
+  Widget _buildValueCell(Object? value, {required Color cellColor, required TextStyle nullCellStyle}) {
     return _TableCellPadding(
       child: value == null
           ? Text(SchemaTablePreview.nullCellLabel, style: nullCellStyle)
-          : Text('$value', style: cellStyle),
+          : Text('$value', style: toTableCellTextStyle('$value', color: cellColor)),
     );
   }
 }
