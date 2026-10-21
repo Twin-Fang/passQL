@@ -5,6 +5,7 @@ import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.MarkdownTextStripper;
 import com.passql.common.util.TextPreview;
 import com.passql.meta.entity.Subtopic;
 import com.passql.meta.entity.Topic;
@@ -320,7 +321,7 @@ public class QuestionService {
 
     public QuestionSummary toSummary(Question q) {
         String stem = q.getStem();
-        String preview = TextPreview.truncate(stem, TextPreview.QUESTION_SUMMARY_STEM_LENGTH);
+        String preview = TextPreview.truncate(MarkdownTextStripper.replaceTables(stem), TextPreview.QUESTION_SUMMARY_STEM_LENGTH);
         Topic topic = q.getTopicUuid() != null ? topicRepository.findById(q.getTopicUuid()).orElse(null) : null;
         return new QuestionSummary(
                 q.getQuestionUuid(),

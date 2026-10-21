@@ -5,6 +5,7 @@ import '../../core/network/api_call.dart';
 import '../../core/error/error_code.dart';
 import '../../data/models/daily_set/daily_set_models.dart';
 import '../../data/sources/api_providers.dart';
+import 'chapter_providers.dart';
 import 'session_reset.dart';
 
 /// 오늘의 세트 상태(완료 여부, 정답 수). 결과 화면을 직접 열었을 때 쓴다.
@@ -35,7 +36,12 @@ class DailySetService {
   final Ref _ref;
 
   /// 오늘 풀 문제 UUID 목록. 이미 완료했거나 준비 전이면 화면에 보여줄 [AppException]
-  Future<List<String>> fetchTodayQuestionUuids() async {
+  Future<List<String>> fetchTodayQuestionUuids() async =>
+      (await fetchTodayStart()).questionUuids;
+
+  /// 오늘 풀이 시작 정보: 문제 목록 + 앞에서부터 이미 푼 문제 (이어 풀기, #566)
+  /// 마지막 문제는 남긴다 (모두 풀린 채 시작하면 이번 세션 제출이 없어 완료 등록 불가)
+  Future<ChapterStart> fetchTodayStart() async {
     final today = await _ref.read(dailySetApiProvider).getToday();
     if (today.alreadyCompleted) {
       throw const AppException(
@@ -49,7 +55,22 @@ class DailySetService {
         message: '오늘의 세트가 아직 준비되지 않았어요.',
       );
     }
-    return today.questions.map((question) => question.questionUuid).toList();
+    final questionUuids = today.questions
+        .map((question) => question.questionUuid)
+        .toList();
+    final answeredResults = today.answeredResults ?? const <bool?>[];
+    final resumedCorrectness = <bool>[];
+    for (var index = 0; index < questionUuids.length - 1; index++) {
+      final isCorrect = index < answeredResults.length
+          ? answeredResults[index]
+          : null;
+      if (isCorrect == null) break;
+      resumedCorrectness.add(isCorrect);
+    }
+    return ChapterStart(
+      questionUuids: questionUuids,
+      resumedCorrectness: resumedCorrectness,
+    );
   }
 
   /// 점수 등록 > 순위·오늘 상태 캐시 비움

@@ -21,8 +21,38 @@ interface DailySetState {
   readonly correctCount: number | null;
 }
 
+// 이어 푼 문제의 "내 답" 자리 문구 (보기 원문은 이전 풀이에만 있음)
+export const RESUMED_ANSWER_LABEL = "이전 풀이에서 제출";
+
+/**
+ * 이어 풀기 (#566): 문제별 오늘 첫 제출 정오(미제출 null) > 앞에서부터 이어진 제출 결과
+ * 마지막 문제는 남겨 둔다 (모두 풀린 상태로 시작하면 이번 세션 제출이 없어 완료할 수 없음)
+ */
+export function toResumedResults(
+  questions: readonly QuestionSummary[],
+  answeredResults: readonly (boolean | null)[] | null | undefined,
+): DailySetQuestionResult[] {
+  const resumed: DailySetQuestionResult[] = [];
+  for (let index = 0; index < questions.length - 1; index++) {
+    const isCorrect = answeredResults?.[index];
+    if (isCorrect === null || isCorrect === undefined) break;
+    resumed.push({
+      questionUuid: questions[index].questionUuid,
+      isCorrect,
+      selectedChoiceKey: "",
+      selectedChoiceBody: RESUMED_ANSWER_LABEL,
+      durationMs: 0,
+    });
+  }
+  return resumed;
+}
+
 interface DailySetActions {
-  readonly startSession: (sessionUuid: string, questions: readonly QuestionSummary[]) => void;
+  readonly startSession: (
+    sessionUuid: string,
+    questions: readonly QuestionSummary[],
+    answeredResults?: readonly (boolean | null)[] | null,
+  ) => void;
   readonly submitAndAdvance: (
     questionUuid: string,
     isCorrect: boolean,
@@ -47,8 +77,17 @@ const INITIAL_STATE: DailySetState = {
 export const useDailySetStore = create<DailySetState & DailySetActions>()((set, get) => ({
   ...INITIAL_STATE,
 
-  startSession: (sessionUuid, questions) =>
-    set({ ...INITIAL_STATE, sessionUuid, questions, startedAt: Date.now() }),
+  startSession: (sessionUuid, questions, answeredResults) => {
+    const resumedResults = toResumedResults(questions, answeredResults);
+    set({
+      ...INITIAL_STATE,
+      sessionUuid,
+      questions,
+      results: resumedResults,
+      currentIndex: resumedResults.length,
+      startedAt: Date.now(),
+    });
+  },
 
   submitAndAdvance: (questionUuid, isCorrect, selectedChoiceKey, selectedChoiceBody, submissionUuid, choiceSetUuid) => {
     const { startedAt } = get();

@@ -17,6 +17,8 @@ class DailySetTodayResponse with _$DailySetTodayResponse {
     int? correctCount,
     // 이미 완료했을 때 문제별 정답 여부(questions 순서). 기록을 못 찾은 문제는 null.
     List<bool?>? results,
+    // 풀다 만 세트의 문제별 오늘 첫 제출 정답 여부(questions 순서, 미제출 null). 이어 풀기용 (#566)
+    List<bool?>? answeredResults,
   }) = _DailySetTodayResponse;
 
   factory DailySetTodayResponse.fromJson(Map<String, dynamic> json) =>

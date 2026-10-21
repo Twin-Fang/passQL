@@ -96,6 +96,21 @@ class DailySetScoreVerificationTest {
     }
 
     @Test
+    void 이어_풀기로_세션이_나뉘어도_앞_세션에서_푼_문제까지_센다() {
+        todaysSet(q1, q2, q3);
+        // 이번 세션은 q3 만 풀었고 q1·q2 는 앞 세션에서 정답 (#566)
+        submissions(sub(q3, true));
+        List<Submission> todaysSubmissions = List.of(sub(q1, true), sub(q2, true), sub(q3, true));
+        when(submissionRepo.findByMemberUuidAndQuestionUuidInAndSubmittedAtGreaterThanEqualOrderBySubmittedAtAsc(
+                eq(member), any(), any()))
+                .thenReturn(todaysSubmissions);
+
+        DailySetCompleteResponse res = service.complete(member, new DailySetCompleteRequest(3, session));
+
+        assertEquals(3, res.correctCount());
+    }
+
+    @Test
     void 오늘_세트에_없는_문제의_제출은_세지_않는다() {
         todaysSet(q1);
         submissions(sub(q1, true), sub(UUID.randomUUID(), true), sub(UUID.randomUUID(), true));
