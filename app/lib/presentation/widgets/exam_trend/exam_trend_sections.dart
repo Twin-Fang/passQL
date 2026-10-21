@@ -153,16 +153,28 @@ class ExamTrendConceptSection extends StatelessWidget {
     super.key,
     required this.concepts,
     required this.onSolveTopic,
+    this.totalConceptCount,
+    this.shouldShowHeader = true,
+    this.shouldShowFooter = true,
   });
 
   final List<ExamTrendConcept> concepts;
   final void Function(String topicCode, String topicName) onSolveTopic;
 
+  /// 머리글 개수 (목록을 둘로 나눠 그릴 때 전체 개수, 없으면 [concepts] 개수)
+  final int? totalConceptCount;
+
+  /// 머리글·안내 문구 표시 (나눠 그린 묶음은 한쪽씩만 표시)
+  final bool shouldShowHeader;
+  final bool shouldShowFooter;
+
   @override
   Widget build(BuildContext context) {
     return PassqlGroupedSection(
-      header: '자주 나오는 개념 TOP ${concepts.length}',
-      footer: '최근 4회(58·60·61·62회) 합산 출제 문항 수 기준',
+      header: shouldShowHeader
+          ? '자주 나오는 개념 TOP ${totalConceptCount ?? concepts.length}'
+          : null,
+      footer: shouldShowFooter ? '최근 4회(58·60·61·62회) 합산 출제 문항 수 기준' : null,
       children: [
         for (final concept in concepts)
           ExamTrendSolvableRow(

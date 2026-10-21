@@ -9,7 +9,11 @@ import '../../../presentation/providers/topic_providers.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../widgets/ads/ad_native_slot.dart';
+import '../../widgets/exam_trend/concept_ranking_tab_view.dart';
+import '../../widgets/exam_trend/latest_trend_tab_view.dart';
+import '../../widgets/question/questions_tab_segmented_control.dart';
 import '../../widgets/question/topic_card.dart';
+import '../../widgets/question/wrong_notes_shortcut_row.dart';
 import 'questions_tab_view.dart';
 
 /// 네이티브 광고를 끼우는 위치: 토픽 5개 뒤 (그 뒤에 토픽이 하나라도 남을 때만)
@@ -18,68 +22,152 @@ const int _nativeAdAfterTopicCount = 5;
 /// 토픽 목록 머리글 (스켈레톤과 같은 자리)
 const _topicListHeader = '학습할 토픽을 선택하세요';
 
-/// 문제 탭 1단계 — 토픽 선택 화면.
-/// 토픽 행 탭 시 /questions/list?topic=CODE&topicName=NAME으로 이동.
+/// 문제 탭: 보기 3개 (주제별 | 최신 경향 | 개념 TOP 10)
+/// 주제별 > 오답 노트 바로가기 + 토픽 선택 (토픽 행 탭 시 /questions/chapter?topic=CODE&topicName=NAME 이동)
+/// 최신 경향·개념 TOP 10 > 출제 경향 응답 (행 탭 시 그 토픽의 최신 경향 문제 풀기)
 class TopicListPage extends ConsumerWidget {
   const TopicListPage({super.key, this.view = QuestionsTabView.byTopic});
 
-  /// 현재 보기 (세그먼트 화면 분기는 이후 단계에서 사용)
+  /// 현재 보기 (라우트 쿼리 ?view= 에서 옴)
   final QuestionsTabView view;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final topicsAsync = ref.watch(topicsProvider);
-
     return Scaffold(
       body: PassqlLargeTitleScrollView(
         title: '문제',
-        // 토픽 추가·비활성화를 앱 재시작 없이 반영
+        // 토픽 추가·비활성화, 출제 경향 갱신을 앱 재시작 없이 반영
         onRefresh: () async {
           ref.invalidate(topicsProvider);
           ref.invalidate(latestTrendQuestionCountByTopicProvider);
+          ref.invalidate(examTrendReportProvider);
           await ref.read(topicsProvider.future);
         },
         slivers: [
-          // 오류만 전체 자리, 로딩 > 목록은 같은 sliver 안에서 페이드 교체
-          if (topicsAsync.hasError && !topicsAsync.hasValue)
-            // 다시 시도할 방법이 없으면 탭을 오가야 해서 버튼을 둔다 (#375).
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: PassqlStatusView.error(
-                message: '토픽을 불러올 수 없어요',
-                onRetry: () => ref.invalidate(topicsProvider),
-              ),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(
-                PassqlSpacing.md,
-                PassqlSpacing.md,
-                PassqlSpacing.md,
-                0,
-              ),
-              sliver: SliverToBoxAdapter(
-                child: PassqlFadeSwitcher(
-                  child: switch (topicsAsync.valueOrNull) {
-                    null => const PassqlListSkeleton(
-                      key: ValueKey('loading'),
-                      header: _topicListHeader,
-                    ),
-                    final topics => _TopicSections(
-                      key: const ValueKey('data'),
-                      topics: topics,
-                      onTopicTap: (topic) => context.push(
-                        AppRoutes.questionChapterOf(
-                          topicCode: topic.code,
-                          topicName: topic.displayName,
-                        ),
-                      ),
-                    ),
-                  },
-                ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              PassqlSpacing.md,
+              PassqlSpacing.xs,
+              PassqlSpacing.md,
+              0,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: QuestionsTabSegmentedControl(
+                selectedView: view,
+                onSelected: (next) => context.go(next.location),
               ),
             ),
+          ),
+          ...switch (view) {
+            QuestionsTabView.byTopic => _topicSlivers(context, ref),
+            QuestionsTabView.latestTrend ||
+            QuestionsTabView.conceptRanking => [_examTrendSliver(context, ref)],
+          },
         ],
+      ),
+    );
+  }
+
+  // 주제별: 오류만 전체 자리, 로딩 > 목록은 같은 sliver 안에서 페이드 교체
+  List<Widget> _topicSlivers(BuildContext context, WidgetRef ref) {
+    final topicsAsync = ref.watch(topicsProvider);
+    if (topicsAsync.hasError && !topicsAsync.hasValue) {
+      // 다시 시도할 방법이 없으면 탭을 오가야 해서 버튼을 둔다 (#375).
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: PassqlStatusView.error(
+            message: '토픽을 불러올 수 없어요',
+            onRetry: () => ref.invalidate(topicsProvider),
+          ),
+        ),
+      ];
+    }
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(
+          PassqlSpacing.md,
+          PassqlSpacing.md,
+          PassqlSpacing.md,
+          0,
+        ),
+        sliver: SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const WrongNotesShortcutRow(),
+              const SizedBox(height: PassqlSpacing.lg),
+              PassqlFadeSwitcher(
+                child: switch (topicsAsync.valueOrNull) {
+                  null => const PassqlListSkeleton(
+                    key: ValueKey('loading'),
+                    header: _topicListHeader,
+                  ),
+                  final topics => _TopicSections(
+                    key: const ValueKey('data'),
+                    topics: topics,
+                    onTopicTap: (topic) => context.push(
+                      AppRoutes.questionChapterOf(
+                        topicCode: topic.code,
+                        topicName: topic.displayName,
+                      ),
+                    ),
+                  ),
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    ];
+  }
+
+  // 최신 경향·개념 TOP 10: 같은 출제 경향 응답, 보기마다 다른 key 로 페이드 교체
+  Widget _examTrendSliver(BuildContext context, WidgetRef ref) {
+    final reportAsync = ref.watch(examTrendReportProvider);
+
+    void onSolveTopic(String topicCode, String topicName) => context.push(
+      AppRoutes.questionChapterOf(
+        topicCode: topicCode,
+        topicName: topicName,
+        isLatestTrendOnly: true,
+      ),
+    );
+
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+        0,
+      ),
+      sliver: SliverToBoxAdapter(
+        child: PassqlFadeSwitcher(
+          child: switch (reportAsync) {
+            AsyncData(:final value) => switch (view) {
+              QuestionsTabView.conceptRanking => ConceptRankingTabView(
+                key: ValueKey('${view.queryValue}-data'),
+                concepts: value.frequentConcepts,
+                onSolveTopic: onSolveTopic,
+              ),
+              _ => LatestTrendTabView(
+                key: ValueKey('${view.queryValue}-data'),
+                report: value,
+                onSolveTopic: onSolveTopic,
+              ),
+            },
+            AsyncError() => KeyedSubtree(
+              key: ValueKey('${view.queryValue}-error'),
+              child: PassqlStatusView.error(
+                message: '출제 경향을 불러올 수 없어요',
+                onRetry: () => ref.invalidate(examTrendReportProvider),
+              ),
+            ),
+            _ => PassqlListSkeleton(
+              key: ValueKey('${view.queryValue}-loading'),
+            ),
+          },
+        ),
       ),
     );
   }
