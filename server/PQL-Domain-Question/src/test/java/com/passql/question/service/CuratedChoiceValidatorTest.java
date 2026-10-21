@@ -60,6 +60,23 @@ class CuratedChoiceValidatorTest {
     }
 
     @Test
+    void 같은_결과_표_보기가_2개면_거부한다() {
+        // 들여쓰기만 다른 같은 결과 표 (#555)
+        List<CuratedChoiceDto> choices = validChoices();
+        choices.set(1, new CuratedChoiceDto("B", "TEXT", "[{\"NAME\":\"홍길동\",\"SAL\":3000}]", false, "근거"));
+        choices.set(2, new CuratedChoiceDto("C", "TEXT", "[ {\"NAME\": \"홍길동\", \"SAL\": 3000} ]", false, "근거"));
+        assertThat(CuratedChoiceValidator.findRejectReason(ChoiceSetPolicy.CURATED_ONLY, ExecutionMode.CONCEPT_ONLY, choices))
+                .contains("본문 중복");
+    }
+
+    @Test
+    void 줄바꿈만_다른_SQL_보기도_중복으로_본다() {
+        assertThat(ChoiceBodyDuplicateFinder.findDuplicateBody(List.of("SELECT 1\nFROM T", "SELECT 1 FROM T", "SELECT 2")))
+                .isEqualTo("SELECT 1 FROM T");
+        assertThat(ChoiceBodyDuplicateFinder.findDuplicateBody(List.of("SELECT 1", "SELECT 2"))).isNull();
+    }
+
+    @Test
     void blankBodyOrRationale_rejected() {
         List<CuratedChoiceDto> blankBody = validChoices();
         blankBody.set(1, new CuratedChoiceDto("B", "TEXT", " ", false, "근거"));
@@ -84,7 +101,7 @@ class CuratedChoiceValidatorTest {
     @Test
     void executableWithSqlChoices_passes() {
         List<CuratedChoiceDto> sqlChoices = validChoices().stream()
-                .map(choice -> new CuratedChoiceDto(choice.choiceKey(), "SQL", "SELECT 1 FROM DUAL", choice.isCorrect(), choice.rationale()))
+                .map(choice -> new CuratedChoiceDto(choice.choiceKey(), "SQL", "SELECT '" + choice.choiceKey() + "' FROM DUAL", choice.isCorrect(), choice.rationale()))
                 .toList();
         assertThat(CuratedChoiceValidator.findRejectReason(ChoiceSetPolicy.CURATED_ONLY, ExecutionMode.EXECUTABLE, sqlChoices)).isNull();
     }

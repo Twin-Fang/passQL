@@ -18,7 +18,7 @@ import java.util.Map;
 public final class ChoiceSetExplanationPrompt {
 
     // 프롬프트 버전: 올리면 저장된 해설이 낡은 것으로 보고 백그라운드 재생성
-    public static final int PROMPT_VERSION = 1;
+    public static final int PROMPT_VERSION = 2;
 
     private static final String RESOURCE_DIRECTORY = "/ai-prompts/choice-set-explanation/";
     private static final String SYSTEM_INSTRUCTION_TEMPLATE = readResource("system-instruction.md");
