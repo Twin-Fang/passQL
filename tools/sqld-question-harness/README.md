@@ -6,10 +6,11 @@
 ```
 (a) 경향 근거     trend_catalog.py      trend.templates·examRounds·isLatestTrend 검증, 템플릿 커버리지
 (b) 초안 구조     question_schema.py    YAML v1·v2 로드, 구조 규칙 (보기 4개·정답 1개·v2 필수 메타)
-(c) Oracle 검증   oracle_executor.py    문제별 임시 스키마 (스레드별 관리자 연결)
+(c) Oracle 검증   oracle_executor.py    문제별 임시 스키마 (스레드별 관리자 연결, 기본 XE 21c)
                   choice_verifier.py    보기 expect 판정, pick max|min
                   verification_runner.py 캐시 조회 > 미스분만 병렬 실행
 (d) 품질 점검     quality_linter.py     함정 타당성·길이 균형·지문 체크리스트·표<->데이터·정답 위치 분포
+                  oracle_compatibility.py 23ai 전용 문법 탐지 (시험 기준 19c 와 다른 동작)
                   duplicate_detector.py 묶음 안·기존 풀 대비 중복
 (e) 해설 초안     explanation_hook.py   #521 구조화 해설 5필드 초안 + 검증 (생성기 교체 가능)
 (f) 등록·리포트   import_exporter.py    관리자 가져오기 JSON (v1 과 같은 모양) + v2 메타 파일
@@ -20,7 +21,8 @@
 ## 준비
 1. 원문 복호화: `bash scripts/research-docs-crypt.sh decrypt` (키: 루트 `.env` 의 `RESEARCH_DOCS_ENCRYPTION_KEY`)
 2. 의존성: `cd tools/sqld-question-harness && python3 -m venv .venv && .venv/bin/pip install oracledb pyyaml pytest`
-3. Oracle (verify 만 필요): `docker run -d --name sqld-harness-oracle -p 1521:1521 -e ORACLE_PASSWORD=harness gvenzl/oracle-free:23-slim-faststart` (로그 `DATABASE IS READY TO USE` 대기)
+3. Oracle (verify 만 필요): `docker run -d --name sqld-harness-oracle-21 -p 1522:1521 -e ORACLE_PASSWORD=harness gvenzl/oracle-xe:21-slim-faststart` (로그 `DATABASE IS READY TO USE` 대기)
+   - 21c 를 쓰는 이유: 시험 기준(19c)과 문법 동작이 같다. 23ai 이상(oracle-free)은 GROUP BY·HAVING 별칭, FROM 없는 SELECT 등을 허용해 시험에서 오류인 보기가 통과할 수 있다
    - 접속값 환경변수: `SQLD_HARNESS_DSN`, `SQLD_HARNESS_ADMIN_USER`, `SQLD_HARNESS_ADMIN_PASSWORD`
 
 ## 명령
@@ -105,6 +107,7 @@ v1 문제(`schemaVersion` 없음)는 그대로 동작한다. v2 는 `schemaVersi
 | `trend.*` | error·warning·info | 카탈로그에 없는 템플릿, 최신 경향 근거 회차 없음, v2 템플릿 누락, 최신 회차 근거인데 플래그 없음 |
 | `explanation.*` | error·warning·info | correctReason·choiceAnalysis(A~D, 정답 표시 일치) 필수, keyConcepts 1~5개, 짧은 정답 값은 correctReason 에 언급 |
 | `trend.concept-combination` | info | v2 concepts 1개 (2026 경향: 2~3개 결합) |
+| `compat.oracle-23ai-syntax` | warning | 23ai 부터 허용된 문법 5종 (GROUP BY·HAVING 의 SELECT 별칭, FROM 없는 SELECT, 다중 행 VALUES, BOOLEAN, IF [NOT] EXISTS). 오류 기대 보기라면 의도대로이니 21c 검증 결과로 확인 |
 
 임계값은 `sqld_harness/constants.py` 한 곳에서 관리한다.
 정답 위치 분포는 원본 YAML 기준 참고값이다. CURATED_ONLY 세트는 풀이 응답마다 보기 순서를 섞어 실제 노출 위치는 무작위라 쏠림 경고가 나와도 재배치는 필요 없다.
