@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/data/models/exam_trend/exam_trend_report_response.dart';
 import 'package:passql_app/presentation/design/design.dart';
@@ -68,6 +69,22 @@ void main() {
     expect(find.text('결과 비교형 보기'), findsOneWidget);
     expect(find.byType(ExamTrendPatternCard), findsWidgets);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('390pt 폭에서도 제목이 말줄임 없이 거의 원래 크기로 보인다', (tester) async {
+    await _pumpSection(tester, _report);
+
+    final titleFinder = find.text(ExamTrendHomeSection.title);
+    final titleParagraph = tester.renderObject<RenderParagraph>(titleFinder);
+    expect(titleParagraph.didExceedMaxLines, isFalse);
+
+    // 줄어든 비율 (보이는 너비 / 원래 너비) 90% 이상
+    final visibleWidth = tester
+        .getSize(
+          find.ancestor(of: titleFinder, matching: find.byType(FittedBox)),
+        )
+        .width;
+    expect(visibleWidth / titleParagraph.size.width, greaterThanOrEqualTo(0.9));
   });
 
   testWidgets("'전체'를 누르면 onViewAll 이 1회 호출된다", (tester) async {

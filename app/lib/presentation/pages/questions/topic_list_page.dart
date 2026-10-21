@@ -14,7 +14,7 @@ import '../../widgets/exam_trend/latest_trend_tab_view.dart';
 import '../../widgets/question/questions_tab_segmented_control.dart';
 import '../../widgets/question/topic_card.dart';
 import '../../widgets/question/wrong_notes_shortcut_row.dart';
-import 'questions_tab_view.dart';
+import '../../../router/questions_tab_view.dart';
 
 /// 네이티브 광고를 끼우는 위치: 토픽 5개 뒤 (그 뒤에 토픽이 하나라도 남을 때만)
 const int _nativeAdAfterTopicCount = 5;
@@ -130,6 +130,8 @@ class TopicListPage extends ConsumerWidget {
   // 최신 경향·개념 TOP 10: 같은 출제 경향 응답, 보기마다 다른 key 로 페이드 교체
   Widget _examTrendSliver(BuildContext context, WidgetRef ref) {
     final reportAsync = ref.watch(examTrendReportProvider);
+    // 갱신 실패여도 이전 값이 있으면 그대로 보여 줌 (오류 화면은 값이 없을 때만)
+    final report = reportAsync.valueOrNull;
     final isAdsEnabled = ref.watch(adsEnabledProvider);
 
     void onSolveTopic(String topicCode, String topicName) => context.push(
@@ -150,10 +152,10 @@ class TopicListPage extends ConsumerWidget {
       sliver: SliverToBoxAdapter(
         child: PassqlFadeSwitcher(
           child: switch (reportAsync) {
-            AsyncData(:final value) => switch (view) {
+            _ when report != null => switch (view) {
               QuestionsTabView.conceptRanking => ConceptRankingTabView(
                 key: ValueKey('${view.queryValue}-data'),
-                concepts: value.frequentConcepts,
+                concepts: report.frequentConcepts,
                 onSolveTopic: onSolveTopic,
                 // 5위 <-> 6위 네이티브 1칸 (광고 위 간격은 광고 쪽, 광고 꺼짐 > 자리 없음)
                 adSlot: isAdsEnabled
@@ -165,7 +167,7 @@ class TopicListPage extends ConsumerWidget {
               ),
               _ => LatestTrendTabView(
                 key: ValueKey('${view.queryValue}-data'),
-                report: value,
+                report: report,
                 onSolveTopic: onSolveTopic,
                 // 늘어난 유형 <-> 공부 팁 네이티브 1칸
                 adSlot: isAdsEnabled

@@ -24,7 +24,7 @@ import '../../widgets/home/greeting_section.dart';
 import '../../widgets/home/heatmap_widget.dart';
 import '../../widgets/home/readiness_card.dart';
 import '../../widgets/home/recommendations_section.dart';
-import '../questions/questions_tab_view.dart';
+import '../../../router/questions_tab_view.dart';
 
 /// 홈 화면.
 /// homeDataProvider에서 6개 API 병렬 결과를 받아 렌더링.
@@ -141,17 +141,6 @@ class _HomeContent extends ConsumerWidget {
         ),
       ),
 
-      // 합격 준비도 카드 (readiness 있을 때)
-      if (data.progress?.readiness != null)
-        ReadinessCard(readiness: data.progress!.readiness!),
-
-      // readiness 없을 때 Fallback 통계 카드
-      if (data.progress != null && data.progress!.readiness == null)
-        FallbackStatsSection(
-          solvedCount: data.progress!.solvedCount,
-          correctRate: data.progress!.correctRate,
-        ),
-
       // 출제 경향 (로딩 = 자리 스켈레톤, 실패 = 항목 없음 > 간격도 없음)
       if (examTrendReport != null)
         ExamTrendHomeSection(
@@ -173,6 +162,17 @@ class _HomeContent extends ConsumerWidget {
 
       // 오늘의 공부 팁 (팁 없으면 숨김)
       if (dailyStudyTip != null) DailyStudyTipCard(studyTip: dailyStudyTip),
+
+      // 합격 준비도 카드 (readiness 있을 때)
+      if (data.progress?.readiness != null)
+        ReadinessCard(readiness: data.progress!.readiness!),
+
+      // readiness 없을 때 Fallback 통계 카드
+      if (data.progress != null && data.progress!.readiness == null)
+        FallbackStatsSection(
+          solvedCount: data.progress!.solvedCount,
+          correctRate: data.progress!.correctRate,
+        ),
 
       // 오늘의 토론 (뜨는 토론 1위, 없으면 숨김, #525)
       if (discussion != null) CommunityDailyDiscussionCard(card: discussion),

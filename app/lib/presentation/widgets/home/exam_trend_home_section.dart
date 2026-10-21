@@ -103,19 +103,29 @@ class ExamTrendHomeSection extends StatelessWidget {
           color: colors.accent,
         ),
         const SizedBox(width: PassqlSpacing.xs),
-        Flexible(
-          child: Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: PassqlTypography.subheadlineSemibold.copyWith(
-              color: colors.label,
-            ),
+        // 제목 + 배지가 남은 너비를 차지 > 모자라면 제목만 살짝 줄여 말줄임 없이 표시
+        Expanded(
+          child: Row(
+            children: [
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: PassqlTypography.subheadlineSemibold.copyWith(
+                      color: colors.label,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: PassqlSpacing.xs),
+              const PassqlLatestTrendBadge(),
+            ],
           ),
         ),
-        const SizedBox(width: PassqlSpacing.xs),
-        const PassqlLatestTrendBadge(),
-        const Spacer(),
         CupertinoButton(
           padding: EdgeInsets.zero,
           minimumSize: const Size(0, PassqlSize.minTouchTarget),

@@ -27,7 +27,7 @@ final wrongQuestionsProvider =
           .getWrongQuestions(size: wrongNotePageSize);
     });
 
-/// 설정 행에 보일 오답 개수만 조회 (목록은 1건만 받아 버림, 진입 분석 기록 없음)
+/// 문제 탭 오답 노트 바로가기에 보일 오답 개수만 조회 (목록은 1건만 받아 버림, 진입 분석 기록 없음)
 /// 실패하면 null (개수 숨김)
 final wrongQuestionTotalCountProvider = FutureProvider.autoDispose<int?>((
   ref,

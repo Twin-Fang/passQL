@@ -1,4 +1,4 @@
-import '../../../router/app_routes.dart';
+import 'app_routes.dart';
 
 /// 문제 탭 보기: 주제별, 최신 경향, 개념 TOP 10
 /// 라우트 쿼리(?view=) <-> 보기 변환 기준

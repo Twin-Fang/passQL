@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import '../../design/design.dart';
-import '../../pages/questions/questions_tab_view.dart';
+import '../../../router/questions_tab_view.dart';
 
 /// 문제 탭 보기 전환 (주제별 | 최신 경향 | 개념 TOP 10): 선택한 보기는 카드색 알약
 /// 모양은 NotificationSegmentedControl 과 같음 (2곳째라 디자인 시스템으로는 아직 뽑지 않음)

@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:passql_app/data/models/exam_trend/exam_trend_report_response.dart';
 import 'package:passql_app/data/models/meta/topic_tree.dart';
 import 'package:passql_app/presentation/design/design.dart';
-import 'package:passql_app/presentation/pages/questions/questions_tab_view.dart';
+import 'package:passql_app/router/questions_tab_view.dart';
 import 'package:passql_app/presentation/pages/questions/topic_list_page.dart';
 import 'package:passql_app/presentation/providers/exam_trend_providers.dart';
 import 'package:passql_app/presentation/providers/topic_providers.dart';

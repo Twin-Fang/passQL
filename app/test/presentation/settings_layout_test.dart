@@ -20,11 +20,7 @@ class SignedInAuth extends AuthNotifier {
   );
 }
 
-Future<void> pumpSettings(
-  WidgetTester tester,
-  ThemeData theme, {
-  List<Override> extraOverrides = const [],
-}) async {
+Future<void> pumpSettings(WidgetTester tester, ThemeData theme) async {
   // 목록이 길어 아래 행(회원 탈퇴)까지 한 번에 그려지도록 화면을 키운다.
   await tester.binding.setSurfaceSize(const Size(400, 1600));
   addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -40,7 +36,6 @@ Future<void> pumpSettings(
           ),
         ),
         currentAppVersionProvider.overrideWith((ref) async => '1.0.0'),
-        ...extraOverrides,
       ],
       child: MaterialApp(theme: theme, home: const SettingsPage()),
     ),

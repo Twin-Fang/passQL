@@ -184,13 +184,20 @@ class ExamTrendSolvableRow extends StatelessWidget {
           if (rank != null) ...[
             SizedBox(
               width: _rankColumnWidth,
-              child: Text(
-                '$rank',
-                style: PassqlTypography.title2.copyWith(
-                  color: rank! <= _highlightedRankCount
-                      ? colors.accent
-                      : colors.secondaryLabel,
-                  fontFeatures: PassqlTypography.tabular,
+              // 두 자리 순위도 한 줄 유지 (넘치면 축소)
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  '$rank',
+                  maxLines: 1,
+                  softWrap: false,
+                  style: PassqlTypography.title2.copyWith(
+                    color: rank! <= _highlightedRankCount
+                        ? colors.accent
+                        : colors.secondaryLabel,
+                    fontFeatures: PassqlTypography.tabular,
+                  ),
                 ),
               ),
             ),

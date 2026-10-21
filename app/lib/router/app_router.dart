@@ -18,7 +18,6 @@ import '../presentation/pages/login/login_page.dart';
 import '../presentation/pages/notice/notice_detail_page.dart';
 import '../presentation/pages/notice/notice_list_page.dart';
 import '../presentation/pages/notification/notification_inbox_page.dart';
-import '../presentation/pages/questions/questions_tab_view.dart';
 import '../presentation/pages/questions/topic_list_page.dart';
 import '../presentation/pages/questions/chapter_page.dart';
 import '../presentation/pages/questions/chapter_result_page.dart';
@@ -30,6 +29,7 @@ import '../presentation/pages/settings/wrong_notes_page.dart';
 import '../presentation/widgets/app_shell.dart';
 import 'app_launch_gate_routing.dart';
 import 'app_routes.dart';
+import 'questions_tab_view.dart';
 import 'result_route_arguments.dart';
 
 // 루트 네비게이터 키 — 풀스크린 라우트(탭 바깥)에서 사용
@@ -199,7 +199,7 @@ abstract final class AppRouter {
         redirect: (_, _) => QuestionsTabView.latestTrend.location,
       ),
 
-      // 풀스크린: 오답 노트 (설정에서 진입)
+      // 풀스크린: 오답 노트 (문제 탭 오답 노트 바로가기에서 진입)
       GoRoute(
         path: AppRoutes.wrongNotes,
         parentNavigatorKey: _rootKey,
