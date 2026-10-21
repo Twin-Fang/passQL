@@ -7,6 +7,7 @@ import '../../../core/error/app_exception.dart';
 import '../../../data/models/daily_set/daily_set_models.dart';
 import '../../../router/app_routes.dart';
 import '../../../router/result_route_arguments.dart';
+import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
 import '../../providers/daily_set_providers.dart';
 import '../../widgets/ads/interstitial_ad_on_enter.dart';
@@ -82,7 +83,7 @@ class _RecordBody extends ConsumerWidget {
                   variant: PassqlButtonVariant.tinted,
                   size: PassqlButtonSize.small,
                   isFullWidth: false,
-                  onPressed: () => context.go(AppRoutes.dailySet),
+                  onPressed: () => context.pushReplacement(AppRoutes.dailySet),
                 ),
               ],
             ),
@@ -199,7 +200,7 @@ class _ResultBody extends ConsumerWidget {
           variant: PassqlButtonVariant.tinted,
           onPressed: () => context.push(AppRoutes.leaderboard),
         ),
-        PassqlButton(label: '홈으로', onPressed: () => context.go(AppRoutes.home)),
+        PassqlButton(label: '닫기', onPressed: () => leaveSolvingFlow(context)),
       ],
     );
   }

@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
-import 'package:go_router/go_router.dart';
 import '../../../presentation/providers/chapter_providers.dart';
-import '../../../router/app_routes.dart';
+import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
 import '../../widgets/ads/interstitial_ad_on_enter.dart';
 import '../../widgets/notification/study_result_seen_recorder.dart';
@@ -21,7 +20,7 @@ class ChapterResultPage extends StatelessWidget {
       return PassqlStatusScaffold(
         title: '챕터 결과',
         leading: PassqlNavLeading.close,
-        onLeadingTap: () => context.go(AppRoutes.home),
+        onLeadingTap: () => leaveSolvingFlow(context),
         body: PassqlStatusView.empty(
           icon: CupertinoIcons.exclamationmark_circle,
           title: '결과를 불러올 수 없어요',
@@ -42,7 +41,7 @@ class ChapterResultPage extends StatelessWidget {
       child: InterstitialAdOnEnter(
         child: PassqlResultScaffold(
           title: '챕터 결과',
-          onClose: () => context.go(AppRoutes.home),
+          onClose: () => leaveSolvingFlow(context),
           header: PassqlScoreHeader(
             score: correctCount,
             total: total,
@@ -111,7 +110,7 @@ class ChapterResultPage extends StatelessWidget {
           actions: [
             PassqlButton(
               label: '완료',
-              onPressed: () => context.go(AppRoutes.home),
+              onPressed: () => leaveSolvingFlow(context),
             ),
           ],
         ),
