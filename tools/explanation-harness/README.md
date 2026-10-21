@@ -26,7 +26,25 @@ GEMINI_API_KEY=... ./run.sh live
 EXPLANATION_HARNESS_MODEL=gemini-2.5-flash-lite EXPLANATION_HARNESS_WITH_RATIONALE=true GEMINI_API_KEY=... ./run.sh live
 ```
 
-- 운영 Gemini 키는 IP 제한이 걸려 있어 로컬에서 403 이 난다. 제한 없는 개인 키를 쓰거나 운영 서버 IP 에서 실행한다.
+- 운영 Gemini 키는 IP 제한이 걸려 있어 로컬에서 403 이 난다. 제한 없는 개인 키를 쓰거나 아래 원격 실측을 쓴다.
+
+### 원격 실측 (모델 비교, #558)
+
+키를 밖으로 꺼내지 않고 운영 AI 서버 컨테이너 안에서 호출 > 로컬에서 운영 검증으로 채점 (1회 시도 기준).
+
+```bash
+# 1) 요청 내보내기 (운영 프롬프트 그대로)
+cd server && EXPLANATION_HARNESS_REMOTE_EXPORT=/tmp/remote-requests.json \
+  ./gradlew :PQL-Application:cleanTest :PQL-Application:test --tests '*ExplanationHarnessTest*'
+# 2) NAS: remote_run.py·요청 파일을 AI 컨테이너(passql-ai-blue|green 중 healthy)로 docker cp 후
+docker exec -w /app -e PYTHONPATH=/app passql-ai-green sh -c \
+  "python /tmp/remote_run.py --models gemini-2.5-flash-lite,gemini-3.5-flash-lite --runs 2 < /tmp/remote-requests.json > /tmp/remote-results.json"
+# 3) 결과 파일을 받아 채점 > reports/model-comparison-prompt-v{버전}.md
+EXPLANATION_HARNESS_REMOTE_RESULTS=/tmp/remote-results.json \
+  ./gradlew :PQL-Application:cleanTest :PQL-Application:test --tests '*ExplanationHarnessTest*'
+```
+
+- 운영 검증은 형식·정답 키 일치만 본다. 해설 내용의 사실 오류는 리포트 전문을 사람이 읽어 판단한다.
 - `recorded/v1` 은 실호출이 아니라 **수기 고정 샘플**이다 (형식·검증 경로 확인용). 실호출 후 덮어쓴다.
 - 실호출은 샘플 9개 x 최대 2회 호출. 기본은 보기 생성 근거(rationale)를 빼고 AI 자체 추론으로 평가한다.
 

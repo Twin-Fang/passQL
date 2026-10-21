@@ -28,6 +28,9 @@ class ExplanationHarnessTest {
     private static final String MODEL_ENV = "EXPLANATION_HARNESS_MODEL";
     // true 면 보기 생성 근거(rationale)도 프롬프트에 넣음 (기본: 빼고 AI 자체 추론 평가)
     private static final String WITH_RATIONALE_ENV = "EXPLANATION_HARNESS_WITH_RATIONALE";
+    // 원격 실측 (#558): 요청 내보낼 파일, 원격 호출 결과 파일 (둘 다 경로, 설정 시에만 실행)
+    private static final String REMOTE_EXPORT_ENV = "EXPLANATION_HARNESS_REMOTE_EXPORT";
+    private static final String REMOTE_RESULTS_ENV = "EXPLANATION_HARNESS_REMOTE_RESULTS";
     // 오프라인 리포트 위치 (커밋 대상 아님)
     private static final Path OFFLINE_REPORT_FILE = Paths.get("build", "explanation-harness", "report.md");
 
@@ -96,6 +99,32 @@ class ExplanationHarnessTest {
                 .resolve("prompt-v" + ChoiceSetExplanationPrompt.PROMPT_VERSION + ".md");
         ExplanationHarness.writeReport(reportFile, ExplanationHarness.buildReport(results, "실호출"));
         System.out.println("[explanation harness] report : " + reportFile);
+    }
+
+    @Test
+    void 원격_실측용_요청을_내보낸다() throws Exception {
+        String exportPath = System.getenv(REMOTE_EXPORT_ENV);
+        Assumptions.assumeTrue(exportPath != null && !exportPath.isBlank(), "원격 요청 내보내기 꺼짐 (" + REMOTE_EXPORT_ENV + ")");
+
+        Path harnessDirectory = ExplanationHarness.findHarnessDirectory();
+        RemoteExplanationHarness.exportRequests(
+                ExplanationHarness.loadSamples(harnessDirectory, isEnabled(WITH_RATIONALE_ENV)), Paths.get(exportPath));
+        System.out.println("[explanation harness] remote requests : " + exportPath);
+    }
+
+    @Test
+    void 원격_실측_결과를_운영_검증으로_채점한다() throws Exception {
+        String resultsPath = System.getenv(REMOTE_RESULTS_ENV);
+        Assumptions.assumeTrue(resultsPath != null && !resultsPath.isBlank(), "원격 결과 채점 꺼짐 (" + REMOTE_RESULTS_ENV + ")");
+
+        Path harnessDirectory = ExplanationHarness.findHarnessDirectory();
+        String report = RemoteExplanationHarness.buildComparisonReport(
+                ExplanationHarness.loadSamples(harnessDirectory, isEnabled(WITH_RATIONALE_ENV)),
+                RemoteExplanationHarness.loadResults(Paths.get(resultsPath)));
+        Path reportFile = harnessDirectory.resolve(ExplanationHarness.REPORT_DIRECTORY)
+                .resolve("model-comparison-prompt-v" + ChoiceSetExplanationPrompt.PROMPT_VERSION + ".md");
+        ExplanationHarness.writeReport(reportFile, report);
+        System.out.println("[explanation harness] comparison report : " + reportFile);
     }
 
     private static String analysesJson(HarnessSample sample, String correctChoiceKey) {
