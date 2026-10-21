@@ -243,6 +243,16 @@ public class ChoiceSetGenerationService {
                 ValidationReport report = resultMatchChoiceValidator.validate(lastResult.choices(), expectedResult);
                 log.debug("[choice-gen-result-match] 검증 완료: correctCount={}", report.correctCount());
 
+                // 같은 결과 표 보기가 2개면 재생성 (#555)
+                boolean hasDuplicateChoice = ChoiceBodyDuplicateFinder.findDuplicateBody(
+                        lastResult.choices().stream().map(GeneratedChoiceDto::body).toList()) != null;
+                if (hasDuplicateChoice) {
+                    lastErrorCode = ErrorCode.CHOICE_SET_GENERATION_FAILED;
+                    log.info("[choice-gen-result-match] validation failed: duplicate choice body, attempt={}/{}",
+                            attempts, MAX_ATTEMPTS);
+                    continue;
+                }
+
                 if (report.correctCount() == 1) {
                     log.debug("[choice-gen-result-match] 검증 통과, 저장: attempt={}", attempts);
                     return choiceSetSaveService.saveResultMatch(

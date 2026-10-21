@@ -51,6 +51,10 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
     /** 한 풀이 세션(sessionUuid)에서 회원이 제출한 답안. 점수를 서버가 직접 계산할 때 쓴다. */
     List<Submission> findByMemberUuidAndSessionUuidOrderBySubmittedAtAsc(UUID memberUuid, UUID sessionUuid);
 
+    /** 기준 시각 이후 회원이 여러 문제에 낸 답안 (세션 무관, 오늘의 세트 첫 제출 채점용 #561) */
+    List<Submission> findByMemberUuidAndQuestionUuidInAndSubmittedAtGreaterThanEqualOrderBySubmittedAtAsc(
+            UUID memberUuid, java.util.Collection<UUID> questionUuids, LocalDateTime since);
+
     long countByMemberUuid(UUID memberUuid);
 
     long countByMemberUuidAndIsCorrectTrue(UUID memberUuid);

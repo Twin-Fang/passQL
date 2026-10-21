@@ -4,6 +4,18 @@ import 'package:flutter/material.dart';
 
 import '../../design/design.dart';
 
+/// SQL NULL 셀 표시 문구 (스키마 표, 실행 결과, 결과형 보기 공통)
+const String sqlNullCellLabel = 'NULL';
+
+/// 한글 음절 포함 여부 판별
+final RegExp _hangulRe = RegExp(r'[\uAC00-\uD7A3]');
+
+/// 표 칸 글자 스타일: 한글이 섞이면 본문 글꼴(고정폭 공백이 넓어 보임 방지, #554), 아니면 코드 글꼴
+TextStyle toTableCellTextStyle(String text, {required Color color}) =>
+    _hangulRe.hasMatch(text)
+    ? PassqlTypography.footnote.copyWith(color: color)
+    : PassqlTypography.codeCompact.copyWith(color: color);
+
 /// 선택지 본문이 결과 행 JSON 배열(`[{"COL": 값, ...}]`)이면 행 목록을, 아니면 null 을 돌려준다.
 /// 웹(ResultMatchTable)과 같은 판별 기준을 쓴다.
 List<Map<String, dynamic>>? parseResultRows(String body) {
@@ -53,7 +65,9 @@ class ResultRowsTable extends StatelessWidget {
         decoration: BoxDecoration(
           color: colors.card,
           border: Border.all(color: colors.separator),
-          borderRadius: const BorderRadius.all(Radius.circular(PassqlRadius.sm)),
+          borderRadius: const BorderRadius.all(
+            Radius.circular(PassqlRadius.sm),
+          ),
         ),
         child: Text(
           '결과 없음 · 0행',
@@ -67,8 +81,9 @@ class ResultRowsTable extends StatelessWidget {
     final headerStyle = PassqlTypography.captionSemibold.copyWith(
       color: colors.secondaryLabel,
     );
-    final cellStyle = PassqlTypography.codeCompact.copyWith(
-      color: colors.label,
+    // NULL 은 흐린 색 문구로 빈 문자열('')과 구분
+    final nullCellStyle = PassqlTypography.codeCompact.copyWith(
+      color: colors.tertiaryLabel,
     );
 
     Widget buildCell(String text, TextStyle style) => Padding(
@@ -78,6 +93,14 @@ class ResultRowsTable extends StatelessWidget {
       ),
       child: Text(text, style: style),
     );
+
+    // 값 칸: NULL > 흐린 NULL 문구, 그 외 > 글자 종류별 글꼴
+    Widget buildValueCell(Object? value) => value == null
+        ? buildCell(sqlNullCellLabel, nullCellStyle)
+        : buildCell(
+            '$value',
+            toTableCellTextStyle('$value', color: colors.label),
+          );
 
     return ClipRRect(
       borderRadius: const BorderRadius.all(Radius.circular(PassqlRadius.sm)),
@@ -111,11 +134,9 @@ class ResultRowsTable extends StatelessWidget {
                   for (final row in _rows)
                     TableRow(
                       children: [
+                        // 모자란 칸은 NULL 이 아니라 빈칸
                         for (var i = 0; i < columns.length; i++)
-                          buildCell(
-                            i < row.length ? '${row[i] ?? ''}' : '',
-                            cellStyle,
-                          ),
+                          buildValueCell(i < row.length ? row[i] : ''),
                       ],
                     ),
                 ],

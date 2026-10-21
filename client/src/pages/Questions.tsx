@@ -5,6 +5,7 @@ import { useQuestions } from "../hooks/useQuestions";
 import { useTopics } from "../hooks/useTopics";
 import { StarRating } from "../components/StarRating";
 import ErrorFallback from "../components/ErrorFallback";
+import { QUESTION_DIFFICULTY_LEVELS } from "../lib/questionDifficulty";
 
 export default function Questions() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -112,7 +113,7 @@ export default function Questions() {
               >
                 전체
               </button>
-              {[1, 2, 3].map((d) => (
+              {QUESTION_DIFFICULTY_LEVELS.map((d) => (
                 <button
                   key={d}
                   type="button"

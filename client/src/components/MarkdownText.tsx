@@ -1,5 +1,7 @@
 import { createContext, isValidElement, memo, useContext, useRef } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { SQL_NULL_CELL_LABEL } from "../lib/sqlCellPresentation";
 
 // 전역 단어 인덱스 카운터 — Context로 커스텀 컴포넌트 간 공유
 const WordIndexContext = createContext<{ current: number } | null>(null);
@@ -114,6 +116,21 @@ function MdA({ href, children }: { href?: string; children?: React.ReactNode }) 
   );
 }
 
+// 지문 속 마크다운 표 (#550): 결과 표와 같은 data-table 모양, 넓으면 가로 스크롤
+function MdTable({ children }: { children?: React.ReactNode }) {
+  return (
+    <div className="overflow-x-auto rounded-lg my-2">
+      <table className="data-table w-full">{children}</table>
+    </div>
+  );
+}
+
+function MdTd({ children }: { children?: React.ReactNode }) {
+  // 칸 글자가 NULL 이면 결과 표와 같은 NULL 표시
+  const isNullCell = children === SQL_NULL_CELL_LABEL;
+  return <td className={isNullCell ? "result-table-null" : "font-mono"}>{children}</td>;
+}
+
 // ── 컴포넌트 맵 ───────────────────────────────────────────────
 
 const MD_COMPONENTS = {
@@ -126,7 +143,12 @@ const MD_COMPONENTS = {
   ol: MdOl,
   li: MdLi,
   a: MdA,
+  table: MdTable,
+  td: MdTd,
 } as const;
+
+// 표·취소선 등 GFM 문법 (렌더마다 새 배열을 만들지 않게 모듈 상수)
+const REMARK_PLUGINS = [remarkGfm];
 
 // ── MarkdownText 메인 컴포넌트 ────────────────────────────────
 
@@ -148,7 +170,7 @@ function MarkdownText({
 
   const content = (
     <div className={className}>
-      <ReactMarkdown components={MD_COMPONENTS}>{text}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={REMARK_PLUGINS} components={MD_COMPONENTS}>{text}</ReactMarkdown>
     </div>
   );
 

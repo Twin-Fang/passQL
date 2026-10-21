@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../design/design.dart';
+import 'result_rows_table.dart';
+import 'stem_markdown_table.dart';
 
 /// 지문 안의 ```lang ... ``` 블록 분리용 정규식.
 final RegExp _fenceRe = RegExp(r'```[A-Za-z]*\r?\n?([\s\S]*?)```');
@@ -15,7 +17,7 @@ String stripCodeFences(String text) {
       .trim();
 }
 
-/// 문제 지문. 코드 펜스 구간은 고정폭 코드 박스로, 나머지는 일반 글로 그린다.
+/// 문제 지문. 코드 펜스 구간은 고정폭 코드 박스로, 마크다운 표는 결과 표로, 나머지는 일반 글로 그린다.
 class StemText extends StatelessWidget {
   const StemText(this.stem, {super.key});
 
@@ -26,10 +28,21 @@ class StemText extends StatelessWidget {
     final children = <Widget>[];
     var cursor = 0;
 
+    // 글 조각 안의 마크다운 표는 결과 표와 같은 모양으로 (#550)
     void addText(String raw) {
-      final trimmed = raw.trim();
-      if (trimmed.isEmpty) return;
-      children.add(InlineCodeText(trimmed));
+      for (final segment in splitStemMarkdownTables(raw)) {
+        if (segment is StemMarkdownTable) {
+          children.add(
+            ResultRowsTable.positional(
+              columns: segment.columns,
+              rows: segment.rows,
+            ),
+          );
+          continue;
+        }
+        final trimmed = (segment as String).trim();
+        if (trimmed.isNotEmpty) children.add(InlineCodeText(trimmed));
+      }
     }
 
     for (final match in _fenceRe.allMatches(stem)) {
@@ -67,10 +80,14 @@ class InlineCodeText extends StatelessWidget {
 
   static final RegExp _inlineRe = RegExp(r'`([^`\n]+)`');
 
+  /// 줄바꿈 안 되는 공백 (U+00A0)
+  static const String _nonBreakingSpace = '\u00A0';
+
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final base = style ?? PassqlTypography.callout.copyWith(color: colors.label);
+    final base =
+        style ?? PassqlTypography.callout.copyWith(color: colors.label);
     final spans = <InlineSpan>[];
     var cursor = 0;
     for (final match in _inlineRe.allMatches(text)) {
@@ -79,7 +96,8 @@ class InlineCodeText extends StatelessWidget {
       }
       spans.add(
         TextSpan(
-          text: match.group(1),
+          // 코드 안 공백은 줄바꿈 안 되는 공백으로: 'GROUP BY' 가 두 줄로 갈라지지 않게 (#554)
+          text: match.group(1)!.replaceAll(' ', _nonBreakingSpace),
           style: PassqlTypography.inlineCodeOf(
             base,
           ).copyWith(backgroundColor: colors.fill),

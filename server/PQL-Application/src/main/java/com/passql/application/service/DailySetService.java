@@ -75,10 +75,10 @@ public class DailySetService {
     }
 
     /**
-     * 오늘의 세트 문제에 대한 이 세션의 제출만 집계한다.
+     * 오늘의 세트 점수: 이 세션에서 푼 문제 > 문제별 오늘 첫 제출(세션 무관)로 채점
      * - 오늘 세트에 없는 문제나 다른 회원의 세션은 세지 않는다.
-     * - 같은 문제를 여러 번 제출했으면 첫 제출만 인정한다(맞을 때까지 반복 제출 방지).
-     * - 인정할 제출이 하나도 없으면 완료로 볼 수 없다.
+     * - 같은 문제는 오늘 첫 제출만 인정한다(맞을 때까지 반복 제출, 앱 재실행으로 새 세션 만들어 다시 풀기 방지, #561).
+     * - 이 세션에 인정할 제출이 하나도 없으면 완료로 볼 수 없다.
      */
     private int countVerifiedCorrect(UUID memberUuid, UUID sessionUuid, LocalDate today) {
         if (sessionUuid == null) {
@@ -99,7 +99,18 @@ public class DailySetService {
         if (firstByQuestion.isEmpty()) {
             throw new CustomException(ErrorCode.INVALID_REQUEST);
         }
-        return (int) firstByQuestion.values().stream().filter(Submission::getIsCorrect).count();
+
+        // 문제별 오늘 첫 제출 (다른 세션 포함, 없으면 이 세션 첫 제출)
+        Map<UUID, Submission> firstTodayByQuestion = new HashMap<>();
+        for (Submission s : submissionRepository
+                .findByMemberUuidAndQuestionUuidInAndSubmittedAtGreaterThanEqualOrderBySubmittedAtAsc(
+                        memberUuid, firstByQuestion.keySet(), today.atStartOfDay())) {
+            firstTodayByQuestion.putIfAbsent(s.getQuestionUuid(), s);
+        }
+        return (int) firstByQuestion.entrySet().stream()
+                .map(entry -> firstTodayByQuestion.getOrDefault(entry.getKey(), entry.getValue()))
+                .filter(Submission::getIsCorrect)
+                .count();
     }
 
     public LeaderboardResponse getLeaderboard(UUID memberUuid) {

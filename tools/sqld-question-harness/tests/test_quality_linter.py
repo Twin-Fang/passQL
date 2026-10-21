@@ -38,9 +38,16 @@ def test_correct_choice_much_longer_than_wrong_choices_is_warning(not_in_questio
     assert rules_of(lint_question(not_in_question))["balance.correct-longest"] == "warning"
 
 
-def test_unsorted_numeric_choices_is_info(not_in_question):
+def test_unsorted_numeric_choices_is_warning(not_in_question):
     not_in_question["choices"][0]["body"], not_in_question["choices"][3]["body"] = "3", "0"
-    assert rules_of(lint_question(not_in_question))["balance.numeric-order"] == "info"
+    assert rules_of(lint_question(not_in_question))["balance.numeric-order"] == "warning"
+
+
+def test_duplicate_choice_bodies_is_error(not_in_question):
+    # 들여쓰기만 다른 같은 결과 표 2개 (#555)
+    not_in_question["choices"][1]["body"] = '[{"NAME": "A", "SAL": 1}]'
+    not_in_question["choices"][2]["body"] = '[ {"NAME":"A","SAL":1} ]'
+    assert rules_of(lint_question(not_in_question))["choice.duplicate-body"] == "error"
 
 
 def test_stem_checklist(not_in_question):

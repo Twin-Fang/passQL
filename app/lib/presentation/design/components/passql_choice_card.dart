@@ -106,27 +106,29 @@ class PassqlChoiceCard extends StatelessWidget {
           ),
           const SizedBox(width: PassqlSpacing.sm),
           Expanded(child: child),
-          if (state == PassqlChoiceState.correct) ...[
-            const SizedBox(width: PassqlSpacing.xs),
-            // 상태는 시맨틱 라벨로 전달하므로 아이콘 낭독은 막는다.
-            ExcludeSemantics(
-              child: Icon(
-                CupertinoIcons.checkmark_circle_fill,
-                size: PassqlIconSize.xl,
-                color: colors.correct,
+          const SizedBox(width: PassqlSpacing.xs),
+          // 채점 아이콘 자리 항상 확보: 채점 순간 내용 폭이 줄며 표 열·줄바꿈이 밀리지 않게 (#554)
+          // 상태는 시맨틱 라벨로 전달하므로 아이콘 낭독은 막는다.
+          SizedBox.square(
+            dimension: PassqlIconSize.xl,
+            child: switch (state) {
+              PassqlChoiceState.correct => ExcludeSemantics(
+                child: Icon(
+                  CupertinoIcons.checkmark_circle_fill,
+                  size: PassqlIconSize.xl,
+                  color: colors.correct,
+                ),
               ),
-            ),
-          ],
-          if (state == PassqlChoiceState.wrong) ...[
-            const SizedBox(width: PassqlSpacing.xs),
-            ExcludeSemantics(
-              child: Icon(
-                CupertinoIcons.xmark_circle_fill,
-                size: PassqlIconSize.xl,
-                color: colors.wrong,
+              PassqlChoiceState.wrong => ExcludeSemantics(
+                child: Icon(
+                  CupertinoIcons.xmark_circle_fill,
+                  size: PassqlIconSize.xl,
+                  color: colors.wrong,
+                ),
               ),
-            ),
-          ],
+              _ => null,
+            },
+          ),
         ],
       ),
     );

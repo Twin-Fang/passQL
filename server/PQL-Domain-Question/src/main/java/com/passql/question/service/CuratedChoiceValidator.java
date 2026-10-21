@@ -10,7 +10,7 @@ import java.util.Set;
 
 /**
  * 고정 보기 검증 (#511): 통과 > null, 거부 > 사유 문자열 (가져오기 항목 FAIL 사유로 노출)
- * 규칙 6개: 보기 4개, 정답 1개, 키 비어 있지 않고 중복 없음, 본문 필수, 검증 근거 필수, 실행형은 SQL 보기만
+ * 규칙 7개: 보기 4개, 정답 1개, 키 비어 있지 않고 중복 없음, 본문 필수, 검증 근거 필수, 본문 중복 없음(#555), 실행형은 SQL 보기만
  * CURATED_ONLY 는 보기 필수, 그 외 정책은 보기 금지 (고정되지 않는 세트가 생기는 것 방지)
  */
 public final class CuratedChoiceValidator {
@@ -40,6 +40,11 @@ public final class CuratedChoiceValidator {
         String invalidChoiceReason = findInvalidChoiceReason(choices);
         if (invalidChoiceReason != null) {
             return invalidChoiceReason;
+        }
+        String duplicateBody = ChoiceBodyDuplicateFinder.findDuplicateBody(
+                choices.stream().map(CuratedChoiceDto::body).toList());
+        if (duplicateBody != null) {
+            return "보기 본문 중복: 같은 내용의 보기가 2개 이상";
         }
         // 실행형은 제출 시 보기 본문을 SQL 로 실행 > TEXT 보기 금지
         boolean hasTextChoice = choices.stream().anyMatch(choice -> !"SQL".equalsIgnoreCase(choice.kind()));
