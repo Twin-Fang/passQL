@@ -25,6 +25,9 @@ class ExamTrendPatternCard extends StatelessWidget {
   final ExamTrendPattern pattern;
   final void Function(String topicCode, String topicName) onSolveTopic;
 
+  /// 카드 전체 높이 (안쪽 높이 + 위아래 카드 여백): 가로 목록 높이 기준
+  static const double totalHeight = _cardContentHeight + PassqlSpacing.md * 2;
+
   bool get _canSolve =>
       pattern.topicName != null && pattern.latestTrendQuestionCount > 0;
 

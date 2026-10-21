@@ -7,21 +7,25 @@ import '../../../data/models/notification/notification_models.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/community_providers.dart';
+import '../../providers/exam_trend_providers.dart';
 import '../../providers/home_providers.dart';
 import '../../providers/notification_inbox_providers.dart';
+import '../../providers/session_reset.dart';
 import '../../providers/unread_notification_providers.dart';
 import '../../widgets/ads/ad_inline_card.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/community/community_daily_discussion_card.dart';
 import '../../widgets/home/app_notice_banner.dart';
 import '../../widgets/home/daily_set_card.dart';
+import '../../widgets/home/daily_study_tip_card.dart';
 import '../../widgets/home/exam_schedule_card.dart';
-import '../../widgets/home/exam_trend_entry_card.dart';
+import '../../widgets/home/exam_trend_home_section.dart';
 import '../../widgets/home/fallback_stats_section.dart';
 import '../../widgets/home/greeting_section.dart';
 import '../../widgets/home/heatmap_widget.dart';
 import '../../widgets/home/readiness_card.dart';
 import '../../widgets/home/recommendations_section.dart';
+import '../questions/questions_tab_view.dart';
 
 /// 홈 화면.
 /// homeDataProvider에서 6개 API 병렬 결과를 받아 렌더링.
@@ -56,6 +60,8 @@ class HomePage extends ConsumerWidget {
               notificationInboxProvider(NotificationCategory.notice),
             );
             invalidateHomeData(ref.invalidate);
+            // 출제 경향·공부 팁도 함께 갱신
+            ref.invalidate(examTrendReportProvider);
             try {
               await ref.read(homeDataProvider.future);
             } catch (_) {
@@ -101,6 +107,14 @@ class _HomeContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final notice = ref.watch(homeNoticeProvider);
     final discussion = ref.watch(communityDailyDiscussionProvider).valueOrNull;
+    // 로그아웃 전환 중에는 토큰 없는 재요청을 막기 위해 조회하지 않음
+    final examTrendReportAsync = ref.watch(currentMemberUuidProvider) == null
+        ? null
+        : ref.watch(examTrendReportProvider);
+    final examTrendReport = examTrendReportAsync?.valueOrNull;
+    final dailyStudyTip = examTrendReport == null
+        ? null
+        : selectDailyStudyTip(examTrendReport.studyTips, DateTime.now());
     final children = <Widget>[
       // 인사 + 본문 + 시험 상황 배지 (상단 바 아래 화면 제목 자리)
       if (data.greeting != null) GreetingSection(greeting: data.greeting!),
@@ -142,7 +156,27 @@ class _HomeContent extends ConsumerWidget {
           correctRate: data.progress!.correctRate,
         ),
 
-      const ExamTrendEntryCard(),
+      // 출제 경향 (로딩 = 자리 스켈레톤, 실패 = 항목 없음 > 간격도 없음)
+      if (examTrendReport != null)
+        ExamTrendHomeSection(
+          report: examTrendReport,
+          onSolveTopic: (topicCode, topicName) => context.push(
+            AppRoutes.questionChapterOf(
+              topicCode: topicCode,
+              topicName: topicName,
+              isLatestTrendOnly: true,
+            ),
+          ),
+          onViewAll: () => context.go(QuestionsTabView.latestTrend.location),
+        )
+      else if (examTrendReportAsync?.isLoading ?? false)
+        const PassqlSkeletonBox(
+          height: _examTrendSectionHeight,
+          radius: PassqlRadius.lg,
+        ),
+
+      // 오늘의 공부 팁 (팁 없으면 숨김)
+      if (dailyStudyTip != null) DailyStudyTipCard(studyTip: dailyStudyTip),
 
       // 오늘의 토론 (뜨는 토론 1위, 없으면 숨김, #525)
       if (discussion != null) CommunityDailyDiscussionCard(card: discussion),
@@ -193,6 +227,8 @@ class _HomeContent extends ConsumerWidget {
 const double _dualCardHeight = 140;
 const double _readinessCardHeight = 180;
 const double _heatmapCardHeight = 160;
+// 출제 경향 섹션 로딩 자리 높이: 머리 + 요약 + 캡션 + 유형 카드 가로 목록
+const double _examTrendSectionHeight = 340;
 
 class _HomeSkeleton extends StatelessWidget {
   const _HomeSkeleton();
