@@ -154,7 +154,7 @@ class TopicListPage extends ConsumerWidget {
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(
         PassqlSpacing.md,
-        PassqlSpacing.md,
+        PassqlSpacing.lg,
         PassqlSpacing.md,
         0,
       ),

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart' show CupertinoSwitch;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -143,7 +144,7 @@ void main() {
       ChoiceGenerationMode.practice,
     );
 
-    await tester.tap(find.text('풀이 모드'));
+    await tester.tap(find.byType(CupertinoSwitch));
     await tester.pumpAndSettle();
 
     expect(find.text('실전'), findsOneWidget);
