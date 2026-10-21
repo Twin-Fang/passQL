@@ -1,6 +1,7 @@
 package com.passql.application.service;
 
 import com.passql.ai.dto.AiResult;
+import com.passql.application.service.explanation.ChoiceSetExecutionEvidenceCollector;
 import com.passql.application.service.explanation.ChoiceSetExplanationGenerator;
 import com.passql.question.constant.ChoiceExplanationStatus;
 import com.passql.question.dto.explanation.ChoiceExplanationResponse;
@@ -52,7 +53,8 @@ class ChoiceExplanationCuratedTest {
     @BeforeEach
     void setUp() {
         choiceExplanationService = new ChoiceExplanationService(
-                questionRepository, choiceSetRepository, choiceSetItemRepository, explanationGenerator, Runnable::run);
+                questionRepository, choiceSetRepository, choiceSetItemRepository, explanationGenerator,
+                mock(ChoiceSetExecutionEvidenceCollector.class), Runnable::run);
         when(choiceSetRepository.findById(curatedSetUuid)).thenReturn(Optional.of(QuestionChoiceSet.builder()
                 .choiceSetUuid(curatedSetUuid).questionUuid(questionUuid).source(ChoiceSetSource.ADMIN_CURATED).build()));
         when(questionRepository.findById(questionUuid)).thenReturn(Optional.of(curatedQuestion()));

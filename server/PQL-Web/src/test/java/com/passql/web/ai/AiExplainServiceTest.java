@@ -8,6 +8,7 @@ import com.passql.ai.repository.AiErrorExplanationRepository;
 import com.passql.application.service.AiExplainService;
 import com.passql.application.service.AiExplanationGenerator;
 import com.passql.application.service.ChoiceExplanationService;
+import com.passql.application.service.explanation.ChoiceSetExecutionEvidenceCollector;
 import com.passql.application.service.explanation.ChoiceSetExplanationGenerator;
 import com.passql.application.service.explanation.ChoiceSetExplanationPrompt;
 import com.passql.common.exception.CustomException;
@@ -63,7 +64,8 @@ class AiExplainServiceTest {
     private final AiExplanationGenerator errorGenerator = new AiExplanationGenerator(gemini, prompts);
     private final ChoiceSetExplanationGenerator choiceSetGenerator = new ChoiceSetExplanationGenerator(gemini, prompts);
     private final ChoiceExplanationService choiceExplanationService =
-            new ChoiceExplanationService(questions, choiceSets, items, choiceSetGenerator, queuedBackgroundTasks::add);
+            new ChoiceExplanationService(questions, choiceSets, items, choiceSetGenerator,
+                    mock(ChoiceSetExecutionEvidenceCollector.class), queuedBackgroundTasks::add);
     private final AiExplainService service =
             new AiExplainService(questions, submissions, errorExplanations, choiceExplanationService, errorGenerator);
 
@@ -256,7 +258,8 @@ class AiExplainServiceTest {
         givenAiResponses(ChoiceExplanationComposer.toJson(explanation("C")), ChoiceExplanationComposer.toJson(explanation("C")));
         // 백그라운드 작업을 바로 실행하는 서비스로 (생성 실패 > FAILED 확정 > 대기 종료)
         ChoiceExplanationService immediateService =
-                new ChoiceExplanationService(questions, choiceSets, items, choiceSetGenerator, Runnable::run);
+                new ChoiceExplanationService(questions, choiceSets, items, choiceSetGenerator,
+                        mock(ChoiceSetExecutionEvidenceCollector.class), Runnable::run);
         AiExplainService immediateExplainService =
                 new AiExplainService(questions, submissions, errorExplanations, immediateService, errorGenerator);
 

@@ -2,6 +2,7 @@ package com.passql.application.service;
 
 import com.passql.ai.dto.AiResult;
 import com.passql.application.service.explanation.ChoiceSetExplanationGenerationResult;
+import com.passql.application.service.explanation.ChoiceSetExecutionEvidenceCollector;
 import com.passql.application.service.explanation.ChoiceSetExplanationGenerator;
 import com.passql.application.service.explanation.ChoiceSetExplanationPrompt;
 import com.passql.common.exception.CustomException;
@@ -53,17 +54,20 @@ public class ChoiceExplanationService {
     private final QuestionChoiceSetRepository choiceSetRepository;
     private final QuestionChoiceSetItemRepository choiceSetItemRepository;
     private final ChoiceSetExplanationGenerator explanationGenerator;
+    private final ChoiceSetExecutionEvidenceCollector executionEvidenceCollector;
     private final Executor aiTaskExecutor;
 
     public ChoiceExplanationService(QuestionRepository questionRepository,
                                     QuestionChoiceSetRepository choiceSetRepository,
                                     QuestionChoiceSetItemRepository choiceSetItemRepository,
                                     ChoiceSetExplanationGenerator explanationGenerator,
+                                    ChoiceSetExecutionEvidenceCollector executionEvidenceCollector,
                                     @Qualifier("aiTaskExecutor") Executor aiTaskExecutor) {
         this.questionRepository = questionRepository;
         this.choiceSetRepository = choiceSetRepository;
         this.choiceSetItemRepository = choiceSetItemRepository;
         this.explanationGenerator = explanationGenerator;
+        this.executionEvidenceCollector = executionEvidenceCollector;
         this.aiTaskExecutor = aiTaskExecutor;
     }
 
@@ -189,7 +193,9 @@ public class ChoiceExplanationService {
     /** 맡은 세트 생성 > 검증 통과 시 READY 저장, 아니면 FAILED (옛 해설 JSON 유지) */
     private boolean generateAndStore(Question question, UUID choiceSetUuid) {
         List<QuestionChoiceSetItem> items = choiceSetItemRepository.findByChoiceSetUuidOrderBySortOrderAsc(choiceSetUuid);
-        ChoiceSetExplanationGenerationResult result = explanationGenerator.generate(question, items);
+        // 실행형 SQL 보기는 실측 결과를 근거로 (해설이 실제 결과와 반대로 쓰는 것 방지, #555)
+        ChoiceSetExplanationGenerationResult result = explanationGenerator.generate(question, items,
+                executionEvidenceCollector.collectResultSummaryByChoiceKey(question, items));
         if (!result.isSuccessful()) {
             log.warn("[choice explanation] generation failed : choiceSet={} attempts={} violations={}",
                     choiceSetUuid, result.attemptCount(), result.validation().violations());
