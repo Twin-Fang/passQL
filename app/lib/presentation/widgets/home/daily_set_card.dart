@@ -105,7 +105,7 @@ class DailySetCard extends StatelessWidget {
           const SizedBox(height: PassqlSpacing.sm),
           PassqlButton(
             label: completed
-                ? '결과와 순위 보기'
+                ? '결과 보기'
                 : available
                 ? '풀어보기'
                 : '문제 풀기',

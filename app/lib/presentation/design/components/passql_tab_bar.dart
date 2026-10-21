@@ -73,7 +73,7 @@ class PassqlTabBar extends StatelessWidget {
   }
 }
 
-/// 탭 하나의 겉모습: 아이콘 위, 라벨 아래 (선택이면 채움 아이콘 + 강조색, 아니면 보조색)
+/// 탭 하나의 겉모습: 아이콘 위, 라벨 아래 (선택이면 채움 아이콘 + 글자용 강조색(accentText, 아이콘·라벨 동일), 아니면 보조색)
 class _TabItemContent extends StatelessWidget {
   const _TabItemContent({required this.item, required this.isSelected});
   final PassqlTabItem item;
@@ -82,7 +82,7 @@ class _TabItemContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final color = isSelected ? colors.accent : colors.secondaryLabel;
+    final color = isSelected ? colors.accentText : colors.secondaryLabel;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,

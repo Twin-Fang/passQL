@@ -191,7 +191,7 @@ void main() {
         taps,
       );
 
-      expect(find.bySemanticsLabel('결과와 순위 보기'), findsOneWidget);
+      expect(find.bySemanticsLabel('결과 보기'), findsOneWidget);
       expect(find.bySemanticsLabel('순위 보기'), findsOneWidget);
       await tester.tap(find.text('순위 보기'));
       expect(taps, ['leaderboard']);

@@ -16,7 +16,12 @@ class ChoiceModeShortcutRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.passqlColors;
-    final currentMode = ref.watch(choiceModeProvider).valueOrNull;
+    final choiceModeState = ref.watch(choiceModeProvider);
+    // 불러오기 실패 시 행 숨김 (전환 불가한 막다른 행 방지)
+    if (choiceModeState.hasError && !choiceModeState.hasValue) {
+      return const SizedBox.shrink();
+    }
+    final currentMode = choiceModeState.valueOrNull;
     final isReal = currentMode == ChoiceGenerationMode.real;
     return PassqlListRow(
       title: '풀이 모드',

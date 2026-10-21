@@ -125,4 +125,114 @@ void main() {
 
     expect(find.text('홈 탭'), findsOneWidget);
   });
+
+  _defineShellRouteCases();
+}
+
+// 실제 앱처럼 탭 루트를 StatefulShellRoute 로 감싸고, 풀이 흐름은 루트 내비게이터에 올린다
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
+
+GoRouter _buildShellRouter(String initialLocation) => GoRouter(
+  navigatorKey: _rootNavigatorKey,
+  initialLocation: initialLocation,
+  routes: [
+    StatefulShellRoute.indexedStack(
+      builder: (_, _, shell) => Scaffold(body: shell),
+      branches: [
+        StatefulShellBranch(
+          routes: [
+            GoRoute(path: AppRoutes.home, builder: (_, _) => const Text('홈 탭')),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: AppRoutes.questions,
+              builder: (_, _) => const Text('문제 탭'),
+            ),
+          ],
+        ),
+      ],
+    ),
+    GoRoute(
+      path: AppRoutes.wrongNotes,
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (_, _) => const Text('오답 노트'),
+    ),
+    // 실제 챕터 화면처럼 시스템 뒤로가기를 막은 화면
+    GoRoute(
+      path: AppRoutes.questionChapter,
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (_, _) =>
+          const PopScope(canPop: false, child: _ExitButton(label: '챕터')),
+    ),
+    GoRoute(
+      path: AppRoutes.questionDetailPattern,
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (_, _) => const Text('문제 상세'),
+      routes: [
+        GoRoute(
+          path: AppRoutes.resultSubPath,
+          parentNavigatorKey: _rootNavigatorKey,
+          builder: (_, _) => const _ExitButton(label: '문제 결과'),
+        ),
+      ],
+    ),
+  ],
+);
+
+Future<GoRouter> _pumpShellRouter(
+  WidgetTester tester,
+  String initialLocation,
+) async {
+  final router = _buildShellRouter(initialLocation);
+  await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+  await tester.pumpAndSettle();
+  return router;
+}
+
+void _defineShellRouteCases() {
+  group('탭 셸(StatefulShellRoute) 구조', () {
+    testWidgets('문제 탭 > 상세 > 결과를 닫으면 문제 탭으로 돌아온다', (tester) async {
+      final router = await _pumpShellRouter(tester, AppRoutes.home);
+      router.go(AppRoutes.questions);
+      await tester.pumpAndSettle();
+      router.push(AppRoutes.questionDetail('a'));
+      await tester.pumpAndSettle();
+      router.push(AppRoutes.questionResult('a'));
+      await tester.pumpAndSettle();
+
+      await _tapExit(tester);
+
+      expect(find.text('문제 탭'), findsOneWidget);
+      expect(router.state.matchedLocation, AppRoutes.questions);
+    });
+
+    testWidgets('오답 노트 > 상세 > 결과를 닫으면 오답 노트로 돌아온다', (tester) async {
+      final router = await _pumpShellRouter(tester, AppRoutes.questions);
+      router.push(AppRoutes.wrongNotes);
+      await tester.pumpAndSettle();
+      router.push(AppRoutes.questionDetail('a'));
+      await tester.pumpAndSettle();
+      router.push(AppRoutes.questionResult('a'));
+      await tester.pumpAndSettle();
+
+      await _tapExit(tester);
+
+      expect(find.text('오답 노트'), findsOneWidget);
+      expect(router.state.matchedLocation, AppRoutes.wrongNotes);
+    });
+
+    testWidgets('뒤로가기를 막은(PopScope) 챕터도 나가기로 문제 탭에 돌아온다', (tester) async {
+      final router = await _pumpShellRouter(tester, AppRoutes.questions);
+      router.push('${AppRoutes.questionChapter}?topic=X');
+      await tester.pumpAndSettle();
+
+      await _tapExit(tester);
+
+      expect(find.text('문제 탭'), findsOneWidget);
+      expect(find.text('챕터'), findsNothing);
+      expect(router.state.matchedLocation, AppRoutes.questions);
+    });
+  });
 }

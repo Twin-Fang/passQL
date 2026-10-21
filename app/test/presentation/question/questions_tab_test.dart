@@ -129,6 +129,19 @@ void main() {
     }
   });
 
+  testWidgets('풀이 모드 값을 불러오지 못하면 막다른 행 대신 행을 숨긴다', (tester) async {
+    await _pumpQuestionsTab(
+      tester,
+      QuestionsTabView.byTopic,
+      extraOverrides: [
+        settingsDataProvider.overrideWith((ref) async => throw Exception('x')),
+      ],
+    );
+    expect(find.text('풀이 모드'), findsNothing);
+    expect(find.byType(CupertinoSwitch), findsNothing);
+    expect(find.text('오답 노트'), findsOneWidget);
+  });
+
   testWidgets('풀이 모드 행을 누르면 설정이 읽는 같은 Provider 가 실전으로 바뀐다', (tester) async {
     final memberApi = FakeMemberApi();
     await _pumpQuestionsTab(

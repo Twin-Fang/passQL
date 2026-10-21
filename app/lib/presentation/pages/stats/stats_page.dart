@@ -45,7 +45,7 @@ class StatsPage extends ConsumerWidget {
             SliverFillRemaining(
               hasScrollBody: false,
               child: PassqlStatusView.error(
-                message: '통계를 불러오지 못했습니다',
+                message: '기록을 불러오지 못했어요',
                 onRetry: () => ref.invalidate(statsDataProvider),
               ),
             ),

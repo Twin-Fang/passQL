@@ -40,8 +40,7 @@ class ExamTrendPatternCard extends StatelessWidget {
   static double totalHeightOf(BuildContext context) =>
       _contentHeightOf(MediaQuery.textScalerOf(context)) + PassqlSpacing.md * 2;
 
-  /// 안쪽 높이 = 1.0 기준 높이 + 글자 줄마다 (배율 적용 줄 높이 - 1.0 줄 높이)
-  /// 고정 높이라 1.4 배율에서 하단 문구가 카드 밖으로 넘치던 문제 보정
+  /// 안쪽 높이 = 1.0 기준 높이 + 글자 줄마다 (배율 적용 줄 높이 - 1.0 줄 높이), 글자 배율 따라 늘어남
   static double _contentHeightOf(TextScaler textScaler) {
     var extraHeight = 0.0;
     for (final (style, lineCount) in _scalingTextLines) {

@@ -70,6 +70,17 @@ void main() {
         });
       });
 
+      test('선택된 탭 라벨·아이콘(accentText)은 탭 바 유리 바탕(카드·화면 위 합성) 4.5 이상', () {
+        surfaces.forEach((surfaceName, surface) {
+          expectAtLeast(
+            colors.accentText,
+            over(colors.glass, surface),
+            _textMinimumContrast,
+            'selectedTab accentText/glass/$surfaceName',
+          );
+        });
+      });
+
       test('기능 아이콘(iconSecondary)은 바탕·fill·cardElevated 위 3 이상', () {
         for (final (surfaceName, surface) in [
           ('card', colors.card),
