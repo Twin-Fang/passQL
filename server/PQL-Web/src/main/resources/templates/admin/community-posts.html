@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<th:block layout:fragment="title">토론 게시글 관리</th:block>
+
+<th:block layout:fragment="content">
+
+    <!-- 필터 3개: 게시판, 상태, 키워드 (선택지는 community-posts.js 가 AdminDisplayLabels 로 채움) -->
+    <div class="card bg-base-100 shadow mb-4">
+        <div class="card-body p-4">
+            <form id="communityPostFilterForm" class="flex flex-wrap items-end gap-3">
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">게시판</span>
+                    <select id="boardTypeFilter" name="boardType" class="select select-sm select-bordered w-36">
+                        <option value="">전체</option>
+                    </select>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">상태</span>
+                    <select id="postStatusFilter" name="status" class="select select-sm select-bordered w-36">
+                        <option value="">전체</option>
+                    </select>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">키워드</span>
+                    <input type="search" id="keywordFilter" name="keyword" class="input input-sm input-bordered w-56"
+                           placeholder="내용 검색어" maxlength="100"/>
+                </label>
+                <button type="submit" class="btn btn-sm btn-primary"><i data-lucide="search" class="size-4"></i>검색</button>
+                <button type="reset" class="btn btn-sm btn-ghost">초기화</button>
+                <span id="communityPostTotal" class="ml-auto text-sm text-base-content/60">-</span>
+            </form>
+        </div>
+    </div>
+
+    <!-- 게시글 목록 (JS 렌더링, 조회 전용 계정은 동작 버튼 비활성) -->
+    <div class="card bg-base-100 shadow" id="communityPostCard"
+         th:data-can-write-admin="${canWriteAdmin == true}">
+        <div class="card-body p-0">
+            <div class="overflow-x-auto">
+                <table class="table table-sm w-full">
+                    <thead>
+                    <tr>
+                        <th class="w-24">게시판</th>
+                        <th>내용</th>
+                        <th class="w-28">작성자</th>
+                        <th class="w-16 text-right">좋아요</th>
+                        <th class="w-16 text-right">댓글</th>
+                        <th class="w-16 text-right">신고</th>
+                        <th class="w-24">상태</th>
+                        <th class="w-32">작성일</th>
+                        <th class="w-40">동작</th>
+                    </tr>
+                    </thead>
+                    <tbody id="communityPostBody">
+                    <tr>
+                        <td colspan="9" class="text-center py-12 text-base-content/50">
+                            <span class="loading loading-spinner loading-sm"></span>
+                            <span class="ml-2">로딩 중...</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="communityPostPager" class="flex justify-center p-4"></div>
+        </div>
+    </div>
+
+</th:block>
+
+<th:block layout:fragment="js">
+    <!-- 표시 이름·포맷터 공통 (Chart.js 는 이 화면에서 쓰지 않음) -->
+    <script th:src="@{/js/admin/admin-chart.js}"></script>
+    <script th:src="@{/js/admin/community-posts.js}"></script>
+</th:block>
+</html>

@@ -102,7 +102,7 @@ public class AdminDashboardService {
      * 활성 토픽 displayName과 조인해 정렬된 리스트로 반환한다.
      * 비활성 토픽은 조인 대상에서 제외하며, 조인 실패 시 UUID 앞 8자리를 폴백으로 표시한다.
      */
-    private List<DashboardStats.TopicQuestionCount> buildTopicCounts() {
+    public List<DashboardStats.TopicQuestionCount> buildTopicCounts() {
         List<Object[]> raw = questionRepository.countActiveByTopic();
 
         // 활성 토픽만 대상으로 UUID → displayName 맵 구성

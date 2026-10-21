@@ -23,11 +23,13 @@ public enum AdminMenu {
     FEEDBACKS("feedbacks", "건의사항 관리"),
     REPORTS("reports", "신고 관리"),
     COMMUNITY_REPORTS("community-reports", "커뮤니티 신고 관리"),
+    COMMUNITY_POSTS("community-posts", "토론 게시글 관리"),
     PUSH("push", "알림 발송"),
     LEGAL("legal", "약관 관리"),
     SETTINGS("settings", "앱 설정"),
     EMBEDDINGS("embeddings", "임베딩 인덱스 관리"),
     MONITOR("monitor", "모니터링"),
+    STATISTICS("statistics", "AI 사용량·통계"),
     ADMIN_ACCOUNTS("admin-accounts", "관리자 계정"),
     AUDIT_LOGS("audit-logs", "감사 로그");
 

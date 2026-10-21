@@ -97,117 +97,38 @@
                 <span class="badge badge-primary badge-sm">Admin</span>
             </div>
 
-            <!-- Menu -->
-            <ul class="menu p-4 gap-1 [&_.active]:bg-base-300 [&_.active]:text-base-content [&_.active]:font-semibold" id="sidebarMenu">
-                <li>
-                    <a th:href="@{/admin}" th:classappend="${currentMenu == 'dashboard'} ? 'active'">
-                        <i data-lucide="layout-dashboard" class="size-5"></i>
-                        대시보드
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/admin/members}" th:classappend="${currentMenu == 'members'} ? 'active'">
-                        <i data-lucide="users" class="size-5"></i>
-                        회원 관리
-                    </a>
-                </li>
+            <!-- Menu: 그룹 5개 (개요, 회원·커뮤니티, 콘텐츠, AI, 운영), 활성 코드는 AdminMenu.code 와 같게 -->
+            <ul class="menu w-full p-4 gap-0.5 [&_.active]:bg-base-300 [&_.active]:text-base-content [&_.active]:font-semibold" id="sidebarMenu">
+                <li class="menu-title">개요</li>
+                <li><a th:href="@{/admin}" th:classappend="${currentMenu == 'dashboard'} ? 'active'"><i data-lucide="layout-dashboard" class="size-5"></i>대시보드</a></li>
+                <li><a th:href="@{/admin/statistics}" th:classappend="${currentMenu == 'statistics'} ? 'active'"><i data-lucide="chart-line" class="size-5"></i>AI 사용량·통계</a></li>
+
+                <li class="menu-title">회원·커뮤니티</li>
+                <li><a th:href="@{/admin/members}" th:classappend="${currentMenu == 'members'} ? 'active'"><i data-lucide="users" class="size-5"></i>회원 관리</a></li>
+                <li><a th:href="@{/admin/community/posts}" th:classappend="${currentMenu == 'community-posts'} ? 'active'"><i data-lucide="message-square-text" class="size-5"></i>토론 게시글</a></li>
+                <li><a th:href="@{/admin/community/reports}" th:classappend="${currentMenu == 'community-reports'} ? 'active'"><i data-lucide="messages-square" class="size-5"></i>커뮤니티 신고</a></li>
+                <li><a th:href="@{/admin/feedbacks}" th:classappend="${currentMenu == 'feedbacks'} ? 'active'"><i data-lucide="message-circle" class="size-5"></i>건의사항</a></li>
                 <li><a th:href="@{/admin/push}" th:classappend="${currentMenu == 'push'} ? 'active'"><i data-lucide="bell" class="size-5"></i>알림 발송</a></li>
-                <li>
-                    <a th:href="@{/admin/questions}" th:classappend="${currentMenu == 'questions'} ? 'active'">
-                        <i data-lucide="book-open" class="size-5"></i>
-                        문제 관리
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/admin/prompts}" th:classappend="${currentMenu == 'prompts'} ? 'active'">
-                        <i data-lucide="message-square-code" class="size-5"></i>
-                        프롬프트 관리
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/admin/topics}" th:classappend="${currentMenu == 'topics'} ? 'active'">
-                        <i data-lucide="tags" class="size-5"></i>
-                        토픽/태그 관리
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/admin/concepts}" th:classappend="${currentMenu == 'concepts'} ? 'active'">
-                        <i data-lucide="book" class="size-5"></i>
-                        개념 문서 관리
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/admin/daily-challenges}" th:classappend="${currentMenu == 'daily-challenges'} ? 'active'">
-                        <i data-lucide="calendar-check" class="size-5"></i>
-                        일일 챌린지
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/admin/exam-schedules}" th:classappend="${currentMenu == 'exam-schedules'} ? 'active'">
-                        <i data-lucide="calendar-days" class="size-5"></i>
-                        시험 일정
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/admin/feedbacks}" th:classappend="${currentMenu == 'feedbacks'} ? 'active'">
-                        <i data-lucide="message-circle" class="size-5"></i>
-                        건의사항
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/admin/reports}" th:classappend="${currentMenu == 'reports'} ? 'active'">
-                        <i data-lucide="flag" class="size-5"></i>
-                        신고 관리
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/admin/community/reports}" th:classappend="${currentMenu == 'community-reports'} ? 'active'">
-                        <i data-lucide="messages-square" class="size-5"></i>
-                        커뮤니티 신고
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/admin/legal}" th:classappend="${currentMenu == 'legal'} ? 'active'">
-                        <i data-lucide="file-text" class="size-5"></i>
-                        약관 관리
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/admin/app-operation}" th:classappend="${currentMenu == 'app-operation'} ? 'active'">
-                        <i data-lucide="megaphone" class="size-5"></i>
-                        앱 운영
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/admin/settings}" th:classappend="${currentMenu == 'settings'} ? 'active'">
-                        <i data-lucide="settings" class="size-5"></i>
-                        앱 설정
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/admin/embeddings}" th:classappend="${currentMenu == 'embeddings'} ? 'active'">
-                        <i data-lucide="layers" class="size-5"></i>
-                        임베딩 관리
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/admin/monitor}" th:classappend="${currentMenu == 'monitor'} ? 'active'">
-                        <i data-lucide="activity" class="size-5"></i>
-                        모니터링
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/admin/audit-logs}" th:classappend="${currentMenu == 'audit-logs'} ? 'active'">
-                        <i data-lucide="scroll-text" class="size-5"></i>
-                        감사 로그
-                    </a>
-                </li>
-                <li th:if="${canWriteAdmin}">
-                    <a th:href="@{/admin/accounts}" th:classappend="${currentMenu == 'admin-accounts'} ? 'active'">
-                        <i data-lucide="user-cog" class="size-5"></i>
-                        관리자 계정
-                    </a>
-                </li>
+
+                <li class="menu-title">콘텐츠</li>
+                <li><a th:href="@{/admin/questions}" th:classappend="${currentMenu == 'questions'} ? 'active'"><i data-lucide="book-open" class="size-5"></i>문제 관리</a></li>
+                <li><a th:href="@{/admin/reports}" th:classappend="${currentMenu == 'reports'} ? 'active'"><i data-lucide="flag" class="size-5"></i>신고 관리</a></li>
+                <li><a th:href="@{/admin/daily-challenges}" th:classappend="${currentMenu == 'daily-challenges'} ? 'active'"><i data-lucide="calendar-check" class="size-5"></i>일일 챌린지</a></li>
+                <li><a th:href="@{/admin/topics}" th:classappend="${currentMenu == 'topics'} ? 'active'"><i data-lucide="tags" class="size-5"></i>토픽/태그 관리</a></li>
+                <li><a th:href="@{/admin/concepts}" th:classappend="${currentMenu == 'concepts'} ? 'active'"><i data-lucide="book" class="size-5"></i>개념 문서 관리</a></li>
+                <li><a th:href="@{/admin/exam-schedules}" th:classappend="${currentMenu == 'exam-schedules'} ? 'active'"><i data-lucide="calendar-days" class="size-5"></i>시험 일정</a></li>
+
+                <li class="menu-title">AI</li>
+                <li><a th:href="@{/admin/prompts}" th:classappend="${currentMenu == 'prompts'} ? 'active'"><i data-lucide="message-square-code" class="size-5"></i>프롬프트 관리</a></li>
+                <li><a th:href="@{/admin/embeddings}" th:classappend="${currentMenu == 'embeddings'} ? 'active'"><i data-lucide="layers" class="size-5"></i>임베딩 관리</a></li>
+
+                <li class="menu-title">운영</li>
+                <li><a th:href="@{/admin/monitor}" th:classappend="${currentMenu == 'monitor'} ? 'active'"><i data-lucide="activity" class="size-5"></i>모니터링</a></li>
+                <li><a th:href="@{/admin/app-operation}" th:classappend="${currentMenu == 'app-operation'} ? 'active'"><i data-lucide="megaphone" class="size-5"></i>앱 운영</a></li>
+                <li><a th:href="@{/admin/settings}" th:classappend="${currentMenu == 'settings'} ? 'active'"><i data-lucide="settings" class="size-5"></i>앱 설정</a></li>
+                <li><a th:href="@{/admin/legal}" th:classappend="${currentMenu == 'legal'} ? 'active'"><i data-lucide="file-text" class="size-5"></i>약관 관리</a></li>
+                <li><a th:href="@{/admin/audit-logs}" th:classappend="${currentMenu == 'audit-logs'} ? 'active'"><i data-lucide="scroll-text" class="size-5"></i>감사 로그</a></li>
+                <li th:if="${canWriteAdmin}"><a th:href="@{/admin/accounts}" th:classappend="${currentMenu == 'admin-accounts'} ? 'active'"><i data-lucide="user-cog" class="size-5"></i>관리자 계정</a></li>
                 <div class="divider my-1"></div>
                 <li>
                     <a href="/docs/swagger" target="_blank">

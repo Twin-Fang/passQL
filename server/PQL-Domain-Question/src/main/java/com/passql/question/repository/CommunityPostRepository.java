@@ -4,6 +4,7 @@ import com.passql.question.entity.CommunityPost;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,7 +14,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-public interface CommunityPostRepository extends JpaRepository<CommunityPost, UUID> {
+public interface CommunityPostRepository extends JpaRepository<CommunityPost, UUID>, JpaSpecificationExecutor<CommunityPost> {
 
     // 문제별 의견 목록 공통 조건: 노출 중 + 보는 회원이 차단한 작성자 제외
     String VISIBLE_QUESTION_OPINION_FOR_VIEWER = """

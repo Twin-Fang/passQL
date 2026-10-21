@@ -9,6 +9,10 @@ public final class AppSettingKeys {
 
     // app_setting: Google Gemini API 키 (SECRET, 암호문 저장, 관리자 화면에서 변경, 비면 yml gemini.api-key 를 암호화해 채움)
     public static final String AI_GEMINI_API_KEY = "ai.gemini_api_key";
+    // app_setting: 모델별 단가표 (JSON {"모델":{"inputUsdPerMillion":0.10,"outputUsdPerMillion":0.40}}, USD / 1M 토큰)
+    public static final String AI_MODEL_PRICE_TABLE = "ai.model_price_table";
+    // app_setting: AI 월 예산 (USD, 대시보드 예산 사용률 기준)
+    public static final String AI_MONTHLY_BUDGET_USD = "ai.monthly_budget_usd";
 
     // app_setting: 샌드박스 동시 실행 슬롯 수 (개수, 기동 시 1회 읽음, 초과 요청은 대기)
     public static final String SANDBOX_POOL_CONCURRENCY = "sandbox.pool.concurrency";

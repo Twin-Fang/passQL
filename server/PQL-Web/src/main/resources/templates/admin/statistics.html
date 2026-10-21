@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<th:block layout:fragment="title">AI 사용량·통계</th:block>
+
+<th:block layout:fragment="content">
+<!-- AI 사용량·비용 월별 통계 + 가입 경로별 월 가입 (#557): statistics.js 가 /admin/api/statistics/** 를 블록별로 불러옴 -->
+<div class="space-y-5 max-w-[1400px]">
+
+    <!-- 월 선택 (기본 이번 달) -->
+    <div class="flex flex-wrap items-end gap-3">
+        <label class="form-control">
+            <span class="label-text text-xs mb-1">조회 월</span>
+            <input type="month" id="statisticsMonth" class="input input-sm input-bordered w-44"/>
+        </label>
+        <span class="text-xs text-base-content/50 pb-1">비용은 모델별 단가 × 토큰으로 계산한 추정치 (USD)</span>
+    </div>
+
+    <div id="aiMonthlyBlock" class="space-y-5">
+        <!-- 요약 카드 4개: 호출, 실패, 토큰, 추정 비용/예산 -->
+        <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
+            <div class="card bg-base-100 shadow-sm"><div class="card-body p-4 gap-1">
+                <span class="text-xs text-base-content/60">호출</span>
+                <span id="totalCallCount" class="text-3xl font-bold text-primary">-</span>
+                <span class="text-xs text-base-content/50">AI 서버 + Gemini 직접 호출</span>
+            </div></div>
+            <div class="card bg-base-100 shadow-sm"><div class="card-body p-4 gap-1">
+                <span class="text-xs text-base-content/60">실패</span>
+                <span id="totalFailureCount" class="text-3xl font-bold">-</span>
+                <span id="failureRate" class="text-xs text-base-content/50">-</span>
+            </div></div>
+            <div class="card bg-base-100 shadow-sm"><div class="card-body p-4 gap-1">
+                <span class="text-xs text-base-content/60">토큰</span>
+                <span id="totalTokenCount" class="text-3xl font-bold text-info">-</span>
+                <span id="tokenBreakdown" class="text-xs text-base-content/50">-</span>
+            </div></div>
+            <div class="card bg-base-100 shadow-sm"><div class="card-body p-4 gap-1">
+                <span class="text-xs text-base-content/60">추정 비용 / 월 예산</span>
+                <span id="totalEstimatedCost" class="text-3xl font-bold text-warning">-</span>
+                <progress id="budgetProgress" class="progress progress-success" value="0" max="100"></progress>
+                <span id="budgetSummary" class="text-xs text-base-content/50">-</span>
+            </div></div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+            <!-- 모델별 호출·토큰·비용 -->
+            <section class="card bg-base-100 shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="font-bold">모델별</h2>
+                    <div class="overflow-x-auto">
+                        <table class="table table-sm">
+                            <thead><tr><th>모델</th><th class="text-right">호출</th><th class="text-right">실패</th>
+                                <th class="text-right">입력 토큰</th><th class="text-right">출력 토큰</th><th class="text-right">추정 비용</th></tr></thead>
+                            <tbody id="byModelBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 모델 단가표 (app_setting ai.model_price_table) -->
+            <section class="card bg-base-100 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="flex items-center justify-between gap-2">
+                        <h2 class="font-bold">모델 단가 <span class="text-xs font-normal text-base-content/50">USD / 100만 토큰</span></h2>
+                        <a th:href="@{/admin/settings}" class="btn btn-xs btn-ghost">앱 설정에서 수정 →</a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="table table-sm">
+                            <thead><tr><th>모델</th><th class="text-right">입력</th><th class="text-right">출력 (thinking 포함)</th></tr></thead>
+                            <tbody id="priceTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 기능별 (호출 경로 + endpointPath) -->
+        <section class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="font-bold">기능별</h2>
+                <div class="overflow-x-auto">
+                    <table class="table table-sm">
+                        <thead><tr><th>호출 경로</th><th>기능</th><th class="text-right">호출</th><th class="text-right">실패</th>
+                            <th class="text-right">평균 지연</th><th class="text-right">입력 토큰</th><th class="text-right">출력 토큰</th><th class="text-right">추정 비용</th></tr></thead>
+                        <tbody id="byEndpointBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 가입 경로별 월 가입 수 (최근 12개월, 누적 막대) -->
+    <section class="card bg-base-100 shadow-sm">
+        <div class="card-body p-4">
+            <h2 class="font-bold">가입 경로별 월 가입 <span class="text-xs font-normal text-base-content/50">최근 12개월</span></h2>
+            <div class="relative h-72" id="signupProviderChartBox"><canvas id="signupProviderChart" aria-label="가입 경로별 월 가입 차트"></canvas></div>
+        </div>
+    </section>
+</div>
+</th:block>
+
+<th:block layout:fragment="js">
+    <!-- Chart.js 고정 버전 (대시보드·통계 화면에서만 로드) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script th:src="@{/js/admin/admin-chart.js}"></script>
+    <script th:src="@{/js/admin/statistics.js}"></script>
+</th:block>
+</html>

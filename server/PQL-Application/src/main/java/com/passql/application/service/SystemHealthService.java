@@ -1,6 +1,7 @@
 package com.passql.application.service;
 
 import com.passql.ai.client.AiGatewayClient;
+import com.passql.ai.client.GeminiClient;
 import com.passql.ai.dto.ComponentHealth;
 import com.passql.application.dto.CircuitBreakerStatus;
 import com.passql.application.dto.SystemHealthSnapshot;
@@ -18,8 +19,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * 모니터링 상태 수집 (#475): AI 서버 /health, Qdrant(AI 서버 경유), Redis PING, resilience4j 서킷
- * 구성 요소 3개 동시 확인 (각 3초 제한, 하나가 느려도 화면이 오래 묶이지 않게)
+ * 모니터링 상태 수집 (#475, #557): AI 서버 /health, Qdrant(AI 서버 경유), Redis PING, Gemini API 키(5분 캐시), resilience4j 서킷
+ * 구성 요소 4개 동시 확인 (각 3초 제한, 하나가 느려도 화면이 오래 묶이지 않게)
  */
 @Service
 @RequiredArgsConstructor
@@ -29,6 +30,7 @@ public class SystemHealthService {
     private static final String REDIS_PONG = "PONG";
 
     private final AiGatewayClient aiGatewayClient;
+    private final GeminiClient geminiClient;
     private final StringRedisTemplate stringRedisTemplate;
     private final CircuitBreakerRegistry circuitBreakerRegistry;
 
@@ -37,7 +39,9 @@ public class SystemHealthService {
             CompletableFuture<ComponentHealth> aiServer = CompletableFuture.supplyAsync(aiGatewayClient::checkAiServerHealth, executor);
             CompletableFuture<ComponentHealth> qdrant = CompletableFuture.supplyAsync(aiGatewayClient::checkQdrantThroughAiServer, executor);
             CompletableFuture<ComponentHealth> redis = CompletableFuture.supplyAsync(this::checkRedis, executor);
-            List<ComponentHealth> components = List.of(aiServer.join(), qdrant.join(), redis.join());
+            CompletableFuture<ComponentHealth> geminiApiKey = CompletableFuture.supplyAsync(
+                    () -> geminiClient.checkApiKeyHealth().toComponentHealth(), executor);
+            List<ComponentHealth> components = List.of(aiServer.join(), qdrant.join(), redis.join(), geminiApiKey.join());
             return new SystemHealthSnapshot(components, collectCircuitBreakers());
         }
     }
