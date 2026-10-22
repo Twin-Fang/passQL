@@ -43,7 +43,7 @@ abstract class QuestionFlow {
 }
 
 /// 토픽(챕터) 하나에서 10문제를 푸는 흐름.
-/// [isLatestTrendOnly] 면 그 토픽의 최신 출제 경향 문제만 (출제 경향 화면에서 진입, #523)
+/// [isLatestTrendOnly] 면 그 토픽의 최신 출제 경향 문제만 (홈 출제 경향 카드·문제 탭 최신 경향·개념 TOP 10에서 진입, #523)
 class TopicFlow extends QuestionFlow {
   const TopicFlow({
     required this.topicCode,
