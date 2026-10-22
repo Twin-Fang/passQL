@@ -3,6 +3,7 @@ package com.passql.web.controller.admin;
 import com.passql.application.entitlement.EntitlementAdminService;
 import com.passql.application.notification.MemberNotificationService;
 import com.passql.common.exception.CustomException;
+import com.passql.common.exception.constant.ErrorCode;
 import com.passql.member.constant.MemberRole;
 import com.passql.member.constant.MemberStatus;
 import com.passql.member.dto.MemberSearchCondition;
@@ -97,12 +98,24 @@ public class AdminMemberController {
             entitlementAdminService.grantPro(memberUuid, expiresDate);
             redirectAttributes.addFlashAttribute(AdminFlash.TOAST_MESSAGE, "프로를 부여했습니다.");
         } catch (CustomException exception) {
-            // 거절 사유별 문구: 지난 날짜, 활성 이용권 단축
-            String errorMessage = switch (exception.getErrorCode()) {
-                case INVALID_INPUT_VALUE -> "만료일은 오늘 이후 날짜여야 합니다.";
-                case INVALID_REQUEST -> "현재 이용권이 더 길어요. 줄이려면 먼저 회수하세요";
-                default -> exception.getErrorCode().getMessage();
-            };
+            String errorMessage = exception.getErrorCode() == ErrorCode.INVALID_INPUT_VALUE
+                ? "만료일은 오늘 이후 날짜여야 합니다." : exception.getErrorCode().getMessage();
+            redirectAttributes.addFlashAttribute(AdminFlash.ENTITLEMENT_ERROR_MESSAGE, errorMessage);
+        }
+        return "redirect:/admin/members/" + memberUuid;
+    }
+
+    /** 구매 1건 회수: REVOKED + 등급 재계산, 실패 시 화면에 오류 문구 */
+    @PostMapping("/{memberUuid}/entitlement/purchases/{entitlementPurchaseUuid}/revoke")
+    public String revokePurchase(@PathVariable UUID memberUuid, @PathVariable UUID entitlementPurchaseUuid,
+                                 RedirectAttributes redirectAttributes) {
+        try {
+            entitlementAdminService.revokePurchase(memberUuid, entitlementPurchaseUuid);
+            redirectAttributes.addFlashAttribute(AdminFlash.TOAST_MESSAGE, "구매를 회수했습니다.");
+        } catch (CustomException exception) {
+            // 거절 사유별 문구: 이미 회수, 다른 회원·없는 구매
+            String errorMessage = exception.getErrorCode() == ErrorCode.INVALID_REQUEST
+                ? "이미 회수된 구매입니다." : "이 회원의 구매가 아닙니다.";
             redirectAttributes.addFlashAttribute(AdminFlash.ENTITLEMENT_ERROR_MESSAGE, errorMessage);
         }
         return "redirect:/admin/members/" + memberUuid;

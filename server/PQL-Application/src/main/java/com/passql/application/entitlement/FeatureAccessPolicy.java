@@ -143,7 +143,7 @@ public class FeatureAccessPolicy {
         }
     }
 
-    /** 내 등급 응답 (구매 시 만료일·오늘 사용량은 결제 켜짐일 때만, 최근 구매는 검증 구매 기준) */
+    /** 내 등급 응답 (구매 시 만료일·오늘 사용량·최근 구매는 결제 켜짐일 때만, 최근 구매는 검증 구매 기준) */
     public MemberPlanResponse getPlan(UUID memberUuid) {
         boolean isBillingEnabled = isBillingEnabled();
         MemberEntitlement activeProEntitlement = findActiveProEntitlement(memberUuid);
@@ -157,10 +157,12 @@ public class FeatureAccessPolicy {
 
         int todayRandomSolvedCount = isBillingEnabled ? dailyQuestionCounter.countTodayRandomSolved(memberUuid) : 0;
 
-        // 이용권 정보 시트용 최근 검증 구매 (관리자 부여만 있으면 없음)
-        EntitlementPurchase lastVerifiedPurchase = entitlementPurchaseRepository
-            .findFirstByMemberUuidAndStatusOrderByPurchasedAtDesc(memberUuid, PurchaseStatus.VERIFIED)
-            .orElse(null);
+        // 이용권 정보 시트용 최근 검증 구매 (결제 꺼짐·관리자 부여만 있으면 없음)
+        EntitlementPurchase lastVerifiedPurchase = isBillingEnabled
+            ? entitlementPurchaseRepository
+                .findFirstByMemberUuidAndStatusOrderByPurchasedAtDesc(memberUuid, PurchaseStatus.VERIFIED)
+                .orElse(null)
+            : null;
 
         return new MemberPlanResponse(
             isBillingEnabled,

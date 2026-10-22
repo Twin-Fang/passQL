@@ -1,34 +1,28 @@
 package com.passql.application.billing;
 
 import com.passql.application.billing.PlayPurchaseRecorder.PlanExtension;
+import com.passql.application.entitlement.EntitlementPurchaseRevoker;
+import com.passql.application.entitlement.EntitlementPurchaseRevoker.RevocationResult;
 import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.application.entitlement.MemberPlanResponse;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
-import com.passql.member.constant.EntitlementSource;
+import com.passql.common.util.Sha256Hex;
 import com.passql.member.constant.PurchaseStatus;
 import com.passql.member.entity.EntitlementPurchase;
-import com.passql.member.entity.MemberEntitlement;
 import com.passql.member.repository.EntitlementPurchaseRepository;
-import com.passql.member.repository.MemberEntitlementRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Comparator;
-import java.util.HexFormat;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -55,7 +49,7 @@ public class PlayBillingService {
 
     private final PlayDeveloperApiClient playDeveloperApiClient;
     private final EntitlementPurchaseRepository entitlementPurchaseRepository;
-    private final MemberEntitlementRepository memberEntitlementRepository;
+    private final EntitlementPurchaseRevoker entitlementPurchaseRevoker;
     private final PlayPurchaseRecorder playPurchaseRecorder;
     private final FeatureAccessPolicy featureAccessPolicy;
     private final TransactionTemplate transactionTemplate;
@@ -64,23 +58,23 @@ public class PlayBillingService {
     @Autowired
     public PlayBillingService(PlayDeveloperApiClient playDeveloperApiClient,
                               EntitlementPurchaseRepository entitlementPurchaseRepository,
-                              MemberEntitlementRepository memberEntitlementRepository,
+                              EntitlementPurchaseRevoker entitlementPurchaseRevoker,
                               PlayPurchaseRecorder playPurchaseRecorder,
                               FeatureAccessPolicy featureAccessPolicy,
                               TransactionTemplate transactionTemplate) {
-        this(playDeveloperApiClient, entitlementPurchaseRepository, memberEntitlementRepository,
+        this(playDeveloperApiClient, entitlementPurchaseRepository, entitlementPurchaseRevoker,
             playPurchaseRecorder, featureAccessPolicy, transactionTemplate, Clock.system(SERVICE_ZONE));
     }
 
     PlayBillingService(PlayDeveloperApiClient playDeveloperApiClient,
                        EntitlementPurchaseRepository entitlementPurchaseRepository,
-                       MemberEntitlementRepository memberEntitlementRepository,
+                       EntitlementPurchaseRevoker entitlementPurchaseRevoker,
                        PlayPurchaseRecorder playPurchaseRecorder,
                        FeatureAccessPolicy featureAccessPolicy,
                        TransactionTemplate transactionTemplate, Clock clock) {
         this.playDeveloperApiClient = playDeveloperApiClient;
         this.entitlementPurchaseRepository = entitlementPurchaseRepository;
-        this.memberEntitlementRepository = memberEntitlementRepository;
+        this.entitlementPurchaseRevoker = entitlementPurchaseRevoker;
         this.playPurchaseRecorder = playPurchaseRecorder;
         this.featureAccessPolicy = featureAccessPolicy;
         this.transactionTemplate = transactionTemplate;
@@ -170,13 +164,7 @@ public class PlayBillingService {
      * 앱 PurchaseParam.applicationUserName 과 같은 계산 (앱 play_account_identifier.dart)
      */
     static String toObfuscatedAccountId(UUID memberUuid) {
-        try {
-            byte[] digest = MessageDigest.getInstance("SHA-256")
-                .digest(memberUuid.toString().getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(digest);
-        } catch (NoSuchAlgorithmException exception) {
-            throw new IllegalStateException("SHA-256 unavailable", exception);
-        }
+        return Sha256Hex.of(memberUuid.toString());
     }
 
     /**
@@ -242,7 +230,7 @@ public class PlayBillingService {
             .ifPresent(EntitlementPurchase::markConsumed));
     }
 
-    /** 환불 토큰 1건: 검증 상태 구매만 회수 > 회원 등급 재계산, 회수했으면 true */
+    /** 환불 토큰 1건: 검증 상태 구매만 회수 > 회원 등급 재계산(공통 회수기), 회수했으면 true */
     private boolean revokePurchaseIfVerified(String purchaseToken) {
         Optional<EntitlementPurchase> verifiedPurchase = entitlementPurchaseRepository.findByPurchaseToken(purchaseToken)
             .filter(purchase -> purchase.getStatus() == PurchaseStatus.VERIFIED);
@@ -250,43 +238,16 @@ public class PlayBillingService {
             return false;
         }
         EntitlementPurchase purchase = verifiedPurchase.get();
-        purchase.markRevoked();
-        recalculateEntitlementAfterRevoke(purchase);
+        RevocationResult result = entitlementPurchaseRevoker.revokeAndRecalculate(purchase, LocalDateTime.now(clock));
+        // 재계산 종류별 로그 (등급 행 없음, 관리자 부여 유지, 만료일 변경)
+        switch (result.kind()) {
+            case NO_ENTITLEMENT -> log.info("[billing] revoked : member={}, order={}, no entitlement",
+                purchase.getMemberUuid(), purchase.getOrderId());
+            case ADMIN_GRANT_KEPT -> log.info("[billing] revoked : member={}, order={}, admin grant kept",
+                purchase.getMemberUuid(), purchase.getOrderId());
+            case RECALCULATED -> log.info("[billing] revoked : member={}, order={}, expires {} -> {}",
+                purchase.getMemberUuid(), purchase.getOrderId(), result.beforeExpiresAt(), result.afterExpiresAt());
+        }
         return true;
-    }
-
-    /**
-     * 회수 후 등급 재계산: 관리자 부여 > 그대로, 남은 유효 구매 최대 만료일이 미래 > 그 날짜로, 아니면 FREE
-     */
-    private void recalculateEntitlementAfterRevoke(EntitlementPurchase revokedPurchase) {
-        UUID memberUuid = revokedPurchase.getMemberUuid();
-        Optional<MemberEntitlement> entitlementOptional = memberEntitlementRepository.findForUpdateByMemberUuid(memberUuid);
-        if (entitlementOptional.isEmpty()) {
-            log.info("[billing] revoked : member={}, order={}, no entitlement", memberUuid, revokedPurchase.getOrderId());
-            return;
-        }
-        MemberEntitlement entitlement = entitlementOptional.get();
-        if (entitlement.getSource() == EntitlementSource.ADMIN_GRANT) {
-            log.info("[billing] revoked : member={}, order={}, admin grant kept", memberUuid, revokedPurchase.getOrderId());
-            return;
-        }
-
-        // 남은 유효 구매 중 가장 늦은 만료일 (방금 회수한 건은 조회 전 자동 flush 로 제외)
-        LocalDateTime now = LocalDateTime.now(clock);
-        Optional<LocalDateTime> remainingExpiresAt = entitlementPurchaseRepository
-            .findByMemberUuidAndStatus(memberUuid, PurchaseStatus.VERIFIED).stream()
-            .map(EntitlementPurchase::getGrantedExpiresAt)
-            .filter(Objects::nonNull)
-            .max(Comparator.naturalOrder())
-            .filter(expiresAt -> expiresAt.isAfter(now));
-
-        LocalDateTime beforeExpiresAt = entitlement.getExpiresAt();
-        if (remainingExpiresAt.isPresent()) {
-            entitlement.extendTo(remainingExpiresAt.get(), EntitlementSource.PLAY_PURCHASE);
-        } else {
-            entitlement.revoke();
-        }
-        log.info("[billing] revoked : member={}, order={}, expires {} -> {}",
-            memberUuid, revokedPurchase.getOrderId(), beforeExpiresAt, entitlement.getExpiresAt());
     }
 }

@@ -96,16 +96,19 @@ void main() {
   late _FakeInAppPurchase store;
   late _FakeBillingApi billingApi;
   late int planRefreshCount;
+  // 로그인 회원 uuid (로그아웃 테스트는 null)
+  String? currentMemberUuid;
   late PlayPurchaseService service;
 
   setUp(() {
     store = _FakeInAppPurchase();
     billingApi = _FakeBillingApi();
     planRefreshCount = 0;
+    currentMemberUuid = _hashVectorMemberUuid;
     service = PlayPurchaseService(
       store: store,
       billingApi: billingApi,
-      readMemberUuid: () => _hashVectorMemberUuid,
+      readMemberUuid: () => currentMemberUuid,
       refreshPlan: () async {
         planRefreshCount++;
         return true;
@@ -182,6 +185,14 @@ void main() {
 
     // 서버가 Play obfuscatedExternalAccountId 와 대조 (다른 계정 재전송 차단)
     expect(store.lastPurchaseParam?.applicationUserName, _hashVectorAccountId);
+  });
+
+  test('purchase_withoutMember_failsWithoutOpeningStore', () async {
+    currentMemberUuid = null;
+
+    // 회원 미확정이면 계정 값 없이 결제하지 않음 (서버 대조 우회 차단)
+    expect(await service.purchaseExamPass(), ProPurchaseOutcome.failed);
+    expect(store.lastPurchaseParam, isNull);
   });
 
   test('memberPlanResponse_parsesLastPurchase_defaultsToNull', () {

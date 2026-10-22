@@ -69,6 +69,10 @@ class AdminMemberEntitlementPageTest {
             .andExpect(content().string(org.hamcrest.Matchers.containsString("/entitlement/revoke")))
             // 구매 이력 행 표시, 구매 토큰은 노출 금지
             .andExpect(content().string(org.hamcrest.Matchers.containsString("GPA.test-order")))
+            // 검증 상태 구매 행: 구매 1건 회수 버튼
+            .andExpect(content().string(org.hamcrest.Matchers.containsString("/entitlement/purchases/")))
+            // 활성 이용권 만료일: 단축 confirm 기준값
+            .andExpect(content().string(org.hamcrest.Matchers.containsString("data-current-expires-date=\"" + LocalDate.now().plusDays(30))))
             .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("secret-purchase-token"))));
     }
 

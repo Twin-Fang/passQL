@@ -73,18 +73,20 @@ class PlayPurchaseService implements ProPurchasePort {
   Future<ProPurchaseOutcome> purchaseExamPass() async {
     final runningPurchase = _activePurchase;
     if (runningPurchase != null) return runningPurchase.future;
+    // 구매 계정 표시 필수: 서버가 확인 요청 회원과 대조 (회원 미확정이면 결제 창 안 염)
+    final memberUuid = _readMemberUuid();
+    if (memberUuid == null) {
+      debugPrint('[billing] purchase blocked : member not signed in');
+      return ProPurchaseOutcome.failed;
+    }
     final product = await _loadExamPassProduct();
     if (product == null) return ProPurchaseOutcome.unavailable;
     final activePurchase = _activePurchase = Completer<ProPurchaseOutcome>();
-    // 구매 계정 표시: 서버가 확인 요청 회원과 대조 (다른 계정으로 재전송 거절)
-    final memberUuid = _readMemberUuid();
     try {
       final isLaunched = await _store.buyConsumable(
         purchaseParam: PurchaseParam(
           productDetails: product,
-          applicationUserName: memberUuid == null
-              ? null
-              : toPlayObfuscatedAccountId(memberUuid),
+          applicationUserName: toPlayObfuscatedAccountId(memberUuid),
         ),
         autoConsume: false,
       );

@@ -1,5 +1,6 @@
 package com.passql.application.entitlement;
 
+import com.passql.application.entitlement.EntitlementPurchaseRevoker.RevocationResult;
 import com.passql.common.audit.AdminAuditEvent;
 import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
@@ -7,6 +8,7 @@ import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.member.constant.EntitlementSource;
 import com.passql.member.constant.MemberPlan;
+import com.passql.member.constant.PurchaseStatus;
 import com.passql.member.entity.EntitlementPurchase;
 import com.passql.member.entity.MemberEntitlement;
 import com.passql.member.repository.EntitlementPurchaseRepository;
@@ -28,8 +30,8 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * 관리자 프로 수동 부여·회수, 회원 상세용 등급·구매 이력 조회
- * 부여: 검증(회원, 날짜) > 활성 이용권 단축 거절 > 등급 행 연장 또는 생성(ADMIN_GRANT) > 감사 기록
+ * 관리자 프로 수동 부여·회수·구매 1건 회수, 회원 상세용 등급·구매 이력 조회
+ * 부여: 검증(회원, 오늘 이후 날짜) > 등급 행 만료일 지정(단축 포함) 또는 생성(ADMIN_GRANT) > 감사 기록
  */
 @Slf4j
 @Service
@@ -43,6 +45,7 @@ public class EntitlementAdminService {
     private final MemberRepository memberRepository;
     private final MemberEntitlementRepository memberEntitlementRepository;
     private final EntitlementPurchaseRepository entitlementPurchaseRepository;
+    private final EntitlementPurchaseRevoker entitlementPurchaseRevoker;
     private final ApplicationEventPublisher eventPublisher;
     private final Clock clock;
 
@@ -50,30 +53,36 @@ public class EntitlementAdminService {
     public EntitlementAdminService(MemberRepository memberRepository,
                                    MemberEntitlementRepository memberEntitlementRepository,
                                    EntitlementPurchaseRepository entitlementPurchaseRepository,
+                                   EntitlementPurchaseRevoker entitlementPurchaseRevoker,
                                    ApplicationEventPublisher eventPublisher) {
         this(memberRepository, memberEntitlementRepository, entitlementPurchaseRepository,
-            eventPublisher, Clock.system(SERVICE_ZONE));
+            entitlementPurchaseRevoker, eventPublisher, Clock.system(SERVICE_ZONE));
     }
 
     EntitlementAdminService(MemberRepository memberRepository,
                             MemberEntitlementRepository memberEntitlementRepository,
                             EntitlementPurchaseRepository entitlementPurchaseRepository,
+                            EntitlementPurchaseRevoker entitlementPurchaseRevoker,
                             ApplicationEventPublisher eventPublisher, Clock clock) {
         this.memberRepository = memberRepository;
         this.memberEntitlementRepository = memberEntitlementRepository;
         this.entitlementPurchaseRepository = entitlementPurchaseRepository;
+        this.entitlementPurchaseRevoker = entitlementPurchaseRevoker;
         this.eventPublisher = eventPublisher;
         this.clock = clock;
     }
 
-    /** 프로 부여: 회원·날짜 검증 > 행 잠금 조회 > 활성 이용권 단축 거절 > 연장 또는 생성(ADMIN_GRANT) > 감사 기록 */
+    /**
+     * 프로 부여: 회원·날짜 검증 > 행 잠금 조회 > 만료일 지정 또는 생성(ADMIN_GRANT) > 감사 기록
+     * 활성 유료 패스보다 짧은 날짜도 허용 (확인은 관리자 화면 confirm), 지난 날짜는 거절 (회수 사용)
+     */
     @Transactional
     public void grantPro(UUID memberUuid, LocalDate expiresDate) {
         // 요청 검증 (회원 존재, 오늘 이후 날짜)
         if (!memberRepository.existsByMemberUuidAndIsDeletedFalse(memberUuid)) {
             throw new CustomException(ErrorCode.MEMBER_NOT_FOUND);
         }
-        if (expiresDate == null || expiresDate.isBefore(LocalDate.now(clock))) {
+        if (expiresDate == null || expiresDate.isBefore(todayInServiceZone())) {
             log.info("[billing] admin grant rejected 400 : expires date is before today, member={}", memberUuid);
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "expiresDate must be today or later");
         }
@@ -82,12 +91,6 @@ public class EntitlementAdminService {
         // 등급 행 연장 또는 생성
         MemberEntitlement existing = memberEntitlementRepository.findForUpdateByMemberUuid(memberUuid).orElse(null);
         LocalDateTime previousExpiresAt = existing != null ? existing.getExpiresAt() : null;
-        // 활성 이용권(유료 패스 포함)이 요청보다 길면 줄이지 않음 (단축은 회수 후 부여로만)
-        if (isActivePro(existing) && previousExpiresAt.isAfter(newExpiresAt)) {
-            log.info("[billing] admin grant rejected 400 : current pro is longer, member={}, current={}, requested={}",
-                memberUuid, previousExpiresAt, newExpiresAt);
-            throw new CustomException(ErrorCode.INVALID_REQUEST, "current pro expires later than requested");
-        }
         if (existing != null) {
             existing.extendTo(newExpiresAt, EntitlementSource.ADMIN_GRANT);
         } else {
@@ -118,6 +121,37 @@ public class EntitlementAdminService {
             AdminAuditEvent.summary("proExpiresAt", null)));
     }
 
+    /**
+     * 구매 1건 회수: 회원 소유·검증 상태 확인 > REVOKED + 등급 재계산(환불 작업과 같은 공통 회수기) > 감사 기록
+     * 다른 회원 구매 ACCESS_DENIED, 없는 구매 RESOURCE_NOT_FOUND, 이미 회수 INVALID_REQUEST
+     */
+    @Transactional
+    public void revokePurchase(UUID memberUuid, UUID entitlementPurchaseUuid) {
+        // 요청 검증 (구매 존재, 회원 소유, 검증 상태)
+        EntitlementPurchase purchase = entitlementPurchaseRepository.findById(entitlementPurchaseUuid)
+            .orElseThrow(() -> new CustomException(ErrorCode.RESOURCE_NOT_FOUND));
+        if (!purchase.getMemberUuid().equals(memberUuid)) {
+            log.warn("[billing] admin revoke purchase rejected 403 : purchase owned by another member, member={}", memberUuid);
+            throw new CustomException(ErrorCode.ACCESS_DENIED);
+        }
+        if (purchase.getStatus() != PurchaseStatus.VERIFIED) {
+            log.info("[billing] admin revoke purchase rejected 400 : not verified, member={}, order={}",
+                memberUuid, purchase.getOrderId());
+            throw new CustomException(ErrorCode.INVALID_REQUEST);
+        }
+
+        // 회수 + 등급 재계산
+        RevocationResult result = entitlementPurchaseRevoker.revokeAndRecalculate(purchase, LocalDateTime.now(clock));
+
+        log.info("[billing] admin revoke purchase : member={}, order={}, expires {} -> {}",
+            memberUuid, purchase.getOrderId(), result.beforeExpiresAt(), result.afterExpiresAt());
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.MEMBER, memberUuid, AdminAuditAction.RETRACT,
+            AdminAuditEvent.summary("order", purchase.getOrderId(), "purchaseStatus", PurchaseStatus.VERIFIED,
+                "proExpiresAt", result.beforeExpiresAt()),
+            AdminAuditEvent.summary("order", purchase.getOrderId(), "purchaseStatus", PurchaseStatus.REVOKED,
+                "proExpiresAt", result.afterExpiresAt())));
+    }
+
     /** 회원 상세용: 현재 등급 행 > 유효 프로 여부, 구매 이력 최신순 */
     @Transactional(readOnly = true)
     public MemberEntitlementAdminView getEntitlementView(UUID memberUuid) {
@@ -134,7 +168,12 @@ public class EntitlementAdminService {
             entitlement != null ? entitlement.getExpiresAt() : null,
             entitlement != null ? entitlement.getSource() : null,
             purchaseRows,
-            LocalDate.now(clock));
+            todayInServiceZone());
+    }
+
+    /** KST 오늘 (시계 시간대와 무관) */
+    private LocalDate todayInServiceZone() {
+        return LocalDate.ofInstant(clock.instant(), SERVICE_ZONE);
     }
 
     /** 유효한 프로 등급 행인지: PRO 이고 만료일이 지금 이후 (행 없음 false) */
@@ -148,6 +187,7 @@ public class EntitlementAdminService {
     /** 구매 > 화면 행 (구매 토큰 제외) */
     private MemberEntitlementAdminView.PurchaseRow toPurchaseRow(EntitlementPurchase purchase) {
         return new MemberEntitlementAdminView.PurchaseRow(
+            purchase.getEntitlementPurchaseUuid(),
             purchase.getStore(),
             purchase.getProductId(),
             purchase.getOrderId(),

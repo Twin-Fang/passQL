@@ -246,8 +246,13 @@ class FeatureAccessPolicyTest {
         givenBillingEnabled(false);
         when(entitlementRepository.findById(memberUuid)).thenReturn(Optional.empty());
 
-        assertThat(policy.getPlan(memberUuid).todayRandomSolvedCount()).isZero();
+        MemberPlanResponse response = policy.getPlan(memberUuid);
+
+        assertThat(response.todayRandomSolvedCount()).isZero();
+        assertThat(response.lastPurchasedAt()).isNull();
         verifyNoInteractions(dailyQuestionCounter);
+        // 결제 꺼짐: 최근 구매 조회 생략
+        verifyNoInteractions(purchaseRepository);
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.passql.application.billing;
 
 import com.passql.application.entitlement.DailyQuestionCounter;
+import com.passql.application.entitlement.EntitlementPurchaseRevoker;
 import com.passql.application.entitlement.ExamPassExpiryCalculator;
 import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.application.entitlement.MemberPlanResponse;
@@ -28,12 +29,9 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HexFormat;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -79,7 +77,8 @@ class PlayBillingServiceTest {
     private final PlayPurchaseRecorder playPurchaseRecorder = new PlayPurchaseRecorder(
         purchaseRepository, entitlementRepository, mock(MemberRepository.class), expiryCalculator);
     private final PlayBillingService playBillingService = new PlayBillingService(
-        playClient, purchaseRepository, entitlementRepository, playPurchaseRecorder, featureAccessPolicy,
+        playClient, purchaseRepository, new EntitlementPurchaseRevoker(purchaseRepository, entitlementRepository),
+        playPurchaseRecorder, featureAccessPolicy,
         new TransactionTemplate(mock(PlatformTransactionManager.class)), FIXED_CLOCK);
 
     // 메모리 저장소 (구매: 토큰별, 등급: 회원별)
@@ -287,14 +286,14 @@ class PlayBillingServiceTest {
     }
 
     @Test
-    void verify_missingOrderId_usesFallback_andGrants() throws Exception {
+    void verify_missingOrderId_usesFallback_andGrants() {
         playClient.snapshot = new PlayPurchaseSnapshot(null, 0, 0, PURCHASED_INSTANT, null);
 
         MemberPlanResponse response = playBillingService.verify(memberUuid, passRequest());
 
-        String tokenHash = HexFormat.of().formatHex(
-            MessageDigest.getInstance("SHA-256").digest(PURCHASE_TOKEN.getBytes(StandardCharsets.UTF_8)));
-        assertThat(purchaseByToken.get(PURCHASE_TOKEN).getOrderId()).isEqualTo("PLAY-NO-ORDER-" + tokenHash.substring(0, 32));
+        // SHA-256("purchase-token-1") 앞 32자
+        assertThat(purchaseByToken.get(PURCHASE_TOKEN).getOrderId())
+            .isEqualTo("PLAY-NO-ORDER-bbbe5d3db6d6de18a3a2d0cc0e3d6a6e");
         assertThat(response.plan()).isEqualTo("PRO");
     }
 

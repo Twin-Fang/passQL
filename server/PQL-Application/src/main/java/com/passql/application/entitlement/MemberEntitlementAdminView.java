@@ -7,6 +7,7 @@ import com.passql.member.constant.PurchaseStore;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 관리자 회원 상세용 등급·구매 이력 (구매 토큰은 담지 않음)
@@ -21,8 +22,9 @@ public record MemberEntitlementAdminView(
     LocalDate todayInServiceZone
 ) {
 
-    /** 구매 이력 1행 */
+    /** 구매 이력 1행 (entitlementPurchaseUuid: 관리자 구매 1건 회수 대상) */
     public record PurchaseRow(
+        UUID entitlementPurchaseUuid,
         PurchaseStore store,
         String productId,
         String orderId,

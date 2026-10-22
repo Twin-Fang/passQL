@@ -1,6 +1,7 @@
 package com.passql.application.billing;
 
 import com.passql.application.entitlement.ExamPassExpiryCalculator;
+import com.passql.common.util.Sha256Hex;
 import com.passql.member.constant.EntitlementSource;
 import com.passql.member.constant.MemberPlan;
 import com.passql.member.constant.PurchaseStatus;
@@ -14,13 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.HexFormat;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -88,12 +85,7 @@ class PlayPurchaseRecorder {
             return playOrderId;
         }
         log.warn("[billing] missing order id, using fallback : member={}", memberUuid);
-        try {
-            byte[] tokenDigest = MessageDigest.getInstance("SHA-256").digest(purchaseToken.getBytes(StandardCharsets.UTF_8));
-            return FALLBACK_ORDER_ID_PREFIX + HexFormat.of().formatHex(tokenDigest).substring(0, FALLBACK_ORDER_ID_HEX_LENGTH);
-        } catch (NoSuchAlgorithmException exception) {
-            throw new IllegalStateException("SHA-256 unavailable", exception);
-        }
+        return FALLBACK_ORDER_ID_PREFIX + Sha256Hex.of(purchaseToken).substring(0, FALLBACK_ORDER_ID_HEX_LENGTH);
     }
 
     /** 반영 결과: 저장한 주문 번호, 등급 만료일 변경 전후 (이전 값은 없으면 null) */
