@@ -6,6 +6,8 @@ import '../../core/auth/member_suspension_interceptor.dart';
 import '../../core/auth/member_suspension_signal.dart';
 import '../../core/auth/session_expiry_signal.dart';
 import '../../core/auth/token_store.dart';
+import '../../core/billing/pro_access_denied_interceptor.dart';
+import '../../core/billing/pro_access_denied_signal.dart';
 import '../../core/network/dio_client.dart';
 import 'ai_api.dart';
 import 'auth_api.dart';
@@ -34,6 +36,7 @@ final authApiProvider = Provider<AuthApi>(
 ///
 /// 모든 요청에 Bearer 토큰을 붙이고 401 시 자동 재발급한다.
 /// 이용 제한(403 MEMBER_SUSPENDED) 응답은 이용 제한 신호로 알린다.
+/// 프로 접근 거부(403 PRO_REQUIRED·FREE_DAILY_LIMIT_REACHED) 응답은 프로 접근 거부 신호로 알린다.
 final dioProvider = Provider<Dio>((ref) {
   final dio = buildBackendDio();
   dio.interceptors.insert(
@@ -53,6 +56,13 @@ final dioProvider = Provider<Dio>((ref) {
       onMemberSuspended: ref
           .read(memberSuspensionSignalProvider)
           .announceSuspended,
+    ),
+  );
+  // 프로 접근 거부 신호만 보냄 (등급 다시 받기는 구독하는 PlanNotifier 몫)
+  dio.interceptors.insert(
+    2,
+    ProAccessDeniedInterceptor(
+      onProAccessDenied: ref.read(proAccessDeniedSignalProvider).announceDenied,
     ),
   );
   return dio;

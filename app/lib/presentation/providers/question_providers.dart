@@ -281,6 +281,7 @@ class QuestionInteractionNotifier
             ),
           );
       _logAnswerSubmitted(submitResult.isCorrect);
+      _refreshDailyUsageIfCounted();
       // 신고 시 어떤 선택지 세트를 풀었는지 알려야 하므로 결과에 붙여 둔다.
       return submitResult.copyWith(choiceSetUuid: choiceSetId);
     } catch (exception) {
@@ -288,6 +289,14 @@ class QuestionInteractionNotifier
       state = state.copyWith(isSubmitting: false);
       throw exception.asAppException;
     }
+  }
+
+  /// 무료(결제 UI 대상) 제출 성공 > 등급 다시 받기 (홈·설정의 오늘 랜덤 n/10 갱신, 기다리지 않음)
+  /// 생략 2가지: 결제 UI 대상 아님(프로·결제 꺼짐·iOS = 사용량 표시 없음), 이미 한도(더 늘지 않음)
+  void _refreshDailyUsageIfCounted() {
+    if (!ref.read(shouldShowProUiProvider)) return;
+    if (ref.read(knownPlanProvider)?.isDailyFreeLimitReached == true) return;
+    unawaited(ref.read(planProvider.notifier).refresh());
   }
 
   /// 제출 결과 분석 기록 (토픽 이름: 화면이 이미 불러온 문제 상세에서만, 새로 요청하지 않음)

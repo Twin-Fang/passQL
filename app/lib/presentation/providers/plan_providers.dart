@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/billing/pro_access_denied_signal.dart';
 import '../../core/network/safe_call.dart';
 import '../../data/models/member/member_plan_response.dart';
 import '../../data/sources/api_providers.dart';
@@ -27,14 +28,23 @@ final debugPlanOverrideProvider = Provider<ProDebugPlan?>((ref) {
 
 /// 회원 등급 단일 원본: GET /members/me/plan (회원별 autoDispose, 로그아웃이면 API 호출 없음)
 /// 첫 조회 실패 > 오류 상태(등급 모름, refresh·다음 build 에서 재시도), 이후 조회 실패 > 마지막 값 유지
+/// 서버 프로 접근 거부 신호 > 앱이 무료로 알고 있지 않으면 다시 받기 (만료·회수 반영)
 final planProvider =
     AsyncNotifierProvider.autoDispose<PlanNotifier, MemberPlanResponse>(
       PlanNotifier.new,
     );
 
 class PlanNotifier extends AutoDisposeAsyncNotifier<MemberPlanResponse> {
+  /// 진행 중인 다시 받기 (동시 요청을 한 번으로 합침)
+  Future<void>? _inFlightRefresh;
+
   @override
   Future<MemberPlanResponse> build() async {
+    final denialSubscription = ref
+        .read(proAccessDeniedSignalProvider)
+        .denials
+        .listen((_) => refreshAfterProAccessDenied());
+    ref.onDispose(denialSubscription.cancel);
     if (ref.watch(currentMemberUuidProvider) == null) {
       return waitForSignedInMember();
     }
@@ -42,8 +52,25 @@ class PlanNotifier extends AutoDisposeAsyncNotifier<MemberPlanResponse> {
     return _applyDebugOverride(await ref.read(memberApiProvider).getMyPlan());
   }
 
-  /// 구매·복원·앱 복귀 때 다시 받기 (실패하면 현재 상태 유지: 마지막 값 또는 오류)
-  Future<void> refresh() async {
+  /// 구매·복원·앱 복귀·제출 때 다시 받기 (실패하면 현재 상태 유지: 마지막 값 또는 오류)
+  /// 진행 중이면 그 요청을 같이 기다림 (거부 신호·화면 안내가 겹쳐도 요청 1회)
+  Future<void> refresh() => _inFlightRefresh ??= _fetchLatestPlan()
+      .whenComplete(() => _inFlightRefresh = null);
+
+  /// 서버 프로 접근 거부(403) 뒤 등급 맞추기
+  /// 생략 3가지: 로그아웃, 첫 조회·회원 전환 중(곧 새 값), 이미 무료(결제 켜짐)로 앎 (잠금 UI 가 이미 맞음, 반복 요청 방지)
+  Future<void> refreshAfterProAccessDenied() async {
+    if (ref.read(currentMemberUuidProvider) == null || state.isLoading) return;
+    final knownPlan = state.valueOrNull;
+    final isKnownFree =
+        knownPlan != null &&
+        knownPlan.isBillingEnabled &&
+        knownPlan.plan == MemberPlanType.free;
+    if (isKnownFree) return;
+    await refresh();
+  }
+
+  Future<void> _fetchLatestPlan() async {
     final latestPlan = await safeCall(
       ref.read(memberApiProvider).getMyPlan(),
       label: 'plan',
@@ -67,6 +94,13 @@ final knownPlanProvider = Provider.autoDispose<MemberPlanResponse?>((ref) {
       planState.hasValue && !planState.isLoading && !planState.hasError;
   return isKnown ? planState.value : null;
 });
+
+/// 무료 하루 랜덤 사용량 판정 (홈 카드·제출 뒤 갱신 공통)
+extension MemberPlanDailyUsage on MemberPlanResponse {
+  /// 오늘 무료 랜덤 한도를 다 썼는가 (한도 0 = 결제 꺼짐·값 없음이면 false)
+  bool get isDailyFreeLimitReached =>
+      dailyFreeLimit > 0 && todayRandomSolvedCount >= dailyFreeLimit;
+}
 
 /// 프로(회차 패스 보유) 여부. 등급을 모르면 false
 final isProProvider = Provider.autoDispose<bool>(
