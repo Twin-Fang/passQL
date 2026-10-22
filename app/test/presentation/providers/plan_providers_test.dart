@@ -236,4 +236,47 @@ void main() {
       expect(container.read(shouldShowProUiProvider), isFalse);
     },
   );
+
+  test('refreshAfterPurchase_waitsForEarlierRefreshThenFetchesAgain', () async {
+    // 구매 확인 전에 출발한 조회(무료 응답)가 진행 중
+    final pendingEarlierPlan = Completer<MemberPlanResponse>();
+    var requestCount = 0;
+    final api = FakeMemberApi()
+      ..planResponder = () {
+        requestCount++;
+        if (requestCount == 2) return pendingEarlierPlan.future;
+        return Future.value(
+          requestCount == 1
+              ? const MemberPlanResponse(isBillingEnabled: true)
+              : const MemberPlanResponse(
+                  isBillingEnabled: true,
+                  plan: MemberPlanType.pro,
+                ),
+        );
+      };
+    final container = ProviderContainer(
+      overrides: [
+        authProvider.overrideWith(_SignedInAuth.new),
+        targetPlatformProvider.overrideWithValue(TargetPlatform.android),
+        debugPlanOverrideProvider.overrideWithValue(null),
+        memberApiProvider.overrideWithValue(api),
+      ],
+    );
+    addTearDown(container.dispose);
+    container.listen(planProvider, (_, _) {});
+    await container.read(planProvider.future);
+
+    final notifier = container.read(planProvider.notifier);
+    final earlierRefresh = notifier.refresh();
+    final purchaseRefresh = notifier.refreshAfterPurchase();
+    pendingEarlierPlan.complete(
+      const MemberPlanResponse(isBillingEnabled: true),
+    );
+    await earlierRefresh;
+    await purchaseRefresh;
+
+    // 진행 중 조회에 합치지 않고 한 번 더 받아 프로 반영
+    expect(requestCount, 3);
+    expect(container.read(isProProvider), isTrue);
+  });
 }

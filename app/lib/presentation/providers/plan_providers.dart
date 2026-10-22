@@ -57,6 +57,13 @@ class PlanNotifier extends AutoDisposeAsyncNotifier<MemberPlanResponse> {
   Future<void> refresh() => _inFlightRefresh ??= _fetchLatestPlan()
       .whenComplete(() => _inFlightRefresh = null);
 
+  /// 구매 확인 뒤 다시 받기: 확인 전에 출발한 요청에 합치지 않고 그 요청이 끝난 뒤 새로 받음 (무료 응답 재사용 방지)
+  Future<void> refreshAfterPurchase() async {
+    final refreshStartedBeforePurchase = _inFlightRefresh;
+    if (refreshStartedBeforePurchase != null) await refreshStartedBeforePurchase;
+    await refresh();
+  }
+
   /// 서버 프로 접근 거부(403) 뒤 등급 맞추기
   /// 생략 3가지: 로그아웃, 첫 조회·회원 전환 중(곧 새 값), 이미 무료(결제 켜짐)로 앎 (잠금 UI 가 이미 맞음, 반복 요청 방지)
   Future<void> refreshAfterProAccessDenied() async {

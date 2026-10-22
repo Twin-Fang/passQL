@@ -20,7 +20,7 @@ final playPurchaseServiceProvider = Provider<PlayPurchaseService>((ref) {
     billingApi: ref.read(billingApiProvider),
     readMemberUuid: () => ref.read(currentMemberUuidProvider),
     refreshPlan: () async {
-      await ref.read(planProvider.notifier).refresh();
+      await ref.read(planProvider.notifier).refreshAfterPurchase();
       return ref.read(isProProvider);
     },
   );

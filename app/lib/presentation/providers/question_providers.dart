@@ -269,8 +269,9 @@ class QuestionInteractionNotifier
     if (choiceSetId == null || selectedKey == null) return null;
 
     state = state.copyWith(isSubmitting: true);
+    final SubmitResult submitResult;
     try {
-      final submitResult = await ref
+      submitResult = await ref
           .read(questionApiProvider)
           .submitAnswer(
             _questionUuid,
@@ -281,14 +282,15 @@ class QuestionInteractionNotifier
             ),
           );
       _logAnswerSubmitted(submitResult.isCorrect);
-      _refreshDailyUsageIfCounted();
-      // 신고 시 어떤 선택지 세트를 풀었는지 알려야 하므로 결과에 붙여 둔다.
-      return submitResult.copyWith(choiceSetUuid: choiceSetId);
     } catch (exception) {
       // 원인별 문구는 호출 측이 토스트로 표시 (인증 만료는 인터셉터가 세션 만료 신호로 처리)
       state = state.copyWith(isSubmitting: false);
       throw exception.asAppException;
     }
+    // 제출 성공 뒤 (등급 갱신 오류가 제출 실패로 바뀌지 않게 try 밖)
+    _refreshDailyUsageIfCounted();
+    // 신고 시 어떤 선택지 세트를 풀었는지 알려야 하므로 결과에 붙여 둔다.
+    return submitResult.copyWith(choiceSetUuid: choiceSetId);
   }
 
   /// 무료(결제 UI 대상) 제출 성공 > 등급 다시 받기 (홈·설정의 오늘 랜덤 n/10 갱신, 기다리지 않음)

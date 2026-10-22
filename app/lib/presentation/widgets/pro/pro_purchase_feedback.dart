@@ -20,7 +20,7 @@ Future<void> refreshPlanIfPurchased(
   ProPurchaseOutcome outcome,
 ) async {
   if (outcome != ProPurchaseOutcome.success) return;
-  await container.read(planProvider.notifier).refresh();
+  await container.read(planProvider.notifier).refreshAfterPurchase();
 }
 
 /// 결과 > 시트 안 한 줄 안내 (성공·취소는 안내 없음)

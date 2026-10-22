@@ -36,7 +36,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AdminMemberController {
 
-    // 프로 부여·회수 토스트 날짜 (회원 상세 카드와 같은 표기)
+    // 프로 부여·회수 토스트 날짜 (회원 상세 카드 만료일의 날짜 부분과 같은 표기)
     private static final DateTimeFormatter TOAST_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private final MemberAdminService memberAdminService;
@@ -144,7 +144,10 @@ public class AdminMemberController {
     /** 구매 회수 결과 > 토스트 (관리자 부여 유지, 무료 전환, 만료일 변경, 등급 행 없음) */
     private String toRevokePurchaseToastMessage(RevocationResult revocationResult) {
         return switch (revocationResult.kind()) {
-            case ADMIN_GRANT_KEPT -> "구매를 회수했습니다. 관리자 부여 이용권은 그대로입니다.";
+            // 관리자 회수로 이미 무료(만료일 없음)면 유지할 이용권이 없음
+            case ADMIN_GRANT_KEPT -> revocationResult.afterExpiresAt() == null
+                ? "구매를 회수했습니다."
+                : "구매를 회수했습니다. 관리자 부여 이용권은 그대로입니다.";
             case RECALCULATED -> revocationResult.afterExpiresAt() == null
                 ? "구매를 회수했습니다. 무료로 바뀌었습니다."
                 : "구매를 회수했습니다. 만료일이 " + revocationResult.afterExpiresAt().format(TOAST_DATE_FORMATTER) + "로 바뀌었습니다.";
