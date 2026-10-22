@@ -5,6 +5,6 @@ package com.passql.member.constant;
  */
 public enum PurchaseStatus {
 
-    GRANTED,    // 등급 반영 완료
-    REFUNDED    // 환불로 회수
+    VERIFIED,   // 스토어 검증 완료, 등급 반영
+    REVOKED     // 환불 등으로 회수
 }

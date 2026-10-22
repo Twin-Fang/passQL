@@ -20,8 +20,9 @@ CREATE TABLE IF NOT EXISTS member_entitlement (
 );
 
 -- 2. 구매 이력
---    store: PLAY / status: GRANTED 등급 반영, REFUNDED 환불 회수
+--    store: PLAY / status: VERIFIED 검증 완료, REVOKED 환불 등으로 회수
 --    granted_expires_at: 이 구매로 부여한 만료 시각
+--    is_consumed: 스토어 소모(consume) 완료 여부 (false 면 소모 재시도 대상)
 --    order_id, purchase_token 은 UNIQUE (같은 구매 재검증 시 중복 반영 차단)
 CREATE TABLE IF NOT EXISTS entitlement_purchase (
     entitlement_purchase_uuid UUID PRIMARY KEY,
@@ -33,6 +34,7 @@ CREATE TABLE IF NOT EXISTS entitlement_purchase (
     purchased_at              TIMESTAMP(6) NOT NULL,
     status                    VARCHAR(20)  NOT NULL,
     granted_expires_at        TIMESTAMP(6),
+    is_consumed               BOOLEAN      NOT NULL DEFAULT FALSE,
     created_at                TIMESTAMP(6),
     updated_at                TIMESTAMP(6),
     created_by                VARCHAR(255),

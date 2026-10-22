@@ -41,6 +41,7 @@ public class MemberEntitlement extends BaseEntity {
     @Column(length = 30, nullable = false)
     private EntitlementSource source;
 
+    /** 등급 행 생성 */
     public static MemberEntitlement of(UUID memberUuid, MemberPlan plan, LocalDateTime expiresAt,
                                        EntitlementSource source) {
         MemberEntitlement entitlement = new MemberEntitlement();

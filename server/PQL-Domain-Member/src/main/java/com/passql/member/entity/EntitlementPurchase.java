@@ -68,9 +68,14 @@ public class EntitlementPurchase extends BaseEntity {
     // 이 구매로 부여한 프로 만료 시각
     private LocalDateTime grantedExpiresAt;
 
-    public static EntitlementPurchase granted(UUID memberUuid, PurchaseStore store, String productId, String orderId,
-                                              String purchaseToken, LocalDateTime purchasedAt,
-                                              LocalDateTime grantedExpiresAt) {
+    // 스토어 소모(consume) 완료 여부: 검증만 되고 소모 전이면 false (소모 재시도 대상)
+    @Column(nullable = false)
+    private Boolean isConsumed = false;
+
+    /** 검증 완료 구매 생성 (소모 전 상태) */
+    public static EntitlementPurchase verified(UUID memberUuid, PurchaseStore store, String productId, String orderId,
+                                               String purchaseToken, LocalDateTime purchasedAt,
+                                               LocalDateTime grantedExpiresAt) {
         EntitlementPurchase purchase = new EntitlementPurchase();
         purchase.memberUuid = memberUuid;
         purchase.store = store;
@@ -78,13 +83,18 @@ public class EntitlementPurchase extends BaseEntity {
         purchase.orderId = orderId;
         purchase.purchaseToken = purchaseToken;
         purchase.purchasedAt = purchasedAt;
-        purchase.status = PurchaseStatus.GRANTED;
+        purchase.status = PurchaseStatus.VERIFIED;
         purchase.grantedExpiresAt = grantedExpiresAt;
         return purchase;
     }
 
-    /** 환불 회수 표시 */
-    public void markRefunded() {
-        this.status = PurchaseStatus.REFUNDED;
+    /** 환불 등으로 회수 표시 */
+    public void markRevoked() {
+        this.status = PurchaseStatus.REVOKED;
+    }
+
+    /** 스토어 소모 완료 표시 */
+    public void markConsumed() {
+        this.isConsumed = true;
     }
 }
