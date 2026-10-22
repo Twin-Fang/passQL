@@ -7,7 +7,8 @@ import '../../design/design.dart';
 import '../../flows/random_practice_flow.dart';
 import '../../providers/plan_providers.dart';
 
-/// 홈 랜덤 풀기 진입 카드: 탭 > 랜덤 풀기 풀이, 무료(결제 켜짐)면 오른쪽에 오늘 랜덤 n / 10
+/// 홈 랜덤 풀기 진입 카드: 탭 > 랜덤 풀기 풀이, 무료(결제 켜짐)면 제목 줄 오른쪽에 오늘 랜덤 n / 10
+/// 사용량은 제목 줄에 둠 (부제 폭 확보, 한 글자 줄바꿈 방지)
 class RandomPracticeCard extends ConsumerWidget {
   const RandomPracticeCard({super.key});
 
@@ -29,11 +30,25 @@ class RandomPracticeCard extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  RandomPracticeFlow.displayName,
-                  style: PassqlTypography.subheadlineSemibold.copyWith(
-                    color: colors.label,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        RandomPracticeFlow.displayName,
+                        style: PassqlTypography.subheadlineSemibold.copyWith(
+                          color: colors.label,
+                        ),
+                      ),
+                    ),
+                    if (hasDailyUsage)
+                      Text(
+                        '오늘 랜덤 ${knownPlan.todayRandomSolvedCount} / '
+                        '${knownPlan.dailyFreeLimit}',
+                        style: PassqlTypography.footnoteSemibold.copyWith(
+                          color: colors.secondaryLabel,
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: PassqlSpacing.hairlineGap),
                 Text(
@@ -45,16 +60,6 @@ class RandomPracticeCard extends ConsumerWidget {
               ],
             ),
           ),
-          if (hasDailyUsage) ...[
-            const SizedBox(width: PassqlSpacing.xs),
-            Text(
-              '오늘 랜덤 ${knownPlan.todayRandomSolvedCount} / '
-              '${knownPlan.dailyFreeLimit}',
-              style: PassqlTypography.footnoteSemibold.copyWith(
-                color: colors.secondaryLabel,
-              ),
-            ),
-          ],
           const SizedBox(width: PassqlSpacing.xs),
           Icon(
             CupertinoIcons.chevron_forward,
