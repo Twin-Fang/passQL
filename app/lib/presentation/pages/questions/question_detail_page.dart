@@ -10,6 +10,7 @@ import '../../design/design.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/pro/pro_access_feedback.dart';
 import '../../widgets/question/question_sections.dart';
+import '../../widgets/question/question_load_error_view.dart';
 import '../../widgets/question/question_solving_body.dart';
 import '../../widgets/question/question_solving_skeleton.dart';
 import '../../widgets/question/choice_display_label.dart';
@@ -86,8 +87,8 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
             _showProAccessFeedbackOnce(error);
             return KeyedSubtree(
               key: const ValueKey('error'),
-              child: PassqlStatusView.error(
-                message: '문제를 불러올 수 없어요',
+              child: QuestionLoadErrorView(
+                error: error,
                 onRetry: _retryQuestionDetail,
               ),
             );

@@ -16,6 +16,8 @@ import 'package:passql_app/presentation/pages/questions/chapter_page.dart';
 import 'package:passql_app/presentation/providers/chapter_providers.dart';
 import 'package:passql_app/presentation/providers/plan_providers.dart';
 import 'package:passql_app/presentation/providers/question_providers.dart';
+import 'package:passql_app/presentation/widgets/pro/pro_access_feedback.dart';
+import 'package:passql_app/presentation/widgets/question/question_load_error_view.dart';
 
 import '../../../helpers/fakes/fake_http_client_adapter.dart';
 import '../../../helpers/text_finders.dart';
@@ -188,15 +190,46 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(_sheetTitle), findsNothing);
 
-    // 다음 문제로 이동 > 미리 받아 둔 한도 오류로 시트 + 이유 한 줄
+    // 다음 문제로 이동 > 미리 받아 둔 한도 오류로 시트 + 이유 줄(사유 + 내일 0시), 시트 뒤는 사유 화면
     _chapterNotifierOf(tester).nextQuestion();
     await tester.pumpAndSettle();
 
     expect(find.text(_sheetTitle), findsWidgets);
     expect(
-      findTextContainingIgnoringWordJoiners(_dailyLimitReason),
+      findTextContainingIgnoringWordJoiners(freeDailyLimitSheetReason),
       findsOneWidget,
     );
+    expect(
+      findTextContainingIgnoringWordJoiners(_dailyLimitReason),
+      findsNWidgets(2),
+    );
+  });
+
+  testWidgets('limitSheetDismissed_showsReasonInsteadOfGenericError', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_chapterApp());
+    await tester.pumpAndSettle();
+    _chapterNotifierOf(tester).nextQuestion();
+    await tester.pumpAndSettle();
+
+    // 시트 닫기 > 일반 오류 대신 한도 사유 + 내일 0시 + 회차 패스로 열기
+    Navigator.of(tester.element(find.text(_sheetTitle).first)).pop();
+    await tester.pumpAndSettle();
+
+    expect(find.text(_sheetTitle), findsNothing);
+    expect(find.text(_dailyLimitReason), findsOneWidget);
+    expect(find.text(freeDailyLimitResetNotice), findsOneWidget);
+    expect(find.text(PassqlLockedPreview.unlockLabel), findsOneWidget);
+    expect(
+      find.text(QuestionLoadErrorView.genericFailureMessage),
+      findsNothing,
+    );
+
+    // 회차 패스로 열기 > 같은 시트 다시
+    await tester.tap(find.text(PassqlLockedPreview.unlockLabel));
+    await tester.pumpAndSettle();
+    expect(find.text(_sheetTitle), findsWidgets);
   });
 
   testWidgets('prefetchedDetailThenChoiceLimit_opensSheetWithReason', (
@@ -228,9 +261,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // 프로 사용자 공정 사용 한도 > 토스트 1회, 같은 문제 다시 요청 없음 (반복 방지)
+    // 프로 사용자 공정 사용 한도 > 토스트 1회 + 사유 화면(결제 버튼 없음), 같은 문제 다시 요청 없음 (반복 방지)
     expect(_detailRequestCountByUuid[_firstQuestionUuid], 1);
-    expect(find.text(_fairUseLimitError.message), findsOneWidget);
+    expect(find.text(_fairUseLimitError.message), findsNWidgets(2));
+    expect(find.text(fairUseLimitResetNotice), findsOneWidget);
+    expect(find.text(PassqlLockedPreview.unlockLabel), findsNothing);
     expect(find.text(_sheetTitle), findsNothing);
   });
 }
