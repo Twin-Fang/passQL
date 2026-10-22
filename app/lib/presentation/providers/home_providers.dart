@@ -32,13 +32,12 @@ class HomeData {
   });
 }
 
-/// 홈 데이터 중 풀이와 무관한 묶음: 인사말·추천 문제·시험 일정
+/// 홈 데이터 중 풀이와 무관한 묶음: 인사말·시험 일정 (추천 문제는 잠금 판정이 걸려 따로)
 class HomeOverview {
   final GreetingResponse? greeting;
-  final RecommendationsResponse? recommendations;
   final ExamScheduleResponse? examSchedule;
 
-  const HomeOverview({this.greeting, this.recommendations, this.examSchedule});
+  const HomeOverview({this.greeting, this.examSchedule});
 }
 
 /// 홈 데이터 중 풀이마다 바뀌는 묶음: 진행 현황·오늘의 세트 상태·히트맵
@@ -50,34 +49,35 @@ class HomeLearningStatus {
   const HomeLearningStatus({this.progress, this.dailySet, this.heatmap});
 }
 
-/// 인사말·추천·시험 일정 3개 병렬 호출. 날짜가 바뀌거나 직접 새로고침할 때만 다시 받는다
-/// 로그아웃이면 빈 묶음 (API 호출 없음), 무료(결제 켜짐)면 추천 요청 없음 (약점 추천 잠금)
+/// 인사말·시험 일정 2개 병렬 호출. 날짜가 바뀌거나 직접 새로고침할 때만 다시 받는다
+/// 로그아웃이면 빈 묶음 (API 호출 없음)
 final homeOverviewProvider = FutureProvider.autoDispose<HomeOverview>((
   ref,
 ) async {
   if (ref.watch(currentMemberUuidProvider) == null) return const HomeOverview();
   final greeting = SafeCallSlot(ref.read(homeApiProvider).getGreeting());
-  // 추천만 등급 첫 조회 뒤 판정 (다른 요청은 기다리지 않음, 슬롯은 모두 바로 묶음)
-  final questionApi = ref.read(questionApiProvider);
-  final recommendations = SafeCallSlot(
-    resolveShouldShowProUi(ref).then<RecommendationsResponse?>(
-      (isRecommendationLocked) => isRecommendationLocked
-          ? null
-          : questionApi.getRecommendations(
-              const RecommendationsRequest(size: 3),
-            ),
-    ),
-  );
   final examSchedule = SafeCallSlot(
     ref.read(examScheduleApiProvider).getSelectedSchedule(),
   );
-  await safeCallAll([greeting, recommendations, examSchedule]);
+  await safeCallAll([greeting, examSchedule]);
   return HomeOverview(
     greeting: greeting.value,
-    recommendations: recommendations.value,
     examSchedule: examSchedule.value,
   );
 });
+
+/// 추천 문제 3개. 실패하면 null(섹션 숨김), 무료(결제 켜짐)면 요청 없이 null (약점 추천 잠금)
+/// 잠금 판정은 이 Provider 만 구독 > 판정이 바뀌어도 인사말·일정은 다시 받지 않음
+final homeRecommendationsProvider =
+    FutureProvider.autoDispose<RecommendationsResponse?>((ref) async {
+      if (ref.watch(currentMemberUuidProvider) == null) return null;
+      final questionApi = ref.read(questionApiProvider);
+      if (await watchIsProFeatureLocked(ref)) return null;
+      return safeCall(
+        questionApi.getRecommendations(const RecommendationsRequest(size: 3)),
+        label: 'homeRecommendations',
+      );
+    });
 
 /// 진행 현황·오늘의 세트·히트맵 3개 병렬 호출. 풀이 후 갱신 대상(refreshLearningData)
 /// 로그아웃이면 빈 묶음 (API 호출 없음)
@@ -99,7 +99,7 @@ final homeLearningStatusProvider =
   );
 });
 
-/// 홈 화면 데이터: [homeOverviewProvider] + [homeLearningStatusProvider] 합침
+/// 홈 화면 데이터: [homeOverviewProvider] + [homeLearningStatusProvider] + [homeRecommendationsProvider] 합침
 ///
 /// 한 묶음만 다시 받아도 다른 묶음은 캐시를 그대로 쓴다.
 /// 한쪽 실패는 그 섹션만 숨기고, 양쪽 다 실패(서버 장애·네트워크 끊김)하면 오류 화면 (#375).
@@ -110,11 +110,15 @@ final homeDataProvider = FutureProvider.autoDispose<HomeData>((ref) async {
   final learningOutcome = _settle(
     ref.watch(homeLearningStatusProvider.future),
   );
+  final recommendationsOutcome = _settle(
+    ref.watch(homeRecommendationsProvider.future),
+  );
   final (overview, overviewError) = await overviewOutcome;
   final (learning, learningError) = await learningOutcome;
+  final (recommendations, recommendationsError) = await recommendationsOutcome;
 
-  // 실패 판정 (인증 만료 우선 > 양쪽 실패)
-  for (final error in [overviewError, learningError]) {
+  // 실패 판정 (인증 만료 우선 > 양쪽 실패, 추천은 선택 섹션이라 인증 만료만 봄)
+  for (final error in [overviewError, learningError, recommendationsError]) {
     if (error is AppException && error.isUnauthorized) throw error;
   }
   if (overviewError != null && learningError != null) throw overviewError;
@@ -123,7 +127,7 @@ final homeDataProvider = FutureProvider.autoDispose<HomeData>((ref) async {
     greeting: overview?.greeting,
     progress: learning?.progress,
     dailySet: learning?.dailySet,
-    recommendations: overview?.recommendations,
+    recommendations: recommendations,
     examSchedule: overview?.examSchedule,
     heatmap: learning?.heatmap,
   );
@@ -138,6 +142,7 @@ Future<(T?, Object?)> _settle<T>(Future<T> load) => load.then<(T?, Object?)>(
 /// 홈 전체 다시 받기 (당겨서 새로고침·재시도·날짜 변경·계정 전환 공통)
 void invalidateHomeData(void Function(ProviderOrFamily provider) invalidate) {
   invalidate(homeOverviewProvider);
+  invalidate(homeRecommendationsProvider);
   invalidate(homeLearningStatusProvider);
   // 테스트에서 합친 Provider 만 override 해도 다시 불러오도록 함께 비움
   invalidate(homeDataProvider);

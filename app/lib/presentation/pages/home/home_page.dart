@@ -9,6 +9,7 @@ import '../../design/design.dart';
 import '../../providers/community_providers.dart';
 import '../../providers/home_providers.dart';
 import '../../providers/notification_inbox_providers.dart';
+import '../../providers/pro_ui_providers.dart';
 import '../../providers/unread_notification_providers.dart';
 import '../../widgets/ads/ad_inline_card.dart';
 import '../../widgets/common/app_toast.dart';
@@ -140,8 +141,9 @@ class _HomeContent extends ConsumerWidget {
         ),
       ),
 
-      // 랜덤 풀기 진입 (무료면 오늘 랜덤 n / 10, #576)
-      const RandomPracticeCard(),
+      // 랜덤 풀기 진입 (결제 켜짐일 때만, 무료면 오늘 랜덤 n / 10, #576)
+      if (ref.watch(isRandomPracticeVisibleProvider))
+        const RandomPracticeCard(),
 
       // 합격 준비도 카드 (readiness 있을 때)
       if (data.progress?.readiness != null)

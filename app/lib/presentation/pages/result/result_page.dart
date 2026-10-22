@@ -101,7 +101,8 @@ class ResultPage extends ConsumerWidget {
             result: result.correctResult!,
             margin: EdgeInsets.zero,
           )
-        else if (shouldShowProUi && result.isExecutionResultLocked)
+        else if (shouldShowProUi &&
+            result.lockedSections.isExecutionResultLocked)
           const ProLockedSection(
             preview: ExecutionResultLockedSample(),
             caption: LockedPreviewCaptions.executionResult,

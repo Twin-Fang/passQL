@@ -25,9 +25,9 @@ final statsDataProvider = FutureProvider.autoDispose<StatsData>((ref) async {
 
   // 진행 현황(progress)이 실패하면 "0문제·0%"로 그려져 기록이 사라진 것처럼 보이므로 오류로 처리한다 (#375).
   final progress = SafeCallSlot(progressClient.getProgress(), isRequired: true);
-  // 토픽 분석만 등급 첫 조회 뒤 판정 (진행 현황은 기다리지 않음)
+  // 토픽 분석만 잠금 판정 뒤 요청 (진행 현황은 기다리지 않음, 판정 값이 바뀔 때만 다시 실행)
   final topicAnalysis = SafeCallSlot(
-    resolveShouldShowProUi(ref).then<TopicAnalysisResponse?>(
+    watchIsProFeatureLocked(ref).then<TopicAnalysisResponse?>(
       (isTopicAnalysisLocked) =>
           isTopicAnalysisLocked ? null : progressClient.getTopicAnalysis(),
     ),
@@ -47,6 +47,6 @@ final statsAiCommentProvider = FutureProvider.autoDispose<AiCommentResponse?>((
 ) async {
   if (ref.watch(currentMemberUuidProvider) == null) return null;
   final progressClient = ref.read(progressApiProvider);
-  if (await resolveShouldShowProUi(ref)) return null;
+  if (await watchIsProFeatureLocked(ref)) return null;
   return safeCall(progressClient.getAiComment(), label: 'statsAiComment');
 });

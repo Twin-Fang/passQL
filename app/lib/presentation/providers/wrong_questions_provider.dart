@@ -35,7 +35,7 @@ final wrongQuestionTotalCountProvider = FutureProvider.autoDispose<int?>((
 ) async {
   if (ref.watch(currentMemberUuidProvider) == null) return null;
   final progressClient = ref.read(progressApiProvider);
-  if (await resolveShouldShowProUi(ref)) return null;
+  if (await watchIsProFeatureLocked(ref)) return null;
   final response = await safeCall(
     progressClient.getWrongQuestions(size: 1),
     label: 'wrongQuestionTotalCount',

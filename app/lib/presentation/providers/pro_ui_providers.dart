@@ -1,9 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/member/member_plan_response.dart';
+import 'app_config_providers.dart';
 import 'plan_providers.dart';
 import 'session_reset.dart';
 
@@ -18,25 +17,41 @@ final shouldShowProBadgeProvider = Provider.autoDispose<bool>((ref) {
   return knownPlan.isBillingEnabled && knownPlan.plan == MemberPlanType.pro;
 });
 
-/// 잠긴 API 를 부르기 전 잠금 판정: 등급 첫 조회 대기 > shouldShowProUi (조회 실패·로그아웃이면 잠그지 않음)
-/// 등급을 모르는 첫 순간에 무료 회원이 403 을 받지 않게 함. 판정이 바뀌면 부른 Provider 가 다시 실행됨
-/// 호출부는 API 클라이언트를 이 함수 전에 읽어 둠 (대기 뒤 낡은 ref 사용 금지)
-Future<bool> resolveShouldShowProUi(Ref ref) async {
-  final shouldShowProUi = ref.watch(shouldShowProUiProvider);
-  // 이미 잠금이거나 로그아웃(등급 조회가 끝나지 않음)이면 기다리지 않음
-  if (shouldShowProUi || ref.read(currentMemberUuidProvider) == null) {
-    return shouldShowProUi;
-  }
+/// 랜덤 풀기 진입(홈 카드·문제 탭 행)을 보일지: 서버 결제 스위치 켜짐 또는 디버그 'free' 강제
+/// 결제 꺼짐·등급 모름이면 숨김 (결제 꺼짐 = 지금과 동일)
+final isRandomPracticeVisibleProvider = Provider.autoDispose<bool>((ref) {
+  if (ref.watch(debugPlanOverrideProvider) == ProDebugPlan.free) return true;
+  return ref.watch(knownPlanProvider)?.isBillingEnabled == true;
+});
+
+/// 잠긴 기능 API 판정 (true 잠금 = 요청하지 않음): 등급 첫 조회 뒤 확정
+/// 기다리지 않고 false: Android 아님, 로그아웃, 미리 받은 앱 설정이 결제 꺼짐 (디버그 'free' 강제는 항상 잠금)
+/// 그 외 등급을 모르면 첫 조회까지 대기, 조회 실패면 false (서버가 막으면 기존 오류 처리)
+/// 쓰는 쪽은 selectAsync 로 구독 > 값이 실제로 바뀔 때(구매·만료)만 다시 실행
+final isProFeatureLockedProvider = FutureProvider.autoDispose<bool>((
+  ref,
+) async {
+  if (ref.watch(shouldShowProUiProvider)) return true;
+  if (!_canBeProFeatureLocked(ref)) return false;
   // 대기 중 판정이 바뀌면 이 실행의 ref 는 낡음 > 대기 뒤에는 컨테이너로 읽음
   final container = ref.container;
   try {
     await ref.read(planProvider.future);
   } catch (_) {
-    // 등급 모름 > 결제 UI 없음 (서버가 막으면 기존 오류 처리)
+    // 등급 모름 > 잠그지 않음
   }
   return container.read(shouldShowProUiProvider);
+});
+
+/// 잠길 여지가 있는가 (없으면 등급을 기다리지 않음)
+bool _canBeProFeatureLocked(Ref ref) {
+  if (ref.watch(targetPlatformProvider) != TargetPlatform.android) return false;
+  if (ref.watch(currentMemberUuidProvider) == null) return false;
+  // 앱 시작 때 받은 설정 (main 이 첫 화면 전에 받음). 모르면(조회 실패·로딩) 등급을 기다림
+  final appConfig = ref.watch(appConfigProvider).valueOrNull;
+  return appConfig == null || appConfig.isAndroidBillingEnabled;
 }
 
-/// 잠금 자리의 내용 Provider 가 돌려줄 값: 끝나지 않는 대기
-/// 화면이 블러로 바뀌며 구독이 끊기면 autoDispose 로 해제됨
-Future<T> waitWhileProLocked<T>() => Completer<T>().future;
+/// 잠긴 기능 Provider 공통: 잠금 판정 구독 (값이 바뀔 때만 다시 실행)
+Future<bool> watchIsProFeatureLocked(Ref ref) =>
+    ref.watch(isProFeatureLockedProvider.selectAsync((isLocked) => isLocked));

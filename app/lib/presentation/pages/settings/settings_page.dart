@@ -10,7 +10,6 @@ import '../../design/design.dart';
 import '../../providers/app_config_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/plan_providers.dart';
-import '../../providers/pro_ui_providers.dart';
 import '../../providers/settings_providers.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/pro/pro_offer_sheet.dart';
@@ -91,8 +90,6 @@ class SettingsPage extends ConsumerWidget {
     final nicknameAsync = ref.watch(nicknameNotifierProvider);
     // 무료(결제 켜짐): 오답 목록은 잠금 > 개수 요청 없이 행만 두고 누르면 시트
     final shouldShowProUi = ref.watch(shouldShowProUiProvider);
-    final hasPlanCard =
-        shouldShowProUi || ref.watch(shouldShowProBadgeProvider);
     // 개수만 받는 가벼운 조회 (목록 전체·진입 분석 기록은 오답 노트 화면 몫)
     final wrongCount = shouldShowProUi
         ? null
@@ -114,11 +111,8 @@ class SettingsPage extends ConsumerWidget {
             ),
             sliver: SliverList.list(
               children: passqlRevealInOrder([
-                // 등급 카드 (결제 꺼짐·등급 모름이면 자리째 없음)
-                if (hasPlanCard) ...[
-                  const ProSettingsCard(),
-                  const SizedBox(height: PassqlSpacing.xl),
-                ],
+                // 등급 카드 (결제 꺼짐·등급 모름이면 자리째 없음, 아래 간격 포함)
+                const ProSettingsCard(),
                 // 프로필: 닉네임만 보여 주고, 내부 식별자(회원 ID)는 하단으로 내린다.
                 settingsAsync.when(
                   loading: () => const ProfileCardSkeleton(),

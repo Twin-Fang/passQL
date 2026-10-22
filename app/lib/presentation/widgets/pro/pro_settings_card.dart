@@ -9,7 +9,8 @@ import '../../providers/pro_ui_providers.dart';
 import 'pro_info_sheet.dart';
 import 'pro_offer_sheet.dart';
 
-/// 설정 맨 위 등급 카드: 무료 > 큰 유도 카드, 프로 > 이용권 한 줄, 결제 꺼짐·등급 모름 > 그리지 않음
+/// 설정 맨 위 등급 카드: 무료 > 큰 유도 카드, 프로 > 이용권 한 줄, 결제 꺼짐·등급 모름 > 자리째 없음
+/// 아래 묶음과의 간격까지 이 위젯이 가짐 (없을 때 빈 간격이 남지 않게)
 class ProSettingsCard extends ConsumerWidget {
   const ProSettingsCard({super.key});
 
@@ -18,16 +19,24 @@ class ProSettingsCard extends ConsumerWidget {
   static const String freeBenefit = '랜덤 풀기 제한 없음 · SQL 직접 실행 · 보기별 해설';
   static const String passLabel = '회차 패스';
 
+  // 아래 묶음(프로필)과의 간격 (설정 묶음 사이 간격과 같음)
+  static const double _bottomSpacing = PassqlSpacing.xl;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final knownPlan = ref.watch(knownPlanProvider);
+    final Widget card;
     if (ref.watch(shouldShowProUiProvider)) {
-      return _FreePlanCard(plan: knownPlan);
+      card = _FreePlanCard(plan: knownPlan);
+    } else if (ref.watch(shouldShowProBadgeProvider)) {
+      card = _ProPlanLine(proExpiresAt: knownPlan?.proExpiresAt);
+    } else {
+      return const SizedBox.shrink();
     }
-    if (ref.watch(shouldShowProBadgeProvider)) {
-      return _ProPlanLine(proExpiresAt: knownPlan?.proExpiresAt);
-    }
-    return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: _bottomSpacing),
+      child: card,
+    );
   }
 }
 
@@ -103,15 +112,24 @@ class _ProPlanLine extends StatelessWidget {
       onTap: () => showProInfoSheet(context, proExpiresAt: expiresAt),
       child: Row(
         children: [
-          Flexible(
-            child: Text(
-              summary,
-              style: PassqlTypography.body.copyWith(color: colors.label),
+          // 글 + PRO 칩 한 줄 (좁으면 글만 말줄임)
+          Expanded(
+            child: Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    summary,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: PassqlTypography.body.copyWith(color: colors.label),
+                  ),
+                ),
+                const SizedBox(width: PassqlSpacing.xs),
+                const PassqlPlanChip(isPro: true),
+              ],
             ),
           ),
           const SizedBox(width: PassqlSpacing.xs),
-          const PassqlPlanChip(isPro: true),
-          const Spacer(),
           Icon(
             CupertinoIcons.chevron_forward,
             size: PassqlIconSize.xs,

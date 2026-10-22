@@ -131,8 +131,7 @@ class ChoiceExplanationState {
   /// 서버가 뺀 묶음 (ready 일 때만, 무료면 FULL_EXPLANATION)
   final List<String> lockedSections;
 
-  bool get isFullExplanationLocked =>
-      lockedSections.contains(LockedSectionNames.fullExplanation);
+  bool get isFullExplanationLocked => lockedSections.isFullExplanationLocked;
 
   bool get isLoading => phase == ChoiceExplanationPhase.loading;
   bool get isFailed => phase == ChoiceExplanationPhase.failed;
@@ -247,10 +246,11 @@ class ChoiceExplanationNotifier
       case ChoiceExplanationStatus.ready:
         final hasText = response.text?.trim().isNotEmpty ?? false;
         // 무료 응답은 본문이 비어도 잠금 표시가 있으면 준비됨 (판정 자리 + 블러)
-        final isLocked = response.lockedSections.contains(
-          LockedSectionNames.fullExplanation,
-        );
-        state = response.explanation == null && !hasText && !isLocked
+        final isEmptyExplanation =
+            response.explanation == null &&
+            !hasText &&
+            !response.lockedSections.isFullExplanationLocked;
+        state = isEmptyExplanation
             ? const ChoiceExplanationState.failed(
                 failureMessage: choiceExplanationEmptyMessage,
               )

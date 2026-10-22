@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:passql_app/data/models/member/choice_generation_mode.dart';
 import 'package:passql_app/data/models/member/member_plan_response.dart';
 import 'package:passql_app/presentation/design/design.dart';
+import 'package:passql_app/presentation/flows/random_practice_flow.dart';
 import 'package:passql_app/presentation/pages/exam_trend/exam_trend_page.dart';
 import 'package:passql_app/presentation/pages/home/home_page.dart';
 import 'package:passql_app/presentation/pages/questions/topic_list_page.dart';
@@ -47,12 +48,17 @@ final _lockedPaths = {
   for (final paths in _lockedPathsByScreen.values) ...paths,
 };
 
+/// 화면에 보이는 글 (단어 잇기 문자 무시)
+Finder _visibleText(String text) => findTextContainingIgnoringWordJoiners(text);
+
 /// 요청 경로를 기록하는 가짜 서버 (목록 응답이 필요한 경로만 채움)
 class _RecordingServer {
   late final adapter = FakeHttpClientAdapter(_respond);
 
   List<String> get requestedPaths =>
       adapter.requests.map((request) => request.path).toList();
+
+  int countOf(String path) => requestedPaths.where((p) => p == path).length;
 
   List<String> get requestedLockedPaths =>
       requestedPaths.where(_lockedPaths.contains).toList();
@@ -69,8 +75,6 @@ class _RecordingServer {
             'sortOrder': 1,
           },
         ]);
-      case '/exam-trends/latest/topics':
-        return jsonListResponseBody(200, const []);
       case '/progress':
         return jsonResponseBody(200, {
           'solvedCount': 12,
@@ -168,10 +172,8 @@ void main() {
       );
       expect(find.byType(PassqlPlanChip), findsNothing);
       expect(find.byType(PassqlLockedPreview), findsNothing);
-      expect(
-        findTextContainingIgnoringWordJoiners('책 없이 폰 하나로 SQLD 합격'),
-        findsNothing,
-      );
+      expect(find.text(RandomPracticeFlow.displayName), findsNothing);
+      expect(_visibleText('책 없이 폰 하나로 SQLD 합격'), findsNothing);
       expect(tester.takeException(), isNull);
     });
   }
@@ -186,12 +188,10 @@ void main() {
       );
 
       expect(find.byType(PassqlPlanChip), findsOneWidget);
-      expect(find.text(PassqlPlanChip.freeLabel), findsOneWidget);
-      expect(
-        findTextContainingIgnoringWordJoiners('오늘 랜덤 3 / 10'),
-        findsOneWidget,
-      );
+      expect(_visibleText('오늘 랜덤 3 / 10'), findsOneWidget);
       expect(server.requestedLockedPaths, isEmpty);
+      // 잠금 판정이 정해져도 잠기지 않은 요청은 다시 보내지 않음
+      expect(server.countOf('/home/greeting'), 1);
       expect(tester.takeException(), isNull);
     });
 
@@ -199,14 +199,8 @@ void main() {
       final server = await _pumpPage(tester, const TopicListPage(), freePlan);
 
       expect(find.byType(PassqlPlanChip), findsOneWidget);
-      expect(find.text('랜덤 풀기'), findsOneWidget);
-      expect(find.byType(PassqlLockedPreview), findsOneWidget);
-      expect(
-        findTextContainingIgnoringWordJoiners(
-          LockedPreviewCaptions.practiceModes,
-        ),
-        findsOneWidget,
-      );
+      expect(find.text(RandomPracticeFlow.displayName), findsOneWidget);
+      expect(_visibleText(LockedPreviewCaptions.practiceModes), findsOneWidget);
       // 진짜 토픽 행은 블러 아래에도 그리지 않음
       expect(find.text('JOIN'), findsNothing);
       expect(server.requestedLockedPaths, isEmpty);
@@ -217,11 +211,8 @@ void main() {
       final server = await _pumpPage(tester, const StatsPage(), freePlan);
 
       expect(find.byType(PassqlPlanChip), findsOneWidget);
-      expect(
-        findTextContainingIgnoringWordJoiners(LockedPreviewCaptions.stats),
-        findsOneWidget,
-      );
-      expect(server.requestedPaths, contains('/progress'));
+      expect(_visibleText(LockedPreviewCaptions.stats), findsOneWidget);
+      expect(server.countOf('/progress'), 1);
       expect(server.requestedLockedPaths, isEmpty);
       expect(tester.takeException(), isNull);
     });
@@ -230,10 +221,7 @@ void main() {
       final server = await _pumpPage(tester, const ExamTrendPage(), freePlan);
 
       expect(find.text(ExamTrendPage.pageTitle), findsOneWidget);
-      expect(
-        findTextContainingIgnoringWordJoiners(LockedPreviewCaptions.examTrend),
-        findsOneWidget,
-      );
+      expect(_visibleText(LockedPreviewCaptions.examTrend), findsOneWidget);
       expect(server.requestedLockedPaths, isEmpty);
       expect(tester.takeException(), isNull);
     });
@@ -248,14 +236,8 @@ void main() {
         extraOverrides: _settingsOverrides,
       );
 
-      expect(
-        findTextContainingIgnoringWordJoiners('책 없이 폰 하나로 SQLD 합격'),
-        findsOneWidget,
-      );
-      expect(
-        findTextContainingIgnoringWordJoiners('오늘 3/10문제 사용'),
-        findsOneWidget,
-      );
+      expect(_visibleText('책 없이 폰 하나로 SQLD 합격'), findsOneWidget);
+      expect(_visibleText('오늘 3/10문제 사용'), findsOneWidget);
       expect(find.text(ProSettingsCard.passLabel), findsOneWidget);
       expect(server.requestedLockedPaths, isEmpty);
 
@@ -286,14 +268,13 @@ void main() {
       extraOverrides: _settingsOverrides,
     );
 
+    final proLine = _visibleText('회차 패스 · 2026.11.22까지');
+    expect(tester.widget<Text>(proLine).maxLines, 1);
     expect(
-      findTextContainingIgnoringWordJoiners('회차 패스 · 2026.11.22까지'),
-      findsOneWidget,
+      tester.getCenter(proLine).dy,
+      closeTo(tester.getCenter(find.byType(PassqlPlanChip)).dy, 1),
     );
-    expect(
-      findTextContainingIgnoringWordJoiners('책 없이 폰 하나로 SQLD 합격'),
-      findsNothing,
-    );
+    expect(_visibleText('책 없이 폰 하나로 SQLD 합격'), findsNothing);
     expect(find.byType(PassqlLockedPreview), findsNothing);
     expect(tester.takeException(), isNull);
   });

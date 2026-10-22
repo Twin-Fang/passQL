@@ -1,5 +1,3 @@
-import 'submit_result.dart';
-
 /// 서버가 무료 응답에서 뺀 묶음 이름 2개 (응답 lockedSections 값)
 abstract final class LockedSectionNames {
   // 실행 결과 표·SQL (제출 응답)
@@ -8,11 +6,11 @@ abstract final class LockedSectionNames {
   static const String fullExplanation = 'FULL_EXPLANATION';
 }
 
-/// 제출 응답의 잠긴 묶음 판정
-extension SubmitResultLockedSections on SubmitResult {
+/// 응답 lockedSections 판정 (제출·해설 응답 공통)
+extension LockedSectionList on List<String> {
   bool get isExecutionResultLocked =>
-      lockedSections.contains(LockedSectionNames.executionResult);
+      contains(LockedSectionNames.executionResult);
 
   bool get isFullExplanationLocked =>
-      lockedSections.contains(LockedSectionNames.fullExplanation);
+      contains(LockedSectionNames.fullExplanation);
 }

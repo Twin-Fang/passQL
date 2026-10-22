@@ -11,6 +11,7 @@ import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../flows/random_practice_flow.dart';
 import '../../providers/plan_providers.dart';
+import '../../providers/pro_ui_providers.dart';
 import '../../widgets/ads/ad_native_slot.dart';
 import '../../widgets/pro/locked_preview_samples.dart';
 import '../../widgets/pro/pro_locked_section.dart';
@@ -113,12 +114,15 @@ class TopicListPage extends ConsumerWidget {
   }
 }
 
-/// 풀기 방식 묶음: 랜덤 풀기 (무료·프로 공통, #576)
-class _RandomPracticeSection extends StatelessWidget {
+/// 풀기 방식 묶음: 랜덤 풀기 (무료·프로 공통, #576). 결제 꺼짐이면 빈 sliver (지금과 동일)
+class _RandomPracticeSection extends ConsumerWidget {
   const _RandomPracticeSection();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(isRandomPracticeVisibleProvider)) {
+      return const SliverToBoxAdapter();
+    }
     return SliverPadding(
       padding: _sectionPadding,
       sliver: SliverToBoxAdapter(
