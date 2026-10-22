@@ -9,7 +9,7 @@ part 'exam_trend_api.g.dart';
 abstract class ExamTrendApiClient {
   factory ExamTrendApiClient(Dio dio, {String baseUrl}) = _ExamTrendApiClient;
 
-  /// 출제 경향 화면 내용 (요약·과목 비중·늘어난 유형·자주 나오는 개념·공부 팁).
+  /// 출제 경향 내용 (요약·과목 비중·늘어난 유형·자주 나오는 개념·공부 팁).
   @GET('/exam-trends/latest')
   Future<ExamTrendReportResponse> getLatestReport();
 
