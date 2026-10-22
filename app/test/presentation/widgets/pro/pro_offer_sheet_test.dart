@@ -15,10 +15,13 @@ import '../../../helpers/text_finders.dart';
 
 /// 가격·동작 결과를 정해 주는 가짜 결제 포트
 class _FakeProPurchasePort implements ProPurchasePort {
-  _FakeProPurchasePort({this.price, this.purchaseOutcome});
+  _FakeProPurchasePort({this.price, this.purchaseOutcome, this.purchaseGate});
 
   final String? price;
   final ProPurchaseOutcome? purchaseOutcome;
+
+  /// 있으면 결제가 이 신호가 올 때까지 끝나지 않음 (결제 도중 시트 닫기 재현)
+  final Completer<void>? purchaseGate;
   int purchaseCallCount = 0;
 
   @override
@@ -27,12 +30,24 @@ class _FakeProPurchasePort implements ProPurchasePort {
   @override
   Future<ProPurchaseOutcome> purchaseExamPass() async {
     purchaseCallCount++;
+    await purchaseGate?.future;
     return purchaseOutcome ?? ProPurchaseOutcome.cancelled;
   }
 
   @override
   Future<ProPurchaseOutcome> restorePurchases() async =>
       ProPurchaseOutcome.nothingToRestore;
+}
+
+/// 등급 다시 받기 호출 횟수만 세는 가짜 등급 상태
+int _planRefreshCount = 0;
+
+class _FakePlanNotifier extends PlanNotifier {
+  @override
+  Future<MemberPlanResponse> build() async => _knownPlan;
+
+  @override
+  Future<void> refresh() async => _planRefreshCount++;
 }
 
 final _knownPlan = MemberPlanResponse(
@@ -53,6 +68,7 @@ Widget _app({
     overrides: [
       proPurchasePortProvider.overrideWithValue(port),
       knownPlanProvider.overrideWith((ref) => _knownPlan),
+      planProvider.overrideWith(_FakePlanNotifier.new),
     ],
     child: MaterialApp(
       theme: theme ?? PassqlTheme.light,
@@ -81,7 +97,13 @@ PassqlButton _buyButton(WidgetTester tester) => tester.widget<PassqlButton>(
   ),
 );
 
+/// 시트(BottomSheet) 안에서만 찾는 글자 (토스트는 시트 밖이라 걸리지 않음)
+Finder _inSheet(String text) =>
+    find.descendant(of: find.byType(BottomSheet), matching: find.text(text));
+
 void main() {
+  setUp(() => _planRefreshCount = 0);
+
   testWidgets('offerSheet_showsReasonLine', (tester) async {
     await tester.pumpWidget(
       _app(
@@ -199,7 +221,9 @@ void main() {
     expect(port.purchaseCallCount, 0);
   });
 
-  testWidgets('offerSheet_purchasePending_showsPendingToast', (tester) async {
+  testWidgets('offerSheet_purchasePending_showsInlineLineInsideSheet', (
+    tester,
+  ) async {
     final port = _FakeProPurchasePort(
       price: '₩4,900',
       purchaseOutcome: ProPurchaseOutcome.pending,
@@ -209,11 +233,102 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('회차 패스 ₩4,900'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
 
+    // 토스트는 시트에 가려지므로 시트 안 한 줄로 안내하고 시트는 열려 있음
     expect(port.purchaseCallCount, 1);
-    expect(find.text('결제가 확인되면 열려요'), findsOneWidget);
+    expect(_inSheet('결제가 확인되면 열려요'), findsOneWidget);
+    expect(find.byType(SnackBar), findsNothing);
+    expect(_buyButton(tester).onPressed, isNotNull);
+  });
+
+  testWidgets('offerSheet_purchaseSuccess_closesSheetThenToasts', (
+    tester,
+  ) async {
+    final port = _FakeProPurchasePort(
+      price: '₩4,900',
+      purchaseOutcome: ProPurchaseOutcome.success,
+    );
+    await tester.pumpWidget(_app(port: port));
+    await tester.tap(find.text('열기'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('회차 패스 ₩4,900'));
+    await tester.pumpAndSettle();
+
+    expect(_planRefreshCount, 1);
+    expect(find.byType(BottomSheet), findsNothing);
+    expect(find.text('회차 패스가 열렸어요'), findsOneWidget);
+  });
+
+  testWidgets('offerSheet_dismissedMidPurchase_stillRefreshesPlan', (
+    tester,
+  ) async {
+    final gate = Completer<void>();
+    final port = _FakeProPurchasePort(
+      price: '₩4,900',
+      purchaseOutcome: ProPurchaseOutcome.success,
+      purchaseGate: gate,
+    );
+    await tester.pumpWidget(_app(port: port));
+    await tester.tap(find.text('열기'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('회차 패스 ₩4,900'));
+    await tester.pump();
+
+    // 결제 창이 떠 있는 동안 시트를 바깥 탭으로 닫음
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsNothing);
+
+    gate.complete();
+    await tester.pumpAndSettle();
+
+    expect(_planRefreshCount, 1);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('offerSheet_afterBarrierDismiss_opensAgain', (tester) async {
+    await tester.pumpWidget(_app(port: _FakeProPurchasePort(price: '₩4,900')));
+    await tester.tap(find.text('열기'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsOneWidget);
+
+    // 바깥 탭으로 닫은 뒤에도 가드가 풀려 다시 열림
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsNothing);
+
+    await tester.tap(find.text('열기'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsOneWidget);
+  });
+
+  testWidgets('infoSheet_nothingToRestore_showsInlineLineInsideSheet', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(port: _FakeProPurchasePort(), isInfoSheet: true),
+    );
+    await tester.tap(find.text('열기'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('구매 복원'));
+    await tester.pumpAndSettle();
+
+    expect(_inSheet('복원할 구매가 없어요'), findsOneWidget);
+    expect(find.byType(BottomSheet), findsOneWidget);
+  });
+
+  testWidgets('comparisonTable_marksHaveSemanticLabels', (tester) async {
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(_app(port: _FakeProPurchasePort(price: '₩4,900')));
+    await tester.tap(find.text('열기'));
+    await tester.pumpAndSettle();
+
+    expect(find.bySemanticsLabel('포함'), findsWidgets);
+    expect(find.bySemanticsLabel('제공 안 함'), findsWidgets);
+    handle.dispose();
   });
 
   for (final isDark in [false, true]) {

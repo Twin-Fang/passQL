@@ -17,9 +17,6 @@ class PassqlPlanChip extends StatelessWidget {
   static const String freeLabel = 'FREE';
   static const String proLabel = 'PRO';
 
-  // 캡션 글자 위아래 여백
-  static const double _verticalPadding = 3;
-
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
@@ -29,7 +26,7 @@ class PassqlPlanChip extends StatelessWidget {
     final chip = Container(
       padding: const EdgeInsets.symmetric(
         horizontal: PassqlSpacing.xs,
-        vertical: _verticalPadding,
+        vertical: PassqlSpacing.xxs,
       ),
       decoration: BoxDecoration(
         color: backgroundColor,

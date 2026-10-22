@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/billing/pro_purchase_port.dart';
 import '../../../core/utils/date_format.dart';
 import '../../design/design.dart';
+import '../common/app_toast.dart';
 import 'pro_purchase_feedback.dart';
 
 /// 이용권 정보 시트: 상태 > 만료일 > 구매일 > 주문 번호 > 구매 복원
@@ -13,8 +14,8 @@ Future<void> showProInfoSheet(
   DateTime? proExpiresAt,
   DateTime? purchasedAt,
   String? orderId,
-}) {
-  return showPassqlSheet<void>(
+}) async {
+  final isRestored = await showPassqlSheet<bool>(
     context,
     title: '회차 패스',
     builder: (_) => _ProInfoSheetBody(
@@ -23,6 +24,9 @@ Future<void> showProInfoSheet(
       orderId: orderId,
     ),
   );
+  if (isRestored == true && context.mounted) {
+    showAppToast(context, proPurchaseSucceededMessage);
+  }
 }
 
 class _ProInfoSheetBody extends ConsumerStatefulWidget {
@@ -44,15 +48,27 @@ class _ProInfoSheetBodyState extends ConsumerState<_ProInfoSheetBody> {
   /// 복원 조회 중 (버튼 중복 탭 방지)
   bool _isRestoring = false;
 
-  /// 복원: 스토어 보유 조회 > 안내 (성공이면 등급 다시 받고 닫기)
+  /// 마지막 복원 결과 안내 (복원 버튼 아래 한 줄)
+  String? _statusMessage;
+
+  /// 복원: 스토어 보유 조회 > 등급 갱신(시트가 닫혀도 실행) > 성공이면 닫기, 아니면 시트 안 안내
   Future<void> _restore() async {
-    setState(() => _isRestoring = true);
+    setState(() {
+      _isRestoring = true;
+      _statusMessage = null;
+    });
+    final container = ProviderScope.containerOf(context);
     final outcome = await ref.read(proPurchasePortProvider).restorePurchases();
+    await refreshPlanIfPurchased(container, outcome);
     if (!mounted) return;
-    final isOpened = await applyProPurchaseOutcome(context, ref, outcome);
-    if (!mounted) return;
-    setState(() => _isRestoring = false);
-    if (isOpened) Navigator.of(context).pop();
+    if (outcome == ProPurchaseOutcome.success) {
+      Navigator.of(context).pop(true);
+      return;
+    }
+    setState(() {
+      _isRestoring = false;
+      _statusMessage = proPurchaseStatusMessageOf(outcome);
+    });
   }
 
   @override
@@ -102,6 +118,16 @@ class _ProInfoSheetBodyState extends ConsumerState<_ProInfoSheetBody> {
             isLoading: _isRestoring,
             onPressed: _restore,
           ),
+          if (_statusMessage != null) ...[
+            const SizedBox(height: PassqlSpacing.xs),
+            Text(
+              _statusMessage!,
+              textAlign: TextAlign.center,
+              style: PassqlTypography.footnote.copyWith(
+                color: context.passqlColors.secondaryLabel,
+              ),
+            ),
+          ],
         ],
       ),
     );

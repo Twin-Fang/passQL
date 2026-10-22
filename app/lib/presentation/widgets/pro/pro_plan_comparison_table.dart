@@ -6,6 +6,10 @@ import '../../design/design.dart';
 /// 무료 하루 문제 수를 서버에서 못 받았을 때의 표시값
 const int _fallbackDailyFreeLimit = 10;
 
+// 체크·대시 칸 읽기 문구 (화면 낭독기)
+const String _includedSemanticLabel = '포함';
+const String _notIncludedSemanticLabel = '제공 안 함';
+
 // 개념 학습 행은 2번 프로젝트가 나오기 전까지 숨김 (없는 기능을 팔지 않음)
 const bool _isConceptLearningRowVisible = false;
 
@@ -131,10 +135,12 @@ class ProPlanComparisonTable extends StatelessWidget {
         CupertinoIcons.checkmark_alt,
         size: PassqlIconSize.md,
         color: colors.accent,
+        semanticLabel: _includedSemanticLabel,
       );
     }
     return Text(
       value ?? '—',
+      semanticsLabel: value == null ? _notIncludedSemanticLabel : null,
       textAlign: TextAlign.center,
       style:
           (isPro

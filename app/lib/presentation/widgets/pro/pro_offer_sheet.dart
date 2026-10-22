@@ -5,6 +5,7 @@ import '../../../core/billing/pro_purchase_port.dart';
 import '../../../core/utils/date_format.dart';
 import '../../design/design.dart';
 import '../../providers/plan_providers.dart';
+import '../common/app_toast.dart';
 import 'pro_plan_comparison_table.dart';
 import 'pro_purchase_feedback.dart';
 
@@ -18,6 +19,7 @@ const String _restoreLabel = '이미 구매했나요? 복원하기';
 
 /// 프로 안내 시트 (모든 진입점이 공유하는 한 장): 제목 > 부제 > 들어온 이유 > 비교표 > 구매 > 복원
 /// [reason]: 진입점별 한 줄 (예: 오늘 무료 10문제를 다 풀었어요)
+/// 성공 > 시트 닫힘 > 호출 화면에서 토스트, 그 외 결과는 시트 안 한 줄
 Future<void> showProOfferSheet(
   BuildContext context,
   WidgetRef ref, {
@@ -27,7 +29,7 @@ Future<void> showProOfferSheet(
   _isOfferSheetOpen = true;
   final knownPlan = ref.read(knownPlanProvider);
   try {
-    await showPassqlSheet<void>(
+    final isPurchased = await showPassqlSheet<bool>(
       context,
       hasCloseButton: false,
       builder: (_) => _ProOfferSheetBody(
@@ -36,6 +38,9 @@ Future<void> showProOfferSheet(
         reason: reason,
       ),
     );
+    if (isPurchased == true && context.mounted) {
+      showAppToast(context, proPurchaseSucceededMessage);
+    }
   } catch (_) {
     // 시트를 띄우지 못한 경우만 여기서 내림
     _isOfferSheetOpen = false;
@@ -68,6 +73,9 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
   /// 결제 창·복원 진행 중 (버튼 중복 탭 방지)
   bool _isBusy = false;
 
+  /// 마지막 결제·복원 결과 안내 (구매 버튼 아래 한 줄)
+  String? _statusMessage;
+
   @override
   void initState() {
     super.initState();
@@ -89,16 +97,25 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
     });
   }
 
-  /// 결제 또는 복원 실행 > 결과 안내 > 프로가 열렸으면 시트 닫기
+  /// 결제 또는 복원 실행 > 등급 갱신(시트가 닫혀도 실행) > 성공이면 닫기, 아니면 시트 안 안내
   Future<void> _run(Future<ProPurchaseOutcome> Function() action) async {
     if (_isBusy) return;
-    setState(() => _isBusy = true);
+    setState(() {
+      _isBusy = true;
+      _statusMessage = null;
+    });
+    final container = ProviderScope.containerOf(context);
     final outcome = await action();
+    await refreshPlanIfPurchased(container, outcome);
     if (!mounted) return;
-    final isOpened = await applyProPurchaseOutcome(context, ref, outcome);
-    if (!mounted) return;
-    setState(() => _isBusy = false);
-    if (isOpened) Navigator.of(context).pop();
+    if (outcome == ProPurchaseOutcome.success) {
+      Navigator.of(context).pop(true);
+      return;
+    }
+    setState(() {
+      _isBusy = false;
+      _statusMessage = proPurchaseStatusMessageOf(outcome);
+    });
   }
 
   String get _subtitle {
@@ -113,6 +130,9 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
     final colors = context.passqlColors;
     final port = ref.read(proPurchasePortProvider);
     final isPriceUnavailable = !_isPriceLoading && _price == null;
+    final inlineMessage =
+        _statusMessage ??
+        (isPriceUnavailable ? proPurchaseUnavailableMessage : null);
     final buyLabel = _price == null ? _sheetTitle : '$_sheetTitle $_price';
     final reason = widget.reason;
     return SingleChildScrollView(
@@ -163,10 +183,10 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
                 ? null
                 : () => _run(port.purchaseExamPass),
           ),
-          if (isPriceUnavailable) ...[
+          if (inlineMessage != null) ...[
             const SizedBox(height: PassqlSpacing.xs),
             Text(
-              proPurchaseUnavailableMessage,
+              inlineMessage,
               textAlign: TextAlign.center,
               style: PassqlTypography.footnote.copyWith(
                 color: colors.secondaryLabel,
