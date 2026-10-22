@@ -1,21 +1,18 @@
 package com.passql.application.billing;
 
-import com.passql.application.entitlement.ExamPassExpiryCalculator;
+import com.passql.application.billing.PlayPurchaseRecorder.PlanExtension;
 import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.application.entitlement.MemberPlanResponse;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.member.constant.EntitlementSource;
-import com.passql.member.constant.MemberPlan;
 import com.passql.member.constant.PurchaseStatus;
-import com.passql.member.constant.PurchaseStore;
 import com.passql.member.entity.EntitlementPurchase;
 import com.passql.member.entity.MemberEntitlement;
 import com.passql.member.repository.EntitlementPurchaseRepository;
 import com.passql.member.repository.MemberEntitlementRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -32,7 +29,7 @@ import java.util.UUID;
 
 /**
  * Play 회차 패스 결제: 구매 확인·등급 부여, 소모, 환불 회수
- * 기록·등급 변경은 한 트랜잭션 > 커밋 후 소모 (소모 실패는 다음 확인 요청에서 재시도)
+ * 기록·등급 변경은 한 트랜잭션(ON CONFLICT 저장) > 커밋 후 소모 (소모 실패는 다음 확인 요청에서 재시도)
  */
 @Slf4j
 @Service
@@ -54,7 +51,7 @@ public class PlayBillingService {
     private final PlayDeveloperApiClient playDeveloperApiClient;
     private final EntitlementPurchaseRepository entitlementPurchaseRepository;
     private final MemberEntitlementRepository memberEntitlementRepository;
-    private final ExamPassExpiryCalculator examPassExpiryCalculator;
+    private final PlayPurchaseRecorder playPurchaseRecorder;
     private final FeatureAccessPolicy featureAccessPolicy;
     private final TransactionTemplate transactionTemplate;
     private final Clock clock;
@@ -63,23 +60,23 @@ public class PlayBillingService {
     public PlayBillingService(PlayDeveloperApiClient playDeveloperApiClient,
                               EntitlementPurchaseRepository entitlementPurchaseRepository,
                               MemberEntitlementRepository memberEntitlementRepository,
-                              ExamPassExpiryCalculator examPassExpiryCalculator,
+                              PlayPurchaseRecorder playPurchaseRecorder,
                               FeatureAccessPolicy featureAccessPolicy,
                               TransactionTemplate transactionTemplate) {
         this(playDeveloperApiClient, entitlementPurchaseRepository, memberEntitlementRepository,
-            examPassExpiryCalculator, featureAccessPolicy, transactionTemplate, Clock.system(SERVICE_ZONE));
+            playPurchaseRecorder, featureAccessPolicy, transactionTemplate, Clock.system(SERVICE_ZONE));
     }
 
     PlayBillingService(PlayDeveloperApiClient playDeveloperApiClient,
                        EntitlementPurchaseRepository entitlementPurchaseRepository,
                        MemberEntitlementRepository memberEntitlementRepository,
-                       ExamPassExpiryCalculator examPassExpiryCalculator,
+                       PlayPurchaseRecorder playPurchaseRecorder,
                        FeatureAccessPolicy featureAccessPolicy,
                        TransactionTemplate transactionTemplate, Clock clock) {
         this.playDeveloperApiClient = playDeveloperApiClient;
         this.entitlementPurchaseRepository = entitlementPurchaseRepository;
         this.memberEntitlementRepository = memberEntitlementRepository;
-        this.examPassExpiryCalculator = examPassExpiryCalculator;
+        this.playPurchaseRecorder = playPurchaseRecorder;
         this.featureAccessPolicy = featureAccessPolicy;
         this.transactionTemplate = transactionTemplate;
         this.clock = clock;
@@ -115,16 +112,18 @@ public class PlayBillingService {
             throw new CustomException(ErrorCode.INVALID_REQUEST);
         }
 
-        // 기록·등급 한 트랜잭션 (같은 토큰 동시 요청은 purchase_token UNIQUE 위반으로 한쪽만 성공)
-        EntitlementPurchase savedPurchase;
-        try {
-            savedPurchase = transactionTemplate.execute(
-                status -> recordPurchaseAndExtendPlan(memberUuid, request, snapshot));
-        } catch (DataIntegrityViolationException exception) {
-            return handleConcurrentDuplicate(memberUuid, request.purchaseToken());
+        // 기록·등급 한 트랜잭션 (같은 토큰·주문은 ON CONFLICT 로 0건 > 기존 기록 경로)
+        Optional<PlanExtension> planExtension = transactionTemplate.execute(status -> playPurchaseRecorder
+            .recordPurchaseAndExtendPlan(memberUuid, request, snapshot, clock.instant()));
+        if (planExtension == null || planExtension.isEmpty()) {
+            return handleConflictedPurchase(memberUuid, request.purchaseToken());
         }
+        log.info("[billing] verified : member={}, order={}, expires {} -> {}", memberUuid,
+            planExtension.get().orderId(), planExtension.get().beforeExpiresAt(), planExtension.get().afterExpiresAt());
 
         // 커밋 후 소모 (Play 에서 이미 소모된 구매는 기록만 맞춤)
+        EntitlementPurchase savedPurchase = entitlementPurchaseRepository.findByPurchaseToken(request.purchaseToken())
+            .orElseThrow(() -> new CustomException(ErrorCode.INTERNAL_SERVER_ERROR));
         if (snapshot.consumptionState() == CONSUMPTION_STATE_CONSUMED) {
             markConsumed(savedPurchase.getPurchaseToken());
         } else {
@@ -177,43 +176,15 @@ public class PlayBillingService {
         return featureAccessPolicy.getPlan(memberUuid);
     }
 
-    /** 동시 요청으로 UNIQUE 위반: 먼저 저장된 기록이 있으면 그 기준, 없으면 409 */
-    private MemberPlanResponse handleConcurrentDuplicate(UUID memberUuid, String purchaseToken) {
+    /** 저장 충돌(0건): 같은 토큰 기록이 있으면 기존 기록 경로, 없으면(다른 토큰의 같은 주문 번호) 409 */
+    private MemberPlanResponse handleConflictedPurchase(UUID memberUuid, String purchaseToken) {
         Optional<EntitlementPurchase> recordedPurchase = entitlementPurchaseRepository.findByPurchaseToken(purchaseToken);
         if (recordedPurchase.isPresent()) {
             log.info("[billing] duplicate verify resolved : member={}, order={}", memberUuid, recordedPurchase.get().getOrderId());
             return handleRecordedPurchase(memberUuid, recordedPurchase.get());
         }
-        log.warn("[billing] rejected 409 : purchase save conflict, member={}", memberUuid);
+        log.warn("[billing] rejected 409 : order id already recorded with another token, member={}", memberUuid);
         throw new CustomException(ErrorCode.DATA_INTEGRITY_VIOLATION);
-    }
-
-    /** 구매 기록 저장 + 등급 생성·연장 (트랜잭션 안, 회원 등급 행 잠금) */
-    private EntitlementPurchase recordPurchaseAndExtendPlan(UUID memberUuid, PlayVerifyRequest request,
-                                                            PlayPurchaseSnapshot snapshot) {
-        LocalDateTime purchasedAt = LocalDateTime.ofInstant(snapshot.purchasedAt(), SERVICE_ZONE);
-        Optional<MemberEntitlement> entitlement = memberEntitlementRepository.findForUpdateByMemberUuid(memberUuid);
-        LocalDateTime currentProExpiresAt = entitlement
-            .filter(existing -> existing.getPlan() == MemberPlan.PRO)
-            .map(MemberEntitlement::getExpiresAt)
-            .orElse(null);
-        LocalDateTime newExpiresAt = examPassExpiryCalculator.calculateExpiresAt(purchasedAt, currentProExpiresAt);
-
-        // 구매 기록 먼저 (중복 토큰이면 여기서 즉시 실패)
-        EntitlementPurchase purchase = entitlementPurchaseRepository.saveAndFlush(EntitlementPurchase.verified(
-            memberUuid, PurchaseStore.PLAY, request.productId(), snapshot.orderId(), request.purchaseToken(),
-            purchasedAt, newExpiresAt));
-
-        // 등급 행 없으면 생성, 있으면 연장
-        if (entitlement.isPresent()) {
-            entitlement.get().extendTo(newExpiresAt, EntitlementSource.PLAY_PURCHASE);
-        } else {
-            memberEntitlementRepository.save(
-                MemberEntitlement.of(memberUuid, MemberPlan.PRO, newExpiresAt, EntitlementSource.PLAY_PURCHASE));
-        }
-        log.info("[billing] verified : member={}, order={}, expires {} -> {}",
-            memberUuid, snapshot.orderId(), currentProExpiresAt, newExpiresAt);
-        return purchase;
     }
 
     /** Play 소모 > 성공 시 소모 표시, 실패는 경고만 (미소모로 남아 다음 확인 요청에서 재시도) */
@@ -265,11 +236,10 @@ public class PlayBillingService {
             return;
         }
 
-        // 남은 유효 구매 중 가장 늦은 만료일 (같은 트랜잭션에서 방금 회수한 건은 상태로 제외)
+        // 남은 유효 구매 중 가장 늦은 만료일 (방금 회수한 건은 조회 전 자동 flush 로 제외)
         LocalDateTime now = LocalDateTime.now(clock);
         Optional<LocalDateTime> remainingExpiresAt = entitlementPurchaseRepository
             .findByMemberUuidAndStatus(memberUuid, PurchaseStatus.VERIFIED).stream()
-            .filter(purchase -> purchase.getStatus() == PurchaseStatus.VERIFIED)
             .map(EntitlementPurchase::getGrantedExpiresAt)
             .filter(Objects::nonNull)
             .max(Comparator.naturalOrder())

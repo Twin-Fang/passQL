@@ -62,12 +62,15 @@ public class GooglePlayDeveloperApiClient implements PlayDeveloperApiClient {
         try {
             ProductPurchase purchase = getAndroidPublisher().purchases().products()
                 .get(PACKAGE_NAME, productId, purchaseToken).execute();
-            long purchaseTimeMilliseconds = purchase.getPurchaseTimeMillis() != null ? purchase.getPurchaseTimeMillis() : 0L;
+            // 구매 시각 없으면 null (서비스가 지금 시각으로 대신)
+            Instant purchasedAt = purchase.getPurchaseTimeMillis() != null
+                ? Instant.ofEpochMilli(purchase.getPurchaseTimeMillis())
+                : null;
             return new PlayPurchaseSnapshot(
                 purchase.getOrderId(),
                 purchase.getPurchaseState() != null ? purchase.getPurchaseState() : -1,
                 purchase.getConsumptionState() != null ? purchase.getConsumptionState() : 0,
-                Instant.ofEpochMilli(purchaseTimeMilliseconds));
+                purchasedAt);
         } catch (IOException exception) {
             throw toCustomException("get purchase", exception);
         }

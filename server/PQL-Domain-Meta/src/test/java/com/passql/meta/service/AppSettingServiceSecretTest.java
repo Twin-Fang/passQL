@@ -5,6 +5,7 @@ import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.constant.AppSettingKeys;
 import com.passql.meta.crypto.SettingSecretCipher;
 import com.passql.meta.crypto.SettingSecretCipherTest;
+import com.passql.meta.dto.SettingView;
 import com.passql.meta.entity.AppSetting;
 import com.passql.meta.repository.AppSettingRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -103,13 +104,18 @@ class AppSettingServiceSecretTest {
     }
 
     @Test
-    void 목록에는_원문_대신_마스킹_값만_노출() {
-        AppSetting setting = givenSecretRow(cipher.encrypt(KEY, "AIza-secret-123"));
-        when(repository.findAll(any(Sort.class))).thenReturn(List.of(setting));
+    void 목록에는_원문_대신_설정_여부만_노출() {
+        AppSetting configured = givenSecretRow(cipher.encrypt(KEY, "AIza-secret-123"));
+        AppSetting empty = AppSetting.builder().settingKey(AppSettingKeys.BILLING_PLAY_SERVICE_ACCOUNT_JSON)
+                .valueType("SECRET").valueText("").build();
+        when(repository.findAll(any(Sort.class))).thenReturn(List.of(configured, empty));
 
-        String shown = service.findAllAsView().get(0).valueText();
+        List<SettingView> views = service.findAllAsView();
 
-        assertThat(shown).endsWith("123").doesNotContain("AIza").doesNotContain("enc:v1:");
+        assertThat(views.get(0).valueText()).isEqualTo(AppSettingService.SECRET_CONFIGURED_LABEL);
+        // 키 이름에 민감 단어가 없어도 SECRET 이면 비밀 편집 경로
+        assertThat(views.get(1).valueText()).isEqualTo(AppSettingService.SECRET_NOT_CONFIGURED_LABEL);
+        assertThat(views.get(1).sensitive()).isTrue();
     }
 
     @Test

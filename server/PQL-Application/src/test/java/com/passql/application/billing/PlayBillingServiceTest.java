@@ -6,12 +6,15 @@ import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.application.entitlement.MemberPlanResponse;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.member.constant.EntitlementSource;
 import com.passql.member.constant.MemberPlan;
 import com.passql.member.constant.PurchaseStatus;
+import com.passql.member.constant.PurchaseStore;
 import com.passql.member.entity.EntitlementPurchase;
 import com.passql.member.entity.MemberEntitlement;
 import com.passql.member.repository.EntitlementPurchaseRepository;
 import com.passql.member.repository.MemberEntitlementRepository;
+import com.passql.member.repository.MemberRepository;
 import com.passql.meta.constant.AppSettingKeys;
 import com.passql.meta.repository.ExamScheduleRepository;
 import com.passql.meta.service.AppSettingService;
@@ -25,13 +28,15 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HexFormat;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -42,7 +47,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Play 회차 패스 결제: 구매 확인 > 등급 부여 > 소모, 중복·대기·타인 토큰 거절, 환불 회수
+ * Play 회차 패스 결제: 구매 확인 > 등급 부여 > 소모, 중복·대기·타인 토큰 거절, 주문 번호 대체값, 환불 회수
  * Play API 는 가짜 클라이언트, 저장소는 메모리 맵 기반 목
  */
 class PlayBillingServiceTest {
@@ -66,8 +71,10 @@ class PlayBillingServiceTest {
     private final FeatureAccessPolicy featureAccessPolicy = new FeatureAccessPolicy(
         entitlementRepository, appSettingService, expiryCalculator,
         mock(SubmissionRepository.class), mock(DailyQuestionCounter.class));
+    private final PlayPurchaseRecorder playPurchaseRecorder = new PlayPurchaseRecorder(
+        purchaseRepository, entitlementRepository, mock(MemberRepository.class), expiryCalculator);
     private final PlayBillingService playBillingService = new PlayBillingService(
-        playClient, purchaseRepository, entitlementRepository, expiryCalculator, featureAccessPolicy,
+        playClient, purchaseRepository, entitlementRepository, playPurchaseRecorder, featureAccessPolicy,
         new TransactionTemplate(mock(PlatformTransactionManager.class)), FIXED_CLOCK);
 
     // 메모리 저장소 (구매: 토큰별, 등급: 회원별)
@@ -83,10 +90,19 @@ class PlayBillingServiceTest {
         // 구매 저장소 (토큰 조회, 저장, 회원·상태 조회)
         when(purchaseRepository.findByPurchaseToken(any()))
             .thenAnswer(call -> Optional.ofNullable(purchaseByToken.get(call.<String>getArgument(0))));
-        when(purchaseRepository.saveAndFlush(any())).thenAnswer(call -> {
-            EntitlementPurchase purchase = call.getArgument(0);
-            purchaseByToken.put(purchase.getPurchaseToken(), purchase);
-            return purchase;
+        // 기록 INSERT: 토큰·주문 번호 충돌이면 0건 (ON CONFLICT DO NOTHING 과 같게)
+        when(purchaseRepository.insertVerifiedIfAbsent(any(), any(), any(), any(), any(), any(), any(), any(), any(),
+            any(), any())).thenAnswer(call -> {
+            String orderId = call.getArgument(4);
+            String purchaseToken = call.getArgument(5);
+            boolean isConflicted = purchaseByToken.containsKey(purchaseToken) || purchaseByToken.values().stream()
+                .anyMatch(purchase -> purchase.getOrderId().equals(orderId));
+            if (isConflicted) {
+                return 0;
+            }
+            purchaseByToken.put(purchaseToken, EntitlementPurchase.verified(call.getArgument(1), PurchaseStore.PLAY,
+                call.getArgument(3), orderId, purchaseToken, call.getArgument(6), call.getArgument(8)));
+            return 1;
         });
         when(purchaseRepository.findByMemberUuidAndStatus(any(), any())).thenAnswer(call -> purchaseByToken.values()
             .stream()
@@ -204,37 +220,51 @@ class PlayBillingServiceTest {
         assertThat(featureAccessPolicy.getPlan(memberUuid).plan()).isEqualTo("FREE");
     }
 
-    /** 가짜 Play API: 응답 고정, 호출 수 기록, 소모 실패 전환 */
-    private static class FakePlayDeveloperApiClient implements PlayDeveloperApiClient {
+    @Test
+    void verify_concurrentDuplicateInsert_doesNotExtendTwice() {
+        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 0, 0, PURCHASED_INSTANT);
+        playBillingService.verify(memberUuid, passRequest());
+        // 동시 요청 재현: 첫 토큰 조회는 상대 커밋 전이라 비어 있음 > INSERT 0건
+        AtomicBoolean isFirstLookup = new AtomicBoolean(true);
+        when(purchaseRepository.findByPurchaseToken(any())).thenAnswer(call -> isFirstLookup.getAndSet(false)
+            ? Optional.empty()
+            : Optional.ofNullable(purchaseByToken.get(call.<String>getArgument(0))));
 
-        private PlayPurchaseSnapshot snapshot;
-        private boolean isConsumeFailing;
-        private int getProductPurchaseCallCount;
-        private int consumeAttemptCount;
-        private final List<String> voidedPurchaseTokens = new ArrayList<>();
+        MemberPlanResponse second = playBillingService.verify(memberUuid, passRequest());
 
-        @Override
-        public boolean isConfigured() {
-            return true;
-        }
+        assertThat(second.proExpiresAt()).isEqualTo(EXPECTED_EXPIRES_AT);
+        assertThat(purchaseByToken).hasSize(1);
+        assertThat(playClient.consumeAttemptCount).isEqualTo(1);
+    }
 
-        @Override
-        public PlayPurchaseSnapshot getProductPurchase(String productId, String purchaseToken) {
-            getProductPurchaseCallCount++;
-            return snapshot;
-        }
+    @Test
+    void verify_missingOrderId_usesFallback_andGrants() throws Exception {
+        playClient.snapshot = new PlayPurchaseSnapshot(null, 0, 0, PURCHASED_INSTANT);
 
-        @Override
-        public void consume(String productId, String purchaseToken) {
-            consumeAttemptCount++;
-            if (isConsumeFailing) {
-                throw new CustomException(ErrorCode.EXTERNAL_API_ERROR);
-            }
-        }
+        MemberPlanResponse response = playBillingService.verify(memberUuid, passRequest());
 
-        @Override
-        public List<String> listVoidedPurchaseTokens(Instant since) {
-            return voidedPurchaseTokens;
-        }
+        String tokenHash = HexFormat.of().formatHex(
+            MessageDigest.getInstance("SHA-256").digest(PURCHASE_TOKEN.getBytes(StandardCharsets.UTF_8)));
+        assertThat(purchaseByToken.get(PURCHASE_TOKEN).getOrderId()).isEqualTo("PLAY-NO-ORDER-" + tokenHash.substring(0, 32));
+        assertThat(response.plan()).isEqualTo("PRO");
+    }
+
+    @Test
+    void revokeVoided_keepsAdminGrantEntitlement() {
+        LocalDateTime adminGrantExpiresAt = EXPECTED_EXPIRES_AT.plusDays(100);
+        entitlementByMember.put(memberUuid,
+            MemberEntitlement.of(memberUuid, MemberPlan.PRO, adminGrantExpiresAt, EntitlementSource.ADMIN_GRANT));
+        purchaseByToken.put(PURCHASE_TOKEN, EntitlementPurchase.verified(memberUuid, PurchaseStore.PLAY,
+            PlayBillingService.PRO_EXAM_PASS_PRODUCT_ID, "GPA.0001", PURCHASE_TOKEN,
+            LocalDateTime.ofInstant(PURCHASED_INSTANT, SEOUL), EXPECTED_EXPIRES_AT));
+        playClient.voidedPurchaseTokens.add(PURCHASE_TOKEN);
+
+        playBillingService.revokeVoidedPurchases();
+
+        assertThat(purchaseByToken.get(PURCHASE_TOKEN).getStatus()).isEqualTo(PurchaseStatus.REVOKED);
+        MemberEntitlement entitlement = entitlementByMember.get(memberUuid);
+        assertThat(entitlement.getPlan()).isEqualTo(MemberPlan.PRO);
+        assertThat(entitlement.getExpiresAt()).isEqualTo(adminGrantExpiresAt);
+        assertThat(entitlement.getSource()).isEqualTo(EntitlementSource.ADMIN_GRANT);
     }
 }

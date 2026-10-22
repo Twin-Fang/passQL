@@ -35,6 +35,9 @@ public class AppSettingService {
 
     // settingKey 구분자(. _ -) 단위 조각이 이 단어로 끝나면 값을 마스킹 처리
     private static final Set<String> MASK_KEYWORDS = Set.of("key", "secret", "password", "token");
+    // SECRET 목록 표시 문구 (긴 값도 마스크 대신 설정 여부만)
+    static final String SECRET_CONFIGURED_LABEL = "설정됨";
+    static final String SECRET_NOT_CONFIGURED_LABEL = "미설정";
 
     private final AppSettingRepository appSettingRepository;
     private final StringRedisTemplate redisTemplate;
@@ -114,7 +117,7 @@ public class AppSettingService {
                     return new SettingView(
                             s.getSettingKey(),
                             s.getValueType(),
-                            sensitive ? toMaskedDisplayValue(s) : s.getValueText(),
+                            toDisplayValue(s, sensitive),
                             s.getCategory(),
                             s.getDescription(),
                             sensitive,
@@ -122,6 +125,14 @@ public class AppSettingService {
                     );
                 })
                 .toList();
+    }
+
+    /** 목록 표시값: SECRET > 설정됨·미설정, 그 외 민감 > 마스킹, 일반 > 원문 */
+    private String toDisplayValue(AppSetting setting, boolean sensitive) {
+        if (isSecretSetting(setting)) {
+            return StringUtils.hasText(setting.getValueText()) ? SECRET_CONFIGURED_LABEL : SECRET_NOT_CONFIGURED_LABEL;
+        }
+        return sensitive ? toMaskedDisplayValue(setting) : setting.getValueText();
     }
 
     /** 민감 값 표시용: 복호화 후 마스킹 (비어 있으면 빈 칸, 복호화 실패는 안내 문구) */
