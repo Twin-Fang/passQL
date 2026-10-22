@@ -156,7 +156,7 @@ class _HomeContent extends ConsumerWidget {
       if (ref.watch(isRandomPracticeVisibleProvider))
         const RandomPracticeCard(),
 
-      // 출제 경향 (로딩 = 자리 스켈레톤, 실패·유형 없음 = 항목 없음 > 간격도 없음)
+      // 출제 경향 (로딩 = 자리 스켈레톤, 실패·잠금·유형 없음 = 항목 없음 > 간격도 없음)
       // 시작 카드는 날짜마다 다음 유형으로 (같은 날은 같은 카드)
       if (examTrendReport != null && examTrendReport.risingPatterns.isNotEmpty)
         ExamTrendHomeSection(

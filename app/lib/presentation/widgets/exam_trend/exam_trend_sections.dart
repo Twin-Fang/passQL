@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import '../../../data/models/exam_trend/exam_trend_report_response.dart';
 import '../../design/design.dart';
 
-// 출제 경향 화면 조각 (#523): 과목 비중, 늘어난 유형, 자주 나오는 개념, 공부 팁
+// 문제 탭 최신 경향·개념 TOP 10 보기 조각 (#523): 과목 비중, 늘어난 유형, 자주 나오는 개념, 공부 팁
 
 /// 백분율 > 진행 막대 값 (0~1)
 const double _percentDenominator = 100;

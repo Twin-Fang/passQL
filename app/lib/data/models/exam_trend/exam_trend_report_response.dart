@@ -3,7 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'exam_trend_report_response.freezed.dart';
 part 'exam_trend_report_response.g.dart';
 
-/// 출제 경향 화면 응답 (GET /exam-trends/latest, #523).
+/// 출제 경향 응답 (GET /exam-trends/latest, #523): 홈 출제 경향 섹션·문제 탭 최신 경향·개념 TOP 10 공용.
 /// 항목마다 topicCode·latestTrendQuestionCount 로 해당 토픽 최신 경향 문제 풀기.
 @freezed
 class ExamTrendReportResponse with _$ExamTrendReportResponse {
