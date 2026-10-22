@@ -103,7 +103,7 @@ public class AdminMemberController {
             boolean isShortened = entitlementAdminService.grantPro(memberUuid, expiresDate);
             String formattedExpiresDate = expiresDate.format(TOAST_DATE_FORMATTER);
             String toastMessage = isShortened
-                ? "프로 만료일을 " + formattedExpiresDate + "로 줄였습니다."
+                ? "프로 만료일을 줄였습니다. (" + formattedExpiresDate + "까지)"
                 : "프로를 " + formattedExpiresDate + "까지 부여했습니다.";
             redirectAttributes.addFlashAttribute(AdminFlash.TOAST_MESSAGE, toastMessage);
         } catch (CustomException exception) {
@@ -150,7 +150,7 @@ public class AdminMemberController {
                 : "구매를 회수했습니다. 관리자 부여 이용권은 그대로입니다.";
             case RECALCULATED -> revocationResult.afterExpiresAt() == null
                 ? "구매를 회수했습니다. 무료로 바뀌었습니다."
-                : "구매를 회수했습니다. 만료일이 " + revocationResult.afterExpiresAt().format(TOAST_DATE_FORMATTER) + "로 바뀌었습니다.";
+                : "구매를 회수했습니다. 만료일이 바뀌었습니다. (" + revocationResult.afterExpiresAt().format(TOAST_DATE_FORMATTER) + "까지)";
             case NO_ENTITLEMENT -> "구매를 회수했습니다.";
         };
     }
