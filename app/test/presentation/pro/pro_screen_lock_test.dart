@@ -34,6 +34,8 @@ final _proPlan = MemberPlanResponse(
   plan: MemberPlanType.pro,
   proExpiresAt: DateTime(2026, 11, 22, 23, 59, 59),
   dailyFreeLimit: 10,
+  lastPurchasedAt: DateTime(2026, 10, 20, 14, 30),
+  lastOrderId: 'GPA.0001',
 );
 
 // 화면별 잠긴 기능 경로: 결제 꺼짐이면 그대로 부르고, 무료면 아예 요청하지 않아야 함 (서버 403)
@@ -276,6 +278,12 @@ void main() {
     );
     expect(_visibleText('책 없이 폰 하나로 SQLD 합격'), findsNothing);
     expect(find.byType(PassqlLockedPreview), findsNothing);
+
+    // 누르면 이용권 정보 시트: 등급 응답의 최근 구매일·주문 번호 행
+    await tester.tap(proLine);
+    await tester.pumpAndSettle();
+    expect(_visibleText('2026.10.20'), findsOneWidget);
+    expect(_visibleText('GPA.0001'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

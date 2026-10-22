@@ -29,7 +29,7 @@ class ProSettingsCard extends ConsumerWidget {
     if (ref.watch(shouldShowProUiProvider)) {
       card = _FreePlanCard(plan: knownPlan);
     } else if (ref.watch(shouldShowProBadgeProvider)) {
-      card = _ProPlanLine(proExpiresAt: knownPlan?.proExpiresAt);
+      card = _ProPlanLine(plan: knownPlan);
     } else {
       return const SizedBox.shrink();
     }
@@ -97,19 +97,25 @@ class _FreePlanCard extends ConsumerWidget {
 
 /// 프로: 회차 패스 · {만료일}까지 · PRO › (누르면 이용권 정보 시트)
 class _ProPlanLine extends StatelessWidget {
-  const _ProPlanLine({required this.proExpiresAt});
+  const _ProPlanLine({required this.plan});
 
-  final DateTime? proExpiresAt;
+  // 마지막으로 받은 등급 (만료일·최근 구매일·주문 번호, 받기 전 null)
+  final MemberPlanResponse? plan;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final expiresAt = proExpiresAt;
+    final expiresAt = plan?.proExpiresAt;
     final summary = expiresAt == null
         ? ProSettingsCard.passLabel
         : '${ProSettingsCard.passLabel} · ${formatDottedDate(expiresAt)}까지 ·';
     return PassqlCard(
-      onTap: () => showProInfoSheet(context, proExpiresAt: expiresAt),
+      onTap: () => showProInfoSheet(
+        context,
+        proExpiresAt: expiresAt,
+        purchasedAt: plan?.lastPurchasedAt,
+        orderId: plan?.lastOrderId,
+      ),
       child: Row(
         children: [
           // 글 + PRO 칩 한 줄 (좁으면 글만 말줄임)
