@@ -1,6 +1,9 @@
 package com.passql.web.controller.admin;
 
+import com.passql.application.entitlement.EntitlementAdminService;
 import com.passql.application.notification.MemberNotificationService;
+import com.passql.common.exception.CustomException;
+import com.passql.common.exception.constant.ErrorCode;
 import com.passql.member.constant.MemberRole;
 import com.passql.member.constant.MemberStatus;
 import com.passql.member.dto.MemberSearchCondition;
@@ -9,17 +12,21 @@ import com.passql.member.service.MemberAdminService;
 import com.passql.member.service.MemberService;
 import com.passql.member.service.PushNotificationService;
 import com.passql.submission.service.SubmissionService;
+import com.passql.web.support.AdminFlash;
 import com.passql.web.support.AdminMenu;
 import com.passql.web.support.AdminPage;
 import com.passql.web.support.AdminPageRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Controller
@@ -32,6 +39,7 @@ public class AdminMemberController {
     private final MemberService memberService;
     private final MemberNotificationService memberNotificationService;
     private final PushNotificationService pushNotificationService;
+    private final EntitlementAdminService entitlementAdminService;
 
     @GetMapping
     @AdminPage(menu = AdminMenu.MEMBERS)
@@ -54,6 +62,7 @@ public class AdminMemberController {
         model.addAttribute("submissions", submissionService.getSubmissionsByMember(memberUuid));
         model.addAttribute("notifications", memberNotificationService.findRecentNotificationsOfMember(memberUuid));
         model.addAttribute("pushDevices", pushNotificationService.summarizeDevices(memberUuid));
+        model.addAttribute("entitlement", entitlementAdminService.getEntitlementView(memberUuid));
         return "admin/members/detail";
     }
 
@@ -78,5 +87,29 @@ public class AdminMemberController {
     public ResponseEntity<Void> unsuspend(@PathVariable UUID memberUuid) {
         memberAdminService.unsuspendMember(memberUuid);
         return ResponseEntity.ok().build();
+    }
+
+    /** 프로 수동 부여: 선택 날짜 23:59:59 까지, 실패 시 화면에 오류 문구 */
+    @PostMapping("/{memberUuid}/entitlement/grant")
+    public String grantPro(@PathVariable UUID memberUuid,
+                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate expiresDate,
+                           RedirectAttributes redirectAttributes) {
+        try {
+            entitlementAdminService.grantPro(memberUuid, expiresDate);
+            redirectAttributes.addFlashAttribute(AdminFlash.TOAST_MESSAGE, "프로를 부여했습니다.");
+        } catch (CustomException exception) {
+            String errorMessage = exception.getErrorCode() == ErrorCode.INVALID_INPUT_VALUE
+                ? "만료일은 오늘 이후 날짜여야 합니다." : exception.getErrorCode().getMessage();
+            redirectAttributes.addFlashAttribute(AdminFlash.ENTITLEMENT_ERROR_MESSAGE, errorMessage);
+        }
+        return "redirect:/admin/members/" + memberUuid;
+    }
+
+    /** 프로 회수: 등급을 무료로 되돌림 */
+    @PostMapping("/{memberUuid}/entitlement/revoke")
+    public String revokePro(@PathVariable UUID memberUuid, RedirectAttributes redirectAttributes) {
+        entitlementAdminService.revokePro(memberUuid);
+        redirectAttributes.addFlashAttribute(AdminFlash.TOAST_MESSAGE, "프로를 회수했습니다.");
+        return "redirect:/admin/members/" + memberUuid;
     }
 }

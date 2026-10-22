@@ -2,6 +2,7 @@ package com.passql.member.repository;
 
 import com.passql.member.constant.PurchaseStatus;
 import com.passql.member.entity.EntitlementPurchase;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -18,4 +19,7 @@ public interface EntitlementPurchaseRepository extends JpaRepository<Entitlement
 
     /** 회원의 상태별 구매 이력 (환불 후 남은 유효 구매로 만료일 재계산) */
     List<EntitlementPurchase> findByMemberUuidAndStatus(UUID memberUuid, PurchaseStatus status);
+
+    /** 회원의 전체 구매 이력 (관리자 회원 상세) */
+    List<EntitlementPurchase> findByMemberUuid(UUID memberUuid, Sort sort);
 }
