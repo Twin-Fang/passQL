@@ -67,6 +67,7 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 - 화면은 `presentation/design/design.dart` 하나만 import 한다.
 - 값의 원본은 `lib/presentation/design/tokens/`. 문서에 값을 복사하지 않는다.
 - 상세 규칙: `.claude/rules/Design.md`, API 연동: `.claude/rules/api-guide.md`
+- 무료·프로 (#576): 등급 원본은 `planProvider`, 잠금 UI 표시 여부는 `shouldShowProUiProvider` 하나로 판정. 잠금 자리는 `PassqlLockedPreview`(화면은 `ProLockedSection`)만, 프로 에러(403)는 화면 진입점에서 `showProAccessFeedback`
 
 ## 규칙 테스트 (test/architecture)
 
