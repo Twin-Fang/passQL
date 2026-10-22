@@ -37,18 +37,22 @@ public class FeatureAccessPolicy {
 
     private final MemberEntitlementRepository memberEntitlementRepository;
     private final AppSettingService appSettingService;
+    private final ExamPassExpiryCalculator examPassExpiryCalculator;
     private final Clock clock;
 
     @Autowired
     public FeatureAccessPolicy(MemberEntitlementRepository memberEntitlementRepository,
-                               AppSettingService appSettingService) {
-        this(memberEntitlementRepository, appSettingService, Clock.system(SERVICE_ZONE));
+                               AppSettingService appSettingService,
+                               ExamPassExpiryCalculator examPassExpiryCalculator) {
+        this(memberEntitlementRepository, appSettingService, examPassExpiryCalculator, Clock.system(SERVICE_ZONE));
     }
 
     FeatureAccessPolicy(MemberEntitlementRepository memberEntitlementRepository,
-                        AppSettingService appSettingService, Clock clock) {
+                        AppSettingService appSettingService,
+                        ExamPassExpiryCalculator examPassExpiryCalculator, Clock clock) {
         this.memberEntitlementRepository = memberEntitlementRepository;
         this.appSettingService = appSettingService;
+        this.examPassExpiryCalculator = examPassExpiryCalculator;
         this.clock = clock;
     }
 
@@ -78,19 +82,25 @@ public class FeatureAccessPolicy {
         }
     }
 
-    /** 내 등급 응답 (오늘 사용량·구매 마감은 후속 태스크에서 채움) */
+    /** 내 등급 응답 (오늘 사용량은 후속 태스크에서 채움, 구매 시 만료일은 결제 켜짐일 때만) */
     public MemberPlanResponse getPlan(UUID memberUuid) {
         boolean isBillingEnabled = isBillingEnabled();
         MemberEntitlement activeProEntitlement = findActiveProEntitlement(memberUuid);
         boolean isPro = !isBillingEnabled || activeProEntitlement != null;
+        LocalDateTime activeProExpiresAtOrNull = activeProEntitlement != null ? activeProEntitlement.getExpiresAt() : null;
+
+        // 지금 구매하면 유효한 날짜 (결제 꺼짐이면 없음)
+        LocalDateTime purchasableUntil = isBillingEnabled
+            ? examPassExpiryCalculator.calculateExpiresAt(LocalDateTime.now(clock), activeProExpiresAtOrNull)
+            : null;
 
         return new MemberPlanResponse(
             isBillingEnabled,
             isPro ? PLAN_PRO : PLAN_FREE,
-            activeProEntitlement != null ? activeProEntitlement.getExpiresAt() : null,
+            activeProExpiresAtOrNull,
             0,
             DAILY_FREE_LIMIT,
-            null);
+            purchasableUntil);
     }
 
     /** 유효한 프로 등급 행 (PRO 이고 만료일이 지금 이후), 없으면 null */

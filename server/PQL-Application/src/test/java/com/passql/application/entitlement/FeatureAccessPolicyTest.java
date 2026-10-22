@@ -36,8 +36,9 @@ class FeatureAccessPolicyTest {
 
     private final MemberEntitlementRepository entitlementRepository = mock(MemberEntitlementRepository.class);
     private final AppSettingService appSettingService = mock(AppSettingService.class);
+    private final ExamPassExpiryCalculator examPassExpiryCalculator = mock(ExamPassExpiryCalculator.class);
     private final FeatureAccessPolicy policy =
-        new FeatureAccessPolicy(entitlementRepository, appSettingService, FIXED_CLOCK);
+        new FeatureAccessPolicy(entitlementRepository, appSettingService, examPassExpiryCalculator, FIXED_CLOCK);
     private final UUID memberUuid = UUID.randomUUID();
 
     private void givenBillingEnabled(boolean isEnabled) {
@@ -103,5 +104,23 @@ class FeatureAccessPolicyTest {
         assertThat(response.proExpiresAt()).isEqualTo(NOW.plusDays(30));
         assertThat(response.isBillingEnabled()).isTrue();
         assertThat(response.dailyFreeLimit()).isEqualTo(FeatureAccessPolicy.DAILY_FREE_LIMIT);
+    }
+
+    @Test
+    void getPlan_whenBillingEnabled_fillsPurchasableUntilFromCalculator() {
+        givenBillingEnabled(true);
+        givenEntitlement(MemberPlan.PRO, NOW.plusDays(30));
+        LocalDateTime purchasableUntil = LocalDateTime.of(2027, 3, 7, 23, 59, 59);
+        when(examPassExpiryCalculator.calculateExpiresAt(NOW, NOW.plusDays(30))).thenReturn(purchasableUntil);
+
+        assertThat(policy.getPlan(memberUuid).purchasableUntil()).isEqualTo(purchasableUntil);
+    }
+
+    @Test
+    void getPlan_whenBillingDisabled_purchasableUntilIsNull() {
+        givenBillingEnabled(false);
+        when(entitlementRepository.findById(memberUuid)).thenReturn(Optional.empty());
+
+        assertThat(policy.getPlan(memberUuid).purchasableUntil()).isNull();
     }
 }
