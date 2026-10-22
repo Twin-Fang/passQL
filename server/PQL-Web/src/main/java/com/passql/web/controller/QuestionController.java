@@ -2,6 +2,7 @@ package com.passql.web.controller;
 
 import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.application.entitlement.ProFeature;
+import com.passql.application.entitlement.ProResponseRedactor;
 import com.passql.web.support.RequiresProFeature;
 import com.passql.application.service.ChoiceGenerationStreamService;
 import com.passql.application.service.QuestionExecutionService;
@@ -46,6 +47,7 @@ public class QuestionController implements QuestionControllerDocs {
     private final SubmissionService submissionService;
     private final ChoiceGenerationStreamService choiceGenerationStreamService;
     private final FeatureAccessPolicy featureAccessPolicy;
+    private final ProResponseRedactor proResponseRedactor;
 
     @GetMapping
     public ResponseEntity<Page<QuestionSummary>> getQuestions(
@@ -111,7 +113,9 @@ public class QuestionController implements QuestionControllerDocs {
         @AuthMember LoginMember loginMember,
         @RequestBody SubmitRequest request
     ) {
-        return ResponseEntity.ok(submissionService.submit(
-                loginMember.memberUuid(), questionUuid, request.choiceSetId(), request.selectedChoiceKey(), request.sessionUuid()));
+        // 채점·샌드박스 실행은 그대로, 응답에서만 무료 회원 몫 밖 묶음을 뺀다
+        SubmitResult submitResult = submissionService.submit(
+                loginMember.memberUuid(), questionUuid, request.choiceSetId(), request.selectedChoiceKey(), request.sessionUuid());
+        return ResponseEntity.ok(proResponseRedactor.redactSubmitResult(loginMember.memberUuid(), submitResult));
     }
 }

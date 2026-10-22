@@ -270,6 +270,13 @@
               "type" : "null"
             } ]
           },
+          "lockedSections" : {
+            "description" : "무료 회원 응답에서 뺀 묶음 이름 (FULL_EXPLANATION), 없으면 빈 목록",
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
           "promptVersion" : {
             "description" : "해설을 만든 프롬프트 버전",
             "format" : "int32",
@@ -294,7 +301,7 @@
             "type" : [ "string", "null" ]
           }
         },
-        "required" : [ "choiceSetUuid", "explanation", "promptVersion", "retryAfterMilliseconds", "selectedChoiceKey", "status", "text" ],
+        "required" : [ "choiceSetUuid", "explanation", "lockedSections", "promptVersion", "retryAfterMilliseconds", "selectedChoiceKey", "status", "text" ],
         "type" : "object"
       },
       "ChoiceGenerationModeUpdateRequest" : {
@@ -1805,6 +1812,13 @@
           "isCorrect" : {
             "type" : "boolean"
           },
+          "lockedSections" : {
+            "description" : "무료 회원 응답에서 뺀 묶음 이름 (EXECUTION_RESULT, FULL_EXPLANATION), 없으면 빈 목록",
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
           "rationale" : {
             "type" : [ "string", "null" ]
           },
@@ -1830,7 +1844,7 @@
             "type" : [ "string", "null" ]
           }
         },
-        "required" : [ "correctKey", "correctResult", "correctSql", "explanation", "isCorrect", "rationale", "selectedResult", "selectedSql", "structuredExplanation", "submissionUuid" ],
+        "required" : [ "correctKey", "correctResult", "correctSql", "explanation", "isCorrect", "lockedSections", "rationale", "selectedResult", "selectedSql", "structuredExplanation", "submissionUuid" ],
         "type" : "object"
       },
       "SubtopicItem" : {

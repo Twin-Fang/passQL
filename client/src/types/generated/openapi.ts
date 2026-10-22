@@ -1720,6 +1720,8 @@ export interface components {
              */
             choiceSetUuid: string;
             explanation: components["schemas"]["ChoiceExplanation"] | null;
+            /** @description 무료 회원 응답에서 뺀 묶음 이름 (FULL_EXPLANATION), 없으면 빈 목록 */
+            lockedSections: string[];
             /**
              * Format: int32
              * @description 해설을 만든 프롬프트 버전
@@ -2307,6 +2309,8 @@ export interface components {
             correctSql: string | null;
             explanation: string | null;
             isCorrect: boolean;
+            /** @description 무료 회원 응답에서 뺀 묶음 이름 (EXECUTION_RESULT, FULL_EXPLANATION), 없으면 빈 목록 */
+            lockedSections: string[];
             rationale: string | null;
             selectedResult: components["schemas"]["ExecuteResult"] | null;
             selectedSql: string | null;

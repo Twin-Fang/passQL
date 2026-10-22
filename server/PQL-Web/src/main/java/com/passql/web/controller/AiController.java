@@ -1,6 +1,7 @@
 package com.passql.web.controller;
 
 import com.passql.application.entitlement.ProFeature;
+import com.passql.application.entitlement.ProResponseRedactor;
 import com.passql.web.support.RequiresProFeature;
 import com.passql.ai.dto.AiResult;
 import com.passql.ai.dto.SimilarQuestion;
@@ -26,6 +27,8 @@ public class AiController implements AiControllerDocs {
     private final AiExplainService aiExplainService;
     // 유사 문제는 문제 요약 조합이 필요해 추천 서비스가 맡는다 (#442). AiService.getSimilar 는 미구현(TODO)이었다
     private final RecommendationService recommendationService;
+    // 무료 회원 응답에서 전체 해설을 빼는 단일 지점
+    private final ProResponseRedactor proResponseRedactor;
 
     @RequiresProFeature(ProFeature.ERROR_EXPLANATION)
     @PostMapping("/explain-error")
@@ -57,8 +60,9 @@ public class AiController implements AiControllerDocs {
         @RequestParam(required = false) UUID choiceSetUuid,
         @RequestParam(required = false) String selectedChoiceKey
     ) {
-        return ResponseEntity.ok(aiExplainService.getChoiceExplanation(
-            loginMember.memberUuid(), questionUuid, choiceSetUuid, selectedChoiceKey));
+        ChoiceExplanationResponse response = aiExplainService.getChoiceExplanation(
+            loginMember.memberUuid(), questionUuid, choiceSetUuid, selectedChoiceKey);
+        return ResponseEntity.ok(proResponseRedactor.redactChoiceExplanation(loginMember.memberUuid(), response));
     }
 
     @RequiresProFeature(ProFeature.RECOMMENDATION)
