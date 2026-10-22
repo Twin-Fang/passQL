@@ -109,7 +109,8 @@ public class AppSettingService {
     public List<SettingView> findAllAsView() {
         return findAll().stream()
                 .map(s -> {
-                    boolean sensitive = isSensitiveKey(s.getSettingKey());
+                    // 키 이름 기준 민감 + SECRET 타입 (키 이름에 key/token 이 없는 비밀값도 마스킹·비밀 저장 경로)
+                    boolean sensitive = isSensitiveKey(s.getSettingKey()) || isSecretSetting(s);
                     return new SettingView(
                             s.getSettingKey(),
                             s.getValueType(),

@@ -198,6 +198,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/billing/play/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Play 회차 패스 구매 확인
+         * @description ## 인증(JWT): **필요**
+         *
+         *     앱이 Play 구매 완료 후(또는 앱 시작·복원 시 미처리 구매를) 보낸다.
+         *     서버가 Google Play 에서 구매를 확인하고 회차 패스 만료일을 저장한 뒤 소모(consume)까지 처리한다.
+         *     같은 토큰을 다시 보내도 만료일은 한 번만 연장된다 (소모 실패분은 이때 다시 소모).
+         *
+         *     ## 요청 바디 (PlayVerifyRequest)
+         *     - **`productId`**: Play 상품 ID (`pro_exam_pass`, 필수)
+         *     - **`purchaseToken`**: Play 구매 토큰 (필수)
+         *
+         *     ## 반환값 (MemberPlanResponse)
+         *     - 확인 후 내 등급 (`GET /api/members/me/plan` 과 같은 형태)
+         *     - 결제 대기(pending) 구매는 등급을 바꾸지 않고 현재 등급을 그대로 반환
+         *
+         *     ## 에러
+         *     - 400 `INVALID_INPUT_VALUE`: 알 수 없는 상품 ID, Play 가 인식하지 못하는 구매 토큰
+         *     - 400 `INVALID_REQUEST`: 취소된 구매, 환불로 회수된 구매
+         *     - 403 `ACCESS_DENIED`: 다른 회원이 이미 등록한 구매 토큰
+         *     - 409 `DATA_INTEGRITY_VIOLATION`: 동시 저장 충돌 (다시 시도)
+         *     - 502 `EXTERNAL_API_ERROR`: Play API 호출 실패 또는 서버 결제 설정 없음
+         */
+        post: operations["verifyPlayPurchase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/community/feed": {
         parameters: {
             query?: never;
@@ -2195,6 +2234,10 @@ export interface components {
             sort: components["schemas"]["SortObject"];
             unpaged: boolean;
         };
+        PlayVerifyRequest: {
+            productId: string;
+            purchaseToken: string;
+        };
         ProgressResponse: {
             /** Format: double */
             correctRate: number;
@@ -2653,6 +2696,30 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SocialLoginClientConfig"][];
+                };
+            };
+        };
+    };
+    verifyPlayPurchase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlayVerifyRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MemberPlanResponse"];
                 };
             };
         };
