@@ -35,6 +35,9 @@
           "ios" : {
             "$ref" : "#/components/schemas/AppPlatformVersionResponse"
           },
+          "isAndroidBillingEnabled" : {
+            "type" : "boolean"
+          },
           "maintenance" : {
             "$ref" : "#/components/schemas/AppMaintenanceResponse"
           },
@@ -45,7 +48,7 @@
             "type" : "array"
           }
         },
-        "required" : [ "android", "ios", "maintenance", "notices" ],
+        "required" : [ "android", "ios", "isAndroidBillingEnabled", "maintenance", "notices" ],
         "type" : "object"
       },
       "AppLinksResponse" : {
@@ -1167,6 +1170,34 @@
           }
         },
         "required" : [ "authProvider", "choiceGenerationMode", "createdAt", "isTestAccount", "lastSeenAt", "memberUuid", "nickname", "nicknameChangedAt", "providerUserId", "role", "status" ],
+        "type" : "object"
+      },
+      "MemberPlanResponse" : {
+        "properties" : {
+          "dailyFreeLimit" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "isBillingEnabled" : {
+            "type" : "boolean"
+          },
+          "plan" : {
+            "type" : "string"
+          },
+          "proExpiresAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "purchasableUntil" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "todayRandomSolvedCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "dailyFreeLimit", "isBillingEnabled", "plan", "proExpiresAt", "purchasableUntil", "todayRandomSolvedCount" ],
         "type" : "object"
       },
       "NicknameChangeRequest" : {
@@ -3047,6 +3078,26 @@
         "tags" : [ "Notification" ]
       }
     },
+    "/api/members/me/plan" : {
+      "get" : {
+        "description" : "## 인증(JWT): **필요**\n\n## 요청 헤더\n- **`Authorization`**: Bearer {accessToken}\n\n## 반환값 (MemberPlanResponse)\n- **`isBillingEnabled`**: 결제 스위치 (false 면 앱은 잠금 UI 를 그리지 않음)\n- **`plan`**: FREE 또는 PRO (스위치 꺼짐이면 항상 PRO)\n- **`proExpiresAt`**: 프로 만료 시각 KST (유효한 프로가 아니면 null)\n- **`todayRandomSolvedCount`**: 오늘 푼 무료 랜덤 문제 수\n- **`dailyFreeLimit`**: 무료 하루 랜덤 문제 한도\n- **`purchasableUntil`**: 지금 구매하면 이용 가능한 마감 시각 KST (결제 꺼짐이면 null)\n",
+        "operationId" : "getMyPlan",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MemberPlanResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "내 등급 조회",
+        "tags" : [ "Member" ]
+      }
+    },
     "/api/members/me/push-token" : {
       "delete" : {
         "description" : "## 인증(JWT): **필요**\n\n## 요청 파라미터\n- **`token`**: 삭제할 FCM 등록 토큰\n\n## 설명\n- 로그아웃 직전에 호출해 이 기기로 가던 알림을 끊는다.\n- 본인 소유 토큰만 삭제하며, 없으면 아무것도 하지 않는다. 성공 시 204(본문 없음).\n",
@@ -3522,6 +3573,39 @@
           }
         },
         "summary" : "문제 목록 조회",
+        "tags" : [ "Question" ]
+      }
+    },
+    "/api/questions/random" : {
+      "get" : {
+        "description" : "활성 문제 중 안 푼 문제를 우선해 무작위로 고르고, 부족하면 푼 문제로 채운다. size 기본 10, 1~10 으로 보정. 목록만 내려주며 하루 문제 수 제한은 문제 상세 열기(GET /questions/{id})에서 적용.",
+        "operationId" : "getRandomQuestions",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "default" : 10,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/QuestionSummary"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "랜덤 풀기 문제 목록",
         "tags" : [ "Question" ]
       }
     },

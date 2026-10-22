@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -42,6 +43,17 @@ public interface QuestionControllerDocs {
       @RequestParam(required = false) String mode,
       @RequestParam(required = false) Boolean latestTrend,
       Pageable pageable
+  );
+
+  @ApiLogs({
+      @ApiLog(date = "2026.10.22", author = Author.SUHSAECHAN, issueNumber = 576, description = "랜덤 풀기 목록 API 추가 (안 푼 문제 우선)"),
+  })
+  @Operation(summary = "랜덤 풀기 문제 목록",
+      description = "활성 문제 중 안 푼 문제를 우선해 무작위로 고르고, 부족하면 푼 문제로 채운다. " +
+          "size 기본 10, 1~10 으로 보정. 목록만 내려주며 하루 문제 수 제한은 문제 상세 열기(GET /questions/{id})에서 적용.")
+  ResponseEntity<List<QuestionSummary>> getRandomQuestions(
+      @AuthMember LoginMember loginMember,
+      @RequestParam(defaultValue = "10") int size
   );
 
   @ApiLogs({

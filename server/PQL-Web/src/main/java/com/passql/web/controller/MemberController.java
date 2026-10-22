@@ -1,6 +1,7 @@
 package com.passql.web.controller;
 
 import com.passql.application.entitlement.FeatureAccessPolicy;
+import com.passql.application.entitlement.MemberPlanResponse;
 import com.passql.application.entitlement.ProFeature;
 import com.passql.member.constant.ChoiceGenerationMode;
 import com.passql.member.auth.presentation.annotation.AuthMember;
@@ -44,6 +45,12 @@ public class MemberController implements MemberControllerDocs {
     @GetMapping("/me")
     public MemberMeResponse getMe(@AuthMember LoginMember loginMember) {
         return memberService.getMe(loginMember.memberUuid());
+    }
+
+    // 내 등급·오늘 무료 사용량·구매 가능 마감일 (회원 도메인은 등급을 모르므로 /me 와 별도 경로)
+    @GetMapping("/me/plan")
+    public MemberPlanResponse getMyPlan(@AuthMember LoginMember loginMember) {
+        return featureAccessPolicy.getPlan(loginMember.memberUuid());
     }
 
     /** 회원 탈퇴. 성공하면 본문 없이 204. */

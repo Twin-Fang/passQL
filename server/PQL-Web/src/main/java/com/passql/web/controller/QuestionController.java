@@ -6,6 +6,7 @@ import com.passql.application.entitlement.ProResponseRedactor;
 import com.passql.web.support.RequiresProFeature;
 import com.passql.application.service.ChoiceGenerationStreamService;
 import com.passql.application.service.QuestionExecutionService;
+import com.passql.application.service.RandomPracticeService;
 import com.passql.application.service.RecommendationService;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
@@ -43,6 +44,7 @@ public class QuestionController implements QuestionControllerDocs {
 
     private final QuestionService questionService;
     private final RecommendationService recommendationService;
+    private final RandomPracticeService randomPracticeService;
     private final QuestionExecutionService questionExecutionService;
     private final SubmissionService submissionService;
     private final ChoiceGenerationStreamService choiceGenerationStreamService;
@@ -64,6 +66,15 @@ public class QuestionController implements QuestionControllerDocs {
             featureAccessPolicy.requireFeature(loginMember.memberUuid(), ProFeature.TOPIC_PRACTICE);
         }
         return ResponseEntity.ok(questionService.getQuestions(topic, subtopic, difficulty, mode, latestTrend, pageable));
+    }
+
+    // 랜덤 풀기 목록: 안 푼 문제 우선, 상세 열기에서 하루 제한 적용 (/{questionUuid} 보다 리터럴 경로가 먼저 매칭됨)
+    @GetMapping("/random")
+    public ResponseEntity<List<QuestionSummary>> getRandomQuestions(
+        @AuthMember LoginMember loginMember,
+        @RequestParam(defaultValue = "" + RandomPracticeService.DEFAULT_SIZE) int size
+    ) {
+        return ResponseEntity.ok(randomPracticeService.findRandomQuestions(loginMember.memberUuid(), size));
     }
 
     // GET → POST 전환: 제외 UUID 목록이 쿼리스트링으로 누적되면 Tomcat 8KB 헤더 한도 초과 → 400 발생

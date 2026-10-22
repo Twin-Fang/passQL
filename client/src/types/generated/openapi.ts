@@ -974,6 +974,37 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/members/me/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 내 등급 조회
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 요청 헤더
+         *     - **`Authorization`**: Bearer {accessToken}
+         *
+         *     ## 반환값 (MemberPlanResponse)
+         *     - **`isBillingEnabled`**: 결제 스위치 (false 면 앱은 잠금 UI 를 그리지 않음)
+         *     - **`plan`**: FREE 또는 PRO (스위치 꺼짐이면 항상 PRO)
+         *     - **`proExpiresAt`**: 프로 만료 시각 KST (유효한 프로가 아니면 null)
+         *     - **`todayRandomSolvedCount`**: 오늘 푼 무료 랜덤 문제 수
+         *     - **`dailyFreeLimit`**: 무료 하루 랜덤 문제 한도
+         *     - **`purchasableUntil`**: 지금 구매하면 이용 가능한 마감 시각 KST (결제 꺼짐이면 null)
+         */
+        get: operations["getMyPlan"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/members/me/push-token": {
         parameters: {
             query?: never;
@@ -1454,6 +1485,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/questions/random": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 랜덤 풀기 문제 목록
+         * @description 활성 문제 중 안 푼 문제를 우선해 무작위로 고르고, 부족하면 푼 문제로 채운다. size 기본 10, 1~10 으로 보정. 목록만 내려주며 하루 문제 수 제한은 문제 상세 열기(GET /questions/{id})에서 적용.
+         */
+        get: operations["getRandomQuestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/questions/recommendations": {
         parameters: {
             query?: never;
@@ -1634,6 +1685,7 @@ export interface components {
         AppConfigResponse: {
             android: components["schemas"]["AppPlatformVersionResponse"];
             ios: components["schemas"]["AppPlatformVersionResponse"];
+            isAndroidBillingEnabled: boolean;
             maintenance: components["schemas"]["AppMaintenanceResponse"];
             notices: components["schemas"]["AppNoticeResponse"][];
         };
@@ -2062,6 +2114,18 @@ export interface components {
             providerUserId: string;
             role: string;
             status: string;
+        };
+        MemberPlanResponse: {
+            /** Format: int32 */
+            dailyFreeLimit: number;
+            isBillingEnabled: boolean;
+            plan: string;
+            /** Format: date-time */
+            proExpiresAt: string | null;
+            /** Format: date-time */
+            purchasableUntil: string | null;
+            /** Format: int32 */
+            todayRandomSolvedCount: number;
         };
         NicknameChangeRequest: {
             nickname: string;
@@ -3227,6 +3291,26 @@ export interface operations {
             };
         };
     };
+    getMyPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MemberPlanResponse"];
+                };
+            };
+        };
+    };
     registerPushToken: {
         parameters: {
             query?: never;
@@ -3592,6 +3676,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PageQuestionSummary"];
+                };
+            };
+        };
+    };
+    getRandomQuestions: {
+        parameters: {
+            query?: {
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["QuestionSummary"][];
                 };
             };
         };

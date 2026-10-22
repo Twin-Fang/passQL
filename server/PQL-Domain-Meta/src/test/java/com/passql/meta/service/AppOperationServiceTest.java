@@ -49,6 +49,14 @@ class AppOperationServiceTest {
         assertThat(config.android().storeUrl()).isEqualTo("https://play.example");
         assertThat(config.maintenance().isUnderMaintenance()).isFalse();
         assertThat(config.maintenance().message()).isEmpty();
+        assertThat(config.isAndroidBillingEnabled()).isFalse();
+    }
+
+    @Test
+    void 결제_스위치가_켜져_있으면_내려준다() {
+        when(appSettingService.getString(AppSettingKeys.BILLING_ANDROID_ENABLED)).thenReturn("true");
+
+        assertThat(service.getAppConfig().isAndroidBillingEnabled()).isTrue();
     }
 
     @Test

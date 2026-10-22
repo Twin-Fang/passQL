@@ -1,5 +1,7 @@
 package com.passql.application.entitlement;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.time.LocalDateTime;
 
 /**
@@ -15,9 +17,9 @@ import java.time.LocalDateTime;
 public record MemberPlanResponse(
     boolean isBillingEnabled,
     String plan,
-    LocalDateTime proExpiresAt,
+    @Schema(nullable = true) LocalDateTime proExpiresAt,
     int todayRandomSolvedCount,
     int dailyFreeLimit,
-    LocalDateTime purchasableUntil
+    @Schema(nullable = true) LocalDateTime purchasableUntil
 ) {
 }

@@ -5,6 +5,7 @@ import com.passql.member.auth.presentation.annotation.AuthMember;
 import com.passql.member.auth.presentation.security.LoginMember;
 import com.passql.member.dto.ChoiceGenerationModeUpdateRequest;
 import com.passql.member.dto.ChoiceGenerationModeUpdateResponse;
+import com.passql.application.entitlement.MemberPlanResponse;
 import com.passql.member.dto.MemberMeResponse;
 import com.passql.member.dto.NicknameChangeRequest;
 import com.passql.member.dto.NicknameChangeResponse;
@@ -48,6 +49,28 @@ public interface MemberControllerDocs {
           """
   )
   MemberMeResponse getMe(@AuthMember LoginMember loginMember);
+
+  @ApiLogs({
+      @ApiLog(date = "2026.10.22", author = Author.SUHSAECHAN, issueNumber = 576, description = "내 등급 조회 API 추가 (플랜·프로 만료일·오늘 무료 사용량·구매 가능 마감일)"),
+  })
+  @Operation(
+      summary = "내 등급 조회",
+      description = """
+          ## 인증(JWT): **필요**
+
+          ## 요청 헤더
+          - **`Authorization`**: Bearer {accessToken}
+
+          ## 반환값 (MemberPlanResponse)
+          - **`isBillingEnabled`**: 결제 스위치 (false 면 앱은 잠금 UI 를 그리지 않음)
+          - **`plan`**: FREE 또는 PRO (스위치 꺼짐이면 항상 PRO)
+          - **`proExpiresAt`**: 프로 만료 시각 KST (유효한 프로가 아니면 null)
+          - **`todayRandomSolvedCount`**: 오늘 푼 무료 랜덤 문제 수
+          - **`dailyFreeLimit`**: 무료 하루 랜덤 문제 한도
+          - **`purchasableUntil`**: 지금 구매하면 이용 가능한 마감 시각 KST (결제 꺼짐이면 null)
+          """
+  )
+  MemberPlanResponse getMyPlan(@AuthMember LoginMember loginMember);
 
   @ApiLogs({
       @ApiLog(date = "2026.04.07", author = Author.SUHSAECHAN, issueNumber = 6, description = "닉네임 재생성 API 추가"),

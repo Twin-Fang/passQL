@@ -57,6 +57,10 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
     List<UUID> findSolvedQuestionUuids(@Param("memberUuid") UUID memberUuid,
                                        @Param("questionUuids") java.util.Collection<UUID> questionUuids);
 
+    /** 회원이 한 번이라도 제출한 문제 uuid 전체 (랜덤 풀기에서 안 푼 문제 우선 선별용) */
+    @Query("SELECT DISTINCT s.questionUuid FROM Submission s WHERE s.memberUuid = :memberUuid")
+    List<UUID> findAllSubmittedQuestionUuids(@Param("memberUuid") UUID memberUuid);
+
     /** 커뮤니티 '내가 푼 문제' 피드: 내가 푼 문제와 오답 제출 여부 */
     @Query("""
             SELECT s.questionUuid AS questionUuid, MAX(CASE WHEN s.isCorrect = false THEN 1 ELSE 0 END) AS hasWrongSubmission

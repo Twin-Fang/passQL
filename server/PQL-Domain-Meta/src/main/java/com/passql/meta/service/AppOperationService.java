@@ -37,7 +37,7 @@ public class AppOperationService {
     private final AppNoticeService appNoticeService;
 
     /**
-     * 앱 시작 설정: 플랫폼별 버전 정책 + 점검 상태 + 노출 공지
+     * 앱 시작 설정: 플랫폼별 버전 정책 + 점검 상태 + 노출 공지 + Android 결제 스위치
      */
     public AppConfigResponse getAppConfig() {
         AppLinksResponse storeLinks = appSettingService.getAppLinks();
@@ -51,7 +51,8 @@ public class AppOperationService {
                         readVersion(AppSettingKeys.APP_RECOMMENDED_VERSION_ANDROID),
                         storeLinks.androidUrl()),
                 new AppMaintenanceResponse(isUnderMaintenance(), readSettingOrDefault(AppSettingKeys.APP_MAINTENANCE_MESSAGE, "")),
-                appNoticeService.getVisibleNotices()
+                appNoticeService.getVisibleNotices(),
+                isAndroidBillingEnabled()
         );
     }
 
@@ -60,6 +61,13 @@ public class AppOperationService {
      */
     public boolean isUnderMaintenance() {
         return Boolean.parseBoolean(readSettingOrDefault(AppSettingKeys.APP_MAINTENANCE_ENABLED, "false").trim());
+    }
+
+    /**
+     * Android 결제 사용 여부 (행 없음·저장소 장애 > false, 결제 없이 전부 열린 상태)
+     */
+    private boolean isAndroidBillingEnabled() {
+        return Boolean.parseBoolean(readSettingOrDefault(AppSettingKeys.BILLING_ANDROID_ENABLED, "false").trim());
     }
 
     public AppOperationSettingsResponse getOperationSettings() {
