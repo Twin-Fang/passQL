@@ -31,6 +31,7 @@ import java.time.ZoneId;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.Map;
@@ -61,6 +62,10 @@ class PlayBillingServiceTest {
     private static final LocalDateTime EXPECTED_EXPIRES_AT =
         LocalDateTime.ofInstant(PURCHASED_INSTANT, SEOUL).plusDays(90);
     private static final String PURCHASE_TOKEN = "purchase-token-1";
+    // 계정 대조 고정 벡터 (앱 테스트와 같은 값): uuid 소문자 문자열 UTF-8 > SHA-256 소문자 hex 64자
+    private static final UUID HASH_VECTOR_MEMBER_UUID = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+    private static final String HASH_VECTOR_ACCOUNT_ID =
+        "986c0dc956dc822b5d8f698661b9eb1ef880786ff9043c16744d2a420e99e9bb";
 
     private final FakePlayDeveloperApiClient playClient = new FakePlayDeveloperApiClient();
     private final EntitlementPurchaseRepository purchaseRepository = mock(EntitlementPurchaseRepository.class);
@@ -70,7 +75,7 @@ class PlayBillingServiceTest {
         new ExamPassExpiryCalculator(mock(ExamScheduleRepository.class));
     private final FeatureAccessPolicy featureAccessPolicy = new FeatureAccessPolicy(
         entitlementRepository, appSettingService, expiryCalculator,
-        mock(SubmissionRepository.class), mock(DailyQuestionCounter.class));
+        mock(SubmissionRepository.class), mock(DailyQuestionCounter.class), purchaseRepository);
     private final PlayPurchaseRecorder playPurchaseRecorder = new PlayPurchaseRecorder(
         purchaseRepository, entitlementRepository, mock(MemberRepository.class), expiryCalculator);
     private final PlayBillingService playBillingService = new PlayBillingService(
@@ -109,6 +114,12 @@ class PlayBillingServiceTest {
             .filter(purchase -> purchase.getMemberUuid().equals(call.getArgument(0)))
             .filter(purchase -> purchase.getStatus() == call.getArgument(1))
             .toList());
+        // 회원의 상태별 최근 구매 1건 (구매 시각 내림차순 첫 행)
+        when(purchaseRepository.findFirstByMemberUuidAndStatusOrderByPurchasedAtDesc(any(), any()))
+            .thenAnswer(call -> purchaseByToken.values().stream()
+                .filter(purchase -> purchase.getMemberUuid().equals(call.getArgument(0)))
+                .filter(purchase -> purchase.getStatus() == call.getArgument(1))
+                .max(Comparator.comparing(EntitlementPurchase::getPurchasedAt)));
 
         // 등급 저장소 (조회, 잠금 조회, 저장)
         when(entitlementRepository.findById(any()))
@@ -128,7 +139,7 @@ class PlayBillingServiceTest {
 
     @Test
     void verify_purchased_grantsProUntilCalculatedExpiry_andConsumes() {
-        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 0, 0, PURCHASED_INSTANT);
+        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 0, 0, PURCHASED_INSTANT, null);
 
         MemberPlanResponse response = playBillingService.verify(memberUuid, passRequest());
 
@@ -139,11 +150,49 @@ class PlayBillingServiceTest {
         assertThat(purchase.getGrantedExpiresAt()).isEqualTo(EXPECTED_EXPIRES_AT);
         assertThat(purchase.getIsConsumed()).isTrue();
         assertThat(playClient.consumeAttemptCount).isEqualTo(1);
+        // 이용권 정보 시트용 최근 구매일·주문 번호
+        assertThat(response.lastPurchasedAt()).isEqualTo(LocalDateTime.ofInstant(PURCHASED_INSTANT, SEOUL));
+        assertThat(response.lastOrderId()).isEqualTo("GPA.0001");
+    }
+
+    @Test
+    void toObfuscatedAccountId_matchesFixedVector() {
+        assertThat(PlayBillingService.toObfuscatedAccountId(HASH_VECTOR_MEMBER_UUID)).isEqualTo(HASH_VECTOR_ACCOUNT_ID);
+    }
+
+    @Test
+    void verify_accountMismatch_rejectedWithoutRecordOrConsume() {
+        // 다른 회원(벡터 uuid)이 결제한 구매를 이 회원이 재전송
+        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 0, 0, PURCHASED_INSTANT, HASH_VECTOR_ACCOUNT_ID);
+
+        assertThatThrownBy(() -> playBillingService.verify(memberUuid, passRequest()))
+            .isInstanceOfSatisfying(CustomException.class,
+                exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ACCESS_DENIED));
+        assertThat(purchaseByToken).isEmpty();
+        assertThat(entitlementByMember).isEmpty();
+        assertThat(playClient.consumeAttemptCount).isZero();
+    }
+
+    @Test
+    void verify_accountMatches_grants() {
+        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 0, 0, PURCHASED_INSTANT, HASH_VECTOR_ACCOUNT_ID);
+
+        MemberPlanResponse response = playBillingService.verify(HASH_VECTOR_MEMBER_UUID, passRequest());
+
+        assertThat(response.plan()).isEqualTo("PRO");
+    }
+
+    @Test
+    void verify_withoutAccountId_grants() {
+        // 계정 값 없는 구매(예전 앱·테스트 구매)는 대조 생략
+        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 0, 0, PURCHASED_INSTANT, null);
+
+        assertThat(playBillingService.verify(memberUuid, passRequest()).plan()).isEqualTo("PRO");
     }
 
     @Test
     void verify_sameTokenTwice_doesNotExtendTwice() {
-        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 0, 0, PURCHASED_INSTANT);
+        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 0, 0, PURCHASED_INSTANT, null);
 
         playBillingService.verify(memberUuid, passRequest());
         MemberPlanResponse second = playBillingService.verify(memberUuid, passRequest());
@@ -156,7 +205,7 @@ class PlayBillingServiceTest {
 
     @Test
     void verify_pending_returnsFreeWithoutConsume() {
-        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 2, 0, PURCHASED_INSTANT);
+        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 2, 0, PURCHASED_INSTANT, null);
 
         MemberPlanResponse response = playBillingService.verify(memberUuid, passRequest());
 
@@ -178,7 +227,7 @@ class PlayBillingServiceTest {
 
     @Test
     void verify_tokenOwnedByAnotherMember_rejected() {
-        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 0, 0, PURCHASED_INSTANT);
+        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 0, 0, PURCHASED_INSTANT, null);
         playBillingService.verify(memberUuid, passRequest());
         UUID otherMemberUuid = UUID.randomUUID();
 
@@ -190,7 +239,7 @@ class PlayBillingServiceTest {
 
     @Test
     void verify_consumeFails_leavesUnconsumed_andNextVerifyRetriesConsume() {
-        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 0, 0, PURCHASED_INSTANT);
+        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 0, 0, PURCHASED_INSTANT, null);
         playClient.isConsumeFailing = true;
 
         MemberPlanResponse first = playBillingService.verify(memberUuid, passRequest());
@@ -209,7 +258,7 @@ class PlayBillingServiceTest {
 
     @Test
     void revokeVoided_marksRevoked_andRecalculatesPlan() {
-        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 0, 0, PURCHASED_INSTANT);
+        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 0, 0, PURCHASED_INSTANT, null);
         playBillingService.verify(memberUuid, passRequest());
         playClient.voidedPurchaseTokens.add(PURCHASE_TOKEN);
 
@@ -222,7 +271,7 @@ class PlayBillingServiceTest {
 
     @Test
     void verify_concurrentDuplicateInsert_doesNotExtendTwice() {
-        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 0, 0, PURCHASED_INSTANT);
+        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 0, 0, PURCHASED_INSTANT, null);
         playBillingService.verify(memberUuid, passRequest());
         // 동시 요청 재현: 첫 토큰 조회는 상대 커밋 전이라 비어 있음 > INSERT 0건
         AtomicBoolean isFirstLookup = new AtomicBoolean(true);
@@ -239,7 +288,7 @@ class PlayBillingServiceTest {
 
     @Test
     void verify_missingOrderId_usesFallback_andGrants() throws Exception {
-        playClient.snapshot = new PlayPurchaseSnapshot(null, 0, 0, PURCHASED_INSTANT);
+        playClient.snapshot = new PlayPurchaseSnapshot(null, 0, 0, PURCHASED_INSTANT, null);
 
         MemberPlanResponse response = playBillingService.verify(memberUuid, passRequest());
 

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:passql_app/core/billing/pro_purchase_port.dart';
+import 'package:passql_app/data/billing/play_account_identifier.dart';
 import 'package:passql_app/data/billing/play_purchase_service.dart';
 import 'package:passql_app/data/models/billing/play_verify_request.dart';
 import 'package:passql_app/data/models/member/member_plan_response.dart';
@@ -13,6 +14,7 @@ class _FakeInAppPurchase implements InAppPurchase {
   final StreamController<List<PurchaseDetails>> purchaseUpdates =
       StreamController<List<PurchaseDetails>>.broadcast();
   bool? lastAutoConsume;
+  PurchaseParam? lastPurchaseParam;
   final List<PurchaseDetails> completedPurchases = [];
 
   @override
@@ -44,6 +46,7 @@ class _FakeInAppPurchase implements InAppPurchase {
     bool autoConsume = true,
   }) async {
     lastAutoConsume = autoConsume;
+    lastPurchaseParam = purchaseParam;
     return true;
   }
 
@@ -84,6 +87,11 @@ PurchaseDetails _examPassPurchase(PurchaseStatus status) => PurchaseDetails(
   status: status,
 )..pendingCompletePurchase = true;
 
+// 계정 대조 고정 벡터 (서버 PlayBillingServiceTest 와 같은 값): uuid 소문자 문자열 UTF-8 > SHA-256 소문자 hex 64자
+const String _hashVectorMemberUuid = '123e4567-e89b-12d3-a456-426614174000';
+const String _hashVectorAccountId =
+    '986c0dc956dc822b5d8f698661b9eb1ef880786ff9043c16744d2a420e99e9bb';
+
 void main() {
   late _FakeInAppPurchase store;
   late _FakeBillingApi billingApi;
@@ -97,6 +105,7 @@ void main() {
     service = PlayPurchaseService(
       store: store,
       billingApi: billingApi,
+      readMemberUuid: () => _hashVectorMemberUuid,
       refreshPlan: () async {
         planRefreshCount++;
         return true;
@@ -158,5 +167,40 @@ void main() {
     expect(await outcome, ProPurchaseOutcome.pending);
     expect(billingApi.verifyRequests, isEmpty);
     expect(planRefreshCount, 0);
+  });
+
+  test('toPlayObfuscatedAccountId_matchesServerFixedVector', () {
+    expect(
+      toPlayObfuscatedAccountId(_hashVectorMemberUuid),
+      _hashVectorAccountId,
+    );
+  });
+
+  test('purchase_setsHashedMemberUuidAsApplicationUserName', () async {
+    unawaited(service.purchaseExamPass());
+    await pumpEventQueue();
+
+    // 서버가 Play obfuscatedExternalAccountId 와 대조 (다른 계정 재전송 차단)
+    expect(store.lastPurchaseParam?.applicationUserName, _hashVectorAccountId);
+  });
+
+  test('memberPlanResponse_parsesLastPurchase_defaultsToNull', () {
+    final purchased = MemberPlanResponse.fromJson({
+      'isBillingEnabled': true,
+      'plan': 'PRO',
+      'lastPurchasedAt': '2026-10-20T14:30:00',
+      'lastOrderId': 'GPA.0001',
+    });
+    final adminGrantOnly = MemberPlanResponse.fromJson({
+      'isBillingEnabled': true,
+      'plan': 'PRO',
+      'lastPurchasedAt': null,
+      'lastOrderId': null,
+    });
+
+    expect(purchased.lastPurchasedAt, DateTime(2026, 10, 20, 14, 30));
+    expect(purchased.lastOrderId, 'GPA.0001');
+    expect(adminGrantOnly.lastPurchasedAt, isNull);
+    expect(adminGrantOnly.lastOrderId, isNull);
   });
 }

@@ -2,7 +2,7 @@
 <!-- 회원 상세 등급 조각 2종: 등급·부여·회수 카드, 구매 이력 표 (구매 토큰은 표시하지 않음) -->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <th:block th:fragment="entitlement-card">
-    <div class="card bg-base-100 shadow" th:with="today=${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}">
+    <div class="card bg-base-100 shadow" th:with="today=${entitlement.todayInServiceZone}">
         <div class="card-body gap-3">
             <h3 class="font-bold text-sm text-base-content/70 uppercase tracking-wider">등급 (프로 / 무료)</h3>
 

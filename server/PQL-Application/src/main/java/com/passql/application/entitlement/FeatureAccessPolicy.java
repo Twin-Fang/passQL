@@ -4,7 +4,10 @@ import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.member.constant.ChoiceGenerationMode;
 import com.passql.member.constant.MemberPlan;
+import com.passql.member.constant.PurchaseStatus;
+import com.passql.member.entity.EntitlementPurchase;
 import com.passql.member.entity.MemberEntitlement;
+import com.passql.member.repository.EntitlementPurchaseRepository;
 import com.passql.member.repository.MemberEntitlementRepository;
 import com.passql.meta.constant.AppSettingKeys;
 import com.passql.meta.service.AppSettingService;
@@ -45,6 +48,7 @@ public class FeatureAccessPolicy {
     private final ExamPassExpiryCalculator examPassExpiryCalculator;
     private final SubmissionRepository submissionRepository;
     private final DailyQuestionCounter dailyQuestionCounter;
+    private final EntitlementPurchaseRepository entitlementPurchaseRepository;
     private final Clock clock;
 
     @Autowired
@@ -52,21 +56,24 @@ public class FeatureAccessPolicy {
                                AppSettingService appSettingService,
                                ExamPassExpiryCalculator examPassExpiryCalculator,
                                SubmissionRepository submissionRepository,
-                               DailyQuestionCounter dailyQuestionCounter) {
+                               DailyQuestionCounter dailyQuestionCounter,
+                               EntitlementPurchaseRepository entitlementPurchaseRepository) {
         this(memberEntitlementRepository, appSettingService, examPassExpiryCalculator,
-            submissionRepository, dailyQuestionCounter, Clock.system(SERVICE_ZONE));
+            submissionRepository, dailyQuestionCounter, entitlementPurchaseRepository, Clock.system(SERVICE_ZONE));
     }
 
     FeatureAccessPolicy(MemberEntitlementRepository memberEntitlementRepository,
                         AppSettingService appSettingService,
                         ExamPassExpiryCalculator examPassExpiryCalculator,
                         SubmissionRepository submissionRepository,
-                        DailyQuestionCounter dailyQuestionCounter, Clock clock) {
+                        DailyQuestionCounter dailyQuestionCounter,
+                        EntitlementPurchaseRepository entitlementPurchaseRepository, Clock clock) {
         this.memberEntitlementRepository = memberEntitlementRepository;
         this.appSettingService = appSettingService;
         this.examPassExpiryCalculator = examPassExpiryCalculator;
         this.submissionRepository = submissionRepository;
         this.dailyQuestionCounter = dailyQuestionCounter;
+        this.entitlementPurchaseRepository = entitlementPurchaseRepository;
         this.clock = clock;
     }
 
@@ -136,7 +143,7 @@ public class FeatureAccessPolicy {
         }
     }
 
-    /** 내 등급 응답 (구매 시 만료일·오늘 사용량은 결제 켜짐일 때만) */
+    /** 내 등급 응답 (구매 시 만료일·오늘 사용량은 결제 켜짐일 때만, 최근 구매는 검증 구매 기준) */
     public MemberPlanResponse getPlan(UUID memberUuid) {
         boolean isBillingEnabled = isBillingEnabled();
         MemberEntitlement activeProEntitlement = findActiveProEntitlement(memberUuid);
@@ -150,13 +157,20 @@ public class FeatureAccessPolicy {
 
         int todayRandomSolvedCount = isBillingEnabled ? dailyQuestionCounter.countTodayRandomSolved(memberUuid) : 0;
 
+        // 이용권 정보 시트용 최근 검증 구매 (관리자 부여만 있으면 없음)
+        EntitlementPurchase lastVerifiedPurchase = entitlementPurchaseRepository
+            .findFirstByMemberUuidAndStatusOrderByPurchasedAtDesc(memberUuid, PurchaseStatus.VERIFIED)
+            .orElse(null);
+
         return new MemberPlanResponse(
             isBillingEnabled,
             isPro ? PLAN_PRO : PLAN_FREE,
             activeProExpiresAtOrNull,
             todayRandomSolvedCount,
             DAILY_FREE_LIMIT,
-            purchasableUntil);
+            purchasableUntil,
+            lastVerifiedPurchase != null ? lastVerifiedPurchase.getPurchasedAt() : null,
+            lastVerifiedPurchase != null ? lastVerifiedPurchase.getOrderId() : null);
     }
 
     /** 유효한 프로 등급 행 (PRO 이고 만료일이 지금 이후), 없으면 null */

@@ -26,6 +26,10 @@ _$MemberPlanResponseImpl _$$MemberPlanResponseImplFromJson(
   purchasableUntil: json['purchasableUntil'] == null
       ? null
       : DateTime.parse(json['purchasableUntil'] as String),
+  lastPurchasedAt: json['lastPurchasedAt'] == null
+      ? null
+      : DateTime.parse(json['lastPurchasedAt'] as String),
+  lastOrderId: json['lastOrderId'] as String?,
 );
 
 Map<String, dynamic> _$$MemberPlanResponseImplToJson(
@@ -37,6 +41,8 @@ Map<String, dynamic> _$$MemberPlanResponseImplToJson(
   'todayRandomSolvedCount': instance.todayRandomSolvedCount,
   'dailyFreeLimit': instance.dailyFreeLimit,
   'purchasableUntil': instance.purchasableUntil?.toIso8601String(),
+  'lastPurchasedAt': instance.lastPurchasedAt?.toIso8601String(),
+  'lastOrderId': instance.lastOrderId,
 };
 
 const _$MemberPlanTypeEnumMap = {

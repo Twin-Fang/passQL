@@ -32,7 +32,11 @@ mixin _$MemberPlanResponse {
       throw _privateConstructorUsedError; // 무료 하루 랜덤 문제 한도
   int get dailyFreeLimit =>
       throw _privateConstructorUsedError; // 지금 구매하면 이용할 수 있는 마지막 날 (다음 시험일, 없으면 null)
-  DateTime? get purchasableUntil => throw _privateConstructorUsedError;
+  DateTime? get purchasableUntil =>
+      throw _privateConstructorUsedError; // 가장 최근 검증 구매 시각 (KST, 구매 없음·관리자 부여만 있으면 null)
+  DateTime? get lastPurchasedAt =>
+      throw _privateConstructorUsedError; // 가장 최근 검증 구매의 Play 주문 번호 (구매 없음·관리자 부여만 있으면 null)
+  String? get lastOrderId => throw _privateConstructorUsedError;
 
   /// Serializes this MemberPlanResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -58,6 +62,8 @@ abstract class $MemberPlanResponseCopyWith<$Res> {
     int todayRandomSolvedCount,
     int dailyFreeLimit,
     DateTime? purchasableUntil,
+    DateTime? lastPurchasedAt,
+    String? lastOrderId,
   });
 }
 
@@ -82,6 +88,8 @@ class _$MemberPlanResponseCopyWithImpl<$Res, $Val extends MemberPlanResponse>
     Object? todayRandomSolvedCount = null,
     Object? dailyFreeLimit = null,
     Object? purchasableUntil = freezed,
+    Object? lastPurchasedAt = freezed,
+    Object? lastOrderId = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -109,6 +117,14 @@ class _$MemberPlanResponseCopyWithImpl<$Res, $Val extends MemberPlanResponse>
                 ? _value.purchasableUntil
                 : purchasableUntil // ignore: cast_nullable_to_non_nullable
                       as DateTime?,
+            lastPurchasedAt: freezed == lastPurchasedAt
+                ? _value.lastPurchasedAt
+                : lastPurchasedAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            lastOrderId: freezed == lastOrderId
+                ? _value.lastOrderId
+                : lastOrderId // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -131,6 +147,8 @@ abstract class _$$MemberPlanResponseImplCopyWith<$Res>
     int todayRandomSolvedCount,
     int dailyFreeLimit,
     DateTime? purchasableUntil,
+    DateTime? lastPurchasedAt,
+    String? lastOrderId,
   });
 }
 
@@ -154,6 +172,8 @@ class __$$MemberPlanResponseImplCopyWithImpl<$Res>
     Object? todayRandomSolvedCount = null,
     Object? dailyFreeLimit = null,
     Object? purchasableUntil = freezed,
+    Object? lastPurchasedAt = freezed,
+    Object? lastOrderId = freezed,
   }) {
     return _then(
       _$MemberPlanResponseImpl(
@@ -181,6 +201,14 @@ class __$$MemberPlanResponseImplCopyWithImpl<$Res>
             ? _value.purchasableUntil
             : purchasableUntil // ignore: cast_nullable_to_non_nullable
                   as DateTime?,
+        lastPurchasedAt: freezed == lastPurchasedAt
+            ? _value.lastPurchasedAt
+            : lastPurchasedAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        lastOrderId: freezed == lastOrderId
+            ? _value.lastOrderId
+            : lastOrderId // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -197,6 +225,8 @@ class _$MemberPlanResponseImpl implements _MemberPlanResponse {
     this.todayRandomSolvedCount = 0,
     this.dailyFreeLimit = 0,
     this.purchasableUntil,
+    this.lastPurchasedAt,
+    this.lastOrderId,
   });
 
   factory _$MemberPlanResponseImpl.fromJson(Map<String, dynamic> json) =>
@@ -224,10 +254,16 @@ class _$MemberPlanResponseImpl implements _MemberPlanResponse {
   // 지금 구매하면 이용할 수 있는 마지막 날 (다음 시험일, 없으면 null)
   @override
   final DateTime? purchasableUntil;
+  // 가장 최근 검증 구매 시각 (KST, 구매 없음·관리자 부여만 있으면 null)
+  @override
+  final DateTime? lastPurchasedAt;
+  // 가장 최근 검증 구매의 Play 주문 번호 (구매 없음·관리자 부여만 있으면 null)
+  @override
+  final String? lastOrderId;
 
   @override
   String toString() {
-    return 'MemberPlanResponse(isBillingEnabled: $isBillingEnabled, plan: $plan, proExpiresAt: $proExpiresAt, todayRandomSolvedCount: $todayRandomSolvedCount, dailyFreeLimit: $dailyFreeLimit, purchasableUntil: $purchasableUntil)';
+    return 'MemberPlanResponse(isBillingEnabled: $isBillingEnabled, plan: $plan, proExpiresAt: $proExpiresAt, todayRandomSolvedCount: $todayRandomSolvedCount, dailyFreeLimit: $dailyFreeLimit, purchasableUntil: $purchasableUntil, lastPurchasedAt: $lastPurchasedAt, lastOrderId: $lastOrderId)';
   }
 
   @override
@@ -245,7 +281,11 @@ class _$MemberPlanResponseImpl implements _MemberPlanResponse {
             (identical(other.dailyFreeLimit, dailyFreeLimit) ||
                 other.dailyFreeLimit == dailyFreeLimit) &&
             (identical(other.purchasableUntil, purchasableUntil) ||
-                other.purchasableUntil == purchasableUntil));
+                other.purchasableUntil == purchasableUntil) &&
+            (identical(other.lastPurchasedAt, lastPurchasedAt) ||
+                other.lastPurchasedAt == lastPurchasedAt) &&
+            (identical(other.lastOrderId, lastOrderId) ||
+                other.lastOrderId == lastOrderId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -258,6 +298,8 @@ class _$MemberPlanResponseImpl implements _MemberPlanResponse {
     todayRandomSolvedCount,
     dailyFreeLimit,
     purchasableUntil,
+    lastPurchasedAt,
+    lastOrderId,
   );
 
   /// Create a copy of MemberPlanResponse
@@ -285,6 +327,8 @@ abstract class _MemberPlanResponse implements MemberPlanResponse {
     final int todayRandomSolvedCount,
     final int dailyFreeLimit,
     final DateTime? purchasableUntil,
+    final DateTime? lastPurchasedAt,
+    final String? lastOrderId,
   }) = _$MemberPlanResponseImpl;
 
   factory _MemberPlanResponse.fromJson(Map<String, dynamic> json) =
@@ -303,7 +347,11 @@ abstract class _MemberPlanResponse implements MemberPlanResponse {
   @override
   int get dailyFreeLimit; // 지금 구매하면 이용할 수 있는 마지막 날 (다음 시험일, 없으면 null)
   @override
-  DateTime? get purchasableUntil;
+  DateTime? get purchasableUntil; // 가장 최근 검증 구매 시각 (KST, 구매 없음·관리자 부여만 있으면 null)
+  @override
+  DateTime? get lastPurchasedAt; // 가장 최근 검증 구매의 Play 주문 번호 (구매 없음·관리자 부여만 있으면 null)
+  @override
+  String? get lastOrderId;
 
   /// Create a copy of MemberPlanResponse
   /// with the given fields replaced by the non-null parameter values.

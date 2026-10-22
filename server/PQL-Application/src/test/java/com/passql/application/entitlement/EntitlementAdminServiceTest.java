@@ -66,10 +66,45 @@ class EntitlementAdminServiceTest {
         when(memberRepository.existsByMemberUuidAndIsDeletedFalse(memberUuid)).thenReturn(true);
         when(entitlementRepository.findForUpdateByMemberUuid(memberUuid)).thenReturn(Optional.of(existing));
 
-        service.grantPro(memberUuid, LocalDate.of(2026, 10, 22));
+        service.grantPro(memberUuid, LocalDate.of(2026, 12, 31));
 
-        assertThat(existing.getExpiresAt()).isEqualTo(LocalDateTime.of(2026, 10, 22, 23, 59, 59));
+        assertThat(existing.getExpiresAt()).isEqualTo(LocalDateTime.of(2026, 12, 31, 23, 59, 59));
         assertThat(existing.getSource()).isEqualTo(EntitlementSource.ADMIN_GRANT);
+    }
+
+    @Test
+    void grantPro_rejectsShorteningActivePaidPass() {
+        LocalDateTime paidExpiresAt = LocalDateTime.of(2026, 11, 1, 23, 59, 59);
+        MemberEntitlement existing = MemberEntitlement.of(memberUuid, MemberPlan.PRO,
+            paidExpiresAt, EntitlementSource.PLAY_PURCHASE);
+        when(memberRepository.existsByMemberUuidAndIsDeletedFalse(memberUuid)).thenReturn(true);
+        when(entitlementRepository.findForUpdateByMemberUuid(memberUuid)).thenReturn(Optional.of(existing));
+
+        assertThatThrownBy(() -> service.grantPro(memberUuid, LocalDate.of(2026, 10, 31)))
+            .isInstanceOfSatisfying(CustomException.class,
+                exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_REQUEST));
+        assertThat(existing.getExpiresAt()).isEqualTo(paidExpiresAt);
+        assertThat(existing.getSource()).isEqualTo(EntitlementSource.PLAY_PURCHASE);
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    void grantPro_sameExpiryAsActivePass_allowed() {
+        MemberEntitlement existing = MemberEntitlement.of(memberUuid, MemberPlan.PRO,
+            LocalDateTime.of(2026, 11, 1, 23, 59, 59), EntitlementSource.PLAY_PURCHASE);
+        when(memberRepository.existsByMemberUuidAndIsDeletedFalse(memberUuid)).thenReturn(true);
+        when(entitlementRepository.findForUpdateByMemberUuid(memberUuid)).thenReturn(Optional.of(existing));
+
+        service.grantPro(memberUuid, LocalDate.of(2026, 11, 1));
+
+        assertThat(existing.getSource()).isEqualTo(EntitlementSource.ADMIN_GRANT);
+    }
+
+    @Test
+    void getEntitlementView_todayIsServiceZoneDate() {
+        when(entitlementRepository.findById(memberUuid)).thenReturn(Optional.empty());
+
+        assertThat(service.getEntitlementView(memberUuid).todayInServiceZone()).isEqualTo(LocalDate.of(2026, 10, 22));
     }
 
     @Test

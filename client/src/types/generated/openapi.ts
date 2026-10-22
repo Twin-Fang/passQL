@@ -2158,6 +2158,9 @@ export interface components {
             /** Format: int32 */
             dailyFreeLimit: number;
             isBillingEnabled: boolean;
+            lastOrderId: string | null;
+            /** Format: date-time */
+            lastPurchasedAt: string | null;
             plan: string;
             /** Format: date-time */
             proExpiresAt: string | null;

@@ -15,13 +15,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.util.StringUtils;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Comparator;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -83,7 +88,7 @@ public class PlayBillingService {
     }
 
     /**
-     * 구매 확인: 상품 검증 > 기존 기록 처리 > Play 조회 > 기록·등급 저장 > 커밋 후 소모 > 내 등급
+     * 구매 확인: 상품 검증 > 기존 기록 처리 > Play 조회 > 구매 계정 대조 > 기록·등급 저장 > 커밋 후 소모 > 내 등급
      * 대기 구매는 저장·소모 없이 현재 등급 반환
      */
     public MemberPlanResponse verify(UUID memberUuid, PlayVerifyRequest request) {
@@ -102,6 +107,7 @@ public class PlayBillingService {
         // Play 구매 상태 확인 (대기 > 그대로, 취소 > 거절)
         PlayPurchaseSnapshot snapshot =
             playDeveloperApiClient.getProductPurchase(request.productId(), request.purchaseToken());
+        assertPurchasedBySameAccount(memberUuid, snapshot);
         if (snapshot.purchaseState() == PURCHASE_STATE_PENDING) {
             log.info("[billing] pending : member={}, order={}", memberUuid, snapshot.orderId());
             return featureAccessPolicy.getPlan(memberUuid);
@@ -157,6 +163,35 @@ public class PlayBillingService {
             }
         }
         log.info("[billing] voided purchases checked : voided={}, revoked={}", voidedPurchaseTokens.size(), revokedCount);
+    }
+
+    /**
+     * 회원 uuid > Play 계정 값 (소문자 하이픈 문자열 UTF-8 > SHA-256 소문자 hex 64자)
+     * 앱 PurchaseParam.applicationUserName 과 같은 계산 (앱 play_account_identifier.dart)
+     */
+    static String toObfuscatedAccountId(UUID memberUuid) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                .digest(memberUuid.toString().getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest);
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 unavailable", exception);
+        }
+    }
+
+    /**
+     * 구매 계정 대조: Play 계정 값 <-> SHA-256(요청 회원 uuid), 다르면 ACCESS_DENIED (기록·소모 전)
+     * 값 없는 구매(예전 앱·테스트 구매)는 통과
+     */
+    private static void assertPurchasedBySameAccount(UUID memberUuid, PlayPurchaseSnapshot snapshot) {
+        String purchasedAccountId = snapshot.obfuscatedExternalAccountId();
+        if (!StringUtils.hasText(purchasedAccountId)) {
+            return;
+        }
+        if (!purchasedAccountId.equals(toObfuscatedAccountId(memberUuid))) {
+            log.warn("[billing] rejected 403 : account mismatch, member={}, order={}", memberUuid, snapshot.orderId());
+            throw new CustomException(ErrorCode.ACCESS_DENIED);
+        }
     }
 
     /** 기록된 구매: 다른 회원 > 거절, 회수됨 > 거절, 미소모 > 소모 재시도, 그 뒤 내 등급 */

@@ -29,7 +29,7 @@ import java.util.UUID;
 
 /**
  * 관리자 프로 수동 부여·회수, 회원 상세용 등급·구매 이력 조회
- * 부여: 검증(회원, 날짜) > 등급 행 연장 또는 생성(ADMIN_GRANT) > 감사 기록
+ * 부여: 검증(회원, 날짜) > 활성 이용권 단축 거절 > 등급 행 연장 또는 생성(ADMIN_GRANT) > 감사 기록
  */
 @Slf4j
 @Service
@@ -66,7 +66,7 @@ public class EntitlementAdminService {
         this.clock = clock;
     }
 
-    /** 프로 부여: 회원·날짜 검증 > 행 잠금 조회 > 연장 또는 생성(ADMIN_GRANT) > 감사 기록 */
+    /** 프로 부여: 회원·날짜 검증 > 행 잠금 조회 > 활성 이용권 단축 거절 > 연장 또는 생성(ADMIN_GRANT) > 감사 기록 */
     @Transactional
     public void grantPro(UUID memberUuid, LocalDate expiresDate) {
         // 요청 검증 (회원 존재, 오늘 이후 날짜)
@@ -82,6 +82,12 @@ public class EntitlementAdminService {
         // 등급 행 연장 또는 생성
         MemberEntitlement existing = memberEntitlementRepository.findForUpdateByMemberUuid(memberUuid).orElse(null);
         LocalDateTime previousExpiresAt = existing != null ? existing.getExpiresAt() : null;
+        // 활성 이용권(유료 패스 포함)이 요청보다 길면 줄이지 않음 (단축은 회수 후 부여로만)
+        if (isActivePro(existing) && previousExpiresAt.isAfter(newExpiresAt)) {
+            log.info("[billing] admin grant rejected 400 : current pro is longer, member={}, current={}, requested={}",
+                memberUuid, previousExpiresAt, newExpiresAt);
+            throw new CustomException(ErrorCode.INVALID_REQUEST, "current pro expires later than requested");
+        }
         if (existing != null) {
             existing.extendTo(newExpiresAt, EntitlementSource.ADMIN_GRANT);
         } else {
@@ -116,10 +122,6 @@ public class EntitlementAdminService {
     @Transactional(readOnly = true)
     public MemberEntitlementAdminView getEntitlementView(UUID memberUuid) {
         MemberEntitlement entitlement = memberEntitlementRepository.findById(memberUuid).orElse(null);
-        boolean isActivePro = entitlement != null
-            && entitlement.getPlan() == MemberPlan.PRO
-            && entitlement.getExpiresAt() != null
-            && entitlement.getExpiresAt().isAfter(LocalDateTime.now(clock));
 
         List<MemberEntitlementAdminView.PurchaseRow> purchaseRows = entitlementPurchaseRepository
             .findByMemberUuid(memberUuid, Sort.by(Sort.Direction.DESC, "purchasedAt"))
@@ -128,10 +130,19 @@ public class EntitlementAdminService {
             .toList();
 
         return new MemberEntitlementAdminView(
-            isActivePro,
+            isActivePro(entitlement),
             entitlement != null ? entitlement.getExpiresAt() : null,
             entitlement != null ? entitlement.getSource() : null,
-            purchaseRows);
+            purchaseRows,
+            LocalDate.now(clock));
+    }
+
+    /** 유효한 프로 등급 행인지: PRO 이고 만료일이 지금 이후 (행 없음 false) */
+    private boolean isActivePro(MemberEntitlement entitlement) {
+        return entitlement != null
+            && entitlement.getPlan() == MemberPlan.PRO
+            && entitlement.getExpiresAt() != null
+            && entitlement.getExpiresAt().isAfter(LocalDateTime.now(clock));
     }
 
     /** 구매 > 화면 행 (구매 토큰 제외) */

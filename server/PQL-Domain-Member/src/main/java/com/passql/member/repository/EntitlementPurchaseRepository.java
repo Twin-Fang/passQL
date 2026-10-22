@@ -51,6 +51,10 @@ public interface EntitlementPurchaseRepository extends JpaRepository<Entitlement
     /** 회원의 상태별 구매 이력 (환불 후 남은 유효 구매로 만료일 재계산) */
     List<EntitlementPurchase> findByMemberUuidAndStatus(UUID memberUuid, PurchaseStatus status);
 
+    /** 회원의 상태별 가장 최근 구매 1건 (구매 시각 기준, 이용권 정보의 최근 구매일·주문 번호) */
+    Optional<EntitlementPurchase> findFirstByMemberUuidAndStatusOrderByPurchasedAtDesc(UUID memberUuid,
+                                                                                        PurchaseStatus status);
+
     /** 회원의 전체 구매 이력 (관리자 회원 상세) */
     List<EntitlementPurchase> findByMemberUuid(UUID memberUuid, Sort sort);
 }

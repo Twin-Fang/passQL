@@ -9,6 +9,8 @@ import java.time.Instant;
  * @param purchaseState    구매 상태: 0 구매 완료, 1 취소, 2 대기
  * @param consumptionState 소모 상태: 0 미소모, 1 소모 완료
  * @param purchasedAt      구매 시각 (없으면 null)
+ * @param obfuscatedExternalAccountId 앱이 결제 때 넣은 계정 값 = SHA-256(회원 uuid) hex (예전 구매·테스트는 null)
  */
-public record PlayPurchaseSnapshot(String orderId, int purchaseState, int consumptionState, Instant purchasedAt) {
+public record PlayPurchaseSnapshot(String orderId, int purchaseState, int consumptionState, Instant purchasedAt,
+                                   String obfuscatedExternalAccountId) {
 }

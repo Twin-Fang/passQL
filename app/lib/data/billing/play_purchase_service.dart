@@ -8,6 +8,7 @@ import '../../core/billing/pro_purchase_port.dart';
 import '../models/billing/play_verify_request.dart';
 import '../models/member/member_plan_response.dart';
 import '../sources/billing_api.dart';
+import 'play_account_identifier.dart';
 
 /// 회차 패스 Play 결제 (Android): 상품 조회 > 결제 창(소모형) > 구매 스트림 > 서버 확인 > 등급 갱신 > 구매 처리 완료
 /// 소모(consume)는 서버가 함 (앱은 autoConsume: false). 등급 갱신은 [refreshPlan] 으로 바깥에 맡김 (data 는 등급 상태를 모름)
@@ -16,9 +17,11 @@ class PlayPurchaseService implements ProPurchasePort {
   PlayPurchaseService({
     required BillingApiClient billingApi,
     required Future<bool> Function() refreshPlan,
+    required String? Function() readMemberUuid,
     InAppPurchase? store,
   }) : _billingApi = billingApi,
        _refreshPlan = refreshPlan,
+       _readMemberUuid = readMemberUuid,
        _store = store ?? InAppPurchase.instance;
 
   /// Play Console 일회성 소모형 상품 ID
@@ -31,6 +34,9 @@ class PlayPurchaseService implements ProPurchasePort {
 
   /// 등급 다시 받기 > 프로면 true
   final Future<bool> Function() _refreshPlan;
+
+  /// 지금 로그인한 회원 uuid (로그아웃 null), 결제 창 열 때마다 읽음
+  final String? Function() _readMemberUuid;
   final InAppPurchase _store;
 
   final StreamController<void> _backgroundUnlockController =
@@ -70,9 +76,16 @@ class PlayPurchaseService implements ProPurchasePort {
     final product = await _loadExamPassProduct();
     if (product == null) return ProPurchaseOutcome.unavailable;
     final activePurchase = _activePurchase = Completer<ProPurchaseOutcome>();
+    // 구매 계정 표시: 서버가 확인 요청 회원과 대조 (다른 계정으로 재전송 거절)
+    final memberUuid = _readMemberUuid();
     try {
       final isLaunched = await _store.buyConsumable(
-        purchaseParam: PurchaseParam(productDetails: product),
+        purchaseParam: PurchaseParam(
+          productDetails: product,
+          applicationUserName: memberUuid == null
+              ? null
+              : toPlayObfuscatedAccountId(memberUuid),
+        ),
         autoConsume: false,
       );
       if (!isLaunched) _completeActivePurchase(ProPurchaseOutcome.failed);

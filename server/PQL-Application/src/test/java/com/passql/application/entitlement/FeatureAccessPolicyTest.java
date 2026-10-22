@@ -5,7 +5,11 @@ import com.passql.common.exception.constant.ErrorCode;
 import com.passql.member.constant.ChoiceGenerationMode;
 import com.passql.member.constant.EntitlementSource;
 import com.passql.member.constant.MemberPlan;
+import com.passql.member.constant.PurchaseStatus;
+import com.passql.member.constant.PurchaseStore;
+import com.passql.member.entity.EntitlementPurchase;
 import com.passql.member.entity.MemberEntitlement;
+import com.passql.member.repository.EntitlementPurchaseRepository;
 import com.passql.member.repository.MemberEntitlementRepository;
 import com.passql.meta.constant.AppSettingKeys;
 import com.passql.meta.service.AppSettingService;
@@ -42,9 +46,10 @@ class FeatureAccessPolicyTest {
     private final ExamPassExpiryCalculator examPassExpiryCalculator = mock(ExamPassExpiryCalculator.class);
     private final SubmissionRepository submissionRepository = mock(SubmissionRepository.class);
     private final DailyQuestionCounter dailyQuestionCounter = mock(DailyQuestionCounter.class);
+    private final EntitlementPurchaseRepository purchaseRepository = mock(EntitlementPurchaseRepository.class);
     private final FeatureAccessPolicy policy = new FeatureAccessPolicy(
         entitlementRepository, appSettingService, examPassExpiryCalculator,
-        submissionRepository, dailyQuestionCounter, FIXED_CLOCK);
+        submissionRepository, dailyQuestionCounter, purchaseRepository, FIXED_CLOCK);
     private final UUID memberUuid = UUID.randomUUID();
 
     private void givenBillingEnabled(boolean isEnabled) {
@@ -243,5 +248,32 @@ class FeatureAccessPolicyTest {
 
         assertThat(policy.getPlan(memberUuid).todayRandomSolvedCount()).isZero();
         verifyNoInteractions(dailyQuestionCounter);
+    }
+
+    @Test
+    void getPlan_fillsLastPurchaseFromLatestVerifiedPurchase() {
+        givenBillingEnabled(true);
+        givenEntitlement(MemberPlan.PRO, NOW.plusDays(30));
+        LocalDateTime purchasedAt = NOW.minusDays(2);
+        when(purchaseRepository.findFirstByMemberUuidAndStatusOrderByPurchasedAtDesc(memberUuid, PurchaseStatus.VERIFIED))
+            .thenReturn(Optional.of(EntitlementPurchase.verified(memberUuid, PurchaseStore.PLAY, "pro_exam_pass",
+                "GPA.0002", "purchase-token", purchasedAt, NOW.plusDays(30))));
+
+        MemberPlanResponse response = policy.getPlan(memberUuid);
+
+        assertThat(response.lastPurchasedAt()).isEqualTo(purchasedAt);
+        assertThat(response.lastOrderId()).isEqualTo("GPA.0002");
+    }
+
+    @Test
+    void getPlan_whenAdminGrantOnly_lastPurchaseIsNull() {
+        givenBillingEnabled(true);
+        when(entitlementRepository.findById(memberUuid)).thenReturn(Optional.of(
+            MemberEntitlement.of(memberUuid, MemberPlan.PRO, NOW.plusDays(30), EntitlementSource.ADMIN_GRANT)));
+
+        MemberPlanResponse response = policy.getPlan(memberUuid);
+
+        assertThat(response.lastPurchasedAt()).isNull();
+        assertThat(response.lastOrderId()).isNull();
     }
 }

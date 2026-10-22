@@ -1181,6 +1181,13 @@
           "isBillingEnabled" : {
             "type" : "boolean"
           },
+          "lastOrderId" : {
+            "type" : [ "string", "null" ]
+          },
+          "lastPurchasedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
           "plan" : {
             "type" : "string"
           },
@@ -1197,7 +1204,7 @@
             "type" : "integer"
           }
         },
-        "required" : [ "dailyFreeLimit", "isBillingEnabled", "plan", "proExpiresAt", "purchasableUntil", "todayRandomSolvedCount" ],
+        "required" : [ "dailyFreeLimit", "isBillingEnabled", "lastOrderId", "lastPurchasedAt", "plan", "proExpiresAt", "purchasableUntil", "todayRandomSolvedCount" ],
         "type" : "object"
       },
       "NicknameChangeRequest" : {

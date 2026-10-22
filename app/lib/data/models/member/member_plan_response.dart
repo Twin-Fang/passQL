@@ -32,6 +32,10 @@ class MemberPlanResponse with _$MemberPlanResponse {
     @Default(0) int dailyFreeLimit,
     // 지금 구매하면 이용할 수 있는 마지막 날 (다음 시험일, 없으면 null)
     DateTime? purchasableUntil,
+    // 가장 최근 검증 구매 시각 (KST, 구매 없음·관리자 부여만 있으면 null)
+    DateTime? lastPurchasedAt,
+    // 가장 최근 검증 구매의 Play 주문 번호 (구매 없음·관리자 부여만 있으면 null)
+    String? lastOrderId,
   }) = _MemberPlanResponse;
 
   factory MemberPlanResponse.fromJson(Map<String, dynamic> json) =>

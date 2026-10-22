@@ -70,7 +70,8 @@ public class GooglePlayDeveloperApiClient implements PlayDeveloperApiClient {
                 purchase.getOrderId(),
                 purchase.getPurchaseState() != null ? purchase.getPurchaseState() : -1,
                 purchase.getConsumptionState() != null ? purchase.getConsumptionState() : 0,
-                purchasedAt);
+                purchasedAt,
+                purchase.getObfuscatedExternalAccountId());
         } catch (IOException exception) {
             throw toCustomException("get purchase", exception);
         }

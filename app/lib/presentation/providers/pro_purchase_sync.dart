@@ -18,6 +18,7 @@ import 'session_reset.dart';
 final playPurchaseServiceProvider = Provider<PlayPurchaseService>((ref) {
   final service = PlayPurchaseService(
     billingApi: ref.read(billingApiProvider),
+    readMemberUuid: () => ref.read(currentMemberUuidProvider),
     refreshPlan: () async {
       await ref.read(planProvider.notifier).refresh();
       return ref.read(isProProvider);
