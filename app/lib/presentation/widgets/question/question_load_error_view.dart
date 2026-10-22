@@ -23,6 +23,13 @@ class QuestionLoadErrorView extends ConsumerWidget {
   /// 프로 접근 오류가 아닐 때의 문구
   static const String genericFailureMessage = '문제를 불러올 수 없어요';
 
+  /// 사유 화면을 그리는 오류인지 (프로 필요·무료 한도·공정 사용 한도 > 풀 문제 없음, 제출 바 숨김 판단용)
+  static bool isProAccessReason(Object error) => const {
+    ErrorCode.freeDailyLimitReached,
+    ErrorCode.fairUseDailyLimitReached,
+    ErrorCode.proRequired,
+  }.contains(error.asAppException.code);
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final exception = error.asAppException;

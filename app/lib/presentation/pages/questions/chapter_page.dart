@@ -372,9 +372,13 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
           ),
         ),
       ),
-      // 하단 바 — 미제출: 제출 버튼 / 제출 완료: 피드백 바
+      // 하단 바 — 미제출: 제출 버튼 / 제출 완료: 피드백 바 / 프로 접근 사유 화면: 없음 (풀 문제 없음)
       // 문제 로딩 중에도 바 유지 (선택 전이라 제출 비활성), 교체 때 바가 깜빡이지 않게
-      bottomNavigationBar: !chapter.isAnswered
+      bottomNavigationBar:
+          detailAsync.hasError &&
+              QuestionLoadErrorView.isProAccessReason(detailAsync.error!)
+          ? null
+          : !chapter.isAnswered
           ? QuestionSubmitBar(
               interaction: interaction,
               onSubmit: () => _submitCurrentQuestion(currentUuid),

@@ -18,6 +18,7 @@ import 'package:passql_app/presentation/providers/plan_providers.dart';
 import 'package:passql_app/presentation/providers/question_providers.dart';
 import 'package:passql_app/presentation/widgets/pro/pro_access_feedback.dart';
 import 'package:passql_app/presentation/widgets/question/question_load_error_view.dart';
+import 'package:passql_app/presentation/widgets/question/question_sections.dart';
 
 import '../../../helpers/fakes/fake_http_client_adapter.dart';
 import '../../../helpers/text_finders.dart';
@@ -225,6 +226,8 @@ void main() {
       find.text(QuestionLoadErrorView.genericFailureMessage),
       findsNothing,
     );
+    // 풀 문제가 없으니 제출 바 없음
+    expect(find.byType(QuestionSubmitBar), findsNothing);
 
     // 회차 패스로 열기 > 같은 시트 다시
     await tester.tap(find.text(PassqlLockedPreview.unlockLabel));

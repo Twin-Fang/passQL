@@ -103,7 +103,7 @@ public class FeatureAccessPolicy {
     /** 기능 잠금 검사: 불가 시 PRO_REQUIRED */
     public void requireFeature(UUID memberUuid, ProFeature feature) {
         if (!canUse(memberUuid, feature)) {
-            log.info("[pro access] rejected 403 : feature={}", feature);
+            log.info("[pro access] rejected 403 : feature={}, member={}", feature, memberUuid);
             throw new CustomException(ErrorCode.PRO_REQUIRED);
         }
     }
