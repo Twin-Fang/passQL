@@ -5,11 +5,15 @@ import 'package:go_router/go_router.dart';
 import '../../../core/ads/ad_placement.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
+import '../../providers/plan_providers.dart';
 import '../../providers/home_providers.dart';
 import '../../providers/stats_providers.dart';
 import '../../providers/wrong_questions_provider.dart';
 import '../../widgets/ads/ad_inline_card.dart';
 import '../../widgets/common/app_toast.dart';
+import '../../widgets/pro/locked_preview_samples.dart';
+import '../../widgets/pro/pro_locked_section.dart';
+import '../../widgets/pro/pro_plan_chip_slot.dart';
 import '../../widgets/home/heatmap_widget.dart';
 import '../../widgets/home/readiness_card.dart';
 import '../../widgets/stats/ai_analysis_card.dart';
@@ -37,10 +41,12 @@ class StatsPage extends ConsumerWidget {
         skipError: true,
         loading: () => const PassqlLargeTitleScrollView(
           title: '기록',
+          trailing: ProPlanChipSlot(),
           slivers: [_StatsSkeleton()],
         ),
         error: (error, _) => PassqlLargeTitleScrollView(
           title: '기록',
+          trailing: const ProPlanChipSlot(),
           slivers: [
             SliverFillRemaining(
               hasScrollBody: false,
@@ -53,6 +59,7 @@ class StatsPage extends ConsumerWidget {
         ),
         data: (data) => PassqlLargeTitleScrollView(
           title: '기록',
+          trailing: const ProPlanChipSlot(),
           onRefresh: () async {
             // 화면에 보이는 데이터 전부 (진행·토픽, AI 코멘트, 히트맵·세트, 오답 개수)
             ref.invalidate(statsDataProvider);
@@ -68,7 +75,12 @@ class StatsPage extends ConsumerWidget {
               if (context.mounted) showAppToast(context, '새로고침하지 못했어요');
             }
           },
-          slivers: [_StatsContent(data: data)],
+          slivers: [
+            _StatsContent(
+              data: data,
+              isAnalysisLocked: ref.watch(shouldShowProUiProvider),
+            ),
+          ],
         ),
       ),
     );
@@ -77,10 +89,12 @@ class StatsPage extends ConsumerWidget {
 
 /// 기록 카드 목록: 요약 > 합격 준비도 > 학습 현황 > AI 분석 > 레이더 > 막대 > 바로가기 > 인라인 광고 순서로 하나씩 등장.
 /// 푼 문제가 0개면 요약·차트 대신 빈 상태 카드 1개 (광고는 그대로 맨 아래). 카드 사이 간격은 PassqlSpacing.md.
+/// [isAnalysisLocked] (무료, 결제 켜짐): AI 분석·레이더·막대 자리에 묶음 블러
 class _StatsContent extends ConsumerWidget {
   final StatsData data;
+  final bool isAnalysisLocked;
 
-  const _StatsContent({required this.data});
+  const _StatsContent({required this.data, required this.isAnalysisLocked});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -97,12 +111,23 @@ class _StatsContent extends ConsumerWidget {
           _withGap(ReadinessCard(readiness: progress!.readiness!)),
         // 학습 현황 히트맵 (스스로 간격을 둔다)
         _StatsHeatmapSection(streakDays: progress?.streakDays ?? 0),
-        // AI 영역 분석 (웹과 같이 요약 바로 아래, 늦게 와도 나머지는 먼저 보인다)
-        const _StatsAiCommentSection(),
-        // 레이더 차트
-        _withGap(RadarChartSection(topicStats: data.topicAnalysis?.topicStats)),
-        // 카테고리별 가로 막대
-        _withGap(BarChartSection(topicStats: data.topicAnalysis?.topicStats)),
+        if (isAnalysisLocked)
+          _withGap(
+            const ProLockedSection(
+              preview: StatsLockedSample(),
+              caption: LockedPreviewCaptions.stats,
+            ),
+          )
+        else ...[
+          // AI 영역 분석 (웹과 같이 요약 바로 아래, 늦게 와도 나머지는 먼저 보인다)
+          const _StatsAiCommentSection(),
+          // 레이더 차트
+          _withGap(
+            RadarChartSection(topicStats: data.topicAnalysis?.topicStats),
+          ),
+          // 카테고리별 가로 막대
+          _withGap(BarChartSection(topicStats: data.topicAnalysis?.topicStats)),
+        ],
         // 바로가기 (오답 노트, 오늘의 세트 순위)
         _withGap(const StatsShortcutSection()),
       ],

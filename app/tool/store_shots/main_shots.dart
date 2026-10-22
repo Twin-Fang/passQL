@@ -9,6 +9,9 @@
 //   (force_update | recommended_update | maintenance | notice, 없거나 그 외는 정상)
 // 알림함 상황: echo empty > /tmp/passql_shot_notifications.txt (없거나 그 외는 알림 4건·공지 3건, 안 읽은 일부)
 // 알림 권한 안내 시트: echo show > /tmp/passql_shot_permission.txt (없으면 "나중에"를 고른 상태로 시작해 시트를 띄우지 않음)
+// Android 에뮬레이터(호스트 /tmp 못 읽음): --dart-define=SHOT_ROUTE=/stats 로 경로·연출 지정
+// 등급 상황 (#576): --dart-define=SHOT_PLAN=off|free|pro (결제 꺼짐 | 무료·결제 켜짐 | 프로·결제 켜짐, 없으면 off)
+//   연출 result: 오답 제출 결과 화면 (무료면 실행 결과·해설 잠금)
 // 운영 코드(lib/)에는 영향이 없고, 빌드 산출물에도 포함되지 않는다.
 import 'dart:async';
 import 'dart:convert';
@@ -34,11 +37,17 @@ import 'package:passql_app/presentation/widgets/question/ai_explain_sheet.dart';
 import 'package:passql_app/router/app_launch_gate_routing.dart';
 import 'package:passql_app/router/app_router.dart';
 import 'package:passql_app/router/app_routes.dart';
+import 'package:passql_app/router/result_route_arguments.dart';
+import 'package:passql_app/data/models/question/submit_result.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'shot_plan_responses.dart';
 
 // 시뮬레이터는 호스트 파일시스템을 그대로 보므로, 이 파일에 적은 경로로 이동한다.
 // 같은 빌드로 화면만 바꿔 여러 장을 찍기 위한 장치다.
 String _readRoute() {
+  const shotRouteDefine = String.fromEnvironment('SHOT_ROUTE');
+  if (shotRouteDefine.isNotEmpty) return shotRouteDefine;
   try {
     return File('/tmp/passql_shot_route.txt').readAsStringSync().trim();
   } catch (_) {
@@ -195,6 +204,7 @@ Map<String, dynamic> _appConfig() {
   return {
     'ios': platform('https://apps.apple.com/kr/app/passql/id0000000000'),
     'android': platform('https://play.google.com/store/apps/details?id=com.coldredrice.passql'),
+    'isAndroidBillingEnabled': isShotBillingEnabled,
     'maintenance': {
       'isUnderMaintenance': _appConfigScenario == 'maintenance',
       'message': '서버 안정화 작업으로 10월 16일 02:00 ~ 04:00 동안 점검해요.\n이용에 불편을 드려 죄송해요.',
@@ -580,6 +590,10 @@ Object? _respond(RequestOptions o) {
         {'topicUuid': _topics[i][0], 'code': _topics[i][1], 'displayName': _topics[i][2], 'sortOrder': i + 1, 'isActive': true, 'subtopics': [for (var j = 1; j <= 3 + i % 2; j++) {'code': '${_topics[i][1]}_$j', 'displayName': '세부 주제 $j', 'sortOrder': j, 'isActive': true}]},
     ];
   }
+  if (p.endsWith('/members/me/plan')) return memberPlanShotResponse();
+  if (p.endsWith('/ai/choice-explanation')) return choiceExplanationShotResponse();
+  if (p.endsWith('/questions/random')) return _questions;
+  if (p.endsWith('/submit') && o.method == 'POST') return submitShotResponse(correctSql: _executableChoiceSql);
   if (p.endsWith('/members/me')) {
     return {'memberUuid': '55555555-0000-4000-8000-000000000001', 'nickname': '새찬', 'choiceGenerationMode': 'PRACTICE'};
   }
@@ -668,6 +682,13 @@ class _FakeAdapter implements HttpClientAdapter {
     // AI 응답은 실제처럼 늦게 와서 기다리는 화면도 찍히게 한다
     if (options.path.contains('/ai/') || options.path.endsWith('/progress/ai-comment')) {
       await Future<void>.delayed(const Duration(milliseconds: 1500));
+    }
+    if (isProRequiredShotPath(options.path)) {
+      return ResponseBody.fromString(
+        jsonEncode({'errorCode': 'PRO_REQUIRED', 'message': 'pro required'}),
+        403,
+        headers: {Headers.contentTypeHeader: [Headers.jsonContentType]},
+      );
     }
     if (options.path.endsWith('/generate-choices')) {
       // ...0004 문제는 실행 결과형(RESULT_MATCH)으로 응답한다.
@@ -787,6 +808,21 @@ Future<void> _openRoute(String route, ProviderContainer container) async {
           isErrorExplain: false,
         ));
       }
+    case 'result':
+      // 오답 제출 결과 (무료면 실행 결과·해설 잠금)
+      AppRouter.router.go(AppRoutes.questionDetail(_executableQuestionUuid));
+      await Future<void>.delayed(settleDelay);
+      AppRouter.router.push(
+        AppRoutes.questionResult(_executableQuestionUuid),
+        extra: QuestionResultArguments(
+          // JSON 왕복: 실제 응답처럼 중첩 맵 타입을 맞춤
+          result: SubmitResult.fromJson(jsonDecode(jsonEncode(submitShotResponse(correctSql: _executableChoiceSql))) as Map<String, dynamic>)
+              .copyWith(choiceSetUuid: '33333333-0000-4000-8000-000000000001'),
+          correctDisplayLabel: 'A',
+          selectedChoiceKey: 'B',
+          displayLabelByChoiceKey: const {'A': 'A', 'B': 'B', 'C': 'C', 'D': 'D'},
+        ),
+      );
     default:
       AppRouter.router.go(route);
   }

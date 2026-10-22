@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 import '../models/member/choice_mode_models.dart';
 import '../models/member/member_me_response.dart';
+import '../models/member/member_plan_response.dart';
 import '../models/member/nickname_models.dart';
 import '../models/member/nickname_regenerate_response.dart';
 
@@ -14,6 +15,10 @@ abstract class MemberApiClient {
   /// 닉네임 조회.
   @GET('/members/me')
   Future<MemberMeResponse> getMe();
+
+  /// 내 등급: 프로 여부·만료일·오늘 푼 랜덤 문제 수·무료 한도.
+  @GET('/members/me/plan')
+  Future<MemberPlanResponse> getMyPlan();
 
   /// 회원 탈퇴. 성공하면 서버가 204 를 돌려주고 이후 이 계정의 토큰은 쓸 수 없다.
   @DELETE('/members/me')

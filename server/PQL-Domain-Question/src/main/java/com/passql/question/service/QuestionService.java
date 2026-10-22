@@ -301,6 +301,11 @@ public class QuestionService {
         return new RecommendationsResponse(list.stream().map(this::toSummary).toList());
     }
 
+    /** 풀 수 있는 활성 문제 uuid 전체 (랜덤 풀기 후보) */
+    public List<UUID> findPlayableActiveQuestionUuids() {
+        return questionRepository.findPlayableActiveQuestionUuids().stream().map(UUID::fromString).toList();
+    }
+
     /**
      * AI 추천 결과(questionUuid 목록)를 받아 QuestionSummary 목록으로 변환.
      * Application 레이어의 RecommendationService에서 호출한다.

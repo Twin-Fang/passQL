@@ -5,6 +5,7 @@ import '../../core/network/safe_call.dart';
 
 import '../../data/sources/api_providers.dart';
 import '../../data/models/progress/wrong_questions_response.dart';
+import 'pro_ui_providers.dart';
 import 'session_reset.dart';
 
 /// 오답 노트에 한 번에 보여줄 최대 개수.
@@ -28,13 +29,15 @@ final wrongQuestionsProvider =
     });
 
 /// 문제 탭 오답 노트 바로가기에 보일 오답 개수만 조회 (목록은 1건만 받아 버림, 진입 분석 기록 없음)
-/// 실패하면 null (개수 숨김)
+/// 실패하면 null (개수 숨김), 무료(결제 켜짐)면 요청 없이 null (오답 목록 잠금)
 final wrongQuestionTotalCountProvider = FutureProvider.autoDispose<int?>((
   ref,
 ) async {
   if (ref.watch(currentMemberUuidProvider) == null) return null;
+  final progressClient = ref.read(progressApiProvider);
+  if (await watchIsProFeatureLocked(ref)) return null;
   final response = await safeCall(
-    ref.read(progressApiProvider).getWrongQuestions(size: 1),
+    progressClient.getWrongQuestions(size: 1),
     label: 'wrongQuestionTotalCount',
   );
   return response?.totalCount;

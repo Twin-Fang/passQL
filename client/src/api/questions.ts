@@ -71,7 +71,8 @@ function requestChoiceGenerationStream(
     method: "POST",
     headers: {
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      Accept: "text/event-stream",
+      // json 함께 허용: 스트림 시작 전 거부(403·429)를 서버가 오류 JSON 으로 응답 (event-stream 만이면 500)
+      Accept: "text/event-stream, application/json",
     },
     signal,
   });

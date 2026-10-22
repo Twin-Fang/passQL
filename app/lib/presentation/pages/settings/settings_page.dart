@@ -11,6 +11,7 @@ import '../../providers/app_config_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/settings_providers.dart';
 import '../../widgets/common/app_toast.dart';
+import '../../widgets/pro/pro_settings_card.dart';
 import '../../widgets/settings/choice_mode_tile.dart';
 import '../../widgets/settings/push_notification_tile.dart';
 import '../../widgets/settings/theme_mode_tile.dart';
@@ -111,6 +112,8 @@ class SettingsPage extends ConsumerWidget {
             ),
             sliver: SliverList.list(
               children: passqlRevealInOrder([
+                // 등급 카드 (결제 꺼짐·등급 모름이면 자리째 없음, 아래 간격 포함)
+                const ProSettingsCard(),
                 // 프로필: 닉네임만 보여 주고, 내부 식별자(회원 ID)는 하단으로 내린다.
                 settingsAsync.when(
                   loading: () => const ProfileCardSkeleton(),

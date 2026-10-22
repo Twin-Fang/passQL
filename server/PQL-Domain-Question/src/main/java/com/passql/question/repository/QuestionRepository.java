@@ -23,6 +23,13 @@ public interface QuestionRepository extends JpaRepository<Question, UUID>, JpaSp
             nativeQuery = true)
     List<Question> findPlayableActive();
 
+    // 풀 수 있는 활성 문제 uuid 만 (선택지 생성 실패만 있는 문제 제외) — 랜덤 풀기 후보용, 엔티티 전체를 올리지 않음
+    @Query(value = "SELECT CAST(question_uuid AS varchar) FROM question WHERE is_active = true "
+            + "AND NOT (EXISTS (SELECT 1 FROM question_choice_set f WHERE f.question_uuid = question.question_uuid AND f.status = 'FAILED') "
+            + "AND NOT EXISTS (SELECT 1 FROM question_choice_set o WHERE o.question_uuid = question.question_uuid AND o.status = 'OK'))",
+            nativeQuery = true)
+    List<String> findPlayableActiveQuestionUuids();
+
     /** 대시보드 집계용 — 전체 활성 문제 수 count 쿼리 */
     long countByIsActiveTrue();
 

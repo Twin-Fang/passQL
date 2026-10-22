@@ -34,4 +34,19 @@ void main() {
       reason: '서버 ErrorCode 에 없는 코드: error_code.dart 매핑 정리 필요',
     );
   });
+
+  test('결제 서버 코드 3종을 앱이 매핑한다', () {
+    expect(
+      ErrorCodeMapper.fromServerCode('PRO_REQUIRED'),
+      ErrorCode.proRequired,
+    );
+    expect(
+      ErrorCodeMapper.fromServerCode('FREE_DAILY_LIMIT_REACHED'),
+      ErrorCode.freeDailyLimitReached,
+    );
+    expect(
+      ErrorCodeMapper.fromServerCode('FAIR_USE_DAILY_LIMIT_REACHED'),
+      ErrorCode.fairUseDailyLimitReached,
+    );
+  });
 }

@@ -27,6 +27,7 @@
                             <option value="SYSTEM">SYSTEM</option>
                             <option value="STORE">STORE</option>
                             <option value="EXAM">EXAM</option>
+                            <option value="BILLING">BILLING</option>
                         </select>
                     </div>
                 </div>
@@ -275,7 +276,7 @@
             }
             input.value = '';
             endSecretEdit(key);
-            AdminUi.toast('저장했습니다. 다음 AI 호출부터 새 키가 적용됩니다.', 'success');
+            AdminUi.toast('저장했습니다. 다음 호출부터 새 값이 적용됩니다.', 'success');
             setTimeout(() => location.reload(), 800);
         }
 

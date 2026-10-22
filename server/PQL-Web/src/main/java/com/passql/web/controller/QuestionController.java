@@ -1,7 +1,12 @@
 package com.passql.web.controller;
 
+import com.passql.application.entitlement.FeatureAccessPolicy;
+import com.passql.application.entitlement.ProFeature;
+import com.passql.application.entitlement.ProResponseRedactor;
+import com.passql.web.support.RequiresProFeature;
 import com.passql.application.service.ChoiceGenerationStreamService;
 import com.passql.application.service.QuestionExecutionService;
+import com.passql.application.service.RandomPracticeService;
 import com.passql.application.service.RecommendationService;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
@@ -29,6 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.springframework.util.StringUtils.hasText;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/questions")
@@ -37,12 +44,16 @@ public class QuestionController implements QuestionControllerDocs {
 
     private final QuestionService questionService;
     private final RecommendationService recommendationService;
+    private final RandomPracticeService randomPracticeService;
     private final QuestionExecutionService questionExecutionService;
     private final SubmissionService submissionService;
     private final ChoiceGenerationStreamService choiceGenerationStreamService;
+    private final FeatureAccessPolicy featureAccessPolicy;
+    private final ProResponseRedactor proResponseRedactor;
 
     @GetMapping
     public ResponseEntity<Page<QuestionSummary>> getQuestions(
+        @AuthMember LoginMember loginMember,
         @RequestParam(required = false) String topic,
         @RequestParam(required = false) String subtopic,
         @RequestParam(required = false) Integer difficulty,
@@ -50,10 +61,24 @@ public class QuestionController implements QuestionControllerDocs {
         @RequestParam(required = false) Boolean latestTrend,
         Pageable pageable
     ) {
+        // 토픽·세부 토픽 필터 연습은 프로 전용 (필터 없는 전체 목록은 무료 허용)
+        if (hasText(topic) || hasText(subtopic)) {
+            featureAccessPolicy.requireFeature(loginMember.memberUuid(), ProFeature.TOPIC_PRACTICE);
+        }
         return ResponseEntity.ok(questionService.getQuestions(topic, subtopic, difficulty, mode, latestTrend, pageable));
     }
 
+    // 랜덤 풀기 목록: 안 푼 문제 우선, 상세 열기에서 하루 제한 적용 (/{questionUuid} 보다 리터럴 경로가 먼저 매칭됨)
+    @GetMapping("/random")
+    public ResponseEntity<List<QuestionSummary>> getRandomQuestions(
+        @AuthMember LoginMember loginMember,
+        @RequestParam(defaultValue = "" + RandomPracticeService.DEFAULT_SIZE) int size
+    ) {
+        return ResponseEntity.ok(randomPracticeService.findRandomQuestions(loginMember.memberUuid(), size));
+    }
+
     // GET → POST 전환: 제외 UUID 목록이 쿼리스트링으로 누적되면 Tomcat 8KB 헤더 한도 초과 → 400 발생
+    @RequiresProFeature(ProFeature.RECOMMENDATION)
     @PostMapping("/recommendations")
     public ResponseEntity<RecommendationsResponse> getRecommendations(
         @AuthMember LoginMember loginMember,
@@ -67,10 +92,16 @@ public class QuestionController implements QuestionControllerDocs {
     }
 
     @GetMapping("/{questionUuid}")
-    public ResponseEntity<QuestionDetail> getQuestion(@PathVariable UUID questionUuid) {
+    public ResponseEntity<QuestionDetail> getQuestion(
+        @AuthMember LoginMember loginMember,
+        @PathVariable UUID questionUuid
+    ) {
+        // 하루 문제 수 제한 (무료 10, 프로 200)
+        featureAccessPolicy.assertCanOpenQuestion(loginMember.memberUuid(), questionUuid);
         return ResponseEntity.ok(questionService.getQuestionForSolving(questionUuid));
     }
 
+    @RequiresProFeature(ProFeature.SQL_EXECUTION)
     @PostMapping("/{questionUuid}/execute")
     public ResponseEntity<ExecuteResult> executeChoice(
         @PathVariable UUID questionUuid,
@@ -89,6 +120,8 @@ public class QuestionController implements QuestionControllerDocs {
         @PathVariable UUID questionUuid,
         @AuthMember LoginMember loginMember
     ) {
+        // SSE 시작 전 제한 확인 (거부는 일반 JSON 오류 응답)
+        featureAccessPolicy.assertCanOpenQuestion(loginMember.memberUuid(), questionUuid);
         return choiceGenerationStreamService.streamChoiceGeneration(questionUuid, loginMember.memberUuid());
     }
 
@@ -98,7 +131,9 @@ public class QuestionController implements QuestionControllerDocs {
         @AuthMember LoginMember loginMember,
         @RequestBody SubmitRequest request
     ) {
-        return ResponseEntity.ok(submissionService.submit(
-                loginMember.memberUuid(), questionUuid, request.choiceSetId(), request.selectedChoiceKey(), request.sessionUuid()));
+        // 채점·샌드박스 실행은 그대로, 응답에서만 무료 회원 몫 밖 묶음을 뺀다
+        SubmitResult submitResult = submissionService.submit(
+                loginMember.memberUuid(), questionUuid, request.choiceSetId(), request.selectedChoiceKey(), request.sessionUuid());
+        return ResponseEntity.ok(proResponseRedactor.redactSubmitResult(loginMember.memberUuid(), submitResult));
     }
 }

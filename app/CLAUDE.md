@@ -67,6 +67,7 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 - 화면은 `presentation/design/design.dart` 하나만 import 한다.
 - 값의 원본은 `lib/presentation/design/tokens/`. 문서에 값을 복사하지 않는다.
 - 상세 규칙: `.claude/rules/Design.md`, API 연동: `.claude/rules/api-guide.md`
+- 무료·프로 (#576): 등급 원본은 `planProvider`, 잠금 UI 표시 여부는 `shouldShowProUiProvider` 하나로 판정. 잠금 자리는 `PassqlLockedPreview`(화면은 `ProLockedSection`)만, 프로 에러(403)는 화면 진입점에서 `showProAccessFeedback`
 
 ## 규칙 테스트 (test/architecture)
 
@@ -74,7 +75,7 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 
 | 테스트 | 막는 것 |
 |---|---|
-| `design_system_rules_test.dart` | pages·widgets·flows 에서 `Color(0x`, `Colors.white/black`, `Image.asset(`, `showModalBottomSheet(`, `showCupertinoDialog(`, `CupertinoActivityIndicator(` 직접 사용, `go('/...')`·`push('/...')` 라우트 문자열, 글자색 `tertiaryLabel`·`accent`(대비 미달 > `secondaryLabel`·`accentText`), 탭 동작 없는 `Semantics(button + excludeSemantics)` |
+| `design_system_rules_test.dart` | pages·widgets·flows 에서 `Color(0x`, `Colors.white/black`, `Image.asset(`, `showModalBottomSheet(`, `showCupertinoDialog(`, `CupertinoActivityIndicator(`·`ImageFilter.blur(` 직접 사용, `go('/...')`·`push('/...')` 라우트 문자열, 글자색 `tertiaryLabel`·`accent`(대비 미달 > `secondaryLabel`·`accentText`), 탭 동작 없는 `Semantics(button + excludeSemantics)` |
 | `ad_placement_rules_test.dart` | core/ads 밖의 `google_mobile_ads`·ATT import, 허용 목록(탭 쉘·홈·통계·토픽 목록·결과 화면 2곳·main) 밖의 광고 사용, 탭 쉘 밖·2개 이상의 한 줄 띠와 탭별 배너, 홈·통계 밖·화면당 2개 이상의 인라인 카드, 토픽 목록 밖의 네이티브 카드, 풀이·로그인·약관·설정·차단 화면의 광고, `ad_request_preparer.dart` 밖의 `AdRequest(` 조립, 사용자 정보를 실은 광고 요청 |
 | `layer_dependency_test.dart` | core 의 data·presentation·router import, data 의 presentation·router import, design 의 providers·pages·widgets·flows import, 화면의 `data/sources` 직접 import, core/monitoring 밖의 Crashlytics·Analytics SDK, core/push 밖의 firebase_messaging, core/notification 밖의 app_badge_plus, core/storage 밖의 shared_preferences 직접 import, 종 아이콘 밖의 알림함 경로 |
 | `server_api_schema_test.dart` | 앱 모델 필드 <-> `api-contract/openapi.json` 어긋남 (서버에 없는 필드, 기본값 없는 nullable, 타입 불일치, #493) |

@@ -2,19 +2,16 @@ package com.passql.application.community;
 
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.Sha256Hex;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.HexFormat;
 import java.util.UUID;
 
 /**
@@ -82,7 +79,7 @@ public class CommunityWriteLimiter {
     public void assertNotRecentDuplicate(UUID memberUuid, String content) {
         try {
             String recentHash = stringRedisTemplate.opsForValue().get(duplicateKeyOf(memberUuid));
-            if (hashOf(content).equals(recentHash)) {
+            if (Sha256Hex.of(content).equals(recentHash)) {
                 log.warn("[community] rejected 409 : duplicate content, member={}", memberUuid);
                 throw new CustomException(ErrorCode.COMMUNITY_POST_DUPLICATE);
             }
@@ -94,7 +91,7 @@ public class CommunityWriteLimiter {
     /** 작성 성공 후 내용 해시 기록 (5분) */
     public void recordWrittenContent(UUID memberUuid, String content) {
         try {
-            stringRedisTemplate.opsForValue().set(duplicateKeyOf(memberUuid), hashOf(content), DUPLICATE_WINDOW);
+            stringRedisTemplate.opsForValue().set(duplicateKeyOf(memberUuid), Sha256Hex.of(content), DUPLICATE_WINDOW);
         } catch (DataAccessException e) {
             log.warn("[community] duplicate record skipped : redis unavailable, cause={}", e.getClass().getSimpleName());
         }
@@ -111,14 +108,5 @@ public class CommunityWriteLimiter {
 
     private static String duplicateKeyOf(UUID memberUuid) {
         return "community:dup:" + memberUuid;
-    }
-
-    private static String hashOf(String content) {
-        try {
-            byte[] digest = MessageDigest.getInstance("SHA-256").digest(content.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(digest);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 unavailable", e);
-        }
     }
 }

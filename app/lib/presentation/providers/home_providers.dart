@@ -9,6 +9,7 @@ import '../../data/models/daily_set/daily_set_models.dart';
 import '../../data/models/progress/heatmap_response.dart';
 import '../../data/models/progress/progress_response.dart';
 import '../../data/models/exam/exam_schedule_response.dart';
+import 'pro_ui_providers.dart';
 import 'session_reset.dart';
 
 /// 홈 화면에 필요한 모든 API 응답을 담는 집계 모델.
@@ -31,13 +32,12 @@ class HomeData {
   });
 }
 
-/// 홈 데이터 중 풀이와 무관한 묶음: 인사말·추천 문제·시험 일정
+/// 홈 데이터 중 풀이와 무관한 묶음: 인사말·시험 일정 (추천 문제는 잠금 판정이 걸려 따로)
 class HomeOverview {
   final GreetingResponse? greeting;
-  final RecommendationsResponse? recommendations;
   final ExamScheduleResponse? examSchedule;
 
-  const HomeOverview({this.greeting, this.recommendations, this.examSchedule});
+  const HomeOverview({this.greeting, this.examSchedule});
 }
 
 /// 홈 데이터 중 풀이마다 바뀌는 묶음: 진행 현황·오늘의 세트 상태·히트맵
@@ -49,28 +49,35 @@ class HomeLearningStatus {
   const HomeLearningStatus({this.progress, this.dailySet, this.heatmap});
 }
 
-/// 인사말·추천·시험 일정 3개 병렬 호출. 날짜가 바뀌거나 직접 새로고침할 때만 다시 받는다
+/// 인사말·시험 일정 2개 병렬 호출. 날짜가 바뀌거나 직접 새로고침할 때만 다시 받는다
 /// 로그아웃이면 빈 묶음 (API 호출 없음)
 final homeOverviewProvider = FutureProvider.autoDispose<HomeOverview>((
   ref,
 ) async {
   if (ref.watch(currentMemberUuidProvider) == null) return const HomeOverview();
   final greeting = SafeCallSlot(ref.read(homeApiProvider).getGreeting());
-  final recommendations = SafeCallSlot(
-    ref
-        .read(questionApiProvider)
-        .getRecommendations(const RecommendationsRequest(size: 3)),
-  );
   final examSchedule = SafeCallSlot(
     ref.read(examScheduleApiProvider).getSelectedSchedule(),
   );
-  await safeCallAll([greeting, recommendations, examSchedule]);
+  await safeCallAll([greeting, examSchedule]);
   return HomeOverview(
     greeting: greeting.value,
-    recommendations: recommendations.value,
     examSchedule: examSchedule.value,
   );
 });
+
+/// 추천 문제 3개. 실패하면 null(섹션 숨김), 무료(결제 켜짐)면 요청 없이 null (약점 추천 잠금)
+/// 잠금 판정은 이 Provider 만 구독 > 판정이 바뀌어도 인사말·일정은 다시 받지 않음
+final homeRecommendationsProvider =
+    FutureProvider.autoDispose<RecommendationsResponse?>((ref) async {
+      if (ref.watch(currentMemberUuidProvider) == null) return null;
+      final questionApi = ref.read(questionApiProvider);
+      if (await watchIsProFeatureLocked(ref)) return null;
+      return safeCall(
+        questionApi.getRecommendations(const RecommendationsRequest(size: 3)),
+        label: 'homeRecommendations',
+      );
+    });
 
 /// 진행 현황·오늘의 세트·히트맵 3개 병렬 호출. 풀이 후 갱신 대상(refreshLearningData)
 /// 로그아웃이면 빈 묶음 (API 호출 없음)
@@ -92,22 +99,26 @@ final homeLearningStatusProvider =
   );
 });
 
-/// 홈 화면 데이터: [homeOverviewProvider] + [homeLearningStatusProvider] 합침
+/// 홈 화면 데이터: [homeOverviewProvider] + [homeLearningStatusProvider] + [homeRecommendationsProvider] 합침
 ///
 /// 한 묶음만 다시 받아도 다른 묶음은 캐시를 그대로 쓴다.
-/// 한쪽 실패는 그 섹션만 숨기고, 양쪽 다 실패(서버 장애·네트워크 끊김)하면 오류 화면 (#375).
+/// 한 묶음 실패는 그 섹션만 숨기고, 개요·학습 둘 다 실패(서버 장애·네트워크 끊김)하면 오류 화면 (#375).
 /// 인증 만료는 삼키지 않고 다시 던짐 (로그인 화면 전환)
 final homeDataProvider = FutureProvider.autoDispose<HomeData>((ref) async {
-  // 두 묶음 동시 대기 (각 오류는 결과로 받아 미처리 예외 방지)
+  // 세 묶음 동시 대기 (각 오류는 결과로 받아 미처리 예외 방지)
   final overviewOutcome = _settle(ref.watch(homeOverviewProvider.future));
   final learningOutcome = _settle(
     ref.watch(homeLearningStatusProvider.future),
   );
+  final recommendationsOutcome = _settle(
+    ref.watch(homeRecommendationsProvider.future),
+  );
   final (overview, overviewError) = await overviewOutcome;
   final (learning, learningError) = await learningOutcome;
+  final (recommendations, recommendationsError) = await recommendationsOutcome;
 
-  // 실패 판정 (인증 만료 우선 > 양쪽 실패)
-  for (final error in [overviewError, learningError]) {
+  // 실패 판정 (인증 만료 우선 > 개요·학습 둘 다 실패, 추천은 선택 섹션이라 인증 만료만 봄)
+  for (final error in [overviewError, learningError, recommendationsError]) {
     if (error is AppException && error.isUnauthorized) throw error;
   }
   if (overviewError != null && learningError != null) throw overviewError;
@@ -116,7 +127,7 @@ final homeDataProvider = FutureProvider.autoDispose<HomeData>((ref) async {
     greeting: overview?.greeting,
     progress: learning?.progress,
     dailySet: learning?.dailySet,
-    recommendations: overview?.recommendations,
+    recommendations: recommendations,
     examSchedule: overview?.examSchedule,
     heatmap: learning?.heatmap,
   );
@@ -131,6 +142,7 @@ Future<(T?, Object?)> _settle<T>(Future<T> load) => load.then<(T?, Object?)>(
 /// 홈 전체 다시 받기 (당겨서 새로고침·재시도·날짜 변경·계정 전환 공통)
 void invalidateHomeData(void Function(ProviderOrFamily provider) invalidate) {
   invalidate(homeOverviewProvider);
+  invalidate(homeRecommendationsProvider);
   invalidate(homeLearningStatusProvider);
   // 테스트에서 합친 Provider 만 override 해도 다시 불러오도록 함께 비움
   invalidate(homeDataProvider);

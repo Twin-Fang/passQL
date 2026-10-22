@@ -25,6 +25,8 @@ class SubmitResult with _$SubmitResult {
     String? explanation,
     // 구조화 해설 (있으면 미리보기·전체 해설을 요청 없이 바로 표시, #521)
     ChoiceExplanation? structuredExplanation,
+    // 무료 응답에서 뺀 묶음 이름 (EXECUTION_RESULT, FULL_EXPLANATION), 없으면 빈 목록
+    @Default([]) List<String> lockedSections,
     // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
     @JsonKey(includeFromJson: false, includeToJson: false)
     String? choiceSetUuid,

@@ -16,7 +16,6 @@ Future<T?> showPassqlSheet<T>(
   required WidgetBuilder builder,
 }) {
   final hasHeader = title != null || hasCloseButton;
-  final colors = context.passqlColors;
   return showModalBottomSheet<T>(
     context: context,
     // 탭 화면 안에서 열어도 하단 탭 바 위에 뜨도록 최상위 Navigator 에 띄운다.
@@ -24,62 +23,66 @@ Future<T?> showPassqlSheet<T>(
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
-    backgroundColor: colors.cardElevated,
+    // 배경색은 bottomSheetTheme (passql_theme.dart), 여기서 고정하면 열 때 색에 묶임
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(
         top: Radius.circular(PassqlRadius.lg),
       ),
     ),
-    builder: (sheetContext) => Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (hasHeader)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              PassqlSpacing.md,
-              0,
-              PassqlSpacing.xs,
-              PassqlSpacing.xs,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    title ?? '',
-                    style: PassqlTypography.headline.copyWith(
-                      color: colors.label,
-                    ),
-                  ),
-                ),
-                if (hasCloseButton)
-                  CupertinoButton(
-                    padding: const EdgeInsets.all(PassqlSpacing.xs),
-                    onPressed: () => Navigator.of(sheetContext).pop(),
-                    child: Semantics(
-                      label: '닫기',
-                      child: Icon(
-                        CupertinoIcons.xmark_circle_fill,
-                        size: PassqlIconSize.sheetClose,
-                        color: colors.iconSecondary,
+    builder: (sheetContext) {
+      // 색은 시트 context 에서 읽음 (열어 둔 채 테마 전환 대응)
+      final colors = sheetContext.passqlColors;
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (hasHeader)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                PassqlSpacing.md,
+                0,
+                PassqlSpacing.xs,
+                PassqlSpacing.xs,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      title ?? '',
+                      style: PassqlTypography.headline.copyWith(
+                        color: colors.label,
                       ),
                     ),
                   ),
-              ],
-            ),
-          ),
-        // 하단 여백은 여기서 한 번만: 키보드가 올라오면 키보드 높이, 아니면 홈 인디케이터 높이.
-        Flexible(
-          child: Padding(
-            padding: EdgeInsets.only(
-              bottom: math.max(
-                MediaQuery.viewInsetsOf(sheetContext).bottom,
-                MediaQuery.viewPaddingOf(sheetContext).bottom,
+                  if (hasCloseButton)
+                    CupertinoButton(
+                      padding: const EdgeInsets.all(PassqlSpacing.xs),
+                      onPressed: () => Navigator.of(sheetContext).pop(),
+                      child: Semantics(
+                        label: '닫기',
+                        child: Icon(
+                          CupertinoIcons.xmark_circle_fill,
+                          size: PassqlIconSize.sheetClose,
+                          color: colors.iconSecondary,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
-            child: builder(sheetContext),
+          // 하단 여백은 여기서 한 번만: 키보드가 올라오면 키보드 높이, 아니면 홈 인디케이터 높이.
+          Flexible(
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: math.max(
+                  MediaQuery.viewInsetsOf(sheetContext).bottom,
+                  MediaQuery.viewPaddingOf(sheetContext).bottom,
+                ),
+              ),
+              child: builder(sheetContext),
+            ),
           ),
-        ),
-      ],
-    ),
+        ],
+      );
+    },
   );
 }

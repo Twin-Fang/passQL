@@ -2,6 +2,7 @@ package com.passql.application.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.question.constant.ChoiceSetPolicy;
@@ -46,6 +47,7 @@ public class QuizSessionService {
     private final PrefetchService prefetchService;
     private final ObjectMapper objectMapper;
     private final MemberService memberService;
+    private final FeatureAccessPolicy featureAccessPolicy;
 
     /**
      * 퀴즈 세션을 생성한다. 활성 AI_ONLY 문제 중 최대 10개를 무작위 픽.
@@ -95,7 +97,9 @@ public class QuizSessionService {
         UUID questionUuid = order.get(index);
 
         Question question = questionService.getQuestionEntity(questionUuid);
-        ChoiceGenerationMode mode = memberService.getChoiceGenerationMode(session.getMemberUuid());
+        // 무료는 REAL > PRACTICE 보정
+        ChoiceGenerationMode mode = featureAccessPolicy.resolveEffectiveChoiceGenerationMode(
+                session.getMemberUuid(), memberService.getChoiceGenerationMode(session.getMemberUuid()));
         QuestionChoiceSet choiceSet = choiceSetResolver.resolveForUser(questionUuid, session.getMemberUuid(), mode);
         List<QuestionChoiceSetItem> items = choiceSetItemRepository
                 .findByChoiceSetUuidOrderBySortOrderAsc(choiceSet.getChoiceSetUuid());

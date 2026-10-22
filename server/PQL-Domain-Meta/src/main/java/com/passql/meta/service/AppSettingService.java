@@ -35,6 +35,9 @@ public class AppSettingService {
 
     // settingKey 구분자(. _ -) 단위 조각이 이 단어로 끝나면 값을 마스킹 처리
     private static final Set<String> MASK_KEYWORDS = Set.of("key", "secret", "password", "token");
+    // SECRET 목록 표시 문구 (긴 값도 마스크 대신 설정 여부만)
+    static final String SECRET_CONFIGURED_LABEL = "설정됨";
+    static final String SECRET_NOT_CONFIGURED_LABEL = "미설정";
 
     private final AppSettingRepository appSettingRepository;
     private final StringRedisTemplate redisTemplate;
@@ -81,7 +84,7 @@ public class AppSettingService {
 
     public int getInt(String key) { return Integer.parseInt(getString(key)); }
 
-    public boolean getBoolean(String key) { return Boolean.parseBoolean(getString(key)); }
+    public boolean getBoolean(String key) { return Boolean.parseBoolean(getString(key).trim()); }
 
     /** 정수 설정 (행 없음·형식 오류는 기본값 — 설정 장애로 부가 기능이 멈추지 않게) */
     public int getIntOrDefault(String key, int defaultValue) {
@@ -109,18 +112,27 @@ public class AppSettingService {
     public List<SettingView> findAllAsView() {
         return findAll().stream()
                 .map(s -> {
-                    boolean sensitive = isSensitiveKey(s.getSettingKey());
+                    // 키 이름 기준 민감 + SECRET 타입 (키 이름에 key/token 이 없는 비밀값도 마스킹·비밀 저장 경로)
+                    boolean isSensitive = isSensitiveKey(s.getSettingKey()) || isSecretSetting(s);
                     return new SettingView(
                             s.getSettingKey(),
                             s.getValueType(),
-                            sensitive ? toMaskedDisplayValue(s) : s.getValueText(),
+                            toDisplayValue(s, isSensitive),
                             s.getCategory(),
                             s.getDescription(),
-                            sensitive,
+                            isSensitive,
                             AppSettingKeys.isRestartRequired(s.getSettingKey())
                     );
                 })
                 .toList();
+    }
+
+    /** 목록 표시값: SECRET > 설정됨·미설정, 그 외 민감 > 마스킹, 일반 > 원문 */
+    private String toDisplayValue(AppSetting setting, boolean isSensitive) {
+        if (isSecretSetting(setting)) {
+            return StringUtils.hasText(setting.getValueText()) ? SECRET_CONFIGURED_LABEL : SECRET_NOT_CONFIGURED_LABEL;
+        }
+        return isSensitive ? toMaskedDisplayValue(setting) : setting.getValueText();
     }
 
     /** 민감 값 표시용: 복호화 후 마스킹 (비어 있으면 빈 칸, 복호화 실패는 안내 문구) */

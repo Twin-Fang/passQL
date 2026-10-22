@@ -15,6 +15,7 @@ import 'presentation/design/design.dart';
 import 'presentation/providers/app_icon_badge_sync.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/monitoring_member_sync.dart';
+import 'presentation/providers/pro_purchase_sync.dart';
 import 'presentation/providers/push_notification_providers.dart';
 import 'presentation/providers/theme_mode_provider.dart';
 import 'router/app_launch_gate_routing.dart';
@@ -43,7 +44,11 @@ Future<void> main() async {
   // 저장된 화면 모드로 첫 프레임부터 그림 (깜빡임 방지)
   final themeMode = await themeModeLoad;
   final container = ProviderContainer(
-    overrides: [initialThemeModeProvider.overrideWithValue(themeMode)],
+    overrides: [
+      initialThemeModeProvider.overrideWithValue(themeMode),
+      // Android 만 Play 결제 어댑터 (iOS 는 결제 없음)
+      proPurchasePortOverride,
+    ],
   );
   await container.read(authProvider.future);
 
@@ -55,6 +60,7 @@ Future<void> main() async {
   trackScreenViews(AppRouter.router);
   startPushNotificationSync(container, AppRouter.router);
   startAppIconBadgeSync(container);
+  startProPurchaseSync(container, AppRouter.router);
 
   // 앱 시작 설정 1회 조회 > 점검·강제 업데이트 차단 분기 (실패해도 진행, #464)
   await AppLaunchGateRouting.bindAndLoad(container);

@@ -5,7 +5,7 @@ import 'source_scan.dart';
 /// 디자인 시스템 우회 금지 규칙: 화면 코드(pages·widgets·flows)는 토큰과 공통 컴포넌트만 쓴다.
 /// 원본: lib/presentation/design (tokens, components). 새 예외는 [_allowedUsages] 에 이유와 함께 추가
 
-/// 금지 패턴 9종 > 대신 쓸 공통 지점
+/// 금지 패턴 10종 > 대신 쓸 공통 지점
 final _bannedPatterns = <String, (RegExp, String)>{
   'Color(0x': (RegExp(r'Color\(0x'), 'PassqlColors 토큰 (context.passqlColors)'),
   'Colors.white/black': (
@@ -29,6 +29,10 @@ final _bannedPatterns = <String, (RegExp, String)>{
   'duration: Duration(': (
     RegExp(r'duration:\s*(const\s+)?Duration\('),
     'PassqlMotion 시간 토큰',
+  ),
+  'ImageFilter.blur(': (
+    RegExp(r'ImageFilter\.blur\('),
+    'PassqlLockedPreview(잠금 흐림) · PassqlGlass(고정 크롬 흐림)',
   ),
   '라우트 문자열 리터럴': (
     RegExp(r'''\.(go|push|pushReplacement|replace)\s*(<[^>]*>)?\(\s*['"]/'''),
@@ -56,6 +60,9 @@ final _bannedMultilinePatterns = <String, (RegExp, String)>{
 
 /// 명시적 예외: {파일 경로: {패턴 이름: 이유}}. 비어 있는 것이 정상
 const Map<String, Map<String, String>> _allowedUsages = {
+  'lib/presentation/widgets/question/markdown_lite_text.dart': {
+    'ImageFilter.blur(': 'AI 글 단어 등장 연출(흐림이 걷히며 나타남). 잠금 흐림이 아님',
+  },
   'lib/presentation/widgets/common/app_toast.dart': {
     'duration: Duration(': '스낵바 표시 시간(애니메이션 아님)',
   },

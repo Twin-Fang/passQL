@@ -1,5 +1,7 @@
 package com.passql.web.controller;
 
+import com.passql.application.entitlement.ProFeature;
+import com.passql.web.support.RequiresProFeature;
 import com.passql.question.dto.ExamTrendReportResponse;
 import com.passql.question.dto.LatestTrendTopicCount;
 import com.passql.question.service.ExamTrendService;
@@ -23,11 +25,13 @@ public class ExamTrendController implements ExamTrendControllerDocs {
     private final ExamTrendService examTrendService;
     private final QuestionLatestTrendService questionLatestTrendService;
 
+    @RequiresProFeature(ProFeature.EXAM_TREND)
     @GetMapping("/latest")
     public ResponseEntity<ExamTrendReportResponse> getLatestReport() {
         return ResponseEntity.ok(examTrendService.getLatestReport());
     }
 
+    @RequiresProFeature(ProFeature.EXAM_TREND)
     @GetMapping("/latest/topics")
     public ResponseEntity<List<LatestTrendTopicCount>> getLatestTrendTopics() {
         return ResponseEntity.ok(questionLatestTrendService.getLatestTrendTopicCounts());

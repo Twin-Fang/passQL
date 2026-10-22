@@ -5,6 +5,7 @@ import com.passql.ai.entity.AiErrorExplanation;
 import com.passql.ai.repository.AiErrorExplanationRepository;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.Sha256Hex;
 import com.passql.question.dto.explanation.ChoiceExplanationResponse;
 import com.passql.question.entity.Question;
 import com.passql.question.repository.QuestionRepository;
@@ -15,11 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.HexFormat;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -96,8 +93,8 @@ public class AiExplainService {
     public AiResult explainError(UUID memberUuid, UUID questionUuid, String sql, String errorMessage) {
         validateErrorExplanationInput(sql, errorMessage);
         Question question = getQuestion(questionUuid);
-        String sqlHash = sha256Hex(normalizeSql(sql));
-        String errorHash = sha256Hex(errorMessage.trim());
+        String sqlHash = Sha256Hex.of(normalizeSql(sql));
+        String errorHash = Sha256Hex.of(errorMessage.trim());
 
         Optional<AiErrorExplanation> saved = errorExplanationRepository
                 .findByQuestionUuidAndSqlHashAndErrorHash(questionUuid, sqlHash, errorHash);
@@ -147,14 +144,5 @@ public class AiExplainService {
     static String normalizeSql(String sql) {
         String collapsed = WHITESPACE_PATTERN.matcher(sql.trim()).replaceAll(" ");
         return TRAILING_SEMICOLON_PATTERN.matcher(collapsed).replaceAll("");
-    }
-
-    static String sha256Hex(String value) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            return HexFormat.of().formatHex(digest.digest(value.getBytes(StandardCharsets.UTF_8)));
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 unavailable", e);
-        }
     }
 }

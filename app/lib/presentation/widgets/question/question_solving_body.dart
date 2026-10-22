@@ -6,6 +6,8 @@ import '../../../data/models/question/question_detail.dart';
 import '../../../data/models/question/submit_result.dart';
 import '../../design/design.dart';
 import '../../providers/question_providers.dart';
+import '../pro/locked_preview_samples.dart';
+import '../pro/pro_locked_section.dart';
 import 'ai_explain_sheet.dart';
 import 'choice_display_label.dart';
 import 'execute_failure_card.dart';
@@ -14,7 +16,7 @@ import 'question_sections.dart';
 import 'schema_section.dart';
 import 'reveal_above_bottom_bar.dart';
 
-/// 문제 풀이 본문 스크롤: 머리 > 지문 > 테이블(실행형) > 선택지 > 실행 중 표시 > 실행 결과 또는 실패
+/// 문제 풀이 본문 스크롤: 머리 > 지문 > 테이블(실행형) > 선택지 > 실행 중 표시 > 실행 결과 또는 실패 (무료면 블러)
 /// 챕터 풀이(ChapterPage)와 단건 풀이(QuestionDetailPage)가 함께 쓴다. 제출 바는 Scaffold 하단에 따로 붙는다.
 class QuestionSolvingBody extends StatelessWidget {
   const QuestionSolvingBody({
@@ -101,8 +103,9 @@ class QuestionSolvingBody extends StatelessWidget {
     );
   }
 
-  /// 실행 영역 상태 4개: 없음, 실행 중, 결과, 요청 실패 (상태가 바뀔 때만 교체 연출)
+  /// 실행 영역 상태 5개: 없음, 잠금, 실행 중, 결과, 요청 실패 (상태가 바뀔 때만 교체 연출)
   Object get _executionOutcomeKey {
+    if (interaction.isExecutionLocked) return 'locked';
     if (interaction.isExecuting) return 'executing';
     if (interaction.currentExecuteResult != null) {
       return interaction.currentExecuteResult!;
@@ -111,10 +114,23 @@ class QuestionSolvingBody extends StatelessWidget {
     return 'none';
   }
 
-  /// 실행 영역 내용: 실행 중 로딩 > 결과(오류면 AI 해설 버튼) > 요청 실패. 없으면 null
+  /// 실행 영역 내용: 잠금 블러 > 실행 중 로딩 > 결과(오류면 AI 해설 버튼) > 요청 실패. 없으면 null
   Widget? _buildExecutionOutcome(BuildContext context) {
     final executeResult = interaction.currentExecuteResult;
     final hasExecutionError = executeResult?.errorCode?.isNotEmpty == true;
+    // 무료(결제 켜짐): 실행하지 않고 결과 자리만 블러 (풀이 도중이라 시트는 사용자가 누를 때만)
+    if (interaction.isExecutionLocked) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: PassqlSpacing.md,
+          vertical: PassqlSpacing.xxs,
+        ),
+        child: ProLockedSection(
+          preview: ExecutionResultLockedSample(),
+          caption: LockedPreviewCaptions.executionResult,
+        ),
+      );
+    }
     // SQL 실행 중 로딩
     if (interaction.isExecuting) {
       return const Padding(

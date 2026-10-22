@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../data/models/community/community_models.dart';
 import '../presentation/flows/daily_set_flow.dart';
 import '../presentation/flows/question_flow.dart';
+import '../presentation/flows/random_practice_flow.dart';
 import '../presentation/pages/community/blocked_members_page.dart';
 import '../presentation/pages/community/community_feed_page.dart';
 import '../presentation/pages/community/community_question_page.dart';
@@ -29,6 +30,7 @@ import '../presentation/pages/settings/wrong_notes_page.dart';
 import '../presentation/widgets/app_shell.dart';
 import 'app_launch_gate_routing.dart';
 import 'app_routes.dart';
+import 'push_link_routes.dart';
 import 'questions_tab_view.dart';
 import 'result_route_arguments.dart';
 
@@ -239,6 +241,13 @@ abstract final class AppRouter {
         },
       ),
 
+      // 풀스크린: 랜덤 풀기 풀이 (#576)
+      GoRoute(
+        path: AppRoutes.randomPractice,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const ChapterPage(flow: RandomPracticeFlow()),
+      ),
+
       // 풀스크린: 오늘의 세트 풀이 / 결과 / 리더보드
       GoRoute(
         path: AppRoutes.dailySet,
@@ -264,6 +273,7 @@ abstract final class AppRouter {
         parentNavigatorKey: _rootKey,
         builder: (_, state) => QuestionDetailPage(
           questionUuid: state.pathParameters[AppRoutes.questionUuidParameter]!,
+          isPushEntry: state.extra is PushEntryMarker,
         ),
         routes: [
           GoRoute(

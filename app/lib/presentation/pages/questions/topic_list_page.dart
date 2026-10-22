@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,9 +9,15 @@ import '../../../presentation/providers/exam_trend_providers.dart';
 import '../../../presentation/providers/topic_providers.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
+import '../../flows/random_practice_flow.dart';
+import '../../providers/plan_providers.dart';
+import '../../providers/pro_ui_providers.dart';
 import '../../widgets/ads/ad_native_slot.dart';
 import '../../widgets/exam_trend/concept_ranking_tab_view.dart';
 import '../../widgets/exam_trend/latest_trend_tab_view.dart';
+import '../../widgets/pro/locked_preview_samples.dart';
+import '../../widgets/pro/pro_locked_section.dart';
+import '../../widgets/pro/pro_plan_chip_slot.dart';
 import '../../widgets/question/choice_mode_shortcut_row.dart';
 import '../../widgets/question/questions_tab_segmented_control.dart';
 import '../../widgets/question/topic_card.dart';
@@ -23,10 +30,19 @@ const int _nativeAdAfterTopicCount = 5;
 /// 토픽 목록 머리글 (스켈레톤과 같은 자리)
 const _topicListHeader = '학습할 토픽을 선택하세요';
 
+/// 내용 묶음 사이 가로·위 여백
+const _sectionPadding = EdgeInsets.fromLTRB(
+  PassqlSpacing.md,
+  PassqlSpacing.md,
+  PassqlSpacing.md,
+  0,
+);
+
 /// 문제 탭: 보기 3개 (주제별 | 최신 경향 | 개념 TOP 10)
 /// 공통(모든 보기) > 세그먼트 아래 오답 노트 + 풀이 모드 행
 /// 주제별 > 토픽 선택 (토픽 행 탭 시 /questions/chapter?topic=CODE&topicName=NAME 이동)
 /// 최신 경향·개념 TOP 10 > 출제 경향 응답 (행 탭 시 그 토픽의 최신 경향 문제 풀기)
+/// 무료(결제 켜짐): 세그먼트 없이 풀기 방식(랜덤 풀기) + 토픽 골라 풀기·실전 모드·약점 추천 묶음 블러 (토픽 목록·출제 경향 요청 없음)
 class TopicListPage extends ConsumerWidget {
   const TopicListPage({super.key, this.view = QuestionsTabView.byTopic});
 
@@ -35,9 +51,30 @@ class TopicListPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (ref.watch(shouldShowProUiProvider)) {
+      return const Scaffold(
+        body: PassqlLargeTitleScrollView(
+          title: '문제',
+          trailing: ProPlanChipSlot(),
+          slivers: [
+            _RandomPracticeSection(),
+            SliverPadding(
+              padding: _sectionPadding,
+              sliver: SliverToBoxAdapter(
+                child: ProLockedSection(
+                  preview: PracticeModesLockedSample(),
+                  caption: LockedPreviewCaptions.practiceModes,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     return Scaffold(
       body: PassqlLargeTitleScrollView(
         title: '문제',
+        trailing: const ProPlanChipSlot(),
         // 토픽 추가·비활성화, 출제 경향 갱신을 앱 재시작 없이 반영
         onRefresh: () async {
           ref.invalidate(topicsProvider);
@@ -100,6 +137,7 @@ class TopicListPage extends ConsumerWidget {
       ];
     }
     return [
+      const _RandomPracticeSection(),
       SliverPadding(
         padding: const EdgeInsets.fromLTRB(
           PassqlSpacing.md,
@@ -161,6 +199,14 @@ class TopicListPage extends ConsumerWidget {
       sliver: SliverToBoxAdapter(
         child: PassqlFadeSwitcher(
           child: switch (reportAsync) {
+            // 무료(결제 켜짐) 잠금: Provider 가 요청 없이 null
+            AsyncData(value: null) => KeyedSubtree(
+              key: ValueKey('${view.queryValue}-locked'),
+              child: const ProLockedSection(
+                preview: ExamTrendLockedSample(),
+                caption: LockedPreviewCaptions.examTrend,
+              ),
+            ),
             _ when report != null => switch (view) {
               QuestionsTabView.conceptRanking => ConceptRankingTabView(
                 key: ValueKey('${view.queryValue}-data'),
@@ -198,6 +244,38 @@ class TopicListPage extends ConsumerWidget {
               key: ValueKey('${view.queryValue}-loading'),
             ),
           },
+        ),
+      ),
+    );
+  }
+}
+
+/// 풀기 방식 묶음: 랜덤 풀기 (무료·프로 공통, #576). 결제 꺼짐이면 빈 sliver (진입 없음)
+class _RandomPracticeSection extends ConsumerWidget {
+  const _RandomPracticeSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(isRandomPracticeVisibleProvider)) {
+      return const SliverToBoxAdapter();
+    }
+    return SliverPadding(
+      padding: _sectionPadding,
+      sliver: SliverToBoxAdapter(
+        child: PassqlGroupedSection(
+          header: '풀기 방식',
+          children: [
+            PassqlListRow(
+              leading: PassqlIconTile(
+                icon: CupertinoIcons.shuffle,
+                color: context.passqlColors.accent,
+              ),
+              title: RandomPracticeFlow.displayName,
+              subtitle: RandomPracticeFlow.summary,
+              hasChevron: true,
+              onTap: () => context.push(AppRoutes.randomPractice),
+            ),
+          ],
         ),
       ),
     );

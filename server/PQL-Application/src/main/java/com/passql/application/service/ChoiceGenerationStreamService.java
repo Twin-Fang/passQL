@@ -1,6 +1,7 @@
 package com.passql.application.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.member.constant.ChoiceGenerationMode;
@@ -36,6 +37,7 @@ public class ChoiceGenerationStreamService {
     private static final String EVENT_ERROR = "error";
 
     private final MemberService memberService;
+    private final FeatureAccessPolicy featureAccessPolicy;
     private final ChoiceSetResolver choiceSetResolver;
     private final QuestionService questionService;
     private final ObjectMapper objectMapper;
@@ -43,11 +45,13 @@ public class ChoiceGenerationStreamService {
 
     public ChoiceGenerationStreamService(
             MemberService memberService,
+            FeatureAccessPolicy featureAccessPolicy,
             ChoiceSetResolver choiceSetResolver,
             QuestionService questionService,
             ObjectMapper objectMapper,
             @Qualifier("sseStreamExecutor") Executor sseStreamExecutor) {
         this.memberService = memberService;
+        this.featureAccessPolicy = featureAccessPolicy;
         this.choiceSetResolver = choiceSetResolver;
         this.questionService = questionService;
         this.objectMapper = objectMapper;
@@ -67,8 +71,9 @@ public class ChoiceGenerationStreamService {
             log.debug("[generate-choices] VirtualThread 진입: questionUuid={}, memberUuid={}", questionUuid, memberUuid);
             sendStatus(emitter, new SseStatusEvent("generating", "선택지 생성 중..."));
 
-            // 모드 조회 후 프리페치 캐시 히트 > 없으면 실시간 AI 생성
-            ChoiceGenerationMode mode = memberService.getChoiceGenerationMode(memberUuid);
+            // 모드 조회 (무료는 REAL > PRACTICE 보정) 후 프리페치 캐시 히트 > 없으면 실시간 AI 생성
+            ChoiceGenerationMode mode = featureAccessPolicy.resolveEffectiveChoiceGenerationMode(
+                    memberUuid, memberService.getChoiceGenerationMode(memberUuid));
             QuestionChoiceSet choiceSet = choiceSetResolver.resolveForUser(questionUuid, memberUuid, mode);
             log.info("[generate-choices] resolveForUser 완료: questionUuid={}, choiceSetUuid={}",
                     questionUuid, choiceSet.getChoiceSetUuid());

@@ -678,7 +678,9 @@ mixin _$AppConfig {
   AppPlatformVersionPolicy get ios => throw _privateConstructorUsedError;
   AppPlatformVersionPolicy get android => throw _privateConstructorUsedError;
   AppMaintenanceStatus get maintenance => throw _privateConstructorUsedError;
-  List<AppNotice> get notices => throw _privateConstructorUsedError;
+  List<AppNotice> get notices =>
+      throw _privateConstructorUsedError; // 서버 결제 스위치 (false 면 잠금·칩·시트를 그리지 않음)
+  bool get isAndroidBillingEnabled => throw _privateConstructorUsedError;
 
   /// Serializes this AppConfig to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -700,6 +702,7 @@ abstract class $AppConfigCopyWith<$Res> {
     AppPlatformVersionPolicy android,
     AppMaintenanceStatus maintenance,
     List<AppNotice> notices,
+    bool isAndroidBillingEnabled,
   });
 
   $AppPlatformVersionPolicyCopyWith<$Res> get ios;
@@ -726,6 +729,7 @@ class _$AppConfigCopyWithImpl<$Res, $Val extends AppConfig>
     Object? android = null,
     Object? maintenance = null,
     Object? notices = null,
+    Object? isAndroidBillingEnabled = null,
   }) {
     return _then(
       _value.copyWith(
@@ -745,6 +749,10 @@ class _$AppConfigCopyWithImpl<$Res, $Val extends AppConfig>
                 ? _value.notices
                 : notices // ignore: cast_nullable_to_non_nullable
                       as List<AppNotice>,
+            isAndroidBillingEnabled: null == isAndroidBillingEnabled
+                ? _value.isAndroidBillingEnabled
+                : isAndroidBillingEnabled // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -795,6 +803,7 @@ abstract class _$$AppConfigImplCopyWith<$Res>
     AppPlatformVersionPolicy android,
     AppMaintenanceStatus maintenance,
     List<AppNotice> notices,
+    bool isAndroidBillingEnabled,
   });
 
   @override
@@ -823,6 +832,7 @@ class __$$AppConfigImplCopyWithImpl<$Res>
     Object? android = null,
     Object? maintenance = null,
     Object? notices = null,
+    Object? isAndroidBillingEnabled = null,
   }) {
     return _then(
       _$AppConfigImpl(
@@ -842,6 +852,10 @@ class __$$AppConfigImplCopyWithImpl<$Res>
             ? _value._notices
             : notices // ignore: cast_nullable_to_non_nullable
                   as List<AppNotice>,
+        isAndroidBillingEnabled: null == isAndroidBillingEnabled
+            ? _value.isAndroidBillingEnabled
+            : isAndroidBillingEnabled // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -855,6 +869,7 @@ class _$AppConfigImpl implements _AppConfig {
     this.android = const AppPlatformVersionPolicy(),
     this.maintenance = const AppMaintenanceStatus(),
     final List<AppNotice> notices = const [],
+    this.isAndroidBillingEnabled = false,
   }) : _notices = notices;
 
   factory _$AppConfigImpl.fromJson(Map<String, dynamic> json) =>
@@ -878,9 +893,14 @@ class _$AppConfigImpl implements _AppConfig {
     return EqualUnmodifiableListView(_notices);
   }
 
+  // 서버 결제 스위치 (false 면 잠금·칩·시트를 그리지 않음)
+  @override
+  @JsonKey()
+  final bool isAndroidBillingEnabled;
+
   @override
   String toString() {
-    return 'AppConfig(ios: $ios, android: $android, maintenance: $maintenance, notices: $notices)';
+    return 'AppConfig(ios: $ios, android: $android, maintenance: $maintenance, notices: $notices, isAndroidBillingEnabled: $isAndroidBillingEnabled)';
   }
 
   @override
@@ -892,7 +912,12 @@ class _$AppConfigImpl implements _AppConfig {
             (identical(other.android, android) || other.android == android) &&
             (identical(other.maintenance, maintenance) ||
                 other.maintenance == maintenance) &&
-            const DeepCollectionEquality().equals(other._notices, _notices));
+            const DeepCollectionEquality().equals(other._notices, _notices) &&
+            (identical(
+                  other.isAndroidBillingEnabled,
+                  isAndroidBillingEnabled,
+                ) ||
+                other.isAndroidBillingEnabled == isAndroidBillingEnabled));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -903,6 +928,7 @@ class _$AppConfigImpl implements _AppConfig {
     android,
     maintenance,
     const DeepCollectionEquality().hash(_notices),
+    isAndroidBillingEnabled,
   );
 
   /// Create a copy of AppConfig
@@ -925,6 +951,7 @@ abstract class _AppConfig implements AppConfig {
     final AppPlatformVersionPolicy android,
     final AppMaintenanceStatus maintenance,
     final List<AppNotice> notices,
+    final bool isAndroidBillingEnabled,
   }) = _$AppConfigImpl;
 
   factory _AppConfig.fromJson(Map<String, dynamic> json) =
@@ -937,7 +964,9 @@ abstract class _AppConfig implements AppConfig {
   @override
   AppMaintenanceStatus get maintenance;
   @override
-  List<AppNotice> get notices;
+  List<AppNotice> get notices; // 서버 결제 스위치 (false 면 잠금·칩·시트를 그리지 않음)
+  @override
+  bool get isAndroidBillingEnabled;
 
   /// Create a copy of AppConfig
   /// with the given fields replaced by the non-null parameter values.

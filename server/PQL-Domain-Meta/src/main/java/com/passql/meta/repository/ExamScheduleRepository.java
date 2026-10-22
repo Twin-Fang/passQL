@@ -16,6 +16,12 @@ public interface ExamScheduleRepository extends JpaRepository<ExamSchedule, UUID
 
     /** 기준일 당일 또는 그 이후의 가장 가까운 시험. */
     Optional<ExamSchedule> findFirstByExamDateGreaterThanEqualOrderByExamDateAsc(LocalDate date);
+
+    /** 자격증 종류별, 기준일 당일 또는 그 이후의 가장 가까운 시험. */
+    Optional<ExamSchedule> findFirstByCertTypeAndExamDateGreaterThanEqualOrderByExamDateAsc(CertType certType, LocalDate date);
+
+    /** 자격증 종류별, 기준일 이후(당일 제외)의 가장 가까운 시험. */
+    Optional<ExamSchedule> findFirstByCertTypeAndExamDateGreaterThanOrderByExamDateAsc(CertType certType, LocalDate date);
     Optional<ExamSchedule> findByCertTypeAndRound(CertType certType, Integer round);
     boolean existsByCertTypeAndRound(CertType certType, Integer round);
 }

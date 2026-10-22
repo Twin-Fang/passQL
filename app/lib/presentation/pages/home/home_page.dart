@@ -5,11 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../../core/ads/ad_placement.dart';
 import '../../../data/models/notification/notification_models.dart';
 import '../../../router/app_routes.dart';
+import '../../../router/questions_tab_view.dart';
 import '../../design/design.dart';
 import '../../providers/community_providers.dart';
 import '../../providers/exam_trend_providers.dart';
 import '../../providers/home_providers.dart';
 import '../../providers/notification_inbox_providers.dart';
+import '../../providers/pro_ui_providers.dart';
 import '../../providers/unread_notification_providers.dart';
 import '../../widgets/ads/ad_inline_card.dart';
 import '../../widgets/common/app_toast.dart';
@@ -22,9 +24,10 @@ import '../../widgets/home/exam_trend_home_section.dart';
 import '../../widgets/home/fallback_stats_section.dart';
 import '../../widgets/home/greeting_section.dart';
 import '../../widgets/home/heatmap_widget.dart';
+import '../../widgets/home/random_practice_card.dart';
 import '../../widgets/home/readiness_card.dart';
 import '../../widgets/home/recommendations_section.dart';
-import '../../../router/questions_tab_view.dart';
+import '../../widgets/pro/pro_plan_chip_slot.dart';
 
 /// 홈 화면.
 /// homeDataProvider에서 6개 API 병렬 결과를 받아 렌더링.
@@ -74,7 +77,7 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-/// 로딩·오류·내용 공통 틀: 로고 상단 바 + 오른쪽 종 아이콘
+/// 로딩·오류·내용 공통 틀: 로고 상단 바 + 오른쪽 등급 칩·종 아이콘
 class _HomeShell extends ConsumerWidget {
   final Future<void> Function()? onRefresh;
   final List<Widget> slivers;
@@ -85,11 +88,18 @@ class _HomeShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return PassqlBrandBarScrollView(
       onRefresh: onRefresh,
-      trailing: PassqlNotificationBellButton(
-        unreadCount: ref.watch(
-          unreadNotificationCountProvider.select((count) => count.total),
-        ),
-        onPressed: () => context.push(AppRoutes.notificationInbox),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 결제 꺼짐·등급 모름이면 빈 자리 (종 아이콘만)
+          const ProPlanChipSlot(),
+          PassqlNotificationBellButton(
+            unreadCount: ref.watch(
+              unreadNotificationCountProvider.select((count) => count.total),
+            ),
+            onPressed: () => context.push(AppRoutes.notificationInbox),
+          ),
+        ],
       ),
       slivers: slivers,
     );
@@ -141,6 +151,10 @@ class _HomeContent extends ConsumerWidget {
           ],
         ),
       ),
+
+      // 랜덤 풀기 진입 (결제 켜짐일 때만, 무료면 오늘 랜덤 n / 10, #576)
+      if (ref.watch(isRandomPracticeVisibleProvider))
+        const RandomPracticeCard(),
 
       // 출제 경향 (로딩 = 자리 스켈레톤, 실패·유형 없음 = 항목 없음 > 간격도 없음)
       // 시작 카드는 날짜마다 다음 유형으로 (같은 날은 같은 카드)
