@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 import '../models/home/recommendations_request.dart';
+import '../models/home/question_summary.dart';
 import '../models/home/recommendations_response.dart';
 import '../models/question/question_detail.dart';
 import '../models/question/question_list_response.dart';
@@ -33,6 +34,10 @@ abstract class QuestionApiClient {
     @Query('difficulty') int? difficulty,
     @Query('latestTrend') bool? latestTrend,
   });
+
+  /// 랜덤 풀기 문제 목록: 안 푼 문제 우선, size 1~10 (하루 제한은 상세 열기에서 적용).
+  @GET('/questions/random')
+  Future<List<QuestionSummary>> getRandomQuestions({@Query('size') int? size});
 
   /// 문제 상세 조회.
   @GET('/questions/{questionUuid}')

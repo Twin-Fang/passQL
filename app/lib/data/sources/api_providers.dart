@@ -9,6 +9,7 @@ import '../../core/auth/token_store.dart';
 import '../../core/network/dio_client.dart';
 import 'ai_api.dart';
 import 'auth_api.dart';
+import 'billing_api.dart';
 import 'feedback_api.dart';
 import 'daily_set_api.dart';
 import 'exam_schedule_api.dart';
@@ -120,4 +121,8 @@ final notificationApiProvider = Provider<NotificationApiClient>(
 
 final communityApiProvider = Provider<CommunityApiClient>(
   (ref) => CommunityApiClient(ref.watch(dioProvider)),
+);
+
+final billingApiProvider = Provider<BillingApiClient>(
+  (ref) => BillingApiClient(ref.watch(dioProvider)),
 );

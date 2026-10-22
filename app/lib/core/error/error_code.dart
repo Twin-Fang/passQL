@@ -39,6 +39,11 @@ enum ErrorCode {
   // 커뮤니티: 이미지 저장소 일시 장애 (503, 서버 문구를 그대로 보여 주려고 5xx 기본 문구와 분리)
   communityImageUnavailable,
 
+  // 결제: 회차 패스 필요(403), 무료 하루 한도 도달(403), 프로 공정 사용 하루 한도 도달(429)
+  proRequired,
+  freeDailyLimitReached,
+  fairUseDailyLimitReached,
+
   // 데일리 세트
   dailySetAlreadyCompleted,
   dailySetNotFound,
@@ -108,6 +113,9 @@ abstract final class ErrorCodeMapper {
     'COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED': ErrorCode.rateLimited,
     'COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED': ErrorCode.rateLimited,
     'COMMUNITY_IMAGE_STORAGE_UNAVAILABLE': ErrorCode.communityImageUnavailable,
+    'PRO_REQUIRED': ErrorCode.proRequired,
+    'FREE_DAILY_LIMIT_REACHED': ErrorCode.freeDailyLimitReached,
+    'FAIR_USE_DAILY_LIMIT_REACHED': ErrorCode.fairUseDailyLimitReached,
     'DAILY_SET_ALREADY_COMPLETED': ErrorCode.dailySetAlreadyCompleted,
     'DAILY_SET_NOT_FOUND': ErrorCode.dailySetNotFound,
     // AI 사용 불가: 서버 연결 실패, 대체 경로 실패, 선택지 생성 실패(SSE GENERATION_FAILED 포함)

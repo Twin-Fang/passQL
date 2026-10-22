@@ -27,6 +27,11 @@ _$SubmitResultImpl _$$SubmitResultImplFromJson(
       : ChoiceExplanation.fromJson(
           json['structuredExplanation'] as Map<String, dynamic>,
         ),
+  lockedSections:
+      (json['lockedSections'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$$SubmitResultImplToJson(_$SubmitResultImpl instance) =>
@@ -41,4 +46,5 @@ Map<String, dynamic> _$$SubmitResultImplToJson(_$SubmitResultImpl instance) =>
       'submissionUuid': instance.submissionUuid,
       'explanation': instance.explanation,
       'structuredExplanation': instance.structuredExplanation,
+      'lockedSections': instance.lockedSections,
     };

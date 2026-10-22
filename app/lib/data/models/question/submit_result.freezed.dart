@@ -34,6 +34,8 @@ mixin _$SubmitResult {
   String? get explanation =>
       throw _privateConstructorUsedError; // 구조화 해설 (있으면 미리보기·전체 해설을 요청 없이 바로 표시, #521)
   ChoiceExplanation? get structuredExplanation =>
+      throw _privateConstructorUsedError; // 무료 응답에서 뺀 묶음 이름 (EXECUTION_RESULT, FULL_EXPLANATION), 없으면 빈 목록
+  List<String> get lockedSections =>
       throw _privateConstructorUsedError; // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
   @JsonKey(includeFromJson: false, includeToJson: false)
   String? get choiceSetUuid => throw _privateConstructorUsedError;
@@ -66,6 +68,7 @@ abstract class $SubmitResultCopyWith<$Res> {
     String? submissionUuid,
     String? explanation,
     ChoiceExplanation? structuredExplanation,
+    List<String> lockedSections,
     @JsonKey(includeFromJson: false, includeToJson: false)
     String? choiceSetUuid,
   });
@@ -100,6 +103,7 @@ class _$SubmitResultCopyWithImpl<$Res, $Val extends SubmitResult>
     Object? submissionUuid = freezed,
     Object? explanation = freezed,
     Object? structuredExplanation = freezed,
+    Object? lockedSections = null,
     Object? choiceSetUuid = freezed,
   }) {
     return _then(
@@ -144,6 +148,10 @@ class _$SubmitResultCopyWithImpl<$Res, $Val extends SubmitResult>
                 ? _value.structuredExplanation
                 : structuredExplanation // ignore: cast_nullable_to_non_nullable
                       as ChoiceExplanation?,
+            lockedSections: null == lockedSections
+                ? _value.lockedSections
+                : lockedSections // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
             choiceSetUuid: freezed == choiceSetUuid
                 ? _value.choiceSetUuid
                 : choiceSetUuid // ignore: cast_nullable_to_non_nullable
@@ -218,6 +226,7 @@ abstract class _$$SubmitResultImplCopyWith<$Res>
     String? submissionUuid,
     String? explanation,
     ChoiceExplanation? structuredExplanation,
+    List<String> lockedSections,
     @JsonKey(includeFromJson: false, includeToJson: false)
     String? choiceSetUuid,
   });
@@ -254,6 +263,7 @@ class __$$SubmitResultImplCopyWithImpl<$Res>
     Object? submissionUuid = freezed,
     Object? explanation = freezed,
     Object? structuredExplanation = freezed,
+    Object? lockedSections = null,
     Object? choiceSetUuid = freezed,
   }) {
     return _then(
@@ -298,6 +308,10 @@ class __$$SubmitResultImplCopyWithImpl<$Res>
             ? _value.structuredExplanation
             : structuredExplanation // ignore: cast_nullable_to_non_nullable
                   as ChoiceExplanation?,
+        lockedSections: null == lockedSections
+            ? _value._lockedSections
+            : lockedSections // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
         choiceSetUuid: freezed == choiceSetUuid
             ? _value.choiceSetUuid
             : choiceSetUuid // ignore: cast_nullable_to_non_nullable
@@ -321,8 +335,9 @@ class _$SubmitResultImpl implements _SubmitResult {
     this.submissionUuid,
     this.explanation,
     this.structuredExplanation,
+    final List<String> lockedSections = const [],
     @JsonKey(includeFromJson: false, includeToJson: false) this.choiceSetUuid,
-  });
+  }) : _lockedSections = lockedSections;
 
   factory _$SubmitResultImpl.fromJson(Map<String, dynamic> json) =>
       _$$SubmitResultImplFromJson(json);
@@ -350,6 +365,17 @@ class _$SubmitResultImpl implements _SubmitResult {
   // 구조화 해설 (있으면 미리보기·전체 해설을 요청 없이 바로 표시, #521)
   @override
   final ChoiceExplanation? structuredExplanation;
+  // 무료 응답에서 뺀 묶음 이름 (EXECUTION_RESULT, FULL_EXPLANATION), 없으면 빈 목록
+  final List<String> _lockedSections;
+  // 무료 응답에서 뺀 묶음 이름 (EXECUTION_RESULT, FULL_EXPLANATION), 없으면 빈 목록
+  @override
+  @JsonKey()
+  List<String> get lockedSections {
+    if (_lockedSections is EqualUnmodifiableListView) return _lockedSections;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_lockedSections);
+  }
+
   // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -357,7 +383,7 @@ class _$SubmitResultImpl implements _SubmitResult {
 
   @override
   String toString() {
-    return 'SubmitResult(isCorrect: $isCorrect, correctKey: $correctKey, rationale: $rationale, selectedResult: $selectedResult, correctResult: $correctResult, correctSql: $correctSql, selectedSql: $selectedSql, submissionUuid: $submissionUuid, explanation: $explanation, structuredExplanation: $structuredExplanation, choiceSetUuid: $choiceSetUuid)';
+    return 'SubmitResult(isCorrect: $isCorrect, correctKey: $correctKey, rationale: $rationale, selectedResult: $selectedResult, correctResult: $correctResult, correctSql: $correctSql, selectedSql: $selectedSql, submissionUuid: $submissionUuid, explanation: $explanation, structuredExplanation: $structuredExplanation, lockedSections: $lockedSections, choiceSetUuid: $choiceSetUuid)';
   }
 
   @override
@@ -385,6 +411,10 @@ class _$SubmitResultImpl implements _SubmitResult {
                 other.explanation == explanation) &&
             (identical(other.structuredExplanation, structuredExplanation) ||
                 other.structuredExplanation == structuredExplanation) &&
+            const DeepCollectionEquality().equals(
+              other._lockedSections,
+              _lockedSections,
+            ) &&
             (identical(other.choiceSetUuid, choiceSetUuid) ||
                 other.choiceSetUuid == choiceSetUuid));
   }
@@ -403,6 +433,7 @@ class _$SubmitResultImpl implements _SubmitResult {
     submissionUuid,
     explanation,
     structuredExplanation,
+    const DeepCollectionEquality().hash(_lockedSections),
     choiceSetUuid,
   );
 
@@ -432,6 +463,7 @@ abstract class _SubmitResult implements SubmitResult {
     final String? submissionUuid,
     final String? explanation,
     final ChoiceExplanation? structuredExplanation,
+    final List<String> lockedSections,
     @JsonKey(includeFromJson: false, includeToJson: false)
     final String? choiceSetUuid,
   }) = _$SubmitResultImpl;
@@ -458,7 +490,9 @@ abstract class _SubmitResult implements SubmitResult {
   @override
   String? get explanation; // 구조화 해설 (있으면 미리보기·전체 해설을 요청 없이 바로 표시, #521)
   @override
-  ChoiceExplanation? get structuredExplanation; // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
+  ChoiceExplanation? get structuredExplanation; // 무료 응답에서 뺀 묶음 이름 (EXECUTION_RESULT, FULL_EXPLANATION), 없으면 빈 목록
+  @override
+  List<String> get lockedSections; // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   String? get choiceSetUuid;
