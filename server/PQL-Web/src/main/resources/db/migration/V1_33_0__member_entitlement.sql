@@ -1,8 +1,9 @@
 -- =============================================================================
--- V1_32_0: 무료/프로 플랜과 Android 회차 패스 결제 (#576)
+-- V1_33_0: 무료/프로 플랜과 Android 회차 패스 결제 (#576)
 -- 1. member_entitlement: 회원 등급 (회원 1명당 1행)
 -- 2. entitlement_purchase: 스토어 구매 이력 (주문·토큰 중복 방지)
 -- 3. app_setting: 결제 스위치 billing.android.enabled
+-- 4. app_setting: Play Developer API 서비스 계정 키 billing.play_service_account_json
 -- =============================================================================
 
 -- 1. 회원 등급
@@ -51,3 +52,14 @@ VALUES
     (gen_random_uuid(), 'billing.android.enabled', 'BOOLEAN', 'false',
      'BILLING', 'Android 결제 스위치 (true 이면 무료/프로 제한 적용과 결제 UI 노출, false 이면 모든 기능 허용)')
 ON CONFLICT (setting_key) DO NOTHING;
+
+-- 4. Play Developer API 서비스 계정 키
+--    value_type SECRET: 빈 값으로 넣고 실제 키는 배포 후 관리자 화면에서 입력 (서버가 암호화 저장)
+INSERT INTO app_setting (app_setting_uuid, setting_key, value_type, value_text, category, description, created_at, updated_at)
+VALUES
+    (gen_random_uuid(), 'billing.play_service_account_json', 'SECRET', '', 'BILLING',
+     'Play Developer API 서비스 계정 키 JSON (구매 확인·소모·환불 조회, 비면 결제 확인 불가)', NOW(), NOW())
+ON CONFLICT (setting_key) DO UPDATE
+    SET value_type  = EXCLUDED.value_type,
+        category    = EXCLUDED.category,
+        description = EXCLUDED.description;
