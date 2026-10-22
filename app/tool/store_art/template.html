@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<!-- 스토어 홍보 이미지 한 장의 틀. render.py 가 {{…}} 를 채워 Chrome 헤드리스로 찍는다 -->
+<style>
+  @font-face { font-family: Pretendard; font-weight: 400; src: url("{{font_dir}}/Pretendard-Regular.ttf"); }
+  @font-face { font-family: Pretendard; font-weight: 600; src: url("{{font_dir}}/Pretendard-SemiBold.ttf"); }
+  @font-face { font-family: Pretendard; font-weight: 700; src: url("{{font_dir}}/Pretendard-Bold.ttf"); }
+  :root {
+    --w: {{width}}px; --h: {{height}}px;
+    /* 앱 다크 팔레트(lib/presentation/design/tokens/passql_colors.dart) + 앱 아이콘 그라데이션(보라 > 하늘) */
+    --bg: #000000; --text: #ffffff; --sub: #aeaeb2;
+    --brand-purple: #a855f7; --brand-cyan: #22d3ee; --accent-text: #9a98ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: var(--w); height: var(--h); overflow: hidden; background: var(--bg); }
+  body {
+    font-family: Pretendard, sans-serif; color: var(--text);
+    /* 위쪽 보라·하늘 빛 번짐 — 검정 바탕이 밋밋하지 않게 */
+    background:
+      radial-gradient(ellipse 70% 40% at 30% 0%, rgba(168, 85, 247, 0.30), transparent 70%),
+      radial-gradient(ellipse 60% 35% at 80% 4%, rgba(34, 211, 238, 0.16), transparent 70%),
+      radial-gradient(ellipse 80% 35% at 50% 100%, rgba(94, 92, 230, 0.16), transparent 70%),
+      var(--bg);
+    display: flex; flex-direction: column; align-items: center;
+  }
+  /* 문구 영역 높이 고정 — 문구 줄 수와 무관하게 휴대폰 크기 동일 */
+  .copy { width: 100%; height: calc(var(--h) * 0.30); flex-shrink: 0; text-align: center;
+          padding: calc(var(--h) * 0.06) calc(var(--w) * 0.07) 0; }
+  .eyebrow {
+    display: inline-block; font-weight: 600; color: var(--accent-text);
+    font-size: calc(var(--w) * 0.034); letter-spacing: 0.01em;
+    padding: calc(var(--w) * 0.012) calc(var(--w) * 0.032);
+    border: 2px solid rgba(154, 152, 255, 0.45); border-radius: 999px;
+    background: rgba(94, 92, 230, 0.14);
+    margin-bottom: calc(var(--h) * 0.022);
+  }
+  h1 { font-weight: 700; font-size: calc(var(--w) * 0.088); line-height: 1.22;
+       letter-spacing: -0.025em; word-break: keep-all; }
+  /* 강조 글자는 앱 아이콘과 같은 보라 > 하늘 그라데이션 */
+  h1 em { font-style: normal; background: linear-gradient(100deg, var(--brand-purple), var(--brand-cyan));
+          -webkit-background-clip: text; background-clip: text; color: transparent; }
+  p.sub { margin-top: calc(var(--h) * 0.016); color: var(--sub);
+          font-size: calc(var(--w) * 0.042); line-height: 1.45; word-break: keep-all; }
+  /* 문구 아래 남은 높이에 휴대폰 전체가 들어가게 */
+  .stage { flex: 1; min-height: 0; width: 100%; display: flex; justify-content: center;
+           align-items: flex-start; padding: calc(var(--h) * 0.035) 0 calc(var(--h) * 0.045); }
+  /* 일반 휴대폰 모양 — 특정 회사 기기 이미지·상표는 쓰지 않는다 */
+  .phone { height: 100%; border-radius: calc(var(--w) * 0.085); padding: calc(var(--w) * 0.018);
+           background: linear-gradient(160deg, #3a3a3c, #2c2c2e 40%, #1c1c1e);
+           box-shadow: 0 calc(var(--w) * 0.03) calc(var(--w) * 0.09) rgba(94, 92, 230, 0.35),
+                       0 0 0 2px rgba(255, 255, 255, 0.07) inset; }
+  .screen { height: 100%; aspect-ratio: {{shot_aspect}}; border-radius: calc(var(--w) * 0.068);
+            background: #000 url("{{shot}}") top center / cover no-repeat; }
+</style>
+</head>
+<body>
+  <div class="copy">
+    <div class="eyebrow">{{eyebrow}}</div>
+    <h1>{{headline}}</h1>
+    <p class="sub">{{sub}}</p>
+  </div>
+  <div class="stage"><div class="phone"><div class="screen"></div></div></div>
+</body>
+</html>

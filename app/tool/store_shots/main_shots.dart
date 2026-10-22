@@ -4,7 +4,7 @@
 // 앱 전체를 그대로 띄우되 Dio 를 가짜 어댑터로 바꿔 canned 응답을 돌려준다.
 // 빌드: flutter build ios --simulator -t tool/store_shots/main_shots.dart
 // 촬영: echo /stats > /tmp/passql_shot_route.txt && xcrun simctl launch <기기> com.coldredrice.passql
-// 연출 3종(경로 대신 적음): execute-fail(SQL 실행 실패 카드), chapter-result(문제 목록 > 챕터 > 챕터 결과), ai-sheet(오답 AI 해설 시트)
+// 연출(경로 대신 적음): execute-ok(SQL 실행 성공 표), execute-fail(SQL 실행 실패 카드), chapter-result(문제 목록 > 챕터 > 챕터 결과), ai-sheet(오답 AI 해설 시트)
 // 앱 시작 설정 상황: echo maintenance > /tmp/passql_shot_app_config.txt
 //   (force_update | recommended_update | maintenance | notice, 없거나 그 외는 정상)
 // 알림함 상황: echo empty > /tmp/passql_shot_notifications.txt (없거나 그 외는 알림 4건·공지 3건, 안 읽은 일부)
@@ -28,6 +28,7 @@ import 'package:passql_app/data/sources/api_providers.dart';
 import 'package:passql_app/core/push/firebase_push_messaging_client.dart';
 import 'package:passql_app/core/push/push_permission_prompt_store.dart';
 import 'package:passql_app/main.dart' show PassqlApp;
+import 'package:passql_app/presentation/providers/ad_providers.dart';
 import 'package:passql_app/presentation/providers/auth_provider.dart';
 import 'package:passql_app/presentation/providers/chapter_providers.dart';
 import 'package:passql_app/presentation/providers/question_providers.dart';
@@ -126,7 +127,7 @@ List<Map<String, dynamic>> _notificationItems(String category) {
     item('general-1', 'REPORT_RESOLVED', '신고하신 문제를 확인했어요', '"JOIN 결과 행 수" 문제의 정답을 수정했어요. 알려 주셔서 고마워요.', const Duration(minutes: 3), linkTarget: 'QUESTION_DETAIL', linkQuestionUuid: '22222222-0000-4000-8000-000000000002'),
     item('general-2', 'ADMIN_MESSAGE', '이번 주 학습 리포트', '통계에서 약한 토픽을 확인해 보세요.', const Duration(hours: 2), linkTarget: 'STATS'),
     item('general-3-read', 'DAILY_SET_REMINDER', '오늘의 세트가 준비됐어요', '3문제로 실력을 확인해 보세요.', const Duration(days: 1), linkTarget: 'DAILY_SET'),
-    item('general-4-read', 'ADMIN_MESSAGE', '시험 D-30', 'SQLD 58회까지 30일 남았어요.', const Duration(days: 2), linkTarget: 'HOME'),
+    item('general-4-read', 'ADMIN_MESSAGE', '시험 D-30', 'SQLD 63회까지 30일 남았어요.', const Duration(days: 2), linkTarget: 'HOME'),
   ];
 }
 
@@ -150,7 +151,7 @@ List<Map<String, dynamic>> _fakeNotices() {
   return [
     notice(
       'notice-1',
-      '제58회 SQLD 대비 문제 업데이트 안내',
+      '제63회 SQLD 대비 문제 업데이트 안내',
       '시험이 한 달 앞으로 다가왔어요. **윈도우 함수·계층형 질의 문제 40개**를 새로 추가했어요.\n\n'
           '이번 업데이트에서 달라진 점\n'
           '- 윈도우 함수 20문제: `ROW_NUMBER`, `RANK`, `LAG` 위주\n'
@@ -213,7 +214,7 @@ Map<String, dynamic> _appConfig() {
       if (_appConfigScenario == 'notice')
         {
           'noticeUuid': '66666666-0000-4000-8000-000000000001',
-          'title': '제58회 SQLD 시험 대비 문제 업데이트 안내',
+          'title': '제63회 SQLD 시험 대비 문제 업데이트 안내',
           'body': '시험이 한 달 앞으로 다가왔어요.\n\n윈도우 함수·계층형 질의 문제 40개를 새로 추가했어요. 문제 탭에서 바로 풀어 보세요.',
           'startsAt': null,
           'endsAt': null,
@@ -574,7 +575,7 @@ Object? _respond(RequestOptions o) {
     };
   }
   if (p.endsWith('/exam-schedules/selected')) {
-    return {'examScheduleUuid': '44444444-0000-4000-8000-000000000001', 'certType': 'SQLD', 'round': 58, 'examDate': '2026-11-14', 'isSelected': true};
+    return {'examScheduleUuid': '44444444-0000-4000-8000-000000000001', 'certType': 'SQLD', 'round': 63, 'examDate': '2026-11-14', 'isSelected': true};
   }
   if (p.endsWith('/questions/recommendations')) {
     return {'questions': _questions.take(3).toList()};
@@ -622,6 +623,18 @@ Object? _respond(RequestOptions o) {
 /// 실행형(EXECUTABLE) 문제: execute-fail 연출용, 실행 API 는 SANDBOX_TIMEOUT 으로 실패
 const _executableQuestionUuid = '22222222-0000-4000-8000-000000000005';
 const _executableChoiceSql = 'SELECT ENAME FROM EMP WHERE SAL >= 3000;';
+
+// 연출 execute-ok 일 때만 실행 API 성공 (그 외 SANDBOX_TIMEOUT)
+var _isExecuteSuccessScene = false;
+const _executeSuccessResult = {
+  'status': 'SUCCESS',
+  'columns': ['ENAME'],
+  'rows': [['KING'], ['FORD'], ['SCOTT']],
+  'rowCount': 3,
+  'elapsedMs': 12,
+  'errorCode': null,
+  'errorMessage': null,
+};
 
 Map<String, dynamic> _executableDetail() {
   final detail = _detail();
@@ -695,6 +708,9 @@ class _FakeAdapter implements HttpClientAdapter {
       final rm = options.path.contains('000000000004');
       return ResponseBody.fromString(_sse(resultMatch: rm), 200, headers: {Headers.contentTypeHeader: ['text/event-stream']});
     }
+    if (options.path.endsWith('/execute') && _isExecuteSuccessScene) {
+      return ResponseBody.fromString(jsonEncode(_executeSuccessResult), 200, headers: {Headers.contentTypeHeader: [Headers.jsonContentType]});
+    }
     if (options.path.endsWith('/execute')) {
       return ResponseBody.fromString(
         jsonEncode({'errorCode': 'SANDBOX_TIMEOUT', 'message': 'sandbox timeout'}),
@@ -743,6 +759,8 @@ Future<void> main() async {
 
   final container = ProviderContainer(overrides: [
     initialThemeModeProvider.overrideWithValue(await loadSavedThemeMode()),
+    // 스토어 캡처에 테스트 광고·AdMob 검사 팝업이 찍히지 않게 광고 끔
+    adsEnabledProvider.overrideWithValue(false),
     dioProvider.overrideWith((ref) => Dio(BaseOptions(baseUrl: 'http://shots.local/api'))..httpClientAdapter = _FakeAdapter()),
   ]);
   await container.read(authProvider.future);
@@ -772,6 +790,14 @@ Future<void> main() async {
 Future<void> _openRoute(String route, ProviderContainer container) async {
   const settleDelay = Duration(milliseconds: 1500);
   switch (route) {
+    case 'execute-ok':
+      // 실행형 문제 > 선택지 A 선택 > 실행 성공 결과 표
+      _isExecuteSuccessScene = true;
+      AppRouter.router.go(AppRoutes.questionDetail(_executableQuestionUuid));
+      await Future<void>.delayed(settleDelay);
+      await container
+          .read(questionInteractionProvider(_executableQuestionUuid).notifier)
+          .selectChoice(choiceKey: 'A', sql: _executableChoiceSql, isExecutable: true);
     case 'execute-fail':
       // 실행형 문제 > 선택지 A 선택 > 실행 API 실패
       AppRouter.router.go(AppRoutes.questionDetail(_executableQuestionUuid));
