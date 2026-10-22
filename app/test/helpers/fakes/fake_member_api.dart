@@ -36,6 +36,9 @@ class FakeMemberApi implements MemberApiClient {
   MemberPlanResponse plan;
   Object? planError;
 
+  /// 설정하면 [plan] 대신 이 함수가 응답을 만듦 (응답 지연 흉내)
+  Future<MemberPlanResponse> Function()? planResponder;
+
   /// 호출 기록 (check:닉네임, change:닉네임, mode:값)
   final calls = <String>[];
   int withdrawCalls = 0;
@@ -83,7 +86,7 @@ class FakeMemberApi implements MemberApiClient {
   Future<MemberPlanResponse> getMyPlan() async {
     calls.add('plan');
     if (planError != null) throw planError!;
-    return plan;
+    return planResponder != null ? planResponder!() : plan;
   }
 
   @override

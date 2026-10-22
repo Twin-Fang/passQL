@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -24,12 +26,27 @@ class _SignedInAuth extends AuthNotifier {
   Future<AuthSession?> build() async => _member;
 }
 
+/// 로그인 회원을 테스트에서 바꾸는 인증
+class _ScriptedAuth extends AuthNotifier {
+  @override
+  Future<AuthSession?> build() async => _member;
+
+  void switchTo(AuthSession? session) => state = AsyncData(session);
+}
+
+const _otherMember = AuthSession(
+  accessToken: 'access-b',
+  refreshToken: 'refresh-b',
+  memberUuid: 'member-b',
+  nickname: '회원비',
+);
+
 /// 플랫폼·앱 설정·서버 등급을 정해 컨테이너를 만들고 등급이 로드될 때까지 기다림
 Future<ProviderContainer> _loadedContainer({
   required TargetPlatform platform,
   required bool isAndroidBillingEnabled,
   required MemberPlanType serverPlan,
-  String? debugPlan,
+  ProDebugPlan? debugPlan,
 }) async {
   final container = ProviderContainer(
     overrides: [
@@ -54,6 +71,7 @@ Future<ProviderContainer> _loadedContainer({
   // autoDispose 유지용 구독
   container.listen(shouldShowProUiProvider, (_, _) {});
   container.listen(isProProvider, (_, _) {});
+  container.listen(knownPlanProvider, (_, _) {});
   await container.read(planProvider.future);
   await container.read(appConfigProvider.future);
   return container;
@@ -102,7 +120,7 @@ void main() {
       platform: TargetPlatform.android,
       isAndroidBillingEnabled: false,
       serverPlan: MemberPlanType.pro,
-      debugPlan: 'free',
+      debugPlan: ProDebugPlan.free,
     );
     expect(container.read(isProProvider), isFalse);
     expect(container.read(shouldShowProUiProvider), isTrue);
@@ -121,4 +139,101 @@ void main() {
 
     expect(container.read(planProvider).requireValue.plan, MemberPlanType.pro);
   });
+
+  test(
+    'shouldShowProUi_falseWhenFirstFetchFails_andRetriesOnRefresh',
+    () async {
+      final api = FakeMemberApi(
+        plan: const MemberPlanResponse(isBillingEnabled: true),
+      )..planError = Exception('offline');
+      final container = ProviderContainer(
+        overrides: [
+          authProvider.overrideWith(_SignedInAuth.new),
+          targetPlatformProvider.overrideWithValue(TargetPlatform.android),
+          debugPlanOverrideProvider.overrideWithValue(null),
+          memberApiProvider.overrideWithValue(api),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(shouldShowProUiProvider, (_, _) {});
+      container.listen(planProvider, (_, _) {});
+      await container.read(planProvider.future).then((_) {}, onError: (_) {});
+
+      expect(container.read(planProvider).hasError, isTrue);
+      expect(container.read(knownPlanProvider), isNull);
+      expect(container.read(shouldShowProUiProvider), isFalse);
+
+      // 복구 후 refresh > 등급 확정
+      api.planError = null;
+      await container.read(planProvider.notifier).refresh();
+      expect(container.read(knownPlanProvider), isNotNull);
+      expect(container.read(shouldShowProUiProvider), isTrue);
+    },
+  );
+
+  test('shouldShowProUi_falseWhileLoading', () async {
+    final pendingPlan = Completer<MemberPlanResponse>();
+    final api = FakeMemberApi()..planResponder = () => pendingPlan.future;
+    final container = ProviderContainer(
+      overrides: [
+        authProvider.overrideWith(_SignedInAuth.new),
+        targetPlatformProvider.overrideWithValue(TargetPlatform.android),
+        debugPlanOverrideProvider.overrideWithValue(null),
+        memberApiProvider.overrideWithValue(api),
+      ],
+    );
+    addTearDown(container.dispose);
+    container.listen(shouldShowProUiProvider, (_, _) {});
+    container.listen(planProvider, (_, _) {});
+    await Future<void>.delayed(Duration.zero);
+
+    expect(container.read(planProvider).isLoading, isTrue);
+    expect(container.read(shouldShowProUiProvider), isFalse);
+    expect(container.read(isProProvider), isFalse);
+  });
+
+  test(
+    'memberSwitchWhileLoading_doesNotReportPreviousMemberPlanAsKnown',
+    () async {
+      // 회원 A 는 프로, 회원 B 응답은 지연
+      final pendingPlan = Completer<MemberPlanResponse>();
+      var requestCount = 0;
+      final api = FakeMemberApi()
+        ..planResponder = () {
+          requestCount++;
+          return requestCount == 1
+              ? Future.value(
+                  const MemberPlanResponse(
+                    isBillingEnabled: true,
+                    plan: MemberPlanType.pro,
+                  ),
+                )
+              : pendingPlan.future;
+        };
+      final container = ProviderContainer(
+        overrides: [
+          authProvider.overrideWith(_ScriptedAuth.new),
+          targetPlatformProvider.overrideWithValue(TargetPlatform.android),
+          debugPlanOverrideProvider.overrideWithValue(null),
+          memberApiProvider.overrideWithValue(api),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(knownPlanProvider, (_, _) {});
+      container.listen(isProProvider, (_, _) {});
+      container.listen(shouldShowProUiProvider, (_, _) {});
+      await container.read(authProvider.future);
+      await container.read(planProvider.future);
+      expect(container.read(isProProvider), isTrue);
+
+      (container.read(authProvider.notifier) as _ScriptedAuth).switchTo(
+        _otherMember,
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(knownPlanProvider), isNull);
+      expect(container.read(isProProvider), isFalse);
+      expect(container.read(shouldShowProUiProvider), isFalse);
+    },
+  );
 }
