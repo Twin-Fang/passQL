@@ -7,6 +7,7 @@ import '../../../core/error/app_exception.dart';
 import '../../../data/models/daily_set/daily_set_models.dart';
 import '../../../router/app_routes.dart';
 import '../../../router/result_route_arguments.dart';
+import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
 import '../../providers/daily_set_providers.dart';
 import '../../widgets/ads/interstitial_ad_on_enter.dart';
@@ -55,12 +56,16 @@ class _RecordBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return today.when(
-      loading: () => const PassqlStatusScaffold(
+      loading: () => PassqlStatusScaffold(
         title: _dailySetTitle,
+        leading: PassqlNavLeading.close,
+        onLeadingTap: () => leaveSolvingFlow(context),
         body: PassqlStatusView.loading(),
       ),
       error: (error, _) => PassqlStatusScaffold(
         title: _dailySetTitle,
+        leading: PassqlNavLeading.close,
+        onLeadingTap: () => leaveSolvingFlow(context),
         body: PassqlStatusView.error(
           message: error.asAppException.message,
           onRetry: () => ref.invalidate(dailySetTodayProvider),
@@ -70,6 +75,8 @@ class _RecordBody extends ConsumerWidget {
         if (!data.alreadyCompleted) {
           return PassqlStatusScaffold(
             title: _dailySetTitle,
+            leading: PassqlNavLeading.close,
+            onLeadingTap: () => leaveSolvingFlow(context),
             body: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -82,7 +89,7 @@ class _RecordBody extends ConsumerWidget {
                   variant: PassqlButtonVariant.tinted,
                   size: PassqlButtonSize.small,
                   isFullWidth: false,
-                  onPressed: () => context.go(AppRoutes.dailySet),
+                  onPressed: () => context.pushReplacement(AppRoutes.dailySet),
                 ),
               ],
             ),
@@ -163,7 +170,7 @@ class _ResultBody extends ConsumerWidget {
               : Text(
                   '내 순위 $myRank위',
                   style: PassqlTypography.footnoteSemibold.copyWith(
-                    color: colors.accent,
+                    color: colors.accentText,
                   ),
                 ),
           child: board.when(
@@ -199,7 +206,7 @@ class _ResultBody extends ConsumerWidget {
           variant: PassqlButtonVariant.tinted,
           onPressed: () => context.push(AppRoutes.leaderboard),
         ),
-        PassqlButton(label: '홈으로', onPressed: () => context.go(AppRoutes.home)),
+        PassqlButton(label: '닫기', onPressed: () => leaveSolvingFlow(context)),
       ],
     );
   }
@@ -241,8 +248,8 @@ class LeaderboardRow extends StatelessWidget {
                   '${entry.rank}',
                   style: PassqlTypography.headline.copyWith(
                     color: entry.rank <= 3
-                        ? colors.accent
-                        : colors.tertiaryLabel,
+                        ? colors.accentText
+                        : colors.secondaryLabel,
                     fontFeatures: PassqlTypography.tabular,
                   ),
                 ),
@@ -257,7 +264,7 @@ class LeaderboardRow extends StatelessWidget {
               Text(
                 '${entry.correctCount}점',
                 style: PassqlTypography.bodyMedium.copyWith(
-                  color: colors.accent,
+                  color: colors.accentText,
                   fontFeatures: PassqlTypography.tabular,
                 ),
               ),

@@ -19,7 +19,9 @@ class PassqlSkeletonBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
+    // 동작 줄이기면 반짝임 정지 (스크린리더 문구는 묶음 단위 PassqlLoadingSemantics 가 담당)
     return Shimmer.fromColors(
+      enabled: !PassqlMotion.isReduced(context),
       baseColor: Color.alphaBlend(colors.fill, colors.card),
       highlightColor: colors.card,
       child: Container(

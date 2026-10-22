@@ -10,7 +10,6 @@ import 'package:passql_app/data/models/member/choice_generation_mode.dart';
 import 'package:passql_app/data/models/member/member_plan_response.dart';
 import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/flows/random_practice_flow.dart';
-import 'package:passql_app/presentation/pages/exam_trend/exam_trend_page.dart';
 import 'package:passql_app/presentation/pages/home/home_page.dart';
 import 'package:passql_app/presentation/pages/questions/topic_list_page.dart';
 import 'package:passql_app/presentation/pages/settings/settings_page.dart';
@@ -22,6 +21,7 @@ import 'package:passql_app/presentation/providers/settings_providers.dart';
 import 'package:passql_app/presentation/widgets/pro/locked_preview_samples.dart';
 import 'package:passql_app/presentation/widgets/pro/pro_settings_card.dart';
 import 'package:passql_app/presentation/widgets/settings/settings_group.dart';
+import 'package:passql_app/router/questions_tab_view.dart';
 
 import '../../helpers/fakes/fake_http_client_adapter.dart';
 import '../../helpers/fakes/fake_pro_plan.dart';
@@ -42,9 +42,14 @@ final _proPlan = MemberPlanResponse(
 const _lockedPathsByScreen = {
   '홈': ['/questions/recommendations'],
   '문제': ['/exam-trends/latest/topics'],
-  '통계': ['/progress/topic-analysis', '/progress/ai-comment'],
-  '출제 경향': ['/exam-trends/latest'],
-  '설정': ['/progress/wrong-questions'],
+  // 오답 개수는 기록 탭 바로가기에서 조회 (설정 오답 노트 행은 문제·기록 탭으로 이동, #574)
+  '통계': [
+    '/progress/topic-analysis',
+    '/progress/ai-comment',
+    '/progress/wrong-questions',
+  ],
+  '최신 경향': ['/exam-trends/latest'],
+  '설정': [],
 };
 final _lockedPaths = {
   for (final paths in _lockedPathsByScreen.values) ...paths,
@@ -154,7 +159,10 @@ void main() {
     '홈': (const HomePage(), _homeOverrides),
     '문제': (const TopicListPage(), const []),
     '통계': (const StatsPage(), const []),
-    '출제 경향': (const ExamTrendPage(), const []),
+    '최신 경향': (
+      const TopicListPage(view: QuestionsTabView.latestTrend),
+      const [],
+    ),
     '설정': (const SettingsPage(), _settingsOverrides),
   };
 
@@ -214,16 +222,20 @@ void main() {
 
       expect(find.byType(PassqlPlanChip), findsOneWidget);
       expect(_visibleText(LockedPreviewCaptions.stats), findsOneWidget);
-      expect(server.countOf('/progress'), 1);
+      // 기록 탭: 통계·학습 현황(히트맵) Provider 가 각 1회 (잠금 판정 뒤 재요청 없음)
+      expect(server.countOf('/progress'), 2);
       expect(server.requestedLockedPaths, isEmpty);
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('출제 경향: 제목 선명, 본문 블러, 출제 경향 요청 없음', (tester) async {
-      final server = await _pumpPage(tester, const ExamTrendPage(), freePlan);
+    testWidgets('최신 경향 보기: 문제 탭 잠금 화면, 출제 경향 요청 없음', (tester) async {
+      final server = await _pumpPage(
+        tester,
+        const TopicListPage(view: QuestionsTabView.latestTrend),
+        freePlan,
+      );
 
-      expect(find.text(ExamTrendPage.pageTitle), findsOneWidget);
-      expect(_visibleText(LockedPreviewCaptions.examTrend), findsOneWidget);
+      expect(_visibleText(LockedPreviewCaptions.practiceModes), findsOneWidget);
       expect(server.requestedLockedPaths, isEmpty);
       expect(tester.takeException(), isNull);
     });

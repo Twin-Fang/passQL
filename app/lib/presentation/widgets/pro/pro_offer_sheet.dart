@@ -168,7 +168,7 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
             PassqlKeepAllText(
               reason,
               style: PassqlTypography.subheadlineSemibold.copyWith(
-                color: colors.accent,
+                color: colors.accentText,
               ),
             ),
           ],

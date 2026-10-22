@@ -35,7 +35,7 @@ class ProfileCard extends StatelessWidget {
             ),
             child: Text(
               initial,
-              style: PassqlTypography.title3.copyWith(color: colors.accent),
+              style: PassqlTypography.title3.copyWith(color: colors.accentText),
             ),
           ),
           const SizedBox(width: PassqlSpacing.sm),
@@ -65,7 +65,7 @@ class ProfileCard extends StatelessWidget {
                   child: Icon(
                     CupertinoIcons.arrow_clockwise,
                     size: PassqlIconSize.lg,
-                    color: colors.tertiaryLabel,
+                    color: colors.iconSecondary,
                   ),
                 ),
               ),
@@ -91,9 +91,11 @@ class ProfileCardSkeleton extends StatelessWidget {
   const ProfileCardSkeleton({super.key});
 
   @override
-  Widget build(BuildContext context) => const PassqlSkeletonBox(
-    height: _profileCardHeight,
-    radius: PassqlRadius.lg,
+  Widget build(BuildContext context) => const PassqlLoadingSemantics(
+    child: PassqlSkeletonBox(
+      height: _profileCardHeight,
+      radius: PassqlRadius.lg,
+    ),
   );
 }
 

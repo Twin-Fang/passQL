@@ -79,7 +79,7 @@ class AiExplainSheet extends ConsumerWidget {
     }
     // 로딩 > 본문으로 바뀔 때 시트 높이가 툭 변하지 않게 크기와 내용을 함께 전환
     return AnimatedSize(
-      duration: PassqlMotion.standard,
+      duration: PassqlMotion.durationOf(context, PassqlMotion.standard),
       curve: PassqlMotion.curve,
       alignment: Alignment.topCenter,
       child: ColoredBox(

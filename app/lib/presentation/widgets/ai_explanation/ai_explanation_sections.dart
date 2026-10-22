@@ -188,7 +188,7 @@ class _KeyConceptList extends StatelessWidget {
     final colors = context.passqlColors;
     final nameStyle = PassqlTypography.inlineCodeOf(
       PassqlTypography.subheadlineSemibold,
-    ).copyWith(color: colors.accent);
+    ).copyWith(color: colors.accentText);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -294,7 +294,7 @@ class _ExamTip extends StatelessWidget {
                 Text(
                   '시험 팁',
                   style: PassqlTypography.footnoteSemibold.copyWith(
-                    color: colors.accent,
+                    color: colors.accentText,
                   ),
                 ),
                 const SizedBox(height: PassqlSpacing.hairlineGap),

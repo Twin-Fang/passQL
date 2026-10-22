@@ -46,38 +46,43 @@ class BarChartSection extends StatelessWidget {
       children: stats.map((stat) {
         final ratio = maxCount > 0 ? stat.totalQuestionCount / maxCount : 0.0;
 
+        // 행마다 '토픽명, N문제' 한 문장 (막대는 읽지 않음)
         return Padding(
           padding: const EdgeInsets.only(bottom: PassqlSpacing.sm),
-          child: Row(
-            children: [
-              // 토픽명 — 고정폭, 2줄까지 허용
-              SizedBox(
-                width: _topicLabelWidth,
-                child: Text(
-                  stat.displayName,
-                  style: PassqlTypography.caption.copyWith(
-                    color: colors.secondaryLabel,
+          child: Semantics(
+            label: '${stat.displayName}, ${stat.totalQuestionCount}문제',
+            excludeSemantics: true,
+            child: Row(
+              children: [
+                // 토픽명 — 고정폭, 2줄까지 허용
+                SizedBox(
+                  width: _topicLabelWidth,
+                  child: Text(
+                    stat.displayName,
+                    style: PassqlTypography.caption.copyWith(
+                      color: colors.secondaryLabel,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              const SizedBox(width: PassqlSpacing.xs),
-              // 진행 막대 (accent / fill)
-              Expanded(child: PassqlProgressBar(value: ratio)),
-              const SizedBox(width: PassqlSpacing.xs),
-              // 문제 수 숫자
-              SizedBox(
-                width: _countLabelWidth,
-                child: Text(
-                  stat.totalQuestionCount.toString(),
-                  style: PassqlTypography.caption.copyWith(
-                    color: colors.secondaryLabel,
+                const SizedBox(width: PassqlSpacing.xs),
+                // 진행 막대 (accent / fill)
+                Expanded(child: PassqlProgressBar(value: ratio)),
+                const SizedBox(width: PassqlSpacing.xs),
+                // 문제 수 숫자
+                SizedBox(
+                  width: _countLabelWidth,
+                  child: Text(
+                    stat.totalQuestionCount.toString(),
+                    style: PassqlTypography.caption.copyWith(
+                      color: colors.secondaryLabel,
+                    ),
+                    textAlign: TextAlign.right,
                   ),
-                  textAlign: TextAlign.right,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       }).toList(),

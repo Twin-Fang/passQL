@@ -65,7 +65,7 @@ class LaunchBlockingView extends StatelessWidget {
                     detail!,
                     textAlign: TextAlign.center,
                     style: PassqlTypography.footnote.copyWith(
-                      color: colors.tertiaryLabel,
+                      color: colors.secondaryLabel,
                     ),
                   ),
                 ],

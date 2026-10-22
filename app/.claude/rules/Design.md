@@ -42,8 +42,11 @@ lib/presentation/design/
 | 컴포넌트 | 처리하는 것 |
 |---|---|
 | `PassqlButton` (+Variant, Size) | 모든 버튼. 비활성·로딩(`isLoading`)·폭(`isFullWidth`) |
-| `PassqlPressable` | 누르는 동안 흐려지고 살짝 작아지는 피드백 (잉크 물결 대신) |
-| `PassqlCard` | 그림자 없는 카드, 제목·우측 요소 |
+| `PassqlPressable` | 누르는 동안 흐려지고 살짝 작아지는 피드백 (잉크 물결 대신). `semanticLabel` 이 있으면 그 문구만 읽음(자식 글자 덮음), `hasMinimumTouchTarget` 으로 누르는 영역 44 |
+| `PassqlSemanticButton` | 누르는 요소의 스크린리더 정보(라벨·탭 동작·선택·링크). 화면에서 `Semantics(button + excludeSemantics)` 직접 사용 금지 (규칙 테스트) |
+| `PassqlSegmentedControl` / `PassqlSegment` | 회색 트랙 + 선택 알약 세그먼트 (문제 탭 보기·알림함 탭). 칸마다 탭·선택 시맨틱, 누르는 높이 44 |
+| `PassqlLoadingSemantics` | 로딩 자리(스피너·스켈레톤 묶음)를 '불러오는 중' 한 번으로 읽힘. 화면 스켈레톤 묶음은 이것으로 감쌈 |
+| `PassqlCard` | 그림자 없는 카드, 제목·우측 요소, 바깥 높이 채움(`shouldChildFillHeight`, 2열 높이 맞춤) |
 | `PassqlGroupedSection` / `PassqlListRow` / `PassqlCheckRow` / `PassqlIconTile` | iOS 설정 앱식 목록 묶음·행·선택 행·아이콘 타일 |
 | `PassqlNavBar` / `PassqlNavButton` / `PassqlLargeTitleScrollView` | 상단 바, 뒤로/닫기 버튼, 큰 제목 탭 화면 틀 |
 | `PassqlBrandBarScrollView` | 홈 탭 화면 틀: 로고(왼쪽)·trailing(오른쪽) 한 줄 고정 바, 내용이 밑으로 지나가면 글래스 + 헤어라인 (#530) |
@@ -79,6 +82,7 @@ lib/presentation/design/
 화면(`lib/presentation/pages`, `widgets`, `flows`)은 토큰과 컴포넌트만 조합한다.
 
 - 색은 `context.passqlColors` 의 의미 이름으로만 고른다. `Color(0x...)`, `Colors.white/black` 금지
+- 읽는 글자색: 강조 글자는 `accentText`(accent 는 채움·테두리), 주황 글자는 `warningText`, 진한 의미색 채움 위 글자는 `onSemantic`, 보조 글자는 `secondaryLabel`. `tertiaryLabel` 은 비활성·장식(쉐브론) 전용, 기능 아이콘은 `iconSecondary`. 대비 기준(글자 4.5·아이콘 3, 라이트·다크)은 `test/design/passql_contrast_test.dart` 가 검사
 - 간격·크기·글자는 토큰으로. 필요한 토큰이 없으면 토큰을 먼저 추가하고, 한 파일에서만 쓰는 배치 숫자는 이름 있는 상수로 둔다
 - 자산은 컴포넌트로(`PassqlLogo`). `Image.asset(` 금지
 - 흐림(`ImageFilter.blur(`)은 `PassqlLockedPreview`·`PassqlGlass` 로만. 화면 직접 사용 금지

@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/core/auth/auth_session.dart';
 import 'package:passql_app/data/models/daily_set/daily_set_models.dart';
 import 'package:passql_app/data/models/exam/exam_schedule_response.dart';
+import 'package:passql_app/data/models/exam_trend/exam_trend_report_response.dart';
 import 'package:passql_app/data/models/home/greeting_response.dart';
 import 'package:passql_app/data/models/home/question_summary.dart';
 import 'package:passql_app/data/models/home/recommendations_response.dart';
@@ -24,7 +25,9 @@ import 'package:passql_app/presentation/providers/auth_provider.dart';
 import 'package:passql_app/presentation/pages/home/home_page.dart';
 import 'package:passql_app/presentation/pages/questions/topic_list_page.dart';
 import 'package:passql_app/presentation/pages/stats/stats_page.dart';
+import 'package:passql_app/presentation/providers/exam_trend_providers.dart';
 import 'package:passql_app/presentation/providers/home_providers.dart';
+import 'package:passql_app/presentation/providers/session_reset.dart';
 import 'package:passql_app/presentation/providers/stats_providers.dart';
 import 'package:passql_app/presentation/providers/topic_providers.dart';
 
@@ -136,6 +139,25 @@ const topics = [
   TopicTree(topicUuid: 't2', code: 'unknown', displayName: '신규'),
 ];
 
+/// 홈 출제 경향 섹션·공부 팁 표시용 가짜 응답 (실제 API 호출 방지)
+const _examTrendReport = ExamTrendReportResponse(
+  title: '2026 SQLD 출제 경향',
+  basisDescription: '제58~62회 시험 유형 분석',
+  updatedDate: '2026-10-18',
+  summary: '결과 추적형이 늘었어요.',
+  risingPatterns: [
+    ExamTrendPattern(
+      title: '결과 비교형 보기',
+      description: '행 수가 가장 많은 것 고르기',
+      examRoundsText: '58회부터 증가',
+      topicCode: 'sql_join',
+      topicName: '조인',
+      latestTrendQuestionCount: 3,
+    ),
+  ],
+  studyTips: ['결과 표를 직접 그려 보세요.'],
+);
+
 Future<void> _pump(
   WidgetTester tester,
   Widget page,
@@ -160,7 +182,12 @@ void main() {
   final cases = <String, (Widget, List<Override>)>{
     '홈': (
       const HomePage(),
-      [homeDataProvider.overrideWith((ref) async => homeData)],
+      [
+        homeDataProvider.overrideWith((ref) async => homeData),
+        // 로그인 상태 (출제 경향은 로그인 중에만 조회)
+        currentMemberUuidProvider.overrideWithValue('member-test'),
+        examTrendReportProvider.overrideWith((ref) async => _examTrendReport),
+      ],
     ),
     '문제': (
       const TopicListPage(),
@@ -200,6 +227,9 @@ void main() {
         // 인사 둘째 줄이 잘리지 않고 본문으로 보인다.
         if (entry.key == '홈') {
           expect(findTextContainingIgnoringWordJoiners('D-12'), findsOneWidget);
+          // 출제 경향 섹션 (응답 도착 + 등장 연출 후, 팁 카드는 화면 아래라 미생성)
+          await pumpUntilMotionDone(tester);
+          expect(find.text('이번 시험 출제 경향'), findsOneWidget);
         }
         expect(tester.takeException(), isNull);
       });
@@ -218,6 +248,8 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          currentMemberUuidProvider.overrideWithValue('member-test'),
+          examTrendReportProvider.overrideWith((ref) async => _examTrendReport),
           homeDataProvider.overrideWith(
             (ref) async => HomeData(
               greeting: const GreetingResponse(

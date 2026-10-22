@@ -57,7 +57,8 @@ class PassqlCountBadge extends StatelessWidget {
             label,
             textAlign: TextAlign.center,
             style: PassqlTypography.captionSemibold.copyWith(
-              color: isEmphasized ? colors.onAccent : colors.secondaryLabel,
+              // 주황 위 흰 글자는 대비 2.2 > onSemantic
+              color: isEmphasized ? colors.onSemantic : colors.secondaryLabel,
               height: 1,
               fontFeatures: PassqlTypography.tabular,
             ),

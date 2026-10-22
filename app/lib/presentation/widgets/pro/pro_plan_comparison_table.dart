@@ -69,7 +69,7 @@ class ProPlanComparisonTable extends StatelessWidget {
               PassqlPlanChip.proLabel,
               textAlign: TextAlign.center,
               style: PassqlTypography.captionSemibold.copyWith(
-                color: colors.accent,
+                color: colors.accentText,
               ),
             ),
           ),

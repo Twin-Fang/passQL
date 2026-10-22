@@ -38,6 +38,7 @@ abstract final class PassqlTypography {
   static final footnoteSemibold = _t(_semibold, 13, 18);
   static final caption = _t(_regular, 12, 16);
   static final captionSemibold = _t(_semibold, 12, 16);
+  static final tabLabel = _t(_medium, 10, 12); // 하단 탭 라벨 (iOS 탭 바 규격)
   static const code = TextStyle(
     fontFamily: _code,
     // 한글 등 코드 글꼴에 없는 글자는 시스템 고정폭 글꼴로 대체

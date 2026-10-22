@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../tokens/passql_tokens.dart';
 import 'passql_grouped_section.dart';
+import 'passql_loading_semantics.dart';
 import 'passql_skeleton_box.dart';
 
 /// 목록 로딩 자리: grouped 묶음 안에 [rowCount] 행 (앞 아이콘 + 제목·보조 두 줄)
@@ -23,12 +24,14 @@ class PassqlListSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PassqlGroupedSection(
-      header: header,
-      children: [
-        for (var rowIndex = 0; rowIndex < rowCount; rowIndex++)
-          const _SkeletonRow(),
-      ],
+    return PassqlLoadingSemantics(
+      child: PassqlGroupedSection(
+        header: header,
+        children: [
+          for (var rowIndex = 0; rowIndex < rowCount; rowIndex++)
+            const _SkeletonRow(),
+        ],
+      ),
     );
   }
 }

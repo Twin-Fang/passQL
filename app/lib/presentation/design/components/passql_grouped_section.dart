@@ -53,10 +53,14 @@ class PassqlGroupedSection extends StatelessWidget {
               PassqlSpacing.md,
               _headerFooterGap,
             ),
-            child: Text(
-              header!,
-              style: PassqlTypography.footnote.copyWith(
-                color: colors.secondaryLabel,
+            // 제목 이동(로터·제목 탐색)용 머리글
+            child: Semantics(
+              header: true,
+              child: Text(
+                header!,
+                style: PassqlTypography.footnote.copyWith(
+                  color: colors.secondaryLabel,
+                ),
               ),
             ),
           ),

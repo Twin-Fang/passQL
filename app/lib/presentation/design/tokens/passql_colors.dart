@@ -8,6 +8,7 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     required this.accent,
     required this.onAccent,
     required this.accentTint,
+    required this.accentText,
     required this.correct,
     required this.correctText,
     required this.correctTint,
@@ -15,9 +16,12 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     required this.wrongText,
     required this.wrongTint,
     required this.warning,
+    required this.warningText,
+    required this.onSemantic,
     required this.label,
     required this.secondaryLabel,
     required this.tertiaryLabel,
+    required this.iconSecondary,
     required this.background,
     required this.card,
     required this.cardElevated,
@@ -31,6 +35,9 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
   final Color accent;
   final Color onAccent;
   final Color accentTint;
+
+  /// 강조색 글자·작은 아이콘 (card·background·accentTint 위 4.5:1). accent 는 채움·테두리용
+  final Color accentText;
   final Color correct;
   final Color correctText;
   final Color correctTint;
@@ -38,9 +45,19 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
   final Color wrongText;
   final Color wrongTint;
   final Color warning;
+
+  /// 주황 글자 (배지·별점). warning 은 채움·점·큰 아이콘용
+  final Color warningText;
+
+  /// 진한 의미색(correct·wrong·warning) 채움 위 글자 (흰 글자는 대비 2~3.5라 쓰지 않음)
+  final Color onSemantic;
   final Color label;
   final Color secondaryLabel;
+  /// 비활성·장식(쉐브론·손잡이) 전용. 읽어야 하는 글자는 secondaryLabel (규칙 테스트)
   final Color tertiaryLabel;
+
+  /// 기능 아이콘(닫기·메뉴·다시 시도·상태 아이콘·선택지 키 테두리) 3:1 이상
+  final Color iconSecondary;
   final Color background;
   final Color card;
   final Color cardElevated;
@@ -56,18 +73,25 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     accent: Color(0xFF5856D6),
     onAccent: Color(0xFFFFFFFF),
     accentTint: Color(0x1F5856D6),
+    // accentTint 섹션 안 배지 위에서도 4.5 (accent 그대로는 4.3)
+    accentText: Color(0xFF4846C2),
     correct: Color(0xFF34C759),
-    // Apple 기본 초록 글자(#248A3D)는 흰 바탕 대비 4.4라 한 단계 어둡게 쓴다.
-    correctText: Color(0xFF1F7A35),
+    // 배지(옅은 초록) 위 4.5 이상이 되게 Apple 초록 글자(#248A3D)보다 두 단계 어둡게
+    correctText: Color(0xFF1A6E30),
     correctTint: Color(0x1F34C759),
     wrong: Color(0xFFFF3B30),
-    wrongText: Color(0xFFD70015),
+    // 중요 배지(옅은 빨강) 위 4.5 이상
+    wrongText: Color(0xFFC40012),
     wrongTint: Color(0x1AFF3B30),
     warning: Color(0xFFFF9500),
+    // 주황 그대로는 흰 바탕 2.2 > 갈색 계열로 어둡게
+    warningText: Color(0xFF9A4500),
+    onSemantic: Color(0xFF000000),
     label: Color(0xFF000000),
-    // iOS secondaryLabel(#3C3C43 60%)은 #F2F2F7 위에서 4.5 미만이라 불투명 회색으로 고정한다.
-    secondaryLabel: Color(0xFF6C6C70),
+    // 배지·세그먼트 트랙(fill) 위에서도 4.5 이상 (Apple systemGray2 다크 값과 같음)
+    secondaryLabel: Color(0xFF636366),
     tertiaryLabel: Color(0x4D3C3C43),
+    iconSecondary: Color(0xFF767679),
     background: Color(0xFFF2F2F7),
     card: Color(0xFFFFFFFF),
     cardElevated: Color(0xFFFFFFFF),
@@ -82,6 +106,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     accent: Color(0xFF5E5CE6),
     onAccent: Color(0xFFFFFFFF),
     accentTint: Color(0x335E5CE6),
+    // accent 그대로는 card 위 3.4 > 밝은 인디고로 글자 전용
+    accentText: Color(0xFF9A98FF),
     correct: Color(0xFF30D158),
     correctText: Color(0xFF30DB5B),
     correctTint: Color(0x3330D158),
@@ -89,9 +115,12 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     wrongText: Color(0xFFFF6961),
     wrongTint: Color(0x33FF453A),
     warning: Color(0xFFFF9F0A),
+    warningText: Color(0xFFFF9F0A),
+    onSemantic: Color(0xFF000000),
     label: Color(0xFFFFFFFF),
     secondaryLabel: Color(0xFFAEAEB2),
     tertiaryLabel: Color(0x4DEBEBF5),
+    iconSecondary: Color(0xFF8E8E93),
     background: Color(0xFF000000),
     card: Color(0xFF1C1C1E),
     cardElevated: Color(0xFF2C2C2E),
@@ -107,6 +136,7 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
         accent: accent ?? this.accent,
         onAccent: onAccent,
         accentTint: accentTint,
+        accentText: accentText,
         correct: correct,
         correctText: correctText,
         correctTint: correctTint,
@@ -114,9 +144,12 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
         wrongText: wrongText,
         wrongTint: wrongTint,
         warning: warning,
+        warningText: warningText,
+        onSemantic: onSemantic,
         label: label,
         secondaryLabel: secondaryLabel,
         tertiaryLabel: tertiaryLabel,
+        iconSecondary: iconSecondary,
         background: background,
         card: card,
         cardElevated: cardElevated,
@@ -135,6 +168,7 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
       accent: lerpColor(accent, other.accent),
       onAccent: lerpColor(onAccent, other.onAccent),
       accentTint: lerpColor(accentTint, other.accentTint),
+      accentText: lerpColor(accentText, other.accentText),
       correct: lerpColor(correct, other.correct),
       correctText: lerpColor(correctText, other.correctText),
       correctTint: lerpColor(correctTint, other.correctTint),
@@ -142,9 +176,12 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
       wrongText: lerpColor(wrongText, other.wrongText),
       wrongTint: lerpColor(wrongTint, other.wrongTint),
       warning: lerpColor(warning, other.warning),
+      warningText: lerpColor(warningText, other.warningText),
+      onSemantic: lerpColor(onSemantic, other.onSemantic),
       label: lerpColor(label, other.label),
       secondaryLabel: lerpColor(secondaryLabel, other.secondaryLabel),
       tertiaryLabel: lerpColor(tertiaryLabel, other.tertiaryLabel),
+      iconSecondary: lerpColor(iconSecondary, other.iconSecondary),
       background: lerpColor(background, other.background),
       card: lerpColor(card, other.card),
       cardElevated: lerpColor(cardElevated, other.cardElevated),

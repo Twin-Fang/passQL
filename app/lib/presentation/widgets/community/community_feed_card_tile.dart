@@ -40,13 +40,13 @@ class CommunityFeedCardTile extends StatelessWidget {
                 Icon(
                   CupertinoIcons.lock_fill,
                   size: PassqlIconSize.xs,
-                  color: colors.tertiaryLabel,
+                  color: colors.iconSecondary,
                 ),
                 const SizedBox(width: PassqlSpacing.xxs),
                 Text(
                   '풀면 볼 수 있어요',
                   style: PassqlTypography.footnote.copyWith(
-                    color: colors.tertiaryLabel,
+                    color: colors.secondaryLabel,
                   ),
                 ),
               ],

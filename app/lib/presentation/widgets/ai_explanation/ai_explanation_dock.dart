@@ -357,7 +357,7 @@ class _HeaderIconButton extends StatelessWidget {
         child: Icon(
           icon,
           size: isCloseButton ? PassqlIconSize.sheetClose : PassqlIconSize.lg,
-          color: isCloseButton ? colors.tertiaryLabel : colors.accent,
+          color: isCloseButton ? colors.iconSecondary : colors.accent,
         ),
       ),
     );

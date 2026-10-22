@@ -249,30 +249,210 @@ Map<String, dynamic> _summary(int i, String topic, String stem, int diff) => {
 
 const _latestTrendTopics = [
   {'topicCode': 'sql_join', 'topicName': 'JOIN', 'latestTrendQuestionCount': 3},
-  {'topicCode': 'sql_basic_select', 'topicName': 'SELECT 기본', 'latestTrendQuestionCount': 5},
+  {
+    'topicCode': 'sql_basic_select',
+    'topicName': 'SELECT 기본',
+    'latestTrendQuestionCount': 5,
+  },
+  {
+    'topicCode': 'sql_subquery',
+    'topicName': '서브쿼리',
+    'latestTrendQuestionCount': 4,
+  },
+  {
+    'topicCode': 'sql_ddl_dml_tcl',
+    'topicName': 'DDL / DML / TCL',
+    'latestTrendQuestionCount': 6,
+  },
+  {
+    'topicCode': 'sql_group_aggregate',
+    'topicName': '그룹함수 / 집계',
+    'latestTrendQuestionCount': 4,
+  },
+  {
+    'topicCode': 'sql_window',
+    'topicName': '윈도우 함수',
+    'latestTrendQuestionCount': 2,
+  },
+  {
+    'topicCode': 'sql_function',
+    'topicName': 'SQL 함수',
+    'latestTrendQuestionCount': 3,
+  },
 ];
+
+// 토픽 코드 > 토픽 이름·최신 경향 문제 수 (목록에 없으면 이름 null, 0개 = 탭 불가 상태)
+Map<String, dynamic> _trendTopicFields(String topicCode) {
+  final topic = _latestTrendTopics
+      .where((t) => t['topicCode'] == topicCode)
+      .firstOrNull;
+  return {
+    'topicCode': topicCode,
+    'topicName': topic?['topicName'],
+    'latestTrendQuestionCount': topic?['latestTrendQuestionCount'] ?? 0,
+  };
+}
+
+// 최신 경향 문제 수 합계 (토픽별 합)
+final _latestTrendQuestionTotal = _latestTrendTopics.fold<int>(
+  0,
+  (sum, t) => sum + (t['latestTrendQuestionCount'] as int),
+);
 
 Map<String, dynamic> _examTrendReport() => {
   'title': '2026 SQLD 출제 경향',
-  'basisDescription': '제58~62회(2025년 8월~2026년 8월) 시험 유형 분석',
-  'updatedDate': '2026-10-18',
-  'summary': 'SQL과 데이터를 주고 실행 결과를 따라가는 문제가 크게 늘었어요. 새 개념보다 이미 아는 개념 2~3개를 한 문제에 섞는 방식이 기본이 됐어요.',
-  'latestTrendQuestionCount': 8,
+  'basisDescription': '제58~62회 복원 250문항과 수험생 후기·오픈채팅 분석',
+  'updatedDate': '2026-10-20',
+  'summary':
+      '짧은 쿼리에 NULL 함정을 숨기고 결과를 따라가게 하는 문제가 중심이에요. 62회는 쉬웠다는 말이 많았지만 합격률은 낮았어요.',
+  'latestTrendQuestionCount': _latestTrendQuestionTotal,
   'subjectShares': [
-    {'subjectName': '1과목 데이터 모델링의 이해', 'questionCount': 10, 'percent': 20, 'description': '정의 암기보다 관계를 읽고 참여·식별 여부를 판정하는 상황형이 늘었어요.'},
-    {'subjectName': '2과목 SQL 기본과 활용', 'questionCount': 40, 'percent': 80, 'description': '대부분이 결과 행 수·값·오류 여부를 직접 계산하는 추적형이에요.'},
+    {
+      'subjectName': '1과목 데이터 모델링의 이해',
+      'questionCount': 10,
+      'percent': 20,
+      'description': '정의 암기보다 참여도·상호배타·다중값 속성을 지문 상황에 적용하는 문제가 늘었어요.',
+    },
+    {
+      'subjectName': '2과목 SQL 기본과 활용',
+      'questionCount': 40,
+      'percent': 80,
+      'description': '대부분이 결과 행 수·값·오류 여부를 직접 계산하는 추적형이에요.',
+    },
   ],
   'risingPatterns': [
-    {'title': '결과 비교형 보기', 'description': '보기마다 SQL을 주고 결과 행 수가 가장 많은 것, 결과가 다른 것, 오류가 나는 것을 고르는 문제예요.', 'examRoundsText': '58회부터 크게 증가', 'topicCode': 'sql_join', 'topicName': 'JOIN', 'latestTrendQuestionCount': 3},
-    {'title': 'ROWNUM·Top-N 실행 순서', 'description': 'ROWNUM 조건이 ORDER BY보다 먼저 적용되는 점을 노린 보기 고르기가 자주 나와요.', 'examRoundsText': '62회 3문항 안팎', 'topicCode': 'sql_basic_select', 'topicName': 'SELECT 기본', 'latestTrendQuestionCount': 5},
+    {
+      'title': '결과 비교형 보기',
+      'description': '보기마다 SQL을 주고 결과 행 수가 가장 많은 것, 결과가 다른 것을 고르는 문제예요.',
+      'examRoundsText': '61·62회 각 4문항',
+      ..._trendTopicFields('sql_join'),
+    },
+    {
+      'title': '짧은 쿼리 속 NULL 함정',
+      'description':
+          '쿼리는 짧은데 NOT IN, 빈 결과 집계, NULL 비교, NULL 치환 함수를 섞어 결과를 바꿔요.',
+      'examRoundsText': '62회 9문항',
+      ..._trendTopicFields('sql_group_aggregate'),
+    },
+    {
+      'title': '오류 나는 SQL 고르기',
+      'description': '인라인 뷰 별칭을 바깥에서 쓰거나 스칼라 서브쿼리가 여러 행을 돌려주는 SQL을 찾아요.',
+      'examRoundsText': '58·61·62회 각 3문항',
+      ..._trendTopicFields('sql_subquery'),
+    },
+    {
+      'title': '제약조건 아래 DML 성공 판정',
+      'description': 'PK·UNIQUE·CHECK·NOT NULL이 걸린 테이블에 어떤 INSERT가 성공하는지 따져요.',
+      'examRoundsText': '60회 4문항, 62회 1문항',
+      ..._trendTopicFields('sql_ddl_dml_tcl'),
+    },
+    {
+      'title': '관리 구문 최종 상태 추적',
+      'description':
+          'MERGE의 DELETE 절, INSERT FIRST, COMMIT 뒤 SAVEPOINT, 중첩 ROLE 회수 후 결과를 물어요.',
+      'examRoundsText': '62회 관리 구문 9문항',
+      ..._trendTopicFields('sql_ddl_dml_tcl'),
+    },
+    {
+      'title': 'ROWNUM 실행 순서',
+      'description': 'ROWNUM이 ORDER BY보다 먼저 붙는 점과 부등 조건에서 행이 탈락하는 점을 노려요.',
+      'examRoundsText': '61회 3문항, 62회 2문항',
+      ..._trendTopicFields('sql_basic_select'),
+    },
+    {
+      'title': 'GROUP BY 키 조합과 HAVING',
+      'description': '그룹 키에 어떤 컬럼이 들어가는지, HAVING 조건을 WHERE로 옮길 수 있는지 판단해요.',
+      'examRoundsText': '60·62회 각 2문항',
+      ..._trendTopicFields('sql_group_aggregate'),
+    },
+    {
+      'title': '1과목 상황 판단형',
+      'description': '관계선 기호로 참여도를 읽고, 상호배타 관계와 트랜잭션의 역할을 상황에 맞게 골라요.',
+      'examRoundsText': '62회 오답이 많았던 영역',
+      ..._trendTopicFields('data_modeling'),
+    },
   ],
   'frequentConcepts': [
-    {'rank': 1, 'name': 'NULL 함정', 'description': 'NOT IN과 NULL, 집계 함수의 NULL 무시, 3값 논리', 'frequencyText': '15문항 이상', 'topicCode': 'sql_subquery', 'topicName': null, 'latestTrendQuestionCount': 0},
-    {'rank': 2, 'name': '조인', 'description': '외부조인 ON과 WHERE 조건 위치, 결과 행 수 계산', 'frequencyText': '15문항 이상', 'topicCode': 'sql_join', 'topicName': 'JOIN', 'latestTrendQuestionCount': 3},
+    {
+      'rank': 1,
+      'name': '관리 구문·제약조건',
+      'description':
+          'MERGE, INSERT FIRST, SAVEPOINT, ROLE, CTAS, 제약조건 아래 INSERT',
+      'frequencyText': '5회 합계 26문항',
+      ..._trendTopicFields('sql_ddl_dml_tcl'),
+    },
+    {
+      'rank': 2,
+      'name': '조인',
+      'description': '외부조인 ON과 WHERE 조건 위치, NATURAL·USING 규칙, 결과 행 수',
+      'frequencyText': '5회 합계 20문항',
+      ..._trendTopicFields('sql_join'),
+    },
+    {
+      'rank': 3,
+      'name': '서브쿼리',
+      'description': 'ANY·ALL, 다중 컬럼 IN, 상관 조건 없는 EXISTS, NOT IN과 NULL',
+      'frequencyText': '5회 합계 19문항',
+      ..._trendTopicFields('sql_subquery'),
+    },
+    {
+      'rank': 4,
+      'name': '집계 함수와 NULL',
+      'description': 'COUNT(*)와 COUNT(컬럼), 빈 결과에서 0·NULL·결과 없음 구분',
+      'frequencyText': '5회 합계 16문항',
+      ..._trendTopicFields('sql_group_aggregate'),
+    },
+    {
+      'rank': 5,
+      'name': '계층형 질의·PIVOT',
+      'description': 'PRIOR 위치와 전개 방향, LEVEL, UNPIVOT IN 절',
+      'frequencyText': '5회 합계 15문항',
+      ..._trendTopicFields('sql_hierarchy_pivot'),
+    },
+    {
+      'rank': 6,
+      'name': 'GROUP BY 확장·HAVING',
+      'description': 'ROLLUP·CUBE·GROUPING SETS 결과 행, 괄호 묶음, HAVING 조건',
+      'frequencyText': '5회 합계 14문항',
+      ..._trendTopicFields('sql_group_aggregate'),
+    },
+    {
+      'rank': 7,
+      'name': '윈도우 함수',
+      'description': 'RANK·DENSE_RANK·ROW_NUMBER, 기본 프레임 누적합, LAG',
+      'frequencyText': '5회 합계 14문항 (62회 0문항)',
+      ..._trendTopicFields('sql_window'),
+    },
+    {
+      'rank': 8,
+      'name': 'NULL 치환·단일행 함수',
+      'description': 'NVL·NVL2·COALESCE·NULLIF, SUBSTR·ROUND, 묵시적 형변환',
+      'frequencyText': '5회 합계 13문항',
+      ..._trendTopicFields('sql_function'),
+    },
+    {
+      'rank': 9,
+      'name': '페이징·정렬',
+      'description': 'ROWNUM, FETCH FIRST WITH TIES, NULL 정렬 위치',
+      'frequencyText': '5회 합계 9문항',
+      ..._trendTopicFields('sql_basic_select'),
+    },
+    {
+      'rank': 10,
+      'name': '3값 논리·연산자 우선순위',
+      'description': 'NULL 비교와 UNKNOWN, NOT BETWEEN, NOT·AND·OR 순서',
+      'frequencyText': '5회 합계 8문항',
+      ..._trendTopicFields('sql_basic_select'),
+    },
   ],
   'studyTips': [
-    'SQL을 읽고 결과 표를 직접 그려 보세요. 암기보다 실행 순서와 결과 추적이 점수를 가려요.',
-    'ROWNUM은 ORDER BY보다 먼저 적용돼요. 정렬한 뒤 자르려면 인라인 뷰로 감싸야 해요.',
+    '쉬웠다는 체감과 달리 합격률은 낮았어요. 짧은 쿼리일수록 NULL 함정을 의심하세요.',
+    '조건에 맞는 행이 없을 때 결과가 0인지, NULL인지, 행이 아예 없는지 구분하세요. GROUP BY가 붙으면 결과 행이 사라져요.',
+    'ROWNUM은 ORDER BY보다 먼저 붙어요. 중간 번호를 건너뛰는 조건을 쓰면 그 뒤 행도 모두 떨어져요.',
+    '관리 구문은 개념보다 최종 상태를 물어요. COMMIT 뒤에는 SAVEPOINT가 사라지고, INSERT FIRST는 처음 참인 분기에만 넣어요.',
+    '62회엔 윈도우 함수가 없었지만 58~61회엔 매 회 2~4문항이 나왔어요. 빼놓지 말고 정리해 두세요.',
+    '복원 기출 점수는 실제보다 높게 나오는 편이에요. 기출 모의고사에서 80점 이상을 목표로 잡으세요.',
+    '1과목은 10문항 중 4문항 미만이면 과락이에요. 상호배타 관계, 다중값 속성, 참여도 읽기를 상황 문제로 연습해 두세요.',
   ],
   'latestTrendTopics': _latestTrendTopics,
 };

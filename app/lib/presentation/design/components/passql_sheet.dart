@@ -62,7 +62,7 @@ Future<T?> showPassqlSheet<T>(
                         child: Icon(
                           CupertinoIcons.xmark_circle_fill,
                           size: PassqlIconSize.sheetClose,
-                          color: colors.tertiaryLabel,
+                          color: colors.iconSecondary,
                         ),
                       ),
                     ),

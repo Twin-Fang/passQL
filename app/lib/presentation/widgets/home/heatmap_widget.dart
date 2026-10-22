@@ -33,12 +33,20 @@ class HeatmapWidget extends StatelessWidget {
   }
 
   /// solvedCount → 히트맵 색상 (5단계). 0단계는 fill, 나머지는 accent 알파 단계.
-  Color _colorForCount(PassqlColors colors, int count) {
+  static Color cellColorFor(PassqlColors colors, int count) {
     if (count == 0) return colors.fill;
     if (count <= 1) return colors.accent.withValues(alpha: 0.25);
     if (count <= 3) return colors.accent.withValues(alpha: 0.5);
     if (count <= 6) return colors.accent.withValues(alpha: 0.75);
     return colors.accent;
+  }
+
+  /// solvedCount → 칸 날짜 숫자 색 (칸 색 위 4.5 이상, 대비 테스트가 같은 함수로 검사)
+  /// 0회 secondaryLabel, 1~6회 label, 7회 이상(accent 100%) onAccent
+  static Color dayNumberColorFor(PassqlColors colors, int count) {
+    if (count == 0) return colors.secondaryLabel;
+    if (count <= 6) return colors.label;
+    return colors.onAccent;
   }
 
   /// 기준 날짜(시각 제거) > 그리드 35칸 날짜: 4주 전 일요일부터 이번 주 토요일까지
@@ -163,9 +171,6 @@ class HeatmapWidget extends StatelessWidget {
                       final count = entryMap[key]?.solvedCount ?? 0;
                       final isToday = date == todayDate;
 
-                      // 진한 배경(75% 이상)일 때만 반전 글자
-                      final isDeep = count > 3;
-
                       return Expanded(
                         child: AspectRatio(
                           aspectRatio: 1,
@@ -177,7 +182,7 @@ class HeatmapWidget extends StatelessWidget {
                               PassqlSpacing.hairlineGap,
                             ),
                             decoration: BoxDecoration(
-                              color: _colorForCount(colors, count),
+                              color: cellColorFor(colors, count),
                               borderRadius: BorderRadius.circular(
                                 PassqlRadius.sm,
                               ),
@@ -192,9 +197,7 @@ class HeatmapWidget extends StatelessWidget {
                               child: Text(
                                 '${date.day}',
                                 style: PassqlTypography.caption.copyWith(
-                                  color: isDeep
-                                      ? colors.onAccent
-                                      : colors.secondaryLabel,
+                                  color: dayNumberColorFor(colors, count),
                                 ),
                               ),
                             ),

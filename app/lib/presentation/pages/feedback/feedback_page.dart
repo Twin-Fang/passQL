@@ -172,12 +172,12 @@ class _FeedbackBubble extends StatelessWidget {
         colors.correctTint,
         colors.label,
         colors.correct,
-        colors.onAccent,
+        colors.onSemantic,
       ),
     };
     final captionColor = item.status == FeedbackStatus.pending
         ? colors.onAccent.withValues(alpha: 0.7)
-        : colors.tertiaryLabel;
+        : colors.secondaryLabel;
 
     return Align(
       alignment: Alignment.centerRight,
@@ -279,7 +279,7 @@ class _Composer extends StatelessWidget {
             decoration: InputDecoration.collapsed(
               hintText: '앱에 바라는 점을 자유롭게 적어주세요',
               hintStyle: PassqlTypography.body.copyWith(
-                color: colors.tertiaryLabel,
+                color: colors.secondaryLabel,
               ),
             ),
           ),
@@ -287,7 +287,7 @@ class _Composer extends StatelessWidget {
           Text(
             '$length/${FeedbackValidator.maxLength}',
             style: PassqlTypography.caption.copyWith(
-              color: isOverLimit ? colors.wrongText : colors.tertiaryLabel,
+              color: isOverLimit ? colors.wrongText : colors.secondaryLabel,
             ),
           ),
         ],

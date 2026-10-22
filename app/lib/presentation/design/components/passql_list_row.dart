@@ -51,7 +51,7 @@ class PassqlListRow extends StatelessWidget {
                   Text(
                     title,
                     style: PassqlTypography.body.copyWith(
-                      color: isDestructive ? colors.wrong : colors.label,
+                      color: isDestructive ? colors.wrongText : colors.label,
                     ),
                   ),
                   if (subtitle != null)
@@ -87,6 +87,7 @@ class PassqlListRow extends StatelessWidget {
     );
     return onTap == null
         ? row
-        : PassqlPressable(onTap: onTap, semanticLabel: title, child: row);
+        // 라벨을 따로 주지 않음 > 제목·부제·trailing 글자를 한 번씩 합쳐 읽음
+        : PassqlPressable(onTap: onTap, child: row);
   }
 }

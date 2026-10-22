@@ -407,7 +407,7 @@ void main() {
       expect(loader.lastStyle?.backgroundColor, PassqlColors.light.card);
       expect(
         loader.lastStyle?.callToActionTextColor,
-        PassqlColors.light.accent,
+        PassqlColors.light.accentText,
       );
     });
   });

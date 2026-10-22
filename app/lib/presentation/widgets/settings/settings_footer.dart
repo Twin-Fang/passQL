@@ -14,25 +14,42 @@ class SettingsFooter extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final caption = PassqlTypography.caption.copyWith(
-      color: colors.tertiaryLabel,
+      color: colors.secondaryLabel,
     );
     return Column(
       children: [
         const PassqlLogo(height: PassqlSize.footerLogoHeight),
         const SizedBox(height: PassqlSpacing.xs),
-        if (memberUuid != null)
-          GestureDetector(
-            onTap: () async {
-              await Clipboard.setData(ClipboardData(text: memberUuid!));
-              if (!context.mounted) return;
-              showAppToast(context, '회원 ID가 복사되었습니다.');
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: PassqlSpacing.xxs),
-              child: Text('회원 ID $memberUuid', style: caption),
-            ),
-          ),
+        if (memberUuid != null) _buildMemberIdCopyButton(context, caption),
       ],
+    );
+  }
+
+  /// 회원 ID 복사 버튼: 버튼 시맨틱(복사 동작 안내) + 누르는 높이 44
+  Widget _buildMemberIdCopyButton(BuildContext context, TextStyle caption) {
+    Future<void> copyMemberId() async {
+      await Clipboard.setData(ClipboardData(text: memberUuid!));
+      if (!context.mounted) return;
+      showAppToast(context, '회원 ID가 복사되었습니다.');
+    }
+
+    return PassqlSemanticButton(
+      label: '회원 ID $memberUuid, 눌러서 복사',
+      onTap: copyMemberId,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: copyMemberId,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minHeight: PassqlSize.minTouchTarget,
+          ),
+          child: Center(
+            widthFactor: 1,
+            heightFactor: 1,
+            child: Text('회원 ID $memberUuid', style: caption),
+          ),
+        ),
+      ),
     );
   }
 }
