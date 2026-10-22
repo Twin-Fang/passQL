@@ -18,6 +18,11 @@ dependencies {
     // 커뮤니티 이미지 저장소 (S3 호환 MinIO, path-style)
     api 'software.amazon.awssdk:s3:2.31.78'
 
+    // Play 회차 패스 구매 확인·소모·환불 조회 (google-api-client 2.7.2 > firebase-admin 과 같은 버전)
+    implementation 'com.google.apis:google-api-services-androidpublisher:v3-rev20260924-2.0.0'
+    // 서비스 계정 인증 (google-genai·firebase-admin 이 끌어오는 해석 버전과 동일)
+    implementation 'com.google.auth:google-auth-library-oauth2-http:1.52.0'
+
     // 테스트
     testImplementation project(':PQL-Web')
 }

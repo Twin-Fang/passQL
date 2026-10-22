@@ -1,18 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/ads/ad_placement.dart';
+import '../../../router/app_routes.dart';
 import '../../design/design.dart';
+import '../../providers/plan_providers.dart';
+import '../../providers/home_providers.dart';
 import '../../providers/stats_providers.dart';
+import '../../providers/wrong_questions_provider.dart';
 import '../../widgets/ads/ad_inline_card.dart';
 import '../../widgets/common/app_toast.dart';
+import '../../widgets/pro/locked_preview_samples.dart';
+import '../../widgets/pro/pro_locked_section.dart';
+import '../../widgets/pro/pro_plan_chip_slot.dart';
+import '../../widgets/home/heatmap_widget.dart';
+import '../../widgets/home/readiness_card.dart';
 import '../../widgets/stats/ai_analysis_card.dart';
 import '../../widgets/stats/bar_chart_section.dart';
 import '../../widgets/stats/radar_chart_section.dart';
+import '../../widgets/stats/stats_empty_state_card.dart';
+import '../../widgets/stats/stats_shortcut_section.dart';
 import '../../widgets/stats/summary_stats_section.dart';
 
-/// 통계 화면.
+/// 기록 화면(구 통계).
 /// statsDataProvider(진행 현황 + 토픽 분석)로 화면을 그리고, AI 코멘트는 따로 받아 자리만 먼저 잡는다.
+/// 히트맵·오늘의 세트는 홈과 같은 homeLearningStatusProvider 를 재사용 (새 API 없음)
 /// 로딩: 스켈레톤 / 에러: 재시도 버튼 / 성공: 섹션 순차 등장, pull-to-refresh 지원.
 class StatsPage extends ConsumerWidget {
   const StatsPage({super.key});
@@ -27,56 +40,97 @@ class StatsPage extends ConsumerWidget {
       body: statsAsync.when(
         skipError: true,
         loading: () => const PassqlLargeTitleScrollView(
-          title: '통계',
+          title: '기록',
+          trailing: ProPlanChipSlot(),
           slivers: [_StatsSkeleton()],
         ),
         error: (error, _) => PassqlLargeTitleScrollView(
-          title: '통계',
+          title: '기록',
+          trailing: const ProPlanChipSlot(),
           slivers: [
             SliverFillRemaining(
               hasScrollBody: false,
               child: PassqlStatusView.error(
-                message: '통계를 불러오지 못했습니다',
+                message: '기록을 불러오지 못했어요',
                 onRetry: () => ref.invalidate(statsDataProvider),
               ),
             ),
           ],
         ),
         data: (data) => PassqlLargeTitleScrollView(
-          title: '통계',
+          title: '기록',
+          trailing: const ProPlanChipSlot(),
           onRefresh: () async {
+            // 화면에 보이는 데이터 전부 (진행·토픽, AI 코멘트, 히트맵·세트, 오답 개수)
             ref.invalidate(statsDataProvider);
             ref.invalidate(statsAiCommentProvider);
+            ref.invalidate(homeLearningStatusProvider);
+            ref.invalidate(wrongQuestionTotalCountProvider);
             try {
-              await ref.read(statsDataProvider.future);
+              await Future.wait([
+                ref.read(statsDataProvider.future),
+                ref.read(homeLearningStatusProvider.future),
+              ]);
             } catch (_) {
               if (context.mounted) showAppToast(context, '새로고침하지 못했어요');
             }
           },
-          slivers: [_StatsContent(data: data)],
+          slivers: [
+            _StatsContent(
+              data: data,
+              isAnalysisLocked: ref.watch(shouldShowProUiProvider),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-/// 통계 카드 목록: 요약 > AI 분석 > 레이더 > 막대 > 인라인 광고 순서로 하나씩 등장. 카드 사이 간격은 PassqlSpacing.md.
-class _StatsContent extends StatelessWidget {
+/// 기록 카드 목록: 요약 > 합격 준비도 > 학습 현황 > AI 분석 > 레이더 > 막대 > 바로가기 > 인라인 광고 순서로 하나씩 등장.
+/// 푼 문제가 0개면 요약·차트 대신 빈 상태 카드 1개 (광고는 그대로 맨 아래). 카드 사이 간격은 PassqlSpacing.md.
+/// [isAnalysisLocked] (무료, 결제 켜짐): AI 분석·레이더·막대 자리에 묶음 블러
+class _StatsContent extends ConsumerWidget {
   final StatsData data;
+  final bool isAnalysisLocked;
 
-  const _StatsContent({required this.data});
+  const _StatsContent({required this.data, required this.isAnalysisLocked});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final progress = data.progress;
+    final isEmpty = (progress?.solvedCount ?? 0) == 0;
     final sections = <Widget>[
-      // 요약 통계 3개 카드
-      SummaryStatsSection(progress: data.progress),
-      // AI 영역 분석 (웹과 같이 요약 바로 아래, 늦게 와도 나머지는 먼저 보인다)
-      const _StatsAiCommentSection(),
-      // 레이더 차트
-      RadarChartSection(topicStats: data.topicAnalysis?.topicStats),
-      // 카테고리별 가로 막대
-      BarChartSection(topicStats: data.topicAnalysis?.topicStats),
+      if (isEmpty)
+        _withGap(const _StatsEmptyStateSection())
+      else ...[
+        // 요약 통계 3개 카드
+        _withGap(SummaryStatsSection(progress: progress)),
+        // 합격 준비도 (없으면 숨김)
+        if (progress?.readiness != null)
+          _withGap(ReadinessCard(readiness: progress!.readiness!)),
+        // 학습 현황 히트맵 (스스로 간격을 둔다)
+        _StatsHeatmapSection(streakDays: progress?.streakDays ?? 0),
+        if (isAnalysisLocked)
+          _withGap(
+            const ProLockedSection(
+              preview: StatsLockedSample(),
+              caption: LockedPreviewCaptions.stats,
+            ),
+          )
+        else ...[
+          // AI 영역 분석 (웹과 같이 요약 바로 아래, 늦게 와도 나머지는 먼저 보인다)
+          const _StatsAiCommentSection(),
+          // 레이더 차트
+          _withGap(
+            RadarChartSection(topicStats: data.topicAnalysis?.topicStats),
+          ),
+          // 카테고리별 가로 막대
+          _withGap(BarChartSection(topicStats: data.topicAnalysis?.topicStats)),
+        ],
+        // 바로가기 (오답 노트, 오늘의 세트 순위)
+        _withGap(const StatsShortcutSection()),
+      ],
     ];
 
     return SliverPadding(
@@ -89,16 +143,7 @@ class _StatsContent extends StatelessWidget {
       sliver: SliverList.list(
         children: [
           for (var index = 0; index < sections.length; index++)
-            PassqlReveal(
-              index: index,
-              // AI 자리는 비면 간격까지 접히도록 스스로 간격을 둔다
-              child: sections[index] is _StatsAiCommentSection
-                  ? sections[index]
-                  : Padding(
-                      padding: const EdgeInsets.only(bottom: PassqlSpacing.md),
-                      child: sections[index],
-                    ),
-            ),
+            PassqlReveal(index: index, child: sections[index]),
           // 콘텐츠 맨 아래 광고 1칸 (뜬 때만 아래 간격, 등장 연출은 슬롯 공통)
           const AdInlineCard(
             placement: AdPlacement.bannerStats,
@@ -106,6 +151,68 @@ class _StatsContent extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  /// 카드 아래 간격 (스스로 간격을 두는 섹션은 감싸지 않는다)
+  Widget _withGap(Widget section) => Padding(
+    padding: const EdgeInsets.only(bottom: PassqlSpacing.md),
+    child: section,
+  );
+}
+
+/// 빈 상태 카드 자리: 오늘의 세트를 풀 수 있으면 세트 풀기, 아니면 문제 탭 안내
+class _StatsEmptyStateSection extends ConsumerWidget {
+  const _StatsEmptyStateSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 세트 상태는 늦게 와도 카드를 막지 않음 (오기 전엔 문제 탭 안내)
+    final dailySet = ref
+        .watch(homeLearningStatusProvider)
+        .valueOrNull
+        ?.dailySet;
+    final hasDailySet =
+        dailySet != null &&
+        dailySet.questions.isNotEmpty &&
+        !dailySet.alreadyCompleted;
+    return StatsEmptyStateCard(
+      hasDailySet: hasDailySet,
+      onSolveDailySet: () => context.push(AppRoutes.dailySet),
+      onBrowseQuestions: () => context.go(AppRoutes.questions),
+    );
+  }
+}
+
+/// 학습 현황(히트맵) 자리: 오는 동안 스켈레톤, 못 받았으면 접힘 (간격 포함)
+class _StatsHeatmapSection extends ConsumerWidget {
+  final int streakDays;
+
+  const _StatsHeatmapSection({required this.streakDays});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final learningStatusAsync = ref.watch(homeLearningStatusProvider);
+    final learningStatus = learningStatusAsync.valueOrNull;
+    final Widget content;
+    if (learningStatus == null && learningStatusAsync.isLoading) {
+      content = const PassqlLoadingSemantics(
+        child: PassqlSkeletonBox(
+          height: _heatmapCardHeight,
+          radius: PassqlRadius.lg,
+        ),
+      );
+    } else if (learningStatus?.heatmap == null) {
+      return const SizedBox.shrink();
+    } else {
+      content = HeatmapWidget(
+        heatmap: learningStatus!.heatmap,
+        streakDays: streakDays,
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: PassqlSpacing.md),
+      child: content,
     );
   }
 }
@@ -132,7 +239,7 @@ class _StatsAiCommentSection extends ConsumerWidget {
     final isEmpty = content is SizedBox;
     // 카드 아래 간격도 카드와 함께 접힌다
     return AnimatedSize(
-      duration: PassqlMotion.standard,
+      duration: PassqlMotion.durationOf(context, PassqlMotion.standard),
       curve: PassqlMotion.curve,
       alignment: Alignment.topCenter,
       child: Padding(
@@ -147,6 +254,7 @@ class _StatsAiCommentSection extends ConsumerWidget {
 // 스켈레톤 자리 높이: 실제 카드(요약 3칸·AI 분석, 차트 2개) 높이와 맞춤
 const double _summaryCardHeight = 80;
 const double _chartCardHeight = 280;
+const double _heatmapCardHeight = 160;
 
 class _StatsSkeleton extends StatelessWidget {
   const _StatsSkeleton();
@@ -160,42 +268,54 @@ class _StatsSkeleton extends StatelessWidget {
         PassqlSpacing.md,
         0,
       ),
-      sliver: SliverList(
-        delegate: SliverChildListDelegate.fixed([
-          Row(
+      // 스켈레톤 조각 대신 '불러오는 중' 한 번
+      sliver: SliverToBoxAdapter(
+        child: PassqlLoadingSemantics(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: PassqlSkeletonBox(
-                  height: _summaryCardHeight,
-                  radius: PassqlRadius.lg,
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: PassqlSkeletonBox(
+                      height: _summaryCardHeight,
+                      radius: PassqlRadius.lg,
+                    ),
+                  ),
+                  SizedBox(width: PassqlSpacing.sm),
+                  Expanded(
+                    child: PassqlSkeletonBox(
+                      height: _summaryCardHeight,
+                      radius: PassqlRadius.lg,
+                    ),
+                  ),
+                  SizedBox(width: PassqlSpacing.sm),
+                  Expanded(
+                    child: PassqlSkeletonBox(
+                      height: _summaryCardHeight,
+                      radius: PassqlRadius.lg,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(width: PassqlSpacing.sm),
-              Expanded(
-                child: PassqlSkeletonBox(
-                  height: _summaryCardHeight,
-                  radius: PassqlRadius.lg,
-                ),
+              SizedBox(height: PassqlSpacing.md),
+              PassqlSkeletonBox(
+                height: _chartCardHeight,
+                radius: PassqlRadius.lg,
               ),
-              SizedBox(width: PassqlSpacing.sm),
-              Expanded(
-                child: PassqlSkeletonBox(
-                  height: _summaryCardHeight,
-                  radius: PassqlRadius.lg,
-                ),
+              SizedBox(height: PassqlSpacing.md),
+              PassqlSkeletonBox(
+                height: _chartCardHeight,
+                radius: PassqlRadius.lg,
+              ),
+              SizedBox(height: PassqlSpacing.md),
+              PassqlSkeletonBox(
+                height: _summaryCardHeight,
+                radius: PassqlRadius.lg,
               ),
             ],
           ),
-          SizedBox(height: PassqlSpacing.md),
-          PassqlSkeletonBox(height: _chartCardHeight, radius: PassqlRadius.lg),
-          SizedBox(height: PassqlSpacing.md),
-          PassqlSkeletonBox(height: _chartCardHeight, radius: PassqlRadius.lg),
-          SizedBox(height: PassqlSpacing.md),
-          PassqlSkeletonBox(
-            height: _summaryCardHeight,
-            radius: PassqlRadius.lg,
-          ),
-        ]),
+        ),
       ),
     );
   }

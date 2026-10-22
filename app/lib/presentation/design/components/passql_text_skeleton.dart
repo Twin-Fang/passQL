@@ -3,6 +3,7 @@ import 'package:shimmer/shimmer.dart';
 
 import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
+import 'passql_loading_semantics.dart';
 
 /// 글 문단 자리 스켈레톤: 줄 모양 N개를 한 블록으로 묶고 반짝임은 블록 전체에 1번
 /// 줄마다 따로 반짝이면 바코드처럼 보여서 한 Shimmer 로 감쌈. 동작 줄이기면 정지
@@ -55,16 +56,13 @@ class PassqlTextSkeleton extends StatelessWidget {
       ],
     );
     // 화면 읽기 프로그램에는 줄 모양 대신 "불러오는 중" 하나로
-    return Semantics(
-      label: '불러오는 중',
-      child: ExcludeSemantics(
-        child: Shimmer.fromColors(
-          enabled: !PassqlMotion.isReduced(context),
-          period: PassqlMotion.skeletonShimmerPeriod,
-          baseColor: Color.alphaBlend(colors.fill, colors.card),
-          highlightColor: colors.card,
-          child: lines,
-        ),
+    return PassqlLoadingSemantics(
+      child: Shimmer.fromColors(
+        enabled: !PassqlMotion.isReduced(context),
+        period: PassqlMotion.skeletonShimmerPeriod,
+        baseColor: Color.alphaBlend(colors.fill, colors.card),
+        highlightColor: colors.card,
+        child: lines,
       ),
     );
   }

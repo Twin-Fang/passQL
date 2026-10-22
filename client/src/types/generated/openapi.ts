@@ -198,6 +198,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/billing/play/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Play 회차 패스 구매 확인
+         * @description ## 인증(JWT): **필요**
+         *
+         *     앱이 Play 구매 완료 후(또는 앱 시작·복원 시 미처리 구매를) 보낸다.
+         *     서버가 Google Play 에서 구매를 확인하고 회차 패스 만료일을 저장한 뒤 소모(consume)까지 처리한다.
+         *     같은 토큰을 다시 보내도 만료일은 한 번만 연장된다 (소모 실패분은 이때 다시 소모).
+         *
+         *     ## 요청 바디 (PlayVerifyRequest)
+         *     - **`productId`**: Play 상품 ID (`pro_exam_pass`, 필수)
+         *     - **`purchaseToken`**: Play 구매 토큰 (필수)
+         *
+         *     ## 반환값 (MemberPlanResponse)
+         *     - 확인 후 내 등급 (`GET /api/members/me/plan` 과 같은 형태)
+         *     - 결제 대기(pending) 구매는 등급을 바꾸지 않고 현재 등급을 그대로 반환
+         *
+         *     ## 에러
+         *     - 400 `INVALID_INPUT_VALUE`: 알 수 없는 상품 ID, Play 가 인식하지 못하는 구매 토큰
+         *     - 400 `INVALID_REQUEST`: 취소된 구매, 환불로 회수된 구매
+         *     - 403 `ACCESS_DENIED`: 다른 회원이 이미 등록한 구매 토큰
+         *     - 409 `DATA_INTEGRITY_VIOLATION`: 동시 저장 충돌 (다시 시도)
+         *     - 502 `EXTERNAL_API_ERROR`: Play API 호출 실패 또는 서버 결제 설정 없음
+         */
+        post: operations["verifyPlayPurchase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/community/feed": {
         parameters: {
             query?: never;
@@ -974,6 +1013,37 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/members/me/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 내 등급 조회
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 요청 헤더
+         *     - **`Authorization`**: Bearer {accessToken}
+         *
+         *     ## 반환값 (MemberPlanResponse)
+         *     - **`isBillingEnabled`**: 결제 스위치 (false 면 앱은 잠금 UI 를 그리지 않음)
+         *     - **`plan`**: FREE 또는 PRO (스위치 꺼짐이면 항상 PRO)
+         *     - **`proExpiresAt`**: 프로 만료 시각 KST (유효한 프로가 아니면 null)
+         *     - **`todayRandomSolvedCount`**: 오늘 푼 무료 랜덤 문제 수
+         *     - **`dailyFreeLimit`**: 무료 하루 랜덤 문제 한도
+         *     - **`purchasableUntil`**: 지금 구매하면 이용 가능한 마감 시각 KST (결제 꺼짐이면 null)
+         */
+        get: operations["getMyPlan"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/members/me/push-token": {
         parameters: {
             query?: never;
@@ -1455,6 +1525,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/questions/random": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 랜덤 풀기 문제 목록
+         * @description 활성 문제 중 안 푼 문제를 우선해 무작위로 고르고, 부족하면 푼 문제로 채운다. size 기본 10, 1~10 으로 보정. 목록만 내려주며 하루 문제 수 제한은 문제 상세 열기(GET /questions/{id})에서 적용.
+         */
+        get: operations["getRandomQuestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/questions/recommendations": {
         parameters: {
             query?: never;
@@ -1635,6 +1725,7 @@ export interface components {
         AppConfigResponse: {
             android: components["schemas"]["AppPlatformVersionResponse"];
             ios: components["schemas"]["AppPlatformVersionResponse"];
+            isAndroidBillingEnabled: boolean;
             maintenance: components["schemas"]["AppMaintenanceResponse"];
             notices: components["schemas"]["AppNoticeResponse"][];
         };
@@ -1721,6 +1812,8 @@ export interface components {
              */
             choiceSetUuid: string;
             explanation: components["schemas"]["ChoiceExplanation"] | null;
+            /** @description 무료 회원 응답에서 뺀 묶음 이름 (FULL_EXPLANATION), 없으면 빈 목록 */
+            lockedSections: string[];
             /**
              * Format: int32
              * @description 해설을 만든 프롬프트 버전
@@ -1881,7 +1974,7 @@ export interface components {
          * @description 서버 ErrorCode enum 이름 (응답 errorCode 값)
          * @enum {string}
          */
-        ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "PROMPT_NOT_FOUND" | "TOPIC_NOT_FOUND" | "TOPIC_DUPLICATE" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "COMMUNITY_POST_NOT_FOUND" | "COMMUNITY_SOLVE_REQUIRED" | "COMMUNITY_CONTENT_INVALID" | "COMMUNITY_CONTENT_FORBIDDEN_WORD" | "COMMUNITY_POST_DUPLICATE" | "COMMUNITY_POST_RATE_LIMITED" | "COMMUNITY_POST_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_POST_FORBIDDEN" | "COMMUNITY_SELF_REPORT_FORBIDDEN" | "COMMUNITY_SELF_BLOCK_FORBIDDEN" | "COMMUNITY_BLOCK_NOT_FOUND" | "COMMUNITY_IMAGE_STORAGE_UNAVAILABLE" | "COMMUNITY_IMAGE_INVALID_FORMAT" | "COMMUNITY_IMAGE_TOO_LARGE" | "COMMUNITY_IMAGE_DIMENSION_EXCEEDED" | "COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED" | "COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_IMAGE_QUOTA_EXCEEDED" | "COMMUNITY_IMAGE_NOT_FOUND" | "COMMUNITY_IMAGE_TOO_MANY" | "COMMUNITY_IMAGE_INVALID_ATTACHMENT" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER" | "SOCIAL_LOGIN_UNAVAILABLE" | "INVALID_SOCIAL_AUTHORIZATION_CODE" | "INVALID_SOCIAL_TOKEN";
+        ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "PROMPT_NOT_FOUND" | "TOPIC_NOT_FOUND" | "TOPIC_DUPLICATE" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "COMMUNITY_POST_NOT_FOUND" | "COMMUNITY_SOLVE_REQUIRED" | "COMMUNITY_CONTENT_INVALID" | "COMMUNITY_CONTENT_FORBIDDEN_WORD" | "COMMUNITY_POST_DUPLICATE" | "COMMUNITY_POST_RATE_LIMITED" | "COMMUNITY_POST_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_POST_FORBIDDEN" | "COMMUNITY_SELF_REPORT_FORBIDDEN" | "COMMUNITY_SELF_BLOCK_FORBIDDEN" | "COMMUNITY_BLOCK_NOT_FOUND" | "COMMUNITY_IMAGE_STORAGE_UNAVAILABLE" | "COMMUNITY_IMAGE_INVALID_FORMAT" | "COMMUNITY_IMAGE_TOO_LARGE" | "COMMUNITY_IMAGE_DIMENSION_EXCEEDED" | "COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED" | "COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_IMAGE_QUOTA_EXCEEDED" | "COMMUNITY_IMAGE_NOT_FOUND" | "COMMUNITY_IMAGE_TOO_MANY" | "COMMUNITY_IMAGE_INVALID_ATTACHMENT" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER" | "SOCIAL_LOGIN_UNAVAILABLE" | "INVALID_SOCIAL_AUTHORIZATION_CODE" | "INVALID_SOCIAL_TOKEN" | "PRO_REQUIRED" | "FREE_DAILY_LIMIT_REACHED" | "FAIR_USE_DAILY_LIMIT_REACHED";
         /** @description API 에러 응답 표준 형식 */
         ErrorResponse: {
             errorCode: components["schemas"]["ErrorCode"];
@@ -2062,6 +2155,21 @@ export interface components {
             role: string;
             status: string;
         };
+        MemberPlanResponse: {
+            /** Format: int32 */
+            dailyFreeLimit: number;
+            isBillingEnabled: boolean;
+            lastOrderId: string | null;
+            /** Format: date-time */
+            lastPurchasedAt: string | null;
+            plan: string;
+            /** Format: date-time */
+            proExpiresAt: string | null;
+            /** Format: date-time */
+            purchasableUntil: string | null;
+            /** Format: int32 */
+            todayRandomSolvedCount: number;
+        };
         NicknameChangeRequest: {
             nickname: string;
         };
@@ -2129,6 +2237,10 @@ export interface components {
             paged: boolean;
             sort: components["schemas"]["SortObject"];
             unpaged: boolean;
+        };
+        PlayVerifyRequest: {
+            productId: string;
+            purchaseToken: string;
         };
         ProgressResponse: {
             /** Format: double */
@@ -2308,6 +2420,8 @@ export interface components {
             correctSql: string | null;
             explanation: string | null;
             isCorrect: boolean;
+            /** @description 무료 회원 응답에서 뺀 묶음 이름 (EXECUTION_RESULT, FULL_EXPLANATION), 없으면 빈 목록 */
+            lockedSections: string[];
             rationale: string | null;
             selectedResult: components["schemas"]["ExecuteResult"] | null;
             selectedSql: string | null;
@@ -2586,6 +2700,30 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SocialLoginClientConfig"][];
+                };
+            };
+        };
+    };
+    verifyPlayPurchase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlayVerifyRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MemberPlanResponse"];
                 };
             };
         };
@@ -3224,6 +3362,26 @@ export interface operations {
             };
         };
     };
+    getMyPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MemberPlanResponse"];
+                };
+            };
+        };
+    };
     registerPushToken: {
         parameters: {
             query?: never;
@@ -3589,6 +3747,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PageQuestionSummary"];
+                };
+            };
+        };
+    };
+    getRandomQuestions: {
+        parameters: {
+            query?: {
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["QuestionSummary"][];
                 };
             };
         };

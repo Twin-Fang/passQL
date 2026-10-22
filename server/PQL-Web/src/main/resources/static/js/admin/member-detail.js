@@ -5,7 +5,7 @@
 
 // 탭 전환
 function switchTab(tab) {
-    ['submission', 'suspend', 'notification'].forEach(t => {
+    ['submission', 'suspend', 'notification', 'purchase'].forEach(t => {
         document.getElementById('panel-' + t).classList.toggle('hidden', t !== tab);
         document.getElementById('tab-' + t).classList.toggle('tab-active', t === tab);
     });

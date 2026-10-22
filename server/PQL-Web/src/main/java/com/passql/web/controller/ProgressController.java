@@ -1,5 +1,7 @@
 package com.passql.web.controller;
 
+import com.passql.application.entitlement.ProFeature;
+import com.passql.web.support.RequiresProFeature;
 import com.passql.ai.dto.AiCommentResponse;
 import com.passql.application.service.AiCommentService;
 import com.passql.member.auth.presentation.annotation.AuthMember;
@@ -34,6 +36,7 @@ public class ProgressController implements ProgressControllerDocs {
         return ResponseEntity.ok(progressService.getProgress(loginMember.memberUuid()));
     }
 
+    @RequiresProFeature(ProFeature.TOPIC_ANALYSIS)
     @GetMapping("/topic-analysis")
     public ResponseEntity<TopicAnalysisResponse> getTopicAnalysis(
         @AuthMember LoginMember loginMember
@@ -50,6 +53,7 @@ public class ProgressController implements ProgressControllerDocs {
         return ResponseEntity.ok(progressService.getHeatmap(loginMember.memberUuid(), from, to));
     }
 
+    @RequiresProFeature(ProFeature.AI_COMMENT)
     @GetMapping("/ai-comment")
     public ResponseEntity<AiCommentResponse> getAiComment(
         @AuthMember LoginMember loginMember,
@@ -58,6 +62,7 @@ public class ProgressController implements ProgressControllerDocs {
         return ResponseEntity.ok(aiCommentService.getAiComment(loginMember.memberUuid(), sessionUuid));
     }
 
+    @RequiresProFeature(ProFeature.TOPIC_ANALYSIS)
     @GetMapping("/wrong-questions")
     public ResponseEntity<WrongQuestionsResponse> getWrongQuestions(
         @AuthMember LoginMember loginMember,

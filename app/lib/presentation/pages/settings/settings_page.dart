@@ -11,6 +11,7 @@ import '../../providers/app_config_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/settings_providers.dart';
 import '../../widgets/common/app_toast.dart';
+import '../../widgets/pro/pro_settings_card.dart';
 import '../../widgets/settings/choice_mode_tile.dart';
 import '../../widgets/settings/push_notification_tile.dart';
 import '../../widgets/settings/theme_mode_tile.dart';
@@ -18,7 +19,6 @@ import '../../widgets/settings/nickname_edit_sheet.dart';
 import '../../widgets/settings/open_source_licenses.dart';
 import '../../widgets/settings/profile_card.dart';
 import '../../widgets/settings/settings_footer.dart';
-import '../../providers/wrong_questions_provider.dart';
 import '../../widgets/settings/settings_group.dart';
 
 class SettingsPage extends ConsumerWidget {
@@ -93,18 +93,15 @@ class SettingsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = context.passqlColors;
     final settingsAsync = ref.watch(settingsDataProvider);
     final nicknameAsync = ref.watch(nicknameNotifierProvider);
-    // 개수만 받는 가벼운 조회 (목록 전체·진입 분석 기록은 오답 노트 화면 몫)
-    final wrongCount = ref.watch(wrongQuestionTotalCountProvider).valueOrNull;
     final data = settingsAsync.valueOrNull;
     // 앱 버전 원본은 시작 게이트와 같은 Provider (회원 API 실패와 무관하게 표시)
     final appVersion = ref.watch(currentAppVersionProvider).valueOrNull;
 
     return Scaffold(
       body: PassqlLargeTitleScrollView(
-        title: '설정',
+        title: 'MY',
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(
@@ -115,6 +112,8 @@ class SettingsPage extends ConsumerWidget {
             ),
             sliver: SliverList.list(
               children: passqlRevealInOrder([
+                // 등급 카드 (결제 꺼짐·등급 모름이면 자리째 없음, 아래 간격 포함)
+                const ProSettingsCard(),
                 // 프로필: 닉네임만 보여 주고, 내부 식별자(회원 ID)는 하단으로 내린다.
                 settingsAsync.when(
                   loading: () => const ProfileCardSkeleton(),
@@ -145,21 +144,16 @@ class SettingsPage extends ConsumerWidget {
                 const SizedBox(height: PassqlSpacing.xl),
                 const SettingsGroup(title: '화면', children: [ThemeModeTile()]),
                 const SizedBox(height: PassqlSpacing.xl),
-                const SettingsGroup(
-                  title: '알림',
-                  children: [PushNotificationTile()],
-                ),
-                const SizedBox(height: PassqlSpacing.xl),
                 SettingsGroup(
-                  title: '기록',
+                  title: '알림',
                   children: [
+                    // 알림함 안에 공지 탭이 있어 한 행으로 둘 다 안내
                     SettingsRow(
-                      icon: CupertinoIcons.book,
-                      iconColor: colors.wrong,
-                      title: '오답 노트',
-                      trailing: wrongCount == null ? null : Text('$wrongCount'),
-                      onTap: () => context.push(AppRoutes.wrongNotes),
+                      icon: CupertinoIcons.bell,
+                      title: '알림함·공지',
+                      onTap: () => context.push(AppRoutes.notificationInbox),
                     ),
+                    const PushNotificationTile(),
                   ],
                 ),
                 const SizedBox(height: PassqlSpacing.xl),

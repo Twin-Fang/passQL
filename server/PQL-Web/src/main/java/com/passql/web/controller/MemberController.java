@@ -1,5 +1,9 @@
 package com.passql.web.controller;
 
+import com.passql.application.entitlement.FeatureAccessPolicy;
+import com.passql.application.entitlement.MemberPlanResponse;
+import com.passql.application.entitlement.ProFeature;
+import com.passql.member.constant.ChoiceGenerationMode;
 import com.passql.member.auth.presentation.annotation.AuthMember;
 import com.passql.member.auth.presentation.security.LoginMember;
 import com.passql.member.dto.ChoiceGenerationModeUpdateRequest;
@@ -36,10 +40,17 @@ public class MemberController implements MemberControllerDocs {
 
     private final MemberService memberService;
     private final MemberPushTokenService memberPushTokenService;
+    private final FeatureAccessPolicy featureAccessPolicy;
 
     @GetMapping("/me")
     public MemberMeResponse getMe(@AuthMember LoginMember loginMember) {
         return memberService.getMe(loginMember.memberUuid());
+    }
+
+    // 내 등급·오늘 무료 사용량·구매 가능 마감일 (회원 도메인은 등급을 모르므로 /me 와 별도 경로)
+    @GetMapping("/me/plan")
+    public MemberPlanResponse getMyPlan(@AuthMember LoginMember loginMember) {
+        return featureAccessPolicy.getPlan(loginMember.memberUuid());
     }
 
     /** 회원 탈퇴. 성공하면 본문 없이 204. */
@@ -76,6 +87,10 @@ public class MemberController implements MemberControllerDocs {
     public ChoiceGenerationModeUpdateResponse updateChoiceGenerationMode(
             @AuthMember LoginMember loginMember,
             @Valid @RequestBody ChoiceGenerationModeUpdateRequest request) {
+        // 실전 모드로 바꿀 때만 프로 전용 (연습 모드로 되돌리기는 무료 허용)
+        if (request.getChoiceGenerationMode() == ChoiceGenerationMode.REAL) {
+            featureAccessPolicy.requireFeature(loginMember.memberUuid(), ProFeature.REAL_MODE);
+        }
         return memberService.updateChoiceGenerationMode(loginMember.memberUuid(), request);
     }
 

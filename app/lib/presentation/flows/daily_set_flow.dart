@@ -53,7 +53,8 @@ class DailySetFlow extends QuestionFlow {
         );
 
     if (!context.mounted) return;
-    context.go(
+    // 시작 화면을 스택에 남기려고 세트 화면 자리를 결과로 교체
+    context.pushReplacement(
       AppRoutes.dailySetResult,
       extra: DailySetOutcome(
         results: summary.results,

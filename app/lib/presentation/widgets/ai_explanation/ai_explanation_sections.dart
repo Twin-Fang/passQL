@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import '../../../data/models/ai/choice_explanation.dart';
 import '../../design/design.dart';
 import '../../providers/ai_explanation_session_provider.dart';
+import '../pro/locked_preview_samples.dart';
+import '../pro/pro_locked_section.dart';
 import 'ai_explanation_choice_analysis_list.dart';
 import 'ai_explanation_inline_text.dart';
 import 'ai_explanation_verdict.dart';
@@ -10,15 +12,18 @@ import 'ai_explanation_verdict.dart';
 /// 구조화 해설 본문: 판정 배지 > 정답 근거 > 시험 팁 > 핵심 개념 > 헷갈리는 지점 > 보기별 판단
 /// 시험 팁은 풀이 직후 가장 먼저 기억할 한 줄이라 긴 섹션보다 앞
 /// 비어 있는 섹션은 그리지 않음
+/// [isFullExplanationLocked] (무료, 결제 켜짐): 판정 아래 블러 (서버가 판정 외 섹션을 비워 보냄)
 class AiExplanationSections extends StatelessWidget {
   const AiExplanationSections({
     super.key,
     required this.explanation,
     required this.entry,
+    this.isFullExplanationLocked = false,
   });
 
   final ChoiceExplanation explanation;
   final AiExplanationEntry entry;
+  final bool isFullExplanationLocked;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +40,11 @@ class AiExplanationSections extends StatelessWidget {
         isCorrect: explanation.isSelectedCorrect,
         verdict: composeAiExplanationVerdict(explanation, entry),
       ),
+      if (isFullExplanationLocked)
+        const ProLockedSection(
+          preview: ExplanationLockedSample(),
+          caption: LockedPreviewCaptions.explanation,
+        ),
       if (explanation.correctReason.trim().isNotEmpty)
         _ExplanationSection(
           icon: CupertinoIcons.checkmark_seal_fill,
@@ -178,7 +188,7 @@ class _KeyConceptList extends StatelessWidget {
     final colors = context.passqlColors;
     final nameStyle = PassqlTypography.inlineCodeOf(
       PassqlTypography.subheadlineSemibold,
-    ).copyWith(color: colors.accent);
+    ).copyWith(color: colors.accentText);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -284,7 +294,7 @@ class _ExamTip extends StatelessWidget {
                 Text(
                   '시험 팁',
                   style: PassqlTypography.footnoteSemibold.copyWith(
-                    color: colors.accent,
+                    color: colors.accentText,
                   ),
                 ),
                 const SizedBox(height: PassqlSpacing.hairlineGap),

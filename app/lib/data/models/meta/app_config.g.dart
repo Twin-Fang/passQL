@@ -56,29 +56,29 @@ Map<String, dynamic> _$$AppNoticeImplToJson(_$AppNoticeImpl instance) =>
       'publishedAt': instance.publishedAt?.toIso8601String(),
     };
 
-_$AppConfigImpl _$$AppConfigImplFromJson(Map<String, dynamic> json) =>
-    _$AppConfigImpl(
-      ios: json['ios'] == null
-          ? const AppPlatformVersionPolicy()
-          : AppPlatformVersionPolicy.fromJson(
-              json['ios'] as Map<String, dynamic>,
-            ),
-      android: json['android'] == null
-          ? const AppPlatformVersionPolicy()
-          : AppPlatformVersionPolicy.fromJson(
-              json['android'] as Map<String, dynamic>,
-            ),
-      maintenance: json['maintenance'] == null
-          ? const AppMaintenanceStatus()
-          : AppMaintenanceStatus.fromJson(
-              json['maintenance'] as Map<String, dynamic>,
-            ),
-      notices:
-          (json['notices'] as List<dynamic>?)
-              ?.map((e) => AppNotice.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
-    );
+_$AppConfigImpl _$$AppConfigImplFromJson(
+  Map<String, dynamic> json,
+) => _$AppConfigImpl(
+  ios: json['ios'] == null
+      ? const AppPlatformVersionPolicy()
+      : AppPlatformVersionPolicy.fromJson(json['ios'] as Map<String, dynamic>),
+  android: json['android'] == null
+      ? const AppPlatformVersionPolicy()
+      : AppPlatformVersionPolicy.fromJson(
+          json['android'] as Map<String, dynamic>,
+        ),
+  maintenance: json['maintenance'] == null
+      ? const AppMaintenanceStatus()
+      : AppMaintenanceStatus.fromJson(
+          json['maintenance'] as Map<String, dynamic>,
+        ),
+  notices:
+      (json['notices'] as List<dynamic>?)
+          ?.map((e) => AppNotice.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  isAndroidBillingEnabled: json['isAndroidBillingEnabled'] as bool? ?? false,
+);
 
 Map<String, dynamic> _$$AppConfigImplToJson(_$AppConfigImpl instance) =>
     <String, dynamic>{
@@ -86,4 +86,5 @@ Map<String, dynamic> _$$AppConfigImplToJson(_$AppConfigImpl instance) =>
       'android': instance.android,
       'maintenance': instance.maintenance,
       'notices': instance.notices,
+      'isAndroidBillingEnabled': instance.isAndroidBillingEnabled,
     };

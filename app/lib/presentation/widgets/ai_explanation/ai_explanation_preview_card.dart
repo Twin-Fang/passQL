@@ -64,9 +64,9 @@ class AiExplanationPreviewCard extends ConsumerWidget {
         ],
       ),
     };
+    // 라벨을 따로 주지 않음 > 머리('AI 해설', '전체 보기')·미리보기 글자와 안쪽 다시 시도 버튼을 그대로 읽음
     return PassqlPressable(
       onTap: onOpenFullExplanation,
-      semanticLabel: 'AI 해설 전체 보기',
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(PassqlSpacing.sm),
@@ -141,7 +141,7 @@ class _PreviewHeader extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: PassqlTypography.footnoteSemibold.copyWith(
-              color: colors.accent,
+              color: colors.accentText,
             ),
           ),
         ),

@@ -24,6 +24,11 @@ _$ChoiceExplanationResponseImpl _$$ChoiceExplanationResponseImplFromJson(
   text: json['text'] as String?,
   retryAfterMilliseconds: (json['retryAfterMilliseconds'] as num?)?.toInt(),
   promptVersion: (json['promptVersion'] as num?)?.toInt(),
+  lockedSections:
+      (json['lockedSections'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$$ChoiceExplanationResponseImplToJson(
@@ -36,6 +41,7 @@ Map<String, dynamic> _$$ChoiceExplanationResponseImplToJson(
   'text': instance.text,
   'retryAfterMilliseconds': instance.retryAfterMilliseconds,
   'promptVersion': instance.promptVersion,
+  'lockedSections': instance.lockedSections,
 };
 
 const _$ChoiceExplanationStatusEnumMap = {

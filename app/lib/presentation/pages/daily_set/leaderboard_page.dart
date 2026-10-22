@@ -57,7 +57,7 @@ class LeaderboardPage extends ConsumerWidget {
                     child: Text(
                       data.date!,
                       style: PassqlTypography.footnote.copyWith(
-                        color: colors.tertiaryLabel,
+                        color: colors.secondaryLabel,
                       ),
                     ),
                   ),

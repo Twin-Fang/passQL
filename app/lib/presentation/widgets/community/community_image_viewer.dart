@@ -76,10 +76,9 @@ class _CommunityImageViewerPageState extends State<_CommunityImageViewerPage> {
                 padding: const EdgeInsets.all(PassqlSpacing.xs),
                 child: Row(
                   children: [
-                    Semantics(
-                      button: true,
+                    PassqlSemanticButton(
                       label: '닫기',
-                      excludeSemantics: true,
+                      onTap: () => Navigator.of(context).pop(),
                       child: CupertinoButton(
                         padding: EdgeInsets.zero,
                         minimumSize: const Size(

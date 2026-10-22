@@ -33,7 +33,8 @@ const Map<String, String> _allowedAdModuleUsers = {
   'lib/presentation/pages/home/home_page.dart':
       '학습 현황 <-> 추천 문제 사이 인라인 배너 카드 1개',
   'lib/presentation/pages/stats/stats_page.dart': '통계 콘텐츠 맨 아래 인라인 배너 카드 1개',
-  'lib/presentation/pages/questions/topic_list_page.dart': '토픽 목록 사이 네이티브 1칸',
+  'lib/presentation/pages/questions/topic_list_page.dart':
+      '토픽 목록 사이 네이티브 1칸 + 최신 경향(유형 <-> 공부 팁)·개념 TOP 10(5위 <-> 6위) 네이티브 각 1칸',
   'lib/presentation/pages/daily_set/daily_set_result_page.dart':
       '오늘의 세트를 막 끝낸 결과 화면 진입 전면 광고',
   'lib/presentation/pages/questions/chapter_result_page.dart':
@@ -123,26 +124,29 @@ void main() {
     expect(bannerUsers, isEmpty);
   });
 
-  test('콘텐츠 광고 자리: 인라인 카드는 홈·통계에 1개씩, 네이티브 카드는 문제 탭 토픽 목록에만', () {
-    final inlineCardUsers = <String, int>{};
-    final nativeCardUsers = <String, int>{};
-    for (final file in handWrittenDartFiles('lib')) {
-      final path = normalizedPath(file);
-      if (_isAdModuleFile(path)) continue;
-      final source = file.readAsStringSync();
-      final inlineCardCount = 'AdInlineCard('.allMatches(source).length;
-      final nativeCardCount = 'AdNativeSlot('.allMatches(source).length;
-      if (inlineCardCount > 0) inlineCardUsers[path] = inlineCardCount;
-      if (nativeCardCount > 0) nativeCardUsers[path] = nativeCardCount;
-    }
-    expect(inlineCardUsers, {
-      'lib/presentation/pages/home/home_page.dart': 1,
-      'lib/presentation/pages/stats/stats_page.dart': 1,
-    });
-    expect(nativeCardUsers, {
-      'lib/presentation/pages/questions/topic_list_page.dart': 1,
-    });
-  });
+  test(
+    '콘텐츠 광고 자리: 인라인 카드는 홈·통계에 1개씩, 네이티브 카드는 문제 탭(토픽 목록·최신 경향·개념 TOP 10)에만',
+    () {
+      final inlineCardUsers = <String, int>{};
+      final nativeCardUsers = <String, int>{};
+      for (final file in handWrittenDartFiles('lib')) {
+        final path = normalizedPath(file);
+        if (_isAdModuleFile(path)) continue;
+        final source = file.readAsStringSync();
+        final inlineCardCount = 'AdInlineCard('.allMatches(source).length;
+        final nativeCardCount = 'AdNativeSlot('.allMatches(source).length;
+        if (inlineCardCount > 0) inlineCardUsers[path] = inlineCardCount;
+        if (nativeCardCount > 0) nativeCardUsers[path] = nativeCardCount;
+      }
+      expect(inlineCardUsers, {
+        'lib/presentation/pages/home/home_page.dart': 1,
+        'lib/presentation/pages/stats/stats_page.dart': 1,
+      });
+      expect(nativeCardUsers, {
+        'lib/presentation/pages/questions/topic_list_page.dart': 3,
+      });
+    },
+  );
 
   test('AdRequest 는 공통 준비(AdRequestPreparer) 한 곳에서만 만든다', () {
     final violations = <String>[];

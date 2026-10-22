@@ -67,6 +67,10 @@ class _ChoiceAnalysisRow extends StatelessWidget {
         : isWrongSelection
         ? colors.wrong
         : colors.secondaryLabel;
+    // 키 글자: 초록·빨강 위 onSemantic, 회색 위는 화면 배경색(반전) > 라이트·다크 모두 4.5 이상
+    final keyTextColor = isCorrect || isWrongSelection
+        ? colors.onSemantic
+        : colors.background;
     return Semantics(
       label:
           '$displayLabel 보기${isCorrect ? ', 정답' : ''}${isSelected ? ', 내 선택' : ''}',
@@ -90,7 +94,7 @@ class _ChoiceAnalysisRow extends StatelessWidget {
               child: Text(
                 displayLabel,
                 style: PassqlTypography.footnoteSemibold.copyWith(
-                  color: colors.onAccent,
+                  color: keyTextColor,
                 ),
               ),
             ),

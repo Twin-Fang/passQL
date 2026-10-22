@@ -37,7 +37,8 @@ abstract final class PassqlTheme {
       highlightColor: Colors.transparent,
       splashColor: Colors.transparent,
       pageTransitionsTheme: transitions,
-      bottomSheetTheme: BottomSheetThemeData(dragHandleColor: colors.tertiaryLabel),
+      // 시트 배경은 테마에서 읽음 (시트를 연 채 라이트·다크 전환해도 따라감)
+      bottomSheetTheme: BottomSheetThemeData(backgroundColor: colors.cardElevated, dragHandleColor: colors.tertiaryLabel),
       dividerTheme: DividerThemeData(color: colors.separator, thickness: PassqlSize.hairline, space: PassqlSize.hairline),
       appBarTheme: AppBarTheme(
         backgroundColor: colors.background,

@@ -52,6 +52,8 @@ class AppConfig with _$AppConfig {
     @Default(AppPlatformVersionPolicy()) AppPlatformVersionPolicy android,
     @Default(AppMaintenanceStatus()) AppMaintenanceStatus maintenance,
     @Default([]) List<AppNotice> notices,
+    // 서버 결제 스위치 (false 면 잠금·칩·시트를 그리지 않음)
+    @Default(false) bool isAndroidBillingEnabled,
   }) = _AppConfig;
 
   factory AppConfig.fromJson(Map<String, dynamic> json) =>

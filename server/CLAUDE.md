@@ -260,6 +260,8 @@ throw new CustomException(ErrorCode.NOT_SELECT);
 - UUID 짧은 표기: `UuidUtils.toShortForm`
 - 임시 샌드박스 실행: `SandboxExecutor.runInTemporarySandbox` (획득 > DDL·샘플 > 작업 > 반납, `SandboxPool.acquire` 직접 호출 금지)
 - 프롬프트 템플릿 > LLM 설정: `PromptLlmConfigFactory.toLlmConfig`
+- 무료·프로 등급 판정 (#576): `PQL-Application` `FeatureAccessPolicy`만 (등급·한도·결제 스위치 직접 조회 금지). 기능 전체 잠금은 `@RequiresProFeature`, 응답 일부 빼기는 `ProResponseRedactor`
+- SHA-256 hex: `PQL-Common` `Sha256Hex` (MessageDigest 직접 조립 금지)
 - 예외 detail 에 `e.getMessage()` 원문을 붙이지 않는다 (응답으로 나감). 원문은 로그·cause 로만
 
 ### ErrorCode 추가 방법

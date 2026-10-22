@@ -2,14 +2,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:passql_app/core/auth/auth_session.dart';
 import 'package:passql_app/data/models/member/choice_generation_mode.dart';
 import 'package:passql_app/presentation/design/design.dart';
+import 'package:passql_app/router/app_routes.dart';
 import 'package:passql_app/presentation/pages/settings/settings_page.dart';
 import 'package:passql_app/presentation/providers/auth_provider.dart';
 import 'package:passql_app/presentation/providers/app_config_providers.dart';
 import 'package:passql_app/presentation/providers/settings_providers.dart';
-import 'package:passql_app/presentation/providers/wrong_questions_provider.dart';
 
 class SignedInAuth extends AuthNotifier {
   @override
@@ -21,11 +22,7 @@ class SignedInAuth extends AuthNotifier {
   );
 }
 
-Future<void> pumpSettings(
-  WidgetTester tester,
-  ThemeData theme, {
-  List<Override> extraOverrides = const [],
-}) async {
+Future<void> pumpSettings(WidgetTester tester, ThemeData theme) async {
   // 목록이 길어 아래 행(회원 탈퇴)까지 한 번에 그려지도록 화면을 키운다.
   await tester.binding.setSurfaceSize(const Size(400, 1600));
   addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -41,8 +38,6 @@ Future<void> pumpSettings(
           ),
         ),
         currentAppVersionProvider.overrideWith((ref) async => '1.0.0'),
-        wrongQuestionTotalCountProvider.overrideWith((ref) async => 3),
-        ...extraOverrides,
       ],
       child: MaterialApp(theme: theme, home: const SettingsPage()),
     ),
@@ -60,27 +55,9 @@ void main() {
     expect(find.byType(PassqlGroupedSection), findsAtLeastNWidgets(2));
     expect(
       tester.widget<Text>(find.text('회원 탈퇴')).style!.color,
-      PassqlColors.light.wrong,
+      // 글자는 대비 4.5 이상인 오답 글자색 (채움색 wrong 은 흰 바탕 3.5)
+      PassqlColors.light.wrongText,
     );
-  });
-
-  testWidgets('오답 노트 행은 개수만 조회해 보여 주고 목록(진입 분석 기록)은 불러오지 않는다', (
-    tester,
-  ) async {
-    var wrongListLoads = 0;
-    await pumpSettings(
-      tester,
-      PassqlTheme.light,
-      extraOverrides: [
-        wrongQuestionsProvider.overrideWith((ref) async {
-          wrongListLoads++;
-          throw StateError('settings must not load the wrong-notes list');
-        }),
-      ],
-    );
-
-    expect(find.text('3'), findsOneWidget);
-    expect(wrongListLoads, 0);
   });
 
   testWidgets('다크 테마에서도 예외 없이 그려진다', (tester) async {
@@ -98,5 +75,48 @@ void main() {
 
     expect(find.byType(LicensePage), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('MY 화면 제목은 MY 이고 알림함·공지 행을 누르면 알림함 경로로 이동한다', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(400, 1600));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final router = GoRouter(
+      routes: [
+        GoRoute(path: '/', builder: (_, _) => const SettingsPage()),
+        GoRoute(
+          path: AppRoutes.notificationInbox,
+          builder: (_, _) => const Text('알림함 화면'),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          authProvider.overrideWith(SignedInAuth.new),
+          settingsDataProvider.overrideWith(
+            (ref) async => const SettingsData(
+              memberUuid: 'm-1',
+              nickname: '기존닉네임',
+              choiceMode: ChoiceGenerationMode.practice,
+            ),
+          ),
+          currentAppVersionProvider.overrideWith((ref) async => '1.0.0'),
+        ],
+        child: MaterialApp.router(
+          theme: PassqlTheme.light,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('MY'), findsWidgets);
+    expect(find.text('설정'), findsNothing);
+    // 푸시 토글은 그대로 유지
+    expect(find.text('알림 받기'), findsOneWidget);
+
+    await tester.tap(find.text('알림함·공지'));
+    await tester.pumpAndSettle();
+    expect(find.text('알림함 화면'), findsOneWidget);
   });
 }

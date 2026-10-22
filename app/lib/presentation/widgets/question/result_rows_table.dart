@@ -83,7 +83,7 @@ class ResultRowsTable extends StatelessWidget {
     );
     // NULL 은 흐린 색 문구로 빈 문자열('')과 구분
     final nullCellStyle = PassqlTypography.codeCompact.copyWith(
-      color: colors.tertiaryLabel,
+      color: colors.secondaryLabel,
     );
 
     Widget buildCell(String text, TextStyle style) => Padding(

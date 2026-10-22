@@ -42,6 +42,7 @@ function toReadyResponse(target: ChoiceExplanationTarget, explanation: ChoiceExp
     text: null,
     promptVersion: null,
     retryAfterMilliseconds: null,
+    lockedSections: [],
   };
 }
 

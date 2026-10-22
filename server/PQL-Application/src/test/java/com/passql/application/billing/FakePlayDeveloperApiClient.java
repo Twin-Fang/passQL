@@ -1,0 +1,42 @@
+package com.passql.application.billing;
+
+import com.passql.common.exception.CustomException;
+import com.passql.common.exception.constant.ErrorCode;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
+/** 가짜 Play API: 응답 고정, 호출 수 기록, 소모 실패 전환 */
+class FakePlayDeveloperApiClient implements PlayDeveloperApiClient {
+
+    PlayPurchaseSnapshot snapshot;
+    boolean isConsumeFailing;
+    int getProductPurchaseCallCount;
+    int consumeAttemptCount;
+    final List<String> voidedPurchaseTokens = new ArrayList<>();
+
+    @Override
+    public boolean isConfigured() {
+        return true;
+    }
+
+    @Override
+    public PlayPurchaseSnapshot getProductPurchase(String productId, String purchaseToken) {
+        getProductPurchaseCallCount++;
+        return snapshot;
+    }
+
+    @Override
+    public void consume(String productId, String purchaseToken) {
+        consumeAttemptCount++;
+        if (isConsumeFailing) {
+            throw new CustomException(ErrorCode.EXTERNAL_API_ERROR);
+        }
+    }
+
+    @Override
+    public List<String> listVoidedPurchaseTokens(Instant since) {
+        return voidedPurchaseTokens;
+    }
+}

@@ -59,23 +59,28 @@ class PassqlChoiceCard extends StatelessWidget {
         colors.accent,
         colors.onAccent,
       ),
+      // 정답·오답 키: 진한 초록·빨강 위 흰 글자는 대비 2~3.5 > onSemantic
       PassqlChoiceState.correct => (
         colors.correct,
         Color.alphaBlend(colors.correctTint, colors.card),
         colors.correct,
-        colors.onAccent,
+        colors.onSemantic,
       ),
       PassqlChoiceState.wrong => (
         colors.wrong,
         Color.alphaBlend(colors.wrongTint, colors.card),
         colors.wrong,
-        colors.onAccent,
+        colors.onSemantic,
       ),
     };
     final isEmphasized =
         state != PassqlChoiceState.idle && state != PassqlChoiceState.dimmed;
+    final colorTransitionDuration = PassqlMotion.durationOf(
+      context,
+      PassqlMotion.fast,
+    );
     final card = AnimatedContainer(
-      duration: PassqlMotion.fast,
+      duration: colorTransitionDuration,
       curve: PassqlMotion.curve,
       padding: const EdgeInsets.all(PassqlSpacing.sm + 2),
       decoration: BoxDecoration(
@@ -95,12 +100,15 @@ class PassqlChoiceCard extends StatelessWidget {
               color: keyBackgroundColor,
               border: isEmphasized
                   ? null
-                  : Border.all(color: colors.tertiaryLabel, width: 1.5),
+                  : Border.all(color: colors.iconSecondary, width: 1.5),
             ),
-            child: Text(
-              keyLabel,
-              style: PassqlTypography.captionSemibold.copyWith(
-                color: keyForegroundColor,
+            // 키 문자는 시맨틱 라벨('선택지 A')에 이미 있어 두 번 읽지 않게
+            child: ExcludeSemantics(
+              child: Text(
+                keyLabel,
+                style: PassqlTypography.captionSemibold.copyWith(
+                  color: keyForegroundColor,
+                ),
               ),
             ),
           ),
@@ -132,13 +140,14 @@ class PassqlChoiceCard extends StatelessWidget {
         ],
       ),
     );
+    // 상태 문구 + 선택지 내용(자식 글자) 순서로 한 번에 읽음
     return AnimatedOpacity(
-      duration: PassqlMotion.fast,
+      duration: colorTransitionDuration,
       opacity: state == PassqlChoiceState.dimmed ? 0.5 : 1,
       child: Semantics(
         selected: state == PassqlChoiceState.selected,
+        label: _semanticLabel,
         child: PassqlPressable(
-          semanticLabel: _semanticLabel,
           onTap: _isGraded ? onGradedTap : onTap,
           child: card,
         ),

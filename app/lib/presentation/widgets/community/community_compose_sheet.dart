@@ -177,7 +177,7 @@ class _CommunityComposeSheetState extends ConsumerState<CommunityComposeSheet> {
                     padding: EdgeInsets.zero,
                     placeholder: '헷갈린 점이나 풀이 팁을 남겨 보세요',
                     placeholderStyle: PassqlTypography.body.copyWith(
-                      color: colors.tertiaryLabel,
+                      color: colors.secondaryLabel,
                     ),
                     style: PassqlTypography.body.copyWith(color: colors.label),
                     cursorColor: colors.accent,
@@ -187,7 +187,7 @@ class _CommunityComposeSheetState extends ConsumerState<CommunityComposeSheet> {
                     '${_contentController.text.characters.length}/'
                     '${CommunityComposeSheet.maxContentLength}',
                     style: PassqlTypography.caption.copyWith(
-                      color: colors.tertiaryLabel,
+                      color: colors.secondaryLabel,
                     ),
                   ),
                 ],
@@ -284,40 +284,37 @@ class _ImageAttachRow extends StatelessWidget {
     final colors = context.passqlColors;
     return Row(
       children: [
-        Semantics(
-          button: true,
-          label: '사진 추가',
-          excludeSemantics: true,
-          child: PassqlPressable(
-            onTap: onAddTap,
-            child: Container(
-              width: PassqlSize.communityImageDraftPreview,
-              height: PassqlSize.communityImageDraftPreview,
-              decoration: BoxDecoration(
-                color: colors.fill,
-                borderRadius: BorderRadius.circular(PassqlRadius.md),
-              ),
-              child: isPreparing
-                  ? const Center(child: PassqlLoadingIndicator())
-                  : Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          CupertinoIcons.photo,
-                          size: PassqlIconSize.lg,
-                          color: onAddTap == null
-                              ? colors.tertiaryLabel
-                              : colors.accent,
-                        ),
-                        Text(
-                          '${drafts.length}/${CommunityImageLimits.maxImageCountPerPost}',
-                          style: PassqlTypography.caption.copyWith(
-                            color: colors.secondaryLabel,
-                          ),
-                        ),
-                      ],
-                    ),
+        PassqlPressable(
+          onTap: onAddTap,
+          semanticLabel:
+              '사진 추가, ${drafts.length}/${CommunityImageLimits.maxImageCountPerPost}',
+          child: Container(
+            width: PassqlSize.communityImageDraftPreview,
+            height: PassqlSize.communityImageDraftPreview,
+            decoration: BoxDecoration(
+              color: colors.fill,
+              borderRadius: BorderRadius.circular(PassqlRadius.md),
             ),
+            child: isPreparing
+                ? const Center(child: PassqlLoadingIndicator())
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        CupertinoIcons.photo,
+                        size: PassqlIconSize.lg,
+                        color: onAddTap == null
+                            ? colors.tertiaryLabel
+                            : colors.accent,
+                      ),
+                      Text(
+                        '${drafts.length}/${CommunityImageLimits.maxImageCountPerPost}',
+                        style: PassqlTypography.caption.copyWith(
+                          color: colors.secondaryLabel,
+                        ),
+                      ),
+                    ],
+                  ),
           ),
         ),
         for (final draft in drafts) ...[
@@ -337,24 +334,31 @@ class _ImageAttachRow extends StatelessWidget {
                 ),
                 Align(
                   alignment: Alignment.topRight,
-                  child: Semantics(
-                    button: true,
+                  child: PassqlSemanticButton(
                     label: '사진 제거',
-                    excludeSemantics: true,
+                    onTap: isLocked ? null : () => onRemoveTap(draft),
                     child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
                       onTap: isLocked ? null : () => onRemoveTap(draft),
-                      child: Container(
-                        width: PassqlSize.communityImageRemoveBadge,
-                        height: PassqlSize.communityImageRemoveBadge,
-                        margin: const EdgeInsets.all(PassqlSpacing.xxs),
-                        decoration: BoxDecoration(
-                          color: colors.cardElevated,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          CupertinoIcons.xmark,
-                          size: PassqlIconSize.sm,
-                          color: colors.label,
+                      // 보이는 원은 24, 누르는 영역은 모서리 44x44
+                      child: SizedBox.square(
+                        dimension: PassqlSize.minTouchTarget,
+                        child: Align(
+                          alignment: Alignment.topRight,
+                          child: Container(
+                            width: PassqlSize.communityImageRemoveBadge,
+                            height: PassqlSize.communityImageRemoveBadge,
+                            margin: const EdgeInsets.all(PassqlSpacing.xxs),
+                            decoration: BoxDecoration(
+                              color: colors.cardElevated,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              CupertinoIcons.xmark,
+                              size: PassqlIconSize.sm,
+                              color: colors.label,
+                            ),
+                          ),
                         ),
                       ),
                     ),

@@ -6,6 +6,7 @@ import com.passql.common.exception.constant.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -140,8 +141,11 @@ public class GlobalExceptionHandler {
         return toResponse(errorCode, errorCode.getMessage());
     }
 
-    /** ErrorCode + 상황별 메시지 > 응답 (상태 코드는 ErrorCode 기준) */
+    /** ErrorCode + 상황별 메시지 > 응답 (상태 코드는 ErrorCode 기준, 본문은 항상 JSON) */
     private ResponseEntity<ErrorResponse> toResponse(ErrorCode errorCode, String message) {
-        return ResponseEntity.status(errorCode.getStatus()).body(ErrorResponse.of(errorCode, message));
+        // Accept 협상 생략: SSE(produces text/event-stream) 진입 전 거부도 JSON 본문 + 원래 상태 (협상 실패 시 500 빈 본문) (#576)
+        return ResponseEntity.status(errorCode.getStatus())
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(ErrorResponse.of(errorCode, message));
     }
 }

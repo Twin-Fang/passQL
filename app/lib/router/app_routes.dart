@@ -14,6 +14,8 @@ abstract final class AppRoutes {
   // 최신 출제 경향 문제만 풀기 (값 'true', #523)
   static const String latestTrendQuery = 'latestTrend';
   static const String latestTrendQueryValue = 'true';
+  // 문제 탭 보기 (값은 QuestionsTabView.queryValue)
+  static const String questionsViewQuery = 'view';
 
   // 인증
   static const String login = '/login';
@@ -37,8 +39,18 @@ abstract final class AppRoutes {
   static const String stats = '/stats';
   static const String settings = '/settings';
 
-  /// 하단 탭 순서(홈·문제·통계·설정). 탭 인덱스 <-> 경로 변환 기준
-  static const List<String> tabRoots = [home, questions, stats, settings];
+  /// 문제 탭을 [viewQueryValue] 보기로 열기: /questions?view=VALUE
+  static String questionsOf(String viewQueryValue) =>
+      '$questions?$questionsViewQuery=$viewQueryValue';
+
+  /// 하단 탭 순서(홈·문제·토론·기록·MY). 탭 인덱스 <-> 경로 변환 기준
+  static const List<String> tabRoots = [
+    home,
+    questions,
+    community,
+    stats,
+    settings,
+  ];
 
   // 설정 서브 라우트
   /// 건의사항 작성/내역.
@@ -101,7 +113,10 @@ abstract final class AppRoutes {
       '&$topicNameQuery=${Uri.encodeComponent(topicName)}'
       '${isLatestTrendOnly ? '&$latestTrendQuery=$latestTrendQueryValue' : ''}';
 
-  /// 출제 경향 화면 (홈 진입 카드에서, #523)
+  /// 랜덤 풀기 풀이 (전 범위 10문제, 홈·문제 탭에서 진입, #576)
+  static const String randomPractice = '/random-practice';
+
+  /// 옛 출제 경향 경로. 문제 탭 '최신 경향' 보기로 리다이렉트 (#523 > #574)
   static const String examTrend = '/exam-trend';
 
   // 풀스크린

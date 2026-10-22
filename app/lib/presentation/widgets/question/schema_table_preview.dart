@@ -95,7 +95,7 @@ class _SampleRowsTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final nullCellStyle = PassqlTypography.codeCompact.copyWith(color: colors.tertiaryLabel);
+    final nullCellStyle = PassqlTypography.codeCompact.copyWith(color: colors.secondaryLabel);
 
     return ClipRRect(
       borderRadius: const BorderRadius.all(Radius.circular(PassqlRadius.sm)),
@@ -172,7 +172,7 @@ class _ColumnHeaderCell extends StatelessWidget {
                 for (final keyLabel in keyLabels)
                   TextSpan(
                     text: ' $keyLabel',
-                    style: PassqlTypography.captionSemibold.copyWith(color: colors.accent),
+                    style: PassqlTypography.captionSemibold.copyWith(color: colors.accentText),
                   ),
               ],
             ),

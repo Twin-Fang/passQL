@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:passql_app/data/models/member/choice_mode_models.dart';
 import 'package:passql_app/data/models/member/member_me_response.dart';
+import 'package:passql_app/data/models/member/member_plan_response.dart';
 import 'package:passql_app/data/models/member/nickname_models.dart';
 import 'package:passql_app/data/models/member/nickname_regenerate_response.dart';
 import 'package:passql_app/data/sources/member_api.dart';
@@ -15,6 +16,8 @@ class FakeMemberApi implements MemberApiClient {
     this.regenerateNicknameError,
     this.meAuthProvider,
     this.meProviderUserId,
+    this.plan = const MemberPlanResponse(),
+    this.planError,
   });
 
   bool isNicknameAvailable;
@@ -28,6 +31,13 @@ class FakeMemberApi implements MemberApiClient {
 
   /// GET /members/me 응답의 providerUserId (GOOGLE·APPLE 은 Firebase uid)
   String? meProviderUserId;
+
+  /// GET /members/me/plan 응답과 실패(설정하면 던짐)
+  MemberPlanResponse plan;
+  Object? planError;
+
+  /// 설정하면 [plan] 대신 이 함수가 응답을 만듦 (응답 지연 흉내)
+  Future<MemberPlanResponse> Function()? planResponder;
 
   /// 호출 기록 (check:닉네임, change:닉네임, mode:값)
   final calls = <String>[];
@@ -70,6 +80,13 @@ class FakeMemberApi implements MemberApiClient {
       authProvider: meAuthProvider,
       providerUserId: meProviderUserId,
     );
+  }
+
+  @override
+  Future<MemberPlanResponse> getMyPlan() async {
+    calls.add('plan');
+    if (planError != null) throw planError!;
+    return planResponder != null ? planResponder!() : plan;
   }
 
   @override

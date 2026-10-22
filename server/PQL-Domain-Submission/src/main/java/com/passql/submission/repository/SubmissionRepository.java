@@ -29,6 +29,26 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
     /** 커뮤니티: 이 문제를 풀어 본(제출 기록이 있는) 회원인지 */
     boolean existsByMemberUuidAndQuestionUuid(UUID memberUuid, UUID questionUuid);
 
+    /** 기간 [from, to) 안에 제출한 서로 다른 문제 수 (하루 문제 수 제한용, 같은 문제 재제출은 1건) */
+    @Query("""
+            SELECT COUNT(DISTINCT s.questionUuid) FROM Submission s
+            WHERE s.memberUuid = :memberUuid AND s.submittedAt >= :from AND s.submittedAt < :to
+            """)
+    long countDistinctQuestionsSubmittedBetween(@Param("memberUuid") UUID memberUuid,
+                                                @Param("from") LocalDateTime from,
+                                                @Param("to") LocalDateTime to);
+
+    /** 위와 같되 제외 문제(오늘의 문제 배정분)는 뺀다. 제외 목록이 비면 호출하지 말 것(빈 NOT IN 방지) */
+    @Query("""
+            SELECT COUNT(DISTINCT s.questionUuid) FROM Submission s
+            WHERE s.memberUuid = :memberUuid AND s.submittedAt >= :from AND s.submittedAt < :to
+              AND s.questionUuid NOT IN :excludedQuestionUuids
+            """)
+    long countDistinctQuestionsSubmittedBetweenExcluding(@Param("memberUuid") UUID memberUuid,
+                                                         @Param("from") LocalDateTime from,
+                                                         @Param("to") LocalDateTime to,
+                                                         @Param("excludedQuestionUuids") java.util.Collection<UUID> excludedQuestionUuids);
+
     /** 커뮤니티 풀이 스냅샷: 이 문제 제출을 시간순으로 */
     List<Submission> findByMemberUuidAndQuestionUuidOrderBySubmittedAtAsc(UUID memberUuid, UUID questionUuid);
 
@@ -36,6 +56,10 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
     @Query("SELECT DISTINCT s.questionUuid FROM Submission s WHERE s.memberUuid = :memberUuid AND s.questionUuid IN :questionUuids")
     List<UUID> findSolvedQuestionUuids(@Param("memberUuid") UUID memberUuid,
                                        @Param("questionUuids") java.util.Collection<UUID> questionUuids);
+
+    /** 회원이 한 번이라도 제출한 문제 uuid 전체 (랜덤 풀기에서 안 푼 문제 우선 선별용) */
+    @Query("SELECT DISTINCT s.questionUuid FROM Submission s WHERE s.memberUuid = :memberUuid")
+    List<UUID> findAllSubmittedQuestionUuids(@Param("memberUuid") UUID memberUuid);
 
     /** 커뮤니티 '내가 푼 문제' 피드: 내가 푼 문제와 오답 제출 여부 */
     @Query("""

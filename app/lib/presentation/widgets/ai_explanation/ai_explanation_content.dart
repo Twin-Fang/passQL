@@ -4,10 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../design/design.dart';
 import '../../providers/ai_explanation_session_provider.dart';
 import '../../providers/choice_explanation_providers.dart';
+import '../../providers/plan_providers.dart';
+import '../pro/locked_preview_samples.dart';
+import '../pro/pro_locked_section.dart';
 import '../question/markdown_lite_text.dart';
 import 'ai_explanation_sections.dart';
 
 /// 전체 해설 본문 (패널·단건 결과 공통): 상태별 기다림 > 구조화 섹션 / 마크다운 > 실패 안내·재시도·폴백
+/// 무료(결제 켜짐, FULL_EXPLANATION 잠김): 판정 한 줄 + 블러
 class AiExplanationContent extends ConsumerWidget {
   const AiExplanationContent({super.key, required this.entry});
 
@@ -18,6 +22,9 @@ class AiExplanationContent extends ConsumerWidget {
     final provider = choiceExplanationProvider(entry.request);
     final explanationState = ref.watch(provider);
     final structuredExplanation = explanationState.explanation;
+    final isFullExplanationLocked =
+        explanationState.isFullExplanationLocked &&
+        ref.watch(shouldShowProUiProvider);
     final Widget body = switch (explanationState.phase) {
       ChoiceExplanationPhase.loading => _LoadingBody(
         key: const ValueKey('loading'),
@@ -30,6 +37,14 @@ class AiExplanationContent extends ConsumerWidget {
           key: const ValueKey('structured'),
           explanation: structuredExplanation,
           entry: entry,
+          isFullExplanationLocked: isFullExplanationLocked,
+        ),
+      // 판정까지 비어 온 무료 응답: 블러만
+      ChoiceExplanationPhase.ready when isFullExplanationLocked =>
+        const ProLockedSection(
+          key: ValueKey('locked'),
+          preview: ExplanationLockedSample(),
+          caption: LockedPreviewCaptions.explanation,
         ),
       ChoiceExplanationPhase.ready => MarkdownLiteText(
         key: const ValueKey('markdown'),
@@ -167,7 +182,7 @@ class _AiDisclaimer extends StatelessWidget {
       padding: const EdgeInsets.only(top: PassqlSpacing.lg),
       child: Text(
         'AI가 만든 해설이에요. 참고용으로 봐 주세요.',
-        style: PassqlTypography.caption.copyWith(color: colors.tertiaryLabel),
+        style: PassqlTypography.caption.copyWith(color: colors.secondaryLabel),
       ),
     );
   }

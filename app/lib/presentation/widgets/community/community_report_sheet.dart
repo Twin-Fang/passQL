@@ -129,7 +129,7 @@ class _CommunityReportSheetState extends ConsumerState<CommunityReportSheet> {
                 padding: EdgeInsets.zero,
                 placeholder: '자세한 내용 (선택)',
                 placeholderStyle: PassqlTypography.body.copyWith(
-                  color: colors.tertiaryLabel,
+                  color: colors.secondaryLabel,
                 ),
                 style: PassqlTypography.body.copyWith(color: colors.label),
                 cursorColor: colors.accent,

@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:go_router/go_router.dart';
-import '../../../router/app_routes.dart';
+import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
 
 /// 챕터 플로우 상단 바.
@@ -51,7 +50,7 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
           leading: PassqlNavLeading.close,
           onLeadingTap: () async {
             if (shouldConfirmExit && !await confirmChapterExit(context)) return;
-            if (context.mounted) context.go(AppRoutes.home);
+            if (context.mounted) leaveSolvingFlow(context);
           },
           // 토픽 이름은 보조 정보라 오른쪽 작은 뱃지로 둔다.
           trailing: accessory == null

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/error/app_exception.dart';
 import '../../data/models/ai/choice_explanation.dart';
 import '../../data/models/ai/choice_explanation_response.dart';
+import '../../data/models/question/locked_section_names.dart';
 import '../../data/models/question/submit_result.dart';
 import '../../data/sources/api_providers.dart';
 import 'session_reset.dart';
@@ -21,6 +22,7 @@ class ChoiceExplanationRequest {
     this.selectedChoiceKey,
     this.initialExplanation,
     this.initialText,
+    this.initialLockedSections = const [],
   });
 
   /// 제출 결과 > 요청 키 (세트를 모르면 null: 풀기 전 정답 노출 방지로 서버가 400)
@@ -43,6 +45,7 @@ class ChoiceExplanationRequest {
       selectedChoiceKey: hasSelectedChoiceKey ? selectedChoiceKey : null,
       initialExplanation: result.structuredExplanation,
       initialText: result.explanation,
+      initialLockedSections: result.lockedSections,
     );
   }
 
@@ -57,6 +60,9 @@ class ChoiceExplanationRequest {
 
   /// 제출 응답의 마크다운 해설 (구조화가 없을 때 생성 중 임시 표시)
   final String? initialText;
+
+  /// 제출 응답의 잠긴 묶음 (무료면 FULL_EXPLANATION, 키 비교에서 뺌)
+  final List<String> initialLockedSections;
 
   /// 해설함 항목 식별값 (같은 세트·같은 보기면 같은 해설)
   String get id => '$choiceSetUuid:${selectedChoiceKey ?? ''}';
@@ -84,6 +90,7 @@ class ChoiceExplanationState {
     this.explanation,
     this.markdownText,
     this.failureMessage,
+    this.lockedSections = const [],
   });
 
   /// 기다리는 중. [interimText]: 옛 해설이 있으면 임시 표시
@@ -93,10 +100,12 @@ class ChoiceExplanationState {
   const ChoiceExplanationState.ready({
     ChoiceExplanation? explanation,
     String? markdownText,
+    List<String> lockedSections = const [],
   }) : this._(
          phase: ChoiceExplanationPhase.ready,
          explanation: explanation,
          markdownText: markdownText,
+         lockedSections: lockedSections,
        );
 
   const ChoiceExplanationState.failed({
@@ -118,6 +127,11 @@ class ChoiceExplanationState {
 
   /// failed 일 때 사용자 문구
   final String? failureMessage;
+
+  /// 서버가 뺀 묶음 (ready 일 때만, 무료면 FULL_EXPLANATION)
+  final List<String> lockedSections;
+
+  bool get isFullExplanationLocked => lockedSections.isFullExplanationLocked;
 
   bool get isLoading => phase == ChoiceExplanationPhase.loading;
   bool get isFailed => phase == ChoiceExplanationPhase.failed;
@@ -174,6 +188,7 @@ class ChoiceExplanationNotifier
       return ChoiceExplanationState.ready(
         explanation: initialExplanation,
         markdownText: request.initialText,
+        lockedSections: request.initialLockedSections,
       );
     }
     // 로그아웃이면 호출 없이 대기 (회원별 데이터)
@@ -230,13 +245,19 @@ class ChoiceExplanationNotifier
     switch (response.status) {
       case ChoiceExplanationStatus.ready:
         final hasText = response.text?.trim().isNotEmpty ?? false;
-        state = response.explanation == null && !hasText
+        // 무료 응답은 본문이 비어도 잠금 표시가 있으면 준비됨 (판정 자리 + 블러)
+        final isEmptyExplanation =
+            response.explanation == null &&
+            !hasText &&
+            !response.lockedSections.isFullExplanationLocked;
+        state = isEmptyExplanation
             ? const ChoiceExplanationState.failed(
                 failureMessage: choiceExplanationEmptyMessage,
               )
             : ChoiceExplanationState.ready(
                 explanation: response.explanation,
                 markdownText: response.text,
+                lockedSections: response.lockedSections,
               );
       case ChoiceExplanationStatus.generating:
         if (_pollAttemptCount >= ChoiceExplanationPolling.maximumAttemptCount) {

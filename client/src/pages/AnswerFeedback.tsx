@@ -77,6 +77,7 @@ export default function AnswerFeedback() {
           selectedSql,
           correctSql,
           submissionUuid: null,
+          lockedSections: [],
         },
       })
     : null;

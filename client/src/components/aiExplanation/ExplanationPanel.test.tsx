@@ -55,6 +55,7 @@ function toResponse(overrides: Partial<ChoiceExplanationResponse>): ChoiceExplan
     text: null,
     promptVersion: 1,
     retryAfterMilliseconds: null,
+    lockedSections: [],
     ...overrides,
   };
 }

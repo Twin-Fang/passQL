@@ -39,7 +39,7 @@ lib/
 ├── presentation/
 │   ├── design/             # Passql 디자인 시스템 (아래 절 참고)
 │   ├── flows/              # 문제 풀이 흐름 공통화 (question_flow, daily_set_flow)
-│   ├── pages/              # login, home, questions(챕터·챕터 결과), result, stats, settings,
+│   ├── pages/              # login, home, questions(문제 탭 세그먼트 주제별·최신 경향·개념 TOP 10 + 오답 노트 바로가기, 챕터·챕터 결과), result, stats, settings,
 │   │                       # daily_set(결과·리더보드), feedback, legal
 │   ├── providers/          # Riverpod Provider·Notifier·Service (회원별 Provider 는 session_reset 의 currentMemberUuidProvider watch + autoDispose)
 │   └── widgets/            # 화면 조각 (설정 그룹, 문제 풀이 본문 등)
@@ -67,6 +67,7 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 - 화면은 `presentation/design/design.dart` 하나만 import 한다.
 - 값의 원본은 `lib/presentation/design/tokens/`. 문서에 값을 복사하지 않는다.
 - 상세 규칙: `.claude/rules/Design.md`, API 연동: `.claude/rules/api-guide.md`
+- 무료·프로 (#576): 등급 원본은 `planProvider`, 잠금 UI 표시 여부는 `shouldShowProUiProvider` 하나로 판정. 잠금 자리는 `PassqlLockedPreview`(화면은 `ProLockedSection`)만, 프로 에러(403)는 화면 진입점에서 `showProAccessFeedback`
 
 ## 규칙 테스트 (test/architecture)
 
@@ -74,7 +75,7 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 
 | 테스트 | 막는 것 |
 |---|---|
-| `design_system_rules_test.dart` | pages·widgets·flows 에서 `Color(0x`, `Colors.white/black`, `Image.asset(`, `showModalBottomSheet(`, `showCupertinoDialog(`, `CupertinoActivityIndicator(` 직접 사용, `go('/...')`·`push('/...')` 라우트 문자열 |
+| `design_system_rules_test.dart` | pages·widgets·flows 에서 `Color(0x`, `Colors.white/black`, `Image.asset(`, `showModalBottomSheet(`, `showCupertinoDialog(`, `CupertinoActivityIndicator(`·`ImageFilter.blur(` 직접 사용, `go('/...')`·`push('/...')` 라우트 문자열, 글자색 `tertiaryLabel`·`accent`(대비 미달 > `secondaryLabel`·`accentText`), 탭 동작 없는 `Semantics(button + excludeSemantics)` |
 | `ad_placement_rules_test.dart` | core/ads 밖의 `google_mobile_ads`·ATT import, 허용 목록(탭 쉘·홈·통계·토픽 목록·결과 화면 2곳·main) 밖의 광고 사용, 탭 쉘 밖·2개 이상의 한 줄 띠와 탭별 배너, 홈·통계 밖·화면당 2개 이상의 인라인 카드, 토픽 목록 밖의 네이티브 카드, 풀이·로그인·약관·설정·차단 화면의 광고, `ad_request_preparer.dart` 밖의 `AdRequest(` 조립, 사용자 정보를 실은 광고 요청 |
 | `layer_dependency_test.dart` | core 의 data·presentation·router import, data 의 presentation·router import, design 의 providers·pages·widgets·flows import, 화면의 `data/sources` 직접 import, core/monitoring 밖의 Crashlytics·Analytics SDK, core/push 밖의 firebase_messaging, core/notification 밖의 app_badge_plus, core/storage 밖의 shared_preferences 직접 import, 종 아이콘 밖의 알림함 경로 |
 | `server_api_schema_test.dart` | 앱 모델 필드 <-> `api-contract/openapi.json` 어긋남 (서버에 없는 필드, 기본값 없는 nullable, 타입 불일치, #493) |
@@ -99,8 +100,8 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 
 ## 광고 (AdMob, #506·#527)
 
-- 자리 4종: 탭 셸 하단 탭 바 아래 한 줄 네이티브 띠(메인 탭 4개 공통 1개), 콘텐츠 안 인라인 배너 카드 `AdInlineCard`(홈 학습 현황 <-> 추천 문제 사이, 통계 맨 아래),
-  문제 탭 토픽 5개 뒤 네이티브 1칸, 오늘의 세트·챕터 결과 진입 전면(설치 후 첫 결과 2회 제외·5분 간격·하루 3회, 기기 저장). 화면 안 광고는 '광고' 라벨(`AdLabel`) 필수.
+- 자리 4종: 탭 셸 하단 탭 바 아래 한 줄 네이티브 띠(메인 탭 5개 공통 1개), 콘텐츠 안 인라인 배너 카드 `AdInlineCard`(홈 학습 현황 <-> 추천 문제 사이, 통계 맨 아래),
+  문제 탭 네이티브 3칸(주제별 토픽 5개 뒤, 최신 경향 유형 <-> 공부 팁, 개념 TOP 10 5위 <-> 6위), 오늘의 세트·챕터 결과 진입 전면(설치 후 첫 결과 2회 제외·5분 간격·하루 3회, 기기 저장). 화면 안 광고는 '광고' 라벨(`AdLabel`) 필수.
 - 한 줄 띠 (#527): `AdNativeStripSlot` > `GoogleAdNativeStripLoader`(factoryId `passqlStrip`, 색·배지 문구는 customOptions) > 네이티브 팩토리
   (Android `PassqlStripNativeAdFactory.kt` + `res/layout/passql_strip_native_ad.xml`, iOS `ios/Runner/PassqlStripNativeAdFactory.swift`, 등록은 `MainActivity`·`AppDelegate`).
   셸 수명 동안 1회 로드(탭 전환 재로드 없음), 앱 복귀 때 1시간 넘은 광고만 교체, 라이트·다크 전환 시 다시 로드. 로드 전·실패면 탭 바만(띠 자리 0).

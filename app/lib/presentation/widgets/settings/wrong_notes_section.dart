@@ -46,7 +46,7 @@ class WrongNotesSection extends ConsumerWidget {
                   Text(
                     '${data.totalCount}',
                     style: PassqlTypography.subheadline.copyWith(
-                      color: colors.accent,
+                      color: colors.accentText,
                     ),
                   ),
               ],
@@ -100,7 +100,12 @@ class _WrongRow extends StatelessWidget {
 
     return PassqlPressable(
       onTap: () => context.push(AppRoutes.questionDetail(item.questionUuid)),
-      semanticLabel: item.stemPreview,
+      // 읽는 순서: 오답 > 지문 > 토픽·시점 (화면 글자는 덮음)
+      semanticLabel: [
+        '오답',
+        stripCodeFences(item.stemPreview),
+        if (meta.isNotEmpty) meta,
+      ].join(', '),
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: PassqlSpacing.md,
@@ -132,7 +137,7 @@ class _WrongRow extends StatelessWidget {
                     Text(
                       meta,
                       style: PassqlTypography.caption.copyWith(
-                        color: colors.tertiaryLabel,
+                        color: colors.secondaryLabel,
                       ),
                     ),
                   ],

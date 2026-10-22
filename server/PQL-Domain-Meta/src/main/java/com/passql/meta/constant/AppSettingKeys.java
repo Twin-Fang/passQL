@@ -54,6 +54,11 @@ public final class AppSettingKeys {
     // app_setting: 오늘의 세트 리마인드 자동 알림 (true 사용, false 미사용, 발송은 후속 이슈)
     public static final String NOTIFICATION_DAILY_SET_REMINDER_ENABLED = "notification.daily_set_reminder.enabled";
 
+    // app_setting: Android 결제 스위치 (true 무료/프로 제한 적용과 결제 UI 노출, false 모든 기능 허용)
+    public static final String BILLING_ANDROID_ENABLED = "billing.android.enabled";
+    // app_setting: Play Developer API 서비스 계정 키 JSON (SECRET, 암호문 저장, 관리자 화면에서 변경, 비면 결제 확인 불가)
+    public static final String BILLING_PLAY_SERVICE_ACCOUNT_JSON = "billing.play_service_account_json";
+
     private AppSettingKeys() {
     }
 }

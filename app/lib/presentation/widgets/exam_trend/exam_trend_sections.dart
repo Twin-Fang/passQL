@@ -3,56 +3,16 @@ import 'package:flutter/cupertino.dart';
 import '../../../data/models/exam_trend/exam_trend_report_response.dart';
 import '../../design/design.dart';
 
-// 출제 경향 화면 조각 (#523): 요약 카드, 과목 비중, 늘어난 유형, 자주 나오는 개념, 공부 팁
+// 출제 경향 화면 조각 (#523): 과목 비중, 늘어난 유형, 자주 나오는 개념, 공부 팁
 
 /// 백분율 > 진행 막대 값 (0~1)
 const double _percentDenominator = 100;
 
-/// 요약 카드: 최신 경향 배지 + 제목 + 근거 회차 + 요약 + 풀 수 있는 최신 경향 문제 수
-class ExamTrendSummaryCard extends StatelessWidget {
-  const ExamTrendSummaryCard({super.key, required this.report});
+/// 순위 숫자 칸 폭 (두 자리 순위까지 제목 시작선이 같도록)
+const double _rankColumnWidth = 32;
 
-  final ExamTrendReportResponse report;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    return PassqlCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const PassqlLatestTrendBadge(),
-          const SizedBox(height: PassqlSpacing.xs),
-          Text(
-            report.title,
-            style: PassqlTypography.title2.copyWith(color: colors.label),
-          ),
-          const SizedBox(height: PassqlSpacing.xxs),
-          Text(
-            '${report.basisDescription} · ${report.updatedDate} 갱신',
-            style: PassqlTypography.caption.copyWith(
-              color: colors.secondaryLabel,
-            ),
-          ),
-          const SizedBox(height: PassqlSpacing.sm),
-          Text(
-            report.summary,
-            style: PassqlTypography.subheadline.copyWith(color: colors.label),
-          ),
-          if (report.latestTrendQuestionCount > 0) ...[
-            const SizedBox(height: PassqlSpacing.sm),
-            Text(
-              '최신 경향 문제 ${report.latestTrendQuestionCount}개를 풀 수 있어요',
-              style: PassqlTypography.footnoteSemibold.copyWith(
-                color: colors.accent,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
+/// 강조색으로 그리는 상위 순위 수 (1~3위)
+const int _highlightedRankCount = 3;
 
 /// 과목별 비중: 과목명 + 문항 수·백분율 + 진행 막대 + 설명
 class ExamTrendSubjectShareSection extends StatelessWidget {
@@ -147,20 +107,33 @@ class ExamTrendConceptSection extends StatelessWidget {
     super.key,
     required this.concepts,
     required this.onSolveTopic,
+    this.totalConceptCount,
+    this.shouldShowHeader = true,
+    this.shouldShowFooter = true,
   });
 
   final List<ExamTrendConcept> concepts;
   final void Function(String topicCode, String topicName) onSolveTopic;
 
+  /// 머리글 개수 (목록을 둘로 나눠 그릴 때 전체 개수, 없으면 [concepts] 개수)
+  final int? totalConceptCount;
+
+  /// 머리글·안내 문구 표시 (나눠 그린 묶음은 한쪽씩만 표시)
+  final bool shouldShowHeader;
+  final bool shouldShowFooter;
+
   @override
   Widget build(BuildContext context) {
     return PassqlGroupedSection(
-      header: '자주 나오는 개념 TOP ${concepts.length}',
-      footer: '최근 4회(58·60·61·62회) 합산 출제 문항 수 기준',
+      header: shouldShowHeader
+          ? '자주 나오는 개념 TOP ${totalConceptCount ?? concepts.length}'
+          : null,
+      footer: shouldShowFooter ? '최근 4회(58·60·61·62회) 합산 출제 문항 수 기준' : null,
       children: [
         for (final concept in concepts)
           ExamTrendSolvableRow(
-            title: '${concept.rank}. ${concept.name}',
+            title: concept.name,
+            rank: concept.rank,
             caption: concept.frequencyText,
             description: concept.description,
             topicCode: concept.topicCode,
@@ -184,6 +157,7 @@ class ExamTrendSolvableRow extends StatelessWidget {
     required this.topicName,
     required this.latestTrendQuestionCount,
     required this.onSolveTopic,
+    this.rank,
   });
 
   final String title;
@@ -193,6 +167,9 @@ class ExamTrendSolvableRow extends StatelessWidget {
   final String? topicName;
   final int latestTrendQuestionCount;
   final void Function(String topicCode, String topicName) onSolveTopic;
+
+  /// 순위 (있으면 왼쪽에 큰 숫자, 1~3위만 강조색)
+  final int? rank;
 
   bool get _canSolve => topicName != null && latestTrendQuestionCount > 0;
 
@@ -204,6 +181,28 @@ class ExamTrendSolvableRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (rank != null) ...[
+            SizedBox(
+              width: _rankColumnWidth,
+              // 두 자리 순위도 한 줄 유지 (넘치면 축소)
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  '$rank',
+                  maxLines: 1,
+                  softWrap: false,
+                  style: PassqlTypography.title2.copyWith(
+                    color: rank! <= _highlightedRankCount
+                        ? colors.accentText
+                        : colors.secondaryLabel,
+                    fontFeatures: PassqlTypography.tabular,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: PassqlSpacing.xs),
+          ],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -234,7 +233,7 @@ class ExamTrendSolvableRow extends StatelessWidget {
                   Text(
                     '$topicName 최신 경향 문제 $latestTrendQuestionCount개 풀기',
                     style: PassqlTypography.footnoteSemibold.copyWith(
-                      color: colors.accent,
+                      color: colors.accentText,
                     ),
                   ),
                 ],
@@ -258,7 +257,14 @@ class ExamTrendSolvableRow extends StatelessWidget {
     if (!_canSolve) return row;
     return PassqlPressable(
       onTap: () => onSolveTopic(topicCode, topicName!),
-      semanticLabel: '$title, $topicName 최신 경향 문제 풀기',
+      // 화면 글자(순위·제목·근거·설명·문제 수)를 한 문장으로
+      semanticLabel: [
+        if (rank != null) '$rank위',
+        title,
+        caption,
+        description,
+        '$topicName 최신 경향 문제 $latestTrendQuestionCount개 풀기',
+      ].join(', '),
       child: row,
     );
   }
@@ -283,7 +289,9 @@ class ExamTrendStudyTipSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(top: PassqlSpacing.hairlineGap),
+                  padding: const EdgeInsets.only(
+                    top: PassqlSpacing.hairlineGap,
+                  ),
                   child: Icon(
                     CupertinoIcons.lightbulb_fill,
                     size: PassqlIconSize.sm,

@@ -34,6 +34,8 @@ class ChoiceExplanationResponse with _$ChoiceExplanationResponse {
     // GENERATING 일 때 다시 조회할 간격
     int? retryAfterMilliseconds,
     int? promptVersion,
+    // 무료 응답에서 뺀 묶음 이름 (FULL_EXPLANATION), 없으면 빈 목록
+    @Default([]) List<String> lockedSections,
   }) = _ChoiceExplanationResponse;
 
   factory ChoiceExplanationResponse.fromJson(Map<String, dynamic> json) =>

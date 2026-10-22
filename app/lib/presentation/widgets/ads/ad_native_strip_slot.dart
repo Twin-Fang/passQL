@@ -45,7 +45,7 @@ class AdNativeStripSlot extends StatelessWidget {
     return NativeAdStripStyle(
       background: PassqlTabBarWithBottomStrip.backgroundOf(context),
       headlineText: colors.label,
-      callToActionText: colors.accent,
+      callToActionText: colors.accentText,
       badgeBackground: colors.fill,
       badgeText: colors.secondaryLabel,
       badgeLabel: badgeLabel,

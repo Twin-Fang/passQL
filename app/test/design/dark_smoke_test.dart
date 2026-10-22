@@ -32,13 +32,16 @@ Set<Color> _allowedTextColors() {
     colors.secondaryLabel,
     colors.tertiaryLabel,
     colors.accent,
+    colors.accentText,
     colors.onAccent,
+    colors.onSemantic,
     colors.correctText,
     colors.wrongText,
     colors.correct,
     colors.wrong,
     colors.warning,
-    colors.background, // 토스트 글자
+    colors.warningText,
+    colors.background, // 토스트 글자·회색 선택지 키 반전 글자
     // 로그인 화면 카카오 버튼 글자 (#509). 네이버·GitHub 흰 글자는 onAccent 와 같은 값
     PassqlSocialBrandColors.kakaoForeground,
   };
