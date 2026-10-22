@@ -1,5 +1,7 @@
 package com.passql.web.controller;
 
+import com.passql.application.entitlement.ProFeature;
+import com.passql.web.support.RequiresProFeature;
 import com.passql.ai.dto.AiResult;
 import com.passql.ai.dto.SimilarQuestion;
 import com.passql.application.service.AiExplainService;
@@ -25,6 +27,7 @@ public class AiController implements AiControllerDocs {
     // 유사 문제는 문제 요약 조합이 필요해 추천 서비스가 맡는다 (#442). AiService.getSimilar 는 미구현(TODO)이었다
     private final RecommendationService recommendationService;
 
+    @RequiresProFeature(ProFeature.ERROR_EXPLANATION)
     @PostMapping("/explain-error")
     public ResponseEntity<AiResult> explainError(
         @AuthMember LoginMember loginMember,
@@ -36,6 +39,7 @@ public class AiController implements AiControllerDocs {
         return ResponseEntity.ok(aiExplainService.explainError(loginMember.memberUuid(), questionUuid, sql, errorMessage));
     }
 
+    @RequiresProFeature(ProFeature.ERROR_EXPLANATION)
     @PostMapping("/diff-explain")
     public ResponseEntity<AiResult> diffExplain(
         @AuthMember LoginMember loginMember,
@@ -57,6 +61,7 @@ public class AiController implements AiControllerDocs {
             loginMember.memberUuid(), questionUuid, choiceSetUuid, selectedChoiceKey));
     }
 
+    @RequiresProFeature(ProFeature.RECOMMENDATION)
     @GetMapping("/similar/{questionUuid}")
     public ResponseEntity<List<SimilarQuestion>> getSimilar(
         @PathVariable UUID questionUuid,

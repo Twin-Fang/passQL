@@ -35,6 +35,7 @@ public interface QuestionControllerDocs {
   })
   @Operation(summary = "문제 목록 조회", description = "latestTrend=true 면 최신 출제 경향 문제만. 응답 isLatestTrend 는 '최신 경향' 배지 표시 여부.")
   ResponseEntity<Page<QuestionSummary>> getQuestions(
+      @AuthMember LoginMember loginMember,
       @RequestParam(required = false) String topic,
       @RequestParam(required = false) String subtopic,
       @RequestParam(required = false) Integer difficulty,

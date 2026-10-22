@@ -1,5 +1,8 @@
 package com.passql.web.controller;
 
+import com.passql.application.entitlement.FeatureAccessPolicy;
+import com.passql.application.entitlement.ProFeature;
+import com.passql.web.support.RequiresProFeature;
 import com.passql.application.service.ChoiceGenerationStreamService;
 import com.passql.application.service.QuestionExecutionService;
 import com.passql.application.service.RecommendationService;
@@ -29,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.springframework.util.StringUtils.hasText;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/questions")
@@ -40,9 +45,11 @@ public class QuestionController implements QuestionControllerDocs {
     private final QuestionExecutionService questionExecutionService;
     private final SubmissionService submissionService;
     private final ChoiceGenerationStreamService choiceGenerationStreamService;
+    private final FeatureAccessPolicy featureAccessPolicy;
 
     @GetMapping
     public ResponseEntity<Page<QuestionSummary>> getQuestions(
+        @AuthMember LoginMember loginMember,
         @RequestParam(required = false) String topic,
         @RequestParam(required = false) String subtopic,
         @RequestParam(required = false) Integer difficulty,
@@ -50,10 +57,15 @@ public class QuestionController implements QuestionControllerDocs {
         @RequestParam(required = false) Boolean latestTrend,
         Pageable pageable
     ) {
+        // 토픽·세부 토픽 필터 연습은 프로 전용 (필터 없는 전체 목록은 무료 허용)
+        if (hasText(topic) || hasText(subtopic)) {
+            featureAccessPolicy.requireFeature(loginMember.memberUuid(), ProFeature.TOPIC_PRACTICE);
+        }
         return ResponseEntity.ok(questionService.getQuestions(topic, subtopic, difficulty, mode, latestTrend, pageable));
     }
 
     // GET → POST 전환: 제외 UUID 목록이 쿼리스트링으로 누적되면 Tomcat 8KB 헤더 한도 초과 → 400 발생
+    @RequiresProFeature(ProFeature.RECOMMENDATION)
     @PostMapping("/recommendations")
     public ResponseEntity<RecommendationsResponse> getRecommendations(
         @AuthMember LoginMember loginMember,
@@ -71,6 +83,7 @@ public class QuestionController implements QuestionControllerDocs {
         return ResponseEntity.ok(questionService.getQuestionForSolving(questionUuid));
     }
 
+    @RequiresProFeature(ProFeature.SQL_EXECUTION)
     @PostMapping("/{questionUuid}/execute")
     public ResponseEntity<ExecuteResult> executeChoice(
         @PathVariable UUID questionUuid,

@@ -2,6 +2,7 @@ package com.passql.application.entitlement;
 
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.member.constant.ChoiceGenerationMode;
 import com.passql.member.constant.EntitlementSource;
 import com.passql.member.constant.MemberPlan;
 import com.passql.member.entity.MemberEntitlement;
@@ -122,5 +123,23 @@ class FeatureAccessPolicyTest {
         when(entitlementRepository.findById(memberUuid)).thenReturn(Optional.empty());
 
         assertThat(policy.getPlan(memberUuid).purchasableUntil()).isNull();
+    }
+
+    @Test
+    void resolveEffectiveChoiceGenerationMode_whenFree_downgradesRealToPractice() {
+        givenBillingEnabled(true);
+        when(entitlementRepository.findById(memberUuid)).thenReturn(Optional.empty());
+
+        assertThat(policy.resolveEffectiveChoiceGenerationMode(memberUuid, ChoiceGenerationMode.REAL))
+            .isEqualTo(ChoiceGenerationMode.PRACTICE);
+    }
+
+    @Test
+    void resolveEffectiveChoiceGenerationMode_whenPro_keepsStoredMode() {
+        givenBillingEnabled(true);
+        givenEntitlement(MemberPlan.PRO, NOW.plusDays(1));
+
+        assertThat(policy.resolveEffectiveChoiceGenerationMode(memberUuid, ChoiceGenerationMode.REAL))
+            .isEqualTo(ChoiceGenerationMode.REAL);
     }
 }

@@ -2,6 +2,7 @@ package com.passql.application.entitlement;
 
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.member.constant.ChoiceGenerationMode;
 import com.passql.member.constant.MemberPlan;
 import com.passql.member.entity.MemberEntitlement;
 import com.passql.member.repository.MemberEntitlementRepository;
@@ -80,6 +81,14 @@ public class FeatureAccessPolicy {
             log.info("[pro access] rejected 403 : feature={}", feature);
             throw new CustomException(ErrorCode.PRO_REQUIRED);
         }
+    }
+
+    /** 선택지 생성 모드 보정: 실전 모드 사용 불가(무료)면 PRACTICE 로 취급, 저장값은 그대로 */
+    public ChoiceGenerationMode resolveEffectiveChoiceGenerationMode(UUID memberUuid, ChoiceGenerationMode storedMode) {
+        if (storedMode == ChoiceGenerationMode.REAL && !canUse(memberUuid, ProFeature.REAL_MODE)) {
+            return ChoiceGenerationMode.PRACTICE;
+        }
+        return storedMode;
     }
 
     /** 내 등급 응답 (오늘 사용량은 후속 태스크에서 채움, 구매 시 만료일은 결제 켜짐일 때만) */
