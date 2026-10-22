@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../data/models/question/submit_result.dart';
 import '../../../presentation/providers/learning_refresh.dart';
-import '../../../presentation/providers/plan_providers.dart';
 import '../../../presentation/providers/question_providers.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
@@ -40,14 +39,17 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
   /// 이번 로드 실패의 프로 접근 안내를 띄웠는지 (다시 시도하면 내림)
   late bool _isProAccessNoticed = widget.isPushEntry;
 
-  /// 상세 실패 1회 안내: 프로 접근 오류면 시트·토스트 > 프로가 됐으면 다시 받기
+  /// 상세 실패 1회 안내: 프로 접근 오류면 시트·토스트 > 시트로 프로가 됐을 때만 다시 받기
   void _showProAccessFeedbackOnce(Object error) {
     if (_isProAccessNoticed) return;
     _isProAccessNoticed = true;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      final isHandled = await showProAccessFeedback(context, ref, error);
-      if (isHandled && mounted && ref.read(isProProvider)) _retryDetail();
+      final feedbackResult = await showProAccessFeedback(context, ref, error);
+      if (feedbackResult == ProAccessFeedbackResult.sheetUnlockedPro &&
+          mounted) {
+        _retryDetail();
+      }
     });
   }
 
@@ -91,6 +93,8 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
             );
           },
           data: (question) {
+            // 로드 성공 > 알림 진입 억제 해제 (이후 실패는 일반 진입처럼 안내)
+            _isProAccessNoticed = false;
             // 최초 1회: 선택지 준비(재사용·생성 판단은 notifier 몫)
             if (!_isChoicesInitialized) {
               _isChoicesInitialized = true;

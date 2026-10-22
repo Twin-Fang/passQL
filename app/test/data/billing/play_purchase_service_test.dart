@@ -59,9 +59,13 @@ class _FakeInAppPurchase implements InAppPurchase {
 class _FakeBillingApi implements BillingApiClient {
   final List<PlayVerifyRequest> verifyRequests = [];
 
+  /// true 면 서버 확인 실패 (네트워크·5xx)
+  bool shouldFailVerify = false;
+
   @override
   Future<MemberPlanResponse> verifyPlayPurchase(PlayVerifyRequest body) async {
     verifyRequests.add(body);
+    if (shouldFailVerify) throw Exception('verify unavailable');
     return const MemberPlanResponse(
       isBillingEnabled: true,
       plan: MemberPlanType.pro,
@@ -103,7 +107,7 @@ void main() {
   tearDown(() => service.dispose());
 
   test(
-    'purchased_verifiesWithServer_refreshesPlan_completesPurchase',
+    'purchased_verifiesWithServer_completesPurchase_returnsSuccess',
     () async {
       final outcome = service.purchaseExamPass();
       await pumpEventQueue();
@@ -116,10 +120,35 @@ void main() {
         billingApi.verifyRequests.single.purchaseToken,
         'purchase-token-1',
       );
-      expect(planRefreshCount, 1);
+      // 결제 창 성공의 등급 갱신은 시트 몫 (중복 갱신 방지)
+      expect(planRefreshCount, 0);
       expect(store.completedPurchases, hasLength(1));
     },
   );
+
+  test('backgroundPurchased_refreshesPlan_announcesUnlock', () async {
+    final unlocks = <void>[];
+    service.backgroundProUnlocks.listen(unlocks.add);
+
+    // 결제 창 밖 (지연 결제 완료·재시작 후 전달)
+    store.purchaseUpdates.add([_examPassPurchase(PurchaseStatus.purchased)]);
+    await pumpEventQueue();
+
+    expect(billingApi.verifyRequests, hasLength(1));
+    expect(planRefreshCount, 1);
+    expect(unlocks, hasLength(1));
+  });
+
+  test('verifyFailure_returnsPending_keepsPurchaseUncompleted', () async {
+    billingApi.shouldFailVerify = true;
+    final outcome = service.purchaseExamPass();
+    await pumpEventQueue();
+    store.purchaseUpdates.add([_examPassPurchase(PurchaseStatus.purchased)]);
+
+    // Play 결제는 끝남 > 대기 안내, 처리 완료 안 함 (다음 재전송에서 다시 확인)
+    expect(await outcome, ProPurchaseOutcome.pending);
+    expect(store.completedPurchases, isEmpty);
+  });
 
   test('pending_returnsPending_withoutServerVerification', () async {
     final outcome = service.purchaseExamPass();

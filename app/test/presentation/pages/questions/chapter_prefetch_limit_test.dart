@@ -72,25 +72,54 @@ const AppException _dailyLimitError = AppException(
   serverCode: 'FREE_DAILY_LIMIT_REACHED',
 );
 
-/// 등급 고정 (결제 켜짐 + 무료)
-class _FreePlanNotifier extends PlanNotifier {
+const AppException _fairUseLimitError = AppException(
+  code: ErrorCode.fairUseDailyLimitReached,
+  message: '오늘 풀 수 있는 문제를 모두 풀었어요.',
+  statusCode: 429,
+  serverCode: 'FAIR_USE_DAILY_LIMIT_REACHED',
+);
+
+/// 등급 고정 (결제 켜짐, 무료 또는 프로)
+class _FixedPlanNotifier extends PlanNotifier {
+  _FixedPlanNotifier(this._plan);
+
+  final MemberPlanType _plan;
+
   @override
-  Future<MemberPlanResponse> build() async =>
-      const MemberPlanResponse(isBillingEnabled: true, dailyFreeLimit: 10);
+  Future<MemberPlanResponse> build() async => MemberPlanResponse(
+    isBillingEnabled: true,
+    plan: _plan,
+    dailyFreeLimit: 10,
+  );
 
   @override
   Future<void> refresh() async {}
 }
 
-Widget _chapterApp() => ProviderScope(
+/// 문제별 상세 요청 횟수 (미리 받기·재요청 확인용)
+final Map<String, int> _detailRequestCountByUuid = {};
+
+/// [firstQuestionError]: 1번 문제 상세 오류 (없으면 정상 문제)
+Widget _chapterApp({
+  MemberPlanType plan = MemberPlanType.free,
+  AppException? firstQuestionError,
+}) => ProviderScope(
   overrides: [
-    planProvider.overrideWith(_FreePlanNotifier.new),
-    shouldShowProUiProvider.overrideWith((ref) => true),
+    planProvider.overrideWith(() => _FixedPlanNotifier(plan)),
+    // 실제 앱은 main 이 등급을 앱 수명 유지 > 테스트는 확정 값으로 고정
+    isProProvider.overrideWith((ref) => plan == MemberPlanType.pro),
+    shouldShowProUiProvider.overrideWith((ref) => plan == MemberPlanType.free),
     proPurchasePortProvider.overrideWithValue(
       const UnavailableProPurchasePort(),
     ),
     questionDetailProvider.overrideWith((ref, questionUuid) async {
+      _detailRequestCountByUuid.update(
+        questionUuid,
+        (count) => count + 1,
+        ifAbsent: () => 1,
+      );
       if (questionUuid == _limitedQuestionUuid) throw _dailyLimitError;
+      if (firstQuestionError != null) throw firstQuestionError;
       return _firstQuestion;
     }),
   ],
@@ -106,6 +135,8 @@ ChapterNotifier _chapterNotifierOf(WidgetTester tester) =>
     ).read(chapterProvider(const _TwoQuestionFlow().id).notifier);
 
 void main() {
+  setUp(_detailRequestCountByUuid.clear);
+
   testWidgets('prefetchLimitError_doesNotOpenSheetMidQuestion', (tester) async {
     await tester.pumpWidget(_chapterApp());
     await tester.pumpAndSettle();
@@ -115,6 +146,11 @@ void main() {
     await tester.tap(find.text('보기 A'));
     await tester.pumpAndSettle();
 
+    // 미리 받기가 실제로 한도 오류를 받았는데도 시트 없음
+    expect(
+      _detailRequestCountByUuid[_limitedQuestionUuid],
+      greaterThanOrEqualTo(1),
+    );
     expect(find.text(_sheetTitle), findsNothing);
     expect(
       findTextContainingIgnoringWordJoiners(_dailyLimitReason),
@@ -136,5 +172,22 @@ void main() {
       findTextContainingIgnoringWordJoiners(_dailyLimitReason),
       findsOneWidget,
     );
+  });
+
+  testWidgets('fairUseLimitError_showsToastOnce_withoutRetryRequest', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _chapterApp(
+        plan: MemberPlanType.pro,
+        firstQuestionError: _fairUseLimitError,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // 프로 사용자 공정 사용 한도 > 토스트 1회, 같은 문제 다시 요청 없음 (반복 방지)
+    expect(_detailRequestCountByUuid[_firstQuestionUuid], 1);
+    expect(find.text(_fairUseLimitError.message), findsOneWidget);
+    expect(find.text(_sheetTitle), findsNothing);
   });
 }

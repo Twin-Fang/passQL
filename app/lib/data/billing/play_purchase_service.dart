@@ -11,6 +11,7 @@ import '../sources/billing_api.dart';
 
 /// 회차 패스 Play 결제 (Android): 상품 조회 > 결제 창(소모형) > 구매 스트림 > 서버 확인 > 등급 갱신 > 구매 처리 완료
 /// 소모(consume)는 서버가 함 (앱은 autoConsume: false). 등급 갱신은 [refreshPlan] 으로 바깥에 맡김 (data 는 등급 상태를 모름)
+/// 결제 창·복원이 success 를 돌려주면 등급 갱신은 시트(refreshPlanIfPurchased, 닫혀도 실행) 몫 > 여기서는 판정에 필요할 때·백그라운드만 갱신
 class PlayPurchaseService implements ProPurchasePort {
   PlayPurchaseService({
     required BillingApiClient billingApi,
@@ -82,20 +83,27 @@ class PlayPurchaseService implements ProPurchasePort {
     return activePurchase.future;
   }
 
-  /// 복원: 미확인 구매 재전송 > 서버 등급 재조회 (소모된 구매는 Play 에 없으므로 서버 등급이 기준)
+  /// 복원: 미확인 구매 재전송 > 프로가 안 됐으면 서버 등급 재조회 (소모된 구매는 Play 에 없으므로 서버 등급이 기준)
   @override
-  Future<ProPurchaseOutcome> restorePurchases() async {
-    await resendUnverifiedPurchases();
-    return await _refreshPlanSafely()
-        ? ProPurchaseOutcome.success
-        : ProPurchaseOutcome.nothingToRestore;
+  Future<ProPurchaseOutcome> restorePurchases() async =>
+      await _isProAfterResendOrServerPlan()
+      ? ProPurchaseOutcome.success
+      : ProPurchaseOutcome.nothingToRestore;
+
+  /// 백그라운드 미확인 구매 재전송 (앱 시작·복귀·로그인): 확인으로 프로가 되면 등급 갱신
+  Future<void> resendUnverifiedPurchases() async {
+    if (await _resendAndCheckPro()) await _refreshPlanSafely();
   }
 
-  /// 미확인 구매 재전송: Play 보유 구매(결제 완료) > 서버 확인 (앱 시작·복귀·로그인·복원)
+  /// 미확인 구매 재전송 > 프로 확인됐으면 true, 아니면 서버 등급 재조회로 판정
+  Future<bool> _isProAfterResendOrServerPlan() async =>
+      await _resendAndCheckPro() || await _refreshPlanSafely();
+
+  /// 미확인 구매 재전송: Play 보유 구매(결제 완료) > 서버 확인 > 하나라도 프로로 확인되면 true
   /// 서버가 소모한 구매는 Play 목록에서 빠짐 > 남은 것 = 서버 확인 전 구매 (3일 안에 소모 안 되면 자동 환불)
-  Future<void> resendUnverifiedPurchases() async {
+  Future<bool> _resendAndCheckPro() async {
     try {
-      if (!await _store.isAvailable()) return;
+      if (!await _store.isAvailable()) return false;
       final response = await _store
           .getPlatformAddition<InAppPurchaseAndroidPlatformAddition>()
           .queryPastPurchases();
@@ -104,9 +112,13 @@ class PlayPurchaseService implements ProPurchasePort {
             purchase.productID == examPassProductId &&
             purchase.status == PurchaseStatus.purchased,
       );
-      await Future.wait(unverifiedPurchases.map(_verifyPurchase));
+      final verifiedPlans = await Future.wait(
+        unverifiedPurchases.map(_verifyPurchase),
+      );
+      return verifiedPlans.any((plan) => plan?.plan == MemberPlanType.pro);
     } on Object catch (error) {
       debugPrint('[billing] resend unverified failed : $error');
+      return false;
     }
   }
 
@@ -154,24 +166,22 @@ class PlayPurchaseService implements ProPurchasePort {
     }
   }
 
-  /// 결제 완료 > 서버 확인 > 등급 갱신 > 결과 (확인 실패면 미확인으로 남겨 다음 재전송에서 다시)
+  /// 결제 완료 > 서버 확인 > 결과 (결제 창: 결과만, 백그라운드: 등급 갱신 + 프로 알림)
+  /// 확인 실패 = Play 결제는 끝남 > pending, 미확인으로 남겨 다음 재전송에서 다시
   Future<void> _onPurchaseCompleted(PurchaseDetails purchase) async {
     final isActivePurchase = _activePurchase != null;
     final verifiedPlan = await _verifyPurchase(purchase);
-    if (verifiedPlan == null) {
-      _completeActivePurchase(ProPurchaseOutcome.failed);
-      return;
-    }
     // 서버가 결제 대기로 보면 등급 그대로 > pending
-    final isPro = verifiedPlan.plan == MemberPlanType.pro;
-    await _refreshPlanSafely();
+    final isPro = verifiedPlan?.plan == MemberPlanType.pro;
     if (isActivePurchase) {
       _completeActivePurchase(
         isPro ? ProPurchaseOutcome.success : ProPurchaseOutcome.pending,
       );
-    } else if (isPro) {
-      _backgroundUnlockController.add(null);
+      return;
     }
+    if (!isPro) return;
+    await _refreshPlanSafely();
+    _backgroundUnlockController.add(null);
   }
 
   /// 결제 오류: 이미 보유(미확인 구매 남음)면 재전송 후 등급으로 판정, 그 외 failed
@@ -186,12 +196,11 @@ class PlayPurchaseService implements ProPurchasePort {
     _completeActivePurchase(ProPurchaseOutcome.failed);
   }
 
-  /// 구매 정보 없이 끝난 결제 창: 미확인 구매 재전송 > 등급이 프로면 success, 아니면 failed
+  /// 구매 정보 없이 끝난 결제 창: 미확인 구매 재전송·서버 등급 > 프로면 success, 아니면 failed
   Future<void> _completeActivePurchaseFromServerPlan() async {
     if (_activePurchase == null) return;
-    await resendUnverifiedPurchases();
     _completeActivePurchase(
-      await _refreshPlanSafely()
+      await _isProAfterResendOrServerPlan()
           ? ProPurchaseOutcome.success
           : ProPurchaseOutcome.failed,
     );

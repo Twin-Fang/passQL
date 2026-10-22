@@ -10,7 +10,6 @@ import '../../../presentation/providers/ai_explanation_session_provider.dart';
 import '../../../presentation/providers/chapter_providers.dart';
 import '../../../presentation/providers/choice_explanation_providers.dart';
 import '../../../presentation/providers/learning_refresh.dart';
-import '../../../presentation/providers/plan_providers.dart';
 import '../../../presentation/providers/question_providers.dart';
 import '../../widgets/ai_explanation/ai_explanation_dock.dart';
 import '../../widgets/ai_explanation/ai_explanation_history_button.dart';
@@ -93,14 +92,15 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     ref.listen(questionDetailProvider(questionUuids[nextIndex]), (_, _) {});
   }
 
-  /// 현재 문제 상세 실패 1회 안내: 프로 접근 오류면 시트·토스트 > 프로가 됐으면 다시 받기
+  /// 현재 문제 상세 실패 1회 안내: 프로 접근 오류면 시트·토스트 > 시트로 프로가 됐을 때만 다시 받기
   /// 현재 문제만 대상 (미리 받기 실패는 그 문제로 넘어왔을 때 여기서 안내, 풀이 도중 시트 금지 §4-5)
   void _showProAccessFeedbackOnce(String questionUuid, Object error) {
     if (!_proAccessNoticedUuids.add(questionUuid)) return;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      final isHandled = await showProAccessFeedback(context, ref, error);
-      if (isHandled && mounted && ref.read(isProProvider)) {
+      final feedbackResult = await showProAccessFeedback(context, ref, error);
+      if (feedbackResult == ProAccessFeedbackResult.sheetUnlockedPro &&
+          mounted) {
         _retryQuestionDetail(questionUuid);
       }
     });
