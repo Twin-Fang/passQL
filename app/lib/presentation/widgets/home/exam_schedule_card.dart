@@ -55,10 +55,13 @@ class ExamScheduleCard extends StatelessWidget {
     final daysUntilExam = schedule == null
         ? null
         : _daysUntilExam(schedule!.examDate);
+    // 머리는 위, D-day 묶음은 아래 고정 > 옆 카드 높이에 맞춰 늘어나도 가운데가 비어 보이지 않음
     return PassqlCard(
       onTap: onTap,
+      shouldChildFillHeight: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
@@ -76,42 +79,47 @@ class ExamScheduleCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: PassqlSpacing.sm),
-          if (schedule != null) ...[
-            // 'D-24' 대신 '시험까지 24일'로 읽힘
-            Semantics(
-              label: _ddaySpokenLabel(daysUntilExam),
-              excludeSemantics: true,
-              child: Text(
-                _ddayLabel(daysUntilExam),
-                style: PassqlTypography.title1.copyWith(
-                  color: colors.accentText,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 카드가 가장 낮을 때도 머리와 붙지 않는 최소 간격
+              const SizedBox(height: PassqlSpacing.sm),
+              if (schedule != null) ...[
+                // 'D-24' 대신 '시험까지 24일'로 읽힘
+                Semantics(
+                  label: _ddaySpokenLabel(daysUntilExam),
+                  excludeSemantics: true,
+                  child: Text(
+                    _ddayLabel(daysUntilExam),
+                    style: PassqlTypography.largeTitle.copyWith(
+                      color: colors.accentText,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: PassqlSpacing.xs),
-            PassqlKeepAllText(
-              '${schedule!.certType} ${schedule!.round}회',
-              style: PassqlTypography.subheadlineSemibold.copyWith(
-                color: colors.label,
-              ),
-            ),
-            const SizedBox(height: PassqlSpacing.xxs),
-            PassqlKeepAllText(
-              _formatDate(schedule!.examDate),
-              style: PassqlTypography.caption.copyWith(
-                color: colors.secondaryLabel,
-              ),
-            ),
-          ] else ...[
-            // 사용자가 고를 수 없으므로 누를 수 있는 모양(강조색) 없이 안내만
-            PassqlKeepAllText(
-              '시험 일정 준비 중',
-              style: PassqlTypography.subheadline.copyWith(
-                color: colors.secondaryLabel,
-              ),
-            ),
-          ],
+                const SizedBox(height: PassqlSpacing.xs),
+                PassqlKeepAllText(
+                  '${schedule!.certType} ${schedule!.round}회',
+                  style: PassqlTypography.subheadlineSemibold.copyWith(
+                    color: colors.label,
+                  ),
+                ),
+                const SizedBox(height: PassqlSpacing.xxs),
+                PassqlKeepAllText(
+                  _formatDate(schedule!.examDate),
+                  style: PassqlTypography.caption.copyWith(
+                    color: colors.secondaryLabel,
+                  ),
+                ),
+              ] else
+                // 사용자가 고를 수 없으므로 누를 수 있는 모양(강조색) 없이 안내만
+                PassqlKeepAllText(
+                  '시험 일정 준비 중',
+                  style: PassqlTypography.subheadline.copyWith(
+                    color: colors.secondaryLabel,
+                  ),
+                ),
+            ],
+          ),
         ],
       ),
     );

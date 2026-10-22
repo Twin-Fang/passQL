@@ -142,10 +142,14 @@ class _HomeContent extends ConsumerWidget {
         ),
       ),
 
-      // 출제 경향 (로딩 = 자리 스켈레톤, 실패 = 항목 없음 > 간격도 없음)
-      if (examTrendReport != null)
+      // 출제 경향 (로딩 = 자리 스켈레톤, 실패·유형 없음 = 항목 없음 > 간격도 없음)
+      // 시작 카드는 날짜마다 다음 유형으로 (같은 날은 같은 카드)
+      if (examTrendReport != null && examTrendReport.risingPatterns.isNotEmpty)
         ExamTrendHomeSection(
-          report: examTrendReport,
+          patterns: rotateToDailyStart(
+            examTrendReport.risingPatterns,
+            DateTime.now(),
+          ),
           onSolveTopic: (topicCode, topicName) => context.push(
             AppRoutes.questionChapterOf(
               topicCode: topicCode,
@@ -221,8 +225,8 @@ class _HomeContent extends ConsumerWidget {
   }
 }
 
-// 출제 경향 섹션 로딩 자리 높이: 머리 + 요약 + 캡션 + 유형 카드 가로 목록
-const double _examTrendSectionHeight = 340;
+// 출제 경향 섹션 로딩 자리 높이: 머리 + 넘김 카드 + 페이지 점
+const double _examTrendSectionHeight = 290;
 
 /// 로딩 중 스켈레톤. 실제 카드와 같은 높이로 자리를 잡는다.
 // 스켈레톤 자리 높이: 실제 카드(오늘의 세트·시험 일정 2열, 준비도, 히트맵) 높이와 맞춤

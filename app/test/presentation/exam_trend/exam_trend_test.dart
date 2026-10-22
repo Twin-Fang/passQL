@@ -139,7 +139,14 @@ void main() {
     expect(selectDailyStudyTip(tips, DateTime(2026, 1, 4)), 'a');
   });
 
-  testWidgets('유형 카드는 토픽 문제 수 문구를 보여 주고 탭하면 그 토픽을 풀러 간다', (tester) async {
+  test('홈 유형 카드는 날짜마다 시작 항목만 돌고 순서는 유지한다', () {
+    const patterns = ['a', 'b', 'c'];
+    expect(rotateToDailyStart(patterns, DateTime(2026, 1, 1)), ['a', 'b', 'c']);
+    expect(rotateToDailyStart(patterns, DateTime(2026, 1, 2)), ['b', 'c', 'a']);
+    expect(rotateToDailyStart(const <String>[], DateTime(2026, 1, 2)), isEmpty);
+  });
+
+  testWidgets('유형 카드는 숫자 없이 풀기 문구를 보여 주고 탭하면 그 토픽을 풀러 간다', (tester) async {
     final solvedTopics = <(String, String)>[];
     await tester.pumpWidget(
       _host(
@@ -150,11 +157,11 @@ void main() {
         ),
       ),
     );
-    expect(find.text('조인 문제 3개'), findsOneWidget);
-    expect(find.text('58회부터 증가'), findsOneWidget);
+    expect(find.text(ExamTrendPatternCard.solveLabel), findsOneWidget);
+    expect(find.text('58회부터 증가'), findsNothing);
     expect(find.text('행 수가 가장 많은 것 고르기'), findsOneWidget);
 
-    await tester.tap(find.text('조인 문제 3개'));
+    await tester.tap(find.text(ExamTrendPatternCard.solveLabel));
     expect(solvedTopics, [('sql_join', '조인')]);
   });
 
@@ -177,10 +184,10 @@ void main() {
     );
     // 넘침 예외 없이 그려지고 하단 문구가 보임
     expect(tester.takeException(), isNull);
-    expect(find.text('DDL / DML / TCL 문제 12개'), findsOneWidget);
+    expect(find.text(ExamTrendPatternCard.solveLabel), findsOneWidget);
   });
 
-  testWidgets('토픽 이름이 없는 유형 카드는 문제 수 문구도 탭도 없다', (tester) async {
+  testWidgets('토픽 이름이 없는 유형 카드는 풀기 문구도 탭도 없다', (tester) async {
     var tapCount = 0;
     await tester.pumpWidget(
       _host(
@@ -195,7 +202,7 @@ void main() {
         ),
       ),
     );
-    expect(find.textContaining('문제'), findsNothing);
+    expect(find.text(ExamTrendPatternCard.solveLabel), findsNothing);
 
     await tester.tap(find.text('결과 비교형 보기'));
     expect(tapCount, 0);

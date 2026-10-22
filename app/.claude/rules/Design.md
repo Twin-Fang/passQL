@@ -46,7 +46,7 @@ lib/presentation/design/
 | `PassqlSemanticButton` | 누르는 요소의 스크린리더 정보(라벨·탭 동작·선택·링크). 화면에서 `Semantics(button + excludeSemantics)` 직접 사용 금지 (규칙 테스트) |
 | `PassqlSegmentedControl` / `PassqlSegment` | 회색 트랙 + 선택 알약 세그먼트 (문제 탭 보기·알림함 탭). 칸마다 탭·선택 시맨틱, 누르는 높이 44 |
 | `PassqlLoadingSemantics` | 로딩 자리(스피너·스켈레톤 묶음)를 '불러오는 중' 한 번으로 읽힘. 화면 스켈레톤 묶음은 이것으로 감쌈 |
-| `PassqlCard` | 그림자 없는 카드, 제목·우측 요소 |
+| `PassqlCard` | 그림자 없는 카드, 제목·우측 요소, 바깥 높이 채움(`shouldChildFillHeight`, 2열 높이 맞춤) |
 | `PassqlGroupedSection` / `PassqlListRow` / `PassqlCheckRow` / `PassqlIconTile` | iOS 설정 앱식 목록 묶음·행·선택 행·아이콘 타일 |
 | `PassqlNavBar` / `PassqlNavButton` / `PassqlLargeTitleScrollView` | 상단 바, 뒤로/닫기 버튼, 큰 제목 탭 화면 틀 |
 | `PassqlBrandBarScrollView` | 홈 탭 화면 틀: 로고(왼쪽)·trailing(오른쪽) 한 줄 고정 바, 내용이 밑으로 지나가면 글래스 + 헤어라인 (#530) |

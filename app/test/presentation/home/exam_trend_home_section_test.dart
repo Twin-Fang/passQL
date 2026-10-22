@@ -6,7 +6,7 @@ import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/widgets/exam_trend/exam_trend_pattern_card.dart';
 import 'package:passql_app/presentation/widgets/home/exam_trend_home_section.dart';
 
-/// 홈 출제 경향 섹션: 요약·캡션·가로 유형 카드, '전체' 이동, 빈 유형 안전
+/// 홈 출제 경향 섹션: 제목·반영 표시·넘김 유형 카드, 숫자 없음, '전체' 이동, 빈 유형 안전
 const _report = ExamTrendReportResponse(
   title: '2026 SQLD 출제 경향',
   basisDescription: '제58~62회 시험 유형 분석',
@@ -48,7 +48,7 @@ Future<void> _pumpSection(
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(PassqlSpacing.md),
           child: ExamTrendHomeSection(
-            report: report,
+            patterns: report.risingPatterns,
             onSolveTopic: (_, _) {},
             onViewAll: onViewAll ?? () {},
           ),
@@ -60,14 +60,15 @@ Future<void> _pumpSection(
 }
 
 void main() {
-  testWidgets('제목·요약·캡션·유형 카드 제목을 보여 준다', (tester) async {
+  testWidgets('제목·반영 표시·유형 카드를 보여 주고 회차·문항 수 숫자는 없다', (tester) async {
     await _pumpSection(tester, _report);
 
     expect(find.text(ExamTrendHomeSection.title), findsOneWidget);
-    expect(find.text('결과 추적형이 늘었어요.'), findsOneWidget);
-    expect(find.text('제58~62회 시험 유형 분석 · 2026-10-18 갱신'), findsOneWidget);
+    expect(find.text(ExamTrendHomeSection.reflectedLabel), findsOneWidget);
     expect(find.text('결과 비교형 보기'), findsOneWidget);
     expect(find.byType(ExamTrendPatternCard), findsWidgets);
+    expect(find.textContaining('58회부터'), findsNothing);
+    expect(find.textContaining('문제 3개'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -78,13 +79,16 @@ void main() {
     final titleParagraph = tester.renderObject<RenderParagraph>(titleFinder);
     expect(titleParagraph.didExceedMaxLines, isFalse);
 
-    // 줄어든 비율 (보이는 너비 / 원래 너비) 85% 이상 (배지와 '전체' 사이 간격 확보 후 기준)
+    // 줄어든 비율 (보이는 너비 / 원래 너비) 85% 이상
     final visibleWidth = tester
         .getSize(
           find.ancestor(of: titleFinder, matching: find.byType(FittedBox)),
         )
         .width;
-    expect(visibleWidth / titleParagraph.size.width, greaterThanOrEqualTo(0.85));
+    expect(
+      visibleWidth / titleParagraph.size.width,
+      greaterThanOrEqualTo(0.85),
+    );
   });
 
   testWidgets("'전체'를 누르면 onViewAll 이 1회 호출된다", (tester) async {
@@ -105,7 +109,7 @@ void main() {
     await _pumpSection(tester, _report.copyWith(risingPatterns: const []));
 
     expect(find.byType(ExamTrendPatternCard), findsNothing);
-    expect(find.text('결과 추적형이 늘었어요.'), findsOneWidget);
+    expect(find.text(ExamTrendHomeSection.title), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

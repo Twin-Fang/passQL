@@ -28,7 +28,7 @@ import '../helpers/pump_app.dart';
 // 시스템 글자 크기 최대(접근성 큰 글자) 수준 배율
 const double _systemMaximumTextScaleFactor = 2.0;
 
-/// 출제 경향 유형 카드: 설명 2줄 + 하단 "토픽 문제 N개" (고정 높이 넘침 재현 조합, 감사 C3)
+/// 출제 경향 유형 카드: 설명 2줄 + 하단 "이 유형 풀기" (고정 높이 넘침 재현 조합, 감사 C3)
 const _examTrendReportWithLongDescriptions = ExamTrendReportResponse(
   title: '2026 SQLD 출제 경향',
   basisDescription: '제58~62회 시험 유형 분석',
@@ -112,7 +112,7 @@ void main() {
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(PassqlSpacing.md),
           child: ExamTrendHomeSection(
-            report: _examTrendReportWithLongDescriptions,
+            patterns: _examTrendReportWithLongDescriptions.risingPatterns,
             onSolveTopic: (_, _) {},
             onViewAll: () {},
           ),
