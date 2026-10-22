@@ -22,7 +22,7 @@ public class ProResponseRedactor {
 
     private final FeatureAccessPolicy featureAccessPolicy;
 
-    /** 제출 응답: 실행 결과·SQL 제거(SQL_EXECUTION), 해설 글 제거·구조화 해설은 판정만 남김(FULL_EXPLANATION) */
+    /** 제출 응답: 실행 결과·SQL 제거(SQL_EXECUTION), 해설 글 제거·구조화 해설은 내 선택·정답 표시와 판정만 남김(FULL_EXPLANATION) */
     public SubmitResult redactSubmitResult(UUID memberUuid, SubmitResult result) {
         boolean shouldHideExecution = !featureAccessPolicy.canUse(memberUuid, ProFeature.SQL_EXECUTION);
         boolean shouldHideExplanation = !featureAccessPolicy.canUse(memberUuid, ProFeature.FULL_EXPLANATION);
@@ -74,11 +74,17 @@ public class ProResponseRedactor {
             lockedSections);
     }
 
-    /** 판정 한 줄(verdict)만 남긴 해설, 판정이 없으면 null (앱은 rationale 로 대신) */
+    /** 내 선택·정답 표시(고른 키, 정답 키, 정오답)와 판정 한 줄만 남긴 해설, 넷 다 비면 null (앱은 rationale 로 대신) */
     private ChoiceExplanation toVerdictOnlyOrNull(ChoiceExplanation explanation) {
-        if (explanation == null || !hasText(explanation.verdict())) {
+        if (explanation == null) {
             return null;
         }
-        return new ChoiceExplanation(null, null, null, explanation.verdict(), null, List.of(), List.of(), List.of(), null);
+        boolean hasAnyKeptField = hasText(explanation.verdict()) || hasText(explanation.selectedChoiceKey())
+            || hasText(explanation.correctChoiceKey()) || explanation.isSelectedCorrect() != null;
+        if (!hasAnyKeptField) {
+            return null;
+        }
+        return new ChoiceExplanation(explanation.selectedChoiceKey(), explanation.correctChoiceKey(),
+            explanation.isSelectedCorrect(), explanation.verdict(), null, List.of(), List.of(), List.of(), null);
     }
 }

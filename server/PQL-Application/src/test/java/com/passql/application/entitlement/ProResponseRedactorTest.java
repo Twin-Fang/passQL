@@ -66,6 +66,10 @@ class ProResponseRedactorTest {
         // 판정 한 줄만 남은 해설
         ChoiceExplanation verdictOnly = redacted.structuredExplanation();
         assertThat(verdictOnly.verdict()).isEqualTo(VERDICT_TEXT);
+        // 내 선택·정답 표시 유지
+        assertThat(verdictOnly.selectedChoiceKey()).isEqualTo("A");
+        assertThat(verdictOnly.correctChoiceKey()).isEqualTo("B");
+        assertThat(verdictOnly.isSelectedCorrect()).isFalse();
         assertThat(verdictOnly.correctReason()).isNull();
         assertThat(verdictOnly.examTip()).isNull();
         assertThat(verdictOnly.keyConcepts()).isEmpty();
@@ -117,6 +121,9 @@ class ProResponseRedactorTest {
         assertThat(redacted.choiceSetUuid()).isEqualTo(original.choiceSetUuid());
         assertThat(redacted.selectedChoiceKey()).isEqualTo("A");
         assertThat(redacted.explanation().verdict()).isEqualTo(VERDICT_TEXT);
+        assertThat(redacted.explanation().selectedChoiceKey()).isEqualTo("A");
+        assertThat(redacted.explanation().correctChoiceKey()).isEqualTo("B");
+        assertThat(redacted.explanation().isSelectedCorrect()).isFalse();
         assertThat(redacted.explanation().correctReason()).isNull();
         assertThat(redacted.text()).isNull();
         assertThat(redacted.lockedSections()).containsExactly("FULL_EXPLANATION");
