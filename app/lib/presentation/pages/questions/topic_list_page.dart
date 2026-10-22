@@ -114,7 +114,7 @@ class TopicListPage extends ConsumerWidget {
   }
 }
 
-/// 풀기 방식 묶음: 랜덤 풀기 (무료·프로 공통, #576). 결제 꺼짐이면 빈 sliver (지금과 동일)
+/// 풀기 방식 묶음: 랜덤 풀기 (무료·프로 공통, #576). 결제 꺼짐이면 빈 sliver (진입 없음)
 class _RandomPracticeSection extends ConsumerWidget {
   const _RandomPracticeSection();
 

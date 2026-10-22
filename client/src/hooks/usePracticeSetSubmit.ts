@@ -112,6 +112,7 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
           submissionUuid: null,
           explanation: null,
           structuredExplanation: null,
+          lockedSections: [],
         };
         setFeedback(fallback);
         setFeedbackExplanationEntry(null);

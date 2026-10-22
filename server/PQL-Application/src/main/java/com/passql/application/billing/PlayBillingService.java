@@ -238,15 +238,15 @@ public class PlayBillingService {
             return false;
         }
         EntitlementPurchase purchase = verifiedPurchase.get();
-        RevocationResult result = entitlementPurchaseRevoker.revokeAndRecalculate(purchase, LocalDateTime.now(clock));
+        RevocationResult revocationResult = entitlementPurchaseRevoker.revokeAndRecalculate(purchase, LocalDateTime.now(clock));
         // 재계산 종류별 로그 (등급 행 없음, 관리자 부여 유지, 만료일 변경)
-        switch (result.kind()) {
+        switch (revocationResult.kind()) {
             case NO_ENTITLEMENT -> log.info("[billing] revoked : member={}, order={}, no entitlement",
                 purchase.getMemberUuid(), purchase.getOrderId());
             case ADMIN_GRANT_KEPT -> log.info("[billing] revoked : member={}, order={}, admin grant kept",
                 purchase.getMemberUuid(), purchase.getOrderId());
             case RECALCULATED -> log.info("[billing] revoked : member={}, order={}, expires {} -> {}",
-                purchase.getMemberUuid(), purchase.getOrderId(), result.beforeExpiresAt(), result.afterExpiresAt());
+                purchase.getMemberUuid(), purchase.getOrderId(), revocationResult.beforeExpiresAt(), revocationResult.afterExpiresAt());
         }
         return true;
     }

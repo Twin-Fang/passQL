@@ -102,10 +102,10 @@ final homeLearningStatusProvider =
 /// 홈 화면 데이터: [homeOverviewProvider] + [homeLearningStatusProvider] + [homeRecommendationsProvider] 합침
 ///
 /// 한 묶음만 다시 받아도 다른 묶음은 캐시를 그대로 쓴다.
-/// 한쪽 실패는 그 섹션만 숨기고, 양쪽 다 실패(서버 장애·네트워크 끊김)하면 오류 화면 (#375).
+/// 한 묶음 실패는 그 섹션만 숨기고, 개요·학습 둘 다 실패(서버 장애·네트워크 끊김)하면 오류 화면 (#375).
 /// 인증 만료는 삼키지 않고 다시 던짐 (로그인 화면 전환)
 final homeDataProvider = FutureProvider.autoDispose<HomeData>((ref) async {
-  // 두 묶음 동시 대기 (각 오류는 결과로 받아 미처리 예외 방지)
+  // 세 묶음 동시 대기 (각 오류는 결과로 받아 미처리 예외 방지)
   final overviewOutcome = _settle(ref.watch(homeOverviewProvider.future));
   final learningOutcome = _settle(
     ref.watch(homeLearningStatusProvider.future),
@@ -117,7 +117,7 @@ final homeDataProvider = FutureProvider.autoDispose<HomeData>((ref) async {
   final (learning, learningError) = await learningOutcome;
   final (recommendations, recommendationsError) = await recommendationsOutcome;
 
-  // 실패 판정 (인증 만료 우선 > 양쪽 실패, 추천은 선택 섹션이라 인증 만료만 봄)
+  // 실패 판정 (인증 만료 우선 > 개요·학습 둘 다 실패, 추천은 선택 섹션이라 인증 만료만 봄)
   for (final error in [overviewError, learningError, recommendationsError]) {
     if (error is AppException && error.isUnauthorized) throw error;
   }

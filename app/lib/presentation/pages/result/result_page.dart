@@ -45,7 +45,7 @@ class ResultPage extends ConsumerWidget {
         goRouterState.pathParameters[AppRoutes.questionUuidParameter] ?? '';
     final isCorrect = result.isCorrect;
     final colors = context.passqlColors;
-    // 무료(결제 켜짐): 실행 결과 자리 블러, 유사 문제 잠금 (요청 없음)
+    // 무료(결제 켜짐): 실행 결과 자리 블러, 유사 문제 숨김 (요청 없음)
     final shouldShowProUi = ref.watch(shouldShowProUiProvider);
 
     // AI 해설: 제출한 선택지 세트를 알 때만 (모르면 생성 근거 카드로 대신)
@@ -135,7 +135,7 @@ class ResultPage extends ConsumerWidget {
                 ),
             ],
           ),
-        // 유사 문제 (비동기 로드)
+        // 유사 문제 (비동기 로드, 무료면 숨김)
         if (questionUuid.isNotEmpty && !shouldShowProUi)
           SimilarQuestionsSection(questionUuid: questionUuid),
       ],

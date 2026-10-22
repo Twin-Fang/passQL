@@ -12,7 +12,7 @@ import 'package:passql_app/presentation/providers/plan_providers.dart';
 
 import 'fake_http_client_adapter.dart';
 
-// 등급 2종: 결제 꺼짐(지금과 동일해야 함), 무료(결제 켜짐, 오늘 랜덤 3/10)
+// 등급 2종: 결제 꺼짐(잠금 UI 없음), 무료(결제 켜짐, 오늘 랜덤 3/10)
 const billingOffPlan = MemberPlanResponse();
 const freePlan = MemberPlanResponse(
   isBillingEnabled: true,

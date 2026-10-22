@@ -1,6 +1,7 @@
 package com.passql.web.controller.admin;
 
 import com.passql.application.entitlement.EntitlementAdminService;
+import com.passql.application.entitlement.EntitlementPurchaseRevoker.RecalculationKind;
 import com.passql.application.notification.MemberNotificationService;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
@@ -110,12 +111,18 @@ public class AdminMemberController {
     public String revokePurchase(@PathVariable UUID memberUuid, @PathVariable UUID entitlementPurchaseUuid,
                                  RedirectAttributes redirectAttributes) {
         try {
-            entitlementAdminService.revokePurchase(memberUuid, entitlementPurchaseUuid);
-            redirectAttributes.addFlashAttribute(AdminFlash.TOAST_MESSAGE, "구매를 회수했습니다.");
+            RecalculationKind recalculationKind = entitlementAdminService.revokePurchase(memberUuid, entitlementPurchaseUuid);
+            // 관리자 부여 등급이면 구매만 회수, 이용권 만료일은 그대로
+            String toastMessage = recalculationKind == RecalculationKind.ADMIN_GRANT_KEPT
+                ? "구매를 회수했습니다. 관리자 부여 이용권은 그대로입니다." : "구매를 회수했습니다.";
+            redirectAttributes.addFlashAttribute(AdminFlash.TOAST_MESSAGE, toastMessage);
         } catch (CustomException exception) {
-            // 거절 사유별 문구: 이미 회수, 다른 회원·없는 구매
-            String errorMessage = exception.getErrorCode() == ErrorCode.INVALID_REQUEST
-                ? "이미 회수된 구매입니다." : "이 회원의 구매가 아닙니다.";
+            // 거절 사유별 문구: 이미 회수, 다른 회원·없는 구매, 그 외는 공통 오류 처리
+            String errorMessage = switch (exception.getErrorCode()) {
+                case INVALID_REQUEST -> "이미 회수된 구매입니다.";
+                case ACCESS_DENIED, RESOURCE_NOT_FOUND -> "이 회원의 구매가 아닙니다.";
+                default -> throw exception;
+            };
             redirectAttributes.addFlashAttribute(AdminFlash.ENTITLEMENT_ERROR_MESSAGE, errorMessage);
         }
         return "redirect:/admin/members/" + memberUuid;

@@ -18,7 +18,7 @@ final shouldShowProBadgeProvider = Provider.autoDispose<bool>((ref) {
 });
 
 /// 랜덤 풀기 진입(홈 카드·문제 탭 행)을 보일지: 서버 결제 스위치 켜짐 또는 디버그 'free' 강제
-/// 결제 꺼짐·등급 모름이면 숨김 (결제 꺼짐 = 지금과 동일)
+/// 결제 꺼짐·등급 모름이면 숨김 (잠금 UI 없음)
 final isRandomPracticeVisibleProvider = Provider.autoDispose<bool>((ref) {
   if (ref.watch(debugPlanOverrideProvider) == ProDebugPlan.free) return true;
   return ref.watch(knownPlanProvider)?.isBillingEnabled == true;

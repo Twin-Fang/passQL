@@ -90,7 +90,7 @@ class _ProInfoSheetBodyState extends ConsumerState<_ProInfoSheetBody> {
             children: [
               _InfoRow(
                 title: '상태',
-                value: Text(
+                trailing: Text(
                   '회차 패스 이용 중',
                   style: PassqlTypography.body.copyWith(
                     color: context.passqlColors.accent,
@@ -100,15 +100,15 @@ class _ProInfoSheetBodyState extends ConsumerState<_ProInfoSheetBody> {
               if (expiresAt != null)
                 _InfoRow(
                   title: '만료일',
-                  value: _valueText(context, formatDottedDate(expiresAt)),
+                  trailing: _valueText(context, formatDottedDate(expiresAt)),
                 ),
               if (purchasedAt != null)
                 _InfoRow(
                   title: '구매일',
-                  value: _valueText(context, formatDottedDate(purchasedAt)),
+                  trailing: _valueText(context, formatDottedDate(purchasedAt)),
                 ),
               if (orderId != null)
-                _InfoRow(title: '주문 번호', value: _valueText(context, orderId)),
+                _InfoRow(title: '주문 번호', trailing: _valueText(context, orderId)),
             ],
           ),
           const SizedBox(height: PassqlSpacing.md),
@@ -144,10 +144,10 @@ class _ProInfoSheetBodyState extends ConsumerState<_ProInfoSheetBody> {
 
 /// 정보 한 줄: 왼쪽 항목, 오른쪽 값
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.title, required this.value});
+  const _InfoRow({required this.title, required this.trailing});
 
   final String title;
-  final Widget value;
+  final Widget trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -165,7 +165,7 @@ class _InfoRow extends StatelessWidget {
             ),
             const SizedBox(width: PassqlSpacing.md),
             Expanded(
-              child: Align(alignment: Alignment.centerRight, child: value),
+              child: Align(alignment: Alignment.centerRight, child: trailing),
             ),
           ],
         ),

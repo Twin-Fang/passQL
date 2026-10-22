@@ -71,6 +71,15 @@ class FeatureAccessPolicyTest {
     }
 
     @Test
+    void isBillingEnabled_whenSettingStoreFails_treatsAsDisabled() {
+        when(appSettingService.getBooleanOrDefault(eq(AppSettingKeys.BILLING_ANDROID_ENABLED), anyBoolean()))
+            .thenThrow(new IllegalStateException("redis down"));
+
+        assertThat(policy.isBillingEnabled()).isFalse();
+        assertThat(policy.isPro(memberUuid)).isTrue();
+    }
+
+    @Test
     void isPro_whenExpiresAtInFuture_returnsTrue() {
         givenBillingEnabled(true);
         givenEntitlement(MemberPlan.PRO, NOW.plusDays(1));

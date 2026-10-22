@@ -40,8 +40,8 @@ public class FeatureAccessPolicy {
     // 등급 응답 문자열
     private static final String PLAN_PRO = "PRO";
     private static final String PLAN_FREE = "FREE";
-    // app_settings: 안드로이드 결제 사용 여부 (1:사용 0:미사용, 행 없으면 미사용)
-    private static final boolean DEFAULT_BILLING_ENABLED = false;
+    // app_settings: 안드로이드 결제 사용 여부 ('true' 사용, 'false'·행 없음·저장소 장애 미사용)
+    private static final boolean IS_BILLING_ENABLED_BY_DEFAULT = false;
 
     private final MemberEntitlementRepository memberEntitlementRepository;
     private final AppSettingService appSettingService;
@@ -77,9 +77,14 @@ public class FeatureAccessPolicy {
         this.clock = clock;
     }
 
-    /** 결제 스위치 (app_settings billing.android.enabled) */
+    /** 결제 스위치 (app_settings billing.android.enabled, 저장소 장애 > 꺼짐: 앱 설정 응답과 같은 기준, 잠금 판정이 요청을 막지 않게) */
     public boolean isBillingEnabled() {
-        return appSettingService.getBooleanOrDefault(AppSettingKeys.BILLING_ANDROID_ENABLED, DEFAULT_BILLING_ENABLED);
+        try {
+            return appSettingService.getBooleanOrDefault(AppSettingKeys.BILLING_ANDROID_ENABLED, IS_BILLING_ENABLED_BY_DEFAULT);
+        } catch (RuntimeException e) {
+            log.warn("[feature access] billing switch read failed, treating as disabled : reason={}", e.getClass().getSimpleName());
+            return IS_BILLING_ENABLED_BY_DEFAULT;
+        }
     }
 
     /** 프로 여부: 스위치 꺼짐 true, 아니면 유효한 프로 등급 행 존재 */

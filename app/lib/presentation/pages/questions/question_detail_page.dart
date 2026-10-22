@@ -48,13 +48,13 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
       final feedbackResult = await showProAccessFeedback(context, ref, error);
       if (feedbackResult == ProAccessFeedbackResult.sheetUnlockedPro &&
           mounted) {
-        _retryDetail();
+        _retryQuestionDetail();
       }
     });
   }
 
   /// 문제 상세 다시 받기 (오류 안내도 다시 가능)
-  void _retryDetail() {
+  void _retryQuestionDetail() {
     _isProAccessNoticed = false;
     ref.invalidate(questionDetailProvider(widget.questionUuid));
   }
@@ -88,7 +88,7 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
               key: const ValueKey('error'),
               child: PassqlStatusView.error(
                 message: '문제를 불러올 수 없어요',
-                onRetry: _retryDetail,
+                onRetry: _retryQuestionDetail,
               ),
             );
           },

@@ -1,5 +1,6 @@
 package com.passql.application.entitlement;
 
+import com.passql.application.entitlement.EntitlementPurchaseRevoker.RecalculationKind;
 import com.passql.application.entitlement.EntitlementPurchaseRevoker.RevocationResult;
 import com.passql.common.audit.AdminAuditEvent;
 import com.passql.common.audit.constant.AdminAuditAction;
@@ -124,9 +125,10 @@ public class EntitlementAdminService {
     /**
      * 구매 1건 회수: 회원 소유·검증 상태 확인 > REVOKED + 등급 재계산(환불 작업과 같은 공통 회수기) > 감사 기록
      * 다른 회원 구매 ACCESS_DENIED, 없는 구매 RESOURCE_NOT_FOUND, 이미 회수 INVALID_REQUEST
+     * 반환: 재계산 종류 (관리자 부여 등급이면 이용권은 그대로)
      */
     @Transactional
-    public void revokePurchase(UUID memberUuid, UUID entitlementPurchaseUuid) {
+    public RecalculationKind revokePurchase(UUID memberUuid, UUID entitlementPurchaseUuid) {
         // 요청 검증 (구매 존재, 회원 소유, 검증 상태)
         EntitlementPurchase purchase = entitlementPurchaseRepository.findById(entitlementPurchaseUuid)
             .orElseThrow(() -> new CustomException(ErrorCode.RESOURCE_NOT_FOUND));
@@ -141,15 +143,16 @@ public class EntitlementAdminService {
         }
 
         // 회수 + 등급 재계산
-        RevocationResult result = entitlementPurchaseRevoker.revokeAndRecalculate(purchase, LocalDateTime.now(clock));
+        RevocationResult revocationResult = entitlementPurchaseRevoker.revokeAndRecalculate(purchase, LocalDateTime.now(clock));
 
         log.info("[billing] admin revoke purchase : member={}, order={}, expires {} -> {}",
-            memberUuid, purchase.getOrderId(), result.beforeExpiresAt(), result.afterExpiresAt());
+            memberUuid, purchase.getOrderId(), revocationResult.beforeExpiresAt(), revocationResult.afterExpiresAt());
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.MEMBER, memberUuid, AdminAuditAction.RETRACT,
             AdminAuditEvent.summary("order", purchase.getOrderId(), "purchaseStatus", PurchaseStatus.VERIFIED,
-                "proExpiresAt", result.beforeExpiresAt()),
+                "proExpiresAt", revocationResult.beforeExpiresAt()),
             AdminAuditEvent.summary("order", purchase.getOrderId(), "purchaseStatus", PurchaseStatus.REVOKED,
-                "proExpiresAt", result.afterExpiresAt())));
+                "proExpiresAt", revocationResult.afterExpiresAt())));
+        return revocationResult.kind();
     }
 
     /** 회원 상세용: 현재 등급 행 > 유효 프로 여부, 구매 이력 최신순 */
