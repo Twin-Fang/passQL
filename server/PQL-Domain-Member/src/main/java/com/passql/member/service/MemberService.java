@@ -137,13 +137,20 @@ public class MemberService {
         MemberActivityLogger.recordMemberWithdrawn(memberUuid);
     }
 
-    /** 닉네임 재생성. */
+    /** 닉네임 랜덤 재생성: 쿨다운 확인 > 생성 > 저장 (직접 변경과 같은 3일 쿨다운 공유) */
     @Transactional
     public NicknameRegenerateResponse regenerateNickname(UUID memberUuid) {
         Member member = findActiveMember(memberUuid);
+
+        // 3일 쿨다운 체크 (직접 변경 우회 방지)
+        if (member.isNicknameChangeCooldown()) {
+            throw new CustomException(ErrorCode.NICKNAME_COOLDOWN);
+        }
+
         for (int attempt = 1; attempt <= UNIQUE_CONFLICT_RETRY; attempt++) {
             String newNickname = generateUniqueNicknameOrThrow();
-            member.setNickname(newNickname);
+            // 변경 시각 갱신 포함
+            member.changeNickname(newNickname);
             try {
                 memberRepository.saveAndFlush(member);
                 log.info("Nickname regenerated: uuid={}, nickname={}", memberUuid, newNickname);

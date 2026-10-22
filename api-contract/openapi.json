@@ -3084,7 +3084,7 @@
     },
     "/api/members/me/regenerate-nickname" : {
       "post" : {
-        "description" : "## 인증(JWT): **필요**\n\n## 요청 헤더\n- **`Authorization`**: Bearer {accessToken}\n\n## 반환값 (NicknameRegenerateResponse)\n- **`nickname`**: 새로 발급된 닉네임\n\n## 설명\n- JWT AccessToken에서 회원 UUID를 추출하여 본인 닉네임을 재발급한다.\n",
+        "description" : "## 인증(JWT): **필요**\n\n## 요청 헤더\n- **`Authorization`**: Bearer {accessToken}\n\n## 반환값 (NicknameRegenerateResponse)\n- **`nickname`**: 새로 발급된 닉네임\n\n## 설명\n- JWT AccessToken에서 회원 UUID를 추출하여 본인 닉네임을 재발급한다.\n- 닉네임 직접 변경과 같은 3일 쿨다운을 공유한다. 쿨다운 중이면 `NICKNAME_COOLDOWN` 으로 거절한다.\n",
         "operationId" : "regenerateNickname",
         "responses" : {
           "200" : {
