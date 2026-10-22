@@ -1038,6 +1038,7 @@ export interface paths {
          *
          *     ## 설명
          *     - JWT AccessToken에서 회원 UUID를 추출하여 본인 닉네임을 재발급한다.
+         *     - 닉네임 직접 변경과 같은 3일 쿨다운을 공유한다. 쿨다운 중이면 `NICKNAME_COOLDOWN` 으로 거절한다.
          */
         post: operations["regenerateNickname"];
         delete?: never;
