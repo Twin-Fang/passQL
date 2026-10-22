@@ -10,6 +10,7 @@ import '../../../presentation/providers/ai_explanation_session_provider.dart';
 import '../../../presentation/providers/chapter_providers.dart';
 import '../../../presentation/providers/choice_explanation_providers.dart';
 import '../../../presentation/providers/learning_refresh.dart';
+import '../../../presentation/providers/plan_providers.dart';
 import '../../../presentation/providers/question_providers.dart';
 import '../../widgets/ai_explanation/ai_explanation_dock.dart';
 import '../../widgets/ai_explanation/ai_explanation_history_button.dart';
@@ -42,8 +43,9 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
   /// 선택지를 이미 준비한 questionUuid — 중복 준비 방지.
   final Set<String> _choiceInitializedUuids = {};
 
-  /// 프로 접근 오류 안내를 이미 띄운 questionUuid — 같은 오류로 시트 반복 방지 (다시 시도하면 지움)
-  final Set<String> _proAccessNoticedUuids = {};
+  /// 프로 접근 오류 안내를 이미 띄운 대상 — 같은 오류로 시트 반복 방지
+  /// 상세 실패: questionUuid (다시 시도하면 지움), 선택지 생성 실패: 오류 이벤트 (다시 시도마다 새 이벤트)
+  final Set<Object> _proAccessNoticedKeys = {};
 
   /// 이번 풀이의 세션 식별자. 화면이 다시 그려져도 바뀌지 않도록 상태에 둔다.
   final String _sessionUuid = const Uuid().v4();
@@ -83,32 +85,66 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
 
   /// 다음 문제 상세 미리 받기: 구독만 걸어 캐시 유지 (autoDispose), 넘길 때 로딩 없이 바로 표시
   /// 선택지 준비(SSE 생성)는 비용이 커서 그 문제로 넘어간 뒤에만 시작
-  void _prefetchNextQuestionDetail(
-    List<String> questionUuids,
-    int currentIndex,
-  ) {
-    final nextIndex = currentIndex + 1;
-    if (nextIndex >= questionUuids.length) return;
-    ref.listen(questionDetailProvider(questionUuids[nextIndex]), (_, _) {});
+  void _prefetchNextQuestionDetail(ChapterState chapter) {
+    final nextQuestionUuid = _nextQuestionUuidOf(chapter);
+    if (nextQuestionUuid == null) return;
+    ref.listen(questionDetailProvider(nextQuestionUuid), (_, _) {});
   }
 
-  /// 현재 문제 상세 실패 1회 안내: 프로 접근 오류면 시트·토스트 > 시트로 프로가 됐을 때만 다시 받기
+  /// 무료(결제 UI 대상) 제출 성공 > 다음 문제 상세 다시 받기
+  /// 제출 전에 미리 받은 상세는 하루 한도 셈 이전 값 > 한도면 상세 403 > 넘어갈 때 시트 (§5-4)
+  void _refetchNextQuestionDetailIfFree() {
+    if (!ref.read(shouldShowProUiProvider)) return;
+    final nextQuestionUuid = _nextQuestionUuidOf(
+      ref.read(chapterProvider(widget.flow.id)),
+    );
+    if (nextQuestionUuid == null) return;
+    ref.invalidate(questionDetailProvider(nextQuestionUuid));
+  }
+
+  /// 다음 문제 questionUuid (마지막 문제면 null)
+  String? _nextQuestionUuidOf(ChapterState chapter) {
+    final nextIndex = chapter.currentIndex + 1;
+    if (nextIndex >= chapter.questionUuids.length) return null;
+    return chapter.questionUuids[nextIndex];
+  }
+
+  /// 현재 문제 실패 1회 안내: 프로 접근 오류면 시트·토스트 > 시트로 프로가 됐을 때만 [onUnlockedPro]
   /// 현재 문제만 대상 (미리 받기 실패는 그 문제로 넘어왔을 때 여기서 안내, 풀이 도중 시트 금지 §4-5)
-  void _showProAccessFeedbackOnce(String questionUuid, Object error) {
-    if (!_proAccessNoticedUuids.add(questionUuid)) return;
+  void _showProAccessFeedbackOnce(
+    Object noticeKey,
+    Object error,
+    VoidCallback onUnlockedPro,
+  ) {
+    if (!_proAccessNoticedKeys.add(noticeKey)) return;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final feedbackResult = await showProAccessFeedback(context, ref, error);
       if (feedbackResult == ProAccessFeedbackResult.sheetUnlockedPro &&
           mounted) {
-        _retryQuestionDetail(questionUuid);
+        onUnlockedPro();
       }
     });
   }
 
+  /// 선택지 생성 연결 거부 1회 안내 (미리 받은 상세가 200 이어도 하루 한도는 선택지 받기에서 걸림)
+  void _showChoiceGenerationFeedbackOnce(
+    QuestionInteractionState interaction,
+    QuestionInteractionNotifier interactionNotifier,
+  ) {
+    final sseError = interaction.sseError;
+    final connectFailure = sseError?.connectFailure;
+    if (sseError == null || connectFailure == null) return;
+    _showProAccessFeedbackOnce(
+      sseError,
+      connectFailure,
+      interactionNotifier.startSseGeneration,
+    );
+  }
+
   /// 현재 문제 상세 다시 받기 (오류 안내도 다시 가능)
   void _retryQuestionDetail(String questionUuid) {
-    _proAccessNoticedUuids.remove(questionUuid);
+    _proAccessNoticedKeys.remove(questionUuid);
     ref.invalidate(questionDetailProvider(questionUuid));
   }
 
@@ -142,6 +178,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     ref
         .read(chapterProvider(widget.flow.id).notifier)
         .recordSubmission(submitResult, selectedKey);
+    _refetchNextQuestionDetailIfFree();
     _addExplanationEntry(
       questionUuid: currentUuid,
       result: submitResult,
@@ -267,7 +304,8 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
       questionInteractionProvider(currentUuid).notifier,
     );
 
-    _prefetchNextQuestionDetail(chapter.questionUuids, chapter.currentIndex);
+    _prefetchNextQuestionDetail(chapter);
+    _showChoiceGenerationFeedbackOnce(interaction, interactionNotifier);
 
     // 한 문제라도 제출했거나 2번째 문제 이상이면 "풀이 시작"으로 본다.
     final hasStarted = chapter.currentIndex > 0 || chapter.isAnswered;
@@ -295,7 +333,11 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
                 loading: () =>
                     const QuestionSolvingSkeleton(key: ValueKey('loading')),
                 error: (error, _) {
-                  _showProAccessFeedbackOnce(currentUuid, error);
+                  _showProAccessFeedbackOnce(
+                    currentUuid,
+                    error,
+                    () => _retryQuestionDetail(currentUuid),
+                  );
                   return KeyedSubtree(
                     key: const ValueKey('error'),
                     child: PassqlStatusView.error(

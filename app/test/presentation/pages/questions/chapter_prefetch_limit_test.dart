@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +9,7 @@ import 'package:passql_app/data/models/member/member_plan_response.dart';
 import 'package:passql_app/data/models/question/choice_item.dart';
 import 'package:passql_app/data/models/question/choice_set_summary.dart';
 import 'package:passql_app/data/models/question/question_detail.dart';
+import 'package:passql_app/data/sources/api_providers.dart';
 import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/flows/question_flow.dart';
 import 'package:passql_app/presentation/pages/questions/chapter_page.dart';
@@ -15,6 +17,7 @@ import 'package:passql_app/presentation/providers/chapter_providers.dart';
 import 'package:passql_app/presentation/providers/plan_providers.dart';
 import 'package:passql_app/presentation/providers/question_providers.dart';
 
+import '../../../helpers/fakes/fake_http_client_adapter.dart';
 import '../../../helpers/text_finders.dart';
 
 // 문제 2개: 1번은 정상, 2번(미리 받기 대상)은 무료 하루 한도
@@ -65,6 +68,12 @@ const QuestionDetail _firstQuestion = QuestionDetail(
   ],
 );
 
+/// 선택지 세트 없는 2번 문제 (넘어가면 SSE 생성 시작)
+const QuestionDetail _choicelessLimitedQuestion = QuestionDetail(
+  questionUuid: _limitedQuestionUuid,
+  stem: '두 번째 문제',
+);
+
 const AppException _dailyLimitError = AppException(
   code: ErrorCode.freeDailyLimitReached,
   message: '오늘 무료 10문제를 다 풀었어요.',
@@ -100,9 +109,11 @@ class _FixedPlanNotifier extends PlanNotifier {
 final Map<String, int> _detailRequestCountByUuid = {};
 
 /// [firstQuestionError]: 1번 문제 상세 오류 (없으면 정상 문제)
+/// [isLimitedOnChoiceGeneration]: 2번 상세는 200, 선택지 생성 연결이 한도 403 (제출 전에 미리 받은 경우)
 Widget _chapterApp({
   MemberPlanType plan = MemberPlanType.free,
   AppException? firstQuestionError,
+  bool isLimitedOnChoiceGeneration = false,
 }) => ProviderScope(
   overrides: [
     planProvider.overrideWith(() => _FixedPlanNotifier(plan)),
@@ -118,10 +129,24 @@ Widget _chapterApp({
         (count) => count + 1,
         ifAbsent: () => 1,
       );
-      if (questionUuid == _limitedQuestionUuid) throw _dailyLimitError;
+      if (questionUuid == _limitedQuestionUuid) {
+        if (isLimitedOnChoiceGeneration) return _choicelessLimitedQuestion;
+        throw _dailyLimitError;
+      }
       if (firstQuestionError != null) throw firstQuestionError;
       return _firstQuestion;
     }),
+    // 선택지 생성 연결: 서버 거부 JSON (SSE 시작 전 하루 한도)
+    dioProvider.overrideWith(
+      (ref) =>
+          Dio(BaseOptions(baseUrl: 'http://test.local/api'))
+            ..httpClientAdapter = FakeHttpClientAdapter(
+              (_) => jsonResponseBody(403, {
+                'errorCode': 'FREE_DAILY_LIMIT_REACHED',
+                'message': _dailyLimitReason,
+              }),
+            ),
+    ),
   ],
   child: MaterialApp(
     theme: PassqlTheme.light,
@@ -167,6 +192,24 @@ void main() {
     _chapterNotifierOf(tester).nextQuestion();
     await tester.pumpAndSettle();
 
+    expect(find.text(_sheetTitle), findsWidgets);
+    expect(
+      findTextContainingIgnoringWordJoiners(_dailyLimitReason),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('prefetchedDetailThenChoiceLimit_opensSheetWithReason', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_chapterApp(isLimitedOnChoiceGeneration: true));
+    await tester.pumpAndSettle();
+
+    // 미리 받은 상세는 200 > 넘어간 뒤 선택지 생성이 한도 403 > 재시도 반복 대신 시트 + 이유 한 줄
+    _chapterNotifierOf(tester).nextQuestion();
+    await tester.pumpAndSettle();
+
+    expect(find.text('두 번째 문제'), findsOneWidget);
     expect(find.text(_sheetTitle), findsWidgets);
     expect(
       findTextContainingIgnoringWordJoiners(_dailyLimitReason),

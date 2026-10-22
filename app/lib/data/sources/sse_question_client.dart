@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 
+import '../../core/error/app_exception.dart';
 import '../../core/network/dio_client.dart';
 import '../models/question/choice_item.dart';
 import '../models/question/sse_event.dart';
@@ -15,7 +16,7 @@ class SseQuestionClient {
   SseQuestionClient(this._dio);
 
   /// SSE 스트림 반환. 이벤트: SseStatusEvent, SseCompleteEvent, SseErrorEvent.
-  /// 에러 발생 시 스트림에 SseErrorEvent yield 후 종료.
+  /// 에러 발생 시 스트림에 SseErrorEvent yield 후 종료 (연결 단계 거부는 [toConnectFailureEvent]).
   Stream<SseEvent> generateChoices({required String questionUuid}) async* {
     Response<ResponseBody> response;
     try {
@@ -23,13 +24,17 @@ class SseQuestionClient {
         '/questions/$questionUuid/generate-choices',
         options: Options(
           responseType: ResponseType.stream,
-          headers: {'Accept': 'text/event-stream'},
+          // 거부(403·429)는 JSON 오류 응답 > JSON 도 받아야 errorCode 가 옴 (event-stream 만이면 서버 변환 실패 > 500)
+          headers: {'Accept': 'text/event-stream, application/json'},
           // 생성이 길어도 끊기지 않게 SSE 전용 대기 시간
           receiveTimeout: choiceGenerationStreamReceiveTimeout,
         ),
       );
+    } on DioException catch (exception) {
+      yield await toConnectFailureEvent(exception);
+      return;
     } catch (_) {
-      yield SseErrorEvent('CONNECT_FAILED', true);
+      yield SseErrorEvent(connectFailedCode, true);
       return;
     }
 
@@ -46,6 +51,56 @@ class SseQuestionClient {
       if (event != null) yield event;
     }
   }
+}
+
+/// 서버 응답 없는 연결 실패 코드 (재시도 가능)
+const String connectFailedCode = 'CONNECT_FAILED';
+
+/// 연결 단계 Dio 오류 > 오류 이벤트
+/// 서버 응답 있음: 본문 JSON 읽기 > 공통 변환(asAppException) > 서버 errorCode·재시도 여부, 응답 없음: CONNECT_FAILED 재시도 가능
+Future<SseErrorEvent> toConnectFailureEvent(DioException exception) async {
+  final response = exception.response;
+  if (response == null) {
+    return SseErrorEvent(
+      connectFailedCode,
+      true,
+      connectFailure: exception.asAppException,
+    );
+  }
+  final connectFailure = exception
+      .copyWith(response: await _withDecodedErrorBody(response))
+      .asAppException;
+  // errorCode 없는 응답(프록시 502 등)은 상태 코드로 구분
+  return SseErrorEvent(
+    connectFailure.serverCode ?? 'HTTP_${response.statusCode}',
+    connectFailure.isRetryable,
+    connectFailure: connectFailure,
+  );
+}
+
+/// 스트림 오류 응답 > 본문을 JSON 으로 읽은 응답 (공통 변환은 Map 본문만 errorCode 로 읽음, JSON 아니면 본문 없음)
+Future<Response<Object?>> _withDecodedErrorBody(
+  Response<Object?> response,
+) async {
+  final responseBody = response.data;
+  Object? decodedBody;
+  if (responseBody is ResponseBody) {
+    try {
+      final bodyText = await utf8.decodeStream(responseBody.stream);
+      decodedBody = jsonDecode(bodyText);
+    } catch (_) {
+      decodedBody = null;
+    }
+  } else {
+    decodedBody = responseBody;
+  }
+  return Response<Object?>(
+    requestOptions: response.requestOptions,
+    statusCode: response.statusCode,
+    statusMessage: response.statusMessage,
+    headers: response.headers,
+    data: decodedBody,
+  );
 }
 
 /// SSE 이벤트 이름 + data JSON > 이벤트 객체 (모르는 이벤트·깨진 JSON 은 null)
