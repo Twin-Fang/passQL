@@ -7,13 +7,16 @@ import 'package:go_router/go_router.dart';
 import 'package:passql_app/core/error/app_exception.dart';
 import 'package:passql_app/core/error/error_code.dart';
 import 'package:passql_app/core/auth/auth_session.dart';
+import 'package:passql_app/core/billing/pro_purchase_port.dart';
 import 'package:passql_app/data/sources/api_providers.dart';
 import 'package:passql_app/data/models/member/choice_generation_mode.dart';
 import 'package:passql_app/data/models/progress/wrong_questions_response.dart';
 import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/providers/auth_provider.dart';
+import 'package:passql_app/presentation/providers/plan_providers.dart';
 import 'package:passql_app/presentation/providers/settings_providers.dart';
 import 'package:passql_app/presentation/providers/wrong_questions_provider.dart';
+import 'package:passql_app/presentation/widgets/pro/locked_preview_samples.dart';
 import 'package:passql_app/presentation/widgets/settings/choice_mode_tile.dart';
 import 'package:passql_app/presentation/widgets/settings/nickname_edit_sheet.dart';
 import 'package:passql_app/presentation/widgets/settings/wrong_notes_section.dart';
@@ -425,5 +428,52 @@ void main() {
 
     expect(find.textContaining('매번 AI가'), findsOneWidget);
     expect(api.calls, ['mode:REAL']);
+  });
+
+  testWidgets('무료(결제 켜짐)면 저장값이 실전이어도 연습으로 보이고 실전 모드는 잠금 자리로 보인다', (
+    tester,
+  ) async {
+    final api = FakeMemberApi();
+    await pumpApp(
+      tester,
+      ProviderScope(
+        overrides: [
+          memberApiProvider.overrideWithValue(api),
+          shouldShowProUiProvider.overrideWith((ref) => true),
+          proPurchasePortProvider.overrideWithValue(
+            const UnavailableProPurchasePort(),
+          ),
+          settingsDataProvider.overrideWith(
+            (ref) async => const SettingsData(
+              memberUuid: 'm',
+              nickname: 'n',
+              choiceMode: ChoiceGenerationMode.real,
+            ),
+          ),
+        ],
+        child: MaterialApp(
+          theme: PassqlTheme.light,
+          home: const Scaffold(
+            body: SingleChildScrollView(child: ChoiceModeTile()),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // 실효 모드(연습) 표시 + 실전 모드 블러 자리
+    expect(
+      tester.widget<CupertinoSwitch>(find.byType(CupertinoSwitch)).value,
+      isFalse,
+    );
+    expect(find.textContaining('검증된 선택지를 먼저'), findsOneWidget);
+    expect(find.byType(PassqlLockedPreview), findsOneWidget);
+    expect(find.text(LockedPreviewCaptions.realModeSetting), findsWidgets);
+
+    // 스위치 켜기 > 변경 요청 없이 프로 안내 시트
+    await tester.tap(find.byType(CupertinoSwitch));
+    await tester.pumpAndSettle();
+    expect(api.calls, isEmpty);
+    expect(find.text('이미 구매했나요? 복원하기'), findsOneWidget);
   });
 }

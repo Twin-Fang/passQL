@@ -7,6 +7,8 @@ import '../../design/design.dart';
 import '../../providers/plan_providers.dart';
 import '../../providers/settings_providers.dart';
 import '../common/app_toast.dart';
+import '../pro/locked_preview_samples.dart';
+import '../pro/pro_locked_section.dart';
 import '../pro/pro_offer_sheet.dart';
 import 'settings_group.dart';
 
@@ -14,6 +16,7 @@ import 'settings_group.dart';
 ///
 /// 켜면 실전(REAL): 항상 AI 가 새 선택지를 만든다.
 /// 끄면 연습(PRACTICE): 검증된 기존 선택지를 먼저 쓰고 없을 때만 AI 가 만든다.
+/// 무료(결제 켜짐): 저장값과 무관하게 실효 모드(연습)로 표시 + 아래 실전 모드 잠금 자리 (서버도 연습으로 처리, §4-1)
 class ChoiceModeTile extends ConsumerWidget {
   const ChoiceModeTile({super.key});
 
@@ -21,10 +24,12 @@ class ChoiceModeTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.passqlColors;
     final mode = ref.watch(choiceModeProvider);
-    final isReal = mode.valueOrNull == ChoiceGenerationMode.real;
+    final isRealModeLocked = ref.watch(shouldShowProUiProvider);
+    final isReal =
+        !isRealModeLocked && mode.valueOrNull == ChoiceGenerationMode.real;
 
     // 설정 그룹 안의 한 줄로 그린다(카드는 SettingsGroup 이 맡는다).
-    return SettingsRow(
+    final modeRow = SettingsRow(
       icon: CupertinoIcons.bolt_fill,
       iconColor: colors.accent,
       title: '실전 모드',
@@ -39,6 +44,26 @@ class ChoiceModeTile extends ConsumerWidget {
             ? (value) => _change(context, ref, value)
             : null,
       ),
+    );
+    if (!isRealModeLocked) return modeRow;
+    // 현재 모드(연습) 선명 + 실전 모드 선택 블러 (그룹 카드 안쪽 여백)
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        modeRow,
+        const Padding(
+          padding: EdgeInsets.fromLTRB(
+            PassqlSpacing.md,
+            0,
+            PassqlSpacing.md,
+            PassqlSpacing.md,
+          ),
+          child: ProLockedSection(
+            preview: RealModeSettingLockedSample(),
+            caption: LockedPreviewCaptions.realModeSetting,
+          ),
+        ),
+      ],
     );
   }
 
