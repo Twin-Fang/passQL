@@ -70,10 +70,21 @@ class SettingsPage extends ConsumerWidget {
     }
   }
 
-  /// 닉네임 재생성: 실패하면 원인 문구 토스트 (닉네임은 이전 값 유지)
+  /// 닉네임 재생성: 확인 > 변경 > 성공 토스트, 실패하면 원인 문구 토스트 (닉네임은 이전 값 유지)
   Future<void> _regenerateNickname(BuildContext context, WidgetRef ref) async {
+    // 바로 적용되고 쿨다운이 시작돼서 먼저 확인받는다
+    final isConfirmed = await showPassqlConfirmDialog(
+      context,
+      title: '랜덤 닉네임으로 바꿀까요?',
+      message: '새 닉네임이 바로 적용되고, 변경 후 3일간은 다시 바꿀 수 없어요.',
+      confirmLabel: '바꾸기',
+      isDestructive: false,
+    );
+    if (!isConfirmed || !context.mounted) return;
+
     try {
       await ref.read(nicknameNotifierProvider.notifier).regenerate();
+      if (context.mounted) showAppToast(context, '닉네임이 변경됐어요');
     } on AppException catch (exception) {
       if (context.mounted) showAppToast(context, exception.message);
     }
