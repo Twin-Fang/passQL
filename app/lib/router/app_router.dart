@@ -30,6 +30,7 @@ import '../presentation/pages/settings/wrong_notes_page.dart';
 import '../presentation/widgets/app_shell.dart';
 import 'app_launch_gate_routing.dart';
 import 'app_routes.dart';
+import 'push_link_routes.dart';
 import 'result_route_arguments.dart';
 
 // 루트 네비게이터 키 — 풀스크린 라우트(탭 바깥)에서 사용
@@ -260,6 +261,7 @@ abstract final class AppRouter {
         parentNavigatorKey: _rootKey,
         builder: (_, state) => QuestionDetailPage(
           questionUuid: state.pathParameters[AppRoutes.questionUuidParameter]!,
+          isPushEntry: state.extra is PushEntryMarker,
         ),
         routes: [
           GoRoute(

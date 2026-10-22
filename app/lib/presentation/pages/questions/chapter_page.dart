@@ -10,6 +10,7 @@ import '../../../presentation/providers/ai_explanation_session_provider.dart';
 import '../../../presentation/providers/chapter_providers.dart';
 import '../../../presentation/providers/choice_explanation_providers.dart';
 import '../../../presentation/providers/learning_refresh.dart';
+import '../../../presentation/providers/plan_providers.dart';
 import '../../../presentation/providers/question_providers.dart';
 import '../../widgets/ai_explanation/ai_explanation_dock.dart';
 import '../../widgets/ai_explanation/ai_explanation_history_button.dart';
@@ -17,6 +18,7 @@ import '../../widgets/chapter/chapter_app_bar.dart';
 import '../../../data/models/question/question_detail.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/chapter/chapter_feedback_bar.dart';
+import '../../widgets/pro/pro_access_feedback.dart';
 import '../../widgets/question/choice_display_label.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
@@ -40,6 +42,9 @@ class ChapterPage extends ConsumerStatefulWidget {
 class _ChapterPageState extends ConsumerState<ChapterPage> {
   /// 선택지를 이미 준비한 questionUuid — 중복 준비 방지.
   final Set<String> _choiceInitializedUuids = {};
+
+  /// 프로 접근 오류 안내를 이미 띄운 questionUuid — 같은 오류로 시트 반복 방지 (다시 시도하면 지움)
+  final Set<String> _proAccessNoticedUuids = {};
 
   /// 이번 풀이의 세션 식별자. 화면이 다시 그려져도 바뀌지 않도록 상태에 둔다.
   final String _sessionUuid = const Uuid().v4();
@@ -86,6 +91,25 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     final nextIndex = currentIndex + 1;
     if (nextIndex >= questionUuids.length) return;
     ref.listen(questionDetailProvider(questionUuids[nextIndex]), (_, _) {});
+  }
+
+  /// 현재 문제 상세 실패 1회 안내: 프로 접근 오류면 시트·토스트 > 프로가 됐으면 다시 받기
+  /// 현재 문제만 대상 (미리 받기 실패는 그 문제로 넘어왔을 때 여기서 안내, 풀이 도중 시트 금지 §4-5)
+  void _showProAccessFeedbackOnce(String questionUuid, Object error) {
+    if (!_proAccessNoticedUuids.add(questionUuid)) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final isHandled = await showProAccessFeedback(context, ref, error);
+      if (isHandled && mounted && ref.read(isProProvider)) {
+        _retryQuestionDetail(questionUuid);
+      }
+    });
+  }
+
+  /// 현재 문제 상세 다시 받기 (오류 안내도 다시 가능)
+  void _retryQuestionDetail(String questionUuid) {
+    _proAccessNoticedUuids.remove(questionUuid);
+    ref.invalidate(questionDetailProvider(questionUuid));
   }
 
   /// 제출: 선택 키 고정 > 서버 제출 > 결과 기록(성공) + 해설함 추가 또는 원인별 토스트(실패)
@@ -270,14 +294,16 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
               child: detailAsync.when(
                 loading: () =>
                     const QuestionSolvingSkeleton(key: ValueKey('loading')),
-                error: (error, _) => KeyedSubtree(
-                  key: const ValueKey('error'),
-                  child: PassqlStatusView.error(
-                    message: '문제를 불러올 수 없어요',
-                    onRetry: () =>
-                        ref.invalidate(questionDetailProvider(currentUuid)),
-                  ),
-                ),
+                error: (error, _) {
+                  _showProAccessFeedbackOnce(currentUuid, error);
+                  return KeyedSubtree(
+                    key: const ValueKey('error'),
+                    child: PassqlStatusView.error(
+                      message: '문제를 불러올 수 없어요',
+                      onRetry: () => _retryQuestionDetail(currentUuid),
+                    ),
+                  );
+                },
                 data: (question) {
                   _initializeChoicesOnce(currentUuid, question);
                   // Scaffold 안쪽 context 여야 extendBody 가 더한 하단 바 높이를 읽는다.

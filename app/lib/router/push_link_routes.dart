@@ -14,6 +14,11 @@ String toPushLinkLocation(PushLink link) => switch (link.target) {
   PushLinkTarget.stats => AppRoutes.stats,
 };
 
+/// 알림 탭으로 들어온 화면 표시 (go_router extra): 진입 직후 프로 안내 시트 금지 (#576 §4-5)
+class PushEntryMarker {
+  const PushEntryMarker();
+}
+
 /// 알림 탭 이동: 탭 루트는 바로 이동, 풀스크린은 홈 위에 쌓음 (뒤로 가기 > 홈)
 /// 홈이 아니면 홈 이동이 반영된 뒤 push (먼저 push 하면 늦게 끝난 go 가 덮어씀)
 Future<void> openPushLink(GoRouter router, PushLink link) async {
@@ -27,7 +32,7 @@ Future<void> openPushLink(GoRouter router, PushLink link) async {
     router.go(AppRoutes.home);
     await homeApplied;
   }
-  router.push(location);
+  router.push(location, extra: const PushEntryMarker());
 }
 
 // 경로 반영 대기 상한 (반영 알림이 없을 때 대비)

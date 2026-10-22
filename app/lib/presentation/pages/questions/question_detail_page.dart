@@ -4,10 +4,12 @@ import 'package:go_router/go_router.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../data/models/question/submit_result.dart';
 import '../../../presentation/providers/learning_refresh.dart';
+import '../../../presentation/providers/plan_providers.dart';
 import '../../../presentation/providers/question_providers.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../widgets/common/app_toast.dart';
+import '../../widgets/pro/pro_access_feedback.dart';
 import '../../widgets/question/question_sections.dart';
 import '../../widgets/question/question_solving_body.dart';
 import '../../widgets/question/question_solving_skeleton.dart';
@@ -19,7 +21,14 @@ import '../../../router/result_route_arguments.dart';
 class QuestionDetailPage extends ConsumerStatefulWidget {
   final String questionUuid;
 
-  const QuestionDetailPage({super.key, required this.questionUuid});
+  /// 알림 탭으로 들어왔는지: 첫 로드 실패에 프로 안내 시트를 띄우지 않음 (다시 시도부터는 띄움)
+  final bool isPushEntry;
+
+  const QuestionDetailPage({
+    super.key,
+    required this.questionUuid,
+    this.isPushEntry = false,
+  });
 
   @override
   ConsumerState<QuestionDetailPage> createState() => _QuestionDetailPageState();
@@ -27,6 +36,26 @@ class QuestionDetailPage extends ConsumerStatefulWidget {
 
 class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
   bool _isChoicesInitialized = false;
+
+  /// 이번 로드 실패의 프로 접근 안내를 띄웠는지 (다시 시도하면 내림)
+  late bool _isProAccessNoticed = widget.isPushEntry;
+
+  /// 상세 실패 1회 안내: 프로 접근 오류면 시트·토스트 > 프로가 됐으면 다시 받기
+  void _showProAccessFeedbackOnce(Object error) {
+    if (_isProAccessNoticed) return;
+    _isProAccessNoticed = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final isHandled = await showProAccessFeedback(context, ref, error);
+      if (isHandled && mounted && ref.read(isProProvider)) _retryDetail();
+    });
+  }
+
+  /// 문제 상세 다시 받기 (오류 안내도 다시 가능)
+  void _retryDetail() {
+    _isProAccessNoticed = false;
+    ref.invalidate(questionDetailProvider(widget.questionUuid));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,14 +80,16 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
         child: detailAsync.when(
           loading: () =>
               const QuestionSolvingSkeleton(key: ValueKey('loading')),
-          error: (error, _) => KeyedSubtree(
-            key: const ValueKey('error'),
-            child: PassqlStatusView.error(
-              message: '문제를 불러올 수 없어요',
-              onRetry: () =>
-                  ref.invalidate(questionDetailProvider(widget.questionUuid)),
-            ),
-          ),
+          error: (error, _) {
+            _showProAccessFeedbackOnce(error);
+            return KeyedSubtree(
+              key: const ValueKey('error'),
+              child: PassqlStatusView.error(
+                message: '문제를 불러올 수 없어요',
+                onRetry: _retryDetail,
+              ),
+            );
+          },
           data: (question) {
             // 최초 1회: 선택지 준비(재사용·생성 판단은 notifier 몫)
             if (!_isChoicesInitialized) {

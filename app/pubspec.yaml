@@ -52,6 +52,9 @@ dependencies:
   flutter_web_auth_2: 5.1.0
   image_picker: ^1.2.3
   flutter_image_compress: ^2.5.1
+  # 회차 패스 결제 (Android 만 판매, iOS 는 쓰지 않음). android 0.5.0+ = Play 결제 라이브러리 8 (7.x 빌드는 Play 출시 차단) (#576)
+  in_app_purchase: ^3.2.3
+  in_app_purchase_android: ^0.5.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
