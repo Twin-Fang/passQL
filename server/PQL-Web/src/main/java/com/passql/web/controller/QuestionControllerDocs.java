@@ -68,7 +68,10 @@ public interface QuestionControllerDocs {
       @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 523, description = "isLatestTrend 추가: 최신 출제 경향 반영 문제 여부 ('최신 경향' 배지)"),
   })
   @Operation(summary = "문제 상세 조회", description = "풀이용 상세. 정답 SQL·정답 여부·해설은 내려가지 않는다(제출 응답에서만 제공).")
-  ResponseEntity<QuestionDetail> getQuestion(@PathVariable UUID questionUuid);
+  ResponseEntity<QuestionDetail> getQuestion(
+      @AuthMember LoginMember loginMember,
+      @PathVariable UUID questionUuid
+  );
 
   @ApiLogs({
       @ApiLog(date = "2026.04.07", author = Author.SUHSAECHAN, issueNumber = 1, description = "SQL 실행(테스트) API 추가"),

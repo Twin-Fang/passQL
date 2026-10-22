@@ -81,7 +81,12 @@ public class QuestionController implements QuestionControllerDocs {
     }
 
     @GetMapping("/{questionUuid}")
-    public ResponseEntity<QuestionDetail> getQuestion(@PathVariable UUID questionUuid) {
+    public ResponseEntity<QuestionDetail> getQuestion(
+        @AuthMember LoginMember loginMember,
+        @PathVariable UUID questionUuid
+    ) {
+        // 하루 문제 수 제한 (무료 10, 프로 200)
+        featureAccessPolicy.assertCanOpenQuestion(loginMember.memberUuid(), questionUuid);
         return ResponseEntity.ok(questionService.getQuestionForSolving(questionUuid));
     }
 
@@ -104,6 +109,8 @@ public class QuestionController implements QuestionControllerDocs {
         @PathVariable UUID questionUuid,
         @AuthMember LoginMember loginMember
     ) {
+        // SSE 시작 전 제한 확인 (거부는 일반 JSON 오류 응답)
+        featureAccessPolicy.assertCanOpenQuestion(loginMember.memberUuid(), questionUuid);
         return choiceGenerationStreamService.streamChoiceGeneration(questionUuid, loginMember.memberUuid());
     }
 

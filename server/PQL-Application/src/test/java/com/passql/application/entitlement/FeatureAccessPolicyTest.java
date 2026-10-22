@@ -9,6 +9,7 @@ import com.passql.member.entity.MemberEntitlement;
 import com.passql.member.repository.MemberEntitlementRepository;
 import com.passql.meta.constant.AppSettingKeys;
 import com.passql.meta.service.AppSettingService;
+import com.passql.submission.repository.SubmissionRepository;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
@@ -23,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -38,8 +40,11 @@ class FeatureAccessPolicyTest {
     private final MemberEntitlementRepository entitlementRepository = mock(MemberEntitlementRepository.class);
     private final AppSettingService appSettingService = mock(AppSettingService.class);
     private final ExamPassExpiryCalculator examPassExpiryCalculator = mock(ExamPassExpiryCalculator.class);
-    private final FeatureAccessPolicy policy =
-        new FeatureAccessPolicy(entitlementRepository, appSettingService, examPassExpiryCalculator, FIXED_CLOCK);
+    private final SubmissionRepository submissionRepository = mock(SubmissionRepository.class);
+    private final DailyQuestionCounter dailyQuestionCounter = mock(DailyQuestionCounter.class);
+    private final FeatureAccessPolicy policy = new FeatureAccessPolicy(
+        entitlementRepository, appSettingService, examPassExpiryCalculator,
+        submissionRepository, dailyQuestionCounter, FIXED_CLOCK);
     private final UUID memberUuid = UUID.randomUUID();
 
     private void givenBillingEnabled(boolean isEnabled) {
@@ -141,5 +146,102 @@ class FeatureAccessPolicyTest {
 
         assertThat(policy.resolveEffectiveChoiceGenerationMode(memberUuid, ChoiceGenerationMode.REAL))
             .isEqualTo(ChoiceGenerationMode.REAL);
+    }
+
+    private void givenTodayRandomSolvedCount(int count) {
+        when(dailyQuestionCounter.countTodayRandomSolved(memberUuid)).thenReturn(count);
+    }
+
+    private void givenFreeMember() {
+        givenBillingEnabled(true);
+        when(entitlementRepository.findById(memberUuid)).thenReturn(Optional.empty());
+    }
+
+    private void assertOpenRejectedWith(UUID questionUuid, ErrorCode expectedErrorCode) {
+        assertThatThrownBy(() -> policy.assertCanOpenQuestion(memberUuid, questionUuid))
+            .isInstanceOfSatisfying(CustomException.class,
+                e -> assertThat(e.getErrorCode()).isEqualTo(expectedErrorCode));
+    }
+
+    @Test
+    void free_11thNewQuestion_throwsFreeDailyLimitReached() {
+        givenFreeMember();
+        givenTodayRandomSolvedCount(FeatureAccessPolicy.DAILY_FREE_LIMIT);
+        UUID questionUuid = UUID.randomUUID();
+
+        assertOpenRejectedWith(questionUuid, ErrorCode.FREE_DAILY_LIMIT_REACHED);
+    }
+
+    @Test
+    void free_10thNewQuestion_allowed() {
+        givenFreeMember();
+        givenTodayRandomSolvedCount(FeatureAccessPolicy.DAILY_FREE_LIMIT - 1);
+
+        policy.assertCanOpenQuestion(memberUuid, UUID.randomUUID());
+    }
+
+    @Test
+    void free_previouslySubmittedQuestion_allowedAfterLimit() {
+        givenFreeMember();
+        givenTodayRandomSolvedCount(FeatureAccessPolicy.DAILY_FREE_LIMIT);
+        UUID questionUuid = UUID.randomUUID();
+        when(submissionRepository.existsByMemberUuidAndQuestionUuid(memberUuid, questionUuid)).thenReturn(true);
+
+        policy.assertCanOpenQuestion(memberUuid, questionUuid);
+    }
+
+    @Test
+    void free_todaysDailyChallengeQuestion_allowedAfterLimit() {
+        givenFreeMember();
+        givenTodayRandomSolvedCount(FeatureAccessPolicy.DAILY_FREE_LIMIT);
+        UUID questionUuid = UUID.randomUUID();
+        when(dailyQuestionCounter.isTodaysDailyChallengeQuestion(questionUuid)).thenReturn(true);
+
+        policy.assertCanOpenQuestion(memberUuid, questionUuid);
+    }
+
+    @Test
+    void pro_200th_throwsFairUseDailyLimitReached() {
+        givenBillingEnabled(true);
+        givenEntitlement(MemberPlan.PRO, NOW.plusDays(30));
+        givenTodayRandomSolvedCount(FeatureAccessPolicy.DAILY_PRO_FAIR_USE_LIMIT);
+
+        assertOpenRejectedWith(UUID.randomUUID(), ErrorCode.FAIR_USE_DAILY_LIMIT_REACHED);
+    }
+
+    @Test
+    void pro_beyondFreeLimitButUnderFairUse_allowed() {
+        givenBillingEnabled(true);
+        givenEntitlement(MemberPlan.PRO, NOW.plusDays(30));
+        givenTodayRandomSolvedCount(FeatureAccessPolicy.DAILY_PRO_FAIR_USE_LIMIT - 1);
+
+        policy.assertCanOpenQuestion(memberUuid, UUID.randomUUID());
+    }
+
+    @Test
+    void billingDisabled_noLimit() {
+        givenBillingEnabled(false);
+        givenTodayRandomSolvedCount(Integer.MAX_VALUE);
+
+        policy.assertCanOpenQuestion(memberUuid, UUID.randomUUID());
+        // 스위치 꺼짐이면 제출 기록·오늘의 문제 조회조차 하지 않음
+        verifyNoInteractions(submissionRepository, dailyQuestionCounter);
+    }
+
+    @Test
+    void getPlan_whenBillingEnabled_fillsTodayRandomSolvedCount() {
+        givenFreeMember();
+        givenTodayRandomSolvedCount(7);
+
+        assertThat(policy.getPlan(memberUuid).todayRandomSolvedCount()).isEqualTo(7);
+    }
+
+    @Test
+    void getPlan_whenBillingDisabled_todayRandomSolvedCountIsZero() {
+        givenBillingEnabled(false);
+        when(entitlementRepository.findById(memberUuid)).thenReturn(Optional.empty());
+
+        assertThat(policy.getPlan(memberUuid).todayRandomSolvedCount()).isZero();
+        verifyNoInteractions(dailyQuestionCounter);
     }
 }

@@ -8,6 +8,7 @@ import com.passql.member.entity.MemberEntitlement;
 import com.passql.member.repository.MemberEntitlementRepository;
 import com.passql.meta.constant.AppSettingKeys;
 import com.passql.meta.service.AppSettingService;
+import com.passql.submission.repository.SubmissionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,8 +29,11 @@ public class FeatureAccessPolicy {
     // 무료 하루 랜덤 문제 한도 (개)
     public static final int DAILY_FREE_LIMIT = 10;
 
-    // 서비스 기준 시간대 (등급 만료일은 KST 로컬 저장값)
-    private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
+    // 프로 하루 공정 사용 한도 (개, 화면에 드러내지 않음)
+    public static final int DAILY_PRO_FAIR_USE_LIMIT = 200;
+
+    // 서비스 기준 시간대 (등급 만료일·하루 구간은 KST 로컬 저장값)
+    static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
     // 등급 응답 문자열
     private static final String PLAN_PRO = "PRO";
     private static final String PLAN_FREE = "FREE";
@@ -39,21 +43,30 @@ public class FeatureAccessPolicy {
     private final MemberEntitlementRepository memberEntitlementRepository;
     private final AppSettingService appSettingService;
     private final ExamPassExpiryCalculator examPassExpiryCalculator;
+    private final SubmissionRepository submissionRepository;
+    private final DailyQuestionCounter dailyQuestionCounter;
     private final Clock clock;
 
     @Autowired
     public FeatureAccessPolicy(MemberEntitlementRepository memberEntitlementRepository,
                                AppSettingService appSettingService,
-                               ExamPassExpiryCalculator examPassExpiryCalculator) {
-        this(memberEntitlementRepository, appSettingService, examPassExpiryCalculator, Clock.system(SERVICE_ZONE));
+                               ExamPassExpiryCalculator examPassExpiryCalculator,
+                               SubmissionRepository submissionRepository,
+                               DailyQuestionCounter dailyQuestionCounter) {
+        this(memberEntitlementRepository, appSettingService, examPassExpiryCalculator,
+            submissionRepository, dailyQuestionCounter, Clock.system(SERVICE_ZONE));
     }
 
     FeatureAccessPolicy(MemberEntitlementRepository memberEntitlementRepository,
                         AppSettingService appSettingService,
-                        ExamPassExpiryCalculator examPassExpiryCalculator, Clock clock) {
+                        ExamPassExpiryCalculator examPassExpiryCalculator,
+                        SubmissionRepository submissionRepository,
+                        DailyQuestionCounter dailyQuestionCounter, Clock clock) {
         this.memberEntitlementRepository = memberEntitlementRepository;
         this.appSettingService = appSettingService;
         this.examPassExpiryCalculator = examPassExpiryCalculator;
+        this.submissionRepository = submissionRepository;
+        this.dailyQuestionCounter = dailyQuestionCounter;
         this.clock = clock;
     }
 
@@ -91,7 +104,39 @@ public class FeatureAccessPolicy {
         return storedMode;
     }
 
-    /** 내 등급 응답 (오늘 사용량은 후속 태스크에서 채움, 구매 시 만료일은 결제 켜짐일 때만) */
+    /**
+     * 문제 열기 제한: 스위치 > 오늘의 문제 > 예전에 푼 문제 > 오늘 새로 연 수(무료 10, 프로 200)
+     * 스위치 꺼짐, 오늘의 문제, 제출 이력 있는 문제는 항상 통과
+     */
+    public void assertCanOpenQuestion(UUID memberUuid, UUID questionUuid) {
+        if (!isBillingEnabled()) {
+            return;
+        }
+        // 오늘의 문제 배정분은 한도와 무관
+        if (dailyQuestionCounter.isTodaysDailyChallengeQuestion(questionUuid)) {
+            return;
+        }
+        // 예전에 한 번이라도 제출한 문제는 날짜와 무관하게 다시 열 수 있음
+        if (submissionRepository.existsByMemberUuidAndQuestionUuid(memberUuid, questionUuid)) {
+            return;
+        }
+
+        // 오늘 새로 연 문제 수 <-> 등급별 한도
+        int todayRandomSolvedCount = dailyQuestionCounter.countTodayRandomSolved(memberUuid);
+        if (isPro(memberUuid)) {
+            if (todayRandomSolvedCount >= DAILY_PRO_FAIR_USE_LIMIT) {
+                log.info("[pro access] rejected 429 : fair use daily limit, member={}, count={}", memberUuid, todayRandomSolvedCount);
+                throw new CustomException(ErrorCode.FAIR_USE_DAILY_LIMIT_REACHED);
+            }
+            return;
+        }
+        if (todayRandomSolvedCount >= DAILY_FREE_LIMIT) {
+            log.info("[pro access] rejected 403 : free daily limit, member={}, count={}", memberUuid, todayRandomSolvedCount);
+            throw new CustomException(ErrorCode.FREE_DAILY_LIMIT_REACHED);
+        }
+    }
+
+    /** 내 등급 응답 (구매 시 만료일·오늘 사용량은 결제 켜짐일 때만) */
     public MemberPlanResponse getPlan(UUID memberUuid) {
         boolean isBillingEnabled = isBillingEnabled();
         MemberEntitlement activeProEntitlement = findActiveProEntitlement(memberUuid);
@@ -103,11 +148,13 @@ public class FeatureAccessPolicy {
             ? examPassExpiryCalculator.calculateExpiresAt(LocalDateTime.now(clock), activeProExpiresAtOrNull)
             : null;
 
+        int todayRandomSolvedCount = isBillingEnabled ? dailyQuestionCounter.countTodayRandomSolved(memberUuid) : 0;
+
         return new MemberPlanResponse(
             isBillingEnabled,
             isPro ? PLAN_PRO : PLAN_FREE,
             activeProExpiresAtOrNull,
-            0,
+            todayRandomSolvedCount,
             DAILY_FREE_LIMIT,
             purchasableUntil);
     }
