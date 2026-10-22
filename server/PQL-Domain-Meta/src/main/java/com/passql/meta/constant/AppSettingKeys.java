@@ -54,6 +54,9 @@ public final class AppSettingKeys {
     // app_setting: 오늘의 세트 리마인드 자동 알림 (true 사용, false 미사용, 발송은 후속 이슈)
     public static final String NOTIFICATION_DAILY_SET_REMINDER_ENABLED = "notification.daily_set_reminder.enabled";
 
+    // app_setting: Android 결제 스위치 (true 무료/프로 제한 적용과 결제 UI 노출, false 모든 기능 허용)
+    public static final String BILLING_ANDROID_ENABLED = "billing.android.enabled";
+
     private AppSettingKeys() {
     }
 }
