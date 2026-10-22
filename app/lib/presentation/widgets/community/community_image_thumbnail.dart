@@ -63,17 +63,17 @@ class _CommunityAuthImageState extends ConsumerState<CommunityAuthImage> {
       future: bytesFuture,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return Semantics(
-            button: true,
+          void retryLoading() => setState(_startLoading);
+          return PassqlSemanticButton(
             label: '이미지를 불러오지 못했어요. 눌러서 다시 시도',
-            excludeSemantics: true,
+            onTap: retryLoading,
             child: CupertinoButton(
               padding: EdgeInsets.zero,
-              onPressed: () => setState(_startLoading),
+              onPressed: retryLoading,
               child: Icon(
                 CupertinoIcons.arrow_clockwise,
                 size: PassqlIconSize.lg,
-                color: colors.tertiaryLabel,
+                color: colors.iconSecondary,
               ),
             ),
           );

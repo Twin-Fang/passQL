@@ -18,13 +18,16 @@ class AiExplanationHistoryButton extends ConsumerWidget {
       aiExplanationSessionProvider.select((session) => session.isPanelOpen),
     );
     if (entryCount == 0 || isPanelOpen) return const SizedBox.shrink();
-    return CupertinoButton(
-      padding: EdgeInsets.zero,
-      minimumSize: const Size.square(PassqlSize.minTouchTarget),
-      onPressed: () =>
-          ref.read(aiExplanationSessionProvider.notifier).showHistory(),
-      child: Semantics(
-        label: '해설함, $entryCount개',
+    void showHistory() =>
+        ref.read(aiExplanationSessionProvider.notifier).showHistory();
+    // 개수 숫자를 라벨과 두 번 읽지 않게 라벨 하나로
+    return PassqlSemanticButton(
+      label: '해설함, $entryCount개',
+      onTap: showHistory,
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        minimumSize: const Size.square(PassqlSize.minTouchTarget),
+        onPressed: showHistory,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -37,7 +40,7 @@ class AiExplanationHistoryButton extends ConsumerWidget {
             Text(
               '$entryCount',
               style: PassqlTypography.footnoteSemibold.copyWith(
-                color: colors.accent,
+                color: colors.accentText,
                 fontFeatures: PassqlTypography.tabular,
               ),
             ),

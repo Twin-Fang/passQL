@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../core/monitoring/crash_reporter.dart';
@@ -18,7 +17,7 @@ import '../../../data/models/question/question_detail.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/chapter/chapter_feedback_bar.dart';
 import '../../widgets/question/choice_display_label.dart';
-import '../../../router/app_routes.dart';
+import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
 import '../../widgets/question/question_sections.dart';
 import '../../widgets/question/question_solving_body.dart';
@@ -215,7 +214,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
       return PassqlStatusScaffold(
         title: widget.flow.title,
         leading: PassqlNavLeading.close,
-        onLeadingTap: () => context.go(AppRoutes.home),
+        onLeadingTap: () => leaveSolvingFlow(context),
         body: PassqlStatusView.loading(),
       );
     }
@@ -225,7 +224,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
       return PassqlStatusScaffold(
         title: widget.flow.title,
         leading: PassqlNavLeading.close,
-        onLeadingTap: () => context.go(AppRoutes.home),
+        onLeadingTap: () => leaveSolvingFlow(context),
         body: PassqlStatusView.error(
           message: chapter.listError ?? '문제가 없어요',
           // 문제 목록을 다시 불러온다. (오늘의 세트를 이미 끝냈다면 다시 불러도 같은 안내가 나온다)
@@ -361,7 +360,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
         if (await confirmChapterExit(context) && context.mounted) {
-          context.go(AppRoutes.home);
+          leaveSolvingFlow(context);
         }
       },
       child: body,

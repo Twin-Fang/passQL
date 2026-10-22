@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../router/app_routes.dart';
 import '../../../router/result_route_arguments.dart';
+import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
 import '../../providers/ai_explanation_session_provider.dart';
 import '../../providers/choice_explanation_providers.dart';
@@ -27,7 +28,7 @@ class ResultPage extends ConsumerWidget {
     if (result == null) {
       return PassqlStatusScaffold(
         leading: PassqlNavLeading.close,
-        onLeadingTap: () => context.pop(),
+        onLeadingTap: () => leaveSolvingFlow(context),
         body: PassqlStatusView.empty(
           icon: CupertinoIcons.exclamationmark_circle,
           title: '결과를 불러올 수 없어요',
@@ -66,7 +67,7 @@ class ResultPage extends ConsumerWidget {
 
     return PassqlResultScaffold(
       title: '채점 결과',
-      onClose: () => context.go(AppRoutes.home),
+      onClose: () => leaveSolvingFlow(context),
       header: _ResultHeader(isCorrect: isCorrect),
       sections: [
         // 오답일 때만 내가 고른 SQL 을 보여 준다.
@@ -128,8 +129,7 @@ class ResultPage extends ConsumerWidget {
           SimilarQuestionsSection(questionUuid: questionUuid),
       ],
       actions: [
-        // 기존 동작(닫기 = 홈 이동)을 그대로 유지한다.
-        PassqlButton(label: '닫기', onPressed: () => context.go(AppRoutes.home)),
+        PassqlButton(label: '닫기', onPressed: () => leaveSolvingFlow(context)),
       ],
     );
   }

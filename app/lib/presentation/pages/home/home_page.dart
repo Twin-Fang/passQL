@@ -7,6 +7,7 @@ import '../../../data/models/notification/notification_models.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/community_providers.dart';
+import '../../providers/exam_trend_providers.dart';
 import '../../providers/home_providers.dart';
 import '../../providers/notification_inbox_providers.dart';
 import '../../providers/unread_notification_providers.dart';
@@ -15,13 +16,15 @@ import '../../widgets/common/app_toast.dart';
 import '../../widgets/community/community_daily_discussion_card.dart';
 import '../../widgets/home/app_notice_banner.dart';
 import '../../widgets/home/daily_set_card.dart';
+import '../../widgets/home/daily_study_tip_card.dart';
 import '../../widgets/home/exam_schedule_card.dart';
-import '../../widgets/home/exam_trend_entry_card.dart';
+import '../../widgets/home/exam_trend_home_section.dart';
 import '../../widgets/home/fallback_stats_section.dart';
 import '../../widgets/home/greeting_section.dart';
 import '../../widgets/home/heatmap_widget.dart';
 import '../../widgets/home/readiness_card.dart';
 import '../../widgets/home/recommendations_section.dart';
+import '../../../router/questions_tab_view.dart';
 
 /// 홈 화면.
 /// homeDataProvider에서 6개 API 병렬 결과를 받아 렌더링.
@@ -56,6 +59,8 @@ class HomePage extends ConsumerWidget {
               notificationInboxProvider(NotificationCategory.notice),
             );
             invalidateHomeData(ref.invalidate);
+            // 출제 경향·공부 팁도 함께 갱신
+            ref.invalidate(examTrendReportProvider);
             try {
               await ref.read(homeDataProvider.future);
             } catch (_) {
@@ -101,6 +106,11 @@ class _HomeContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final notice = ref.watch(homeNoticeProvider);
     final discussion = ref.watch(communityDailyDiscussionProvider).valueOrNull;
+    final examTrendReportAsync = ref.watch(examTrendReportProvider);
+    final examTrendReport = examTrendReportAsync.valueOrNull;
+    final dailyStudyTip = examTrendReport == null
+        ? null
+        : selectDailyStudyTip(examTrendReport.studyTips, DateTime.now());
     final children = <Widget>[
       // 인사 + 본문 + 시험 상황 배지 (상단 바 아래 화면 제목 자리)
       if (data.greeting != null) GreetingSection(greeting: data.greeting!),
@@ -123,6 +133,7 @@ class _HomeContent extends ConsumerWidget {
                 onStart: () => context.push(AppRoutes.dailySet),
                 onViewResult: () => context.push(AppRoutes.dailySetResult),
                 onBrowse: () => context.go(AppRoutes.questions),
+                onViewLeaderboard: () => context.push(AppRoutes.leaderboard),
               ),
             ),
             const SizedBox(width: PassqlSpacing.sm),
@@ -130,6 +141,34 @@ class _HomeContent extends ConsumerWidget {
           ],
         ),
       ),
+
+      // 출제 경향 (로딩 = 자리 스켈레톤, 실패·유형 없음 = 항목 없음 > 간격도 없음)
+      // 시작 카드는 날짜마다 다음 유형으로 (같은 날은 같은 카드)
+      if (examTrendReport != null && examTrendReport.risingPatterns.isNotEmpty)
+        ExamTrendHomeSection(
+          patterns: rotateToDailyStart(
+            examTrendReport.risingPatterns,
+            DateTime.now(),
+          ),
+          onSolveTopic: (topicCode, topicName) => context.push(
+            AppRoutes.questionChapterOf(
+              topicCode: topicCode,
+              topicName: topicName,
+              isLatestTrendOnly: true,
+            ),
+          ),
+          onViewAll: () => context.go(QuestionsTabView.latestTrend.location),
+        )
+      else if (examTrendReportAsync.isLoading)
+        const PassqlLoadingSemantics(
+          child: PassqlSkeletonBox(
+            height: _examTrendSectionHeight,
+            radius: PassqlRadius.lg,
+          ),
+        ),
+
+      // 오늘의 공부 팁 (팁 없으면 숨김)
+      if (dailyStudyTip != null) DailyStudyTipCard(studyTip: dailyStudyTip),
 
       // 합격 준비도 카드 (readiness 있을 때)
       if (data.progress?.readiness != null)
@@ -141,8 +180,6 @@ class _HomeContent extends ConsumerWidget {
           solvedCount: data.progress!.solvedCount,
           correctRate: data.progress!.correctRate,
         ),
-
-      const ExamTrendEntryCard(),
 
       // 오늘의 토론 (뜨는 토론 1위, 없으면 숨김, #525)
       if (discussion != null) CommunityDailyDiscussionCard(card: discussion),
@@ -188,6 +225,9 @@ class _HomeContent extends ConsumerWidget {
   }
 }
 
+// 출제 경향 섹션 로딩 자리 높이: 머리 + 넘김 카드 + 페이지 점
+const double _examTrendSectionHeight = 290;
+
 /// 로딩 중 스켈레톤. 실제 카드와 같은 높이로 자리를 잡는다.
 // 스켈레톤 자리 높이: 실제 카드(오늘의 세트·시험 일정 2열, 준비도, 히트맵) 높이와 맞춤
 const double _dualCardHeight = 140;
@@ -206,36 +246,42 @@ class _HomeSkeleton extends StatelessWidget {
         PassqlSpacing.md,
         0,
       ),
-      sliver: SliverList(
-        delegate: SliverChildListDelegate.fixed([
-          Row(
+      // 스켈레톤 조각 대신 '불러오는 중' 한 번
+      sliver: SliverToBoxAdapter(
+        child: PassqlLoadingSemantics(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: PassqlSkeletonBox(
-                  height: _dualCardHeight,
-                  radius: PassqlRadius.lg,
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: PassqlSkeletonBox(
+                      height: _dualCardHeight,
+                      radius: PassqlRadius.lg,
+                    ),
+                  ),
+                  SizedBox(width: PassqlSpacing.sm),
+                  Expanded(
+                    child: PassqlSkeletonBox(
+                      height: _dualCardHeight,
+                      radius: PassqlRadius.lg,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(width: PassqlSpacing.sm),
-              Expanded(
-                child: PassqlSkeletonBox(
-                  height: _dualCardHeight,
-                  radius: PassqlRadius.lg,
-                ),
+              SizedBox(height: PassqlSpacing.md),
+              PassqlSkeletonBox(
+                height: _readinessCardHeight,
+                radius: PassqlRadius.lg,
+              ),
+              SizedBox(height: PassqlSpacing.md),
+              PassqlSkeletonBox(
+                height: _heatmapCardHeight,
+                radius: PassqlRadius.lg,
               ),
             ],
           ),
-          SizedBox(height: PassqlSpacing.md),
-          PassqlSkeletonBox(
-            height: _readinessCardHeight,
-            radius: PassqlRadius.lg,
-          ),
-          SizedBox(height: PassqlSpacing.md),
-          PassqlSkeletonBox(
-            height: _heatmapCardHeight,
-            radius: PassqlRadius.lg,
-          ),
-        ]),
+        ),
       ),
     );
   }

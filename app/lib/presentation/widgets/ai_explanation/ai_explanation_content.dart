@@ -167,7 +167,7 @@ class _AiDisclaimer extends StatelessWidget {
       padding: const EdgeInsets.only(top: PassqlSpacing.lg),
       child: Text(
         'AI가 만든 해설이에요. 참고용으로 봐 주세요.',
-        style: PassqlTypography.caption.copyWith(color: colors.tertiaryLabel),
+        style: PassqlTypography.caption.copyWith(color: colors.secondaryLabel),
       ),
     );
   }

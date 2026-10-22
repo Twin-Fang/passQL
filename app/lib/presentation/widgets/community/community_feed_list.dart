@@ -6,6 +6,7 @@ import '../../../core/error/app_exception.dart';
 import '../../../data/models/community/community_models.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
+import '../../../router/questions_tab_view.dart';
 import '../../providers/community_providers.dart';
 import 'community_feed_card_tile.dart';
 
@@ -110,7 +111,7 @@ class _CommunityFeedListState extends ConsumerState<CommunityFeedList> {
               message: emptyText.message,
               actionLabel: emptyText.actionLabel,
               onAction: () => emptyText.isTrendAction
-                  ? context.push(AppRoutes.examTrend)
+                  ? context.go(QuestionsTabView.latestTrend.location)
                   : context.go(AppRoutes.questions),
             ),
           ),

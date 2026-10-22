@@ -57,6 +57,11 @@ Future<void> _pageOf(
   await pumpUntilMotionDone(tester);
 }
 
+/// 카드 윗부분(버튼 아닌 자리)을 눌러 카드 전체 탭만 확인
+Future<void> _tapCardBody(WidgetTester tester) => tester.tapAt(
+  tester.getTopLeft(find.byType(DailySetCard)) + const Offset(30, 30),
+);
+
 void main() {
   group('홈 카드', () {
     Future<void> card(
@@ -69,12 +74,13 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: SizedBox(
-              height: 200,
+              height: 260,
               child: DailySetCard(
                 dailySet: data,
                 onStart: () => taps?.add('start'),
                 onViewResult: () => taps?.add('result'),
                 onBrowse: () => taps?.add('browse'),
+                onViewLeaderboard: () => taps?.add('leaderboard'),
               ),
             ),
           ),
@@ -98,7 +104,7 @@ void main() {
       // 카드 문장은 단어 단위 줄바꿈 문자열로 그려짐
       expect(find.text(keepWordsTogether('오늘의 5문제')), findsOneWidget);
       expect(find.text('완료'), findsNothing);
-      await tester.tap(find.byType(DailySetCard));
+      await _tapCardBody(tester);
       expect(taps, ['start']);
     });
 
@@ -119,7 +125,7 @@ void main() {
 
       expect(find.text('완료'), findsOneWidget);
       expect(find.text(keepWordsTogether('4 / 5 정답')), findsOneWidget);
-      await tester.tap(find.byType(DailySetCard));
+      await _tapCardBody(tester);
       expect(taps, ['result']);
     });
 
@@ -129,9 +135,71 @@ void main() {
         await card(tester, data, taps: taps);
 
         expect(find.textContaining(keepWordsTogether('준비 중')), findsOneWidget);
-        await tester.tap(find.byType(DailySetCard));
+        await _tapCardBody(tester);
         expect(taps, ['browse']);
       }
+    });
+  });
+
+  group('순위 보기 진입', () {
+    Future<void> pumpCard(
+      WidgetTester tester,
+      DailySetTodayResponse data,
+      List<String> taps,
+    ) async {
+      await pumpApp(
+        tester,
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              height: 260,
+              child: DailySetCard(
+                dailySet: data,
+                onStart: () => taps.add('start'),
+                onViewResult: () => taps.add('result'),
+                onBrowse: () => taps.add('browse'),
+                onViewLeaderboard: () => taps.add('leaderboard'),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final questions = List.generate(
+      5,
+      (i) => QuestionSummary(questionUuid: 'q$i'),
+    );
+
+    testWidgets('완료 전에도 순위 보기가 있고, 누르면 순위만 열린다', (tester) async {
+      final taps = <String>[];
+      await pumpCard(tester, DailySetTodayResponse(questions: questions), taps);
+
+      await tester.tap(find.text('순위 보기'));
+      expect(taps, ['leaderboard']);
+    });
+
+    testWidgets('완료 후에도 순위 보기가 있고, 포커스는 카드 동작 1개 + 순위 1개다', (tester) async {
+      final taps = <String>[];
+      await pumpCard(
+        tester,
+        DailySetTodayResponse(
+          questions: questions,
+          alreadyCompleted: true,
+          correctCount: 4,
+        ),
+        taps,
+      );
+
+      expect(find.bySemanticsLabel('결과 보기'), findsOneWidget);
+      expect(find.bySemanticsLabel('순위 보기'), findsOneWidget);
+      await tester.tap(find.text('순위 보기'));
+      expect(taps, ['leaderboard']);
+    });
+
+    testWidgets('세트가 준비 중이면 순위 보기를 숨긴다', (tester) async {
+      await pumpCard(tester, const DailySetTodayResponse(), []);
+      expect(find.text('순위 보기'), findsNothing);
     });
   });
 
@@ -245,6 +313,21 @@ void main() {
       await tester.tap(find.text('풀어보기'));
       await tester.pumpAndSettle();
       expect(find.text('풀이 화면'), findsOneWidget);
+    });
+
+    testWidgets('아직 풀지 않은 상태에도 닫기 버튼으로 흐름을 나갈 수 있다', (tester) async {
+      await _pageOf(tester, const DailySetResultPage(), [
+        dailySetTodayProvider.overrideWith(
+          (ref) async => const DailySetTodayResponse(
+            questions: [QuestionSummary(questionUuid: 'q')],
+          ),
+        ),
+        _boardOverride(_board()),
+      ]);
+
+      await tester.tap(find.bySemanticsLabel('닫기'));
+      await tester.pumpAndSettle();
+      expect(find.text('홈 화면'), findsOneWidget);
     });
   });
 

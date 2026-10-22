@@ -11,7 +11,6 @@ import '../presentation/pages/daily_set/daily_set_result_page.dart';
 import '../presentation/pages/daily_set/leaderboard_page.dart';
 import '../presentation/pages/app_gate/force_update_page.dart';
 import '../presentation/pages/app_gate/maintenance_page.dart';
-import '../presentation/pages/exam_trend/exam_trend_page.dart';
 import '../presentation/pages/feedback/feedback_page.dart';
 import '../presentation/pages/home/home_page.dart';
 import '../presentation/pages/legal/legal_page.dart';
@@ -30,6 +29,7 @@ import '../presentation/pages/settings/wrong_notes_page.dart';
 import '../presentation/widgets/app_shell.dart';
 import 'app_launch_gate_routing.dart';
 import 'app_routes.dart';
+import 'questions_tab_view.dart';
 import 'result_route_arguments.dart';
 
 // 루트 네비게이터 키 — 풀스크린 라우트(탭 바깥)에서 사용
@@ -119,8 +119,13 @@ abstract final class AppRouter {
             routes: [
               GoRoute(
                 path: AppRoutes.questions,
-                pageBuilder: (_, _) =>
-                    const NoTransitionPage(child: TopicListPage()),
+                pageBuilder: (_, state) => NoTransitionPage(
+                  child: TopicListPage(
+                    view: QuestionsTabView.fromQueryValue(
+                      state.uri.queryParameters[AppRoutes.questionsViewQuery],
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -188,14 +193,13 @@ abstract final class AppRouter {
         ),
       ),
 
-      // 풀스크린: 출제 경향 (홈 진입 카드, #523)
+      // 옛 출제 경향 경로 > 문제 탭 '최신 경향' 보기 (#574)
       GoRoute(
         path: AppRoutes.examTrend,
-        parentNavigatorKey: _rootKey,
-        builder: (_, _) => const ExamTrendPage(),
+        redirect: (_, _) => QuestionsTabView.latestTrend.location,
       ),
 
-      // 풀스크린: 오답 노트 (설정에서 진입)
+      // 풀스크린: 오답 노트 (문제 탭 오답 노트 바로가기에서 진입)
       GoRoute(
         path: AppRoutes.wrongNotes,
         parentNavigatorKey: _rootKey,

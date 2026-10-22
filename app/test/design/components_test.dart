@@ -202,7 +202,7 @@ void main() {
   });
 
   group('PassqlTabBar', () {
-    testWidgets('글자 없이 아이콘만 그리고 접근성 라벨을 남긴다', (tester) async {
+    testWidgets('아이콘 아래 라벨을 그리고 접근성 라벨은 한 번만 읽는다', (tester) async {
       var tapped = -1;
       await tester.pumpWidget(
         host(
@@ -228,14 +228,14 @@ void main() {
           bottomInset: 34,
         ),
       );
-      expect(find.text('홈'), findsNothing);
+      expect(find.text('홈'), findsOneWidget);
       expect(find.bySemanticsLabel('문제'), findsOneWidget);
       await tester.tap(find.byIcon(CupertinoIcons.book));
       expect(tapped, 1);
-      // 높이 = 44 + 홈 인디케이터 inset 34 의 60%
+      // 높이 = 49 + 홈 인디케이터 inset 34 의 60%
       expect(
         tester.getSize(find.byType(PassqlTabBar)).height,
-        closeTo(44 + 34 * 0.6, 0.01),
+        closeTo(49 + 34 * 0.6, 0.01),
       );
     });
 
@@ -259,7 +259,7 @@ void main() {
           bottomInset: 48,
         ),
       );
-      expect(tester.getSize(find.byType(PassqlTabBar)).height, 44 + 48);
+      expect(tester.getSize(find.byType(PassqlTabBar)).height, 49 + 48);
     });
   });
 

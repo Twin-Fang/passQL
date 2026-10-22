@@ -20,14 +20,14 @@ final wrongQuestionsProvider =
       if (ref.watch(currentMemberUuidProvider) == null) {
         return const WrongQuestionsResponse();
       }
-      // 오답 노트 진입 기록 (오답 노트 화면 진입·다시 시도마다 1회, 설정 개수 표시는 별도 Provider)
+      // 오답 노트 진입 기록 (오답 노트 화면 진입·다시 시도마다 1회, 문제 탭 오답 노트 바로가기 개수는 별도 Provider)
       ref.read(appAnalyticsProvider).logWrongNotesOpened();
       return ref
           .read(progressApiProvider)
           .getWrongQuestions(size: wrongNotePageSize);
     });
 
-/// 설정 행에 보일 오답 개수만 조회 (목록은 1건만 받아 버림, 진입 분석 기록 없음)
+/// 문제 탭 오답 노트 바로가기에 보일 오답 개수만 조회 (목록은 1건만 받아 버림, 진입 분석 기록 없음)
 /// 실패하면 null (개수 숨김)
 final wrongQuestionTotalCountProvider = FutureProvider.autoDispose<int?>((
   ref,

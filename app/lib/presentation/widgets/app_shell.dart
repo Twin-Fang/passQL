@@ -36,12 +36,12 @@ class AppShell extends StatelessWidget {
     PassqlTabItem(
       icon: CupertinoIcons.chart_bar,
       activeIcon: CupertinoIcons.chart_bar_fill,
-      label: '통계',
+      label: '기록',
     ),
     PassqlTabItem(
-      icon: CupertinoIcons.gear,
-      activeIcon: CupertinoIcons.gear_solid,
-      label: '설정',
+      icon: CupertinoIcons.person_crop_circle,
+      activeIcon: CupertinoIcons.person_crop_circle_fill,
+      label: 'MY',
     ),
   ];
 

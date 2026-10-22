@@ -30,21 +30,32 @@ class PassqlButton extends StatelessWidget {
   final IconData? icon;
   final bool isFullWidth;
 
+  /// 모양·활성 > (배경, 글자색). 비활성 글자는 대비 기준 예외(WCAG)라 tertiaryLabel
+  static (Color backgroundColor, Color foregroundColor) colorsOf(
+    PassqlButtonVariant variant,
+    PassqlColors colors, {
+    required bool isEnabled,
+  }) => switch (variant) {
+    _ when !isEnabled && variant != PassqlButtonVariant.plain => (
+      colors.fill,
+      colors.tertiaryLabel,
+    ),
+    _ when !isEnabled => (Colors.transparent, colors.tertiaryLabel),
+    PassqlButtonVariant.filled => (colors.accent, colors.onAccent),
+    PassqlButtonVariant.tinted => (colors.accentTint, colors.accentText),
+    PassqlButtonVariant.plain => (Colors.transparent, colors.accentText),
+    PassqlButtonVariant.destructive => (colors.wrongTint, colors.wrongText),
+  };
+
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final isEnabled = onPressed != null && !isLoading;
-    final (Color backgroundColor, Color foregroundColor) = switch (variant) {
-      _ when !isEnabled && variant != PassqlButtonVariant.plain => (
-        colors.fill,
-        colors.tertiaryLabel,
-      ),
-      _ when !isEnabled => (Colors.transparent, colors.tertiaryLabel),
-      PassqlButtonVariant.filled => (colors.accent, colors.onAccent),
-      PassqlButtonVariant.tinted => (colors.accentTint, colors.accent),
-      PassqlButtonVariant.plain => (Colors.transparent, colors.accent),
-      PassqlButtonVariant.destructive => (colors.wrongTint, colors.wrong),
-    };
+    final (backgroundColor, foregroundColor) = colorsOf(
+      variant,
+      colors,
+      isEnabled: isEnabled,
+    );
     final minHeight = switch (size) {
       PassqlButtonSize.large => PassqlSize.buttonLarge,
       PassqlButtonSize.regular => PassqlSize.buttonRegular,
@@ -76,6 +87,8 @@ class PassqlButton extends StatelessWidget {
     return PassqlPressable(
       onTap: isEnabled ? onPressed : null,
       semanticLabel: label,
+      // small(34)도 누르는 영역은 44
+      hasMinimumTouchTarget: size == PassqlButtonSize.small,
       child: ConstrainedBox(
         // 글자 크기가 커지면 높이가 늘어나도록 최소 높이만 정한다.
         constraints: BoxConstraints(
@@ -84,7 +97,7 @@ class PassqlButton extends StatelessWidget {
         ),
         // 활성·비활성 전환 때 배경색이 부드럽게 바뀌게 한다
         child: AnimatedContainer(
-          duration: PassqlMotion.fast,
+          duration: PassqlMotion.durationOf(context, PassqlMotion.fast),
           curve: PassqlMotion.curve,
           decoration: BoxDecoration(
             color: backgroundColor,
@@ -105,7 +118,7 @@ class PassqlButton extends StatelessWidget {
               heightFactor: 1,
               // 라벨 <-> 로딩 표시 교체
               child: AnimatedSwitcher(
-                duration: PassqlMotion.fast,
+                duration: PassqlMotion.durationOf(context, PassqlMotion.fast),
                 child: KeyedSubtree(
                   key: ValueKey(isLoading),
                   child: content,

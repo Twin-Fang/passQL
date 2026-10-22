@@ -25,6 +25,8 @@ class CommunityOpinionChip extends ConsumerWidget {
     return PassqlPressable(
       onTap: () => context.push(AppRoutes.communityQuestion(questionUuid)),
       semanticLabel: label,
+      // 보이는 칩은 34, 누르는 영역은 44
+      hasMinimumTouchTarget: true,
       child: Container(
         height: PassqlSize.buttonSmall,
         padding: const EdgeInsets.symmetric(horizontal: PassqlSpacing.sm),
@@ -38,13 +40,13 @@ class CommunityOpinionChip extends ConsumerWidget {
             Icon(
               CupertinoIcons.chat_bubble_2,
               size: PassqlIconSize.sm,
-              color: colors.accent,
+              color: colors.accentText,
             ),
             const SizedBox(width: PassqlSpacing.xxs),
             Text(
               label,
               style: PassqlTypography.subheadlineSemibold.copyWith(
-                color: colors.accent,
+                color: colors.accentText,
               ),
             ),
           ],

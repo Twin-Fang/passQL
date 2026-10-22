@@ -23,7 +23,12 @@ class NoticeListRow extends StatelessWidget {
     final publishedAt = notice.publishedAt;
     return PassqlPressable(
       onTap: onTap,
-      semanticLabel: '${notice.isImportant ? '중요 공지, ' : ''}${notice.title}',
+      // 읽는 순서: 중요 > 제목 > 미리보기 > 게시일 (화면 글자는 덮음)
+      semanticLabel: [
+        '${notice.isImportant ? '중요 공지, ' : ''}${notice.title}',
+        if (preview.isNotEmpty) preview,
+        if (publishedAt != null) formatDottedDate(publishedAt),
+      ].join(', '),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
           PassqlSpacing.md,
@@ -73,7 +78,7 @@ class NoticeListRow extends StatelessWidget {
                       child: Text(
                         formatDottedDate(publishedAt),
                         style: PassqlTypography.caption.copyWith(
-                          color: colors.tertiaryLabel,
+                          color: colors.secondaryLabel,
                           fontFeatures: PassqlTypography.tabular,
                         ),
                       ),

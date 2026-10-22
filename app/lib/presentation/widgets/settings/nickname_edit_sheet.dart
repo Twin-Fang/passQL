@@ -161,7 +161,7 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
                     decoration: InputDecoration.collapsed(
                       hintText: '한글, 영문, 숫자 2~10자',
                       hintStyle: PassqlTypography.body.copyWith(
-                        color: colors.tertiaryLabel,
+                        color: colors.secondaryLabel,
                       ),
                     ).copyWith(counterText: ''),
                   ),
@@ -187,7 +187,9 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
                   : Text(
                       hint,
                       style: PassqlTypography.caption.copyWith(
-                        color: isHintError ? colors.wrongText : colors.accent,
+                        color: isHintError
+                            ? colors.wrongText
+                            : colors.accentText,
                       ),
                     ),
             ),

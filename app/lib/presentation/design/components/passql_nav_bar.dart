@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
+import 'passql_semantic_button.dart';
 
 /// 상단 바 왼쪽 버튼 종류. 모양은 [PassqlNavButton] 한 곳에서만 정한다.
 enum PassqlNavLeading { none, back, close }
@@ -16,16 +17,16 @@ class PassqlNavButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isBack = kind == PassqlNavLeading.back;
-    return Semantics(
-      button: true,
+    // onTap 이 없으면 라우트 스택 기준으로 닫는다.
+    final onPressed = onTap ?? () => Navigator.of(context).maybePop();
+    return PassqlSemanticButton(
       label: isBack ? '뒤로' : '닫기',
-      excludeSemantics: true,
+      onTap: onPressed,
       child: CupertinoButton(
         // 탭 영역 최소 44 보장
         padding: EdgeInsets.zero,
         minimumSize: const Size(PassqlSize.navBar, PassqlSize.navBar),
-        // onTap 이 없으면 라우트 스택 기준으로 닫는다.
-        onPressed: onTap ?? () => Navigator.of(context).maybePop(),
+        onPressed: onPressed,
         child: Icon(
           isBack ? CupertinoIcons.chevron_back : CupertinoIcons.xmark,
           size: PassqlIconSize.xl,

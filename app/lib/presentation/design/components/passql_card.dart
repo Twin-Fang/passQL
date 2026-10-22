@@ -14,6 +14,8 @@ class PassqlCard extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.padding = const EdgeInsets.all(PassqlSpacing.md),
+    this.isCardTapExposedToScreenReader = true,
+    this.shouldChildFillHeight = false,
   });
 
   final Widget child;
@@ -21,6 +23,12 @@ class PassqlCard extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
   final EdgeInsetsGeometry padding;
+
+  /// false: 카드 안에 같은 동작 버튼이 있어 스크린리더에는 안쪽 버튼만 노출 (포커스 중복 방지)
+  final bool isCardTapExposedToScreenReader;
+
+  /// true: 카드 높이가 바깥에서 정해질 때(2열 높이 맞춤) 안쪽 내용이 남은 높이를 채움. 높이 제한 없는 곳에선 쓰지 않음
+  final bool shouldChildFillHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -38,10 +46,16 @@ class PassqlCard extends StatelessWidget {
           if (title != null) ...[
             Row(
               children: [
+                // 제목 이동(로터·제목 탐색)용 머리글
                 Expanded(
-                  child: Text(
-                    title!,
-                    style: PassqlTypography.headline.copyWith(color: colors.label),
+                  child: Semantics(
+                    header: true,
+                    child: Text(
+                      title!,
+                      style: PassqlTypography.headline.copyWith(
+                        color: colors.label,
+                      ),
+                    ),
                   ),
                 ),
                 ?trailing,
@@ -49,10 +63,15 @@ class PassqlCard extends StatelessWidget {
             ),
             const SizedBox(height: PassqlSpacing.sm),
           ],
-          child,
+          if (shouldChildFillHeight) Expanded(child: child) else child,
         ],
       ),
     );
-    return onTap == null ? body : PassqlPressable(onTap: onTap, child: body);
+    if (onTap == null) return body;
+    return PassqlPressable(
+      onTap: onTap,
+      isTapExposedToScreenReader: isCardTapExposedToScreenReader,
+      child: body,
+    );
   }
 }

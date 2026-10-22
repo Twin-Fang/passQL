@@ -138,7 +138,7 @@ class _ReportSheetState extends ConsumerState<ReportSheet> {
                   decoration: InputDecoration.collapsed(
                     hintText: '구체적인 내용을 입력해주세요',
                     hintStyle: PassqlTypography.body.copyWith(
-                      color: colors.tertiaryLabel,
+                      color: colors.secondaryLabel,
                     ),
                   ),
                 ),

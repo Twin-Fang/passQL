@@ -58,7 +58,7 @@ class AppNoticeBanner extends StatelessWidget {
               child: Icon(
                 CupertinoIcons.xmark,
                 size: PassqlIconSize.md,
-                color: colors.tertiaryLabel,
+                color: colors.iconSecondary,
               ),
             ),
           ),

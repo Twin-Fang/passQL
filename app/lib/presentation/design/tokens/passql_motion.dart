@@ -39,6 +39,10 @@ abstract final class PassqlMotion {
   static bool isReduced(BuildContext context) =>
       MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
+  /// 동작 줄이기면 0, 아니면 [base] (짧은 색·크기 전환용 AnimatedXxx 공통)
+  static Duration durationOf(BuildContext context, Duration base) =>
+      isReduced(context) ? Duration.zero : base;
+
   /// 순차 등장 지연 (index 상한 적용)
   static Duration staggerDelayOf(int index) =>
       staggerStep * index.clamp(0, maxStaggerIndex);

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import '../tokens/passql_tokens.dart';
+import 'passql_loading_semantics.dart';
 
 /// 로딩 표시가 놓이는 자리 3종: 버튼·행 안, 섹션·시트·상태 화면, 화면 잠금
 enum PassqlLoadingSize { inline, section, blocking }
@@ -25,6 +26,7 @@ class PassqlLoadingIndicator extends StatelessWidget {
   };
 
   @override
-  Widget build(BuildContext context) =>
-      CupertinoActivityIndicator(radius: _radius, color: color);
+  Widget build(BuildContext context) => PassqlLoadingSemantics(
+    child: CupertinoActivityIndicator(radius: _radius, color: color),
+  );
 }

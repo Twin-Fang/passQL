@@ -15,30 +15,32 @@ class QuestionSolvingSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      // 로딩 중 스크롤 막음 (자리만 잡음)
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(PassqlSpacing.md),
-      children: [
-        const Align(
-          alignment: Alignment.centerLeft,
-          child: PassqlSkeletonBox(
-            width: _headerBadgeWidth,
-            height: _headerBadgeHeight,
-            radius: PassqlRadius.capsule,
-          ),
-        ),
-        const SizedBox(height: PassqlSpacing.md),
-        const PassqlSkeletonBox(height: _stemHeight, radius: PassqlRadius.lg),
-        for (var choiceIndex = 0; choiceIndex < _choiceCount; choiceIndex++)
-          const Padding(
-            padding: EdgeInsets.only(top: PassqlSpacing.sm),
+    return PassqlLoadingSemantics(
+      child: ListView(
+        // 로딩 중 스크롤 막음 (자리만 잡음)
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(PassqlSpacing.md),
+        children: [
+          const Align(
+            alignment: Alignment.centerLeft,
             child: PassqlSkeletonBox(
-              height: _choiceHeight,
-              radius: PassqlRadius.md,
+              width: _headerBadgeWidth,
+              height: _headerBadgeHeight,
+              radius: PassqlRadius.capsule,
             ),
           ),
-      ],
+          const SizedBox(height: PassqlSpacing.md),
+          const PassqlSkeletonBox(height: _stemHeight, radius: PassqlRadius.lg),
+          for (var choiceIndex = 0; choiceIndex < _choiceCount; choiceIndex++)
+            const Padding(
+              padding: EdgeInsets.only(top: PassqlSpacing.sm),
+              child: PassqlSkeletonBox(
+                height: _choiceHeight,
+                radius: PassqlRadius.md,
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

@@ -6,6 +6,7 @@ import '../../../data/models/member/choice_generation_mode.dart';
 import '../../design/design.dart';
 import '../../providers/settings_providers.dart';
 import '../common/app_toast.dart';
+import 'choice_generation_mode_display.dart';
 import 'settings_group.dart';
 
 /// 선택지 생성 방식 토글.
@@ -26,8 +27,9 @@ class ChoiceModeTile extends ConsumerWidget {
       icon: CupertinoIcons.bolt_fill,
       iconColor: colors.accent,
       title: '실전 모드',
-      // 한 줄에 들어가도록 짧게 쓴다(두 줄이면 스위치 옆에서 어색하게 끊긴다).
-      subtitle: isReal ? '매번 AI가 새 선택지를 만들어요' : '검증된 선택지를 먼저 써요',
+      subtitle:
+          (isReal ? ChoiceGenerationMode.real : ChoiceGenerationMode.practice)
+              .description,
       shouldShowChevron: false,
       trailing: CupertinoSwitch(
         value: isReal,

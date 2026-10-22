@@ -24,10 +24,13 @@ class CommunityPostImages extends StatelessWidget {
         children: [
           for (final (index, image) in images.indexed) ...[
             if (index > 0) const SizedBox(width: PassqlSpacing.xs),
-            Semantics(
-              button: true,
+            PassqlSemanticButton(
               label: '첨부 사진 ${index + 1} 크게 보기',
-              excludeSemantics: true,
+              onTap: () => showCommunityImageViewer(
+                context,
+                images: images,
+                initialIndex: index,
+              ),
               child: GestureDetector(
                 onTap: () => showCommunityImageViewer(
                   context,
