@@ -101,6 +101,9 @@ abstract final class AppRoutes {
       '&$topicNameQuery=${Uri.encodeComponent(topicName)}'
       '${isLatestTrendOnly ? '&$latestTrendQuery=$latestTrendQueryValue' : ''}';
 
+  /// 랜덤 풀기 풀이 (전 범위 10문제, 홈·문제 탭에서 진입, #576)
+  static const String randomPractice = '/random-practice';
+
   /// 출제 경향 화면 (홈 진입 카드에서, #523)
   static const String examTrend = '/exam-trend';
 

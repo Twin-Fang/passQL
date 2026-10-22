@@ -6,10 +6,22 @@ import '../../../data/models/exam_trend/exam_trend_report_response.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/exam_trend_providers.dart';
+import '../../providers/plan_providers.dart';
 import '../../widgets/exam_trend/exam_trend_sections.dart';
+import '../../widgets/pro/locked_preview_samples.dart';
+import '../../widgets/pro/pro_locked_section.dart';
+
+/// 본문 목록 여백 (잠금 본문과 같은 자리)
+const _contentPadding = EdgeInsets.fromLTRB(
+  PassqlSpacing.md,
+  PassqlSpacing.xs,
+  PassqlSpacing.md,
+  PassqlSpacing.xl,
+);
 
 /// 출제 경향 화면 (#523): 요약 > 과목 비중 > 늘어난 유형 > 자주 나오는 개념 > 공부 팁
 /// 유형·개념 행 탭 > 그 토픽의 최신 경향 문제 풀기 (문제 없으면 탭 없음)
+/// 무료(결제 켜짐): 제목만 선명, 본문 전체 블러 (출제 경향 요청 없음)
 class ExamTrendPage extends ConsumerWidget {
   const ExamTrendPage({super.key});
 
@@ -17,6 +29,22 @@ class ExamTrendPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (ref.watch(shouldShowProUiProvider)) {
+      return Scaffold(
+        appBar: const PassqlNavBar(title: pageTitle, leading: PassqlNavLeading.back),
+        body: SafeArea(
+          child: ListView(
+            padding: _contentPadding,
+            children: const [
+              ProLockedSection(
+                preview: ExamTrendLockedSample(),
+                caption: LockedPreviewCaptions.examTrend,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     final reportAsync = ref.watch(examTrendReportProvider);
     return Scaffold(
       appBar: PassqlNavBar(title: pageTitle, leading: PassqlNavLeading.back),
@@ -83,12 +111,7 @@ class _ExamTrendContent extends StatelessWidget {
         ExamTrendStudyTipSection(studyTips: report.studyTips),
     ];
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(
-        PassqlSpacing.md,
-        PassqlSpacing.xs,
-        PassqlSpacing.md,
-        PassqlSpacing.xl,
-      ),
+      padding: _contentPadding,
       itemCount: sections.length,
       // 섹션이 위에서부터 차례로 떠오른다
       itemBuilder: (_, index) =>

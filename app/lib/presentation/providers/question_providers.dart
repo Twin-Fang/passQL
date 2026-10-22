@@ -10,6 +10,7 @@ import '../../data/models/question/question_detail.dart';
 import '../../data/models/question/sse_event.dart';
 import '../../data/models/question/submit_request.dart';
 import '../../data/models/question/submit_result.dart';
+import 'plan_providers.dart';
 
 /// 문제 상세 로딩 Provider. autoDispose로 화면 이탈 시 캐시 해제.
 final questionDetailProvider = FutureProvider.autoDispose
@@ -42,6 +43,9 @@ class QuestionInteractionState {
   /// SQL 실행 API 실패 사유 (네트워크·5xx·SANDBOX_TIMEOUT 등, null이면 실패 없음)
   final AppException? executeFailure;
 
+  /// 실행형 보기를 골랐지만 무료(결제 켜짐)라 실행하지 않음 > 결과 자리 블러
+  final bool isExecutionLocked;
+
   /// SSE 선택지 생성 중 여부.
   final bool isGeneratingChoices;
 
@@ -62,6 +66,7 @@ class QuestionInteractionState {
     this.currentExecuteResult,
     this.isExecuting = false,
     this.executeFailure,
+    this.isExecutionLocked = false,
     this.isGeneratingChoices = false,
     this.sseStatusMessage,
     this.sseError,
@@ -78,6 +83,7 @@ class QuestionInteractionState {
     bool? isExecuting,
     AppException? executeFailure,
     bool clearExecuteFailure = false,
+    bool? isExecutionLocked,
     bool? isGeneratingChoices,
     String? sseStatusMessage,
     SseErrorEvent? sseError,
@@ -96,6 +102,7 @@ class QuestionInteractionState {
       executeFailure: clearExecuteFailure
           ? null
           : (executeFailure ?? this.executeFailure),
+      isExecutionLocked: isExecutionLocked ?? this.isExecutionLocked,
       isGeneratingChoices: isGeneratingChoices ?? this.isGeneratingChoices,
       sseStatusMessage: sseStatusMessage ?? this.sseStatusMessage,
       sseError: clearSseError ? null : (sseError ?? this.sseError),
@@ -193,19 +200,23 @@ class QuestionInteractionNotifier
     }
   }
 
-  /// 선택지 클릭. EXECUTABLE이면 SQL 실행 (캐시 우선).
+  /// 선택지 클릭. EXECUTABLE이면 SQL 실행 (캐시 우선), 무료(결제 켜짐)면 실행 없이 잠금 표시
   Future<void> selectChoice({
     required String choiceKey,
     required String? sql,
     required bool isExecutable,
   }) async {
+    final hasExecutableSql = isExecutable && sql != null && sql.isNotEmpty;
+    final isExecutionLocked =
+        hasExecutableSql && ref.read(shouldShowProUiProvider);
     state = state.copyWith(
       selectedChoiceKey: choiceKey,
       clearExecuteResult: true,
       clearExecuteFailure: true,
+      isExecutionLocked: isExecutionLocked,
     );
 
-    if (!isExecutable || sql == null || sql.isEmpty) return;
+    if (!hasExecutableSql || isExecutionLocked) return;
     await _executeSql(sql);
   }
 

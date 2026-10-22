@@ -9,8 +9,12 @@ import '../../../data/models/legal/legal_models.dart';
 import '../../design/design.dart';
 import '../../providers/app_config_providers.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/plan_providers.dart';
+import '../../providers/pro_ui_providers.dart';
 import '../../providers/settings_providers.dart';
 import '../../widgets/common/app_toast.dart';
+import '../../widgets/pro/pro_offer_sheet.dart';
+import '../../widgets/pro/pro_settings_card.dart';
 import '../../widgets/settings/choice_mode_tile.dart';
 import '../../widgets/settings/push_notification_tile.dart';
 import '../../widgets/settings/theme_mode_tile.dart';
@@ -85,8 +89,14 @@ class SettingsPage extends ConsumerWidget {
     final colors = context.passqlColors;
     final settingsAsync = ref.watch(settingsDataProvider);
     final nicknameAsync = ref.watch(nicknameNotifierProvider);
+    // 무료(결제 켜짐): 오답 목록은 잠금 > 개수 요청 없이 행만 두고 누르면 시트
+    final shouldShowProUi = ref.watch(shouldShowProUiProvider);
+    final hasPlanCard =
+        shouldShowProUi || ref.watch(shouldShowProBadgeProvider);
     // 개수만 받는 가벼운 조회 (목록 전체·진입 분석 기록은 오답 노트 화면 몫)
-    final wrongCount = ref.watch(wrongQuestionTotalCountProvider).valueOrNull;
+    final wrongCount = shouldShowProUi
+        ? null
+        : ref.watch(wrongQuestionTotalCountProvider).valueOrNull;
     final data = settingsAsync.valueOrNull;
     // 앱 버전 원본은 시작 게이트와 같은 Provider (회원 API 실패와 무관하게 표시)
     final appVersion = ref.watch(currentAppVersionProvider).valueOrNull;
@@ -104,6 +114,11 @@ class SettingsPage extends ConsumerWidget {
             ),
             sliver: SliverList.list(
               children: passqlRevealInOrder([
+                // 등급 카드 (결제 꺼짐·등급 모름이면 자리째 없음)
+                if (hasPlanCard) ...[
+                  const ProSettingsCard(),
+                  const SizedBox(height: PassqlSpacing.xl),
+                ],
                 // 프로필: 닉네임만 보여 주고, 내부 식별자(회원 ID)는 하단으로 내린다.
                 settingsAsync.when(
                   loading: () => const ProfileCardSkeleton(),
@@ -147,7 +162,9 @@ class SettingsPage extends ConsumerWidget {
                       iconColor: colors.wrong,
                       title: '오답 노트',
                       trailing: wrongCount == null ? null : Text('$wrongCount'),
-                      onTap: () => context.push(AppRoutes.wrongNotes),
+                      onTap: shouldShowProUi
+                          ? () => showProOfferSheet(context, ref)
+                          : () => context.push(AppRoutes.wrongNotes),
                     ),
                   ],
                 ),

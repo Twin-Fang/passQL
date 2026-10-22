@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../data/models/member/choice_generation_mode.dart';
 import '../../design/design.dart';
+import '../../providers/plan_providers.dart';
 import '../../providers/settings_providers.dart';
 import '../common/app_toast.dart';
+import '../pro/pro_offer_sheet.dart';
 import 'settings_group.dart';
 
 /// 선택지 생성 방식 토글.
@@ -45,6 +47,11 @@ class ChoiceModeTile extends ConsumerWidget {
     WidgetRef ref,
     bool isRealMode,
   ) async {
+    // 무료(결제 켜짐): 실전 모드는 잠금 > 변경 요청 없이 시트 (현재 모드 그대로)
+    if (isRealMode && ref.read(shouldShowProUiProvider)) {
+      await showProOfferSheet(context, ref);
+      return;
+    }
     try {
       await ref
           .read(choiceModeProvider.notifier)

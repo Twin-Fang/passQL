@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../data/models/community/community_models.dart';
 import '../presentation/flows/daily_set_flow.dart';
 import '../presentation/flows/question_flow.dart';
+import '../presentation/flows/random_practice_flow.dart';
 import '../presentation/pages/community/blocked_members_page.dart';
 import '../presentation/pages/community/community_feed_page.dart';
 import '../presentation/pages/community/community_question_page.dart';
@@ -234,6 +235,13 @@ abstract final class AppRouter {
             ),
           );
         },
+      ),
+
+      // 풀스크린: 랜덤 풀기 풀이 (#576)
+      GoRoute(
+        path: AppRoutes.randomPractice,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const ChapterPage(flow: RandomPracticeFlow()),
       ),
 
       // 풀스크린: 오늘의 세트 풀이 / 결과 / 리더보드

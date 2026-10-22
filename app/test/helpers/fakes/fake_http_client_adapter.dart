@@ -42,3 +42,13 @@ ResponseBody jsonResponseBody(int statusCode, Map<String, dynamic> body) =>
         Headers.contentTypeHeader: [Headers.jsonContentType],
       },
     );
+
+/// JSON 배열 본문 응답 (목록 API)
+ResponseBody jsonListResponseBody(int statusCode, List<Object?> body) =>
+    ResponseBody.fromString(
+      jsonEncode(body),
+      statusCode,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );

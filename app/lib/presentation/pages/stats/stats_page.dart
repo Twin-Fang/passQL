@@ -3,9 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/ads/ad_placement.dart';
 import '../../design/design.dart';
+import '../../providers/plan_providers.dart';
 import '../../providers/stats_providers.dart';
 import '../../widgets/ads/ad_inline_card.dart';
 import '../../widgets/common/app_toast.dart';
+import '../../widgets/pro/locked_preview_samples.dart';
+import '../../widgets/pro/pro_locked_section.dart';
+import '../../widgets/pro/pro_plan_chip_slot.dart';
 import '../../widgets/stats/ai_analysis_card.dart';
 import '../../widgets/stats/bar_chart_section.dart';
 import '../../widgets/stats/radar_chart_section.dart';
@@ -28,10 +32,12 @@ class StatsPage extends ConsumerWidget {
         skipError: true,
         loading: () => const PassqlLargeTitleScrollView(
           title: '통계',
+          trailing: ProPlanChipSlot(),
           slivers: [_StatsSkeleton()],
         ),
         error: (error, _) => PassqlLargeTitleScrollView(
           title: '통계',
+          trailing: const ProPlanChipSlot(),
           slivers: [
             SliverFillRemaining(
               hasScrollBody: false,
@@ -44,6 +50,7 @@ class StatsPage extends ConsumerWidget {
         ),
         data: (data) => PassqlLargeTitleScrollView(
           title: '통계',
+          trailing: const ProPlanChipSlot(),
           onRefresh: () async {
             ref.invalidate(statsDataProvider);
             ref.invalidate(statsAiCommentProvider);
@@ -53,7 +60,12 @@ class StatsPage extends ConsumerWidget {
               if (context.mounted) showAppToast(context, '새로고침하지 못했어요');
             }
           },
-          slivers: [_StatsContent(data: data)],
+          slivers: [
+            _StatsContent(
+              data: data,
+              isAnalysisLocked: ref.watch(shouldShowProUiProvider),
+            ),
+          ],
         ),
       ),
     );
@@ -61,22 +73,31 @@ class StatsPage extends ConsumerWidget {
 }
 
 /// 통계 카드 목록: 요약 > AI 분석 > 레이더 > 막대 > 인라인 광고 순서로 하나씩 등장. 카드 사이 간격은 PassqlSpacing.md.
+/// [isAnalysisLocked] (무료, 결제 켜짐): 요약 > 토픽별 약점·AI 코멘트 묶음 블러 > 광고
 class _StatsContent extends StatelessWidget {
   final StatsData data;
+  final bool isAnalysisLocked;
 
-  const _StatsContent({required this.data});
+  const _StatsContent({required this.data, required this.isAnalysisLocked});
 
   @override
   Widget build(BuildContext context) {
     final sections = <Widget>[
       // 요약 통계 3개 카드
       SummaryStatsSection(progress: data.progress),
-      // AI 영역 분석 (웹과 같이 요약 바로 아래, 늦게 와도 나머지는 먼저 보인다)
-      const _StatsAiCommentSection(),
-      // 레이더 차트
-      RadarChartSection(topicStats: data.topicAnalysis?.topicStats),
-      // 카테고리별 가로 막대
-      BarChartSection(topicStats: data.topicAnalysis?.topicStats),
+      if (isAnalysisLocked)
+        const ProLockedSection(
+          preview: StatsLockedSample(),
+          caption: LockedPreviewCaptions.stats,
+        )
+      else ...[
+        // AI 영역 분석 (웹과 같이 요약 바로 아래, 늦게 와도 나머지는 먼저 보인다)
+        const _StatsAiCommentSection(),
+        // 레이더 차트
+        RadarChartSection(topicStats: data.topicAnalysis?.topicStats),
+        // 카테고리별 가로 막대
+        BarChartSection(topicStats: data.topicAnalysis?.topicStats),
+      ],
     ];
 
     return SliverPadding(

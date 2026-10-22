@@ -1,13 +1,17 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../data/models/question/locked_section_names.dart';
 import '../../../router/app_routes.dart';
 import '../../../router/result_route_arguments.dart';
 import '../../design/design.dart';
 import '../../providers/ai_explanation_session_provider.dart';
 import '../../providers/choice_explanation_providers.dart';
+import '../../providers/plan_providers.dart';
 import '../../widgets/ai_explanation/ai_explanation_content.dart';
 import '../../widgets/community/community_opinion_chip.dart';
+import '../../widgets/pro/locked_preview_samples.dart';
+import '../../widgets/pro/pro_locked_section.dart';
 import '../../widgets/question/execute_result_card.dart';
 import '../../widgets/report/report_button.dart';
 import '../../widgets/result/similar_questions_section.dart';
@@ -41,6 +45,8 @@ class ResultPage extends ConsumerWidget {
         goRouterState.pathParameters[AppRoutes.questionUuidParameter] ?? '';
     final isCorrect = result.isCorrect;
     final colors = context.passqlColors;
+    // 무료(결제 켜짐): 실행 결과 자리 블러, 유사 문제 잠금 (요청 없음)
+    final shouldShowProUi = ref.watch(shouldShowProUiProvider);
 
     // AI 해설: 제출한 선택지 세트를 알 때만 (모르면 생성 근거 카드로 대신)
     final explanationRequest = ChoiceExplanationRequest.fromSubmission(
@@ -94,6 +100,11 @@ class ResultPage extends ConsumerWidget {
           ExecuteResultCard(
             result: result.correctResult!,
             margin: EdgeInsets.zero,
+          )
+        else if (shouldShowProUi && result.isExecutionResultLocked)
+          const ProLockedSection(
+            preview: ExecutionResultLockedSample(),
+            caption: LockedPreviewCaptions.executionResult,
           ),
         // 해설: AI 해설 본문(실패 시 근거 폴백 포함) 또는 생성 근거
         if (explanationEntry != null)
@@ -124,7 +135,7 @@ class ResultPage extends ConsumerWidget {
             ],
           ),
         // 유사 문제 (비동기 로드)
-        if (questionUuid.isNotEmpty)
+        if (questionUuid.isNotEmpty && !shouldShowProUi)
           SimilarQuestionsSection(questionUuid: questionUuid),
       ],
       actions: [

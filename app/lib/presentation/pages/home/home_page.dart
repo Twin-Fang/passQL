@@ -20,8 +20,10 @@ import '../../widgets/home/exam_trend_entry_card.dart';
 import '../../widgets/home/fallback_stats_section.dart';
 import '../../widgets/home/greeting_section.dart';
 import '../../widgets/home/heatmap_widget.dart';
+import '../../widgets/home/random_practice_card.dart';
 import '../../widgets/home/readiness_card.dart';
 import '../../widgets/home/recommendations_section.dart';
+import '../../widgets/pro/pro_plan_chip_slot.dart';
 
 /// 홈 화면.
 /// homeDataProvider에서 6개 API 병렬 결과를 받아 렌더링.
@@ -69,7 +71,7 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-/// 로딩·오류·내용 공통 틀: 로고 상단 바 + 오른쪽 종 아이콘
+/// 로딩·오류·내용 공통 틀: 로고 상단 바 + 오른쪽 등급 칩·종 아이콘
 class _HomeShell extends ConsumerWidget {
   final Future<void> Function()? onRefresh;
   final List<Widget> slivers;
@@ -80,11 +82,18 @@ class _HomeShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return PassqlBrandBarScrollView(
       onRefresh: onRefresh,
-      trailing: PassqlNotificationBellButton(
-        unreadCount: ref.watch(
-          unreadNotificationCountProvider.select((count) => count.total),
-        ),
-        onPressed: () => context.push(AppRoutes.notificationInbox),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 결제 꺼짐·등급 모름이면 빈 자리 (종 아이콘만)
+          const ProPlanChipSlot(),
+          PassqlNotificationBellButton(
+            unreadCount: ref.watch(
+              unreadNotificationCountProvider.select((count) => count.total),
+            ),
+            onPressed: () => context.push(AppRoutes.notificationInbox),
+          ),
+        ],
       ),
       slivers: slivers,
     );
@@ -130,6 +139,9 @@ class _HomeContent extends ConsumerWidget {
           ],
         ),
       ),
+
+      // 랜덤 풀기 진입 (무료면 오늘 랜덤 n / 10, #576)
+      const RandomPracticeCard(),
 
       // 합격 준비도 카드 (readiness 있을 때)
       if (data.progress?.readiness != null)

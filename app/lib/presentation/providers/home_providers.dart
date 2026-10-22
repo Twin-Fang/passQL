@@ -9,6 +9,7 @@ import '../../data/models/daily_set/daily_set_models.dart';
 import '../../data/models/progress/heatmap_response.dart';
 import '../../data/models/progress/progress_response.dart';
 import '../../data/models/exam/exam_schedule_response.dart';
+import 'pro_ui_providers.dart';
 import 'session_reset.dart';
 
 /// 홈 화면에 필요한 모든 API 응답을 담는 집계 모델.
@@ -50,16 +51,22 @@ class HomeLearningStatus {
 }
 
 /// 인사말·추천·시험 일정 3개 병렬 호출. 날짜가 바뀌거나 직접 새로고침할 때만 다시 받는다
-/// 로그아웃이면 빈 묶음 (API 호출 없음)
+/// 로그아웃이면 빈 묶음 (API 호출 없음), 무료(결제 켜짐)면 추천 요청 없음 (약점 추천 잠금)
 final homeOverviewProvider = FutureProvider.autoDispose<HomeOverview>((
   ref,
 ) async {
   if (ref.watch(currentMemberUuidProvider) == null) return const HomeOverview();
   final greeting = SafeCallSlot(ref.read(homeApiProvider).getGreeting());
+  // 추천만 등급 첫 조회 뒤 판정 (다른 요청은 기다리지 않음, 슬롯은 모두 바로 묶음)
+  final questionApi = ref.read(questionApiProvider);
   final recommendations = SafeCallSlot(
-    ref
-        .read(questionApiProvider)
-        .getRecommendations(const RecommendationsRequest(size: 3)),
+    resolveShouldShowProUi(ref).then<RecommendationsResponse?>(
+      (isRecommendationLocked) => isRecommendationLocked
+          ? null
+          : questionApi.getRecommendations(
+              const RecommendationsRequest(size: 3),
+            ),
+    ),
   );
   final examSchedule = SafeCallSlot(
     ref.read(examScheduleApiProvider).getSelectedSchedule(),
