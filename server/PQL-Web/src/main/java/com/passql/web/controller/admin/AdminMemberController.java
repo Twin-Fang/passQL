@@ -1,7 +1,7 @@
 package com.passql.web.controller.admin;
 
 import com.passql.application.entitlement.EntitlementAdminService;
-import com.passql.application.entitlement.EntitlementPurchaseRevoker.RecalculationKind;
+import com.passql.application.entitlement.EntitlementPurchaseRevoker.RevocationResult;
 import com.passql.application.notification.MemberNotificationService;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
@@ -28,12 +28,16 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 @Controller
 @RequestMapping("/admin/members")
 @RequiredArgsConstructor
 public class AdminMemberController {
+
+    // 프로 부여·회수 토스트 날짜 (회원 상세 카드와 같은 표기)
+    private static final DateTimeFormatter TOAST_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private final MemberAdminService memberAdminService;
     private final SubmissionService submissionService;
@@ -96,8 +100,12 @@ public class AdminMemberController {
                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate expiresDate,
                            RedirectAttributes redirectAttributes) {
         try {
-            entitlementAdminService.grantPro(memberUuid, expiresDate);
-            redirectAttributes.addFlashAttribute(AdminFlash.TOAST_MESSAGE, "프로를 부여했습니다.");
+            boolean isShortened = entitlementAdminService.grantPro(memberUuid, expiresDate);
+            String formattedExpiresDate = expiresDate.format(TOAST_DATE_FORMATTER);
+            String toastMessage = isShortened
+                ? "프로 만료일을 " + formattedExpiresDate + "로 줄였습니다."
+                : "프로를 " + formattedExpiresDate + "까지 부여했습니다.";
+            redirectAttributes.addFlashAttribute(AdminFlash.TOAST_MESSAGE, toastMessage);
         } catch (CustomException exception) {
             String errorMessage = exception.getErrorCode() == ErrorCode.INVALID_INPUT_VALUE
                 ? "만료일은 오늘 이후 날짜여야 합니다." : exception.getErrorCode().getMessage();
@@ -111,11 +119,8 @@ public class AdminMemberController {
     public String revokePurchase(@PathVariable UUID memberUuid, @PathVariable UUID entitlementPurchaseUuid,
                                  RedirectAttributes redirectAttributes) {
         try {
-            RecalculationKind recalculationKind = entitlementAdminService.revokePurchase(memberUuid, entitlementPurchaseUuid);
-            // 관리자 부여 등급이면 구매만 회수, 이용권 만료일은 그대로
-            String toastMessage = recalculationKind == RecalculationKind.ADMIN_GRANT_KEPT
-                ? "구매를 회수했습니다. 관리자 부여 이용권은 그대로입니다." : "구매를 회수했습니다.";
-            redirectAttributes.addFlashAttribute(AdminFlash.TOAST_MESSAGE, toastMessage);
+            RevocationResult revocationResult = entitlementAdminService.revokePurchase(memberUuid, entitlementPurchaseUuid);
+            redirectAttributes.addFlashAttribute(AdminFlash.TOAST_MESSAGE, toRevokePurchaseToastMessage(revocationResult));
         } catch (CustomException exception) {
             // 거절 사유별 문구: 이미 회수, 다른 회원·없는 구매, 그 외는 공통 오류 처리
             String errorMessage = switch (exception.getErrorCode()) {
@@ -134,5 +139,16 @@ public class AdminMemberController {
         entitlementAdminService.revokePro(memberUuid);
         redirectAttributes.addFlashAttribute(AdminFlash.TOAST_MESSAGE, "프로를 회수했습니다.");
         return "redirect:/admin/members/" + memberUuid;
+    }
+
+    /** 구매 회수 결과 > 토스트 (관리자 부여 유지, 무료 전환, 만료일 변경, 등급 행 없음) */
+    private String toRevokePurchaseToastMessage(RevocationResult revocationResult) {
+        return switch (revocationResult.kind()) {
+            case ADMIN_GRANT_KEPT -> "구매를 회수했습니다. 관리자 부여 이용권은 그대로입니다.";
+            case RECALCULATED -> revocationResult.afterExpiresAt() == null
+                ? "구매를 회수했습니다. 무료로 바뀌었습니다."
+                : "구매를 회수했습니다. 만료일이 " + revocationResult.afterExpiresAt().format(TOAST_DATE_FORMATTER) + "로 바뀌었습니다.";
+            case NO_ENTITLEMENT -> "구매를 회수했습니다.";
+        };
     }
 }

@@ -26,7 +26,7 @@
                 </div>
                 <div class="info-row">
                     <span class="info-label">부여 경로</span>
-                    <span class="info-value" th:text="${entitlement.source != null ? entitlement.source.name() : '—'}">—</span>
+                    <span class="info-value" th:text="${entitlement.isActivePro() and entitlement.source != null ? entitlement.source.name() : '—'}">—</span>
                 </div>
             </div>
 

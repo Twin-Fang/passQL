@@ -1,6 +1,5 @@
 package com.passql.application.entitlement;
 
-import com.passql.application.entitlement.EntitlementPurchaseRevoker.RecalculationKind;
 import com.passql.application.entitlement.EntitlementPurchaseRevoker.RevocationResult;
 import com.passql.common.audit.AdminAuditEvent;
 import com.passql.common.audit.constant.AdminAuditAction;
@@ -76,9 +75,10 @@ public class EntitlementAdminService {
     /**
      * 프로 부여: 회원·날짜 검증 > 행 잠금 조회 > 만료일 지정 또는 생성(ADMIN_GRANT) > 감사 기록
      * 활성 유료 패스보다 짧은 날짜도 허용 (확인은 관리자 화면 confirm), 지난 날짜는 거절 (회수 사용)
+     * 반환: 기존 만료일보다 줄였으면 true
      */
     @Transactional
-    public void grantPro(UUID memberUuid, LocalDate expiresDate) {
+    public boolean grantPro(UUID memberUuid, LocalDate expiresDate) {
         // 요청 검증 (회원 존재, 오늘 이후 날짜)
         if (!memberRepository.existsByMemberUuidAndIsDeletedFalse(memberUuid)) {
             throw new CustomException(ErrorCode.MEMBER_NOT_FOUND);
@@ -103,6 +103,7 @@ public class EntitlementAdminService {
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.MEMBER, memberUuid, AdminAuditAction.UPDATE,
             AdminAuditEvent.summary("proExpiresAt", previousExpiresAt),
             AdminAuditEvent.summary("proExpiresAt", newExpiresAt, "source", EntitlementSource.ADMIN_GRANT)));
+        return previousExpiresAt != null && previousExpiresAt.isAfter(newExpiresAt);
     }
 
     /** 프로 회수: 등급 행이 있을 때만 FREE 로 (없으면 아무것도 하지 않음) */
@@ -125,10 +126,10 @@ public class EntitlementAdminService {
     /**
      * 구매 1건 회수: 회원 소유·검증 상태 확인 > REVOKED + 등급 재계산(환불 작업과 같은 공통 회수기) > 감사 기록
      * 다른 회원 구매 ACCESS_DENIED, 없는 구매 RESOURCE_NOT_FOUND, 이미 회수 INVALID_REQUEST
-     * 반환: 재계산 종류 (관리자 부여 등급이면 이용권은 그대로)
+     * 반환: 재계산 결과 (종류, 회수 전후 만료일)
      */
     @Transactional
-    public RecalculationKind revokePurchase(UUID memberUuid, UUID entitlementPurchaseUuid) {
+    public RevocationResult revokePurchase(UUID memberUuid, UUID entitlementPurchaseUuid) {
         // 요청 검증 (구매 존재, 회원 소유, 검증 상태)
         EntitlementPurchase purchase = entitlementPurchaseRepository.findById(entitlementPurchaseUuid)
             .orElseThrow(() -> new CustomException(ErrorCode.RESOURCE_NOT_FOUND));
@@ -152,7 +153,7 @@ public class EntitlementAdminService {
                 "proExpiresAt", revocationResult.beforeExpiresAt()),
             AdminAuditEvent.summary("order", purchase.getOrderId(), "purchaseStatus", PurchaseStatus.REVOKED,
                 "proExpiresAt", revocationResult.afterExpiresAt())));
-        return revocationResult.kind();
+        return revocationResult;
     }
 
     /** 회원 상세용: 현재 등급 행 > 유효 프로 여부, 구매 이력 최신순 */
