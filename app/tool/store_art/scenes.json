@@ -1,9 +1,22 @@
 {
   "_comment": "스토어 홍보 이미지 장면. 순서 = 스토어 노출 순서. shot 은 app/docs/store/promo/source 안 원본 캡처(tool/store_shots 로 찍음). headline 의 <em> 은 강조색, <br> 은 줄바꿈",
   "targets": {
-    "ios-6.9": {"width": 1320, "height": 2868},
-    "ios-6.5": {"width": 1284, "height": 2778},
-    "android-phone": {"width": 1080, "height": 1920}
+    "ios-6.9": {
+      "width": 1320,
+      "height": 2868
+    },
+    "ios-6.5": {
+      "width": 1284,
+      "height": 2778
+    },
+    "ios-6.3": {
+      "width": 1206,
+      "height": 2622
+    },
+    "android-phone": {
+      "width": 1080,
+      "height": 1920
+    }
   },
   "wide": {
     "app_name": "passQL",
