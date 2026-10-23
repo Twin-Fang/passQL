@@ -49,6 +49,7 @@ export default function AnswerFeedback() {
     schemaSampleData,
     choiceSetUuid,
     structuredExplanation,
+    lockedSections,
   } = state;
 
   const isExecutable = executionMode === "EXECUTABLE";
@@ -77,7 +78,7 @@ export default function AnswerFeedback() {
           selectedSql,
           correctSql,
           submissionUuid: null,
-          lockedSections: [],
+          lockedSections: [...(lockedSections ?? [])],
         },
       })
     : null;

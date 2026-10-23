@@ -5,13 +5,33 @@ import { render } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-/** API 경로(/api 뒤, 쿼리 제외) > 응답 본문. 목록에 없는 경로는 404 */
+// 오류 응답 표시 (stubApiResponses 값으로 넣으면 그 상태 코드로 응답)
+class StubbedApiErrorResponse {
+  readonly status: number;
+  readonly body: unknown;
+
+  constructor(status: number, body: unknown) {
+    this.status = status;
+    this.body = body;
+  }
+}
+
+/** 오류 응답 1건: 상태 코드 + 본문 (예: 403 + { errorCode: "PRO_REQUIRED" }) */
+export function apiErrorResponse(status: number, body: unknown): StubbedApiErrorResponse {
+  return new StubbedApiErrorResponse(status, body);
+}
+
+/** API 경로(/api 뒤, 쿼리 제외) > 응답 본문(또는 apiErrorResponse). 목록에 없는 경로는 404 */
 export function stubApiResponses(responseBodyByApiPath: Readonly<Record<string, unknown>>) {
   vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
     const requestPath = new URL(String(input), "http://localhost").pathname;
     const apiPath = requestPath.replace(/^.*?\/api(?=\/)/, "");
     if (apiPath in responseBodyByApiPath) {
-      return new Response(JSON.stringify(responseBodyByApiPath[apiPath]), { status: 200 });
+      const stubbedResponse = responseBodyByApiPath[apiPath];
+      if (stubbedResponse instanceof StubbedApiErrorResponse) {
+        return new Response(JSON.stringify(stubbedResponse.body), { status: stubbedResponse.status });
+      }
+      return new Response(JSON.stringify(stubbedResponse), { status: 200 });
     }
     return new Response(JSON.stringify({ message: "not stubbed" }), { status: 404 });
   }));

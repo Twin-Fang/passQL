@@ -137,6 +137,12 @@ export type NicknameCheckResponse = ApiSchemas["NicknameCheckResponse"];
 
 export type NicknameChangeResponse = ApiSchemas["NicknameChangeResponse"];
 
+// 내 등급 (#576): plan "FREE" | "PRO" (계약은 string) / 결제 꺼짐이면 isBillingEnabled false, 전원 프로 취급
+export type MemberPlanResponse = ApiSchemas["MemberPlanResponse"];
+
+// 서버 오류 코드 (ErrorResponse.errorCode)
+export type ApiErrorCode = ApiSchemas["ErrorCode"];
+
 // === AI Payloads ===
 // 서버 요청 본문이 Map 이라 스키마 없음 > 웹 손타입 유지
 export interface ExplainErrorPayload {

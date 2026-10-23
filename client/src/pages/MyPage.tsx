@@ -9,6 +9,7 @@ import { isNicknameCooldown, formatNicknameCooldownMessage } from "../lib/nickna
 import { fetchWrongQuestions } from "../api/progress";
 import NicknameChangeModal from "../components/NicknameChangeModal";
 import ErrorFallback from "../components/ErrorFallback";
+import PlanChip from "../components/pro/PlanChip";
 import type { WrongQuestionItem } from "../types/api";
 
 // 틀린 문제 카드 한 줄
@@ -123,9 +124,13 @@ export default function MyPage() {
           <span className="text-2xl font-bold text-on-brand">{avatarLetter}</span>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-lg font-bold text-text-primary truncate">
-            {nickname || uuid.slice(0, 8)}
-          </p>
+          {/* 닉네임 + 등급 칩 (결제 꺼짐이면 칩 없음, #578) */}
+          <div className="flex items-center gap-2 min-w-0">
+            <p className="text-lg font-bold text-text-primary truncate">
+              {nickname || uuid.slice(0, 8)}
+            </p>
+            <PlanChip />
+          </div>
           <p className="text-xs text-text-caption mt-0.5">
             마지막 학습 · {memberData?.nicknameChangedAt ? "최근" : "기록 없음"}
           </p>

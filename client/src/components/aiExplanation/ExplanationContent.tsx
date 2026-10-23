@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { AlertTriangle, BookOpen, Check, Lightbulb, ListChecks, Target, X } from "lucide-react";
 import InlineMarkdownText from "./InlineMarkdownText";
+import ExplanationLockedPreview from "./ExplanationLockedPreview";
 import {
   composeVerdict,
   sortChoiceAnalysesByDisplayOrder,
@@ -75,12 +76,18 @@ function ChoiceAnalysisRow({ analysis, displayLabel, isSelected }: ChoiceAnalysi
 interface ExplanationContentProps {
   readonly explanation: ChoiceExplanation;
   readonly displayLabelByChoiceKey: DisplayLabelByChoiceKey;
+  // 무료(결제 켜짐): 서버가 판정 외 섹션을 비워 보냄 > 판정 아래 잠금 미리보기 (#578)
+  readonly isFullExplanationLocked?: boolean;
 }
 
 /**
  * 구조화 해설 전체: 판정 배지 > 정답 근거 > 핵심 개념 > 헷갈리는 지점 > 보기별 판단 > 시험 팁 > AI 안내
  */
-export default function ExplanationContent({ explanation, displayLabelByChoiceKey }: ExplanationContentProps) {
+export default function ExplanationContent({
+  explanation,
+  displayLabelByChoiceKey,
+  isFullExplanationLocked = false,
+}: ExplanationContentProps) {
   const isCorrect = explanation.isSelectedCorrect;
   const correctLabel = toDisplayLabel(displayLabelByChoiceKey, explanation.correctChoiceKey);
   const sortedAnalyses = sortChoiceAnalysesByDisplayOrder(explanation.choiceAnalyses, displayLabelByChoiceKey);
@@ -108,9 +115,13 @@ export default function ExplanationContent({ explanation, displayLabelByChoiceKe
         />
       </div>
 
-      <ExplanationSection title={`정답 ${correctLabel} 근거`} icon={<Target size={13} />}>
-        <InlineMarkdownText text={explanation.correctReason} className="text-sm leading-relaxed text-text-primary" />
-      </ExplanationSection>
+      {isFullExplanationLocked && <ExplanationLockedPreview />}
+
+      {explanation.correctReason.trim() && (
+        <ExplanationSection title={`정답 ${correctLabel} 근거`} icon={<Target size={13} />}>
+          <InlineMarkdownText text={explanation.correctReason} className="text-sm leading-relaxed text-text-primary" />
+        </ExplanationSection>
+      )}
 
       {/* 시험 팁: 정답 근거 바로 아래 (앱 AiExplanationSections 와 같은 순서) */}
       {explanation.examTip && (

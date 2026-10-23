@@ -11,9 +11,14 @@ export interface ChoiceExplanationTarget {
   readonly selectedChoiceKey: string;
   // 제출 응답 구조화 해설: 있으면 조회 없이 즉시 READY
   readonly initialExplanation: ChoiceExplanation | null;
+  // 제출 응답의 잠긴 묶음 (initialExplanation 과 함께 즉시 표시)
+  readonly initialLockedSections: readonly string[];
   // 실패·구조화 없음일 때 마크다운 폴백
   readonly fallbackText: string | null;
 }
+
+// 잠긴 묶음 없음 (기다림·실패 상태 공통)
+const NO_LOCKED_SECTIONS: readonly string[] = [];
 
 // 화면 상태 3개: 기다림 / 보여 줄 해설 있음 / 실패(재시도 가능)
 export type ChoiceExplanationPhase = "loading" | "ready" | "failed";
@@ -24,6 +29,8 @@ export interface ChoiceExplanationView {
   readonly explanation: ChoiceExplanation | null;
   // ready: 구조화 없을 때 본문 / loading: 옛 해설 임시 표시 / failed: 폴백
   readonly markdownText: string | null;
+  // 무료 응답에서 서버가 뺀 묶음 (FULL_EXPLANATION), 없으면 빈 목록
+  readonly lockedSections: readonly string[];
   readonly retry: () => void;
 }
 
@@ -42,7 +49,7 @@ function toReadyResponse(target: ChoiceExplanationTarget, explanation: ChoiceExp
     text: null,
     promptVersion: null,
     retryAfterMilliseconds: null,
-    lockedSections: [],
+    lockedSections: [...target.initialLockedSections],
   };
 }
 
@@ -108,22 +115,24 @@ function toExplanationView(
     phase: "failed",
     explanation: null,
     markdownText: markdownText || fallbackText,
+    lockedSections: NO_LOCKED_SECTIONS,
     retry,
   });
   if (isError && !response) return failed(null);
-  if (!response) return { phase: "loading", explanation: null, markdownText: null, retry };
+  if (!response) return { phase: "loading", explanation: null, markdownText: null, lockedSections: NO_LOCKED_SECTIONS, retry };
 
   switch (response.status) {
     case "READY": {
       const markdownText = response.text || fallbackText;
-      // 구조화·마크다운 둘 다 없으면 보여 줄 것이 없음 > 실패
-      if (!response.explanation && !markdownText) return failed(null);
-      return { phase: "ready", explanation: response.explanation, markdownText, retry };
+      const lockedSections = response.lockedSections ?? NO_LOCKED_SECTIONS;
+      // 구조화·마크다운·잠긴 묶음 모두 없으면 보여 줄 것이 없음 > 실패
+      if (!response.explanation && !markdownText && lockedSections.length === 0) return failed(null);
+      return { phase: "ready", explanation: response.explanation, markdownText, lockedSections, retry };
     }
     case "GENERATING":
       // 재조회 횟수를 다 쓰면 실패 (재시도로 다시 기다림)
       if (!canPollAgain(receivedResponseCount)) return failed(response.text);
-      return { phase: "loading", explanation: null, markdownText: response.text, retry };
+      return { phase: "loading", explanation: null, markdownText: response.text, lockedSections: NO_LOCKED_SECTIONS, retry };
     case "FAILED":
       return failed(response.text);
   }

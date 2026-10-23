@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import ExamTrend from "./ExamTrend";
-import { renderPageForSmokeTest, stubApiResponses } from "../test/renderPageForSmokeTest";
+import { apiErrorResponse, renderPageForSmokeTest, stubApiResponses } from "../test/renderPageForSmokeTest";
 import { useAuthStore } from "../stores/authStore";
 import type { ExamTrendReportResponse } from "../types/api";
 
@@ -82,5 +82,13 @@ describe("ExamTrend", () => {
     stubApiResponses({});
     renderExamTrend();
     expect(await screen.findByRole("button", { name: "다시 시도하기" })).toBeInTheDocument();
+  });
+
+  it("프로 필요면 재시도 대신 잠금 미리보기 (#578)", async () => {
+    stubApiResponses({ "/exam-trends/latest": apiErrorResponse(403, { errorCode: "PRO_REQUIRED" }) });
+    renderExamTrend();
+    expect(await screen.findByRole("region", { name: "최근 기출 토픽 비중 · 이번 회차 예상" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "앱에서 이용권으로 열기" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "다시 시도하기" })).toBeNull();
   });
 });

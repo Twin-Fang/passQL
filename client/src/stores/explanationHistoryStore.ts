@@ -15,6 +15,8 @@ export interface ExplanationHistoryEntry {
   readonly isCorrect: boolean;
   // 제출 응답의 구조화 해설 (있으면 조회 없이 즉시 표시)
   readonly initialExplanation: ChoiceExplanation | null;
+  // 제출 응답의 잠긴 묶음 (무료면 FULL_EXPLANATION, #578)
+  readonly initialLockedSections: readonly string[];
   // 구조화 해설 실패 시 마크다운 폴백 (제출 응답 explanation 또는 rationale)
   readonly fallbackText: string | null;
 }
@@ -85,6 +87,7 @@ export function buildExplanationHistoryEntry({
     displayLabelByChoiceKey: buildDisplayLabelByChoiceKey(choices),
     isCorrect: result.isCorrect,
     initialExplanation: result.structuredExplanation ?? null,
+    initialLockedSections: result.lockedSections ?? [],
     fallbackText: result.explanation || result.rationale || null,
   };
 }
