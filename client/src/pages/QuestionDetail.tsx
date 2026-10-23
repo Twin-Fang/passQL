@@ -10,6 +10,8 @@ import QuestionDetailHeader from "../components/questionDetail/QuestionDetailHea
 import QuestionStemToggle from "../components/questionDetail/QuestionStemToggle";
 import ChoiceGenerationStatus from "../components/questionDetail/ChoiceGenerationStatus";
 import QuestionChoiceList from "../components/questionDetail/QuestionChoiceList";
+import ProAccessReasonView from "../components/pro/ProAccessReasonView";
+import { toProAccessErrorCode } from "../lib/proAccess";
 import { executeChoice } from "../api/questions";
 import { useQuestionDetail } from "../hooks/useQuestionDetail";
 import { useQuestionChoices } from "../hooks/useQuestionChoices";
@@ -55,7 +57,7 @@ export default function QuestionDetail({
   const { questionUuid: paramUuid } = useParams<{ questionUuid: string }>();
   const questionUuid = propUuid ?? paramUuid;
   const navigate = useNavigate();
-  const { data: question, isLoading } = useQuestionDetail(questionUuid!);
+  const { data: question, isLoading, error: questionLoadError } = useQuestionDetail(questionUuid!);
 
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [isStemOpen, setIsStemOpen] = useState(true);
@@ -83,6 +85,17 @@ export default function QuestionDetail({
     // 풀이 중 SQL 자동 실행 없음 — 제출 후 결과 화면에서 실행
     setSelectedKey(choiceKey);
   }, []);
+
+  // 하루 한도·프로 필요 > 사유 화면 (일반 오류·로딩은 기존 스켈레톤, #578)
+  const proAccessErrorCode = toProAccessErrorCode(questionLoadError);
+  if (proAccessErrorCode && !question) {
+    return (
+      <div className={practiceMode ? "px-1" : "min-h-screen bg-surface max-w-120 mx-auto w-full px-4"}>
+        {!practiceMode && <QuestionDetailHeader onBack={() => navigate(-1)} />}
+        <ProAccessReasonView errorCode={proAccessErrorCode} />
+      </div>
+    );
+  }
 
   if (isLoading || !question) {
     return <QuestionDetailSkeleton isPracticeMode={!!practiceMode} />;

@@ -181,7 +181,7 @@ public enum ErrorCode {
     INVALID_SOCIAL_TOKEN(HttpStatus.UNAUTHORIZED, "소셜 로그인 인증 정보가 올바르지 않습니다."),
 
     // Billing (무료·프로 플랜, #576)
-    PRO_REQUIRED(HttpStatus.FORBIDDEN, "회차 패스가 필요한 기능이에요"),
+    PRO_REQUIRED(HttpStatus.FORBIDDEN, "이용권이 필요한 기능이에요"),
     FREE_DAILY_LIMIT_REACHED(HttpStatus.FORBIDDEN, "오늘 무료 10문제를 다 풀었어요"),
     FAIR_USE_DAILY_LIMIT_REACHED(HttpStatus.TOO_MANY_REQUESTS, "오늘 풀 수 있는 문제를 모두 풀었어요");
 

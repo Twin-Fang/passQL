@@ -99,9 +99,11 @@ Widget _app({
   VoidCallback? onOpened,
   bool isInfoSheet = false,
   MemberPlanResponse? plan,
+  TargetPlatform platform = TargetPlatform.android,
 }) {
   return ProviderScope(
     overrides: [
+      targetPlatformProvider.overrideWithValue(platform),
       proPurchasePortProvider.overrideWithValue(port),
       knownPlanProvider.overrideWith((ref) => plan ?? _freePlan),
       planProvider.overrideWith(_FakePlanNotifier.new),
@@ -162,6 +164,36 @@ void main() {
     expect(find.text('이미 구매했나요? 복원하기'), findsOneWidget);
     // 개념 학습 행은 숨김
     expect(find.text('개념 학습'), findsNothing);
+  });
+
+  testWidgets('offerSheet_appleIdNotice_onIosOnly_restoreOnBoth', (
+    tester,
+  ) async {
+    const appleIdNotice = '구매는 Apple ID 계정으로 결제됩니다.';
+    for (final (platform, isNoticeExpected) in [
+      (TargetPlatform.iOS, true),
+      (TargetPlatform.android, false),
+    ]) {
+      await tester.pumpWidget(
+        _app(port: _FakeProPurchasePort(), platform: platform),
+      );
+      await tester.tap(find.text('열기'));
+      await tester.pumpAndSettle();
+
+      // iOS: StoreKit 가격 + 자동 결제 없음 + Apple ID 결제 안내 + 복원
+      expect(_buyButton(tester).label, '3개월 이용권 ₩9,900');
+      expect(
+        findTextContainingIgnoringWordJoiners('자동 결제 없음'),
+        findsOneWidget,
+      );
+      expect(
+        _inSheet(appleIdNotice),
+        isNoticeExpected ? findsOneWidget : findsNothing,
+      );
+      expect(_inSheet('이미 구매했나요? 복원하기'), findsOneWidget);
+      Navigator.of(tester.element(find.text('이미 구매했나요? 복원하기'))).pop();
+      await tester.pumpAndSettle();
+    }
   });
 
   testWidgets('offerSheet_defaultsToThreeMonth_withDiscountBadge', (

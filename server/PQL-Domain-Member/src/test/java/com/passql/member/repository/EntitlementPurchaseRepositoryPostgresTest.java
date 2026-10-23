@@ -93,7 +93,7 @@ class EntitlementPurchaseRepositoryPostgresTest {
             purchaseRepository.insertVerifiedIfAbsent(UUID.randomUUID(), memberUuid, PurchaseStore.PLAY.name(),
                 PassProduct.PRO_PASS_3M.getProductId(), orderId, purchaseToken, now, PurchaseStatus.VERIFIED.name(),
                 now.plusDays(PassProduct.PRO_PASS_3M.getDurationDays()), PassProduct.PRO_PASS_3M.getDurationDays(),
-                now, "system"));
+                false, now, "system"));
         return insertedCount == null ? 0 : insertedCount;
     }
 

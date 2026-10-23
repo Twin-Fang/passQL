@@ -5,6 +5,10 @@ import { useProgress } from "../hooks/useProgress";
 import { fetchTopicAnalysis, fetchAiComment } from "../api/progress";
 import { useAuthStore } from "../stores/authStore";
 import ErrorFallback from "../components/ErrorFallback";
+import LockedPreview from "../components/pro/LockedPreview";
+import { StatsLockedSample } from "../components/pro/lockedPreviewSamples";
+import { LOCKED_PREVIEW_CAPTIONS } from "../constants/proAccessCopy";
+import { toProAccessErrorCode } from "../lib/proAccess";
 import StatsAnalysisCard from "../components/StatsAnalysisCard";
 import StatsRadarChart from "../components/StatsRadarChart";
 import StatsTopicList from "../components/StatsTopicList";
@@ -70,7 +74,7 @@ export default function Stats() {
   } = useProgress();
 
   // 토픽별 정답률/풀이 수 (레이더·리스트)
-  const { data: topicAnalysis } = useQuery({
+  const { data: topicAnalysis, error: topicAnalysisError } = useQuery({
     queryKey: ["topicAnalysis", uuid],
     queryFn: fetchTopicAnalysis,
     enabled: !!uuid,
@@ -92,6 +96,8 @@ export default function Stats() {
   const readiness = progress?.readiness;
   const readinessPercent = readiness ? Math.round(readiness.score * 100) : null;
   const topicStats = topicAnalysis?.topicStats ?? [];
+  // 토픽 분석 프로 필요(무료, 결제 켜짐) > 빈 상태 대신 잠금 미리보기 (#578)
+  const isTopicAnalysisLocked = toProAccessErrorCode(topicAnalysisError) === "PRO_REQUIRED";
 
   // 팝오버 바깥 클릭 시 닫기
   useEffect(() => {
@@ -220,6 +226,10 @@ export default function Stats() {
             <StatsTopicList topicStats={topicStats} />
           </section>
         </>
+      ) : isTopicAnalysisLocked ? (
+        <section className={s2.className}>
+          <LockedPreview preview={<StatsLockedSample />} caption={LOCKED_PREVIEW_CAPTIONS.stats} />
+        </section>
       ) : (
         <section className={`bg-surface-card border border-border rounded-2xl text-center py-12 ${s2.className}`}>
           <p className="text-text-caption">아직 풀이 기록이 없어요</p>

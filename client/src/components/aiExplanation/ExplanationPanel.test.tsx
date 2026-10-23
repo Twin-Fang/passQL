@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ExplanationPanel from "./ExplanationPanel";
 import ExplanationPreviewCard from "./ExplanationPreviewCard";
 import ExplanationHistoryButton from "./ExplanationHistoryButton";
+import ExplanationBody from "./ExplanationBody";
+import { stubApiResponses } from "../../test/renderPageForSmokeTest";
 import { useAuthStore } from "../../stores/authStore";
 import { useExplanationHistoryStore, type ExplanationHistoryEntry } from "../../stores/explanationHistoryStore";
 import type { ChoiceExplanation, ChoiceExplanationResponse } from "../../types/api";
@@ -41,6 +43,7 @@ function buildEntry(overrides: Partial<ExplanationHistoryEntry> = {}): Explanati
     displayLabelByChoiceKey: { A: "A", B: "B" },
     isCorrect: false,
     initialExplanation: null,
+    initialLockedSections: [],
     fallbackText: null,
     ...overrides,
   };
@@ -195,5 +198,57 @@ describe("AI 해설", () => {
     expect(screen.queryByRole("complementary", { name: "AI 해설 패널" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "해설함 열기 (2개)" }));
     expect(screen.getByRole("list", { name: "해설함" })).toBeInTheDocument();
+  });
+});
+
+describe("AI 해설 무료 잠금 (#578)", () => {
+  // 무료 응답: 판정만 남기고 나머지 섹션을 비움
+  const LOCKED_EXPLANATION: ChoiceExplanation = {
+    ...STRUCTURED_EXPLANATION,
+    correctReason: "",
+    keyConcepts: [],
+    confusingPoints: [],
+    choiceAnalyses: [],
+    examTip: "",
+  };
+
+  function buildPlanResponse(isBillingEnabled: boolean) {
+    return {
+      isBillingEnabled,
+      plan: isBillingEnabled ? "FREE" : "PRO",
+      proExpiresAt: null,
+      todayRandomSolvedCount: 0,
+      dailyFreeLimit: 10,
+      purchasableUntil: null,
+      lastPurchasedAt: null,
+      lastOrderId: null,
+      passOptions: [],
+    };
+  }
+
+  beforeEach(() => useAuthStore.setState({ accessToken: "test-access-token", memberUuid: "m1" }));
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    useAuthStore.setState({ accessToken: null });
+  });
+
+  it("결제 켜짐 + 무료 + FULL_EXPLANATION 잠김 > 판정 아래 잠금 미리보기", async () => {
+    stubApiResponses({ "/members/me/plan": buildPlanResponse(true) });
+    const entry = buildEntry({ initialExplanation: LOCKED_EXPLANATION, initialLockedSections: ["FULL_EXPLANATION"] });
+    renderWithQueryClient(<ExplanationBody entry={entry} />);
+
+    expect(await screen.findByRole("region", { name: "보기별 해설 · 함정 · 시험 팁" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "앱에서 이용권으로 열기" })).toBeInTheDocument();
+    expect(screen.queryByText("정답 A 근거")).toBeNull();
+  });
+
+  it("결제 꺼짐이면 잠금 UI 없이 기존 해설 그대로", async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify(buildPlanResponse(false)), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    renderWithQueryClient(<ExplanationBody entry={buildEntry({ initialExplanation: STRUCTURED_EXPLANATION })} />);
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(screen.getByText("정답 A 근거")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "앱에서 이용권으로 열기" })).toBeNull();
   });
 });

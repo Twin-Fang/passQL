@@ -26,7 +26,7 @@
 
   /* ── 글자 (앱 label, secondaryLabel) ── */
   --color-text-primary: #000000;
-  --color-text-secondary: #6C6C70;
+  --color-text-secondary: #636366;
   /* 앱에 없는 웹 전용 3단계 글자색 (iOS systemGray, 흰 바탕 대비 3.3) */
   --color-text-caption: #8E8E93;
   /* 어두운 배경 위 글자 (앱 dark label, dark secondaryLabel) */
@@ -38,11 +38,11 @@
 
   /* ── 의미 색 (앱 correct·wrong·warning, 연한 배경 = 앱 tint 비율) ── */
   --color-semantic-success: #34C759;
-  --color-semantic-success-text: #1F7A35;
+  --color-semantic-success-text: #1A6E30;
   --color-semantic-success-light: color-mix(in srgb, var(--color-semantic-success) 12%, transparent);
   --color-semantic-success-border: color-mix(in srgb, var(--color-semantic-success) 40%, white);
   --color-semantic-error: #FF3B30;
-  --color-semantic-error-text: #D70015;
+  --color-semantic-error-text: #C40012;
   --color-semantic-error-light: color-mix(in srgb, var(--color-semantic-error) 10%, transparent);
   --color-semantic-error-border: color-mix(in srgb, var(--color-semantic-error) 40%, white);
   --color-semantic-warning: #FF9500;

@@ -1,6 +1,7 @@
 package com.passql.application.billing;
 
-import com.passql.application.billing.PlayPurchaseRecorder.PlanExtension;
+import com.passql.application.billing.StorePurchaseRecorder.PlanExtension;
+import com.passql.application.billing.StorePurchaseRecorder.VerifiedStorePurchase;
 import com.passql.application.entitlement.EntitlementPurchaseRevoker;
 import com.passql.application.entitlement.EntitlementPurchaseRevoker.RevocationResult;
 import com.passql.application.entitlement.FeatureAccessPolicy;
@@ -10,6 +11,7 @@ import com.passql.common.exception.constant.ErrorCode;
 import com.passql.common.util.Sha256Hex;
 import com.passql.member.constant.PassProduct;
 import com.passql.member.constant.PurchaseStatus;
+import com.passql.member.constant.PurchaseStore;
 import com.passql.member.entity.EntitlementPurchase;
 import com.passql.member.repository.EntitlementPurchaseRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -44,11 +46,14 @@ public class PlayBillingService {
     private static final Duration VOIDED_PURCHASE_LOOKBACK = Duration.ofDays(30).minusMinutes(10);
     // 서비스 기준 시간대 (만료일·구매 시각은 KST 로컬 저장값)
     private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
+    // 주문 번호 없는 구매의 대체값: 접두사 + SHA-256(토큰) 16진수 앞 32자
+    private static final String FALLBACK_ORDER_ID_PREFIX = "PLAY-NO-ORDER-";
+    private static final int FALLBACK_ORDER_ID_HEX_LENGTH = 32;
 
     private final PlayDeveloperApiClient playDeveloperApiClient;
     private final EntitlementPurchaseRepository entitlementPurchaseRepository;
     private final EntitlementPurchaseRevoker entitlementPurchaseRevoker;
-    private final PlayPurchaseRecorder playPurchaseRecorder;
+    private final StorePurchaseRecorder storePurchaseRecorder;
     private final FeatureAccessPolicy featureAccessPolicy;
     private final TransactionTemplate transactionTemplate;
     private final Clock clock;
@@ -57,23 +62,23 @@ public class PlayBillingService {
     public PlayBillingService(PlayDeveloperApiClient playDeveloperApiClient,
                               EntitlementPurchaseRepository entitlementPurchaseRepository,
                               EntitlementPurchaseRevoker entitlementPurchaseRevoker,
-                              PlayPurchaseRecorder playPurchaseRecorder,
+                              StorePurchaseRecorder storePurchaseRecorder,
                               FeatureAccessPolicy featureAccessPolicy,
                               TransactionTemplate transactionTemplate) {
         this(playDeveloperApiClient, entitlementPurchaseRepository, entitlementPurchaseRevoker,
-            playPurchaseRecorder, featureAccessPolicy, transactionTemplate, Clock.system(SERVICE_ZONE));
+            storePurchaseRecorder, featureAccessPolicy, transactionTemplate, Clock.system(SERVICE_ZONE));
     }
 
     PlayBillingService(PlayDeveloperApiClient playDeveloperApiClient,
                        EntitlementPurchaseRepository entitlementPurchaseRepository,
                        EntitlementPurchaseRevoker entitlementPurchaseRevoker,
-                       PlayPurchaseRecorder playPurchaseRecorder,
+                       StorePurchaseRecorder storePurchaseRecorder,
                        FeatureAccessPolicy featureAccessPolicy,
                        TransactionTemplate transactionTemplate, Clock clock) {
         this.playDeveloperApiClient = playDeveloperApiClient;
         this.entitlementPurchaseRepository = entitlementPurchaseRepository;
         this.entitlementPurchaseRevoker = entitlementPurchaseRevoker;
-        this.playPurchaseRecorder = playPurchaseRecorder;
+        this.storePurchaseRecorder = storePurchaseRecorder;
         this.featureAccessPolicy = featureAccessPolicy;
         this.transactionTemplate = transactionTemplate;
         this.clock = clock;
@@ -112,8 +117,11 @@ public class PlayBillingService {
         }
 
         // 기록·등급 한 트랜잭션 (같은 토큰·주문은 ON CONFLICT 로 0건 > 기존 기록 경로)
-        Optional<PlanExtension> planExtension = transactionTemplate.execute(status -> playPurchaseRecorder
-            .recordPurchaseAndExtendPlan(memberUuid, request, passProduct, snapshot, clock.instant()));
+        VerifiedStorePurchase verifiedPurchase = new VerifiedStorePurchase(PurchaseStore.PLAY, passProduct,
+            resolveOrderId(memberUuid, snapshot.orderId(), request.purchaseToken()), request.purchaseToken(),
+            snapshot.purchasedAt(), false);
+        Optional<PlanExtension> planExtension = transactionTemplate.execute(status -> storePurchaseRecorder
+            .recordPurchaseAndExtendPlan(memberUuid, verifiedPurchase, clock.instant()));
         if (planExtension == null || planExtension.isEmpty()) {
             return handleConflictedPurchase(memberUuid, request.purchaseToken());
         }
@@ -179,6 +187,15 @@ public class PlayBillingService {
             log.warn("[billing] rejected 403 : account mismatch, member={}, order={}", memberUuid, snapshot.orderId());
             throw new CustomException(ErrorCode.ACCESS_DENIED);
         }
+    }
+
+    /** Play 주문 번호, 없으면 대체값 (같은 토큰은 항상 같은 값) */
+    private static String resolveOrderId(UUID memberUuid, String playOrderId, String purchaseToken) {
+        if (StringUtils.hasText(playOrderId)) {
+            return playOrderId;
+        }
+        log.warn("[billing] missing order id, using fallback : member={}", memberUuid);
+        return FALLBACK_ORDER_ID_PREFIX + Sha256Hex.of(purchaseToken).substring(0, FALLBACK_ORDER_ID_HEX_LENGTH);
     }
 
     /** 기록된 구매: 다른 회원 > 거절, 회수됨 > 거절, 미소모 > 소모 재시도, 그 뒤 내 등급 */

@@ -198,6 +198,81 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/billing/app-store/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * App Store 서버 알림 V2 수신
+         * @description ## 인증(JWT): **불필요** (Apple 이 호출, 알림 JWS 서명으로 검증)
+         *
+         *     App Store Connect 의 App Store Server Notifications V2 URL(운영·샌드박스)로 등록한다.
+         *     `REFUND`·`REVOKE` 알림이면 담긴 거래의 구매를 회수하고 회원 만료일을 남은 구매로 다시 계산한다.
+         *     그 외 유형(`TEST` 포함)은 기록만 하고 200. 기록 없는 거래·이미 회수한 거래도 200 (재전송 안전).
+         *
+         *     ## 요청 바디 (AppStoreNotificationRequest)
+         *     - **`signedPayload`**: Apple 알림 JWS (필수)
+         *
+         *     ## 반환값
+         *     - 200 (본문 없음)
+         *
+         *     ## 에러
+         *     - 400 `INVALID_INPUT_VALUE`: 서명·번들 ID·환경 검증 실패, `signedPayload` 누락
+         */
+        post: operations["receiveAppStoreNotification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/billing/app-store/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * App Store 이용권 구매 확인
+         * @description ## 인증(JWT): **필요**
+         *
+         *     앱이 StoreKit 2 구매 완료 후(또는 앱 시작·복원 시 미처리 거래를) 보낸다.
+         *     서버가 Apple 루트 인증서로 거래 JWS 서명을 검증하고 이용권 만료일을 저장한다 (운영 > 샌드박스 순, TestFlight·심사는 샌드박스).
+         *     만료일 = max(구매 시각, 현재 프로 만료일) + 이용 일수 (보유 중 재구매는 뒤로 이어 붙임).
+         *     같은 거래를 다시 보내도 만료일은 한 번만 연장된다. 서버 확인이 끝난 뒤 앱이 `transaction.finish()` 를 호출한다.
+         *
+         *     ## 요청 바디 (AppStoreVerifyRequest)
+         *     - **`productId`**: App Store 상품 ID (필수, `pro_pass_3m` 90일, `pro_pass_1m` 30일 — `GET /api/members/me/plan` 의 `passOptions` 값)
+         *     - **`signedTransaction`**: StoreKit 2 `Transaction.jwsRepresentation` (필수)
+         *
+         *     ## 거래 대조
+         *     - 번들 ID `com.coldredrice.passql`, 상품 ID(요청 = 거래), 유형 비갱신 구독(Non-Renewing Subscription)
+         *     - `appAccountToken`: 앱이 결제 때 회원 uuid 를 넣는다. 값이 있으면 요청 회원 uuid 와 같아야 한다 (없으면 대조 생략)
+         *
+         *     ## 반환값 (MemberPlanResponse)
+         *     - 확인 후 내 등급 (`GET /api/members/me/plan` 과 같은 형태, Play 확인과 같음)
+         *
+         *     ## 에러
+         *     - 400 `INVALID_INPUT_VALUE`: 알 수 없는 상품 ID, 서명·번들 ID·환경 검증 실패, 상품 ID·유형 불일치
+         *     - 400 `INVALID_REQUEST`: 결제 스위치 꺼짐, 환불로 회수된 거래
+         *     - 403 `ACCESS_DENIED`: 다른 회원의 거래(appAccountToken 불일치 또는 다른 회원이 이미 등록)
+         *     - 409 `DATA_INTEGRITY_VIOLATION`: 동시 저장 충돌 (다시 시도)
+         */
+        post: operations["verifyAppStorePurchase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/billing/play/verify": {
         parameters: {
             query?: never;
@@ -1769,6 +1844,13 @@ export interface components {
             recommendedVersion: string;
             storeUrl: string;
         };
+        AppStoreNotificationRequest: {
+            signedPayload: string;
+        };
+        AppStoreVerifyRequest: {
+            productId: string;
+            signedTransaction: string;
+        };
         AuthorizationCodeLoginRequest: {
             /** @enum {string} */
             authProvider: "GOOGLE" | "KAKAO" | "NAVER" | "APPLE" | "GITHUB";
@@ -2718,6 +2800,52 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SocialLoginClientConfig"][];
+                };
+            };
+        };
+    };
+    receiveAppStoreNotification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppStoreNotificationRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    verifyAppStorePurchase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppStoreVerifyRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MemberPlanResponse"];
                 };
             };
         };

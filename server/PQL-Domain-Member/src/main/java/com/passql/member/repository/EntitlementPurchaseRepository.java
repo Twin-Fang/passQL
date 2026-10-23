@@ -24,7 +24,8 @@ public interface EntitlementPurchaseRepository extends JpaRepository<Entitlement
     /**
      * 검증 완료 구매 저장 (토큰·주문 번호·PK 충돌 시 무시, 저장 건수 1 또는 0)
      * UNIQUE 위반 예외를 내지 않아 DB·Hibernate 오류 로그에 구매 토큰이 남지 않음
-     * store·status 는 enum 이름, is_consumed 는 false 로 시작, granted_days 는 이용권 일수
+     * store·status 는 enum 이름, granted_days 는 이용권 일수
+     * isConsumed: Play 는 false 로 시작(소모 후 표시), App Store 는 소모 개념이 없어 true
      */
     @Modifying
     @Query(value = """
@@ -32,7 +33,7 @@ public interface EntitlementPurchaseRepository extends JpaRepository<Entitlement
                 purchase_token, purchased_at, status, granted_expires_at, granted_days, is_consumed,
                 created_at, updated_at, created_by, updated_by)
             VALUES (:entitlementPurchaseUuid, :memberUuid, :store, :productId, :orderId,
-                :purchaseToken, :purchasedAt, :status, :grantedExpiresAt, :grantedDays, FALSE,
+                :purchaseToken, :purchasedAt, :status, :grantedExpiresAt, :grantedDays, :isConsumed,
                 :createdAt, :createdAt, :auditor, :auditor)
             ON CONFLICT DO NOTHING
             """, nativeQuery = true)
@@ -46,6 +47,7 @@ public interface EntitlementPurchaseRepository extends JpaRepository<Entitlement
                                @Param("status") String status,
                                @Param("grantedExpiresAt") LocalDateTime grantedExpiresAt,
                                @Param("grantedDays") Integer grantedDays,
+                               @Param("isConsumed") Boolean isConsumed,
                                @Param("createdAt") LocalDateTime createdAt,
                                @Param("auditor") String auditor);
 
