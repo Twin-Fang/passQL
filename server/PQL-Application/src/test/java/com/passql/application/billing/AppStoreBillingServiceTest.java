@@ -270,6 +270,33 @@ class AppStoreBillingServiceTest {
     }
 
     @Test
+    void verify_billingDisabledButPreviewMember_accepted() {
+        // 스위치 꺼짐 + 미리보기 목록 회원 > 심사 계정 구매 확인 통과
+        registerThreeMonthTransaction();
+        when(appSettingService.getBooleanOrDefault(eq(AppSettingKeys.BILLING_ANDROID_ENABLED), anyBoolean()))
+            .thenReturn(false);
+        when(appSettingService.getString(AppSettingKeys.BILLING_PREVIEW_MEMBER_UUIDS)).thenReturn(memberUuid.toString());
+
+        MemberPlanResponse response = appStoreBillingService.verify(memberUuid, threeMonthRequest());
+
+        assertThat(response.isBillingEnabled()).isTrue();
+        assertThat(response.plan()).isEqualTo("PRO");
+        assertThat(purchaseByToken).hasSize(1);
+    }
+
+    @Test
+    void verify_billingDisabledAndOtherPreviewMember_rejectedWithoutRecord() {
+        registerThreeMonthTransaction();
+        when(appSettingService.getBooleanOrDefault(eq(AppSettingKeys.BILLING_ANDROID_ENABLED), anyBoolean()))
+            .thenReturn(false);
+        when(appSettingService.getString(AppSettingKeys.BILLING_PREVIEW_MEMBER_UUIDS))
+            .thenReturn(UUID.randomUUID().toString());
+
+        assertRejected(() -> appStoreBillingService.verify(memberUuid, threeMonthRequest()), ErrorCode.INVALID_REQUEST);
+        assertThat(purchaseByToken).isEmpty();
+    }
+
+    @Test
     void verify_alreadyRevokedTransaction_rejected() {
         verifier.transactionBySignedTransaction.put(SIGNED_TRANSACTION, new AppStoreTransaction(TRANSACTION_ID,
             TRANSACTION_ID, AppleAppStoreSignedDataVerifier.BUNDLE_ID, PassProduct.PRO_PASS_3M.getProductId(),
