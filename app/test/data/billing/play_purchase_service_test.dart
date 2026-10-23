@@ -5,9 +5,9 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:passql_app/core/billing/pro_purchase_port.dart';
 import 'package:passql_app/data/billing/play_account_identifier.dart';
 import 'package:passql_app/data/billing/play_purchase_service.dart';
-import 'package:passql_app/data/models/billing/play_verify_request.dart';
 import 'package:passql_app/data/models/member/member_plan_response.dart';
-import 'package:passql_app/data/sources/billing_api.dart';
+
+import '../../helpers/fakes/fake_billing_api.dart';
 
 // 서버 passOptions 가 내려주는 이용권 상품 ID 2종 (테스트 고정값)
 const String _threeMonthPassId = 'pro_pass_3m';
@@ -77,24 +77,6 @@ class _FakeInAppPurchase implements InAppPurchase {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/// 확인 요청을 기록하고 정해진 등급을 돌려주는 가짜 결제 API
-class _FakeBillingApi implements BillingApiClient {
-  final List<PlayVerifyRequest> verifyRequests = [];
-
-  /// true 면 서버 확인 실패 (네트워크·5xx)
-  bool shouldFailVerify = false;
-
-  @override
-  Future<MemberPlanResponse> verifyPlayPurchase(PlayVerifyRequest body) async {
-    verifyRequests.add(body);
-    if (shouldFailVerify) throw Exception('verify unavailable');
-    return const MemberPlanResponse(
-      isBillingEnabled: true,
-      plan: MemberPlanType.pro,
-    );
-  }
-}
-
 PurchaseDetails _passPurchase(
   PurchaseStatus status, {
   String productId = _threeMonthPassId,
@@ -116,7 +98,7 @@ const String _hashVectorAccountId =
 
 void main() {
   late _FakeInAppPurchase store;
-  late _FakeBillingApi billingApi;
+  late FakeBillingApi billingApi;
   late int planRefreshCount;
   // 로그인 회원 uuid (로그아웃 테스트는 null)
   String? currentMemberUuid;
@@ -124,7 +106,7 @@ void main() {
 
   setUp(() {
     store = _FakeInAppPurchase();
-    billingApi = _FakeBillingApi();
+    billingApi = FakeBillingApi();
     planRefreshCount = 0;
     currentMemberUuid = _hashVectorMemberUuid;
     service = PlayPurchaseService(
@@ -151,7 +133,7 @@ void main() {
       // 소모는 서버 몫 > 앱은 autoConsume 끔
       expect(store.lastAutoConsume, isFalse);
       expect(
-        billingApi.verifyRequests.single.purchaseToken,
+        billingApi.playVerifyRequests.single.purchaseToken,
         'purchase-token-1',
       );
       // 결제 창 성공의 등급 갱신은 시트 몫 (중복 갱신 방지)
@@ -192,7 +174,7 @@ void main() {
 
     expect(await outcome, ProPurchaseOutcome.success);
     // 서버 확인 상품 ID = 실제 구매한 상품 (앱 하드코딩 없음)
-    expect(billingApi.verifyRequests.single.productId, _oneMonthPassId);
+    expect(billingApi.playVerifyRequests.single.productId, _oneMonthPassId);
   });
 
   test('purchase_unknownProduct_returnsUnavailable', () async {
@@ -211,7 +193,7 @@ void main() {
     store.purchaseUpdates.add([_passPurchase(PurchaseStatus.purchased)]);
     await pumpEventQueue();
 
-    expect(billingApi.verifyRequests, hasLength(1));
+    expect(billingApi.playVerifyRequests, hasLength(1));
     expect(planRefreshCount, 1);
     expect(unlocks, hasLength(1));
   });
@@ -233,7 +215,7 @@ void main() {
     store.purchaseUpdates.add([_passPurchase(PurchaseStatus.pending)]);
 
     expect(await outcome, ProPurchaseOutcome.pending);
-    expect(billingApi.verifyRequests, isEmpty);
+    expect(billingApi.playVerifyRequests, isEmpty);
     expect(planRefreshCount, 0);
   });
 

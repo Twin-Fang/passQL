@@ -78,9 +78,19 @@ Future<ProviderContainer> _loadedContainer({
 }
 
 void main() {
-  test('shouldShowProUi_falseOnIos', () async {
+  test('shouldShowProUi_trueForFreeOnIosWithBillingEnabled', () async {
+    // iOS 도 같은 서버 결제 스위치 > 잠금 UI·이용권 시트 (App Store 결제)
     final container = await _loadedContainer(
       platform: TargetPlatform.iOS,
+      isAndroidBillingEnabled: true,
+      serverPlan: MemberPlanType.free,
+    );
+    expect(container.read(shouldShowProUiProvider), isTrue);
+  });
+
+  test('shouldShowProUi_falseOnNonStorePlatform', () async {
+    final container = await _loadedContainer(
+      platform: TargetPlatform.macOS,
       isAndroidBillingEnabled: true,
       serverPlan: MemberPlanType.free,
     );

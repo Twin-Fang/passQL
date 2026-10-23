@@ -17,6 +17,17 @@ final targetPlatformProvider = Provider<TargetPlatform>(
   (ref) => defaultTargetPlatform,
 );
 
+/// 앱 결제 플랫폼 2종: Android(Play), iOS(App Store)
+const Set<TargetPlatform> _storeBillingPlatforms = {
+  TargetPlatform.android,
+  TargetPlatform.iOS,
+};
+
+/// 앱 결제(잠금 UI·이용권 시트)를 쓰는 플랫폼인가 (그 외 플랫폼은 결제 UI 없음)
+final isStoreBillingPlatformProvider = Provider<bool>(
+  (ref) => _storeBillingPlatforms.contains(ref.watch(targetPlatformProvider)),
+);
+
 /// 디버그 등급 강제값. 디버그 빌드에서 지정했을 때만 값이 있음
 final debugPlanOverrideProvider = Provider<ProDebugPlan?>((ref) {
   if (!kDebugMode) return null;
@@ -114,11 +125,11 @@ final isProProvider = Provider.autoDispose<bool>(
   (ref) => ref.watch(knownPlanProvider)?.plan == MemberPlanType.pro,
 );
 
-/// 결제 UI(칩·카드·시트·블러)를 그릴지: Android + 등급 확정 + 서버 결제 스위치 + 무료
+/// 결제 UI(칩·카드·시트·블러)를 그릴지: 앱 결제 플랫폼(Android·iOS) + 등급 확정 + 서버 결제 스위치 + 무료
 /// 결제 스위치는 등급 응답의 isBillingEnabled 하나만 봄 (AppConfig.isAndroidBillingEnabled 로는 판정하지 않음)
-/// 디버그 'free' 강제 시 등급·스위치와 무관하게 Android 에서 그림
+/// 디버그 'free' 강제 시 등급·스위치와 무관하게 앱 결제 플랫폼에서 그림
 final shouldShowProUiProvider = Provider.autoDispose<bool>((ref) {
-  if (ref.watch(targetPlatformProvider) != TargetPlatform.android) return false;
+  if (!ref.watch(isStoreBillingPlatformProvider)) return false;
   if (ref.watch(debugPlanOverrideProvider) == ProDebugPlan.free) return true;
   final knownPlan = ref.watch(knownPlanProvider);
   if (knownPlan == null) return false;

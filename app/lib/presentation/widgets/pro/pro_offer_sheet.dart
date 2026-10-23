@@ -22,7 +22,10 @@ const String _sheetTitle = '이용권';
 const String _restoreLabel = '이미 구매했나요? 복원하기';
 const String _noAutoRenewLabel = '자동 결제 없음';
 
-/// 프로 안내 시트 (모든 진입점이 공유하는 한 장): 제목 > 만료일 미리보기 > 들어온 이유 > 비교표 > 이용권 고르기 > 구매 > 복원
+/// iOS 결제 수단 안내 (App Store 결제 시트 안내, 다른 결제 경로 언급 금지)
+const String _appleIdPaymentNotice = '구매는 Apple ID 계정으로 결제됩니다.';
+
+/// 프로 안내 시트 (모든 진입점이 공유하는 한 장): 제목 > 만료일 미리보기 > 들어온 이유 > 비교표 > 이용권 고르기 > 구매 > (iOS) Apple ID 결제 안내 > 복원
 /// 이용권 목록은 등급 응답 passOptions (서버 순서 3개월 먼저 > 첫 칸 기본 선택)
 /// [reason]: 진입점별 한 줄 (예: 오늘 무료 10문제를 다 풀었어요)
 /// 성공 > 시트 닫힘 > 호출 화면에서 토스트, 그 외 결과는 시트 안 한 줄
@@ -199,6 +202,7 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
         ? selectedLabel
         : '$selectedLabel $selectedPrice';
     final reason = widget.reason;
+    final isIos = ref.read(targetPlatformProvider) == TargetPlatform.iOS;
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
         PassqlSpacing.md,
@@ -265,6 +269,16 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
                 ? null
                 : () => _run(() => port.purchasePass(selectedOption.productId)),
           ),
+          if (isIos) ...[
+            const SizedBox(height: PassqlSpacing.xs),
+            Text(
+              _appleIdPaymentNotice,
+              textAlign: TextAlign.center,
+              style: PassqlTypography.footnote.copyWith(
+                color: colors.secondaryLabel,
+              ),
+            ),
+          ],
           if (inlineMessage != null) ...[
             const SizedBox(height: PassqlSpacing.xs),
             Text(
