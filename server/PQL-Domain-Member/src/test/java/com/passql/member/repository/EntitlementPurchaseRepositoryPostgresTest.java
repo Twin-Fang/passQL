@@ -1,5 +1,6 @@
 package com.passql.member.repository;
 
+import com.passql.member.constant.PassProduct;
 import com.passql.member.constant.PurchaseStatus;
 import com.passql.member.constant.PurchaseStore;
 import com.passql.member.entity.EntitlementPurchase;
@@ -28,7 +29,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * 구매 기록 ON CONFLICT 저장·회원 행 잠금 실 PostgreSQL 검증 (#576): 토큰·주문 번호 충돌은 예외 없이 0건
+ * 구매 기록 ON CONFLICT 저장(이용 일수 포함)·회원 행 잠금 실 PostgreSQL 검증 (#576, #591): 토큰·주문 번호 충돌은 예외 없이 0건
  * 빈 DB 에서만 실행 (create-drop): ENTITLEMENT_PURCHASE_TEST_DB_URL=jdbc:postgresql://localhost:5432/{빈 DB} (+ _USER, _PASSWORD)
  */
 @DataJpaTest(properties = {"spring.jpa.hibernate.ddl-auto=create-drop", "spring.flyway.enabled=false"})
@@ -75,6 +76,7 @@ class EntitlementPurchaseRepositoryPostgresTest {
         assertThat(saved.getStore()).isEqualTo(PurchaseStore.PLAY);
         assertThat(saved.getIsConsumed()).isFalse();
         assertThat(saved.getMemberUuid()).isEqualTo(memberUuid);
+        assertThat(saved.getGrantedDays()).isEqualTo(PassProduct.PRO_PASS_3M.getDurationDays());
         assertThat(purchaseRepository.count()).isEqualTo(1);
     }
 
@@ -89,7 +91,8 @@ class EntitlementPurchaseRepositoryPostgresTest {
     private int insert(String orderId, String purchaseToken) {
         Integer insertedCount = new TransactionTemplate(transactionManager).execute(status ->
             purchaseRepository.insertVerifiedIfAbsent(UUID.randomUUID(), memberUuid, PurchaseStore.PLAY.name(),
-                "pro_exam_pass", orderId, purchaseToken, now, PurchaseStatus.VERIFIED.name(), now.plusDays(90),
+                PassProduct.PRO_PASS_3M.getProductId(), orderId, purchaseToken, now, PurchaseStatus.VERIFIED.name(),
+                now.plusDays(PassProduct.PRO_PASS_3M.getDurationDays()), PassProduct.PRO_PASS_3M.getDurationDays(),
                 now, "system"));
         return insertedCount == null ? 0 : insertedCount;
     }

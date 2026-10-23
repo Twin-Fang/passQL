@@ -4,6 +4,7 @@ import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.member.constant.ChoiceGenerationMode;
 import com.passql.member.constant.MemberPlan;
+import com.passql.member.constant.PassProduct;
 import com.passql.member.constant.PurchaseStatus;
 import com.passql.member.entity.EntitlementPurchase;
 import com.passql.member.entity.MemberEntitlement;
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Service;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -45,7 +48,7 @@ public class FeatureAccessPolicy {
 
     private final MemberEntitlementRepository memberEntitlementRepository;
     private final AppSettingService appSettingService;
-    private final ExamPassExpiryCalculator examPassExpiryCalculator;
+    private final PassExpiryCalculator passExpiryCalculator;
     private final SubmissionRepository submissionRepository;
     private final DailyQuestionCounter dailyQuestionCounter;
     private final EntitlementPurchaseRepository entitlementPurchaseRepository;
@@ -54,23 +57,23 @@ public class FeatureAccessPolicy {
     @Autowired
     public FeatureAccessPolicy(MemberEntitlementRepository memberEntitlementRepository,
                                AppSettingService appSettingService,
-                               ExamPassExpiryCalculator examPassExpiryCalculator,
+                               PassExpiryCalculator passExpiryCalculator,
                                SubmissionRepository submissionRepository,
                                DailyQuestionCounter dailyQuestionCounter,
                                EntitlementPurchaseRepository entitlementPurchaseRepository) {
-        this(memberEntitlementRepository, appSettingService, examPassExpiryCalculator,
+        this(memberEntitlementRepository, appSettingService, passExpiryCalculator,
             submissionRepository, dailyQuestionCounter, entitlementPurchaseRepository, Clock.system(SERVICE_ZONE));
     }
 
     FeatureAccessPolicy(MemberEntitlementRepository memberEntitlementRepository,
                         AppSettingService appSettingService,
-                        ExamPassExpiryCalculator examPassExpiryCalculator,
+                        PassExpiryCalculator passExpiryCalculator,
                         SubmissionRepository submissionRepository,
                         DailyQuestionCounter dailyQuestionCounter,
                         EntitlementPurchaseRepository entitlementPurchaseRepository, Clock clock) {
         this.memberEntitlementRepository = memberEntitlementRepository;
         this.appSettingService = appSettingService;
-        this.examPassExpiryCalculator = examPassExpiryCalculator;
+        this.passExpiryCalculator = passExpiryCalculator;
         this.submissionRepository = submissionRepository;
         this.dailyQuestionCounter = dailyQuestionCounter;
         this.entitlementPurchaseRepository = entitlementPurchaseRepository;
@@ -148,17 +151,22 @@ public class FeatureAccessPolicy {
         }
     }
 
-    /** 내 등급 응답 (구매 시 만료일·오늘 사용량·최근 구매는 결제 켜짐일 때만, 최근 구매는 검증 구매 기준) */
+    /** 내 등급 응답 (이용권 목록·오늘 사용량·최근 구매는 결제 켜짐일 때만, 최근 구매는 검증 구매 기준) */
     public MemberPlanResponse getPlan(UUID memberUuid) {
         boolean isBillingEnabled = isBillingEnabled();
         MemberEntitlement activeProEntitlement = findActiveProEntitlement(memberUuid);
         boolean isPro = !isBillingEnabled || activeProEntitlement != null;
         LocalDateTime activeProExpiresAtOrNull = activeProEntitlement != null ? activeProEntitlement.getExpiresAt() : null;
 
-        // 지금 구매하면 유효한 날짜 (결제 꺼짐이면 없음)
-        LocalDateTime purchasableUntil = isBillingEnabled
-            ? examPassExpiryCalculator.calculateExpiresAt(LocalDateTime.now(clock), activeProExpiresAtOrNull)
-            : null;
+        // 판매 이용권별 지금 사면 될 만료일 (결제 꺼짐이면 빈 목록), 옛 purchasableUntil = 3개월권 값
+        List<PassOption> passOptions = isBillingEnabled
+            ? buildPassOptions(LocalDateTime.now(clock), activeProExpiresAtOrNull)
+            : List.of();
+        LocalDateTime purchasableUntil = passOptions.stream()
+            .filter(passOption -> passOption.productId().equals(PassProduct.PRO_PASS_3M.getProductId()))
+            .map(PassOption::expiresAtIfPurchased)
+            .findFirst()
+            .orElse(null);
 
         int todayRandomSolvedCount = isBillingEnabled ? dailyQuestionCounter.countTodayRandomSolved(memberUuid) : 0;
 
@@ -177,7 +185,18 @@ public class FeatureAccessPolicy {
             DAILY_FREE_LIMIT,
             purchasableUntil,
             lastVerifiedPurchase != null ? lastVerifiedPurchase.getPurchasedAt() : null,
-            lastVerifiedPurchase != null ? lastVerifiedPurchase.getOrderId() : null);
+            lastVerifiedPurchase != null ? lastVerifiedPurchase.getOrderId() : null,
+            passOptions);
+    }
+
+    /** PassProduct 선언 순서(3개월 먼저) > 이용권 칸 목록 (보유 중이면 현재 만료일 뒤로 이어 붙인 만료일) */
+    private List<PassOption> buildPassOptions(LocalDateTime now, LocalDateTime activeProExpiresAtOrNull) {
+        return Arrays.stream(PassProduct.values())
+            .map(passProduct -> new PassOption(
+                passProduct.getProductId(),
+                passProduct.getDurationDays(),
+                passExpiryCalculator.calculateExpiresAt(now, activeProExpiresAtOrNull, passProduct.getDurationDays())))
+            .toList();
     }
 
     /** 유효한 프로 등급 행 (PRO 이고 만료일이 지금 이후), 없으면 null */

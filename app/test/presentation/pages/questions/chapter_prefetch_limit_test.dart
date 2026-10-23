@@ -27,7 +27,7 @@ import '../../../helpers/text_finders.dart';
 const String _firstQuestionUuid = 'question-1';
 const String _limitedQuestionUuid = 'question-2';
 const String _dailyLimitReason = '오늘 무료 10문제를 다 풀었어요';
-const String _sheetTitle = '회차 패스';
+const String _sheetTitle = '이용권';
 
 /// 고정 문제 2개를 푸는 흐름 (완료 처리 없음)
 class _TwoQuestionFlow extends QuestionFlow {
@@ -214,7 +214,7 @@ void main() {
     _chapterNotifierOf(tester).nextQuestion();
     await tester.pumpAndSettle();
 
-    // 시트 닫기 > 일반 오류 대신 한도 사유 + 내일 0시 + 회차 패스로 열기
+    // 시트 닫기 > 일반 오류 대신 한도 사유 + 내일 0시 + 이용권으로 열기
     Navigator.of(tester.element(find.text(_sheetTitle).first)).pop();
     await tester.pumpAndSettle();
 
@@ -229,7 +229,7 @@ void main() {
     // 풀 문제가 없으니 제출 바 없음
     expect(find.byType(QuestionSubmitBar), findsNothing);
 
-    // 회차 패스로 열기 > 같은 시트 다시
+    // 이용권으로 열기 > 같은 시트 다시
     await tester.tap(find.text(PassqlLockedPreview.unlockLabel));
     await tester.pumpAndSettle();
     expect(find.text(_sheetTitle), findsWidgets);

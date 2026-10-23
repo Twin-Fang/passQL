@@ -4,7 +4,7 @@ import '../../../core/billing/pro_purchase_port.dart';
 import '../../providers/plan_providers.dart';
 
 /// 구매 성공 토스트 (시트가 닫힌 뒤 호출부 화면에서 띄움)
-const String proPurchaseSucceededMessage = '회차 패스가 열렸어요';
+const String proPurchaseSucceededMessage = '이용권이 열렸어요';
 
 // 시트 안 한 줄 안내 문구 (시트가 토스트를 가리므로 성공 외 결과는 시트 안에 표시)
 const String _purchasePendingMessage = '결제가 확인되면 열려요';

@@ -26,6 +26,11 @@ _$MemberPlanResponseImpl _$$MemberPlanResponseImplFromJson(
   purchasableUntil: json['purchasableUntil'] == null
       ? null
       : DateTime.parse(json['purchasableUntil'] as String),
+  passOptions:
+      (json['passOptions'] as List<dynamic>?)
+          ?.map((e) => PassOption.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <PassOption>[],
   lastPurchasedAt: json['lastPurchasedAt'] == null
       ? null
       : DateTime.parse(json['lastPurchasedAt'] as String),
@@ -41,6 +46,7 @@ Map<String, dynamic> _$$MemberPlanResponseImplToJson(
   'todayRandomSolvedCount': instance.todayRandomSolvedCount,
   'dailyFreeLimit': instance.dailyFreeLimit,
   'purchasableUntil': instance.purchasableUntil?.toIso8601String(),
+  'passOptions': instance.passOptions,
   'lastPurchasedAt': instance.lastPurchasedAt?.toIso8601String(),
   'lastOrderId': instance.lastOrderId,
 };
@@ -49,3 +55,19 @@ const _$MemberPlanTypeEnumMap = {
   MemberPlanType.free: 'FREE',
   MemberPlanType.pro: 'PRO',
 };
+
+_$PassOptionImpl _$$PassOptionImplFromJson(Map<String, dynamic> json) =>
+    _$PassOptionImpl(
+      productId: json['productId'] as String,
+      durationDays: (json['durationDays'] as num).toInt(),
+      expiresAtIfPurchased: DateTime.parse(
+        json['expiresAtIfPurchased'] as String,
+      ),
+    );
+
+Map<String, dynamic> _$$PassOptionImplToJson(_$PassOptionImpl instance) =>
+    <String, dynamic>{
+      'productId': instance.productId,
+      'durationDays': instance.durationDays,
+      'expiresAtIfPurchased': instance.expiresAtIfPurchased.toIso8601String(),
+    };

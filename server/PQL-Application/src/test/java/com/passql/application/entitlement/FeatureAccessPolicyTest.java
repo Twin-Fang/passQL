@@ -5,6 +5,7 @@ import com.passql.common.exception.constant.ErrorCode;
 import com.passql.member.constant.ChoiceGenerationMode;
 import com.passql.member.constant.EntitlementSource;
 import com.passql.member.constant.MemberPlan;
+import com.passql.member.constant.PassProduct;
 import com.passql.member.constant.PurchaseStatus;
 import com.passql.member.constant.PurchaseStore;
 import com.passql.member.entity.EntitlementPurchase;
@@ -43,12 +44,11 @@ class FeatureAccessPolicyTest {
 
     private final MemberEntitlementRepository entitlementRepository = mock(MemberEntitlementRepository.class);
     private final AppSettingService appSettingService = mock(AppSettingService.class);
-    private final ExamPassExpiryCalculator examPassExpiryCalculator = mock(ExamPassExpiryCalculator.class);
     private final SubmissionRepository submissionRepository = mock(SubmissionRepository.class);
     private final DailyQuestionCounter dailyQuestionCounter = mock(DailyQuestionCounter.class);
     private final EntitlementPurchaseRepository purchaseRepository = mock(EntitlementPurchaseRepository.class);
     private final FeatureAccessPolicy policy = new FeatureAccessPolicy(
-        entitlementRepository, appSettingService, examPassExpiryCalculator,
+        entitlementRepository, appSettingService, new PassExpiryCalculator(),
         submissionRepository, dailyQuestionCounter, purchaseRepository, FIXED_CLOCK);
     private final UUID memberUuid = UUID.randomUUID();
 
@@ -127,21 +127,40 @@ class FeatureAccessPolicyTest {
     }
 
     @Test
-    void getPlan_whenBillingEnabled_fillsPurchasableUntilFromCalculator() {
+    void getPlan_whenActivePro_passOptionsExtendFromCurrentExpiresAt_threeMonthFirst() {
         givenBillingEnabled(true);
         givenEntitlement(MemberPlan.PRO, NOW.plusDays(30));
-        LocalDateTime purchasableUntil = LocalDateTime.of(2027, 3, 7, 23, 59, 59);
-        when(examPassExpiryCalculator.calculateExpiresAt(NOW, NOW.plusDays(30))).thenReturn(purchasableUntil);
 
-        assertThat(policy.getPlan(memberUuid).purchasableUntil()).isEqualTo(purchasableUntil);
+        MemberPlanResponse response = policy.getPlan(memberUuid);
+
+        assertThat(response.passOptions()).containsExactly(
+            new PassOption(PassProduct.PRO_PASS_3M.getProductId(), 90, NOW.plusDays(120)),
+            new PassOption(PassProduct.PRO_PASS_1M.getProductId(), 30, NOW.plusDays(60)));
+        // 옛 앱 호환: purchasableUntil = 3개월권 값
+        assertThat(response.purchasableUntil()).isEqualTo(NOW.plusDays(120));
     }
 
     @Test
-    void getPlan_whenBillingDisabled_purchasableUntilIsNull() {
+    void getPlan_whenFree_passOptionsExtendFromNow() {
+        givenBillingEnabled(true);
+        when(entitlementRepository.findById(memberUuid)).thenReturn(Optional.empty());
+
+        MemberPlanResponse response = policy.getPlan(memberUuid);
+
+        assertThat(response.passOptions()).extracting(PassOption::expiresAtIfPurchased)
+            .containsExactly(NOW.plusDays(90), NOW.plusDays(30));
+        assertThat(response.purchasableUntil()).isEqualTo(NOW.plusDays(90));
+    }
+
+    @Test
+    void getPlan_whenBillingDisabled_purchasableUntilIsNullAndPassOptionsEmpty() {
         givenBillingEnabled(false);
         when(entitlementRepository.findById(memberUuid)).thenReturn(Optional.empty());
 
-        assertThat(policy.getPlan(memberUuid).purchasableUntil()).isNull();
+        MemberPlanResponse response = policy.getPlan(memberUuid);
+
+        assertThat(response.purchasableUntil()).isNull();
+        assertThat(response.passOptions()).isEmpty();
     }
 
     @Test
@@ -270,8 +289,9 @@ class FeatureAccessPolicyTest {
         givenEntitlement(MemberPlan.PRO, NOW.plusDays(30));
         LocalDateTime purchasedAt = NOW.minusDays(2);
         when(purchaseRepository.findFirstByMemberUuidAndStatusOrderByPurchasedAtDesc(memberUuid, PurchaseStatus.VERIFIED))
-            .thenReturn(Optional.of(EntitlementPurchase.verified(memberUuid, PurchaseStore.PLAY, "pro_exam_pass",
-                "GPA.0002", "purchase-token", purchasedAt, NOW.plusDays(30))));
+            .thenReturn(Optional.of(EntitlementPurchase.verified(memberUuid, PurchaseStore.PLAY,
+                PassProduct.PRO_PASS_1M.getProductId(), "GPA.0002", "purchase-token", purchasedAt, NOW.plusDays(30),
+                PassProduct.PRO_PASS_1M.getDurationDays())));
 
         MemberPlanResponse response = policy.getPlan(memberUuid);
 
