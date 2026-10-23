@@ -465,6 +465,14 @@ final _questions = [
   _summary(4, '윈도우 함수', 'RANK() OVER 와 DENSE_RANK() OVER 의 결과 차이는?', 3),
 ];
 
+// 오늘의 세트: 운영과 같은 10문제 (AdminDailyChallengeService 자동 선정 10)
+const _dailySetQuestionCount = 10;
+
+List<Map<String, dynamic>> _dailySetQuestions() => [
+  for (var i = 0; i < _dailySetQuestionCount; i++)
+    {..._questions[i % _questions.length], 'questionUuid': 'dddddddd-0000-4000-8000-${(i + 1).toString().padLeft(12, '0')}'},
+];
+
 Map<String, dynamic> _detail() => {
   'questionUuid': '22222222-0000-4000-8000-000000000001',
   'topicName': 'SELECT 기본',
@@ -559,19 +567,19 @@ Object? _respond(RequestOptions o) {
     };
   }
   if (p.endsWith('/daily-set/today')) {
-    return {'questions': _questions.take(3).toList(), 'alreadyCompleted': false};
+    return {'questions': _dailySetQuestions(), 'alreadyCompleted': false};
   }
   if (p.endsWith('/daily-set/leaderboard')) {
     return {
       'date': '2026-10-07',
       'entries': [
-        {'rank': 1, 'nickname': '쿼리장인', 'correctCount': 3},
-        {'rank': 2, 'nickname': '조인마스터', 'correctCount': 3},
-        {'rank': 3, 'nickname': '새찬', 'correctCount': 2},
-        {'rank': 4, 'nickname': '셀렉트냥', 'correctCount': 2},
-        {'rank': 5, 'nickname': '인덱스요정', 'correctCount': 1},
+        {'rank': 1, 'nickname': '쿼리장인', 'correctCount': 10},
+        {'rank': 2, 'nickname': '조인마스터', 'correctCount': 9},
+        {'rank': 3, 'nickname': '새찬', 'correctCount': 8},
+        {'rank': 4, 'nickname': '셀렉트냥', 'correctCount': 7},
+        {'rank': 5, 'nickname': '인덱스요정', 'correctCount': 5},
       ],
-      'myEntry': {'rank': 3, 'nickname': '새찬', 'correctCount': 2},
+      'myEntry': {'rank': 3, 'nickname': '새찬', 'correctCount': 8},
     };
   }
   if (p.endsWith('/exam-schedules/selected')) {
