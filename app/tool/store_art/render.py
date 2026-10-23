@@ -66,6 +66,7 @@ def capture_page(page: Path, width: int, height: int, out: Path) -> None:
 
 
 def render_scene(target_name: str, target: dict, scene: dict) -> Path:
+    """세로형 1장: 장면 문구 + 원본 캡처 > {규격}/{id}.png"""
     shot = SOURCE_DIR / scene["shot"]
     # 문구는 scenes.json 의 신뢰된 값 — headline 은 <br>·<em> 그대로, 나머지는 이스케이프
     page = fill_template("template.html", {
@@ -81,6 +82,7 @@ def render_scene(target_name: str, target: dict, scene: dict) -> Path:
 
 
 def render_feature_graphic(wide: dict) -> Path:
+    """Play 그래픽 이미지: 로고·문구 + 휴대폰 2대 > feature-graphic.png"""
     width, height = FEATURE_GRAPHIC_SIZE
     page = fill_template("wide_template.html", {
         "width": str(width), "height": str(height), "font_dir": FONT_DIR.as_uri(),

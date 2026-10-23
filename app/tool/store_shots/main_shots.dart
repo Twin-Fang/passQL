@@ -126,7 +126,7 @@ List<Map<String, dynamic>> _notificationItems(String category) {
   return [
     item('general-1', 'REPORT_RESOLVED', '신고하신 문제를 확인했어요', '"JOIN 결과 행 수" 문제의 정답을 수정했어요. 알려 주셔서 고마워요.', const Duration(minutes: 3), linkTarget: 'QUESTION_DETAIL', linkQuestionUuid: '22222222-0000-4000-8000-000000000002'),
     item('general-2', 'ADMIN_MESSAGE', '이번 주 학습 리포트', '통계에서 약한 토픽을 확인해 보세요.', const Duration(hours: 2), linkTarget: 'STATS'),
-    item('general-3-read', 'DAILY_SET_REMINDER', '오늘의 세트가 준비됐어요', '3문제로 실력을 확인해 보세요.', const Duration(days: 1), linkTarget: 'DAILY_SET'),
+    item('general-3-read', 'DAILY_SET_REMINDER', '오늘의 세트가 준비됐어요', '10문제로 실력을 확인해 보세요.', const Duration(days: 1), linkTarget: 'DAILY_SET'),
     item('general-4-read', 'ADMIN_MESSAGE', '시험 D-30', 'SQLD 63회까지 30일 남았어요.', const Duration(days: 2), linkTarget: 'HOME'),
   ];
 }
@@ -163,7 +163,7 @@ List<Map<String, dynamic>> _fakeNotices() {
     ),
     notice('notice-2-read', '10월 16일 새벽 서버 점검', '**02:00 ~ 04:00** 동안 서버를 점검해요.\n\n점검 중에는 풀이 기록이 저장되지 않아요.', const Duration(days: 3)),
     notice('notice-3-read', '개인정보처리방침 개정 안내', '10월 20일부터 개정된 개인정보처리방침이 적용돼요.\n\n- 수집 항목 정리\n- 보관 기간 명시', const Duration(days: 6)),
-    notice('notice-4-old', '오늘의 세트 리더보드 오픈', '매일 3문제를 풀고 친구들과 순위를 겨뤄 보세요.', const Duration(days: 21), isVisible: false),
+    notice('notice-4-old', '오늘의 세트 리더보드 오픈', '매일 10문제를 풀고 친구들과 순위를 겨뤄 보세요.', const Duration(days: 21), isVisible: false),
     notice('notice-5-old', 'passQL 정식 출시 안내', 'SQLD·SQLP 문제 풀이 앱 passQL 이 정식 출시됐어요. **피드백**은 설정 > 건의사항으로 보내 주세요.', const Duration(days: 40), isVisible: false),
   ];
 }
@@ -794,7 +794,7 @@ Future<void> main() async {
   }
 }
 
-/// 경로 이동 또는 연출(execute-fail, chapter-result)
+/// 경로 이동 또는 연출 5종(execute-ok, execute-fail, chapter-result, ai-sheet, result)
 Future<void> _openRoute(String route, ProviderContainer container) async {
   const settleDelay = Duration(milliseconds: 1500);
   switch (route) {
