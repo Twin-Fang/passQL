@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 구매 1건 회수 공통 (Play 환불 작업·관리자 구매 회수): REVOKED 표시 > 회원 등급 재계산
+ * 구매 1건 회수 공통 (Play 환불 작업·App Store 환불 알림·관리자 구매 회수): REVOKED 표시 > 회원 등급 재계산
  * 호출자 트랜잭션 안에서 실행 (등급 행 잠금 조회), 로그는 호출자가 결과로 남김
  */
 @Component
@@ -68,7 +68,7 @@ public class EntitlementPurchaseRevoker {
             .filter(expiresAt -> expiresAt.isAfter(now));
 
         if (replayedExpiresAt.isPresent()) {
-            entitlement.extendTo(replayedExpiresAt.get(), EntitlementSource.PLAY_PURCHASE);
+            entitlement.extendTo(replayedExpiresAt.get(), resolveLatestPurchaseSource(remainingPurchases));
         } else {
             entitlement.revoke();
         }
@@ -93,6 +93,14 @@ public class EntitlementPurchaseRevoker {
             }
         }
         return Optional.ofNullable(runningExpiresAt);
+    }
+
+    /** 남은 구매 중 가장 최근 구매의 스토어 > 등급 경로 (Play·App Store 구매가 섞인 회원 대비) */
+    private static EntitlementSource resolveLatestPurchaseSource(List<EntitlementPurchase> remainingPurchases) {
+        return remainingPurchases.stream()
+            .max(Comparator.comparing(EntitlementPurchase::getPurchasedAt))
+            .map(purchase -> purchase.getStore().getEntitlementSource())
+            .orElse(EntitlementSource.PLAY_PURCHASE);
     }
 
     /** 둘 중 늦은 시각 (null 은 없는 값으로 취급) */

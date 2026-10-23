@@ -5,10 +5,16 @@ import type {
   NicknameCheckResponse,
   NicknameChangeResponse,
   ChoiceGenerationMode,
+  MemberPlanResponse,
 } from "../types/api";
 
 export function fetchMe(): Promise<MemberMeResponse> {
   return apiFetch("/members/me");
+}
+
+// 내 등급 조회 (결제 스위치·FREE/PRO·오늘 사용량, #576)
+export function fetchMyPlan(): Promise<MemberPlanResponse> {
+  return apiFetch("/members/me/plan");
 }
 
 export function regenerateNickname(): Promise<NicknameRegenerateResponse> {

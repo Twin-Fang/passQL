@@ -46,7 +46,7 @@ Future<void> main() async {
   final container = ProviderContainer(
     overrides: [
       initialThemeModeProvider.overrideWithValue(themeMode),
-      // Android 만 Play 결제 어댑터 (iOS 는 결제 없음)
+      // 플랫폼별 결제 어댑터 (Android Play, iOS App Store)
       proPurchasePortOverride,
     ],
   );

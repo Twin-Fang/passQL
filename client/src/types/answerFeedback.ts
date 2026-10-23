@@ -11,6 +11,8 @@ export interface AnswerFeedbackState {
   readonly explanation?: string | null;
   // 구조화 AI 해설 (있으면 즉시 표시, 없으면 choiceSetUuid 로 조회, #521)
   readonly structuredExplanation?: ChoiceExplanation | null;
+  // 무료 응답에서 서버가 뺀 묶음 (제출 응답 그대로, #578)
+  readonly lockedSections?: readonly string[];
   // 제출한 선택지 세트 (없으면 옛 진입 > 해설 카드만)
   readonly choiceSetUuid?: string;
   readonly selectedKey: string;

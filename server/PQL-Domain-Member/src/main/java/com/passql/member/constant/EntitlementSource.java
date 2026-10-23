@@ -5,6 +5,7 @@ package com.passql.member.constant;
  */
 public enum EntitlementSource {
 
-    PLAY_PURCHASE,  // Google Play 회차 패스 구매
-    ADMIN_GRANT     // 관리자 수동 부여
+    PLAY_PURCHASE,       // Google Play 이용권 구매
+    APP_STORE_PURCHASE,  // App Store 이용권 구매 (#578)
+    ADMIN_GRANT          // 관리자 수동 부여
 }

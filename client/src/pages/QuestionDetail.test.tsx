@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import QuestionDetail from "./QuestionDetail";
-import { renderPageForSmokeTest, stubApiResponses } from "../test/renderPageForSmokeTest";
+import { apiErrorResponse, renderPageForSmokeTest, stubApiResponses } from "../test/renderPageForSmokeTest";
 import type { QuestionDetail as QuestionDetailResponse } from "../types/api";
 
 const QUESTION: QuestionDetailResponse = {
@@ -71,5 +71,14 @@ describe("QuestionDetail", () => {
     stubApiResponses({ "/questions/q3": { ...QUESTION, questionUuid: "q3", choiceSets: [] } });
     renderQuestionDetail("q3");
     expect(await screen.findByText("선택지 생성에 실패했어요")).toBeInTheDocument();
+  });
+
+  it("무료 하루 한도면 일반 오류 대신 사유 화면 + 앱 안내 버튼, 제출 바 없음 (#578)", async () => {
+    stubApiResponses({ "/questions/q4": apiErrorResponse(403, { errorCode: "FREE_DAILY_LIMIT_REACHED" }) });
+    renderQuestionDetail("q4");
+    expect(await screen.findByText("오늘 무료 10문제를 다 풀었어요")).toBeInTheDocument();
+    expect(screen.getByText("내일 0시에 10문제가 다시 열려요")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "앱에서 이용권으로 열기" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "답안 제출하기" })).toBeNull();
   });
 });

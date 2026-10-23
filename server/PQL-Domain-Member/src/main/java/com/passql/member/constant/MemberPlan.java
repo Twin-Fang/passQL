@@ -6,5 +6,5 @@ package com.passql.member.constant;
 public enum MemberPlan {
 
     FREE,   // 무료
-    PRO     // 프로 (회차 패스 보유, 만료일까지)
+    PRO     // 프로 (이용권 보유, 만료일까지)
 }

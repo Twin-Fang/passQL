@@ -4,6 +4,10 @@ import { useLatestExamTrend } from "../hooks/useExamTrend";
 import { EmptyPracticeTopicError, generatePractice } from "../api/practice";
 import { usePracticeStore } from "../stores/practiceStore";
 import ErrorFallback from "../components/ErrorFallback";
+import LockedPreview from "../components/pro/LockedPreview";
+import { ExamTrendLockedSample } from "../components/pro/lockedPreviewSamples";
+import { LOCKED_PREVIEW_CAPTIONS } from "../constants/proAccessCopy";
+import { toProAccessErrorCode } from "../lib/proAccess";
 import LatestTrendBadge from "../components/LatestTrendBadge";
 import ProgressBar from "../components/ProgressBar";
 import { useStagger } from "../hooks/useStagger";
@@ -24,7 +28,7 @@ interface SolvableTrendItem {
  * 최신 경향 문제가 있는 항목만 풀기 버튼 > 그 토픽 최신 경향 연습 세션
  */
 export default function ExamTrend() {
-  const { data: report, isLoading, isError, refetch } = useLatestExamTrend();
+  const { data: report, isLoading, isError, error, refetch } = useLatestExamTrend();
   const navigate = useNavigate();
   const startSession = usePracticeStore((s) => s.startSession);
   const stagger = useStagger();
@@ -44,10 +48,16 @@ export default function ExamTrend() {
   };
 
   if (isError) {
+    // 프로 필요(무료, 결제 켜짐) > 잠금 미리보기, 그 외 오류 > 다시 시도 (#578)
+    const isProRequired = toProAccessErrorCode(error) === "PRO_REQUIRED";
     return (
       <div className="py-6">
         <h1 className="text-h1 mb-4">출제 경향</h1>
-        <ErrorFallback onRetry={() => refetch()} />
+        {isProRequired ? (
+          <LockedPreview preview={<ExamTrendLockedSample />} caption={LOCKED_PREVIEW_CAPTIONS.examTrend} />
+        ) : (
+          <ErrorFallback onRetry={() => refetch()} />
+        )}
       </div>
     );
   }

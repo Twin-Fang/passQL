@@ -1,7 +1,7 @@
 package com.passql.application.entitlement;
 
 /**
- * 회차 패스(프로) 전용 기능 목록: 서버 잠금 판정 단위
+ * 이용권(프로) 전용 기능 목록: 서버 잠금 판정 단위
  */
 public enum ProFeature {
 
