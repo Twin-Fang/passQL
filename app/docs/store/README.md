@@ -3,7 +3,7 @@
 | 경로 | 내용 |
 |---|---|
 | `promo/source/` | 원본 캡처 (`tool/store_shots`, iOS 시뮬레이터 다크 모드) |
-| `promo/ios-6.9/` `promo/ios-6.5/` `promo/android-phone/` | 홍보 이미지 7장 (1320x2868 · 1284x2778 · 1080x1920) |
+| `promo/ios-6.9/` `promo/ios-6.5/` `promo/ios-6.3/` `promo/android-phone/` | 홍보 이미지 7장 (1320x2868 · 1284x2778 · 1206x2622 · 1080x1920). App Store 필수 칸은 6.3", 다른 iPhone 크기는 이 이미지를 축소해 씀 |
 | `promo/feature-graphic.png` | Play 그래픽 이미지 1024x500 |
 | `descriptions/` | Play 짧은·전체 설명, App Store 부제·프로모션·키워드·설명 |
 
