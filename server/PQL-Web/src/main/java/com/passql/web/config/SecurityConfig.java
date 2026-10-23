@@ -59,6 +59,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/meta/**").permitAll()
+                // App Store 서버 알림 (Apple 호출, JWT 대신 알림 JWS 서명으로 검증, #578)
+                .requestMatchers(HttpMethod.POST, "/api/billing/app-store/notifications").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .anyRequest().authenticated()
             )

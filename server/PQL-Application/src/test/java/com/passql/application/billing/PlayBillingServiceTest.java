@@ -74,11 +74,11 @@ class PlayBillingServiceTest {
     private final FeatureAccessPolicy featureAccessPolicy = new FeatureAccessPolicy(
         entitlementRepository, appSettingService, expiryCalculator,
         mock(SubmissionRepository.class), mock(DailyQuestionCounter.class), purchaseRepository);
-    private final PlayPurchaseRecorder playPurchaseRecorder = new PlayPurchaseRecorder(
+    private final StorePurchaseRecorder storePurchaseRecorder = new StorePurchaseRecorder(
         purchaseRepository, entitlementRepository, mock(MemberRepository.class), expiryCalculator);
     private final PlayBillingService playBillingService = new PlayBillingService(
         playClient, purchaseRepository, new EntitlementPurchaseRevoker(purchaseRepository, entitlementRepository, expiryCalculator),
-        playPurchaseRecorder, featureAccessPolicy,
+        storePurchaseRecorder, featureAccessPolicy,
         new TransactionTemplate(mock(PlatformTransactionManager.class)), FIXED_CLOCK);
 
     // 메모리 저장소 (구매: 토큰별, 등급: 회원별)
@@ -96,7 +96,7 @@ class PlayBillingServiceTest {
             .thenAnswer(call -> Optional.ofNullable(purchaseByToken.get(call.<String>getArgument(0))));
         // 기록 INSERT: 토큰·주문 번호 충돌이면 0건 (ON CONFLICT DO NOTHING 과 같게)
         when(purchaseRepository.insertVerifiedIfAbsent(any(), any(), any(), any(), any(), any(), any(), any(), any(),
-            any(), any(), any())).thenAnswer(call -> {
+            any(), any(), any(), any())).thenAnswer(call -> {
             String orderId = call.getArgument(4);
             String purchaseToken = call.getArgument(5);
             boolean isConflicted = purchaseByToken.containsKey(purchaseToken) || purchaseByToken.values().stream()
