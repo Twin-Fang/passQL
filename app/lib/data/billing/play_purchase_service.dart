@@ -10,7 +10,8 @@ import '../models/member/member_plan_response.dart';
 import '../sources/billing_api.dart';
 import 'play_account_identifier.dart';
 
-/// 회차 패스 Play 결제 (Android): 상품 조회 > 결제 창(소모형) > 구매 스트림 > 서버 확인 > 등급 갱신 > 구매 처리 완료
+/// 이용권 Play 결제 (Android): 상품 조회 > 결제 창(소모형) > 구매 스트림 > 서버 확인 > 등급 갱신 > 구매 처리 완료
+/// 상품 ID 는 등급 응답 passOptions 에서 받음 (앱 하드코딩 없음). 앱이 파는 상품은 이용권뿐 > 스트림 구매는 모두 서버 확인 대상
 /// 소모(consume)는 서버가 함 (앱은 autoConsume: false). 등급 갱신은 [refreshPlan] 으로 바깥에 맡김 (data 는 등급 상태를 모름)
 /// 결제 창·복원이 success 를 돌려주면 등급 갱신은 시트(refreshPlanIfPurchased, 닫혀도 실행) 몫 > 여기서는 판정에 필요할 때·백그라운드만 갱신
 class PlayPurchaseService implements ProPurchasePort {
@@ -23,9 +24,6 @@ class PlayPurchaseService implements ProPurchasePort {
        _refreshPlan = refreshPlan,
        _readMemberUuid = readMemberUuid,
        _store = store ?? InAppPurchase.instance;
-
-  /// Play Console 일회성 소모형 상품 ID
-  static const String examPassProductId = 'pro_exam_pass';
 
   // 이미 보유(서버 확인 전 구매가 남음) 결제 오류 표시 (BillingResponse.itemAlreadyOwned)
   static const String _itemAlreadyOwnedMarker = 'itemAlreadyOwned';
@@ -43,8 +41,8 @@ class PlayPurchaseService implements ProPurchasePort {
       StreamController<void>.broadcast();
   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
 
-  /// 조회한 상품 (실패하면 다음 호출에서 다시 조회)
-  ProductDetails? _examPassProduct;
+  /// 조회한 상품 {상품 ID: 상품} (못 읽은 상품은 다음 호출에서 다시 조회)
+  final Map<String, ProductDetails> _productById = {};
 
   /// 진행 중인 결제 창의 결과. null 이면 스트림 구매는 백그라운드 처리
   Completer<ProPurchaseOutcome>? _activePurchase;
@@ -65,12 +63,20 @@ class PlayPurchaseService implements ProPurchasePort {
   }
 
   @override
-  Future<String?> loadExamPassPrice() async =>
-      (await _loadExamPassProduct())?.price;
+  Future<Map<String, PassPrice>> loadPassPrices(List<String> productIds) async {
+    final products = await _loadProducts(productIds);
+    return {
+      for (final product in products.values)
+        product.id: PassPrice(
+          displayPrice: product.price,
+          rawPrice: product.rawPrice,
+        ),
+    };
+  }
 
   /// 결제 창 열기 > 스트림 결과 대기 (결제 중 다시 누르면 같은 결과 공유)
   @override
-  Future<ProPurchaseOutcome> purchaseExamPass() async {
+  Future<ProPurchaseOutcome> purchasePass(String productId) async {
     final runningPurchase = _activePurchase;
     if (runningPurchase != null) return runningPurchase.future;
     // 구매 계정 표시 필수: 서버가 확인 요청 회원과 대조 (회원 미확정이면 결제 창 안 염)
@@ -79,7 +85,7 @@ class PlayPurchaseService implements ProPurchasePort {
       debugPrint('[billing] purchase blocked : member not signed in');
       return ProPurchaseOutcome.failed;
     }
-    final product = await _loadExamPassProduct();
+    final product = (await _loadProducts([productId]))[productId];
     if (product == null) return ProPurchaseOutcome.unavailable;
     final activePurchase = _activePurchase = Completer<ProPurchaseOutcome>();
     try {
@@ -124,7 +130,7 @@ class PlayPurchaseService implements ProPurchasePort {
           .queryPastPurchases();
       final unverifiedPurchases = response.pastPurchases.where(
         (purchase) =>
-            purchase.productID == examPassProductId &&
+            purchase.productID.isNotEmpty &&
             purchase.status == PurchaseStatus.purchased,
       );
       final verifiedPlans = await Future.wait(
@@ -137,23 +143,34 @@ class PlayPurchaseService implements ProPurchasePort {
     }
   }
 
-  /// 상품 1회 조회 후 보관 (스토어 없음·상품 없음 > null)
-  Future<ProductDetails?> _loadExamPassProduct() async {
-    final cachedProduct = _examPassProduct;
-    if (cachedProduct != null) return cachedProduct;
+  /// 상품 조회: 보관 안 된 ID만 조회 > 보관 > 요청 ID 중 읽은 상품 (스토어 없음·상품 없음은 빠짐)
+  Future<Map<String, ProductDetails>> _loadProducts(
+    List<String> productIds,
+  ) async {
+    final missingProductIds = productIds
+        .where((productId) => !_productById.containsKey(productId))
+        .toSet();
+    if (missingProductIds.isNotEmpty) await _queryProducts(missingProductIds);
+    return {
+      for (final productId in productIds) productId: ?_productById[productId],
+    };
+  }
+
+  /// 스토어 상품 조회 > 보관 (실패는 로그만, 다음 호출에서 다시)
+  Future<void> _queryProducts(Set<String> productIds) async {
     try {
-      if (!await _store.isAvailable()) return null;
-      final response = await _store.queryProductDetails({examPassProductId});
-      if (response.error != null || response.productDetails.isEmpty) {
+      if (!await _store.isAvailable()) return;
+      final response = await _store.queryProductDetails(productIds);
+      if (response.error != null || response.notFoundIDs.isNotEmpty) {
         debugPrint(
-          '[billing] product query failed : ${response.error?.message ?? 'not found'}',
+          '[billing] product query failed : ${response.error?.message ?? 'not found ${response.notFoundIDs}'}',
         );
-        return null;
       }
-      return _examPassProduct = response.productDetails.first;
+      for (final product in response.productDetails) {
+        _productById[product.id] = product;
+      }
     } on Object catch (error) {
       debugPrint('[billing] product query failed : $error');
-      return null;
     }
   }
 
@@ -161,8 +178,7 @@ class PlayPurchaseService implements ProPurchasePort {
   /// 상품 ID 빈 갱신 = 결제 창이 끝난 결과(취소·오류·구매 정보 없는 성공)
   Future<void> _onPurchaseUpdates(List<PurchaseDetails> purchases) async {
     for (final purchase in purchases) {
-      final isExamPass = purchase.productID == examPassProductId;
-      if (!isExamPass && purchase.productID.isNotEmpty) continue;
+      final isPassPurchase = purchase.productID.isNotEmpty;
       debugPrint('[billing] purchase update : status=${purchase.status.name}');
       switch (purchase.status) {
         case PurchaseStatus.pending:
@@ -172,7 +188,7 @@ class PlayPurchaseService implements ProPurchasePort {
         case PurchaseStatus.error:
           await _onPurchaseError(purchase);
         case PurchaseStatus.purchased || PurchaseStatus.restored:
-          if (isExamPass) {
+          if (isPassPurchase) {
             await _onPurchaseCompleted(purchase);
           } else {
             await _completeActivePurchaseFromServerPlan();
@@ -238,7 +254,7 @@ class PlayPurchaseService implements ProPurchasePort {
     try {
       final verifiedPlan = await _billingApi.verifyPlayPurchase(
         PlayVerifyRequest(
-          productId: examPassProductId,
+          productId: purchase.productID,
           purchaseToken: purchaseToken,
         ),
       );

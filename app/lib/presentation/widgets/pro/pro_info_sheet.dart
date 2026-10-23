@@ -17,7 +17,7 @@ Future<void> showProInfoSheet(
 }) async {
   final isRestored = await showPassqlSheet<bool>(
     context,
-    title: '회차 패스',
+    title: '이용권',
     builder: (_) => _ProInfoSheetBody(
       proExpiresAt: proExpiresAt,
       purchasedAt: purchasedAt,
@@ -91,7 +91,7 @@ class _ProInfoSheetBodyState extends ConsumerState<_ProInfoSheetBody> {
               _InfoRow(
                 title: '상태',
                 trailing: Text(
-                  '회차 패스 이용 중',
+                  '이용권 사용 중',
                   style: PassqlTypography.body.copyWith(
                     color: context.passqlColors.accent,
                   ),
@@ -108,7 +108,10 @@ class _ProInfoSheetBodyState extends ConsumerState<_ProInfoSheetBody> {
                   trailing: _valueText(context, formatDottedDate(purchasedAt)),
                 ),
               if (orderId != null)
-                _InfoRow(title: '주문 번호', trailing: _valueText(context, orderId)),
+                _InfoRow(
+                  title: '주문 번호',
+                  trailing: _valueText(context, orderId),
+                ),
             ],
           ),
           const SizedBox(height: PassqlSpacing.md),

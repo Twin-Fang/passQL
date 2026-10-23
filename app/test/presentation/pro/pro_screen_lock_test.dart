@@ -274,7 +274,7 @@ void main() {
     });
   });
 
-  testWidgets('설정 프로: 한 줄 회차 패스 · 만료일까지 · PRO', (tester) async {
+  testWidgets('설정 프로: 한 줄 이용권 · 만료일까지 · PRO', (tester) async {
     await _pumpPage(
       tester,
       const SettingsPage(),
@@ -282,7 +282,7 @@ void main() {
       extraOverrides: _settingsOverrides,
     );
 
-    final proLine = _visibleText('회차 패스 · 2026.11.22까지');
+    final proLine = _visibleText('이용권 · 2026.11.22까지');
     expect(tester.widget<Text>(proLine).maxLines, 1);
     expect(
       tester.getCenter(proLine).dy,

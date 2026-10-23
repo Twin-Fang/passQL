@@ -109,7 +109,7 @@ extension MemberPlanDailyUsage on MemberPlanResponse {
       dailyFreeLimit > 0 && todayRandomSolvedCount >= dailyFreeLimit;
 }
 
-/// 프로(회차 패스 보유) 여부. 등급을 모르면 false
+/// 프로(이용권 보유) 여부. 등급을 모르면 false
 final isProProvider = Provider.autoDispose<bool>(
   (ref) => ref.watch(knownPlanProvider)?.plan == MemberPlanType.pro,
 );

@@ -132,7 +132,7 @@ class AppException implements Exception {
     ErrorCode.reportAlreadyExists: '이미 신고한 문제예요.',
     ErrorCode.communitySolveRequired: '풀고 나서 의견을 볼 수 있어요.',
     ErrorCode.communityImageUnavailable: '지금은 이미지를 사용할 수 없어요. 잠시 후 다시 시도해 주세요.',
-    ErrorCode.proRequired: '회차 패스가 필요한 기능이에요.',
+    ErrorCode.proRequired: '이용권이 필요한 기능이에요.',
     ErrorCode.freeDailyLimitReached: '오늘 무료 10문제를 다 풀었어요.',
     ErrorCode.fairUseDailyLimitReached: '오늘 풀 수 있는 문제를 모두 풀었어요.',
     ErrorCode.dailySetAlreadyCompleted: '오늘의 세트를 이미 완료했어요.',

@@ -9,6 +9,16 @@ import 'package:passql_app/data/models/billing/play_verify_request.dart';
 import 'package:passql_app/data/models/member/member_plan_response.dart';
 import 'package:passql_app/data/sources/billing_api.dart';
 
+// 서버 passOptions 가 내려주는 이용권 상품 ID 2종 (테스트 고정값)
+const String _threeMonthPassId = 'pro_pass_3m';
+const String _oneMonthPassId = 'pro_pass_1m';
+
+/// 스토어에 등록된 상품 {상품 ID: (표시 가격, 숫자 가격)}
+const Map<String, (String, double)> _storePriceByProductId = {
+  _threeMonthPassId: ('₩9,900', 9900),
+  _oneMonthPassId: ('₩4,400', 4400),
+};
+
 /// 결제 창을 열면 기록만 하고, 구매 갱신은 테스트가 스트림으로 넣는 가짜 스토어
 class _FakeInAppPurchase implements InAppPurchase {
   final StreamController<List<PurchaseDetails>> purchaseUpdates =
@@ -16,6 +26,7 @@ class _FakeInAppPurchase implements InAppPurchase {
   bool? lastAutoConsume;
   PurchaseParam? lastPurchaseParam;
   final List<PurchaseDetails> completedPurchases = [];
+  final List<Set<String>> queriedProductIds = [];
 
   @override
   Stream<List<PurchaseDetails>> get purchaseStream => purchaseUpdates.stream;
@@ -26,19 +37,27 @@ class _FakeInAppPurchase implements InAppPurchase {
   @override
   Future<ProductDetailsResponse> queryProductDetails(
     Set<String> identifiers,
-  ) async => ProductDetailsResponse(
-    productDetails: [
-      ProductDetails(
-        id: PlayPurchaseService.examPassProductId,
-        title: '회차 패스',
-        description: '',
-        price: '₩9,900',
-        rawPrice: 9900,
-        currencyCode: 'KRW',
-      ),
-    ],
-    notFoundIDs: const [],
-  );
+  ) async {
+    queriedProductIds.add(identifiers);
+    return ProductDetailsResponse(
+      productDetails: [
+        for (final productId in identifiers)
+          if (_storePriceByProductId[productId] case (final price, final raw))
+            ProductDetails(
+              id: productId,
+              title: '이용권',
+              description: '',
+              price: price,
+              rawPrice: raw,
+              currencyCode: 'KRW',
+            ),
+      ],
+      notFoundIDs: [
+        for (final productId in identifiers)
+          if (!_storePriceByProductId.containsKey(productId)) productId,
+      ],
+    );
+  }
 
   @override
   Future<bool> buyConsumable({
@@ -76,8 +95,11 @@ class _FakeBillingApi implements BillingApiClient {
   }
 }
 
-PurchaseDetails _examPassPurchase(PurchaseStatus status) => PurchaseDetails(
-  productID: PlayPurchaseService.examPassProductId,
+PurchaseDetails _passPurchase(
+  PurchaseStatus status, {
+  String productId = _threeMonthPassId,
+}) => PurchaseDetails(
+  productID: productId,
   verificationData: PurchaseVerificationData(
     localVerificationData: '',
     serverVerificationData: 'purchase-token-1',
@@ -121,9 +143,9 @@ void main() {
   test(
     'purchased_verifiesWithServer_completesPurchase_returnsSuccess',
     () async {
-      final outcome = service.purchaseExamPass();
+      final outcome = service.purchasePass(_threeMonthPassId);
       await pumpEventQueue();
-      store.purchaseUpdates.add([_examPassPurchase(PurchaseStatus.purchased)]);
+      store.purchaseUpdates.add([_passPurchase(PurchaseStatus.purchased)]);
 
       expect(await outcome, ProPurchaseOutcome.success);
       // 소모는 서버 몫 > 앱은 autoConsume 끔
@@ -138,12 +160,55 @@ void main() {
     },
   );
 
+  test(
+    'loadPassPrices_returnsDisplayAndRawPrice_skipsUnknown_cachesProducts',
+    () async {
+      final prices = await service.loadPassPrices([
+        _threeMonthPassId,
+        _oneMonthPassId,
+        'pro_unknown',
+      ]);
+
+      expect(
+        prices.keys,
+        unorderedEquals([_threeMonthPassId, _oneMonthPassId]),
+      );
+      expect(prices[_threeMonthPassId]?.displayPrice, '₩9,900');
+      expect(prices[_oneMonthPassId]?.rawPrice, 4400);
+      // 이미 읽은 상품은 결제 때 다시 조회하지 않음
+      unawaited(service.purchasePass(_oneMonthPassId));
+      await pumpEventQueue();
+      expect(store.queriedProductIds, hasLength(1));
+      expect(store.lastPurchaseParam?.productDetails.id, _oneMonthPassId);
+    },
+  );
+
+  test('purchased_verifiesWithPurchasedProductId', () async {
+    final outcome = service.purchasePass(_oneMonthPassId);
+    await pumpEventQueue();
+    store.purchaseUpdates.add([
+      _passPurchase(PurchaseStatus.purchased, productId: _oneMonthPassId),
+    ]);
+
+    expect(await outcome, ProPurchaseOutcome.success);
+    // 서버 확인 상품 ID = 실제 구매한 상품 (앱 하드코딩 없음)
+    expect(billingApi.verifyRequests.single.productId, _oneMonthPassId);
+  });
+
+  test('purchase_unknownProduct_returnsUnavailable', () async {
+    expect(
+      await service.purchasePass('pro_unknown'),
+      ProPurchaseOutcome.unavailable,
+    );
+    expect(store.lastPurchaseParam, isNull);
+  });
+
   test('backgroundPurchased_refreshesPlan_announcesUnlock', () async {
     final unlocks = <void>[];
     service.backgroundProUnlocks.listen(unlocks.add);
 
     // 결제 창 밖 (지연 결제 완료·재시작 후 전달)
-    store.purchaseUpdates.add([_examPassPurchase(PurchaseStatus.purchased)]);
+    store.purchaseUpdates.add([_passPurchase(PurchaseStatus.purchased)]);
     await pumpEventQueue();
 
     expect(billingApi.verifyRequests, hasLength(1));
@@ -153,9 +218,9 @@ void main() {
 
   test('verifyFailure_returnsPending_keepsPurchaseUncompleted', () async {
     billingApi.shouldFailVerify = true;
-    final outcome = service.purchaseExamPass();
+    final outcome = service.purchasePass(_threeMonthPassId);
     await pumpEventQueue();
-    store.purchaseUpdates.add([_examPassPurchase(PurchaseStatus.purchased)]);
+    store.purchaseUpdates.add([_passPurchase(PurchaseStatus.purchased)]);
 
     // Play 결제는 끝남 > 대기 안내, 처리 완료 안 함 (다음 재전송에서 다시 확인)
     expect(await outcome, ProPurchaseOutcome.pending);
@@ -163,9 +228,9 @@ void main() {
   });
 
   test('pending_returnsPending_withoutServerVerification', () async {
-    final outcome = service.purchaseExamPass();
+    final outcome = service.purchasePass(_threeMonthPassId);
     await pumpEventQueue();
-    store.purchaseUpdates.add([_examPassPurchase(PurchaseStatus.pending)]);
+    store.purchaseUpdates.add([_passPurchase(PurchaseStatus.pending)]);
 
     expect(await outcome, ProPurchaseOutcome.pending);
     expect(billingApi.verifyRequests, isEmpty);
@@ -180,7 +245,7 @@ void main() {
   });
 
   test('purchase_setsHashedMemberUuidAsApplicationUserName', () async {
-    unawaited(service.purchaseExamPass());
+    unawaited(service.purchasePass(_threeMonthPassId));
     await pumpEventQueue();
 
     // 서버가 Play obfuscatedExternalAccountId 와 대조 (다른 계정 재전송 차단)
@@ -191,8 +256,34 @@ void main() {
     currentMemberUuid = null;
 
     // 회원 미확정이면 계정 값 없이 결제하지 않음 (서버 대조 우회 차단)
-    expect(await service.purchaseExamPass(), ProPurchaseOutcome.failed);
+    expect(
+      await service.purchasePass(_threeMonthPassId),
+      ProPurchaseOutcome.failed,
+    );
     expect(store.lastPurchaseParam, isNull);
+  });
+
+  test('memberPlanResponse_parsesPassOptions_defaultsToEmpty', () {
+    final withOptions = MemberPlanResponse.fromJson({
+      'isBillingEnabled': true,
+      'plan': 'FREE',
+      'passOptions': [
+        {
+          'productId': _threeMonthPassId,
+          'durationDays': 90,
+          'expiresAtIfPurchased': '2026-01-21T12:00:00',
+        },
+      ],
+    });
+    final withoutOptions = MemberPlanResponse.fromJson({'plan': 'FREE'});
+
+    expect(withOptions.passOptions.single.productId, _threeMonthPassId);
+    expect(withOptions.passOptions.single.durationDays, 90);
+    expect(
+      withOptions.passOptions.single.expiresAtIfPurchased,
+      DateTime(2026, 1, 21, 12),
+    );
+    expect(withoutOptions.passOptions, isEmpty);
   });
 
   test('memberPlanResponse_parsesLastPurchase_defaultsToNull', () {

@@ -5,7 +5,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'member_plan_response.freezed.dart';
 part 'member_plan_response.g.dart';
 
-/// 회원 등급 2종: 무료, 프로(회차 패스 보유)
+/// 회원 등급 2종: 무료, 프로(이용권 보유)
 enum MemberPlanType {
   @JsonValue('FREE')
   free,
@@ -30,8 +30,10 @@ class MemberPlanResponse with _$MemberPlanResponse {
     @Default(0) int todayRandomSolvedCount,
     // 무료 하루 랜덤 문제 한도
     @Default(0) int dailyFreeLimit,
-    // 지금 구매하면 이용할 수 있는 마지막 날 (다음 시험일, 없으면 null)
+    // deprecated: 옛 앱(1.36·1.37) 호환용 3개월권 예상 만료일. 화면은 passOptions 사용
     DateTime? purchasableUntil,
+    // 구매할 수 있는 이용권 (서버 순서: 3개월 먼저, 결제 꺼짐·상품 없음이면 빈 목록)
+    @Default(<PassOption>[]) List<PassOption> passOptions,
     // 가장 최근 검증 구매 시각 (KST, 구매 없음·관리자 부여만 있으면 null)
     DateTime? lastPurchasedAt,
     // 가장 최근 검증 구매의 Play 주문 번호 (구매 없음·관리자 부여만 있으면 null)
@@ -40,4 +42,20 @@ class MemberPlanResponse with _$MemberPlanResponse {
 
   factory MemberPlanResponse.fromJson(Map<String, dynamic> json) =>
       _$MemberPlanResponseFromJson(json);
+}
+
+/// 이용권 1종: 스토어 상품 ID, 이용 일수, 지금 사면 될 만료일 (KST)
+@freezed
+class PassOption with _$PassOption {
+  const factory PassOption({
+    // Play 일회성 상품 ID (예: pro_pass_3m)
+    required String productId,
+    // 이용 일수 (30 = 1개월, 90 = 3개월)
+    required int durationDays,
+    // 지금 구매하면 될 만료 시각 (보유 중이면 현재 만료일에 이어 붙인 값)
+    required DateTime expiresAtIfPurchased,
+  }) = _PassOption;
+
+  factory PassOption.fromJson(Map<String, dynamic> json) =>
+      _$PassOptionFromJson(json);
 }

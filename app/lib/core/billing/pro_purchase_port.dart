@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// 회차 패스 결제·복원 결과 6종 (화면은 이 값으로 안내 문구만 고름)
+/// 이용권 결제·복원 결과 6종 (화면은 이 값으로 안내 문구만 고름)
 enum ProPurchaseOutcome {
   success, // 서버 확인까지 끝나 프로가 됨
   pending, // 결제 확인 대기 (지연 결제)
@@ -10,13 +10,22 @@ enum ProPurchaseOutcome {
   unavailable, // 결제를 쓸 수 없는 환경 (상품·스토어 없음)
 }
 
-/// 회차 패스 결제 포트: 시트는 SDK 를 모르고 이 포트만 부른다 (실제 어댑터는 Provider 교체로 연결)
+/// 이용권 1종의 스토어 가격: 표시 문자열(₩9,900) + 숫자 가격(할인 계산용, 스토어 통화 단위)
+class PassPrice {
+  const PassPrice({required this.displayPrice, required this.rawPrice});
+
+  final String displayPrice;
+  final double rawPrice;
+}
+
+/// 이용권 결제 포트: 시트는 SDK 를 모르고 이 포트만 부른다 (실제 어댑터는 Provider 교체로 연결)
+/// 상품 ID 는 서버 등급 응답 passOptions 가 원본 (포트는 받은 ID 만 조회·결제)
 abstract interface class ProPurchasePort {
-  /// 스토어 현지화 가격 문자열 (상품을 못 읽으면 null)
-  Future<String?> loadExamPassPrice();
+  /// 상품 ID별 스토어 가격 (못 읽은 상품은 결과에서 빠짐)
+  Future<Map<String, PassPrice>> loadPassPrices(List<String> productIds);
 
   /// 결제 창 열기 > 서버 확인
-  Future<ProPurchaseOutcome> purchaseExamPass();
+  Future<ProPurchaseOutcome> purchasePass(String productId);
 
   /// 스토어 보유 조회 > 서버 확인
   Future<ProPurchaseOutcome> restorePurchases();
@@ -27,10 +36,12 @@ class UnavailableProPurchasePort implements ProPurchasePort {
   const UnavailableProPurchasePort();
 
   @override
-  Future<String?> loadExamPassPrice() async => null;
+  Future<Map<String, PassPrice>> loadPassPrices(
+    List<String> productIds,
+  ) async => const {};
 
   @override
-  Future<ProPurchaseOutcome> purchaseExamPass() async =>
+  Future<ProPurchaseOutcome> purchasePass(String productId) async =>
       ProPurchaseOutcome.unavailable;
 
   @override
