@@ -68,14 +68,17 @@ public class EntitlementPurchase extends BaseEntity {
     // 이 구매로 부여한 프로 만료 시각
     private LocalDateTime grantedExpiresAt;
 
+    // 이 구매로 더한 이용 일수 (PassProduct 일수, #576 회차 패스 옛 행은 null)
+    private Integer grantedDays;
+
     // 스토어 소모(consume) 완료 여부: 검증만 되고 소모 전이면 false (소모 재시도 대상)
     @Column(nullable = false)
     private Boolean isConsumed = false;
 
-    /** 검증 완료 구매 생성 (소모 전 상태) */
+    /** 검증 완료 구매 생성 (소모 전 상태, grantedDays 는 옛 회차 패스면 null) */
     public static EntitlementPurchase verified(UUID memberUuid, PurchaseStore store, String productId, String orderId,
                                                String purchaseToken, LocalDateTime purchasedAt,
-                                               LocalDateTime grantedExpiresAt) {
+                                               LocalDateTime grantedExpiresAt, Integer grantedDays) {
         EntitlementPurchase purchase = new EntitlementPurchase();
         purchase.memberUuid = memberUuid;
         purchase.store = store;
@@ -85,6 +88,7 @@ public class EntitlementPurchase extends BaseEntity {
         purchase.purchasedAt = purchasedAt;
         purchase.status = PurchaseStatus.VERIFIED;
         purchase.grantedExpiresAt = grantedExpiresAt;
+        purchase.grantedDays = grantedDays;
         return purchase;
     }
 

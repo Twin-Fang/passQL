@@ -2,6 +2,7 @@ package com.passql.web.controller;
 
 import com.passql.application.entitlement.EntitlementAdminService;
 import com.passql.member.constant.AuthProvider;
+import com.passql.member.constant.PassProduct;
 import com.passql.member.constant.PurchaseStore;
 import com.passql.member.entity.EntitlementPurchase;
 import com.passql.member.entity.Member;
@@ -60,8 +61,9 @@ class AdminMemberEntitlementPageTest {
             .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("/entitlement/revoke"))));
 
         entitlementAdminService.grantPro(memberUuid, LocalDate.now().plusDays(30));
-        entitlementPurchaseRepository.save(EntitlementPurchase.verified(memberUuid, PurchaseStore.PLAY, "pro_exam_pass",
-            "GPA.test-order", "secret-purchase-token", LocalDateTime.now(), LocalDateTime.now().plusDays(30)));
+        entitlementPurchaseRepository.save(EntitlementPurchase.verified(memberUuid, PurchaseStore.PLAY,
+            PassProduct.PRO_PASS_1M.getProductId(), "GPA.test-order", "secret-purchase-token", LocalDateTime.now(),
+            LocalDateTime.now().plusDays(PassProduct.PRO_PASS_1M.getDurationDays()), PassProduct.PRO_PASS_1M.getDurationDays()));
 
         mockMvc.perform(get("/admin/members/{uuid}", memberUuid).requestAttr("_csrf", csrfToken))
             .andExpect(status().isOk())
@@ -69,6 +71,7 @@ class AdminMemberEntitlementPageTest {
             .andExpect(content().string(org.hamcrest.Matchers.containsString("/entitlement/revoke")))
             // 구매 이력 행 표시, 구매 토큰은 노출 금지
             .andExpect(content().string(org.hamcrest.Matchers.containsString("GPA.test-order")))
+            .andExpect(content().string(org.hamcrest.Matchers.containsString(PassProduct.PRO_PASS_1M.getProductId())))
             // 검증 상태 구매 행: 구매 1건 회수 버튼
             .andExpect(content().string(org.hamcrest.Matchers.containsString("/entitlement/purchases/")))
             // 활성 이용권 만료일: 단축 confirm 기준값

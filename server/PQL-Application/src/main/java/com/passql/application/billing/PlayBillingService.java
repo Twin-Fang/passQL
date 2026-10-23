@@ -8,6 +8,7 @@ import com.passql.application.entitlement.MemberPlanResponse;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.common.util.Sha256Hex;
+import com.passql.member.constant.PassProduct;
 import com.passql.member.constant.PurchaseStatus;
 import com.passql.member.entity.EntitlementPurchase;
 import com.passql.member.repository.EntitlementPurchaseRepository;
@@ -27,15 +28,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Play 회차 패스 결제: 구매 확인·등급 부여, 소모, 환불 회수
+ * Play 이용권 결제(PassProduct 1개월·3개월): 구매 확인·등급 부여, 소모, 환불 회수
  * 기록·등급 변경은 한 트랜잭션(ON CONFLICT 저장) > 커밋 후 소모 (소모 실패는 다음 확인 요청에서 재시도)
  */
 @Slf4j
 @Service
 public class PlayBillingService {
-
-    // Play 상품 ID: 회차 패스 (소모형 일회성 상품)
-    public static final String PRO_EXAM_PASS_PRODUCT_ID = "pro_exam_pass";
 
     // Play purchaseState: 0 구매 완료, 1 취소, 2 대기
     private static final int PURCHASE_STATE_PURCHASED = 0;
@@ -86,10 +84,11 @@ public class PlayBillingService {
      * 대기 구매는 저장·소모 없이 현재 등급 반환
      */
     public MemberPlanResponse verify(UUID memberUuid, PlayVerifyRequest request) {
-        if (!PRO_EXAM_PASS_PRODUCT_ID.equals(request.productId())) {
+        // 판매 중인 이용권만 허용 (옛 pro_exam_pass 포함 그 외 ID 거절)
+        PassProduct passProduct = PassProduct.fromProductId(request.productId()).orElseThrow(() -> {
             log.info("[billing] rejected 400 : unknown product, member={}", memberUuid);
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
-        }
+            return new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        });
 
         // 이미 기록된 토큰: 연장 없이 소모만 재시도
         Optional<EntitlementPurchase> recordedPurchase =
@@ -114,7 +113,7 @@ public class PlayBillingService {
 
         // 기록·등급 한 트랜잭션 (같은 토큰·주문은 ON CONFLICT 로 0건 > 기존 기록 경로)
         Optional<PlanExtension> planExtension = transactionTemplate.execute(status -> playPurchaseRecorder
-            .recordPurchaseAndExtendPlan(memberUuid, request, snapshot, clock.instant()));
+            .recordPurchaseAndExtendPlan(memberUuid, request, passProduct, snapshot, clock.instant()));
         if (planExtension == null || planExtension.isEmpty()) {
             return handleConflictedPurchase(memberUuid, request.purchaseToken());
         }

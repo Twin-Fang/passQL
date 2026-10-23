@@ -1,9 +1,10 @@
 package com.passql.application.billing;
 
-import com.passql.application.entitlement.ExamPassExpiryCalculator;
+import com.passql.application.entitlement.PassExpiryCalculator;
 import com.passql.common.util.Sha256Hex;
 import com.passql.member.constant.EntitlementSource;
 import com.passql.member.constant.MemberPlan;
+import com.passql.member.constant.PassProduct;
 import com.passql.member.constant.PurchaseStatus;
 import com.passql.member.constant.PurchaseStore;
 import com.passql.member.entity.MemberEntitlement;
@@ -22,7 +23,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Play 구매 기록 + 등급 반영 (호출자 트랜잭션 안): 회원 행 잠금 > 만료일 계산 > 기록 INSERT > 1건일 때만 등급 반영
+ * Play 구매 기록 + 등급 반영 (호출자 트랜잭션 안): 회원 행 잠금 > 만료일 계산 > 기록 INSERT(이용 일수 포함) > 1건일 때만 등급 반영
  * 같은 토큰·주문 번호 기록이 이미 있으면 ON CONFLICT 로 0건 > 등급을 건드리지 않음
  */
 @Slf4j
@@ -41,15 +42,15 @@ class PlayPurchaseRecorder {
     private final EntitlementPurchaseRepository entitlementPurchaseRepository;
     private final MemberEntitlementRepository memberEntitlementRepository;
     private final MemberRepository memberRepository;
-    private final ExamPassExpiryCalculator examPassExpiryCalculator;
+    private final PassExpiryCalculator passExpiryCalculator;
 
-    /** 구매 기록·등급 반영, 기록이 이미 있으면 empty (now: 구매 시각 없을 때 기준·기록 시각) */
-    Optional<PlanExtension> recordPurchaseAndExtendPlan(UUID memberUuid, PlayVerifyRequest request,
+    /** 구매 기록·등급 반영, 기록이 이미 있으면 empty (passProduct: 검증된 요청 상품, now: 구매 시각 없을 때 기준·기록 시각) */
+    Optional<PlanExtension> recordPurchaseAndExtendPlan(UUID memberUuid, PlayVerifyRequest request, PassProduct passProduct,
                                                         PlayPurchaseSnapshot snapshot, Instant now) {
         // 같은 회원 동시 구매 직렬화 (첫 구매는 등급 행이 없어 회원 행을 잠금)
         memberRepository.lockByMemberUuid(memberUuid);
 
-        // 만료일 계산 (Play 구매 시각 없으면 지금, 현재 프로 만료일 이후로 연장)
+        // 만료일 계산 (Play 구매 시각 없으면 지금, 보유 중이면 현재 프로 만료일 뒤로 이용 일수만큼)
         String orderId = resolveOrderId(memberUuid, snapshot.orderId(), request.purchaseToken());
         Instant purchasedInstant = snapshot.purchasedAt() != null ? snapshot.purchasedAt() : now;
         LocalDateTime purchasedAt = LocalDateTime.ofInstant(purchasedInstant, SERVICE_ZONE);
@@ -58,13 +59,14 @@ class PlayPurchaseRecorder {
             .filter(existing -> existing.getPlan() == MemberPlan.PRO)
             .map(MemberEntitlement::getExpiresAt)
             .orElse(null);
-        LocalDateTime newExpiresAt = examPassExpiryCalculator.calculateExpiresAt(purchasedAt, currentProExpiresAt);
+        LocalDateTime newExpiresAt = passExpiryCalculator.calculateExpiresAt(
+            purchasedAt, currentProExpiresAt, passProduct.getDurationDays());
 
         // 구매 기록 먼저 (토큰·주문 번호 충돌이면 0건, 예외·오류 로그 없음)
         int insertedCount = entitlementPurchaseRepository.insertVerifiedIfAbsent(
             UUID.randomUUID(), memberUuid, PurchaseStore.PLAY.name(), request.productId(), orderId,
             request.purchaseToken(), purchasedAt, PurchaseStatus.VERIFIED.name(), newExpiresAt,
-            LocalDateTime.ofInstant(now, SERVICE_ZONE), AUDITOR_SYSTEM);
+            passProduct.getDurationDays(), LocalDateTime.ofInstant(now, SERVICE_ZONE), AUDITOR_SYSTEM);
         if (insertedCount == 0) {
             return Optional.empty();
         }

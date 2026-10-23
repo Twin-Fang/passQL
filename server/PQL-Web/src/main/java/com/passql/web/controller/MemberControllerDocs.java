@@ -52,6 +52,7 @@ public interface MemberControllerDocs {
 
   @ApiLogs({
       @ApiLog(date = "2026.10.22", author = Author.SUHSAECHAN, issueNumber = 576, description = "내 등급 조회 API 추가 (플랜·프로 만료일·오늘 무료 사용량·구매 가능 마감일)"),
+      @ApiLog(date = "2026.10.23", author = Author.SUHSAECHAN, issueNumber = 591, description = "응답에 판매 이용권 목록 passOptions 추가, purchasableUntil deprecated (3개월권 값)"),
   })
   @Operation(
       summary = "내 등급 조회",
@@ -67,7 +68,13 @@ public interface MemberControllerDocs {
           - **`proExpiresAt`**: 프로 만료 시각 KST (유효한 프로가 아니면 null)
           - **`todayRandomSolvedCount`**: 오늘 푼 무료 랜덤 문제 수
           - **`dailyFreeLimit`**: 무료 하루 랜덤 문제 한도
-          - **`purchasableUntil`**: 지금 구매하면 이용 가능한 마감 시각 KST (결제 꺼짐이면 null)
+          - **`purchasableUntil`**: deprecated — `passOptions` 3개월권 `expiresAtIfPurchased` 와 같은 값 (출시 앱 1.36·1.37 호환, 결제 꺼짐이면 null)
+          - **`lastPurchasedAt`**: 가장 최근 검증 구매 시각 KST (없으면 null)
+          - **`lastOrderId`**: 가장 최근 검증 구매의 Play 주문 번호 (없으면 null)
+          - **`passOptions`**: 판매 이용권 목록 (3개월 먼저, 결제 꺼짐이면 빈 목록)
+            - `productId`: Play 상품 ID (`pro_pass_3m`, `pro_pass_1m`)
+            - `durationDays`: 이용 일수 (90, 30)
+            - `expiresAtIfPurchased`: 지금 구매하면 될 프로 만료 시각 KST (보유 중이면 현재 만료일 뒤로 이어 붙인 값)
           """
   )
   MemberPlanResponse getMyPlan(@AuthMember LoginMember loginMember);

@@ -1,10 +1,12 @@
 package com.passql.application.entitlement;
 
+import com.passql.application.entitlement.EntitlementPurchaseRevoker.RevocationResult;
 import com.passql.common.audit.AdminAuditEvent;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.member.constant.EntitlementSource;
 import com.passql.member.constant.MemberPlan;
+import com.passql.member.constant.PassProduct;
 import com.passql.member.constant.PurchaseStatus;
 import com.passql.member.constant.PurchaseStore;
 import com.passql.member.entity.EntitlementPurchase;
@@ -20,6 +22,7 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,7 +36,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * 관리자 프로 수동 부여·회수: 만료일 23:59:59 확정, 지난 날짜 거절, 기존 행 연장·단축, 회수, 구매 1건 회수
+ * 관리자 프로 수동 부여·회수: 만료일 23:59:59 확정, 지난 날짜 거절, 기존 행 연장·단축, 회수, 구매 1건 회수(남은 구매 재생)
  */
 class EntitlementAdminServiceTest {
 
@@ -49,7 +52,7 @@ class EntitlementAdminServiceTest {
     private final EntitlementPurchaseRepository purchaseRepository = mock(EntitlementPurchaseRepository.class);
     private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
     private final EntitlementPurchaseRevoker purchaseRevoker =
-        new EntitlementPurchaseRevoker(purchaseRepository, entitlementRepository);
+        new EntitlementPurchaseRevoker(purchaseRepository, entitlementRepository, new PassExpiryCalculator());
     private final EntitlementAdminService service = new EntitlementAdminService(
         memberRepository, entitlementRepository, purchaseRepository, purchaseRevoker, eventPublisher, FIXED_CLOCK);
     private final UUID memberUuid = UUID.randomUUID();
@@ -97,8 +100,8 @@ class EntitlementAdminServiceTest {
     }
 
     @Test
-    void revokePurchase_marksRevoked_andRecalculatesFromRemainingPurchase() {
-        // 회원 등급: 최근 구매(11/30) 기준, 남은 구매(11/10)가 있음
+    void revokePurchase_marksRevoked_andRecalculatesFromRemainingLegacyPurchase() {
+        // 회원 등급: 최근 구매(11/30) 기준, 남은 옛 회차 패스 구매(11/10, 일수 없음) > 부여 만료일 그대로
         EntitlementPurchase latestPurchase = purchase(memberUuid, "GPA.0002", LocalDateTime.of(2026, 11, 30, 23, 59, 59));
         EntitlementPurchase remainingPurchase = purchase(memberUuid, "GPA.0001", LocalDateTime.of(2026, 11, 10, 23, 59, 59));
         MemberEntitlement entitlement = MemberEntitlement.of(memberUuid, MemberPlan.PRO,
@@ -130,9 +133,94 @@ class EntitlementAdminServiceTest {
         verify(eventPublisher, never()).publishEvent(any());
     }
 
+    @Test
+    void revokePurchase_middlePass_removesOnlyItsDays() {
+        // 3개월(10일 전) > 1개월(5일 전) > 1개월(1일 전) 이어 붙임, 가운데 환불 > 그 30일만 빠짐
+        EntitlementPurchase firstPass = passPurchase("GPA.0001", NOW.minusDays(10), PassProduct.PRO_PASS_3M, null);
+        EntitlementPurchase middlePass = passPurchase("GPA.0002", NOW.minusDays(5), PassProduct.PRO_PASS_1M,
+            firstPass.getGrantedExpiresAt());
+        EntitlementPurchase lastPass = passPurchase("GPA.0003", NOW.minusDays(1), PassProduct.PRO_PASS_1M,
+            middlePass.getGrantedExpiresAt());
+        MemberEntitlement entitlement = playEntitlement(lastPass.getGrantedExpiresAt());
+        givenPurchases(middlePass, entitlement, firstPass, middlePass, lastPass);
+
+        service.revokePurchase(memberUuid, PURCHASE_UUID);
+
+        assertThat(lastPass.getGrantedExpiresAt()).isEqualTo(NOW.plusDays(140));
+        assertThat(entitlement.getExpiresAt()).isEqualTo(NOW.plusDays(110));
+        assertThat(entitlement.getSource()).isEqualTo(EntitlementSource.PLAY_PURCHASE);
+    }
+
+    @Test
+    void revokePurchase_earlierExpiredPass_keepsCurrentExpiresAt() {
+        // 100일 전 1개월권(이미 만료) 환불 > 10일 전 3개월권 만료일 그대로
+        EntitlementPurchase expiredPass = passPurchase("GPA.0001", NOW.minusDays(100), PassProduct.PRO_PASS_1M, null);
+        EntitlementPurchase activePass = passPurchase("GPA.0002", NOW.minusDays(10), PassProduct.PRO_PASS_3M, null);
+        MemberEntitlement entitlement = playEntitlement(activePass.getGrantedExpiresAt());
+        givenPurchases(expiredPass, entitlement, expiredPass, activePass);
+
+        service.revokePurchase(memberUuid, PURCHASE_UUID);
+
+        assertThat(expiredPass.getStatus()).isEqualTo(PurchaseStatus.REVOKED);
+        assertThat(entitlement.getExpiresAt()).isEqualTo(NOW.plusDays(80));
+    }
+
+    @Test
+    void revokePurchase_onlyPass_setsFree() {
+        EntitlementPurchase onlyPass = passPurchase("GPA.0001", NOW.minusDays(1), PassProduct.PRO_PASS_3M, null);
+        MemberEntitlement entitlement = playEntitlement(onlyPass.getGrantedExpiresAt());
+        givenPurchases(onlyPass, entitlement, onlyPass);
+
+        service.revokePurchase(memberUuid, PURCHASE_UUID);
+
+        assertThat(entitlement.getPlan()).isEqualTo(MemberPlan.FREE);
+        assertThat(entitlement.getExpiresAt()).isNull();
+    }
+
+    @Test
+    void revokePurchase_adminGrant_keepsEntitlement() {
+        EntitlementPurchase onlyPass = passPurchase("GPA.0001", NOW.minusDays(1), PassProduct.PRO_PASS_3M, null);
+        LocalDateTime adminGrantExpiresAt = LocalDateTime.of(2027, 6, 30, 23, 59, 59);
+        MemberEntitlement entitlement = MemberEntitlement.of(memberUuid, MemberPlan.PRO, adminGrantExpiresAt,
+            EntitlementSource.ADMIN_GRANT);
+        givenPurchases(onlyPass, entitlement, onlyPass);
+
+        RevocationResult result = service.revokePurchase(memberUuid, PURCHASE_UUID);
+
+        assertThat(result.kind()).isEqualTo(EntitlementPurchaseRevoker.RecalculationKind.ADMIN_GRANT_KEPT);
+        assertThat(onlyPass.getStatus()).isEqualTo(PurchaseStatus.REVOKED);
+        assertThat(entitlement.getExpiresAt()).isEqualTo(adminGrantExpiresAt);
+        assertThat(entitlement.getSource()).isEqualTo(EntitlementSource.ADMIN_GRANT);
+    }
+
+    // 회수 대상·등급 행·회원 구매 목록 등록 (상태별 조회는 호출 시점 상태로 거름)
+    private void givenPurchases(EntitlementPurchase revokeTarget, MemberEntitlement entitlement,
+                                EntitlementPurchase... memberPurchases) {
+        when(purchaseRepository.findById(PURCHASE_UUID)).thenReturn(Optional.of(revokeTarget));
+        when(entitlementRepository.findForUpdateByMemberUuid(memberUuid)).thenReturn(Optional.of(entitlement));
+        when(purchaseRepository.findByMemberUuidAndStatus(memberUuid, PurchaseStatus.VERIFIED))
+            .thenAnswer(call -> Arrays.stream(memberPurchases)
+                .filter(memberPurchase -> memberPurchase.getStatus() == PurchaseStatus.VERIFIED)
+                .toList());
+    }
+
+    private MemberEntitlement playEntitlement(LocalDateTime expiresAt) {
+        return MemberEntitlement.of(memberUuid, MemberPlan.PRO, expiresAt, EntitlementSource.PLAY_PURCHASE);
+    }
+
+    // 이용권 구매 (부여 만료일 = max(구매 시각, 직전 누적 만료일) + 일수)
+    private EntitlementPurchase passPurchase(String orderId, LocalDateTime purchasedAt, PassProduct passProduct,
+                                             LocalDateTime previousExpiresAt) {
+        LocalDateTime grantedExpiresAt = new PassExpiryCalculator()
+            .calculateExpiresAt(purchasedAt, previousExpiresAt, passProduct.getDurationDays());
+        return EntitlementPurchase.verified(memberUuid, PurchaseStore.PLAY, passProduct.getProductId(), orderId,
+            "token-" + orderId, purchasedAt, grantedExpiresAt, passProduct.getDurationDays());
+    }
+
+    // 옛 회차 패스 구매 (이용 일수 없음)
     private static EntitlementPurchase purchase(UUID ownerUuid, String orderId, LocalDateTime grantedExpiresAt) {
         return EntitlementPurchase.verified(ownerUuid, PurchaseStore.PLAY, "pro_exam_pass", orderId,
-            "token-" + orderId, NOW.minusDays(1), grantedExpiresAt);
+            "token-" + orderId, NOW.minusDays(1), grantedExpiresAt, null);
     }
 
     @Test
