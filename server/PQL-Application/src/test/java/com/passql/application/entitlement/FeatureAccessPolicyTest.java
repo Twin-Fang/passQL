@@ -310,4 +310,88 @@ class FeatureAccessPolicyTest {
         assertThat(response.lastPurchasedAt()).isNull();
         assertThat(response.lastOrderId()).isNull();
     }
+
+    private void givenPreviewMemberUuidsText(String previewMemberUuidsText) {
+        when(appSettingService.getString(AppSettingKeys.BILLING_PREVIEW_MEMBER_UUIDS)).thenReturn(previewMemberUuidsText);
+    }
+
+    @Test
+    void previewMember_whenBillingDisabled_seesBillingOnAndFreePlan() {
+        givenBillingEnabled(false);
+        givenPreviewMemberUuidsText(memberUuid.toString());
+        when(entitlementRepository.findById(memberUuid)).thenReturn(Optional.empty());
+
+        MemberPlanResponse response = policy.getPlan(memberUuid);
+
+        assertThat(policy.isBillingEnabledFor(memberUuid)).isTrue();
+        assertThat(response.isBillingEnabled()).isTrue();
+        assertThat(response.plan()).isEqualTo("FREE");
+        assertThat(response.passOptions()).hasSize(PassProduct.values().length);
+    }
+
+    @Test
+    void previewMember_whenBillingDisabled_locksProFeatureAndDailyLimit() {
+        givenBillingEnabled(false);
+        givenPreviewMemberUuidsText(" " + UUID.randomUUID() + " , " + memberUuid + " ");
+        when(entitlementRepository.findById(memberUuid)).thenReturn(Optional.empty());
+        givenTodayRandomSolvedCount(FeatureAccessPolicy.DAILY_FREE_LIMIT);
+
+        assertThatThrownBy(() -> policy.requireFeature(memberUuid, ProFeature.REAL_MODE))
+            .isInstanceOfSatisfying(CustomException.class,
+                e -> assertThat(e.getErrorCode()).isEqualTo(ErrorCode.PRO_REQUIRED));
+        assertOpenRejectedWith(UUID.randomUUID(), ErrorCode.FREE_DAILY_LIMIT_REACHED);
+    }
+
+    @Test
+    void unlistedMember_whenBillingDisabled_staysFree() {
+        givenBillingEnabled(false);
+        givenPreviewMemberUuidsText(UUID.randomUUID().toString());
+        givenTodayRandomSolvedCount(FeatureAccessPolicy.DAILY_FREE_LIMIT);
+
+        MemberPlanResponse response = policy.getPlan(memberUuid);
+
+        assertThat(policy.isBillingEnabledFor(memberUuid)).isFalse();
+        assertThat(response.isBillingEnabled()).isFalse();
+        assertThat(response.plan()).isEqualTo("PRO");
+        assertThat(policy.isPro(memberUuid)).isTrue();
+        policy.assertCanOpenQuestion(memberUuid, UUID.randomUUID());
+    }
+
+    @Test
+    void previewMemberList_ignoresBlankAndInvalidEntries() {
+        givenBillingEnabled(false);
+        givenPreviewMemberUuidsText(",, not-a-uuid ,\n" + memberUuid + ",12345");
+
+        assertThat(policy.isBillingEnabledFor(memberUuid)).isTrue();
+        assertThat(policy.isBillingEnabledFor(UUID.randomUUID())).isFalse();
+    }
+
+    @Test
+    void previewMemberList_whenOnlyInvalidEntriesOrEmpty_nobodyListed() {
+        givenBillingEnabled(false);
+        givenPreviewMemberUuidsText("not-a-uuid");
+        assertThat(policy.isBillingEnabledFor(memberUuid)).isFalse();
+
+        givenPreviewMemberUuidsText("");
+        assertThat(policy.isBillingEnabledFor(memberUuid)).isFalse();
+        assertThat(policy.isBillingEnabledFor(null)).isFalse();
+    }
+
+    @Test
+    void previewMemberList_whenSettingStoreFails_treatsAsNotListed() {
+        givenBillingEnabled(false);
+        when(appSettingService.getString(AppSettingKeys.BILLING_PREVIEW_MEMBER_UUIDS))
+            .thenThrow(new IllegalStateException("setting row missing"));
+
+        assertThat(policy.isBillingEnabledFor(memberUuid)).isFalse();
+        assertThat(policy.isPro(memberUuid)).isTrue();
+    }
+
+    @Test
+    void globalBillingEnabled_appliesToUnlistedMemberWithoutReadingPreviewList() {
+        givenFreeMember();
+
+        assertThat(policy.isBillingEnabledFor(memberUuid)).isTrue();
+        assertThat(policy.getPlan(memberUuid).plan()).isEqualTo("FREE");
+    }
 }

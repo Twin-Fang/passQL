@@ -22,11 +22,13 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
- * 등급 판정 단일 지점: 결제 스위치 확인, 프로 여부, 기능별 잠금
- * 스위치 꺼짐 > 전원 프로 취급, 켜짐 > 등급 행 PRO 이고 만료 전일 때만 프로
+ * 등급 판정 단일 지점: 결제 스위치 확인(전체·회원별), 프로 여부, 기능별 잠금
+ * 회원 기준 결제 꺼짐 > 프로 취급, 켜짐(스위치 또는 미리보기 목록) > 등급 행 PRO 이고 만료 전일 때만 프로
  */
 @Slf4j
 @Service
@@ -45,6 +47,10 @@ public class FeatureAccessPolicy {
     private static final String PLAN_FREE = "FREE";
     // app_settings: 안드로이드 결제 사용 여부 ('true' 사용, 'false'·행 없음·저장소 장애 미사용)
     private static final boolean IS_BILLING_ENABLED_BY_DEFAULT = false;
+    // app_settings billing.preview_member_uuids 구분자 (쉼표)
+    private static final String PREVIEW_MEMBER_UUID_DELIMITER = ",";
+    // 잘못된 목록 항목 로그 최대 길이 (자)
+    private static final int INVALID_ENTRY_LOG_MAX_LENGTH = 40;
 
     private final MemberEntitlementRepository memberEntitlementRepository;
     private final AppSettingService appSettingService;
@@ -90,9 +96,17 @@ public class FeatureAccessPolicy {
         }
     }
 
-    /** 프로 여부: 스위치 꺼짐 true, 아니면 유효한 프로 등급 행 존재 */
+    /** 회원 기준 결제 켜짐: 전체 스위치 켜짐 또는 미리보기 목록 회원 (회원 없음 > 전체 스위치만) */
+    public boolean isBillingEnabledFor(UUID memberUuid) {
+        if (isBillingEnabled()) {
+            return true;
+        }
+        return memberUuid != null && readPreviewMemberUuids().contains(memberUuid);
+    }
+
+    /** 프로 여부: 회원 기준 결제 꺼짐 true, 아니면 유효한 프로 등급 행 존재 */
     public boolean isPro(UUID memberUuid) {
-        if (!isBillingEnabled()) {
+        if (!isBillingEnabledFor(memberUuid)) {
             return true;
         }
         return findActiveProEntitlement(memberUuid) != null;
@@ -121,10 +135,10 @@ public class FeatureAccessPolicy {
 
     /**
      * 문제 열기 제한: 스위치 > 오늘의 문제 > 예전에 푼 문제 > 오늘 새로 연 수(무료 10, 프로 200)
-     * 스위치 꺼짐, 오늘의 문제, 제출 이력 있는 문제는 항상 통과
+     * 회원 기준 결제 꺼짐, 오늘의 문제, 제출 이력 있는 문제는 항상 통과
      */
     public void assertCanOpenQuestion(UUID memberUuid, UUID questionUuid) {
-        if (!isBillingEnabled()) {
+        if (!isBillingEnabledFor(memberUuid)) {
             return;
         }
         // 오늘의 문제 배정분은 한도와 무관
@@ -151,9 +165,9 @@ public class FeatureAccessPolicy {
         }
     }
 
-    /** 내 등급 응답 (이용권 목록·오늘 사용량·최근 구매는 결제 켜짐일 때만, 최근 구매는 검증 구매 기준) */
+    /** 내 등급 응답 (이용권 목록·오늘 사용량·최근 구매는 회원 기준 결제 켜짐일 때만, 최근 구매는 검증 구매 기준) */
     public MemberPlanResponse getPlan(UUID memberUuid) {
-        boolean isBillingEnabled = isBillingEnabled();
+        boolean isBillingEnabled = isBillingEnabledFor(memberUuid);
         MemberEntitlement activeProEntitlement = findActiveProEntitlement(memberUuid);
         boolean isPro = !isBillingEnabled || activeProEntitlement != null;
         LocalDateTime activeProExpiresAtOrNull = activeProEntitlement != null ? activeProEntitlement.getExpiresAt() : null;
@@ -197,6 +211,48 @@ public class FeatureAccessPolicy {
                 passProduct.getDurationDays(),
                 passExpiryCalculator.calculateExpiresAt(now, activeProExpiresAtOrNull, passProduct.getDurationDays())))
             .toList();
+    }
+
+    /**
+     * 미리보기 회원 목록: 설정값 > 쉼표 분리 > 공백 제거 > UUID 변환
+     * 빈 항목 건너뜀, 잘못된 항목 경고 후 건너뜀, 행 없음·저장소 장애 > 빈 목록
+     */
+    private Set<UUID> readPreviewMemberUuids() {
+        String previewMemberUuidsText;
+        try {
+            previewMemberUuidsText = appSettingService.getString(AppSettingKeys.BILLING_PREVIEW_MEMBER_UUIDS);
+        } catch (RuntimeException e) {
+            log.warn("[feature access] billing preview members read failed, treating as empty : reason={}",
+                e.getClass().getSimpleName());
+            return Set.of();
+        }
+        if (previewMemberUuidsText == null || previewMemberUuidsText.isBlank()) {
+            return Set.of();
+        }
+        return Arrays.stream(previewMemberUuidsText.split(PREVIEW_MEMBER_UUID_DELIMITER))
+            .map(String::trim)
+            .filter(entry -> !entry.isEmpty())
+            .map(this::toUuidOrNull)
+            .filter(uuid -> uuid != null)
+            .collect(Collectors.toUnmodifiableSet());
+    }
+
+    /** 목록 항목 > UUID, 형식 오류면 경고 후 null */
+    private UUID toUuidOrNull(String entry) {
+        try {
+            return UUID.fromString(entry);
+        } catch (IllegalArgumentException e) {
+            log.warn("[feature access] billing preview member ignored : invalid uuid={}", sanitizeForLog(entry));
+            return null;
+        }
+    }
+
+    /** 로그용 값 정리 (UUID 문자 외 > ?, 40자 제한) */
+    private static String sanitizeForLog(String value) {
+        String limitedValue = value.length() > INVALID_ENTRY_LOG_MAX_LENGTH
+            ? value.substring(0, INVALID_ENTRY_LOG_MAX_LENGTH)
+            : value;
+        return limitedValue.replaceAll("[^0-9A-Za-z-]", "?");
     }
 
     /** 유효한 프로 등급 행 (PRO 이고 만료일이 지금 이후), 없으면 null */
