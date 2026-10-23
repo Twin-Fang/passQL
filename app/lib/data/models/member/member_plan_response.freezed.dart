@@ -31,8 +31,10 @@ mixin _$MemberPlanResponse {
   int get todayRandomSolvedCount =>
       throw _privateConstructorUsedError; // 무료 하루 랜덤 문제 한도
   int get dailyFreeLimit =>
-      throw _privateConstructorUsedError; // 지금 구매하면 이용할 수 있는 마지막 날 (다음 시험일, 없으면 null)
+      throw _privateConstructorUsedError; // deprecated: 옛 앱(1.36·1.37) 호환용 3개월권 예상 만료일. 화면은 passOptions 사용
   DateTime? get purchasableUntil =>
+      throw _privateConstructorUsedError; // 구매할 수 있는 이용권 (서버 순서: 3개월 먼저, 결제 꺼짐·상품 없음이면 빈 목록)
+  List<PassOption> get passOptions =>
       throw _privateConstructorUsedError; // 가장 최근 검증 구매 시각 (KST, 구매 없음·관리자 부여만 있으면 null)
   DateTime? get lastPurchasedAt =>
       throw _privateConstructorUsedError; // 가장 최근 검증 구매의 Play 주문 번호 (구매 없음·관리자 부여만 있으면 null)
@@ -62,6 +64,7 @@ abstract class $MemberPlanResponseCopyWith<$Res> {
     int todayRandomSolvedCount,
     int dailyFreeLimit,
     DateTime? purchasableUntil,
+    List<PassOption> passOptions,
     DateTime? lastPurchasedAt,
     String? lastOrderId,
   });
@@ -88,6 +91,7 @@ class _$MemberPlanResponseCopyWithImpl<$Res, $Val extends MemberPlanResponse>
     Object? todayRandomSolvedCount = null,
     Object? dailyFreeLimit = null,
     Object? purchasableUntil = freezed,
+    Object? passOptions = null,
     Object? lastPurchasedAt = freezed,
     Object? lastOrderId = freezed,
   }) {
@@ -117,6 +121,10 @@ class _$MemberPlanResponseCopyWithImpl<$Res, $Val extends MemberPlanResponse>
                 ? _value.purchasableUntil
                 : purchasableUntil // ignore: cast_nullable_to_non_nullable
                       as DateTime?,
+            passOptions: null == passOptions
+                ? _value.passOptions
+                : passOptions // ignore: cast_nullable_to_non_nullable
+                      as List<PassOption>,
             lastPurchasedAt: freezed == lastPurchasedAt
                 ? _value.lastPurchasedAt
                 : lastPurchasedAt // ignore: cast_nullable_to_non_nullable
@@ -147,6 +155,7 @@ abstract class _$$MemberPlanResponseImplCopyWith<$Res>
     int todayRandomSolvedCount,
     int dailyFreeLimit,
     DateTime? purchasableUntil,
+    List<PassOption> passOptions,
     DateTime? lastPurchasedAt,
     String? lastOrderId,
   });
@@ -172,6 +181,7 @@ class __$$MemberPlanResponseImplCopyWithImpl<$Res>
     Object? todayRandomSolvedCount = null,
     Object? dailyFreeLimit = null,
     Object? purchasableUntil = freezed,
+    Object? passOptions = null,
     Object? lastPurchasedAt = freezed,
     Object? lastOrderId = freezed,
   }) {
@@ -201,6 +211,10 @@ class __$$MemberPlanResponseImplCopyWithImpl<$Res>
             ? _value.purchasableUntil
             : purchasableUntil // ignore: cast_nullable_to_non_nullable
                   as DateTime?,
+        passOptions: null == passOptions
+            ? _value._passOptions
+            : passOptions // ignore: cast_nullable_to_non_nullable
+                  as List<PassOption>,
         lastPurchasedAt: freezed == lastPurchasedAt
             ? _value.lastPurchasedAt
             : lastPurchasedAt // ignore: cast_nullable_to_non_nullable
@@ -225,9 +239,10 @@ class _$MemberPlanResponseImpl implements _MemberPlanResponse {
     this.todayRandomSolvedCount = 0,
     this.dailyFreeLimit = 0,
     this.purchasableUntil,
+    final List<PassOption> passOptions = const <PassOption>[],
     this.lastPurchasedAt,
     this.lastOrderId,
-  });
+  }) : _passOptions = passOptions;
 
   factory _$MemberPlanResponseImpl.fromJson(Map<String, dynamic> json) =>
       _$$MemberPlanResponseImplFromJson(json);
@@ -251,9 +266,20 @@ class _$MemberPlanResponseImpl implements _MemberPlanResponse {
   @override
   @JsonKey()
   final int dailyFreeLimit;
-  // 지금 구매하면 이용할 수 있는 마지막 날 (다음 시험일, 없으면 null)
+  // deprecated: 옛 앱(1.36·1.37) 호환용 3개월권 예상 만료일. 화면은 passOptions 사용
   @override
   final DateTime? purchasableUntil;
+  // 구매할 수 있는 이용권 (서버 순서: 3개월 먼저, 결제 꺼짐·상품 없음이면 빈 목록)
+  final List<PassOption> _passOptions;
+  // 구매할 수 있는 이용권 (서버 순서: 3개월 먼저, 결제 꺼짐·상품 없음이면 빈 목록)
+  @override
+  @JsonKey()
+  List<PassOption> get passOptions {
+    if (_passOptions is EqualUnmodifiableListView) return _passOptions;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_passOptions);
+  }
+
   // 가장 최근 검증 구매 시각 (KST, 구매 없음·관리자 부여만 있으면 null)
   @override
   final DateTime? lastPurchasedAt;
@@ -263,7 +289,7 @@ class _$MemberPlanResponseImpl implements _MemberPlanResponse {
 
   @override
   String toString() {
-    return 'MemberPlanResponse(isBillingEnabled: $isBillingEnabled, plan: $plan, proExpiresAt: $proExpiresAt, todayRandomSolvedCount: $todayRandomSolvedCount, dailyFreeLimit: $dailyFreeLimit, purchasableUntil: $purchasableUntil, lastPurchasedAt: $lastPurchasedAt, lastOrderId: $lastOrderId)';
+    return 'MemberPlanResponse(isBillingEnabled: $isBillingEnabled, plan: $plan, proExpiresAt: $proExpiresAt, todayRandomSolvedCount: $todayRandomSolvedCount, dailyFreeLimit: $dailyFreeLimit, purchasableUntil: $purchasableUntil, passOptions: $passOptions, lastPurchasedAt: $lastPurchasedAt, lastOrderId: $lastOrderId)';
   }
 
   @override
@@ -282,6 +308,10 @@ class _$MemberPlanResponseImpl implements _MemberPlanResponse {
                 other.dailyFreeLimit == dailyFreeLimit) &&
             (identical(other.purchasableUntil, purchasableUntil) ||
                 other.purchasableUntil == purchasableUntil) &&
+            const DeepCollectionEquality().equals(
+              other._passOptions,
+              _passOptions,
+            ) &&
             (identical(other.lastPurchasedAt, lastPurchasedAt) ||
                 other.lastPurchasedAt == lastPurchasedAt) &&
             (identical(other.lastOrderId, lastOrderId) ||
@@ -298,6 +328,7 @@ class _$MemberPlanResponseImpl implements _MemberPlanResponse {
     todayRandomSolvedCount,
     dailyFreeLimit,
     purchasableUntil,
+    const DeepCollectionEquality().hash(_passOptions),
     lastPurchasedAt,
     lastOrderId,
   );
@@ -327,6 +358,7 @@ abstract class _MemberPlanResponse implements MemberPlanResponse {
     final int todayRandomSolvedCount,
     final int dailyFreeLimit,
     final DateTime? purchasableUntil,
+    final List<PassOption> passOptions,
     final DateTime? lastPurchasedAt,
     final String? lastOrderId,
   }) = _$MemberPlanResponseImpl;
@@ -345,9 +377,11 @@ abstract class _MemberPlanResponse implements MemberPlanResponse {
   @override
   int get todayRandomSolvedCount; // 무료 하루 랜덤 문제 한도
   @override
-  int get dailyFreeLimit; // 지금 구매하면 이용할 수 있는 마지막 날 (다음 시험일, 없으면 null)
+  int get dailyFreeLimit; // deprecated: 옛 앱(1.36·1.37) 호환용 3개월권 예상 만료일. 화면은 passOptions 사용
   @override
-  DateTime? get purchasableUntil; // 가장 최근 검증 구매 시각 (KST, 구매 없음·관리자 부여만 있으면 null)
+  DateTime? get purchasableUntil; // 구매할 수 있는 이용권 (서버 순서: 3개월 먼저, 결제 꺼짐·상품 없음이면 빈 목록)
+  @override
+  List<PassOption> get passOptions; // 가장 최근 검증 구매 시각 (KST, 구매 없음·관리자 부여만 있으면 null)
   @override
   DateTime? get lastPurchasedAt; // 가장 최근 검증 구매의 Play 주문 번호 (구매 없음·관리자 부여만 있으면 null)
   @override
@@ -358,5 +392,219 @@ abstract class _MemberPlanResponse implements MemberPlanResponse {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$MemberPlanResponseImplCopyWith<_$MemberPlanResponseImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+PassOption _$PassOptionFromJson(Map<String, dynamic> json) {
+  return _PassOption.fromJson(json);
+}
+
+/// @nodoc
+mixin _$PassOption {
+  // Play 일회성 상품 ID (예: pro_pass_3m)
+  String get productId =>
+      throw _privateConstructorUsedError; // 이용 일수 (30 = 1개월, 90 = 3개월)
+  int get durationDays =>
+      throw _privateConstructorUsedError; // 지금 구매하면 될 만료 시각 (보유 중이면 현재 만료일에 이어 붙인 값)
+  DateTime get expiresAtIfPurchased => throw _privateConstructorUsedError;
+
+  /// Serializes this PassOption to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of PassOption
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $PassOptionCopyWith<PassOption> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $PassOptionCopyWith<$Res> {
+  factory $PassOptionCopyWith(
+    PassOption value,
+    $Res Function(PassOption) then,
+  ) = _$PassOptionCopyWithImpl<$Res, PassOption>;
+  @useResult
+  $Res call({
+    String productId,
+    int durationDays,
+    DateTime expiresAtIfPurchased,
+  });
+}
+
+/// @nodoc
+class _$PassOptionCopyWithImpl<$Res, $Val extends PassOption>
+    implements $PassOptionCopyWith<$Res> {
+  _$PassOptionCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of PassOption
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? productId = null,
+    Object? durationDays = null,
+    Object? expiresAtIfPurchased = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            productId: null == productId
+                ? _value.productId
+                : productId // ignore: cast_nullable_to_non_nullable
+                      as String,
+            durationDays: null == durationDays
+                ? _value.durationDays
+                : durationDays // ignore: cast_nullable_to_non_nullable
+                      as int,
+            expiresAtIfPurchased: null == expiresAtIfPurchased
+                ? _value.expiresAtIfPurchased
+                : expiresAtIfPurchased // ignore: cast_nullable_to_non_nullable
+                      as DateTime,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$PassOptionImplCopyWith<$Res>
+    implements $PassOptionCopyWith<$Res> {
+  factory _$$PassOptionImplCopyWith(
+    _$PassOptionImpl value,
+    $Res Function(_$PassOptionImpl) then,
+  ) = __$$PassOptionImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String productId,
+    int durationDays,
+    DateTime expiresAtIfPurchased,
+  });
+}
+
+/// @nodoc
+class __$$PassOptionImplCopyWithImpl<$Res>
+    extends _$PassOptionCopyWithImpl<$Res, _$PassOptionImpl>
+    implements _$$PassOptionImplCopyWith<$Res> {
+  __$$PassOptionImplCopyWithImpl(
+    _$PassOptionImpl _value,
+    $Res Function(_$PassOptionImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of PassOption
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? productId = null,
+    Object? durationDays = null,
+    Object? expiresAtIfPurchased = null,
+  }) {
+    return _then(
+      _$PassOptionImpl(
+        productId: null == productId
+            ? _value.productId
+            : productId // ignore: cast_nullable_to_non_nullable
+                  as String,
+        durationDays: null == durationDays
+            ? _value.durationDays
+            : durationDays // ignore: cast_nullable_to_non_nullable
+                  as int,
+        expiresAtIfPurchased: null == expiresAtIfPurchased
+            ? _value.expiresAtIfPurchased
+            : expiresAtIfPurchased // ignore: cast_nullable_to_non_nullable
+                  as DateTime,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$PassOptionImpl implements _PassOption {
+  const _$PassOptionImpl({
+    required this.productId,
+    required this.durationDays,
+    required this.expiresAtIfPurchased,
+  });
+
+  factory _$PassOptionImpl.fromJson(Map<String, dynamic> json) =>
+      _$$PassOptionImplFromJson(json);
+
+  // Play 일회성 상품 ID (예: pro_pass_3m)
+  @override
+  final String productId;
+  // 이용 일수 (30 = 1개월, 90 = 3개월)
+  @override
+  final int durationDays;
+  // 지금 구매하면 될 만료 시각 (보유 중이면 현재 만료일에 이어 붙인 값)
+  @override
+  final DateTime expiresAtIfPurchased;
+
+  @override
+  String toString() {
+    return 'PassOption(productId: $productId, durationDays: $durationDays, expiresAtIfPurchased: $expiresAtIfPurchased)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$PassOptionImpl &&
+            (identical(other.productId, productId) ||
+                other.productId == productId) &&
+            (identical(other.durationDays, durationDays) ||
+                other.durationDays == durationDays) &&
+            (identical(other.expiresAtIfPurchased, expiresAtIfPurchased) ||
+                other.expiresAtIfPurchased == expiresAtIfPurchased));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, productId, durationDays, expiresAtIfPurchased);
+
+  /// Create a copy of PassOption
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$PassOptionImplCopyWith<_$PassOptionImpl> get copyWith =>
+      __$$PassOptionImplCopyWithImpl<_$PassOptionImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$PassOptionImplToJson(this);
+  }
+}
+
+abstract class _PassOption implements PassOption {
+  const factory _PassOption({
+    required final String productId,
+    required final int durationDays,
+    required final DateTime expiresAtIfPurchased,
+  }) = _$PassOptionImpl;
+
+  factory _PassOption.fromJson(Map<String, dynamic> json) =
+      _$PassOptionImpl.fromJson;
+
+  // Play 일회성 상품 ID (예: pro_pass_3m)
+  @override
+  String get productId; // 이용 일수 (30 = 1개월, 90 = 3개월)
+  @override
+  int get durationDays; // 지금 구매하면 될 만료 시각 (보유 중이면 현재 만료일에 이어 붙인 값)
+  @override
+  DateTime get expiresAtIfPurchased;
+
+  /// Create a copy of PassOption
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$PassOptionImplCopyWith<_$PassOptionImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -78,7 +78,7 @@
                 <tbody>
                 <tr th:each="p : ${entitlement.purchases}">
                     <td class="text-xs" th:text="${p.store().name()}">PLAY</td>
-                    <td class="font-mono text-xs" th:text="${p.productId()}">pro_exam_pass</td>
+                    <td class="font-mono text-xs" th:text="${p.productId()}">pro_pass_3m</td>
                     <td class="font-mono text-xs break-all" th:text="${p.orderId()}">GPA.0000</td>
                     <td class="text-xs text-base-content/60"
                         th:text="${#temporals.format(p.purchasedAt(), 'yyyy-MM-dd HH:mm')}">—</td>

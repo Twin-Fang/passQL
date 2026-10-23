@@ -2,13 +2,14 @@ package com.passql.application.billing;
 
 import com.passql.application.entitlement.DailyQuestionCounter;
 import com.passql.application.entitlement.EntitlementPurchaseRevoker;
-import com.passql.application.entitlement.ExamPassExpiryCalculator;
 import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.application.entitlement.MemberPlanResponse;
+import com.passql.application.entitlement.PassExpiryCalculator;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.member.constant.EntitlementSource;
 import com.passql.member.constant.MemberPlan;
+import com.passql.member.constant.PassProduct;
 import com.passql.member.constant.PurchaseStatus;
 import com.passql.member.constant.PurchaseStore;
 import com.passql.member.entity.EntitlementPurchase;
@@ -17,7 +18,6 @@ import com.passql.member.repository.EntitlementPurchaseRepository;
 import com.passql.member.repository.MemberEntitlementRepository;
 import com.passql.member.repository.MemberRepository;
 import com.passql.meta.constant.AppSettingKeys;
-import com.passql.meta.repository.ExamScheduleRepository;
 import com.passql.meta.service.AppSettingService;
 import com.passql.submission.repository.SubmissionRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,7 +46,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Play 회차 패스 결제: 구매 확인 > 등급 부여 > 소모, 중복·대기·타인 토큰 거절, 주문 번호 대체값, 환불 회수
+ * Play 이용권 결제: 구매 확인(1개월·3개월) > 등급 부여·연장 > 소모, 옛 상품·중복·대기·타인 토큰 거절, 주문 번호 대체값, 환불 회수
  * Play API 는 가짜 클라이언트, 저장소는 메모리 맵 기반 목
  */
 class PlayBillingServiceTest {
@@ -56,10 +56,11 @@ class PlayBillingServiceTest {
     private static final Clock FIXED_CLOCK = Clock.fixed(Instant.now().truncatedTo(ChronoUnit.SECONDS), SEOUL);
     // Play 구매 시각: 현재 1시간 전
     private static final Instant PURCHASED_INSTANT = FIXED_CLOCK.instant().minus(1, ChronoUnit.HOURS);
-    // 시험 일정 없음 > 만료일 = 구매일 + 90일
+    // 3개월 이용권 신규 구매 > 만료일 = 구매 시각 + 90일
     private static final LocalDateTime EXPECTED_EXPIRES_AT =
-        LocalDateTime.ofInstant(PURCHASED_INSTANT, SEOUL).plusDays(90);
+        LocalDateTime.ofInstant(PURCHASED_INSTANT, SEOUL).plusDays(PassProduct.PRO_PASS_3M.getDurationDays());
     private static final String PURCHASE_TOKEN = "purchase-token-1";
+    private static final String SECOND_PURCHASE_TOKEN = "purchase-token-2";
     // 계정 대조 고정 벡터 (앱 테스트와 같은 값): uuid 소문자 문자열 UTF-8 > SHA-256 소문자 hex 64자
     private static final UUID HASH_VECTOR_MEMBER_UUID = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
     private static final String HASH_VECTOR_ACCOUNT_ID =
@@ -69,15 +70,14 @@ class PlayBillingServiceTest {
     private final EntitlementPurchaseRepository purchaseRepository = mock(EntitlementPurchaseRepository.class);
     private final MemberEntitlementRepository entitlementRepository = mock(MemberEntitlementRepository.class);
     private final AppSettingService appSettingService = mock(AppSettingService.class);
-    private final ExamPassExpiryCalculator expiryCalculator =
-        new ExamPassExpiryCalculator(mock(ExamScheduleRepository.class));
+    private final PassExpiryCalculator expiryCalculator = new PassExpiryCalculator();
     private final FeatureAccessPolicy featureAccessPolicy = new FeatureAccessPolicy(
         entitlementRepository, appSettingService, expiryCalculator,
         mock(SubmissionRepository.class), mock(DailyQuestionCounter.class), purchaseRepository);
     private final PlayPurchaseRecorder playPurchaseRecorder = new PlayPurchaseRecorder(
         purchaseRepository, entitlementRepository, mock(MemberRepository.class), expiryCalculator);
     private final PlayBillingService playBillingService = new PlayBillingService(
-        playClient, purchaseRepository, new EntitlementPurchaseRevoker(purchaseRepository, entitlementRepository),
+        playClient, purchaseRepository, new EntitlementPurchaseRevoker(purchaseRepository, entitlementRepository, expiryCalculator),
         playPurchaseRecorder, featureAccessPolicy,
         new TransactionTemplate(mock(PlatformTransactionManager.class)), FIXED_CLOCK);
 
@@ -96,7 +96,7 @@ class PlayBillingServiceTest {
             .thenAnswer(call -> Optional.ofNullable(purchaseByToken.get(call.<String>getArgument(0))));
         // 기록 INSERT: 토큰·주문 번호 충돌이면 0건 (ON CONFLICT DO NOTHING 과 같게)
         when(purchaseRepository.insertVerifiedIfAbsent(any(), any(), any(), any(), any(), any(), any(), any(), any(),
-            any(), any())).thenAnswer(call -> {
+            any(), any(), any())).thenAnswer(call -> {
             String orderId = call.getArgument(4);
             String purchaseToken = call.getArgument(5);
             boolean isConflicted = purchaseByToken.containsKey(purchaseToken) || purchaseByToken.values().stream()
@@ -105,7 +105,8 @@ class PlayBillingServiceTest {
                 return 0;
             }
             purchaseByToken.put(purchaseToken, EntitlementPurchase.verified(call.getArgument(1), PurchaseStore.PLAY,
-                call.getArgument(3), orderId, purchaseToken, call.getArgument(6), call.getArgument(8)));
+                call.getArgument(3), orderId, purchaseToken, call.getArgument(6), call.getArgument(8),
+                call.getArgument(9)));
             return 1;
         });
         when(purchaseRepository.findByMemberUuidAndStatus(any(), any())).thenAnswer(call -> purchaseByToken.values()
@@ -133,7 +134,7 @@ class PlayBillingServiceTest {
     }
 
     private static PlayVerifyRequest passRequest() {
-        return new PlayVerifyRequest(PlayBillingService.PRO_EXAM_PASS_PRODUCT_ID, PURCHASE_TOKEN);
+        return new PlayVerifyRequest(PassProduct.PRO_PASS_3M.getProductId(), PURCHASE_TOKEN);
     }
 
     @Test
@@ -147,6 +148,7 @@ class PlayBillingServiceTest {
         EntitlementPurchase purchase = purchaseByToken.get(PURCHASE_TOKEN);
         assertThat(purchase.getStatus()).isEqualTo(PurchaseStatus.VERIFIED);
         assertThat(purchase.getGrantedExpiresAt()).isEqualTo(EXPECTED_EXPIRES_AT);
+        assertThat(purchase.getGrantedDays()).isEqualTo(PassProduct.PRO_PASS_3M.getDurationDays());
         assertThat(purchase.getIsConsumed()).isTrue();
         assertThat(playClient.consumeAttemptCount).isEqualTo(1);
         // 이용권 정보 시트용 최근 구매일·주문 번호
@@ -222,6 +224,46 @@ class PlayBillingServiceTest {
             .isInstanceOfSatisfying(CustomException.class,
                 exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_INPUT_VALUE));
         assertThat(playClient.getProductPurchaseCallCount).isZero();
+    }
+
+    @Test
+    void verify_oneMonthPass_grantsThirtyDays_andStoresGrantedDays() {
+        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 0, 0, PURCHASED_INSTANT, null);
+        PlayVerifyRequest request = new PlayVerifyRequest(PassProduct.PRO_PASS_1M.getProductId(), PURCHASE_TOKEN);
+
+        MemberPlanResponse response = playBillingService.verify(memberUuid, request);
+
+        LocalDateTime expectedExpiresAt = LocalDateTime.ofInstant(PURCHASED_INSTANT, SEOUL)
+            .plusDays(PassProduct.PRO_PASS_1M.getDurationDays());
+        assertThat(response.proExpiresAt()).isEqualTo(expectedExpiresAt);
+        assertThat(purchaseByToken.get(PURCHASE_TOKEN).getGrantedDays())
+            .isEqualTo(PassProduct.PRO_PASS_1M.getDurationDays());
+    }
+
+    @Test
+    void verify_retiredExamPassProduct_rejected() {
+        PlayVerifyRequest request = new PlayVerifyRequest("pro_exam_pass", PURCHASE_TOKEN);
+
+        assertThatThrownBy(() -> playBillingService.verify(memberUuid, request))
+            .isInstanceOfSatisfying(CustomException.class,
+                exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_INPUT_VALUE));
+        assertThat(playClient.getProductPurchaseCallCount).isZero();
+        assertThat(purchaseByToken).isEmpty();
+    }
+
+    @Test
+    void verify_secondPassWhileActive_extendsFromCurrentExpiresAt() {
+        // 3개월권 보유 중 1개월권 구매 > 현재 만료일 + 30일
+        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 0, 0, PURCHASED_INSTANT, null);
+        playBillingService.verify(memberUuid, passRequest());
+        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0002", 0, 0, FIXED_CLOCK.instant(), null);
+
+        MemberPlanResponse response = playBillingService.verify(memberUuid,
+            new PlayVerifyRequest(PassProduct.PRO_PASS_1M.getProductId(), SECOND_PURCHASE_TOKEN));
+
+        LocalDateTime expectedExpiresAt = EXPECTED_EXPIRES_AT.plusDays(PassProduct.PRO_PASS_1M.getDurationDays());
+        assertThat(response.proExpiresAt()).isEqualTo(expectedExpiresAt);
+        assertThat(purchaseByToken.get(SECOND_PURCHASE_TOKEN).getGrantedExpiresAt()).isEqualTo(expectedExpiresAt);
     }
 
     @Test
@@ -303,8 +345,9 @@ class PlayBillingServiceTest {
         entitlementByMember.put(memberUuid,
             MemberEntitlement.of(memberUuid, MemberPlan.PRO, adminGrantExpiresAt, EntitlementSource.ADMIN_GRANT));
         purchaseByToken.put(PURCHASE_TOKEN, EntitlementPurchase.verified(memberUuid, PurchaseStore.PLAY,
-            PlayBillingService.PRO_EXAM_PASS_PRODUCT_ID, "GPA.0001", PURCHASE_TOKEN,
-            LocalDateTime.ofInstant(PURCHASED_INSTANT, SEOUL), EXPECTED_EXPIRES_AT));
+            PassProduct.PRO_PASS_3M.getProductId(), "GPA.0001", PURCHASE_TOKEN,
+            LocalDateTime.ofInstant(PURCHASED_INSTANT, SEOUL), EXPECTED_EXPIRES_AT,
+            PassProduct.PRO_PASS_3M.getDurationDays()));
         playClient.voidedPurchaseTokens.add(PURCHASE_TOKEN);
 
         playBillingService.revokeVoidedPurchases();

@@ -17,7 +17,7 @@ class ProSettingsCard extends ConsumerWidget {
   /// 큰 카드 제목·혜택 한 줄·버튼 문구
   static const String freeTitle = '책 없이 폰 하나로 SQLD 합격';
   static const String freeBenefit = '랜덤 풀기 제한 없음 · SQL 직접 실행 · 보기별 해설';
-  static const String passLabel = '회차 패스';
+  static const String passLabel = '이용권';
 
   // 아래 묶음(프로필)과의 간격 (설정 묶음 사이 간격과 같음)
   static const double _bottomSpacing = PassqlSpacing.xl;
@@ -40,7 +40,7 @@ class ProSettingsCard extends ConsumerWidget {
   }
 }
 
-/// 무료: FREE · 오늘 n/10문제 사용 > 제목 > 혜택 한 줄 > 회차 패스 버튼
+/// 무료: FREE · 오늘 n/10문제 사용 > 제목 > 혜택 한 줄 > 이용권 버튼
 class _FreePlanCard extends ConsumerWidget {
   const _FreePlanCard({required this.plan});
 
@@ -95,7 +95,7 @@ class _FreePlanCard extends ConsumerWidget {
   }
 }
 
-/// 프로: 회차 패스 · {만료일}까지 · PRO › (누르면 이용권 정보 시트)
+/// 프로: 이용권 · {만료일}까지 · PRO › (누르면 이용권 정보 시트)
 class _ProPlanLine extends StatelessWidget {
   const _ProPlanLine({required this.plan});
 

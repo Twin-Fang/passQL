@@ -208,15 +208,16 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Play 회차 패스 구매 확인
+         * Play 이용권 구매 확인
          * @description ## 인증(JWT): **필요**
          *
          *     앱이 Play 구매 완료 후(또는 앱 시작·복원 시 미처리 구매를) 보낸다.
-         *     서버가 Google Play 에서 구매를 확인하고 회차 패스 만료일을 저장한 뒤 소모(consume)까지 처리한다.
+         *     서버가 Google Play 에서 구매를 확인하고 이용권 만료일을 저장한 뒤 소모(consume)까지 처리한다.
+         *     만료일 = max(구매 시각, 현재 프로 만료일) + 이용 일수 (보유 중 재구매는 뒤로 이어 붙임).
          *     같은 토큰을 다시 보내도 만료일은 한 번만 연장된다 (소모 실패분은 이때 다시 소모).
          *
          *     ## 요청 바디 (PlayVerifyRequest)
-         *     - **`productId`**: Play 상품 ID (`pro_exam_pass`, 필수)
+         *     - **`productId`**: Play 상품 ID (필수, `pro_pass_3m` 90일, `pro_pass_1m` 30일 — `GET /api/members/me/plan` 의 `passOptions` 값)
          *     - **`purchaseToken`**: Play 구매 토큰 (필수)
          *
          *     ## 반환값 (MemberPlanResponse)
@@ -224,7 +225,7 @@ export interface paths {
          *     - 결제 대기(pending) 구매는 등급을 바꾸지 않고 현재 등급을 그대로 반환
          *
          *     ## 에러
-         *     - 400 `INVALID_INPUT_VALUE`: 알 수 없는 상품 ID, Play 가 인식하지 못하는 구매 토큰
+         *     - 400 `INVALID_INPUT_VALUE`: 알 수 없는 상품 ID(옛 `pro_exam_pass` 포함), Play 가 인식하지 못하는 구매 토큰
          *     - 400 `INVALID_REQUEST`: 취소된 구매, 환불로 회수된 구매
          *     - 403 `ACCESS_DENIED`: 다른 회원이 이미 등록한 구매 토큰
          *     - 409 `DATA_INTEGRITY_VIOLATION`: 동시 저장 충돌 (다시 시도)
@@ -1033,7 +1034,13 @@ export interface paths {
          *     - **`proExpiresAt`**: 프로 만료 시각 KST (유효한 프로가 아니면 null)
          *     - **`todayRandomSolvedCount`**: 오늘 푼 무료 랜덤 문제 수
          *     - **`dailyFreeLimit`**: 무료 하루 랜덤 문제 한도
-         *     - **`purchasableUntil`**: 지금 구매하면 이용 가능한 마감 시각 KST (결제 꺼짐이면 null)
+         *     - **`purchasableUntil`**: deprecated — `passOptions` 3개월권 `expiresAtIfPurchased` 와 같은 값 (출시 앱 1.36·1.37 호환, 결제 꺼짐이면 null)
+         *     - **`lastPurchasedAt`**: 가장 최근 검증 구매 시각 KST (없으면 null)
+         *     - **`lastOrderId`**: 가장 최근 검증 구매의 Play 주문 번호 (없으면 null)
+         *     - **`passOptions`**: 판매 이용권 목록 (3개월 먼저, 결제 꺼짐이면 빈 목록)
+         *       - `productId`: Play 상품 ID (`pro_pass_3m`, `pro_pass_1m`)
+         *       - `durationDays`: 이용 일수 (90, 30)
+         *       - `expiresAtIfPurchased`: 지금 구매하면 될 프로 만료 시각 KST (보유 중이면 현재 만료일 뒤로 이어 붙인 값)
          */
         get: operations["getMyPlan"];
         put?: never;
@@ -2162,10 +2169,14 @@ export interface components {
             lastOrderId: string | null;
             /** Format: date-time */
             lastPurchasedAt: string | null;
+            passOptions: components["schemas"]["PassOption"][];
             plan: string;
             /** Format: date-time */
             proExpiresAt: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @deprecated
+             */
             purchasableUntil: string | null;
             /** Format: int32 */
             todayRandomSolvedCount: number;
@@ -2237,6 +2248,13 @@ export interface components {
             paged: boolean;
             sort: components["schemas"]["SortObject"];
             unpaged: boolean;
+        };
+        PassOption: {
+            /** Format: int32 */
+            durationDays: number;
+            /** Format: date-time */
+            expiresAtIfPurchased: string;
+            productId: string;
         };
         PlayVerifyRequest: {
             productId: string;

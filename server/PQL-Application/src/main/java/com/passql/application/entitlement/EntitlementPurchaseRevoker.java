@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
-import java.util.Objects;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -24,8 +24,9 @@ public class EntitlementPurchaseRevoker {
 
     private final EntitlementPurchaseRepository entitlementPurchaseRepository;
     private final MemberEntitlementRepository memberEntitlementRepository;
+    private final PassExpiryCalculator passExpiryCalculator;
 
-    /** 재계산 결과 3종: 등급 행 없음, 관리자 부여라 그대로, 남은 구매로 재계산 */
+    /** 재계산 결과 3종: 등급 행 없음, 관리자 부여라 그대로, 남은 구매 재생으로 재계산 */
     public enum RecalculationKind {
         NO_ENTITLEMENT,
         ADMIN_GRANT_KEPT,
@@ -43,8 +44,8 @@ public class EntitlementPurchaseRevoker {
     }
 
     /**
-     * 구매 회수: REVOKED 표시 > 관리자 부여 > 그대로, 남은 유효 구매 최대 만료일이 미래 > 그 날짜로, 아니면 FREE
-     * now: 남은 구매의 유효 판정 기준 시각 (KST)
+     * 구매 회수: REVOKED 표시 > 관리자 부여 > 그대로, 남은 VERIFIED 구매 재생 만료일이 미래 > 그 날짜로, 아니면 FREE
+     * now: 재생 결과의 유효 판정 기준 시각 (KST)
      */
     public RevocationResult revokeAndRecalculate(EntitlementPurchase purchase, LocalDateTime now) {
         purchase.markRevoked();
@@ -60,19 +61,48 @@ public class EntitlementPurchaseRevoker {
             return new RevocationResult(RecalculationKind.ADMIN_GRANT_KEPT, beforeExpiresAt, beforeExpiresAt);
         }
 
-        // 남은 유효 구매 중 가장 늦은 만료일 (방금 회수한 건은 조회 전 자동 flush 로 제외)
-        Optional<LocalDateTime> remainingExpiresAt = entitlementPurchaseRepository
-            .findByMemberUuidAndStatus(purchase.getMemberUuid(), PurchaseStatus.VERIFIED).stream()
-            .map(EntitlementPurchase::getGrantedExpiresAt)
-            .filter(Objects::nonNull)
-            .max(Comparator.naturalOrder())
+        // 남은 구매 재생 (방금 회수한 건은 조회 전 자동 flush 로 제외)
+        List<EntitlementPurchase> remainingPurchases = entitlementPurchaseRepository
+            .findByMemberUuidAndStatus(purchase.getMemberUuid(), PurchaseStatus.VERIFIED);
+        Optional<LocalDateTime> replayedExpiresAt = replayExpiresAt(remainingPurchases)
             .filter(expiresAt -> expiresAt.isAfter(now));
 
-        if (remainingExpiresAt.isPresent()) {
-            entitlement.extendTo(remainingExpiresAt.get(), EntitlementSource.PLAY_PURCHASE);
+        if (replayedExpiresAt.isPresent()) {
+            entitlement.extendTo(replayedExpiresAt.get(), EntitlementSource.PLAY_PURCHASE);
         } else {
             entitlement.revoke();
         }
         return new RevocationResult(RecalculationKind.RECALCULATED, beforeExpiresAt, entitlement.getExpiresAt());
+    }
+
+    /**
+     * 구매 시각 순 재생: 일수 있으면 max(구매 시각, 누적 만료일) + 일수, 없으면(옛 회차 패스) max(누적, 부여 만료일)
+     * 관리자 부여 위에 이어 붙인 구매가 환불되면 관리자 부여분은 재생에 없어 사라짐 (관리자가 다시 부여)
+     */
+    private Optional<LocalDateTime> replayExpiresAt(List<EntitlementPurchase> remainingPurchases) {
+        LocalDateTime runningExpiresAt = null;
+        List<EntitlementPurchase> purchasesInOrder = remainingPurchases.stream()
+            .sorted(Comparator.comparing(EntitlementPurchase::getPurchasedAt))
+            .toList();
+        for (EntitlementPurchase remainingPurchase : purchasesInOrder) {
+            if (remainingPurchase.getGrantedDays() != null) {
+                runningExpiresAt = passExpiryCalculator.calculateExpiresAt(
+                    remainingPurchase.getPurchasedAt(), runningExpiresAt, remainingPurchase.getGrantedDays());
+            } else {
+                runningExpiresAt = laterOf(runningExpiresAt, remainingPurchase.getGrantedExpiresAt());
+            }
+        }
+        return Optional.ofNullable(runningExpiresAt);
+    }
+
+    /** 둘 중 늦은 시각 (null 은 없는 값으로 취급) */
+    private static LocalDateTime laterOf(LocalDateTime first, LocalDateTime second) {
+        if (first == null) {
+            return second;
+        }
+        if (second == null) {
+            return first;
+        }
+        return first.isAfter(second) ? first : second;
     }
 }

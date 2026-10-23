@@ -24,15 +24,15 @@ public interface EntitlementPurchaseRepository extends JpaRepository<Entitlement
     /**
      * 검증 완료 구매 저장 (토큰·주문 번호·PK 충돌 시 무시, 저장 건수 1 또는 0)
      * UNIQUE 위반 예외를 내지 않아 DB·Hibernate 오류 로그에 구매 토큰이 남지 않음
-     * store·status 는 enum 이름, is_consumed 는 false 로 시작
+     * store·status 는 enum 이름, is_consumed 는 false 로 시작, granted_days 는 이용권 일수
      */
     @Modifying
     @Query(value = """
             INSERT INTO entitlement_purchase (entitlement_purchase_uuid, member_uuid, store, product_id, order_id,
-                purchase_token, purchased_at, status, granted_expires_at, is_consumed,
+                purchase_token, purchased_at, status, granted_expires_at, granted_days, is_consumed,
                 created_at, updated_at, created_by, updated_by)
             VALUES (:entitlementPurchaseUuid, :memberUuid, :store, :productId, :orderId,
-                :purchaseToken, :purchasedAt, :status, :grantedExpiresAt, FALSE,
+                :purchaseToken, :purchasedAt, :status, :grantedExpiresAt, :grantedDays, FALSE,
                 :createdAt, :createdAt, :auditor, :auditor)
             ON CONFLICT DO NOTHING
             """, nativeQuery = true)
@@ -45,10 +45,11 @@ public interface EntitlementPurchaseRepository extends JpaRepository<Entitlement
                                @Param("purchasedAt") LocalDateTime purchasedAt,
                                @Param("status") String status,
                                @Param("grantedExpiresAt") LocalDateTime grantedExpiresAt,
+                               @Param("grantedDays") Integer grantedDays,
                                @Param("createdAt") LocalDateTime createdAt,
                                @Param("auditor") String auditor);
 
-    /** 회원의 상태별 구매 이력 (환불 후 남은 유효 구매로 만료일 재계산) */
+    /** 회원의 상태별 구매 이력 (환불 후 남은 유효 구매 재생으로 만료일 재계산) */
     List<EntitlementPurchase> findByMemberUuidAndStatus(UUID memberUuid, PurchaseStatus status);
 
     /** 회원의 상태별 가장 최근 구매 1건 (구매 시각 기준, 이용권 정보의 최근 구매일·주문 번호) */

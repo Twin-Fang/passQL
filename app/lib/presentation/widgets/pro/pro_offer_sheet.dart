@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/billing/pass_discount.dart';
 import '../../../core/billing/pro_purchase_port.dart';
 import '../../../core/utils/date_format.dart';
+import '../../../core/utils/number_format.dart';
+import '../../../data/models/member/member_plan_response.dart';
 import '../../design/design.dart';
 import '../../providers/plan_providers.dart';
 import '../common/app_toast.dart';
+import 'pro_pass_option_tile.dart';
 import 'pro_plan_comparison_table.dart';
 import 'pro_purchase_feedback.dart';
 
@@ -14,10 +18,12 @@ import 'pro_purchase_feedback.dart';
 bool _isOfferSheetOpen = false;
 
 /// 시트 제목·구매 버튼 기본 문구
-const String _sheetTitle = '회차 패스';
+const String _sheetTitle = '이용권';
 const String _restoreLabel = '이미 구매했나요? 복원하기';
+const String _noAutoRenewLabel = '자동 결제 없음';
 
-/// 프로 안내 시트 (모든 진입점이 공유하는 한 장): 제목 > 부제 > 들어온 이유 > 비교표 > 구매 > 복원
+/// 프로 안내 시트 (모든 진입점이 공유하는 한 장): 제목 > 만료일 미리보기 > 들어온 이유 > 비교표 > 이용권 고르기 > 구매 > 복원
+/// 이용권 목록은 등급 응답 passOptions (서버 순서 3개월 먼저 > 첫 칸 기본 선택)
 /// [reason]: 진입점별 한 줄 (예: 오늘 무료 10문제를 다 풀었어요)
 /// 성공 > 시트 닫힘 > 호출 화면에서 토스트, 그 외 결과는 시트 안 한 줄
 Future<void> showProOfferSheet(
@@ -28,12 +34,18 @@ Future<void> showProOfferSheet(
   if (_isOfferSheetOpen) return;
   _isOfferSheetOpen = true;
   final knownPlan = ref.read(knownPlanProvider);
+  final proExpiresAt = knownPlan?.proExpiresAt;
   try {
     final isPurchased = await showPassqlSheet<bool>(
       context,
       hasCloseButton: false,
       builder: (_) => _ProOfferSheetBody(
-        purchasableUntil: knownPlan?.purchasableUntil,
+        passOptions: knownPlan?.passOptions ?? const [],
+        // 지금 프로 이용 중일 때만 현재 만료일 > 연장 미리보기
+        activeProExpiresAt:
+            proExpiresAt != null && proExpiresAt.isAfter(DateTime.now())
+            ? proExpiresAt
+            : null,
         dailyFreeLimit: knownPlan?.dailyFreeLimit ?? 0,
         reason: reason,
       ),
@@ -50,12 +62,16 @@ Future<void> showProOfferSheet(
 
 class _ProOfferSheetBody extends ConsumerStatefulWidget {
   const _ProOfferSheetBody({
-    required this.purchasableUntil,
+    required this.passOptions,
+    required this.activeProExpiresAt,
     required this.dailyFreeLimit,
     required this.reason,
   });
 
-  final DateTime? purchasableUntil;
+  final List<PassOption> passOptions;
+
+  /// 이용 중인 프로 만료일 (무료·만료면 null)
+  final DateTime? activeProExpiresAt;
   final int dailyFreeLimit;
   final String? reason;
 
@@ -64,8 +80,11 @@ class _ProOfferSheetBody extends ConsumerStatefulWidget {
 }
 
 class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
-  /// 스토어 가격 문자열 (null = 상품을 못 읽음)
-  String? _price;
+  /// 상품 ID별 스토어 가격 (못 읽은 상품은 없음)
+  Map<String, PassPrice> _priceByProductId = const {};
+
+  /// 고른 이용권 (목록 없으면 null)
+  PassOption? _selectedOption;
 
   /// 가격 조회 중 (버튼 문구 대신 로딩 상태)
   bool _isPriceLoading = true;
@@ -79,7 +98,8 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
   @override
   void initState() {
     super.initState();
-    _loadPrice();
+    _selectedOption = widget.passOptions.firstOrNull;
+    _loadPrices();
   }
 
   @override
@@ -88,11 +108,17 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
     super.dispose();
   }
 
-  Future<void> _loadPrice() async {
-    final price = await ref.read(proPurchasePortProvider).loadExamPassPrice();
+  /// 이용권 가격 조회 (목록 없으면 조회 없이 구매 불가)
+  Future<void> _loadPrices() async {
+    final productIds = [
+      for (final option in widget.passOptions) option.productId,
+    ];
+    final priceByProductId = productIds.isEmpty
+        ? const <String, PassPrice>{}
+        : await ref.read(proPurchasePortProvider).loadPassPrices(productIds);
     if (!mounted) return;
     setState(() {
-      _price = price;
+      _priceByProductId = priceByProductId;
       _isPriceLoading = false;
     });
   }
@@ -118,22 +144,60 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
     });
   }
 
+  /// 고른 이용권 만료일 미리보기: 이용 중 "만료일 A > B", 신규 "B까지" + 자동 결제 없음
   String get _subtitle {
-    final examDate = widget.purchasableUntil;
-    return examDate == null
-        ? '다음 SQLD 시험일까지 · 자동 결제 없음'
-        : '다음 SQLD 시험일(${formatDottedDate(examDate)})까지 · 자동 결제 없음';
+    final selectedOption = _selectedOption;
+    if (selectedOption == null) return _noAutoRenewLabel;
+    final newExpiry = formatDottedDate(selectedOption.expiresAtIfPurchased);
+    final activeProExpiresAt = widget.activeProExpiresAt;
+    final expiryPreview = activeProExpiresAt == null
+        ? '$newExpiry까지'
+        : '만료일 ${formatDottedDate(activeProExpiresAt)} > $newExpiry';
+    return '$expiryPreview · $_noAutoRenewLabel';
+  }
+
+  /// 이용 일수 > 칸 이름 (90일 > 3개월 이용권)
+  static String _optionLabelOf(PassOption option) =>
+      '${toPassMonths(option.durationDays)}개월 이용권';
+
+  /// 가장 짧은 이용권 대비 할인 배지 문구 (가격 없음·할인 없음·기준 칸 자신이면 null)
+  String? _discountLabelOf(PassOption option) {
+    final pricedOptions = widget.passOptions.where(
+      (candidate) => _priceByProductId.containsKey(candidate.productId),
+    );
+    if (pricedOptions.isEmpty) return null;
+    final baseOption = pricedOptions.reduce(
+      (shorter, candidate) =>
+          candidate.durationDays < shorter.durationDays ? candidate : shorter,
+    );
+    final discount = calculatePassDiscount(
+      longPassPrice: _priceByProductId[option.productId]?.rawPrice,
+      longPassMonths: toPassMonths(option.durationDays),
+      basePassPrice: _priceByProductId[baseOption.productId]?.rawPrice,
+      basePassMonths: toPassMonths(baseOption.durationDays),
+    );
+    if (discount == null) return null;
+    return '${discount.discountPercent}% 할인 · 월 ${formatThousands(discount.monthlyPrice)}원';
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final port = ref.read(proPurchasePortProvider);
-    final isPriceUnavailable = !_isPriceLoading && _price == null;
+    final selectedOption = _selectedOption;
+    final selectedPrice = selectedOption == null
+        ? null
+        : _priceByProductId[selectedOption.productId]?.displayPrice;
+    final isPriceUnavailable = !_isPriceLoading && selectedPrice == null;
     final inlineMessage =
         _statusMessage ??
         (isPriceUnavailable ? proPurchaseUnavailableMessage : null);
-    final buyLabel = _price == null ? _sheetTitle : '$_sheetTitle $_price';
+    final selectedLabel = selectedOption == null
+        ? _sheetTitle
+        : _optionLabelOf(selectedOption);
+    final buyLabel = selectedPrice == null
+        ? selectedLabel
+        : '$selectedLabel $selectedPrice';
     final reason = widget.reason;
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
@@ -175,13 +239,31 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
           const SizedBox(height: PassqlSpacing.md),
           ProPlanComparisonTable(dailyFreeLimit: widget.dailyFreeLimit),
           const SizedBox(height: PassqlSpacing.md),
+          // 이용권 고르기 (서버 순서대로, 결제 중에는 바꿀 수 없음)
+          for (final option in widget.passOptions) ...[
+            ProPassOptionTile(
+              label: _optionLabelOf(option),
+              displayPrice: _priceByProductId[option.productId]?.displayPrice,
+              discountLabel: _discountLabelOf(option),
+              isSelected: option == selectedOption,
+              onTap: _isBusy
+                  ? null
+                  : () => setState(() {
+                      _selectedOption = option;
+                      _statusMessage = null;
+                    }),
+            ),
+            const SizedBox(height: PassqlSpacing.xs),
+          ],
+          if (widget.passOptions.isNotEmpty)
+            const SizedBox(height: PassqlSpacing.xs),
           // 구매 버튼: 가격 조회 중·상품 없음·결제 중이면 누를 수 없음
           PassqlButton(
             label: buyLabel,
             isLoading: _isBusy || _isPriceLoading,
-            onPressed: (_price == null)
+            onPressed: (selectedOption == null || selectedPrice == null)
                 ? null
-                : () => _run(port.purchaseExamPass),
+                : () => _run(() => port.purchasePass(selectedOption.productId)),
           ),
           if (inlineMessage != null) ...[
             const SizedBox(height: PassqlSpacing.xs),

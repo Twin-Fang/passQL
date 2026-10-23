@@ -39,7 +39,7 @@ enum ErrorCode {
   // 커뮤니티: 이미지 저장소 일시 장애 (503, 서버 문구를 그대로 보여 주려고 5xx 기본 문구와 분리)
   communityImageUnavailable,
 
-  // 결제: 회차 패스 필요(403), 무료 하루 한도 도달(403), 프로 공정 사용 하루 한도 도달(429)
+  // 결제: 이용권 필요(403), 무료 하루 한도 도달(403), 프로 공정 사용 하루 한도 도달(429)
   proRequired,
   freeDailyLimitReached,
   fairUseDailyLimitReached,

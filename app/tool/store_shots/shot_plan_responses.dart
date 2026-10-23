@@ -2,7 +2,10 @@
 // off 결제 꺼짐 | free 무료·결제 켜짐 | pro 프로·결제 켜짐 (없으면 off, 기존 촬영과 같은 화면)
 // 운영 코드(lib/)에는 영향이 없다.
 
-const String _shotPlan = String.fromEnvironment('SHOT_PLAN', defaultValue: 'off');
+const String _shotPlan = String.fromEnvironment(
+  'SHOT_PLAN',
+  defaultValue: 'off',
+);
 const bool _isBillingEnabled = _shotPlan != 'off';
 const bool _isFreeLocked = _shotPlan == 'free';
 const bool _isPro = _shotPlan == 'pro';
@@ -32,7 +35,25 @@ Map<String, dynamic> memberPlanShotResponse() => {
   'plan': _isPro ? 'PRO' : 'FREE',
   'todayRandomSolvedCount': _isFreeLocked ? 3 : 0,
   'dailyFreeLimit': 10,
-  'purchasableUntil': '2026-11-14T23:59:59',
+  // deprecated (옛 앱 호환): 3개월권 예상 만료일과 같은 값
+  'purchasableUntil': _isPro ? '2027-02-12T23:59:59' : '2027-01-21T14:32:00',
+  // 이용권 2종 (3개월 먼저), 만료일 = 지금 사면 될 날짜 (프로는 현재 만료일에 이어 붙임)
+  'passOptions': [
+    {
+      'productId': 'pro_pass_3m',
+      'durationDays': 90,
+      'expiresAtIfPurchased': _isPro
+          ? '2027-02-12T23:59:59'
+          : '2027-01-21T14:32:00',
+    },
+    {
+      'productId': 'pro_pass_1m',
+      'durationDays': 30,
+      'expiresAtIfPurchased': _isPro
+          ? '2026-12-14T23:59:59'
+          : '2026-11-22T14:32:00',
+    },
+  ],
   'proExpiresAt': _isPro ? '2026-11-14T23:59:59' : null,
   'lastPurchasedAt': _isPro ? '2026-10-20T14:32:00' : null,
   'lastOrderId': _isPro ? 'GPA.3312-5521-0937-41522' : null,
@@ -57,7 +78,11 @@ Map<String, dynamic> choiceExplanationShotResponse() => {
       'confusingPoints': ['`HAVING` 만 쓰면 전체를 한 그룹으로 보고 비교해요.'],
       'choiceAnalyses': [
         {'choiceKey': 'A', 'isCorrect': true, 'reason': '행마다 급여를 비교해요.'},
-        {'choiceKey': 'B', 'isCorrect': false, 'reason': 'GROUP BY 없는 HAVING 은 행 조건이 아니에요.'},
+        {
+          'choiceKey': 'B',
+          'isCorrect': false,
+          'reason': 'GROUP BY 없는 HAVING 은 행 조건이 아니에요.',
+        },
       ],
       'examTip': '행 조건은 WHERE, 그룹 조건은 HAVING.',
     },
