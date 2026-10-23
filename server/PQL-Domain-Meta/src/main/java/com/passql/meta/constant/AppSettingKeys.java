@@ -56,6 +56,8 @@ public final class AppSettingKeys {
 
     // app_setting: Android 결제 스위치 (true 무료/프로 제한 적용과 결제 UI 노출, false 모든 기능 허용)
     public static final String BILLING_ANDROID_ENABLED = "billing.android.enabled";
+    // app_setting: 결제 미리보기 회원 UUID 목록 (쉼표 구분, 스위치 꺼짐이어도 목록 회원만 결제 켜짐 취급, 빈 값 대상 없음)
+    public static final String BILLING_PREVIEW_MEMBER_UUIDS = "billing.preview_member_uuids";
     // app_setting: Play Developer API 서비스 계정 키 JSON (SECRET, 암호문 저장, 관리자 화면에서 변경, 비면 결제 확인 불가)
     public static final String BILLING_PLAY_SERVICE_ACCOUNT_JSON = "billing.play_service_account_json";
 

@@ -81,8 +81,8 @@ public class AppStoreBillingService {
      * 같은 거래 재전송은 연장 없이 현재 등급 반환
      */
     public MemberPlanResponse verify(UUID memberUuid, AppStoreVerifyRequest request) {
-        // 결제 스위치 꺼짐 > 결제 UI 가 없어야 하는 상태라 거절
-        if (!featureAccessPolicy.isBillingEnabled()) {
+        // 회원 기준 결제 꺼짐(스위치 꺼짐·미리보기 목록 밖) > 결제 UI 가 없어야 하는 상태라 거절
+        if (!featureAccessPolicy.isBillingEnabledFor(memberUuid)) {
             log.info("[billing] app store rejected 400 : billing disabled, member={}", memberUuid);
             throw new CustomException(ErrorCode.INVALID_REQUEST);
         }
