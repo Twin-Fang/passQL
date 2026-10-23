@@ -10,6 +10,10 @@ import { fetchWrongQuestions } from "../api/progress";
 import NicknameChangeModal from "../components/NicknameChangeModal";
 import ErrorFallback from "../components/ErrorFallback";
 import PlanChip from "../components/pro/PlanChip";
+import LockedPreview from "../components/pro/LockedPreview";
+import { WrongNotesLockedSample } from "../components/pro/lockedPreviewSamples";
+import { LOCKED_PREVIEW_CAPTIONS } from "../constants/proAccessCopy";
+import { toProAccessErrorCode } from "../lib/proAccess";
 import type { WrongQuestionItem } from "../types/api";
 
 // 틀린 문제 카드 한 줄
@@ -74,6 +78,7 @@ export default function MyPage() {
     data: wrongData,
     isLoading: wrongLoading,
     isError: wrongError,
+    error: wrongErrorCause,
     refetch: refetchWrong,
   } = useQuery({
     queryKey: ["wrongQuestions", uuid],
@@ -81,6 +86,9 @@ export default function MyPage() {
     enabled: !!uuid,
     staleTime: 1000 * 60 * 5,
   });
+
+  // 오답 노트는 프로 기능 (무료 회원은 403 PRO_REQUIRED > 오류 대신 잠금 미리보기)
+  const isWrongNotesLocked = toProAccessErrorCode(wrongErrorCause) === "PRO_REQUIRED";
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -187,7 +195,13 @@ export default function MyPage() {
             </div>
           )}
 
-          {wrongError && (
+          {isWrongNotesLocked && (
+            <div className="p-4">
+              <LockedPreview preview={<WrongNotesLockedSample />} caption={LOCKED_PREVIEW_CAPTIONS.wrongNotes} />
+            </div>
+          )}
+
+          {wrongError && !isWrongNotesLocked && (
             <div className="px-4 py-6">
               <ErrorFallback onRetry={() => refetchWrong()} />
             </div>

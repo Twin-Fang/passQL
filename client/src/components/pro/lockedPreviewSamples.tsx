@@ -42,6 +42,13 @@ const EXAM_TREND_SAMPLE_SECTIONS: readonly LockedSampleSection[] = [
   { title: "이번 회차 예상", body: "조인과 서브쿼리 결과 추적이 이어질 가능성이 커요." },
 ];
 
+// 오답 노트: 최근 틀린 문제 목록
+const WRONG_NOTES_SAMPLE_SECTIONS: readonly LockedSampleSection[] = [
+  { title: "서브쿼리", body: "급여가 부서 평균보다 높은 사원을 찾는 SQL 은?" },
+  { title: "윈도우 함수", body: "RANK 와 DENSE_RANK 결과가 다른 행은?" },
+  { title: "조인", body: "OUTER JOIN 결과 행 수로 알맞은 것은?" },
+];
+
 export function ExplanationLockedSample() {
   return <LockedSampleCard sections={EXPLANATION_SAMPLE_SECTIONS} />;
 }
@@ -52,4 +59,8 @@ export function StatsLockedSample() {
 
 export function ExamTrendLockedSample() {
   return <LockedSampleCard sections={EXAM_TREND_SAMPLE_SECTIONS} />;
+}
+
+export function WrongNotesLockedSample() {
+  return <LockedSampleCard sections={WRONG_NOTES_SAMPLE_SECTIONS} />;
 }
