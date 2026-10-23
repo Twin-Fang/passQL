@@ -18,6 +18,7 @@ export const LOCKED_PREVIEW_CAPTIONS = {
   executionResult: "보기 SQL을 직접 실행해 결과 비교",
   stats: "토픽별 약점 · AI 학습 코멘트",
   examTrend: "최근 기출 토픽 비중 · 이번 회차 예상",
+  wrongNotes: "틀린 문제 모아보기 · 다시 풀기",
 } as const;
 
 // 사유 화면 3종 (앱 QuestionLoadErrorView 와 같은 문구)
