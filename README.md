@@ -4,91 +4,104 @@
 
 # passQL
 
-**읽는 SQL 공부는 끝. 이제 직접 실행하며 합격하세요.**
+### 책 없이, 앱 하나로 SQLD
 
-SQLD·SQLP 수험생을 위한 AI 실행형 SQL 학습 서비스 — 문제은행이 아니라, 실행형 훈련기입니다.
+최신 출제 경향을 반영한 문제를 풀고, 보기 SQL을 **직접 실행**해 보고, 틀린 이유는 **AI 해설**로 바로 확인하세요.
 
-AI가 함정 오답을 만들고, 실행형 문제는 모든 선택지를 **PostgreSQL 샌드박스**에서 실제로 실행해 정답이 하나인지 검증합니다.
-<sub>`NVL`·`SYSDATE` 같은 Oracle 함수는 PostgreSQL 문법으로 자동 변환합니다. 변환할 수 없는 Oracle 전용 문법은 개념 문제로 출제합니다.</sub>
+<a href="https://apps.apple.com/kr/app/id6762165005"><img src="https://img.shields.io/badge/App_Store-다운로드-0D96F6?style=for-the-badge&logo=apple&logoColor=white" alt="App Store" /></a>
+<a href="https://passql.vercel.app/"><img src="https://img.shields.io/badge/Web-바로_써보기-5E5CE6?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Web" /></a>
+<img src="https://img.shields.io/badge/Google_Play-준비_중-3DDC84?style=for-the-badge&logo=googleplay&logoColor=white" alt="Google Play 준비 중" />
 
-[**웹에서 바로 써보기**](https://passql.vercel.app/)
+<br/>
 
-[![Web](https://img.shields.io/badge/Web-Live-2ea44f)](https://passql.vercel.app/)
 [![API Docs](https://img.shields.io/badge/API-Swagger-85EA2D)](https://api.passql.suhsaechan.kr/docs/swagger-ui/index.html)
 [![License](https://img.shields.io/badge/license-source--available-lightgrey)](LICENSE)
 
-**문제 192개** (직접 실행하는 실행형 93 · 개념형 99) · **SQLD 출제 토픽 9개**
-<sub>운영 DB 기준, 2026-10-08 측정</sub>
-<!-- TODO: 스토어 공개 후 배지 추가
- · [Google Play](PLAY_STORE_URL) · [App Store](APP_STORE_URL) -->
+<br/>
+
+<img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/feature-graphic.png" width="720" alt="passQL" />
+
+<br/><br/>
 
 <table>
   <tr>
-    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/gh-pages/shots/home.jpg" width="200" alt="홈" /></td>
-    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/gh-pages/shots/questions.jpg" width="200" alt="문제 목록" /></td>
-    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/gh-pages/shots/detail.jpg" width="200" alt="문제 풀이와 실행 결과" /></td>
-    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/gh-pages/shots/rank.jpg" width="200" alt="오늘의 순위" /></td>
-  </tr>
-  <tr align="center">
-    <td>홈</td><td>문제</td><td>직접 실행·채점</td><td>오늘의 순위</td>
+    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/01.png" width="150" alt="책 없이 앱 하나로 SQLD" /></td>
+    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/02.png" width="150" alt="최신 출제 경향" /></td>
+    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/03.png" width="150" alt="주제별 문제" /></td>
+    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/04.png" width="150" alt="SQL 직접 실행" /></td>
+    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/05.png" width="150" alt="AI 해설" /></td>
+    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/06.png" width="150" alt="합격 준비도" /></td>
+    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/07.png" width="150" alt="오늘의 세트" /></td>
   </tr>
 </table>
+
+<sub>스토어 이미지 원본과 생성 도구: <a href="app/docs/store">app/docs/store</a></sub>
 
 </div>
 
 ---
 
+## 한눈에 보기
 
-## passQL은 무엇인가
-
-**SQLD·SQLP 자격증을 위한, AI 기반 실행형 SQL 학습 서비스**입니다. 웹과 모바일 앱(Android/iOS)으로 제공합니다.
-
-- AI가 정답 SQL의 실행 결과를 보고 **함정 오답 선택지를 만들고**, 샌드박스 DB에서 **직접 실행해 검증**한 문제만 저장합니다.
-- 틀리면 AI가 에러 원인과 오답 이유를 **한국어로 해설**합니다.
-- 최근 틀린 문제를 분석해, **의미적으로 유사한 약점 유형을 추천**합니다.
-- **Google/Apple 로그인**으로 어느 기기에서든 학습 기록이 이어집니다.
-
-한 줄로: **문제은행이 아니라, 실행형 훈련기입니다.**
+| | |
+|---|---|
+| **문제** | 300문제 이상, SQLD 출제 토픽 9개 <sub>(운영 DB 활성 문제 기준, 2026-10-20)</sub> |
+| **최신 경향** | 최근 회차 출제 유형을 분석해 문제에 반영, '최신 경향' 표시로 바로 골라 풀기 |
+| **검증** | 실행형 문제는 모든 선택지를 PostgreSQL 샌드박스에서 실제로 실행해 정답이 하나인지 확인 |
+| **플랫폼** | iOS · Android · Web, Google·Apple·카카오·네이버·GitHub 로그인 |
 
 ---
 
 ## 핵심 기능
 
-### AI 오답 역설계 + Sandbox 검증
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h4>최신 출제 경향 그대로</h4>
+      최근 회차 시험의 출제 유형을 분석해 문제에 반영합니다. 과목별 비중과 늘어난 유형을 한눈에 보고, '최신 경향' 문제부터 풀 수 있습니다.
+    </td>
+    <td width="50%" valign="top">
+      <h4>주제별 문제와 개념 TOP 10</h4>
+      데이터 모델링부터 서브쿼리·그룹 함수까지 SQLD 전 범위를 주제와 챕터로 나눴습니다. 자주 나오는 개념은 TOP 10으로 먼저 잡습니다.
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <h4>보기 SQL 직접 실행</h4>
+      선택지 SQL을 실제로 실행해 결과 표를 보여 줍니다. 외우지 않고 왜 정답인지 눈으로 확인합니다.
+    </td>
+    <td valign="top">
+      <h4>AI 해설과 오답 노트</h4>
+      내가 고른 답이 왜 틀렸는지, 정답과 무엇이 다른지 AI가 한국어로 짚어 줍니다. 틀린 문제는 오답 노트에 모입니다.
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <h4>합격 준비도</h4>
+      정확도·학습 범위·최신 경향 대비를 합쳐 준비도를 계산합니다. 학습 달력, 연속 학습일, 시험 D-day를 함께 보여 줍니다.
+    </td>
+    <td valign="top">
+      <h4>오늘의 세트와 순위</h4>
+      매일 모든 회원이 같은 10문제를 풀고 순위를 겨룹니다. 점수는 서버가 제출 기록으로 검증합니다.
+    </td>
+  </tr>
+</table>
 
-AI가 정답 SQL을 실행하고, 그 결과를 보고 수험생이 헷갈리기 쉬운 지점(잘못된 JOIN 조건, GROUP BY 누락, NULL 처리 실수)을 겨냥한 오답을 만듭니다. 각 선택지 SQL은 격리된 **PostgreSQL 샌드박스 DB**에서 실제로 실행해 실행 결과를 비교하고, 정답이 딱 1개일 때만 저장합니다. 샌드박스는 문제를 풀 때마다 임시로 만들어지고 채점 후 삭제됩니다.
+### 이렇게 만들어집니다
 
-### 자유 SQL 실습
+AI가 정답 SQL을 실행하고, 그 결과를 보고 수험생이 헷갈리기 쉬운 지점(잘못된 JOIN 조건, GROUP BY 누락, NULL 처리 실수)을 겨냥한 오답을 만듭니다. 각 선택지 SQL은 문제마다 임시로 만드는 **PostgreSQL 샌드박스 DB**에서 실행해 결과를 비교하고, 정답이 딱 1개일 때만 저장합니다.
+<sub>`NVL`·`SYSDATE` 같은 Oracle 함수는 PostgreSQL 문법으로 자동 변환합니다. 변환할 수 없는 Oracle 전용 문법은 개념 문제로 출제합니다.</sub>
 
-선택지 외에 내가 쓴 SQL도 실행해 "이건 왜 안 되지?"를 바로 확인합니다.
-
-### AI 해설
-
-에러 메시지 한국어 설명, 정답 SQL과의 차이 비교, 취약 개념 재설명을 AI가 제공합니다.
-
-### 개인화 약점 추천
-
-최근 틀린 문제를 벡터로 바꿔(bge-m3, Qdrant) 의미적으로 가까운 문제를 추천합니다.
-
-### 오늘의 세트와 리더보드
-
-매일 모든 회원이 같은 10문제를 풀고 순위를 겨룹니다. 점수는 서버가 제출 기록으로 검증합니다.
-
-### 학습 통계
-
-토픽별 정답률(레이더 차트), 합격 준비도, 학습 히트맵, 연속 학습일, 시험 일정 D-day, 오답 노트.
-
-### 관리자 AI 출제 인터페이스
-
-관리자 화면에서 토픽·난이도·스키마를 입력하면 AI가 문제 초안과 오답 선택지를 생성합니다. 대량 JSON 가져오기·내보내기와 샌드박스 일괄 검증을 지원합니다.
+관리자 화면에서는 토픽·난이도·스키마를 넣으면 AI가 문제 초안과 오답 선택지를 만들고, 대량 가져오기·내보내기와 샌드박스 일괄 검증을 지원합니다.
 
 ---
 
 ## 누구를 위한 서비스인가
 
-- SQLD·SQLP 수험생
+- 수험서를 다 볼 시간이 없는 SQLD 수험생
+- 기출 유형이 바뀌어 최신 경향이 궁금한 사람
 - SQL을 처음 배우는 비전공자·신입 개발자
-- 실무 SQL을 다시 잡는 현업 개발자
+- 이동 중 짧은 시간에 문제를 풀고 싶은 사람
 
 ---
 
