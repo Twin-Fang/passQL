@@ -114,6 +114,55 @@ void main() {
     });
   });
 
+  group('showPassqlSheet', () {
+    testWidgets('제목은 가운데에 놓이고 닫기 X 는 없다', (tester) async {
+      late BuildContext sheetOpenerContext;
+      await tester.pumpWidget(
+        host(
+          Builder(
+            builder: (context) {
+              sheetOpenerContext = context;
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+      showPassqlSheet<void>(
+        sheetOpenerContext,
+        title: '화면 모드',
+        builder: (_) => const SizedBox(height: 120),
+      );
+      await tester.pumpAndSettle();
+
+      final titleCenterX = tester.getCenter(find.text('화면 모드')).dx;
+      final screenCenterX = tester.getSize(find.byType(MaterialApp)).width / 2;
+      expect(titleCenterX, closeTo(screenCenterX, 1));
+      expect(find.byIcon(CupertinoIcons.xmark_circle_fill), findsNothing);
+    });
+
+    testWidgets('제목이 없으면 머리 줄을 그리지 않는다', (tester) async {
+      late BuildContext sheetOpenerContext;
+      await tester.pumpWidget(
+        host(
+          Builder(
+            builder: (context) {
+              sheetOpenerContext = context;
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+      showPassqlSheet<void>(
+        sheetOpenerContext,
+        builder: (_) => const Text('본문만'),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('본문만'), findsOneWidget);
+      expect(find.byIcon(CupertinoIcons.xmark_circle_fill), findsNothing);
+    });
+  });
+
   group('PassqlChoiceCard', () {
     testWidgets('채점 상태(correct/wrong/dimmed)에서는 탭이 무시된다', (tester) async {
       for (final s in [
