@@ -21,7 +21,8 @@ public enum AdminAuditAction {
     UNLOCK("잠금 해제"),
     SEND("발송"),
     RETRACT("회수"),
-    HIDE("숨김");
+    HIDE("숨김"),
+    REINDEX("재색인");
 
     // 화면 표시 이름
     private final String label;
