@@ -6,8 +6,9 @@ import org.springframework.data.domain.Sort;
 public enum MemberListSort {
     NEWEST_JOINED("가입 최신순", Sort.by(Sort.Direction.DESC, "createdAt")),
     OLDEST_JOINED("가입 오래된순", Sort.by(Sort.Direction.ASC, "createdAt")),
-    RECENT_SEEN("최근 접속순", Sort.by(Sort.Order.desc("lastSeenAt").nullsLast(), Sort.Order.desc("createdAt"))),
-    OLDEST_SEEN("오래 미접속순", Sort.by(Sort.Order.asc("lastSeenAt").nullsFirst(), Sort.Order.desc("createdAt"))),
+    // 접속순 2종: Specification 조회가 null 우선순위 정렬을 지원하지 않아 정렬은 MemberSpecification.orderByLastSeen 이 담당
+    RECENT_SEEN("최근 접속순", Sort.unsorted()),
+    OLDEST_SEEN("오래 미접속순", Sort.unsorted()),
     NICKNAME("닉네임순", Sort.by(Sort.Direction.ASC, "nickname"));
 
     // 관리자 화면 표시 이름

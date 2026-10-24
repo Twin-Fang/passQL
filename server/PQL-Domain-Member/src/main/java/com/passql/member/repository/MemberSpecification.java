@@ -20,6 +20,24 @@ public class MemberSpecification {
     // 프로 만료 임박 기준 (일)
     public static final int PRO_EXPIRING_WITHIN_DAYS = 7;
 
+    /** 마지막 접속 정렬: 미접속(null) 위치 지정 > 접속 시각 > 가입 최신순 (건수 조회에는 적용 안 함) */
+    public static Specification<Member> orderByLastSeen(boolean isNeverSeenFirst, boolean isNewestFirst) {
+        return (root, query, cb) -> {
+            boolean isCountQuery = Long.class.equals(query.getResultType()) || long.class.equals(query.getResultType());
+            if (!isCountQuery) {
+                // 미접속 순위: 0 이 먼저 나옴
+                var neverSeenRank = cb.<Integer>selectCase()
+                    .when(cb.isNull(root.get("lastSeenAt")), isNeverSeenFirst ? 0 : 1)
+                    .otherwise(isNeverSeenFirst ? 1 : 0);
+                query.orderBy(
+                    cb.asc(neverSeenRank),
+                    isNewestFirst ? cb.desc(root.get("lastSeenAt")) : cb.asc(root.get("lastSeenAt")),
+                    cb.desc(root.get("createdAt")));
+            }
+            return cb.conjunction();
+        };
+    }
+
     public static Specification<Member> notDeleted() {
         return (root, query, cb) -> cb.equal(root.get("isDeleted"), false);
     }

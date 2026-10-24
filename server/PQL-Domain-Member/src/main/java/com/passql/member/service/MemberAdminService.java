@@ -6,6 +6,7 @@ import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.common.util.AdminRequestContext;
+import com.passql.member.constant.MemberListSort;
 import com.passql.member.constant.MemberPlan;
 import com.passql.member.constant.MemberStatus;
 import com.passql.member.constant.SuspendReasonCategory;
@@ -83,8 +84,16 @@ public class MemberAdminService {
             spec = spec.and(MemberSpecification.excludeTest());
         }
 
+        // 접속순 정렬은 Specification 안에서 처리 (null 우선순위 때문)
+        MemberListSort sortOption = cond.getSortOrDefault();
+        if (sortOption == MemberListSort.RECENT_SEEN) {
+            spec = spec.and(MemberSpecification.orderByLastSeen(false, true));
+        } else if (sortOption == MemberListSort.OLDEST_SEEN) {
+            spec = spec.and(MemberSpecification.orderByLastSeen(true, false));
+        }
+
         Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-            cond.getSortOrDefault().toSort());
+            sortOption.toSort());
         Page<Member> memberPage = memberRepository.findAll(spec, sortedPageable);
         Set<UUID> proActiveMemberUuids = findProActiveMemberUuids(memberPage.getContent(), now);
         return memberPage.map(member -> MemberAdminListResponse.from(member,
