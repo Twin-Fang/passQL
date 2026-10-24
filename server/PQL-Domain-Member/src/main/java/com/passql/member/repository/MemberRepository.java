@@ -41,6 +41,17 @@ public interface MemberRepository extends JpaRepository<Member, UUID>, JpaSpecif
     /** 알림 전체 발송 대상 수 — 탈퇴 제외 (팬아웃 INSERT 조건과 같게 유지) */
     long countByIsDeletedFalseAndStatusNot(MemberStatus status);
 
+    /** 관리자 목록 요약: 상태별 회원 수 (탈퇴 행 제외, 테스트 계정은 includeTest 일 때만 포함) */
+    @Query("SELECT m.status, COUNT(m) FROM Member m WHERE m.isDeleted = false "
+        + "AND (:includeTest = true OR m.isTestAccount = false) GROUP BY m.status")
+    List<Object[]> countGroupByStatusForAdmin(@Param("includeTest") boolean includeTest);
+
+    /** 관리자 목록 요약: 프로 이용 중(만료 전) 회원 수 */
+    @Query("SELECT COUNT(m) FROM Member m WHERE m.isDeleted = false AND (:includeTest = true OR m.isTestAccount = false) "
+        + "AND m.memberUuid IN (SELECT e.memberUuid FROM MemberEntitlement e "
+        + "WHERE e.plan = com.passql.member.constant.MemberPlan.PRO AND e.expiresAt > :now)")
+    long countProActiveForAdmin(@Param("includeTest") boolean includeTest, @Param("now") LocalDateTime now);
+
     /** 대시보드 집계용 — 테스트 계정 제외 전체 회원 수 */
     long countByIsTestAccountFalseAndIsDeletedFalse();
 

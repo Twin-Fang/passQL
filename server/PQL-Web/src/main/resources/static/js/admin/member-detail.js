@@ -1,25 +1,28 @@
 /**
- * 회원 상세 화면: 탭 전환, 제재 적용·해제, 관리자 탈퇴 처리
- * memberUuid 는 members/detail.html 인라인 스크립트가 선언
+ * 회원 상세 화면: 탭 전환, 관리자 메모 저장, 제재 해제, 관리자 탈퇴 처리
+ * 제재 적용·푸시 창은 member-moderation.js 공용
+ * memberUuid, activeTab 은 members/detail.html 인라인 스크립트가 선언
  */
+
+const DETAIL_TABS = ['submission', 'suspend', 'notification', 'purchase', 'community'];
 
 // 탭 전환
 function switchTab(tab) {
-    ['submission', 'suspend', 'notification', 'purchase'].forEach(t => {
+    DETAIL_TABS.forEach(t => {
         document.getElementById('panel-' + t).classList.toggle('hidden', t !== tab);
         document.getElementById('tab-' + t).classList.toggle('tab-active', t === tab);
+        // 제출·알림 탭 페이지 이동 바 (패널 밖에 있어 탭과 함께 토글)
+        document.getElementById('pager-' + t)?.classList.toggle('hidden', t !== tab);
     });
 }
 
-function suspendMember() {
-    const reason = document.getElementById('suspendReason').value;
-    const suspendUntil = document.getElementById('suspendUntil').value;
-    if (!suspendUntil) {
-        AdminUi.toast('제재 만료 일시를 입력해주세요.', 'warning');
-        return;
-    }
-    AdminApi.post(`/admin/members/${memberUuid}/suspend`, { reason, suspendUntil: suspendUntil + ':00' })
-        .then(() => AdminUi.reloadWithToast('제재를 적용했습니다.'))
+// 페이지 이동 뒤에도 보던 탭 유지 (?tab=)
+if (DETAIL_TABS.includes(activeTab)) switchTab(activeTab);
+
+function saveAdminMemo() {
+    const adminMemo = document.getElementById('adminMemo').value;
+    AdminApi.put(`/admin/members/${memberUuid}/memo`, { adminMemo })
+        .then(() => AdminUi.toast('메모를 저장했습니다.'))
         .catch(error => AdminUi.showError(error));
 }
 

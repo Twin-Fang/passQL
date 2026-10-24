@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- 회원 상세 조각 2종: 왼쪽 프로필 패널(프로필·기본 정보·제재 관리), 제재 모달 -->
+<!-- 회원 상세 조각 3종: 왼쪽 프로필 패널(프로필·기본 정보·관리자 메모·제재 관리), 제재 모달, 푸시 모달 (제재·푸시 모달은 회원 목록 일괄 작업과 공용) -->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <th:block th:fragment="profile-panel">
         <!-- ===== 왼쪽: 프로필 고정 패널 ===== -->
@@ -84,6 +84,19 @@
                 </div>
             </div>
 
+            <!-- 관리자 메모 카드: 운영 참고용, 앱 미노출 -->
+            <div class="card bg-base-100 shadow">
+                <div class="card-body gap-2">
+                    <h3 class="font-bold text-sm text-base-content/70 uppercase tracking-wider">관리자 메모</h3>
+                    <textarea id="adminMemo" class="textarea textarea-bordered w-full text-sm" rows="4" maxlength="1000"
+                              placeholder="운영 참고 메모 (앱에 보이지 않음, 1000자)"
+                              th:text="${member.adminMemo}"></textarea>
+                    <button class="btn btn-sm btn-outline w-full" onclick="saveAdminMemo()">
+                        <i data-lucide="save" class="size-4"></i>메모 저장
+                    </button>
+                </div>
+            </div>
+
             <!-- 제재 관리 카드 -->
             <div class="card bg-base-100 shadow" th:if="${member.status.name() != 'WITHDRAWN'}">
                 <div class="card-body gap-3">
@@ -95,8 +108,15 @@
                     </button>
                     <button th:if="${member.status.name() != 'SUSPENDED'}"
                             class="btn btn-error btn-sm w-full gap-2"
-                            onclick="document.getElementById('suspendModal').showModal()">
+                            th:data-uuid="${member.memberUuid}"
+                            onclick="openSuspendModal([this.dataset.uuid])">
                         <i data-lucide="shield-ban" class="size-4"></i>제재 적용
+                    </button>
+                    <!-- 이 회원에게 푸시 (푸시 + 알림함) -->
+                    <button class="btn btn-outline btn-sm w-full gap-2"
+                            th:data-uuid="${member.memberUuid}"
+                            onclick="openPushModal([this.dataset.uuid])">
+                        <i data-lucide="bell-ring" class="size-4"></i>이 회원에게 푸시
                     </button>
                     <!-- 관리자 탈퇴 처리 (#479): 개인정보 익명화, 풀이 기록 보존 -->
                     <button class="btn btn-outline btn-error btn-sm w-full gap-2" onclick="withdrawMember()">
@@ -115,9 +135,17 @@
                 <i data-lucide="shield-ban" class="size-5 text-error"></i>회원 제재
             </h3>
             <div class="form-control mb-4">
+                <label class="label"><span class="label-text font-medium">사유 분류</span></label>
+                <select id="suspendReasonCategory" class="select select-bordered w-full">
+                    <option value="">분류 없음</option>
+                    <option th:each="category : ${reasonCategories}" th:value="${category.name()}"
+                            th:text="${category.label}">욕설·비방</option>
+                </select>
+            </div>
+            <div class="form-control mb-4">
                 <label class="label"><span class="label-text font-medium">제재 사유</span></label>
-                <textarea id="suspendReason" class="textarea textarea-bordered w-full" rows="3"
-                          placeholder="제재 사유를 입력하세요 (선택)"></textarea>
+                <textarea id="suspendReason" class="textarea textarea-bordered w-full" rows="3" maxlength="500"
+                          placeholder="제재 사유를 입력하세요 (선택, 500자)"></textarea>
             </div>
             <div class="form-control mb-6">
                 <label class="label"><span class="label-text font-medium">제재 만료 일시 <span class="text-error">*</span></span></label>
@@ -127,8 +155,37 @@
                 <form method="dialog">
                     <button class="btn btn-ghost">취소</button>
                 </form>
-                <button class="btn btn-error gap-2" onclick="suspendMember()">
+                <button class="btn btn-error gap-2" onclick="submitSuspendModal()">
                     <i data-lucide="shield-ban" class="size-4"></i>제재 적용
+                </button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>닫기</button></form>
+    </dialog>
+</th:block>
+
+<th:block th:fragment="push-modal">
+    <!-- 푸시 모달: 푸시 + 알림함, 이동 화면은 홈 -->
+    <dialog id="pushModal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+                <i data-lucide="bell-ring" class="size-5 text-primary"></i>회원 푸시
+            </h3>
+            <div class="form-control mb-4">
+                <label class="label"><span class="label-text font-medium">제목 <span class="text-error">*</span></span></label>
+                <input type="text" id="pushTitle" class="input input-bordered w-full" maxlength="100" placeholder="알림 제목 (100자)"/>
+            </div>
+            <div class="form-control mb-6">
+                <label class="label"><span class="label-text font-medium">본문 <span class="text-error">*</span></span></label>
+                <textarea id="pushBody" class="textarea textarea-bordered w-full" rows="4" maxlength="500"
+                          placeholder="알림 본문 (500자)"></textarea>
+            </div>
+            <div class="modal-action">
+                <form method="dialog">
+                    <button class="btn btn-ghost">취소</button>
+                </form>
+                <button class="btn btn-primary gap-2" onclick="submitPushModal()">
+                    <i data-lucide="send" class="size-4"></i>보내기
                 </button>
             </div>
         </div>

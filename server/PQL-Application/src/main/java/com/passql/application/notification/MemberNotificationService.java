@@ -142,6 +142,12 @@ public class MemberNotificationService {
                 .stream().map(AdminNotificationSummaryResponse::from).toList();
     }
 
+    /** 관리자 회원 상세: 그 회원의 알림 한 페이지 (읽음·회수 여부 포함) */
+    public Page<AdminNotificationSummaryResponse> findNotificationPageOfMember(UUID memberUuid, Pageable pageable) {
+        return memberNotificationRepository.findPageByMemberUuidOrderByCreatedAtDesc(memberUuid, pageable)
+                .map(AdminNotificationSummaryResponse::from);
+    }
+
     /** 보관 기간 지난 알림 삭제 (PURGE_BATCH_SIZE 건씩 별도 트랜잭션 반복) > 지운 행 수 */
     public int purgeExpiredNotifications() {
         LocalDateTime cutoff = LocalDateTime.now().minusDays(notificationSettingService.getRetentionDays());
