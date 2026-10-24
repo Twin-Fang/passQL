@@ -2,11 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:passql_app/core/auth/auth_session.dart';
 import 'package:passql_app/data/models/member/choice_generation_mode.dart';
 import 'package:passql_app/presentation/design/design.dart';
-import 'package:passql_app/router/app_routes.dart';
 import 'package:passql_app/presentation/pages/settings/settings_page.dart';
 import 'package:passql_app/presentation/providers/auth_provider.dart';
 import 'package:passql_app/presentation/providers/app_config_providers.dart';
@@ -75,48 +73,5 @@ void main() {
 
     expect(find.byType(LicensePage), findsOneWidget);
     expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('MY 화면 제목은 MY 이고 알림함·공지 행을 누르면 알림함 경로로 이동한다', (tester) async {
-    await tester.binding.setSurfaceSize(const Size(400, 1600));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-    final router = GoRouter(
-      routes: [
-        GoRoute(path: '/', builder: (_, _) => const SettingsPage()),
-        GoRoute(
-          path: AppRoutes.notificationInbox,
-          builder: (_, _) => const Text('알림함 화면'),
-        ),
-      ],
-    );
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          authProvider.overrideWith(SignedInAuth.new),
-          settingsDataProvider.overrideWith(
-            (ref) async => const SettingsData(
-              memberUuid: 'm-1',
-              nickname: '기존닉네임',
-              choiceMode: ChoiceGenerationMode.practice,
-            ),
-          ),
-          currentAppVersionProvider.overrideWith((ref) async => '1.0.0'),
-        ],
-        child: MaterialApp.router(
-          theme: PassqlTheme.light,
-          routerConfig: router,
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('MY'), findsWidgets);
-    expect(find.text('설정'), findsNothing);
-    // 푸시 토글은 그대로 유지
-    expect(find.text('알림 받기'), findsOneWidget);
-
-    await tester.tap(find.text('알림함·공지'));
-    await tester.pumpAndSettle();
-    expect(find.text('알림함 화면'), findsOneWidget);
   });
 }

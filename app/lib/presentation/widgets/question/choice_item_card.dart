@@ -33,7 +33,12 @@ class ChoiceItemCard extends StatelessWidget {
     final resultRows = item.kind == 'SQL' ? null : parseResultRows(item.body);
     final Widget body = item.kind == 'SQL'
         // 선택 가능한 코드면 카드 탭과 길게 누르기가 겹치므로 선택은 끈다.
-        ? PassqlCodeBlock(code: item.body, isSelectable: false)
+        ? PassqlCodeBlock(
+            code: item.body,
+            isSelectable: false,
+            // 선택지 카드가 이미 상자라 코드 상자를 한 번 더 두지 않는다
+            hasBackground: false,
+          )
         : resultRows != null
         ? ResultRowsTable(rows: resultRows)
         : InlineCodeText(item.body);

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,7 +14,7 @@ import '../../widgets/ads/ad_inline_card.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/pro/locked_preview_samples.dart';
 import '../../widgets/pro/pro_locked_section.dart';
-import '../../widgets/pro/pro_plan_chip_slot.dart';
+import '../../widgets/settings/profile_section.dart';
 import '../../widgets/home/heatmap_widget.dart';
 import '../../widgets/home/readiness_card.dart';
 import '../../widgets/stats/ai_analysis_card.dart';
@@ -40,14 +41,15 @@ class StatsPage extends ConsumerWidget {
       body: statsAsync.when(
         skipError: true,
         loading: () => const PassqlLargeTitleScrollView(
-          title: '기록',
-          trailing: ProPlanChipSlot(),
-          slivers: [_StatsSkeleton()],
+          title: '내 프로필',
+          trailing: _ProfileTabTrailing(),
+          slivers: [_ProfileSliver(), _StatsSkeleton()],
         ),
         error: (error, _) => PassqlLargeTitleScrollView(
-          title: '기록',
-          trailing: const ProPlanChipSlot(),
+          title: '내 프로필',
+          trailing: const _ProfileTabTrailing(),
           slivers: [
+            const _ProfileSliver(),
             SliverFillRemaining(
               hasScrollBody: false,
               child: PassqlStatusView.error(
@@ -58,8 +60,8 @@ class StatsPage extends ConsumerWidget {
           ],
         ),
         data: (data) => PassqlLargeTitleScrollView(
-          title: '기록',
-          trailing: const ProPlanChipSlot(),
+          title: '내 프로필',
+          trailing: const _ProfileTabTrailing(),
           onRefresh: () async {
             // 화면에 보이는 데이터 전부 (진행·토픽, AI 코멘트, 히트맵·세트, 오답 개수)
             ref.invalidate(statsDataProvider);
@@ -76,6 +78,7 @@ class StatsPage extends ConsumerWidget {
             }
           },
           slivers: [
+            const _ProfileSliver(),
             _StatsContent(
               data: data,
               isAnalysisLocked: ref.watch(shouldShowProUiProvider),
@@ -317,6 +320,53 @@ class _StatsSkeleton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// 내 프로필 탭 맨 위 구역 (이용권 카드 + 프로필)
+class _ProfileSliver extends StatelessWidget {
+  const _ProfileSliver();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SliverPadding(
+      padding: EdgeInsets.fromLTRB(
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+        PassqlSpacing.md,
+        0,
+      ),
+      sliver: SliverToBoxAdapter(child: ProfileSection()),
+    );
+  }
+}
+
+/// 제목줄 오른쪽: 설정 톱니바퀴 (이용권 표시는 맨 위 이용권 카드가 맡음)
+class _ProfileTabTrailing extends StatelessWidget {
+  const _ProfileTabTrailing();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        PassqlSemanticButton(
+          label: '설정',
+          onTap: () => context.push(AppRoutes.settings),
+          child: CupertinoButton(
+            padding: EdgeInsets.zero,
+            minimumSize: const Size.square(PassqlSize.minTouchTarget),
+            onPressed: () => context.push(AppRoutes.settings),
+            child: Icon(
+              CupertinoIcons.gear,
+              size: PassqlIconSize.lg,
+              color: colors.accent,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

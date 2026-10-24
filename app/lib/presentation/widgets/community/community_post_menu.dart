@@ -52,7 +52,7 @@ Future<void> openCommunityPostMenu(
       final isConfirmed = await showPassqlConfirmDialog(
         context,
         title: '이 작성자를 차단할까요?',
-        message: '차단하면 이 작성자의 의견이 보이지 않아요.\nMY에서 언제든 해제할 수 있어요.',
+        message: '차단하면 이 작성자의 의견이 보이지 않아요.\n설정에서 언제든 해제할 수 있어요.',
         confirmLabel: '차단',
       );
       if (!isConfirmed || !context.mounted) return;

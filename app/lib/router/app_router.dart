@@ -155,16 +155,13 @@ abstract final class AppRouter {
               ),
             ],
           ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.settings,
-                pageBuilder: (_, _) =>
-                    const NoTransitionPage(child: SettingsPage()),
-              ),
-            ],
-          ),
         ],
+      ),
+
+      // 설정: 내 프로필 탭의 톱니바퀴로 여는 푸시 화면
+      GoRoute(
+        path: AppRoutes.settings,
+        builder: (_, _) => const SettingsPage(),
       ),
 
       // 풀스크린: 건의사항
