@@ -21,6 +21,9 @@ public record AdminReportDetailResponse(
             List<ReportCategory> categories,
             String detail,
             ReportStatus status,
-            LocalDateTime createdAt
+            LocalDateTime createdAt,
+            String resolutionNote,
+            String resolvedByAdminUsername,
+            LocalDateTime resolvedAt
     ) {}
 }

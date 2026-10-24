@@ -1,8 +1,9 @@
 /**
- * 신고 상세 화면: 문제·신고 목록 렌더, 미처리 신고 일괄 처리, 선택지 세트 펼치기
- * questionUuid 는 report-detail.html 인라인 스크립트가 선언
+ * 신고 상세 화면: 문제·신고 목록 렌더, 선택한 신고 일괄 처리·기각(서버 단위 처리), 선택지 세트 펼치기
+ * questionUuid 는 report-detail.html 인라인 스크립트가 선언, REPORT_CATEGORY_LABELS 는 report-common.js
  */
-let pendingReportUuids = [];
+// 선택 체크박스 CSS 선택자 (미처리 신고 행에만 존재)
+const PENDING_REPORT_CHECKBOX_SELECTOR = '.pending-report-checkbox';
 
 // 신고 상태 > 배지 (PENDING 미처리, RESOLVED 처리완료, DISMISSED 기각)
 const REPORT_STATUS_BADGE = {
@@ -15,7 +16,7 @@ const REPORT_STATUS_BADGE = {
 async function dismissReport(reportUuid) {
     if (!await AdminUi.confirmDanger('이 신고를 기각합니다. 제출 보정이나 문제 비활성화는 하지 않습니다.', { confirmLabel: '기각' })) return;
     try {
-        await AdminApi.post(`/admin/api/reports/${reportUuid}/dismiss`);
+        await AdminApi.post(`/admin/api/reports/${reportUuid}/dismiss`, { resolutionNote: readResolutionNote() });
         AdminUi.toast('신고를 기각했습니다.');
         loadDetail();
     } catch (error) {
@@ -82,21 +83,24 @@ function renderReportList(reports) {
 
     reportList.innerHTML = reports.map(r => {
         const statusBadge = REPORT_STATUS_BADGE[r.status] || REPORT_STATUS_BADGE.RESOLVED;
-        // 미처리 건만 기각 버튼 (#479)
-        const dismissButton = r.status === 'PENDING'
+        // 미처리 건만 선택 체크박스·기각 버튼 (#479, #613)
+        const isPending = r.status === 'PENDING';
+        const selectCheckbox = isPending
+            ? `<input type="checkbox" class="checkbox checkbox-sm pending-report-checkbox" data-uuid="${r.reportUuid}" checked/>`
+            : '';
+        const dismissButton = isPending
             ? `<button class="btn btn-xs btn-ghost text-base-content/60" onclick="dismissReport('${r.reportUuid}')">기각</button>`
             : '';
 
-        const categories = (r.categories || []).map(c => {
-            const labelMap = {
-                WRONG_ANSWER: '정답 오류',
-                WEIRD_QUESTION: '문제 이상',
-                WEIRD_CHOICES: '선택지 이상',
-                WEIRD_EXECUTION: '실행 오류',
-                ETC: '기타'
-            };
-            return `<span class="badge badge-outline badge-sm">${labelMap[c] || c}</span>`;
-        }).join(' ');
+        const categories = (r.categories || []).map(c =>
+            `<span class="badge badge-outline badge-sm">${REPORT_CATEGORY_LABELS[c] || c}</span>`
+        ).join(' ');
+
+        // 처리·기각 사유 (처리자 · 시각)
+        const resolutionSummary = r.resolutionNote
+            ? `<p class="text-xs text-base-content/60 mt-1 ml-1">처리 메모: ${escapeHtml(r.resolutionNote)}
+                   <span class="text-base-content/40">(${escapeHtml(r.resolvedByAdminUsername || '-')}${r.resolvedAt ? ' · ' + r.resolvedAt.substring(0, 16).replace('T', ' ') : ''})</span></p>`
+            : '';
 
         const detail = r.detail
             ? `<p class="text-sm text-base-content/70 mt-1 ml-1">${escapeHtml(r.detail)}</p>`
@@ -128,12 +132,14 @@ function renderReportList(reports) {
         return `<div class="py-3">
                     <div class="flex items-center justify-between gap-2 mb-1">
                         <div class="flex items-center gap-2 flex-wrap">
+                            ${selectCheckbox}
                             ${statusBadge}
                             ${categories}
                         </div>
                         <span class="flex items-center gap-1 shrink-0">${dismissButton}<span class="text-xs text-base-content/40">${createdDate}</span></span>
                     </div>
                     ${detail}
+                    ${resolutionSummary}
                     <div class="text-xs text-base-content/40 mt-1">회원: ${memberLink}</div>
                     ${choiceSetSection}
                 </div>`;
@@ -142,65 +148,85 @@ function renderReportList(reports) {
     lucide.createIcons();
 }
 
+/** 처리 사유 메모 입력값 (비어 있으면 null) */
+function readResolutionNote() {
+    const note = document.getElementById('resolutionNote').value.trim();
+    return note || null;
+}
+
+/** 체크된 미처리 신고 UUID 목록 */
+function readSelectedReportUuids() {
+    return Array.from(document.querySelectorAll(`${PENDING_REPORT_CHECKBOX_SELECTOR}:checked`))
+        .map(checkbox => checkbox.dataset.uuid);
+}
+
+/** 선택 건수 > 버튼 문구·활성 상태 */
+function refreshSelectionState() {
+    const allCheckboxes = document.querySelectorAll(PENDING_REPORT_CHECKBOX_SELECTOR);
+    const selectedCount = readSelectedReportUuids().length;
+    document.getElementById('resolveSelectedBtn').innerHTML =
+        `<i data-lucide="check-check" class="size-4"></i> 선택 처리완료 (${selectedCount}건)`;
+    document.getElementById('dismissSelectedBtn').innerHTML =
+        `<i data-lucide="x-circle" class="size-4"></i> 선택 기각 (${selectedCount}건)`;
+    document.getElementById('resolveSelectedBtn').disabled = selectedCount === 0;
+    document.getElementById('dismissSelectedBtn').disabled = selectedCount === 0;
+    document.getElementById('selectAllPending').checked = allCheckboxes.length > 0 && selectedCount === allCheckboxes.length;
+    lucide.createIcons();
+}
+
 function setupResolvePanel(reports) {
-    pendingReportUuids = (reports || [])
-        .filter(r => r.status === 'PENDING')
-        .map(r => r.reportUuid);
+    const hasPendingReport = (reports || []).some(r => r.status === 'PENDING');
+    document.getElementById('resolvePanel').classList.toggle('hidden', !hasPendingReport);
+    const selectAllLabel = document.getElementById('selectAllPendingLabel');
+    selectAllLabel.classList.toggle('hidden', !hasPendingReport);
+    selectAllLabel.classList.toggle('flex', hasPendingReport);
+    if (!hasPendingReport) return;
 
-    const panel = document.getElementById('resolvePanel');
-    if (pendingReportUuids.length > 0) {
-        panel.classList.remove('hidden');
-        document.getElementById('resolveAllBtn').textContent =
-            `미처리 전체 처리완료 (${pendingReportUuids.length}건)`;
+    document.querySelectorAll(PENDING_REPORT_CHECKBOX_SELECTOR)
+        .forEach(checkbox => checkbox.addEventListener('change', refreshSelectionState));
+    refreshSelectionState();
+}
 
-        // 버튼 텍스트에 아이콘 복원
-        document.getElementById('resolveAllBtn').innerHTML =
-            `<i data-lucide="check-check" class="size-4"></i> 미처리 전체 처리완료 (${pendingReportUuids.length}건)`;
-        lucide.createIcons();
+document.getElementById('selectAllPending').addEventListener('change', event => {
+    document.querySelectorAll(PENDING_REPORT_CHECKBOX_SELECTOR)
+        .forEach(checkbox => { checkbox.checked = event.target.checked; });
+    refreshSelectionState();
+});
+
+/** 선택한 신고 > 서버 일괄 API 1회 호출 (bulk-resolve | bulk-dismiss) */
+async function processSelectedReports(bulkPath, extraBody, successVerb) {
+    const reportUuids = readSelectedReportUuids();
+    if (reportUuids.length === 0) return;
+
+    const resultElement = document.getElementById('resolveResult');
+    resultElement.textContent = '처리 중...';
+    resultElement.className = 'text-sm ml-2 text-base-content/60';
+    try {
+        // 처리자는 서버가 관리자 세션에서 읽음
+        const result = await AdminApi.post(`/admin/api/reports/${bulkPath}`,
+            { reportUuids, resolutionNote: readResolutionNote(), ...extraBody });
+        const skippedMessage = result.skippedCount > 0 ? ` (이미 처리된 ${result.skippedCount}건 제외)` : '';
+        resultElement.textContent = `${result.processedCount}건 ${successVerb}${skippedMessage}`;
+        resultElement.className = 'text-sm ml-2 text-success';
+        AdminUi.toast(`${result.processedCount}건 ${successVerb}${skippedMessage}`);
+        document.getElementById('resolutionNote').value = '';
+        loadDetail();
+    } catch (error) {
+        // 서버가 전체 취소하므로 일부만 처리된 상태는 없음
+        resultElement.textContent = '';
+        AdminUi.showError(error);
     }
 }
 
-document.getElementById('resolveAllBtn').addEventListener('click', async () => {
-    if (pendingReportUuids.length === 0) return;
-
+document.getElementById('resolveSelectedBtn').addEventListener('click', () => {
     const correctionScope = document.querySelector('input[name="correctionScope"]:checked').value;
     const deactivateQuestion = document.getElementById('deactivateQuestion').checked;
+    processSelectedReports('bulk-resolve', { correctionScope, deactivateQuestion }, '처리완료');
+});
 
-    const resultEl = document.getElementById('resolveResult');
-
-    resultEl.textContent = '처리 중...';
-    resultEl.className = 'text-sm ml-2 text-base-content/60';
-
-    let successCount = 0;
-    let failCount = 0;
-    let lastErrorMessage = '';
-
-    for (const reportUuid of pendingReportUuids) {
-        try {
-            // 처리자는 서버가 관리자 세션에서 읽음
-            await AdminApi.post(`/admin/api/reports/${reportUuid}/resolve`, {
-                correctionScope: correctionScope,
-                deactivateQuestion: deactivateQuestion
-            });
-            successCount++;
-        } catch (error) {
-            failCount++;
-            lastErrorMessage = error.message;
-        }
-    }
-
-    if (failCount === 0) {
-        resultEl.textContent = `${successCount}건 처리완료`;
-        resultEl.className = 'text-sm ml-2 text-success';
-        AdminUi.toast(`${successCount}건 처리완료`);
-    } else {
-        resultEl.textContent = `성공 ${successCount}건 / 실패 ${failCount}건`;
-        resultEl.className = 'text-sm ml-2 text-warning';
-        AdminUi.toast(`실패 ${failCount}건: ${lastErrorMessage}`, 'error');
-    }
-
-    // 완료 후 새로고침
-    setTimeout(() => loadDetail(), 800);
+document.getElementById('dismissSelectedBtn').addEventListener('click', async () => {
+    if (!await AdminUi.confirmDanger('선택한 신고를 기각합니다. 제출 보정이나 문제 비활성화는 하지 않습니다.', { confirmLabel: '기각' })) return;
+    processSelectedReports('bulk-dismiss', {}, '기각');
 });
 
 // 선택지 세트 토글 — 처음 열 때 API 호출 후 캐시, 이후 토글만
