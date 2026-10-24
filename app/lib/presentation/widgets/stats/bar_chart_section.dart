@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import '../../../data/models/progress/topic_stat.dart';
 import '../../design/design.dart';
 
-// 막대 양옆 고정 칸 폭: 토픽명(2줄까지), 문제 수(세 자리까지)
+// 막대 양옆 고정 칸 폭: 토픽명(2줄까지), 푼 문제 수(세 자리까지)
 const double _topicLabelWidth = 100;
 const double _countLabelWidth = 28;
 
-/// 카테고리별 문제 수 가로 막대 차트 섹션.
-/// totalQuestionCount 기준으로 막대 길이 비율 결정.
+/// 카테고리별 푼 문제 가로 막대 차트 섹션.
+/// solvedCount 기준, 가장 많이 푼 카테고리 대비 비율로 막대 길이 결정 (전체 문제 수는 노출하지 않음).
 class BarChartSection extends StatelessWidget {
   final List<TopicStat>? topicStats;
 
@@ -16,7 +16,7 @@ class BarChartSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PassqlCard(title: '카테고리별 문제 수', child: _buildBars(context));
+    return PassqlCard(title: '카테고리별 푼 문제', child: _buildBars(context));
   }
 
   Widget _buildBars(BuildContext context) {
@@ -37,20 +37,20 @@ class BarChartSection extends StatelessWidget {
       );
     }
 
-    // 가장 큰 totalQuestionCount 기준으로 막대 비율 계산
-    final maxCount = stats
-        .map((stat) => stat.totalQuestionCount)
+    // 가장 많이 푼 카테고리 기준으로 막대 비율 계산 (모두 0이면 빈 막대)
+    final maxSolvedCount = stats
+        .map((stat) => stat.solvedCount)
         .reduce((larger, other) => larger > other ? larger : other);
 
     return Column(
       children: stats.map((stat) {
-        final ratio = maxCount > 0 ? stat.totalQuestionCount / maxCount : 0.0;
+        final ratio = maxSolvedCount > 0 ? stat.solvedCount / maxSolvedCount : 0.0;
 
-        // 행마다 '토픽명, N문제' 한 문장 (막대는 읽지 않음)
+        // 행마다 '토픽명, N문제 풀었어요' 한 문장 (막대는 읽지 않음)
         return Padding(
           padding: const EdgeInsets.only(bottom: PassqlSpacing.sm),
           child: Semantics(
-            label: '${stat.displayName}, ${stat.totalQuestionCount}문제',
+            label: '${stat.displayName}, ${stat.solvedCount}문제 풀었어요',
             excludeSemantics: true,
             child: Row(
               children: [
@@ -70,11 +70,11 @@ class BarChartSection extends StatelessWidget {
                 // 진행 막대 (accent / fill)
                 Expanded(child: PassqlProgressBar(value: ratio)),
                 const SizedBox(width: PassqlSpacing.xs),
-                // 문제 수 숫자
+                // 푼 문제 수 숫자
                 SizedBox(
                   width: _countLabelWidth,
                   child: Text(
-                    stat.totalQuestionCount.toString(),
+                    stat.solvedCount.toString(),
                     style: PassqlTypography.caption.copyWith(
                       color: colors.secondaryLabel,
                     ),
