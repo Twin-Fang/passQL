@@ -84,8 +84,8 @@ public class QuestionGenerateService {
 
         LlmConfigDto llmConfig = PromptLlmConfigFactory.toLlmConfig(prompt, prompt.getUserTemplate(), responseSchema);
 
-        GenerateQuestionFullRequest req = new GenerateQuestionFullRequest(context, llmConfig);
-        return aiGatewayClient.generateQuestionFull(req);
+        GenerateQuestionFullRequest request = new GenerateQuestionFullRequest(context, llmConfig);
+        return aiGatewayClient.generateQuestionFull(request);
     }
 
     /**

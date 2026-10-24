@@ -30,7 +30,7 @@ class _NotificationPermissionPrompterState
 
   Timer? _promptTimer;
   bool _hasPromptedThisLaunch = false;
-  bool _wasCoveredByFullScreen = false;
+  bool _hasBeenCoveredByFullScreen = false;
 
   @override
   void initState() {
@@ -43,10 +43,10 @@ class _NotificationPermissionPrompterState
     super.didChangeDependencies();
     // 풀이·결과 같은 전체 화면이 덮었다가 닫혀 탭 화면이 다시 맨 위가 되면 시도
     final isShellOnTop = ModalRoute.of(context)?.isCurrent ?? true;
-    if (_wasCoveredByFullScreen && isShellOnTop) {
+    if (_hasBeenCoveredByFullScreen && isShellOnTop) {
       _schedulePrompt(_returnPromptDelay);
     }
-    _wasCoveredByFullScreen = !isShellOnTop;
+    _hasBeenCoveredByFullScreen = !isShellOnTop;
   }
 
   @override

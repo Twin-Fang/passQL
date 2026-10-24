@@ -14,9 +14,9 @@ function splitToAnimatedSpans(
   return text.split(/(\s+)/).map((token, i) => {
     // 공백이거나 빈 문자열은 그대로 — 빈 span 생성 방지
     if (!token || /^\s+$/.test(token)) return token;
-    const idx = indexRef.current++;
+    const index = indexRef.current++;
     return (
-      <span key={i} className="md-word" style={{ "--i": idx } as React.CSSProperties}>
+      <span key={i} className="md-word" style={{ "--i": index } as React.CSSProperties}>
         {token}
       </span>
     );
@@ -45,9 +45,9 @@ function animateTextNodes(
     // MdInlineCode: 코드 전체를 단어 1개로 취급
     // 여기서 인덱스 소비 안 하면 string 처리 후 나중에 렌더되어 순서 역전 발생
     if (el.type === MdInlineCode) {
-      const idx = indexRef.current++;
+      const index = indexRef.current++;
       return (
-        <span key={idx} className="md-word" style={{ "--i": idx } as React.CSSProperties}>
+        <span key={index} className="md-word" style={{ "--i": index } as React.CSSProperties}>
           {children}
         </span>
       );

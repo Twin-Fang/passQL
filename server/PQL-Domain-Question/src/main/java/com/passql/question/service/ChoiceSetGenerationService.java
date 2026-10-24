@@ -54,7 +54,7 @@ public class ChoiceSetGenerationService {
     public QuestionChoiceSet generateConcept(UUID questionUuid, UUID memberUuid, ChoiceSetSource source) {
         Question question = questionService.getQuestionEntity(questionUuid);
         PromptTemplate prompt = promptService.getActivePrompt(CONCEPT_PROMPT_KEY);
-        GenerateChoiceSetRequest req = requestFactory.buildConceptRequest(question, prompt);
+        GenerateChoiceSetRequest request = requestFactory.buildConceptRequest(question, prompt);
         log.debug("[choice-gen-concept] 요청 빌드 완료: questionUuid={}, promptKey={}", questionUuid, CONCEPT_PROMPT_KEY);
 
         GenerateChoiceSetResult lastResult = null;
@@ -63,7 +63,7 @@ public class ChoiceSetGenerationService {
         for (int attempts = 1; attempts <= MAX_ATTEMPTS; attempts++) {
             try {
                 log.debug("[choice-gen-concept] AI 호출 시작: attempt={}/{}, questionUuid={}", attempts, MAX_ATTEMPTS, questionUuid);
-                lastResult = aiGatewayClient.generateChoiceSet(req);
+                lastResult = aiGatewayClient.generateChoiceSet(request);
                 log.debug("[choice-gen-concept] AI 응답 수신: attempt={}, choiceCount={}, questionUuid={}",
                         attempts, lastResult.choices().size(), questionUuid);
 
@@ -127,12 +127,12 @@ public class ChoiceSetGenerationService {
 
         for (int attempts = 1; attempts <= MAX_ATTEMPTS; attempts++) {
             // 재시도마다 피드백(동치 SQL 목록)을 포함한 요청을 새로 빌드
-            GenerateChoiceSetRequest req = requestFactory.buildStandardRequest(question, prompt, equivalentSqls);
+            GenerateChoiceSetRequest request = requestFactory.buildStandardRequest(question, prompt, equivalentSqls);
 
             try {
                 log.debug("[choice-gen] AI 호출 시작: attempt={}/{}, questionUuid={}, feedbackCount={}",
                         attempts, MAX_ATTEMPTS, questionUuid, equivalentSqls.size());
-                lastResult = aiGatewayClient.generateChoiceSet(req);
+                lastResult = aiGatewayClient.generateChoiceSet(request);
                 log.debug("[choice-gen] AI 응답 수신: attempt={}, choiceCount={}, questionUuid={}",
                         attempts, lastResult.choices().size(), questionUuid);
 
@@ -235,8 +235,8 @@ public class ChoiceSetGenerationService {
         for (int attempts = 1; attempts <= MAX_ATTEMPTS; attempts++) {
             try {
                 log.debug("[choice-gen-result-match] AI 호출 시작: attempt={}/{}", attempts, MAX_ATTEMPTS);
-                GenerateChoiceSetRequest req = requestFactory.buildResultMatchRequest(question, prompt, expectedResult);
-                lastResult = aiGatewayClient.generateChoiceSet(req);
+                GenerateChoiceSetRequest request = requestFactory.buildResultMatchRequest(question, prompt, expectedResult);
+                lastResult = aiGatewayClient.generateChoiceSet(request);
                 log.debug("[choice-gen-result-match] AI 응답 수신: choiceCount={}", lastResult.choices().size());
 
                 // JSON 비교 검증 (Sandbox 재호출 없음)

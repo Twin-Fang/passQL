@@ -58,13 +58,13 @@ const LEGEND = [
 
 export default function StatsTopicList({ topicStats }: StatsTopicListProps) {
   const [popoverOpen, setPopoverOpen] = useState(false);
-  const btnRef = useRef<HTMLButtonElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   // 바깥 클릭 시 팝오버 닫기
   useEffect(() => {
     if (!popoverOpen) return;
     const handler = (e: MouseEvent) => {
-      if (btnRef.current?.contains(e.target as Node)) return;
+      if (buttonRef.current?.contains(e.target as Node)) return;
       setPopoverOpen(false);
     };
     document.addEventListener("mousedown", handler);
@@ -80,14 +80,14 @@ export default function StatsTopicList({ topicStats }: StatsTopicListProps) {
       <div className="flex items-center gap-1.5 mb-4">
         <h2 className="text-base font-bold text-text-primary">토픽별 학습 현황</h2>
         <button
-          ref={btnRef}
+          ref={buttonRef}
           onClick={() => setPopoverOpen((v) => !v)}
           className="w-4 h-4 rounded-full bg-surface-code flex items-center justify-center shrink-0"
           aria-label="토픽별 학습 현황 설명"
         >
           <HelpCircle size={10} className="text-text-caption" />
         </button>
-        <TopicListPopover open={popoverOpen} anchorRef={btnRef} />
+        <TopicListPopover open={popoverOpen} anchorRef={buttonRef} />
       </div>
 
       {/* 토픽 목록 */}

@@ -95,25 +95,25 @@ async function fetchOnce<T>(
   log("REQ", method, path, options.body && !isFormData ? JSON.parse(options.body as string) : undefined);
 
   try {
-    const res = await fetch(`${BASE_URL}${path}`, {
+    const response = await fetch(`${BASE_URL}${path}`, {
       ...options,
       signal: controller.signal,
       headers,
     });
 
-    if (!res.ok) {
-      const body = await res.json().catch(() => null);
-      log("ERR", method, path, { status: res.status, body });
-      reportMaintenanceIfDetected(res.status, body);
-      throw new ApiError(res.status, body);
+    if (!response.ok) {
+      const body = await response.json().catch(() => null);
+      log("ERR", method, path, { status: response.status, body });
+      reportMaintenanceIfDetected(response.status, body);
+      throw new ApiError(response.status, body);
     }
 
-    if (responseKind === "blob") return (await res.blob()) as T;
+    if (responseKind === "blob") return (await response.blob()) as T;
 
     // 204 No Content 또는 body가 없는 201 응답은 JSON 파싱 없이 반환
-    const contentLength = res.headers.get("content-length");
-    const hasBody = res.status !== 204 && contentLength !== "0";
-    const data = hasBody ? ((await res.json()) as T) : (undefined as T);
+    const contentLength = response.headers.get("content-length");
+    const hasBody = response.status !== 204 && contentLength !== "0";
+    const data = hasBody ? ((await response.json()) as T) : (undefined as T);
     log("RES", method, path, data);
     return data;
   } finally {

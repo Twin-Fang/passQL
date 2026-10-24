@@ -169,20 +169,20 @@ public class QuestionVectorIndexService {
 
         int total = requests.size();
         for (int i = 0; i < total; i++) {
-            IndexQuestionRequest req = requests.get(i);
+            IndexQuestionRequest request = requests.get(i);
             try {
-                var result = aiGatewayClient.indexQuestion(req);
+                var result = aiGatewayClient.indexQuestion(request);
                 if (result != null) {
                     succeeded++;
                 } else {
                     failed++;
-                    failedUuids.add(req.questionUuid());
-                    log.warn("[{}] 색인 결과 null: uuid={}", logPrefix, req.questionUuid());
+                    failedUuids.add(request.questionUuid());
+                    log.warn("[{}] 색인 결과 null: uuid={}", logPrefix, request.questionUuid());
                 }
             } catch (Exception e) {
                 failed++;
-                failedUuids.add(req.questionUuid());
-                log.warn("[{}] 색인 실패: uuid={}, error={}", logPrefix, req.questionUuid(), e.getMessage());
+                failedUuids.add(request.questionUuid());
+                log.warn("[{}] 색인 실패: uuid={}, error={}", logPrefix, request.questionUuid(), e.getMessage());
             }
             // 매 문제마다 진행 상황 로그
             log.info("[{}] 진행: {}/{} (성공={}, 실패={})", logPrefix, i + 1, total, succeeded, failed);
@@ -237,8 +237,8 @@ public class QuestionVectorIndexService {
                     log.warn("[question-index] 적재 대상 없음 (skip): questionUuid={}", questionUuid);
                     return;
                 }
-                IndexQuestionRequest req = buildIndexRequest(question);
-                IndexQuestionResult result = aiGatewayClient.indexQuestion(req);
+                IndexQuestionRequest request = buildIndexRequest(question);
+                IndexQuestionResult result = aiGatewayClient.indexQuestion(request);
                 if (result != null) {
                     log.info("[question-index] Qdrant 적재 완료: questionUuid={}, created={}",
                             questionUuid, result.created());

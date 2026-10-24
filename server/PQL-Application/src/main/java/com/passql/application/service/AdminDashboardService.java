@@ -113,11 +113,11 @@ public class AdminDashboardService {
 
         return raw.stream()
                 .map(row -> {
-                    String uuidStr = row[0].toString();
+                    String uuidText = row[0].toString();
                     long   count   = ((Number) row[1]).longValue();
-                    UUID   uuid    = UUID.fromString(uuidStr);
+                    UUID   uuid    = UUID.fromString(uuidText);
                     String name    = topicNameMap.getOrDefault(uuid, UuidUtils.toShortForm(uuid) + "…");
-                    return new DashboardStats.TopicQuestionCount(uuidStr, name, count);
+                    return new DashboardStats.TopicQuestionCount(uuidText, name, count);
                 })
                 .sorted(Comparator.comparingLong(DashboardStats.TopicQuestionCount::count).reversed())
                 .collect(Collectors.toList());
