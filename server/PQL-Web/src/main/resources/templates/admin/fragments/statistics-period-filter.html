@@ -1,0 +1,27 @@
+<!doctype html>
+<!-- 통계 기간 선택 공통 조각: 프리셋 5종 + 직접 지정 + CSV 링크 (동작은 static/js/admin/admin-period-filter.js, 직전 기간 규칙은 서버 StatisticsPeriod) -->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<th:block th:fragment="period-filter">
+    <div class="flex flex-wrap items-end gap-3" data-period-filter>
+        <div class="join" role="group" aria-label="기간 프리셋">
+            <button type="button" class="btn btn-xs join-item" data-preset="LAST_7">최근 7일</button>
+            <button type="button" class="btn btn-xs join-item" data-preset="LAST_30">최근 30일</button>
+            <button type="button" class="btn btn-xs join-item" data-preset="LAST_56">최근 8주</button>
+            <button type="button" class="btn btn-xs join-item" data-preset="THIS_MONTH">이번 달</button>
+            <button type="button" class="btn btn-xs join-item" data-preset="LAST_MONTH">지난달</button>
+        </div>
+        <label class="form-control">
+            <span class="label-text text-xs mb-1">시작일</span>
+            <input type="date" data-role="from" class="input input-sm input-bordered w-40"/>
+        </label>
+        <label class="form-control">
+            <span class="label-text text-xs mb-1">종료일</span>
+            <input type="date" data-role="to" class="input input-sm input-bordered w-40"/>
+        </label>
+        <button type="button" data-role="apply" class="btn btn-sm btn-primary">조회</button>
+        <a data-role="csv" class="btn btn-sm btn-outline gap-1" download>
+            <i data-lucide="download" class="size-4"></i>CSV
+        </a>
+    </div>
+</th:block>
+</html>

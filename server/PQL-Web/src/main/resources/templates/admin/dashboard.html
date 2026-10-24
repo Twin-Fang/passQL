@@ -18,6 +18,13 @@
         <div id="realtimeCards" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3"></div>
     </section>
 
+    <!-- AI 월 예산 알림 (사용률 80% 이상 경고, 100% 이상 초과, ai-status 응답으로 표시) -->
+    <div id="aiBudgetAlert" class="alert text-sm" role="alert" hidden>
+        <i data-lucide="triangle-alert" class="size-5"></i>
+        <span id="aiBudgetAlertMessage"></span>
+        <a th:href="@{/admin/statistics}" class="btn btn-xs btn-ghost">AI 사용량·통계 →</a>
+    </div>
+
     <!-- 처리 필요 배지 띠 + 시험 일정 알림 -->
     <th:block th:replace="~{admin/fragments/dashboard-attention-cards :: attention-badges}"></th:block>
 
@@ -26,9 +33,12 @@
         <div class="card-body p-4">
             <div class="flex flex-wrap items-center justify-between gap-2">
                 <h2 class="font-bold">신규 가입 · 방문자 추이</h2>
-                <div class="join" id="growthRangeToggle" role="group" aria-label="기간">
-                    <button type="button" class="btn btn-xs join-item btn-active" data-range="DAY">일별 30일</button>
-                    <button type="button" class="btn btn-xs join-item" data-range="MONTH">월별 12개월</button>
+                <div class="flex items-center gap-2">
+                    <a id="growthCsvLink" class="btn btn-xs btn-ghost gap-1" download><i data-lucide="download" class="size-3"></i>CSV</a>
+                    <div class="join" id="growthRangeToggle" role="group" aria-label="기간">
+                        <button type="button" class="btn btn-xs join-item btn-active" data-range="DAY">일별 30일</button>
+                        <button type="button" class="btn btn-xs join-item" data-range="MONTH">월별 12개월</button>
+                    </div>
                 </div>
             </div>
             <!-- 가입(10명대)과 방문자(수백 명) 규모 차이 > 차트 2개로 분리 -->
@@ -52,9 +62,12 @@
             <div class="card-body p-4">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <h2 class="font-bold">AI 호출량</h2>
-                    <div class="join" id="aiUsageRangeToggle" role="group" aria-label="기간">
-                        <button type="button" class="btn btn-xs join-item btn-active" data-range="DAY">일별 30일</button>
-                        <button type="button" class="btn btn-xs join-item" data-range="MONTH">월별 12개월</button>
+                    <div class="flex items-center gap-2">
+                        <a id="aiUsageCsvLink" class="btn btn-xs btn-ghost gap-1" download><i data-lucide="download" class="size-3"></i>CSV</a>
+                        <div class="join" id="aiUsageRangeToggle" role="group" aria-label="기간">
+                            <button type="button" class="btn btn-xs join-item btn-active" data-range="DAY">일별 30일</button>
+                            <button type="button" class="btn btn-xs join-item" data-range="MONTH">월별 12개월</button>
+                        </div>
                     </div>
                 </div>
                 <div class="relative h-60" id="aiUsageChartBox"><canvas id="aiUsageChart" aria-label="AI 호출량 차트"></canvas></div>

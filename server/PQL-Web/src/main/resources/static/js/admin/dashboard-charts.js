@@ -33,6 +33,7 @@
     // ── 신규 가입·방문자 추이 (가입 막대 + 누적 회원 점선 / 방문자 선, 규모 차이로 차트 분리) ──
     function loadGrowth(range) {
         const chartBox = document.getElementById('growthChartBox');
+        document.getElementById('growthCsvLink').href = API_BASE + '/growth.csv?range=' + range;
         loadBlock(chartBox, API_BASE + '/growth?range=' + range, growth => {
             if (!hasLabels(growth)) return false;
             renderChart(document.getElementById('growthSignupChart'), colors => ({
@@ -62,6 +63,7 @@
     // ── AI 호출량 (성공/실패 누적 막대, 평균 응답 선, 툴팁에 추정 비용) ──
     function loadAiUsage(range) {
         const chartBox = document.getElementById('aiUsageChartBox');
+        document.getElementById('aiUsageCsvLink').href = API_BASE + '/ai-usage.csv?range=' + range;
         loadBlock(chartBox, API_BASE + '/ai-usage?range=' + range, aiUsage => {
             if (!hasLabels(aiUsage)) return false;
             const estimatedCosts = aiUsage.estimatedCostUsd || [];

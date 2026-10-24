@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<th:block layout:fragment="title">리텐션·코호트</th:block>
+
+<th:block layout:fragment="content">
+<!-- 리텐션·코호트 (#620): retention.js 가 /admin/api/retention 을 가입 기간별로 불러옴 -->
+<div class="space-y-5 max-w-[1400px]">
+
+    <div class="space-y-1">
+        <th:block th:replace="~{admin/fragments/statistics-period-filter :: period-filter}"></th:block>
+        <p class="text-xs text-base-content/50">기간 = 가입 기간 (이 기간에 가입한 회원 기준). 활동 = 앱·웹 접속 기록이 있는 날. 테스트 계정 제외</p>
+    </div>
+
+    <div id="retentionBlock" class="space-y-5">
+        <!-- N일 리텐션 카드 3개 (D1·D7·D30) -->
+        <div id="dayRetentionCards" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+
+        <!-- 가입 주차별 코호트 (칸 = 가입 주 + N주에 활동한 비율) -->
+        <section class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="font-bold">가입 주차별 코호트 <span class="text-xs font-normal text-base-content/50">주 시작 = 월요일, 0주 = 가입한 주</span></h2>
+                <div class="overflow-x-auto">
+                    <table class="table table-sm">
+                        <thead id="cohortHead"></thead>
+                        <tbody id="cohortBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 기능별 사용률 -->
+        <section class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="font-bold">기능별 사용률 <span id="activeMemberSummary" class="text-xs font-normal text-base-content/50"></span></h2>
+                <div class="overflow-x-auto">
+                    <table class="table table-sm">
+                        <thead><tr><th>기능</th><th class="text-right">이용 회원</th><th class="w-1/2">활동 회원 대비</th></tr></thead>
+                        <tbody id="featureUsageBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+</th:block>
+
+<th:block layout:fragment="js">
+    <script th:src="@{/js/admin/admin-chart.js}"></script>
+    <script th:src="@{/js/admin/admin-period-filter.js}"></script>
+    <script th:src="@{/js/admin/retention.js}"></script>
+</th:block>
+</html>

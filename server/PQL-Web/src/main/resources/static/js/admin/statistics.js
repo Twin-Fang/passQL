@@ -63,6 +63,10 @@
         document.getElementById('budgetSummary').textContent = monthlyBudgetUsd > 0
             ? '월 예산 ' + formatUsd(monthlyBudgetUsd) + ' 대비 ' + formatPercent(budgetUsedPercent)
             : '월 예산 미설정';
+        // 이번 달을 볼 때만 예산 알림 띠 (지난 달은 이미 끝난 기록)
+        const isCurrentMonth = monthInput.value === toCurrentMonthText();
+        AdminChart.renderBudgetAlert(document.getElementById('aiBudgetAlert'), document.getElementById('aiBudgetAlertMessage'),
+            isCurrentMonth ? budgetUsedPercent : 0, monthlyBudgetUsd, estimatedCostUsd);
     }
 
     // ── 모델별·기능별·단가표 ──
@@ -102,6 +106,7 @@
 
     function loadAiMonthly() {
         const month = monthInput.value || toCurrentMonthText();
+        document.getElementById('aiMonthlyCsvLink').href = API_BASE + '/ai-monthly.csv?month=' + encodeURIComponent(month);
         loadBlock(document.getElementById('aiMonthlyBlock'), API_BASE + '/ai-monthly?month=' + encodeURIComponent(month), aiMonthly => {
             renderSummary(aiMonthly);
             renderByModel(aiMonthly.byModel);
@@ -137,10 +142,44 @@
         }, '가입 기록이 없습니다.');
     }
 
+    // ── 기간 비교 (조회 기간 vs 직전 기간) ──
+    // 지표 단위별 값 표시 (USD 는 달러, % 는 소수 1자리, 그 외 정수)
+    function formatMetricValue(metric, value) {
+        if (metric.unit === 'USD') return formatUsd(value);
+        if (metric.unit === '%') return formatPercent(value);
+        return formatNumber(value) + metric.unit;
+    }
+
+    function renderChangeCell(changePercent) {
+        if (changePercent === null || changePercent === undefined) return '<td class="text-right text-base-content/40">-</td>';
+        const toneClass = changePercent > 0 ? 'text-success' : changePercent < 0 ? 'text-error' : 'text-base-content/60';
+        return '<td class="text-right font-semibold ' + toneClass + '">' + (changePercent > 0 ? '+' : '') + formatNumber(changePercent, 1) + '%</td>';
+    }
+
+    function renderPeriodComparison(comparison) {
+        document.getElementById('currentPeriodHeader').textContent = comparison.fromDate + ' ~ ' + comparison.toDate;
+        document.getElementById('previousPeriodHeader').textContent = comparison.previousFromDate + ' ~ ' + comparison.previousToDate;
+        renderTableRows('periodComparisonBody', comparison.metrics, 4, metric =>
+            '<tr><td>' + escapeHtml(metric.metricLabel) + '</td>'
+            + numberCell(formatMetricValue(metric, metric.currentValue))
+            + numberCell(formatMetricValue(metric, metric.previousValue))
+            + renderChangeCell(metric.changePercent) + '</tr>', '표시할 지표가 없습니다.');
+        return true;
+    }
+
+    function loadPeriodComparison(queryString) {
+        loadBlock(document.getElementById('periodComparisonBlock'), API_BASE + '/period-comparison?' + queryString, renderPeriodComparison);
+    }
+
     // ── 시작: 월 기본값 이번 달, 바꾸면 AI 통계만 다시 조회 ──
     monthInput.value = toCurrentMonthText();
     monthInput.max = toCurrentMonthText();
     monthInput.addEventListener('change', () => { if (monthInput.value) loadAiMonthly(); });
     loadAiMonthly();
     loadSignupsByProvider();
+    AdminPeriodFilter.bind(document.querySelector('[data-period-filter]'), {
+        defaultPreset: 'LAST_30',
+        csvBaseUrl: API_BASE + '/period-comparison.csv',
+        onChange: period => loadPeriodComparison(period.queryString)
+    });
 })();
