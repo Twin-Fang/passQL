@@ -5,6 +5,7 @@ import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.meta.constant.AdminAccountSort;
 import com.passql.meta.constant.AdminRole;
 import com.passql.meta.dto.AdminAccountCreateRequest;
 import com.passql.meta.dto.AdminAccountUpdateRequest;
@@ -58,6 +59,22 @@ public class AdminAccountService {
                 .toList();
     }
 
+    /** 계정 UUID > 아이디 (없으면 ADMIN_ACCOUNT_NOT_FOUND) */
+    public String getUsername(UUID adminAccountUuid) {
+        return adminAccountRepository.findById(adminAccountUuid)
+                .orElseThrow(() -> new CustomException(ErrorCode.ADMIN_ACCOUNT_NOT_FOUND))
+                .getUsername();
+    }
+
+    /** 목록 검색·정렬: 아이디 부분 일치(대소문자 무시) > 정렬 (기본 생성순) */
+    public List<AdminAccountView> searchAsView(String usernameKeyword, AdminAccountSort sort) {
+        String normalizedKeyword = usernameKeyword == null ? "" : usernameKeyword.trim().toLowerCase();
+        return findAllAsView().stream()
+                .filter(view -> view.username().toLowerCase().contains(normalizedKeyword))
+                .sorted(sort.getComparator())
+                .toList();
+    }
+
     /** 기본 계정 동기화: 없으면 생성, 있으면 해시·ADMIN·사용으로 맞춤 (yml 이 원본) */
     @Transactional
     public void syncEnvironmentAccount(String username, String passwordHash) {
@@ -83,6 +100,11 @@ public class AdminAccountService {
         } catch (Exception e) {
             log.warn("[admin auth] login success record failed : {}", e.getClass().getSimpleName());
         }
+    }
+
+    /** 등록된 관리자 아이디인지 (접근 기록에 입력 아이디를 남길지 판단) */
+    public boolean isKnownUsername(String username) {
+        return username != null && adminAccountRepository.existsByUsername(username);
     }
 
     /** 로그인 실패: 없는 아이디는 기록 안 함, 5회째 15분 잠금 > 잠겼으면 true */
@@ -129,10 +151,13 @@ public class AdminAccountService {
             throw new CustomException(ErrorCode.ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN);
         }
         Map<String, Object> before = AdminAuditEvent.summary("role", account.getRole(), "isEnabled", account.getIsEnabled());
+        AdminRole previousRole = account.getRole();
         account.setRole(AdminRole.fromRequestValue(request.role()));
         account.setIsEnabled(request.isEnabled());
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.ADMIN_ACCOUNT, account.getUsername(),
-                AdminAuditAction.UPDATE, before, AdminAuditEvent.summary("role", account.getRole(), "isEnabled", account.getIsEnabled())));
+                // 역할이 바뀌면 권한 변경, 사용 여부만 바뀌면 수정
+                previousRole == account.getRole() ? AdminAuditAction.UPDATE : AdminAuditAction.ROLE_CHANGE,
+                before, AdminAuditEvent.summary("role", account.getRole(), "isEnabled", account.getIsEnabled())));
         log.info("[admin account] updated : username={}, role={}, enabled={}",
                 account.getUsername(), account.getRole(), account.getIsEnabled());
         return account;
@@ -159,6 +184,28 @@ public class AdminAccountService {
         log.info("[admin account] unlocked : username={}", account.getUsername());
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.ADMIN_ACCOUNT, account.getUsername(), AdminAuditAction.UNLOCK));
         return account;
+    }
+
+    /**
+     * 계정 삭제: 기본 계정·자기 계정·사용 중인 계정·마지막 ADMIN 거부 > 삭제
+     * 사용 중지 먼저(비활성 우선 정책), 감사 로그는 아이디 문자열로 남아 삭제 뒤에도 조회 가능
+     */
+    @Transactional
+    public void deleteAccount(UUID adminAccountUuid, String actingAdminUsername) {
+        AdminAccount account = findEditableAccount(adminAccountUuid);
+        if (account.getUsername().equals(actingAdminUsername)) {
+            throw new CustomException(ErrorCode.ADMIN_ACCOUNT_SELF_DELETE_FORBIDDEN);
+        }
+        if (Boolean.TRUE.equals(account.getIsEnabled())) {
+            throw new CustomException(ErrorCode.ADMIN_ACCOUNT_DELETE_REQUIRES_DISABLED);
+        }
+        if (account.getRole() == AdminRole.ADMIN && adminAccountRepository.countByRole(AdminRole.ADMIN) <= 1) {
+            throw new CustomException(ErrorCode.ADMIN_ACCOUNT_LAST_ADMIN_FORBIDDEN);
+        }
+        adminAccountRepository.delete(account);
+        log.info("[admin account] deleted : username={}, role={}, by={}", account.getUsername(), account.getRole(), actingAdminUsername);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.ADMIN_ACCOUNT, account.getUsername(),
+                AdminAuditAction.DELETE, AdminAuditEvent.summary("role", account.getRole()), null));
     }
 
     private AdminAccount findEditableAccount(UUID adminAccountUuid) {

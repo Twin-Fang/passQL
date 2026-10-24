@@ -3,6 +3,7 @@ package com.passql.submission.repository;
 import com.passql.submission.dto.RecentAttemptProjection;
 import com.passql.submission.dto.SolvedQuestionProjection;
 import com.passql.submission.entity.Submission;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -18,6 +19,9 @@ import java.util.UUID;
 public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
 
     List<Submission> findByMemberUuidOrderBySubmittedAtDesc(UUID memberUuid);
+
+    /** 관리자 회원 상세: 제출 이력 한 페이지 */
+    Page<Submission> findPageByMemberUuidOrderBySubmittedAtDesc(UUID memberUuid, Pageable pageable);
 
     /** 회원이 이 문제에 마지막으로 낸 답안. AI 해설이 어떤 선택지 세트를 봤는지 찾을 때 쓴다. */
     Optional<Submission> findFirstByMemberUuidAndQuestionUuidOrderBySubmittedAtDesc(UUID memberUuid, UUID questionUuid);

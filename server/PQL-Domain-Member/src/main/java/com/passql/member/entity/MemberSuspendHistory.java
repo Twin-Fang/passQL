@@ -2,6 +2,7 @@ package com.passql.member.entity;
 
 import com.passql.common.entity.BaseEntity;
 import com.passql.member.constant.SuspendAction;
+import com.passql.member.constant.SuspendReasonCategory;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -45,6 +46,11 @@ public class MemberSuspendHistory extends BaseEntity {
     @Column(length = 500)
     private String reason;
 
+    // 제재 사유 분류 (해제 이력과 분류 도입 전 이력은 null)
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private SuspendReasonCategory reasonCategory;
+
     /** 제재 시 설정된 만료 시각. UNSUSPENDED 이력에서는 null. */
     private LocalDateTime suspendUntil;
 
@@ -55,11 +61,12 @@ public class MemberSuspendHistory extends BaseEntity {
     @Column(length = 50)
     private String actedByAdminUsername;
 
-    public static MemberSuspendHistory ofSuspend(UUID memberUuid, String reason, LocalDateTime suspendUntil,
-                                                 String actedByAdminUsername) {
+    public static MemberSuspendHistory ofSuspend(UUID memberUuid, SuspendReasonCategory reasonCategory, String reason,
+                                                 LocalDateTime suspendUntil, String actedByAdminUsername) {
         return MemberSuspendHistory.builder()
             .memberUuid(memberUuid)
             .action(SuspendAction.SUSPENDED)
+            .reasonCategory(reasonCategory)
             .reason(reason)
             .suspendUntil(suspendUntil)
             .actedAt(LocalDateTime.now())

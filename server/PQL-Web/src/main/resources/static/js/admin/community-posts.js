@@ -1,6 +1,6 @@
 /**
- * 관리자 토론 게시글 관리: 필터(게시판·상태·키워드) 목록, 페이지 이동, 숨김·복구·삭제
- * API: GET /admin/api/community/posts, POST /admin/api/community/reports/{postUuid}/{hide|restore|delete}
+ * 관리자 토론 게시글 관리: 필터(게시판·상태·키워드·작성자·기간·신고 수)·정렬 목록, 페이지 이동, 숨김·복구·삭제(건별·일괄, 사유 메모)
+ * API: GET /admin/api/community/posts, POST /admin/api/community/reports/{postUuid}/{hide|restore|delete}, POST .../reports/bulk?action=
  */
 (function () {
     'use strict';
@@ -10,7 +10,11 @@
     const PAGE_SIZE = 20;
     // 목록에 보여 줄 내용 최대 글자 수 (전체는 툴팁)
     const CONTENT_PREVIEW_MAXIMUM_LENGTH = 80;
-    const TABLE_COLUMN_COUNT = 9;
+    const TABLE_COLUMN_COUNT = 10;
+    // 정렬 선택지: 코드 > 표시 이름 (서버 CommunityAdminPostSort 와 같은 코드)
+    const SORT_LABEL_BY_CODE = { NEWEST: '최신순', OLDEST: '오래된순', MOST_REPORTED: '신고 많은 순', MOST_LIKED: '좋아요 많은 순' };
+    // 일괄 처리 동작 문구 (hide, delete)
+    const BULK_ACTION_LABEL = { hide: '숨김', delete: '삭제' };
     // 처리 동작 3개: 키 > 버튼 문구, 확인 창 문구, 버튼 색, 보이는 상태 조건
     const POST_ACTIONS = {
         hide: { label: '숨김', confirmMessage: '이 글을 숨길까요? 회원에게 보이지 않게 됩니다.', buttonClass: 'btn-outline',
@@ -28,12 +32,25 @@
     const boardTypeFilter = document.getElementById('boardTypeFilter');
     const postStatusFilter = document.getElementById('postStatusFilter');
     const keywordFilter = document.getElementById('keywordFilter');
+    const authorFilter = document.getElementById('authorFilter');
+    const fromDateFilter = document.getElementById('fromDateFilter');
+    const toDateFilter = document.getElementById('toDateFilter');
+    const minimumReportCountFilter = document.getElementById('minimumReportCountFilter');
+    const postSortFilter = document.getElementById('postSortFilter');
+    const bulkBar = document.getElementById('communityPostBulkBar');
+    const bulkCount = document.getElementById('communityPostBulkCount');
     const totalElement = document.getElementById('communityPostTotal');
     const tableBody = document.getElementById('communityPostBody');
     const pager = document.getElementById('communityPostPager');
     // 조회 전용(VIEWER) 계정이면 동작 버튼 비활성
     const canWriteAdmin = document.getElementById('communityPostCard').dataset.canWriteAdmin === 'true';
     let currentPage = 0;
+
+    // 선택 수가 0이면 일괄 작업 바 숨김 (조회 전용 계정은 항상 숨김)
+    const bulkSelection = AdminBulkSelect.attach(document.getElementById('communityPostCard'), selectedCount => {
+        bulkCount.textContent = selectedCount;
+        bulkBar.classList.toggle('hidden', selectedCount === 0 || !canWriteAdmin);
+    });
 
     /** 코드 > 표시 이름 매핑으로 select 선택지 채우기 */
     function fillSelectOptions(selectElement, labelByCode) {
@@ -51,6 +68,12 @@
         if (postStatusFilter.value) params.set('status', postStatusFilter.value);
         const keyword = keywordFilter.value.trim();
         if (keyword) params.set('keyword', keyword);
+        const author = authorFilter.value.trim();
+        if (author) params.set('author', author);
+        if (fromDateFilter.value) params.set('fromDate', fromDateFilter.value);
+        if (toDateFilter.value) params.set('toDate', toDateFilter.value);
+        if (minimumReportCountFilter.value) params.set('minimumReportCount', minimumReportCountFilter.value);
+        if (postSortFilter.value) params.set('sort', postSortFilter.value);
         return LIST_API + '?' + params.toString();
     }
 
@@ -61,11 +84,13 @@
             totalElement.textContent = '총 ' + formatNumber(postPage.totalElements || 0) + '건';
             renderRows(postPage.content || []);
             renderPager(postPage);
+            bulkSelection.refresh();
         } catch (error) {
             totalElement.textContent = '-';
             pager.innerHTML = '';
             tableBody.innerHTML = '<tr><td colspan="' + TABLE_COLUMN_COUNT + '" class="text-center py-12 text-error">'
                 + escapeHtml(error.message || '불러오지 못했습니다.') + '</td></tr>';
+            bulkSelection.refresh();
         }
     }
 
@@ -85,6 +110,13 @@
                 + POST_ACTIONS[actionKey].label + '</button>').join(' ');
     }
 
+    /** 작성자 닉네임 > 회원 상세 링크 (탈퇴 등으로 UUID 가 없으면 글자만) */
+    function toAuthorLink(post) {
+        const nickname = escapeHtml(post.authorNickname || '-');
+        if (!post.authorMemberUuid) return nickname;
+        return '<a class="link link-hover" href="/admin/members/' + encodeURIComponent(post.authorMemberUuid) + '">' + nickname + '</a>';
+    }
+
     function renderRows(posts) {
         if (posts.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="' + TABLE_COLUMN_COUNT + '" class="text-center text-base-content/50 py-12">조건에 맞는 글이 없습니다.</td></tr>';
@@ -94,9 +126,11 @@
             const statusBadgeClass = labels.postStatusBadgeClassByCode[post.status] || 'badge-ghost';
             const reportCountClass = post.reportCount > 0 ? ' text-warning font-bold' : '';
             return '<tr>'
+                + '<td><input type="checkbox" class="checkbox checkbox-xs bulk-row-checkbox" value="' + escapeHtml(post.postUuid) + '"'
+                + (canWriteAdmin ? '' : ' disabled') + ' aria-label="글 선택"/></td>'
                 + '<td class="text-xs whitespace-nowrap">' + escapeHtml(labels.toLabel(labels.boardTypeLabelByCode, post.boardType)) + '</td>'
                 + '<td class="text-sm break-words max-w-md">' + toContentPreview(post.content) + '</td>'
-                + '<td class="text-sm">' + escapeHtml(post.authorNickname || '-') + '</td>'
+                + '<td class="text-sm">' + toAuthorLink(post) + '</td>'
                 + '<td class="text-right">' + formatNumber(post.likeCount) + '</td>'
                 + '<td class="text-right">' + formatNumber(post.commentCount) + '</td>'
                 + '<td class="text-right' + reportCountClass + '">' + formatNumber(post.reportCount) + '</td>'
@@ -122,15 +156,36 @@
         const button = event.target.closest('button[data-action]');
         if (!button || button.disabled) return;
         const action = POST_ACTIONS[button.dataset.action];
-        const isConfirmed = await AdminUi.confirmDanger(action.confirmMessage, { title: '글 ' + action.label, confirmLabel: action.label });
-        if (!isConfirmed) return;
+        const reason = await AdminReasonPrompt.ask({ title: '글 ' + action.label, message: action.confirmMessage,
+            confirmLabel: action.label, isDanger: button.dataset.action === 'delete' });
+        if (reason === null) return;
         button.disabled = true;
         try {
-            await AdminApi.post(ACTION_API_BASE + '/' + encodeURIComponent(button.dataset.uuid) + '/' + button.dataset.action);
+            await AdminApi.post(ACTION_API_BASE + '/' + encodeURIComponent(button.dataset.uuid) + '/' + button.dataset.action, { reason });
             AdminUi.toast(action.label + ' 처리했습니다.');
             loadCommunityPosts();
         } catch (error) {
             button.disabled = false;
+            AdminUi.showError(error);
+        }
+    });
+
+    // 일괄 작업 바: 사유 입력 > 일괄 API > 결과 토스트 > 현재 페이지 다시 조회
+    bulkBar.addEventListener('click', async event => {
+        const button = event.target.closest('button[data-bulk-action]');
+        if (!button) return;
+        const actionKey = button.dataset.bulkAction;
+        const postUuids = bulkSelection.getSelectedValues();
+        const reason = await AdminReasonPrompt.ask({ title: '선택한 ' + postUuids.length + '건 ' + BULK_ACTION_LABEL[actionKey],
+            message: actionKey === 'delete' ? '선택한 글을 삭제합니다. 내용이 비워지고 되돌릴 수 없습니다.' : '선택한 글을 숨깁니다.',
+            confirmLabel: BULK_ACTION_LABEL[actionKey], isDanger: actionKey === 'delete' });
+        if (reason === null) return;
+        try {
+            const result = await AdminApi.post(ACTION_API_BASE + '/bulk?action=' + actionKey, { postUuids, reason });
+            AdminUi.toast(BULK_ACTION_LABEL[actionKey] + ' ' + result.succeededCount + '건'
+                + (result.skippedCount > 0 ? ', 건너뜀 ' + result.skippedCount + '건' : ''));
+            loadCommunityPosts();
+        } catch (error) {
             AdminUi.showError(error);
         }
     });
@@ -148,8 +203,10 @@
     filterForm.addEventListener('reset', () => setTimeout(() => loadCommunityPosts(0)));
     boardTypeFilter.addEventListener('change', () => loadCommunityPosts(0));
     postStatusFilter.addEventListener('change', () => loadCommunityPosts(0));
+    postSortFilter.addEventListener('change', () => loadCommunityPosts(0));
 
     fillSelectOptions(boardTypeFilter, labels.boardTypeLabelByCode);
     fillSelectOptions(postStatusFilter, labels.postStatusLabelByCode);
+    fillSelectOptions(postSortFilter, SORT_LABEL_BY_CODE);
     loadCommunityPosts(0);
 })();

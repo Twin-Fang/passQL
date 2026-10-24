@@ -182,6 +182,8 @@
         const budgetUsedPercent = Number(aiStatus.budgetUsedPercent) || 0;
         const hasBudget = Number(aiStatus.monthlyBudgetUsd) > 0;
         renderBudgetProgress(document.getElementById('budgetProgress'), budgetUsedPercent);
+        AdminChart.renderBudgetAlert(document.getElementById('aiBudgetAlert'), document.getElementById('aiBudgetAlertMessage'),
+            budgetUsedPercent, aiStatus.monthlyBudgetUsd, aiStatus.monthEstimatedCostUsd);
         document.getElementById('budgetSummary').textContent = hasBudget
             ? '월 예산 ' + formatUsd(aiStatus.monthlyBudgetUsd) + ' 대비 ' + formatPercent(budgetUsedPercent) + ' · 추정 비용 ' + formatUsd(aiStatus.monthEstimatedCostUsd)
             : '월 예산 미설정 · 추정 비용 ' + formatUsd(aiStatus.monthEstimatedCostUsd);

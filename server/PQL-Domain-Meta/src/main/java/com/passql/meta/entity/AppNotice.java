@@ -54,6 +54,10 @@ public class AppNotice extends BaseEntity {
     @Column(nullable = false)
     private Boolean isImportant;
 
+    // 노출 우선순위: 클수록 먼저 (중요 여부가 같은 공지끼리 비교)
+    @Column(nullable = false)
+    private Integer displayPriority;
+
     /** 게시 시각: 노출 시작, 없으면 등록 시각 (KST) */
     public LocalDateTime resolvePublishedAt() {
         return startsAt != null ? startsAt : getCreatedAt();

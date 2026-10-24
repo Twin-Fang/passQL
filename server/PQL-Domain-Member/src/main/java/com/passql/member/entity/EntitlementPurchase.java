@@ -71,6 +71,13 @@ public class EntitlementPurchase extends BaseEntity {
     // 이 구매로 더한 이용 일수 (PassProduct 일수, #576 회차 패스 옛 행은 null)
     private Integer grantedDays;
 
+    // 결제 금액 (통화 단위 x 1,000,000, 스토어가 알려 준 값만 저장, 모르면 null)
+    private Long priceAmountMicros;
+
+    // 결제 통화 (ISO 4217 예: KRW, 모르면 null)
+    @Column(length = 3)
+    private String currencyCode;
+
     // 스토어 소모(consume) 완료 여부: 검증만 되고 소모 전이면 false (소모 재시도 대상)
     @Column(nullable = false)
     private Boolean isConsumed = false;

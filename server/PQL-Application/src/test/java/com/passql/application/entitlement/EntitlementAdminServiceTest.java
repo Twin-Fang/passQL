@@ -62,7 +62,7 @@ class EntitlementAdminServiceTest {
         when(memberRepository.existsByMemberUuidAndIsDeletedFalse(memberUuid)).thenReturn(true);
         when(entitlementRepository.findForUpdateByMemberUuid(memberUuid)).thenReturn(Optional.empty());
 
-        service.grantPro(memberUuid, LocalDate.of(2026, 12, 31));
+        service.grantPro(memberUuid, LocalDate.of(2026, 12, 31), "테스트 사유");
 
         ArgumentCaptor<MemberEntitlement> saved = ArgumentCaptor.forClass(MemberEntitlement.class);
         verify(entitlementRepository).save(saved.capture());
@@ -78,7 +78,7 @@ class EntitlementAdminServiceTest {
         when(memberRepository.existsByMemberUuidAndIsDeletedFalse(memberUuid)).thenReturn(true);
         when(entitlementRepository.findForUpdateByMemberUuid(memberUuid)).thenReturn(Optional.of(existing));
 
-        service.grantPro(memberUuid, LocalDate.of(2026, 12, 31));
+        service.grantPro(memberUuid, LocalDate.of(2026, 12, 31), "테스트 사유");
 
         assertThat(existing.getExpiresAt()).isEqualTo(LocalDateTime.of(2026, 12, 31, 23, 59, 59));
         assertThat(existing.getSource()).isEqualTo(EntitlementSource.ADMIN_GRANT);
@@ -92,7 +92,7 @@ class EntitlementAdminServiceTest {
         when(memberRepository.existsByMemberUuidAndIsDeletedFalse(memberUuid)).thenReturn(true);
         when(entitlementRepository.findForUpdateByMemberUuid(memberUuid)).thenReturn(Optional.of(existing));
 
-        service.grantPro(memberUuid, LocalDate.of(2026, 10, 25));
+        service.grantPro(memberUuid, LocalDate.of(2026, 10, 25), "테스트 사유");
 
         assertThat(existing.getExpiresAt()).isEqualTo(LocalDateTime.of(2026, 10, 25, 23, 59, 59));
         assertThat(existing.getSource()).isEqualTo(EntitlementSource.ADMIN_GRANT);
@@ -111,7 +111,7 @@ class EntitlementAdminServiceTest {
         when(purchaseRepository.findByMemberUuidAndStatus(memberUuid, PurchaseStatus.VERIFIED))
             .thenReturn(List.of(remainingPurchase));
 
-        service.revokePurchase(memberUuid, PURCHASE_UUID);
+        service.revokePurchase(memberUuid, PURCHASE_UUID, "테스트 사유");
 
         assertThat(latestPurchase.getStatus()).isEqualTo(PurchaseStatus.REVOKED);
         assertThat(entitlement.getExpiresAt()).isEqualTo(LocalDateTime.of(2026, 11, 10, 23, 59, 59));
@@ -125,7 +125,7 @@ class EntitlementAdminServiceTest {
             purchase(UUID.randomUUID(), "GPA.0003", LocalDateTime.of(2026, 11, 30, 23, 59, 59));
         when(purchaseRepository.findById(PURCHASE_UUID)).thenReturn(Optional.of(otherMemberPurchase));
 
-        assertThatThrownBy(() -> service.revokePurchase(memberUuid, PURCHASE_UUID))
+        assertThatThrownBy(() -> service.revokePurchase(memberUuid, PURCHASE_UUID, "테스트 사유"))
             .isInstanceOfSatisfying(CustomException.class,
                 exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ACCESS_DENIED));
         assertThat(otherMemberPurchase.getStatus()).isEqualTo(PurchaseStatus.VERIFIED);
@@ -144,7 +144,7 @@ class EntitlementAdminServiceTest {
         MemberEntitlement entitlement = playEntitlement(lastPass.getGrantedExpiresAt());
         givenPurchases(middlePass, entitlement, firstPass, middlePass, lastPass);
 
-        service.revokePurchase(memberUuid, PURCHASE_UUID);
+        service.revokePurchase(memberUuid, PURCHASE_UUID, "테스트 사유");
 
         assertThat(lastPass.getGrantedExpiresAt()).isEqualTo(NOW.plusDays(140));
         assertThat(entitlement.getExpiresAt()).isEqualTo(NOW.plusDays(110));
@@ -159,7 +159,7 @@ class EntitlementAdminServiceTest {
         MemberEntitlement entitlement = playEntitlement(activePass.getGrantedExpiresAt());
         givenPurchases(expiredPass, entitlement, expiredPass, activePass);
 
-        service.revokePurchase(memberUuid, PURCHASE_UUID);
+        service.revokePurchase(memberUuid, PURCHASE_UUID, "테스트 사유");
 
         assertThat(expiredPass.getStatus()).isEqualTo(PurchaseStatus.REVOKED);
         assertThat(entitlement.getExpiresAt()).isEqualTo(NOW.plusDays(80));
@@ -171,7 +171,7 @@ class EntitlementAdminServiceTest {
         MemberEntitlement entitlement = playEntitlement(onlyPass.getGrantedExpiresAt());
         givenPurchases(onlyPass, entitlement, onlyPass);
 
-        service.revokePurchase(memberUuid, PURCHASE_UUID);
+        service.revokePurchase(memberUuid, PURCHASE_UUID, "테스트 사유");
 
         assertThat(entitlement.getPlan()).isEqualTo(MemberPlan.FREE);
         assertThat(entitlement.getExpiresAt()).isNull();
@@ -185,7 +185,7 @@ class EntitlementAdminServiceTest {
             EntitlementSource.ADMIN_GRANT);
         givenPurchases(onlyPass, entitlement, onlyPass);
 
-        RevocationResult result = service.revokePurchase(memberUuid, PURCHASE_UUID);
+        RevocationResult result = service.revokePurchase(memberUuid, PURCHASE_UUID, "테스트 사유");
 
         assertThat(result.kind()).isEqualTo(EntitlementPurchaseRevoker.RecalculationKind.ADMIN_GRANT_KEPT);
         assertThat(onlyPass.getStatus()).isEqualTo(PurchaseStatus.REVOKED);
@@ -241,7 +241,7 @@ class EntitlementAdminServiceTest {
     void grantPro_rejectsPastDate() {
         when(memberRepository.existsByMemberUuidAndIsDeletedFalse(memberUuid)).thenReturn(true);
 
-        assertThatThrownBy(() -> service.grantPro(memberUuid, LocalDate.of(2026, 10, 21)))
+        assertThatThrownBy(() -> service.grantPro(memberUuid, LocalDate.of(2026, 10, 21), "테스트 사유"))
             .isInstanceOfSatisfying(CustomException.class,
                 exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_INPUT_VALUE));
         verify(entitlementRepository, never()).save(any());
@@ -253,9 +253,56 @@ class EntitlementAdminServiceTest {
             LocalDateTime.of(2026, 12, 31, 23, 59, 59), EntitlementSource.ADMIN_GRANT);
         when(entitlementRepository.findForUpdateByMemberUuid(memberUuid)).thenReturn(Optional.of(existing));
 
-        service.revokePro(memberUuid);
+        service.revokePro(memberUuid, "테스트 사유");
 
         assertThat(existing.getPlan()).isEqualTo(MemberPlan.FREE);
         assertThat(existing.getExpiresAt()).isNull();
+    }
+
+    @Test
+    void grantPro_recordsReasonInAuditEvent() {
+        when(memberRepository.existsByMemberUuidAndIsDeletedFalse(memberUuid)).thenReturn(true);
+        when(entitlementRepository.findForUpdateByMemberUuid(memberUuid)).thenReturn(Optional.empty());
+
+        service.grantPro(memberUuid, LocalDate.of(2026, 12, 31), "  결제 오류 보상  ");
+
+        ArgumentCaptor<AdminAuditEvent> event = ArgumentCaptor.forClass(AdminAuditEvent.class);
+        verify(eventPublisher).publishEvent(event.capture());
+        assertThat(event.getValue().after()).containsEntry("reason", "결제 오류 보상");
+    }
+
+    @Test
+    void revokePro_recordsReasonInAuditEvent() {
+        MemberEntitlement existing = MemberEntitlement.of(memberUuid, MemberPlan.PRO,
+            LocalDateTime.of(2026, 12, 31, 23, 59, 59), EntitlementSource.ADMIN_GRANT);
+        when(entitlementRepository.findForUpdateByMemberUuid(memberUuid)).thenReturn(Optional.of(existing));
+
+        service.revokePro(memberUuid, "환불 확인");
+
+        ArgumentCaptor<AdminAuditEvent> event = ArgumentCaptor.forClass(AdminAuditEvent.class);
+        verify(eventPublisher).publishEvent(event.capture());
+        assertThat(event.getValue().after()).containsEntry("reason", "환불 확인");
+    }
+
+    @Test
+    void 사유가_비었거나_너무_길면_부여와_회수를_거절한다() {
+        assertThatThrownBy(() -> service.grantPro(memberUuid, LocalDate.of(2026, 12, 31), "  "))
+            .isInstanceOfSatisfying(CustomException.class,
+                exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_INPUT_VALUE));
+        assertThatThrownBy(() -> service.revokePro(memberUuid, null))
+            .isInstanceOf(CustomException.class);
+        assertThatThrownBy(() -> service.revokePurchase(memberUuid, PURCHASE_UUID,
+            "가".repeat(EntitlementAdminService.MAX_REASON_LENGTH + 1)))
+            .isInstanceOf(CustomException.class);
+        verify(entitlementRepository, never()).save(any());
+        assertThat(EntitlementAdminService.isValidReason("가".repeat(EntitlementAdminService.MAX_REASON_LENGTH))).isTrue();
+    }
+
+    @Test
+    void 결제_금액은_통화와_함께_표시하고_미기록이면_null이다() {
+        assertThat(EntitlementAdminService.toPriceText(4_400_000_000L, "KRW")).isEqualTo("4,400 KRW");
+        assertThat(EntitlementAdminService.toPriceText(9_990_000L, "USD")).isEqualTo("9.99 USD");
+        assertThat(EntitlementAdminService.toPriceText(null, "KRW")).isNull();
+        assertThat(EntitlementAdminService.toPriceText(1_000_000L, null)).isNull();
     }
 }

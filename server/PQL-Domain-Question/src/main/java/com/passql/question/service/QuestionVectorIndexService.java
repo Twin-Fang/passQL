@@ -7,6 +7,8 @@ import com.passql.ai.dto.IndexQuestionsBulkResult;
 import com.passql.ai.dto.IndexStatusRequest;
 import com.passql.ai.dto.IndexStatusResult;
 import com.passql.ai.dto.PruneIndexResult;
+import com.passql.common.util.TextPreview;
+import com.passql.question.dto.IndexQuestionPreview;
 import com.passql.meta.entity.Subtopic;
 import com.passql.meta.entity.Topic;
 import com.passql.meta.repository.SubtopicRepository;
@@ -23,7 +25,10 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * 문제 벡터 색인(Qdrant): 등록 직후 비동기 적재, 전체·선택 재색인, 삭제·비활성 문제 벡터 정리
@@ -33,6 +38,9 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class QuestionVectorIndexService {
+
+    // 지문을 찾을 수 없는 문제의 미리보기 문구
+    private static final String DELETED_QUESTION_PREVIEW = "(삭제된 문제)";
 
     private final AiGatewayClient aiGatewayClient;
     private final QuestionRepository questionRepository;
@@ -46,6 +54,12 @@ public class QuestionVectorIndexService {
      */
     @Transactional(readOnly = true)
     public IndexQuestionsBulkResult reindexAll() {
+        return reindexAll(IndexProgressListener.NONE);
+    }
+
+    /** 활성 문제 전체 재색인 + 문제 1건마다 진행률 통지 (비동기 실행 이력용) */
+    @Transactional(readOnly = true)
+    public IndexQuestionsBulkResult reindexAll(IndexProgressListener progressListener) {
         List<Question> questions = questionRepository.findByIsActiveTrue();
         log.info("[reindex-all] 전체 재색인 시작: 활성 문제 수={}", questions.size());
 
@@ -53,7 +67,40 @@ public class QuestionVectorIndexService {
                 .map(q -> buildIndexRequest(q))
                 .toList();
 
-        return indexOneByOne(requests, "reindex-all");
+        return indexOneByOne(requests, "reindex-all", progressListener);
+    }
+
+    /** 색인 진행률 통지: 처리한 건수 / 전체 건수 / 성공 / 실패 (문제 1건 처리할 때마다) */
+    @FunctionalInterface
+    public interface IndexProgressListener {
+        IndexProgressListener NONE = (processedCount, totalCount, succeededCount, failedCount) -> { };
+
+        void onProgress(int processedCount, int totalCount, int succeededCount, int failedCount);
+    }
+
+    /**
+     * 문제 UUID 목록 > 화면용 한 줄 요약 (지문 미리보기, 토픽 이름, 난이도)
+     * 문제·토픽은 일괄 조회 (N+1 방지), 삭제된 문제는 "(삭제된 문제)"
+     */
+    @Transactional(readOnly = true)
+    public List<IndexQuestionPreview> describeQuestions(List<String> questionUuids) {
+        List<UUID> questionUuidList = questionUuids.stream().map(UUID::fromString).toList();
+        Map<UUID, Question> questionByUuid = questionRepository.findAllById(questionUuidList).stream()
+                .collect(Collectors.toMap(Question::getQuestionUuid, question -> question));
+        List<UUID> topicUuids = questionByUuid.values().stream()
+                .map(Question::getTopicUuid).filter(Objects::nonNull).distinct().toList();
+        Map<UUID, String> topicNameByUuid = topicRepository.findAllById(topicUuids).stream()
+                .collect(Collectors.toMap(Topic::getTopicUuid, Topic::getDisplayName));
+
+        return questionUuidList.stream().map(questionUuid -> {
+            Question question = questionByUuid.get(questionUuid);
+            if (question == null) {
+                return new IndexQuestionPreview(questionUuid.toString(), DELETED_QUESTION_PREVIEW, "", null);
+            }
+            return new IndexQuestionPreview(questionUuid.toString(),
+                    TextPreview.truncateWithEllipsis(question.getStem(), TextPreview.QUESTION_SUMMARY_STEM_LENGTH),
+                    topicNameByUuid.getOrDefault(question.getTopicUuid(), ""), question.getDifficulty());
+        }).toList();
     }
 
     /** 활성 문제 전체 색인 상태 조회 (AI 서버 장애 > null, 화면은 오류 배너) */
@@ -92,6 +139,12 @@ public class QuestionVectorIndexService {
      */
     @Transactional(readOnly = true)
     public IndexQuestionsBulkResult reindexSelected(List<String> questionUuids) {
+        return reindexSelected(questionUuids, IndexProgressListener.NONE);
+    }
+
+    /** 선택 문제 재색인 + 문제 1건마다 진행률 통지 (선택·실패 재시도 공통) */
+    @Transactional(readOnly = true)
+    public IndexQuestionsBulkResult reindexSelected(List<String> questionUuids, IndexProgressListener progressListener) {
         log.info("[reindex-selected] 선택 재색인 시작: 요청 수={}", questionUuids.size());
 
         List<IndexQuestionRequest> requests = questionUuids.stream()
@@ -101,14 +154,15 @@ public class QuestionVectorIndexService {
                 .toList();
 
         log.info("[reindex-selected] 실제 처리할 문제 수={}", requests.size());
-        return indexOneByOne(requests, "reindex-selected");
+        return indexOneByOne(requests, "reindex-selected", progressListener);
     }
 
     /**
      * IndexQuestionRequest 목록을 1개씩 순차 전송하여 결과를 집계한다.
      * bulk 전송 시 타임아웃이 발생하는 경우를 방지한다.
      */
-    private IndexQuestionsBulkResult indexOneByOne(List<IndexQuestionRequest> requests, String logPrefix) {
+    private IndexQuestionsBulkResult indexOneByOne(List<IndexQuestionRequest> requests, String logPrefix,
+                                                   IndexProgressListener progressListener) {
         int succeeded = 0;
         int failed = 0;
         List<String> failedUuids = new java.util.ArrayList<>();
@@ -132,6 +186,7 @@ public class QuestionVectorIndexService {
             }
             // 매 문제마다 진행 상황 로그
             log.info("[{}] 진행: {}/{} (성공={}, 실패={})", logPrefix, i + 1, total, succeeded, failed);
+            progressListener.onProgress(i + 1, total, succeeded, failed);
         }
 
         log.info("[{}] 완료: total={}, succeeded={}, failed={}", logPrefix, requests.size(), succeeded, failed);

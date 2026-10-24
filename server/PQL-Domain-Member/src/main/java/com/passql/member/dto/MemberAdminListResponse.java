@@ -16,9 +16,11 @@ public record MemberAdminListResponse(
     AuthProvider authProvider,
     Boolean isTestAccount,
     LocalDateTime createdAt,
-    LocalDateTime lastSeenAt
+    LocalDateTime lastSeenAt,
+    // 프로 이용 중 여부 (만료 전 PRO 등급)
+    boolean isProActive
 ) {
-    public static MemberAdminListResponse from(Member m) {
+    public static MemberAdminListResponse from(Member m, boolean isProActive) {
         return new MemberAdminListResponse(
             m.getMemberUuid(),
             m.getNickname(),
@@ -27,7 +29,8 @@ public record MemberAdminListResponse(
             m.getAuthProvider(),
             m.getIsTestAccount(),
             m.getCreatedAt(),
-            m.getLastSeenAt()
+            m.getLastSeenAt(),
+            isProActive
         );
     }
 }

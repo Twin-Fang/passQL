@@ -4,6 +4,24 @@
 
 <th:block layout:fragment="title">약관 관리</th:block>
 
+<th:block layout:fragment="css">
+    <style>
+        /* 마크다운 미리보기 (Tailwind typography 미사용이라 최소 스타일) */
+        .legal-markdown-preview h1 { font-size: 1.4rem; font-weight: 700; margin: 1rem 0 .5rem; }
+        .legal-markdown-preview h2 { font-size: 1.2rem; font-weight: 700; margin: 1rem 0 .5rem; }
+        .legal-markdown-preview h3 { font-size: 1.05rem; font-weight: 600; margin: .8rem 0 .4rem; }
+        .legal-markdown-preview p { margin: .5rem 0; }
+        .legal-markdown-preview ul { list-style: disc; padding-left: 1.4rem; margin: .5rem 0; }
+        .legal-markdown-preview ol { list-style: decimal; padding-left: 1.4rem; margin: .5rem 0; }
+        .legal-markdown-preview a { color: var(--color-primary); text-decoration: underline; }
+        .legal-markdown-preview table { border-collapse: collapse; margin: .5rem 0; }
+        .legal-markdown-preview th, .legal-markdown-preview td { border: 1px solid var(--color-base-300); padding: .25rem .5rem; }
+        .legal-markdown-preview blockquote { border-left: 3px solid var(--color-base-300); padding-left: .75rem; opacity: .8; }
+        .legal-diff-added { background: color-mix(in oklab, var(--color-success) 20%, transparent); }
+        .legal-diff-removed { background: color-mix(in oklab, var(--color-error) 20%, transparent); }
+    </style>
+</th:block>
+
 <th:block layout:fragment="content">
 
     <div class="space-y-4">
@@ -73,7 +91,25 @@
                                 <span class="badge badge-ghost badge-xs" th:text="${h.status.name()}">PUBLISHED</span>
                                 <span class="font-medium" th:text="${h.title}">제목</span>
                             </summary>
-                            <pre class="bg-base-200 p-3 text-xs whitespace-pre-wrap max-h-64 overflow-y-auto font-mono" th:text="${h.content}"></pre>
+                            <div class="flex gap-2 px-3 pb-2" th:if="${canWriteAdmin}">
+                                <button class="btn btn-xs btn-outline"
+                                        th:data-type="${legal.type}" th:data-history-uuid="${h.legalHistoryUuid}"
+                                        onclick="showDiff(this.dataset.type, this.dataset.historyUuid)">현재 본문과 비교</button>
+                                <button class="btn btn-xs btn-outline btn-warning"
+                                        th:data-type="${legal.type}" th:data-history-uuid="${h.legalHistoryUuid}"
+                                        onclick="restoreHistory(this.dataset.type, this.dataset.historyUuid)">이 버전으로 복원</button>
+                            </div>
+                            <div class="px-3 pb-2" th:if="${!canWriteAdmin}">
+                                <button class="btn btn-xs btn-outline"
+                                        th:data-type="${legal.type}" th:data-history-uuid="${h.legalHistoryUuid}"
+                                        onclick="showDiff(this.dataset.type, this.dataset.historyUuid)">현재 본문과 비교</button>
+                            </div>
+                            <!-- 이전 본문 (비교 기준) -->
+                            <pre class="bg-base-200 p-3 text-xs whitespace-pre-wrap max-h-64 overflow-y-auto font-mono"
+                                 th:id="'history_content_' + ${h.legalHistoryUuid}" th:text="${h.content}"></pre>
+                            <!-- 현재 본문과의 줄 단위 비교 결과 -->
+                            <div th:id="'history_diff_' + ${h.legalHistoryUuid}"
+                                 class="hidden p-3 text-xs font-mono whitespace-pre-wrap max-h-80 overflow-y-auto border-t border-base-300"></div>
                         </details>
                     </div>
                 </details>
@@ -85,7 +121,13 @@
                               class="textarea textarea-bordered w-full font-mono text-xs"
                               rows="16"
                               th:text="${legal.content}"></textarea>
+                    <!-- 마크다운 미리보기 (저장 전 확인) -->
+                    <div th:id="'preview_' + ${legal.type}"
+                         class="legal-markdown-preview hidden border border-base-300 rounded p-3 mt-2 text-sm max-h-96 overflow-y-auto"></div>
                     <div class="flex justify-end gap-2 mt-2">
+                        <button class="btn btn-sm btn-outline"
+                                th:data-type="${legal.type}"
+                                onclick="togglePreview(this.dataset.type)">미리보기</button>
                         <button class="btn btn-sm btn-ghost"
                                 th:data-type="${legal.type}"
                                 onclick="cancelEdit(this.dataset.type)">취소</button>
@@ -102,8 +144,70 @@
 </th:block>
 
 <th:block layout:fragment="js">
+    <!-- 마크다운 렌더(marked) + 정화(DOMPurify): 로컬 번들 -->
+    <script th:src="@{/vendor/admin/marked-12.0.2.min.js}"></script>
+    <script th:src="@{/vendor/admin/purify-3.1.6.min.js}"></script>
     <script>
         lucide.createIcons();
+
+        // 본문 Markdown > 정화한 HTML (미리보기 영역에 표시)
+        function togglePreview(type) {
+            const preview = document.getElementById('preview_' + type);
+            if (!preview.classList.contains('hidden')) {
+                preview.classList.add('hidden');
+                return;
+            }
+            const markdown = document.getElementById('content_' + type).value;
+            preview.innerHTML = DOMPurify.sanitize(marked.parse(markdown));
+            preview.classList.remove('hidden');
+        }
+
+        // 줄 단위 LCS 비교: 이전 본문(history) > 현재 본문 (삭제 빨강, 추가 초록)
+        function buildLineDiff(previousText, currentText) {
+            const previousLines = previousText.split('\n');
+            const currentLines = currentText.split('\n');
+            const lcsLength = Array.from({length: previousLines.length + 1}, () => new Array(currentLines.length + 1).fill(0));
+            for (let i = previousLines.length - 1; i >= 0; i--) {
+                for (let j = currentLines.length - 1; j >= 0; j--) {
+                    lcsLength[i][j] = previousLines[i] === currentLines[j]
+                        ? lcsLength[i + 1][j + 1] + 1
+                        : Math.max(lcsLength[i + 1][j], lcsLength[i][j + 1]);
+                }
+            }
+            const diffLines = [];
+            let i = 0, j = 0;
+            while (i < previousLines.length && j < currentLines.length) {
+                if (previousLines[i] === currentLines[j]) { diffLines.push({kind: 'same', text: previousLines[i]}); i++; j++; }
+                else if (lcsLength[i + 1][j] >= lcsLength[i][j + 1]) { diffLines.push({kind: 'removed', text: previousLines[i]}); i++; }
+                else { diffLines.push({kind: 'added', text: currentLines[j]}); j++; }
+            }
+            while (i < previousLines.length) diffLines.push({kind: 'removed', text: previousLines[i++]});
+            while (j < currentLines.length) diffLines.push({kind: 'added', text: currentLines[j++]});
+            return diffLines;
+        }
+
+        function showDiff(type, historyUuid) {
+            const previousText = document.getElementById('history_content_' + historyUuid).textContent;
+            const currentText = document.getElementById('view_' + type).querySelector('pre').textContent;
+            const diffContainer = document.getElementById('history_diff_' + historyUuid);
+            const diffLines = buildLineDiff(previousText, currentText);
+            const hasChange = diffLines.some(line => line.kind !== 'same');
+            const prefixByKind = {same: '  ', removed: '- ', added: '+ '};
+            const classByKind = {same: '', removed: 'legal-diff-removed', added: 'legal-diff-added'};
+            diffContainer.innerHTML = '<p class="mb-2 text-base-content/60">- 이 이전 버전에만 있는 줄 / + 현재 본문에만 있는 줄</p>'
+                + (hasChange ? diffLines.map(line =>
+                    `<div class="${classByKind[line.kind]}">${prefixByKind[line.kind]}${AdminUi.escapeHtml(line.text)}</div>`).join('')
+                    : '<p>현재 본문과 같습니다.</p>');
+            diffContainer.classList.remove('hidden');
+        }
+
+        // 이전 버전 복원 (현재 본문은 새 이력으로 보관됨)
+        async function restoreHistory(type, historyUuid) {
+            if (!await AdminUi.confirmDanger('현재 본문을 이 이전 버전으로 교체합니다. 현재 본문은 이력에 보관되어 다시 되돌릴 수 있습니다.', {confirmLabel: '복원'})) return;
+            AdminApi.post('/admin/legal/' + encodeURIComponent(type) + '/restore/' + encodeURIComponent(historyUuid))
+                .then(() => AdminUi.reloadWithToast('이전 버전으로 복원했습니다.'))
+                .catch(error => AdminUi.showError(error));
+        }
 
         function startEdit(type) {
             document.getElementById('view_' + type).classList.add('hidden');

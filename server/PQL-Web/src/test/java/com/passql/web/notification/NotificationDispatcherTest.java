@@ -9,6 +9,7 @@ import com.passql.member.constant.PushLinkTarget;
 import com.passql.member.dto.PushDevice;
 import com.passql.member.dto.PushSendResult;
 import com.passql.member.push.PushMessage;
+import com.passql.member.service.PushAudienceResolver;
 import com.passql.member.service.PushNotificationService;
 import org.junit.jupiter.api.Test;
 
@@ -31,8 +32,9 @@ class NotificationDispatcherTest {
     private final MemberNotificationService memberNotificationService = mock(MemberNotificationService.class);
     private final MemberNotificationQueryService queryService = mock(MemberNotificationQueryService.class);
     private final PushNotificationService pushNotificationService = mock(PushNotificationService.class);
+    private final PushAudienceResolver pushAudienceResolver = mock(PushAudienceResolver.class);
     private final NotificationDispatcher dispatcher =
-            new NotificationDispatcher(memberNotificationService, queryService, pushNotificationService);
+            new NotificationDispatcher(memberNotificationService, queryService, pushNotificationService, pushAudienceResolver);
 
     private final UUID historyUuid = UUID.randomUUID();
     private final PushMessage pushMessage = new PushMessage("제목", "본문", Map.of());
@@ -50,14 +52,14 @@ class NotificationDispatcherTest {
         when(pushNotificationService.findDevices(null)).thenReturn(devices);
         when(queryService.countBadgeByMember(null)).thenReturn(Map.of(memberUuid, 4));
         when(pushNotificationService.toPushMessage("제목", "본문", PushLinkTarget.HOME, null)).thenReturn(pushMessage);
-        when(pushNotificationService.deliver(pushMessage, devices, Map.of(memberUuid, 4))).thenReturn(result);
+        when(pushNotificationService.deliver(pushMessage, devices, Map.of(memberUuid, 4), historyUuid)).thenReturn(result);
         NotificationDispatchEvent event = event(null, true, true);
 
         dispatcher.dispatch(event);
 
         var order = inOrder(memberNotificationService, pushNotificationService);
         order.verify(memberNotificationService).fanOutToAllMembers(event);
-        order.verify(pushNotificationService).deliver(pushMessage, devices, Map.of(memberUuid, 4));
+        order.verify(pushNotificationService).deliver(pushMessage, devices, Map.of(memberUuid, 4), historyUuid);
         order.verify(pushNotificationService).recordDeliveryResult(historyUuid, result);
     }
 
@@ -74,7 +76,7 @@ class NotificationDispatcherTest {
         UUID memberUuid = UUID.randomUUID();
         List<PushDevice> devices = List.of(new PushDevice(memberUuid, "token-a"));
         when(pushNotificationService.findDevices(memberUuid)).thenReturn(devices);
-        when(pushNotificationService.deliver(any(), eq(devices), any())).thenReturn(new PushSendResult(1, 1, 0, 0));
+        when(pushNotificationService.deliver(any(), eq(devices), any(), eq(historyUuid))).thenReturn(new PushSendResult(1, 1, 0, 0));
 
         dispatcher.dispatch(event(memberUuid, false, true));
 

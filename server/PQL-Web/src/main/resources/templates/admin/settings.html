@@ -18,8 +18,11 @@
                         앱 설정 목록
                     </h3>
                     <div class="flex gap-2">
+                        <!-- 키·설명 검색 -->
+                        <input type="search" id="settingKeyword" class="input input-sm input-bordered w-56"
+                               placeholder="키·설명 검색" oninput="applySettingFilters()"/>
                         <!-- 카테고리 필터 -->
-                        <select class="select select-sm select-bordered" id="categoryFilter" onchange="filterByCategory(this.value)">
+                        <select class="select select-sm select-bordered" id="categoryFilter" onchange="applySettingFilters()">
                             <option value="">전체 카테고리</option>
                             <option value="SANDBOX">SANDBOX</option>
                             <option value="AI">AI</option>
@@ -47,6 +50,7 @@
                         <tbody>
                         <tr th:each="setting : ${settings}"
                             th:data-category="${setting.category}"
+                            th:data-search-text="${#strings.toLowerCase(setting.settingKey + ' ' + (setting.description ?: ''))}"
                             class="setting-row">
                             <td class="font-mono text-xs font-semibold">
                                 <span th:text="${setting.settingKey}">sql.max_length</span>
@@ -64,7 +68,27 @@
                             </td>
                             <td>
                                 <div class="flex items-center gap-2">
-                                    <input type="text"
+                                    <!-- 값 유형별 입력: BOOLEAN 토글, INT·FLOAT 숫자, 그 외 텍스트 (서버가 형식을 다시 검사) -->
+                                    <input th:if="${!setting.sensitive and setting.valueType == 'BOOLEAN'}"
+                                           type="checkbox" class="toggle toggle-sm toggle-success"
+                                           th:id="'val_' + ${setting.settingKey}"
+                                           th:checked="${#strings.equalsIgnoreCase(setting.valueText, 'true')}"
+                                           disabled/>
+                                    <!-- INT: 정수 범위(int32)만 허용 -->
+                                    <input th:if="${!setting.sensitive and setting.valueType == 'INT'}"
+                                           type="number" step="1" min="-2147483648" max="2147483647"
+                                           class="input input-bordered input-xs w-40 font-mono"
+                                           th:id="'val_' + ${setting.settingKey}"
+                                           th:value="${setting.valueText}"
+                                           readonly/>
+                                    <input th:if="${!setting.sensitive and setting.valueType == 'FLOAT'}"
+                                           type="number" step="any"
+                                           class="input input-bordered input-xs w-40 font-mono"
+                                           th:id="'val_' + ${setting.settingKey}"
+                                           th:value="${setting.valueText}"
+                                           readonly/>
+                                    <input th:if="${setting.sensitive or (setting.valueType != 'BOOLEAN' and setting.valueType != 'INT' and setting.valueType != 'FLOAT')}"
+                                           type="text"
                                            th:id="'val_' + ${setting.settingKey}"
                                            th:value="${setting.valueText}"
                                            th:class="${setting.sensitive}
@@ -107,12 +131,18 @@
                                 <p class="text-xs text-error mt-1 hidden" th:id="'err_' + ${setting.settingKey}"></p>
                             </td>
                             <td class="text-xs text-base-content/60" th:text="${setting.description}">SQL 최대 길이 제한</td>
-                            <td>
+                            <td class="whitespace-nowrap">
                                 <button th:if="${!setting.sensitive}"
                                         class="btn btn-xs btn-ghost"
                                         th:data-key="${setting.settingKey}"
                                         onclick="startEdit(this.dataset.key)">
                                     <i data-lucide="pencil" class="size-3"></i>
+                                </button>
+                                <!-- 변경 이력·롤백 -->
+                                <button class="btn btn-xs btn-ghost"
+                                        th:data-key="${setting.settingKey}"
+                                        onclick="openHistory(this.dataset.key)" title="변경 이력">
+                                    <i data-lucide="history" class="size-3"></i>
                                 </button>
                                 <button th:if="${setting.sensitive and setting.valueType == 'SECRET'}"
                                         class="btn btn-xs btn-ghost"
@@ -195,17 +225,41 @@
         </div>
     </div>
 
+    <!-- 설정 변경 이력 (감사 로그 기반, 이전 값 롤백) -->
+    <dialog id="settingHistoryDialog" class="modal">
+        <div class="modal-box max-w-3xl">
+            <h3 class="font-bold text-lg mb-1">변경 이력 <span id="settingHistoryKey" class="font-mono text-sm text-base-content/60"></span></h3>
+            <p class="text-xs text-base-content/50 mb-3">최근 20건. 민감 값은 마스킹되어 롤백할 수 없습니다.</p>
+            <div class="overflow-x-auto">
+                <table class="table table-xs">
+                    <thead><tr><th>시각</th><th>관리자</th><th>이전 값</th><th>변경 값</th><th></th></tr></thead>
+                    <tbody id="settingHistoryBody"></tbody>
+                </table>
+            </div>
+            <div class="modal-action">
+                <form method="dialog"><button class="btn btn-sm">닫기</button></form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
 </th:block>
 
 <th:block layout:fragment="js">
     <script>
         lucide.createIcons();
 
+        // 입력 컨트롤 값: 토글은 true/false, 그 외는 입력 문자열
+        function readSettingValue(input) {
+            return input.type === 'checkbox' ? String(input.checked) : input.value;
+        }
+
         function startEdit(key) {
             const input = document.getElementById('val_' + key);
             input.removeAttribute('readonly');
+            input.removeAttribute('disabled');
             input.focus();
-            input.select();
+            if (input.type !== 'checkbox') input.select();
 
             // save/cancel 버튼 표시
             const saveBtn = document.getElementById('btn_save_' + key);
@@ -221,7 +275,7 @@
             const input = document.getElementById('val_' + key);
             const errorText = document.getElementById('err_' + key);
             try {
-                await AdminApi.put('/admin/settings/' + encodeURIComponent(key), {value: input.value});
+                await AdminApi.put('/admin/settings/' + encodeURIComponent(key), {value: readSettingValue(input)});
             } catch (error) {
                 errorText.textContent = error.message;
                 errorText.classList.remove('hidden');
@@ -229,7 +283,7 @@
                 return;
             }
             errorText?.classList.add('hidden');
-            input.setAttribute('readonly', true);
+            lockSettingInput(input);
             document.getElementById('btn_save_' + key)?.classList.add('hidden');
             document.getElementById('btn_cancel_' + key)?.classList.add('hidden');
             AdminUi.toast(isRestartRequired ? '저장했습니다. 이 설정은 서버 재시작 후 반영됩니다.' : '저장했습니다.',
@@ -286,23 +340,81 @@
             endSecretEdit(key);
         }
 
+        // 편집 종료 상태로 되돌림 (토글은 disabled, 그 외 readonly)
+        function lockSettingInput(input) {
+            input.setAttribute(input.type === 'checkbox' ? 'disabled' : 'readonly', true);
+        }
+
         function cancelEdit(key, originalValue) {
             const input = document.getElementById('val_' + key);
-            input.value = originalValue;
+            if (input.type === 'checkbox') input.checked = originalValue.toLowerCase() === 'true';
+            else input.value = originalValue;
             document.getElementById('err_' + key)?.classList.add('hidden');
-            input.setAttribute('readonly', true);
+            lockSettingInput(input);
             document.getElementById('btn_save_' + key)?.classList.add('hidden');
             document.getElementById('btn_cancel_' + key)?.classList.add('hidden');
         }
 
-        function filterByCategory(category) {
+        // 카테고리 + 키·설명 검색 동시 적용
+        function applySettingFilters() {
+            const category = document.getElementById('categoryFilter').value;
+            const keyword = document.getElementById('settingKeyword').value.trim().toLowerCase();
             document.querySelectorAll('.setting-row').forEach(row => {
-                if (!category || row.dataset.category === category) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+                const isCategoryMatched = !category || row.dataset.category === category;
+                const isKeywordMatched = !keyword || (row.dataset.searchText ?? row.textContent.toLowerCase()).includes(keyword);
+                row.style.display = isCategoryMatched && isKeywordMatched ? '' : 'none';
             });
+        }
+
+        // 감사 로그 대상 링크(?keyword=키)로 들어오면 검색어 미리 채움
+        const initialKeyword = new URLSearchParams(location.search).get('keyword');
+        if (initialKeyword) {
+            document.getElementById('settingKeyword').value = initialKeyword;
+            applySettingFilters();
+        }
+
+        // 변경 이력 열기 (행마다 이전 값 롤백 버튼)
+        async function openHistory(key) {
+            document.getElementById('settingHistoryKey').textContent = key;
+            const body = document.getElementById('settingHistoryBody');
+            body.innerHTML = '<tr><td colspan="5" class="text-center text-base-content/50">불러오는 중...</td></tr>';
+            document.getElementById('settingHistoryDialog').showModal();
+            try {
+                const histories = await AdminApi.get('/admin/settings/' + encodeURIComponent(key) + '/history');
+                renderHistory(key, histories);
+            } catch (error) {
+                AdminUi.showError(error);
+            }
+        }
+
+        function renderHistory(key, histories) {
+            const body = document.getElementById('settingHistoryBody');
+            if (!histories.length) {
+                body.innerHTML = '<tr><td colspan="5" class="text-center text-base-content/50">기록된 변경 이력이 없습니다.</td></tr>';
+                return;
+            }
+            const escapeHtml = AdminUi.escapeHtml;
+            body.innerHTML = histories.map(history => `
+                <tr>
+                    <td class="whitespace-nowrap">${escapeHtml(String(history.occurredAt).replace('T', ' ').slice(0, 19))}</td>
+                    <td>${escapeHtml(history.adminUsername)}</td>
+                    <td class="font-mono break-all">${escapeHtml(history.beforeValue ?? '-')}</td>
+                    <td class="font-mono break-all">${escapeHtml(history.afterValue ?? '-')}</td>
+                    <td>${history.canRollback
+                        ? `<button class="btn btn-xs btn-outline" data-key="${escapeHtml(key)}" data-audit-log-uuid="${escapeHtml(history.auditLogUuid)}" onclick="rollbackSetting(this.dataset.key, this.dataset.auditLogUuid)">이 값으로 복원</button>`
+                        : ''}</td>
+                </tr>`).join('');
+        }
+
+        async function rollbackSetting(key, auditLogUuid) {
+            if (!await AdminUi.confirmDanger('이 이력의 이전 값으로 설정을 되돌립니다.', {confirmLabel: '복원'})) return;
+            try {
+                await AdminApi.post('/admin/settings/' + encodeURIComponent(key) + '/rollback', {auditLogUuid});
+            } catch (error) {
+                AdminUi.showError(error);
+                return;
+            }
+            AdminUi.reloadWithToast('이전 값으로 복원했습니다.');
         }
     </script>
 </th:block>

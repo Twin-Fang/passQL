@@ -3,6 +3,7 @@ package com.passql.member.repository;
 import com.passql.member.constant.MemberNotificationType;
 import com.passql.member.constant.PushLinkTarget;
 import com.passql.member.entity.MemberNotification;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -71,6 +72,9 @@ public interface MemberNotificationRepository extends JpaRepository<MemberNotifi
 
     /** 관리자 회원 상세: 그 회원의 최근 알림 (숨김 포함) */
     List<MemberNotification> findByMemberUuidOrderByCreatedAtDesc(UUID memberUuid, Pageable pageable);
+
+    /** 관리자 회원 상세: 그 회원의 알림 한 페이지 (숨김 포함) */
+    Page<MemberNotification> findPageByMemberUuidOrderByCreatedAtDesc(UUID memberUuid, Pageable pageable);
 
     /**
      * 전체 회원에게 같은 알림 1건씩 INSERT ... SELECT (탈퇴 제외) > 만든 행 수

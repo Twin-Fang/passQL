@@ -6,16 +6,19 @@ import com.passql.ai.dto.QuestionFullContextDto;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.service.MetaService;
+import com.passql.question.constant.AdminQuestionSortType;
 import com.passql.question.constant.ChoiceSetPolicy;
 import com.passql.question.constant.ExecutionMode;
 import com.passql.question.dto.*;
 import com.passql.question.dto.AdminQuestionSearchCondition;
 import com.passql.question.entity.Question;
+import com.passql.question.service.AdminQuestionQualityService;
 import com.passql.question.service.OracleSqlCompatibilityConverter;
 import com.passql.question.service.QuestionGenerateService;
 import com.passql.question.service.QuestionLatestTrendService;
 import com.passql.question.service.QuestionService;
 import com.passql.question.service.QuestionVectorIndexService;
+import com.passql.web.service.AdminQuestionBulkUpdateService;
 import com.passql.web.service.AdminQuestionDeleteService;
 import com.passql.web.support.AdminMenu;
 import com.passql.web.support.AdminPage;
@@ -24,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -47,15 +51,21 @@ public class AdminQuestionController {
     private final MetaService metaService;
     private final AdminQuestionDeleteService adminQuestionDeleteService;
     private final QuestionLatestTrendService questionLatestTrendService;
+    private final AdminQuestionQualityService adminQuestionQualityService;
+    private final AdminQuestionBulkUpdateService adminQuestionBulkUpdateService;
 
     @GetMapping
     @AdminPage(menu = AdminMenu.QUESTIONS)
     public String list(Model model, AdminQuestionSearchCondition condition,
                        @RequestParam(defaultValue = "0") int page,
                        @RequestParam(defaultValue = AdminPageRequest.DEFAULT_PAGE_SIZE) int size) {
-        Pageable pageable = AdminPageRequest.newestFirst(page, size);
-        model.addAttribute("questions", questionService.searchQuestionsForAdmin(condition, pageable));
+        // 품질 정렬은 조회 조건 안에서 지정하므로 Pageable 은 정렬 없이
+        boolean isQualitySort = AdminQuestionSortType.fromRequestValueOrNewest(condition.getSort()).isQualitySort();
+        Pageable pageable = isQualitySort ? AdminPageRequest.of(page, size, Sort.unsorted()) : AdminPageRequest.newestFirst(page, size);
+        model.addAttribute("questions", adminQuestionQualityService.attachQualityStats(
+                questionService.searchQuestionsForAdmin(condition, pageable)));
         model.addAttribute("condition", condition);
+        model.addAttribute("sortTypes", AdminQuestionSortType.values());
         model.addAttribute("topics", metaService.getTopicTree());
         return "admin/questions";
     }
@@ -124,6 +134,7 @@ public class AdminQuestionController {
         QuestionDetail question = questionService.getQuestionForAdmin(uuid);
         model.addAttribute("question", question);
         model.addAttribute("isQuestionActive", questionService.isQuestionActive(uuid));
+        model.addAttribute("quality", adminQuestionQualityService.getQualityDetail(uuid));
         return "admin/question-detail";
     }
 
@@ -213,6 +224,30 @@ public class AdminQuestionController {
                 adminQuestionDeleteService.deactivateQuestions(request.questionUuids());
         // 문제마다가 아니라 일괄삭제 끝에 한 번만 정리한다 (#412)
         if (result.deactivated() > 0) questionVectorIndexService.pruneIndex();
+        return ResponseEntity.ok(result);
+    }
+
+    /** 선택 문제 일괄 활성화 (JSON body: { "questionUuids": [...] }), 활성화된 문제만 색인 비동기 적재 */
+    @PostMapping("/bulk/activate")
+    @ResponseBody
+    public ResponseEntity<AdminQuestionBulkUpdateService.BulkUpdateResult> bulkActivate(
+            @RequestBody ExportRequest request) {
+        AdminQuestionBulkUpdateService.BulkUpdateResult result =
+                adminQuestionBulkUpdateService.activateQuestions(request.questionUuids());
+        result.updatedQuestionUuids().forEach(questionVectorIndexService::indexQuestionAsync);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * 선택 문제 일괄 토픽·난이도 변경 (JSON body: { "questionUuids": [...], "topicCode", "subtopicCode", "difficulty" })
+     * 색인 payload 에 토픽·난이도가 들어 있어 바뀐 문제만 비동기 재적재
+     */
+    @PutMapping("/bulk/classification")
+    @ResponseBody
+    public ResponseEntity<AdminQuestionBulkUpdateService.BulkUpdateResult> bulkClassify(
+            @RequestBody QuestionBulkClassifyRequest request) {
+        AdminQuestionBulkUpdateService.BulkUpdateResult result = adminQuestionBulkUpdateService.classifyQuestions(request);
+        result.updatedQuestionUuids().forEach(questionVectorIndexService::indexQuestionAsync);
         return ResponseEntity.ok(result);
     }
 

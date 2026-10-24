@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<th:block layout:fragment="title">전역 검색</th:block>
+
+<th:block layout:fragment="content">
+
+    <div class="card bg-base-100 shadow mb-4">
+        <div class="card-body p-4">
+            <p class="text-sm text-base-content/70">
+                검색어 <strong th:text="${searchResult.keyword}">keyword</strong>
+                <span th:if="${searchResult.isEmpty()}"> — 일치하는 회원·문제가 없습니다. (회원·문제 UUID 전체, 회원 닉네임 일부를 입력하세요)</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- 회원 결과 -->
+    <div class="card bg-base-100 shadow mb-4" th:if="${!searchResult.members.isEmpty()}">
+        <div class="card-body p-0">
+            <h3 class="card-title text-base px-4 pt-4">회원 <span class="badge badge-ghost" th:text="${searchResult.members.size()}">0</span></h3>
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead><tr><th>닉네임</th><th>UUID</th><th>상태</th><th>가입 경로</th><th>최근 접속</th></tr></thead>
+                    <tbody>
+                    <tr th:each="member : ${searchResult.members}" class="hover cursor-pointer"
+                        th:data-href="@{/admin/members/{uuid}(uuid=${member.memberUuid})}"
+                        onclick="location.href=this.dataset.href">
+                        <td class="font-semibold" th:text="${member.nickname}">닉네임</td>
+                        <td class="font-mono text-xs" th:text="${member.memberUuid}">uuid</td>
+                        <td><span class="badge badge-sm" th:text="${member.status}">ACTIVE</span></td>
+                        <td class="text-xs" th:text="${member.authProvider}">GOOGLE</td>
+                        <td class="text-xs" th:text="${member.lastSeenAt != null} ? ${#temporals.format(member.lastSeenAt, 'yyyy-MM-dd HH:mm')} : '-'">-</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 문제 결과 -->
+    <div class="card bg-base-100 shadow" th:if="${!searchResult.questions.isEmpty()}">
+        <div class="card-body p-0">
+            <h3 class="card-title text-base px-4 pt-4">문제 <span class="badge badge-ghost" th:text="${searchResult.questions.size()}">0</span></h3>
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead><tr><th>UUID</th><th>본문</th><th>상태</th></tr></thead>
+                    <tbody>
+                    <tr th:each="question : ${searchResult.questions}" class="hover cursor-pointer"
+                        th:data-href="@{/admin/questions/{uuid}(uuid=${question.questionUuid})}"
+                        onclick="location.href=this.dataset.href">
+                        <td class="font-mono text-xs" th:text="${question.questionUuid}">uuid</td>
+                        <td class="text-xs" th:text="${question.stemPreview}">본문</td>
+                        <td><span class="badge badge-sm" th:classappend="${question.isActive()} ? 'badge-success' : 'badge-ghost'"
+                                  th:text="${question.isActive()} ? '활성' : '비활성'">활성</span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</th:block>
+
+<th:block layout:fragment="js">
+    <script>lucide.createIcons();</script>
+</th:block>
+</html>

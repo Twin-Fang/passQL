@@ -5,6 +5,7 @@ import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.meta.dto.AdminAppNoticeResponse;
 import com.passql.meta.dto.AppNoticePageResponse;
 import com.passql.meta.dto.AppNoticeResponse;
 import com.passql.meta.dto.AppNoticeSaveRequest;
@@ -42,6 +43,8 @@ public class AppNoticeService {
     private static final int TITLE_MAX_LENGTH = 100;
     // 본문 최대 길이 (문자 수)
     private static final int BODY_MAX_LENGTH = 2000;
+    // 노출 우선순위 절댓값 상한
+    public static final int MAX_DISPLAY_PRIORITY = 100;
     // 공지 목록 페이지 크기 기본값·상한 (건)
     public static final int DEFAULT_PAGE_SIZE = 20;
     public static final int MAX_PAGE_SIZE = 50;
@@ -81,10 +84,10 @@ public class AppNoticeService {
                 .orElseThrow(() -> new CustomException(ErrorCode.APP_NOTICE_NOT_FOUND));
     }
 
-    /** 관리자 목록 (최근 등록 순, 비활성 포함) */
-    public List<AppNoticeResponse> getAllNotices() {
-        return appNoticeRepository.findAllByOrderByCreatedAtDesc().stream()
-                .map(AppNoticeResponse::from)
+    /** 관리자 목록 (노출 순서: 중요 > 우선순위 > 최근 등록, 비활성 포함) */
+    public List<AdminAppNoticeResponse> getAllNotices() {
+        return appNoticeRepository.findAllByOrderByIsImportantDescDisplayPriorityDescCreatedAtDesc().stream()
+                .map(AdminAppNoticeResponse::from)
                 .toList();
     }
 
@@ -99,6 +102,7 @@ public class AppNoticeService {
                 .endsAt(request.endsAt())
                 .isActive(!Boolean.FALSE.equals(request.isActive()))
                 .isImportant(Boolean.TRUE.equals(request.isImportant()))
+                .displayPriority(resolveDisplayPriority(request))
                 .build();
         AppNotice saved = appNoticeRepository.save(notice);
         log.info("[app notice] created : uuid={}", saved.getAppNoticeUuid());
@@ -119,6 +123,7 @@ public class AppNoticeService {
         notice.setEndsAt(request.endsAt());
         notice.setIsActive(!Boolean.FALSE.equals(request.isActive()));
         notice.setIsImportant(Boolean.TRUE.equals(request.isImportant()));
+        notice.setDisplayPriority(resolveDisplayPriority(request));
         log.info("[app notice] updated : uuid={}", noticeUuid);
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.NOTICE, noticeUuid,
                 AdminAuditAction.UPDATE, before, toAuditSummary(notice)));
@@ -135,11 +140,28 @@ public class AppNoticeService {
                 isActive ? AdminAuditAction.ACTIVATE : AdminAuditAction.DEACTIVATE));
     }
 
+    /** 삭제: 공지 행 제거 (읽음 기록 정리는 호출부), 감사 로그에 삭제 전 내용 보존 */
+    @Transactional
+    public void deleteNotice(UUID noticeUuid) {
+        AppNotice notice = findNotice(noticeUuid);
+        appNoticeRepository.delete(notice);
+        log.info("[app notice] deleted : uuid={}", noticeUuid);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.NOTICE, noticeUuid,
+                AdminAuditAction.DELETE, toAuditSummary(notice), null));
+    }
+
     /** 감사 로그용 공지 요약 (제목, 본문 앞부분, 기간, 활성, 중요) */
     private static Map<String, Object> toAuditSummary(AppNotice notice) {
         return AdminAuditEvent.summary("title", notice.getTitle(), "body", notice.getBody(),
                 "startsAt", notice.getStartsAt(), "endsAt", notice.getEndsAt(),
-                "isActive", notice.getIsActive(), "isImportant", notice.getIsImportant());
+                "isActive", notice.getIsActive(), "isImportant", notice.getIsImportant(),
+                "displayPriority", notice.getDisplayPriority());
+    }
+
+    /** 우선순위 (비면 0, -MAX_DISPLAY_PRIORITY ~ MAX_DISPLAY_PRIORITY 로 제한) */
+    private static int resolveDisplayPriority(AppNoticeSaveRequest request) {
+        int priority = request.displayPriority() == null ? 0 : request.displayPriority();
+        return Math.max(-MAX_DISPLAY_PRIORITY, Math.min(MAX_DISPLAY_PRIORITY, priority));
     }
 
     private static int clampPageSize(Integer size) {

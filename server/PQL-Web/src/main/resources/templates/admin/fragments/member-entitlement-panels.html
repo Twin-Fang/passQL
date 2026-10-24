@@ -42,6 +42,11 @@
                     <input type="date" name="expiresDate" required th:min="${today}"
                            class="input input-bordered input-sm"/>
                 </div>
+                <div class="form-control">
+                    <label class="label py-1"><span class="label-text text-xs">사유 (감사 로그에 기록)</span></label>
+                    <input type="text" name="reason" required maxlength="200" placeholder="예: 결제 오류 보상"
+                           class="input input-bordered input-sm w-64"/>
+                </div>
                 <button type="submit" class="btn btn-primary btn-sm gap-2">
                     <i data-lucide="badge-check" class="size-4"></i>프로 부여
                 </button>
@@ -50,11 +55,41 @@
             <!-- 프로 회수 -->
             <form th:if="${entitlement.isActivePro()}"
                   th:action="@{/admin/members/{uuid}/entitlement/revoke(uuid=${member.memberUuid})}" method="post"
+                  class="flex flex-wrap items-end gap-3"
                   onsubmit="return confirm('이 회원의 프로를 회수할까요?');">
+                <div class="form-control">
+                    <label class="label py-1"><span class="label-text text-xs">회수 사유 (감사 로그에 기록)</span></label>
+                    <input type="text" name="reason" required maxlength="200" placeholder="예: 환불 확인"
+                           class="input input-bordered input-sm w-64"/>
+                </div>
                 <button type="submit" class="btn btn-outline btn-error btn-sm gap-2">
                     <i data-lucide="badge-x" class="size-4"></i>프로 회수
                 </button>
             </form>
+
+            <!-- 이용권 변동 타임라인: 구매·구매 회수·관리자 부여/회수 (최근 50건, 사유 포함) -->
+            <details th:if="${entitlementTimeline != null}" class="collapse collapse-arrow bg-base-200/50 rounded-box">
+                <summary class="collapse-title text-sm font-semibold py-2 min-h-0">이용권 변동 타임라인
+                    <span class="text-xs font-normal text-base-content/50" th:text="'(' + ${entitlementTimeline.size()} + '건)'">(0건)</span>
+                </summary>
+                <div class="collapse-content overflow-x-auto">
+                    <table class="table table-xs">
+                        <thead><tr><th class="w-36">일시</th><th class="w-28">이벤트</th><th>내용</th><th class="w-28">처리자</th></tr></thead>
+                        <tbody>
+                        <tr th:each="event : ${entitlementTimeline}">
+                            <td class="text-xs text-base-content/60 whitespace-nowrap"
+                                th:text="${#temporals.format(event.occurredAt(), 'yyyy-MM-dd HH:mm')}">—</td>
+                            <td><span class="badge badge-sm badge-ghost whitespace-nowrap" th:text="${event.eventLabel()}">구매</span></td>
+                            <td class="text-xs break-all" th:text="${event.detail()}">—</td>
+                            <td class="text-xs" th:text="${event.actorLabel()}">—</td>
+                        </tr>
+                        <tr th:if="${entitlementTimeline.isEmpty()}">
+                            <td colspan="4" class="text-center text-base-content/40 py-6">변동 이력이 없습니다.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </details>
         </div>
     </div>
 </th:block>
@@ -70,9 +105,10 @@
                     <th>주문 번호</th>
                     <th class="w-36">구매일</th>
                     <th class="w-24">상태</th>
+                    <th class="w-28">금액</th>
                     <th class="w-36">부여 만료일</th>
                     <th class="w-20">소모</th>
-                    <th class="w-20"></th>
+                    <th class="w-56"></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -87,6 +123,7 @@
                               th:classappend="${p.status().name() == 'VERIFIED'} ? 'badge-success' : 'badge-ghost'"
                               th:text="${p.status().name()}">VERIFIED</span>
                     </td>
+                    <td class="text-xs whitespace-nowrap" th:text="${p.priceText() != null ? p.priceText() : '—'}">—</td>
                     <td class="text-xs text-base-content/60"
                         th:text="${p.grantedExpiresAt() != null ? #temporals.format(p.grantedExpiresAt(), 'yyyy-MM-dd HH:mm') : '—'}">—</td>
                     <td class="text-xs" th:text="${p.isConsumed() ? '완료' : '대기'}">완료</td>
@@ -94,14 +131,16 @@
                         <!-- 구매 1건 회수: 검증 상태만, 회원 등급 재계산 -->
                         <form th:if="${p.status().name() == 'VERIFIED'}"
                               th:action="@{/admin/members/{uuid}/entitlement/purchases/{purchaseUuid}/revoke(uuid=${member.memberUuid},purchaseUuid=${p.entitlementPurchaseUuid()})}"
-                              method="post"
+                              method="post" class="flex items-center gap-1"
                               onsubmit="return confirm('이 구매를 회수할까요? 회원 이용권이 다시 계산됩니다.');">
+                            <input type="text" name="reason" required maxlength="200" placeholder="회수 사유"
+                                   class="input input-bordered input-xs w-32"/>
                             <button type="submit" class="btn btn-ghost btn-xs text-error">회수</button>
                         </form>
                     </td>
                 </tr>
                 <tr th:if="${entitlement.purchases.isEmpty()}">
-                    <td colspan="8" class="text-center text-base-content/40 py-12">
+                    <td colspan="9" class="text-center text-base-content/40 py-12">
                         <div class="flex flex-col items-center gap-2">
                             <i data-lucide="inbox" class="size-8 opacity-30"></i>
                             <span>구매 이력이 없습니다.</span>

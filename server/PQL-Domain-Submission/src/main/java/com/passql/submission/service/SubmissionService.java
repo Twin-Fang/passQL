@@ -23,6 +23,8 @@ import com.passql.submission.repository.ExecutionLogRepository;
 import com.passql.submission.repository.SubmissionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -181,13 +183,41 @@ public class SubmissionService {
         return submissionRepository.findByMemberUuidOrderBySubmittedAtDesc(memberUuid);
     }
 
+    /** 관리자 회원 상세: 제출 이력 한 페이지 (최신순) */
+    public Page<Submission> getSubmissionPageByMember(UUID memberUuid, Pageable pageable) {
+        return submissionRepository.findPageByMemberUuidOrderBySubmittedAtDesc(memberUuid, pageable);
+    }
+
+    /** 관리자 회원 상세: 총 제출 수 */
+    public long countSubmissionsByMember(UUID memberUuid) {
+        return submissionRepository.countByMemberUuid(memberUuid);
+    }
+
+    /** 관리자 회원 상세: 정답 제출 수 */
+    public long countCorrectSubmissionsByMember(UUID memberUuid) {
+        return submissionRepository.countByMemberUuidAndIsCorrectTrue(memberUuid);
+    }
+
     public List<ExecutionLog> getRecentLogs() {
         return executionLogRepository.findTop20ByOrderByExecutedAtDesc();
     }
 
+    /** 모니터링 필터: since 이후 SQL 실행 로그 최근 50건 (status 비어 있으면 전체, OK·ERROR·TIMEOUT 등 그대로 비교) */
+    public List<ExecutionLog> getRecentLogs(LocalDateTime since, String status) {
+        if (status == null || status.isBlank()) {
+            return executionLogRepository.findTop50ByExecutedAtAfterOrderByExecutedAtDesc(since);
+        }
+        return executionLogRepository.findTop50ByExecutedAtAfterAndStatusOrderByExecutedAtDesc(since, status);
+    }
+
     /** 최근 24시간 SQL 실행 집계 (DB 집계 쿼리 1회, 행을 메모리로 올리지 않음) */
     public MonitorStats getStats24h() {
-        List<Object[]> rows = executionLogRepository.aggregateSince(LocalDateTime.now().minusHours(24));
+        return getStatsSince(LocalDateTime.now().minusHours(24));
+    }
+
+    /** since 이후 SQL 실행 집계 */
+    public MonitorStats getStatsSince(LocalDateTime since) {
+        List<Object[]> rows = executionLogRepository.aggregateSince(since);
         Object[] row = rows.isEmpty() ? new Object[]{0L, 0L, null} : rows.get(0);
         long totalCount = row[0] == null ? 0 : ((Number) row[0]).longValue();
         long successCount = row[1] == null ? 0 : ((Number) row[1]).longValue();

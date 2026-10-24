@@ -61,6 +61,24 @@
                            th:value="${condition.keyword}" placeholder="예: GROUP BY"/>
                 </div>
 
+                <!-- 정렬 (정답률·풀이·신고 집계 기준 포함) -->
+                <div class="form-control">
+                    <label class="label label-text text-xs">정렬</label>
+                    <select name="sort" class="select select-sm select-bordered w-56">
+                        <option th:each="sortType : ${sortTypes}"
+                                th:value="${sortType.name()}"
+                                th:text="${sortType.label}"
+                                th:selected="${condition.sort == sortType.name()}">최신 등록순</option>
+                    </select>
+                </div>
+
+                <!-- 신고 있는 문제만 -->
+                <label class="label cursor-pointer gap-2 pb-1">
+                    <input type="checkbox" name="isReportedOnly" value="true" class="checkbox checkbox-sm"
+                           th:checked="${condition.isReportedOnly == true}"/>
+                    <span class="label-text text-xs">신고 있는 문제만</span>
+                </label>
+
                 <button type="submit" class="btn btn-sm btn-primary">
                     <i data-lucide="search" class="size-4"></i>
                     검색
@@ -80,6 +98,29 @@
                         <i data-lucide="eye-off" class="size-4"></i>
                         <span id="deleteSelectedLabel">선택 비활성화</span>
                     </button>
+
+                    <!-- 선택 문제 일괄 변경: 활성화, 토픽·난이도 변경 -->
+                    <div class="dropdown dropdown-end">
+                        <label tabindex="0" class="btn btn-sm btn-outline">
+                            <i data-lucide="list-checks" class="size-4"></i>
+                            일괄 변경
+                            <i data-lucide="chevron-down" class="size-3"></i>
+                        </label>
+                        <ul tabindex="0" class="dropdown-content menu menu-sm shadow bg-base-100 rounded-box w-56 z-50 mt-1">
+                            <li>
+                                <button type="button" id="bulkActivateBtn" onclick="activateSelected()" disabled>
+                                    <i data-lucide="eye" class="size-4"></i>
+                                    <span id="bulkActivateLabel">선택 활성화</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button type="button" id="bulkClassifyBtn" onclick="openBulkClassifyModal()" disabled>
+                                    <i data-lucide="tags" class="size-4"></i>
+                                    <span id="bulkClassifyLabel">토픽·난이도 변경</span>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
 
                     <!-- JSON 내보내기/가져오기 드롭다운 -->
                     <div class="dropdown dropdown-end">
@@ -162,6 +203,9 @@
                         <th class="w-20">난이도</th>
                         <th class="w-28">실행 모드</th>
                         <th class="w-20">상태</th>
+                        <th class="w-20" title="제출 건수">풀이</th>
+                        <th class="w-20" title="정답 제출 / 전체 제출">정답률</th>
+                        <th class="w-16" title="접수된 신고 건수">신고</th>
                         <th class="w-32">생성일</th>
                         <th class="w-24">관리</th>
                     </tr>
@@ -195,6 +239,12 @@
                             <span th:if="${q.isActive}" class="badge badge-success badge-sm">활성</span>
                             <span th:unless="${q.isActive}" class="badge badge-ghost badge-sm">비활성</span>
                         </td>
+                        <td class="text-xs" th:text="${q.solveCount != null ? q.solveCount : '-'}">0</td>
+                        <td class="text-xs" th:text="${q.accuracyPercent != null ? #numbers.formatDecimal(q.accuracyPercent, 1, 1) + '%' : '-'}">-</td>
+                        <td class="text-xs">
+                            <span th:if="${q.reportCount != null and q.reportCount > 0}" class="badge badge-error badge-sm" th:text="${q.reportCount}">1</span>
+                            <span th:unless="${q.reportCount != null and q.reportCount > 0}">-</span>
+                        </td>
                         <td class="text-xs" th:text="${q.createdAt != null ? #temporals.format(q.createdAt, 'yyyy-MM-dd') : '-'}">2026-04-01</td>
                         <td onclick="event.stopPropagation()" class="flex gap-1">
                             <a th:href="@{/admin/questions/{uuid}/edit(uuid=${q.questionUuid})}"
@@ -208,7 +258,7 @@
 
                     <!-- Empty state -->
                     <tr th:if="${questions == null or questions.isEmpty()}">
-                        <td colspan="9" class="text-center text-base-content/50 py-12">
+                        <td colspan="12" class="text-center text-base-content/50 py-12">
                             <i data-lucide="file-x" class="size-10 mx-auto mb-2 opacity-40"></i>
                             <p>문제가 없습니다.</p>
                         </td>
@@ -221,12 +271,12 @@
             <!-- Pagination -->
             <div class="flex justify-center p-4" th:if="${questions != null and questions.totalPages > 1}">
                 <div class="join">
-                    <a th:href="@{/admin/questions(page=${questions.number - 1}, topic=${condition.topic}, difficulty=${condition.difficulty}, executionMode=${condition.executionMode}, keyword=${condition.keyword}, activeState=${condition.activeState})}"
+                    <a th:href="@{/admin/questions(page=${questions.number - 1}, topic=${condition.topic}, difficulty=${condition.difficulty}, executionMode=${condition.executionMode}, keyword=${condition.keyword}, activeState=${condition.activeState}, sort=${condition.sort}, isReportedOnly=${condition.isReportedOnly})}"
                        class="join-item btn btn-sm"
                        th:classappend="${questions.first} ? 'btn-disabled'">«</a>
                     <button class="join-item btn btn-sm btn-active"
                             th:text="${questions.number + 1} + ' / ' + ${questions.totalPages}">1 / 10</button>
-                    <a th:href="@{/admin/questions(page=${questions.number + 1}, topic=${condition.topic}, difficulty=${condition.difficulty}, executionMode=${condition.executionMode}, keyword=${condition.keyword}, activeState=${condition.activeState})}"
+                    <a th:href="@{/admin/questions(page=${questions.number + 1}, topic=${condition.topic}, difficulty=${condition.difficulty}, executionMode=${condition.executionMode}, keyword=${condition.keyword}, activeState=${condition.activeState}, sort=${condition.sort}, isReportedOnly=${condition.isReportedOnly})}"
                        class="join-item btn btn-sm"
                        th:classappend="${questions.last} ? 'btn-disabled'">»</a>
                 </div>
@@ -243,6 +293,7 @@
 <script th:src="@{/js/admin/question-import-export.js}"></script>
 <script th:src="@{/js/admin/question-list.js}"></script>
 <script th:src="@{/js/admin/question-activation.js}"></script>
+<script th:src="@{/js/admin/question-bulk-update.js}"></script>
 <script>lucide.createIcons();</script>
 </th:block>
 </html>

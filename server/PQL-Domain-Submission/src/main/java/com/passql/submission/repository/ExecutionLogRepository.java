@@ -15,6 +15,11 @@ public interface ExecutionLogRepository extends JpaRepository<ExecutionLog, UUID
 
     List<ExecutionLog> findTop20ByOrderByExecutedAtDesc();
 
+    // 모니터링 필터: 기간 이후 최근 50건 (상태 지정 시 해당 상태만)
+    List<ExecutionLog> findTop50ByExecutedAtAfterOrderByExecutedAtDesc(LocalDateTime since);
+
+    List<ExecutionLog> findTop50ByExecutedAtAfterAndStatusOrderByExecutedAtDesc(LocalDateTime since, String status);
+
     /** 기간 집계 1행: [전체 수, 성공(OK) 수, 평균 소요 ms] (#475, 메모리 집계 대체) */
     @Query("SELECT COUNT(e), SUM(CASE WHEN e.status = 'OK' THEN 1 ELSE 0 END), AVG(e.elapsedMs) "
             + "FROM ExecutionLog e WHERE e.executedAt > :since")

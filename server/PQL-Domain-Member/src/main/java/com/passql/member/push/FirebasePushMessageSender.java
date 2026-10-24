@@ -62,7 +62,9 @@ public class FirebasePushMessageSender implements PushMessageSender {
             return results;
         } catch (FirebaseMessagingException e) {
             log.error("[push send] batch failed : {} tokens, code={}", targetChunk.size(), e.getMessagingErrorCode(), e);
-            return targetChunk.stream().map(target -> PushDeliveryResult.failed(target.token(), false)).toList();
+            String failureReason = e.getMessagingErrorCode() == null
+                    ? PushDeliveryResult.UNKNOWN_FAILURE_REASON : e.getMessagingErrorCode().name();
+            return targetChunk.stream().map(target -> PushDeliveryResult.failed(target.token(), false, failureReason)).toList();
         }
     }
 
@@ -71,7 +73,8 @@ public class FirebasePushMessageSender implements PushMessageSender {
             return PushDeliveryResult.delivered(token);
         }
         MessagingErrorCode errorCode = response.getException() == null ? null : response.getException().getMessagingErrorCode();
-        return PushDeliveryResult.failed(token, errorCode != null && EXPIRED_TOKEN_ERROR_CODES.contains(errorCode));
+        String failureReason = errorCode == null ? PushDeliveryResult.UNKNOWN_FAILURE_REASON : errorCode.name();
+        return PushDeliveryResult.failed(token, errorCode != null && EXPIRED_TOKEN_ERROR_CODES.contains(errorCode), failureReason);
     }
 
     /** 알림(제목·본문) + 이동 데이터 + 플랫폼 설정 (Android 채널·우선순위, iOS 소리·앱 아이콘 숫자) */

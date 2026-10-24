@@ -34,6 +34,18 @@ public interface AdminDashboardApiControllerDocs {
     ResponseEntity<DashboardGrowthResponse> getGrowth(StatisticsRange range);
 
     @ApiLogs({
+        @ApiLog(date = "2026.10.24", author = Author.SUHSAECHAN, issueNumber = 621, description = "가입·방문자 추이 CSV 내보내기 추가"),
+    })
+    @Operation(summary = "가입·방문자 추이 CSV", description = "range: DAY / MONTH. BOM 포함 UTF-8 CSV 첨부 파일")
+    ResponseEntity<byte[]> exportGrowthCsv(StatisticsRange range);
+
+    @ApiLogs({
+        @ApiLog(date = "2026.10.24", author = Author.SUHSAECHAN, issueNumber = 621, description = "AI 호출량·비용 추이 CSV 내보내기 추가"),
+    })
+    @Operation(summary = "AI 호출량·비용 추이 CSV", description = "range: DAY / MONTH. BOM 포함 UTF-8 CSV 첨부 파일")
+    ResponseEntity<byte[]> exportAiUsageCsv(StatisticsRange range);
+
+    @ApiLogs({
         @ApiLog(date = "2026.10.20", author = Author.SUHSAECHAN, issueNumber = 557, description = "AI 호출량·비용 추이 API 추가"),
     })
     @Operation(summary = "AI 호출량·비용 추이", description = "range: DAY / MONTH. 성공·실패·평균 지연(ms)·추정 비용(USD, 단가 미등록 모델 0)")
