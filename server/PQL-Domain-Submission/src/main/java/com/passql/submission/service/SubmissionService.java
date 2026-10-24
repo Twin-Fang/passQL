@@ -185,9 +185,22 @@ public class SubmissionService {
         return executionLogRepository.findTop20ByOrderByExecutedAtDesc();
     }
 
+    /** 모니터링 필터: since 이후 SQL 실행 로그 최근 50건 (status 비어 있으면 전체, OK·ERROR·TIMEOUT 등 그대로 비교) */
+    public List<ExecutionLog> getRecentLogs(LocalDateTime since, String status) {
+        if (status == null || status.isBlank()) {
+            return executionLogRepository.findTop50ByExecutedAtAfterOrderByExecutedAtDesc(since);
+        }
+        return executionLogRepository.findTop50ByExecutedAtAfterAndStatusOrderByExecutedAtDesc(since, status);
+    }
+
     /** 최근 24시간 SQL 실행 집계 (DB 집계 쿼리 1회, 행을 메모리로 올리지 않음) */
     public MonitorStats getStats24h() {
-        List<Object[]> rows = executionLogRepository.aggregateSince(LocalDateTime.now().minusHours(24));
+        return getStatsSince(LocalDateTime.now().minusHours(24));
+    }
+
+    /** since 이후 SQL 실행 집계 */
+    public MonitorStats getStatsSince(LocalDateTime since) {
+        List<Object[]> rows = executionLogRepository.aggregateSince(since);
         Object[] row = rows.isEmpty() ? new Object[]{0L, 0L, null} : rows.get(0);
         long totalCount = row[0] == null ? 0 : ((Number) row[0]).longValue();
         long successCount = row[1] == null ? 0 : ((Number) row[1]).longValue();
