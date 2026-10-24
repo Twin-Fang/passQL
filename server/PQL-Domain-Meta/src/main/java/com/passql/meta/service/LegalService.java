@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -58,6 +59,17 @@ public class LegalService {
         legal.setContent(request.content());
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.LEGAL, type, AdminAuditAction.UPDATE,
                 before, AdminAuditEvent.summary("title", request.title(), "contentLength", request.content().length())));
+    }
+
+    /** 이전 버전 복원: 이력의 제목·본문으로 교체 (현재 본문도 새 이력으로 보관되므로 되돌릴 수 있음, 게시 상태는 유지) */
+    @Transactional
+    public void restoreFromHistory(LegalType type, UUID legalHistoryUuid) {
+        LegalHistory history = legalHistoryRepository.findById(legalHistoryUuid)
+                .orElseThrow(() -> new CustomException(ErrorCode.SETTING_NOT_FOUND));
+        if (history.getType() != type) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "다른 약관 종류의 이력입니다.");
+        }
+        update(type, new LegalUpdateRequest(history.getTitle(), history.getContent()));
     }
 
     @Transactional

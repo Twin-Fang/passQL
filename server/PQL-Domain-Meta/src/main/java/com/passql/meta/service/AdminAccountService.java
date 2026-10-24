@@ -85,6 +85,11 @@ public class AdminAccountService {
         }
     }
 
+    /** 등록된 관리자 아이디인지 (접근 기록에 입력 아이디를 남길지 판단) */
+    public boolean isKnownUsername(String username) {
+        return username != null && adminAccountRepository.existsByUsername(username);
+    }
+
     /** 로그인 실패: 없는 아이디는 기록 안 함, 5회째 15분 잠금 > 잠겼으면 true */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public boolean recordLoginFailure(String username) {
@@ -129,10 +134,13 @@ public class AdminAccountService {
             throw new CustomException(ErrorCode.ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN);
         }
         Map<String, Object> before = AdminAuditEvent.summary("role", account.getRole(), "isEnabled", account.getIsEnabled());
+        AdminRole previousRole = account.getRole();
         account.setRole(AdminRole.fromRequestValue(request.role()));
         account.setIsEnabled(request.isEnabled());
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.ADMIN_ACCOUNT, account.getUsername(),
-                AdminAuditAction.UPDATE, before, AdminAuditEvent.summary("role", account.getRole(), "isEnabled", account.getIsEnabled())));
+                // 역할이 바뀌면 권한 변경, 사용 여부만 바뀌면 수정
+                previousRole == account.getRole() ? AdminAuditAction.UPDATE : AdminAuditAction.ROLE_CHANGE,
+                before, AdminAuditEvent.summary("role", account.getRole(), "isEnabled", account.getIsEnabled())));
         log.info("[admin account] updated : username={}, role={}, enabled={}",
                 account.getUsername(), account.getRole(), account.getIsEnabled());
         return account;

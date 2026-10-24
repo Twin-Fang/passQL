@@ -21,7 +21,11 @@ public enum AdminAuditAction {
     UNLOCK("잠금 해제"),
     SEND("발송"),
     RETRACT("회수"),
-    HIDE("숨김");
+    HIDE("숨김"),
+    // 관리자 접근 이벤트 (대상 = 관리자 계정)
+    LOGIN("로그인"),
+    LOGIN_FAILURE("로그인 실패"),
+    ROLE_CHANGE("권한 변경");
 
     // 화면 표시 이름
     private final String label;

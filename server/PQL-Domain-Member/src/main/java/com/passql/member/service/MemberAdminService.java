@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -65,6 +66,11 @@ public class MemberAdminService {
         }
 
         return memberRepository.findAll(spec, pageable).map(MemberAdminListResponse::from);
+    }
+
+    /** 회원 1명 목록 항목 (UUID 정확 일치, 탈퇴 회원 제외) — 전역 검색용 */
+    public Optional<MemberAdminListResponse> findMemberListItem(UUID memberUuid) {
+        return memberRepository.findByMemberUuidAndIsDeletedFalse(memberUuid).map(MemberAdminListResponse::from);
     }
 
     /** 회원 상세 조회 */

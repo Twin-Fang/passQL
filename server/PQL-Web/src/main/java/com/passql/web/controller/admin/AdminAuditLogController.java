@@ -1,5 +1,6 @@
 package com.passql.web.controller.admin;
 
+import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.meta.dto.AdminAuditLogSearchCondition;
 import com.passql.meta.service.AdminAuditLogService;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
- * 관리자 감사 로그 조회: 관리자·대상 종류·기간 필터 + 최신순 페이지 (#469)
+ * 관리자 감사 로그 조회: 관리자·동작·대상 종류·대상 ID·키워드·기간 필터 + 최신순 페이지 (#469)
  */
 @Controller
 @RequestMapping("/admin/audit-logs")
@@ -35,6 +36,7 @@ public class AdminAuditLogController {
                 AdminPageRequest.newestFirstBy(page, size, OCCURRED_AT_FIELD)));
         model.addAttribute("condition", condition);
         model.addAttribute("targetTypes", AdminAuditTargetType.values());
+        model.addAttribute("actions", AdminAuditAction.values());
         return "admin/audit-logs";
     }
 }

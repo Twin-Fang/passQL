@@ -31,7 +31,9 @@ public enum AdminMenu {
     MONITOR("monitor", "모니터링"),
     STATISTICS("statistics", "AI 사용량·통계"),
     ADMIN_ACCOUNTS("admin-accounts", "관리자 계정"),
-    AUDIT_LOGS("audit-logs", "감사 로그");
+    AUDIT_LOGS("audit-logs", "감사 로그"),
+    // 사이드바 항목 없음 (상단 전역 검색 입력으로만 진입)
+    GLOBAL_SEARCH("global-search", "전역 검색");
 
     // layout.html 사이드바 활성 표시용 코드
     private final String code;
