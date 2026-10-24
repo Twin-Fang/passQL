@@ -27,6 +27,6 @@ class AdminReportControllerTest {
         adminReportController.resolveReport(reportUuid, adminPrincipal,
                 new ResolveRequest(CorrectionScope.NONE, false));
 
-        verify(questionReportService).resolveReport(reportUuid, "passql-admin", CorrectionScope.NONE, false);
+        verify(questionReportService).resolveReport(reportUuid, "passql-admin", CorrectionScope.NONE, false, null);
     }
 }

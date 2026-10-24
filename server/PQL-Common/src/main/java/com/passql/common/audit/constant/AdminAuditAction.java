@@ -25,7 +25,8 @@ public enum AdminAuditAction {
     // 관리자 접근 이벤트 (대상 = 관리자 계정)
     LOGIN("로그인"),
     LOGIN_FAILURE("로그인 실패"),
-    ROLE_CHANGE("권한 변경");
+    ROLE_CHANGE("권한 변경"),
+    REINDEX("재색인");
 
     // 화면 표시 이름
     private final String label;

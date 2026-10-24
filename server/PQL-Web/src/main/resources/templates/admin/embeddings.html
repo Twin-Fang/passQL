@@ -6,16 +6,6 @@
 
 <th:block layout:fragment="content">
 
-    <!-- Flash 메시지 -->
-    <div th:if="${successMessage}" class="alert alert-success mb-4">
-        <i data-lucide="check-circle" class="size-5"></i>
-        <span th:text="${successMessage}"></span>
-    </div>
-    <div th:if="${errorMessage}" class="alert alert-error mb-4">
-        <i data-lucide="alert-circle" class="size-5"></i>
-        <span th:text="${errorMessage}"></span>
-    </div>
-
     <!-- AI 서버 연결 실패 배너 -->
     <div th:if="${status == null}" class="alert alert-warning mb-4">
         <i data-lucide="wifi-off" class="size-5"></i>
@@ -79,31 +69,83 @@
     <!-- 액션 카드 -->
     <div class="card bg-base-100 shadow mb-6">
         <div class="card-body p-4">
-            <div class="flex items-center justify-between">
+            <div class="flex flex-wrap items-center justify-between gap-2">
                 <h3 class="card-title text-base">
                     <i data-lucide="refresh-cw" class="size-5"></i>
                     재색인 작업
                 </h3>
                 <div class="flex gap-2">
-                    <!-- 전체 재색인 — form POST 방식 -->
-                    <form th:action="@{/admin/embeddings/index-all}" method="post" id="indexAllForm">
-                        <button type="button" class="btn btn-sm btn-primary gap-2"
-                                onclick="confirmIndexAll()">
-                            <i data-lucide="layers" class="size-4"></i>
-                            전체 색인
-                        </button>
-                    </form>
+                    <button type="button" id="indexAllButton" class="btn btn-sm btn-primary gap-2"
+                            onclick="confirmIndexAll()">
+                        <i data-lucide="layers" class="size-4"></i>
+                        전체 색인
+                    </button>
                 </div>
             </div>
             <p class="text-xs text-base-content/60 mt-1">
                 전체 색인은 DB의 모든 활성 문제를 qwen3-embedding:4b 임베딩 후 Qdrant에 적재합니다.
-                문제 수에 따라 수 분이 소요될 수 있습니다.
+                백그라운드에서 실행되며, 이 화면을 닫아도 계속됩니다.
             </p>
+
+            <!-- 마지막 실행 -->
+            <p class="text-xs mt-2" th:if="${lastRun != null}">
+                마지막 실행:
+                <span class="font-medium" th:text="${#temporals.format(lastRun.startedAt, 'yyyy-MM-dd HH:mm')}">2026-01-01 00:00</span>
+                ·
+                <span th:text="${lastRun.runType.name() == 'ALL' ? '전체' : (lastRun.runType.name() == 'SELECTED' ? '선택' : '실패 재시도')}">전체</span>
+                ·
+                <span th:if="${lastRun.status.name() == 'COMPLETED'}"
+                      th:text="${lastRun.succeededCount} + '개 성공, ' + ${lastRun.failedCount} + '개 실패'">0개 성공, 0개 실패</span>
+                <span th:if="${lastRun.status.name() == 'FAILED'}" class="text-error">중단됨</span>
+            </p>
+            <p class="text-xs mt-2 text-base-content/50" th:if="${lastRun == null}">실행 이력이 없습니다.</p>
+
+            <!-- 진행률 (진행 중일 때만 JS가 보임) -->
+            <div id="progressPanel" class="hidden mt-3">
+                <div class="flex items-center justify-between text-sm mb-1">
+                    <span id="progressLabel">색인 중...</span>
+                    <span id="progressCounts" class="text-base-content/60"></span>
+                </div>
+                <progress id="progressBar" class="progress progress-primary w-full" value="0" max="100"></progress>
+            </div>
+        </div>
+    </div>
+
+    <!-- 실패 목록 (직전 실행에서 실패한 문제) -->
+    <div class="card bg-base-100 shadow mb-6" th:if="${!failedQuestions.isEmpty()}">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="card-title text-base text-error">
+                    <i data-lucide="x-circle" class="size-5"></i>
+                    직전 실행 실패 문제
+                    <span class="badge badge-error badge-sm" th:text="${failedQuestions.size()}">0</span>
+                </h3>
+                <button type="button" id="retryFailedButton" class="btn btn-sm btn-warning gap-2"
+                        onclick="retryFailed()">
+                    <i data-lucide="rotate-ccw" class="size-4"></i>
+                    실패 문제 재시도
+                </button>
+            </div>
+            <div class="overflow-x-auto max-h-72">
+                <table class="table table-sm table-pin-rows">
+                    <thead>
+                    <tr><th>문제</th><th>토픽</th><th>난이도</th><th>지문</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="failed : ${failedQuestions}">
+                        <td class="font-mono text-xs" th:text="${#strings.substring(failed.questionUuid, 0, 8)}">uuid</td>
+                        <td class="text-xs" th:text="${failed.topicName}">토픽</td>
+                        <td class="text-xs" th:text="${failed.difficulty}">1</td>
+                        <td class="text-xs" th:text="${failed.stemPreview}">지문</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <!-- 미색인 문제 목록 -->
-    <div class="card bg-base-100 shadow" th:if="${status != null and !status.unindexedUuids.isEmpty()}">
+    <div class="card bg-base-100 shadow mb-6" th:if="${status != null and status.unindexedCount > 0}">
         <div class="card-body p-4">
             <div class="flex items-center justify-between mb-3">
                 <h3 class="card-title text-base text-error">
@@ -124,6 +166,8 @@
                     </button>
                 </div>
             </div>
+            <p class="text-xs text-base-content/60 mb-2" th:if="${status.unindexedCount > unindexedPreviews.size()}"
+               th:text="'앞 ' + ${unindexedPreviews.size()} + '개만 표시합니다. 나머지는 전체 색인으로 처리됩니다.'">앞 500개만 표시합니다.</p>
 
             <div class="overflow-x-auto max-h-96">
                 <table class="table table-sm table-pin-rows">
@@ -133,17 +177,27 @@
                             <input type="checkbox" class="checkbox checkbox-sm" id="selectAllUnindexed2"
                                    onchange="toggleSelectAllUnindexed(this)"/>
                         </th>
-                        <th>문제 UUID</th>
+                        <th>문제</th>
+                        <th>토픽</th>
+                        <th>난이도</th>
+                        <th>지문</th>
                     </tr>
                     </thead>
                     <tbody id="unindexedTableBody">
-                    <tr th:each="uuid : ${status.unindexedUuids}">
+                    <tr th:each="unindexed : ${unindexedPreviews}">
                         <td>
                             <input type="checkbox" class="checkbox checkbox-sm unindexed-checkbox"
-                                   th:data-uuid="${uuid}"
+                                   th:data-uuid="${unindexed.questionUuid}"
                                    onchange="onUnindexedCheckboxChange()"/>
                         </td>
-                        <td class="font-mono text-xs" th:text="${uuid}">uuid</td>
+                        <td class="font-mono text-xs">
+                            <a class="link link-hover" target="_blank"
+                               th:href="@{/admin/questions/{uuid}(uuid=${unindexed.questionUuid})}"
+                               th:text="${#strings.substring(unindexed.questionUuid, 0, 8)}">uuid</a>
+                        </td>
+                        <td class="text-xs" th:text="${unindexed.topicName}">토픽</td>
+                        <td class="text-xs" th:text="${unindexed.difficulty}">1</td>
+                        <td class="text-xs" th:text="${unindexed.stemPreview}">지문</td>
                     </tr>
                     </tbody>
                 </table>
@@ -152,7 +206,7 @@
     </div>
 
     <!-- 미색인 없음 상태 -->
-    <div class="card bg-base-100 shadow" th:if="${status != null and status.unindexedUuids.isEmpty()}">
+    <div class="card bg-base-100 shadow mb-6" th:if="${status != null and status.unindexedCount == 0}">
         <div class="card-body p-6 items-center text-center">
             <i data-lucide="check-circle" class="size-12 text-success mb-2"></i>
             <p class="text-base font-semibold">모든 문제가 색인되어 있습니다.</p>
@@ -160,14 +214,52 @@
         </div>
     </div>
 
+    <!-- 실행 이력 (최근 10건) -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-4">
+            <h3 class="card-title text-base mb-3">
+                <i data-lucide="history" class="size-5"></i>
+                색인 실행 이력
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead>
+                    <tr><th>시작</th><th>종류</th><th>상태</th><th>대상</th><th>성공</th><th>실패</th><th>소요</th><th>실행자</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="run : ${recentRuns}">
+                        <td class="text-xs" th:text="${#temporals.format(run.startedAt, 'yyyy-MM-dd HH:mm')}">2026-01-01 00:00</td>
+                        <td class="text-xs" th:text="${run.runType.name() == 'ALL' ? '전체' : (run.runType.name() == 'SELECTED' ? '선택' : '실패 재시도')}">전체</td>
+                        <td>
+                            <span class="badge badge-sm"
+                                  th:classappend="${run.status.name() == 'COMPLETED'} ? 'badge-success' : (${run.status.name() == 'FAILED'} ? 'badge-error' : 'badge-info')"
+                                  th:text="${run.status.name() == 'COMPLETED'} ? '완료' : (${run.status.name() == 'FAILED'} ? '중단' : '진행 중')"
+                                  th:title="${run.errorMessage}">완료</span>
+                        </td>
+                        <td class="text-xs" th:text="${run.totalCount}">0</td>
+                        <td class="text-xs" th:text="${run.succeededCount}">0</td>
+                        <td class="text-xs" th:classappend="${run.failedCount > 0} ? 'text-error font-semibold'" th:text="${run.failedCount}">0</td>
+                        <td class="text-xs"
+                            th:text="${run.durationSeconds != null} ? (${run.durationSeconds} + '초') : '-'">0초</td>
+                        <td class="text-xs" th:text="${run.triggeredByAdminUsername}">admin</td>
+                    </tr>
+                    <tr th:if="${recentRuns.isEmpty()}">
+                        <td colspan="8" class="text-center text-base-content/50 py-6">실행 이력이 없습니다.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <!-- 전체 색인 확인 모달 -->
     <dialog id="confirmModal" class="modal">
         <div class="modal-box">
             <h3 class="font-bold text-lg">전체 색인 확인</h3>
-            <p class="py-4">모든 활성 문제를 Qdrant에 재색인합니다. 계속하시겠습니까?</p>
+            <p class="py-4">모든 활성 문제를 Qdrant에 재색인합니다. 백그라운드로 실행되며 계속하시겠습니까?</p>
             <div class="modal-action">
                 <button class="btn btn-ghost" onclick="document.getElementById('confirmModal').close()">취소</button>
-                <button class="btn btn-primary" onclick="document.getElementById('indexAllForm').submit()">색인 시작</button>
+                <button class="btn btn-primary" onclick="startIndexAll()">색인 시작</button>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
@@ -178,57 +270,6 @@
 </th:block>
 
 <th:block layout:fragment="js">
-    <script>
-        lucide.createIcons();
-
-        function confirmIndexAll() {
-            document.getElementById('confirmModal').showModal();
-        }
-
-        function toggleSelectAllUnindexed(checkbox) {
-            // 두 전체선택 체크박스를 동기화
-            document.getElementById('selectAllUnindexed').checked = checkbox.checked;
-            document.getElementById('selectAllUnindexed2').checked = checkbox.checked;
-            document.querySelectorAll('.unindexed-checkbox').forEach(cb => {
-                cb.checked = checkbox.checked;
-            });
-            updateIndexSelectedBtn();
-        }
-
-        function onUnindexedCheckboxChange() {
-            const all = document.querySelectorAll('.unindexed-checkbox');
-            const checked = document.querySelectorAll('.unindexed-checkbox:checked');
-            const allChecked = all.length > 0 && all.length === checked.length;
-            document.getElementById('selectAllUnindexed').checked = allChecked;
-            document.getElementById('selectAllUnindexed2').checked = allChecked;
-            updateIndexSelectedBtn();
-        }
-
-        function updateIndexSelectedBtn() {
-            const count = document.querySelectorAll('.unindexed-checkbox:checked').length;
-            const btn = document.getElementById('indexSelectedBtn');
-            btn.disabled = count === 0;
-        }
-
-        function indexSelectedUnindexed() {
-            const uuids = Array.from(document.querySelectorAll('.unindexed-checkbox:checked'))
-                .map(cb => cb.dataset.uuid);
-
-            if (uuids.length === 0) return;
-
-            const btn = document.getElementById('indexSelectedBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loading loading-spinner loading-xs"></span> 색인 중...';
-
-            AdminApi.post('/admin/embeddings/index-selected', {uuids: uuids})
-            .then(data => AdminUi.reloadWithToast(`색인 완료: ${data.succeeded}개 성공, ${data.failed}개 실패`))
-            .catch(error => {
-                AdminUi.showError(error);
-                btn.disabled = false;
-                btn.innerHTML = '<i data-lucide="zap" class="size-4"></i> 선택 색인';
-                lucide.createIcons();
-            });
-        }
-    </script>
+    <script th:src="@{/js/admin/embedding-index.js}"></script>
 </th:block>
 </html>

@@ -19,7 +19,8 @@ public enum AdminAuditTargetType {
     NOTICE("공지"),
     ADMIN_ACCOUNT("관리자 계정"),
     NOTIFICATION("알림"),
-    COMMUNITY_POST("커뮤니티 글");
+    COMMUNITY_POST("커뮤니티 글"),
+    EMBEDDING_INDEX("임베딩 색인");
 
     // 화면 표시 이름
     private final String label;
