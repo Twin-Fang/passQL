@@ -63,6 +63,45 @@
         </div>
     </div>
 
+    <!-- 품질 지표: 풀이·정답률·신고, 보기 키별 선택 분포 -->
+    <div class="card bg-base-100 shadow mb-4">
+        <div class="card-body">
+            <h3 class="card-title text-base mb-4">
+                <i data-lucide="bar-chart-3" class="size-5"></i>
+                품질 지표
+            </h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                    <div class="text-base-content/50 text-xs mb-1">풀이 수</div>
+                    <span class="font-bold" th:text="${quality.solveCount}">0</span>
+                </div>
+                <div>
+                    <div class="text-base-content/50 text-xs mb-1">정답률</div>
+                    <span class="font-bold"
+                          th:text="${quality.accuracyPercent != null ? #numbers.formatDecimal(quality.accuracyPercent, 1, 1) + '%' : '-'}">-</span>
+                </div>
+                <div>
+                    <div class="text-base-content/50 text-xs mb-1">신고</div>
+                    <span class="font-bold" th:text="${quality.reportCount} + '건 (대기 ' + ${quality.pendingReportCount} + ')'">0건</span>
+                    <a th:if="${quality.reportCount > 0}"
+                       th:href="@{/admin/reports/{uuid}(uuid=${question.questionUuid})}"
+                       class="link link-primary text-xs ml-1">신고 상세</a>
+                </div>
+            </div>
+            <div class="mt-4" th:if="${!quality.choiceSelections.isEmpty()}">
+                <div class="text-base-content/50 text-xs mb-2">보기 키별 선택 분포 (선택지 순서는 세트마다 섞일 수 있음)</div>
+                <div class="space-y-1">
+                    <div th:each="selection : ${quality.choiceSelections}" class="flex items-center gap-2 text-xs">
+                        <span class="badge badge-primary badge-sm font-bold w-8" th:text="${selection.choiceKey}">A</span>
+                        <progress class="progress progress-primary w-48" max="100" th:value="${selection.selectedPercent}"></progress>
+                        <span th:text="${selection.selectedCount} + '건 (' + ${#numbers.formatDecimal(selection.selectedPercent, 1, 1)} + '%), 정답 처리 ' + ${selection.correctCount} + '건'">0건</span>
+                    </div>
+                </div>
+            </div>
+            <p class="text-xs text-base-content/40 mt-2" th:if="${quality.choiceSelections.isEmpty()}">아직 풀이 기록이 없습니다.</p>
+        </div>
+    </div>
+
     <!-- 지문 -->
     <div class="card bg-base-100 shadow mb-4">
         <div class="card-body">

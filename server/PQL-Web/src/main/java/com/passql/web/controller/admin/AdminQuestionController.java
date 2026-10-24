@@ -6,11 +6,13 @@ import com.passql.ai.dto.QuestionFullContextDto;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.service.MetaService;
+import com.passql.question.constant.AdminQuestionSortType;
 import com.passql.question.constant.ChoiceSetPolicy;
 import com.passql.question.constant.ExecutionMode;
 import com.passql.question.dto.*;
 import com.passql.question.dto.AdminQuestionSearchCondition;
 import com.passql.question.entity.Question;
+import com.passql.question.service.AdminQuestionQualityService;
 import com.passql.question.service.OracleSqlCompatibilityConverter;
 import com.passql.question.service.QuestionGenerateService;
 import com.passql.question.service.QuestionLatestTrendService;
@@ -24,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -47,15 +50,20 @@ public class AdminQuestionController {
     private final MetaService metaService;
     private final AdminQuestionDeleteService adminQuestionDeleteService;
     private final QuestionLatestTrendService questionLatestTrendService;
+    private final AdminQuestionQualityService adminQuestionQualityService;
 
     @GetMapping
     @AdminPage(menu = AdminMenu.QUESTIONS)
     public String list(Model model, AdminQuestionSearchCondition condition,
                        @RequestParam(defaultValue = "0") int page,
                        @RequestParam(defaultValue = AdminPageRequest.DEFAULT_PAGE_SIZE) int size) {
-        Pageable pageable = AdminPageRequest.newestFirst(page, size);
-        model.addAttribute("questions", questionService.searchQuestionsForAdmin(condition, pageable));
+        // 품질 정렬은 조회 조건 안에서 지정하므로 Pageable 은 정렬 없이
+        boolean isQualitySort = AdminQuestionSortType.fromRequestValueOrNewest(condition.getSort()).isQualitySort();
+        Pageable pageable = isQualitySort ? AdminPageRequest.of(page, size, Sort.unsorted()) : AdminPageRequest.newestFirst(page, size);
+        model.addAttribute("questions", adminQuestionQualityService.attachQualityStats(
+                questionService.searchQuestionsForAdmin(condition, pageable)));
         model.addAttribute("condition", condition);
+        model.addAttribute("sortTypes", AdminQuestionSortType.values());
         model.addAttribute("topics", metaService.getTopicTree());
         return "admin/questions";
     }
@@ -124,6 +132,7 @@ public class AdminQuestionController {
         QuestionDetail question = questionService.getQuestionForAdmin(uuid);
         model.addAttribute("question", question);
         model.addAttribute("isQuestionActive", questionService.isQuestionActive(uuid));
+        model.addAttribute("quality", adminQuestionQualityService.getQualityDetail(uuid));
         return "admin/question-detail";
     }
 
