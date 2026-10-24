@@ -5,6 +5,7 @@ import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.meta.constant.ConceptDocSortType;
 import com.passql.meta.dto.ConceptTagResponse;
 import com.passql.meta.dto.TopicCreateRequest;
 import com.passql.meta.dto.TopicTree;
@@ -22,9 +23,14 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -74,6 +80,52 @@ public class MetaService {
         return conceptTagRepository.findByTagKey(tagKey)
                 .map(tag -> conceptDocRepository.findByConceptTagUuid(tag.getConceptTagUuid()))
                 .orElse(List.of());
+    }
+
+    /**
+     * 개념 문서 검색: 태그 지정 시 그 태그 문서, 미지정 시 검색어가 있을 때만 전체 문서 (제목·본문 부분 일치, 대소문자 무시)
+     */
+    public List<ConceptDoc> searchDocs(String tagKey, String keyword, ConceptDocSortType sortType) {
+        boolean hasTagKey = tagKey != null && !tagKey.isBlank();
+        boolean hasKeyword = keyword != null && !keyword.isBlank();
+        if (!hasTagKey && !hasKeyword) {
+            return List.of();
+        }
+        List<ConceptDoc> docs = hasTagKey ? getDocsByTagKey(tagKey) : conceptDocRepository.findAll();
+        String lowerKeyword = hasKeyword ? keyword.trim().toLowerCase() : null;
+        Comparator<ConceptDoc> comparator = switch (sortType) {
+            case RECENTLY_UPDATED -> Comparator.comparing(ConceptDoc::getUpdatedAt, Comparator.nullsLast(Comparator.reverseOrder()));
+            case OLDEST_UPDATED -> Comparator.comparing(ConceptDoc::getUpdatedAt, Comparator.nullsLast(Comparator.naturalOrder()));
+            case TITLE_ASCENDING -> Comparator.comparing(doc -> doc.getTitle() == null ? "" : doc.getTitle());
+        };
+        return docs.stream()
+                .filter(doc -> !hasKeyword || containsIgnoreCase(doc.getTitle(), lowerKeyword) || containsIgnoreCase(doc.getBodyMd(), lowerKeyword))
+                .sorted(comparator)
+                .toList();
+    }
+
+    private boolean containsIgnoreCase(String text, String lowerKeyword) {
+        return text != null && text.toLowerCase().contains(lowerKeyword);
+    }
+
+    /** 개념 태그 uuid > tagKey (전체 문서 검색 결과에 소속 태그 표시용) */
+    public Map<UUID, String> getTagKeyByUuid() {
+        return conceptTagRepository.findAll().stream()
+                .collect(Collectors.toMap(ConceptTag::getConceptTagUuid, ConceptTag::getTagKey));
+    }
+
+    /** 개념 태그 순서 변경: 활성 태그 전체 tagKey 를 새 순서대로 받아 sortOrder 를 1부터 다시 부여 */
+    @Transactional
+    public void reorderConceptTags(List<String> orderedTagKeys) {
+        List<ConceptTag> tags = conceptTagRepository.findByIsActiveTrueOrderBySortOrderAsc();
+        Map<String, ConceptTag> tagByKey = tags.stream().collect(Collectors.toMap(ConceptTag::getTagKey, Function.identity()));
+        validateOrderedCodes(orderedTagKeys, tagByKey.keySet());
+        List<String> beforeKeys = tags.stream().map(ConceptTag::getTagKey).toList();
+        for (int index = 0; index < orderedTagKeys.size(); index++) {
+            tagByKey.get(orderedTagKeys.get(index)).setSortOrder(index + 1);
+        }
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.CONCEPT_DOC, "tag-order", AdminAuditAction.UPDATE,
+                AdminAuditEvent.summary("orderedTagKeys", beforeKeys), AdminAuditEvent.summary("orderedTagKeys", orderedTagKeys)));
     }
 
     @Transactional
@@ -152,6 +204,70 @@ public class MetaService {
         topic.setIsActive(request.isActive());
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.TOPIC, code, AdminAuditAction.UPDATE,
                 before, toTopicAuditSummary(topic)));
+    }
+
+    /** 서브토픽 편집: 상위 토픽 소속 확인 > displayName, sortOrder, isActive 수정 */
+    @Transactional
+    public void updateSubtopic(String topicCode, String subtopicCode, TopicUpdateRequest request) {
+        Subtopic subtopic = findSubtopicOfTopic(topicCode, subtopicCode);
+        Map<String, Object> before = toSubtopicAuditSummary(subtopic);
+        subtopic.setDisplayName(request.displayName());
+        subtopic.setSortOrder(request.sortOrder());
+        subtopic.setIsActive(request.isActive());
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.TOPIC, topicCode + "/" + subtopicCode,
+                AdminAuditAction.UPDATE, before, toSubtopicAuditSummary(subtopic)));
+    }
+
+    /** 토픽 순서 변경: 전체 토픽 코드를 새 순서대로 받아 sortOrder 를 1부터 다시 부여 (누락·중복·없는 코드는 거부) */
+    @Transactional
+    public void reorderTopics(List<String> orderedTopicCodes) {
+        List<Topic> topics = topicRepository.findAllByOrderBySortOrderAsc();
+        Map<String, Topic> topicByCode = topics.stream().collect(Collectors.toMap(Topic::getCode, Function.identity()));
+        validateOrderedCodes(orderedTopicCodes, topicByCode.keySet());
+        List<String> beforeCodes = topics.stream().map(Topic::getCode).toList();
+        for (int index = 0; index < orderedTopicCodes.size(); index++) {
+            topicByCode.get(orderedTopicCodes.get(index)).setSortOrder(index + 1);
+        }
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.TOPIC, "order", AdminAuditAction.UPDATE,
+                AdminAuditEvent.summary("orderedCodes", beforeCodes), AdminAuditEvent.summary("orderedCodes", orderedTopicCodes)));
+    }
+
+    /** 서브토픽 순서 변경: 한 토픽의 전체 서브토픽 코드를 새 순서대로 받아 sortOrder 를 1부터 다시 부여 */
+    @Transactional
+    public void reorderSubtopics(String topicCode, List<String> orderedSubtopicCodes) {
+        Topic topic = topicRepository.findByCode(topicCode)
+                .orElseThrow(() -> new CustomException(ErrorCode.TOPIC_NOT_FOUND));
+        List<Subtopic> subtopics = subtopicRepository.findByTopicUuidOrderBySortOrderAsc(topic.getTopicUuid());
+        Map<String, Subtopic> subtopicByCode = subtopics.stream().collect(Collectors.toMap(Subtopic::getCode, Function.identity()));
+        validateOrderedCodes(orderedSubtopicCodes, subtopicByCode.keySet());
+        List<String> beforeCodes = subtopics.stream().map(Subtopic::getCode).toList();
+        for (int index = 0; index < orderedSubtopicCodes.size(); index++) {
+            subtopicByCode.get(orderedSubtopicCodes.get(index)).setSortOrder(index + 1);
+        }
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.TOPIC, topicCode + "/order", AdminAuditAction.UPDATE,
+                AdminAuditEvent.summary("orderedCodes", beforeCodes), AdminAuditEvent.summary("orderedCodes", orderedSubtopicCodes)));
+    }
+
+    /** 순서 요청 코드 목록 검증: 현재 코드 전체와 정확히 같은 집합 (중복·누락·모르는 코드 거부) */
+    private void validateOrderedCodes(List<String> orderedCodes, Set<String> currentCodes) {
+        if (orderedCodes == null || orderedCodes.size() != currentCodes.size()
+                || !new HashSet<>(orderedCodes).equals(currentCodes)) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "현재 목록 전체를 중복 없이 새 순서로 보내야 합니다.");
+        }
+    }
+
+    /** 토픽 코드 + 서브토픽 코드 > 서브토픽 (해당 토픽 소속이 아니면 없음 처리) */
+    public Subtopic findSubtopicOfTopic(String topicCode, String subtopicCode) {
+        Topic topic = topicRepository.findByCode(topicCode)
+                .orElseThrow(() -> new CustomException(ErrorCode.TOPIC_NOT_FOUND));
+        return subtopicRepository.findByCode(subtopicCode)
+                .filter(subtopic -> subtopic.getTopicUuid().equals(topic.getTopicUuid()))
+                .orElseThrow(() -> new CustomException(ErrorCode.TOPIC_NOT_FOUND));
+    }
+
+    private Map<String, Object> toSubtopicAuditSummary(Subtopic subtopic) {
+        return AdminAuditEvent.summary("displayName", subtopic.getDisplayName(), "sortOrder", subtopic.getSortOrder(),
+                "isActive", subtopic.getIsActive());
     }
 
     private Map<String, Object> toTopicAuditSummary(Topic topic) {

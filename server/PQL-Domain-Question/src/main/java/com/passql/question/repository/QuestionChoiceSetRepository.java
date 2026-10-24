@@ -5,6 +5,7 @@ import com.passql.question.constant.ChoiceSetStatus;
 import com.passql.question.entity.QuestionChoiceSet;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,7 +17,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface QuestionChoiceSetRepository extends JpaRepository<QuestionChoiceSet, UUID> {
+public interface QuestionChoiceSetRepository extends JpaRepository<QuestionChoiceSet, UUID>, JpaSpecificationExecutor<QuestionChoiceSet> {
 
     /**
      * 프리페치 캐시 조회: 특정 멤버·특정 문제에 대해 아직 소비되지 않은

@@ -7,12 +7,59 @@
 
 <th:block layout:fragment="content">
 
+    <!-- 필터 & 일괄 처리 바 -->
+    <div class="card bg-base-100 shadow mb-4">
+        <div class="card-body p-4">
+            <form th:action="@{/admin/choice-sets}" method="get" class="flex flex-wrap gap-3 items-end">
+                <div class="form-control">
+                    <label class="label label-text text-xs">출처</label>
+                    <select name="source" class="select select-sm select-bordered w-44">
+                        <option value="">전체</option>
+                        <option th:each="source : ${sources}" th:value="${source.name()}" th:text="${source.name()}"
+                                th:selected="${condition.source == source.name()}">AI_RUNTIME</option>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label class="label label-text text-xs">상태</label>
+                    <select name="status" class="select select-sm select-bordered w-32">
+                        <option value="">전체</option>
+                        <option th:each="status : ${statuses}" th:value="${status.name()}" th:text="${status.name()}"
+                                th:selected="${condition.status == status.name()}">OK</option>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label class="label label-text text-xs">문제 UUID</label>
+                    <input type="text" name="questionUuid" class="input input-sm input-bordered w-80 font-mono"
+                           th:value="${condition.questionUuid}" placeholder="전체 UUID"/>
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i data-lucide="search" class="size-4"></i>
+                    검색
+                </button>
+                <a th:href="@{/admin/choice-sets}" class="btn btn-sm btn-ghost">초기화</a>
+
+                <!-- 선택 세트 일괄 처리 (체크박스 선택 시 활성화) -->
+                <div class="ml-auto flex flex-wrap gap-2">
+                    <button type="button" id="bulkPromoteBtn" class="btn btn-sm btn-success btn-outline" onclick="bulkPromoteChoiceSets()" disabled>
+                        <i data-lucide="arrow-up-circle" class="size-4"></i>
+                        <span id="bulkPromoteLabel">선택 재사용 풀 승격</span>
+                    </button>
+                    <button type="button" id="bulkDisableBtn" class="btn btn-sm btn-error btn-outline" onclick="bulkDisableChoiceSets()" disabled>
+                        <i data-lucide="x-circle" class="size-4"></i>
+                        <span id="bulkDisableLabel">선택 비활성화</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="card bg-base-100 shadow">
         <div class="card-body p-0">
             <div class="overflow-x-auto">
                 <table class="table table-sm">
                     <thead>
                     <tr>
+                        <th class="w-10"><input type="checkbox" class="checkbox checkbox-xs" onchange="toggleAllChoiceSets(this)"/></th>
                         <th>UUID</th>
                         <th>문제</th>
                         <th>출처</th>
@@ -25,10 +72,21 @@
                     </thead>
                     <tbody>
                     <tr th:each="set : ${choiceSets.content}">
+                        <td>
+                            <input type="checkbox" class="checkbox checkbox-xs choice-set-checkbox"
+                                   th:data-uuid="${set.choiceSetUuid}" onchange="updateChoiceSetBulkButtons()"/>
+                        </td>
                         <td class="font-mono text-xs" th:text="${#strings.abbreviate(set.choiceSetUuid.toString(), 12)}">uuid</td>
-                        <td class="font-mono text-xs" th:text="${#strings.abbreviate(set.questionUuid.toString(), 12)}">q-uuid</td>
+                        <td class="font-mono text-xs">
+                            <a th:href="@{/admin/questions/{uuid}(uuid=${set.questionUuid})}" class="link link-hover"
+                               th:text="${#strings.abbreviate(set.questionUuid.toString(), 12)}">q-uuid</a>
+                        </td>
                         <td><span class="badge badge-outline badge-sm" th:text="${set.source}">AI_RUNTIME</span></td>
-                        <td><span class="badge badge-sm" th:text="${set.status}">OK</span></td>
+                        <td>
+                            <span class="badge badge-sm"
+                                  th:classappend="${set.status.name() == 'OK'} ? 'badge-success' : (${set.status.name() == 'DISABLED'} ? 'badge-ghost' : 'badge-warning')"
+                                  th:text="${set.status}">OK</span>
+                        </td>
                         <td class="text-xs" th:text="${set.generationAttempts}">1</td>
                         <td class="text-xs" th:text="${set.modelName}">gemini</td>
                         <td class="text-xs" th:text="${#temporals.format(set.createdAt, 'yyyy-MM-dd HH:mm')}">2026-04-09</td>
@@ -40,10 +98,24 @@
                         </td>
                     </tr>
                     <tr th:if="${choiceSets == null or choiceSets.isEmpty()}">
-                        <td colspan="8" class="text-center text-base-content/50 py-12">데이터가 없습니다.</td>
+                        <td colspan="9" class="text-center text-base-content/50 py-12">데이터가 없습니다.</td>
                     </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex justify-center p-4" th:if="${choiceSets != null and choiceSets.totalPages > 1}">
+                <div class="join">
+                    <a th:href="@{/admin/choice-sets(page=${choiceSets.number - 1}, source=${condition.source}, status=${condition.status}, questionUuid=${condition.questionUuid})}"
+                       class="join-item btn btn-sm"
+                       th:classappend="${choiceSets.first} ? 'btn-disabled'">«</a>
+                    <button class="join-item btn btn-sm btn-active"
+                            th:text="${choiceSets.number + 1} + ' / ' + ${choiceSets.totalPages}">1 / 10</button>
+                    <a th:href="@{/admin/choice-sets(page=${choiceSets.number + 1}, source=${condition.source}, status=${condition.status}, questionUuid=${condition.questionUuid})}"
+                       class="join-item btn btn-sm"
+                       th:classappend="${choiceSets.last} ? 'btn-disabled'">»</a>
+                </div>
             </div>
         </div>
     </div>
@@ -51,6 +123,7 @@
 </th:block>
 
 <th:block layout:fragment="js">
+    <script th:src="@{/js/admin/choice-set-bulk.js}"></script>
     <script>lucide.createIcons();</script>
 </th:block>
 </html>

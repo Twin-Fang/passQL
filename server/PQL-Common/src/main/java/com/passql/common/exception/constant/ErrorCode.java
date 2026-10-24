@@ -55,6 +55,7 @@ public enum ErrorCode {
     PROMPT_NOT_FOUND(HttpStatus.NOT_FOUND, "프롬프트 템플릿을 찾을 수 없습니다."),
     TOPIC_NOT_FOUND(HttpStatus.NOT_FOUND, "토픽을 찾을 수 없습니다."),
     TOPIC_DUPLICATE(HttpStatus.CONFLICT, "이미 있는 토픽 코드입니다."),
+    TOPIC_HAS_QUESTIONS(HttpStatus.CONFLICT, "소속 문제가 있는 토픽·서브토픽은 삭제할 수 없습니다."),
     EXAM_SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "시험 일정을 찾을 수 없습니다."),
     EXAM_SCHEDULE_DUPLICATE(HttpStatus.CONFLICT, "이미 등록된 시험 회차입니다."),
     DAILY_CHALLENGE_QUESTION_INACTIVE(HttpStatus.UNPROCESSABLE_ENTITY, "비활성 문제는 일일 챌린지로 배정할 수 없습니다."),

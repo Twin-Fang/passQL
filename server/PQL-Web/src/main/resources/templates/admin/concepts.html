@@ -4,6 +4,23 @@
 
 <th:block layout:fragment="title">개념 문서 관리</th:block>
 
+<th:block layout:fragment="css">
+    <style>
+        /* 마크다운 미리보기 최소 서식 (타이포그래피 플러그인 미사용) */
+        .markdown-preview h1, .markdown-preview h2, .markdown-preview h3 { font-weight: 700; margin: 0.8em 0 0.4em; }
+        .markdown-preview h1 { font-size: 1.4rem; }
+        .markdown-preview h2 { font-size: 1.2rem; }
+        .markdown-preview h3 { font-size: 1.05rem; }
+        .markdown-preview ul { list-style: disc; padding-left: 1.4rem; }
+        .markdown-preview ol { list-style: decimal; padding-left: 1.4rem; }
+        .markdown-preview pre { background: var(--color-base-200); border-radius: 0.5rem; padding: 0.75rem; overflow-x: auto; }
+        .markdown-preview code { font-family: ui-monospace, monospace; font-size: 0.85em; }
+        .markdown-preview table { border-collapse: collapse; }
+        .markdown-preview th, .markdown-preview td { border: 1px solid var(--color-base-300); padding: 0.25rem 0.5rem; }
+        .markdown-preview p { margin: 0.5em 0; }
+    </style>
+</th:block>
+
 <th:block layout:fragment="content">
 
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
@@ -18,56 +35,40 @@
                     </h3>
                 </div>
 
-                <div class="space-y-1">
-                    <a th:each="tag : ${conceptTags}"
-                       th:href="@{/admin/concepts}?tagKey=${tag.tagKey}"
-                       th:classappend="${selectedTagKey == tag.tagKey} ? 'bg-primary/10 border-primary' : 'border-base-300'"
-                       class="flex items-center justify-between border rounded-lg px-3 py-2 cursor-pointer hover:bg-base-200 transition-colors">
-                        <div class="min-w-0">
-                            <p class="font-medium text-sm" th:text="${tag.labelKo}">GROUP BY</p>
-                            <p class="font-mono text-xs text-base-content/50" th:text="${tag.tagKey}">group_by</p>
-                        </div>
-                        <div class="flex items-center gap-2 shrink-0">
-                            <span class="badge badge-outline badge-xs" th:text="${tag.category}">aggregation</span>
-                            <span th:classappend="${tag.getIsActive()} ? 'badge-success' : 'badge-ghost'"
-                                  class="badge badge-xs"
-                                  th:text="${tag.getIsActive()} ? '활성' : '비활성'">활성</span>
-                        </div>
-                    </a>
+                <!-- 태그 검색 (이름·키 부분 일치, 화면 안에서만 거름) -->
+                <input type="search" id="conceptTagSearchInput" class="input input-sm input-bordered w-full mb-2"
+                       placeholder="태그 이름·키 검색" oninput="filterConceptTags(this.value)"/>
 
-                    <!-- Placeholder -->
-                    <th:block th:if="${conceptTags == null or conceptTags.isEmpty()}">
-                        <div class="flex items-center justify-between border border-primary/30 bg-primary/5 rounded-lg px-3 py-2">
-                            <div>
-                                <p class="font-medium text-sm">GROUP BY</p>
-                                <p class="font-mono text-xs text-base-content/50">group_by</p>
+                <div class="space-y-1" id="conceptTagList">
+                    <div th:each="tag : ${conceptTags}"
+                         data-order-row="true"
+                         th:data-code="${tag.tagKey}"
+                         th:data-search-text="${#strings.toLowerCase(tag.labelKo + ' ' + tag.tagKey)}"
+                         class="concept-tag-row flex items-center gap-1">
+                        <a th:href="@{/admin/concepts(tagKey=${tag.tagKey}, sort=${selectedSort})}"
+                           th:classappend="${selectedTagKey == tag.tagKey} ? 'bg-primary/10 border-primary' : 'border-base-300'"
+                           class="flex flex-1 items-center justify-between border rounded-lg px-3 py-2 cursor-pointer hover:bg-base-200 transition-colors min-w-0">
+                            <div class="min-w-0">
+                                <p class="font-medium text-sm" th:text="${tag.labelKo}">GROUP BY</p>
+                                <p class="font-mono text-xs text-base-content/50" th:text="${tag.tagKey}">group_by</p>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <span class="badge badge-outline badge-xs">aggregation</span>
-                                <span class="badge badge-xs badge-success">활성</span>
-                            </div>
+                            <span class="badge badge-outline badge-xs shrink-0" th:text="${tag.category}">aggregation</span>
+                        </a>
+                        <div class="flex flex-col shrink-0">
+                            <button type="button" class="btn btn-xs btn-ghost px-1" title="위로" th:data-code="${tag.tagKey}"
+                                    onclick="moveOrderRow(this.dataset.code, -1, 'conceptTagList', saveConceptTagOrder)">
+                                <i data-lucide="arrow-up" class="size-3"></i>
+                            </button>
+                            <button type="button" class="btn btn-xs btn-ghost px-1" title="아래로" th:data-code="${tag.tagKey}"
+                                    onclick="moveOrderRow(this.dataset.code, 1, 'conceptTagList', saveConceptTagOrder)">
+                                <i data-lucide="arrow-down" class="size-3"></i>
+                            </button>
                         </div>
-                        <div class="flex items-center justify-between border border-base-300 rounded-lg px-3 py-2">
-                            <div>
-                                <p class="font-medium text-sm">JOIN 개념</p>
-                                <p class="font-mono text-xs text-base-content/50">join_concept</p>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="badge badge-outline badge-xs">join</span>
-                                <span class="badge badge-xs badge-success">활성</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between border border-base-300 rounded-lg px-3 py-2">
-                            <div>
-                                <p class="font-medium text-sm">윈도우 함수</p>
-                                <p class="font-mono text-xs text-base-content/50">window_func</p>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="badge badge-outline badge-xs">advanced</span>
-                                <span class="badge badge-xs badge-ghost">비활성</span>
-                            </div>
-                        </div>
-                    </th:block>
+                    </div>
+
+                    <p th:if="${conceptTags == null or conceptTags.isEmpty()}" class="text-center text-base-content/40 py-8 text-sm">
+                        활성 개념 태그가 없습니다.
+                    </p>
                 </div>
             </div>
         </div>
@@ -81,6 +82,7 @@
                         개념 문서
                         <span class="badge badge-outline badge-sm" th:if="${selectedTagKey}"
                               th:text="${selectedTagKey}">group_by</span>
+                        <span class="badge badge-neutral badge-sm" th:text="${conceptDocs.size()} + '건'">0건</span>
                     </h3>
                     <button class="btn btn-sm btn-success" th:if="${selectedTagKey}"
                             onclick="document.getElementById('newDocModal').showModal()">
@@ -89,30 +91,55 @@
                     </button>
                 </div>
 
+                <!-- 검색·정렬 (태그 미선택 시 검색어로 전체 문서 검색) -->
+                <form th:action="@{/admin/concepts}" method="get" class="flex flex-wrap items-end gap-2 mb-3">
+                    <input type="hidden" name="tagKey" th:value="${selectedTagKey}"/>
+                    <input type="search" name="keyword" th:value="${keyword}" placeholder="제목·본문 검색"
+                           class="input input-sm input-bordered w-56"/>
+                    <select name="sort" class="select select-sm select-bordered" onchange="this.form.submit()">
+                        <option th:each="sortType : ${sortTypes}" th:value="${sortType.name()}"
+                                th:text="${sortType.label}" th:selected="${selectedSort == sortType.name()}">최근 수정순</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i data-lucide="search" class="size-4"></i>
+                        검색
+                    </button>
+                    <a th:href="@{/admin/concepts(tagKey=${selectedTagKey})}" class="btn btn-sm btn-ghost">초기화</a>
+                </form>
+
                 <!-- 문서 목록 -->
-                <div th:if="${conceptDocs != null and !conceptDocs.isEmpty()}" class="space-y-4">
+                <div th:if="${!conceptDocs.isEmpty()}" class="space-y-4">
                     <div th:each="doc : ${conceptDocs}"
                          class="border border-base-300 rounded-lg overflow-hidden">
                         <div class="flex items-center justify-between bg-base-200 px-4 py-2">
                             <div>
                                 <span class="font-medium text-sm" th:text="${doc.title}">GROUP BY 기본 개념</span>
+                                <span class="badge badge-outline badge-xs ml-1" th:if="${selectedTagKey == null}"
+                                      th:text="${tagKeyByUuid.get(doc.conceptTagUuid)}">group_by</span>
                                 <span class="text-xs text-base-content/50 ml-2"
                                       th:text="'v' + ${doc.embeddingVersion} + ' · ' + ${#temporals.format(doc.updatedAt, 'yyyy-MM-dd')}">v1 · 2026-04-01</span>
                             </div>
-                            <div class="flex gap-1">
+                            <div class="flex items-center gap-1">
                                 <span th:classappend="${doc.getIsActive()} ? 'badge-success' : 'badge-ghost'"
                                       class="badge badge-xs"
                                       th:text="${doc.getIsActive()} ? '활성' : '비활성'">활성</span>
-                                <button class="btn btn-xs btn-ghost">
-                                    <i data-lucide="pencil" class="size-3"></i>
+                                <button type="button" class="btn btn-xs btn-ghost"
+                                        th:data-body-id="'docBody_' + ${doc.conceptDocUuid}"
+                                        th:data-preview-id="'docPreview_' + ${doc.conceptDocUuid}"
+                                        onclick="toggleMarkdownPreview(this.dataset.bodyId, this.dataset.previewId, this)">
+                                    <i data-lucide="eye" class="size-3"></i>
+                                    <span>미리보기</span>
                                 </button>
                             </div>
                         </div>
                         <div class="p-4">
                             <textarea class="textarea textarea-bordered w-full font-mono text-sm"
                                       rows="8"
+                                      th:id="'docBody_' + ${doc.conceptDocUuid}"
                                       th:name="'doc_' + ${doc.conceptDocUuid}"
                                       th:text="${doc.bodyMd}"></textarea>
+                            <div class="markdown-preview hidden text-sm border border-base-300 rounded-lg p-3 min-h-32"
+                                 th:id="'docPreview_' + ${doc.conceptDocUuid}"></div>
                             <div class="flex justify-end gap-2 mt-2">
                                 <button type="button" class="btn btn-sm btn-ghost text-error"
                                         th:data-uuid="${doc.conceptDocUuid}"
@@ -132,50 +159,13 @@
                     </div>
                 </div>
 
-                <!-- Empty / placeholder -->
-                <div th:if="${conceptDocs == null or conceptDocs.isEmpty()}">
-                    <div th:if="${selectedTagKey == null}" class="text-center text-base-content/40 py-16">
-                        <i data-lucide="book" class="size-12 mx-auto mb-3 opacity-30"></i>
-                        <p>좌측에서 태그를 선택하면<br/>개념 문서가 표시됩니다.</p>
-                    </div>
-                    <div th:if="${selectedTagKey != null}" class="space-y-4">
-                        <!-- Placeholder document -->
-                        <div class="border border-base-300 rounded-lg overflow-hidden">
-                            <div class="flex items-center justify-between bg-base-200 px-4 py-2">
-                                <div>
-                                    <span class="font-medium text-sm">GROUP BY 기본 개념</span>
-                                    <span class="text-xs text-base-content/50 ml-2">v1 · 2026-04-01</span>
-                                </div>
-                                <div class="flex gap-1">
-                                    <span class="badge badge-xs badge-success">활성</span>
-                                    <button class="btn btn-xs btn-ghost"><i data-lucide="pencil" class="size-3"></i></button>
-                                </div>
-                            </div>
-                            <div class="p-4">
-                                <textarea class="textarea textarea-bordered w-full font-mono text-sm" rows="8">## GROUP BY란?
-
-GROUP BY 절은 SELECT 문에서 집계 함수와 함께 사용하여
-특정 컬럼의 값을 기준으로 행을 그룹화합니다.
-
-### 기본 구문
-```sql
-SELECT department_id, AVG(salary)
-FROM employees
-GROUP BY department_id;
-```
-
-### 주의사항
-- SELECT 절에는 GROUP BY 컬럼 또는 집계 함수만 사용 가능
-- HAVING 절로 그룹에 조건 부여 가능</textarea>
-                                <div class="flex justify-end mt-2">
-                                    <button type="button" class="btn btn-sm btn-primary">
-                                        <i data-lucide="save" class="size-4"></i>
-                                        저장
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <!-- 빈 상태 -->
+                <div th:if="${conceptDocs.isEmpty()}" class="text-center text-base-content/40 py-16">
+                    <i data-lucide="book" class="size-12 mx-auto mb-3 opacity-30"></i>
+                    <p th:if="${selectedTagKey == null and (keyword == null or keyword.isBlank())}">
+                        좌측에서 태그를 선택하거나<br/>검색어로 문서를 찾으세요.
+                    </p>
+                    <p th:unless="${selectedTagKey == null and (keyword == null or keyword.isBlank())}">조건에 맞는 문서가 없습니다.</p>
                 </div>
             </div>
         </div>
@@ -183,7 +173,7 @@ GROUP BY department_id;
 
     <!-- 문서 추가 모달 -->
     <dialog id="newDocModal" class="modal">
-        <div class="modal-box">
+        <div class="modal-box w-11/12 max-w-3xl">
             <h3 class="font-bold text-lg mb-4">개념 문서 추가</h3>
             <form th:action="@{/admin/concepts}" method="post" class="space-y-3">
                 <input type="hidden" name="tagKey" th:value="${selectedTagKey}"/>
@@ -193,9 +183,17 @@ GROUP BY department_id;
                            placeholder="GROUP BY 기본 개념" required/>
                 </div>
                 <div class="form-control">
-                    <label class="label"><span class="label-text">본문 (Markdown)</span></label>
-                    <textarea name="bodyMd" rows="8" class="textarea textarea-bordered font-mono text-sm"
+                    <label class="label">
+                        <span class="label-text">본문 (Markdown)</span>
+                        <button type="button" class="btn btn-xs btn-ghost" data-body-id="newDocBody" data-preview-id="newDocPreview"
+                                onclick="toggleMarkdownPreview(this.dataset.bodyId, this.dataset.previewId, this)">
+                            <i data-lucide="eye" class="size-3"></i>
+                            <span>미리보기</span>
+                        </button>
+                    </label>
+                    <textarea id="newDocBody" name="bodyMd" rows="8" class="textarea textarea-bordered font-mono text-sm"
                               placeholder="## 개념 설명..."></textarea>
+                    <div id="newDocPreview" class="markdown-preview hidden text-sm border border-base-300 rounded-lg p-3 min-h-32"></div>
                 </div>
                 <div class="modal-action">
                     <button type="button" class="btn btn-ghost" onclick="document.getElementById('newDocModal').close()">취소</button>
@@ -209,22 +207,11 @@ GROUP BY department_id;
 </th:block>
 
 <th:block layout:fragment="js">
-    <script>
-        lucide.createIcons();
-
-        async function deleteDoc(dataset) {
-            if (!await AdminUi.confirmDanger('"' + (dataset.title || '제목 없음') + '" 개념 문서를 삭제합니다. 되돌릴 수 없습니다.', { confirmLabel: '삭제' })) return;
-            AdminApi.delete('/admin/concepts/' + dataset.uuid)
-                .then(() => AdminUi.reloadWithToast('개념 문서를 삭제했습니다.'))
-                .catch(error => AdminUi.showError(error));
-        }
-
-        function saveDoc(docId) {
-            const body = document.querySelector(`textarea[name="doc_${docId}"]`).value;
-            AdminApi.put(`/admin/concepts/${docId}`, {bodyMd: body})
-                .then(() => AdminUi.toast('개념 문서를 저장했습니다.'))
-                .catch(error => AdminUi.showError(error));
-        }
-    </script>
+    <!-- 마크다운 렌더·정화 (버전 고정, 관리자 화면 한정) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+    <script th:src="@{/js/admin/admin-order.js}"></script>
+    <script th:src="@{/js/admin/concept-docs.js}"></script>
+    <script>lucide.createIcons();</script>
 </th:block>
 </html>
