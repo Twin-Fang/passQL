@@ -37,6 +37,21 @@
     <div id="panel-history" class="hidden"><th:block th:replace="~{admin/fragments/push-history :: history-table}"></th:block></div>
     <div id="panel-settings" class="hidden"><th:block th:replace="~{admin/fragments/push-history :: notification-settings}"></th:block></div>
 
+    <!-- 실패 기기 목록 모달 (토큰은 끝 8자만 보관) -->
+    <dialog id="failuresModal" class="modal">
+        <div class="modal-box max-w-2xl">
+            <h3 class="font-bold text-lg mb-3">발송 실패 기기</h3>
+            <div class="overflow-x-auto max-h-96">
+                <table class="table table-sm">
+                    <thead><tr><th>회원</th><th>토큰 끝</th><th>사유</th><th>토큰 삭제</th><th>시각</th></tr></thead>
+                    <tbody id="failuresBody"></tbody>
+                </table>
+            </div>
+            <div class="modal-action"><form method="dialog"><button class="btn btn-sm">닫기</button></form></div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
     <!-- 서버 값을 JS 로 넘기는 자리 (th:inline 대신 data 속성) -->
     <div id="pushPageData" class="hidden"
          th:data-push-enabled-device-count="${pushEnabledDeviceCount}"

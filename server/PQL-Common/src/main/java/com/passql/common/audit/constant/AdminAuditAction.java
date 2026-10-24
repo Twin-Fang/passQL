@@ -26,7 +26,9 @@ public enum AdminAuditAction {
     LOGIN("로그인"),
     LOGIN_FAILURE("로그인 실패"),
     ROLE_CHANGE("권한 변경"),
-    REINDEX("재색인");
+    REINDEX("재색인"),
+    SESSION_TERMINATE("세션 강제 종료"),
+    CANCEL("취소");
 
     // 화면 표시 이름
     private final String label;

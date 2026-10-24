@@ -122,6 +122,7 @@ public enum ErrorCode {
     APP_NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "공지를 찾을 수 없습니다."),
     APP_NOTICE_INPUT_INVALID(HttpStatus.BAD_REQUEST, "공지 제목과 본문을 확인해 주세요."),
     APP_NOTICE_PERIOD_INVALID(HttpStatus.BAD_REQUEST, "공지 종료 시각은 시작 시각 이후여야 합니다."),
+    APP_MAINTENANCE_PERIOD_INVALID(HttpStatus.BAD_REQUEST, "점검 종료 시각은 시작 시각 이후여야 하고, 시작 없이 종료만 지정할 수 없습니다."),
 
     // === Import/Export ===
     IMPORT_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "한 번에 최대 100건까지 가져올 수 있습니다."),
@@ -165,9 +166,17 @@ public enum ErrorCode {
     ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN(HttpStatus.FORBIDDEN, "자기 계정의 역할·사용 여부는 바꿀 수 없습니다."),
     ADMIN_PASSWORD_TOO_WEAK(HttpStatus.BAD_REQUEST, "비밀번호는 10자 이상, 영문과 숫자를 함께 써야 합니다."),
     ADMIN_WRITE_FORBIDDEN(HttpStatus.FORBIDDEN, "조회 전용 관리자는 변경할 수 없습니다."),
+    ADMIN_ACCOUNT_SELF_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "자기 계정은 삭제할 수 없습니다."),
+    ADMIN_ACCOUNT_DELETE_REQUIRES_DISABLED(HttpStatus.CONFLICT, "사용 중지한 계정만 삭제할 수 있습니다. 먼저 사용 중지해 주세요."),
+    ADMIN_ACCOUNT_LAST_ADMIN_FORBIDDEN(HttpStatus.CONFLICT, "마지막 ADMIN 계정은 삭제할 수 없습니다."),
     // Push
     PUSH_TARGET_MEMBER_REQUIRED(HttpStatus.BAD_REQUEST, "특정 회원 발송은 올바른 회원 UUID가 필요합니다."),
     PUSH_LINK_QUESTION_REQUIRED(HttpStatus.BAD_REQUEST, "문제 상세 이동은 올바른 문제 UUID가 필요합니다."),
+    PUSH_INACTIVE_DAYS_INVALID(HttpStatus.BAD_REQUEST, "미접속 일수는 1일 이상 365일 이하로 입력해 주세요."),
+    PUSH_SCHEDULE_TIME_INVALID(HttpStatus.BAD_REQUEST, "예약 시각은 지금부터 1분 뒤 이후, 90일 이내여야 합니다."),
+    PUSH_NOT_SCHEDULED(HttpStatus.CONFLICT, "예약 대기 중인 발송이 아닙니다. 이미 발송했거나 취소된 건입니다."),
+    PUSH_RETRACT_NOT_DISPATCHED(HttpStatus.CONFLICT, "발송이 시작된 건만 회수할 수 있습니다."),
+    PUSH_TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "푸시 템플릿을 찾을 수 없습니다."),
     // Notification Inbox (#491)
     PUSH_SEND_HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "발송 이력을 찾을 수 없습니다."),
     PUSH_ALREADY_RETRACTED(HttpStatus.BAD_REQUEST, "이미 회수한 발송입니다."),
