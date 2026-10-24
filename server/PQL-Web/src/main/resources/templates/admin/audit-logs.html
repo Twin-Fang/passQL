@@ -6,14 +6,22 @@
 
 <th:block layout:fragment="content">
 
-    <!-- 필터 (관리자, 대상 종류, 기간) -->
+    <!-- 필터 (관리자, 동작, 대상 종류, 대상 ID, 키워드, 기간) -->
     <div class="card bg-base-100 shadow mb-4">
         <div class="card-body p-4">
             <form th:action="@{/admin/audit-logs}" method="get" class="flex flex-wrap items-end gap-3">
                 <label class="form-control">
                     <span class="label-text text-xs mb-1">관리자 아이디</span>
-                    <input type="text" name="adminUsername" class="input input-sm input-bordered w-40"
-                           th:value="${condition.adminUsername}" placeholder="정확히 일치"/>
+                    <input type="text" name="adminUsername" class="input input-sm input-bordered w-36"
+                           th:value="${condition.adminUsername}" placeholder="부분 일치"/>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">동작</span>
+                    <select name="action" class="select select-sm select-bordered w-36">
+                        <option value="">전체</option>
+                        <option th:each="a : ${actions}" th:value="${a.name()}" th:text="${a.label}"
+                                th:selected="${condition.action == a.name()}">수정</option>
+                    </select>
                 </label>
                 <label class="form-control">
                     <span class="label-text text-xs mb-1">대상 종류</span>
@@ -22,6 +30,16 @@
                         <option th:each="t : ${targetTypes}" th:value="${t.name()}" th:text="${t.label}"
                                 th:selected="${condition.targetType == t.name()}">문제</option>
                     </select>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">대상 ID</span>
+                    <input type="text" name="targetId" class="input input-sm input-bordered w-44"
+                           th:value="${condition.targetId}" placeholder="UUID·키 일부"/>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">키워드 (대상 ID·변경 내용)</span>
+                    <input type="text" name="keyword" class="input input-sm input-bordered w-48"
+                           th:value="${condition.keyword}" placeholder="값·필드명"/>
                 </label>
                 <label class="form-control">
                     <span class="label-text text-xs mb-1">시작일</span>
@@ -60,13 +78,35 @@
                         <td class="font-mono text-xs" th:text="${log.adminUsername}">admin</td>
                         <td><span class="badge badge-outline badge-sm" th:text="${log.targetType.label}">문제</span></td>
                         <td><span class="badge badge-sm" th:text="${log.action.label}">수정</span></td>
-                        <td class="font-mono text-xs break-all" th:text="${log.targetId ?: '-'}">-</td>
+                        <td class="font-mono text-xs break-all"
+                            th:with="targetPath=${@adminAuditLogViewHelper.findTargetPath(log.targetType, log.targetId)}">
+                            <a th:if="${targetPath != null and log.targetId != null}" th:href="@{${targetPath}}"
+                               class="link link-primary" th:text="${log.targetId}">-</a>
+                            <span th:if="${targetPath == null or log.targetId == null}" th:text="${log.targetId ?: '-'}">-</span>
+                        </td>
                         <td>
-                            <details th:if="${log.changeSummaryJson != null}">
-                                <summary class="cursor-pointer text-xs text-primary">펼치기</summary>
-                                <pre class="text-xs whitespace-pre-wrap break-all bg-base-200 rounded p-2 mt-1 max-h-64 overflow-y-auto"
-                                     th:text="${log.changeSummaryJson}">{}</pre>
-                            </details>
+                            <div th:if="${log.changeSummaryJson != null}"
+                                 th:with="changeRows=${@adminAuditLogViewHelper.toChangeRows(log.changeSummaryJson)}">
+                                <!-- 필드별 전 -> 후 (바뀐 필드는 강조) -->
+                                <table th:if="${!changeRows.isEmpty()}" class="text-xs">
+                                    <tr th:each="row : ${changeRows}">
+                                        <td class="pr-2 align-top font-mono text-base-content/60" th:text="${row.fieldName}">field</td>
+                                        <td class="align-top break-all">
+                                            <span th:if="${row.beforeText != null}" class="text-error/80" th:classappend="${row.isChanged()} ? 'line-through'" th:text="${row.beforeText}">전</span>
+                                            <span th:if="${row.beforeText == null}" class="text-base-content/30">(없음)</span>
+                                            <span class="mx-1 text-base-content/40">&rarr;</span>
+                                            <span th:if="${row.afterText != null}" th:classappend="${row.isChanged()} ? 'text-success font-semibold'" th:text="${row.afterText}">후</span>
+                                            <span th:if="${row.afterText == null}" class="text-base-content/30">(없음)</span>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <!-- 파싱 불가(길이 제한으로 잘린 JSON 등)는 원문 -->
+                                <details th:if="${changeRows.isEmpty()}">
+                                    <summary class="cursor-pointer text-xs text-primary">원문 보기</summary>
+                                    <pre class="text-xs whitespace-pre-wrap break-all bg-base-200 rounded p-2 mt-1 max-h-64 overflow-y-auto"
+                                         th:text="${log.changeSummaryJson}">{}</pre>
+                                </details>
+                            </div>
                             <span th:if="${log.changeSummaryJson == null}" class="text-xs text-base-content/40">-</span>
                         </td>
                         <td class="font-mono text-xs" th:text="${log.clientIp ?: '-'}">-</td>
@@ -81,10 +121,10 @@
             <!-- 페이지네이션 (필터 유지) -->
             <div class="flex justify-center p-4" th:if="${auditLogs.totalPages > 1}">
                 <div class="join">
-                    <a th:href="@{/admin/audit-logs(page=${auditLogs.number - 1}, adminUsername=${condition.adminUsername}, targetType=${condition.targetType}, fromDate=${condition.fromDate}, toDate=${condition.toDate})}"
+                    <a th:href="@{/admin/audit-logs(page=${auditLogs.number - 1}, adminUsername=${condition.adminUsername}, action=${condition.action}, targetType=${condition.targetType}, targetId=${condition.targetId}, keyword=${condition.keyword}, fromDate=${condition.fromDate}, toDate=${condition.toDate})}"
                        class="join-item btn btn-sm" th:classappend="${auditLogs.first} ? 'btn-disabled'">«</a>
                     <button class="join-item btn btn-sm btn-active" th:text="${auditLogs.number + 1} + ' / ' + ${auditLogs.totalPages}">1 / 1</button>
-                    <a th:href="@{/admin/audit-logs(page=${auditLogs.number + 1}, adminUsername=${condition.adminUsername}, targetType=${condition.targetType}, fromDate=${condition.fromDate}, toDate=${condition.toDate})}"
+                    <a th:href="@{/admin/audit-logs(page=${auditLogs.number + 1}, adminUsername=${condition.adminUsername}, action=${condition.action}, targetType=${condition.targetType}, targetId=${condition.targetId}, keyword=${condition.keyword}, fromDate=${condition.fromDate}, toDate=${condition.toDate})}"
                        class="join-item btn btn-sm" th:classappend="${auditLogs.last} ? 'btn-disabled'">»</a>
                 </div>
             </div>
