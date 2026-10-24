@@ -11,12 +11,16 @@ class PassqlCodeBlock extends StatelessWidget {
     required this.code,
     this.isSelectable = true,
     this.shouldWrap = true,
+    this.hasBackground = true,
   });
   final String code;
   final bool isSelectable;
 
   /// true면 줄바꿈, false면 가로 스크롤.
   final bool shouldWrap;
+
+  /// false면 배경 상자 없이 코드만 (카드 안에 넣어 상자가 겹치지 않게)
+  final bool hasBackground;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +32,7 @@ class PassqlCodeBlock extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: colors.fill,
+        color: hasBackground ? colors.fill : null,
         borderRadius: BorderRadius.circular(PassqlRadius.sm),
       ),
       child: shouldWrap

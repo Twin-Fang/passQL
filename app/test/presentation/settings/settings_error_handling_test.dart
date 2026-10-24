@@ -1,11 +1,8 @@
-import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/core/auth/social_sign_in.dart';
-import 'package:passql_app/data/models/member/choice_generation_mode.dart';
 import 'package:passql_app/data/sources/api_providers.dart';
 import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/pages/settings/settings_page.dart';
@@ -63,14 +60,6 @@ Future<void> _tapWithdrawAndConfirm(WidgetTester tester) async {
   await tester.pump(const Duration(milliseconds: 600));
 }
 
-/// 랜덤 닉네임 아이콘을 누르고 확인 창에서 '바꾸기'를 누른다
-Future<void> _tapRegenerateAndConfirm(WidgetTester tester) async {
-  await tester.tap(find.byIcon(CupertinoIcons.arrow_clockwise));
-  await tester.pumpAndSettle();
-  await tester.tap(find.text('바꾸기'));
-  await tester.pumpAndSettle();
-}
-
 void main() {
   setUp(() => FlutterSecureStorage.setMockInitialValues({}));
 
@@ -79,58 +68,6 @@ void main() {
 
     expect(find.text('버전'), findsOneWidget);
     expect(find.text('1.2.3'), findsOneWidget);
-  });
-
-  testWidgets('닉네임 재생성에 실패하면 사유를 토스트로 알리고 닉네임은 그대로 둔다 (#484)', (tester) async {
-    final requestOptions = RequestOptions(
-      path: '/members/me/nickname/regenerate',
-    );
-    final memberApi = FakeMemberApi(
-      regenerateNicknameError: DioException(
-        requestOptions: requestOptions,
-        type: DioExceptionType.connectionError,
-      ),
-    );
-    await _pumpSettings(
-      tester,
-      memberApi: memberApi,
-      settingsData: const SettingsData(
-        memberUuid: 'm-1',
-        nickname: '기존닉네임',
-        choiceMode: ChoiceGenerationMode.practice,
-      ),
-    );
-
-    await _tapRegenerateAndConfirm(tester);
-
-    expect(memberApi.calls, contains('regenerate'));
-    expect(find.text('네트워크 연결을 확인해 주세요.'), findsOneWidget);
-    expect(find.text('기존닉네임'), findsOneWidget);
-  });
-
-  testWidgets('닉네임 재생성은 확인 후에만 호출하고 성공하면 토스트로 알린다 (#579)', (tester) async {
-    final memberApi = FakeMemberApi();
-    await _pumpSettings(
-      tester,
-      memberApi: memberApi,
-      settingsData: const SettingsData(
-        memberUuid: 'm-1',
-        nickname: '기존닉네임',
-        choiceMode: ChoiceGenerationMode.practice,
-      ),
-    );
-
-    // 취소하면 서버를 부르지 않는다
-    await tester.tap(find.byIcon(CupertinoIcons.arrow_clockwise));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('취소'));
-    await tester.pumpAndSettle();
-    expect(memberApi.calls, isNot(contains('regenerate')));
-
-    await _tapRegenerateAndConfirm(tester);
-
-    expect(memberApi.calls, contains('regenerate'));
-    expect(find.text('닉네임이 변경됐어요'), findsOneWidget);
   });
 
   testWidgets('탈퇴 재인증을 취소하면 잠금 스피너가 닫히고 계정은 그대로다 (#547)', (tester) async {

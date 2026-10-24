@@ -43,14 +43,9 @@ abstract final class AppRoutes {
   static String questionsOf(String viewQueryValue) =>
       '$questions?$questionsViewQuery=$viewQueryValue';
 
-  /// 하단 탭 순서(홈·문제·토론·기록·MY). 탭 인덱스 <-> 경로 변환 기준
-  static const List<String> tabRoots = [
-    home,
-    questions,
-    community,
-    stats,
-    settings,
-  ];
+  /// 하단 탭 순서(홈·문제·토론·내 프로필). 탭 인덱스 <-> 경로 변환 기준
+  /// 내 프로필 탭은 [stats] 경로, 설정은 톱니바퀴로 여는 푸시 화면(탭 아님)
+  static const List<String> tabRoots = [home, questions, community, stats];
 
   // 설정 서브 라우트
   /// 건의사항 작성/내역.

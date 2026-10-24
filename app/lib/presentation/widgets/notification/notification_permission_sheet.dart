@@ -8,7 +8,6 @@ import 'notification_permission_texts.dart';
 Future<bool> showNotificationPermissionSheet(BuildContext context) async {
   final isAccepted = await showPassqlSheet<bool>(
     context,
-    hasCloseButton: false,
     builder: (sheetContext) => const NotificationPermissionSheetBody(),
   );
   return isAccepted ?? false;

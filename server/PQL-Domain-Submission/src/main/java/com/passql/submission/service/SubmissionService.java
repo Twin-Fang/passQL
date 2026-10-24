@@ -3,6 +3,7 @@ package com.passql.submission.service;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.common.util.MemberActivityLogger;
+import com.passql.question.constant.ChoiceKind;
 import com.passql.question.constant.ExecutionMode;
 import com.passql.question.dto.ExecuteResult;
 import com.passql.question.dto.SubmitResult;
@@ -70,14 +71,13 @@ public class SubmissionService {
         if (question != null && question.getExecutionMode() == ExecutionMode.EXECUTABLE) {
             String dbName = question.getSandboxDbName();
 
-            selectedSql = selected.getBody();
-            if (correct != null) {
-                correctSql = correct.getBody();
-            }
+            // SQL 보기만 실행 (결과표 TEXT 보기는 SQL 이 아니라 실행하면 문법 오류)
+            selectedSql = sqlBodyOrNull(selected);
+            correctSql = sqlBodyOrNull(correct);
 
             if (dbName != null && !dbName.isBlank()) {
                 // 영구 sandbox DB — executeChoice()와 동일 경로
-                selectedResult = sandboxExecutor.execute(dbName, selectedSql);
+                selectedResult = selectedSql != null ? sandboxExecutor.execute(dbName, selectedSql) : null;
                 if (correctSql != null) {
                     correctResult = sandboxExecutor.execute(dbName, correctSql);
                 }
@@ -89,7 +89,7 @@ public class SubmissionService {
                 ChoiceExecutionResults temporaryResults = sandboxExecutor.runInTemporarySandbox(
                         question.getSchemaDdl(), question.getSchemaSampleData(),
                         tempDb -> new ChoiceExecutionResults(
-                                sandboxExecutor.execute(tempDb, selectedSqlToRun),
+                                selectedSqlToRun != null ? sandboxExecutor.execute(tempDb, selectedSqlToRun) : null,
                                 correctSqlToRun != null ? sandboxExecutor.execute(tempDb, correctSqlToRun) : null));
                 selectedResult = temporaryResults.selectedResult();
                 correctResult = temporaryResults.correctResult();
@@ -118,6 +118,11 @@ public class SubmissionService {
                 structuredExplanation != null ? ChoiceExplanationComposer.toMarkdown(structuredExplanation) : selected.getExplanation(),
                 structuredExplanation
         );
+    }
+
+    /** 실행할 SQL 본문: SQL 보기면 본문, 결과표(TEXT) 보기나 없는 보기면 null */
+    private static String sqlBodyOrNull(QuestionChoiceSetItem item) {
+        return item != null && item.getKind() == ChoiceKind.SQL ? item.getBody() : null;
     }
 
     /** 임시 샌드박스 1회 실행 결과: 선택 SQL·정답 SQL (정답 SQL 없으면 null) */

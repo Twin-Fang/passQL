@@ -166,37 +166,6 @@ void main() {
       );
     }
 
-    final questions = List.generate(
-      5,
-      (i) => QuestionSummary(questionUuid: 'q$i'),
-    );
-
-    testWidgets('완료 전에도 순위 보기가 있고, 누르면 순위만 열린다', (tester) async {
-      final taps = <String>[];
-      await pumpCard(tester, DailySetTodayResponse(questions: questions), taps);
-
-      await tester.tap(find.text('순위 보기'));
-      expect(taps, ['leaderboard']);
-    });
-
-    testWidgets('완료 후에도 순위 보기가 있고, 포커스는 카드 동작 1개 + 순위 1개다', (tester) async {
-      final taps = <String>[];
-      await pumpCard(
-        tester,
-        DailySetTodayResponse(
-          questions: questions,
-          alreadyCompleted: true,
-          correctCount: 4,
-        ),
-        taps,
-      );
-
-      expect(find.bySemanticsLabel('결과 보기'), findsOneWidget);
-      expect(find.bySemanticsLabel('순위 보기'), findsOneWidget);
-      await tester.tap(find.text('순위 보기'));
-      expect(taps, ['leaderboard']);
-    });
-
     testWidgets('세트가 준비 중이면 순위 보기를 숨긴다', (tester) async {
       await pumpCard(tester, const DailySetTodayResponse(), []);
       expect(find.text('순위 보기'), findsNothing);

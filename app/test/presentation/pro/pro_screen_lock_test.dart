@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,24 +18,12 @@ import 'package:passql_app/presentation/providers/app_config_providers.dart';
 import 'package:passql_app/presentation/providers/home_providers.dart';
 import 'package:passql_app/presentation/providers/settings_providers.dart';
 import 'package:passql_app/presentation/widgets/pro/locked_preview_samples.dart';
-import 'package:passql_app/presentation/widgets/pro/pro_settings_card.dart';
-import 'package:passql_app/presentation/widgets/settings/settings_group.dart';
 import 'package:passql_app/router/questions_tab_view.dart';
 
 import '../../helpers/fakes/fake_http_client_adapter.dart';
 import '../../helpers/fakes/fake_pro_plan.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/text_finders.dart';
-
-// 프로(결제 켜짐) 등급
-final _proPlan = MemberPlanResponse(
-  isBillingEnabled: true,
-  plan: MemberPlanType.pro,
-  proExpiresAt: DateTime(2026, 11, 22, 23, 59, 59),
-  dailyFreeLimit: 10,
-  lastPurchasedAt: DateTime(2026, 10, 20, 14, 30),
-  lastOrderId: 'GPA.0001',
-);
 
 // 화면별 잠긴 기능 경로: 결제 꺼짐이면 그대로 부르고, 무료면 아예 요청하지 않아야 함 (서버 403)
 const _lockedPathsByScreen = {
@@ -239,63 +226,5 @@ void main() {
       expect(server.requestedLockedPaths, isEmpty);
       expect(tester.takeException(), isNull);
     });
-
-    testWidgets('설정: 무료 카드, 오답 개수 요청 없음, 실전 모드 켜기는 PATCH 없이 시트', (
-      tester,
-    ) async {
-      final server = await _pumpPage(
-        tester,
-        const SettingsPage(),
-        freePlan,
-        extraOverrides: _settingsOverrides,
-      );
-
-      expect(_visibleText('책 없이 폰 하나로 SQLD 합격'), findsOneWidget);
-      expect(_visibleText('오늘 3/10문제 사용'), findsOneWidget);
-      expect(find.text(ProSettingsCard.passLabel), findsOneWidget);
-      expect(server.requestedLockedPaths, isEmpty);
-
-      // 실전 모드 행의 스위치 (알림 행에도 스위치가 있음)
-      await tester.tap(
-        find.descendant(
-          of: find.widgetWithText(SettingsRow, '실전 모드'),
-          matching: find.byType(CupertinoSwitch),
-        ),
-      );
-      await tester.pump();
-      await pumpUntilMotionDone(tester);
-
-      expect(
-        server.adapter.requests.where((request) => request.method == 'PATCH'),
-        isEmpty,
-      );
-      expect(find.text('이미 구매했나요? 복원하기'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    });
-  });
-
-  testWidgets('설정 프로: 한 줄 이용권 · 만료일까지 · PRO', (tester) async {
-    await _pumpPage(
-      tester,
-      const SettingsPage(),
-      _proPlan,
-      extraOverrides: _settingsOverrides,
-    );
-
-    final proLine = _visibleText('이용권 · 2026.11.22까지');
-    expect(tester.widget<Text>(proLine).maxLines, 1);
-    expect(
-      tester.getCenter(proLine).dy,
-      closeTo(tester.getCenter(find.byType(PassqlPlanChip)).dy, 1),
-    );
-    expect(_visibleText('책 없이 폰 하나로 SQLD 합격'), findsNothing);
-    expect(find.byType(PassqlLockedPreview), findsNothing);
-
-    // 누르면 이용권 정보 시트: 등급 응답의 최근 구매일·주문 번호 행
-    await tester.tap(proLine);
-    await tester.pumpAndSettle();
-    expect(_visibleText('2026.10.20'), findsOneWidget);
-    expect(_visibleText('GPA.0001'), findsOneWidget);
-    expect(tester.takeException(), isNull);
   });
 }

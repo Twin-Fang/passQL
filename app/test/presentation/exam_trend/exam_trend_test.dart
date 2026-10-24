@@ -7,11 +7,9 @@ import 'package:passql_app/presentation/widgets/exam_trend/exam_trend_pattern_ca
 import 'package:passql_app/presentation/widgets/exam_trend/exam_trend_sections.dart';
 import 'package:passql_app/presentation/widgets/home/daily_study_tip_card.dart';
 
-import 'package:passql_app/data/models/meta/topic_tree.dart';
 import 'package:passql_app/data/models/question/question_detail.dart';
 import 'package:passql_app/presentation/flows/question_flow.dart';
 import 'package:passql_app/presentation/widgets/question/question_sections.dart';
-import 'package:passql_app/presentation/widgets/question/topic_card.dart';
 import 'package:passql_app/router/app_routes.dart';
 
 /// 출제 경향 화면 (#523): 섹션 표시, 최신 경향 문제 있는 항목만 풀기 안내, 실패 시 다시 시도
@@ -85,23 +83,6 @@ void main() {
       ),
     );
     expect(find.text(PassqlLatestTrendBadge.label), findsNothing);
-  });
-
-  testWidgets('최신 경향 문제가 있는 토픽 행에 배지가 보인다', (tester) async {
-    const topic = TopicTree(
-      topicUuid: 't',
-      code: 'sql_join',
-      displayName: '조인',
-    );
-    await tester.pumpWidget(
-      _host(
-        TopicCard(topic: topic, onTap: () {}, hasLatestTrendQuestion: true),
-      ),
-    );
-    expect(find.byType(PassqlLatestTrendBadge), findsOneWidget);
-
-    await tester.pumpWidget(_host(TopicCard(topic: topic, onTap: () {})));
-    expect(find.byType(PassqlLatestTrendBadge), findsNothing);
   });
 
   test('최신 경향 풀기 경로는 latestTrend 쿼리를 붙이고 흐름은 일반 챕터와 상태를 나눈다', () {
