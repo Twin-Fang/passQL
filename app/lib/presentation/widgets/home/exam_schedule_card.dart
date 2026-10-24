@@ -70,10 +70,13 @@ class ExamScheduleCard extends StatelessWidget {
                 color: colors.accent,
               ),
               const SizedBox(width: PassqlSpacing.xxs),
-              Text(
-                '시험 일정',
-                style: PassqlTypography.captionSemibold.copyWith(
-                  color: colors.secondaryLabel,
+              // 큰 글자 + 좁은 2열 카드에서 넘치지 않게 남은 폭 안에서 줄바꿈
+              Flexible(
+                child: Text(
+                  '시험 일정',
+                  style: PassqlTypography.captionSemibold.copyWith(
+                    color: colors.secondaryLabel,
+                  ),
                 ),
               ),
             ],

@@ -71,9 +71,6 @@ class DailySetCard extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              if (completed) ...[
-                PassqlBadge(text: '완료', kind: PassqlBadgeKind.success),
-              ],
               // 순위는 보조 진입이라 머리 오른쪽 링크로 (세트가 있는 상태: 풀 수 있음·완료)
               if (completed || available)
                 _LeaderboardLink(onTap: onViewLeaderboard),
@@ -81,9 +78,20 @@ class DailySetCard extends StatelessWidget {
           ),
           const SizedBox(height: PassqlSpacing.sm),
           if (completed) ...[
-            PassqlKeepAllText(
-              '${data?.correctCount ?? 0} / $total 정답',
-              style: PassqlTypography.headline.copyWith(color: colors.label),
+            // 완료 표시는 머리(순위 링크 자리)가 아니라 본문 줄에 둬서 좁은 카드에서 넘치지 않게
+            Wrap(
+              spacing: PassqlSpacing.xs,
+              runSpacing: PassqlSpacing.xxs,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                PassqlBadge(text: '완료', kind: PassqlBadgeKind.success),
+                PassqlKeepAllText(
+                  '${data?.correctCount ?? 0} / $total 정답',
+                  style: PassqlTypography.headline.copyWith(
+                    color: colors.label,
+                  ),
+                ),
+              ],
             ),
           ] else if (available) ...[
             PassqlKeepAllText(
