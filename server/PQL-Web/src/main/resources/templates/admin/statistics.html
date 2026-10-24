@@ -9,12 +9,37 @@
 <!-- AI 사용량·비용 월별 통계 + 가입 경로별 월 가입 (#557): statistics.js 가 /admin/api/statistics/** 를 블록별로 불러옴 -->
 <div class="space-y-5 max-w-[1400px]">
 
+    <!-- 기간 비교 (#621): 조회 기간 vs 직전 기간(7일 > 전주, 달 전체 > 전월) -->
+    <section class="card bg-base-100 shadow-sm">
+        <div class="card-body p-4 gap-3">
+            <h2 class="font-bold">기간 비교 <span class="text-xs font-normal text-base-content/50">직전 기간: 7일 &gt; 전주, 달 전체 &gt; 전월, 그 외 바로 앞 같은 일수</span></h2>
+            <th:block th:replace="~{admin/fragments/statistics-period-filter :: period-filter}"></th:block>
+            <div id="periodComparisonBlock" class="overflow-x-auto min-h-24">
+                <table class="table table-sm">
+                    <thead><tr><th>지표</th><th class="text-right" id="currentPeriodHeader">조회 기간</th>
+                        <th class="text-right" id="previousPeriodHeader">직전 기간</th><th class="text-right">증감</th></tr></thead>
+                    <tbody id="periodComparisonBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI 월 예산 알림 (사용률 80% 이상 경고, 100% 이상 초과) -->
+    <div id="aiBudgetAlert" class="alert text-sm" role="alert" hidden>
+        <i data-lucide="triangle-alert" class="size-5"></i>
+        <span id="aiBudgetAlertMessage"></span>
+        <a th:href="@{/admin/settings}" class="btn btn-xs btn-ghost">예산·알림 설정 →</a>
+    </div>
+
     <!-- 월 선택 (기본 이번 달) -->
     <div class="flex flex-wrap items-end gap-3">
         <label class="form-control">
             <span class="label-text text-xs mb-1">조회 월</span>
             <input type="month" id="statisticsMonth" class="input input-sm input-bordered w-44"/>
         </label>
+        <a id="aiMonthlyCsvLink" class="btn btn-sm btn-outline gap-1" download>
+            <i data-lucide="download" class="size-4"></i>AI 사용량 CSV
+        </a>
         <span class="text-xs text-base-content/50 pb-1">비용은 모델별 단가 × 토큰으로 계산한 추정치 (USD)</span>
     </div>
 
@@ -105,6 +130,7 @@
     <!-- Chart.js 고정 버전 (대시보드·통계 화면에서만 로드) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script th:src="@{/js/admin/admin-chart.js}"></script>
+    <script th:src="@{/js/admin/admin-period-filter.js}"></script>
     <script th:src="@{/js/admin/statistics.js}"></script>
 </th:block>
 </html>

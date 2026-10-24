@@ -15,6 +15,7 @@ import com.passql.application.statistics.AdminAiStatisticsQueryRepository.ErrorT
 import com.passql.application.statistics.dto.AiModelUsageSummary;
 import com.passql.application.statistics.dto.AiMonthlyUsageResponse;
 import com.passql.application.statistics.dto.AiMonthlyUsageResponse.EndpointUsage;
+import com.passql.application.statistics.dto.AiUsageTotal;
 import com.passql.application.statistics.dto.DashboardAiStatusResponse;
 import com.passql.application.statistics.dto.DashboardAiStatusResponse.AiFailureBreakdown;
 import com.passql.application.statistics.dto.DashboardAiStatusResponse.AiServerStatus;
@@ -124,6 +125,21 @@ public class AdminAiStatisticsService {
                 byModel,
                 byEndpoint,
                 aiCostCalculator.getPriceTable());
+    }
+
+    /** 구간 호출·실패·추정 비용 합계 (기간 비교·예산 알림 공통) */
+    public AiUsageTotal summarizeUsage(LocalDateTime startInclusive, LocalDateTime endExclusive) {
+        List<AiModelUsageSummary> byModel = summarizeByModel(
+                aiStatisticsQueryRepository.sumUsageBySourceEndpointAndModel(startInclusive, endExclusive));
+        return new AiUsageTotal(
+                byModel.stream().mapToLong(AiModelUsageSummary::callCount).sum(),
+                byModel.stream().mapToLong(AiModelUsageSummary::failureCount).sum(),
+                StatisticsNumbers.roundCostUsd(byModel.stream().mapToDouble(AiModelUsageSummary::estimatedCostUsd).sum()));
+    }
+
+    /** 월 예산 (USD, 설정 없음이면 기본값) */
+    public double getMonthlyBudgetUsd() {
+        return aiCostCalculator.getMonthlyBudgetUsd();
     }
 
     private List<AiUsageGroupRow> sumUsageOfMonth(YearMonth month) {

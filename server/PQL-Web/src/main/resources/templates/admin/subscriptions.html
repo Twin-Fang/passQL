@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<th:block layout:fragment="title">구독·매출 현황</th:block>
+
+<th:block layout:fragment="content">
+<!-- 구독·매출 현황 (#619): subscriptions.js 가 /admin/api/subscriptions/summary 를 기간별로 불러옴 -->
+<div class="space-y-5 max-w-[1400px]">
+
+    <th:block th:replace="~{admin/fragments/statistics-period-filter :: period-filter}"></th:block>
+
+    <div id="subscriptionBlock" class="space-y-5">
+        <!-- 요약 카드 6개 -->
+        <div class="grid grid-cols-2 xl:grid-cols-3 gap-3">
+            <div class="card bg-base-100 shadow-sm"><div class="card-body p-4 gap-1">
+                <span class="text-xs text-base-content/60">유효 프로 회원</span>
+                <span id="activeProMemberCount" class="text-3xl font-bold text-primary">-</span>
+                <span class="text-xs text-base-content/50">지금 기준 (PRO 이고 만료 전)</span>
+            </div></div>
+            <div class="card bg-base-100 shadow-sm"><div class="card-body p-4 gap-1">
+                <span class="text-xs text-base-content/60"><span id="expiringSoonDayCount">7</span>일 내 만료 임박</span>
+                <span id="expiringSoonMemberCount" class="text-3xl font-bold text-warning">-</span>
+                <span class="text-xs text-base-content/50">갱신 안내 대상</span>
+            </div></div>
+            <div class="card bg-base-100 shadow-sm"><div class="card-body p-4 gap-1">
+                <span class="text-xs text-base-content/60">구간 구매</span>
+                <span id="purchaseCount" class="text-3xl font-bold">-</span>
+                <span id="purchaseCountCompare" class="text-xs text-base-content/50">-</span>
+            </div></div>
+            <div class="card bg-base-100 shadow-sm"><div class="card-body p-4 gap-1">
+                <span class="text-xs text-base-content/60">구간 환불·회수</span>
+                <span id="revokedPurchaseCount" class="text-3xl font-bold">-</span>
+                <span id="revokedPurchaseCountCompare" class="text-xs text-base-content/50">-</span>
+            </div></div>
+            <div class="card bg-base-100 shadow-sm"><div class="card-body p-4 gap-1">
+                <span class="text-xs text-base-content/60">무료 &gt; 프로 전환율 (구간 가입자)</span>
+                <span id="signupConversionRate" class="text-3xl font-bold text-success">-</span>
+                <span id="signupConversionDetail" class="text-xs text-base-content/50">-</span>
+            </div></div>
+            <div class="card bg-base-100 shadow-sm"><div class="card-body p-4 gap-1">
+                <span class="text-xs text-base-content/60">전체 회원 중 구매 이력 비율</span>
+                <span id="purchasedMemberRate" class="text-3xl font-bold text-info">-</span>
+                <span id="purchasedMemberDetail" class="text-xs text-base-content/50">-</span>
+            </div></div>
+        </div>
+
+        <!-- 일별 구매 -->
+        <section class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="font-bold">일별 구매 <span class="text-xs font-normal text-base-content/50">회수 포함</span></h2>
+                <div class="relative h-56" id="dailyPurchaseChartBox"><canvas id="dailyPurchaseChart" aria-label="일별 구매 차트"></canvas></div>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+            <!-- 상품별 판매량 -->
+            <section class="card bg-base-100 shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="font-bold">상품별 판매량</h2>
+                    <div class="overflow-x-auto">
+                        <table class="table table-sm">
+                            <thead><tr><th>상품</th><th>스토어</th><th class="text-right">판매</th><th class="text-right">회수</th></tr></thead>
+                            <tbody id="productSalesBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 통화별 금액 -->
+            <section class="card bg-base-100 shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="font-bold">통화별 결제 금액 <span class="text-xs font-normal text-base-content/50">회수 제외</span></h2>
+                    <div class="overflow-x-auto">
+                        <table class="table table-sm">
+                            <thead><tr><th>통화</th><th class="text-right">금액</th><th class="text-right">건수</th></tr></thead>
+                            <tbody id="amountBody"></tbody>
+                        </table>
+                    </div>
+                    <p id="amountMissingNotice" class="text-xs text-base-content/50" hidden></p>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+</th:block>
+
+<th:block layout:fragment="js">
+    <!-- Chart.js 고정 버전 (통계 화면에서만 로드) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script th:src="@{/js/admin/admin-chart.js}"></script>
+    <script th:src="@{/js/admin/admin-period-filter.js}"></script>
+    <script th:src="@{/js/admin/subscriptions.js}"></script>
+</th:block>
+</html>

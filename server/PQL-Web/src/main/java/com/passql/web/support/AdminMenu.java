@@ -30,6 +30,8 @@ public enum AdminMenu {
     EMBEDDINGS("embeddings", "임베딩 인덱스 관리"),
     MONITOR("monitor", "모니터링"),
     STATISTICS("statistics", "AI 사용량·통계"),
+    SUBSCRIPTIONS("subscriptions", "구독·매출 현황"),
+    RETENTION("retention", "리텐션·코호트"),
     ADMIN_ACCOUNTS("admin-accounts", "관리자 계정"),
     AUDIT_LOGS("audit-logs", "감사 로그"),
     // 사이드바 항목 없음 (상단 전역 검색 입력으로만 진입)

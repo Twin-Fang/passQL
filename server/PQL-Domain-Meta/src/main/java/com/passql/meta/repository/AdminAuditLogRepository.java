@@ -12,4 +12,7 @@ public interface AdminAuditLogRepository extends JpaRepository<AdminAuditLog, UU
 
     /** 대상 1건의 최근 변경 이력 (최신순 20건) */
     List<AdminAuditLog> findTop20ByTargetTypeAndTargetIdOrderByOccurredAtDesc(AdminAuditTargetType targetType, String targetId);
+
+    // 대상 1건의 최근 변경 50건 (idx_admin_audit_log_target 사용, 회원 이용권 변동 타임라인용)
+    List<AdminAuditLog> findTop50ByTargetTypeAndTargetIdOrderByOccurredAtDesc(AdminAuditTargetType targetType, String targetId);
 }
