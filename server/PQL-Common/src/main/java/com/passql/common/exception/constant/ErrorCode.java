@@ -166,6 +166,11 @@ public enum ErrorCode {
     // Push
     PUSH_TARGET_MEMBER_REQUIRED(HttpStatus.BAD_REQUEST, "특정 회원 발송은 올바른 회원 UUID가 필요합니다."),
     PUSH_LINK_QUESTION_REQUIRED(HttpStatus.BAD_REQUEST, "문제 상세 이동은 올바른 문제 UUID가 필요합니다."),
+    PUSH_INACTIVE_DAYS_INVALID(HttpStatus.BAD_REQUEST, "미접속 일수는 1일 이상 365일 이하로 입력해 주세요."),
+    PUSH_SCHEDULE_TIME_INVALID(HttpStatus.BAD_REQUEST, "예약 시각은 지금부터 1분 뒤 이후, 90일 이내여야 합니다."),
+    PUSH_NOT_SCHEDULED(HttpStatus.CONFLICT, "예약 대기 중인 발송이 아닙니다. 이미 발송했거나 취소된 건입니다."),
+    PUSH_RETRACT_NOT_DISPATCHED(HttpStatus.CONFLICT, "발송이 시작된 건만 회수할 수 있습니다."),
+    PUSH_TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "푸시 템플릿을 찾을 수 없습니다."),
     // Notification Inbox (#491)
     PUSH_SEND_HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "발송 이력을 찾을 수 없습니다."),
     PUSH_ALREADY_RETRACTED(HttpStatus.BAD_REQUEST, "이미 회수한 발송입니다."),

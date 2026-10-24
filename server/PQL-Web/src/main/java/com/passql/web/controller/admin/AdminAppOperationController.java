@@ -9,12 +9,14 @@ import com.passql.meta.service.AppNoticeService;
 import com.passql.meta.service.AppOperationChangeHistoryService;
 import com.passql.meta.service.AppOperationService;
 import com.passql.member.service.PushNotificationService;
+import com.passql.web.service.AdminNoticePushService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,7 @@ public class AdminAppOperationController {
     private final MemberNotificationQueryService memberNotificationQueryService;
     private final PushNotificationService pushNotificationService;
     private final AppOperationChangeHistoryService appOperationChangeHistoryService;
+    private final AdminNoticePushService adminNoticePushService;
 
     @GetMapping
     public String page(Model model) {
@@ -60,10 +63,17 @@ public class AdminAppOperationController {
         return ResponseEntity.ok().build();
     }
 
+    /** 공지 등록: sendPush=true 면 저장 뒤 전체 푸시 (결과는 pushResult 로 응답, 푸시 실패가 등록을 되돌리지 않음) */
     @PostMapping("/notices")
     @ResponseBody
-    public ResponseEntity<AppNoticeResponse> createNotice(@RequestBody AppNoticeSaveRequest request) {
-        return ResponseEntity.ok(appNoticeService.createNotice(request));
+    public Map<String, Object> createNotice(@RequestBody AppNoticeSaveRequest request,
+                                            @RequestParam(defaultValue = "false") boolean sendPush,
+                                            Principal principal) {
+        AppNoticeResponse notice = appNoticeService.createNotice(request);
+        AdminNoticePushService.NoticePushResult pushResult = sendPush
+                ? adminNoticePushService.sendNoticePush(notice, principal.getName())
+                : AdminNoticePushService.NoticePushResult.SKIPPED;
+        return Map.of("notice", notice, "pushResult", pushResult.name());
     }
 
     @PutMapping("/notices/{noticeUuid}")

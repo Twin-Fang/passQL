@@ -247,6 +247,11 @@
                 <p id="noticePreviewTitle" class="font-bold"></p>
                 <div id="noticePreviewBody" class="space-y-2"></div>
             </div>
+            <!-- 새 공지에만: 등록과 함께 전체 푸시 (노출 시작이 미래면 그 시각에 예약 발송, 비활성 공지는 보내지 않음) -->
+            <label id="noticeSendPushField" class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="noticeSendPush" class="checkbox checkbox-sm"/>
+                <span class="text-sm">등록과 함께 전체 회원에게 푸시 발송 (알림함에도 쌓임)</span>
+            </label>
             <div class="modal-action">
                 <form method="dialog"><button class="btn btn-sm">취소</button></form>
                 <button class="btn btn-sm btn-outline" onclick="toggleNoticePreview()">미리보기</button>
@@ -346,6 +351,8 @@
             document.getElementById('noticeIsImportant').checked = dataset ? dataset.isImportant === 'true' : false;
             document.getElementById('noticeDisplayPriority').value = dataset ? dataset.displayPriority : 0;
             document.getElementById('noticePreview').classList.add('hidden');
+            document.getElementById('noticeSendPush').checked = false;
+            document.getElementById('noticeSendPushField').classList.toggle('hidden', !!dataset);
             document.getElementById('noticeModal').showModal();
         }
 
@@ -361,17 +368,35 @@
                 isImportant: document.getElementById('noticeIsImportant').checked,
                 displayPriority: parseInt(document.getElementById('noticeDisplayPriority').value, 10) || 0
             };
-            const url = noticeUuid ? '/admin/app-operation/notices/' + encodeURIComponent(noticeUuid) : '/admin/app-operation/notices';
+            const isPushRequested = !noticeUuid && document.getElementById('noticeSendPush').checked;
+            const url = noticeUuid ? '/admin/app-operation/notices/' + encodeURIComponent(noticeUuid)
+                : '/admin/app-operation/notices?sendPush=' + isPushRequested;
             const response = await fetch(url, {
                 method: noticeUuid ? 'PUT' : 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(request)
             });
             if (response.ok) {
+                await announcePushResult(response, noticeUuid, isPushRequested);
                 location.reload();
             } else {
                 showToast(await readErrorMessage(response, '공지 저장에 실패했습니다.'), 'error');
             }
+        }
+
+        // 공지 등록 응답의 푸시 결과 안내 (실패는 등록이 끝났음을 알리고 3초 보여 줌)
+        async function announcePushResult(response, noticeUuid, isPushRequested) {
+            if (noticeUuid || !isPushRequested) return;
+            const pushResult = (await response.json()).pushResult;
+            const messageByResult = {
+                SENT: ['공지를 등록하고 푸시를 발송했습니다.', 'success'],
+                SCHEDULED: ['공지를 등록하고 노출 시작 시각에 푸시를 예약했습니다.', 'success'],
+                SKIPPED: ['공지를 등록했습니다. 비활성 공지라 푸시는 보내지 않았습니다.', 'success'],
+                FAILED: ['공지는 등록됐지만 푸시 발송에 실패했습니다. 알림 발송 화면에서 다시 보내 주세요.', 'error']
+            };
+            const [message, type] = messageByResult[pushResult];
+            showToast(message, type);
+            await new Promise(resolve => setTimeout(resolve, 3000));
         }
 
         // HTML 이스케이프 (미리보기 본문은 입력 그대로 innerHTML 에 넣지 않는다)
