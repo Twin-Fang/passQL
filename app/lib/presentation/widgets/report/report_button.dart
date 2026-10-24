@@ -32,11 +32,9 @@ class ReportButton extends ConsumerWidget {
     final color = colors.secondaryLabel;
 
     final label = reported ? '신고 완료' : '문제 신고';
-    return Semantics(
+    return PassqlSemanticButton(
       label: label,
-      button: true,
-      enabled: !reported,
-      excludeSemantics: true,
+      onTap: reported ? null : () => _open(context, target),
       child: Tooltip(
         message: label,
         child: CupertinoButton(

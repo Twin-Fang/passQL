@@ -14,7 +14,6 @@ import '../../widgets/ads/ad_inline_card.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/pro/locked_preview_samples.dart';
 import '../../widgets/pro/pro_locked_section.dart';
-import '../../widgets/pro/pro_plan_chip_slot.dart';
 import '../../widgets/settings/profile_section.dart';
 import '../../widgets/home/heatmap_widget.dart';
 import '../../widgets/home/readiness_card.dart';
@@ -343,7 +342,7 @@ class _ProfileSliver extends StatelessWidget {
   }
 }
 
-/// 제목줄 오른쪽: 이용권 칩 + 설정 톱니바퀴
+/// 제목줄 오른쪽: 설정 톱니바퀴 (이용권 표시는 맨 위 이용권 카드가 맡음)
 class _ProfileTabTrailing extends StatelessWidget {
   const _ProfileTabTrailing();
 
@@ -353,7 +352,6 @@ class _ProfileTabTrailing extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const ProPlanChipSlot(),
         PassqlSemanticButton(
           label: '설정',
           onTap: () => context.push(AppRoutes.settings),
