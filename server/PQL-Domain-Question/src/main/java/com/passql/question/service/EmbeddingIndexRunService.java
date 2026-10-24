@@ -149,8 +149,9 @@ public class EmbeddingIndexRunService {
             log.info("[embedding run] completed : type={}, total={}, succeeded={}, failed={}",
                     runType, result.total(), result.succeeded(), result.failed());
         } catch (RuntimeException e) {
-            log.error("[embedding run] failed : type={}, error={}", runType, e.getMessage(), e);
-            run.fail(e.getClass().getSimpleName() + ": " + e.getMessage());
+            // 원인 상세는 로그에만, 이력에는 예외 종류만
+            log.error("[embedding run] failed : type={}", runType, e);
+            run.fail(e.getClass().getSimpleName());
         } finally {
             // 성공·실패 공통
             embeddingIndexRunRepository.save(run);
