@@ -27,23 +27,23 @@ public class GeminiFallbackClient {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public GenerateQuestionFullResult generateQuestionFull(GenerateQuestionFullRequest request) {
-        LlmConfigDto cfg = request.llmConfig();
-        String userPrompt = renderTemplate(cfg.userTemplate(), buildQuestionFullVars(request.context()));
+        LlmConfigDto config = request.llmConfig();
+        String userPrompt = renderTemplate(config.userTemplate(), buildQuestionFullVars(request.context()));
         try {
             long started = System.currentTimeMillis();
             String json;
-            if (cfg.responseSchema() != null) {
+            if (config.responseSchema() != null) {
                 json = geminiClient.chatStructured(
-                        cfg.model(), cfg.systemPrompt(), userPrompt,
-                        cfg.temperature(), cfg.maxTokens(),
-                        convertSchema(cfg.responseSchema()));
+                        config.model(), config.systemPrompt(), userPrompt,
+                        config.temperature(), config.maxTokens(),
+                        convertSchema(config.responseSchema()));
             } else {
                 json = geminiClient.chat(
-                        cfg.model(), cfg.systemPrompt(), userPrompt,
-                        cfg.temperature(), cfg.maxTokens());
+                        config.model(), config.systemPrompt(), userPrompt,
+                        config.temperature(), config.maxTokens());
             }
             int elapsed = (int) (System.currentTimeMillis() - started);
-            return parseQuestionFullResponse(json, cfg.model(), elapsed);
+            return parseQuestionFullResponse(json, config.model(), elapsed);
         } catch (CustomException e) {
             throw e;
         } catch (Exception e) {
@@ -54,23 +54,23 @@ public class GeminiFallbackClient {
     }
 
     public GenerateChoiceSetResult generateChoiceSet(GenerateChoiceSetRequest request) {
-        LlmConfigDto cfg = request.llmConfig();
-        String userPrompt = renderTemplate(cfg.userTemplate(), buildChoiceSetVars(request.context()));
+        LlmConfigDto config = request.llmConfig();
+        String userPrompt = renderTemplate(config.userTemplate(), buildChoiceSetVars(request.context()));
         try {
             long started = System.currentTimeMillis();
             String json;
-            if (cfg.responseSchema() != null) {
+            if (config.responseSchema() != null) {
                 json = geminiClient.chatStructured(
-                        cfg.model(), cfg.systemPrompt(), userPrompt,
-                        cfg.temperature(), cfg.maxTokens(),
-                        convertSchema(cfg.responseSchema()));
+                        config.model(), config.systemPrompt(), userPrompt,
+                        config.temperature(), config.maxTokens(),
+                        convertSchema(config.responseSchema()));
             } else {
                 json = geminiClient.chat(
-                        cfg.model(), cfg.systemPrompt(), userPrompt,
-                        cfg.temperature(), cfg.maxTokens());
+                        config.model(), config.systemPrompt(), userPrompt,
+                        config.temperature(), config.maxTokens());
             }
             int elapsed = (int) (System.currentTimeMillis() - started);
-            return parseChoiceSetResponse(json, cfg.model(), elapsed);
+            return parseChoiceSetResponse(json, config.model(), elapsed);
         } catch (CustomException e) {
             throw e;
         } catch (Exception e) {
@@ -81,20 +81,20 @@ public class GeminiFallbackClient {
     }
 
     public TestPromptResult testPrompt(TestPromptRequest request) {
-        LlmConfigDto cfg = request.llmConfig();
-        String userPrompt = renderTemplate(cfg.userTemplate(), request.variables());
+        LlmConfigDto config = request.llmConfig();
+        String userPrompt = renderTemplate(config.userTemplate(), request.variables());
         try {
             long started = System.currentTimeMillis();
             String result;
-            if (cfg.responseSchema() != null) {
+            if (config.responseSchema() != null) {
                 result = geminiClient.chatStructured(
-                        cfg.model(), cfg.systemPrompt(), userPrompt,
-                        cfg.temperature(), cfg.maxTokens(),
-                        convertSchema(cfg.responseSchema()));
+                        config.model(), config.systemPrompt(), userPrompt,
+                        config.temperature(), config.maxTokens(),
+                        convertSchema(config.responseSchema()));
             } else {
                 result = geminiClient.chat(
-                        cfg.model(), cfg.systemPrompt(), userPrompt,
-                        cfg.temperature(), cfg.maxTokens());
+                        config.model(), config.systemPrompt(), userPrompt,
+                        config.temperature(), config.maxTokens());
             }
             int elapsed = (int) (System.currentTimeMillis() - started);
             return new TestPromptResult(result, elapsed);

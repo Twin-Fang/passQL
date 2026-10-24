@@ -45,7 +45,7 @@
 
 | | |
 |---|---|
-| **문제** | 300문제 이상, SQLD 출제 토픽 9개 <sub>(운영 DB 활성 문제 기준, 2026-10-20)</sub> |
+| **문제** | SQLD 출제 토픽 9개를 주제별로 정리, 실행형 문제와 개념 문제 |
 | **최신 경향** | 최근 회차 출제 유형을 분석해 문제에 반영, '최신 경향' 표시로 바로 골라 풀기 |
 | **검증** | 실행형 문제는 모든 선택지를 PostgreSQL 샌드박스에서 실제로 실행해 정답이 하나인지 확인 |
 | **플랫폼** | iOS · Android · Web, Google·Apple·카카오·네이버·GitHub 로그인 |
@@ -153,7 +153,7 @@ Backend(Spring)는 PostgreSQL·Redis·Qdrant와 Gemini API 키가 필요합니�
 ---
 
 <!-- AUTO-VERSION-SECTION: DO NOT EDIT MANUALLY -->
-## 최신 버전 : v1.45.0 (2026-10-24)
+## 최신 버전 : v1.46.3 (2026-10-24)
 
 [전체 버전 기록 보기](CHANGELOG.md) · [Admin](https://api.passql.suhsaechan.kr/admin/questions) · [API Docs](https://api.passql.suhsaechan.kr/docs/swagger-ui/index.html)
 
@@ -167,4 +167,4 @@ You may use, modify, and study this project only for personal, non-commercial pu
 
 Commercial use, hosted service use, production use, and organizational use are prohibited without prior written permission.
 
-For licensing inquiries: chan4760@naver.com, ghd0106@naver.com
+For licensing inquiries: chan4760@naver.com

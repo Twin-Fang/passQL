@@ -5,8 +5,10 @@ import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.service.AppSettingService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class SqlSafetyValidator {
@@ -42,6 +44,8 @@ public class SqlSafetyValidator {
         try {
             maxLength = appSettingService.getInt(AppSettingKeys.SANDBOX_SQL_MAX_LENGTH);
         } catch (Exception e) {
+            log.warn("[sql validate] max length setting unavailable, using default : default={}, cause={}",
+                DEFAULT_SQL_MAX_LENGTH, e.getClass().getSimpleName());
             maxLength = DEFAULT_SQL_MAX_LENGTH;
         }
         if (sql.length() > maxLength) {

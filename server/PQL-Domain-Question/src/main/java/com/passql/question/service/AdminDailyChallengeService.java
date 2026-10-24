@@ -168,11 +168,11 @@ public class AdminDailyChallengeService {
         Collections.shuffle(groups, new Random(seed + 1));
 
         List<UUID> picks = new ArrayList<>();
-        int groupIdx = 0;
+        int groupIndex = 0;
         int target = Math.min(MAX_QUESTIONS_PER_DAY, active.size());
         Set<UUID> seen = new HashSet<>();
         while (picks.size() < target) {
-            List<Question> group = groups.get(groupIdx % groups.size());
+            List<Question> group = groups.get(groupIndex % groups.size());
             for (Question q : group) {
                 if (!seen.contains(q.getQuestionUuid())) {
                     picks.add(q.getQuestionUuid());
@@ -180,8 +180,8 @@ public class AdminDailyChallengeService {
                     break;
                 }
             }
-            groupIdx++;
-            if (groupIdx > groups.size() * target) break;
+            groupIndex++;
+            if (groupIndex > groups.size() * target) break;
         }
 
         try {

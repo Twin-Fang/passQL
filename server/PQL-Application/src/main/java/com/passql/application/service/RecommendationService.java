@@ -105,11 +105,11 @@ public class RecommendationService {
      */
     private RecommendationsResponse tryAiRecommend(UUID memberUuid, int size, List<UUID> excludeQuestionUuids) {
         try {
-            String memberUuidStr = memberUuid.toString();
+            String memberUuidText = memberUuid.toString();
 
             // 최근 오답 문제 UUID 목록 — 벡터 쿼리 원본
             List<String> recentWrong = submissionRepository.findRecentWrongQuestionUuids(
-                    memberUuidStr, WRONG_QUESTION_LIMIT);
+                    memberUuidText, WRONG_QUESTION_LIMIT);
 
             // 오답이 없으면 쿼리 벡터를 만들 수 없으므로 fallback
             if (recentWrong.isEmpty()) {
@@ -118,7 +118,7 @@ public class RecommendationService {
             }
 
             // 이미 푼 문제 UUID 목록 — Qdrant must_not 필터 (최근 N건만 전송)
-            List<String> solved = submissionRepository.findSolvedQuestionUuids(memberUuidStr, SOLVED_QUESTION_LIMIT);
+            List<String> solved = submissionRepository.findSolvedQuestionUuids(memberUuidText, SOLVED_QUESTION_LIMIT);
 
             // 세션 내 이미 노출된 문제도 전부 제외 (새로고침 시 중복 방지)
             List<String> mustNotIds = new ArrayList<>(solved);
