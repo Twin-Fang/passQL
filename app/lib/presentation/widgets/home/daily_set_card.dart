@@ -61,13 +61,19 @@ class DailySetCard extends StatelessWidget {
                 color: colors.warning,
               ),
               const SizedBox(width: PassqlSpacing.xxs),
-              // 좁은 2열 카드 + 큰 글자에서 넘치지 않게 남은 폭 안에서 줄바꿈 (순위 링크는 오른쪽 끝)
+              // 좁은 2열 카드에서 한 줄 유지 (글자 중간 줄바꿈 대신 폭에 맞춰 축소)
               Expanded(
-                // 좁으면 글자 중간이 아니라 단어 사이에서 줄바꿈
-                child: PassqlKeepAllText(
-                  '오늘의 세트',
-                  style: PassqlTypography.captionSemibold.copyWith(
-                    color: colors.secondaryLabel,
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      '오늘의 세트',
+                      maxLines: 1,
+                      style: PassqlTypography.captionSemibold.copyWith(
+                        color: colors.secondaryLabel,
+                      ),
+                    ),
                   ),
                 ),
               ),
