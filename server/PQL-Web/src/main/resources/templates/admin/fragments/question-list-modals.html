@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- 문제 목록 화면 모달 4종: 단건 비활성화, 일괄 비활성화, 대량 JSON 가이드, JSON 붙여넣기, 가져오기 검증 결과 -->
+<!-- 문제 목록 화면 모달: 단건 비활성화, 일괄 비활성화, 일괄 토픽·난이도 변경, 대량 JSON 가이드, JSON 붙여넣기, 가져오기 검증 결과 -->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <th:block th:fragment="modals">
     <!-- 비활성화 확인 모달 -->
@@ -40,6 +40,47 @@
                 <button id="bulkDeleteConfirmBtn" type="button" class="btn btn-error" onclick="confirmBulkDelete()">
                     비활성화
                 </button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <!-- 선택 문제 토픽·난이도 일괄 변경 모달 (비워 둔 항목은 그대로) -->
+    <dialog id="bulkClassifyModal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg mb-2">선택한 문제의 토픽·난이도 변경</h3>
+            <p class="text-sm text-base-content/60 mb-4">
+                총 <span id="bulkClassifyCount" class="font-bold">0</span>개 문제. 비워 둔 항목은 바꾸지 않습니다.
+            </p>
+            <div class="space-y-3">
+                <div class="form-control">
+                    <label class="label"><span class="label-text">토픽</span></label>
+                    <select id="bulkClassifyTopic" class="select select-bordered select-sm" onchange="onBulkClassifyTopicChanged()">
+                        <option value="">변경 안 함</option>
+                        <option th:each="topic : ${topics}" th:value="${topic.code}" th:text="${topic.displayName}">SELECT</option>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label class="label"><span class="label-text">서브토픽 (토픽 선택 시, 비우면 서브토픽 해제)</span></label>
+                    <select id="bulkClassifySubtopic" class="select select-bordered select-sm" disabled>
+                        <option value="">없음</option>
+                        <th:block th:each="topic : ${topics}">
+                            <option th:each="subtopic : ${topic.subtopics}" th:value="${subtopic.code}"
+                                    th:data-topic-code="${topic.code}" th:text="${subtopic.displayName}" hidden>서브토픽</option>
+                        </th:block>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label class="label"><span class="label-text">난이도</span></label>
+                    <select id="bulkClassifyDifficulty" class="select select-bordered select-sm">
+                        <option value="">변경 안 함</option>
+                        <option th:each="level : ${#numbers.sequence(1, 5)}" th:value="${level}" th:text="'Lv.' + ${level}">Lv.1</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-action">
+                <button type="button" class="btn" onclick="document.getElementById('bulkClassifyModal').close()">취소</button>
+                <button id="bulkClassifyConfirmBtn" type="button" class="btn btn-primary" onclick="confirmBulkClassify()">변경</button>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop"><button>close</button></form>

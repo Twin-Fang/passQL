@@ -18,6 +18,7 @@ import com.passql.question.service.QuestionGenerateService;
 import com.passql.question.service.QuestionLatestTrendService;
 import com.passql.question.service.QuestionService;
 import com.passql.question.service.QuestionVectorIndexService;
+import com.passql.web.service.AdminQuestionBulkUpdateService;
 import com.passql.web.service.AdminQuestionDeleteService;
 import com.passql.web.support.AdminMenu;
 import com.passql.web.support.AdminPage;
@@ -51,6 +52,7 @@ public class AdminQuestionController {
     private final AdminQuestionDeleteService adminQuestionDeleteService;
     private final QuestionLatestTrendService questionLatestTrendService;
     private final AdminQuestionQualityService adminQuestionQualityService;
+    private final AdminQuestionBulkUpdateService adminQuestionBulkUpdateService;
 
     @GetMapping
     @AdminPage(menu = AdminMenu.QUESTIONS)
@@ -222,6 +224,30 @@ public class AdminQuestionController {
                 adminQuestionDeleteService.deactivateQuestions(request.questionUuids());
         // 문제마다가 아니라 일괄삭제 끝에 한 번만 정리한다 (#412)
         if (result.deactivated() > 0) questionVectorIndexService.pruneIndex();
+        return ResponseEntity.ok(result);
+    }
+
+    /** 선택 문제 일괄 활성화 (JSON body: { "questionUuids": [...] }), 활성화된 문제만 색인 비동기 적재 */
+    @PostMapping("/bulk/activate")
+    @ResponseBody
+    public ResponseEntity<AdminQuestionBulkUpdateService.BulkUpdateResult> bulkActivate(
+            @RequestBody ExportRequest request) {
+        AdminQuestionBulkUpdateService.BulkUpdateResult result =
+                adminQuestionBulkUpdateService.activateQuestions(request.questionUuids());
+        result.updatedQuestionUuids().forEach(questionVectorIndexService::indexQuestionAsync);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * 선택 문제 일괄 토픽·난이도 변경 (JSON body: { "questionUuids": [...], "topicCode", "subtopicCode", "difficulty" })
+     * 색인 payload 에 토픽·난이도가 들어 있어 바뀐 문제만 비동기 재적재
+     */
+    @PutMapping("/bulk/classification")
+    @ResponseBody
+    public ResponseEntity<AdminQuestionBulkUpdateService.BulkUpdateResult> bulkClassify(
+            @RequestBody QuestionBulkClassifyRequest request) {
+        AdminQuestionBulkUpdateService.BulkUpdateResult result = adminQuestionBulkUpdateService.classifyQuestions(request);
+        result.updatedQuestionUuids().forEach(questionVectorIndexService::indexQuestionAsync);
         return ResponseEntity.ok(result);
     }
 

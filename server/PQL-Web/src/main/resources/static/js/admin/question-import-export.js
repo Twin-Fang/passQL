@@ -47,6 +47,16 @@ function updateExportButtonState() {
         deleteLabel.textContent = count > 0 ? `선택 비활성화 (${count})` : '선택 비활성화';
     }
 
+    // 일괄 변경 버튼 상태 (활성화, 토픽·난이도 변경)
+    [['bulkActivateBtn', 'bulkActivateLabel', '선택 활성화'], ['bulkClassifyBtn', 'bulkClassifyLabel', '토픽·난이도 변경']]
+        .forEach(([buttonId, labelId, baseLabel]) => {
+            const button = document.getElementById(buttonId);
+            const label = document.getElementById(labelId);
+            if (!button || !label) return;
+            button.disabled = count === 0;
+            label.textContent = count > 0 ? `${baseLabel} (${count})` : baseLabel;
+        });
+
     // 선택 색인 버튼 상태
     const indexBtn = document.getElementById('indexSelectedBtn');
     const indexLabel = document.getElementById('indexSelectedLabel');

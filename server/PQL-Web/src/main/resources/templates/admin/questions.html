@@ -99,6 +99,29 @@
                         <span id="deleteSelectedLabel">선택 비활성화</span>
                     </button>
 
+                    <!-- 선택 문제 일괄 변경: 활성화, 토픽·난이도 변경 -->
+                    <div class="dropdown dropdown-end">
+                        <label tabindex="0" class="btn btn-sm btn-outline">
+                            <i data-lucide="list-checks" class="size-4"></i>
+                            일괄 변경
+                            <i data-lucide="chevron-down" class="size-3"></i>
+                        </label>
+                        <ul tabindex="0" class="dropdown-content menu menu-sm shadow bg-base-100 rounded-box w-56 z-50 mt-1">
+                            <li>
+                                <button type="button" id="bulkActivateBtn" onclick="activateSelected()" disabled>
+                                    <i data-lucide="eye" class="size-4"></i>
+                                    <span id="bulkActivateLabel">선택 활성화</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button type="button" id="bulkClassifyBtn" onclick="openBulkClassifyModal()" disabled>
+                                    <i data-lucide="tags" class="size-4"></i>
+                                    <span id="bulkClassifyLabel">토픽·난이도 변경</span>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+
                     <!-- JSON 내보내기/가져오기 드롭다운 -->
                     <div class="dropdown dropdown-end">
                         <label tabindex="0" class="btn btn-sm btn-outline">
@@ -270,6 +293,7 @@
 <script th:src="@{/js/admin/question-import-export.js}"></script>
 <script th:src="@{/js/admin/question-list.js}"></script>
 <script th:src="@{/js/admin/question-activation.js}"></script>
+<script th:src="@{/js/admin/question-bulk-update.js}"></script>
 <script>lucide.createIcons();</script>
 </th:block>
 </html>
