@@ -13,6 +13,7 @@
             <p><b>ADMIN</b> 조회·변경·계정 관리 / <b>VIEWER</b> 조회만 (저장·삭제 요청은 거부)</p>
             <p>로그인을 <b th:text="${maxFailedLoginCount}">5</b>회 연속 실패하면 <b th:text="${loginLockMinutes}">15</b>분간 잠깁니다.
                기본 계정(환경변수)은 비밀번호를 서버 환경변수로만 바꿉니다.</p>
+            <p>삭제는 <b>사용 중지</b>한 계정만 가능합니다 (기본 계정·본인·마지막 ADMIN 제외). 삭제해도 감사 로그는 아이디로 남습니다.</p>
         </div>
     </div>
 
@@ -43,6 +44,24 @@
         </div>
     </div>
 
+    <!-- 계정 검색·정렬 -->
+    <form method="get" th:action="@{/admin/accounts}" class="flex flex-wrap items-end gap-3 mb-3">
+        <label class="form-control">
+            <span class="label-text text-xs mb-1">아이디 검색</span>
+            <input type="text" name="keyword" th:value="${keyword}" class="input input-sm input-bordered w-44" placeholder="일부만 입력"/>
+        </label>
+        <label class="form-control">
+            <span class="label-text text-xs mb-1">정렬</span>
+            <select name="sort" class="select select-sm select-bordered w-36">
+                <option value="CREATED" th:selected="${selectedSort == 'CREATED'}">생성순</option>
+                <option value="USERNAME" th:selected="${selectedSort == 'USERNAME'}">아이디순</option>
+                <option value="LAST_LOGIN" th:selected="${selectedSort == 'LAST_LOGIN'}">최근 로그인순</option>
+            </select>
+        </label>
+        <button type="submit" class="btn btn-sm btn-primary"><i data-lucide="search" class="size-4"></i>검색</button>
+        <a th:href="@{/admin/accounts}" class="btn btn-sm btn-ghost">초기화</a>
+    </form>
+
     <!-- 계정 목록 -->
     <div class="card bg-base-100 shadow">
         <div class="card-body p-0">
@@ -55,7 +74,7 @@
                         <th class="w-24">상태</th>
                         <th class="w-40">마지막 로그인</th>
                         <th class="w-32">생성</th>
-                        <th class="w-64">관리</th>
+                        <th class="w-80">관리</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -64,6 +83,8 @@
                             <span class="font-mono text-sm" th:text="${a.username}">admin</span>
                             <span th:if="${a.isEnvironmentManaged}" class="badge badge-ghost badge-xs ml-1">기본 계정</span>
                             <span th:if="${a.username == currentAdminUsername}" class="badge badge-primary badge-xs ml-1">나</span>
+                            <span th:if="${activeSessionCountByUsername.get(a.username) != null}" class="badge badge-info badge-xs ml-1"
+                                  th:text="|세션 ${activeSessionCountByUsername.get(a.username)}|">세션 1</span>
                         </td>
                         <td>
                             <select class="select select-xs select-bordered w-24"
@@ -101,6 +122,14 @@
                                         onclick="resetPassword(this.parentElement.dataset)">비밀번호 재설정</button>
                                 <button th:if="${a.isLocked}" class="btn btn-xs btn-warning"
                                         onclick="unlockAccount(this.parentElement.dataset)">잠금 해제</button>
+                                <button th:if="${activeSessionCountByUsername.get(a.username) != null and a.username != currentAdminUsername}"
+                                        class="btn btn-xs btn-outline btn-warning"
+                                        onclick="terminateSessions(this.parentElement.dataset)">세션 종료</button>
+                                <a class="btn btn-xs btn-ghost"
+                                   th:href="@{/admin/audit-logs(adminUsername=${a.username})}">감사 로그</a>
+                                <button th:unless="${a.isEnvironmentManaged or a.username == currentAdminUsername or a.isEnabled}"
+                                        class="btn btn-xs btn-outline btn-error"
+                                        onclick="deleteAccount(this.parentElement.dataset)">삭제</button>
                             </div>
                         </td>
                     </tr>

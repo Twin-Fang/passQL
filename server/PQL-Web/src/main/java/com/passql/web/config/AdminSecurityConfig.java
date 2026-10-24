@@ -10,6 +10,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -29,6 +32,18 @@ public class AdminSecurityConfig {
     private final AdminUserDetailsService adminUserDetailsService;
     private final AdminLoginResultHandler adminLoginResultHandler;
     private final AdminAccessDeniedHandler adminAccessDeniedHandler;
+    private final SessionRegistry adminSessionRegistry;
+
+    /** 관리자 세션 추적 (세션 생성·삭제 이벤트는 HttpSessionEventPublisher 가 전달) */
+    @Bean
+    public static SessionRegistry adminSessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    @Bean
+    public static HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
+    }
 
     @Bean
     @Order(1)
@@ -59,8 +74,12 @@ public class AdminSecurityConfig {
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
             )
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                // 세션 수 제한 없음(-1), 레지스트리로 세션 추적 > 계정 화면에서 강제 종료
+                .maximumSessions(-1)
+                .sessionRegistry(adminSessionRegistry)
+                .expiredUrl("/admin/login?expired=true")
             )
             .userDetailsService(adminUserDetailsService);
 
