@@ -2,6 +2,7 @@ package com.passql.web.controller.admin;
 
 import com.passql.application.entitlement.EntitlementAdminService;
 import com.passql.application.entitlement.EntitlementPurchaseRevoker.RevocationResult;
+import com.passql.application.entitlement.EntitlementTimelineService;
 import com.passql.application.notification.MemberNotificationService;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
@@ -45,6 +46,7 @@ public class AdminMemberController {
     private final MemberNotificationService memberNotificationService;
     private final PushNotificationService pushNotificationService;
     private final EntitlementAdminService entitlementAdminService;
+    private final EntitlementTimelineService entitlementTimelineService;
 
     @GetMapping
     @AdminPage(menu = AdminMenu.MEMBERS)
@@ -68,6 +70,7 @@ public class AdminMemberController {
         model.addAttribute("notifications", memberNotificationService.findRecentNotificationsOfMember(memberUuid));
         model.addAttribute("pushDevices", pushNotificationService.summarizeDevices(memberUuid));
         model.addAttribute("entitlement", entitlementAdminService.getEntitlementView(memberUuid));
+        model.addAttribute("entitlementTimeline", entitlementTimelineService.getTimeline(memberUuid));
         return "admin/members/detail";
     }
 
@@ -94,13 +97,17 @@ public class AdminMemberController {
         return ResponseEntity.ok().build();
     }
 
-    /** 프로 수동 부여: 선택 날짜 23:59:59 까지, 실패 시 화면에 오류 문구 */
+    /** 프로 수동 부여: 선택 날짜 23:59:59 까지, 사유 필수, 실패 시 화면에 오류 문구 */
     @PostMapping("/{memberUuid}/entitlement/grant")
     public String grantPro(@PathVariable UUID memberUuid,
                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate expiresDate,
+                           @RequestParam(required = false) String reason,
                            RedirectAttributes redirectAttributes) {
+        if (!EntitlementAdminService.isValidReason(reason)) {
+            return redirectWithReasonError(memberUuid, redirectAttributes);
+        }
         try {
-            boolean isShortened = entitlementAdminService.grantPro(memberUuid, expiresDate);
+            boolean isShortened = entitlementAdminService.grantPro(memberUuid, expiresDate, reason);
             String formattedExpiresDate = expiresDate.format(TOAST_DATE_FORMATTER);
             String toastMessage = isShortened
                 ? "프로 만료일을 줄였습니다. (" + formattedExpiresDate + "까지)"
@@ -117,9 +124,13 @@ public class AdminMemberController {
     /** 구매 1건 회수: REVOKED + 등급 재계산, 실패 시 화면에 오류 문구 */
     @PostMapping("/{memberUuid}/entitlement/purchases/{entitlementPurchaseUuid}/revoke")
     public String revokePurchase(@PathVariable UUID memberUuid, @PathVariable UUID entitlementPurchaseUuid,
+                                 @RequestParam(required = false) String reason,
                                  RedirectAttributes redirectAttributes) {
+        if (!EntitlementAdminService.isValidReason(reason)) {
+            return redirectWithReasonError(memberUuid, redirectAttributes);
+        }
         try {
-            RevocationResult revocationResult = entitlementAdminService.revokePurchase(memberUuid, entitlementPurchaseUuid);
+            RevocationResult revocationResult = entitlementAdminService.revokePurchase(memberUuid, entitlementPurchaseUuid, reason);
             redirectAttributes.addFlashAttribute(AdminFlash.TOAST_MESSAGE, toRevokePurchaseToastMessage(revocationResult));
         } catch (CustomException exception) {
             // 거절 사유별 문구: 이미 회수, 다른 회원·없는 구매, 그 외는 공통 오류 처리
@@ -135,9 +146,20 @@ public class AdminMemberController {
 
     /** 프로 회수: 등급을 무료로 되돌림 */
     @PostMapping("/{memberUuid}/entitlement/revoke")
-    public String revokePro(@PathVariable UUID memberUuid, RedirectAttributes redirectAttributes) {
-        entitlementAdminService.revokePro(memberUuid);
+    public String revokePro(@PathVariable UUID memberUuid, @RequestParam(required = false) String reason,
+                            RedirectAttributes redirectAttributes) {
+        if (!EntitlementAdminService.isValidReason(reason)) {
+            return redirectWithReasonError(memberUuid, redirectAttributes);
+        }
+        entitlementAdminService.revokePro(memberUuid, reason);
         redirectAttributes.addFlashAttribute(AdminFlash.TOAST_MESSAGE, "프로를 회수했습니다.");
+        return "redirect:/admin/members/" + memberUuid;
+    }
+
+    /** 사유 없음·너무 김 > 회원 상세 등급 카드 오류 문구 */
+    private String redirectWithReasonError(UUID memberUuid, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute(AdminFlash.ENTITLEMENT_ERROR_MESSAGE,
+            "사유를 입력해 주세요. (최대 " + EntitlementAdminService.MAX_REASON_LENGTH + "자)");
         return "redirect:/admin/members/" + memberUuid;
     }
 
