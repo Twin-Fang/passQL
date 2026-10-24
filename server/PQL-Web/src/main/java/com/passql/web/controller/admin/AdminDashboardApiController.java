@@ -11,6 +11,7 @@ import com.passql.application.statistics.dto.DashboardHourlyVisitorResponse;
 import com.passql.application.statistics.dto.DashboardLearningResponse;
 import com.passql.application.statistics.dto.DashboardRealtimeResponse;
 import com.passql.application.statistics.dto.DashboardTopicActivityResponse;
+import com.passql.web.support.AdminStatisticsCsvExporter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +39,16 @@ public class AdminDashboardApiController implements AdminDashboardApiControllerD
     public ResponseEntity<DashboardGrowthResponse> getGrowth(
             @RequestParam(defaultValue = "DAY") StatisticsRange range) {
         return ResponseEntity.ok(adminStatisticsService.getGrowth(range));
+    }
+
+    @GetMapping("/growth.csv")
+    public ResponseEntity<byte[]> exportGrowthCsv(@RequestParam(defaultValue = "DAY") StatisticsRange range) {
+        return AdminStatisticsCsvExporter.growth(adminStatisticsService.getGrowth(range), range.name());
+    }
+
+    @GetMapping("/ai-usage.csv")
+    public ResponseEntity<byte[]> exportAiUsageCsv(@RequestParam(defaultValue = "DAY") StatisticsRange range) {
+        return AdminStatisticsCsvExporter.aiUsageTrend(adminAiStatisticsService.getAiUsage(range), range.name());
     }
 
     @GetMapping("/ai-usage")

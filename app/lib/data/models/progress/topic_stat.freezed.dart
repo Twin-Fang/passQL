@@ -171,7 +171,7 @@ class _$TopicStatImpl implements _TopicStat {
   const _$TopicStatImpl({
     required this.topicUuid,
     required this.displayName,
-    required this.totalQuestionCount,
+    this.totalQuestionCount = 0,
     this.correctRate = 0.0,
     this.solvedCount = 0,
   });
@@ -184,6 +184,7 @@ class _$TopicStatImpl implements _TopicStat {
   @override
   final String displayName;
   @override
+  @JsonKey()
   final int totalQuestionCount;
   @override
   @JsonKey()
@@ -243,7 +244,7 @@ abstract class _TopicStat implements TopicStat {
   const factory _TopicStat({
     required final String topicUuid,
     required final String displayName,
-    required final int totalQuestionCount,
+    final int totalQuestionCount,
     final double correctRate,
     final int solvedCount,
   }) = _$TopicStatImpl;

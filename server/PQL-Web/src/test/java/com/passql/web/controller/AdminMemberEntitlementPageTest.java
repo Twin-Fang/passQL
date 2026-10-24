@@ -60,7 +60,7 @@ class AdminMemberEntitlementPageTest {
             .andExpect(content().string(org.hamcrest.Matchers.containsString("/entitlement/grant")))
             .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("/entitlement/revoke"))));
 
-        entitlementAdminService.grantPro(memberUuid, LocalDate.now().plusDays(30));
+        entitlementAdminService.grantPro(memberUuid, LocalDate.now().plusDays(30), "테스트 사유");
         entitlementPurchaseRepository.save(EntitlementPurchase.verified(memberUuid, PurchaseStore.PLAY,
             PassProduct.PRO_PASS_1M.getProductId(), "GPA.test-order", "secret-purchase-token", LocalDateTime.now(),
             LocalDateTime.now().plusDays(PassProduct.PRO_PASS_1M.getDurationDays()), PassProduct.PRO_PASS_1M.getDurationDays()));
@@ -84,7 +84,8 @@ class AdminMemberEntitlementPageTest {
         UUID memberUuid = newMember();
 
         mockMvc.perform(post("/admin/members/{uuid}/entitlement/grant", memberUuid)
-                .param("expiresDate", LocalDate.now().minusDays(1).toString()))
+                .param("expiresDate", LocalDate.now().minusDays(1).toString())
+                .param("reason", "테스트 사유"))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/admin/members/" + memberUuid))
             .andExpect(flash().attribute("entitlementErrorMessage", "만료일은 오늘 이후 날짜여야 합니다."));

@@ -7,28 +7,44 @@
 
 <th:block layout:fragment="content">
 
-    <!-- 헤더 바: 대기 글만 보기 토글, 요약 배지, 새로고침 -->
+    <!-- 헤더 바: 대기 글만 보기 토글, 사유·정렬 필터, 요약 배지, 새로고침 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
         <label class="flex items-center gap-2 cursor-pointer select-none">
             <input type="checkbox" id="pendingOnly" class="toggle toggle-sm toggle-warning" checked/>
             <span class="text-sm font-medium whitespace-nowrap">검토 대기만 보기</span>
         </label>
+        <select id="categoryFilter" class="select select-sm select-bordered w-40" aria-label="신고 사유 필터">
+            <option value="">신고 사유 전체</option>
+        </select>
+        <select id="reportSortFilter" class="select select-sm select-bordered w-40" aria-label="정렬"></select>
         <div id="summaryBadges" class="flex flex-wrap gap-2"></div>
         <button class="btn btn-sm btn-ghost ml-auto" onclick="loadCommunityReports()">
             <i data-lucide="refresh-cw" class="size-4"></i>새로고침
         </button>
     </div>
 
+    <!-- 처리 통계: 최근 30일 처리 건수, 평균 처리 시간 (처리 기록 도입 이후 처리분) -->
+    <div id="reportStats" class="flex flex-wrap gap-2 mb-4 text-sm text-base-content/70"></div>
+
+    <!-- 일괄 작업 바: 체크한 글이 있을 때만 표시 (조회 전용 계정은 숨김) -->
+    <div id="communityReportBulkBar" class="hidden alert alert-info mb-3 py-2 flex flex-wrap items-center gap-2">
+        <span class="text-sm font-medium"><span id="communityReportBulkCount">0</span>건 선택</span>
+        <button type="button" class="btn btn-sm btn-outline" data-bulk-action="dismiss">일괄 기각</button>
+        <button type="button" class="btn btn-sm btn-outline" data-bulk-action="hide">일괄 숨김</button>
+    </div>
+
     <!-- 신고 글 목록 (JS 렌더링) -->
-    <div class="card bg-base-100 shadow">
+    <div class="card bg-base-100 shadow" id="communityReportCard"
+         th:data-can-write-admin="${canWriteAdmin == true}">
         <div class="card-body p-0">
             <div class="overflow-x-auto">
                 <table class="table table-sm w-full">
                     <thead>
                     <tr>
+                        <th class="w-10"><input type="checkbox" class="checkbox checkbox-xs bulk-all-checkbox" aria-label="현재 페이지 전체 선택"/></th>
                         <th class="w-16">신고</th>
                         <th class="w-28">작성자</th>
-                        <th>내용 / 신고 사유</th>
+                        <th>내용 / 신고 사유·처리 이력</th>
                         <th class="w-24">상태</th>
                         <th class="w-28">작성일</th>
                         <th class="w-56">처리</th>
@@ -36,7 +52,7 @@
                     </thead>
                     <tbody id="communityReportBody">
                     <tr>
-                        <td colspan="6" class="text-center py-12 text-base-content/50">
+                        <td colspan="7" class="text-center py-12 text-base-content/50">
                             <span class="loading loading-spinner loading-sm"></span>
                             <span class="ml-2">로딩 중...</span>
                         </td>
@@ -51,6 +67,8 @@
 </th:block>
 
 <th:block layout:fragment="js">
+    <script th:src="@{/js/admin/admin-bulk-select.js}"></script>
+    <script th:src="@{/js/admin/admin-reason-prompt.js}"></script>
     <script th:src="@{/js/admin/community-reports.js}"></script>
 </th:block>
 </html>

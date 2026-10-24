@@ -16,6 +16,18 @@ public interface QuestionRepository extends JpaRepository<Question, UUID>, JpaSp
 
     List<Question> findByIsActiveTrue();
 
+    // 토픽·서브토픽 소속 문제 수 (비활성 포함, 삭제 가능 여부 판단·관리 화면 표시)
+    long countByTopicUuid(UUID topicUuid);
+
+    long countBySubtopicUuid(UUID subtopicUuid);
+
+    @Query("SELECT q.topicUuid AS topicUuid, COUNT(q) AS questionCount FROM Question q GROUP BY q.topicUuid")
+    List<TopicQuestionCountProjection> countAllByTopic();
+
+    @Query("SELECT q.subtopicUuid AS subtopicUuid, COUNT(q) AS questionCount FROM Question q" +
+           " WHERE q.subtopicUuid IS NOT NULL GROUP BY q.subtopicUuid")
+    List<SubtopicQuestionCountProjection> countAllBySubtopic();
+
     // 선택지 생성 불가(FAILED만 있고 OK 없음) 문제 제외한 활성 문제 — 데일리 세트 자동 선정용 (#358)
     @Query(value = "SELECT * FROM question WHERE is_active = true "
             + "AND NOT (EXISTS (SELECT 1 FROM question_choice_set f WHERE f.question_uuid = question.question_uuid AND f.status = 'FAILED') "

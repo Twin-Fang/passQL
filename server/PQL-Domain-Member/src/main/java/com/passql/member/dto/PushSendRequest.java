@@ -7,10 +7,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 /**
  * 관리자 발송 요청
- * audience: ALL, MEMBER(targetMemberUuid 필수) / linkTarget: PushLinkTarget 이름 (QUESTION_DETAIL 은 linkQuestionUuid 필수)
- * deliveryMode: PUSH_AND_INBOX, INBOX_ONLY (비면 PUSH_AND_INBOX)
+ * audience: PushAudience 이름 (MEMBER 는 targetMemberUuid 필수, INACTIVE_MEMBERS 는 inactiveDays 필수) / linkTarget: PushLinkTarget 이름 (QUESTION_DETAIL 은 linkQuestionUuid 필수)
+ * deliveryMode: PUSH_AND_INBOX, INBOX_ONLY (비면 PUSH_AND_INBOX) / scheduledAt: KST 예약 시각 (비면 즉시)
  */
 @Getter
 @NoArgsConstructor
@@ -36,4 +38,14 @@ public class PushSendRequest {
     private String linkQuestionUuid;
 
     private String deliveryMode;
+
+    private Integer inactiveDays;
+
+    private LocalDateTime scheduledAt;
+
+    /** 세그먼트·예약 없는 즉시 발송 요청 */
+    public PushSendRequest(String title, String body, String audience, String targetMemberUuid,
+                           String linkTarget, String linkQuestionUuid, String deliveryMode) {
+        this(title, body, audience, targetMemberUuid, linkTarget, linkQuestionUuid, deliveryMode, null, null);
+    }
 }

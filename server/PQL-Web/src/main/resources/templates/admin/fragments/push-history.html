@@ -2,13 +2,71 @@
 <!-- 알림 발송 탭 2종: 발송 이력(받은·읽은 회원, 회수), 알림 설정(보관 기간, 자동 알림) -->
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <th:block th:fragment="history-table">
+    <!-- 최근 N일 열람률 통계 (테스트·회수·예약 제외) -->
+    <div class="stats stats-vertical sm:stats-horizontal shadow bg-base-100 mb-4 w-full">
+        <div class="stat py-3">
+            <div class="stat-title" th:text="|최근 ${stats.days()}일 발송|">최근 30일 발송</div>
+            <div class="stat-value text-2xl" th:text="|${stats.sendCount()}건|">0건</div>
+        </div>
+        <div class="stat py-3">
+            <div class="stat-title">알림함 읽음률</div>
+            <div class="stat-value text-2xl" th:text="|${stats.readRatePercent()}%|">0%</div>
+            <div class="stat-desc" th:text="|${stats.recipientCount()}명 중 ${stats.readCount()}명 읽음|">0명</div>
+        </div>
+        <div class="stat py-3">
+            <div class="stat-title">푸시 전달 성공률</div>
+            <div class="stat-value text-2xl" th:text="|${stats.deliverySuccessRatePercent()}%|">0%</div>
+            <div class="stat-desc" th:text="|${stats.targetDeviceCount()}대 중 ${stats.successCount()}대 성공|">0대</div>
+        </div>
+    </div>
+
+    <!-- 이력 검색: 제목·본문, 대상, 상태, 기간 -->
+    <form method="get" th:action="@{/admin/push}" class="flex flex-wrap items-end gap-3 mb-3">
+        <input type="hidden" name="tab" value="history"/>
+        <label class="form-control">
+            <span class="label-text text-xs mb-1">제목·본문</span>
+            <input type="text" name="keyword" th:value="${condition.keyword}" class="input input-sm input-bordered w-44"/>
+        </label>
+        <label class="form-control">
+            <span class="label-text text-xs mb-1">대상</span>
+            <select name="audience" class="select select-sm select-bordered w-40">
+                <option value="">전체</option>
+                <option th:each="a : ${audiences}" th:value="${a.name()}" th:text="${a.label}"
+                        th:selected="${a.name() == condition.audience}">전체</option>
+            </select>
+        </label>
+        <label class="form-control">
+            <span class="label-text text-xs mb-1">상태</span>
+            <select name="dispatchStatus" class="select select-sm select-bordered w-28">
+                <option value="">전체</option>
+                <option th:each="s : ${dispatchStatuses}" th:value="${s.name()}" th:text="${s.label}"
+                        th:selected="${s.name() == condition.dispatchStatus}">발송</option>
+            </select>
+        </label>
+        <label class="form-control">
+            <span class="label-text text-xs mb-1">시작일</span>
+            <input type="date" name="fromDate" th:value="${condition.fromDate}" class="input input-sm input-bordered"/>
+        </label>
+        <label class="form-control">
+            <span class="label-text text-xs mb-1">종료일</span>
+            <input type="date" name="toDate" th:value="${condition.toDate}" class="input input-sm input-bordered"/>
+        </label>
+        <label class="label cursor-pointer gap-2">
+            <input type="checkbox" name="isTestIncluded" value="true" class="checkbox checkbox-sm"
+                   th:checked="${condition.isTestIncluded == true}"/>
+            <span class="label-text text-xs">테스트 포함</span>
+        </label>
+        <button type="submit" class="btn btn-sm btn-primary"><i data-lucide="search" class="size-4"></i>검색</button>
+        <a th:href="@{/admin/push(tab='history')}" class="btn btn-sm btn-ghost">초기화</a>
+    </form>
+
     <div class="card bg-base-100 shadow">
         <div class="card-body p-0">
             <div class="overflow-x-auto">
                 <table class="table table-sm table-fixed w-full">
                     <thead>
                     <tr>
-                        <th class="w-32">발송 시각</th>
+                        <th class="w-36">발송 시각 / 상태</th>
                         <th class="w-auto">제목 / 본문</th>
                         <th class="w-28">대상 / 방식</th>
                         <th class="w-36">알림함 (받은 / 읽은)</th>
@@ -19,13 +77,19 @@
                     </thead>
                     <tbody>
                     <tr th:each="row : ${histories}" th:with="h=${row.history}" th:classappend="${h.isRetracted} ? 'opacity-50'">
-                        <td class="text-xs" th:text="${#temporals.format(h.sentAt, 'yyyy-MM-dd HH:mm')}">2026-10-15 10:00</td>
+                        <td class="text-xs">
+                            <span th:text="${#temporals.format(h.sentAt, 'yyyy-MM-dd HH:mm')}">2026-10-15 10:00</span>
+                            <span th:if="${h.dispatchStatus.name() == 'SCHEDULED'}" class="badge badge-info badge-sm block mt-1">예약 대기</span>
+                            <span th:if="${h.dispatchStatus.name() == 'CANCELED'}" class="badge badge-ghost badge-sm block mt-1">예약 취소</span>
+                            <span th:if="${h.isTest}" class="badge badge-warning badge-sm block mt-1">테스트</span>
+                        </td>
                         <td>
                             <div class="font-semibold truncate" th:text="${h.title}">제목</div>
                             <div class="text-xs text-base-content/60 truncate" th:text="${h.body}">본문</div>
                         </td>
                         <td class="text-xs">
                             <span th:text="${h.audience.label}">전체</span>
+                            <span th:if="${h.inactiveDays != null}" class="block text-base-content/60" th:text="|${h.inactiveDays}일 이상|">30일 이상</span>
                             <a th:if="${h.targetMemberUuid != null}"
                                th:href="@{/admin/members/{uuid}(uuid=${h.targetMemberUuid})}"
                                class="link link-hover font-mono block"
@@ -40,13 +104,21 @@
                         <td class="text-xs">
                             <span th:text="${h.targetDeviceCount}">0</span>대 ·
                             <span class="text-success" th:text="${h.successCount}">0</span> /
-                            <span class="text-error" th:text="${h.failureCount}">0</span> /
+                            <button type="button" class="link link-error font-semibold"
+                                    th:disabled="${h.failureCount == 0}"
+                                    th:data-uuid="${h.pushSendHistoryUuid}"
+                                    onclick="showFailures(this.dataset.uuid)"
+                                    th:text="${h.failureCount}">0</button> /
                             <span th:text="${h.removedTokenCount}">0</span>
                         </td>
                         <td class="text-xs truncate" th:text="${h.sentByAdmin}">admin</td>
                         <td>
                             <span th:if="${h.isRetracted}" class="badge badge-ghost badge-sm">회수됨</span>
-                            <button th:if="${!h.isRetracted and canWriteAdmin}" class="btn btn-xs btn-outline btn-error"
+                            <button th:if="${h.dispatchStatus.name() == 'SCHEDULED' and canWriteAdmin}" class="btn btn-xs btn-outline btn-warning"
+                                    th:data-uuid="${h.pushSendHistoryUuid}"
+                                    th:data-title="${h.title}"
+                                    onclick="cancelScheduledPush(this.dataset.uuid, this.dataset.title)">예약 취소</button>
+                            <button th:if="${!h.isRetracted and h.dispatchStatus.name() == 'DISPATCHED' and canWriteAdmin}" class="btn btn-xs btn-outline btn-error"
                                     th:data-uuid="${h.pushSendHistoryUuid}"
                                     th:data-title="${h.title}"
                                     onclick="retractPush(this.dataset.uuid, this.dataset.title)">회수</button>
@@ -67,12 +139,12 @@
             <!-- 페이지네이션 -->
             <div class="flex justify-center p-4" th:if="${histories.totalPages > 1}">
                 <div class="join">
-                    <a th:href="@{/admin/push(page=${histories.number - 1})}"
+                    <a th:href="@{/admin/push(page=${histories.number - 1}, tab='history', keyword=${condition.keyword}, audience=${condition.audience}, dispatchStatus=${condition.dispatchStatus}, fromDate=${condition.fromDate}, toDate=${condition.toDate}, isTestIncluded=${condition.isTestIncluded})}"
                        class="join-item btn btn-sm"
                        th:classappend="${histories.first} ? 'btn-disabled'">«</a>
                     <button class="join-item btn btn-sm btn-active"
                             th:text="${histories.number + 1} + ' / ' + ${histories.totalPages}">1 / 10</button>
-                    <a th:href="@{/admin/push(page=${histories.number + 1})}"
+                    <a th:href="@{/admin/push(page=${histories.number + 1}, tab='history', keyword=${condition.keyword}, audience=${condition.audience}, dispatchStatus=${condition.dispatchStatus}, fromDate=${condition.fromDate}, toDate=${condition.toDate}, isTestIncluded=${condition.isTestIncluded})}"
                        class="join-item btn btn-sm"
                        th:classappend="${histories.last} ? 'btn-disabled'">»</a>
                 </div>

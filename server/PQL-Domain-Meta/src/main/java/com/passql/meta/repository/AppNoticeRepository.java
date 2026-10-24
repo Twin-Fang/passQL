@@ -14,8 +14,8 @@ import java.util.UUID;
 
 public interface AppNoticeRepository extends JpaRepository<AppNotice, UUID> {
 
-    /** 관리자 목록: 최근 등록 순 */
-    List<AppNotice> findAllByOrderByCreatedAtDesc();
+    /** 관리자 목록: 노출 순서와 같게 (중요 > 우선순위 > 최근 등록) */
+    List<AppNotice> findAllByOrderByIsImportantDescDisplayPriorityDescCreatedAtDesc();
 
     /** 지금 노출할 공지: 활성 + 기간 안, 중요 먼저 > 최근 등록 순 */
     @Query("""
@@ -23,7 +23,7 @@ public interface AppNoticeRepository extends JpaRepository<AppNotice, UUID> {
             WHERE n.isActive = true
               AND (n.startsAt IS NULL OR n.startsAt <= :now)
               AND (n.endsAt IS NULL OR n.endsAt > :now)
-            ORDER BY n.isImportant DESC, n.createdAt DESC
+            ORDER BY n.isImportant DESC, n.displayPriority DESC, n.createdAt DESC
             """)
     List<AppNotice> findVisibleNotices(@Param("now") LocalDateTime now);
 
@@ -36,6 +36,7 @@ public interface AppNoticeRepository extends JpaRepository<AppNotice, UUID> {
             WHERE n.isActive = true
               AND (n.startsAt IS NULL OR n.startsAt <= :now)
             ORDER BY CASE WHEN n.isImportant = true AND (n.endsAt IS NULL OR n.endsAt > :now) THEN 0 ELSE 1 END,
+                     n.displayPriority DESC,
                      COALESCE(n.startsAt, n.createdAt) DESC,
                      n.appNoticeUuid
             """,

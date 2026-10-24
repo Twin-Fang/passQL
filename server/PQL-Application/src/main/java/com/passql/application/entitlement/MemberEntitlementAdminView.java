@@ -22,7 +22,7 @@ public record MemberEntitlementAdminView(
     LocalDate todayInServiceZone
 ) {
 
-    /** 구매 이력 1행 (entitlementPurchaseUuid: 관리자 구매 1건 회수 대상) */
+    /** 구매 이력 1행 (entitlementPurchaseUuid: 관리자 구매 1건 회수 대상, priceText: 결제 금액·통화, 미기록이면 null) */
     public record PurchaseRow(
         UUID entitlementPurchaseUuid,
         PurchaseStore store,
@@ -31,7 +31,8 @@ public record MemberEntitlementAdminView(
         LocalDateTime purchasedAt,
         PurchaseStatus status,
         LocalDateTime grantedExpiresAt,
-        boolean isConsumed
+        boolean isConsumed,
+        String priceText
     ) {
     }
 }

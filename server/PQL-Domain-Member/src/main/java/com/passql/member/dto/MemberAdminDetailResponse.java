@@ -24,6 +24,7 @@ public record MemberAdminDetailResponse(
     String lastLoginIp,
     LocalDateTime suspendUntil,
     LocalDateTime withdrawnAt,
+    String adminMemo,
     List<MemberSuspendHistoryResponse> suspendHistories
 ) {
     public static MemberAdminDetailResponse from(Member m, List<MemberSuspendHistoryResponse> histories) {
@@ -42,6 +43,7 @@ public record MemberAdminDetailResponse(
             m.getLastLoginIp(),
             m.getSuspendUntil(),
             m.getWithdrawnAt(),
+            m.getAdminMemo(),
             histories
         );
     }

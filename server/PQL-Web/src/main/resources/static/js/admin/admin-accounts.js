@@ -1,5 +1,5 @@
 /**
- * 관리자 계정 화면: 추가, 역할 저장, 사용 중지·재개, 비밀번호 재설정, 잠금 해제
+ * 관리자 계정 화면: 추가, 역할 저장, 사용 중지·재개, 비밀번호 재설정, 잠금 해제, 삭제, 세션 강제 종료
  */
 let passwordResetTargetUuid = null;
 
@@ -50,5 +50,19 @@ function submitPasswordReset() {
 function unlockAccount(dataset) {
     AdminApi.post('/admin/accounts/' + dataset.uuid + '/unlock')
         .then(() => AdminUi.reloadWithToast(dataset.username + ' 잠금을 해제했습니다.'))
+        .catch(error => AdminUi.showError(error));
+}
+
+async function deleteAccount(dataset) {
+    if (!await AdminUi.confirmDanger(dataset.username + ' 계정을 삭제합니다. 되돌릴 수 없고, 감사 로그는 아이디로 남습니다.', { confirmLabel: '삭제' })) return;
+    AdminApi.delete('/admin/accounts/' + dataset.uuid)
+        .then(() => AdminUi.reloadWithToast(dataset.username + ' 계정을 삭제했습니다.'))
+        .catch(error => AdminUi.showError(error));
+}
+
+async function terminateSessions(dataset) {
+    if (!await AdminUi.confirmDanger(dataset.username + ' 계정의 로그인 세션을 모두 끊습니다.', { confirmLabel: '세션 종료' })) return;
+    AdminApi.post('/admin/accounts/' + dataset.uuid + '/sessions/terminate')
+        .then(result => AdminUi.reloadWithToast('세션 ' + result.terminatedCount + '개를 종료했습니다.'))
         .catch(error => AdminUi.showError(error));
 }

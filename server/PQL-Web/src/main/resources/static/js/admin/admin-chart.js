@@ -36,6 +36,8 @@
     // 예산 사용률 경고·초과 기준 (%)
     const BUDGET_WARNING_PERCENT = 70;
     const BUDGET_EXCEEDED_PERCENT = 100;
+    // 예산 알림 띠 표시 시작 기준 (%)
+    const BUDGET_ALERT_PERCENT = 80;
     // 블록 상태 덮개 식별자 (data-role)
     const BLOCK_STATE_ROLE = 'block-state';
 
@@ -238,6 +240,18 @@
             : usedPercent >= BUDGET_WARNING_PERCENT ? 'progress-warning' : 'progress-success');
     }
 
+    /** 예산 사용률 알림 띠 (80% 이상 경고, 100% 이상 초과, 미만이면 숨김, 예산 0 이하면 숨김) */
+    function renderBudgetAlert(alertElement, messageElement, budgetUsedPercent, monthlyBudgetUsd, estimatedCostUsd) {
+        if (!alertElement) return;
+        const usedPercent = Number(budgetUsedPercent) || 0;
+        const isExceeded = usedPercent >= BUDGET_EXCEEDED_PERCENT;
+        alertElement.hidden = !(Number(monthlyBudgetUsd) > 0) || usedPercent < BUDGET_ALERT_PERCENT;
+        alertElement.classList.toggle('alert-error', isExceeded);
+        alertElement.classList.toggle('alert-warning', !isExceeded);
+        messageElement.textContent = (isExceeded ? 'AI 월 예산을 초과했습니다. ' : 'AI 월 예산에 가까워지고 있습니다. ')
+            + formatUsd(estimatedCostUsd) + ' / ' + formatUsd(monthlyBudgetUsd) + ' (' + formatPercent(usedPercent) + ')';
+    }
+
     // ── 블록 상태 표시 (로딩·빈 상태·오류 덮개) ──
 
     function ensureBlockStateElement(containerElement) {
@@ -323,6 +337,7 @@
         formatDateTime,
         formatTime,
         renderBudgetProgress,
+        renderBudgetAlert,
         showBlockLoading,
         showBlockEmpty,
         showBlockError,

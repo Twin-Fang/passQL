@@ -15,10 +15,12 @@ import com.passql.member.push.PushMessageSender;
 import com.passql.member.push.PushTarget;
 import com.passql.member.repository.MemberPushTokenRepository;
 import com.passql.member.repository.MemberRepository;
+import com.passql.member.repository.PushDeliveryFailureRepository;
 import com.passql.member.repository.PushSendHistoryRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,11 +39,12 @@ import static org.mockito.Mockito.when;
 class PushNotificationServiceTest {
 
     private final MemberPushTokenRepository memberPushTokenRepository = mock(MemberPushTokenRepository.class);
+    private final PushDeliveryFailureRepository pushDeliveryFailureRepository = mock(PushDeliveryFailureRepository.class);
     private final PushSendHistoryRepository pushSendHistoryRepository = mock(PushSendHistoryRepository.class);
     private final MemberRepository memberRepository = mock(MemberRepository.class);
     private final FakePushMessageSender fakePushMessageSender = new FakePushMessageSender();
     private final PushNotificationService service = new PushNotificationService(
-            memberPushTokenRepository, pushSendHistoryRepository, memberRepository, fakePushMessageSender);
+            memberPushTokenRepository, pushDeliveryFailureRepository, pushSendHistoryRepository, memberRepository, fakePushMessageSender);
 
     /** 정해 둔 만료 토큰만 실패(만료)로 돌려주는 가짜 발송기. 받은 알림·대상을 남긴다 */
     private static class FakePushMessageSender implements PushMessageSender {
@@ -160,5 +163,54 @@ class PushNotificationServiceTest {
         assertThatThrownBy(() -> service.markRetracted(historyUuid, "admin"))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode").isEqualTo(ErrorCode.PUSH_ALREADY_RETRACTED);
+    }
+
+    @Test
+    void 미접속_대상은_일수가_없으면_거부하고_있으면_이력에_남긴다() {
+        when(pushSendHistoryRepository.save(any(PushSendHistory.class))).thenAnswer(call -> call.getArgument(0));
+
+        assertThatThrownBy(() -> service.acceptSend(new PushSendRequest("제목", "본문", "INACTIVE_MEMBERS", null,
+                "HOME", null, null, null, null), "admin"))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode").isEqualTo(ErrorCode.PUSH_INACTIVE_DAYS_INVALID);
+
+        PushSendHistory history = service.acceptSend(new PushSendRequest("제목", "본문", "INACTIVE_MEMBERS", null,
+                "HOME", null, null, 30, null), "admin");
+        assertThat(history.getInactiveDays()).isEqualTo(30);
+        assertThat(history.getTargetMemberUuid()).isNull();
+        assertThat(history.isScheduled()).isFalse();
+    }
+
+    @Test
+    void 예약_시각이_범위를_벗어나면_거부하고_범위_안이면_예약_대기로_저장한다() {
+        when(pushSendHistoryRepository.save(any(PushSendHistory.class))).thenAnswer(call -> call.getArgument(0));
+        LocalDateTime tooSoon = LocalDateTime.now().plusSeconds(10);
+        LocalDateTime tooFar = LocalDateTime.now().plusDays(91);
+        LocalDateTime valid = LocalDateTime.now().plusHours(2);
+
+        for (LocalDateTime invalid : List.of(tooSoon, tooFar)) {
+            assertThatThrownBy(() -> service.acceptSend(new PushSendRequest("제목", "본문", "PRO_MEMBERS", null,
+                    "HOME", null, null, null, invalid), "admin"))
+                    .isInstanceOf(CustomException.class)
+                    .extracting("errorCode").isEqualTo(ErrorCode.PUSH_SCHEDULE_TIME_INVALID);
+        }
+
+        PushSendHistory history = service.acceptSend(new PushSendRequest("제목", "본문", "PRO_MEMBERS", null,
+                "HOME", null, null, null, valid), "admin", true);
+        assertThat(history.isScheduled()).isTrue();
+        assertThat(history.getSentAt()).isEqualTo(valid);
+        assertThat(history.getIsTest()).isTrue();
+    }
+
+    @Test
+    void 예약이_아닌_발송은_회수할_수_없다() {
+        UUID historyUuid = UUID.randomUUID();
+        PushSendHistory canceled = PushSendHistory.accept("제목", "본문", PushAudience.ALL, null, null, PushLinkTarget.HOME, null,
+                NotificationDeliveryMode.PUSH_AND_INBOX, "admin", LocalDateTime.now().plusHours(1), false);
+        when(pushSendHistoryRepository.findById(historyUuid)).thenReturn(Optional.of(canceled));
+
+        assertThatThrownBy(() -> service.markRetracted(historyUuid, "admin"))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode").isEqualTo(ErrorCode.PUSH_RETRACT_NOT_DISPATCHED);
     }
 }

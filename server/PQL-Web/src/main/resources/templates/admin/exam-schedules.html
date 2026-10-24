@@ -84,6 +84,10 @@
                     <i data-lucide="plus" class="size-4"></i>
                     추가
                 </button>
+                <button type="button" class="btn btn-sm btn-outline" onclick="document.getElementById('bulkScheduleModal').showModal()">
+                    <i data-lucide="clipboard-paste" class="size-4"></i>
+                    일괄 등록
+                </button>
             </form>
         </div>
     </div>
@@ -96,14 +100,22 @@
                     <i data-lucide="calendar-days" class="size-5"></i>
                     시험 일정 목록
                 </h3>
-                <form th:action="@{/admin/exam-schedules}" method="get" class="flex items-center gap-2">
-                    <select name="certType" class="select select-bordered select-sm"
-                            onchange="this.form.submit()">
-                        <option value="">전체</option>
-                        <option th:each="ct : ${certTypes}" th:value="${ct.name()}" th:text="${ct.name()}"
-                                th:selected="${selectedCertType == ct.name()}">SQLD</option>
-                    </select>
-                </form>
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- 지난 일정 정리 (시험일이 오늘보다 이전인 일정 전부, 자격증 구분 없이) -->
+                    <button type="button" class="btn btn-sm btn-outline btn-error" th:disabled="${pastScheduleCount == 0}"
+                            onclick="deletePastSchedules()">
+                        <i data-lucide="eraser" class="size-4"></i>
+                        <span th:text="'지난 일정 정리 (' + ${pastScheduleCount} + ')'">지난 일정 정리</span>
+                    </button>
+                    <form th:action="@{/admin/exam-schedules}" method="get" class="flex items-center gap-2">
+                        <select name="certType" class="select select-bordered select-sm"
+                                onchange="this.form.submit()">
+                            <option value="">전체</option>
+                            <option th:each="ct : ${certTypes}" th:value="${ct.name()}" th:text="${ct.name()}"
+                                    th:selected="${selectedCertType == ct.name()}">SQLD</option>
+                        </select>
+                    </form>
+                </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -126,7 +138,10 @@
                                   th:text="${s.certType}">SQLD</span>
                         </td>
                         <td th:text="'제' + ${s.round} + '회'">제61회</td>
-                        <td th:text="${s.examDate}">2026-05-31</td>
+                        <td>
+                            <span th:text="${s.examDate}">2026-05-31</span>
+                            <span th:if="${s.examDate.isBefore(today)}" class="badge badge-ghost badge-xs ml-1">지남</span>
+                        </td>
                         <td>
                             <input type="radio" name="selected" class="radio radio-primary radio-sm"
                                    th:checked="${s.getIsSelected()}"
@@ -160,6 +175,24 @@
             </div>
         </div>
     </div>
+
+    <!-- 시험 일정 일괄 등록 모달: 한 줄에 "자격증 회차 시험일" -->
+    <dialog id="bulkScheduleModal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg mb-2">시험 일정 일괄 등록</h3>
+            <p class="text-xs text-base-content/60 mb-2">
+                한 줄에 <b>자격증 회차 시험일</b> (공백·쉼표 구분, 시험일은 2026-11-14 · 2026.11.14 · 2026/11/14).
+                이미 있는 회차는 건너뛰고, 잘못된 줄이 하나라도 있으면 아무것도 등록하지 않습니다.
+            </p>
+            <textarea id="bulkScheduleText" rows="8" class="textarea textarea-bordered w-full font-mono text-sm"
+                      placeholder="SQLD 63 2026-11-14&#10;SQLD 64 2027-02-27"></textarea>
+            <div class="modal-action">
+                <form method="dialog"><button class="btn btn-ghost btn-sm">취소</button></form>
+                <button id="bulkScheduleConfirmBtn" class="btn btn-primary btn-sm" onclick="importSchedules()">등록</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
 
     <!-- 시험 일정 수정 모달 (#479) -->
     <dialog id="editScheduleModal" class="modal">
@@ -205,6 +238,30 @@
             };
             AdminApi.put('/admin/exam-schedules/' + editingScheduleUuid, body)
                 .then(() => AdminUi.reloadWithToast('시험 일정을 수정했습니다.'))
+                .catch(error => AdminUi.showError(error));
+        }
+
+        // 일괄 등록: 붙여넣은 텍스트 > 서버 해석·등록 (잘못된 줄은 서버가 줄 번호와 함께 거부)
+        function importSchedules() {
+            const confirmButton = document.getElementById('bulkScheduleConfirmBtn');
+            confirmButton.disabled = true;
+            AdminApi.post('/admin/exam-schedules/bulk', { text: document.getElementById('bulkScheduleText').value })
+                .then(result => {
+                    document.getElementById('bulkScheduleModal').close();
+                    AdminUi.reloadWithToast(`일괄 등록 완료: ${result.count}건 등록, ${result.skippedDuplicateCount}건 중복 건너뜀`);
+                })
+                .catch(error => {
+                    confirmButton.disabled = false;
+                    AdminUi.showError(error);
+                });
+        }
+
+        // 지난 일정 정리: 확인 창 > 시험일이 오늘보다 이전인 일정 전부 삭제
+        async function deletePastSchedules() {
+            if (!await AdminUi.confirmDanger('시험일이 오늘보다 이전인 일정을 모두 삭제합니다. 되돌릴 수 없습니다.',
+                { title: '지난 일정을 정리할까요?', confirmLabel: '정리' })) return;
+            AdminApi.delete('/admin/exam-schedules/past')
+                .then(result => AdminUi.reloadWithToast(`지난 일정 ${result.count}건을 삭제했습니다.`))
                 .catch(error => AdminUi.showError(error));
         }
 

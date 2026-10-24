@@ -11,6 +11,7 @@ import com.passql.meta.entity.Subtopic;
 import com.passql.meta.entity.Topic;
 import com.passql.meta.repository.SubtopicRepository;
 import com.passql.meta.repository.TopicRepository;
+import com.passql.question.constant.AdminQuestionSortType;
 import com.passql.question.constant.ChoiceSetPolicy;
 import com.passql.question.constant.ChoiceSetSource;
 import com.passql.question.constant.ChoiceSetStatus;
@@ -29,11 +30,15 @@ import com.passql.question.entity.Question;
 import com.passql.question.entity.QuestionChoice;
 import com.passql.question.entity.QuestionChoiceSet;
 import com.passql.question.entity.QuestionChoiceSetItem;
+import com.passql.question.entity.QuestionQualityStat;
 import com.passql.question.repository.DailyChallengeRepository;
 import com.passql.question.repository.QuestionChoiceRepository;
 import com.passql.question.repository.QuestionChoiceSetItemRepository;
 import com.passql.question.repository.QuestionChoiceSetRepository;
 import com.passql.question.repository.QuestionRepository;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -97,8 +102,43 @@ public class QuestionService {
             String likePattern = "%" + condition.getKeyword().trim().toLowerCase() + "%";
             specification = specification.and((root, query, builder) -> builder.like(builder.lower(root.get("stem")), likePattern));
         }
+        specification = specification.and(toQualitySpecification(condition));
         return questionRepository.findAll(specification, pageable)
                 .map(question -> AdminQuestionListItem.of(toSummary(question), question.getIsActive()));
+    }
+
+    /**
+     * 품질 지표 조건: 신고 있는 문제만 필터 + 품질 정렬 (지표는 QuestionQualityStat 뷰와 문제 uuid 로 연결)
+     * 정렬은 집계 컬럼이라 Pageable 이 아니라 여기서 지정 (본 조회만, 건수 조회는 제외), 동률은 최신순
+     */
+    private Specification<Question> toQualitySpecification(AdminQuestionSearchCondition condition) {
+        AdminQuestionSortType sortType = AdminQuestionSortType.fromRequestValueOrNewest(condition.getSort());
+        boolean isReportedOnly = Boolean.TRUE.equals(condition.getIsReportedOnly());
+        if (!sortType.isQualitySort() && !isReportedOnly) {
+            return (root, query, builder) -> builder.conjunction();
+        }
+        return (root, query, builder) -> {
+            Root<QuestionQualityStat> stat = query.from(QuestionQualityStat.class);
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(builder.equal(stat.get("questionUuid"), root.get("questionUuid")));
+            if (isReportedOnly) {
+                predicates.add(builder.greaterThan(stat.get("reportCount"), 0L));
+            }
+            if (sortType == AdminQuestionSortType.ACCURACY_ASCENDING) {
+                predicates.add(builder.greaterThan(stat.get("solveCount"), 0L));
+            }
+            boolean isCountQuery = Long.class.equals(query.getResultType()) || long.class.equals(query.getResultType());
+            if (!isCountQuery && sortType.isQualitySort()) {
+                Order primaryOrder = switch (sortType) {
+                    case ACCURACY_ASCENDING -> builder.asc(stat.get("accuracyPercent"));
+                    case SOLVE_COUNT_DESCENDING -> builder.desc(stat.get("solveCount"));
+                    case REPORT_COUNT_DESCENDING -> builder.desc(stat.get("reportCount"));
+                    case NEWEST -> builder.desc(root.get("createdAt"));
+                };
+                query.orderBy(primaryOrder, builder.desc(root.get("createdAt")));
+            }
+            return builder.and(predicates.toArray(new Predicate[0]));
+        };
     }
 
     /** 활성 여부 필터 > 조건 (ALL 은 조건 없음) */

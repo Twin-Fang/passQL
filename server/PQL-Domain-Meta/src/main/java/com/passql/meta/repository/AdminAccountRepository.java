@@ -1,5 +1,6 @@
 package com.passql.meta.repository;
 
+import com.passql.meta.constant.AdminRole;
 import com.passql.meta.entity.AdminAccount;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -14,4 +15,6 @@ public interface AdminAccountRepository extends JpaRepository<AdminAccount, UUID
     boolean existsByUsername(String username);
 
     List<AdminAccount> findAllByOrderByCreatedAtAsc();
+
+    long countByRole(AdminRole role);
 }

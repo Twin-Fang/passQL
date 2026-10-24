@@ -14,6 +14,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.regex.Pattern;
 
 /**
@@ -30,6 +34,8 @@ public class AppOperationService {
     public static final String NO_REQUIREMENT_VERSION = "0.0.0";
     // 버전 형식: 숫자 3개 (x.y.z)
     private static final Pattern VERSION_PATTERN = Pattern.compile("\\d{1,4}\\.\\d{1,4}\\.\\d{1,4}");
+    // 예약 시각은 관리자가 한국 시각으로 입력 > KST 기준 비교
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     // 점검 문구 최대 길이 (문자 수)
     private static final int MAINTENANCE_MESSAGE_MAX_LENGTH = 500;
 
@@ -57,10 +63,34 @@ public class AppOperationService {
     }
 
     /**
-     * 점검 중 여부 (설정 조회 실패 시 false — 설정 장애로 서비스 전체가 막히지 않게)
+     * 점검 중 여부: 수동 스위치 켜짐 또는 예약 구간 안 (설정 조회 실패 시 false — 설정 장애로 서비스 전체가 막히지 않게)
      */
     public boolean isUnderMaintenance() {
+        return isMaintenanceSwitchOn() || isInScheduledMaintenance(LocalDateTime.now(KST));
+    }
+
+    private boolean isMaintenanceSwitchOn() {
         return Boolean.parseBoolean(readSettingOrDefault(AppSettingKeys.APP_MAINTENANCE_ENABLED, "false").trim());
+    }
+
+    /** 예약 구간 안: 시작 <= 지금 < 종료 (종료 비면 수동 해제 전까지, 시작 없으면 예약 없음) */
+    private boolean isInScheduledMaintenance(LocalDateTime now) {
+        LocalDateTime startsAt = readScheduleTime(AppSettingKeys.APP_MAINTENANCE_STARTS_AT);
+        LocalDateTime endsAt = readScheduleTime(AppSettingKeys.APP_MAINTENANCE_ENDS_AT);
+        return startsAt != null && !now.isBefore(startsAt) && (endsAt == null || now.isBefore(endsAt));
+    }
+
+    /** 저장된 예약 시각 (빈 값·형식 오류 > null) */
+    private LocalDateTime readScheduleTime(String key) {
+        String stored = readSettingOrDefault(key, "").trim();
+        if (stored.isEmpty()) {
+            return null;
+        }
+        try {
+            return LocalDateTime.parse(stored);
+        } catch (DateTimeParseException e) {
+            return null;
+        }
     }
 
     /**
@@ -76,8 +106,11 @@ public class AppOperationService {
                 readVersion(AppSettingKeys.APP_RECOMMENDED_VERSION_IOS),
                 readVersion(AppSettingKeys.APP_MINIMUM_VERSION_ANDROID),
                 readVersion(AppSettingKeys.APP_RECOMMENDED_VERSION_ANDROID),
-                isUnderMaintenance(),
-                readSettingOrDefault(AppSettingKeys.APP_MAINTENANCE_MESSAGE, "")
+                isMaintenanceSwitchOn(),
+                readSettingOrDefault(AppSettingKeys.APP_MAINTENANCE_MESSAGE, ""),
+                readScheduleTime(AppSettingKeys.APP_MAINTENANCE_STARTS_AT),
+                readScheduleTime(AppSettingKeys.APP_MAINTENANCE_ENDS_AT),
+                isUnderMaintenance()
         );
     }
 
@@ -96,6 +129,7 @@ public class AppOperationService {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
         boolean isMaintenanceEnabled = Boolean.TRUE.equals(request.isMaintenanceEnabled());
+        validateMaintenancePeriod(request.maintenanceStartsAt(), request.maintenanceEndsAt());
 
         // 저장
         appSettingService.save(AppSettingKeys.APP_MINIMUM_VERSION_IOS, iosMinimum);
@@ -104,8 +138,22 @@ public class AppOperationService {
         appSettingService.save(AppSettingKeys.APP_RECOMMENDED_VERSION_ANDROID, androidRecommended);
         appSettingService.save(AppSettingKeys.APP_MAINTENANCE_ENABLED, String.valueOf(isMaintenanceEnabled));
         appSettingService.save(AppSettingKeys.APP_MAINTENANCE_MESSAGE, message);
+        appSettingService.save(AppSettingKeys.APP_MAINTENANCE_STARTS_AT, toScheduleText(request.maintenanceStartsAt()));
+        appSettingService.save(AppSettingKeys.APP_MAINTENANCE_ENDS_AT, toScheduleText(request.maintenanceEndsAt()));
         log.info("[app operation] settings saved : maintenance={}, ios={}/{}, android={}/{}",
                 isMaintenanceEnabled, iosMinimum, iosRecommended, androidMinimum, androidRecommended);
+    }
+
+    /** 점검 예약 검증: 종료만 지정 불가, 종료는 시작 이후 */
+    private static void validateMaintenancePeriod(LocalDateTime startsAt, LocalDateTime endsAt) {
+        if (endsAt != null && (startsAt == null || !endsAt.isAfter(startsAt))) {
+            throw new CustomException(ErrorCode.APP_MAINTENANCE_PERIOD_INVALID);
+        }
+    }
+
+    /** 예약 시각 > 저장 문자열 (분 단위 ISO, null > 빈 값) */
+    private static String toScheduleText(LocalDateTime scheduleTime) {
+        return scheduleTime == null ? "" : scheduleTime.truncatedTo(ChronoUnit.MINUTES).toString();
     }
 
     /** x.y.z 형식이면 true */

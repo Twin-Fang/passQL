@@ -5,7 +5,22 @@
 
     <div class="card bg-base-100 shadow mb-6">
         <div class="card-body gap-4">
-            <h2 class="card-title text-base">새 알림 보내기</h2>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <h2 class="card-title text-base">새 알림 보내기</h2>
+                <!-- 템플릿: 불러오기 / 현재 내용을 이름으로 저장 / 삭제 -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <select id="pushTemplateSelect" class="select select-bordered select-sm w-48">
+                        <option value="">템플릿 불러오기</option>
+                        <option th:each="t : ${templates}" th:value="${t.pushTemplateUuid}" th:text="${t.name}"
+                                th:data-title="${t.title}" th:data-body="${t.body}"
+                                th:data-link-target="${t.linkTarget.name()}"
+                                th:data-question-uuid="${t.linkQuestionUuid != null} ? ${t.linkQuestionUuid} : ''">템플릿</option>
+                    </select>
+                    <button type="button" class="btn btn-sm btn-ghost" onclick="applyTemplate()">불러오기</button>
+                    <button type="button" class="btn btn-sm btn-outline" th:disabled="${!canWriteAdmin}" onclick="saveTemplate()">템플릿으로 저장</button>
+                    <button type="button" class="btn btn-sm btn-ghost text-error" th:disabled="${!canWriteAdmin}" onclick="deleteTemplate()">삭제</button>
+                </div>
+            </div>
 
             <label class="form-control w-full">
                 <div class="label"><span class="label-text">제목</span>
@@ -22,7 +37,7 @@
             </label>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- 대상: 전체 / 특정 회원 -->
+                <!-- 대상: 전체 / 특정 회원 / 세그먼트(프로·무료·N일 미접속·플랫폼) -->
                 <label class="form-control w-full">
                     <div class="label"><span class="label-text">대상</span></div>
                     <select id="pushAudience" class="select select-bordered w-full" onchange="syncConditionalFields()">
@@ -33,6 +48,17 @@
                     <div class="label"><span class="label-text">회원 UUID</span></div>
                     <input id="pushMemberUuid" type="text" class="input input-bordered w-full font-mono text-sm"
                            placeholder="회원 상세의 UUID 전체"/>
+                </label>
+                <label class="form-control w-full hidden" id="inactiveDaysField">
+                    <div class="label"><span class="label-text">미접속 일수 (1~365)</span></div>
+                    <input id="pushInactiveDays" type="number" min="1" max="365" value="30" class="input input-bordered w-full"
+                           onchange="syncConditionalFields()"/>
+                </label>
+
+                <!-- 예약 발송: 비우면 즉시 (KST, 발송 시각에 대상 회원을 다시 조회) -->
+                <label class="form-control w-full">
+                    <div class="label"><span class="label-text">예약 발송 (비우면 즉시)</span></div>
+                    <input id="pushScheduledAt" type="datetime-local" class="input input-bordered w-full"/>
                 </label>
 
                 <!-- 전달 방식 -->
@@ -61,7 +87,18 @@
                 </label>
             </div>
 
-            <div class="flex justify-end">
+            <div class="flex flex-wrap items-end justify-between gap-3">
+                <!-- 테스트 발송: 지정 회원 1명에게 즉시 (이력에 테스트 표시, 통계 제외) -->
+                <div class="flex flex-wrap items-end gap-2">
+                    <label class="form-control">
+                        <div class="label py-0"><span class="label-text text-xs">테스트 수신 회원 UUID</span></div>
+                        <input id="pushTestMemberUuid" type="text" class="input input-bordered input-sm w-80 font-mono text-xs"
+                               placeholder="본인 계정 회원 UUID"/>
+                    </label>
+                    <button type="button" class="btn btn-sm btn-outline gap-1" th:disabled="${!canWriteAdmin}" onclick="sendTestPush()">
+                        <i data-lucide="flask-conical" class="size-4"></i>테스트 발송
+                    </button>
+                </div>
                 <button class="btn btn-primary gap-1" th:disabled="${!canWriteAdmin}" onclick="openConfirm()">
                     <i data-lucide="send" class="size-4"></i>발송
                 </button>
@@ -76,6 +113,7 @@
             <div class="space-y-2 text-sm">
                 <div class="flex gap-2"><span class="text-base-content/60 w-20 shrink-0">대상</span><span id="confirmAudience"></span></div>
                 <div class="flex gap-2"><span class="text-base-content/60 w-20 shrink-0">전달 방식</span><span id="confirmDeliveryMode"></span></div>
+                <div class="flex gap-2"><span class="text-base-content/60 w-20 shrink-0">발송 시각</span><span id="confirmSchedule"></span></div>
                 <div class="flex gap-2"><span class="text-base-content/60 w-20 shrink-0">이동</span><span id="confirmLink"></span></div>
                 <div class="flex gap-2"><span class="text-base-content/60 w-20 shrink-0">제목</span><span id="confirmTitle" class="break-all"></span></div>
                 <div class="flex gap-2"><span class="text-base-content/60 w-20 shrink-0">본문</span><p id="confirmBody" class="whitespace-pre-wrap break-all"></p></div>

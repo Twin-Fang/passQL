@@ -129,6 +129,12 @@ public class MemberNotificationQueryService {
         return toCountMap(memberNoticeReadRepository.countReadMembersGroupedByNotice(noticeUuids));
     }
 
+    /** 공지 삭제 뒤 읽음 기록 정리 > 지운 행 수 */
+    @Transactional
+    public int deleteNoticeReads(UUID noticeUuid) {
+        return memberNoticeReadRepository.deleteAllByAppNoticeUuid(noticeUuid);
+    }
+
     /** 알림 탭 한 페이지: 커서 이후 size+1 건 조회 > 남으면 마지막 항목 커서를 nextCursor 로 */
     private NotificationPageResponse getGeneralPage(UUID memberUuid, String cursor, int pageSize) {
         PageRequest fetchSize = PageRequest.of(0, pageSize + 1);

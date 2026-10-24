@@ -58,6 +58,10 @@ public class QuestionReport extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private CorrectionScope correctionScope;
 
+    // 처리·기각 사유 메모 (최대 500자, 없으면 null)
+    @Column(length = 500)
+    private String resolutionNote;
+
     @Builder
     public QuestionReport(UUID questionUuid, UUID choiceSetUuid, UUID memberUuid,
                           UUID submissionUuid, List<ReportCategory> categories, String detail) {
@@ -71,7 +75,8 @@ public class QuestionReport extends BaseEntity {
     }
 
     /** 기각: 보정 없이 종료 (처리자·시각은 처리완료와 같은 컬럼) */
-    public void dismiss(String resolvedByAdminUsername) {
+    public void dismiss(String resolvedByAdminUsername, String resolutionNote) {
+        this.resolutionNote = resolutionNote;
         this.status = ReportStatus.DISMISSED;
         this.resolvedAt = LocalDateTime.now();
         this.resolvedByAdminUsername = resolvedByAdminUsername;
@@ -82,7 +87,8 @@ public class QuestionReport extends BaseEntity {
         return status == ReportStatus.PENDING;
     }
 
-    public void resolve(String resolvedByAdminUsername, CorrectionScope correctionScope) {
+    public void resolve(String resolvedByAdminUsername, CorrectionScope correctionScope, String resolutionNote) {
+        this.resolutionNote = resolutionNote;
         this.status = ReportStatus.RESOLVED;
         this.resolvedAt = LocalDateTime.now();
         this.resolvedByAdminUsername = resolvedByAdminUsername;

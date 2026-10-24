@@ -46,6 +46,9 @@ public final class AppSettingKeys {
     public static final String APP_MAINTENANCE_ENABLED = "app.maintenance.enabled";
     // app_setting: 점검 화면 문구 (비면 앱 기본 문구)
     public static final String APP_MAINTENANCE_MESSAGE = "app.maintenance.message";
+    // app_setting: 점검 예약 시작·종료 (KST, yyyy-MM-ddTHH:mm, 빈 값이면 예약 없음 / 종료가 비면 수동 해제 전까지)
+    public static final String APP_MAINTENANCE_STARTS_AT = "app.maintenance.starts_at";
+    public static final String APP_MAINTENANCE_ENDS_AT = "app.maintenance.ends_at";
 
     // app_setting: 알림함 일반 알림 보관 기간 (일, 지난 알림은 매일 새벽 삭제)
     public static final String NOTIFICATION_RETENTION_DAYS = "notification.retention_days";
@@ -60,6 +63,21 @@ public final class AppSettingKeys {
     public static final String BILLING_PREVIEW_MEMBER_UUIDS = "billing.preview_member_uuids";
     // app_setting: Play Developer API 서비스 계정 키 JSON (SECRET, 암호문 저장, 관리자 화면에서 변경, 비면 결제 확인 불가)
     public static final String BILLING_PLAY_SERVICE_ACCOUNT_JSON = "billing.play_service_account_json";
+
+    // app_setting: 장애 알림 사용 여부 (true 사용, false 미사용, 웹훅 URL 이 비면 발송 안 함)
+    public static final String MONITOR_ALERT_ENABLED = "monitor.alert.enabled";
+    // app_setting: 장애 알림 Slack Incoming Webhook URL (SECRET, 암호문 저장)
+    public static final String MONITOR_ALERT_SLACK_WEBHOOK_URL = "monitor.alert.slack_webhook_url";
+    // app_setting: 장애 판정 집계 구간 (분)
+    public static final String MONITOR_ALERT_WINDOW_MINUTES = "monitor.alert.window_minutes";
+    // app_setting: 서버 오류(5xx) 알림 기준 (건, 집계 구간 합)
+    public static final String MONITOR_ALERT_SERVER_ERROR_THRESHOLD_COUNT = "monitor.alert.server_error_threshold_count";
+    // app_setting: AI 호출 실패율 알림 기준 (%, 집계 구간 호출 5건 이상일 때)
+    public static final String MONITOR_ALERT_AI_FAILURE_RATE_THRESHOLD_PERCENT = "monitor.alert.ai_failure_rate_threshold_percent";
+    // app_setting: AI 월 예산 사용률 알림 기준 (%, 달마다 1회)
+    public static final String MONITOR_ALERT_AI_BUDGET_THRESHOLD_PERCENT = "monitor.alert.ai_budget_threshold_percent";
+    // app_setting: 같은 종류 알림 재발송 대기 (분)
+    public static final String MONITOR_ALERT_COOLDOWN_MINUTES = "monitor.alert.cooldown_minutes";
 
     private AppSettingKeys() {
     }

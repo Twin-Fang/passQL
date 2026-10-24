@@ -44,6 +44,9 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends SoftDeletableBaseEntity {
 
+    // 관리자 메모 최대 길이 (문자 수)
+    public static final int MAX_ADMIN_MEMO_LENGTH = 1000;
+
     // === 식별 (코어) ===
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -93,6 +96,10 @@ public class Member extends SoftDeletableBaseEntity {
 
     @Column(length = 45)
     private String lastLoginIp;
+
+    // 관리자 메모 (운영 참고, 앱 미노출)
+    @Column(length = MAX_ADMIN_MEMO_LENGTH)
+    private String adminMemo;
 
     // 선택지 생성 모드 — PRACTICE: 기존 재사용, REAL: 항상 새로 생성
     @Enumerated(EnumType.STRING)

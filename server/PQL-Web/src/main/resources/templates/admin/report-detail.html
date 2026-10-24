@@ -30,7 +30,7 @@
         <div class="card-body">
             <h3 class="card-title text-base mb-3">
                 <i data-lucide="check-circle-2" class="size-5 text-success"></i>
-                미처리 신고 일괄 처리
+                선택한 신고 처리
             </h3>
 
             <!-- 보정 범위 라디오 -->
@@ -65,11 +65,25 @@
                 </label>
             </div>
 
-            <!-- 일괄 처리 버튼 -->
-            <div class="card-actions">
-                <button id="resolveAllBtn" class="btn btn-success btn-sm gap-1">
+            <!-- 처리 사유 메모 (선택, 최대 500자) -->
+            <div class="form-control mb-4">
+                <label class="label" for="resolutionNote">
+                    <span class="label-text font-medium">처리 사유 메모 (선택)</span>
+                </label>
+                <textarea id="resolutionNote" rows="2" maxlength="500"
+                          class="textarea textarea-bordered w-full text-sm"
+                          placeholder="예: 정답 SQL 수정 후 소급 보정 완료"></textarea>
+            </div>
+
+            <!-- 일괄 처리 버튼: 선택한 신고만 서버가 한 트랜잭션으로 처리 -->
+            <div class="card-actions items-center">
+                <button id="resolveSelectedBtn" class="btn btn-success btn-sm gap-1">
                     <i data-lucide="check-check" class="size-4"></i>
-                    미처리 전체 처리완료
+                    선택 처리완료
+                </button>
+                <button id="dismissSelectedBtn" class="btn btn-ghost btn-sm gap-1">
+                    <i data-lucide="x-circle" class="size-4"></i>
+                    선택 기각
                 </button>
                 <span id="resolveResult" class="text-sm ml-2"></span>
             </div>
@@ -82,6 +96,11 @@
             <div class="flex items-center gap-2 px-4 pt-4 pb-2">
                 <h3 class="font-bold text-base">신고 목록</h3>
                 <span id="reportCount" class="badge badge-neutral badge-sm"></span>
+                <!-- 미처리 신고 전체 선택 (미처리 신고가 있을 때만 JS가 보임) -->
+                <label id="selectAllPendingLabel" class="ml-auto hidden items-center gap-2 text-sm cursor-pointer">
+                    <input type="checkbox" id="selectAllPending" class="checkbox checkbox-sm" checked/>
+                    미처리 전체 선택
+                </label>
             </div>
             <div id="reportList" class="divide-y divide-base-200 px-4 pb-4">
                 <div class="py-8 text-center text-base-content/50">
@@ -100,6 +119,7 @@
         const questionUuid = /*[[${questionUuid}]]*/ null;
         /*]]>*/
     </script>
+    <script th:src="@{/js/admin/report-common.js}"></script>
     <script th:src="@{/js/admin/report-detail.js}"></script>
     <script>lucide.createIcons();</script>
 </th:block>

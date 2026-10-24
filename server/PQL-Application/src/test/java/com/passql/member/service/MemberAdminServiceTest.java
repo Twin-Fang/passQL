@@ -1,5 +1,6 @@
 package com.passql.member.service;
 
+import com.passql.member.constant.SuspendReasonCategory;
 import com.passql.member.dto.MemberAdminDetailResponse;
 import com.passql.member.dto.MemberAdminListResponse;
 import com.passql.member.dto.MemberSearchCondition;
@@ -95,7 +96,7 @@ class MemberAdminServiceTest {
 
         // 제재
         LocalDateTime suspendUntil = LocalDateTime.now().plusDays(1);
-        memberAdminService.suspendMember(uuid, "테스트 제재", suspendUntil);
+        memberAdminService.suspendMember(uuid, SuspendReasonCategory.ETC, "테스트 제재", suspendUntil);
         superLog("제재 후 상태: " + memberRepository.findByMemberUuidAndIsDeletedFalse(uuid)
             .map(m -> m.getStatus().name()).orElse("NOT FOUND"));
 

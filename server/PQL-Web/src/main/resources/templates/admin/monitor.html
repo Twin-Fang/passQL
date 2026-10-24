@@ -6,6 +6,57 @@
 
 <th:block layout:fragment="content">
 
+    <!-- 필터 (#622): 기간·SQL 실행 상태·서버 오류 URI, 자동 새로고침 (30초, 탭이 숨겨지면 멈춤) -->
+    <form method="get" th:action="@{/admin/monitor}" class="card bg-base-100 shadow mb-4">
+        <div class="card-body p-4 flex flex-wrap items-end gap-3">
+            <label class="form-control">
+                <span class="label-text text-xs mb-1">기간</span>
+                <select name="hours" class="select select-sm select-bordered">
+                    <option th:each="selectableHour : ${selectableHours}" th:value="${selectableHour}"
+                            th:selected="${selectableHour == filter.hours()}"
+                            th:text="${selectableHour lt 24 ? '최근 ' + selectableHour + '시간' : '최근 ' + (selectableHour / 24) + '일'}">최근 24시간</option>
+                </select>
+            </label>
+            <label class="form-control">
+                <span class="label-text text-xs mb-1">SQL 실행 상태</span>
+                <select name="status" class="select select-sm select-bordered">
+                    <option value="" th:selected="${filter.executionStatus().isEmpty()}">전체</option>
+                    <option th:each="selectableStatus : ${selectableExecutionStatuses}" th:value="${selectableStatus}"
+                            th:selected="${selectableStatus == filter.executionStatus()}" th:text="${selectableStatus}">OK</option>
+                </select>
+            </label>
+            <label class="form-control">
+                <span class="label-text text-xs mb-1">서버 오류 URI 포함</span>
+                <input type="text" name="uri" maxlength="100" placeholder="/api/questions" th:value="${filter.uriKeyword()}"
+                       class="input input-sm input-bordered w-56"/>
+            </label>
+            <button type="submit" class="btn btn-sm btn-primary">적용</button>
+            <a th:href="@{/admin/monitor}" class="btn btn-sm btn-ghost">초기화</a>
+            <label class="label cursor-pointer gap-2 ml-auto">
+                <span class="label-text text-xs">30초 자동 새로고침</span>
+                <input type="checkbox" id="autoRefreshToggle" class="toggle toggle-sm toggle-primary"/>
+            </label>
+        </div>
+    </form>
+
+    <!-- 오류율·지연 시계열 (#622): monitor.js 가 /admin/api/monitor/timeseries 를 시간별로 불러옴 -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-6">
+        <section class="card bg-base-100 shadow">
+            <div class="card-body p-4" id="failureRateChartBox">
+                <h3 class="card-title text-base">실패율 (시간별)</h3>
+                <div class="relative h-56"><canvas id="failureRateChart" aria-label="AI·SQL 실패율 차트"></canvas></div>
+                <p class="text-xs text-base-content/50">AI 호출 실패율, SQL 실행 실패율(OK 아님) (%)</p>
+            </div>
+        </section>
+        <section class="card bg-base-100 shadow">
+            <div class="card-body p-4" id="latencyChartBox">
+                <h3 class="card-title text-base">지연 · 서버 오류 (시간별)</h3>
+                <div class="relative h-56"><canvas id="latencyChart" aria-label="지연과 서버 오류 차트"></canvas></div>
+                <p class="text-xs text-base-content/50">막대 = 서버 오류(5xx) 건수, 선 = AI 평균 지연·SQL 평균 소요(ms, 오른쪽 축)</p>
+            </div>
+        </section>
+    </div>
+
     <!-- 구성 요소·서킷 상태 (#475) -->
     <th:block th:replace="~{admin/fragments/monitor-health-cards :: health-cards}"></th:block>
 
@@ -17,7 +68,7 @@
             </div>
             <div class="stat-title text-xs">성공 실행</div>
             <div class="stat-value text-primary text-2xl" th:text="${monitorStats?.successCount ?: 0}">0</div>
-            <div class="stat-desc">최근 24시간</div>
+            <div class="stat-desc" th:text="'최근 ' + ${filter.hours()} + '시간'">최근 24시간</div>
         </div>
         <div class="stat bg-base-100 shadow rounded-box">
             <div class="stat-figure text-error">
@@ -25,7 +76,7 @@
             </div>
             <div class="stat-title text-xs">실패 실행</div>
             <div class="stat-value text-error text-2xl" th:text="${monitorStats?.failCount ?: 0}">0</div>
-            <div class="stat-desc">최근 24시간</div>
+            <div class="stat-desc" th:text="'최근 ' + ${filter.hours()} + '시간'">최근 24시간</div>
         </div>
         <div class="stat bg-base-100 shadow rounded-box">
             <div class="stat-figure text-warning">
@@ -36,17 +87,17 @@
                 <span th:text="${monitorStats?.avgElapsedMs != null ? #numbers.formatDecimal(monitorStats.avgElapsedMs, 1, 0) : 0}">0</span>
                 <span class="text-sm">ms</span>
             </div>
-            <div class="stat-desc">최근 24시간</div>
+            <div class="stat-desc" th:text="'최근 ' + ${filter.hours()} + '시간'">최근 24시간</div>
         </div>
         <!-- 서버 오류(5xx·미처리 예외) — 아래 "최근 서버 오류" 표와 같은 데이터 (#440) -->
         <a href="#server-errors" class="stat bg-base-100 shadow rounded-box hover:bg-base-200">
-            <div class="stat-figure" th:classappend="${serverErrorCount24h > 0} ? 'text-error' : 'text-success'">
+            <div class="stat-figure" th:classappend="${serverErrorCount > 0} ? 'text-error' : 'text-success'">
                 <i data-lucide="server-crash" class="size-8"></i>
             </div>
             <div class="stat-title text-xs">서버 오류</div>
-            <div class="stat-value text-2xl" th:classappend="${serverErrorCount24h > 0} ? 'text-error' : 'text-success'"
-                 th:text="${serverErrorCount24h}">0</div>
-            <div class="stat-desc">최근 24시간 (5xx)</div>
+            <div class="stat-value text-2xl" th:classappend="${serverErrorCount > 0} ? 'text-error' : 'text-success'"
+                 th:text="${serverErrorCount}">0</div>
+            <div class="stat-desc" th:text="'최근 ' + ${filter.hours()} + '시간 (5xx)'">최근 24시간 (5xx)</div>
         </a>
     </div>
 
@@ -56,10 +107,10 @@
             <div class="flex items-center justify-between mb-3">
                 <h3 class="card-title text-base">
                     <i data-lucide="terminal" class="size-5"></i>
-                    실행 로그 (최근 20건)
+                    실행 로그 (최근 50건)
                 </h3>
                 <div class="flex gap-2">
-                    <button class="btn btn-sm btn-ghost" onclick="window.location.reload()">
+                    <button type="button" class="btn btn-sm btn-ghost" onclick="window.location.reload()">
                         <i data-lucide="refresh-cw" class="size-4"></i>
                         새로고침
                     </button>
@@ -121,7 +172,8 @@
                     최근 서버 오류 (최근 50건)
                 </h3>
                 <span class="text-xs text-base-content/60">
-                    30일 보관 · 상세 스택은 요청 ID로 컨테이너 로그(<code>logs/*.log.gz</code>)에서 검색
+                    30일 보관 · 상세 스택은 요청 ID로 컨테이너 로그(<code>logs/*.log.gz</code>)에서 검색 ·
+                    장애 알림(Slack)은 <a th:href="@{/admin/settings}" class="link">앱 설정</a>의 monitor.alert.* (기본 꺼짐)
                 </span>
             </div>
             <div class="overflow-x-auto">
@@ -151,7 +203,7 @@
                     <tr th:if="${serverErrors.isEmpty()}">
                         <td colspan="6" class="text-center text-base-content/50 py-8">
                             <i data-lucide="check-circle-2" class="size-8 mx-auto mb-2 text-success"></i>
-                            <p>최근 30일 동안 기록된 서버 오류가 없습니다.</p>
+                            <p>조건에 맞는 서버 오류가 없습니다. (보관 30일)</p>
                         </td>
                     </tr>
                     </tbody>
@@ -165,7 +217,7 @@
         <div class="card-body p-4">
             <h3 class="card-title text-base mb-3">
                 <i data-lucide="bot" class="size-5"></i>
-                AI 서버 호출 (최근 24시간)
+                <span th:text="'AI 서버 호출 (최근 ' + ${filter.hours()} + '시간)'">AI 서버 호출 (최근 24시간)</span>
             </h3>
             <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
                 <div>
@@ -199,11 +251,13 @@
 </th:block>
 
 <th:block layout:fragment="js">
-    <script>
-        lucide.createIcons();
-
-        // 30초마다 자동 새로고침 (선택적)
-        // setTimeout(() => window.location.reload(), 30000);
+    <!-- Chart.js 고정 버전 (모니터링 시계열에서만 로드) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script th:src="@{/js/admin/admin-chart.js}"></script>
+    <script th:inline="javascript">
+        // 시계열 조회 기간 (현재 필터의 시간 수)
+        window.MONITOR_FILTER_HOURS = /*[[${filter.hours()}]]*/ 24;
     </script>
+    <script th:src="@{/js/admin/monitor.js}"></script>
 </th:block>
 </html>

@@ -41,6 +41,19 @@ public class ServerErrorLogService {
         return repository.findTop50ByOrderByOccurredAtDesc();
     }
 
+    /** 모니터링 필터: since 이후 최근 50건, uriKeyword 있으면 URI 포함 검색 (없거나 공백이면 전체) */
+    public List<ServerErrorLog> findRecent(LocalDateTime since, String uriKeyword) {
+        if (uriKeyword == null || uriKeyword.isBlank()) {
+            return repository.findTop50ByOccurredAtAfterOrderByOccurredAtDesc(since);
+        }
+        return repository.findTop50ByOccurredAtAfterAndUriContainingIgnoreCaseOrderByOccurredAtDesc(since, uriKeyword.trim());
+    }
+
+    /** since 이후 서버 오류 건수 (필터 카드·장애 알림 공통) */
+    public long countSince(LocalDateTime since) {
+        return repository.countByOccurredAtAfter(since);
+    }
+
     public long countLast24h() {
         return repository.countByOccurredAtAfter(LocalDateTime.now().minusHours(24));
     }

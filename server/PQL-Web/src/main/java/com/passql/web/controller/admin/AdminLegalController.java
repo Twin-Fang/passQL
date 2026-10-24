@@ -13,6 +13,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @Controller
 @RequestMapping("/admin/legal")
 @RequiredArgsConstructor
@@ -35,6 +37,13 @@ public class AdminLegalController implements AdminLegalControllerDocs {
     public ResponseEntity<Void> update(@PathVariable LegalType type,
                                        @Valid @RequestBody LegalUpdateRequest request) {
         legalService.update(type, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{type}/restore/{legalHistoryUuid}")
+    @ResponseBody
+    public ResponseEntity<Void> restore(@PathVariable LegalType type, @PathVariable UUID legalHistoryUuid) {
+        legalService.restoreFromHistory(type, legalHistoryUuid);
         return ResponseEntity.ok().build();
     }
 

@@ -1,5 +1,10 @@
 package com.passql.web.controller.admin;
 
+import com.passql.question.constant.ChoiceSetSource;
+import com.passql.question.constant.ChoiceSetStatus;
+import com.passql.question.dto.AdminChoiceSetBulkRequest;
+import com.passql.question.dto.AdminChoiceSetBulkResult;
+import com.passql.question.dto.AdminChoiceSetSearchCondition;
 import com.passql.web.support.AdminPageRequest;
 import com.passql.question.entity.QuestionChoiceSet;
 import com.passql.question.entity.QuestionChoiceSetItem;
@@ -8,7 +13,6 @@ import com.passql.web.support.AdminMenu;
 import com.passql.web.support.AdminPage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -31,9 +35,13 @@ public class AdminChoiceSetController {
     @GetMapping
     @AdminPage(menu = AdminMenu.CHOICE_SETS)
     public String list(Model model,
+                       AdminChoiceSetSearchCondition condition,
                        @RequestParam(defaultValue = "0") int page,
                        @RequestParam(defaultValue = AdminPageRequest.DEFAULT_PAGE_SIZE) int size) {
-        model.addAttribute("choiceSets", adminChoiceSetService.getChoiceSets(AdminPageRequest.newestFirst(page, size)));
+        model.addAttribute("choiceSets", adminChoiceSetService.getChoiceSets(condition, AdminPageRequest.newestFirst(page, size)));
+        model.addAttribute("condition", condition);
+        model.addAttribute("sources", ChoiceSetSource.values());
+        model.addAttribute("statuses", ChoiceSetStatus.values());
         return "admin/choice-sets";
     }
 
@@ -74,5 +82,19 @@ public class AdminChoiceSetController {
     public ResponseEntity<Void> promote(@PathVariable UUID uuid) {
         adminChoiceSetService.promoteChoiceSetToReusable(uuid);
         return ResponseEntity.ok().build();
+    }
+
+    /** 선택 세트 일괄 비활성화 (JSON body: { "choiceSetUuids": [...] }) */
+    @PutMapping("/bulk-disable")
+    @ResponseBody
+    public ResponseEntity<AdminChoiceSetBulkResult> bulkDisable(@RequestBody AdminChoiceSetBulkRequest request) {
+        return ResponseEntity.ok(adminChoiceSetService.disableChoiceSets(request.choiceSetUuids()));
+    }
+
+    /** 선택 세트 일괄 재사용 풀 승격 (JSON body: { "choiceSetUuids": [...] }), 상태 OK 세트만 */
+    @PutMapping("/bulk-promote")
+    @ResponseBody
+    public ResponseEntity<AdminChoiceSetBulkResult> bulkPromote(@RequestBody AdminChoiceSetBulkRequest request) {
+        return ResponseEntity.ok(adminChoiceSetService.promoteChoiceSets(request.choiceSetUuids()));
     }
 }
