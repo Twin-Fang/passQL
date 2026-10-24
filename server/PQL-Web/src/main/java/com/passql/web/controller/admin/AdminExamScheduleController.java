@@ -1,6 +1,8 @@
 package com.passql.web.controller.admin;
 
 import com.passql.meta.constant.CertType;
+import com.passql.meta.dto.ExamScheduleBulkRequest;
+import com.passql.meta.dto.ExamScheduleBulkResult;
 import com.passql.meta.dto.ExamScheduleCreateRequest;
 import com.passql.meta.dto.ExamScheduleResponse;
 import com.passql.meta.dto.ExamScheduleUpdateRequest;
@@ -33,6 +35,9 @@ public class AdminExamScheduleController {
         List<ExamScheduleResponse> schedules = examScheduleService.getAllSchedules(type);
 
         model.addAttribute("schedules", schedules);
+        // 지난 일정 표시·정리 버튼 기준일 (KST)
+        model.addAttribute("today", examScheduleService.getTodayInKorea());
+        model.addAttribute("pastScheduleCount", examScheduleService.countPastSchedules());
         model.addAttribute("certTypes", CertType.values());
         model.addAttribute("selectedCertType", certType);
         // 공식 공고를 확인해야 하는지 알려 주는 상태 (#411)
@@ -48,6 +53,20 @@ public class AdminExamScheduleController {
     public String create(ExamScheduleCreateRequest request) {
         examScheduleService.createSchedule(request);
         return "redirect:/admin/exam-schedules";
+    }
+
+    /** 일괄 등록 (JSON body: { "text": "SQLD 63 2026-11-14\nSQLD 64 2027-02-27" }), 잘못된 줄이 있으면 400 */
+    @PostMapping("/bulk")
+    @ResponseBody
+    public ResponseEntity<ExamScheduleBulkResult> importSchedules(@Valid @RequestBody ExamScheduleBulkRequest request) {
+        return ResponseEntity.ok(examScheduleService.importSchedules(request.text()));
+    }
+
+    /** 지난 일정 정리: 시험일이 오늘보다 이전인 일정 전부 삭제 */
+    @DeleteMapping("/past")
+    @ResponseBody
+    public ResponseEntity<ExamScheduleBulkResult> deletePastSchedules() {
+        return ResponseEntity.ok(examScheduleService.deletePastSchedules());
     }
 
     /** 공식 공고를 확인했다고 오늘 날짜를 남긴다 */
