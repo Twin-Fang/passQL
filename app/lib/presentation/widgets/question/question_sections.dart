@@ -58,12 +58,13 @@ class QuestionHeader extends StatelessWidget {
               ),
               const SizedBox(width: PassqlSpacing.xs),
               PassqlBadge(
-                text: isExecutable ? 'SQL 실행' : '개념 문제',
+                // 눌러서 실행하는 버튼으로 보이지 않게 재생 아이콘 없이 유형만 표시
+                text: isExecutable ? '실행 결과 문제' : '개념 문제',
                 kind: isExecutable
                     ? PassqlBadgeKind.topic
                     : PassqlBadgeKind.neutral,
                 icon: isExecutable
-                    ? CupertinoIcons.play_fill
+                    ? CupertinoIcons.table
                     : CupertinoIcons.book_fill,
               ),
               // 최신 출제 경향 반영 문제 (#523)
