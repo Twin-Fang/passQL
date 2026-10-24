@@ -1,22 +1,17 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../design/design.dart';
 
-/// 프로필 카드. 편집 버튼은 닉네임 변경 시트를, 새로고침 아이콘은 랜덤 닉네임을 부른다.
+/// 프로필 카드: 닉네임 표시 + 편집 버튼 (랜덤 닉네임은 편집 시트 안)
 class ProfileCard extends StatelessWidget {
   const ProfileCard({
     super.key,
     required this.nickname,
-    required this.isRegenerating,
     required this.onEdit,
-    required this.onRegenerate,
   });
 
   final String nickname;
-  final bool isRegenerating;
   final VoidCallback onEdit;
-  final VoidCallback onRegenerate;
 
   @override
   Widget build(BuildContext context) {
@@ -47,29 +42,6 @@ class ProfileCard extends StatelessWidget {
               style: PassqlTypography.headline.copyWith(color: colors.label),
             ),
           ),
-          if (isRegenerating)
-            const SizedBox(
-              width: PassqlSize.minTouchTarget,
-              height: PassqlSize.minTouchTarget,
-              child: Center(child: PassqlLoadingIndicator()),
-            )
-          else
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              minimumSize: const Size.square(PassqlSize.minTouchTarget),
-              onPressed: onRegenerate,
-              child: Semantics(
-                label: '랜덤 닉네임',
-                child: Tooltip(
-                  message: '랜덤 닉네임',
-                  child: Icon(
-                    CupertinoIcons.arrow_clockwise,
-                    size: PassqlIconSize.lg,
-                    color: colors.iconSecondary,
-                  ),
-                ),
-              ),
-            ),
           PassqlButton(
             label: '편집',
             variant: PassqlButtonVariant.plain,

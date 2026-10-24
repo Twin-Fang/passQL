@@ -109,6 +109,35 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
     }
   }
 
+  /// 랜덤 닉네임: 확인 > 재생성 > 닫기(true), 쿨다운 등 거절은 시트 안 안내로
+  Future<void> _regenerate() async {
+    // 바로 적용되고 쿨다운이 시작돼서 먼저 확인받는다
+    final isConfirmed = await showPassqlConfirmDialog(
+      context,
+      title: '랜덤 닉네임으로 바꿀까요?',
+      message: '새 닉네임이 바로 적용되고, 변경 후 3일간은 다시 바꿀 수 없어요.',
+      confirmLabel: '바꾸기',
+      isDestructive: false,
+    );
+    if (!isConfirmed || !mounted) return;
+
+    setState(() {
+      _isSaving = true;
+      _setMessage(null);
+    });
+    try {
+      await ref.read(nicknameNotifierProvider.notifier).regenerate();
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
+    } on AppException catch (exception) {
+      if (!mounted) return;
+      setState(() {
+        _isSaving = false;
+        _setMessage(exception.message, isError: true);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
@@ -199,6 +228,12 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
             label: '저장',
             isLoading: _isSaving,
             onPressed: _canSave ? _save : null,
+          ),
+          const SizedBox(height: PassqlSpacing.xxs),
+          PassqlButton(
+            label: '랜덤 닉네임으로 바꾸기',
+            variant: PassqlButtonVariant.plain,
+            onPressed: _isSaving || _isChecking ? null : _regenerate,
           ),
         ],
       ),
