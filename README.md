@@ -167,4 +167,4 @@ You may use, modify, and study this project only for personal, non-commercial pu
 
 Commercial use, hosted service use, production use, and organizational use are prohibited without prior written permission.
 
-For licensing inquiries: chan4760@naver.com, ghd0106@naver.com
+For licensing inquiries: chan4760@naver.com
