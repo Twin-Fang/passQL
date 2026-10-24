@@ -10,7 +10,7 @@
     <!-- 요약 배지 + 새로고침 — 좁은 폭에서는 줄바꿈 (#409) -->
     <div class="flex flex-wrap items-center gap-2 mb-4">
         <div class="badge badge-neutral badge-lg">
-            전체 <span class="ml-1 font-bold" th:text="${feedbacks.totalElements}">0</span>
+            검색 결과 <span class="ml-1 font-bold" th:text="${feedbacks.totalElements}">0</span>
         </div>
         <div class="badge badge-warning badge-lg">
             대기중 <span class="ml-1 font-bold" th:text="${pendingCount}">0</span>
@@ -21,27 +21,69 @@
         <div class="badge badge-success badge-lg">
             적용됨 <span class="ml-1 font-bold" th:text="${appliedCount}">0</span>
         </div>
-        <!-- 상태 필터 (#479) -->
-        <div class="join ml-auto">
-            <a th:href="@{/admin/feedbacks}" class="join-item btn btn-sm"
-               th:classappend="${selectedStatus == null} ? 'btn-active'">전체</a>
-            <a th:each="s : ${statuses}" th:href="@{/admin/feedbacks(status=${s.name()})}"
-               class="join-item btn btn-sm" th:classappend="${selectedStatus == s} ? 'btn-active'"
-               th:text="${s.name()}">PENDING</a>
-        </div>
-        <button class="btn btn-sm btn-ghost" onclick="location.reload()">
+        <button class="btn btn-sm btn-ghost ml-auto" onclick="location.reload()">
             <i data-lucide="refresh-cw" class="size-4"></i>새로고침
         </button>
+    </div>
+
+    <!-- 검색 바 (#628): 상태, 내용 키워드, 회원(UUID 또는 닉네임), 제출 기간 -->
+    <div class="card bg-base-100 shadow mb-4">
+        <div class="card-body p-3">
+            <form th:action="@{/admin/feedbacks}" method="get" class="flex flex-wrap gap-2 items-end">
+                <div class="form-control">
+                    <label class="label label-text text-xs">상태</label>
+                    <select name="status" class="select select-sm select-bordered w-36">
+                        <option value="">전체</option>
+                        <option th:each="s : ${statuses}" th:value="${s.name()}" th:text="${s.name()}"
+                                th:selected="${condition.status != null and condition.status == s}">PENDING</option>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label class="label label-text text-xs">내용 키워드</label>
+                    <input type="text" name="keyword" class="input input-sm input-bordered w-48"
+                           th:value="${condition.keyword}" placeholder="내용 검색"/>
+                </div>
+                <div class="form-control">
+                    <label class="label label-text text-xs">회원 (닉네임 또는 UUID)</label>
+                    <input type="text" name="member" class="input input-sm input-bordered w-56"
+                           th:value="${condition.member}" placeholder="닉네임 또는 UUID"/>
+                </div>
+                <div class="form-control">
+                    <label class="label label-text text-xs">제출일 시작</label>
+                    <input type="date" name="fromDate" class="input input-sm input-bordered w-36"
+                           th:value="${condition.fromDate}"/>
+                </div>
+                <div class="form-control">
+                    <label class="label label-text text-xs">제출일 종료</label>
+                    <input type="date" name="toDate" class="input input-sm input-bordered w-36"
+                           th:value="${condition.toDate}"/>
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i data-lucide="search" class="size-4"></i>검색
+                </button>
+                <a th:href="@{/admin/feedbacks}" class="btn btn-sm btn-ghost">초기화</a>
+            </form>
+        </div>
+    </div>
+
+    <!-- 일괄 작업 바: 체크한 건의가 있을 때만 표시 -->
+    <div id="feedbackBulkBar" class="hidden alert alert-info mb-3 py-2 flex flex-wrap items-center gap-2">
+        <span class="text-sm font-medium"><span id="feedbackBulkCount">0</span>건 선택</span>
+        <select id="feedbackBulkStatus" class="select select-sm select-bordered w-32">
+            <option th:each="s : ${statuses}" th:value="${s.name()}" th:text="${s.name()}">PENDING</option>
+        </select>
+        <button type="button" class="btn btn-sm btn-primary" onclick="bulkUpdateStatus()">상태 일괄 변경</button>
     </div>
 
     <!-- 건의사항 목록 -->
     <div class="card bg-base-100 shadow">
         <div class="card-body p-0">
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto" id="feedbackTableWrapper">
                 <table class="table table-sm table-fixed w-full">
                     <thead>
                     <tr>
-                        <th class="w-36">회원 UUID</th>
+                        <th class="w-10"><input type="checkbox" class="checkbox checkbox-xs bulk-all-checkbox" aria-label="현재 페이지 전체 선택"/></th>
+                        <th class="w-36">회원</th>
                         <th class="w-auto">내용</th>
                         <th class="w-28">상태</th>
                         <th class="w-28">제출일</th>
@@ -50,11 +92,16 @@
                     </thead>
                     <tbody>
                     <tr th:each="f : ${feedbacks}">
-                        <!-- 회원 UUID — 클릭 시 회원 상세 이동 -->
+                        <td>
+                            <input type="checkbox" class="checkbox checkbox-xs bulk-row-checkbox"
+                                   th:value="${f.feedbackUuid}" aria-label="건의 선택"/>
+                        </td>
+                        <!-- 회원 닉네임 — 클릭 시 회원 상세 이동 (member 행이 없으면 UUID 앞 8자) -->
                         <td>
                             <a th:href="@{/admin/members/{uuid}(uuid=${f.memberUuid})}"
-                               class="link link-hover font-mono text-xs"
-                               th:text="${#strings.substring(f.memberUuid.toString(), 0, 8)}">550e8400</a>
+                               class="link link-hover text-xs truncate block"
+                               th:title="${f.memberUuid}"
+                               th:text="${f.memberNickname != null ? f.memberNickname : #strings.substring(f.memberUuid.toString(), 0, 8)}">닉네임</a>
                         </td>
                         <!-- 내용 — 클릭 시 모달 -->
                         <td class="max-w-xs">
@@ -62,14 +109,17 @@
                                   th:text="${#strings.length(f.content) > 50 ? #strings.substring(f.content, 0, 50) + '...' : f.content}"
                                   th:data-uuid="${f.feedbackUuid}"
                                   th:data-content="${f.content}"
-                                  th:data-member="${f.memberUuid}"
+                                  th:data-member="${f.memberNickname != null ? f.memberNickname : f.memberUuid}"
                                   th:data-status="${f.status}"
                                   th:data-created="${f.createdAt != null ? #temporals.format(f.createdAt, 'yyyy-MM-dd HH:mm') : '-'}"
                                   th:data-memo="${f.adminMemo}"
                                   th:data-updated-by="${f.updatedBy}"
+                                  th:data-reply="${f.replyMessage}"
+                                  th:data-replied-at="${f.repliedAt != null ? #temporals.format(f.repliedAt, 'yyyy-MM-dd HH:mm') : ''}"
                                   th:data-member-href="@{/admin/members/{uuid}(uuid=${f.memberUuid})}"
                                   onclick="openModal(this)">내용</span>
                             <span th:if="${f.adminMemo != null}" class="badge badge-ghost badge-xs mt-1">메모 있음</span>
+                            <span th:if="${f.replyMessage != null}" class="badge badge-success badge-xs mt-1">답변 완료</span>
                         </td>
                         <!-- 상태 배지 -->
                         <td>
@@ -100,7 +150,7 @@
 
                     <!-- Empty state -->
                     <tr th:if="${feedbacks == null or feedbacks.isEmpty()}">
-                        <td colspan="5" class="text-center text-base-content/50 py-12">
+                        <td colspan="6" class="text-center text-base-content/50 py-12">
                             <i data-lucide="message-circle" class="size-10 mx-auto mb-2 opacity-40"></i>
                             <p>건의사항이 없습니다.</p>
                         </td>
@@ -112,12 +162,12 @@
             <!-- 페이지네이션 -->
             <div class="flex justify-center p-4" th:if="${feedbacks != null and feedbacks.totalPages > 1}">
                 <div class="join">
-                    <a th:href="@{/admin/feedbacks(page=${feedbacks.number - 1}, status=${selectedStatus})}"
+                    <a th:href="@{/admin/feedbacks(page=${feedbacks.number - 1}, status=${condition.status}, keyword=${condition.keyword}, member=${condition.member}, fromDate=${condition.fromDate}, toDate=${condition.toDate})}"
                        class="join-item btn btn-sm"
                        th:classappend="${feedbacks.first} ? 'btn-disabled'">«</a>
                     <button class="join-item btn btn-sm btn-active"
                             th:text="${feedbacks.number + 1} + ' / ' + ${feedbacks.totalPages}">1 / 10</button>
-                    <a th:href="@{/admin/feedbacks(page=${feedbacks.number + 1}, status=${selectedStatus})}"
+                    <a th:href="@{/admin/feedbacks(page=${feedbacks.number + 1}, status=${condition.status}, keyword=${condition.keyword}, member=${condition.member}, fromDate=${condition.fromDate}, toDate=${condition.toDate})}"
                        class="join-item btn btn-sm"
                        th:classappend="${feedbacks.last} ? 'btn-disabled'">»</a>
                 </div>
@@ -131,8 +181,8 @@
             <h3 class="font-bold text-lg mb-4">건의사항 상세</h3>
             <div class="space-y-2 text-sm">
                 <div class="flex gap-2">
-                    <span class="text-base-content/60 w-20 shrink-0">회원 UUID</span>
-                    <a id="modalMember" class="link link-primary font-mono break-all" href="#"></a>
+                    <span class="text-base-content/60 w-20 shrink-0">회원</span>
+                    <a id="modalMember" class="link link-primary break-all" href="#"></a>
                 </div>
                 <div class="flex gap-2">
                     <span class="text-base-content/60 w-20 shrink-0">상태</span>
@@ -149,15 +199,25 @@
                 <!-- 관리자 메모 (답변·처리 내용, 앱 미노출) -->
                 <div class="mt-4">
                     <label class="text-base-content/60 text-xs">관리자 메모 <span class="text-base-content/40">(앱에 보이지 않음, 1000자)</span></label>
-                    <textarea id="modalMemo" class="textarea textarea-bordered w-full text-sm mt-1" rows="4" maxlength="1000"></textarea>
+                    <textarea id="modalMemo" class="textarea textarea-bordered w-full text-sm mt-1" rows="3" maxlength="1000"></textarea>
                     <p id="modalMemoUpdatedBy" class="text-xs text-base-content/40"></p>
+                </div>
+                <!-- 회원 답변: 작성자 알림함(푸시 포함)으로 전달 -->
+                <div class="mt-4">
+                    <label class="text-base-content/60 text-xs">회원에게 답변 <span class="text-base-content/40">(알림함과 푸시로 전달, 500자)</span></label>
+                    <textarea id="modalReply" class="textarea textarea-bordered w-full text-sm mt-1" rows="3" maxlength="500"
+                              placeholder="답변 내용을 입력하면 회원 알림함으로 전달됩니다."></textarea>
+                    <p id="modalRepliedAt" class="text-xs text-base-content/40"></p>
                 </div>
             </div>
             <div class="modal-action">
                 <form method="dialog">
                     <button class="btn btn-sm">닫기</button>
                 </form>
-                <button class="btn btn-sm btn-primary" onclick="saveMemo()">메모 저장</button>
+                <button class="btn btn-sm btn-outline" onclick="saveMemo()">메모 저장</button>
+                <button class="btn btn-sm btn-primary" onclick="sendReply()">
+                    <i data-lucide="send" class="size-4"></i>답변 발송
+                </button>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop"><button>close</button></form>
@@ -166,38 +226,8 @@
 </th:block>
 
 <th:block layout:fragment="js">
-    <script>
-        lucide.createIcons();
-
-        let modalFeedbackUuid = null;
-
-        function openModal(el) {
-            modalFeedbackUuid = el.dataset.uuid;
-            const memberLink = document.getElementById('modalMember');
-            memberLink.textContent = el.dataset.member;
-            memberLink.href = el.dataset.memberHref;
-            document.getElementById('modalMemo').value = el.dataset.memo || '';
-            document.getElementById('modalMemoUpdatedBy').textContent = el.dataset.updatedBy ? '마지막 수정: ' + el.dataset.updatedBy : '';
-            document.getElementById('modalStatus').textContent = el.dataset.status;
-            document.getElementById('modalCreated').textContent = el.dataset.created;
-            document.getElementById('modalContent').textContent = el.dataset.content;
-            document.getElementById('feedbackModal').showModal();
-        }
-
-        function saveMemo() {
-            const adminMemo = document.getElementById('modalMemo').value;
-            AdminApi.put('/admin/feedbacks/' + modalFeedbackUuid + '/memo', { adminMemo })
-                .then(() => AdminUi.reloadWithToast('메모를 저장했습니다.'))
-                .catch(error => AdminUi.showError(error));
-        }
-
-        function updateStatus(uuid) {
-            const select = document.getElementById('select-' + uuid);
-            const status = select.value;
-            AdminApi.post('/admin/feedbacks/' + uuid + '/status', { status: status })
-                .then(() => AdminUi.reloadWithToast('상태를 변경했습니다.'))
-                .catch(error => AdminUi.showError(error));
-        }
-    </script>
+    <script th:src="@{/js/admin/admin-bulk-select.js}"></script>
+    <script th:src="@{/js/admin/feedbacks.js}"></script>
+    <script>lucide.createIcons();</script>
 </th:block>
 </html>
