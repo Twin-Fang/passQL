@@ -22,9 +22,13 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -152,6 +156,70 @@ public class MetaService {
         topic.setIsActive(request.isActive());
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.TOPIC, code, AdminAuditAction.UPDATE,
                 before, toTopicAuditSummary(topic)));
+    }
+
+    /** 서브토픽 편집: 상위 토픽 소속 확인 > displayName, sortOrder, isActive 수정 */
+    @Transactional
+    public void updateSubtopic(String topicCode, String subtopicCode, TopicUpdateRequest request) {
+        Subtopic subtopic = findSubtopicOfTopic(topicCode, subtopicCode);
+        Map<String, Object> before = toSubtopicAuditSummary(subtopic);
+        subtopic.setDisplayName(request.displayName());
+        subtopic.setSortOrder(request.sortOrder());
+        subtopic.setIsActive(request.isActive());
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.TOPIC, topicCode + "/" + subtopicCode,
+                AdminAuditAction.UPDATE, before, toSubtopicAuditSummary(subtopic)));
+    }
+
+    /** 토픽 순서 변경: 전체 토픽 코드를 새 순서대로 받아 sortOrder 를 1부터 다시 부여 (누락·중복·없는 코드는 거부) */
+    @Transactional
+    public void reorderTopics(List<String> orderedTopicCodes) {
+        List<Topic> topics = topicRepository.findAllByOrderBySortOrderAsc();
+        Map<String, Topic> topicByCode = topics.stream().collect(Collectors.toMap(Topic::getCode, Function.identity()));
+        validateOrderedCodes(orderedTopicCodes, topicByCode.keySet());
+        List<String> beforeCodes = topics.stream().map(Topic::getCode).toList();
+        for (int index = 0; index < orderedTopicCodes.size(); index++) {
+            topicByCode.get(orderedTopicCodes.get(index)).setSortOrder(index + 1);
+        }
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.TOPIC, "order", AdminAuditAction.UPDATE,
+                AdminAuditEvent.summary("orderedCodes", beforeCodes), AdminAuditEvent.summary("orderedCodes", orderedTopicCodes)));
+    }
+
+    /** 서브토픽 순서 변경: 한 토픽의 전체 서브토픽 코드를 새 순서대로 받아 sortOrder 를 1부터 다시 부여 */
+    @Transactional
+    public void reorderSubtopics(String topicCode, List<String> orderedSubtopicCodes) {
+        Topic topic = topicRepository.findByCode(topicCode)
+                .orElseThrow(() -> new CustomException(ErrorCode.TOPIC_NOT_FOUND));
+        List<Subtopic> subtopics = subtopicRepository.findByTopicUuidOrderBySortOrderAsc(topic.getTopicUuid());
+        Map<String, Subtopic> subtopicByCode = subtopics.stream().collect(Collectors.toMap(Subtopic::getCode, Function.identity()));
+        validateOrderedCodes(orderedSubtopicCodes, subtopicByCode.keySet());
+        List<String> beforeCodes = subtopics.stream().map(Subtopic::getCode).toList();
+        for (int index = 0; index < orderedSubtopicCodes.size(); index++) {
+            subtopicByCode.get(orderedSubtopicCodes.get(index)).setSortOrder(index + 1);
+        }
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.TOPIC, topicCode + "/order", AdminAuditAction.UPDATE,
+                AdminAuditEvent.summary("orderedCodes", beforeCodes), AdminAuditEvent.summary("orderedCodes", orderedSubtopicCodes)));
+    }
+
+    /** 순서 요청 코드 목록 검증: 현재 코드 전체와 정확히 같은 집합 (중복·누락·모르는 코드 거부) */
+    private void validateOrderedCodes(List<String> orderedCodes, Set<String> currentCodes) {
+        if (orderedCodes == null || orderedCodes.size() != currentCodes.size()
+                || !new HashSet<>(orderedCodes).equals(currentCodes)) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "현재 목록 전체를 중복 없이 새 순서로 보내야 합니다.");
+        }
+    }
+
+    /** 토픽 코드 + 서브토픽 코드 > 서브토픽 (해당 토픽 소속이 아니면 없음 처리) */
+    public Subtopic findSubtopicOfTopic(String topicCode, String subtopicCode) {
+        Topic topic = topicRepository.findByCode(topicCode)
+                .orElseThrow(() -> new CustomException(ErrorCode.TOPIC_NOT_FOUND));
+        return subtopicRepository.findByCode(subtopicCode)
+                .filter(subtopic -> subtopic.getTopicUuid().equals(topic.getTopicUuid()))
+                .orElseThrow(() -> new CustomException(ErrorCode.TOPIC_NOT_FOUND));
+    }
+
+    private Map<String, Object> toSubtopicAuditSummary(Subtopic subtopic) {
+        return AdminAuditEvent.summary("displayName", subtopic.getDisplayName(), "sortOrder", subtopic.getSortOrder(),
+                "isActive", subtopic.getIsActive());
     }
 
     private Map<String, Object> toTopicAuditSummary(Topic topic) {

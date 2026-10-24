@@ -29,32 +29,48 @@
                             <th>코드</th>
                             <th>이름</th>
                             <th class="w-16">순서</th>
+                            <th class="w-16" title="비활성 포함 소속 문제 수">문제 수</th>
                             <th class="w-16">활성</th>
-                            <th class="w-20">액션</th>
+                            <th class="w-40">액션</th>
                         </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="topicTableBody">
                         <tr th:each="topic : ${topics}"
                             th:classappend="${selectedTopicCode == topic.code} ? 'bg-primary/5'"
                             class="cursor-pointer hover"
+                            data-order-row="true"
                             th:data-code="${topic.code}"
                             onclick="window.location.href='/admin/topics?topicCode=' + this.dataset.code">
                             <td class="font-mono text-xs font-bold" th:text="${topic.code}">SELECT</td>
                             <td th:text="${topic.displayName}">SELECT 문</td>
                             <td class="text-center" th:text="${topic.sortOrder}">1</td>
+                            <td class="text-center" th:text="${topicQuestionCountByUuid.getOrDefault(topic.topicUuid, 0L)}">0</td>
                             <td>
                                 <span th:classappend="${topic.isActive} ? 'badge-success' : 'badge-ghost'"
                                       class="badge badge-xs"
                                       th:text="${topic.isActive} ? '활성' : '비활성'">활성</span>
                             </td>
-                            <td>
-                                <button class="btn btn-xs btn-ghost"
+                            <td class="whitespace-nowrap">
+                                <button class="btn btn-xs btn-ghost" title="위로" th:data-code="${topic.code}"
+                                        onclick="moveOrderRow(this.dataset.code, -1, 'topicTableBody', saveTopicOrder); event.stopPropagation()">
+                                    <i data-lucide="arrow-up" class="size-3"></i>
+                                </button>
+                                <button class="btn btn-xs btn-ghost" title="아래로" th:data-code="${topic.code}"
+                                        onclick="moveOrderRow(this.dataset.code, 1, 'topicTableBody', saveTopicOrder); event.stopPropagation()">
+                                    <i data-lucide="arrow-down" class="size-3"></i>
+                                </button>
+                                <button class="btn btn-xs btn-ghost" title="편집"
                                         th:data-code="${topic.code}"
                                         th:data-name="${topic.displayName}"
                                         th:data-sort="${topic.sortOrder}"
                                         th:data-active="${topic.isActive}"
                                         onclick="editTopic(this.dataset.code, this.dataset.name, this.dataset.sort, this.dataset.active); event.stopPropagation()">
                                     <i data-lucide="pencil" class="size-3"></i>
+                                </button>
+                                <button class="btn btn-xs btn-ghost text-error" title="삭제"
+                                        th:data-code="${topic.code}" th:data-name="${topic.displayName}"
+                                        onclick="deleteTopic(this.dataset.code, this.dataset.name); event.stopPropagation()">
+                                    <i data-lucide="trash-2" class="size-3"></i>
                                 </button>
                             </td>
                         </tr>
@@ -121,30 +137,51 @@
                             <th>코드</th>
                             <th>이름</th>
                             <th class="w-16">순서</th>
+                            <th class="w-16" title="비활성 포함 소속 문제 수">문제 수</th>
                             <th class="w-16">활성</th>
-                            <th class="w-20">액션</th>
+                            <th class="w-40">액션</th>
                         </tr>
                         </thead>
-                        <tbody>
-                        <tr th:each="sub : ${subtopics}" th:if="${subtopics != null and !subtopics.isEmpty()}">
+                        <tbody id="subtopicTableBody">
+                        <tr th:each="sub : ${subtopics}" th:if="${subtopics != null and !subtopics.isEmpty()}"
+                            data-order-row="true" th:data-code="${sub.code}">
                             <td class="font-mono text-xs font-bold" th:text="${sub.code}">basic_select</td>
                             <td th:text="${sub.displayName}">기본 SELECT</td>
                             <td class="text-center" th:text="${sub.sortOrder}">1</td>
+                            <td class="text-center" th:text="${subtopicQuestionCountByUuid.getOrDefault(sub.subtopicUuid, 0L)}">0</td>
                             <td>
                                 <span th:classappend="${sub.isActive} ? 'badge-success' : 'badge-ghost'"
                                       class="badge badge-xs"
                                       th:text="${sub.isActive} ? '활성' : '비활성'">활성</span>
                             </td>
-                            <td>
-                                <button class="btn btn-xs btn-ghost">
+                            <td class="whitespace-nowrap">
+                                <button class="btn btn-xs btn-ghost" title="위로" th:data-code="${sub.code}"
+                                        onclick="moveOrderRow(this.dataset.code, -1, 'subtopicTableBody', saveSubtopicOrder)">
+                                    <i data-lucide="arrow-up" class="size-3"></i>
+                                </button>
+                                <button class="btn btn-xs btn-ghost" title="아래로" th:data-code="${sub.code}"
+                                        onclick="moveOrderRow(this.dataset.code, 1, 'subtopicTableBody', saveSubtopicOrder)">
+                                    <i data-lucide="arrow-down" class="size-3"></i>
+                                </button>
+                                <button class="btn btn-xs btn-ghost" title="편집"
+                                        th:data-code="${sub.code}"
+                                        th:data-name="${sub.displayName}"
+                                        th:data-sort="${sub.sortOrder}"
+                                        th:data-active="${sub.isActive}"
+                                        onclick="editSubtopic(this.dataset.code, this.dataset.name, this.dataset.sort, this.dataset.active)">
                                     <i data-lucide="pencil" class="size-3"></i>
+                                </button>
+                                <button class="btn btn-xs btn-ghost text-error" title="삭제"
+                                        th:data-code="${sub.code}" th:data-name="${sub.displayName}"
+                                        onclick="deleteSubtopic(this.dataset.code, this.dataset.name)">
+                                    <i data-lucide="trash-2" class="size-3"></i>
                                 </button>
                             </td>
                         </tr>
 
                         <!-- Empty/placeholder state -->
                         <tr th:if="${subtopics == null or subtopics.isEmpty()}">
-                            <td colspan="5" class="text-center text-base-content/40 py-8">
+                            <td colspan="6" class="text-center text-base-content/40 py-8">
                                 <i data-lucide="git-branch" class="size-8 mx-auto mb-2 opacity-30"></i>
                                 <p class="text-sm" th:text="${selectedTopicCode != null} ? '서브토픽이 없습니다.' : '좌측에서 토픽을 선택하세요.'">
                                     좌측에서 토픽을 선택하세요.
@@ -211,6 +248,37 @@
         <form method="dialog" class="modal-backdrop"><button>close</button></form>
     </dialog>
 
+    <!-- 서브토픽 편집 모달 -->
+    <dialog id="editSubtopicModal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg mb-4">서브토픽 편집</h3>
+            <div class="mb-3 text-sm text-base-content/60">
+                코드: <span id="editSubtopicCode" class="font-mono font-bold"></span>
+            </div>
+            <div class="space-y-3">
+                <div class="form-control">
+                    <label class="label"><span class="label-text">이름</span></label>
+                    <input type="text" id="editSubtopicName" class="input input-bordered" required/>
+                </div>
+                <div class="form-control">
+                    <label class="label"><span class="label-text">정렬 순서</span></label>
+                    <input type="number" id="editSubtopicSort" class="input input-bordered" min="1"/>
+                </div>
+                <div class="form-control">
+                    <label class="label cursor-pointer justify-start gap-3">
+                        <input type="checkbox" id="editSubtopicActive" class="checkbox checkbox-sm"/>
+                        <span class="label-text">활성</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-action">
+                <button type="button" class="btn btn-ghost" onclick="document.getElementById('editSubtopicModal').close()">취소</button>
+                <button type="button" class="btn btn-primary" onclick="saveSubtopicEdit()">저장</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
     <!-- 토픽 편집 모달 -->
     <dialog id="editTopicModal" class="modal">
         <div class="modal-box">
@@ -245,8 +313,74 @@
 </th:block>
 
 <th:block layout:fragment="js">
-    <script>
+    <script th:inline="javascript">
         lucide.createIcons();
+
+        // 서브토픽 요청 경로에 쓰는 선택 토픽 코드
+        const selectedTopicCode = /*[[${selectedTopicCode}]]*/ null;
+
+        function editSubtopic(code, displayName, sortOrder, isActive) {
+            document.getElementById('editSubtopicCode').textContent = code;
+            document.getElementById('editSubtopicName').value = displayName;
+            document.getElementById('editSubtopicSort').value = sortOrder;
+            document.getElementById('editSubtopicActive').checked = isActive === 'true';
+            document.getElementById('editSubtopicModal').showModal();
+        }
+
+        function saveSubtopicEdit() {
+            const subtopicCode = document.getElementById('editSubtopicCode').textContent;
+            const body = {
+                displayName: document.getElementById('editSubtopicName').value,
+                sortOrder: parseInt(document.getElementById('editSubtopicSort').value, 10),
+                isActive: document.getElementById('editSubtopicActive').checked
+            };
+            AdminApi.put(`/admin/topics/${encodeURIComponent(selectedTopicCode)}/subtopics/${encodeURIComponent(subtopicCode)}`, body)
+                .then(() => {
+                    document.getElementById('editSubtopicModal').close();
+                    AdminUi.reloadWithToast('서브토픽을 저장했습니다.');
+                })
+                .catch(error => AdminUi.showError(error));
+        }
+
+        // 삭제: 확인 창 > 요청 (소속 문제가 있으면 서버가 409 안내 문구를 돌려줌)
+        async function deleteTopic(code, displayName) {
+            if (!await AdminUi.confirmDanger(`'${displayName}' 토픽과 비어 있는 하위 서브토픽을 삭제합니다.\n소속 문제가 있으면 삭제되지 않습니다.`,
+                { title: '토픽을 삭제할까요?', confirmLabel: '삭제' })) return;
+            AdminApi.delete(`/admin/topics/${encodeURIComponent(code)}`)
+                .then(() => AdminUi.navigateWithToast('/admin/topics', '토픽을 삭제했습니다.'))
+                .catch(error => AdminUi.showError(error));
+        }
+
+        async function deleteSubtopic(code, displayName) {
+            if (!await AdminUi.confirmDanger(`'${displayName}' 서브토픽을 삭제합니다.\n소속 문제가 있으면 삭제되지 않습니다.`,
+                { title: '서브토픽을 삭제할까요?', confirmLabel: '삭제' })) return;
+            AdminApi.delete(`/admin/topics/${encodeURIComponent(selectedTopicCode)}/subtopics/${encodeURIComponent(code)}`)
+                .then(() => AdminUi.reloadWithToast('서브토픽을 삭제했습니다.'))
+                .catch(error => AdminUi.showError(error));
+        }
+
+        // 순서 변경: 표의 코드 순서에서 한 칸 이동한 전체 순서 > 저장 요청 (맨 위·맨 아래는 무시)
+        function moveOrderRow(code, step, tableBodyId, saveOrder) {
+            const orderedCodes = Array.from(document.querySelectorAll(`#${tableBodyId} tr[data-order-row]`))
+                .map(row => row.dataset.code);
+            const fromIndex = orderedCodes.indexOf(code);
+            const toIndex = fromIndex + step;
+            if (fromIndex < 0 || toIndex < 0 || toIndex >= orderedCodes.length) return;
+            orderedCodes.splice(toIndex, 0, orderedCodes.splice(fromIndex, 1)[0]);
+            saveOrder(orderedCodes);
+        }
+
+        function saveTopicOrder(orderedCodes) {
+            AdminApi.post('/admin/topics/order', { orderedCodes })
+                .then(() => AdminUi.reloadWithToast('토픽 순서를 바꿨습니다.'))
+                .catch(error => AdminUi.showError(error));
+        }
+
+        function saveSubtopicOrder(orderedCodes) {
+            AdminApi.post(`/admin/topics/${encodeURIComponent(selectedTopicCode)}/subtopics/order`, { orderedCodes })
+                .then(() => AdminUi.reloadWithToast('서브토픽 순서를 바꿨습니다.'))
+                .catch(error => AdminUi.showError(error));
+        }
 
         function editTopic(code, displayName, sortOrder, isActive) {
             // 모달에 현재 토픽 정보를 채운 후 오픈
