@@ -116,7 +116,10 @@ public class MemberAdminService {
 
     /** 회원 1명 목록 항목 (UUID 정확 일치, 탈퇴 회원 제외) — 전역 검색용 */
     public Optional<MemberAdminListResponse> findMemberListItem(UUID memberUuid) {
-        return memberRepository.findByMemberUuidAndIsDeletedFalse(memberUuid).map(MemberAdminListResponse::from);
+        return memberRepository.findByMemberUuidAndIsDeletedFalse(memberUuid).map(member -> {
+            Set<UUID> proActiveMemberUuids = findProActiveMemberUuids(List.of(member), LocalDateTime.now());
+            return MemberAdminListResponse.from(member, proActiveMemberUuids.contains(member.getMemberUuid()));
+        });
     }
 
     /** 회원 상세 조회 */

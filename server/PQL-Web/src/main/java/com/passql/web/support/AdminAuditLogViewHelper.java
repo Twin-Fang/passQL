@@ -59,6 +59,7 @@ public class AdminAuditLogViewHelper {
             case ADMIN_ACCOUNT -> "/admin/accounts";
             case NOTIFICATION -> "/admin/push";
             case COMMUNITY_POST -> "/admin/community/posts";
+            case EMBEDDING_INDEX -> "/admin/embeddings";
         };
     }
 
