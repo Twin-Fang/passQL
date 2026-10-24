@@ -18,6 +18,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 /** 글·댓글 신고 1건 (대상당 회원 1회, 사유 카테고리 + 선택 상세) */
@@ -34,6 +35,8 @@ public class CommunityReport extends BaseEntity {
 
     // 신고 상세 최대 길이 (문자 수)
     public static final int MAX_DETAIL_LENGTH = 200;
+    // 처리 사유 메모 최대 길이 (문자 수)
+    public static final int MAX_HANDLED_NOTE_LENGTH = 200;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -60,6 +63,23 @@ public class CommunityReport extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)
     private CommunityReportStatus status;
+
+    // 처리 기록 (처리 전·기록 도입 전 신고는 null): 처리 관리자, 처리 사유 메모, 처리 시각
+    @Column(length = 100)
+    private String handledBy;
+
+    @Column(length = MAX_HANDLED_NOTE_LENGTH)
+    private String handledNote;
+
+    private LocalDateTime handledAt;
+
+    /** 신고 1건 처리 완료·기각 (처리자, 사유 메모, 처리 시각 기록) */
+    public void close(CommunityReportStatus toStatus, String handledBy, String handledNote) {
+        this.status = toStatus;
+        this.handledBy = handledBy;
+        this.handledNote = handledNote;
+        this.handledAt = LocalDateTime.now();
+    }
 
     public static CommunityReport ofPost(UUID postUuid, UUID reporterMemberUuid, CommunityReportCategory category, String detail) {
         CommunityReport report = new CommunityReport();

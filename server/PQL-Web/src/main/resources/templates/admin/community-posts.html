@@ -7,7 +7,7 @@
 
 <th:block layout:fragment="content">
 
-    <!-- 필터 3개: 게시판, 상태, 키워드 (선택지는 community-posts.js 가 AdminDisplayLabels 로 채움) -->
+    <!-- 필터: 게시판, 상태, 키워드, 작성자, 기간, 신고 수, 정렬 (선택지는 community-posts.js 가 AdminDisplayLabels 로 채움) -->
     <div class="card bg-base-100 shadow mb-4">
         <div class="card-body p-4">
             <form id="communityPostFilterForm" class="flex flex-wrap items-end gap-3">
@@ -28,11 +28,40 @@
                     <input type="search" id="keywordFilter" name="keyword" class="input input-sm input-bordered w-56"
                            placeholder="내용 검색어" maxlength="100"/>
                 </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">작성자 (닉네임 또는 UUID)</span>
+                    <input type="search" id="authorFilter" name="author" class="input input-sm input-bordered w-52"
+                           placeholder="닉네임 또는 UUID" maxlength="100"/>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">작성일 시작</span>
+                    <input type="date" id="fromDateFilter" name="fromDate" class="input input-sm input-bordered w-36"/>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">작성일 종료</span>
+                    <input type="date" id="toDateFilter" name="toDate" class="input input-sm input-bordered w-36"/>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">신고 수 이상</span>
+                    <input type="number" id="minimumReportCountFilter" name="minimumReportCount" min="0"
+                           class="input input-sm input-bordered w-24" placeholder="0"/>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">정렬</span>
+                    <select id="postSortFilter" name="sort" class="select select-sm select-bordered w-36"></select>
+                </label>
                 <button type="submit" class="btn btn-sm btn-primary"><i data-lucide="search" class="size-4"></i>검색</button>
                 <button type="reset" class="btn btn-sm btn-ghost">초기화</button>
                 <span id="communityPostTotal" class="ml-auto text-sm text-base-content/60">-</span>
             </form>
         </div>
+    </div>
+
+    <!-- 일괄 작업 바: 체크한 글이 있을 때만 표시 (조회 전용 계정은 비활성) -->
+    <div id="communityPostBulkBar" class="hidden alert alert-info mb-3 py-2 flex flex-wrap items-center gap-2">
+        <span class="text-sm font-medium"><span id="communityPostBulkCount">0</span>건 선택</span>
+        <button type="button" class="btn btn-sm btn-outline" data-bulk-action="hide">일괄 숨김</button>
+        <button type="button" class="btn btn-sm btn-error" data-bulk-action="delete">일괄 삭제</button>
     </div>
 
     <!-- 게시글 목록 (JS 렌더링, 조회 전용 계정은 동작 버튼 비활성) -->
@@ -43,6 +72,7 @@
                 <table class="table table-sm w-full">
                     <thead>
                     <tr>
+                        <th class="w-10"><input type="checkbox" class="checkbox checkbox-xs bulk-all-checkbox" aria-label="현재 페이지 전체 선택"/></th>
                         <th class="w-24">게시판</th>
                         <th>내용</th>
                         <th class="w-28">작성자</th>
@@ -56,7 +86,7 @@
                     </thead>
                     <tbody id="communityPostBody">
                     <tr>
-                        <td colspan="9" class="text-center py-12 text-base-content/50">
+                        <td colspan="10" class="text-center py-12 text-base-content/50">
                             <span class="loading loading-spinner loading-sm"></span>
                             <span class="ml-2">로딩 중...</span>
                         </td>
@@ -73,6 +103,8 @@
 <th:block layout:fragment="js">
     <!-- 표시 이름·포맷터 공통 (Chart.js 는 이 화면에서 쓰지 않음) -->
     <script th:src="@{/js/admin/admin-chart.js}"></script>
+    <script th:src="@{/js/admin/admin-bulk-select.js}"></script>
+    <script th:src="@{/js/admin/admin-reason-prompt.js}"></script>
     <script th:src="@{/js/admin/community-posts.js}"></script>
 </th:block>
 </html>
