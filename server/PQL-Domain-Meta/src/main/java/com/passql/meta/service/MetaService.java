@@ -5,6 +5,7 @@ import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.meta.constant.ConceptDocSortType;
 import com.passql.meta.dto.ConceptTagResponse;
 import com.passql.meta.dto.TopicCreateRequest;
 import com.passql.meta.dto.TopicTree;
@@ -22,6 +23,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +80,52 @@ public class MetaService {
         return conceptTagRepository.findByTagKey(tagKey)
                 .map(tag -> conceptDocRepository.findByConceptTagUuid(tag.getConceptTagUuid()))
                 .orElse(List.of());
+    }
+
+    /**
+     * 개념 문서 검색: 태그 지정 시 그 태그 문서, 미지정 시 검색어가 있을 때만 전체 문서 (제목·본문 부분 일치, 대소문자 무시)
+     */
+    public List<ConceptDoc> searchDocs(String tagKey, String keyword, ConceptDocSortType sortType) {
+        boolean hasTagKey = tagKey != null && !tagKey.isBlank();
+        boolean hasKeyword = keyword != null && !keyword.isBlank();
+        if (!hasTagKey && !hasKeyword) {
+            return List.of();
+        }
+        List<ConceptDoc> docs = hasTagKey ? getDocsByTagKey(tagKey) : conceptDocRepository.findAll();
+        String lowerKeyword = hasKeyword ? keyword.trim().toLowerCase() : null;
+        Comparator<ConceptDoc> comparator = switch (sortType) {
+            case RECENTLY_UPDATED -> Comparator.comparing(ConceptDoc::getUpdatedAt, Comparator.nullsLast(Comparator.reverseOrder()));
+            case OLDEST_UPDATED -> Comparator.comparing(ConceptDoc::getUpdatedAt, Comparator.nullsLast(Comparator.naturalOrder()));
+            case TITLE_ASCENDING -> Comparator.comparing(doc -> doc.getTitle() == null ? "" : doc.getTitle());
+        };
+        return docs.stream()
+                .filter(doc -> !hasKeyword || containsIgnoreCase(doc.getTitle(), lowerKeyword) || containsIgnoreCase(doc.getBodyMd(), lowerKeyword))
+                .sorted(comparator)
+                .toList();
+    }
+
+    private boolean containsIgnoreCase(String text, String lowerKeyword) {
+        return text != null && text.toLowerCase().contains(lowerKeyword);
+    }
+
+    /** 개념 태그 uuid > tagKey (전체 문서 검색 결과에 소속 태그 표시용) */
+    public Map<UUID, String> getTagKeyByUuid() {
+        return conceptTagRepository.findAll().stream()
+                .collect(Collectors.toMap(ConceptTag::getConceptTagUuid, ConceptTag::getTagKey));
+    }
+
+    /** 개념 태그 순서 변경: 활성 태그 전체 tagKey 를 새 순서대로 받아 sortOrder 를 1부터 다시 부여 */
+    @Transactional
+    public void reorderConceptTags(List<String> orderedTagKeys) {
+        List<ConceptTag> tags = conceptTagRepository.findByIsActiveTrueOrderBySortOrderAsc();
+        Map<String, ConceptTag> tagByKey = tags.stream().collect(Collectors.toMap(ConceptTag::getTagKey, Function.identity()));
+        validateOrderedCodes(orderedTagKeys, tagByKey.keySet());
+        List<String> beforeKeys = tags.stream().map(ConceptTag::getTagKey).toList();
+        for (int index = 0; index < orderedTagKeys.size(); index++) {
+            tagByKey.get(orderedTagKeys.get(index)).setSortOrder(index + 1);
+        }
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.CONCEPT_DOC, "tag-order", AdminAuditAction.UPDATE,
+                AdminAuditEvent.summary("orderedTagKeys", beforeKeys), AdminAuditEvent.summary("orderedTagKeys", orderedTagKeys)));
     }
 
     @Transactional

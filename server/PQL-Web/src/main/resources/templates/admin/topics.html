@@ -313,6 +313,7 @@
 </th:block>
 
 <th:block layout:fragment="js">
+    <script th:src="@{/js/admin/admin-order.js}"></script>
     <script th:inline="javascript">
         lucide.createIcons();
 
@@ -359,17 +360,7 @@
                 .catch(error => AdminUi.showError(error));
         }
 
-        // 순서 변경: 표의 코드 순서에서 한 칸 이동한 전체 순서 > 저장 요청 (맨 위·맨 아래는 무시)
-        function moveOrderRow(code, step, tableBodyId, saveOrder) {
-            const orderedCodes = Array.from(document.querySelectorAll(`#${tableBodyId} tr[data-order-row]`))
-                .map(row => row.dataset.code);
-            const fromIndex = orderedCodes.indexOf(code);
-            const toIndex = fromIndex + step;
-            if (fromIndex < 0 || toIndex < 0 || toIndex >= orderedCodes.length) return;
-            orderedCodes.splice(toIndex, 0, orderedCodes.splice(fromIndex, 1)[0]);
-            saveOrder(orderedCodes);
-        }
-
+        // 순서 변경 이동 계산은 admin-order.js 의 moveOrderRow
         function saveTopicOrder(orderedCodes) {
             AdminApi.post('/admin/topics/order', { orderedCodes })
                 .then(() => AdminUi.reloadWithToast('토픽 순서를 바꿨습니다.'))

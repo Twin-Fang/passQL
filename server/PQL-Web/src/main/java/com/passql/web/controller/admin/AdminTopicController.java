@@ -1,7 +1,7 @@
 package com.passql.web.controller.admin;
 
 import com.passql.meta.dto.TopicCreateRequest;
-import com.passql.meta.dto.TopicOrderRequest;
+import com.passql.meta.dto.OrderedCodesRequest;
 import com.passql.meta.dto.TopicUpdateRequest;
 import com.passql.meta.service.MetaService;
 import com.passql.web.service.AdminTopicManagementService;
@@ -92,7 +92,7 @@ public class AdminTopicController {
     /** 토픽 순서 변경 (JSON body: { "orderedCodes": [전체 토픽 코드를 새 순서로] }) */
     @PostMapping("/order")
     @ResponseBody
-    public ResponseEntity<Void> reorderTopics(@Valid @RequestBody TopicOrderRequest request) {
+    public ResponseEntity<Void> reorderTopics(@Valid @RequestBody OrderedCodesRequest request) {
         metaService.reorderTopics(request.orderedCodes());
         return ResponseEntity.ok().build();
     }
@@ -101,7 +101,7 @@ public class AdminTopicController {
     @PostMapping("/{topicCode}/subtopics/order")
     @ResponseBody
     public ResponseEntity<Void> reorderSubtopics(@PathVariable String topicCode,
-                                                 @Valid @RequestBody TopicOrderRequest request) {
+                                                 @Valid @RequestBody OrderedCodesRequest request) {
         metaService.reorderSubtopics(topicCode, request.orderedCodes());
         return ResponseEntity.ok().build();
     }

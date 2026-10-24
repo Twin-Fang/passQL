@@ -1,9 +1,18 @@
 package com.passql.web.controller.admin;
 
+import com.passql.meta.constant.CertType;
+import com.passql.meta.constant.ConceptDocSortType;
+import com.passql.meta.dto.ExamScheduleResponse;
 import com.passql.meta.dto.TopicTree;
+import com.passql.meta.entity.ConceptDoc;
+import com.passql.meta.entity.ConceptTag;
 import com.passql.meta.entity.Subtopic;
 import com.passql.question.constant.AdminQuestionSortType;
+import com.passql.question.constant.ChoiceSetSource;
+import com.passql.question.constant.ChoiceSetStatus;
 import com.passql.question.constant.ExecutionMode;
+import com.passql.question.dto.AdminChoiceSetSearchCondition;
+import com.passql.question.entity.QuestionChoiceSet;
 import com.passql.question.dto.AdminQuestionListItem;
 import com.passql.question.dto.AdminQuestionQualityDetail;
 import com.passql.question.dto.AdminQuestionSearchCondition;
@@ -16,11 +25,13 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockServletContext;
 import org.springframework.security.web.csrf.DefaultCsrfToken;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.thymeleaf.context.WebContext;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.thymeleaf.web.servlet.JakartaServletWebApplication;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
@@ -116,5 +127,52 @@ class AdminTemplateRenderSmokeTest {
 
         assertThat(html).contains("품질 지표").contains("80.0%").contains("2건 (대기 1)")
                 .contains("/admin/reports/" + questionUuid);
+    }
+
+    @Test
+    void 개념_문서_화면은_검색_정렬_미리보기_태그_순서_버튼을_렌더한다() {
+        ConceptTag tag = ConceptTag.builder().conceptTagUuid(UUID.randomUUID()).tagKey("group_by").labelKo("GROUP BY")
+                .category("aggregation").isActive(true).build();
+        ConceptDoc doc = ConceptDoc.builder().conceptDocUuid(UUID.randomUUID()).conceptTagUuid(tag.getConceptTagUuid())
+                .title("GROUP BY 기본").bodyMd("## 본문").embeddingVersion("v1").isActive(true).build();
+        // 감사 시각은 JPA 가 채우는 값이라 리플렉션으로 설정
+        ReflectionTestUtils.setField(doc, "updatedAt", LocalDateTime.now());
+
+        String html = render("admin/concepts", Map.of(
+                "conceptTags", List.of(tag), "conceptDocs", List.of(doc),
+                "tagKeyByUuid", Map.of(tag.getConceptTagUuid(), "group_by"),
+                "selectedTagKey", "group_by", "keyword", "group",
+                "selectedSort", "RECENTLY_UPDATED", "sortTypes", ConceptDocSortType.values()));
+
+        assertThat(html).contains("최근 수정순").contains("toggleMarkdownPreview(this.dataset.bodyId")
+                .contains("saveConceptTagOrder").contains("conceptTagSearchInput").contains("docPreview_" + doc.getConceptDocUuid());
+    }
+
+    @Test
+    void 시험_일정_화면은_지난_일정_정리와_일괄_등록을_렌더한다() {
+        ExamScheduleResponse pastSchedule = new ExamScheduleResponse(UUID.randomUUID(), "SQLD", 61, LocalDate.of(2020, 1, 1), false);
+
+        String html = render("admin/exam-schedules", Map.of(
+                "schedules", List.of(pastSchedule), "certTypes", CertType.values(), "coverages", List.of(),
+                "officialUrl", "https://example.com", "checkStale", false, "staleDays", 30,
+                "today", LocalDate.of(2026, 10, 24), "pastScheduleCount", 1L));
+
+        assertThat(html).contains("지난 일정 정리 (1)").contains("bulkScheduleModal").contains("지남");
+    }
+
+    @Test
+    void 선택지_세트_화면은_필터와_일괄_버튼을_렌더한다() {
+        QuestionChoiceSet choiceSet = QuestionChoiceSet.builder().choiceSetUuid(UUID.randomUUID()).questionUuid(UUID.randomUUID())
+                .source(ChoiceSetSource.AI_RUNTIME).status(ChoiceSetStatus.OK).generationAttempts(1)
+                .modelName("gemini").build();
+        ReflectionTestUtils.setField(choiceSet, "createdAt", LocalDateTime.now());
+
+        String html = render("admin/choice-sets", Map.of(
+                "choiceSets", new PageImpl<>(List.of(choiceSet), PageRequest.of(0, 20), 1),
+                "condition", new AdminChoiceSetSearchCondition(),
+                "sources", ChoiceSetSource.values(), "statuses", ChoiceSetStatus.values()));
+
+        assertThat(html).contains("name=\"questionUuid\"").contains("bulkPromoteChoiceSets()").contains("choice-set-checkbox")
+                .contains("AI_PREFETCH");
     }
 }
