@@ -22,7 +22,56 @@
     <div class="flex items-center justify-between mb-6">
         <div>
             <h2 class="text-xl font-bold">데일리 세트 관리</h2>
-            <p class="text-base-content/60 text-sm mt-1">날짜를 클릭하면 배정 현황을 확인하고 자동 배정할 수 있어요</p>
+            <p class="text-base-content/60 text-sm mt-1">날짜를 클릭하면 배정 현황을 확인하고 자동 배정하거나 문제를 직접 골라 배정할 수 있어요</p>
+        </div>
+    </div>
+
+    <!-- 기간 일괄 도구 (#617) -->
+    <div class="card bg-base-100 shadow-sm mb-4">
+        <div class="card-body p-4 gap-4">
+            <h3 class="card-title text-base">
+                <i data-lucide="calendar-range" class="size-5"></i>
+                기간 일괄 작업
+            </h3>
+
+            <!-- 비어 있는 날 자동 배정 -->
+            <div class="flex flex-wrap items-end gap-2">
+                <div class="form-control">
+                    <label class="label py-1" for="autoRangeFrom"><span class="label-text text-xs">자동 배정 시작일</span></label>
+                    <input type="date" id="autoRangeFrom" class="input input-sm input-bordered"/>
+                </div>
+                <div class="form-control">
+                    <label class="label py-1" for="autoRangeTo"><span class="label-text text-xs">종료일</span></label>
+                    <input type="date" id="autoRangeTo" class="input input-sm input-bordered"/>
+                </div>
+                <button type="button" class="btn btn-sm btn-primary" onclick="autoAssignRange()">
+                    비어 있는 날 자동 배정
+                </button>
+                <span class="text-xs text-base-content/50">이미 배정된 날은 건너뜁니다 (최대 62일)</span>
+            </div>
+
+            <!-- 배정 복사 -->
+            <div class="flex flex-wrap items-end gap-2">
+                <div class="form-control">
+                    <label class="label py-1" for="copySourceDate"><span class="label-text text-xs">복사할 날짜</span></label>
+                    <input type="date" id="copySourceDate" class="input input-sm input-bordered"/>
+                </div>
+                <div class="form-control">
+                    <label class="label py-1" for="copyTargetFrom"><span class="label-text text-xs">붙여넣을 시작일</span></label>
+                    <input type="date" id="copyTargetFrom" class="input input-sm input-bordered"/>
+                </div>
+                <div class="form-control">
+                    <label class="label py-1" for="copyTargetTo"><span class="label-text text-xs">종료일</span></label>
+                    <input type="date" id="copyTargetTo" class="input input-sm input-bordered"/>
+                </div>
+                <label class="flex items-center gap-2 text-sm cursor-pointer pb-1">
+                    <input type="checkbox" id="copyOverwrite" class="checkbox checkbox-sm"/>
+                    이미 배정된 날도 덮어쓰기
+                </label>
+                <button type="button" class="btn btn-sm btn-outline" onclick="copyAssignment()">
+                    배정 복사
+                </button>
+            </div>
         </div>
     </div>
 
@@ -34,32 +83,85 @@
 
     <!-- 배정 현황 모달 -->
     <dialog id="assignModal" class="modal">
-        <div class="modal-box w-11/12 max-w-2xl">
+        <div class="modal-box w-11/12 max-w-4xl">
             <h3 class="font-bold text-lg mb-1">데일리 세트 배정</h3>
-            <p class="text-base-content/60 text-sm mb-4">
+            <p class="text-base-content/60 text-sm mb-2">
                 날짜: <span id="modalDate" class="font-mono font-bold"></span>
             </p>
+
+            <!-- 난이도 분포 · 비활성 경고 -->
+            <div id="assignSummary" class="flex flex-wrap items-center gap-2 mb-3 text-sm"></div>
 
             <!-- 현재 배정된 문제 목록 -->
             <div class="overflow-y-auto max-h-64 border border-base-300 rounded-lg mb-4">
                 <table class="table table-sm">
                     <thead class="sticky top-0 bg-base-100">
-                        <tr><th>#</th><th>토픽</th><th>지문 미리보기</th></tr>
+                        <tr><th>#</th><th>토픽</th><th>난이도</th><th>지문 미리보기</th><th>상태</th></tr>
                     </thead>
                     <tbody id="assignedList"></tbody>
                 </table>
             </div>
 
-            <div class="flex justify-between items-center">
+            <div class="flex flex-wrap justify-between items-center gap-2">
                 <button id="unassignBtn" class="btn btn-sm btn-outline btn-error hidden"
                         onclick="unassignChallenge()">
                     <i data-lucide="trash-2" class="size-4"></i>
                     배정 해제
                 </button>
-                <button class="btn btn-sm btn-primary ml-auto" onclick="autoAssign()">
-                    자동 배정
-                </button>
-                <button class="btn btn-sm ml-2" onclick="closeModal()">닫기</button>
+                <div class="flex gap-2 ml-auto">
+                    <button class="btn btn-sm btn-outline" onclick="togglePicker()">
+                        <i data-lucide="list-checks" class="size-4"></i>
+                        직접 선택
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="autoAssign()">
+                        자동 배정
+                    </button>
+                    <button class="btn btn-sm" onclick="closeModal()">닫기</button>
+                </div>
+            </div>
+
+            <!-- 직접 선택 패널: 후보 검색 > 선택(최대 10, 순서 조정) > 저장 -->
+            <div id="pickerPanel" class="hidden mt-4 border-t border-base-300 pt-4">
+                <h4 class="font-semibold text-sm mb-2">배정 후보 검색 (활성 문제, 최신순)</h4>
+                <div class="flex flex-wrap items-center gap-2 mb-2">
+                    <input type="text" id="candidateKeyword" class="input input-sm input-bordered w-48"
+                           placeholder="지문 검색어" onkeydown="if (event.key === 'Enter') searchCandidates(0)"/>
+                    <select id="candidateTopic" class="select select-sm select-bordered" aria-label="토픽">
+                        <option value="">전체 토픽</option>
+                        <option th:each="topic : ${topics}" th:value="${topic.code}" th:text="${topic.displayName}">토픽</option>
+                    </select>
+                    <select id="candidateDifficulty" class="select select-sm select-bordered" aria-label="난이도">
+                        <option value="">전체 난이도</option>
+                        <option value="1">Lv.1</option>
+                        <option value="2">Lv.2</option>
+                        <option value="3">Lv.3</option>
+                    </select>
+                    <button class="btn btn-sm btn-outline" onclick="searchCandidates(0)">검색</button>
+                </div>
+
+                <div class="overflow-y-auto max-h-56 border border-base-300 rounded-lg mb-2">
+                    <table class="table table-sm">
+                        <thead class="sticky top-0 bg-base-100">
+                            <tr><th>토픽</th><th>난이도</th><th>지문</th><th class="w-16"></th></tr>
+                        </thead>
+                        <tbody id="candidateList">
+                            <tr><td colspan="4" class="text-center text-base-content/50 py-4">검색 버튼을 눌러 후보를 불러오세요.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="candidatePager" class="flex justify-center mb-3"></div>
+
+                <h4 class="font-semibold text-sm mb-2">선택한 문제 <span id="chosenCount" class="badge badge-neutral badge-sm">0/10</span></h4>
+                <div class="overflow-y-auto max-h-48 border border-base-300 rounded-lg mb-3">
+                    <table class="table table-sm">
+                        <tbody id="chosenList"></tbody>
+                    </table>
+                </div>
+                <div class="flex justify-end">
+                    <button id="savePickerBtn" class="btn btn-sm btn-primary" onclick="saveChosenQuestions()" disabled>
+                        선택한 문제로 배정 저장
+                    </button>
+                </div>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop"><button>close</button></form>
@@ -69,104 +171,7 @@
 
 <th:block layout:fragment="js">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
-    <script>
-        let calendar;
-        let selectedDate = null;
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const el = document.getElementById('calendar');
-            calendar = new FullCalendar.Calendar(el, {
-                initialView: 'dayGridMonth',
-                locale: 'ko',
-                height: 'auto',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: ''
-                },
-                events: function (info, successCallback, failureCallback) {
-                    const from = info.startStr.substring(0, 10);
-                    const to = info.endStr.substring(0, 10);
-                    fetch(`/admin/daily-challenges/api?from=${from}&to=${to}`)
-                        .then(r => r.json())
-                        .then(items => {
-                            // 날짜별 그룹핑: 같은 날짜 여러 문제를 1개 이벤트로 표시
-                            const byDate = {};
-                            items.forEach(item => {
-                                if (!byDate[item.challengeDate]) byDate[item.challengeDate] = [];
-                                byDate[item.challengeDate].push(item);
-                            });
-                            successCallback(Object.entries(byDate).map(([date, challenges]) => ({
-                                title: `${challenges.length}문제 배정`,
-                                start: date,
-                                extendedProps: { challenges },
-                                color: '#6366f1'
-                            })));
-                        })
-                        .catch(failureCallback);
-                },
-                dateClick: function (info) {
-                    const from = info.dateStr;
-                    fetch(`/admin/daily-challenges/api?from=${from}&to=${from}`)
-                        .then(r => r.json())
-                        .then(items => openModal(info.dateStr, items));
-                },
-                eventClick: function (info) {
-                    const from = info.event.startStr;
-                    fetch(`/admin/daily-challenges/api?from=${from}&to=${from}`)
-                        .then(r => r.json())
-                        .then(items => openModal(info.event.startStr, items));
-                }
-            });
-            calendar.render();
-        });
-
-        function openModal(dateStr, challenges) {
-            selectedDate = dateStr;
-            document.getElementById('modalDate').textContent = dateStr;
-
-            const listEl = document.getElementById('assignedList');
-            listEl.innerHTML = '';
-            if (challenges && challenges.length > 0) {
-                challenges.forEach((c, i) => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `<td>${i + 1}</td><td><span class="badge badge-outline badge-sm">${c.topicName || ''}</span></td><td class="text-xs">${c.stemPreview ? c.stemPreview.substring(0, 50) : ''}</td>`;
-                    listEl.appendChild(row);
-                });
-                document.getElementById('unassignBtn').classList.remove('hidden');
-            } else {
-                listEl.innerHTML = '<tr><td colspan="3" class="text-center text-base-content/50 py-4">배정 없음 (자동 배정 버튼으로 선정)</td></tr>';
-                document.getElementById('unassignBtn').classList.add('hidden');
-            }
-            document.getElementById('assignModal').showModal();
-            lucide.createIcons();
-        }
-
-        function closeModal() {
-            document.getElementById('assignModal').close();
-        }
-
-        function autoAssign() {
-            AdminApi.put(`/admin/daily-challenges/${selectedDate}`, { questionUuids: [] })
-            .then(items => {
-                calendar.refetchEvents();
-                openModal(selectedDate, items);
-                AdminUi.toast('자동 배정했습니다.');
-            })
-            .catch(error => AdminUi.showError(error));
-        }
-
-        async function unassignChallenge() {
-            if (!await AdminUi.confirmDanger(`${selectedDate} 배정을 해제합니다.`, { confirmLabel: '해제' })) return;
-            AdminApi.delete(`/admin/daily-challenges/${selectedDate}`)
-            .then(() => {
-                calendar.refetchEvents();
-                closeModal();
-                AdminUi.toast('배정을 해제했습니다.');
-            })
-            .catch(error => AdminUi.showError(error));
-        }
-    </script>
+    <script th:src="@{/js/admin/daily-challenges.js}"></script>
 </th:block>
 
 </html>
