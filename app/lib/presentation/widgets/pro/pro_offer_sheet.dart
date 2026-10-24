@@ -41,7 +41,6 @@ Future<void> showProOfferSheet(
   try {
     final isPurchased = await showPassqlSheet<bool>(
       context,
-      hasCloseButton: false,
       builder: (_) => _ProOfferSheetBody(
         passOptions: knownPlan?.passOptions ?? const [],
         // 지금 프로 이용 중일 때만 현재 만료일 > 연장 미리보기

@@ -1,21 +1,18 @@
 import 'dart:math' as math;
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
 
-/// 모달 시트 공통 모양: 손잡이 + 제목 + 닫기. 긴 본문 가독성을 위해 글래스 대신 불투명 배경을 쓴다.
+/// 모달 시트 공통 모양: 손잡이 + 가운데 제목. 긴 본문 가독성을 위해 글래스 대신 불투명 배경을 쓴다.
+/// 닫기 X 는 두지 않음 (손잡이 드래그·바깥 탭·뒤로가기·본문 버튼으로 닫힘)
 /// [title] 없음 > 머리 줄 없이 본문만 (본문이 제목을 직접 그리는 안내 시트용)
-/// [hasCloseButton] false > 닫기 X 없음 (손잡이 드래그·바깥 탭·본문 버튼으로 닫힘)
 Future<T?> showPassqlSheet<T>(
   BuildContext context, {
   String? title,
-  bool hasCloseButton = true,
   required WidgetBuilder builder,
 }) {
-  final hasHeader = title != null || hasCloseButton;
   return showModalBottomSheet<T>(
     context: context,
     // 탭 화면 안에서 열어도 하단 탭 바 위에 뜨도록 최상위 Navigator 에 띄운다.
@@ -35,38 +32,23 @@ Future<T?> showPassqlSheet<T>(
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (hasHeader)
+          if (title != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 PassqlSpacing.md,
                 0,
-                PassqlSpacing.xs,
-                PassqlSpacing.xs,
+                PassqlSpacing.md,
+                PassqlSpacing.sm,
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      title ?? '',
-                      style: PassqlTypography.headline.copyWith(
-                        color: colors.label,
-                      ),
-                    ),
+              child: Semantics(
+                header: true,
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: PassqlTypography.headline.copyWith(
+                    color: colors.label,
                   ),
-                  if (hasCloseButton)
-                    CupertinoButton(
-                      padding: const EdgeInsets.all(PassqlSpacing.xs),
-                      onPressed: () => Navigator.of(sheetContext).pop(),
-                      child: Semantics(
-                        label: '닫기',
-                        child: Icon(
-                          CupertinoIcons.xmark_circle_fill,
-                          size: PassqlIconSize.sheetClose,
-                          color: colors.iconSecondary,
-                        ),
-                      ),
-                    ),
-                ],
+                ),
               ),
             ),
           // 하단 여백은 여기서 한 번만: 키보드가 올라오면 키보드 높이, 아니면 홈 인디케이터 높이.
