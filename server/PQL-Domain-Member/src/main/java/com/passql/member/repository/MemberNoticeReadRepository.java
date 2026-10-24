@@ -40,6 +40,11 @@ public interface MemberNoticeReadRepository extends JpaRepository<MemberNoticeRe
     List<UuidCountProjection> countReadGroupedByMember(@Param("memberUuids") Collection<UUID> memberUuids,
                                                        @Param("noticeUuids") Collection<UUID> noticeUuids);
 
+    /** 공지 삭제 시 그 공지의 읽음 기록 정리 > 지운 행 수 */
+    @Modifying
+    @Query("delete from MemberNoticeRead r where r.appNoticeUuid = :noticeUuid")
+    int deleteAllByAppNoticeUuid(@Param("noticeUuid") UUID noticeUuid);
+
     /** 공지별 읽은 회원 수 (관리자 공지 목록) */
     @Query("select r.appNoticeUuid as keyUuid, count(r) as rowCount from MemberNoticeRead r "
             + "where r.appNoticeUuid in :noticeUuids group by r.appNoticeUuid")

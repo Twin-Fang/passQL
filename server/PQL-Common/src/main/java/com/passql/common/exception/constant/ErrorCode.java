@@ -116,6 +116,7 @@ public enum ErrorCode {
     APP_NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "공지를 찾을 수 없습니다."),
     APP_NOTICE_INPUT_INVALID(HttpStatus.BAD_REQUEST, "공지 제목과 본문을 확인해 주세요."),
     APP_NOTICE_PERIOD_INVALID(HttpStatus.BAD_REQUEST, "공지 종료 시각은 시작 시각 이후여야 합니다."),
+    APP_MAINTENANCE_PERIOD_INVALID(HttpStatus.BAD_REQUEST, "점검 종료 시각은 시작 시각 이후여야 하고, 시작 없이 종료만 지정할 수 없습니다."),
 
     // === Import/Export ===
     IMPORT_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "한 번에 최대 100건까지 가져올 수 있습니다."),

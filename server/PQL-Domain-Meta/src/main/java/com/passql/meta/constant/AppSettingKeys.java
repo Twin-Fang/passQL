@@ -46,6 +46,9 @@ public final class AppSettingKeys {
     public static final String APP_MAINTENANCE_ENABLED = "app.maintenance.enabled";
     // app_setting: 점검 화면 문구 (비면 앱 기본 문구)
     public static final String APP_MAINTENANCE_MESSAGE = "app.maintenance.message";
+    // app_setting: 점검 예약 시작·종료 (KST, yyyy-MM-ddTHH:mm, 빈 값이면 예약 없음 / 종료가 비면 수동 해제 전까지)
+    public static final String APP_MAINTENANCE_STARTS_AT = "app.maintenance.starts_at";
+    public static final String APP_MAINTENANCE_ENDS_AT = "app.maintenance.ends_at";
 
     // app_setting: 알림함 일반 알림 보관 기간 (일, 지난 알림은 매일 새벽 삭제)
     public static final String NOTIFICATION_RETENTION_DAYS = "notification.retention_days";

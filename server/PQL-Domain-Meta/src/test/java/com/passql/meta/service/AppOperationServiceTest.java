@@ -11,6 +11,7 @@ import com.passql.meta.dto.AppOperationSettingsRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -108,5 +109,33 @@ class AppOperationServiceTest {
         verify(appSettingService).save(AppSettingKeys.APP_MINIMUM_VERSION_IOS, "1.0.0");
         verify(appSettingService).save(AppSettingKeys.APP_MAINTENANCE_ENABLED, "true");
         verify(appSettingService).save(AppSettingKeys.APP_MAINTENANCE_MESSAGE, "점검");
+    }
+
+    @Test
+    void 점검_예약_구간_안이면_스위치가_꺼져_있어도_점검() {
+        when(appSettingService.getString(AppSettingKeys.APP_MAINTENANCE_ENABLED)).thenReturn("false");
+        when(appSettingService.getString(AppSettingKeys.APP_MAINTENANCE_STARTS_AT)).thenReturn(LocalDateTime.now().minusHours(1).toString());
+        when(appSettingService.getString(AppSettingKeys.APP_MAINTENANCE_ENDS_AT)).thenReturn(LocalDateTime.now().plusHours(1).toString());
+
+        assertThat(service.isUnderMaintenance()).isTrue();
+    }
+
+    @Test
+    void 점검_예약_종료가_지났으면_점검_아님() {
+        when(appSettingService.getString(AppSettingKeys.APP_MAINTENANCE_STARTS_AT)).thenReturn(LocalDateTime.now().minusHours(2).toString());
+        when(appSettingService.getString(AppSettingKeys.APP_MAINTENANCE_ENDS_AT)).thenReturn(LocalDateTime.now().minusHours(1).toString());
+
+        assertThat(service.isUnderMaintenance()).isFalse();
+    }
+
+    @Test
+    void 점검_예약은_종료만_지정하면_거부() {
+        AppOperationSettingsRequest request = new AppOperationSettingsRequest("1.0.0", "1.0.0", "1.0.0", "1.0.0", false, "",
+                null, LocalDateTime.now().plusHours(1));
+
+        assertThatThrownBy(() -> service.updateOperationSettings(request))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode").isEqualTo(ErrorCode.APP_MAINTENANCE_PERIOD_INVALID);
+        verify(appSettingService, never()).save(anyString(), anyString());
     }
 }
