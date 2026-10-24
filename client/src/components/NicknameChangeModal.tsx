@@ -52,12 +52,12 @@ export default function NicknameChangeModal({
     };
     window.addEventListener("keydown", handleKeyDown);
 
-    const prevOverflow = document.body.style.overflow;
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = prevOverflow;
+      document.body.style.overflow = previousOverflow;
     };
   }, [isOpen, onClose]);
 
@@ -117,7 +117,7 @@ export default function NicknameChangeModal({
   const canSave = checkResult === true;
 
   // 중복확인 버튼: 미확인이면 primary, 통과면 success 테두리, 실패면 error 테두리
-  const checkBtnClass =
+  const checkButtonClass =
     checkResult === true
       ? "btn btn-sm h-12 px-3 shrink-0 border border-semantic-success text-semantic-success bg-transparent"
       : checkResult === false
@@ -125,7 +125,7 @@ export default function NicknameChangeModal({
       : "btn btn-sm h-12 px-3 shrink-0 border border-brand bg-brand text-on-brand";
 
   // 상태 메시지
-  const statusMsg = isSameAsCurrent
+  const statusMessage = isSameAsCurrent
     ? "닉네임을 변경해주세요"
     : (errorMsg ?? successMsg);
   const statusTextClass = isSameAsCurrent
@@ -196,7 +196,7 @@ export default function NicknameChangeModal({
           {/* 중복확인 버튼 — 미확인 시 primary로 강조 */}
           <button
             type="button"
-            className={checkBtnClass}
+            className={checkButtonClass}
             onClick={handleCheck}
             disabled={!value || isSameAsCurrent || isLoading}
           >
@@ -212,7 +212,7 @@ export default function NicknameChangeModal({
 
         {/* 상태 메시지 */}
         <p className={`text-sm min-h-[1.25rem] ${statusTextClass}`}>
-          {statusMsg}
+          {statusMessage}
         </p>
 
         {/* 저장 버튼 — 중복확인 통과 전까지 disabled */}

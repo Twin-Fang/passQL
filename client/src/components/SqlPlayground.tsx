@@ -23,9 +23,9 @@ export const SqlPlayground = memo(function SqlPlayground({
     setIsExecuting(true);
     setNetworkError(null);
     try {
-      const res = await onExecute(sql.trim());
-      // SQL 문법/런타임 오류는 res.errorCode로 내려오므로 ResultTable이 처리
-      setResult(res);
+      const response = await onExecute(sql.trim());
+      // SQL 문법/런타임 오류는 response.errorCode로 내려오므로 ResultTable이 처리
+      setResult(response);
     } catch (err) {
       // 네트워크 오류·5xx 등 API 호출 자체가 실패한 경우 — 이전 결과 초기화
       setResult(null);

@@ -62,7 +62,7 @@ function ReadinessPopover({
 
 export default function Stats() {
   const [readinessPopoverOpen, setReadinessPopoverOpen] = useState(false);
-  const readinessBtnRef = useRef<HTMLButtonElement>(null);
+  const readinessButtonRef = useRef<HTMLButtonElement>(null);
   // UUID 없이 호출하면 400이므로 enabled 가드 필수
   const uuid = useAuthStore((s) => s.memberUuid ?? "");
 
@@ -103,7 +103,7 @@ export default function Stats() {
   useEffect(() => {
     if (!readinessPopoverOpen) return;
     const handler = (e: MouseEvent) => {
-      if (readinessBtnRef.current?.contains(e.target as Node)) return;
+      if (readinessButtonRef.current?.contains(e.target as Node)) return;
       setReadinessPopoverOpen(false);
     };
     document.addEventListener("mousedown", handler);
@@ -179,7 +179,7 @@ export default function Stats() {
               {readiness && (
                 <>
                   <button
-                    ref={readinessBtnRef}
+                    ref={readinessButtonRef}
                     onClick={() => setReadinessPopoverOpen((v) => !v)}
                     className="w-4 h-4 rounded-full bg-surface-code flex items-center justify-center shrink-0"
                     aria-label="합격 준비도 설명"
@@ -189,7 +189,7 @@ export default function Stats() {
                   <ReadinessPopover
                     readiness={readiness}
                     open={readinessPopoverOpen}
-                    anchorRef={readinessBtnRef}
+                    anchorRef={readinessButtonRef}
                   />
                 </>
               )}

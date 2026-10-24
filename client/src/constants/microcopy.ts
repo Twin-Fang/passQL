@@ -7,8 +7,8 @@ const EXECUTABLE_GRADING_MESSAGES: readonly string[] = [
 ];
 
 export function getRandomExecutableGradingMessage(): string {
-  const idx = Math.floor(Math.random() * EXECUTABLE_GRADING_MESSAGES.length);
-  return EXECUTABLE_GRADING_MESSAGES[idx];
+  const index = Math.floor(Math.random() * EXECUTABLE_GRADING_MESSAGES.length);
+  return EXECUTABLE_GRADING_MESSAGES[index];
 }
 
 const LOADING_MESSAGES: readonly string[] = [
@@ -21,6 +21,6 @@ const LOADING_MESSAGES: readonly string[] = [
 ];
 
 export function getRandomMessage(topicName: string): string {
-  const idx = Math.floor(Math.random() * LOADING_MESSAGES.length);
-  return LOADING_MESSAGES[idx].replace("{topic}", topicName);
+  const index = Math.floor(Math.random() * LOADING_MESSAGES.length);
+  return LOADING_MESSAGES[index].replace("{topic}", topicName);
 }

@@ -133,13 +133,13 @@ class HeatmapWidget extends StatelessWidget {
             // 5주 그리드 — 각 행 왼쪽에 월 레이블
             ...List.generate(_weekCount, (week) {
               final firstDay = days[week * _daysPerWeek];
-              final prevFirstDay = week > 0
+              final previousFirstDay = week > 0
                   ? days[(week - 1) * _daysPerWeek]
                   : null;
 
               // 첫 주이거나 월이 바뀌는 주에 월 레이블 표시
               final showMonth =
-                  week == 0 || prevFirstDay?.month != firstDay.month;
+                  week == 0 || previousFirstDay?.month != firstDay.month;
               final monthLabel = showMonth ? '${firstDay.month}월' : '';
 
               return Padding(

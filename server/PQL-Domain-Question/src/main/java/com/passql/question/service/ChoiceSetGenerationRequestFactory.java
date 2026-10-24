@@ -160,12 +160,12 @@ public class ChoiceSetGenerationRequestFactory {
         sb.append(String.join(", ", result.columns()));
         for (var row : result.rows()) {
             sb.append("\n");
-            List<String> vals = new ArrayList<>();
+            List<String> values = new ArrayList<>();
             for (Object v : row) {
                 // 중괄호를 대괄호로 치환 — {placeholder} 패턴 오염 방지
-                vals.add(String.valueOf(v).replace("{", "[").replace("}", "]"));
+                values.add(String.valueOf(v).replace("{", "[").replace("}", "]"));
             }
-            sb.append(String.join(", ", vals));
+            sb.append(String.join(", ", values));
         }
         return sb.toString();
     }

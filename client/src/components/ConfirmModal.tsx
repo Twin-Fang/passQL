@@ -29,11 +29,11 @@ export default function ConfirmModal({
     };
     window.addEventListener("keydown", handleKeyDown);
     // 이전 overflow 값 저장 후 복원 — 중첩 모달 대응
-    const prevOverflow = document.body.style.overflow;
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = prevOverflow;
+      document.body.style.overflow = previousOverflow;
     };
   }, [isOpen, onCancel]);
 
