@@ -61,16 +61,16 @@ class DailySetCard extends StatelessWidget {
                 color: colors.warning,
               ),
               const SizedBox(width: PassqlSpacing.xxs),
-              // 좁은 2열 카드 + 큰 글자에서 넘치지 않게 남은 폭 안에서 줄바꿈
-              Flexible(
-                child: Text(
+              // 좁은 2열 카드 + 큰 글자에서 넘치지 않게 남은 폭 안에서 줄바꿈 (순위 링크는 오른쪽 끝)
+              Expanded(
+                // 좁으면 글자 중간이 아니라 단어 사이에서 줄바꿈
+                child: PassqlKeepAllText(
                   '오늘의 세트',
                   style: PassqlTypography.captionSemibold.copyWith(
                     color: colors.secondaryLabel,
                   ),
                 ),
               ),
-              const Spacer(),
               // 순위는 보조 진입이라 머리 오른쪽 링크로 (세트가 있는 상태: 풀 수 있음·완료)
               if (completed || available)
                 _LeaderboardLink(onTap: onViewLeaderboard),
