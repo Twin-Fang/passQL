@@ -55,13 +55,12 @@ class ExamScheduleCard extends StatelessWidget {
     final daysUntilExam = schedule == null
         ? null
         : _daysUntilExam(schedule!.examDate);
-    // 머리는 위, D-day 묶음은 아래 고정 > 옆 카드 높이에 맞춰 늘어나도 가운데가 비어 보이지 않음
+    // 머리와 D-day 묶음을 위에서 아래로 붙임 > 옆 카드 높이에 맞춰 늘어나도 머리와 숫자 사이가 벌어지지 않음
     return PassqlCard(
       onTap: onTap,
       shouldChildFillHeight: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [

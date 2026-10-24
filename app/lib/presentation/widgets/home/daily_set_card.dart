@@ -70,10 +70,13 @@ class DailySetCard extends StatelessWidget {
                   ),
                 ),
               ),
+              const Spacer(),
               if (completed) ...[
-                const Spacer(),
                 PassqlBadge(text: '완료', kind: PassqlBadgeKind.success),
               ],
+              // 순위는 보조 진입이라 머리 오른쪽 링크로 (세트가 있는 상태: 풀 수 있음·완료)
+              if (completed || available)
+                _LeaderboardLink(onTap: onViewLeaderboard),
             ],
           ),
           const SizedBox(height: PassqlSpacing.sm),
@@ -113,15 +116,44 @@ class DailySetCard extends StatelessWidget {
             variant: PassqlButtonVariant.tinted,
             size: PassqlButtonSize.small,
           ),
-          // 순위 보조 진입 (세트가 있는 상태: 풀 수 있음·완료)
-          if (completed || available)
-            PassqlButton(
-              label: '순위 보기',
-              onPressed: onViewLeaderboard,
-              variant: PassqlButtonVariant.plain,
-              size: PassqlButtonSize.small,
-            ),
         ],
+      ),
+    );
+  }
+}
+
+/// 머리 오른쪽 '순위 ›' 링크: 글자는 작게, 누르는 영역은 44x44
+class _LeaderboardLink extends StatelessWidget {
+  const _LeaderboardLink({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    return PassqlSemanticButton(
+      label: '오늘의 순위 보기',
+      onTap: onTap,
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        minimumSize: const Size.square(PassqlSize.minTouchTarget),
+        onPressed: onTap,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '순위',
+              style: PassqlTypography.captionSemibold.copyWith(
+                color: colors.accentText,
+              ),
+            ),
+            Icon(
+              CupertinoIcons.chevron_forward,
+              size: PassqlIconSize.xs,
+              color: colors.accentText,
+            ),
+          ],
+        ),
       ),
     );
   }

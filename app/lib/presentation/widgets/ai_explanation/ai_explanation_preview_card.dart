@@ -7,7 +7,7 @@ import '../../providers/choice_explanation_providers.dart';
 import 'ai_explanation_inline_text.dart';
 import 'ai_explanation_verdict.dart';
 
-/// 제출 직후 해설 미리보기: 머리(AI 해설 · 전체 보기) > 내 보기 판정 한 줄 > 정답 근거 2줄
+/// 제출 직후 해설 미리보기: 머리(AI 해설 · 전체 보기) > 내 보기 판정 한 줄 > 정답 근거 1줄
 /// 카드 전체가 '해설 전체 보기' 버튼. 기다리는 중이면 글 줄 스켈레톤 한 블록, 실패면 다시 시도
 class AiExplanationPreviewCard extends ConsumerWidget {
   const AiExplanationPreviewCard({
@@ -20,7 +20,7 @@ class AiExplanationPreviewCard extends ConsumerWidget {
   final VoidCallback onOpenFullExplanation;
 
   /// 정답 근거 요약 줄 수
-  static const int _reasonPreviewLineCount = 2;
+  static const int _reasonPreviewLineCount = 1;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

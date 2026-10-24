@@ -73,7 +73,10 @@ class _ChapterFeedbackBarState extends State<ChapterFeedbackBar> {
               // 의견 N 칩: 풀이 흐름에서 토론으로 가는 길 (결과 화면 칩과 같은 위젯)
               Padding(
                 padding: const EdgeInsets.only(right: PassqlSpacing.xs),
-                child: CommunityOpinionChip(questionUuid: widget.questionUuid),
+                child: CommunityOpinionChip(
+                  questionUuid: widget.questionUuid,
+                  isCompact: true,
+                ),
               ),
               // 신고는 어떤 제출인지 알아야 하므로 제출 UUID 가 있을 때만 보여준다.
               if (_result.submissionUuid != null)
