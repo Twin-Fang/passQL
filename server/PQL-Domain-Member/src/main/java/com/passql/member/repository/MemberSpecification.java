@@ -1,13 +1,24 @@
 package com.passql.member.repository;
 
+import com.passql.member.constant.MemberPlan;
+import com.passql.member.constant.MemberPlanFilter;
 import com.passql.member.constant.MemberRole;
 import com.passql.member.constant.MemberStatus;
 import com.passql.member.entity.Member;
+import com.passql.member.entity.MemberEntitlement;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class MemberSpecification {
+
+    // 프로 만료 임박 기준 (일)
+    public static final int PRO_EXPIRING_WITHIN_DAYS = 7;
 
     public static Specification<Member> notDeleted() {
         return (root, query, cb) -> cb.equal(root.get("isDeleted"), false);
@@ -52,6 +63,39 @@ public class MemberSpecification {
         return (root, query, cb) ->
             to == null ? cb.conjunction()
                 : cb.lessThan(root.get("lastSeenAt"), to.plusDays(1).atStartOfDay());
+    }
+
+    /** 회원 UUID 정확히 일치 (비면 조건 없음, 형식이 틀리면 결과 없음) */
+    public static Specification<Member> memberUuidEquals(String memberUuidText) {
+        return (root, query, cb) -> {
+            if (memberUuidText == null || memberUuidText.isBlank()) {
+                return cb.conjunction();
+            }
+            try {
+                return cb.equal(root.get("memberUuid"), UUID.fromString(memberUuidText.trim()));
+            } catch (IllegalArgumentException invalidUuidFormat) {
+                return cb.disjunction();
+            }
+        };
+    }
+
+    /** 이용권 필터: 프로 이용 중(만료 전), 만료 임박(7일 이내 만료) */
+    public static Specification<Member> planMatches(MemberPlanFilter planFilter, LocalDateTime now) {
+        return (root, query, cb) -> {
+            if (planFilter == null) {
+                return cb.conjunction();
+            }
+            Subquery<UUID> entitlementSubquery = query.subquery(UUID.class);
+            Root<MemberEntitlement> entitlement = entitlementSubquery.from(MemberEntitlement.class);
+            Predicate isProActive = cb.and(
+                cb.equal(entitlement.get("plan"), MemberPlan.PRO),
+                cb.greaterThan(entitlement.get("expiresAt"), now));
+            Predicate matchedPredicate = planFilter == MemberPlanFilter.PRO_EXPIRING
+                ? cb.and(isProActive, cb.lessThanOrEqualTo(entitlement.get("expiresAt"), now.plusDays(PRO_EXPIRING_WITHIN_DAYS)))
+                : isProActive;
+            entitlementSubquery.select(entitlement.get("memberUuid")).where(matchedPredicate);
+            return root.get("memberUuid").in(entitlementSubquery);
+        };
     }
 
     public static Specification<Member> excludeTest() {

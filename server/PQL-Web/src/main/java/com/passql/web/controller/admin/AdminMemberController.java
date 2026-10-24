@@ -3,11 +3,22 @@ package com.passql.web.controller.admin;
 import com.passql.application.entitlement.EntitlementAdminService;
 import com.passql.application.entitlement.EntitlementPurchaseRevoker.RevocationResult;
 import com.passql.application.entitlement.EntitlementTimelineService;
+
+import com.passql.application.community.CommunityAdminService;
+import com.passql.application.member.MemberAdminOperationService;
 import com.passql.application.notification.MemberNotificationService;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.member.constant.MemberListSort;
+import com.passql.member.constant.MemberPlanFilter;
 import com.passql.member.constant.MemberRole;
 import com.passql.member.constant.MemberStatus;
+import com.passql.member.constant.SuspendReasonCategory;
+import com.passql.member.dto.MemberAdminDetailResponse;
+import com.passql.member.dto.MemberAdminMemoRequest;
+import com.passql.member.dto.MemberBulkPushRequest;
+import com.passql.member.dto.MemberBulkResultResponse;
+import com.passql.member.dto.MemberBulkSuspendRequest;
 import com.passql.member.dto.MemberSearchCondition;
 import com.passql.member.dto.MemberSuspendRequest;
 import com.passql.member.service.MemberAdminService;
@@ -18,9 +29,10 @@ import com.passql.web.support.AdminFlash;
 import com.passql.web.support.AdminMenu;
 import com.passql.web.support.AdminPage;
 import com.passql.web.support.AdminPageRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -29,6 +41,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.security.Principal;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
@@ -39,6 +52,10 @@ public class AdminMemberController {
 
     // 프로 부여·회수 토스트 날짜 (회원 상세 카드 만료일의 날짜 부분과 같은 표기)
     private static final DateTimeFormatter TOAST_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    // 회원 상세 탭: 기본 탭 이름 (제출 이력)
+    private static final String TAB_SUBMISSION = "submission";
+    // 회원 상세 제출·알림 탭 한 페이지 건수
+    private static final int TAB_PAGE_SIZE = 20;
 
     private final MemberAdminService memberAdminService;
     private final SubmissionService submissionService;
@@ -48,6 +65,9 @@ public class AdminMemberController {
     private final EntitlementAdminService entitlementAdminService;
     private final EntitlementTimelineService entitlementTimelineService;
 
+    private final CommunityAdminService communityAdminService;
+    private final MemberAdminOperationService memberAdminOperationService;
+
     @GetMapping
     @AdminPage(menu = AdminMenu.MEMBERS)
     public String list(MemberSearchCondition condition, Model model,
@@ -56,21 +76,38 @@ public class AdminMemberController {
         Pageable pageable = AdminPageRequest.newestFirst(page, size);
 
         model.addAttribute("members", memberAdminService.searchMembers(condition, pageable));
+        model.addAttribute("summary", memberAdminService.summarizeMembers(Boolean.TRUE.equals(condition.getIncludeTest())));
         model.addAttribute("condition", condition);
         model.addAttribute("statuses", MemberStatus.values());
         model.addAttribute("roles", MemberRole.values());
+        model.addAttribute("sorts", MemberListSort.values());
+        model.addAttribute("planFilters", MemberPlanFilter.values());
+        model.addAttribute("reasonCategories", SuspendReasonCategory.values());
         return "admin/members/list";
     }
 
+    /** 회원 상세: 탭(제출·알림)은 서버 페이지네이션, 커뮤니티 활동은 최근 30건 */
     @GetMapping("/{memberUuid}")
     @AdminPage(menu = AdminMenu.MEMBERS, title = "회원 상세")
-    public String detail(@PathVariable UUID memberUuid, Model model) {
-        model.addAttribute("member", memberAdminService.getMemberDetail(memberUuid));
-        model.addAttribute("submissions", submissionService.getSubmissionsByMember(memberUuid));
-        model.addAttribute("notifications", memberNotificationService.findRecentNotificationsOfMember(memberUuid));
+    public String detail(@PathVariable UUID memberUuid, Model model,
+                         @RequestParam(defaultValue = TAB_SUBMISSION) String tab,
+                         @RequestParam(defaultValue = "0") int submissionPage,
+                         @RequestParam(defaultValue = "0") int notificationPage) {
+        MemberAdminDetailResponse member = memberAdminService.getMemberDetail(memberUuid);
+        model.addAttribute("member", member);
+        model.addAttribute("activeTab", tab);
+        model.addAttribute("submissions", submissionService.getSubmissionPageByMember(memberUuid,
+            AdminPageRequest.of(submissionPage, TAB_PAGE_SIZE, Sort.unsorted())));
+        model.addAttribute("totalSubmissionCount", submissionService.countSubmissionsByMember(memberUuid));
+        model.addAttribute("correctSubmissionCount", submissionService.countCorrectSubmissionsByMember(memberUuid));
+        model.addAttribute("notifications", memberNotificationService.findNotificationPageOfMember(memberUuid,
+            AdminPageRequest.of(notificationPage, TAB_PAGE_SIZE, Sort.unsorted())));
         model.addAttribute("pushDevices", pushNotificationService.summarizeDevices(memberUuid));
         model.addAttribute("entitlement", entitlementAdminService.getEntitlementView(memberUuid));
         model.addAttribute("entitlementTimeline", entitlementTimelineService.getTimeline(memberUuid));
+
+        model.addAttribute("communityActivity", communityAdminService.getMemberActivity(memberUuid, member.nickname()));
+        model.addAttribute("reasonCategories", SuspendReasonCategory.values());
         return "admin/members/detail";
     }
 
@@ -78,8 +115,32 @@ public class AdminMemberController {
     @ResponseBody
     public ResponseEntity<Void> suspend(@PathVariable UUID memberUuid,
                                         @RequestBody MemberSuspendRequest request) {
-        memberAdminService.suspendMember(memberUuid, request.getReason(), request.getSuspendUntil());
+        memberAdminService.suspendMember(memberUuid, SuspendReasonCategory.fromRequestValueOrNull(request.getReasonCategory()),
+            request.getReason(), request.getSuspendUntil());
         return ResponseEntity.ok().build();
+    }
+
+    /** 관리자 메모 저장 (공백만이면 삭제, 앱 미노출) */
+    @PutMapping("/{memberUuid}/memo")
+    @ResponseBody
+    public ResponseEntity<Void> updateMemo(@PathVariable UUID memberUuid,
+                                           @Valid @RequestBody MemberAdminMemoRequest request) {
+        memberAdminService.updateAdminMemo(memberUuid, request.adminMemo());
+        return ResponseEntity.ok().build();
+    }
+
+    /** 회원 일괄 제재 (최대 100명, 관리자·탈퇴 회원은 건너뜀) */
+    @PostMapping("/bulk-suspend")
+    @ResponseBody
+    public MemberBulkResultResponse bulkSuspend(@Valid @RequestBody MemberBulkSuspendRequest request) {
+        return memberAdminOperationService.suspendMembers(request);
+    }
+
+    /** 회원 푸시: 1명(회원 상세)부터 최대 100명(목록 일괄), 푸시 + 알림함 */
+    @PostMapping("/bulk-push")
+    @ResponseBody
+    public MemberBulkResultResponse bulkPush(@Valid @RequestBody MemberBulkPushRequest request, Principal principal) {
+        return memberAdminOperationService.sendPushToMembers(request, principal.getName());
     }
 
     /** 관리자 탈퇴 처리 (#479): 개인정보 익명화·로그인 차단, 풀이 기록 보존 */

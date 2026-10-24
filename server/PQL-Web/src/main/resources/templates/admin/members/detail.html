@@ -35,13 +35,13 @@
             <th:block th:replace="~{admin/fragments/member-entitlement-panels :: entitlement-card}"></th:block>
 
             <!-- 제출 통계 요약 -->
-            <div class="stats shadow w-full bg-base-100" th:if="${submissions != null}">
+            <div class="stats shadow w-full bg-base-100">
                 <div class="stat">
                     <div class="stat-figure text-primary">
                         <i data-lucide="send" class="size-8"></i>
                     </div>
                     <div class="stat-title">총 제출</div>
-                    <div class="stat-value text-2xl" th:text="${submissions.size()}">0</div>
+                    <div class="stat-value text-2xl" th:text="${totalSubmissionCount}">0</div>
                 </div>
                 <div class="stat">
                     <div class="stat-figure text-success">
@@ -49,7 +49,7 @@
                     </div>
                     <div class="stat-title">정답</div>
                     <div class="stat-value text-2xl text-success"
-                         th:text="${#lists.size(submissions.?[isCorrect == true])}">0</div>
+                         th:text="${correctSubmissionCount}">0</div>
                 </div>
                 <div class="stat">
                     <div class="stat-figure text-info">
@@ -57,7 +57,7 @@
                     </div>
                     <div class="stat-title">정답률</div>
                     <div class="stat-value text-2xl text-info"
-                         th:text="${submissions.size() > 0 ? (#numbers.formatDecimal(#lists.size(submissions.?[isCorrect == true]) * 100.0 / submissions.size(), 1, 1) + '%') : '—'}">—</div>
+                         th:text="${totalSubmissionCount > 0 ? (#numbers.formatDecimal(correctSubmissionCount * 100.0 / totalSubmissionCount, 1, 1) + '%') : '—'}">—</div>
                 </div>
                 <div class="stat">
                     <div class="stat-figure text-warning">
@@ -76,7 +76,7 @@
                     <div role="tablist" class="tabs tabs-bordered px-4 pt-2">
                         <button role="tab" class="tab tab-active" id="tab-submission" onclick="switchTab('submission')">
                             <i data-lucide="list-checks" class="size-4 mr-1"></i>제출 이력
-                            <span class="badge badge-sm ml-1" th:text="${submissions != null ? submissions.size() : 0}">0</span>
+                            <span class="badge badge-sm ml-1" th:text="${totalSubmissionCount}">0</span>
                         </button>
                         <button role="tab" class="tab" id="tab-suspend" onclick="switchTab('suspend')">
                             <i data-lucide="shield" class="size-4 mr-1"></i>제재 이력
@@ -84,11 +84,15 @@
                         </button>
                         <button role="tab" class="tab" id="tab-notification" onclick="switchTab('notification')">
                             <i data-lucide="bell" class="size-4 mr-1"></i>알림
-                            <span class="badge badge-sm ml-1" th:text="${notifications.size()}">0</span>
+                            <span class="badge badge-sm ml-1" th:text="${notifications.totalElements}">0</span>
                         </button>
                         <button role="tab" class="tab" id="tab-purchase" onclick="switchTab('purchase')">
                             <i data-lucide="credit-card" class="size-4 mr-1"></i>구매 이력
                             <span class="badge badge-sm ml-1" th:text="${entitlement.purchases.size()}">0</span>
+                        </button>
+                        <button role="tab" class="tab" id="tab-community" onclick="switchTab('community')">
+                            <i data-lucide="messages-square" class="size-4 mr-1"></i>작성 글·신고
+                            <span class="badge badge-sm ml-1" th:text="${communityActivity.totalPostCount}">0</span>
                         </button>
                     </div>
 
@@ -114,7 +118,7 @@
                                     <td class="text-xs text-base-content/60"
                                         th:text="${s.submittedAt != null ? #temporals.format(s.submittedAt, 'yyyy-MM-dd HH:mm') : '—'}">—</td>
                                 </tr>
-                                <tr th:if="${submissions == null or submissions.isEmpty()}">
+                                <tr th:if="${submissions.isEmpty()}">
                                     <td colspan="3" class="text-center text-base-content/40 py-12">
                                         <div class="flex flex-col items-center gap-2">
                                             <i data-lucide="inbox" class="size-8 opacity-30"></i>
@@ -127,6 +131,18 @@
                         </div>
                     </div>
 
+                    <!-- 제출 이력 페이지 이동 (보던 탭 유지) -->
+                    <div class="flex justify-center pb-4" th:if="${submissions.totalPages > 1}" id="pager-submission">
+                        <div class="join">
+                            <a th:href="@{/admin/members/{uuid}(uuid=${member.memberUuid}, tab='submission', submissionPage=${submissions.number - 1}, notificationPage=${notifications.number})}"
+                               class="join-item btn btn-sm" th:classappend="${submissions.first} ? 'btn-disabled'">«</a>
+                            <button class="join-item btn btn-sm btn-active"
+                                    th:text="${submissions.number + 1} + ' / ' + ${submissions.totalPages}">1 / 10</button>
+                            <a th:href="@{/admin/members/{uuid}(uuid=${member.memberUuid}, tab='submission', submissionPage=${submissions.number + 1}, notificationPage=${notifications.number})}"
+                               class="join-item btn btn-sm" th:classappend="${submissions.last} ? 'btn-disabled'">»</a>
+                        </div>
+                    </div>
+
                     <!-- 제재 이력 패널 -->
                     <div id="panel-suspend" class="p-4 hidden">
                         <div class="overflow-x-auto">
@@ -135,6 +151,7 @@
                                 <tr>
                                     <th class="w-40">일시</th>
                                     <th class="w-24">액션</th>
+                                    <th class="w-24">분류</th>
                                     <th>사유</th>
                                     <th class="w-40">만료일</th>
                                     <th class="w-28">처리</th>
@@ -149,13 +166,14 @@
                                               th:classappend="${h.action.name() == 'SUSPENDED'} ? 'badge-error' : 'badge-success'"
                                               th:text="${h.action.name()}">SUSPENDED</span>
                                     </td>
+                                    <td class="text-xs" th:text="${h.reasonCategoryLabel != null ? h.reasonCategoryLabel : '—'}">—</td>
                                     <td class="text-xs" th:text="${h.reason != null ? h.reason : '—'}">—</td>
                                     <td class="text-xs text-base-content/60"
                                         th:text="${h.suspendUntil != null ? #temporals.format(h.suspendUntil, 'yyyy-MM-dd HH:mm') : '—'}">—</td>
                                     <td class="text-xs font-mono" th:text="${h.actedByAdminUsername ?: '—'}">—</td>
                                 </tr>
                                 <tr th:if="${member.suspendHistories.isEmpty()}">
-                                    <td colspan="5" class="text-center text-base-content/40 py-12">
+                                    <td colspan="6" class="text-center text-base-content/40 py-12">
                                         <div class="flex flex-col items-center gap-2">
                                             <i data-lucide="shield-check" class="size-8 opacity-30"></i>
                                             <span>제재 이력이 없습니다.</span>
@@ -167,7 +185,7 @@
                         </div>
                     </div>
 
-                    <!-- 알림 패널: 푸시 기기 현황 + 받은 알림 (최근 50건) -->
+                    <!-- 알림 패널: 푸시 기기 현황 + 받은 알림 (최신순 페이지) -->
                     <div id="panel-notification" class="p-4 hidden">
                         <div class="flex flex-wrap gap-2 mb-3">
                             <span class="badge badge-neutral">푸시 기기 <span class="ml-1 font-bold" th:text="${pushDevices.registeredDeviceCount}">0</span></span>
@@ -206,8 +224,79 @@
                         </div>
                     </div>
 
+                    <!-- 알림 페이지 이동 (보던 탭 유지) -->
+                    <div class="flex justify-center pb-4" th:if="${notifications.totalPages > 1}" id="pager-notification">
+                        <div class="join">
+                            <a th:href="@{/admin/members/{uuid}(uuid=${member.memberUuid}, tab='notification', submissionPage=${submissions.number}, notificationPage=${notifications.number - 1})}"
+                               class="join-item btn btn-sm" th:classappend="${notifications.first} ? 'btn-disabled'">«</a>
+                            <button class="join-item btn btn-sm btn-active"
+                                    th:text="${notifications.number + 1} + ' / ' + ${notifications.totalPages}">1 / 10</button>
+                            <a th:href="@{/admin/members/{uuid}(uuid=${member.memberUuid}, tab='notification', submissionPage=${submissions.number}, notificationPage=${notifications.number + 1})}"
+                               class="join-item btn btn-sm" th:classappend="${notifications.last} ? 'btn-disabled'">»</a>
+                        </div>
+                    </div>
+
                     <!-- 구매 이력 패널 -->
                     <th:block th:replace="~{admin/fragments/member-entitlement-panels :: purchase-panel}"></th:block>
+
+                    <!-- 작성 글·신고 패널: 작성 글(최근 30건, 신고 수·상태), 이 회원이 한 신고(최근 30건) -->
+                    <div id="panel-community" class="p-4 hidden">
+                        <h4 class="font-semibold text-sm mb-2">작성 글
+                            <span class="text-xs font-normal text-base-content/50">
+                                (전체 <span th:text="${communityActivity.totalPostCount}">0</span>건 중 최근 30건)</span>
+                        </h4>
+                        <div class="overflow-x-auto mb-6">
+                            <table class="table table-sm">
+                                <thead>
+                                <tr>
+                                    <th>내용</th>
+                                    <th class="w-24">상태</th>
+                                    <th class="w-16 text-right">신고</th>
+                                    <th class="w-16 text-right">좋아요</th>
+                                    <th class="w-32">작성일</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="post : ${communityActivity.posts}">
+                                    <td class="text-sm break-words max-w-md" th:text="${#strings.isEmpty(post.content) ? '(내용 없음)' : post.content}">내용</td>
+                                    <td><span class="badge badge-sm" th:classappend="${post.status.name() == 'VISIBLE'} ? 'badge-ghost' : (${post.status.name() == 'DELETED'} ? 'badge-neutral' : 'badge-warning')"
+                                              th:text="${post.status.name()}">VISIBLE</span></td>
+                                    <td class="text-right" th:classappend="${post.reportCount > 0} ? 'text-warning font-bold'" th:text="${post.reportCount}">0</td>
+                                    <td class="text-right" th:text="${post.likeCount}">0</td>
+                                    <td class="text-xs text-base-content/60" th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">—</td>
+                                </tr>
+                                <tr th:if="${communityActivity.posts.isEmpty()}">
+                                    <td colspan="5" class="text-center text-base-content/40 py-8">작성한 글이 없습니다.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <h4 class="font-semibold text-sm mb-2">이 회원이 한 신고 <span class="text-xs font-normal text-base-content/50">(최근 30건)</span></h4>
+                        <div class="overflow-x-auto">
+                            <table class="table table-sm">
+                                <thead>
+                                <tr>
+                                    <th class="w-28">사유</th>
+                                    <th>상세</th>
+                                    <th class="w-24">처리 상태</th>
+                                    <th class="w-32">신고일</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="report : ${communityActivity.filedReports}">
+                                    <td class="text-xs" th:text="${report.categoryLabel}">욕설·비방</td>
+                                    <td class="text-xs" th:text="${report.detail != null ? report.detail : '—'}">—</td>
+                                    <td><span class="badge badge-sm" th:classappend="${report.status.name() == 'PENDING'} ? 'badge-warning' : (${report.status.name() == 'RESOLVED'} ? 'badge-success' : 'badge-ghost')"
+                                              th:text="${report.status.name()}">PENDING</span></td>
+                                    <td class="text-xs text-base-content/60" th:text="${#temporals.format(report.createdAt, 'yyyy-MM-dd HH:mm')}">—</td>
+                                </tr>
+                                <tr th:if="${communityActivity.filedReports.isEmpty()}">
+                                    <td colspan="4" class="text-center text-base-content/40 py-8">한 신고가 없습니다.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -215,6 +304,8 @@
 
     <!-- 제재 모달 -->
     <th:block th:replace="~{admin/fragments/member-detail-panels :: suspend-modal}"></th:block>
+    <!-- 푸시 모달 -->
+    <th:block th:replace="~{admin/fragments/member-detail-panels :: push-modal}"></th:block>
 
 </th:block>
 
@@ -222,8 +313,10 @@
     <script th:inline="javascript">
         /*<![CDATA[*/
         const memberUuid = /*[[${member.memberUuid}]]*/ null;
+        const activeTab = /*[[${activeTab}]]*/ 'submission';
         /*]]>*/
     </script>
+    <script th:src="@{/js/admin/member-moderation.js}"></script>
     <script th:src="@{/js/admin/member-detail.js}"></script>
     <script>lucide.createIcons();</script>
 </th:block>

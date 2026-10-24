@@ -9,6 +9,7 @@ import java.util.UUID;
 public record MemberSuspendHistoryResponse(
     UUID memberSuspendHistoryUuid,
     SuspendAction action,
+    String reasonCategoryLabel,
     String reason,
     LocalDateTime suspendUntil,
     LocalDateTime actedAt,
@@ -18,6 +19,7 @@ public record MemberSuspendHistoryResponse(
         return new MemberSuspendHistoryResponse(
             h.getMemberSuspendHistoryUuid(),
             h.getAction(),
+            h.getReasonCategory() == null ? null : h.getReasonCategory().getLabel(),
             h.getReason(),
             h.getSuspendUntil(),
             h.getActedAt(),

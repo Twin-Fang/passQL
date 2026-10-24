@@ -7,6 +7,28 @@
 
 <th:block layout:fragment="content">
 
+    <!-- 요약: 상태별 회원 수(클릭하면 그 상태로 필터), 프로 이용 중 회원 수(클릭하면 프로 필터) -->
+    <div class="flex flex-wrap items-center gap-2 mb-3">
+        <a th:href="@{/admin/members(includeTest=${condition.includeTest})}" class="badge badge-neutral badge-lg">
+            전체 <span class="ml-1 font-bold" th:text="${summary.totalCount}">0</span>
+        </a>
+        <a th:href="@{/admin/members(status='ACTIVE', includeTest=${condition.includeTest})}" class="badge badge-success badge-lg">
+            정상 <span class="ml-1 font-bold" th:text="${summary.activeCount}">0</span>
+        </a>
+        <a th:href="@{/admin/members(status='SUSPENDED', includeTest=${condition.includeTest})}" class="badge badge-error badge-lg">
+            정지 <span class="ml-1 font-bold" th:text="${summary.suspendedCount}">0</span>
+        </a>
+        <a th:href="@{/admin/members(status='DORMANT', includeTest=${condition.includeTest})}" class="badge badge-warning badge-lg">
+            휴면 <span class="ml-1 font-bold" th:text="${summary.dormantCount}">0</span>
+        </a>
+        <a th:href="@{/admin/members(status='WITHDRAWN', includeTest=${condition.includeTest})}" class="badge badge-ghost badge-lg">
+            탈퇴 <span class="ml-1 font-bold" th:text="${summary.withdrawnCount}">0</span>
+        </a>
+        <a th:href="@{/admin/members(planFilter='PRO_ACTIVE', includeTest=${condition.includeTest})}" class="badge badge-primary badge-lg">
+            프로 이용 중 <span class="ml-1 font-bold" th:text="${summary.proActiveCount}">0</span>
+        </a>
+    </div>
+
     <!-- 필터 바 -->
     <div class="card bg-base-100 shadow mb-3">
         <div class="card-body p-3">
@@ -17,6 +39,13 @@
                     <label class="label label-text text-xs">닉네임</label>
                     <input type="text" name="nickname" class="input input-sm input-bordered w-36"
                            th:value="${condition.nickname}" placeholder="닉네임 검색"/>
+                </div>
+
+                <!-- 회원 UUID 정확히 일치 -->
+                <div class="form-control">
+                    <label class="label label-text text-xs">회원 UUID</label>
+                    <input type="text" name="memberUuid" class="input input-sm input-bordered w-72 font-mono"
+                           th:value="${condition.memberUuid}" placeholder="전체 UUID 입력"/>
                 </div>
 
                 <!-- 상태 필터 -->
@@ -43,6 +72,33 @@
                                 th:text="${r.name()}"
                                 th:selected="${condition.role != null and condition.role.name() == r.name()}">
                             USER
+                        </option>
+                    </select>
+                </div>
+
+                <!-- 이용권 필터 -->
+                <div class="form-control">
+                    <label class="label label-text text-xs">이용권</label>
+                    <select name="planFilter" class="select select-sm select-bordered w-40">
+                        <option value="">전체</option>
+                        <option th:each="planFilter : ${planFilters}"
+                                th:value="${planFilter.name()}"
+                                th:text="${planFilter.label}"
+                                th:selected="${condition.planFilter != null and condition.planFilter.name() == planFilter.name()}">
+                            프로 이용 중
+                        </option>
+                    </select>
+                </div>
+
+                <!-- 정렬 -->
+                <div class="form-control">
+                    <label class="label label-text text-xs">정렬</label>
+                    <select name="sort" class="select select-sm select-bordered w-36">
+                        <option th:each="sortOption : ${sorts}"
+                                th:value="${sortOption.name()}"
+                                th:text="${sortOption.label}"
+                                th:selected="${condition.sortOrDefault.name() == sortOption.name()}">
+                            가입 최신순
                         </option>
                     </select>
                 </div>
@@ -88,16 +144,29 @@
         </div>
     </div>
 
+    <!-- 일괄 작업 바: 체크한 회원이 있을 때만 표시 (관리자·탈퇴 회원은 제재에서 건너뜀) -->
+    <div id="memberBulkBar" class="hidden alert alert-info mb-3 py-2 flex flex-wrap items-center gap-2">
+        <span class="text-sm font-medium"><span id="memberBulkCount">0</span>명 선택</span>
+        <button type="button" class="btn btn-sm btn-error" onclick="openBulkSuspend()">
+            <i data-lucide="shield-ban" class="size-4"></i>일괄 정지
+        </button>
+        <button type="button" class="btn btn-sm btn-primary" onclick="openBulkPush()">
+            <i data-lucide="bell-ring" class="size-4"></i>일괄 푸시
+        </button>
+    </div>
+
     <!-- 회원 목록 테이블 -->
     <div class="card bg-base-100 shadow">
         <div class="card-body p-0">
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto" id="memberTableWrapper">
                 <table class="table table-sm table-fixed w-full">
                     <thead>
                     <tr>
+                        <th class="w-10"><input type="checkbox" class="checkbox checkbox-xs bulk-all-checkbox" aria-label="현재 페이지 전체 선택"/></th>
                         <th class="w-40">닉네임</th>
                         <th class="w-24">상태</th>
                         <th class="w-20">역할</th>
+                        <th class="w-20">이용권</th>
                         <th class="w-28">인증</th>
                         <th class="w-28">가입일</th>
                         <th class="w-28">마지막 접속</th>
@@ -108,6 +177,10 @@
                         class="cursor-pointer hover:bg-base-200"
                         th:data-href="@{/admin/members/{uuid}(uuid=${m.memberUuid})}"
                         onclick="location.href=this.dataset.href">
+                        <td>
+                            <input type="checkbox" class="checkbox checkbox-xs bulk-row-checkbox"
+                                   th:value="${m.memberUuid}" aria-label="회원 선택"/>
+                        </td>
                         <td class="text-sm font-medium truncate" th:text="${m.nickname}">닉네임</td>
                         <td>
                             <span class="badge badge-xs"
@@ -117,6 +190,10 @@
                         <td>
                             <span class="badge badge-xs badge-outline" th:text="${m.role.name()}">USER</span>
                         </td>
+                        <td>
+                            <span th:if="${m.isProActive}" class="badge badge-xs badge-primary">PRO</span>
+                            <span th:unless="${m.isProActive}" class="text-xs text-base-content/40">FREE</span>
+                        </td>
                         <td class="text-xs truncate" th:text="${m.authProvider.name()}">ANONYMOUS</td>
                         <td class="text-xs" th:text="${m.createdAt != null ? #temporals.format(m.createdAt, 'yyyy-MM-dd') : '-'}">2026-01-01</td>
                         <td class="text-xs" th:text="${m.lastSeenAt != null ? #temporals.format(m.lastSeenAt, 'yyyy-MM-dd') : '-'}">2026-04-01</td>
@@ -124,7 +201,7 @@
 
                     <!-- Empty state -->
                     <tr th:if="${members == null or members.isEmpty()}">
-                        <td colspan="6" class="text-center text-base-content/50 py-12">
+                        <td colspan="8" class="text-center text-base-content/50 py-12">
                             <i data-lucide="users" class="size-10 mx-auto mb-2 opacity-40"></i>
                             <p>회원이 없습니다.</p>
                         </td>
@@ -139,8 +216,11 @@
                     <a th:href="@{/admin/members(
                             page=${members.number - 1},
                             nickname=${condition.nickname},
+                            memberUuid=${condition.memberUuid},
                             status=${condition.status},
                             role=${condition.role},
+                            planFilter=${condition.planFilter},
+                            sort=${condition.sort},
                             joinedFrom=${condition.joinedFrom},
                             joinedTo=${condition.joinedTo},
                             lastSeenFrom=${condition.lastSeenFrom},
@@ -153,8 +233,11 @@
                     <a th:href="@{/admin/members(
                             page=${members.number + 1},
                             nickname=${condition.nickname},
+                            memberUuid=${condition.memberUuid},
                             status=${condition.status},
                             role=${condition.role},
+                            planFilter=${condition.planFilter},
+                            sort=${condition.sort},
                             joinedFrom=${condition.joinedFrom},
                             joinedTo=${condition.joinedTo},
                             lastSeenFrom=${condition.lastSeenFrom},
@@ -167,9 +250,16 @@
         </div>
     </div>
 
+    <!-- 제재·푸시 창 (회원 상세와 같은 조각) -->
+    <th:block th:replace="~{admin/fragments/member-detail-panels :: suspend-modal}"></th:block>
+    <th:block th:replace="~{admin/fragments/member-detail-panels :: push-modal}"></th:block>
+
 </th:block>
 
 <th:block layout:fragment="js">
+    <script th:src="@{/js/admin/admin-bulk-select.js}"></script>
+    <script th:src="@{/js/admin/member-moderation.js}"></script>
+    <script th:src="@{/js/admin/member-list.js}"></script>
     <script>lucide.createIcons();</script>
 </th:block>
 </html>

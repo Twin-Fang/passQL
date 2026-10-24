@@ -108,4 +108,9 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, UU
     int reconcileReportCounts();
 
     List<CommunityPost> findAllByPostUuidIn(Collection<UUID> postUuids);
+
+    /** 관리자 회원 상세: 이 회원이 쓴 글 (최신순, 삭제 글 포함) */
+    List<CommunityPost> findByAuthorMemberUuidOrderByCreatedAtDesc(UUID authorMemberUuid, Pageable pageable);
+
+    long countByAuthorMemberUuid(UUID authorMemberUuid);
 }

@@ -23,6 +23,8 @@ import com.passql.submission.repository.ExecutionLogRepository;
 import com.passql.submission.repository.SubmissionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -179,6 +181,21 @@ public class SubmissionService {
 
     public List<Submission> getSubmissionsByMember(UUID memberUuid) {
         return submissionRepository.findByMemberUuidOrderBySubmittedAtDesc(memberUuid);
+    }
+
+    /** 관리자 회원 상세: 제출 이력 한 페이지 (최신순) */
+    public Page<Submission> getSubmissionPageByMember(UUID memberUuid, Pageable pageable) {
+        return submissionRepository.findPageByMemberUuidOrderBySubmittedAtDesc(memberUuid, pageable);
+    }
+
+    /** 관리자 회원 상세: 총 제출 수 */
+    public long countSubmissionsByMember(UUID memberUuid) {
+        return submissionRepository.countByMemberUuid(memberUuid);
+    }
+
+    /** 관리자 회원 상세: 정답 제출 수 */
+    public long countCorrectSubmissionsByMember(UUID memberUuid) {
+        return submissionRepository.countByMemberUuidAndIsCorrectTrue(memberUuid);
     }
 
     public List<ExecutionLog> getRecentLogs() {

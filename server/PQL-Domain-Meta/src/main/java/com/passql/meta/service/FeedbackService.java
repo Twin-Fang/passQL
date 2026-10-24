@@ -7,20 +7,26 @@ import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.common.util.MemberActivityLogger;
 import com.passql.meta.constant.FeedbackStatus;
-import com.passql.meta.dto.FeedbackAdminResponse;
 import com.passql.meta.dto.FeedbackListResponse;
 import com.passql.meta.dto.FeedbackSubmitRequest;
 import com.passql.meta.dto.FeedbackSubmitResponse;
+import com.passql.meta.dto.FeedbackSearchCondition;
 import com.passql.meta.entity.Feedback;
 import com.passql.meta.repository.FeedbackRepository;
+import com.passql.meta.repository.FeedbackSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -65,12 +71,22 @@ public class FeedbackService {
         return FeedbackListResponse.of(feedbacks);
     }
 
-    /** 관리자 건의 목록 (status null 이면 전체, 최신순) */
-    public Page<FeedbackAdminResponse> getFeedbacksForAdmin(FeedbackStatus status, Pageable pageable) {
-        Page<Feedback> feedbacks = status == null
-            ? feedbackRepository.findAllByOrderByCreatedAtDesc(pageable)
-            : feedbackRepository.findByStatusOrderByCreatedAtDesc(status, pageable);
-        return feedbacks.map(FeedbackAdminResponse::from);
+    /** 관리자 건의 검색: 조건(상태·키워드·회원 후보·기간) > 최신순 한 페이지 (memberUuids null 이면 회원 조건 없음) */
+    public Page<Feedback> searchFeedbacksForAdmin(FeedbackSearchCondition condition, Collection<UUID> memberUuids,
+                                                  Pageable pageable) {
+        Specification<Feedback> specification = Specification.allOf(
+            FeedbackSpecification.statusEquals(condition.getStatus()),
+            FeedbackSpecification.contentContains(condition.getKeyword()),
+            FeedbackSpecification.memberIn(memberUuids),
+            FeedbackSpecification.createdFrom(condition.getFromDate()),
+            FeedbackSpecification.createdTo(condition.getToDate()));
+        return feedbackRepository.findAll(specification,
+            PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.DESC, "createdAt")));
+    }
+
+    public Feedback getFeedback(UUID feedbackUuid) {
+        return feedbackRepository.findById(feedbackUuid)
+            .orElseThrow(() -> new CustomException(ErrorCode.FEEDBACK_NOT_FOUND));
     }
 
     /** 미처리(PENDING) 건의 수 — 대시보드 카드 */
@@ -108,5 +124,35 @@ public class FeedbackService {
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.FEEDBACK, feedbackUuid, AdminAuditAction.STATUS_CHANGE,
             AdminAuditEvent.summary("status", previousStatus), AdminAuditEvent.summary("status", status)));
         log.info("[FeedbackService] 건의사항 상태 변경: feedbackUuid={}, status={}", feedbackUuid, status);
+    }
+
+    /** 일괄 상태 변경: 건별 감사 기록, 없는 건의는 건너뜀 > 변경한 건수 (한 트랜잭션, 최대 100건) */
+    @Transactional
+    public int updateStatuses(Collection<UUID> feedbackUuids, FeedbackStatus status) {
+        int changedCount = 0;
+        for (Feedback feedback : feedbackRepository.findAllById(feedbackUuids)) {
+            FeedbackStatus previousStatus = feedback.getStatus();
+            feedback.setStatus(status);
+            eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.FEEDBACK, feedback.getFeedbackUuid(),
+                AdminAuditAction.STATUS_CHANGE, AdminAuditEvent.summary("status", previousStatus),
+                AdminAuditEvent.summary("status", status)));
+            changedCount++;
+        }
+        log.info("[FeedbackService] 건의사항 일괄 상태 변경: count={}, status={}", changedCount, status);
+        return changedCount;
+    }
+
+    /** 답변 기록: 답변 내용·시각 저장, 대기 건의는 검토완료로 (알림 전달은 호출부) */
+    @Transactional
+    public Feedback recordReply(UUID feedbackUuid, String replyMessage) {
+        Feedback feedback = getFeedback(feedbackUuid);
+        feedback.setReplyMessage(replyMessage.trim());
+        feedback.setRepliedAt(LocalDateTime.now());
+        if (feedback.getStatus() == FeedbackStatus.PENDING) {
+            feedback.setStatus(FeedbackStatus.REVIEWED);
+        }
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.FEEDBACK, feedbackUuid, AdminAuditAction.SEND,
+            null, AdminAuditEvent.summary("replyMessage", feedback.getReplyMessage(), "status", feedback.getStatus())));
+        return feedback;
     }
 }
