@@ -93,7 +93,7 @@ public interface ProgressControllerDocs {
             - topicStats: 토픽별 집계 목록
               - topicUuid: 토픽 식별자
               - displayName: 토픽 표시명
-              - totalQuestionCount: 해당 토픽 전체 활성 문제 수 (막대그래프용)
+              - totalQuestionCount: (폐기 예정) solvedCount 와 같은 값, 구버전 앱 호환용. 전체 문제 수는 노출하지 않음
               - correctRate: 최근 7일 정답률 (0.0~1.0, 문제별 최근 시도 기준, 레이더차트용)
               - solvedCount: 최근 7일 내 푼 문제 수
             - Submission 없는 토픽도 correctRate=0.0, solvedCount=0으로 포함
