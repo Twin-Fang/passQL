@@ -53,6 +53,8 @@ public enum ErrorCode {
     SETTING_SECRET_DECRYPT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "저장된 비밀 설정을 복호화할 수 없습니다."),
     EMBEDDING_INDEX_TARGET_EMPTY(HttpStatus.BAD_REQUEST, "색인할 문제가 선택되지 않았습니다."),
     PROMPT_NOT_FOUND(HttpStatus.NOT_FOUND, "프롬프트 템플릿을 찾을 수 없습니다."),
+    PROMPT_HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "프롬프트 변경 이력을 찾을 수 없습니다."),
+    PROMPT_ACTIVE_DELETE_FORBIDDEN(HttpStatus.CONFLICT, "활성 상태인 프롬프트는 삭제할 수 없습니다. 다른 버전을 활성화한 뒤 삭제해 주세요."),
     TOPIC_NOT_FOUND(HttpStatus.NOT_FOUND, "토픽을 찾을 수 없습니다."),
     TOPIC_DUPLICATE(HttpStatus.CONFLICT, "이미 있는 토픽 코드입니다."),
     EXAM_SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "시험 일정을 찾을 수 없습니다."),

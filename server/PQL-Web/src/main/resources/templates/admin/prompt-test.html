@@ -68,6 +68,15 @@
 
                 <div class="divider"></div>
 
+                <!-- 테스트 결과 이력 (최신순, 최대 50건) -->
+                <h3 class="font-semibold flex items-center gap-2">
+                    <i data-lucide="history" class="size-4"></i>
+                    테스트 이력
+                </h3>
+                <div id="testHistoryList" class="space-y-2 text-sm max-h-96 overflow-y-auto">불러오는 중...</div>
+
+                <div class="divider"></div>
+
                 <button class="btn btn-outline btn-sm" onclick="activateVersion()">
                     <i data-lucide="check-circle" class="size-4"></i>
                     이 버전 활성화
@@ -113,6 +122,35 @@
         } catch (error) {
             AdminUi.showError(error, '테스트 실패');
         }
+        // 성공·실패 모두 서버가 이력에 저장하므로 다시 불러옴
+        loadTestHistory();
+    }
+
+    /** 테스트 결과 이력 > 접이식 목록 (입력 변수·응답 원문) */
+    async function loadTestHistory() {
+        const container = document.getElementById('testHistoryList');
+        try {
+            const histories = await AdminApi.get('/admin/prompts/' + promptUuid + '/test-history');
+            container.innerHTML = histories.map(history => {
+                const statusBadge = history.isSuccess
+                    ? '<span class="badge badge-success badge-sm">성공</span>'
+                    : '<span class="badge badge-error badge-sm">실패</span>';
+                const testedAt = history.testedAt ? history.testedAt.substring(0, 16).replace('T', ' ') : '-';
+                const body = history.isSuccess ? history.resultText : history.errorMessage;
+                return `<details class="border border-base-300 rounded-lg p-2">
+                    <summary class="cursor-pointer flex items-center gap-2 flex-wrap">
+                        ${statusBadge}
+                        <span class="text-xs text-base-content/60">${AdminUi.escapeHtml(history.testedByAdminUsername || '-')} · ${testedAt}${history.elapsedMilliseconds != null ? ' · ' + history.elapsedMilliseconds + 'ms' : ''}</span>
+                    </summary>
+                    <div class="mt-2 text-xs font-semibold">입력 변수</div>
+                    <pre class="bg-base-200 rounded p-2 text-xs font-mono whitespace-pre-wrap break-words">${AdminUi.escapeHtml(history.variablesJson || '-')}</pre>
+                    <div class="mt-2 text-xs font-semibold">${history.isSuccess ? '응답' : '실패 사유'}</div>
+                    <pre class="bg-base-200 rounded p-2 text-xs font-mono whitespace-pre-wrap break-words">${AdminUi.escapeHtml(body || '-')}</pre>
+                </details>`;
+            }).join('') || '<p class="text-base-content/50">테스트 이력이 없습니다.</p>';
+        } catch (error) {
+            container.textContent = '불러오지 못했습니다.';
+        }
     }
 
     async function activateVersion() {
@@ -125,6 +163,7 @@
         }
     }
 
+    loadTestHistory();
     lucide.createIcons();
 </script>
 </th:block>
