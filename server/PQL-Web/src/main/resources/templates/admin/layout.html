@@ -7,14 +7,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"/>
     <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}"/>
 
-    <!-- DaisyUI 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css"/>
+    <!-- 테마 초기화: 저장값 우선, 없으면 OS 설정(prefers-color-scheme), 렌더 전에 적용해 깜빡임 방지 -->
+    <script>
+        (function () {
+            let savedTheme = null;
+            try { savedTheme = localStorage.getItem('theme'); } catch (ignored) { }
+            const isOsDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.setAttribute('data-theme', savedTheme || (isOsDark ? 'dark' : 'light'));
+        })();
+    </script>
 
-    <!-- Tailwind CSS 4 -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@1.52.0/dist/umd/lucide.min.js"></script>
+    <!-- DaisyUI 5 · Tailwind CSS 4 · Lucide (로컬 번들, 버전 갱신은 static/vendor/admin 파일 교체) -->
+    <link th:href="@{/vendor/admin/daisyui-5.css}" rel="stylesheet" type="text/css"/>
+    <script th:src="@{/vendor/admin/tailwindcss-browser-4.js}"></script>
+    <script th:src="@{/vendor/admin/lucide-1.52.0.min.js}"></script>
 
     <!-- CSRF 토큰 (fetch PUT/POST 요청에 사용) -->
     <meta name="_csrf" th:content="${_csrf.token}"/>
@@ -97,38 +103,30 @@
                 <span class="badge badge-primary badge-sm">Admin</span>
             </div>
 
-            <!-- Menu: 그룹 5개 (개요, 회원·커뮤니티, 콘텐츠, AI, 운영), 활성 코드는 AdminMenu.code 와 같게 -->
+            <!-- 전역 검색: 회원·문제 UUID, 회원 닉네임 (결과 1건이면 바로 상세) -->
+            <form th:action="@{/admin/search}" method="get" class="px-4 pt-4" role="search">
+                <label class="input input-sm input-bordered flex items-center gap-2 w-full">
+                    <i data-lucide="search" class="size-4 opacity-60"></i>
+                    <input type="search" name="q" class="grow" placeholder="회원·문제 UUID, 닉네임" autocomplete="off"
+                           aria-label="전역 검색"/>
+                </label>
+            </form>
+
+            <!-- Menu: 그룹·항목은 AdminSidebar 단일 원본, 활성 코드는 AdminMenu.code 와 같게, 뱃지는 미처리 건수 -->
             <ul class="menu w-full p-4 gap-0.5 [&_.active]:bg-base-300 [&_.active]:text-base-content [&_.active]:font-semibold" id="sidebarMenu">
-                <li class="menu-title">개요</li>
-                <li><a th:href="@{/admin}" th:classappend="${currentMenu == 'dashboard'} ? 'active'"><i data-lucide="layout-dashboard" class="size-5"></i>대시보드</a></li>
-                <li><a th:href="@{/admin/statistics}" th:classappend="${currentMenu == 'statistics'} ? 'active'"><i data-lucide="chart-line" class="size-5"></i>AI 사용량·통계</a></li>
-
-                <li class="menu-title">회원·커뮤니티</li>
-                <li><a th:href="@{/admin/members}" th:classappend="${currentMenu == 'members'} ? 'active'"><i data-lucide="users" class="size-5"></i>회원 관리</a></li>
-                <li><a th:href="@{/admin/community/posts}" th:classappend="${currentMenu == 'community-posts'} ? 'active'"><i data-lucide="message-square-text" class="size-5"></i>토론 게시글</a></li>
-                <li><a th:href="@{/admin/community/reports}" th:classappend="${currentMenu == 'community-reports'} ? 'active'"><i data-lucide="messages-square" class="size-5"></i>커뮤니티 신고</a></li>
-                <li><a th:href="@{/admin/feedbacks}" th:classappend="${currentMenu == 'feedbacks'} ? 'active'"><i data-lucide="message-circle" class="size-5"></i>건의사항</a></li>
-                <li><a th:href="@{/admin/push}" th:classappend="${currentMenu == 'push'} ? 'active'"><i data-lucide="bell" class="size-5"></i>알림 발송</a></li>
-
-                <li class="menu-title">콘텐츠</li>
-                <li><a th:href="@{/admin/questions}" th:classappend="${currentMenu == 'questions'} ? 'active'"><i data-lucide="book-open" class="size-5"></i>문제 관리</a></li>
-                <li><a th:href="@{/admin/reports}" th:classappend="${currentMenu == 'reports'} ? 'active'"><i data-lucide="flag" class="size-5"></i>신고 관리</a></li>
-                <li><a th:href="@{/admin/daily-challenges}" th:classappend="${currentMenu == 'daily-challenges'} ? 'active'"><i data-lucide="calendar-check" class="size-5"></i>일일 챌린지</a></li>
-                <li><a th:href="@{/admin/topics}" th:classappend="${currentMenu == 'topics'} ? 'active'"><i data-lucide="tags" class="size-5"></i>토픽/태그 관리</a></li>
-                <li><a th:href="@{/admin/concepts}" th:classappend="${currentMenu == 'concepts'} ? 'active'"><i data-lucide="book" class="size-5"></i>개념 문서 관리</a></li>
-                <li><a th:href="@{/admin/exam-schedules}" th:classappend="${currentMenu == 'exam-schedules'} ? 'active'"><i data-lucide="calendar-days" class="size-5"></i>시험 일정</a></li>
-
-                <li class="menu-title">AI</li>
-                <li><a th:href="@{/admin/prompts}" th:classappend="${currentMenu == 'prompts'} ? 'active'"><i data-lucide="message-square-code" class="size-5"></i>프롬프트 관리</a></li>
-                <li><a th:href="@{/admin/embeddings}" th:classappend="${currentMenu == 'embeddings'} ? 'active'"><i data-lucide="layers" class="size-5"></i>임베딩 관리</a></li>
-
-                <li class="menu-title">운영</li>
-                <li><a th:href="@{/admin/monitor}" th:classappend="${currentMenu == 'monitor'} ? 'active'"><i data-lucide="activity" class="size-5"></i>모니터링</a></li>
-                <li><a th:href="@{/admin/app-operation}" th:classappend="${currentMenu == 'app-operation'} ? 'active'"><i data-lucide="megaphone" class="size-5"></i>앱 운영</a></li>
-                <li><a th:href="@{/admin/settings}" th:classappend="${currentMenu == 'settings'} ? 'active'"><i data-lucide="settings" class="size-5"></i>앱 설정</a></li>
-                <li><a th:href="@{/admin/legal}" th:classappend="${currentMenu == 'legal'} ? 'active'"><i data-lucide="file-text" class="size-5"></i>약관 관리</a></li>
-                <li><a th:href="@{/admin/audit-logs}" th:classappend="${currentMenu == 'audit-logs'} ? 'active'"><i data-lucide="scroll-text" class="size-5"></i>감사 로그</a></li>
-                <li th:if="${canWriteAdmin}"><a th:href="@{/admin/accounts}" th:classappend="${currentMenu == 'admin-accounts'} ? 'active'"><i data-lucide="user-cog" class="size-5"></i>관리자 계정</a></li>
+                <th:block th:each="group : ${sidebarGroups}">
+                    <li class="menu-title" th:text="${group.title}">그룹</li>
+                    <li th:each="item : ${group.items}" th:if="${!item.isWriteOnly() or canWriteAdmin}">
+                        <a th:href="@{${item.path}}" th:classappend="${currentMenu == item.menuCode} ? 'active'">
+                            <i th:attr="data-lucide=${item.iconName}" class="size-5"></i>
+                            <span th:text="${item.label}">메뉴</span>
+                            <!-- 미처리 건수 (0건이면 숨김) -->
+                            <span th:if="${sidebarBadgeCounts != null and sidebarBadgeCounts[item.menuCode] != null and sidebarBadgeCounts[item.menuCode] > 0}"
+                                  class="badge badge-warning badge-sm ml-auto"
+                                  th:text="${sidebarBadgeCounts[item.menuCode] > 99} ? '99+' : ${sidebarBadgeCounts[item.menuCode]}">3</span>
+                        </a>
+                    </li>
+                </th:block>
                 <div class="divider my-1"></div>
                 <li>
                     <a href="/docs/swagger" target="_blank">
@@ -149,13 +147,20 @@
     // Theme toggle
     const themeToggle = document.getElementById('themeToggle');
     const html = document.documentElement;
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    html.setAttribute('data-theme', savedTheme);
-    themeToggle.checked = savedTheme === 'dark';
+    // 초기 테마는 head 스크립트가 이미 적용 (저장값 우선, 없으면 OS 설정)
+    themeToggle.checked = html.getAttribute('data-theme') === 'dark';
     themeToggle.addEventListener('change', () => {
         const theme = themeToggle.checked ? 'dark' : 'light';
         html.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
+        try { localStorage.setItem('theme', theme); } catch (ignored) { }
+    });
+    // 저장값이 없으면 OS 설정 변경을 따라감 (사용자가 토글하면 저장되어 고정)
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+        let hasSavedTheme = false;
+        try { hasSavedTheme = localStorage.getItem('theme') !== null; } catch (ignored) { }
+        if (hasSavedTheme) return;
+        html.setAttribute('data-theme', event.matches ? 'dark' : 'light');
+        themeToggle.checked = event.matches;
     });
 </script>
 

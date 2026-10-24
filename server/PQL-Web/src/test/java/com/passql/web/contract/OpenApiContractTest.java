@@ -3,6 +3,7 @@ package com.passql.web.contract;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.passql.application.service.AdminSidebarBadgeService;
 import com.passql.member.service.MemberActivityRecorder;
 import com.passql.web.config.OpenApiSchemaContractCustomizer;
 import com.passql.web.config.SwaggerConfig;
@@ -152,6 +153,12 @@ class OpenApiContractTest {
         @Bean
         MemberActivityRecorder memberActivityRecorder() {
             return Mockito.mock(MemberActivityRecorder.class);
+        }
+
+        // WebMvcConfig 관리자 사이드바 뱃지 인터셉터 의존 (컨트롤러 의존 아님)
+        @Bean
+        AdminSidebarBadgeService adminSidebarBadgeService() {
+            return Mockito.mock(AdminSidebarBadgeService.class);
         }
     }
 
