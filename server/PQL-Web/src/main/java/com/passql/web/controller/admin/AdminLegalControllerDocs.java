@@ -57,4 +57,24 @@ public interface AdminLegalControllerDocs {
         @PathVariable LegalType type,
         @RequestParam LegalStatus status
     );
+
+    @ApiLogs({
+        @ApiLog(date = "2026.10.24", author = Author.SUHSAECHAN, issueNumber = 624, description = "관리자 약관 이전 버전 복원 API 추가"),
+    })
+    @Operation(
+        summary = "약관 이전 버전 복원",
+        description = """
+            ## 인증: 관리자 세션 필요 (ADMIN)
+
+            ## 경로 변수
+            - **`type`**: TERMS_OF_SERVICE | PRIVACY_POLICY
+            - **`legalHistoryUuid`**: 복원할 이전 버전 이력 UUID (같은 약관 종류만)
+
+            이력의 제목·본문으로 교체하며, 교체 직전 본문은 새 이력으로 보관된다. 게시 상태는 유지.
+            """
+    )
+    ResponseEntity<Void> restore(
+        @PathVariable LegalType type,
+        @PathVariable java.util.UUID legalHistoryUuid
+    );
 }
