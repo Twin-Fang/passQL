@@ -25,14 +25,13 @@ class GreetingSection extends StatelessWidget {
     return body.isEmpty ? null : body;
   }
 
+  // COUNTDOWN 은 시험 일정 카드의 D-일수와 겹쳐 배지를 두지 않음 (#648)
   static String? _subTextFor(String type) {
     switch (type) {
       case 'EXAM_DAY':
         return '오늘 시험이에요!';
       case 'URGENT':
         return '시험이 얼마 남지 않았어요';
-      case 'COUNTDOWN':
-        return '시험까지 카운트다운 중이에요';
       default:
         return null;
     }
