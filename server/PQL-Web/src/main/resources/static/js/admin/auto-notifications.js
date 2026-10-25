@@ -9,12 +9,16 @@
 
     const field = (card, name) => card.querySelector('[data-field="' + name + '"]');
 
-    // {days} 는 예시 숫자로 바꿔 보여줌
-    const withSampleDays = (text) => text.replace(/\{days\}/g, SAMPLE_DAYS);
+    // {days} 는 규칙의 일수 입력값으로, 일수 입력이 없는 규칙은 예시 숫자로 바꿔 보여줌
+    const previewDays = (card) => {
+        const thresholdInput = field(card, 'thresholdDays');
+        return thresholdInput && thresholdInput.value ? thresholdInput.value : SAMPLE_DAYS;
+    };
 
     function renderPreview(card) {
-        card.querySelector('[data-role="preview-title"]').textContent = withSampleDays(field(card, 'title').value);
-        card.querySelector('[data-role="preview-body"]').textContent = withSampleDays(field(card, 'body').value);
+        const days = previewDays(card);
+        card.querySelector('[data-role="preview-title"]').textContent = field(card, 'title').value.replace(/\{days\}/g, days);
+        card.querySelector('[data-role="preview-body"]').textContent = field(card, 'body').value.replace(/\{days\}/g, days);
     }
 
     function readRequest(card) {
@@ -34,6 +38,8 @@
         renderPreview(card);
 
         ['title', 'body'].forEach(name => field(card, name).addEventListener('input', () => renderPreview(card)));
+        const thresholdField = field(card, 'thresholdDays');
+        if (thresholdField) thresholdField.addEventListener('input', () => renderPreview(card));
 
         const enabledToggle = field(card, 'isEnabled');
         enabledToggle.addEventListener('change', () => {
