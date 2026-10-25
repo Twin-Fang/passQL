@@ -138,3 +138,68 @@ class UnreadNotificationCount {
   @override
   int get hashCode => Object.hash(general, notice, total);
 }
+
+/// 자동 알림 종류 3그룹 (서버 필드 is...Enabled 와 1:1, 관리자 직접 발송은 항상 수신)
+enum NotificationPreferenceGroup { studyReminder, comeback, examCountdown }
+
+/// 자동 알림 수신 설정: 그룹별 켜짐 여부 (서버에 설정이 없는 회원은 전부 true)
+class NotificationPreference {
+  const NotificationPreference({
+    this.isStudyReminderEnabled = true,
+    this.isComebackEnabled = true,
+    this.isExamCountdownEnabled = true,
+  });
+
+  final bool isStudyReminderEnabled;
+  final bool isComebackEnabled;
+  final bool isExamCountdownEnabled;
+
+  bool isEnabled(NotificationPreferenceGroup group) => switch (group) {
+    NotificationPreferenceGroup.studyReminder => isStudyReminderEnabled,
+    NotificationPreferenceGroup.comeback => isComebackEnabled,
+    NotificationPreferenceGroup.examCountdown => isExamCountdownEnabled,
+  };
+
+  /// 그룹 하나만 바꾼 사본
+  NotificationPreference withGroup(
+    NotificationPreferenceGroup group,
+    bool isEnabled,
+  ) => NotificationPreference(
+    isStudyReminderEnabled: group == NotificationPreferenceGroup.studyReminder
+        ? isEnabled
+        : isStudyReminderEnabled,
+    isComebackEnabled: group == NotificationPreferenceGroup.comeback
+        ? isEnabled
+        : isComebackEnabled,
+    isExamCountdownEnabled: group == NotificationPreferenceGroup.examCountdown
+        ? isEnabled
+        : isExamCountdownEnabled,
+  );
+
+  factory NotificationPreference.fromJson(Map<String, dynamic> json) =>
+      NotificationPreference(
+        isStudyReminderEnabled: json['isStudyReminderEnabled'] as bool? ?? true,
+        isComebackEnabled: json['isComebackEnabled'] as bool? ?? true,
+        isExamCountdownEnabled: json['isExamCountdownEnabled'] as bool? ?? true,
+      );
+
+  Map<String, dynamic> toJson() => {
+    'isStudyReminderEnabled': isStudyReminderEnabled,
+    'isComebackEnabled': isComebackEnabled,
+    'isExamCountdownEnabled': isExamCountdownEnabled,
+  };
+
+  @override
+  bool operator ==(Object other) =>
+      other is NotificationPreference &&
+      other.isStudyReminderEnabled == isStudyReminderEnabled &&
+      other.isComebackEnabled == isComebackEnabled &&
+      other.isExamCountdownEnabled == isExamCountdownEnabled;
+
+  @override
+  int get hashCode => Object.hash(
+    isStudyReminderEnabled,
+    isComebackEnabled,
+    isExamCountdownEnabled,
+  );
+}

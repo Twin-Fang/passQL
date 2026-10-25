@@ -14,6 +14,8 @@ class FakeNotificationApi implements NotificationApiClient {
   int pageSize;
   bool shouldFail = false;
 
+  NotificationPreference preference = const NotificationPreference();
+
   int unreadCountRequestCount = 0;
   final readRequests = <String>[];
   final readAllRequests = <String>[];
@@ -58,6 +60,20 @@ class FakeNotificationApi implements NotificationApiClient {
     final items = _itemsOf(category);
     final index = items.indexWhere((item) => item.id == id);
     if (index >= 0) items[index] = items[index].copyWithRead();
+  }
+
+  @override
+  Future<NotificationPreference> getPreference() async => preference;
+
+  @override
+  Future<NotificationPreference> updatePreference(
+    Map<String, dynamic> body,
+  ) async {
+    preference = NotificationPreference.fromJson({
+      ...preference.toJson(),
+      ...body,
+    });
+    return preference;
   }
 
   @override

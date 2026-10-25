@@ -33,4 +33,14 @@ abstract class NotificationApiClient {
   /// 탭 전체 읽음 (성공 204)
   @POST('/members/me/notifications/read-all')
   Future<void> markAllRead(@Query('category') String category);
+
+  /// 자동 알림 수신 설정 (그룹 3개, 설정이 없으면 전부 true)
+  @GET('/members/me/notifications/preferences')
+  Future<NotificationPreference> getPreference();
+
+  /// 바꿀 그룹만 보냄 (null 은 그대로) > 변경 후 전체 설정
+  @PUT('/members/me/notifications/preferences')
+  Future<NotificationPreference> updatePreference(
+    @Body() Map<String, dynamic> body,
+  );
 }

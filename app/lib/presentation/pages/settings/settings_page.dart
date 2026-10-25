@@ -12,6 +12,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/settings_providers.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/settings/choice_mode_tile.dart';
+import '../../widgets/settings/notification_preference_tiles.dart';
 import '../../widgets/settings/push_notification_tile.dart';
 import '../../widgets/settings/theme_mode_tile.dart';
 import '../../widgets/settings/open_source_licenses.dart';
@@ -102,6 +103,7 @@ class SettingsPage extends ConsumerWidget {
                       onTap: () => context.push(AppRoutes.notificationInbox),
                     ),
                     const PushNotificationTile(),
+                    const NotificationPreferenceTiles(),
                   ],
                 ),
                 const SizedBox(height: PassqlSpacing.xl),
