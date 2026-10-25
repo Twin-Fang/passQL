@@ -36,6 +36,8 @@ public class FirebasePushMessageSender implements PushMessageSender {
             EnumSet.of(MessagingErrorCode.UNREGISTERED, MessagingErrorCode.SENDER_ID_MISMATCH);
     // iOS 알림 소리
     private static final String DEFAULT_SOUND = "default";
+    // Android 알림 아이콘·제목 강조색 (앱 디자인 토큰 accent #5856D6 과 같은 값)
+    private static final String ANDROID_ACCENT_COLOR = "#5856D6";
 
     private final FirebaseMessaging firebaseMessaging;
 
@@ -92,6 +94,7 @@ public class FirebasePushMessageSender implements PushMessageSender {
                         .setPriority(AndroidConfig.Priority.HIGH)
                         .setNotification(AndroidNotification.builder()
                                 .setChannelId(PushDataKeys.ANDROID_CHANNEL_ID)
+                                .setColor(ANDROID_ACCENT_COLOR)
                                 .build())
                         .build())
                 .setApnsConfig(ApnsConfig.builder()
