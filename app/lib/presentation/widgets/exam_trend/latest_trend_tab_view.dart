@@ -4,7 +4,7 @@ import '../../../data/models/exam_trend/exam_trend_report_response.dart';
 import '../../design/design.dart';
 import 'exam_trend_sections.dart';
 
-/// 문제 탭 '최신 경향' 보기: 머리(요약, 최신 경향 문제 총 개수) > 과목 비중 > 늘어난 유형 > 광고 자리 > 공부 팁
+/// 문제 탭 '최신 경향' 보기: 머리(요약, 분석 근거) > 과목 비중 > 늘어난 유형 > 광고 자리 > 공부 팁
 /// 광고 위젯은 호출한 화면이 [adSlot] 으로 꽂음 (없으면 자리 없음)
 class LatestTrendTabView extends StatelessWidget {
   const LatestTrendTabView({
@@ -53,7 +53,7 @@ class LatestTrendTabView extends StatelessWidget {
   }
 }
 
-/// 머리 카드: 최신 경향 배지 + 요약 + 풀 수 있는 최신 경향 문제 총 개수
+/// 머리 카드: 최신 경향 배지 + 요약 + 분석 근거
 class _LatestTrendHeader extends StatelessWidget {
   const _LatestTrendHeader({required this.report});
 
@@ -79,15 +79,6 @@ class _LatestTrendHeader extends StatelessWidget {
               color: colors.secondaryLabel,
             ),
           ),
-          if (report.latestTrendQuestionCount > 0) ...[
-            const SizedBox(height: PassqlSpacing.sm),
-            Text(
-              '최신 경향 문제 총 ${report.latestTrendQuestionCount}개',
-              style: PassqlTypography.footnoteSemibold.copyWith(
-                color: colors.accentText,
-              ),
-            ),
-          ],
         ],
       ),
     );

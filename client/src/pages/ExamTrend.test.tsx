@@ -53,8 +53,8 @@ describe("ExamTrend", () => {
     stubApiResponses({ "/exam-trends/latest": REPORT });
     renderExamTrend();
     expect(await screen.findByText("2026 SQLD 출제 경향")).toBeInTheDocument();
-    expect(screen.getByText("최신 경향 문제 3개를 풀 수 있어요")).toBeInTheDocument();
-    expect(screen.getByText("10문항 · 20%")).toBeInTheDocument();
+    expect(screen.queryByText("최신 경향 문제 3개를 풀 수 있어요")).not.toBeInTheDocument();
+    expect(screen.getByText("20%")).toBeInTheDocument();
     expect(screen.getByText("결과 비교형 보기")).toBeInTheDocument();
     expect(screen.getByText("1. 윈도우 함수")).toBeInTheDocument();
     expect(screen.getByText("결과 표를 직접 그려 보세요.")).toBeInTheDocument();
