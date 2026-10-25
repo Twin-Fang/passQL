@@ -1332,6 +1332,35 @@
         "required" : [ "items", "nextCursor" ],
         "type" : "object"
       },
+      "NotificationPreferenceResponse" : {
+        "properties" : {
+          "isComebackEnabled" : {
+            "type" : "boolean"
+          },
+          "isExamCountdownEnabled" : {
+            "type" : "boolean"
+          },
+          "isStudyReminderEnabled" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "isComebackEnabled", "isExamCountdownEnabled", "isStudyReminderEnabled" ],
+        "type" : "object"
+      },
+      "NotificationPreferenceUpdateRequest" : {
+        "properties" : {
+          "isComebackEnabled" : {
+            "type" : "boolean"
+          },
+          "isExamCountdownEnabled" : {
+            "type" : "boolean"
+          },
+          "isStudyReminderEnabled" : {
+            "type" : "boolean"
+          }
+        },
+        "type" : "object"
+      },
       "PageQuestionSummary" : {
         "properties" : {
           "content" : {
@@ -3161,6 +3190,54 @@
         "tags" : [ "Notification" ]
       }
     },
+    "/api/members/me/notifications/preferences" : {
+      "get" : {
+        "description" : "## 인증(JWT): **필요**\n\n## 반환값 (NotificationPreferenceResponse)\n- **`isStudyReminderEnabled`**: 학습 리마인더 (오늘의 세트·연속 학습 위험)\n- **`isComebackEnabled`**: 복귀 알림 (며칠 안 왔을 때)\n- **`isExamCountdownEnabled`**: 시험 D-day 알림\n\n## 설명\n- 설정을 바꾼 적이 없는 회원은 전부 true.\n- 관리자가 직접 보내는 알림은 이 설정과 무관하게 항상 받는다.\n",
+        "operationId" : "getPreference",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NotificationPreferenceResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "자동 알림 수신 설정 조회",
+        "tags" : [ "Notification" ]
+      },
+      "put" : {
+        "description" : "## 인증(JWT): **필요**\n\n## 요청 본문 (NotificationPreferenceUpdateRequest)\n- **`isStudyReminderEnabled`**, **`isComebackEnabled`**, **`isExamCountdownEnabled`**: 바꿀 항목만 보낸다. 빠진(null) 항목은 그대로 둔다.\n\n## 반환값\n- 변경 후 전체 설정 (NotificationPreferenceResponse)\n",
+        "operationId" : "updatePreference",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NotificationPreferenceUpdateRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NotificationPreferenceResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "자동 알림 수신 설정 변경",
+        "tags" : [ "Notification" ]
+      }
+    },
     "/api/members/me/notifications/read-all" : {
       "post" : {
         "description" : "## 인증(JWT): **필요**\n\n## 요청 파라미터\n- **`category`**: GENERAL / NOTICE (비우면 두 탭 모두)\n\n## 설명\n- 성공 시 204(본문 없음).\n",
@@ -4008,6 +4085,9 @@
     "url" : "http://localhost:8080"
   } ],
   "tags" : [ {
+    "description" : "알림함 목록 / 안 읽은 개수 / 읽음 처리 / 자동 알림 수신 설정",
+    "name" : "Notification"
+  }, {
     "description" : "SQLD 출제 경향 / 최신 경향 문제",
     "name" : "ExamTrend"
   }, {
@@ -4022,9 +4102,6 @@
   }, {
     "description" : "AI 해설 / 유사 문제 조회",
     "name" : "AI"
-  }, {
-    "description" : "알림함 목록 / 안 읽은 개수 / 읽음 처리",
-    "name" : "Notification"
   }, {
     "description" : "문제 조회 / SQL 실행 / 제출",
     "name" : "Question"

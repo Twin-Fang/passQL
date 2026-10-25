@@ -1006,6 +1006,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/members/me/notifications/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 자동 알림 수신 설정 조회
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 반환값 (NotificationPreferenceResponse)
+         *     - **`isStudyReminderEnabled`**: 학습 리마인더 (오늘의 세트·연속 학습 위험)
+         *     - **`isComebackEnabled`**: 복귀 알림 (며칠 안 왔을 때)
+         *     - **`isExamCountdownEnabled`**: 시험 D-day 알림
+         *
+         *     ## 설명
+         *     - 설정을 바꾼 적이 없는 회원은 전부 true.
+         *     - 관리자가 직접 보내는 알림은 이 설정과 무관하게 항상 받는다.
+         */
+        get: operations["getPreference"];
+        /**
+         * 자동 알림 수신 설정 변경
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 요청 본문 (NotificationPreferenceUpdateRequest)
+         *     - **`isStudyReminderEnabled`**, **`isComebackEnabled`**, **`isExamCountdownEnabled`**: 바꿀 항목만 보낸다. 빠진(null) 항목은 그대로 둔다.
+         *
+         *     ## 반환값
+         *     - 변경 후 전체 설정 (NotificationPreferenceResponse)
+         */
+        put: operations["updatePreference"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/members/me/notifications/read-all": {
         parameters: {
             query?: never;
@@ -2295,6 +2334,16 @@ export interface components {
             items: components["schemas"]["NotificationItemResponse"][];
             nextCursor: string | null;
         };
+        NotificationPreferenceResponse: {
+            isComebackEnabled: boolean;
+            isExamCountdownEnabled: boolean;
+            isStudyReminderEnabled: boolean;
+        };
+        NotificationPreferenceUpdateRequest: {
+            isComebackEnabled: boolean;
+            isExamCountdownEnabled: boolean;
+            isStudyReminderEnabled: boolean;
+        };
         PageQuestionSummary: {
             content: components["schemas"]["QuestionSummary"][];
             empty: boolean;
@@ -3442,6 +3491,50 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["NotificationPageResponse"];
+                };
+            };
+        };
+    };
+    getPreference: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["NotificationPreferenceResponse"];
+                };
+            };
+        };
+    };
+    updatePreference: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotificationPreferenceUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["NotificationPreferenceResponse"];
                 };
             };
         };
