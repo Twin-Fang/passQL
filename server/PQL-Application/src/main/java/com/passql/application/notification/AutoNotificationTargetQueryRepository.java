@@ -1,5 +1,6 @@
 package com.passql.application.notification;
 
+import com.passql.member.constant.AutoNotificationGroup;
 import com.passql.member.constant.AutoNotificationRuleType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -12,7 +13,7 @@ import java.util.UUID;
 
 /**
  * 자동 알림 대상 조회·하루 1건 선점·최근 발송 건수 (PostgreSQL native)
- * 공통 대상: 삭제·탈퇴 아님 + 수신 동의 푸시 기기 보유 + 오늘 자동 알림을 아직 안 받음
+ * 공통 대상: 삭제·탈퇴 아님 + 수신 동의 푸시 기기 보유 + 오늘 자동 알림을 아직 안 받음 + 그 알림 그룹을 끄지 않음
  */
 @Repository
 @RequiredArgsConstructor
@@ -46,7 +47,8 @@ public class AutoNotificationTargetQueryRepository {
 
     /** 규칙 대상 회원 (thresholdDays 는 COMEBACK 규칙만 사용) */
     public List<UUID> findTargetMemberUuids(AutoNotificationRuleType ruleType, LocalDate today, Integer thresholdDays) {
-        String sql = "SELECT m.member_uuid FROM member m WHERE " + COMMON_CONDITION + extraCondition(ruleType);
+        String sql = "SELECT m.member_uuid FROM member m WHERE " + COMMON_CONDITION
+                + groupOptOutCondition(ruleType.getGroup()) + extraCondition(ruleType);
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("today", today).addValue("yesterday", today.minusDays(1))
                 .addValue("thresholdDays", thresholdDays == null ? 0 : thresholdDays);
@@ -72,6 +74,17 @@ public class AutoNotificationTargetQueryRepository {
                 new MapSqlParameterSource().addValue("ruleType", ruleType.name()).addValue("sinceDate", sinceDate),
                 Integer.class);
         return count == null ? 0 : count;
+    }
+
+    // 회원이 그 그룹을 끈 경우 제외 (설정 행이 없으면 수신)
+    private static String groupOptOutCondition(AutoNotificationGroup group) {
+        String column = switch (group) {
+            case STUDY_REMINDER -> "is_study_reminder_enabled";
+            case COMEBACK -> "is_comeback_enabled";
+            case EXAM_COUNTDOWN -> "is_exam_countdown_enabled";
+        };
+        return " AND NOT EXISTS (SELECT 1 FROM member_notification_preference p WHERE p.member_uuid = m.member_uuid AND p."
+                + column + " = FALSE) ";
     }
 
     private static String extraCondition(AutoNotificationRuleType ruleType) {
