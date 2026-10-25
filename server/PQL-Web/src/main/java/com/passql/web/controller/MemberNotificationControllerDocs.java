@@ -4,15 +4,19 @@ import com.passql.common.dto.Author;
 import com.passql.member.auth.presentation.annotation.AuthMember;
 import com.passql.member.auth.presentation.security.LoginMember;
 import com.passql.member.dto.NotificationPageResponse;
+import com.passql.member.dto.NotificationPreferenceResponse;
+import com.passql.member.dto.NotificationPreferenceUpdateRequest;
 import com.passql.member.dto.UnreadNotificationCountResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.suhsaechan.suhapilog.annotation.ApiLog;
 import kr.suhsaechan.suhapilog.annotation.ApiLogs;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@Tag(name = "Notification", description = "알림함 목록 / 안 읽은 개수 / 읽음 처리")
+@Tag(name = "Notification", description = "알림함 목록 / 안 읽은 개수 / 읽음 처리 / 자동 알림 수신 설정")
 public interface MemberNotificationControllerDocs {
 
   @ApiLogs({
@@ -99,4 +103,42 @@ public interface MemberNotificationControllerDocs {
           """
   )
   void markAllRead(@AuthMember LoginMember loginMember, @RequestParam(required = false) String category);
+
+  @ApiLogs({
+      @ApiLog(date = "2026.10.25", author = Author.SUHSAECHAN, issueNumber = 653, description = "자동 알림 수신 설정 조회 API 추가"),
+  })
+  @Operation(
+      summary = "자동 알림 수신 설정 조회",
+      description = """
+          ## 인증(JWT): **필요**
+
+          ## 반환값 (NotificationPreferenceResponse)
+          - **`isStudyReminderEnabled`**: 학습 리마인더 (오늘의 세트·연속 학습 위험)
+          - **`isComebackEnabled`**: 복귀 알림 (며칠 안 왔을 때)
+          - **`isExamCountdownEnabled`**: 시험 D-day 알림
+
+          ## 설명
+          - 설정을 바꾼 적이 없는 회원은 전부 true.
+          - 관리자가 직접 보내는 알림은 이 설정과 무관하게 항상 받는다.
+          """
+  )
+  NotificationPreferenceResponse getPreference(@AuthMember LoginMember loginMember);
+
+  @ApiLogs({
+      @ApiLog(date = "2026.10.25", author = Author.SUHSAECHAN, issueNumber = 653, description = "자동 알림 수신 설정 변경 API 추가"),
+  })
+  @Operation(
+      summary = "자동 알림 수신 설정 변경",
+      description = """
+          ## 인증(JWT): **필요**
+
+          ## 요청 본문 (NotificationPreferenceUpdateRequest)
+          - **`isStudyReminderEnabled`**, **`isComebackEnabled`**, **`isExamCountdownEnabled`**: 바꿀 항목만 보낸다. 빠진(null) 항목은 그대로 둔다.
+
+          ## 반환값
+          - 변경 후 전체 설정 (NotificationPreferenceResponse)
+          """
+  )
+  NotificationPreferenceResponse updatePreference(@AuthMember LoginMember loginMember,
+                                                  @Valid @RequestBody NotificationPreferenceUpdateRequest request);
 }
