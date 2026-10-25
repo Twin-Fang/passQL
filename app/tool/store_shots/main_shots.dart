@@ -126,7 +126,7 @@ List<Map<String, dynamic>> _notificationItems(String category) {
   return [
     item('general-1', 'REPORT_RESOLVED', '신고하신 문제를 확인했어요', '"JOIN 결과 행 수" 문제의 정답을 수정했어요. 알려 주셔서 고마워요.', const Duration(minutes: 3), linkTarget: 'QUESTION_DETAIL', linkQuestionUuid: '22222222-0000-4000-8000-000000000002'),
     item('general-2', 'ADMIN_MESSAGE', '이번 주 학습 리포트', '통계에서 약한 토픽을 확인해 보세요.', const Duration(hours: 2), linkTarget: 'STATS'),
-    item('general-3-read', 'DAILY_SET_REMINDER', '오늘의 세트가 준비됐어요', '10문제로 실력을 확인해 보세요.', const Duration(days: 1), linkTarget: 'DAILY_SET'),
+    item('general-3-read', 'DAILY_SET_REMINDER', '오늘의 세트가 준비됐어요', '5문제로 실력을 확인해 보세요.', const Duration(days: 1), linkTarget: 'DAILY_SET'),
     item('general-4-read', 'ADMIN_MESSAGE', '시험 D-30', 'SQLD 63회까지 30일 남았어요.', const Duration(days: 2), linkTarget: 'HOME'),
   ];
 }
@@ -163,7 +163,7 @@ List<Map<String, dynamic>> _fakeNotices() {
     ),
     notice('notice-2-read', '10월 16일 새벽 서버 점검', '**02:00 ~ 04:00** 동안 서버를 점검해요.\n\n점검 중에는 풀이 기록이 저장되지 않아요.', const Duration(days: 3)),
     notice('notice-3-read', '개인정보처리방침 개정 안내', '10월 20일부터 개정된 개인정보처리방침이 적용돼요.\n\n- 수집 항목 정리\n- 보관 기간 명시', const Duration(days: 6)),
-    notice('notice-4-old', '오늘의 세트 리더보드 오픈', '매일 10문제를 풀고 친구들과 순위를 겨뤄 보세요.', const Duration(days: 21), isVisible: false),
+    notice('notice-4-old', '오늘의 세트 리더보드 오픈', '매일 5문제를 풀고 친구들과 순위를 겨뤄 보세요.', const Duration(days: 21), isVisible: false),
     notice('notice-5-old', 'passQL 정식 출시 안내', 'SQLD·SQLP 문제 풀이 앱 passQL 이 정식 출시됐어요. **피드백**은 설정 > 건의사항으로 보내 주세요.', const Duration(days: 40), isVisible: false),
   ];
 }
@@ -302,7 +302,7 @@ final _latestTrendQuestionTotal = _latestTrendTopics.fold<int>(
 
 Map<String, dynamic> _examTrendReport() => {
   'title': '2026 SQLD 출제 경향',
-  'basisDescription': '제58~62회 복원 250문항과 수험생 후기·오픈채팅 분석',
+  'basisDescription': '제58~62회 복원 기출과 수험생 후기·오픈채팅 분석',
   'updatedDate': '2026-10-20',
   'summary':
       '짧은 쿼리에 NULL 함정을 숨기고 결과를 따라가게 하는 문제가 중심이에요. 62회는 쉬웠다는 말이 많았지만 합격률은 낮았어요.',
@@ -465,8 +465,8 @@ final _questions = [
   _summary(4, '윈도우 함수', 'RANK() OVER 와 DENSE_RANK() OVER 의 결과 차이는?', 3),
 ];
 
-// 오늘의 세트: 운영과 같은 10문제 (AdminDailyChallengeService 자동 선정 10)
-const _dailySetQuestionCount = 10;
+// 오늘의 세트: 운영과 같은 5문제 (AdminDailyChallengeService.MAX_QUESTIONS_PER_DAY, #644)
+const _dailySetQuestionCount = 5;
 
 List<Map<String, dynamic>> _dailySetQuestions() => [
   for (var i = 0; i < _dailySetQuestionCount; i++)
@@ -573,13 +573,13 @@ Object? _respond(RequestOptions o) {
     return {
       'date': '2026-10-07',
       'entries': [
-        {'rank': 1, 'nickname': '쿼리장인', 'correctCount': 10},
-        {'rank': 2, 'nickname': '조인마스터', 'correctCount': 9},
-        {'rank': 3, 'nickname': '새찬', 'correctCount': 8},
-        {'rank': 4, 'nickname': '셀렉트냥', 'correctCount': 7},
-        {'rank': 5, 'nickname': '인덱스요정', 'correctCount': 5},
+        {'rank': 1, 'nickname': '쿼리장인', 'correctCount': 5},
+        {'rank': 2, 'nickname': '조인마스터', 'correctCount': 5},
+        {'rank': 3, 'nickname': '새찬', 'correctCount': 4},
+        {'rank': 4, 'nickname': '셀렉트냥', 'correctCount': 4},
+        {'rank': 5, 'nickname': '인덱스요정', 'correctCount': 3},
       ],
-      'myEntry': {'rank': 3, 'nickname': '새찬', 'correctCount': 8},
+      'myEntry': {'rank': 3, 'nickname': '새찬', 'correctCount': 4},
     };
   }
   if (p.endsWith('/exam-schedules/selected')) {

@@ -185,9 +185,9 @@ void main() {
     expect(wrongListLoads, 0);
   });
 
-  testWidgets('최신 경향: 총 문제 수·유형·공부 팁, 토픽 목록 없음', (tester) async {
+  testWidgets('최신 경향: 유형·공부 팁, 토픽 목록 없음', (tester) async {
     await _pumpQuestionsTab(tester, QuestionsTabView.latestTrend);
-    expect(find.text('최신 경향 문제 총 3개'), findsOneWidget);
+    expect(find.text('최신 경향 문제 총 3개'), findsNothing);
     expect(find.text('결과 비교형 보기'), findsOneWidget);
     expect(find.text('결과 표를 직접 그려 보세요.'), findsOneWidget);
     expect(find.text('학습할 토픽을 선택하세요'), findsNothing);
@@ -218,7 +218,7 @@ void main() {
       router.routeInformationProvider.value.uri.toString(),
       QuestionsTabView.latestTrend.location,
     );
-    expect(find.text('최신 경향 문제 총 3개'), findsOneWidget);
+    expect(find.text('최신 경향 문제 총 3개'), findsNothing);
   });
 
   testWidgets('개념 TOP 10 광고 자리: 5위 뒤에 꽂히고 머리글·안내 문구는 한 번씩', (tester) async {

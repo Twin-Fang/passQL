@@ -101,11 +101,6 @@ export default function ExamTrend() {
           {report.basisDescription} · {report.updatedDate} 갱신
         </p>
         <p className="text-body text-text-primary mt-3">{report.summary}</p>
-        {report.latestTrendQuestionCount > 0 && (
-          <p className="text-sm font-semibold text-brand mt-3">
-            최신 경향 문제 {report.latestTrendQuestionCount}개를 풀 수 있어요
-          </p>
-        )}
       </section>
 
       {/* 과목별 비중 */}
@@ -117,7 +112,7 @@ export default function ExamTrend() {
               <div className="flex items-center justify-between gap-2">
                 <p className="text-sm font-semibold text-text-primary">{subjectShare.subjectName}</p>
                 <p className="text-xs text-text-secondary tabular-nums">
-                  {subjectShare.questionCount}문항 · {subjectShare.percent}%
+                  {subjectShare.percent}%
                 </p>
               </div>
               <ProgressBar
