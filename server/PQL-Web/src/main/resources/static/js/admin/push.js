@@ -242,8 +242,7 @@
         }
         AdminApi.put('/admin/push/settings', {
             retentionDays,
-            isReportResolvedEnabled: document.getElementById('isReportResolvedEnabled').checked,
-            isDailySetReminderEnabled: document.getElementById('isDailySetReminderEnabled').checked
+            isReportResolvedEnabled: document.getElementById('isReportResolvedEnabled').checked
         }).then(() => AdminUi.reloadWithToast('알림 설정을 저장했습니다.'))
           .catch(error => AdminUi.showError(error, '저장에 실패했습니다.'));
     };

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 알림 설정(app_setting): 보관 기간, 자동 알림 2종 사용 여부 조회·저장
+ * 알림 설정(app_setting): 보관 기간, 신고 처리 결과 알림 사용 여부 조회·저장
  * 저장은 AppSettingService.save 경유 (값 형식 검사, 설정 변경 감사 로그)
  */
 @Service
@@ -24,13 +24,12 @@ public class NotificationSettingService {
 
     private final AppSettingService appSettingService;
 
-    /** 관리자 화면용 설정 3개: 보관 일수, 신고 처리 결과 알림, 오늘의 세트 리마인드 */
-    public record NotificationSettings(int retentionDays, boolean isReportResolvedEnabled, boolean isDailySetReminderEnabled) {
+    /** 관리자 화면용 설정 2개: 보관 일수, 신고 처리 결과 알림 (자동 알림은 AutoNotificationService 규칙으로 제어) */
+    public record NotificationSettings(int retentionDays, boolean isReportResolvedEnabled) {
     }
 
     public NotificationSettings getSettings() {
-        return new NotificationSettings(getRetentionDays(), isReportResolvedEnabled(),
-                appSettingService.getBooleanOrDefault(AppSettingKeys.NOTIFICATION_DAILY_SET_REMINDER_ENABLED, false));
+        return new NotificationSettings(getRetentionDays(), isReportResolvedEnabled());
     }
 
     public int getRetentionDays() {
@@ -56,10 +55,6 @@ public class NotificationSettingService {
         if (current.isReportResolvedEnabled() != requested.isReportResolvedEnabled()) {
             appSettingService.save(AppSettingKeys.NOTIFICATION_REPORT_RESOLVED_ENABLED,
                     String.valueOf(requested.isReportResolvedEnabled()));
-        }
-        if (current.isDailySetReminderEnabled() != requested.isDailySetReminderEnabled()) {
-            appSettingService.save(AppSettingKeys.NOTIFICATION_DAILY_SET_REMINDER_ENABLED,
-                    String.valueOf(requested.isDailySetReminderEnabled()));
         }
     }
 

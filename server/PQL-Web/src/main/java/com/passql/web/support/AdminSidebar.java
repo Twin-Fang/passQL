@@ -31,7 +31,8 @@ public final class AdminSidebar {
                     item("community-posts", "/admin/community/posts", "message-square-text", "토론 게시글"),
                     item("community-reports", "/admin/community/reports", "messages-square", "커뮤니티 신고"),
                     item("feedbacks", "/admin/feedbacks", "message-circle", "건의사항"),
-                    item("push", "/admin/push", "bell", "알림 발송"))),
+                    item("push", "/admin/push", "bell", "알림 발송"),
+                    item("auto-notifications", "/admin/auto-notifications", "sparkles", "자동 알림"))),
             new Group("콘텐츠", List.of(
                     item("questions", "/admin/questions", "book-open", "문제 관리"),
                     item("reports", "/admin/reports", "flag", "신고 관리"),

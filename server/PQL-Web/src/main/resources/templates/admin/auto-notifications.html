@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<th:block layout:fragment="title">자동 알림</th:block>
+
+<th:block layout:fragment="content">
+
+    <!-- 안내: 동작 원칙 -->
+    <div class="alert bg-base-100 border border-base-300 mb-4 items-start">
+        <i data-lucide="sparkles" class="size-5 text-primary mt-0.5"></i>
+        <div class="text-sm leading-relaxed">
+            <p class="font-semibold">사용자가 앱으로 다시 돌아오게 만드는 자동 알림 5종</p>
+            <p class="text-base-content/70">
+                매시 정각에 발송 시각이 지금인 켜진 규칙만 나갑니다. 수신 동의한 기기가 있는 회원이 대상이고,
+                <b>회원당 하루 자동 알림은 최대 1건</b>입니다. 문구의 <code class="px-1 rounded bg-base-200">{days}</code> 는
+                미접속 일수 또는 시험까지 남은 일수로 바뀝니다. 처음에는 모두 꺼져 있으니 문구를 확인한 뒤 켜세요.
+            </p>
+        </div>
+    </div>
+
+    <div class="grid gap-4 xl:grid-cols-2">
+        <div th:each="view : ${ruleViews}" th:with="rule=${view.rule}"
+             class="card bg-base-100 shadow-sm border border-base-300" th:attr="data-rule-type=${rule.ruleType.name()}">
+            <div class="card-body gap-4 p-5">
+
+                <!-- 머리: 이름·대상 설명·켜기/끄기 -->
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <h3 class="card-title text-base" th:text="${rule.ruleType.label}">규칙 이름</h3>
+                        <p class="text-xs text-base-content/60 mt-1" th:text="${rule.ruleType.targetDescription}">대상 설명</p>
+                    </div>
+                    <label class="label cursor-pointer gap-2 p-0">
+                        <span class="label-text text-xs" data-role="enabled-label" th:text="${rule.isEnabled} ? '켜짐' : '꺼짐'">꺼짐</span>
+                        <input type="checkbox" class="toggle toggle-primary" data-field="isEnabled" th:checked="${rule.isEnabled}"/>
+                    </label>
+                </div>
+
+                <!-- 발송 시각·일수·이동 화면 -->
+                <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    <label class="form-control">
+                        <span class="label-text text-xs mb-1">발송 시각 (KST)</span>
+                        <select class="select select-bordered select-sm" data-field="sendHour">
+                            <option th:each="hour : ${#numbers.sequence(0, 23)}" th:value="${hour}"
+                                    th:selected="${hour == rule.sendHour}" th:text="${hour + '시'}">20시</option>
+                        </select>
+                    </label>
+                    <label class="form-control" th:if="${rule.ruleType.hasThresholdDays()}">
+                        <span class="label-text text-xs mb-1">미접속 일수</span>
+                        <input type="number" min="1" max="60" class="input input-bordered input-sm"
+                               data-field="thresholdDays" th:value="${rule.thresholdDays}"/>
+                    </label>
+                    <label class="form-control">
+                        <span class="label-text text-xs mb-1">탭하면 이동</span>
+                        <select class="select select-bordered select-sm" data-field="linkTarget">
+                            <option th:each="target : ${linkTargets}" th:value="${target.name()}"
+                                    th:selected="${target == rule.linkTarget}" th:text="${target.label}">홈</option>
+                        </select>
+                    </label>
+                </div>
+
+                <!-- 문구 입력 + 알림 미리보기 -->
+                <div class="grid gap-4 md:grid-cols-[1fr_16rem]">
+                    <div class="space-y-3">
+                        <label class="form-control">
+                            <span class="label-text text-xs mb-1">제목 (100자 이내, 이모지 1개 권장)</span>
+                            <input type="text" maxlength="100" class="input input-bordered input-sm"
+                                   data-field="title" th:value="${rule.title}"/>
+                        </label>
+                        <label class="form-control">
+                            <span class="label-text text-xs mb-1">본문 (500자 이내, 짧고 따뜻하게)</span>
+                            <textarea rows="3" maxlength="500" class="textarea textarea-bordered text-sm"
+                                      data-field="body" th:text="${rule.body}"></textarea>
+                        </label>
+                    </div>
+                    <div class="rounded-2xl p-3 flex flex-col justify-center"
+                         style="background: linear-gradient(135deg, #5856D6 0%, #8E8CF0 100%);">
+                        <p class="text-[10px] text-white/80 mb-1">미리보기 · 잠금 화면</p>
+                        <div class="rounded-xl bg-white/95 p-3 shadow">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="inline-block size-4 rounded bg-[#5856D6]"></span>
+                                <span class="text-[10px] text-gray-500">passQL · 지금</span>
+                            </div>
+                            <p class="text-sm font-semibold text-gray-900 break-words" data-role="preview-title"></p>
+                            <p class="text-xs text-gray-600 mt-0.5 break-words" data-role="preview-body"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 바닥: 통계·미리보기·저장 -->
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-base-200">
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-base-content/70">
+                        <span class="badge badge-ghost">최근 <span th:text="${recentSentDays}">7</span>일 발송
+                            <b class="ml-1" th:text="${view.recentSentCount}">0</b>건</span>
+                        <span class="badge badge-outline hidden" data-role="target-count"></span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" class="btn btn-sm btn-ghost gap-1" data-action="target-count">
+                            <i data-lucide="users" class="size-4"></i>지금 대상 수
+                        </button>
+                        <button type="button" class="btn btn-sm btn-primary gap-1" data-action="save"
+                                th:disabled="${!canWriteAdmin}">
+                            <i data-lucide="save" class="size-4"></i>저장
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</th:block>
+
+<th:block layout:fragment="js">
+    <script th:src="@{/js/admin/auto-notifications.js}"></script>
+    <script>lucide.createIcons();</script>
+</th:block>
+</html>
