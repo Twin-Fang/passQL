@@ -14,7 +14,7 @@ const double _rankColumnWidth = 32;
 /// 강조색으로 그리는 상위 순위 수 (1~3위)
 const int _highlightedRankCount = 3;
 
-/// 과목별 비중: 과목명 + 문항 수·백분율 + 진행 막대 + 설명
+/// 과목별 비중: 과목명 + 백분율 + 진행 막대 + 설명 (문항 수는 숨김)
 class ExamTrendSubjectShareSection extends StatelessWidget {
   const ExamTrendSubjectShareSection({super.key, required this.subjectShares});
 
@@ -43,7 +43,7 @@ class ExamTrendSubjectShareSection extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '${subjectShare.questionCount}문항 · ${subjectShare.percent}%',
+                      '${subjectShare.percent}%',
                       style: PassqlTypography.footnote.copyWith(
                         color: colors.secondaryLabel,
                         fontFeatures: PassqlTypography.tabular,
