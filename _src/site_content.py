@@ -9,7 +9,7 @@ APP_STORE_ID = "6762165005"
 IS_PLAY_STORE_PUBLIC = False
 PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.coldredrice.passql"
 OFFICIAL_EXAM_URL = "https://www.dataq.or.kr"
-CONTACT_EMAIL = "chan4760@gmail.com"
+CONTACT_EMAIL = "chan4760@naver.com"
 # 법적 문구 원본: 운영 DB legal 테이블 (관리자 > 약관 관리에서 수정) > 빌드 시 이 API 로 읽음
 LEGAL_API_URL = "https://api.passql.suhsaechan.kr/api/meta/legal/"
 OG_IMAGE_URL = SITE_URL + "icon/og.png"
