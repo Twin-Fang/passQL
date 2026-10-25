@@ -25,6 +25,7 @@ public enum AdminMenu {
     COMMUNITY_REPORTS("community-reports", "커뮤니티 신고 관리"),
     COMMUNITY_POSTS("community-posts", "토론 게시글 관리"),
     PUSH("push", "알림 발송"),
+    AUTO_NOTIFICATIONS("auto-notifications", "자동 알림"),
     LEGAL("legal", "약관 관리"),
     SETTINGS("settings", "앱 설정"),
     EMBEDDINGS("embeddings", "임베딩 인덱스 관리"),

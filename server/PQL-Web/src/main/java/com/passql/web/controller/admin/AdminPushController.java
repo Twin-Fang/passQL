@@ -142,8 +142,7 @@ public class AdminPushController {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "retentionDays");
         }
         notificationSettingService.updateSettings(new NotificationSettingService.NotificationSettings(
-                request.retentionDays(), Boolean.TRUE.equals(request.isReportResolvedEnabled()),
-                Boolean.TRUE.equals(request.isDailySetReminderEnabled())));
+                request.retentionDays(), Boolean.TRUE.equals(request.isReportResolvedEnabled())));
         return ResponseEntity.ok().build();
     }
 }
