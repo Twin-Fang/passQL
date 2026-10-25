@@ -72,7 +72,7 @@ public class AdminDailyChallengeController {
                 candidatePage.getNumber(), candidatePage.getTotalPages(), candidatePage.getTotalElements()));
     }
 
-    /** 날짜에 최대 10문제 배정 (questionUuids 없으면 폴백 로직으로 자동 선정) */
+    /** 날짜에 최대 5문제 배정 (questionUuids 없으면 폴백 로직으로 자동 선정) */
     @PutMapping("/{date}")
     @ResponseBody
     public ResponseEntity<List<AdminDailyChallengeItem>> assign(

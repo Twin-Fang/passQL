@@ -6,7 +6,7 @@
     'use strict';
 
     // 하루 세트 최대 문제 수 (서버 MAX_QUESTIONS_PER_DAY 와 같은 값)
-    const MAX_QUESTIONS_PER_DAY = 10;
+    const MAX_QUESTIONS_PER_DAY = 5;
     // 캘린더 이벤트 색: 정상 / 비활성·삭제 문제 포함
     const EVENT_COLOR_NORMAL = '#6366f1';
     const EVENT_COLOR_WARNING = '#dc2626';
