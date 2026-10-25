@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 public class AdminDailyChallengeService {
 
     // 하루 세트 최대 문제 수 (건)
-    private static final int MAX_QUESTIONS_PER_DAY = 10;
+    private static final int MAX_QUESTIONS_PER_DAY = 5;
     // 기간 일괄 작업 최대 일수 (양끝 포함)
     private static final int MAX_RANGE_DAYS = 62;
     // 삭제된 문제의 미리보기 문구
@@ -62,7 +62,7 @@ public class AdminDailyChallengeService {
                 .toList();
     }
 
-    /** 날짜에 최대 10문제 일괄 배정 (기존 배정 전부 삭제 후 재삽입) */
+    /** 날짜에 최대 5문제 일괄 배정 (기존 배정 전부 삭제 후 재삽입) */
     @Transactional
     public List<AdminDailyChallengeItem> assign(LocalDate date, List<UUID> questionUuids) {
         List<Question> questions = findAssignableQuestions(questionUuids);
@@ -145,7 +145,7 @@ public class AdminDailyChallengeService {
     }
 
     /**
-     * 자정 스케줄러 폴백: 기존 배정 확인 > 토픽 round-robin 10문제 선정 > 독립 트랜잭션 저장
+     * 자정 스케줄러 폴백: 기존 배정 확인 > 토픽 round-robin 5문제 선정 > 독립 트랜잭션 저장
      * 이미 배정된 날짜·동시 저장 중복은 무시 (트랜잭션 밖에서 판단해 rollback-only 전파 없음)
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -200,7 +200,7 @@ public class AdminDailyChallengeService {
         }
     }
 
-    /** 문제 UUID 목록 > 배정 가능한 문제 (비어 있음·10개 초과·없는 문제·비활성 문제는 거부) */
+    /** 문제 UUID 목록 > 배정 가능한 문제 (비어 있음·5개 초과·없는 문제·비활성 문제는 거부) */
     private List<Question> findAssignableQuestions(List<UUID> questionUuids) {
         if (questionUuids == null || questionUuids.isEmpty()) {
             throw new CustomException(ErrorCode.QUESTION_NOT_FOUND);
