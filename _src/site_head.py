@@ -90,7 +90,7 @@ def render_store_buttons(root):
 def render_footer(root):
     return f"""<footer>
   <div class="wrap foot-in">
-    <span>passQL · SQLD·SQLP 문제 풀이</span>
+    <span>passQL · SQLD·SQLP 문제 풀이 · © 2026 KOLLYLAB (콜리랩)</span>
     <div class="foot-links">
       <a href="{root}sqld/">SQLD 준비</a>
       <a href="{root}sqlp/">SQLP 준비</a>

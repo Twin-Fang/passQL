@@ -25,28 +25,50 @@ SITEMAP_PRIORITY_BY_PATH = {
     "privacy.html": "0.3", "terms.html": "0.3", "delete-account.html": "0.2",
 }
 
+# 화면 모음: 파일, 이름, 설명 (원본 캡처: app/docs/store/promo/source, 문제 수·총량이 보이는 화면은 쓰지 않음 #636)
 SCREENSHOTS = [
-    ("home.jpg", "홈", "오늘의 세트, 시험 D-day, 합격 준비도"),
-    ("detail.jpg", "문제 풀이", "선택지와 SQL 실행 결과 비교"),
-    ("questions.jpg", "문제 목록", "주제별로 골라 풀기"),
-    ("stats.jpg", "학습 통계", "합격 준비도와 주제별 분석"),
-    ("rank.jpg", "리더보드", "오늘의 세트 순위"),
+    ("questions.webp", "주제별 문제", "데이터 모델링부터 서브쿼리까지 주제를 골라 풀기"),
+    ("execute.webp", "SQL 실행", "보기 SQL을 실행해 결과 표 확인"),
+    ("ai.webp", "AI 해설", "틀린 이유를 짚어 주는 해설"),
+    ("stats.webp", "합격 준비도", "주제별 정답률과 학습 현황"),
+    ("rank.webp", "오늘의 순위", "오늘의 세트 리더보드"),
 ]
 
+# 기능 카드 아이콘 (24x24 선 아이콘)
+ICON_PATHS = {
+    "play": '<path d="M8 5v14l11-7z"/>',
+    "spark": '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 16l.7 1.8 1.8.7-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z"/>',
+    "trend": '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+    "calendar": '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/>',
+    "note": '<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/>',
+    "gauge": '<path d="M4 16a8 8 0 1116 0"/><path d="M12 16l4-5"/>',
+}
+
 REASONS = [
-    ("실행해 보는 SQL",
+    ("play", "실행해 보는 SQL",
      "보기만 하는 문제가 아닙니다. 실행형 문제에서는 SQL을 직접 돌리고, 내 결과와 정답 결과를 표로 나란히 비교합니다."),
-    ("틀린 이유를 짚는 AI 해설",
+    ("spark", "틀린 이유를 짚는 AI 해설",
      "정답만 알려 주지 않습니다. 내가 고른 답이 왜 틀렸는지, 정답과 무엇이 다른지 AI가 풀어 설명합니다."),
-    ("합격까지 남은 거리",
+    ("trend", "최신 출제 경향",
+     "최근 회차 시험의 출제 유형을 분석해 문제에 반영합니다. 요즘 시험에 나오는 유형부터 풀어 보세요."),
+    ("calendar", "하루 5문제, 오늘의 세트",
+     "매일 새로 열리는 5문제를 풀고 순위를 확인합니다. 부담 없는 분량이라 꾸준히 이어가기 좋아요."),
+    ("note", "오답 노트",
+     "틀린 문제만 모아 다시 풉니다. 같은 실수를 반복하지 않도록 약한 곳을 집중해서 메웁니다."),
+    ("gauge", "합격 준비도",
      "주제별 정답률로 합격 준비도를 보여 줍니다. 약한 주제가 바로 보여서 다음에 무엇을 풀지 고민할 필요가 없습니다."),
 ]
 
 STUDY_STEPS = [
-    ("오늘의 세트 풀기", "매일 새로 열리는 문제 세트를 풀고 리더보드에서 순위를 확인합니다."),
+    ("오늘의 세트 풀기", "매일 새로 열리는 5문제를 풀고 리더보드에서 순위를 확인합니다."),
     ("틀린 문제 이해하기", "AI 해설로 오답 이유를 짚고, 비슷한 문제를 이어서 풉니다."),
     ("오답 노트로 다시 풀기", "틀린 문제만 모아 다시 풀며 약한 주제를 메웁니다."),
 ]
+
+
+def render_icon(icon_name):
+    return (f'<span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+            f'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{ICON_PATHS[icon_name]}</svg></span>')
 
 
 def write_file(relative_path, text):
@@ -63,7 +85,7 @@ def build_website_json_ld():
         "name": "passQL",
         "url": content.SITE_URL,
         "inLanguage": "ko",
-        "publisher": {"@type": "Organization", "name": "Twin-Fang", "url": content.SITE_URL,
+        "publisher": {"@type": "Organization", "name": "KOLLYLAB (콜리랩)", "url": content.SITE_URL,
                       "logo": content.SITE_URL + "icon/mark.png", "email": content.CONTACT_EMAIL},
     }
 
@@ -72,8 +94,8 @@ def render_home_page():
     root = ""
     reasons = "".join(
         f"""
-      <div class="card"><span class="num">{index}</span><h3>{escape(title)}</h3><p>{escape(text)}</p></div>"""
-        for index, (title, text) in enumerate(REASONS, start=1)
+      <div class="card">{render_icon(icon_name)}<h3>{escape(title)}</h3><p>{escape(text)}</p></div>"""
+        for icon_name, title, text in REASONS
     )
     steps = "".join(
         f"""
@@ -83,7 +105,7 @@ def render_home_page():
     shots = "".join(
         f"""
       <figure class="shot">
-        <img class="phone" src="shots/{file_name}" width="486" height="972" alt="passQL {escape(name)} 화면. {escape(caption)}" loading="lazy">
+        <img class="phone" src="shots/{file_name}" width="540" height="1174" alt="passQL {escape(name)} 화면. {escape(caption)}" loading="lazy">
         <figcaption><strong>{escape(name)}</strong><span>{escape(caption)}</span></figcaption>
       </figure>"""
         for file_name, name, caption in SCREENSHOTS
@@ -106,8 +128,9 @@ def render_home_page():
       {render_store_buttons(root)}
       <p class="note">무료 · Google 또는 Apple 계정으로 시작 · Android 앱은 출시 준비 중이며 웹으로 이용할 수 있어요</p>
     </div>
-    <div class="hero-art">
-      <img class="phone" src="shots/home.jpg" width="486" height="972" alt="passQL 홈 화면. 오늘의 세트, 시험 D-day, 합격 준비도가 보인다.">
+    <div class="hero-art" aria-hidden="false">
+      <img class="phone phone-back" src="shots/ai.webp" width="540" height="1174" alt="passQL AI 해설 화면. 틀린 이유를 짚어 준다.">
+      <img class="phone phone-front" src="shots/execute.webp" width="540" height="1174" alt="passQL 문제 풀이 화면. 보기 SQL의 실행 결과가 표로 보인다.">
     </div>
   </div>
 </header>
@@ -121,7 +144,7 @@ def render_home_page():
 
 <section id="why">
   <div class="wrap">
-    <h2>passQL로 준비하면 다른 점</h2>
+    <h2>합격에 필요한 건 다 담았어요</h2>
     <p class="sec-lead">SQL 자격증은 결국 문제를 얼마나 정확히 푸느냐로 갈립니다.</p>
     <div class="grid grid-3">{reasons}
     </div>
@@ -139,17 +162,17 @@ def render_home_page():
 
 <section id="flow">
   <div class="wrap">
-    <h2>하루 10분, 이렇게 공부합니다</h2>
+    <h2>하루 5문제, 이렇게 공부합니다</h2>
     <p class="sec-lead">매일 같은 흐름을 반복하면 약한 주제부터 메워집니다.</p>
     <ol class="steps">{steps}
     </ol>
   </div>
 </section>
 
-<section id="screens" style="padding-top:0">
+<section id="screens" class="band-dark">
   <div class="wrap">
     <h2>실제 앱 화면</h2>
-    <p class="sec-lead">문제 풀이부터 통계까지 그대로 보여 드립니다.</p>
+    <p class="sec-lead">문제 풀이부터 합격 준비도까지 그대로 보여 드립니다. 옆으로 넘겨 보세요.</p>
     <div class="shots">{shots}
     </div>
   </div>

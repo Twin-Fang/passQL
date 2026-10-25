@@ -14,6 +14,8 @@
   --mint: #5856D6;
   --amber: var(--mint);
   --radius: 20px;
+  --nav-bg: rgba(250, 250, 250, 0.85);
+  --link: #5856D6;
   --max: 1080px;
 }
 
@@ -32,7 +34,7 @@ body {
   word-break: keep-all;
 }
 
-a { color: var(--mint); text-decoration: none; }
+a { color: var(--link); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 .wrap { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
@@ -41,7 +43,7 @@ a:hover { text-decoration: underline; }
 /* ── 상단 바 ── */
 .nav {
   position: sticky; top: 0; z-index: 50;
-  background: rgba(250, 250, 250, 0.85);
+  background: var(--nav-bg);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
 }
@@ -284,4 +286,105 @@ footer { border-top: 1px solid var(--line); padding: 44px 0 64px; color: var(--d
 /* 폰 폭에서 2열이면 장당 160px 남짓이라 글자를 읽을 수 없다 → 1열로 크게 (#404) */
 @media (max-width: 480px) {
   .shots { grid-template-columns: 1fr; gap: 28px; max-width: 300px; margin: 0 auto; }
+}
+
+
+/* ── 다크 모드 (시스템 설정 따름, #650) ── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0b12; --surface: #14141d; --surface-2: #1b1b27; --line: #26263a;
+    --text: #f4f4f8; --muted: #a8a8bc; --dim: #80809a;
+    --mint: #8f8df7; --link: #a3a1ff; --nav-bg: rgba(11, 11, 18, 0.82);
+  }
+  .phone { box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55); }
+  .card:hover { box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45); }
+}
+
+/* ── 첫 화면: 어두운 그라디언트 (라이트·다크 공통) (#650) ── */
+.hero {
+  color: #f6f6fb;
+  background:
+    radial-gradient(60% 70% at 85% 10%, rgba(120, 90, 255, 0.55), transparent 62%),
+    radial-gradient(50% 60% at 8% 95%, rgba(0, 190, 255, 0.28), transparent 64%),
+    linear-gradient(160deg, #07070f 0%, #120c2e 58%, #1c1150 100%);
+}
+.hero::before { display: none; }
+.hero::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.35;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: linear-gradient(180deg, #000, transparent 75%);
+}
+.hero .wrap { position: relative; z-index: 1; }
+.hero .eyebrow { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.22); color: #d9d7ff; backdrop-filter: blur(10px); }
+.hero h1 { color: #ffffff; }
+.hero h1 .hl {
+  background: linear-gradient(95deg, #a99bff 0%, #5ad2ff 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.hero .lead { color: rgba(240, 240, 255, 0.78); }
+.hero .note, .hero .crumbs { color: rgba(240, 240, 255, 0.55); }
+.hero .crumbs a { color: rgba(240, 240, 255, 0.8); }
+.hero .btn-primary {
+  background: linear-gradient(135deg, #7c6cff, #4b46e0); color: #fff;
+  box-shadow: 0 10px 30px rgba(110, 90, 255, 0.45);
+}
+.hero .btn-ghost { border-color: rgba(255, 255, 255, 0.3); color: #fff; }
+.hero .btn-ghost:hover { background: rgba(255, 255, 255, 0.1); }
+.btn { transition: transform 0.18s ease, filter 0.18s ease; }
+.btn:hover { transform: translateY(-2px); }
+
+/* 두 폰이 겹쳐 떠 있는 모양 */
+.hero-in { grid-template-columns: 1fr 420px; }
+.hero-art { position: relative; height: 560px; }
+.hero-art .phone { position: absolute; width: 58%; border: 7px solid #15151f; border-radius: 40px; box-shadow: 0 30px 80px rgba(8, 4, 40, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.12); }
+.hero-art .phone-back { right: 0; top: 0; transform: rotate(7deg); opacity: 0.92; }
+.hero-art .phone-front { left: 0; top: 54px; transform: rotate(-5deg); }
+@media (prefers-reduced-motion: no-preference) {
+  .hero-art .phone-front { animation: float-a 7s ease-in-out infinite; }
+  .hero-art .phone-back { animation: float-b 8s ease-in-out infinite; }
+}
+@keyframes float-a { 50% { transform: rotate(-5deg) translateY(-12px); } }
+@keyframes float-b { 50% { transform: rotate(7deg) translateY(10px); } }
+
+/* ── 핵심 한 줄 ── */
+.pitch { background: linear-gradient(120deg, color-mix(in srgb, var(--mint) 12%, var(--surface)), var(--surface)); }
+.pitch p:first-child { font-size: 30px; }
+
+/* ── 기능 카드 ── */
+.card { transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
+.card:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--mint) 40%, var(--line)); box-shadow: 0 18px 44px rgba(88, 86, 214, 0.14); }
+.ico {
+  width: 48px; height: 48px; border-radius: 14px; color: #fff;
+  background: linear-gradient(135deg, #7c6cff, #4b46e0);
+  box-shadow: 0 8px 20px rgba(88, 86, 214, 0.35);
+}
+
+/* ── 실제 앱 화면: 어두운 띠 + 옆으로 넘기는 폰 ── */
+.band-dark {
+  color: #f6f6fb;
+  background: radial-gradient(60% 60% at 50% 0%, rgba(120, 90, 255, 0.35), transparent 70%), linear-gradient(180deg, #0a0a14, #130d33);
+}
+.band-dark h2 { color: #fff; }
+.band-dark .sec-lead { color: rgba(240, 240, 255, 0.7); }
+.band-dark .shots {
+  display: flex; gap: 22px; overflow-x: auto; padding: 8px 4px 28px;
+  scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+}
+.band-dark .shot { flex: 0 0 min(260px, 70vw); scroll-snap-align: center; }
+.band-dark .phone { border: 6px solid #1a1a26; border-radius: 36px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.1); }
+.band-dark .shot figcaption { color: rgba(240, 240, 255, 0.6); }
+.band-dark .shot figcaption strong { color: #fff; }
+@media (max-width: 480px) {
+  .band-dark .shots { display: flex; max-width: none; margin: 0; grid-template-columns: none; }
+}
+
+/* ── 마지막 행동 유도 ── */
+.final-cta { background: radial-gradient(50% 80% at 50% 100%, color-mix(in srgb, var(--mint) 18%, transparent), transparent 70%); }
+
+/* ── 좁은 화면 보정 ── */
+@media (max-width: 900px) {
+  .hero-in { grid-template-columns: 1fr; }
+  .hero-art { width: min(340px, 100%); max-width: none; height: 470px; margin: 0 auto; }
+  .pitch p:first-child { font-size: 22px; }
 }
