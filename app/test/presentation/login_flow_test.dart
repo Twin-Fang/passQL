@@ -54,6 +54,12 @@ class _SignedOutAuth extends AuthNotifier {
   Future<AuthSession?> build() async => null;
 }
 
+/// 로그인은 성공했지만 라우터 전환 전인 순간을 고정한다 (상태를 바꾸지 않아 화면이 남는다)
+class _SignInSucceedsAuth extends _SignedOutAuth {
+  @override
+  Future<bool> signIn(SocialProvider provider) async => true;
+}
+
 void main() {
   setUp(() {
     FlutterSecureStorage.setMockInitialValues({});
@@ -121,6 +127,32 @@ void main() {
     expect(socialSignIn.requestedProviders, [SocialProvider.kakao]);
     expect(find.textContaining('실패'), findsNothing);
     expect(find.byType(LoginPage), findsOneWidget);
+  });
+
+  testWidgets('로그인 성공 후 홈으로 넘어가는 동안 버튼을 다시 켜지 않는다', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [authProvider.overrideWith(_SignInSucceedsAuth.new)],
+        child: const MaterialApp(home: LoginPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('카카오로 계속하기'));
+    await tester.pump();
+
+    final buttons = tester.widgetList<SocialLoginButton>(
+      find.byType(SocialLoginButton),
+    );
+    expect(buttons.every((button) => button.onPressed == null), isTrue);
+    // 로딩 중인 버튼 하나를 뺀 나머지는 흐리게 보인다
+    final dimmedButtons = find.descendant(
+      of: find.byType(SocialLoginButton),
+      matching: find.byWidgetPredicate(
+        (widget) => widget is Opacity && widget.opacity < 1,
+      ),
+    );
+    expect(dimmedButtons, findsNWidgets(buttons.length - 1));
   });
 
   testWidgets('설정 없는 제공자는 준비 중 안내를 보여 준다', (tester) async {
