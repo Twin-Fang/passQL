@@ -84,6 +84,8 @@ class PlayBillingServiceTest {
     // 메모리 저장소 (구매: 토큰별, 등급: 회원별)
     private final Map<String, EntitlementPurchase> purchaseByToken = new HashMap<>();
     private final Map<UUID, MemberEntitlement> entitlementByMember = new HashMap<>();
+    // 기록 INSERT 로 넘긴 결제 금액 (토큰별, 금액 미기록이면 null 값)
+    private final Map<String, StorePrice> savedPriceByToken = new HashMap<>();
     private final UUID memberUuid = UUID.randomUUID();
 
     @BeforeEach
@@ -96,7 +98,7 @@ class PlayBillingServiceTest {
             .thenAnswer(call -> Optional.ofNullable(purchaseByToken.get(call.<String>getArgument(0))));
         // 기록 INSERT: 토큰·주문 번호 충돌이면 0건 (ON CONFLICT DO NOTHING 과 같게)
         when(purchaseRepository.insertVerifiedIfAbsent(any(), any(), any(), any(), any(), any(), any(), any(), any(),
-            any(), any(), any(), any())).thenAnswer(call -> {
+            any(), any(), any(), any(), any(), any())).thenAnswer(call -> {
             String orderId = call.getArgument(4);
             String purchaseToken = call.getArgument(5);
             boolean isConflicted = purchaseByToken.containsKey(purchaseToken) || purchaseByToken.values().stream()
@@ -104,6 +106,10 @@ class PlayBillingServiceTest {
             if (isConflicted) {
                 return 0;
             }
+            Long priceAmountMicros = call.getArgument(13);
+            String currencyCode = call.getArgument(14);
+            savedPriceByToken.put(purchaseToken,
+                priceAmountMicros != null ? new StorePrice(priceAmountMicros, currencyCode) : null);
             purchaseByToken.put(purchaseToken, EntitlementPurchase.verified(call.getArgument(1), PurchaseStore.PLAY,
                 call.getArgument(3), orderId, purchaseToken, call.getArgument(6), call.getArgument(8),
                 call.getArgument(9)));
@@ -154,6 +160,21 @@ class PlayBillingServiceTest {
         // 이용권 정보 시트용 최근 구매일·주문 번호
         assertThat(response.lastPurchasedAt()).isEqualTo(LocalDateTime.ofInstant(PURCHASED_INSTANT, SEOUL));
         assertThat(response.lastOrderId()).isEqualTo("GPA.0001");
+        // 주문 금액 조회 결과 그대로 저장
+        assertThat(playClient.findOrderPriceOrderIds).containsExactly("GPA.0001");
+        assertThat(savedPriceByToken.get(PURCHASE_TOKEN)).isEqualTo(FakePlayDeveloperApiClient.ORDER_PRICE);
+    }
+
+    @Test
+    void verify_orderPriceUnavailable_grantsWithNullPrice() {
+        playClient.snapshot = new PlayPurchaseSnapshot("GPA.0001", 0, 0, PURCHASED_INSTANT, null);
+        playClient.isOrderPriceUnavailable = true;
+
+        MemberPlanResponse response = playBillingService.verify(memberUuid, passRequest());
+
+        // 금액 조회 실패는 구매 확인을 막지 않음 (매출 집계 제외 행)
+        assertThat(response.plan()).isEqualTo("PRO");
+        assertThat(savedPriceByToken).containsEntry(PURCHASE_TOKEN, null);
     }
 
     @Test
@@ -337,6 +358,9 @@ class PlayBillingServiceTest {
         assertThat(purchaseByToken.get(PURCHASE_TOKEN).getOrderId())
             .isEqualTo("PLAY-NO-ORDER-bbbe5d3db6d6de18a3a2d0cc0e3d6a6e");
         assertThat(response.plan()).isEqualTo("PRO");
+        // 대체 주문 번호는 Play 주문이 아니라 금액 조회 없이 null
+        assertThat(playClient.findOrderPriceOrderIds).isEmpty();
+        assertThat(savedPriceByToken).containsEntry(PURCHASE_TOKEN, null);
     }
 
     @Test

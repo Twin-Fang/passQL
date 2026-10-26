@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * 스토어 구매(Play·App Store) 기록 + 등급 반영 (호출자 트랜잭션 안): 회원 행 잠금 > 만료일 계산 > 기록 INSERT(이용 일수 포함) > 1건일 때만 등급 반영
+ * 스토어 구매(Play·App Store) 기록 + 등급 반영 (호출자 트랜잭션 안): 회원 행 잠금 > 만료일 계산 > 기록 INSERT(이용 일수·결제 금액 포함) > 1건일 때만 등급 반영
  * 같은 토큰·주문 번호 기록이 이미 있으면 ON CONFLICT 로 0건 > 등급을 건드리지 않음
  */
 @Component
@@ -53,11 +53,13 @@ class StorePurchaseRecorder {
         LocalDateTime newExpiresAt = passExpiryCalculator.calculateExpiresAt(
             purchasedAt, currentProExpiresAt, passProduct.getDurationDays());
 
-        // 구매 기록 먼저 (토큰·주문 번호 충돌이면 0건, 예외·오류 로그 없음)
+        // 구매 기록 먼저 (토큰·주문 번호 충돌이면 0건, 예외·오류 로그 없음, 금액 모르면 NULL > 매출 집계 제외)
+        StorePrice price = purchase.price();
         int insertedCount = entitlementPurchaseRepository.insertVerifiedIfAbsent(
             UUID.randomUUID(), memberUuid, purchase.store().name(), passProduct.getProductId(), purchase.orderId(),
             purchase.purchaseToken(), purchasedAt, PurchaseStatus.VERIFIED.name(), newExpiresAt,
-            passProduct.getDurationDays(), purchase.isConsumed(), LocalDateTime.ofInstant(now, SERVICE_ZONE), AUDITOR_SYSTEM);
+            passProduct.getDurationDays(), purchase.isConsumed(), LocalDateTime.ofInstant(now, SERVICE_ZONE), AUDITOR_SYSTEM,
+            price != null ? price.amountMicros() : null, price != null ? price.currencyCode() : null);
         if (insertedCount == 0) {
             return Optional.empty();
         }
@@ -81,9 +83,10 @@ class StorePurchaseRecorder {
      * @param purchaseToken 구매 토큰 (Play 토큰, App Store "appstore:" + transactionId, 로그 금지)
      * @param purchasedAt   스토어 구매 시각 (없으면 null > 기록 시각)
      * @param isConsumed    소모 완료로 저장할지 (Play false 로 시작, App Store true)
+     * @param price         스토어가 알려 준 결제 금액·통화 (모르면 null)
      */
     record VerifiedStorePurchase(PurchaseStore store, PassProduct passProduct, String orderId, String purchaseToken,
-                                 Instant purchasedAt, Boolean isConsumed) {
+                                 Instant purchasedAt, Boolean isConsumed, StorePrice price) {
     }
 
     /** 반영 결과: 저장한 주문 번호, 등급 만료일 변경 전후 (이전 값은 없으면 null) */
