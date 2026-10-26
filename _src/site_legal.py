@@ -78,7 +78,7 @@ def render_legal_page(path, legal_type, description):
     effective_date_text = find_effective_date_text(document["content"])
     effective_date_line = f" · 시행일 {effective_date_text}" if effective_date_text else ""
     return render_head(f"{title} · passQL", description, path, root) + render_nav(root) + f"""
-<main class="doc">
+<main id="main" class="doc">
   <div class="wrap narrow">
 <header>
   <h1>{escape(title)}</h1>

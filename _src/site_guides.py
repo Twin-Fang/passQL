@@ -15,6 +15,7 @@ def render_guide_page(path, page_name, title, description, intro, body_html, faq
     head = render_head(title, description, path, root,
                        [build_breadcrumb_json_ld(page_name, path), build_faq_json_ld(faqs), build_app_json_ld()])
     return head + render_nav(root) + f"""
+<main id="main">
 <header class="hero hero-guide">
   <div class="wrap narrow">
     <p class="crumbs"><a href="../">passQL</a> › {escape(page_name)}</p>
@@ -30,6 +31,7 @@ def render_guide_page(path, page_name, title, description, intro, body_html, faq
     <p class="sec-lead">시험 일정·접수·응시료는 공식 사이트 공지가 기준입니다. <a href="{content.OFFICIAL_EXAM_URL}" rel="noopener">데이터자격검정 바로가기</a></p>
   </div>
 </section>
+</main>
 """ + render_footer(root)
 
 
