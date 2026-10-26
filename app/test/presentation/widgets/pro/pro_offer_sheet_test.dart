@@ -182,10 +182,7 @@ void main() {
 
       // iOS: StoreKit 가격 + 자동 결제 없음 + Apple ID 결제 안내 + 복원
       expect(_buyButton(tester).label, '3개월 이용권 ₩9,900');
-      expect(
-        findTextContainingIgnoringWordJoiners('자동 결제 없음'),
-        findsOneWidget,
-      );
+      expect(findTextContainingIgnoringWordJoiners('자동 결제 없음'), findsOneWidget);
       expect(
         _inSheet(appleIdNotice),
         isNoticeExpected ? findsOneWidget : findsNothing,

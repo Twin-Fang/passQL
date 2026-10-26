@@ -96,8 +96,9 @@ class _NoticeListPageState extends ConsumerState<NoticeListPage> {
                     NoticeListRow(
                       key: ValueKey(notice.noticeUuid),
                       notice: notice,
-                      onTap: () =>
-                          context.push(AppRoutes.noticeDetail(notice.noticeUuid)),
+                      onTap: () => context.push(
+                        AppRoutes.noticeDetail(notice.noticeUuid),
+                      ),
                     ),
                 ],
               ),

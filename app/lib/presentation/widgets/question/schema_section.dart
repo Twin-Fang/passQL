@@ -102,16 +102,24 @@ class _SchemaSectionHeader extends StatelessWidget {
       semanticLabel: '$title ${isExpanded ? '접기' : '펼치기'}',
       child: Row(
         children: [
-          Icon(CupertinoIcons.table, size: PassqlIconSize.xs, color: colors.secondaryLabel),
+          Icon(
+            CupertinoIcons.table,
+            size: PassqlIconSize.xs,
+            color: colors.secondaryLabel,
+          ),
           const SizedBox(width: PassqlSpacing.xxs),
           Expanded(
             child: Text(
               title,
-              style: PassqlTypography.subheadlineSemibold.copyWith(color: colors.label),
+              style: PassqlTypography.subheadlineSemibold.copyWith(
+                color: colors.label,
+              ),
             ),
           ),
           Icon(
-            isExpanded ? CupertinoIcons.chevron_up : CupertinoIcons.chevron_down,
+            isExpanded
+                ? CupertinoIcons.chevron_up
+                : CupertinoIcons.chevron_down,
             size: PassqlIconSize.xs,
             color: colors.tertiaryLabel,
           ),

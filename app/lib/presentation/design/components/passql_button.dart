@@ -119,10 +119,7 @@ class PassqlButton extends StatelessWidget {
               // 라벨 <-> 로딩 표시 교체
               child: AnimatedSwitcher(
                 duration: PassqlMotion.durationOf(context, PassqlMotion.fast),
-                child: KeyedSubtree(
-                  key: ValueKey(isLoading),
-                  child: content,
-                ),
+                child: KeyedSubtree(key: ValueKey(isLoading), child: content),
               ),
             ),
           ),

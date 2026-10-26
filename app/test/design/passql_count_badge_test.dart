@@ -25,12 +25,20 @@ void main() {
 
     // 배지의 색 칠한 상자 크기
     Size badgeSizeShowing(String label) => tester.getSize(
-      find.ancestor(of: find.text(label), matching: find.byType(DecoratedBox)).first,
+      find
+          .ancestor(of: find.text(label), matching: find.byType(DecoratedBox))
+          .first,
     );
 
-    expect(badgeSizeShowing('2'), const Size.square(PassqlSize.notificationBadge));
+    expect(
+      badgeSizeShowing('2'),
+      const Size.square(PassqlSize.notificationBadge),
+    );
     expect(badgeSizeShowing('99+').height, PassqlSize.notificationBadge);
-    expect(badgeSizeShowing('99+').width, greaterThan(PassqlSize.notificationBadge));
+    expect(
+      badgeSizeShowing('99+').width,
+      greaterThan(PassqlSize.notificationBadge),
+    );
 
     // 선택된 탭(알림)만 주황 강조, 비선택(공지)은 중립 회색
     Color badgeColorShowing(String label) =>

@@ -71,7 +71,8 @@ class PlanNotifier extends AutoDisposeAsyncNotifier<MemberPlanResponse> {
   /// 구매 확인 뒤 다시 받기: 확인 전에 출발한 요청에 합치지 않고 그 요청이 끝난 뒤 새로 받음 (무료 응답 재사용 방지)
   Future<void> refreshAfterPurchase() async {
     final refreshStartedBeforePurchase = _inFlightRefresh;
-    if (refreshStartedBeforePurchase != null) await refreshStartedBeforePurchase;
+    if (refreshStartedBeforePurchase != null)
+      await refreshStartedBeforePurchase;
     await refresh();
   }
 

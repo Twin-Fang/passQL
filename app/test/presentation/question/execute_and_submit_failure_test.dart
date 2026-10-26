@@ -39,7 +39,11 @@ void main() {
         (_) => jsonResponseBody(500, {'errorCode': 'SANDBOX_TIMEOUT'}),
       );
 
-      await notifier.selectChoice(choiceKey: 'A', sql: _sql, isExecutable: true);
+      await notifier.selectChoice(
+        choiceKey: 'A',
+        sql: _sql,
+        isExecutable: true,
+      );
 
       expect(notifier.state.isExecuting, isFalse);
       expect(notifier.state.currentExecuteResult, isNull);
@@ -60,7 +64,11 @@ void main() {
                 'rowCount': 1,
               }),
       );
-      await notifier.selectChoice(choiceKey: 'A', sql: _sql, isExecutable: true);
+      await notifier.selectChoice(
+        choiceKey: 'A',
+        sql: _sql,
+        isExecutable: true,
+      );
       expect(notifier.state.executeFailure?.code, ErrorCode.serverError);
 
       isServerDown = false;

@@ -65,7 +65,10 @@ void main() {
           theme: theme,
           routerConfig: GoRouter(
             routes: [
-              GoRoute(path: '/', builder: (_, _) => const NotificationInboxPage()),
+              GoRoute(
+                path: '/',
+                builder: (_, _) => const NotificationInboxPage(),
+              ),
               // 공지 항목 이동 확인용 상세 자리
               GoRoute(
                 path: AppRoutes.noticeDetailPattern,

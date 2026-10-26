@@ -24,7 +24,9 @@ class FallbackStatsSection extends StatelessWidget {
           ),
           TextSpan(
             text: ' $unit',
-            style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
+            style: PassqlTypography.subheadline.copyWith(
+              color: colors.secondaryLabel,
+            ),
           ),
         ],
       ),

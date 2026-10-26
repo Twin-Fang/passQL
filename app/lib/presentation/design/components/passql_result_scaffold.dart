@@ -27,7 +27,9 @@ class PassqlResultScaffold extends StatelessWidget {
       extendBody: true,
       appBar: PassqlNavBar(
         title: title,
-        leading: onClose == null ? PassqlNavLeading.none : PassqlNavLeading.close,
+        leading: onClose == null
+            ? PassqlNavLeading.none
+            : PassqlNavLeading.close,
         onLeadingTap: onClose,
       ),
       // extendBody 가 하단 바 높이를 body padding 에 더하므로 Scaffold 안쪽 context 에서 읽는다.

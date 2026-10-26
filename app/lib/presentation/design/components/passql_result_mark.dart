@@ -36,7 +36,11 @@ class PassqlResultMark extends StatelessWidget {
           PassqlPopIn(
             delay: PassqlMotion.afterRouteTransitionDelay,
             isRotating: false,
-            child: Icon(icon, size: PassqlIconSize.resultMarkLarge, color: iconColor),
+            child: Icon(
+              icon,
+              size: PassqlIconSize.resultMarkLarge,
+              color: iconColor,
+            ),
           ),
           const SizedBox(height: PassqlSpacing.sm),
           Text(

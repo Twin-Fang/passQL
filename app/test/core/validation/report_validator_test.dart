@@ -10,7 +10,10 @@ void main() {
   test('기타를 제외한 사유는 상세 내용 없이 신고할 수 있다', () {
     expect(ReportValidator.isValid({ReportCategory.wrongAnswer}, ''), isTrue);
     expect(
-      ReportValidator.isValid({ReportCategory.weirdChoices, ReportCategory.weirdExecution}, ''),
+      ReportValidator.isValid({
+        ReportCategory.weirdChoices,
+        ReportCategory.weirdExecution,
+      }, ''),
       isTrue,
     );
   });
@@ -20,7 +23,10 @@ void main() {
     expect(ReportValidator.isValid({ReportCategory.etc}, '   '), isFalse);
     expect(ReportValidator.isValid({ReportCategory.etc}, '오타가 있어요'), isTrue);
     expect(
-      ReportValidator.isValid({ReportCategory.etc, ReportCategory.wrongAnswer}, ''),
+      ReportValidator.isValid({
+        ReportCategory.etc,
+        ReportCategory.wrongAnswer,
+      }, ''),
       isFalse,
     );
   });
@@ -31,7 +37,10 @@ void main() {
   });
 
   test('상세 내용은 기타를 골랐을 때만 보낸다', () {
-    expect(ReportValidator.detailFor({ReportCategory.wrongAnswer}, '무시됨'), isNull);
+    expect(
+      ReportValidator.detailFor({ReportCategory.wrongAnswer}, '무시됨'),
+      isNull,
+    );
     expect(ReportValidator.detailFor({ReportCategory.etc}, '  내용  '), '내용');
   });
 }

@@ -27,12 +27,16 @@ void main() {
     expect(find.textContaining('SELECT NAME'), findsOneWidget);
   });
 
-  testWidgets('StemText: 마크다운 표는 파이프 원문이 아니라 표로, NULL 칸은 NULL 로 보인다 (#550)', (tester) async {
+  testWidgets('StemText: 마크다운 표는 파이프 원문이 아니라 표로, NULL 칸은 NULL 로 보인다 (#550)', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: PassqlTheme.light,
         home: const Scaffold(
-          body: StemText('[EMP]\n| ID | BONUS |\n| --- | --- |\n| 1 | NULL |\n| 2 | 50 |\n\n결과는?'),
+          body: StemText(
+            '[EMP]\n| ID | BONUS |\n| --- | --- |\n| 1 | NULL |\n| 2 | 50 |\n\n결과는?',
+          ),
         ),
       ),
     );

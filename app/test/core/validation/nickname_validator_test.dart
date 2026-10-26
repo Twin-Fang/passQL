@@ -6,7 +6,16 @@ void main() {
     for (final ok in ['가나', 'ab', 'abc123', '한글Abc1', '가나다라마바사아자차']) {
       expect(NicknameValidator.isValid(ok), isTrue, reason: ok);
     }
-    for (final bad in ['', 'a', '가나다라마바사아자차카', 'ab cd', 'ab_cd', 'ab!', '😀😀', 'ㅋㅋ']) {
+    for (final bad in [
+      '',
+      'a',
+      '가나다라마바사아자차카',
+      'ab cd',
+      'ab_cd',
+      'ab!',
+      '😀😀',
+      'ㅋㅋ',
+    ]) {
       expect(NicknameValidator.isValid(bad), isFalse, reason: bad);
     }
   });

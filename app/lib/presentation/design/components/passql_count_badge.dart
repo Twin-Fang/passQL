@@ -25,8 +25,10 @@ class PassqlCountBadge extends StatelessWidget {
   static const int defaultMaximumDisplayedCount = 99;
 
   /// 표시 문구: 상한 이하 숫자 그대로, 넘으면 "99+"
-  static String labelOf(int count, {int maximumDisplayedCount = defaultMaximumDisplayedCount}) =>
-      count > maximumDisplayedCount ? '$maximumDisplayedCount+' : '$count';
+  static String labelOf(
+    int count, {
+    int maximumDisplayedCount = defaultMaximumDisplayedCount,
+  }) => count > maximumDisplayedCount ? '$maximumDisplayedCount+' : '$count';
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +42,9 @@ class PassqlCountBadge extends StatelessWidget {
       child: Container(
         width: isSingleCharacter ? PassqlSize.notificationBadge : null,
         height: PassqlSize.notificationBadge,
-        constraints: const BoxConstraints(minWidth: PassqlSize.notificationBadge),
+        constraints: const BoxConstraints(
+          minWidth: PassqlSize.notificationBadge,
+        ),
         padding: isSingleCharacter
             ? EdgeInsets.zero
             : const EdgeInsets.symmetric(horizontal: PassqlSpacing.xxs),

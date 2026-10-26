@@ -106,7 +106,8 @@ class _NoticeArticle extends StatelessWidget {
   static void _openNoticeList(BuildContext context) {
     final router = GoRouter.of(context);
     final matches = router.routerDelegate.currentConfiguration.matches;
-    final isListBelow = matches.length >= 2 &&
+    final isListBelow =
+        matches.length >= 2 &&
         matches[matches.length - 2].matchedLocation == AppRoutes.notices;
     if (isListBelow) {
       context.pop();

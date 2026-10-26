@@ -74,7 +74,9 @@ class NicknameNotifier extends AutoDisposeAsyncNotifier<String?> {
   /// 닉네임 직접 변경. 성공하면 로그인 세션의 닉네임을 새 값으로 바꾼다.
   Future<void> change(String nickname) async {
     final response = await callApiThrowingAppException(
-      ref.read(memberApiProvider).changeNickname(NicknameChangeRequest(nickname)),
+      ref
+          .read(memberApiProvider)
+          .changeNickname(NicknameChangeRequest(nickname)),
     );
     await ref.read(authProvider.notifier).updateNickname(response.nickname);
   }

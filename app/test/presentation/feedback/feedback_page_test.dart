@@ -14,8 +14,11 @@ import '../../helpers/pump_app.dart';
 
 /// 서버 대신 목록과 실패를 정해 둘 수 있는 가짜 건의 API.
 class _FakeFeedbackApi implements FeedbackApiClient {
-  _FakeFeedbackApi({List<FeedbackItem>? items, this.submitError, this.listError})
-    : items = items ?? [];
+  _FakeFeedbackApi({
+    List<FeedbackItem>? items,
+    this.submitError,
+    this.listError,
+  }) : items = items ?? [];
 
   final List<FeedbackItem> items;
   DioException? submitError;
@@ -42,13 +45,17 @@ class _FakeFeedbackApi implements FeedbackApiClient {
   }
 }
 
-FeedbackItem _item(String uuid, String content, FeedbackStatus status, int minute) =>
-    FeedbackItem(
-      feedbackUuid: uuid,
-      content: content,
-      status: status,
-      createdAt: DateTime(2026, 10, 2, 9, minute),
-    );
+FeedbackItem _item(
+  String uuid,
+  String content,
+  FeedbackStatus status,
+  int minute,
+) => FeedbackItem(
+  feedbackUuid: uuid,
+  content: content,
+  status: status,
+  createdAt: DateTime(2026, 10, 2, 9, minute),
+);
 
 Future<void> _open(
   WidgetTester tester,
@@ -98,7 +105,8 @@ void main() {
 
   testWidgets('내용이 없으면 보낼 수 없고, 500자를 넘겨 입력해도 500자에서 멈춘다', (tester) async {
     await _open(tester, _FakeFeedbackApi());
-    PassqlButton send() => tester.widget<PassqlButton>(find.byType(PassqlButton));
+    PassqlButton send() =>
+        tester.widget<PassqlButton>(find.byType(PassqlButton));
 
     expect(send().onPressed, isNull);
 
@@ -129,7 +137,10 @@ void main() {
 
     expect(api.submitted, ['다크모드 부탁해요']);
     expect(find.text('다크모드 부탁해요'), findsOneWidget); // 말풍선
-    expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, isEmpty);
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      isEmpty,
+    );
   });
 
   testWidgets('보내면 앱·기기 요약을 본문 하단에 붙이고, 500자를 넘기면 본문만 보낸다', (tester) async {
@@ -164,7 +175,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('네트워크 연결을 확인해 주세요.'), findsOneWidget);
-    expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, '쓰던 내용');
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      '쓰던 내용',
+    );
   });
 
   testWidgets('목록을 못 불러오면 사유와 다시 시도를 보여준다', (tester) async {

@@ -37,7 +37,12 @@ class PassqlLargeTitleScrollView extends StatelessWidget {
             transitionBetweenRoutes: false,
             largeTitle:
                 largeTitle ??
-                Text(title, style: PassqlTypography.largeTitle.copyWith(color: colors.label)),
+                Text(
+                  title,
+                  style: PassqlTypography.largeTitle.copyWith(
+                    color: colors.label,
+                  ),
+                ),
             middle: Text(
               title,
               style: PassqlTypography.headline.copyWith(color: colors.label),
@@ -46,14 +51,19 @@ class PassqlLargeTitleScrollView extends StatelessWidget {
             trailing: trailing,
             backgroundColor: colors.glass,
             border: Border(
-              bottom: BorderSide(color: colors.separator, width: PassqlSize.hairline),
+              bottom: BorderSide(
+                color: colors.separator,
+                width: PassqlSize.hairline,
+              ),
             ),
           ),
           if (onRefresh != null)
             CupertinoSliverRefreshControl(onRefresh: onRefresh),
           ...slivers,
           // 탭 바(extendBody) 뒤로 마지막 콘텐츠가 가려지지 않게 한다.
-          SliverToBoxAdapter(child: SizedBox(height: bottomInset + PassqlSpacing.xl)),
+          SliverToBoxAdapter(
+            child: SizedBox(height: bottomInset + PassqlSpacing.xl),
+          ),
         ],
       ),
     );
