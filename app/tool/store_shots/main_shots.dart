@@ -6,6 +6,7 @@
 // 촬영: echo /stats > /tmp/passql_shot_route.txt && xcrun simctl launch <기기> com.coldredrice.passql
 // 연출(경로 대신 적음): execute-ok(SQL 실행 성공 표), execute-fail(SQL 실행 실패 카드), chapter-result(문제 목록 > 챕터 > 챕터 결과), ai-sheet(오답 AI 해설 시트)
 // 로그인 중 화면: echo /login-signing-in > /tmp/passql_shot_route.txt (카카오 버튼을 눌러 응답 대기에서 멈춘 상태)
+// 로그인 전환 영상: echo /login-transition > /tmp/passql_shot_route.txt (로그인 화면 > 4초 뒤 홈 > 9초 뒤 로그인 화면, xcrun simctl io <기기> recordVideo 로 녹화)
 // 앱 시작 설정 상황: echo maintenance > /tmp/passql_shot_app_config.txt
 //   (force_update | recommended_update | maintenance | notice, 없거나 그 외는 정상)
 // 알림함 상황: echo empty > /tmp/passql_shot_notifications.txt (없거나 그 외는 알림 4건·공지 3건, 안 읽은 일부)
@@ -758,7 +759,8 @@ Future<void> main() async {
   final route = _readRoute();
   final loggedOut = route.startsWith('/login');
   final store = TokenStore();
-  if (loggedOut) {
+  // 전환 시나리오는 홈에 데이터가 보이도록 세션은 두고, 라우터만 비로그인으로 시작한다.
+  if (loggedOut && route != _transitionRoute) {
     await store.clear();
   } else {
     await store.save(const AuthSession(
@@ -800,7 +802,14 @@ Future<void> main() async {
   if (route == _signingInRoute) {
     Timer(const Duration(milliseconds: 2000), _tapFirstSocialLoginButton);
   }
+  // 로그인 화면 > 홈 > 로그인 화면 전환을 영상으로 남기기 위해 로그인 상태를 시간차로 바꾼다.
+  if (route == _transitionRoute) {
+    Timer(const Duration(seconds: 4), () => AppRouter.authenticated.value = true);
+    Timer(const Duration(seconds: 9), () => AppRouter.authenticated.value = false);
+  }
 }
+
+const _transitionRoute = '/login-transition';
 
 const _signingInRoute = '/login-signing-in';
 
