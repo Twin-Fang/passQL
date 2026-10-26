@@ -46,7 +46,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       _error = null;
     });
     try {
-      await ref.read(authProvider.notifier).signIn(provider);
+      final isSignedIn = await ref.read(authProvider.notifier).signIn(provider);
+      // 성공이면 라우터가 홈으로 넘길 때까지 버튼을 잠근 채 둔다 (전환 중 다시 눌러 중복 로그인되지 않게)
+      if (isSignedIn) return;
     } on SocialSignInException catch (exception) {
       if (mounted) setState(() => _error = exception.message);
     } catch (exception, stackTrace) {
@@ -57,9 +59,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         reason: 'login:${provider.name}',
       );
       if (mounted) setState(() => _error = '로그인에 실패했어요. 잠시 후 다시 시도해 주세요.');
-    } finally {
-      if (mounted) setState(() => _signingInProvider = null);
     }
+    // 취소·실패만 버튼을 다시 켠다
+    if (mounted) setState(() => _signingInProvider = null);
   }
 
   @override
@@ -72,8 +74,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           padding: const EdgeInsets.symmetric(horizontal: PassqlSpacing.xl),
           child: Column(
             children: [
-              // 로고+버튼 묶음을 세로 중앙보다 조금 아래(55%)에 둔다 — 화면이 커도 버튼이 바닥에 붙지 않게.
-              const Spacer(flex: 11),
+              // 로고는 위쪽 빈 공간 가운데, 버튼은 엄지가 닿기 쉬운 하단(약관 바로 위)에 고정한다.
+              const Spacer(),
               // 워드마크 이미지에 앱 이름이 이미 들어 있으므로 이름 텍스트를 따로 두지 않는다.
               const PassqlLogo(height: PassqlSize.loginLogoHeight),
               const SizedBox(height: PassqlSpacing.xs),
@@ -83,7 +85,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   color: colors.secondaryLabel,
                 ),
               ),
-              const SizedBox(height: _logoToButtonsGap),
+              const Spacer(),
               for (final (index, provider) in _visibleProviders.indexed) ...[
                 if (index > 0) const SizedBox(height: PassqlSpacing.sm),
                 SocialLoginButton(
@@ -102,7 +104,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                 ),
               ],
-              const Spacer(flex: 9),
+              const SizedBox(height: PassqlSpacing.md),
               _LegalNotice(
                 onOpen: (type) =>
                     context.push(AppRoutes.legal(type.serverValue)),
@@ -115,9 +117,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 }
-
-// 로고 묶음 <-> 버튼 간격
-const double _logoToButtonsGap = 48;
 
 /// 버튼 순서: 국내 사용 빈도순 (카카오·네이버 먼저), GitHub 마지막
 /// iOS 에서 소셜 로그인을 제공하면 Sign in with Apple 도 필수(App Store 심사 규정) > iOS 만 Apple 표시
