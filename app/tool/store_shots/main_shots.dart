@@ -5,6 +5,7 @@
 // 빌드: flutter build ios --simulator -t tool/store_shots/main_shots.dart
 // 촬영: echo /stats > /tmp/passql_shot_route.txt && xcrun simctl launch <기기> com.coldredrice.passql
 // 연출(경로 대신 적음): execute-ok(SQL 실행 성공 표), execute-fail(SQL 실행 실패 카드), chapter-result(문제 목록 > 챕터 > 챕터 결과), ai-sheet(오답 AI 해설 시트)
+// 로그인 중 화면: echo /login-signing-in > /tmp/passql_shot_route.txt (카카오 버튼을 눌러 응답 대기에서 멈춘 상태)
 // 앱 시작 설정 상황: echo maintenance > /tmp/passql_shot_app_config.txt
 //   (force_update | recommended_update | maintenance | notice, 없거나 그 외는 정상)
 // 알림함 상황: echo empty > /tmp/passql_shot_notifications.txt (없거나 그 외는 알림 4건·공지 3건, 안 읽은 일부)
@@ -23,6 +24,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:passql_app/core/auth/auth_session.dart';
+import 'package:passql_app/core/auth/social_credential.dart';
+import 'package:passql_app/core/auth/social_sign_in.dart';
+import 'package:passql_app/presentation/pages/login/social_login_button.dart';
 import 'package:passql_app/core/auth/token_store.dart';
 import 'package:passql_app/data/sources/api_providers.dart';
 import 'package:passql_app/core/push/firebase_push_messaging_client.dart';
@@ -770,6 +774,7 @@ Future<void> main() async {
     // 스토어 캡처에 테스트 광고·AdMob 검사 팝업이 찍히지 않게 광고 끔
     adsEnabledProvider.overrideWithValue(false),
     dioProvider.overrideWith((ref) => Dio(BaseOptions(baseUrl: 'http://shots.local/api'))..httpClientAdapter = _FakeAdapter()),
+    if (route == _signingInRoute) socialSignInProvider.overrideWithValue(_PendingSocialSignIn()),
   ]);
   await container.read(authProvider.future);
   AppRouter.authenticated.value = !loggedOut;
@@ -792,6 +797,39 @@ Future<void> main() async {
   if (!loggedOut) {
     Timer(const Duration(milliseconds: 2000), () => _openRoute(route, container));
   }
+  if (route == _signingInRoute) {
+    Timer(const Duration(milliseconds: 2000), _tapFirstSocialLoginButton);
+  }
+}
+
+const _signingInRoute = '/login-signing-in';
+
+/// 소셜 로그인 응답이 오지 않는 상태: 로그인 중 버튼 모양을 고정해 찍는다
+class _PendingSocialSignIn implements SocialSignIn {
+  @override
+  Future<SocialCredential?> fetchCredential(SocialProvider provider) => Completer<SocialCredential?>().future;
+
+  @override
+  Future<bool> revokeAccessForWithdrawal(SocialProvider? provider, {String? providerUserId}) async => true;
+
+  @override
+  Future<void> disconnectAfterWithdrawal(SocialProvider? provider) async {}
+
+  @override
+  Future<void> signOut() async {}
+}
+
+/// 시뮬레이터는 탭을 보낼 수 없으므로 첫 소셜 버튼(카카오)의 탭 콜백을 직접 부른다
+void _tapFirstSocialLoginButton() {
+  VoidCallback? onPressed;
+  void visit(Element element) {
+    final widget = element.widget;
+    if (onPressed == null && widget is SocialLoginButton) onPressed = widget.onPressed;
+    if (onPressed == null) element.visitChildren(visit);
+  }
+
+  WidgetsBinding.instance.rootElement?.visitChildren(visit);
+  onPressed?.call();
 }
 
 /// 경로 이동 또는 연출 5종(execute-ok, execute-fail, chapter-result, ai-sheet, result)
