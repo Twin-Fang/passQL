@@ -6,12 +6,11 @@ import '../../data/models/meta/app_config.dart';
 import '../../data/sources/api_providers.dart';
 
 /// 공지 상세 1건 (공개 API, 화면을 떠나면 버림). 실패는 AppException (없는 공지 > ErrorCode.notFound)
-final noticeDetailProvider = FutureProvider.autoDispose
-    .family<AppNotice, String>(
-      (ref, noticeUuid) => callApiThrowingAppException(
-        ref.read(metaApiProvider).getNotice(noticeUuid),
-      ),
-    );
+final noticeDetailProvider = FutureProvider.autoDispose.family<AppNotice, String>(
+  (ref, noticeUuid) => callApiThrowingAppException(
+    ref.read(metaApiProvider).getNotice(noticeUuid),
+  ),
+);
 
 /// 공지 목록 상태: 불러온 공지, 다음에 요청할 페이지, 다음 페이지 유무, 추가 로딩 중 여부
 @immutable
@@ -62,8 +61,7 @@ class NoticeListNotifier extends AutoDisposeAsyncNotifier<NoticeListState> {
   /// 다음 페이지 이어 붙이기 (마지막 페이지·로딩 중·실패 > 변화 없음)
   Future<void> loadMore() async {
     final current = state.valueOrNull;
-    if (current == null || !current.hasNextPage || current.isLoadingMore)
-      return;
+    if (current == null || !current.hasNextPage || current.isLoadingMore) return;
     state = AsyncData(current.copyWith(isLoadingMore: true));
     try {
       final page = await ref

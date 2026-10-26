@@ -48,8 +48,7 @@ class PushNotificationTile extends ConsumerWidget {
     try {
       await ref.read(pushEnabledProvider.notifier).setPushEnabled(isEnabled);
     } on PushPermissionDeniedException {
-      if (context.mounted)
-        await guideToDeviceNotificationSettings(context, ref);
+      if (context.mounted) await guideToDeviceNotificationSettings(context, ref);
     } on PushSettingException catch (exception) {
       failureMessage = exception.message;
     } on AppException catch (exception) {

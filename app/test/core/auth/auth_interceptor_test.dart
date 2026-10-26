@@ -25,10 +25,7 @@ void main() {
   );
 
   /// 만료된 accessToken 으로 오는 요청은 401, 새 토큰이면 200 을 돌려주는 서버.
-  ResponseBody serverHandler(
-    RequestOptions request, {
-    bool reissueFails = false,
-  }) {
+  ResponseBody serverHandler(RequestOptions request, {bool reissueFails = false}) {
     if (request.path == '/auth/reissue') {
       return reissueFails
           ? jsonResponseBody(401, {'message': 'expired'})

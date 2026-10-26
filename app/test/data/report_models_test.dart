@@ -34,23 +34,20 @@ void main() {
     }
   });
 
-  test(
-    '제출 결과에서 submissionUuid 를 읽고, 앱이 붙이는 choiceSetUuid 는 JSON 에 섞이지 않는다',
-    () {
-      final result = SubmitResult.fromJson({
-        'isCorrect': false,
-        'correctKey': 'B',
-        'submissionUuid': 'sub-9',
-        'choiceSetUuid': '서버가 줘도 무시',
-      });
-      expect(result.submissionUuid, 'sub-9');
-      expect(result.choiceSetUuid, isNull);
+  test('제출 결과에서 submissionUuid 를 읽고, 앱이 붙이는 choiceSetUuid 는 JSON 에 섞이지 않는다', () {
+    final result = SubmitResult.fromJson({
+      'isCorrect': false,
+      'correctKey': 'B',
+      'submissionUuid': 'sub-9',
+      'choiceSetUuid': '서버가 줘도 무시',
+    });
+    expect(result.submissionUuid, 'sub-9');
+    expect(result.choiceSetUuid, isNull);
 
-      final withSet = result.copyWith(choiceSetUuid: 'cs-1');
-      expect(withSet.choiceSetUuid, 'cs-1');
-      expect(withSet.toJson().containsKey('choiceSetUuid'), isFalse);
-    },
-  );
+    final withSet = result.copyWith(choiceSetUuid: 'cs-1');
+    expect(withSet.choiceSetUuid, 'cs-1');
+    expect(withSet.toJson().containsKey('choiceSetUuid'), isFalse);
+  });
 
   test('신고 여부 응답을 읽는다', () {
     expect(ReportStatusResponse.fromJson({'reported': true}).reported, isTrue);

@@ -44,9 +44,7 @@ class BarChartSection extends StatelessWidget {
 
     return Column(
       children: stats.map((stat) {
-        final ratio = maxSolvedCount > 0
-            ? stat.solvedCount / maxSolvedCount
-            : 0.0;
+        final ratio = maxSolvedCount > 0 ? stat.solvedCount / maxSolvedCount : 0.0;
 
         // 행마다 '토픽명, N문제 풀었어요' 한 문장 (막대는 읽지 않음)
         return Padding(

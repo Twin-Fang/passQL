@@ -34,13 +34,12 @@ final inAppPurchaseProvider = Provider<InAppPurchase>(
 /// 플랫폼별 스토어 결제 어댑터 (앱 수명 1개): Android Play, iOS App Store, 그 외 null (결제 없음)
 /// 확인된 구매 > 등급 다시 받기 > 프로인지. 구매 스트림 구독을 끊지 않도록 API 는 watch 하지 않고 1회 read
 final storePurchaseServiceProvider = Provider<StorePurchaseService?>((ref) {
-  final _StorePurchaseServiceFactory? createService = switch (ref.watch(
-    targetPlatformProvider,
-  )) {
-    TargetPlatform.android => PlayPurchaseService.new,
-    TargetPlatform.iOS => AppStorePurchaseService.new,
-    _ => null,
-  };
+  final _StorePurchaseServiceFactory? createService =
+      switch (ref.watch(targetPlatformProvider)) {
+        TargetPlatform.android => PlayPurchaseService.new,
+        TargetPlatform.iOS => AppStorePurchaseService.new,
+        _ => null,
+      };
   if (createService == null) return null;
   final service = createService(
     store: ref.read(inAppPurchaseProvider),

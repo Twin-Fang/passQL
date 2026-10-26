@@ -23,112 +23,74 @@ void main() {
   });
 
   test('채점 전에는 선택한 것만 selected', () {
-    expect(
-      resolveChoiceState(key: 'A', selectedKey: 'A'),
-      PassqlChoiceState.selected,
-    );
-    expect(
-      resolveChoiceState(key: 'B', selectedKey: 'A'),
-      PassqlChoiceState.idle,
-    );
+    expect(resolveChoiceState(key: 'A', selectedKey: 'A'), PassqlChoiceState.selected);
+    expect(resolveChoiceState(key: 'B', selectedKey: 'A'), PassqlChoiceState.idle);
   });
 
   test('오답 제출 후: 정답 correct, 내 선택 wrong, 나머지 dimmed', () {
     final r = result(isCorrect: false, correctKey: 'C');
-    expect(
-      resolveChoiceState(key: 'C', selectedKey: 'A', result: r),
-      PassqlChoiceState.correct,
-    );
-    expect(
-      resolveChoiceState(key: 'A', selectedKey: 'A', result: r),
-      PassqlChoiceState.wrong,
-    );
-    expect(
-      resolveChoiceState(key: 'B', selectedKey: 'A', result: r),
-      PassqlChoiceState.dimmed,
-    );
+    expect(resolveChoiceState(key: 'C', selectedKey: 'A', result: r), PassqlChoiceState.correct);
+    expect(resolveChoiceState(key: 'A', selectedKey: 'A', result: r), PassqlChoiceState.wrong);
+    expect(resolveChoiceState(key: 'B', selectedKey: 'A', result: r), PassqlChoiceState.dimmed);
   });
 
   test('정답 제출 후: 내 선택이 correct, 나머지 dimmed', () {
     final r = result(isCorrect: true, correctKey: 'A');
-    expect(
-      resolveChoiceState(key: 'A', selectedKey: 'A', result: r),
-      PassqlChoiceState.correct,
-    );
-    expect(
-      resolveChoiceState(key: 'B', selectedKey: 'A', result: r),
-      PassqlChoiceState.dimmed,
-    );
+    expect(resolveChoiceState(key: 'A', selectedKey: 'A', result: r), PassqlChoiceState.correct);
+    expect(resolveChoiceState(key: 'B', selectedKey: 'A', result: r), PassqlChoiceState.dimmed);
   });
 
-  testWidgets('빈 결과 보기는 오류 글자가 아니라 결과 표와 같은 틀의 "결과 없음 · 0행"으로 보인다', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: PassqlTheme.light,
-        home: Scaffold(
-          body: ChoiceItemCard(
-            item: const ChoiceItem(key: 'C', kind: 'RESULT', body: '[]'),
-            displayLabel: 'C',
-            state: PassqlChoiceState.idle,
-            onTap: () {},
-          ),
+  testWidgets('빈 결과 보기는 오류 글자가 아니라 결과 표와 같은 틀의 "결과 없음 · 0행"으로 보인다', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      theme: PassqlTheme.light,
+      home: Scaffold(
+        body: ChoiceItemCard(
+          item: const ChoiceItem(key: 'C', kind: 'RESULT', body: '[]'),
+          displayLabel: 'C',
+          state: PassqlChoiceState.idle,
+          onTap: () {},
         ),
       ),
-    );
+    ));
     expect(find.text('결과 없음 · 0행'), findsOneWidget);
     expect(find.text('(결과 없음)'), findsNothing);
   });
 
-  testWidgets('결과 보기의 NULL 은 빈칸이 아니라 NULL 로, 빈 문자열은 빈칸으로 보인다 (#549)', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: PassqlTheme.light,
-        home: Scaffold(
+  testWidgets('결과 보기의 NULL 은 빈칸이 아니라 NULL 로, 빈 문자열은 빈칸으로 보인다 (#549)', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      theme: PassqlTheme.light,
+      home: Scaffold(
+        body: ChoiceItemCard(
+          item: const ChoiceItem(
+            key: 'A',
+            kind: 'RESULT',
+            body: '[{"ID":1,"BONUS":null,"MEMO":""}]',
+          ),
+          displayLabel: 'A',
+          state: PassqlChoiceState.idle,
+          onTap: () {},
+        ),
+      ),
+    ));
+    expect(find.text(sqlNullCellLabel), findsOneWidget);
+    expect(find.text(''), findsOneWidget);
+  });
+
+  testWidgets('SQL 선택지는 코드 블록으로, 글자 크기 2배에서도 넘치지 않는다', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      theme: PassqlTheme.light,
+      home: MediaQuery(
+        data: const MediaQueryData(size: Size(390, 844), textScaler: TextScaler.linear(2)),
+        child: Scaffold(
           body: ChoiceItemCard(
-            item: const ChoiceItem(
-              key: 'A',
-              kind: 'RESULT',
-              body: '[{"ID":1,"BONUS":null,"MEMO":""}]',
-            ),
+            item: const ChoiceItem(key: 'A', kind: 'SQL', body: 'SELECT ename FROM emp WHERE sal > 1000;'),
             displayLabel: 'A',
             state: PassqlChoiceState.idle,
             onTap: () {},
           ),
         ),
       ),
-    );
-    expect(find.text(sqlNullCellLabel), findsOneWidget);
-    expect(find.text(''), findsOneWidget);
-  });
-
-  testWidgets('SQL 선택지는 코드 블록으로, 글자 크기 2배에서도 넘치지 않는다', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: PassqlTheme.light,
-        home: MediaQuery(
-          data: const MediaQueryData(
-            size: Size(390, 844),
-            textScaler: TextScaler.linear(2),
-          ),
-          child: Scaffold(
-            body: ChoiceItemCard(
-              item: const ChoiceItem(
-                key: 'A',
-                kind: 'SQL',
-                body: 'SELECT ename FROM emp WHERE sal > 1000;',
-              ),
-              displayLabel: 'A',
-              state: PassqlChoiceState.idle,
-              onTap: () {},
-            ),
-          ),
-        ),
-      ),
-    );
+    ));
     expect(find.byType(PassqlCodeBlock), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

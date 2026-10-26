@@ -21,12 +21,10 @@ abstract final class PassqlTheme {
       surface: colors.card,
       onSurface: colors.label,
     );
-    const transitions = PageTransitionsTheme(
-      builders: {
-        TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-      },
-    );
+    const transitions = PageTransitionsTheme(builders: {
+      TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+    });
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
@@ -40,15 +38,8 @@ abstract final class PassqlTheme {
       splashColor: Colors.transparent,
       pageTransitionsTheme: transitions,
       // 시트 배경은 테마에서 읽음 (시트를 연 채 라이트·다크 전환해도 따라감)
-      bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: colors.cardElevated,
-        dragHandleColor: colors.tertiaryLabel,
-      ),
-      dividerTheme: DividerThemeData(
-        color: colors.separator,
-        thickness: PassqlSize.hairline,
-        space: PassqlSize.hairline,
-      ),
+      bottomSheetTheme: BottomSheetThemeData(backgroundColor: colors.cardElevated, dragHandleColor: colors.tertiaryLabel),
+      dividerTheme: DividerThemeData(color: colors.separator, thickness: PassqlSize.hairline, space: PassqlSize.hairline),
       appBarTheme: AppBarTheme(
         backgroundColor: colors.background,
         foregroundColor: colors.label,
@@ -73,15 +64,9 @@ abstract final class PassqlTheme {
         textTheme: CupertinoTextThemeData(
           primaryColor: colors.accent,
           textStyle: PassqlTypography.body.copyWith(color: colors.label),
-          navTitleTextStyle: PassqlTypography.headline.copyWith(
-            color: colors.label,
-          ),
-          navLargeTitleTextStyle: PassqlTypography.largeTitle.copyWith(
-            color: colors.label,
-          ),
-          navActionTextStyle: PassqlTypography.body.copyWith(
-            color: colors.accent,
-          ),
+          navTitleTextStyle: PassqlTypography.headline.copyWith(color: colors.label),
+          navLargeTitleTextStyle: PassqlTypography.largeTitle.copyWith(color: colors.label),
+          navActionTextStyle: PassqlTypography.body.copyWith(color: colors.accent),
         ),
       ),
     );
@@ -90,8 +75,7 @@ abstract final class PassqlTheme {
 
 extension PassqlThemeContext on BuildContext {
   /// 현재 밝기의 색 토큰. 테마에 확장이 없으면(테스트 등) 라이트 값을 쓴다.
-  PassqlColors get passqlColors =>
-      Theme.of(this).extension<PassqlColors>() ?? PassqlColors.light;
+  PassqlColors get passqlColors => Theme.of(this).extension<PassqlColors>() ?? PassqlColors.light;
 
   /// 지금 다크 테마로 그리는 중인지. 밝기별 에셋·색을 고를 때 여기 한 곳만 쓴다.
   bool get isDark => Theme.of(this).brightness == Brightness.dark;

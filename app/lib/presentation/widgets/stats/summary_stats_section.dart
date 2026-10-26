@@ -64,9 +64,7 @@ class _StatCard extends StatelessWidget {
           PassqlKeepAllText(
             label,
             textAlign: TextAlign.center,
-            style: PassqlTypography.caption.copyWith(
-              color: colors.secondaryLabel,
-            ),
+            style: PassqlTypography.caption.copyWith(color: colors.secondaryLabel),
           ),
         ],
       ),

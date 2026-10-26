@@ -30,9 +30,7 @@ class _SchemaTablePreviewState extends State<SchemaTablePreview> {
     final table = widget.table;
     final visibleRows = _isShowingAllRows
         ? table.sampleRows
-        : table.sampleRows
-              .take(SchemaTablePreview.initialSampleRowCount)
-              .toList();
+        : table.sampleRows.take(SchemaTablePreview.initialSampleRowCount).toList();
     final hiddenRowCount = table.sampleRows.length - visibleRows.length;
 
     return Column(
@@ -80,9 +78,7 @@ class _TableTitle extends StatelessWidget {
         const SizedBox(width: PassqlSpacing.xs),
         Text(
           sampleRowCount > 0 ? '샘플 $sampleRowCount행' : '샘플 데이터 없음',
-          style: PassqlTypography.caption.copyWith(
-            color: colors.secondaryLabel,
-          ),
+          style: PassqlTypography.caption.copyWith(color: colors.secondaryLabel),
         ),
       ],
     );
@@ -99,18 +95,14 @@ class _SampleRowsTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final nullCellStyle = PassqlTypography.codeCompact.copyWith(
-      color: colors.secondaryLabel,
-    );
+    final nullCellStyle = PassqlTypography.codeCompact.copyWith(color: colors.secondaryLabel);
 
     return ClipRRect(
       borderRadius: const BorderRadius.all(Radius.circular(PassqlRadius.sm)),
       child: DecoratedBox(
         decoration: BoxDecoration(
           border: Border.all(color: colors.separator),
-          borderRadius: const BorderRadius.all(
-            Radius.circular(PassqlRadius.sm),
-          ),
+          borderRadius: const BorderRadius.all(Radius.circular(PassqlRadius.sm)),
         ),
         child: LayoutBuilder(
           builder: (context, constraints) => SingleChildScrollView(
@@ -119,25 +111,16 @@ class _SampleRowsTable extends StatelessWidget {
               constraints: BoxConstraints(minWidth: constraints.maxWidth),
               child: Table(
                 defaultColumnWidth: const IntrinsicColumnWidth(),
-                border: TableBorder(
-                  horizontalInside: BorderSide(color: colors.separator),
-                ),
+                border: TableBorder(horizontalInside: BorderSide(color: colors.separator)),
                 children: [
                   TableRow(
                     decoration: BoxDecoration(color: colors.fill),
-                    children: [
-                      for (final column in columns)
-                        _ColumnHeaderCell(column: column),
-                    ],
+                    children: [for (final column in columns) _ColumnHeaderCell(column: column)],
                   ),
                   for (final row in rows)
                     TableRow(
                       children: [
-                        for (
-                          var columnIndex = 0;
-                          columnIndex < columns.length;
-                          columnIndex++
-                        )
+                        for (var columnIndex = 0; columnIndex < columns.length; columnIndex++)
                           _buildValueCell(
                             columnIndex < row.length ? row[columnIndex] : null,
                             cellColor: colors.label,
@@ -155,18 +138,11 @@ class _SampleRowsTable extends StatelessWidget {
   }
 
   /// 셀 값 > 글자 (null 이면 흐린 NULL)
-  Widget _buildValueCell(
-    Object? value, {
-    required Color cellColor,
-    required TextStyle nullCellStyle,
-  }) {
+  Widget _buildValueCell(Object? value, {required Color cellColor, required TextStyle nullCellStyle}) {
     return _TableCellPadding(
       child: value == null
           ? Text(SchemaTablePreview.nullCellLabel, style: nullCellStyle)
-          : Text(
-              '$value',
-              style: toTableCellTextStyle('$value', color: cellColor),
-            ),
+          : Text('$value', style: toTableCellTextStyle('$value', color: cellColor)),
     );
   }
 }
@@ -180,10 +156,7 @@ class _ColumnHeaderCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final keyLabels = [
-      if (column.isPrimaryKey) 'PK',
-      if (column.isForeignKey) 'FK',
-    ];
+    final keyLabels = [if (column.isPrimaryKey) 'PK', if (column.isForeignKey) 'FK'];
     return _TableCellPadding(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,9 +172,7 @@ class _ColumnHeaderCell extends StatelessWidget {
                 for (final keyLabel in keyLabels)
                   TextSpan(
                     text: ' $keyLabel',
-                    style: PassqlTypography.captionSemibold.copyWith(
-                      color: colors.accentText,
-                    ),
+                    style: PassqlTypography.captionSemibold.copyWith(color: colors.accentText),
                   ),
               ],
             ),
@@ -209,9 +180,7 @@ class _ColumnHeaderCell extends StatelessWidget {
           if (column.type.isNotEmpty)
             Text(
               column.type,
-              style: PassqlTypography.codeCompact.copyWith(
-                color: colors.secondaryLabel,
-              ),
+              style: PassqlTypography.codeCompact.copyWith(color: colors.secondaryLabel),
             ),
         ],
       ),

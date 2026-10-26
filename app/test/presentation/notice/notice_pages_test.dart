@@ -71,9 +71,7 @@ void main() {
     ('라이트', PassqlTheme.light),
     ('다크', PassqlTheme.dark),
   ]) {
-    testWidgets('상세: 중요 배지 > 제목 > 게시일 > 마크다운 본문·링크 ($themeName)', (
-      tester,
-    ) async {
+    testWidgets('상세: 중요 배지 > 제목 > 게시일 > 마크다운 본문·링크 ($themeName)', (tester) async {
       await pumpNoticeApp(
         tester,
         theme: theme,
@@ -109,9 +107,7 @@ void main() {
       expect(find.text('공지를 찾을 수 없어요'), findsOneWidget);
     });
 
-    testWidgets('목록: 배지·제목·미리보기·게시일, 행 탭 > 상세 > 다른 공지 보기 > 목록 ($themeName)', (
-      tester,
-    ) async {
+    testWidgets('목록: 배지·제목·미리보기·게시일, 행 탭 > 상세 > 다른 공지 보기 > 목록 ($themeName)', (tester) async {
       await pumpNoticeApp(
         tester,
         theme: theme,
@@ -130,10 +126,7 @@ void main() {
 
       await tester.tap(find.text(normalNotice.title));
       await tester.pumpAndSettle();
-      expect(
-        findTextContainingIgnoringWordJoiners('02:00 ~ 04:00 동안 점검해요.'),
-        findsOneWidget,
-      );
+      expect(findTextContainingIgnoringWordJoiners('02:00 ~ 04:00 동안 점검해요.'), findsOneWidget);
 
       // 목록에서 왔으면 다른 공지 보기 = 되돌아가기
       await tester.tap(find.text('다른 공지 보기'));

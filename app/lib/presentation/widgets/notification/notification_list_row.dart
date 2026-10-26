@@ -85,10 +85,7 @@ class NotificationListRow extends StatelessWidget {
                       ),
                       if (item.isImportant) ...[
                         const SizedBox(width: PassqlSpacing.xs),
-                        PassqlBadge(
-                          text: '중요',
-                          kind: PassqlBadgeKind.important,
-                        ),
+                        PassqlBadge(text: '중요', kind: PassqlBadgeKind.important),
                       ],
                     ],
                   ),

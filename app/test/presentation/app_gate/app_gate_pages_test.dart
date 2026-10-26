@@ -90,10 +90,7 @@ void main() {
           ),
         ],
       );
-      await pumpApp(
-        tester,
-        MaterialApp.router(theme: theme, routerConfig: router),
-      );
+      await pumpApp(tester, MaterialApp.router(theme: theme, routerConfig: router));
       expect(find.text('중요'), findsOneWidget);
       await tester.tap(find.bySemanticsLabel('공지 닫기'));
       expect(isDismissed, isTrue);

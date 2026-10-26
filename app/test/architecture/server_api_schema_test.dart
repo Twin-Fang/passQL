@@ -33,13 +33,7 @@ const Map<String, String> _appOnlyClasses = {
 const Map<String, String> _knownMismatches = {};
 
 class _AppField {
-  _AppField(
-    this.name,
-    this.type,
-    this.isNullable,
-    this.hasDefault,
-    this.isLocalOnly,
-  );
+  _AppField(this.name, this.type, this.isNullable, this.hasDefault, this.isLocalOnly);
 
   final String name;
   final String type; // '?' 뗀 Dart 타입
@@ -49,11 +43,8 @@ class _AppField {
 }
 
 void main() {
-  final spec =
-      jsonDecode(File(_specPath).readAsStringSync()) as Map<String, dynamic>;
-  final schemas =
-      (spec['components'] as Map<String, dynamic>)['schemas']
-          as Map<String, dynamic>;
+  final spec = jsonDecode(File(_specPath).readAsStringSync()) as Map<String, dynamic>;
+  final schemas = (spec['components'] as Map<String, dynamic>)['schemas'] as Map<String, dynamic>;
   final appClasses = _readAppModelClasses();
 
   String? specSchemaNameOf(String appClassName) {
@@ -64,16 +55,9 @@ void main() {
   test('모든 앱 모델은 스펙 스키마와 대응하거나 앱 전용으로 명시돼 있다', () {
     final unmapped = [
       for (final className in appClasses.keys)
-        if (specSchemaNameOf(className) == null &&
-            !_appOnlyClasses.containsKey(className))
-          className,
+        if (specSchemaNameOf(className) == null && !_appOnlyClasses.containsKey(className)) className,
     ];
-    expect(
-      unmapped,
-      isEmpty,
-      reason:
-          '스펙에 없는 앱 모델: $unmapped. 이름이 다르면 _specSchemaByAppClass, 앱 전용이면 _appOnlyClasses 에 이유와 함께 추가',
-    );
+    expect(unmapped, isEmpty, reason: '스펙에 없는 앱 모델: $unmapped. 이름이 다르면 _specSchemaByAppClass, 앱 전용이면 _appOnlyClasses 에 이유와 함께 추가');
   });
 
   test('앱 모델 필드는 서버 스펙과 맞는다', () {
@@ -81,15 +65,8 @@ void main() {
     appClasses.forEach((className, fields) {
       final specName = specSchemaNameOf(className);
       if (specName == null) return;
-      final properties =
-          (schemas[specName] as Map<String, dynamic>)['properties']
-              as Map<String, dynamic>? ??
-          const {};
-      final requiredNames =
-          ((schemas[specName] as Map<String, dynamic>)['required']
-                      as List<dynamic>? ??
-                  const [])
-              .cast<String>();
+      final properties = (schemas[specName] as Map<String, dynamic>)['properties'] as Map<String, dynamic>? ?? const {};
+      final requiredNames = ((schemas[specName] as Map<String, dynamic>)['required'] as List<dynamic>? ?? const []).cast<String>();
 
       for (final field in fields.where((field) => !field.isLocalOnly)) {
         final key = '$className.${field.name}';
@@ -101,20 +78,11 @@ void main() {
         }
         // 요청 모델은 앱이 보내는 값이라 non-null 이어도 안전, 응답 모델만 null 가능성을 검사
         final isResponseSchema = !specName.endsWith('Request');
-        final isServerNullable =
-            _isNullable(property) || !requiredNames.contains(field.name);
-        if (isResponseSchema &&
-            isServerNullable &&
-            !field.isNullable &&
-            !field.hasDefault) {
+        final isServerNullable = _isNullable(property) || !requiredNames.contains(field.name);
+        if (isResponseSchema && isServerNullable && !field.isNullable && !field.hasDefault) {
           problems.add('$key: 서버가 null 일 수 있는데 앱은 기본값 없는 non-null');
         }
-        final typeProblem = _typeProblem(
-          field.type,
-          property,
-          schemas,
-          specSchemaNameOf,
-        );
+        final typeProblem = _typeProblem(field.type, property, schemas, specSchemaNameOf);
         if (typeProblem != null) problems.add('$key: $typeProblem');
       }
     });
@@ -209,8 +177,7 @@ bool _isNullable(Map<String, dynamic> property) {
   if (type is List && type.contains('null')) return true;
   if (type == 'null') return true;
   final oneOf = property['oneOf'];
-  return oneOf is List &&
-      oneOf.any((option) => (option as Map<String, dynamic>)['type'] == 'null');
+  return oneOf is List && oneOf.any((option) => (option as Map<String, dynamic>)['type'] == 'null');
 }
 
 /// 앱 타입이 스펙 속성과 호환되지 않으면 이유, 아니면 null
@@ -225,59 +192,38 @@ String? _typeProblem(
   // oneOf [참조, null] > 참조
   final oneOf = property['oneOf'];
   if (oneOf is List) {
-    final reference = oneOf.cast<Map<String, dynamic>>().firstWhere(
-      (option) => option.containsKey(r'$ref'),
-      orElse: () => const {},
-    );
-    if (reference.isNotEmpty)
-      return _typeProblem(appType, reference, schemas, specSchemaNameOf);
+    final reference = oneOf.cast<Map<String, dynamic>>().firstWhere((option) => option.containsKey(r'$ref'), orElse: () => const {});
+    if (reference.isNotEmpty) return _typeProblem(appType, reference, schemas, specSchemaNameOf);
   }
   final reference = property[r'$ref'] as String?;
   if (reference != null) {
     final referencedName = reference.split('/').last;
     final appSpecName = specSchemaNameOf(appType);
-    return appSpecName == referencedName
-        ? null
-        : '참조 $referencedName 인데 앱 타입은 $appType';
+    return appSpecName == referencedName ? null : '참조 $referencedName 인데 앱 타입은 $appType';
   }
 
   final rawType = property['type'];
-  final specType = rawType is List
-      ? rawType.firstWhere((type) => type != 'null', orElse: () => null)
-      : rawType;
+  final specType = rawType is List ? rawType.firstWhere((type) => type != 'null', orElse: () => null) : rawType;
   switch (specType) {
     case 'string':
       final isPlainString = appType == 'String' || appType == 'DateTime';
-      final isEnumLike =
-          !isPlainString &&
-          RegExp(r'^[A-Z]\w*$').hasMatch(appType) &&
-          !_isPrimitive(appType);
+      final isEnumLike = !isPlainString && RegExp(r'^[A-Z]\w*$').hasMatch(appType) && !_isPrimitive(appType);
       return isPlainString || isEnumLike ? null : 'string 인데 앱 타입은 $appType';
     case 'integer':
-      return appType == 'int' || appType == 'num'
-          ? null
-          : 'integer 인데 앱 타입은 $appType';
+      return appType == 'int' || appType == 'num' ? null : 'integer 인데 앱 타입은 $appType';
     case 'number':
-      return appType == 'double' || appType == 'num' || appType == 'int'
-          ? null
-          : 'number 인데 앱 타입은 $appType';
+      return appType == 'double' || appType == 'num' || appType == 'int' ? null : 'number 인데 앱 타입은 $appType';
     case 'boolean':
       return appType == 'bool' ? null : 'boolean 인데 앱 타입은 $appType';
     case 'array':
       final listMatch = RegExp(r'^List<(.+)>$').firstMatch(appType);
       if (listMatch == null) return 'array 인데 앱 타입은 $appType';
       final items = property['items'] as Map<String, dynamic>? ?? const {};
-      return _typeProblem(
-        listMatch.group(1)!.replaceAll('?', ''),
-        items,
-        schemas,
-        specSchemaNameOf,
-      );
+      return _typeProblem(listMatch.group(1)!.replaceAll('?', ''), items, schemas, specSchemaNameOf);
     case 'object':
       return appType.startsWith('Map<') ? null : 'object 인데 앱 타입은 $appType';
   }
   return null;
 }
 
-bool _isPrimitive(String type) =>
-    const {'String', 'int', 'double', 'num', 'bool', 'DateTime'}.contains(type);
+bool _isPrimitive(String type) => const {'String', 'int', 'double', 'num', 'bool', 'DateTime'}.contains(type);

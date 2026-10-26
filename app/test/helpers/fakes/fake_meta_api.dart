@@ -33,10 +33,7 @@ class FakeMetaApi implements MetaApiClient {
       response: Response(
         requestOptions: requestOptions,
         statusCode: 404,
-        data: {
-          'errorCode': 'APP_NOTICE_NOT_FOUND',
-          'message': '공지를 찾을 수 없습니다.',
-        },
+        data: {'errorCode': 'APP_NOTICE_NOT_FOUND', 'message': '공지를 찾을 수 없습니다.'},
       ),
       type: DioExceptionType.badResponse,
     );

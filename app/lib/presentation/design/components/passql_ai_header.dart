@@ -70,8 +70,7 @@ class _PassqlAiHeaderState extends State<PassqlAiHeader>
               opacity: _titleProgress.value,
               child: Transform.translate(
                 offset: Offset(
-                  (_titleProgress.value - 1) *
-                      PassqlAiHeader._titleSlideDistance,
+                  (_titleProgress.value - 1) * PassqlAiHeader._titleSlideDistance,
                   0,
                 ),
                 child: child,

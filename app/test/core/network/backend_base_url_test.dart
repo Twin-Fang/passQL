@@ -9,9 +9,7 @@ void main() {
   });
 
   test('BACKEND_BASE_URL 이 있으면 그 값을 쓴다', () {
-    dotenv.loadFromString(
-      envString: 'BACKEND_BASE_URL=https://example.test/api',
-    );
+    dotenv.loadFromString(envString: 'BACKEND_BASE_URL=https://example.test/api');
     expect(readBackendBaseUrl(), 'https://example.test/api');
   });
 }

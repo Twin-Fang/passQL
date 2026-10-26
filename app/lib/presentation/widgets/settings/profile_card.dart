@@ -4,7 +4,11 @@ import '../../design/design.dart';
 
 /// 프로필 카드: 닉네임 표시 + 편집 버튼 (랜덤 닉네임은 편집 시트 안)
 class ProfileCard extends StatelessWidget {
-  const ProfileCard({super.key, required this.nickname, required this.onEdit});
+  const ProfileCard({
+    super.key,
+    required this.nickname,
+    required this.onEdit,
+  });
 
   final String nickname;
   final VoidCallback onEdit;

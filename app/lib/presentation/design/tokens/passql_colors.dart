@@ -53,7 +53,6 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
   final Color onSemantic;
   final Color label;
   final Color secondaryLabel;
-
   /// 비활성·장식(쉐브론·손잡이) 전용. 읽어야 하는 글자는 secondaryLabel (규칙 테스트)
   final Color tertiaryLabel;
 
@@ -134,32 +133,32 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
 
   @override
   PassqlColors copyWith({Color? accent}) => PassqlColors(
-    accent: accent ?? this.accent,
-    onAccent: onAccent,
-    accentTint: accentTint,
-    accentText: accentText,
-    correct: correct,
-    correctText: correctText,
-    correctTint: correctTint,
-    wrong: wrong,
-    wrongText: wrongText,
-    wrongTint: wrongTint,
-    warning: warning,
-    warningText: warningText,
-    onSemantic: onSemantic,
-    label: label,
-    secondaryLabel: secondaryLabel,
-    tertiaryLabel: tertiaryLabel,
-    iconSecondary: iconSecondary,
-    background: background,
-    card: card,
-    cardElevated: cardElevated,
-    separator: separator,
-    fill: fill,
-    glass: glass,
-    imageViewerBackground: imageViewerBackground,
-    onImageViewer: onImageViewer,
-  );
+        accent: accent ?? this.accent,
+        onAccent: onAccent,
+        accentTint: accentTint,
+        accentText: accentText,
+        correct: correct,
+        correctText: correctText,
+        correctTint: correctTint,
+        wrong: wrong,
+        wrongText: wrongText,
+        wrongTint: wrongTint,
+        warning: warning,
+        warningText: warningText,
+        onSemantic: onSemantic,
+        label: label,
+        secondaryLabel: secondaryLabel,
+        tertiaryLabel: tertiaryLabel,
+        iconSecondary: iconSecondary,
+        background: background,
+        card: card,
+        cardElevated: cardElevated,
+        separator: separator,
+        fill: fill,
+        glass: glass,
+        imageViewerBackground: imageViewerBackground,
+        onImageViewer: onImageViewer,
+      );
 
   @override
   PassqlColors lerp(ThemeExtension<PassqlColors>? other, double t) {

@@ -16,33 +16,18 @@ void showAppToast(
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
-        content: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: PassqlTypography.subheadlineSemibold.copyWith(
-            color: colors.background,
-          ),
-        ),
+        content: Text(message,
+            textAlign: TextAlign.center,
+            style: PassqlTypography.subheadlineSemibold.copyWith(color: colors.background)),
         // 배경과 반대 밝기의 캡슐이라 라이트/다크 어디서나 눈에 띈다.
         backgroundColor: colors.label.withValues(alpha: 0.88),
         behavior: SnackBarBehavior.floating,
         elevation: 0,
         shape: const StadiumBorder(),
-        margin: const EdgeInsets.fromLTRB(
-          PassqlSpacing.xxl,
-          0,
-          PassqlSpacing.xxl,
-          PassqlSpacing.md,
-        ),
-        duration: Duration(
-          seconds: hasAction ? _actionToastSeconds : _toastSeconds,
-        ),
+        margin: const EdgeInsets.fromLTRB(PassqlSpacing.xxl, 0, PassqlSpacing.xxl, PassqlSpacing.md),
+        duration: Duration(seconds: hasAction ? _actionToastSeconds : _toastSeconds),
         action: hasAction
-            ? SnackBarAction(
-                label: actionLabel,
-                textColor: colors.background,
-                onPressed: onAction,
-              )
+            ? SnackBarAction(label: actionLabel, textColor: colors.background, onPressed: onAction)
             : null,
         // 버튼이 있어도 시간이 지나면 닫음 (기본값은 버튼 있으면 계속 표시)
         persist: false,

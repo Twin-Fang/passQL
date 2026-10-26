@@ -7,11 +7,7 @@ Future<List<SseRawEvent>> parse(List<String> lines) =>
 
 void main() {
   test('Spring SseEmitter 형식(콜론 뒤 공백 없음)을 읽는다 — 운영 서버가 실제로 보내는 형태', () async {
-    final events = await parse([
-      'event:status',
-      'data:{"phase":"generating"}',
-      '',
-    ]);
+    final events = await parse(['event:status', 'data:{"phase":"generating"}', '']);
     expect(events, hasLength(1));
     expect(events.single.event, 'status');
     expect(events.single.data, '{"phase":"generating"}');
@@ -30,12 +26,8 @@ void main() {
 
   test('이벤트가 여러 개여도 경계마다 나눠 내보낸다', () async {
     final events = await parse([
-      'event:status',
-      'data:{"m":1}',
-      '',
-      'event:complete',
-      'data:{"m":2}',
-      '',
+      'event:status', 'data:{"m":1}', '',
+      'event:complete', 'data:{"m":2}', '',
     ]);
     expect(events.map((e) => e.event), ['status', 'complete']);
   });
@@ -46,14 +38,7 @@ void main() {
   });
 
   test('주석과 keep-alive(:), 모르는 필드는 무시한다', () async {
-    final events = await parse([
-      ': keep-alive',
-      'id:7',
-      'retry:1000',
-      'event:status',
-      'data:x',
-      '',
-    ]);
+    final events = await parse([': keep-alive', 'id:7', 'retry:1000', 'event:status', 'data:x', '']);
     expect(events, hasLength(1));
     expect(events.single.event, 'status');
   });

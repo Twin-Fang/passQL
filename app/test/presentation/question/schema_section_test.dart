@@ -48,14 +48,8 @@ void main() {
     expect(find.text('EMP'), findsOneWidget);
     expect(find.text('샘플 2행'), findsOneWidget);
     expect(find.text('VARCHAR(20)'), findsOneWidget);
-    expect(
-      find.textContaining('EMP_ID PK', findRichText: true),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('DEPT_ID FK', findRichText: true),
-      findsOneWidget,
-    );
+    expect(find.textContaining('EMP_ID PK', findRichText: true), findsOneWidget);
+    expect(find.textContaining('DEPT_ID FK', findRichText: true), findsOneWidget);
     expect(find.text('SCOTT'), findsOneWidget);
     expect(find.text(SchemaTablePreview.nullCellLabel), findsOneWidget);
   });
@@ -76,18 +70,13 @@ void main() {
     final extraRowCount = 2;
     final manyRowsTable = _empTable.copyWith(
       sampleRows: [
-        for (
-          var index = 0;
-          index < SchemaTablePreview.initialSampleRowCount + extraRowCount;
-          index++
-        )
+        for (var index = 0; index < SchemaTablePreview.initialSampleRowCount + extraRowCount; index++)
           ['$index', '이름$index', '10'],
       ],
     );
     await _pumpSection(tester, SchemaSection(tables: [manyRowsTable]));
 
-    final lastRowName =
-        '이름${SchemaTablePreview.initialSampleRowCount + extraRowCount - 1}';
+    final lastRowName = '이름${SchemaTablePreview.initialSampleRowCount + extraRowCount - 1}';
     expect(find.text(lastRowName), findsNothing);
     await tester.tap(find.text('$extraRowCount행 더 보기'));
     await tester.pumpAndSettle();
@@ -120,14 +109,9 @@ void main() {
       MaterialApp(
         theme: PassqlTheme.dark,
         home: MediaQuery(
-          data: const MediaQueryData(
-            size: Size(320, 640),
-            textScaler: TextScaler.linear(2),
-          ),
+          data: const MediaQueryData(size: Size(320, 640), textScaler: TextScaler.linear(2)),
           child: const Scaffold(
-            body: SingleChildScrollView(
-              child: SchemaSection(tables: [_empTable]),
-            ),
+            body: SingleChildScrollView(child: SchemaSection(tables: [_empTable])),
           ),
         ),
       ),
@@ -157,18 +141,10 @@ void main() {
             question: question,
             interaction: const QuestionInteractionState(
               activeChoiceSetId: 'cs-1',
-              activeChoices: [
-                ChoiceItem(
-                  key: 'A',
-                  kind: 'SQL',
-                  body: 'SELECT ENAME FROM EMP',
-                ),
-              ],
+              activeChoices: [ChoiceItem(key: 'A', kind: 'SQL', body: 'SELECT ENAME FROM EMP')],
               selectedChoiceKey: 'A',
             ),
-            notifier: container.read(
-              questionInteractionProvider('q-1').notifier,
-            ),
+            notifier: container.read(questionInteractionProvider('q-1').notifier),
             submitResult: const SubmitResult(isCorrect: true, correctKey: 'A'),
             gradedSelectedKey: 'A',
           ),

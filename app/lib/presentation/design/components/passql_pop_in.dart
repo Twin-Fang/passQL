@@ -40,17 +40,13 @@ class _PassqlPopInState extends State<PassqlPopIn>
   );
   late final Animation<double> _scale = TweenSequence<double>([
     TweenSequenceItem(
-      tween: Tween(
-        begin: _startScale,
-        end: _overshootScale,
-      ).chain(CurveTween(curve: PassqlMotion.springCurve)),
+      tween: Tween(begin: _startScale, end: _overshootScale)
+          .chain(CurveTween(curve: PassqlMotion.springCurve)),
       weight: _overshootPoint,
     ),
     TweenSequenceItem(
-      tween: Tween(
-        begin: _overshootScale,
-        end: 1.0,
-      ).chain(CurveTween(curve: PassqlMotion.springCurve)),
+      tween: Tween(begin: _overshootScale, end: 1.0)
+          .chain(CurveTween(curve: PassqlMotion.springCurve)),
       weight: 1 - _overshootPoint,
     ),
   ]).animate(_controller);
@@ -99,9 +95,7 @@ class _PassqlPopInState extends State<PassqlPopIn>
       child: widget.child,
       builder: (_, child) {
         if (_controller.isCompleted) return child!;
-        final radians = widget.isRotating
-            ? _degrees.value * math.pi / 180
-            : 0.0;
+        final radians = widget.isRotating ? _degrees.value * math.pi / 180 : 0.0;
         return Opacity(
           opacity: _opacity.value.clamp(0.0, 1.0),
           child: Transform.rotate(

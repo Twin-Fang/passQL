@@ -6,16 +6,14 @@ void main() {
   testWidgets('context.passqlColors 는 현재 밝기에 맞는 토큰을 준다', (tester) async {
     late PassqlColors seen;
     Widget app(ThemeMode mode) => MaterialApp(
-      theme: PassqlTheme.light,
-      darkTheme: PassqlTheme.dark,
-      themeMode: mode,
-      home: Builder(
-        builder: (context) {
-          seen = context.passqlColors;
-          return const SizedBox();
-        },
-      ),
-    );
+          theme: PassqlTheme.light,
+          darkTheme: PassqlTheme.dark,
+          themeMode: mode,
+          home: Builder(builder: (context) {
+            seen = context.passqlColors;
+            return const SizedBox();
+          }),
+        );
     await tester.pumpWidget(app(ThemeMode.light));
     expect(seen.background, PassqlColors.light.background);
     await tester.pumpWidget(app(ThemeMode.dark));

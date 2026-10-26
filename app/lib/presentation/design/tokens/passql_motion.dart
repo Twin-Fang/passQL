@@ -16,12 +16,7 @@ abstract final class PassqlMotion {
   // 곡선 3종
   static const curve = Curves.easeOutCubic; // 기본
   static const standardCurve = Curves.fastOutSlowIn; // 웹 --ease-smooth
-  static const springCurve = Cubic(
-    0.34,
-    1.56,
-    0.64,
-    1,
-  ); // 살짝 튀는 팝 (웹 sparkle-pop)
+  static const springCurve = Cubic(0.34, 1.56, 0.64, 1); // 살짝 튀는 팝 (웹 sparkle-pop)
 
   // 순차 등장 (웹 useStagger: index × 50ms, 아래 8px)
   static const staggerStep = Duration(milliseconds: 50);

@@ -94,11 +94,10 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final base =
-        (_isArticle
-                ? PassqlTypography.articleBody
-                : PassqlTypography.explanationBody)
-            .copyWith(color: colors.label);
+    final base = (_isArticle
+            ? PassqlTypography.articleBody
+            : PassqlTypography.explanationBody)
+        .copyWith(color: colors.label);
     // 문단 사이(빈 줄) 간격: 긴 글은 넓게
     final paragraphGap = _isArticle ? PassqlSpacing.md : PassqlSpacing.sm;
     _disposeLinkRecognizers();
@@ -130,9 +129,7 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
                     ),
                   ),
                 ),
-                Expanded(
-                  child: _rich(bullet.group(1)!, base, colors, wordCounter),
-                ),
+                Expanded(child: _rich(bullet.group(1)!, base, colors, wordCounter)),
               ],
             ),
           ),
@@ -202,8 +199,7 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
   /// 링크 조각: http·https 면 강조색 밑줄 + 탭 > 외부 브라우저, 아니면 이름만 글자로
   InlineSpan _linkSpan(String label, String url, PassqlColors colors) {
     final uri = Uri.tryParse(url);
-    final isWebUrl =
-        uri != null && (uri.scheme == 'https' || uri.scheme == 'http');
+    final isWebUrl = uri != null && (uri.scheme == 'https' || uri.scheme == 'http');
     if (!isWebUrl) return TextSpan(text: label);
     final recognizer = TapGestureRecognizer()
       ..onTap = () => unawaited(launchExternalUrl(url));
@@ -252,8 +248,7 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
     final tokens = <String>[];
     var cursor = 0;
     for (final match in _whitespaceRe.allMatches(source)) {
-      if (match.start > cursor)
-        tokens.add(source.substring(cursor, match.start));
+      if (match.start > cursor) tokens.add(source.substring(cursor, match.start));
       tokens.add(match.group(0)!);
       cursor = match.end;
     }
@@ -266,11 +261,10 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
     if (controller == null) return TextSpan(text: word, style: style);
     final wordIndex = wordCounter.next();
     final totalMilliseconds = controller.duration!.inMilliseconds;
-    final startMilliseconds =
-        (PassqlMotion.wordInitialDelay + PassqlMotion.wordStep * wordIndex)
-            .inMilliseconds;
-    final endMilliseconds =
-        startMilliseconds + PassqlMotion.fast.inMilliseconds;
+    final startMilliseconds = (PassqlMotion.wordInitialDelay +
+            PassqlMotion.wordStep * wordIndex)
+        .inMilliseconds;
+    final endMilliseconds = startMilliseconds + PassqlMotion.fast.inMilliseconds;
     final animation = CurvedAnimation(
       parent: controller,
       curve: Interval(
@@ -282,10 +276,7 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
     return WidgetSpan(
       alignment: PlaceholderAlignment.baseline,
       baseline: TextBaseline.alphabetic,
-      child: _AnimatedWord(
-        animation: animation,
-        child: Text(word, style: style),
-      ),
+      child: _AnimatedWord(animation: animation, child: Text(word, style: style)),
     );
   }
 }
@@ -297,10 +288,8 @@ class _WordCounter {
 }
 
 class _AnimatedWord extends AnimatedWidget {
-  const _AnimatedWord({
-    required Animation<double> animation,
-    required this.child,
-  }) : super(listenable: animation);
+  const _AnimatedWord({required Animation<double> animation, required this.child})
+    : super(listenable: animation);
 
   final Widget child;
 
@@ -315,10 +304,7 @@ class _AnimatedWord extends AnimatedWidget {
       child: Transform.translate(
         offset: Offset(0, (1 - value) * PassqlMotion.wordSlideDistance),
         child: ImageFiltered(
-          imageFilter: ui.ImageFilter.blur(
-            sigmaX: blurSigma,
-            sigmaY: blurSigma,
-          ),
+          imageFilter: ui.ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
           child: child,
         ),
       ),
