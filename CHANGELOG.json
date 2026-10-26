@@ -1,9 +1,9 @@
 {
   "metadata": {
-    "lastUpdated": "2026-10-26T12:15:01Z",
-    "currentVersion": "1.53.3",
+    "lastUpdated": "2026-10-26T12:34:05Z",
+    "currentVersion": "1.53.6",
     "projectType": "spring",
-    "totalReleases": 97,
+    "totalReleases": 98,
     "projectTypes": [
       "spring",
       "flutter",
@@ -12,6 +12,29 @@
     ]
   },
   "releases": [
+    {
+      "version": "1.53.6",
+      "project_type": "spring",
+      "project_types": [
+        "spring",
+        "flutter",
+        "react",
+        "python"
+      ],
+      "date": "2026-10-26",
+      "pr_number": 675,
+      "raw_summary": "## Summary by CodeRabbit\n\n## 릴리스 노트\n\n* **기타**\n  * 테스트 빌드 알림에 변경 내역 표시\n  * 내부 테스트 빌드 노트에 버전별 변경 내역 표시, 고정 문구는 스토어 출시 때만 사용",
+      "parsed_changes": {
+        "기타": {
+          "title": "기타",
+          "items": [
+            "테스트 빌드 알림에 변경 내역 표시",
+            "내부 테스트 빌드 노트에 버전별 변경 내역 표시, 고정 문구는 스토어 출시 때만 사용"
+          ]
+        }
+      },
+      "parse_method": "markdown"
+    },
     {
       "version": "1.53.3",
       "project_type": "spring",
