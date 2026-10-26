@@ -111,7 +111,7 @@ public class AppStoreBillingService {
 
         // 기록·등급 한 트랜잭션 (같은 거래는 ON CONFLICT 로 0건 > 기존 기록 경로)
         VerifiedStorePurchase verifiedPurchase = new VerifiedStorePurchase(PurchaseStore.APP_STORE, passProduct,
-            transaction.transactionId(), purchaseToken, transaction.purchasedAt(), true);
+            transaction.transactionId(), purchaseToken, transaction.purchasedAt(), true, transaction.price());
         Optional<PlanExtension> planExtension = transactionTemplate.execute(status -> storePurchaseRecorder
             .recordPurchaseAndExtendPlan(memberUuid, verifiedPurchase, clock.instant()));
         if (planExtension == null || planExtension.isEmpty()) {

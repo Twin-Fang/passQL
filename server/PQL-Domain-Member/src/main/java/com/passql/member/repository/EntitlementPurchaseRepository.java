@@ -26,14 +26,17 @@ public interface EntitlementPurchaseRepository extends JpaRepository<Entitlement
      * UNIQUE 위반 예외를 내지 않아 DB·Hibernate 오류 로그에 구매 토큰이 남지 않음
      * store·status 는 enum 이름, granted_days 는 이용권 일수
      * isConsumed: Play 는 false 로 시작(소모 후 표시), App Store 는 소모 개념이 없어 true
+     * priceAmountMicros·currencyCode: 스토어가 알려 준 결제 금액(통화 단위 x 1,000,000)·통화, 모르면 null
      */
     @Modifying
     @Query(value = """
             INSERT INTO entitlement_purchase (entitlement_purchase_uuid, member_uuid, store, product_id, order_id,
                 purchase_token, purchased_at, status, granted_expires_at, granted_days, is_consumed,
+                price_amount_micros, currency_code,
                 created_at, updated_at, created_by, updated_by)
             VALUES (:entitlementPurchaseUuid, :memberUuid, :store, :productId, :orderId,
                 :purchaseToken, :purchasedAt, :status, :grantedExpiresAt, :grantedDays, :isConsumed,
+                CAST(:priceAmountMicros AS BIGINT), CAST(:currencyCode AS VARCHAR(3)),
                 :createdAt, :createdAt, :auditor, :auditor)
             ON CONFLICT DO NOTHING
             """, nativeQuery = true)
@@ -49,7 +52,9 @@ public interface EntitlementPurchaseRepository extends JpaRepository<Entitlement
                                @Param("grantedDays") Integer grantedDays,
                                @Param("isConsumed") Boolean isConsumed,
                                @Param("createdAt") LocalDateTime createdAt,
-                               @Param("auditor") String auditor);
+                               @Param("auditor") String auditor,
+                               @Param("priceAmountMicros") Long priceAmountMicros,
+                               @Param("currencyCode") String currencyCode);
 
     /** 회원의 상태별 구매 이력 (환불 후 남은 유효 구매 재생으로 만료일 재계산) */
     List<EntitlementPurchase> findByMemberUuidAndStatus(UUID memberUuid, PurchaseStatus status);

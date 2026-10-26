@@ -82,7 +82,7 @@
     </td>
     <td valign="top">
       <h4>오늘의 세트와 순위</h4>
-      매일 모든 회원이 같은 10문제를 풀고 순위를 겨룹니다. 점수는 서버가 제출 기록으로 검증합니다.
+      매일 모든 회원이 같은 5문제를 풀고 순위를 겨룹니다. 점수는 서버가 제출 기록으로 검증합니다.
     </td>
   </tr>
 </table>
@@ -153,7 +153,7 @@ Backend(Spring)는 PostgreSQL·Redis·Qdrant와 Gemini API 키가 필요합니�
 ---
 
 <!-- AUTO-VERSION-SECTION: DO NOT EDIT MANUALLY -->
-## 최신 버전 : v1.50.2 (2026-10-25)
+## 최신 버전 : v1.51.2 (2026-10-26)
 
 [전체 버전 기록 보기](CHANGELOG.md) · [Admin](https://api.passql.suhsaechan.kr/admin/questions) · [API Docs](https://api.passql.suhsaechan.kr/docs/swagger-ui/index.html)
 
