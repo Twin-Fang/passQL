@@ -26,6 +26,18 @@ public final class AppSettingKeys {
     // app_setting: App Store 링크 (https URL, 비우면 웹 안내 숨김)
     public static final String STORE_IOS_URL = "store.ios_url";
 
+    // app_setting: 사업자 정보 (#658, 앱·웹 사업자 정보 표기 원본, 빈 값이면 그 줄 숨김)
+    // 상호 (비면 사업자 정보 섹션 전체 숨김)
+    public static final String BUSINESS_COMPANY_NAME = "business.company_name";
+    // 대표자 이름
+    public static final String BUSINESS_REPRESENTATIVE_NAME = "business.representative_name";
+    // 사업자등록번호 (000-00-00000)
+    public static final String BUSINESS_REGISTRATION_NUMBER = "business.registration_number";
+    // 문의 이메일
+    public static final String BUSINESS_CONTACT_EMAIL = "business.contact_email";
+    // 통신판매업 신고번호 (신고 전 빈 값)
+    public static final String BUSINESS_MAIL_ORDER_SALES_NUMBER = "business.mail_order_sales_number";
+
     // app_setting: 시험 일정 공식 공고 마지막 확인 날짜 (yyyy-MM-dd, 비면 미확인)
     public static final String EXAM_ANNOUNCEMENT_CHECKED_AT = "exam.announcement_checked_at";
 

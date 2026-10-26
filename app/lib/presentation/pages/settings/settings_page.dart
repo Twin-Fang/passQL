@@ -11,6 +11,7 @@ import '../../providers/app_config_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/settings_providers.dart';
 import '../../widgets/common/app_toast.dart';
+import '../../widgets/settings/business_info_group.dart';
 import '../../widgets/settings/choice_mode_tile.dart';
 import '../../widgets/settings/notification_preference_tiles.dart';
 import '../../widgets/settings/push_notification_tile.dart';
@@ -158,6 +159,8 @@ class SettingsPage extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: PassqlSpacing.xl),
+                // 사업자 정보 (#658, 값 없으면 간격까지 숨김)
+                const BusinessInfoGroup(),
                 SettingsGroup(
                   children: [
                     SettingsRow(

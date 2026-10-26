@@ -44,6 +44,22 @@ class AppNotice with _$AppNotice {
       _$AppNoticeFromJson(json);
 }
 
+/// 사업자 정보 표기 (#658): 서버 app_setting business.* 원본, 빈 값은 null
+/// companyName 이 null 이면 섹션 숨김 (구버전 서버·조회 실패도 같음)
+@freezed
+class BusinessInfo with _$BusinessInfo {
+  const factory BusinessInfo({
+    String? companyName,
+    String? representativeName,
+    String? registrationNumber,
+    String? contactEmail,
+    String? mailOrderSalesNumber,
+  }) = _BusinessInfo;
+
+  factory BusinessInfo.fromJson(Map<String, dynamic> json) =>
+      _$BusinessInfoFromJson(json);
+}
+
 /// 앱 시작 시 1회 받는 운영 설정 (GET /meta/app-config)
 @freezed
 class AppConfig with _$AppConfig {
@@ -54,6 +70,8 @@ class AppConfig with _$AppConfig {
     @Default([]) List<AppNotice> notices,
     // 서버 결제 스위치 (false 면 잠금·칩·시트를 그리지 않음)
     @Default(false) bool isAndroidBillingEnabled,
+    // 사업자 정보 (구버전 서버면 빈 값 > 섹션 숨김)
+    @Default(BusinessInfo()) BusinessInfo businessInfo,
   }) = _AppConfig;
 
   factory AppConfig.fromJson(Map<String, dynamic> json) =>

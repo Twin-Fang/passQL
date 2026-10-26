@@ -9,6 +9,7 @@ import com.passql.meta.dto.AppMaintenanceResponse;
 import com.passql.meta.dto.AppOperationSettingsRequest;
 import com.passql.meta.dto.AppOperationSettingsResponse;
 import com.passql.meta.dto.AppPlatformVersionResponse;
+import com.passql.meta.dto.BusinessInfoResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -43,7 +44,7 @@ public class AppOperationService {
     private final AppNoticeService appNoticeService;
 
     /**
-     * 앱 시작 설정: 플랫폼별 버전 정책 + 점검 상태 + 노출 공지 + Android 결제 스위치
+     * 앱 시작 설정: 플랫폼별 버전 정책 + 점검 상태 + 노출 공지 + Android 결제 스위치 + 사업자 정보
      */
     public AppConfigResponse getAppConfig() {
         AppLinksResponse storeLinks = appSettingService.getAppLinks();
@@ -58,8 +59,25 @@ public class AppOperationService {
                         storeLinks.androidUrl()),
                 new AppMaintenanceResponse(isUnderMaintenance(), readSettingOrDefault(AppSettingKeys.APP_MAINTENANCE_MESSAGE, "")),
                 appNoticeService.getVisibleNotices(),
-                isAndroidBillingEnabled()
+                isAndroidBillingEnabled(),
+                readBusinessInfo()
         );
+    }
+
+    /** 사업자 정보 (#658, 행 없음·빈 값 > null, 클라이언트가 그 줄을 숨김) */
+    private BusinessInfoResponse readBusinessInfo() {
+        return new BusinessInfoResponse(
+                readTextOrNull(AppSettingKeys.BUSINESS_COMPANY_NAME),
+                readTextOrNull(AppSettingKeys.BUSINESS_REPRESENTATIVE_NAME),
+                readTextOrNull(AppSettingKeys.BUSINESS_REGISTRATION_NUMBER),
+                readTextOrNull(AppSettingKeys.BUSINESS_CONTACT_EMAIL),
+                readTextOrNull(AppSettingKeys.BUSINESS_MAIL_ORDER_SALES_NUMBER));
+    }
+
+    /** 앞뒤 공백 정리한 설정값 (비면 null) */
+    private String readTextOrNull(String key) {
+        String trimmed = readSettingOrDefault(key, "").trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     /**

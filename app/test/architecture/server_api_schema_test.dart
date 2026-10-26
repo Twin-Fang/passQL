@@ -20,6 +20,7 @@ const Map<String, String> _specSchemaByAppClass = {
   'AppNotice': 'AppNoticeResponse',
   'AppNoticePage': 'AppNoticePageResponse',
   'AppPlatformVersionPolicy': 'AppPlatformVersionResponse',
+  'BusinessInfo': 'BusinessInfoResponse',
   'QuestionListResponse': 'PageQuestionSummary',
 };
 

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-// Settings는 마이페이지 톱니바퀴로 진입하는 서브페이지 — 닉네임/계정 정보는 MyPage에서 관리, 여기선 문제풀이 모드·이용안내·앱정보·계정(로그아웃/탈퇴)을 다룸
+// Settings는 마이페이지 톱니바퀴로 진입하는 서브페이지 — 닉네임/계정 정보는 MyPage에서 관리, 여기선 문제풀이 모드·이용안내·앱정보·약관·사업자 정보·계정(로그아웃/탈퇴)을 다룸
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, LogOut, ExternalLink } from "lucide-react";
 import { withdraw } from "../api/members";
@@ -14,6 +14,10 @@ import { useStagger } from "../hooks/useStagger";
 import SettingsSection from "../components/SettingsSection";
 import SettingsRow from "../components/SettingsRow";
 import SubpageLayout from "../components/SubpageLayout";
+import LegalModal from "../components/LegalModal";
+import { useBusinessInfoLines } from "../hooks/useBusinessInfoLines";
+import { LEGAL_TITLE, type LegalType } from "../api/legal";
+import { IS_GOOGLE_PLAY_PUBLIC } from "../constants/appStoreRelease";
 import { useMember, useUpdateChoiceGenerationMode } from "../hooks/useMember";
 import type { ChoiceGenerationMode } from "../types/api";
 
@@ -32,6 +36,9 @@ export default function Settings() {
   const [withdrawLoading, setWithdrawLoading] = useState(false);
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
   const { androidUrl, iosUrl, hasAny: hasAppLinks } = useAppLinks();
+  // 약관 본문 모달 (로그인 화면과 같은 컴포넌트, #658)
+  const [openedLegalType, setOpenedLegalType] = useState<LegalType | null>(null);
+  const businessInfoLines = useBusinessInfoLines();
   // 문제풀이 섹션 — 선택지 생성 모드 토글
   const { data: memberData } = useMember();
   const { mutate: updateMode, isPending: isModeUpdating } = useUpdateChoiceGenerationMode();
@@ -43,8 +50,9 @@ export default function Settings() {
   const s0 = stagger(0); // 이용안내 섹션
   const s1 = stagger(1); // 문제풀이 섹션
   const s2 = stagger(2); // 앱 정보 섹션
-  const s3 = stagger(3); // 로그아웃 섹션
-  const s4 = stagger(4); // 로고 + 카피라이트
+  const s3 = stagger(3); // 약관·사업자 정보 섹션
+  const s4 = stagger(4); // 로그아웃 섹션
+  const s5 = stagger(5); // 로고 + 카피라이트
 
   useEffect(() => {
     return () => {
@@ -168,12 +176,19 @@ export default function Settings() {
               }
             />
             {/* 스토어 링크가 설정된 플랫폼만 노출 (#433) */}
-            {hasAppLinks && androidUrl && (
+            {/* Play 비공개 중엔 홈 배너와 같이 "출시 준비 중" 비활성 (#531, #658) */}
+            {hasAppLinks && androidUrl && IS_GOOGLE_PLAY_PUBLIC && (
               <SettingsRow
                 label="Android 앱 받기"
                 value={<p className="text-sm text-text-secondary">Google Play</p>}
                 action={<ExternalLink size={16} className="text-text-caption" />}
                 onClick={() => window.open(androidUrl, "_blank", "noopener,noreferrer")}
+              />
+            )}
+            {hasAppLinks && androidUrl && !IS_GOOGLE_PLAY_PUBLIC && (
+              <SettingsRow
+                label="Android 앱 받기"
+                value={<p className="text-sm text-text-caption">출시 준비 중</p>}
               />
             )}
             {hasAppLinks && iosUrl && (
@@ -188,8 +203,32 @@ export default function Settings() {
         </SettingsSection>
       </section>
 
-      {/* 로그아웃 */}
+      {/* 약관·사업자 정보 (#658) — 사업자 정보는 서버 값 없으면 숨김 */}
       <section className={s3.className}>
+        <SettingsSection label="약관 및 사업자 정보">
+          <div className="bg-surface-card border-y border-border divide-y divide-border">
+            {(["TERMS_OF_SERVICE", "PRIVACY_POLICY"] as const).map((legalType) => (
+              <SettingsRow
+                key={legalType}
+                label={LEGAL_TITLE[legalType]}
+                value={null}
+                action={<ChevronRight size={16} className="text-text-caption" />}
+                onClick={() => setOpenedLegalType(legalType)}
+              />
+            ))}
+            {businessInfoLines.map((line) => (
+              <SettingsRow
+                key={line.label}
+                label={line.label}
+                value={<p className="text-sm text-text-secondary break-all">{line.value}</p>}
+              />
+            ))}
+          </div>
+        </SettingsSection>
+      </section>
+
+      {/* 로그아웃 */}
+      <section className={s4.className}>
         <SettingsSection label="계정 관리">
           <div className="bg-surface-card border-y border-border divide-y divide-border">
             <button
@@ -233,12 +272,15 @@ export default function Settings() {
       </section>
 
       {/* 로고 + 카피라이트 */}
-      <section className={`text-center mt-12 space-y-2 ${s4.className}`}>
+      <section className={`text-center mt-12 space-y-2 ${s5.className}`}>
         <img src={logo} alt="passQL" className="h-5 w-auto mx-auto" />
         <p className="text-xs text-text-caption">
           © 2026 passQL. All rights reserved.
         </p>
       </section>
+      {openedLegalType !== null && (
+        <LegalModal type={openedLegalType} onClose={() => setOpenedLegalType(null)} />
+      )}
       <ConfirmModal
         isOpen={withdrawOpen}
         title="정말 탈퇴할까요?"

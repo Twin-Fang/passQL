@@ -54,6 +54,30 @@ class AppOperationServiceTest {
     }
 
     @Test
+    void 사업자_정보는_저장값을_정리해_내려주고_빈_값은_null() {
+        when(appSettingService.getString(AppSettingKeys.BUSINESS_COMPANY_NAME)).thenReturn(" 콜리랩(KOLLYLAB) ");
+        when(appSettingService.getString(AppSettingKeys.BUSINESS_REGISTRATION_NUMBER)).thenReturn("331-37-01670");
+        when(appSettingService.getString(AppSettingKeys.BUSINESS_MAIL_ORDER_SALES_NUMBER)).thenReturn("  ");
+
+        var businessInfo = service.getAppConfig().businessInfo();
+
+        assertThat(businessInfo.companyName()).isEqualTo("콜리랩(KOLLYLAB)");
+        assertThat(businessInfo.registrationNumber()).isEqualTo("331-37-01670");
+        assertThat(businessInfo.mailOrderSalesNumber()).isNull();
+        assertThat(businessInfo.representativeName()).isNull();
+    }
+
+    @Test
+    void 사업자_정보_행이_없어도_null_로_응답() {
+        when(appSettingService.getString(anyString())).thenThrow(new CustomException(ErrorCode.SETTING_NOT_FOUND));
+
+        var businessInfo = service.getAppConfig().businessInfo();
+
+        assertThat(businessInfo.companyName()).isNull();
+        assertThat(businessInfo.contactEmail()).isNull();
+    }
+
+    @Test
     void 결제_스위치가_켜져_있으면_내려준다() {
         when(appSettingService.getString(AppSettingKeys.BILLING_ANDROID_ENABLED)).thenReturn("true");
 

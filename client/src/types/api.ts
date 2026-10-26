@@ -217,6 +217,9 @@ export type AppNoticePage = ApiSchemas["AppNoticePageResponse"];
 
 export type AppConfigResponse = ApiSchemas["AppConfigResponse"];
 
+// 사업자 정보 표기 (#658, null 필드는 줄 숨김, companyName null 이면 섹션 숨김)
+export type BusinessInfo = ApiSchemas["BusinessInfoResponse"];
+
 // ── 알림함 (#491) ──
 // 알림함 두 탭: 알림(GENERAL) / 공지(NOTICE)
 export type NotificationCategory = "GENERAL" | "NOTICE";
