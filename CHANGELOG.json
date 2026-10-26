@@ -1,9 +1,9 @@
 {
   "metadata": {
-    "lastUpdated": "2026-10-26T07:30:19Z",
-    "currentVersion": "1.51.4",
+    "lastUpdated": "2026-10-26T12:15:01Z",
+    "currentVersion": "1.53.3",
     "projectType": "spring",
-    "totalReleases": 96,
+    "totalReleases": 97,
     "projectTypes": [
       "spring",
       "flutter",
@@ -12,6 +12,43 @@
     ]
   },
   "releases": [
+    {
+      "version": "1.53.3",
+      "project_type": "spring",
+      "project_types": [
+        "spring",
+        "flutter",
+        "react",
+        "python"
+      ],
+      "date": "2026-10-26",
+      "pr_number": 674,
+      "raw_summary": "## Summary by CodeRabbit\n\n## 릴리스 노트\n\n* **새 기능**\n  * 앱·웹 설정에 사업자 정보 표기\n  * 웹 설정에서 이용약관·개인정보처리방침 열람\n\n* **개선**\n  * 로그인·로그아웃 시 화면 밀림 전환 제거\n  * 로그인 버튼 하단 배치, 로그인 중 다른 버튼 비활성 표시\n\n* **기타**\n  * 테스트 빌드 알림에 버전별 변경 내역 표시\n  * iOS 의존성 고정 파일 갱신",
+      "parsed_changes": {
+        "새_기능": {
+          "title": "새 기능",
+          "items": [
+            "앱·웹 설정에 사업자 정보 표기",
+            "웹 설정에서 이용약관·개인정보처리방침 열람"
+          ]
+        },
+        "개선": {
+          "title": "개선",
+          "items": [
+            "로그인·로그아웃 시 화면 밀림 전환 제거",
+            "로그인 버튼 하단 배치, 로그인 중 다른 버튼 비활성 표시"
+          ]
+        },
+        "기타": {
+          "title": "기타",
+          "items": [
+            "테스트 빌드 알림에 버전별 변경 내역 표시",
+            "iOS 의존성 고정 파일 갱신"
+          ]
+        }
+      },
+      "parse_method": "markdown"
+    },
     {
       "version": "1.51.4",
       "project_type": "spring",
