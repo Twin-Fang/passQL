@@ -61,6 +61,8 @@ class AppStoreBillingServiceTest {
     private static final String SECOND_SIGNED_TRANSACTION = "signed-transaction-2";
     private static final String TRANSACTION_ID = "2000000000000001";
     private static final String SECOND_TRANSACTION_ID = "2000000000000002";
+    // 거래 결제 금액 고정값 (테스트용 1,100 KRW = 1,100,000 밀리 단위)
+    private static final StorePrice THREE_MONTH_PRICE = StorePrice.fromAppStoreMilliunits(1_100_000L, "KRW");
 
     private final FakeAppStoreSignedDataVerifier verifier = new FakeAppStoreSignedDataVerifier();
     private final EntitlementPurchaseRepository purchaseRepository = mock(EntitlementPurchaseRepository.class);
@@ -78,6 +80,8 @@ class AppStoreBillingServiceTest {
     // 메모리 저장소 (구매: 토큰별, 등급: 회원별)
     private final Map<String, EntitlementPurchase> purchaseByToken = new HashMap<>();
     private final Map<UUID, MemberEntitlement> entitlementByMember = new HashMap<>();
+    // 기록 INSERT 로 넘긴 결제 금액 (토큰별, 금액 미기록이면 null 값)
+    private final Map<String, StorePrice> savedPriceByToken = new HashMap<>();
     private final UUID memberUuid = UUID.randomUUID();
 
     @BeforeEach
@@ -93,7 +97,7 @@ class AppStoreBillingServiceTest {
             .findFirst());
         // 기록 INSERT: 토큰·주문 번호 충돌이면 0건 (ON CONFLICT DO NOTHING 과 같게), 소모 값 반영
         when(purchaseRepository.insertVerifiedIfAbsent(any(), any(), any(), any(), any(), any(), any(), any(), any(),
-            any(), any(), any(), any())).thenAnswer(call -> {
+            any(), any(), any(), any(), any(), any())).thenAnswer(call -> {
             String orderId = call.getArgument(4);
             String purchaseToken = call.getArgument(5);
             boolean isConflicted = purchaseByToken.containsKey(purchaseToken) || purchaseByToken.values().stream()
@@ -101,6 +105,10 @@ class AppStoreBillingServiceTest {
             if (isConflicted) {
                 return 0;
             }
+            Long priceAmountMicros = call.getArgument(13);
+            String currencyCode = call.getArgument(14);
+            savedPriceByToken.put(purchaseToken,
+                priceAmountMicros != null ? new StorePrice(priceAmountMicros, currencyCode) : null);
             EntitlementPurchase purchase = EntitlementPurchase.verified(call.getArgument(1),
                 PurchaseStore.valueOf(call.getArgument(2)), call.getArgument(3), orderId, purchaseToken,
                 call.getArgument(6), call.getArgument(8), call.getArgument(9));
@@ -138,7 +146,7 @@ class AppStoreBillingServiceTest {
                                                    UUID appAccountToken) {
         return new AppStoreTransaction(transactionId, transactionId, AppleAppStoreSignedDataVerifier.BUNDLE_ID,
             passProduct.getProductId(), AppStoreBillingService.NON_RENEWING_SUBSCRIPTION_TYPE, purchasedAt,
-            appAccountToken, null, "Sandbox");
+            appAccountToken, null, "Sandbox", THREE_MONTH_PRICE);
     }
 
     private void registerThreeMonthTransaction() {
@@ -170,6 +178,20 @@ class AppStoreBillingServiceTest {
         assertThat(purchase.getIsConsumed()).isTrue();
         assertThat(entitlementByMember.get(memberUuid).getSource()).isEqualTo(EntitlementSource.APP_STORE_PURCHASE);
         assertThat(response.lastOrderId()).isEqualTo(TRANSACTION_ID);
+        // 거래 price·currency 그대로 저장 (1,100 KRW > 1,100,000,000 마이크로 단위)
+        assertThat(savedPriceByToken.get("appstore:" + TRANSACTION_ID))
+            .isEqualTo(new StorePrice(1_100_000_000L, "KRW"));
+    }
+
+    @Test
+    void verify_transactionWithoutPrice_recordsNullPrice() {
+        verifier.transactionBySignedTransaction.put(SIGNED_TRANSACTION, new AppStoreTransaction(TRANSACTION_ID,
+            TRANSACTION_ID, AppleAppStoreSignedDataVerifier.BUNDLE_ID, PassProduct.PRO_PASS_3M.getProductId(),
+            AppStoreBillingService.NON_RENEWING_SUBSCRIPTION_TYPE, PURCHASED_INSTANT, null, null, "Sandbox", null));
+
+        appStoreBillingService.verify(memberUuid, threeMonthRequest());
+
+        assertThat(savedPriceByToken).containsEntry("appstore:" + TRANSACTION_ID, null);
     }
 
     @Test
@@ -188,7 +210,7 @@ class AppStoreBillingServiceTest {
     void verify_wrongBundle_rejectedWithoutRecord() {
         verifier.transactionBySignedTransaction.put(SIGNED_TRANSACTION, new AppStoreTransaction(TRANSACTION_ID,
             TRANSACTION_ID, "com.other.app", PassProduct.PRO_PASS_3M.getProductId(),
-            AppStoreBillingService.NON_RENEWING_SUBSCRIPTION_TYPE, PURCHASED_INSTANT, null, null, "Production"));
+            AppStoreBillingService.NON_RENEWING_SUBSCRIPTION_TYPE, PURCHASED_INSTANT, null, null, "Production", null));
 
         assertRejected(() -> appStoreBillingService.verify(memberUuid, threeMonthRequest()), ErrorCode.INVALID_INPUT_VALUE);
         assertThat(purchaseByToken).isEmpty();
@@ -217,7 +239,7 @@ class AppStoreBillingServiceTest {
     void verify_nonConsumableType_rejected() {
         verifier.transactionBySignedTransaction.put(SIGNED_TRANSACTION, new AppStoreTransaction(TRANSACTION_ID,
             TRANSACTION_ID, AppleAppStoreSignedDataVerifier.BUNDLE_ID, PassProduct.PRO_PASS_3M.getProductId(),
-            "Non-Consumable", PURCHASED_INSTANT, null, null, "Sandbox"));
+            "Non-Consumable", PURCHASED_INSTANT, null, null, "Sandbox", null));
 
         assertRejected(() -> appStoreBillingService.verify(memberUuid, threeMonthRequest()), ErrorCode.INVALID_INPUT_VALUE);
     }
@@ -301,7 +323,7 @@ class AppStoreBillingServiceTest {
         verifier.transactionBySignedTransaction.put(SIGNED_TRANSACTION, new AppStoreTransaction(TRANSACTION_ID,
             TRANSACTION_ID, AppleAppStoreSignedDataVerifier.BUNDLE_ID, PassProduct.PRO_PASS_3M.getProductId(),
             AppStoreBillingService.NON_RENEWING_SUBSCRIPTION_TYPE, PURCHASED_INSTANT, null,
-            FIXED_CLOCK.instant(), "Sandbox"));
+            FIXED_CLOCK.instant(), "Sandbox", null));
 
         assertRejected(() -> appStoreBillingService.verify(memberUuid, threeMonthRequest()), ErrorCode.INVALID_REQUEST);
         assertThat(purchaseByToken).isEmpty();

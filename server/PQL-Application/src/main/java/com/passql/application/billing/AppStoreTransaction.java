@@ -15,8 +15,9 @@ import java.util.UUID;
  * @param appAccountToken       앱이 결제 때 넣은 회원 uuid (없으면 null)
  * @param revokedAt             환불·회수 시각 (정상 거래는 null)
  * @param environment           거래 환경 원문 (Production, Sandbox)
+ * @param price                 고객 결제 금액·통화 (Apple price·currency, 없으면 null)
  */
 public record AppStoreTransaction(String transactionId, String originalTransactionId, String bundleId, String productId,
                                   String type, Instant purchasedAt, UUID appAccountToken, Instant revokedAt,
-                                  String environment) {
+                                  String environment, StorePrice price) {
 }

@@ -85,7 +85,7 @@ public class PlayBillingService {
     }
 
     /**
-     * 구매 확인: 상품 검증 > 기존 기록 처리 > Play 조회 > 구매 계정 대조 > 기록·등급 저장 > 커밋 후 소모 > 내 등급
+     * 구매 확인: 상품 검증 > 기존 기록 처리 > Play 조회 > 구매 계정 대조 > 주문 금액 조회 > 기록·등급 저장 > 커밋 후 소모 > 내 등급
      * 대기 구매는 저장·소모 없이 현재 등급 반환
      */
     public MemberPlanResponse verify(UUID memberUuid, PlayVerifyRequest request) {
@@ -116,10 +116,13 @@ public class PlayBillingService {
             throw new CustomException(ErrorCode.INVALID_REQUEST);
         }
 
+        // 결제 금액 조회 (트랜잭션 밖 외부 호출, 실패·주문 번호 없음은 NULL 저장)
+        StorePrice price = findOrderPrice(snapshot.orderId());
+
         // 기록·등급 한 트랜잭션 (같은 토큰·주문은 ON CONFLICT 로 0건 > 기존 기록 경로)
         VerifiedStorePurchase verifiedPurchase = new VerifiedStorePurchase(PurchaseStore.PLAY, passProduct,
             resolveOrderId(memberUuid, snapshot.orderId(), request.purchaseToken()), request.purchaseToken(),
-            snapshot.purchasedAt(), false);
+            snapshot.purchasedAt(), false, price);
         Optional<PlanExtension> planExtension = transactionTemplate.execute(status -> storePurchaseRecorder
             .recordPurchaseAndExtendPlan(memberUuid, verifiedPurchase, clock.instant()));
         if (planExtension == null || planExtension.isEmpty()) {
@@ -187,6 +190,14 @@ public class PlayBillingService {
             log.warn("[billing] rejected 403 : account mismatch, member={}, order={}", memberUuid, snapshot.orderId());
             throw new CustomException(ErrorCode.ACCESS_DENIED);
         }
+    }
+
+    /** Play 주문 금액, 주문 번호 없는 구매(테스트 구매 등)는 조회 없이 null */
+    private StorePrice findOrderPrice(String playOrderId) {
+        if (!StringUtils.hasText(playOrderId)) {
+            return null;
+        }
+        return playDeveloperApiClient.findOrderPrice(playOrderId).orElse(null);
     }
 
     /** Play 주문 번호, 없으면 대체값 (같은 토큰은 항상 같은 값) */

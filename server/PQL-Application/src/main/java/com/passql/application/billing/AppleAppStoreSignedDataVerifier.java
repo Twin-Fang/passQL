@@ -97,11 +97,12 @@ public class AppleAppStoreSignedDataVerifier implements AppStoreSignedDataVerifi
         return new CustomException(ErrorCode.INVALID_INPUT_VALUE);
     }
 
-    /** Apple 거래 페이로드 > 서비스 거래 (밀리초 시각 > Instant) */
+    /** Apple 거래 페이로드 > 서비스 거래 (밀리초 시각 > Instant, price 밀리 단위 > 마이크로 단위) */
     private static AppStoreTransaction toAppStoreTransaction(JWSTransactionDecodedPayload payload) {
         return new AppStoreTransaction(payload.getTransactionId(), payload.getOriginalTransactionId(),
             payload.getBundleId(), payload.getProductId(), payload.getRawType(), toInstant(payload.getPurchaseDate()),
-            payload.getAppAccountToken(), toInstant(payload.getRevocationDate()), payload.getRawEnvironment());
+            payload.getAppAccountToken(), toInstant(payload.getRevocationDate()), payload.getRawEnvironment(),
+            StorePrice.fromAppStoreMilliunits(payload.getPrice(), payload.getCurrency()));
     }
 
     private static Instant toInstant(Long epochMilliseconds) {

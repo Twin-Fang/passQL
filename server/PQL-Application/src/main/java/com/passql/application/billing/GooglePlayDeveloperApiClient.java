@@ -6,6 +6,8 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.androidpublisher.AndroidPublisher;
 import com.google.api.services.androidpublisher.AndroidPublisherScopes;
+import com.google.api.services.androidpublisher.model.Money;
+import com.google.api.services.androidpublisher.model.Order;
 import com.google.api.services.androidpublisher.model.ProductPurchase;
 import com.google.api.services.androidpublisher.model.VoidedPurchase;
 import com.google.api.services.androidpublisher.model.VoidedPurchasesListResponse;
@@ -26,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -74,6 +77,26 @@ public class GooglePlayDeveloperApiClient implements PlayDeveloperApiClient {
                 purchase.getObfuscatedExternalAccountId());
         } catch (IOException exception) {
             throw toCustomException("get purchase", exception);
+        }
+    }
+
+    @Override
+    public Optional<StorePrice> findOrderPrice(String orderId) {
+        try {
+            Order order = getAndroidPublisher().orders().get(PACKAGE_NAME, orderId).execute();
+            Money total = order.getTotal();
+            if (total == null) {
+                log.warn("[billing] play order price missing : order={}", orderId);
+                return Optional.empty();
+            }
+            return Optional.ofNullable(StorePrice.fromPlayMoney(total.getUnits(), total.getNanos(), total.getCurrencyCode()));
+        } catch (IOException | CustomException exception) {
+            // 상태 코드·원인 이름만 기록 (403: 서비스 계정에 재무 데이터 보기 권한 없음)
+            String failureReason = exception instanceof GoogleJsonResponseException responseException
+                ? String.valueOf(responseException.getStatusCode())
+                : exception.getClass().getSimpleName();
+            log.warn("[billing] play order price unavailable : order={}, reason={}", orderId, failureReason);
+            return Optional.empty();
         }
     }
 

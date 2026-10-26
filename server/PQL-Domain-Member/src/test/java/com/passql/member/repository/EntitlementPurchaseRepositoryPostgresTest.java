@@ -88,12 +88,30 @@ class EntitlementPurchaseRepositoryPostgresTest {
         assertThat(lockedMemberUuid).isEmpty();
     }
 
+    @Test
+    void 결제_금액과_통화를_저장하고_모르면_NULL로_둔다() {
+        // 9,900.5 KRW 예시 값 (통화 단위 x 1,000,000)
+        insert("GPA.10", "token-price", 9_900_500_000L, "KRW");
+        insert("GPA.11", "token-no-price");
+
+        EntitlementPurchase pricedPurchase = purchaseRepository.findByPurchaseToken("token-price").orElseThrow();
+        assertThat(pricedPurchase.getPriceAmountMicros()).isEqualTo(9_900_500_000L);
+        assertThat(pricedPurchase.getCurrencyCode()).isEqualTo("KRW");
+        EntitlementPurchase unpricedPurchase = purchaseRepository.findByPurchaseToken("token-no-price").orElseThrow();
+        assertThat(unpricedPurchase.getPriceAmountMicros()).isNull();
+        assertThat(unpricedPurchase.getCurrencyCode()).isNull();
+    }
+
     private int insert(String orderId, String purchaseToken) {
+        return insert(orderId, purchaseToken, null, null);
+    }
+
+    private int insert(String orderId, String purchaseToken, Long priceAmountMicros, String currencyCode) {
         Integer insertedCount = new TransactionTemplate(transactionManager).execute(status ->
             purchaseRepository.insertVerifiedIfAbsent(UUID.randomUUID(), memberUuid, PurchaseStore.PLAY.name(),
                 PassProduct.PRO_PASS_3M.getProductId(), orderId, purchaseToken, now, PurchaseStatus.VERIFIED.name(),
                 now.plusDays(PassProduct.PRO_PASS_3M.getDurationDays()), PassProduct.PRO_PASS_3M.getDurationDays(),
-                false, now, "system"));
+                false, now, "system", priceAmountMicros, currencyCode));
         return insertedCount == null ? 0 : insertedCount;
     }
 
