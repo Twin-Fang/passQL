@@ -75,16 +75,6 @@ final homeData = HomeData(
     ),
   ),
   dailySet: const DailySetTodayResponse(),
-  recommendations: const RecommendationsResponse(
-    questions: [
-      QuestionSummary(
-        questionUuid: 'q1',
-        topicName: 'JOIN',
-        stemPreview: '다음 중 옳은 것은?',
-        difficulty: 2,
-      ),
-    ],
-  ),
   examSchedule: const ExamScheduleResponse(
     examScheduleUuid: 'e',
     certType: 'SQLD',
@@ -101,6 +91,18 @@ final homeData = HomeData(
       ),
     ],
   ),
+);
+
+// 추천 문제는 홈 합친 값과 따로 채운다 (#676)
+const homeRecommendations = RecommendationsResponse(
+  questions: [
+    QuestionSummary(
+      questionUuid: 'q1',
+      topicName: 'JOIN',
+      stemPreview: '다음 중 옳은 것은?',
+      difficulty: 2,
+    ),
+  ],
 );
 
 const statsData = StatsData(
@@ -184,6 +186,9 @@ void main() {
       const HomePage(),
       [
         homeDataProvider.overrideWith((ref) async => homeData),
+        homeRecommendationsProvider.overrideWith(
+          (ref) async => homeRecommendations,
+        ),
         // 로그인 상태 (출제 경향은 로그인 중에만 조회)
         currentMemberUuidProvider.overrideWithValue('member-test'),
         examTrendReportProvider.overrideWith((ref) async => _examTrendReport),
@@ -250,6 +255,9 @@ void main() {
         overrides: [
           currentMemberUuidProvider.overrideWithValue('member-test'),
           examTrendReportProvider.overrideWith((ref) async => _examTrendReport),
+          homeRecommendationsProvider.overrideWith(
+            (ref) async => homeRecommendations,
+          ),
           homeDataProvider.overrideWith(
             (ref) async => HomeData(
               greeting: const GreetingResponse(

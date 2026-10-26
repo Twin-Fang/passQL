@@ -12,13 +12,13 @@ import '../../data/models/exam/exam_schedule_response.dart';
 import 'pro_ui_providers.dart';
 import 'session_reset.dart';
 
-/// 홈 화면에 필요한 모든 API 응답을 담는 집계 모델.
+/// 홈 첫 표시에 필요한 API 응답을 담는 집계 모델.
 /// 각 필드는 nullable — API 실패 시 해당 섹션을 graceful하게 숨김 처리.
+/// 추천 문제는 등급 확인 > 추천 직렬이라 가장 늦어서 빼고 [homeRecommendationsProvider] 로 따로 채운다 (#676)
 class HomeData {
   final GreetingResponse? greeting;
   final ProgressResponse? progress;
   final DailySetTodayResponse? dailySet;
-  final RecommendationsResponse? recommendations;
   final ExamScheduleResponse? examSchedule;
   final HeatmapResponse? heatmap;
 
@@ -26,7 +26,6 @@ class HomeData {
     this.greeting,
     this.progress,
     this.dailySet,
-    this.recommendations,
     this.examSchedule,
     this.heatmap,
   });
@@ -99,26 +98,20 @@ final homeLearningStatusProvider =
   );
 });
 
-/// 홈 화면 데이터: [homeOverviewProvider] + [homeLearningStatusProvider] + [homeRecommendationsProvider] 합침
+/// 홈 화면 데이터: [homeOverviewProvider] + [homeLearningStatusProvider] 합침 (추천 문제는 기다리지 않음, #676)
 ///
 /// 한 묶음만 다시 받아도 다른 묶음은 캐시를 그대로 쓴다.
 /// 한 묶음 실패는 그 섹션만 숨기고, 개요·학습 둘 다 실패(서버 장애·네트워크 끊김)하면 오류 화면 (#375).
 /// 인증 만료는 삼키지 않고 다시 던짐 (로그인 화면 전환)
 final homeDataProvider = FutureProvider.autoDispose<HomeData>((ref) async {
-  // 세 묶음 동시 대기 (각 오류는 결과로 받아 미처리 예외 방지)
+  // 두 묶음 동시 대기 (각 오류는 결과로 받아 미처리 예외 방지)
   final overviewOutcome = _settle(ref.watch(homeOverviewProvider.future));
-  final learningOutcome = _settle(
-    ref.watch(homeLearningStatusProvider.future),
-  );
-  final recommendationsOutcome = _settle(
-    ref.watch(homeRecommendationsProvider.future),
-  );
+  final learningOutcome = _settle(ref.watch(homeLearningStatusProvider.future));
   final (overview, overviewError) = await overviewOutcome;
   final (learning, learningError) = await learningOutcome;
-  final (recommendations, recommendationsError) = await recommendationsOutcome;
 
-  // 실패 판정 (인증 만료 우선 > 개요·학습 둘 다 실패, 추천은 선택 섹션이라 인증 만료만 봄)
-  for (final error in [overviewError, learningError, recommendationsError]) {
+  // 실패 판정 (인증 만료 우선 > 개요·학습 둘 다 실패)
+  for (final error in [overviewError, learningError]) {
     if (error is AppException && error.isUnauthorized) throw error;
   }
   if (overviewError != null && learningError != null) throw overviewError;
@@ -127,7 +120,6 @@ final homeDataProvider = FutureProvider.autoDispose<HomeData>((ref) async {
     greeting: overview?.greeting,
     progress: learning?.progress,
     dailySet: learning?.dailySet,
-    recommendations: recommendations,
     examSchedule: overview?.examSchedule,
     heatmap: learning?.heatmap,
   );

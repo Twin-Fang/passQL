@@ -9,7 +9,7 @@ import 'package:passql_app/presentation/providers/home_providers.dart';
 import 'package:passql_app/presentation/widgets/home/greeting_section.dart';
 
 import '../../helpers/pump_app.dart';
-import '../tab_pages_test.dart' show homeData;
+import '../tab_pages_test.dart' show homeData, homeRecommendations;
 
 /// 홈 상단 (#530): 로고·종 한 줄 상단 바 + 아래 인사 문구는 잘림·말줄임 없이 여러 줄
 void main() {
@@ -50,12 +50,14 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          homeRecommendationsProvider.overrideWith(
+            (ref) async => homeRecommendations,
+          ),
           homeDataProvider.overrideWith(
             (ref) async => HomeData(
               greeting: greeting,
               progress: homeData.progress,
               dailySet: homeData.dailySet,
-              recommendations: homeData.recommendations,
               examSchedule: homeData.examSchedule,
               heatmap: homeData.heatmap,
             ),

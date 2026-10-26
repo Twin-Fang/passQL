@@ -116,6 +116,7 @@ class _HomeContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final notice = ref.watch(homeNoticeProvider);
     final discussion = ref.watch(communityDailyDiscussionProvider).valueOrNull;
+    final recommendations = ref.watch(homeRecommendationsProvider).valueOrNull;
     final examTrendReportAsync = ref.watch(examTrendReportProvider);
     final examTrendReport = examTrendReportAsync.valueOrNull;
     final dailyStudyTip = examTrendReport == null
@@ -214,10 +215,10 @@ class _HomeContent extends ConsumerWidget {
         ],
       ),
 
-      if (data.recommendations != null &&
-          data.recommendations!.questions.isNotEmpty)
+      // 추천 문제는 늦게 도착해도 나머지 홈을 붙잡지 않는다 (도착하면 맨 아래에 붙음, #676)
+      if (recommendations != null && recommendations.questions.isNotEmpty)
         RecommendationsSection(
-          questions: data.recommendations!.questions,
+          questions: recommendations.questions,
           onQuestionTap: (uuid) => context.push(AppRoutes.questionDetail(uuid)),
         ),
     ];

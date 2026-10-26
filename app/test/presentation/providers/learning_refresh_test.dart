@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:passql_app/data/models/home/recommendations_response.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/presentation/providers/home_providers.dart';
 import 'package:passql_app/presentation/providers/learning_refresh.dart';
@@ -118,6 +121,30 @@ void main() {
       await expectLater(
         mergeContainer.read(homeDataProvider.future),
         throwsA(isA<Exception>()),
+      );
+    });
+
+    test('추천 문제가 늦어도 홈은 기다리지 않는다 (#676)', () async {
+      final mergeContainer = ProviderContainer(
+        overrides: [
+          homeOverviewProvider.overrideWith(
+            (ref) async => const HomeOverview(),
+          ),
+          homeLearningStatusProvider.overrideWith(
+            (ref) async => const HomeLearningStatus(),
+          ),
+          // 끝나지 않는 추천 (등급 확인 > 추천 직렬 대기 흉내)
+          homeRecommendationsProvider.overrideWith(
+            (ref) => Completer<RecommendationsResponse?>().future,
+          ),
+        ],
+      );
+      addTearDown(mergeContainer.dispose);
+      await expectLater(
+        mergeContainer
+            .read(homeDataProvider.future)
+            .timeout(const Duration(seconds: 1)),
+        completes,
       );
     });
   });

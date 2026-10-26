@@ -22,7 +22,8 @@ import 'package:passql_app/presentation/widgets/question/questions_tab_segmented
 import 'package:passql_app/router/questions_tab_view.dart';
 
 import 'settings_layout_test.dart' show SignedInAuth;
-import 'tab_pages_test.dart' show homeData, statsData, topics;
+import 'tab_pages_test.dart'
+    show homeData, homeRecommendations, statsData, topics;
 import '../helpers/pump_app.dart';
 
 // 시스템 글자 크기 최대(접근성 큰 글자) 수준 배율
@@ -79,7 +80,12 @@ void main() {
   final cases = <String, (Widget, List<Override>)>{
     '홈': (
       const HomePage(),
-      [homeDataProvider.overrideWith((ref) async => homeData)],
+      [
+        homeDataProvider.overrideWith((ref) async => homeData),
+        homeRecommendationsProvider.overrideWith(
+          (ref) async => homeRecommendations,
+        ),
+      ],
     ),
     '문제': (
       const TopicListPage(),
@@ -182,7 +188,12 @@ void main() {
     await _pumpWithLargeText(
       tester,
       const HomePage(),
-      [homeDataProvider.overrideWith((ref) async => homeData)],
+      [
+        homeDataProvider.overrideWith((ref) async => homeData),
+        homeRecommendationsProvider.overrideWith(
+          (ref) async => homeRecommendations,
+        ),
+      ],
       theme: PassqlTheme.light,
       viewSize: const Size(390, 2400),
     );
