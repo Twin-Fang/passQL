@@ -36,6 +36,12 @@ passQL은 **4개 스택을 한 레포에서 관리하는 모노레포**다. 작�
 - `version.yml` = 단일 버전 기준. `CHANGELOG.json/md`는 워크플로우가 자동 갱신.
 - `.github/workflows/` = CI/CD. main push → deploy PR → automerge → 시놀로지 배포.
 
+### 앱 브랜치 빌드 트리거
+
+- 앱 작업은 이슈 등록 > 커밋 > 푸시 후 해당 이슈에 아래 댓글을 단다 (`/pro-github` 사용)
+- 형식: `@projectops app build <작업브랜치>`
+- 예: `@projectops app build 20261026_#500_기능개선_홈_화면`
+
 ## 공통 금지 규칙 (모든 스택)
 
 - **`git push`는 사용자 명시 요청 시에만** — 임의 push 금지.
