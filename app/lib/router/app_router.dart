@@ -91,17 +91,19 @@ abstract final class AppRouter {
         builder: (_, _) => const MaintenancePage(),
       ),
 
-      // 로그인
+      // 로그인: 로그인·로그아웃 redirect 로 탭 쉘과 맞바뀌는 화면이라 밀기 전환 없이 바로 바꾼다 (#672)
       GoRoute(
         path: AppRoutes.login,
         parentNavigatorKey: _rootKey,
-        builder: (_, _) => const LoginPage(),
+        pageBuilder: (_, _) => const NoTransitionPage(child: LoginPage()),
       ),
 
       // 탭 쉘: 탭마다 화면 상태를 유지하고 탭 전환은 페이드 (#495)
+      // 쉘 진입(로그인 > 홈)도 밀기 전환 없이 바로 바꾼다 (#672)
       StatefulShellRoute(
-        builder: (_, _, navigationShell) =>
-            AppShell(navigationShell: navigationShell),
+        pageBuilder: (_, _, navigationShell) => NoTransitionPage(
+          child: AppShell(navigationShell: navigationShell),
+        ),
         navigatorContainerBuilder: (_, navigationShell, children) =>
             AppTabFadeStack(
               currentIndex: navigationShell.currentIndex,
