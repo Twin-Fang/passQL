@@ -540,7 +540,15 @@ def cmd_export_release_notes(version: str, output_path: str | None) -> int:
         except Exception as e:
             print(f"[warn] CHANGELOG.md에서 노트를 만들지 못해 폴백합니다: {e}", file=sys.stderr)
 
-    # 3) 최종 폴백
+    # 3) [passQL] CHANGELOG 항목 없는 버전 > 마지막 CHANGELOG 이후 커밋으로 노트 구성
+    #    main 직행이라 deploy PR 전에 스토어·Firebase 빌드를 돌리면 해당 버전 항목이 없다
+    if not notes_text:
+        try:
+            notes_text = build_release_notes_from_commits_since_changelog(version)
+        except Exception as e:
+            print(f"[warn] 커밋 목록으로 노트를 만들지 못해 폴백합니다: {e}", file=sys.stderr)
+
+    # 4) 최종 폴백
     if not notes_text:
         notes_text = f"버전 {version} 업데이트\n앱 안정성 및 사용자 경험이 개선되었습니다."
 
@@ -550,6 +558,58 @@ def cmd_export_release_notes(version: str, output_path: str | None) -> int:
     else:
         sys.stdout.write(notes_text + "\n")
     return 0
+
+
+# 커밋 제목 "제목 : type : 내용 URL" / "type(scope): 내용" > (타입, 표시 문구)
+_COMMIT_TITLE_FIRST_RE = re.compile(r'^(.+?)\s:\s*([A-Za-z]+)!?\s*:\s*.+$')
+_COMMIT_TYPE_FIRST_RE = re.compile(r'^([A-Za-z]+)(?:\([^)]*\))?!?:\s*(.+)$')
+# 타입 > 노트 카테고리 (그 외 타입은 기타 변경)
+_COMMIT_CATEGORY_TITLE_BY_TYPE = {'feat': '새 기능', 'fix': '버그 수정'}
+_COMMIT_CATEGORY_ORDER = ['새 기능', '버그 수정', '기타 변경']
+
+
+def build_release_notes_from_commits_since_changelog(version: str) -> str:
+    """마지막 CHANGELOG.json 갱신 커밋 이후 커밋 제목 > 카테고리별 노트 (git 없거나 커밋 없으면 빈 문자열)"""
+    import subprocess
+
+    # 기준점: CHANGELOG.json 을 마지막으로 바꾼 커밋 (= 직전 deploy PR 릴리스)
+    base_commit = subprocess.run(
+        ['git', 'log', '-1', '--format=%H', '--', 'CHANGELOG.json'],
+        capture_output=True, text=True, check=True,
+    ).stdout.strip()
+    log_range = f"{base_commit}..HEAD" if base_commit else 'HEAD'
+    subjects = subprocess.run(
+        ['git', 'log', '--no-merges', '--format=%s', log_range],
+        capture_output=True, text=True, check=True,
+    ).stdout.splitlines()
+
+    # 커밋 제목 분류 (버전 커밋·[skip ci] 제외, 같은 이슈 제목은 1번만)
+    items_by_category: dict[str, list[str]] = {title: [] for title in _COMMIT_CATEGORY_ORDER}
+    seen_texts: set[str] = set()
+    for subject in subjects:
+        line = subject.strip()
+        if not line or '[skip ci]' in line:
+            continue
+        title_first = _COMMIT_TITLE_FIRST_RE.match(line)
+        type_first = None if title_first else _COMMIT_TYPE_FIRST_RE.match(line)
+        if title_first:
+            commit_type, text = title_first.group(2).lower(), title_first.group(1).strip()
+        elif type_first:
+            commit_type, text = type_first.group(1).lower(), type_first.group(2).strip()
+        else:
+            commit_type, text = '', line
+        if text in seen_texts:
+            continue
+        seen_texts.add(text)
+        items_by_category[_COMMIT_CATEGORY_TITLE_BY_TYPE.get(commit_type, '기타 변경')].append(text)
+
+    blocks = [
+        "**" + title + "**\n" + "\n".join("- " + item for item in items_by_category[title])
+        for title in _COMMIT_CATEGORY_ORDER if items_by_category[title]
+    ]
+    if not blocks:
+        return ""
+    return (f"버전 {version} 업데이트\n\n" + "\n\n".join(blocks)).strip()
 
 
 # --------------------- semver 승격 폭 판정 (이슈 #546) ---------------------
