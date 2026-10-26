@@ -17,9 +17,12 @@ LEGAL_API_URL = "https://api.passql.suhsaechan.kr/api/meta/legal/"
 OG_IMAGE_URL = SITE_URL + "icon/og.png"
 
 # 운영자 표기 (푸터·JSON-LD). 빈 값이면 그 줄을 렌더하지 않음, 주소는 표기하지 않음
-OPERATOR_BUSINESS_NAME = "KOLLYLAB (콜리랩)"
-OPERATOR_REPRESENTATIVE_NAME = ""
-OPERATOR_BUSINESS_REGISTRATION_NUMBER = ""
+# 앱·웹 원본(서버 app_setting business.*, #658)과 같은 값 유지
+OPERATOR_BUSINESS_NAME = "콜리랩(KOLLYLAB)"
+OPERATOR_REPRESENTATIVE_NAME = "서새찬"
+OPERATOR_BUSINESS_REGISTRATION_NUMBER = "331-37-01670"
+# 통신판매업 신고번호 (신고 처리 중이라 빈 값, 번호 나오면 입력)
+OPERATOR_MAIL_ORDER_SALES_NUMBER = ""
 
 # 첫 화면 D-day 기준 시험 (JS 가 방문 날짜 기준으로 남은 날 계산, 회차가 바뀌면 여기만 수정)
 NEXT_EXAM_NAME = "SQLD 제63회"

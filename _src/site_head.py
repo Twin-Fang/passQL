@@ -127,11 +127,12 @@ def render_store_buttons(root, extra_class=""):
 
 
 def render_operator_lines():
-    """운영자 표기: 상호 > 대표자 > 사업자등록번호 > 문의 (빈 값 줄은 생략)"""
+    """운영자 표기: 상호 > 대표자 > 사업자등록번호 > 통신판매업 신고번호 > 문의 (빈 값 줄은 생략)"""
     operator_fields = [
         ("상호", content.OPERATOR_BUSINESS_NAME),
         ("대표자", content.OPERATOR_REPRESENTATIVE_NAME),
         ("사업자등록번호", content.OPERATOR_BUSINESS_REGISTRATION_NUMBER),
+        ("통신판매업 신고번호", content.OPERATOR_MAIL_ORDER_SALES_NUMBER),
     ]
     field_items = "".join(
         f"<span>{escape(label)} {escape(value)}</span>" for label, value in operator_fields if value
