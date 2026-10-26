@@ -1296,6 +1296,10 @@ export interface paths {
          *       - 지금 노출할 공지. 중요 공지 먼저, 그다음 최근 등록 순
          *       - noticeUuid, title, body, startsAt, endsAt(KST, null 가능), isActive, isImportant
          *       - publishedAt: 게시 시각 (노출 시작, 없으면 등록 시각, KST)
+         *     - isAndroidBillingEnabled: Android 결제 스위치
+         *     - businessInfo (BusinessInfoResponse) — 사업자 정보 표기 (관리자 설정 business.*)
+         *       - companyName: 상호 (null 이면 사업자 정보 섹션 숨김)
+         *       - representativeName, registrationNumber, contactEmail, mailOrderSalesNumber: null 이면 그 줄 숨김
          */
         get: operations["getAppConfig"];
         put?: never;
@@ -1845,6 +1849,7 @@ export interface components {
         };
         AppConfigResponse: {
             android: components["schemas"]["AppPlatformVersionResponse"];
+            businessInfo: components["schemas"]["BusinessInfoResponse"];
             ios: components["schemas"]["AppPlatformVersionResponse"];
             isAndroidBillingEnabled: boolean;
             maintenance: components["schemas"]["AppMaintenanceResponse"];
@@ -1904,6 +1909,13 @@ export interface components {
             /** Format: date-time */
             blockedAt: string;
             nickname: string;
+        };
+        BusinessInfoResponse: {
+            companyName: string | null;
+            contactEmail: string | null;
+            mailOrderSalesNumber: string | null;
+            registrationNumber: string | null;
+            representativeName: string | null;
         };
         ChoiceAnalysis: {
             /** @description 보기 키 (A~D) */

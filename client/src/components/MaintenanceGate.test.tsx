@@ -35,7 +35,8 @@ function renderGate() {
 function buildAppConfig(isUnderMaintenance: boolean, message: string | null): AppConfigResponse {
   // 앱 전용 버전 정책 (웹 점검 판정과 무관)
   const platformVersion = { minimumVersion: "1.0.0", recommendedVersion: "1.0.0", storeUrl: "" };
-  return { android: platformVersion, ios: platformVersion, maintenance: { isUnderMaintenance, message }, notices: [], isAndroidBillingEnabled: false };
+  return { android: platformVersion, ios: platformVersion, maintenance: { isUnderMaintenance, message }, notices: [], isAndroidBillingEnabled: false,
+    businessInfo: { companyName: null, representativeName: null, registrationNumber: null, contactEmail: null, mailOrderSalesNumber: null } };
 }
 
 afterEach(() => {

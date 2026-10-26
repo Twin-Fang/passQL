@@ -107,6 +107,7 @@ public interface MetaControllerDocs {
   @ApiLogs({
       @ApiLog(date = "2026.10.15", author = Author.SUHSAECHAN, issueNumber = 464, description = "앱 시작 설정 조회 API 추가 — 최소/권장 버전, 점검, 공지"),
       @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 529, description = "공지에 게시 시각 publishedAt 추가"),
+      @ApiLog(date = "2026.10.26", author = Author.SUHSAECHAN, issueNumber = 658, description = "사업자 정보 businessInfo 추가"),
   })
   @Operation(
       summary = "앱 시작 설정 조회",
@@ -130,6 +131,10 @@ public interface MetaControllerDocs {
             - 지금 노출할 공지. 중요 공지 먼저, 그다음 최근 등록 순
             - noticeUuid, title, body, startsAt, endsAt(KST, null 가능), isActive, isImportant
             - publishedAt: 게시 시각 (노출 시작, 없으면 등록 시각, KST)
+          - isAndroidBillingEnabled: Android 결제 스위치
+          - businessInfo (BusinessInfoResponse) — 사업자 정보 표기 (관리자 설정 business.*)
+            - companyName: 상호 (null 이면 사업자 정보 섹션 숨김)
+            - representativeName, registrationNumber, contactEmail, mailOrderSalesNumber: null 이면 그 줄 숨김
           """
   )
   ResponseEntity<AppConfigResponse> getAppConfig();

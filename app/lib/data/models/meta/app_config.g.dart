@@ -56,6 +56,24 @@ Map<String, dynamic> _$$AppNoticeImplToJson(_$AppNoticeImpl instance) =>
       'publishedAt': instance.publishedAt?.toIso8601String(),
     };
 
+_$BusinessInfoImpl _$$BusinessInfoImplFromJson(Map<String, dynamic> json) =>
+    _$BusinessInfoImpl(
+      companyName: json['companyName'] as String?,
+      representativeName: json['representativeName'] as String?,
+      registrationNumber: json['registrationNumber'] as String?,
+      contactEmail: json['contactEmail'] as String?,
+      mailOrderSalesNumber: json['mailOrderSalesNumber'] as String?,
+    );
+
+Map<String, dynamic> _$$BusinessInfoImplToJson(_$BusinessInfoImpl instance) =>
+    <String, dynamic>{
+      'companyName': instance.companyName,
+      'representativeName': instance.representativeName,
+      'registrationNumber': instance.registrationNumber,
+      'contactEmail': instance.contactEmail,
+      'mailOrderSalesNumber': instance.mailOrderSalesNumber,
+    };
+
 _$AppConfigImpl _$$AppConfigImplFromJson(
   Map<String, dynamic> json,
 ) => _$AppConfigImpl(
@@ -78,6 +96,9 @@ _$AppConfigImpl _$$AppConfigImplFromJson(
           .toList() ??
       const [],
   isAndroidBillingEnabled: json['isAndroidBillingEnabled'] as bool? ?? false,
+  businessInfo: json['businessInfo'] == null
+      ? const BusinessInfo()
+      : BusinessInfo.fromJson(json['businessInfo'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$$AppConfigImplToJson(_$AppConfigImpl instance) =>
@@ -87,4 +108,5 @@ Map<String, dynamic> _$$AppConfigImplToJson(_$AppConfigImpl instance) =>
       'maintenance': instance.maintenance,
       'notices': instance.notices,
       'isAndroidBillingEnabled': instance.isAndroidBillingEnabled,
+      'businessInfo': instance.businessInfo,
     };

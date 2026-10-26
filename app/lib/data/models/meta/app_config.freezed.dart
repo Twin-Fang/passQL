@@ -669,6 +669,261 @@ abstract class _AppNotice implements AppNotice {
       throw _privateConstructorUsedError;
 }
 
+BusinessInfo _$BusinessInfoFromJson(Map<String, dynamic> json) {
+  return _BusinessInfo.fromJson(json);
+}
+
+/// @nodoc
+mixin _$BusinessInfo {
+  String? get companyName => throw _privateConstructorUsedError;
+  String? get representativeName => throw _privateConstructorUsedError;
+  String? get registrationNumber => throw _privateConstructorUsedError;
+  String? get contactEmail => throw _privateConstructorUsedError;
+  String? get mailOrderSalesNumber => throw _privateConstructorUsedError;
+
+  /// Serializes this BusinessInfo to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of BusinessInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $BusinessInfoCopyWith<BusinessInfo> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $BusinessInfoCopyWith<$Res> {
+  factory $BusinessInfoCopyWith(
+    BusinessInfo value,
+    $Res Function(BusinessInfo) then,
+  ) = _$BusinessInfoCopyWithImpl<$Res, BusinessInfo>;
+  @useResult
+  $Res call({
+    String? companyName,
+    String? representativeName,
+    String? registrationNumber,
+    String? contactEmail,
+    String? mailOrderSalesNumber,
+  });
+}
+
+/// @nodoc
+class _$BusinessInfoCopyWithImpl<$Res, $Val extends BusinessInfo>
+    implements $BusinessInfoCopyWith<$Res> {
+  _$BusinessInfoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of BusinessInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? companyName = freezed,
+    Object? representativeName = freezed,
+    Object? registrationNumber = freezed,
+    Object? contactEmail = freezed,
+    Object? mailOrderSalesNumber = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            companyName: freezed == companyName
+                ? _value.companyName
+                : companyName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            representativeName: freezed == representativeName
+                ? _value.representativeName
+                : representativeName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            registrationNumber: freezed == registrationNumber
+                ? _value.registrationNumber
+                : registrationNumber // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            contactEmail: freezed == contactEmail
+                ? _value.contactEmail
+                : contactEmail // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            mailOrderSalesNumber: freezed == mailOrderSalesNumber
+                ? _value.mailOrderSalesNumber
+                : mailOrderSalesNumber // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$BusinessInfoImplCopyWith<$Res>
+    implements $BusinessInfoCopyWith<$Res> {
+  factory _$$BusinessInfoImplCopyWith(
+    _$BusinessInfoImpl value,
+    $Res Function(_$BusinessInfoImpl) then,
+  ) = __$$BusinessInfoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String? companyName,
+    String? representativeName,
+    String? registrationNumber,
+    String? contactEmail,
+    String? mailOrderSalesNumber,
+  });
+}
+
+/// @nodoc
+class __$$BusinessInfoImplCopyWithImpl<$Res>
+    extends _$BusinessInfoCopyWithImpl<$Res, _$BusinessInfoImpl>
+    implements _$$BusinessInfoImplCopyWith<$Res> {
+  __$$BusinessInfoImplCopyWithImpl(
+    _$BusinessInfoImpl _value,
+    $Res Function(_$BusinessInfoImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of BusinessInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? companyName = freezed,
+    Object? representativeName = freezed,
+    Object? registrationNumber = freezed,
+    Object? contactEmail = freezed,
+    Object? mailOrderSalesNumber = freezed,
+  }) {
+    return _then(
+      _$BusinessInfoImpl(
+        companyName: freezed == companyName
+            ? _value.companyName
+            : companyName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        representativeName: freezed == representativeName
+            ? _value.representativeName
+            : representativeName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        registrationNumber: freezed == registrationNumber
+            ? _value.registrationNumber
+            : registrationNumber // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        contactEmail: freezed == contactEmail
+            ? _value.contactEmail
+            : contactEmail // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        mailOrderSalesNumber: freezed == mailOrderSalesNumber
+            ? _value.mailOrderSalesNumber
+            : mailOrderSalesNumber // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$BusinessInfoImpl implements _BusinessInfo {
+  const _$BusinessInfoImpl({
+    this.companyName,
+    this.representativeName,
+    this.registrationNumber,
+    this.contactEmail,
+    this.mailOrderSalesNumber,
+  });
+
+  factory _$BusinessInfoImpl.fromJson(Map<String, dynamic> json) =>
+      _$$BusinessInfoImplFromJson(json);
+
+  @override
+  final String? companyName;
+  @override
+  final String? representativeName;
+  @override
+  final String? registrationNumber;
+  @override
+  final String? contactEmail;
+  @override
+  final String? mailOrderSalesNumber;
+
+  @override
+  String toString() {
+    return 'BusinessInfo(companyName: $companyName, representativeName: $representativeName, registrationNumber: $registrationNumber, contactEmail: $contactEmail, mailOrderSalesNumber: $mailOrderSalesNumber)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$BusinessInfoImpl &&
+            (identical(other.companyName, companyName) ||
+                other.companyName == companyName) &&
+            (identical(other.representativeName, representativeName) ||
+                other.representativeName == representativeName) &&
+            (identical(other.registrationNumber, registrationNumber) ||
+                other.registrationNumber == registrationNumber) &&
+            (identical(other.contactEmail, contactEmail) ||
+                other.contactEmail == contactEmail) &&
+            (identical(other.mailOrderSalesNumber, mailOrderSalesNumber) ||
+                other.mailOrderSalesNumber == mailOrderSalesNumber));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    companyName,
+    representativeName,
+    registrationNumber,
+    contactEmail,
+    mailOrderSalesNumber,
+  );
+
+  /// Create a copy of BusinessInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$BusinessInfoImplCopyWith<_$BusinessInfoImpl> get copyWith =>
+      __$$BusinessInfoImplCopyWithImpl<_$BusinessInfoImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$BusinessInfoImplToJson(this);
+  }
+}
+
+abstract class _BusinessInfo implements BusinessInfo {
+  const factory _BusinessInfo({
+    final String? companyName,
+    final String? representativeName,
+    final String? registrationNumber,
+    final String? contactEmail,
+    final String? mailOrderSalesNumber,
+  }) = _$BusinessInfoImpl;
+
+  factory _BusinessInfo.fromJson(Map<String, dynamic> json) =
+      _$BusinessInfoImpl.fromJson;
+
+  @override
+  String? get companyName;
+  @override
+  String? get representativeName;
+  @override
+  String? get registrationNumber;
+  @override
+  String? get contactEmail;
+  @override
+  String? get mailOrderSalesNumber;
+
+  /// Create a copy of BusinessInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$BusinessInfoImplCopyWith<_$BusinessInfoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
 AppConfig _$AppConfigFromJson(Map<String, dynamic> json) {
   return _AppConfig.fromJson(json);
 }
@@ -680,7 +935,9 @@ mixin _$AppConfig {
   AppMaintenanceStatus get maintenance => throw _privateConstructorUsedError;
   List<AppNotice> get notices =>
       throw _privateConstructorUsedError; // 서버 결제 스위치 (false 면 잠금·칩·시트를 그리지 않음)
-  bool get isAndroidBillingEnabled => throw _privateConstructorUsedError;
+  bool get isAndroidBillingEnabled =>
+      throw _privateConstructorUsedError; // 사업자 정보 (구버전 서버면 빈 값 > 섹션 숨김)
+  BusinessInfo get businessInfo => throw _privateConstructorUsedError;
 
   /// Serializes this AppConfig to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -703,11 +960,13 @@ abstract class $AppConfigCopyWith<$Res> {
     AppMaintenanceStatus maintenance,
     List<AppNotice> notices,
     bool isAndroidBillingEnabled,
+    BusinessInfo businessInfo,
   });
 
   $AppPlatformVersionPolicyCopyWith<$Res> get ios;
   $AppPlatformVersionPolicyCopyWith<$Res> get android;
   $AppMaintenanceStatusCopyWith<$Res> get maintenance;
+  $BusinessInfoCopyWith<$Res> get businessInfo;
 }
 
 /// @nodoc
@@ -730,6 +989,7 @@ class _$AppConfigCopyWithImpl<$Res, $Val extends AppConfig>
     Object? maintenance = null,
     Object? notices = null,
     Object? isAndroidBillingEnabled = null,
+    Object? businessInfo = null,
   }) {
     return _then(
       _value.copyWith(
@@ -753,6 +1013,10 @@ class _$AppConfigCopyWithImpl<$Res, $Val extends AppConfig>
                 ? _value.isAndroidBillingEnabled
                 : isAndroidBillingEnabled // ignore: cast_nullable_to_non_nullable
                       as bool,
+            businessInfo: null == businessInfo
+                ? _value.businessInfo
+                : businessInfo // ignore: cast_nullable_to_non_nullable
+                      as BusinessInfo,
           )
           as $Val,
     );
@@ -787,6 +1051,16 @@ class _$AppConfigCopyWithImpl<$Res, $Val extends AppConfig>
       return _then(_value.copyWith(maintenance: value) as $Val);
     });
   }
+
+  /// Create a copy of AppConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $BusinessInfoCopyWith<$Res> get businessInfo {
+    return $BusinessInfoCopyWith<$Res>(_value.businessInfo, (value) {
+      return _then(_value.copyWith(businessInfo: value) as $Val);
+    });
+  }
 }
 
 /// @nodoc
@@ -804,6 +1078,7 @@ abstract class _$$AppConfigImplCopyWith<$Res>
     AppMaintenanceStatus maintenance,
     List<AppNotice> notices,
     bool isAndroidBillingEnabled,
+    BusinessInfo businessInfo,
   });
 
   @override
@@ -812,6 +1087,8 @@ abstract class _$$AppConfigImplCopyWith<$Res>
   $AppPlatformVersionPolicyCopyWith<$Res> get android;
   @override
   $AppMaintenanceStatusCopyWith<$Res> get maintenance;
+  @override
+  $BusinessInfoCopyWith<$Res> get businessInfo;
 }
 
 /// @nodoc
@@ -833,6 +1110,7 @@ class __$$AppConfigImplCopyWithImpl<$Res>
     Object? maintenance = null,
     Object? notices = null,
     Object? isAndroidBillingEnabled = null,
+    Object? businessInfo = null,
   }) {
     return _then(
       _$AppConfigImpl(
@@ -856,6 +1134,10 @@ class __$$AppConfigImplCopyWithImpl<$Res>
             ? _value.isAndroidBillingEnabled
             : isAndroidBillingEnabled // ignore: cast_nullable_to_non_nullable
                   as bool,
+        businessInfo: null == businessInfo
+            ? _value.businessInfo
+            : businessInfo // ignore: cast_nullable_to_non_nullable
+                  as BusinessInfo,
       ),
     );
   }
@@ -870,6 +1152,7 @@ class _$AppConfigImpl implements _AppConfig {
     this.maintenance = const AppMaintenanceStatus(),
     final List<AppNotice> notices = const [],
     this.isAndroidBillingEnabled = false,
+    this.businessInfo = const BusinessInfo(),
   }) : _notices = notices;
 
   factory _$AppConfigImpl.fromJson(Map<String, dynamic> json) =>
@@ -897,10 +1180,14 @@ class _$AppConfigImpl implements _AppConfig {
   @override
   @JsonKey()
   final bool isAndroidBillingEnabled;
+  // 사업자 정보 (구버전 서버면 빈 값 > 섹션 숨김)
+  @override
+  @JsonKey()
+  final BusinessInfo businessInfo;
 
   @override
   String toString() {
-    return 'AppConfig(ios: $ios, android: $android, maintenance: $maintenance, notices: $notices, isAndroidBillingEnabled: $isAndroidBillingEnabled)';
+    return 'AppConfig(ios: $ios, android: $android, maintenance: $maintenance, notices: $notices, isAndroidBillingEnabled: $isAndroidBillingEnabled, businessInfo: $businessInfo)';
   }
 
   @override
@@ -917,7 +1204,9 @@ class _$AppConfigImpl implements _AppConfig {
                   other.isAndroidBillingEnabled,
                   isAndroidBillingEnabled,
                 ) ||
-                other.isAndroidBillingEnabled == isAndroidBillingEnabled));
+                other.isAndroidBillingEnabled == isAndroidBillingEnabled) &&
+            (identical(other.businessInfo, businessInfo) ||
+                other.businessInfo == businessInfo));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -929,6 +1218,7 @@ class _$AppConfigImpl implements _AppConfig {
     maintenance,
     const DeepCollectionEquality().hash(_notices),
     isAndroidBillingEnabled,
+    businessInfo,
   );
 
   /// Create a copy of AppConfig
@@ -952,6 +1242,7 @@ abstract class _AppConfig implements AppConfig {
     final AppMaintenanceStatus maintenance,
     final List<AppNotice> notices,
     final bool isAndroidBillingEnabled,
+    final BusinessInfo businessInfo,
   }) = _$AppConfigImpl;
 
   factory _AppConfig.fromJson(Map<String, dynamic> json) =
@@ -966,7 +1257,9 @@ abstract class _AppConfig implements AppConfig {
   @override
   List<AppNotice> get notices; // 서버 결제 스위치 (false 면 잠금·칩·시트를 그리지 않음)
   @override
-  bool get isAndroidBillingEnabled;
+  bool get isAndroidBillingEnabled; // 사업자 정보 (구버전 서버면 빈 값 > 섹션 숨김)
+  @override
+  BusinessInfo get businessInfo;
 
   /// Create a copy of AppConfig
   /// with the given fields replaced by the non-null parameter values.
