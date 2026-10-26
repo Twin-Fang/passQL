@@ -886,6 +886,40 @@ jobs:
           echo "$FIREBASE_SA_BASE64" | base64 --decode > firebase-service-account.json
           echo "✅ Firebase 서비스 계정 JSON 파일 생성 완료"
 
+      # 테스터 노트: 빌드 정보 + 변경 내역 (작업 브랜치 = main 이후 커밋 / main = 현재 버전 CHANGELOG)
+      - name: Build Firebase release notes
+        if: needs.prepare-test-build.outputs.firebase_available == 'true'
+        working-directory: ${{ github.workspace }}   # version.yml·changelog_manager.py 는 레포 루트 기준
+        env:
+          BUILD_NUMBER: ${{ needs.prepare-test-build.outputs.build_number }}
+          BRANCH_NAME: ${{ needs.prepare-test-build.outputs.branch_name }}
+          COMMIT_HASH: ${{ needs.prepare-test-build.outputs.commit_hash }}
+          ISSUE_NUMBER: ${{ needs.prepare-test-build.outputs.issue_number }}
+          ISSUE_TITLE: ${{ needs.prepare-test-build.outputs.issue_title }}
+        run: |
+          NOTES_FILE="$APP_ROOT/firebase_release_notes.txt"
+          {
+            echo "테스트 빌드 #$BUILD_NUMBER"
+            echo "브랜치: $BRANCH_NAME"
+            echo "커밋: $COMMIT_HASH"
+            [ -n "$ISSUE_NUMBER" ] && echo "이슈: #$ISSUE_NUMBER $ISSUE_TITLE"
+            echo ""
+          } > "$NOTES_FILE"
+
+          # 작업 브랜치 커밋 제목 (merge·[skip ci] 제외, 이슈 URL 제거)
+          BRANCH_COMMITS=$(git log --no-merges --format='- %s' origin/main..HEAD 2>/dev/null \
+            | grep -v -e '\[skip ci\]' -e '버전 관리 :' -e '버전 정보 관리:' | sed -E 's# https://github\.com/[^ ]*##g' || true)
+          if [ -n "$BRANCH_COMMITS" ]; then
+            { echo "변경 내역"; echo "$BRANCH_COMMITS"; } >> "$NOTES_FILE"
+          else
+            VERSION=$(sed -nE 's/^version:[[:space:]]*"?([^"]+)"?.*/\1/p' version.yml | head -1)
+            python3 ./.github/scripts/changelog_manager.py export --version "$VERSION" >> "$NOTES_FILE"
+          fi
+
+          # Firebase 노트 길이 제한 안전망 (4000자)
+          bash ./.github/scripts/truncate_release_notes.sh "$NOTES_FILE" 4000 char
+          cat "$NOTES_FILE"
+
       - name: Upload to Firebase App Distribution
         id: firebase_upload
         if: needs.prepare-test-build.outputs.firebase_available == 'true'
@@ -899,11 +933,7 @@ jobs:
           serviceCredentialsFile: ${{ env.APP_ROOT }}/firebase-service-account.json
           groups: ${{ env.FIREBASE_TESTER_GROUP }}
           file: ${{ env.APP_ROOT }}/android/app/build/outputs/apk/release/${{ steps.apk_filename.outputs.apk_name }}
-          releaseNotes: |
-            테스트 빌드 #${{ needs.prepare-test-build.outputs.build_number }}
-            브랜치: ${{ needs.prepare-test-build.outputs.branch_name }}
-            커밋: ${{ needs.prepare-test-build.outputs.commit_hash }}
-            이슈: #${{ needs.prepare-test-build.outputs.issue_number }} ${{ needs.prepare-test-build.outputs.issue_title }}
+          releaseNotesFile: ${{ env.APP_ROOT }}/firebase_release_notes.txt
 
       - name: Cleanup Firebase credentials
         if: always() && needs.prepare-test-build.outputs.firebase_available == 'true'
