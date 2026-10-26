@@ -64,7 +64,7 @@ env:
   # Firebase App Distribution: 스토어 빌드와 같은 버전을 테스터 그룹에도 배포 (passQL-Android-Prod, 그룹 별칭 testers) (#513)
   FIREBASE_APP_ID: "1:662424763183:android:75cef576d6ae3d9323bfda"
   FIREBASE_TESTER_GROUP: "testers"
-  # Play 스토어 '새로운 기능' 문구 고정: 값이 있으면 매번 이 문구, ""이면 CHANGELOG.json 해당 버전 (iOS 워크플로 같은 이름 설정과 함께 바꾼다)
+  # Play 스토어 '새로운 기능' 문구 고정: 출시(store_prepare·store_submit)에서만 이 문구, store_only·""이면 CHANGELOG.json 해당 버전 (iOS 워크플로 같은 이름 설정과 함께 바꾼다)
   # 스토어·심사자에게 보이는 칸만 해당. Firebase 테스터 노트는 CHANGELOG 그대로
   STORE_WHATS_NEW_OVERRIDE: "앱 안정성과 사용성을 개선했습니다."
   # 배포 모드 (store_only | store_prepare | store_submit)
@@ -756,8 +756,8 @@ jobs:
           CHANGELOG_DIR="android/fastlane/metadata/android/ko-KR/changelogs"
           mkdir -p "$CHANGELOG_DIR"
 
-          if [ -n "$STORE_WHATS_NEW_OVERRIDE" ]; then
-            # 고정 문구 우선 (env STORE_WHATS_NEW_OVERRIDE)
+          if [ -n "$STORE_WHATS_NEW_OVERRIDE" ] && [ "$DEPLOY_MODE" != "store_only" ]; then
+            # 출시(store_prepare·store_submit)만 고정 문구, 내부 테스트(store_only)는 CHANGELOG
             printf '%s\n' "$STORE_WHATS_NEW_OVERRIDE" > "$CHANGELOG_DIR/${VERSION_CODE}.txt"
             echo "✅ 고정 Changelog 사용 (버전 코드: $VERSION_CODE)"
           elif [ -f "$GITHUB_WORKSPACE/final_release_notes.txt" ]; then
