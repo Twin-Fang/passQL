@@ -865,51 +865,32 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * 건의사항 제출
+         * 의견 보내기 (multipart)
          * @description ## 인증(JWT): **필요**
          *
-         *     ## 요청 바디 (FeedbackSubmitRequest)
-         *     - **`content`**: 건의사항 내용 (1자 이상 500자 이하, 필수)
+         *     ## 요청 (multipart/form-data)
+         *     - **`request`** (application/json, 필수): `{ "content": "..." }` (앞뒤 공백 제거 후 1~500자)
+         *     - **`images`** (선택, 0~10개): WebP 원본 (장당 600KB 이하, 긴 변 1920px 이하)
+         *     - **`diagnostics`** (선택, application/json): 진단 정보 JSON 객체 (32KB 이하)
+         *     - **`log`** (선택, application/gzip): 앱 로그 gzip (2MB 이하)
          *
          *     ## 반환값 (FeedbackSubmitResponse)
-         *     - **`feedbackUuid`**: 생성된 건의사항 UUID
+         *     - **`feedbackUuid`**: 생성된 의견 UUID
          *     - **`status`**: 초기 상태 (항상 PENDING)
          *     - **`createdAt`**: 생성 시각
          *
+         *     ## 설명
+         *     - 검증 순서: 글 > 이미지 장수 > 이미지 WebP·용량 > 진단 JSON > 로그 > 하루 한도(회원당 10건, Asia/Seoul)
+         *     - WebP·gzip 판별은 바이트 앞부분으로만 한다 (Content-Type·확장자는 보지 않음)
+         *     - 첨부가 있는데 저장소가 꺼져 있거나 업로드가 실패하면 글도 저장하지 않는다
+         *
          *     ## 에러
-         *     - 400: content가 비어 있거나 500자 초과
+         *     - 400 FEEDBACK_CONTENT_EMPTY / FEEDBACK_CONTENT_TOO_LONG / FEEDBACK_IMAGE_TOO_MANY / FEEDBACK_IMAGE_INVALID / FEEDBACK_ATTACHMENT_INVALID
+         *     - 413 FEEDBACK_ATTACHMENT_TOO_LARGE
+         *     - 429 FEEDBACK_DAILY_LIMIT_EXCEEDED
+         *     - 503 FEEDBACK_STORAGE_UNAVAILABLE
          */
         post: operations["submit_1"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/feedback/me": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 내 건의사항 목록 조회
-         * @description ## 인증(JWT): **필요**
-         *
-         *     ## 반환값 (FeedbackListResponse)
-         *     - **`items`**: 건의사항 목록 (createdAt 내림차순)
-         *       - **`feedbackUuid`**: 건의사항 UUID
-         *       - **`content`**: 내용
-         *       - **`status`**: PENDING / REVIEWED / APPLIED
-         *       - **`createdAt`**: 생성 시각
-         *
-         *     ## 에러
-         *     - 건의사항이 없으면 200 + { "items": [] } 반환 (404 금지)
-         */
-        get: operations["getMyFeedbacks"];
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2341,7 +2322,7 @@ export interface components {
          * @description 서버 ErrorCode enum 이름 (응답 errorCode 값)
          * @enum {string}
          */
-        ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "EMBEDDING_INDEX_ALREADY_RUNNING" | "PROMPT_NOT_FOUND" | "PROMPT_HISTORY_NOT_FOUND" | "PROMPT_ACTIVE_DELETE_FORBIDDEN" | "TOPIC_NOT_FOUND" | "CONCEPT_NOT_FOUND" | "CONCEPT_CHECK_QUESTION_NOT_FOUND" | "TOPIC_DUPLICATE" | "TOPIC_HAS_QUESTIONS" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_CHALLENGE_RANGE_INVALID" | "DAILY_CHALLENGE_TOO_MANY_QUESTIONS" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "APP_MAINTENANCE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "COMMUNITY_POST_NOT_FOUND" | "COMMUNITY_SOLVE_REQUIRED" | "COMMUNITY_CONTENT_INVALID" | "COMMUNITY_CONTENT_FORBIDDEN_WORD" | "COMMUNITY_POST_DUPLICATE" | "COMMUNITY_POST_RATE_LIMITED" | "COMMUNITY_POST_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_POST_FORBIDDEN" | "COMMUNITY_SELF_REPORT_FORBIDDEN" | "COMMUNITY_SELF_BLOCK_FORBIDDEN" | "COMMUNITY_BLOCK_NOT_FOUND" | "COMMUNITY_IMAGE_STORAGE_UNAVAILABLE" | "COMMUNITY_IMAGE_INVALID_FORMAT" | "COMMUNITY_IMAGE_TOO_LARGE" | "COMMUNITY_IMAGE_DIMENSION_EXCEEDED" | "COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED" | "COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_IMAGE_QUOTA_EXCEEDED" | "COMMUNITY_IMAGE_NOT_FOUND" | "COMMUNITY_IMAGE_TOO_MANY" | "COMMUNITY_IMAGE_INVALID_ATTACHMENT" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "ADMIN_ACCOUNT_SELF_DELETE_FORBIDDEN" | "ADMIN_ACCOUNT_DELETE_REQUIRES_DISABLED" | "ADMIN_ACCOUNT_LAST_ADMIN_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_INACTIVE_DAYS_INVALID" | "PUSH_SCHEDULE_TIME_INVALID" | "PUSH_NOT_SCHEDULED" | "PUSH_RETRACT_NOT_DISPATCHED" | "PUSH_TEMPLATE_NOT_FOUND" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER" | "SOCIAL_LOGIN_UNAVAILABLE" | "INVALID_SOCIAL_AUTHORIZATION_CODE" | "INVALID_SOCIAL_TOKEN" | "PRO_REQUIRED" | "FREE_DAILY_LIMIT_REACHED" | "FAIR_USE_DAILY_LIMIT_REACHED";
+        ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "REQUEST_TOO_LARGE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "EMBEDDING_INDEX_ALREADY_RUNNING" | "PROMPT_NOT_FOUND" | "PROMPT_HISTORY_NOT_FOUND" | "PROMPT_ACTIVE_DELETE_FORBIDDEN" | "TOPIC_NOT_FOUND" | "CONCEPT_NOT_FOUND" | "CONCEPT_CHECK_QUESTION_NOT_FOUND" | "TOPIC_DUPLICATE" | "TOPIC_HAS_QUESTIONS" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_CHALLENGE_RANGE_INVALID" | "DAILY_CHALLENGE_TOO_MANY_QUESTIONS" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "FEEDBACK_IMAGE_TOO_MANY" | "FEEDBACK_IMAGE_INVALID" | "FEEDBACK_ATTACHMENT_TOO_LARGE" | "FEEDBACK_ATTACHMENT_INVALID" | "FEEDBACK_DAILY_LIMIT_EXCEEDED" | "FEEDBACK_STORAGE_UNAVAILABLE" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "APP_MAINTENANCE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "COMMUNITY_POST_NOT_FOUND" | "COMMUNITY_SOLVE_REQUIRED" | "COMMUNITY_CONTENT_INVALID" | "COMMUNITY_CONTENT_FORBIDDEN_WORD" | "COMMUNITY_POST_DUPLICATE" | "COMMUNITY_POST_RATE_LIMITED" | "COMMUNITY_POST_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_POST_FORBIDDEN" | "COMMUNITY_SELF_REPORT_FORBIDDEN" | "COMMUNITY_SELF_BLOCK_FORBIDDEN" | "COMMUNITY_BLOCK_NOT_FOUND" | "COMMUNITY_IMAGE_STORAGE_UNAVAILABLE" | "COMMUNITY_IMAGE_INVALID_FORMAT" | "COMMUNITY_IMAGE_TOO_LARGE" | "COMMUNITY_IMAGE_DIMENSION_EXCEEDED" | "COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED" | "COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_IMAGE_QUOTA_EXCEEDED" | "COMMUNITY_IMAGE_NOT_FOUND" | "COMMUNITY_IMAGE_TOO_MANY" | "COMMUNITY_IMAGE_INVALID_ATTACHMENT" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "ADMIN_ACCOUNT_SELF_DELETE_FORBIDDEN" | "ADMIN_ACCOUNT_DELETE_REQUIRES_DISABLED" | "ADMIN_ACCOUNT_LAST_ADMIN_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_INACTIVE_DAYS_INVALID" | "PUSH_SCHEDULE_TIME_INVALID" | "PUSH_NOT_SCHEDULED" | "PUSH_RETRACT_NOT_DISPATCHED" | "PUSH_TEMPLATE_NOT_FOUND" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER" | "SOCIAL_LOGIN_UNAVAILABLE" | "INVALID_SOCIAL_AUTHORIZATION_CODE" | "INVALID_SOCIAL_TOKEN" | "PRO_REQUIRED" | "FREE_DAILY_LIMIT_REACHED" | "FAIR_USE_DAILY_LIMIT_REACHED";
         /** @description API 에러 응답 표준 형식 */
         ErrorResponse: {
             errorCode: components["schemas"]["ErrorCode"];
@@ -2415,17 +2396,6 @@ export interface components {
             rowCount: number;
             rows: unknown[][];
             status: string | null;
-        };
-        FeedbackItem: {
-            content: string;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: uuid */
-            feedbackUuid: string;
-            status: string;
-        };
-        FeedbackListResponse: {
-            items: components["schemas"]["FeedbackItem"][];
         };
         FeedbackSubmitRequest: {
             content: string;
@@ -3666,9 +3636,16 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
+        requestBody?: {
             content: {
-                "application/json": components["schemas"]["FeedbackSubmitRequest"];
+                "multipart/form-data": {
+                    /** Format: binary */
+                    diagnostics?: string;
+                    images?: string[];
+                    /** Format: binary */
+                    log?: string;
+                    request: components["schemas"]["FeedbackSubmitRequest"];
+                };
             };
         };
         responses: {
@@ -3679,26 +3656,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["FeedbackSubmitResponse"];
-                };
-            };
-        };
-    };
-    getMyFeedbacks: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["FeedbackListResponse"];
                 };
             };
         };

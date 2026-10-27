@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Send, AlertTriangle } from "lucide-react";
 import { useSubmitFeedback } from "../hooks/useFeedback";
 
 const MAX_LENGTH = 500;
+const SUCCESS_TOAST_VISIBLE_MILLISECONDS = 3000;
+const SUCCESS_MESSAGE = "보내 주셔서 고마워요. 확인까지 2~3일 걸릴 수 있어요";
 
 interface FeedbackFormProps {
   /** 오프라인 상태일 때 true — textarea + 버튼 비활성 */
@@ -13,28 +15,50 @@ interface FeedbackFormProps {
  * 건의사항 하단 고정 입력 영역
  * - textarea wrap: 포커스 시 보더 인디고
  * - 1자 이상 입력 시 보내기 버튼 활성
- * - 전송 실패 시 인라인 에러 배너 + 재시도 버튼
+ * - 전송 성공 시 입력 비우고 토스트, 실패 시 인라인 에러 배너 + 재시도 버튼
  */
 export default function FeedbackForm({ disabled = false }: FeedbackFormProps) {
   const [content, setContent] = useState("");
+  const [isSuccessToastVisible, setIsSuccessToastVisible] = useState(false);
+  const toastTimerIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mutation = useSubmitFeedback();
+
+  // 언마운트 시 토스트 타이머 정리
+  useEffect(() => () => {
+    if (toastTimerIdRef.current !== null) clearTimeout(toastTimerIdRef.current);
+  }, []);
+
+  const handleSendSucceeded = () => {
+    setContent("");
+    setIsSuccessToastVisible(true);
+    if (toastTimerIdRef.current !== null) clearTimeout(toastTimerIdRef.current);
+    toastTimerIdRef.current = setTimeout(() => setIsSuccessToastVisible(false), SUCCESS_TOAST_VISIBLE_MILLISECONDS);
+  };
 
   const isValid = content.length >= 1 && content.length <= MAX_LENGTH;
   const isDisabled = disabled || !isValid || mutation.isPending;
 
   const handleSubmit = () => {
     if (!isValid || mutation.isPending) return;
-    mutation.mutate(content, { onSuccess: () => setContent("") });
+    mutation.mutate(content, { onSuccess: handleSendSucceeded });
   };
 
   const handleRetry = () => {
     if (!isValid || mutation.isPending) return;
     mutation.reset();
-    mutation.mutate(content, { onSuccess: () => setContent("") });
+    mutation.mutate(content, { onSuccess: handleSendSucceeded });
   };
 
   return (
     <div className="shrink-0 border-t border-border bg-surface-card px-3 pt-2.5 pb-4">
+      {/* 전송 성공 토스트 */}
+      {isSuccessToastVisible && (
+        <div className="toast toast-top toast-end z-50">
+          <div className="alert alert-success text-sm">
+            <span>{SUCCESS_MESSAGE}</span>
+          </div>
+        </div>
+      )}
       {/* textarea wrap */}
       <div
         className={`bg-surface border rounded-xl px-3 pt-2.5 pb-2 transition-colors ${
