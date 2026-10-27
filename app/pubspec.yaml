@@ -1,7 +1,7 @@
 name: passql_app
 description: "passQL - SQL 학습 앱"
 publish_to: none
-version: 1.62.0+412
+version: 1.63.0+413
 environment:
   sdk: ^3.9.2
 dependencies:
