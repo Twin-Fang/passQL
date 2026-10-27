@@ -87,6 +87,8 @@ abstract final class ErrorCodeMapper {
     'TYPE_MISMATCH': ErrorCode.validation,
     // 없음 (없는 경로 404 도 서버가 RESOURCE_NOT_FOUND 로 변환)
     'RESOURCE_NOT_FOUND': ErrorCode.notFound,
+    'CONCEPT_NOT_FOUND': ErrorCode.notFound,
+    'CONCEPT_CHECK_QUESTION_NOT_FOUND': ErrorCode.notFound,
     // 충돌: DB 제약 위반(GlobalExceptionHandler 409)
     'DATA_INTEGRITY_VIOLATION': ErrorCode.conflict,
     'RATE_LIMITED': ErrorCode.rateLimited,

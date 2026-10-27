@@ -7,6 +7,8 @@ abstract final class AppRoutes {
   static const String legalTypeParameter = 'type';
   static const String questionUuidParameter = 'questionUuid';
   static const String noticeUuidParameter = 'noticeUuid';
+  static const String topicUuidParameter = 'topicUuid';
+  static const String conceptUuidParameter = 'conceptUuid';
   // 커뮤니티 피드 시작 탭 (값은 CommunityFeedSource.serverValue)
   static const String communitySourceQuery = 'source';
   static const String topicCodeQuery = 'topic';
@@ -35,6 +37,7 @@ abstract final class AppRoutes {
 
   // 탭 루트
   static const String home = '/home';
+  static const String concepts = '/concepts';
   static const String questions = '/questions';
   static const String stats = '/stats';
   static const String settings = '/settings';
@@ -43,9 +46,32 @@ abstract final class AppRoutes {
   static String questionsOf(String viewQueryValue) =>
       '$questions?$questionsViewQuery=$viewQueryValue';
 
-  /// 하단 탭 순서(홈·문제·토론·내 프로필). 탭 인덱스 <-> 경로 변환 기준
+  /// 하단 탭 순서(홈·개념·문제·토론·내 프로필). 탭 인덱스 <-> 경로 변환 기준
   /// 내 프로필 탭은 [stats] 경로, 설정은 톱니바퀴로 여는 푸시 화면(탭 아님)
-  static const List<String> tabRoots = [home, questions, community, stats];
+  /// 개념 탭은 이용 가능할 때만 보이지만 브랜치 순서는 고정 (#577)
+  static const List<String> tabRoots = [
+    home,
+    concepts,
+    questions,
+    community,
+    stats,
+  ];
+
+  // 개념 학습 (#577)
+  /// 라우터 정의용 단원 상세 경로 패턴: /concept-topics/:topicUuid
+  static const String conceptTopicPattern =
+      '/concept-topics/:$topicUuidParameter';
+
+  /// 단원 상세(개념 목록). 개념 탭에서 진입
+  static String conceptTopic(String topicUuid) => '/concept-topics/$topicUuid';
+
+  /// 라우터 정의용 개념 학습 경로 패턴: /concept-study/:conceptUuid
+  static const String conceptStudyPattern =
+      '/concept-study/:$conceptUuidParameter';
+
+  /// 개념 학습(읽기·풀기). 단원 상세·이어서 학습에서 진입
+  static String conceptStudy(String conceptUuid) =>
+      '/concept-study/$conceptUuid';
 
   // 설정 서브 라우트
   /// 건의사항 작성/내역.
