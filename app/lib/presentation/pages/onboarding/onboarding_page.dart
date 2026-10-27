@@ -72,6 +72,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
           children: onboardingSlides,
         ),
         bottomNavigationBar: PassqlBottomActionBar(
+          hasTopHairline: false,
           actions: [
             PassqlButton(
               label: _isLastPage ? '첫 문제 풀기' : '다음',

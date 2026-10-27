@@ -29,6 +29,7 @@ class OnboardingCelebrationPage extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: PassqlBottomActionBar(
+        hasTopHairline: false,
         actions: [
           PassqlButton(
             label: isLastQuestion ? '결과 보기' : '이어서 풀기',
