@@ -8,6 +8,7 @@ import '../../../core/logging/app_logger.dart';
 import '../../../core/validation/feedback_validator.dart';
 import '../../../data/feedback/feedback_image_compressor.dart';
 import '../../design/design.dart';
+import '../../../router/app_routes.dart';
 import '../../providers/feedback_providers.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/feedback/feedback_content_field.dart';
@@ -17,6 +18,7 @@ import '../../widgets/feedback/feedback_image_strip.dart';
 
 const String _successToastMessage = '보내 주셔서 고마워요. 확인까지 2~3일 걸릴 수 있어요';
 const String _imageLimitToastMessage = '사진은 최대 10장까지 보낼 수 있어요';
+const String _sendFailedMessage = '의견을 보내지 못했어요. 잠시 후 다시 시도해 주세요.';
 const String _imageLoadFailedMessage = '사진을 불러오지 못했어요. 다시 선택해 주세요.';
 
 /// 의견 보내기 화면: 글 + 사진(최대 10장) + 진단 정보 동의를 한 번에 전송
@@ -34,6 +36,7 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
   final List<FeedbackImageDraft> _imageDrafts = [];
 
   bool _isSending = false;
+  bool _isOpeningDiagnosticsSheet = false;
   bool _shouldIncludeDiagnostics = true;
   String? _errorMessage;
   int _nextImageId = 0;
@@ -106,6 +109,7 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
     ];
     setState(() => _imageDrafts.addAll(pendingDrafts));
     for (var index = 0; index < pickedFiles.length; index++) {
+      if (!mounted) return;
       await _compressImage(pendingDrafts[index].id, pickedFiles[index]);
     }
   }
@@ -137,10 +141,23 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
     if (index >= 0) _imageDrafts[index] = updatedDraft;
   });
 
-  void _removeImage(int draftId) =>
-      setState(() => _imageDrafts.removeWhere((draft) => draft.id == draftId));
+  void _removeImage(int draftId) {
+    if (_isSending) return;
+    setState(() => _imageDrafts.removeWhere((draft) => draft.id == draftId));
+  }
 
   Future<void> _showDiagnosticsSheet() async {
+    // 수집·시트 표시 중 중복 탭 무시
+    if (_isOpeningDiagnosticsSheet) return;
+    _isOpeningDiagnosticsSheet = true;
+    try {
+      await _openDiagnosticsSheet();
+    } finally {
+      _isOpeningDiagnosticsSheet = false;
+    }
+  }
+
+  Future<void> _openDiagnosticsSheet() async {
     final collector = ref.read(appDiagnosticsCollectorProvider);
     final diagnostics = await collector.collect(
       context: context,
@@ -175,12 +192,21 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
           );
       // 전송 중 화면을 떠났으면 결과는 무시
       if (!mounted) return;
-      context.pop();
+      // 딥링크 등으로 되돌아갈 화면이 없으면 설정으로 이동
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go(AppRoutes.settings);
+      }
       if (toastContext.mounted) {
         showAppToast(toastContext, _successToastMessage);
       }
     } on AppException catch (exception) {
       if (mounted) setState(() => _errorMessage = exception.message);
+    } catch (error) {
+      // 로그 읽기·조립 등 예상 밖 실패도 에러 줄로 안내
+      AppLogger.warn('feedback', 'send failed : $error');
+      if (mounted) setState(() => _errorMessage = _sendFailedMessage);
     } finally {
       if (mounted) setState(() => _isSending = false);
     }

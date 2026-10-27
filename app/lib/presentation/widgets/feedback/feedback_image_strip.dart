@@ -78,7 +78,7 @@ class _AddTile extends StatelessWidget {
               color: onPressed == null ? colors.tertiaryLabel : colors.accent,
             ),
             Text(
-              '사진 $count/$maxCount',
+              '+ 사진 $count/$maxCount',
               style: PassqlTypography.caption.copyWith(
                 color: colors.secondaryLabel,
               ),
