@@ -90,6 +90,14 @@ social-login:
       # 앱(iOS·Android) 인증 세션 콜백 (#509)
       - passql://auth/callback/github
 
+# AI 서버 호출 재시도 판정 (#699): 연결 실패만 재시도, 횟수·간격은 프로필 설정(max-attempts·wait-duration)
+# 서버 응답 오류는 AI 서버가 LLM 일시 오류를 이미 재시도해 다시 부르면 호출이 겹침
+resilience4j:
+  retry:
+    instances:
+      aiServer:
+        retry-exception-predicate: com.passql.ai.client.AiServerRetryPredicate
+
 ---
 # 로컬 개발(dev 프로필) 전용: Vite 개발 서버 콜백 허용 (#516, 운영 prod 프로필에는 적용되지 않음)
 spring:

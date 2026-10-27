@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.passql.ai.client.AiChatClient;
 import com.passql.ai.dto.AiCommentResponse;
+import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.entity.PromptTemplate;
@@ -35,6 +36,10 @@ public class AiCommentService {
     private static final String CACHE_KEY_PREFIX = "ai-comment:";
     /** 세션 단위 캐시 TTL — 결과 화면 확인 시간으로 충분 */
     private static final long CACHE_TTL_HOURS = 2;
+    /** 통계 화면 캐시 TTL — 키에 날짜가 있어 하루 넘게 둘 필요 없음 (#699) */
+    private static final long STATS_CACHE_TTL_HOURS = 24;
+    /** 통계 화면 프로 갱신 단위 (최근 풀이 수 10문제마다 새 코멘트, 무료는 하루 1회, #699) */
+    static final int PRO_STATS_REFRESH_SOLVED_COUNT = 10;
     /** 통계 화면 AI 코멘트 프롬프트 키 — 세션 없는 누적 통계 전용 */
     private static final String PROMPT_KEY_STATS = "ai_comment_stats";
     /** 결과 화면 AI 코멘트 프롬프트 키 — 세션 결과 + 누적 통계 통합 */
@@ -50,20 +55,24 @@ public class AiCommentService {
     private final PromptService promptService;
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
+    private final FeatureAccessPolicy featureAccessPolicy;
 
     /**
      * AI 코멘트 반환.
      * - sessionUuid 있음(결과 화면): 'ai_comment' 프롬프트, 세션 결과 + 누적 토픽 통계
      * - sessionUuid 없음(통계 화면): 'ai_comment_stats' 프롬프트, 최근 7일 활동 + 누적 토픽 통계
      *
-     * 캐시 키: ai-comment:{memberUuid}:{sessionUuid} / ai-comment:{memberUuid}:stats:{최근 활동 요약 해시}
+     * 캐시 키: ai-comment:{memberUuid}:{sessionUuid} / ai-comment:{memberUuid}:stats:{날짜}:{갱신 구간}
      */
     public AiCommentResponse getAiComment(UUID memberUuid, UUID sessionUuid) {
-        // 통계 화면: 최근 활동(오늘 날짜·풀이 수·마지막 활동일)이 바뀌면 새 키 > 새로 푼 뒤 옛 코멘트가 남지 않게 (#567)
-        String recentActivitySummary = sessionUuid == null ? buildRecentActivitySummary(memberUuid) : null;
+        // 통계 화면: 같은 날 같은 갱신 구간이면 캐시 재사용 > 풀이마다 LLM 호출하지 않게 (#567, #699)
+        RecentActivity recentActivity = sessionUuid == null ? findRecentActivity(memberUuid) : null;
+        String recentActivitySummary = recentActivity != null ? recentActivity.toPromptText() : null;
         String cacheKey = sessionUuid != null
                 ? CACHE_KEY_PREFIX + memberUuid + ":" + sessionUuid
-                : CACHE_KEY_PREFIX + memberUuid + ":stats:" + Integer.toHexString(recentActivitySummary.hashCode());
+                : CACHE_KEY_PREFIX + memberUuid + ":stats:"
+                        + toStatsRefreshBucket(recentActivity.today(), recentActivity.recentCount(), featureAccessPolicy.isPro(memberUuid));
+        long cacheTtlHours = sessionUuid != null ? CACHE_TTL_HOURS : STATS_CACHE_TTL_HOURS;
 
         Object cached = redisTemplate.opsForValue().get(cacheKey);
         if (cached != null) {
@@ -119,10 +128,10 @@ public class AiCommentService {
 
         AiCommentResponse response = new AiCommentResponse(comment.trim(), LocalDateTime.now());
 
-        // 캐시 저장 (TTL 2h)
+        // 캐시 저장 (결과 화면 2시간, 통계 화면 24시간)
         try {
             String json = objectMapper.writeValueAsString(response);
-            redisTemplate.opsForValue().set(cacheKey, json, CACHE_TTL_HOURS, TimeUnit.HOURS);
+            redisTemplate.opsForValue().set(cacheKey, json, cacheTtlHours, TimeUnit.HOURS);
         } catch (JsonProcessingException e) {
             log.warn("Failed to cache AI comment for member={}, session={}", memberUuid, sessionUuid, e);
         }
@@ -130,8 +139,8 @@ public class AiCommentService {
         return response;
     }
 
-    /** 최근 7일 학습 현황 조회 > 프롬프트용 텍스트 */
-    private String buildRecentActivitySummary(UUID memberUuid) {
+    /** 최근 7일 학습 현황 조회 (풀이 수, 마지막 활동일, 오늘) */
+    private RecentActivity findRecentActivity(UUID memberUuid) {
         LocalDateTime since = LocalDateTime.now().minusDays(RECENT_ACTIVITY_DAYS);
         List<Object[]> rows = submissionRepository.findRecentActivityStats(memberUuid.toString(), since);
         // native query는 단일 집계행도 List<Object[]>로 반환되므로 첫 행을 꺼냄
@@ -140,7 +149,25 @@ public class AiCommentService {
         long recentCount = row[0] != null ? ((Number) row[0]).longValue() : 0L;
         // submitted_at 은 서버 로컬(KST) 저장값 (#560)
         LocalDate lastActiveDate = row[1] != null ? ((java.sql.Timestamp) row[1]).toLocalDateTime().toLocalDate() : null;
-        return toRecentActivitySummary(recentCount, lastActiveDate, LocalDate.now());
+        return new RecentActivity(recentCount, lastActiveDate, LocalDate.now());
+    }
+
+    /** 최근 7일 학습 현황 */
+    private record RecentActivity(long recentCount, LocalDate lastActiveDate, LocalDate today) {
+        String toPromptText() {
+            return toRecentActivitySummary(recentCount, lastActiveDate, today);
+        }
+    }
+
+    /**
+     * 통계 코멘트 갱신 구간: 날짜 + (프로 최근 풀이 수 10문제 단위 | 무료 하루 1회)
+     * 예: 프로 23문제 > "2026-10-27:pro-2", 무료 > "2026-10-27:day"
+     */
+    static String toStatsRefreshBucket(LocalDate today, long recentCount, boolean isPro) {
+        String dateText = today.format(DATE_FORMAT);
+        return isPro
+                ? dateText + ":pro-" + (recentCount / PRO_STATS_REFRESH_SOLVED_COUNT)
+                : dateText + ":day";
     }
 
     /**

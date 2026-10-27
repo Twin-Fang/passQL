@@ -7,6 +7,7 @@ from typing import Any
 
 from src.clients.llm_schema import to_json_schema
 from src.clients.shared_http_client import send_request
+from src.clients.token_usage import record_token_usage
 from src.core.exceptions import CustomError
 
 logger = logging.getLogger(__name__)
@@ -50,7 +51,10 @@ class OpenAiClient:
             json_body=request_body,
             timeout_seconds=CALL_TIMEOUT_SECONDS,
         )
-        choices = response.json().get("choices") or []
+        response_body = response.json()
+        usage = response_body.get("usage") or {}
+        record_token_usage(usage.get("prompt_tokens"), usage.get("completion_tokens"))
+        choices = response_body.get("choices") or []
         text = (choices[0].get("message") or {}).get("content") if choices else None
         if not text or not text.strip():
             raise CustomError(f"OpenAI returned empty response (model={request_body['model']})")

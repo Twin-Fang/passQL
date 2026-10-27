@@ -60,23 +60,24 @@ public interface QuestionChoiceSetRepository extends JpaRepository<QuestionChoic
     void deleteByQuestionUuid(UUID questionUuid);
 
     /**
-     * 해설 백필 대상 세트 (#496, #521): OK + (샌드박스 검증 통과 또는 개념 문제) + 해설 필요, 최신 순
+     * 해설 백필 대상 세트 (#496, #521, #699): OK + 공용 세트 + 해설 필요, 최신 순
+     * 공용 세트 2가지: 고정 세트, 문제별 최신 OK AI 세트(연습 모드가 모두에게 주는 세트, 검증 통과 또는 개념 문제)
+     * 지난 AI 세트(실전 모드 1인용·밀려난 세트)는 다시 열 때만 생성 (조회 경로)
      * 해설 필요 3가지: 상태 없음, 프롬프트 버전 낡은 READY, 재시도 상한 미만 FAILED
      * 샌드박스 미검증(AI 판단 fallback) 세트는 틀린 해설이 퍼질 수 있어 제외
-     * CURATED_ONLY 문제의 고정 세트는 검증 근거가 해설이라 제외 (#511)
      */
     @Query("""
             select s.choiceSetUuid from QuestionChoiceSet s
             where s.status = com.passql.question.constant.ChoiceSetStatus.OK
-              and (s.sandboxValidationPassed = true
-                   or exists (select q.questionUuid from Question q
-                              where q.questionUuid = s.questionUuid
-                                and q.executionMode = com.passql.question.constant.ExecutionMode.CONCEPT_ONLY))
-              and not exists (select cq.questionUuid from Question cq
-                              where cq.questionUuid = s.questionUuid
-                                and cq.choiceSetPolicy = com.passql.question.constant.ChoiceSetPolicy.CURATED_ONLY
-                                and s.source in (com.passql.question.constant.ChoiceSetSource.ADMIN_SEED,
-                                                 com.passql.question.constant.ChoiceSetSource.ADMIN_CURATED))
+              and (s.source in (com.passql.question.constant.ChoiceSetSource.ADMIN_SEED,
+                                com.passql.question.constant.ChoiceSetSource.ADMIN_CURATED)
+                   or ((s.sandboxValidationPassed = true
+                        or exists (select q.questionUuid from Question q
+                                   where q.questionUuid = s.questionUuid
+                                     and q.executionMode = com.passql.question.constant.ExecutionMode.CONCEPT_ONLY))
+                       and s.createdAt = (select max(latest.createdAt) from QuestionChoiceSet latest
+                                          where latest.questionUuid = s.questionUuid
+                                            and latest.status = com.passql.question.constant.ChoiceSetStatus.OK)))
               and (s.explanationStatus is null
                    or (s.explanationStatus = com.passql.question.constant.ChoiceExplanationStatus.READY
                        and (s.explanationPromptVersion is null or s.explanationPromptVersion <> :promptVersion))

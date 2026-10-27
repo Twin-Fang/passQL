@@ -1,5 +1,6 @@
 package com.passql.application.statistics;
 
+import com.passql.ai.constant.AiCallSource;
 import com.passql.ai.constant.AiFailureCategory;
 import com.passql.ai.dto.AiConnectionHealth;
 import com.passql.ai.service.AiConnectionHealthChecker;
@@ -166,9 +167,10 @@ public class AdminAiStatisticsService {
                 countByCategory.getOrDefault(AiFailureCategory.OTHER, 0L));
     }
 
-    /** 출처·경로·모델 묶음 > 모델별 합 (호출 많은 순) */
+    /** 출처·경로·모델 묶음 > 모델별 합 (호출 많은 순, 벡터 색인·검색은 모델 표에서 제외 #699) */
     private List<AiModelUsageSummary> summarizeByModel(List<AiUsageGroupRow> usageGroups) {
         Map<String, List<AiUsageGroupRow>> groupsByModel = usageGroups.stream()
+                .filter(row -> !AiCallSource.VECTOR_SEARCH.name().equals(row.callSource()))
                 .collect(Collectors.groupingBy(row -> Objects.requireNonNullElse(row.modelName(), UNRECORDED_MODEL_NAME)));
         return groupsByModel.entrySet().stream()
                 .map(entry -> toModelUsageSummary(entry.getKey(), entry.getValue()))

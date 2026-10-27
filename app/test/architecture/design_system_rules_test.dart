@@ -58,6 +58,18 @@ final _bannedMultilinePatterns = <String, (RegExp, String)>{
   ),
 };
 
+/// 시트 닫기 X 금지 대상: 파일명이 _sheet.dart·_dock.dart 인 시트 (#699)
+final _sheetFileNamePattern = RegExp(r'_(sheet|dock)\.dart$');
+
+/// 시트 안 닫기 X 아이콘 (xmark·xmark_circle·xmark_circle_fill 등, Icons.close 계열)
+const _sheetCloseIconPatternName = '시트 닫기 X 아이콘';
+final _sheetCloseIconPattern = RegExp(
+  r'CupertinoIcons\.xmark(_\w+)?\b|\bIcons\.close(_\w+)?\b',
+);
+
+/// 시트 닫기 X 대신 쓸 닫기 수단 (passql_sheet.dart 규칙)
+const _sheetCloseReplacement = '손잡이 드래그·바깥 탭·뒤로가기·본문 버튼으로 닫기';
+
 /// 명시적 예외: {파일 경로: {패턴 이름: 이유}}. 비어 있는 것이 정상
 const Map<String, Map<String, String>> _allowedUsages = {
   'lib/presentation/widgets/question/markdown_lite_text.dart': {
@@ -65,6 +77,9 @@ const Map<String, Map<String, String>> _allowedUsages = {
   },
   'lib/presentation/widgets/common/app_toast.dart': {
     'duration: Duration(': '스낵바 표시 시간(애니메이션 아님)',
+  },
+  'lib/presentation/widgets/community/community_compose_sheet.dart': {
+    _sheetCloseIconPatternName: '사진 미리보기의 사진 제거 배지 (시트 닫기 아님)',
   },
 };
 
@@ -110,6 +125,26 @@ void main() {
             violations.add('$path:~$lineNumber $patternName > $replacement');
           }
         });
+      }
+    }
+    expect(violations, isEmpty, reason: violations.join('\n'));
+  });
+
+  test('시트(_sheet·_dock)에는 닫기 X 아이콘을 두지 않는다', () {
+    final violations = <String>[];
+    for (final directory in _screenCodeDirectories) {
+      for (final file in handWrittenDartFiles(directory)) {
+        final path = normalizedPath(file);
+        if (!_sheetFileNamePattern.hasMatch(path)) continue;
+        final allowedForFile = _allowedUsages[path] ?? const {};
+        if (allowedForFile.containsKey(_sheetCloseIconPatternName)) continue;
+        for (final (lineNumber, code) in codeLinesOf(file)) {
+          if (_sheetCloseIconPattern.hasMatch(code)) {
+            violations.add(
+              '$path:$lineNumber $_sheetCloseIconPatternName > $_sheetCloseReplacement',
+            );
+          }
+        }
       }
     }
     expect(violations, isEmpty, reason: violations.join('\n'));
