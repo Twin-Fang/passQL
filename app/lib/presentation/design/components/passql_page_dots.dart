@@ -27,7 +27,9 @@ class PassqlPageDots extends StatelessWidget {
       PassqlMotion.fast,
     );
     return ExcludeSemantics(
+      // 내용 폭만 차지: 상단 바 가운데 자리에선 화면 가운데에 오고, 폭을 채워 주는 곳(홈 캐러셀)에선 가운데 정렬
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           for (var pageIndex = 0; pageIndex < count; pageIndex++)

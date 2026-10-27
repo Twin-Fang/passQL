@@ -40,7 +40,16 @@ class OnboardingSlide extends StatelessWidget {
                     bottom: 0,
                     child: backdrop!,
                   ),
-                Positioned.fill(child: visual),
+                // 세로 가운데. 스크롤 뷰로 감싸 카드가 남은 높이를 다 채우지 않고 내용 높이만 차지하게 한다
+                // (작은 화면에서 넘치면 잘림, 넘김은 페이지 스와이프와 겹치지 않게 막음)
+                Positioned.fill(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      child: visual,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

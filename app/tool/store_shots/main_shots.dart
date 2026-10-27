@@ -4,7 +4,8 @@
 // 앱 전체를 그대로 띄우되 Dio 를 가짜 어댑터로 바꿔 canned 응답을 돌려준다.
 // 빌드: flutter build ios --simulator -t tool/store_shots/main_shots.dart
 // 촬영: echo /stats > /tmp/passql_shot_route.txt && xcrun simctl launch <기기> com.coldredrice.passql
-// 연출(경로 대신 적음): execute-ok(SQL 실행 성공 표), execute-fail(SQL 실행 실패 카드), chapter-result(문제 목록 > 챕터 > 챕터 결과), ai-sheet(오답 AI 해설 시트)
+// 연출(경로 대신 적음): execute-ok(SQL 실행 성공 표), execute-fail(SQL 실행 실패 카드), chapter-result(문제 목록 > 챕터 > 챕터 결과), ai-sheet(오답 AI 해설 시트),
+//   onboarding-1~4(온보딩 n장), onboarding-celebration(온보딩 첫 문제 축하)
 // 로그인 중 화면: echo /login-signing-in > /tmp/passql_shot_route.txt (카카오 버튼을 눌러 응답 대기에서 멈춘 상태)
 // 로그인 전환 영상: echo /login-transition > /tmp/passql_shot_route.txt (로그인 화면 > 4초 뒤 홈 > 9초 뒤 로그인 화면, xcrun simctl io <기기> recordVideo 로 녹화)
 // 앱 시작 설정 상황: echo maintenance > /tmp/passql_shot_app_config.txt
@@ -904,7 +905,31 @@ Future<void> _openRoute(String route, ProviderContainer container) async {
           displayLabelByChoiceKey: const {'A': 'A', 'B': 'B', 'C': 'C', 'D': 'D'},
         ),
       );
+    case 'onboarding-celebration':
+      // 온보딩 첫 문제 뒤 축하 화면 (이어서 풀기)
+      AppRouter.router.push(AppRoutes.onboardingCelebration, extra: false);
     default:
-      AppRouter.router.go(route);
+      // 온보딩 n장: onboarding-2 ~ onboarding-4 (시뮬레이터는 스와이프를 못 보내 페이지를 직접 넘김)
+      final onboardingPage = RegExp(r'^onboarding-([1-4])$').firstMatch(route);
+      if (onboardingPage == null) {
+        AppRouter.router.go(route);
+        return;
+      }
+      AppRouter.router.go(AppRoutes.onboarding);
+      await Future<void>.delayed(settleDelay);
+      _jumpFirstPageView(int.parse(onboardingPage.group(1)!) - 1);
   }
+}
+
+/// 화면의 첫 PageView 를 지정한 페이지로 넘긴다 (온보딩 촬영용)
+void _jumpFirstPageView(int pageIndex) {
+  PageController? controller;
+  void visit(Element element) {
+    final widget = element.widget;
+    if (controller == null && widget is PageView) controller = widget.controller;
+    if (controller == null) element.visitChildren(visit);
+  }
+
+  WidgetsBinding.instance.rootElement?.visitChildren(visit);
+  controller?.jumpToPage(pageIndex);
 }

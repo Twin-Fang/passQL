@@ -72,10 +72,7 @@ class _SelectSlide extends StatelessWidget {
     return OnboardingSlide(
       title: '보기를 직접\n실행해 볼 수 있어요',
       subtitle: '결과를 눈으로 비교하면 답이 보여요.',
-      visual: Center(
-        child: SingleChildScrollView(
-          physics: const NeverScrollableScrollPhysics(),
-          child: Column(
+      visual: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -104,8 +101,6 @@ class _SelectSlide extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 }
