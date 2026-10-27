@@ -1,16 +1,23 @@
 package com.passql.web.controller;
 
 import com.passql.application.concept.ConceptLearningService;
+import com.passql.application.concept.dto.ConceptCheckAnswerRequest;
+import com.passql.application.concept.dto.ConceptCheckAnswerResponse;
 import com.passql.application.concept.dto.ConceptCheckQuestionResponse;
 import com.passql.application.concept.dto.ConceptDetailResponse;
 import com.passql.application.concept.dto.ConceptListResponse;
+import com.passql.application.concept.dto.ConceptProgressRequest;
 import com.passql.application.concept.dto.ConceptTopicListResponse;
 import com.passql.member.auth.presentation.annotation.AuthMember;
 import com.passql.member.auth.presentation.security.LoginMember;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,7 +25,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * 단원별 개념 학습: 단원·개념 목록, 개념 상세, 확인 문제 (#577)
+ * 단원별 개념 학습: 단원·개념 목록, 개념 상세, 확인 문제, 진행 저장, 확인 문제 채점 (#577)
  * 잠금·노출 판정은 ConceptLearningService 한 곳
  */
 @RestController
@@ -55,5 +62,26 @@ public class ConceptController implements ConceptControllerDocs {
         @PathVariable UUID conceptUuid
     ) {
         return ResponseEntity.ok(conceptLearningService.getCheckQuestions(loginMember.memberUuid(), conceptUuid));
+    }
+
+    @PutMapping("/{conceptUuid}/progress")
+    public ResponseEntity<Void> saveProgress(
+        @AuthMember LoginMember loginMember,
+        @PathVariable UUID conceptUuid,
+        @RequestBody ConceptProgressRequest request
+    ) {
+        conceptLearningService.saveProgress(loginMember.memberUuid(), conceptUuid, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{conceptUuid}/check-questions/{questionUuid}/answer")
+    public ResponseEntity<ConceptCheckAnswerResponse> answerCheckQuestion(
+        @AuthMember LoginMember loginMember,
+        @PathVariable UUID conceptUuid,
+        @PathVariable UUID questionUuid,
+        @Valid @RequestBody ConceptCheckAnswerRequest request
+    ) {
+        return ResponseEntity.ok(conceptLearningService.answerCheckQuestion(
+            loginMember.memberUuid(), conceptUuid, questionUuid, request));
     }
 }

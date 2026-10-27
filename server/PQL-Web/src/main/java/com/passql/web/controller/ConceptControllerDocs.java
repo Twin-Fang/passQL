@@ -1,8 +1,11 @@
 package com.passql.web.controller;
 
+import com.passql.application.concept.dto.ConceptCheckAnswerRequest;
+import com.passql.application.concept.dto.ConceptCheckAnswerResponse;
 import com.passql.application.concept.dto.ConceptCheckQuestionResponse;
 import com.passql.application.concept.dto.ConceptDetailResponse;
 import com.passql.application.concept.dto.ConceptListResponse;
+import com.passql.application.concept.dto.ConceptProgressRequest;
 import com.passql.application.concept.dto.ConceptTopicListResponse;
 import com.passql.common.dto.Author;
 import com.passql.member.auth.presentation.annotation.AuthMember;
@@ -53,4 +56,22 @@ public interface ConceptControllerDocs {
   @Operation(summary = "개념 확인 문제 목록",
       description = "개념당 5개, 보기 순서대로. 정답·풀이는 채점 응답에서만 내려줌. 잠금·초안 규칙은 개념 상세와 같음")
   ResponseEntity<List<ConceptCheckQuestionResponse>> getCheckQuestions(@AuthMember LoginMember loginMember, UUID conceptUuid);
+
+  @ApiLogs({
+      @ApiLog(date = "2026.10.27", author = Author.SUHSAECHAN, issueNumber = 577, description = "개념 진행 저장 API 추가"),
+  })
+  @Operation(summary = "개념 진행 저장",
+      description = "null 칸은 기존값 유지. isRead 는 true 로만 바뀜 (읽음 해제 없음). lastMode: READ/SOLVE, lastDepth: CORE/DETAIL. 204")
+  ResponseEntity<Void> saveProgress(@AuthMember LoginMember loginMember, UUID conceptUuid, ConceptProgressRequest request);
+
+  @ApiLogs({
+      @ApiLog(date = "2026.10.27", author = Author.SUHSAECHAN, issueNumber = 577, description = "개념 확인 문제 채점 API 추가"),
+  })
+  @Operation(summary = "개념 확인 문제 채점",
+      description = """
+          - 정답 여부·정답 키·풀이·다시 읽기 앵커·보기별 근거를 돌려줌
+          - checkCorrectCount / checkSolvedCount: 문제별 마지막 답 기준 누적 (다시 풀어 틀리면 정답 수가 줄어듦)
+          - 제출 기록·통계·오답 노트·하루 무료 한도에는 반영하지 않음""")
+  ResponseEntity<ConceptCheckAnswerResponse> answerCheckQuestion(
+      @AuthMember LoginMember loginMember, UUID conceptUuid, UUID questionUuid, ConceptCheckAnswerRequest request);
 }

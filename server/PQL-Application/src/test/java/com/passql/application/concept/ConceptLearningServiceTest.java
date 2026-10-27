@@ -1,7 +1,10 @@
 package com.passql.application.concept;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.passql.application.concept.dto.ConceptCheckAnswerRequest;
+import com.passql.application.concept.dto.ConceptCheckAnswerResponse;
 import com.passql.application.concept.dto.ConceptCheckQuestionResponse;
+import com.passql.application.concept.dto.ConceptProgressRequest;
 import com.passql.application.concept.dto.ConceptDetailResponse;
 import com.passql.application.concept.dto.ConceptTopicListResponse;
 import com.passql.application.concept.dto.ConceptTopicSummary;
@@ -9,6 +12,8 @@ import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.constant.ConceptPublishStatus;
+import com.passql.meta.constant.ConceptReadingDepth;
+import com.passql.meta.constant.ConceptStudyMode;
 import com.passql.meta.entity.ConceptCheckChoice;
 import com.passql.meta.entity.ConceptCheckQuestion;
 import com.passql.meta.entity.ConceptDoc;
@@ -191,6 +196,100 @@ class ConceptLearningServiceTest {
 
         assertThat(questions).hasSize(1);
         assertThat(questions.get(0).choices()).extracting("choiceKey").containsExactly("A", "B");
+    }
+
+    // ===== 진행 저장·채점 (Task 4) =====
+
+    /** 공개 개념 1개 + 확인 문제 1개(정답 B) + 진행 저장소 메모리 흉내 */
+    private ConceptCheckQuestion givenAnswerableQuestion(ConceptTag conceptTag, List<MemberConceptProgress> savedProgress) {
+        allTags.add(conceptTag);
+        ConceptCheckQuestion question = checkQuestions(conceptTag, 1).get(0);
+        when(conceptTagRepository.findById(conceptTag.getConceptTagUuid())).thenReturn(Optional.of(conceptTag));
+        when(checkQuestionRepository.findById(question.getConceptCheckQuestionUuid())).thenReturn(Optional.of(question));
+        when(checkChoiceRepository.findByConceptCheckQuestionUuidInOrderBySortOrderAsc(anyCollection()))
+            .thenReturn(List.of(choice(question, "A", 1, false), choice(question, "B", 2, true)));
+        when(progressRepository.findByMemberUuidAndConceptTagUuid(memberUuid, conceptTag.getConceptTagUuid()))
+            .thenAnswer(invocation -> savedProgress.isEmpty() ? Optional.empty() : Optional.of(savedProgress.get(0)));
+        when(progressRepository.save(any(MemberConceptProgress.class))).thenAnswer(invocation -> {
+            MemberConceptProgress progress = invocation.getArgument(0);
+            savedProgress.clear();
+            savedProgress.add(progress);
+            return progress;
+        });
+        return question;
+    }
+
+    @Test
+    void answerCheckQuestion_correct_incrementsCounts() {
+        ConceptTag conceptTag = tag(modelingTopic, "entity", 1, ConceptPublishStatus.PUBLISHED);
+        ConceptCheckQuestion question = givenAnswerableQuestion(conceptTag, new ArrayList<>());
+
+        ConceptCheckAnswerResponse response = service.answerCheckQuestion(memberUuid, conceptTag.getConceptTagUuid(),
+            question.getConceptCheckQuestionUuid(), new ConceptCheckAnswerRequest("B"));
+
+        assertThat(response.isCorrect()).isTrue();
+        assertThat(response.correctKey()).isEqualTo("B");
+        assertThat(response.rereadAnchor()).isEqualTo("why");
+        assertThat(response.checkCorrectCount()).isEqualTo(1);
+        assertThat(response.checkSolvedCount()).isEqualTo(1);
+    }
+
+    @Test
+    void answerCheckQuestion_reanswerWrong_decrementsCorrectKeepsSolved() {
+        ConceptTag conceptTag = tag(modelingTopic, "entity", 1, ConceptPublishStatus.PUBLISHED);
+        ConceptCheckQuestion question = givenAnswerableQuestion(conceptTag, new ArrayList<>());
+        UUID conceptUuid = conceptTag.getConceptTagUuid();
+        UUID questionUuid = question.getConceptCheckQuestionUuid();
+
+        service.answerCheckQuestion(memberUuid, conceptUuid, questionUuid, new ConceptCheckAnswerRequest("B"));
+        ConceptCheckAnswerResponse response =
+            service.answerCheckQuestion(memberUuid, conceptUuid, questionUuid, new ConceptCheckAnswerRequest("A"));
+
+        assertThat(response.isCorrect()).isFalse();
+        assertThat(response.checkCorrectCount()).isZero();
+        assertThat(response.checkSolvedCount()).isEqualTo(1);
+    }
+
+    @Test
+    void answerCheckQuestion_unknownChoiceKey_throwsInvalidInput() {
+        ConceptTag conceptTag = tag(modelingTopic, "entity", 1, ConceptPublishStatus.PUBLISHED);
+        ConceptCheckQuestion question = givenAnswerableQuestion(conceptTag, new ArrayList<>());
+
+        assertThatThrownBy(() -> service.answerCheckQuestion(memberUuid, conceptTag.getConceptTagUuid(),
+            question.getConceptCheckQuestionUuid(), new ConceptCheckAnswerRequest("Z")))
+            .isInstanceOf(CustomException.class)
+            .extracting("errorCode").isEqualTo(ErrorCode.INVALID_INPUT_VALUE);
+    }
+
+    @Test
+    void answerCheckQuestion_questionOfOtherConcept_throwsCheckQuestionNotFound() {
+        ConceptTag conceptTag = tag(modelingTopic, "entity", 1, ConceptPublishStatus.PUBLISHED);
+        ConceptTag otherTag = tag(modelingTopic, "attribute", 2, ConceptPublishStatus.PUBLISHED);
+        ConceptCheckQuestion otherQuestion = givenAnswerableQuestion(otherTag, new ArrayList<>());
+        allTags.add(conceptTag);
+        when(conceptTagRepository.findById(conceptTag.getConceptTagUuid())).thenReturn(Optional.of(conceptTag));
+
+        assertThatThrownBy(() -> service.answerCheckQuestion(memberUuid, conceptTag.getConceptTagUuid(),
+            otherQuestion.getConceptCheckQuestionUuid(), new ConceptCheckAnswerRequest("B")))
+            .isInstanceOf(CustomException.class)
+            .extracting("errorCode").isEqualTo(ErrorCode.CONCEPT_CHECK_QUESTION_NOT_FOUND);
+    }
+
+    @Test
+    void saveProgress_nullFieldsKeepPrevious_isReadNeverReverts() {
+        ConceptTag conceptTag = tag(modelingTopic, "entity", 1, ConceptPublishStatus.PUBLISHED);
+        List<MemberConceptProgress> savedProgress = new ArrayList<>();
+        givenAnswerableQuestion(conceptTag, savedProgress);
+        UUID conceptUuid = conceptTag.getConceptTagUuid();
+
+        service.saveProgress(memberUuid, conceptUuid,
+            new ConceptProgressRequest(true, ConceptStudyMode.SOLVE, ConceptReadingDepth.DETAIL));
+        service.saveProgress(memberUuid, conceptUuid, new ConceptProgressRequest(false, null, null));
+
+        MemberConceptProgress progress = savedProgress.get(0);
+        assertThat(progress.getIsRead()).isTrue();
+        assertThat(progress.getLastMode()).isEqualTo(ConceptStudyMode.SOLVE);
+        assertThat(progress.getLastDepth()).isEqualTo(ConceptReadingDepth.DETAIL);
     }
 
     // ===== 테스트 데이터 =====
