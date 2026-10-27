@@ -1,5 +1,6 @@
 package com.passql.application.concept.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.UUID;
 
 /**
@@ -8,7 +9,7 @@ import java.util.UUID;
 public record ConceptSummary(
     UUID conceptUuid,
     String title,
-    String summary,
+    @Schema(nullable = true) String summary,
     ConceptStatus status,
     int checkCorrectCount,
     int checkQuestionCount

@@ -206,6 +206,8 @@ class ConceptLearningServiceTest {
         ConceptCheckQuestion question = checkQuestions(conceptTag, 1).get(0);
         when(conceptTagRepository.findById(conceptTag.getConceptTagUuid())).thenReturn(Optional.of(conceptTag));
         when(checkQuestionRepository.findById(question.getConceptCheckQuestionUuid())).thenReturn(Optional.of(question));
+        when(checkQuestionRepository.findByConceptTagUuidOrderBySortOrderAsc(conceptTag.getConceptTagUuid()))
+            .thenReturn(List.of(question));
         when(checkChoiceRepository.findByConceptCheckQuestionUuidInOrderBySortOrderAsc(anyCollection()))
             .thenReturn(List.of(choice(question, "A", 1, false), choice(question, "B", 2, true)));
         when(progressRepository.findByMemberUuidAndConceptTagUuid(memberUuid, conceptTag.getConceptTagUuid()))
@@ -273,6 +275,24 @@ class ConceptLearningServiceTest {
             otherQuestion.getConceptCheckQuestionUuid(), new ConceptCheckAnswerRequest("B")))
             .isInstanceOf(CustomException.class)
             .extracting("errorCode").isEqualTo(ErrorCode.CONCEPT_CHECK_QUESTION_NOT_FOUND);
+    }
+
+    @Test
+    void answerCheckQuestion_afterReimport_staleAnswersIgnored() {
+        ConceptTag conceptTag = tag(modelingTopic, "entity", 1, ConceptPublishStatus.PUBLISHED);
+        List<MemberConceptProgress> savedProgress = new ArrayList<>();
+        ConceptCheckQuestion question = givenAnswerableQuestion(conceptTag, savedProgress);
+        when(checkQuestionRepository.findByConceptTagUuidOrderBySortOrderAsc(conceptTag.getConceptTagUuid()))
+            .thenReturn(List.of(question));
+        // 재가져오기 전 문제 UUID 로 남은 마지막 답 (지금 개념에는 없는 문제)
+        savedProgress.add(MemberConceptProgress.builder().memberUuid(memberUuid).conceptTagUuid(conceptTag.getConceptTagUuid())
+            .answeredChoiceKeysJson("{\"" + UUID.randomUUID() + "\":\"B\"}").checkCorrectCount(1).checkSolvedCount(1).build());
+
+        ConceptCheckAnswerResponse response = service.answerCheckQuestion(memberUuid, conceptTag.getConceptTagUuid(),
+            question.getConceptCheckQuestionUuid(), new ConceptCheckAnswerRequest("B"));
+
+        assertThat(response.checkSolvedCount()).isEqualTo(1);
+        assertThat(response.checkCorrectCount()).isEqualTo(1);
     }
 
     @Test

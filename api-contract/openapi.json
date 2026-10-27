@@ -710,7 +710,7 @@
             "type" : "string"
           },
           "stemSql" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           }
         },
         "required" : [ "choices", "questionUuid", "sortOrder", "stem", "stemSql" ],
@@ -727,7 +727,7 @@
             "type" : "string"
           },
           "coreMd" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "detailSections" : {
             "items" : {
@@ -748,11 +748,11 @@
           },
           "nextConceptUuid" : {
             "format" : "uuid",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "previousConceptUuid" : {
             "format" : "uuid",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "relatedQuestionUuids" : {
             "items" : {
@@ -762,7 +762,7 @@
             "type" : "array"
           },
           "summary" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "title" : {
             "type" : "string"
@@ -847,7 +847,7 @@
             "type" : "string"
           },
           "summary" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "title" : {
             "type" : "string"

@@ -1,5 +1,6 @@
 package com.passql.application.concept.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import com.passql.meta.constant.ConceptReadingDepth;
 import com.passql.meta.constant.ConceptStudyMode;
 import com.passql.meta.dto.concept.ConceptDetailSection;
@@ -14,11 +15,11 @@ public record ConceptDetailResponse(
     UUID conceptUuid,
     UUID topicUuid,
     String title,
-    String summary,
-    String coreMd,
+    @Schema(nullable = true) String summary,
+    @Schema(nullable = true) String coreMd,
     List<ConceptDetailSection> detailSections,
-    UUID previousConceptUuid,
-    UUID nextConceptUuid,
+    @Schema(nullable = true) UUID previousConceptUuid,
+    @Schema(nullable = true) UUID nextConceptUuid,
     ConceptStudyMode lastMode,
     ConceptReadingDepth lastDepth,
     boolean isRead,

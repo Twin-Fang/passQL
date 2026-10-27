@@ -16,7 +16,10 @@ public interface QuestionConceptTagRepository extends JpaRepository<QuestionConc
 
     List<QuestionConceptTag> findByConceptTagUuid(UUID conceptTagUuid);
 
-    void deleteByConceptTagUuid(UUID conceptTagUuid);
+    /** 개념의 관련 문제 연결 즉시 삭제 (벌크 DELETE: 같은 트랜잭션에서 같은 쌍 재저장 시 INSERT 선행 충돌 방지) */
+    @Modifying(flushAutomatically = true)
+    @Query("DELETE FROM QuestionConceptTag q WHERE q.conceptTagUuid = :conceptTagUuid")
+    void deleteByConceptTagUuid(@Param("conceptTagUuid") UUID conceptTagUuid);
 
     @Modifying
     @Transactional

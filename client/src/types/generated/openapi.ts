@@ -2231,14 +2231,14 @@ export interface components {
             /** Format: int32 */
             sortOrder: number;
             stem: string;
-            stemSql: string;
+            stemSql: string | null;
         };
         ConceptDetailResponse: {
             /** Format: int32 */
             checkCorrectCount: number;
             /** Format: uuid */
             conceptUuid: string;
-            coreMd: string;
+            coreMd: string | null;
             detailSections: components["schemas"]["ConceptDetailSection"][];
             isRead: boolean;
             /** @enum {string} */
@@ -2246,11 +2246,11 @@ export interface components {
             /** @enum {string} */
             lastMode: "READ" | "SOLVE";
             /** Format: uuid */
-            nextConceptUuid: string;
+            nextConceptUuid: string | null;
             /** Format: uuid */
-            previousConceptUuid: string;
+            previousConceptUuid: string | null;
             relatedQuestionUuids: string[];
-            summary: string;
+            summary: string | null;
             title: string;
             /** Format: uuid */
             topicUuid: string;
@@ -2283,7 +2283,7 @@ export interface components {
             conceptUuid: string;
             /** @enum {string} */
             status: "NOT_STARTED" | "READ" | "SOLVED";
-            summary: string;
+            summary: string | null;
             title: string;
         };
         ConceptTag: {

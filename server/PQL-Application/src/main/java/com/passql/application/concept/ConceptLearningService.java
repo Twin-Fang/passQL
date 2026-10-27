@@ -221,11 +221,15 @@ public class ConceptLearningService {
             .map(ConceptCheckChoice::getChoiceKey).findFirst()
             .orElseThrow(() -> new CustomException(ErrorCode.CONCEPT_CHECK_QUESTION_NOT_FOUND, "no correct choice"));
 
-        // 문제별 마지막 답 갱신 > 정답 수·푼 수 재계산
+        // 문제별 마지막 답 갱신 > 현재 문제만 남김(재가져오기로 바뀐 옛 문제 제외) > 정답 수·푼 수 재계산
         MemberConceptProgress progress = findOrCreateProgress(memberUuid, conceptUuid);
         Map<String, String> answeredKeys = readAnsweredKeys(progress);
         answeredKeys.put(questionUuid.toString(), selectedKey);
-        int checkCorrectCount = countCorrectAnswers(answeredKeys, conceptUuid);
+        Map<String, String> correctKeyByQuestion = loadCorrectKeyByQuestion(conceptUuid);
+        answeredKeys.keySet().retainAll(correctKeyByQuestion.keySet());
+        int checkCorrectCount = (int) answeredKeys.entrySet().stream()
+            .filter(entry -> entry.getValue().equals(correctKeyByQuestion.get(entry.getKey())))
+            .count();
         progress.setAnsweredChoiceKeysJson(writeAnsweredKeys(answeredKeys));
         progress.setCheckSolvedCount(answeredKeys.size());
         progress.setCheckCorrectCount(checkCorrectCount);
@@ -253,21 +257,18 @@ public class ConceptLearningService {
                 .build());
     }
 
-    /** 마지막 답 목록 중 정답 수 (현재 개념의 문제·정답 기준, 지워진 문제는 제외) */
-    private int countCorrectAnswers(Map<String, String> answeredKeys, UUID conceptUuid) {
-        List<ConceptCheckQuestion> questions = checkQuestionRepository.findByConceptTagUuidOrderBySortOrderAsc(conceptUuid);
-        List<UUID> questionUuids = questions.stream().map(ConceptCheckQuestion::getConceptCheckQuestionUuid).toList();
+    /** 개념의 현재 확인 문제 > 정답 키 (문제 UUID 문자열 기준) */
+    private Map<String, String> loadCorrectKeyByQuestion(UUID conceptUuid) {
+        List<UUID> questionUuids = checkQuestionRepository.findByConceptTagUuidOrderBySortOrderAsc(conceptUuid).stream()
+            .map(ConceptCheckQuestion::getConceptCheckQuestionUuid)
+            .toList();
         if (questionUuids.isEmpty()) {
-            questionUuids = answeredKeys.keySet().stream().map(UUID::fromString).toList();
+            return Map.of();
         }
-        Map<String, String> correctKeyByQuestion = checkChoiceRepository
-            .findByConceptCheckQuestionUuidInOrderBySortOrderAsc(questionUuids).stream()
+        return checkChoiceRepository.findByConceptCheckQuestionUuidInOrderBySortOrderAsc(questionUuids).stream()
             .filter(choice -> Boolean.TRUE.equals(choice.getIsCorrect()))
             .collect(Collectors.toMap(choice -> choice.getConceptCheckQuestionUuid().toString(),
                 ConceptCheckChoice::getChoiceKey, (first, second) -> first));
-        return (int) answeredKeys.entrySet().stream()
-            .filter(entry -> entry.getValue().equals(correctKeyByQuestion.get(entry.getKey())))
-            .count();
     }
 
     private Map<String, String> readAnsweredKeys(MemberConceptProgress progress) {
