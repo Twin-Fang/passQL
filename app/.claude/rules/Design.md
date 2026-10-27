@@ -48,7 +48,7 @@ lib/presentation/design/
 | `PassqlLoadingSemantics` | 로딩 자리(스피너·스켈레톤 묶음)를 '불러오는 중' 한 번으로 읽힘. 화면 스켈레톤 묶음은 이것으로 감쌈 |
 | `PassqlCard` | 그림자 없는 카드, 제목·우측 요소, 바깥 높이 채움(`shouldChildFillHeight`, 2열 높이 맞춤) |
 | `PassqlGroupedSection` / `PassqlListRow` / `PassqlCheckRow` / `PassqlIconTile` | iOS 설정 앱식 목록 묶음·행·선택 행·아이콘 타일 |
-| `PassqlNavBar` / `PassqlNavButton` / `PassqlLargeTitleScrollView` | 상단 바, 뒤로/닫기 버튼, 큰 제목 탭 화면 틀 |
+| `PassqlNavBar` / `PassqlNavButton` / `PassqlLargeTitleScrollView` | 상단 바(제목 글자 대신 가운데 위젯 `middle` 가능), 뒤로/닫기 버튼, 큰 제목 탭 화면 틀 |
 | `PassqlBrandBarScrollView` | 홈 탭 화면 틀: 로고(왼쪽)·trailing(오른쪽) 한 줄 고정 바, 내용이 밑으로 지나가면 글래스 + 헤어라인 (#530) |
 | `PassqlTabBar` | 하단 탭 바 (아이콘만, #367). 하단 여백 기준 `PassqlTabBar.bottomPaddingOf` |
 | `PassqlTabBarWithBottomStrip` | 탭 바 아래 한 줄 띠(광고, #527): 순서 탭 바 > 띠(위 헤어라인·표면색 `backgroundOf`·높이 `PassqlSize.bottomStrip`) > 홈 인디케이터 여백. 내용은 `AdNativeStripSlot` 이 채움 |
@@ -67,6 +67,7 @@ lib/presentation/design/
 | `PassqlBadge` (+`PassqlBadgeKind`) / `PassqlLatestTrendBadge` / `PassqlProgressBar` | 의미별 캡슐 태그(주제·보조·완료·연속·중요·AI·최신 경향, 아이콘·테두리), '최신 경향' 배지(문구 원본, #523), 진행 막대 |
 | `PassqlReveal` / `passqlRevealInOrder` | 처음 그려질 때 페이드 + 위로 8px, 순번별 지연(상한 8) (#495) |
 | `PassqlFadeSwitcher` | 로딩 > 내용 같은 상태 교체 페이드 (상태마다 다른 key) |
+| `PassqlPageDots` | 넘김 페이지 점: 현재 페이지만 강조색 알약으로 늘어남 (홈 출제 경향 캐러셀·온보딩) |
 | `PassqlPageSlideSwitcher` | 본문 교체(다음 문제) 옆으로 미끄러짐 + 페이드 (항목마다 다른 key) |
 | `PassqlPopIn` | 톡 튀어나오는 등장 (반짝이, 결과 마크) |
 | `PassqlAiHeader` | AI 내용 머리: 반짝이 팝 + 제목 미끄러짐 |

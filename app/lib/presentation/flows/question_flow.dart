@@ -26,6 +26,9 @@ abstract class QuestionFlow {
   /// true 면 답안을 제출할 때 같은 세션 UUID 를 함께 보낸다.
   bool get shouldTrackSession => false;
 
+  /// 신규 가입 온보딩에서 들어온 풀이인지 (첫 문제 배지·첫 문제 뒤 축하 화면)
+  bool get isOnboarding => false;
+
   /// 풀 문제의 UUID 목록. 실패하면 사용자에게 보여줄 수 있는 예외를 던진다.
   Future<List<String>> loadQuestionUuids(WidgetRef ref);
 

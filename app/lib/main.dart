@@ -15,6 +15,7 @@ import 'presentation/design/design.dart';
 import 'presentation/providers/app_icon_badge_sync.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/monitoring_member_sync.dart';
+import 'presentation/providers/onboarding_providers.dart';
 import 'presentation/providers/pro_purchase_sync.dart';
 import 'presentation/providers/push_notification_providers.dart';
 import 'presentation/providers/theme_mode_provider.dart';
@@ -34,18 +35,24 @@ Future<void> main() async {
   // 서로 무관한 시작 준비 병렬 실행 (SDK 설정 3종, 재설치 세션 정리, 화면 모드 읽기)
   // 재설치 정리는 아래 세션 읽기(authProvider)보다 먼저 끝나야 해서 여기서 함께 기다림
   final themeModeLoad = loadSavedThemeMode();
+  final onboardingPendingLoad = loadOnboardingPending();
   await Future.wait<void>([
     startFirebaseCrashReporting(),
     startFirebaseAnalytics(),
     startFirebasePushMessaging(),
     resetSecureStorageOnFreshInstall(TokenStore()),
     themeModeLoad,
+    onboardingPendingLoad,
   ]);
   // 저장된 화면 모드로 첫 프레임부터 그림 (깜빡임 방지)
   final themeMode = await themeModeLoad;
   final container = ProviderContainer(
     overrides: [
       initialThemeModeProvider.overrideWithValue(themeMode),
+      // 온보딩 도중 앱이 꺼졌으면 첫 화면부터 온보딩으로 이어 감
+      initialOnboardingPendingProvider.overrideWithValue(
+        await onboardingPendingLoad,
+      ),
       // 플랫폼별 결제 어댑터 (Android Play, iOS App Store)
       proPurchasePortOverride,
     ],
@@ -54,8 +61,19 @@ Future<void> main() async {
 
   // 인증 상태가 바뀔 때마다 라우터에 알려 로그인/홈 화면 전환을 맡긴다.
   container.listen(authProvider, (_, next) {
-    AppRouter.authenticated.value = next.valueOrNull != null;
+    final isSignedIn = next.valueOrNull != null;
+    // 세션이 끝나면(로그아웃·만료·이용 제한·탈퇴) 온보딩 대기도 지워 다음 계정이 물려받지 않게 한다.
+    if (!isSignedIn) container.read(onboardingPendingProvider.notifier).clear();
+    // 온보딩 신호를 로그인 신호보다 먼저 바꿔야 라우터가 로그인 직후 홈을 거치지 않는다.
+    AppRouter.onboardingPending.value =
+        isSignedIn && container.read(onboardingPendingProvider);
+    AppRouter.authenticated.value = isSignedIn;
   }, fireImmediately: true);
+  // 온보딩을 끝내거나 건너뛰면 라우터에 알린다.
+  container.listen(onboardingPendingProvider, (_, isPending) {
+    AppRouter.onboardingPending.value =
+        isPending && AppRouter.authenticated.value;
+  });
   syncMonitoringMemberWithAuth(container);
   trackScreenViews(AppRouter.router);
   startPushNotificationSync(container, AppRouter.router);

@@ -11,7 +11,11 @@ import 'question_flow.dart';
 
 /// 오늘의 데일리 세트(전 회원 공통 5문제 안팎)를 푸는 흐름.
 class DailySetFlow extends QuestionFlow {
-  const DailySetFlow();
+  const DailySetFlow({this.isOnboarding = false});
+
+  // 같은 세트라 진행 상태(id)는 일반 진입과 공유하고, 배지·축하 화면만 다르게 보인다.
+  @override
+  final bool isOnboarding;
 
   @override
   String get id => 'daily-set';

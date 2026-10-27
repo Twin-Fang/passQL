@@ -23,6 +23,10 @@ abstract final class DevicePreferences {
     await (await _open()).setBool(key, value);
   }
 
+  static Future<void> remove(String key) async {
+    await (await _open()).remove(key);
+  }
+
   // SDK 가 인스턴스를 캐시 > 호출마다 열어도 디스크 재읽기 없음
   static Future<SharedPreferences> _open() => SharedPreferences.getInstance();
 }

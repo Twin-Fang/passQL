@@ -13,6 +13,7 @@ import '../../core/monitoring/app_analytics.dart';
 import '../../core/network/api_call.dart';
 import '../../data/push/push_notification_service.dart';
 import '../../data/sources/api_providers.dart';
+import 'onboarding_providers.dart';
 
 /// 로그인 세션 상태. null 이면 로그아웃 상태.
 ///
@@ -52,6 +53,10 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
       // 탈퇴 시 연결 해제 분기용 제공자 기록 (이전 계정 세션은 통째로 교체)
       final session = result.session.withAuthProvider(credential.provider);
       await ref.read(tokenStoreProvider).save(session);
+      // 신규 가입은 이 응답에서만 알 수 있어 기록부터 한다. 세션 반영보다 먼저여야 라우터가 홈 대신 온보딩으로 보낸다.
+      if (result.isNewMember) {
+        await ref.read(onboardingPendingProvider.notifier).markPending();
+      }
       state = AsyncData(session);
       ref.read(appAnalyticsProvider).logLoginCompleted(provider.name);
       return true;
