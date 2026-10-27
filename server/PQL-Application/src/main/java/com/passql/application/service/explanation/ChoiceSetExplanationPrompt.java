@@ -40,6 +40,11 @@ public final class ChoiceSetExplanationPrompt {
         return SYSTEM_INSTRUCTION;
     }
 
+    /** 응답 스키마 원문 JSON (Gemini 형식, Claude 는 호출 시 JSON Schema 로 변환) */
+    public static String responseSchemaJson() {
+        return RESPONSE_SCHEMA_JSON;
+    }
+
     /** Gemini 응답 스키마 (호출마다 새 객체, SDK 객체 공유 방지) */
     public static Schema responseSchema() {
         return Schema.fromJson(RESPONSE_SCHEMA_JSON);

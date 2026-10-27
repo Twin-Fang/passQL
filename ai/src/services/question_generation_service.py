@@ -1,12 +1,12 @@
 """src.services.question_generation_service
-문제·선택지 생성 (Gemini structured output), 관리자 프롬프트 테스트
+문제·선택지 생성 (LLM structured output), 관리자 프롬프트 테스트
 """
 import json
 import logging
 import time
 from typing import Any
 
-from src.clients.gemini_client import gemini_client
+from src.clients import llm_client
 from src.core.exceptions import CustomError, InvalidRequestError
 from src.models.ai_request import (
     GenerateChoiceSetRequest,
@@ -36,7 +36,7 @@ def _truncate_payload_for_log(payload: Any) -> str:
 class QuestionGenerationService:
     """
     문제 생성: 관리자 문제 등록(stem+정답+선택지), 사용자 풀이 선택지 세트, 프롬프트 테스트
-    Spring 이 내려준 프롬프트·모델·response_schema > 변수 치환 > Gemini 호출
+    Spring 이 내려준 프롬프트·모델·response_schema > 변수 치환 > LLM 호출 (모델 이름으로 Gemini·Claude 선택)
     """
 
     @staticmethod
@@ -50,14 +50,14 @@ class QuestionGenerationService:
 
     @staticmethod
     async def _generate_structured_payload(
-        llm_config: LlmConfig, user_prompt: str
+        llm_config: LlmConfig, user_prompt: str, model: str
     ) -> tuple[dict[str, Any], int]:
-        """Gemini structured 호출 > (응답 dict, 소요 ms)"""
+        """LLM structured 호출 > (응답 dict, 소요 ms)"""
         started = time.monotonic()
-        payload = await gemini_client.chat_structured(
+        payload = await llm_client.chat_structured(
             system_prompt=llm_config.system_prompt,
             user_prompt=user_prompt,
-            model=llm_config.model,
+            model=model,
             temperature=llm_config.temperature,
             max_tokens=llm_config.max_tokens,
             response_schema=llm_config.response_schema,
@@ -70,7 +70,7 @@ class QuestionGenerationService:
     ) -> GenerateQuestionFullResponse:
         """
         관리자 문제 등록용: stem + answer_sql + seed_choices(4) 생성.
-        Spring 이 내려준 프롬프트 전문과 response_schema 를 그대로 Gemini 에 전달.
+        Spring 이 내려준 프롬프트 전문과 response_schema 를 그대로 LLM 에 전달.
         """
         ctx = req.context
         cfg = req.llm_config
@@ -88,8 +88,9 @@ class QuestionGenerationService:
         if not cfg.response_schema:
             raise InvalidRequestError("generate_question_full 은 response_schema 가 필수입니다")
 
-        logger.info(f"[generate-question-full] topic={ctx.topic}, difficulty={ctx.difficulty}")
-        payload, elapsed_ms = await self._generate_structured_payload(cfg, user_prompt)
+        model = await llm_client.resolve_model(cfg.model)
+        logger.info(f"[generate-question-full] topic={ctx.topic}, difficulty={ctx.difficulty}, model={model}")
+        payload, elapsed_ms = await self._generate_structured_payload(cfg, user_prompt, model)
 
         try:
             stem = payload["stem"]
@@ -105,7 +106,7 @@ class QuestionGenerationService:
             answer_sql=answer_sql,
             seed_choices=seed_choices,
             metadata=GenerationMetadata(
-                model_name=cfg.model,
+                model_name=model,
                 elapsed_ms=elapsed_ms,
                 raw_response_json=payload,
             ),
@@ -134,8 +135,9 @@ class QuestionGenerationService:
         if not cfg.response_schema:
             raise InvalidRequestError("generate_choice_set 은 response_schema 가 필수입니다")
 
-        logger.info(f"[generate-choice-set] question_uuid={ctx.question_uuid}")
-        payload, elapsed_ms = await self._generate_structured_payload(cfg, user_prompt)
+        model = await llm_client.resolve_model(cfg.model)
+        logger.info(f"[generate-choice-set] question_uuid={ctx.question_uuid}, model={model}")
+        payload, elapsed_ms = await self._generate_structured_payload(cfg, user_prompt, model)
 
         try:
             raw_choices = payload["choices"]
@@ -147,7 +149,7 @@ class QuestionGenerationService:
         return GenerateChoiceSetResponse(
             choices=choices,
             metadata=GenerationMetadata(
-                model_name=cfg.model,
+                model_name=model,
                 elapsed_ms=elapsed_ms,
                 raw_response_json=payload,
             ),
@@ -155,22 +157,23 @@ class QuestionGenerationService:
 
     async def test_prompt(self, req: TestPromptRequest) -> TestPromptResponse:
         """
-        관리자 프롬프트 테스트: 임의 변수 dict 로 프롬프트 렌더 후 Gemini 호출.
+        관리자 프롬프트 테스트: 임의 변수 dict 로 프롬프트 렌더 후 LLM 호출.
         response_schema 가 있으면 structured, 없으면 일반 chat.
         """
         cfg = req.llm_config
         user_prompt = self._render(cfg.user_template, req.variables)
 
-        logger.info(f"[test-prompt] model={cfg.model}")
+        model = await llm_client.resolve_model(cfg.model)
+        logger.info(f"[test-prompt] model={model}")
         if cfg.response_schema:
-            payload, elapsed_ms = await self._generate_structured_payload(cfg, user_prompt)
+            payload, elapsed_ms = await self._generate_structured_payload(cfg, user_prompt, model)
             result_text = json.dumps(payload, ensure_ascii=False, indent=2)
         else:
             started = time.monotonic()
-            result_text = await gemini_client.chat(
+            result_text = await llm_client.chat(
                 system_prompt=cfg.system_prompt,
                 user_prompt=user_prompt,
-                model=cfg.model,
+                model=model,
                 temperature=cfg.temperature,
                 max_tokens=cfg.max_tokens,
             )

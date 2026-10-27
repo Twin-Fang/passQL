@@ -19,6 +19,9 @@ public class AppInitializer implements ApplicationRunner {
     @Value("${gemini.api-key:}")
     private String geminiApiKeyFromYml;
 
+    @Value("${claude.api-key:}")
+    private String claudeApiKeyFromYml;
+
     @Value("${sandbox.pool.concurrency:30}")
     private int sandboxConcurrencyFromYml;
 
@@ -31,6 +34,9 @@ public class AppInitializer implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         // 비밀값은 암호화 저장 (DB 평문이면 전환)
         appSettingService.syncSecretSetting(AppSettingKeys.AI_GEMINI_API_KEY, geminiApiKeyFromYml);
+        appSettingService.syncSecretSetting(AppSettingKeys.AI_CLAUDE_API_KEY, claudeApiKeyFromYml);
+        // 마이그레이션이 단가표를 바꿔도 Redis 의 옛 값이 남지 않게 DB 값으로 덮어씀
+        appSettingService.syncSettingToRedis(AppSettingKeys.AI_MODEL_PRICE_TABLE, "");
         appSettingService.syncSettingToRedis(AppSettingKeys.SANDBOX_POOL_CONCURRENCY, String.valueOf(sandboxConcurrencyFromYml));
         appSettingService.syncSettingToRedis(AppSettingKeys.SANDBOX_POOL_WAIT_SECONDS, String.valueOf(sandboxWaitSecondsFromYml));
     }
