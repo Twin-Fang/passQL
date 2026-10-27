@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<th:block layout:fragment="title">개념 미리보기</th:block>
+
+<th:block layout:fragment="css">
+    <style>
+        /* 앱 화면 폭(390px) 미리보기와 마크다운 최소 서식 */
+        .concept-phone { max-width: 390px; }
+        .markdown-preview h1, .markdown-preview h2, .markdown-preview h3 { font-weight: 700; margin: 0.8em 0 0.4em; }
+        .markdown-preview ul { list-style: disc; padding-left: 1.4rem; }
+        .markdown-preview ol { list-style: decimal; padding-left: 1.4rem; }
+        .markdown-preview pre { background: var(--color-base-200); border-radius: 0.5rem; padding: 0.75rem; overflow-x: auto; }
+        .markdown-preview code { font-family: ui-monospace, monospace; font-size: 0.85em; }
+        .markdown-preview table { border-collapse: collapse; display: block; overflow-x: auto; }
+        .markdown-preview th, .markdown-preview td { border: 1px solid var(--color-base-300); padding: 0.25rem 0.5rem; }
+        .markdown-preview p { margin: 0.5em 0; line-height: 1.7; }
+    </style>
+</th:block>
+
+<th:block layout:fragment="content">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <a th:href="@{/admin/concepts/learning}" class="btn btn-sm btn-ghost">
+            <i data-lucide="arrow-left" class="size-4"></i>개념 학습 관리
+        </a>
+        <span class="font-mono text-xs text-base-content/50" th:text="${preview.tagKey}">modeling-entity</span>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+
+        <!-- 앱 화면처럼 보기 -->
+        <div class="concept-phone w-full mx-auto space-y-4">
+            <div>
+                <h2 class="text-xl font-bold" th:text="${preview.title}">엔터티</h2>
+                <p class="text-sm text-base-content/60" th:text="${preview.summary}">한 줄 요약</p>
+            </div>
+
+            <section class="card bg-base-100 shadow">
+                <div class="card-body p-4">
+                    <h3 class="font-semibold text-sm text-base-content/60">핵심만</h3>
+                    <div class="markdown-preview text-sm" data-markdown th:text="${preview.coreMd}"></div>
+                </div>
+            </section>
+
+            <section class="card bg-base-100 shadow" th:each="section : ${preview.sections}">
+                <div class="card-body p-4">
+                    <h3 class="font-semibold">
+                        <span th:text="${section.title}">자주 헷갈리는 점</span>
+                        <span class="font-mono text-xs text-base-content/40" th:text="'#' + ${section.anchor}">#confusing</span>
+                    </h3>
+                    <div class="markdown-preview text-sm" data-markdown th:text="${section.bodyMd}"></div>
+                </div>
+            </section>
+
+            <section class="card bg-base-100 shadow" th:each="question : ${preview.checkQuestions}">
+                <div class="card-body p-4 space-y-2">
+                    <p class="text-xs text-base-content/50" th:text="'확인 문제 ' + ${question.sortOrder} + ' / 5'">확인 문제 1 / 5</p>
+                    <div class="markdown-preview text-sm" data-markdown th:text="${question.stem}"></div>
+                    <pre th:if="${question.stemSql != null}" class="text-xs bg-base-200 rounded p-2 overflow-x-auto" th:text="${question.stemSql}"></pre>
+                    <ul class="space-y-1">
+                        <li th:each="choice : ${question.choices}" class="border rounded-lg px-3 py-2 text-sm"
+                            th:classappend="${choice.isCorrect()} ? 'border-success bg-success/10' : 'border-base-300'">
+                            <span class="font-mono font-semibold" th:text="${choice.choiceKey}">A</span>
+                            <span th:text="${choice.body}">보기</span>
+                            <p th:if="${choice.rationale != null}" class="text-xs text-base-content/60 mt-1" th:text="${choice.rationale}">근거</p>
+                        </li>
+                    </ul>
+                    <div class="text-sm bg-base-200 rounded-lg p-3">
+                        <p class="font-semibold">풀이</p>
+                        <div class="markdown-preview" data-markdown th:text="${question.explanation}"></div>
+                        <p class="text-xs text-base-content/50" th:text="'다시 읽기: #' + ${question.rereadAnchor}">다시 읽기: #confusing</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 본문 편집 -->
+        <div class="card bg-base-100 shadow h-fit">
+            <div class="card-body p-4 space-y-2" th:data-uuid="${preview.conceptUuid}" id="conceptContentEditor">
+                <h3 class="card-title text-base"><i data-lucide="pencil" class="size-5"></i>본문 수정</h3>
+                <label class="text-xs text-base-content/60">제목</label>
+                <input id="conceptTitle" class="input input-sm input-bordered w-full" th:value="${preview.title}"/>
+                <label class="text-xs text-base-content/60">한 줄 요약</label>
+                <input id="conceptSummary" class="input input-sm input-bordered w-full" th:value="${preview.summary}"/>
+                <label class="text-xs text-base-content/60">핵심만 (3~5줄)</label>
+                <textarea id="conceptCoreMd" rows="6" class="textarea textarea-bordered w-full font-mono text-xs" th:text="${preview.coreMd}"></textarea>
+                <label class="text-xs text-base-content/60">자세히 (## 제목 {#앵커} 문단)</label>
+                <textarea id="conceptDetailMd" rows="18" class="textarea textarea-bordered w-full font-mono text-xs" th:text="${preview.detailMd}"></textarea>
+                <button type="button" class="btn btn-sm btn-primary" onclick="saveConceptContent()">저장</button>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<th:block layout:fragment="js">
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+    <script th:src="@{/js/admin/concept-learning.js}"></script>
+    <script>renderConceptMarkdown(); lucide.createIcons();</script>
+</th:block>
+</html>

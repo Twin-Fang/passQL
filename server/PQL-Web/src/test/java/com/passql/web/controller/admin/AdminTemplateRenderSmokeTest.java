@@ -1,5 +1,12 @@
 package com.passql.web.controller.admin;
 
+import com.passql.application.concept.admin.dto.AdminCheckQuestionPreview;
+import com.passql.application.concept.admin.dto.AdminConceptPreview;
+import com.passql.application.concept.admin.dto.AdminConceptRow;
+import com.passql.application.concept.admin.dto.AdminConceptTopicGroup;
+import com.passql.application.concept.admin.dto.ConceptBundleChoice;
+import com.passql.meta.constant.ConceptPublishStatus;
+import com.passql.meta.dto.concept.ConceptDetailSection;
 import com.passql.meta.constant.CertType;
 import com.passql.meta.constant.ConceptDocSortType;
 import com.passql.meta.dto.ExamScheduleResponse;
@@ -174,5 +181,34 @@ class AdminTemplateRenderSmokeTest {
 
         assertThat(html).contains("name=\"questionUuid\"").contains("bulkPromoteChoiceSets()").contains("choice-set-checkbox")
                 .contains("AI_PREFETCH");
+    }
+
+    @Test
+    void 개념_학습_관리_화면은_단원별_상태와_확인_문제_수를_렌더한다() {
+        UUID conceptUuid = UUID.randomUUID();
+        AdminConceptTopicGroup group = new AdminConceptTopicGroup(UUID.randomUUID(), "MODELING", "데이터 모델링",
+                List.of(new AdminConceptRow(conceptUuid, "modeling-entity", "엔터티", ConceptPublishStatus.DRAFT, 3,
+                        LocalDateTime.of(2026, 10, 27, 10, 0))));
+
+        String html = render("admin/concept-learning", Map.of("topicGroups", List.of(group)));
+
+        assertThat(html).contains("1. 데이터 모델링").contains("modeling-entity").contains("3 / 5")
+                .contains("초안").contains("changeConceptStatus(this.dataset.uuid, this.dataset.status)")
+                .contains("/admin/concepts/learning/" + conceptUuid + "/preview");
+    }
+
+    @Test
+    void 개념_미리보기는_문단_앵커와_정답_보기를_렌더한다() {
+        AdminConceptPreview preview = new AdminConceptPreview(UUID.randomUUID(), "modeling-entity", "엔터티", "요약",
+                ConceptPublishStatus.DRAFT, "핵심", "## 헷갈리는 점 {#confusing}\n본문",
+                List.of(new ConceptDetailSection("confusing", "헷갈리는 점", "본문")),
+                List.of(new AdminCheckQuestionPreview(1, "지문", null, "풀이", "confusing", "B",
+                        List.of(new ConceptBundleChoice("A", "보기 A", false, null),
+                                new ConceptBundleChoice("B", "보기 B", true, "근거")))));
+
+        String html = render("admin/concept-preview", Map.of("preview", preview));
+
+        assertThat(html).contains("#confusing").contains("확인 문제 1 / 5").contains("border-success")
+                .contains("다시 읽기: #confusing").contains("saveConceptContent()");
     }
 }
