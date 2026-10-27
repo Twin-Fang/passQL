@@ -48,11 +48,17 @@ abstract final class AppRouter {
   /// 로그인 여부. main 에서 인증 상태를 구독해 갱신하고, 값이 바뀌면 라우터가 redirect 를 다시 평가한다.
   static final ValueNotifier<bool> authenticated = ValueNotifier<bool>(false);
 
+  /// 로그인한 신규 가입자가 온보딩을 아직 마치지 않았는지. main 이 온보딩 대기 상태를 구독해 갱신한다.
+  static final ValueNotifier<bool> onboardingPending = ValueNotifier<bool>(
+    false,
+  );
+
   static final GoRouter router = GoRouter(
     navigatorKey: _rootKey,
     initialLocation: AppRoutes.home,
     refreshListenable: Listenable.merge([
       authenticated,
+      onboardingPending,
       AppLaunchGateRouting.gate,
     ]),
     // 로그인 안 했으면 로그인 화면으로, 로그인 했는데 로그인 화면이면 홈으로 보낸다.
