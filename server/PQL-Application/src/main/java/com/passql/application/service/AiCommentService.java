@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.passql.ai.client.AiChatClient;
 import com.passql.ai.dto.AiCommentResponse;
 import com.passql.application.entitlement.FeatureAccessPolicy;
+import com.passql.application.entitlement.ProFeature;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.entity.PromptTemplate;
@@ -65,6 +66,10 @@ public class AiCommentService {
      * 캐시 키: ai-comment:{memberUuid}:{sessionUuid} / ai-comment:{memberUuid}:stats:{날짜}:{갱신 구간}
      */
     public AiCommentResponse getAiComment(UUID memberUuid, UUID sessionUuid) {
+        // 등급: 통계 코멘트는 무료도 하루 1회, 결과 화면 세션 코멘트는 프로만 (#699)
+        if (sessionUuid != null) {
+            featureAccessPolicy.requireFeature(memberUuid, ProFeature.AI_COMMENT);
+        }
         // 통계 화면: 같은 날 같은 갱신 구간이면 캐시 재사용 > 풀이마다 LLM 호출하지 않게 (#567, #699)
         RecentActivity recentActivity = sessionUuid == null ? findRecentActivity(memberUuid) : null;
         String recentActivitySummary = recentActivity != null ? recentActivity.toPromptText() : null;

@@ -1,5 +1,5 @@
 """스토어 캡처용 개념 응답 데이터 생성: 개념 원본 > app/tool/store_shots/shot_concept_data.dart (단원 9개 + 대표 개념 3개)
-실행: python3 -I content/concepts/export_shot_concepts.py (개념 글을 고친 뒤 캡처 전에 다시 실행)"""
+실행: python3 -I content/concepts/export_shot_concepts.py [--all] (--all 은 63개 전체 점검용, 커밋하지 않고 기본으로 다시 생성)"""
 import json
 import re
 import sys
@@ -49,7 +49,7 @@ def to_detail_sections(detail_md):
             for section in sections]
 
 
-def build_shot_data():
+def build_shot_data(is_all_concepts=False):
     """개념 원본 > 캡처 응답 묶음 (topics, conceptsByTopic, detailByConcept, questionsByConcept, answerKeyByQuestion)"""
     # 운영 가져오기와 같은 글 정리를 거친 개념 (표 칸 표시 제거, 영문 가운뎃점 줄바꿈 자리)
     concepts = [to_export_item(concept, {}) for _, concept in load_concepts()]
@@ -70,7 +70,7 @@ def build_shot_data():
 
     detail_by_concept, questions_by_concept, answer_key_by_question = {}, {}, {}
     for concept_index, concept in enumerate(concepts, start=1):
-        if concept["tagKey"] not in SHOT_TAG_KEYS:
+        if not is_all_concepts and concept["tagKey"] not in SHOT_TAG_KEYS:
             continue
         concept_uuid = concept_uuid_by_tag_key[concept["tagKey"]]
         same_topic = [other for other in concepts if other["topicCode"] == concept["topicCode"]]
@@ -102,13 +102,14 @@ def build_shot_data():
 
 
 def main():
-    data_json = json.dumps(build_shot_data(), ensure_ascii=False)
+    is_all_concepts = "--all" in sys.argv[1:]
+    data_json = json.dumps(build_shot_data(is_all_concepts), ensure_ascii=False)
     # Dart raw 문자열(r'''...''') 안에 ''' 가 나오면 끊기므로 확인
     if "'''" in data_json:
         raise SystemExit("[shot concepts] rejected : data contains '''")
     OUTPUT_PATH.write_text(
         "// 생성 파일: content/concepts/export_shot_concepts.py (손으로 고치지 않음)\n"
-        "// 스토어 캡처 가짜 API 의 개념 응답 원본 (단원 9개 + 대표 개념 3개, #577)\n"
+        f"// 스토어 캡처 가짜 API 의 개념 응답 원본 (단원 9개 + {'개념 전체' if is_all_concepts else '대표 개념 3개'}, #577)\n"
         f"const String shotConceptDataJson = r'''{data_json}''';\n",
         encoding="utf-8",
     )

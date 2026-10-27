@@ -83,12 +83,16 @@ export default function Stats() {
 
   // 토픽 데이터 있을 때만 AI 코멘트 카드 렌더 > 없으면 LLM 호출 생략
   const hasTopicStats = (topicAnalysis?.topicStats.length ?? 0) > 0;
+  // 토픽 분석 프로 필요(무료, 결제 켜짐) > 빈 상태 대신 잠금 미리보기 (#578)
+  const isTopicAnalysisLocked = toProAccessErrorCode(topicAnalysisError) === "PRO_REQUIRED";
+  // 무료는 토픽 분석이 잠겨 있어도 푼 기록이 있으면 AI 코멘트 하루 1회 (#699)
+  const shouldFetchAiComment = hasTopicStats || (isTopicAnalysisLocked && (progress?.solvedCount ?? 0) > 0);
 
   // AI 코멘트 — Stats 페이지는 세션 무관 전체 분석이므로 sessionUuid 빈 문자열 전달
   const { data: aiComment, isLoading: aiCommentLoading } = useQuery({
     queryKey: ["aiComment", uuid],
     queryFn: () => fetchAiComment(),
-    enabled: !!uuid && hasTopicStats,
+    enabled: !!uuid && shouldFetchAiComment,
     staleTime: 1000 * 60 * 60,
     gcTime: 1000 * 60 * 60, // staleTime 과 동일: 탭 이탈 후 재진입 시 LLM 재호출 방지
   });
@@ -96,8 +100,6 @@ export default function Stats() {
   const readiness = progress?.readiness;
   const readinessPercent = readiness ? Math.round(readiness.score * 100) : null;
   const topicStats = topicAnalysis?.topicStats ?? [];
-  // 토픽 분석 프로 필요(무료, 결제 켜짐) > 빈 상태 대신 잠금 미리보기 (#578)
-  const isTopicAnalysisLocked = toProAccessErrorCode(topicAnalysisError) === "PRO_REQUIRED";
 
   // 팝오버 바깥 클릭 시 닫기
   useEffect(() => {
@@ -227,9 +229,20 @@ export default function Stats() {
           </section>
         </>
       ) : isTopicAnalysisLocked ? (
-        <section className={s2.className}>
-          <LockedPreview preview={<StatsLockedSample />} caption={LOCKED_PREVIEW_CAPTIONS.stats} />
-        </section>
+        <>
+          {/* ③ AI 코멘트 (무료 하루 1회, 푼 기록 있을 때) */}
+          {shouldFetchAiComment && (
+            <section className={s2.className}>
+              <StatsAnalysisCard
+                comment={aiComment?.comment ?? null}
+                isLoading={aiCommentLoading}
+              />
+            </section>
+          )}
+          <section className={s3.className}>
+            <LockedPreview preview={<StatsLockedSample />} caption={LOCKED_PREVIEW_CAPTIONS.stats} />
+          </section>
+        </>
       ) : (
         <section className={`bg-surface-card border border-border rounded-2xl text-center py-12 ${s2.className}`}>
           <p className="text-text-caption">아직 풀이 기록이 없어요</p>
