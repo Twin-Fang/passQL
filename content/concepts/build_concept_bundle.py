@@ -30,6 +30,10 @@ PLAIN_TEXT_MARKUP_PATTERN = re.compile(r"`|\*\*")
 # SQL 주석에서 영문·숫자·기호 뒤 조사 앞 빈칸 (예: "TRIM 은", "WHERE 에서")
 SPACED_PARTICLE_PATTERN = re.compile(r"[A-Za-z0-9_)'\]] (은|는|이|가|을|를|에|에서|에는|의|로|으로|와|과|도|만)(?=[\s,.)]|$)")
 
+# 영문 사이 가운뎃점 뒤 줄바꿈 자리 (폭 0 빈칸): "SELECT·INSERT·UPDATE" 같은 긴 낱말이 글자 중간에서 잘리지 않게
+LATIN_MIDDLE_DOT_PATTERN = re.compile(r"(?<=[A-Za-z0-9_)])·(?=[A-Za-z(])")
+ZERO_WIDTH_SPACE = "\u200b"
+
 EXPORT_KEYS = ("tagKey", "topicCode", "sortOrder", "title", "summary", "coreMd", "detailMd",
                "checkQuestions", "relatedQuestionUuids")
 
@@ -184,9 +188,33 @@ def load_related_question_uuids_by_tag_key():
     return json.loads(RELATED_QUESTIONS_PATH.read_text(encoding="utf-8"))
 
 
+def to_app_markdown(markdown):
+    """앱 화면용 글 정리 (코드 펜스 안은 그대로): 표 줄의 인라인 코드·굵게 표시 제거 > 영문 가운뎃점 뒤 줄바꿈 자리
+    앱 표 부품은 칸 글자를 그대로 그리고, 빈칸 없는 긴 영문 낱말은 글자 중간에서 잘림"""
+    if not markdown:
+        return markdown
+    lines, is_inside_fence = [], False
+    for line in markdown.splitlines():
+        if line.strip().startswith("```"):
+            is_inside_fence = not is_inside_fence
+        elif not is_inside_fence:
+            if line.lstrip().startswith("|"):
+                line = line.replace("`", "").replace("**", "")
+            line = LATIN_MIDDLE_DOT_PATTERN.sub("·" + ZERO_WIDTH_SPACE, line)
+        lines.append(line)
+    return "\n".join(lines)
+
+
 def to_export_item(concept, related_question_uuids_by_tag_key):
-    """개념 > 가져오기 항목 (sqlChecks 제외, 관련 문제는 연결 파일 기준)"""
+    """개념 > 가져오기 항목 (sqlChecks 제외, 관련 문제는 연결 파일 기준, 앱 화면용 글 정리)"""
     item = {key: concept.get(key) for key in EXPORT_KEYS}
+    for field in ("title", "summary", "coreMd", "detailMd"):
+        item[field] = to_app_markdown(item[field])
+    item["checkQuestions"] = [{**question, "stem": to_app_markdown(question["stem"]),
+                               "explanation": to_app_markdown(question["explanation"]),
+                               "choices": [{**choice, "body": to_app_markdown(choice["body"]),
+                                            "rationale": to_app_markdown(choice["rationale"])} for choice in question["choices"]]}
+                              for question in item["checkQuestions"]]
     item["relatedQuestionUuids"] = related_question_uuids_by_tag_key.get(concept["tagKey"], [])
     return item
 
