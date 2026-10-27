@@ -12,12 +12,11 @@ import com.passql.meta.service.FeedbackService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,12 +31,14 @@ import java.util.zip.GZIPInputStream;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class FeedbackAttachmentReader {
 
     // 로그 뷰어에 보여 줄 해제 후 최대 크기 (4MB, 넘으면 뒤쪽만)
     private static final int MAX_LOG_TEXT_BYTES = 4 * 1024 * 1024;
     // 진단 그룹 표시 순서
+    // 해제 후 읽기 상한 (64MB, 압축 폭탄의 CPU 사용 제한)
+    private static final long MAX_INFLATED_READ_BYTES = 64L * 1024 * 1024;
+    private static final int READ_CHUNK_BYTES = 8192;
     private static final List<String> DIAGNOSTICS_GROUP_ORDER = List.of("app", "device", "system", "meta");
 
     private final FeedbackService feedbackService;
@@ -69,7 +70,7 @@ public class FeedbackAttachmentReader {
         return objectStorageClient.read(feedback.getLogObjectKey());
     }
 
-    /** 로그 텍스트: gzip 해제 > UTF-8 (4MB 초과 시 뒤쪽 4MB 만), 로그 없으면 empty */
+    /** 로그 텍스트: gzip 해제 > UTF-8 (4MB 초과 시 뒤쪽 4MB 만), 로그 없으면 empty (DB 트랜잭션 밖 저장소 I/O) */
     public Optional<String> readLogText(UUID feedbackUuid) {
         Feedback feedback = feedbackService.getFeedback(feedbackUuid);
         if (!feedback.hasLog()) {
@@ -77,7 +78,7 @@ public class FeedbackAttachmentReader {
         }
         byte[] gzipBytes = objectStorageClient.read(feedback.getLogObjectKey());
         try (GZIPInputStream gzipInputStream = new GZIPInputStream(new ByteArrayInputStream(gzipBytes))) {
-            return Optional.of(toTailText(gzipInputStream.readAllBytes()));
+            return Optional.of(readTailText(gzipInputStream, MAX_LOG_TEXT_BYTES, MAX_INFLATED_READ_BYTES));
         } catch (IOException e) {
             log.warn("[feedback log] gunzip failed : feedback={}, cause={}", feedbackUuid, e.getClass().getSimpleName());
             return Optional.of("(로그를 해제하지 못했어요)");
@@ -103,15 +104,34 @@ public class FeedbackAttachmentReader {
         return groups;
     }
 
-    // 최대 크기 초과 시 뒤쪽만 남김 (첫 글자가 잘린 UTF-8 이면 건너뜀)
-    private String toTailText(byte[] bytes) {
-        if (bytes.length <= MAX_LOG_TEXT_BYTES) {
-            return new String(bytes, StandardCharsets.UTF_8);
+    /** 스트림 > 마지막 maxTailBytes 만 UTF-8 텍스트로 (원형 버퍼, 메모리는 입력 크기와 무관, readLimitBytes 초과분은 읽지 않음) */
+    static String readTailText(InputStream inputStream, int maxTailBytes, long readLimitBytes) throws IOException {
+        byte[] ring = new byte[maxTailBytes];
+        byte[] chunk = new byte[READ_CHUNK_BYTES];
+        long totalBytes = 0;
+        int readBytes;
+        while (totalBytes < readLimitBytes && (readBytes = inputStream.read(chunk)) != -1) {
+            for (int i = 0; i < readBytes; i++) {
+                ring[(int) ((totalBytes + i) % maxTailBytes)] = chunk[i];
+            }
+            totalBytes += readBytes;
         }
-        int start = bytes.length - MAX_LOG_TEXT_BYTES;
-        while (start < bytes.length && (bytes[start] & 0xC0) == 0x80) {
+        if (totalBytes >= readLimitBytes) {
+            log.warn("[feedback log] inflated read limit reached : limitBytes={}", readLimitBytes);
+        }
+        if (totalBytes <= maxTailBytes) {
+            return new String(ring, 0, (int) totalBytes, StandardCharsets.UTF_8);
+        }
+        // 원형 버퍼를 시간순으로 펼침 (가장 오래된 위치부터)
+        int oldestIndex = (int) (totalBytes % maxTailBytes);
+        byte[] tail = new byte[maxTailBytes];
+        System.arraycopy(ring, oldestIndex, tail, 0, maxTailBytes - oldestIndex);
+        System.arraycopy(ring, 0, tail, maxTailBytes - oldestIndex, oldestIndex);
+        // 첫 글자가 잘린 UTF-8 이면 건너뜀
+        int start = 0;
+        while (start < tail.length && (tail[start] & 0xC0) == 0x80) {
             start++;
         }
-        return new String(Arrays.copyOfRange(bytes, start, bytes.length), StandardCharsets.UTF_8);
+        return new String(tail, start, tail.length - start, StandardCharsets.UTF_8);
     }
 }
