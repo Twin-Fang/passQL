@@ -1,9 +1,19 @@
 """개념: NULL 관련 함수 (4단원, 확인 문제 5개)"""
 
-from concept_bundle import choice, question, sql_check, sql_error_check
+from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
 from concept_dataset import to_employee_table_md
 
 EMPLOYEE_COMMISSION_TABLE = to_employee_table_md("사번", "이름", "급여", "커미션", "부서번호")
+
+# NVL·COALESCE(NULL 바꾸기) <-> NULLIF(같으면 NULL): 커미션 NULL·300·0 세 사원
+NULL_REPLACE_VERSUS_NULLIF_EXAMPLE = sql_example(
+    "SELECT 사번, 커미션, NVL(커미션, 0), COALESCE(커미션, 0), NULLIF(커미션, 0)\n"
+    "FROM 사원\n"
+    "WHERE 사번 IN (1001, 1002, 1003)\n"
+    "ORDER BY 사번;",
+    ("사번", "커미션", "NVL(커미션, 0)", "COALESCE(커미션, 0)", "NULLIF(커미션, 0)"),
+    [[1001, None, 0, 0, None], [1002, 300, 300, 300, 300], [1003, 0, 0, 0, None]],
+)
 
 CONCEPT = {
     "tagKey": "function-null",
@@ -16,7 +26,7 @@ CONCEPT = {
         "- `NULLIF(a, b)`는 두 값이 같으면 NULL을, 다르면 a를 돌려주고, `COALESCE(a, b, c, ...)`는 처음으로 NULL이 아닌 값을 돌려줘요.\n"
         "- NVL의 두 인자는 타입이 맞아야 해서, 숫자 커미션을 '없음'으로 바꾸려면 `NVL(TO_CHAR(커미션), '없음')`처럼 써요.\n"
         "- 조건에 맞는 행이 하나도 없는 결과를 공집합이라고 하고, 이때 NVL은 바꿀 행이 없어서 결과도 0행이에요. MAX 같은 집계 함수는 행이 없어도 NULL 한 행을 돌려주므로 `NVL(MAX(급여), 0)`은 0 한 행이 나와요.\n"
-        "- SQL Server에서는 NVL 대신 `ISNULL(값, 대신할 값)`을 쓰고, COALESCE와 NULLIF는 양쪽에서 모두 써요."
+        "- SQL Server의 `ISNULL(값, 대신할 값)`과 MySQL의 `IFNULL(값, 대신할 값)`은 NVL과 같은 일을 하고, 이름이 비슷한 NULLIF는 두 값이 같으면 NULL을 돌려주는 전혀 다른 함수예요."
     ),
     "detailMd": f"""## 왜 필요한가요 {{#why}}
 
@@ -107,6 +117,34 @@ SELECT COUNT(*) FROM 사원 WHERE 부서번호 = 40;           -- COUNT는 NULL�
 
 이 방법은 "부서의 최고 급여를 구하되 사원이 없으면 0으로 보여 달라" 같은 요구에 자주 써요. 집계 함수가 행을 묶는 방식은 그룹 함수 단원에서 자세히 다뤄요.
 
+## 다른 DBMS의 NULL 함수 이름 {{#other-dbms}}
+
+DBMS는 데이터베이스를 관리하는 프로그램이고, Oracle, SQL Server, MySQL이 그 예예요. "NULL이면 다른 값으로 바꾸기"는 어느 DBMS에나 있지만 함수 이름이 서로 달라요. 시험은 Oracle을 기준으로 하면서도 다른 DBMS의 이름을 보기에 섞어 내므로, 이름과 뜻을 함께 정리해 두면 좋아요.
+
+| DBMS | NULL이면 바꾸기 | 뜻 |
+|---|---|---|
+| Oracle | NVL(a, b) | a가 NULL이면 b, 아니면 a |
+| SQL Server | ISNULL(a, b) | NVL과 같아요 |
+| MySQL | IFNULL(a, b) | NVL과 같아요 |
+| SQL 표준 (세 DBMS 모두) | COALESCE(a, b, ...) | 처음으로 NULL이 아닌 값 |
+
+ISNULL과 IFNULL은 Oracle에 없는 함수라서, Oracle에서 실행하면 ORA-00904(없는 이름) 오류가 나요. 그래서 아래 블록은 실행하지 않고 모양만 보여 줘요. 세 줄 모두 커미션이 NULL이면 0을, 아니면 커미션을 그대로 돌려줘요.
+
+```sql
+-- 문법: 같은 뜻을 DBMS마다 다른 이름으로 써요
+SELECT NVL(커미션, 0) FROM 사원;      -- Oracle
+SELECT ISNULL(커미션, 0) FROM 사원;   -- SQL Server
+SELECT IFNULL(커미션, 0) FROM 사원;   -- MySQL
+```
+
+NVL2는 Oracle에만 있어서, 다른 DBMS에서는 같은 뜻을 CASE 식으로 써요. NULLIF는 SQL 표준이라 세 DBMS에서 모두 같은 이름과 같은 뜻으로 써요.
+
+**NULLIF는 IFNULL과 이름만 비슷해요.** IFNULL은 NULL을 다른 값으로 바꾸는 함수이고, NULLIF는 두 값이 같으면 NULL을 만드는 함수라서 하는 일이 반대예요. 글자 순서만 바뀐 이름이라 시험에서 함정으로 나와요. 아래 결과에서 NVL과 COALESCE는 같은 값을 돌려주지만, NULLIF만 다른 값을 돌려줘요.
+
+{NULL_REPLACE_VERSUS_NULLIF_EXAMPLE.markdown}
+
+김민수(1001)의 커미션은 NULL인데, NULLIF는 NULL을 바꿔 주지 않아서 결과도 NULL이에요. 박서준(1003)의 커미션 0은 두 번째 값 0과 같아서 NULLIF가 NULL로 만들어요. 커미션이 300인 이지은(1002)은 세 함수 모두 커미션 그대로 300을 돌려줘요.
+
 ## 자주 헷갈리는 점 {{#confusing}}
 
 **NVL2는 NULL이 아닐 때의 값을 먼저 적어요.** NVL에서는 두 번째 인자가 "NULL일 때의 값"이라서, NVL2의 두 번째 인자도 같은 뜻이라고 생각하기 쉬워요. NVL2(커미션, '대상', '비대상')에서 두 번째 '대상'은 커미션이 있을 때, 세 번째 '비대상'은 커미션이 NULL일 때의 값이에요.
@@ -151,11 +189,11 @@ SELECT 이름, NVL(TO_CHAR(커미션), '없음') FROM 사원 WHERE 사번 IN (10
 SELECT MAX(NVL(급여, 0)), NVL(MAX(급여), 0) FROM 사원 WHERE 부서번호 = 40;   -- 결과는 차례로 NULL, 0이에요
 ```
 
-**SQL Server에서는 ISNULL을 써요.** `ISNULL(커미션, 0)`이 Oracle의 `NVL(커미션, 0)`과 같은 일을 해요. 이름이 비슷한 조건 `커미션 IS NULL`은 NULL인지 묻는 조건이고, 값을 바꾸는 ISNULL 함수와는 달라요. NVL과 NVL2는 Oracle에만 있고, COALESCE와 NULLIF는 SQL 표준이라 양쪽에서 모두 써요.
+**이름이 비슷한 ISNULL, IS NULL, IFNULL, NULLIF를 구분해요.** SQL Server의 `ISNULL(커미션, 0)`과 MySQL의 `IFNULL(커미션, 0)`은 Oracle의 `NVL(커미션, 0)`과 같은 일을 해요. 띄어 쓴 `커미션 IS NULL`은 NULL인지 묻는 조건이라서 값을 바꾸지 않아요. MySQL에도 ISNULL이라는 함수가 있지만 인자를 하나만 받아 NULL이면 1, 아니면 0을 돌려주므로, SQL Server의 ISNULL과는 쓰임이 달라요. NULLIF만은 NULL을 바꾸는 쪽이 아니라 같으면 NULL을 만드는 쪽이에요.
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 
-예시 표에 NVL, NVL2, NULLIF, COALESCE를 쓴 SQL을 주고 결과를 고르는 문제가 가장 많아요. NVL2의 인자 순서, 커미션 0과 NULL의 구분, NULLIF가 다를 때 돌려주는 값이 단골 함정이에요. 조건에 맞는 행이 없을 때 `NVL(MAX(...), 0)`과 `NVL(열, 0)`의 결과 행 수를 비교하는 문제도 자주 나오는데, 집계 함수는 행이 없어도 한 행을 돌려준다는 점만 기억하면 풀려요.""",
+예시 표에 NVL, NVL2, NULLIF, COALESCE를 쓴 SQL을 주고 결과를 고르는 문제가 가장 많아요. NVL2의 인자 순서, 커미션 0과 NULL의 구분, NULLIF가 다를 때 돌려주는 값이 단골 함정이에요. NVL, COALESCE, IFNULL, NULLIF, NVL2를 한 보기에 섞어 뜻이 다른 하나를 고르게 하는 문제도 나오는데, NULLIF만 같으면 NULL을 만들고 IFNULL과 ISNULL은 NVL과 같은 뜻이라는 점으로 가르면 돼요. 조건에 맞는 행이 없을 때 `NVL(MAX(...), 0)`과 `NVL(열, 0)`의 결과 행 수를 비교하는 문제도 자주 나오는데, 집계 함수는 행이 없어도 한 행을 돌려준다는 점만 기억하면 풀려요.""",
     "checkQuestions": [
         question(1, "NVL2(커미션, '대상', '비대상')의 뜻으로 알맞은 것은 무엇인가요?", "definition",
                  "NVL2는 첫 번째 값이 NULL이 아니면 두 번째 값을, NULL이면 세 번째 값을 돌려줘요. 그래서 커미션이 있으면 '대상', 없으면 '비대상'이에요.",
@@ -177,13 +215,12 @@ SELECT MAX(NVL(급여, 0)), NVL(MAX(급여), 0) FROM 사원 WHERE 부서번호 =
                   choice("C", "200", rationale="NULLIF는 두 값의 차이를 계산하지 않아요."),
                   choice("D", "2700", True, "두 값이 달라서 첫 번째 값이 나와요.")],
                  stem_sql="SELECT NULLIF(급여, 2500) FROM 사원 WHERE 사번 = 1006;"),
-        question(4, "다음 SQL의 결과는 무엇인가요?", "nullif-coalesce",
-                 "COALESCE는 왼쪽부터 처음으로 NULL이 아닌 값을 돌려줘요. 0은 NULL이 아니므로 세 번째 인자인 0이 나와요.",
-                 [choice("A", "7", rationale="0은 NULL이 아니라서 건너뛰지 않아요."),
-                  choice("B", "NULL", rationale="NULL이 아닌 인자가 있으므로 NULL이 나오지 않아요."),
-                  choice("C", "0", True, "처음으로 NULL이 아닌 값이 0이에요."),
-                  choice("D", "오류가 난다", rationale="인자가 모두 숫자나 NULL이라 오류 없이 실행돼요.")],
-                 stem_sql="SELECT COALESCE(NULL, NULL, 0, 7) FROM DUAL;"),
+        question(4, "커미션이 NULL이면 0을, NULL이 아니면 커미션을 그대로 돌려준다는 뜻이 아닌 것은 무엇인가요?", "other-dbms",
+                 "NVL, COALESCE, IFNULL은 모두 NULL을 0으로 바꾸는 같은 뜻이에요. NULLIF는 커미션이 0과 같으면 NULL을 돌려주는 함수라서 뜻이 달라요.",
+                 [choice("A", "Oracle의 NVL(커미션, 0)", rationale="커미션이 NULL이면 0으로 바꾸는 함수예요."),
+                  choice("B", "NULLIF(커미션, 0)", True, "커미션이 0이면 NULL을 돌려주고, NULL을 0으로 바꾸지 않아요."),
+                  choice("C", "SQL 표준의 COALESCE(커미션, 0)", rationale="인자가 두 개면 NVL과 같은 일을 해요."),
+                  choice("D", "MySQL의 IFNULL(커미션, 0)", rationale="MySQL에서 NVL과 같은 일을 하는 함수예요.")]),
         question(5, "40번 인사부에는 소속 사원이 없어요. 다음 중 결과가 숫자 0 한 행으로 나오는 SQL은 무엇인가요?", "empty-set",
                  "행이 없어도 집계 함수 MAX는 NULL 한 행을 돌려주고, 바깥의 NVL이 그 NULL을 0으로 바꿔요. 나머지는 0행이거나 NULL 한 행이에요.",
                  [choice("A", "SELECT NVL(커미션, 0) FROM 사원 WHERE 부서번호 = 40", rationale="바꿀 행이 없어서 0행이 나와요."),
@@ -222,7 +259,8 @@ SELECT MAX(NVL(급여, 0)), NVL(MAX(급여), 0) FROM 사원 WHERE 부서번호 =
         # 확인 문제 (stemSql·보기)
         sql_check("SELECT NVL2(커미션, '대상', '비대상') FROM 사원 WHERE 사번 = 1003;", [["대상"]]),
         sql_check("SELECT NULLIF(급여, 2500) FROM 사원 WHERE 사번 = 1006;", [[2700]]),
-        sql_check("SELECT COALESCE(NULL, NULL, 0, 7) FROM DUAL;", [[0]]),
+        # 확인 문제 4 보기 (Oracle 에서 실행되는 NVL·COALESCE·NULLIF)
+        NULL_REPLACE_VERSUS_NULLIF_EXAMPLE.check,
         sql_check("SELECT NVL(커미션, 0) FROM 사원 WHERE 부서번호 = 40", []),
         sql_check("SELECT MAX(NVL(커미션, 0)) FROM 사원 WHERE 부서번호 = 40", [[None]]),
         sql_check("SELECT NVL(MAX(커미션), 0) FROM 사원 WHERE 부서번호 = 40", [[0]]),

@@ -11,7 +11,7 @@ TOP_THREE_SALARY_SQL = "SELECT 이름, 급여 FROM (SELECT 이름, 급여 FROM �
 CONCEPT = {
     "tagKey": "select-rownum-top-n",
     "topicCode": "sql_basic_select",
-    "sortOrder": 7,
+    "sortOrder": 8,
     "title": "ROWNUM과 TOP N",
     "summary": "ROWNUM은 정렬 전에 붙는 번호라서, 상위 N개는 먼저 정렬한 뒤에 잘라야 해요",
     "coreMd": (

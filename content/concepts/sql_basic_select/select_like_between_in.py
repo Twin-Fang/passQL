@@ -15,18 +15,27 @@ DISCOUNT_CODE_SETUP = (
     "INSERT INTO 할인코드 VALUES ('A_1');\n"
     "INSERT INTO 할인코드 VALUES ('AB1');"
 )
+# 대괄호 패턴 예시용 표 (SQL Server [KT] <-> Oracle REGEXP_LIKE 비교, 코드 4개)
+PRODUCT_CODE_SETUP = (
+    "CREATE TABLE 상품코드 (코드 VARCHAR2(10));\n"
+    "INSERT INTO 상품코드 VALUES ('K100');\n"
+    "INSERT INTO 상품코드 VALUES ('T200');\n"
+    "INSERT INTO 상품코드 VALUES ('S300');\n"
+    "INSERT INTO 상품코드 VALUES ('B400');"
+)
 
 CONCEPT = {
     "tagKey": "select-like-between-in",
     "topicCode": "sql_basic_select",
-    "sortOrder": 4,
+    "sortOrder": 5,
     "title": "LIKE·BETWEEN·IN",
     "summary": "글자 모양, 값의 범위, 값 목록으로 행을 고르는 세 가지 조건이에요",
     "coreMd": (
         "- LIKE에서 `%`는 0글자 이상의 아무 글자, `_`는 정확히 한 글자를 뜻하고, `%`나 `_` 자체를 찾을 때는 ESCAPE로 표시 문자를 정해요.\n"
         "- `BETWEEN a AND b`는 a와 b를 모두 포함하는 `>= a AND <= b`와 같아서, 작은 값을 앞에 써야 하고 a가 b보다 크면 0행이 나와요.\n"
         "- `IN (값1, 값2)`는 `= 값1 OR = 값2`와 같고, `NOT IN`은 `<> 값1 AND <> 값2`라서 목록에 NULL이 있으면 0행이 나와요.\n"
-        "- `(열1, 열2) IN ((값, 값), (값, 값))`처럼 여러 열을 짝지어 비교하면, 열마다 따로 IN을 쓴 것보다 결과가 좁아져요."
+        "- `(열1, 열2) IN ((값, 값), (값, 값))`처럼 여러 열을 짝지어 비교하면, 열마다 따로 IN을 쓴 것보다 결과가 좁아져요.\n"
+        "- SQL Server LIKE의 `'[KT]%'`는 K나 T로 시작하는 값이지만, Oracle LIKE에서 대괄호는 보통 글자라서 같은 뜻은 `REGEXP_LIKE(열, '^[KT]')`로 써요."
     ),
     "detailMd": f"""## 왜 필요한가요 {{#why}}
 
@@ -91,6 +100,44 @@ SELECT 코드 FROM 할인코드 WHERE 코드 LIKE '%#%%' ESCAPE '#';    -- # 뒤
 | 뒤의 `%` | 아무 글자나 0글자 이상 |
 
 그래서 이 패턴은 "어딘가에 % 글자가 들어 있는 값"이 되고, 10%만 맞아요. 같은 방법으로 `'A\\_%'`는 A, 보통 글자 _, 아무 글자 0개 이상으로 끊겨서 "A_로 시작하는 값"이 돼요.
+
+## SQL Server의 대괄호 패턴 {{#bracket}}
+
+SQL Server는 LIKE에서 `%`와 `_` 말고도 대괄호(`[ ]`)를 와일드카드로 써요. 대괄호는 글자 한 자리를 차지하고, 그 자리에 대괄호 안에 적은 글자 중 하나가 와야 맞아요. 대괄호 안 맨 앞에 `^`를 쓰면 반대로 적은 글자가 아닌 글자 하나를 뜻하고, `A-C`처럼 하이픈을 쓰면 A부터 C까지의 범위를 뜻해요. 아래는 상품코드 표에 SQL Server로 실행했을 때의 결과예요.
+
+```sql
+-- 문법: SQL Server에서만 대괄호가 와일드카드예요
+SELECT 코드 FROM 상품코드 WHERE 코드 LIKE '[KT]%';    -- K나 T로 시작해요
+SELECT 코드 FROM 상품코드 WHERE 코드 LIKE '[^KT]%';   -- K도 T도 아닌 글자로 시작해요
+SELECT 코드 FROM 상품코드 WHERE 코드 LIKE '[A-C]%';   -- A, B, C 중 한 글자로 시작해요
+```
+
+| 조건 (SQL Server) | 결과 |
+|---|---|
+| `LIKE '[KT]%'` | K100, T200 |
+| `LIKE '[^KT]%'` | S300, B400 |
+| `LIKE '[A-C]%'` | B400 |
+
+Oracle의 LIKE에서 특별한 뜻이 있는 기호는 `%`와 `_` 두 개뿐이라서, 대괄호와 `^`는 보통 글자로 읽혀요. 그래서 Oracle에서 `LIKE '[KT]%'`는 "[KT]라는 네 글자로 시작하는 값"을 찾고, 그런 값이 없으니 오류 없이 0행이 나와요. Oracle에서 같은 뜻을 쓰려면 REGEXP_LIKE를 써요. REGEXP_LIKE는 정규 표현식(글자 모양을 기호로 적는 규칙)에 맞는 행을 고르는 조건이고, 패턴 맨 앞의 `^`는 "값의 맨 앞"을 뜻해요. 정규 표현식은 9단원에서 자세히 다뤄요.
+
+```sql
+CREATE TABLE 상품코드 (코드 VARCHAR2(10));
+INSERT INTO 상품코드 VALUES ('K100');
+INSERT INTO 상품코드 VALUES ('T200');
+INSERT INTO 상품코드 VALUES ('S300');
+INSERT INTO 상품코드 VALUES ('B400');
+SELECT 코드 FROM 상품코드 WHERE 코드 LIKE '[KT]%';            -- Oracle에서는 0행이에요
+SELECT 코드 FROM 상품코드 WHERE REGEXP_LIKE(코드, '^[KT]');    -- K나 T로 시작해요
+SELECT 코드 FROM 상품코드 WHERE REGEXP_LIKE(코드, '^[^KT]');   -- K도 T도 아닌 글자로 시작해요
+```
+
+| 조건 (Oracle) | 결과 |
+|---|---|
+| `LIKE '[KT]%'` | 0행 |
+| `REGEXP_LIKE(코드, '^[KT]')` | K100, T200 |
+| `REGEXP_LIKE(코드, '^[^KT]')` | S300, B400 |
+
+`'^[^KT]'`에는 `^`가 두 번 나오는데, 대괄호 밖의 `^`는 값의 맨 앞을, 대괄호 안 맨 앞의 `^`는 "적은 글자가 아님"을 뜻해요.
 
 ## BETWEEN: 범위로 찾기 {{#between}}
 
@@ -166,7 +213,7 @@ SELECT 이름 FROM 사원 WHERE 부서번호 IN (20, 30) AND 직급 IN ('대리'
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 
-이름 목록을 주고 `'_A%'`나 `'%A_'` 같은 LIKE 패턴에 맞는 행 수를 묻는 문제가 자주 나와요. `_`는 한 글자 자리를 정확히 차지한다는 점을 손가락으로 짚어 가며 세면 실수가 줄어요. BETWEEN은 경계 값 포함 여부와 a > b일 때 0행이 되는 점을, IN은 NOT IN과 NULL이 만났을 때의 결과를 주로 물어요. `%`가 들어간 값을 찾는 올바른 ESCAPE 문장을 고르는 문제도 가끔 나와요.""",
+이름 목록을 주고 `'_A%'`나 `'%A_'` 같은 LIKE 패턴에 맞는 행 수를 묻는 문제가 자주 나와요. `_`는 한 글자 자리를 정확히 차지한다는 점을 손가락으로 짚어 가며 세면 실수가 줄어요. BETWEEN은 경계 값 포함 여부와 a > b일 때 0행이 되는 점을, IN은 NOT IN과 NULL이 만났을 때의 결과를 주로 물어요. `%`가 들어간 값을 찾는 올바른 ESCAPE 문장을 고르는 문제도 가끔 나와요. SQL Server 기준이라고 밝히고 `'[KT]%'` 같은 대괄호 패턴의 결과를 묻는 문제도 나왔는데, 이때는 대괄호 하나가 글자 한 자리라는 점과 Oracle에서는 같은 뜻이 아니라는 점을 함께 떠올리면 돼요.""",
     "checkQuestions": [
         question(1, "LIKE 패턴에서 `_`(밑줄)가 뜻하는 것은 무엇인가요?", "like",
                  "`_`는 아무 글자나 정확히 한 글자 자리를 뜻해요. 0글자 이상을 뜻하는 것은 `%`예요.",
@@ -221,6 +268,13 @@ SELECT 이름 FROM 사원 WHERE 부서번호 IN (20, 30) AND 직급 IN ('대리'
         sql_check("SELECT 코드 FROM 할인코드 WHERE 코드 LIKE '%#%%'", [], setup=DISCOUNT_CODE_SETUP),
         sql_check("SELECT 코드 FROM 할인코드 WHERE 코드 LIKE '%#%%' ESCAPE '#'", [["10%"]], setup=DISCOUNT_CODE_SETUP),
         sql_error_check("SELECT 코드 FROM 할인코드 WHERE 코드 LIKE '%#a%' ESCAPE '#'", "ORA-01424", setup=DISCOUNT_CODE_SETUP),
+        # Oracle 대괄호는 보통 글자 > LIKE 0행, REGEXP_LIKE 로 같은 뜻
+        sql_check("SELECT 코드 FROM 상품코드 WHERE 코드 LIKE '[KT]%'", [], setup=PRODUCT_CODE_SETUP),
+        sql_check("SELECT 코드 FROM 상품코드 WHERE 코드 LIKE '[^KT]%'", [], setup=PRODUCT_CODE_SETUP),
+        sql_check("SELECT 코드 FROM 상품코드 WHERE 코드 LIKE '[A-C]%'", [], setup=PRODUCT_CODE_SETUP),
+        sql_check("SELECT 코드 FROM 상품코드 WHERE REGEXP_LIKE(코드, '^[KT]')", [["K100"], ["T200"]], setup=PRODUCT_CODE_SETUP),
+        sql_check("SELECT 코드 FROM 상품코드 WHERE REGEXP_LIKE(코드, '^[^KT]')", [["S300"], ["B400"]], setup=PRODUCT_CODE_SETUP),
+        sql_check("SELECT 코드 FROM 상품코드 WHERE REGEXP_LIKE(코드, '^[A-C]')", [["B400"]], setup=PRODUCT_CODE_SETUP),
         sql_check("SELECT 이름 FROM 사원 WHERE 급여 BETWEEN 2500 AND 2800", [["이지은"], ["박서준"], ["정하늘"], ["한도윤"]]),
         sql_check("SELECT 이름 FROM 사원 WHERE 급여 NOT BETWEEN 2500 AND 2800", [["김민수"], ["최유나"], ["오지민"], ["윤서연"]]),
         sql_check("SELECT 이름 FROM 사원 WHERE 입사일 BETWEEN DATE '2019-01-01' AND DATE '2020-12-31'", [["박서준"], ["한도윤"]]),

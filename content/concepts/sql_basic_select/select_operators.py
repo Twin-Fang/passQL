@@ -8,7 +8,7 @@ EMPLOYEE_CONDITION_TABLE = to_employee_table_md("사번", "이름", "직급", "�
 CONCEPT = {
     "tagKey": "select-operators",
     "topicCode": "sql_basic_select",
-    "sortOrder": 3,
+    "sortOrder": 4,
     "title": "비교·논리 연산자와 우선순위",
     "summary": "조건을 비교 연산자로 만들고 AND·OR·NOT으로 묶되, AND가 OR보다 먼저 계산돼요",
     "coreMd": (

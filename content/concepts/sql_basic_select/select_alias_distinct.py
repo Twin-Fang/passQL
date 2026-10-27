@@ -8,7 +8,7 @@ EMPLOYEE_GRADE_TABLE = to_employee_table_md("사번", "이름", "직급", "급�
 CONCEPT = {
     "tagKey": "select-alias-distinct",
     "topicCode": "sql_basic_select",
-    "sortOrder": 2,
+    "sortOrder": 3,
     "title": "별칭과 DISTINCT",
     "summary": "열과 테이블에 짧은 이름을 붙이고, 겹치는 결과 행을 하나로 줄여요",
     "coreMd": (

@@ -8,7 +8,7 @@ EMPLOYEE_COMMISSION_TABLE = to_employee_table_md("사번", "이름", "급여", "
 CONCEPT = {
     "tagKey": "select-where-null",
     "topicCode": "sql_basic_select",
-    "sortOrder": 5,
+    "sortOrder": 6,
     "title": "WHERE 절과 NULL",
     "summary": "NULL과 비교하면 참도 거짓도 아니어서, IS NULL로만 찾을 수 있어요",
     "coreMd": (

@@ -1,7 +1,7 @@
 """개념: ORDER BY (2단원, 확인 문제 5개)"""
 
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
-from concept_dataset import to_employee_table_md
+from concept_dataset import to_employee_table_md, to_markdown_table
 
 EMPLOYEE_SORT_TABLE = to_employee_table_md("사번", "이름", "직급", "급여", "커미션", "부서번호")
 EMPLOYEE_COMMISSION_TABLE = to_employee_table_md("사번", "이름", "커미션")
@@ -33,11 +33,9 @@ def to_sort_result_table_md(*labeled_examples):
         return f"{row[0]} {'NULL' if row[1] is None else row[1]}"
 
     titles = [title for title, _ in labeled_examples]
-    lines = ["| 순서 | " + " | ".join(titles) + " |", "|" + "---|" * (len(titles) + 1)]
-    for index in range(len(labeled_examples[0][1][1])):
-        cells = [to_cell(example[1][index]) for _, example in labeled_examples]
-        lines.append(f"| {index + 1} | " + " | ".join(cells) + " |")
-    return "\n".join(lines)
+    row_count = len(labeled_examples[0][1][1])
+    rows = [[index + 1] + [to_cell(example[1][index]) for _, example in labeled_examples] for index in range(row_count)]
+    return to_markdown_table(("순서", *titles), rows)
 
 
 COMMISSION_DEFAULT_ORDER_TABLE = to_sort_result_table_md(("오름차순", COMMISSION_ASCENDING), ("내림차순", COMMISSION_DESCENDING))
@@ -47,7 +45,7 @@ COMMISSION_NULLS_OPTION_TABLE = to_sort_result_table_md(("NULLS FIRST", COMMISSI
 CONCEPT = {
     "tagKey": "select-order-by",
     "topicCode": "sql_basic_select",
-    "sortOrder": 6,
+    "sortOrder": 7,
     "title": "ORDER BY",
     "summary": "결과 행의 순서를 정하는 절이고, SELECT 문에서 가장 마지막에 처리돼요",
     "coreMd": (

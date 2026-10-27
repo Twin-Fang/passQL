@@ -68,6 +68,10 @@
  "modeling-null-attribute": [
   "a38ee43e-cdaf-4031-8f4c-91beca4b1524"
  ],
+ "select-relational-database": [
+  "dec65f85-237f-4ae9-97b4-1cc0053b29fb",
+  "cd9e4058-b63d-46f8-930f-fd404290eef4"
+ ],
  "select-structure-order": [
   "e4c830fe-60fa-412e-9b06-25d7d8582ec4",
   "60e1847a-c8da-47b9-81e6-614ea4afb73f",
@@ -151,7 +155,6 @@
   "bb6fc3c7-2a71-4e9d-9e03-249b1edaa6dd",
   "7b986f45-eebc-4353-a696-e0ed52461ec2",
   "ea7553c3-6205-4245-b906-aa58ed15f0ab",
-  "cd9e4058-b63d-46f8-930f-fd404290eef4",
   "33eaf27b-9306-4e15-814f-5eb2d61d0bad",
   "418ce49b-521c-48c8-ba44-def8eb36006e",
   "d1a640ec-0190-4bd2-bf72-0bcb11132015",
@@ -189,8 +192,7 @@
   "6a3bdd81-8511-47ca-956b-177fe7b4f6de",
   "7c71fe09-1c8c-4261-9ca4-dc2e417f8543",
   "7b986f45-eebc-4353-a696-e0ed52461ec2",
-  "e9810159-da12-4c2e-a090-f65fd55eb8ef",
-  "cd9e4058-b63d-46f8-930f-fd404290eef4"
+  "e9810159-da12-4c2e-a090-f65fd55eb8ef"
  ],
  "dml-merge": [
   "c03ef248-b396-4c8b-8d39-57a8c73d5917",
@@ -348,7 +350,6 @@
  "subquery-correlated": [
   "9c18d072-e36f-49fb-a2e8-a31a92774e89",
   "584b633e-4541-4de6-b355-ebb1afc92607",
-  "dec65f85-237f-4ae9-97b4-1cc0053b29fb",
   "8c254810-dfcc-4e4e-8918-045f9c278810",
   "f07217fc-3308-4598-ba7b-4fb1396078f8",
   "38960b3a-00c8-40bb-a615-673b121a1dde",

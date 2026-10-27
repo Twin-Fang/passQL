@@ -1,9 +1,8 @@
 """개념: SELECT 문의 구조와 실행 순서 (2단원, 확인 문제 5개)"""
 
 from concept_bundle import choice, question, sql_check, sql_error_check
-from concept_dataset import DEPARTMENT_TABLE_MD, to_employee_table_md
+from concept_dataset import to_employee_table_md
 
-EMPLOYEE_BASIC_TABLE = to_employee_table_md("사번", "이름", "직급", "급여", "부서번호")
 EMPLOYEE_SALARY_TABLE = to_employee_table_md("사번", "이름", "급여", "부서번호")
 
 # 본문 단계 설명 예시 (결과 2행: 20번 3명, 30번 2명)
@@ -19,41 +18,19 @@ GROUPED_EXAMPLE_SQL = (
 CONCEPT = {
     "tagKey": "select-structure-order",
     "topicCode": "sql_basic_select",
-    "sortOrder": 1,
+    "sortOrder": 2,
     "title": "SELECT 문의 구조와 실행 순서",
     "summary": "SELECT 문은 쓰는 순서와 실행되는 순서가 달라서, 별칭을 쓸 수 있는 곳이 갈려요",
     "coreMd": (
-        "- SQL 문장은 하는 일에 따라 DML(조회·변경), DDL(표 구조 정의), DCL(권한), TCL(변경 확정·취소)로 나뉘고, TRUNCATE는 DDL, COMMIT은 TCL이에요.\n"
         "- SELECT 문은 SELECT, FROM, WHERE, GROUP BY, HAVING, ORDER BY 순서로 쓰지만, 실제로는 FROM, WHERE, GROUP BY, HAVING, SELECT, ORDER BY 순서로 처리돼요.\n"
         "- SELECT 절이 끝에서 두 번째로 처리되기 때문에, SELECT에서 붙인 별칭은 WHERE·GROUP BY·HAVING에서는 쓸 수 없고 ORDER BY에서만 쓸 수 있어요.\n"
         "- Oracle은 FROM 절을 꼭 써야 해서, 표 없이 계산만 할 때는 한 행짜리 표 `DUAL`을 FROM에 적어요."
     ),
-    "detailMd": f"""## 데이터베이스와 SQL {{#why}}
+    "detailMd": f"""## 왜 실행 순서를 알아야 하나요 {{#why}}
 
-회사가 사원 정보를 관리한다고 하면, 엑셀처럼 칸이 나뉜 표에 한 사람씩 적어 두는 모습이 가장 먼저 떠올라요. 데이터베이스도 데이터를 이런 표에 담는데, 이 표를 **테이블**이라고 불러요. 아래가 이 앱의 모든 예시에서 쓰는 사원 테이블이에요.
+테이블, 행, 열이 무엇인지와 SQL이 어떤 언어인지는 바로 앞 개념 "관계형 데이터베이스와 SQL의 특징"에서 다뤘어요. 이 개념은 SQL 문장 중 가장 많이 쓰는 SELECT 문이 어떤 절로 이루어지고, 그 절들이 어떤 순서로 처리되는지를 다뤄요. 처리 순서를 알아야 SELECT에서 붙인 이름을 어디에 쓸 수 있는지, 어떤 SQL이 오류가 나는지를 판단할 수 있어요.
 
-{EMPLOYEE_BASIC_TABLE}
-
-테이블의 세로 칸 하나를 **열**(컬럼)이라고 하고, 가로 한 줄을 **행**(로우)이라고 해요. 위 표에서 "급여"는 열 이름이고, "1001 김민수 사장 3000 10"은 행 하나예요. 사원 테이블에는 행이 8개 있어요.
-
-사원 테이블에는 부서 이름이 없고 부서번호만 있는데, 부서 이름은 아래 부서 테이블에 따로 적어 두었기 때문이에요. 이렇게 데이터를 여러 테이블로 나눠 담고, 부서번호처럼 같은 값을 가진 열로 테이블끼리 이어 쓰는 데이터베이스를 **관계형 데이터베이스**라고 불러요. Oracle과 SQL Server가 대표적인 관계형 데이터베이스 제품이에요.
-
-{DEPARTMENT_TABLE_MD}
-
-**SQL**은 관계형 데이터베이스에 "이 테이블에서 이런 행을 보여 줘", "이 행을 고쳐 줘" 하고 일을 시키는 언어예요. SQL로 쓴 명령 하나를 SQL 문장이라고 하고, 문장 끝에는 세미콜론(`;`)을 붙여요. `SELECT`, `select`처럼 명령어는 대문자와 소문자를 구분하지 않지만, 작은따옴표 안에 쓴 값(`'김민수'`)은 글자 그대로 비교해요.
-
-## SQL 문장의 네 종류 {{#sql-types}}
-
-SQL 문장은 하는 일에 따라 네 무리로 나뉘고, 시험에서는 명령어를 보여 주고 어느 무리인지 묻는 문제가 자주 나와요.
-
-| 종류 | 하는 일 | 명령어 |
-|---|---|---|
-| DML (데이터 조작어) | 행을 조회하고, 넣고, 고치고, 지워요 | SELECT, INSERT, UPDATE, DELETE, MERGE |
-| DDL (데이터 정의어) | 테이블 같은 구조를 만들고, 바꾸고, 없애요 | CREATE, ALTER, DROP, RENAME, TRUNCATE |
-| DCL (데이터 제어어) | 다른 사용자에게 권한을 주고 빼앗아요 | GRANT, REVOKE |
-| TCL (트랜잭션 제어어) | 지금까지 한 변경을 확정하거나 취소해요 | COMMIT, ROLLBACK, SAVEPOINT |
-
-SELECT는 데이터를 바꾸지 않고 읽기만 해서 DQL(데이터 질의어)이라고 따로 부르기도 하지만, SQLD에서는 보통 DML에 넣어요. 행을 모두 지우는 TRUNCATE는 DELETE와 결과가 비슷해서 DML로 착각하기 쉬운데, 테이블을 처음 상태로 되돌리는 구조 명령이라 DDL이에요. COMMIT과 ROLLBACK은 권한과 상관이 없어서 DCL이 아니라 TCL이에요. 여기서 트랜잭션은 계좌 이체의 출금과 입금처럼 함께 성공하거나 함께 취소되어야 하는 변경 묶음을 말하고, 자세한 내용은 3단원에서 다뤄요.
+SQL로 쓴 명령 하나를 SQL 문장이라고 하고, 문장 끝에는 세미콜론(`;`)을 붙여요. `SELECT`, `select`처럼 명령어는 대문자와 소문자를 구분하지 않지만, 작은따옴표 안에 쓴 값(`'김민수'`)은 글자 그대로 비교해요.
 
 ## SELECT 문의 생김새 {{#definition}}
 
@@ -156,7 +133,7 @@ SELECT 3 * 4;             -- 오류: Oracle은 FROM을 꼭 써야 해요
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 
-절들을 섞어 놓고 논리적 실행 순서대로 고르는 문제가 가장 많이 나와요. FROM에서 시작하고 SELECT가 끝에서 두 번째, ORDER BY가 맨 끝이라는 것만 확실히 하면 풀 수 있어요. 그다음으로 SELECT에서 붙인 별칭을 WHERE나 HAVING에 써서 오류가 나는 SQL을 고르는 문제와, TRUNCATE·COMMIT·GRANT 같은 명령어가 DML·DDL·DCL·TCL 중 어디에 속하는지 묻는 문제가 자주 나와요.""",
+절들을 섞어 놓고 논리적 실행 순서대로 고르는 문제가 가장 많이 나와요. FROM에서 시작하고 SELECT가 끝에서 두 번째, ORDER BY가 맨 끝이라는 것만 확실히 하면 풀 수 있어요. 그다음으로 SELECT에서 붙인 별칭을 WHERE나 HAVING에 써서 오류가 나는 SQL을 고르는 문제가 자주 나와요. TRUNCATE·COMMIT·GRANT 같은 명령어의 분류를 묻는 문제는 앞 개념 "관계형 데이터베이스와 SQL의 특징"에서 다뤄요.""",
     "checkQuestions": [
         question(1, "SELECT 문의 논리적 실행 순서로 알맞은 것은 무엇인가요?", "execution-order",
                  "읽을 테이블을 정하는 FROM이 가장 먼저 처리되고, 보여 줄 열을 정하는 SELECT는 ORDER BY 바로 앞에 처리돼요.",
@@ -164,12 +141,12 @@ SELECT 3 * 4;             -- 오류: Oracle은 FROM을 꼭 써야 해요
                   choice("B", "FROM → SELECT → WHERE → GROUP BY → HAVING → ORDER BY", rationale="SELECT는 HAVING 다음에 처리돼요."),
                   choice("C", "FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY", True, "FROM에서 시작해 SELECT가 끝에서 두 번째로 처리돼요."),
                   choice("D", "FROM → WHERE → HAVING → GROUP BY → SELECT → ORDER BY", rationale="HAVING은 묶은 뒤에 거르므로 GROUP BY 다음이에요.")]),
-        question(2, "SQL 명령어와 종류를 짝지은 것으로 알맞지 않은 것은 무엇인가요?", "sql-types",
-                 "COMMIT은 변경을 확정하는 트랜잭션 제어어(TCL)예요. 권한을 다루는 DCL에는 GRANT와 REVOKE가 들어가요.",
-                 [choice("A", "SELECT - DML", rationale="SQLD에서는 SELECT를 DML로 분류해요."),
-                  choice("B", "TRUNCATE - DDL", rationale="TRUNCATE는 테이블을 처음 상태로 되돌리는 DDL이에요."),
-                  choice("C", "GRANT - DCL", rationale="권한을 주는 명령이라 DCL이 맞아요."),
-                  choice("D", "COMMIT - DCL", True, "COMMIT은 TCL이라서 잘못 짝지었어요.")]),
+        question(2, "SELECT 문의 논리적 실행 순서에서 GROUP BY 바로 다음에 처리되는 절은 무엇인가요?", "execution-order",
+                 "GROUP BY로 행을 묶은 뒤에는 묶음에 조건을 거는 HAVING이 처리되고, 그다음에 SELECT와 ORDER BY가 이어져요.",
+                 [choice("A", "WHERE", rationale="WHERE는 행을 묶기 전에 처리되어서 GROUP BY보다 앞이에요."),
+                  choice("B", "SELECT", rationale="SELECT는 HAVING까지 끝난 뒤에 처리돼요."),
+                  choice("C", "ORDER BY", rationale="ORDER BY는 가장 마지막에 처리돼요."),
+                  choice("D", "HAVING", True, "묶은 결과에 조건을 거는 절이라 GROUP BY 바로 다음이에요.")]),
         question(3, "다음 SQL을 Oracle에서 실행하면 어떻게 되나요?", "confusing",
                  "WHERE는 SELECT보다 먼저 처리되므로, SELECT에서 붙인 별칭 연봉을 아직 알지 못해요. 그래서 없는 열 이름이라는 오류(ORA-00904)가 나요.",
                  [choice("A", "오류가 난다", True, "WHERE 시점에는 연봉이라는 이름이 아직 없어요."),

@@ -1,6 +1,6 @@
 """개념: GROUP BY와 HAVING (7단원, 확인 문제 5개)"""
 
-from concept_bundle import choice, question, sql_check, sql_error_check
+from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
 from concept_dataset import DEPARTMENT_TABLE_MD, to_employee_table_md, to_markdown_table
 
 EMPLOYEE_DEPARTMENT_TABLE = to_employee_table_md("사번", "이름", "직급", "급여", "부서번호")
@@ -11,6 +11,30 @@ DEPARTMENT_SUMMARY_ROWS = [[10, 1, 3000], [20, 3, 7800], [30, 3, 8100], [None, 1
 
 # 급여 합계 큰 순 부서별 인원 (본문 결과 표 = 검증 기대값)
 HEADCOUNT_BY_SALARY_TOTAL_ROWS = [[30, 3], [20, 3], [10, 1], [None, 1]]
+
+# KEEP 문단: 입사일 순서를 셀 수 있게 입사일 열까지 보임 (README 글쓰기 규칙 10)
+EMPLOYEE_HIRE_DATE_TABLE = to_employee_table_md("사번", "이름", "입사일", "급여", "부서번호")
+# 부서별 첫 입사자·마지막 입사자 급여 <-> 그냥 MAX(급여)
+KEEP_FIRST_LAST_EXAMPLE = sql_example(
+    "SELECT 부서번호,\n"
+    "       MAX(급여) KEEP (DENSE_RANK FIRST ORDER BY 입사일) AS 첫입사자급여,\n"
+    "       MAX(급여) KEEP (DENSE_RANK LAST ORDER BY 입사일) AS 마지막입사자급여,\n"
+    "       MAX(급여) AS 최고급여\n"
+    "FROM 사원\n"
+    "GROUP BY 부서번호\n"
+    "ORDER BY 부서번호;",
+    ("부서번호", "첫입사자급여", "마지막입사자급여", "최고급여"),
+    [[10, 3000, 3000, 3000], [20, 2500, 2500, 2800], [30, 3200, 2200, 3200], [None, 2000, 2000, 2000]],
+)
+# 동점 1위(20번 급여 2500: 1002·1005) > 앞 집계 함수가 하나를 고름
+KEEP_TIE_EXAMPLE = sql_example(
+    "SELECT MIN(사번) KEEP (DENSE_RANK FIRST ORDER BY 급여) AS 작은사번,\n"
+    "       MAX(사번) KEEP (DENSE_RANK FIRST ORDER BY 급여) AS 큰사번\n"
+    "FROM 사원\n"
+    "WHERE 부서번호 = 20;",
+    ("작은사번", "큰사번"),
+    [[1002, 1005]],
+)
 
 CONCEPT = {
     "tagKey": "group-group-by-having",
@@ -121,9 +145,43 @@ SELECT 부서번호, COUNT(*) AS 인원 FROM 사원 GROUP BY 부서번호 ORDER 
 
 **집계 함수를 한 번 더 겹쳐 쓸 수 있어요.** Oracle에서는 GROUP BY가 있을 때 `MAX(SUM(급여))`처럼 집계 결과를 다시 집계할 수 있고, 부서별 합계 중 가장 큰 8100이 1행으로 나와요. 결과가 다시 하나로 줄어들었으므로, 이때 SELECT에 부서번호를 함께 쓰면 ORA-00937(한 행으로 묶을 수 없는 그룹 함수) 오류가 나요.
 
+## KEEP으로 첫째·마지막 행의 값 집계 {{#keep}}
+
+"부서마다 가장 먼저 입사한 사람의 급여"를 구하고 싶다고 해요. `MIN(입사일)`은 가장 이른 입사일만 알려 주고 그 사람의 급여는 알려 주지 않아요. `MAX(급여)`는 부서에서 가장 큰 급여를 돌려줄 뿐이라서 이것도 답이 아니에요. Oracle에서는 집계 함수 뒤에 KEEP을 붙여서, 정해 둔 순서로 줄 세웠을 때 맨 앞이나 맨 뒤에 오는 행만 남기고 그 행들로 집계할 수 있어요.
+
+```sql
+-- 문법
+집계함수(열) KEEP (DENSE_RANK FIRST ORDER BY 정렬기준)
+집계함수(열) KEEP (DENSE_RANK LAST ORDER BY 정렬기준)
+```
+
+괄호 안부터 읽으면 돼요. 그룹 안의 행을 ORDER BY 기준으로 줄 세우고 DENSE_RANK로 순위를 매긴 뒤, FIRST면 1위인 행만, LAST면 마지막 순위인 행만 남겨요. 그다음 앞에 적은 집계 함수를 남은 행에만 계산해요. DENSE_RANK는 같은 값에 같은 순위를 주는 순위 함수이고, 8단원의 순위 함수에서 자세히 다뤄요. 아래 표에서 입사일 순서를 확인하면서 결과를 따라가 보세요.
+
+{EMPLOYEE_HIRE_DATE_TABLE}
+
+{KEEP_FIRST_LAST_EXAMPLE.markdown}
+
+20번 부서를 보면 차이가 드러나요. 입사일 순서는 이지은(2018-07-16), 박서준(2020-01-06), 정하늘(2022-03-14)이라서, FIRST는 이지은 한 명만 남기고 그 급여 2500을 돌려줘요. LAST는 정하늘 한 명만 남기는데 정하늘의 급여도 2500이에요. KEEP 없이 쓴 `MAX(급여)`는 그룹 전체에서 가장 큰 박서준의 2800을 돌려줘요. 30번 부서에서는 가장 먼저 입사한 최유나가 급여도 가장 커서 3200으로 같고, 가장 늦게 입사한 오지민의 2200이 LAST로 나와요. 사원이 한 명뿐인 10번과 NULL 그룹은 세 값이 모두 같아요.
+
+**같은 순위가 여럿이면 앞의 집계 함수가 하나를 골라요.** DENSE_RANK FIRST가 남긴 1위 행이 두 개 이상일 수 있어요. 20번 부서를 급여 순으로 줄 세우면 이지은(1002)과 정하늘(1005)이 2500으로 함께 1위라서 두 행이 모두 남아요. 이때 결과는 앞에 적은 집계 함수가 정하므로, `MIN(사번)`이면 1002, `MAX(사번)`이면 1005가 나와요.
+
+{KEEP_TIE_EXAMPLE.markdown}
+
+KEEP 앞의 MAX를 보고 "그 값이 가장 큰 행을 찾는다"고 읽기 쉬운데, 순위를 정하는 기준은 괄호 안의 ORDER BY예요. 앞의 집계 함수는 남은 행 안에서만 계산해요. 앞 예시에서 MAX를 쓴 것도 같은 입사일이 여럿일 때 하나를 고르기 위해서라, 입사일이 모두 다른 공통 데이터에서는 `MIN(급여) KEEP (DENSE_RANK FIRST ORDER BY 입사일)`로 바꿔도 결과가 같아요.
+
+**FIRST와 LAST는 정렬 방향을 따라요.** FIRST는 "가장 작은 값"이 아니라 "ORDER BY로 줄 세웠을 때 맨 앞"이라는 뜻이에요. `ORDER BY 입사일 DESC`처럼 거꾸로 줄 세우면 가장 늦게 입사한 사람이 맨 앞이 되어, 30번 부서의 FIRST는 오지민의 2200이 돼요. 그리고 괄호 안에는 DENSE_RANK만 쓸 수 있어서, RANK로 바꾸면 오류가 나요.
+
+```sql
+SELECT MAX(급여) KEEP (DENSE_RANK FIRST ORDER BY 입사일 DESC) FROM 사원 WHERE 부서번호 = 30;  -- 2200이 나와요
+-- 오류: KEEP 괄호 안에는 DENSE_RANK만 써요 (ORA-02000, DENSE_RANK 키워드 없음)
+SELECT MAX(급여) KEEP (RANK FIRST ORDER BY 입사일) FROM 사원;
+```
+
+KEEP 뒤에 `OVER (PARTITION BY 부서번호)`를 붙이면 행을 줄이지 않고 사원마다 부서의 값을 함께 보여 주는 윈도우 함수가 돼요. 윈도우 함수는 8단원에서 다뤄요.
+
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 
-WHERE와 HAVING이 함께 있는 SQL을 주고 결과 행 수를 묻는 문제가 가장 많아요. 이때는 실행 순서를 따라 WHERE로 지울 행을 먼저 지우고, 남은 행으로 그룹을 만든 다음 HAVING을 적용하면 돼요. 그 밖에 오류가 나는 SQL을 고르는 문제가 자주 나오는데, SELECT, HAVING, ORDER BY에 GROUP BY에 없는 열이 있는지와 GROUP BY에 별칭을 썼는지, WHERE에 집계 함수를 썼는지를 차례로 확인하면 돼요.""",
+WHERE와 HAVING이 함께 있는 SQL을 주고 결과 행 수를 묻는 문제가 가장 많아요. 이때는 실행 순서를 따라 WHERE로 지울 행을 먼저 지우고, 남은 행으로 그룹을 만든 다음 HAVING을 적용하면 돼요. 그 밖에 오류가 나는 SQL을 고르는 문제가 자주 나오는데, SELECT, HAVING, ORDER BY에 GROUP BY에 없는 열이 있는지와 GROUP BY에 별칭을 썼는지, WHERE에 집계 함수를 썼는지를 차례로 확인하면 돼요. 2025년 상반기 시험에는 `KEEP (DENSE_RANK FIRST ...)`이 든 SQL의 결과도 나왔는데, 괄호 안 ORDER BY로 맨 앞 행을 먼저 남기고, 남은 행이 여럿이면 앞의 집계 함수로 하나를 고르는 순서로 풀면 돼요.""",
     "checkQuestions": [
         question(1, "HAVING 절에 대한 설명으로 알맞은 것은 무엇인가요?", "definition",
                  "HAVING은 GROUP BY로 묶은 뒤 만들어진 그룹을 조건으로 걸러요. 묶기 전의 행을 거르는 것은 WHERE의 일이에요.",
@@ -188,6 +246,13 @@ WHERE와 HAVING이 함께 있는 SQL을 주고 결과 행 수를 묻는 문제�
         # 집계 중첩
         sql_check("SELECT MAX(SUM(급여)) FROM 사원 GROUP BY 부서번호", [[8100]]),
         sql_error_check("SELECT 부서번호, MAX(SUM(급여)) FROM 사원 GROUP BY 부서번호", "ORA-00937"),
+        # KEEP (첫·마지막 입사자 급여, 동점은 앞 함수로 선택, 정렬 방향, DENSE_RANK 필수)
+        KEEP_FIRST_LAST_EXAMPLE.check,
+        KEEP_TIE_EXAMPLE.check,
+        sql_check("SELECT 부서번호, MIN(급여) KEEP (DENSE_RANK FIRST ORDER BY 입사일) FROM 사원 GROUP BY 부서번호",
+                  [[10, 3000], [20, 2500], [30, 3200], [None, 2000]]),
+        sql_check("SELECT MAX(급여) KEEP (DENSE_RANK FIRST ORDER BY 입사일 DESC) FROM 사원 WHERE 부서번호 = 30", [[2200]]),
+        sql_error_check("SELECT MAX(급여) KEEP (RANK FIRST ORDER BY 입사일) FROM 사원", "ORA-02000"),
         # 확인 문제 보기·stemSql
         sql_error_check("SELECT 부서번호, 이름 FROM 사원 GROUP BY 부서번호", "ORA-00979"),
         sql_check("SELECT 부서번호, SUM(급여) FROM 사원 GROUP BY 부서번호", [[10, 3000], [20, 7800], [30, 8100], [None, 2000]]),

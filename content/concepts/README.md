@@ -1,6 +1,6 @@
 # 개념 학습 콘텐츠 (#577)
 
-SQLD 수험서를 대체하는 개념 글 62개와 확인 문제 310개의 원본이다. 설계는 `docs/superpowers/specs/2026-10-24-concept-learning-design.md`(로컬 전용)를 따르고, 이 문서는 파일을 쓰는 사람이 지켜야 할 규칙만 모았다.
+SQLD 수험서를 대체하는 개념 글 63개와 확인 문제 315개의 원본이다. 설계는 `docs/superpowers/specs/2026-10-24-concept-learning-design.md`(로컬 전용)를 따르고, 이 문서는 파일을 쓰는 사람이 지켜야 할 규칙만 모았다.
 
 ## 파일 구조
 
@@ -82,12 +82,14 @@ Oracle 은 `tools/sqld-question-harness/README.md` 의 XE 21c 컨테이너(`loca
 14. 숫자 표현을 정확히 쓴다("곱절"은 두 배). "세 가지예요"라고 했으면 정말 세 가지를 나열한다.
 15. **SQL 예시의 주석도 짧은 해요체 문장으로 쓴다.** `-- 오류: TRIM은 지울 문자를 한 글자만 받아요 (ORA-30001, 인자 오류)`처럼 조사를 붙이고, 조사 앞에 빈칸을 두지 않는다(`TRIM 은` 금지). 결과가 두 행 이상이면 주석에 나열하지 말고 블록 아래 결과 표로 보인다.
 
-## 개념 목록 (62개)
+## 개념 목록 (63개)
+
+공식 출제 기준(2024 개편) 세부 항목을 모두 덮고, 58~62회 경향(`docs/sqld-research/sqld-exam-trends-2026.md`)에서 확인된 주제를 해당 개념에 넣었다. 반정규화·슈퍼타입과 서브타입·성능 데이터 모델링은 공식 세부 항목에 따로 적혀 있지 않아 본문 첫머리에 그렇게 안내한다.
 
 | 단원 (topicCode) | sortOrder · tagKey · 제목 |
 |---|---|
 | 1 데이터 모델링 (`data_modeling`) | 1 `modeling-concept` 데이터 모델링의 개념과 특징 · 2 `modeling-three-levels` 개념·논리·물리 모델링과 3층 스키마 · 3 `modeling-erd` ERD 표기법 · 4 `modeling-entity` 엔터티 · 5 `modeling-attribute` 속성 · 6 `modeling-relationship` 관계 · 7 `modeling-identifier` 식별자 · 8 `modeling-normalization` 정규화 · 9 `modeling-denormalization` 반정규화 · 10 `modeling-supertype-subtype` 슈퍼타입과 서브타입 · 11 `modeling-performance` 성능 데이터 모델링 · 12 `modeling-transaction` 트랜잭션과 데이터 모델 · 13 `modeling-null-attribute` NULL 속성 |
-| 2 SELECT 기본 (`sql_basic_select`) | 1 `select-structure-order` SELECT 문의 구조와 실행 순서 · 2 `select-alias-distinct` 별칭과 DISTINCT · 3 `select-operators` 비교·논리 연산자와 우선순위 · 4 `select-like-between-in` LIKE·BETWEEN·IN · 5 `select-where-null` WHERE 절과 NULL · 6 `select-order-by` ORDER BY · 7 `select-rownum-top-n` ROWNUM과 TOP N |
+| 2 SELECT 기본 (`sql_basic_select`) | 1 `select-relational-database` 관계형 데이터베이스와 SQL의 특징 · 2 `select-structure-order` SELECT 문의 구조와 실행 순서 · 3 `select-alias-distinct` 별칭과 DISTINCT · 4 `select-operators` 비교·논리 연산자와 우선순위 · 5 `select-like-between-in` LIKE·BETWEEN·IN · 6 `select-where-null` WHERE 절과 NULL · 7 `select-order-by` ORDER BY · 8 `select-rownum-top-n` ROWNUM과 TOP N |
 | 3 DDL·DML·TCL (`sql_ddl_dml_tcl`) | 1 `ddl-data-types` 데이터 타입 · 2 `ddl-create-alter-drop` CREATE·ALTER·DROP·TRUNCATE · 3 `ddl-constraints` 제약조건 · 4 `dml-insert-update-delete` INSERT·UPDATE·DELETE · 5 `dml-merge` MERGE · 6 `tcl-commit-rollback` 트랜잭션과 COMMIT·ROLLBACK·SAVEPOINT · 7 `dcl-grant-revoke` GRANT·REVOKE와 ROLE |
 | 4 SQL 함수 (`sql_function`) | 1 `function-character` 문자 함수 · 2 `function-number` 숫자 함수 · 3 `function-date` 날짜 함수 · 4 `function-conversion` 변환 함수 · 5 `function-case-decode` CASE와 DECODE · 6 `function-null` NULL 관련 함수 |
 | 5 조인 (`sql_join`) | 1 `join-equi-non-equi` 등가 조인과 비등가 조인 · 2 `join-inner` INNER JOIN · 3 `join-natural-using` NATURAL JOIN과 USING · 4 `join-outer` OUTER JOIN · 5 `join-cross` CROSS JOIN · 6 `join-self` 셀프 조인 |
