@@ -24,8 +24,14 @@ public class FeedbackAdminResponse {
     // 회원에게 보낸 답변과 시각 (없으면 null)
     private String replyMessage;
     private LocalDateTime repliedAt;
+    // 진단 요약 (없으면 null): 플랫폼, 앱 버전
+    private String platform;
+    private String appVersion;
+    // 첨부 이미지 수, 앱 로그 유무
+    private int imageCount;
+    private boolean hasLog;
 
-    public static FeedbackAdminResponse from(Feedback f, String memberNickname) {
+    public static FeedbackAdminResponse from(Feedback f, String memberNickname, int imageCount) {
         return new FeedbackAdminResponse(
             f.getFeedbackUuid(),
             f.getMemberUuid(),
@@ -36,7 +42,11 @@ public class FeedbackAdminResponse {
             f.getAdminMemo(),
             f.getUpdatedBy(),
             f.getReplyMessage(),
-            f.getRepliedAt()
+            f.getRepliedAt(),
+            f.getPlatform(),
+            f.getAppVersion(),
+            imageCount,
+            f.hasLog()
         );
     }
 }

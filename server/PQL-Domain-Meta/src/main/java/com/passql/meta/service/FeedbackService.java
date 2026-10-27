@@ -118,7 +118,7 @@ public class FeedbackService {
         return result;
     }
 
-    /** 상태 변경 + 감사 기록 > 실제로 바뀐 경우만 변경된 건의 (같은 상태 재설정은 empty) */
+    /** 상태 변경 + 감사 기록: 바뀐 경우만 해당 건, 같은 상태 재설정은 empty */
     @Transactional
     public Optional<Feedback> updateStatus(UUID feedbackUuid, FeedbackStatus status) {
         Feedback feedback = feedbackRepository.findById(feedbackUuid)

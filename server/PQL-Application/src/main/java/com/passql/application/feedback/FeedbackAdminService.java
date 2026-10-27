@@ -4,6 +4,7 @@ import com.passql.meta.constant.FeedbackStatus;
 import com.passql.meta.dto.FeedbackAdminResponse;
 import com.passql.meta.dto.FeedbackSearchCondition;
 import com.passql.meta.entity.Feedback;
+import com.passql.meta.repository.FeedbackImageRepository;
 import com.passql.meta.service.FeedbackService;
 import com.passql.member.constant.MemberNotificationType;
 import com.passql.member.constant.PushLinkTarget;
@@ -39,21 +40,32 @@ public class FeedbackAdminService {
     // 회원 닉네임 검색으로 찾는 회원 수 상한
     private static final int MEMBER_NICKNAME_SEARCH_LIMIT = 200;
     // 상태 알림 제목 (알림함·푸시 공통)
-    private static final String FEEDBACK_NOTIFICATION_TITLE = "건의사항 답변";
+    private static final String FEEDBACK_NOTIFICATION_TITLE = "의견 처리 안내";
 
     private final FeedbackService feedbackService;
+    private final FeedbackImageRepository feedbackImageRepository;
     private final MemberRepository memberRepository;
     private final MemberNotificationService memberNotificationService;
 
-    /** 건의 검색: 회원 검색어(UUID 또는 닉네임) 해석 > 조건 검색 > 회원 닉네임 부착 */
+    /** 건의 검색: 회원 검색어(UUID 또는 닉네임) 해석 > 조건 검색 > 회원 닉네임·이미지 수 부착 */
     public Page<FeedbackAdminResponse> searchFeedbacks(FeedbackSearchCondition condition, Pageable pageable) {
         Page<Feedback> feedbackPage = feedbackService.searchFeedbacksForAdmin(condition,
             findMemberUuids(condition.getMember()), pageable);
         Set<UUID> memberUuids = feedbackPage.getContent().stream().map(Feedback::getMemberUuid).collect(Collectors.toSet());
         Map<UUID, String> nicknameByMemberUuid = memberRepository.findAllById(memberUuids).stream()
             .collect(Collectors.toMap(Member::getMemberUuid, Member::getNickname));
+        Set<UUID> feedbackUuids = feedbackPage.getContent().stream().map(Feedback::getFeedbackUuid).collect(Collectors.toSet());
+        Map<UUID, Integer> imageCountByFeedbackUuid = feedbackUuids.isEmpty() ? Map.of()
+            : feedbackImageRepository.countByFeedbackUuids(feedbackUuids).stream()
+                .collect(Collectors.toMap(row -> (UUID) row[0], row -> ((Long) row[1]).intValue()));
         return feedbackPage.map(feedback -> FeedbackAdminResponse.from(feedback,
-            nicknameByMemberUuid.get(feedback.getMemberUuid())));
+            nicknameByMemberUuid.get(feedback.getMemberUuid()),
+            imageCountByFeedbackUuid.getOrDefault(feedback.getFeedbackUuid(), 0)));
+    }
+
+    /** 회원 닉네임 (member 행이 없으면 null) */
+    public String findMemberNickname(UUID memberUuid) {
+        return memberRepository.findById(memberUuid).map(Member::getNickname).orElse(null);
     }
 
     /** 상태 변경 > 바뀐 경우만 작성자 알림 (한 트랜잭션) */
