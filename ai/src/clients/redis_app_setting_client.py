@@ -9,7 +9,6 @@ import time
 
 import redis.asyncio as redis_asyncio
 
-from src.clients.setting_secret_cipher import SettingSecretError, decrypt_setting_secret, is_encrypted
 from src.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -88,32 +87,13 @@ async def get_setting(key: str, fallback: str) -> str:
     return fallback
 
 
-GEMINI_API_KEY_SETTING = "ai.gemini_api_key"
-CLAUDE_API_KEY_SETTING = "ai.claude_api_key"
-# 전체 모델 일괄 지정 (비면 프롬프트별 모델 사용)
-MODEL_OVERRIDE_SETTING = "ai.model_override"
-
-
-async def _get_secret_setting(setting_key: str, environment_fallback: str) -> str:
-    """Redis 암호문 > 복호화, 평문(전환 전)은 그대로, 복호화 실패·미설정은 환경변수 값"""
-    stored_value = await get_setting(setting_key, environment_fallback)
-    if not is_encrypted(stored_value):
-        return stored_value
+async def get_raw_value(full_key: str) -> str | None:
+    """접두사 없는 Redis 키 값 그대로 (미연결·없음·읽기 실패 > None)"""
     try:
-        return decrypt_setting_secret(setting_key, stored_value)
-    except SettingSecretError as error:
-        logger.error(f"[setting secret] decrypt failed : {setting_key}, env fallback used : {error}")
-        return environment_fallback
-
-
-async def get_gemini_api_key() -> str:
-    return await _get_secret_setting(GEMINI_API_KEY_SETTING, settings.GEMINI_API_KEY)
-
-
-async def get_claude_api_key() -> str:
-    return await _get_secret_setting(CLAUDE_API_KEY_SETTING, settings.CLAUDE_API_KEY)
-
-
-async def get_model_override() -> str:
-    """관리자 일괄 모델 (공백 제거, 미설정 > 빈 문자열)"""
-    return (await get_setting(MODEL_OVERRIDE_SETTING, "")).strip()
+        client = await _get_redis()
+        if client is None:
+            return None
+        return await client.get(full_key)
+    except Exception as e:
+        logger.warning(f"Redis 읽기 실패 ({full_key}): {e}")
+        return None

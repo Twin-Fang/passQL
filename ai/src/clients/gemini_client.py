@@ -3,7 +3,7 @@ Google Gemini API 클라이언트 (google-genai SDK)
 """
 import json
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 from google import genai
@@ -11,7 +11,6 @@ from google.genai import errors, types
 
 from src.core.exceptions import CustomError
 from src.core.retry import call_with_retry, is_transient_status_code
-from src.clients.redis_app_setting_client import get_gemini_api_key
 
 logger = logging.getLogger(__name__)
 
@@ -37,30 +36,28 @@ class GeminiClient:
 
     - chat: 일반 텍스트 응답
     - chat_structured: response_schema(JSON mode) 강제 응답
-    비동기 호출(client.aio)로 이벤트 루프를 막지 않고, 클라이언트는 키가 바뀔 때만 새로 만든다 (#497)
+    비동기 호출(client.aio)로 이벤트 루프를 막지 않고, 클라이언트는 키별로 한 번만 만든다 (#497, #695)
     """
 
     def __init__(self) -> None:
-        self._cached_api_key: Optional[str] = None
-        self._cached_client: Optional[genai.Client] = None
+        # API 키 > SDK 클라이언트 (연결이 여러 개라 키마다 따로 보관)
+        self._client_by_api_key: dict[str, genai.Client] = {}
 
-    async def _get_client(self) -> genai.Client:
-        api_key = await get_gemini_api_key()
-        if not api_key:
-            raise CustomError("Gemini API Key 미설정 — Redis(DB) 또는 환경변수를 확인하세요")
-        if self._cached_client is None or self._cached_api_key != api_key:
-            self._cached_client = genai.Client(
+    def _get_client(self, api_key: str) -> genai.Client:
+        client = self._client_by_api_key.get(api_key)
+        if client is None:
+            client = genai.Client(
                 api_key=api_key,
                 http_options=types.HttpOptions(timeout=CALL_TIMEOUT_MILLISECONDS),
             )
-            self._cached_api_key = api_key
-        return self._cached_client
+            self._client_by_api_key[api_key] = client
+        return client
 
     async def _generate_text(
-        self, operation_name: str, model: str, user_prompt: str, config: types.GenerateContentConfig
+        self, operation_name: str, api_key: str, model: str, user_prompt: str, config: types.GenerateContentConfig
     ) -> str:
-        """generate_content 1건: 일시 오류 재시도 > 빈 응답 검사 > 텍스트 (실패는 고정 문구 CustomError)"""
-        client = await self._get_client()
+        """generate_content 1건: 일시 오류 재시도 > 빈 응답 검사 > 텍스트 (실패는 고정 문구 CustomError, 원인은 __cause__)"""
+        client = self._get_client(api_key)
 
         async def generate_once():
             return await client.aio.models.generate_content(model=model, contents=user_prompt, config=config)
@@ -78,6 +75,7 @@ class GeminiClient:
 
     async def chat(
         self,
+        api_key: str,
         system_prompt: str,
         user_prompt: str,
         model: str,
@@ -96,10 +94,11 @@ class GeminiClient:
             temperature=temperature,
             max_output_tokens=max_tokens,
         )
-        return await self._generate_text("gemini chat", model, user_prompt, config)
+        return await self._generate_text("gemini chat", api_key, model, user_prompt, config)
 
     async def chat_structured(
         self,
+        api_key: str,
         system_prompt: str,
         user_prompt: str,
         model: str,
@@ -121,7 +120,7 @@ class GeminiClient:
             response_mime_type="application/json",
             response_schema=response_schema,
         )
-        text = await self._generate_text("gemini chat_structured", model, user_prompt, config)
+        text = await self._generate_text("gemini chat_structured", api_key, model, user_prompt, config)
         try:
             return json.loads(text)
         except json.JSONDecodeError as error:

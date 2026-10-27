@@ -25,7 +25,7 @@ import java.util.Map;
  * Java 코드에서 AI 기능 사용 시 유일한 진입점.
  * <p>
  * 메인 경로: Python AI 서버 (HTTP)
- * Fallback: {@link GeminiFallbackClient} (GeminiClient 직접 호출)
+ * Fallback: {@link GeminiFallbackClient} (AiChatClient 로 AI 연결 직접 호출)
  */
 @Slf4j
 @Component
@@ -261,8 +261,8 @@ public class AiGatewayClient {
             aiCallLogService.record(AiCallSource.AI_SERVER, path, null, true, latencyMilliseconds, null, null, null);
             return;
         }
-        aiCallLogService.record(AiCallSource.AI_SERVER, path, metadata.modelName(), true, latencyMilliseconds, null,
-                metadata.promptTokens(), metadata.completionTokens());
+        aiCallLogService.recordConnectionCall(AiCallSource.AI_SERVER, metadata.connectionName(), path,
+                metadata.modelName(), true, latencyMilliseconds, null, metadata.promptTokens(), metadata.completionTokens());
     }
 
     /** 실패 종류: CustomException 은 ErrorCode 이름, 그 외는 예외 클래스 이름 */

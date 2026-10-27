@@ -4,7 +4,7 @@ Anthropic Claude Messages API 클라이언트 (공유 httpx 경유)
 import logging
 from typing import Any
 
-from src.clients.redis_app_setting_client import get_claude_api_key
+from src.clients.llm_schema import to_json_schema
 from src.clients.shared_http_client import send_request
 from src.core.exceptions import CustomError
 
@@ -16,29 +16,6 @@ CLAUDE_API_VERSION = "2023-06-01"
 CALL_TIMEOUT_SECONDS = 30
 # JSON 강제 응답용 도구 이름 (tool_choice 로 이 도구만 쓰게 함)
 STRUCTURED_RESPONSE_TOOL_NAME = "submit_response"
-# Gemini 스키마 전용 키 (JSON Schema 에 없음 > 제거)
-GEMINI_ONLY_SCHEMA_KEYS = ("propertyOrdering",)
-
-
-def to_json_schema(gemini_schema: Any) -> Any:
-    """Gemini 응답 스키마(type 대문자, nullable) > JSON Schema (type 소문자, null 허용 type 배열)"""
-    if isinstance(gemini_schema, list):
-        return [to_json_schema(element) for element in gemini_schema]
-    if not isinstance(gemini_schema, dict):
-        return gemini_schema
-    json_schema = {}
-    for key, value in gemini_schema.items():
-        if key in GEMINI_ONLY_SCHEMA_KEYS or key == "nullable":
-            continue
-        if key == "type" and isinstance(value, str):
-            json_schema[key] = value.lower()
-        elif key == "properties" and isinstance(value, dict):
-            json_schema[key] = {name: to_json_schema(child) for name, child in value.items()}
-        else:
-            json_schema[key] = to_json_schema(value)
-    if gemini_schema.get("nullable") is True and isinstance(json_schema.get("type"), str):
-        json_schema["type"] = [json_schema["type"], "null"]
-    return json_schema
 
 
 class ClaudeClient:
@@ -49,11 +26,8 @@ class ClaudeClient:
     - chat_structured: 도구 1개 강제 호출 > 도구 입력(dict)을 응답으로 사용
     """
 
-    async def _send_messages(self, operation_name: str, request_body: dict[str, Any]) -> dict[str, Any]:
-        """Messages API 1건 (키 미설정·HTTP 실패 > CustomError)"""
-        api_key = await get_claude_api_key()
-        if not api_key:
-            raise CustomError("Claude API Key 미설정 — 관리자 설정 ai.claude_api_key 를 확인하세요")
+    async def _send_messages(self, operation_name: str, api_key: str, request_body: dict[str, Any]) -> dict[str, Any]:
+        """Messages API 1건 (HTTP 실패 > CustomError, 원인 HTTPStatusError 는 __cause__)"""
         response = await send_request(
             operation_name,
             "POST",
@@ -79,12 +53,12 @@ class ClaudeClient:
         }
 
     async def chat(
-        self, system_prompt: str, user_prompt: str, model: str, temperature: float, max_tokens: int
+        self, api_key: str, system_prompt: str, user_prompt: str, model: str, temperature: float, max_tokens: int
     ) -> str:
         """일반 텍스트 응답 (text 블록 이어 붙임, 빈 응답 > CustomError)"""
         logger.debug(f"Claude chat: model={model}, max_tokens={max_tokens}")
         request_body = self._build_request_body(system_prompt, user_prompt, model, max_tokens)
-        response_body = await self._send_messages("claude chat", request_body)
+        response_body = await self._send_messages("claude chat", api_key, request_body)
         text = "".join(
             block.get("text", "") for block in response_body.get("content", []) if block.get("type") == "text"
         )
@@ -94,6 +68,7 @@ class ClaudeClient:
 
     async def chat_structured(
         self,
+        api_key: str,
         system_prompt: str,
         user_prompt: str,
         model: str,
@@ -110,7 +85,7 @@ class ClaudeClient:
             "input_schema": to_json_schema(response_schema),
         }]
         request_body["tool_choice"] = {"type": "tool", "name": STRUCTURED_RESPONSE_TOOL_NAME}
-        response_body = await self._send_messages("claude chat_structured", request_body)
+        response_body = await self._send_messages("claude chat_structured", api_key, request_body)
         for block in response_body.get("content", []):
             if block.get("type") == "tool_use" and isinstance(block.get("input"), dict):
                 return block["input"]

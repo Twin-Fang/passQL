@@ -188,6 +188,27 @@ public class AppSettingService {
                 AdminAuditEvent.summary("value", maskValue(trimmedValue))));
     }
 
+    /** 비밀 설정 평문 (행 없음·값 없음·복호화 실패 > empty, 기존 값 이관용) */
+    public Optional<String> findSecret(String key) {
+        try {
+            return appSettingRepository.findBySettingKey(key)
+                    .map(AppSetting::getValueText)
+                    .filter(StringUtils::hasText)
+                    .map(storedValue -> decryptIfEncrypted(key, storedValue));
+        } catch (CustomException e) {
+            log.warn("[app-setting find-secret] skipped : decrypt failed : key={}", key);
+            return Optional.empty();
+        }
+    }
+
+    /** 설정 행 삭제 (DB·Redis, 다른 기능으로 옮긴 설정 정리용) */
+    @Transactional
+    public void deleteSetting(String key) {
+        appSettingRepository.findBySettingKey(key).ifPresent(appSettingRepository::delete);
+        redisTemplate.delete(REDIS_PREFIX + key);
+        log.info("[app-setting delete] removed : key={}", key);
+    }
+
     /**
      * 기동 시 비밀 설정 동기화: DB 평문 > 암호화로 전환, 암호문 > Redis 적재, 비어 있음 > 기본값(yml) 암호화 후 채움
      * 행 없음·기본값 없음은 경고만

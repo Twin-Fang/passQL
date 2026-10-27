@@ -1,8 +1,8 @@
 package com.passql.application.statistics;
 
-import com.passql.ai.client.GeminiClient;
 import com.passql.ai.constant.AiFailureCategory;
-import com.passql.ai.dto.GeminiApiKeyHealth;
+import com.passql.ai.dto.AiConnectionHealth;
+import com.passql.ai.service.AiConnectionHealthChecker;
 import com.passql.ai.service.AiCostCalculator;
 import com.passql.application.constant.StatisticsRange;
 import com.passql.application.dto.CircuitBreakerStatus;
@@ -19,7 +19,7 @@ import com.passql.application.statistics.dto.AiUsageTotal;
 import com.passql.application.statistics.dto.DashboardAiStatusResponse;
 import com.passql.application.statistics.dto.DashboardAiStatusResponse.AiFailureBreakdown;
 import com.passql.application.statistics.dto.DashboardAiStatusResponse.AiServerStatus;
-import com.passql.application.statistics.dto.DashboardAiStatusResponse.GeminiKeyStatus;
+import com.passql.application.statistics.dto.DashboardAiStatusResponse.AiConnectionStatus;
 import com.passql.application.statistics.dto.DashboardAiUsageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -59,7 +59,7 @@ public class AdminAiStatisticsService {
     private final AdminAiStatisticsQueryRepository aiStatisticsQueryRepository;
     private final AiCostCalculator aiCostCalculator;
     private final SystemHealthService systemHealthService;
-    private final GeminiClient geminiClient;
+    private final AiConnectionHealthChecker aiConnectionHealthChecker;
 
     /** 호출량 추이: 축 생성 > 묶음별 호출 > 묶음별 비용 > 0 채움 */
     public DashboardAiUsageResponse getAiUsage(StatisticsRange range) {
@@ -86,7 +86,7 @@ public class AdminAiStatisticsService {
     public DashboardAiStatusResponse getAiStatus() {
         SystemHealthSnapshot healthSnapshot = systemHealthService.collect();
         // 위 collect 가 같은 캐시를 채워 추가 호출 없음 (5분 캐시)
-        GeminiApiKeyHealth geminiApiKeyHealth = geminiClient.checkApiKeyHealth();
+        AiConnectionHealth topConnectionHealth = aiConnectionHealthChecker.checkTopConnection();
         AiFailureBreakdown failureBreakdown = classifyFailures(aiStatisticsQueryRepository
                 .countFailuresByErrorType(LocalDateTime.now().minusHours(FAILURE_BREAKDOWN_HOURS)));
 
@@ -99,7 +99,7 @@ public class AdminAiStatisticsService {
         return new DashboardAiStatusResponse(
                 toAiServerStatus(healthSnapshot),
                 findAiServerCircuitState(healthSnapshot),
-                new GeminiKeyStatus(geminiApiKeyHealth.isValid(), geminiApiKeyHealth.checkedAt(), geminiApiKeyHealth.detail()),
+                new AiConnectionStatus(topConnectionHealth.isValid(), topConnectionHealth.checkedAt(), topConnectionHealth.detail()),
                 failureBreakdown,
                 costByModel.stream().mapToLong(AiModelUsageSummary::promptTokenCount).sum(),
                 costByModel.stream().mapToLong(AiModelUsageSummary::completionTokenCount).sum(),
