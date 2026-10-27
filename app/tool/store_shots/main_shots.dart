@@ -16,6 +16,7 @@
 // 알림함 상황: echo empty > /tmp/passql_shot_notifications.txt (없거나 그 외는 알림 4건·공지 3건, 안 읽은 일부)
 // 알림 권한 안내 시트: echo show > /tmp/passql_shot_permission.txt (없으면 "나중에"를 고른 상태로 시작해 시트를 띄우지 않음)
 // Android 에뮬레이터(호스트 /tmp 못 읽음): --dart-define=SHOT_ROUTE=/stats 로 경로·연출 지정
+// 개념 전수 점검 (#577): echo concept-sweep > /tmp/passql_shot_route.txt (export_shot_concepts.py --all 데이터로 빌드, 결과 /tmp/passql_sweep)
 // 개념 학습 (#577): SHOT_ROUTE=/concepts (개념 탭), /concept-study/44444444-0000-4000-8000-000000000014 (관계형 DB와 SQL), 대표 개념 3개는 shot_concept_data.dart
 // 등급 상황 (#576): --dart-define=SHOT_PLAN=off|free|pro (결제 꺼짐 | 무료·결제 켜짐 | 프로·결제 켜짐, 없으면 off)
 //   연출 result: 오답 제출 결과 화면 (무료면 실행 결과·해설 잠금)
@@ -56,6 +57,7 @@ import 'package:passql_app/data/models/question/submit_result.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'shot_concept_responses.dart';
+import 'shot_concept_sweep.dart';
 import 'shot_plan_responses.dart';
 
 // 시뮬레이터는 호스트 파일시스템을 그대로 보므로, 이 파일에 적은 경로로 이동한다.
@@ -805,7 +807,18 @@ Future<void> main() async {
   }
   await AppLaunchGateRouting.bindAndLoad(container);
 
-  runApp(UncontrolledProviderScope(container: container, child: const PassqlApp()));
+  // 개념 전수 점검은 앱 전체를 캡처 경계로 감싸 화면을 직접 저장
+  final isConceptSweep = route == conceptSweepRoute;
+  runApp(UncontrolledProviderScope(
+    container: container,
+    child: isConceptSweep
+        ? RepaintBoundary(key: conceptSweepBoundaryKey, child: const PassqlApp())
+        : const PassqlApp(),
+  ));
+  if (isConceptSweep) {
+    Timer(const Duration(milliseconds: 3000), () => runConceptSweep(container));
+    return;
+  }
   startPushNotificationSync(container, AppRouter.router);
   // 첫 프레임 이후 지정한 화면으로 이동한다.
   if (!loggedOut) {
