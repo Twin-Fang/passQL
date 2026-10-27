@@ -6,7 +6,9 @@
 // 촬영: echo /stats > /tmp/passql_shot_route.txt && xcrun simctl launch <기기> com.coldredrice.passql
 // 연출(경로 대신 적음): execute-ok(SQL 실행 성공 표), execute-fail(SQL 실행 실패 카드), chapter-result(문제 목록 > 챕터 > 챕터 결과), ai-sheet(오답 AI 해설 시트),
 //   onboarding-1~4(온보딩 n장), onboarding-celebration(온보딩 첫 문제 축하), onboarding-tour(4장 넘김 > 축하 영상),
-//   withdraw-confirm(설정 > 회원 탈퇴 확인창 > 확인 문구 입력 영상)
+//   withdraw-confirm(설정 > 회원 탈퇴 확인창 > 확인 문구 입력 영상),
+//   nickname-sheet(내 프로필 > 닉네임 변경 시트), nickname-toast(내 프로필 + 닉네임 변경 토스트),
+//   nickname-edit(내 프로필 > 시트 > 입력 > 닫고 토스트 영상)
 // 로그인 중 화면: echo /login-signing-in > /tmp/passql_shot_route.txt (카카오 버튼을 눌러 응답 대기에서 멈춘 상태)
 // 로그인 전환 영상: echo /login-transition > /tmp/passql_shot_route.txt (로그인 화면 > 4초 뒤 홈 > 9초 뒤 로그인 화면, xcrun simctl io <기기> recordVideo 로 녹화)
 // 앱 시작 설정 상황: echo maintenance > /tmp/passql_shot_app_config.txt
@@ -41,7 +43,9 @@ import 'package:passql_app/presentation/providers/chapter_providers.dart';
 import 'package:passql_app/presentation/providers/question_providers.dart';
 import 'package:passql_app/presentation/providers/push_notification_providers.dart';
 import 'package:passql_app/presentation/providers/theme_mode_provider.dart';
+import 'package:passql_app/presentation/widgets/common/app_toast.dart';
 import 'package:passql_app/presentation/widgets/question/ai_explain_sheet.dart';
+import 'package:passql_app/presentation/widgets/settings/profile_card.dart';
 import 'package:passql_app/presentation/widgets/settings/settings_group.dart';
 import 'package:passql_app/router/app_launch_gate_routing.dart';
 import 'package:passql_app/router/app_router.dart';
@@ -932,6 +936,33 @@ Future<void> _openRoute(String route, ProviderContainer container) async {
         _typeIntoFirstTextField(typed);
         await Future<void>.delayed(const Duration(milliseconds: 600));
       }
+    case 'nickname-sheet':
+      // 내 프로필 > 닉네임 변경 시트 (프로필 카드 편집 콜백을 직접 부름, 전후 버전 모두 동작)
+      AppRouter.router.go(AppRoutes.stats);
+      await Future<void>.delayed(settleDelay);
+      _tapProfileCard();
+    case 'nickname-toast':
+      // 내 프로필 + 닉네임 변경 완료 토스트. 토스트가 2초면 사라져 촬영 시점과 어긋나므로 몇 번 다시 띄운다
+      AppRouter.router.go(AppRoutes.stats);
+      await Future<void>.delayed(settleDelay);
+      for (var i = 0; i < 10; i++) {
+        _showShotToast('닉네임이 변경됐어요');
+        await Future<void>.delayed(const Duration(milliseconds: 1500));
+      }
+    case 'nickname-edit':
+      // 내 프로필 > 시트 > 새 닉네임 입력 > 시트 닫고 토스트 (리포트 영상용, 저장 API 없이 흐름만 재현)
+      AppRouter.router.go(AppRoutes.stats);
+      await Future<void>.delayed(const Duration(milliseconds: 2500));
+      _tapProfileCard();
+      await Future<void>.delayed(const Duration(milliseconds: 1500));
+      for (final typed in const ['새', '새찬', '새찬이', '새찬이다']) {
+        _typeIntoFirstTextField(typed);
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 1500));
+      AppRouter.router.routerDelegate.navigatorKey.currentState?.pop();
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      _showShotToast('닉네임이 변경됐어요');
     default:
       // 온보딩 n장: onboarding-2 ~ onboarding-4 (시뮬레이터는 스와이프를 못 보내 페이지를 직접 넘김)
       final onboardingPage = RegExp(r'^onboarding-([1-4])$').firstMatch(route);
@@ -943,6 +974,25 @@ Future<void> _openRoute(String route, ProviderContainer container) async {
       await Future<void>.delayed(settleDelay);
       _jumpFirstPageView(int.parse(onboardingPage.group(1)!) - 1);
   }
+}
+
+/// 시뮬레이터는 탭을 보낼 수 없으므로 프로필 카드의 편집 콜백을 직접 부른다
+void _tapProfileCard() {
+  VoidCallback? onEdit;
+  void visit(Element element) {
+    final widget = element.widget;
+    if (onEdit == null && widget is ProfileCard) onEdit = widget.onEdit;
+    if (onEdit == null) element.visitChildren(visit);
+  }
+
+  WidgetsBinding.instance.rootElement?.visitChildren(visit);
+  onEdit?.call();
+}
+
+/// 앱 공통 토스트를 현재 화면에 띄운다
+void _showShotToast(String message) {
+  final context = AppRouter.router.routerDelegate.navigatorKey.currentContext;
+  if (context != null && context.mounted) showAppToast(context, message);
 }
 
 /// 시뮬레이터는 탭을 보낼 수 없으므로 제목이 같은 설정 행의 탭 콜백을 직접 부른다
