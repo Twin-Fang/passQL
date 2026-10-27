@@ -128,15 +128,22 @@ public class ChoiceSetGenerationService {
 
         // MULTIPLE_CORRECT 실패 시 정답과 동일한 결과를 낸 오답 SQL 누적 (피드백용)
         List<String> equivalentSqls = new ArrayList<>();
-        // ODD_ONE_OUT 실패 시 직전 시도 선택지별 실제 실행 결과 (피드백용, 매 시도 교체)
-        List<String> previousOddOneOutResults = List.of();
+        // 실패 시 직전 시도 선택지별 실제 실행 결과 (피드백용, 매 시도 교체)
+        List<String> previousChoiceResultLines = List.of();
+        // 기준 SQL 실행 결과: 프롬프트가 받을 때만 첫 시도에 1회 실행 (#720)
+        boolean shouldIncludeAnswerResult = requestFactory.hasAnswerResultPlaceholder(prompt);
+        ExecuteResult expectedResult = null;
 
         for (int attempts = 1; attempts <= MAX_ATTEMPTS; attempts++) {
-            // 재시도마다 피드백(동치 SQL 목록, ODD_ONE_OUT 실행 결과)을 포함한 요청을 새로 빌드
-            GenerateChoiceSetRequest request = requestFactory.buildStandardRequest(
-                    question, prompt, equivalentSqls, previousOddOneOutResults);
-
             try {
+                // 실행 실패(SANDBOX_ANSWER_SQL_FAILED)는 아래 재시도 불가 처리로 실패 저장
+                if (shouldIncludeAnswerResult && expectedResult == null) {
+                    expectedResult = resultMatchChoiceValidator.executeExpectedResult(question);
+                }
+                // 재시도마다 피드백(동치 SQL 목록, 직전 실행 결과)을 포함한 요청을 새로 빌드
+                GenerateChoiceSetRequest request = requestFactory.buildStandardRequest(
+                        question, prompt, equivalentSqls, previousChoiceResultLines, expectedResult);
+
                 log.debug("[choice-gen] AI 호출 시작: attempt={}/{}, questionUuid={}, feedbackCount={}",
                         attempts, MAX_ATTEMPTS, questionUuid, equivalentSqls.size());
                 lastResult = aiGatewayClient.generateChoiceSet(request);
@@ -174,8 +181,11 @@ public class ChoiceSetGenerationService {
                     log.info("[choice-gen] 동치 SQL 피드백 누적: count={}, attempt={}, questionUuid={}",
                             equivalentSqls.size(), attempts, questionUuid);
                 }
-                if (question.getChoiceSetPolicy() == ChoiceSetPolicy.ODD_ONE_OUT && lastResult != null) {
-                    previousOddOneOutResults = requestFactory.toOddOneOutResultLines(lastResult.choices(), lastReport);
+                // 직전 실행 결과 피드백: ODD_ONE_OUT 결과만, AI_ONLY 기준과 같음/다름 표시 포함 (#720)
+                if (lastResult != null) {
+                    boolean isOddOneOut = question.getChoiceSetPolicy() == ChoiceSetPolicy.ODD_ONE_OUT;
+                    previousChoiceResultLines = requestFactory.toChoiceResultLines(
+                            lastResult.choices(), lastReport, !isOddOneOut);
                 }
 
             } catch (CustomException e) {

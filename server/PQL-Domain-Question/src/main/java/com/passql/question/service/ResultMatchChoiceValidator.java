@@ -45,7 +45,7 @@ public class ResultMatchChoiceValidator {
                 dbName -> sandboxExecutor.execute(dbName, question.getAnswerSql()));
         if (!"OK".equals(result.status())) {
             throw new CustomException(ErrorCode.SANDBOX_ANSWER_SQL_FAILED,
-                    "RESULT_MATCH answerSql 실행 실패: " + result.errorMessage());
+                    "answerSql 실행 실패: " + result.errorMessage());
         }
         return result;
     }

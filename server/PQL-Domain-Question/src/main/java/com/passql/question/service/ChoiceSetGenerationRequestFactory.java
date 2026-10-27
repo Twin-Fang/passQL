@@ -44,7 +44,7 @@ public class ChoiceSetGenerationRequestFactory {
             ),
             "required", List.of("choices")
     );
-    // RESULT_MATCH user prompt 치환 자리: 정답 SQL 실행 결과 텍스트
+    // user prompt 치환 자리: 정답 SQL 실행 결과 텍스트 (RESULT_MATCH, generate_choice_set v6 이상) (#720)
     private static final String ANSWER_RESULT_PLACEHOLDER = "{answer_result}";
     // ODD_ONE_OUT user prompt 추가 지시: 공통 프롬프트(정답 1개만 기준 SQL과 같은 결과)와 반대인 검증 기준(3개 같은 결과, 1개 다른 결과)에 맞춤 (#704)
     private static final String ODD_ONE_OUT_INSTRUCTION = """
@@ -58,15 +58,18 @@ public class ChoiceSetGenerationRequestFactory {
             - 다른 결과 1개는 NULL 처리, 집계 범위 등 학습 포인트가 드러나는 차이로 만들 것""";
 
     /**
-     * AI_ONLY 선택지 생성 요청을 빌드한다.
-     * equivalentSqls가 있으면 user prompt 하단에 "이미 동치임이 확인된 SQL은 피해라" 피드백을 추가한다.
-     * 이를 통해 재시도 시 AI가 동일한 SQL 동치 실수를 반복하지 않도록 유도한다.
+     * AI_ONLY·ODD_ONE_OUT 요청 조립: 기준 실행 결과 치환 > 동치 SQL 피드백 > 유형별 직전 실행 결과 피드백
+     * expectedResult null: 템플릿에 {answer_result} 없음 (치환 생략)
      */
     public GenerateChoiceSetRequest buildStandardRequest(
             Question question, PromptTemplate prompt, List<String> equivalentSqls,
-            List<String> previousOddOneOutResults) {
-        // 이전 시도에서 정답과 동치임이 확인된 SQL들을 피드백으로 user prompt에 추가
+            List<String> previousChoiceResultLines, ExecuteResult expectedResult) {
         String userTemplate = prompt.getUserTemplate();
+        // 기준 SQL 실행 결과 (AI 결과 계산 실수 방지) (#720)
+        if (expectedResult != null) {
+            userTemplate = userTemplate.replace(ANSWER_RESULT_PLACEHOLDER, serializeExecuteResult(expectedResult));
+        }
+        // 이전 시도에서 정답과 동치임이 확인된 SQL들을 피드백으로 user prompt에 추가
         if (!equivalentSqls.isEmpty()) {
             StringBuilder feedback = new StringBuilder("\n\n[재시도 피드백]\n");
             feedback.append("아래 SQL들은 기준 SQL과 동일한 실행 결과를 내는 것으로 확인되었다.\n");
@@ -81,15 +84,27 @@ public class ChoiceSetGenerationRequestFactory {
         if (question.getChoiceSetPolicy() == ChoiceSetPolicy.ODD_ONE_OUT) {
             userTemplate = userTemplate + ODD_ONE_OUT_INSTRUCTION;
             // 직전 시도 실제 실행 결과 피드백 (AI 결과 계산 실수 교정)
-            if (!previousOddOneOutResults.isEmpty()) {
+            if (!previousChoiceResultLines.isEmpty()) {
                 StringBuilder feedback = new StringBuilder("\n\n[재시도 피드백 — 직전 시도의 실제 실행 결과]\n");
-                previousOddOneOutResults.forEach(line -> feedback.append(line).append("\n"));
+                previousChoiceResultLines.forEach(line -> feedback.append(line).append("\n"));
                 feedback.append("위 결과는 3개 같은 결과 + 1개 다른 결과로 나뉘지 않았다. ");
                 feedback.append("실제 결과를 근거로 선택지를 고쳐 3개는 정확히 같은 결과, 1개만 다른 결과가 되게 할 것.");
                 userTemplate = userTemplate + feedback;
             }
+        } else if (!previousChoiceResultLines.isEmpty()) {
+            // AI_ONLY: 직전 시도 보기별 실제 결과 + 기준과 같음/다름 (정답 여러 개 교정) (#720)
+            StringBuilder feedback = new StringBuilder("\n\n[재시도 피드백 — 직전 시도의 실제 실행 결과]\n");
+            previousChoiceResultLines.forEach(line -> feedback.append(line).append("\n"));
+            feedback.append("기준과 같음 표시가 2개 이상이면 정답이 여러 개다. ");
+            feedback.append("정답 1개만 남기고 나머지는 실제 결과가 달라지는 변형으로 바꿀 것.");
+            userTemplate = userTemplate + feedback;
         }
         return new GenerateChoiceSetRequest(toSqlContext(question), toLlmConfig(prompt, userTemplate));
+    }
+
+    /** 활성 프롬프트가 기준 SQL 실행 결과를 받는지 ({answer_result} 포함) */
+    public boolean hasAnswerResultPlaceholder(PromptTemplate prompt) {
+        return prompt.getUserTemplate() != null && prompt.getUserTemplate().contains(ANSWER_RESULT_PLACEHOLDER);
     }
 
     /**
@@ -156,9 +171,11 @@ public class ChoiceSetGenerationRequestFactory {
     }
 
     /**
-     * ODD_ONE_OUT 실패 시도 > 선택지별 실제 실행 결과 줄 목록 (형식: "A: {SQL} > 결과 [[30]]")
+     * 실패 시도 > 선택지별 실제 실행 결과 줄 목록
+     * 형식: "A: {SQL} > 결과 [[30]]", shouldMarkExpectedMatch 면 끝에 " (기준과 같음)" / " (기준과 다름)"
      */
-    public List<String> toOddOneOutResultLines(List<GeneratedChoiceDto> choices, ValidationReport report) {
+    public List<String> toChoiceResultLines(
+            List<GeneratedChoiceDto> choices, ValidationReport report, boolean shouldMarkExpectedMatch) {
         Map<String, ValidationReport.ChoiceValidation> validationByKey = new HashMap<>();
         for (var validation : report.items()) {
             validationByKey.put(validation.key(), validation);
@@ -171,7 +188,9 @@ public class ChoiceSetGenerationRequestFactory {
             String resultText = "OK".equals(validation.status())
                     ? "결과 " + validation.rows()
                     : "실행 오류";
-            resultLines.add(choice.key() + ": " + choice.body() + " > " + resultText);
+            String matchText = !shouldMarkExpectedMatch ? ""
+                    : validation.matchesExpected() ? " (기준과 같음)" : " (기준과 다름)";
+            resultLines.add(choice.key() + ": " + choice.body() + " > " + resultText + matchText);
         }
         return resultLines;
     }
