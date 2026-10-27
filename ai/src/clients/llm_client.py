@@ -19,6 +19,7 @@ from src.clients.ai_connection_store import (
 from src.clients.claude_client import claude_client
 from src.clients.gemini_client import gemini_client
 from src.clients.openai_client import openai_client
+from src.clients.token_usage import start_token_usage
 from src.core.exceptions import CustomError
 
 logger = logging.getLogger(__name__)
@@ -48,6 +49,9 @@ class LlmResult:
     content: Any
     connection_name: str
     model: str
+    # 응답한 연결의 토큰 수 (제공자가 안 주면 None, 호출 기록·비용 추정용 #699)
+    prompt_tokens: int | None = None
+    completion_tokens: int | None = None
 
 
 def to_provider(model: str | None) -> str | None:
@@ -121,8 +125,10 @@ async def _call_with_fallback(
             last_error = CustomError(f"AI 연결 키 미설정: {connection_name}")
             continue
         try:
+            usage = start_token_usage()
             content = await call(_select_client(attempt.connection.provider), attempt)
-            return LlmResult(content=content, connection_name=connection_name, model=attempt.model)
+            return LlmResult(content=content, connection_name=connection_name, model=attempt.model,
+                             prompt_tokens=usage.prompt_tokens, completion_tokens=usage.completion_tokens)
         except Exception as error:
             if not is_fallback_error(error):
                 raise

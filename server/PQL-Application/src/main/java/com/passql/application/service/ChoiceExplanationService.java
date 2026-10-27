@@ -72,18 +72,14 @@ public class ChoiceExplanationService {
     }
 
     /**
-     * 해설 조회 (기다리지 않음): 고정 세트 근거 > 구조화 저장본(낡았으면 백그라운드 재생성) > 생성 요청 후 GENERATING
-     * 재시도 상한까지 실패한 세트 > FAILED (옛 해설 글이 있으면 text 로)
+     * 해설 조회 (기다리지 않음): 구조화 저장본(낡았으면 백그라운드 재생성) > 생성 요청 후 GENERATING
+     * 생성 전 표시 글: 고정 세트는 검증 근거 메모, AI 세트는 옛 해설 글 (#511, #699)
+     * 재시도 상한까지 실패: 고정 세트 > 검증 근거 메모 READY, AI 세트 > FAILED
      */
     public ChoiceExplanationResponse getChoiceExplanation(Question question, UUID choiceSetUuid, String selectedChoiceKey) {
         QuestionChoiceSet choiceSet = getChoiceSet(choiceSetUuid);
         QuestionChoiceSetItem selectedItem = getSelectedItem(choiceSetUuid, selectedChoiceKey);
 
-        // 고정 세트는 검증 근거 해설 그대로 (AI 생성·덮어쓰기 없음, #511)
-        if (QuestionService.isCuratedChoiceSet(question, choiceSet)) {
-            return readyTextResponse(choiceSetUuid, selectedChoiceKey, curatedExplanationText(selectedItem),
-                    CURATED_EXPLANATION_PROMPT_VERSION);
-        }
         ChoiceExplanation explanation = ChoiceExplanationComposer.composeOrNull(choiceSet.getExplanationJson(), selectedChoiceKey);
         if (explanation != null) {
             if (isStalePromptVersion(choiceSet)) requestBackgroundGeneration(choiceSetUuid);
@@ -91,21 +87,26 @@ public class ChoiceExplanationService {
                     explanation, ChoiceExplanationComposer.toMarkdown(explanation), choiceSet.getExplanationPromptVersion(), null);
         }
 
-        String legacyText = legacyExplanationTextOrNull(selectedItem);
+        boolean isCuratedSet = QuestionService.isCuratedChoiceSet(question, choiceSet);
+        String fallbackText = isCuratedSet ? curatedExplanationText(selectedItem) : legacyExplanationTextOrNull(selectedItem);
         boolean isClaimed = requestBackgroundGeneration(choiceSetUuid);
         boolean isGenerating = isClaimed || choiceSet.getExplanationStatus() == null
                 || choiceSet.getExplanationStatus() == ChoiceExplanationStatus.GENERATING;
         if (!isGenerating) {
             log.info("[choice explanation] attempts exhausted : choiceSet={}", choiceSetUuid);
+            // 고정 세트는 검증 근거 메모가 해설 자체라 실패로 보이지 않게 READY
+            if (isCuratedSet) {
+                return readyTextResponse(choiceSetUuid, selectedChoiceKey, fallbackText, CURATED_EXPLANATION_PROMPT_VERSION);
+            }
             return new ChoiceExplanationResponse(ChoiceExplanationStatus.FAILED, choiceSetUuid, selectedChoiceKey,
-                    null, legacyText, null, null);
+                    null, fallbackText, null, null);
         }
         return new ChoiceExplanationResponse(ChoiceExplanationStatus.GENERATING, choiceSetUuid, selectedChoiceKey,
-                null, legacyText, null, RETRY_AFTER_MILLISECONDS);
+                null, fallbackText, null, RETRY_AFTER_MILLISECONDS);
     }
 
     /**
-     * 출시 앱 diff-explain(동기) 해설 글: 고정 세트 근거 > 구조화 저장본 마크다운 > 옛 해설 글(백그라운드 생성 요청)
+     * 출시 앱 diff-explain(동기) 해설 글: 구조화 저장본 마크다운 > 고정 세트 근거·옛 해설 글(백그라운드 생성 요청)
      * > 직접 생성 또는 다른 요청의 생성 완료 대기(25초) > 실패 시 AI_UNAVAILABLE
      */
     public AiResult getOrGenerateExplanationText(Question question, UUID choiceSetUuid, String selectedChoiceKey) {
@@ -147,7 +148,7 @@ public class ChoiceExplanationService {
         QuestionChoiceSet choiceSet = choiceSetRepository.findById(choiceSetUuid).orElse(null);
         if (choiceSet == null) return 0;
         Question question = questionRepository.findById(choiceSet.getQuestionUuid()).orElse(null);
-        if (question == null || QuestionService.isCuratedChoiceSet(question, choiceSet)) return 0;
+        if (question == null) return 0;
         if (!claimGeneration(choiceSetUuid)) return 0;
         return generateAndStore(question, choiceSetUuid) ? 1 : 0;
     }

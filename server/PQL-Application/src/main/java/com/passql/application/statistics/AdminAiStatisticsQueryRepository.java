@@ -1,5 +1,6 @@
 package com.passql.application.statistics;
 
+import com.passql.ai.constant.AiCallSource;
 import com.passql.application.constant.StatisticsRange;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -18,15 +19,19 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminAiStatisticsQueryRepository {
 
+    // LLM 통계에서 빼는 호출 출처 (벡터 색인·검색, 토큰 과금 없음)
+    private static final String VECTOR_SEARCH_SOURCE = AiCallSource.VECTOR_SEARCH.name();
+
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    /** 묶음별 호출 수·성공 수·지연 합 */
+    /** 묶음별 LLM 호출 수·성공 수·지연 합 (벡터 색인·검색 제외, #699) */
     public List<AiCallBucketRow> countCallsByBucket(StatisticsRange range, LocalDateTime start, LocalDateTime end) {
         String sql = """
                 SELECT CAST(date_trunc(:unit, c.called_at) AS date), COUNT(*),
                        COUNT(*) FILTER (WHERE c.is_success = TRUE), COALESCE(SUM(c.latency_milliseconds), 0)
                 FROM ai_call_log c
                 WHERE c.called_at >= :start AND c.called_at < :end
+                  AND c.call_source <> :vectorSearchSource
                 GROUP BY 1
                 """;
         return jdbcTemplate.query(sql, rangeParameters(range, start, end), (resultSet, rowNumber) -> new AiCallBucketRow(
@@ -46,15 +51,18 @@ public class AdminAiStatisticsQueryRepository {
                 resultSet.getDate(1).toLocalDate(), resultSet.getString(2), resultSet.getLong(3), resultSet.getLong(4)));
     }
 
-    /** 실패 호출의 error_type 별 건수 (since 이후) */
+    /** 실패 LLM 호출의 error_type 별 건수 (since 이후, 벡터 색인·검색 제외) */
     public List<ErrorTypeCountRow> countFailuresByErrorType(LocalDateTime since) {
         String sql = """
                 SELECT c.error_type, COUNT(*)
                 FROM ai_call_log c
                 WHERE c.is_success = FALSE AND c.called_at >= :since
+                  AND c.call_source <> :vectorSearchSource
                 GROUP BY c.error_type
                 """;
-        return jdbcTemplate.query(sql, new MapSqlParameterSource("since", since), (resultSet, rowNumber) -> new ErrorTypeCountRow(
+        MapSqlParameterSource parameters = new MapSqlParameterSource("since", since)
+                .addValue("vectorSearchSource", VECTOR_SEARCH_SOURCE);
+        return jdbcTemplate.query(sql, parameters, (resultSet, rowNumber) -> new ErrorTypeCountRow(
                 resultSet.getString(1), resultSet.getLong(2)));
     }
 
@@ -80,7 +88,8 @@ public class AdminAiStatisticsQueryRepository {
         return new MapSqlParameterSource()
                 .addValue("start", start)
                 .addValue("end", end)
-                .addValue("unit", range.getTruncateUnit());
+                .addValue("unit", range.getTruncateUnit())
+                .addValue("vectorSearchSource", VECTOR_SEARCH_SOURCE);
     }
 
     /** 묶음별 호출 수·성공 수·지연 합(ms) */

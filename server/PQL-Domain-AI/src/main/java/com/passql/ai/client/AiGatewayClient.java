@@ -20,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Java 코드에서 AI 기능 사용 시 유일한 진입점.
@@ -35,6 +36,10 @@ public class AiGatewayClient {
     private static final int HEALTH_CHECK_TIMEOUT_MILLISECONDS = 3000;
     private static final String HEALTH_PATH = "/health";
     private static final String INDEX_STATUS_PATH = "/api/ai/index-status";
+    // 벡터 색인·검색 경로 5개 (LLM 아님 > 호출 출처 VECTOR_SEARCH 로 기록, #699)
+    private static final Set<String> VECTOR_SEARCH_PATHS = Set.of(
+            "/api/ai/index-question", "/api/ai/index-questions-bulk", "/api/ai/recommend",
+            INDEX_STATUS_PATH, "/api/ai/prune-index");
 
     private final RestTemplate restTemplate;
     private final RestTemplate healthCheckRestTemplate;
@@ -248,7 +253,7 @@ public class AiGatewayClient {
             recordSuccess(path, System.currentTimeMillis() - startedAtMilliseconds, response);
             return response;
         } catch (RuntimeException e) {
-            aiCallLogService.record(AiCallSource.AI_SERVER, path, null, false,
+            aiCallLogService.record(toCallSource(path), path, null, false,
                     System.currentTimeMillis() - startedAtMilliseconds, toErrorType(e), null, null);
             throw e;
         }
@@ -258,11 +263,16 @@ public class AiGatewayClient {
     private void recordSuccess(String path, long latencyMilliseconds, Object response) {
         GenerationMetadataDto metadata = response instanceof GenerationMetadataCarrier carrier ? carrier.metadata() : null;
         if (metadata == null) {
-            aiCallLogService.record(AiCallSource.AI_SERVER, path, null, true, latencyMilliseconds, null, null, null);
+            aiCallLogService.record(toCallSource(path), path, null, true, latencyMilliseconds, null, null, null);
             return;
         }
         aiCallLogService.recordConnectionCall(AiCallSource.AI_SERVER, metadata.connectionName(), path,
                 metadata.modelName(), true, latencyMilliseconds, null, metadata.promptTokens(), metadata.completionTokens());
+    }
+
+    /** 경로 > 호출 출처 (벡터 색인·검색 경로 > VECTOR_SEARCH, 그 외 LLM > AI_SERVER) */
+    private static AiCallSource toCallSource(String path) {
+        return VECTOR_SEARCH_PATHS.contains(path) ? AiCallSource.VECTOR_SEARCH : AiCallSource.AI_SERVER;
     }
 
     /** 실패 종류: CustomException 은 ErrorCode 이름, 그 외는 예외 클래스 이름 */

@@ -6,6 +6,7 @@ from typing import Any
 
 from src.clients.llm_schema import to_json_schema
 from src.clients.shared_http_client import send_request
+from src.clients.token_usage import record_token_usage
 from src.core.exceptions import CustomError
 
 logger = logging.getLogger(__name__)
@@ -36,7 +37,10 @@ class ClaudeClient:
             json_body=request_body,
             timeout_seconds=CALL_TIMEOUT_SECONDS,
         )
-        return response.json()
+        response_body = response.json()
+        usage = response_body.get("usage") or {}
+        record_token_usage(usage.get("input_tokens"), usage.get("output_tokens"))
+        return response_body
 
     @staticmethod
     def _build_request_body(
