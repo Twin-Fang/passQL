@@ -30,6 +30,7 @@ class SettingsPage extends ConsumerWidget {
       title: '정말 탈퇴할까요?',
       message: '계정과 개인정보가 삭제되고 되돌릴 수 없어요.\n같은 계정으로 다시 가입하면 새 계정으로 시작해요.',
       confirmLabel: '탈퇴하기',
+      requiredText: '탈퇴하기',
     );
     if (!isConfirmed || !context.mounted) return;
 

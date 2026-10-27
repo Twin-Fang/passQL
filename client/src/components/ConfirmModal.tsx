@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface ConfirmModalProps {
   readonly isOpen: boolean;
@@ -10,6 +10,8 @@ interface ConfirmModalProps {
   readonly cancelLabel: string;
   readonly onConfirm: () => void;
   readonly onCancel: () => void;
+  // 주면 이 문구를 그대로 입력해야 확인 버튼이 눌린다 — 탈퇴처럼 실수로 누르면 안 되는 동작
+  readonly requiredText?: string;
 }
 
 export default function ConfirmModal({
@@ -20,7 +22,16 @@ export default function ConfirmModal({
   cancelLabel,
   onConfirm,
   onCancel,
+  requiredText,
 }: ConfirmModalProps) {
+  const [typedText, setTypedText] = useState("");
+  const canConfirm = requiredText === undefined || typedText.trim() === requiredText;
+
+  // 다시 열 때 지난 입력이 남아 있으면 바로 눌릴 수 있어 닫힐 때 비운다
+  useEffect(() => {
+    if (!isOpen) setTypedText("");
+  }, [isOpen]);
+
   // ESC 키로 모달 닫기 + 배경 스크롤 잠금
   useEffect(() => {
     if (!isOpen) return;
@@ -58,6 +69,22 @@ export default function ConfirmModal({
           <p className="text-sm text-text-secondary">{description}</p>
         </div>
 
+        {requiredText !== undefined && (
+          <label className="block space-y-1.5">
+            <span className="block text-sm text-text-secondary text-center">
+              계속하려면 '{requiredText}'를 입력해 주세요.
+            </span>
+            <input
+              type="text"
+              className="input input-bordered w-full"
+              placeholder={requiredText}
+              value={typedText}
+              onChange={(e) => setTypedText(e.target.value)}
+              autoFocus
+            />
+          </label>
+        )}
+
         <div className="flex flex-col gap-2">
           {/* 유지 액션: Primary 버튼 (파괴적 액션 비강조 원칙) */}
           <button
@@ -72,6 +99,7 @@ export default function ConfirmModal({
             type="button"
             className="btn btn-secondary w-full"
             onClick={onConfirm}
+            disabled={!canConfirm}
           >
             {confirmLabel}
           </button>

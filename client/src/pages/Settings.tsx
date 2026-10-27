@@ -287,6 +287,7 @@ export default function Settings() {
         description="계정과 개인정보가 즉시 삭제되고 되돌릴 수 없어요. 같은 계정으로 다시 가입하면 기존 학습 기록 없이 새로 시작해요."
         confirmLabel="탈퇴하기"
         cancelLabel="계속 이용하기"
+        requiredText="탈퇴하기"
         onConfirm={handleWithdraw}
         onCancel={() => setWithdrawOpen(false)}
       />
