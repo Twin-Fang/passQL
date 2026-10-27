@@ -67,7 +67,7 @@ public class ClaudeClient {
 
     /** 일반 텍스트 응답 (text 블록 이어 붙임) */
     public String chat(String model, String systemPrompt, String userPrompt, float temperature, int maxTokens) {
-        ObjectNode requestBody = buildRequestBody(model, systemPrompt, userPrompt, temperature, maxTokens);
+        ObjectNode requestBody = buildRequestBody(model, systemPrompt, userPrompt, maxTokens);
         JsonNode responseBody = sendMessages(CHAT_ENDPOINT_PATH, model, requestBody);
         StringBuilder text = new StringBuilder();
         for (JsonNode block : responseBody.path("content")) {
@@ -84,7 +84,7 @@ public class ClaudeClient {
     /** JSON 강제 응답: 응답 스키마(Gemini 형식 JSON) > 도구 input_schema > 강제 호출 > 도구 입력 JSON 문자열 */
     public String chatStructured(String model, String systemPrompt, String userPrompt, float temperature,
                                  int maxTokens, String responseSchemaJson) {
-        ObjectNode requestBody = buildRequestBody(model, systemPrompt, userPrompt, temperature, maxTokens);
+        ObjectNode requestBody = buildRequestBody(model, systemPrompt, userPrompt, maxTokens);
         ObjectNode tool = requestBody.putArray("tools").addObject();
         tool.put("name", STRUCTURED_RESPONSE_TOOL_NAME);
         tool.put("description", "응답을 정해진 JSON 형식으로 제출");
@@ -133,11 +133,11 @@ public class ClaudeClient {
         return converted;
     }
 
-    private ObjectNode buildRequestBody(String model, String systemPrompt, String userPrompt, float temperature, int maxTokens) {
+    private ObjectNode buildRequestBody(String model, String systemPrompt, String userPrompt, int maxTokens) {
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("model", model);
         requestBody.put("max_tokens", maxTokens);
-        requestBody.put("temperature", temperature);
+        // temperature 미전송: Claude 최신 모델이 파라미터 자체를 거부 (400 deprecated)
         requestBody.put("system", systemPrompt == null ? "" : systemPrompt);
         requestBody.putArray("messages").addObject().put("role", "user").put("content", userPrompt);
         return requestBody;

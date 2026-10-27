@@ -66,12 +66,12 @@ class ClaudeClient:
 
     @staticmethod
     def _build_request_body(
-        system_prompt: str, user_prompt: str, model: str, temperature: float, max_tokens: int
+        system_prompt: str, user_prompt: str, model: str, max_tokens: int
     ) -> dict[str, Any]:
+        # temperature 미전송: Claude 최신 모델이 파라미터 자체를 거부 (400 deprecated)
         return {
             "model": model,
             "max_tokens": max_tokens,
-            "temperature": temperature,
             "system": system_prompt,
             "messages": [{"role": "user", "content": user_prompt}],
         }
@@ -81,7 +81,7 @@ class ClaudeClient:
     ) -> str:
         """일반 텍스트 응답 (text 블록 이어 붙임, 빈 응답 > CustomError)"""
         logger.debug(f"Claude chat: model={model}, max_tokens={max_tokens}")
-        request_body = self._build_request_body(system_prompt, user_prompt, model, temperature, max_tokens)
+        request_body = self._build_request_body(system_prompt, user_prompt, model, max_tokens)
         response_body = await self._send_messages("claude chat", request_body)
         text = "".join(
             block.get("text", "") for block in response_body.get("content", []) if block.get("type") == "text"
@@ -101,7 +101,7 @@ class ClaudeClient:
     ) -> dict[str, Any]:
         """JSON 강제 응답: 응답 스키마 > 도구 input_schema > 강제 호출 > 도구 입력 dict"""
         logger.debug(f"Claude chat_structured: model={model}, max_tokens={max_tokens}")
-        request_body = self._build_request_body(system_prompt, user_prompt, model, temperature, max_tokens)
+        request_body = self._build_request_body(system_prompt, user_prompt, model, max_tokens)
         request_body["tools"] = [{
             "name": STRUCTURED_RESPONSE_TOOL_NAME,
             "description": "응답을 정해진 JSON 형식으로 제출",
