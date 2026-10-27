@@ -33,6 +33,8 @@ SPACED_PARTICLE_PATTERN = re.compile(r"[A-Za-z0-9_)'\]] (은|는|이|가|을|를
 # 영문 사이 가운뎃점 뒤 줄바꿈 자리 (폭 0 빈칸): "SELECT·INSERT·UPDATE" 같은 긴 낱말이 글자 중간에서 잘리지 않게
 LATIN_MIDDLE_DOT_PATTERN = re.compile(r"(?<=[A-Za-z0-9_)])·(?=[A-Za-z(])")
 ZERO_WIDTH_SPACE = "\u200b"
+# 굵게 구간 (**글자**)
+BOLD_SPAN_PATTERN = re.compile(r"\*\*(.+?)\*\*")
 
 EXPORT_KEYS = ("tagKey", "topicCode", "sortOrder", "title", "summary", "coreMd", "detailMd",
                "checkQuestions", "relatedQuestionUuids")
@@ -189,20 +191,36 @@ def load_related_question_uuids_by_tag_key():
 
 
 def to_app_markdown(markdown):
-    """앱 화면용 글 정리 (코드 펜스 안은 그대로): 표 줄의 인라인 코드·굵게 표시 제거 > 영문 가운뎃점 뒤 줄바꿈 자리
-    앱 표 부품은 칸 글자를 그대로 그리고, 빈칸 없는 긴 영문 낱말은 글자 중간에서 잘림"""
+    """앱 화면용 글 정리 (코드 펜스 안은 그대로)
+    표 줄: 칸마다 인라인 코드 표시·굵게 짝 제거, 첫 칸이 빈 묶음 줄은 위 줄 값으로 채움 (앱 표 부품은 칸 글자를 그대로 그림)
+    글 줄: 굵게 구간 안 인라인 코드 표시 제거 (앱 렌더러는 굵게 안 코드를 못 그림)
+    공통: 영문 가운뎃점 뒤 줄바꿈 자리 (빈칸 없는 긴 영문 낱말이 글자 중간에서 잘림)"""
     if not markdown:
         return markdown
-    lines, is_inside_fence = [], False
+    lines, is_inside_fence, previous_first_cell = [], False, None
     for line in markdown.splitlines():
         if line.strip().startswith("```"):
             is_inside_fence = not is_inside_fence
         elif not is_inside_fence:
             if line.lstrip().startswith("|"):
-                line = line.replace("`", "").replace("**", "")
+                line, previous_first_cell = _to_app_table_row(line, previous_first_cell)
+            else:
+                previous_first_cell = None
+                line = BOLD_SPAN_PATTERN.sub(lambda match: "**" + match.group(1).replace("`", "") + "**", line)
             line = LATIN_MIDDLE_DOT_PATTERN.sub("·" + ZERO_WIDTH_SPACE, line)
         lines.append(line)
     return "\n".join(lines)
+
+
+def _to_app_table_row(line, previous_first_cell):
+    """표 줄 1개 > (정리한 줄, 이번 줄 첫 칸 값) (구분 줄 |---| 은 그대로)"""
+    cells = line.strip().strip("|").split("|")
+    if all(set(cell.strip()) <= set("-: ") for cell in cells):
+        return line, previous_first_cell
+    cells = [BOLD_SPAN_PATTERN.sub(r"\1", cell).replace("`", "") for cell in cells]
+    if not cells[0].strip() and previous_first_cell:
+        cells[0] = f" {previous_first_cell} "
+    return "|" + "|".join(cells) + "|", cells[0].strip()
 
 
 def to_export_item(concept, related_question_uuids_by_tag_key):

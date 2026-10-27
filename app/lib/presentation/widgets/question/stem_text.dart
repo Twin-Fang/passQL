@@ -83,6 +83,9 @@ class InlineCodeText extends StatelessWidget {
   /// 줄바꿈 안 되는 공백 (U+00A0)
   static const String _nonBreakingSpace = '\u00A0';
 
+  /// 붙여 둘 코드 최대 글자 수: 넘으면 한 줄보다 길 수 있어 빈칸에서 줄바꿈 허용 (#577)
+  static const int _maxKeptTogetherCodeLength = 20;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
@@ -96,8 +99,9 @@ class InlineCodeText extends StatelessWidget {
       }
       spans.add(
         TextSpan(
-          // 코드 안 공백은 줄바꿈 안 되는 공백으로: 'GROUP BY' 가 두 줄로 갈라지지 않게 (#554)
-          text: match.group(1)!.replaceAll(' ', _nonBreakingSpace),
+          // 짧은 코드 안 공백은 줄바꿈 안 되는 공백으로: 'GROUP BY' 가 두 줄로 갈라지지 않게 (#554)
+          // 긴 코드는 그대로: 한 줄보다 길면 글자 중간에서 잘리므로 빈칸에서 줄바꿈 (#577)
+          text: _toCodeSpanText(match.group(1)!),
           style: PassqlTypography.inlineCodeOf(
             base,
           ).copyWith(backgroundColor: colors.fill),
@@ -108,4 +112,9 @@ class InlineCodeText extends StatelessWidget {
     if (cursor < text.length) spans.add(TextSpan(text: text.substring(cursor)));
     return Text.rich(TextSpan(style: base, children: spans));
   }
+
+  static String _toCodeSpanText(String code) =>
+      code.length <= _maxKeptTogetherCodeLength
+      ? code.replaceAll(' ', _nonBreakingSpace)
+      : code;
 }
