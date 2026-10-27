@@ -1,7 +1,7 @@
 # passQL AI Server (Python / FastAPI)
 
 passQL의 AI 기능 전담 서버. 문제·선택지 생성, 관리자 프롬프트 테스트, RAG 문제 색인·추천·정리를 담당한다.
-SQL 오류 설명·오답 해설은 Spring(`AiExplainService`)이 Gemini를 직접 호출해 처리한다 (이 서버에 없음).
+SQL 오류 설명·오답 해설은 Spring(`AiExplainService`)이 `AiChatClient`로 LLM을 직접 호출해 처리한다 (이 서버에 없음).
 **프론트(client/app)는 이 서버를 직접 호출하지 않는다** — 반드시 Spring 서버(`server/`)가
 `x-api-key`로 프록시한다.
 
@@ -9,7 +9,8 @@ SQL 오류 설명·오답 해설은 Spring(`AiExplainService`)이 Gemini를 직�
 
 - **Python** >= 3.13
 - **FastAPI** + **Uvicorn** (ASGI)
-- **LLM**: Gemini (`gemini_client`) — 문제·선택지 생성, 프롬프트 테스트
+- **LLM**: Gemini·Claude (`llm_client` 단일 진입점) — 문제·선택지 생성, 프롬프트 테스트
+  - 모델 이름 `claude-*` > Claude, 그 외 > Gemini. 관리자 설정 `ai.model_override`가 있으면 전체 모델 일괄 적용 (#688)
 - **임베딩**: Ollama (`ollama_client`) — 임베딩 전용 (채팅·fallback 없음)
 - **벡터 검색**: Qdrant (`qdrant_search_client`) — 문제 색인·개인화 추천
 - **동적 설정**: Redis (`redis_app_setting_client`) — Spring 관리자 설정(`passql:settings:*`) 읽기
@@ -30,7 +31,9 @@ src/
 │   ├── question_vector_index_service.py    # 색인 적재·상태 비교·고아 벡터 정리
 │   └── question_recommendation_service.py  # 오답 벡터 기반 추천
 ├── clients/                      # 외부 시스템 호출
+│   ├── llm_client.py             # LLM 단일 진입점 (일괄 모델 > 제공자 선택)
 │   ├── gemini_client.py
+│   ├── claude_client.py          # Messages API (JSON 강제 응답 = 도구 강제 호출)
 │   ├── ollama_client.py          # 임베딩
 │   ├── qdrant_search_client.py
 │   ├── redis_app_setting_client.py   # redis.asyncio (동기 redis import 금지)

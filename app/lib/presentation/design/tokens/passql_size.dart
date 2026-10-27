@@ -17,6 +17,9 @@ abstract final class PassqlSize {
   static const double avatar = 52; // 설정 프로필 이니셜 원
   static const double scoreRing = 168; // 결과 점수 고리 지름
   static const double scoreRingStroke = 12;
+  static const double progressRing = 44; // 목록 행 진행 고리 지름 (개념 단원·이어서 학습)
+  static const double progressRingStroke = 4;
+  static const double depthSwitchMaxWidth = 200; // 개념 읽기 핵심만·자세히 전환 최대 폭 (모드 전환보다 작게)
   static const double loginLogoHeight = 44;
   static const double footerLogoHeight = 20;
   static const double navBarLogoHeight = 24; // 홈 상단 바 워드마크 (바 높이 44 안, 종 아이콘과 시각 무게 맞춤)

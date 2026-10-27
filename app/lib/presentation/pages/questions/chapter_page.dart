@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../core/monitoring/crash_reporter.dart';
@@ -9,6 +10,7 @@ import '../../../presentation/providers/ai_explanation_session_provider.dart';
 import '../../../presentation/providers/chapter_providers.dart';
 import '../../../presentation/providers/choice_explanation_providers.dart';
 import '../../../presentation/providers/learning_refresh.dart';
+import '../../../presentation/providers/onboarding_providers.dart';
 import '../../../presentation/providers/plan_providers.dart';
 import '../../../presentation/providers/question_providers.dart';
 import '../../widgets/ai_explanation/ai_explanation_dock.dart';
@@ -19,6 +21,7 @@ import '../../widgets/common/app_toast.dart';
 import '../../widgets/chapter/chapter_feedback_bar.dart';
 import '../../widgets/pro/pro_access_feedback.dart';
 import '../../widgets/question/choice_display_label.dart';
+import '../../../router/app_routes.dart';
 import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
 import '../../widgets/question/question_sections.dart';
@@ -56,6 +59,10 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
   /// 이 화면에서 답안을 한 번이라도 제출했는지. 벗어날 때 학습 현황을 갱신할지 정한다.
   bool _hasSubmittedAny = false;
 
+  /// 온보딩 첫 문제 축하를 이미 띄웠는지. 이후 문제에는 배지·축하가 없다.
+  bool _hasShownOnboardingCelebration = false;
+  bool _isShowingOnboardingCelebration = false;
+
   /// dispose 시점에는 ref 를 쓸 수 없으므로 컨테이너를 미리 잡아 둔다.
   late final ProviderContainer _container;
 
@@ -63,6 +70,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
   void initState() {
     super.initState();
     _container = ProviderScope.containerOf(context, listen: false);
+    _clearOnboardingOnceListLoaded();
     // 첫 프레임 이후 문제 목록 로드
     Future.microtask(() {
       if (!mounted) return;
@@ -235,6 +243,43 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     );
   }
 
+  /// 온보딩에서 들어왔으면 문제 목록을 실제로 받은 순간 온보딩 대기를 지운다.
+  /// 목록 오류·빈 세트면 남겨 두어 다음에 온보딩을 다시 이어 간다.
+  void _clearOnboardingOnceListLoaded() {
+    if (!widget.flow.isOnboarding) return;
+    ref.listenManual(chapterProvider(widget.flow.id), (_, next) {
+      if (next.isLoadingList ||
+          next.listError != null ||
+          next.questionUuids.isEmpty) {
+        return;
+      }
+      ref.read(onboardingPendingProvider.notifier).clear();
+    });
+  }
+
+  /// 다음 문제·결과로 넘어가기 전, 온보딩 첫 문제였으면 축하 화면을 한 번 띄운다.
+  Future<void> _goNext(ChapterState chapter) async {
+    if (_isCompleting || _isShowingOnboardingCelebration) return;
+    if (widget.flow.isOnboarding && !_hasShownOnboardingCelebration) {
+      setState(() => _hasShownOnboardingCelebration = true);
+      // 축하 화면이 뜨는 사이 [다음] 연타로 문제를 건너뛰지 않게 막는다.
+      _isShowingOnboardingCelebration = true;
+      await context.push<void>(
+        AppRoutes.onboardingCelebration,
+        extra: chapter.isLastQuestion,
+      );
+      _isShowingOnboardingCelebration = false;
+      if (!mounted) return;
+    }
+    if (chapter.isLastQuestion) {
+      _complete();
+    } else {
+      // 새 문제를 풀 때는 지난 해설 시트를 닫음 (해설함·백그라운드 조회는 유지)
+      ref.read(aiExplanationSessionProvider.notifier).closePanel();
+      ref.read(chapterProvider(widget.flow.id).notifier).nextQuestion();
+    }
+  }
+
   /// 마지막 문제까지 끝남 — 요약을 만들어 이후 처리는 흐름에 맡긴다.
   Future<void> _complete() async {
     if (_isCompleting) return;
@@ -269,7 +314,6 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
   Widget build(BuildContext context) {
     final flowId = widget.flow.id;
     final chapter = ref.watch(chapterProvider(flowId));
-    final chapterNotifier = ref.read(chapterProvider(flowId).notifier);
 
     // 로딩 중
     if (chapter.isLoadingList) {
@@ -363,6 +407,11 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
                       gradedSelectedKey: chapter.lastSelectedKey,
                       // 재시도가 소용없는 오류여도 다시 눌러 볼 수 있게 두어 막다른 길을 만들지 않는다.
                       shouldAlwaysAllowRetry: true,
+                      topBadge:
+                          widget.flow.isOnboarding &&
+                              !_hasShownOnboardingCelebration
+                          ? const PassqlBadge(text: '첫 문제')
+                          : null,
                     ),
                   );
                 },
@@ -398,16 +447,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
                 chapter.lastSubmitResult!.correctKey,
               ),
               isLastQuestion: chapter.isLastQuestion,
-              onNext: () {
-                if (_isCompleting) return;
-                if (chapter.isLastQuestion) {
-                  _complete();
-                } else {
-                  // 새 문제를 풀 때는 지난 해설 시트를 닫음 (해설함·백그라운드 조회는 유지)
-                  ref.read(aiExplanationSessionProvider.notifier).closePanel();
-                  chapterNotifier.nextQuestion();
-                }
-              },
+              onNext: () => _goNext(chapter),
             ),
     );
 

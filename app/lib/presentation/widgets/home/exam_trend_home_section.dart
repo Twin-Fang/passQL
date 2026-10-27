@@ -7,10 +7,6 @@ import '../exam_trend/exam_trend_pattern_card.dart';
 /// 한 페이지가 차지하는 폭 비율: 다음 카드가 오른쪽에 살짝 보여 넘길 수 있음을 알림
 const double _pageViewportFraction = 0.9;
 
-/// 페이지 점 크기 (현재 페이지는 가로로 늘린 알약)
-const double _pageDotSize = 6;
-const double _currentPageDotWidth = 18;
-
 /// 홈 출제 경향 섹션: 머리(제목 + '최신 기출 반영' + 전체) > 늘어난 유형 넘김 카드 > 페이지 점
 /// 숫자 없이 반영 사실만 표시, 요약·근거는 '전체'(문제 탭 최신 경향)에서
 class ExamTrendHomeSection extends StatefulWidget {
@@ -85,7 +81,10 @@ class _ExamTrendHomeSectionState extends State<ExamTrendHomeSection> {
           ),
           if (patterns.length > 1) ...[
             const SizedBox(height: PassqlSpacing.sm),
-            _buildPageDots(colors, patterns.length),
+            PassqlPageDots(
+              count: patterns.length,
+              currentIndex: _currentPageIndex,
+            ),
           ],
         ],
       ],
@@ -167,39 +166,6 @@ class _ExamTrendHomeSectionState extends State<ExamTrendHomeSection> {
           ),
         ),
       ],
-    );
-  }
-
-  /// 페이지 점: 현재 페이지만 강조색 알약 (스크린리더는 넘김 목록이 위치를 읽으므로 제외)
-  Widget _buildPageDots(PassqlColors colors, int pageCount) {
-    final dotAnimationDuration = PassqlMotion.durationOf(
-      context,
-      PassqlMotion.fast,
-    );
-    return ExcludeSemantics(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          for (var pageIndex = 0; pageIndex < pageCount; pageIndex++)
-            AnimatedContainer(
-              duration: dotAnimationDuration,
-              curve: PassqlMotion.curve,
-              margin: const EdgeInsets.symmetric(
-                horizontal: PassqlSpacing.hairlineGap,
-              ),
-              width: pageIndex == _currentPageIndex
-                  ? _currentPageDotWidth
-                  : _pageDotSize,
-              height: _pageDotSize,
-              decoration: BoxDecoration(
-                color: pageIndex == _currentPageIndex
-                    ? colors.accentText
-                    : colors.tertiaryLabel,
-                borderRadius: BorderRadius.circular(PassqlRadius.capsule),
-              ),
-            ),
-        ],
-      ),
     );
   }
 }

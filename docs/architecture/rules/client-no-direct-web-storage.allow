@@ -1,8 +1,5 @@
 # client-no-direct-web-storage 동결 목록: 줄을 지울 수만 있고 더할 수 없다
 # 고친 파일은 이 목록에서 지운다 (규칙 테스트가 남은 줄을 잡는다)
-client/src/api/client.test.ts
 client/src/components/AppDownloadBanner.tsx
-client/src/lib/memberSession.test.ts
-client/src/lib/socialLoginRedirect.test.ts
 client/src/lib/socialLoginRedirect.ts
 client/src/stores/authStore.ts

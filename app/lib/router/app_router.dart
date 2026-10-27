@@ -6,6 +6,9 @@ import '../presentation/flows/daily_set_flow.dart';
 import '../presentation/flows/question_flow.dart';
 import '../presentation/flows/random_practice_flow.dart';
 import '../presentation/pages/community/blocked_members_page.dart';
+import '../presentation/pages/concepts/concept_page.dart';
+import '../presentation/pages/concepts/concept_topic_page.dart';
+import '../presentation/pages/concepts/concepts_home_page.dart';
 import '../presentation/pages/community/community_feed_page.dart';
 import '../presentation/pages/community/community_question_page.dart';
 import '../presentation/pages/daily_set/daily_set_result_page.dart';
@@ -16,6 +19,8 @@ import '../presentation/pages/feedback/feedback_page.dart';
 import '../presentation/pages/home/home_page.dart';
 import '../presentation/pages/legal/legal_page.dart';
 import '../presentation/pages/login/login_page.dart';
+import '../presentation/pages/onboarding/onboarding_celebration_page.dart';
+import '../presentation/pages/onboarding/onboarding_page.dart';
 import '../presentation/pages/notice/notice_detail_page.dart';
 import '../presentation/pages/notice/notice_list_page.dart';
 import '../presentation/pages/notification/notification_inbox_page.dart';
@@ -39,17 +44,23 @@ final _rootKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
 /// 앱 전역 라우터.
 ///
-/// - StatefulShellRoute: 바텀 탭 5개 (홈/문제/토론/통계/설정), 탭별 상태 유지
+/// - StatefulShellRoute: 바텀 탭 5개 (홈/개념/문제/토론/내 프로필, 개념은 이용 가능할 때만 보임), 탭별 상태 유지
 /// - 루트 라우트: 풀스크린 페이지 (챕터, 챕터 결과, 문제 상세, 결과)
 abstract final class AppRouter {
   /// 로그인 여부. main 에서 인증 상태를 구독해 갱신하고, 값이 바뀌면 라우터가 redirect 를 다시 평가한다.
   static final ValueNotifier<bool> authenticated = ValueNotifier<bool>(false);
+
+  /// 로그인한 신규 가입자가 온보딩을 아직 마치지 않았는지. main 이 온보딩 대기 상태를 구독해 갱신한다.
+  static final ValueNotifier<bool> onboardingPending = ValueNotifier<bool>(
+    false,
+  );
 
   static final GoRouter router = GoRouter(
     navigatorKey: _rootKey,
     initialLocation: AppRoutes.home,
     refreshListenable: Listenable.merge([
       authenticated,
+      onboardingPending,
       AppLaunchGateRouting.gate,
     ]),
     // 로그인 안 했으면 로그인 화면으로, 로그인 했는데 로그인 화면이면 홈으로 보낸다.
@@ -66,7 +77,14 @@ abstract final class AppRouter {
       // 약관은 가입 전에도 읽을 수 있어야 한다(App Store 5.1.1).
       if (state.matchedLocation.startsWith(AppRoutes.legalPrefix)) return null;
       if (!authenticated.value && !atLogin) return AppRoutes.login;
-      if (authenticated.value && atLogin) return AppRoutes.home;
+      // 신규 가입자는 홈 대신 온보딩. 홈으로 가는 길만 가로채 푸시 링크·풀이 화면은 막지 않는다.
+      final landing = onboardingPending.value
+          ? AppRoutes.onboarding
+          : AppRoutes.home;
+      if (authenticated.value && atLogin) return landing;
+      if (authenticated.value && state.matchedLocation == AppRoutes.home) {
+        return landing == AppRoutes.home ? null : landing;
+      }
       return null;
     },
     routes: [
@@ -98,6 +116,13 @@ abstract final class AppRouter {
         pageBuilder: (_, _) => const NoTransitionPage(child: LoginPage()),
       ),
 
+      // 온보딩: 로그인 화면처럼 탭 쉘과 맞바뀌는 화면이라 밀기 전환 없이 바로 바꾼다
+      GoRoute(
+        path: AppRoutes.onboarding,
+        parentNavigatorKey: _rootKey,
+        pageBuilder: (_, _) => const NoTransitionPage(child: OnboardingPage()),
+      ),
+
       // 탭 쉘: 탭마다 화면 상태를 유지하고 탭 전환은 페이드 (#495)
       // 쉘 진입(로그인 > 홈)도 밀기 전환 없이 바로 바꾼다 (#672)
       StatefulShellRoute(
@@ -116,6 +141,16 @@ abstract final class AppRouter {
                 path: AppRoutes.home,
                 pageBuilder: (_, _) =>
                     const NoTransitionPage(child: HomePage()),
+              ),
+            ],
+          ),
+          // 개념 탭 (#577): 이용 가능할 때만 셸에 보이지만 브랜치 순서는 고정
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.concepts,
+                pageBuilder: (_, _) =>
+                    const NoTransitionPage(child: ConceptsHomePage()),
               ),
             ],
           ),
@@ -186,6 +221,21 @@ abstract final class AppRouter {
         parentNavigatorKey: _rootKey,
         builder: (_, _) => const NoticeListPage(),
       ),
+      // 개념 학습 (#577): 단원 상세, 개념 읽기·풀기
+      GoRoute(
+        path: AppRoutes.conceptTopicPattern,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => ConceptTopicPage(
+          topicUuid: state.pathParameters[AppRoutes.topicUuidParameter]!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.conceptStudyPattern,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => ConceptPage(
+          conceptUuid: state.pathParameters[AppRoutes.conceptUuidParameter]!,
+        ),
+      ),
       GoRoute(
         path: AppRoutes.noticeDetailPattern,
         parentNavigatorKey: _rootKey,
@@ -251,7 +301,22 @@ abstract final class AppRouter {
       GoRoute(
         path: AppRoutes.dailySet,
         parentNavigatorKey: _rootKey,
-        builder: (_, _) => const ChapterPage(flow: DailySetFlow()),
+        builder: (_, state) => ChapterPage(
+          flow: DailySetFlow(
+            isOnboarding:
+                state.uri.queryParameters[AppRoutes
+                    .dailySetOnboardingQuery] ==
+                'true',
+          ),
+        ),
+      ),
+      // 온보딩 첫 문제 축하: 풀이 화면 위에 띄우고 닫히면 풀이를 이어 간다
+      GoRoute(
+        path: AppRoutes.onboardingCelebration,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => OnboardingCelebrationPage(
+          isLastQuestion: state.extra is bool && state.extra! as bool,
+        ),
       ),
       GoRoute(
         path: AppRoutes.dailySetResult,

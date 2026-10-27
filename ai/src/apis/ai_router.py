@@ -43,7 +43,7 @@ async def generate_question_full(request: GenerateQuestionFullRequest):
     """
     관리자 문제 등록용 AI 생성.
     Spring 이 프롬프트 전문·response_schema 를 내려주면
-    그대로 Gemini structured output 을 호출한다.
+    그대로 LLM(Gemini·Claude) structured output 을 호출한다.
     """
     return await question_generation_service.generate_question_full(request)
 

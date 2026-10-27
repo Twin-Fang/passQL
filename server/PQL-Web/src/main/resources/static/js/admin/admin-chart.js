@@ -353,7 +353,7 @@
         postStatusLabelByCode: { VISIBLE: '노출', HIDDEN_AUTO: '자동 숨김', HIDDEN_ADMIN: '관리자 숨김', DELETED: '삭제' },
         postStatusBadgeClassByCode: { VISIBLE: 'badge-success', HIDDEN_AUTO: 'badge-warning', HIDDEN_ADMIN: 'badge-error', DELETED: 'badge-neutral' },
         // ai_call_log.call_source
-        callSourceLabelByCode: { AI_SERVER: 'AI 서버', GEMINI_DIRECT: 'Gemini 직접' },
+        callSourceLabelByCode: { AI_SERVER: 'AI 서버', GEMINI_DIRECT: 'Gemini 직접', CLAUDE_DIRECT: 'Claude 직접' },
         // member AuthProvider
         authProviderLabelByCode: { GOOGLE: 'Google', KAKAO: '카카오', NAVER: '네이버', APPLE: 'Apple', GITHUB: 'GitHub' },
         /** 코드 > 표시 이름 (매핑 없으면 코드 그대로, 비었으면 '-') */
