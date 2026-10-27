@@ -38,6 +38,8 @@ public class ChoiceSetGenerationService {
     private static final String CONCEPT_PROMPT_KEY = "generate_choice_set_concept";
     // RESULT_MATCH 전용 프롬프트 키 — answerSql 실행 결과 JSON을 컨텍스트로 제공
     private static final String RESULT_MATCH_PROMPT_KEY = "generate_choice_set_result_match";
+    // ODD_ONE_OUT 전용 프롬프트 키 — 기준과 같은 결과 3개 + 다른 결과 1개(정답), SandboxValidator 3:1 판정과 짝 (#699)
+    private static final String ODD_ONE_OUT_PROMPT_KEY = "generate_choice_set_odd_one_out";
 
     private final QuestionService questionService;
     private final PromptService promptService;
@@ -116,8 +118,9 @@ public class ChoiceSetGenerationService {
      */
     public QuestionChoiceSet generate(UUID questionUuid, UUID memberUuid, ChoiceSetSource source) {
         Question question = questionService.getQuestionEntity(questionUuid);
-        PromptTemplate prompt = promptService.getActivePrompt(PROMPT_KEY);
-        log.debug("[choice-gen] 요청 빌드 완료: questionUuid={}, promptKey={}", questionUuid, PROMPT_KEY);
+        String promptKey = toStandardPromptKey(question.getChoiceSetPolicy());
+        PromptTemplate prompt = promptService.getActivePrompt(promptKey);
+        log.debug("[choice-gen] 요청 빌드 완료: questionUuid={}, promptKey={}", questionUuid, promptKey);
 
         ValidationReport lastReport = null;
         GenerateChoiceSetResult lastResult = null;
@@ -292,5 +295,10 @@ public class ChoiceSetGenerationService {
         throw new CustomException(
                 lastErrorCode != null ? lastErrorCode : ErrorCode.CHOICE_SET_GENERATION_FAILED,
                 "result-match questionUuid=" + questionUuid);
+    }
+
+    /** SQL 보기 정책 > 프롬프트 키 (ODD_ONE_OUT 은 정답 방향이 반대라 전용 프롬프트, 그 외 기본) */
+    static String toStandardPromptKey(ChoiceSetPolicy policy) {
+        return policy == ChoiceSetPolicy.ODD_ONE_OUT ? ODD_ONE_OUT_PROMPT_KEY : PROMPT_KEY;
     }
 }
