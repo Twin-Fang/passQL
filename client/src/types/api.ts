@@ -196,14 +196,6 @@ export interface PracticeQuestionResult {
 // 서버가 status 를 String 으로 내보내 계약에 enum 없음 > 웹이 아는 값 3개로 좁힘
 export type FeedbackStatus = "PENDING" | "REVIEWED" | "APPLIED";
 
-export type FeedbackItem = Omit<ApiSchemas["FeedbackItem"], "status"> & {
-  readonly status: FeedbackStatus;
-};
-
-export type FeedbackListResponse = Omit<ApiSchemas["FeedbackListResponse"], "items"> & {
-  readonly items: readonly FeedbackItem[];
-};
-
 export type FeedbackSubmitResponse = Omit<ApiSchemas["FeedbackSubmitResponse"], "status"> & {
   readonly status: FeedbackStatus;
 };

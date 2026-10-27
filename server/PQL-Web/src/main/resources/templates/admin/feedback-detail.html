@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<th:block layout:fragment="title">의견 상세</th:block>
+
+<th:block layout:fragment="content">
+    <div id="feedbackDetailRoot" th:data-uuid="${feedback.feedbackUuid}" class="space-y-4">
+
+        <a th:href="@{/admin/feedbacks}" class="btn btn-sm btn-ghost">
+            <i data-lucide="arrow-left" class="size-4"></i>목록으로
+        </a>
+
+        <!-- 본문 · 회원 · 상태 -->
+        <div class="card bg-base-100 shadow">
+            <div class="card-body">
+                <div class="flex flex-wrap items-center gap-3 text-sm">
+                    <a th:href="@{/admin/members/{uuid}(uuid=${feedback.memberUuid})}" class="link link-primary"
+                       th:text="${memberNickname != null ? memberNickname : feedback.memberUuid}">닉네임</a>
+                    <span class="font-mono text-xs text-base-content/50" th:text="${feedback.memberUuid}">uuid</span>
+                    <span class="text-base-content/60"
+                          th:text="${feedback.createdAt != null ? #temporals.format(feedback.createdAt, 'yyyy-MM-dd HH:mm') : '-'}">2026-10-27 12:00</span>
+                    <span class="badge badge-sm"
+                          th:classappend="${feedback.status.name() == 'PENDING'} ? 'badge-warning' : (${feedback.status.name() == 'REVIEWED'} ? 'badge-info' : 'badge-success')"
+                          th:text="${feedback.status.name()}">PENDING</span>
+                </div>
+                <p class="whitespace-pre-wrap break-words mt-2" th:text="${feedback.content}">내용</p>
+
+                <div class="divider my-2"></div>
+
+                <!-- 상태 변경 -->
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-base-content/60 w-16">상태</span>
+                    <select id="feedbackStatusSelect" class="select select-sm select-bordered w-36">
+                        <option th:each="s : ${statuses}" th:value="${s.name()}" th:text="${s.name()}"
+                                th:selected="${feedback.status == s}">PENDING</option>
+                    </select>
+                    <button type="button" id="feedbackStatusSaveButton" class="btn btn-sm btn-primary">변경</button>
+                </div>
+
+                <!-- 관리자 메모 (처리 내용, 앱 미노출) -->
+                <div class="mt-3">
+                    <label class="text-base-content/60 text-xs">관리자 메모 <span class="text-base-content/40">(앱에 보이지 않음, 1000자)</span></label>
+                    <textarea id="feedbackMemo" class="textarea textarea-bordered w-full text-sm mt-1" rows="3" maxlength="1000"
+                              th:text="${feedback.adminMemo}"></textarea>
+                    <div class="flex items-center gap-2 mt-1">
+                        <button type="button" id="feedbackMemoSaveButton" class="btn btn-sm btn-outline">메모 저장</button>
+                        <span th:if="${feedback.updatedBy != null}" class="text-xs text-base-content/40"
+                              th:text="'마지막 수정: ' + ${feedback.updatedBy}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 첨부를 읽을 수 없을 때 (저장소 비활성·읽기 실패) -->
+        <div th:if="${isAttachmentUnavailable}" class="alert alert-warning text-sm">
+            <i data-lucide="triangle-alert" class="size-4"></i>
+            <span>첨부를 불러올 수 없음 (저장소 연결을 확인해 주세요)</span>
+        </div>
+
+        <!-- 이미지 -->
+        <div class="card bg-base-100 shadow" th:if="${!imageSortOrders.isEmpty()}">
+            <div class="card-body">
+                <h2 class="card-title text-base">첨부 이미지 <span class="badge badge-ghost" th:text="${imageSortOrders.size()}">1</span></h2>
+                <div class="flex flex-wrap gap-3" th:unless="${isAttachmentUnavailable}">
+                    <a th:each="sortOrder : ${imageSortOrders}" target="_blank" rel="noopener"
+                       th:href="@{/admin/feedbacks/{uuid}/images/{order}(uuid=${feedback.feedbackUuid}, order=${sortOrder})}">
+                        <img class="feedback-image h-40 rounded border border-base-300 object-contain bg-base-200" loading="lazy" alt="첨부 이미지"
+                             th:src="@{/admin/feedbacks/{uuid}/images/{order}(uuid=${feedback.feedbackUuid}, order=${sortOrder})}"/>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 진단 정보 -->
+        <div class="card bg-base-100 shadow">
+            <div class="card-body">
+                <h2 class="card-title text-base">진단 정보</h2>
+                <p th:if="${diagnosticsGroups.isEmpty()}" class="text-sm text-base-content/50">진단 정보 없이 보낸 의견이에요.</p>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" th:unless="${diagnosticsGroups.isEmpty()}">
+                    <div th:each="group : ${diagnosticsGroups}">
+                        <div class="text-xs font-semibold uppercase text-base-content/60 mb-1" th:text="${group.key}">app</div>
+                        <table class="table table-xs">
+                            <tbody>
+                            <tr th:each="item : ${group.value}">
+                                <th class="w-44 font-mono text-xs" th:text="${item.key}">key</th>
+                                <td class="break-all" th:text="${item.value != null ? item.value : '-'}">value</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 앱 로그 -->
+        <div class="card bg-base-100 shadow" th:if="${feedback.hasLog()}">
+            <div class="card-body">
+                <div class="flex items-center gap-2">
+                    <h2 class="card-title text-base">앱 로그</h2>
+                    <span class="text-xs text-base-content/50" th:text="${feedback.logBytes != null ? (feedback.logBytes / 1024) + ' KB (gzip)' : ''}"></span>
+                    <a th:unless="${isAttachmentUnavailable}" class="btn btn-sm btn-outline ml-auto"
+                       th:href="@{/admin/feedbacks/{uuid}/log(uuid=${feedback.feedbackUuid})}">
+                        <i data-lucide="download" class="size-4"></i>다운로드 (.txt.gz)
+                    </a>
+                </div>
+                <pre id="feedbackLogViewer" th:if="${logText != null}"
+                     class="bg-base-200 rounded p-3 text-xs font-mono overflow-auto max-h-96 whitespace-pre-wrap break-all"
+                     th:text="${logText}"></pre>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<th:block layout:fragment="js">
+    <script th:src="@{/js/admin/feedback-detail.js}"></script>
+    <script>lucide.createIcons();</script>
+</th:block>
+</html>

@@ -5,11 +5,8 @@ import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
-import com.passql.common.util.MemberActivityLogger;
 import com.passql.meta.constant.FeedbackStatus;
-import com.passql.meta.dto.FeedbackListResponse;
-import com.passql.meta.dto.FeedbackSubmitRequest;
-import com.passql.meta.dto.FeedbackSubmitResponse;
+import com.passql.meta.dto.FeedbackDeviceColumns;
 import com.passql.meta.dto.FeedbackSearchCondition;
 import com.passql.meta.entity.Feedback;
 import com.passql.meta.repository.FeedbackRepository;
@@ -25,11 +22,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -41,34 +39,39 @@ public class FeedbackService {
     private final FeedbackRepository feedbackRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    @Transactional
-    public FeedbackSubmitResponse submit(UUID memberUuid, FeedbackSubmitRequest request) {
-        String content = request.getContent();
-
+    /** 글 검증: 앞뒤 공백 제거 > 비어 있음, 500자 초과 거절 > 정리된 글 */
+    public String normalizeContent(String content) {
         if (content == null || content.isBlank()) {
             throw new CustomException(ErrorCode.FEEDBACK_CONTENT_EMPTY);
         }
-
         String trimmed = content.trim();
-
         if (trimmed.length() > 500) {
             throw new CustomException(ErrorCode.FEEDBACK_CONTENT_TOO_LONG);
         }
-
-        Feedback feedback = Feedback.builder()
-            .memberUuid(memberUuid)
-            .content(trimmed)
-            .status(FeedbackStatus.PENDING)
-            .build();
-
-        Feedback saved = feedbackRepository.save(feedback);
-        MemberActivityLogger.recordFeedbackSubmitted(memberUuid, saved.getFeedbackUuid());
-        return FeedbackSubmitResponse.from(saved);
+        return trimmed;
     }
 
-    public FeedbackListResponse getMyFeedbacks(UUID memberUuid) {
-        List<Feedback> feedbacks = feedbackRepository.findByMemberUuidOrderByCreatedAtDesc(memberUuid);
-        return FeedbackListResponse.of(feedbacks);
+    /** 의견 저장 (PENDING): 진단 컬럼, 로그 객체 키(logBytes 있을 때 feedbackUuid 로 계산) 포함, 즉시 flush (DB 오류를 업로드 전에 드러냄) */
+    @Transactional
+    public Feedback createFeedback(UUID memberUuid, String content, FeedbackDeviceColumns deviceColumns,
+                                   String diagnosticsJson, Integer logBytes) {
+        Feedback feedback = Feedback.builder()
+            .memberUuid(memberUuid)
+            .content(content)
+            .status(FeedbackStatus.PENDING)
+            .diagnostics(diagnosticsJson)
+            .appVersion(deviceColumns.appVersion())
+            .platform(deviceColumns.platform())
+            .osVersion(deviceColumns.osVersion())
+            .deviceModel(deviceColumns.deviceModel())
+            .logBytes(logBytes)
+            .build();
+        Feedback saved = feedbackRepository.saveAndFlush(feedback);
+        // 로그 객체 키는 저장 후 발급된 feedbackUuid 가 필요
+        if (logBytes != null) {
+            saved.setLogObjectKey(Feedback.logObjectKeyOf(saved.getFeedbackUuid()));
+        }
+        return saved;
     }
 
     /** 관리자 건의 검색: 조건(상태·키워드·회원 후보·기간) > 최신순 한 페이지 (memberUuids null 이면 회원 조건 없음) */
@@ -115,44 +118,41 @@ public class FeedbackService {
         return result;
     }
 
+    /** 상태 변경 + 감사 기록: 바뀐 경우만 해당 건, 같은 상태 재설정은 empty */
     @Transactional
-    public void updateStatus(UUID feedbackUuid, FeedbackStatus status) {
+    public Optional<Feedback> updateStatus(UUID feedbackUuid, FeedbackStatus status) {
         Feedback feedback = feedbackRepository.findById(feedbackUuid)
             .orElseThrow(() -> new CustomException(ErrorCode.FEEDBACK_NOT_FOUND));
-        FeedbackStatus previousStatus = feedback.getStatus();
-        feedback.setStatus(status);
-        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.FEEDBACK, feedbackUuid, AdminAuditAction.STATUS_CHANGE,
-            AdminAuditEvent.summary("status", previousStatus), AdminAuditEvent.summary("status", status)));
+        if (!applyStatus(feedback, status)) {
+            return Optional.empty();
+        }
         log.info("[FeedbackService] 건의사항 상태 변경: feedbackUuid={}, status={}", feedbackUuid, status);
+        return Optional.of(feedback);
     }
 
-    /** 일괄 상태 변경: 건별 감사 기록, 없는 건의는 건너뜀 > 변경한 건수 (한 트랜잭션, 최대 100건) */
+    /** 일괄 상태 변경: 건별 감사 기록, 없는 건의는 건너뜀 > 실제로 바뀐 건 목록 (한 트랜잭션, 최대 100건) */
     @Transactional
-    public int updateStatuses(Collection<UUID> feedbackUuids, FeedbackStatus status) {
-        int changedCount = 0;
+    public List<Feedback> updateStatuses(Collection<UUID> feedbackUuids, FeedbackStatus status) {
+        List<Feedback> changedFeedbacks = new ArrayList<>();
         for (Feedback feedback : feedbackRepository.findAllById(feedbackUuids)) {
-            FeedbackStatus previousStatus = feedback.getStatus();
-            feedback.setStatus(status);
-            eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.FEEDBACK, feedback.getFeedbackUuid(),
-                AdminAuditAction.STATUS_CHANGE, AdminAuditEvent.summary("status", previousStatus),
-                AdminAuditEvent.summary("status", status)));
-            changedCount++;
+            if (applyStatus(feedback, status)) {
+                changedFeedbacks.add(feedback);
+            }
         }
-        log.info("[FeedbackService] 건의사항 일괄 상태 변경: count={}, status={}", changedCount, status);
-        return changedCount;
+        log.info("[FeedbackService] 건의사항 일괄 상태 변경: count={}, status={}", changedFeedbacks.size(), status);
+        return changedFeedbacks;
     }
 
-    /** 답변 기록: 답변 내용·시각 저장, 대기 건의는 검토완료로 (알림 전달은 호출부) */
-    @Transactional
-    public Feedback recordReply(UUID feedbackUuid, String replyMessage) {
-        Feedback feedback = getFeedback(feedbackUuid);
-        feedback.setReplyMessage(replyMessage.trim());
-        feedback.setRepliedAt(LocalDateTime.now());
-        if (feedback.getStatus() == FeedbackStatus.PENDING) {
-            feedback.setStatus(FeedbackStatus.REVIEWED);
+    /** 상태 반영 + 감사 기록 > 바뀌었으면 true (같은 상태면 아무것도 안 함) */
+    private boolean applyStatus(Feedback feedback, FeedbackStatus status) {
+        FeedbackStatus previousStatus = feedback.getStatus();
+        if (previousStatus == status) {
+            return false;
         }
-        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.FEEDBACK, feedbackUuid, AdminAuditAction.SEND,
-            null, AdminAuditEvent.summary("replyMessage", feedback.getReplyMessage(), "status", feedback.getStatus())));
-        return feedback;
+        feedback.setStatus(status);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.FEEDBACK, feedback.getFeedbackUuid(),
+            AdminAuditAction.STATUS_CHANGE, AdminAuditEvent.summary("status", previousStatus),
+            AdminAuditEvent.summary("status", status)));
+        return true;
     }
 }

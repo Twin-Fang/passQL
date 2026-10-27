@@ -77,6 +77,10 @@ class AuthInterceptor extends Interceptor {
     try {
       options.extra[_retriedExtraKey] = true;
       options.headers['Authorization'] = 'Bearer $newAccessToken';
+      // FormData 는 한 번 전송하면 재사용 불가 > 복제본으로 재전송
+      if (options.data is FormData) {
+        options.data = (options.data as FormData).clone();
+      }
       final response = await retryDio.fetch<dynamic>(options);
       handler.resolve(response);
     } on DioException catch (exception) {

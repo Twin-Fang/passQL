@@ -116,10 +116,8 @@ Frontend ──(/api)──> Backend(Spring) ──(x-api-key)──> AI Server(
 | 함수                      | 메서드 | 경로            |    인증    | 응답 타입               | 상태 |
 | ------------------------- | ------ | --------------- | :--------: | ----------------------- | :--: |
 | `submitFeedback(content)` | POST   | `/feedback`     |     O      | `FeedbackSubmitResponse` |  O   |
-| `fetchMyFeedback()`       | GET    | `/feedback/me`  |     O      | `FeedbackListResponse`  |  O   |
 
-- `submitFeedback`: body `{ content }` (1~500자). 응답 `{ feedbackUuid, status: "PENDING", createdAt }`.
-- `fetchMyFeedback`: 빈 목록이면 404가 아닌 200 + `{ items: [] }` 반환 (API 스펙 보장).
+- `submitFeedback`: multipart/form-data, `request` 파트(application/json `{ content }`, 1~500자) 한 개. 응답 `{ feedbackUuid, status: "PENDING", createdAt }`.
 - `FeedbackStatus`: `PENDING`(대기) / `REVIEWED`(확인됨) / `APPLIED`(반영됨) — 상태 변경은 관리자 전용, 프론트는 읽기 전용.
 
 ### ExamSchedule (`src/api/examSchedules.ts`)

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 import '../../core/billing/pro_purchase_port.dart';
+import '../../core/logging/app_logger.dart';
 import '../models/member/member_plan_response.dart';
 import '../sources/billing_api.dart';
 
@@ -116,6 +117,7 @@ abstract class StorePurchaseService implements ProPurchasePort {
     final product = (await _loadProducts([productId]))[productId];
     if (product == null) return ProPurchaseOutcome.unavailable;
     final activePurchase = _activePurchase = Completer<ProPurchaseOutcome>();
+    AppLogger.info('action', 'purchase started $productId');
     try {
       final isLaunched = await launchPurchase(product, memberUuid);
       if (!isLaunched) completeActivePurchase(ProPurchaseOutcome.failed);
@@ -172,6 +174,7 @@ abstract class StorePurchaseService implements ProPurchasePort {
     final activePurchase = _activePurchase;
     if (activePurchase == null) return;
     _activePurchase = null;
+    AppLogger.info('action', 'purchase result ${outcome.name}');
     activePurchase.complete(outcome);
   }
 

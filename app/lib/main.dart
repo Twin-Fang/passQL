@@ -1,4 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +8,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/ads/ad_consent.dart';
 import 'core/auth/install_guard.dart';
 import 'core/auth/token_store.dart';
+import 'core/logging/app_log_file_store.dart';
+import 'core/logging/app_log_lifecycle_observer.dart';
+import 'core/logging/app_logger.dart';
 import 'core/monitoring/firebase_analytics_backend.dart';
 import 'core/monitoring/firebase_crash_reporter.dart';
 import 'core/network/dio_client.dart';
@@ -25,6 +30,8 @@ import 'router/screen_view_tracker.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // 앱 로그 시작 (오류 훅 등록보다 먼저) > 시작 로그 + 생명주기 관찰
+  await _startAppLogging();
   await dotenv.load(fileName: '.env');
   // 서버 주소 누락은 첫 요청이 아니라 시작 시점에 실패
   readBackendBaseUrl();
@@ -90,6 +97,23 @@ Future<void> main() async {
   WidgetsBinding.instance.addPostFrameCallback(
     (_) => container.read(adConsentProvider).requestOnLaunch(),
   );
+}
+
+/// 로그 파일 저장소 연결 > "app start {version}+{build}" 기록 > 생명주기 관찰 등록
+Future<void> _startAppLogging() async {
+  // 로그는 부가 기능: 실패해도 앱 시작을 막지 않음
+  try {
+    final logDirectory = await getApplicationSupportDirectory();
+    await AppLogger.start(AppLogFileStore(directory: logDirectory));
+    final packageInfo = await PackageInfo.fromPlatform();
+    AppLogger.info(
+      'lifecycle',
+      'app start ${packageInfo.version}+${packageInfo.buildNumber}',
+    );
+    WidgetsBinding.instance.addObserver(AppLogLifecycleObserver());
+  } catch (_) {
+    // 로그 시작 실패 무시
+  }
 }
 
 class PassqlApp extends ConsumerWidget {

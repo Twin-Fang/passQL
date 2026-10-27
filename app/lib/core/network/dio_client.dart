@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../logging/app_log_interceptor.dart';
 import 'debug_log_interceptor.dart';
 import 'get_retry_interceptor.dart';
 
@@ -45,6 +46,8 @@ Dio buildBackendDio() {
     ),
   );
   dio.interceptors.add(GetRetryInterceptor(retryDio: dio));
+  // 전 빌드 앱 로그 (의견 보내기 첨부용, 헤더·본문 제외)
+  dio.interceptors.add(AppLogInterceptor());
 
   // 디버그 빌드에서만 로그 출력 (릴리즈 빌드에서는 제외).
   // 토큰이 로그에 남지 않도록 요청 헤더는 출력하지 않는다.

@@ -31,6 +31,8 @@ dependencies:
   # 실시간 통신
   # 기기 & 앱 정보
   package_info_plus: ^9.0.0
+  # 앱 로그 파일 저장 폴더
+  path_provider: ^2.1.6
   # 12.4.0+ 는 iOS 26.1 SDK API(isiOSAppOnVision)를 써서 Xcode 26.0(CI)·16 에서 빌드 실패 > 12.3.0 고정
   device_info_plus: 12.3.0
   # 유틸리티
@@ -57,6 +59,9 @@ dependencies:
   in_app_purchase_android: ^0.5.0
   # StoreKit 2 미완료 거래 조회·서명 거래(JWS) 직접 사용 (#578)
   in_app_purchase_storekit: ^0.4.13
+  # 의견 진단 정보: 배터리·네트워크 종류 (#708)
+  battery_plus: ^7.1.2
+  connectivity_plus: ^7.3.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
