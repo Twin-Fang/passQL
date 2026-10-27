@@ -13,6 +13,8 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -87,6 +89,21 @@ public class GlobalExceptionHandler {
         log.warn("MissingServletRequestParameterException 발생: path={}, message={}", request.getRequestURI(), e.getMessage());
         return toResponse(ErrorCode.MISSING_PARAMETER,
             ErrorCode.MISSING_PARAMETER.getMessage() + ": " + e.getParameterName());
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceededException(
+        MaxUploadSizeExceededException e, HttpServletRequest request) {
+        log.warn("MaxUploadSizeExceededException 발생: path={}, message={}", request.getRequestURI(), e.getMessage());
+        return toResponse(ErrorCode.REQUEST_TOO_LARGE);
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<ErrorResponse> handleMissingServletRequestPartException(
+        MissingServletRequestPartException e, HttpServletRequest request) {
+        log.warn("MissingServletRequestPartException 발생: path={}, part={}", request.getRequestURI(), e.getRequestPartName());
+        return toResponse(ErrorCode.MISSING_PARAMETER,
+            ErrorCode.MISSING_PARAMETER.getMessage() + ": " + e.getRequestPartName());
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

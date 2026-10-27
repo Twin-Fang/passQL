@@ -11,3 +11,12 @@ String formatDottedDate(DateTime time) {
   final day = time.day.toString().padLeft(2, '0');
   return '${time.year}.$month.$day';
 }
+
+/// 시각 > ISO8601 + 로컬 오프셋 (2026-10-27T09:00:00.000+09:00), 로그·진단 정보 공통
+String formatIso8601WithOffset(DateTime moment) {
+  final offset = moment.timeZoneOffset;
+  final sign = offset.isNegative ? '-' : '+';
+  final hours = offset.inHours.abs().toString().padLeft(2, '0');
+  final minutes = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
+  return '${moment.toIso8601String()}$sign$hours:$minutes';
+}

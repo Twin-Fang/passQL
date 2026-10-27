@@ -55,4 +55,37 @@ public class Feedback extends BaseEntity {
     private String replyMessage;
 
     private LocalDateTime repliedAt;
+
+    // 진단 정보 JSON (앱이 보낸 원문, 32KB 이하, 없으면 null)
+    @Column(columnDefinition = "TEXT")
+    private String diagnostics;
+
+    @Column(length = 40)
+    private String appVersion;
+
+    // 플랫폼: ios, android
+    @Column(length = 20)
+    private String platform;
+
+    @Column(length = 40)
+    private String osVersion;
+
+    @Column(length = 100)
+    private String deviceModel;
+
+    // 앱 로그 객체 키 (gzip, 없으면 null)
+    @Column(length = 200)
+    private String logObjectKey;
+
+    // 앱 로그 gzip 크기 (bytes)
+    private Integer logBytes;
+
+    // 로그 객체 키: feedback/{feedbackUuid}/app-log.txt.gz
+    public static String logObjectKeyOf(UUID feedbackUuid) {
+        return "feedback/" + feedbackUuid + "/app-log.txt.gz";
+    }
+
+    public boolean hasLog() {
+        return logObjectKey != null;
+    }
 }

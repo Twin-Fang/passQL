@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 
+import '../core/logging/app_logger.dart';
 import '../core/monitoring/app_analytics.dart';
 import 'app_routes.dart';
 
@@ -31,10 +32,16 @@ const Map<String, String> screenNameByRoutePattern = {
 /// 표에 없는 새 라우트는 패턴 문자열 그대로 기록
 void trackScreenViews(GoRouter router, {AppAnalytics? analytics}) {
   String? lastScreenName;
+  String? lastLoggedRoutePattern;
   router.routerDelegate.addListener(() {
     if (router.routerDelegate.currentConfiguration.isEmpty) return;
     final routePattern = router.state.fullPath;
     if (routePattern == null || routePattern.isEmpty) return;
+    // 앱 로그 화면 이동 기록 (경로 패턴만, 쿼리·파라미터 값 제외, 탭 전환 포함)
+    if (routePattern != lastLoggedRoutePattern) {
+      lastLoggedRoutePattern = routePattern;
+      AppLogger.info('route', routePattern);
+    }
     final screenName = screenNameByRoutePattern[routePattern] ?? routePattern;
     if (screenName == lastScreenName) return;
     lastScreenName = screenName;

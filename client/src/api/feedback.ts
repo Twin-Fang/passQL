@@ -1,13 +1,12 @@
 import { apiFetch } from "./client";
-import type { FeedbackListResponse, FeedbackSubmitResponse } from "../types/api";
+import type { FeedbackSubmitResponse } from "../types/api";
 
+// 의견 전송: multipart 의 request 파트(application/json) 한 개
 export async function submitFeedback(content: string): Promise<FeedbackSubmitResponse> {
+  const formData = new FormData();
+  formData.append("request", new Blob([JSON.stringify({ content })], { type: "application/json" }));
   return apiFetch<FeedbackSubmitResponse>("/feedback", {
     method: "POST",
-    body: JSON.stringify({ content }),
+    body: formData,
   });
-}
-
-export async function fetchMyFeedback(): Promise<FeedbackListResponse> {
-  return apiFetch<FeedbackListResponse>("/feedback/me");
 }

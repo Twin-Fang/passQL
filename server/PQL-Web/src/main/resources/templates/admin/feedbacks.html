@@ -85,6 +85,10 @@
                         <th class="w-10"><input type="checkbox" class="checkbox checkbox-xs bulk-all-checkbox" aria-label="현재 페이지 전체 선택"/></th>
                         <th class="w-36">회원</th>
                         <th class="w-auto">내용</th>
+                        <th class="w-20">플랫폼</th>
+                        <th class="w-24">앱 버전</th>
+                        <th class="w-14">사진</th>
+                        <th class="w-14">로그</th>
                         <th class="w-28">상태</th>
                         <th class="w-28">제출일</th>
                         <th class="w-48">상태 변경</th>
@@ -103,23 +107,25 @@
                                th:title="${f.memberUuid}"
                                th:text="${f.memberNickname != null ? f.memberNickname : #strings.substring(f.memberUuid.toString(), 0, 8)}">닉네임</a>
                         </td>
-                        <!-- 내용 — 클릭 시 모달 -->
+                        <!-- 내용 — 클릭 시 상세 화면 -->
                         <td class="max-w-xs">
-                            <span class="cursor-pointer hover:text-primary truncate block"
-                                  th:text="${#strings.length(f.content) > 50 ? #strings.substring(f.content, 0, 50) + '...' : f.content}"
-                                  th:data-uuid="${f.feedbackUuid}"
-                                  th:data-content="${f.content}"
-                                  th:data-member="${f.memberNickname != null ? f.memberNickname : f.memberUuid}"
-                                  th:data-status="${f.status}"
-                                  th:data-created="${f.createdAt != null ? #temporals.format(f.createdAt, 'yyyy-MM-dd HH:mm') : '-'}"
-                                  th:data-memo="${f.adminMemo}"
-                                  th:data-updated-by="${f.updatedBy}"
-                                  th:data-reply="${f.replyMessage}"
-                                  th:data-replied-at="${f.repliedAt != null ? #temporals.format(f.repliedAt, 'yyyy-MM-dd HH:mm') : ''}"
-                                  th:data-member-href="@{/admin/members/{uuid}(uuid=${f.memberUuid})}"
-                                  onclick="openModal(this)">내용</span>
+                            <a th:href="@{/admin/feedbacks/{uuid}(uuid=${f.feedbackUuid})}"
+                               class="hover:text-primary truncate block"
+                               th:text="${#strings.length(f.content) > 50 ? #strings.substring(f.content, 0, 50) + '...' : f.content}">내용</a>
                             <span th:if="${f.adminMemo != null}" class="badge badge-ghost badge-xs mt-1">메모 있음</span>
-                            <span th:if="${f.replyMessage != null}" class="badge badge-success badge-xs mt-1">답변 완료</span>
+                        </td>
+                        <!-- 진단 요약 (진단 정보 없이 보낸 건은 -) -->
+                        <td class="text-xs" th:text="${f.platform != null ? f.platform : '-'}">ios</td>
+                        <td class="text-xs" th:text="${f.appVersion != null ? f.appVersion : '-'}">1.63.1</td>
+                        <td class="text-xs">
+                            <span th:if="${f.imageCount > 0}" class="badge badge-ghost badge-sm gap-1">
+                                <i data-lucide="image" class="size-3"></i><span th:text="${f.imageCount}">1</span>
+                            </span>
+                            <span th:unless="${f.imageCount > 0}" class="text-base-content/30">-</span>
+                        </td>
+                        <td class="text-xs">
+                            <i th:if="${f.hasLog}" data-lucide="file-text" class="size-4" title="앱 로그 있음"></i>
+                            <span th:unless="${f.hasLog}" class="text-base-content/30">-</span>
                         </td>
                         <!-- 상태 배지 -->
                         <td>
@@ -150,7 +156,7 @@
 
                     <!-- Empty state -->
                     <tr th:if="${feedbacks == null or feedbacks.isEmpty()}">
-                        <td colspan="6" class="text-center text-base-content/50 py-12">
+                        <td colspan="10" class="text-center text-base-content/50 py-12">
                             <i data-lucide="message-circle" class="size-10 mx-auto mb-2 opacity-40"></i>
                             <p>건의사항이 없습니다.</p>
                         </td>
@@ -174,54 +180,6 @@
             </div>
         </div>
     </div>
-
-    <!-- 내용 확인 모달 -->
-    <dialog id="feedbackModal" class="modal">
-        <div class="modal-box">
-            <h3 class="font-bold text-lg mb-4">건의사항 상세</h3>
-            <div class="space-y-2 text-sm">
-                <div class="flex gap-2">
-                    <span class="text-base-content/60 w-20 shrink-0">회원</span>
-                    <a id="modalMember" class="link link-primary break-all" href="#"></a>
-                </div>
-                <div class="flex gap-2">
-                    <span class="text-base-content/60 w-20 shrink-0">상태</span>
-                    <span id="modalStatus"></span>
-                </div>
-                <div class="flex gap-2">
-                    <span class="text-base-content/60 w-20 shrink-0">제출일</span>
-                    <span id="modalCreated"></span>
-                </div>
-                <div class="flex gap-2 mt-3">
-                    <span class="text-base-content/60 w-20 shrink-0">내용</span>
-                    <p id="modalContent" class="whitespace-pre-wrap break-all"></p>
-                </div>
-                <!-- 관리자 메모 (답변·처리 내용, 앱 미노출) -->
-                <div class="mt-4">
-                    <label class="text-base-content/60 text-xs">관리자 메모 <span class="text-base-content/40">(앱에 보이지 않음, 1000자)</span></label>
-                    <textarea id="modalMemo" class="textarea textarea-bordered w-full text-sm mt-1" rows="3" maxlength="1000"></textarea>
-                    <p id="modalMemoUpdatedBy" class="text-xs text-base-content/40"></p>
-                </div>
-                <!-- 회원 답변: 작성자 알림함(푸시 포함)으로 전달 -->
-                <div class="mt-4">
-                    <label class="text-base-content/60 text-xs">회원에게 답변 <span class="text-base-content/40">(알림함과 푸시로 전달, 500자)</span></label>
-                    <textarea id="modalReply" class="textarea textarea-bordered w-full text-sm mt-1" rows="3" maxlength="500"
-                              placeholder="답변 내용을 입력하면 회원 알림함으로 전달됩니다."></textarea>
-                    <p id="modalRepliedAt" class="text-xs text-base-content/40"></p>
-                </div>
-            </div>
-            <div class="modal-action">
-                <form method="dialog">
-                    <button class="btn btn-sm">닫기</button>
-                </form>
-                <button class="btn btn-sm btn-outline" onclick="saveMemo()">메모 저장</button>
-                <button class="btn btn-sm btn-primary" onclick="sendReply()">
-                    <i data-lucide="send" class="size-4"></i>답변 발송
-                </button>
-            </div>
-        </div>
-        <form method="dialog" class="modal-backdrop"><button>close</button></form>
-    </dialog>
 
 </th:block>
 

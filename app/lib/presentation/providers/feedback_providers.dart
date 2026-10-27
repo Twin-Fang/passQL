@@ -1,70 +1,146 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/diagnostics/app_diagnostics_collector.dart';
 import '../../core/error/app_exception.dart';
-import '../../core/network/api_call.dart';
 import '../../core/error/error_code.dart';
+import '../../core/logging/app_logger.dart';
 import '../../core/monitoring/app_analytics.dart';
-import '../../core/utils/app_device_summary.dart';
-import '../../data/sources/api_providers.dart';
+import '../../core/network/api_call.dart';
+import '../../core/push/push_messaging_client.dart';
 import '../../core/validation/feedback_validator.dart';
-import '../../data/models/feedback/feedback_models.dart';
-import 'session_reset.dart';
+import '../../data/image/webp_image_compressor.dart';
+import '../../data/sources/api_providers.dart';
+import 'auth_provider.dart';
+import 'plan_providers.dart';
+import 'settings_providers.dart';
+import 'theme_mode_provider.dart';
 
-/// 내가 보낸 건의 목록. 채팅처럼 오래된 것이 위, 최신이 아래에 오도록 정렬한다.
-///
-/// 화면을 벗어나면 해제되어 다시 열 때 처리 상태(대기/확인됨/반영됨)를 새로 받는다.
-final feedbackListProvider =
-    FutureProvider.autoDispose<List<FeedbackItem>>((ref) async {
-      // 로그아웃이면 빈 목록 (API 호출 없음)
-      if (ref.watch(currentMemberUuidProvider) == null) return const [];
-      final response = await ref.read(feedbackApiProvider).getMyFeedbacks();
-      return [...response.items]..sort((earlier, later) => earlier.createdAt.compareTo(later.createdAt));
+/// 진단 정보 수집기: 현재 세션·구독·화면 모드·선택지 모드·푸시 포트로 조립
+final appDiagnosticsCollectorProvider =
+    Provider.autoDispose<AppDiagnosticsCollector>((ref) {
+      final session = ref.watch(authProvider).valueOrNull;
+      return AppDiagnosticsCollector(
+        memberUuid: session?.memberUuid,
+        authProvider: session?.authProvider?.serverValue,
+        isPro: ref.watch(isProProvider),
+        themeMode: ref.watch(themeModeProvider).name,
+        choiceMode: ref.watch(choiceModeProvider).valueOrNull?.serverValue,
+        pushMessagingClient: PushMessagingClient.current,
+      );
     });
 
-/// 의견에 붙일 앱·기기 요약 읽기 (테스트에서 고정값으로 교체)
-final appDeviceSummaryReaderProvider = Provider<Future<String?> Function()>(
-  (ref) => describeAppAndDevice,
-);
+// 로그 파트 파일명 (서버 키 app-log.txt.gz 와 같은 이름)
+const _logFileName = 'app-log.txt.gz';
 
-/// 건의 전송: 검증 > 앱·기기 요약 첨부 > 전송 > 목록 갱신
-/// 서버 피드백 API 는 content 1개 필드라 요약은 본문 하단에 붙임 (#488)
+/// 의견 전송: 검증 > multipart 조립(본문, 사진, 진단 정보, 로그) > 전송 > 분석 이벤트
 class FeedbackSubmitter {
   FeedbackSubmitter(this._ref);
 
   final Ref _ref;
 
-  // 본문과 기기 요약 사이 구분 (예: "...\n\n---\n앱 0.10.0(277) · iOS 18.0 · iPhone16,2")
-  static const _deviceSummarySeparator = '\n\n---\n';
-
   /// 서버가 거절하거나 네트워크가 실패하면 [AppException] 을 던진다.
-  Future<void> submit(String raw) async {
-    final content = FeedbackValidator.normalize(raw);
+  Future<void> submit({
+    required String rawContent,
+    required List<CompressedWebpImage> images,
+    required bool shouldIncludeDiagnostics,
+    required Map<String, Object?>? diagnostics,
+  }) async {
+    // 본문 검증 (공백 제거, 1~500자)
+    final content = FeedbackValidator.normalize(rawContent);
     if (!FeedbackValidator.isValid(content)) {
       throw const AppException(
         code: ErrorCode.validation,
         message: '내용을 1자 이상 500자 이하로 입력해 주세요.',
       );
     }
-    final deviceSummary = await _ref.read(appDeviceSummaryReaderProvider)();
-    final contentWithDeviceSummary = _appendDeviceSummary(
-      content,
-      deviceSummary,
+    final formData = await _buildFormData(
+      content: content,
+      images: images,
+      shouldIncludeDiagnostics: shouldIncludeDiagnostics,
+      diagnostics: diagnostics,
     );
     await callApiThrowingAppException(
-      _ref
-          .read(feedbackApiProvider)
-          .submit(FeedbackSubmitRequest(contentWithDeviceSummary)),
+      _ref.read(feedbackApiProvider).submit(formData),
     );
     _ref.read(appAnalyticsProvider).logFeedbackSent();
-    _ref.invalidate(feedbackListProvider);
   }
 
-  /// 본문 + 기기 요약. 합쳐서 서버 상한(500자)을 넘으면 본문만 (사용자 글 우선)
-  static String _appendDeviceSummary(String content, String? deviceSummary) {
-    if (deviceSummary == null) return content;
-    final combined = '$content$_deviceSummarySeparator$deviceSummary';
-    return combined.length <= FeedbackValidator.maxLength ? combined : content;
+  Future<FormData> _buildFormData({
+    required String content,
+    required List<CompressedWebpImage> images,
+    required bool shouldIncludeDiagnostics,
+    required Map<String, Object?>? diagnostics,
+  }) async {
+    // 진단 정보 + 로그는 체크했을 때만 (flush 후 읽음, 로그 없으면 파트 생략)
+    Uint8List? gzippedLog;
+    if (shouldIncludeDiagnostics) {
+      await AppLogger.flush();
+      gzippedLog = await AppLogger.readGzippedLog();
+    }
+    return buildFeedbackFormData(
+      content: content,
+      images: images,
+      diagnostics: shouldIncludeDiagnostics ? diagnostics : null,
+      gzippedLog: gzippedLog,
+    );
   }
+}
+
+/// 의견 multipart 조립: request > images × n > diagnostics > log (없는 파트는 생략)
+/// 모든 파트에 파일명을 둠 (서버가 파일명 있는 파트만 MultipartFile 로 인식)
+FormData buildFeedbackFormData({
+  required String content,
+  required List<CompressedWebpImage> images,
+  Map<String, Object?>? diagnostics,
+  Uint8List? gzippedLog,
+}) {
+  MultipartFile jsonPart(Map<String, Object?> json, String filename) =>
+      MultipartFile.fromString(
+        jsonEncode(json),
+        filename: filename,
+        contentType: DioMediaType('application', 'json'),
+      );
+  final formData = FormData();
+  formData.files.add(
+    MapEntry(
+      'request',
+      jsonPart(<String, Object?>{'content': content}, 'request.json'),
+    ),
+  );
+  for (var index = 0; index < images.length; index++) {
+    formData.files.add(
+      MapEntry(
+        'images',
+        MultipartFile.fromBytes(
+          images[index].bytes,
+          filename: '$index.webp',
+          contentType: DioMediaType('image', 'webp'),
+        ),
+      ),
+    );
+  }
+  if (diagnostics != null) {
+    formData.files.add(
+      MapEntry('diagnostics', jsonPart(diagnostics, 'diagnostics.json')),
+    );
+  }
+  if (gzippedLog != null) {
+    formData.files.add(
+      MapEntry(
+        'log',
+        MultipartFile.fromBytes(
+          gzippedLog,
+          filename: _logFileName,
+          contentType: DioMediaType('application', 'gzip'),
+        ),
+      ),
+    );
+  }
+  return formData;
 }
 
 final feedbackSubmitterProvider = Provider<FeedbackSubmitter>(

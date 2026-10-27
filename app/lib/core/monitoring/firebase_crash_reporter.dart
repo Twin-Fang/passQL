@@ -1,6 +1,7 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 
+import '../logging/app_logger.dart';
 import 'crash_reporter.dart';
 
 /// Crashlytics 로 보내는 [CrashReporter] 구현
@@ -14,7 +15,10 @@ class FirebaseCrashReporter extends CrashReporter {
     Object error,
     StackTrace? stackTrace, {
     required String reason,
-  }) => _crashlytics.recordError(error, stackTrace, reason: reason);
+  }) {
+    AppLogger.error('error', error, stackTrace);
+    return _crashlytics.recordError(error, stackTrace, reason: reason);
+  }
 
   @override
   Future<void> setMemberIdentifier(String? memberUuid) =>
@@ -32,10 +36,12 @@ Future<void> startFirebaseCrashReporting() async {
   // 위젯 빌드·레이아웃 중 오류 (디버그 콘솔 출력은 유지)
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
+    AppLogger.error('error', details.exception, details.stack);
     crashlytics.recordFlutterFatalError(details);
   };
   // Flutter 밖 비동기 미처리 오류 (true: 처리 완료로 표시해 앱 종료 방지)
   PlatformDispatcher.instance.onError = (error, stackTrace) {
+    AppLogger.error('error', error, stackTrace);
     crashlytics.recordError(error, stackTrace, fatal: true);
     return true;
   };

@@ -38,6 +38,8 @@ enum ErrorCode {
   communitySolveRequired,
   // 커뮤니티: 이미지 저장소 일시 장애 (503, 서버 문구를 그대로 보여 주려고 5xx 기본 문구와 분리)
   communityImageUnavailable,
+  // 의견 보내기: 첨부 저장소 일시 장애 (503, 5xx 공통 문구 대신 전용 기본 문구)
+  feedbackAttachmentUnavailable,
 
   // 결제: 이용권 필요(403), 무료 하루 한도 도달(403), 프로 공정 사용 하루 한도 도달(429)
   proRequired,
@@ -115,6 +117,14 @@ abstract final class ErrorCodeMapper {
     'COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED': ErrorCode.rateLimited,
     'COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED': ErrorCode.rateLimited,
     'COMMUNITY_IMAGE_STORAGE_UNAVAILABLE': ErrorCode.communityImageUnavailable,
+    // 의견 보내기 거절: 사진 장수·형식, 진단 정보 형식(400), 첨부 용량(413), 요청 전체 용량(413)은 입력 오류, 하루 한도(429)는 제한, 저장소 장애(503)는 별도 분류
+    'FEEDBACK_IMAGE_TOO_MANY': ErrorCode.validation,
+    'FEEDBACK_IMAGE_INVALID': ErrorCode.validation,
+    'FEEDBACK_ATTACHMENT_TOO_LARGE': ErrorCode.validation,
+    'FEEDBACK_ATTACHMENT_INVALID': ErrorCode.validation,
+    'REQUEST_TOO_LARGE': ErrorCode.validation,
+    'FEEDBACK_DAILY_LIMIT_EXCEEDED': ErrorCode.rateLimited,
+    'FEEDBACK_STORAGE_UNAVAILABLE': ErrorCode.feedbackAttachmentUnavailable,
     'PRO_REQUIRED': ErrorCode.proRequired,
     'FREE_DAILY_LIMIT_REACHED': ErrorCode.freeDailyLimitReached,
     'FAIR_USE_DAILY_LIMIT_REACHED': ErrorCode.fairUseDailyLimitReached,
