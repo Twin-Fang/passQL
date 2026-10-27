@@ -8,7 +8,7 @@ class OnboardingSlide extends StatelessWidget {
     super.key,
     required this.visual,
     required this.title,
-    required this.subtitle,
+    this.subtitle,
     this.backdrop,
   });
 
@@ -17,7 +17,7 @@ class OnboardingSlide extends StatelessWidget {
   /// 시각 요소 뒤에 화면 좌우 끝까지 깔리는 장식 (키워드 스티커). 제목·버튼은 가리지 않는다.
   final Widget? backdrop;
   final String title;
-  final String subtitle;
+  final String? subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -49,13 +49,15 @@ class OnboardingSlide extends StatelessWidget {
             title,
             style: PassqlTypography.title1.copyWith(color: colors.label),
           ),
-          const SizedBox(height: PassqlSpacing.xs),
-          Text(
-            subtitle,
-            style: PassqlTypography.callout.copyWith(
-              color: colors.secondaryLabel,
+          if (subtitle != null) ...[
+            const SizedBox(height: PassqlSpacing.xs),
+            Text(
+              subtitle!,
+              style: PassqlTypography.callout.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: PassqlSpacing.md),
         ],
       ),

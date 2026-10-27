@@ -128,6 +128,9 @@ abstract final class AppRoutes {
   /// 신규 가입자 온보딩 (탭 셸 밖, 알림 권한 안내가 끼어들지 않게).
   static const String onboarding = '/onboarding';
 
+  /// 온보딩에서 들어온 첫 문제 뒤 축하. extra: 마지막 문제였는지(bool)
+  static const String onboardingCelebration = '/onboarding/celebration';
+
   /// 리더보드.
   static const String leaderboard = '/leaderboard';
 

@@ -19,6 +19,7 @@ import '../presentation/pages/feedback/feedback_page.dart';
 import '../presentation/pages/home/home_page.dart';
 import '../presentation/pages/legal/legal_page.dart';
 import '../presentation/pages/login/login_page.dart';
+import '../presentation/pages/onboarding/onboarding_celebration_page.dart';
 import '../presentation/pages/onboarding/onboarding_page.dart';
 import '../presentation/pages/notice/notice_detail_page.dart';
 import '../presentation/pages/notice/notice_list_page.dart';
@@ -300,7 +301,22 @@ abstract final class AppRouter {
       GoRoute(
         path: AppRoutes.dailySet,
         parentNavigatorKey: _rootKey,
-        builder: (_, _) => const ChapterPage(flow: DailySetFlow()),
+        builder: (_, state) => ChapterPage(
+          flow: DailySetFlow(
+            isOnboarding:
+                state.uri.queryParameters[AppRoutes
+                    .dailySetOnboardingQuery] ==
+                'true',
+          ),
+        ),
+      ),
+      // 온보딩 첫 문제 축하: 풀이 화면 위에 띄우고 닫히면 풀이를 이어 간다
+      GoRoute(
+        path: AppRoutes.onboardingCelebration,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => OnboardingCelebrationPage(
+          isLastQuestion: state.extra is bool && state.extra! as bool,
+        ),
       ),
       GoRoute(
         path: AppRoutes.dailySetResult,
