@@ -45,8 +45,12 @@ class PassqlNavBar extends StatelessWidget implements PreferredSizeWidget {
     this.leading = PassqlNavLeading.none,
     this.onLeadingTap,
     this.trailing,
-  });
+    this.middle,
+  }) : assert(title == null || middle == null, 'title 과 middle 은 하나만');
   final String? title;
+
+  /// 제목 글자 대신 가운데에 둘 위젯 (예: 온보딩 페이지 점)
+  final Widget? middle;
   final PassqlNavLeading leading;
   final VoidCallback? onLeadingTap;
   final Widget? trailing;
@@ -70,7 +74,7 @@ class PassqlNavBar extends StatelessWidget implements PreferredSizeWidget {
       trailing: trailing,
       // Cupertino 기본 글꼴 대신 토큰 글꼴·색을 직접 지정한다(다크 테마 색 보장).
       middle: title == null
-          ? null
+          ? middle
           : Text(
               title!,
               maxLines: 1,

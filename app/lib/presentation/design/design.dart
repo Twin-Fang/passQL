@@ -25,6 +25,7 @@ export 'components/passql_loading_indicator.dart';
 export 'components/passql_loading_semantics.dart';
 export 'components/passql_logo.dart';
 export 'components/passql_nav_bar.dart';
+export 'components/passql_page_dots.dart';
 export 'components/passql_page_slide_switcher.dart';
 export 'components/passql_count_badge.dart';
 export 'components/passql_notification_bell_button.dart';
