@@ -43,11 +43,13 @@ class StatsPage extends ConsumerWidget {
         loading: () => const PassqlLargeTitleScrollView(
           title: '내 프로필',
           trailing: _ProfileTabTrailing(),
+          isTrailingIconButton: true,
           slivers: [_ProfileSliver(), _StatsSkeleton()],
         ),
         error: (error, _) => PassqlLargeTitleScrollView(
           title: '내 프로필',
           trailing: const _ProfileTabTrailing(),
+          isTrailingIconButton: true,
           slivers: [
             const _ProfileSliver(),
             SliverFillRemaining(
@@ -62,6 +64,7 @@ class StatsPage extends ConsumerWidget {
         data: (data) => PassqlLargeTitleScrollView(
           title: '내 프로필',
           trailing: const _ProfileTabTrailing(),
+          isTrailingIconButton: true,
           onRefresh: () async {
             // 화면에 보이는 데이터 전부 (진행·토픽, AI 코멘트, 히트맵·세트, 오답 개수)
             ref.invalidate(statsDataProvider);
@@ -359,10 +362,11 @@ class _ProfileTabTrailing extends StatelessWidget {
             padding: EdgeInsets.zero,
             minimumSize: const Size.square(PassqlSize.minTouchTarget),
             onPressed: () => context.push(AppRoutes.settings),
+            // 홈 알림 종과 같은 크기·색 (탭 상단 아이콘 통일, #701)
             child: Icon(
               CupertinoIcons.gear,
-              size: PassqlIconSize.lg,
-              color: colors.accent,
+              size: PassqlIconSize.xl,
+              color: colors.label,
             ),
           ),
         ),

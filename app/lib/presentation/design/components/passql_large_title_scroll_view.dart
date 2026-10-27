@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
+import 'passql_brand_bar_scroll_view.dart';
 
 /// 탭 화면 공통 틀: 큰 제목이 스크롤하면 작은 제목 + 글래스 바로 접힌다.
 class PassqlLargeTitleScrollView extends StatelessWidget {
@@ -12,6 +13,7 @@ class PassqlLargeTitleScrollView extends StatelessWidget {
     required this.slivers,
     this.onRefresh,
     this.trailing,
+    this.isTrailingIconButton = false,
   });
 
   final String title;
@@ -19,6 +21,10 @@ class PassqlLargeTitleScrollView extends StatelessWidget {
   final List<Widget> slivers;
   final Future<void> Function()? onRefresh;
   final Widget? trailing;
+
+  /// true: trailing 이 44pt 아이콘 버튼 > 아이콘 보이는 끝을 홈 상단 바와 같은 위치(화면 끝에서 md)로.
+  /// 칩처럼 글자 요소면 false (기본 여백 유지, 화면 끝에 붙지 않게)
+  final bool isTrailingIconButton;
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +50,12 @@ class PassqlLargeTitleScrollView extends StatelessWidget {
             ),
             alwaysShowMiddle: false,
             trailing: trailing,
+            padding: isTrailingIconButton
+                ? const EdgeInsetsDirectional.only(
+                    start: PassqlSpacing.md,
+                    end: PassqlBrandBarScrollView.trailingEdgePadding,
+                  )
+                : null,
             backgroundColor: colors.glass,
             border: Border(
               bottom: BorderSide(color: colors.separator, width: PassqlSize.hairline),
