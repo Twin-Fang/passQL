@@ -20,6 +20,17 @@ final RegExp _progressPath = RegExp(r'/concepts/([^/]+)/progress$');
 final RegExp _topicConceptsPath = RegExp(r'/concepts/topics/([^/]+)$');
 final RegExp _conceptDetailPath = RegExp(r'/concepts/([^/]+)$');
 
+/// 캡처 데이터의 개념 UUID (단원 순서)
+List<String> get shotConceptUuids =>
+    (_shotConceptData['detailByConcept'] as Map<String, dynamic>).keys.toList();
+
+/// 확인 문제 정답 보기 키
+String shotCorrectKeyOf(String questionUuid) =>
+    ((_shotConceptData['answerKeyByQuestion']
+                as Map<String, dynamic>)[questionUuid]
+            as Map<String, dynamic>)['correctKey']
+        as String;
+
 /// 개념 API 가짜 응답 (개념 경로가 아니면 null, 캡처 데이터에 없는 개념 상세는 빈 응답 > 404)
 Object? conceptShotResponse(RequestOptions options) {
   final path = options.path;
