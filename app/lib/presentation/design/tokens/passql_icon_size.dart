@@ -1,9 +1,9 @@
 /// 아이콘 크기 단계(작은 것부터) + 자리별 고정 크기
 abstract final class PassqlIconSize {
   static const double xxs = 12; // 배지 옆 보조 아이콘
-  static const double xs = 14; // 카드 머리 아이콘, 행 화살표
+  static const double xs = 14; // 카드 머리 아이콘
   static const double sm = 16; // 난이도 별
-  static const double md = 18; // 버튼·체크 표시
+  static const double md = 18; // 버튼·체크 표시, 행 화살표 (14 는 작아 안 보임, #701)
   static const double lg = 20; // 목록 행 상태 아이콘
   static const double xl = 22; // 상단 바 버튼, 선택지 채점 표시
   static const double xxl = 24; // 탭 바

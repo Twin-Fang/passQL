@@ -13,6 +13,7 @@ class PassqlListRow extends StatelessWidget {
     this.trailing,
     this.hasChevron = false,
     this.isDestructive = false,
+    this.hasHorizontalPadding = true,
     this.onTap,
   });
 
@@ -22,6 +23,9 @@ class PassqlListRow extends StatelessWidget {
   final Widget? trailing;
   final bool hasChevron;
   final bool isDestructive;
+
+  /// false: 좌우 여백 없음 (이미 좌우 md 여백이 있는 구간 면 안에 놓일 때)
+  final bool hasHorizontalPadding;
   final VoidCallback? onTap;
 
   /// 한 줄 제목일 때 행 높이가 44pt 가 되는 위아래 여백 (iOS 설정 앱 규격)
@@ -33,8 +37,8 @@ class PassqlListRow extends StatelessWidget {
     final row = ConstrainedBox(
       constraints: const BoxConstraints(minHeight: PassqlSize.rowMin),
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: PassqlSpacing.md,
+        padding: EdgeInsets.symmetric(
+          horizontal: hasHorizontalPadding ? PassqlSpacing.md : 0,
           vertical: _verticalPadding,
         ),
         child: Row(
@@ -77,7 +81,7 @@ class PassqlListRow extends StatelessWidget {
               const SizedBox(width: PassqlSpacing.xs),
               Icon(
                 CupertinoIcons.chevron_forward,
-                size: PassqlIconSize.xs,
+                size: PassqlIconSize.md,
                 color: colors.tertiaryLabel,
               ),
             ],
