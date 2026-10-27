@@ -9,7 +9,7 @@ import '../question/stem_markdown_table.dart';
 final RegExp _codeFenceRe = RegExp(r'```[A-Za-z]*\r?\n?([\s\S]*?)```');
 
 /// 개념 본문 마크다운: 코드 블록 > 코드 상자, 표 > 결과 표, 나머지 > 글(굵게·인라인 코드·목록)
-/// 표·코드는 좁은 화면에서 가로로 넘치면 가로 스크롤 (코드는 줄바꿈하지 않음)
+/// 표는 화면 폭 안에서 칸 글 줄바꿈, 코드는 줄바꿈 없이 가로 스크롤 (넘치면 오른쪽 끝 흐림)
 class ConceptMarkdownBody extends StatelessWidget {
   const ConceptMarkdownBody(this.markdown, {super.key});
 
@@ -27,6 +27,7 @@ class ConceptMarkdownBody extends StatelessWidget {
             ResultRowsTable.positional(
               columns: segment.columns,
               rows: segment.rows,
+              shouldWrapCells: true,
             ),
           );
           continue;

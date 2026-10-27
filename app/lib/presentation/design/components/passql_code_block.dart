@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
+import 'passql_horizontal_scroll_view.dart';
 
 /// SQL 표시 공통 블록. 기본은 줄바꿈해 전체가 보이게 하고, 정렬이 중요한 곳만
-/// `shouldWrap: false`로 가로 스크롤한다. 길게 눌러 복사할 수 있다.
+/// `shouldWrap: false`로 가로 스크롤한다(넘치면 오른쪽 끝 흐림). 길게 눌러 복사할 수 있다.
 class PassqlCodeBlock extends StatelessWidget {
   const PassqlCodeBlock({
     super.key,
@@ -40,8 +41,7 @@ class PassqlCodeBlock extends StatelessWidget {
               padding: const EdgeInsets.all(PassqlSpacing.sm),
               child: codeText,
             )
-          : SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+          : PassqlHorizontalScrollView(
               padding: const EdgeInsets.all(PassqlSpacing.sm),
               child: codeText,
             ),
