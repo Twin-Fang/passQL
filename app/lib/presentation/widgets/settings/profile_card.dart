@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 import '../../design/design.dart';
 
-/// 프로필 카드: 닉네임 표시 + 편집 버튼 (랜덤 닉네임은 편집 시트 안)
+/// 프로필 카드: 닉네임 표시. 카드 전체가 편집 버튼 (랜덤 닉네임은 편집 시트 안, #687)
 class ProfileCard extends StatelessWidget {
   const ProfileCard({
     super.key,
@@ -17,46 +17,52 @@ class ProfileCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final initial = nickname.isEmpty ? '?' : nickname.characters.first;
-    return PassqlCard(
-      child: Row(
-        children: [
-          Container(
-            width: PassqlSize.avatar,
-            height: PassqlSize.avatar,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: colors.accentTint,
-              shape: BoxShape.circle,
+    // 작은 '편집' 글자 대신 카드 전체를 누르게 해 누르는 영역을 넓힌다
+    return PassqlPressable(
+      onTap: onEdit,
+      semanticLabel: '닉네임 $nickname, 편집',
+      child: PassqlCard(
+        child: Row(
+          children: [
+            Container(
+              width: PassqlSize.avatar,
+              height: PassqlSize.avatar,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: colors.accentTint,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                initial,
+                style: PassqlTypography.headline.copyWith(
+                  color: colors.accentText,
+                ),
+              ),
             ),
-            child: Text(
-              initial,
-              style: PassqlTypography.title3.copyWith(color: colors.accentText),
+            const SizedBox(width: PassqlSpacing.sm),
+            Expanded(
+              child: Text(
+                nickname,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: PassqlTypography.headline.copyWith(color: colors.label),
+              ),
             ),
-          ),
-          const SizedBox(width: PassqlSpacing.sm),
-          Expanded(
-            child: Text(
-              nickname,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: PassqlTypography.headline.copyWith(color: colors.label),
+            // 눌러서 들어간다는 iOS 표시. 목록 행보다 큰 카드라 상단 설정 아이콘과 같은 크기로 키움
+            Icon(
+              CupertinoIcons.chevron_forward,
+              size: PassqlIconSize.xl,
+              color: colors.tertiaryLabel,
             ),
-          ),
-          PassqlButton(
-            label: '편집',
-            variant: PassqlButtonVariant.plain,
-            size: PassqlButtonSize.small,
-            isFullWidth: false,
-            onPressed: onEdit,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
 /// 스켈레톤 자리 높이: 실제 프로필 카드 높이와 맞춤
-const double _profileCardHeight = 84;
+const double _profileCardHeight = 72;
 
 /// 로딩 스켈레톤 — 프로필 카드 자리 유지
 class ProfileCardSkeleton extends StatelessWidget {

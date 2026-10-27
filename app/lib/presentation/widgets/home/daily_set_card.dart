@@ -127,8 +127,8 @@ class DailySetCard extends StatelessWidget {
                 ? '풀어보기'
                 : '문제 풀기',
             onPressed: onTap,
+            // 프로필 탭 '오늘의 세트 풀기'와 같은 기본(large) 크기 (#687)
             variant: PassqlButtonVariant.tinted,
-            size: PassqlButtonSize.small,
           ),
         ],
       ),

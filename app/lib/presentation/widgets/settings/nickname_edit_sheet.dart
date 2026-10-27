@@ -224,16 +224,17 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
             ),
           ),
           const SizedBox(height: PassqlSpacing.xs),
-          PassqlButton(
-            label: '저장',
-            isLoading: _isSaving,
-            onPressed: _canSave ? _save : null,
-          ),
-          const SizedBox(height: PassqlSpacing.xxs),
+          // 주 버튼(저장)은 맨 아래, 보조 동작은 그 위 (#687)
           PassqlButton(
             label: '랜덤 닉네임으로 바꾸기',
             variant: PassqlButtonVariant.plain,
             onPressed: _isSaving || _isChecking ? null : _regenerate,
+          ),
+          const SizedBox(height: PassqlSpacing.xxs),
+          PassqlButton(
+            label: '저장',
+            isLoading: _isSaving,
+            onPressed: _canSave ? _save : null,
           ),
         ],
       ),
