@@ -19,7 +19,8 @@ import 'package:passql_app/presentation/providers/topic_providers.dart';
 import '../presentation/login_layout_test.dart' show pumpLogin;
 import '../presentation/result_screens_test.dart' show expectResultScaffold;
 import '../presentation/settings_layout_test.dart' show pumpSettings;
-import '../presentation/tab_pages_test.dart' show homeData, statsData, topics;
+import '../presentation/tab_pages_test.dart'
+    show homeData, homeRecommendations, statsData, topics;
 
 /// 다크에서 Text 가 가질 수 있는 색 허용 목록.
 /// - 글자 계열 토큰은 그대로 허용한다(brief Step 2).
@@ -84,6 +85,9 @@ void main() {
   testWidgets('홈 다크', (tester) async {
     await _pumpTab(tester, const HomePage(), [
       homeDataProvider.overrideWith((ref) async => homeData),
+      homeRecommendationsProvider.overrideWith(
+        (ref) async => homeRecommendations,
+      ),
     ]);
     _expectNoLightText(tester);
   });
