@@ -38,7 +38,7 @@ enum ErrorCode {
   communitySolveRequired,
   // 커뮤니티: 이미지 저장소 일시 장애 (503, 서버 문구를 그대로 보여 주려고 5xx 기본 문구와 분리)
   communityImageUnavailable,
-  // 의견 보내기: 첨부 저장소 일시 장애 (503, 서버 문구를 그대로 보여 주려고 5xx 기본 문구와 분리)
+  // 의견 보내기: 첨부 저장소 일시 장애 (503, 5xx 공통 문구 대신 전용 기본 문구)
   feedbackAttachmentUnavailable,
 
   // 결제: 이용권 필요(403), 무료 하루 한도 도달(403), 프로 공정 사용 하루 한도 도달(429)
@@ -145,9 +145,8 @@ abstract final class ErrorCodeMapper {
   /// 앱이 분기하는 서버 코드 목록 (계약 검사 테스트가 서버 ErrorCode 와 비교)
   static Iterable<String> get mappedServerCodes => _byServerCode.keys;
 
-  static ErrorCode fromServerCode(String? serverCode) => serverCode == null
-      ? ErrorCode.unknown
-      : _byServerCode[serverCode] ?? ErrorCode.unknown;
+  static ErrorCode fromServerCode(String? serverCode) =>
+      serverCode == null ? ErrorCode.unknown : _byServerCode[serverCode] ?? ErrorCode.unknown;
 
   /// 서버 코드로 못 정한 경우의 대체 분류. 새 서버 코드가 추가돼도 상태코드로는 분류된다.
   static ErrorCode fromStatus(int? status) {

@@ -36,9 +36,7 @@ class AppException implements Exception {
 
   /// 같은 요청을 다시 시도해 볼 만한 오류인지. 입력/권한 문제는 재시도해도 같다.
   bool get isRetryable =>
-      isNetwork ||
-      code == ErrorCode.serverError ||
-      code == ErrorCode.aiUnavailable;
+      isNetwork || code == ErrorCode.serverError || code == ErrorCode.aiUnavailable;
 
   /// 모든 종류의 오류를 [AppException] 으로 바꾼다.
   factory AppException.from(Object error) {
@@ -96,9 +94,7 @@ class AppException implements Exception {
     // 5xx 나 프록시가 준 HTML(502 등)은 사용자에게 의미가 없으므로 기본 문구를 쓴다.
     // 4xx 의 서버 메시지는 이미 사용자용 한국어라 그대로 보여준다.
     final useServerMessage =
-        serverMessage != null &&
-        serverMessage.isNotEmpty &&
-        (status ?? 0) < 500;
+        serverMessage != null && serverMessage.isNotEmpty && (status ?? 0) < 500;
 
     return AppException(
       code: code,
@@ -152,8 +148,7 @@ class AppException implements Exception {
   };
 
   @override
-  String toString() =>
-      'AppException($code, $statusCode, $serverCode): $message';
+  String toString() => 'AppException($code, $statusCode, $serverCode): $message';
 }
 
 /// 어떤 오류든 `error.asAppException` 으로 바로 변환한다.

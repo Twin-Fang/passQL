@@ -7,6 +7,7 @@ import 'package:passql_app/core/error/app_exception.dart';
 import 'package:passql_app/core/error/error_code.dart';
 import 'package:passql_app/data/community/community_image_compressor.dart';
 import 'package:passql_app/data/image/webp_image_compressor.dart';
+import 'package:passql_app/presentation/providers/feedback_providers.dart';
 import 'package:passql_app/data/models/home/recommendations_request.dart';
 import 'package:passql_app/data/models/member/choice_generation_mode.dart';
 import 'package:passql_app/data/models/member/choice_mode_models.dart';
@@ -172,32 +173,55 @@ void main() {
     expect(adapter.lastRequest.queryParameters, {'size': 20});
   });
 
-  test(
-    '건의는 POST /feedback 에 multipart 로 보낸다 (request 파트 + images 파트)',
-    () async {
-      final formData = FormData.fromMap({
-        'request': MultipartFile.fromString(
-          '{"content":"내용"}',
-          contentType: DioMediaType('application', 'json'),
-        ),
-        'images': [
-          MultipartFile.fromBytes(
-            [1, 2, 3],
-            filename: '0.webp',
-            contentType: DioMediaType('image', 'webp'),
-          ),
-        ],
-      });
-      await ignoreParse(FeedbackApiClient(dio).submit(formData));
-      expect(adapter.lastRequest.method, 'POST');
-      expect(adapter.lastRequest.path, '/feedback');
-      expect(adapter.lastRequest.data, isA<FormData>());
-      expect(
-        (adapter.lastRequest.data as FormData).files.map((part) => part.key),
-        ['request', 'images'],
-      );
-    },
-  );
+  test('건의는 POST /feedback 에 multipart FormData 로 보낸다', () async {
+    await ignoreParse(
+      FeedbackApiClient(
+        dio,
+      ).submit(buildFeedbackFormData(content: '내용', images: const [])),
+    );
+    expect(adapter.lastRequest.method, 'POST');
+    expect(adapter.lastRequest.path, '/feedback');
+    expect(adapter.lastRequest.data, isA<FormData>());
+  });
+
+  test('의견 multipart 는 파트 순서·파일명·콘텐츠 타입을 서버 계약대로 만든다', () {
+    final image = CompressedWebpImage(
+      bytes: Uint8List.fromList([1, 2, 3]),
+      width: 1,
+      height: 1,
+    );
+    final full = buildFeedbackFormData(
+      content: '내용',
+      images: [image, image],
+      diagnostics: const {'app': {}},
+      gzippedLog: Uint8List.fromList([4, 5]),
+    );
+    expect(full.files.map((part) => part.key), [
+      'request',
+      'images',
+      'images',
+      'diagnostics',
+      'log',
+    ]);
+    expect(full.files.map((part) => part.value.filename), [
+      'request.json',
+      '0.webp',
+      '1.webp',
+      'diagnostics.json',
+      'app-log.txt.gz',
+    ]);
+    expect(full.files.map((part) => part.value.contentType?.mimeType), [
+      'application/json',
+      'image/webp',
+      'image/webp',
+      'application/json',
+      'application/gzip',
+    ]);
+
+    // 진단 정보 체크 해제: request + images 만
+    final minimal = buildFeedbackFormData(content: '내용', images: [image]);
+    expect(minimal.files.map((part) => part.key), ['request', 'images']);
+  });
 
   test('신고는 POST 본문으로, 신고 여부는 submissionUuid 쿼리로 조회한다', () async {
     await ignoreParse(

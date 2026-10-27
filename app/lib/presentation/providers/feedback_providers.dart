@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,14 +33,14 @@ final appDiagnosticsCollectorProvider =
       );
     });
 
+// 로그 파트 파일명 (서버 키 app-log.txt.gz 와 같은 이름)
+const _logFileName = 'app-log.txt.gz';
+
 /// 의견 전송: 검증 > multipart 조립(본문, 사진, 진단 정보, 로그) > 전송 > 분석 이벤트
 class FeedbackSubmitter {
   FeedbackSubmitter(this._ref);
 
   final Ref _ref;
-
-  // 로그 파트 파일명 (서버 키 app-log.txt.gz 와 같은 이름)
-  static const _logFileName = 'app-log.txt.gz';
 
   /// 서버가 거절하거나 네트워크가 실패하면 [AppException] 을 던진다.
   Future<void> submit({
@@ -74,50 +75,72 @@ class FeedbackSubmitter {
     required bool shouldIncludeDiagnostics,
     required Map<String, Object?>? diagnostics,
   }) async {
-    final formData = FormData();
-    formData.files.add(
-      MapEntry('request', _jsonPart(<String, Object?>{'content': content})),
-    );
-    for (var index = 0; index < images.length; index++) {
-      formData.files.add(
-        MapEntry(
-          'images',
-          MultipartFile.fromBytes(
-            images[index].bytes,
-            filename: '$index.webp',
-            contentType: DioMediaType('image', 'webp'),
-          ),
-        ),
-      );
-    }
     // 진단 정보 + 로그는 체크했을 때만 (flush 후 읽음, 로그 없으면 파트 생략)
+    Uint8List? gzippedLog;
     if (shouldIncludeDiagnostics) {
-      if (diagnostics != null) {
-        formData.files.add(MapEntry('diagnostics', _jsonPart(diagnostics)));
-      }
       await AppLogger.flush();
-      final gzippedLog = await AppLogger.readGzippedLog();
-      if (gzippedLog != null) {
-        formData.files.add(
-          MapEntry(
-            'log',
-            MultipartFile.fromBytes(
-              gzippedLog,
-              filename: _logFileName,
-              contentType: DioMediaType('application', 'gzip'),
-            ),
-          ),
-        );
-      }
+      gzippedLog = await AppLogger.readGzippedLog();
     }
-    return formData;
+    return buildFeedbackFormData(
+      content: content,
+      images: images,
+      diagnostics: shouldIncludeDiagnostics ? diagnostics : null,
+      gzippedLog: gzippedLog,
+    );
   }
+}
 
-  static MultipartFile _jsonPart(Map<String, Object?> json) =>
+/// 의견 multipart 조립: request > images × n > diagnostics > log (없는 파트는 생략)
+/// 모든 파트에 파일명을 둠 (서버가 파일명 있는 파트만 MultipartFile 로 인식)
+FormData buildFeedbackFormData({
+  required String content,
+  required List<CompressedWebpImage> images,
+  Map<String, Object?>? diagnostics,
+  Uint8List? gzippedLog,
+}) {
+  MultipartFile jsonPart(Map<String, Object?> json, String filename) =>
       MultipartFile.fromString(
         jsonEncode(json),
+        filename: filename,
         contentType: DioMediaType('application', 'json'),
       );
+  final formData = FormData();
+  formData.files.add(
+    MapEntry(
+      'request',
+      jsonPart(<String, Object?>{'content': content}, 'request.json'),
+    ),
+  );
+  for (var index = 0; index < images.length; index++) {
+    formData.files.add(
+      MapEntry(
+        'images',
+        MultipartFile.fromBytes(
+          images[index].bytes,
+          filename: '$index.webp',
+          contentType: DioMediaType('image', 'webp'),
+        ),
+      ),
+    );
+  }
+  if (diagnostics != null) {
+    formData.files.add(
+      MapEntry('diagnostics', jsonPart(diagnostics, 'diagnostics.json')),
+    );
+  }
+  if (gzippedLog != null) {
+    formData.files.add(
+      MapEntry(
+        'log',
+        MultipartFile.fromBytes(
+          gzippedLog,
+          filename: _logFileName,
+          contentType: DioMediaType('application', 'gzip'),
+        ),
+      ),
+    );
+  }
+  return formData;
 }
 
 final feedbackSubmitterProvider = Provider<FeedbackSubmitter>(
