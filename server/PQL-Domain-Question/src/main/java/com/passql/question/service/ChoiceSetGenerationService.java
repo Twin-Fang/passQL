@@ -241,11 +241,14 @@ public class ChoiceSetGenerationService {
 
         GenerateChoiceSetResult lastResult = null;
         ErrorCode lastErrorCode = null;
+        // 직전 시도 채점 피드백 (첫 시도 null)
+        String retryFeedback = null;
 
         for (int attempts = 1; attempts <= MAX_ATTEMPTS; attempts++) {
             try {
                 log.debug("[choice-gen-result-match] AI 호출 시작: attempt={}/{}", attempts, MAX_ATTEMPTS);
-                GenerateChoiceSetRequest request = requestFactory.buildResultMatchRequest(question, prompt, expectedResult);
+                GenerateChoiceSetRequest request = requestFactory.buildResultMatchRequest(
+                        question, prompt, expectedResult, retryFeedback);
                 lastResult = aiGatewayClient.generateChoiceSet(request);
                 log.debug("[choice-gen-result-match] AI 응답 수신: choiceCount={}", lastResult.choices().size());
 
@@ -254,6 +257,9 @@ public class ChoiceSetGenerationService {
                 log.debug("[choice-gen-result-match] 검증 완료: correctCount={}", report.correctCount());
 
                 // 같은 결과 표 보기가 2개면 재생성 (#555)
+                if (report.correctCount() != 1) {
+                    retryFeedback = requestFactory.toResultMatchRetryFeedback(report);
+                }
                 boolean hasDuplicateChoice = ChoiceBodyDuplicateFinder.findDuplicateBody(
                         lastResult.choices().stream().map(GeneratedChoiceDto::body).toList()) != null;
                 if (hasDuplicateChoice) {

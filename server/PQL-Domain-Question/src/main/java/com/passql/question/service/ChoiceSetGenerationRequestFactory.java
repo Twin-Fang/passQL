@@ -117,10 +117,14 @@ public class ChoiceSetGenerationRequestFactory {
      * RESULT_MATCH 전용 AI 요청 빌드 — answerSql 실행 결과를 user prompt에 직접 치환하여 포함.
      */
     public GenerateChoiceSetRequest buildResultMatchRequest(
-            Question question, PromptTemplate prompt, ExecuteResult expectedResult) {
+            Question question, PromptTemplate prompt, ExecuteResult expectedResult, String retryFeedback) {
         // {answer_result} 플레이스홀더를 실행 결과 텍스트로 치환하여 AI에 전달
         String userPrompt = prompt.getUserTemplate()
                 .replace(ANSWER_RESULT_PLACEHOLDER, serializeExecuteResult(expectedResult));
+        // 직전 시도 채점 피드백 (정답 표 중복·누락 교정)
+        if (retryFeedback != null) {
+            userPrompt = userPrompt + "\n\n[재시도 피드백]\n" + retryFeedback;
+        }
         return new GenerateChoiceSetRequest(toSqlContext(question), toLlmConfig(prompt, userPrompt));
     }
 
@@ -170,6 +174,22 @@ public class ChoiceSetGenerationRequestFactory {
             resultLines.add(choice.key() + ": " + choice.body() + " > " + resultText);
         }
         return resultLines;
+    }
+
+    /**
+     * RESULT_MATCH 실패 시도 > 재시도 피드백 문구 (정답 표 2개 이상: 겹친 보기 key, 0개: 정답 표 복사 지시)
+     */
+    public String toResultMatchRetryFeedback(ValidationReport report) {
+        List<String> matchedKeys = report.items().stream()
+                .filter(ValidationReport.ChoiceValidation::matchesExpected)
+                .map(ValidationReport.ChoiceValidation::key)
+                .toList();
+        if (matchedKeys.isEmpty()) {
+            return "직전 시도에서 기준 실행 결과와 같은 표가 하나도 없었다. 정답 body 는 기준 SQL 실행 결과의 행·값을 그대로 옮길 것.";
+        }
+        return "직전 시도에서 " + String.join(", ", matchedKeys)
+                + " 가 모두 기준 실행 결과와 같은 표로 채점되었다(행 순서·키 대소문자 무시). "
+                + "정답 1개만 남기고 나머지는 셀 값이나 행 수를 바꿔 확실히 다른 표로 만들 것.";
     }
 
     /** 문제 > SQL 문맥 (지문·정답 SQL·스키마·난이도) */
