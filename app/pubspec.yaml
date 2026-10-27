@@ -59,6 +59,9 @@ dependencies:
   in_app_purchase_android: ^0.5.0
   # StoreKit 2 미완료 거래 조회·서명 거래(JWS) 직접 사용 (#578)
   in_app_purchase_storekit: ^0.4.13
+  # 의견 진단 정보: 배터리·네트워크 종류 (#708)
+  battery_plus: ^7.1.2
+  connectivity_plus: ^7.3.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
