@@ -78,13 +78,7 @@ jobs:
           echo "📊 정리 후 디스크 사용량:"
           df -h
 
-      - name: .env.prod 파일 생성
-        run: |
-          cat > ai/.env.prod <<EOF
-          ${{ secrets.AI_ENV_FILE }}
-          EOF
-          echo "✅ .env.prod 파일이 생성되었습니다"
-
+      # 비밀 설정은 이미지에 넣지 않음 (공개 이미지, ai/.dockerignore 가 .env* 제외) > deploy 잡이 호스트 config/ 에 기록 후 마운트
       - name: Docker 빌드환경 설정
         uses: docker/setup-buildx-action@v3
 
@@ -120,6 +114,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Secret 원문 > base64 한 줄 (줄바꿈·따옴표 손상 없이 ssh 전달, 로그 마스킹)
+      - name: 실행용 비밀 설정 인코딩
+        env:
+          AI_ENV_FILE: ${{ secrets.AI_ENV_FILE }}
+        run: |
+          if [ -z "${AI_ENV_FILE}" ]; then echo "❌ Secret AI_ENV_FILE 미설정"; exit 1; fi
+          ENCODED=$(printf '%s\n' "${AI_ENV_FILE}" | base64 -w0)
+          echo "::add-mask::${ENCODED}"
+          echo "AI_ENV_FILE_BASE64=${ENCODED}" >> "$GITHUB_ENV"
+
       - name: Deploy
         uses: appleboy/ssh-action@v1.0.3
         env:
@@ -138,6 +142,7 @@ jobs:
           VOLUME_CONTAINER_PATH: ${{ env.VOLUME_CONTAINER_PATH }}
           CONTAINER_LOG_MAX_SIZE: ${{ env.CONTAINER_LOG_MAX_SIZE }}
           CONTAINER_LOG_MAX_FILE: ${{ env.CONTAINER_LOG_MAX_FILE }}
+          AI_ENV_FILE_BASE64: ${{ env.AI_ENV_FILE_BASE64 }}
           SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -146,7 +151,7 @@ jobs:
           port: 2022
           command_timeout: 600s
           timeout: 60s
-          envs: PROJECT_NAME,IMAGE,SERVICE_DOMAIN,CONTAINER_INTERNAL_PORT,TRAEFIK_NETWORK,TRAEFIK_ENTRYPOINT,TRAEFIK_INTERNAL_PORT,HEALTHCHECK_PATH,HEALTHCHECK_MAX_RETRIES,HEALTHCHECK_RETRY_INTERVAL,IN_FLIGHT_WAIT,VOLUME_HOST_PATH,VOLUME_CONTAINER_PATH,CONTAINER_LOG_MAX_SIZE,CONTAINER_LOG_MAX_FILE,SERVER_PASSWORD
+          envs: PROJECT_NAME,IMAGE,SERVICE_DOMAIN,CONTAINER_INTERNAL_PORT,TRAEFIK_NETWORK,TRAEFIK_ENTRYPOINT,TRAEFIK_INTERNAL_PORT,HEALTHCHECK_PATH,HEALTHCHECK_MAX_RETRIES,HEALTHCHECK_RETRY_INTERVAL,IN_FLIGHT_WAIT,VOLUME_HOST_PATH,VOLUME_CONTAINER_PATH,CONTAINER_LOG_MAX_SIZE,CONTAINER_LOG_MAX_FILE,AI_ENV_FILE_BASE64,SERVER_PASSWORD
           # 새 색 컨테이너를 띄워 Traefik 경유 헬스체크가 통과한 뒤에만 구 색을 내린다 — 실패하면 구 색이 계속 서비스한다.
           script: |
             set -e
@@ -175,6 +180,20 @@ jobs:
             SUDO docker rm -f "${NEW_NAME}" 2>/dev/null || true
             SUDO mkdir -p "${VOLUME_HOST_PATH}"
 
+            # 실행용 비밀 설정 기록: {VOLUME_HOST_PATH}/config/.env.prod (root 전용 600, .new 작성 후 교체)
+            # 백업 워크플로우(github_secret/)와 별개 경로, 구 색은 기동 시 이미 읽어 영향 없음
+            CONFIG_HOST_DIR="${VOLUME_HOST_PATH}/config"
+            SUDO mkdir -p "${CONFIG_HOST_DIR}"
+            SUDO chmod 700 "${CONFIG_HOST_DIR}"
+            TMP_FILE=$(mktemp)
+            printf '%s' "${AI_ENV_FILE_BASE64}" | base64 -d > "${TMP_FILE}"
+            if [ ! -s "${TMP_FILE}" ]; then rm -f "${TMP_FILE}"; echo "❌ .env.prod 내용 없음"; exit 1; fi
+            SUDO cp "${TMP_FILE}" "${CONFIG_HOST_DIR}/.env.prod.new"
+            rm -f "${TMP_FILE}"
+            SUDO chmod 600 "${CONFIG_HOST_DIR}/.env.prod.new"
+            SUDO mv -f "${CONFIG_HOST_DIR}/.env.prod.new" "${CONFIG_HOST_DIR}/.env.prod"
+            echo "🔐 .env.prod 기록"
+
             # drain 표식이 있으면 unhealthy → Traefik이 새 요청을 보내지 않는다
             HEALTH_CMD="[ -f /tmp/.pops-drain ] && exit 1; curl -fs -o /dev/null http://127.0.0.1:${CONTAINER_INTERNAL_PORT}${HEALTHCHECK_PATH}"
 
@@ -198,6 +217,7 @@ jobs:
               -e TZ=Asia/Seoul \
               -v /etc/localtime:/etc/localtime:ro \
               -v "${VOLUME_HOST_PATH}:${VOLUME_CONTAINER_PATH}" \
+              -v "${CONFIG_HOST_DIR}/.env.prod:/app/.env.prod:ro" \
               "${IMAGE}"
 
             # 컨테이너 자체 헬스(healthy)와 Traefik 경유 응답(200)이 모두 확인돼야 전환으로 본다

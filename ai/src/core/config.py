@@ -8,7 +8,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 _env = os.getenv("ENVIRONMENT", "dev")
 _env_file_primary = f".env.{_env}"
 # .env.{env} 파일이 없으면 .env로 fallback
-# prod: Dockerfile이 .env를 복사, dev: 로컬에서 .env.dev 사용
+# prod: 배포가 호스트 config/.env.prod 를 /app/.env.prod 로 읽기 전용 마운트, dev: 로컬에서 .env.dev 사용
 _env_file = _env_file_primary if os.path.exists(_env_file_primary) else ".env"
 
 

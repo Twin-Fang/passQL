@@ -25,7 +25,12 @@ env:
   SPRING_PROFILE: "prod"
   JAVA_VERSION: "21"
   GRADLE_OPTS: "-Dspring.profiles.active=prod"
-  APPLICATION_YML_DIR: "server/PQL-Web/src/main/resources"
+  # jar 포함 금지 파일 (server/PQL-Web/build.gradle bootJar exclude 와 같은 목록)
+  SECRET_FILE_PATTERN: "application-prod\\.yml|application-dev\\.yml|firebase-service-account\\.json"
+  # 실행용 비밀 설정: {VOLUME_HOST_PATH}/config > 컨테이너 /app/config (읽기 전용)
+  # Spring 은 작업 폴더 ./config/application-prod.yml 을 jar 안 설정보다 우선해 읽음
+  # 백업 워크플로우(github_secret/)와 별개 경로
+  RUNTIME_CONFIG_CONTAINER_PATH: "/app/config"
   # 무중단 배포(Blue-Green): 시놀로지 Traefik(8079)이 Host 라벨로 라우팅한다.
   # DSM 리버스 프록시는 api.passql.suhsaechan.kr → localhost:8079 로 연결한다 (구 8097 직결 대체)
   SERVICE_DOMAIN: "api.passql.suhsaechan.kr"
@@ -73,20 +78,18 @@ jobs:
       - name: Gradle Wrapper 실행권한 부여
         run: chmod +x server/gradlew
 
-      - name: application-prod.yml 생성
-        run: |
-          mkdir -p ${{ env.APPLICATION_YML_DIR }}
-          printf '%s' '${{ secrets.APPLICATION_PROD_YML }}' > ./${{ env.APPLICATION_YML_DIR }}/application-prod.yml
-          echo "✅ application-prod.yml 파일 생성 완료"
-
-      - name: Firebase 서비스 계정 JSON 생성 (prod)
-        run: |
-          printf '%s' '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' > ./${{ env.APPLICATION_YML_DIR }}/firebase-service-account.json
-          echo "✅ firebase-service-account.json 생성 완료"
-
+      # 비밀 설정은 빌드에 넣지 않음 (공개 이미지) > deploy 잡이 호스트 config/ 에 기록 후 마운트
       - name: Build with Gradle
         working-directory: server
         run: ./gradlew clean build -x test ${{ env.GRADLE_OPTS }}
+
+      # jar 안 비밀 설정 검사 (있으면 push 전 실패)
+      - name: 비밀 설정 미포함 확인
+        run: |
+          if unzip -l server/PQL-Web/build/libs/app.jar | grep -E "BOOT-INF/classes/(${{ env.SECRET_FILE_PATTERN }})$"; then
+            echo "❌ jar 에 비밀 설정 포함 — 공개 이미지로 push 하지 않음"; exit 1
+          fi
+          echo "✅ jar 비밀 설정 없음"
 
       # 이미지 태그 3개: {브랜치}, {version.yml 버전}, sha-{짧은 sha} — 배포는 sha 태그 기준 (#477)
       - name: 이미지 태그 계산
@@ -154,6 +157,19 @@ jobs:
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           if [ -n "${ROLLBACK_IMAGE_TAG}" ]; then echo "⏪ 롤백 배포: ${TAG}"; else echo "🚀 일반 배포: ${TAG}"; fi
 
+      # Secret 원문 > base64 한 줄 (줄바꿈·따옴표 손상 없이 ssh 전달, 로그 마스킹)
+      - name: 실행용 비밀 설정 인코딩
+        env:
+          APPLICATION_PROD_YML: ${{ secrets.APPLICATION_PROD_YML }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          for NAME in APPLICATION_PROD_YML FIREBASE_SERVICE_ACCOUNT_JSON; do
+            if [ -z "${!NAME}" ]; then echo "❌ Secret ${NAME} 미설정"; exit 1; fi
+            ENCODED=$(printf '%s' "${!NAME}" | base64 -w0)
+            echo "::add-mask::${ENCODED}"
+            echo "${NAME}_BASE64=${ENCODED}" >> "$GITHUB_ENV"
+          done
+
       - name: Deploy
         uses: appleboy/ssh-action@v1.0.3
         env:
@@ -173,6 +189,9 @@ jobs:
           VOLUME_CONTAINER_PATH: ${{ env.VOLUME_CONTAINER_PATH }}
           CONTAINER_LOG_MAX_SIZE: ${{ env.CONTAINER_LOG_MAX_SIZE }}
           CONTAINER_LOG_MAX_FILE: ${{ env.CONTAINER_LOG_MAX_FILE }}
+          RUNTIME_CONFIG_CONTAINER_PATH: ${{ env.RUNTIME_CONFIG_CONTAINER_PATH }}
+          APPLICATION_PROD_YML_BASE64: ${{ env.APPLICATION_PROD_YML_BASE64 }}
+          FIREBASE_SERVICE_ACCOUNT_JSON_BASE64: ${{ env.FIREBASE_SERVICE_ACCOUNT_JSON_BASE64 }}
           SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -181,7 +200,7 @@ jobs:
           port: 2022
           command_timeout: 600s
           timeout: 60s
-          envs: PROJECT_NAME,IMAGE,SERVICE_DOMAIN,SPRING_PROFILE,CONTAINER_INTERNAL_PORT,TRAEFIK_NETWORK,TRAEFIK_ENTRYPOINT,TRAEFIK_INTERNAL_PORT,HEALTHCHECK_PATH,HEALTHCHECK_MAX_RETRIES,HEALTHCHECK_RETRY_INTERVAL,IN_FLIGHT_WAIT,VOLUME_HOST_PATH,VOLUME_CONTAINER_PATH,CONTAINER_LOG_MAX_SIZE,CONTAINER_LOG_MAX_FILE,SERVER_PASSWORD
+          envs: PROJECT_NAME,IMAGE,SERVICE_DOMAIN,SPRING_PROFILE,CONTAINER_INTERNAL_PORT,TRAEFIK_NETWORK,TRAEFIK_ENTRYPOINT,TRAEFIK_INTERNAL_PORT,HEALTHCHECK_PATH,HEALTHCHECK_MAX_RETRIES,HEALTHCHECK_RETRY_INTERVAL,IN_FLIGHT_WAIT,VOLUME_HOST_PATH,VOLUME_CONTAINER_PATH,CONTAINER_LOG_MAX_SIZE,CONTAINER_LOG_MAX_FILE,RUNTIME_CONFIG_CONTAINER_PATH,APPLICATION_PROD_YML_BASE64,FIREBASE_SERVICE_ACCOUNT_JSON_BASE64,SERVER_PASSWORD
           # projectops PROJECT-SPRING-NONSTOP-TRAEFIK-CICD 흐름을 passQL 모노레포·볼륨에 맞춘 것.
           # 새 색 컨테이너를 띄워 Traefik 경유 헬스체크가 통과한 뒤에만 구 색을 내린다 — 실패하면 구 색이 계속 서비스한다.
           script: |
@@ -210,6 +229,24 @@ jobs:
 
             SUDO docker rm -f "${NEW_NAME}" 2>/dev/null || true
             SUDO mkdir -p "${VOLUME_HOST_PATH}"
+
+            # 실행용 비밀 설정 기록: {VOLUME_HOST_PATH}/config/{파일} (root 전용 600, .new 작성 후 교체)
+            # 구 색은 기동 시 이미 읽어 영향 없음, 롤백(옛 이미지)도 이 설정이 jar 안 설정보다 우선
+            CONFIG_HOST_DIR="${VOLUME_HOST_PATH}/config"
+            SUDO mkdir -p "${CONFIG_HOST_DIR}"
+            SUDO chmod 700 "${CONFIG_HOST_DIR}"
+            write_runtime_config() {
+              TMP_FILE=$(mktemp)
+              printf '%s' "$2" | base64 -d > "${TMP_FILE}"
+              if [ ! -s "${TMP_FILE}" ]; then rm -f "${TMP_FILE}"; echo "❌ $1 내용 없음"; exit 1; fi
+              SUDO cp "${TMP_FILE}" "${CONFIG_HOST_DIR}/$1.new"
+              rm -f "${TMP_FILE}"
+              SUDO chmod 600 "${CONFIG_HOST_DIR}/$1.new"
+              SUDO mv -f "${CONFIG_HOST_DIR}/$1.new" "${CONFIG_HOST_DIR}/$1"
+              echo "🔐 $1 기록"
+            }
+            write_runtime_config application-prod.yml "${APPLICATION_PROD_YML_BASE64}"
+            write_runtime_config firebase-service-account.json "${FIREBASE_SERVICE_ACCOUNT_JSON_BASE64}"
 
             # HTTP(80) 요청은 DSM 80 항목이 X-Forwarded-Proto: http 를 달아 8079로 보낸다 (#389).
             # X-Forwarded-Proto 가 http 일 때만 https로 영구 리다이렉트 — 443 경로(https)는 기존 라우터로 간다
@@ -243,8 +280,10 @@ jobs:
               --label "traefik.http.middlewares.${ROUTER}-https.redirectscheme.permanent=true" \
               -e TZ=Asia/Seoul \
               -e "SPRING_PROFILES_ACTIVE=${SPRING_PROFILE}" \
+              -e "FIREBASE_KEYPATH=${RUNTIME_CONFIG_CONTAINER_PATH}/firebase-service-account.json" \
               -v /etc/localtime:/etc/localtime:ro \
               -v "${VOLUME_HOST_PATH}:${VOLUME_CONTAINER_PATH}" \
+              -v "${CONFIG_HOST_DIR}:${RUNTIME_CONFIG_CONTAINER_PATH}:ro" \
               "${IMAGE}"
 
             # 컨테이너 자체 헬스(healthy)와 Traefik 경유 응답(200)이 모두 확인돼야 전환으로 본다
