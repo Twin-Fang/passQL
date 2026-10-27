@@ -1,15 +1,25 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/error/app_exception.dart';
-import '../../../core/utils/date_format.dart';
+import '../../../core/logging/app_logger.dart';
 import '../../../core/validation/feedback_validator.dart';
-import '../../../data/models/feedback/feedback_models.dart';
+import '../../../data/feedback/feedback_image_compressor.dart';
 import '../../design/design.dart';
 import '../../providers/feedback_providers.dart';
+import '../../widgets/common/app_toast.dart';
+import '../../widgets/feedback/feedback_content_field.dart';
+import '../../widgets/feedback/feedback_diagnostics_check_row.dart';
+import '../../widgets/feedback/feedback_diagnostics_sheet.dart';
+import '../../widgets/feedback/feedback_image_strip.dart';
 
-/// 의견 보내기 화면. 채팅처럼 내가 보낸 건의가 쌓이고, 아래에서 새 건의를 보낸다.
+const String _successToastMessage = '보내 주셔서 고마워요. 확인까지 2~3일 걸릴 수 있어요';
+const String _imageLimitToastMessage = '사진은 최대 10장까지 보낼 수 있어요';
+const String _imageLoadFailedMessage = '사진을 불러오지 못했어요. 다시 선택해 주세요.';
+
+/// 의견 보내기 화면: 글 + 사진(최대 10장) + 진단 정보 동의를 한 번에 전송
 class FeedbackPage extends ConsumerStatefulWidget {
   const FeedbackPage({super.key});
 
@@ -18,99 +28,209 @@ class FeedbackPage extends ConsumerStatefulWidget {
 }
 
 class _FeedbackPageState extends ConsumerState<FeedbackPage> {
-  final _controller = TextEditingController();
-  final _scrollController = ScrollController();
+  final _contentController = TextEditingController();
+  final _imagePicker = ImagePicker();
+  final _imageCompressor = FeedbackImageCompressor();
+  final List<FeedbackImageDraft> _imageDrafts = [];
 
   bool _isSending = false;
-  String? _error;
+  bool _shouldIncludeDiagnostics = true;
+  String? _errorMessage;
+  int _nextImageId = 0;
 
-  /// 마지막으로 그린 건의 개수. 개수가 바뀔 때만 맨 아래로 이동한다.
-  int _lastRenderedCount = 0;
+  /// 의견 화면 진입 직전 경로 패턴 (쿼리스트링 제외)
+  String? _previousRoute;
+
+  @override
+  void initState() {
+    super.initState();
+    _previousRoute = _readPreviousRoutePattern();
+  }
 
   @override
   void dispose() {
-    _controller.dispose();
-    _scrollController.dispose();
+    _contentController.dispose();
     super.dispose();
   }
 
-  bool get _canSend =>
-      !_isSending && FeedbackValidator.isValid(_controller.text);
+  /// 라우터 스택에서 현재 화면 바로 아래 경로의 패턴 (파라미터 값·쿼리 제외)
+  String? _readPreviousRoutePattern() {
+    try {
+      final matches = GoRouter.of(
+        context,
+      ).routerDelegate.currentConfiguration.matches;
+      for (var index = matches.length - 2; index >= 0; index--) {
+        final route = matches[index].route;
+        if (route is GoRoute) return route.path;
+      }
+    } catch (error) {
+      AppLogger.warn('feedback', 'previous route unavailable : $error');
+    }
+    return null;
+  }
 
+  bool get _isCompressingImage =>
+      _imageDrafts.any((draft) => draft.isCompressing);
+
+  bool get _canSend =>
+      !_isSending &&
+      !_isCompressingImage &&
+      FeedbackValidator.isValid(_contentController.text);
+
+  bool get _canAddImage =>
+      !_isSending && _imageDrafts.length < FeedbackImageLimits.maxImageCount;
+
+  /// 갤러리 다중 선택 > 남은 칸만큼 자름 > 장마다 즉시 압축 (실패 장은 제거 + 토스트)
+  Future<void> _pickImages() async {
+    final remainingCount =
+        FeedbackImageLimits.maxImageCount - _imageDrafts.length;
+    List<XFile> pickedFiles;
+    try {
+      pickedFiles = await _imagePicker.pickMultiImage(
+        maxWidth: FeedbackImageLimits.longSidePixels.toDouble(),
+        maxHeight: FeedbackImageLimits.longSidePixels.toDouble(),
+        requestFullMetadata: false,
+      );
+    } catch (error) {
+      AppLogger.warn('feedback', 'pick images failed : $error');
+      if (mounted) showAppToast(context, _imageLoadFailedMessage);
+      return;
+    }
+    if (pickedFiles.isEmpty || !mounted) return;
+    if (pickedFiles.length > remainingCount) {
+      showAppToast(context, _imageLimitToastMessage);
+      pickedFiles = pickedFiles.take(remainingCount).toList();
+    }
+    final pendingDrafts = [
+      for (final _ in pickedFiles) FeedbackImageDraft(id: _nextImageId++),
+    ];
+    setState(() => _imageDrafts.addAll(pendingDrafts));
+    for (var index = 0; index < pickedFiles.length; index++) {
+      await _compressImage(pendingDrafts[index].id, pickedFiles[index]);
+    }
+  }
+
+  Future<void> _compressImage(int draftId, XFile pickedFile) async {
+    String? failureMessage;
+    try {
+      final compressed = await _imageCompressor.compress(
+        await pickedFile.readAsBytes(),
+      );
+      if (!mounted) return;
+      _replaceDraft(FeedbackImageDraft(id: draftId, image: compressed));
+      return;
+    } on AppException catch (exception) {
+      failureMessage = exception.message;
+    } catch (error) {
+      AppLogger.warn('feedback', 'compress image failed : $error');
+      failureMessage = _imageLoadFailedMessage;
+    }
+    if (!mounted) return;
+    setState(() => _imageDrafts.removeWhere((draft) => draft.id == draftId));
+    showAppToast(context, failureMessage);
+  }
+
+  void _replaceDraft(FeedbackImageDraft updatedDraft) => setState(() {
+    final index = _imageDrafts.indexWhere(
+      (draft) => draft.id == updatedDraft.id,
+    );
+    if (index >= 0) _imageDrafts[index] = updatedDraft;
+  });
+
+  void _removeImage(int draftId) =>
+      setState(() => _imageDrafts.removeWhere((draft) => draft.id == draftId));
+
+  Future<void> _showDiagnosticsSheet() async {
+    final collector = ref.read(appDiagnosticsCollectorProvider);
+    final diagnostics = await collector.collect(
+      context: context,
+      previousRoute: _previousRoute,
+    );
+    final logBytes = await AppLogger.currentLogBytes();
+    if (!mounted) return;
+    await showFeedbackDiagnosticsSheet(context, diagnostics, logBytes);
+  }
+
+  /// 전송: 진단 수집(체크 시) > 전송 > 성공이면 닫고 토스트, 실패면 입력·첨부 유지
   Future<void> _send() async {
     setState(() {
       _isSending = true;
-      _error = null;
+      _errorMessage = null;
     });
+    // pop 뒤에도 토스트를 띄울 수 있게 최상위 Navigator context 를 미리 확보
+    final toastContext = Navigator.of(context, rootNavigator: true).context;
     try {
-      await ref.read(feedbackSubmitterProvider).submit(_controller.text);
+      final diagnostics = _shouldIncludeDiagnostics
+          ? await ref
+                .read(appDiagnosticsCollectorProvider)
+                .collect(context: context, previousRoute: _previousRoute)
+          : null;
+      await ref
+          .read(feedbackSubmitterProvider)
+          .submit(
+            rawContent: _contentController.text,
+            images: [for (final draft in _imageDrafts) ?draft.image],
+            shouldIncludeDiagnostics: _shouldIncludeDiagnostics,
+            diagnostics: diagnostics,
+          );
+      // 전송 중 화면을 떠났으면 결과는 무시
       if (!mounted) return;
-      _controller.clear();
+      context.pop();
+      if (toastContext.mounted) {
+        showAppToast(toastContext, _successToastMessage);
+      }
     } on AppException catch (exception) {
-      // 입력은 지우지 않아 사용자가 바로 다시 보낼 수 있다.
-      if (mounted) setState(() => _error = exception.message);
+      if (mounted) setState(() => _errorMessage = exception.message);
     } finally {
       if (mounted) setState(() => _isSending = false);
     }
   }
 
-  void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final list = ref.watch(feedbackListProvider);
-
     return Scaffold(
       appBar: PassqlNavBar(title: '의견 보내기', leading: PassqlNavLeading.back),
       body: Column(
         children: [
           Expanded(
-            child: list.when(
-              // 전송 후 목록을 다시 받는 동안에도 기존 목록을 유지한다.
-              skipLoadingOnReload: true,
-              skipLoadingOnRefresh: true,
-              loading: () => const PassqlStatusView.loading(),
-              error: (error, _) => PassqlStatusView.error(
-                message: error.asAppException.message,
-                onRetry: () => ref.invalidate(feedbackListProvider),
-              ),
-              data: (items) {
-                if (items.isEmpty) {
-                  return PassqlStatusView.empty(
-                    icon: CupertinoIcons.chat_bubble_text,
-                    title: '아직 보낸 건의가 없어요',
-                    message: '앱에 바라는 점을 자유롭게 남겨 주세요',
-                  );
-                }
-                // 타이핑으로 다시 그려질 때 스크롤이 튀지 않도록, 개수가 바뀔 때만 이동한다.
-                if (items.length != _lastRenderedCount) {
-                  _lastRenderedCount = items.length;
-                  _scrollToBottom();
-                }
-                return ListView.separated(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.fromLTRB(
-                    PassqlSpacing.md,
-                    PassqlSpacing.sm,
-                    PassqlSpacing.md,
-                    PassqlSpacing.sm,
+            child: ListView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.all(PassqlSpacing.md),
+              children: [
+                Text(
+                  '앱에 바라는 점이나 불편한 점을 알려 주세요',
+                  style: PassqlTypography.headline.copyWith(
+                    color: colors.label,
                   ),
-                  itemCount: items.length,
-                  separatorBuilder: (_, _) =>
-                      const SizedBox(height: PassqlSpacing.sm),
-                  itemBuilder: (_, i) => _FeedbackBubble(item: items[i]),
-                );
-              },
+                ),
+                const SizedBox(height: PassqlSpacing.sm),
+                FeedbackContentField(
+                  controller: _contentController,
+                  isEnabled: !_isSending,
+                  onChanged: () => setState(() {}),
+                ),
+                const SizedBox(height: PassqlSpacing.md),
+                FeedbackImageStrip(
+                  drafts: _imageDrafts,
+                  onAddPressed: _canAddImage ? _pickImages : null,
+                  onRemovePressed: _removeImage,
+                ),
+                const SizedBox(height: PassqlSpacing.md),
+                FeedbackDiagnosticsCheckRow(
+                  isChecked: _shouldIncludeDiagnostics,
+                  onToggled: _isSending
+                      ? null
+                      : () => setState(
+                          () => _shouldIncludeDiagnostics =
+                              !_shouldIncludeDiagnostics,
+                        ),
+                  onShowPressed: _showDiagnosticsSheet,
+                ),
+              ],
             ),
           ),
-          if (_error != null)
+          if (_errorMessage != null)
             Container(
               width: double.infinity,
               color: colors.wrongTint,
@@ -119,19 +239,13 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
                 vertical: PassqlSpacing.xs,
               ),
               child: Text(
-                _error!,
+                _errorMessage!,
                 style: PassqlTypography.footnote.copyWith(
                   color: colors.wrongText,
                 ),
               ),
             ),
-          // 입력창은 하단 액션 바의 윗줄에 둬서 키보드가 올라와도 버튼과 함께 움직인다.
           PassqlBottomActionBar(
-            top: _Composer(
-              controller: _controller,
-              isSending: _isSending,
-              onChanged: () => setState(() {}),
-            ),
             actions: [
               PassqlButton(
                 label: '보내기',
@@ -139,156 +253,6 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
                 onPressed: _canSend ? _send : null,
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// 내가 보낸 건의 말풍선. 처리 상태에 따라 색이 달라진다.
-class _FeedbackBubble extends StatelessWidget {
-  const _FeedbackBubble({required this.item});
-
-  final FeedbackItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    final (bubble, text, pillBg, pillText) = switch (item.status) {
-      FeedbackStatus.pending => (
-        colors.accent,
-        colors.onAccent,
-        colors.onAccent.withValues(alpha: 0.24),
-        colors.onAccent,
-      ),
-      FeedbackStatus.reviewed => (
-        colors.accentTint,
-        colors.label,
-        colors.accent,
-        colors.onAccent,
-      ),
-      FeedbackStatus.applied => (
-        colors.correctTint,
-        colors.label,
-        colors.correct,
-        colors.onSemantic,
-      ),
-    };
-    final captionColor = item.status == FeedbackStatus.pending
-        ? colors.onAccent.withValues(alpha: 0.7)
-        : colors.secondaryLabel;
-
-    return Align(
-      alignment: Alignment.centerRight,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.82,
-        ),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(
-            PassqlSpacing.sm,
-            PassqlSpacing.sm,
-            PassqlSpacing.sm,
-            PassqlSpacing.xs,
-          ),
-          decoration: BoxDecoration(
-            color: bubble,
-            // 보낸 쪽(오른쪽 아래) 모서리만 작게 둬 말풍선 꼬리처럼 보이게 한다.
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(PassqlRadius.lg),
-              topRight: Radius.circular(PassqlRadius.lg),
-              bottomLeft: Radius.circular(PassqlRadius.lg),
-              bottomRight: Radius.circular(PassqlSpacing.xxs),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                item.content,
-                style: PassqlTypography.subheadline.copyWith(color: text),
-              ),
-              const SizedBox(height: PassqlSpacing.xs),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    formatMonthDayTime(item.createdAt),
-                    style: PassqlTypography.caption.copyWith(
-                      color: captionColor,
-                    ),
-                  ),
-                  const SizedBox(width: PassqlSpacing.xs),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: PassqlSpacing.xs,
-                      vertical: PassqlSpacing.hairlineGap,
-                    ),
-                    decoration: BoxDecoration(
-                      color: pillBg,
-                      borderRadius: BorderRadius.circular(PassqlRadius.capsule),
-                    ),
-                    child: Text(
-                      item.status.label,
-                      style: PassqlTypography.caption.copyWith(color: pillText),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// 입력 영역: 카드 안의 입력창과 글자 수.
-class _Composer extends StatelessWidget {
-  const _Composer({
-    required this.controller,
-    required this.isSending,
-    required this.onChanged,
-  });
-
-  final TextEditingController controller;
-  final bool isSending;
-  final VoidCallback onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    final length = FeedbackValidator.normalize(controller.text).length;
-    final isOverLimit = length > FeedbackValidator.maxLength;
-
-    return PassqlCard(
-      padding: const EdgeInsets.all(PassqlSpacing.sm),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TextField(
-            controller: controller,
-            enabled: !isSending,
-            minLines: 1,
-            maxLines: 4,
-            inputFormatters: FeedbackValidator.inputFormatters,
-            onChanged: (_) => onChanged(),
-            style: PassqlTypography.body.copyWith(color: colors.label),
-            cursorColor: colors.accent,
-            decoration: InputDecoration.collapsed(
-              hintText: '앱에 바라는 점을 자유롭게 적어주세요',
-              hintStyle: PassqlTypography.body.copyWith(
-                color: colors.secondaryLabel,
-              ),
-            ),
-          ),
-          const SizedBox(height: PassqlSpacing.xxs),
-          Text(
-            '$length/${FeedbackValidator.maxLength}',
-            style: PassqlTypography.caption.copyWith(
-              color: isOverLimit ? colors.wrongText : colors.secondaryLabel,
-            ),
           ),
         ],
       ),

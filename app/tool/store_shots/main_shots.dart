@@ -70,6 +70,15 @@ String _readRoute() {
   }
 }
 
+// 의견 보내기 전송 결과 연출 (limit 이면 하루 한도 거절)
+String _readFeedbackScenario() {
+  try {
+    return File('/tmp/passql_shot_feedback.txt').readAsStringSync().trim();
+  } catch (_) {
+    return '';
+  }
+}
+
 // 앱 시작 설정 상황 (/meta/app-config 가짜 응답 선택)
 String _readAppConfigScenario() {
   try {
@@ -743,6 +752,16 @@ class _FakeAdapter implements HttpClientAdapter {
         headers: {Headers.contentTypeHeader: [Headers.jsonContentType]},
       );
     }
+    // 의견 보내기 (#708): 기본 성공, /tmp/passql_shot_feedback.txt 가 limit 이면 하루 한도 거절
+    if (options.method == 'POST' && options.path.endsWith('/feedback')) {
+      await Future<void>.delayed(const Duration(milliseconds: 800));
+      final isLimit = _readFeedbackScenario() == 'limit';
+      return ResponseBody.fromString(
+        isLimit ? jsonEncode({'errorCode': 'FEEDBACK_DAILY_LIMIT_EXCEEDED', 'message': '오늘은 의견을 더 보낼 수 없어요. 내일 다시 보내 주세요.'}) : '',
+        isLimit ? 429 : 204,
+        headers: {Headers.contentTypeHeader: [Headers.jsonContentType]},
+      );
+    }
     // 읽음 처리(POST .../notifications/{id}/read, .../read-all) > 기록 후 204
     if (options.method == 'POST' && options.path.contains('/members/me/notifications/')) {
       _markNotificationsRead(options);
@@ -941,6 +960,11 @@ Future<void> _openRoute(String route, ProviderContainer container) async {
         _typeIntoFirstTextField(typed);
         await Future<void>.delayed(const Duration(milliseconds: 600));
       }
+    case 'feedback':
+      // 설정 > 의견 보내기 (직전 경로가 설정으로 진단 정보에 담김)
+      AppRouter.router.go(AppRoutes.settings);
+      await Future<void>.delayed(settleDelay);
+      unawaited(AppRouter.router.push(AppRoutes.feedback));
     case 'nickname-sheet':
       // 내 프로필 > 닉네임 변경 시트 (프로필 카드 편집 콜백을 직접 부름, 전후 버전 모두 동작)
       AppRouter.router.go(AppRoutes.stats);
