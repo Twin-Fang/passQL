@@ -114,12 +114,9 @@
                                   th:data-created="${f.createdAt != null ? #temporals.format(f.createdAt, 'yyyy-MM-dd HH:mm') : '-'}"
                                   th:data-memo="${f.adminMemo}"
                                   th:data-updated-by="${f.updatedBy}"
-                                  th:data-reply="${f.replyMessage}"
-                                  th:data-replied-at="${f.repliedAt != null ? #temporals.format(f.repliedAt, 'yyyy-MM-dd HH:mm') : ''}"
                                   th:data-member-href="@{/admin/members/{uuid}(uuid=${f.memberUuid})}"
                                   onclick="openModal(this)">내용</span>
                             <span th:if="${f.adminMemo != null}" class="badge badge-ghost badge-xs mt-1">메모 있음</span>
-                            <span th:if="${f.replyMessage != null}" class="badge badge-success badge-xs mt-1">답변 완료</span>
                         </td>
                         <!-- 상태 배지 -->
                         <td>
@@ -202,22 +199,12 @@
                     <textarea id="modalMemo" class="textarea textarea-bordered w-full text-sm mt-1" rows="3" maxlength="1000"></textarea>
                     <p id="modalMemoUpdatedBy" class="text-xs text-base-content/40"></p>
                 </div>
-                <!-- 회원 답변: 작성자 알림함(푸시 포함)으로 전달 -->
-                <div class="mt-4">
-                    <label class="text-base-content/60 text-xs">회원에게 답변 <span class="text-base-content/40">(알림함과 푸시로 전달, 500자)</span></label>
-                    <textarea id="modalReply" class="textarea textarea-bordered w-full text-sm mt-1" rows="3" maxlength="500"
-                              placeholder="답변 내용을 입력하면 회원 알림함으로 전달됩니다."></textarea>
-                    <p id="modalRepliedAt" class="text-xs text-base-content/40"></p>
-                </div>
             </div>
             <div class="modal-action">
                 <form method="dialog">
                     <button class="btn btn-sm">닫기</button>
                 </form>
                 <button class="btn btn-sm btn-outline" onclick="saveMemo()">메모 저장</button>
-                <button class="btn btn-sm btn-primary" onclick="sendReply()">
-                    <i data-lucide="send" class="size-4"></i>답변 발송
-                </button>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop"><button>close</button></form>

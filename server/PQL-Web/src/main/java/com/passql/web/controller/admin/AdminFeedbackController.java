@@ -4,7 +4,6 @@ import com.passql.application.feedback.FeedbackAdminService;
 import com.passql.meta.constant.FeedbackStatus;
 import com.passql.meta.dto.FeedbackBulkStatusRequest;
 import com.passql.meta.dto.FeedbackMemoUpdateRequest;
-import com.passql.meta.dto.FeedbackReplyRequest;
 import com.passql.meta.dto.FeedbackSearchCondition;
 import com.passql.meta.dto.FeedbackStatusUpdateRequest;
 import com.passql.meta.service.FeedbackService;
@@ -64,7 +63,7 @@ public class AdminFeedbackController {
     @ResponseBody
     public ResponseEntity<Void> updateStatus(@PathVariable UUID feedbackUuid,
                                               @RequestBody FeedbackStatusUpdateRequest request) {
-        feedbackService.updateStatus(feedbackUuid, FeedbackStatus.fromRequestValue(request.getStatus()));
+        feedbackAdminService.changeStatus(feedbackUuid, FeedbackStatus.fromRequestValue(request.getStatus()));
         return ResponseEntity.ok().build();
     }
 
@@ -72,17 +71,8 @@ public class AdminFeedbackController {
     @PostMapping("/bulk-status")
     @ResponseBody
     public Map<String, Integer> bulkUpdateStatus(@Valid @RequestBody FeedbackBulkStatusRequest request) {
-        int changedCount = feedbackService.updateStatuses(request.feedbackUuids(),
+        int changedCount = feedbackAdminService.changeStatuses(request.feedbackUuids(),
             FeedbackStatus.fromRequestValue(request.status()));
         return Map.of("changedCount", changedCount);
-    }
-
-    /** 답변 발송: 작성자 알림함으로 전달 + 답변 기록 */
-    @PostMapping("/{feedbackUuid}/reply")
-    @ResponseBody
-    public ResponseEntity<Void> reply(@PathVariable UUID feedbackUuid,
-                                      @Valid @RequestBody FeedbackReplyRequest request) {
-        feedbackAdminService.replyToFeedback(feedbackUuid, request.message());
-        return ResponseEntity.ok().build();
     }
 }

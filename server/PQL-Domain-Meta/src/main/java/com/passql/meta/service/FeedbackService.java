@@ -22,10 +22,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -116,44 +118,41 @@ public class FeedbackService {
         return result;
     }
 
+    /** 상태 변경 + 감사 기록 > 실제로 바뀐 경우만 변경된 건의 (같은 상태 재설정은 empty) */
     @Transactional
-    public void updateStatus(UUID feedbackUuid, FeedbackStatus status) {
+    public Optional<Feedback> updateStatus(UUID feedbackUuid, FeedbackStatus status) {
         Feedback feedback = feedbackRepository.findById(feedbackUuid)
             .orElseThrow(() -> new CustomException(ErrorCode.FEEDBACK_NOT_FOUND));
-        FeedbackStatus previousStatus = feedback.getStatus();
-        feedback.setStatus(status);
-        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.FEEDBACK, feedbackUuid, AdminAuditAction.STATUS_CHANGE,
-            AdminAuditEvent.summary("status", previousStatus), AdminAuditEvent.summary("status", status)));
+        if (!applyStatus(feedback, status)) {
+            return Optional.empty();
+        }
         log.info("[FeedbackService] 건의사항 상태 변경: feedbackUuid={}, status={}", feedbackUuid, status);
+        return Optional.of(feedback);
     }
 
-    /** 일괄 상태 변경: 건별 감사 기록, 없는 건의는 건너뜀 > 변경한 건수 (한 트랜잭션, 최대 100건) */
+    /** 일괄 상태 변경: 건별 감사 기록, 없는 건의는 건너뜀 > 실제로 바뀐 건 목록 (한 트랜잭션, 최대 100건) */
     @Transactional
-    public int updateStatuses(Collection<UUID> feedbackUuids, FeedbackStatus status) {
-        int changedCount = 0;
+    public List<Feedback> updateStatuses(Collection<UUID> feedbackUuids, FeedbackStatus status) {
+        List<Feedback> changedFeedbacks = new ArrayList<>();
         for (Feedback feedback : feedbackRepository.findAllById(feedbackUuids)) {
-            FeedbackStatus previousStatus = feedback.getStatus();
-            feedback.setStatus(status);
-            eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.FEEDBACK, feedback.getFeedbackUuid(),
-                AdminAuditAction.STATUS_CHANGE, AdminAuditEvent.summary("status", previousStatus),
-                AdminAuditEvent.summary("status", status)));
-            changedCount++;
+            if (applyStatus(feedback, status)) {
+                changedFeedbacks.add(feedback);
+            }
         }
-        log.info("[FeedbackService] 건의사항 일괄 상태 변경: count={}, status={}", changedCount, status);
-        return changedCount;
+        log.info("[FeedbackService] 건의사항 일괄 상태 변경: count={}, status={}", changedFeedbacks.size(), status);
+        return changedFeedbacks;
     }
 
-    /** 답변 기록: 답변 내용·시각 저장, 대기 건의는 검토완료로 (알림 전달은 호출부) */
-    @Transactional
-    public Feedback recordReply(UUID feedbackUuid, String replyMessage) {
-        Feedback feedback = getFeedback(feedbackUuid);
-        feedback.setReplyMessage(replyMessage.trim());
-        feedback.setRepliedAt(LocalDateTime.now());
-        if (feedback.getStatus() == FeedbackStatus.PENDING) {
-            feedback.setStatus(FeedbackStatus.REVIEWED);
+    /** 상태 반영 + 감사 기록 > 바뀌었으면 true (같은 상태면 아무것도 안 함) */
+    private boolean applyStatus(Feedback feedback, FeedbackStatus status) {
+        FeedbackStatus previousStatus = feedback.getStatus();
+        if (previousStatus == status) {
+            return false;
         }
-        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.FEEDBACK, feedbackUuid, AdminAuditAction.SEND,
-            null, AdminAuditEvent.summary("replyMessage", feedback.getReplyMessage(), "status", feedback.getStatus())));
-        return feedback;
+        feedback.setStatus(status);
+        eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.FEEDBACK, feedback.getFeedbackUuid(),
+            AdminAuditAction.STATUS_CHANGE, AdminAuditEvent.summary("status", previousStatus),
+            AdminAuditEvent.summary("status", status)));
+        return true;
     }
 }

@@ -1,5 +1,6 @@
 package com.passql.application.feedback;
 
+import com.passql.meta.constant.FeedbackStatus;
 import com.passql.meta.dto.FeedbackAdminResponse;
 import com.passql.meta.dto.FeedbackSearchCondition;
 import com.passql.meta.entity.Feedback;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,8 +27,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * 관리자 건의 관리: 회원 닉네임 포함 검색, 답변 발송(알림함 전달 + 답변 기록)
- * 건의 자체 변경(상태·메모·일괄 상태)은 FeedbackService, 알림 생성은 MemberNotificationService
+ * 관리자 건의 관리: 회원 닉네임 포함 검색, 상태 변경(단건·일괄) + 작성자 상태 알림
+ * 상태 반영·감사 기록은 FeedbackService, 알림 생성은 MemberNotificationService
  */
 @Slf4j
 @Service
@@ -36,8 +38,8 @@ public class FeedbackAdminService {
 
     // 회원 닉네임 검색으로 찾는 회원 수 상한
     private static final int MEMBER_NICKNAME_SEARCH_LIMIT = 200;
-    // 답변 알림 제목 (알림함·푸시 공통)
-    private static final String REPLY_NOTIFICATION_TITLE = "건의사항 답변";
+    // 상태 알림 제목 (알림함·푸시 공통)
+    private static final String FEEDBACK_NOTIFICATION_TITLE = "건의사항 답변";
 
     private final FeedbackService feedbackService;
     private final MemberRepository memberRepository;
@@ -54,13 +56,28 @@ public class FeedbackAdminService {
             nicknameByMemberUuid.get(feedback.getMemberUuid())));
     }
 
-    /** 답변 발송: 답변 기록 > 작성자 알림함 알림(푸시 포함) (한 트랜잭션) */
+    /** 상태 변경 > 바뀐 경우만 작성자 알림 (한 트랜잭션) */
     @Transactional
-    public void replyToFeedback(UUID feedbackUuid, String replyMessage) {
-        Feedback feedback = feedbackService.recordReply(feedbackUuid, replyMessage);
-        memberNotificationService.notifyMember(feedback.getMemberUuid(), MemberNotificationType.ADMIN_MESSAGE,
-            REPLY_NOTIFICATION_TITLE, feedback.getReplyMessage(), PushLinkTarget.HOME, null);
-        log.info("[feedback reply] sent : feedback={}, member={}", feedbackUuid, feedback.getMemberUuid());
+    public void changeStatus(UUID feedbackUuid, FeedbackStatus status) {
+        feedbackService.updateStatus(feedbackUuid, status).ifPresent(this::notifyStatusChanged);
+    }
+
+    /** 일괄 상태 변경 > 바뀐 건마다 작성자 알림 > 바뀐 건수 (한 트랜잭션) */
+    @Transactional
+    public int changeStatuses(Collection<UUID> feedbackUuids, FeedbackStatus status) {
+        List<Feedback> changedFeedbacks = feedbackService.updateStatuses(feedbackUuids, status);
+        changedFeedbacks.forEach(this::notifyStatusChanged);
+        return changedFeedbacks.size();
+    }
+
+    /** 현재 상태 문구가 있으면 작성자 알림함 알림(푸시 포함), PENDING 은 알림 없음 */
+    private void notifyStatusChanged(Feedback feedback) {
+        FeedbackStatusNotice.messageFor(feedback.getStatus()).ifPresent(message -> {
+            memberNotificationService.notifyMember(feedback.getMemberUuid(), MemberNotificationType.ADMIN_MESSAGE,
+                FEEDBACK_NOTIFICATION_TITLE, message, PushLinkTarget.HOME, null);
+            log.info("[feedback status] notified : feedback={}, member={}, status={}",
+                feedback.getFeedbackUuid(), feedback.getMemberUuid(), feedback.getStatus());
+        });
     }
 
     /** 회원 검색어 > 후보 회원 UUID (비면 null=조건 없음, UUID 형식이면 그 회원, 아니면 닉네임 부분 일치 최대 200명) */
