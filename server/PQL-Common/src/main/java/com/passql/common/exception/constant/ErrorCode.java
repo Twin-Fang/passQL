@@ -117,6 +117,12 @@ public enum ErrorCode {
     FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "건의사항을 찾을 수 없습니다."),
     FEEDBACK_CONTENT_EMPTY(HttpStatus.BAD_REQUEST, "건의사항 내용을 입력해 주세요."),
     FEEDBACK_CONTENT_TOO_LONG(HttpStatus.BAD_REQUEST, "건의사항은 500자 이하로 입력해 주세요."),
+    FEEDBACK_IMAGE_TOO_MANY(HttpStatus.BAD_REQUEST, "사진은 최대 10장까지 보낼 수 있어요."),
+    FEEDBACK_IMAGE_INVALID(HttpStatus.BAD_REQUEST, "보낼 수 없는 사진이 있어요. 다른 사진을 선택해 주세요."),
+    FEEDBACK_ATTACHMENT_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE, "첨부 용량이 너무 커요."),
+    FEEDBACK_ATTACHMENT_INVALID(HttpStatus.BAD_REQUEST, "진단 정보 형식이 올바르지 않아요."),
+    FEEDBACK_DAILY_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "오늘은 더 이상 의견을 보낼 수 없어요. 내일 다시 보내 주세요."),
+    FEEDBACK_STORAGE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "지금은 첨부를 보낼 수 없어요. 잠시 후 다시 시도해 주세요."),
 
     // App Operation (점검·버전·공지)
     SERVICE_UNDER_MAINTENANCE(HttpStatus.SERVICE_UNAVAILABLE, "서비스 점검 중입니다. 잠시 후 다시 이용해 주세요."),
