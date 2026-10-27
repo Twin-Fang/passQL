@@ -3,8 +3,8 @@ spring:
     name: passql
   servlet:
     multipart:
-      # 의견 첨부: 파일 1개 최대 2MB(로그 gzip), 요청 전체 10MB (이미지 10장 + 진단 + 로그)
-      max-file-size: 2MB
+      # 의견 첨부: 파일 1개 3MB (로그 gzip 한도 2MB 초과를 서버 검증 413 으로 돌려주기 위한 여유), 요청 전체 10MB (이미지 10장 + 진단 + 로그)
+      max-file-size: 3MB
       max-request-size: 10MB
   mvc:
     hiddenmethod:

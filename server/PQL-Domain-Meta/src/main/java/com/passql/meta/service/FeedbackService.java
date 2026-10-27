@@ -5,7 +5,6 @@ import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
-import com.passql.common.util.MemberActivityLogger;
 import com.passql.meta.constant.FeedbackStatus;
 import com.passql.meta.dto.FeedbackDeviceColumns;
 import com.passql.meta.dto.FeedbackSearchCondition;
@@ -50,7 +49,7 @@ public class FeedbackService {
         return trimmed;
     }
 
-    /** 의견 저장 (PENDING): 진단 컬럼, 로그 객체 키(logBytes 있을 때 feedbackUuid 로 계산) 포함, 활동 로그 기록 */
+    /** 의견 저장 (PENDING): 진단 컬럼, 로그 객체 키(logBytes 있을 때 feedbackUuid 로 계산) 포함, 즉시 flush (DB 오류를 업로드 전에 드러냄) */
     @Transactional
     public Feedback createFeedback(UUID memberUuid, String content, FeedbackDeviceColumns deviceColumns,
                                    String diagnosticsJson, Integer logBytes) {
@@ -65,12 +64,11 @@ public class FeedbackService {
             .deviceModel(deviceColumns.deviceModel())
             .logBytes(logBytes)
             .build();
-        Feedback saved = feedbackRepository.save(feedback);
+        Feedback saved = feedbackRepository.saveAndFlush(feedback);
         // 로그 객체 키는 저장 후 발급된 feedbackUuid 가 필요
         if (logBytes != null) {
             saved.setLogObjectKey(Feedback.logObjectKeyOf(saved.getFeedbackUuid()));
         }
-        MemberActivityLogger.recordFeedbackSubmitted(memberUuid, saved.getFeedbackUuid());
         return saved;
     }
 

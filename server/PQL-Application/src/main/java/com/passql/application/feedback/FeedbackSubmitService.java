@@ -6,6 +6,7 @@ import com.passql.application.feedback.FeedbackAttachmentStorage.StoredObject;
 import com.passql.application.storage.ObjectStorageClient;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.MemberActivityLogger;
 import com.passql.common.util.WebpImageHeader;
 import com.passql.meta.dto.FeedbackDeviceColumns;
 import com.passql.meta.dto.FeedbackSubmitRequest;
@@ -100,7 +101,7 @@ public class FeedbackSubmitService {
             WebpImageHeader.Dimensions dimensions = imageDimensions.get(sortOrder);
             FeedbackImage image = FeedbackImage.of(saved.getFeedbackUuid(), sortOrder, imageBytes.length,
                     dimensions.widthPixels(), dimensions.heightPixels());
-            feedbackImageRepository.save(image);
+            feedbackImageRepository.saveAndFlush(image);
             storedObjects.add(new StoredObject(image.getObjectKey(), imageBytes, WEBP_CONTENT_TYPE));
         }
         if (logBytes != null) {
@@ -109,6 +110,7 @@ public class FeedbackSubmitService {
 
         // 업로드 (실패 시 예외 > 트랜잭션 롤백)
         feedbackAttachmentStorage.uploadAll(storedObjects);
+        MemberActivityLogger.recordFeedbackSubmitted(memberUuid, saved.getFeedbackUuid());
         return FeedbackSubmitResponse.from(saved);
     }
 
@@ -127,7 +129,8 @@ public class FeedbackSubmitService {
         if (!node.isValueNode() || node.isNull()) {
             return null;
         }
-        String text = node.asText();
+        // 제어문자(\u0000 포함) 제거: PostgreSQL 이 NUL 을 거절
+        String text = node.asText().replaceAll("\\p{Cntrl}", "");
         return text.length() > maxLength ? text.substring(0, maxLength) : text;
     }
 
