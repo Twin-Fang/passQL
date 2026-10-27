@@ -23,6 +23,13 @@
 
 <th:block layout:fragment="content">
 
+    <!-- 개념 학습(단원별 개념·확인 문제) 관리 화면 이동 (#577) -->
+    <div class="flex justify-end mb-3">
+        <a th:href="@{/admin/concepts/learning}" class="btn btn-sm btn-primary">
+            <i data-lucide="graduation-cap" class="size-4"></i>개념 학습 관리
+        </a>
+    </div>
+
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
 
         <!-- 개념 태그 목록 -->
