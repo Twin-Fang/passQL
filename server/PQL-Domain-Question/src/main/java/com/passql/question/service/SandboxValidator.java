@@ -124,7 +124,8 @@ public class SandboxValidator {
             results.add(sandboxExecutor.execute(dbName, choice.body()));
         }
 
-        // 결과를 문자열 시그니처로 그룹핑 (정렬 무시)
+        // 결과를 문자열 시그니처로 그룹핑 (행 순서 무시)
+        // 컬럼 이름 제외: "결과가 다른 것"은 데이터 값 비교, 별칭 차이(sum·?column?)로 갈리면 생성이 늘 실패 (#699)
         // 실행 실패(ERROR)는 별도 시그니처로 취급
         List<String> signatures = new ArrayList<>();
         for (ExecuteResult r : results) {
@@ -134,7 +135,7 @@ public class SandboxValidator {
                 List<List<Object>> sorted = r.rows().stream()
                         .sorted(Comparator.comparing(Objects::toString))
                         .toList();
-                signatures.add(r.columns() + "|" + sorted);
+                signatures.add(sorted.toString());
             }
         }
 
