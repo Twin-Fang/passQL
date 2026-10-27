@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import '../../../data/models/exam/exam_schedule_response.dart';
 import '../../design/design.dart';
+import 'exam_dday.dart';
 
 /// 홈 화면 시험 일정 카드.
 /// schedule이 null이면 "시험 일정 준비 중" 안내만 표시 (선택 기능 없음).
@@ -9,27 +10,6 @@ class ExamScheduleCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const ExamScheduleCard({super.key, this.schedule, this.onTap});
-
-  /// 시험일까지 남은 일수 (오늘 0, 지난 날 음수). 날짜를 읽지 못하면 null
-  int? _daysUntilExam(String examDate) {
-    try {
-      final exam = DateTime.parse(examDate);
-      final today = DateTime.now();
-      return exam
-          .difference(DateTime(today.year, today.month, today.day))
-          .inDays;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  /// 화면 표기: D-24 / D-Day / D+3
-  String _ddayLabel(int? daysUntilExam) {
-    if (daysUntilExam == null) return '';
-    if (daysUntilExam == 0) return 'D-Day';
-    if (daysUntilExam > 0) return 'D-$daysUntilExam';
-    return 'D+${daysUntilExam.abs()}';
-  }
 
   /// 스크린리더 낭독: 시험까지 24일 / 오늘 시험일 / 시험 3일 지남
   String _ddaySpokenLabel(int? daysUntilExam) {
@@ -52,9 +32,9 @@ class ExamScheduleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final daysUntilExam = schedule == null
+    final remainingDays = schedule == null
         ? null
-        : _daysUntilExam(schedule!.examDate);
+        : daysUntilExam(schedule!.examDate);
     // 머리와 D-day 묶음을 위에서 아래로 붙임 > 옆 카드 높이에 맞춰 늘어나도 머리와 숫자 사이가 벌어지지 않음
     return PassqlCard(
       onTap: onTap,
@@ -89,10 +69,10 @@ class ExamScheduleCard extends StatelessWidget {
               if (schedule != null) ...[
                 // 'D-24' 대신 '시험까지 24일'로 읽힘
                 Semantics(
-                  label: _ddaySpokenLabel(daysUntilExam),
+                  label: _ddaySpokenLabel(remainingDays),
                   excludeSemantics: true,
                   child: Text(
-                    _ddayLabel(daysUntilExam),
+                    examDdayLabel(remainingDays),
                     style: PassqlTypography.largeTitle.copyWith(
                       color: colors.accentText,
                     ),

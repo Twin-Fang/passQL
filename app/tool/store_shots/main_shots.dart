@@ -4,7 +4,9 @@
 // 앱 전체를 그대로 띄우되 Dio 를 가짜 어댑터로 바꿔 canned 응답을 돌려준다.
 // 빌드: flutter build ios --simulator -t tool/store_shots/main_shots.dart
 // 촬영: echo /stats > /tmp/passql_shot_route.txt && xcrun simctl launch <기기> com.coldredrice.passql
-// 연출(경로 대신 적음): execute-ok(SQL 실행 성공 표), execute-fail(SQL 실행 실패 카드), chapter-result(문제 목록 > 챕터 > 챕터 결과), ai-sheet(오답 AI 해설 시트)
+// 연출(경로 대신 적음): execute-ok(SQL 실행 성공 표), execute-fail(SQL 실행 실패 카드), chapter-result(문제 목록 > 챕터 > 챕터 결과), ai-sheet(오답 AI 해설 시트),
+//   onboarding-1~4(온보딩 n장), onboarding-celebration(온보딩 첫 문제 축하), onboarding-tour(4장 넘김 > 축하 영상),
+//   withdraw-confirm(설정 > 회원 탈퇴 확인창 > 확인 문구 입력 영상)
 // 로그인 중 화면: echo /login-signing-in > /tmp/passql_shot_route.txt (카카오 버튼을 눌러 응답 대기에서 멈춘 상태)
 // 로그인 전환 영상: echo /login-transition > /tmp/passql_shot_route.txt (로그인 화면 > 4초 뒤 홈 > 9초 뒤 로그인 화면, xcrun simctl io <기기> recordVideo 로 녹화)
 // 앱 시작 설정 상황: echo maintenance > /tmp/passql_shot_app_config.txt
@@ -40,6 +42,7 @@ import 'package:passql_app/presentation/providers/question_providers.dart';
 import 'package:passql_app/presentation/providers/push_notification_providers.dart';
 import 'package:passql_app/presentation/providers/theme_mode_provider.dart';
 import 'package:passql_app/presentation/widgets/question/ai_explain_sheet.dart';
+import 'package:passql_app/presentation/widgets/settings/settings_group.dart';
 import 'package:passql_app/router/app_launch_gate_routing.dart';
 import 'package:passql_app/router/app_router.dart';
 import 'package:passql_app/router/app_routes.dart';
@@ -904,7 +907,115 @@ Future<void> _openRoute(String route, ProviderContainer container) async {
           displayLabelByChoiceKey: const {'A': 'A', 'B': 'B', 'C': 'C', 'D': 'D'},
         ),
       );
+    case 'onboarding-celebration':
+      // 온보딩 첫 문제 뒤 축하 화면 (이어서 풀기)
+      AppRouter.router.push(AppRoutes.onboardingCelebration, extra: false);
+    case 'onboarding-tour':
+      // 온보딩 4장을 차례로 넘긴 뒤 축하 화면까지 (리포트 영상용, 스와이프 대신 페이지 애니메이션)
+      AppRouter.router.go(AppRoutes.onboarding);
+      for (var pageIndex = 1; pageIndex < 4; pageIndex++) {
+        await Future<void>.delayed(const Duration(milliseconds: 2500));
+        await _animateFirstPageView(pageIndex);
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 3000));
+      AppRouter.router.push(AppRoutes.onboardingCelebration, extra: false);
+    case 'withdraw-confirm':
+      // 설정 > 회원 탈퇴 확인창 > 확인 문구 한 글자씩 입력 (리포트 영상용, 입력칸이 없으면 창만 띄움)
+      AppRouter.router.go(AppRoutes.settings);
+      await Future<void>.delayed(const Duration(milliseconds: 2000));
+      // 탈퇴 행은 화면 아래라 스크롤해야 그려진다
+      await _scrollFirstScrollableToEnd();
+      await Future<void>.delayed(const Duration(milliseconds: 800));
+      _tapSettingsRow('회원 탈퇴');
+      await Future<void>.delayed(const Duration(milliseconds: 2000));
+      for (final typed in const ['탈', '탈퇴', '탈퇴하', '탈퇴하기']) {
+        _typeIntoFirstTextField(typed);
+        await Future<void>.delayed(const Duration(milliseconds: 600));
+      }
     default:
-      AppRouter.router.go(route);
+      // 온보딩 n장: onboarding-2 ~ onboarding-4 (시뮬레이터는 스와이프를 못 보내 페이지를 직접 넘김)
+      final onboardingPage = RegExp(r'^onboarding-([1-4])$').firstMatch(route);
+      if (onboardingPage == null) {
+        AppRouter.router.go(route);
+        return;
+      }
+      AppRouter.router.go(AppRoutes.onboarding);
+      await Future<void>.delayed(settleDelay);
+      _jumpFirstPageView(int.parse(onboardingPage.group(1)!) - 1);
   }
+}
+
+/// 시뮬레이터는 탭을 보낼 수 없으므로 제목이 같은 설정 행의 탭 콜백을 직접 부른다
+void _tapSettingsRow(String title) {
+  VoidCallback? onTap;
+  void visit(Element element) {
+    final widget = element.widget;
+    if (onTap == null && widget is SettingsRow && widget.title == title) onTap = widget.onTap;
+    if (onTap == null) element.visitChildren(visit);
+  }
+
+  WidgetsBinding.instance.rootElement?.visitChildren(visit);
+  onTap?.call();
+}
+
+/// 화면의 첫 스크롤 영역을 끝까지 내린다 (아래쪽 행 촬영용)
+Future<void> _scrollFirstScrollableToEnd() async {
+  ScrollableState? scrollable;
+  void visit(Element element) {
+    if (scrollable == null && element is StatefulElement && element.state is ScrollableState) {
+      scrollable = element.state as ScrollableState;
+    }
+    if (scrollable == null) element.visitChildren(visit);
+  }
+
+  WidgetsBinding.instance.rootElement?.visitChildren(visit);
+  final position = scrollable?.position;
+  if (position == null) return;
+  await position.animateTo(position.maxScrollExtent, duration: const Duration(milliseconds: 600), curve: Curves.easeOutCubic);
+}
+
+/// 키보드 입력처럼 첫 입력칸 값을 바꾼다 (onChanged 까지 불림)
+void _typeIntoFirstTextField(String text) {
+  EditableTextState? field;
+  void visit(Element element) {
+    if (field == null && element is StatefulElement && element.state is EditableTextState) {
+      field = element.state as EditableTextState;
+    }
+    if (field == null) element.visitChildren(visit);
+  }
+
+  WidgetsBinding.instance.rootElement?.visitChildren(visit);
+  field?.updateEditingValue(
+    TextEditingValue(text: text, selection: TextSelection.collapsed(offset: text.length)),
+  );
+}
+
+/// 화면의 첫 PageView 를 지정한 페이지로 넘긴다 (온보딩 촬영용)
+void _jumpFirstPageView(int pageIndex) {
+  PageController? controller;
+  void visit(Element element) {
+    final widget = element.widget;
+    if (controller == null && widget is PageView) controller = widget.controller;
+    if (controller == null) element.visitChildren(visit);
+  }
+
+  WidgetsBinding.instance.rootElement?.visitChildren(visit);
+  controller?.jumpToPage(pageIndex);
+}
+
+/// 화면의 첫 PageView 를 손으로 넘긴 것처럼 미끄러뜨려 넘긴다 (온보딩 영상용)
+Future<void> _animateFirstPageView(int pageIndex) async {
+  PageController? controller;
+  void visit(Element element) {
+    final widget = element.widget;
+    if (controller == null && widget is PageView) controller = widget.controller;
+    if (controller == null) element.visitChildren(visit);
+  }
+
+  WidgetsBinding.instance.rootElement?.visitChildren(visit);
+  await controller?.animateToPage(
+    pageIndex,
+    duration: const Duration(milliseconds: 350),
+    curve: Curves.easeOutCubic,
+  );
 }

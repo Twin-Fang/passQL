@@ -125,8 +125,22 @@ abstract final class AppRoutes {
   /// 오늘의 세트 풀이.
   static const String dailySet = '/daily-set';
 
+  /// 오늘의 세트를 온보딩에서 열었는지 알리는 쿼리 (첫 문제 배지·축하 화면)
+  static const String dailySetOnboardingQuery = 'onboarding';
+
+  /// 온보딩 마지막 장에서 여는 오늘의 세트.
+  static const String dailySetFromOnboarding =
+      '$dailySet?$dailySetOnboardingQuery=true';
+
   /// 오늘의 세트 결과.
   static const String dailySetResult = '/daily-set/result';
+
+  // 온보딩
+  /// 신규 가입자 온보딩 (탭 셸 밖, 알림 권한 안내가 끼어들지 않게).
+  static const String onboarding = '/onboarding';
+
+  /// 온보딩에서 들어온 첫 문제 뒤 축하. extra: 마지막 문제였는지(bool)
+  static const String onboardingCelebration = '/onboarding/celebration';
 
   /// 리더보드.
   static const String leaderboard = '/leaderboard';

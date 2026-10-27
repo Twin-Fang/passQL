@@ -7,8 +7,9 @@ import java.util.Set;
  */
 public final class AppSettingKeys {
 
-    // app_setting: Google Gemini API 키 (SECRET, 암호문 저장, 관리자 화면에서 변경, 비면 yml gemini.api-key 를 암호화해 채움)
+    // app_setting(이관 전용): 옛 Gemini·Claude 키, 기동 시 AI 연결(ai_connection)로 옮긴 뒤 행 삭제 (#695)
     public static final String AI_GEMINI_API_KEY = "ai.gemini_api_key";
+    public static final String AI_CLAUDE_API_KEY = "ai.claude_api_key";
     // app_setting: 모델별 단가표 (JSON {"모델":{"inputUsdPerMillion":0.10,"outputUsdPerMillion":0.40}}, USD / 1M 토큰)
     public static final String AI_MODEL_PRICE_TABLE = "ai.model_price_table";
     // app_setting: AI 월 예산 (USD, 대시보드 예산 사용률 기준)

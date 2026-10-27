@@ -27,10 +27,9 @@ RUN apt-get update && apt-get install -y \
 # uv 설치 (빠른 Python 패키지 매니저)
 RUN pip install --no-cache-dir uv
 
-# 프로젝트 파일 복사
+# 프로젝트 파일 복사 (비밀 설정 제외: 배포 시 호스트 config/.env.prod 를 /app/.env.prod 로 읽기 전용 마운트)
 COPY pyproject.toml ./
 COPY src/ ./src/
-COPY .env.prod .env.prod
 
 # 의존성 설치
 RUN uv pip install --system --no-cache .
@@ -56,13 +55,13 @@ CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8093"]
 # ===================================================================
 #
 # 1. .env 파일 생성:
-#    cp .env.example .env
+#    cp .env.example .env.prod
 #
 # 2. Docker 이미지 빌드:
 #    docker build -t passql-ai:latest .
 #
-# 3. Docker 컨테이너 실행:
-#    docker run -d -p 8093:8093 passql-ai:latest
+# 3. Docker 컨테이너 실행 (설정은 이미지에 없음 > 마운트):
+#    docker run -d -p 8093:8093 -v "$PWD/.env.prod:/app/.env.prod:ro" passql-ai:latest
 #
 # 4. 헬스체크:
 #    curl http://localhost:8093/health

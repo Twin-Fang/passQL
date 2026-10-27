@@ -96,6 +96,9 @@ coverage/
 # superpowers
 .superpowers/brainstorm
 
+# Playwright MCP 화면 캡처·스냅샷 (로컬 확인용)
+.playwright-mcp/
+
 # git worktrees
 .worktrees/
 # Firebase 서비스 계정 키 (민감 정보)

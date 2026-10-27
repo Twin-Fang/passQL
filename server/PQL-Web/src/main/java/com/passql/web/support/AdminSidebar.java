@@ -41,6 +41,7 @@ public final class AdminSidebar {
                     item("concepts", "/admin/concepts", "book", "개념 문서 관리"),
                     item("exam-schedules", "/admin/exam-schedules", "calendar-days", "시험 일정"))),
             new Group("AI", List.of(
+                    item("ai-connections", "/admin/ai-connections", "plug-zap", "AI 연결"),
                     item("prompts", "/admin/prompts", "message-square-code", "프롬프트 관리"),
                     item("embeddings", "/admin/embeddings", "layers", "임베딩 관리"))),
             new Group("운영", List.of(

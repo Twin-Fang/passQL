@@ -3,7 +3,7 @@ package com.passql.application.service.explanation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.passql.ai.client.GeminiClient;
+import com.passql.ai.client.AiChatClient;
 import com.passql.meta.entity.PromptTemplate;
 import com.passql.meta.service.PromptService;
 import com.passql.question.dto.explanation.ChoiceSetExplanation;
@@ -37,7 +37,7 @@ public class ChoiceSetExplanationGenerator {
     private static final ObjectMapper RESPONSE_MAPPER = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-    private final GeminiClient geminiClient;
+    private final AiChatClient aiChatClient;
     private final PromptService promptService;
 
     /** 세트 1개 해설 생성 (실행 근거 없음) */
@@ -74,16 +74,16 @@ public class ChoiceSetExplanationGenerator {
                 lastRawResponse, lastValidation, attempt, System.currentTimeMillis() - startedAt);
     }
 
-    /** Gemini 구조화 호출 (실패 > null, 원인은 로그) */
+    /** LLM 구조화 호출 (실패 > null, 원인은 로그) */
     private String callModel(PromptTemplate modelSetting, String userPrompt, Question question) {
         try {
-            return geminiClient.chatStructured(
+            return aiChatClient.chatStructured(
                     modelSetting.getModel(),
                     ChoiceSetExplanationPrompt.systemInstruction(),
                     userPrompt,
                     modelSetting.getTemperature() != null ? modelSetting.getTemperature() : DEFAULT_TEMPERATURE,
                     Math.max(modelSetting.getMaxTokens() != null ? modelSetting.getMaxTokens() : 0, MIN_OUTPUT_TOKENS),
-                    ChoiceSetExplanationPrompt.responseSchema());
+                    ChoiceSetExplanationPrompt.responseSchemaJson());
         } catch (Exception e) {
             log.error("[choice explanation] ai call failed : question={}", question.getQuestionUuid(), e);
             return null;

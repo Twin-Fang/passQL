@@ -29,6 +29,8 @@ dependencies {
 
 tasks.named('bootJar') {
     archiveFileName = 'app.jar'
+    // 비밀 설정 3개 jar 제외 (공개 이미지 유출 방지): 운영은 호스트 config/ 를 /app/config 로 마운트해 읽음
+    exclude 'application-prod.yml', 'application-dev.yml', 'firebase-service-account.json'
 }
 
 // API 계약 원본(레포 루트 api-contract/openapi.json) 경로·갱신 여부 > OpenApiContractTest (#458)

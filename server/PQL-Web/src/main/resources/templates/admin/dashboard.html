@@ -82,11 +82,11 @@
                     <h2 class="font-bold">AI API 상태</h2>
                     <a th:href="@{/admin/statistics}" class="btn btn-xs btn-ghost">AI 사용량·통계 →</a>
                 </div>
-                <!-- 구성 요소 3개: AI 서버, 서킷 브레이커, Gemini 키 -->
+                <!-- 구성 요소 3개: AI 서버, 서킷 브레이커, 1순위 AI 연결 -->
                 <div class="flex justify-between items-center gap-2 text-sm"><span>AI 서버 (FastAPI)</span><span id="aiServerBadge" class="badge badge-ghost badge-sm">-</span></div>
                 <div class="flex justify-between items-center gap-2 text-sm"><span>서킷 브레이커</span><span id="circuitStateBadge" class="badge badge-ghost badge-sm">-</span></div>
-                <div class="flex justify-between items-center gap-2 text-sm"><span>Gemini 키 유효성</span><span id="geminiKeyBadge" class="badge badge-ghost badge-sm">-</span></div>
-                <p id="geminiKeyDetail" class="text-xs text-error break-words" hidden></p>
+                <div class="flex justify-between items-center gap-2 text-sm"><span>AI 연결 (1순위)</span><span id="aiConnectionBadge" class="badge badge-ghost badge-sm">-</span></div>
+                <p id="aiConnectionDetail" class="text-xs text-error break-words" hidden></p>
 
                 <div class="divider my-0 text-xs">최근 24시간 실패 원인</div>
                 <div id="failureBreakdown" class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-2 gap-2 text-center"></div>

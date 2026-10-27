@@ -9,7 +9,6 @@ import time
 
 import redis.asyncio as redis_asyncio
 
-from src.clients.setting_secret_cipher import SettingSecretError, decrypt_setting_secret, is_encrypted
 from src.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -88,17 +87,13 @@ async def get_setting(key: str, fallback: str) -> str:
     return fallback
 
 
-GEMINI_API_KEY_SETTING = "ai.gemini_api_key"
-
-
-async def get_gemini_api_key() -> str:
-    """Redis 암호문 > 복호화, 평문(전환 전)은 그대로, 복호화 실패·미설정은 env GEMINI_API_KEY"""
-    stored_value = await get_setting(GEMINI_API_KEY_SETTING, settings.GEMINI_API_KEY)
-    if not is_encrypted(stored_value):
-        return stored_value
+async def get_raw_value(full_key: str) -> str | None:
+    """접두사 없는 Redis 키 값 그대로 (미연결·없음·읽기 실패 > None)"""
     try:
-        return decrypt_setting_secret(GEMINI_API_KEY_SETTING, stored_value)
-    except SettingSecretError as error:
-        logger.error(f"Gemini 키 복호화 실패 — env GEMINI_API_KEY 로 대체: {error}")
-        return settings.GEMINI_API_KEY
-
+        client = await _get_redis()
+        if client is None:
+            return None
+        return await client.get(full_key)
+    except Exception as e:
+        logger.warning(f"Redis 읽기 실패 ({full_key}): {e}")
+        return None

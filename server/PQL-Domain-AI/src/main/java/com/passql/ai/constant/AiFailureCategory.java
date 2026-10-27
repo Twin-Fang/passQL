@@ -14,9 +14,9 @@ public enum AiFailureCategory {
     QUOTA_EXCEEDED(List.of("GEMINI_QUOTA_EXCEEDED", "429", "QUOTA", "RESOURCE_EXHAUSTED")),
     // 키 무효·권한 없음·결제 문제 (401, 403)
     PERMISSION_DENIED(List.of("GEMINI_PERMISSION_DENIED", "401", "403", "PERMISSION")),
-    // AI 서버 연결 실패·시간 초과·5xx
+    // AI 서버 연결 실패·시간 초과·5xx·응답 없음({제공자}_NO_RESPONSE, #695)
     TIMEOUT_OR_SERVER_ERROR(List.of("AI_SERVER_UNAVAILABLE", "AI_UNAVAILABLE", "TIMEOUT", "IOEXCEPTION",
-            "RESOURCEACCESS", "SERVERERROR")),
+            "RESOURCEACCESS", "SERVERERROR", "NO_RESPONSE")),
     OTHER(List.of());
 
     // 상태 코드 5xx (앞뒤가 숫자가 아닌 3자리)

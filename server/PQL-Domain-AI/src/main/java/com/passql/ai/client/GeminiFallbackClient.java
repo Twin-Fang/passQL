@@ -2,7 +2,6 @@ package com.passql.ai.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.genai.types.Schema;
 import com.passql.ai.dto.*;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
@@ -14,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Python AI 서버 장애 시 GeminiClient 를 직접 호출하는 fallback 래퍼.
+ * Python AI 서버 장애 시 AiChatClient 를 직접 호출하는 fallback 래퍼 (모델 이름으로 Gemini·Claude 선택).
  * <p>
  * ⚠️ AiGatewayClient 내부에서만 호출. 다른 서비스에서 직접 주입 금지.
  */
@@ -23,7 +22,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GeminiFallbackClient {
 
-    private final GeminiClient geminiClient;
+    private final AiChatClient aiChatClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public GenerateQuestionFullResult generateQuestionFull(GenerateQuestionFullRequest request) {
@@ -33,12 +32,12 @@ public class GeminiFallbackClient {
             long started = System.currentTimeMillis();
             String json;
             if (config.responseSchema() != null) {
-                json = geminiClient.chatStructured(
+                json = aiChatClient.chatStructured(
                         config.model(), config.systemPrompt(), userPrompt,
                         config.temperature(), config.maxTokens(),
-                        convertSchema(config.responseSchema()));
+                        toSchemaJson(config.responseSchema()));
             } else {
-                json = geminiClient.chat(
+                json = aiChatClient.chat(
                         config.model(), config.systemPrompt(), userPrompt,
                         config.temperature(), config.maxTokens());
             }
@@ -60,12 +59,12 @@ public class GeminiFallbackClient {
             long started = System.currentTimeMillis();
             String json;
             if (config.responseSchema() != null) {
-                json = geminiClient.chatStructured(
+                json = aiChatClient.chatStructured(
                         config.model(), config.systemPrompt(), userPrompt,
                         config.temperature(), config.maxTokens(),
-                        convertSchema(config.responseSchema()));
+                        toSchemaJson(config.responseSchema()));
             } else {
-                json = geminiClient.chat(
+                json = aiChatClient.chat(
                         config.model(), config.systemPrompt(), userPrompt,
                         config.temperature(), config.maxTokens());
             }
@@ -87,12 +86,12 @@ public class GeminiFallbackClient {
             long started = System.currentTimeMillis();
             String result;
             if (config.responseSchema() != null) {
-                result = geminiClient.chatStructured(
+                result = aiChatClient.chatStructured(
                         config.model(), config.systemPrompt(), userPrompt,
                         config.temperature(), config.maxTokens(),
-                        convertSchema(config.responseSchema()));
+                        toSchemaJson(config.responseSchema()));
             } else {
-                result = geminiClient.chat(
+                result = aiChatClient.chat(
                         config.model(), config.systemPrompt(), userPrompt,
                         config.temperature(), config.maxTokens());
             }
@@ -145,17 +144,9 @@ public class GeminiFallbackClient {
         );
     }
 
-    private Schema convertSchema(Map<String, Object> schemaMap) {
-        // google-genai SDK Schema 변환 — MVP 에서는 Gemini의 JSON mode 활용
-        // 상세 변환은 Schema.builder() 로 해야 하나, 실질적으로 responseMimeType=json 사용 시
-        // 타입 힌트로 충분. 여기서는 단순 변환.
-        try {
-            String json = objectMapper.writeValueAsString(schemaMap);
-            return Schema.fromJson(json);
-        } catch (Exception e) {
-            log.warn("[GeminiFallback] Schema 변환 실패, null 사용: {}", e.getMessage());
-            return null;
-        }
+    /** 응답 스키마 Map > JSON 문자열 (Gemini·Claude 공통 입력) */
+    private String toSchemaJson(Map<String, Object> schemaMap) throws Exception {
+        return objectMapper.writeValueAsString(schemaMap);
     }
 
     @SuppressWarnings("unchecked")
@@ -175,7 +166,7 @@ public class GeminiFallbackClient {
                     .toList();
 
             return new GenerateQuestionFullResult(stem, answerSql, choices,
-                    new GenerationMetadataDto(model, null, elapsed, null, null, payload, 1));
+                    new GenerationMetadataDto(model, null, elapsed, null, null, payload, 1, null));
         } catch (Exception e) {
             // 원인 메시지는 로그에만 (응답 detail 은 고정 문구)
             log.error("[GeminiFallback] 응답 파싱 실패: model={}, error={}", model, e.getMessage());
@@ -199,7 +190,7 @@ public class GeminiFallbackClient {
                     .toList();
 
             return new GenerateChoiceSetResult(choices,
-                    new GenerationMetadataDto(model, null, elapsed, null, null, payload, 1));
+                    new GenerationMetadataDto(model, null, elapsed, null, null, payload, 1, null));
         } catch (Exception e) {
             // 원인 메시지는 로그에만 (응답 detail 은 고정 문구)
             log.error("[GeminiFallback] 응답 파싱 실패: model={}, error={}", model, e.getMessage());

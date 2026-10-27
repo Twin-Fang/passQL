@@ -2,7 +2,7 @@ package com.passql.application.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.passql.ai.client.GeminiClient;
+import com.passql.ai.client.AiChatClient;
 import com.passql.ai.dto.AiCommentResponse;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
@@ -44,7 +44,7 @@ public class AiCommentService {
     /** 통계 화면 최근 활동 기간 (일) */
     private static final int RECENT_ACTIVITY_DAYS = 7;
 
-    private final GeminiClient geminiClient;
+    private final AiChatClient aiChatClient;
     private final TopicAnalysisService topicAnalysisService;
     private final SubmissionRepository submissionRepository;
     private final PromptService promptService;
@@ -102,10 +102,10 @@ public class AiCommentService {
                     .replace("{recentActivity}", recentActivitySummary);
         }
 
-        // Gemini 호출
+        // LLM 호출 (모델 이름으로 Gemini·Claude 선택)
         String comment;
         try {
-            comment = geminiClient.chat(
+            comment = aiChatClient.chat(
                     prompt.getModel(),
                     prompt.getSystemPrompt(),
                     userPrompt,

@@ -28,7 +28,11 @@ class QuestionSolvingBody extends StatelessWidget {
     this.submitResult,
     this.gradedSelectedKey,
     this.shouldAlwaysAllowRetry = false,
+    this.topBadge,
   });
+
+  /// 문제 맨 위에 붙이는 배지 (온보딩에서 들어온 첫 문제의 '첫 문제')
+  final Widget? topBadge;
 
   final String questionUuid;
   final QuestionDetail question;
@@ -76,6 +80,16 @@ class QuestionSolvingBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (topBadge != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                PassqlSpacing.md,
+                PassqlSpacing.md,
+                PassqlSpacing.md,
+                0,
+              ),
+              child: Align(alignment: Alignment.centerLeft, child: topBadge),
+            ),
           // 난이도 + 실행 모드 뱃지
           QuestionHeader(question: question),
           QuestionStem(stem: question.stem),

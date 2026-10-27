@@ -21,5 +21,7 @@ public record GenerationMetadataDto(
         Integer promptTokens,
         Integer completionTokens,
         Map<String, Object> rawResponseJson,
-        @JsonSetter(nulls = Nulls.SET) Integer attempts
+        @JsonSetter(nulls = Nulls.SET) Integer attempts,
+        // AI 서버가 실제로 호출한 연결 이름 (#695, 대체 경로는 null)
+        String connectionName
 ) {}
