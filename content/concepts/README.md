@@ -10,6 +10,7 @@ content/concepts/
   concept_dataset.py        공통 예시 데이터 (부서·사원·급여등급) 마크다운 표 + Oracle 생성 SQL
   build_concept_bundle.py   수집 > 구조 검증 > 글 점검 > build/concept_bundle.json (관리자 가져오기용)
   verify_concept_sql.py     Oracle 21c 에서 본문 SQL 블록·sqlChecks·stemSql 검증
+  related_questions.json    개념별 관련 문제(운영 question UUID) 연결, 조립 시 합침
   {topicCode}/{tagKey 밑줄}.py   개념 1개 = 파일 1개, 모듈 변수 CONCEPT 하나
 ```
 
@@ -17,7 +18,7 @@ content/concepts/
 
 ```bash
 python3 -I content/concepts/build_concept_bundle.py                 # 전체 구조 검증 + JSON
-python3 -I content/concepts/build_concept_bundle.py --topic sql_join
+python3 -I content/concepts/build_concept_bundle.py --topic sql_join   # 검증만 (JSON 안 씀)
 tools/sqld-question-harness/.venv/bin/python -I content/concepts/verify_concept_sql.py --tag-key join-outer
 ```
 
@@ -36,7 +37,7 @@ Oracle 은 `tools/sqld-question-harness/README.md` 의 XE 21c 컨테이너(`loca
 | `coreMd` | `- ` 목록 3~5줄, "꼭 기억할 것"만, 1분 안에 읽힘 |
 | `detailMd` | `## 제목 {#앵커}` 문단들. 첫 줄부터 제목, 앵커는 소문자·숫자·`-` |
 | `checkQuestions` | `question()` 5개, 1번 정의 > 5번 짧은 응용, 보기 A~D 4개·정답 1개·보기마다 이유 |
-| `relatedQuestionUuids` | 빈 목록 (기존 문제 연결은 관리자에서) |
+| `relatedQuestionUuids` | 빈 목록 그대로 둔다. 관련 문제는 `related_questions.json`({tagKey: [운영 문제 UUID]}) 한 곳에서 관리하고 조립할 때 합친다 |
 | `sqlChecks` | Oracle 검증 전용, 가져오기 JSON 에서 빠짐 |
 
 **자세히 본문 틀**: 왜 필요한가 > 한 줄 정의 > 예시 > 자주 헷갈리는 점 > 시험에서는 이렇게 나와요. 제목 문구는 개념에 맞게 바꿔도 되고, 내용이 많으면 예시를 단계별 문단으로 나눈다. **"자주 헷갈리는 점"을 가장 두껍게** 쓴다. 앵커 `why`, `definition`, `confusing`, `exam-point` 는 가능하면 같은 이름을 쓴다.
@@ -56,8 +57,9 @@ Oracle 은 `tools/sqld-question-harness/README.md` 의 XE 21c 컨테이너(`loca
 ## Oracle 검증 규칙
 
 - ```` ```sql ```` 블록과 `sqlChecks` 항목은 각각 공통 데이터 초기 상태에서 따로 실행된다. 블록끼리 상태를 이어 쓰지 않는다.
-- 블록 안 문장은 순서대로 실행된다. 일부러 오류를 보여 주는 문장은 같은 줄이나 바로 윗줄 주석에 `오류`를 적는다(`-- 오류: GROUP BY 에 없는 열`). 그 문장은 실제로 오류가 나야 통과한다.
+- 블록 안 문장은 순서대로 실행된다. 일부러 오류를 보여 주는 문장은 같은 줄이나 바로 윗줄 주석에 `오류`를 적는다(`-- 오류: GROUP BY 에 없는 열`). 그 문장은 실제로 오류가 나야 통과한다. "오류 없이 실행돼요"처럼 성공하는 문장의 주석에는 `오류`라는 낱말을 쓰지 않는다.
 - 실행하지 않을 틀 설명 블록(`SELECT 열 FROM 테이블` 같은 문법 틀, 다른 계정이 필요한 GRANT 등)은 첫 줄을 `-- 문법` 으로 시작한다.
+- SQL 블록 바로 아래 결과 표를 보이는 예시는 `sql_example(sql, 열, 행)` 하나로 만든다. `.markdown`(코드 블록 + 결과 표)을 본문에 넣고 `.check` 를 sqlChecks 에 넣으면 화면 표와 검증 값이 한 원본에서 나온다.
 - 본문에 결과를 적었거나 결과 표를 보였으면 같은 SQL 의 `sql_check()` 를 넣는다. 날짜는 `'YYYY-MM-DD'` 문자열로 비교된다. 소수가 길게 나오면 `ROUND` 로 감싼다.
 - `stemSql` 이 있는 확인 문제는 같은 SQL(공백·대소문자·끝 `;` 무시)의 `sql_check()` 또는 `sql_error_check()` 가 반드시 있어야 한다.
 - 보기가 SQL 조각이면 정답 보기와 헷갈리기 쉬운 오답 보기도 검증 항목으로 확인한다.
@@ -73,6 +75,12 @@ Oracle 은 `tools/sqld-question-harness/README.md` 의 XE 21c 컨테이너(`loca
 7. 수험서 문장·예제를 옮기지 않는다. Oracle 공식 문서와 일반 지식으로 새로 쓴다. 사실이 애매하면 Oracle 에서 직접 실행해 확인한다.
 8. 확인 문제: 그 개념 하나만 묻고, 쉬운 순서로 놓고, 정답 위치(A~D)가 한쪽에 몰리지 않게 한다. 오답 이유는 "왜 그걸 고르기 쉬운지"가 아니라 "왜 틀렸는지"를 한 문장으로 적는다. 해설(`explanation`)은 두 문장 안팎.
 9. 결과 행 수·값을 묻는 문제는 지문에 표를 넣거나 공통 예시 데이터를 기준으로 하고, 반드시 Oracle 로 확인한다.
+10. **계산에 쓰는 표는 그 개념 안에 전부 보인다.** 개념 하나만 따로 읽어도 결과 행 수와 값을 직접 셀 수 있어야 한다. "사원 여덟 명 전체로 계산하면"이라고 쓰려면 그 개념 본문에 여덟 명과 필요한 열(부서번호·직급 등)이 모두 보여야 한다. 일부 열만 보일 때는 계산에 필요한 열을 빠뜨리지 않는다.
+11. **오류 번호에는 뜻을 함께 쓴다.** 본문 문장에서는 `ORA-00904(없는 열 이름)`처럼 괄호로 뜻을 붙이고, 번호 자체를 외우게 하지 않는다. 시험은 번호가 아니라 "오류가 나는가"를 묻는다.
+12. **아직 배우지 않은 말은 그 자리에서 한 줄로 풀어 준다.** 뒤 단원의 함수·문법(NVL, COUNT, GROUP BY, 서브쿼리 등)을 예시에 쓸 때는 "NVL은 NULL을 다른 값으로 바꾸는 함수예요"처럼 뜻을 붙이고, 필요하면 어느 단원에서 자세히 다루는지 적는다.
+13. **보기(`body`)와 보기 이유(`rationale`)는 일반 글자로 그려진다.** 백틱(`)과 `**`를 쓰지 않는다(조립 스크립트가 오류로 막는다). 지문(`stem`)에는 인라인 코드, ```` ``` ```` 코드 블록, 표를 쓸 수 있고, 해설(`explanation`)에는 굵게와 인라인 코드를 쓸 수 있다.
+14. 숫자 표현을 정확히 쓴다("곱절"은 두 배). "세 가지예요"라고 했으면 정말 세 가지를 나열한다.
+15. **SQL 예시의 주석도 짧은 해요체 문장으로 쓴다.** `-- 오류: TRIM은 지울 문자를 한 글자만 받아요 (ORA-30001, 인자 오류)`처럼 조사를 붙이고, 조사 앞에 빈칸을 두지 않는다(`TRIM 은` 금지). 결과가 두 행 이상이면 주석에 나열하지 말고 블록 아래 결과 표로 보인다.
 
 ## 개념 목록 (62개)
 

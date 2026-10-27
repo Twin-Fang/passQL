@@ -1,16 +1,9 @@
-"""개념 SQL Oracle 검증: 본문 SQL 블록 실행 > sqlChecks 결과 비교 > 확인 문제 stemSql 검증 누락 확인
-
-실행 (Oracle XE 21c, tools/sqld-question-harness README 의 docker 컨테이너):
-  tools/sqld-question-harness/.venv/bin/python -I content/concepts/verify_concept_sql.py [--topic 코드] [--tag-key 키 ...]
-
-규칙 (개념 파일 작성자용)
-  - 개념마다 전용 스키마, ```sql 블록과 검증 항목은 각각 공통 예시 데이터(concept_dataset.SETUP_SQL) 상태에서 시작
-  - 블록 안 문장은 순서대로 실행, 주석에 '오류'가 있는 문장은 반드시 오류가 나야 함
-  - 첫 줄이 '-- 문법'으로 시작하는 블록은 실행하지 않음 (틀 설명, 권한이 필요한 GRANT 등)
-  - stemSql 이 있는 확인 문제는 같은 SQL 의 sqlChecks 항목이 있어야 함
-"""
+"""개념 SQL Oracle 21c 검증: 본문 SQL 블록 실행 > sqlChecks 결과 비교 > stemSql 검증 누락 확인
+작성 규칙(블록마다 초기 데이터, '오류' 주석, '-- 문법' 블록)은 content/concepts/README.md"""
 import argparse
 import datetime
+import os
+import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -28,7 +21,15 @@ from sqld_harness.sql_script import are_rows_equal, normalize_sql_text  # noqa: 
 
 SYNTAX_ONLY_BLOCK_MARKER = "-- 문법"
 EXPECTED_ERROR_MARKER = "오류"
+# '오류' 주석에 적은 오류 번호 (있으면 실제 오류 번호와 맞아야 함)
+ORACLE_ERROR_CODE_PATTERN = re.compile(r"ORA-\d{5}")
 DEFAULT_WORKER_COUNT = 4
+# 세션 날짜·언어 설정 고정 (XE 컨테이너 기본값 그대로 명시, 기본값이 바뀌어도 결과 동일)
+SESSION_NLS_STATEMENTS = (
+    "ALTER SESSION SET NLS_LANGUAGE = 'AMERICAN'",
+    "ALTER SESSION SET NLS_TERRITORY = 'AMERICA'",
+    "ALTER SESSION SET NLS_DATE_FORMAT = 'DD-MON-RR'",
+)
 
 
 def extract_sql_blocks(markdown):
@@ -60,7 +61,8 @@ def split_line_comment(line):
 
 
 def split_statements(script):
-    """스크립트 > [(문장, 오류 기대 여부)] (줄 끝 주석 제거 후 ';' 로 분리, 문장 앞·뒤 주석의 '오류' 표시 확인)"""
+    """스크립트 > [(문장, 기대 오류)] (줄 끝 주석 제거 후 ';' 로 분리)
+    기대 오류: None 성공 기대, "" 오류 기대(번호 없음), "ORA-xxxxx" 그 번호의 오류 기대"""
     statements, code_lines, comments = [], [], []
     for line in (script or "").splitlines():
         code, comment = split_line_comment(line)
@@ -69,12 +71,21 @@ def split_statements(script):
         if code.rstrip().endswith(";"):
             sql = "\n".join(code_lines).strip().rstrip(";").strip()
             if sql:
-                statements.append((sql, any(EXPECTED_ERROR_MARKER in text for text in comments)))
+                statements.append((sql, to_expected_error(comments)))
             code_lines, comments = [], []
     rest = "\n".join(code_lines).strip()
     if rest:
-        statements.append((rest.rstrip(";"), any(EXPECTED_ERROR_MARKER in text for text in comments)))
+        statements.append((rest.rstrip(";"), to_expected_error(comments)))
     return statements
+
+
+def to_expected_error(comments):
+    """문장 주석들 > 기대 오류 ('오류' 표시 없으면 None, 표시 주석에 번호가 있으면 그 번호)"""
+    error_comments = [text for text in comments if EXPECTED_ERROR_MARKER in text]
+    if not error_comments:
+        return None
+    codes = ORACLE_ERROR_CODE_PATTERN.findall(" ".join(error_comments))
+    return codes[0] if codes else ""
 
 
 def to_comparable_rows(rows):
@@ -96,8 +107,12 @@ class ConceptSqlVerifier:
         self.statement_count = 0
 
     def verify(self):
-        with self.executor.open_session(self.concept["tagKey"], SETUP_SQL) as session:
+        # 스키마 이름에 프로세스 번호 포함 (같은 개념을 여러 세션이 동시에 검증해도 충돌 없음)
+        with self.executor.open_session(f"{self.concept['tagKey']}#{os.getpid()}", SETUP_SQL) as session:
             self.session = session
+            with session.connection.cursor() as cursor:
+                for statement in SESSION_NLS_STATEMENTS:
+                    cursor.execute(statement)
             for index, block in enumerate(self._collect_blocks(), start=1):
                 self._run_block(f"block {index}", block)
             for index, check in enumerate(self.concept.get("sqlChecks") or [], start=1):
@@ -123,12 +138,14 @@ class ConceptSqlVerifier:
     def _run_script(self, where, script):
         """스크립트 실행 > 마지막 조회 행 (기대와 다른 오류·성공은 실패로 기록)"""
         last_rows = None
-        for sql, is_error_expected in split_statements(script):
+        for sql, expected_error in split_statements(script):
             rows, error = self._execute(sql)
-            if error and not is_error_expected:
+            if error and expected_error is None:
                 self.failures.append(f"{where}: unexpected error {error} : {sql[:120]}")
-            elif is_error_expected and not error:
+            elif expected_error is not None and not error:
                 self.failures.append(f"{where}: expected error but succeeded : {sql[:120]}")
+            elif error and expected_error and expected_error not in error:
+                self.failures.append(f"{where}: expected {expected_error}, got {error} : {sql[:120]}")
             if rows is not None:
                 last_rows = rows
         return last_rows

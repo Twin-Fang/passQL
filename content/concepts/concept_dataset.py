@@ -1,8 +1,5 @@
-"""개념 학습 공통 예시 데이터: 부서·사원·급여등급 표 (모든 개념이 같은 표를 씀, 설계 7장 4번)
-
-화면용 마크다운 표와 Oracle 검증용 생성 SQL 의 원본이 이곳 하나다. 값을 바꾸면 두 쪽이 함께 바뀐다.
-데이터 특징: 사원 없는 부서 40, 부서 없는 사원 1008, 커미션 NULL 4명·0 1명, 20번 부서 급여 2500 동점, 관리자 3단계
-"""
+"""개념 공통 예시 데이터(부서·사원·급여등급) 원본: 화면용 마크다운 표 + Oracle 생성 SQL
+특징: 사원 없는 부서 40, 부서 없는 사원 1008, 커미션 NULL 4명·0 1명, 20번 급여 2500 동점, 관리자 3단계"""
 
 # 부서 4개 (40 인사부는 소속 사원 없음 > 외부 조인 예시)
 DEPARTMENT_ROWS = (
@@ -59,7 +56,8 @@ def to_employee_table_md(*column_names, employee_numbers=None):
     return to_markdown_table(column_names, [[row[index] for index in indexes] for row in rows])
 
 
-def _to_sql_literal(value, is_date=False):
+def to_sql_literal(value, is_date=False):
+    """파이썬 값 > SQL 리터럴 (None > NULL, 문자 > '값', is_date > DATE '값')"""
     if value is None:
         return "NULL"
     if is_date:
@@ -69,10 +67,11 @@ def _to_sql_literal(value, is_date=False):
     return str(value)
 
 
-def _to_insert_statements(table_name, rows, date_column_indexes=()):
+def to_insert_statements(table_name, rows, date_column_indexes=()):
+    """행 목록 > INSERT 문 목록 (개념 블록 안에서 만드는 보조 표에도 사용)"""
     return [
         f"INSERT INTO {table_name} VALUES ("
-        + ", ".join(_to_sql_literal(value, index in date_column_indexes) for index, value in enumerate(row))
+        + ", ".join(to_sql_literal(value, index in date_column_indexes) for index, value in enumerate(row))
         + ");"
         for row in rows
     ]
@@ -85,7 +84,7 @@ SETUP_SQL = "\n".join([
     " 관리자사번 NUMBER(4), 입사일 DATE, 급여 NUMBER(5), 커미션 NUMBER(5),"
     " 부서번호 NUMBER(2) REFERENCES 부서(부서번호));",
     "CREATE TABLE 급여등급 (등급 NUMBER(1) PRIMARY KEY, 최저급여 NUMBER(5), 최고급여 NUMBER(5));",
-    *_to_insert_statements("부서", DEPARTMENT_ROWS),
-    *_to_insert_statements("사원", EMPLOYEE_ROWS, date_column_indexes=(4,)),
-    *_to_insert_statements("급여등급", SALARY_GRADE_ROWS),
+    *to_insert_statements("부서", DEPARTMENT_ROWS),
+    *to_insert_statements("사원", EMPLOYEE_ROWS, date_column_indexes=(4,)),
+    *to_insert_statements("급여등급", SALARY_GRADE_ROWS),
 ])

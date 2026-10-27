@@ -1,9 +1,5 @@
 """개념 묶음 조립: 개념 파일 수집 > 구조 검증(서버 ConceptBundleValidator 와 같은 규칙) > 글 점검 > 가져오기 JSON
-
-실행: python3 -I content/concepts/build_concept_bundle.py [--topic data_modeling] [--output 경로]
-  - 오류가 하나라도 있으면 JSON 을 쓰지 않고 종료코드 1, 경고는 출력만
-  - 기본 출력: content/concepts/build/concept_bundle.json (gitignore, 관리자 > 개념 묶음 가져오기에 사용)
-"""
+사용법·옵션은 content/concepts/README.md"""
 import argparse
 import importlib.util
 import json
@@ -17,6 +13,8 @@ sys.path.insert(0, str(CONCEPTS_DIR))
 from concept_bundle import TOPIC_CODES  # noqa: E402
 
 DEFAULT_OUTPUT_PATH = CONCEPTS_DIR / "build" / "concept_bundle.json"
+# 관련 문제 연결 원본: {tagKey: [운영 question UUID, ...]} (개념 화면 "관련 문제 더 풀기")
+RELATED_QUESTIONS_PATH = CONCEPTS_DIR / "related_questions.json"
 
 # 서버 규칙 (ConceptBundleValidator, ConceptDetailSectionParser)
 TAG_KEY_PATTERN = re.compile(r"[a-z0-9-]{1,100}")
@@ -28,6 +26,9 @@ CHOICE_KEYS = ("A", "B", "C", "D")
 BANNED_PHRASES = ("완벽", "마스터", "핵심 중의 핵심", "중요합니다", "라고 할 수 있습니다", "해 볼게요!", "먼저,", "마지막으로,")
 EMOJI_PATTERN = re.compile("[\U0001F300-\U0001FAFF☀-➿]")
 CORE_LINE_RANGE = (3, 5)
+PLAIN_TEXT_MARKUP_PATTERN = re.compile(r"`|\*\*")
+# SQL 주석에서 영문·숫자·기호 뒤 조사 앞 빈칸 (예: "TRIM 은", "WHERE 에서")
+SPACED_PARTICLE_PATTERN = re.compile(r"[A-Za-z0-9_)'\]] (은|는|이|가|을|를|에|에서|에는|의|로|으로|와|과|도|만)(?=[\s,.)]|$)")
 
 EXPORT_KEYS = ("tagKey", "topicCode", "sortOrder", "title", "summary", "coreMd", "detailMd",
                "checkQuestions", "relatedQuestionUuids")
@@ -112,6 +113,11 @@ def validate_concept(path, concept, seen_tag_keys, seen_orders_by_topic):
     for question in questions:
         errors += validate_check_question(question, anchors)
 
+    # 표 칸 안 || 는 칸 구분선으로 읽혀 표가 깨짐 (코드 블록 밖 표 줄만)
+    for field in ("detailMd", "coreMd"):
+        prose = re.sub(r"```[\s\S]*?```", "", concept.get(field) or "")
+        if any(line.lstrip().startswith("|") and "||" in line for line in prose.splitlines()):
+            errors.append(f"{field}: table row contains || (breaks table)")
     warnings += lint_text(concept)
     return errors, warnings
 
@@ -134,6 +140,9 @@ def validate_check_question(question, anchors):
         errors.append(where + f"need exactly 1 correct, was {correct_count}")
     if any(not (choice.get("rationale") or "").strip() for choice in choices):
         errors.append(where + "every choice needs a rationale")
+    # 보기·보기 이유는 앱에서 일반 글자로 그림 (` ** 가 그대로 보임)
+    if any(PLAIN_TEXT_MARKUP_PATTERN.search((choice.get("body") or "") + (choice.get("rationale") or "")) for choice in choices):
+        errors.append(where + "choice body/rationale must be plain text (no ` or **)")
     return errors
 
 
@@ -144,7 +153,8 @@ def lint_text(concept):
     for question in concept.get("checkQuestions") or []:
         texts += [question.get("stem") or "", question.get("explanation") or ""]
         texts += [(choice.get("body") or "") + " " + (choice.get("rationale") or "") for choice in question.get("choices") or []]
-    joined = "\n".join(re.sub(r"```[\s\S]*?```", "", text) for text in texts)
+    # 코드 블록·인라인 코드 안 기호(!= 등)는 점검 제외
+    joined = "\n".join(re.sub(r"`[^`\n]*`", "", re.sub(r"```[\s\S]*?```", "", text)) for text in texts)
     for phrase in BANNED_PHRASES:
         if phrase in joined:
             warnings.append(f"banned phrase: {phrase}")
@@ -152,6 +162,11 @@ def lint_text(concept):
         warnings.append("exclamation mark")
     if EMOJI_PATTERN.search(joined):
         warnings.append("emoji")
+    sql_comments = [line.split("--", 1)[1] for text in texts for block in re.findall(r"```[\s\S]*?```", text)
+                    for line in block.splitlines() if "--" in line]
+    spaced_particles = [comment.strip() for comment in sql_comments if SPACED_PARTICLE_PATTERN.search(comment)]
+    if spaced_particles:
+        warnings.append(f"SQL comment particle spacing x{len(spaced_particles)}: {spaced_particles[0][:60]}")
     core_line_count = len([line for line in (concept.get("coreMd") or "").splitlines() if line.strip()])
     if not CORE_LINE_RANGE[0] <= core_line_count <= CORE_LINE_RANGE[1]:
         warnings.append(f"coreMd lines {core_line_count} (want 3~5)")
@@ -162,14 +177,24 @@ def lint_text(concept):
     return warnings
 
 
-def to_export_item(concept):
-    return {key: concept.get(key, [] if key == "relatedQuestionUuids" else None) for key in EXPORT_KEYS}
+def load_related_question_uuids_by_tag_key():
+    """관련 문제 연결 파일 > {tagKey: [UUID]} (파일 없으면 빈 연결)"""
+    if not RELATED_QUESTIONS_PATH.exists():
+        return {}
+    return json.loads(RELATED_QUESTIONS_PATH.read_text(encoding="utf-8"))
+
+
+def to_export_item(concept, related_question_uuids_by_tag_key):
+    """개념 > 가져오기 항목 (sqlChecks 제외, 관련 문제는 연결 파일 기준)"""
+    item = {key: concept.get(key) for key in EXPORT_KEYS}
+    item["relatedQuestionUuids"] = related_question_uuids_by_tag_key.get(concept["tagKey"], [])
+    return item
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--topic", choices=TOPIC_CODES)
-    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT_PATH)
+    parser.add_argument("--output", type=Path)
     args = parser.parse_args()
 
     concepts = load_concepts(args.topic)
@@ -183,16 +208,31 @@ def main():
         for message in warnings:
             print(f"WARN  {concept.get('tagKey')}: {message}")
 
+    # 관련 문제 연결 검증 (없는 tagKey, 개념 안 중복 UUID) — --topic 이어도 전체 개념 기준
+    related_question_uuids_by_tag_key = load_related_question_uuids_by_tag_key()
+    all_tag_keys = seen_tag_keys if not args.topic else {concept["tagKey"] for _, concept in load_concepts()}
+    for tag_key, question_uuids in related_question_uuids_by_tag_key.items():
+        if tag_key not in all_tag_keys:
+            error_count += 1
+            print(f"ERROR related_questions.json: unknown tagKey {tag_key}")
+        elif len(set(question_uuids)) != len(question_uuids):
+            error_count += 1
+            print(f"ERROR related_questions.json: duplicate uuid in {tag_key}")
+
     counts_by_topic = {code: sum(1 for _, concept in concepts if concept.get("topicCode") == code) for code in TOPIC_CODES}
     print("concepts by topic: " + ", ".join(f"{code}={count}" for code, count in counts_by_topic.items()))
     if error_count:
         print(f"[concept bundle] rejected : {error_count} errors")
         sys.exit(1)
 
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    bundle = {"concepts": [to_export_item(concept) for _, concept in concepts]}
-    args.output.write_text(json.dumps(bundle, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"[concept bundle] wrote {len(concepts)} concepts : {args.output}")
+    if args.topic and args.output is None:
+        print("[concept bundle] validated only (--topic without --output)")
+        return
+    output_path = args.output or DEFAULT_OUTPUT_PATH
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    bundle = {"concepts": [to_export_item(concept, related_question_uuids_by_tag_key) for _, concept in concepts]}
+    output_path.write_text(json.dumps(bundle, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(f"[concept bundle] wrote {len(concepts)} concepts : {output_path}")
 
 
 if __name__ == "__main__":

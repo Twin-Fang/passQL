@@ -32,10 +32,16 @@ NULL은 "값이 없음" 또는 "아직 모름"을 뜻하는 표시예요. 김민
 모르는 값과 무엇을 비교해도 맞는지 틀린지 알 수 없어요. 그래서 SQL은 NULL이 들어간 비교의 결과를 참(TRUE)도 거짓(FALSE)도 아닌 **UNKNOWN**으로 처리해요. 그런데 WHERE 절은 조건이 참인 행만 남기기 때문에, UNKNOWN이 나온 행은 결과에서 빠져요.
 
 ```sql
-SELECT 이름 FROM 사원 WHERE 커미션 = NULL;      -- 0행 (모든 행이 UNKNOWN)
-SELECT 이름 FROM 사원 WHERE 커미션 IS NULL;     -- 김민수, 최유나, 정하늘, 윤서연
-SELECT 이름 FROM 사원 WHERE 커미션 IS NOT NULL; -- 이지은, 박서준, 한도윤, 오지민
+SELECT 이름 FROM 사원 WHERE 커미션 = NULL;      -- 모든 행이 UNKNOWN이라 0행이에요
+SELECT 이름 FROM 사원 WHERE 커미션 IS NULL;     -- 커미션이 NULL인 사람을 찾아요
+SELECT 이름 FROM 사원 WHERE 커미션 IS NOT NULL; -- 커미션이 있는 사람을 찾아요
 ```
+
+| 조건 | 결과 |
+|---|---|
+| `커미션 = NULL` | 0행 |
+| `커미션 IS NULL` | 김민수, 최유나, 정하늘, 윤서연 |
+| `커미션 IS NOT NULL` | 이지은, 박서준, 한도윤, 오지민 |
 
 NULL 자체를 확인하는 전용 연산자가 `IS NULL`과 `IS NOT NULL`이고, 이 둘은 UNKNOWN이 아니라 참이나 거짓으로 답해요.
 
@@ -45,11 +51,21 @@ NULL 자체를 확인하는 전용 연산자가 `IS NULL`과 `IS NOT NULL`이고
 
 **NOT IN 목록에 NULL이 하나라도 있으면 결과가 0행이 돼요.** `WHERE 부서번호 NOT IN (10, NULL)`은 `부서번호 <> 10 AND 부서번호 <> NULL`과 같은데, 뒤쪽 비교가 항상 UNKNOWN이라서 전체가 참이 될 수 없어요. 반대로 `IN (10, NULL)`은 `= 10 OR = NULL`이라서, 부서번호가 10인 김민수 한 명은 정상적으로 나와요.
 
-**NULL이 섞인 계산은 결과도 NULL이에요.** `급여 + 커미션`을 계산하면 이지은과 박서준은 2800이 나오지만, 김민수는 3000이 아니라 NULL이 나와요. 커미션이 NULL인 나머지 세 명도 마찬가지예요. 커미션이 없을 때 0으로 보고 더하려면 `급여 + NVL(커미션, 0)`처럼 NULL을 다른 값으로 바꿔 주는 함수를 써야 하는데, 이 함수들은 SQL 함수 단원에서 자세히 다뤄요.
+**NULL이 섞인 계산은 결과도 NULL이에요.** `급여 + 커미션`을 계산하면 이지은과 박서준은 2800이 나오지만, 김민수는 3000이 아니라 NULL이 나와요. 커미션이 NULL인 나머지 세 명도 마찬가지예요. 커미션이 없을 때 0으로 보고 더하려면 `급여 + NVL(커미션, 0)`처럼 써요. NVL은 첫 번째 값이 NULL이면 두 번째 값(여기서는 0)을, 아니면 원래 값을 돌려주는 함수이고, SQL 함수 단원에서 자세히 다뤄요.
 
-**AND와 OR에 UNKNOWN이 섞이면 결과가 달라져요.** 거짓 AND UNKNOWN은 어느 쪽이든 거짓이라서 거짓이고, 참 OR UNKNOWN은 어느 쪽이든 참이라서 참이에요. 하지만 참 AND UNKNOWN, 거짓 OR UNKNOWN, NOT UNKNOWN은 여전히 UNKNOWN이에요. `NULL = NULL`도 참이 아니라 UNKNOWN이라는 점을 함께 기억해 두면 좋아요.
+**AND와 OR에 UNKNOWN이 섞이면 결과가 달라져요.** UNKNOWN을 "참일 수도, 거짓일 수도 있는 값"으로 보고, 어느 쪽이어도 결과가 같으면 그 결과가 되고 달라지면 UNKNOWN으로 남는다고 생각하면 아래 표가 바로 나와요.
 
-**Oracle에서는 빈 문자열이 곧 NULL이에요.** Oracle은 빈 문자열 `''`를 NULL로 저장하기 때문에 `WHERE 이름 = ''`는 아무 행도 돌려주지 않아요. SQL Server처럼 빈 문자열과 NULL을 구분하는 데이터베이스도 있어서, 시험 보기에서 이 차이를 묻기도 해요.
+| 조합 | 결과 | 이유 |
+|---|---|---|
+| 거짓 AND UNKNOWN | 거짓 | 한쪽이 거짓이면 AND는 무조건 거짓 |
+| 참 AND UNKNOWN | UNKNOWN | UNKNOWN 쪽에 따라 참도 거짓도 될 수 있음 |
+| 참 OR UNKNOWN | 참 | 한쪽이 참이면 OR는 무조건 참 |
+| 거짓 OR UNKNOWN | UNKNOWN | UNKNOWN 쪽에 따라 참도 거짓도 될 수 있음 |
+| NOT UNKNOWN | UNKNOWN | 모르는 값을 뒤집어도 여전히 모름 |
+
+`NULL = NULL`도 참이 아니라 UNKNOWN이라는 점을 함께 기억해 두면 좋아요.
+
+**Oracle에서는 빈 문자열이 곧 NULL이에요.** Oracle은 빈 문자열 `''`를 NULL로 다루기 때문에 `WHERE 이름 = ''`는 아무 행도 돌려주지 않아요. `WHERE 커미션 = ''`처럼 다른 열에 써도 사실상 `= NULL`과 같은 조건이 되어서, 결과는 역시 0행이에요. SQL Server처럼 빈 문자열과 NULL을 구분하는 데이터베이스도 있어서, 시험 보기에서 이 차이를 묻기도 해요.
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 
@@ -101,5 +117,6 @@ NULL 자체를 확인하는 전용 연산자가 `IS NULL`과 `IS NOT NULL`이고
         sql_check("SELECT 급여 + 커미션 FROM 사원 WHERE 사번 = 1001;", [[None]]),
         sql_check("SELECT 이름, 급여 + 커미션 FROM 사원 WHERE 사번 IN (1002, 1003)", [["이지은", 2800], ["박서준", 2800]]),
         sql_check("SELECT 이름 FROM 사원 WHERE 이름 = ''", []),
+        sql_check("SELECT 이름 FROM 사원 WHERE 커미션 = ''", []),
     ],
 }
