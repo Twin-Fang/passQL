@@ -3,7 +3,7 @@
 from concept_bundle import choice, question, sql_check, sql_error_check
 from concept_dataset import to_employee_table_md
 
-EMPLOYEE_RANGE_TABLE = to_employee_table_md("사번", "이름", "직급", "급여", "부서번호")
+EMPLOYEE_RANGE_TABLE = to_employee_table_md("사번", "이름", "직급", "입사일", "급여", "부서번호")
 EMPLOYEE_NAME_TABLE = to_employee_table_md("사번", "이름")
 EMPLOYEE_DEPARTMENT_TABLE = to_employee_table_md("사번", "이름", "부서번호")
 
