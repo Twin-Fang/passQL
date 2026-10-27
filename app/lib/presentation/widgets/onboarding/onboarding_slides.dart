@@ -173,7 +173,8 @@ class _CommitSlide extends ConsumerWidget {
     final remainingDays = examDate == null ? null : daysUntilExam(examDate);
     return OnboardingSlide(
       title: '하루 5문제,\n오늘부터 커밋해요',
-      subtitle: '모든 회원이 같은 문제로 겨뤄요.',
+      // 세트 문제는 같지만 순서는 회원마다 달라서, 같은 문제라는 단정 대신 순위 경쟁을 알린다
+      subtitle: '오늘의 세트를 풀고 순위를 겨뤄요.',
       backdrop: const OnboardingKeywordStickers(stickers: commitStickers),
       visual: Center(
         child: PassqlCard(
