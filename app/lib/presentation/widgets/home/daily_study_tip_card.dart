@@ -14,37 +14,12 @@ class DailyStudyTipCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    return PassqlCard(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            CupertinoIcons.lightbulb_fill,
-            size: PassqlIconSize.lg,
-            color: colors.warning,
-          ),
-          const SizedBox(width: PassqlSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: PassqlTypography.footnoteSemibold.copyWith(
-                    color: colors.secondaryLabel,
-                  ),
-                ),
-                const SizedBox(height: PassqlSpacing.xxs),
-                Text(
-                  studyTip,
-                  style: PassqlTypography.subheadlineSemibold.copyWith(
-                    color: colors.label,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+    // 다른 구간과 같은 틀: 제목 줄 > 내용
+    return PassqlSection(
+      title: title,
+      child: Text(
+        studyTip,
+        style: PassqlTypography.body.copyWith(color: colors.label),
       ),
     );
   }
