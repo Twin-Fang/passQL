@@ -67,6 +67,21 @@ void main() {
       expect(container.read(adsEnabledProvider), isFalse);
     });
 
+    test('결제 꺼짐이면 서버가 PRO 로 내려도 광고 켬', () async {
+      final container = _createContainer(
+        createAuth: _SignedInAuth.new,
+        memberApi: FakeMemberApi(
+          plan: const MemberPlanResponse(
+            isBillingEnabled: false,
+            plan: MemberPlanType.pro,
+          ),
+        ),
+      );
+      await container.read(planProvider.future);
+
+      expect(container.read(adsEnabledProvider), isTrue);
+    });
+
     test('무료 회원이면 광고 켬', () async {
       final container = _createContainer(
         createAuth: _SignedInAuth.new,
