@@ -589,6 +589,133 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/concepts/topics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 개념 단원 목록
+         * @description ## 인증(JWT): **필요**
+         *     - isAvailable=false 면 개념 기능 숨김 (공개 전이고 미리보기 회원이 아님), topics 는 빈 목록
+         *     - orderIndex 0부터, freeTopicCount 미만은 무료. 그 외는 결제 켜짐 + 무료 회원이면 isLocked=true
+         *     - 개념이 없는 단원은 내려주지 않음
+         */
+        get: operations["getTopics_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/concepts/topics/{topicUuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 단원의 개념 목록
+         * @description 잠긴 단원도 제목·상태·정답 수는 내려줌 (블러 목록용). status: NOT_STARTED / READ / SOLVED
+         */
+        get: operations["getConcepts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/concepts/{conceptUuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 개념 상세
+         * @description - coreMd: 핵심만 (마크다운), detailSections: 자세히 문단 (anchor 는 확인 문제 '다시 읽기' 이동 지점)
+         *     - previousConceptUuid / nextConceptUuid: 같은 단원 안 이웃 (없으면 null)
+         *     - 잠긴 단원: 403 PRO_REQUIRED, 공개 전 초안·없는 개념: 404 CONCEPT_NOT_FOUND
+         */
+        get: operations["getConceptDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/concepts/{conceptUuid}/check-questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 개념 확인 문제 목록
+         * @description 개념당 5개, 보기 순서대로. 정답·풀이는 채점 응답에서만 내려줌. 잠금·초안 규칙은 개념 상세와 같음
+         */
+        get: operations["getCheckQuestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/concepts/{conceptUuid}/check-questions/{questionUuid}/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 개념 확인 문제 채점
+         * @description - 정답 여부·정답 키·풀이·다시 읽기 앵커·보기별 근거를 돌려줌
+         *     - checkCorrectCount / checkSolvedCount: 문제별 마지막 답 기준 누적 (다시 풀어 틀리면 정답 수가 줄어듦)
+         *     - 제출 기록·통계·오답 노트·하루 무료 한도에는 반영하지 않음
+         */
+        post: operations["answerCheckQuestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/concepts/{conceptUuid}/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * 개념 진행 저장
+         * @description null 칸은 기존값 유지. isRead 는 true 로만 바뀜 (읽음 해제 없음). lastMode: READ/SOLVE, lastDepth: CORE/DETAIL. 204
+         */
+        put: operations["saveProgress"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/daily-set/complete": {
         parameters: {
             query?: never;
@@ -2077,6 +2204,88 @@ export interface components {
             category: string;
             detail: string | null;
         };
+        ConceptCheckAnswerRequest: {
+            choiceKey: string;
+        };
+        ConceptCheckAnswerResponse: {
+            /** Format: int32 */
+            checkCorrectCount: number;
+            /** Format: int32 */
+            checkSolvedCount: number;
+            correctKey: string;
+            explanation: string;
+            isCorrect: boolean;
+            rationaleByChoiceKey: {
+                [key: string]: string;
+            };
+            rereadAnchor: string;
+        };
+        ConceptCheckChoiceResponse: {
+            body: string;
+            choiceKey: string;
+        };
+        ConceptCheckQuestionResponse: {
+            choices: components["schemas"]["ConceptCheckChoiceResponse"][];
+            /** Format: uuid */
+            questionUuid: string;
+            /** Format: int32 */
+            sortOrder: number;
+            stem: string;
+            stemSql: string;
+        };
+        ConceptDetailResponse: {
+            /** Format: int32 */
+            checkCorrectCount: number;
+            /** Format: uuid */
+            conceptUuid: string;
+            coreMd: string;
+            detailSections: components["schemas"]["ConceptDetailSection"][];
+            isRead: boolean;
+            /** @enum {string} */
+            lastDepth: "CORE" | "DETAIL";
+            /** @enum {string} */
+            lastMode: "READ" | "SOLVE";
+            /** Format: uuid */
+            nextConceptUuid: string;
+            /** Format: uuid */
+            previousConceptUuid: string;
+            relatedQuestionUuids: string[];
+            summary: string;
+            title: string;
+            /** Format: uuid */
+            topicUuid: string;
+        };
+        ConceptDetailSection: {
+            anchor: string;
+            bodyMd: string;
+            title: string;
+        };
+        ConceptListResponse: {
+            concepts: components["schemas"]["ConceptSummary"][];
+            displayName: string;
+            isLocked: boolean;
+            /** Format: uuid */
+            topicUuid: string;
+        };
+        ConceptProgressRequest: {
+            isRead: boolean;
+            /** @enum {string} */
+            lastDepth: "CORE" | "DETAIL";
+            /** @enum {string} */
+            lastMode: "READ" | "SOLVE";
+        };
+        ConceptSummary: {
+            /** Format: int32 */
+            checkCorrectCount: number;
+            /** Format: int32 */
+            checkQuestionCount: number;
+            /** Format: uuid */
+            conceptUuid: string;
+            /** @enum {string} */
+            status: "NOT_STARTED" | "READ" | "SOLVED";
+            summary: string;
+            title: string;
+        };
         ConceptTag: {
             category: string;
             /** Format: uuid */
@@ -2087,6 +2296,24 @@ export interface components {
             /** Format: int32 */
             sortOrder: number;
             tagKey: string;
+        };
+        ConceptTopicListResponse: {
+            /** Format: int32 */
+            freeTopicCount: number;
+            isAvailable: boolean;
+            topics: components["schemas"]["ConceptTopicSummary"][];
+        };
+        ConceptTopicSummary: {
+            /** Format: int32 */
+            completedCount: number;
+            /** Format: int32 */
+            conceptCount: number;
+            displayName: string;
+            isLocked: boolean;
+            /** Format: int32 */
+            orderIndex: number;
+            /** Format: uuid */
+            topicUuid: string;
         };
         DailySetCompleteRequest: {
             /** Format: int32 */
@@ -2114,7 +2341,7 @@ export interface components {
          * @description 서버 ErrorCode enum 이름 (응답 errorCode 값)
          * @enum {string}
          */
-        ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "EMBEDDING_INDEX_ALREADY_RUNNING" | "PROMPT_NOT_FOUND" | "PROMPT_HISTORY_NOT_FOUND" | "PROMPT_ACTIVE_DELETE_FORBIDDEN" | "TOPIC_NOT_FOUND" | "TOPIC_DUPLICATE" | "TOPIC_HAS_QUESTIONS" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_CHALLENGE_RANGE_INVALID" | "DAILY_CHALLENGE_TOO_MANY_QUESTIONS" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "APP_MAINTENANCE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "COMMUNITY_POST_NOT_FOUND" | "COMMUNITY_SOLVE_REQUIRED" | "COMMUNITY_CONTENT_INVALID" | "COMMUNITY_CONTENT_FORBIDDEN_WORD" | "COMMUNITY_POST_DUPLICATE" | "COMMUNITY_POST_RATE_LIMITED" | "COMMUNITY_POST_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_POST_FORBIDDEN" | "COMMUNITY_SELF_REPORT_FORBIDDEN" | "COMMUNITY_SELF_BLOCK_FORBIDDEN" | "COMMUNITY_BLOCK_NOT_FOUND" | "COMMUNITY_IMAGE_STORAGE_UNAVAILABLE" | "COMMUNITY_IMAGE_INVALID_FORMAT" | "COMMUNITY_IMAGE_TOO_LARGE" | "COMMUNITY_IMAGE_DIMENSION_EXCEEDED" | "COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED" | "COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_IMAGE_QUOTA_EXCEEDED" | "COMMUNITY_IMAGE_NOT_FOUND" | "COMMUNITY_IMAGE_TOO_MANY" | "COMMUNITY_IMAGE_INVALID_ATTACHMENT" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "ADMIN_ACCOUNT_SELF_DELETE_FORBIDDEN" | "ADMIN_ACCOUNT_DELETE_REQUIRES_DISABLED" | "ADMIN_ACCOUNT_LAST_ADMIN_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_INACTIVE_DAYS_INVALID" | "PUSH_SCHEDULE_TIME_INVALID" | "PUSH_NOT_SCHEDULED" | "PUSH_RETRACT_NOT_DISPATCHED" | "PUSH_TEMPLATE_NOT_FOUND" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER" | "SOCIAL_LOGIN_UNAVAILABLE" | "INVALID_SOCIAL_AUTHORIZATION_CODE" | "INVALID_SOCIAL_TOKEN" | "PRO_REQUIRED" | "FREE_DAILY_LIMIT_REACHED" | "FAIR_USE_DAILY_LIMIT_REACHED";
+        ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "EMBEDDING_INDEX_ALREADY_RUNNING" | "PROMPT_NOT_FOUND" | "PROMPT_HISTORY_NOT_FOUND" | "PROMPT_ACTIVE_DELETE_FORBIDDEN" | "TOPIC_NOT_FOUND" | "CONCEPT_NOT_FOUND" | "CONCEPT_CHECK_QUESTION_NOT_FOUND" | "TOPIC_DUPLICATE" | "TOPIC_HAS_QUESTIONS" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_CHALLENGE_RANGE_INVALID" | "DAILY_CHALLENGE_TOO_MANY_QUESTIONS" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "APP_MAINTENANCE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "COMMUNITY_POST_NOT_FOUND" | "COMMUNITY_SOLVE_REQUIRED" | "COMMUNITY_CONTENT_INVALID" | "COMMUNITY_CONTENT_FORBIDDEN_WORD" | "COMMUNITY_POST_DUPLICATE" | "COMMUNITY_POST_RATE_LIMITED" | "COMMUNITY_POST_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_POST_FORBIDDEN" | "COMMUNITY_SELF_REPORT_FORBIDDEN" | "COMMUNITY_SELF_BLOCK_FORBIDDEN" | "COMMUNITY_BLOCK_NOT_FOUND" | "COMMUNITY_IMAGE_STORAGE_UNAVAILABLE" | "COMMUNITY_IMAGE_INVALID_FORMAT" | "COMMUNITY_IMAGE_TOO_LARGE" | "COMMUNITY_IMAGE_DIMENSION_EXCEEDED" | "COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED" | "COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_IMAGE_QUOTA_EXCEEDED" | "COMMUNITY_IMAGE_NOT_FOUND" | "COMMUNITY_IMAGE_TOO_MANY" | "COMMUNITY_IMAGE_INVALID_ATTACHMENT" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "ADMIN_ACCOUNT_SELF_DELETE_FORBIDDEN" | "ADMIN_ACCOUNT_DELETE_REQUIRES_DISABLED" | "ADMIN_ACCOUNT_LAST_ADMIN_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_INACTIVE_DAYS_INVALID" | "PUSH_SCHEDULE_TIME_INVALID" | "PUSH_NOT_SCHEDULED" | "PUSH_RETRACT_NOT_DISPATCHED" | "PUSH_TEMPLATE_NOT_FOUND" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER" | "SOCIAL_LOGIN_UNAVAILABLE" | "INVALID_SOCIAL_AUTHORIZATION_CODE" | "INVALID_SOCIAL_TOKEN" | "PRO_REQUIRED" | "FREE_DAILY_LIMIT_REACHED" | "FAIR_USE_DAILY_LIMIT_REACHED";
         /** @description API 에러 응답 표준 형식 */
         ErrorResponse: {
             errorCode: components["schemas"]["ErrorCode"];
@@ -3146,6 +3373,143 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["CommunityPostItemResponse"];
                 };
+            };
+        };
+    };
+    getTopics_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConceptTopicListResponse"];
+                };
+            };
+        };
+    };
+    getConcepts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                topicUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConceptListResponse"];
+                };
+            };
+        };
+    };
+    getConceptDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conceptUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConceptDetailResponse"];
+                };
+            };
+        };
+    };
+    getCheckQuestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conceptUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConceptCheckQuestionResponse"][];
+                };
+            };
+        };
+    };
+    answerCheckQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conceptUuid: string;
+                questionUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConceptCheckAnswerRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConceptCheckAnswerResponse"];
+                };
+            };
+        };
+    };
+    saveProgress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conceptUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConceptProgressRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
