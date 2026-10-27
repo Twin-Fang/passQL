@@ -35,10 +35,11 @@ public class FeedbackAttachmentReader {
 
     // 로그 뷰어에 보여 줄 해제 후 최대 크기 (4MB, 넘으면 뒤쪽만)
     private static final int MAX_LOG_TEXT_BYTES = 4 * 1024 * 1024;
-    // 진단 그룹 표시 순서
     // 해제 후 읽기 상한 (64MB, 압축 폭탄의 CPU 사용 제한)
     private static final long MAX_INFLATED_READ_BYTES = 64L * 1024 * 1024;
+    // gzip 해제 읽기 단위 (8KB)
     private static final int READ_CHUNK_BYTES = 8192;
+    // 진단 그룹 표시 순서
     private static final List<String> DIAGNOSTICS_GROUP_ORDER = List.of("app", "device", "system", "meta");
 
     private final FeedbackService feedbackService;
@@ -70,7 +71,7 @@ public class FeedbackAttachmentReader {
         return objectStorageClient.read(feedback.getLogObjectKey());
     }
 
-    /** 로그 텍스트: gzip 해제 > UTF-8 (4MB 초과 시 뒤쪽 4MB 만), 로그 없으면 empty (DB 트랜잭션 밖 저장소 I/O) */
+    /** 로그 텍스트: gzip 해제 > UTF-8 (해제 64MB 까지 읽고, 4MB 초과 시 뒤쪽 4MB 만), 로그 없으면 empty (DB 트랜잭션 밖 저장소 I/O) */
     public Optional<String> readLogText(UUID feedbackUuid) {
         Feedback feedback = feedbackService.getFeedback(feedbackUuid);
         if (!feedback.hasLog()) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../design/design.dart';
+import 'feedback_diagnostics_labels.dart';
 
 // 그룹 키 > 표시 이름 (서버 JSON 그룹 4종)
 const Map<String, String> _groupTitleByKey = {
@@ -107,7 +108,7 @@ class _GroupTable extends StatelessWidget {
                   Expanded(
                     flex: 4,
                     child: Text(
-                      entry.key,
+                      diagnosticLabelOf(entry.key),
                       style: PassqlTypography.footnote.copyWith(
                         color: colors.secondaryLabel,
                       ),
@@ -116,7 +117,7 @@ class _GroupTable extends StatelessWidget {
                   Expanded(
                     flex: 5,
                     child: Text(
-                      entry.value?.toString() ?? '-',
+                      diagnosticValueLabelOf(entry.key, entry.value),
                       textAlign: TextAlign.end,
                       style: PassqlTypography.footnote.copyWith(
                         color: colors.label,

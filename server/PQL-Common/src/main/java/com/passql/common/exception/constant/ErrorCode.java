@@ -123,7 +123,7 @@ public enum ErrorCode {
     FEEDBACK_ATTACHMENT_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE, "첨부 용량이 너무 커요."),
     FEEDBACK_ATTACHMENT_INVALID(HttpStatus.BAD_REQUEST, "진단 정보 형식이 올바르지 않아요."),
     FEEDBACK_DAILY_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "오늘은 더 이상 의견을 보낼 수 없어요. 내일 다시 보내 주세요."),
-    FEEDBACK_STORAGE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "지금은 첨부를 보낼 수 없어요. 잠시 후 다시 시도해 주세요."),
+    FEEDBACK_STORAGE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "지금은 첨부를 보낼 수 없어요. 사진과 진단 정보를 빼고 다시 보내 주세요."),
 
     // App Operation (점검·버전·공지)
     SERVICE_UNDER_MAINTENANCE(HttpStatus.SERVICE_UNAVAILABLE, "서비스 점검 중입니다. 잠시 후 다시 이용해 주세요."),

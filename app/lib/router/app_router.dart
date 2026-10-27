@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../core/logging/app_log_route_observer.dart';
 import '../data/models/community/community_models.dart';
 import '../presentation/flows/daily_set_flow.dart';
 import '../presentation/flows/question_flow.dart';
@@ -59,7 +58,6 @@ abstract final class AppRouter {
 
   static final GoRouter router = GoRouter(
     navigatorKey: _rootKey,
-    observers: [AppLogRouteObserver()],
     initialLocation: AppRoutes.home,
     refreshListenable: Listenable.merge([
       authenticated,

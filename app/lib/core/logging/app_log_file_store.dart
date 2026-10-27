@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 /// 앱 로그 파일 저장소: 덧붙임, 회전, gzip 읽기, 삭제
@@ -32,7 +33,9 @@ class AppLogFileStore {
     for (final file in [_previousFile, _currentFile]) {
       if (await file.exists()) builder.add(await file.readAsBytes());
     }
-    return Uint8List.fromList(gzip.encode(builder.takeBytes()));
+    // 최대 2MB 압축은 메인 isolate 밖에서 처리
+    final rawBytes = builder.takeBytes();
+    return Isolate.run(() => Uint8List.fromList(gzip.encode(rawBytes)));
   }
 
   Future<int> totalBytes() async {
