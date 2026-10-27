@@ -1,6 +1,6 @@
 [project]
 name = "passql-ai"
-version = "1.63.0"
+version = "1.65.0"
 description = "passQL AI Server - 문제·선택지 생성, 프롬프트 테스트, RAG 색인·추천·정리"
 requires-python = ">=3.13"
 dependencies = [

@@ -6,6 +6,7 @@ import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.entity.PromptTemplate;
 import com.passql.meta.service.PromptService;
+import com.passql.question.constant.ChoiceSetPolicy;
 import com.passql.question.constant.ChoiceSetSource;
 import com.passql.question.dto.ExecuteResult;
 import com.passql.question.dto.ValidationReport;
@@ -37,6 +38,8 @@ public class ChoiceSetGenerationService {
     private static final String CONCEPT_PROMPT_KEY = "generate_choice_set_concept";
     // RESULT_MATCH 전용 프롬프트 키 — answerSql 실행 결과 JSON을 컨텍스트로 제공
     private static final String RESULT_MATCH_PROMPT_KEY = "generate_choice_set_result_match";
+    // ODD_ONE_OUT 전용 프롬프트 키 — 기준과 같은 결과 3개 + 다른 결과 1개(정답), SandboxValidator 3:1 판정과 짝 (#699)
+    private static final String ODD_ONE_OUT_PROMPT_KEY = "generate_choice_set_odd_one_out";
 
     private final QuestionService questionService;
     private final PromptService promptService;
@@ -115,8 +118,9 @@ public class ChoiceSetGenerationService {
      */
     public QuestionChoiceSet generate(UUID questionUuid, UUID memberUuid, ChoiceSetSource source) {
         Question question = questionService.getQuestionEntity(questionUuid);
-        PromptTemplate prompt = promptService.getActivePrompt(PROMPT_KEY);
-        log.debug("[choice-gen] 요청 빌드 완료: questionUuid={}, promptKey={}", questionUuid, PROMPT_KEY);
+        String promptKey = toStandardPromptKey(question.getChoiceSetPolicy());
+        PromptTemplate prompt = promptService.getActivePrompt(promptKey);
+        log.debug("[choice-gen] 요청 빌드 완료: questionUuid={}, promptKey={}", questionUuid, promptKey);
 
         ValidationReport lastReport = null;
         GenerateChoiceSetResult lastResult = null;
@@ -124,10 +128,13 @@ public class ChoiceSetGenerationService {
 
         // MULTIPLE_CORRECT 실패 시 정답과 동일한 결과를 낸 오답 SQL 누적 (피드백용)
         List<String> equivalentSqls = new ArrayList<>();
+        // ODD_ONE_OUT 실패 시 직전 시도 선택지별 실제 실행 결과 (피드백용, 매 시도 교체)
+        List<String> previousOddOneOutResults = List.of();
 
         for (int attempts = 1; attempts <= MAX_ATTEMPTS; attempts++) {
-            // 재시도마다 피드백(동치 SQL 목록)을 포함한 요청을 새로 빌드
-            GenerateChoiceSetRequest request = requestFactory.buildStandardRequest(question, prompt, equivalentSqls);
+            // 재시도마다 피드백(동치 SQL 목록, ODD_ONE_OUT 실행 결과)을 포함한 요청을 새로 빌드
+            GenerateChoiceSetRequest request = requestFactory.buildStandardRequest(
+                    question, prompt, equivalentSqls, previousOddOneOutResults);
 
             try {
                 log.debug("[choice-gen] AI 호출 시작: attempt={}/{}, questionUuid={}, feedbackCount={}",
@@ -166,6 +173,9 @@ public class ChoiceSetGenerationService {
                     requestFactory.collectEquivalentSqls(lastResult.choices(), lastReport, equivalentSqls);
                     log.info("[choice-gen] 동치 SQL 피드백 누적: count={}, attempt={}, questionUuid={}",
                             equivalentSqls.size(), attempts, questionUuid);
+                }
+                if (question.getChoiceSetPolicy() == ChoiceSetPolicy.ODD_ONE_OUT && lastResult != null) {
+                    previousOddOneOutResults = requestFactory.toOddOneOutResultLines(lastResult.choices(), lastReport);
                 }
 
             } catch (CustomException e) {
@@ -231,11 +241,14 @@ public class ChoiceSetGenerationService {
 
         GenerateChoiceSetResult lastResult = null;
         ErrorCode lastErrorCode = null;
+        // 직전 시도 채점 피드백 (첫 시도 null)
+        String retryFeedback = null;
 
         for (int attempts = 1; attempts <= MAX_ATTEMPTS; attempts++) {
             try {
                 log.debug("[choice-gen-result-match] AI 호출 시작: attempt={}/{}", attempts, MAX_ATTEMPTS);
-                GenerateChoiceSetRequest request = requestFactory.buildResultMatchRequest(question, prompt, expectedResult);
+                GenerateChoiceSetRequest request = requestFactory.buildResultMatchRequest(
+                        question, prompt, expectedResult, retryFeedback);
                 lastResult = aiGatewayClient.generateChoiceSet(request);
                 log.debug("[choice-gen-result-match] AI 응답 수신: choiceCount={}", lastResult.choices().size());
 
@@ -244,6 +257,9 @@ public class ChoiceSetGenerationService {
                 log.debug("[choice-gen-result-match] 검증 완료: correctCount={}", report.correctCount());
 
                 // 같은 결과 표 보기가 2개면 재생성 (#555)
+                if (report.correctCount() != 1) {
+                    retryFeedback = requestFactory.toResultMatchRetryFeedback(report);
+                }
                 boolean hasDuplicateChoice = ChoiceBodyDuplicateFinder.findDuplicateBody(
                         lastResult.choices().stream().map(GeneratedChoiceDto::body).toList()) != null;
                 if (hasDuplicateChoice) {
@@ -285,5 +301,10 @@ public class ChoiceSetGenerationService {
         throw new CustomException(
                 lastErrorCode != null ? lastErrorCode : ErrorCode.CHOICE_SET_GENERATION_FAILED,
                 "result-match questionUuid=" + questionUuid);
+    }
+
+    /** SQL 보기 정책 > 프롬프트 키 (ODD_ONE_OUT 은 정답 방향이 반대라 전용 프롬프트, 그 외 기본) */
+    static String toStandardPromptKey(ChoiceSetPolicy policy) {
+        return policy == ChoiceSetPolicy.ODD_ONE_OUT ? ODD_ONE_OUT_PROMPT_KEY : PROMPT_KEY;
     }
 }

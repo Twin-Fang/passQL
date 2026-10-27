@@ -5,6 +5,7 @@ import com.passql.ai.dto.GenerateChoiceSetRequest;
 import com.passql.ai.dto.GeneratedChoiceDto;
 import com.passql.ai.dto.LlmConfigDto;
 import com.passql.meta.entity.PromptTemplate;
+import com.passql.question.constant.ChoiceSetPolicy;
 import com.passql.question.dto.ExecuteResult;
 import com.passql.question.dto.ValidationReport;
 import com.passql.question.entity.Question;
@@ -45,6 +46,16 @@ public class ChoiceSetGenerationRequestFactory {
     );
     // RESULT_MATCH user prompt 치환 자리: 정답 SQL 실행 결과 텍스트
     private static final String ANSWER_RESULT_PLACEHOLDER = "{answer_result}";
+    // ODD_ONE_OUT user prompt 추가 지시: 공통 프롬프트(정답 1개만 기준 SQL과 같은 결과)와 반대인 검증 기준(3개 같은 결과, 1개 다른 결과)에 맞춤 (#704)
+    private static final String ODD_ONE_OUT_INSTRUCTION = """
+
+
+            [유형 지시 — 위 지시보다 우선]
+            이 문제는 "실행 결과가 나머지 셋과 다른 것을 고르는" 유형이다.
+            - 3개 선택지: 기준 SQL과 실행 결과가 완전히 같은 SQL (서로 다른 문법/표현으로 작성, is_correct=false)
+            - 1개 선택지: 샘플 데이터 기준으로 실행 결과가 다른 SQL (is_correct=true)
+            - 같은 결과 3개는 행 수·값·컬럼 수까지 모두 같아야 한다. 샘플 데이터(NULL 포함)로 직접 계산해 확인할 것
+            - 다른 결과 1개는 NULL 처리, 집계 범위 등 학습 포인트가 드러나는 차이로 만들 것""";
 
     /**
      * AI_ONLY 선택지 생성 요청을 빌드한다.
@@ -52,7 +63,8 @@ public class ChoiceSetGenerationRequestFactory {
      * 이를 통해 재시도 시 AI가 동일한 SQL 동치 실수를 반복하지 않도록 유도한다.
      */
     public GenerateChoiceSetRequest buildStandardRequest(
-            Question question, PromptTemplate prompt, List<String> equivalentSqls) {
+            Question question, PromptTemplate prompt, List<String> equivalentSqls,
+            List<String> previousOddOneOutResults) {
         // 이전 시도에서 정답과 동치임이 확인된 SQL들을 피드백으로 user prompt에 추가
         String userTemplate = prompt.getUserTemplate();
         if (!equivalentSqls.isEmpty()) {
@@ -64,6 +76,18 @@ public class ChoiceSetGenerationRequestFactory {
             }
             feedback.append("위 SQL과 다른 표현/문법으로 명확히 다른 결과를 내는 오답 SQL을 생성해야 한다.");
             userTemplate = userTemplate + feedback;
+        }
+        // 결과가 다른 것 고르기 유형: 3:1 출제 지시 추가
+        if (question.getChoiceSetPolicy() == ChoiceSetPolicy.ODD_ONE_OUT) {
+            userTemplate = userTemplate + ODD_ONE_OUT_INSTRUCTION;
+            // 직전 시도 실제 실행 결과 피드백 (AI 결과 계산 실수 교정)
+            if (!previousOddOneOutResults.isEmpty()) {
+                StringBuilder feedback = new StringBuilder("\n\n[재시도 피드백 — 직전 시도의 실제 실행 결과]\n");
+                previousOddOneOutResults.forEach(line -> feedback.append(line).append("\n"));
+                feedback.append("위 결과는 3개 같은 결과 + 1개 다른 결과로 나뉘지 않았다. ");
+                feedback.append("실제 결과를 근거로 선택지를 고쳐 3개는 정확히 같은 결과, 1개만 다른 결과가 되게 할 것.");
+                userTemplate = userTemplate + feedback;
+            }
         }
         return new GenerateChoiceSetRequest(toSqlContext(question), toLlmConfig(prompt, userTemplate));
     }
@@ -93,10 +117,14 @@ public class ChoiceSetGenerationRequestFactory {
      * RESULT_MATCH 전용 AI 요청 빌드 — answerSql 실행 결과를 user prompt에 직접 치환하여 포함.
      */
     public GenerateChoiceSetRequest buildResultMatchRequest(
-            Question question, PromptTemplate prompt, ExecuteResult expectedResult) {
+            Question question, PromptTemplate prompt, ExecuteResult expectedResult, String retryFeedback) {
         // {answer_result} 플레이스홀더를 실행 결과 텍스트로 치환하여 AI에 전달
         String userPrompt = prompt.getUserTemplate()
                 .replace(ANSWER_RESULT_PLACEHOLDER, serializeExecuteResult(expectedResult));
+        // 직전 시도 채점 피드백 (정답 표 중복·누락 교정)
+        if (retryFeedback != null) {
+            userPrompt = userPrompt + "\n\n[재시도 피드백]\n" + retryFeedback;
+        }
         return new GenerateChoiceSetRequest(toSqlContext(question), toLlmConfig(prompt, userPrompt));
     }
 
@@ -125,6 +153,43 @@ public class ChoiceSetGenerationRequestFactory {
                 }
             }
         }
+    }
+
+    /**
+     * ODD_ONE_OUT 실패 시도 > 선택지별 실제 실행 결과 줄 목록 (형식: "A: {SQL} > 결과 [[30]]")
+     */
+    public List<String> toOddOneOutResultLines(List<GeneratedChoiceDto> choices, ValidationReport report) {
+        Map<String, ValidationReport.ChoiceValidation> validationByKey = new HashMap<>();
+        for (var validation : report.items()) {
+            validationByKey.put(validation.key(), validation);
+        }
+        List<String> resultLines = new ArrayList<>();
+        for (GeneratedChoiceDto choice : choices) {
+            var validation = validationByKey.get(choice.key());
+            if (validation == null) continue;
+            // 실행 실패는 결과 대신 오류 표시
+            String resultText = "OK".equals(validation.status())
+                    ? "결과 " + validation.rows()
+                    : "실행 오류";
+            resultLines.add(choice.key() + ": " + choice.body() + " > " + resultText);
+        }
+        return resultLines;
+    }
+
+    /**
+     * RESULT_MATCH 실패 시도 > 재시도 피드백 문구 (정답 표 2개 이상: 겹친 보기 key, 0개: 정답 표 복사 지시)
+     */
+    public String toResultMatchRetryFeedback(ValidationReport report) {
+        List<String> matchedKeys = report.items().stream()
+                .filter(ValidationReport.ChoiceValidation::matchesExpected)
+                .map(ValidationReport.ChoiceValidation::key)
+                .toList();
+        if (matchedKeys.isEmpty()) {
+            return "직전 시도에서 기준 실행 결과와 같은 표가 하나도 없었다. 정답 body 는 기준 SQL 실행 결과의 행·값을 그대로 옮길 것.";
+        }
+        return "직전 시도에서 " + String.join(", ", matchedKeys)
+                + " 가 모두 기준 실행 결과와 같은 표로 채점되었다(행 순서·키 대소문자 무시). "
+                + "정답 1개만 남기고 나머지는 셀 값이나 행 수를 바꿔 확실히 다른 표로 만들 것.";
     }
 
     /** 문제 > SQL 문맥 (지문·정답 SQL·스키마·난이도) */

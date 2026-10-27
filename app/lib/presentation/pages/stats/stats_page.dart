@@ -92,7 +92,7 @@ class StatsPage extends ConsumerWidget {
 
 /// 기록 카드 목록: 요약 > 합격 준비도 > 학습 현황 > AI 분석 > 레이더 > 막대 > 바로가기 > 인라인 광고 순서로 하나씩 등장.
 /// 푼 문제가 0개면 요약·차트 대신 빈 상태 카드 1개 (광고는 그대로 맨 아래). 카드 사이 간격은 PassqlSpacing.md.
-/// [isAnalysisLocked] (무료, 결제 켜짐): AI 분석·레이더·막대 자리에 묶음 블러
+/// [isAnalysisLocked] (무료, 결제 켜짐): 레이더·막대 자리에 묶음 블러. AI 분석은 무료도 하루 1회 표시 (#699)
 class _StatsContent extends ConsumerWidget {
   final StatsData data;
   final bool isAnalysisLocked;
@@ -114,6 +114,8 @@ class _StatsContent extends ConsumerWidget {
           _withGap(ReadinessCard(readiness: progress!.readiness!)),
         // 학습 현황 히트맵 (스스로 간격을 둔다)
         _StatsHeatmapSection(streakDays: progress?.streakDays ?? 0),
+        // AI 영역 분석 (웹과 같이 요약 바로 아래, 늦게 와도 나머지는 먼저 보인다, 무료·프로 공통)
+        const _StatsAiCommentSection(),
         if (isAnalysisLocked)
           _withGap(
             const ProLockedSection(
@@ -122,8 +124,6 @@ class _StatsContent extends ConsumerWidget {
             ),
           )
         else ...[
-          // AI 영역 분석 (웹과 같이 요약 바로 아래, 늦게 와도 나머지는 먼저 보인다)
-          const _StatsAiCommentSection(),
           // 레이더 차트
           _withGap(
             RadarChartSection(topicStats: data.topicAnalysis?.topicStats),

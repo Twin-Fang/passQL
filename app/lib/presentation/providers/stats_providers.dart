@@ -40,13 +40,12 @@ final statsDataProvider = FutureProvider.autoDispose<StatsData>((ref) async {
   );
 });
 
-/// 통계 화면 AI 코멘트. 실패하면 null(카드 숨김), 무료(결제 켜짐)면 요청 없이 null (잠금)
-/// 서버가 2시간 캐시하므로 풀이마다 다시 받지 않는다(로그아웃 때만 비움)
+/// 통계 화면 AI 코멘트. 실패하면 null(카드 숨김). 무료·프로 모두 받음 (#699)
+/// 서버 캐시: 무료 하루 1회, 프로 최근 풀이 10문제마다 새 코멘트 > 풀이마다 다시 받아도 LLM 호출 없음
 final statsAiCommentProvider = FutureProvider.autoDispose<AiCommentResponse?>((
   ref,
 ) async {
   if (ref.watch(currentMemberUuidProvider) == null) return null;
   final progressClient = ref.read(progressApiProvider);
-  if (await watchIsProFeatureLocked(ref)) return null;
   return safeCall(progressClient.getAiComment(), label: 'statsAiComment');
 });
