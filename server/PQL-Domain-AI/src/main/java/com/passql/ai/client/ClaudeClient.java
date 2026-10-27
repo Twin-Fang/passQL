@@ -137,6 +137,8 @@ public class ClaudeClient {
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("model", model);
         requestBody.put("max_tokens", maxTokens);
+        // thinking 끔: 켜져 있으면 thinking 토큰이 max_tokens 를 먼저 써서 본문이 비거나 잘림
+        requestBody.putObject("thinking").put("type", "disabled");
         // temperature 미전송: Claude 최신 모델이 파라미터 자체를 거부 (400 deprecated)
         requestBody.put("system", systemPrompt == null ? "" : systemPrompt);
         requestBody.putArray("messages").addObject().put("role", "user").put("content", userPrompt);
