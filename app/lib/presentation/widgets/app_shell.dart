@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../design/design.dart';
@@ -8,20 +9,28 @@ import 'ads/interstitial_ad_preloader.dart';
 import 'app_gate/recommended_update_prompter.dart';
 import 'common/app_lifecycle_refresher.dart';
 import 'notification/notification_permission_prompter.dart';
+import '../providers/concept_providers.dart';
 
 /// 하단 탭 쉘: 탭마다 화면 상태(스크롤·데이터)를 유지한다 (StatefulShellRoute).
 /// extendBody 로 콘텐츠가 글래스 탭 바 뒤로 지나가게 한다.
-class AppShell extends StatelessWidget {
+/// 개념 탭은 이용 가능할 때만 보여서, 보이는 탭 순번 <-> 라우터 브랜치 번호를 매핑한다 (#577)
+class AppShell extends ConsumerWidget {
   /// 탭 화면 묶음 (현재 탭 번호·탭 이동 담당)
   final StatefulNavigationShell navigationShell;
 
   const AppShell({super.key, required this.navigationShell});
 
+  // 라우터 브랜치 순서와 같은 탭 항목 (AppRoutes.tabRoots)
   static const _items = [
     PassqlTabItem(
       icon: CupertinoIcons.house,
       activeIcon: CupertinoIcons.house_fill,
       label: '홈',
+    ),
+    PassqlTabItem(
+      icon: CupertinoIcons.lightbulb,
+      activeIcon: CupertinoIcons.lightbulb_fill,
+      label: '개념',
     ),
     PassqlTabItem(
       icon: CupertinoIcons.book,
@@ -40,8 +49,23 @@ class AppShell extends StatelessWidget {
     ),
   ];
 
+  // 개념 탭 브랜치 번호
+  static const int _conceptBranchIndex = 1;
+
+  /// 보이는 탭의 브랜치 번호 목록 (개념 이용 불가면 개념 브랜치 제외)
+  static List<int> visibleBranchIndexesOf({required bool isConceptVisible}) => [
+    for (var branchIndex = 0; branchIndex < _items.length; branchIndex++)
+      if (isConceptVisible || branchIndex != _conceptBranchIndex) branchIndex,
+  ];
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final visibleBranchIndexes = visibleBranchIndexesOf(
+      isConceptVisible: ref.watch(isConceptLearningAvailableProvider),
+    );
+    final visibleCurrentIndex = visibleBranchIndexes
+        .indexOf(navigationShell.currentIndex)
+        .clamp(0, visibleBranchIndexes.length - 1);
     // 다음 날 복귀하면 어제 세트·인사말이 남지 않게 갱신 (#483)
     return AppLifecycleRefresher(
       child: Scaffold(
@@ -54,17 +78,23 @@ class AppShell extends StatelessWidget {
             child: RecommendedUpdatePrompter(child: navigationShell),
           ),
         ),
-        // 탭 바 + 아래 한 줄 광고 띠(메인 탭 5개 공통, 실패 시 높이 0). extendBody 라 본문 하단 여백에 띠 높이도 반영
+        // 탭 바 + 아래 한 줄 광고 띠(메인 탭 공통, 실패 시 높이 0). extendBody 라 본문 하단 여백에 띠 높이도 반영
         // 전체 화면(풀이·결과)이 셸을 덮으면 Navigator 가 셸을 offstage 로 둠 > 가려진 띠는 그려지지 않음
         bottomNavigationBar: AdNativeStripSlot(
           tabBar: PassqlTabBar(
-            items: _items,
-            currentIndex: navigationShell.currentIndex,
+            items: [
+              for (final branchIndex in visibleBranchIndexes)
+                _items[branchIndex],
+            ],
+            currentIndex: visibleCurrentIndex,
             // 지금 탭을 다시 누르면 그 탭의 첫 화면으로
-            onTap: (index) => navigationShell.goBranch(
-              index,
-              initialLocation: index == navigationShell.currentIndex,
-            ),
+            onTap: (visibleIndex) {
+              final branchIndex = visibleBranchIndexes[visibleIndex];
+              navigationShell.goBranch(
+                branchIndex,
+                initialLocation: branchIndex == navigationShell.currentIndex,
+              );
+            },
           ),
         ),
       ),

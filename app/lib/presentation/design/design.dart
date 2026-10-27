@@ -32,6 +32,7 @@ export 'components/passql_plan_chip.dart';
 export 'components/passql_pop_in.dart';
 export 'components/passql_pressable.dart';
 export 'components/passql_progress_bar.dart';
+export 'components/passql_progress_ring.dart';
 export 'components/passql_result_mark.dart';
 export 'components/passql_result_scaffold.dart';
 export 'components/passql_reveal.dart';

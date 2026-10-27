@@ -10,6 +10,7 @@ abstract final class LockedPreviewCaptions {
   static const String stats = '토픽별 약점 · AI 학습 코멘트';
   static const String examTrend = '최근 기출 토픽 비중 · 이번 회차 예상';
   static const String realModeSetting = '실전 모드';
+  static const String conceptTopics = '3단원부터 모든 개념과 확인 문제';
 }
 
 // 가짜 미리보기: 서버의 잠긴 내용이 아니라 모양만 그럴듯한 고정 예시 (통신을 가로채도 얻을 것이 없게)
@@ -119,6 +120,22 @@ class ExamTrendLockedSample extends StatelessWidget {
           title: '자주 나온 개념',
           body: 'GROUP BY 확장, 서브쿼리, 집합 연산자, 트랜잭션',
         ),
+      ],
+    );
+  }
+}
+
+/// 개념 학습 잠긴 단원 목록 자리 (#577)
+class ConceptTopicsLockedSample extends StatelessWidget {
+  const ConceptTopicsLockedSample({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const _SampleCard(
+      children: [
+        _SampleSection(title: '3. DDL / DML / TCL', body: '개념 7개 · 데이터 타입, 제약조건, MERGE'),
+        _SampleSection(title: '4. SQL 함수', body: '개념 6개 · 문자, 숫자, 날짜, NULL 함수'),
+        _SampleSection(title: '5. 조인', body: '개념 6개 · INNER, OUTER, SELF 조인'),
       ],
     );
   }

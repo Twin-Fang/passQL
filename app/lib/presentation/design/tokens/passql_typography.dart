@@ -9,7 +9,8 @@ abstract final class PassqlTypography {
   static const _bold = 'Pretendard-Bold';
   // 코드 글꼴 (pubspec 등록, Regular·Bold 2종)
   static const _code = 'JetBrainsMono';
-  static const _codeFallback = ['Menlo', 'Courier', 'monospace'];
+  // 코드 글꼴에 없는 한글(테이블·컬럼 이름)은 본문 글꼴로 (기기별 시스템 글꼴 차이 방지)
+  static const _codeFallback = ['Pretendard-Regular', 'Menlo', 'Courier', 'monospace'];
 
   static TextStyle _t(
     String family,

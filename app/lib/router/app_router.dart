@@ -6,6 +6,9 @@ import '../presentation/flows/daily_set_flow.dart';
 import '../presentation/flows/question_flow.dart';
 import '../presentation/flows/random_practice_flow.dart';
 import '../presentation/pages/community/blocked_members_page.dart';
+import '../presentation/pages/concepts/concept_page.dart';
+import '../presentation/pages/concepts/concept_topic_page.dart';
+import '../presentation/pages/concepts/concepts_home_page.dart';
 import '../presentation/pages/community/community_feed_page.dart';
 import '../presentation/pages/community/community_question_page.dart';
 import '../presentation/pages/daily_set/daily_set_result_page.dart';
@@ -39,7 +42,7 @@ final _rootKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
 /// 앱 전역 라우터.
 ///
-/// - StatefulShellRoute: 바텀 탭 5개 (홈/문제/토론/통계/설정), 탭별 상태 유지
+/// - StatefulShellRoute: 바텀 탭 5개 (홈/개념/문제/토론/내 프로필, 개념은 이용 가능할 때만 보임), 탭별 상태 유지
 /// - 루트 라우트: 풀스크린 페이지 (챕터, 챕터 결과, 문제 상세, 결과)
 abstract final class AppRouter {
   /// 로그인 여부. main 에서 인증 상태를 구독해 갱신하고, 값이 바뀌면 라우터가 redirect 를 다시 평가한다.
@@ -119,6 +122,16 @@ abstract final class AppRouter {
               ),
             ],
           ),
+          // 개념 탭 (#577): 이용 가능할 때만 셸에 보이지만 브랜치 순서는 고정
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.concepts,
+                pageBuilder: (_, _) =>
+                    const NoTransitionPage(child: ConceptsHomePage()),
+              ),
+            ],
+          ),
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -185,6 +198,21 @@ abstract final class AppRouter {
         path: AppRoutes.notices,
         parentNavigatorKey: _rootKey,
         builder: (_, _) => const NoticeListPage(),
+      ),
+      // 개념 학습 (#577): 단원 상세, 개념 읽기·풀기
+      GoRoute(
+        path: AppRoutes.conceptTopicPattern,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => ConceptTopicPage(
+          topicUuid: state.pathParameters[AppRoutes.topicUuidParameter]!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.conceptStudyPattern,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => ConceptPage(
+          conceptUuid: state.pathParameters[AppRoutes.conceptUuidParameter]!,
+        ),
       ),
       GoRoute(
         path: AppRoutes.noticeDetailPattern,

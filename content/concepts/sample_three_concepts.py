@@ -235,7 +235,7 @@ WHERE_NULL = {
         "- NULL은 값이 없거나 아직 모른다는 표시라서, 숫자 0이나 빈칸 문자와는 달라요.\n"
         "- NULL과 무엇을 비교해도(=, <>, >) 결과는 참도 거짓도 아닌 UNKNOWN이 되고, WHERE 절은 참인 행만 남기므로 그 행은 빠져요.\n"
         "- 그래서 NULL을 찾을 때는 `= NULL`이 아니라 `IS NULL`을, NULL이 아닌 행을 찾을 때는 `IS NOT NULL`을 써요.\n"
-        "- NULL이 섞인 계산은 결과도 NULL이 되고, Oracle에서는 빈 문자열('')도 NULL로 처리해요."
+        "- NULL이 섞인 계산은 결과도 NULL이 되고, Oracle에서는 빈 문자열(`''`)도 NULL로 처리해요."
     ),
     "detailMd": f"""## 왜 헷갈리나요 {{#why}}
 
@@ -269,7 +269,7 @@ NULL 자체를 확인하는 전용 연산자가 `IS NULL`과 `IS NOT NULL`이고
 
 **AND와 OR에 UNKNOWN이 섞이면 결과가 달라져요.** 거짓 AND UNKNOWN은 어느 쪽이든 거짓이라서 거짓이고, 참 OR UNKNOWN은 어느 쪽이든 참이라서 참이에요. 하지만 참 AND UNKNOWN, 거짓 OR UNKNOWN, NOT UNKNOWN은 여전히 UNKNOWN이에요. `NULL = NULL`도 참이 아니라 UNKNOWN이라는 점을 함께 기억해 두면 좋아요.
 
-**Oracle에서는 빈 문자열이 곧 NULL이에요.** Oracle은 `''`를 NULL로 저장하기 때문에 `WHERE 이름 = ''`는 아무 행도 돌려주지 않아요. SQL Server처럼 빈 문자열과 NULL을 구분하는 데이터베이스도 있어서, 시험 보기에서 이 차이를 묻기도 해요.
+**Oracle에서는 빈 문자열이 곧 NULL이에요.** Oracle은 빈 문자열 `''`를 NULL로 저장하기 때문에 `WHERE 이름 = ''`는 아무 행도 돌려주지 않아요. SQL Server처럼 빈 문자열과 NULL을 구분하는 데이터베이스도 있어서, 시험 보기에서 이 차이를 묻기도 해요.
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 
