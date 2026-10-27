@@ -72,6 +72,8 @@ class ClaudeClient:
         return {
             "model": model,
             "max_tokens": max_tokens,
+            # thinking 끔: 켜져 있으면 thinking 토큰이 max_tokens 를 먼저 써서 본문이 비거나 잘림
+            "thinking": {"type": "disabled"},
             "system": system_prompt,
             "messages": [{"role": "user", "content": user_prompt}],
         }
