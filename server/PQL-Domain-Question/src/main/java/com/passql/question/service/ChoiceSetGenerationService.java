@@ -6,6 +6,7 @@ import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.entity.PromptTemplate;
 import com.passql.meta.service.PromptService;
+import com.passql.question.constant.ChoiceSetPolicy;
 import com.passql.question.constant.ChoiceSetSource;
 import com.passql.question.dto.ExecuteResult;
 import com.passql.question.dto.ValidationReport;
@@ -124,10 +125,13 @@ public class ChoiceSetGenerationService {
 
         // MULTIPLE_CORRECT 실패 시 정답과 동일한 결과를 낸 오답 SQL 누적 (피드백용)
         List<String> equivalentSqls = new ArrayList<>();
+        // ODD_ONE_OUT 실패 시 직전 시도 선택지별 실제 실행 결과 (피드백용, 매 시도 교체)
+        List<String> previousOddOneOutResults = List.of();
 
         for (int attempts = 1; attempts <= MAX_ATTEMPTS; attempts++) {
-            // 재시도마다 피드백(동치 SQL 목록)을 포함한 요청을 새로 빌드
-            GenerateChoiceSetRequest request = requestFactory.buildStandardRequest(question, prompt, equivalentSqls);
+            // 재시도마다 피드백(동치 SQL 목록, ODD_ONE_OUT 실행 결과)을 포함한 요청을 새로 빌드
+            GenerateChoiceSetRequest request = requestFactory.buildStandardRequest(
+                    question, prompt, equivalentSqls, previousOddOneOutResults);
 
             try {
                 log.debug("[choice-gen] AI 호출 시작: attempt={}/{}, questionUuid={}, feedbackCount={}",
@@ -166,6 +170,9 @@ public class ChoiceSetGenerationService {
                     requestFactory.collectEquivalentSqls(lastResult.choices(), lastReport, equivalentSqls);
                     log.info("[choice-gen] 동치 SQL 피드백 누적: count={}, attempt={}, questionUuid={}",
                             equivalentSqls.size(), attempts, questionUuid);
+                }
+                if (question.getChoiceSetPolicy() == ChoiceSetPolicy.ODD_ONE_OUT && lastResult != null) {
+                    previousOddOneOutResults = requestFactory.toOddOneOutResultLines(lastResult.choices(), lastReport);
                 }
 
             } catch (CustomException e) {
