@@ -57,6 +57,8 @@ public enum ErrorCode {
     PROMPT_HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "프롬프트 변경 이력을 찾을 수 없습니다."),
     PROMPT_ACTIVE_DELETE_FORBIDDEN(HttpStatus.CONFLICT, "활성 상태인 프롬프트는 삭제할 수 없습니다. 다른 버전을 활성화한 뒤 삭제해 주세요."),
     TOPIC_NOT_FOUND(HttpStatus.NOT_FOUND, "토픽을 찾을 수 없습니다."),
+    CONCEPT_NOT_FOUND(HttpStatus.NOT_FOUND, "개념을 찾을 수 없습니다."),
+    CONCEPT_CHECK_QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "확인 문제를 찾을 수 없습니다."),
     TOPIC_DUPLICATE(HttpStatus.CONFLICT, "이미 있는 토픽 코드입니다."),
     TOPIC_HAS_QUESTIONS(HttpStatus.CONFLICT, "소속 문제가 있는 토픽·서브토픽은 삭제할 수 없습니다."),
     EXAM_SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "시험 일정을 찾을 수 없습니다."),

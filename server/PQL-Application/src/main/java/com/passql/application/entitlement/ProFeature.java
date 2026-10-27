@@ -13,5 +13,6 @@ public enum ProFeature {
     RECOMMENDATION,     // 추천 문제
     EXAM_TREND,         // 기출 경향
     TOPIC_ANALYSIS,     // 토픽 분석
-    AI_COMMENT          // AI 코멘트
+    AI_COMMENT,         // AI 코멘트
+    CONCEPT_LEARNING    // 개념 학습 무료 단원 이후
 }

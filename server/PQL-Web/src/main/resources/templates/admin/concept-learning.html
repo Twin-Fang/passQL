@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<th:block layout:fragment="title">개념 학습 관리</th:block>
+
+<th:block layout:fragment="content">
+
+    <!-- 안내 + 이동 -->
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <p class="text-sm text-base-content/60">
+            개념은 묶음(JSON)으로 가져와 초안으로 두고, 미리보기로 확인한 뒤 공개합니다.
+            앱 노출은 설정의 <span class="font-mono">concept.is_published</span>가 켜져야 하고, 그 전에는
+            <span class="font-mono">concept.preview_member_uuids</span> 회원만 봅니다.
+        </p>
+        <div class="flex gap-2">
+            <a th:href="@{/admin/concepts}" class="btn btn-sm btn-ghost">
+                <i data-lucide="file-text" class="size-4"></i>개념 문서
+            </a>
+            <button type="button" class="btn btn-sm btn-primary" onclick="publishAllConcepts()">
+                <i data-lucide="send" class="size-4"></i>확인 문제 갖춘 초안 일괄 공개
+            </button>
+        </div>
+    </div>
+
+    <!-- 묶음 가져오기 -->
+    <div class="card bg-base-100 shadow mb-4">
+        <div class="card-body p-4">
+            <h3 class="card-title text-base"><i data-lucide="upload" class="size-5"></i>개념 묶음 가져오기</h3>
+            <div class="flex flex-wrap items-center gap-2">
+                <input type="file" id="conceptBundleFile" accept="application/json,.json"
+                       class="file-input file-input-sm file-input-bordered" onchange="loadConceptBundleFile(this)"/>
+                <button type="button" class="btn btn-sm" onclick="validateConceptBundle()">검증</button>
+                <button type="button" class="btn btn-sm btn-primary" onclick="importConceptBundle()">가져오기</button>
+            </div>
+            <textarea id="conceptBundleText" rows="6" class="textarea textarea-bordered w-full font-mono text-xs"
+                      placeholder='{"concepts": [ ... ]}'></textarea>
+            <div id="conceptBundleResult" class="text-sm"></div>
+        </div>
+    </div>
+
+    <!-- 단원별 개념 -->
+    <div class="space-y-4">
+        <div th:each="group : ${topicGroups}" class="card bg-base-100 shadow">
+            <div class="card-body p-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="card-title text-base">
+                        <span th:text="${groupStat.index + 1} + '. ' + ${group.displayName}">1. 데이터 모델링</span>
+                        <span class="font-mono text-xs text-base-content/50" th:text="${group.topicCode}">MODELING</span>
+                    </h3>
+                    <span class="text-xs text-base-content/60" th:text="'개념 ' + ${group.concepts.size()} + '개'">개념 13개</span>
+                </div>
+                <div class="overflow-x-auto" th:unless="${group.concepts.isEmpty()}">
+                    <table class="table table-sm">
+                        <thead>
+                        <tr><th>제목</th><th>상태</th><th>확인 문제</th><th>수정</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="concept : ${group.concepts}">
+                            <td>
+                                <p class="font-medium" th:text="${concept.title}">엔터티</p>
+                                <p class="font-mono text-xs text-base-content/50" th:text="${concept.tagKey}">modeling-entity</p>
+                            </td>
+                            <td>
+                                <span th:if="${concept.publishStatus.name() == 'PUBLISHED'}" class="badge badge-success badge-sm">공개</span>
+                                <span th:unless="${concept.publishStatus.name() == 'PUBLISHED'}" class="badge badge-ghost badge-sm">초안</span>
+                            </td>
+                            <td>
+                                <span th:text="${concept.checkQuestionCount} + ' / 5'"
+                                      th:classappend="${concept.checkQuestionCount == 5} ? '' : 'text-error'">5 / 5</span>
+                            </td>
+                            <td class="text-xs text-base-content/60"
+                                th:text="${concept.updatedAt != null} ? ${#temporals.format(concept.updatedAt, 'MM-dd HH:mm')} : '-'">10-27 10:00</td>
+                            <td class="text-right whitespace-nowrap">
+                                <a th:href="@{/admin/concepts/learning/{uuid}/preview(uuid=${concept.conceptUuid})}"
+                                   class="btn btn-xs btn-ghost">미리보기</a>
+                                <button type="button" class="btn btn-xs"
+                                        th:data-uuid="${concept.conceptUuid}"
+                                        th:data-status="${concept.publishStatus.name() == 'PUBLISHED'} ? 'DRAFT' : 'PUBLISHED'"
+                                        th:text="${concept.publishStatus.name() == 'PUBLISHED'} ? '초안으로' : '공개'"
+                                        onclick="changeConceptStatus(this.dataset.uuid, this.dataset.status)">공개</button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p th:if="${group.concepts.isEmpty()}" class="text-sm text-base-content/40 py-2">아직 개념이 없습니다.</p>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<th:block layout:fragment="js">
+    <script th:src="@{/js/admin/concept-learning.js}"></script>
+    <script>lucide.createIcons();</script>
+</th:block>
+</html>

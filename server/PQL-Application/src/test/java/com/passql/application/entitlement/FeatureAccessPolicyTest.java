@@ -27,6 +27,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -393,5 +394,35 @@ class FeatureAccessPolicyTest {
 
         assertThat(policy.isBillingEnabledFor(memberUuid)).isTrue();
         assertThat(policy.getPlan(memberUuid).plan()).isEqualTo("FREE");
+    }
+
+    @Test
+    void canOpenConceptTopic_freeRangeOpen_lockedRangeNeedsPro() {
+        givenBillingEnabled(true);
+        when(entitlementRepository.findById(memberUuid)).thenReturn(Optional.empty());
+        when(appSettingService.getIntOrDefault(eq(AppSettingKeys.CONCEPT_FREE_TOPIC_COUNT), anyInt())).thenReturn(2);
+
+        assertThat(policy.canOpenConceptTopic(memberUuid, 0)).isTrue();
+        assertThat(policy.canOpenConceptTopic(memberUuid, 1)).isTrue();
+        assertThat(policy.canOpenConceptTopic(memberUuid, 2)).isFalse();
+    }
+
+    @Test
+    void canOpenConceptTopic_billingOff_allOpen() {
+        givenBillingEnabled(false);
+        when(appSettingService.getIntOrDefault(eq(AppSettingKeys.CONCEPT_FREE_TOPIC_COUNT), anyInt())).thenReturn(2);
+
+        assertThat(policy.canOpenConceptTopic(memberUuid, 8)).isTrue();
+    }
+
+    @Test
+    void canOpenConceptTopic_settingReadFails_defaultsToTwo() {
+        givenBillingEnabled(true);
+        when(entitlementRepository.findById(memberUuid)).thenReturn(Optional.empty());
+        when(appSettingService.getIntOrDefault(eq(AppSettingKeys.CONCEPT_FREE_TOPIC_COUNT), anyInt()))
+            .thenThrow(new IllegalStateException("redis down"));
+
+        assertThat(policy.canOpenConceptTopic(memberUuid, 1)).isTrue();
+        assertThat(policy.canOpenConceptTopic(memberUuid, 2)).isFalse();
     }
 }

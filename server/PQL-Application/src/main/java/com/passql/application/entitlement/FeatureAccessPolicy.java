@@ -47,6 +47,8 @@ public class FeatureAccessPolicy {
     private static final String PLAN_FREE = "FREE";
     // app_settings: 안드로이드 결제 사용 여부 ('true' 사용, 'false'·행 없음·저장소 장애 미사용)
     private static final boolean IS_BILLING_ENABLED_BY_DEFAULT = false;
+    // app_settings concept.free_topic_count 읽기 실패·행 없음 기본값 (단원 수)
+    private static final int CONCEPT_FREE_TOPIC_COUNT_BY_DEFAULT = 2;
     // app_settings billing.preview_member_uuids 구분자 (쉼표)
     private static final String PREVIEW_MEMBER_UUID_DELIMITER = ",";
     // 잘못된 목록 항목 로그 최대 길이 (자)
@@ -122,6 +124,24 @@ public class FeatureAccessPolicy {
         if (!canUse(memberUuid, feature)) {
             log.info("[pro access] rejected 403 : feature={}, member={}", feature, memberUuid);
             throw new CustomException(ErrorCode.PRO_REQUIRED);
+        }
+    }
+
+    /** 개념 단원 열기: 무료 단원(앞에서 N개) 또는 프로 (결제 꺼짐이면 전부 열림) */
+    public boolean canOpenConceptTopic(UUID memberUuid, int topicOrderIndex) {
+        if (topicOrderIndex < getConceptFreeTopicCount()) {
+            return true;
+        }
+        return isPro(memberUuid);
+    }
+
+    /** 개념 무료 단원 수 (app_settings concept.free_topic_count, 읽기 실패 > 기본 2) */
+    public int getConceptFreeTopicCount() {
+        try {
+            return appSettingService.getIntOrDefault(AppSettingKeys.CONCEPT_FREE_TOPIC_COUNT, CONCEPT_FREE_TOPIC_COUNT_BY_DEFAULT);
+        } catch (RuntimeException e) {
+            log.warn("[feature access] concept free topic count read failed, using default : reason={}", e.getClass().getSimpleName());
+            return CONCEPT_FREE_TOPIC_COUNT_BY_DEFAULT;
         }
     }
 
