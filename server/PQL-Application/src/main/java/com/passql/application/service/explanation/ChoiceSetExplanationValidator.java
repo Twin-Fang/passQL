@@ -16,8 +16,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * 구조화 해설 검증 (#521): 형식(필수·개수) > 사실(정답 키·보기별 판정 <-> DB 정답) > 길이·문체
- * 형식·사실·길이 상한 1.5배 초과는 위반(저장 거부), 상한 초과·서술 어미·코드 블록은 경고
+ * 구조화 해설 검증 (#521): 형식(필수·개수) > 사실(정답 키·보기별 판정 <-> DB 정답) > 길이·문체 > 결론(#716)
+ * 형식·사실·결론·길이 상한 1.5배 초과는 위반(저장 거부), 상한 초과·서술 어미·코드 블록은 경고
  * 서버 저장 직전과 하네스가 같은 검증을 쓴다
  */
 public final class ChoiceSetExplanationValidator {
@@ -43,6 +43,11 @@ public final class ChoiceSetExplanationValidator {
             Pattern.compile("정답(?:은|는|이|:)?\\s*\\(?([A-D])\\)?(?![A-Za-z_])");
     // 학습자에게 안 보이는 입력 섹션 이름: 해설에 나오면 위반 > 재생성 (#555)
     private static final List<String> INTERNAL_INPUT_LABELS = List.of("기준 SQL", "생성 근거");
+    // 결론을 미루는 표현: 정답 근거·보기 판정에 나오면 위반 > 재생성 (#716)
+    private static final Pattern UNRESOLVED_CONCLUSION_PATTERN =
+            Pattern.compile("확인이 필요|확인 필요|추가 확인|단정할 수 없|판단할 수 없");
+    // 숫자 하나가 답인 보기 ("4", "2행", "3건")
+    private static final Pattern NUMERIC_ANSWER_BODY_PATTERN = Pattern.compile("^\\s*(\\d+)\\s*(?:행|건|개)?\\s*$");
     private static final String CODE_FENCE = "```";
     private static final String LATEX_DOLLAR = "$";
 
@@ -61,6 +66,7 @@ public final class ChoiceSetExplanationValidator {
         validateLengths(explanation, violations, warnings);
         validateStyle(explanation, warnings);
         validateNoInternalInputLabels(explanation, violations);
+        validateConclusion(explanation, items, violations);
         return new ExplanationValidationResult(List.copyOf(violations), List.copyOf(warnings));
     }
 
@@ -146,6 +152,31 @@ public final class ChoiceSetExplanationValidator {
         for (String label : INTERNAL_INPUT_LABELS) {
             if (allTexts(explanation).anyMatch(text -> text.contains(label))) {
                 violations.add("학습자에게 보이지 않는 '" + label + "' 언급, 지문·보기·표의 말로만 설명");
+            }
+        }
+    }
+
+    /**
+     * 결론 (위반, #716): 정답 근거·보기 판정에 결론 미루는 표현 금지, 숫자가 답인 문제는 정답 근거에 그 숫자 포함
+     * "4번", "4 번째" 같은 순번 언급은 정답 값으로 치지 않음
+     */
+    private static void validateConclusion(ChoiceSetExplanation explanation, List<QuestionChoiceSetItem> items,
+                                           List<String> violations) {
+        Stream<String> conclusionTexts = Stream.concat(Stream.of(explanation.correctReason()),
+                nullSafe(explanation.choiceAnalyses()).stream().filter(Objects::nonNull).map(ChoiceAnalysis::reason));
+        conclusionTexts.filter(text -> !isBlank(text)).forEach(text -> {
+            Matcher matcher = UNRESOLVED_CONCLUSION_PATTERN.matcher(text);
+            if (matcher.find()) violations.add("결론을 미루는 표현 '" + matcher.group() + "', 판정을 끝까지 내려 다시 작성");
+        });
+
+        String correctBody = items.stream().filter(item -> Boolean.TRUE.equals(item.getIsCorrect()))
+                .map(QuestionChoiceSetItem::getBody).filter(Objects::nonNull).findFirst().orElse("");
+        Matcher numericAnswer = NUMERIC_ANSWER_BODY_PATTERN.matcher(correctBody);
+        if (numericAnswer.matches() && !isBlank(explanation.correctReason())) {
+            String answerNumber = numericAnswer.group(1);
+            Pattern answerMention = Pattern.compile("(?<!\\d)" + answerNumber + "(?!\\d|\\s*번)");
+            if (!answerMention.matcher(explanation.correctReason()).find()) {
+                violations.add("correctReason 에 정답 값 " + answerNumber + " 없음, 합계·최종 결과로 끝맺기");
             }
         }
     }
