@@ -1,6 +1,7 @@
 {
   "type": "OBJECT",
   "properties": {
+    "workingNotes": {"type": "STRING", "description": "풀이 메모 (학습자에게 안 보임): 문장·보기마다 판정 한 줄씩 + 합계·결론"},
     "correctChoiceKey": {"type": "STRING", "description": "정답 보기 키 (입력의 [정답] 보기)"},
     "correctReason": {"type": "STRING", "description": "정답 근거 2~3문장"},
     "keyConcepts": {
@@ -38,6 +39,6 @@
     },
     "examTip": {"type": "STRING", "description": "시험 팁 한 줄"}
   },
-  "required": ["correctChoiceKey", "correctReason", "keyConcepts", "confusingPoints", "choiceAnalyses", "examTip"],
-  "propertyOrdering": ["correctChoiceKey", "correctReason", "keyConcepts", "confusingPoints", "choiceAnalyses", "examTip"]
+  "required": ["workingNotes", "correctChoiceKey", "correctReason", "keyConcepts", "confusingPoints", "choiceAnalyses", "examTip"],
+  "propertyOrdering": ["workingNotes", "correctChoiceKey", "correctReason", "keyConcepts", "confusingPoints", "choiceAnalyses", "examTip"]
 }
