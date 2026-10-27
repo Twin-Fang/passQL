@@ -5,7 +5,7 @@
 // 빌드: flutter build ios --simulator -t tool/store_shots/main_shots.dart
 // 촬영: echo /stats > /tmp/passql_shot_route.txt && xcrun simctl launch <기기> com.coldredrice.passql
 // 연출(경로 대신 적음): execute-ok(SQL 실행 성공 표), execute-fail(SQL 실행 실패 카드), chapter-result(문제 목록 > 챕터 > 챕터 결과), ai-sheet(오답 AI 해설 시트),
-//   onboarding-1~4(온보딩 n장), onboarding-celebration(온보딩 첫 문제 축하)
+//   onboarding-1~4(온보딩 n장), onboarding-celebration(온보딩 첫 문제 축하), onboarding-tour(4장 넘김 > 축하 영상)
 // 로그인 중 화면: echo /login-signing-in > /tmp/passql_shot_route.txt (카카오 버튼을 눌러 응답 대기에서 멈춘 상태)
 // 로그인 전환 영상: echo /login-transition > /tmp/passql_shot_route.txt (로그인 화면 > 4초 뒤 홈 > 9초 뒤 로그인 화면, xcrun simctl io <기기> recordVideo 로 녹화)
 // 앱 시작 설정 상황: echo maintenance > /tmp/passql_shot_app_config.txt
@@ -908,6 +908,15 @@ Future<void> _openRoute(String route, ProviderContainer container) async {
     case 'onboarding-celebration':
       // 온보딩 첫 문제 뒤 축하 화면 (이어서 풀기)
       AppRouter.router.push(AppRoutes.onboardingCelebration, extra: false);
+    case 'onboarding-tour':
+      // 온보딩 4장을 차례로 넘긴 뒤 축하 화면까지 (리포트 영상용, 스와이프 대신 페이지 애니메이션)
+      AppRouter.router.go(AppRoutes.onboarding);
+      for (var pageIndex = 1; pageIndex < 4; pageIndex++) {
+        await Future<void>.delayed(const Duration(milliseconds: 2500));
+        await _animateFirstPageView(pageIndex);
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 3000));
+      AppRouter.router.push(AppRoutes.onboardingCelebration, extra: false);
     default:
       // 온보딩 n장: onboarding-2 ~ onboarding-4 (시뮬레이터는 스와이프를 못 보내 페이지를 직접 넘김)
       final onboardingPage = RegExp(r'^onboarding-([1-4])$').firstMatch(route);
@@ -932,4 +941,21 @@ void _jumpFirstPageView(int pageIndex) {
 
   WidgetsBinding.instance.rootElement?.visitChildren(visit);
   controller?.jumpToPage(pageIndex);
+}
+
+/// 화면의 첫 PageView 를 손으로 넘긴 것처럼 미끄러뜨려 넘긴다 (온보딩 영상용)
+Future<void> _animateFirstPageView(int pageIndex) async {
+  PageController? controller;
+  void visit(Element element) {
+    final widget = element.widget;
+    if (controller == null && widget is PageView) controller = widget.controller;
+    if (controller == null) element.visitChildren(visit);
+  }
+
+  WidgetsBinding.instance.rootElement?.visitChildren(visit);
+  await controller?.animateToPage(
+    pageIndex,
+    duration: const Duration(milliseconds: 350),
+    curve: Curves.easeOutCubic,
+  );
 }
