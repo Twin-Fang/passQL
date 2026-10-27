@@ -76,18 +76,24 @@ abstract final class AppLogger {
     final store = _store;
     if (store == null) return;
     _bufferedLines.clear();
-    await _pendingFlush;
-    await store.clear();
+    try {
+      await _pendingFlush;
+      await store.clear();
+    } catch (_) {
+      // 로그 삭제 실패가 로그아웃·탈퇴를 막지 않도록 삼킴
+    }
   }
 
   static void _record(String levelCode, String tag, String message) {
     if (_store == null) return;
-    final cappedMessage = message.length > _maxMessageLength
-        ? '${message.substring(0, _maxMessageLength)}$_truncatedSuffix'
-        : message;
-    final line =
-        '${_formatTimestamp(DateTime.now())} $levelCode [$tag] $cappedMessage';
-    _bufferedLines.add(AppLogMasker.mask(line));
+    // 마스킹 먼저 (자르기 경계에 걸린 비밀값이 패턴을 피하지 않게) > 2KB 제한
+    final maskedMessage = AppLogMasker.mask(message);
+    final cappedMessage = maskedMessage.length > _maxMessageLength
+        ? '${maskedMessage.substring(0, _maxMessageLength)}$_truncatedSuffix'
+        : maskedMessage;
+    _bufferedLines.add(
+      '${_formatTimestamp(DateTime.now())} $levelCode [$tag] $cappedMessage',
+    );
   }
 
   // ISO8601 + 로컬 오프셋 (2026-10-27T09:00:00.000+09:00)

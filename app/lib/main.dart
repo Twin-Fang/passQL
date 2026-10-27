@@ -101,14 +101,19 @@ Future<void> main() async {
 
 /// 로그 파일 저장소 연결 > "app start {version}+{build}" 기록 > 생명주기 관찰 등록
 Future<void> _startAppLogging() async {
-  final logDirectory = await getApplicationSupportDirectory();
-  await AppLogger.start(AppLogFileStore(directory: logDirectory));
-  final packageInfo = await PackageInfo.fromPlatform();
-  AppLogger.info(
-    'lifecycle',
-    'app start ${packageInfo.version}+${packageInfo.buildNumber}',
-  );
-  WidgetsBinding.instance.addObserver(AppLogLifecycleObserver());
+  // 로그는 부가 기능: 실패해도 앱 시작을 막지 않음
+  try {
+    final logDirectory = await getApplicationSupportDirectory();
+    await AppLogger.start(AppLogFileStore(directory: logDirectory));
+    final packageInfo = await PackageInfo.fromPlatform();
+    AppLogger.info(
+      'lifecycle',
+      'app start ${packageInfo.version}+${packageInfo.buildNumber}',
+    );
+    WidgetsBinding.instance.addObserver(AppLogLifecycleObserver());
+  } catch (_) {
+    // 로그 시작 실패 무시
+  }
 }
 
 class PassqlApp extends ConsumerWidget {

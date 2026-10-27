@@ -113,11 +113,11 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
       }
     }
     await store.clear();
-    // 회원 로그 파기 (다음 계정에 이전 로그가 첨부되지 않게)
-    await AppLogger.clear();
     // Firebase/Google 쪽 로그인 상태도 정리해야 다음 로그인에서 계정을 고를 수 있다.
     await ref.read(socialSignInProvider).signOut();
     state = const AsyncData(null);
+    // 회원 로그 파기 (다음 계정에 이전 로그가 첨부되지 않게, 실패해도 무시)
+    await AppLogger.clear();
   }
 
   /// 회원 탈퇴. 서버가 계정을 지운 뒤에만 기기의 세션을 정리한다.
@@ -140,9 +140,9 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
     await socialSignIn.disconnectAfterWithdrawal(signedUpAccount.authProvider);
     // 회원별 로컬 저장값은 보안 저장소 세션뿐 (나머지 기기 저장값은 회원 무관)
     await ref.read(tokenStoreProvider).clear();
-    await AppLogger.clear();
     await socialSignIn.signOut();
     state = const AsyncData(null);
+    await AppLogger.clear();
   }
 
   /// 탈퇴 분기·계정 대조 기준: 제공자(세션 저장값 > /members/me), 제공자 회원 식별자(/members/me)
@@ -180,8 +180,8 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
     ref.read(loginNoticeProvider.notifier).state = noticeMessage;
     state = const AsyncData(null);
     await ref.read(tokenStoreProvider).clear();
-    await AppLogger.clear();
     await ref.read(socialSignInProvider).signOut();
+    await AppLogger.clear();
   }
 }
 
