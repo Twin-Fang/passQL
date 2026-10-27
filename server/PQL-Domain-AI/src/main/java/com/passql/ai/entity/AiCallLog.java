@@ -65,6 +65,10 @@ public class AiCallLog {
     // 출력 토큰 수, thinking 포함 (모르면 null)
     private Integer completionTokenCount;
 
+    // 호출한 AI 연결 이름 (#695, 모르면 null)
+    @Column(length = 100)
+    private String connectionName;
+
     public static AiCallLog of(AiCallSource callSource, String endpointPath, String modelName, boolean isSuccess,
                                long latencyMilliseconds, String errorType,
                                Integer promptTokenCount, Integer completionTokenCount) {
@@ -78,6 +82,16 @@ public class AiCallLog {
         callLog.promptTokenCount = promptTokenCount;
         callLog.completionTokenCount = completionTokenCount;
         callLog.calledAt = LocalDateTime.now();
+        return callLog;
+    }
+
+    /** 연결 이름 포함 기록 */
+    public static AiCallLog of(AiCallSource callSource, String connectionName, String endpointPath, String modelName,
+                               boolean isSuccess, long latencyMilliseconds, String errorType,
+                               Integer promptTokenCount, Integer completionTokenCount) {
+        AiCallLog callLog = of(callSource, endpointPath, modelName, isSuccess, latencyMilliseconds, errorType,
+                promptTokenCount, completionTokenCount);
+        callLog.connectionName = connectionName;
         return callLog;
     }
 }

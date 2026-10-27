@@ -166,7 +166,7 @@ public class GeminiFallbackClient {
                     .toList();
 
             return new GenerateQuestionFullResult(stem, answerSql, choices,
-                    new GenerationMetadataDto(model, null, elapsed, null, null, payload, 1));
+                    new GenerationMetadataDto(model, null, elapsed, null, null, payload, 1, null));
         } catch (Exception e) {
             // 원인 메시지는 로그에만 (응답 detail 은 고정 문구)
             log.error("[GeminiFallback] 응답 파싱 실패: model={}, error={}", model, e.getMessage());
@@ -190,7 +190,7 @@ public class GeminiFallbackClient {
                     .toList();
 
             return new GenerateChoiceSetResult(choices,
-                    new GenerationMetadataDto(model, null, elapsed, null, null, payload, 1));
+                    new GenerationMetadataDto(model, null, elapsed, null, null, payload, 1, null));
         } catch (Exception e) {
             // 원인 메시지는 로그에만 (응답 detail 은 고정 문구)
             log.error("[GeminiFallback] 응답 파싱 실패: model={}, error={}", model, e.getMessage());

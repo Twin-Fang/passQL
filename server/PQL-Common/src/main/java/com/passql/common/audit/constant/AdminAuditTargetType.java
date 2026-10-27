@@ -20,7 +20,8 @@ public enum AdminAuditTargetType {
     ADMIN_ACCOUNT("관리자 계정"),
     NOTIFICATION("알림"),
     COMMUNITY_POST("커뮤니티 글"),
-    EMBEDDING_INDEX("임베딩 색인");
+    EMBEDDING_INDEX("임베딩 색인"),
+    AI_CONNECTION("AI 연결");
 
     // 화면 표시 이름
     private final String label;
