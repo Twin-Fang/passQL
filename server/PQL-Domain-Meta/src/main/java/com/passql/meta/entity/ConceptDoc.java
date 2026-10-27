@@ -42,6 +42,14 @@ public class ConceptDoc extends BaseEntity {
     @Column(length = 100)
     private String embeddingVersion;
 
+    // 핵심만 (3~5줄 마크다운)
+    @Column(columnDefinition = "TEXT")
+    private String coreMd;
+
+    // 자세히 ("## 제목 {#앵커}" 문단 마크다운)
+    @Column(columnDefinition = "TEXT")
+    private String detailMd;
+
     @Column(nullable = false)
     private Boolean isActive = true;
 }
