@@ -8,8 +8,8 @@ ALTER TABLE feedback ADD COLUMN IF NOT EXISTS log_object_key VARCHAR(200);
 ALTER TABLE feedback ADD COLUMN IF NOT EXISTS log_bytes INT;
 
 CREATE TABLE IF NOT EXISTS feedback_image (
-    feedback_image_uuid CHAR(36)     NOT NULL,
-    feedback_uuid       CHAR(36)     NOT NULL,
+    feedback_image_uuid UUID         NOT NULL,
+    feedback_uuid       UUID         NOT NULL,
     object_key          VARCHAR(200) NOT NULL,
     bytes               INT          NOT NULL,
     width_pixels        INT          NOT NULL,
