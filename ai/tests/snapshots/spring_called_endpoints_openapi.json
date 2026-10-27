@@ -136,6 +136,16 @@
                 }
               ]
             },
+            "connection_name": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "elapsed_ms": {
               "type": "integer"
             },
@@ -295,6 +305,16 @@
               "anyOf": [
                 {
                   "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "connection_name": {
+              "anyOf": [
+                {
+                  "type": "string"
                 },
                 {
                   "type": "null"

@@ -11,7 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * AI 호출 기록·집계 (#474, #557): AiGatewayClient·GeminiClient 호출 지점 각 1곳에서 기록, 대시보드·모니터링이 기간 집계
@@ -46,6 +48,25 @@ public class AiCallLogService {
                        Integer promptTokenCount, Integer completionTokenCount) {
         saveIgnoringFailure(AiCallLog.of(callSource, endpointPath, modelName, isSuccess,
                 latencyMilliseconds, errorType, promptTokenCount, completionTokenCount));
+    }
+
+    /** 연결 경유 호출 1건 기록 (연결 이름 포함, #695) */
+    @Async(RECORD_EXECUTOR_NAME)
+    @Transactional
+    public void recordConnectionCall(AiCallSource callSource, String connectionName, String endpointPath, String modelName,
+                                     boolean isSuccess, long latencyMilliseconds, String errorType,
+                                     Integer promptTokenCount, Integer completionTokenCount) {
+        saveIgnoringFailure(AiCallLog.of(callSource, connectionName, endpointPath, modelName, isSuccess,
+                latencyMilliseconds, errorType, promptTokenCount, completionTokenCount));
+    }
+
+    /** since 이후 연결 이름별 [전체 수, 성공 수] */
+    public Map<String, long[]> countCallsByConnectionSince(LocalDateTime since) {
+        Map<String, long[]> callCountsByConnectionName = new HashMap<>();
+        for (Object[] row : aiCallLogRepository.countByConnectionSince(since)) {
+            callCountsByConnectionName.put((String) row[0], new long[]{toLong(row[1]), toLong(row[2])});
+        }
+        return callCountsByConnectionName;
     }
 
     // 저장 실패는 로그만 (통계용이라 호출 흐름에 영향 금지)

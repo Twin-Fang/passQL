@@ -16,6 +16,7 @@ public enum AdminMenu {
     QUESTIONS("questions", "문제 관리"),
     CHOICE_SETS("choice-sets", "선택지 세트 이력"),
     PROMPTS("prompts", "프롬프트 관리"),
+    AI_CONNECTIONS("ai-connections", "AI 연결 관리"),
     TOPICS("topics", "토픽/태그 관리"),
     CONCEPTS("concepts", "개념 문서 관리"),
     DAILY_CHALLENGES("daily-challenges", "일일 챌린지 관리"),

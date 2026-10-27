@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<th:block layout:fragment="title">AI 연결 관리</th:block>
+
+<th:block layout:fragment="content">
+
+    <!-- 호출 규칙 안내 (#695) -->
+    <div class="card bg-base-100 shadow mb-4">
+        <div class="card-body p-4">
+            <h3 class="card-title text-base mb-2">
+                <i data-lucide="route" class="size-5"></i>
+                호출 순서
+            </h3>
+            <ul class="text-sm text-base-content/70 list-disc pl-5 space-y-1">
+                <li>사용 중인 연결을 <b>위에서부터</b> 시도합니다. 사용량 초과(429), 크레딧 부족, 키 무효(401·403), 서버 오류(5xx), 응답 없음이면 다음 연결로 넘어갑니다.</li>
+                <li>요청 형식 오류(400)는 다른 연결도 같은 이유로 실패하므로 넘어가지 않습니다.</li>
+                <li>프롬프트에 모델이 지정돼 있으면(<a href="/admin/prompts" class="link">프롬프트 관리</a>) 같은 제공자 연결에서 그 모델로 먼저 시도하고, 나머지 연결은 각 기본 모델로 시도합니다.</li>
+                <li>모델 이름 규칙: <code>claude-*</code> Claude, <code>gemini-*</code> Gemini, <code>gpt-*</code>·<code>o1</code>·<code>o3</code>·<code>o4</code> OpenAI</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 연결 추가 -->
+    <div class="card bg-base-100 shadow mb-4">
+        <div class="card-body p-4">
+            <h3 class="card-title text-base mb-3">
+                <i data-lucide="plus-circle" class="size-5"></i>
+                연결 추가
+            </h3>
+            <div class="flex flex-wrap items-end gap-3">
+                <div class="form-control">
+                    <label class="label"><span class="label-text">제공자</span></label>
+                    <select id="newProvider" class="select select-bordered select-sm" onchange="fillDefaultModel()">
+                        <option th:each="p : ${providers}" th:value="${p.name()}" th:text="${p.label}">Claude</option>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label class="label"><span class="label-text">이름</span></label>
+                    <input id="newConnectionName" type="text" class="input input-bordered input-sm w-44" placeholder="claude-passql-dev"/>
+                </div>
+                <div class="form-control">
+                    <label class="label"><span class="label-text">기본 모델</span></label>
+                    <input id="newDefaultModel" type="text" class="input input-bordered input-sm w-48 font-mono"/>
+                </div>
+                <div class="form-control">
+                    <label class="label"><span class="label-text">API 키</span></label>
+                    <input id="newApiKey" type="password" autocomplete="off" class="input input-bordered input-sm w-64 font-mono"/>
+                </div>
+                <button type="button" class="btn btn-sm btn-primary" onclick="createConnection()">
+                    <i data-lucide="plus" class="size-4"></i>
+                    추가
+                </button>
+            </div>
+            <p class="text-xs text-base-content/60 mt-2">새 연결은 맨 뒤 순서로 들어갑니다. 키는 암호화해서 저장하고 화면에는 끝 4자리만 보입니다.</p>
+        </div>
+    </div>
+
+    <!-- 연결 목록 -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-4">
+            <h3 class="card-title text-base mb-3">
+                <i data-lucide="plug-zap" class="size-5"></i>
+                연결 목록
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead>
+                    <tr>
+                        <th class="w-16">순서</th>
+                        <th>제공자</th>
+                        <th>이름</th>
+                        <th>기본 모델</th>
+                        <th>키</th>
+                        <th>사용</th>
+                        <th>최근 상태</th>
+                        <th>이번 달 호출</th>
+                        <th class="w-52">액션</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="c, iteration : ${connections}" th:classappend="${!c.isEnabled()} ? 'opacity-50'">
+                        <td>
+                            <div class="flex items-center gap-1">
+                                <b th:text="${c.callOrder()}">1</b>
+                                <button class="btn btn-xs btn-ghost" title="앞으로" th:disabled="${iteration.first}"
+                                        th:data-uuid="${c.aiConnectionUuid()}" onclick="moveConnection(this.dataset.uuid, 'up')">
+                                    <i data-lucide="chevron-up" class="size-3"></i>
+                                </button>
+                                <button class="btn btn-xs btn-ghost" title="뒤로" th:disabled="${iteration.last}"
+                                        th:data-uuid="${c.aiConnectionUuid()}" onclick="moveConnection(this.dataset.uuid, 'down')">
+                                    <i data-lucide="chevron-down" class="size-3"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td><span class="badge badge-sm badge-outline" th:text="${c.provider().label}">Claude</span></td>
+                        <td class="font-medium" th:text="${c.connectionName()}">claude-passql-pro</td>
+                        <td class="font-mono text-xs" th:text="${c.defaultModel()}">claude-haiku-5-5</td>
+                        <td class="font-mono text-xs whitespace-nowrap" th:text="${c.maskedApiKey()}">…abcd</td>
+                        <td>
+                            <input type="checkbox" class="toggle toggle-sm toggle-success" th:checked="${c.isEnabled()}"
+                                   th:data-uuid="${c.aiConnectionUuid()}" onchange="changeEnabled(this.dataset.uuid, this.checked)"/>
+                        </td>
+                        <td class="text-xs">
+                            <span th:if="${c.lastSuccessAt() == null and c.lastFailureAt() == null}" class="text-base-content/40">호출 없음</span>
+                            <span th:if="${c.lastSuccessAt() != null or c.lastFailureAt() != null}"
+                                  class="badge badge-sm" th:classappend="${c.isLastCallFailed()} ? 'badge-error' : 'badge-success'"
+                                  th:text="${c.isLastCallFailed()} ? '실패' : '정상'">정상</span>
+                            <div th:if="${c.lastSuccessAt() != null}" class="text-base-content/60"
+                                 th:text="'성공 ' + ${#temporals.format(c.lastSuccessAt(), 'MM-dd HH:mm')}">성공</div>
+                            <div th:if="${c.lastFailureAt() != null}" class="text-base-content/60"
+                                 th:text="'실패 ' + ${#temporals.format(c.lastFailureAt(), 'MM-dd HH:mm')} + ' · ' + ${c.lastErrorType()}">실패</div>
+                        </td>
+                        <td class="text-xs" th:text="${c.monthCallCount()} + '회 (성공 ' + ${c.monthSuccessCount()} + ')'">0회</td>
+                        <td>
+                            <div class="flex flex-wrap gap-1">
+                                <button class="btn btn-xs btn-outline" th:data-uuid="${c.aiConnectionUuid()}"
+                                        onclick="checkConnection(this, this.dataset.uuid)">
+                                    <i data-lucide="shield-check" class="size-3"></i> 확인
+                                </button>
+                                <button class="btn btn-xs btn-ghost" title="이름·기본 모델 수정"
+                                        th:data-uuid="${c.aiConnectionUuid()}" th:data-name="${c.connectionName()}"
+                                        th:data-model="${c.defaultModel()}" onclick="openEdit(this.dataset)">
+                                    <i data-lucide="pencil" class="size-3"></i>
+                                </button>
+                                <button class="btn btn-xs btn-ghost" title="키 교체"
+                                        th:data-uuid="${c.aiConnectionUuid()}" onclick="openApiKey(this.dataset.uuid)">
+                                    <i data-lucide="key-round" class="size-3"></i>
+                                </button>
+                                <button class="btn btn-xs btn-ghost text-error" title="삭제"
+                                        th:data-uuid="${c.aiConnectionUuid()}" th:data-name="${c.connectionName()}"
+                                        onclick="deleteConnection(this.dataset)">
+                                    <i data-lucide="trash-2" class="size-3"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${connections.isEmpty()}">
+                        <td colspan="9" class="text-center text-base-content/40 py-8">등록된 AI 연결이 없습니다. AI 기능이 동작하지 않습니다.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 이름·기본 모델 수정 -->
+    <dialog id="editModal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg mb-3">연결 수정</h3>
+            <label class="label"><span class="label-text">이름</span></label>
+            <input id="editConnectionName" type="text" class="input input-bordered input-sm w-full"/>
+            <label class="label"><span class="label-text">기본 모델</span></label>
+            <input id="editDefaultModel" type="text" class="input input-bordered input-sm w-full font-mono"/>
+            <div class="modal-action">
+                <form method="dialog"><button class="btn btn-ghost btn-sm">취소</button></form>
+                <button class="btn btn-primary btn-sm" onclick="saveEdit()">저장</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <!-- 키 교체 -->
+    <dialog id="apiKeyModal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg mb-3">API 키 교체</h3>
+            <input id="replaceApiKey" type="password" autocomplete="off" class="input input-bordered input-sm w-full font-mono"/>
+            <div class="modal-action">
+                <form method="dialog"><button class="btn btn-ghost btn-sm">취소</button></form>
+                <button class="btn btn-primary btn-sm" onclick="saveApiKey()">교체</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <script>
+        // 제공자별 추천 기본 모델 (가장 저렴한 모델)
+        const DEFAULT_MODEL_BY_PROVIDER = {CLAUDE: 'claude-haiku-5-5', GEMINI: 'gemini-2.5-flash-lite', OPENAI: ''};
+        const BASE_PATH = '/admin/ai-connections/';
+        let editingConnectionUuid = null;
+
+        function fillDefaultModel() {
+            document.getElementById('newDefaultModel').value =
+                DEFAULT_MODEL_BY_PROVIDER[document.getElementById('newProvider').value] || '';
+        }
+        fillDefaultModel();
+
+        function createConnection() {
+            const body = {
+                provider: document.getElementById('newProvider').value,
+                connectionName: document.getElementById('newConnectionName').value,
+                defaultModel: document.getElementById('newDefaultModel').value,
+                apiKey: document.getElementById('newApiKey').value
+            };
+            AdminApi.post('/admin/ai-connections', body)
+                .then(() => AdminUi.reloadWithToast('연결을 추가했습니다.'))
+                .catch(error => AdminUi.showError(error));
+        }
+
+        function moveConnection(uuid, direction) {
+            AdminApi.put(BASE_PATH + uuid + '/move?direction=' + direction)
+                .then(() => AdminUi.reloadWithToast('호출 순서를 바꿨습니다.'))
+                .catch(error => AdminUi.showError(error));
+        }
+
+        function changeEnabled(uuid, isEnabled) {
+            AdminApi.put(BASE_PATH + uuid + '/enabled', {isEnabled: isEnabled})
+                .then(() => AdminUi.reloadWithToast(isEnabled ? '연결을 사용합니다.' : '연결을 사용하지 않습니다.'))
+                .catch(error => AdminUi.showError(error));
+        }
+
+        // 연결 확인: 키·기본 모델 조회 1회 (과금 없음)
+        function checkConnection(button, uuid) {
+            button.disabled = true;
+            AdminApi.post(BASE_PATH + uuid + '/check')
+                .then(result => AdminUi.toast((result.isValid ? '정상: ' : '실패: ') + result.detail
+                    + ' (' + result.latencyMilliseconds + 'ms)', result.isValid ? 'success' : 'error'))
+                .catch(error => AdminUi.showError(error))
+                .finally(() => { button.disabled = false; });
+        }
+
+        function openEdit(dataset) {
+            editingConnectionUuid = dataset.uuid;
+            document.getElementById('editConnectionName').value = dataset.name;
+            document.getElementById('editDefaultModel').value = dataset.model;
+            document.getElementById('editModal').showModal();
+        }
+
+        function saveEdit() {
+            const body = {
+                connectionName: document.getElementById('editConnectionName').value,
+                defaultModel: document.getElementById('editDefaultModel').value
+            };
+            AdminApi.put(BASE_PATH + editingConnectionUuid, body)
+                .then(() => AdminUi.reloadWithToast('연결을 수정했습니다.'))
+                .catch(error => AdminUi.showError(error));
+        }
+
+        function openApiKey(uuid) {
+            editingConnectionUuid = uuid;
+            document.getElementById('replaceApiKey').value = '';
+            document.getElementById('apiKeyModal').showModal();
+        }
+
+        function saveApiKey() {
+            AdminApi.put(BASE_PATH + editingConnectionUuid + '/api-key', {apiKey: document.getElementById('replaceApiKey').value})
+                .then(() => AdminUi.reloadWithToast('API 키를 교체했습니다.'))
+                .catch(error => AdminUi.showError(error));
+        }
+
+        async function deleteConnection(dataset) {
+            if (!await AdminUi.confirmDanger(dataset.name + ' 연결을 삭제합니다. 되돌릴 수 없습니다.', {confirmLabel: '삭제'})) return;
+            AdminApi.delete(BASE_PATH + dataset.uuid)
+                .then(() => AdminUi.reloadWithToast('연결을 삭제했습니다.'))
+                .catch(error => AdminUi.showError(error));
+        }
+    </script>
+</th:block>
+</html>

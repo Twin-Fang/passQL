@@ -145,18 +145,18 @@
             circuitBadgeClassByState[aiStatus.circuitState] || 'badge-ghost', aiStatus.circuitState || '-');
 
         // Gemini 키: true 유효, false 확인 필요, null 미확인
-        const geminiKey = aiStatus.geminiKey || {};
-        const geminiKeyDetail = document.getElementById('geminiKeyDetail');
-        const checkedAgoText = toCheckedAgoText(geminiKey.checkedAt);
-        if (geminiKey.isValid === true) {
-            setStatusBadge(document.getElementById('geminiKeyBadge'), 'badge-success', '유효' + (checkedAgoText ? ' · ' + checkedAgoText : ''), geminiKey.detail);
-        } else if (geminiKey.isValid === false) {
-            setStatusBadge(document.getElementById('geminiKeyBadge'), 'badge-error', '확인 필요' + (checkedAgoText ? ' · ' + checkedAgoText : ''), geminiKey.detail);
+        const aiConnection = aiStatus.aiConnection || {};
+        const aiConnectionDetail = document.getElementById('aiConnectionDetail');
+        const checkedAgoText = toCheckedAgoText(aiConnection.checkedAt);
+        if (aiConnection.isValid === true) {
+            setStatusBadge(document.getElementById('aiConnectionBadge'), 'badge-success', '유효' + (checkedAgoText ? ' · ' + checkedAgoText : ''), aiConnection.detail);
+        } else if (aiConnection.isValid === false) {
+            setStatusBadge(document.getElementById('aiConnectionBadge'), 'badge-error', '확인 필요' + (checkedAgoText ? ' · ' + checkedAgoText : ''), aiConnection.detail);
         } else {
-            setStatusBadge(document.getElementById('geminiKeyBadge'), 'badge-ghost', '미확인', geminiKey.detail);
+            setStatusBadge(document.getElementById('aiConnectionBadge'), 'badge-ghost', '미확인', aiConnection.detail);
         }
-        geminiKeyDetail.hidden = !(geminiKey.isValid === false && geminiKey.detail);
-        geminiKeyDetail.textContent = geminiKey.detail || '';
+        aiConnectionDetail.hidden = !(aiConnection.isValid === false && aiConnection.detail);
+        aiConnectionDetail.textContent = aiConnection.detail || '';
     }
 
     /** 최근 24시간 실패 원인 4종 (0 초과면 강조) */

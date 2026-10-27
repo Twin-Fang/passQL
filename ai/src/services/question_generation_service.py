@@ -7,6 +7,7 @@ import time
 from typing import Any
 
 from src.clients import llm_client
+from src.clients.llm_client import LlmResult
 from src.core.exceptions import CustomError, InvalidRequestError
 from src.models.ai_request import (
     GenerateChoiceSetRequest,
@@ -36,7 +37,7 @@ def _truncate_payload_for_log(payload: Any) -> str:
 class QuestionGenerationService:
     """
     문제 생성: 관리자 문제 등록(stem+정답+선택지), 사용자 풀이 선택지 세트, 프롬프트 테스트
-    Spring 이 내려준 프롬프트·모델·response_schema > 변수 치환 > LLM 호출 (모델 이름으로 Gemini·Claude 선택)
+    Spring 이 내려준 프롬프트·모델·response_schema > 변수 치환 > LLM 호출 (AI 연결 우선순위·fallback)
     """
 
     @staticmethod
@@ -50,20 +51,20 @@ class QuestionGenerationService:
 
     @staticmethod
     async def _generate_structured_payload(
-        llm_config: LlmConfig, user_prompt: str, model: str
-    ) -> tuple[dict[str, Any], int]:
-        """LLM structured 호출 > (응답 dict, 소요 ms)"""
+        llm_config: LlmConfig, user_prompt: str
+    ) -> tuple[LlmResult, int]:
+        """LLM structured 호출 > (결과: 응답 dict·사용 연결·사용 모델, 소요 ms)"""
         started = time.monotonic()
-        payload = await llm_client.chat_structured(
+        result = await llm_client.chat_structured(
             system_prompt=llm_config.system_prompt,
             user_prompt=user_prompt,
-            model=model,
+            prompt_model=llm_config.model,
             temperature=llm_config.temperature,
             max_tokens=llm_config.max_tokens,
             response_schema=llm_config.response_schema,
         )
         elapsed_ms = int((time.monotonic() - started) * 1000)
-        return payload, elapsed_ms
+        return result, elapsed_ms
 
     async def generate_question_full(
         self, req: GenerateQuestionFullRequest
@@ -88,9 +89,9 @@ class QuestionGenerationService:
         if not cfg.response_schema:
             raise InvalidRequestError("generate_question_full 은 response_schema 가 필수입니다")
 
-        model = await llm_client.resolve_model(cfg.model)
-        logger.info(f"[generate-question-full] topic={ctx.topic}, difficulty={ctx.difficulty}, model={model}")
-        payload, elapsed_ms = await self._generate_structured_payload(cfg, user_prompt, model)
+        logger.info(f"[generate-question-full] topic={ctx.topic}, difficulty={ctx.difficulty}, prompt_model={cfg.model}")
+        result, elapsed_ms = await self._generate_structured_payload(cfg, user_prompt)
+        payload = result.content
 
         try:
             stem = payload["stem"]
@@ -106,7 +107,8 @@ class QuestionGenerationService:
             answer_sql=answer_sql,
             seed_choices=seed_choices,
             metadata=GenerationMetadata(
-                model_name=model,
+                model_name=result.model,
+                connection_name=result.connection_name,
                 elapsed_ms=elapsed_ms,
                 raw_response_json=payload,
             ),
@@ -135,9 +137,9 @@ class QuestionGenerationService:
         if not cfg.response_schema:
             raise InvalidRequestError("generate_choice_set 은 response_schema 가 필수입니다")
 
-        model = await llm_client.resolve_model(cfg.model)
-        logger.info(f"[generate-choice-set] question_uuid={ctx.question_uuid}, model={model}")
-        payload, elapsed_ms = await self._generate_structured_payload(cfg, user_prompt, model)
+        logger.info(f"[generate-choice-set] question_uuid={ctx.question_uuid}, prompt_model={cfg.model}")
+        result, elapsed_ms = await self._generate_structured_payload(cfg, user_prompt)
+        payload = result.content
 
         try:
             raw_choices = payload["choices"]
@@ -149,7 +151,8 @@ class QuestionGenerationService:
         return GenerateChoiceSetResponse(
             choices=choices,
             metadata=GenerationMetadata(
-                model_name=model,
+                model_name=result.model,
+                connection_name=result.connection_name,
                 elapsed_ms=elapsed_ms,
                 raw_response_json=payload,
             ),
@@ -163,21 +166,22 @@ class QuestionGenerationService:
         cfg = req.llm_config
         user_prompt = self._render(cfg.user_template, req.variables)
 
-        model = await llm_client.resolve_model(cfg.model)
-        logger.info(f"[test-prompt] model={model}")
+        logger.info(f"[test-prompt] prompt_model={cfg.model}")
         if cfg.response_schema:
-            payload, elapsed_ms = await self._generate_structured_payload(cfg, user_prompt, model)
-            result_text = json.dumps(payload, ensure_ascii=False, indent=2)
+            result, elapsed_ms = await self._generate_structured_payload(cfg, user_prompt)
+            result_text = json.dumps(result.content, ensure_ascii=False, indent=2)
         else:
             started = time.monotonic()
-            result_text = await llm_client.chat(
+            result = await llm_client.chat(
                 system_prompt=cfg.system_prompt,
                 user_prompt=user_prompt,
-                model=model,
+                prompt_model=cfg.model,
                 temperature=cfg.temperature,
                 max_tokens=cfg.max_tokens,
             )
+            result_text = result.content
             elapsed_ms = int((time.monotonic() - started) * 1000)
+        logger.info(f"[test-prompt] answered : connection={result.connection_name}, model={result.model}")
 
         return TestPromptResponse(result=result_text, elapsed_ms=elapsed_ms)
 

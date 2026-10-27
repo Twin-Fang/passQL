@@ -1,7 +1,7 @@
 package com.passql.application.service;
 
 import com.passql.ai.client.AiGatewayClient;
-import com.passql.ai.client.GeminiClient;
+import com.passql.ai.service.AiConnectionHealthChecker;
 import com.passql.ai.dto.ComponentHealth;
 import com.passql.application.dto.CircuitBreakerStatus;
 import com.passql.application.dto.SystemHealthSnapshot;
@@ -30,7 +30,7 @@ public class SystemHealthService {
     private static final String REDIS_PONG = "PONG";
 
     private final AiGatewayClient aiGatewayClient;
-    private final GeminiClient geminiClient;
+    private final AiConnectionHealthChecker aiConnectionHealthChecker;
     private final StringRedisTemplate stringRedisTemplate;
     private final CircuitBreakerRegistry circuitBreakerRegistry;
 
@@ -39,9 +39,9 @@ public class SystemHealthService {
             CompletableFuture<ComponentHealth> aiServer = CompletableFuture.supplyAsync(aiGatewayClient::checkAiServerHealth, executor);
             CompletableFuture<ComponentHealth> qdrant = CompletableFuture.supplyAsync(aiGatewayClient::checkQdrantThroughAiServer, executor);
             CompletableFuture<ComponentHealth> redis = CompletableFuture.supplyAsync(this::checkRedis, executor);
-            CompletableFuture<ComponentHealth> geminiApiKey = CompletableFuture.supplyAsync(
-                    () -> geminiClient.checkApiKeyHealth().toComponentHealth(), executor);
-            List<ComponentHealth> components = List.of(aiServer.join(), qdrant.join(), redis.join(), geminiApiKey.join());
+            CompletableFuture<ComponentHealth> topAiConnection = CompletableFuture.supplyAsync(
+                    () -> aiConnectionHealthChecker.checkTopConnection().toComponentHealth(), executor);
+            List<ComponentHealth> components = List.of(aiServer.join(), qdrant.join(), redis.join(), topAiConnection.join());
             return new SystemHealthSnapshot(components, collectCircuitBreakers());
         }
     }

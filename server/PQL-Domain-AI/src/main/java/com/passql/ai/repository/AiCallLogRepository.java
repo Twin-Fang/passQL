@@ -18,6 +18,11 @@ public interface AiCallLogRepository extends JpaRepository<AiCallLog, UUID> {
             + "FROM AiCallLog a WHERE a.calledAt >= :since")
     List<Object[]> aggregateSince(@Param("since") LocalDateTime since);
 
+    /** 연결별 호출 수: [연결 이름, 전체 수, 성공 수] (연결 이름 없는 기록 제외) */
+    @Query("SELECT a.connectionName, COUNT(a), SUM(CASE WHEN a.isSuccess = true THEN 1 ELSE 0 END) "
+            + "FROM AiCallLog a WHERE a.calledAt >= :since AND a.connectionName IS NOT NULL GROUP BY a.connectionName")
+    List<Object[]> countByConnectionSince(@Param("since") LocalDateTime since);
+
     @Modifying
     @Query("DELETE FROM AiCallLog a WHERE a.calledAt < :cutoff")
     int deleteOlderThan(@Param("cutoff") LocalDateTime cutoff);

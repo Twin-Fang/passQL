@@ -24,6 +24,8 @@ class GenerationMetadata(BaseModel):
     """
     model_name: str
     elapsed_ms: int
+    # 실제 응답한 AI 연결 이름 (fallback 시 2순위 이후 연결일 수 있음, #695)
+    connection_name: Optional[str] = None
     prompt_tokens: Optional[int] = None
     completion_tokens: Optional[int] = None
     raw_response_json: Optional[dict[str, Any]] = None
