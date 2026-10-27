@@ -283,9 +283,15 @@ class QuestionInteractionNotifier
             ),
           );
       _logAnswerSubmitted(submitResult.isCorrect);
-      AppLogger.info('action', 'answer submitted isCorrect=${submitResult.isCorrect}');
+      AppLogger.info(
+        'action',
+        'answer submitted isCorrect=${submitResult.isCorrect}',
+      );
     } catch (exception) {
-      AppLogger.warn('action', 'answer submit failed ${exception.asAppException.code.name}');
+      AppLogger.warn(
+        'action',
+        'answer submit failed ${exception.asAppException.code.name}',
+      );
       // 원인별 문구는 호출 측이 토스트로 표시 (인증 만료는 인터셉터가 세션 만료 신호로 처리)
       state = state.copyWith(isSubmitting: false);
       throw exception.asAppException;

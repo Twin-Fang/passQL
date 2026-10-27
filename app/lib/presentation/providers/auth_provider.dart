@@ -63,7 +63,10 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
       AppLogger.info('action', 'login success ${provider.name}');
       return true;
     } on AppException catch (exception) {
-      AppLogger.warn('action', 'login failed ${provider.name} ${exception.code.name}');
+      AppLogger.warn(
+        'action',
+        'login failed ${provider.name} ${exception.code.name}',
+      );
       // 네트워크/서버 오류를 사용자용 문구로 통일해 화면에 전달한다.
       // 소셜 토큰 검증 실패(401)는 세션 만료 문구가 아닌 로그인 실패 문구
       throw SocialSignInException(
@@ -112,12 +115,15 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
         // 네트워크 실패여도 로컬 로그아웃은 진행한다.
       }
     }
-    await store.clear();
-    // Firebase/Google 쪽 로그인 상태도 정리해야 다음 로그인에서 계정을 고를 수 있다.
-    await ref.read(socialSignInProvider).signOut();
-    state = const AsyncData(null);
-    // 회원 로그 파기 (다음 계정에 이전 로그가 첨부되지 않게, 실패해도 무시)
-    await AppLogger.clear();
+    try {
+      await store.clear();
+      // Firebase/Google 쪽 로그인 상태도 정리해야 다음 로그인에서 계정을 고를 수 있다.
+      await ref.read(socialSignInProvider).signOut();
+      state = const AsyncData(null);
+    } finally {
+      // 회원 로그 파기 (성공·실패 공통, 다음 계정에 이전 로그가 첨부되지 않게)
+      await AppLogger.clear();
+    }
   }
 
   /// 회원 탈퇴. 서버가 계정을 지운 뒤에만 기기의 세션을 정리한다.
@@ -139,10 +145,14 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
     // 제공자 연결 해제 (최선): 같은 계정 재로그인 시 동의부터 다시 > 신규 회원
     await socialSignIn.disconnectAfterWithdrawal(signedUpAccount.authProvider);
     // 회원별 로컬 저장값은 보안 저장소 세션뿐 (나머지 기기 저장값은 회원 무관)
-    await ref.read(tokenStoreProvider).clear();
-    await socialSignIn.signOut();
-    state = const AsyncData(null);
-    await AppLogger.clear();
+    try {
+      await ref.read(tokenStoreProvider).clear();
+      await socialSignIn.signOut();
+      state = const AsyncData(null);
+    } finally {
+      // 회원 로그 파기 (성공·실패 공통)
+      await AppLogger.clear();
+    }
   }
 
   /// 탈퇴 분기·계정 대조 기준: 제공자(세션 저장값 > /members/me), 제공자 회원 식별자(/members/me)
@@ -179,9 +189,13 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
     if (state.valueOrNull == null) return;
     ref.read(loginNoticeProvider.notifier).state = noticeMessage;
     state = const AsyncData(null);
-    await ref.read(tokenStoreProvider).clear();
-    await ref.read(socialSignInProvider).signOut();
-    await AppLogger.clear();
+    try {
+      await ref.read(tokenStoreProvider).clear();
+      await ref.read(socialSignInProvider).signOut();
+    } finally {
+      // 회원 로그 파기 (성공·실패 공통)
+      await AppLogger.clear();
+    }
   }
 }
 
