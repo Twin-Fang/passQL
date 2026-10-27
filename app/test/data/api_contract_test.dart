@@ -6,12 +6,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/core/error/app_exception.dart';
 import 'package:passql_app/core/error/error_code.dart';
 import 'package:passql_app/data/community/community_image_compressor.dart';
+import 'package:passql_app/data/image/webp_image_compressor.dart';
 import 'package:passql_app/data/models/home/recommendations_request.dart';
 import 'package:passql_app/data/models/member/choice_generation_mode.dart';
 import 'package:passql_app/data/models/member/choice_mode_models.dart';
 import 'package:passql_app/data/models/member/nickname_models.dart';
 import 'package:passql_app/data/models/question/submit_request.dart';
-import 'package:passql_app/data/models/feedback/feedback_models.dart';
 import 'package:passql_app/data/models/community/community_models.dart';
 import 'package:passql_app/data/sources/ai_api.dart';
 import 'package:passql_app/data/sources/community_api.dart';
@@ -172,18 +172,32 @@ void main() {
     expect(adapter.lastRequest.queryParameters, {'size': 20});
   });
 
-  test('건의는 POST 본문의 content 로 보내고, 내 목록은 GET /feedback/me 로 받는다', () async {
-    await ignoreParse(
-      FeedbackApiClient(dio).submit(const FeedbackSubmitRequest('내용')),
-    );
-    expect(adapter.lastRequest.method, 'POST');
-    expect(adapter.lastRequest.path, '/feedback');
-    expect(jsonDecode(jsonEncode(adapter.lastRequest.data)), {'content': '내용'});
-
-    await ignoreParse(FeedbackApiClient(dio).getMyFeedbacks());
-    expect(adapter.lastRequest.method, 'GET');
-    expect(adapter.lastRequest.path, '/feedback/me');
-  });
+  test(
+    '건의는 POST /feedback 에 multipart 로 보낸다 (request 파트 + images 파트)',
+    () async {
+      final formData = FormData.fromMap({
+        'request': MultipartFile.fromString(
+          '{"content":"내용"}',
+          contentType: DioMediaType('application', 'json'),
+        ),
+        'images': [
+          MultipartFile.fromBytes(
+            [1, 2, 3],
+            filename: '0.webp',
+            contentType: DioMediaType('image', 'webp'),
+          ),
+        ],
+      });
+      await ignoreParse(FeedbackApiClient(dio).submit(formData));
+      expect(adapter.lastRequest.method, 'POST');
+      expect(adapter.lastRequest.path, '/feedback');
+      expect(adapter.lastRequest.data, isA<FormData>());
+      expect(
+        (adapter.lastRequest.data as FormData).files.map((part) => part.key),
+        ['request', 'images'],
+      );
+    },
+  );
 
   test('신고는 POST 본문으로, 신고 여부는 submissionUuid 쿼리로 조회한다', () async {
     await ignoreParse(
@@ -307,42 +321,43 @@ void main() {
     test('품질 80 > 65 > 50 순으로 낮춰 500KB 이하가 되면 멈추고, 3회 모두 넘으면 한국어 안내', () async {
       final triedQualities = <int>[];
       final compressor = CommunityImageCompressor(
-        readDimensions: readFixedDimensions,
-        encodeWebp:
-            (
-              source, {
-              required minWidth,
-              required minHeight,
-              required quality,
-            }) async {
-              triedQualities.add(quality);
-              // 원본 압축은 품질 50 에서만 한도 이하, 썸네일 압축(작은 한도)은 항상 통과
-              if (minWidth <= CommunityImageLimits.thumbnailLongSidePixels) {
-                return fakeWebp(10 * 1024);
-              }
-              return fakeWebp(quality == 50 ? 400 * 1024 : 900 * 1024);
-            },
+        webpCompressor: WebpImageCompressor(
+          readDimensions: readFixedDimensions,
+          encodeWebp:
+              (
+                source, {
+                required minWidth,
+                required minHeight,
+                required quality,
+              }) async {
+                triedQualities.add(quality);
+                // 원본 압축은 품질 50 에서만 한도 이하, 썸네일 압축(작은 한도)은 항상 통과
+                if (minWidth <= CommunityImageLimits.thumbnailLongSidePixels) {
+                  return fakeWebp(10 * 1024);
+                }
+                return fakeWebp(quality == 50 ? 400 * 1024 : 900 * 1024);
+              },
+        ),
       );
       final compressed = await compressor.compress(Uint8List(8));
       expect(triedQualities.take(3), [80, 65, 50]);
-      expect(
-        CommunityImageCompressor.isWebpBytes(compressed.imageBytes),
-        isTrue,
-      );
+      expect(WebpImageCompressor.isWebpBytes(compressed.imageBytes), isTrue);
       expect(
         compressed.imageBytes.length,
         lessThanOrEqualTo(CommunityImageLimits.imageMaxBytes),
       );
 
       final alwaysTooLarge = CommunityImageCompressor(
-        readDimensions: readFixedDimensions,
-        encodeWebp:
-            (
-              source, {
-              required minWidth,
-              required minHeight,
-              required quality,
-            }) async => fakeWebp(900 * 1024),
+        webpCompressor: WebpImageCompressor(
+          readDimensions: readFixedDimensions,
+          encodeWebp:
+              (
+                source, {
+                required minWidth,
+                required minHeight,
+                required quality,
+              }) async => fakeWebp(900 * 1024),
+        ),
       );
       expect(
         alwaysTooLarge.compress(Uint8List(8)),
@@ -355,13 +370,13 @@ void main() {
         ),
       );
       // WebP 가 아닌 결과(매직바이트 불일치)는 거절
-      expect(CommunityImageCompressor.isWebpBytes(Uint8List(32)), isFalse);
+      expect(WebpImageCompressor.isWebpBytes(Uint8List(32)), isFalse);
       // EXIF 청크가 남은 WebP 는 감지
       final withExif = BytesBuilder()
         ..add(fakeWebp(12))
         ..add('EXIF'.codeUnits)
         ..add([2, 0, 0, 0, 0, 0]);
-      expect(CommunityImageCompressor.hasExifChunk(withExif.toBytes()), isTrue);
+      expect(WebpImageCompressor.hasExifChunk(withExif.toBytes()), isTrue);
     });
 
     test('업로드는 첨부 순서대로 1장씩, 이미 올라간 장은 건너뛰고 실패하면 이후 장을 올리지 않는다', () async {
