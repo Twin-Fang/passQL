@@ -9,10 +9,20 @@ import httpx
 from google import genai
 from google.genai import errors, types
 
+from src.clients.token_usage import record_token_usage
 from src.core.exceptions import CustomError
 from src.core.retry import call_with_retry, is_transient_status_code
 
 logger = logging.getLogger(__name__)
+
+
+def _record_usage(response: types.GenerateContentResponse) -> None:
+    """토큰 기록: 입력 = prompt, 출력 = 답변 + thinking (둘 다 출력 단가로 과금, Spring GeminiClient 와 같은 기준)"""
+    usage = response.usage_metadata
+    if usage is None:
+        return
+    completion_tokens = (usage.candidates_token_count or 0) + (usage.thoughts_token_count or 0)
+    record_token_usage(usage.prompt_token_count, completion_tokens)
 
 # 호출 1회 응답 대기 상한 (30초, Java 쪽 AI 서버 호출 제한보다 길지 않게) (#497)
 CALL_TIMEOUT_MILLISECONDS = 30_000
@@ -68,6 +78,7 @@ class GeminiClient:
             logger.error(f"[{operation_name}] failed : model={model}, {error!r}", exc_info=True)
             raise CustomError(CALL_FAILED_DETAIL) from error
 
+        _record_usage(response)
         text = response.text
         if not text or not text.strip():
             raise CustomError(f"Gemini returned empty response (model={model})")

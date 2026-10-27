@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../design/design.dart';
@@ -7,7 +8,8 @@ import 'ai_explanation_content.dart';
 import 'ai_explanation_history_list.dart';
 
 /// 풀이 화면 위 비모달 해설 시트: 본문 위에 떠서 드래그로 접기·펼치기, 하단 바(다음·제출)는 가리지 않음
-/// 접힘 = 머리 한 줄, 펼침 = 해설. 다음 문제로 넘어가면 시트는 닫히고 해설함은 그대로 (#521, #538)
+/// 접힘 = 머리 한 줄, 펼침 = 해설. 닫기 X 없음: 접힘에서 한 번 더 끌어 내리면 닫힘 (#521, #538, #699)
+/// 다음 문제로 넘어가면 시트는 닫히고 해설함은 그대로
 /// Scaffold(extendBody) 의 body 안에 둔다: MediaQuery 하단 여백 = 하단 바 높이
 class AiExplanationDock extends ConsumerStatefulWidget {
   const AiExplanationDock({super.key, required this.child});
@@ -30,6 +32,12 @@ class _AiExplanationDockState extends ConsumerState<AiExplanationDock> {
   /// 접힘 높이가 본문을 넘지 않게 두는 상한 비율
   static const double _maximumCollapsedFraction = 0.5;
 
+  /// 닫힘 높이 비율: 접힘 아래로 끌어 내리면 여기로 스냅 > 패널 닫기
+  static const double _closedFraction = 0;
+
+  /// 닫힘 판정 여유 (스냅 끝 부동소수 오차)
+  static const double _closedFractionTolerance = 0.001;
+
   /// 손잡이 영역 높이 (위아래 여백 포함)
   static const double _handleAreaHeight = PassqlSpacing.md;
   static const double _handleWidth = 36;
@@ -39,10 +47,39 @@ class _AiExplanationDockState extends ConsumerState<AiExplanationDock> {
   static const double _shadowAlpha = 0.12;
   static const double _shadowBlurRadius = 16;
 
+  /// 스냅 높이 목록 캐시: 새 리스트를 넘기면 시트가 매 빌드마다 다시 스냅해 드래그가 끊김
+  List<double> _snapSizes = const [];
+
+  /// 끌어 내려 닫기 요청을 이미 보냈는지 (닫힘 높이 알림 중복 방지)
+  bool _isClosingByDrag = false;
+
   @override
   void dispose() {
     _sheetController.dispose();
     super.dispose();
+  }
+
+  /// 스냅 높이 (닫힘 > 접힘 > 펼침 > 최대): 접힘 비율이 바뀔 때만 새 목록
+  List<double> _snapSizesFor(double collapsedFraction) {
+    if (_snapSizes.isEmpty || _snapSizes.first != collapsedFraction) {
+      _snapSizes = [collapsedFraction, _expandedFraction];
+    }
+    return _snapSizes;
+  }
+
+  /// 시트가 닫힘 높이까지 내려가면 패널 닫기
+  /// 알림이 빌드 중에 올 수 있어 상태 변경은 마이크로태스크로 미룸
+  bool _onSheetExtentChanged(DraggableScrollableNotification notification) {
+    final isClosedExtent =
+        notification.extent <= _closedFraction + _closedFractionTolerance;
+    if (!isClosedExtent || _isClosingByDrag) return false;
+    _isClosingByDrag = true;
+    Future.microtask(() {
+      _isClosingByDrag = false;
+      if (!mounted) return;
+      ref.read(aiExplanationSessionProvider.notifier).closePanel();
+    });
+    return false;
   }
 
   /// 접힘 높이 = 손잡이 + 머리 행(큰 글자면 커짐)
@@ -114,20 +151,24 @@ class _AiExplanationDockState extends ConsumerState<AiExplanationDock> {
                       0.0,
                       _maximumCollapsedFraction,
                     );
-                return DraggableScrollableSheet(
-                  controller: _sheetController,
-                  initialChildSize: _expandedFraction,
-                  minChildSize: collapsedFraction,
-                  maxChildSize: _maximumFraction,
-                  snap: true,
-                  snapSizes: const [_expandedFraction],
-                  snapAnimationDuration: PassqlMotion.standard,
-                  builder: (context, scrollController) => _sheetSurface(
-                    context,
-                    scrollController: scrollController,
-                    session: session,
-                    collapsedHeight: collapsedHeight,
-                    onHeaderTap: () => _toggleSheet(collapsedFraction),
+                // 최소 = 닫힘(0): 접힘에서 끌어 내리거나 아래로 튕기면 닫힘으로 스냅
+                return NotificationListener<DraggableScrollableNotification>(
+                  onNotification: _onSheetExtentChanged,
+                  child: DraggableScrollableSheet(
+                    controller: _sheetController,
+                    initialChildSize: _expandedFraction,
+                    minChildSize: _closedFraction,
+                    maxChildSize: _maximumFraction,
+                    snap: true,
+                    snapSizes: _snapSizesFor(collapsedFraction),
+                    snapAnimationDuration: PassqlMotion.standard,
+                    builder: (context, scrollController) => _sheetSurface(
+                      context,
+                      scrollController: scrollController,
+                      session: session,
+                      collapsedHeight: collapsedHeight,
+                      onHeaderTap: () => _toggleSheet(collapsedFraction),
+                    ),
                   ),
                 );
               },
@@ -235,7 +276,8 @@ class _SheetHeaderDelegate extends SliverPersistentHeaderDelegate {
       oldDelegate.height != height || oldDelegate.child != child;
 }
 
-/// 머리: 손잡이 + 제목 + (해설함/돌아가기) + 닫기. 빈 곳 탭 = 접기·펼치기
+/// 머리: 손잡이 + 제목 + (해설함/돌아가기). 빈 곳 탭 = 접기·펼치기
+/// 닫기는 끌어 내리기, 스크린리더는 제목의 '해설 닫기' 동작
 class _SheetHeader extends ConsumerWidget {
   const _SheetHeader({
     required this.title,
@@ -251,10 +293,14 @@ class _SheetHeader extends ConsumerWidget {
   final bool canReturnToEntry;
   final VoidCallback onTap;
 
+  /// 스크린리더 닫기 동작 이름 (보이는 X 버튼 대신)
+  static const String _closeActionLabel = '해설 닫기';
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.passqlColors;
     final sessionNotifier = ref.read(aiExplanationSessionProvider.notifier);
+    final hasHistoryButton = !isShowingHistory && entryCount > 1;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -277,7 +323,11 @@ class _SheetHeader extends ConsumerWidget {
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(left: PassqlSpacing.md),
+                // 오른쪽: 해설함 버튼이 있으면 버튼 터치 영역이 여백 역할
+                padding: EdgeInsets.only(
+                  left: PassqlSpacing.md,
+                  right: hasHistoryButton ? PassqlSpacing.xs : PassqlSpacing.md,
+                ),
                 child: Row(
                   children: [
                     if (canReturnToEntry)
@@ -294,8 +344,14 @@ class _SheetHeader extends ConsumerWidget {
                       ),
                     const SizedBox(width: PassqlSpacing.xs),
                     Expanded(
+                      // 닫기 X 대신 스크린리더 동작 (사용자 지정 동작 '해설 닫기'·dismiss)
                       child: Semantics(
                         header: true,
+                        onDismiss: sessionNotifier.closePanel,
+                        customSemanticsActions: {
+                          const CustomSemanticsAction(label: _closeActionLabel):
+                              sessionNotifier.closePanel,
+                        },
                         child: Text(
                           title,
                           maxLines: 1,
@@ -306,18 +362,12 @@ class _SheetHeader extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    if (!isShowingHistory && entryCount > 1)
+                    if (hasHistoryButton)
                       _HeaderIconButton(
                         icon: CupertinoIcons.square_stack_3d_up,
                         semanticLabel: '해설함, $entryCount개',
                         onPressed: sessionNotifier.showHistory,
                       ),
-                    _HeaderIconButton(
-                      icon: CupertinoIcons.xmark_circle_fill,
-                      semanticLabel: '해설 닫기',
-                      onPressed: sessionNotifier.closePanel,
-                      isCloseButton: true,
-                    ),
                   ],
                 ),
               ),
@@ -334,15 +384,11 @@ class _HeaderIconButton extends StatelessWidget {
     required this.icon,
     required this.semanticLabel,
     required this.onPressed,
-    this.isCloseButton = false,
   });
 
   final IconData icon;
   final String semanticLabel;
   final VoidCallback onPressed;
-
-  /// 닫기는 시트 닫기 버튼 규격(크기·옅은 색)
-  final bool isCloseButton;
 
   @override
   Widget build(BuildContext context) {
@@ -354,11 +400,7 @@ class _HeaderIconButton extends StatelessWidget {
       child: Semantics(
         label: semanticLabel,
         button: true,
-        child: Icon(
-          icon,
-          size: isCloseButton ? PassqlIconSize.sheetClose : PassqlIconSize.lg,
-          color: isCloseButton ? colors.iconSecondary : colors.accent,
-        ),
+        child: Icon(icon, size: PassqlIconSize.lg, color: colors.accent),
       ),
     );
   }

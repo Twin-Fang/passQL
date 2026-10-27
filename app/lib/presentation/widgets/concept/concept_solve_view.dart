@@ -10,16 +10,24 @@ import '../question/markdown_lite_text.dart';
 import '../question/stem_text.dart';
 
 /// 개념 풀기 화면: 문제 n/5 > 지문·SQL > 보기 > (채점 후) 정답 표시·풀이·다시 읽기 > 하단 확인·다음
-/// 마지막 문제 다음은 결과(점수 고리 + 다시 풀기·다음 개념)
+/// 마지막 문제 다음은 결과(점수 고리 + 관련 문제 더 풀기 + 다시 풀기·다음 개념)
 class ConceptSolveView extends ConsumerWidget {
   const ConceptSolveView({
     super.key,
     required this.conceptUuid,
     required this.finishLabel,
     required this.onFinished,
+    this.relatedQuestionCount = 0,
+    this.onRelatedQuestionsPressed,
   });
 
   final String conceptUuid;
+
+  /// 결과 화면 "관련 문제 더 풀기" 문제 수 (0이면 버튼 숨김)
+  final int relatedQuestionCount;
+
+  /// 결과 화면 "관련 문제 더 풀기" (기존 문제 풀이 화면으로)
+  final VoidCallback? onRelatedQuestionsPressed;
 
   /// 결과 화면 다음 버튼 글자 (다음 개념 또는 단원으로)
   final String finishLabel;
@@ -55,6 +63,8 @@ class ConceptSolveView extends ConsumerWidget {
                 .restartQuiz,
             finishLabel: finishLabel,
             onFinished: onFinished,
+            relatedQuestionCount: relatedQuestionCount,
+            onRelatedQuestionsPressed: onRelatedQuestionsPressed,
           );
         }
         return _QuestionStep(
@@ -262,7 +272,7 @@ class _AnswerExplanation extends StatelessWidget {
   }
 }
 
-/// 결과: 점수 고리 > 한 줄 > 다시 풀기·다음
+/// 결과: 점수 고리 > 한 줄 > 관련 문제 더 풀기(있을 때) > 다시 풀기·다음
 class _SolveResult extends StatelessWidget {
   const _SolveResult({
     required this.correctCount,
@@ -270,6 +280,8 @@ class _SolveResult extends StatelessWidget {
     required this.onRestart,
     required this.finishLabel,
     required this.onFinished,
+    required this.relatedQuestionCount,
+    required this.onRelatedQuestionsPressed,
   });
 
   final int correctCount;
@@ -277,11 +289,15 @@ class _SolveResult extends StatelessWidget {
   final VoidCallback onRestart;
   final String finishLabel;
   final VoidCallback onFinished;
+  final int relatedQuestionCount;
+  final VoidCallback? onRelatedQuestionsPressed;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final isPerfect = correctCount == total;
+    final hasRelatedQuestions =
+        relatedQuestionCount > 0 && onRelatedQuestionsPressed != null;
     return Column(
       children: [
         Expanded(
@@ -308,6 +324,18 @@ class _SolveResult extends StatelessWidget {
                   color: colors.secondaryLabel,
                 ),
               ),
+              // 강조 버튼은 하단 하나만: 관련 문제는 보조(plain) 버튼
+              if (hasRelatedQuestions) ...[
+                const SizedBox(height: PassqlSpacing.lg),
+                Center(
+                  child: PassqlButton(
+                    label: '실전 문제 $relatedQuestionCount개 더 풀기',
+                    variant: PassqlButtonVariant.plain,
+                    size: PassqlButtonSize.regular,
+                    onPressed: onRelatedQuestionsPressed,
+                  ),
+                ),
+              ],
             ],
           ),
         ),

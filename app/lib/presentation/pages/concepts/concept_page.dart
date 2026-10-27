@@ -8,6 +8,7 @@ import '../../../core/error/error_code.dart';
 import '../../../data/models/concept/concept_models.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
+import '../../flows/concept_related_flow.dart';
 import '../../providers/concept_providers.dart';
 import '../../widgets/concept/concept_read_view.dart';
 import '../../widgets/concept/concept_solve_view.dart';
@@ -15,7 +16,7 @@ import '../../widgets/pro/locked_preview_samples.dart';
 import '../../widgets/pro/pro_locked_section.dart';
 
 /// 개념 학습 (#577): 읽기 | 풀기 전환 (둘 다 살려 두어 위치·진행 유지)
-/// 읽기 하단: 문제 풀기 · 다음 개념. 풀기는 자체 하단 버튼. 잠긴 단원(403)은 블러 잠금, 없는 개념(404)은 안내
+/// 읽기 하단: 문제 풀기 · 다음 개념. 풀기는 자체 하단 버튼, 결과에서 관련 실전 문제로. 잠긴 단원(403)은 블러 잠금, 없는 개념(404)은 안내
 class ConceptPage extends ConsumerWidget {
   const ConceptPage({super.key, required this.conceptUuid});
 
@@ -97,6 +98,10 @@ class _ConceptStudyScaffold extends ConsumerWidget {
     }
 
     final isReading = study.mode == ConceptStudyMode.read;
+    final relatedQuestionCount = detail.relatedQuestionUuids.length.clamp(
+      0,
+      ConceptRelatedFlow.maximumQuestionCount,
+    );
     final nextActionLabel = detail.nextConceptUuid == null ? '단원으로' : '다음 개념';
     final solveLabel = questionCount == null
         ? '풀기'
@@ -148,6 +153,10 @@ class _ConceptStudyScaffold extends ConsumerWidget {
                   conceptUuid: conceptUuid,
                   finishLabel: nextActionLabel,
                   onFinished: goToNextConcept,
+                  relatedQuestionCount: relatedQuestionCount,
+                  onRelatedQuestionsPressed: () => context.push(
+                    AppRoutes.conceptRelated(conceptUuid, detail.title),
+                  ),
                 ),
               ],
             ),

@@ -6,7 +6,9 @@
 // 촬영: echo /stats > /tmp/passql_shot_route.txt && xcrun simctl launch <기기> com.coldredrice.passql
 // 연출(경로 대신 적음): execute-ok(SQL 실행 성공 표), execute-fail(SQL 실행 실패 카드), chapter-result(문제 목록 > 챕터 > 챕터 결과), ai-sheet(오답 AI 해설 시트),
 //   onboarding-1~4(온보딩 n장), onboarding-celebration(온보딩 첫 문제 축하), onboarding-tour(4장 넘김 > 축하 영상),
-//   withdraw-confirm(설정 > 회원 탈퇴 확인창 > 확인 문구 입력 영상)
+//   withdraw-confirm(설정 > 회원 탈퇴 확인창 > 확인 문구 입력 영상),
+//   nickname-sheet(내 프로필 > 닉네임 변경 시트), nickname-toast(내 프로필 + 닉네임 변경 토스트),
+//   nickname-edit(내 프로필 > 시트 > 입력 > 닫고 토스트 영상)
 // 로그인 중 화면: echo /login-signing-in > /tmp/passql_shot_route.txt (카카오 버튼을 눌러 응답 대기에서 멈춘 상태)
 // 로그인 전환 영상: echo /login-transition > /tmp/passql_shot_route.txt (로그인 화면 > 4초 뒤 홈 > 9초 뒤 로그인 화면, xcrun simctl io <기기> recordVideo 로 녹화)
 // 앱 시작 설정 상황: echo maintenance > /tmp/passql_shot_app_config.txt
@@ -14,6 +16,7 @@
 // 알림함 상황: echo empty > /tmp/passql_shot_notifications.txt (없거나 그 외는 알림 4건·공지 3건, 안 읽은 일부)
 // 알림 권한 안내 시트: echo show > /tmp/passql_shot_permission.txt (없으면 "나중에"를 고른 상태로 시작해 시트를 띄우지 않음)
 // Android 에뮬레이터(호스트 /tmp 못 읽음): --dart-define=SHOT_ROUTE=/stats 로 경로·연출 지정
+// 개념 학습 (#577): SHOT_ROUTE=/concepts (개념 탭), /concept-study/44444444-0000-4000-8000-000000000014 (관계형 DB와 SQL), 대표 개념 3개는 shot_concept_data.dart
 // 등급 상황 (#576): --dart-define=SHOT_PLAN=off|free|pro (결제 꺼짐 | 무료·결제 켜짐 | 프로·결제 켜짐, 없으면 off)
 //   연출 result: 오답 제출 결과 화면 (무료면 실행 결과·해설 잠금)
 // 운영 코드(lib/)에는 영향이 없고, 빌드 산출물에도 포함되지 않는다.
@@ -41,7 +44,9 @@ import 'package:passql_app/presentation/providers/chapter_providers.dart';
 import 'package:passql_app/presentation/providers/question_providers.dart';
 import 'package:passql_app/presentation/providers/push_notification_providers.dart';
 import 'package:passql_app/presentation/providers/theme_mode_provider.dart';
+import 'package:passql_app/presentation/widgets/common/app_toast.dart';
 import 'package:passql_app/presentation/widgets/question/ai_explain_sheet.dart';
+import 'package:passql_app/presentation/widgets/settings/profile_card.dart';
 import 'package:passql_app/presentation/widgets/settings/settings_group.dart';
 import 'package:passql_app/router/app_launch_gate_routing.dart';
 import 'package:passql_app/router/app_router.dart';
@@ -50,6 +55,7 @@ import 'package:passql_app/router/result_route_arguments.dart';
 import 'package:passql_app/data/models/question/submit_result.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'shot_concept_responses.dart';
 import 'shot_plan_responses.dart';
 
 // 시뮬레이터는 호스트 파일시스템을 그대로 보므로, 이 파일에 적은 경로로 이동한다.
@@ -511,6 +517,9 @@ Map<String, dynamic> _detail() => {
 
 Object? _respond(RequestOptions o) {
   final p = o.path;
+  // 개념 학습 (#577)
+  final conceptResponse = conceptShotResponse(o);
+  if (conceptResponse != null || p.contains('/concepts/')) return conceptResponse;
   if (p.endsWith('/home/greeting')) {
     return {'nickname': '새찬', 'message': '오늘도 한 문제씩, 합격에 가까워지고 있어요', 'messageType': 'ENCOURAGE'};
   }
@@ -932,6 +941,33 @@ Future<void> _openRoute(String route, ProviderContainer container) async {
         _typeIntoFirstTextField(typed);
         await Future<void>.delayed(const Duration(milliseconds: 600));
       }
+    case 'nickname-sheet':
+      // 내 프로필 > 닉네임 변경 시트 (프로필 카드 편집 콜백을 직접 부름, 전후 버전 모두 동작)
+      AppRouter.router.go(AppRoutes.stats);
+      await Future<void>.delayed(settleDelay);
+      _tapProfileCard();
+    case 'nickname-toast':
+      // 내 프로필 + 닉네임 변경 완료 토스트. 토스트가 2초면 사라져 촬영 시점과 어긋나므로 몇 번 다시 띄운다
+      AppRouter.router.go(AppRoutes.stats);
+      await Future<void>.delayed(settleDelay);
+      for (var i = 0; i < 10; i++) {
+        _showShotToast('닉네임이 변경됐어요');
+        await Future<void>.delayed(const Duration(milliseconds: 1500));
+      }
+    case 'nickname-edit':
+      // 내 프로필 > 시트 > 새 닉네임 입력 > 시트 닫고 토스트 (리포트 영상용, 저장 API 없이 흐름만 재현)
+      AppRouter.router.go(AppRoutes.stats);
+      await Future<void>.delayed(const Duration(milliseconds: 2500));
+      _tapProfileCard();
+      await Future<void>.delayed(const Duration(milliseconds: 1500));
+      for (final typed in const ['새', '새찬', '새찬이', '새찬이다']) {
+        _typeIntoFirstTextField(typed);
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 1500));
+      AppRouter.router.routerDelegate.navigatorKey.currentState?.pop();
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      _showShotToast('닉네임이 변경됐어요');
     default:
       // 온보딩 n장: onboarding-2 ~ onboarding-4 (시뮬레이터는 스와이프를 못 보내 페이지를 직접 넘김)
       final onboardingPage = RegExp(r'^onboarding-([1-4])$').firstMatch(route);
@@ -943,6 +979,25 @@ Future<void> _openRoute(String route, ProviderContainer container) async {
       await Future<void>.delayed(settleDelay);
       _jumpFirstPageView(int.parse(onboardingPage.group(1)!) - 1);
   }
+}
+
+/// 시뮬레이터는 탭을 보낼 수 없으므로 프로필 카드의 편집 콜백을 직접 부른다
+void _tapProfileCard() {
+  VoidCallback? onEdit;
+  void visit(Element element) {
+    final widget = element.widget;
+    if (onEdit == null && widget is ProfileCard) onEdit = widget.onEdit;
+    if (onEdit == null) element.visitChildren(visit);
+  }
+
+  WidgetsBinding.instance.rootElement?.visitChildren(visit);
+  onEdit?.call();
+}
+
+/// 앱 공통 토스트를 현재 화면에 띄운다
+void _showShotToast(String message) {
+  final context = AppRouter.router.routerDelegate.navigatorKey.currentContext;
+  if (context != null && context.mounted) showAppToast(context, message);
 }
 
 /// 시뮬레이터는 탭을 보낼 수 없으므로 제목이 같은 설정 행의 탭 콜백을 직접 부른다

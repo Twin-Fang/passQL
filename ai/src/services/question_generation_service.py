@@ -110,6 +110,8 @@ class QuestionGenerationService:
                 model_name=result.model,
                 connection_name=result.connection_name,
                 elapsed_ms=elapsed_ms,
+                prompt_tokens=result.prompt_tokens,
+                completion_tokens=result.completion_tokens,
                 raw_response_json=payload,
             ),
         )
@@ -154,6 +156,8 @@ class QuestionGenerationService:
                 model_name=result.model,
                 connection_name=result.connection_name,
                 elapsed_ms=elapsed_ms,
+                prompt_tokens=result.prompt_tokens,
+                completion_tokens=result.completion_tokens,
                 raw_response_json=payload,
             ),
         )

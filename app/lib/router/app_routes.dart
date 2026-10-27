@@ -13,6 +13,7 @@ abstract final class AppRoutes {
   static const String communitySourceQuery = 'source';
   static const String topicCodeQuery = 'topic';
   static const String topicNameQuery = 'topicName';
+  static const String conceptTitleQuery = 'title';
   // 최신 출제 경향 문제만 풀기 (값 'true', #523)
   static const String latestTrendQuery = 'latestTrend';
   static const String latestTrendQueryValue = 'true';
@@ -72,6 +73,16 @@ abstract final class AppRoutes {
   /// 개념 학습(읽기·풀기). 단원 상세·이어서 학습에서 진입
   static String conceptStudy(String conceptUuid) =>
       '/concept-study/$conceptUuid';
+
+  /// 라우터 정의용 개념 관련 문제 경로 패턴: /concept-study/:conceptUuid/related?title=제목
+  static const String conceptRelatedPattern =
+      '/concept-study/:$conceptUuidParameter/related';
+
+  /// 개념 관련 문제 풀이. 개념 풀기 결과에서 진입 (제목은 풀이 화면 앱바용)
+  static String conceptRelated(String conceptUuid, String conceptTitle) => Uri(
+    path: '/concept-study/$conceptUuid/related',
+    queryParameters: {conceptTitleQuery: conceptTitle},
+  ).toString();
 
   // 설정 서브 라우트
   /// 건의사항 작성/내역.
