@@ -107,6 +107,7 @@ public interface ProgressControllerDocs {
         @ApiLog(date = "2026.04.10", author = Author.SUHSAECHAN, issueNumber = 71, description = "AI 영역 분석 코멘트 API 추가 (Redis 캐시 24h TTL, Submission 저장 시 evict)"),
         @ApiLog(date = "2026.04.12", author = Author.SUHSAECHAN, issueNumber = 176, description = "sessionUuid 파라미터 추가. 캐시 키 세션 단위 변경(ai-comment:{memberUuid}:{sessionUuid}, TTL 2h). 프롬프트 DB 이관(ai_comment 키). 이번 세션 결과 + 누적 통계 통합 피드백."),
         @ApiLog(date = "2026.04.19", author = Author.SUHSAECHAN, issueNumber = 120, description = "memberUuid 쿼리 파라미터 → @AuthMember JWT 인증 전환"),
+        @ApiLog(date = "2026.10.27", author = Author.SUHSAECHAN, issueNumber = 699, description = "통계 코멘트(sessionUuid 없음) 무료 개방: 무료 하루 1회·프로 최근 풀이 10문제마다 갱신 (캐시 키 ai-comment:{memberUuid}:stats:{날짜}:{구간}, TTL 24h). 세션 코멘트는 프로 전용 유지 (무료 403 PRO_REQUIRED)"),
     })
     @Operation(
         summary = "AI 영역 분석 코멘트 조회",

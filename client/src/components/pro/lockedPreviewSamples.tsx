@@ -31,7 +31,7 @@ const EXPLANATION_SAMPLE_SECTIONS: readonly LockedSampleSection[] = [
 // 통계 약점 분석: 토픽별 정답률, AI 코멘트
 const STATS_SAMPLE_SECTIONS: readonly LockedSampleSection[] = [
   { title: "약한 토픽", body: "서브쿼리 42% · 윈도우 함수 55% · 조인 61%" },
-  { title: "AI 학습 코멘트", body: "서브쿼리 결과 행 수를 먼저 세는 연습이 필요해요." },
+  { title: "토픽별 정답률", body: "레이더 차트로 7일 정답률 비교" },
   { title: "강한 토픽", body: "집계 함수 88% · 정렬 84%" },
 ];
 

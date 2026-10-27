@@ -53,7 +53,7 @@ public class ProgressController implements ProgressControllerDocs {
         return ResponseEntity.ok(progressService.getHeatmap(loginMember.memberUuid(), from, to));
     }
 
-    @RequiresProFeature(ProFeature.AI_COMMENT)
+    // 통계 코멘트는 무료도 하루 1회, 결과 화면 세션 코멘트만 프로 (#699, AiCommentService 에서 판정)
     @GetMapping("/ai-comment")
     public ResponseEntity<AiCommentResponse> getAiComment(
         @AuthMember LoginMember loginMember,
