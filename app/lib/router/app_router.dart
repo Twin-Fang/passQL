@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../data/models/community/community_models.dart';
 import '../presentation/flows/daily_set_flow.dart';
 import '../presentation/flows/question_flow.dart';
+import '../presentation/flows/concept_related_flow.dart';
 import '../presentation/flows/random_practice_flow.dart';
 import '../presentation/pages/community/blocked_members_page.dart';
 import '../presentation/pages/concepts/concept_page.dart';
@@ -126,9 +127,8 @@ abstract final class AppRouter {
       // 탭 쉘: 탭마다 화면 상태를 유지하고 탭 전환은 페이드 (#495)
       // 쉘 진입(로그인 > 홈)도 밀기 전환 없이 바로 바꾼다 (#672)
       StatefulShellRoute(
-        pageBuilder: (_, _, navigationShell) => NoTransitionPage(
-          child: AppShell(navigationShell: navigationShell),
-        ),
+        pageBuilder: (_, _, navigationShell) =>
+            NoTransitionPage(child: AppShell(navigationShell: navigationShell)),
         navigatorContainerBuilder: (_, navigationShell, children) =>
             AppTabFadeStack(
               currentIndex: navigationShell.currentIndex,
@@ -234,6 +234,17 @@ abstract final class AppRouter {
         parentNavigatorKey: _rootKey,
         builder: (_, state) => ConceptPage(
           conceptUuid: state.pathParameters[AppRoutes.conceptUuidParameter]!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.conceptRelatedPattern,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => ChapterPage(
+          flow: ConceptRelatedFlow(
+            conceptUuid: state.pathParameters[AppRoutes.conceptUuidParameter]!,
+            conceptTitle:
+                state.uri.queryParameters[AppRoutes.conceptTitleQuery] ?? '개념',
+          ),
         ),
       ),
       GoRoute(

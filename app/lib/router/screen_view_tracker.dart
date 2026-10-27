@@ -11,6 +11,7 @@ const Map<String, String> screenNameByRoutePattern = {
   AppRoutes.concepts: 'concepts',
   AppRoutes.conceptTopicPattern: 'concept_topic',
   AppRoutes.conceptStudyPattern: 'concept_study',
+  AppRoutes.conceptRelatedPattern: 'concept_related',
   AppRoutes.questions: 'topic_list',
   AppRoutes.stats: 'stats',
   AppRoutes.settings: 'settings',
