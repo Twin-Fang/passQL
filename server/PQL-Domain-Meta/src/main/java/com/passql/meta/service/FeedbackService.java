@@ -7,9 +7,7 @@ import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.common.util.MemberActivityLogger;
 import com.passql.meta.constant.FeedbackStatus;
-import com.passql.meta.dto.FeedbackListResponse;
-import com.passql.meta.dto.FeedbackSubmitRequest;
-import com.passql.meta.dto.FeedbackSubmitResponse;
+import com.passql.meta.dto.FeedbackDeviceColumns;
 import com.passql.meta.dto.FeedbackSearchCondition;
 import com.passql.meta.entity.Feedback;
 import com.passql.meta.repository.FeedbackRepository;
@@ -28,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -41,34 +38,40 @@ public class FeedbackService {
     private final FeedbackRepository feedbackRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    @Transactional
-    public FeedbackSubmitResponse submit(UUID memberUuid, FeedbackSubmitRequest request) {
-        String content = request.getContent();
-
+    /** 글 검증: 앞뒤 공백 제거 > 비어 있음, 500자 초과 거절 > 정리된 글 */
+    public String normalizeContent(String content) {
         if (content == null || content.isBlank()) {
             throw new CustomException(ErrorCode.FEEDBACK_CONTENT_EMPTY);
         }
-
         String trimmed = content.trim();
-
         if (trimmed.length() > 500) {
             throw new CustomException(ErrorCode.FEEDBACK_CONTENT_TOO_LONG);
         }
-
-        Feedback feedback = Feedback.builder()
-            .memberUuid(memberUuid)
-            .content(trimmed)
-            .status(FeedbackStatus.PENDING)
-            .build();
-
-        Feedback saved = feedbackRepository.save(feedback);
-        MemberActivityLogger.recordFeedbackSubmitted(memberUuid, saved.getFeedbackUuid());
-        return FeedbackSubmitResponse.from(saved);
+        return trimmed;
     }
 
-    public FeedbackListResponse getMyFeedbacks(UUID memberUuid) {
-        List<Feedback> feedbacks = feedbackRepository.findByMemberUuidOrderByCreatedAtDesc(memberUuid);
-        return FeedbackListResponse.of(feedbacks);
+    /** 의견 저장 (PENDING): 진단 컬럼, 로그 객체 키(logBytes 있을 때 feedbackUuid 로 계산) 포함, 활동 로그 기록 */
+    @Transactional
+    public Feedback createFeedback(UUID memberUuid, String content, FeedbackDeviceColumns deviceColumns,
+                                   String diagnosticsJson, Integer logBytes) {
+        Feedback feedback = Feedback.builder()
+            .memberUuid(memberUuid)
+            .content(content)
+            .status(FeedbackStatus.PENDING)
+            .diagnostics(diagnosticsJson)
+            .appVersion(deviceColumns.appVersion())
+            .platform(deviceColumns.platform())
+            .osVersion(deviceColumns.osVersion())
+            .deviceModel(deviceColumns.deviceModel())
+            .logBytes(logBytes)
+            .build();
+        Feedback saved = feedbackRepository.save(feedback);
+        // 로그 객체 키는 저장 후 발급된 feedbackUuid 가 필요
+        if (logBytes != null) {
+            saved.setLogObjectKey(Feedback.logObjectKeyOf(saved.getFeedbackUuid()));
+        }
+        MemberActivityLogger.recordFeedbackSubmitted(memberUuid, saved.getFeedbackUuid());
+        return saved;
     }
 
     /** 관리자 건의 검색: 조건(상태·키워드·회원 후보·기간) > 최신순 한 페이지 (memberUuids null 이면 회원 조건 없음) */

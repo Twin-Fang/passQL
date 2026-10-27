@@ -13,8 +13,6 @@ import java.util.UUID;
 
 public interface FeedbackRepository extends JpaRepository<Feedback, UUID>, JpaSpecificationExecutor<Feedback> {
 
-    List<Feedback> findByMemberUuidOrderByCreatedAtDesc(UUID memberUuid);
-
     Page<Feedback> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
     Page<Feedback> findByStatusOrderByCreatedAtDesc(FeedbackStatus status, Pageable pageable);
