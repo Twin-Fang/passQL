@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../push/push_messaging_client.dart';
+import '../utils/date_format.dart';
 import 'ringer_mode_reader.dart';
 
 /// 항목 하나 읽기 제한 시간 (플러그인 무응답이 전송을 막지 않게)
@@ -39,20 +40,27 @@ class AppDiagnosticsCollector {
   }) async {
     // context 에서 읽는 값은 await 전에 확보
     final screenValues = _readScreenValues(context);
-    final packageInfo = await _readItem(PackageInfo.fromPlatform);
-    final deviceValues = await _readDeviceValues();
+    // 독립 항목은 동시에 읽음 (최악 시간 = 항목 제한 시간 1회)
+    final groups = await Future.wait([
+      _collectApp(previousRoute),
+      _readDeviceValues(),
+      _collectSystem(),
+    ]);
     return {
-      'app': await _collectApp(packageInfo, previousRoute),
-      'device': {...deviceValues, ...screenValues},
-      'system': await _collectSystem(),
-      'meta': {'collectedAt': DateTime.now().toIso8601String()},
+      'app': groups[0],
+      'device': {...groups[1], ...screenValues},
+      'system': groups[2],
+      'meta': {'collectedAt': formatIso8601WithOffset(DateTime.now())},
     };
   }
 
-  Future<Map<String, Object?>> _collectApp(
-    PackageInfo? packageInfo,
-    String? previousRoute,
-  ) async {
+  Future<Map<String, Object?>> _collectApp(String? previousRoute) async {
+    final readResults = await Future.wait<Object?>([
+      _readItem(PackageInfo.fromPlatform),
+      _readItem(_readPushPermission),
+      _readItem(_readHasPushToken),
+    ]);
+    final packageInfo = readResults[0] as PackageInfo?;
     return {
       'appVersion': packageInfo?.version,
       'buildNumber': packageInfo?.buildNumber,
@@ -63,8 +71,8 @@ class AppDiagnosticsCollector {
       'themeMode': themeMode,
       'choiceMode': choiceMode,
       'currentRoute': previousRoute,
-      'pushPermission': await _readItem(_readPushPermission),
-      'hasPushToken': await _readItem(_readHasPushToken),
+      'pushPermission': readResults[1],
+      'hasPushToken': readResults[2],
     };
   }
 
@@ -133,24 +141,25 @@ class AppDiagnosticsCollector {
       'screenWidthPixels': physicalSize?.width.round(),
       'screenHeightPixels': physicalSize?.height.round(),
       'devicePixelRatio': mediaQuery?.devicePixelRatio,
-      'textScaleFactor': _readItemSync(
-        () => mediaQuery!.textScaler.scale(1.0),
-      ),
+      'textScaleFactor': _readItemSync(() => mediaQuery!.textScaler.scale(1.0)),
       'platformBrightness': mediaQuery?.platformBrightness.name,
     };
   }
 
   Future<Map<String, Object?>> _collectSystem() async {
+    final readResults = await Future.wait<Object?>([
+      _readItem(() => Battery().isInBatterySaveMode),
+      _readItem(() => Battery().batteryLevel),
+      _readItem(() async => (await Battery().batteryState).name),
+      _readItem(_readNetworkType),
+      _readItem<String?>(ringerModeReader),
+    ]);
     return {
-      'isBatterySaveMode': await _readItem(
-        () => Battery().isInBatterySaveMode,
-      ),
-      'batteryLevelPercent': await _readItem(() => Battery().batteryLevel),
-      'batteryState': await _readItem(
-        () async => (await Battery().batteryState).name,
-      ),
-      'networkType': await _readItem(_readNetworkType),
-      'ringerMode': await _readItem<String?>(ringerModeReader),
+      'isBatterySaveMode': readResults[0],
+      'batteryLevelPercent': readResults[1],
+      'batteryState': readResults[2],
+      'networkType': readResults[3],
+      'ringerMode': readResults[4],
     };
   }
 

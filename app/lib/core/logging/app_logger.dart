@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import '../utils/date_format.dart';
 import 'app_log_file_store.dart';
 import 'app_log_masker.dart';
 
@@ -92,17 +93,7 @@ abstract final class AppLogger {
         ? '${maskedMessage.substring(0, _maxMessageLength)}$_truncatedSuffix'
         : maskedMessage;
     _bufferedLines.add(
-      '${_formatTimestamp(DateTime.now())} $levelCode [$tag] $cappedMessage',
+      '${formatIso8601WithOffset(DateTime.now())} $levelCode [$tag] $cappedMessage',
     );
-  }
-
-  // ISO8601 + 로컬 오프셋 (2026-10-27T09:00:00.000+09:00)
-  static String _formatTimestamp(DateTime moment) {
-    final offset = moment.timeZoneOffset;
-    final sign = offset.isNegative ? '-' : '+';
-    final hours = offset.inHours.abs().toString().padLeft(2, '0');
-    final minutes = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
-    final local = moment.toIso8601String();
-    return '$local$sign$hours:$minutes';
   }
 }
