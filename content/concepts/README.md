@@ -11,6 +11,7 @@ content/concepts/
   build_concept_bundle.py   수집 > 구조 검증 > 글 점검 > build/concept_bundle.json (관리자 가져오기용)
   verify_concept_sql.py     Oracle 21c 에서 본문 SQL 블록·sqlChecks·stemSql 검증
   related_questions.json    개념별 관련 문제(운영 question UUID) 연결, 조립 시 합침
+  export_shot_concepts.py   스토어 캡처 가짜 API 용 개념 데이터 생성 (app/tool/store_shots/shot_concept_data.dart)
   {topicCode}/{tagKey 밑줄}.py   개념 1개 = 파일 1개, 모듈 변수 CONCEPT 하나
 ```
 
@@ -41,6 +42,8 @@ Oracle 은 `tools/sqld-question-harness/README.md` 의 XE 21c 컨테이너(`loca
 | `sqlChecks` | Oracle 검증 전용, 가져오기 JSON 에서 빠짐 |
 
 **자세히 본문 틀**: 왜 필요한가 > 한 줄 정의 > 예시 > 자주 헷갈리는 점 > 시험에서는 이렇게 나와요. 제목 문구는 개념에 맞게 바꿔도 되고, 내용이 많으면 예시를 단계별 문단으로 나눈다. **"자주 헷갈리는 점"을 가장 두껍게** 쓴다. 앵커 `why`, `definition`, `confusing`, `exam-point` 는 가능하면 같은 이름을 쓴다.
+
+**조립 단계의 화면용 정리**: 앱 표 부품은 칸 글자를 그대로 그리므로 표 줄의 백틱·`**` 는 가져오기 JSON 에서 벗겨진다(원본은 그대로). 빈칸 없는 긴 영문 낱말이 글자 중간에서 잘리지 않게 영문 사이 가운뎃점 뒤에 폭 0 빈칸을 넣는다. 개념 본문 SQL 블록은 앱에서 줄바꿈 없이 가로 스크롤된다.
 
 **쓸 수 있는 표기 (앱 렌더러 기준)**: `**굵게**`, `` `인라인 코드` ``, `- ` 목록, `1. ` 번호 줄, 마크다운 표, ```` ```sql ```` 코드 블록. `###` 이하 제목, 인용(`>`), 기울임, 이미지, HTML 은 쓰지 않는다.
 
