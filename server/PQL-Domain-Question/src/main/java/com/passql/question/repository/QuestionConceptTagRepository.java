@@ -16,6 +16,8 @@ public interface QuestionConceptTagRepository extends JpaRepository<QuestionConc
 
     List<QuestionConceptTag> findByConceptTagUuid(UUID conceptTagUuid);
 
+    void deleteByConceptTagUuid(UUID conceptTagUuid);
+
     @Modifying
     @Transactional
     void deleteByQuestionUuid(UUID questionUuid);
