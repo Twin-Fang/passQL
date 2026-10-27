@@ -9,7 +9,7 @@ import '../question/stem_markdown_table.dart';
 final RegExp _codeFenceRe = RegExp(r'```[A-Za-z]*\r?\n?([\s\S]*?)```');
 
 /// 개념 본문 마크다운: 코드 블록 > 코드 상자, 표 > 결과 표, 나머지 > 글(굵게·인라인 코드·목록)
-/// 표·코드는 좁은 화면에서 가로로 넘치면 각 부품이 가로 스크롤로 처리
+/// 표·코드는 좁은 화면에서 가로로 넘치면 가로 스크롤 (코드는 줄바꿈하지 않음)
 class ConceptMarkdownBody extends StatelessWidget {
   const ConceptMarkdownBody(this.markdown, {super.key});
 
@@ -41,7 +41,13 @@ class ConceptMarkdownBody extends StatelessWidget {
     var cursor = 0;
     for (final match in _codeFenceRe.allMatches(markdown)) {
       addTextBlocks(markdown.substring(cursor, match.start));
-      blocks.add(PassqlCodeBlock(code: (match.group(1) ?? '').trimRight()));
+      // 교재형 SQL 예시는 들여쓰기·결과 주석 정렬이 중요 > 줄바꿈 대신 가로 스크롤
+      blocks.add(
+        PassqlCodeBlock(
+          code: (match.group(1) ?? '').trimRight(),
+          shouldWrap: false,
+        ),
+      );
       cursor = match.end;
     }
     addTextBlocks(markdown.substring(cursor));
