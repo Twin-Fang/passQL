@@ -14,7 +14,7 @@ abstract final class PassqlSize {
   static const double minTouchTarget = 44; // 아이콘 버튼 탭 영역 (Apple HIG 최소)
   static const double progressBarHeight = 4;
   static const double choiceKeyBadge = 24; // 선택지 키(A·B·C·D) 원
-  static const double avatar = 52; // 설정 프로필 이니셜 원
+  static const double avatar = 40; // 설정 프로필 이니셜 원 (카드 높이를 줄이려고 52 > 40, #687)
   static const double scoreRing = 168; // 결과 점수 고리 지름
   static const double scoreRingStroke = 12;
   static const double progressRing = 44; // 목록 행 진행 고리 지름 (개념 단원·이어서 학습)
