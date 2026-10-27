@@ -71,7 +71,7 @@ ORDER BY 부서번호, 직급;
 
 {to_markdown_table(ROLLUP_DEPARTMENT_POSITION_COLUMNS, ROLLUP_DEPARTMENT_POSITION_ROWS)}
 
-직급 칸이 NULL인 `20 | NULL | 7800` 행은 20번 부서의 소계이고, 직급을 묶음에서 뺐기 때문에 직급 칸이 비어 있어요. 마지막 `NULL | NULL | 15900` 행은 두 열을 모두 뺀 총계예요. ORDER BY에서 NULL은 오름차순일 때 맨 뒤로 가기 때문에, 이렇게 정렬하면 소계가 각 부서의 마지막 줄에, 총계가 표의 맨 끝에 놓여요.
+직급 칸이 NULL인 `(20, NULL, 7800)` 행은 20번 부서의 소계이고, 직급을 묶음에서 뺐기 때문에 직급 칸이 비어 있어요. 마지막 `(NULL, NULL, 15900)` 행은 두 열을 모두 뺀 총계예요. ORDER BY에서 NULL은 오름차순일 때 맨 뒤로 가기 때문에, 이렇게 정렬하면 소계가 각 부서의 마지막 줄에, 총계가 표의 맨 끝에 놓여요.
 
 ## 자주 헷갈리는 점 {{#confusing}}
 
@@ -128,7 +128,7 @@ ROLLUP을 쓴 SQL과 예시 표를 주고 결과 행 수를 묻는 문제가 가
                   choice("B", "(부서번호, 직급), (직급), ()", rationale="ROLLUP은 오른쪽 열을 먼저 빼므로 직급만 남는 단계는 없어요."),
                   choice("C", "(부서번호, 직급), (부서번호), (직급), ()", rationale="모든 조합을 만드는 것은 ROLLUP이 아니라 CUBE예요."),
                   choice("D", "(부서번호), (직급)", rationale="ROLLUP은 (부서번호, 직급) 단계와 총계 ()도 만들어요.")]),
-        question(2, "`GROUP BY ROLLUP(부서번호, 직급)` 결과에 `20 | NULL | 7800` 행이 있어요. 이 행이 뜻하는 것은 무엇인가요?", "example",
+        question(2, "`GROUP BY ROLLUP(부서번호, 직급)` 결과에 `(20, NULL, 7800)` 행이 있어요. 이 행이 뜻하는 것은 무엇인가요?", "example",
                  "직급 칸의 NULL은 직급을 묶음에서 뺐다는 표시예요. 그래서 이 행은 20번 부서 전체의 급여 소계예요.",
                  [choice("A", "20번 부서에서 직급이 NULL인 사원들의 급여 합계", rationale="직급이 NULL인 사원이 있는 것이 아니라 직급을 빼고 묶은 표시예요."),
                   choice("B", "회사 전체의 급여 총계", rationale="총계는 부서번호와 직급이 모두 NULL인 행이에요."),

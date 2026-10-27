@@ -54,7 +54,7 @@ SELECT 부서번호, SUM(급여) AS 급여합계 FROM 사원 GROUP BY ROLLUP(부
 
 {to_markdown_table(ROLLUP_DEPARTMENT_COLUMNS, ROLLUP_DEPARTMENT_ROWS)}
 
-`NULL | 2000`은 부서가 없는 윤서연 한 명의 그룹이고, `NULL | 20900`은 부서번호를 묶음에서 뺀 전체 총계예요. 둘 다 부서번호 칸이 NULL이라서 눈으로는 구분할 수 없어요. 이 두 NULL을 구분하려고 만든 것이 GROUPING 함수예요.
+`(NULL, 2000)`은 부서가 없는 윤서연 한 명의 그룹이고, `(NULL, 20900)`은 부서번호를 묶음에서 뺀 전체 총계예요. 둘 다 부서번호 칸이 NULL이라서 눈으로는 구분할 수 없어요. 이 두 NULL을 구분하려고 만든 것이 GROUPING 함수예요.
 
 ## 한 줄 정의 {{#definition}}
 
