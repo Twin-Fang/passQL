@@ -11,6 +11,9 @@ abstract final class AppLogger {
   static const Duration _flushInterval = Duration(seconds: 2);
   // 오류 스택 최대 줄 수
   static const int _maxStackLines = 20;
+  // 기록 1건 최대 길이 (2KB)
+  static const int _maxMessageLength = 2048;
+  static const String _truncatedSuffix = '…(truncated)';
 
   static AppLogFileStore? _store;
   static Timer? _flushTimer;
@@ -29,7 +32,11 @@ abstract final class AppLogger {
 
   /// 오류 + 스택 최대 20줄, 기록 직후 flush (비정상 종료 대비)
   static void error(String tag, Object error, StackTrace? stackTrace) {
-    final stackLines = stackTrace?.toString().trimRight().split('\n').take(_maxStackLines);
+    final stackLines = stackTrace
+        ?.toString()
+        .trimRight()
+        .split('\n')
+        .take(_maxStackLines);
     final message = [error.toString(), ...?stackLines].join('\n');
     _record('E', tag, message);
     flush();
@@ -75,7 +82,11 @@ abstract final class AppLogger {
 
   static void _record(String levelCode, String tag, String message) {
     if (_store == null) return;
-    final line = '${_formatTimestamp(DateTime.now())} $levelCode [$tag] $message';
+    final cappedMessage = message.length > _maxMessageLength
+        ? '${message.substring(0, _maxMessageLength)}$_truncatedSuffix'
+        : message;
+    final line =
+        '${_formatTimestamp(DateTime.now())} $levelCode [$tag] $cappedMessage';
     _bufferedLines.add(AppLogMasker.mask(line));
   }
 

@@ -31,6 +31,8 @@ dependencies:
   # 실시간 통신
   # 기기 & 앱 정보
   package_info_plus: ^9.0.0
+  # 앱 로그 파일 저장 폴더
+  path_provider: ^2.1.6
   # 12.4.0+ 는 iOS 26.1 SDK API(isiOSAppOnVision)를 써서 Xcode 26.0(CI)·16 에서 빌드 실패 > 12.3.0 고정
   device_info_plus: 12.3.0
   # 유틸리티

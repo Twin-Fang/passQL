@@ -9,6 +9,7 @@ import '../../core/auth/social_sign_in.dart';
 import '../../core/auth/token_store.dart';
 import '../../core/error/app_exception.dart';
 import '../../core/error/error_code.dart';
+import '../../core/logging/app_logger.dart';
 import '../../core/monitoring/app_analytics.dart';
 import '../../core/network/api_call.dart';
 import '../../data/push/push_notification_service.dart';
@@ -59,8 +60,10 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
       }
       state = AsyncData(session);
       ref.read(appAnalyticsProvider).logLoginCompleted(provider.name);
+      AppLogger.info('action', 'login success ${provider.name}');
       return true;
     } on AppException catch (exception) {
+      AppLogger.warn('action', 'login failed ${provider.name} ${exception.code.name}');
       // 네트워크/서버 오류를 사용자용 문구로 통일해 화면에 전달한다.
       // 소셜 토큰 검증 실패(401)는 세션 만료 문구가 아닌 로그인 실패 문구
       throw SocialSignInException(
@@ -110,6 +113,8 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
       }
     }
     await store.clear();
+    // 회원 로그 파기 (다음 계정에 이전 로그가 첨부되지 않게)
+    await AppLogger.clear();
     // Firebase/Google 쪽 로그인 상태도 정리해야 다음 로그인에서 계정을 고를 수 있다.
     await ref.read(socialSignInProvider).signOut();
     state = const AsyncData(null);
@@ -135,6 +140,7 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
     await socialSignIn.disconnectAfterWithdrawal(signedUpAccount.authProvider);
     // 회원별 로컬 저장값은 보안 저장소 세션뿐 (나머지 기기 저장값은 회원 무관)
     await ref.read(tokenStoreProvider).clear();
+    await AppLogger.clear();
     await socialSignIn.signOut();
     state = const AsyncData(null);
   }
@@ -174,6 +180,7 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
     ref.read(loginNoticeProvider.notifier).state = noticeMessage;
     state = const AsyncData(null);
     await ref.read(tokenStoreProvider).clear();
+    await AppLogger.clear();
     await ref.read(socialSignInProvider).signOut();
   }
 }
