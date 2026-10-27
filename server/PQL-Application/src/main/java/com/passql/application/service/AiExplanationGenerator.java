@@ -1,6 +1,6 @@
 package com.passql.application.service;
 
-import com.passql.ai.client.GeminiClient;
+import com.passql.ai.client.AiChatClient;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.entity.PromptTemplate;
@@ -41,7 +41,7 @@ public class AiExplanationGenerator {
             - 핵심 원인 1~2문장 → 정답이 맞는 이유 → 기억할 포인트 순서
             - 600자 이내, 불필요한 인사말 없이""";
 
-    private final GeminiClient geminiClient;
+    private final AiChatClient aiChatClient;
     private final PromptService promptService;
 
     /** 생성된 해설 문구 + 만든 프롬프트 버전 */
@@ -75,7 +75,7 @@ public class AiExplanationGenerator {
 
     private String call(PromptTemplate prompt, String userPrompt, String kind, UUID questionUuid) {
         try {
-            String text = geminiClient.chat(
+            String text = aiChatClient.chat(
                     prompt.getModel(),
                     // DB 프롬프트에 줄바꿈이 '\n' 글자로 저장된 경우가 있어 실제 줄바꿈으로 바꾼다.
                     prompt.getSystemPrompt().replace("\\n", "\n"),

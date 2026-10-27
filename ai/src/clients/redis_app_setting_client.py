@@ -89,16 +89,31 @@ async def get_setting(key: str, fallback: str) -> str:
 
 
 GEMINI_API_KEY_SETTING = "ai.gemini_api_key"
+CLAUDE_API_KEY_SETTING = "ai.claude_api_key"
+# 전체 모델 일괄 지정 (비면 프롬프트별 모델 사용)
+MODEL_OVERRIDE_SETTING = "ai.model_override"
 
 
-async def get_gemini_api_key() -> str:
-    """Redis 암호문 > 복호화, 평문(전환 전)은 그대로, 복호화 실패·미설정은 env GEMINI_API_KEY"""
-    stored_value = await get_setting(GEMINI_API_KEY_SETTING, settings.GEMINI_API_KEY)
+async def _get_secret_setting(setting_key: str, environment_fallback: str) -> str:
+    """Redis 암호문 > 복호화, 평문(전환 전)은 그대로, 복호화 실패·미설정은 환경변수 값"""
+    stored_value = await get_setting(setting_key, environment_fallback)
     if not is_encrypted(stored_value):
         return stored_value
     try:
-        return decrypt_setting_secret(GEMINI_API_KEY_SETTING, stored_value)
+        return decrypt_setting_secret(setting_key, stored_value)
     except SettingSecretError as error:
-        logger.error(f"Gemini 키 복호화 실패 — env GEMINI_API_KEY 로 대체: {error}")
-        return settings.GEMINI_API_KEY
+        logger.error(f"[setting secret] decrypt failed : {setting_key}, env fallback used : {error}")
+        return environment_fallback
 
+
+async def get_gemini_api_key() -> str:
+    return await _get_secret_setting(GEMINI_API_KEY_SETTING, settings.GEMINI_API_KEY)
+
+
+async def get_claude_api_key() -> str:
+    return await _get_secret_setting(CLAUDE_API_KEY_SETTING, settings.CLAUDE_API_KEY)
+
+
+async def get_model_override() -> str:
+    """관리자 일괄 모델 (공백 제거, 미설정 > 빈 문자열)"""
+    return (await get_setting(MODEL_OVERRIDE_SETTING, "")).strip()

@@ -31,6 +31,8 @@ class Settings(BaseSettings):
 
     # Google Gemini 설정 (평소 키는 DB app_setting 암호문, 이 값은 비상 대체용)
     GEMINI_API_KEY: str = ""
+    # Anthropic Claude 설정 (평소 키는 DB app_setting 암호문, 이 값은 비상 대체용)
+    CLAUDE_API_KEY: str = ""
     # 설정 비밀값 복호화 마스터 키 (base64 32바이트, Spring passql.setting-encryption-key 와 같은 값)
     SETTING_ENCRYPTION_KEY: str = ""
 
