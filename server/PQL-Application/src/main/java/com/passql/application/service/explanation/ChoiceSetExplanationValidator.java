@@ -42,7 +42,10 @@ public final class ChoiceSetExplanationValidator {
     private static final Pattern CORRECT_KEY_MENTION_PATTERN =
             Pattern.compile("정답(?:은|는|이|:)?\\s*\\(?([A-D])\\)?(?![A-Za-z_])");
     // 학습자에게 안 보이는 입력 섹션 이름: 해설에 나오면 위반 > 재생성 (#555)
-    private static final List<String> INTERNAL_INPUT_LABELS = List.of("기준 SQL", "생성 근거");
+    private static final List<String> INTERNAL_INPUT_LABELS = List.of("기준 SQL", "기준 쿼리", "생성 근거", "검증된 풀이");
+    // 입력 자료·작성 과정을 두고 한 말 ("입력 표시상 오답", "직접 계산 4행"): 학습자에게 무의미 > 위반 (#716)
+    private static final Pattern INPUT_META_TALK_PATTERN =
+            Pattern.compile("입력 표시|입력된 정답|표시된 정답|정답 표시|직접 계산|이 해설");
     // 결론을 미루는 표현: 정답 근거·보기 판정에 나오면 위반 > 재생성 (#716)
     private static final Pattern UNRESOLVED_CONCLUSION_PATTERN =
             Pattern.compile("확인이 필요|확인 필요|추가 확인|단정할 수 없|판단할 수 없");
@@ -147,13 +150,20 @@ public final class ChoiceSetExplanationValidator {
         if (allTexts(explanation).anyMatch(text -> text.contains(LATEX_DOLLAR))) warnings.add("수식 기호($) 사용");
     }
 
-    /** 내부 입력 이름 노출 (위반: 학습자는 기준 SQL·생성 근거를 볼 수 없음) */
+    /** 내부 입력 이름·입력 자료 언급 (위반: 학습자는 기준 SQL·메모·정답 표시를 볼 수 없음) */
     private static void validateNoInternalInputLabels(ChoiceSetExplanation explanation, List<String> violations) {
         for (String label : INTERNAL_INPUT_LABELS) {
             if (allTexts(explanation).anyMatch(text -> text.contains(label))) {
-                violations.add("학습자에게 보이지 않는 '" + label + "' 언급, 지문·보기·표의 말로만 설명");
+                // 재시도 피드백에 대신 쓸 말 포함 (같은 표현 반복 방지)
+                violations.add("학습자에게 보이지 않는 '" + label + "' 언급, '지문의 SQL' 또는 보기 키(A~D)로 바꿔 지문·보기·표의 말로만 설명");
             }
         }
+        allTexts(explanation).forEach(text -> {
+            Matcher matcher = INPUT_META_TALK_PATTERN.matcher(text);
+            if (matcher.find()) {
+                violations.add("입력 자료·작성 과정 언급 '" + matcher.group() + "', 문제·보기 내용만 설명하고 판정은 [정답]/[오답] 표시대로");
+            }
+        });
     }
 
     /**
