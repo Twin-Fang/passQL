@@ -13,12 +13,16 @@ class AdNativeSlot extends StatelessWidget {
     super.key,
     required this.placement,
     this.padding = EdgeInsets.zero,
+    this.isSection = false,
   });
 
   final AdPlacement placement;
 
   /// 광고가 뜬 뒤에만 두는 바깥 여백 (광고 없으면 여백도 없음)
   final EdgeInsets padding;
+
+  /// true: 문제 탭 경향 구간형 (광고가 뜬 뒤에만 앞 띠 + 구간 면, #726). 구간 좌우 여백 md 가 카드 안쪽 여백과 같아 광고 폭은 그대로
+  final bool isSection;
 
   /// 광고 라벨 문구
   static const adLabel = AdLabel.text;
@@ -33,6 +37,27 @@ class AdNativeSlot extends StatelessWidget {
           .read(adNativeLoaderProvider)
           .load(placement, widthDp, cardStyleOf(context)),
       frameBuilder: (context, adView) {
+        final content = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const AdLabel(),
+            const SizedBox(height: PassqlSpacing.xs),
+            adView.view,
+          ],
+        );
+        if (isSection) {
+          return Padding(
+            padding: padding,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const PassqlSectionGap(),
+                PassqlSection(key: frameKey, child: content),
+              ],
+            ),
+          );
+        }
         final colors = context.passqlColors;
         return Padding(
           padding: padding,
@@ -47,15 +72,7 @@ class AdNativeSlot extends StatelessWidget {
                   horizontal: PassqlSpacing.md,
                   vertical: PassqlSpacing.sm,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const AdLabel(),
-                    const SizedBox(height: PassqlSpacing.xs),
-                    adView.view,
-                  ],
-                ),
+                child: content,
               ),
             ),
           ),
