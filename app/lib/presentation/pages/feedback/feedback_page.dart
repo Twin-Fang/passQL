@@ -17,11 +17,11 @@ import '../../widgets/feedback/feedback_diagnostics_sheet.dart';
 import '../../widgets/feedback/feedback_image_strip.dart';
 
 const String _successToastMessage = '보내 주셔서 고마워요. 확인까지 2~3일 걸릴 수 있어요';
-const String _imageLimitToastMessage = '사진은 최대 10장까지 보낼 수 있어요';
+const String _imageLimitToastMessage = '사진은 최대 ${FeedbackImageLimits.maxImageCount}장까지 보낼 수 있어요';
 const String _sendFailedMessage = '의견을 보내지 못했어요. 잠시 후 다시 시도해 주세요.';
 const String _imageLoadFailedMessage = '사진을 불러오지 못했어요. 다시 선택해 주세요.';
 
-/// 의견 보내기 화면: 글 + 사진(최대 10장) + 진단 정보 동의를 한 번에 전송
+/// 의견 보내기 화면: 글 + 사진(최대 5장) + 진단 정보 동의를 한 번에 전송
 class FeedbackPage extends ConsumerStatefulWidget {
   const FeedbackPage({super.key});
 

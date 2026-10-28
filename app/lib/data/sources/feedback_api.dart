@@ -7,7 +7,7 @@ part 'feedback_api.g.dart';
 abstract class FeedbackApiClient {
   factory FeedbackApiClient(Dio dio, {String baseUrl}) = _FeedbackApiClient;
 
-  /// 의견 보내기 (multipart: request=JSON 본문, images=WebP 0~10장, diagnostics=JSON, log=gzip)
+  /// 의견 보내기 (multipart: request=JSON 본문, images=WebP 0~5장, diagnostics=JSON, log=gzip)
   @POST('/feedback')
   Future<void> submit(@Body() FormData formData);
 }
