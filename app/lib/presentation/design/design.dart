@@ -49,6 +49,7 @@ export 'components/passql_semantic_button.dart';
 export 'components/passql_sheet.dart';
 export 'components/passql_skeleton_box.dart';
 export 'components/passql_status_scaffold.dart';
+export 'components/passql_sliver_fill_status.dart';
 export 'components/passql_status_view.dart';
 export 'components/passql_tab_bar.dart';
 export 'components/passql_tab_bar_with_bottom_strip.dart';

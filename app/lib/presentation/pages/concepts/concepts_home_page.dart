@@ -23,8 +23,7 @@ class ConceptsHomePage extends ConsumerWidget {
       slivers: [
         topicList.when(
           loading: () => const SliverToBoxAdapter(child: PassqlListSkeleton()),
-          error: (_, _) => SliverFillRemaining(
-            hasScrollBody: false,
+          error: (_, _) => PassqlSliverFillStatus(
             child: PassqlStatusView.error(
               message: '개념 목록을 불러오지 못했어요.',
               onRetry: () => ref.invalidate(conceptTopicsProvider),
@@ -35,8 +34,7 @@ class ConceptsHomePage extends ConsumerWidget {
               ? SliverToBoxAdapter(
                   child: _ConceptTopicSections(topicList: loadedTopicList),
                 )
-              : SliverFillRemaining(
-                  hasScrollBody: false,
+              : PassqlSliverFillStatus(
                   child: PassqlStatusView.empty(
                     icon: CupertinoIcons.lightbulb,
                     title: '개념 학습을 준비하고 있어요',

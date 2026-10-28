@@ -47,8 +47,7 @@ class HomePage extends ConsumerWidget {
         loading: () => const _HomeShell(slivers: [_HomeSkeleton()]),
         error: (error, _) => _HomeShell(
           slivers: [
-            SliverFillRemaining(
-              hasScrollBody: false,
+            PassqlSliverFillStatus(
               child: PassqlStatusView.error(
                 message: '데이터를 불러오지 못했어요.',
                 onRetry: () => invalidateHomeData(ref.invalidate),

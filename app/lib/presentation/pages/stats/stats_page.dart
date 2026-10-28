@@ -52,8 +52,7 @@ class StatsPage extends ConsumerWidget {
           isTrailingIconButton: true,
           slivers: [
             const _ProfileSliver(),
-            SliverFillRemaining(
-              hasScrollBody: false,
+            PassqlSliverFillStatus(
               child: PassqlStatusView.error(
                 message: '기록을 불러오지 못했어요',
                 onRetry: () => ref.invalidate(statsDataProvider),
