@@ -180,6 +180,7 @@ class _PracticeOutcome extends StatelessWidget {
         ? ExecuteResultCard(
             result: executeResult,
             subjectLabel: '내 SQL',
+            shouldWrapInCard: false,
             margin: EdgeInsets.zero,
           )
         : executeFailure != null

@@ -17,12 +17,16 @@ class ExecuteResultCard extends StatelessWidget {
   /// 바깥 여백. 이미 좌우 inset 이 있는 목록 안에서는 가로를 0 으로 줄인다.
   final EdgeInsetsGeometry margin;
 
+  /// false: 카드 틀 없이 내용만 (다른 카드 안에 넣을 때 이중 여백 방지, #727)
+  final bool shouldWrapInCard;
+
   const ExecuteResultCard({
     super.key,
     required this.result,
     this.onAiExplainTap,
     this.executedChoiceLabel,
     this.subjectLabel,
+    this.shouldWrapInCard = true,
     this.margin = const EdgeInsets.symmetric(
       horizontal: PassqlSpacing.md,
       vertical: PassqlSpacing.xxs,
@@ -42,17 +46,16 @@ class ExecuteResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // 부모 Column 안에서 내용 폭으로 줄지 않게 선택지 카드와 같은 폭으로 편다(PassqlCard 가 width 를 채운다).
+    final content = _isError
+        ? _ErrorContent(
+            result: result,
+            onAiTap: onAiExplainTap,
+            markLabel: _markLabelOf('실행 오류'),
+          )
+        : _SuccessContent(result: result, markLabel: _markLabelOf('실행 성공'));
     return Padding(
       padding: margin,
-      child: PassqlCard(
-        child: _isError
-            ? _ErrorContent(
-                result: result,
-                onAiTap: onAiExplainTap,
-                markLabel: _markLabelOf('실행 오류'),
-              )
-            : _SuccessContent(result: result, markLabel: _markLabelOf('실행 성공')),
-      ),
+      child: shouldWrapInCard ? PassqlCard(child: content) : content,
     );
   }
 }

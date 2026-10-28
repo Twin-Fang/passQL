@@ -98,6 +98,15 @@ Map<String, dynamic> submitShotResponse({required String correctSql}) => {
   'selectedSql': 'SELECT ENAME FROM EMP HAVING SAL >= 3000;',
   'correctSql': correctSql,
   'submissionUuid': '77777777-0000-4000-8000-000000000001',
+  // 오답 B(HAVING 만 단독)는 PostgreSQL 에서 실행 오류 > 내 답 vs 정답 비교 연출 (#727)
+  if (!_isFreeLocked)
+    'selectedResult': {
+      'status': 'ERROR',
+      'columns': <String>[],
+      'rows': <List<Object>>[],
+      'errorCode': '42803',
+      'errorMessage': 'column "emp.sal" must appear in the GROUP BY clause or be used in an aggregate function',
+    },
   if (!_isFreeLocked)
     'correctResult': {
       'status': 'SUCCESS',

@@ -672,6 +672,18 @@ const _executeSuccessResult = {
   'errorMessage': null,
 };
 
+// 실습 실행 연출 (#727): SQL 에 4000 이 있으면 KING 1행, 아니면 3행
+Map<String, dynamic> _executeShotResultOf(Object? requestData) {
+  final isRaisedThreshold = jsonEncode(requestData).contains('4000');
+  if (!isRaisedThreshold) return _executeSuccessResult;
+  return {
+    ..._executeSuccessResult,
+    'rows': [['KING']],
+    'rowCount': 1,
+    'elapsedMs': 9,
+  };
+}
+
 Map<String, dynamic> _executableDetail() {
   final detail = _detail();
   final choiceSet = Map<String, dynamic>.from((detail['choiceSets'] as List).first as Map);
@@ -679,6 +691,25 @@ Map<String, dynamic> _executableDetail() {
     ...detail,
     'questionUuid': _executableQuestionUuid,
     'executionMode': 'EXECUTABLE',
+    // 실습 입력 보조 3줄째(표·열 이름) 연출 (#727)
+    'schemaTables': [
+      {
+        'tableName': 'EMP',
+        'columns': [
+          {'name': 'EMPNO', 'type': 'NUMBER'},
+          {'name': 'ENAME', 'type': 'VARCHAR2(20)'},
+          {'name': 'JOB', 'type': 'VARCHAR2(20)'},
+          {'name': 'SAL', 'type': 'NUMBER'},
+          {'name': 'DEPTNO', 'type': 'NUMBER'},
+        ],
+        'sampleRows': [
+          [7839, 'KING', 'PRESIDENT', 5000, 10],
+          [7788, 'SCOTT', 'ANALYST', 3000, 20],
+          [7902, 'FORD', 'ANALYST', 3000, 20],
+          [7566, 'JONES', 'MANAGER', 2975, 20],
+        ],
+      },
+    ],
     'choiceSets': [
       {...choiceSet, 'status': 'OK'},
     ],
@@ -745,7 +776,7 @@ class _FakeAdapter implements HttpClientAdapter {
       return ResponseBody.fromString(_sse(resultMatch: rm), 200, headers: {Headers.contentTypeHeader: ['text/event-stream']});
     }
     if (options.path.endsWith('/execute') && _isExecuteSuccessScene) {
-      return ResponseBody.fromString(jsonEncode(_executeSuccessResult), 200, headers: {Headers.contentTypeHeader: [Headers.jsonContentType]});
+      return ResponseBody.fromString(jsonEncode(_executeShotResultOf(options.data)), 200, headers: {Headers.contentTypeHeader: [Headers.jsonContentType]});
     }
     if (options.path.endsWith('/execute')) {
       return ResponseBody.fromString(
@@ -940,7 +971,8 @@ Future<void> _openRoute(String route, ProviderContainer container) async {
         ));
       }
     case 'result':
-      // 오답 제출 결과 (무료면 실행 결과·해설 잠금)
+      // 오답 제출 결과 (무료면 실행 결과·해설 잠금), 실습 칸 실행은 성공 (#727)
+      _isExecuteSuccessScene = true;
       AppRouter.router.go(AppRoutes.questionDetail(_executableQuestionUuid));
       await Future<void>.delayed(settleDelay);
       AppRouter.router.push(
