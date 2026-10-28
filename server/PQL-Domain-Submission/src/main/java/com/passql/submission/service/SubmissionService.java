@@ -15,7 +15,7 @@ import com.passql.question.repository.QuestionChoiceSetItemRepository;
 import com.passql.question.repository.QuestionChoiceSetRepository;
 import com.passql.question.repository.QuestionRepository;
 import com.passql.question.service.ChoiceExplanationComposer;
-import com.passql.question.service.SandboxExecutor;
+import com.passql.question.service.CachedSandboxExecutor;
 import com.passql.submission.dto.MonitorStats;
 import com.passql.submission.entity.ExecutionLog;
 import com.passql.submission.entity.Submission;
@@ -32,7 +32,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -45,7 +47,7 @@ public class SubmissionService {
     private final QuestionChoiceSetItemRepository choiceSetItemRepository;
     private final QuestionRepository questionRepository;
     private final ExecutionLogRepository executionLogRepository;
-    private final SandboxExecutor sandboxExecutor;
+    private final CachedSandboxExecutor cachedSandboxExecutor;
     private final TransactionTemplate transactionTemplate;
     // AI 코멘트 캐시 무효화용 (submit 완료 시 evict)
     private final RedisTemplate<String, Object> redisTemplate;
@@ -71,31 +73,15 @@ public class SubmissionService {
 
         Question question = questionRepository.findById(questionUuid).orElse(null);
         if (question != null && question.getExecutionMode() == ExecutionMode.EXECUTABLE) {
-            String dbName = question.getSandboxDbName();
-
             // SQL 보기만 실행 (결과표 TEXT 보기는 SQL 이 아니라 실행하면 문법 오류)
             selectedSql = sqlBodyOrNull(selected);
             correctSql = sqlBodyOrNull(correct);
 
-            if (dbName != null && !dbName.isBlank()) {
-                // 영구 sandbox DB — executeChoice()와 동일 경로
-                selectedResult = selectedSql != null ? sandboxExecutor.execute(dbName, selectedSql) : null;
-                if (correctSql != null) {
-                    correctResult = sandboxExecutor.execute(dbName, correctSql);
-                }
-            } else {
-                // sandboxDbName 미설정: 임시 DB에 DDL 적용 > 선택·정답 SQL 실행 > 반납
-                // executeChoice()와 동일한 경로 — questionUuid 폴백 DB는 존재하지 않으므로 사용 금지
-                String selectedSqlToRun = selectedSql;
-                String correctSqlToRun = correctSql;
-                ChoiceExecutionResults temporaryResults = sandboxExecutor.runInTemporarySandbox(
-                        question.getSchemaDdl(), question.getSchemaSampleData(),
-                        tempDb -> new ChoiceExecutionResults(
-                                selectedSqlToRun != null ? sandboxExecutor.execute(tempDb, selectedSqlToRun) : null,
-                                correctSqlToRun != null ? sandboxExecutor.execute(tempDb, correctSqlToRun) : null));
-                selectedResult = temporaryResults.selectedResult();
-                correctResult = temporaryResults.correctResult();
-            }
+            // 결과 캐시 우선, 빠진 SQL만 영구 DB 또는 임시 DB 1회에서 실행 (#727)
+            Map<String, ExecuteResult> resultBySql =
+                    cachedSandboxExecutor.executeAll(question, Arrays.asList(selectedSql, correctSql));
+            selectedResult = selectedSql != null ? resultBySql.get(selectedSql) : null;
+            correctResult = correctSql != null ? resultBySql.get(correctSql) : null;
         }
 
         // 7. AI 코멘트 캐시: 세션 단위(ai-comment:{memberUuid}:{sessionUuid})로 전환됨.
@@ -126,9 +112,6 @@ public class SubmissionService {
     private static String sqlBodyOrNull(QuestionChoiceSetItem item) {
         return item != null && item.getKind() == ChoiceKind.SQL ? item.getBody() : null;
     }
-
-    /** 임시 샌드박스 1회 실행 결과: 선택 SQL·정답 SQL (정답 SQL 없으면 null) */
-    private record ChoiceExecutionResults(ExecuteResult selectedResult, ExecuteResult correctResult) {}
 
     /** 제출 채점 결과 + 저장된 제출 (트랜잭션 안에서 만든 값을 밖으로 넘김) */
     private record GradedSubmission(

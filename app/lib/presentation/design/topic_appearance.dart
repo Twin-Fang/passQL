@@ -52,7 +52,12 @@ const Map<String, String> _topicHue = {
 };
 
 /// 토픽 아이콘 타일 배경색. 모르는 코드는 앱 기본 강조 색조(indigo)로 대체한다.
-Color topicColorFor(String code, Brightness brightness) {
-  final colorPair = _palette[_topicHue[code] ?? 'indigo']!;
+Color topicColorFor(String code, Brightness brightness) =>
+    systemHueColor(_topicHue[code] ?? 'indigo', brightness);
+
+/// 팔레트 색조 이름(blue·yellow 등) > 색. 토픽 밖에서 같은 시스템 색이 필요할 때 (문제 탭 경향 구간 제목, #726)
+/// 모르는 이름은 앱 기본 강조 색조(indigo)
+Color systemHueColor(String hue, Brightness brightness) {
+  final colorPair = _palette[hue] ?? _palette['indigo']!;
   return brightness == Brightness.dark ? colorPair.$2 : colorPair.$1;
 }

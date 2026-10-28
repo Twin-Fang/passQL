@@ -9,11 +9,14 @@ import '../../design/design.dart';
 import '../../providers/ai_explanation_session_provider.dart';
 import '../../providers/choice_explanation_providers.dart';
 import '../../providers/plan_providers.dart';
+import '../../providers/question_providers.dart';
 import '../../widgets/ai_explanation/ai_explanation_content.dart';
 import '../../widgets/community/community_opinion_chip.dart';
 import '../../widgets/pro/locked_preview_samples.dart';
 import '../../widgets/pro/pro_locked_section.dart';
 import '../../widgets/question/execute_result_card.dart';
+import '../../widgets/question/execution_comparison_card.dart';
+import '../../widgets/question/sql_practice_card.dart';
 import '../../widgets/report/report_button.dart';
 import '../../widgets/result/similar_questions_section.dart';
 
@@ -70,6 +73,14 @@ class ResultPage extends ConsumerWidget {
     final correctTitle = !isCorrect && correctLabel != null
         ? '정답 ($correctLabel)'
         : '정답';
+    final selectedResult = result.selectedResult;
+    final correctResult = result.correctResult;
+    // 실습 입력 보조용 표·열 이름: 풀이 화면이 이미 불러온 문제 상세에서만 (새로 요청하지 않음)
+    final questionDetail =
+        questionUuid.isNotEmpty &&
+            ref.exists(questionDetailProvider(questionUuid))
+        ? ref.read(questionDetailProvider(questionUuid)).valueOrNull
+        : null;
 
     return PassqlResultScaffold(
       title: '채점 결과',
@@ -97,16 +108,32 @@ class ResultPage extends ConsumerWidget {
             ),
           ),
         // 카드가 이미 좌우 inset 을 가지므로 목록 inset 과 겹치지 않게 가로 여백을 뺀다.
-        if (result.correctResult != null)
-          ExecuteResultCard(
-            result: result.correctResult!,
+        // 오답: 내 답 vs 정답 실행 결과 비교, 정답: 정답 실행 결과 (#727)
+        if (!isCorrect && selectedResult != null && correctResult != null)
+          ExecutionComparisonCard(
+            myResult: selectedResult,
+            correctResult: correctResult,
+            myChoiceLabel: arguments
+                ?.displayLabelByChoiceKey[arguments?.selectedChoiceKey],
+            correctChoiceLabel: correctLabel,
             margin: EdgeInsets.zero,
           )
+        else if (correctResult != null)
+          ExecuteResultCard(result: correctResult, margin: EdgeInsets.zero)
         else if (shouldShowProUi &&
             result.lockedSections.isExecutionResultLocked)
           const ProLockedSection(
             preview: ExecutionResultLockedSample(),
             caption: LockedPreviewCaptions.executionResult,
+          ),
+        // 실행형: 정답 SQL 로 직접 실행해보기 (#727)
+        if (result.correctSql != null && questionUuid.isNotEmpty)
+          SqlPracticeCard(
+            questionUuid: questionUuid,
+            correctSql: result.correctSql,
+            mySql: isCorrect ? null : result.selectedSql,
+            schemaTables: questionDetail?.schemaTables ?? const [],
+            margin: EdgeInsets.zero,
           ),
         // 해설: AI 해설 본문(실패 시 근거 폴백 포함) 또는 생성 근거
         if (explanationEntry != null)

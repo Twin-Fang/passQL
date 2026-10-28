@@ -15,6 +15,7 @@ class PassqlSection extends StatelessWidget {
     this.title,
     this.leading,
     this.trailing,
+    this.isCompactTitle = false,
     this.padding = const EdgeInsets.symmetric(
       horizontal: PassqlSpacing.md,
       vertical: PassqlSpacing.lg,
@@ -25,6 +26,10 @@ class PassqlSection extends StatelessWidget {
   final String? title;
   final Widget? leading;
   final Widget? trailing;
+
+  /// 15pt 제목 줄 (작은 타일과 함께, #726)
+  // ponytail: 위 여백은 17pt 줄 기준 verticalSlack(11) 그대로라 15pt(줄 20)면 1pt 넓다. 맞추려면 헤더가 글자 크기별 slack 을 내야 함
+  final bool isCompactTitle;
   final EdgeInsetsGeometry padding;
 
   static const double _gapBelowHeader =
@@ -52,6 +57,7 @@ class PassqlSection extends StatelessWidget {
               title: title!,
               leading: leading,
               trailing: trailing,
+              isCompact: isCompactTitle,
             ),
             // 제목 > 내용 sm(12) 중 글자 아래 빈 공간(11)이 이미 차지한 만큼 뺌
             const SizedBox(height: _gapBelowHeader),

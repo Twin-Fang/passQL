@@ -3,7 +3,7 @@ abstract final class PassqlSize {
   static const double buttonLarge = 50;
   static const double buttonRegular = 44;
   static const double buttonSmall = 34;
-  static const double segmentedControlSegment = 40; // 세그먼트 알약 높이 (트랙 위아래 여백 2씩 더해 누르는 영역 44)
+  static const double segmentedControlSegment = 36; // 세그먼트 알약 높이 (트랙 위아래 여백 4씩 더해 누르는 영역 44, #726)
   static const double tabBar = 49; // 아이콘 + 라벨 탭 바 (iOS 규격)
   static const double navBar = 44;
   static const double bottomStrip = 44; // 탭 바 아래 한 줄 띠 (광고, #527). 띠 전체가 터치 영역이라 최소 터치 높이와 같게
@@ -28,6 +28,7 @@ abstract final class PassqlSize {
   static const double messageSlotHeight =
       28; // 입력 아래 안내·오류 한 줄 자리 (나타나도 레이아웃이 밀리지 않게 고정)
   static const double iconTile = 29;
+  static const double iconTileCompact = 26; // 구간 제목 앞 타일 (행 타일보다 한 단계 작게, #726)
   static const double blurSigma = 20;
   static const double lockedPreviewBlurSigma = 5; // 잠금 미리보기: 글자 모양은 보이되 읽히지 않는 정도
   static const double lockedPreviewMinHeight = 132; // 잠금 미리보기: 가운데 문구 + 알약 버튼이 들어갈 최소 높이

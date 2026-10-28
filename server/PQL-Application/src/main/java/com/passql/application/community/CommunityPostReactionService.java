@@ -39,6 +39,7 @@ public class CommunityPostReactionService {
     private final CommunityPostLikeRepository communityPostLikeRepository;
     private final CommunityReportRepository communityReportRepository;
     private final CommunitySolveService communitySolveService;
+    private final CommunityDiscussionChangePublisher communityDiscussionChangePublisher;
 
     /** 좋아요 토글: 있으면 취소 > 없으면 추가, 카운터는 DB 원자 갱신 */
     @Transactional
@@ -77,6 +78,7 @@ public class CommunityPostReactionService {
         log.info("[community] post reported : post={}, category={}, pendingReports={}", postUuid, category, pendingReportCount);
         if (pendingReportCount >= AUTO_HIDE_REPORT_THRESHOLD) {
             post.hide(CommunityPostStatus.HIDDEN_AUTO, CommunityPost.HANDLED_BY_AUTO_REPORT);
+            communityDiscussionChangePublisher.publishChanged(post);
             log.warn("[community] post auto hidden : post={}, pendingReports={}", postUuid, pendingReportCount);
         }
     }

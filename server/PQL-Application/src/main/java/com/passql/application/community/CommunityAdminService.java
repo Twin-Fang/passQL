@@ -74,6 +74,7 @@ public class CommunityAdminService {
     private final MemberRepository memberRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final CommunityImageService communityImageService;
+    private final CommunityDiscussionChangePublisher communityDiscussionChangePublisher;
 
     /** 신고 글 목록: 대기만 여부·신고 사유 필터 > 선택 정렬(기본 신고 많은 순) > 글별 신고 이력 부착 */
     public AdminCommunityPostPage getReportedPosts(boolean isPendingOnly, CommunityReportCategory category,
@@ -134,6 +135,7 @@ public class CommunityAdminService {
         CommunityPost post = findNotDeletedPost(postUuid);
         CommunityPostStatus before = post.getStatus();
         post.hide(CommunityPostStatus.HIDDEN_ADMIN, adminUsername);
+        communityDiscussionChangePublisher.publishChanged(post);
         closeReports(post, CommunityReportStatus.RESOLVED, adminUsername, handledNote);
         publishAudit(post, AdminAuditAction.HIDE, before, handledNote);
     }
@@ -144,6 +146,7 @@ public class CommunityAdminService {
         CommunityPost post = findNotDeletedPost(postUuid);
         CommunityPostStatus before = post.getStatus();
         post.restore();
+        communityDiscussionChangePublisher.publishChanged(post);
         closeReports(post, CommunityReportStatus.DISMISSED, adminUsername, handledNote);
         publishAudit(post, AdminAuditAction.RESTORE, before, handledNote);
         log.info("[community] admin restored : post={}, admin={}", postUuid, adminUsername);
@@ -156,6 +159,7 @@ public class CommunityAdminService {
         CommunityPostStatus before = post.getStatus();
         String contentBeforeDelete = post.getContent();
         post.markDeleted(adminUsername);
+        communityDiscussionChangePublisher.publishChanged(post);
         communityImageService.deleteImagesOfPost(postUuid);
         closeReports(post, CommunityReportStatus.RESOLVED, adminUsername, handledNote);
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.COMMUNITY_POST, postUuid, AdminAuditAction.DELETE,
@@ -170,6 +174,7 @@ public class CommunityAdminService {
         CommunityPostStatus before = post.getStatus();
         if (before == CommunityPostStatus.HIDDEN_AUTO) {
             post.restore();
+            communityDiscussionChangePublisher.publishChanged(post);
         }
         closeReports(post, CommunityReportStatus.DISMISSED, adminUsername, handledNote);
         publishAudit(post, AdminAuditAction.DISMISS, before, handledNote);

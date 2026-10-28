@@ -9,6 +9,7 @@ import com.passql.question.entity.Question;
 import com.passql.question.entity.QuestionChoice;
 import com.passql.question.repository.QuestionChoiceRepository;
 import com.passql.question.service.QuestionService;
+import com.passql.question.service.CachedSandboxExecutor;
 import com.passql.question.service.SandboxExecutor;
 import com.passql.question.service.SqlSafetyValidator;
 import com.passql.submission.service.SubmissionService;
@@ -27,16 +28,13 @@ public class QuestionExecutionService {
     private final QuestionService questionService;
     private final SqlSafetyValidator sqlSafetyValidator;
     private final SandboxExecutor sandboxExecutor;
+    private final CachedSandboxExecutor cachedSandboxExecutor;
     private final SubmissionService submissionService;
     private final QuestionChoiceRepository questionChoiceRepository;
 
     /**
-     * 선택지 SQL 실행 (자유 SQL 실행에도 재사용).
-     * EXECUTABLE 문제만 허용.
-     * <p>
-     * sandboxDbName이 있으면 해당 영구 DB에서 직접 실행.
-     * sandboxDbName이 없으면 SandboxPool에서 임시 DB를 생성 → DDL+샘플데이터 적용 → 실행 → drop.
-     * (레거시 문제 또는 sandbox_db_name 미설정 문제 모두 이 경로로 동작)
+     * 선택지·실습 SQL 실행: 실행형 문제 확인 > 안전 검사 > 결과 캐시 우선 실행 (#727)
+     * 영구 sandbox DB 가 있으면 그 DB, 없으면 임시 DB(DDL+샘플 적용 후 drop)에서 실행
      */
     public ExecuteResult executeChoice(UUID questionUuid, String sql) {
         Question question = questionService.getQuestionEntity(questionUuid);
@@ -44,17 +42,7 @@ public class QuestionExecutionService {
             throw new CustomException(ErrorCode.INVALID_EXECUTION_MODE);
         }
         sqlSafetyValidator.validate(sql);
-
-        String dbName = question.getSandboxDbName();
-
-        if (dbName != null && !dbName.isBlank()) {
-            // 영구 sandbox DB가 지정된 경우 — 그대로 실행
-            return sandboxExecutor.execute(dbName, sql);
-        }
-
-        // sandbox_db_name 미설정: 임시 DB 생성 → DDL 적용 → 실행 → drop
-        return sandboxExecutor.runInTemporarySandbox(question.getSchemaDdl(), question.getSchemaSampleData(),
-                tempDb -> sandboxExecutor.execute(tempDb, sql));
+        return cachedSandboxExecutor.execute(question, sql);
     }
 
     /**

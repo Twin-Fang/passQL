@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import '../../../data/models/question/choice_item.dart';
 import '../../../data/models/question/submit_result.dart';
 import '../../design/design.dart';
@@ -19,6 +19,12 @@ class ChoiceItemCard extends StatelessWidget {
   /// 채점 뒤 탭(예: 다른 선택지의 SQL 실행 결과 보기). 없으면 채점 뒤에는 눌리지 않는다.
   final VoidCallback? onGradedTap;
 
+  /// 실행형 SQL 보기의 ▶ 실행 버튼 동작. 없으면 버튼 없음 (카드 탭은 고르기만, #727)
+  final VoidCallback? onRunTap;
+
+  /// 이 보기를 지금 실행 중인지 (버튼 로딩 표시)
+  final bool isRunning;
+
   const ChoiceItemCard({
     super.key,
     required this.item,
@@ -26,6 +32,8 @@ class ChoiceItemCard extends StatelessWidget {
     required this.state,
     required this.onTap,
     this.onGradedTap,
+    this.onRunTap,
+    this.isRunning = false,
   });
 
   @override
@@ -52,8 +60,49 @@ class ChoiceItemCard extends StatelessWidget {
         state: state,
         onTap: onTap,
         onGradedTap: onGradedTap,
+        // 실행 가능한 SQL 보기(채점 뒤): 정답·오답 표시 아래 ▶ (코드 폭 그대로)
+        trailingAccessory: onRunTap == null
+            ? null
+            : _RunChoiceIconButton(
+                choiceLabel: displayLabel,
+                onTap: onRunTap!,
+                isRunning: isRunning,
+              ),
         child: body,
       ),
+    );
+  }
+}
+
+/// 보기 실행 아이콘: 강조색 ▶ 원 아이콘 (실행 중이면 로딩)
+/// 채점 아이콘 칸 폭 그대로 (넓히면 코드 폭이 줄어듦), 카드 전체 탭도 실행이라 작은 영역으로 충분
+class _RunChoiceIconButton extends StatelessWidget {
+  const _RunChoiceIconButton({
+    required this.choiceLabel,
+    required this.onTap,
+    required this.isRunning,
+  });
+
+  final String choiceLabel;
+  final VoidCallback onTap;
+  final bool isRunning;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    return PassqlPressable(
+      onTap: isRunning ? null : onTap,
+      semanticLabel: '보기 $choiceLabel 실행',
+      child: isRunning
+          ? const SizedBox.square(
+              dimension: PassqlIconSize.xl,
+              child: PassqlLoadingIndicator(),
+            )
+          : Icon(
+              CupertinoIcons.play_circle_fill,
+              size: PassqlIconSize.xl,
+              color: colors.accent,
+            ),
     );
   }
 }

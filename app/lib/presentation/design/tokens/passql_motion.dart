@@ -34,6 +34,9 @@ abstract final class PassqlMotion {
   static const marqueePause = Duration(milliseconds: 1500);
   static const marqueeGap = 40.0;
 
+  // 세그먼트 알약 물방울 이동 전체 시간 (앞 가장자리가 먼저 뻗고 뒤가 따라붙음, #726)
+  static const segmentMorph = Duration(milliseconds: 350);
+
   // 누름 축소 비율
   static const pressedScale = 0.97;
 
