@@ -23,6 +23,9 @@ public final class ChoiceSetExplanationPrompt {
     private static final String RESOURCE_DIRECTORY = "/ai-prompts/choice-set-explanation/";
     private static final String SYSTEM_INSTRUCTION_TEMPLATE = readResource("system-instruction.md");
     private static final String RESPONSE_SCHEMA_JSON = readResource("response-schema.json");
+    // 보기 메모 라벨: 고정 세트 메모는 Oracle 실행 검증본이라 따라야 할 근거, AI 세트 메모는 참고 (#716)
+    private static final String VERIFIED_RATIONALE_LABEL = "검증된 풀이(Oracle 실행 확인)";
+    private static final String REFERENCE_RATIONALE_LABEL = "생성 근거(참고)";
 
     // 시스템 지시의 {{이름}} 자리 > 검증 상한 (프롬프트와 검증기가 같은 값을 쓰게)
     private static final String SYSTEM_INSTRUCTION = fillLengthLimits(SYSTEM_INSTRUCTION_TEMPLATE, Map.of(
@@ -55,9 +58,16 @@ public final class ChoiceSetExplanationPrompt {
         return buildUserPrompt(question, items, Map.of());
     }
 
-    /** 문제 입력: 지문 > 테이블 구조 > 샘플 데이터 > 기준 SQL > 보기 전체([정답]/[오답] + 실행 결과 + 생성 근거) */
+    /** 문제 입력 (보기 메모는 참고용 생성 근거) */
     public static String buildUserPrompt(Question question, List<QuestionChoiceSetItem> items,
                                          Map<String, String> resultSummaryByChoiceKey) {
+        return buildUserPrompt(question, items, resultSummaryByChoiceKey, false);
+    }
+
+    /** 문제 입력: 지문 > 테이블 구조 > 샘플 데이터 > 기준 SQL > 보기 전체([정답]/[오답] + 실행 결과 + 검증된 풀이 또는 생성 근거) */
+    public static String buildUserPrompt(Question question, List<QuestionChoiceSetItem> items,
+                                         Map<String, String> resultSummaryByChoiceKey, boolean isRationaleVerified) {
+        String rationaleLabel = isRationaleVerified ? VERIFIED_RATIONALE_LABEL : REFERENCE_RATIONALE_LABEL;
         StringBuilder prompt = new StringBuilder();
         prompt.append("[문제]\n").append(nullToEmpty(question.getStem()).trim()).append("\n\n");
         appendSectionIfPresent(prompt, "테이블 구조", question.getSchemaDdl());
@@ -73,7 +83,7 @@ public final class ChoiceSetExplanationPrompt {
                 prompt.append("   실행 결과(샘플 데이터 실측): ").append(resultSummary).append("\n");
             }
             if (item.getRationale() != null && !item.getRationale().isBlank()) {
-                prompt.append("   생성 근거(참고): ").append(item.getRationale().trim()).append("\n");
+                prompt.append("   ").append(rationaleLabel).append(": ").append(item.getRationale().trim()).append("\n");
             }
         }
         return prompt.toString();

@@ -195,8 +195,10 @@ public class ChoiceExplanationService {
     private boolean generateAndStore(Question question, UUID choiceSetUuid) {
         List<QuestionChoiceSetItem> items = choiceSetItemRepository.findByChoiceSetUuidOrderBySortOrderAsc(choiceSetUuid);
         // 실행형 SQL 보기는 실측 결과를 근거로 (해설이 실제 결과와 반대로 쓰는 것 방지, #555)
+        // 고정 세트 메모는 Oracle 실행 검증본 > 따라야 할 근거로 전달 (#716)
+        boolean isRationaleVerified = QuestionService.isCuratedChoiceSet(question, getChoiceSet(choiceSetUuid));
         ChoiceSetExplanationGenerationResult result = explanationGenerator.generate(question, items,
-                executionEvidenceCollector.collectResultSummaryByChoiceKey(question, items));
+                executionEvidenceCollector.collectResultSummaryByChoiceKey(question, items), isRationaleVerified);
         if (!result.isSuccessful()) {
             log.warn("[choice explanation] generation failed : choiceSet={} attempts={} violations={}",
                     choiceSetUuid, result.attemptCount(), result.validation().violations());
