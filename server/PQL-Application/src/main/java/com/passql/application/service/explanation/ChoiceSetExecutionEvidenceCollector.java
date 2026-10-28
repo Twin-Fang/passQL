@@ -5,7 +5,7 @@ import com.passql.question.constant.ExecutionMode;
 import com.passql.question.dto.ExecuteResult;
 import com.passql.question.entity.Question;
 import com.passql.question.entity.QuestionChoiceSetItem;
-import com.passql.question.service.SandboxExecutor;
+import com.passql.question.service.CachedSandboxExecutor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -28,7 +28,7 @@ public class ChoiceSetExecutionEvidenceCollector {
     static final int MAX_SUMMARY_ROW_COUNT = 10;
     private static final String NULL_CELL_TEXT = "NULL";
 
-    private final SandboxExecutor sandboxExecutor;
+    private final CachedSandboxExecutor cachedSandboxExecutor;
 
     /** 문제·보기 > {보기 키: 실행 결과 요약} (대상 없거나 실패 > 빈 맵) */
     public Map<String, String> collectResultSummaryByChoiceKey(Question question, List<QuestionChoiceSetItem> items) {
@@ -39,15 +39,14 @@ public class ChoiceSetExecutionEvidenceCollector {
             return Map.of();
         }
         try {
-            return sandboxExecutor.runInTemporarySandbox(question.getSchemaDdl(), question.getSchemaSampleData(),
-                    dbName -> {
-                        Map<String, String> summaryByChoiceKey = new LinkedHashMap<>();
-                        for (QuestionChoiceSetItem item : sqlItems) {
-                            summaryByChoiceKey.put(item.getChoiceKey(),
-                                    toResultSummary(sandboxExecutor.execute(dbName, item.getBody())));
-                        }
-                        return summaryByChoiceKey;
-                    });
+            // 보기 SQL 결과: 사용자 실행·제출과 같은 캐시 공유, 빠진 것만 실행 (#727)
+            Map<String, ExecuteResult> resultBySql = cachedSandboxExecutor.executeAll(question,
+                    sqlItems.stream().map(QuestionChoiceSetItem::getBody).toList());
+            Map<String, String> summaryByChoiceKey = new LinkedHashMap<>();
+            for (QuestionChoiceSetItem item : sqlItems) {
+                summaryByChoiceKey.put(item.getChoiceKey(), toResultSummary(resultBySql.get(item.getBody())));
+            }
+            return summaryByChoiceKey;
         } catch (Exception e) {
             log.warn("[choice explanation] execution evidence skipped : question={} reason={}",
                     question.getQuestionUuid(), e.getClass().getSimpleName());
