@@ -290,6 +290,7 @@ jobs:
       version: ${{ steps.test_version.outputs.version }}
       version_changed: ${{ steps.test_version.outputs.changed }}
       version_reason: ${{ steps.test_version.outputs.reason }}
+      build_notice: ${{ steps.build_notice.outputs.notice }}
       issue_url: ${{ steps.issue_info.outputs.issue_url }}
       issue_title: ${{ steps.issue_info.outputs.issue_title }}
       issue_number: ${{ steps.issue_info.outputs.issue_number }}
@@ -418,6 +419,35 @@ jobs:
           # 빌드 번호는 여기서 정하지 않고 아카이브 직전에 archive-upload 가 정한다.
           python3 .github/scripts/ios_release.py precheck-version --mode test \
             --version "$VERSION" --bundle-id "$APP_IDENTIFIER"
+
+      # 안내·버전 판단 스크립트는 기본 브랜치 것을 쓴다 (워크플로는 기본 브랜치, 체크아웃은 오래된 브랜치일 수 있음, #731)
+      - name: 기본 브랜치 CI 스크립트 준비
+        # 실패해도 뒤 스텝이 version.yml 버전·안내 생략으로 진행
+        continue-on-error: true
+        working-directory: ${{ github.workspace }}
+        env:
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/ci-scripts"
+          git fetch --depth=1 origin "$BASE_BRANCH"
+          for SCRIPT_NAME in test_build_notice.py ios_release.py asc_client.py build_number.py; do
+            git show "origin/$BASE_BRANCH:.github/scripts/$SCRIPT_NAME" > "$RUNNER_TEMP/ci-scripts/$SCRIPT_NAME"
+          done
+          echo "CI_SCRIPTS_DIR=$RUNNER_TEMP/ci-scripts" >> "$GITHUB_ENV"
+
+      # 댓글 안내 문구 (버전 조정 사유, 기본 브랜치보다 오래된 브랜치 경고, #731)
+      - name: 빌드 안내 문구 생성
+        id: build_notice
+        # 안내 문구 실패로 빌드를 막지 않음
+        continue-on-error: true
+        working-directory: ${{ github.workspace }}
+        env:
+          VERSION_CHANGED: ${{ steps.test_version.outputs.changed }}
+          VERSION_REASON: ${{ steps.test_version.outputs.reason }}
+          # 비교 기준: 레포 기본 브랜치
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          python3 "$CI_SCRIPTS_DIR/test_build_notice.py" --base-branch "$BASE_BRANCH"
 
       # 브랜치명에서 이슈 번호 추출 및 GitHub API로 이슈 정보 가져오기
       - name: 브랜치명에서 이슈 정보 추출
@@ -1118,11 +1148,15 @@ jobs:
         uses: actions/github-script@v7
         env:
           BRANCH_NAME: ${{ github.event.client_payload.branch_name }}
+          BUILD_NOTICE: ${{ needs.prepare-test-build.outputs.build_notice }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const commentId = parseInt('${{ needs.notify-start.outputs.comment_id }}');
             const startTime = parseInt('${{ needs.notify-start.outputs.start_time }}');
+            // 버전 조정 사유·오래된 브랜치 경고 (#731)
+            const buildNotice = (process.env.BUILD_NOTICE || '').trim();
+            const noticeLines = buildNotice ? [...buildNotice.split('\n'), ''] : [];
             const step2EndTime = parseInt('${{ steps.progress_step2.outputs.end_time }}');
             const step1Elapsed = '${{ steps.progress_step1.outputs.elapsed }}';
             const step2Elapsed = '${{ steps.progress_step2.outputs.elapsed }}';
@@ -1163,6 +1197,7 @@ jobs:
               `| **커밋** | \`${commitHash}\` |`,
               `| **총 소요 시간** | ${totalElapsed} |`,
               '',
+              ...noticeLines,
               '📱 **TestFlight에서 테스트 앱을 다운로드할 수 있습니다.**',
               '',
               `🔗 [워크플로우 실행 로그](${runUrl})`
