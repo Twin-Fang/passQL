@@ -49,6 +49,7 @@ public class CommunityPostService {
     private final CommunityContentPolicy communityContentPolicy;
     private final CommunityWriteLimiter communityWriteLimiter;
     private final CommunityImageService communityImageService;
+    private final CommunityDiscussionChangePublisher communityDiscussionChangePublisher;
 
     /** 문제 의견 목록: 풀이 확인 > 정렬별 키셋 조회 > 닉네임·좋아요 여부 결합 */
     public CommunityPostPageResponse getQuestionPosts(UUID viewerMemberUuid, UUID questionUuid, String sortRequestValue,
@@ -90,6 +91,7 @@ public class CommunityPostService {
                 CommunityPost.createQuestionOpinion(questionUuid, authorMemberUuid, content, solveSnapshot));
         communityImageService.attachToPost(saved.getPostUuid(), authorMemberUuid, imageUuids);
         communityWriteLimiter.recordWrittenContent(authorMemberUuid, content);
+        communityDiscussionChangePublisher.publishChanged(saved);
         log.info("[community] post created : post={}, question={}, hasSnapshot={}",
                 saved.getPostUuid(), questionUuid, solveSnapshot != null);
         return toItems(List.of(saved), authorMemberUuid).get(0);
@@ -107,6 +109,7 @@ public class CommunityPostService {
         }
         post.markDeleted(null);
         communityImageService.deleteImagesOfPost(postUuid);
+        communityDiscussionChangePublisher.publishChanged(post);
         log.info("[community] post deleted by author : post={}", postUuid);
     }
 

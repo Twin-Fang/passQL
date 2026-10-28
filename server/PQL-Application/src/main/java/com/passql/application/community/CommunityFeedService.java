@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 
 /**
  * 커뮤니티 피드: 탭(source) > 전략의 후보 문제 > 오프셋 커서 페이지 > 문제 카드
- * 회원 무관 전략(hot, trend)은 후보를 Redis 60초 캐시 (community:feed:{SOURCE}), 카드는 매번 회원별로 조립
+ * 회원 무관 전략(hot, trend)은 후보를 Redis 60초 캐시 (community:feed:{SOURCE}, 의견 변경 시 즉시 삭제), 카드는 매번 회원별로 조립
  */
 @Slf4j
 @Service
@@ -51,6 +51,8 @@ public class CommunityFeedService {
     // 카드 지문 미리보기 길이 (문자 수)
     private static final int STEM_PREVIEW_LENGTH = 80;
     private static final Duration FEED_CACHE_TTL = Duration.ofSeconds(60);
+    // Redis 공용 피드 후보 캐시: community:feed:{SOURCE}
+    private static final String FEED_CACHE_KEY_PREFIX = "community:feed:";
     private static final TypeReference<List<FeedCandidate>> CANDIDATE_LIST_TYPE = new TypeReference<>() { };
 
     private final Map<CommunityFeedSource, FeedStrategy> strategyBySource = new EnumMap<>(CommunityFeedSource.class);
@@ -92,7 +94,7 @@ public class CommunityFeedService {
         if (!strategy.isSharedAcrossMembers()) {
             return strategy.findCandidates(viewerMemberUuid, now);
         }
-        String cacheKey = "community:feed:" + strategy.source();
+        String cacheKey = FEED_CACHE_KEY_PREFIX + strategy.source();
         try {
             String cached = stringRedisTemplate.opsForValue().get(cacheKey);
             if (cached != null) {
@@ -104,6 +106,17 @@ public class CommunityFeedService {
         } catch (DataAccessException | JsonProcessingException e) {
             log.warn("[community] feed cache skipped : source={}, cause={}", strategy.source(), e.getClass().getSimpleName());
             return strategy.findCandidates(viewerMemberUuid, now);
+        }
+    }
+
+    /** 공용 피드 후보 캐시 삭제 (의견 변경 직후 바로 보이게, #739). Redis 장애 시 60초 만료에 맡김 */
+    public void evictSharedFeedCache() {
+        List<String> cacheKeys = strategyBySource.values().stream().filter(FeedStrategy::isSharedAcrossMembers)
+                .map(strategy -> FEED_CACHE_KEY_PREFIX + strategy.source()).toList();
+        try {
+            stringRedisTemplate.delete(cacheKeys);
+        } catch (DataAccessException e) {
+            log.warn("[community] feed cache evict skipped : cause={}", e.getClass().getSimpleName());
         }
     }
 
