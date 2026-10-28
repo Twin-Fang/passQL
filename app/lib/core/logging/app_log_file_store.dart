@@ -11,8 +11,8 @@ class AppLogFileStore {
   })  : _directory = directory,
         _maxFileBytes = maxFileBytes;
 
-  // 로그 파일 1개 최대 크기 (1MB)
-  static const int defaultMaxFileBytes = 1024 * 1024;
+  // 로그 파일 1개 최대 크기 (256KB, 2개 합계 원문 512KB)
+  static const int defaultMaxFileBytes = 256 * 1024;
 
   final Directory _directory;
   final int _maxFileBytes;
@@ -33,7 +33,7 @@ class AppLogFileStore {
     for (final file in [_previousFile, _currentFile]) {
       if (await file.exists()) builder.add(await file.readAsBytes());
     }
-    // 최대 2MB 압축은 메인 isolate 밖에서 처리
+    // 최대 512KB 압축은 메인 isolate 밖에서 처리
     final rawBytes = builder.takeBytes();
     return Isolate.run(() => Uint8List.fromList(gzip.encode(rawBytes)));
   }
