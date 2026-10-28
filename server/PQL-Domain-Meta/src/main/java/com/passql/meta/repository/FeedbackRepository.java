@@ -17,6 +17,8 @@ public interface FeedbackRepository extends JpaRepository<Feedback, UUID>, JpaSp
 
     Page<Feedback> findByStatusOrderByCreatedAtDesc(FeedbackStatus status, Pageable pageable);
 
+    List<Feedback> findByMemberUuid(UUID memberUuid);
+
     long countByStatus(FeedbackStatus status);
 
     @Query("SELECT f.status, COUNT(f) FROM Feedback f GROUP BY f.status")

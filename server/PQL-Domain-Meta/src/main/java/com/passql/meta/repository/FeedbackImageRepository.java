@@ -14,6 +14,8 @@ public interface FeedbackImageRepository extends JpaRepository<FeedbackImage, UU
 
     List<FeedbackImage> findByFeedbackUuidOrderBySortOrderAsc(UUID feedbackUuid);
 
+    List<FeedbackImage> findByFeedbackUuidIn(Collection<UUID> feedbackUuids);
+
     Optional<FeedbackImage> findByFeedbackUuidAndSortOrder(UUID feedbackUuid, int sortOrder);
 
     // 관리자 목록용 의견별 이미지 개수: [feedbackUuid, count]

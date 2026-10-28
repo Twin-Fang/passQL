@@ -10,7 +10,7 @@ void main() {
   setUp(() => tempDir = Directory.systemTemp.createTempSync('app_log_test'));
   tearDown(() => tempDir.deleteSync(recursive: true));
 
-  test('1MB 넘으면 회전하고 합계 2MB 이하', () async {
+  test('파일 한도 넘으면 회전하고 합계는 한도 2배 이하', () async {
     final store = AppLogFileStore(directory: tempDir, maxFileBytes: 1000);
     for (var i = 0; i < 50; i++) {
       await store.append(['x' * 99]);
