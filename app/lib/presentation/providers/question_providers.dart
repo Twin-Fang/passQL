@@ -12,6 +12,7 @@ import '../../data/models/question/sse_event.dart';
 import '../../data/models/question/submit_request.dart';
 import '../../data/models/question/submit_result.dart';
 import 'plan_providers.dart';
+import 'sql_execution_pacing.dart';
 
 /// 문제 상세 로딩 Provider. autoDispose로 화면 이탈 시 캐시 해제.
 final questionDetailProvider = FutureProvider.autoDispose
@@ -35,7 +36,10 @@ class QuestionInteractionState {
   /// SQL → ExecuteResult 캐시. 같은 SQL 재실행 방지.
   final Map<String, ExecuteResult> executeCache;
 
-  /// 현재 선택 키에 해당하는 실행 결과 (null이면 미실행).
+  /// 마지막으로 실행한 보기 키 (선택과 별개, ▶ 실행 버튼으로만 바뀜, #727)
+  final String? executedChoiceKey;
+
+  /// [executedChoiceKey] 보기의 실행 결과 (null이면 미실행).
   final ExecuteResult? currentExecuteResult;
 
   /// SQL 실행 중 여부.
@@ -44,7 +48,7 @@ class QuestionInteractionState {
   /// SQL 실행 API 실패 사유 (네트워크·5xx·SANDBOX_TIMEOUT 등, null이면 실패 없음)
   final AppException? executeFailure;
 
-  /// 실행형 보기를 골랐지만 무료(결제 켜짐)라 실행하지 않음 > 결과 자리 블러
+  /// 실행형 보기를 실행하려 했지만 무료(결제 켜짐)라 실행하지 않음 > 결과 자리 블러
   final bool isExecutionLocked;
 
   /// SSE 선택지 생성 중 여부.
@@ -64,6 +68,7 @@ class QuestionInteractionState {
     this.activeChoices = const [],
     this.selectedChoiceKey,
     this.executeCache = const {},
+    this.executedChoiceKey,
     this.currentExecuteResult,
     this.isExecuting = false,
     this.executeFailure,
@@ -79,6 +84,7 @@ class QuestionInteractionState {
     List<ChoiceItem>? activeChoices,
     String? selectedChoiceKey,
     Map<String, ExecuteResult>? executeCache,
+    String? executedChoiceKey,
     ExecuteResult? currentExecuteResult,
     bool clearExecuteResult = false,
     bool? isExecuting,
@@ -96,6 +102,7 @@ class QuestionInteractionState {
       activeChoices: activeChoices ?? this.activeChoices,
       selectedChoiceKey: selectedChoiceKey ?? this.selectedChoiceKey,
       executeCache: executeCache ?? this.executeCache,
+      executedChoiceKey: executedChoiceKey ?? this.executedChoiceKey,
       currentExecuteResult: clearExecuteResult
           ? null
           : (currentExecuteResult ?? this.currentExecuteResult),
@@ -201,51 +208,50 @@ class QuestionInteractionNotifier
     }
   }
 
-  /// 선택지 클릭. EXECUTABLE이면 SQL 실행 (캐시 우선), 무료(결제 켜짐)면 실행 없이 잠금 표시
-  Future<void> selectChoice({
+  /// 선택지 클릭: 고르기만 (실행은 [runChoice], #727)
+  void selectChoice(String choiceKey) {
+    state = state.copyWith(selectedChoiceKey: choiceKey);
+  }
+
+  /// 보기 ▶ 실행: 무료(결제 켜짐)면 실행 없이 잠금 표시, 아니면 SQL 실행 (캐시 우선)
+  Future<void> runChoice({
     required String choiceKey,
-    required String? sql,
-    required bool isExecutable,
+    required String sql,
   }) async {
-    final hasExecutableSql = isExecutable && sql != null && sql.isNotEmpty;
-    final isExecutionLocked =
-        hasExecutableSql && ref.read(shouldShowProUiProvider);
+    if (sql.isEmpty) return;
+    final isExecutionLocked = ref.read(shouldShowProUiProvider);
     state = state.copyWith(
-      selectedChoiceKey: choiceKey,
+      executedChoiceKey: choiceKey,
       clearExecuteResult: true,
       clearExecuteFailure: true,
       isExecutionLocked: isExecutionLocked,
     );
-
-    if (!hasExecutableSql || isExecutionLocked) return;
+    if (isExecutionLocked) return;
     await _executeSql(sql);
   }
 
-  /// 실행 실패 카드의 다시 시도: 현재 선택지 SQL 재실행
+  /// 실행 실패 카드의 다시 시도: 마지막 실행 보기 SQL 재실행
   Future<void> retryExecution() async {
-    final selectedChoice = state.activeChoices
-        .where((choice) => choice.key == state.selectedChoiceKey)
+    final executedChoice = state.activeChoices
+        .where((choice) => choice.key == state.executedChoiceKey)
         .firstOrNull;
-    if (selectedChoice == null || state.isExecuting) return;
+    if (executedChoice == null || state.isExecuting) return;
     state = state.copyWith(clearExecuteFailure: true);
-    await _executeSql(selectedChoice.body);
+    await _executeSql(executedChoice.body);
   }
 
-  /// SQL 실행: 캐시 우선 > POST /execute > 결과 또는 실패 사유 저장
+  /// SQL 실행: 앱 캐시 우선 > POST /execute(서버도 결과 캐시) > 결과 또는 실패 사유 저장
+  /// 캐시로 즉시 끝나도 실행 중 표시는 최소 시간 유지 (#727)
   Future<void> _executeSql(String sql) async {
-    // 캐시 HIT: API 호출 없이 결과 재사용.
-    final cachedResult = state.executeCache[sql];
-    if (cachedResult != null) {
-      state = state.copyWith(currentExecuteResult: cachedResult);
-      return;
-    }
-
-    // 캐시 MISS: POST /execute 호출.
     state = state.copyWith(isExecuting: true);
     try {
-      final executeResult = await ref
-          .read(questionApiProvider)
-          .executeChoice(_questionUuid, ExecuteRequest(sql: sql));
+      final executeResult = await runWithMinimumExecutionDisplay(
+        () async =>
+            state.executeCache[sql] ??
+            await ref
+                .read(questionApiProvider)
+                .executeChoice(_questionUuid, ExecuteRequest(sql: sql)),
+      );
       final newCache = Map<String, ExecuteResult>.from(state.executeCache)
         ..[sql] = executeResult;
       state = state.copyWith(

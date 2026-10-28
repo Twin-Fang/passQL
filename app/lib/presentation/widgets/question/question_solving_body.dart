@@ -12,11 +12,14 @@ import 'ai_explain_sheet.dart';
 import 'choice_display_label.dart';
 import 'execute_failure_card.dart';
 import 'execute_result_card.dart';
+import 'execution_comparison_card.dart';
 import 'question_sections.dart';
 import 'schema_section.dart';
 import 'reveal_above_bottom_bar.dart';
+import 'sql_practice_card.dart';
 
 /// 문제 풀이 본문 스크롤: 머리 > 지문 > 테이블(실행형) > 선택지 > 실행 중 표시 > 실행 결과 또는 실패 (무료면 블러)
+/// > (채점 뒤 실행형) 내 답 vs 정답 비교 + 직접 실행해보기
 /// 챕터 풀이(ChapterPage)와 단건 풀이(QuestionDetailPage)가 함께 쓴다. 제출 바는 Scaffold 하단에 따로 붙는다.
 class QuestionSolvingBody extends StatelessWidget {
   const QuestionSolvingBody({
@@ -53,10 +56,10 @@ class QuestionSolvingBody extends StatelessWidget {
 
   bool get _isExecutable => question.executionMode == _executableMode;
 
-  /// 실행 오류 AI 해설 열기 (선택한 선택지 SQL + 오류 메시지)
+  /// 실행 오류 AI 해설 열기 (실행한 선택지 SQL + 오류 메시지)
   void _openExecutionErrorExplanation(BuildContext context) {
     final selectedChoice = interaction.activeChoices
-        .where((choice) => choice.key == interaction.selectedChoiceKey)
+        .where((choice) => choice.key == interaction.executedChoiceKey)
         .firstOrNull;
     AiExplainSheet.show(
       context,
@@ -112,9 +115,45 @@ class QuestionSolvingBody extends StatelessWidget {
             outcomeKey: _executionOutcomeKey,
             outcome: _buildExecutionOutcome(context),
           ),
+          if (submitResult != null && _isExecutable)
+            ..._buildGradedExecutionSections(submitResult!),
         ],
       ),
     );
+  }
+
+  /// 채점 뒤 실행형: 오답이면 내 답 vs 정답 실행 결과 비교 > 직접 실행해보기 (#727)
+  /// 무료(결제 켜짐)는 채점 응답에 실행 결과가 없어 비교 생략, 실습 실행은 잠금 표시
+  List<Widget> _buildGradedExecutionSections(SubmitResult result) {
+    final selectedResult = result.selectedResult;
+    final correctResult = result.correctResult;
+    final correctSql =
+        result.correctSql ??
+        interaction.activeChoices
+            .where((choice) => choice.key == result.correctKey)
+            .firstOrNull
+            ?.body;
+    return [
+      if (!result.isCorrect && selectedResult != null && correctResult != null)
+        ExecutionComparisonCard(
+          myResult: selectedResult,
+          correctResult: correctResult,
+          myChoiceLabel: findChoiceDisplayLabel(
+            interaction.activeChoices,
+            gradedSelectedKey,
+          ),
+          correctChoiceLabel: findChoiceDisplayLabel(
+            interaction.activeChoices,
+            result.correctKey,
+          ),
+        ),
+      SqlPracticeCard(
+        questionUuid: questionUuid,
+        correctSql: correctSql,
+        mySql: result.isCorrect ? null : result.selectedSql,
+        schemaTables: question.schemaTables,
+      ),
+    ];
   }
 
   /// 실행 영역 상태 5개: 없음, 잠금, 실행 중, 결과, 요청 실패 (상태가 바뀔 때만 교체 연출)
@@ -167,7 +206,7 @@ class QuestionSolvingBody extends StatelessWidget {
             result: executeResult,
             executedChoiceLabel: findChoiceDisplayLabel(
               interaction.activeChoices,
-              interaction.selectedChoiceKey,
+              interaction.executedChoiceKey,
             ),
             onAiExplainTap: hasExecutionError
                 ? () => _openExecutionErrorExplanation(context)
