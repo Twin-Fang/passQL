@@ -26,7 +26,7 @@ class FeedbackImageStrip extends StatelessWidget {
 
   final List<FeedbackImageDraft> drafts;
 
-  /// null 이면 추가 불가 (10장 가득, 전송 중)
+  /// null 이면 추가 불가 (최대 장수 가득, 전송 중)
   final VoidCallback? onAddPressed;
   final ValueChanged<int> onRemovePressed;
 

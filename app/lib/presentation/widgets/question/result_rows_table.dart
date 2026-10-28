@@ -31,7 +31,7 @@ List<Map<String, dynamic>>? parseResultRows(String body) {
   }
 }
 
-/// 실행 결과형 선택지 표. 열이 많아도 잘리지 않게 가로로 스크롤한다.
+/// 결과 행 표 (결과형 선택지 JSON·SQL 실행 결과 공통): 열이 많으면 가로 스크롤, 지정 행은 배경 강조
 class ResultRowsTable extends StatelessWidget {
   /// 열 이름이 유일한 Map 행(선택지 JSON)용.
   ResultRowsTable({super.key, required List<Map<String, dynamic>> rows})

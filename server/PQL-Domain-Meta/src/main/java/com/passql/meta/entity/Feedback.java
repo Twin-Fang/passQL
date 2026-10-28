@@ -88,4 +88,15 @@ public class Feedback extends BaseEntity {
     public boolean hasLog() {
         return logObjectKey != null;
     }
+
+    /** 탈퇴 정리: 진단 정보·기기 정보·로그 참조 비움 (글과 처리 상태는 유지) */
+    public void clearDiagnosticsForWithdrawal() {
+        diagnostics = null;
+        appVersion = null;
+        platform = null;
+        osVersion = null;
+        deviceModel = null;
+        logObjectKey = null;
+        logBytes = null;
+    }
 }
