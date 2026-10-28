@@ -6,19 +6,28 @@ import '../tokens/passql_tokens.dart';
 import 'passql_glass.dart';
 import 'passql_logo.dart';
 
-/// 홈 탭 틀: 왼쪽 로고 + 오른쪽 버튼 한 줄 상단 바(고정), 아래 내용 스크롤
+/// 홈 탭 틀: 왼쪽 로고(또는 leading) + 오른쪽 버튼 한 줄 상단 바(고정), 아래 내용 스크롤
 /// 바 배경: 맨 위 투명 > 내용이 바 밑으로 지나가면 글래스 + 헤어라인 (큰 제목 탭과 같은 scroll-edge 모양)
 class PassqlBrandBarScrollView extends StatefulWidget {
   const PassqlBrandBarScrollView({
     super.key,
     required this.slivers,
     this.onRefresh,
+    this.leading,
     this.trailing,
   });
 
   final List<Widget> slivers;
   final Future<void> Function()? onRefresh;
+
+  /// 로고 자리 위젯 (null 이면 로고). 머리글 Semantics 는 이 위젯이 책임진다
+  final Widget? leading;
   final Widget? trailing;
+
+  // 오른쪽 여백: 44pt 터치 영역 안 아이콘(xl)의 보이는 끝이 화면 끝에서 md 가 되게 (로고 왼쪽 여백과 대칭)
+  /// 큰 제목 탭 틀도 오른쪽 아이콘 버튼 위치를 홈과 맞출 때 쓴다
+  static const double trailingEdgePadding =
+      PassqlSpacing.md - (PassqlSize.minTouchTarget - PassqlIconSize.xl) / 2;
 
   @override
   State<PassqlBrandBarScrollView> createState() =>
@@ -56,6 +65,7 @@ class _PassqlBrandBarScrollViewState extends State<PassqlBrandBarScrollView> {
             PinnedHeaderSliver(
               child: _BrandBar(
                 isScrolledUnder: _isScrolledUnder,
+                leading: widget.leading,
                 trailing: widget.trailing,
               ),
             ),
@@ -75,14 +85,11 @@ class _PassqlBrandBarScrollViewState extends State<PassqlBrandBarScrollView> {
 
 /// 상단 바 한 줄: 상태 바 높이 + 44, 로고 왼쪽 / trailing 오른쪽
 class _BrandBar extends StatelessWidget {
-  const _BrandBar({required this.isScrolledUnder, this.trailing});
+  const _BrandBar({required this.isScrolledUnder, this.leading, this.trailing});
 
   final bool isScrolledUnder;
+  final Widget? leading;
   final Widget? trailing;
-
-  // 오른쪽 여백: 44pt 터치 영역 안 아이콘(xl)의 보이는 끝이 화면 끝에서 md 가 되게 (로고 왼쪽 여백과 대칭)
-  static const double _trailingEdgePadding =
-      PassqlSpacing.md - (PassqlSize.minTouchTarget - PassqlIconSize.xl) / 2;
 
   @override
   Widget build(BuildContext context) {
@@ -108,16 +115,27 @@ class _BrandBar extends StatelessWidget {
             padding: EdgeInsets.only(
               top: topInset,
               left: PassqlSpacing.md,
-              right: trailing == null ? PassqlSpacing.md : _trailingEdgePadding,
+              right: trailing == null
+                  ? PassqlSpacing.md
+                  : PassqlBrandBarScrollView.trailingEdgePadding,
             ),
             child: Row(
               children: [
-                // 로고 = 탭 화면 제목 역할 (스크린리더 머리글)
-                Semantics(
-                  header: true,
-                  child: const PassqlLogo(height: PassqlSize.navBarLogoHeight),
+                // 로고(또는 leading) = 탭 화면 제목 역할 (스크린리더 머리글)
+                // 남은 폭 안에서만 그려 trailing 과 겹치지 않게
+                Expanded(
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child:
+                        leading ??
+                        Semantics(
+                          header: true,
+                          child: const PassqlLogo(
+                            height: PassqlSize.navBarLogoHeight,
+                          ),
+                        ),
+                  ),
                 ),
-                const Spacer(),
                 ?trailing,
               ],
             ),

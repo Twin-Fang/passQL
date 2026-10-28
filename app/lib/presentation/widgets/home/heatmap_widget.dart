@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import '../../../data/models/progress/heatmap_response.dart';
 import '../../design/design.dart';
+import 'section_or_card.dart';
 
 /// 최근 5주 학습 히트맵.
 /// 7열(일~토) × 5행(주) 그리드. 첫 칸은 4주 전 일요일, 오늘 칸 테두리 강조, 오늘 뒤 칸은 비움.
@@ -17,7 +18,11 @@ class HeatmapWidget extends StatelessWidget {
     this.heatmap,
     this.streakDays = 0,
     this.today,
+    this.isSection = false,
   });
+
+  /// true: 홈 구간 면, false: 카드 (통계 화면)
+  final bool isSection;
 
   // 그리드 규격: 5주 × 7일
   static const _weekCount = 5;
@@ -96,7 +101,8 @@ class HeatmapWidget extends StatelessWidget {
     // 월 레이블 열 너비
     const double monthLabelWidth = 28;
 
-    return PassqlCard(
+    return SectionOrCard(
+      isSection: isSection,
       title: '학습 현황',
       // 불꽃 아이콘은 태그(warning)가 함께 그린다
       trailing: streakDays > 0

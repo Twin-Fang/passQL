@@ -19,50 +19,56 @@ class AppNoticeBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    return PassqlCard(
+    // 홈 첫 구간(card 면) 안에 놓여 카드색 대신 화면 배경색 바탕으로 구분한다
+    return PassqlPressable(
       onTap: () => context.push(AppRoutes.noticeDetail(notice.noticeUuid)),
-      padding: const EdgeInsets.fromLTRB(
-        PassqlSpacing.md,
-        PassqlSpacing.xs,
-        0,
-        PassqlSpacing.xs,
-      ),
-      child: Row(
-        children: [
-          Icon(
-            CupertinoIcons.speaker_2_fill,
-            size: PassqlIconSize.lg,
-            color: colors.accent,
-          ),
-          const SizedBox(width: PassqlSpacing.sm),
-          if (notice.isImportant) ...[
-            PassqlBadge(text: '중요', kind: PassqlBadgeKind.important),
-            const SizedBox(width: PassqlSpacing.xs),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(
+          PassqlSpacing.md,
+          PassqlSpacing.xs,
+          0,
+          PassqlSpacing.xs,
+        ),
+        decoration: BoxDecoration(
+          color: colors.background,
+          borderRadius: BorderRadius.circular(PassqlRadius.lg),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              CupertinoIcons.speaker_2_fill,
+              size: PassqlIconSize.lg,
+              color: colors.accent,
+            ),
+            const SizedBox(width: PassqlSpacing.sm),
+            if (notice.isImportant) ...[
+              PassqlBadge(text: '중요', kind: PassqlBadgeKind.important),
+              const SizedBox(width: PassqlSpacing.xs),
+            ],
+            // 긴 제목은 잘리지 않고 흐른다 (마퀴, #701). 동작 줄이기면 말줄임
+            Expanded(
+              child: PassqlMarqueeText(
+                notice.title,
+                style: PassqlTypography.subheadlineSemibold.copyWith(
+                  color: colors.label,
+                ),
+              ),
+            ),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              minimumSize: const Size.square(PassqlSize.minTouchTarget),
+              onPressed: onDismiss,
+              child: Semantics(
+                label: '공지 닫기',
+                child: Icon(
+                  CupertinoIcons.xmark,
+                  size: PassqlIconSize.md,
+                  color: colors.iconSecondary,
+                ),
+              ),
+            ),
           ],
-          Expanded(
-            child: Text(
-              notice.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: PassqlTypography.subheadlineSemibold.copyWith(
-                color: colors.label,
-              ),
-            ),
-          ),
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            minimumSize: const Size.square(PassqlSize.minTouchTarget),
-            onPressed: onDismiss,
-            child: Semantics(
-              label: '공지 닫기',
-              child: Icon(
-                CupertinoIcons.xmark,
-                size: PassqlIconSize.md,
-                color: colors.iconSecondary,
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

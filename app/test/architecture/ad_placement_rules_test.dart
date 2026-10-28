@@ -31,7 +31,7 @@ const Map<String, String> _allowedAdModuleUsers = {
   'lib/presentation/widgets/app_shell.dart':
       '메인 탭 4개 공통 하단 탭 바 아래 한 줄 띠 + 결과 화면 전면 광고 미리 불러오기',
   'lib/presentation/pages/home/home_page.dart':
-      '학습 현황 <-> 추천 문제 사이 인라인 배너 카드 1개',
+      '학습 현황 아래 인라인 배너 구간 1개',
   'lib/presentation/pages/stats/stats_page.dart': '통계 콘텐츠 맨 아래 인라인 배너 카드 1개',
   'lib/presentation/pages/questions/topic_list_page.dart':
       '토픽 목록 사이 네이티브 1칸 + 최신 경향(유형 <-> 공부 팁)·개념 TOP 10(5위 <-> 6위) 네이티브 각 1칸',

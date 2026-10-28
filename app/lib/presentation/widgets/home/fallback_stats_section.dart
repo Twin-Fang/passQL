@@ -24,7 +24,9 @@ class FallbackStatsSection extends StatelessWidget {
           ),
           TextSpan(
             text: ' $unit',
-            style: PassqlTypography.subheadline.copyWith(color: colors.secondaryLabel),
+            style: PassqlTypography.subheadline.copyWith(
+              color: colors.secondaryLabel,
+            ),
           ),
         ],
       ),
@@ -33,27 +35,34 @@ class FallbackStatsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final labelStyle = PassqlTypography.headline.copyWith(
+      color: context.passqlColors.label,
+    );
+    // 두 값을 나란히 (면은 홈이 감싼다, 인사말과 같은 첫 구간)
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: PassqlCard(
-            title: '푼 문제',
-            child: _value(context, '$solvedCount', '개'),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('푼 문제', style: labelStyle),
+              const SizedBox(height: PassqlSpacing.sm),
+              _value(context, '$solvedCount', '개'),
+            ],
           ),
         ),
-        const SizedBox(width: PassqlSpacing.sm),
+        const SizedBox(width: PassqlSpacing.md),
         Expanded(
-          child: PassqlCard(
-            title: '정답률',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _value(context, '${(correctRate * 100).round()}', '%'),
-                const SizedBox(height: PassqlSpacing.xs),
-                PassqlProgressBar(value: correctRate),
-              ],
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('정답률', style: labelStyle),
+              const SizedBox(height: PassqlSpacing.sm),
+              _value(context, '${(correctRate * 100).round()}', '%'),
+              const SizedBox(height: PassqlSpacing.xs),
+              PassqlProgressBar(value: correctRate),
+            ],
           ),
         ),
       ],
