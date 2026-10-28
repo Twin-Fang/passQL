@@ -11,6 +11,7 @@ class PassqlSectionHeader extends StatelessWidget {
     required this.title,
     this.leading,
     this.trailing,
+    this.isCompact = false,
   });
 
   // 제목(headline) 한 줄 높이: 44 줄 안에서 글자 위아래 빈 공간 계산용
@@ -25,6 +26,9 @@ class PassqlSectionHeader extends StatelessWidget {
   /// 제목 앞 아이콘 (예: 공부 팁 전구)
   final Widget? leading;
   final Widget? trailing;
+
+  /// 15pt 제목 (문제 탭 경향 구간, #726). 기본은 홈 구간 17pt
+  final bool isCompact;
 
   @override
   Widget build(BuildContext context) {
@@ -44,9 +48,11 @@ class PassqlSectionHeader extends StatelessWidget {
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: PassqlTypography.headline.copyWith(
-                  color: context.passqlColors.label,
-                ),
+                style:
+                    (isCompact
+                            ? PassqlTypography.subheadlineSemibold
+                            : PassqlTypography.headline)
+                        .copyWith(color: context.passqlColors.label),
               ),
             ),
           ),
