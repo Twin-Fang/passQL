@@ -13,6 +13,7 @@ import 'choice_display_label.dart';
 import 'execute_failure_card.dart';
 import 'execute_result_card.dart';
 import 'execution_comparison_card.dart';
+import 'question_choices.dart';
 import 'question_sections.dart';
 import 'schema_section.dart';
 import 'reveal_above_bottom_bar.dart';

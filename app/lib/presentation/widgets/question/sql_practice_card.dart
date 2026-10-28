@@ -94,61 +94,96 @@ class SqlPracticeCard extends ConsumerWidget {
               onSelected: notifier.changeStart,
             ),
             const SizedBox(height: PassqlSpacing.sm),
-            // 지금 SQL 미리보기 (누르면 고치기)
-            PassqlPressable(
-              onTap: openEditor,
-              semanticLabel: 'SQL 고치기',
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(PassqlSpacing.sm),
-                decoration: BoxDecoration(
-                  color: colors.fill,
-                  borderRadius: BorderRadius.circular(PassqlRadius.md),
-                ),
-                child: currentSql.trim().isEmpty
-                    ? Text(
-                        '눌러서 SQL 을 써 보세요',
-                        style: PassqlTypography.code.copyWith(
-                          color: colors.secondaryLabel,
-                        ),
-                      )
-                    : PassqlCodeBlock(
-                        code: currentSql,
-                        isSelectable: false,
-                        hasBackground: false,
-                      ),
-              ),
-            ),
+            _PracticeSqlPreview(sql: currentSql, onTap: openEditor),
             const SizedBox(height: PassqlSpacing.sm),
-            Row(
-              children: [
-                Expanded(
-                  child: PassqlButton(
-                    label: '고치기',
-                    icon: CupertinoIcons.pencil,
-                    onPressed: openEditor,
-                    variant: PassqlButtonVariant.tinted,
-                    size: PassqlButtonSize.regular,
-                  ),
-                ),
-                const SizedBox(width: PassqlSpacing.xs),
-                Expanded(
-                  child: PassqlButton(
-                    label: '실행',
-                    icon: CupertinoIcons.play_fill,
-                    isLoading: practice.isExecuting,
-                    onPressed: currentSql.trim().isEmpty
-                        ? null
-                        : () => notifier.run(currentSql),
-                    size: PassqlButtonSize.regular,
-                  ),
-                ),
-              ],
+            _PracticeActions(
+              isExecuting: practice.isExecuting,
+              onEdit: openEditor,
+              onRun: currentSql.trim().isEmpty
+                  ? null
+                  : () => notifier.run(currentSql),
             ),
             _PracticeOutcome(practice: practice),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// 지금 SQL 미리보기 (누르면 고치기 시트, 비면 안내 문구)
+class _PracticeSqlPreview extends StatelessWidget {
+  const _PracticeSqlPreview({required this.sql, required this.onTap});
+
+  final String sql;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    return PassqlPressable(
+      onTap: onTap,
+      semanticLabel: 'SQL 고치기',
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(PassqlSpacing.sm),
+        decoration: BoxDecoration(
+          color: colors.fill,
+          borderRadius: BorderRadius.circular(PassqlRadius.md),
+        ),
+        child: sql.trim().isEmpty
+            ? Text(
+                '눌러서 SQL 을 써 보세요',
+                style: PassqlTypography.code.copyWith(
+                  color: colors.secondaryLabel,
+                ),
+              )
+            : PassqlCodeBlock(
+                code: sql,
+                isSelectable: false,
+                hasBackground: false,
+              ),
+      ),
+    );
+  }
+}
+
+/// 고치기 · 실행 버튼 한 줄 ([onRun] null 이면 실행 비활성)
+class _PracticeActions extends StatelessWidget {
+  const _PracticeActions({
+    required this.isExecuting,
+    required this.onEdit,
+    required this.onRun,
+  });
+
+  final bool isExecuting;
+  final VoidCallback onEdit;
+  final VoidCallback? onRun;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: PassqlButton(
+            label: '고치기',
+            icon: CupertinoIcons.pencil,
+            onPressed: onEdit,
+            variant: PassqlButtonVariant.tinted,
+            size: PassqlButtonSize.regular,
+          ),
+        ),
+        const SizedBox(width: PassqlSpacing.xs),
+        Expanded(
+          child: PassqlButton(
+            label: '실행',
+            icon: CupertinoIcons.play_fill,
+            isLoading: isExecuting,
+            onPressed: onRun,
+            size: PassqlButtonSize.regular,
+          ),
+        ),
+      ],
     );
   }
 }

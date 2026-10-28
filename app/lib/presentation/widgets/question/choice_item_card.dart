@@ -8,6 +8,7 @@ import 'stem_text.dart';
 /// 선택지 데이터(ChoiceItem) 1건 카드: kind="SQL"이면 코드 블록, kind="TEXT"이면 텍스트.
 /// TEXT 이면서 본문이 결과 행 JSON 배열이면(실행 결과형, RESULT_MATCH) 작은 표로 보여 준다.
 /// 선택·채점 상태의 모양은 [PassqlChoiceCard]가 정한다.
+/// [onRunTap] 이 있으면(채점 뒤 실행형 SQL 보기) 채점 표시 아래 ▶ 실행 (#727).
 class ChoiceItemCard extends StatelessWidget {
   final ChoiceItem item;
 

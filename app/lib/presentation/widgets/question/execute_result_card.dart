@@ -3,7 +3,8 @@ import '../../../data/models/question/execute_result.dart';
 import '../../design/design.dart';
 import 'result_rows_table.dart';
 
-/// SQL 실행 결과 카드. 성공이면 결과 테이블, 실패이면 에러 카드.
+/// SQL 실행 결과 카드: 성공 > 행 수·시간 + 결과 표, 실패 > 오류 코드·문구 (+ AI 해설 버튼)
+/// [shouldWrapInCard] false 면 카드 틀 없이 내용만 (다른 카드 안에 넣을 때)
 class ExecuteResultCard extends StatelessWidget {
   final ExecuteResult result;
   final VoidCallback? onAiExplainTap;
@@ -45,7 +46,7 @@ class ExecuteResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 부모 Column 안에서 내용 폭으로 줄지 않게 선택지 카드와 같은 폭으로 편다(PassqlCard 가 width 를 채운다).
+    // 부모 Column 안에서 내용 폭으로 줄지 않게 선택지 카드와 같은 폭으로 편다(카드 틀이 있으면 PassqlCard 가 width 를 채운다).
     final content = _isError
         ? _ErrorContent(
             result: result,

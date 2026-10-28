@@ -69,7 +69,7 @@ class ExecutionComparisonCard extends StatelessWidget {
             _ComparedResultBlock(
               title: _titleOf(myChoiceLabel, '내 답'),
               titleColor: colors.wrongText,
-              result: myResult,
+              executeResult: myResult,
               highlightedRowIndexes: comparison.myOnlyRowIndexes,
               highlightColor: colors.wrongTint,
             ),
@@ -77,7 +77,7 @@ class ExecutionComparisonCard extends StatelessWidget {
             _ComparedResultBlock(
               title: _titleOf(correctChoiceLabel, '정답'),
               titleColor: colors.correctText,
-              result: correctResult,
+              executeResult: correctResult,
               highlightedRowIndexes: comparison.correctOnlyRowIndexes,
               highlightColor: colors.correctTint,
             ),
@@ -106,41 +106,42 @@ class _ComparedResultBlock extends StatelessWidget {
   const _ComparedResultBlock({
     required this.title,
     required this.titleColor,
-    required this.result,
+    required this.executeResult,
     required this.highlightedRowIndexes,
     required this.highlightColor,
   });
 
   final String title;
   final Color titleColor;
-  final ExecuteResult result;
+  final ExecuteResult executeResult;
   final Set<int> highlightedRowIndexes;
   final Color highlightColor;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final hasError = result.errorCode?.isNotEmpty == true;
+    final hasError = executeResult.errorCode?.isNotEmpty == true;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
           hasError
               ? '$title · 실행 오류'
-              : '$title · ${result.rowCount ?? result.rows.length}행',
+              : '$title · ${executeResult.rowCount ?? executeResult.rows.length}행',
           style: PassqlTypography.footnoteSemibold.copyWith(color: titleColor),
         ),
         const SizedBox(height: PassqlSpacing.xxs),
         if (hasError)
           Text(
-            '${result.errorCode} ${result.errorMessage ?? ''}'.trim(),
+            '${executeResult.errorCode} ${executeResult.errorMessage ?? ''}'
+                .trim(),
             style: PassqlTypography.footnote.copyWith(color: colors.wrongText),
           )
         else
           ResultRowsTable.positional(
-            columns: result.columns,
+            columns: executeResult.columns,
             rows: [
-              for (final row in result.rows)
+              for (final row in executeResult.rows)
                 [for (final cellValue in row) cellValue],
             ],
             highlightedRowIndexes: highlightedRowIndexes,
