@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface CommunityPostRepository extends JpaRepository<CommunityPost, UUID>, JpaSpecificationExecutor<CommunityPost> {
@@ -53,6 +54,17 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, UU
             GROUP BY p.targetUuid
             """)
     List<QuestionPostAggregate> aggregateVisibleByQuestion();
+
+    /** 문제 1건의 노출 중 의견 집계 (글 변경 직후 즉시 갱신용, 글 없으면 빈 값) */
+    @Query("""
+            SELECT p.targetUuid AS questionUuid, COUNT(p) AS postCount, COALESCE(SUM(p.likeCount), 0) AS likeCount,
+                   MAX(p.createdAt) AS lastPostedAt
+            FROM CommunityPost p
+            WHERE p.boardType = 'QUESTION_OPINION' AND p.targetType = 'QUESTION' AND p.status = 'VISIBLE'
+              AND p.targetUuid = :questionUuid
+            GROUP BY p.targetUuid
+            """)
+    Optional<QuestionPostAggregate> aggregateVisibleOfQuestion(@Param("questionUuid") UUID questionUuid);
 
     /** 피드 '내 의견': 내가 쓴 노출 글을 문제별로 (최근 작성순) */
     @Query("""
