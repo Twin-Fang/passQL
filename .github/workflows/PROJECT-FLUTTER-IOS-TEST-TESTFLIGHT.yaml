@@ -420,9 +420,26 @@ jobs:
           python3 .github/scripts/ios_release.py precheck-version --mode test \
             --version "$VERSION" --bundle-id "$APP_IDENTIFIER"
 
+      # 안내·버전 판단 스크립트는 기본 브랜치 것을 쓴다 (워크플로는 기본 브랜치, 체크아웃은 오래된 브랜치일 수 있음, #731)
+      - name: 기본 브랜치 CI 스크립트 준비
+        # 실패해도 뒤 스텝이 version.yml 버전·안내 생략으로 진행
+        continue-on-error: true
+        working-directory: ${{ github.workspace }}
+        env:
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/ci-scripts"
+          git fetch --depth=1 origin "$BASE_BRANCH"
+          for SCRIPT_NAME in test_build_notice.py ios_release.py asc_client.py build_number.py; do
+            git show "origin/$BASE_BRANCH:.github/scripts/$SCRIPT_NAME" > "$RUNNER_TEMP/ci-scripts/$SCRIPT_NAME"
+          done
+          echo "CI_SCRIPTS_DIR=$RUNNER_TEMP/ci-scripts" >> "$GITHUB_ENV"
+
       # 댓글 안내 문구 (버전 조정 사유, 기본 브랜치보다 오래된 브랜치 경고, #731)
       - name: 빌드 안내 문구 생성
         id: build_notice
+        # 안내 문구 실패로 빌드를 막지 않음
+        continue-on-error: true
         working-directory: ${{ github.workspace }}
         env:
           VERSION_CHANGED: ${{ steps.test_version.outputs.changed }}
@@ -430,8 +447,7 @@ jobs:
           # 비교 기준: 레포 기본 브랜치
           BASE_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          git fetch --depth=1 origin "$BASE_BRANCH" || echo "⚠️ $BASE_BRANCH 조회 실패 (오래된 브랜치 경고 생략)"
-          python3 .github/scripts/test_build_notice.py --base-branch "$BASE_BRANCH"
+          python3 "$CI_SCRIPTS_DIR/test_build_notice.py" --base-branch "$BASE_BRANCH"
 
       # 브랜치명에서 이슈 번호 추출 및 GitHub API로 이슈 정보 가져오기
       - name: 브랜치명에서 이슈 정보 추출

@@ -367,21 +367,40 @@ jobs:
             echo "ℹ️ App Store Connect 키 시크릿이 없어 version.yml 버전으로 진행합니다"
           fi
 
+      # 안내·버전 판단 스크립트는 기본 브랜치 것을 쓴다 (워크플로는 기본 브랜치, 체크아웃은 오래된 브랜치일 수 있음, #731)
+      - name: 기본 브랜치 CI 스크립트 준비
+        # 실패해도 뒤 스텝이 version.yml 버전·안내 생략으로 진행
+        continue-on-error: true
+        working-directory: ${{ github.workspace }}
+        env:
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/ci-scripts"
+          git fetch --depth=1 origin "$BASE_BRANCH"
+          for SCRIPT_NAME in test_build_notice.py ios_release.py asc_client.py build_number.py; do
+            git show "origin/$BASE_BRANCH:.github/scripts/$SCRIPT_NAME" > "$RUNNER_TEMP/ci-scripts/$SCRIPT_NAME"
+          done
+          echo "CI_SCRIPTS_DIR=$RUNNER_TEMP/ci-scripts" >> "$GITHUB_ENV"
+
       # 테스트 빌드 버전: iOS와 같은 기준 (App Store 닫힌 버전이면 다음 패치, #731)
       - name: 테스트 빌드 버전 설정
         id: test_version
+        # 조회 실패 시 job output 이 version.yml 버전으로 대체
+        continue-on-error: true
         working-directory: ${{ github.workspace }}
         env:
           ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           APP_IDENTIFIER: ${{ secrets.IOS_BUNDLE_ID || vars.IOS_BUNDLE_ID }}
         run: |
-          python3 .github/scripts/ios_release.py precheck-version --mode test \
+          python3 "$CI_SCRIPTS_DIR/ios_release.py" precheck-version --mode test \
             --version "${{ steps.build_info.outputs.version }}" --bundle-id "$APP_IDENTIFIER"
 
       # 댓글 안내 문구 (버전 조정 사유, 기본 브랜치보다 오래된 브랜치 경고)
       - name: 빌드 안내 문구 생성
         id: build_notice
+        # 안내 문구 실패로 빌드를 막지 않음
+        continue-on-error: true
         working-directory: ${{ github.workspace }}
         env:
           VERSION_CHANGED: ${{ steps.test_version.outputs.changed }}
@@ -389,8 +408,7 @@ jobs:
           # 비교 기준: 레포 기본 브랜치
           BASE_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          git fetch --depth=1 origin "$BASE_BRANCH" || echo "⚠️ $BASE_BRANCH 조회 실패 (오래된 브랜치 경고 생략)"
-          python3 .github/scripts/test_build_notice.py --base-branch "$BASE_BRANCH"
+          python3 "$CI_SCRIPTS_DIR/test_build_notice.py" --base-branch "$BASE_BRANCH"
 
       # 취소 처리 (#648): 댓글을 만든 준비 job 이 실행 중일 때 취소된 경우. 준비 job 은 needs 가 없어 같은 job 의 스텝 출력으로 ID 를 읽는다. 이 스텝이 뒤의 스텝들 끝에 있어야 어느 시점에 취소돼도 잡힌다.
       - name: 진행 상황 업데이트 - 취소 (준비 job)
