@@ -1,14 +1,7 @@
 #!/usr/bin/env python3
 """
-테스트 빌드 결과 댓글의 안내 문구: 버전 조정 사유 + 오래된 브랜치 경고 (#731)
-Android·iOS 테스트 빌드 워크플로가 같이 쓴다 > 두 댓글의 안내가 어긋나지 않게
-
-  - 입력: 환경변수 VERSION_CHANGED(true/false), VERSION_REASON / 인자 --base-branch (레포 기본 브랜치, 워크플로가 전달)
-  - 출력: GITHUB_OUTPUT 의 notice (여러 줄, 없으면 빈 값)
-  - 기준 브랜치 version.yml 을 못 읽으면 경고만 생략 (빌드는 막지 않음)
-
-사용 예:
-  VERSION_CHANGED=true VERSION_REASON="..." python3 test_build_notice.py --base-branch main
+테스트 빌드 댓글 안내 문구 (Android·iOS 공용, #731): 버전 조정 사유, 오래된 브랜치 경고
+env VERSION_CHANGED·VERSION_REASON + --base-branch > GITHUB_OUTPUT notice (여러 줄, 없으면 빈 값)
 """
 from __future__ import annotations
 
@@ -24,8 +17,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from ios_release import parse_version  # noqa: E402
 
 VERSION_FILE = "version.yml"
-# version.yml: version: "1.67.2" (따옴표 선택)
-_VERSION_LINE = re.compile(r'^version:\s*"?([^"\s]+)"?', re.M)
+# version.yml: version: "1.67.2" (따옴표·v 접두사 선택, version_manager.get_yml_version 과 같은 규칙)
+_VERSION_LINE = re.compile(r"^version:\s*[\"']?[vV]?([0-9][0-9.]*)", re.M)
 
 
 def read_version(text: str) -> str | None:
