@@ -5,6 +5,7 @@ import '../../data/models/question/execute_request.dart';
 import '../../data/models/question/execute_result.dart';
 import '../../data/sources/api_providers.dart';
 import 'plan_providers.dart';
+import 'sql_execution_pacing.dart';
 
 /// 실습 칸 시작 SQL 3종: 정답, 내 답(오답일 때만), 빈 칸
 enum SqlPracticeStart { correctAnswer, myAnswer, blank }
@@ -61,6 +62,9 @@ class SqlPracticeState {
 /// 실습 칸: 시작 SQL 고르기 > 고치기 > 실행 (questionUuid별, 화면 이탈 시 해제)
 class SqlPracticeNotifier
     extends AutoDisposeFamilyNotifier<SqlPracticeState, String> {
+  /// 이 문제에서 실행한 SQL > 결과 (같은 SQL 재실행은 요청 없이 재사용)
+  final Map<String, ExecuteResult> _executeResultBySql = {};
+
   @override
   SqlPracticeState build(String questionUuid) => const SqlPracticeState();
 
@@ -74,7 +78,8 @@ class SqlPracticeNotifier
     state = state.copyWith(draftSql: sql);
   }
 
-  /// 실행: 빈 SQL 무시 > 무료(결제 켜짐)면 잠금 > POST /execute > 결과 또는 실패 사유
+  /// 실행: 빈 SQL 무시 > 무료(결제 켜짐)면 잠금 > 앱 캐시 > POST /execute(서버도 결과 캐시) > 결과 또는 실패 사유
+  /// 캐시로 즉시 끝나도 실행 중 표시는 최소 시간 유지
   Future<void> run(String sql) async {
     if (sql.trim().isEmpty || state.isExecuting) return;
     final isExecutionLocked = ref.read(shouldShowProUiProvider);
@@ -86,9 +91,14 @@ class SqlPracticeNotifier
     );
     if (isExecutionLocked) return;
     try {
-      final executeResult = await ref
-          .read(questionApiProvider)
-          .executeChoice(arg, ExecuteRequest(sql: sql));
+      final executeResult = await runWithMinimumExecutionDisplay(
+        () async =>
+            _executeResultBySql[sql] ??
+            await ref
+                .read(questionApiProvider)
+                .executeChoice(arg, ExecuteRequest(sql: sql)),
+      );
+      _executeResultBySql[sql] = executeResult;
       state = state.copyWith(executeResult: executeResult, isExecuting: false);
     } catch (exception) {
       // 인증 만료는 인터셉터가 세션 만료 신호로 처리

@@ -16,6 +16,7 @@ class PassqlChoiceCard extends StatelessWidget {
     required this.state,
     this.onTap,
     this.onGradedTap,
+    this.trailingAccessory,
   });
   final String keyLabel;
   final Widget child;
@@ -24,6 +25,9 @@ class PassqlChoiceCard extends StatelessWidget {
 
   /// 채점 뒤(정답/오답/흐림) 탭 동작. 없으면 채점 뒤에는 눌리지 않는다. 시각 상태는 바뀌지 않는다.
   final VoidCallback? onGradedTap;
+
+  /// 채점 아이콘 칸 아래에 두는 작은 동작 (보기 실행 ▶ 등, 내용 폭을 줄이지 않음)
+  final Widget? trailingAccessory;
 
   bool get _isGraded =>
       state == PassqlChoiceState.correct ||
@@ -117,25 +121,34 @@ class PassqlChoiceCard extends StatelessWidget {
           const SizedBox(width: PassqlSpacing.xs),
           // 채점 아이콘 자리 항상 확보: 채점 순간 내용 폭이 줄며 표 열·줄바꿈이 밀리지 않게 (#554)
           // 상태는 시맨틱 라벨로 전달하므로 아이콘 낭독은 막는다.
-          SizedBox.square(
-            dimension: PassqlIconSize.xl,
-            child: switch (state) {
-              PassqlChoiceState.correct => ExcludeSemantics(
-                child: Icon(
-                  CupertinoIcons.checkmark_circle_fill,
-                  size: PassqlIconSize.xl,
-                  color: colors.correct,
-                ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox.square(
+                dimension: PassqlIconSize.xl,
+                child: switch (state) {
+                  PassqlChoiceState.correct => ExcludeSemantics(
+                    child: Icon(
+                      CupertinoIcons.checkmark_circle_fill,
+                      size: PassqlIconSize.xl,
+                      color: colors.correct,
+                    ),
+                  ),
+                  PassqlChoiceState.wrong => ExcludeSemantics(
+                    child: Icon(
+                      CupertinoIcons.xmark_circle_fill,
+                      size: PassqlIconSize.xl,
+                      color: colors.wrong,
+                    ),
+                  ),
+                  _ => null,
+                },
               ),
-              PassqlChoiceState.wrong => ExcludeSemantics(
-                child: Icon(
-                  CupertinoIcons.xmark_circle_fill,
-                  size: PassqlIconSize.xl,
-                  color: colors.wrong,
-                ),
-              ),
-              _ => null,
-            },
+              if (trailingAccessory != null) ...[
+                const SizedBox(height: PassqlSpacing.xs),
+                trailingAccessory!,
+              ],
+            ],
           ),
         ],
       ),

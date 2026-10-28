@@ -12,6 +12,7 @@ import '../../data/models/question/sse_event.dart';
 import '../../data/models/question/submit_request.dart';
 import '../../data/models/question/submit_result.dart';
 import 'plan_providers.dart';
+import 'sql_execution_pacing.dart';
 
 /// 문제 상세 로딩 Provider. autoDispose로 화면 이탈 시 캐시 해제.
 final questionDetailProvider = FutureProvider.autoDispose
@@ -239,21 +240,18 @@ class QuestionInteractionNotifier
     await _executeSql(executedChoice.body);
   }
 
-  /// SQL 실행: 캐시 우선 > POST /execute > 결과 또는 실패 사유 저장
+  /// SQL 실행: 앱 캐시 우선 > POST /execute(서버도 결과 캐시) > 결과 또는 실패 사유 저장
+  /// 캐시로 즉시 끝나도 실행 중 표시는 최소 시간 유지 (#727)
   Future<void> _executeSql(String sql) async {
-    // 캐시 HIT: API 호출 없이 결과 재사용.
-    final cachedResult = state.executeCache[sql];
-    if (cachedResult != null) {
-      state = state.copyWith(currentExecuteResult: cachedResult);
-      return;
-    }
-
-    // 캐시 MISS: POST /execute 호출.
     state = state.copyWith(isExecuting: true);
     try {
-      final executeResult = await ref
-          .read(questionApiProvider)
-          .executeChoice(_questionUuid, ExecuteRequest(sql: sql));
+      final executeResult = await runWithMinimumExecutionDisplay(
+        () async =>
+            state.executeCache[sql] ??
+            await ref
+                .read(questionApiProvider)
+                .executeChoice(_questionUuid, ExecuteRequest(sql: sql)),
+      );
       final newCache = Map<String, ExecuteResult>.from(state.executeCache)
         ..[sql] = executeResult;
       state = state.copyWith(

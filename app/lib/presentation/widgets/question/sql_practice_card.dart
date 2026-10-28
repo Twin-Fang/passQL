@@ -31,13 +31,6 @@ class SqlPracticeCard extends ConsumerWidget {
   final List<QuestionSchemaTable> schemaTables;
   final EdgeInsetsGeometry margin;
 
-  /// 표 이름 > 열 이름 순, 중복 없이 (입력 보조 3줄째)
-  List<String> get _schemaNames => {
-    for (final table in schemaTables) table.tableName,
-    for (final table in schemaTables)
-      for (final column in table.columns) column.name,
-  }.toList();
-
   String _startSqlOf(SqlPracticeStart start) => switch (start) {
     SqlPracticeStart.correctAnswer => correctSql ?? '',
     SqlPracticeStart.myAnswer => mySql ?? '',
@@ -56,7 +49,7 @@ class SqlPracticeCard extends ConsumerWidget {
       final shouldRun = await showSqlPracticeEditorSheet(
         context,
         initialSql: currentSql,
-        schemaNames: _schemaNames,
+        schemaTables: schemaTables,
         onDraftChanged: notifier.updateDraft,
       );
       if (shouldRun != true) return;

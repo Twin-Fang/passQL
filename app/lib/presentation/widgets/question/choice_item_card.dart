@@ -39,7 +39,7 @@ class ChoiceItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final resultRows = item.kind == 'SQL' ? null : parseResultRows(item.body);
-    final Widget content = item.kind == 'SQL'
+    final Widget body = item.kind == 'SQL'
         // 선택 가능한 코드면 카드 탭과 길게 누르기가 겹치므로 선택은 끈다.
         ? PassqlCodeBlock(
             code: item.body,
@@ -50,28 +50,6 @@ class ChoiceItemCard extends StatelessWidget {
         : resultRows != null
         ? ResultRowsTable(rows: resultRows)
         : InlineCodeText(item.body);
-    // 실행형 SQL 보기: 코드 아래 오른쪽에 ▶ 실행 (고르기와 실행을 나눠 실행이 눈에 보이게)
-    final Widget body = onRunTap == null
-        ? content
-        : Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              content,
-              const SizedBox(height: PassqlSpacing.xs),
-              Align(
-                alignment: Alignment.centerRight,
-                child: PassqlButton(
-                  label: '실행',
-                  icon: CupertinoIcons.play_fill,
-                  onPressed: onRunTap,
-                  isLoading: isRunning,
-                  variant: PassqlButtonVariant.tinted,
-                  size: PassqlButtonSize.small,
-                  isFullWidth: false,
-                ),
-              ),
-            ],
-          );
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: PassqlSpacing.md,
@@ -82,8 +60,49 @@ class ChoiceItemCard extends StatelessWidget {
         state: state,
         onTap: onTap,
         onGradedTap: onGradedTap,
+        // 실행 가능한 SQL 보기(채점 뒤): 정답·오답 표시 아래 ▶ (코드 폭 그대로)
+        trailingAccessory: onRunTap == null
+            ? null
+            : _RunChoiceIconButton(
+                choiceLabel: displayLabel,
+                onTap: onRunTap!,
+                isRunning: isRunning,
+              ),
         child: body,
       ),
+    );
+  }
+}
+
+/// 보기 실행 아이콘: 강조색 ▶ 원 아이콘 (실행 중이면 로딩)
+/// 채점 아이콘 칸 폭 그대로 (넓히면 코드 폭이 줄어듦), 카드 전체 탭도 실행이라 작은 영역으로 충분
+class _RunChoiceIconButton extends StatelessWidget {
+  const _RunChoiceIconButton({
+    required this.choiceLabel,
+    required this.onTap,
+    required this.isRunning,
+  });
+
+  final String choiceLabel;
+  final VoidCallback onTap;
+  final bool isRunning;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    return PassqlPressable(
+      onTap: isRunning ? null : onTap,
+      semanticLabel: '보기 $choiceLabel 실행',
+      child: isRunning
+          ? const SizedBox.square(
+              dimension: PassqlIconSize.xl,
+              child: PassqlLoadingIndicator(),
+            )
+          : Icon(
+              CupertinoIcons.play_circle_fill,
+              size: PassqlIconSize.xl,
+              color: colors.accent,
+            ),
     );
   }
 }
