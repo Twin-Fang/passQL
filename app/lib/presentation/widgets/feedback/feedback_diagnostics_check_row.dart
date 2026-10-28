@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import '../../design/design.dart';
 
-/// 진단 정보 체크 줄: 체크박스 + 라벨, 오른쪽 "포함되는 정보 보기"
+/// 진단 정보 체크 줄: 체크박스 + 라벨, 오른쪽 ? 아이콘 (누르면 포함되는 정보 시트)
 class FeedbackDiagnosticsCheckRow extends StatelessWidget {
   const FeedbackDiagnosticsCheckRow({
     super.key,
@@ -51,12 +51,16 @@ class FeedbackDiagnosticsCheckRow extends StatelessWidget {
             ),
           ),
         ),
-        PassqlButton(
-          label: '포함되는 정보 보기',
-          variant: PassqlButtonVariant.plain,
-          size: PassqlButtonSize.small,
-          isFullWidth: false,
-          onPressed: onShowPressed,
+        // 포함되는 정보 안내: ? 아이콘 (#744)
+        PassqlPressable(
+          onTap: onShowPressed,
+          semanticLabel: '포함되는 정보 보기',
+          hasMinimumTouchTarget: true,
+          child: Icon(
+            CupertinoIcons.question_circle,
+            size: PassqlIconSize.xxl,
+            color: colors.secondaryLabel,
+          ),
         ),
       ],
     );
