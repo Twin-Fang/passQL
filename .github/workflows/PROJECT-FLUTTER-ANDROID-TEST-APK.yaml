@@ -379,16 +379,18 @@ jobs:
           python3 .github/scripts/ios_release.py precheck-version --mode test \
             --version "${{ steps.build_info.outputs.version }}" --bundle-id "$APP_IDENTIFIER"
 
-      # 댓글 안내 문구 (버전 조정 사유, main보다 오래된 브랜치 경고)
+      # 댓글 안내 문구 (버전 조정 사유, 기본 브랜치보다 오래된 브랜치 경고)
       - name: 빌드 안내 문구 생성
         id: build_notice
         working-directory: ${{ github.workspace }}
         env:
           VERSION_CHANGED: ${{ steps.test_version.outputs.changed }}
           VERSION_REASON: ${{ steps.test_version.outputs.reason }}
+          # 비교 기준: 레포 기본 브랜치
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          git fetch --depth=1 origin main || echo "⚠️ main 조회 실패 (오래된 브랜치 경고 생략)"
-          python3 .github/scripts/test_build_notice.py --base-ref origin/main
+          git fetch --depth=1 origin "$BASE_BRANCH" || echo "⚠️ $BASE_BRANCH 조회 실패 (오래된 브랜치 경고 생략)"
+          python3 .github/scripts/test_build_notice.py --base-branch "$BASE_BRANCH"
 
       # 취소 처리 (#648): 댓글을 만든 준비 job 이 실행 중일 때 취소된 경우. 준비 job 은 needs 가 없어 같은 job 의 스텝 출력으로 ID 를 읽는다. 이 스텝이 뒤의 스텝들 끝에 있어야 어느 시점에 취소돼도 잡힌다.
       - name: 진행 상황 업데이트 - 취소 (준비 job)

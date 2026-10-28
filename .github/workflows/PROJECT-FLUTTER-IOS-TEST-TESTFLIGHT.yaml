@@ -420,16 +420,18 @@ jobs:
           python3 .github/scripts/ios_release.py precheck-version --mode test \
             --version "$VERSION" --bundle-id "$APP_IDENTIFIER"
 
-      # 댓글 안내 문구 (버전 조정 사유, main보다 오래된 브랜치 경고, #731)
+      # 댓글 안내 문구 (버전 조정 사유, 기본 브랜치보다 오래된 브랜치 경고, #731)
       - name: 빌드 안내 문구 생성
         id: build_notice
         working-directory: ${{ github.workspace }}
         env:
           VERSION_CHANGED: ${{ steps.test_version.outputs.changed }}
           VERSION_REASON: ${{ steps.test_version.outputs.reason }}
+          # 비교 기준: 레포 기본 브랜치
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          git fetch --depth=1 origin main || echo "⚠️ main 조회 실패 (오래된 브랜치 경고 생략)"
-          python3 .github/scripts/test_build_notice.py --base-ref origin/main
+          git fetch --depth=1 origin "$BASE_BRANCH" || echo "⚠️ $BASE_BRANCH 조회 실패 (오래된 브랜치 경고 생략)"
+          python3 .github/scripts/test_build_notice.py --base-branch "$BASE_BRANCH"
 
       # 브랜치명에서 이슈 번호 추출 및 GitHub API로 이슈 정보 가져오기
       - name: 브랜치명에서 이슈 정보 추출
