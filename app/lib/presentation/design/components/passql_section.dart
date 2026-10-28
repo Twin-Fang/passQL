@@ -13,6 +13,7 @@ class PassqlSection extends StatelessWidget {
     super.key,
     required this.child,
     this.title,
+    this.leading,
     this.trailing,
     this.padding = const EdgeInsets.symmetric(
       horizontal: PassqlSpacing.md,
@@ -22,6 +23,7 @@ class PassqlSection extends StatelessWidget {
 
   final Widget child;
   final String? title;
+  final Widget? leading;
   final Widget? trailing;
   final EdgeInsetsGeometry padding;
 
@@ -46,7 +48,11 @@ class PassqlSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (title != null) ...[
-            PassqlSectionHeader(title: title!, trailing: trailing),
+            PassqlSectionHeader(
+              title: title!,
+              leading: leading,
+              trailing: trailing,
+            ),
             // 제목 > 내용 sm(12) 중 글자 아래 빈 공간(11)이 이미 차지한 만큼 뺌
             const SizedBox(height: _gapBelowHeader),
           ],

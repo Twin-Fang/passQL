@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import '../../design/design.dart';
 
-/// 홈 오늘의 공부 팁 카드: 전구 아이콘 + 제목 + 팁 본문
+/// 홈 오늘의 공부 팁 구간: 제목 줄(전구 아이콘 + 제목) + 팁 본문
 class DailyStudyTipCard extends StatelessWidget {
   const DailyStudyTipCard({super.key, required this.studyTip});
 
@@ -17,6 +17,11 @@ class DailyStudyTipCard extends StatelessWidget {
     // 다른 구간과 같은 틀: 제목 줄 > 내용
     return PassqlSection(
       title: title,
+      leading: Icon(
+        CupertinoIcons.lightbulb_fill,
+        size: PassqlIconSize.lg,
+        color: colors.warning,
+      ),
       child: Text(
         studyTip,
         style: PassqlTypography.body.copyWith(color: colors.label),

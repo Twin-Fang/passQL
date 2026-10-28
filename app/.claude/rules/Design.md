@@ -49,7 +49,7 @@ lib/presentation/design/
 | `PassqlCard` | 그림자 없는 카드, 제목·우측 요소, 바깥 높이 채움(`shouldChildFillHeight`, 2열 높이 맞춤) |
 | `PassqlMarqueeText` | 한 줄 흐르는 글자(마퀴, 홈 공지 #701): 넘칠 때만 멈춤 > 흐름 반복, 속도·멈춤·간격은 `PassqlMotion.marquee*`, 동작 줄이기면 말줄임, 스크린리더는 전체 문장 한 번 |
 | `PassqlActivityRings` | 바깥에서 안쪽으로 겹친 진행 링 (홈 합격 준비도 정확도·범위·최신성, #701). 링마다 비율·색, 가운데 글자 선택. 링은 스크린리더에서 숨기고 쓰는 쪽이 범례와 묶어 읽힘 |
-| `PassqlSection` / `PassqlSectionGap` / `PassqlSectionHeader` / `PassqlSectionLink` | 홈식 구간: 좌우 끝까지 닿는 card 면(좌우 md·위아래 lg)과 구간 사이 md 높이 background 띠. 제목 줄은 높이 44 고정 title3(+ 오른쪽 요소), 오른쪽 이동 링크는 글자 + › 한 모양 (#701) |
+| `PassqlSection` / `PassqlSectionGap` / `PassqlSectionHeader` / `PassqlSectionLink` | 홈식 구간: 좌우 끝까지 닿는 card 면(좌우 md·위아래 lg)과 구간 사이 md 높이 background 띠. 제목 줄은 높이 44 고정 title3(+ 앞 아이콘·오른쪽 요소), 오른쪽 이동 링크는 글자 + › 한 모양 (#701) |
 | `PassqlGroupedSection` / `PassqlListRow` / `PassqlCheckRow` / `PassqlIconTile` | iOS 설정 앱식 목록 묶음·행·선택 행·아이콘 타일 |
 | `PassqlNavBar` / `PassqlNavButton` / `PassqlLargeTitleScrollView` | 상단 바(제목 글자 대신 가운데 위젯 `middle` 가능), 뒤로/닫기 버튼, 큰 제목 탭 화면 틀 |
 | `PassqlBrandBarScrollView` | 홈 탭 화면 틀: 로고 또는 `leading`(왼쪽)·trailing(오른쪽) 한 줄 고정 바, 내용이 밑으로 지나가면 글래스 + 헤어라인 (#530) |
