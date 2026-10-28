@@ -10,22 +10,12 @@ import '../../../router/questions_tab_view.dart';
 import '../../providers/community_providers.dart';
 import 'community_feed_card_tile.dart';
 
-/// 피드 탭 1개의 본문: 당겨서 새로고침 + 커서 무한 스크롤
+/// 피드 보기 1개의 본문 sliver (#741: 큰 제목 틀 안에 들어가 스크롤·새로고침·더 불러오기는 페이지가 맡음)
 /// 상태 4종: 로딩, 오류(다시 시도), 빈 목록, 목록
-class CommunityFeedList extends ConsumerStatefulWidget {
+class CommunityFeedList extends ConsumerWidget {
   const CommunityFeedList({super.key, required this.source});
 
   final CommunityFeedSource source;
-
-  @override
-  ConsumerState<CommunityFeedList> createState() => _CommunityFeedListState();
-}
-
-class _CommunityFeedListState extends ConsumerState<CommunityFeedList> {
-  final _scrollController = ScrollController();
-
-  // 목록 끝까지 남은 거리가 이 값 이하면 다음 페이지 요청
-  static const double _loadMoreTriggerPixels = 320;
 
   // 탭별 빈 목록 안내 + 행동 버튼 (문구는 웹 COMMUNITY_FEED_TABS 와 맞춤)
   static const Map<
@@ -62,92 +52,61 @@ class _CommunityFeedListState extends ConsumerState<CommunityFeedList> {
   static const String _solveActionLabel = '문제 풀러 가기';
 
   @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_loadMoreNearEnd);
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  CommunityFeedNotifier get _notifier =>
-      ref.read(communityFeedProvider(widget.source).notifier);
-
-  void _loadMoreNearEnd() {
-    if (_scrollController.position.extentAfter <= _loadMoreTriggerPixels) {
-      _notifier.loadMore();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final feed = ref.watch(communityFeedProvider(widget.source));
+  Widget build(BuildContext context, WidgetRef ref) {
+    final feed = ref.watch(communityFeedProvider(source));
     final feedState = feed.valueOrNull;
     if (feedState == null) {
-      return feed.hasError
-          ? PassqlStatusView.error(
-              message: _errorMessageOf(feed.error!),
-              onRetry: () =>
-                  ref.invalidate(communityFeedProvider(widget.source)),
-            )
-          : const PassqlStatusView.loading();
-    }
-    if (feedState.items.isEmpty) {
-      final emptyText = _emptyTexts[widget.source]!;
-      return CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(
-          parent: BouncingScrollPhysics(),
-        ),
-        slivers: [
-          CupertinoSliverRefreshControl(onRefresh: _notifier.reload),
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: PassqlStatusView.empty(
-              icon: CupertinoIcons.chat_bubble_2,
-              title: emptyText.title,
-              message: emptyText.message,
-              actionLabel: emptyText.actionLabel,
-              onAction: () => emptyText.isTrendAction
-                  ? context.go(QuestionsTabView.latestTrend.location)
-                  : context.go(AppRoutes.questions),
-            ),
-          ),
-        ],
+      return PassqlSliverFillStatus(
+        child: feed.hasError
+            ? PassqlStatusView.error(
+                message: _errorMessageOf(feed.error!),
+                onRetry: () => ref.invalidate(communityFeedProvider(source)),
+              )
+            : const PassqlStatusView.loading(),
       );
     }
-    return CustomScrollView(
-      controller: _scrollController,
-      physics: const AlwaysScrollableScrollPhysics(
-        parent: BouncingScrollPhysics(),
-      ),
+    if (feedState.items.isEmpty) {
+      final emptyText = _emptyTexts[source]!;
+      return PassqlSliverFillStatus(
+        child: PassqlStatusView.empty(
+          icon: CupertinoIcons.chat_bubble_2,
+          title: emptyText.title,
+          message: emptyText.message,
+          actionLabel: emptyText.actionLabel,
+          onAction: () => emptyText.isTrendAction
+              ? context.go(QuestionsTabView.latestTrend.location)
+              : context.go(AppRoutes.questions),
+        ),
+      );
+    }
+    final colors = context.passqlColors;
+    return SliverMainAxisGroup(
       slivers: [
-        CupertinoSliverRefreshControl(onRefresh: _notifier.reload),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(
-            PassqlSpacing.md,
-            PassqlSpacing.xs,
-            PassqlSpacing.md,
-            0,
+        // 카드 대신 좌우 끝까지 닿는 목록 + 글자 시작선부터 그은 얇은 구분선 (#741)
+        SliverList.separated(
+          itemCount: feedState.items.length,
+          separatorBuilder: (_, _) => ColoredBox(
+            color: colors.card,
+            child: Padding(
+              padding: const EdgeInsets.only(
+                left: CommunityFeedCardTile.separatorIndent,
+              ),
+              child: Container(
+                height: PassqlSize.hairline,
+                color: colors.separator,
+              ),
+            ),
           ),
-          sliver: SliverList.separated(
-            itemCount: feedState.items.length,
-            separatorBuilder: (_, _) =>
-                const SizedBox(height: PassqlSpacing.sm),
-            itemBuilder: (_, index) {
-              final card = feedState.items[index];
-              return CommunityFeedCardTile(
-                key: ValueKey(card.questionUuid),
-                card: card,
-                shouldShowMyActivity: widget.source == CommunityFeedSource.mine,
-                onTap: () => context.push(
-                  AppRoutes.communityQuestion(card.questionUuid),
-                ),
-              );
-            },
-          ),
+          itemBuilder: (_, index) {
+            final card = feedState.items[index];
+            return CommunityFeedCardTile(
+              key: ValueKey(card.questionUuid),
+              card: card,
+              shouldShowMyActivity: source == CommunityFeedSource.mine,
+              onTap: () =>
+                  context.push(AppRoutes.communityQuestion(card.questionUuid)),
+            );
+          },
         ),
         if (feedState.isLoadingMore)
           const SliverToBoxAdapter(
@@ -156,11 +115,6 @@ class _CommunityFeedListState extends ConsumerState<CommunityFeedList> {
               child: Center(child: PassqlLoadingIndicator()),
             ),
           ),
-        SliverToBoxAdapter(
-          child: SizedBox(
-            height: MediaQuery.paddingOf(context).bottom + PassqlSpacing.xl,
-          ),
-        ),
       ],
     );
   }

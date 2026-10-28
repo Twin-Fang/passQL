@@ -127,8 +127,7 @@ class TopicListPage extends ConsumerWidget {
     if (topicsAsync.hasError && !topicsAsync.hasValue) {
       // 다시 시도할 방법이 없으면 탭을 오가야 해서 버튼을 둔다 (#375).
       return [
-        SliverFillRemaining(
-          hasScrollBody: false,
+        PassqlSliverFillStatus(
           child: PassqlStatusView.error(
             message: '토픽을 불러올 수 없어요',
             onRetry: () => ref.invalidate(topicsProvider),
