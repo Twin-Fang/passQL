@@ -39,17 +39,27 @@ class ResultRowsTable extends StatelessWidget {
       _rows = [
         for (final row in rows)
           [for (final column in rows.first.keys) row[column]],
-      ];
+      ],
+      highlightedRowIndexes = const {},
+      highlightColor = null;
 
   /// 열 목록과 위치 기준 행(SQL 실행 결과용). 같은 이름의 열이 있어도 값이 사라지지 않는다.
   const ResultRowsTable.positional({
     super.key,
     required this.columns,
     required List<List<Object?>> rows,
+    this.highlightedRowIndexes = const {},
+    this.highlightColor,
   }) : _rows = rows;
 
   final List<String> columns;
   final List<List<Object?>> _rows;
+
+  /// 배경을 칠할 행 위치 (내 답 <-> 정답 비교에서 한쪽에만 있는 행, #727)
+  final Set<int> highlightedRowIndexes;
+
+  /// [highlightedRowIndexes] 행 배경색 (옅은 정답·오답 색)
+  final Color? highlightColor;
 
   @override
   Widget build(BuildContext context) {
@@ -131,8 +141,13 @@ class ResultRowsTable extends StatelessWidget {
                         buildCell(column, headerStyle),
                     ],
                   ),
-                  for (final row in _rows)
+                  for (final (rowIndex, row) in _rows.indexed)
                     TableRow(
+                      decoration:
+                          highlightedRowIndexes.contains(rowIndex) &&
+                              highlightColor != null
+                          ? BoxDecoration(color: highlightColor)
+                          : null,
                       children: [
                         // 모자란 칸은 NULL 이 아니라 빈칸
                         for (var i = 0; i < columns.length; i++)

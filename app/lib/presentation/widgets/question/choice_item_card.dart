@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import '../../../data/models/question/choice_item.dart';
 import '../../../data/models/question/submit_result.dart';
 import '../../design/design.dart';
@@ -19,6 +19,12 @@ class ChoiceItemCard extends StatelessWidget {
   /// 채점 뒤 탭(예: 다른 선택지의 SQL 실행 결과 보기). 없으면 채점 뒤에는 눌리지 않는다.
   final VoidCallback? onGradedTap;
 
+  /// 실행형 SQL 보기의 ▶ 실행 버튼 동작. 없으면 버튼 없음 (카드 탭은 고르기만, #727)
+  final VoidCallback? onRunTap;
+
+  /// 이 보기를 지금 실행 중인지 (버튼 로딩 표시)
+  final bool isRunning;
+
   const ChoiceItemCard({
     super.key,
     required this.item,
@@ -26,12 +32,14 @@ class ChoiceItemCard extends StatelessWidget {
     required this.state,
     required this.onTap,
     this.onGradedTap,
+    this.onRunTap,
+    this.isRunning = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final resultRows = item.kind == 'SQL' ? null : parseResultRows(item.body);
-    final Widget body = item.kind == 'SQL'
+    final Widget content = item.kind == 'SQL'
         // 선택 가능한 코드면 카드 탭과 길게 누르기가 겹치므로 선택은 끈다.
         ? PassqlCodeBlock(
             code: item.body,
@@ -42,6 +50,28 @@ class ChoiceItemCard extends StatelessWidget {
         : resultRows != null
         ? ResultRowsTable(rows: resultRows)
         : InlineCodeText(item.body);
+    // 실행형 SQL 보기: 코드 아래 오른쪽에 ▶ 실행 (고르기와 실행을 나눠 실행이 눈에 보이게)
+    final Widget body = onRunTap == null
+        ? content
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              content,
+              const SizedBox(height: PassqlSpacing.xs),
+              Align(
+                alignment: Alignment.centerRight,
+                child: PassqlButton(
+                  label: '실행',
+                  icon: CupertinoIcons.play_fill,
+                  onPressed: onRunTap,
+                  isLoading: isRunning,
+                  variant: PassqlButtonVariant.tinted,
+                  size: PassqlButtonSize.small,
+                  isFullWidth: false,
+                ),
+              ),
+            ],
+          );
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: PassqlSpacing.md,

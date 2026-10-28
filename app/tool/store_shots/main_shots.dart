@@ -890,20 +890,26 @@ Future<void> _openRoute(String route, ProviderContainer container) async {
   const settleDelay = Duration(milliseconds: 1500);
   switch (route) {
     case 'execute-ok':
-      // 실행형 문제 > 선택지 A 선택 > 실행 성공 결과 표
+      // 실행형 문제 > 선택지 A 선택·실행 > 실행 성공 결과 표
       _isExecuteSuccessScene = true;
       AppRouter.router.go(AppRoutes.questionDetail(_executableQuestionUuid));
       await Future<void>.delayed(settleDelay);
+      container
+          .read(questionInteractionProvider(_executableQuestionUuid).notifier)
+          .selectChoice('A');
       await container
           .read(questionInteractionProvider(_executableQuestionUuid).notifier)
-          .selectChoice(choiceKey: 'A', sql: _executableChoiceSql, isExecutable: true);
+          .runChoice(choiceKey: 'A', sql: _executableChoiceSql);
     case 'execute-fail':
-      // 실행형 문제 > 선택지 A 선택 > 실행 API 실패
+      // 실행형 문제 > 선택지 A 선택·실행 > 실행 API 실패
       AppRouter.router.go(AppRoutes.questionDetail(_executableQuestionUuid));
       await Future<void>.delayed(settleDelay);
+      container
+          .read(questionInteractionProvider(_executableQuestionUuid).notifier)
+          .selectChoice('A');
       await container
           .read(questionInteractionProvider(_executableQuestionUuid).notifier)
-          .selectChoice(choiceKey: 'A', sql: _executableChoiceSql, isExecutable: true);
+          .runChoice(choiceKey: 'A', sql: _executableChoiceSql);
     case 'chapter-result':
       // 문제 목록 > 챕터 진입 > 마지막 제출 뒤와 같은 교체 이동(TopicFlow.onCompleted)
       AppRouter.router.go(AppRoutes.questions);

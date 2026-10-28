@@ -11,6 +11,9 @@ class ExecuteResultCard extends StatelessWidget {
   /// 실행한 보기 표시 라벨(A~D). 있으면 머리에 "보기 B 실행 결과" 처럼 표시 (#554)
   final String? executedChoiceLabel;
 
+  /// 머리 앞 주어 직접 지정 ("내 SQL"). 있으면 [executedChoiceLabel] 대신 씀 (#727)
+  final String? subjectLabel;
+
   /// 바깥 여백. 이미 좌우 inset 이 있는 목록 안에서는 가로를 0 으로 줄인다.
   final EdgeInsetsGeometry margin;
 
@@ -19,6 +22,7 @@ class ExecuteResultCard extends StatelessWidget {
     required this.result,
     this.onAiExplainTap,
     this.executedChoiceLabel,
+    this.subjectLabel,
     this.margin = const EdgeInsets.symmetric(
       horizontal: PassqlSpacing.md,
       vertical: PassqlSpacing.xxs,
@@ -27,10 +31,13 @@ class ExecuteResultCard extends StatelessWidget {
 
   bool get _isError => result.errorCode != null && result.errorCode!.isNotEmpty;
 
-  /// 결과 표시 문구: 실행한 보기가 있으면 앞에 붙임 ("보기 B · 실행 성공")
-  String _markLabelOf(String outcomeLabel) => executedChoiceLabel == null
-      ? outcomeLabel
-      : '보기 $executedChoiceLabel · $outcomeLabel';
+  /// 결과 표시 문구: 주어가 있으면 앞에 붙임 ("보기 B · 실행 성공", "내 SQL · 실행 성공")
+  String _markLabelOf(String outcomeLabel) {
+    final subject =
+        subjectLabel ??
+        (executedChoiceLabel == null ? null : '보기 $executedChoiceLabel');
+    return subject == null ? outcomeLabel : '$subject · $outcomeLabel';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +118,8 @@ class _SuccessContent extends StatelessWidget {
         PassqlResultMark(isCorrect: true, label: markLabel),
         const SizedBox(height: PassqlSpacing.xxs),
         Text(
-          '${result.rowCount ?? result.rows.length}행 반환'
+          // 실제 DB 에서 돌린 결과임을 드러냄 (#727)
+          '실제 DB 실행 · ${result.rowCount ?? result.rows.length}행 반환'
           '${result.elapsedMs != null ? ' · ${result.elapsedMs}ms' : ''}',
           style: PassqlTypography.caption.copyWith(
             color: colors.secondaryLabel,

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import '../../../core/utils/question_difficulty.dart';
+import '../../../data/models/question/choice_item.dart';
 import '../../../data/models/question/question_detail.dart';
 import '../../../data/models/question/sse_event.dart';
 import '../../../data/models/question/submit_result.dart';
@@ -155,38 +156,81 @@ class QuestionChoices extends StatelessWidget {
       );
     }
 
+    final hasRunnableChoice =
+        isExecutable &&
+        interaction.activeChoices.any((choice) => choice.kind == 'SQL');
     return Column(
-      children: interaction.activeChoices.indexed.map((entry) {
-        final (displayIndex, item) = entry;
-        // 채점 직후 정답 보기를 하단 피드백 바 위로 (#551)
-        return RevealAboveBottomBarOnTrigger(
-          shouldReveal: item.key == submitResult?.correctKey,
-          child: ChoiceItemCard(
-            item: item,
-            displayLabel: toChoiceDisplayLabel(displayIndex),
-            state: resolveChoiceState(
-              key: item.key,
-              selectedKey: submitResult != null
-                  ? gradedSelectedKey
-                  : interaction.selectedChoiceKey,
-              result: submitResult,
-            ),
-            onTap: () => notifier.selectChoice(
-              choiceKey: item.key,
-              sql: item.kind == 'SQL' ? item.body : null,
-              isExecutable: isExecutable,
-            ),
-            // 채점 뒤에도 다른 선택지의 SQL 실행 결과를 볼 수 있게 한다(채점 표시는 그대로).
-            onGradedTap: submitResult != null && isExecutable
-                ? () => notifier.selectChoice(
-                    choiceKey: item.key,
-                    sql: item.kind == 'SQL' ? item.body : null,
-                    isExecutable: isExecutable,
-                  )
-                : null,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 실행형 보기 안내: 보기를 실제 DB 에서 돌려 볼 수 있음 (채점 전만, #727)
+        if (hasRunnableChoice && submitResult == null) const _RunChoiceHint(),
+        for (final (displayIndex, item) in interaction.activeChoices.indexed)
+          // 채점 직후 정답 보기를 하단 피드백 바 위로 (#551)
+          RevealAboveBottomBarOnTrigger(
+            shouldReveal: item.key == submitResult?.correctKey,
+            child: _buildChoiceCard(displayIndex, item),
           ),
-        );
-      }).toList(),
+      ],
+    );
+  }
+
+  /// 보기 카드 1개: 탭은 고르기, 실행형 SQL 보기는 ▶ 실행 버튼 (채점 뒤 카드 탭도 실행)
+  Widget _buildChoiceCard(int displayIndex, ChoiceItem item) {
+    final isRunnable = isExecutable && item.kind == 'SQL';
+    void runThisChoice() =>
+        notifier.runChoice(choiceKey: item.key, sql: item.body);
+    return ChoiceItemCard(
+      item: item,
+      displayLabel: toChoiceDisplayLabel(displayIndex),
+      state: resolveChoiceState(
+        key: item.key,
+        selectedKey: submitResult != null
+            ? gradedSelectedKey
+            : interaction.selectedChoiceKey,
+        result: submitResult,
+      ),
+      onTap: () => notifier.selectChoice(item.key),
+      // 채점 뒤에도 다른 선택지의 SQL 실행 결과를 볼 수 있게 한다(채점 표시는 그대로).
+      onGradedTap: submitResult != null && isRunnable ? runThisChoice : null,
+      onRunTap: isRunnable ? runThisChoice : null,
+      isRunning:
+          interaction.isExecuting && interaction.executedChoiceKey == item.key,
+    );
+  }
+}
+
+/// 실행형 문제 보기 위 한 줄 안내: ▶ 아이콘 + 실제 DB 실행 설명
+class _RunChoiceHint extends StatelessWidget {
+  const _RunChoiceHint();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        PassqlSpacing.md,
+        PassqlSpacing.xs,
+        PassqlSpacing.md,
+        PassqlSpacing.xxs,
+      ),
+      child: Row(
+        children: [
+          Icon(
+            CupertinoIcons.play_circle_fill,
+            size: PassqlIconSize.md,
+            color: colors.accentText,
+          ),
+          const SizedBox(width: PassqlSpacing.xs),
+          Expanded(
+            child: Text(
+              '보기마다 실행을 누르면 실제 DB 에서 결과를 볼 수 있어요',
+              style: PassqlTypography.footnote.copyWith(
+                color: colors.secondaryLabel,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
