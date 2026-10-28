@@ -23,9 +23,8 @@ const int _titleMaxLines = 2;
 /// 설명 최대 줄 수
 const int _descriptionMaxLines = 2;
 
-/// 강조색 바탕 위 보조 글자·배지 바탕 불투명도
+/// 강조색 바탕 위 보조 글자 불투명도
 const double _secondaryTextAlpha = 0.85;
-const double _badgeBackgroundAlpha = 0.2;
 
 /// 홈 출제 경향 넘김 카드 1장: 강조색 바탕 + '늘어난 유형' 배지 + 유형 이름 + 설명 + 하단 '이 유형 풀기 >'
 /// 숫자(회차·문항 수) 없음, 문제 있는 유형만 탭 > 그 토픽 최신 경향 풀기
@@ -113,7 +112,7 @@ class ExamTrendPatternCard extends StatelessWidget {
                   ),
                   Icon(
                     CupertinoIcons.chevron_forward,
-                    size: PassqlIconSize.xs,
+                    size: PassqlIconSize.md,
                     color: colors.onAccent,
                   ),
                 ],
@@ -130,22 +129,27 @@ class ExamTrendPatternCard extends StatelessWidget {
     );
   }
 
-  /// '늘어난 유형' 캡슐 (강조색 위 반투명 흰 바탕)
+  /// '늘어난 유형' 표시: 캡슐 없이 위쪽 화살표 + 흰 글자 (강조색 위 캡슐은 흐리거나 튀어 보여 뺌, #701)
+  /// 위아래 여백 xxs 는 높이 계산(배지 24)과 맞춘다
   Widget _buildRisingBadge(PassqlColors colors) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: PassqlSpacing.xs,
-        vertical: PassqlSpacing.xxs,
-      ),
-      decoration: BoxDecoration(
-        color: colors.onAccent.withValues(alpha: _badgeBackgroundAlpha),
-        borderRadius: BorderRadius.circular(PassqlRadius.capsule),
-      ),
-      child: Text(
-        risingBadgeLabel,
-        style: PassqlTypography.captionSemibold.copyWith(
-          color: colors.onAccent,
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: PassqlSpacing.xxs),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            CupertinoIcons.arrow_up_right,
+            size: PassqlIconSize.xxs,
+            color: colors.onAccent,
+          ),
+          const SizedBox(width: PassqlSpacing.xxs),
+          Text(
+            risingBadgeLabel,
+            style: PassqlTypography.captionSemibold.copyWith(
+              color: colors.onAccent,
+            ),
+          ),
+        ],
       ),
     );
   }

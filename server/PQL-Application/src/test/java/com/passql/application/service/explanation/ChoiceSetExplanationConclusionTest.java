@@ -37,6 +37,14 @@ class ChoiceSetExplanationConclusionTest {
                 .stream().anyMatch(violation -> violation.contains("결론") || violation.contains("정답 값")));
     }
 
+    @Test
+    void 입력자료_언급_거부() {
+        // 운영 저장본 (집합 연산 우선순위를 잘못 풀고 정답 표시와 다르다고 적은 해설)
+        String metaTalkReason = "결과는 2, 5, 1, 2 이다. 입력 표시 정답 2행과 직접 계산 4행이 다르므로 계산 결과를 그대로 적는다.";
+        assertTrue(ChoiceSetExplanationValidator.validate(explanation(metaTalkReason), COUNT_QUESTION_ITEMS).violations()
+                .stream().anyMatch(violation -> violation.contains("입력 자료·작성 과정 언급")));
+    }
+
     private static ChoiceSetExplanation explanation(String correctReason) {
         return new ChoiceSetExplanation("C", correctReason,
                 List.of(new KeyConcept("CTAS 제약 복제", "NOT NULL 만 복제")),

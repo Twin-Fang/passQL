@@ -13,12 +13,16 @@ class AdInlineCard extends StatelessWidget {
     super.key,
     required this.placement,
     this.padding = EdgeInsets.zero,
+    this.isSection = false,
   });
 
   final AdPlacement placement;
 
   /// 광고가 뜬 뒤에만 두는 바깥 여백 (광고 없으면 여백도 없음)
   final EdgeInsets padding;
+
+  /// true: 홈 구간형 (광고가 뜬 뒤에만 앞 띠 + 구간 면, #701). 면 좌우 여백 md 가 카드 안쪽 여백과 같아 광고 폭은 그대로
+  final bool isSection;
 
   /// 테스트가 카드 틀을 찾는 키
   static const frameKey = Key('ad-inline-card-frame');
@@ -36,27 +40,42 @@ class AdInlineCard extends StatelessWidget {
       loadAd: (_, ref, slotWidthDp) => ref
           .read(adBannerLoaderProvider)
           .load(placement, adWidthDpOf(slotWidthDp, padding)),
-      frameBuilder: (context, adView) => Padding(
-        padding: padding,
-        // 홈·통계 카드와 같은 틀 (배경·모서리·안쪽 여백)
-        child: PassqlCard(
-          key: frameKey,
-          padding: _cardPadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const AdLabel(),
-              const SizedBox(height: PassqlSpacing.xs),
-              SizedBox(
-                height: adView.height,
-                width: double.infinity,
-                child: Center(child: adView.view),
-              ),
-            ],
+      frameBuilder: (context, adView) {
+        final content = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const AdLabel(),
+            const SizedBox(height: PassqlSpacing.xs),
+            SizedBox(
+              height: adView.height,
+              width: double.infinity,
+              child: Center(child: adView.view),
+            ),
+          ],
+        );
+        if (isSection) {
+          return Padding(
+            padding: padding,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const PassqlSectionGap(),
+                PassqlSection(key: frameKey, child: content),
+              ],
+            ),
+          );
+        }
+        return Padding(
+          padding: padding,
+          // 홈·통계 카드와 같은 틀 (배경·모서리·안쪽 여백)
+          child: PassqlCard(
+            key: frameKey,
+            padding: _cardPadding,
+            child: content,
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

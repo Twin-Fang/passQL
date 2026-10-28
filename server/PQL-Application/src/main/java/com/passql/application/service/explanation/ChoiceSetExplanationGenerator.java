@@ -45,12 +45,20 @@ public class ChoiceSetExplanationGenerator {
         return generate(question, items, Map.of());
     }
 
-    /** 세트 1개 해설 생성: 보기별 실행 결과를 근거로 넣고 시도마다 호출 > 파싱 > 검증, 통과하면 바로 반환 */
+    /** 세트 1개 해설 생성 (보기 메모는 참고용) */
     public ChoiceSetExplanationGenerationResult generate(Question question, List<QuestionChoiceSetItem> items,
                                                          Map<String, String> resultSummaryByChoiceKey) {
+        return generate(question, items, resultSummaryByChoiceKey, false);
+    }
+
+    /** 세트 1개 해설 생성: 보기별 실행 결과·메모를 근거로 넣고 시도마다 호출 > 파싱 > 검증, 통과하면 바로 반환 */
+    public ChoiceSetExplanationGenerationResult generate(Question question, List<QuestionChoiceSetItem> items,
+                                                         Map<String, String> resultSummaryByChoiceKey,
+                                                         boolean isRationaleVerified) {
         long startedAt = System.currentTimeMillis();
         PromptTemplate modelSetting = promptService.getActivePrompt(MODEL_SETTING_PROMPT_KEY);
-        String userPrompt = ChoiceSetExplanationPrompt.buildUserPrompt(question, items, resultSummaryByChoiceKey);
+        String userPrompt = ChoiceSetExplanationPrompt.buildUserPrompt(question, items, resultSummaryByChoiceKey,
+                isRationaleVerified);
 
         ChoiceSetExplanation lastExplanation = null;
         String lastRawResponse = null;

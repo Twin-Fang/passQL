@@ -29,6 +29,11 @@ abstract final class PassqlMotion {
   static const wordBlurSigma = 4.0;
   static const wordSlideDistance = 2.0;
 
+  // 흐르는 글자(마퀴, 홈 공지 #701): 초당 이동 거리, 한 바퀴 시작 전 멈춤, 글자 반복 사이 간격
+  static const marqueeSpeed = 30.0; // 논리 픽셀/초 (긴 제목도 읽을 수 있는 느린 속도)
+  static const marqueePause = Duration(milliseconds: 1500);
+  static const marqueeGap = 40.0;
+
   // 누름 축소 비율
   static const pressedScale = 0.97;
 
