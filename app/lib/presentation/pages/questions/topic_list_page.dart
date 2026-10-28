@@ -189,34 +189,34 @@ class TopicListPage extends ConsumerWidget {
       ),
     );
 
+    // 데이터는 좌우 끝까지 닿는 구간(#726), 잠금·오류·로딩은 지금처럼 좌우 md 여백 안
+    const statePadding = EdgeInsets.symmetric(horizontal: PassqlSpacing.md);
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(
-        PassqlSpacing.md,
-        PassqlSpacing.lg,
-        PassqlSpacing.md,
-        0,
-      ),
+      padding: const EdgeInsets.only(top: PassqlSpacing.lg),
       sliver: SliverToBoxAdapter(
         child: PassqlFadeSwitcher(
           child: switch (reportAsync) {
             // 무료(결제 켜짐) 잠금: Provider 가 요청 없이 null
             AsyncData(value: null) => KeyedSubtree(
               key: ValueKey('${view.queryValue}-locked'),
-              child: const ProLockedSection(
-                preview: ExamTrendLockedSample(),
-                caption: LockedPreviewCaptions.examTrend,
+              child: const Padding(
+                padding: statePadding,
+                child: ProLockedSection(
+                  preview: ExamTrendLockedSample(),
+                  caption: LockedPreviewCaptions.examTrend,
+                ),
               ),
             ),
             _ when report != null => switch (view) {
               QuestionsTabView.conceptRanking => ConceptRankingTabView(
                 key: ValueKey('${view.queryValue}-data'),
-                concepts: report.frequentConcepts,
+                report: report,
                 onSolveTopic: onSolveTopic,
-                // 5위 <-> 6위 네이티브 1칸 (광고 위 간격은 광고 쪽, 광고 꺼짐 > 자리 없음)
+                // 5위 <-> 6위 네이티브 1칸 (앞 띠는 광고 쪽, 광고 꺼짐 > 자리 없음)
                 adSlot: isAdsEnabled
                     ? const AdNativeSlot(
                         placement: AdPlacement.nativeQuestions,
-                        padding: EdgeInsets.only(top: PassqlSpacing.md),
+                        isSection: true,
                       )
                     : null,
               ),
@@ -228,20 +228,25 @@ class TopicListPage extends ConsumerWidget {
                 adSlot: isAdsEnabled
                     ? const AdNativeSlot(
                         placement: AdPlacement.nativeQuestions,
-                        padding: EdgeInsets.only(top: PassqlSpacing.md),
+                        isSection: true,
                       )
                     : null,
               ),
             },
             AsyncError() => KeyedSubtree(
               key: ValueKey('${view.queryValue}-error'),
-              child: PassqlStatusView.error(
-                message: '출제 경향을 불러올 수 없어요',
-                onRetry: () => ref.invalidate(examTrendReportProvider),
+              child: Padding(
+                padding: statePadding,
+                child: PassqlStatusView.error(
+                  message: '출제 경향을 불러올 수 없어요',
+                  onRetry: () => ref.invalidate(examTrendReportProvider),
+                ),
               ),
             ),
-            _ => PassqlListSkeleton(
+            _ => Padding(
               key: ValueKey('${view.queryValue}-loading'),
+              padding: statePadding,
+              child: const PassqlListSkeleton(),
             ),
           },
         ),
