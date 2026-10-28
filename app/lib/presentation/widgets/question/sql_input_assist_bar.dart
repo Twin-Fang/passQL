@@ -107,7 +107,7 @@ class SqlInputAssistBar extends StatelessWidget {
     SqlInsertToken.function('COALESCE'),
   ];
 
-  /// 커서 자리(선택 영역은 바꿈, 커서 없으면 끝)에 칩 글자 넣기
+  /// 칩 누름 3가지: 커서 이동 | 바로 뒤 닫는 괄호 건너뛰기 | 커서 자리에 글자 넣기 (선택 영역은 대체, 커서 없으면 끝)
   void _insert(SqlInsertToken token) {
     final text = controller.text;
     final selection = controller.selection;
