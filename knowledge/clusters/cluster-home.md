@@ -2,7 +2,7 @@
 type: cluster
 topic: home
 created: 2026-10-29
-members: 65
+members: 66
 status: active
 related: []
 ---
@@ -41,6 +41,7 @@ related: []
 - [[DEC-0167-five-tabs-with-text-labels]] → DEC-0171
 
 ## 관련 이슈
+- [[ISS-0431-app-home-top-bell-notice-banner]] (resolved, GitHub #756) — 홈 알림 아이콘 색과 공지 배너 개편
 - [[ISS-0019-exam-schedule-domain-api]] (resolved, GitHub #23) — SQLD/SQLP Exam Schedule 도메인 및 시험 일정 관리 API
 - [[ISS-0020-home-greeting-api]] (resolved, GitHub #24) — 홈 화면 인사말 API (Greeting)
 - [[ISS-0023-random-question-recommendations-api]] (resolved, GitHub #27) — 랜덤 추천 문제 API (Question Recommendations)

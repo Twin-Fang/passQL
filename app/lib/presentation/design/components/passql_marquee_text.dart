@@ -4,12 +4,19 @@ import '../tokens/passql_tokens.dart';
 
 /// 한 줄 흐르는 글자 (마퀴·전광판, 홈 공지 #701).
 /// 폭 안에 들어가면 가만히, 넘칠 때만 멈춤 > 왼쪽으로 흐름 > 처음으로 를 되풀이한다.
+/// [isAlwaysScrolling] 이면 폭 안에 들어가도 흐른다 (홈 공지처럼 흐름 자체가 눈길을 끄는 자리, #756).
 /// 동작 줄이기면 흐르지 않고 말줄임. 스크린리더는 흐름과 상관없이 전체 문장을 한 번 읽는다
 class PassqlMarqueeText extends StatefulWidget {
-  const PassqlMarqueeText(this.text, {super.key, required this.style});
+  const PassqlMarqueeText(
+    this.text, {
+    super.key,
+    required this.style,
+    this.isAlwaysScrolling = false,
+  });
 
   final String text;
   final TextStyle style;
+  final bool isAlwaysScrolling;
 
   @override
   State<PassqlMarqueeText> createState() => _PassqlMarqueeTextState();
@@ -67,11 +74,16 @@ class _PassqlMarqueeTextState extends State<PassqlMarqueeText>
         final textWidth = painter.width;
         final lineHeight = painter.height;
         painter.dispose();
-        if (textWidth <= constraints.maxWidth) {
+        final fits = textWidth <= constraints.maxWidth;
+        if (fits && !widget.isAlwaysScrolling) {
           _stopAnimation();
           return fallback;
         }
-        final scrollExtent = textWidth + PassqlMotion.marqueeGap;
+        // 짧은 글자가 흐를 때 두 벌이 한 화면에 같이 보이지 않게, 간격을 칸 폭까지 늘린다
+        final gap = fits
+            ? constraints.maxWidth - textWidth + PassqlMotion.marqueeGap
+            : PassqlMotion.marqueeGap;
+        final scrollExtent = textWidth + gap;
         _syncAnimation(scrollExtent);
         final pauseRatio =
             PassqlMotion.marqueePause.inMilliseconds /
@@ -103,7 +115,7 @@ class _PassqlMarqueeTextState extends State<PassqlMarqueeText>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     line,
-                    const SizedBox(width: PassqlMotion.marqueeGap),
+                    SizedBox(width: gap),
                     line,
                   ],
                 ),
