@@ -45,7 +45,7 @@ class AppShell extends ConsumerWidget {
     PassqlTabItem(
       icon: CupertinoIcons.person_crop_circle,
       activeIcon: CupertinoIcons.person_crop_circle_fill,
-      label: '내 프로필',
+      label: '프로필',
     ),
   ];
 

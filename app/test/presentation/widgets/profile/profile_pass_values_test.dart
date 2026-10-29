@@ -61,4 +61,13 @@ void main() {
     expect(daysUntilDate(DateTime(2026, 12, 31, 0, 1), now: now), 63);
     expect(daysUntilDate(DateTime(2026, 10, 29, 1), now: now), 0);
   });
+
+  test('AI 분석 시각: 오늘은 오전/오후 시각, 다른 날은 월 일', () {
+    final now = DateTime(2026, 10, 29, 15);
+    expect(aiAnalyzedLabel('2026-10-29T09:12:00', now: now), '오늘 오전 9:12 분석');
+    expect(aiAnalyzedLabel('2026-10-29T13:05:00', now: now), '오늘 오후 1:05 분석');
+    expect(aiAnalyzedLabel('2026-10-27T13:05:00', now: now), '10월 27일 분석');
+    expect(aiAnalyzedLabel(null, now: now), isNull);
+    expect(aiAnalyzedLabel('엉뚱한 값', now: now), isNull);
+  });
 }

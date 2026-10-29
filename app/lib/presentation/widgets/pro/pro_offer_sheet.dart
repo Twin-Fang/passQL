@@ -34,6 +34,8 @@ Future<void> showProOfferSheet(
   BuildContext context,
   WidgetRef ref, {
   String? reason,
+  // 탑승권 혜택 아이콘에서 열었을 때 그 혜택 순서(proBenefits 기준) > 시트가 그 줄을 강조 (#749)
+  int? focusedBenefitIndex,
 }) async {
   if (_isOfferSheetOpen) return;
   _isOfferSheetOpen = true;
