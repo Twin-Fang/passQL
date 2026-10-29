@@ -99,7 +99,7 @@ class _TabIconPainter extends CustomPainter {
     ..strokeJoin = StrokeJoin.round
     ..color = color;
 
-  // 선택이면 몸체를 같은 색으로 꽉 채우고, 중요한 부품(문·체크·사람·말풍선 틈)은 뚫어 바탕이 보이게 한다
+  // 선택이면 선 아이콘과 같은 윤곽을 꽉 채우고, 뜻을 담은 곳(체크·말풍선 사이 틈·집게 둘레)만 뚫어 바탕이 보이게 한다
   late final Paint _fill = Paint()..color = color;
   late final Paint _cutStroke = Paint()
     ..style = PaintingStyle.stroke
@@ -271,7 +271,7 @@ class _TabIconPainter extends CustomPainter {
       draw();
       return;
     }
-    // 겹쳐 확대해도(집 안의 문) 바깥 배율을 되돌릴 수 있게 이전 굵기를 기억
+    // 확대가 끝나면 원래 굵기로 되돌리기 위해 기억
     final previousWidth = _stroke.strokeWidth;
     canvas.save();
     canvas.translate(origin.dx, origin.dy);

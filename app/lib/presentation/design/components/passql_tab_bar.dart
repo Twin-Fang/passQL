@@ -41,10 +41,14 @@ class PassqlTabBar extends StatelessWidget {
         padding: EdgeInsets.only(bottom: _resolveBottomPadding(context)),
         child: SizedBox(
           height: PassqlSize.tabBar,
+          // stretch: 탭마다 바 높이를 꽉 채워 누르는 영역이 내용 크기로 줄지 않고, 아이콘이 위 여백 기준으로 놓인다
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               for (var i = 0; i < items.length; i++)
                 Expanded(
+                  // 개념 탭이 나타나거나 사라져 순서가 밀려도 아이콘 상태(움직임)가 자기 탭을 따라가게
+                  key: ValueKey(items[i].kind),
                   child: Semantics(
                     selected: i == currentIndex,
                     // 보이는 라벨과 같은 문구를 시맨틱 라벨로 한 번만 읽음 (툴팁 없음)
