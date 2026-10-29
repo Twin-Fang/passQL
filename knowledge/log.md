@@ -57,3 +57,5 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-10-29 18:17 | W8 | 교훈 추가: 작업은 pro 스킬로 이슈·브랜치 먼저 (#755 시작 때 사용자 결정) | LSN-0001
 - 2026-10-29 19:55 | W6 | #755 이슈·완료 리포트 지식화, 결정 1건(W4: DEC-0116과 충돌 > 사용자 선택 조건부 유지), DEC-0116 related 링크, design-system 클러스터 갱신 | ISS-0430, DEC-0215, DEC-0116, cluster-design-system
 - 2026-10-29 19:55 | W6 | check W10 수정: cluster-design-system members 108 | cluster-design-system
+- 2026-10-29 21:54 | W6 | #756 이슈·완료 리포트 지식화, 결정 1건(W4: DEC-0168과 충돌 > 사용자 선택 조건부 유지), DEC-0168 related 링크, design-system·home·notification 클러스터 갱신 | ISS-0431, DEC-0216, DEC-0168, cluster-design-system, cluster-home, cluster-notification
+- 2026-10-29 21:54 | W6 | check W10 수정: members design-system 110, home 66, notification 17 | cluster-design-system, cluster-home, cluster-notification
