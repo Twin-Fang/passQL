@@ -19,7 +19,7 @@ class PassqlCountBadge extends StatelessWidget {
   /// 숫자 그대로 보여 주는 최대 개수 (넘으면 "{최대}+")
   final int maximumDisplayedCount;
 
-  /// true 주황 강조, false 중립 회색 (선택 안 된 탭처럼 눈을 끌면 안 되는 자리)
+  /// true 빨강 강조(iOS 배지), false 중립 회색 (선택 안 된 탭처럼 눈을 끌면 안 되는 자리)
   final bool isEmphasized;
 
   static const int defaultMaximumDisplayedCount = 99;
@@ -45,7 +45,7 @@ class PassqlCountBadge extends StatelessWidget {
             ? EdgeInsets.zero
             : const EdgeInsets.symmetric(horizontal: PassqlSpacing.xxs),
         decoration: BoxDecoration(
-          color: isEmphasized ? colors.warning : colors.fill,
+          color: isEmphasized ? colors.countBadge : colors.fill,
           borderRadius: BorderRadius.circular(PassqlRadius.capsule),
         ),
         // widthFactor 1: 너비는 글자에 맞춤, 높이는 배지 높이 안에서 가운데
@@ -57,8 +57,7 @@ class PassqlCountBadge extends StatelessWidget {
             label,
             textAlign: TextAlign.center,
             style: PassqlTypography.captionSemibold.copyWith(
-              // 주황 위 흰 글자는 대비 2.2 > onSemantic
-              color: isEmphasized ? colors.onSemantic : colors.secondaryLabel,
+              color: isEmphasized ? colors.onCountBadge : colors.secondaryLabel,
               height: 1,
               fontFeatures: PassqlTypography.tabular,
             ),

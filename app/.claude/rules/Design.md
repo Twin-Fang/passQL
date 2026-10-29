@@ -47,7 +47,7 @@ lib/presentation/design/
 | `PassqlSegmentedControl` / `PassqlSegment` | 회색 트랙 + 선택 알약 세그먼트 (문제 탭 보기·알림함 탭). 칸마다 탭·선택 시맨틱, 누르는 높이 44 |
 | `PassqlLoadingSemantics` | 로딩 자리(스피너·스켈레톤 묶음)를 '불러오는 중' 한 번으로 읽힘. 화면 스켈레톤 묶음은 이것으로 감쌈 |
 | `PassqlCard` | 그림자 없는 카드, 제목·우측 요소, 바깥 높이 채움(`shouldChildFillHeight`, 2열 높이 맞춤) |
-| `PassqlMarqueeText` | 한 줄 흐르는 글자(마퀴, 홈 공지 #701): 넘칠 때만 멈춤 > 흐름 반복, 속도·멈춤·간격은 `PassqlMotion.marquee*`, 동작 줄이기면 말줄임, 스크린리더는 전체 문장 한 번 |
+| `PassqlMarqueeText` | 한 줄 흐르는 글자(마퀴, 홈 공지 #701): 넘칠 때만 멈춤 > 흐름 반복(`isAlwaysScrolling` 이면 짧아도 흐름, 홈 공지 #756), 속도·멈춤·간격은 `PassqlMotion.marquee*`, 동작 줄이기면 말줄임, 스크린리더는 전체 문장 한 번 |
 | `PassqlActivityRings` | 바깥에서 안쪽으로 겹친 진행 링 (홈 합격 준비도 정확도·범위·최신성, #701). 링마다 비율·색, 가운데 글자 선택. 링은 스크린리더에서 숨기고 쓰는 쪽이 범례와 묶어 읽힘 |
 | `PassqlSection` / `PassqlSectionGap` / `PassqlSectionHeader` / `PassqlSectionLink` | 홈식 구간: 좌우 끝까지 닿는 card 면(좌우 md·위아래 lg)과 구간 사이 md 높이 background 띠. 제목 줄은 높이 44 고정 title3(+ 앞 아이콘·오른쪽 요소), 오른쪽 이동 링크는 글자 + › 한 모양 (#701). `isCompactTitle`: 작은 타일 + 15pt 제목 (문제 탭 경향 구간, #726) |
 | `PassqlGroupedSection` / `PassqlListRow` / `PassqlCheckRow` / `PassqlIconTile` | iOS 설정 앱식 목록 묶음·행·선택 행·아이콘 타일 (`isCompact`: 26pt 구간 제목용, #726) |
@@ -76,7 +76,7 @@ lib/presentation/design/
 | `PassqlPopIn` | 톡 튀어나오는 등장 (반짝이, 결과 마크) |
 | `PassqlAiHeader` | AI 내용 머리: 반짝이 팝 + 제목 미끄러짐 |
 | `PassqlLogo` | 라이트/다크 워드마크 |
-| `PassqlNotificationBellButton` | 홈 상단 종 아이콘 + 안 읽은 개수 배지(10 이상 9+). 알림함 진입은 이 버튼으로만 (규칙 테스트) |
+| `PassqlNotificationBellButton` | 홈 상단 종 아이콘(강조색) + 안 읽은 개수 배지(빨강 `countBadge`, 10 이상 9+, #756). 알림함 진입은 이 버튼으로만 (규칙 테스트) |
 | `PassqlLockedPreview` | 잠긴 기능 묶음: 흐린 가짜 미리보기 + 가운데 한 줄 + 알약 `이용권으로 열기`, 영역 전체 탭 > `onUnlock` (#576). 프로 안내 시트는 `widgets/pro/pro_offer_sheet.dart` 의 `showProOfferSheet` |
 | `PassqlPassTicket` (+`PassqlPassTicketTier`, `PassqlPassTicketField`) / `PassqlPassUsageGauge` | passQL PASS 탑승권 (#749): 본문(제목·경로·정보 칸·혜택 아이콘·footer) + 절취선 + 떼는 칸. 무료 회색·프로 그라데이션, 빛줄기·홀로그램·기울기 선택, 동작 줄이기면 효과 정지. 사용량 게이지는 빛이 지나감. 내 프로필·이용권 구매 시트·정보 시트가 쓴다 |
 | `PassqlPlanChip` | 등급 칩: 무료 회색 `FREE`(탭 가능) · 프로 보라 `PRO`(탭 없음) (#576) |

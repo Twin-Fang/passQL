@@ -18,6 +18,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     required this.warning,
     required this.warningText,
     required this.onSemantic,
+    required this.countBadge,
+    required this.onCountBadge,
     required this.label,
     required this.secondaryLabel,
     required this.tertiaryLabel,
@@ -53,6 +55,13 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
 
   /// 진한 의미색(correct·wrong·warning) 채움 위 글자 (흰 글자는 대비 2~3.5라 쓰지 않음)
   final Color onSemantic;
+
+  /// 안 읽은 개수 배지 채움 (#756). iOS 시스템 배지와 같은 밝은 빨강 + 흰 숫자.
+  /// 흰 숫자 대비는 약 3.5로 글자 기준(4.5)에 못 미치지만, 진한 빨강은 작은 배지에서 눈에 덜 띄어 사용자 결정으로 밝은 빨강을 쓴다
+  final Color countBadge;
+
+  /// [countBadge] 위 숫자
+  final Color onCountBadge;
   final Color label;
   final Color secondaryLabel;
   /// 비활성·장식(쉐브론·손잡이) 전용. 읽어야 하는 글자는 secondaryLabel (규칙 테스트)
@@ -95,6 +104,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     // 주황 그대로는 흰 바탕 2.2 > 갈색 계열로 어둡게
     warningText: Color(0xFF9A4500),
     onSemantic: Color(0xFF000000),
+    countBadge: Color(0xFFFF3B30),
+    onCountBadge: Color(0xFFFFFFFF),
     label: Color(0xFF000000),
     // 배지·세그먼트 트랙(fill) 위에서도 4.5 이상 (Apple systemGray2 다크 값과 같음)
     secondaryLabel: Color(0xFF636366),
@@ -128,6 +139,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     warning: Color(0xFFFF9F0A),
     warningText: Color(0xFFFF9F0A),
     onSemantic: Color(0xFF000000),
+    countBadge: Color(0xFFFF453A),
+    onCountBadge: Color(0xFFFFFFFF),
     label: Color(0xFFFFFFFF),
     secondaryLabel: Color(0xFFAEAEB2),
     tertiaryLabel: Color(0x4DEBEBF5),
@@ -160,6 +173,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
         warning: warning,
         warningText: warningText,
         onSemantic: onSemantic,
+        countBadge: countBadge,
+        onCountBadge: onCountBadge,
         label: label,
         secondaryLabel: secondaryLabel,
         tertiaryLabel: tertiaryLabel,
@@ -194,6 +209,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
       warning: lerpColor(warning, other.warning),
       warningText: lerpColor(warningText, other.warningText),
       onSemantic: lerpColor(onSemantic, other.onSemantic),
+      countBadge: lerpColor(countBadge, other.countBadge),
+      onCountBadge: lerpColor(onCountBadge, other.onCountBadge),
       label: lerpColor(label, other.label),
       secondaryLabel: lerpColor(secondaryLabel, other.secondaryLabel),
       tertiaryLabel: lerpColor(tertiaryLabel, other.tertiaryLabel),
