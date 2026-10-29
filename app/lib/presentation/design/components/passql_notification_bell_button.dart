@@ -39,7 +39,8 @@ class PassqlNotificationBellButton extends StatelessWidget {
             Icon(
               _hasUnread ? CupertinoIcons.bell_fill : CupertinoIcons.bell,
               size: PassqlIconSize.xl,
-              color: colors.label,
+              // 앱 강조색(인디고)에 맞춤. accentText 는 라이트·다크 모두 배경 대비 기준을 통과하는 강조 글자·아이콘색
+              color: colors.accentText,
             ),
             if (_hasUnread)
               Positioned(
