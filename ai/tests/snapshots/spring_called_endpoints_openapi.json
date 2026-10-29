@@ -6,7 +6,14 @@
           "description": "사용자 풀이용 — 기존 문제에 대한 선택지 4개 세트 생성 컨텍스트",
           "properties": {
             "answer_sql": {
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "difficulty": {
               "maximum": 5.0,
@@ -17,7 +24,14 @@
               "type": "string"
             },
             "schema_ddl": {
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "schema_intent": {
               "anyOf": [
@@ -30,7 +44,14 @@
               ]
             },
             "schema_sample_data": {
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "stem": {
               "type": "string"
@@ -39,9 +60,6 @@
           "required": [
             "question_uuid",
             "stem",
-            "answer_sql",
-            "schema_ddl",
-            "schema_sample_data",
             "difficulty"
           ],
           "type": "object"
