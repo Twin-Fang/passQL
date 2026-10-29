@@ -8,7 +8,7 @@ import '../../design/design.dart';
 
 /// 홈 공지 배너: 탭 > 공지 상세 화면(#529), 닫기 > 읽음 처리(같은 공지 다시 안 띄움)
 /// 머리글(작은 스피커 + "중요 공지 · 1일 전") 아래 제목 한 줄 (#756).
-/// 긴 제목은 잘리지 않고 흐른다 (마퀴, #701). 동작 줄이기면 말줄임
+/// 제목은 길이와 상관없이 흐른다 (마퀴, #701·#756). 동작 줄이기면 멈춘 말줄임
 class AppNoticeBanner extends StatelessWidget {
   const AppNoticeBanner({
     super.key,
@@ -39,8 +39,8 @@ class AppNoticeBanner extends StatelessWidget {
           color: colors.background,
           borderRadius: BorderRadius.circular(PassqlRadius.lg),
         ),
+        // 닫기 버튼 누르는 영역(44)이 글자 묶음보다 커서, 위 정렬이면 남는 높이가 아래에만 붙는다 > 가운데로 위아래 여백을 같게
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: Column(
@@ -77,6 +77,7 @@ class AppNoticeBanner extends StatelessWidget {
                   const SizedBox(height: PassqlSpacing.hairlineGap),
                   PassqlMarqueeText(
                     notice.title,
+                    isAlwaysScrolling: true,
                     style: PassqlTypography.subheadlineSemibold.copyWith(
                       color: colors.label,
                     ),
@@ -84,7 +85,7 @@ class AppNoticeBanner extends StatelessWidget {
                 ],
               ),
             ),
-            // 닫기는 오른쪽 위
+            // 닫기
             CupertinoButton(
               padding: EdgeInsets.zero,
               minimumSize: const Size.square(PassqlSize.minTouchTarget),
