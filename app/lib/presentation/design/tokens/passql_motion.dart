@@ -9,6 +9,7 @@ abstract final class PassqlMotion {
   static const standard = Duration(milliseconds: 300); // 섹션 등장, 교체
   static const emphasized = Duration(milliseconds: 450); // 반짝이·결과 마크 팝
   static const scoreFill = Duration(milliseconds: 700); // 점수 고리 차오름
+  static const tabIconSelect = Duration(milliseconds: 600); // 하단 탭 아이콘 선택 움직임 전체 (부품별 구간은 PassqlTabIcon)
 
   // 스켈레톤 반짝임 한 바퀴 (느리고 부드럽게, 블록 전체 1개)
   static const skeletonShimmerPeriod = Duration(milliseconds: 1600);
