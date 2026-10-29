@@ -2,7 +2,7 @@
 type: cluster
 topic: security
 created: 2026-10-29
-members: 42
+members: 43
 status: active
 related: []
 ---
@@ -31,6 +31,7 @@ related: []
 - [[DEC-0142-encrypt-sqld-research-materials]] — 출제 경향 조사 원문은 로컬에만 두고 레포에는 AES-256 암호본만 커밋한다
 - [[DEC-0143-server-side-social-unlink-on-withdraw]] — 탈퇴 시 소셜 제공자 연결 해제는 서버가 하고, GitHub·네이버 토큰은 암호화 보관한다
 - [[DEC-0144-per-device-refresh-token-reuse-revoke]] — refresh token은 기기별(`jti`)로 저장하고, 이미 회전된 토큰이 다시 오면 그 회원 세션을 전부 폐기한다
+- [[DEC-0214-no-local-design-docs-in-public-vault]] — 퍼블릭 레포 볼트에는 로컬 전용 설계 문서를 넣지 않고, 서버 경로·호스트·내부 포트를 쓰지 않는다
 
 ## 대체된 결정 (역사)
 - [[DEC-0026-sensitive-settings-masked-readonly]] → DEC-0107

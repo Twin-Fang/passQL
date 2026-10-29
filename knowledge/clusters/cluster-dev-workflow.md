@@ -2,7 +2,7 @@
 type: cluster
 topic: dev-workflow
 created: 2026-10-29
-members: 60
+members: 63
 status: active
 related: []
 ---
@@ -39,6 +39,8 @@ related: []
 - [[DEC-0173-no-new-tests-in-repo]] — (사용자 지시) 테스트 코드는 저장소에 새로 올리지 않고, 변경으로 깨진 옛 테스트만 정리한다
 - [[DEC-0177-rename-only-checkable-local-names]] — 약어 풀어쓰기는 컴파일러·타입 검사로 확인 가능한 지역 이름만 — 계약 이름·프레임워크 시그니처·관용 표현·관리자 정적 JS·테스트는 제외
 - [[DEC-0183-keep-only-contract-architecture-tests]] — 기능 테스트는 전부 삭제하고 API 계약 테스트와 아키텍처 규칙 테스트만 남긴다
+- [[DEC-0213-ingest-after-report-same-pr]] — 볼트는 모노레포 knowledge/에 두고, pro-report 직후 지식화해 그 이슈의 같은 PR에 커밋한다
+- [[DEC-0214-no-local-design-docs-in-public-vault]] — 퍼블릭 레포 볼트에는 로컬 전용 설계 문서를 넣지 않고, 서버 경로·호스트·내부 포트를 쓰지 않는다
 
 ## 대체된 결정 (역사)
 - [[DEC-0068-dev-mode-hidden-easter-egg]] → null
@@ -80,3 +82,4 @@ related: []
 - [[ISS-0346-harness-env-setup-oracle-21c]] (resolved, GitHub #559) — 문제 검증 도구 환경 준비 자동화, Oracle 버전 호환 점검
 - [[ISS-0391-expand-abbreviated-local-names]] (resolved, GitHub #642) — 앱·서버·웹 지역 변수에 약어 이름이 남아 있음 (계약 이름 제외)
 - [[ISS-0406-delete-functional-tests-keep-contracts]] (resolved, GitHub #680) — 기능 테스트 삭제, 계약·아키텍처 규칙 테스트만 유지
+- [[ISS-0429-second-brain-vault-adoption]] (resolved, GitHub #751) — 세컨드 브레인 도입 (이슈, 리포트 지식화와 결정 기록)
