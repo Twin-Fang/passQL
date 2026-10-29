@@ -23,17 +23,17 @@ class PassqlPassTicketField {
   final bool isHighlighted;
 }
 
-// 탑승권 규격 (시안 final-all-v1 기준): 떼는 칸 폭, 절취선 위아래 반원 홈 반지름, 기울기
+// 탑승권 규격 (시안 final-all-v1 기준): 떼는 칸 폭, 절취선 위아래 반원 홈 반지름
 const double _stubWidth = 74;
 const double _notchRadius = 9;
-const double _tiltRadians = -2 * math.pi / 180;
 const double _glowBlur = 22;
 const double _glowOffsetY = 8;
 const double _benefitIconSize = 22;
 const double _benefitGlyphSize = 13;
-const double _barcodeWidth = 42;
 const double _barcodeHeight = 28;
 const double _titleLetterSpacing = 0.6;
+// 정보 칸 라벨 글자 크기: 값(13)보다 한 단계 더 작게 해 값이 먼저 읽히게
+const double _fieldLabelSize = 11;
 // 빛줄기: 25도 기운 흰 띠 폭·투명도 / 홀로그램 띠 투명도
 const double _sweepWidth = 46;
 const double _sweepAngle = 25 * math.pi / 180;
@@ -56,7 +56,7 @@ class PassqlPassTicket extends StatelessWidget {
     this.footer,
     this.hasSweep = false,
     this.hasHolo = false,
-    this.isTilted = false,
+    this.isFloating = false,
     this.onTap,
     this.onBenefitTap,
     this.semanticLabel,
@@ -77,8 +77,8 @@ class PassqlPassTicket extends StatelessWidget {
   final bool hasSweep;
   final bool hasHolo;
 
-  /// 시트 위에 띄울 때: 살짝 기울이고 그림자(다크는 보라 빛)
-  final bool isTilted;
+  /// 시트 위에 띄울 때: 그림자(다크는 보라 빛). 기울이지 않고 정방향으로 둔다
+  final bool isFloating;
   final VoidCallback? onTap;
 
   /// 혜택 아이콘을 눌렀을 때 그 순서 (시트가 그 혜택을 강조)
@@ -154,22 +154,19 @@ class PassqlPassTicket extends StatelessWidget {
     );
 
     Widget result = ticket;
-    if (isTilted) {
-      result = Transform.rotate(
-        angle: _tiltRadians,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(PassqlRadius.lg),
-            boxShadow: [
-              BoxShadow(
-                color: colors.passGlow,
-                blurRadius: _glowBlur,
-                offset: const Offset(0, _glowOffsetY),
-              ),
-            ],
-          ),
-          child: ticket,
+    if (isFloating) {
+      result = DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(PassqlRadius.lg),
+          boxShadow: [
+            BoxShadow(
+              color: colors.passGlow,
+              blurRadius: _glowBlur,
+              offset: const Offset(0, _glowOffsetY),
+            ),
+          ],
         ),
+        child: ticket,
       );
     }
     if (onTap == null) {
@@ -273,7 +270,10 @@ class _TicketBody extends StatelessWidget {
                   children: [
                     Text(
                       field.label,
-                      style: PassqlTypography.caption.copyWith(color: subtle),
+                      style: PassqlTypography.caption.copyWith(
+                        color: subtle,
+                        fontSize: _fieldLabelSize,
+                      ),
                     ),
                     Container(
                       padding: field.isHighlighted
@@ -371,7 +371,7 @@ class _BenefitIcon extends StatelessWidget {
   }
 }
 
-/// 떼는 칸: 바코드 무늬 + 글자
+/// 떼는 칸: 바코드 무늬 + 글자. 바코드 폭은 글자 폭에 맞춘다 (양끝이 딱 맞게)
 class _TicketStub extends StatelessWidget {
   const _TicketStub({
     required this.label,
@@ -387,27 +387,31 @@ class _TicketStub extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: _stubWidth,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ExcludeSemantics(
-            child: CustomPaint(
-              painter: _BarcodePainter(
-                color: barcodeColor.withValues(alpha: 0.75),
+      child: Center(
+        child: IntrinsicWidth(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ExcludeSemantics(
+                child: CustomPaint(
+                  painter: _BarcodePainter(
+                    color: barcodeColor.withValues(alpha: 0.75),
+                  ),
+                  child: const SizedBox(height: _barcodeHeight),
+                ),
               ),
-              child: const SizedBox(
-                width: _barcodeWidth,
-                height: _barcodeHeight,
+              const SizedBox(height: PassqlSpacing.xs),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: PassqlTypography.captionSemibold.copyWith(
+                  color: textColor,
+                ),
               ),
-            ),
+            ],
           ),
-          const SizedBox(height: PassqlSpacing.xs),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: PassqlTypography.captionSemibold.copyWith(color: textColor),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -629,11 +633,16 @@ class _BarcodePainter extends CustomPainter {
     var x = 0.0;
     var index = 0;
     while (x < size.width) {
-      final barWidth = _barWidths[index % _barWidths.length];
+      final barWidth = math.min(
+        _barWidths[index % _barWidths.length],
+        size.width - x,
+      );
       canvas.drawRect(Rect.fromLTWH(x, 0, barWidth, size.height), paint);
       x += barWidth + 2;
       index++;
     }
+    // 오른쪽 끝이 틈으로 끝나면 글자 끝과 어긋나 보여 마지막 줄을 끝에 붙인다
+    canvas.drawRect(Rect.fromLTWH(size.width - 1, 0, 1, size.height), paint);
   }
 
   @override

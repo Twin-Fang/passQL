@@ -1,4 +1,7 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+import '../../design/design.dart';
 
 /// 무료 하루 문제 수를 서버에서 못 받았을 때의 표시값
 const int _fallbackDailyFreeLimit = 10;
@@ -7,7 +10,8 @@ const int _fallbackDailyFreeLimit = 10;
 const bool _isConceptLearningRowVisible = false;
 
 /// 이용권 혜택 한 줄 (#749): 비교표·탑승권 아이콘·이용권 시트가 모두 이 목록 하나를 읽는다
-/// [free] null = 무료 불가, [pro] null = 프로 포함(체크). [hue] 는 systemHueColor 색조 이름
+/// [free] null = 무료 불가, [pro] null = 프로 포함(체크). [hue] 는 systemHueColor 색조 이름 ('warning' 은 앱 색 토큰)
+/// [icon] 은 앱에서 같은 기능에 이미 쓰는 아이콘으로 맞춘다 (해설 = AI 해설 sparkles, 실행 = SQL 실습 play, 실전 모드 = 문제 탭 풀이 모드 bolt, 출제 경향 = 최신 경향 flame, 통계 = 8각 차트 hexagon(타일 안이라 채운 모양))
 class ProBenefit {
   const ProBenefit({
     required this.label,
@@ -39,35 +43,35 @@ List<ProBenefit> proBenefits({required int dailyFreeLimit}) {
       label: 'SQL 직접 실행',
       free: null,
       pro: null,
-      icon: CupertinoIcons.play_arrow_solid,
+      icon: CupertinoIcons.play_fill,
       hue: 'green',
     ),
     const ProBenefit(
       label: '해설',
       free: '한 줄',
       pro: '보기별 전체',
-      icon: CupertinoIcons.book,
+      icon: CupertinoIcons.sparkles,
       hue: 'orange',
     ),
     const ProBenefit(
       label: '실전 모드·토픽',
       free: null,
       pro: null,
-      icon: CupertinoIcons.layers_alt,
+      icon: CupertinoIcons.bolt_fill,
       hue: 'purple',
     ),
     const ProBenefit(
       label: '출제 경향',
       free: null,
       pro: null,
-      icon: CupertinoIcons.graph_square,
-      hue: 'teal',
+      icon: CupertinoIcons.flame_fill,
+      hue: 'warning',
     ),
     const ProBenefit(
       label: '통계',
       free: '기본',
       pro: '약점 분석',
-      icon: CupertinoIcons.scope,
+      icon: CupertinoIcons.hexagon_fill,
       hue: 'red',
     ),
     if (_isConceptLearningRowVisible)
@@ -91,3 +95,9 @@ String benefitFreeToProLabel(ProBenefit benefit) {
 
 /// 이용권 정보 시트 줄 값: 프로 값이 있으면 그 값, 아니면 "사용 중"
 String benefitInUseLabel(ProBenefit benefit) => benefit.pro ?? '사용 중';
+
+/// 혜택 타일 색. 출제 경향 불꽃만 문제 탭 토픽 카드·최신 경향 불꽃과 같은 warning 색, 나머지는 혜택마다 다른 색조
+Color benefitColorOf(BuildContext context, ProBenefit benefit) =>
+    benefit.hue == 'warning'
+    ? context.passqlColors.warning
+    : systemHueColor(benefit.hue, Theme.of(context).brightness);

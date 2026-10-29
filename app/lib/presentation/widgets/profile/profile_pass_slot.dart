@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/date_format.dart';
@@ -32,7 +31,7 @@ class ProfilePassSlot extends ConsumerWidget {
       return _FreePass(plan: plan, schedule: schedule, nickname: nickname);
     }
     if (ref.watch(shouldShowProBadgeProvider)) {
-      return _ProPass(plan: plan, schedule: schedule);
+      return _ProPass(plan: plan, schedule: schedule, nickname: nickname);
     }
     return const SizedBox.shrink();
   }
@@ -60,10 +59,9 @@ List<({IconData icon, Color color})> _benefitIconsOf(
   BuildContext context,
   int dailyFreeLimit,
 ) {
-  final brightness = Theme.of(context).brightness;
   return [
     for (final benefit in proBenefits(dailyFreeLimit: dailyFreeLimit))
-      (icon: benefit.icon, color: systemHueColor(benefit.hue, brightness)),
+      (icon: benefit.icon, color: benefitColorOf(context, benefit)),
   ];
 }
 
@@ -139,10 +137,15 @@ class _FreePass extends ConsumerWidget {
 
 /// 프로: 기본 접힌 한 줄, 펼치면 보라 탑승권. 구매 직후 첫 진입은 회색 > 보라 연출 한 번
 class _ProPass extends ConsumerStatefulWidget {
-  const _ProPass({required this.plan, required this.schedule});
+  const _ProPass({
+    required this.plan,
+    required this.schedule,
+    required this.nickname,
+  });
 
   final MemberPlanResponse? plan;
   final ExamScheduleResponse? schedule;
+  final String nickname;
 
   @override
   ConsumerState<_ProPass> createState() => _ProPassState();
@@ -237,14 +240,14 @@ class _ProPassState extends ConsumerState<_ProPass> {
     return PassqlPassTicket(
       tier: tier,
       destination: exam.destination,
+      // 이용권 정보 시트와 같은 칸 순서 (만료일은 시트·접힌 줄·스크린리더가 알려 준다)
       fields: [
-        if (examDate != null) PassqlPassTicketField('시험일', examDate),
-        if (expiresAt != null)
-          PassqlPassTicketField('이용권', '${_monthDay(expiresAt)}까지'),
+        PassqlPassTicketField('승객', widget.nickname),
         if (daysLeft != null) PassqlPassTicketField('남은 날', '$daysLeft일'),
+        if (examDate != null) PassqlPassTicketField('시험일', examDate),
       ],
       benefitIcons: _benefitIconsOf(context, plan?.dailyFreeLimit ?? 0),
-      stubLabel: '이용권\n정보',
+      stubLabel: '사용 중',
       hasSweep: tier == PassqlPassTicketTier.pro,
       hasHolo: hasHolo,
       onTap: onTap,

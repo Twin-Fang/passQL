@@ -383,16 +383,13 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
                     for (final benefit in benefits)
                       (
                         icon: benefit.icon,
-                        color: systemHueColor(
-                          benefit.hue,
-                          Theme.of(context).brightness,
-                        ),
+                        color: benefitColorOf(context, benefit),
                       ),
                   ],
                   stubLabel: 'PRO',
                   hasSweep: true,
                   hasHolo: true,
-                  isTilted: true,
+                  isFloating: true,
                   semanticLabel: selectedOption == null
                       ? 'passQL PRO PASS 미리보기'
                       : 'passQL PRO PASS 미리보기, ${formatDottedDate(selectedOption.expiresAtIfPurchased)}까지',
@@ -604,7 +601,7 @@ class _BenefitRow extends StatelessWidget {
         children: [
           PassqlIconTile(
             icon: benefit.icon,
-            color: systemHueColor(benefit.hue, Theme.of(context).brightness),
+            color: benefitColorOf(context, benefit),
             isCompact: true,
           ),
           const SizedBox(width: PassqlSpacing.xs),
@@ -671,7 +668,7 @@ class _FocusedBenefitRow extends StatelessWidget {
         children: [
           PassqlIconTile(
             icon: benefit.icon,
-            color: systemHueColor(benefit.hue, Theme.of(context).brightness),
+            color: benefitColorOf(context, benefit),
           ),
           const SizedBox(width: PassqlSpacing.sm),
           Expanded(
