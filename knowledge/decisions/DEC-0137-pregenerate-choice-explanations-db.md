@@ -7,7 +7,7 @@ topics: [ai, practice]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0301-ai-explanation-persist-pregenerate]]"]
+related: ["[[ISS-0301-ai-explanation-persist-pregenerate]]", "[[DEC-0055-multiple-correct-ai-fallback-save]]"]
 ---
 
 # DEC-0137: 선택지 해설은 세트 저장 직후 별도 호출로 미리 생성해 DB에 영구 저장하고, 샌드박스 미검증 세트는 제외

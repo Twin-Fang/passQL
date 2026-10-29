@@ -7,7 +7,7 @@ topics: [question-bank, practice]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0313-sqld-2026-trend-curated-choices]]", "[[ISS-0313-sqld-2026-trend-curated-choices-report]]"]
+related: ["[[ISS-0313-sqld-2026-trend-curated-choices]]", "[[ISS-0313-sqld-2026-trend-curated-choices-report]]", "[[DEC-0087-choice-generation-practice-real-mode]]"]
 ---
 
 # DEC-0141: Oracle 전용 문법 문제는 로컬 Oracle에서 검증한 고정 보기(`CURATED_ONLY`)를 실전·연습 모두 그대로 출제한다

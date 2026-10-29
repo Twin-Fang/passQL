@@ -7,7 +7,7 @@ topics: [auth-member, security]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0146-oauth-jwt-auth-system]]", "[[ISS-0146-oauth-jwt-auth-system-report]]", "[[ISS-0147-firebase-project-and-secrets]]"]
+related: ["[[ISS-0146-oauth-jwt-auth-system]]", "[[ISS-0146-oauth-jwt-auth-system-report]]", "[[ISS-0147-firebase-project-and-secrets]]", "[[DEC-0144-per-device-refresh-token-reuse-revoke]]", "[[DEC-0012-nickname-via-suh-random-engine]]"]
 ---
 
 # DEC-0080: 소셜 로그인 토큰을 서버가 검증해 자체 JWT(AT 1h + RT 14d, Redis)를 발급하고, 익명 회원은 없앤다

@@ -4,10 +4,10 @@ id: DEC-0029
 created: 2026-04-09
 reviewed: null
 topics: [ai]
-status: active
-supersedes: null
-superseded_by: null
-related: ["[[ISS-0029-realtime-ai-choice-set-prefetch]]", "[[DEC-0020-gemini-flash-lite-primary-llm]]"]
+status: superseded
+supersedes: DEC-0020
+superseded_by: DEC-0187
+related: ["[[ISS-0029-realtime-ai-choice-set-prefetch]]", "[[DEC-0020-gemini-flash-lite-primary-llm]]", "[[DEC-0187-claude-provider-by-model-prefix]]"]
 ---
 
 # DEC-0029: AI 호출은 Spring → Python AI Server(Gemini 2.5 flash-lite)가 메인, Spring `GeminiClient` 직접 호출이 fallback, Ollama는 embedding 전용

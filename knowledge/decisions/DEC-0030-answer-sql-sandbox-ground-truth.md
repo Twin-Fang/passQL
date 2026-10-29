@@ -4,10 +4,10 @@ id: DEC-0030
 created: 2026-04-09
 reviewed: null
 topics: [question-bank, practice]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
-related: ["[[ISS-0029-realtime-ai-choice-set-prefetch]]", "[[DEC-0028-realtime-choice-set-with-prefetch]]"]
+superseded_by: DEC-0055
+related: ["[[ISS-0029-realtime-ai-choice-set-prefetch]]", "[[DEC-0028-realtime-choice-set-with-prefetch]]", "[[DEC-0055-multiple-correct-ai-fallback-save]]"]
 ---
 
 # DEC-0030: `answer_sql` 샌드박스 실행 결과를 정답의 진실로, 정답 수가 1이 아니면 최대 3회 재생성 후 `FAILED`

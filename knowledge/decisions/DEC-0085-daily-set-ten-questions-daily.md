@@ -4,10 +4,10 @@ id: DEC-0085
 created: 2026-10-07
 reviewed: null
 topics: [practice]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
-related: ["[[ISS-0161-daily-set-feature]]", "[[ISS-0161-daily-set-feature-report]]", "[[ISS-0177-app-daily-set-result-leaderboard]]"]
+superseded_by: DEC-0178
+related: ["[[ISS-0161-daily-set-feature]]", "[[ISS-0161-daily-set-feature-report]]", "[[ISS-0177-app-daily-set-result-leaderboard]]", "[[DEC-0178-daily-set-five-questions]]"]
 ---
 
 # DEC-0085: 데일리 세트는 기획한 5문제가 아니라 매일 10문제 세트로 한다

@@ -16,10 +16,7 @@ related: []
 (2026-10-29, 자동 생성) 활성 결정 40개, 열린 이슈 1개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
-- [[DEC-0016-auto-execute-on-choice-click]] — 선택지 라디오를 클릭하면 그 선택지 SQL을 자동 execute, 같은 선택지 재클릭은 클라 캐시
 - [[DEC-0017-fullscreen-result-screen]] — 제출 결과 화면은 풀스크린 1종으로 통일 (bottom sheet 변형 미채택)
-- [[DEC-0028-realtime-choice-set-with-prefetch]] — 문제는 고정, 선택지 세트는 퀴즈 진입마다 AI로 생성하고 다음 문제 세트는 프리페치 (MVP는 `AI_ONLY`)
-- [[DEC-0030-answer-sql-sandbox-ground-truth]] — `answer_sql` 샌드박스 실행 결과를 정답의 진실로, 정답 수가 1이 아니면 최대 3회 재생성 후 `FAILED`
 - [[DEC-0040-choice-response-hides-answer]] — 선택지 생성 응답에는 정답·해설을 넣지 않고, 정답 판정은 제출 시 서버가 `choiceSetId`의 선택지 세트로 한다
 - [[DEC-0041-result-screen-by-execution-mode]] — 제출 결과는 `executionMode`로 나눈다 — EXECUTABLE은 SQL과 실행 결과 비교, CONCEPT_ONLY는 텍스트 비교만
 - [[DEC-0047-execute-uses-temp-sandbox-db]] — `sandboxDbName`이 없는 문제의 `/execute`는 호출마다 `SandboxPool` 임시 DB를 만들어 실행하고 지운다
@@ -36,7 +33,6 @@ related: []
 - [[DEC-0058-on-demand-choice-execution-after-submit]] — EXECUTABLE 제출 후 실행 결과는 선택지 카드별 실행 버튼으로 골라 보게 한다 (전체 자동 노출 폐기, 풀이 중에는 실행 버튼 없음)
 - [[DEC-0062-separate-recommendation-practice-page]] — 홈 추천 문제는 QuestionDetail 직접 링크 대신 전용 `RecommendationPractice` 페이지로 풀고, 정답·오답 모두 제출 기록한다
 - [[DEC-0073-session-result-fixed-at-first-submit]] — 세션 결과는 최초 제출 기준으로 고정하고, 복습은 통계에만 반영한다
-- [[DEC-0085-daily-set-ten-questions-daily]] — 데일리 세트는 기획한 5문제가 아니라 매일 10문제 세트로 한다
 - [[DEC-0087-choice-generation-practice-real-mode]] — 선택지 생성 모드를 연습(`PRACTICE`, 검증된 선택지 재사용)과 실전(`REAL`, 항상 AI 실시간 생성)으로 나눈다
 - [[DEC-0089-shared-question-flow-for-solving]] — 앱 풀이 화면은 하나로 두고, 풀이 방식마다 `QuestionFlow`만 구현한다
 - [[DEC-0090-app-no-separate-recommendation-screen]] — 앱은 추천 문제 전용 풀이 화면을 만들지 않고 일반 문제 풀이 화면을 그대로 쓴다
@@ -46,7 +42,6 @@ related: []
 - [[DEC-0138-solving-detail-hides-answers]] — 사용자용 문제 상세는 응답 형태를 유지한 채 정답 필드를 비우고 최신 OK 세트 1개만 보낸다
 - [[DEC-0141-curated-only-oracle-verified-choices]] — Oracle 전용 문법 문제는 로컬 Oracle에서 검증한 고정 보기(`CURATED_ONLY`)를 실전·연습 모두 그대로 출제한다
 - [[DEC-0146-structured-explanation-once-per-set]] — AI 해설은 고정 섹션 형식으로 선택지 세트당 한 번 만들어 저장하고, 없으면 "생성 중"을 돌려주며 백그라운드에서 만든다
-- [[DEC-0147-keep-explanation-sheet-while-solving]] — 해설은 비모달 시트·패널로 열어 해설을 보면서 계속 풀게 하고, 다음 문제로 넘어가도 조회를 잇는다
 - [[DEC-0154-close-explanation-sheet-on-next]] — 풀이 중 "다음"으로 넘어가면 해설 시트를 닫는다 (해설함·백그라운드 조회는 유지)
 - [[DEC-0155-exam-tip-after-answer-reason]] — AI 해설 화면 순서는 판정 → 정답 근거 → 시험 팁 → 핵심 개념 → 헷갈리는 지점 → 보기별 판단
 - [[DEC-0165-numeric-choices-ascending]] — 보기가 모두 숫자면 섞지 않고 오름차순으로 보여 준다
@@ -58,7 +53,11 @@ related: []
 - [[DEC-0200-shared-sandbox-result-cache]] — 샌드박스 실행 결과는 `CachedSandboxExecutor` 한 곳에서 회원 간 공유 캐시(메모리 30분 > Redis 7일)로 재사용한다
 
 ## 대체된 결정 (역사)
-- 없음
+- [[DEC-0016-auto-execute-on-choice-click]] → DEC-0051
+- [[DEC-0028-realtime-choice-set-with-prefetch]] → DEC-0087
+- [[DEC-0030-answer-sql-sandbox-ground-truth]] → DEC-0055
+- [[DEC-0085-daily-set-ten-questions-daily]] → DEC-0178
+- [[DEC-0147-keep-explanation-sheet-while-solving]] → DEC-0154
 
 ## 관련 이슈
 - [[ISS-0412-ai-explanation-quality-cost-optimization]] (open, GitHub #699) — AI 해설 품질, 호출 빈도, 비용 최적화와 해설 시트 정리

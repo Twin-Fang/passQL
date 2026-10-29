@@ -19,14 +19,9 @@ related: []
 - [[DEC-0008-admin-csrf-common-fetch-wrapper]] — 관리자 CSRF 헤더는 화면별이 아니라 `layout.html` 공통 fetch 래퍼에서 붙인다
 - [[DEC-0011-code-freeze-tunables-via-admin]] — 코드 프리즈 이후 모든 가변 설정·콘텐츠 변경은 DB/관리자 UI(`app_setting`) 경유
 - [[DEC-0025-redis-shared-app-settings]] — Spring이 `app_setting`을 Redis(`passql:settings:{key}`)에 쓰고 AI 서버가 읽어 설정을 공유
-- [[DEC-0026-sensitive-settings-masked-readonly]] — `key`·`secret`·`password`·`token`이 들어간 설정 키는 어드민 UI에서 마스킹하고 PUT은 403
-- [[DEC-0036-cross-domain-delete-service-in-web]] — 문제·제출 도메인을 함께 지우는 삭제 오케스트레이션은 `PQL-Web`의 `AdminQuestionDeleteService`에 둔다
-- [[DEC-0037-question-hard-delete-cascade]] — 관리자 문제 삭제는 자식 테이블까지 Hard delete, 진행 중 퀴즈 세션이 쓰는 문제는 409로 거부
 - [[DEC-0038-question-json-roundtrip-format]] — 문제 JSON 내보내기·가져오기는 `questionUuid` 유무로 신규/업데이트를 가르고, 토픽은 `topicUuid` 대신 `topicCode`로 쓴다
-- [[DEC-0044-bulk-delete-per-item-transaction]] — 문제 일괄삭제는 건별 독립 트랜잭션으로 지우고, 실패한 건은 건너뛴 채 나머지를 계속한다
 - [[DEC-0045-multi-domain-aggregation-in-application]] — 여러 도메인 Repository를 조합하는 집계 서비스는 `PQL-Application` 모듈에 둔다
 - [[DEC-0067-short-meaningful-table-names]] — 문제 스키마 테이블 이름은 시험 회차·번호 대신 짧고 의미 있는 이름으로
-- [[DEC-0081-admin-session-chain-yml-account]] — 관리자 페이지는 `/admin/**` 전용 세션 폼 로그인 체인, 계정은 DB 없이 yml 환경변수의 단일 계정
 - [[DEC-0082-legal-table-separate-from-app-setting]] — 약관(이용약관·개인정보처리방침)은 `AppSetting`이 아닌 독립 `legal` 테이블에서 관리한다
 - [[DEC-0107-sensitive-key-suffix-match]] — 설정 키 민감 판정은 `. _ -`로 나눈 조각이 민감 단어로 끝날 때만
 - [[DEC-0108-exam-schedule-manual-entry-with-checks]] — 시험 일정은 자동 추가하지 않고 관리자가 공식 공고를 보고 넣는다 — 관리자 화면이 확인 시점을 알린다
@@ -38,7 +33,11 @@ related: []
 - [[DEC-0188-ai-connections-priority-fallback]] — AI 키는 관리자 "AI 연결" 목록(제공자+키+기본 모델+우선순위)으로 관리하고, 한도·키·서버 오류면 다음 연결로 넘어가며 요청 형식 400은 즉시 실패
 
 ## 대체된 결정 (역사)
-- 없음
+- [[DEC-0026-sensitive-settings-masked-readonly]] → DEC-0107
+- [[DEC-0036-cross-domain-delete-service-in-web]] → null
+- [[DEC-0037-question-hard-delete-cascade]] → DEC-0127
+- [[DEC-0044-bulk-delete-per-item-transaction]] → null
+- [[DEC-0081-admin-session-chain-yml-account]] → DEC-0130
 
 ## 관련 이슈
 - [[ISS-0273-fcm-push-notifications]] (open, GitHub #467) — FCM 푸시 알림 (토큰 등록, 발송 화면, 앱 수신)

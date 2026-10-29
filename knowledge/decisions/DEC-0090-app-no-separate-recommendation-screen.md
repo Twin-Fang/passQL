@@ -7,7 +7,7 @@ topics: [home, practice]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0178-app-recommendation-single-solve]]", "[[ISS-0178-app-recommendation-single-solve-report]]"]
+related: ["[[ISS-0178-app-recommendation-single-solve]]", "[[ISS-0178-app-recommendation-single-solve-report]]", "[[DEC-0062-separate-recommendation-practice-page]]"]
 ---
 
 # DEC-0090: 앱은 추천 문제 전용 풀이 화면을 만들지 않고 일반 문제 풀이 화면을 그대로 쓴다

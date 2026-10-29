@@ -7,7 +7,7 @@ topics: [practice, home]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0089-apply-144-pattern-daily-recommend]]", "[[ISS-0089-apply-144-pattern-daily-recommend-report]]"]
+related: ["[[ISS-0089-apply-144-pattern-daily-recommend]]", "[[ISS-0089-apply-144-pattern-daily-recommend-report]]", "[[DEC-0090-app-no-separate-recommendation-screen]]"]
 ---
 
 # DEC-0062: 홈 추천 문제는 QuestionDetail 직접 링크 대신 전용 `RecommendationPractice` 페이지로 풀고, 정답·오답 모두 제출 기록한다

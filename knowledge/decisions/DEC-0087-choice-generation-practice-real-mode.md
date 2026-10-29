@@ -5,9 +5,9 @@ created: 2026-04-27
 reviewed: null
 topics: [ai, practice]
 status: active
-supersedes: null
+supersedes: DEC-0028
 superseded_by: null
-related: ["[[ISS-0167-choice-generation-practice-real-mode]]", "[[ISS-0174-app-wrong-notes-nickname-choice-mode]]"]
+related: ["[[ISS-0167-choice-generation-practice-real-mode]]", "[[ISS-0174-app-wrong-notes-nickname-choice-mode]]", "[[DEC-0028-realtime-choice-set-with-prefetch]]", "[[DEC-0141-curated-only-oracle-verified-choices]]", "[[DEC-0158-new-questions-concept-only-curated]]", "[[DEC-0052-result-match-policy-equivalence-type]]"]
 ---
 
 # DEC-0087: 선택지 생성 모드를 연습(`PRACTICE`, 검증된 선택지 재사용)과 실전(`REAL`, 항상 AI 실시간 생성)으로 나눈다

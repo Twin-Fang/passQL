@@ -4,7 +4,7 @@ id: DEC-0044
 created: 2026-04-11
 reviewed: null
 topics: [admin, question-bank]
-status: active
+status: archived
 supersedes: null
 superseded_by: null
 related: ["[[ISS-0053-admin-question-bulk-delete]]", "[[ISS-0053-admin-question-bulk-delete-report]]", "[[DEC-0037-question-hard-delete-cascade]]"]

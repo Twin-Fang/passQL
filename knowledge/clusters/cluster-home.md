@@ -16,7 +16,6 @@ related: []
 (2026-10-29, 자동 생성) 활성 결정 21개, 열린 이슈 0개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
-- [[DEC-0033-readiness-replaces-progress-rate]] — 홈 지표를 진도율 대신 합격 준비도 `Readiness = Accuracy × Coverage × Recency`로
 - [[DEC-0034-greeting-nickname-template-message-type]] — 인사말 응답은 `nickname`·`{nickname}` 템플릿·`messageType`으로 나누고, 이모지·아이콘은 프론트가 정한다
 - [[DEC-0035-greeting-dday-weighted-mix]] — D-day 구간에도 일반 인사말을 섞고, 시험이 가까울수록 D-day 메시지 비중을 높인다
 - [[DEC-0039-home-sections-independent-failure]] — 홈 섹션은 API별로 독립 호출하고, `progress` 실패만 전체 에러 화면, 나머지는 조용히 숨긴다
@@ -28,7 +27,6 @@ related: []
 - [[DEC-0084-recommendation-exclusion-post-body-fifo]] — 추천 제외 목록은 GET 쿼리가 아니라 POST 본문으로 보내고, 클라이언트는 최신 30개만 유지한다
 - [[DEC-0090-app-no-separate-recommendation-screen]] — 앱은 추천 문제 전용 풀이 화면을 만들지 않고 일반 문제 풀이 화면을 그대로 쓴다
 - [[DEC-0166-tab-roles-home-read-questions-solve]] — 탭마다 역할 하나 — 홈은 읽을 것, 문제 탭은 풀 것 전부, 설정은 설정만 (출제 경향 전용 화면 폐지)
-- [[DEC-0167-five-tabs-with-text-labels]] — 하단 탭 5개는 유지하고 아이콘 아래에 이름(홈 / 문제 / 토론 / 기록 / MY)을 표시한다
 - [[DEC-0171-four-tabs-merge-stats-my-profile]] — 하단 탭을 홈 / 문제 / 토론 / 내 프로필 4개로 — 기록과 MY를 `내 프로필`로 합치고 설정은 톱니바퀴로 여는 push 화면
 - [[DEC-0179-remove-countdown-keep-exam-day-urgent]] — 홈 인사 배지에서 `COUNTDOWN`만 없애고 `EXAM_DAY`·`URGENT`는 유지, 서버 `messageType`은 그대로 둔다
 - [[DEC-0182-home-not-wait-recommendations]] — 앱 홈 첫 표시는 추천 문제를 기다리지 않는다 (추천은 도착 후 맨 아래에 붙임)
@@ -39,7 +37,8 @@ related: []
 - [[DEC-0204-profile-drops-info-shown-elsewhere]] — 앱 프로필 탭은 "내 기록을 보는 곳" — 다른 탭에 이미 있는 정보는 빼고 내 상태 > AI 분석 > 영역별 정답률 > 광고 순으로 둔다
 
 ## 대체된 결정 (역사)
-- 없음
+- [[DEC-0033-readiness-replaces-progress-rate]] → DEC-0078
+- [[DEC-0167-five-tabs-with-text-labels]] → DEC-0171
 
 ## 관련 이슈
 - [[ISS-0019-exam-schedule-domain-api]] (resolved, GitHub #23) — SQLD/SQLP Exam Schedule 도메인 및 시험 일정 관리 API

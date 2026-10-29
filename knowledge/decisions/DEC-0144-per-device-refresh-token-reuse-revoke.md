@@ -7,7 +7,7 @@ topics: [auth-member, security]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0316-social-login-token-unlink-account-switch]]", "[[ISS-0316-social-login-token-unlink-account-switch-report]]"]
+related: ["[[ISS-0316-social-login-token-unlink-account-switch]]", "[[ISS-0316-social-login-token-unlink-account-switch-report]]", "[[DEC-0080-firebase-oauth-own-jwt-no-anonymous]]"]
 ---
 
 # DEC-0144: refresh token은 기기별(`jti`)로 저장하고, 이미 회전된 토큰이 다시 오면 그 회원 세션을 전부 폐기한다

@@ -7,7 +7,7 @@ topics: [ai]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0264-architecture-audit-commonization-refactor]]", "[[ISS-0269-ai-stub-removal-settings-unify]]", "[[ISS-0269-ai-stub-removal-settings-unify-report]]", "[[DEC-0113-similar-via-recommend-reuse]]"]
+related: ["[[ISS-0264-architecture-audit-commonization-refactor]]", "[[ISS-0269-ai-stub-removal-settings-unify]]", "[[ISS-0269-ai-stub-removal-settings-unify-report]]", "[[DEC-0113-similar-via-recommend-reuse]]", "[[DEC-0187-claude-provider-by-model-prefix]]", "[[DEC-0188-ai-connections-priority-fallback]]"]
 ---
 
 # DEC-0122: Python AI 서버의 미구현 스텁 3개(`explain_error`·`diff_explain`·`similar`)를 삭제하고 문서를 정정한다

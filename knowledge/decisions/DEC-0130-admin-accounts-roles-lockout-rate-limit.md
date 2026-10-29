@@ -5,9 +5,9 @@ created: 2026-10-15
 reviewed: null
 topics: [admin, security]
 status: active
-supersedes: null
+supersedes: DEC-0081
 superseded_by: null
-related: ["[[ISS-0284-admin-accounts-roles-lockout-rate-limit]]"]
+related: ["[[ISS-0284-admin-accounts-roles-lockout-rate-limit]]", "[[DEC-0081-admin-session-chain-yml-account]]"]
 ---
 
 # DEC-0130: 관리자 계정은 `admin_account` 테이블(ADMIN/VIEWER), yml 기본 계정은 시드·폴백으로 유지, 로그인 잠금과 인메모리 요청 제한

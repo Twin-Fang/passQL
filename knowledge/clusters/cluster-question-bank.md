@@ -16,11 +16,7 @@ related: []
 (2026-10-29, 자동 생성) 활성 결정 21개, 열린 이슈 0개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
-- [[DEC-0028-realtime-choice-set-with-prefetch]] — 문제는 고정, 선택지 세트는 퀴즈 진입마다 AI로 생성하고 다음 문제 세트는 프리페치 (MVP는 `AI_ONLY`)
-- [[DEC-0030-answer-sql-sandbox-ground-truth]] — `answer_sql` 샌드박스 실행 결과를 정답의 진실로, 정답 수가 1이 아니면 최대 3회 재생성 후 `FAILED`
-- [[DEC-0037-question-hard-delete-cascade]] — 관리자 문제 삭제는 자식 테이블까지 Hard delete, 진행 중 퀴즈 세션이 쓰는 문제는 409로 거부
 - [[DEC-0038-question-json-roundtrip-format]] — 문제 JSON 내보내기·가져오기는 `questionUuid` 유무로 신규/업데이트를 가르고, 토픽은 `topicUuid` 대신 `topicCode`로 쓴다
-- [[DEC-0044-bulk-delete-per-item-transaction]] — 문제 일괄삭제는 건별 독립 트랜잭션으로 지우고, 실패한 건은 건너뛴 채 나머지를 계속한다
 - [[DEC-0046-oracle-sql-translate-or-concept-only]] — Oracle SQL은 안전한 1:1 치환(`NVL`, `SYSDATE`)만 자동 변환하고, 남는 Oracle 전용 문법은 `CONCEPT_ONLY`로 전환한다
 - [[DEC-0049-ai-only-redefined-sql-equivalence]] — `AI_ONLY` 정책은 "주어진 SQL과 동일한 실행 결과를 내는 SQL 고르기"로 재정의한다
 - [[DEC-0050-result-match-text-choices]] — "실행 결과로 올바른 것은?" 유형은 `RESULT_MATCH` 정책 — 선택지는 결과 JSON(`kind = TEXT`), 검증은 `answerSql` 결과와 비교
@@ -39,7 +35,10 @@ related: []
 - [[DEC-0197-provide-answer-sql-result-in-prompt]] — 일반 SQL(AI_ONLY) 선택지 생성은 기준 SQL을 샌드박스로 실행한 결과를 프롬프트에 주고, 재시도에는 보기별 실제 실행 결과와 "기준과 같음/다름"을 준다
 
 ## 대체된 결정 (역사)
-- 없음
+- [[DEC-0028-realtime-choice-set-with-prefetch]] → DEC-0087
+- [[DEC-0030-answer-sql-sandbox-ground-truth]] → DEC-0055
+- [[DEC-0037-question-hard-delete-cascade]] → DEC-0127
+- [[DEC-0044-bulk-delete-per-item-transaction]] → null
 
 ## 관련 이슈
 - [[ISS-0029-realtime-ai-choice-set-prefetch]] (resolved, GitHub #39) — 실시간 AI 선택지 세트 생성 및 프리페치 아키텍처

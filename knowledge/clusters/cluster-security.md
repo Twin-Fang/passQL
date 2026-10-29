@@ -17,10 +17,7 @@ related: []
 
 ## 활성 결정
 - [[DEC-0008-admin-csrf-common-fetch-wrapper]] — 관리자 CSRF 헤더는 화면별이 아니라 `layout.html` 공통 fetch 래퍼에서 붙인다
-- [[DEC-0026-sensitive-settings-masked-readonly]] — `key`·`secret`·`password`·`token`이 들어간 설정 키는 어드민 UI에서 마스킹하고 PUT은 403
-- [[DEC-0032-gemini-key-runtime-from-settings]] — Gemini API Key를 `app_setting`(`ai.gemini_api_key`)·Redis로 관리하고 AI 서버는 호출마다 동적 조회
 - [[DEC-0080-firebase-oauth-own-jwt-no-anonymous]] — 소셜 로그인 토큰을 서버가 검증해 자체 JWT(AT 1h + RT 14d, Redis)를 발급하고, 익명 회원은 없앤다
-- [[DEC-0081-admin-session-chain-yml-account]] — 관리자 페이지는 `/admin/**` 전용 세션 폼 로그인 체인, 계정은 DB 없이 yml 환경변수의 단일 계정
 - [[DEC-0086-permit-async-dispatch-in-security]] — Spring Security에서 `DispatcherType.ASYNC`는 인증 재검사 없이 `permitAll()`
 - [[DEC-0097-release-signing-key-properties]] — Android 릴리스 서명은 `key.properties` 기반, 키스토어·비밀번호는 저장소 밖(로컬·CI 시크릿)
 - [[DEC-0102-fixed-error-messages-detail-in-logs]] — API 오류 메시지는 고정 문구만 내보내고 상세는 서버 로그에만 남긴다
@@ -30,14 +27,16 @@ related: []
 - [[DEC-0117-secret-files-nas-backup]] — GitHub Secret 파일은 main push마다 시놀로지에 백업하고, 새 키는 로컬·Secret·백업 블록을 한 번에 등록한다
 - [[DEC-0126-suspended-member-common-filter]] — 제재 회원 차단은 JWT 인증 뒤 공통 필터 한 곳에서, 인증·메타·탈퇴 요청은 예외
 - [[DEC-0130-admin-accounts-roles-lockout-rate-limit]] — 관리자 계정은 `admin_account` 테이블(ADMIN/VIEWER), yml 기본 계정은 시드·폴백으로 유지, 로그인 잠금과 인메모리 요청 제한
-- [[DEC-0133-encrypted-gemini-key-single-source]] — Gemini 키 원본은 DB `app_setting` 한 곳, DB·Redis에는 AES-256-GCM 암호문만, 관리자 화면에서 변경 유지
 - [[DEC-0138-solving-detail-hides-answers]] — 사용자용 문제 상세는 응답 형태를 유지한 채 정답 필드를 비우고 최신 OK 세트 1개만 보낸다
 - [[DEC-0142-encrypt-sqld-research-materials]] — 출제 경향 조사 원문은 로컬에만 두고 레포에는 AES-256 암호본만 커밋한다
 - [[DEC-0143-server-side-social-unlink-on-withdraw]] — 탈퇴 시 소셜 제공자 연결 해제는 서버가 하고, GitHub·네이버 토큰은 암호화 보관한다
 - [[DEC-0144-per-device-refresh-token-reuse-revoke]] — refresh token은 기기별(`jti`)로 저장하고, 이미 회전된 토큰이 다시 오면 그 회원 세션을 전부 폐기한다
 
 ## 대체된 결정 (역사)
-- 없음
+- [[DEC-0026-sensitive-settings-masked-readonly]] → DEC-0107
+- [[DEC-0032-gemini-key-runtime-from-settings]] → DEC-0133
+- [[DEC-0081-admin-session-chain-yml-account]] → DEC-0130
+- [[DEC-0133-encrypted-gemini-key-single-source]] → DEC-0188
 
 ## 관련 이슈
 - [[ISS-0386-admin-account-management]] (open, GitHub #631) — 관리자 계정 삭제·활동 이력 바로가기·세션 강제 종료·2FA·비밀번호 만료 정책이 없음

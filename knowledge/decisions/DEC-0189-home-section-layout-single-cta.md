@@ -7,7 +7,7 @@ topics: [home, design-system]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0413-app-home-ui-ux-redesign]]", "[[ISS-0413-app-home-ui-ux-redesign-report]]"]
+related: ["[[ISS-0413-app-home-ui-ux-redesign]]", "[[ISS-0413-app-home-ui-ux-redesign-report]]", "[[DEC-0153-single-native-strip-under-tab-bar]]"]
 ---
 
 # DEC-0189: 앱 홈은 카드 대신 좌우 끝까지 닿는 구간(면 + 회색 띠)으로 나누고, 채운 버튼은 「오늘의 세트 풀기」 하나만 둔다 (다른 탭은 카드 유지)

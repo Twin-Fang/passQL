@@ -7,7 +7,7 @@ topics: [ci-deploy]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0006-init-ai-and-spring-servers]]", "[[ISS-0006-init-ai-and-spring-servers-report]]"]
+related: ["[[ISS-0006-init-ai-and-spring-servers]]", "[[ISS-0006-init-ai-and-spring-servers-report]]", "[[DEC-0115-android-play-build-from-main]]"]
 ---
 
 # DEC-0009: `main`은 빌드 검증만, 실제 배포는 `deploy` 브랜치에서만 트리거

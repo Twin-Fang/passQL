@@ -7,7 +7,7 @@ topics: [ai, practice]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0066-ai-only-equivalent-sql-multiple-correct]]", "[[ISS-0066-ai-only-equivalent-sql-multiple-correct-report]]"]
+related: ["[[ISS-0066-ai-only-equivalent-sql-multiple-correct]]", "[[ISS-0066-ai-only-equivalent-sql-multiple-correct-report]]", "[[DEC-0087-choice-generation-practice-real-mode]]"]
 ---
 
 # DEC-0052: AI_ONLY EXECUTABLE 문제는 "동일 결과를 내는 SQL 찾기" 유형으로 재정의하고 `RESULT_MATCH` 선택지 정책을 추가

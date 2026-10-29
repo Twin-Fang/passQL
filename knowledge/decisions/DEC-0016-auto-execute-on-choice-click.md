@@ -4,10 +4,10 @@ id: DEC-0016
 created: 2026-04-07
 reviewed: null
 topics: [practice]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
-related: ["[[ISS-0010-five-day-dev-roadmap]]", "[[ISS-0011-screen-spec-api-mapping]]", "[[ISS-0014-replace-mock-with-real-api]]"]
+superseded_by: DEC-0051
+related: ["[[ISS-0010-five-day-dev-roadmap]]", "[[ISS-0011-screen-spec-api-mapping]]", "[[ISS-0014-replace-mock-with-real-api]]", "[[DEC-0051-no-auto-execute-review-after-submit]]"]
 ---
 
 # DEC-0016: 선택지 라디오를 클릭하면 그 선택지 SQL을 자동 execute, 같은 선택지 재클릭은 클라 캐시

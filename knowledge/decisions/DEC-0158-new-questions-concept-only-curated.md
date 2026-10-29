@@ -7,7 +7,7 @@ topics: [question-bank, ai]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0336-sqld-2026-trend-question-pool-refresh]]", "[[ISS-0336-sqld-2026-trend-question-pool-refresh-report]]"]
+related: ["[[ISS-0336-sqld-2026-trend-question-pool-refresh]]", "[[ISS-0336-sqld-2026-trend-question-pool-refresh-report]]", "[[DEC-0087-choice-generation-practice-real-mode]]"]
 ---
 
 # DEC-0158: 2026 경향 신규 문제는 `CONCEPT_ONLY` + `CURATED_ONLY`(고정 보기)로 등록한다

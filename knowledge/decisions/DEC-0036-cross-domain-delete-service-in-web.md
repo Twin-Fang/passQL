@@ -4,7 +4,7 @@ id: DEC-0036
 created: 2026-04-10
 reviewed: null
 topics: [admin, ops-infra]
-status: active
+status: archived
 supersedes: null
 superseded_by: null
 related: ["[[ISS-0038-admin-question-delete-json-loader]]", "[[ISS-0038-admin-question-delete-json-loader-report]]", "[[DEC-0045-multi-domain-aggregation-in-application]]"]

@@ -4,10 +4,10 @@ id: DEC-0101
 created: 2026-10-07
 reviewed: null
 topics: [design-system]
-status: active
-supersedes: null
-superseded_by: null
-related: ["[[ISS-0212-bottom-tab-icons-only]]", "[[ISS-0212-bottom-tab-icons-only-report]]"]
+status: superseded
+supersedes: DEC-0018
+superseded_by: DEC-0157
+related: ["[[ISS-0212-bottom-tab-icons-only]]", "[[ISS-0212-bottom-tab-icons-only-report]]", "[[DEC-0018-four-tab-bottom-navigation]]", "[[DEC-0157-community-bottom-tab]]"]
 ---
 
 # DEC-0101: 앱 하단 탭 바는 글자 없이 아이콘만 표시 (접근성 라벨·툴팁은 유지)

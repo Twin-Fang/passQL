@@ -17,8 +17,6 @@ related: []
 
 ## 활성 결정
 - [[DEC-0017-fullscreen-result-screen]] — 제출 결과 화면은 풀스크린 1종으로 통일 (bottom sheet 변형 미채택)
-- [[DEC-0018-four-tab-bottom-navigation]] — 하단 탭은 `홈 / 문제 / 통계 / 설정` 4탭 (노트·순위·내정보 탭 미채택)
-- [[DEC-0022-design-md-single-source-of-truth]] — 라이트 모드 `Design.md`를 디자인 단일 원본으로, tokens.css → 컴포넌트 CSS가 따른다
 - [[DEC-0057-confirm-modal-bottom-sheet-all-sizes]] — `ConfirmModal`은 데스크톱도 화면 너비 100% 바텀시트 단일 레이아웃
 - [[DEC-0059-ai-question-terminology]] — 사용자 화면의 "문제"를 "AI문제"로 통일하고 lucide `Sparkles`를 AI 표시 전용 아이콘으로 쓴다
 - [[DEC-0061-no-inline-style-rule]] — 프론트에서 인라인 `style` 속성 절대 금지 — Tailwind 유틸리티 또는 `components.css` 커스텀 클래스만
@@ -28,15 +26,12 @@ related: []
 - [[DEC-0069-settings-tab-rows-only-subpages]] — 설정 탭은 row 목록만 — 기능(건의사항 등)은 탭바 없는 서브페이지로
 - [[DEC-0071-settings-flat-grouped-list]] — 설정 화면은 카드 대신 iOS grouped 스타일 flat 리스트 (전체 너비 border-y + divide-y, 가로형 row)
 - [[DEC-0074-shared-markdowntext-component]] — AI 텍스트·해설·지문은 공용 `MarkdownText`로 렌더링하고 `useAiText`는 쓰지 않는다
-- [[DEC-0101-bottom-tab-icons-only]] — 앱 하단 탭 바는 글자 없이 아이콘만 표시 (접근성 라벨·툴팁은 유지)
 - [[DEC-0114-topic-card-option-a]] — 앱 토픽 선택 카드는 별도 시안 없이 보드의 A안(토픽별 색 + 큰 칩)으로 간다
 - [[DEC-0116-app-apple-hig-design-system]] — 앱은 Apple(iOS HIG) 스타일 단일 디자인 시스템으로 iOS·Android 같은 모양, 다크 모드 포함
 - [[DEC-0120-pq-prefix-to-passql]] — 앱 디자인 시스템 접두사 `Pq`를 `Passql...`로 풀어 쓴다
 - [[DEC-0121-unified-brand-color]] — 앱·웹 브랜드 색을 하나로 — `#5856D6`(다크 `#5E5CE6`), 웹 토큰은 앱 light 값에 맞춘다
 - [[DEC-0124-brand-folder-generated-assets]] — 브랜드 자산 원본은 레포 루트 `brand/` 하나, 플랫폼 사본은 스크립트로만 생성하고 CI 해시 검사
 - [[DEC-0136-motion-via-tokens-only]] — 앱 모션은 `PassqlMotion` 토큰과 공통 연출 컴포넌트로만 쓰고, 외부 애니메이션 패키지는 넣지 않는다
-- [[DEC-0157-community-bottom-tab]] — 앱 하단 탭에 "토론" 탭을 넣는다 (홈 · 문제 · 토론 · 통계 · 설정, 웹과 같은 순서)
-- [[DEC-0167-five-tabs-with-text-labels]] — 하단 탭 5개는 유지하고 아이콘 아래에 이름(홈 / 문제 / 토론 / 기록 / MY)을 표시한다
 - [[DEC-0168-text-only-color-tokens]] — 글자에는 브랜드 `accent` 대신 글자 전용 토큰(`accentText` 등)을 쓴다
 - [[DEC-0170-sheet-no-close-x-centered-title]] — 앱 공통 바텀시트는 닫기 X 없이 제목을 가운데 둔다 (`hasCloseButton` 옵션 폐지)
 - [[DEC-0171-four-tabs-merge-stats-my-profile]] — 하단 탭을 홈 / 문제 / 토론 / 내 프로필 4개로 — 기록과 MY를 `내 프로필`로 합치고 설정은 톱니바퀴로 여는 push 화면
@@ -56,7 +51,11 @@ related: []
 - [[DEC-0212-keep-benefit-icon-row-in-ticket]] — 탑승권 안의 혜택 아이콘 줄은 유지한다 (세 곳 모양 통일)
 
 ## 대체된 결정 (역사)
-- 없음
+- [[DEC-0018-four-tab-bottom-navigation]] → DEC-0101
+- [[DEC-0022-design-md-single-source-of-truth]] → DEC-0121
+- [[DEC-0101-bottom-tab-icons-only]] → DEC-0157
+- [[DEC-0157-community-bottom-tab]] → DEC-0167
+- [[DEC-0167-five-tabs-with-text-labels]] → DEC-0171
 
 ## 관련 이슈
 - [[ISS-0394-device-size-layout-audit]] (open, GitHub #646) — 기기 크기별 화면·폰트·UX 문제 점검

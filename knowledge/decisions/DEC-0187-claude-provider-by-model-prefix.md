@@ -5,9 +5,9 @@ created: 2026-10-27
 reviewed: null
 topics: [ai]
 status: active
-supersedes: null
+supersedes: DEC-0029
 superseded_by: null
-related: ["[[ISS-0410-claude-api-provider-switch]]", "[[ISS-0410-claude-api-provider-switch-report]]", "[[DEC-0188-ai-connections-priority-fallback]]"]
+related: ["[[ISS-0410-claude-api-provider-switch]]", "[[ISS-0410-claude-api-provider-switch-report]]", "[[DEC-0188-ai-connections-priority-fallback]]", "[[DEC-0029-python-ai-server-primary-gemini-fallback]]", "[[DEC-0122-remove-python-ai-stubs]]"]
 ---
 
 # DEC-0187: AI 제공자는 모델 이름으로 고르고(`claude-*` → Claude), 기본 모델은 가장 싼 `claude-haiku-5-5`, Gemini 경로는 유지

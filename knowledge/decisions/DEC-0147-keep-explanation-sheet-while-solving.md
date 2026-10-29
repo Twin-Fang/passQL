@@ -4,9 +4,9 @@ id: DEC-0147
 created: 2026-10-18
 reviewed: null
 topics: [ai, practice]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0154
 related: ["[[ISS-0319-ai-explanation-format-speed-ux]]", "[[ISS-0319-ai-explanation-format-speed-ux-report]]", "[[DEC-0154-close-explanation-sheet-on-next]]"]
 ---
 

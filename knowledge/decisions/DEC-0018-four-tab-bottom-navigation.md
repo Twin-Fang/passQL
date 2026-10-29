@@ -4,10 +4,10 @@ id: DEC-0018
 created: 2026-04-07
 reviewed: null
 topics: [design-system]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
-related: ["[[ISS-0011-screen-spec-api-mapping]]"]
+superseded_by: DEC-0101
+related: ["[[ISS-0011-screen-spec-api-mapping]]", "[[DEC-0101-bottom-tab-icons-only]]"]
 ---
 
 # DEC-0018: 하단 탭은 `홈 / 문제 / 통계 / 설정` 4탭 (노트·순위·내정보 탭 미채택)

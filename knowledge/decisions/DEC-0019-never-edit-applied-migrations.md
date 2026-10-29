@@ -7,7 +7,7 @@ topics: [ops-infra]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0013-flyway-missing-tables-seed]]", "[[ISS-0015-gemini-primary-ollama-fallback-report]]"]
+related: ["[[ISS-0013-flyway-missing-tables-seed]]", "[[ISS-0015-gemini-primary-ollama-fallback-report]]", "[[DEC-0054-postgresql-sandbox-engine]]"]
 ---
 
 # DEC-0019: 기존 Flyway 마이그레이션은 수정하지 않고 `version.yml` 기준 새 버전 파일로 추가, 시드는 멱등

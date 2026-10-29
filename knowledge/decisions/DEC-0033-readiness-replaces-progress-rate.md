@@ -4,10 +4,10 @@ id: DEC-0033
 created: 2026-04-10
 reviewed: null
 topics: [progress-stats, home]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
-related: ["[[ISS-0035-replace-progress-with-readiness]]", "[[ISS-0035-replace-progress-with-readiness-report]]", "[[DEC-0024-progress-metric-definitions]]"]
+superseded_by: DEC-0078
+related: ["[[ISS-0035-replace-progress-with-readiness]]", "[[ISS-0035-replace-progress-with-readiness-report]]", "[[DEC-0024-progress-metric-definitions]]", "[[DEC-0078-readiness-multiplicative-core-with-bonus]]"]
 ---
 
 # DEC-0033: 홈 지표를 진도율 대신 합격 준비도 `Readiness = Accuracy × Coverage × Recency`로

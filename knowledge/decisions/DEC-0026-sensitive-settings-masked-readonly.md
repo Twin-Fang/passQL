@@ -4,10 +4,10 @@ id: DEC-0026
 created: 2026-04-08
 reviewed: null
 topics: [security, admin]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
-related: ["[[ISS-0024-admin-pages-ai-redis-settings]]", "[[ISS-0024-admin-pages-ai-redis-settings-report]]", "[[DEC-0032-gemini-key-runtime-from-settings]]"]
+superseded_by: DEC-0107
+related: ["[[ISS-0024-admin-pages-ai-redis-settings]]", "[[ISS-0024-admin-pages-ai-redis-settings-report]]", "[[DEC-0032-gemini-key-runtime-from-settings]]", "[[DEC-0107-sensitive-key-suffix-match]]"]
 ---
 
 # DEC-0026: `key`·`secret`·`password`·`token`이 들어간 설정 키는 어드민 UI에서 마스킹하고 PUT은 403

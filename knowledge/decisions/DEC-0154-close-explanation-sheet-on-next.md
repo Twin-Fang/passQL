@@ -5,7 +5,7 @@ created: 2026-10-18
 reviewed: null
 topics: [practice, ai]
 status: active
-supersedes: null
+supersedes: DEC-0147
 superseded_by: null
 related: ["[[ISS-0330-stale-explanation-sheet-empty-result]]", "[[ISS-0330-stale-explanation-sheet-empty-result-report]]", "[[DEC-0147-keep-explanation-sheet-while-solving]]"]
 ---

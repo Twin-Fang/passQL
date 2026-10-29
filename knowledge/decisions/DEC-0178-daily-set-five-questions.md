@@ -5,9 +5,9 @@ created: 2026-10-25
 reviewed: null
 topics: ["practice"]
 status: active
-supersedes: null
+supersedes: DEC-0085
 superseded_by: null
-related: ["[[ISS-0392-daily-set-ten-to-five-questions]]", "[[ISS-0392-daily-set-ten-to-five-questions-report]]"]
+related: ["[[ISS-0392-daily-set-ten-to-five-questions]]", "[[ISS-0392-daily-set-ten-to-five-questions-report]]", "[[DEC-0085-daily-set-ten-questions-daily]]"]
 ---
 
 # DEC-0178: 오늘의 세트는 하루 5문제, 값은 서버 상수 한 곳에서 정한다 (무료 하루 한도 10은 별개)

@@ -7,7 +7,7 @@ topics: [practice, home]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0060-daily-challenge-result-ux]]", "[[ISS-0060-daily-challenge-result-ux-report]]", "[[ISS-0064-recommended-flow-ui-unify]]"]
+related: ["[[ISS-0060-daily-challenge-result-ux]]", "[[ISS-0060-daily-challenge-result-ux-report]]", "[[ISS-0064-recommended-flow-ui-unify]]", "[[DEC-0015-zero-business-logic-in-frontend]]"]
 ---
 
 # DEC-0048: 데일리 챌린지는 정답일 때만 서버에 제출하고, 오답은 로컬 피드백 후 다시 풀게 한다

@@ -4,7 +4,7 @@ id: DEC-0068
 created: 2026-04-13
 reviewed: null
 topics: [dev-workflow]
-status: active
+status: archived
 supersedes: null
 superseded_by: null
 related: ["[[ISS-0115-developer-mode-easter-egg-unlock]]", "[[ISS-0115-developer-mode-easter-egg-unlock-report]]"]

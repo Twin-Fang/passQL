@@ -7,7 +7,7 @@ topics: [ai]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0269-ai-stub-removal-settings-unify]]", "[[ISS-0269-ai-stub-removal-settings-unify-report]]"]
+related: ["[[ISS-0269-ai-stub-removal-settings-unify]]", "[[ISS-0269-ai-stub-removal-settings-unify-report]]", "[[DEC-0025-redis-shared-app-settings]]"]
 ---
 
 # DEC-0125: 임베딩 모델은 관리자 설정(DB)이 아니라 `.env` 단일 원본으로 둔다

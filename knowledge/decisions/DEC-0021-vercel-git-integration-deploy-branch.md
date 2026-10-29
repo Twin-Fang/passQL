@@ -4,10 +4,10 @@ id: DEC-0021
 created: 2026-04-08
 reviewed: null
 topics: [ci-deploy]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
-related: ["[[ISS-0016-vercel-git-auto-deploy]]"]
+superseded_by: DEC-0060
+related: ["[[ISS-0016-vercel-git-auto-deploy]]", "[[DEC-0060-vercel-server-side-build-deploy]]"]
 ---
 
 # DEC-0021: 프론트는 GitHub Actions 없이 Vercel Git Integration으로 `deploy` 브랜치 push 시 자동 배포

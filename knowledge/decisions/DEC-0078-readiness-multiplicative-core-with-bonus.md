@@ -5,9 +5,9 @@ created: 2026-04-13
 reviewed: null
 topics: [progress-stats]
 status: active
-supersedes: null
+supersedes: DEC-0033
 superseded_by: null
-related: ["[[ISS-0143-readiness-formula-multiplicative-core-bonus]]"]
+related: ["[[ISS-0143-readiness-formula-multiplicative-core-bonus]]", "[[DEC-0033-readiness-replaces-progress-rate]]"]
 ---
 
 # DEC-0078: 합격 준비도 = 3요소 곱셈 코어(Accuracy × Coverage × Recency) × 2요소 보너스 계수

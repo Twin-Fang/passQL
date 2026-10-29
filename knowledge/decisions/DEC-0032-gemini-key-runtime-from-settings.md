@@ -4,10 +4,10 @@ id: DEC-0032
 created: 2026-04-09
 reviewed: null
 topics: [ai, security]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
-related: ["[[ISS-0033-gemini-key-dynamic-db-redis]]", "[[DEC-0025-redis-shared-app-settings]]", "[[DEC-0026-sensitive-settings-masked-readonly]]"]
+superseded_by: DEC-0133
+related: ["[[ISS-0033-gemini-key-dynamic-db-redis]]", "[[DEC-0025-redis-shared-app-settings]]", "[[DEC-0026-sensitive-settings-masked-readonly]]", "[[DEC-0133-encrypted-gemini-key-single-source]]"]
 ---
 
 # DEC-0032: Gemini API Key를 `app_setting`(`ai.gemini_api_key`)·Redis로 관리하고 AI 서버는 호출마다 동적 조회

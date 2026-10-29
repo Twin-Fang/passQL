@@ -4,10 +4,10 @@ id: DEC-0157
 created: 2026-10-18
 reviewed: null
 topics: [community, design-system]
-status: active
-supersedes: null
-superseded_by: null
-related: ["[[ISS-0333-app-community-bottom-tab]]", "[[ISS-0333-app-community-bottom-tab-report]]"]
+status: superseded
+supersedes: DEC-0101
+superseded_by: DEC-0167
+related: ["[[ISS-0333-app-community-bottom-tab]]", "[[ISS-0333-app-community-bottom-tab-report]]", "[[DEC-0101-bottom-tab-icons-only]]", "[[DEC-0167-five-tabs-with-text-labels]]"]
 ---
 
 # DEC-0157: 앱 하단 탭에 "토론" 탭을 넣는다 (홈 · 문제 · 토론 · 통계 · 설정, 웹과 같은 순서)

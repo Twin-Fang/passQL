@@ -4,10 +4,10 @@ id: DEC-0133
 created: 2026-10-16
 reviewed: null
 topics: [ai, security]
-status: active
-supersedes: null
-superseded_by: null
-related: ["[[ISS-0298-gemini-key-single-source-encrypted]]"]
+status: superseded
+supersedes: DEC-0032
+superseded_by: DEC-0188
+related: ["[[ISS-0298-gemini-key-single-source-encrypted]]", "[[DEC-0032-gemini-key-runtime-from-settings]]", "[[DEC-0188-ai-connections-priority-fallback]]"]
 ---
 
 # DEC-0133: Gemini 키 원본은 DB `app_setting` 한 곳, DB·Redis에는 AES-256-GCM 암호문만, 관리자 화면에서 변경 유지

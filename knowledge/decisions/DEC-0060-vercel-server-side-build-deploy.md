@@ -5,9 +5,9 @@ created: 2026-04-12
 reviewed: null
 topics: [ci-deploy]
 status: active
-supersedes: null
+supersedes: DEC-0021
 superseded_by: null
-related: ["[[ISS-0086-deploy-branch-vercel-build-failure]]", "[[ISS-0086-deploy-branch-vercel-build-failure-report]]"]
+related: ["[[ISS-0086-deploy-branch-vercel-build-failure]]", "[[ISS-0086-deploy-branch-vercel-build-failure-report]]", "[[DEC-0021-vercel-git-integration-deploy-branch]]"]
 ---
 
 # DEC-0060: Vercel 배포 워크플로는 runner에서 빌드하지 않고 `vercel deploy --prod --yes`로 Vercel 서버 빌드에 맡긴다

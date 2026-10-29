@@ -5,9 +5,9 @@ created: 2026-10-07
 reviewed: null
 topics: [admin, security]
 status: active
-supersedes: null
+supersedes: DEC-0026
 superseded_by: null
-related: ["[[ISS-0240-max-tokens-misclassified-sensitive]]", "[[ISS-0240-max-tokens-misclassified-sensitive-report]]"]
+related: ["[[ISS-0240-max-tokens-misclassified-sensitive]]", "[[ISS-0240-max-tokens-misclassified-sensitive-report]]", "[[DEC-0026-sensitive-settings-masked-readonly]]"]
 ---
 
 # DEC-0107: 설정 키 민감 판정은 `. _ -`로 나눈 조각이 민감 단어로 끝날 때만

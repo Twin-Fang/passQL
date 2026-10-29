@@ -4,10 +4,10 @@ id: DEC-0037
 created: 2026-04-10
 reviewed: null
 topics: [admin, question-bank]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
-related: ["[[ISS-0038-admin-question-delete-json-loader]]", "[[ISS-0038-admin-question-delete-json-loader-report]]", "[[ISS-0053-admin-question-bulk-delete]]"]
+superseded_by: DEC-0127
+related: ["[[ISS-0038-admin-question-delete-json-loader]]", "[[ISS-0038-admin-question-delete-json-loader-report]]", "[[ISS-0053-admin-question-bulk-delete]]", "[[DEC-0127-question-delete-as-deactivation]]"]
 ---
 
 # DEC-0037: 관리자 문제 삭제는 자식 테이블까지 Hard delete, 진행 중 퀴즈 세션이 쓰는 문제는 409로 거부

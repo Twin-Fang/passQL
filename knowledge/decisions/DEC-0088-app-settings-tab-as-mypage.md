@@ -4,7 +4,7 @@ id: DEC-0088
 created: 2026-10-02
 reviewed: null
 topics: [auth-member]
-status: active
+status: archived
 supersedes: null
 superseded_by: null
 related: ["[[ISS-0174-app-wrong-notes-nickname-choice-mode]]", "[[ISS-0174-app-wrong-notes-nickname-choice-mode-report]]", "[[ISS-0175-app-feedback-write-and-history]]"]

@@ -5,9 +5,9 @@ created: 2026-04-11
 reviewed: null
 topics: [ai, practice]
 status: active
-supersedes: null
+supersedes: DEC-0030
 superseded_by: null
-related: ["[[ISS-0074-anti-equivalence-prompt-v4]]", "[[ISS-0074-anti-equivalence-prompt-v4-report]]"]
+related: ["[[ISS-0074-anti-equivalence-prompt-v4]]", "[[ISS-0074-anti-equivalence-prompt-v4-report]]", "[[DEC-0030-answer-sql-sandbox-ground-truth]]", "[[DEC-0137-pregenerate-choice-explanations-db]]"]
 ---
 
 # DEC-0055: 3회 재시도 후에도 `MULTIPLE_CORRECT`면 AI의 `isCorrect` 판단으로 fallback 저장 (`sandbox_validation_passed=false`)

@@ -4,9 +4,9 @@ id: DEC-0020
 created: 2026-04-07
 reviewed: null
 topics: [ai]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0029
 related: ["[[ISS-0015-gemini-primary-ollama-fallback]]", "[[ISS-0015-gemini-primary-ollama-fallback-report]]", "[[DEC-0029-python-ai-server-primary-gemini-fallback]]"]
 ---
 

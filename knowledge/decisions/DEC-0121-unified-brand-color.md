@@ -5,9 +5,9 @@ created: 2026-10-15
 reviewed: null
 topics: [design-system]
 status: active
-supersedes: null
+supersedes: DEC-0022
 superseded_by: null
-related: ["[[ISS-0264-architecture-audit-commonization-refactor]]", "[[ISS-0265-brand-assets-single-source]]", "[[ISS-0268-web-brand-color-token-lint]]", "[[DEC-0124-brand-folder-generated-assets]]"]
+related: ["[[ISS-0264-architecture-audit-commonization-refactor]]", "[[ISS-0265-brand-assets-single-source]]", "[[ISS-0268-web-brand-color-token-lint]]", "[[DEC-0124-brand-folder-generated-assets]]", "[[DEC-0022-design-md-single-source-of-truth]]"]
 ---
 
 # DEC-0121: 앱·웹 브랜드 색을 하나로 — `#5856D6`(다크 `#5E5CE6`), 웹 토큰은 앱 light 값에 맞춘다

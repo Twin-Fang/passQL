@@ -17,7 +17,6 @@ related: []
 
 ## 활성 결정
 - [[DEC-0024-progress-metric-definitions]] — 학습 진도 지표 정의 — 푼 문제는 distinct, 정답률은 문제별 마지막 시도, 스트릭은 하루 그레이스
-- [[DEC-0033-readiness-replaces-progress-rate]] — 홈 지표를 진도율 대신 합격 준비도 `Readiness = Accuracy × Coverage × Recency`로
 - [[DEC-0042-ai-comment-cache-evict-on-submit]] — AI 영역 분석 코멘트는 별도 API로 Redis 24시간 캐싱하고, 제출 시 직접 evict한다
 - [[DEC-0043-topic-correct-rate-last-7-days]] — 토픽별 정답률은 최근 7일 제출 중 문제별 최근 1회 기준, 토픽별 문제 수는 전체 활성 문제
 - [[DEC-0073-session-result-fixed-at-first-submit]] — 세션 결과는 최초 제출 기준으로 고정하고, 복습은 통계에만 반영한다
@@ -28,7 +27,7 @@ related: []
 - [[DEC-0206-topic-accuracy-list-with-octagon-chart]] — 앱 영역별 정답률은 목록을 기본으로 두고 같은 자리에서 8각 차트로 바꿔 본다 (레이더·막대 두 장 통합, `fl_chart` 제거)
 
 ## 대체된 결정 (역사)
-- 없음
+- [[DEC-0033-readiness-replaces-progress-rate]] → DEC-0078
 
 ## 관련 이슈
 - [[ISS-0387-remove-total-question-count-compat]] (open, GitHub #632) — 카테고리별 전체 문제 수(`totalQuestionCount`) 응답 제거 — 구버전 앱 호환 처리와 최소 버전 상향

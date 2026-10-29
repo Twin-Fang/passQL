@@ -5,9 +5,9 @@ created: 2026-10-27
 reviewed: null
 topics: [ai, admin]
 status: active
-supersedes: null
+supersedes: DEC-0133
 superseded_by: null
-related: ["[[ISS-0411-ai-connections-multi-key-fallback]]", "[[ISS-0411-ai-connections-multi-key-fallback-report]]", "[[DEC-0187-claude-provider-by-model-prefix]]"]
+related: ["[[ISS-0411-ai-connections-multi-key-fallback]]", "[[ISS-0411-ai-connections-multi-key-fallback-report]]", "[[DEC-0187-claude-provider-by-model-prefix]]", "[[DEC-0133-encrypted-gemini-key-single-source]]", "[[DEC-0122-remove-python-ai-stubs]]"]
 ---
 
 # DEC-0188: AI 키는 관리자 "AI 연결" 목록(제공자+키+기본 모델+우선순위)으로 관리하고, 한도·키·서버 오류면 다음 연결로 넘어가며 요청 형식 400은 즉시 실패

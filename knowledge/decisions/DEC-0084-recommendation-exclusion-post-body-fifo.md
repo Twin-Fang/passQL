@@ -7,7 +7,7 @@ topics: [home]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0156-recommendation-exclude-uuids-header-overflow]]", "[[ISS-0156-recommendation-exclude-uuids-header-overflow-report]]", "[[ISS-0173-app-api-client-server-alignment]]"]
+related: ["[[ISS-0156-recommendation-exclude-uuids-header-overflow]]", "[[ISS-0156-recommendation-exclude-uuids-header-overflow-report]]", "[[ISS-0173-app-api-client-server-alignment]]", "[[DEC-0083-session-scoped-recommendation-exclusion]]"]
 ---
 
 # DEC-0084: 추천 제외 목록은 GET 쿼리가 아니라 POST 본문으로 보내고, 클라이언트는 최신 30개만 유지한다

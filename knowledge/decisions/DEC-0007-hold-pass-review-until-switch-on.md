@@ -7,7 +7,7 @@ topics: [billing]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0004-ios-web-pro-lock-before-billing]]", "[[DEC-0005-ship-with-billing-switch-off]]"]
+related: ["[[ISS-0004-ios-web-pro-lock-before-billing]]", "[[DEC-0005-ship-with-billing-switch-off]]", "[[ISS-0361-billing-switch-final-checks]]"]
 ---
 
 # DEC-0007: iOS 이용권 심사는 결제 스위치를 켤 버전과 함께 제출한다

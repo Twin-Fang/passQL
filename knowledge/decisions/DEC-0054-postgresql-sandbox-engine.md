@@ -7,7 +7,7 @@ topics: [ops-infra, practice]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0071-sandbox-mariadb-to-postgresql]]", "[[ISS-0071-sandbox-mariadb-to-postgresql-report]]"]
+related: ["[[ISS-0071-sandbox-mariadb-to-postgresql]]", "[[ISS-0071-sandbox-mariadb-to-postgresql-report]]", "[[DEC-0019-never-edit-applied-migrations]]"]
 ---
 
 # DEC-0054: Sandbox(와 앱 datasource) DB 엔진을 MariaDB에서 PostgreSQL로 전면 전환

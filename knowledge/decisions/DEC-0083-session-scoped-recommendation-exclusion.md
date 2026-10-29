@@ -7,7 +7,7 @@ topics: [home, ai]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0153-recommendation-refresh-session-dedupe]]", "[[ISS-0153-recommendation-refresh-session-dedupe-report]]", "[[DEC-0077-rag-recommendation-with-random-fallback]]"]
+related: ["[[ISS-0153-recommendation-refresh-session-dedupe]]", "[[ISS-0153-recommendation-refresh-session-dedupe-report]]", "[[DEC-0077-rag-recommendation-with-random-fallback]]", "[[DEC-0084-recommendation-exclusion-post-body-fifo]]"]
 ---
 
 # DEC-0083: 추천 새로고침은 이번 세션에서 본 문제만 제외하고, 푼 문제 영구 제외는 하지 않는다

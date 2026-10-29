@@ -7,7 +7,7 @@ topics: [ads]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0324-tab-bar-native-ad-strip]]", "[[ISS-0324-tab-bar-native-ad-strip-report]]", "[[DEC-0148-inline-card-ads-interstitial-cap]]"]
+related: ["[[ISS-0324-tab-bar-native-ad-strip]]", "[[ISS-0324-tab-bar-native-ad-strip-report]]", "[[DEC-0148-inline-card-ads-interstitial-cap]]", "[[DEC-0189-home-section-layout-single-cta]]"]
 ---
 
 # DEC-0153: 탭별 적응형 배너 대신 메인 탭바 아래 한 줄 네이티브 광고 띠 하나를 상시 둔다

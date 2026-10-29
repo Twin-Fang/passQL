@@ -4,7 +4,7 @@ id: DEC-0099
 created: 2026-10-07
 reviewed: null
 topics: [ai]
-status: active
+status: archived
 supersedes: null
 superseded_by: null
 related: ["[[ISS-0201-ai-explain-model-compare-prompt]]", "[[ISS-0201-ai-explain-model-compare-prompt-report]]", "[[DEC-0100-explain-prompt-context-in-server]]", "[[ISS-0208-concept-choice-prompt-v2-quality]]"]

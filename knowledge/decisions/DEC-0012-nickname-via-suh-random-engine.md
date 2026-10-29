@@ -7,7 +7,7 @@ topics: [auth-member]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0009-member-domain-module-entity]]", "[[ISS-0009-member-domain-module-entity-report]]", "[[ISS-0013-flyway-missing-tables-seed]]"]
+related: ["[[ISS-0009-member-domain-module-entity]]", "[[ISS-0009-member-domain-module-entity-report]]", "[[ISS-0013-flyway-missing-tables-seed]]", "[[DEC-0080-firebase-oauth-own-jwt-no-anonymous]]"]
 ---
 
 # DEC-0012: 닉네임은 자체 단어 테이블 대신 `suh-random-engine` 라이브러리로 생성

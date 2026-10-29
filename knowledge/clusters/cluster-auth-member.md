@@ -18,7 +18,6 @@ related: []
 ## 활성 결정
 - [[DEC-0012-nickname-via-suh-random-engine]] — 닉네임은 자체 단어 테이블 대신 `suh-random-engine` 라이브러리로 생성
 - [[DEC-0080-firebase-oauth-own-jwt-no-anonymous]] — 소셜 로그인 토큰을 서버가 검증해 자체 JWT(AT 1h + RT 14d, Redis)를 발급하고, 익명 회원은 없앤다
-- [[DEC-0088-app-settings-tab-as-mypage]] — 앱은 마이페이지 탭을 따로 두지 않고 설정 탭을 마이페이지 역할로 확장한다
 - [[DEC-0095-account-deletion-anonymize-soft-delete]] — 회원 탈퇴는 식별 정보 즉시 제거 + 닉네임 익명화 + 소프트 삭제, 재로그인은 새 회원
 - [[DEC-0112-web-app-core-feature-parity]] — 웹(React)·앱(Flutter) 투트랙 유지, 화면 1:1이 아니라 핵심 기능 동등성을 맞춘다
 - [[DEC-0126-suspended-member-common-filter]] — 제재 회원 차단은 JWT 인증 뒤 공통 필터 한 곳에서, 인증·메타·탈퇴 요청은 예외
@@ -31,7 +30,7 @@ related: []
 - [[DEC-0185-withdraw-fixed-confirm-phrase]] — 회원 탈퇴는 고정 문구 `탈퇴하기`를 입력해야 버튼이 활성화된다 (앱·웹 공통, 공통 확인창 옵션)
 
 ## 대체된 결정 (역사)
-- 없음
+- [[DEC-0088-app-settings-tab-as-mypage]] → null
 
 ## 관련 이슈
 - [[ISS-0312-kakao-naver-github-apple-login]] (open, GitHub #509) — 카카오, 네이버, GitHub, Apple 로그인 지원

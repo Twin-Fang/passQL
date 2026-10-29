@@ -17,7 +17,6 @@ CI/CD·배포·버전 관리·빌드
 
 ## 활성 결정
 - [[DEC-0009-main-verify-deploy-branch-release]] — `main`은 빌드 검증만, 실제 배포는 `deploy` 브랜치에서만 트리거
-- [[DEC-0021-vercel-git-integration-deploy-branch]] — 프론트는 GitHub Actions 없이 Vercel Git Integration으로 `deploy` 브랜치 push 시 자동 배포
 - [[DEC-0060-vercel-server-side-build-deploy]] — Vercel 배포 워크플로는 runner에서 빌드하지 않고 `vercel deploy --prod --yes`로 Vercel 서버 빌드에 맡긴다
 - [[DEC-0070-app-version-from-version-yml]] — 웹 앱 버전(`__APP_VERSION__`)은 빌드 타임에 루트 `version.yml`을 직접 읽어 주입한다
 - [[DEC-0092-container-restart-unless-stopped-in-workflow]] — 운영 백엔드·AI 컨테이너 재시작 정책은 `unless-stopped`로 통일하고 배포 워크플로우의 `docker run`에 고정한다
@@ -37,7 +36,7 @@ CI/CD·배포·버전 관리·빌드
 - [[DEC-0202-test-build-shared-version-adjust-no-block]] — 앱 테스트 빌드는 막지 않고 닫힌 버전이면 다음 패치로 올리며, Android도 iOS 번들 ID 기준의 같은 판단을 쓴다
 
 ## 대체된 결정 (역사)
-- 없음
+- [[DEC-0021-vercel-git-integration-deploy-branch]] → DEC-0060
 
 ## 관련 이슈
 - [[ISS-0355-store-review-status-tracking-issue]] (open, GitHub #570) — 스토어 심사 상태 자동 알림 (구독용, 닫지 않음)

@@ -20,11 +20,10 @@ related: []
 - [[DEC-0150-question-opinion-first-scope]] — 커뮤니티 1차는 문제별 의견만 — 자동 닉네임, 신고·차단·관리자 숨김 필수, 풀이 전에는 의견을 볼 수 없다
 - [[DEC-0151-client-webp-compress-server-stream]] — 커뮤니티 사진은 폰에서 WebP로 압축하고, 서버는 검증만 해 기존 NAS MinIO 한 버킷에 저장·스트리밍한다
 - [[DEC-0152-delete-photos-on-withdraw-keep-posts]] — 탈퇴 시 커뮤니티 글은 닉네임 익명화로 남기고, 사진은 저장소에서 지운다
-- [[DEC-0157-community-bottom-tab]] — 앱 하단 탭에 "토론" 탭을 넣는다 (홈 · 문제 · 토론 · 통계 · 설정, 웹과 같은 순서)
 - [[DEC-0203-discussion-stats-refresh-after-commit-event]] — 토론 글 노출 상태가 바뀌면 이벤트로 커밋 직후 그 문제 집계만 즉시 갱신하고 공용 피드 캐시를 비운다 (5분 정기 집계는 유지)
 
 ## 대체된 결정 (역사)
-- 없음
+- [[DEC-0157-community-bottom-tab]] → DEC-0167
 
 ## 관련 이슈
 - [[ISS-0382-admin-community-post-report-bulk]] (open, GitHub #627) — 관리자 토론 게시글·신고에 일괄 처리·처리 사유·제재 연계·통계가 없음

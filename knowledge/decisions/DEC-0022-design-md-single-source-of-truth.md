@@ -4,10 +4,10 @@ id: DEC-0022
 created: 2026-04-08
 reviewed: null
 topics: [design-system]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
-related: ["[[ISS-0017-design-md-light-design-system]]", "[[ISS-0017-design-md-light-design-system-report]]"]
+superseded_by: DEC-0121
+related: ["[[ISS-0017-design-md-light-design-system]]", "[[ISS-0017-design-md-light-design-system-report]]", "[[DEC-0121-unified-brand-color]]"]
 ---
 
 # DEC-0022: 라이트 모드 `Design.md`를 디자인 단일 원본으로, tokens.css → 컴포넌트 CSS가 따른다

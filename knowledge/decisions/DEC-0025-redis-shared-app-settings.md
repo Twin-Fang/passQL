@@ -7,7 +7,7 @@ topics: [ai, admin]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0024-admin-pages-ai-redis-settings]]", "[[ISS-0024-admin-pages-ai-redis-settings-report]]", "[[DEC-0032-gemini-key-runtime-from-settings]]"]
+related: ["[[ISS-0024-admin-pages-ai-redis-settings]]", "[[ISS-0024-admin-pages-ai-redis-settings-report]]", "[[DEC-0032-gemini-key-runtime-from-settings]]", "[[DEC-0125-embedding-model-env-only]]"]
 ---
 
 # DEC-0025: Spring이 `app_setting`을 Redis(`passql:settings:{key}`)에 쓰고 AI 서버가 읽어 설정을 공유

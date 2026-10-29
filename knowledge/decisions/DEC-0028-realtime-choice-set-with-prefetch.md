@@ -4,10 +4,10 @@ id: DEC-0028
 created: 2026-04-09
 reviewed: null
 topics: [practice, ai, question-bank]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
-related: ["[[ISS-0029-realtime-ai-choice-set-prefetch]]", "[[DEC-0030-answer-sql-sandbox-ground-truth]]", "[[ISS-0032-admin-direct-question-register]]"]
+superseded_by: DEC-0087
+related: ["[[ISS-0029-realtime-ai-choice-set-prefetch]]", "[[DEC-0030-answer-sql-sandbox-ground-truth]]", "[[ISS-0032-admin-direct-question-register]]", "[[DEC-0087-choice-generation-practice-real-mode]]"]
 ---
 
 # DEC-0028: 문제는 고정, 선택지 세트는 퀴즈 진입마다 AI로 생성하고 다음 문제 세트는 프리페치 (MVP는 `AI_ONLY`)

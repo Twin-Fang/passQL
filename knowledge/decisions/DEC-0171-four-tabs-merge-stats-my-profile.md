@@ -5,7 +5,7 @@ created: 2026-10-24
 reviewed: null
 topics: [design-system, home, auth-member]
 status: active
-supersedes: null
+supersedes: DEC-0167
 superseded_by: null
 related: ["[[ISS-0363-app-wide-ui-ux-cleanup]]", "[[ISS-0363-app-wide-ui-ux-cleanup-report]]", "[[DEC-0167-five-tabs-with-text-labels]]", "[[ISS-0358-concept-learning-by-unit]]"]
 ---

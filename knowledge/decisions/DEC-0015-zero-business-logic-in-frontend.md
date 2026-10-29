@@ -7,7 +7,7 @@ topics: [dev-workflow]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0010-five-day-dev-roadmap]]", "[[ISS-0011-screen-spec-api-mapping]]", "[[ISS-0020-home-greeting-api]]", "[[ISS-0021-progress-api-streak-calculator]]"]
+related: ["[[ISS-0010-five-day-dev-roadmap]]", "[[ISS-0011-screen-spec-api-mapping]]", "[[ISS-0020-home-greeting-api]]", "[[ISS-0021-progress-api-streak-calculator]]", "[[DEC-0048-daily-challenge-wrong-answer-not-submitted]]"]
 ---
 
 # DEC-0015: 프론트 비즈니스 로직 제로 원칙 — 계산·판정은 전부 백엔드, 프론트는 응답을 그대로 렌더링

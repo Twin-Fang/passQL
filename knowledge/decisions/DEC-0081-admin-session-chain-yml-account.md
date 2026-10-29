@@ -4,10 +4,10 @@ id: DEC-0081
 created: 2026-04-22
 reviewed: null
 topics: [admin, security]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
-related: ["[[ISS-0149-admin-form-login-session-chain]]", "[[ISS-0149-admin-form-login-session-chain-report]]", "[[DEC-0008-admin-csrf-common-fetch-wrapper]]"]
+superseded_by: DEC-0130
+related: ["[[ISS-0149-admin-form-login-session-chain]]", "[[ISS-0149-admin-form-login-session-chain-report]]", "[[DEC-0008-admin-csrf-common-fetch-wrapper]]", "[[DEC-0130-admin-accounts-roles-lockout-rate-limit]]"]
 ---
 
 # DEC-0081: 관리자 페이지는 `/admin/**` 전용 세션 폼 로그인 체인, 계정은 DB 없이 yml 환경변수의 단일 계정

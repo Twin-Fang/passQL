@@ -4,10 +4,10 @@ id: DEC-0167
 created: 2026-10-21
 reviewed: null
 topics: [design-system, home]
-status: active
-supersedes: null
-superseded_by: null
-related: ["[[ISS-0356-home-questions-tab-restructure]]", "[[ISS-0356-home-questions-tab-restructure-report]]"]
+status: superseded
+supersedes: DEC-0157
+superseded_by: DEC-0171
+related: ["[[ISS-0356-home-questions-tab-restructure]]", "[[ISS-0356-home-questions-tab-restructure-report]]", "[[DEC-0157-community-bottom-tab]]", "[[DEC-0171-four-tabs-merge-stats-my-profile]]"]
 ---
 
 # DEC-0167: 하단 탭 5개는 유지하고 아이콘 아래에 이름(홈 / 문제 / 토론 / 기록 / MY)을 표시한다

@@ -16,11 +16,7 @@ AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 (2026-10-29, 자동 생성) 활성 결정 40개, 열린 이슈 2개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
-- [[DEC-0020-gemini-flash-lite-primary-llm]] — 기본 LLM을 Gemini 2.0 Flash-Lite로, Ollama는 fallback·경량 작업용
 - [[DEC-0025-redis-shared-app-settings]] — Spring이 `app_setting`을 Redis(`passql:settings:{key}`)에 쓰고 AI 서버가 읽어 설정을 공유
-- [[DEC-0028-realtime-choice-set-with-prefetch]] — 문제는 고정, 선택지 세트는 퀴즈 진입마다 AI로 생성하고 다음 문제 세트는 프리페치 (MVP는 `AI_ONLY`)
-- [[DEC-0029-python-ai-server-primary-gemini-fallback]] — AI 호출은 Spring → Python AI Server(Gemini 2.5 flash-lite)가 메인, Spring `GeminiClient` 직접 호출이 fallback, Ollama는 embedding 전용
-- [[DEC-0032-gemini-key-runtime-from-settings]] — Gemini API Key를 `app_setting`(`ai.gemini_api_key`)·Redis로 관리하고 AI 서버는 호출마다 동적 조회
 - [[DEC-0040-choice-response-hides-answer]] — 선택지 생성 응답에는 정답·해설을 넣지 않고, 정답 판정은 제출 시 서버가 `choiceSetId`의 선택지 세트로 한다
 - [[DEC-0042-ai-comment-cache-evict-on-submit]] — AI 영역 분석 코멘트는 별도 API로 Redis 24시간 캐싱하고, 제출 시 직접 evict한다
 - [[DEC-0049-ai-only-redefined-sql-equivalence]] — `AI_ONLY` 정책은 "주어진 SQL과 동일한 실행 결과를 내는 SQL 고르기"로 재정의한다
@@ -33,15 +29,12 @@ AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 - [[DEC-0083-session-scoped-recommendation-exclusion]] — 추천 새로고침은 이번 세션에서 본 문제만 제외하고, 푼 문제 영구 제외는 하지 않는다
 - [[DEC-0086-permit-async-dispatch-in-security]] — Spring Security에서 `DispatcherType.ASYNC`는 인증 재검사 없이 `permitAll()`
 - [[DEC-0087-choice-generation-practice-real-mode]] — 선택지 생성 모드를 연습(`PRACTICE`, 검증된 선택지 재사용)과 실전(`REAL`, 항상 AI 실시간 생성)으로 나눈다
-- [[DEC-0099-explain-model-gemini-3-5-flash-lite]] — AI 해설 모델은 lite 3종 중 `gemini-3.5-flash-lite`
 - [[DEC-0100-explain-prompt-context-in-server]] — AI 해설 프롬프트에 규칙·샘플 데이터·전체 선택지를 서버(`AiExplainService`)가 넣는다
 - [[DEC-0113-similar-via-recommend-reuse]] — 유사 문제는 AI 서버를 새로 만들지 않고 기존 `POST /api/ai/recommend`를 Spring에서 조합해 쓴다
 - [[DEC-0122-remove-python-ai-stubs]] — Python AI 서버의 미구현 스텁 3개(`explain_error`·`diff_explain`·`similar`)를 삭제하고 문서를 정정한다
 - [[DEC-0125-embedding-model-env-only]] — 임베딩 모델은 관리자 설정(DB)이 아니라 `.env` 단일 원본으로 둔다
-- [[DEC-0133-encrypted-gemini-key-single-source]] — Gemini 키 원본은 DB `app_setting` 한 곳, DB·Redis에는 AES-256-GCM 암호문만, 관리자 화면에서 변경 유지
 - [[DEC-0137-pregenerate-choice-explanations-db]] — 선택지 해설은 세트 저장 직후 별도 호출로 미리 생성해 DB에 영구 저장하고, 샌드박스 미검증 세트는 제외
 - [[DEC-0146-structured-explanation-once-per-set]] — AI 해설은 고정 섹션 형식으로 선택지 세트당 한 번 만들어 저장하고, 없으면 "생성 중"을 돌려주며 백그라운드에서 만든다
-- [[DEC-0147-keep-explanation-sheet-while-solving]] — 해설은 비모달 시트·패널로 열어 해설을 보면서 계속 풀게 하고, 다음 문제로 넘어가도 조회를 잇는다
 - [[DEC-0154-close-explanation-sheet-on-next]] — 풀이 중 "다음"으로 넘어가면 해설 시트를 닫는다 (해설함·백그라운드 조회는 유지)
 - [[DEC-0155-exam-tip-after-answer-reason]] — AI 해설 화면 순서는 판정 → 정답 근거 → 시험 팁 → 핵심 개념 → 헷갈리는 지점 → 보기별 판단
 - [[DEC-0158-new-questions-concept-only-curated]] — 2026 경향 신규 문제는 `CONCEPT_ONLY` + `CURATED_ONLY`(고정 보기)로 등록한다
@@ -58,7 +51,13 @@ AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 - [[DEC-0197-provide-answer-sql-result-in-prompt]] — 일반 SQL(AI_ONLY) 선택지 생성은 기준 SQL을 샌드박스로 실행한 결과를 프롬프트에 주고, 재시도에는 보기별 실제 실행 결과와 "기준과 같음/다름"을 준다
 
 ## 대체된 결정 (역사)
-- 없음
+- [[DEC-0020-gemini-flash-lite-primary-llm]] → DEC-0029
+- [[DEC-0028-realtime-choice-set-with-prefetch]] → DEC-0087
+- [[DEC-0029-python-ai-server-primary-gemini-fallback]] → DEC-0187
+- [[DEC-0032-gemini-key-runtime-from-settings]] → DEC-0133
+- [[DEC-0099-explain-model-gemini-3-5-flash-lite]] → null
+- [[DEC-0133-encrypted-gemini-key-single-source]] → DEC-0188
+- [[DEC-0147-keep-explanation-sheet-while-solving]] → DEC-0154
 
 ## 관련 이슈
 - [[ISS-0357-choice-set-ai-server-half-failing]] (open, GitHub #575) — 선택지 생성 AI 서버 호출 절반 실패, 원인 조사

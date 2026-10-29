@@ -5,9 +5,9 @@ created: 2026-04-11
 reviewed: null
 topics: [practice]
 status: active
-supersedes: null
+supersedes: DEC-0016
 superseded_by: null
-related: ["[[ISS-0064-recommended-flow-ui-unify]]", "[[ISS-0064-recommended-flow-ui-unify-report]]", "[[DEC-0049-ai-only-redefined-sql-equivalence]]"]
+related: ["[[ISS-0064-recommended-flow-ui-unify]]", "[[ISS-0064-recommended-flow-ui-unify-report]]", "[[DEC-0049-ai-only-redefined-sql-equivalence]]", "[[DEC-0016-auto-execute-on-choice-click]]"]
 ---
 
 # DEC-0051: 선택지 클릭 시 SQL 자동 실행을 없애고, 제출 후 `ChoiceReview`에서 각 선택지를 실행해 비교한다

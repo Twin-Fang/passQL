@@ -5,9 +5,9 @@ created: 2026-10-15
 reviewed: null
 topics: [admin, question-bank]
 status: active
-supersedes: null
+supersedes: DEC-0037
 superseded_by: null
-related: ["[[ISS-0277-admin-bulk-delete-partial-hard-delete]]", "[[ISS-0285-admin-menu-search-filter-status]]"]
+related: ["[[ISS-0277-admin-bulk-delete-partial-hard-delete]]", "[[ISS-0285-admin-menu-search-filter-status]]", "[[DEC-0037-question-hard-delete-cascade]]"]
 ---
 
 # DEC-0127: 관리자 문제 삭제(단건·일괄)는 `isActive` 비활성화로 하고 영구 삭제는 없앤다

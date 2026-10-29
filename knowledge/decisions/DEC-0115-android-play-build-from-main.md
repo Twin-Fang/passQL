@@ -7,7 +7,7 @@ topics: [ci-deploy, store-release]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0254-projectops-4-40-play-closed-testing]]", "[[ISS-0254-projectops-4-40-play-closed-testing-report]]"]
+related: ["[[ISS-0254-projectops-4-40-play-closed-testing]]", "[[ISS-0254-projectops-4-40-play-closed-testing-report]]", "[[DEC-0009-main-verify-deploy-branch-release]]"]
 ---
 
 # DEC-0115: Android Play 워크플로의 빌드 기준을 `deploy`에서 `main`으로 바꾼다 (iOS와 동일)

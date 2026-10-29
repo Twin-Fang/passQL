@@ -23,7 +23,6 @@ related: []
 - [[DEC-0027-readme-hide-internal-stack]] — 외부 공개 README에는 테스트·개발 스택을 노출하지 않고 상위 개념으로 표기 (MariaDB → Oracle DB, Gemini → AI Agent, bge-m3 → Gemma Embedding)
 - [[DEC-0031-frontend-follows-backend-spec-only]] — 프론트는 백엔드(Spring) API 스펙만 따르고, AI 서버 snake_case → camelCase 변환은 백엔드 프록시 책임
 - [[DEC-0061-no-inline-style-rule]] — 프론트에서 인라인 `style` 속성 절대 금지 — Tailwind 유틸리티 또는 `components.css` 커스텀 클래스만
-- [[DEC-0068-dev-mode-hidden-easter-egg]] — 웹 개발자 기능은 숨기고 버전 row 5회 클릭으로 탭 세션 동안만 잠금 해제, `/dev` 페이지는 route guard
 - [[DEC-0072-idempotent-ddl-migrations]] — Flyway DDL 변경(ALTER·컬럼 추가/삭제/타입 변경)은 멱등하게 — 조건 확인 후 `DO $$` 블록에서 실행
 - [[DEC-0079-gstack-and-browse-only-rule]] — AI 워크플로우는 gstack 슬래시 커맨드를 쓰고, 웹 브라우징은 `/browse`만 쓴다
 - [[DEC-0091-delete-legacy-passql-app-repo]] — 앱 코드 기준은 모노레포 `app/`, 구 `passQL-app` 레포는 백업 후 삭제한다
@@ -42,7 +41,7 @@ related: []
 - [[DEC-0183-keep-only-contract-architecture-tests]] — 기능 테스트는 전부 삭제하고 API 계약 테스트와 아키텍처 규칙 테스트만 남긴다
 
 ## 대체된 결정 (역사)
-- 없음
+- [[DEC-0068-dev-mode-hidden-easter-egg]] → null
 
 ## 관련 이슈
 - [[ISS-0387-remove-total-question-count-compat]] (open, GitHub #632) — 카테고리별 전체 문제 수(`totalQuestionCount`) 응답 제거 — 구버전 앱 호환 처리와 최소 버전 상향

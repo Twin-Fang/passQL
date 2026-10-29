@@ -20,7 +20,6 @@ related: []
 - [[DEC-0014-explicit-soft-delete-filter]] — 소프트 딜리트는 `@SQLDelete` 없이 `is_deleted` 컬럼 + `AndIsDeletedFalse` 메서드로 명시 필터링
 - [[DEC-0019-never-edit-applied-migrations]] — 기존 Flyway 마이그레이션은 수정하지 않고 `version.yml` 기준 새 버전 파일로 추가, 시드는 멱등
 - [[DEC-0023-uuid-primary-keys-all-tables]] — 모든 엔티티 PK를 UUID로 (전체 스키마 전면 전환)
-- [[DEC-0036-cross-domain-delete-service-in-web]] — 문제·제출 도메인을 함께 지우는 삭제 오케스트레이션은 `PQL-Web`의 `AdminQuestionDeleteService`에 둔다
 - [[DEC-0045-multi-domain-aggregation-in-application]] — 여러 도메인 Repository를 조합하는 집계 서비스는 `PQL-Application` 모듈에 둔다
 - [[DEC-0047-execute-uses-temp-sandbox-db]] — `sandboxDbName`이 없는 문제의 `/execute`는 호출마다 `SandboxPool` 임시 DB를 만들어 실행하고 지운다
 - [[DEC-0054-postgresql-sandbox-engine]] — Sandbox(와 앱 datasource) DB 엔진을 MariaDB에서 PostgreSQL로 전면 전환
@@ -38,7 +37,7 @@ related: []
 - [[DEC-0200-shared-sandbox-result-cache]] — 샌드박스 실행 결과는 `CachedSandboxExecutor` 한 곳에서 회원 간 공유 캐시(메모리 30분 > Redis 7일)로 재사용한다
 
 ## 대체된 결정 (역사)
-- 없음
+- [[DEC-0036-cross-domain-delete-service-in-web]] → null
 
 ## 관련 이슈
 - [[ISS-0357-choice-set-ai-server-half-failing]] (open, GitHub #575) — 선택지 생성 AI 서버 호출 절반 실패, 원인 조사
