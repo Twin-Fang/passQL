@@ -7,15 +7,11 @@ import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
 import 'passql_glass.dart';
 import 'passql_pressable.dart';
+import 'passql_tab_icon.dart';
 
 class PassqlTabItem {
-  const PassqlTabItem({
-    required this.icon,
-    required this.activeIcon,
-    required this.label,
-  });
-  final IconData icon;
-  final IconData activeIcon;
+  const PassqlTabItem({required this.kind, required this.label});
+  final PassqlTabIconKind kind;
   final String label;
 }
 
@@ -45,10 +41,14 @@ class PassqlTabBar extends StatelessWidget {
         padding: EdgeInsets.only(bottom: _resolveBottomPadding(context)),
         child: SizedBox(
           height: PassqlSize.tabBar,
+          // stretch: 탭마다 바 높이를 꽉 채워 누르는 영역이 내용 크기로 줄지 않고, 아이콘이 위 여백 기준으로 놓인다
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               for (var i = 0; i < items.length; i++)
                 Expanded(
+                  // 개념 탭이 나타나거나 사라져 순서가 밀려도 아이콘 상태(움직임)가 자기 탭을 따라가게
+                  key: ValueKey(items[i].kind),
                   child: Semantics(
                     selected: i == currentIndex,
                     // 보이는 라벨과 같은 문구를 시맨틱 라벨로 한 번만 읽음 (툴팁 없음)
@@ -73,7 +73,8 @@ class PassqlTabBar extends StatelessWidget {
   }
 }
 
-/// 탭 하나의 겉모습: 아이콘 위, 라벨 아래 (선택이면 채움 아이콘 + 글자용 강조색(accentText, 아이콘·라벨 동일), 아니면 보조색)
+/// 탭 하나의 겉모습: 아이콘 위, 라벨 아래 (선택이면 강조색(accentText, 아이콘·라벨 동일) 채운 아이콘, 아니면 보조색 선 아이콘).
+/// 위 끝에서 [PassqlSize.tabBarIconTop] 만큼 띄워 아이콘 위가 답답하지 않게 한다 (#755)
 class _TabItemContent extends StatelessWidget {
   const _TabItemContent({required this.item, required this.isSelected});
   final PassqlTabItem item;
@@ -83,13 +84,14 @@ class _TabItemContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final color = isSelected ? colors.accentText : colors.secondaryLabel;
-    return Center(
+    return Padding(
+      padding: const EdgeInsets.only(top: PassqlSize.tabBarIconTop),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            isSelected ? item.activeIcon : item.icon,
-            size: PassqlIconSize.xxl,
+          PassqlTabIcon(
+            kind: item.kind,
+            isSelected: isSelected,
             color: color,
           ),
           const SizedBox(height: PassqlSpacing.hairlineGap),

@@ -4,7 +4,8 @@ abstract final class PassqlSize {
   static const double buttonRegular = 44;
   static const double buttonSmall = 34;
   static const double segmentedControlSegment = 36; // 세그먼트 알약 높이 (트랙 위아래 여백 4씩 더해 누르는 영역 44, #726)
-  static const double tabBar = 49; // 아이콘 + 라벨 탭 바 (iOS 규격)
+  static const double tabBar = 54; // 아이콘 + 라벨 탭 바. 위 여백 10 + 아이콘 24 + 간격 2 + 라벨 12×글자 배율 상한 1.4 = 52.8 (#755)
+  static const double tabBarIconTop = 10; // 탭 바 위 끝 > 아이콘. 49 높이 가운데 정렬일 때 5.5 라 답답해 보였음 (#755)
   static const double navBar = 44;
   static const double bottomStrip = 44; // 탭 바 아래 한 줄 띠 (광고, #527). 띠 전체가 터치 영역이라 최소 터치 높이와 같게
   static const double rowMin = 44; // Apple 최소 터치 영역

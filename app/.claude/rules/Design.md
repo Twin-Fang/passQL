@@ -53,7 +53,7 @@ lib/presentation/design/
 | `PassqlGroupedSection` / `PassqlListRow` / `PassqlCheckRow` / `PassqlIconTile` | iOS 설정 앱식 목록 묶음·행·선택 행·아이콘 타일 (`isCompact`: 26pt 구간 제목용, #726) |
 | `PassqlNavBar` / `PassqlNavButton` / `PassqlLargeTitleScrollView` | 상단 바(제목 글자 대신 가운데 위젯 `middle` 가능), 뒤로/닫기 버튼, 큰 제목 탭 화면 틀 |
 | `PassqlBrandBarScrollView` | 홈 탭 화면 틀: 로고 또는 `leading`(왼쪽)·trailing(오른쪽) 한 줄 고정 바, 내용이 밑으로 지나가면 글래스 + 헤어라인 (#530) |
-| `PassqlTabBar` | 하단 탭 바 (아이콘만, #367). 하단 여백 기준 `PassqlTabBar.bottomPaddingOf` |
+| `PassqlTabBar` / `PassqlTabIcon` (+`PassqlTabIconKind`) | 하단 탭 바: 아이콘 + 라벨, 하단 여백 기준 `PassqlTabBar.bottomPaddingOf`. 아이콘은 직접 그림(비선택 선, 선택은 같은 윤곽을 강조색으로 채우고 체크·말풍선 사이 틈·집게 둘레만 뚫음), 새로 선택될 때만 아이콘 일부가 움직임(동작 줄이기면 정지, #755) |
 | `PassqlTabBarWithBottomStrip` | 탭 바 아래 한 줄 띠(광고, #527): 순서 탭 바 > 띠(위 헤어라인·표면색 `backgroundOf`·높이 `PassqlSize.bottomStrip`) > 홈 인디케이터 여백. 내용은 `AdNativeStripSlot` 이 채움 |
 | `PassqlBottomActionBar` / `PassqlGlass` | 하단 고정 버튼 영역, 흐림 바탕(고정 크롬 전용) |
 | `showPassqlSheet` | 모달 시트(손잡이·제목·키보드 여백). 닫기 X 없음: 손잡이 드래그·바깥 탭·뒤로가기·본문 버튼으로 닫힘 |
@@ -95,7 +95,7 @@ lib/presentation/design/
 - 시트는 `showPassqlSheet`, 확인 창은 `showPassqlConfirmDialog`, 로딩은 `PassqlLoadingIndicator`. `showModalBottomSheet(`, `showCupertinoDialog(`, `CupertinoActivityIndicator(` 직접 사용 금지
 - 시트 파일(`*_sheet.dart`·`*_dock.dart`)에 닫기 X 아이콘(`CupertinoIcons.xmark*`, `Icons.close*`) 금지. 비모달 해설 시트(`AiExplanationDock`)도 접힘에서 끌어 내리면 닫힘, 스크린리더는 제목의 '해설 닫기' 동작 (#699)
 - 이동 경로는 `AppRoutes` (`lib/router/app_routes.dart`). `context.go('/...')`, `push('/...')` 문자열 금지
-- 아이콘은 `CupertinoIcons` (이모지 금지)
+- 아이콘은 `CupertinoIcons` (이모지 금지). 예외: 하단 탭 바는 부품별 움직임 때문에 `PassqlTabIcon`(Lucide 계열 선 아이콘 직접 그림, #755)
 - 애니메이션 시간·곡선은 `PassqlMotion` 토큰으로. `Curves.`, `duration: Duration(` 직접 사용 금지. 동작 줄이기(`PassqlMotion.isReduced`)는 공통 컴포넌트가 처리한다
 
 강제 위치: `test/architecture/design_system_rules_test.dart`. 예외가 꼭 필요하면 테스트 안 `_allowedUsages` 에 파일·패턴·이유를 적는다.
