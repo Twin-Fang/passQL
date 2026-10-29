@@ -1,0 +1,42 @@
+/* 잠금 미리보기 (#578) */
+
+/* ── 잠금 미리보기 (#578, 앱 PassqlLockedPreview 대응) ── */
+/* 흐림 5px·최소 높이 132px: 앱 PassqlSize.lockedPreviewBlurSigma·lockedPreviewMinHeight 와 같은 값 */
+.locked-preview {
+  --locked-preview-blur: 5px;
+  position: relative;
+  min-height: 132px;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+/* 글자 모양은 보이되 읽히지 않게 (투명도 0.7) */
+.locked-preview-content {
+  filter: blur(var(--locked-preview-blur));
+  opacity: 0.7;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 위아래 옅고 가운데 진한 덮개 (가장자리 15%, 가운데 55%) > 문구·버튼이 떠 보이게 */
+.locked-preview-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--color-surface) 15%, transparent),
+    color-mix(in srgb, var(--color-surface) 55%, transparent),
+    color-mix(in srgb, var(--color-surface) 15%, transparent)
+  );
+}
+
+.locked-preview-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+}

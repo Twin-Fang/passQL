@@ -15,6 +15,7 @@ import com.passql.question.constant.ChoiceSetSource;
 import com.passql.question.constant.ChoiceSetStatus;
 import com.passql.question.constant.Dialect;
 import com.passql.question.constant.ExecutionMode;
+import com.passql.question.dto.PostgresCompatibleSql;
 import com.passql.question.entity.Question;
 import com.passql.question.entity.QuestionChoiceSet;
 import com.passql.question.entity.QuestionChoiceSetItem;
@@ -52,6 +53,7 @@ public class QuestionGenerateService {
     private final QuestionChoiceSetRepository choiceSetRepository;
     private final QuestionChoiceSetItemRepository choiceSetItemRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final OracleSqlCompatibilityConverter oracleSqlCompatibilityConverter;
 
     /**
      * AI에게 문제를 생성 요청한다 (저장하지 않음, 관리자 preview 용).
@@ -86,6 +88,35 @@ public class QuestionGenerateService {
 
         GenerateQuestionFullRequest request = new GenerateQuestionFullRequest(context, llmConfig);
         return aiGatewayClient.generateQuestionFull(request);
+    }
+
+    /**
+     * 관리자 직접 등록: Oracle 문법 치환(NVL, SYSDATE) > 남은 Oracle 전용 문법 시 CONCEPT_ONLY 전환 > 문제만 저장
+     * 편집(updateQuestion)·검수 후 저장(createQuestionWithSeedSet)은 치환하지 않음
+     */
+    @Transactional
+    public Question createQuestionWithOracleConversion(
+            UUID topicUuid,
+            UUID subtopicUuid,
+            int difficulty,
+            ExecutionMode executionMode,
+            String stem,
+            String schemaDdl,
+            String schemaSampleData,
+            String schemaIntent,
+            String answerSql,
+            String hint,
+            ChoiceSetPolicy choiceSetPolicy
+    ) {
+        PostgresCompatibleSql compatibleSql = oracleSqlCompatibilityConverter.toPostgresCompatible(
+                schemaDdl, schemaSampleData, answerSql, stem);
+        ExecutionMode savedMode = compatibleSql.resolveExecutionMode(executionMode);
+        if (savedMode != executionMode) {
+            log.info("[register] Oracle 전용 문법 감지 → CONCEPT_ONLY 자동 전환: keyword={}", compatibleSql.oracleOnlyKeyword());
+        }
+        return createQuestionOnly(topicUuid, subtopicUuid, difficulty, savedMode,
+                stem, compatibleSql.schemaDdl(), compatibleSql.schemaSampleData(), schemaIntent,
+                compatibleSql.answerSql(), hint, choiceSetPolicy);
     }
 
     /**
