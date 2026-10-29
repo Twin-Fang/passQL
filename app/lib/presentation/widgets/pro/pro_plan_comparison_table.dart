@@ -2,19 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../design/design.dart';
-
-/// 무료 하루 문제 수를 서버에서 못 받았을 때의 표시값
-const int _fallbackDailyFreeLimit = 10;
+import 'pro_benefits.dart';
 
 // 체크·대시 칸 읽기 문구 (화면 낭독기)
 const String _includedSemanticLabel = '포함';
 const String _notIncludedSemanticLabel = '제공 안 함';
-
-// 개념 학습 행은 2번 프로젝트가 나오기 전까지 숨김 (없는 기능을 팔지 않음)
-const bool _isConceptLearningRowVisible = false;
-
-/// 비교표 한 행: 무료 값이 null 이면 "—"(불가), 프로 값이 null 이면 체크
-typedef _PlanRow = ({String label, String? free, String? pro});
 
 /// 무료·프로 비교표 (스펙 4-3): 항목 7개(개념 학습은 숨김), 프로 열은 강조색
 class ProPlanComparisonTable extends StatelessWidget {
@@ -29,20 +21,6 @@ class ProPlanComparisonTable extends StatelessWidget {
   static const int _proFlex = 4;
   // 표 행 위아래 여백
   static const double _rowVerticalPadding = 10;
-
-  List<_PlanRow> get _rows {
-    final limit = dailyFreeLimit > 0 ? dailyFreeLimit : _fallbackDailyFreeLimit;
-    return [
-      (label: '문제 풀이', free: '하루 $limit개', pro: '제한 없음'),
-      (label: 'SQL 직접 실행', free: null, pro: null),
-      (label: '해설', free: '한 줄', pro: '보기별 전체'),
-      (label: '실전 모드·토픽', free: null, pro: null),
-      (label: '출제 경향', free: null, pro: null),
-      (label: '통계', free: '기본', pro: '약점 분석'),
-      if (_isConceptLearningRowVisible)
-        (label: '개념 학습', free: '앞 단원', pro: '전체'),
-    ];
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +51,8 @@ class ProPlanComparisonTable extends StatelessWidget {
               ),
             ),
           ),
-          for (final row in _rows) ...[
+          // 행은 혜택 원본 하나에서 읽는다 (탑승권·시트와 같은 목록, #749)
+          for (final row in proBenefits(dailyFreeLimit: dailyFreeLimit)) ...[
             Divider(
               height: PassqlSize.hairline,
               thickness: PassqlSize.hairline,

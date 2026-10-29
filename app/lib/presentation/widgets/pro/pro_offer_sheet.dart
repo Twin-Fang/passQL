@@ -8,6 +8,7 @@ import '../../../core/utils/number_format.dart';
 import '../../../data/models/member/member_plan_response.dart';
 import '../../design/design.dart';
 import '../../providers/plan_providers.dart';
+import '../../providers/profile_pass_providers.dart';
 import '../common/app_toast.dart';
 import 'pro_pass_option_tile.dart';
 import 'pro_plan_comparison_table.dart';
@@ -38,6 +39,8 @@ Future<void> showProOfferSheet(
   _isOfferSheetOpen = true;
   final knownPlan = ref.read(knownPlanProvider);
   final proExpiresAt = knownPlan?.proExpiresAt;
+  // 시트가 닫힐 때 호출 화면이 이미 사라졌을 수 있어 ref 는 기다리기 전에 읽어 둔다
+  final revealNotifier = ref.read(profilePassRevealPendingProvider.notifier);
   try {
     final isPurchased = await showPassqlSheet<bool>(
       context,
@@ -52,8 +55,10 @@ Future<void> showProOfferSheet(
         reason: reason,
       ),
     );
-    if (isPurchased == true && context.mounted) {
-      showAppToast(context, proPurchaseSucceededMessage);
+    if (isPurchased == true) {
+      // 어느 진입점에서 샀든 다음 프로필 진입 때 탑승권 연출을 한 번 보여 준다 (#749)
+      await revealNotifier.markPending();
+      if (context.mounted) showAppToast(context, proPurchaseSucceededMessage);
     }
   } catch (_) {
     // 시트를 띄우지 못한 경우만 여기서 내림

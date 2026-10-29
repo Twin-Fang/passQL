@@ -1,4 +1,4 @@
-/// 기기 저장 키 원본 16개: 일반 저장소(DevicePreferences) 11개 + 보안 저장소(TokenStore) 5개
+/// 기기 저장 키 원본 18개: 일반 저장소(DevicePreferences) 13개 + 보안 저장소(TokenStore) 5개
 /// 값은 기존 설치의 저장 데이터를 읽는 키 > 문자열 값을 바꾸지 않음
 abstract final class StorageKeys {
   // ─── 일반 저장소 (SharedPreferences, 앱 삭제 시 함께 지워짐) ───
@@ -31,6 +31,10 @@ abstract final class StorageKeys {
       'ads_interstitial_result_entry_count';
   // 신규 가입 후 온보딩을 아직 마치지 않았는지 (bool, 로그인 세션이 끝나면 지움)
   static const String onboardingPending = 'onboarding_pending';
+  // 내 프로필 프로 탑승권을 접어 두었는지 (bool, 없으면 접힘, #749)
+  static const String profilePassCollapsed = 'profile_pass_collapsed';
+  // 이용권 구매 뒤 프로필 탑승권 연출을 아직 안 보여 줬는지 (bool, #749)
+  static const String profilePassRevealPending = 'profile_pass_reveal_pending';
 
   // ─── 보안 저장소 (Keychain/Keystore, 인증 세션) ───
 

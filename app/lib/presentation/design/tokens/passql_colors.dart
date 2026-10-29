@@ -30,6 +30,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     required this.glass,
     required this.imageViewerBackground,
     required this.onImageViewer,
+    required this.passGradientEnd,
+    required this.passGlow,
   });
 
   final Color accent;
@@ -69,6 +71,12 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
   final Color imageViewerBackground;
   final Color onImageViewer;
 
+  /// 프로 탑승권(passQL PRO PASS) 그라데이션 끝색. 시작은 accent (#749)
+  final Color passGradientEnd;
+
+  /// 시트 위에 띄운 탑승권 그림자·빛. 다크는 검은 그림자가 안 보여 보라 빛으로 띄운다 (#749)
+  final Color passGlow;
+
   static const light = PassqlColors(
     accent: Color(0xFF5856D6),
     onAccent: Color(0xFFFFFFFF),
@@ -100,6 +108,9 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     glass: Color(0xB3F9F9F9),
     imageViewerBackground: Color(0xFF000000),
     onImageViewer: Color(0xFFFFFFFF),
+    // 탑승권: 보라 그라데이션 끝, 그림자는 accent 35%
+    passGradientEnd: Color(0xFF7A5AF8),
+    passGlow: Color(0x595856D6),
   );
 
   static const dark = PassqlColors(
@@ -129,6 +140,9 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     glass: Color(0xB31D1D1D),
     imageViewerBackground: Color(0xFF000000),
     onImageViewer: Color(0xFFFFFFFF),
+    // 탑승권: 다크는 그림자 대신 보라 빛 32% (65%는 너무 밝다는 시안 피드백)
+    passGradientEnd: Color(0xFF8466FA),
+    passGlow: Color(0x525E5CE6),
   );
 
   @override
@@ -158,6 +172,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
         glass: glass,
         imageViewerBackground: imageViewerBackground,
         onImageViewer: onImageViewer,
+        passGradientEnd: passGradientEnd,
+        passGlow: passGlow,
       );
 
   @override
@@ -193,6 +209,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
         other.imageViewerBackground,
       ),
       onImageViewer: lerpColor(onImageViewer, other.onImageViewer),
+      passGradientEnd: lerpColor(passGradientEnd, other.passGradientEnd),
+      passGlow: lerpColor(passGlow, other.passGlow),
     );
   }
 }

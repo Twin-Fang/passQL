@@ -37,6 +37,13 @@ abstract final class PassqlMotion {
   // 세그먼트 알약 물방울 이동 전체 시간 (앞 가장자리가 먼저 뻗고 뒤가 따라붙음, #726)
   static const segmentMorph = Duration(milliseconds: 350);
 
+  // 탑승권(#749): 대각선 빛줄기 한 바퀴(앞 70%는 쉬고 뒤 30%에 스침), 홀로그램 왕복, 게이지 빛, 구매 직후 색 차오름
+  static const passSweepPeriod = Duration(seconds: 5);
+  static const passSweepRestFraction = 0.7;
+  static const passHoloPeriod = Duration(seconds: 6);
+  static const passGaugeShinePeriod = Duration(milliseconds: 2400);
+  static const passReveal = Duration(milliseconds: 900);
+
   // 누름 축소 비율
   static const pressedScale = 0.97;
 
