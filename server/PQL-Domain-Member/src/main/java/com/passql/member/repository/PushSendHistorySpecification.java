@@ -26,7 +26,7 @@ public final class PushSendHistorySpecification {
             specification = specification.and((root, query, builder) -> builder.equal(root.get("audience"), audience));
         }
         if (StringUtils.hasText(condition.getDispatchStatus())) {
-            PushDispatchStatus dispatchStatus = PushDispatchStatus.valueOf(condition.getDispatchStatus().trim());
+            PushDispatchStatus dispatchStatus = PushDispatchStatus.fromRequestValue(condition.getDispatchStatus().trim());
             specification = specification.and((root, query, builder) -> builder.equal(root.get("dispatchStatus"), dispatchStatus));
         }
         if (condition.getFromDate() != null) {

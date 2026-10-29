@@ -8,13 +8,12 @@ from src.clients.llm_schema import to_json_schema
 from src.clients.shared_http_client import send_request
 from src.clients.token_usage import record_token_usage
 from src.core.exceptions import CustomError
+from src.core.external_call_limits import LLM_CALL_TIMEOUT_SECONDS
 
 logger = logging.getLogger(__name__)
 
 CLAUDE_MESSAGES_URL = "https://api.anthropic.com/v1/messages"
 CLAUDE_API_VERSION = "2023-06-01"
-# 호출 1회 응답 대기 상한 (30초, Gemini 와 같은 기준) (#688)
-CALL_TIMEOUT_SECONDS = 30
 # JSON 강제 응답용 도구 이름 (tool_choice 로 이 도구만 쓰게 함)
 STRUCTURED_RESPONSE_TOOL_NAME = "submit_response"
 
@@ -35,7 +34,7 @@ class ClaudeClient:
             CLAUDE_MESSAGES_URL,
             headers={"x-api-key": api_key, "anthropic-version": CLAUDE_API_VERSION},
             json_body=request_body,
-            timeout_seconds=CALL_TIMEOUT_SECONDS,
+            timeout_seconds=LLM_CALL_TIMEOUT_SECONDS,
         )
         response_body = response.json()
         usage = response_body.get("usage") or {}

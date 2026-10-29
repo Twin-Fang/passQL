@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from "react";
 import { useNavigate, useBlocker } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSubmitAnswer } from "./useQuestionDetail";
+import { invalidateLearningRecordQueries } from "../lib/learningRecordQueries";
 import type { ChoiceItem, QuestionDetail, SubmitResult } from "../types/api";
 
 interface QuestionAnswerSubmitOptions {
@@ -81,8 +82,7 @@ export function useQuestionAnswerSubmit({
           };
           // 제출 완료 시 추천 문제·학습 현황 무효화 — 홈 복귀(마운트) 시 재요청, 화면에 떠 있는 쿼리만 즉시 재요청
           queryClient.invalidateQueries({ queryKey: ["recommendations"] });
-          queryClient.invalidateQueries({ queryKey: ["heatmap"] });
-          queryClient.invalidateQueries({ queryKey: ["progress"] });
+          invalidateLearningRecordQueries(queryClient);
           if (onSubmitSuccess) {
             // 데일리 챌린지 등 호출자가 네비게이션 제어
             onSubmitSuccess(fullResult as SubmitResult, questionUuid!);

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:passql_app/presentation/widgets/home/exam_dday.dart';
-import 'package:passql_app/presentation/widgets/profile/profile_pass_values.dart';
+import 'package:passql_app/core/utils/exam_dday.dart';
+import 'package:passql_app/core/utils/profile_pass_values.dart';
 
 void main() {
   test('남은 무료 횟수는 0 아래로 내려가지 않는다', () {

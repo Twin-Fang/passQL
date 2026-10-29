@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -138,14 +137,14 @@ class _ViewToggle extends StatelessWidget {
       required IconData icon,
       required bool isSelected,
       required String label,
-      required bool value,
+      required bool isChartCell,
     }) {
       return PassqlSemanticButton(
         label: label,
         isSelected: isSelected,
-        onTap: () => onChanged(value),
+        onTap: () => onChanged(isChartCell),
         child: PassqlPressable(
-          onTap: () => onChanged(value),
+          onTap: () => onChanged(isChartCell),
           child: AnimatedContainer(
             duration: PassqlMotion.durationOf(context, PassqlMotion.fast),
             curve: PassqlMotion.curve,
@@ -178,13 +177,13 @@ class _ViewToggle extends StatelessWidget {
             icon: CupertinoIcons.list_bullet,
             isSelected: !isChart,
             label: '목록으로 보기',
-            value: false,
+            isChartCell: false,
           ),
           cell(
             icon: CupertinoIcons.hexagon,
             isSelected: isChart,
             label: '차트로 보기',
-            value: true,
+            isChartCell: true,
           ),
         ],
       ),
@@ -249,7 +248,7 @@ class _TopicAccuracyRowTile extends StatelessWidget {
       hasHorizontalPadding: false,
       leading: PassqlIconTile(
         icon: topicIconFor(code ?? ''),
-        color: topicColorFor(code ?? '', Theme.of(context).brightness),
+        color: topicColorFor(code ?? '', context.themeBrightness),
       ),
       trailing: row.isUnsolved
           ? null
@@ -317,10 +316,7 @@ class _LockedTopicAccuracy extends ConsumerWidget {
                     hasHorizontalPadding: false,
                     leading: PassqlIconTile(
                       icon: topicIconFor(topic.code),
-                      color: topicColorFor(
-                        topic.code,
-                        Theme.of(context).brightness,
-                      ),
+                      color: topicColorFor(topic.code, context.themeBrightness),
                     ),
                     trailing: const PassqlSkeletonBox(
                       width: _placeholderValueWidth,

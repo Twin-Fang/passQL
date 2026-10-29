@@ -1,5 +1,6 @@
 package com.passql.application.entitlement;
 
+import com.passql.common.util.UuidUtils;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.member.constant.ChoiceGenerationMode;
@@ -259,12 +260,11 @@ public class FeatureAccessPolicy {
 
     /** 목록 항목 > UUID, 형식 오류면 경고 후 null */
     private UUID toUuidOrNull(String entry) {
-        try {
-            return UUID.fromString(entry);
-        } catch (IllegalArgumentException e) {
+        UUID memberUuid = UuidUtils.parseOrEmpty(entry).orElse(null);
+        if (memberUuid == null) {
             log.warn("[feature access] billing preview member ignored : invalid uuid={}", sanitizeForLog(entry));
-            return null;
         }
+        return memberUuid;
     }
 
     /** 로그용 값 정리 (UUID 문자 외 > ?, 40자 제한) */

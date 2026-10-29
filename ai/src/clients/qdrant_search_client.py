@@ -20,9 +20,7 @@ NOT_FOUND_STATUS_CODE = 404
 
 class QdrantSearchClient:
     """
-    Qdrant REST API 비동기 클라이언트
-
-    Qdrant 벡터 DB에 벡터를 저장하고 유사도 검색을 수행합니다.
+    Qdrant REST API 비동기 클라이언트: 벡터 저장, 유사도 검색
     - search: 벡터 유사도 검색 (top_k 결과 반환)
     - upsert: 벡터 + payload 저장 (없으면 삽입, 있으면 갱신)
     """

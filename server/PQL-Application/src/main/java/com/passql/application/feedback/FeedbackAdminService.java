@@ -1,5 +1,6 @@
 package com.passql.application.feedback;
 
+import com.passql.common.util.UuidUtils;
 import com.passql.meta.constant.FeedbackStatus;
 import com.passql.meta.dto.FeedbackAdminResponse;
 import com.passql.meta.dto.FeedbackSearchCondition;
@@ -97,13 +98,15 @@ public class FeedbackAdminService {
         if (memberKeyword == null || memberKeyword.isBlank()) {
             return null;
         }
-        try {
-            return Set.of(UUID.fromString(memberKeyword.trim()));
-        } catch (IllegalArgumentException notUuidFormat) {
-            List<Member> matchedMembers = memberRepository.findAll(
-                MemberSpecification.nicknameContains(memberKeyword.trim()),
-                PageRequest.of(0, MEMBER_NICKNAME_SEARCH_LIMIT)).getContent();
-            return matchedMembers.stream().map(Member::getMemberUuid).collect(Collectors.toSet());
-        }
+        return UuidUtils.parseOrEmpty(memberKeyword.trim())
+            .map(Set::of)
+            .orElseGet(() -> findMemberUuidsByNickname(memberKeyword.trim()));
+    }
+
+    private Set<UUID> findMemberUuidsByNickname(String nicknameKeyword) {
+        List<Member> matchedMembers = memberRepository.findAll(
+            MemberSpecification.nicknameContains(nicknameKeyword),
+            PageRequest.of(0, MEMBER_NICKNAME_SEARCH_LIMIT)).getContent();
+        return matchedMembers.stream().map(Member::getMemberUuid).collect(Collectors.toSet());
     }
 }

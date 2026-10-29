@@ -4,6 +4,7 @@ import com.passql.ai.dto.AiStats;
 import com.passql.ai.service.AiCallLogService;
 import com.passql.application.statistics.AdminAiStatisticsService;
 import com.passql.application.statistics.dto.AiUsageTotal;
+import com.passql.common.exception.CustomException;
 import com.passql.meta.constant.AppSettingKeys;
 import com.passql.meta.service.AppSettingService;
 import com.passql.meta.service.ServerErrorLogService;
@@ -130,11 +131,15 @@ public class MonitorAlertService {
         }
     }
 
-    // 웹훅 URL (SECRET 복호화, 행 없음·복호화 실패는 빈 값)
+    // 웹훅 URL (SECRET 복호화, 행 없음·복호화 실패·조회 장애는 빈 값)
     private String readWebhookUrlOrEmpty() {
         try {
             return appSettingService.getSecret(AppSettingKeys.MONITOR_ALERT_SLACK_WEBHOOK_URL);
+        } catch (CustomException exception) {
+            // 행 없음은 미설정 정상 상태, 복호화 실패는 SettingSecretCipher 가 이미 기록
+            return "";
         } catch (RuntimeException exception) {
+            log.warn("[monitor alert] webhook url read failed : alert skipped : cause={}", exception.getClass().getSimpleName());
             return "";
         }
     }

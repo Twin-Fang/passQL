@@ -7,6 +7,7 @@ import '../../../core/error/app_exception.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/notice_providers.dart';
+import '../../widgets/common/load_more_scroll_metrics.dart';
 import '../../widgets/notice/notice_list_row.dart';
 
 /// 공지 목록: 지난 공지 포함(노출 중 중요 먼저 > 게시 최신 순), 당겨서 새로고침, 끝 근처에서 다음 페이지
@@ -21,9 +22,6 @@ class NoticeListPage extends ConsumerStatefulWidget {
 class _NoticeListPageState extends ConsumerState<NoticeListPage> {
   final _scrollController = ScrollController();
 
-  // 목록 끝까지 남은 거리가 이 값 이하면 다음 페이지 요청
-  static const double _loadMoreTriggerPixels = 320;
-
   @override
   void initState() {
     super.initState();
@@ -37,7 +35,7 @@ class _NoticeListPageState extends ConsumerState<NoticeListPage> {
   }
 
   void _loadMoreNearEnd() {
-    if (_scrollController.position.extentAfter <= _loadMoreTriggerPixels) {
+    if (_scrollController.position.isNearLoadMoreEnd) {
       ref.read(noticeListProvider.notifier).loadMore();
     }
   }

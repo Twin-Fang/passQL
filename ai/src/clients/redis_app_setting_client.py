@@ -42,11 +42,11 @@ async def _get_redis() -> redis_asyncio.Redis | None:
     try:
         await client.ping()
         _redis_client = client
-        logger.info(f"Redis 연결 성공: {settings.REDIS_HOST}:{settings.REDIS_PORT}")
+        logger.info(f"[redis app setting] connected : {settings.REDIS_HOST}:{settings.REDIS_PORT}")
     except Exception as e:
         _last_failure_time = time.monotonic()
         await client.aclose()
-        logger.warning(f"Redis 연결 실패 — {_RETRY_INTERVAL_SEC}초 후 재시도: {e}")
+        logger.warning(f"[redis app setting] connect failed, retry after {_RETRY_INTERVAL_SEC}s : {e}")
     return _redis_client
 
 
@@ -80,10 +80,10 @@ async def get_setting(key: str, fallback: str) -> str:
             return fallback
         value = await client.get(REDIS_PREFIX + key)
         if value is not None:  # 빈 문자열("")도 유효한 설정값으로 처리 (Java와 동일)
-            logger.debug(f"Redis 설정 로드: {key}={_mask_setting_value(key, value)}")
+            logger.debug(f"[redis app setting] loaded : {key}={_mask_setting_value(key, value)}")
             return value
     except Exception as e:
-        logger.warning(f"Redis 설정 읽기 실패 ({key}) — fallback 사용: {e}")
+        logger.warning(f"[redis app setting] read failed, using fallback : key={key} : {e}")
     return fallback
 
 
@@ -95,5 +95,5 @@ async def get_raw_value(full_key: str) -> str | None:
             return None
         return await client.get(full_key)
     except Exception as e:
-        logger.warning(f"Redis 읽기 실패 ({full_key}): {e}")
+        logger.warning(f"[redis app setting] raw read failed : key={full_key} : {e}")
         return None

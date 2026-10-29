@@ -58,10 +58,7 @@ class CommunityFeedCardTile extends StatelessWidget {
             children: [
               PassqlIconTile(
                 icon: topicIconFor(topicCode),
-                color: topicColorFor(
-                  topicCode,
-                  context.isDark ? Brightness.dark : Brightness.light,
-                ),
+                color: topicColorFor(topicCode, context.themeBrightness),
               ),
               const SizedBox(width: PassqlSpacing.sm),
               Expanded(

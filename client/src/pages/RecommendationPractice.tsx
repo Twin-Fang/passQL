@@ -3,6 +3,7 @@ import { useNavigate, useParams, useLocation, useBlocker } from "react-router-do
 import { useQueryClient } from "@tanstack/react-query";
 import { Home } from "lucide-react";
 import { submitAnswer } from "../api/questions";
+import { invalidateLearningRecordQueries } from "../lib/learningRecordQueries";
 import { usePracticeStore } from "../stores/practiceStore";
 
 import QuestionDetail from "./QuestionDetail";
@@ -38,7 +39,7 @@ export default function RecommendationPractice() {
   const [feedbackExplanationEntry, setFeedbackExplanationEntry] = useState<ExplanationHistoryEntry | null>(null);
   const addExplanationEntry = useExplanationHistoryStore((state) => state.addEntry);
   // 제출 API 호출 중 화면 조작 차단
-  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   // 연타 방지 — React state는 async 클로저에서 stale하므로 ref로 동기 플래그 관리
   const isProcessingRef = useRef(false);
   // 다시 풀기 시 QuestionDetail 강제 리마운트 — isSubmittingRef 초기화 목적
@@ -46,8 +47,8 @@ export default function RecommendationPractice() {
   // sessionUuid — 마운트 시 1회 생성하여 다시 풀기 시에도 동일 세션으로 집계
   const [sessionUuid] = useState(() => storeSessionId ?? crypto.randomUUID());
 
-  // 제출 완료 전까지 이탈 차단 — submitting 중에는 해제 (catch navigate 허용)
-  const blocker = useBlocker(feedback === null && !submitting);
+  // 제출 완료 전까지 이탈 차단 — isSubmitting 중에는 해제 (catch navigate 허용)
+  const blocker = useBlocker(feedback === null && !isSubmitting);
 
   const handlePracticeSubmit = useCallback(
     async (selectedChoiceKey: string, choiceSetId: string, choices: readonly ChoiceItem[]) => {
@@ -56,14 +57,13 @@ export default function RecommendationPractice() {
       if (isProcessingRef.current) return;
       isProcessingRef.current = true;
 
-      setSubmitting(true);
+      setIsSubmitting(true);
       try {
         const result = await submitAnswer(questionUuid, choiceSetId, selectedChoiceKey, sessionUuid);
         // 추천 문제·학습 현황 무효화 (복귀 시 재요청) — 홈 복귀 시 새 목록·heatmap 반영
         // excludeUuids=[]로 새 랜덤 세트를 받음 — 문제를 푼 직후이므로 의도된 동작
         queryClient.invalidateQueries({ queryKey: ["recommendations"] });
-        queryClient.invalidateQueries({ queryKey: ["heatmap"] });
-        queryClient.invalidateQueries({ queryKey: ["progress"] });
+        invalidateLearningRecordQueries(queryClient);
         // 해설함 등록 > 미리보기 즉시 조회 시작 (다시 풀기 기록도 해설함에 남음)
         const explanationEntry = buildExplanationHistoryEntry({
           questionUuid,
@@ -79,7 +79,7 @@ export default function RecommendationPractice() {
         navigate("/", { replace: true });
       } finally {
         isProcessingRef.current = false;
-        setSubmitting(false);
+        setIsSubmitting(false);
       }
     },
     [questionUuid, navigate, queryClient, sessionUuid, addExplanationEntry],
@@ -148,7 +148,7 @@ export default function RecommendationPractice() {
       <ExplanationPanel />
 
       {/* 채점 중 오버레이 — 제출 API 응답 전 화면 조작 차단 */}
-      {submitting && (
+      {isSubmitting && (
         <LoadingOverlay
           topicName="추천 문제"
           staticMessage="채점 중이에요"

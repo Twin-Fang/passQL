@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 
 import '../../design/design.dart';
 
@@ -100,4 +99,4 @@ String benefitInUseLabel(ProBenefit benefit) => benefit.pro ?? '사용 중';
 Color benefitColorOf(BuildContext context, ProBenefit benefit) =>
     benefit.hue == 'warning'
     ? context.passqlColors.warning
-    : systemHueColor(benefit.hue, Theme.of(context).brightness);
+    : systemHueColor(benefit.hue, context.themeBrightness);

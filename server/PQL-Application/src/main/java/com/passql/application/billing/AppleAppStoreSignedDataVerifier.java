@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 public class AppleAppStoreSignedDataVerifier implements AppStoreSignedDataVerifier {
 
     // iOS 앱 번들 ID (App Store Connect 앱 정보)
-    static final String BUNDLE_ID = "com.coldredrice.passql";
+    static final String BUNDLE_ID = StoreAppIdentifier.APPLICATION_ID;
     // App Store Connect 앱 Apple ID (운영 환경 검증에 필수)
     static final long APP_APPLE_ID = 6762165005L;
     // Apple 루트 인증서 (공개 인증서, https://www.apple.com/certificateauthority/)

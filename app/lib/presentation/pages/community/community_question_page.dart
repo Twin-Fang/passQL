@@ -10,6 +10,7 @@ import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/community_providers.dart';
 import '../../widgets/common/app_toast.dart';
+import '../../widgets/common/load_more_scroll_metrics.dart';
 import '../../widgets/community/community_compose_bar.dart';
 import '../../widgets/community/community_compose_sheet.dart';
 import '../../widgets/community/community_post_menu.dart';
@@ -32,9 +33,6 @@ class _CommunityQuestionPageState extends ConsumerState<CommunityQuestionPage> {
   final _scrollController = ScrollController();
   CommunityPostSort _sort = CommunityPostSort.latest;
 
-  // 목록 끝까지 남은 거리가 이 값 이하면 다음 페이지 요청
-  static const double _loadMoreTriggerPixels = 320;
-
   CommunityPostsQuery get _query =>
       (questionUuid: widget.questionUuid, sort: _sort);
 
@@ -54,7 +52,7 @@ class _CommunityQuestionPageState extends ConsumerState<CommunityQuestionPage> {
   }
 
   void _loadMoreNearEnd() {
-    if (_scrollController.position.extentAfter <= _loadMoreTriggerPixels) {
+    if (_scrollController.position.isNearLoadMoreEnd) {
       _notifier.loadMore();
     }
   }

@@ -12,9 +12,7 @@ logger = logging.getLogger(__name__)
 
 async def verify_api_key(x_api_key: str = Header(None)):
     """
-    X-API-Key 헤더 검증 dependency
-
-    Spring 서버가 AI 서버를 호출할 때 사용하는 API Key를 검증합니다.
+    X-API-Key 헤더 검증 dependency (Spring 서버 > AI 서버 호출 키)
 
     Args:
         x_api_key: 요청 헤더의 X-API-Key 값
@@ -27,5 +25,5 @@ async def verify_api_key(x_api_key: str = Header(None)):
         x_api_key.encode("utf-8"), settings.AI_SERVER_API_KEY.encode("utf-8")
     )
     if not is_api_key_matched:
-        logger.warning(f"인증 실패: 유효하지 않은 X-API-Key")
+        logger.warning("[api key auth] rejected 401 : invalid X-API-Key")
         raise HTTPException(status_code=401, detail="Unauthorized")

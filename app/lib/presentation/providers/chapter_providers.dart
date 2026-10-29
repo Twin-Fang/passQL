@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/error/app_exception.dart';
+import '../../core/monitoring/crash_reporter.dart';
 import '../../data/models/question/submit_result.dart';
 
 // ─── 데이터 모델 ────────────────────────────────────────────────
@@ -148,7 +149,12 @@ class ChapterNotifier extends AutoDisposeFamilyNotifier<ChapterState, String> {
         currentIndex: start.resumedCorrectness.length,
         isLoadingList: false,
       );
-    } catch (exception) {
+    } catch (exception, stackTrace) {
+      reportIfUnexpectedFailure(
+        exception,
+        stackTrace,
+        reason: 'chapterLoad:$arg',
+      );
       state = state.copyWith(
         isLoadingList: false,
         listError: exception.asAppException.message,

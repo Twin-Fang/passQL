@@ -1,5 +1,6 @@
 package com.passql.member.repository;
 
+import com.passql.common.util.UuidUtils;
 import com.passql.member.constant.MemberPlan;
 import com.passql.member.constant.MemberPlanFilter;
 import com.passql.member.constant.MemberRole;
@@ -89,11 +90,9 @@ public class MemberSpecification {
             if (memberUuidText == null || memberUuidText.isBlank()) {
                 return cb.conjunction();
             }
-            try {
-                return cb.equal(root.get("memberUuid"), UUID.fromString(memberUuidText.trim()));
-            } catch (IllegalArgumentException invalidUuidFormat) {
-                return cb.disjunction();
-            }
+            return UuidUtils.parseOrEmpty(memberUuidText.trim())
+                    .map(memberUuid -> cb.equal(root.get("memberUuid"), memberUuid))
+                    .orElseGet(cb::disjunction);
         };
     }
 

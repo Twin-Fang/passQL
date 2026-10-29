@@ -21,8 +21,7 @@ public class AiService {
     private final QdrantSearchClient qdrantSearchClient;
     private final PromptService promptService;
 
-    // 오류·선택지 해설은 AiExplainService(PQL-Application)로 옮겼다. 여기에는 유사 문제 검색만 남긴다.
-
+    // 유사 문제 검색 전용 (해설은 PQL-Application AiExplainService)
     public List<SimilarQuestion> getSimilar(UUID questionUuid, int k) {
         throw new UnsupportedOperationException("TODO");
     }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/error/app_exception.dart';
 import '../../core/logging/app_logger.dart';
 import '../../core/monitoring/app_analytics.dart';
+import '../../core/monitoring/crash_reporter.dart';
 import '../../data/sources/api_providers.dart';
 import '../../data/models/question/choice_item.dart';
 import '../../data/models/question/execute_request.dart';
@@ -163,7 +164,12 @@ class QuestionInteractionNotifier
         currentExecuteResult: executeResult,
         isExecuting: false,
       );
-    } catch (exception) {
+    } catch (exception, stackTrace) {
+      reportIfUnexpectedFailure(
+        exception,
+        stackTrace,
+        reason: 'questionExecute:$_questionUuid',
+      );
       // 실패 사유를 담아 오류 카드로 표시 (인증 만료는 인터셉터가 세션 만료 신호로 처리)
       state = state.copyWith(
         isExecuting: false,
@@ -197,7 +203,12 @@ class QuestionInteractionNotifier
         'action',
         'answer submitted isCorrect=${submitResult.isCorrect}',
       );
-    } catch (exception) {
+    } catch (exception, stackTrace) {
+      reportIfUnexpectedFailure(
+        exception,
+        stackTrace,
+        reason: 'answerSubmit:$_questionUuid',
+      );
       AppLogger.warn(
         'action',
         'answer submit failed ${exception.asAppException.code.name}',

@@ -30,10 +30,10 @@ const WITHDRAW_STOPPED_MESSAGE: Readonly<Record<Exclude<SocialRevokeResult, "REA
 
 export default function Settings() {
   const navigate = useNavigate();
-  const [logoutLoading, setLogoutLoading] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   // 회원 탈퇴 — 앱과 같은 흐름: 확인 → 서버 삭제 성공 시에만 세션 정리 (#433)
   const [withdrawOpen, setWithdrawOpen] = useState(false);
-  const [withdrawLoading, setWithdrawLoading] = useState(false);
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
   const { androidUrl, iosUrl, hasAny: hasAppLinks } = useAppLinks();
   // 약관 본문 모달 (로그인 화면과 같은 컴포넌트, #658)
@@ -61,7 +61,7 @@ export default function Settings() {
   }, []);
 
   const handleLogout = async () => {
-    setLogoutLoading(true);
+    setIsLoggingOut(true);
     try {
       const refreshToken = getRefreshToken();
       if (refreshToken) {
@@ -84,12 +84,12 @@ export default function Settings() {
       setWithdrawError("회원 정보를 불러오는 중이에요. 잠시 후 다시 시도해 주세요.");
       return;
     }
-    setWithdrawLoading(true);
+    setIsWithdrawing(true);
     // 팝업 차단 방지: 확인 클릭 직후 다른 요청 없이 재인증 팝업
     const revokeResult = await revokeSocialAccessBeforeWithdraw(authProvider, providerUserId);
     if (revokeResult !== "READY_TO_WITHDRAW") {
       setWithdrawError(WITHDRAW_STOPPED_MESSAGE[revokeResult]);
-      setWithdrawLoading(false);
+      setIsWithdrawing(false);
       return;
     }
     try {
@@ -97,7 +97,7 @@ export default function Settings() {
     } catch {
       // 지워지지 않은 계정을 로그아웃만 시키면 사용자는 탈퇴된 줄 안다 — 세션을 유지하고 재시도를 안내한다
       setWithdrawError("탈퇴에 실패했어요. 잠시 후 다시 시도해 주세요.");
-      setWithdrawLoading(false);
+      setIsWithdrawing(false);
       return;
     }
     // 같은 계정 재가입이 완전 신규처럼 보이도록 회원 캐시·저장값·Firebase 세션 정리
@@ -233,14 +233,14 @@ export default function Settings() {
           <div className="bg-surface-card border-y border-border divide-y divide-border">
             <button
               type="button"
-              disabled={logoutLoading || withdrawLoading}
+              disabled={isLoggingOut || isWithdrawing}
               onClick={handleLogout}
               className="flex items-center justify-between px-4 py-3.5 w-full text-left cursor-pointer hover:bg-surface active:bg-surface transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="text-sm font-medium text-semantic-error">
-                {logoutLoading ? "로그아웃 중..." : "로그아웃"}
+                {isLoggingOut ? "로그아웃 중..." : "로그아웃"}
               </span>
-              {logoutLoading ? (
+              {isLoggingOut ? (
                 <span className="w-4 h-4 inline-block border-2 border-semantic-error border-t-transparent rounded-full animate-spin" />
               ) : (
                 <LogOut size={16} className="text-semantic-error" />
@@ -249,14 +249,14 @@ export default function Settings() {
             {/* 회원 탈퇴 — 되돌릴 수 없으므로 확인 모달을 거친다 */}
             <button
               type="button"
-              disabled={logoutLoading || withdrawLoading}
+              disabled={isLoggingOut || isWithdrawing}
               onClick={() => setWithdrawOpen(true)}
               className="flex items-center justify-between px-4 py-3.5 w-full text-left cursor-pointer hover:bg-surface active:bg-surface transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="text-sm font-medium text-text-caption">
-                {withdrawLoading ? "탈퇴 처리 중..." : "회원 탈퇴"}
+                {isWithdrawing ? "탈퇴 처리 중..." : "회원 탈퇴"}
               </span>
-              {withdrawLoading ? (
+              {isWithdrawing ? (
                 <span className="w-4 h-4 inline-block border-2 border-text-caption border-t-transparent rounded-full animate-spin" />
               ) : (
                 <ChevronRight size={16} className="text-text-caption" />

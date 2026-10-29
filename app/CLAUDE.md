@@ -24,7 +24,10 @@ lib/
 │   ├── ads/                # AdMob SDK 래퍼(배너 카드·네이티브 카드·한 줄 띠·전면 로더, 공통 요청 준비 AdRequestPreparer, ATT 동의 AdConsent,
 │   │                       # 단위 ID, 전면 빈도 제한). SDK 는 여기서만 import, 테스트는 Provider 포트를 가짜로 교체
 │   ├── auth/               # 토큰 저장, 인터셉터(Bearer·재발급, 재발급 포트 TokenReissueClient), 세션 만료 신호, 소셜 로그인, 설치 가드
+│   ├── billing/            # 이용권 결제 포트(ProPurchasePort)·긴 이용권 할인 계산, 프로 접근 거부(403) 인터셉터·신호
+│   ├── diagnostics/        # 의견 보내기 기기 진단 정보 수집(AppDiagnosticsCollector, 소리 모드 채널)
 │   ├── error/              # ErrorCode(서버 코드 매핑), AppException (서버 오류를 사용자 문구로 변환)
+│   ├── logging/            # 앱 로그(AppLogger): 마스킹 > 메모리 버퍼 > 파일 기록·회전, API 호출·생명주기 로그
 │   ├── monitoring/         # 오류 수집(CrashReporter, reportIfUnexpectedFailure)·분석(AppAnalytics, 이벤트 이름 상수) 공통 지점
 │   ├── network/            # dio_client(buildBackendDio·plainDioProvider), safe_call(safeCall·safeCallAll·SafeCallSlot),
 │   │                       # api_call(callApiThrowingAppException: Dio 오류 > AppException 공통 변환)
@@ -33,6 +36,10 @@ lib/
 │   ├── storage/            # 기기 저장 키 원본(StorageKeys), 일반 저장소 공통 지점(DevicePreferences, shared_preferences 는 여기서만)
 │   └── utils/ validation/
 ├── data/                   # presentation·router 를 import 하지 않는다
+│   ├── billing/            # 스토어 결제 어댑터(Play·App Store): 상품 조회 > 결제 창 > 서버 확인 > 구매 처리 완료
+│   ├── community/          # 커뮤니티 첨부 이미지 압축 (서버 한도와 같은 값)
+│   ├── feedback/           # 의견 보내기 첨부 이미지 압축 (서버 한도와 같은 값)
+│   ├── image/              # WebP 인코더 공통 (community·feedback 압축이 사용)
 │   ├── models/             # freezed 데이터 모델 (도메인별 폴더)
 │   ├── push/               # PushNotificationService (푸시 토큰 등록·삭제, 알림 이동)
 │   └── sources/            # Retrofit API 정의, api_providers(인증 Dio·authApi·클라이언트 Provider), SSE 클라이언트

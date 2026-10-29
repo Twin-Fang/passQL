@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../router/app_routes.dart';
 import '../../../core/auth/social_sign_in.dart';
 import '../../../core/error/app_exception.dart';
+import '../../../core/monitoring/crash_reporter.dart';
 import '../../../data/models/legal/legal_models.dart';
 import '../../design/design.dart';
 import '../../providers/app_config_providers.dart';
@@ -42,11 +43,13 @@ class SettingsPage extends ConsumerWidget {
     try {
       // 성공하면 로그인 상태가 풀려 라우터가 로그인 화면으로 보낸다.
       await ref.read(authProvider.notifier).withdraw();
-    } on AppException catch (exception) {
+    } on AppException catch (exception, stackTrace) {
+      reportIfUnexpectedFailure(exception, stackTrace, reason: 'withdraw');
       failureMessage = exception.message;
     } on SocialSignInException catch (exception) {
       failureMessage = exception.message;
-    } catch (_) {
+    } catch (exception, stackTrace) {
+      reportIfUnexpectedFailure(exception, stackTrace, reason: 'withdraw');
       failureMessage = '탈퇴에 실패했어요. 잠시 후 다시 시도해 주세요.';
     }
     // 잠금 대화상자를 닫는다 (성공·실패·재인증 취소 공통).

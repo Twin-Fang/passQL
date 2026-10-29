@@ -214,7 +214,7 @@ export type BusinessInfo = ApiSchemas["BusinessInfoResponse"];
 
 // ── 알림함 (#491) ──
 // 알림함 두 탭: 알림(GENERAL) / 공지(NOTICE)
-export type NotificationCategory = "GENERAL" | "NOTICE";
+export type NotificationCategory = ApiSchemas["NotificationItemResponse"]["category"];
 // type·linkTarget: 서버가 String 으로 내보내 계약에 enum 없음 > 서버 enum 값으로 좁힘
 export type NotificationType = "ADMIN_MESSAGE" | "REPORT_RESOLVED" | "DAILY_SET_REMINDER" | "NOTICE";
 // 서버 PushLinkTarget 와 같은 값 (앱 푸시 이동 허용 목록)

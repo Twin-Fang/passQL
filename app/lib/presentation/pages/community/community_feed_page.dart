@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/community/community_models.dart';
 import '../../design/design.dart';
 import '../../providers/community_providers.dart';
+import '../../widgets/common/load_more_scroll_metrics.dart';
 import '../../widgets/community/community_feed_list.dart';
 
 /// 토론 탭 첫 화면(탭 루트라 뒤로가기 없음) 커뮤니티 피드: 문제 탭과 같은 큰 제목 + 세그먼트 4칸(뜨는 토론·최신 경향·내가 푼 문제·내 의견), 본문은 [CommunityFeedList]
@@ -23,9 +24,6 @@ class CommunityFeedPage extends ConsumerStatefulWidget {
 class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
   late CommunityFeedSource _selectedSource = widget.initialSource;
 
-  // 목록 끝까지 남은 거리가 이 값 이하면 다음 페이지 요청
-  static const double _loadMoreTriggerPixels = 320;
-
   @override
   void didUpdateWidget(CommunityFeedPage oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -41,7 +39,7 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
   // 스크롤은 큰 제목 틀이 가지므로 알림으로 끝 근처를 감지한다.
   // 중복 요청은 notifier 가 hasMore·isLoadingMore 로 막는다
   bool _loadMoreNearEnd(ScrollUpdateNotification notification) {
-    if (notification.metrics.extentAfter <= _loadMoreTriggerPixels) {
+    if (notification.metrics.isNearLoadMoreEnd) {
       _notifier.loadMore();
     }
     return false;

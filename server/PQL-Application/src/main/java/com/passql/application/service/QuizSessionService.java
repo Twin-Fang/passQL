@@ -70,7 +70,7 @@ public class QuizSessionService {
             orderJson = objectMapper.writeValueAsString(picked);
         } catch (Exception e) {
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR,
-                    "세션 문제 순서 직렬화 실패");
+                    "세션 문제 순서 직렬화 실패", e);
         }
 
         QuizSession session = QuizSession.builder()
@@ -179,9 +179,7 @@ public class QuizSessionService {
         return quizSessionRepository.save(session);
     }
 
-    // ========================
-    //  내부 유틸
-    // ========================
+    // 내부 유틸
 
     private QuizSession getSession(UUID sessionUuid) {
         return quizSessionRepository.findById(sessionUuid)
@@ -202,13 +200,11 @@ public class QuizSessionService {
             return strings.stream().map(UUID::fromString).toList();
         } catch (Exception e) {
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR,
-                    "세션 문제 순서 파싱 실패");
+                    "세션 문제 순서 파싱 실패", e);
         }
     }
 
-    // ========================
-    //  응답 DTO (inner)
-    // ========================
+    // 응답 DTO (inner)
 
     public record QuestionWithChoiceSet(
             Question question,
