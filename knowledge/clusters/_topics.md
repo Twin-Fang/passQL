@@ -6,3 +6,7 @@
 형식: `slug` — 정의
 
 <!-- 프로젝트 시작 시 비어 있음. /ingest-meeting 이 자동으로 채워나감. -->
+
+- `billing` — 결제·요금제·이용권·무료/프로 등급 판정과 스토어(Play·App Store) 연동
+- `security` — 인증·CSRF·토큰·민감 정보 노출 등 보안 문제와 대책
+- `admin` — 관리자 화면(Thymeleaf)과 관리자 API
