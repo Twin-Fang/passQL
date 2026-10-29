@@ -7,12 +7,69 @@
   "showOrphans": true,
   "collapse-color-groups": false,
   "colorGroups": [
-    { "query": "path:meetings", "color": { "a": 1, "rgb": 3900150 } },
-    { "query": "path:decisions", "color": { "a": 1, "rgb": 2278750 } },
-    { "query": "path:issues", "color": { "a": 1, "rgb": 15680580 } },
-    { "query": "path:docs", "color": { "a": 1, "rgb": 11032055 } },
-    { "query": "path:clusters", "color": { "a": 1, "rgb": 15381256 } },
-    { "query": "path:reports", "color": { "a": 1, "rgb": 10265519 } }
+    {
+      "query": "path:issues [status:open]",
+      "color": {
+        "a": 1,
+        "rgb": 16096779
+      }
+    },
+    {
+      "query": "[type:completion-report]",
+      "color": {
+        "a": 1,
+        "rgb": 6583435
+      }
+    },
+    {
+      "query": "path:issues",
+      "color": {
+        "a": 1,
+        "rgb": 15026253
+      }
+    },
+    {
+      "query": "path:decisions [status:active]",
+      "color": {
+        "a": 1,
+        "rgb": 3187820
+      }
+    },
+    {
+      "query": "path:decisions",
+      "color": {
+        "a": 1,
+        "rgb": 4937059
+      }
+    },
+    {
+      "query": "path:clusters",
+      "color": {
+        "a": 1,
+        "rgb": 15381256
+      }
+    },
+    {
+      "query": "path:docs",
+      "color": {
+        "a": 1,
+        "rgb": 11032055
+      }
+    },
+    {
+      "query": "path:meetings",
+      "color": {
+        "a": 1,
+        "rgb": 3900150
+      }
+    },
+    {
+      "query": "path:reports",
+      "color": {
+        "a": 1,
+        "rgb": 10265519
+      }
+    }
   ],
   "collapse-display": true,
   "showArrow": false,
@@ -24,6 +81,6 @@
   "repelStrength": 10,
   "linkStrength": 1,
   "linkDistance": 250,
-  "scale": 1,
+  "scale": 0.25118205035077956,
   "close": false
 }
