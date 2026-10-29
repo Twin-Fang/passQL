@@ -249,7 +249,7 @@ class _ProPassState extends ConsumerState<_ProPass> {
         if (examDate != null) PassqlPassTicketField('시험일', examDate),
       ],
       benefitIcons: _benefitIconsOf(context, plan?.dailyFreeLimit ?? 0),
-      stubLabel: '이용권\n정보',
+      stubLabel: '사용 중',
       hasSweep: tier == PassqlPassTicketTier.pro,
       hasHolo: hasHolo,
       onTap: onTap,
