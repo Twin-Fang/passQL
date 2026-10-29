@@ -11,7 +11,7 @@ SQLD·SQLP 학습 서비스 passQL의 모바일 앱. 서버(`server/`)와만 통
 - **HTTP**: Dio ^5.9 + Retrofit (코드 생성)
 - **모델**: freezed + json_serializable
 - **인증**: Firebase Auth + Google Sign-In + Sign in with Apple, 카카오(kakao_flutter_sdk_user)·네이버(flutter_naver_login)·GitHub(flutter_web_auth_2), 토큰은 flutter_secure_storage
-- **UI**: flutter_svg, shimmer, fl_chart(레이더 차트), 아이콘은 CupertinoIcons
+- **UI**: flutter_svg, shimmer, 아이콘은 CupertinoIcons
 - **기기 정보**: package_info_plus(앱 버전), device_info_plus(의견 보내기 기기 정보)
 - **폰트**: Pretendard 4굵기(Regular·Medium·SemiBold·Bold), 코드용 JetBrains Mono NL(Regular·Bold) — `assets/fonts`, 라이선스 OFL 동봉
 

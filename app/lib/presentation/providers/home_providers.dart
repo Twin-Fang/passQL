@@ -48,6 +48,28 @@ class HomeLearningStatus {
   const HomeLearningStatus({this.progress, this.dailySet, this.heatmap});
 }
 
+/// 선택한 시험 일정 하나 (홈 상단 바·내 프로필 탑승권 공용, #749). 선택이 없거나 실패하면 null
+/// 내 프로필이 인사말까지 다시 부르지 않도록 홈 묶음에서 떼어 냈다
+final examScheduleProvider = FutureProvider.autoDispose<ExamScheduleResponse?>((
+  ref,
+) async {
+  if (ref.watch(currentMemberUuidProvider) == null) return null;
+  return safeCall<ExamScheduleResponse?>(
+    ref.read(examScheduleApiProvider).getSelectedSchedule(),
+    label: 'examSchedule',
+  );
+});
+
+/// 내 프로필 빈 상태(푼 문제 0개)의 버튼 분기용 오늘의 세트 (#749). 홈 학습 묶음(진행·히트맵 포함)을 부르지 않으려고 따로 둔다
+final profileDailySetProvider =
+    FutureProvider.autoDispose<DailySetTodayResponse?>((ref) async {
+      if (ref.watch(currentMemberUuidProvider) == null) return null;
+      return safeCall(
+        ref.read(dailySetApiProvider).getToday(),
+        label: 'profileDailySet',
+      );
+    });
+
 /// 인사말·시험 일정 2개 병렬 호출. 날짜가 바뀌거나 직접 새로고침할 때만 다시 받는다
 /// 로그아웃이면 빈 묶음 (API 호출 없음)
 final homeOverviewProvider = FutureProvider.autoDispose<HomeOverview>((
@@ -55,9 +77,8 @@ final homeOverviewProvider = FutureProvider.autoDispose<HomeOverview>((
 ) async {
   if (ref.watch(currentMemberUuidProvider) == null) return const HomeOverview();
   final greeting = SafeCallSlot(ref.read(homeApiProvider).getGreeting());
-  final examSchedule = SafeCallSlot(
-    ref.read(examScheduleApiProvider).getSelectedSchedule(),
-  );
+  // 시험 일정은 내 프로필과 같은 Provider 를 쓴다 (한 번 받아 두 화면 공유, #749)
+  final examSchedule = SafeCallSlot(ref.watch(examScheduleProvider.future));
   await safeCallAll([greeting, examSchedule]);
   return HomeOverview(
     greeting: greeting.value,
@@ -134,6 +155,8 @@ Future<(T?, Object?)> _settle<T>(Future<T> load) => load.then<(T?, Object?)>(
 /// 홈 전체 다시 받기 (당겨서 새로고침·재시도·날짜 변경·계정 전환 공통)
 void invalidateHomeData(void Function(ProviderOrFamily provider) invalidate) {
   invalidate(homeOverviewProvider);
+  // 개요는 공유 시험 일정을 watch 만 해서, 일정까지 비워야 새로 받는다 (#749)
+  invalidate(examScheduleProvider);
   invalidate(homeRecommendationsProvider);
   invalidate(homeLearningStatusProvider);
   // 테스트에서 합친 Provider 만 override 해도 다시 불러오도록 함께 비움

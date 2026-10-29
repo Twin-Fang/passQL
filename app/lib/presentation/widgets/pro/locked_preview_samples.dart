@@ -7,7 +7,6 @@ abstract final class LockedPreviewCaptions {
   static const String explanation = '보기별 해설 · 함정 · 시험 팁';
   static const String executionResult = '보기 SQL을 직접 실행해 결과 비교';
   static const String practiceModes = '토픽 골라 풀기 · 실전 모드 · 약점 추천';
-  static const String stats = '토픽별 약점 · 정답률 차트';
   static const String examTrend = '최근 기출 토픽 비중 · 이번 회차 예상';
   static const String realModeSetting = '실전 모드';
   static const String conceptTopics = '3단원부터 모든 개념과 확인 문제';
@@ -74,27 +73,6 @@ class PracticeModesLockedSample extends StatelessWidget {
         _SampleSection(title: '토픽 골라 풀기', body: '약한 토픽만 골라서 집중해서 풀어요.'),
         _SampleSection(title: '실전 모드', body: '시험처럼 매번 새로운 함정 선택지가 나와요.'),
         _SampleSection(title: '약점 추천', body: '많이 틀린 개념의 문제를 먼저 보여 줘요.'),
-      ],
-    );
-  }
-}
-
-/// 통계 확장: 토픽별 약점, 정답률 차트 (AI 학습 코멘트는 무료도 하루 1회라 제외, #699)
-class StatsLockedSample extends StatelessWidget {
-  const StatsLockedSample({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const _SampleCard(
-      children: [
-        _SampleSection(
-          title: '토픽별 약점',
-          body: 'SQL 활용 62% · 관리 구문 48% · 데이터 모델링 85%',
-        ),
-        _SampleSection(
-          title: '토픽별 정답률',
-          body: '레이더·막대 차트로 7일 정답률 비교',
-        ),
       ],
     );
   }

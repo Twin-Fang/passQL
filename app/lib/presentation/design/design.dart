@@ -27,6 +27,8 @@ export 'components/passql_logo.dart';
 export 'components/passql_marquee_text.dart';
 export 'components/passql_nav_bar.dart';
 export 'components/passql_page_dots.dart';
+export 'components/passql_pass_ticket.dart';
+export 'components/passql_pass_usage_gauge.dart';
 export 'components/passql_page_slide_switcher.dart';
 export 'components/passql_count_badge.dart';
 export 'components/passql_notification_bell_button.dart';
