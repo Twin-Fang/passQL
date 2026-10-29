@@ -275,8 +275,12 @@ public class AiGatewayClient {
         return VECTOR_SEARCH_PATHS.contains(path) ? AiCallSource.VECTOR_SEARCH : AiCallSource.AI_SERVER;
     }
 
-    /** 실패 종류: CustomException 은 ErrorCode 이름, 그 외는 예외 클래스 이름 */
+    /** 실패 종류: 세부 원인(상태 코드·시간 초과·연결·파싱, #575) > ErrorCode 이름 > 예외 클래스 이름 */
     private String toErrorType(RuntimeException e) {
+        String failureType = AiServerFailureClassifier.toFailureType(e);
+        if (failureType != null) {
+            return failureType;
+        }
         if (e instanceof CustomException customException) {
             return customException.getErrorCode().name();
         }
