@@ -1,0 +1,128 @@
+/* AI 해설 (#521): 스켈레톤, 미리보기, 해설 섹션, 시트·사이드 패널 */
+
+/* ── AI 해설 (#521): 스켈레톤·미리보기·패널 ── */
+/* 모션 시간 토큰 (앱 PassqlMotion 과 같은 값) */
+:root {
+  --motion-fast: 250ms;
+  --motion-standard: 300ms;
+  /* 스켈레톤 반짝임 1회 왕복 */
+  --motion-shimmer: 1600ms;
+}
+
+/* 스켈레톤 한 블록: 줄 모양 여러 개 위로 반짝임 1개만 지나감 (줄마다 따로 깜빡이면 바코드처럼 보임) */
+.explanation-skeleton {
+  position: relative;
+  overflow: hidden;
+}
+
+.explanation-skeleton-line {
+  height: 0.75rem;
+  border-radius: 999px;
+  background-color: var(--color-surface-code);
+}
+
+.explanation-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--color-surface-card) 70%, transparent) 50%,
+    transparent 100%
+  );
+  animation: explanation-shimmer var(--motion-shimmer) var(--ease-smooth) infinite;
+}
+
+@keyframes explanation-shimmer {
+  to { transform: translateX(100%); }
+}
+
+/* 미리보기 카드: 피드백 바 색 배경 위 흰 카드 */
+.explanation-preview-card {
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+/* 해설 섹션 카드 */
+.explanation-section {
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 0.875rem 1rem;
+}
+
+/* 헷갈리는 지점: 경고 톤 */
+.explanation-section--warning {
+  background-color: var(--color-semantic-warning-light);
+  border-color: var(--color-semantic-warning-border);
+}
+
+/* 시험 팁: 브랜드 톤 */
+.explanation-section--tip {
+  background-color: var(--color-brand-light);
+  border-color: var(--color-brand-border);
+}
+
+/* 문장 속 인라인 코드 */
+.explanation-inline-code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  padding: 0 0.25rem;
+  border-radius: 4px;
+  background-color: var(--color-surface-code);
+}
+
+/* 비모달 패널: 좁은 화면은 하단 고정 바 바로 위 시트, xl 이상은 오른쪽 사이드 패널 */
+.explanation-panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--practice-bottom-bar-height, 0px);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-surface-card);
+  border-top: 1px solid var(--color-border);
+  border-radius: 1rem 1rem 0 0;
+  animation: slide-up var(--motion-fast) ease-out;
+}
+
+/* 펼친 시트 본문 높이: 화면에서 하단 바·상단 여유를 뺀 만큼 (최대 60vh) */
+.explanation-panel-body {
+  max-height: min(60dvh, calc(100dvh - var(--practice-bottom-bar-height, 0px) - 8rem));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@media (width >= 80rem) {
+  .explanation-panel {
+    top: 0;
+    bottom: 0;
+    left: auto;
+    width: 24rem;
+    border-top: none;
+    border-left: 1px solid var(--color-border);
+    border-radius: 0;
+    animation: explanation-panel-in var(--motion-standard) var(--ease-smooth);
+  }
+
+  .explanation-panel-body {
+    flex: 1;
+    max-height: none;
+  }
+}
+
+@keyframes explanation-panel-in {
+  from { opacity: 0; transform: translateX(1rem); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* 패널이 떠 있는 동안 풀이 스크롤 하단 여백: 하단 바 + 접힌 시트 머리 (xl 이상은 사이드라 불필요) */
+@media (width < 80rem) {
+  .practice-scroll--with-explanation-dock {
+    padding-bottom: calc(var(--practice-bottom-bar-height, 0px) + 5rem);
+  }
+}

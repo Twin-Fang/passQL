@@ -1,0 +1,109 @@
+/* 전역 body, 슬라이드업·결과 화면 진입·순차 등장 애니메이션, 인사 닉네임 강조 */
+
+/* ── Global body ── */
+body {
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+}
+
+
+/* ── Slide-up animation ── */
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.25s ease-out;
+}
+
+/* 바텀시트 진입: 모바일(md 미만)만 slide-up, 데스크톱 가운데 모달은 그대로 (#497) */
+@media (width < 48rem) {
+  .animate-sheet-slide-up-mobile {
+    animation: slide-up 0.25s ease-out;
+  }
+}
+
+/* ── AnswerFeedback 결과 화면 애니메이션 ── */
+
+/* 상단 컬러 바: 좌→우 scaleX 슬라이드인 */
+@keyframes bar-slide-in {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* 헤더 영역: 위에서 아래로 페이드인 */
+@keyframes header-slide-down {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 카드 순차 등장: 아래에서 위로 페이드인 */
+@keyframes card-slide-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.feedback-bar-anim {
+  transform-origin: left;
+  animation: bar-slide-in 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.feedback-header-anim {
+  animation: header-slide-down 0.28s 0.08s ease both;
+}
+
+.feedback-card-anim-1 { animation: card-slide-up 0.28s 0.15s ease both; }
+.feedback-card-anim-2 { animation: card-slide-up 0.28s 0.23s ease both; }
+.feedback-card-anim-3 { animation: card-slide-up 0.28s 0.31s ease both; }
+.feedback-card-anim-4 { animation: card-slide-up 0.28s 0.39s ease both; }
+
+/* 선택지/정답 카드 — 왼쪽 보더 없이 배경+border만 */
+.ans-card-wrong {
+  background-color: var(--color-semantic-error-light);
+  border: 1px solid var(--color-semantic-error-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.ans-card-correct {
+  background-color: var(--color-semantic-success-light);
+  border: 1px solid var(--color-semantic-success-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.ans-card-neutral {
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+/* ── Stagger fade-up animation ── */
+/* 네비게이션 탭 진입 시 섹션별 순차 페이드인. --stagger-delay는 useStagger 훅이 주입. */
+@keyframes staggerIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-stagger {
+  animation: staggerIn 0.3s ease-out var(--stagger-delay, 0ms) both;
+}
+
+/* ── Greeting nickname highlight ── */
+/* 인라인 style 금지 규칙에 따라 닉네임 강조 스타일을 클래스로 분리 */
+.greeting-nickname {
+  color: var(--color-brand);
+  font-size: 1.15em;
+  font-weight: 700;
+}

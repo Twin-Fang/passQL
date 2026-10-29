@@ -6,6 +6,7 @@ import com.passql.question.constant.ChoiceSetPolicy;
 import com.passql.question.constant.ExecutionMode;
 import com.passql.question.dto.ExecuteResult;
 import com.passql.question.dto.ImportItemResult;
+import com.passql.question.dto.PostgresCompatibleSql;
 import com.passql.question.dto.QuestionExportDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -64,19 +65,18 @@ public class QuestionImportItemValidator {
                     item.executionMode(), "SKIP", null, null, null, importAction);
         }
 
-        // 1단계: 1:1 치환 가능한 Oracle 문법을 PostgreSQL 호환으로 변환 (NVL→COALESCE, SYSDATE→NOW())
-        String translatedDdl       = oracleSqlCompatibilityConverter.translateOracleToPostgres(item.schemaDdl());
-        String translatedSample    = oracleSqlCompatibilityConverter.translateOracleToPostgres(item.schemaSampleData());
-        String translatedAnswerSql = oracleSqlCompatibilityConverter.translateOracleToPostgres(item.answerSql());
-
-        // 2단계: 치환 후에도 남은 Oracle 전용 문법 감지 → CONCEPT_ONLY 자동 전환
+        // Oracle 문법 치환(NVL→COALESCE, SYSDATE→NOW()) > 남은 Oracle 전용 문법 감지 시 CONCEPT_ONLY 전환
         // (CONNECT BY, ROWNUM, NVL2, DECODE 등 단순 치환 불가 문법)
-        String oracleKeyword = oracleSqlCompatibilityConverter.detectOracleOnlySyntax(translatedAnswerSql, translatedDdl, translatedSample, item.stem());
-        if (oracleKeyword != null) {
+        PostgresCompatibleSql compatibleSql = oracleSqlCompatibilityConverter.toPostgresCompatible(
+                item.schemaDdl(), item.schemaSampleData(), item.answerSql(), item.stem());
+        if (compatibleSql.hasOracleOnlySyntax()) {
             return new ImportItemResult(index, stemPreview, item.topicCode(), item.difficulty(),
                     "CONCEPT_ONLY", "SKIP", null, null,
-                    "[Oracle 전용 문법 감지 → CONCEPT_ONLY 자동 전환] 키워드: " + oracleKeyword, importAction);
+                    "[Oracle 전용 문법 감지 → CONCEPT_ONLY 자동 전환] 키워드: " + compatibleSql.oracleOnlyKeyword(), importAction);
         }
+        String translatedDdl       = compatibleSql.schemaDdl();
+        String translatedSample    = compatibleSql.schemaSampleData();
+        String translatedAnswerSql = compatibleSql.answerSql();
 
         // EXECUTABLE 추가 필수 필드
         if (translatedDdl == null || translatedDdl.isBlank()

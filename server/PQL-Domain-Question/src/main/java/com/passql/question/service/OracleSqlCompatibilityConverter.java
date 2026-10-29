@@ -1,5 +1,6 @@
 package com.passql.question.service;
 
+import com.passql.question.dto.PostgresCompatibleSql;
 import org.springframework.stereotype.Component;
 
 import java.util.regex.Pattern;
@@ -15,6 +16,15 @@ public class OracleSqlCompatibilityConverter {
     private static final Pattern PATTERN_NVL     = Pattern.compile("(?i)\\bNVL\\s*\\(");
     // SYSDATE: 뒤에 괄호 없이 단독으로 쓰이는 키워드
     private static final Pattern PATTERN_SYSDATE = Pattern.compile("(?i)\\bSYSDATE\\b");
+
+    /** 문제 SQL 3개 치환(DDL, 샘플 데이터, 정답 SQL) > 치환 후 남은 Oracle 전용 문법 감지 (지문 포함 검사) */
+    public PostgresCompatibleSql toPostgresCompatible(String schemaDdl, String schemaSampleData, String answerSql, String stem) {
+        String translatedDdl = translateOracleToPostgres(schemaDdl);
+        String translatedSample = translateOracleToPostgres(schemaSampleData);
+        String translatedAnswerSql = translateOracleToPostgres(answerSql);
+        String oracleOnlyKeyword = detectOracleOnlySyntax(translatedAnswerSql, translatedDdl, translatedSample, stem);
+        return new PostgresCompatibleSql(translatedDdl, translatedSample, translatedAnswerSql, oracleOnlyKeyword);
+    }
 
     /**
      * 1:1 치환 가능한 Oracle 문법을 PostgreSQL 호환 문법으로 변환한다.

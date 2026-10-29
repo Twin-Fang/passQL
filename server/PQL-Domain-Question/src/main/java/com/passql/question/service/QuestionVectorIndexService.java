@@ -15,11 +15,13 @@ import com.passql.meta.repository.SubtopicRepository;
 import com.passql.meta.repository.TopicRepository;
 import com.passql.question.entity.Question;
 import com.passql.question.event.QuestionSavedEvent;
+import com.passql.question.event.QuestionsDeactivatedEvent;
 import com.passql.question.repository.QuestionConceptTagRepository;
 import com.passql.question.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -223,6 +225,13 @@ public class QuestionVectorIndexService {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     public void onQuestionSaved(QuestionSavedEvent event) {
         indexQuestionAsync(event.questionUuid());
+    }
+
+    /** 문제 비활성화 커밋 후 > 비활성 문제 벡터 정리 1회 (남기면 추천 결과에 삭제된 문제가 섞임, #412) */
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+    public void onQuestionsDeactivated(QuestionsDeactivatedEvent event) {
+        pruneIndex();
     }
 
     /**
