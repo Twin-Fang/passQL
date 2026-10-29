@@ -41,7 +41,7 @@ import java.util.Set;
 public class GooglePlayDeveloperApiClient implements PlayDeveloperApiClient {
 
     // Play 앱 패키지 이름
-    static final String PACKAGE_NAME = "com.coldredrice.passql";
+    static final String PACKAGE_NAME = StoreAppIdentifier.APPLICATION_ID;
     // Play 요청 연결·응답 대기 시간 (밀리초)
     private static final int REQUEST_TIMEOUT_MILLISECONDS = 10_000;
     // 잘못된 구매 토큰·상품으로 Play 가 돌려주는 상태 코드 (요청 오류로 취급)

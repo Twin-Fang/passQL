@@ -2,6 +2,7 @@ package com.passql.member.auth.infrastructure.social.unlink;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
+import com.passql.member.auth.infrastructure.social.SocialProviderEndpoints;
 import com.passql.member.auth.domain.ProviderTokens;
 import com.passql.member.auth.infrastructure.social.SocialApiRestTemplates;
 import com.passql.member.auth.infrastructure.social.oauth.SocialLoginProperties;
@@ -29,7 +30,6 @@ public class SocialUnlinkClient {
     private static final String KAKAO_UNLINK_URL = "https://kapi.kakao.com/v1/user/unlink";
     // {client_id} 자리에 GitHub OAuth 앱 client ID
     private static final String GITHUB_GRANT_URL = "https://api.github.com/applications/{clientId}/grant";
-    private static final String NAVER_TOKEN_URL = "https://nid.naver.com/oauth2.0/token";
     private static final String KAKAO_ADMIN_AUTHORIZATION_PREFIX = "KakaoAK ";
     private static final ParameterizedTypeReference<Map<String, Object>> JSON_OBJECT = new ParameterizedTypeReference<>() {
     };
@@ -115,7 +115,7 @@ public class SocialUnlinkClient {
     }
 
     private Map<String, Object> postNaverForm(MultiValueMap<String, String> form) {
-        return restTemplate.exchange(NAVER_TOKEN_URL, HttpMethod.POST, new HttpEntity<>(form, formHeaders()), JSON_OBJECT).getBody();
+        return restTemplate.exchange(SocialProviderEndpoints.NAVER_TOKEN_URL, HttpMethod.POST, new HttpEntity<>(form, formHeaders()), JSON_OBJECT).getBody();
     }
 
     /** 네이버는 실패도 200 + error 필드로 응답 */

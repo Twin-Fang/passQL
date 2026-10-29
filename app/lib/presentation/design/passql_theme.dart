@@ -79,4 +79,7 @@ extension PassqlThemeContext on BuildContext {
 
   /// 지금 다크 테마로 그리는 중인지. 밝기별 에셋·색을 고를 때 여기 한 곳만 쓴다.
   bool get isDark => Theme.of(this).brightness == Brightness.dark;
+
+  /// 밝기별 색 함수(topicColorFor·systemHueColor) 인자용 밝기 (isDark 기준)
+  Brightness get themeBrightness => isDark ? Brightness.dark : Brightness.light;
 }

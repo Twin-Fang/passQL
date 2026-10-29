@@ -1,5 +1,6 @@
 package com.passql.application.community;
 
+import com.passql.common.util.UuidUtils;
 import com.passql.common.audit.AdminAuditEvent;
 import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
@@ -292,13 +293,15 @@ public class CommunityAdminService {
         if (authorKeyword == null || authorKeyword.isBlank()) {
             return null;
         }
-        try {
-            return Set.of(UUID.fromString(authorKeyword.trim()));
-        } catch (IllegalArgumentException notUuidFormat) {
-            return memberRepository.findAll(MemberSpecification.nicknameContains(authorKeyword.trim()),
-                            PageRequest.of(0, AUTHOR_NICKNAME_SEARCH_LIMIT)).stream()
-                    .map(Member::getMemberUuid).collect(Collectors.toSet());
-        }
+        return UuidUtils.parseOrEmpty(authorKeyword.trim())
+                .map(Set::of)
+                .orElseGet(() -> findAuthorMemberUuidsByNickname(authorKeyword.trim()));
+    }
+
+    private Set<UUID> findAuthorMemberUuidsByNickname(String nicknameKeyword) {
+        return memberRepository.findAll(MemberSpecification.nicknameContains(nicknameKeyword),
+                        PageRequest.of(0, AUTHOR_NICKNAME_SEARCH_LIMIT)).stream()
+                .map(Member::getMemberUuid).collect(Collectors.toSet());
     }
 
     /** 글 작성자 > 닉네임 (탈퇴 정리로 member 행 없는 작성자는 빠짐) */

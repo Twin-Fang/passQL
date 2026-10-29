@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 
 import '../../../data/models/meta/topic_tree.dart';
 import '../../design/design.dart';
@@ -29,7 +28,7 @@ class TopicCard extends StatelessWidget {
     return PassqlListRow(
       leading: PassqlIconTile(
         icon: topicIconFor(topic.code),
-        color: topicColorFor(topic.code, Theme.of(context).brightness),
+        color: topicColorFor(topic.code, context.themeBrightness),
       ),
       title: topic.displayName,
       // 서브토픽이 있을 때만 개수를 보여 준다(없으면 "0개"만 반복돼 의미가 없다)

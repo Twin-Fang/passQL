@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/error/app_exception.dart';
+import '../../core/monitoring/crash_reporter.dart';
 import '../../data/models/question/execute_request.dart';
 import '../../data/models/question/execute_result.dart';
 import '../../data/sources/api_providers.dart';
@@ -100,7 +101,12 @@ class SqlPracticeNotifier
       );
       _executeResultBySql[sql] = executeResult;
       state = state.copyWith(executeResult: executeResult, isExecuting: false);
-    } catch (exception) {
+    } catch (exception, stackTrace) {
+      reportIfUnexpectedFailure(
+        exception,
+        stackTrace,
+        reason: 'sqlPracticeExecute:$arg',
+      );
       // 인증 만료는 인터셉터가 세션 만료 신호로 처리
       state = state.copyWith(
         isExecuting: false,

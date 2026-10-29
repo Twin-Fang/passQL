@@ -1,5 +1,6 @@
 package com.passql.application.notification;
 
+import com.passql.common.util.ClientPageSize;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.dto.VisibleNoticeSummary;
@@ -39,8 +40,6 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class MemberNotificationQueryService {
 
-    public static final int DEFAULT_PAGE_SIZE = 20;
-    public static final int MAX_PAGE_SIZE = 50;
     // 공지 탭 한 번에 내려주는 최대 건수 (노출 중 공지는 수 건)
     private static final int MAX_NOTICE_ITEMS = 50;
     // 커서 문자열: {createdAt ISO}|{uuid} 를 URL-safe Base64 로 감싼 값
@@ -58,7 +57,7 @@ public class MemberNotificationQueryService {
         if (category == NotificationCategory.NOTICE) {
             return new NotificationPageResponse(getNoticeItems(memberUuid), null);
         }
-        return getGeneralPage(memberUuid, cursor, clampPageSize(size));
+        return getGeneralPage(memberUuid, cursor, ClientPageSize.clamp(size));
     }
 
     /** 안 읽은 개수: 캐시 > 알림 탭(부분 인덱스 COUNT) + 공지 탭(노출 중 공지 - 읽은 공지) */
@@ -217,13 +216,6 @@ public class MemberNotificationQueryService {
             return NotificationCategory.GENERAL;
         }
         return NotificationCategory.fromRequestValue(categoryRequestValue);
-    }
-
-    private static int clampPageSize(Integer size) {
-        if (size == null || size < 1) {
-            return DEFAULT_PAGE_SIZE;
-        }
-        return Math.min(size, MAX_PAGE_SIZE);
     }
 
     private static UUID parseUuid(String value) {

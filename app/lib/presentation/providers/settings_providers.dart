@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/error/app_exception.dart';
+import '../../core/monitoring/crash_reporter.dart';
 import '../../core/network/api_call.dart';
 import '../../data/sources/api_providers.dart';
 import '../../data/models/member/choice_generation_mode.dart';
@@ -57,7 +58,12 @@ class NicknameNotifier extends AutoDisposeAsyncNotifier<String?> {
       final response = await ref.read(memberApiProvider).regenerateNickname();
       await ref.read(authProvider.notifier).updateNickname(response.nickname);
       state = AsyncData(response.nickname);
-    } catch (exception) {
+    } catch (exception, stackTrace) {
+      reportIfUnexpectedFailure(
+        exception,
+        stackTrace,
+        reason: 'nicknameRegenerate',
+      );
       state = AsyncData(previousNickname);
       throw exception.asAppException;
     }

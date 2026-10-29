@@ -9,6 +9,7 @@ import '../../design/design.dart';
 import '../../providers/notification_inbox_providers.dart';
 import '../../providers/unread_notification_providers.dart';
 import '../common/app_toast.dart';
+import '../common/load_more_scroll_metrics.dart';
 import 'notification_list_row.dart';
 import 'open_notification_item.dart';
 
@@ -27,9 +28,6 @@ class NotificationInboxList extends ConsumerStatefulWidget {
 
 class _NotificationInboxListState extends ConsumerState<NotificationInboxList> {
   final _scrollController = ScrollController();
-
-  // 목록 끝까지 남은 거리가 이 값 이하면 다음 페이지 요청
-  static const double _loadMoreTriggerPixels = 320;
 
   // 구분선 시작 위치: 행 왼쪽 여백 + 안 읽음 점 + 아이콘 타일까지 (NotificationListRow 배치와 같게)
   static const double _separatorIndent =
@@ -77,7 +75,7 @@ class _NotificationInboxListState extends ConsumerState<NotificationInboxList> {
       ref.read(notificationInboxProvider(widget.category).notifier);
 
   void _loadMoreNearEnd() {
-    if (_scrollController.position.extentAfter <= _loadMoreTriggerPixels) {
+    if (_scrollController.position.isNearLoadMoreEnd) {
       _notifier.loadMore();
     }
   }

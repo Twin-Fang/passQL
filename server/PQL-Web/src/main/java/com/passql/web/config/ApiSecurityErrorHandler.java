@@ -18,9 +18,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**
- * API(JWT 체인) 인증 실패·접근 거부를 표준 {errorCode, message} 본문과 WARN 로그로 응답한다 (#406).
- * 이전에는 본문 없는 401만 내려가 클라이언트가 원인을 구분할 수 없고, 비인증 스캔도 로그에 남지 않았다.
- * 웹·앱은 상태 코드로만 분기하므로 본문 추가는 호환된다.
+ * API(JWT 체인) 인증 실패·접근 거부 > 표준 {errorCode, message} 본문 + WARN 로그 (#406)
+ * 본문으로 클라이언트 원인 구분, 로그로 비인증 스캔 추적 (웹·앱은 상태 코드로만 분기해 본문 추가 호환)
  */
 @Slf4j
 @Component

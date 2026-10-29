@@ -40,7 +40,7 @@ class CommunityAvatar extends StatelessWidget {
         decoration: BoxDecoration(
           color: systemHueColor(
             communityAvatarHueOf(nickname),
-            context.isDark ? Brightness.dark : Brightness.light,
+            context.themeBrightness,
           ),
           shape: BoxShape.circle,
         ),

@@ -41,6 +41,15 @@ const double _sweepAlpha = 0.45;
 const double _holoAlpha = 0.28;
 const double _dashLength = 4;
 const double _dashGap = 3;
+// 프로(보라 바탕) 흰 요소 투명도: 보조 글자, 절취선, 경로 점선, 고른 정보 칸 바탕, 혜택 아이콘 테두리
+const double _proSubtleTextAlpha = 0.78;
+const double _proPerforationAlpha = 0.45;
+const double _proDashLineAlpha = 0.55;
+const double _proHighlightedFieldAlpha = 0.22;
+const double _proBenefitBorderAlpha = 0.6;
+// 무료 잠긴 혜택 아이콘 바탕 / 바코드 무늬 투명도
+const double _lockedBenefitAlpha = 0.4;
+const double _barcodeAlpha = 0.75;
 
 /// passQL PASS 탑승권 (#749): 내 프로필·이용권 구매 시트·이용권 정보 시트 3곳이 쓴다.
 /// 본문(제목·경로·정보 칸·혜택 아이콘·footer) | 절취선 | 떼는 칸(바코드 + 글자).
@@ -95,7 +104,7 @@ class PassqlPassTicket extends StatelessWidget {
     final isReduced = PassqlMotion.isReduced(context);
     final foreground = _isPro ? colors.onAccent : colors.label;
     final subtle = _isPro
-        ? colors.onAccent.withValues(alpha: 0.78)
+        ? colors.onAccent.withValues(alpha: _proSubtleTextAlpha)
         : colors.secondaryLabel;
     final ticket = ClipPath(
       clipper: const _TicketClipper(),
@@ -131,7 +140,9 @@ class PassqlPassTicket extends StatelessWidget {
                   CustomPaint(
                     painter: _PerforationPainter(
                       color: _isPro
-                          ? colors.onAccent.withValues(alpha: 0.45)
+                          ? colors.onAccent.withValues(
+                              alpha: _proPerforationAlpha,
+                            )
                           : colors.separator,
                     ),
                     child: const SizedBox(width: PassqlSize.hairline * 2),
@@ -240,7 +251,7 @@ class _TicketBody extends StatelessWidget {
                   child: CustomPaint(
                     painter: _DashLinePainter(
                       color: isPro
-                          ? colors.onAccent.withValues(alpha: 0.55)
+                          ? colors.onAccent.withValues(alpha: _proDashLineAlpha)
                           : colors.separator,
                     ),
                     child: const SizedBox(height: PassqlSize.hairline * 2),
@@ -283,7 +294,9 @@ class _TicketBody extends StatelessWidget {
                           : EdgeInsets.zero,
                       decoration: field.isHighlighted
                           ? BoxDecoration(
-                              color: colors.onAccent.withValues(alpha: 0.22),
+                              color: colors.onAccent.withValues(
+                                alpha: _proHighlightedFieldAlpha,
+                              ),
                               borderRadius: BorderRadius.circular(
                                 PassqlRadius.sm / 2,
                               ),
@@ -351,11 +364,15 @@ class _BenefitIcon extends StatelessWidget {
       width: _benefitIconSize,
       height: _benefitIconSize,
       decoration: BoxDecoration(
-        color: isPro ? color : colors.iconSecondary.withValues(alpha: 0.4),
+        color: isPro
+            ? color
+            : colors.iconSecondary.withValues(alpha: _lockedBenefitAlpha),
         borderRadius: BorderRadius.circular(PassqlRadius.sm * 0.75),
         border: isPro
             ? Border.all(
-                color: colors.onAccent.withValues(alpha: 0.6),
+                color: colors.onAccent.withValues(
+                  alpha: _proBenefitBorderAlpha,
+                ),
                 width: PassqlSize.hairline * 3,
               )
             : null,
@@ -396,7 +413,7 @@ class _TicketStub extends StatelessWidget {
               ExcludeSemantics(
                 child: CustomPaint(
                   painter: _BarcodePainter(
-                    color: barcodeColor.withValues(alpha: 0.75),
+                    color: barcodeColor.withValues(alpha: _barcodeAlpha),
                   ),
                   child: const SizedBox(height: _barcodeHeight),
                 ),
@@ -505,7 +522,7 @@ class _HoloFoilState extends State<_HoloFoil>
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
+    final brightness = context.themeBrightness;
     Color hue(String name) =>
         systemHueColor(name, brightness).withValues(alpha: _holoAlpha);
     final transparent = hue('pink').withValues(alpha: 0);

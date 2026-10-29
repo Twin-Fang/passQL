@@ -23,7 +23,7 @@ export default function PracticeResult() {
   const clearReturnStep = usePracticeStore((state) => state.clearReturnStep);
   const resetPracticeStore = usePracticeStore((state) => state.reset);
 
-  // 다시 풀기 후 복귀 시 step2로 바로 진입 (기존 step3 → 통합 후 step2)
+  // 다시 풀기 후 복귀 시 step2(index 1)로 바로 진입
   const initialStepRef = useRef(
     returnStep != null ? Math.min(returnStep, 1) : 0,
   );

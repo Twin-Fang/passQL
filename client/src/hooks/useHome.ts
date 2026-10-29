@@ -6,6 +6,7 @@ import { fetchSelectedSchedule } from "../api/examSchedules";
 import { fetchHeatmap } from "../api/progress";
 import { fetchDailySet, fetchLeaderboard } from "../api/dailySet";
 import { useMemberQueryScope } from "./useMemberQueryScope";
+import { HEATMAP_QUERY_KEY_PREFIX } from "../lib/learningRecordQueries";
 import type { DailySetTodayResponse, LeaderboardResponse } from "../types/api";
 
 export function useGreeting() {
@@ -75,7 +76,7 @@ export function useHeatmap() {
   fromDate.setDate(fromDate.getDate() - 29);
   const from = toLocalDateStr(fromDate);
   return useQuery({
-    queryKey: ["heatmap", memberUuid, from, today],
+    queryKey: [HEATMAP_QUERY_KEY_PREFIX, memberUuid, from, today],
     queryFn: () => fetchHeatmap(from, today),
     enabled: isMemberQueryEnabled,
     staleTime: 1000 * 60 * 5,

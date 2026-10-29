@@ -1,5 +1,6 @@
 package com.passql.application.concept;
 
+import com.passql.common.util.UuidUtils;
 import com.passql.meta.constant.AppSettingKeys;
 import com.passql.meta.service.AppSettingService;
 import lombok.RequiredArgsConstructor;
@@ -67,13 +68,12 @@ public class ConceptAvailabilityPolicy {
     }
 
     private UUID parseUuidOrNull(String entry) {
-        try {
-            return UUID.fromString(entry);
-        } catch (IllegalArgumentException e) {
+        UUID memberUuid = UuidUtils.parseOrEmpty(entry).orElse(null);
+        if (memberUuid == null) {
             String sanitizedEntry = entry.replaceAll("[^0-9A-Za-z-]", "?");
             log.warn("[concept learning] invalid preview member entry ignored : entry={}",
                 sanitizedEntry.substring(0, Math.min(sanitizedEntry.length(), INVALID_ENTRY_LOG_MAX_LENGTH)));
-            return null;
         }
+        return memberUuid;
     }
 }

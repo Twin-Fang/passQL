@@ -201,7 +201,7 @@ public class ChoiceSetGenerationService {
                 // 재시도 가능 에러 (파싱 실패, 스키마 위반 등)
                 lastErrorCode = ec;
                 log.warn("[choice-gen] transient error, retrying: code={}, attempt={}/{}",
-                        ec, attempts, e);
+                        ec, attempts, MAX_ATTEMPTS, e);
             }
         }
 

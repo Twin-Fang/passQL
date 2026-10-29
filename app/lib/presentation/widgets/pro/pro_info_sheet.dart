@@ -5,13 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/billing/pro_purchase_port.dart';
 import '../../../core/utils/date_format.dart';
+import '../../../core/utils/exam_dday.dart';
+import '../../../core/utils/profile_pass_values.dart';
 import '../../design/design.dart';
 import '../../providers/home_providers.dart';
 import '../../providers/plan_providers.dart';
 import '../../providers/settings_providers.dart';
 import '../common/app_toast.dart';
-import '../home/exam_dday.dart';
-import '../profile/profile_pass_values.dart';
 import 'pro_benefits.dart';
 import 'pro_purchase_feedback.dart';
 
@@ -273,26 +273,22 @@ class _ProInfoSheetBodyState extends ConsumerState<_ProInfoSheetBody> {
             ),
           if (orderId != null)
             // 문의할 때 쓰는 값이라 줄 전체를 누르면 복사 (설정 회원 ID 복사와 같은 방식)
-            PassqlSemanticButton(
-              label: '주문 번호 $orderId, 눌러서 복사',
+            PassqlPressable(
+              semanticLabel: '주문 번호 $orderId, 눌러서 복사',
               onTap: () => _copyOrderId(orderId),
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => _copyOrderId(orderId),
-                child: _InfoRow(
-                  title: '주문 번호',
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(child: _valueText(context, orderId)),
-                      const SizedBox(width: PassqlSpacing.xxs),
-                      Icon(
-                        CupertinoIcons.doc_on_doc,
-                        size: PassqlIconSize.xs,
-                        color: colors.accentText,
-                      ),
-                    ],
-                  ),
+              child: _InfoRow(
+                title: '주문 번호',
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(child: _valueText(context, orderId)),
+                    const SizedBox(width: PassqlSpacing.xxs),
+                    Icon(
+                      CupertinoIcons.doc_on_doc,
+                      size: PassqlIconSize.xs,
+                      color: colors.accentText,
+                    ),
+                  ],
                 ),
               ),
             ),

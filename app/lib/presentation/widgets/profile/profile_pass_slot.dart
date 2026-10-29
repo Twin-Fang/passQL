@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/date_format.dart';
+import '../../../core/utils/exam_dday.dart';
+import '../../../core/utils/profile_pass_values.dart';
 import '../../../data/models/exam/exam_schedule_response.dart';
 import '../../../data/models/member/member_plan_response.dart';
 import '../../design/design.dart';
@@ -9,11 +11,9 @@ import '../../providers/home_providers.dart';
 import '../../providers/plan_providers.dart';
 import '../../providers/pro_ui_providers.dart';
 import '../../providers/profile_pass_providers.dart';
-import '../home/exam_dday.dart';
 import '../pro/pro_benefits.dart';
 import '../pro/pro_info_sheet.dart';
 import '../pro/pro_offer_sheet.dart';
-import 'profile_pass_values.dart';
 
 /// 내 프로필 탑승권 자리 (#749): 무료 = 항상 펼친 회색 탑승권, 프로 = 기본 접힌 한 줄(펼치면 보라 탑승권),
 /// 결제 꺼짐·등급 모름 = 자리째 없음 (지금 등급 카드와 같은 판정)

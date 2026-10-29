@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 
+import '../../../core/utils/profile_pass_values.dart';
 import '../../../data/models/progress/ai_comment_response.dart';
 import '../../design/design.dart';
-import '../profile/profile_pass_values.dart';
 import '../question/markdown_lite_text.dart';
 
 /// AI 영역 분석 구간 (#749 구간형): 반짝이 머리 + 단어 순차 등장 + 아래 작은 분석 시각

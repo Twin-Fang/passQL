@@ -16,7 +16,7 @@ export default function LegalModal({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [title, setTitle] = useState<string | null>(null);
   const [content, setContent] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
 
   // 모달 열기 + 닫힐 때 onClose 연동
@@ -36,7 +36,7 @@ export default function LegalModal({
   // 약관 내용 fetch — 모달이 닫혀 언마운트되면 늦게 온 응답은 버린다
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
+    setIsLoading(true);
     setFetchError(false);
     fetchLegal(type)
       .then((data) => {
@@ -48,7 +48,7 @@ export default function LegalModal({
         if (!cancelled) setFetchError(true);
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setIsLoading(false);
       });
     return () => {
       cancelled = true;
@@ -77,7 +77,7 @@ export default function LegalModal({
 
         {/* 본문 스크롤 영역 */}
         <div className="overflow-y-auto px-5 py-4 flex-1">
-          {loading && (
+          {isLoading && (
             <div className="flex justify-center py-8">
               <span className="loading loading-spinner loading-md text-brand" />
             </div>
@@ -96,7 +96,7 @@ export default function LegalModal({
               </button>
             </div>
           )}
-          {!loading && !fetchError && content && (
+          {!isLoading && !fetchError && content && (
             <div className="prose prose-sm max-w-none text-text-primary">
               <MarkdownText text={content} animated={false} />
             </div>

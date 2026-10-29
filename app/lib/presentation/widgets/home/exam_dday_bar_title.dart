@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 
+import '../../../core/utils/exam_dday.dart';
 import '../../../data/models/exam/exam_schedule_response.dart';
 import '../../design/design.dart';
-import 'exam_dday.dart';
 
 /// 상단 바 부제: 'SQLD 63회 · 11월 14일' (날짜를 읽지 못하면 회차만)
 String examBarSubtitle(ExamScheduleResponse schedule) {

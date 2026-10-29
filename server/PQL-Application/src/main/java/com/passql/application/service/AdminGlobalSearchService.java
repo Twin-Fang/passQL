@@ -1,5 +1,6 @@
 package com.passql.application.service;
 
+import com.passql.common.util.UuidUtils;
 import com.passql.common.util.TextPreview;
 import com.passql.member.dto.MemberAdminListResponse;
 import com.passql.member.dto.MemberSearchCondition;
@@ -60,7 +61,7 @@ public class AdminGlobalSearchService {
         if (!StringUtils.hasText(keyword)) {
             return new Result(keyword, List.of(), List.of());
         }
-        Optional<UUID> uuidKeyword = parseUuid(keyword);
+        Optional<UUID> uuidKeyword = UuidUtils.parseOrEmpty(keyword);
         if (uuidKeyword.isPresent()) {
             return new Result(keyword, findMembersByUuid(uuidKeyword.get()), findQuestionsByUuid(uuidKeyword.get()));
         }
@@ -90,13 +91,5 @@ public class AdminGlobalSearchService {
         return new QuestionHit(question.getQuestionUuid(),
                 TextPreview.truncateWithEllipsis(question.getStem(), QUESTION_STEM_PREVIEW_LENGTH),
                 Boolean.TRUE.equals(question.getIsActive()));
-    }
-
-    private Optional<UUID> parseUuid(String text) {
-        try {
-            return Optional.of(UUID.fromString(text));
-        } catch (IllegalArgumentException e) {
-            return Optional.empty();
-        }
     }
 }

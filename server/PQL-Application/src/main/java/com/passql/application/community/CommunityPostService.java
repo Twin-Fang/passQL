@@ -1,5 +1,6 @@
 package com.passql.application.community;
 
+import com.passql.common.util.ClientPageSize;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.member.entity.Member;
@@ -38,9 +39,6 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class CommunityPostService {
 
-    private static final int DEFAULT_PAGE_SIZE = 20;
-    private static final int MAX_PAGE_SIZE = 50;
-
     private final CommunityPostRepository communityPostRepository;
     private final CommunityPostLikeRepository communityPostLikeRepository;
     private final QuestionRepository questionRepository;
@@ -58,7 +56,7 @@ public class CommunityPostService {
         communitySolveService.requireSolved(viewerMemberUuid, questionUuid);
         CommunityPostSort sort = CommunityPostSort.fromRequestValue(sortRequestValue);
         CommunityPostCursor position = CommunityPostCursor.decode(cursor);
-        int pageSize = clampPageSize(size);
+        int pageSize = ClientPageSize.clamp(size);
 
         // 다음 페이지 유무 확인용으로 1건 더 조회
         PageRequest fetchLimit = PageRequest.of(0, pageSize + 1);
@@ -138,12 +136,5 @@ public class CommunityPostService {
                 communitySolveService.parseSnapshot(post.getSolveSnapshot()),
                 post.getCreatedAt(),
                 imagesByPostUuid.getOrDefault(post.getPostUuid(), List.of()))).toList();
-    }
-
-    private static int clampPageSize(Integer size) {
-        if (size == null || size < 1) {
-            return DEFAULT_PAGE_SIZE;
-        }
-        return Math.min(size, MAX_PAGE_SIZE);
     }
 }

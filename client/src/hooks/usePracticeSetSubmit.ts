@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { submitAnswer } from "../api/questions";
 import { practiceAiCommentQueryOptions } from "./usePracticeAiComment";
+import { invalidateLearningRecordQueries } from "../lib/learningRecordQueries";
 import {
   buildExplanationHistoryEntry,
   useExplanationHistoryStore,
@@ -93,8 +94,7 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
         // 마지막 문제 제출 완료 시에만 갱신 — 도중 이탈은 갱신하지 않기로 결정
         // invalidateQueries: 화면에 떠 있는 쿼리만 즉시 재요청, 나머지는 다음 진입 시 재요청
         if (currentIndex + 1 >= totalQuestions) {
-          queryClient.invalidateQueries({ queryKey: ["heatmap"] });
-          queryClient.invalidateQueries({ queryKey: ["progress"] });
+          invalidateLearningRecordQueries(queryClient);
           // AI 코멘트 미리 받기: LLM 대기를 결과 화면 점수 애니메이션 뒤로 숨김
           if (storeSessionId) {
             void queryClient.prefetchQuery(practiceAiCommentQueryOptions(storeSessionId));

@@ -82,7 +82,7 @@ class _TrendSection extends StatelessWidget {
 
 /// 팔레트 색조(blue·yellow) > 지금 화면 모드 색. 앱 색 토큰에 없는 제목 타일 색
 Color _hueOf(BuildContext context, String hue) =>
-    systemHueColor(hue, context.isDark ? Brightness.dark : Brightness.light);
+    systemHueColor(hue, context.themeBrightness);
 
 /// 최신 경향 요약: 요약 문장 + 분석 근거·갱신일 (예전 '최신 경향' 칩은 제목 타일로 대체)
 class ExamTrendSummarySection extends StatelessWidget {

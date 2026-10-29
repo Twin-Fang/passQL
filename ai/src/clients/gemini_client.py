@@ -11,6 +11,7 @@ from google.genai import errors, types
 
 from src.clients.token_usage import record_token_usage
 from src.core.exceptions import CustomError
+from src.core.external_call_limits import LLM_CALL_TIMEOUT_SECONDS, LOGGED_RESPONSE_TEXT_MAXIMUM_LENGTH
 from src.core.retry import call_with_retry, is_transient_status_code
 
 logger = logging.getLogger(__name__)
@@ -24,13 +25,11 @@ def _record_usage(response: types.GenerateContentResponse) -> None:
     completion_tokens = (usage.candidates_token_count or 0) + (usage.thoughts_token_count or 0)
     record_token_usage(usage.prompt_token_count, completion_tokens)
 
-# 호출 1회 응답 대기 상한 (30초, Java 쪽 AI 서버 호출 제한보다 길지 않게) (#497)
-CALL_TIMEOUT_MILLISECONDS = 30_000
+# SDK timeout 단위 밀리초 (공통 LLM 호출 상한 환산)
+CALL_TIMEOUT_MILLISECONDS = LLM_CALL_TIMEOUT_SECONDS * 1000
 # 응답 detail 고정 문구 (SDK 예외 문자열은 로그에만)
 CALL_FAILED_DETAIL = "Gemini API 호출 실패"
 JSON_PARSE_FAILED_DETAIL = "Gemini structured 응답 JSON 파싱 실패"
-# 파싱 실패 로그에 남길 응답 최대 길이
-LOGGED_RESPONSE_TEXT_MAXIMUM_LENGTH = 500
 
 
 def _is_transient_gemini_error(error: Exception) -> bool:

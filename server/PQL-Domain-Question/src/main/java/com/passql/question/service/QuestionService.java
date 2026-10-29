@@ -1,5 +1,6 @@
 package com.passql.question.service;
 
+import com.passql.common.util.UuidUtils;
 import com.passql.common.audit.AdminAuditEvent;
 import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
@@ -352,13 +353,7 @@ public class QuestionService {
      */
     public RecommendationsResponse getRecommendationsByUuids(List<String> questionUuids) {
         List<Question> questions = questionUuids.stream()
-                .map(uuidStr -> {
-                    try {
-                        return questionRepository.findById(UUID.fromString(uuidStr)).orElse(null);
-                    } catch (IllegalArgumentException e) {
-                        return null;
-                    }
-                })
+                .map(uuidText -> UuidUtils.parseOrEmpty(uuidText).flatMap(questionRepository::findById).orElse(null))
                 .filter(q -> q != null && Boolean.TRUE.equals(q.getIsActive()))
                 .toList();
         return new RecommendationsResponse(questions.stream().map(this::toSummary).toList());

@@ -352,8 +352,7 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
      * recentCount  : since 이후 제출 건수
      * lastActiveAt : 가장 최근 제출 시각 (제출 없으면 null)
      *
-     * 네이티브 쿼리 이유: CAST(:memberUuid AS uuid) 패턴이 필요하며
-     * 기존 쿼리들과 컨벤션을 통일함.
+     * 네이티브 쿼리 이유: CAST(:memberUuid AS uuid) 패턴 필요 (같은 파일 다른 네이티브 쿼리와 동일 방식)
      */
     @Query(value =
         "SELECT COUNT(*) AS recent_count, " +
