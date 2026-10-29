@@ -392,7 +392,7 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
                   stubLabel: 'PRO',
                   hasSweep: true,
                   hasHolo: true,
-                  isTilted: true,
+                  isFloating: true,
                   semanticLabel: selectedOption == null
                       ? 'passQL PRO PASS 미리보기'
                       : 'passQL PRO PASS 미리보기, ${formatDottedDate(selectedOption.expiresAtIfPurchased)}까지',

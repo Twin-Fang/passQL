@@ -203,7 +203,7 @@ class _ProInfoSheetBodyState extends ConsumerState<_ProInfoSheetBody> {
             ],
             stubLabel: '사용 중',
             hasSweep: true,
-            isTilted: true,
+            isFloating: true,
             semanticLabel: 'passQL PRO PASS, 이용권 사용 중',
           ),
           const SizedBox(height: PassqlSpacing.xl),
