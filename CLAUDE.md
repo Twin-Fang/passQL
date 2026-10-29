@@ -62,3 +62,5 @@ Available skills: /office-hours, /plan-ceo-review, /plan-eng-review, /plan-desig
 /canary, /benchmark, /browse, /open-gstack-browser, /qa, /qa-only, /design-review,
 /setup-browser-cookies, /setup-deploy, /retro, /investigate, /document-release, /codex,
 /cso, /autoplan, /pair-agent, /careful, /freeze, /guard, /unfreeze, /gstack-upgrade, /learn.
+
+@SECOND-BRAIN.md

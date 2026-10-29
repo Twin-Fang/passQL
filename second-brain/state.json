@@ -1,0 +1,9 @@
+{
+  "installed": "1.13.0",
+  "previous": null,
+  "applied": [
+    "2026-09-25-agents-md-refresh",
+    "2026-09-25-cluster-format",
+    "2026-09-25-integrity-baseline"
+  ]
+}
