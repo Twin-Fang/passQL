@@ -193,13 +193,7 @@ class _ProInfoSheetBodyState extends ConsumerState<_ProInfoSheetBody> {
             ],
             benefitIcons: [
               for (final benefit in benefits)
-                (
-                  icon: benefit.icon,
-                  color: systemHueColor(
-                    benefit.hue,
-                    Theme.of(context).brightness,
-                  ),
-                ),
+                (icon: benefit.icon, color: benefitColorOf(context, benefit)),
             ],
             stubLabel: '사용 중',
             hasSweep: true,
@@ -250,10 +244,7 @@ class _ProInfoSheetBodyState extends ConsumerState<_ProInfoSheetBody> {
                   children: [
                     PassqlIconTile(
                       icon: benefit.icon,
-                      color: systemHueColor(
-                        benefit.hue,
-                        Theme.of(context).brightness,
-                      ),
+                      color: benefitColorOf(context, benefit),
                       isCompact: true,
                     ),
                     const SizedBox(width: PassqlSpacing.xs),

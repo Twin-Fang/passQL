@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/date_format.dart';
@@ -60,10 +59,9 @@ List<({IconData icon, Color color})> _benefitIconsOf(
   BuildContext context,
   int dailyFreeLimit,
 ) {
-  final brightness = Theme.of(context).brightness;
   return [
     for (final benefit in proBenefits(dailyFreeLimit: dailyFreeLimit))
-      (icon: benefit.icon, color: systemHueColor(benefit.hue, brightness)),
+      (icon: benefit.icon, color: benefitColorOf(context, benefit)),
   ];
 }
 
