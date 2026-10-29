@@ -4,7 +4,7 @@ import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
 import 'passql_pressable.dart';
 
-/// 등급 칩: 무료는 회색 FREE (누르면 [onTap]), 프로는 보라 PRO (누를 수 없음)
+/// 등급 칩: 무료는 회색 FREE (누르면 [onTap]), 프로는 보라로 꽉 찬 PRO (누를 수 없음)
 class PassqlPlanChip extends StatelessWidget {
   const PassqlPlanChip({super.key, required this.isPro, this.onTap});
 
@@ -20,9 +20,11 @@ class PassqlPlanChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
+    // 프로는 강조색 꽉 채움 + 흰 글자로 "등급 배지"가 바로 읽히게 (연한 바탕 + accent 글자는 대비가 낮고
+    // 옆의 강조색 종 아이콘과 묻혔다, #756). 무료는 회색 바탕 + 기본 글자색
     final (String label, Color backgroundColor, Color foregroundColor) = isPro
-        ? (proLabel, colors.accentTint, colors.accent)
-        : (freeLabel, colors.fill, colors.secondaryLabel);
+        ? (proLabel, colors.accent, colors.onAccent)
+        : (freeLabel, colors.fill, colors.label);
     final chip = Container(
       padding: const EdgeInsets.symmetric(
         horizontal: PassqlSpacing.xs,
