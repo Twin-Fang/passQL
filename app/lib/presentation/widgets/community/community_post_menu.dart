@@ -86,6 +86,34 @@ class _PostMenuBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final rows = [
+      if (post.isMine)
+        PassqlListRow(
+          isCentered: true,
+          title: '삭제',
+          isDestructive: true,
+          onTap: () => Navigator.of(context).pop(_PostMenuAction.delete),
+        )
+      else ...[
+        PassqlListRow(
+          isCentered: true,
+          title: '신고하기',
+          onTap: () => Navigator.of(context).pop(_PostMenuAction.report),
+        ),
+        PassqlListRow(
+          isCentered: true,
+          title: '작성자 차단',
+          isDestructive: true,
+          onTap: () => Navigator.of(context).pop(_PostMenuAction.blockAuthor),
+        ),
+      ],
+    ];
+    final separator = Container(
+      height: PassqlSize.hairline,
+      color: context.passqlColors.separator,
+    );
+    // 묶음 카드(PassqlGroupedSection) 대신 글자 줄 + 구분선만 (#741):
+    // 카드 배경이 시트 배경과 달라 다크에서 상자가 드러났다
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         PassqlSpacing.md,
@@ -93,25 +121,12 @@ class _PostMenuBody extends StatelessWidget {
         PassqlSpacing.md,
         PassqlSpacing.md,
       ),
-      child: PassqlGroupedSection(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          if (post.isMine)
-            PassqlListRow(
-              title: '삭제',
-              isDestructive: true,
-              onTap: () => Navigator.of(context).pop(_PostMenuAction.delete),
-            )
-          else ...[
-            PassqlListRow(
-              title: '신고하기',
-              onTap: () => Navigator.of(context).pop(_PostMenuAction.report),
-            ),
-            PassqlListRow(
-              title: '작성자 차단',
-              isDestructive: true,
-              onTap: () =>
-                  Navigator.of(context).pop(_PostMenuAction.blockAuthor),
-            ),
+          for (var i = 0; i < rows.length; i++) ...[
+            if (i > 0) separator,
+            rows[i],
           ],
         ],
       ),

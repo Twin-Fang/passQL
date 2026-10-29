@@ -33,6 +33,8 @@ export default function CategoryCards() {
       // 문제가 없는 카테고리인 경우 안내 모달 표시
       if (err instanceof EmptyPracticeTopicError) {
         setShowEmptyModal(true);
+      } else {
+        console.warn("[category cards] practice start failed", err);
       }
     }
   };

@@ -49,9 +49,10 @@ class ChoiceSetContext(BaseModel):
     """사용자 풀이용 — 기존 문제에 대한 선택지 4개 세트 생성 컨텍스트"""
     question_uuid: str
     stem: str
-    answer_sql: str
-    schema_ddl: str
-    schema_sample_data: str
+    # CONCEPT_ONLY 문제는 SQL·스키마 3개 없음 > Spring 이 null 전송 (프롬프트에는 빈 문자열로 치환, #575)
+    answer_sql: Optional[str] = None
+    schema_ddl: Optional[str] = None
+    schema_sample_data: Optional[str] = None
     schema_intent: Optional[str] = None
     difficulty: int = Field(ge=1, le=5)
 

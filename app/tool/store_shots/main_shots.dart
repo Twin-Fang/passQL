@@ -31,6 +31,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:passql_app/core/auth/auth_session.dart';
+import 'package:passql_app/core/billing/pro_purchase_port.dart';
 import 'package:passql_app/core/auth/social_credential.dart';
 import 'package:passql_app/core/auth/social_sign_in.dart';
 import 'package:passql_app/presentation/pages/login/social_login_button.dart';
@@ -45,9 +46,10 @@ import 'package:passql_app/presentation/providers/chapter_providers.dart';
 import 'package:passql_app/presentation/providers/question_providers.dart';
 import 'package:passql_app/presentation/providers/push_notification_providers.dart';
 import 'package:passql_app/presentation/providers/theme_mode_provider.dart';
+import 'package:passql_app/presentation/design/design.dart' show PassqlPressable, PassqlSemanticButton;
+import 'package:passql_app/presentation/widgets/community/community_compose_bar.dart';
 import 'package:passql_app/presentation/widgets/common/app_toast.dart';
 import 'package:passql_app/presentation/widgets/question/ai_explain_sheet.dart';
-import 'package:passql_app/presentation/widgets/settings/profile_card.dart';
 import 'package:passql_app/presentation/widgets/settings/settings_group.dart';
 import 'package:passql_app/router/app_launch_gate_routing.dart';
 import 'package:passql_app/router/app_router.dart';
@@ -258,7 +260,7 @@ const _topics = [
   ['5d58d20c-1378-40b6-9892-2b63504e24b6', 'sql_function', 'SQL 함수'],
   ['11111111-0000-4000-8000-000000000005', 'sql_join', 'JOIN'],
   ['11111111-0000-4000-8000-000000000006', 'sql_subquery', '서브쿼리'],
-  ['11111111-0000-4000-8000-000000000007', 'sql_group', '그룹함수 / 집계'],
+  ['11111111-0000-4000-8000-000000000007', 'sql_group_aggregate', '그룹함수 / 집계'],
   ['11111111-0000-4000-8000-000000000008', 'sql_window', '윈도우 함수'],
 ];
 
@@ -613,6 +615,19 @@ Object? _respond(RequestOptions o) {
   if (p.endsWith('/exam-schedules/selected')) {
     return {'examScheduleUuid': '44444444-0000-4000-8000-000000000001', 'certType': 'SQLD', 'round': 63, 'examDate': '2026-11-14', 'isSelected': true};
   }
+  // 토론 탭 (#741): 피드 문제 줄, 문제별 의견 목록
+  if (p.endsWith('/community/feed')) {
+    final source = o.queryParameters['source'];
+    // 최신 경향 보기는 빈 목록 (빈 화면 가운데 정렬 확인용)
+    if (source == 'trend') return {'items': <Object>[], 'nextCursor': null};
+    return {'items': _communityFeedItems(isMine: source == 'mine'), 'nextCursor': null};
+  }
+  if (RegExp(r'/community/questions/[^/]+/posts$').hasMatch(p) && o.method == 'GET') {
+    final isLikesSort = o.queryParameters['sort'] == 'likes';
+    final posts = _communityPosts();
+    if (isLikesSort) posts.sort((a, b) => (b['likeCount'] as int).compareTo(a['likeCount'] as int));
+    return {'items': posts, 'nextCursor': null};
+  }
   if (p.endsWith('/questions/recommendations')) {
     return {'questions': _questions.take(3).toList()};
   }
@@ -655,6 +670,71 @@ Object? _respond(RequestOptions o) {
   }
   return null;
 }
+
+// 토론 탭 (#741): 안 푼 문제(잠금) uuid. 이 문제의 의견 목록은 COMMUNITY_SOLVE_REQUIRED 로 거절
+const _communityLockedQuestionUuid = '55555555-0000-4000-8000-000000000003';
+
+List<Map<String, dynamic>> _communityFeedItems({required bool isMine}) {
+  const rows = [
+    ('55555555-0000-4000-8000-000000000001', 'sql_window', '윈도우 함수', '다음 중 RANK와 DENSE_RANK의 결과가 달라지는 행은?', 12, '2026-10-07T08:57:00', true),
+    ('55555555-0000-4000-8000-000000000002', 'sql_function', 'SQL 함수 (문자/숫자/날짜/NULL)', 'EMP 테이블에서 COUNT(*)와 COUNT(COMM)의 결과가 다른 이유로 옳은 것은? (COMM 컬럼에는 NULL 값이 포함되어 있다)', 8, '2026-10-07T08:48:00', true),
+    (_communityLockedQuestionUuid, 'sql_hierarchy_pivot', '계층 쿼리 / PIVOT', '다음 SQL에서 START WITH … CONNECT BY PRIOR의 방향을 바꾸면 출력 순서는 어떻게 되는가?', 5, '2026-10-07T08:20:00', false),
+    ('55555555-0000-4000-8000-000000000004', 'sql_join', '조인 (JOIN)', 'LEFT OUTER JOIN에서 오른쪽 테이블 조건을 ON절과 WHERE절에 둘 때 결과 행 수의 차이는?', 4, '2026-10-07T08:00:00', true),
+    ('55555555-0000-4000-8000-000000000005', 'sql_group_aggregate', '그룹함수 / 집계', 'GROUP BY ROLLUP(DEPTNO, JOB)의 결과 행 수로 옳은 것은?', 3, '2026-10-07T07:00:00', true),
+  ];
+  return [
+    for (final (uuid, code, name, stem, count, at, isSolved) in rows)
+      if (!isMine || isSolved)
+        {
+          'questionUuid': uuid,
+          'stemPreview': stem,
+          'topicCode': code,
+          'topicName': name,
+          'postCount': count,
+          'lastActivityAt': at,
+          'isSolvedByMe': isSolved,
+          'myPostCount': isMine ? 2 : null,
+          'receivedLikeCount': isMine ? 5 : null,
+        },
+  ];
+}
+
+// 최신순(기본) 순서. 첫 글은 3줄 넘는 본문(더 보기), 마지막은 내 글
+List<Map<String, dynamic>> _communityPosts() => [
+  {
+    'postUuid': '66666666-0000-4000-8000-000000000001',
+    'authorNickname': '합격가즈아',
+    'content': 'NULL 행이 COUNT(컬럼)에서 빠진다는 건 알았는데 보기 3번에 NVL이 끼어 있어서 또 틀렸어요. NVL(COMM, 0)으로 감싸면 NULL이 0이 돼서 COUNT에 잡히는 거였네요. 시험장에서 이런 거 나오면 바로 헷갈릴 것 같아요.',
+    'isMine': false,
+    'likeCount': 12,
+    'isLikedByMe': true,
+    'solveSnapshot': {'isCorrect': false, 'attemptCount': 3},
+    'createdAt': '2026-10-07T08:48:00',
+    'images': <Map<String, dynamic>>[],
+  },
+  {
+    'postUuid': '66666666-0000-4000-8000-000000000002',
+    'authorNickname': '코딩고래',
+    'content': '집계 함수는 NULL을 건너뛰는데 COUNT(*)만 행 자체를 세요.',
+    'isMine': false,
+    'likeCount': 9,
+    'isLikedByMe': false,
+    'solveSnapshot': {'isCorrect': true, 'attemptCount': 1},
+    'createdAt': '2026-10-07T08:20:00',
+    'images': <Map<String, dynamic>>[],
+  },
+  {
+    'postUuid': '66666666-0000-4000-8000-000000000003',
+    'authorNickname': 'sqld합격',
+    'content': 'AVG(COMM)도 NULL 행을 빼고 나누니까 SUM(COMM)/COUNT(*)와 값이 달라져요.',
+    'isMine': true,
+    'likeCount': 0,
+    'isLikedByMe': false,
+    'solveSnapshot': null,
+    'createdAt': '2026-10-07T08:00:00',
+    'images': <Map<String, dynamic>>[],
+  },
+];
 
 /// 실행형(EXECUTABLE) 문제: execute-fail 연출용, 실행 API 는 SANDBOX_TIMEOUT 으로 실패
 const _executableQuestionUuid = '22222222-0000-4000-8000-000000000005';
@@ -775,6 +855,14 @@ class _FakeAdapter implements HttpClientAdapter {
       final rm = options.path.contains('000000000004');
       return ResponseBody.fromString(_sse(resultMatch: rm), 200, headers: {Headers.contentTypeHeader: ['text/event-stream']});
     }
+    // 토론 탭 잠금 연출 (#741): 안 푼 문제의 의견 목록은 서버처럼 풀이 필요로 거절
+    if (options.path.endsWith('/community/questions/$_communityLockedQuestionUuid/posts')) {
+      return ResponseBody.fromString(
+        jsonEncode({'errorCode': 'COMMUNITY_SOLVE_REQUIRED', 'message': '문제를 풀고 나서 의견을 볼 수 있어요.'}),
+        403,
+        headers: {Headers.contentTypeHeader: [Headers.jsonContentType]},
+      );
+    }
     if (options.path.endsWith('/execute') && _isExecuteSuccessScene) {
       return ResponseBody.fromString(jsonEncode(_executeShotResultOf(options.data)), 200, headers: {Headers.contentTypeHeader: [Headers.jsonContentType]});
     }
@@ -841,6 +929,8 @@ Future<void> main() async {
     adsEnabledProvider.overrideWithValue(false),
     dioProvider.overrideWith((ref) => Dio(BaseOptions(baseUrl: 'http://shots.local/api'))..httpClientAdapter = _FakeAdapter()),
     if (route == _signingInRoute) socialSignInProvider.overrideWithValue(_PendingSocialSignIn()),
+    // 시뮬레이터에는 스토어 가격이 없어 할인·권유 줄이 안 보이므로 가짜 가격을 준다 (#749 촬영)
+    proPurchasePortProvider.overrideWithValue(const _ShotPurchasePort()),
   ]);
   await container.read(authProvider.future);
   AppRouter.authenticated.value = !loggedOut;
@@ -1016,6 +1106,47 @@ Future<void> _openRoute(String route, ProviderContainer container) async {
       AppRouter.router.go(AppRoutes.settings);
       await Future<void>.delayed(settleDelay);
       unawaited(AppRouter.router.push(AppRoutes.feedback));
+    case 'community-menu':
+      // 의견 화면 > 첫 의견 ··· 메뉴 시트 (#741 손잡이 확인)
+      AppRouter.router.go(AppRoutes.communityQuestion('55555555-0000-4000-8000-000000000002'));
+      await Future<void>.delayed(settleDelay);
+      _tapSemanticButton('글 메뉴');
+    case 'community-compose':
+      // 의견 화면 > 하단 입력줄 > 의견 작성 시트 (#741 손잡이 확인)
+      AppRouter.router.go(AppRoutes.communityQuestion('55555555-0000-4000-8000-000000000002'));
+      await Future<void>.delayed(settleDelay);
+      _tapComposeBar();
+    case 'stats-scroll':
+      // 내 프로필 > 아래까지 천천히 내렸다 올림 (#749 리포트 영상, 시뮬레이터는 스와이프를 못 보내 직접 스크롤)
+      AppRouter.router.go(AppRoutes.stats);
+      await Future<void>.delayed(const Duration(milliseconds: 3000));
+      await _scrollFirstVertical(toEnd: true);
+      await Future<void>.delayed(const Duration(milliseconds: 1200));
+      await _scrollFirstVertical(toEnd: false);
+    case 'stats-chart':
+      // 프로필 > 아래로 내려 영역별 정답률 > 차트 아이콘 > 8각 차트 > 다시 목록 (#749 차트 전환)
+      AppRouter.router.go(AppRoutes.stats);
+      await Future<void>.delayed(const Duration(milliseconds: 3000));
+      await _scrollFirstVertical(toEnd: true);
+      await Future<void>.delayed(const Duration(milliseconds: 1200));
+      _tapSemanticButtonStarting('차트로 보기');
+      await Future<void>.delayed(const Duration(milliseconds: 3000));
+      _tapSemanticButtonStarting('목록으로 보기');
+    case 'pass-sheet':
+      // 내 프로필 > 탑승권 누름 > 무료는 구매 시트, 프로는 접힌 줄 펼침 > 탑승권 > 정보 시트 (#749)
+      AppRouter.router.go(AppRoutes.stats);
+      await Future<void>.delayed(const Duration(milliseconds: 2500));
+      if (_tapPressableContaining('펼치기')) {
+        await Future<void>.delayed(const Duration(milliseconds: 1500));
+      }
+      _tapPressableContaining('passQL');
+    case 'pass-sheet-1m':
+      // 구매 시트에서 1개월을 골라 3개월 권유 줄이 나오는 장면
+      AppRouter.router.go(AppRoutes.stats);
+      await Future<void>.delayed(const Duration(milliseconds: 2500));
+      _tapPressableContaining('passQL');
+      await Future<void>.delayed(const Duration(milliseconds: 2500));
+      _tapSemanticButtonStarting('1개월');
     case 'nickname-sheet':
       // 내 프로필 > 닉네임 변경 시트 (프로필 카드 편집 콜백을 직접 부름, 전후 버전 모두 동작)
       AppRouter.router.go(AppRoutes.stats);
@@ -1057,11 +1188,94 @@ Future<void> _openRoute(String route, ProviderContainer container) async {
 }
 
 /// 시뮬레이터는 탭을 보낼 수 없으므로 프로필 카드의 편집 콜백을 직접 부른다
+/// 시뮬레이터는 탭을 보낼 수 없으므로 라벨이 같은 첫 시맨틱 버튼의 탭 콜백을 직접 부른다
+void _tapSemanticButton(String label) {
+  VoidCallback? onTap;
+  void visit(Element element) {
+    final widget = element.widget;
+    if (onTap == null && widget is PassqlSemanticButton && widget.label == label) onTap = widget.onTap;
+    if (onTap == null) element.visitChildren(visit);
+  }
+
+  WidgetsBinding.instance.rootElement?.visitChildren(visit);
+  onTap?.call();
+}
+
+/// 의견 화면 하단 입력줄 탭 콜백을 직접 부른다
+void _tapComposeBar() {
+  VoidCallback? onTap;
+  void visit(Element element) {
+    final widget = element.widget;
+    if (onTap == null && widget is CommunityComposeBar) onTap = widget.onTap;
+    if (onTap == null) element.visitChildren(visit);
+  }
+
+  WidgetsBinding.instance.rootElement?.visitChildren(visit);
+  onTap?.call();
+}
+
+/// 시맨틱 라벨에 [text] 가 들어간 첫 PassqlPressable 의 탭 콜백을 부른다 (찾으면 true)
+bool _tapPressableContaining(String text) {
+  VoidCallback? onTap;
+  void visit(Element element) {
+    final widget = element.widget;
+    if (onTap == null && widget is PassqlPressable && (widget.semanticLabel?.contains(text) ?? false)) {
+      onTap = widget.onTap;
+    }
+    if (onTap == null) element.visitChildren(visit);
+  }
+
+  WidgetsBinding.instance.rootElement?.visitChildren(visit);
+  onTap?.call();
+  return onTap != null;
+}
+
+/// 라벨이 [prefix] 로 시작하는 첫 시맨틱 버튼의 탭 콜백을 부른다 (이용권 칸 고르기)
+void _tapSemanticButtonStarting(String prefix) {
+  VoidCallback? onTap;
+  void visit(Element element) {
+    final widget = element.widget;
+    if (onTap == null && widget is PassqlSemanticButton && widget.label.startsWith(prefix)) onTap = widget.onTap;
+    if (onTap == null) element.visitChildren(visit);
+  }
+
+  WidgetsBinding.instance.rootElement?.visitChildren(visit);
+  onTap?.call();
+}
+
+/// 화면의 가장 긴 세로 스크롤을 끝(또는 처음)까지 천천히 움직인다
+Future<void> _scrollFirstVertical({required bool toEnd}) async {
+  ScrollPosition? longest;
+  void visit(Element element) {
+    // 숨은 탭(탭 셸이 TickerMode 를 끔)의 스크롤은 건너뜀 > 보이는 화면만 내림
+    if (!TickerMode.of(element)) return;
+    if (element is StatefulElement && element.state is ScrollableState) {
+      final position = (element.state as ScrollableState).position;
+      if (position.axis == Axis.vertical && (longest == null || position.maxScrollExtent > longest!.maxScrollExtent)) {
+        longest = position;
+      }
+    }
+    element.visitChildren(visit);
+  }
+
+  WidgetsBinding.instance.rootElement?.visitChildren(visit);
+  final position = longest;
+  if (position == null) return;
+  await position.animateTo(
+    toEnd ? position.maxScrollExtent : 0,
+    duration: const Duration(milliseconds: 3500),
+    curve: Curves.easeInOut,
+  );
+}
+
 void _tapProfileCard() {
   VoidCallback? onEdit;
   void visit(Element element) {
     final widget = element.widget;
-    if (onEdit == null && widget is ProfileCard) onEdit = widget.onEdit;
+    // 닉네임 편집은 내 프로필 맨 위 이름 줄 (#749, 이전 프로필 카드 대신)
+    if (onEdit == null && widget is PassqlPressable && (widget.semanticLabel?.startsWith('닉네임 ') ?? false)) {
+      onEdit = widget.onTap;
+    }
     if (onEdit == null) element.visitChildren(visit);
   }
 
@@ -1148,4 +1362,21 @@ Future<void> _animateFirstPageView(int pageIndex) async {
     duration: const Duration(milliseconds: 350),
     curve: Curves.easeOutCubic,
   );
+}
+
+/// 촬영용 결제 포트: 가격만 돌려주고 결제·복원은 하지 않는다 (앱 코드 주석의 예시 가격과 같은 값)
+class _ShotPurchasePort implements ProPurchasePort {
+  const _ShotPurchasePort();
+
+  @override
+  Future<Map<String, PassPrice>> loadPassPrices(List<String> productIds) async => const {
+    'pro_pass_3m': PassPrice(displayPrice: '9,900원', rawPrice: 9900),
+    'pro_pass_1m': PassPrice(displayPrice: '4,400원', rawPrice: 4400),
+  };
+
+  @override
+  Future<ProPurchaseOutcome> purchasePass(String productId) async => ProPurchaseOutcome.cancelled;
+
+  @override
+  Future<ProPurchaseOutcome> restorePurchases() async => ProPurchaseOutcome.nothingToRestore;
 }

@@ -8,14 +8,13 @@ from typing import Any, Optional
 import httpx
 
 from src.core.exceptions import CustomError
+from src.core.external_call_limits import LOGGED_RESPONSE_TEXT_MAXIMUM_LENGTH
 from src.core.retry import call_with_retry, is_transient_status_code
 
 logger = logging.getLogger(__name__)
 
 # 요청별 timeout 미지정 시 기본값 (30초)
 DEFAULT_TIMEOUT_SECONDS = 30
-# 실패 로그에 남길 응답 본문 최대 길이
-LOGGED_RESPONSE_BODY_MAXIMUM_LENGTH = 500
 
 _shared_http_client: Optional[httpx.AsyncClient] = None
 
@@ -74,7 +73,7 @@ async def send_request(
     except httpx.HTTPStatusError as error:
         logger.error(
             f"[{operation_name}] HTTP error {error.response.status_code} : "
-            f"{error.response.text[:LOGGED_RESPONSE_BODY_MAXIMUM_LENGTH]}"
+            f"{error.response.text[:LOGGED_RESPONSE_TEXT_MAXIMUM_LENGTH]}"
         )
         raise CustomError(f"{operation_name} HTTP 오류: {error.response.status_code}") from error
     except httpx.RequestError as error:

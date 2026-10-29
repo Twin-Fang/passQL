@@ -45,7 +45,7 @@ final _rootKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
 /// 앱 전역 라우터.
 ///
-/// - StatefulShellRoute: 바텀 탭 5개 (홈/개념/문제/토론/내 프로필, 개념은 이용 가능할 때만 보임), 탭별 상태 유지
+/// - StatefulShellRoute: 바텀 탭 5개 (홈/개념/문제/토론/프로필, 개념은 이용 가능할 때만 보임), 탭별 상태 유지
 /// - 루트 라우트: 풀스크린 페이지 (챕터, 챕터 결과, 문제 상세, 결과)
 abstract final class AppRouter {
   /// 로그인 여부. main 에서 인증 상태를 구독해 갱신하고, 값이 바뀌면 라우터가 redirect 를 다시 평가한다.
@@ -195,7 +195,7 @@ abstract final class AppRouter {
         ],
       ),
 
-      // 설정: 내 프로필 탭의 톱니바퀴로 여는 푸시 화면
+      // 설정: 프로필 탭의 톱니바퀴로 여는 푸시 화면
       GoRoute(
         path: AppRoutes.settings,
         builder: (_, _) => const SettingsPage(),

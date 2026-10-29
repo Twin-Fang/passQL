@@ -1,5 +1,6 @@
 package com.passql.meta.service;
 
+import com.passql.common.util.ClientPageSize;
 import com.passql.common.audit.AdminAuditEvent;
 import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
@@ -45,9 +46,6 @@ public class AppNoticeService {
     private static final int BODY_MAX_LENGTH = 2000;
     // 노출 우선순위 절댓값 상한
     public static final int MAX_DISPLAY_PRIORITY = 100;
-    // 공지 목록 페이지 크기 기본값·상한 (건)
-    public static final int DEFAULT_PAGE_SIZE = 20;
-    public static final int MAX_PAGE_SIZE = 50;
 
     private final AppNoticeRepository appNoticeRepository;
     private final ApplicationEventPublisher eventPublisher;
@@ -70,7 +68,7 @@ public class AppNoticeService {
     public AppNoticePageResponse getPublishedNotices(Integer page, Integer size) {
         int pageIndex = page == null || page < 0 ? 0 : page;
         Page<AppNotice> noticePage = appNoticeRepository.findPublishedNotices(
-                LocalDateTime.now(KST), PageRequest.of(pageIndex, clampPageSize(size)));
+                LocalDateTime.now(KST), PageRequest.of(pageIndex, ClientPageSize.clamp(size)));
         return new AppNoticePageResponse(
                 noticePage.getContent().stream().map(AppNoticeResponse::from).toList(),
                 pageIndex,
@@ -162,13 +160,6 @@ public class AppNoticeService {
     private static int resolveDisplayPriority(AppNoticeSaveRequest request) {
         int priority = request.displayPriority() == null ? 0 : request.displayPriority();
         return Math.max(-MAX_DISPLAY_PRIORITY, Math.min(MAX_DISPLAY_PRIORITY, priority));
-    }
-
-    private static int clampPageSize(Integer size) {
-        if (size == null || size < 1) {
-            return DEFAULT_PAGE_SIZE;
-        }
-        return Math.min(size, MAX_PAGE_SIZE);
     }
 
     private AppNotice findNotice(UUID noticeUuid) {

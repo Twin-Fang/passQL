@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,29 +22,24 @@ class AppShell extends ConsumerWidget {
   // 라우터 브랜치 순서와 같은 탭 항목 (AppRoutes.tabRoots)
   static const _items = [
     PassqlTabItem(
-      icon: CupertinoIcons.house,
-      activeIcon: CupertinoIcons.house_fill,
+      kind: PassqlTabIconKind.home,
       label: '홈',
     ),
     PassqlTabItem(
-      icon: CupertinoIcons.lightbulb,
-      activeIcon: CupertinoIcons.lightbulb_fill,
+      kind: PassqlTabIconKind.concept,
       label: '개념',
     ),
     PassqlTabItem(
-      icon: CupertinoIcons.book,
-      activeIcon: CupertinoIcons.book_fill,
+      kind: PassqlTabIconKind.questions,
       label: '문제',
     ),
     PassqlTabItem(
-      icon: CupertinoIcons.chat_bubble_2,
-      activeIcon: CupertinoIcons.chat_bubble_2_fill,
+      kind: PassqlTabIconKind.community,
       label: '토론',
     ),
     PassqlTabItem(
-      icon: CupertinoIcons.person_crop_circle,
-      activeIcon: CupertinoIcons.person_crop_circle_fill,
-      label: '내 프로필',
+      kind: PassqlTabIconKind.profile,
+      label: '프로필',
     ),
   ];
 

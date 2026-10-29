@@ -8,7 +8,7 @@ import AppStoreBadgeLinks from "./AppStoreBadgeLinks";
 // 닫은 기록은 이 브라우저에만 남긴다 — 서버에 저장할 만큼 중요한 상태가 아니다
 const DISMISS_KEY = "passql_app_banner_dismissed";
 
-function readDismissed(): boolean {
+function isBannerDismissedInStorage(): boolean {
   try {
     return localStorage.getItem(DISMISS_KEY) === "1";
   } catch {
@@ -23,14 +23,14 @@ function readDismissed(): boolean {
  */
 export default function AppDownloadBanner() {
   const { androidUrl, iosUrl } = useAppLinks();
-  const [dismissed, setDismissed] = useState(readDismissed);
+  const [isDismissed, setIsDismissed] = useState(isBannerDismissedInStorage);
 
   const googlePlayUrl = IS_GOOGLE_PLAY_PUBLIC ? androidUrl : null;
   const hasOpenableStoreLink = !!(iosUrl || googlePlayUrl);
-  if (!hasOpenableStoreLink || dismissed) return null;
+  if (!hasOpenableStoreLink || isDismissed) return null;
 
   const dismiss = () => {
-    setDismissed(true);
+    setIsDismissed(true);
     try {
       localStorage.setItem(DISMISS_KEY, "1");
     } catch {

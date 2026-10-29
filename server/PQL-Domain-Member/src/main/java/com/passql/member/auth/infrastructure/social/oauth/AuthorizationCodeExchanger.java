@@ -1,5 +1,6 @@
 package com.passql.member.auth.infrastructure.social.oauth;
 
+import com.passql.member.auth.infrastructure.social.SocialProviderEndpoints;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.member.auth.domain.ProviderTokens;
@@ -30,7 +31,6 @@ import java.util.Map;
 public class AuthorizationCodeExchanger {
 
     private static final String KAKAO_TOKEN_URL = "https://kauth.kakao.com/oauth/token";
-    private static final String NAVER_TOKEN_URL = "https://nid.naver.com/oauth2.0/token";
     private static final String GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token";
 
     private final SocialLoginProperties socialLoginProperties;
@@ -115,7 +115,7 @@ public class AuthorizationCodeExchanger {
         form.add("client_secret", client.clientSecret());
         form.add("code", code);
         form.add("state", state == null ? "" : state);
-        return postForm(NAVER_TOKEN_URL, form);
+        return postForm(SocialProviderEndpoints.NAVER_TOKEN_URL, form);
     }
 
     @SuppressWarnings("rawtypes")

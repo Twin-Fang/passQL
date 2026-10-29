@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/utils/exam_dday.dart';
 import '../../../data/models/question/execute_result.dart';
 import '../../design/design.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/home_providers.dart';
-import '../home/exam_dday.dart';
 import '../question/execute_result_card.dart';
 import 'onboarding_keyword_stickers.dart';
 import 'onboarding_slide.dart';

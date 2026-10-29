@@ -1,4 +1,4 @@
 description=text·rounded 임의 px 클래스 금지 (토큰 사용)
 paths=client/src/
 extensions=.tsx,.ts
-pattern=\b(text|rounded)-\[\d+px\]
+pattern=\b(text|rounded)-\[\d+(\.\d+)?px\]

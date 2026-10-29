@@ -9,6 +9,7 @@ abstract final class PassqlMotion {
   static const standard = Duration(milliseconds: 300); // 섹션 등장, 교체
   static const emphasized = Duration(milliseconds: 450); // 반짝이·결과 마크 팝
   static const scoreFill = Duration(milliseconds: 700); // 점수 고리 차오름
+  static const tabIconSelect = Duration(milliseconds: 600); // 하단 탭 아이콘 선택 움직임 전체 (부품별 구간은 PassqlTabIcon)
 
   // 스켈레톤 반짝임 한 바퀴 (느리고 부드럽게, 블록 전체 1개)
   static const skeletonShimmerPeriod = Duration(milliseconds: 1600);
@@ -36,6 +37,13 @@ abstract final class PassqlMotion {
 
   // 세그먼트 알약 물방울 이동 전체 시간 (앞 가장자리가 먼저 뻗고 뒤가 따라붙음, #726)
   static const segmentMorph = Duration(milliseconds: 350);
+
+  // 탑승권(#749): 대각선 빛줄기 한 바퀴(앞 70%는 쉬고 뒤 30%에 스침), 홀로그램 왕복, 게이지 빛, 구매 직후 색 차오름
+  static const passSweepPeriod = Duration(seconds: 5);
+  static const passSweepRestFraction = 0.7;
+  static const passHoloPeriod = Duration(seconds: 6);
+  static const passGaugeShinePeriod = Duration(milliseconds: 2400);
+  static const passReveal = Duration(milliseconds: 900);
 
   // 누름 축소 비율
   static const pressedScale = 0.97;

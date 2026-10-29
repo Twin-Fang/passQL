@@ -43,7 +43,7 @@ export default function ExamTrend() {
       startSession(sessionId, topicCode, `${topicName} 최신 경향`, questions);
       navigate(`/practice/${sessionId}`);
     } catch (err) {
-      if (!(err instanceof EmptyPracticeTopicError)) console.debug("[exam trend] practice start failed", err);
+      if (!(err instanceof EmptyPracticeTopicError)) console.warn("[exam trend] practice start failed", err);
     }
   };
 

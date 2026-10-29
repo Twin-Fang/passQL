@@ -18,6 +18,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     required this.warning,
     required this.warningText,
     required this.onSemantic,
+    required this.countBadge,
+    required this.onCountBadge,
     required this.label,
     required this.secondaryLabel,
     required this.tertiaryLabel,
@@ -30,6 +32,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     required this.glass,
     required this.imageViewerBackground,
     required this.onImageViewer,
+    required this.passGradientEnd,
+    required this.passGlow,
   });
 
   final Color accent;
@@ -51,6 +55,13 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
 
   /// 진한 의미색(correct·wrong·warning) 채움 위 글자 (흰 글자는 대비 2~3.5라 쓰지 않음)
   final Color onSemantic;
+
+  /// 안 읽은 개수 배지 채움 (#756). iOS 시스템 배지와 같은 밝은 빨강 + 흰 숫자.
+  /// 흰 숫자 대비는 약 3.5로 글자 기준(4.5)에 못 미치지만, 진한 빨강은 작은 배지에서 눈에 덜 띄어 사용자 결정으로 밝은 빨강을 쓴다
+  final Color countBadge;
+
+  /// [countBadge] 위 숫자
+  final Color onCountBadge;
   final Color label;
   final Color secondaryLabel;
   /// 비활성·장식(쉐브론·손잡이) 전용. 읽어야 하는 글자는 secondaryLabel (규칙 테스트)
@@ -68,6 +79,12 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
   /// 사진 확대 뷰어 배경·그 위 글자·아이콘 (라이트·다크 모두 검정 바탕 + 흰색)
   final Color imageViewerBackground;
   final Color onImageViewer;
+
+  /// 프로 탑승권(passQL PRO PASS) 그라데이션 끝색. 시작은 accent (#749)
+  final Color passGradientEnd;
+
+  /// 시트 위에 띄운 탑승권 그림자·빛. 다크는 검은 그림자가 안 보여 보라 빛으로 띄운다 (#749)
+  final Color passGlow;
 
   static const light = PassqlColors(
     accent: Color(0xFF5856D6),
@@ -87,6 +104,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     // 주황 그대로는 흰 바탕 2.2 > 갈색 계열로 어둡게
     warningText: Color(0xFF9A4500),
     onSemantic: Color(0xFF000000),
+    countBadge: Color(0xFFFF3B30),
+    onCountBadge: Color(0xFFFFFFFF),
     label: Color(0xFF000000),
     // 배지·세그먼트 트랙(fill) 위에서도 4.5 이상 (Apple systemGray2 다크 값과 같음)
     secondaryLabel: Color(0xFF636366),
@@ -100,6 +119,9 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     glass: Color(0xB3F9F9F9),
     imageViewerBackground: Color(0xFF000000),
     onImageViewer: Color(0xFFFFFFFF),
+    // 탑승권: 보라 그라데이션 끝, 그림자는 accent 35%
+    passGradientEnd: Color(0xFF7A5AF8),
+    passGlow: Color(0x595856D6),
   );
 
   static const dark = PassqlColors(
@@ -117,6 +139,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     warning: Color(0xFFFF9F0A),
     warningText: Color(0xFFFF9F0A),
     onSemantic: Color(0xFF000000),
+    countBadge: Color(0xFFFF453A),
+    onCountBadge: Color(0xFFFFFFFF),
     label: Color(0xFFFFFFFF),
     secondaryLabel: Color(0xFFAEAEB2),
     tertiaryLabel: Color(0x4DEBEBF5),
@@ -129,6 +153,9 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     glass: Color(0xB31D1D1D),
     imageViewerBackground: Color(0xFF000000),
     onImageViewer: Color(0xFFFFFFFF),
+    // 탑승권: 다크는 그림자 대신 보라 빛 32% (65%는 너무 밝다는 시안 피드백)
+    passGradientEnd: Color(0xFF8466FA),
+    passGlow: Color(0x525E5CE6),
   );
 
   @override
@@ -146,6 +173,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
         warning: warning,
         warningText: warningText,
         onSemantic: onSemantic,
+        countBadge: countBadge,
+        onCountBadge: onCountBadge,
         label: label,
         secondaryLabel: secondaryLabel,
         tertiaryLabel: tertiaryLabel,
@@ -158,6 +187,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
         glass: glass,
         imageViewerBackground: imageViewerBackground,
         onImageViewer: onImageViewer,
+        passGradientEnd: passGradientEnd,
+        passGlow: passGlow,
       );
 
   @override
@@ -178,6 +209,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
       warning: lerpColor(warning, other.warning),
       warningText: lerpColor(warningText, other.warningText),
       onSemantic: lerpColor(onSemantic, other.onSemantic),
+      countBadge: lerpColor(countBadge, other.countBadge),
+      onCountBadge: lerpColor(onCountBadge, other.onCountBadge),
       label: lerpColor(label, other.label),
       secondaryLabel: lerpColor(secondaryLabel, other.secondaryLabel),
       tertiaryLabel: lerpColor(tertiaryLabel, other.tertiaryLabel),
@@ -193,6 +226,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
         other.imageViewerBackground,
       ),
       onImageViewer: lerpColor(onImageViewer, other.onImageViewer),
+      passGradientEnd: lerpColor(passGradientEnd, other.passGradientEnd),
+      passGlow: lerpColor(passGlow, other.passGlow),
     );
   }
 }

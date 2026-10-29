@@ -16,8 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.EnumSet;
 import java.util.UUID;
 
 /**
@@ -32,7 +31,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ChoiceSetGenerationService {
 
-    private static final int MAX_ATTEMPTS = 3;
+    private static final int MAX_ATTEMPTS = ChoiceSetAttemptRunner.MAX_ATTEMPTS;
     private static final String PROMPT_KEY = "generate_choice_set";
     // CONCEPT_ONLY 전용 프롬프트 키 — Sandbox 없이 텍스트 선택지 생성
     private static final String CONCEPT_PROMPT_KEY = "generate_choice_set_concept";
@@ -41,6 +40,28 @@ public class ChoiceSetGenerationService {
     // ODD_ONE_OUT 전용 프롬프트 키 — 기준과 같은 결과 3개 + 다른 결과 1개(정답), SandboxValidator 3:1 판정과 짝 (#699)
     private static final String ODD_ONE_OUT_PROMPT_KEY = "generate_choice_set_odd_one_out";
 
+    // 개념 문제 재시도 규칙: 재시도 불가는 AI fallback 실패 1개
+    private static final ChoiceSetRetryRule CONCEPT_RETRY_RULE = new ChoiceSetRetryRule("choice-gen-concept",
+            EnumSet.of(ErrorCode.AI_FALLBACK_FAILED),
+            (run, errorCode, attempt) -> log.error("[choice-gen-concept] AI fallback 실패, 재시도 불가: attempt={}, questionUuid={}",
+                    attempt, run.questionUuid()),
+            (run, exception, attempt) -> log.warn("[choice-gen-concept] transient error, retrying: code={}, attempt={}/{}",
+                    exception.getErrorCode(), attempt, MAX_ATTEMPTS));
+    // SQL 문제 재시도 규칙: 재시도 불가 3개 (샌드박스 준비 실패, 기준 SQL 실패, AI fallback 실패)
+    private static final ChoiceSetRetryRule STANDARD_RETRY_RULE = new ChoiceSetRetryRule("choice-gen",
+            EnumSet.of(ErrorCode.SANDBOX_SETUP_FAILED, ErrorCode.SANDBOX_ANSWER_SQL_FAILED, ErrorCode.AI_FALLBACK_FAILED),
+            (run, errorCode, attempt) -> log.error("[choice-gen] 재시도 불가 에러: code={}, attempt={}, questionUuid={}",
+                    errorCode, attempt, run.questionUuid()),
+            (run, exception, attempt) -> log.warn("[choice-gen] transient error, retrying: code={}, attempt={}/{}",
+                    exception.getErrorCode(), attempt, MAX_ATTEMPTS, exception));
+    // 결과 비교 문제 재시도 규칙: 재시도 불가 3개 (SQL 문제와 동일)
+    private static final ChoiceSetRetryRule RESULT_MATCH_RETRY_RULE = new ChoiceSetRetryRule("choice-gen-result-match",
+            EnumSet.of(ErrorCode.SANDBOX_SETUP_FAILED, ErrorCode.SANDBOX_ANSWER_SQL_FAILED, ErrorCode.AI_FALLBACK_FAILED),
+            (run, errorCode, attempt) -> log.error("[choice-gen-result-match] 재시도 불가 에러: code={}, attempt={}",
+                    errorCode, attempt),
+            (run, exception, attempt) -> log.warn("[choice-gen-result-match] transient error, retrying: code={}, attempt={}/{}",
+                    exception.getErrorCode(), attempt, MAX_ATTEMPTS));
+
     private final QuestionService questionService;
     private final PromptService promptService;
     private final AiGatewayClient aiGatewayClient;
@@ -48,6 +69,7 @@ public class ChoiceSetGenerationService {
     private final ResultMatchChoiceValidator resultMatchChoiceValidator;
     private final ChoiceSetSaveService choiceSetSaveService;
     private final ChoiceSetGenerationRequestFactory requestFactory;
+    private final ChoiceSetAttemptRunner attemptRunner;
 
     /**
      * CONCEPT_ONLY 전용: Sandbox 없이 AI가 텍스트 선택지를 생성한다.
@@ -60,52 +82,12 @@ public class ChoiceSetGenerationService {
         GenerateChoiceSetRequest request = requestFactory.buildConceptRequest(question, prompt);
         log.debug("[choice-gen-concept] 요청 빌드 완료: questionUuid={}, promptKey={}", questionUuid, CONCEPT_PROMPT_KEY);
 
-        GenerateChoiceSetResult lastResult = null;
-        ErrorCode lastErrorCode = null;
-
-        for (int attempts = 1; attempts <= MAX_ATTEMPTS; attempts++) {
-            try {
-                log.debug("[choice-gen-concept] AI 호출 시작: attempt={}/{}, questionUuid={}", attempts, MAX_ATTEMPTS, questionUuid);
-                lastResult = aiGatewayClient.generateChoiceSet(request);
-                log.debug("[choice-gen-concept] AI 응답 수신: attempt={}, choiceCount={}, questionUuid={}",
-                        attempts, lastResult.choices().size(), questionUuid);
-
-                // AI가 내려준 is_correct 집계 — 1개여야 유효
-                long correctCount = lastResult.choices().stream()
-                        .filter(c -> Boolean.TRUE.equals(c.isCorrect()))
-                        .count();
-                log.debug("[choice-gen-concept] is_correct 집계: correctCount={}, attempt={}, questionUuid={}",
-                        correctCount, attempts, questionUuid);
-
-                if (correctCount == 1) {
-                    log.debug("[choice-gen-concept] 검증 통과, 저장 시작: attempt={}, questionUuid={}", attempts, questionUuid);
-                    return choiceSetSaveService.saveConceptSuccess(
-                            question, source, memberUuid, prompt, lastResult, attempts);
-                }
-
-                lastErrorCode = (correctCount == 0)
-                        ? ErrorCode.CHOICE_SET_VALIDATION_NO_CORRECT
-                        : ErrorCode.CHOICE_SET_VALIDATION_MULTIPLE_CORRECT;
-                log.info("[choice-gen-concept] validation failed: code={}, attempt={}/{}, questionUuid={}",
-                        lastErrorCode, attempts, MAX_ATTEMPTS, questionUuid);
-
-            } catch (CustomException e) {
-                if (e.getErrorCode() == ErrorCode.AI_FALLBACK_FAILED) {
-                    log.error("[choice-gen-concept] AI fallback 실패, 재시도 불가: attempt={}, questionUuid={}", attempts, questionUuid);
-                    choiceSetSaveService.saveFailed(question, source, memberUuid, prompt, lastResult, attempts, e.getErrorCode());
-                    throw e;
-                }
-                lastErrorCode = e.getErrorCode();
-                log.warn("[choice-gen-concept] transient error, retrying: code={}, attempt={}/{}",
-                        lastErrorCode, attempts, MAX_ATTEMPTS);
-            }
+        ChoiceSetGenerationRun run = new ChoiceSetGenerationRun(questionUuid, question, memberUuid, source, prompt);
+        QuestionChoiceSet savedChoiceSet = attemptRunner.runAttempts(run, CONCEPT_RETRY_RULE, attempt -> attemptConcept(run, request, attempt));
+        if (savedChoiceSet != null) {
+            return savedChoiceSet;
         }
-
-        log.error("[choice-gen-concept] 최대 재시도 초과: questionUuid={}, lastErrorCode={}", questionUuid, lastErrorCode);
-        choiceSetSaveService.saveFailed(question, source, memberUuid, prompt, lastResult, MAX_ATTEMPTS, lastErrorCode);
-        throw new CustomException(
-                lastErrorCode != null ? lastErrorCode : ErrorCode.CHOICE_SET_GENERATION_FAILED,
-                "concept questionUuid=" + questionUuid);
+        throw attemptRunner.saveFailedAfterRetries(run, "concept questionUuid=" + questionUuid);
     }
 
     /**
@@ -117,113 +99,18 @@ public class ChoiceSetGenerationService {
      * 이를 통해 AI가 같은 SQL 동치(equivalence) 실수를 반복하는 것을 방지한다.
      */
     public QuestionChoiceSet generate(UUID questionUuid, UUID memberUuid, ChoiceSetSource source) {
-        Question question = questionService.getQuestionEntity(questionUuid);
-        String promptKey = toStandardPromptKey(question.getChoiceSetPolicy());
-        PromptTemplate prompt = promptService.getActivePrompt(promptKey);
-        log.debug("[choice-gen] 요청 빌드 완료: questionUuid={}, promptKey={}", questionUuid, promptKey);
+        ChoiceSetGenerationRun run = startStandardRun(questionUuid, memberUuid, source);
+        ChoiceSetRetryFeedback feedback = new ChoiceSetRetryFeedback(requestFactory.hasAnswerResultPlaceholder(run.prompt()));
 
-        ValidationReport lastReport = null;
-        GenerateChoiceSetResult lastResult = null;
-        ErrorCode lastErrorCode = null;
-
-        // MULTIPLE_CORRECT 실패 시 정답과 동일한 결과를 낸 오답 SQL 누적 (피드백용)
-        List<String> equivalentSqls = new ArrayList<>();
-        // 실패 시 직전 시도 선택지별 실제 실행 결과 (피드백용, 매 시도 교체)
-        List<String> previousChoiceResultLines = List.of();
-        // 기준 SQL 실행 결과: 프롬프트가 받을 때만 첫 시도에 1회 실행 (#720)
-        boolean shouldIncludeAnswerResult = requestFactory.hasAnswerResultPlaceholder(prompt);
-        ExecuteResult expectedResult = null;
-
-        for (int attempts = 1; attempts <= MAX_ATTEMPTS; attempts++) {
-            try {
-                // 실행 실패(SANDBOX_ANSWER_SQL_FAILED)는 아래 재시도 불가 처리로 실패 저장
-                if (shouldIncludeAnswerResult && expectedResult == null) {
-                    expectedResult = resultMatchChoiceValidator.executeExpectedResult(question);
-                }
-                // 재시도마다 피드백(동치 SQL 목록, 직전 실행 결과)을 포함한 요청을 새로 빌드
-                GenerateChoiceSetRequest request = requestFactory.buildStandardRequest(
-                        question, prompt, equivalentSqls, previousChoiceResultLines, expectedResult);
-
-                log.debug("[choice-gen] AI 호출 시작: attempt={}/{}, questionUuid={}, feedbackCount={}",
-                        attempts, MAX_ATTEMPTS, questionUuid, equivalentSqls.size());
-                lastResult = aiGatewayClient.generateChoiceSet(request);
-                log.debug("[choice-gen] AI 응답 수신: attempt={}, choiceCount={}, questionUuid={}",
-                        attempts, lastResult.choices().size(), questionUuid);
-
-                log.debug("[choice-gen] Sandbox 검증 시작: attempt={}, questionUuid={}", attempts, questionUuid);
-                // policy를 validator에 전달 — ODD_ONE_OUT 유형은 다른 검증 로직 적용
-                lastReport = sandboxValidator.validate(
-                        lastResult.choices(),
-                        question.getAnswerSql(),
-                        question.getSchemaDdl(),
-                        question.getSchemaSampleData(),
-                        question.getChoiceSetPolicy());
-                log.debug("[choice-gen] Sandbox 검증 완료: attempt={}, correctCount={}, questionUuid={}",
-                        attempts, lastReport.correctCount(), questionUuid);
-
-                if (lastReport.correctCount() == 1) {
-                    log.debug("[choice-gen] 검증 통과, 저장 시작: attempt={}, questionUuid={}", attempts, questionUuid);
-                    return choiceSetSaveService.saveSuccess(
-                            question, source, memberUuid, prompt, lastResult, lastReport, attempts);
-                }
-
-                lastErrorCode = (lastReport.correctCount() == 0)
-                        ? ErrorCode.CHOICE_SET_VALIDATION_NO_CORRECT
-                        : ErrorCode.CHOICE_SET_VALIDATION_MULTIPLE_CORRECT;
-                log.info("[choice-gen] validation failed: code={}, attempt={}/{}, questionUuid={}",
-                        lastErrorCode, attempts, MAX_ATTEMPTS, questionUuid);
-
-                // MULTIPLE_CORRECT 실패 시 정답과 동치인 오답 SQL을 피드백 목록에 누적
-                // 다음 시도에서 AI가 동일한 SQL을 생성하지 않도록 명시적으로 금지
-                if (lastErrorCode == ErrorCode.CHOICE_SET_VALIDATION_MULTIPLE_CORRECT
-                        && lastResult != null) {
-                    requestFactory.collectEquivalentSqls(lastResult.choices(), lastReport, equivalentSqls);
-                    log.info("[choice-gen] 동치 SQL 피드백 누적: count={}, attempt={}, questionUuid={}",
-                            equivalentSqls.size(), attempts, questionUuid);
-                }
-                // 직전 실행 결과 피드백: ODD_ONE_OUT 결과만, AI_ONLY 기준과 같음/다름 표시 포함 (#720)
-                if (lastResult != null) {
-                    boolean isOddOneOut = question.getChoiceSetPolicy() == ChoiceSetPolicy.ODD_ONE_OUT;
-                    previousChoiceResultLines = requestFactory.toChoiceResultLines(
-                            lastResult.choices(), lastReport, !isOddOneOut);
-                }
-
-            } catch (CustomException e) {
-                ErrorCode ec = e.getErrorCode();
-                // 재시도 불가 에러는 즉시 실패 저장 후 throw
-                if (ec == ErrorCode.SANDBOX_SETUP_FAILED
-                        || ec == ErrorCode.SANDBOX_ANSWER_SQL_FAILED
-                        || ec == ErrorCode.AI_FALLBACK_FAILED) {
-                    log.error("[choice-gen] 재시도 불가 에러: code={}, attempt={}, questionUuid={}", ec, attempts, questionUuid);
-                    choiceSetSaveService.saveFailed(question, source, memberUuid, prompt, lastResult, attempts, ec);
-                    throw e;
-                }
-                // 재시도 가능 에러 (파싱 실패, 스키마 위반 등)
-                lastErrorCode = ec;
-                log.warn("[choice-gen] transient error, retrying: code={}, attempt={}/{}",
-                        ec, attempts, e);
-            }
+        QuestionChoiceSet savedChoiceSet = attemptRunner.runAttempts(run, STANDARD_RETRY_RULE, attempt -> attemptStandard(run, feedback, attempt));
+        if (savedChoiceSet != null) {
+            return savedChoiceSet;
         }
-
-        // 3회 다 실패 — MULTIPLE_CORRECT이고 AI isCorrect=true가 1개 이상이면 AI 판단 신뢰 후 반환
-        // 단, 전부 정답(aiCorrectCount == choices.size())이면 문제로서 의미 없으므로 에러로 처리
-        log.error("[choice-gen] 최대 재시도 초과: questionUuid={}, lastErrorCode={}", questionUuid, lastErrorCode);
-        if (lastErrorCode == ErrorCode.CHOICE_SET_VALIDATION_MULTIPLE_CORRECT && lastResult != null) {
-            long aiCorrectCount = lastResult.choices().stream()
-                    .filter(GeneratedChoiceDto::isCorrect)
-                    .count();
-            if (aiCorrectCount >= 1 && aiCorrectCount < lastResult.choices().size()) {
-                // 정답이 일부 — "맞는 것은?" 유형에서 정답 중 하나를 고르면 정답 처리되므로 문제없음
-                log.warn("[choice-gen] MULTIPLE_CORRECT fallback: AI isCorrect={}개 신뢰, sandboxValidationPassed=false 저장. questionUuid={}", aiCorrectCount, questionUuid);
-                return choiceSetSaveService.saveWithAiCorrect(
-                        question, source, memberUuid, prompt, lastResult, MAX_ATTEMPTS);
-            }
-            log.error("[choice-gen] MULTIPLE_CORRECT fallback 불가: aiCorrectCount={}. questionUuid={}", aiCorrectCount, questionUuid);
+        QuestionChoiceSet aiTrustedChoiceSet = saveWithAiCorrectIfTrustable(run);
+        if (aiTrustedChoiceSet != null) {
+            return aiTrustedChoiceSet;
         }
-        choiceSetSaveService.saveFailed(question, source, memberUuid, prompt, lastResult, MAX_ATTEMPTS, lastErrorCode);
-        throw new CustomException(
-                lastErrorCode != null ? lastErrorCode : ErrorCode.CHOICE_SET_GENERATION_FAILED,
-                "questionUuid=" + questionUuid + ", source=" + source);
+        throw attemptRunner.saveFailedAfterRetries(run, "questionUuid=" + questionUuid + ", source=" + source);
     }
 
     /**
@@ -249,72 +136,174 @@ public class ChoiceSetGenerationService {
         ExecuteResult expectedResult = resultMatchChoiceValidator.executeExpectedResult(question);
         log.debug("[choice-gen-result-match] answerSql 실행 완료: rowCount={}", expectedResult.rowCount());
 
-        GenerateChoiceSetResult lastResult = null;
-        ErrorCode lastErrorCode = null;
-        // 직전 시도 채점 피드백 (첫 시도 null)
-        String retryFeedback = null;
-
-        for (int attempts = 1; attempts <= MAX_ATTEMPTS; attempts++) {
-            try {
-                log.debug("[choice-gen-result-match] AI 호출 시작: attempt={}/{}", attempts, MAX_ATTEMPTS);
-                GenerateChoiceSetRequest request = requestFactory.buildResultMatchRequest(
-                        question, prompt, expectedResult, retryFeedback);
-                lastResult = aiGatewayClient.generateChoiceSet(request);
-                log.debug("[choice-gen-result-match] AI 응답 수신: choiceCount={}", lastResult.choices().size());
-
-                // JSON 비교 검증 (Sandbox 재호출 없음)
-                ValidationReport report = resultMatchChoiceValidator.validate(lastResult.choices(), expectedResult);
-                log.debug("[choice-gen-result-match] 검증 완료: correctCount={}", report.correctCount());
-
-                // 같은 결과 표 보기가 2개면 재생성 (#555)
-                if (report.correctCount() != 1) {
-                    retryFeedback = requestFactory.toResultMatchRetryFeedback(report);
-                }
-                boolean hasDuplicateChoice = ChoiceBodyDuplicateFinder.findDuplicateBody(
-                        lastResult.choices().stream().map(GeneratedChoiceDto::body).toList()) != null;
-                if (hasDuplicateChoice) {
-                    lastErrorCode = ErrorCode.CHOICE_SET_GENERATION_FAILED;
-                    log.info("[choice-gen-result-match] validation failed: duplicate choice body, attempt={}/{}",
-                            attempts, MAX_ATTEMPTS);
-                    continue;
-                }
-
-                if (report.correctCount() == 1) {
-                    log.debug("[choice-gen-result-match] 검증 통과, 저장: attempt={}", attempts);
-                    return choiceSetSaveService.saveResultMatch(
-                            question, source, memberUuid, prompt, lastResult, report, attempts);
-                }
-
-                lastErrorCode = (report.correctCount() == 0)
-                        ? ErrorCode.CHOICE_SET_VALIDATION_NO_CORRECT
-                        : ErrorCode.CHOICE_SET_VALIDATION_MULTIPLE_CORRECT;
-                log.info("[choice-gen-result-match] validation failed: code={}, attempt={}/{}",
-                        lastErrorCode, attempts, MAX_ATTEMPTS);
-
-            } catch (CustomException e) {
-                ErrorCode ec = e.getErrorCode();
-                if (ec == ErrorCode.SANDBOX_SETUP_FAILED
-                        || ec == ErrorCode.SANDBOX_ANSWER_SQL_FAILED
-                        || ec == ErrorCode.AI_FALLBACK_FAILED) {
-                    log.error("[choice-gen-result-match] 재시도 불가 에러: code={}, attempt={}", ec, attempts);
-                    choiceSetSaveService.saveFailed(question, source, memberUuid, prompt, lastResult, attempts, ec);
-                    throw e;
-                }
-                lastErrorCode = ec;
-                log.warn("[choice-gen-result-match] transient error, retrying: code={}, attempt={}/{}",
-                        ec, attempts, MAX_ATTEMPTS);
-            }
+        ChoiceSetGenerationRun run = new ChoiceSetGenerationRun(questionUuid, question, memberUuid, source, prompt);
+        ChoiceSetRetryFeedback feedback = new ChoiceSetRetryFeedback(false);
+        QuestionChoiceSet savedChoiceSet = attemptRunner.runAttempts(run, RESULT_MATCH_RETRY_RULE,
+                attempt -> attemptResultMatch(run, expectedResult, feedback, attempt));
+        if (savedChoiceSet != null) {
+            return savedChoiceSet;
         }
-
-        log.error("[choice-gen-result-match] 최대 재시도 초과: questionUuid={}, lastErrorCode={}", questionUuid, lastErrorCode);
-        choiceSetSaveService.saveFailed(question, source, memberUuid, prompt, lastResult, MAX_ATTEMPTS, lastErrorCode);
-        throw new CustomException(
-                lastErrorCode != null ? lastErrorCode : ErrorCode.CHOICE_SET_GENERATION_FAILED,
-                "result-match questionUuid=" + questionUuid);
+        throw attemptRunner.saveFailedAfterRetries(run, "result-match questionUuid=" + questionUuid);
     }
 
     /** SQL 보기 정책 > 프롬프트 키 (ODD_ONE_OUT 은 정답 방향이 반대라 전용 프롬프트, 그 외 기본) */
     static String toStandardPromptKey(ChoiceSetPolicy policy) {
         return policy == ChoiceSetPolicy.ODD_ONE_OUT ? ODD_ONE_OUT_PROMPT_KEY : PROMPT_KEY;
+    }
+
+    /** 개념 문제 1회 시도: AI 호출 > is_correct 1개 확인 > 저장 (실패 시 null) */
+    private QuestionChoiceSet attemptConcept(ChoiceSetGenerationRun run, GenerateChoiceSetRequest request, int attempt) {
+        UUID questionUuid = run.questionUuid();
+        log.debug("[choice-gen-concept] AI 호출 시작: attempt={}/{}, questionUuid={}", attempt, MAX_ATTEMPTS, questionUuid);
+        GenerateChoiceSetResult aiResult = aiGatewayClient.generateChoiceSet(request);
+        run.recordAiResult(aiResult);
+        log.debug("[choice-gen-concept] AI 응답 수신: attempt={}, choiceCount={}, questionUuid={}",
+                attempt, aiResult.choices().size(), questionUuid);
+
+        // AI가 내려준 is_correct 집계 — 1개여야 유효
+        long correctCount = aiResult.choices().stream()
+                .filter(c -> Boolean.TRUE.equals(c.isCorrect()))
+                .count();
+        log.debug("[choice-gen-concept] is_correct 집계: correctCount={}, attempt={}, questionUuid={}",
+                correctCount, attempt, questionUuid);
+
+        if (correctCount == 1) {
+            log.debug("[choice-gen-concept] 검증 통과, 저장 시작: attempt={}, questionUuid={}", attempt, questionUuid);
+            return choiceSetSaveService.saveConceptSuccess(
+                    run.question(), run.source(), run.memberUuid(), run.prompt(), aiResult, attempt);
+        }
+
+        ErrorCode errorCode = run.recordValidationFailure(correctCount);
+        log.info("[choice-gen-concept] validation failed: code={}, attempt={}/{}, questionUuid={}",
+                errorCode, attempt, MAX_ATTEMPTS, questionUuid);
+        return null;
+    }
+
+    /** SQL 문제 실행 준비: 문제 조회 > 정책별 프롬프트 키 > 활성 프롬프트 */
+    private ChoiceSetGenerationRun startStandardRun(UUID questionUuid, UUID memberUuid, ChoiceSetSource source) {
+        Question question = questionService.getQuestionEntity(questionUuid);
+        String promptKey = toStandardPromptKey(question.getChoiceSetPolicy());
+        PromptTemplate prompt = promptService.getActivePrompt(promptKey);
+        log.debug("[choice-gen] 요청 빌드 완료: questionUuid={}, promptKey={}", questionUuid, promptKey);
+        return new ChoiceSetGenerationRun(questionUuid, question, memberUuid, source, prompt);
+    }
+
+    /** SQL 문제 1회 시도: 요청 빌드(피드백 포함) > AI 호출 > 샌드박스 검증 > 저장 또는 피드백 누적 (실패 시 null) */
+    private QuestionChoiceSet attemptStandard(ChoiceSetGenerationRun run, ChoiceSetRetryFeedback feedback, int attempt) {
+        Question question = run.question();
+        UUID questionUuid = run.questionUuid();
+        // 실행 실패(SANDBOX_ANSWER_SQL_FAILED)는 재시도 불가 처리로 실패 저장
+        if (feedback.isExpectedResultPending()) {
+            feedback.recordExpectedResult(resultMatchChoiceValidator.executeExpectedResult(question));
+        }
+        // 재시도마다 피드백(동치 SQL 목록, 직전 실행 결과)을 포함한 요청을 새로 빌드
+        GenerateChoiceSetRequest request = requestFactory.buildStandardRequest(
+                question, run.prompt(), feedback.equivalentSqls(), feedback.previousChoiceResultLines(), feedback.expectedResult());
+
+        log.debug("[choice-gen] AI 호출 시작: attempt={}/{}, questionUuid={}, feedbackCount={}",
+                attempt, MAX_ATTEMPTS, questionUuid, feedback.equivalentSqls().size());
+        GenerateChoiceSetResult aiResult = aiGatewayClient.generateChoiceSet(request);
+        run.recordAiResult(aiResult);
+        log.debug("[choice-gen] AI 응답 수신: attempt={}, choiceCount={}, questionUuid={}",
+                attempt, aiResult.choices().size(), questionUuid);
+
+        log.debug("[choice-gen] Sandbox 검증 시작: attempt={}, questionUuid={}", attempt, questionUuid);
+        // policy를 validator에 전달 — ODD_ONE_OUT 유형은 다른 검증 로직 적용
+        ValidationReport report = sandboxValidator.validate(
+                aiResult.choices(),
+                question.getAnswerSql(),
+                question.getSchemaDdl(),
+                question.getSchemaSampleData(),
+                question.getChoiceSetPolicy());
+        log.debug("[choice-gen] Sandbox 검증 완료: attempt={}, correctCount={}, questionUuid={}",
+                attempt, report.correctCount(), questionUuid);
+
+        if (report.correctCount() == 1) {
+            log.debug("[choice-gen] 검증 통과, 저장 시작: attempt={}, questionUuid={}", attempt, questionUuid);
+            return choiceSetSaveService.saveSuccess(
+                    question, run.source(), run.memberUuid(), run.prompt(), aiResult, report, attempt);
+        }
+
+        ErrorCode errorCode = run.recordValidationFailure(report.correctCount());
+        log.info("[choice-gen] validation failed: code={}, attempt={}/{}, questionUuid={}",
+                errorCode, attempt, MAX_ATTEMPTS, questionUuid);
+        collectStandardFeedback(run, feedback, aiResult, report, attempt);
+        return null;
+    }
+
+    /** 다음 시도 피드백 누적: MULTIPLE_CORRECT 동치 SQL, 직전 선택지별 실행 결과 (#720) */
+    private void collectStandardFeedback(ChoiceSetGenerationRun run, ChoiceSetRetryFeedback feedback,
+                                         GenerateChoiceSetResult aiResult, ValidationReport report, int attempt) {
+        // MULTIPLE_CORRECT 실패 시 정답과 동치인 오답 SQL을 피드백 목록에 누적
+        // 다음 시도에서 AI가 동일한 SQL을 생성하지 않도록 명시적으로 금지
+        if (run.lastErrorCode() == ErrorCode.CHOICE_SET_VALIDATION_MULTIPLE_CORRECT) {
+            requestFactory.collectEquivalentSqls(aiResult.choices(), report, feedback.equivalentSqls());
+            log.info("[choice-gen] 동치 SQL 피드백 누적: count={}, attempt={}, questionUuid={}",
+                    feedback.equivalentSqls().size(), attempt, run.questionUuid());
+        }
+        // 직전 실행 결과 피드백: ODD_ONE_OUT 결과만, AI_ONLY 기준과 같음/다름 표시 포함 (#720)
+        boolean isOddOneOut = run.question().getChoiceSetPolicy() == ChoiceSetPolicy.ODD_ONE_OUT;
+        feedback.replacePreviousChoiceResultLines(requestFactory.toChoiceResultLines(aiResult.choices(), report, !isOddOneOut));
+    }
+
+    /**
+     * 3회 다 실패 — MULTIPLE_CORRECT이고 AI isCorrect=true가 1개 이상이면 AI 판단 신뢰 후 저장
+     * 단, 전부 정답(aiCorrectCount == choices.size())이면 문제로서 의미 없으므로 null (에러 처리)
+     */
+    private QuestionChoiceSet saveWithAiCorrectIfTrustable(ChoiceSetGenerationRun run) {
+        GenerateChoiceSetResult lastResult = run.lastResult();
+        if (run.lastErrorCode() != ErrorCode.CHOICE_SET_VALIDATION_MULTIPLE_CORRECT || lastResult == null) {
+            return null;
+        }
+        long aiCorrectCount = lastResult.choices().stream()
+                .filter(GeneratedChoiceDto::isCorrect)
+                .count();
+        if (aiCorrectCount >= 1 && aiCorrectCount < lastResult.choices().size()) {
+            // 정답이 일부 — "맞는 것은?" 유형에서 정답 중 하나를 고르면 정답 처리되므로 문제없음
+            log.warn("[choice-gen] MULTIPLE_CORRECT fallback: AI isCorrect={}개 신뢰, sandboxValidationPassed=false 저장. questionUuid={}", aiCorrectCount, run.questionUuid());
+            return choiceSetSaveService.saveWithAiCorrect(
+                    run.question(), run.source(), run.memberUuid(), run.prompt(), lastResult, MAX_ATTEMPTS);
+        }
+        log.error("[choice-gen] MULTIPLE_CORRECT fallback 불가: aiCorrectCount={}. questionUuid={}", aiCorrectCount, run.questionUuid());
+        return null;
+    }
+
+    /** 결과 비교 문제 1회 시도: AI 호출 > JSON 비교 검증 > 중복 보기 확인 > 저장 (실패 시 null) */
+    private QuestionChoiceSet attemptResultMatch(ChoiceSetGenerationRun run, ExecuteResult expectedResult,
+                                                 ChoiceSetRetryFeedback feedback, int attempt) {
+        log.debug("[choice-gen-result-match] AI 호출 시작: attempt={}/{}", attempt, MAX_ATTEMPTS);
+        GenerateChoiceSetRequest request = requestFactory.buildResultMatchRequest(
+                run.question(), run.prompt(), expectedResult, feedback.resultMatchRetryFeedback());
+        GenerateChoiceSetResult aiResult = aiGatewayClient.generateChoiceSet(request);
+        run.recordAiResult(aiResult);
+        log.debug("[choice-gen-result-match] AI 응답 수신: choiceCount={}", aiResult.choices().size());
+
+        // JSON 비교 검증 (Sandbox 재호출 없음)
+        ValidationReport report = resultMatchChoiceValidator.validate(aiResult.choices(), expectedResult);
+        log.debug("[choice-gen-result-match] 검증 완료: correctCount={}", report.correctCount());
+
+        // 같은 결과 표 보기가 2개면 재생성 (#555)
+        if (report.correctCount() != 1) {
+            feedback.replaceResultMatchRetryFeedback(requestFactory.toResultMatchRetryFeedback(report));
+        }
+        boolean hasDuplicateChoice = ChoiceBodyDuplicateFinder.findDuplicateBody(
+                aiResult.choices().stream().map(GeneratedChoiceDto::body).toList()) != null;
+        if (hasDuplicateChoice) {
+            run.recordErrorCode(ErrorCode.CHOICE_SET_GENERATION_FAILED);
+            log.info("[choice-gen-result-match] validation failed: duplicate choice body, attempt={}/{}",
+                    attempt, MAX_ATTEMPTS);
+            return null;
+        }
+
+        if (report.correctCount() == 1) {
+            log.debug("[choice-gen-result-match] 검증 통과, 저장: attempt={}", attempt);
+            return choiceSetSaveService.saveResultMatch(
+                    run.question(), run.source(), run.memberUuid(), run.prompt(), aiResult, report, attempt);
+        }
+
+        ErrorCode errorCode = run.recordValidationFailure(report.correctCount());
+        log.info("[choice-gen-result-match] validation failed: code={}, attempt={}/{}",
+                errorCode, attempt, MAX_ATTEMPTS);
+        return null;
     }
 }

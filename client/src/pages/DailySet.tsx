@@ -7,6 +7,7 @@ import { useDailySetStore } from "../stores/dailySetStore";
 import { useAuthStore } from "../stores/authStore";
 import { submitAnswer } from "../api/questions";
 import { completeDailySet } from "../api/dailySet";
+import { invalidateLearningRecordQueries } from "../lib/learningRecordQueries";
 import QuestionDetail from "./QuestionDetail";
 import PracticeFeedbackBar from "../components/PracticeFeedbackBar";
 import ConfirmModal from "../components/ConfirmModal";
@@ -33,7 +34,7 @@ export default function DailySet() {
   // 피드백 바 해설 미리보기 대상 (#521)
   const [feedbackExplanationEntry, setFeedbackExplanationEntry] = useState<ExplanationHistoryEntry | null>(null);
   const addExplanationEntry = useExplanationHistoryStore((state) => state.addEntry);
-  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   // 연타 방지 — React state는 async 클로저에서 stale하므로 ref로 동기 플래그 관리
   const isProcessingRef = useRef(false);
   const [sessionUuid] = useState(() => crypto.randomUUID());
@@ -65,17 +66,19 @@ export default function DailySet() {
       .then(() => {
         // 데일리 세트 완료 후 관련 캐시 갱신 — 홈 화면 상태 최신화
         queryClient.invalidateQueries({ queryKey: ["dailySet"] });
-        queryClient.invalidateQueries({ queryKey: ["heatmap"] });
-        queryClient.invalidateQueries({ queryKey: ["progress"] });
+        invalidateLearningRecordQueries(queryClient);
       })
-      .catch(() => {})
+      // 완료 기록 실패해도 결과 화면 이동 유지 (경고 로그만)
+      .catch((error: unknown) => {
+        console.warn("[daily set] complete failed", error);
+      })
       .finally(() => {
         navigate("/daily-set/result", { replace: true });
       });
   }, [shouldNavigateToResult, store, sessionUuid, navigate, queryClient]);
 
   // 풀이 중 이탈 차단 — 피드백 표시 중이거나 제출 중이면 blocker 비활성화
-  const blocker = useBlocker(!shouldNavigateToResult && feedback === null && !submitting && totalQuestions > 0);
+  const blocker = useBlocker(!shouldNavigateToResult && feedback === null && !isSubmitting && totalQuestions > 0);
 
   const handleSubmit = useCallback(
     async (selectedChoiceKey: string, choiceSetId: string, choices: readonly ChoiceItem[]) => {
@@ -85,7 +88,7 @@ export default function DailySet() {
 
       const selectedChoice = choices.find((c) => c.key === selectedChoiceKey);
 
-      setSubmitting(true);
+      setIsSubmitting(true);
       try {
         const result = await submitAnswer(
           displayQuestion.questionUuid, choiceSetId, selectedChoiceKey, sessionUuid,
@@ -115,7 +118,7 @@ export default function DailySet() {
         navigate("/", { replace: true });
       } finally {
         isProcessingRef.current = false;
-        setSubmitting(false);
+        setIsSubmitting(false);
       }
     },
     [displayQuestion, displayIndex, sessionUuid, store, navigate, addExplanationEntry],
@@ -184,7 +187,7 @@ export default function DailySet() {
       {/* AI 해설 비모달 패널 — 떠 있어도 다음 문제 진행 가능 (#521) */}
       <ExplanationPanel />
 
-      {submitting && (
+      {isSubmitting && (
         <LoadingOverlay topicName="데일리 세트" staticMessage="채점 중이에요" subMessage="잠시만 기다려주세요" />
       )}
 

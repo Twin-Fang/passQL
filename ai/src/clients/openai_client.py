@@ -9,16 +9,13 @@ from src.clients.llm_schema import to_json_schema
 from src.clients.shared_http_client import send_request
 from src.clients.token_usage import record_token_usage
 from src.core.exceptions import CustomError
+from src.core.external_call_limits import LLM_CALL_TIMEOUT_SECONDS, LOGGED_RESPONSE_TEXT_MAXIMUM_LENGTH
 
 logger = logging.getLogger(__name__)
 
 OPENAI_CHAT_COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions"
-# 호출 1회 응답 대기 상한 (30초, Gemini·Claude 와 같은 기준)
-CALL_TIMEOUT_SECONDS = 30
 # JSON 응답 지시 문구 (json_object 모드는 스키마를 강제하지 않아 시스템 프롬프트로 형식 전달)
 STRUCTURED_RESPONSE_INSTRUCTION = "응답은 다음 JSON 스키마를 따르는 JSON 객체 하나로만 작성:\n"
-# 파싱 실패 로그에 남길 응답 최대 길이
-LOGGED_RESPONSE_TEXT_MAXIMUM_LENGTH = 500
 
 
 class OpenAiClient:
@@ -49,7 +46,7 @@ class OpenAiClient:
             OPENAI_CHAT_COMPLETIONS_URL,
             headers={"Authorization": f"Bearer {api_key}"},
             json_body=request_body,
-            timeout_seconds=CALL_TIMEOUT_SECONDS,
+            timeout_seconds=LLM_CALL_TIMEOUT_SECONDS,
         )
         response_body = response.json()
         usage = response_body.get("usage") or {}

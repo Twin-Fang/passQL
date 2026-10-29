@@ -1,0 +1,38 @@
+/* 동작 줄이기 설정 대응 (#497): 커스텀 애니메이션 해제 */
+
+/* ── 동작 줄이기 설정 존중 (#497) ── */
+/* 커스텀 keyframe 애니메이션 해제 + 시작 상태가 숨김(opacity 0)인 단어 span 은 바로 표시 */
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-up,
+  .animate-sheet-slide-up-mobile,
+  .feedback-bar-anim,
+  .feedback-header-anim,
+  .feedback-card-anim-1,
+  .feedback-card-anim-2,
+  .feedback-card-anim-3,
+  .feedback-card-anim-4,
+  .animate-stagger,
+  .animate-refresh-once,
+  .animate-card-in,
+  .animate-ai-header,
+  .animate-sparkle-pop,
+  .animate-pulse-fast,
+  .animate-popover-in,
+  .explanation-panel,
+  .explanation-skeleton::after {
+    animation: none;
+  }
+
+  .ai-word,
+  .ai-word-visible,
+  .md-word {
+    animation: none;
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+
+  .step-slider {
+    transition: none;
+  }
+}

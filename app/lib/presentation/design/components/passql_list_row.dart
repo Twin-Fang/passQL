@@ -14,6 +14,7 @@ class PassqlListRow extends StatelessWidget {
     this.hasChevron = false,
     this.isDestructive = false,
     this.hasHorizontalPadding = true,
+    this.isCentered = false,
     this.onTap,
   });
 
@@ -26,6 +27,9 @@ class PassqlListRow extends StatelessWidget {
 
   /// false: 좌우 여백 없음 (이미 좌우 md 여백이 있는 구간 면 안에 놓일 때)
   final bool hasHorizontalPadding;
+
+  /// true: 제목·부제를 가운데 정렬 (iOS 액션 시트처럼 동작만 고르는 메뉴 시트용, #741)
+  final bool isCentered;
   final VoidCallback? onTap;
 
   /// 한 줄 제목일 때 행 높이가 44pt 가 되는 위아래 여백 (iOS 설정 앱 규격)
@@ -49,11 +53,14 @@ class PassqlListRow extends StatelessWidget {
             ],
             Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: isCentered
+                    ? CrossAxisAlignment.center
+                    : CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     title,
+                    textAlign: isCentered ? TextAlign.center : null,
                     style: PassqlTypography.body.copyWith(
                       color: isDestructive ? colors.wrongText : colors.label,
                     ),
@@ -61,6 +68,7 @@ class PassqlListRow extends StatelessWidget {
                   if (subtitle != null)
                     Text(
                       subtitle!,
+                      textAlign: isCentered ? TextAlign.center : null,
                       style: PassqlTypography.footnote.copyWith(
                         color: colors.secondaryLabel,
                       ),

@@ -1,5 +1,5 @@
 """src.core.config
-ENVIRONMENT 환경변수에 따라 .env.dev 또는 .env.prod를 로드합니다.
+환경 설정 로드: ENVIRONMENT 값 > .env.dev 또는 .env.prod
 우선순위: 시스템 환경변수 > .env.{env} 파일
 """
 import os

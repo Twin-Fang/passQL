@@ -4,7 +4,8 @@ abstract final class PassqlSize {
   static const double buttonRegular = 44;
   static const double buttonSmall = 34;
   static const double segmentedControlSegment = 36; // 세그먼트 알약 높이 (트랙 위아래 여백 4씩 더해 누르는 영역 44, #726)
-  static const double tabBar = 49; // 아이콘 + 라벨 탭 바 (iOS 규격)
+  static const double tabBar = 54; // 아이콘 + 라벨 탭 바. 위 여백 10 + 아이콘 24 + 간격 2 + 라벨 12×글자 배율 상한 1.4 = 52.8 (#755)
+  static const double tabBarIconTop = 10; // 탭 바 위 끝 > 아이콘. 49 높이 가운데 정렬일 때 5.5 라 답답해 보였음 (#755)
   static const double navBar = 44;
   static const double bottomStrip = 44; // 탭 바 아래 한 줄 띠 (광고, #527). 띠 전체가 터치 영역이라 최소 터치 높이와 같게
   static const double rowMin = 44; // Apple 최소 터치 영역
@@ -15,6 +16,7 @@ abstract final class PassqlSize {
   static const double progressBarHeight = 4;
   static const double choiceKeyBadge = 24; // 선택지 키(A·B·C·D) 원
   static const double avatar = 40; // 설정 프로필 이니셜 원 (카드 높이를 줄이려고 52 > 40, #687)
+  static const double communityAvatar = 36; // 의견 타일 닉네임 첫 글자 원 (24 > 32 > 36, #741)
   static const double scoreRing = 168; // 결과 점수 고리 지름
   static const double scoreRingStroke = 12;
   static const double progressRing = 44; // 목록 행 진행 고리 지름 (개념 단원·이어서 학습)

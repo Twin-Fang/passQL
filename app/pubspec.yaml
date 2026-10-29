@@ -1,7 +1,7 @@
 name: passql_app
 description: "passQL - SQL 학습 앱"
 publish_to: none
-version: 1.70.0+435
+version: 1.70.9+444
 environment:
   sdk: ^3.9.2
 dependencies:
@@ -22,9 +22,9 @@ dependencies:
   uuid: ^4.5.2
   # UI/UX
   flutter_svg: ^2.2.1
+  path_parsing: ^1.1.0 # 하단 탭 아이콘 SVG 경로 > Path (flutter_svg 가 이미 쓰는 패키지)
   shimmer: ^3.0.0
   # 차트
-  fl_chart: ^0.70.0
   # 외부 링크
   url_launcher: ^6.3.1
   # 알림

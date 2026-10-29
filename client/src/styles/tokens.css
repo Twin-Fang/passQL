@@ -76,6 +76,7 @@
   /* ── 글자 크기 (Tailwind 기본 단계에 없는 값, 이름은 앱 PassqlTypography·iOS 단계 기준) ──
    * line-height 미지정 > 부모 상속 (text-[Npx] 임의값과 같은 계산 결과) */
   --text-micro: 10px;           /* 배지·탭 라벨·히트맵 축 (앱에 없는 웹 전용) */
+  --text-notice-banner: 10.5px; /* 오프라인 안내 배너 (앱에 없는 웹 전용) */
   --text-caption2: 11px;        /* 보조 라벨 (iOS caption2) */
   --text-caption1: 12px;        /* 앱 caption */
   --text-footnote: 13px;        /* 앱 footnote */

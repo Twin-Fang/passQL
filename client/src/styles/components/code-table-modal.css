@@ -1,0 +1,232 @@
+/* 코드 블록, 데이터 테이블, 에러 카드, 다이얼로그·가운데 모달, 신고 모달 */
+
+/* ── 5. Code Block ── */
+.code-block {
+  background-color: var(--color-surface-code);
+  border-left: 4px solid var(--color-brand);
+  border-radius: 12px;
+  padding: 16px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-x: auto;
+  color: var(--color-text-primary);
+}
+
+/* ── 6. Data Table ── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table thead tr {
+  background-color: var(--color-surface);
+}
+
+.data-table th {
+  text-align: left;
+  padding: 5px 10px;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.data-table td {
+  padding: 4px 10px;
+  height: 28px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table tr {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.data-table tr:last-child {
+  border-bottom: none;
+}
+
+.data-table tr:nth-child(even) {
+  background-color: var(--color-surface-zebra);
+}
+
+/* ── 7. Error Card ── */
+/* inline style 금지 규칙에 따라 error 색상을 클래스로 분리 */
+.error-code-text {
+  color: var(--color-semantic-error);
+}
+
+.error-card {
+  background-color: var(--color-semantic-error-light);
+  border-left: 4px solid var(--color-semantic-error);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* ── 9. Dialog Overlay ── */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-scrim);
+  z-index: 40;
+}
+
+/* ── 10. Center Modal ── */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  background-color: var(--color-scrim);
+}
+
+.modal-card {
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 360px;
+  overflow: hidden;
+  padding: 20px;
+}
+
+/* ── 10-1. Report Modal 전용 ── */
+
+/* 신고 카테고리 행 — 기본 */
+.report-category-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.report-category-row:hover {
+  background-color: var(--color-surface);
+}
+
+/* 선택된 행 */
+.report-category-row--selected {
+  background-color: var(--color-semantic-error-light);
+}
+
+/* 커스텀 라디오 원 — 기본 */
+.report-radio {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-on-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+/* 선택된 라디오 */
+.report-radio--selected {
+  border-color: var(--color-semantic-error);
+  background-color: var(--color-semantic-error);
+}
+
+/* 라디오 내부 흰 점 */
+.report-radio-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-on-brand);
+}
+
+/* 카테고리 텍스트 — 기본 */
+.report-category-label {
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+/* 선택된 텍스트 */
+.report-category-label--selected {
+  font-size: 14px;
+  color: var(--color-semantic-error-text);
+  font-weight: 500;
+}
+
+/* 상세 입력 textarea */
+.report-textarea {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: var(--font-ui);
+  color: var(--color-text-primary);
+  resize: none;
+  outline: none;
+  transition: border-color 150ms ease;
+}
+
+.report-textarea:focus {
+  border-color: var(--color-semantic-error);
+}
+
+/* 취소 버튼 — outline 스타일 */
+.btn-cancel {
+  flex: 1;
+  height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: var(--color-on-brand);
+  color: var(--color-text-secondary);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.btn-cancel:hover {
+  background-color: var(--color-surface);
+}
+
+.btn-cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 신고 제출 버튼 */
+.btn-report {
+  flex: 1;
+  height: 44px;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--color-semantic-error);
+  color: var(--color-on-brand);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 150ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-report:hover {
+  opacity: 0.9;
+}
+
+.btn-report:disabled {
+  background-color: var(--color-border);
+  color: var(--color-text-caption);
+  cursor: not-allowed;
+}

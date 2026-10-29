@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/logging/app_logger.dart';
+import '../../../core/monitoring/crash_reporter.dart';
 import '../../../core/validation/feedback_validator.dart';
 import '../../../data/feedback/feedback_image_compressor.dart';
 import '../../design/design.dart';
@@ -201,10 +202,12 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
       if (toastContext.mounted) {
         showAppToast(toastContext, _successToastMessage);
       }
-    } on AppException catch (exception) {
+    } on AppException catch (exception, stackTrace) {
+      reportIfUnexpectedFailure(exception, stackTrace, reason: 'feedbackSend');
       if (mounted) setState(() => _errorMessage = exception.message);
-    } catch (error) {
+    } catch (error, stackTrace) {
       // 로그 읽기·조립 등 예상 밖 실패도 에러 줄로 안내
+      reportIfUnexpectedFailure(error, stackTrace, reason: 'feedbackSend');
       AppLogger.warn('feedback', 'send failed : $error');
       if (mounted) setState(() => _errorMessage = _sendFailedMessage);
     } finally {

@@ -5,6 +5,13 @@ String formatMonthDayTime(DateTime time) {
   return '${time.month}월 ${time.day}일 $hh:$mm';
 }
 
+/// "10/07 08:48" (월/일 24시간제 시각, 의견 작성 시각처럼 좁은 줄에 넣는 자리, #741)
+String formatSlashMonthDayTime(DateTime time) {
+  String twoDigits(int value) => value.toString().padLeft(2, '0');
+  return '${twoDigits(time.month)}/${twoDigits(time.day)} '
+      '${twoDigits(time.hour)}:${twoDigits(time.minute)}';
+}
+
 /// 날짜 > "2026.10.18" (공지 게시일 등 날짜만 보이는 자리)
 String formatDottedDate(DateTime time) {
   final month = time.month.toString().padLeft(2, '0');

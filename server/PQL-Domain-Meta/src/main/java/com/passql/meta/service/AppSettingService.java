@@ -90,18 +90,31 @@ public class AppSettingService {
     public int getIntOrDefault(String key, int defaultValue) {
         try {
             return getInt(key);
-        } catch (CustomException | NumberFormatException e) {
+        } catch (CustomException e) {
+            return defaultValue;
+        } catch (NumberFormatException e) {
+            // 값은 남기지 않음 (키 이름만)
+            log.warn("[app-setting get-int] default used : invalid integer format : key={}, default={}", key, defaultValue);
             return defaultValue;
         }
     }
 
-    /** 불리언 설정 (행 없음은 기본값) */
+    /** 불리언 설정 (행 없음은 기본값, true/false 외 값은 false) */
     public boolean getBooleanOrDefault(String key, boolean defaultValue) {
+        String value;
         try {
-            return getBoolean(key);
+            value = getString(key).trim();
         } catch (CustomException e) {
             return defaultValue;
         }
+        if (!isBooleanText(value)) {
+            log.warn("[app-setting get-boolean] treated as false : invalid boolean format : key={}", key);
+        }
+        return Boolean.parseBoolean(value);
+    }
+
+    private static boolean isBooleanText(String value) {
+        return "true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value);
     }
 
     public List<AppSetting> findAll() {

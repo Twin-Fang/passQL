@@ -6,6 +6,7 @@ import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.question.entity.Question;
+import com.passql.question.event.QuestionsDeactivatedEvent;
 import com.passql.question.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 /**
  * 관리자 문제 삭제·복구: 삭제는 비활성화(is_active=false), 행은 지우지 않음, 복구는 다시 활성화
  * 회원 제출·실행 로그·신고·데일리 이력 보존, 사용자 노출(목록·추천·데일리 후보·벡터 색인)에서만 제외
+ * 비활성화 커밋 후 벡터 정리: QuestionsDeactivatedEvent > QuestionVectorIndexService (요청당 1회)
  */
 @Slf4j
 @Service
@@ -44,6 +46,7 @@ public class AdminQuestionDeleteService {
                 .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
         question.deactivate();
         publishDeactivated(question);
+        eventPublisher.publishEvent(new QuestionsDeactivatedEvent());
         log.info("[question deactivate] done : questionUuid={}", questionUuid);
     }
 
@@ -85,6 +88,10 @@ public class AdminQuestionDeleteService {
             question.deactivate();
             publishDeactivated(question);
             deactivatedCount++;
+        }
+        // 문제마다가 아니라 일괄 비활성화 끝에 한 번만 정리 (#412)
+        if (deactivatedCount > 0) {
+            eventPublisher.publishEvent(new QuestionsDeactivatedEvent());
         }
 
         log.info("[question deactivate] bulk done : total={}, deactivated={}, skipped={}",

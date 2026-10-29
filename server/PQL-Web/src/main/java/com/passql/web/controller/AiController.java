@@ -25,7 +25,7 @@ public class AiController implements AiControllerDocs {
 
     // 해설은 문제·제출 정보가 필요해 애플리케이션 계층 서비스가 맡는다.
     private final AiExplainService aiExplainService;
-    // 유사 문제는 문제 요약 조합이 필요해 추천 서비스가 맡는다 (#442). AiService.getSimilar 는 미구현(TODO)이었다
+    // 유사 문제는 문제 요약 조합이 필요해 추천 서비스가 맡음 (#442)
     private final RecommendationService recommendationService;
     // 무료 회원 응답에서 전체 해설을 빼는 단일 지점
     private final ProResponseRedactor proResponseRedactor;

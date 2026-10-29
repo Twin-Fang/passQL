@@ -172,16 +172,13 @@ public class QuestionImportExportService {
                 continue;
             }
 
-            // 1:1 치환 가능한 Oracle 문법을 PostgreSQL 호환으로 변환 후 저장 (validate 단계와 동일하게 적용)
-            String savedDdl       = oracleSqlCompatibilityConverter.translateOracleToPostgres(item.schemaDdl());
-            String savedSample    = oracleSqlCompatibilityConverter.translateOracleToPostgres(item.schemaSampleData());
-            String savedAnswerSql = oracleSqlCompatibilityConverter.translateOracleToPostgres(item.answerSql());
-
-            // 치환 후에도 Oracle 전용 문법이 남아있으면 CONCEPT_ONLY로 자동 전환
-            if (mode == ExecutionMode.EXECUTABLE
-                    && oracleSqlCompatibilityConverter.detectOracleOnlySyntax(savedAnswerSql, savedDdl, savedSample, item.stem()) != null) {
-                mode = ExecutionMode.CONCEPT_ONLY;
-            }
+            // Oracle 문법 치환 후 저장 (validate 단계와 동일), 남은 Oracle 전용 문법 시 CONCEPT_ONLY 전환
+            PostgresCompatibleSql compatibleSql = oracleSqlCompatibilityConverter.toPostgresCompatible(
+                    item.schemaDdl(), item.schemaSampleData(), item.answerSql(), item.stem());
+            mode = compatibleSql.resolveExecutionMode(mode);
+            String savedDdl       = compatibleSql.schemaDdl();
+            String savedSample    = compatibleSql.schemaSampleData();
+            String savedAnswerSql = compatibleSql.answerSql();
 
             ChoiceSetPolicy policy = toChoiceSetPolicyOrAiOnly(item.choiceSetPolicy());
 

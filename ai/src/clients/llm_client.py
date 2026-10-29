@@ -21,6 +21,7 @@ from src.clients.gemini_client import gemini_client
 from src.clients.openai_client import openai_client
 from src.clients.token_usage import start_token_usage
 from src.core.exceptions import CustomError
+from src.core.retry import SERVER_ERROR_MINIMUM_STATUS_CODE
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,6 @@ OPENAI_MODEL_PREFIXES = ("gpt-", "chatgpt-", "o1", "o3", "o4")
 
 # 다음 연결로 넘기는 HTTP 상태: 401·403 키 무효·권한, 402 결제, 404 모델 없음, 429 한도 초과 (5xx 는 별도 판정)
 FALLBACK_STATUS_CODES = (401, 402, 403, 404, 429)
-SERVER_ERROR_MINIMUM_STATUS_CODE = 500
 BAD_REQUEST_STATUS_CODE = 400
 # 400 이지만 계정 문제인 응답 본문 표식 (소문자 비교): Claude 크레딧 부족, OpenAI 한도, Gemini 무효·만료 키
 ACCOUNT_ERROR_BODY_MARKERS = ("credit balance", "insufficient_quota", "quota", "api_key_invalid", "api key not valid",

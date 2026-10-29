@@ -1,0 +1,2 @@
+# 지식 볼트 작업 로그는 모든 쓰기가 끝에 한 줄을 붙이므로 브랜치 간 병합 충돌을 줄인다
+knowledge/log.md merge=union

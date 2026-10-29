@@ -1,31 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/billing/pass_discount.dart';
+import '../../../core/billing/pass_option_pricing.dart';
 import '../../../core/billing/pro_purchase_port.dart';
-import '../../../core/utils/date_format.dart';
-import '../../../core/utils/number_format.dart';
+import '../../../core/utils/exam_dday.dart';
+import '../../../core/utils/profile_pass_values.dart';
+import '../../../data/models/exam/exam_schedule_response.dart';
 import '../../../data/models/member/member_plan_response.dart';
 import '../../design/design.dart';
+import '../../providers/home_providers.dart';
 import '../../providers/plan_providers.dart';
+import '../../providers/profile_pass_providers.dart';
+import '../../providers/settings_providers.dart';
 import '../common/app_toast.dart';
-import 'pro_pass_option_tile.dart';
-import 'pro_plan_comparison_table.dart';
+import 'pro_benefits.dart';
+import 'pro_offer_benefit_list.dart';
+import 'pro_offer_buy_bar.dart';
+import 'pro_offer_headline.dart';
+import 'pro_offer_pass_option_list.dart';
+import 'pro_offer_payment_notes.dart';
+import 'pro_offer_ticket_preview.dart';
 import 'pro_purchase_feedback.dart';
 
 /// 시트가 떠 있는가: 한 번에 한 장만 (빠른 두 번 탭 방지)
 /// 시트 본문이 사라질 때(닫힘 연출 끝·화면 해체) 내려감
 bool _isOfferSheetOpen = false;
 
-/// 시트 제목·구매 버튼 기본 문구
+/// 구매 버튼 기본 문구(이용권 목록이 없을 때)
 const String _sheetTitle = '이용권';
-const String _restoreLabel = '이미 구매했나요? 복원하기';
-const String _noAutoRenewLabel = '자동 결제 없음';
 
-/// iOS 결제 수단 안내 (App Store 결제 시트 안내, 다른 결제 경로 언급 금지)
-const String _appleIdPaymentNotice = '구매는 Apple ID 계정으로 결제됩니다.';
-
-/// 프로 안내 시트 (모든 진입점이 공유하는 한 장): 제목 > 만료일 미리보기 > 들어온 이유 > 비교표 > 이용권 고르기 > 구매 > (iOS) Apple ID 결제 안내 > 복원
+/// 프로 안내 시트 (모든 진입점이 공유하는 한 장, #749): 문장 제목 > 기간 줄 > 들어온 이유 > 강조 혜택 > 내 이름 PRO 탑승권 > 달라지는 점 > 이용권 고르기(1개월이면 3개월 권유) > 복원 > 각주 + 아래 고정 구매 버튼
 /// 이용권 목록은 등급 응답 passOptions (서버 순서 3개월 먼저 > 첫 칸 기본 선택)
 /// [reason]: 진입점별 한 줄 (예: 오늘 무료 10문제를 다 풀었어요)
 /// 성공 > 시트 닫힘 > 호출 화면에서 토스트, 그 외 결과는 시트 안 한 줄
@@ -33,11 +37,15 @@ Future<void> showProOfferSheet(
   BuildContext context,
   WidgetRef ref, {
   String? reason,
+  // 탑승권 혜택 아이콘에서 열었을 때 그 혜택 순서(proBenefits 기준) > 시트가 그 줄을 강조 (#749)
+  int? focusedBenefitIndex,
 }) async {
   if (_isOfferSheetOpen) return;
   _isOfferSheetOpen = true;
   final knownPlan = ref.read(knownPlanProvider);
   final proExpiresAt = knownPlan?.proExpiresAt;
+  // 시트가 닫힐 때 호출 화면이 이미 사라졌을 수 있어 ref 는 기다리기 전에 읽어 둔다
+  final revealNotifier = ref.read(profilePassRevealPendingProvider.notifier);
   try {
     final isPurchased = await showPassqlSheet<bool>(
       context,
@@ -50,10 +58,15 @@ Future<void> showProOfferSheet(
             : null,
         dailyFreeLimit: knownPlan?.dailyFreeLimit ?? 0,
         reason: reason,
+        focusedBenefitIndex: focusedBenefitIndex,
+        nickname: ref.read(settingsDataProvider).valueOrNull?.nickname ?? '',
+        examSchedule: ref.read(examScheduleProvider).valueOrNull,
       ),
     );
-    if (isPurchased == true && context.mounted) {
-      showAppToast(context, proPurchaseSucceededMessage);
+    if (isPurchased == true) {
+      // 어느 진입점에서 샀든 다음 프로필 진입 때 탑승권 연출을 한 번 보여 준다 (#749)
+      await revealNotifier.markPending();
+      if (context.mounted) showAppToast(context, proPurchaseSucceededMessage);
     }
   } catch (_) {
     // 시트를 띄우지 못한 경우만 여기서 내림
@@ -68,6 +81,9 @@ class _ProOfferSheetBody extends ConsumerStatefulWidget {
     required this.activeProExpiresAt,
     required this.dailyFreeLimit,
     required this.reason,
+    required this.focusedBenefitIndex,
+    required this.nickname,
+    required this.examSchedule,
   });
 
   final List<PassOption> passOptions;
@@ -76,6 +92,15 @@ class _ProOfferSheetBody extends ConsumerStatefulWidget {
   final DateTime? activeProExpiresAt;
   final int dailyFreeLimit;
   final String? reason;
+
+  /// 탑승권 혜택 아이콘에서 열었으면 그 혜택 순서 (proBenefits 기준)
+  final int? focusedBenefitIndex;
+
+  /// 미리보기 탑승권 승객 칸
+  final String nickname;
+
+  /// 미리보기 탑승권 목적지·시험일, 제목의 남은 날 (없으면 일정 없는 문장)
+  final ExamScheduleResponse? examSchedule;
 
   @override
   ConsumerState<_ProOfferSheetBody> createState() => _ProOfferSheetBodyState();
@@ -146,156 +171,113 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
     });
   }
 
-  /// 고른 이용권 만료일 미리보기: 이용 중 "만료일 A > B", 신규 "B까지" + 자동 결제 없음
-  String get _subtitle {
-    final selectedOption = _selectedOption;
-    if (selectedOption == null) return _noAutoRenewLabel;
-    final newExpiry = formatDottedDate(selectedOption.expiresAtIfPurchased);
-    final activeProExpiresAt = widget.activeProExpiresAt;
-    final expiryPreview = activeProExpiresAt == null
-        ? '$newExpiry까지'
-        : '만료일 ${formatDottedDate(activeProExpiresAt)} > $newExpiry';
-    return '$expiryPreview · $_noAutoRenewLabel';
-  }
+  /// 이용권 목록 + 스토어 가격 계산 (기준 이용권·할인·권유)
+  PassOptionPricing<PassOption> get _pricing => PassOptionPricing(
+    options: widget.passOptions,
+    priceByProductId: _priceByProductId,
+    productIdOf: (option) => option.productId,
+    durationDaysOf: (option) => option.durationDays,
+  );
 
-  /// 이용 일수 > 칸 이름 (90일 > 3개월 이용권)
-  static String _optionLabelOf(PassOption option) =>
-      '${toPassMonths(option.durationDays)}개월 이용권';
-
-  /// 가장 짧은 이용권 대비 할인 배지 문구 (가격 없음·할인 없음·기준 칸 자신이면 null)
-  String? _discountLabelOf(PassOption option) {
-    final pricedOptions = widget.passOptions.where(
-      (candidate) => _priceByProductId.containsKey(candidate.productId),
-    );
-    if (pricedOptions.isEmpty) return null;
-    final baseOption = pricedOptions.reduce(
-      (shorter, candidate) =>
-          candidate.durationDays < shorter.durationDays ? candidate : shorter,
-    );
-    final discount = calculatePassDiscount(
-      longPassPrice: _priceByProductId[option.productId]?.rawPrice,
-      longPassMonths: toPassMonths(option.durationDays),
-      basePassPrice: _priceByProductId[baseOption.productId]?.rawPrice,
-      basePassMonths: toPassMonths(baseOption.durationDays),
-    );
-    if (discount == null) return null;
-    return '${discount.discountPercent}% 할인 · 월 ${formatThousands(discount.monthlyPrice)}원';
+  /// 탑승권 혜택 아이콘에서 열었으면 그 혜택 (순서가 범위 밖이면 null)
+  ProBenefit? _focusedBenefitOf(List<ProBenefit> benefits) {
+    final focusedIndex = widget.focusedBenefitIndex;
+    if (focusedIndex == null ||
+        focusedIndex < 0 ||
+        focusedIndex >= benefits.length) {
+      return null;
+    }
+    return benefits[focusedIndex];
   }
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.passqlColors;
     final port = ref.read(proPurchasePortProvider);
     final selectedOption = _selectedOption;
     final selectedPrice = selectedOption == null
         ? null
         : _priceByProductId[selectedOption.productId]?.displayPrice;
     final isPriceUnavailable = !_isPriceLoading && selectedPrice == null;
-    final inlineMessage =
-        _statusMessage ??
-        (isPriceUnavailable ? proPurchaseUnavailableMessage : null);
     final selectedLabel = selectedOption == null
         ? _sheetTitle
-        : _optionLabelOf(selectedOption);
-    final buyLabel = selectedPrice == null
-        ? selectedLabel
-        : '$selectedLabel $selectedPrice';
-    final reason = widget.reason;
-    final isIos = ref.read(targetPlatformProvider) == TargetPlatform.iOS;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(
-        PassqlSpacing.md,
-        0,
-        PassqlSpacing.md,
-        PassqlSpacing.md,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // 제목 + PRO 칩
-          Row(
-            children: [
-              Text(
-                _sheetTitle,
-                style: PassqlTypography.title2.copyWith(color: colors.label),
-              ),
-              const SizedBox(width: PassqlSpacing.xs),
-              const PassqlPlanChip(isPro: true),
-            ],
-          ),
-          const SizedBox(height: PassqlSpacing.xxs),
-          PassqlKeepAllText(
-            _subtitle,
-            style: PassqlTypography.subheadline.copyWith(
-              color: colors.secondaryLabel,
+        : '${passMonthsLabelOf(selectedOption)} 이용권';
+    final schedule = widget.examSchedule;
+    final daysUntil = schedule == null
+        ? null
+        : daysUntilExam(schedule.examDate);
+    final benefits = proBenefits(dailyFreeLimit: widget.dailyFreeLimit);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Flexible(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(
+              PassqlSpacing.md,
+              0,
+              PassqlSpacing.md,
+              PassqlSpacing.md,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ProOfferHeadline(
+                  daysUntilExam: daysUntil,
+                  freeCap: freeCapUntilExam(
+                    daysUntilExam: daysUntil,
+                    limit: widget.dailyFreeLimit,
+                  ),
+                  dailyFreeLimit: widget.dailyFreeLimit,
+                  reason: widget.reason,
+                  focusedBenefit: _focusedBenefitOf(benefits),
+                ),
+                const SizedBox(height: PassqlSpacing.md),
+                ProOfferTicketPreview(
+                  nickname: widget.nickname,
+                  examSchedule: schedule,
+                  selectedOption: selectedOption,
+                  benefits: benefits,
+                  activeProExpiresAt: widget.activeProExpiresAt,
+                ),
+                const SizedBox(height: PassqlSpacing.xl),
+                ProOfferBenefitList(benefits: benefits),
+                const SizedBox(height: PassqlSpacing.md),
+                // 이용권 고르기 (서버 순서대로, 결제 중에는 바꿀 수 없음)
+                ProOfferPassOptionList(
+                  pricing: _pricing,
+                  selectedOption: selectedOption,
+                  onSelect: _isBusy ? null : _select,
+                ),
+                ProOfferPaymentNotes(
+                  isIos: ref.read(targetPlatformProvider) == TargetPlatform.iOS,
+                  onRestoreTap: _isBusy
+                      ? null
+                      : () => _run(port.restorePurchases),
+                ),
+              ],
             ),
           ),
-          if (reason != null) ...[
-            const SizedBox(height: PassqlSpacing.xs),
-            PassqlKeepAllText(
-              reason,
-              style: PassqlTypography.subheadlineSemibold.copyWith(
-                color: colors.accentText,
-              ),
-            ),
-          ],
-          const SizedBox(height: PassqlSpacing.md),
-          ProPlanComparisonTable(dailyFreeLimit: widget.dailyFreeLimit),
-          const SizedBox(height: PassqlSpacing.md),
-          // 이용권 고르기 (서버 순서대로, 결제 중에는 바꿀 수 없음)
-          for (final option in widget.passOptions) ...[
-            ProPassOptionTile(
-              label: _optionLabelOf(option),
-              displayPrice: _priceByProductId[option.productId]?.displayPrice,
-              discountLabel: _discountLabelOf(option),
-              isSelected: option == selectedOption,
-              onTap: _isBusy
-                  ? null
-                  : () => setState(() {
-                      _selectedOption = option;
-                      _statusMessage = null;
-                    }),
-            ),
-            const SizedBox(height: PassqlSpacing.xs),
-          ],
-          if (widget.passOptions.isNotEmpty)
-            const SizedBox(height: PassqlSpacing.xs),
-          // 구매 버튼: 가격 조회 중·상품 없음·결제 중이면 누를 수 없음
-          PassqlButton(
-            label: buyLabel,
-            isLoading: _isBusy || _isPriceLoading,
-            onPressed: (selectedOption == null || selectedPrice == null)
-                ? null
-                : () => _run(() => port.purchasePass(selectedOption.productId)),
-          ),
-          if (isIos) ...[
-            const SizedBox(height: PassqlSpacing.xs),
-            Text(
-              _appleIdPaymentNotice,
-              textAlign: TextAlign.center,
-              style: PassqlTypography.footnote.copyWith(
-                color: colors.secondaryLabel,
-              ),
-            ),
-          ],
-          if (inlineMessage != null) ...[
-            const SizedBox(height: PassqlSpacing.xs),
-            Text(
-              inlineMessage,
-              textAlign: TextAlign.center,
-              style: PassqlTypography.footnote.copyWith(
-                color: colors.secondaryLabel,
-              ),
-            ),
-          ],
-          PassqlButton(
-            label: _restoreLabel,
-            variant: PassqlButtonVariant.plain,
-            size: PassqlButtonSize.regular,
-            onPressed: _isBusy ? null : () => _run(port.restorePurchases),
-          ),
-        ],
-      ),
+        ),
+        // 구매 버튼은 스크롤 밖 아래에 고정 (시트가 길어도 늘 보이게)
+        ProOfferBuyBar(
+          label: selectedPrice == null
+              ? selectedLabel
+              : '$selectedLabel $selectedPrice',
+          isLoading: _isBusy || _isPriceLoading,
+          onPressed: (selectedOption == null || selectedPrice == null)
+              ? null
+              : () => _run(() => port.purchasePass(selectedOption.productId)),
+          inlineMessage:
+              _statusMessage ??
+              (isPriceUnavailable ? proPurchaseUnavailableMessage : null),
+        ),
+      ],
     );
   }
+
+  void _select(PassOption option) => setState(() {
+    _selectedOption = option;
+    _statusMessage = null;
+  });
 }
