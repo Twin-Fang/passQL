@@ -7,7 +7,7 @@ topics: [design-system]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0256-app-apple-style-redesign-dark-mode]]", "[[ISS-0256-app-apple-style-redesign-dark-mode-report]]"]
+related: ["[[ISS-0256-app-apple-style-redesign-dark-mode]]", "[[ISS-0256-app-apple-style-redesign-dark-mode-report]]", "[[DEC-0215-tab-bar-icons-custom-drawn-exception]]"]
 ---
 
 # DEC-0116: 앱은 Apple(iOS HIG) 스타일 단일 디자인 시스템으로 iOS·Android 같은 모양, 다크 모드 포함
