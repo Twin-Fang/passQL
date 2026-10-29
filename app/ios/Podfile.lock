@@ -15,6 +15,10 @@ PODS:
     - PromisesObjC (~> 2.4)
     - PromisesSwift (~> 2.4)
     - RecaptchaInterop (~> 101.0)
+  - battery_plus (1.0.0):
+    - Flutter
+  - connectivity_plus (0.0.1):
+    - Flutter
   - device_info_plus (0.0.1):
     - Flutter
   - Firebase/Auth (12.19.0):
@@ -264,6 +268,8 @@ PODS:
 DEPENDENCIES:
   - app_badge_plus (from `.symlinks/plugins/app_badge_plus/ios`)
   - app_tracking_transparency (from `.symlinks/plugins/app_tracking_transparency/ios`)
+  - battery_plus (from `.symlinks/plugins/battery_plus/ios`)
+  - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - firebase_analytics (from `.symlinks/plugins/firebase_analytics/ios`)
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
@@ -327,6 +333,10 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/app_badge_plus/ios"
   app_tracking_transparency:
     :path: ".symlinks/plugins/app_tracking_transparency/ios"
+  battery_plus:
+    :path: ".symlinks/plugins/battery_plus/ios"
+  connectivity_plus:
+    :path: ".symlinks/plugins/connectivity_plus/ios"
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
   firebase_analytics:
@@ -373,17 +383,19 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/webview_flutter_wkwebview/darwin"
 
 SPEC CHECKSUMS:
-  app_badge_plus: 25add6a850e8d7d1b4b13d4065fae62fbc2c0063
-  app_tracking_transparency: e169b653478da7bb15a6c61209015378ca73e375
+  app_badge_plus: 61669f601f51ea6c45fb7e8a6f1e0b12ba50864b
+  app_tracking_transparency: 3d84f147f67ca82d3c15355c36b1fa6b66ca7c92
   AppAuth: ef4da5a3fc2e10b90c09a0a94a9baeaedc0341d5
   AppCheckCore: be8fce5469f68d7f6a29aa94b25f097409ff7fdc
-  device_info_plus: bf2e3232933866d73fe290f2942f2156cdd10342
+  battery_plus: b42253f6d2dde71712f8c36fef456d99121c5977
+  connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd
+  device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   Firebase: 7ca191e43724142f79fae653547b3382c45413cc
-  firebase_analytics: f6023ed6c945c6cf4736d814dec670646d37d843
-  firebase_auth: 36fa0bc88f7ea4c0ad5c543d117674d05be29799
-  firebase_core: 7ed66bd750bf2b7a29268b21d63eec7bc6799ee8
-  firebase_crashlytics: c1f2502c8e8353a60d5b8ed03f30b205630d4814
-  firebase_messaging: 437b5662e6a3a945a7a07166bfba05a86c998b55
+  firebase_analytics: 99133ddb6f6cf89c0b49cafae131070607abbfa5
+  firebase_auth: 09023e4cff3162bed3375fb2f4f350b07c422206
+  firebase_core: 55de508663ceda7d1dc369a32b327a5655019ae2
+  firebase_crashlytics: 289a6a01605d663873a978d9daaa3648edc3f3b5
+  firebase_messaging: df68cb5feefa02766144a50fa5348362a0127008
   FirebaseAnalytics: e9f8c369447e453da23f0455a06e4910bad10de0
   FirebaseAppCheckInterop: bd4b791ffaed7ae719304af6369d243ddee5e4a0
   FirebaseAuth: 8c38236f67e5e3dd6aacf3e0c46b3eed31e9c820
@@ -397,13 +409,13 @@ SPEC CHECKSUMS:
   FirebaseRemoteConfigInterop: 90659b3cac8f6de884f2d930fbdbeb711533e142
   FirebaseSessions: 39bcaa7c16b5d8b91d58f495f29ce2988d2f915c
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  flutter_image_compress_common: d1d827ee42025290fc9e3203ece582e4c74182ed
-  flutter_naver_login: 6e80dabbf52e2715e734c2606734654fd385a111
-  flutter_secure_storage: d33dac7ae2ea08509be337e775f6b59f1ff45f12
-  flutter_web_auth_2: 4091f1645696258ddc57849f62bef2a848fc313c
+  flutter_image_compress_common: 11d5dcfb36f4ded92320bfa896261813a073240e
+  flutter_naver_login: 965ca284c1a64f0185dfaf9dfd1b8f69f34e6c11
+  flutter_secure_storage: 1ed9476fba7e7a782b22888f956cce43e2c62f13
+  flutter_web_auth_2: 646fc9df97a01c59e5eea99b237da2c6360f8439
   Google-Mobile-Ads-SDK: 7692126a35ed859f20635af281c50a2162be8bea
-  google_mobile_ads: e0c300fcd472c3fa5a00d6cca8b0c65bbbb15faf
-  google_sign_in_ios: ee49ee802921a2b31bac453205c4d7ac783f0a86
+  google_mobile_ads: bab325fd4e31c9705cab0cb298e4f5a9bdb7370f
+  google_sign_in_ios: d66ab4c862f03eb4b3cac147ba2d9d7e56ef03f7
   GoogleAdsOnDeviceConversion: 41f168313b305040f4af27093d3c0af5ba46a9a3
   GoogleAppMeasurement: f2f676480e4c97936df934aa181bc29caea46975
   GoogleDataTransport: a24e58982ab3ba2f64d79613e027fe7f57e88539
@@ -412,24 +424,24 @@ SPEC CHECKSUMS:
   GoogleUtilities: 4e0c2ad9fa0d0d18b5c4df8bf57b461cba35b0bb
   GTMAppAuth: 217a876b249c3c585a54fd6f73e6b58c4f5c4238
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
-  image_picker_ios: 4f2f91b01abdb52842a8e277617df877e40f905b
-  in_app_purchase_storekit: 2342c0a5da86593124d08dd13d920f39a52b273a
-  kakao_flutter_sdk_auth: 2080e7ae827d1f6854120826982ce30d93f82030
-  kakao_flutter_sdk_common: 4057450348450e6bf2261c60fdb5bdfe1371f24a
+  image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
+  in_app_purchase_storekit: 22cca7d08eebca9babdf4d07d0baccb73325d3c8
+  kakao_flutter_sdk_auth: 34b0ffa1e96f7cd974f0cd6fcaa0ced6faa0fa22
+  kakao_flutter_sdk_common: 73e5a0871987eb121ee9f15c89fa76d4f75444ab
   libwebp: af5937a13536ef73f3784d69cc342b98961acf33
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   NidThirdPartyLogin: ed291a543cc60a433bcad522b6bf7d3126ad4fdc
-  package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
+  package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
   PromisesSwift: 217dea0fd5d2ad65222a109c48698add13cc1c5b
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
   SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
   SDWebImageWebPCoder: 0e06e365080397465cc73a7a9b472d8a3bd0f377
-  shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
-  sign_in_with_apple: f3bf75217ea4c2c8b91823f225d70230119b8440
-  url_launcher_ios: bb13df5870e8c4234ca12609d04010a21be43dfa
-  webview_flutter_wkwebview: 29eb20d43355b48fe7d07113835b9128f84e3af4
+  shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
+  sign_in_with_apple: c5dcc141574c8c54d5ac99dd2163c0c72ad22418
+  url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
+  webview_flutter_wkwebview: 8ebf4fded22593026f7dbff1fbff31ea98573c8d
 
-PODFILE CHECKSUM: 162770bfc1ecbe16179166db3147d9b346acda95
+PODFILE CHECKSUM: 44d81a9bfcffd29f7d8e7e3171863e1373014175
 
 COCOAPODS: 1.16.2
