@@ -1123,6 +1123,15 @@ Future<void> _openRoute(String route, ProviderContainer container) async {
       await _scrollFirstVertical(toEnd: true);
       await Future<void>.delayed(const Duration(milliseconds: 1200));
       await _scrollFirstVertical(toEnd: false);
+    case 'stats-chart':
+      // 프로필 > 아래로 내려 영역별 정답률 > 차트 아이콘 > 8각 차트 > 다시 목록 (#749 차트 전환)
+      AppRouter.router.go(AppRoutes.stats);
+      await Future<void>.delayed(const Duration(milliseconds: 3000));
+      await _scrollFirstVertical(toEnd: true);
+      await Future<void>.delayed(const Duration(milliseconds: 1200));
+      _tapSemanticButtonStarting('차트로 보기');
+      await Future<void>.delayed(const Duration(milliseconds: 3000));
+      _tapSemanticButtonStarting('목록으로 보기');
     case 'pass-sheet':
       // 내 프로필 > 탑승권 누름 > 무료는 구매 시트, 프로는 접힌 줄 펼침 > 탑승권 > 정보 시트 (#749)
       AppRouter.router.go(AppRoutes.stats);
@@ -1238,6 +1247,8 @@ void _tapSemanticButtonStarting(String prefix) {
 Future<void> _scrollFirstVertical({required bool toEnd}) async {
   ScrollPosition? longest;
   void visit(Element element) {
+    // 숨은 탭(탭 셸이 TickerMode 를 끔)의 스크롤은 건너뜀 > 보이는 화면만 내림
+    if (!TickerMode.of(element)) return;
     if (element is StatefulElement && element.state is ScrollableState) {
       final position = (element.state as ScrollableState).position;
       if (position.axis == Axis.vertical && (longest == null || position.maxScrollExtent > longest!.maxScrollExtent)) {
