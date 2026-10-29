@@ -51,7 +51,7 @@ related: []
 - [[DEC-0212-keep-benefit-icon-row-in-ticket]] — 탑승권 안의 혜택 아이콘 줄은 유지한다 (세 곳 모양 통일)
 
 ## 대체된 결정 (역사)
-- [[DEC-0018-four-tab-bottom-navigation]] → DEC-0101
+- [[DEC-0018-four-tab-bottom-navigation]] → null
 - [[DEC-0022-design-md-single-source-of-truth]] → DEC-0121
 - [[DEC-0101-bottom-tab-icons-only]] → DEC-0157
 - [[DEC-0157-community-bottom-tab]] → DEC-0167

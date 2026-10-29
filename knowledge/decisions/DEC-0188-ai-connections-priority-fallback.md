@@ -19,6 +19,7 @@ AI 키·모델 설정이 앱 설정 여러 줄에 흩어져 있고, 제공자별
 - 연결 = 제공자(Gemini, Claude, OpenAI) + 이름 + API 키(암호화) + 기본 모델 + 우선순위 + 사용 여부. 같은 제공자 키 여러 개 가능. 테이블 `ai_connection`, Redis `passql:ai:connections` 공유, AI 서버도 같은 목록·규칙 사용.
 - 대체 순서: 우선순위 1번부터. 응답 없음, 401, 402, 403, 404, 429, 5xx, 크레딧 부족·한도·무효 키 문구가 있는 400이면 다음 연결로. 그 외 400은 즉시 실패 — 다른 연결로 보내도 같은 이유로 실패하기 때문(리포트).
 - 기능별 모델: 프롬프트 모델의 제공자 연결에서 그 모델로 먼저, 나머지는 각 연결 기본 모델.
+- (볼트 정리) 이 정리로 [[DEC-0187-claude-provider-by-model-prefix]]의 키·모델 설정 부분(`ai.claude_api_key`·`ai.model_override`·`ai.default_model`)은 대체됐고, 모델 이름으로 제공자를 고르는 규칙은 유지된다.
 - 정리: `ai.model_override`·제공자별 키 설정(`ai.claude_api_key`, `ai.gemini_api_key`) 제거, `ai.gemini_model`·`ai.default_model` 정리. 기존 키는 이관(1순위 Claude, 2순위 Gemini).
 
 ## 검토한 대안 (Alternatives)

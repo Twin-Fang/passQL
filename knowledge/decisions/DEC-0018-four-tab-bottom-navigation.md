@@ -4,9 +4,9 @@ id: DEC-0018
 created: 2026-04-07
 reviewed: null
 topics: [design-system]
-status: superseded
+status: archived
 supersedes: null
-superseded_by: DEC-0101
+superseded_by: null
 related: ["[[ISS-0011-screen-spec-api-mapping]]", "[[DEC-0101-bottom-tab-icons-only]]"]
 ---
 

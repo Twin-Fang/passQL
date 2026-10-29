@@ -30,6 +30,7 @@ related: ["[[ISS-0264-architecture-audit-commonization-refactor]]", "[[ISS-0265-
 
 ## 영향 범위 (Scope)
 `brand/brand-colors.json`, 웹 색 토큰, 앱 색 토큰, `brand_color_consistency.py`.
+(볼트 정리, 2026-10-29 사용자 승인) 이 결정이 [[DEC-0022-design-md-single-source-of-truth]]를 대체한 것으로 잇는다: 이후 앱·웹 `Design.md`는 값을 적지 않고 코드 토큰(`passql_colors.dart`, 웹 `tokens.css`는 앱 light 값 기준)을 원본으로 가리킨다(main 코드 확인).
 
 ## 출처 (References)
 - GitHub #458 소유자 결정 댓글 1번 (2026-10-15), GitHub #459·#462 구현 보고서

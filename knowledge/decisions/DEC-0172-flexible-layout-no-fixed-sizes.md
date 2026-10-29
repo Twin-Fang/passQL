@@ -35,7 +35,7 @@ related: ["[[ISS-0363-app-wide-ui-ux-cleanup]]", "[[ISS-0363-app-wide-ui-ux-clea
 - 논의 기록 없음. (이슈 본문은 "고정 높이로 텍스트 영역 제한 금지" 구조 규칙 테스트 추가를 검토 항목으로만 남겼다.)
 
 ## 영향 범위 (Scope)
-앱 화면 전반, 특히 홈 2열 카드·풀이 결과 하단 줄. 같은 날 GitHub #574의 `PassqlCard.shouldChildFillHeight`(2열 높이 맞춤)와 유형 카드 고정 높이 상수는 이 기준과 긴장 관계가 있다(볼트 정리).
+앱 화면 전반, 특히 홈 2열 카드·풀이 결과 하단 줄. 이틀 전(2026-10-22) GitHub #574의 `PassqlCard.shouldChildFillHeight`(2열 높이 맞춤)와 유형 카드 고정 높이 상수는 이 기준과 긴장 관계가 있다(원본에 없음, 볼트 정리).
 
 ## 출처 (References)
 - GitHub #602 이슈 본문, 크기 검증 댓글·리포트 댓글(2026-10-24)

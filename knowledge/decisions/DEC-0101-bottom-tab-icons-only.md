@@ -5,7 +5,7 @@ created: 2026-10-07
 reviewed: null
 topics: [design-system]
 status: superseded
-supersedes: DEC-0018
+supersedes: null
 superseded_by: DEC-0157
 related: ["[[ISS-0212-bottom-tab-icons-only]]", "[[ISS-0212-bottom-tab-icons-only-report]]", "[[DEC-0018-four-tab-bottom-navigation]]", "[[DEC-0157-community-bottom-tab]]"]
 ---
