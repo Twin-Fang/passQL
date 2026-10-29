@@ -155,6 +155,8 @@ Future<(T?, Object?)> _settle<T>(Future<T> load) => load.then<(T?, Object?)>(
 /// 홈 전체 다시 받기 (당겨서 새로고침·재시도·날짜 변경·계정 전환 공통)
 void invalidateHomeData(void Function(ProviderOrFamily provider) invalidate) {
   invalidate(homeOverviewProvider);
+  // 개요는 공유 시험 일정을 watch 만 해서, 일정까지 비워야 새로 받는다 (#749)
+  invalidate(examScheduleProvider);
   invalidate(homeRecommendationsProvider);
   invalidate(homeLearningStatusProvider);
   // 테스트에서 합친 Provider 만 override 해도 다시 불러오도록 함께 비움

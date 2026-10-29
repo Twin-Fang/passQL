@@ -43,7 +43,11 @@ final _freePlan = MemberPlanResponse(
   ],
 );
 
-Future<void> _openSheet(WidgetTester tester, {int? focusedBenefitIndex}) async {
+Future<void> _openSheet(
+  WidgetTester tester, {
+  int? focusedBenefitIndex,
+  double textScale = 1,
+}) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -54,7 +58,10 @@ Future<void> _openSheet(WidgetTester tester, {int? focusedBenefitIndex}) async {
         theme: PassqlTheme.light,
         // 반복 효과(빛줄기·홀로그램)를 멈춰 pumpAndSettle 이 끝나게 한다
         builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(context).copyWith(disableAnimations: true),
+          data: MediaQuery.of(context).copyWith(
+            disableAnimations: true,
+            textScaler: TextScaler.linear(textScale),
+          ),
           child: child!,
         ),
         home: Consumer(
@@ -103,5 +110,14 @@ void main() {
     await tester.tap(find.text('1개월'));
     await tester.pumpAndSettle();
     expect(find.textContaining('3,300원 아껴요'), findsOneWidget);
+  });
+
+  testWidgets('큰 글자, 좁은 폭에서도 혜택 줄이 넘치지 않는다', (tester) async {
+    // 앱 글자 크기 상한(1.3배)과 좁은 폰(320pt)
+    tester.view.physicalSize = const Size(320, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await _openSheet(tester, textScale: 1.3);
+    expect(tester.takeException(), isNull);
   });
 }

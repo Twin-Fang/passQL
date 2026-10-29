@@ -138,18 +138,31 @@ class _FreePass extends ConsumerWidget {
 }
 
 /// 프로: 기본 접힌 한 줄, 펼치면 보라 탑승권. 구매 직후 첫 진입은 회색 > 보라 연출 한 번
-class _ProPass extends ConsumerWidget {
+class _ProPass extends ConsumerStatefulWidget {
   const _ProPass({required this.plan, required this.schedule});
 
   final MemberPlanResponse? plan;
   final ExamScheduleResponse? schedule;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ProPass> createState() => _ProPassState();
+}
+
+class _ProPassState extends ConsumerState<_ProPass> {
+  // 구매 연출을 이번 화면에서 보여 줬으면 연출이 끝난 뒤에도 펼쳐 둔다 (저장된 접힘 값은 다음 진입부터)
+  bool _isKeptOpenAfterReveal = false;
+
+  MemberPlanResponse? get plan => widget.plan;
+  ExamScheduleResponse? get schedule => widget.schedule;
+
+  @override
+  Widget build(BuildContext context) {
     final isCollapsed =
-        ref.watch(profilePassCollapsedProvider).valueOrNull ?? true;
+        !_isKeptOpenAfterReveal &&
+        (ref.watch(profilePassCollapsedProvider).valueOrNull ?? true);
     final isRevealPending =
         ref.watch(profilePassRevealPendingProvider).valueOrNull ?? false;
+    if (isRevealPending) _isKeptOpenAfterReveal = true;
     final expiresAt = plan?.proExpiresAt;
     final daysLeft = expiresAt == null ? null : daysUntilDate(expiresAt);
     void openInfo() => showProInfoSheet(
@@ -192,9 +205,10 @@ class _ProPass extends ConsumerWidget {
       children: [
         _proTicket(context, expiresAt, daysLeft, onTap: openInfo),
         PassqlPressable(
-          onTap: () => ref
-              .read(profilePassCollapsedProvider.notifier)
-              .setCollapsed(true),
+          onTap: () {
+            setState(() => _isKeptOpenAfterReveal = false);
+            ref.read(profilePassCollapsedProvider.notifier).setCollapsed(true);
+          },
           hasMinimumTouchTarget: true,
           semanticLabel: '탑승권 접기',
           child: Center(
@@ -278,7 +292,23 @@ class _CollapsedProLine extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const PassqlPlanChip(isPro: true),
+            // 보라 바탕 위라 기본 PRO 칩(보라)이 묻혀 흰 바탕 칩으로 둔다
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: PassqlSpacing.xs,
+                vertical: PassqlSpacing.hairlineGap,
+              ),
+              decoration: BoxDecoration(
+                color: colors.onAccent,
+                borderRadius: BorderRadius.circular(PassqlRadius.sm / 2),
+              ),
+              child: Text(
+                'PRO',
+                style: PassqlTypography.captionSemibold.copyWith(
+                  color: colors.accentText,
+                ),
+              ),
+            ),
             const SizedBox(width: PassqlSpacing.xs),
             Expanded(
               child: Text(
