@@ -2,7 +2,7 @@
 type: cluster
 topic: design-system
 created: 2026-10-29
-members: 100
+members: 106
 status: active
 related: []
 ---
@@ -48,6 +48,12 @@ related: []
 - [[DEC-0198-cards-for-pick-lists-sections-for-reports]] — 앱에서 고르는 목록은 카드, 위에서 아래로 읽는 리포트는 구간 — 문제 탭은 최신 경향·개념 TOP 10만 구간으로
 - [[DEC-0205-pro-benefits-single-source]] — 앱 이용권 혜택 목록은 `pro_benefits.dart` 한 곳을 원본으로 쓰고, 실제 잠금이 있는 기능만 보인다
 - [[DEC-0206-topic-accuracy-list-with-octagon-chart]] — 앱 영역별 정답률은 목록을 기본으로 두고 같은 자리에서 8각 차트로 바꿔 본다 (레이더·막대 두 장 통합, `fl_chart` 제거)
+- [[DEC-0207-pass-ticket-upright-float-shadow]] — passQL PASS 탑승권은 시트에서도 기울이지 않고 정방향으로 두고, 띄움 그림자만 쓴다
+- [[DEC-0208-pass-ticket-fields-unified]] — 프로필·정보 시트 탑승권 칸은 승객 · 남은 날 · 시험일, 떼는 칸 글자는 "사용 중"으로 통일하고 바코드 폭은 그 글자 폭에 맞춘다
+- [[DEC-0209-pass-ticket-label-size-only]] — 탑승권 정보 칸은 라벨만 12 → 11로 줄이고 값은 13을 유지한다
+- [[DEC-0210-benefit-icons-reuse-app-icons]] — 이용권 혜택 아이콘은 앱에서 같은 기능에 이미 쓰는 아이콘으로 통일한다
+- [[DEC-0211-benefit-colors-per-benefit]] — 혜택 아이콘 색은 혜택마다 다른 색으로 두고, 출제 경향 불꽃만 문제 탭 불꽃 색(`warning`)을 쓴다
+- [[DEC-0212-keep-benefit-icon-row-in-ticket]] — 탑승권 안의 혜택 아이콘 줄은 유지한다 (세 곳 모양 통일)
 
 ## 대체된 결정 (역사)
 - 없음

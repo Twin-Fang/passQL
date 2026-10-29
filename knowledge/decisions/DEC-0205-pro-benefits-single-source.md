@@ -7,7 +7,7 @@ topics: [billing, design-system]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0428-app-profile-tab-redesign]]", "[[ISS-0428-app-profile-tab-redesign-report]]", "[[DEC-0004-free-pro-feature-boundary]]"]
+related: ["[[ISS-0428-app-profile-tab-redesign]]", "[[ISS-0428-app-profile-tab-redesign-report]]", "[[DEC-0004-free-pro-feature-boundary]]", "[[DEC-0210-benefit-icons-reuse-app-icons]]", "[[DEC-0211-benefit-colors-per-benefit]]", "[[DEC-0212-keep-benefit-icon-row-in-ticket]]"]
 ---
 
 # DEC-0205: 앱 이용권 혜택 목록은 `pro_benefits.dart` 한 곳을 원본으로 쓰고, 실제 잠금이 있는 기능만 보인다
@@ -36,5 +36,6 @@ related: ["[[ISS-0428-app-profile-tab-redesign]]", "[[ISS-0428-app-profile-tab-r
 앱 `widgets/pro/pro_benefits.dart`(신규), `pro_offer_sheet.dart`, `pro_info_sheet.dart`, `design/components/passql_pass_ticket.dart`. 기존 `pro_plan_comparison_table`은 삭제.
 
 ## 출처 (References)
-- GitHub #749 리포트 댓글 「주요 구현 내용 2·3」, 「건드리면 위험한 곳」 (2026-10-29)
+- GitHub #749 리포트 댓글 6490566222 「주요 구현 내용 2·3」, 「건드리면 위험한 곳」 (2026-10-29)
+- 아이콘·색·아이콘 줄은 PR #752에서 정함: [[DEC-0210-benefit-icons-reuse-app-icons]], [[DEC-0211-benefit-colors-per-benefit]], [[DEC-0212-keep-benefit-icon-row-in-ticket]]
 - [[ISS-0428-app-profile-tab-redesign-report]]

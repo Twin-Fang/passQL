@@ -40,5 +40,5 @@ related: ["[[ISS-0428-app-profile-tab-redesign]]", "[[ISS-0428-app-profile-tab-r
 앱 `widgets/profile/topic_accuracy_section.dart`, `topic_accuracy_rows.dart`, `topic_accuracy_radar.dart`(신규), 삭제된 `radar_chart_section`·`bar_chart_section`, `pubspec.yaml`, `app/CLAUDE.md` 기술 스택.
 
 ## 출처 (References)
-- GitHub #749 이슈 본문 「4. 영역별 정답률」「추가 요청 사항」(2026-10-28), 리포트 댓글 「주요 구현 내용 5」(2026-10-29)
+- GitHub #749 이슈 본문 「4. 영역별 정답률」「추가 요청 사항」(2026-10-28), 리포트 댓글 6490566222 「주요 구현 내용 5」(2026-10-29)
 - [[ISS-0428-app-profile-tab-redesign-report]]

@@ -39,5 +39,5 @@ related: ["[[ISS-0428-app-profile-tab-redesign]]", "[[ISS-0428-app-profile-tab-r
 앱 `pages/stats/stats_page.dart`, `widgets/profile/*`(신규), `widgets/app_shell.dart`(탭 이름), 삭제된 `summary_stats_section`·`stats_shortcut_section`·`profile_section`·`profile_card` 등. 서버·API 계약·웹은 범위 밖.
 
 ## 출처 (References)
-- GitHub #749 이슈 본문 「1. 정보 위계」「2. 빼는 것」 (2026-10-28), 리포트 댓글 (2026-10-29)
+- GitHub #749 이슈 본문 「1. 정보 위계」「2. 빼는 것」 (2026-10-28), 리포트 댓글 6490566222 (2026-10-29)
 - [[ISS-0428-app-profile-tab-redesign]], [[ISS-0428-app-profile-tab-redesign-report]]

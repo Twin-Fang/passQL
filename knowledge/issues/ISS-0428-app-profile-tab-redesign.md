@@ -7,7 +7,7 @@ symptoms: ["내 프로필 탭", "카드 10장", "홈과 겹치는 정보", "합�
 root_cause: "내 프로필 탭이 카드 10장 구조로 홈·문제 탭과 겹치는 정보(합격 준비도, 히트맵, 오답 노트 행, 순위 행)를 다시 보여 줬고, 이용권은 별도 카드로 떨어져 있었다"
 status: resolved
 resolution: "[[ISS-0428-app-profile-tab-redesign-report]]"
-related: ["[[ISS-0428-app-profile-tab-redesign-report]]", "[[DEC-0204-profile-drops-info-shown-elsewhere]]", "[[DEC-0205-pro-benefits-single-source]]", "[[DEC-0206-topic-accuracy-list-with-octagon-chart]]", "[[DEC-0004-free-pro-feature-boundary]]"]
+related: ["[[ISS-0428-app-profile-tab-redesign-report]]", "[[DEC-0204-profile-drops-info-shown-elsewhere]]", "[[DEC-0205-pro-benefits-single-source]]", "[[DEC-0206-topic-accuracy-list-with-octagon-chart]]", "[[DEC-0207-pass-ticket-upright-float-shadow]]", "[[DEC-0208-pass-ticket-fields-unified]]", "[[DEC-0209-pass-ticket-label-size-only]]", "[[DEC-0210-benefit-icons-reuse-app-icons]]", "[[DEC-0211-benefit-colors-per-benefit]]", "[[DEC-0212-keep-benefit-icon-row-in-ticket]]", "[[DEC-0004-free-pro-feature-boundary]]"]
 source: "https://github.com/Twin-Fang/passQL/issues/749"
 ---
 
@@ -33,7 +33,9 @@ GitHub #749 (원본: 이슈 본문과 리포트 댓글).
 
 ## 조사 기록
 - 2026-10-28: 이슈 등록. 확정 시안(라이트·다크) 첨부, 방향 참고는 토스 증권 내 투자, 네이버 마이쇼핑 멤버십, 쿠팡 마이쿠팡.
-- 2026-10-29: 리포트 댓글로 완료 → [[ISS-0428-app-profile-tab-redesign-report]]. 2026-10-29 닫힘.
+- 2026-10-29: PR #750(본 개편) main 머지 05:04.
+- 2026-10-29: PR #752(탑승권 마무리: 정방향, 칸·글자 통일, 라벨 크기, 바코드 폭, 혜택 아이콘·색) main 머지 07:30 → [[DEC-0207-pass-ticket-upright-float-shadow]]~[[DEC-0212-keep-benefit-icon-row-in-ticket]].
+- 2026-10-29: 리포트 댓글 6490566222(유효)로 완료 → [[ISS-0428-app-profile-tab-redesign-report]]. 옛 리포트 6487345503과 추가 변경 메모 6490013971은 지워졌다. 2026-10-29 닫힘.
 
 ## 근본 원인
 결함이 아니라 화면 구조 문제. 이슈 본문은 "홈과 겹치는 정보"와 카드 10장 구조를 문제로 적었다.
