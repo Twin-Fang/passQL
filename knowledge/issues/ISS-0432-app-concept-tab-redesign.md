@@ -1,0 +1,29 @@
+---
+type: issue
+id: ISS-0432
+created: 2026-10-30
+topics: [concept-learning, design-system]
+symptoms: ["개념 탭", "단원 상세", "개념 읽기", "개념 풀기", "개념 결과 화면", "읽기 풀기 전환", "핵심 자세히", "같은 뜻 반복 글자", concepts_home_page, concept_topic_page, concept_page, concept_solve_view]
+root_cause: "개념 탭이 홈·문제·토론·프로필 탭과 다른 카드 톤이었고, 읽기/풀기와 핵심/자세히 전환이 두 줄로 나뉘었으며 같은 뜻을 두 번 이상 말하는 글자가 많았다"
+status: resolved
+resolution: "[[ISS-0432-app-concept-tab-redesign-report]]"
+related: ["[[ISS-0432-app-concept-tab-redesign-report]]", "[[DEC-0217-concept-study-single-segment]]", "[[DEC-0218-concept-result-ring-climax]]", "[[DEC-0219-keep-one-line-headlines-visualize-instructions]]", "[[DEC-0220-check-on-semantic-fill-uses-on-semantic]]", "[[ISS-0358-concept-learning-by-unit]]", "[[ISS-0428-app-profile-tab-redesign]]"]
+source: "https://github.com/Twin-Fang/passQL/issues/764"
+---
+
+# ISS-0432: 앱 개념 탭 UI/UX 개편
+
+GitHub #764 (원본: 이슈 본문과 리포트 댓글).
+
+## 증상
+앱 개념 탭 전체(탭 첫 화면, 단원 상세, 개념 읽기·풀기·결과)를 홈(GitHub #701), 문제 탭(GitHub #726), 토론(GitHub #741), 프로필(GitHub #749)과 같은 톤(좌우 끝까지 닿는 흰 구간 + 회색 띠, 큰 숫자 하나 + 목록 줄)으로 바꾸고, 같은 뜻을 두 번 이상 말하는 글자를 덜어내는 디자인 요청. 서버·API 계약은 바꾸지 않는다.
+
+## 재현 조건
+해당 없음 (디자인 개편).
+
+## 조사 기록
+- 2026-10-30: 이슈 등록. 시안을 라이트·다크로 반복 검토(폰에서 이미지로 확인). 읽기·풀기 화면은 기존 세그먼트 재사용, 결과 화면은 고리 연출로 확정.
+- 2026-10-30: 커밋 0553fa56 푸시, 리포트 댓글 6512843324로 완료 → [[ISS-0432-app-concept-tab-redesign-report]]. 테스트 빌드는 아직 돌리지 않았다.
+
+## 근본 원인
+결함이 아니라 화면 구조 문제. 다른 탭 개편과 톤이 달랐고 전환 줄이 둘, 반복 글자가 많았다.

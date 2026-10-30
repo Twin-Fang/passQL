@@ -2,7 +2,7 @@
 type: cluster
 topic: design-system
 created: 2026-10-29
-members: 110
+members: 115
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 디자인 토큰·공통 UI 컴포넌트·폰트·테마
 
 ## 현재 상태 요약
-(2026-10-29, 자동 생성) 활성 결정 34개, 열린 이슈 2개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-10-30, 자동 생성) 활성 결정 38개, 열린 이슈 2개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0017-fullscreen-result-screen]] — 제출 결과 화면은 풀스크린 1종으로 통일 (bottom sheet 변형 미채택)
@@ -51,6 +51,10 @@ related: []
 - [[DEC-0212-keep-benefit-icon-row-in-ticket]] — 탑승권 안의 혜택 아이콘 줄은 유지한다 (세 곳 모양 통일)
 - [[DEC-0215-tab-bar-icons-custom-drawn-exception]] — 하단 탭 바 아이콘만 직접 그린 아이콘(선택 시 같은 윤곽 강조색 채움, 일부 움직임). DEC-0116 아이콘 통일의 조건부 예외
 - [[DEC-0216-count-badge-contrast-exception]] — 안 읽은 개수 배지는 iOS 시스템 빨강 + 흰 숫자. DEC-0168 글자 대비 4.5의 조건부 예외
+- [[DEC-0217-concept-study-single-segment]] — 개념 화면은 기존 세그먼트 한 줄 `핵심 | 자세히 | 문제`
+- [[DEC-0218-concept-result-ring-climax]] — 개념 결과: 이어진 고리 한 칸씩 + 햅틱, 5/5만 원·체크·폭죽, 단원 숫자 `+1` 뒤 롤링
+- [[DEC-0219-keep-one-line-headlines-visualize-instructions]] — 감정·행동 한 줄 제목은 남기고 사용 안내 문장만 시각화
+- [[DEC-0220-check-on-semantic-fill-uses-on-semantic]] — 초록 원 위 체크는 흰색 대신 `onSemantic` (DEC-0168 적용)
 
 ## 대체된 결정 (역사)
 - [[DEC-0018-four-tab-bottom-navigation]] → null
@@ -60,6 +64,7 @@ related: []
 - [[DEC-0167-five-tabs-with-text-labels]] → DEC-0171
 
 ## 관련 이슈
+- [[ISS-0432-app-concept-tab-redesign]] (resolved, GitHub #764) — 앱 개념 탭 UI/UX 개편
 - [[ISS-0431-app-home-top-bell-notice-banner]] (resolved, GitHub #756) — 홈 알림 아이콘 색과 공지 배너 개편
 - [[ISS-0430-app-bottom-tab-bar-icon-motion]] (resolved, GitHub #755) — 앱 하단 탭 바 아이콘 위 여백과 선택 애니메이션
 - [[ISS-0394-device-size-layout-audit]] (open, GitHub #646) — 기기 크기별 화면·폰트·UX 문제 점검
