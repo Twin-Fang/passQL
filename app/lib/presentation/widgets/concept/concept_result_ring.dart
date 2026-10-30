@@ -6,7 +6,7 @@ import '../../design/design.dart';
 
 /// 개념 결과 고리 (#764): 이어진 고리가 맞힌 만큼 차고, 색은 강조색에서 정답색으로 맞힐수록 옮겨 감.
 /// 다 맞히면 안쪽을 같은 색으로 채운 원 + 선으로 그려지는 체크, 아니면 가운데 점수 글자.
-/// 값은 연출 쪽이 프레임마다 넘긴다 (여기서는 그리기만)
+/// 값은 연출 쪽이 프레임마다 넘긴다 (여기서는 그리기만). 크기는 머리(작게)·접힘(아주 작게)에 따라 다름
 class ConceptResultRing extends StatelessWidget {
   const ConceptResultRing({
     super.key,
@@ -15,11 +15,12 @@ class ConceptResultRing extends StatelessWidget {
     required this.checkProgress,
     required this.centerLabel,
     this.centerScale = 1,
+    this.size = PassqlSize.scoreRingCompact,
+    this.stroke = PassqlSize.scoreRingCompactStroke,
+    this.centerStyle,
+    this.isAccentOnly = false,
+    this.checkColor,
   });
-
-  // 고리 지름·두께 (점수 고리 토큰과 같은 크기)
-  static const double _size = PassqlSize.scoreRing;
-  static const double _stroke = PassqlSize.scoreRingStroke;
 
   /// 0~1: 고리가 찬 정도 (맞힌 수 / 문제 수, 차오르는 중간값 포함)
   final double filledFraction;
@@ -30,45 +31,61 @@ class ConceptResultRing extends StatelessWidget {
   /// 0~1: 체크가 그려진 정도
   final double checkProgress;
 
-  /// 원이 없을 때 가운데 글자 (예: 4/5)
+  /// 원이 없을 때 가운데 글자 (예: 4/5). 비우면 글자 없음 (접힌 고리)
   final String centerLabel;
 
   /// 마지막 칸이 찬 순간 숫자가 톡 커지는 배율
   final double centerScale;
 
+  final double size;
+  final double stroke;
+
+  /// 가운데 글자 스타일 (null 이면 subheadlineSemibold)
+  final TextStyle? centerStyle;
+
+  /// true 면 색이 정답색으로 옮겨 가지 않고 강조색에 머묾 (점수판: 파랑 계열 유지)
+  final bool isAccentOnly;
+
+  /// 체크 색 (null 이면 onSemantic)
+  final Color? checkColor;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final ringColor = Color.lerp(
-      colors.accent,
-      colors.correct,
-      filledFraction.clamp(0, 1),
-    )!;
+    final ringColor = isAccentOnly
+        ? colors.accent
+        : Color.lerp(
+            colors.accent,
+            colors.correct,
+            filledFraction.clamp(0, 1),
+          )!;
     return SizedBox.square(
-      dimension: _size,
+      dimension: size,
       child: Stack(
         alignment: Alignment.center,
         children: [
           CustomPaint(
-            size: const Size.square(_size),
+            size: Size.square(size),
             painter: _RingPainter(
               trackColor: colors.fill,
               ringColor: ringColor,
               filledFraction: filledFraction,
               diskProgress: diskProgress,
               checkProgress: checkProgress,
-              checkColor: colors.onSemantic,
-              stroke: _stroke,
+              checkColor: checkColor ?? colors.onSemantic,
+              stroke: stroke,
             ),
           ),
-          if (diskProgress == 0)
+          if (diskProgress == 0 && centerLabel.isNotEmpty)
             Transform.scale(
               scale: centerScale,
               child: Text(
                 centerLabel,
-                style: PassqlTypography.scoreNumber.copyWith(
-                  color: colors.label,
-                ),
+                style: (centerStyle ?? PassqlTypography.subheadlineSemibold)
+                    .copyWith(
+                      color: colors.label,
+                      fontFeatures: PassqlTypography.tabular,
+                    ),
               ),
             ),
         ],
@@ -102,8 +119,8 @@ class _RingPainter extends CustomPainter {
   static const Offset _checkEnd = Offset(0.72, 0.37);
   // 체크 선 두께 (지름 대비)
   static const double _checkStrokeRatio = 0.075;
-  // 원이 채워질 때 처음 크기 (톡 커지며 나타남)
-  static const double _diskStartScale = 0.6;
+  // 원이 채워질 때 처음 크기 (작게서 튕기듯 커지며 나타남)
+  static const double _diskStartScale = 0.35;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -168,5 +185,6 @@ class _RingPainter extends CustomPainter {
       oldDelegate.checkProgress != checkProgress ||
       oldDelegate.ringColor != ringColor ||
       oldDelegate.trackColor != trackColor ||
-      oldDelegate.checkColor != checkColor;
+      oldDelegate.checkColor != checkColor ||
+      oldDelegate.stroke != stroke;
 }

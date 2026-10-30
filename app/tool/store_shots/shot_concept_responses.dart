@@ -1,6 +1,8 @@
 // 스토어 캡처 가짜 API의 개념 학습 응답 (#577): 단원 9개 + 대표 개념 3개 (실제 콘텐츠)
 // 원본: shot_concept_data.dart (content/concepts/export_shot_concepts.py 로 생성)
 // 운영 코드(lib/)에는 영향이 없다.
+import 'dart:io';
+
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -71,6 +73,8 @@ Object? conceptShotResponse(RequestOptions options) {
   return null;
 }
 
+final _unitCompleteFlag = File('/tmp/passql_shot_unit_complete.txt');
+
 /// 단원 개념 목록: 확인 문제를 다 푼 개념은 끝냄(solved)으로 바꿔 돌려줌 (원본은 그대로)
 Object? _topicConceptsWithProgress(String topicUuid) {
   final topic =
@@ -93,7 +97,10 @@ Object? _topicConceptsWithProgress(String topicUuid) {
     ...topic,
     'concepts': [
       for (final concept in topic['concepts'] as List<dynamic>)
-        if (isAllAnswered((concept as Map<String, dynamic>)['conceptUuid']))
+        if (isAllAnswered((concept as Map<String, dynamic>)['conceptUuid']) ||
+            // 단원 끝 한 장 캡처용: 이 파일이 있으면 문제 없는 개념은 이미 끝낸 것으로
+            (_unitCompleteFlag.existsSync() &&
+                questionsByConcept[concept['conceptUuid']] == null))
           {...concept, 'status': 'SOLVED'}
         else
           concept,

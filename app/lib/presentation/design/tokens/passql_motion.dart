@@ -49,8 +49,8 @@ abstract final class PassqlMotion {
   static const conceptResultStartDelay = Duration(milliseconds: 200);
   static const conceptResultStep = Duration(milliseconds: 350);
   static const conceptResultFill = Duration(milliseconds: 250);
-  static const conceptResultDiskFill = Duration(milliseconds: 200);
-  static const conceptResultCheckDraw = Duration(milliseconds: 400);
+  static const conceptResultDiskFill = Duration(milliseconds: 380); // 원이 튕기며 커지는 시간
+  static const conceptResultCheckDraw = Duration(milliseconds: 550); // 체크 선이 그려지는 시간
   static const conceptResultUnitStep = Duration(milliseconds: 400);
   static const confetti = Duration(milliseconds: 1500);
 

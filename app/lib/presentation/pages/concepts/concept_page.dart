@@ -118,13 +118,25 @@ class _ConceptStudyScaffold extends ConsumerWidget {
       ConceptRelatedFlow.maximumQuestionCount,
     );
     final nextActionLabel = detail.nextConceptUuid == null ? '단원으로' : '다음 개념';
-    final topicOrder = ref
-        .watch(conceptTopicsProvider)
-        .valueOrNull
-        ?.topics
-        .where((topic) => topic.topicUuid == detail.topicUuid)
+    final topics = ref.watch(conceptTopicsProvider).valueOrNull?.topics;
+    final topicOrder = topics
+        ?.where((topic) => topic.topicUuid == detail.topicUuid)
         .firstOrNull
         ?.orderIndex;
+    // 단원을 다 끝낸 한 장에서 바로 이어 갈 다음 단원 (잠긴 단원은 건너뜀)
+    final nextTopic = topicOrder == null
+        ? null
+        : topics
+              ?.where(
+                (topic) => topic.orderIndex > topicOrder && !topic.isLocked,
+              )
+              .fold<ConceptTopicSummary?>(
+                null,
+                (best, topic) =>
+                    best == null || topic.orderIndex < best.orderIndex
+                    ? topic
+                    : best,
+              );
     final unitProgress = topicConcepts == null || topicSolvedCount == null
         ? null
         : ConceptUnitProgress(
@@ -135,6 +147,21 @@ class _ConceptStudyScaffold extends ConsumerWidget {
                 study.topicSolvedCountAtStart ?? topicSolvedCount,
             solvedCount: topicSolvedCount,
             total: topicConcepts.concepts.length,
+            nextUnitLabel: nextTopic == null
+                ? null
+                : '${nextTopic.orderIndex + 1}단원',
+            // 전체: 다른 단원은 목록 값, 이 단원은 방금 센 값 (목록 새로고침 시차를 피함)
+            overallSolvedCount: topics == null
+                ? 0
+                : topics.fold<int>(
+                    topicSolvedCount,
+                    (sum, topic) => topic.topicUuid == detail.topicUuid
+                        ? sum
+                        : sum + topic.completedCount,
+                  ),
+            overallTotal: topics == null
+                ? 0
+                : topics.fold<int>(0, (sum, topic) => sum + topic.conceptCount),
           );
 
     /// 세그먼트 선택 > 모드·깊이로 나눠 저장
@@ -201,6 +228,7 @@ class _ConceptStudyScaffold extends ConsumerWidget {
                 ),
                 ConceptSolveView(
                   conceptUuid: conceptUuid,
+                  conceptTitle: detail.title,
                   finishLabel: nextActionLabel,
                   onFinished: goToNextConcept,
                   unitProgress: unitProgress,
@@ -213,6 +241,12 @@ class _ConceptStudyScaffold extends ConsumerWidget {
                   onRelatedQuestionsPressed: () => context.push(
                     AppRoutes.conceptRelated(conceptUuid, detail.title),
                   ),
+                  // 다음 단원 상세로 바꿔치기 (뒤로 가면 지금 단원 목록)
+                  onNextUnitPressed: nextTopic == null
+                      ? null
+                      : () => context.pushReplacement(
+                          AppRoutes.conceptTopic(nextTopic.topicUuid),
+                        ),
                 ),
               ],
             ),

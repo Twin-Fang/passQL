@@ -19,6 +19,11 @@ abstract final class PassqlSize {
   static const double communityAvatar = 36; // 의견 타일 닉네임 첫 글자 원 (24 > 32 > 36, #741)
   static const double scoreRing = 168; // 결과 점수 고리 지름
   static const double scoreRingStroke = 12;
+  static const double scoreRingCompact = 68; // 개념 결과 머리의 작은 고리 (제목 옆, #764)
+  static const double scoreRingCompactStroke = 7;
+  static const double scoreRingMini = 22; // 머리가 접혔을 때 제목 옆 고리
+  static const double scoreRingMiniStroke = 4;
+  static const double unitSegmentHeight = 6; // 단원 진행 칸 막대 (개념 하나 = 칸 하나)
   static const double loginLogoHeight = 44;
   static const double footerLogoHeight = 20;
   static const double navBarLogoHeight = 24; // 홈 상단 바 워드마크 (바 높이 44 안, 종 아이콘과 시각 무게 맞춤)

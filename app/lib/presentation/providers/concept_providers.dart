@@ -55,6 +55,7 @@ class ConceptStudyState {
     this.pendingAnchor,
     this.isInitialized = false,
     this.topicSolvedCountAtStart,
+    this.rereadAnchors = const {},
   });
 
   final ConceptStudyMode mode;
@@ -70,6 +71,8 @@ class ConceptStudyState {
   final bool isInitialized;
   // 이 개념 화면을 처음 열었을 때 단원의 끝낸 개념 수 (결과의 단원 숫자 +1 연출 비교용)
   final int? topicSolvedCountAtStart;
+  // 결과 화면에서 "다시 읽기"로 다녀온 문단 (돌아오면 그 문제 줄에 읽음 표시)
+  final Set<String> rereadAnchors;
 
   int get correctCount =>
       resultByQuestion.values.where((result) => result.isCorrect).length;
@@ -85,6 +88,7 @@ class ConceptStudyState {
     bool shouldClearPendingAnchor = false,
     bool? isInitialized,
     int? topicSolvedCountAtStart,
+    Set<String>? rereadAnchors,
   }) {
     return ConceptStudyState(
       mode: mode ?? this.mode,
@@ -100,6 +104,7 @@ class ConceptStudyState {
       isInitialized: isInitialized ?? this.isInitialized,
       topicSolvedCountAtStart:
           topicSolvedCountAtStart ?? this.topicSolvedCountAtStart,
+      rereadAnchors: rereadAnchors ?? this.rereadAnchors,
     );
   }
 }
@@ -194,6 +199,7 @@ class ConceptStudyNotifier
       questionIndex: 0,
       selectedKeyByQuestion: const {},
       resultByQuestion: const {},
+      rereadAnchors: const {},
     );
   }
 
@@ -222,6 +228,7 @@ class ConceptStudyNotifier
       mode: ConceptStudyMode.read,
       depth: ConceptReadingDepth.detail,
       pendingAnchor: anchor,
+      rereadAnchors: {...state.rereadAnchors, anchor},
     );
   }
 

@@ -22,9 +22,14 @@ class ConceptSolveView extends ConsumerWidget {
     this.rereadLabelByAnchor = const {},
     this.relatedQuestionCount = 0,
     this.onRelatedQuestionsPressed,
+    this.onNextUnitPressed,
+    required this.conceptTitle,
   });
 
   final String conceptUuid;
+
+  /// 점수판 부제에 쓸 개념 이름
+  final String conceptTitle;
 
   /// 결과 화면 단원 줄 값 (단원 목록을 아직 못 불러왔으면 null > 줄 숨김)
   final ConceptUnitProgress? unitProgress;
@@ -37,6 +42,9 @@ class ConceptSolveView extends ConsumerWidget {
 
   /// 결과 화면 "관련 문제 더 풀기" (기존 문제 풀이 화면으로)
   final VoidCallback? onRelatedQuestionsPressed;
+
+  /// 단원을 다 끝낸 한 장의 "다음 단원 시작하기" (다음 단원이 없으면 null > 단원으로)
+  final VoidCallback? onNextUnitPressed;
 
   /// 결과 화면 다음 버튼 글자 (다음 개념 또는 단원으로)
   final String finishLabel;
@@ -76,6 +84,7 @@ class ConceptSolveView extends ConsumerWidget {
             selectedKeyByQuestion: study.selectedKeyByQuestion,
             unitProgress: unitProgress,
             rereadLabelByAnchor: rereadLabelByAnchor,
+            rereadAnchors: study.rereadAnchors,
             relatedQuestionCount: relatedQuestionCount,
             onRelatedQuestionsPressed: onRelatedQuestionsPressed,
             finishLabel: finishLabel,
@@ -83,6 +92,8 @@ class ConceptSolveView extends ConsumerWidget {
             onRestart: notifier.restartQuiz,
             onRestartWrong: () => notifier.restartWrongOnly(questionUuids),
             onReread: notifier.rereadSection,
+            onNextUnitPressed: onNextUnitPressed,
+            conceptTitle: conceptTitle,
           );
         }
         return _QuestionStep(
@@ -194,6 +205,8 @@ class _QuestionStep extends ConsumerWidget {
           ),
         ),
         PassqlBottomActionBar(
+          // 버튼 위 내용은 바 뒤로 지나가지 않는 흰 면이라 구분선이 필요 없다
+          hasTopHairline: false,
           actions: [
             if (result == null)
               PassqlButton(
@@ -295,7 +308,8 @@ class _AnswerExplanation extends StatelessWidget {
   }
 }
 
-/// 점 진행 줄 (#764): 푼 문제는 맞음 초록·틀림 빨강, 지금 문제는 긴 보라 점, 오른쪽 "n / 총"
+/// 점 진행 줄 (#764): 푼 문제는 맞음 초록·틀림 빨강, 지금 문제는 보라 점, 오른쪽 "n / 총"
+/// 점 크기는 모두 같게 고정한다 (지금 문제 점을 늘리면 다음 문제로 갈 때 점들이 옆으로 밀려 움직임)
 class _QuestionDots extends StatelessWidget {
   const _QuestionDots({
     required this.questions,
@@ -303,9 +317,8 @@ class _QuestionDots extends StatelessWidget {
     required this.currentIndex,
   });
 
-  // 점 지름, 지금 문제 점 길이
+  // 점 지름
   static const double _dotSize = 8;
-  static const double _currentDotWidth = 22;
 
   final List<ConceptCheckQuestionResponse> questions;
   final Map<String, ConceptCheckAnswerResponse> resultByQuestion;
@@ -326,7 +339,7 @@ class _QuestionDots extends StatelessWidget {
             AnimatedContainer(
               duration: PassqlMotion.durationOf(context, PassqlMotion.fast),
               curve: PassqlMotion.curve,
-              width: index == currentIndex ? _currentDotWidth : _dotSize,
+              width: _dotSize,
               height: _dotSize,
               decoration: BoxDecoration(
                 color: _dotColorOf(colors, index),
