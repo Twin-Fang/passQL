@@ -11,11 +11,12 @@ import '../../design/design.dart';
 import '../../flows/concept_related_flow.dart';
 import '../../providers/concept_providers.dart';
 import '../../widgets/concept/concept_read_view.dart';
+import '../../widgets/concept/concept_result_view.dart';
 import '../../widgets/concept/concept_solve_view.dart';
 import '../../widgets/pro/locked_preview_samples.dart';
 import '../../widgets/pro/pro_locked_section.dart';
 
-/// 개념 학습 (#577): 읽기 | 풀기 전환 (둘 다 살려 두어 위치·진행 유지)
+/// 개념 학습 (#577, #764): 핵심 | 자세히 | 문제 전환 (읽기·풀기 둘 다 살려 두어 위치·진행 유지)
 /// 읽기 하단: 문제 풀기 · 다음 개념. 풀기는 자체 하단 버튼, 결과에서 관련 실전 문제로. 잠긴 단원(403)은 블러 잠금, 없는 개념(404)은 안내
 class ConceptPage extends ConsumerWidget {
   const ConceptPage({super.key, required this.conceptUuid});
@@ -74,7 +75,10 @@ class _ConceptLoadError extends StatelessWidget {
   }
 }
 
-/// 상단 바 + 모드 전환 + 본문(읽기·풀기 겹쳐 두고 하나만 보임) + 읽기 하단 버튼
+/// 위 세그먼트 3칸 (#764): 읽기 깊이 2개 + 풀기를 한 줄로 (값 = 모드·깊이 조합)
+enum _ConceptStudyTab { core, detail, quiz }
+
+/// 상단 바 + 세그먼트(핵심·자세히·문제) + 본문(읽기·풀기 겹쳐 두고 하나만 보임) + 읽기 하단 버튼
 class _ConceptStudyScaffold extends ConsumerWidget {
   const _ConceptStudyScaffold({required this.detail});
 
@@ -85,27 +89,68 @@ class _ConceptStudyScaffold extends ConsumerWidget {
     final conceptUuid = detail.conceptUuid;
     final study = ref.watch(conceptStudyProvider(conceptUuid));
     final notifier = ref.read(conceptStudyProvider(conceptUuid).notifier);
-    final questionCount = ref
-        .watch(conceptCheckQuestionsProvider(conceptUuid))
-        .valueOrNull
-        ?.length;
+    final topicConcepts = ref
+        .watch(conceptListProvider(detail.topicUuid))
+        .valueOrNull;
+    final topicSolvedCount = topicConcepts?.concepts
+        .where((concept) => concept.status == ConceptStatus.solved)
+        .length;
 
-    // 서버에 남은 마지막 모드·깊이로 처음 한 번 맞춤
-    if (!study.isInitialized) {
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => notifier.initializeFrom(detail),
-      );
+    // 서버에 남은 마지막 모드·깊이로 처음 한 번 맞춤, 결과의 단원 +1 연출용으로 처음 단원 완료 수 기억
+    if (!study.isInitialized ||
+        (topicSolvedCount != null && study.topicSolvedCountAtStart == null)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifier.initializeFrom(detail);
+        if (topicSolvedCount != null) {
+          notifier.rememberTopicSolvedCount(topicSolvedCount);
+        }
+      });
     }
 
     final isReading = study.mode == ConceptStudyMode.read;
+    final selectedTab = !isReading
+        ? _ConceptStudyTab.quiz
+        : study.depth == ConceptReadingDepth.detail
+        ? _ConceptStudyTab.detail
+        : _ConceptStudyTab.core;
     final relatedQuestionCount = detail.relatedQuestionUuids.length.clamp(
       0,
       ConceptRelatedFlow.maximumQuestionCount,
     );
     final nextActionLabel = detail.nextConceptUuid == null ? '단원으로' : '다음 개념';
-    final solveLabel = questionCount == null
-        ? '풀기'
-        : '풀기 ${study.resultByQuestion.length}/$questionCount';
+    final topicOrder = ref
+        .watch(conceptTopicsProvider)
+        .valueOrNull
+        ?.topics
+        .where((topic) => topic.topicUuid == detail.topicUuid)
+        .firstOrNull
+        ?.orderIndex;
+    final unitProgress = topicConcepts == null || topicSolvedCount == null
+        ? null
+        : ConceptUnitProgress(
+            label: topicOrder == null
+                ? topicConcepts.displayName
+                : '${topicOrder + 1}단원 · ${topicConcepts.displayName}',
+            solvedCountBefore:
+                study.topicSolvedCountAtStart ?? topicSolvedCount,
+            solvedCount: topicSolvedCount,
+            total: topicConcepts.concepts.length,
+          );
+
+    /// 세그먼트 선택 > 모드·깊이로 나눠 저장
+    void selectTab(_ConceptStudyTab tab) {
+      switch (tab) {
+        case _ConceptStudyTab.quiz:
+          notifier.selectMode(ConceptStudyMode.solve);
+        case _ConceptStudyTab.core || _ConceptStudyTab.detail:
+          notifier.selectMode(ConceptStudyMode.read);
+          notifier.selectDepth(
+            tab == _ConceptStudyTab.core
+                ? ConceptReadingDepth.core
+                : ConceptReadingDepth.detail,
+          );
+      }
+    }
 
     /// 다음 개념으로 (같은 단원 안), 없으면 단원 목록으로
     void goToNextConcept() {
@@ -117,24 +162,30 @@ class _ConceptStudyScaffold extends ConsumerWidget {
       context.pushReplacement(AppRoutes.conceptStudy(nextConceptUuid));
     }
 
+    final colors = context.passqlColors;
     return Scaffold(
       appBar: PassqlNavBar(title: detail.title, leading: PassqlNavLeading.back),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              PassqlSpacing.lg,
-              PassqlSpacing.xs,
-              PassqlSpacing.lg,
-              PassqlSpacing.xs,
-            ),
-            child: PassqlSegmentedControl<ConceptStudyMode>(
-              segments: [
-                const PassqlSegment(value: ConceptStudyMode.read, label: '읽기'),
-                PassqlSegment(value: ConceptStudyMode.solve, label: solveLabel),
-              ],
-              selectedValue: study.mode,
-              onSelected: notifier.selectMode,
+          // 세그먼트도 본문과 같은 흰 면 위 (다른 탭 구간과 같은 톤)
+          ColoredBox(
+            color: colors.card,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                PassqlSpacing.md,
+                PassqlSpacing.xs,
+                PassqlSpacing.md,
+                PassqlSpacing.xs,
+              ),
+              child: PassqlSegmentedControl<_ConceptStudyTab>(
+                segments: const [
+                  PassqlSegment(value: _ConceptStudyTab.core, label: '핵심'),
+                  PassqlSegment(value: _ConceptStudyTab.detail, label: '자세히'),
+                  PassqlSegment(value: _ConceptStudyTab.quiz, label: '문제'),
+                ],
+                selectedValue: selectedTab,
+                onSelected: selectTab,
+              ),
             ),
           ),
           Expanded(
@@ -145,7 +196,6 @@ class _ConceptStudyScaffold extends ConsumerWidget {
                   detail: detail,
                   depth: study.depth,
                   pendingAnchor: study.pendingAnchor,
-                  onDepthSelected: notifier.selectDepth,
                   onAnchorScrolled: notifier.consumePendingAnchor,
                   onReachedDetailEnd: notifier.markRead,
                 ),
@@ -153,6 +203,12 @@ class _ConceptStudyScaffold extends ConsumerWidget {
                   conceptUuid: conceptUuid,
                   finishLabel: nextActionLabel,
                   onFinished: goToNextConcept,
+                  unitProgress: unitProgress,
+                  // 풀이 시트의 다시 읽기 버튼에 "4. 문단 제목"을 보여 주려고 (자세히 칸 번호와 같게)
+                  rereadLabelByAnchor: {
+                    for (final (i, section) in detail.detailSections.indexed)
+                      section.anchor: '${i + 1}. ${section.title}',
+                  },
                   relatedQuestionCount: relatedQuestionCount,
                   onRelatedQuestionsPressed: () => context.push(
                     AppRoutes.conceptRelated(conceptUuid, detail.title),
@@ -163,6 +219,7 @@ class _ConceptStudyScaffold extends ConsumerWidget {
           ),
         ],
       ),
+      // 순서는 지금 앱 그대로: 왼쪽 문제 풀기(보조) · 오른쪽 다음 개념(주)
       bottomNavigationBar: isReading
           ? PassqlBottomActionBar(
               actions: [

@@ -10,6 +10,9 @@ import 'shot_concept_data.dart';
 final Map<String, dynamic> _shotConceptData =
     jsonDecode(shotConceptDataJson) as Map<String, dynamic>;
 
+// 앱을 켠 동안 채점한 문제 (개념의 확인 문제를 다 풀면 단원 목록에서 그 개념을 끝냄으로, #764 결과 단원 +1 연출 캡처용)
+final Set<String> _answeredQuestionUuids = {};
+
 final RegExp _answerPath = RegExp(
   r'/concepts/([^/]+)/check-questions/([^/]+)/answer$',
 );
@@ -58,8 +61,7 @@ Object? conceptShotResponse(RequestOptions options) {
   }
   final topicMatch = _topicConceptsPath.firstMatch(path);
   if (topicMatch != null) {
-    return (_shotConceptData['conceptsByTopic']
-        as Map<String, dynamic>)[topicMatch.group(1)];
+    return _topicConceptsWithProgress(topicMatch.group(1)!);
   }
   final detailMatch = _conceptDetailPath.firstMatch(path);
   if (detailMatch != null) {
@@ -69,8 +71,39 @@ Object? conceptShotResponse(RequestOptions options) {
   return null;
 }
 
+/// 단원 개념 목록: 확인 문제를 다 푼 개념은 끝냄(solved)으로 바꿔 돌려줌 (원본은 그대로)
+Object? _topicConceptsWithProgress(String topicUuid) {
+  final topic =
+      (_shotConceptData['conceptsByTopic'] as Map<String, dynamic>)[topicUuid];
+  if (topic is! Map<String, dynamic>) return topic;
+  final questionsByConcept =
+      _shotConceptData['questionsByConcept'] as Map<String, dynamic>;
+  bool isAllAnswered(String conceptUuid) {
+    final questions = questionsByConcept[conceptUuid] as List<dynamic>?;
+    return questions != null &&
+        questions.isNotEmpty &&
+        questions.every(
+          (question) => _answeredQuestionUuids.contains(
+            (question as Map<String, dynamic>)['questionUuid'],
+          ),
+        );
+  }
+
+  return {
+    ...topic,
+    'concepts': [
+      for (final concept in topic['concepts'] as List<dynamic>)
+        if (isAllAnswered((concept as Map<String, dynamic>)['conceptUuid']))
+          {...concept, 'status': 'SOLVED'}
+        else
+          concept,
+    ],
+  };
+}
+
 /// 문제 1개 채점: 보낸 보기 키 <-> 정답 키
 Map<String, dynamic> _answerOf(String questionUuid, Object? requestData) {
+  _answeredQuestionUuids.add(questionUuid);
   final answerKey =
       (_shotConceptData['answerKeyByQuestion']
               as Map<String, dynamic>)[questionUuid]

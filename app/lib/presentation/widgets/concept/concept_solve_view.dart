@@ -8,20 +8,29 @@ import '../../providers/concept_providers.dart';
 import '../common/app_toast.dart';
 import '../question/markdown_lite_text.dart';
 import '../question/stem_text.dart';
+import 'concept_result_view.dart';
 
-/// 개념 풀기 화면: 문제 n/5 > 지문·SQL > 보기 > (채점 후) 정답 표시·풀이·다시 읽기 > 하단 확인·다음
-/// 마지막 문제 다음은 결과(점수 고리 + 관련 문제 더 풀기 + 다시 풀기·다음 개념)
+/// 개념 풀기 화면 (#764): 점 진행 줄 > 지문·SQL > 보기 > (채점 후) 정답 표시·풀이·다시 읽기 > 하단 확인·다음
+/// 마지막 문제 다음은 결과 연출(ConceptResultView)
 class ConceptSolveView extends ConsumerWidget {
   const ConceptSolveView({
     super.key,
     required this.conceptUuid,
     required this.finishLabel,
     required this.onFinished,
+    this.unitProgress,
+    this.rereadLabelByAnchor = const {},
     this.relatedQuestionCount = 0,
     this.onRelatedQuestionsPressed,
   });
 
   final String conceptUuid;
+
+  /// 결과 화면 단원 줄 값 (단원 목록을 아직 못 불러왔으면 null > 줄 숨김)
+  final ConceptUnitProgress? unitProgress;
+
+  /// 결과 풀이 시트의 다시 읽기 버튼에 붙일 문단 이름 (앵커 > "4. 제목")
+  final Map<String, String> rereadLabelByAnchor;
 
   /// 결과 화면 "관련 문제 더 풀기" 문제 수 (0이면 버튼 숨김)
   final int relatedQuestionCount;
@@ -54,52 +63,63 @@ class ConceptSolveView extends ConsumerWidget {
           );
         }
         final study = ref.watch(conceptStudyProvider(conceptUuid));
+        final notifier = ref.read(conceptStudyProvider(conceptUuid).notifier);
+        final questionUuids = [
+          for (final question in loadedQuestions) question.questionUuid,
+        ];
         if (study.questionIndex >= loadedQuestions.length) {
-          return _SolveResult(
-            correctCount: study.correctCount,
-            total: loadedQuestions.length,
-            onRestart: ref
-                .read(conceptStudyProvider(conceptUuid).notifier)
-                .restartQuiz,
-            finishLabel: finishLabel,
-            onFinished: onFinished,
+          return ConceptResultView(
+            // 다시 풀고 돌아올 때마다 연출을 새로 시작 (결과 묶음이 바뀌면 다른 화면)
+            key: ValueKey(study.resultByQuestion),
+            questions: loadedQuestions,
+            resultByQuestion: study.resultByQuestion,
+            selectedKeyByQuestion: study.selectedKeyByQuestion,
+            unitProgress: unitProgress,
+            rereadLabelByAnchor: rereadLabelByAnchor,
             relatedQuestionCount: relatedQuestionCount,
             onRelatedQuestionsPressed: onRelatedQuestionsPressed,
+            finishLabel: finishLabel,
+            onFinished: onFinished,
+            onRestart: notifier.restartQuiz,
+            onRestartWrong: () => notifier.restartWrongOnly(questionUuids),
+            onReread: notifier.rereadSection,
           );
         }
         return _QuestionStep(
           conceptUuid: conceptUuid,
-          question: loadedQuestions[study.questionIndex],
-          order: study.questionIndex + 1,
-          total: loadedQuestions.length,
+          questions: loadedQuestions,
+          index: study.questionIndex,
         );
       },
     );
   }
 }
 
-/// 문제 한 개: 위 진행 막대·순번 > 지문 > 보기 > 채점 결과 > 하단 버튼
+/// 문제 한 개: 위 점 진행 줄 > 지문 > 보기 > 채점 결과 > 하단 버튼 (흰 면)
 class _QuestionStep extends ConsumerWidget {
   const _QuestionStep({
     required this.conceptUuid,
-    required this.question,
-    required this.order,
-    required this.total,
+    required this.questions,
+    required this.index,
   });
 
   final String conceptUuid;
-  final ConceptCheckQuestionResponse question;
-  final int order;
-  final int total;
+  final List<ConceptCheckQuestionResponse> questions;
+  final int index;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.passqlColors;
     final study = ref.watch(conceptStudyProvider(conceptUuid));
     final notifier = ref.read(conceptStudyProvider(conceptUuid).notifier);
+    final question = questions[index];
+    final questionUuids = [for (final item in questions) item.questionUuid];
     final selectedKey = study.selectedKeyByQuestion[question.questionUuid];
     final result = study.resultByQuestion[question.questionUuid];
-    final isLastQuestion = order == total;
+    // 뒤에 아직 안 푼 문제가 없으면 마지막 (틀린 문제만 다시 풀 때는 맞힌 문제를 건너뜀)
+    final isLastQuestion = questionUuids
+        .skip(index + 1)
+        .every(study.resultByQuestion.containsKey);
 
     Future<void> submit() async {
       try {
@@ -116,58 +136,61 @@ class _QuestionStep extends ConsumerWidget {
     return Column(
       children: [
         Expanded(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(
-              PassqlSpacing.lg,
-              PassqlSpacing.sm,
-              PassqlSpacing.lg,
-              PassqlSpacing.xxl,
-            ),
-            children: [
-              PassqlProgressBar(
-                value: order / total,
-                semanticValue: '문제 $order / $total',
+          child: ColoredBox(
+            color: colors.card,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                PassqlSpacing.md,
+                PassqlSpacing.md,
+                PassqlSpacing.md,
+                PassqlSpacing.xxl,
               ),
-              const SizedBox(height: PassqlSpacing.sm),
-              Text(
-                '문제 $order / $total',
-                style: PassqlTypography.footnoteSemibold.copyWith(
-                  color: colors.secondaryLabel,
+              children: [
+                _QuestionDots(
+                  questions: questions,
+                  resultByQuestion: study.resultByQuestion,
+                  currentIndex: index,
                 ),
-              ),
-              const SizedBox(height: PassqlSpacing.sm),
-              StemText(question.stem),
-              if (question.stemSql != null) ...[
-                const SizedBox(height: PassqlSpacing.sm),
-                PassqlCodeBlock(code: question.stemSql!),
-              ],
-              const SizedBox(height: PassqlSpacing.lg),
-              for (final choice in question.choices) ...[
-                PassqlChoiceCard(
-                  keyLabel: choice.choiceKey,
-                  state: _choiceStateOf(choice.choiceKey, selectedKey, result),
-                  onTap: result == null
-                      ? () => notifier.selectChoice(
-                          question.questionUuid,
-                          choice.choiceKey,
-                        )
-                      : null,
-                  child: Text(
-                    choice.body,
-                    style: PassqlTypography.body.copyWith(color: colors.label),
+                const SizedBox(height: PassqlSpacing.md),
+                StemText(question.stem),
+                if (question.stemSql != null) ...[
+                  const SizedBox(height: PassqlSpacing.sm),
+                  PassqlCodeBlock(code: question.stemSql!),
+                ],
+                const SizedBox(height: PassqlSpacing.lg),
+                for (final choice in question.choices) ...[
+                  PassqlChoiceCard(
+                    keyLabel: choice.choiceKey,
+                    state: _choiceStateOf(
+                      choice.choiceKey,
+                      selectedKey,
+                      result,
+                    ),
+                    onTap: result == null
+                        ? () => notifier.selectChoice(
+                            question.questionUuid,
+                            choice.choiceKey,
+                          )
+                        : null,
+                    child: Text(
+                      choice.body,
+                      style: PassqlTypography.body.copyWith(
+                        color: colors.label,
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: PassqlSpacing.sm),
+                  const SizedBox(height: PassqlSpacing.sm),
+                ],
+                if (result != null) ...[
+                  const SizedBox(height: PassqlSpacing.sm),
+                  _AnswerExplanation(
+                    result: result,
+                    selectedKey: selectedKey,
+                    onReread: () => notifier.rereadSection(result.rereadAnchor),
+                  ),
+                ],
               ],
-              if (result != null) ...[
-                const SizedBox(height: PassqlSpacing.sm),
-                _AnswerExplanation(
-                  result: result,
-                  selectedKey: selectedKey,
-                  onReread: () => notifier.rereadSection(result.rereadAnchor),
-                ),
-              ],
-            ],
+            ),
           ),
         ),
         PassqlBottomActionBar(
@@ -183,7 +206,7 @@ class _QuestionStep extends ConsumerWidget {
             else
               PassqlButton(
                 label: isLastQuestion ? '결과 보기' : '다음 문제',
-                onPressed: notifier.goToNextQuestion,
+                onPressed: () => notifier.goToNextQuestion(questionUuids),
               ),
           ],
         ),
@@ -272,84 +295,62 @@ class _AnswerExplanation extends StatelessWidget {
   }
 }
 
-/// 결과: 점수 고리 > 한 줄 > 관련 문제 더 풀기(있을 때) > 다시 풀기·다음
-class _SolveResult extends StatelessWidget {
-  const _SolveResult({
-    required this.correctCount,
-    required this.total,
-    required this.onRestart,
-    required this.finishLabel,
-    required this.onFinished,
-    required this.relatedQuestionCount,
-    required this.onRelatedQuestionsPressed,
+/// 점 진행 줄 (#764): 푼 문제는 맞음 초록·틀림 빨강, 지금 문제는 긴 보라 점, 오른쪽 "n / 총"
+class _QuestionDots extends StatelessWidget {
+  const _QuestionDots({
+    required this.questions,
+    required this.resultByQuestion,
+    required this.currentIndex,
   });
 
-  final int correctCount;
-  final int total;
-  final VoidCallback onRestart;
-  final String finishLabel;
-  final VoidCallback onFinished;
-  final int relatedQuestionCount;
-  final VoidCallback? onRelatedQuestionsPressed;
+  // 점 지름, 지금 문제 점 길이
+  static const double _dotSize = 8;
+  static const double _currentDotWidth = 22;
+
+  final List<ConceptCheckQuestionResponse> questions;
+  final Map<String, ConceptCheckAnswerResponse> resultByQuestion;
+  final int currentIndex;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final isPerfect = correctCount == total;
-    final hasRelatedQuestions =
-        relatedQuestionCount > 0 && onRelatedQuestionsPressed != null;
-    return Column(
-      children: [
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(PassqlSpacing.lg),
-            children: [
-              const SizedBox(height: PassqlSpacing.xl),
-              Center(
-                child: PassqlScoreHeader(score: correctCount, total: total),
+    final total = questions.length;
+    final order = currentIndex + 1;
+    return Semantics(
+      label: '문제 $order / $total',
+      excludeSemantics: true,
+      child: Row(
+        children: [
+          for (var index = 0; index < total; index++) ...[
+            if (index > 0) const SizedBox(width: PassqlSpacing.xxs),
+            AnimatedContainer(
+              duration: PassqlMotion.durationOf(context, PassqlMotion.fast),
+              curve: PassqlMotion.curve,
+              width: index == currentIndex ? _currentDotWidth : _dotSize,
+              height: _dotSize,
+              decoration: BoxDecoration(
+                color: _dotColorOf(colors, index),
+                borderRadius: BorderRadius.circular(PassqlRadius.capsule),
               ),
-              const SizedBox(height: PassqlSpacing.lg),
-              Text(
-                '$total문제 중 $correctCount문제를 맞혔어요',
-                textAlign: TextAlign.center,
-                style: PassqlTypography.title3.copyWith(color: colors.label),
-              ),
-              const SizedBox(height: PassqlSpacing.xs),
-              Text(
-                isPerfect
-                    ? '이 개념은 확실히 잡았어요. 다음 개념으로 넘어가도 좋아요.'
-                    : '틀린 문제의 풀이에서 "이 부분 다시 읽기"를 눌러 헷갈린 부분만 다시 보고 오면 돼요.',
-                textAlign: TextAlign.center,
-                style: PassqlTypography.subheadline.copyWith(
-                  color: colors.secondaryLabel,
-                ),
-              ),
-              // 강조 버튼은 하단 하나만: 관련 문제는 보조(plain) 버튼
-              if (hasRelatedQuestions) ...[
-                const SizedBox(height: PassqlSpacing.lg),
-                Center(
-                  child: PassqlButton(
-                    label: '실전 문제 $relatedQuestionCount개 더 풀기',
-                    variant: PassqlButtonVariant.plain,
-                    size: PassqlButtonSize.regular,
-                    onPressed: onRelatedQuestionsPressed,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-        PassqlBottomActionBar(
-          actions: [
-            PassqlButton(
-              label: '다시 풀기',
-              variant: PassqlButtonVariant.tinted,
-              onPressed: onRestart,
             ),
-            PassqlButton(label: finishLabel, onPressed: onFinished),
           ],
-        ),
-      ],
+          const Spacer(),
+          Text(
+            '$order / $total',
+            style: PassqlTypography.footnoteSemibold.copyWith(
+              color: colors.secondaryLabel,
+              fontFeatures: PassqlTypography.tabular,
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  Color _dotColorOf(PassqlColors colors, int index) {
+    if (index == currentIndex) return colors.accent;
+    final result = resultByQuestion[questions[index].questionUuid];
+    if (result == null) return colors.fill;
+    return result.isCorrect ? colors.correct : colors.wrong;
   }
 }
