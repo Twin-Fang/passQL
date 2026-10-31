@@ -6,7 +6,7 @@ import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
 
 /// 원에서 바깥으로 번지는 보라 빛 (#764 개념 점수판, #772 당겨서 새로고침).
-/// 앞머리가 가장 밝고 안쪽은 옅게 깔리며, 퍼지는 동안 서서히 옅어진다.
+/// 앞머리가 가장 밝고 안쪽은 옅게 깔리며, 앞머리가 끝에 닿을 때까지 진하게 버티다 마지막에 옅어진다.
 /// 깔린 영역 크기 층으로 두고 [center] 는 그 층 기준 출발점 (null 이면 층 가운데).
 /// [endRadius] 가 null 이면 가장 먼 귀퉁이까지 (화면 끝까지), 값을 주면 그 반지름까지.
 /// 그리기만 하고 누름·스크린리더에는 끼지 않는다
@@ -74,6 +74,8 @@ class _GlowPainter extends CustomPainter {
   static const double _peakAt = 0.12;
   static const double _edgeAlpha = 0.32;
   static const double _innerAlpha = 0.12;
+  // 가장 밝은 앞머리 고리의 위치(그라데이션 비율). 이 고리가 끝 반지름에 닿아야 "끝까지 간" 것으로 보임
+  static const double _frontStop = 0.88;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -89,11 +91,12 @@ class _GlowPainter extends CustomPainter {
         ].map((corner) => (corner - origin).distance).reduce(math.max);
     // 앞머리는 처음 빠르게 나가고 점점 느려짐
     final eased = PassqlMotion.curve.transform(progress);
-    final radius = startRadius + (reach - startRadius) * eased;
-    // 금방 진해졌다가 퍼지는 동안 서서히 옅어짐
+    // 앞머리 고리가 끝 반지름에 닿게 바깥 반지름을 그만큼 더 키움 (안 키우면 끝 못 미쳐 사라짐)
+    final radius = startRadius + (reach / _frontStop - startRadius) * eased;
+    // 금방 진해진 뒤, 앞머리가 화면 끝에 닿을 때까지 진하게 버티다 마지막에 빠르게 옅어짐
     final strength = progress < _peakAt
         ? progress / _peakAt
-        : 1 - (progress - _peakAt) / (1 - _peakAt);
+        : 1 - math.pow((progress - _peakAt) / (1 - _peakAt), 3).toDouble();
     final rect = Rect.fromCircle(center: origin, radius: radius);
     canvas.drawRect(
       Offset.zero & size,
@@ -106,7 +109,7 @@ class _GlowPainter extends CustomPainter {
             edgeColor.withValues(alpha: 0),
           ],
           // 안쪽은 옅게 깔고, 바깥 테두리 쪽이 가장 밝은 앞머리
-          stops: const [0, 0.55, 0.88, 1],
+          stops: const [0, 0.55, _frontStop, 1],
         ).createShader(rect),
     );
   }
