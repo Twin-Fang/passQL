@@ -59,3 +59,9 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-10-29 19:55 | W6 | check W10 수정: cluster-design-system members 108 | cluster-design-system
 - 2026-10-29 21:54 | W6 | #756 이슈·완료 리포트 지식화, 결정 1건(W4: DEC-0168과 충돌 > 사용자 선택 조건부 유지), DEC-0168 related 링크, design-system·home·notification 클러스터 갱신 | ISS-0431, DEC-0216, DEC-0168, cluster-design-system, cluster-home, cluster-notification
 - 2026-10-29 21:54 | W6 | check W10 수정: members design-system 110, home 66, notification 17 | cluster-design-system, cluster-home, cluster-notification
+- 2026-10-30 13:37 | W6 | #764 이슈·완료 리포트 지식화, 결정 4건(W4: DEC-0168과 충돌 없음, DEC-0220은 그 적용), DEC-0168 related 링크, concept-learning·design-system 클러스터 갱신 | ISS-0432, DEC-0217, DEC-0218, DEC-0219, DEC-0220, DEC-0168, cluster-concept-learning, cluster-design-system
+- 2026-10-30 13:37 | W6 | check W10 수정: members concept-learning 6, design-system 115 | cluster-concept-learning, cluster-design-system
+- 2026-10-31 00:36 | W6 | #764 결과 화면 개편 반영: DEC-0218·0220 갱신, DEC-0221·0222 신규, ISS-0432 이슈·완료 리포트 갱신, concept-learning·design-system 클러스터 | ISS-0432, DEC-0218, DEC-0220, DEC-0221, DEC-0222, cluster-concept-learning, cluster-design-system
+- 2026-10-31 00:36 | W6 | check W10 수정: members concept-learning 8, design-system 117 | cluster-concept-learning, cluster-design-system
+- 2026-10-31 20:52 | W6 | #764 점수판 효과 확정 반영: DEC-0222 갱신, ISS-0432 이슈·완료 리포트 갱신 | DEC-0222, ISS-0432
+- 2026-10-31 21:11 | W6 | #764 폭죽 제거 반영: DEC-0218·DEC-0222·ISS-0432 이슈·완료 리포트 갱신 | DEC-0218, DEC-0222, ISS-0432

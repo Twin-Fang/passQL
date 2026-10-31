@@ -1,6 +1,8 @@
 // 스토어 캡처 가짜 API의 개념 학습 응답 (#577): 단원 9개 + 대표 개념 3개 (실제 콘텐츠)
 // 원본: shot_concept_data.dart (content/concepts/export_shot_concepts.py 로 생성)
 // 운영 코드(lib/)에는 영향이 없다.
+import 'dart:io';
+
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -9,6 +11,9 @@ import 'shot_concept_data.dart';
 
 final Map<String, dynamic> _shotConceptData =
     jsonDecode(shotConceptDataJson) as Map<String, dynamic>;
+
+// 앱을 켠 동안 채점한 문제 (개념의 확인 문제를 다 풀면 단원 목록에서 그 개념을 끝냄으로, #764 결과 단원 +1 연출 캡처용)
+final Set<String> _answeredQuestionUuids = {};
 
 final RegExp _answerPath = RegExp(
   r'/concepts/([^/]+)/check-questions/([^/]+)/answer$',
@@ -58,8 +63,7 @@ Object? conceptShotResponse(RequestOptions options) {
   }
   final topicMatch = _topicConceptsPath.firstMatch(path);
   if (topicMatch != null) {
-    return (_shotConceptData['conceptsByTopic']
-        as Map<String, dynamic>)[topicMatch.group(1)];
+    return _topicConceptsWithProgress(topicMatch.group(1)!);
   }
   final detailMatch = _conceptDetailPath.firstMatch(path);
   if (detailMatch != null) {
@@ -69,8 +73,44 @@ Object? conceptShotResponse(RequestOptions options) {
   return null;
 }
 
+final _unitCompleteFlag = File('/tmp/passql_shot_unit_complete.txt');
+
+/// 단원 개념 목록: 확인 문제를 다 푼 개념은 끝냄(solved)으로 바꿔 돌려줌 (원본은 그대로)
+Object? _topicConceptsWithProgress(String topicUuid) {
+  final topic =
+      (_shotConceptData['conceptsByTopic'] as Map<String, dynamic>)[topicUuid];
+  if (topic is! Map<String, dynamic>) return topic;
+  final questionsByConcept =
+      _shotConceptData['questionsByConcept'] as Map<String, dynamic>;
+  bool isAllAnswered(String conceptUuid) {
+    final questions = questionsByConcept[conceptUuid] as List<dynamic>?;
+    return questions != null &&
+        questions.isNotEmpty &&
+        questions.every(
+          (question) => _answeredQuestionUuids.contains(
+            (question as Map<String, dynamic>)['questionUuid'],
+          ),
+        );
+  }
+
+  return {
+    ...topic,
+    'concepts': [
+      for (final concept in topic['concepts'] as List<dynamic>)
+        if (isAllAnswered((concept as Map<String, dynamic>)['conceptUuid']) ||
+            // 단원 끝 한 장 캡처용: 이 파일이 있으면 문제 없는 개념은 이미 끝낸 것으로
+            (_unitCompleteFlag.existsSync() &&
+                questionsByConcept[concept['conceptUuid']] == null))
+          {...concept, 'status': 'SOLVED'}
+        else
+          concept,
+    ],
+  };
+}
+
 /// 문제 1개 채점: 보낸 보기 키 <-> 정답 키
 Map<String, dynamic> _answerOf(String questionUuid, Object? requestData) {
+  _answeredQuestionUuids.add(questionUuid);
   final answerKey =
       (_shotConceptData['answerKeyByQuestion']
               as Map<String, dynamic>)[questionUuid]

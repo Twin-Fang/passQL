@@ -54,6 +54,8 @@ class ConceptStudyState {
     this.isSubmitting = false,
     this.pendingAnchor,
     this.isInitialized = false,
+    this.topicSolvedCountAtStart,
+    this.rereadAnchors = const {},
   });
 
   final ConceptStudyMode mode;
@@ -67,6 +69,10 @@ class ConceptStudyState {
   final String? pendingAnchor;
   // 서버 진행(마지막 모드·깊이)으로 처음 한 번 맞췄는지
   final bool isInitialized;
+  // 이 개념 화면을 처음 열었을 때 단원의 끝낸 개념 수 (결과의 단원 숫자 +1 연출 비교용)
+  final int? topicSolvedCountAtStart;
+  // 결과 화면에서 "다시 읽기"로 다녀온 문단 (돌아오면 그 문제 줄에 읽음 표시)
+  final Set<String> rereadAnchors;
 
   int get correctCount =>
       resultByQuestion.values.where((result) => result.isCorrect).length;
@@ -81,6 +87,8 @@ class ConceptStudyState {
     String? pendingAnchor,
     bool shouldClearPendingAnchor = false,
     bool? isInitialized,
+    int? topicSolvedCountAtStart,
+    Set<String>? rereadAnchors,
   }) {
     return ConceptStudyState(
       mode: mode ?? this.mode,
@@ -94,6 +102,9 @@ class ConceptStudyState {
           ? null
           : (pendingAnchor ?? this.pendingAnchor),
       isInitialized: isInitialized ?? this.isInitialized,
+      topicSolvedCountAtStart:
+          topicSolvedCountAtStart ?? this.topicSolvedCountAtStart,
+      rereadAnchors: rereadAnchors ?? this.rereadAnchors,
     );
   }
 }
@@ -166,8 +177,20 @@ class ConceptStudyNotifier
     }
   }
 
-  void goToNextQuestion() {
-    state = state.copyWith(questionIndex: state.questionIndex + 1);
+  /// 처음 단원 완료 수를 한 번만 기억 (뒤에 새로고침된 값과 비교해 이번에 끝냈는지 판단)
+  void rememberTopicSolvedCount(int solvedCount) {
+    if (state.topicSolvedCountAtStart != null) return;
+    state = state.copyWith(topicSolvedCountAtStart: solvedCount);
+  }
+
+  /// 다음 문제: 지금 뒤에서 아직 채점 안 한 문제로 (틀린 문제만 다시 풀 때 맞힌 문제는 건너뜀), 없으면 결과
+  void goToNextQuestion(List<String> questionUuids) {
+    var nextIndex = state.questionIndex + 1;
+    while (nextIndex < questionUuids.length &&
+        state.resultByQuestion.containsKey(questionUuids[nextIndex])) {
+      nextIndex++;
+    }
+    state = state.copyWith(questionIndex: nextIndex);
   }
 
   /// 처음부터 다시 풀기 (고른 보기·결과 비움)
@@ -176,6 +199,26 @@ class ConceptStudyNotifier
       questionIndex: 0,
       selectedKeyByQuestion: const {},
       resultByQuestion: const {},
+      rereadAnchors: const {},
+    );
+  }
+
+  /// 틀린 문제만 다시 풀기: 맞힌 결과는 두고 틀린 문제의 보기·결과만 비운 뒤 첫 틀린 문제로
+  void restartWrongOnly(List<String> questionUuids) {
+    final wrongUuids = questionUuids
+        .where((uuid) => state.resultByQuestion[uuid]?.isCorrect == false)
+        .toSet();
+    if (wrongUuids.isEmpty) return;
+    state = state.copyWith(
+      questionIndex: questionUuids.indexWhere(wrongUuids.contains),
+      selectedKeyByQuestion: {
+        for (final entry in state.selectedKeyByQuestion.entries)
+          if (!wrongUuids.contains(entry.key)) entry.key: entry.value,
+      },
+      resultByQuestion: {
+        for (final entry in state.resultByQuestion.entries)
+          if (!wrongUuids.contains(entry.key)) entry.key: entry.value,
+      },
     );
   }
 
@@ -185,6 +228,7 @@ class ConceptStudyNotifier
       mode: ConceptStudyMode.read,
       depth: ConceptReadingDepth.detail,
       pendingAnchor: anchor,
+      rereadAnchors: {...state.rereadAnchors, anchor},
     );
   }
 

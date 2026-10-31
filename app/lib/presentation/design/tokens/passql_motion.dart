@@ -45,6 +45,15 @@ abstract final class PassqlMotion {
   static const passGaugeShinePeriod = Duration(milliseconds: 2400);
   static const passReveal = Duration(milliseconds: 900);
 
+  // 개념 결과 연출(#764): 시작 지연, 문제 한 칸 간격, 고리 한 칸 차오름, 5/5 원 채움·체크 그리기, 단원 숫자 단계, 빛 번짐
+  static const conceptResultStartDelay = Duration(milliseconds: 200);
+  static const conceptResultStep = Duration(milliseconds: 350);
+  static const conceptResultFill = Duration(milliseconds: 250);
+  static const conceptResultDiskFill = Duration(milliseconds: 380); // 원이 튕기며 커지는 시간
+  static const conceptResultCheckDraw = Duration(milliseconds: 550); // 체크 선이 그려지는 시간
+  static const conceptResultUnitStep = Duration(milliseconds: 400);
+  static const conceptGlowSpread = Duration(milliseconds: 1400); // 체크 원에서 빛이 화면 끝까지 번질 때까지
+
   // 누름 축소 비율
   static const pressedScale = 0.97;
 
