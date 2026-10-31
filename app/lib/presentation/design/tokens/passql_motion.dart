@@ -54,6 +54,10 @@ abstract final class PassqlMotion {
   static const conceptResultUnitStep = Duration(milliseconds: 400);
   static const conceptGlowSpread = Duration(milliseconds: 1400); // 체크 원에서 빛이 화면 끝까지 번질 때까지
 
+  // 당겨서 새로고침(#772): 새로고침 중 점에서 빛이 화면 끝까지 한 번 번지는 주기 (반복)
+  static const refreshGlowLoop = Duration(milliseconds: 800);
+  static const refreshWaveLoop = Duration(milliseconds: 1000); // 웨이브 점 물결 한 주기
+
   // 누름 축소 비율
   static const pressedScale = 0.97;
 
