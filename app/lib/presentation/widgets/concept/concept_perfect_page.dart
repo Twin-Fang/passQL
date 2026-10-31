@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../design/design.dart';
-import 'concept_confetti.dart';
 import 'concept_glow.dart';
 import 'concept_result_ring.dart';
 import 'concept_result_view.dart';
 
 /// 다 맞혔을 때만 뜨는 전체 화면 점수판 (#764, 듀오링고 레슨 완료 참고).
 /// 큰 고리가 한 칸씩 차며 숫자가 오르고 > 초록 원·체크 > 제목 > 지표 카드 3장이 하나씩 톡 > 버튼.
-/// 단원까지 끝냈으면 제목·단원 카드·버튼이 단원 끝으로 바뀌고 폭죽.
+/// 체크가 그려지면 원에서 보라 빛이 화면 끝까지 번진다. 단원까지 끝냈으면 제목·단원 카드·버튼이 단원 끝으로 바뀐다.
 /// 화면을 누르면 건너뛰고, 동작 줄이기면 처음부터 끝 화면. 닫기 버튼은 없고 아래 버튼으로만 나감
 class ConceptPerfectPage extends StatefulWidget {
   const ConceptPerfectPage({
@@ -77,10 +76,6 @@ class _ConceptPerfectPageState extends State<ConceptPerfectPage>
     vsync: this,
     duration: _timeline.total,
   )..addListener(_onTick);
-  late final AnimationController _confettiController = AnimationController(
-    vsync: this,
-    duration: PassqlMotion.confetti,
-  );
   late final AnimationController _glowController = AnimationController(
     vsync: this,
     duration: PassqlMotion.conceptGlowSpread,
@@ -122,7 +117,6 @@ class _ConceptPerfectPageState extends State<ConceptPerfectPage>
   @override
   void dispose() {
     _controller.dispose();
-    _confettiController.dispose();
     _glowController.dispose();
     super.dispose();
   }
@@ -149,14 +143,11 @@ class _ConceptPerfectPageState extends State<ConceptPerfectPage>
       }
     }
     // 제목이 뜨는 순간 원에서 빛이 화면 끝까지 번지고 원 위로 빛줄기가 스침.
-    // 단원 끝이면 거기에 폭죽 + 가장 센 진동 (큰 연출은 드문 순간에만)
+    // 단원 끝이면 가장 센 진동을 더함
     if (elapsed >= _timeline.headlineAt && _playedHapticSteps.add(-2)) {
       _measureGlowCenter();
       _glowController.forward(from: 0);
-      if (_isUnitCompleted) {
-        PassqlHaptics.playWrongAnswer();
-        _confettiController.forward(from: 0);
-      }
+      if (_isUnitCompleted) PassqlHaptics.playWrongAnswer();
     }
   }
 
@@ -195,11 +186,7 @@ class _ConceptPerfectPageState extends State<ConceptPerfectPage>
         behavior: HitTestBehavior.translucent,
         onTap: _skipToEnd,
         child: AnimatedBuilder(
-          animation: Listenable.merge([
-            _controller,
-            _confettiController,
-            _glowController,
-          ]),
+          animation: Listenable.merge([_controller, _glowController]),
           builder: (context, _) {
             final elapsed = _timeline.total * _controller.value;
             // 고리는 문제마다 1/총 만큼 차오르고 숫자도 같이 오름
@@ -454,9 +441,6 @@ class _ConceptPerfectPageState extends State<ConceptPerfectPage>
                       ),
                     ],
                   ),
-                ),
-                Positioned.fill(
-                  child: ConceptConfetti(progress: _confettiController.value),
                 ),
               ],
             );

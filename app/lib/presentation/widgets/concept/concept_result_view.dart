@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../../../data/models/concept/concept_models.dart';
 import '../../design/design.dart';
 import '../question/markdown_lite_text.dart';
-import 'concept_confetti.dart';
 import 'concept_perfect_page.dart';
 import 'concept_result_ring.dart';
 
@@ -47,7 +46,7 @@ class ConceptUnitProgress {
 
 /// 개념 풀기 결과 (#764): 머리(한 줄 제목 + 작은 고리) > 다시 볼 문제 목록(줄을 누르면 그 자리에서 풀이) > 단원 칸 막대 > 실전 문제 줄.
 /// 연출: 문제마다 고리 한 칸(진동) > 제목 > 줄 차례로 > 단원 +1·칸 하나 튐 > 버튼. 다 맞히면 고리가 원·체크로 끝.
-/// 단원을 다 끝낸 순간에만 제목이 "N단원을 끝냈어요"로 바뀌며 화면 가득 폭죽. 스크롤하면 머리가 접혀 제목 옆에 작은 고리만 남음.
+/// 단원을 다 끝낸 순간에만 제목이 "N단원을 끝냈어요"로 바뀌고 가장 센 진동. 스크롤하면 머리가 접혀 제목 옆에 작은 고리만 남음.
 /// 화면을 누르면 끝으로 건너뛰고, 동작 줄이기면 처음부터 끝 화면만
 class ConceptResultView extends StatefulWidget {
   const ConceptResultView({
@@ -108,10 +107,6 @@ class _ConceptResultViewState extends State<ConceptResultView>
     vsync: this,
     duration: _timeline.total,
   )..addListener(_onTick);
-  late final AnimationController _confettiController = AnimationController(
-    vsync: this,
-    duration: PassqlMotion.confetti,
-  );
 
   // 이미 울린 진동 단계 (프레임마다 같은 진동을 다시 울리지 않게)
   final Set<int> _playedHapticSteps = {};
@@ -154,7 +149,7 @@ class _ConceptResultViewState extends State<ConceptResultView>
       return;
     }
     if (PassqlMotion.isReduced(context)) {
-      // 동작 줄이기: 단계·폭죽·진동 없이 끝 화면
+      // 동작 줄이기: 단계·진동 없이 끝 화면
       _controller.value = 1;
       return;
     }
@@ -178,11 +173,10 @@ class _ConceptResultViewState extends State<ConceptResultView>
   @override
   void dispose() {
     _controller.dispose();
-    _confettiController.dispose();
     super.dispose();
   }
 
-  /// 시간에 맞춰 진동·폭죽 시작 (한 번씩만)
+  /// 시간에 맞춰 진동 (한 번씩만)
   void _onTick() {
     if (_isSilent) return;
     final elapsed = _timeline.total * _controller.value;
@@ -199,12 +193,11 @@ class _ConceptResultViewState extends State<ConceptResultView>
         _playedHapticSteps.add(-2)) {
       PassqlHaptics.playLight();
     }
-    // 단원 끝: 제목이 바뀌는 순간 가장 센 진동 + 화면 가득 폭죽 (63개마다가 아니라 단원마다 한 번)
+    // 단원 끝: 제목이 바뀌는 순간 가장 센 진동 (63개마다가 아니라 단원마다 한 번)
     if (_timeline.isUnitCompleted &&
         elapsed >= _timeline.unitRollAt &&
         _playedHapticSteps.add(-3)) {
       PassqlHaptics.playWrongAnswer();
-      _confettiController.forward(from: 0);
     }
   }
 
@@ -219,7 +212,7 @@ class _ConceptResultViewState extends State<ConceptResultView>
     }
   }
 
-  /// 화면을 누르면 연출 끝으로 (폭죽은 남은 만큼 그대로)
+  /// 화면을 누르면 연출 끝으로
   void _skipToEnd() {
     if (_controller.isCompleted) return;
     _controller.value = 1;
@@ -239,7 +232,7 @@ class _ConceptResultViewState extends State<ConceptResultView>
     final unit = widget.unitProgress;
     final nextUnit = unit?.nextUnitLabel;
     return AnimatedBuilder(
-      animation: Listenable.merge([_controller, _confettiController]),
+      animation: _controller,
       builder: (context, _) {
         final elapsed = _timeline.total * _controller.value;
         final isButtonsVisible = elapsed >= _timeline.buttonsAt;
@@ -383,15 +376,7 @@ class _ConceptResultViewState extends State<ConceptResultView>
             ),
           ],
         );
-        if (!_timeline.isUnitCompleted) return content;
-        return Stack(
-          children: [
-            content,
-            Positioned.fill(
-              child: ConceptConfetti(progress: _confettiController.value),
-            ),
-          ],
-        );
+        return content;
       },
     );
   }
