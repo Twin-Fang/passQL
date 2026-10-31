@@ -11,7 +11,7 @@ source: "https://github.com/Twin-Fang/passQL/issues/764#issuecomment-6512843324"
 
 # ISS-0432 완료 리포트: 개념 탭을 구간 + 회색 띠 구조, 세그먼트 3칸, 결과 고리 연출로 개편
 
-GitHub #764 리포트 댓글 6512843324 기준 (2026-10-30 작성, 2026-10-31 결과 화면 개편 반영해 갱신). 커밋 0553fa56, 8830e0e7, 7b1ea902. 새 패키지 없이 Flutter 기본 위젯과 `CustomPainter`만 썼고 서버·API는 바꾸지 않았다.
+GitHub #764 리포트 댓글 6512843324 기준 (2026-10-30 작성, 2026-10-31 결과 화면 개편 반영해 갱신). 커밋 0553fa56, 8830e0e7, 7b1ea902, c0e6e8b8. 새 패키지 없이 Flutter 기본 위젯과 `CustomPainter`만 썼고 서버·API는 바꾸지 않았다.
 
 ## 해결 방법
 - 탭 첫 화면(`concepts_home_page.dart`): "N개 중 끝낸 개념" 큰 숫자 + 진행 막대 + 이어서 학습 한 줄 띠, 단원 목록은 상태 타일(완료 체크·진행 번호·대기 번호)과 `c/t`. 잠긴 단원은 `ProLockedSection` 유지.
@@ -19,10 +19,10 @@ GitHub #764 리포트 댓글 6512843324 기준 (2026-10-30 작성, 2026-10-31 �
 - 개념 화면(`concept_page.dart`): 읽기/풀기와 핵심/자세히 두 줄을 세그먼트 한 줄 `핵심 | 자세히 | 문제`로 합침 → [[DEC-0217-concept-study-single-segment]]. 하단 버튼 순서(왼쪽 문제 풀기, 오른쪽 다음 개념)는 지금 앱 그대로.
 - 읽기(`concept_read_view.dart`): 핵심은 "꼭 기억할 것 N가지", 자세히는 "문단 N개 · 약 M분"(분당 500자, 표 줄 제외) + 번호 붙은 문단.
 - 풀기(`concept_solve_view.dart`): 점 진행 줄(현재 문제만 긴 알약, 맞음 초록·틀림 빨강, 숫자는 점 줄에만).
-- 결과(`concept_result_view.dart`, `concept_result_ring.dart`, `concept_confetti.dart`): 틀린 문제가 있으면 머리(제목 + 작은 고리, 스크롤로 접힘) + 「다시 볼 문제」 목록 + 단원 칸 막대(`+1` 롤링) → [[DEC-0218-concept-result-ring-climax]]. 목록 줄을 누르면 그 자리에서 풀이가 펼쳐지고 풀이 시트는 없앴다 → [[DEC-0221-concept-wrong-rows-expand-in-place]]. 한 줄 제목은 남기고 사용 안내 문장은 시각 요소로 → [[DEC-0219-keep-one-line-headlines-visualize-instructions]]. 단원을 끝내면 제목·버튼이 단원 끝으로 바뀌고 폭죽.
-- 다 맞힘 점수판(`concept_perfect_page.dart`): 상단 바 없는 전체 화면, 고리 → 튕기는 원 → 그려지는 체크 → 화면 끝까지 번지는 보라 빛 + 원 빛줄기(`concept_glow.dart`) → 「완벽해요」 → 카드 3장(정답·단원·전체) → 버튼. 폭죽(양쪽 대포)은 단원 끝에만. 앱 토큰 색만 → [[DEC-0222-concept-perfect-fullscreen-scoreboard]]. 체크 색은 규칙대로 → [[DEC-0220-check-on-semantic-fill-uses-on-semantic]].
+- 결과(`concept_result_view.dart`, `concept_result_ring.dart`): 틀린 문제가 있으면 머리(제목 + 작은 고리, 스크롤로 접힘) + 「다시 볼 문제」 목록 + 단원 칸 막대(`+1` 롤링) → [[DEC-0218-concept-result-ring-climax]]. 목록 줄을 누르면 그 자리에서 풀이가 펼쳐지고 풀이 시트는 없앴다 → [[DEC-0221-concept-wrong-rows-expand-in-place]]. 한 줄 제목은 남기고 사용 안내 문장은 시각 요소로 → [[DEC-0219-keep-one-line-headlines-visualize-instructions]]. 단원을 끝내면 제목·버튼이 단원 끝으로 바뀌고 가장 센 진동.
+- 다 맞힘 점수판(`concept_perfect_page.dart`): 상단 바 없는 전체 화면, 고리 → 튕기는 원 → 그려지는 체크 → 화면 끝까지 번지는 보라 빛 + 원 빛줄기(`concept_glow.dart`) → 「완벽해요」 → 카드 3장(정답·단원·전체) → 버튼. 폭죽은 쓰지 않음. 앱 토큰 색만 → [[DEC-0222-concept-perfect-fullscreen-scoreboard]]. 체크 색은 규칙대로 → [[DEC-0220-check-on-semantic-fill-uses-on-semantic]].
 - 상태(`concept_providers.dart`): `topicSolvedCountAtStart`(한 번만 기록), `restartWrongOnly`(틀린 문제만 다시), `goToNextQuestion(questionUuids)`(채점한 문제 건너뜀).
-- 토큰: `PassqlMotion.conceptResult*`·`confetti`, `PassqlSize.scoreRingCompact*`·`unitSegmentHeight`, `PassqlHaptics.playLight`. 삭제: `passql_progress_ring.dart`, `PassqlSize.progressRing*`, `depthSwitchMaxWidth`, `concept_answer_review_sheet.dart`.
+- 토큰: `PassqlMotion.conceptResult*`·`conceptGlowSpread`, `PassqlSize.scoreRingCompact*`·`unitSegmentHeight`, `PassqlHaptics.playLight`. 삭제: `passql_progress_ring.dart`, `PassqlSize.progressRing*`, `depthSwitchMaxWidth`, `concept_answer_review_sheet.dart`, `concept_confetti.dart`(중간에 만들었다 뺌).
 - 스토어 캡처용 가짜 API(`tool/store_shots`)가 확인 문제를 다 푼 개념을 완료로 응답하도록 바꿔 `+1` 연출을 캡처.
 
 검증: `flutter analyze` 이슈 없음, `flutter test` 92개 통과(디자인 규칙 테스트 포함). UI 변경이라 새 테스트는 없음. 시뮬레이터 라이트·다크 before/after 캡처와 영상.
