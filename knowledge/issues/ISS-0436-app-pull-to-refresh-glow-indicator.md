@@ -15,7 +15,7 @@ source: "https://github.com/Twin-Fang/passQL/issues/772"
 
 GitHub #772 (원본: 이슈 본문과 구현 세션 대화).
 
-> 상태 (2026-11-01 00:13 기준): 리포트 댓글을 올렸고 PR #773을 열었다(미머지). 완료 리포트: [[ISS-0436-app-pull-to-refresh-glow-indicator-report]]
+> 상태: 리포트 댓글을 올렸고 PR #773이 머지됐다 (머지 커밋 `95514249`, 2026-10-31 15:20 UTC). 완료 리포트: [[ISS-0436-app-pull-to-refresh-glow-indicator-report]]
 
 ## 증상
 - 앱에서 화면을 당겨서 새로고침하면 iOS 기본 회색 스피너가 떠서, #764 개념 점수판의 보라 빛 번짐([[DEC-0222-concept-perfect-fullscreen-scoreboard]])과 결이 달랐다.
