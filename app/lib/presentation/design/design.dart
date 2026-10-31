@@ -14,6 +14,7 @@ export 'components/passql_code_block.dart';
 export 'components/passql_dialog.dart';
 export 'components/passql_fade_switcher.dart';
 export 'components/passql_glass.dart';
+export 'components/passql_glow.dart';
 export 'components/passql_grouped_section.dart';
 export 'components/passql_icon_tile.dart';
 export 'components/passql_keep_all_text.dart';

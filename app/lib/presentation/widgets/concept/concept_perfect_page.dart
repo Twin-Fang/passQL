@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../design/design.dart';
-import 'concept_glow.dart';
 import 'concept_result_ring.dart';
 import 'concept_result_view.dart';
 
@@ -247,7 +246,7 @@ class _ConceptPerfectPageState extends State<ConceptPerfectPage>
               children: [
                 // 맨 아래: 원에서 화면 끝까지 번지는 빛 (글자·카드 뒤)
                 Positioned.fill(
-                  child: ConceptGlow(
+                  child: PassqlGlow(
                     progress: _glowController.value,
                     center: _glowCenter,
                     startRadius: PassqlSize.scoreRing / 2,
