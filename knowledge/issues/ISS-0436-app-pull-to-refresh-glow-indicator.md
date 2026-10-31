@@ -5,9 +5,9 @@ created: 2026-10-31
 topics: [design-system]
 symptoms: ["당겨서 새로고침 iOS 기본 회색 스피너", CupertinoSliverRefreshControl, PassqlRefreshControl, PassqlGlow, "당길 때 큰 제목과 내용 사이가 벌어짐", "armed에서 바로 done", "새로고침 빛이 안 나옴", "띠가 접히면 빛이 중간에 끊김", "빛이 화면 끝까지 안 감", "손 떼기 전에 물결이 멈춤", "새로고침 점이 당긴 만큼 따라 내려감"]
 root_cause: "기본 스피너가 #764 점수판 빛과 결이 달랐고, 직접 만든 표시는 Cupertino 새로고침 상태 전이(armed·refresh·done 시점, 띠 높이 0이면 표시 위젯 제거)가 손 뗌·빛 수명과 맞지 않았다"
-status: open
-resolution: null
-related: ["[[DEC-0229-refresh-wave-dots-fullscreen-glow-component]]", "[[DEC-0230-refresh-dots-above-large-title-fixed]]", "[[DEC-0231-refresh-glow-on-release-wave-while-holding]]", "[[ISS-0432-app-concept-tab-redesign]]", "[[DEC-0222-concept-perfect-fullscreen-scoreboard]]"]
+status: resolved
+resolution: "[[ISS-0436-app-pull-to-refresh-glow-indicator-report]]"
+related: ["[[ISS-0436-app-pull-to-refresh-glow-indicator-report]]", "[[DEC-0229-refresh-wave-dots-fullscreen-glow-component]]", "[[DEC-0230-refresh-dots-above-large-title-fixed]]", "[[DEC-0231-refresh-glow-on-release-wave-while-holding]]", "[[ISS-0432-app-concept-tab-redesign]]", "[[DEC-0222-concept-perfect-fullscreen-scoreboard]]"]
 source: "https://github.com/Twin-Fang/passQL/issues/772"
 ---
 
@@ -15,7 +15,7 @@ source: "https://github.com/Twin-Fang/passQL/issues/772"
 
 GitHub #772 (원본: 이슈 본문과 구현 세션 대화).
 
-> 상태 (2026-10-31 23:47 기준): 이슈 브랜치 `20261031_#772_디자인_앱_새로고침_로딩_표시_교체`에서 구현과 시뮬레이터 확인(라이트·다크)까지 끝났다. 커밋·리포트·머지는 아직이다. 이 노트를 "머지됐다"는 근거로 쓰지 않는다. 리포트가 올라오면 완료 리포트로 닫는다.
+> 상태 (2026-11-01 00:13 기준): 리포트 댓글을 올렸고 PR #773을 열었다(미머지). 완료 리포트: [[ISS-0436-app-pull-to-refresh-glow-indicator-report]]
 
 ## 증상
 - 앱에서 화면을 당겨서 새로고침하면 iOS 기본 회색 스피너가 떠서, #764 개념 점수판의 보라 빛 번짐([[DEC-0222-concept-perfect-fullscreen-scoreboard]])과 결이 달랐다.

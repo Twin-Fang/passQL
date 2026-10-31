@@ -13,7 +13,7 @@ related: []
 디자인 토큰·공통 UI 컴포넌트·폰트·테마
 
 ## 현재 상태 요약
-(2026-10-31, 자동 생성) 활성 결정 45개, 열린 이슈 3개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-01, 자동 생성) 활성 결정 45개, 열린 이슈 2개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0017-fullscreen-result-screen]] — 제출 결과 화면은 풀스크린 1종으로 통일 (bottom sheet 변형 미채택)
@@ -70,7 +70,7 @@ related: []
 - [[DEC-0167-five-tabs-with-text-labels]] → DEC-0171
 
 ## 관련 이슈
-- [[ISS-0436-app-pull-to-refresh-glow-indicator]] (open, GitHub #772) — 앱 당겨서 새로고침 표시를 웨이브 점 + 화면 전체 빛으로 교체
+- [[ISS-0436-app-pull-to-refresh-glow-indicator]] (resolved, GitHub #772) — 앱 당겨서 새로고침 표시를 웨이브 점 + 화면 전체 빛으로 교체
 - [[ISS-0432-app-concept-tab-redesign]] (resolved, GitHub #764) — 앱 개념 탭 UI/UX 개편
 - [[ISS-0431-app-home-top-bell-notice-banner]] (resolved, GitHub #756) — 홈 알림 아이콘 색과 공지 배너 개편
 - [[ISS-0430-app-bottom-tab-bar-icon-motion]] (resolved, GitHub #755) — 앱 하단 탭 바 아이콘 위 여백과 선택 애니메이션
