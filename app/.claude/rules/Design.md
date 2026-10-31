@@ -60,6 +60,8 @@ lib/presentation/design/
 | `showPassqlConfirmDialog` | 취소/확인 확인 창, `isDestructive` 로 파괴적 스타일 |
 | `showPassqlBlockingProgress` | 진행 중 화면 잠금 창 |
 | `PassqlLoadingIndicator` (+`PassqlLoadingSize`) | 모든 로딩 스피너 (인라인·섹션·화면 잠금 3단계) |
+| `PassqlRefreshControl` | 당겨서 새로고침 sliver (#772): 당긴 만큼 켜지는 웨이브 점, 끝까지 당기면 손 뗄 때까지 물결, 손 떼는 순간 화면 전체 빛. 동작 줄이기면 켜진 점만 |
+| `PassqlGlow` | 원에서 화면 끝까지 번지는 보라 빛 (개념 다 맞힘 점수판·새로고침 공용) |
 | `PassqlStatusView` / `PassqlSkeletonBox` | 로딩·빈·오류 상태 한 모양, 스켈레톤 조각 |
 | `PassqlSliverFillStatus` | 스크롤 화면 남은 높이를 채우는 상태 자리. 탭 바·광고 띠 뒤(extendBody) 높이를 빼고 보이는 영역 가운데에 둠 (#741). 스크롤 화면 안 상태 뷰는 `SliverFillRemaining` 대신 이것으로 |
 | `PassqlTextSkeleton` | 글 문단 자리(줄 N개 한 블록, 반짝임 1개, 동작 줄이기면 정지) — AI 해설 대기 (#521) |
@@ -92,7 +94,7 @@ lib/presentation/design/
 - 간격·크기·글자는 토큰으로. 필요한 토큰이 없으면 토큰을 먼저 추가하고, 한 파일에서만 쓰는 배치 숫자는 이름 있는 상수로 둔다
 - 자산은 컴포넌트로(`PassqlLogo`). `Image.asset(` 금지
 - 흐림(`ImageFilter.blur(`)은 `PassqlLockedPreview`·`PassqlGlass` 로만. 화면 직접 사용 금지
-- 시트는 `showPassqlSheet`, 확인 창은 `showPassqlConfirmDialog`, 로딩은 `PassqlLoadingIndicator`. `showModalBottomSheet(`, `showCupertinoDialog(`, `CupertinoActivityIndicator(` 직접 사용 금지
+- 시트는 `showPassqlSheet`, 확인 창은 `showPassqlConfirmDialog`, 로딩은 `PassqlLoadingIndicator`, 당겨서 새로고침은 `PassqlRefreshControl`. `showModalBottomSheet(`, `showCupertinoDialog(`, `CupertinoActivityIndicator(`, `CupertinoSliverRefreshControl(` 직접 사용 금지
 - 시트 파일(`*_sheet.dart`·`*_dock.dart`)에 닫기 X 아이콘(`CupertinoIcons.xmark*`, `Icons.close*`) 금지. 비모달 해설 시트(`AiExplanationDock`)도 접힘에서 끌어 내리면 닫힘, 스크린리더는 제목의 '해설 닫기' 동작 (#699)
 - 이동 경로는 `AppRoutes` (`lib/router/app_routes.dart`). `context.go('/...')`, `push('/...')` 문자열 금지
 - 아이콘은 `CupertinoIcons` (이모지 금지). 예외: 하단 탭 바는 부품별 움직임 때문에 `PassqlTabIcon`(Lucide 계열 선 아이콘 직접 그림, #755)

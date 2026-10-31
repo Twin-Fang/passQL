@@ -118,7 +118,7 @@ class _NotificationInboxListState extends ConsumerState<NotificationInboxList> {
         parent: BouncingScrollPhysics(),
       ),
       slivers: [
-        CupertinoSliverRefreshControl(onRefresh: _reload),
+        PassqlRefreshControl(onRefresh: _reload),
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
