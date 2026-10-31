@@ -2,7 +2,7 @@
 type: cluster
 topic: design-system
 created: 2026-10-29
-members: 117
+members: 122
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 디자인 토큰·공통 UI 컴포넌트·폰트·테마
 
 ## 현재 상태 요약
-(2026-10-30, 자동 생성) 활성 결정 40개, 열린 이슈 2개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-10-31, 자동 생성) 활성 결정 45개, 열린 이슈 3개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0017-fullscreen-result-screen]] — 제출 결과 화면은 풀스크린 1종으로 통일 (bottom sheet 변형 미채택)
@@ -57,6 +57,10 @@ related: []
 - [[DEC-0221-concept-wrong-rows-expand-in-place]] — 틀린 문제는 시트 대신 목록 줄을 눌러 그 자리에서 펼침
 - [[DEC-0222-concept-perfect-fullscreen-scoreboard]] — 다 맞히면 듀오링고식 전체 화면 점수판 (앱 토큰 색, 카드 3장)
 - [[DEC-0220-check-on-semantic-fill-uses-on-semantic]] — 초록 원 위 체크는 `onSemantic`, 강조색 원 위는 `onAccent` (DEC-0168 적용)
+- [[DEC-0227-pass-ticket-split-with-part-files]] — 앱 탑승권 컴포넌트는 `part` 파일로 나눠 내부 조각을 private으로 두고 공개 이름·import 경로 유지
+- [[DEC-0229-refresh-wave-dots-fullscreen-glow-component]] — 당겨서 새로고침은 iOS 스피너 대신 웨이브 점 + 화면 전체 빛 공통 컴포넌트(`PassqlRefreshControl`), 빛은 점수판과 같은 `PassqlGlow`
+- [[DEC-0230-refresh-dots-above-large-title-fixed]] — 새로고침 점은 큰 제목 위, 아무리 당겨도 화면에 고정
+- [[DEC-0231-refresh-glow-on-release-wave-while-holding]] — 끝까지 당기면 손 뗄 때까지 물결 반복, 손 떼는 순간 빛이 화면 끝까지
 
 ## 대체된 결정 (역사)
 - [[DEC-0018-four-tab-bottom-navigation]] → null
@@ -66,6 +70,7 @@ related: []
 - [[DEC-0167-five-tabs-with-text-labels]] → DEC-0171
 
 ## 관련 이슈
+- [[ISS-0436-app-pull-to-refresh-glow-indicator]] (open, GitHub #772) — 앱 당겨서 새로고침 표시를 웨이브 점 + 화면 전체 빛으로 교체
 - [[ISS-0432-app-concept-tab-redesign]] (resolved, GitHub #764) — 앱 개념 탭 UI/UX 개편
 - [[ISS-0431-app-home-top-bell-notice-banner]] (resolved, GitHub #756) — 홈 알림 아이콘 색과 공지 배너 개편
 - [[ISS-0430-app-bottom-tab-bar-icon-motion]] (resolved, GitHub #755) — 앱 하단 탭 바 아이콘 위 여백과 선택 애니메이션
