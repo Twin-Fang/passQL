@@ -20,6 +20,8 @@ class ConceptResultRing extends StatelessWidget {
     this.centerStyle,
     this.isAccentOnly = false,
     this.checkColor,
+    this.diskGradientEnd,
+    this.shineProgress = 0,
   });
 
   /// 0~1: 고리가 찬 정도 (맞힌 수 / 문제 수, 차오르는 중간값 포함)
@@ -49,6 +51,12 @@ class ConceptResultRing extends StatelessWidget {
   /// 체크 색 (null 이면 onSemantic)
   final Color? checkColor;
 
+  /// 안쪽 원을 왼쪽 위 고리색 > 오른쪽 아래 이 색으로 물들임 (null 이면 단색, 점수판은 탑승권 보라)
+  final Color? diskGradientEnd;
+
+  /// 0~1: 원 위를 흰 빛줄기가 왼쪽에서 오른쪽으로 한 번 스치는 진행 (0·1이면 안 보임)
+  final double shineProgress;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
@@ -74,6 +82,9 @@ class ConceptResultRing extends StatelessWidget {
               checkProgress: checkProgress,
               checkColor: checkColor ?? colors.onSemantic,
               stroke: stroke,
+              diskGradientEnd: diskGradientEnd,
+              shineProgress: shineProgress,
+              shineColor: colors.onAccent,
             ),
           ),
           if (diskProgress == 0 && centerLabel.isNotEmpty)
@@ -103,6 +114,9 @@ class _RingPainter extends CustomPainter {
     required this.checkProgress,
     required this.checkColor,
     required this.stroke,
+    required this.diskGradientEnd,
+    required this.shineProgress,
+    required this.shineColor,
   });
 
   final Color trackColor;
@@ -112,6 +126,9 @@ class _RingPainter extends CustomPainter {
   final double checkProgress;
   final Color checkColor;
   final double stroke;
+  final Color? diskGradientEnd;
+  final double shineProgress;
+  final Color shineColor;
 
   // 체크 모양 (원 지름 1 기준 좌표): 왼쪽 아래로 짧게 > 오른쪽 위로 길게
   static const Offset _checkStart = Offset(0.29, 0.52);
@@ -121,6 +138,10 @@ class _RingPainter extends CustomPainter {
   static const double _checkStrokeRatio = 0.075;
   // 원이 채워질 때 처음 크기 (작게서 튕기듯 커지며 나타남)
   static const double _diskStartScale = 0.35;
+  // 빛줄기 폭(지름 대비), 기울기, 가장 밝은 곳 투명도
+  static const double _shineWidthRatio = 0.32;
+  static const double _shineTilt = 0.35;
+  static const double _shineAlpha = 0.5;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -148,10 +169,20 @@ class _RingPainter extends CustomPainter {
     // 안쪽 원: 고리 바깥 끝까지 같은 색으로 채워 하나의 원처럼
     final diskScale =
         _diskStartScale + (1 - _diskStartScale) * diskProgress.clamp(0, 1);
+    final diskRadius = size.width / 2 * diskScale;
+    final diskRect = Rect.fromCircle(center: center, radius: diskRadius);
+    final gradientEnd = diskGradientEnd;
     canvas.drawCircle(
       center,
-      size.width / 2 * diskScale,
-      Paint()..color = ringColor,
+      diskRadius,
+      gradientEnd == null
+          ? (Paint()..color = ringColor)
+          : (Paint()
+              ..shader = LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [ringColor, gradientEnd],
+              ).createShader(diskRect)),
     );
 
     if (checkProgress <= 0) return;
@@ -176,6 +207,34 @@ class _RingPainter extends CustomPainter {
         ..strokeJoin = StrokeJoin.round
         ..color = checkColor,
     );
+
+    if (shineProgress <= 0 || shineProgress >= 1) return;
+    // 빛줄기: 원 안으로만 잘라, 기울어진 흰 띠가 왼쪽 밖에서 오른쪽 밖으로 지나감 (탑승권 빛줄기와 같은 결)
+    final bandWidth = diameter * _shineWidthRatio;
+    final travel = diameter + bandWidth * 2;
+    final bandCenterX =
+        center.dx - diameter / 2 - bandWidth + travel * shineProgress;
+    canvas.save();
+    canvas.clipPath(Path()..addOval(diskRect));
+    canvas.translate(bandCenterX, center.dy);
+    canvas.rotate(_shineTilt);
+    final bandRect = Rect.fromCenter(
+      center: Offset.zero,
+      width: bandWidth,
+      height: diameter * 2,
+    );
+    canvas.drawRect(
+      bandRect,
+      Paint()
+        ..shader = LinearGradient(
+          colors: [
+            shineColor.withValues(alpha: 0),
+            shineColor.withValues(alpha: _shineAlpha),
+            shineColor.withValues(alpha: 0),
+          ],
+        ).createShader(bandRect),
+    );
+    canvas.restore();
   }
 
   @override
@@ -186,5 +245,7 @@ class _RingPainter extends CustomPainter {
       oldDelegate.ringColor != ringColor ||
       oldDelegate.trackColor != trackColor ||
       oldDelegate.checkColor != checkColor ||
-      oldDelegate.stroke != stroke;
+      oldDelegate.stroke != stroke ||
+      oldDelegate.diskGradientEnd != diskGradientEnd ||
+      oldDelegate.shineProgress != shineProgress;
 }

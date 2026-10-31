@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../design/design.dart';
 import 'concept_confetti.dart';
+import 'concept_glow.dart';
 import 'concept_result_ring.dart';
 import 'concept_result_view.dart';
 
@@ -80,6 +81,14 @@ class _ConceptPerfectPageState extends State<ConceptPerfectPage>
     vsync: this,
     duration: PassqlMotion.confetti,
   );
+  late final AnimationController _glowController = AnimationController(
+    vsync: this,
+    duration: PassqlMotion.conceptGlowSpread,
+  );
+  // 화면 끝까지 번지는 빛의 출발점(원 가운데)을 재려고 점수판 층과 원에 붙이는 키
+  final GlobalKey _layerKey = GlobalKey();
+  final GlobalKey _ringKey = GlobalKey();
+  Offset _glowCenter = Offset.zero;
   // 이미 울린 진동 단계 (프레임마다 같은 진동을 다시 울리지 않게)
   final Set<int> _playedHapticSteps = {};
   bool _isStarted = false;
@@ -90,6 +99,8 @@ class _ConceptPerfectPageState extends State<ConceptPerfectPage>
   // 고리 시작 크기(한 문제 맞힐 때마다 1까지 커짐)와 한 칸 찰 때 잠깐 더 커지는 비율
   static const double _ringStartScale = 0.7;
   static const double _stepBumpScale = 0.06;
+  // 빛줄기가 원을 다 지나가는 시점 (빛 번짐 진행률 기준)
+  static const double _shineEndFraction = 0.5;
 
   // 카드: 정답 · 단원 · 전체 (단원 값이 없으면 정답 하나)
   int get _cardCount => widget.unitProgress == null ? 1 : 3;
@@ -112,6 +123,7 @@ class _ConceptPerfectPageState extends State<ConceptPerfectPage>
   void dispose() {
     _controller.dispose();
     _confettiController.dispose();
+    _glowController.dispose();
     super.dispose();
   }
 
@@ -136,11 +148,27 @@ class _ConceptPerfectPageState extends State<ConceptPerfectPage>
         PassqlHaptics.playLight();
       }
     }
-    // 제목이 뜨는 순간 폭죽 (다 맞힘은 늘, 단원 끝이면 가장 센 진동까지)
+    // 제목이 뜨는 순간 원에서 빛이 화면 끝까지 번지고 원 위로 빛줄기가 스침.
+    // 단원 끝이면 거기에 폭죽 + 가장 센 진동 (큰 연출은 드문 순간에만)
     if (elapsed >= _timeline.headlineAt && _playedHapticSteps.add(-2)) {
-      if (_isUnitCompleted) PassqlHaptics.playWrongAnswer();
-      _confettiController.forward(from: 0);
+      _measureGlowCenter();
+      _glowController.forward(from: 0);
+      if (_isUnitCompleted) {
+        PassqlHaptics.playWrongAnswer();
+        _confettiController.forward(from: 0);
+      }
     }
+  }
+
+  /// 원 가운데를 점수판 층 기준 좌표로 잼 (원은 움직이지 않아 시작 때 한 번이면 됨)
+  void _measureGlowCenter() {
+    final layer = _layerKey.currentContext?.findRenderObject() as RenderBox?;
+    final ring = _ringKey.currentContext?.findRenderObject() as RenderBox?;
+    if (layer == null || ring == null) return;
+    _glowCenter = ring.localToGlobal(
+      ring.size.center(Offset.zero),
+      ancestor: layer,
+    );
   }
 
   void _skipToEnd() {
@@ -167,7 +195,11 @@ class _ConceptPerfectPageState extends State<ConceptPerfectPage>
         behavior: HitTestBehavior.translucent,
         onTap: _skipToEnd,
         child: AnimatedBuilder(
-          animation: Listenable.merge([_controller, _confettiController]),
+          animation: Listenable.merge([
+            _controller,
+            _confettiController,
+            _glowController,
+          ]),
           builder: (context, _) {
             final elapsed = _timeline.total * _controller.value;
             // 고리는 문제마다 1/총 만큼 차오르고 숫자도 같이 오름
@@ -210,6 +242,9 @@ class _ConceptPerfectPageState extends State<ConceptPerfectPage>
                 _timeline.checkDoneAt,
               ),
             );
+            // 빛줄기는 빛이 번지기 시작하고 조금 뒤 원을 한 번 스침
+            final shineProgress = (_glowController.value / _shineEndFraction)
+                .clamp(0.0, 1.0);
             final isHeadlineVisible = elapsed >= _timeline.headlineAt;
             final isButtonsVisible = elapsed >= _timeline.buttonsAt;
             final isRolled = elapsed >= _timeline.cardAt(1);
@@ -221,7 +256,16 @@ class _ConceptPerfectPageState extends State<ConceptPerfectPage>
                 ? '개념 ${unit.total}개를 모두 끝냈어요'
                 : '$total문제 모두 정답';
             return Stack(
+              key: _layerKey,
               children: [
+                // 맨 아래: 원에서 화면 끝까지 번지는 빛 (글자·카드 뒤)
+                Positioned.fill(
+                  child: ConceptGlow(
+                    progress: _glowController.value,
+                    center: _glowCenter,
+                    startRadius: PassqlSize.scoreRing / 2,
+                  ),
+                ),
                 SafeArea(
                   child: Column(
                     children: [
@@ -268,22 +312,32 @@ class _ConceptPerfectPageState extends State<ConceptPerfectPage>
                               Semantics(
                                 label: '$total문제 모두 맞힘',
                                 excludeSemantics: true,
-                                child: Transform.scale(
-                                  scale: bounce,
-                                  child: ConceptResultRing(
-                                    filledFraction: total == 0
-                                        ? 0
-                                        : filled / total,
-                                    diskProgress: diskProgress,
-                                    checkProgress: checkProgress,
-                                    centerLabel: '${filled.round()}/$total',
-                                    size: PassqlSize.scoreRing,
-                                    stroke: PassqlSize.scoreRingStroke,
-                                    centerStyle: PassqlTypography.scoreNumber,
-                                    // 점수판은 파랑 계열(강조색)로, 체크는 그 위에 흰색
-                                    isAccentOnly: true,
-                                    checkColor: colors.onAccent,
-                                  ),
+                                child: Stack(
+                                  key: _ringKey,
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Transform.scale(
+                                      scale: bounce,
+                                      child: ConceptResultRing(
+                                        filledFraction: total == 0
+                                            ? 0
+                                            : filled / total,
+                                        diskProgress: diskProgress,
+                                        checkProgress: checkProgress,
+                                        centerLabel: '${filled.round()}/$total',
+                                        size: PassqlSize.scoreRing,
+                                        stroke: PassqlSize.scoreRingStroke,
+                                        centerStyle:
+                                            PassqlTypography.scoreNumber,
+                                        // 점수판은 파랑 계열(강조색)로, 체크는 그 위에 흰색
+                                        isAccentOnly: true,
+                                        checkColor: colors.onAccent,
+                                        // 원은 탑승권과 같은 보라 그라데이션, 빛줄기가 한 번 스침
+                                        diskGradientEnd: colors.passGradientEnd,
+                                        shineProgress: shineProgress,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               const SizedBox(height: PassqlSpacing.lg),

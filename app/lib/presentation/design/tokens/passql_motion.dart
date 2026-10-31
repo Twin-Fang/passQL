@@ -52,7 +52,8 @@ abstract final class PassqlMotion {
   static const conceptResultDiskFill = Duration(milliseconds: 380); // 원이 튕기며 커지는 시간
   static const conceptResultCheckDraw = Duration(milliseconds: 550); // 체크 선이 그려지는 시간
   static const conceptResultUnitStep = Duration(milliseconds: 400);
-  static const confetti = Duration(milliseconds: 1500);
+  static const confetti = Duration(milliseconds: 2600); // 대포 두 대가 엇갈려 떨어질 때까지
+  static const conceptGlowSpread = Duration(milliseconds: 1400); // 체크 원에서 빛이 화면 끝까지 번질 때까지
 
   // 누름 축소 비율
   static const pressedScale = 0.97;
