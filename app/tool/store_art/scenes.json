@@ -25,7 +25,6 @@
   "wide": {
     "app_name": "passQL",
     "headline": "책 없이,<br>앱 하나로 SQLD",
-    "keyword": "SELECT",
     "front": "s1_execute.png",
     "back": "s5_trend.png"
   },
@@ -36,7 +35,6 @@
         "01",
         "02"
       ],
-      "keyword": "SELECT",
       "headlines": [
         "책 없이,<br>앱 하나로 SQLD",
         "보기 SQL을<br>직접 실행해 봐요"
@@ -46,7 +44,6 @@
     {
       "id": "03",
       "kind": "single",
-      "keyword": "DISTINCT",
       "headline": "답 외우기는 그만,<br>매번 새 선택지",
       "shot": "s3_real_mode.png",
       "align": "bottom"
@@ -54,7 +51,6 @@
     {
       "id": "04",
       "kind": "single",
-      "keyword": "HAVING",
       "headline": "틀린 이유,<br>AI가 바로 짚어 줘요",
       "shot": "s4_ai.png",
       "align": "bottom"
@@ -62,7 +58,6 @@
     {
       "id": "05",
       "kind": "single",
-      "keyword": "ORDER BY",
       "headline": "요즘 시험 유형,<br>그대로 담았어요",
       "shot": "s5_trend.png",
       "align": "top"
@@ -70,7 +65,6 @@
     {
       "id": "06",
       "kind": "single",
-      "keyword": "COUNT",
       "headline": "내 실력,<br>숫자로 확인해요",
       "shot": "s6_stats.png",
       "align": "top"
@@ -78,7 +72,6 @@
     {
       "id": "07",
       "kind": "diagonal",
-      "keyword": "BEGIN",
       "headline": "개념은 핵심만,<br>바로 문제로",
       "shot": "s7_concept.png",
       "align": "top",
@@ -87,7 +80,6 @@
     {
       "id": "08",
       "kind": "single",
-      "keyword": "RANK",
       "headline": "매일 같은 문제로<br>함께 겨뤄요",
       "shot": "s8_leader.png",
       "align": "top"

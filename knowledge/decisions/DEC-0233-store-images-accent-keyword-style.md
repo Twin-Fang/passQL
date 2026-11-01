@@ -4,10 +4,10 @@ id: DEC-0233
 created: 2026-11-01
 reviewed: null
 topics: [store-release]
-status: active
+status: superseded
 supersedes: DEC-0169
-superseded_by: null
-related: ["[[DEC-0169-store-listing-korean-only]]", "[[ISS-0438-store-promo-images-v2]]", "[[ISS-0438-store-promo-images-v2-report]]", "[[DEC-0234-no-pro-mark-on-store-images]]"]
+superseded_by: DEC-0235
+related: ["[[DEC-0169-store-listing-korean-only]]", "[[ISS-0438-store-promo-images-v2]]", "[[ISS-0438-store-promo-images-v2-report]]", "[[DEC-0234-no-pro-mark-on-store-images]]", "[[DEC-0235-store-images-no-sql-keyword]]"]
 ---
 
 # DEC-0233: 스토어 홍보 이미지는 앱 토큰의 `accent` 단색 바탕과 큰 SQL 키워드로 만들고, 한국어와 `scenes.json` 렌더 방식은 유지한다

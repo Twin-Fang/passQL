@@ -5,7 +5,6 @@
 <!-- Play 그래픽 이미지 틀 (1024x500). 배지·가격 문구를 넣지 않는다 (메타데이터 정책) -->
 <style>
   @font-face { font-family: Pretendard; font-weight: 700; src: url("{{font_dir}}/Pretendard-Bold.ttf"); }
-  @font-face { font-family: JetBrainsMono; font-weight: 700; src: url("{{font_dir}}/JetBrainsMonoNL-Bold.ttf"); }
   :root {
     --w: {{width}}px; --h: {{height}}px;
     /* 앱 토큰(lib/presentation/design/tokens/passql_colors.dart): light.accent, light.onAccent, dark.card */
@@ -14,11 +13,11 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: var(--w); height: var(--h); overflow: hidden; background: var(--accent); }
   body { position: relative; color: var(--on-accent); font-family: Pretendard, sans-serif; font-weight: 700; }
-  .brand { position: absolute; left: 44px; top: 36px; display: flex; align-items: center; gap: 10px; font-size: 24px; }
+  /* 키워드가 빠진 만큼 로고·문구 묶음을 세로 가운데로 내린다 */
+  .brand { position: absolute; left: 44px; top: 155px; display: flex; align-items: center; gap: 10px; font-size: 24px; }
   .brand img { width: 42px; height: 42px; border-radius: 10px; display: block; }
-  h1 { position: absolute; left: 44px; top: 106px; font-size: 50px; line-height: 1.2; letter-spacing: -0.024em; white-space: nowrap; }
-  .keyword { position: absolute; left: 40px; top: 318px; font: 700 150px / 1 JetBrainsMono, monospace; white-space: pre; }
-  /* 일반 휴대폰 모양 — 스크린샷 1-2장과 같은 22도. 앞 폰이 키워드 끝을 살짝 덮는다 */
+  h1 { position: absolute; left: 44px; top: 225px; font-size: 50px; line-height: 1.2; letter-spacing: -0.024em; white-space: nowrap; }
+  /* 일반 휴대폰 모양 — 스크린샷 1-2장과 같은 22도 */
   .phone { position: absolute; width: 290px; padding: 8px; background: var(--phone); border-radius: 46px; transform: rotate(22deg); }
   .phone.back { left: 752px; top: 0; }
   .phone.front { left: 574px; top: 60px; }
@@ -30,7 +29,6 @@
 <body>
   <div class="brand"><img src="{{logo}}" alt="">{{app_name}}</div>
   <h1>{{headline}}</h1>
-  <div class="keyword">{{keyword}}</div>
   <div class="phone back"><div class="screen"></div></div>
   <div class="phone front"><div class="screen"></div></div>
 </body>
