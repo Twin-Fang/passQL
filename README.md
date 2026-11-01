@@ -26,12 +26,13 @@
 <table>
   <tr>
     <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/01.png" width="150" alt="책 없이 앱 하나로 SQLD" /></td>
-    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/02.png" width="150" alt="최신 출제 경향" /></td>
-    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/03.png" width="150" alt="주제별 문제" /></td>
-    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/04.png" width="150" alt="SQL 직접 실행" /></td>
-    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/05.png" width="150" alt="AI 해설" /></td>
-    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/06.png" width="150" alt="합격 준비도" /></td>
-    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/07.png" width="150" alt="오늘의 세트" /></td>
+    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/02.png" width="150" alt="SQL 직접 실행" /></td>
+    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/03.png" width="150" alt="매번 새 선택지" /></td>
+    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/04.png" width="150" alt="AI 해설" /></td>
+    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/05.png" width="150" alt="최신 출제 경향" /></td>
+    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/06.png" width="150" alt="내 실력 숫자로 확인" /></td>
+    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/07.png" width="150" alt="개념은 핵심만" /></td>
+    <td><img src="https://raw.githubusercontent.com/Twin-Fang/passQL/main/app/docs/store/promo/ios-6.3/08.png" width="150" alt="함께 겨뤄요" /></td>
   </tr>
 </table>
 

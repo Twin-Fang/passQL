@@ -5,6 +5,7 @@
 // 빌드: flutter build ios --simulator -t tool/store_shots/main_shots.dart
 // 촬영: echo /stats > /tmp/passql_shot_route.txt && xcrun simctl launch <기기> com.coldredrice.passql
 // 연출(경로 대신 적음): execute-ok(SQL 실행 성공 표), execute-fail(SQL 실행 실패 카드), chapter-result(문제 목록 > 챕터 > 챕터 결과), ai-sheet(오답 AI 해설 시트),
+//   real-mode(실전 모드 문제 > 선택지 생성 중에서 멈춤),
 //   onboarding-1~4(온보딩 n장), onboarding-celebration(온보딩 첫 문제 축하), onboarding-tour(4장 넘김 > 축하 영상),
 //   withdraw-confirm(설정 > 회원 탈퇴 확인창 > 확인 문구 입력 영상),
 //   nickname-sheet(내 프로필 > 닉네임 변경 시트), nickname-toast(내 프로필 + 닉네임 변경 토스트),
@@ -339,10 +340,10 @@ final _latestTrendQuestionTotal = _latestTrendTopics.fold<int>(
 
 Map<String, dynamic> _examTrendReport() => {
   'title': '2026 SQLD 출제 경향',
-  'basisDescription': '제58~62회 복원 기출과 수험생 후기·오픈채팅 분석',
+  'basisDescription': '최근 회차 복원 기출 분석',
   'updatedDate': '2026-10-20',
   'summary':
-      '짧은 쿼리에 NULL 함정을 숨기고 결과를 따라가게 하는 문제가 중심이에요. 62회는 쉬웠다는 말이 많았지만 합격률은 낮았어요.',
+      '짧은 쿼리에 NULL 함정을 숨기고 결과를 따라가게 하는 문제가 중심이에요.',
   'latestTrendQuestionCount': _latestTrendQuestionTotal,
   'subjectShares': [
     {
@@ -618,6 +619,11 @@ Object? _respond(RequestOptions o) {
         {'rank': 3, 'nickname': '새찬', 'correctCount': 4},
         {'rank': 4, 'nickname': '셀렉트냥', 'correctCount': 4},
         {'rank': 5, 'nickname': '인덱스요정', 'correctCount': 3},
+        {'rank': 6, 'nickname': '서브쿼리왕', 'correctCount': 3},
+        {'rank': 7, 'nickname': '널체크', 'correctCount': 2},
+        {'rank': 8, 'nickname': '그룹바이', 'correctCount': 2},
+        {'rank': 9, 'nickname': '뷰마스터', 'correctCount': 2},
+        {'rank': 10, 'nickname': '커밋요정', 'correctCount': 1},
       ],
       'myEntry': {'rank': 3, 'nickname': '새찬', 'correctCount': 4},
     };
@@ -662,10 +668,13 @@ Object? _respond(RequestOptions o) {
   if (p.endsWith('/questions/random')) return _questions;
   if (p.endsWith('/submit') && o.method == 'POST') return submitShotResponse(correctSql: _executableChoiceSql);
   if (p.endsWith('/members/me')) {
-    return {'memberUuid': '55555555-0000-4000-8000-000000000001', 'nickname': '새찬', 'choiceGenerationMode': 'PRACTICE'};
+    return {'memberUuid': '55555555-0000-4000-8000-000000000001', 'nickname': '새찬', 'choiceGenerationMode': _isRealModeScene ? 'REAL' : 'PRACTICE'};
   }
   if (RegExp(r'/questions/[^/]+/report/status$').hasMatch(p)) return {'reported': false};
-  if (p.endsWith('/questions/$_executableQuestionUuid') && o.method == 'GET') return _executableDetail();
+  if (p.endsWith('/questions/$_executableQuestionUuid') && o.method == 'GET') {
+    // 연출 real-mode: 준비된 선택지가 있으면 생성을 건너뛰므로 비운다
+    return _isRealModeScene ? {..._executableDetail(), 'choiceSets': <Object>[]} : _executableDetail();
+  }
   if (p.endsWith('/questions/22222222-0000-4000-8000-000000000004') && o.method == 'GET') {
     return {
       ..._detail(),
@@ -757,6 +766,8 @@ const _executableChoiceSql = 'SELECT ENAME FROM EMP WHERE SAL >= 3000;';
 
 // 연출 execute-ok 일 때만 실행 API 성공 (그 외 SANDBOX_TIMEOUT)
 var _isExecuteSuccessScene = false;
+// 연출 real-mode: 시작할 때 회원 설정을 읽으므로 경로로 바로 판정
+final _isRealModeScene = _readRoute() == 'real-mode';
 const _executeSuccessResult = {
   'status': 'SUCCESS',
   'columns': ['ENAME'],
@@ -866,6 +877,8 @@ class _FakeAdapter implements HttpClientAdapter {
       );
     }
     if (options.path.endsWith('/generate-choices')) {
+      // 연출 real-mode: 응답을 끝내지 않아 생성 중 화면에 머문다
+      if (_isRealModeScene) await Completer<void>().future;
       // ...0004 문제는 실행 결과형(RESULT_MATCH)으로 응답한다.
       final rm = options.path.contains('000000000004');
       return ResponseBody.fromString(_sse(resultMatch: rm), 200, headers: {Headers.contentTypeHeader: ['text/event-stream']});
@@ -1021,7 +1034,7 @@ void _tapFirstSocialLoginButton() {
   onPressed?.call();
 }
 
-/// 경로 이동 또는 연출 5종(execute-ok, execute-fail, chapter-result, ai-sheet, result)
+/// 경로 이동 또는 연출 6종(execute-ok, real-mode, execute-fail, chapter-result, ai-sheet, result)
 Future<void> _openRoute(String route, ProviderContainer container) async {
   const settleDelay = Duration(milliseconds: 1500);
   switch (route) {
@@ -1036,6 +1049,8 @@ Future<void> _openRoute(String route, ProviderContainer container) async {
       await container
           .read(questionInteractionProvider(_executableQuestionUuid).notifier)
           .runChoice(choiceKey: 'A', sql: _executableChoiceSql);
+    case 'real-mode':
+      AppRouter.router.go(AppRoutes.questionDetail(_executableQuestionUuid));
     case 'execute-fail':
       // 실행형 문제 > 선택지 A 선택·실행 > 실행 API 실패
       AppRouter.router.go(AppRoutes.questionDetail(_executableQuestionUuid));

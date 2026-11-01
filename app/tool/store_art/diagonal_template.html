@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<!-- 라이트·다크를 한 화면에 나눠 보여 주는 장의 틀. 다크 캡처 위에 라이트 캡처를 대각선으로 얹는다 -->
+<style>
+  @font-face { font-family: Pretendard; font-weight: 700; src: url("{{font_dir}}/Pretendard-Bold.ttf"); }
+  @font-face { font-family: JetBrainsMono; font-weight: 700; src: url("{{font_dir}}/JetBrainsMonoNL-Bold.ttf"); }
+  :root {
+    --w: {{width}}px; --h: {{height}}px;
+    /* 치수 기준: 슬라이드 폭의 1/190. 규격이 달라도 같은 비율이 되게 한다 */
+    --u: calc(var(--w) / 190);
+    /* 앱 토큰(lib/presentation/design/tokens/passql_colors.dart): light.accent, light.onAccent, dark.card */
+    --accent: #5856D6; --on-accent: #FFFFFF; --phone: #1C1C1E;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: var(--w); height: var(--h); overflow: hidden; background: var(--accent); }
+  body { position: relative; color: var(--on-accent); }
+  h1 { position: absolute; left: calc(var(--u) * 14); top: calc(var(--u) * 18);
+       font: 700 calc(var(--u) * 19) / 1.27 Pretendard, sans-serif; letter-spacing: -0.02em; white-space: nowrap; }
+  /* 키워드 아래쪽을 폰 윗선 근처에 맞춘다 */
+  .keyword { position: absolute; left: calc(var(--u) * 12); bottom: calc(var(--h) - var(--u) * 148);
+             font: 700 {{keyword_size}}px / 1 JetBrainsMono, monospace; white-space: pre; }
+  /* 일반 휴대폰 모양 — 특정 회사 기기 이미지·상표는 쓰지 않는다. 아래는 슬라이드 밖으로 잘린다 */
+  .phone { position: absolute; left: calc(var(--u) * 14); top: calc(var(--u) * 152); width: calc(var(--u) * 162);
+           padding: calc(var(--u) * 4); background: var(--phone); border-radius: calc(var(--u) * 24); }
+  .screen { position: relative; width: 100%; aspect-ratio: {{shot_aspect}}; overflow: hidden; border-radius: calc(var(--u) * 20);
+            background: #000 url("{{shot}}") 0 -{{shot_offset}}px / 100% auto no-repeat; }
+  /* 경계가 본문 글을 덜 지나가도록 위쪽을 지나가게 둔다 */
+  .light { position: absolute; inset: 0; background: url("{{shot_light}}") 0 -{{shot_offset}}px / 100% auto no-repeat;
+           clip-path: polygon(0 0, 100% 0, 100% 12%, 0 62%); }
+</style>
+</head>
+<body>
+  <h1>{{headline}}</h1>
+  <div class="keyword">{{keyword}}</div>
+  <div class="phone"><div class="screen"><div class="light"></div></div></div>
+</body>
+</html>

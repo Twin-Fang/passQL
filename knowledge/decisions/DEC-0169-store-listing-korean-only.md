@@ -4,9 +4,9 @@ id: DEC-0169
 created: 2026-10-23
 reviewed: null
 topics: [store-release]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0233
 related: ["[[ISS-0360-store-promo-images-descriptions]]", "[[ISS-0360-store-promo-images-descriptions-report]]"]
 ---
 
