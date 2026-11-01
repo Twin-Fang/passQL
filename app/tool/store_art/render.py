@@ -70,18 +70,13 @@ def pair_crop_boxes(width: int, height: int, gap: int) -> tuple[tuple[int, int, 
     return (0, 0, width, height), (width + gap, 0, width * 2 + gap, height)
 
 
-def keyword_font_size(keyword: str, slide_width: int) -> int:
-    """키워드가 폭을 채우는 글자 크기. JetBrains Mono 글자 폭은 0.6em, 시안 기준 사용 폭은 190 중 166"""
-    return int(slide_width * 166 / 190 / (0.6 * len(keyword)))
-
-
 def shot_offset(target: dict, align: str, aspect: float) -> int:
     """align=bottom 이면 캡처 아래쪽이 슬라이드 아래에 오도록 위로 미는 양(px). 비율은 template.html 의 폰 값과 같음"""
     if align != "bottom":
         return 0
     unit = target["width"] / 190
     screen_height = unit * 154 / aspect
-    visible_height = target["height"] - unit * 156
+    visible_height = target["height"] - unit * 108
     return max(0, int(screen_height - visible_height))
 
 
@@ -89,7 +84,7 @@ def pair_shot_offset(target: dict, aspect: float) -> int:
     """이어지는 두 장의 폰: 실행 결과가 보이도록 캡처 아래쪽을 슬라이드 아래에 맞추는 양(px). 비율은 pair_template.html 의 폰 값과 같음"""
     unit = target["width"] / 190
     screen_height = unit * 224 / aspect
-    visible_height = target["height"] - unit * 156
+    visible_height = target["height"] - unit * 108
     return max(0, int(screen_height - visible_height))
 
 
@@ -102,7 +97,6 @@ def render_pair(target_name: str, target: dict, scene: dict) -> list[Path]:
         "width": str(width), "height": str(height), "gap": str(gap), "canvas_width": str(canvas_width),
         "font_dir": FONT_DIR.as_uri(), "shot": shot.as_uri(), "shot_aspect": f"{read_aspect(shot):.6f}",
         "shot_offset": str(pair_shot_offset(target, read_aspect(shot))),
-        "keyword": html.escape(scene["keyword"]),
         "headline_left": scene["headlines"][0], "headline_right": scene["headlines"][1],
     })
     wide = OUT_DIR / target_name / f"{scene['ids'][0]}_wide.png"
@@ -118,18 +112,16 @@ def render_pair(target_name: str, target: dict, scene: dict) -> list[Path]:
 
 
 def render_single(target_name: str, target: dict, scene: dict) -> list[Path]:
-    """세로형 1장: 키워드·헤드라인 + 원본 캡처 > {규격}/{id}.png"""
+    """세로형 1장: 헤드라인 + 원본 캡처 > {규격}/{id}.png"""
     shot = SOURCE_DIR / scene["shot"]
     aspect = read_aspect(shot)
-    # 문구는 scenes.json 의 신뢰된 값 — headline 은 <br> 그대로, 키워드는 이스케이프
+    # 문구는 scenes.json 의 신뢰된 값 — headline 은 <br> 그대로
     is_diagonal = scene["kind"] == "diagonal"
     page = fill_template("diagonal_template.html" if is_diagonal else "template.html", {
         "width": str(target["width"]), "height": str(target["height"]),
         "shot_light": (SOURCE_DIR / scene["shot_light"]).as_uri() if is_diagonal else "",
         "font_dir": FONT_DIR.as_uri(), "shot": shot.as_uri(), "shot_aspect": f"{aspect:.6f}",
         "shot_offset": str(shot_offset(target, scene.get("align", "top"), aspect)),
-        "keyword": html.escape(scene["keyword"]),
-        "keyword_size": str(keyword_font_size(scene["keyword"], target["width"])),
         "headline": scene["headline"],
     })
     out = OUT_DIR / target_name / f"{scene['id']}.png"
@@ -145,12 +137,12 @@ def render_scene(target_name: str, target: dict, scene: dict) -> list[Path]:
 
 
 def render_feature_graphic(wide: dict) -> Path:
-    """Play 그래픽 이미지: 로고·문구·키워드 + 휴대폰 2대 > feature-graphic.png"""
+    """Play 그래픽 이미지: 로고·문구 + 휴대폰 2대 > feature-graphic.png"""
     width, height = FEATURE_GRAPHIC_SIZE
     page = fill_template("wide_template.html", {
         "width": str(width), "height": str(height), "font_dir": FONT_DIR.as_uri(),
         "logo": LOGO.as_uri(), "app_name": html.escape(wide["app_name"]),
-        "headline": wide["headline"], "keyword": html.escape(wide["keyword"]),
+        "headline": wide["headline"],
         "shot_front": (SOURCE_DIR / wide["front"]).as_uri(),
         "shot_back": (SOURCE_DIR / wide["back"]).as_uri(),
         "shot_aspect": f"{read_aspect(SOURCE_DIR / wide['front']):.6f}",
