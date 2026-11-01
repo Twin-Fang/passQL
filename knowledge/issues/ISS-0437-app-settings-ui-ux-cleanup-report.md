@@ -13,7 +13,7 @@ source: "https://github.com/Twin-Fang/passQL/issues/774#issuecomment-6551234349"
 
 GitHub #774 리포트 댓글 6551234349 기준 (2026-11-01).
 
-> 머지 상태 (2026-11-01 기준): PR을 main으로 열었고 아직 머지되지 않았다. 코드 커밋은 `1020c68f`이다. 머지되기 전에는 이 리포트를 "main에 들어갔다"는 근거로 쓰지 않는다.
+> 머지 상태: PR #775가 main에 머지됐다 (2026-11-01). 코드 커밋은 `1020c68f`이다.
 
 ## 해결 방법
 - **화면 모드:** 보조 설명을 빼고 시스템 모드 칸 이름을 `기기 설정`으로 바꿨다 (`theme_mode_tile.dart`, [[DEC-0232-settings-theme-mode-device-label-no-subtitle]]). 저장값(`ThemeMode.system`)은 그대로다.

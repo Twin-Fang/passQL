@@ -15,7 +15,7 @@ source: "https://github.com/Twin-Fang/passQL/issues/774"
 
 GitHub #774 (원본: 이슈 본문과 구현 세션 대화).
 
-> 상태 (2026-11-01 기준): 리포트 댓글을 올렸고 PR을 main으로 열었다(미머지). 완료 리포트: [[ISS-0437-app-settings-ui-ux-cleanup-report]]
+> 상태: 리포트 댓글을 올렸고 PR #775가 main에 머지됐다 (2026-11-01). 완료 리포트: [[ISS-0437-app-settings-ui-ux-cleanup-report]]
 
 ## 증상
 - 설정 > 화면 모드에서 '자동'일 때만 "기기의 라이트/다크 설정을 따라요" 한 줄이 붙어, 라이트·다크를 고르면 아래 묶음 전체가 한 줄만큼 올라갔다. 사용자: "UI적으로 움직임이 있어서 불편함".
