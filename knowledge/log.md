@@ -73,3 +73,7 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-01 09:36 | W6 | create | ISS-0437 이슈·완료 리포트 (#774, PR 미머지)
 - 2026-11-01 09:36 | W6 | create | DEC-0232 설정 화면 모드 '기기 설정' 칸, 설명 줄 없음
 - 2026-11-01 14:10 | W6 | update | ISS-0437 이슈·완료 리포트 머지 상태 갱신 (PR #775)
+- 2026-11-01 20:26 | W6 | create | ISS-0438 이슈·완료 리포트 (#776, PR #777 미머지)
+- 2026-11-01 20:26 | W6 | create | DEC-0233 스토어 이미지 토큰 스타일(DEC-0169 대체), DEC-0234 이미지 PRO 표시 없음
+- 2026-11-01 20:26 | W6 | update | DEC-0169 superseded, cluster-store-release 갱신
+- 2026-11-01 20:26 | W6 | update | cluster-store-release members 53 (check W10)
