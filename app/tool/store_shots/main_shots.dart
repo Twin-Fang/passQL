@@ -340,10 +340,10 @@ final _latestTrendQuestionTotal = _latestTrendTopics.fold<int>(
 
 Map<String, dynamic> _examTrendReport() => {
   'title': '2026 SQLD 출제 경향',
-  'basisDescription': '제58~62회 복원 기출과 수험생 후기·오픈채팅 분석',
+  'basisDescription': '최근 회차 복원 기출 분석',
   'updatedDate': '2026-10-20',
   'summary':
-      '짧은 쿼리에 NULL 함정을 숨기고 결과를 따라가게 하는 문제가 중심이에요. 62회는 쉬웠다는 말이 많았지만 합격률은 낮았어요.',
+      '짧은 쿼리에 NULL 함정을 숨기고 결과를 따라가게 하는 문제가 중심이에요.',
   'latestTrendQuestionCount': _latestTrendQuestionTotal,
   'subjectShares': [
     {
