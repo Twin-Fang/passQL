@@ -113,8 +113,10 @@ def render_single(target_name: str, target: dict, scene: dict) -> list[Path]:
     shot = SOURCE_DIR / scene["shot"]
     aspect = read_aspect(shot)
     # 문구는 scenes.json 의 신뢰된 값 — headline 은 <br> 그대로, 키워드는 이스케이프
-    page = fill_template("template.html", {
+    is_diagonal = scene["kind"] == "diagonal"
+    page = fill_template("diagonal_template.html" if is_diagonal else "template.html", {
         "width": str(target["width"]), "height": str(target["height"]),
+        "shot_light": (SOURCE_DIR / scene["shot_light"]).as_uri() if is_diagonal else "",
         "font_dir": FONT_DIR.as_uri(), "shot": shot.as_uri(), "shot_aspect": f"{aspect:.6f}",
         "shot_offset": str(shot_offset(target, scene.get("align", "top"), aspect)),
         "keyword": html.escape(scene["keyword"]),
