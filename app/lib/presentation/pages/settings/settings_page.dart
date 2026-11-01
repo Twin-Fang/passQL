@@ -10,6 +10,7 @@ import '../../../data/models/legal/legal_models.dart';
 import '../../design/design.dart';
 import '../../providers/app_config_providers.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/notification_preference_providers.dart';
 import '../../providers/settings_providers.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/settings/business_info_group.dart';
@@ -80,6 +81,9 @@ class SettingsPage extends ConsumerWidget {
     final data = settingsAsync.valueOrNull;
     // 앱 버전 원본은 시작 게이트와 같은 Provider (회원 API 실패와 무관하게 표시)
     final appVersion = ref.watch(currentAppVersionProvider).valueOrNull;
+    // 알림 종류 줄은 설정을 읽었을 때만 묶음에 넣는다. 빈 줄을 넣으면 그 앞에 구분선이 남는다 (#774)
+    final hasNotificationPreference =
+        ref.watch(notificationPreferenceProvider).valueOrNull != null;
 
     return Scaffold(
       body: PassqlLargeTitleScrollView(
@@ -100,6 +104,7 @@ class SettingsPage extends ConsumerWidget {
                 const SizedBox(height: PassqlSpacing.xl),
                 SettingsGroup(
                   title: '알림',
+                  footer: notificationPreferenceFooter(ref),
                   children: [
                     // 알림함 안에 공지 탭이 있어 한 행으로 둘 다 안내
                     SettingsRow(
@@ -108,7 +113,9 @@ class SettingsPage extends ConsumerWidget {
                       onTap: () => context.push(AppRoutes.notificationInbox),
                     ),
                     const PushNotificationTile(),
-                    const NotificationPreferenceTiles(),
+                    if (hasNotificationPreference)
+                      for (final spec in notificationPreferenceRows)
+                        NotificationPreferenceTile(spec: spec),
                   ],
                 ),
                 const SizedBox(height: PassqlSpacing.xl),
@@ -165,6 +172,7 @@ class SettingsPage extends ConsumerWidget {
                 const SizedBox(height: PassqlSpacing.xl),
                 // 사업자 정보 (#658, 값 없으면 간격까지 숨김)
                 const BusinessInfoGroup(),
+                // 계정 작업은 한 묶음, 되돌릴 수 없는 탈퇴는 맨 아래 (#774)
                 SettingsGroup(
                   children: [
                     SettingsRow(
@@ -173,12 +181,7 @@ class SettingsPage extends ConsumerWidget {
                       shouldShowChevron: false,
                       onTap: () => _confirmSignOut(context, ref),
                     ),
-                  ],
-                ),
-                const SizedBox(height: PassqlSpacing.xl),
-                // 회원 탈퇴 (스토어 심사 필수)
-                SettingsGroup(
-                  children: [
+                    // 회원 탈퇴 (스토어 심사 필수)
                     SettingsRow(
                       icon: CupertinoIcons.person_crop_circle_badge_xmark,
                       title: '회원 탈퇴',

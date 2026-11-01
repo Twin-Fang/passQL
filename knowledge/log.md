@@ -69,3 +69,7 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-10-31 21:28 | W6 | check W10 수정: members dev-workflow 68, question-bank 74, ai 99, design-system 118 | cluster-dev-workflow, cluster-question-bank, cluster-ai, cluster-design-system
 - 2026-10-31 23:49 | W6 | #772 이슈 지식화(리포트 전, open), 결정 3건(W4: DEC-0222·DEC-0116·DEC-0136과 충돌 없음), design-system 클러스터 갱신(members 122) | ISS-0436, DEC-0229, DEC-0230, DEC-0231, cluster-design-system
 - 2026-11-01 00:14 | W6 | #772 완료 리포트 지식화(리포트 댓글 6545221166, PR #773 미머지), ISS-0436 resolved, design-system 클러스터 갱신 | ISS-0436, cluster-design-system
+- 2026-11-01 00:26 | W6 | update | ISS-0436 이슈·완료 리포트 머지 상태 갱신 (PR #773 머지 95514249)
+- 2026-11-01 09:36 | W6 | create | ISS-0437 이슈·완료 리포트 (#774, PR 미머지)
+- 2026-11-01 09:36 | W6 | create | DEC-0232 설정 화면 모드 '기기 설정' 칸, 설명 줄 없음
+- 2026-11-01 14:10 | W6 | update | ISS-0437 이슈·완료 리포트 머지 상태 갱신 (PR #775)

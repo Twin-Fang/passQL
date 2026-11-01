@@ -14,6 +14,7 @@
 // 앱 시작 설정 상황: echo maintenance > /tmp/passql_shot_app_config.txt
 //   (force_update | recommended_update | maintenance | notice, 없거나 그 외는 정상)
 // 알림함 상황: echo empty > /tmp/passql_shot_notifications.txt (없거나 그 외는 알림 4건·공지 3건, 안 읽은 일부)
+// 알림 종류 설정: echo none > /tmp/passql_shot_preferences.txt (설정 조회 실패, 없으면 학습 리마인더·시험 D-day 켜짐)
 // 알림 권한 안내 시트: echo show > /tmp/passql_shot_permission.txt (없으면 "나중에"를 고른 상태로 시작해 시트를 띄우지 않음)
 // Android 에뮬레이터(호스트 /tmp 못 읽음): --dart-define=SHOT_ROUTE=/stats 로 경로·연출 지정
 // 개념 전수 점검 (#577): echo concept-sweep > /tmp/passql_shot_route.txt (export_shot_concepts.py --all 데이터로 빌드, 결과 /tmp/passql_sweep)
@@ -93,6 +94,15 @@ String _readAppConfigScenario() {
 }
 
 final _appConfigScenario = _readAppConfigScenario();
+
+// 알림 종류 설정 상황: none 이면 설정 조회 실패 (없거나 그 외는 학습 리마인더·시험 D-day 켜짐)
+final _preferenceScenario = () {
+  try {
+    return File('/tmp/passql_shot_preferences.txt').readAsStringSync().trim();
+  } catch (_) {
+    return '';
+  }
+}();
 
 // 알림함 상황 (알림·공지 가짜 응답 선택)
 String _readNotificationScenario() {
@@ -630,6 +640,11 @@ Object? _respond(RequestOptions o) {
   }
   if (p.endsWith('/questions/recommendations')) {
     return {'questions': _questions.take(3).toList()};
+  }
+  // 알림 종류별 수신 설정 (none 이면 응답 없음 > 설정 화면에서 세 줄이 숨는 상황)
+  if (p.endsWith('/members/me/notifications/preferences')) {
+    if (_preferenceScenario == 'none') return null;
+    return {'isStudyReminderEnabled': true, 'isComebackEnabled': false, 'isExamCountdownEnabled': true};
   }
   if (p.endsWith('/members/me/notifications') || p.endsWith('/members/me/notifications/unread-count')) {
     return _respondNotifications(o);
