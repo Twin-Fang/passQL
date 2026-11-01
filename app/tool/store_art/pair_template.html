@@ -26,7 +26,7 @@
   .phone { position: absolute; left: calc(50% - var(--u) * 118); top: calc(var(--u) * 150); width: calc(var(--u) * 236);
            padding: calc(var(--u) * 6); background: var(--phone); border-radius: calc(var(--u) * 36); transform: rotate(22deg); }
   .screen { width: 100%; aspect-ratio: {{shot_aspect}}; border-radius: calc(var(--u) * 30);
-            background: #000 url("{{shot}}") top / 100% auto no-repeat; }
+            background: #000 url("{{shot}}") 0 -{{shot_offset}}px / 100% auto no-repeat; }
 </style>
 </head>
 <body>

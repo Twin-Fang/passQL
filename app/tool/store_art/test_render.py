@@ -8,7 +8,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 from PIL import Image
-from render import keyword_font_size, pair_crop_boxes
+from render import keyword_font_size, pair_crop_boxes, pair_shot_offset
 
 SCENES = HERE / "scenes.json"
 
@@ -44,6 +44,17 @@ def test_outputs_exist_with_exact_size():
     with Image.open(promo / "feature-graphic.png") as image:
         assert image.size == (1024, 500)
         assert image.mode == "RGB"
+
+
+def test_pair_shows_execute_result():
+    # s1_execute 의 "실행 성공" 카드는 캡처 높이 64% 지점에서 시작: 폰 위쪽 끝보다 아래에 있어야 보인다
+    targets = json.loads(SCENES.read_text(encoding="utf-8"))["targets"]
+    aspect = 1206 / 2622
+    for name, target in targets.items():
+        unit = target["width"] / 190
+        screen_height = unit * 224 / aspect
+        offset = pair_shot_offset(target, aspect)
+        assert 0 < offset <= screen_height * 0.64, (name, offset, screen_height)
 
 
 def test_root_readme_shows_all_scenes():

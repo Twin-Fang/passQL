@@ -85,6 +85,14 @@ def shot_offset(target: dict, align: str, aspect: float) -> int:
     return max(0, int(screen_height - visible_height))
 
 
+def pair_shot_offset(target: dict, aspect: float) -> int:
+    """이어지는 두 장의 폰: 실행 결과가 보이도록 캡처 아래쪽을 슬라이드 아래에 맞추는 양(px). 비율은 pair_template.html 의 폰 값과 같음"""
+    unit = target["width"] / 190
+    screen_height = unit * 224 / aspect
+    visible_height = target["height"] - unit * 156
+    return max(0, int(screen_height - visible_height))
+
+
 def render_pair(target_name: str, target: dict, scene: dict) -> list[Path]:
     """이어지는 두 장: 넓은 캔버스를 찍어 좌우로 잘라 저장"""
     width, height, gap = target["width"], target["height"], target["gap"]
@@ -93,6 +101,7 @@ def render_pair(target_name: str, target: dict, scene: dict) -> list[Path]:
     page = fill_template("pair_template.html", {
         "width": str(width), "height": str(height), "gap": str(gap), "canvas_width": str(canvas_width),
         "font_dir": FONT_DIR.as_uri(), "shot": shot.as_uri(), "shot_aspect": f"{read_aspect(shot):.6f}",
+        "shot_offset": str(pair_shot_offset(target, read_aspect(shot))),
         "keyword": html.escape(scene["keyword"]),
         "headline_left": scene["headlines"][0], "headline_right": scene["headlines"][1],
     })
