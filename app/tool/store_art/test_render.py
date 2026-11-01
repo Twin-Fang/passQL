@@ -46,6 +46,15 @@ def test_outputs_exist_with_exact_size():
         assert image.mode == "RGB"
 
 
+def test_root_readme_shows_all_scenes():
+    # 이미지만 바뀌고 표가 그대로면 설명이 어긋난다
+    readme = (HERE.parents[2] / "README.md").read_text(encoding="utf-8")
+    for number, alt in enumerate(("앱 하나로 SQLD", "직접 실행", "새 선택지", "AI 해설", "출제 경향", "내 실력", "개념", "함께 겨뤄요"), 1):
+        assert f'ios-6.3/{number:02d}.png" width="150" alt="' in readme, number
+        line = next(l for l in readme.splitlines() if f"ios-6.3/{number:02d}.png" in l)
+        assert alt in line, (number, line)
+
+
 if __name__ == "__main__":
     for name, test in sorted(globals().items()):
         if name.startswith("test_"):
