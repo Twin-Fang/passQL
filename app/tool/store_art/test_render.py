@@ -7,6 +7,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
+from PIL import Image
 from render import keyword_font_size, pair_crop_boxes
 
 SCENES = HERE / "scenes.json"
@@ -29,6 +30,20 @@ def test_keyword_fits_slide():
     for keyword in ("DISTINCT", "ORDER BY", "HAVING", "COUNT", "BEGIN", "RANK"):
         for width in (1206, 1320, 2160):
             assert keyword_font_size(keyword, width) * 0.6 * len(keyword) <= width
+
+
+def test_outputs_exist_with_exact_size():
+    config = json.loads(SCENES.read_text(encoding="utf-8"))
+    promo = HERE.parents[1] / "docs/store/promo"
+    for name, target in config["targets"].items():
+        for number in range(1, 9):
+            with Image.open(promo / name / f"{number:02d}.png") as image:
+                assert image.size == (target["width"], target["height"]), (name, number, image.size)
+                # 스토어는 알파 없는 이미지를 요구
+                assert image.mode == "RGB", (name, number, image.mode)
+    with Image.open(promo / "feature-graphic.png") as image:
+        assert image.size == (1024, 500)
+        assert image.mode == "RGB"
 
 
 if __name__ == "__main__":

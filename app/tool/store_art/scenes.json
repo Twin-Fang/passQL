@@ -24,10 +24,10 @@
   },
   "wide": {
     "app_name": "passQL",
-    "headline": "책 없이,<br><em>앱 하나로 SQLD</em>",
-    "sub": "최신 출제 경향 · SQL 직접 실행 · AI 해설",
-    "front": "01_home.png",
-    "back": "04_execute.png"
+    "headline": "책 없이,<br>앱 하나로 SQLD",
+    "keyword": "SELECT",
+    "front": "s1_execute.png",
+    "back": "s5_trend.png"
   },
   "scenes": [
     {
@@ -41,22 +41,22 @@
         "책 없이,<br>앱 하나로 SQLD",
         "보기 SQL을<br>직접 실행해 봐요"
       ],
-      "shot": "04_execute.png"
+      "shot": "s1_execute.png"
     },
     {
       "id": "03",
       "kind": "single",
       "keyword": "DISTINCT",
       "headline": "답 외우기는 그만,<br>매번 새 선택지",
-      "shot": "02_questions.png",
-      "align": "top"
+      "shot": "s3_real_mode.png",
+      "align": "bottom"
     },
     {
       "id": "04",
       "kind": "single",
       "keyword": "HAVING",
       "headline": "틀린 이유,<br>AI가 바로 짚어 줘요",
-      "shot": "05_ai.png",
+      "shot": "s4_ai.png",
       "align": "bottom"
     },
     {
@@ -64,7 +64,7 @@
       "kind": "single",
       "keyword": "ORDER BY",
       "headline": "요즘 시험 유형,<br>그대로 담았어요",
-      "shot": "03_trend.png",
+      "shot": "s5_trend.png",
       "align": "top"
     },
     {
@@ -72,7 +72,7 @@
       "kind": "single",
       "keyword": "COUNT",
       "headline": "내 실력,<br>숫자로 확인해요",
-      "shot": "06_stats.png",
+      "shot": "s6_stats.png",
       "align": "top"
     },
     {
@@ -80,16 +80,16 @@
       "kind": "diagonal",
       "keyword": "BEGIN",
       "headline": "개념은 핵심만,<br>바로 문제로",
-      "shot": "02_questions.png",
+      "shot": "s7_concept.png",
       "align": "top",
-      "shot_light": "02_questions.png"
+      "shot_light": "s7_concept_light.png"
     },
     {
       "id": "08",
       "kind": "single",
       "keyword": "RANK",
       "headline": "매일 같은 문제로<br>함께 겨뤄요",
-      "shot": "08_leader.png",
+      "shot": "s8_leader.png",
       "align": "top"
     }
   ]

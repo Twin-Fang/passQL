@@ -136,12 +136,12 @@ def render_scene(target_name: str, target: dict, scene: dict) -> list[Path]:
 
 
 def render_feature_graphic(wide: dict) -> Path:
-    """Play 그래픽 이미지: 로고·문구 + 휴대폰 2대 > feature-graphic.png"""
+    """Play 그래픽 이미지: 로고·문구·키워드 + 휴대폰 2대 > feature-graphic.png"""
     width, height = FEATURE_GRAPHIC_SIZE
     page = fill_template("wide_template.html", {
         "width": str(width), "height": str(height), "font_dir": FONT_DIR.as_uri(),
         "logo": LOGO.as_uri(), "app_name": html.escape(wide["app_name"]),
-        "headline": wide["headline"], "sub": html.escape(wide["sub"]),
+        "headline": wide["headline"], "keyword": html.escape(wide["keyword"]),
         "shot_front": (SOURCE_DIR / wide["front"]).as_uri(),
         "shot_back": (SOURCE_DIR / wide["back"]).as_uri(),
         "shot_aspect": f"{read_aspect(SOURCE_DIR / wide['front']):.6f}",
