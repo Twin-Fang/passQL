@@ -1,0 +1,38 @@
+"""render.py 계산 검사: python3 -I app/tool/store_art/test_render.py"""
+
+import json
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+
+from render import keyword_font_size, pair_crop_boxes
+
+SCENES = HERE / "scenes.json"
+
+
+def test_pair_crop_boxes():
+    assert pair_crop_boxes(1320, 2868, 40) == ((0, 0, 1320, 2868), (1360, 0, 2680, 2868))
+    assert pair_crop_boxes(2160, 3840, 128) == ((0, 0, 2160, 3840), (2288, 0, 4448, 3840))
+
+
+def test_target_gaps():
+    targets = json.loads(SCENES.read_text(encoding="utf-8"))["targets"]
+    assert {name: t["gap"] for name, t in targets.items()} == {
+        "ios-6.9": 40, "ios-6.5": 39, "ios-6.3": 37, "android-phone": 128}
+    assert (targets["android-phone"]["width"], targets["android-phone"]["height"]) == (2160, 3840)
+
+
+def test_keyword_fits_slide():
+    # JetBrains Mono 글자 폭 0.6em: 슬라이드 안에 들어와야 안 잘림
+    for keyword in ("DISTINCT", "ORDER BY", "HAVING", "COUNT", "BEGIN", "RANK"):
+        for width in (1206, 1320, 2160):
+            assert keyword_font_size(keyword, width) * 0.6 * len(keyword) <= width
+
+
+if __name__ == "__main__":
+    for name, test in sorted(globals().items()):
+        if name.startswith("test_"):
+            test()
+            print(f"ok {name}")
