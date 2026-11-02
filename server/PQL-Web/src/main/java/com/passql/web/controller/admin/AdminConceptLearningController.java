@@ -69,7 +69,7 @@ public class AdminConceptLearningController {
     @PutMapping("/{conceptUuid}/status")
     @ResponseBody
     public ResponseEntity<Void> changeStatus(@PathVariable UUID conceptUuid, @RequestBody Map<String, String> body) {
-        conceptAdminService.changePublishStatus(conceptUuid, ConceptPublishStatus.valueOf(body.get("status")));
+        conceptAdminService.changePublishStatus(conceptUuid, ConceptPublishStatus.fromRequestValue(body.get("status")));
         return ResponseEntity.ok().build();
     }
 

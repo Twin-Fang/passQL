@@ -35,15 +35,15 @@ async def lifespan(app: FastAPI):
     애플리케이션 수명주기: 시작 시 공유 HTTP 클라이언트 생성, 종료 시 HTTP·Redis 연결 정리
     """
     # ========== 시작 단계 ==========
-    logger.info("=== passQL AI 서버 시작: 초기화 중 ===")
+    logger.info("[lifespan] passQL AI server starting : initializing")
     open_shared_http_client()
 
-    logger.info("=== passQL AI 서버 준비 완료 ===")
+    logger.info("[lifespan] passQL AI server ready")
 
     yield  # 애플리케이션 실행
 
     # ========== 종료 단계 ==========
-    logger.info("=== passQL AI 서버 종료 중 ===")
+    logger.info("[lifespan] passQL AI server shutting down")
     await close_shared_http_client()
     await close_redis_client()
 
@@ -77,7 +77,7 @@ async def add_process_time_header(request: Request, call_next):
 
     # 로깅
     logger.info(
-        f"요청 처리 완료: {request.method} {request.url.path} - {process_time:.4f}초"
+        f"[request] completed : {request.method} {request.url.path} - {process_time:.4f}s"
     )
 
     return response

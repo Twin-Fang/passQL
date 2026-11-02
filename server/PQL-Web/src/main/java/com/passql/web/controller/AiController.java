@@ -7,6 +7,9 @@ import com.passql.ai.dto.AiResult;
 import com.passql.ai.dto.SimilarQuestion;
 import com.passql.application.service.AiExplainService;
 import com.passql.application.service.RecommendationService;
+import com.passql.common.exception.CustomException;
+import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.UuidUtils;
 import com.passql.question.dto.explanation.ChoiceExplanationResponse;
 import com.passql.member.auth.presentation.annotation.AuthMember;
 import com.passql.member.auth.presentation.security.LoginMember;
@@ -36,7 +39,7 @@ public class AiController implements AiControllerDocs {
         @AuthMember LoginMember loginMember,
         @RequestBody Map<String, Object> body
     ) {
-        UUID questionUuid = UUID.fromString(body.get("questionUuid").toString());
+        UUID questionUuid = parseQuestionUuid(body.get("questionUuid"));
         String sql = (String) body.get("sql");
         String errorMessage = (String) body.get("errorMessage");
         return ResponseEntity.ok(aiExplainService.explainError(loginMember.memberUuid(), questionUuid, sql, errorMessage));
@@ -48,7 +51,7 @@ public class AiController implements AiControllerDocs {
         @AuthMember LoginMember loginMember,
         @RequestBody Map<String, Object> body
     ) {
-        UUID questionUuid = UUID.fromString(body.get("questionUuid").toString());
+        UUID questionUuid = parseQuestionUuid(body.get("questionUuid"));
         String selectedChoiceKey = (String) body.get("selectedChoiceKey");
         return ResponseEntity.ok(aiExplainService.diffExplain(loginMember.memberUuid(), questionUuid, selectedChoiceKey));
     }
@@ -72,5 +75,11 @@ public class AiController implements AiControllerDocs {
         @RequestParam(defaultValue = "5") int k
     ) {
         return ResponseEntity.ok(recommendationService.findSimilar(questionUuid, k));
+    }
+
+    /** 요청 본문 questionUuid > UUID (누락·형식 오류 > INVALID_INPUT_VALUE) */
+    private static UUID parseQuestionUuid(Object questionUuidValue) {
+        return UuidUtils.parseOrEmpty(questionUuidValue == null ? null : questionUuidValue.toString())
+            .orElseThrow(() -> new CustomException(ErrorCode.INVALID_INPUT_VALUE, "questionUuid"));
     }
 }

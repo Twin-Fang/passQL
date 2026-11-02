@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/logging/app_logger.dart';
 import '../../core/network/api_call.dart';
 import '../../data/models/meta/app_config.dart';
 import '../../data/models/notification/notification_models.dart';
@@ -84,7 +85,7 @@ class NotificationInboxNotifier
         ),
       );
     } catch (error) {
-      debugPrint('[notification inbox] load more failed : $error');
+      AppLogger.warn('notification inbox', 'load more failed : $error');
       state = AsyncData(current.copyWith(isLoadingMore: false));
     }
   }
@@ -106,7 +107,7 @@ class NotificationInboxNotifier
           .read(notificationApiProvider)
           .markRead(notificationId, arg.serverValue);
     } catch (error) {
-      debugPrint('[notification inbox] mark read failed : $error');
+      AppLogger.warn('notification inbox', 'mark read failed : $error');
     }
     await ref.read(unreadNotificationCountProvider.notifier).refresh();
   }

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../core/logging/app_logger.dart';
 import '../../core/storage/device_preferences.dart';
 import '../../core/storage/storage_keys.dart';
 import '../../core/utils/app_version.dart';
@@ -99,7 +100,7 @@ final appConfigProvider = FutureProvider<AppConfig?>((ref) async {
         .timeout(_appConfigTimeout);
   } catch (error) {
     // 공개 API 라 인증 만료가 없음 > 모든 실패를 "설정 없음"으로 처리
-    debugPrint('[app config] fetch failed, launch without gate : $error');
+    AppLogger.warn('app config', 'fetch failed, launch without gate : $error');
     return null;
   }
 });

@@ -62,7 +62,7 @@ class QdrantSearchClient:
             passthrough_status_codes=(NOT_FOUND_STATUS_CODE,),
         )
         if check_response.status_code != NOT_FOUND_STATUS_CODE:
-            logger.info(f"Qdrant 컬렉션 이미 존재: {collection}")
+            logger.info(f"[qdrant] collection already exists : {collection}")
             return False
 
         # 컬렉션 없음 > 생성
@@ -76,7 +76,7 @@ class QdrantSearchClient:
             "Qdrant create_collection", "PUT", collection_url,
             headers=self._headers(), json_body=body, timeout_seconds=self.timeout,
         )
-        logger.info(f"Qdrant 컬렉션 생성 완료: {collection}, dim={vector_size}")
+        logger.info(f"[qdrant] collection created : {collection}, dim={vector_size}")
         return True
 
     async def get_vector(
@@ -147,14 +147,14 @@ class QdrantSearchClient:
                 ]
             }
 
-        logger.info(f"Qdrant search: collection={collection}, top_k={top_k}, vector_dim={len(vector)}, must_not_count={len(must_not_ids) if must_not_ids else 0}")
+        logger.info(f"[qdrant] search : collection={collection}, top_k={top_k}, vector_dim={len(vector)}, must_not_count={len(must_not_ids) if must_not_ids else 0}")
 
         response = await send_request(
             "Qdrant search", "POST", url,
             headers=self._headers(), json_body=payload, timeout_seconds=self.timeout,
         )
         results = response.json().get("result", [])
-        logger.info(f"Qdrant search 완료: 결과 수={len(results)}")
+        logger.info(f"[qdrant] search completed : result_count={len(results)}")
         return results
 
     async def get_collection_info(self, collection: str) -> dict:
@@ -172,14 +172,14 @@ class QdrantSearchClient:
             CustomError: API 호출 실패 시
         """
         url = f"{self.base_url}/collections/{collection}"
-        logger.debug(f"[qdrant] get_collection_info 요청: url={url}")
+        logger.debug(f"[qdrant] get_collection_info request : url={url}")
         response = await send_request(
             "Qdrant get_collection_info", "GET", url,
             headers=self._headers(), timeout_seconds=self.timeout,
             passthrough_status_codes=(NOT_FOUND_STATUS_CODE,),
         )
         if response.status_code == NOT_FOUND_STATUS_CODE:
-            logger.info(f"[qdrant] 컬렉션 없음: {collection}")
+            logger.info(f"[qdrant] collection not found : {collection}")
             return {"points_count": 0, "vector_size": 0, "status": "not_found"}
 
         result = response.json().get("result", {})
@@ -191,7 +191,7 @@ class QdrantSearchClient:
         status = result.get("status", "unknown")
 
         logger.debug(
-            f"[qdrant] get_collection_info 응답: collection={collection}, "
+            f"[qdrant] get_collection_info response : collection={collection}, "
             f"points_count={points_count}, vector_size={vector_size}, status={status}"
         )
         return {"points_count": points_count, "vector_size": vector_size, "status": status}
@@ -217,7 +217,7 @@ class QdrantSearchClient:
         offset = None
         page = 0
 
-        logger.info(f"[qdrant] scroll_all_ids 시작: collection={collection}")
+        logger.info(f"[qdrant] scroll_all_ids started : collection={collection}")
 
         # 페이지 단위 수집 (next_page_offset 없을 때까지)
         while True:
@@ -235,7 +235,7 @@ class QdrantSearchClient:
                 passthrough_status_codes=(NOT_FOUND_STATUS_CODE,),
             )
             if response.status_code == NOT_FOUND_STATUS_CODE:
-                logger.info("[qdrant] scroll_all_ids: 컬렉션 없음 — 빈 목록 반환")
+                logger.info("[qdrant] scroll_all_ids : collection not found, returning empty list")
                 return []
 
             result = response.json().get("result", {})
@@ -255,7 +255,7 @@ class QdrantSearchClient:
                 break
             offset = next_offset
 
-        logger.info(f"[qdrant] scroll_all_ids 완료: collection={collection}, total={len(all_ids)}")
+        logger.info(f"[qdrant] scroll_all_ids completed : collection={collection}, total={len(all_ids)}")
         return all_ids
 
     async def upsert(
@@ -289,13 +289,13 @@ class QdrantSearchClient:
             ]
         }
 
-        logger.info(f"Qdrant upsert: collection={collection}, id={point_id}, vector_dim={len(vector)}")
+        logger.info(f"[qdrant] upsert : collection={collection}, id={point_id}, vector_dim={len(vector)}")
 
         await send_request(
             "Qdrant upsert", "PUT", url,
             headers=self._headers(), json_body=body, timeout_seconds=self.timeout,
         )
-        logger.info(f"Qdrant upsert 완료: id={point_id}")
+        logger.info(f"[qdrant] upsert completed : id={point_id}")
 
     async def delete_points(self, collection: str, point_ids: list[str]) -> None:
         """
@@ -311,7 +311,7 @@ class QdrantSearchClient:
             "Qdrant delete_points", "POST", url,
             headers=self._headers(), json_body={"points": point_ids}, timeout_seconds=self.timeout,
         )
-        logger.info(f"[qdrant] delete_points 완료: collection={collection}, count={len(point_ids)}")
+        logger.info(f"[qdrant] delete_points completed : collection={collection}, count={len(point_ids)}")
 
 # 싱글턴 인스턴스
 qdrant_search_client = QdrantSearchClient()

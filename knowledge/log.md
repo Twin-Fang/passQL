@@ -81,3 +81,5 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-01 22:55 | W6 | create | DEC-0235 스토어 이미지 SQL 키워드 제거 (DEC-0233 대체)
 - 2026-11-01 22:55 | W6 | update | DEC-0233 superseded, cluster-store-release 갱신
 - 2026-11-01 22:50 | W6 | update | cluster-store-release members 55 (check W10)
+- 2026-11-02 14:43 | W6 | create issue+completion-report (GitHub #789) | ISS-0440
+- 2026-11-02 14:43 | W6 | create decision (raw exception message blocked at handler) | DEC-0236

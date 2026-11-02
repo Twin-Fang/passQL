@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/logging/app_logger.dart';
 import '../../data/models/notification/notification_models.dart';
 import '../../data/sources/api_providers.dart';
 import 'session_reset.dart';
@@ -36,7 +36,7 @@ class UnreadNotificationCountNotifier
       final count = await ref.read(notificationApiProvider).getUnreadCount();
       if (!_isDisposed) state = count;
     } catch (error) {
-      debugPrint('[notification unread] refresh failed : $error');
+      AppLogger.warn('notification unread', 'refresh failed : $error');
     }
   }
 }

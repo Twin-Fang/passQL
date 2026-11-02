@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
+import '../logging/app_logger.dart';
+
 /// 조회(GET) 요청 연결 실패 시 1회 재시도: 순간 끊김(엘리베이터·망 전환)으로 화면이 오류가 되지 않게
 /// 대상 오류 2개: 연결 실패, 연결 시간 초과 (응답 대기 초과는 대기만 두 배가 되어 제외)
 /// 그 외 메서드(POST 제출 등)는 중복 실행 위험이 있어 재시도하지 않음
@@ -41,8 +43,9 @@ class GetRetryInterceptor extends Interceptor {
     if (!isRetryable(err)) return handler.next(err);
 
     final retryOptions = err.requestOptions..extra[_retriedExtraKey] = true;
-    debugPrint(
-      '[network retry] GET ${retryOptions.path} after ${err.type.name}',
+    AppLogger.warn(
+      'network retry',
+      'GET ${retryOptions.path} after ${err.type.name}',
     );
     await Future<void>.delayed(retryDelay);
     try {

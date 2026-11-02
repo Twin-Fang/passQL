@@ -16,10 +16,10 @@ import SettingsRow from "../components/SettingsRow";
 import SubpageLayout from "../components/SubpageLayout";
 import LegalModal from "../components/LegalModal";
 import { useBusinessInfoLines } from "../hooks/useBusinessInfoLines";
-import { LEGAL_TITLE, type LegalType } from "../api/legal";
+import { LEGAL_TITLE } from "../api/legal";
 import { IS_GOOGLE_PLAY_PUBLIC } from "../constants/appStoreRelease";
 import { useMember, useUpdateChoiceGenerationMode } from "../hooks/useMember";
-import type { ChoiceGenerationMode } from "../types/api";
+import type { ChoiceGenerationMode, LegalType } from "../types/api";
 
 // 탈퇴 중단 사유 > 안내 문구 (Apple 연결 해제 실패·취소, Apple·Google 계정 불일치)
 const WITHDRAW_STOPPED_MESSAGE: Readonly<Record<Exclude<SocialRevokeResult, "READY_TO_WITHDRAW">, string>> = {

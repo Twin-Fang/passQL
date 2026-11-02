@@ -131,7 +131,7 @@ public class MetaService {
     @Transactional
     public ConceptDoc createDoc(String tagKey, String title, String bodyMd) {
         ConceptTag tag = conceptTagRepository.findByTagKey(tagKey)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 tagKey: " + tagKey));
+                .orElseThrow(() -> new CustomException(ErrorCode.CONCEPT_NOT_FOUND, "tagKey=" + tagKey));
         ConceptDoc doc = ConceptDoc.builder()
                 .conceptTagUuid(tag.getConceptTagUuid())
                 .title(title)
@@ -278,7 +278,7 @@ public class MetaService {
     @Transactional
     public void updateDocBody(UUID conceptDocUuid, String bodyMd) {
         ConceptDoc doc = conceptDocRepository.findById(conceptDocUuid)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 ConceptDoc: " + conceptDocUuid));
+                .orElseThrow(() -> new CustomException(ErrorCode.CONCEPT_NOT_FOUND, "conceptDocUuid=" + conceptDocUuid));
         Map<String, Object> before = AdminAuditEvent.summary("bodyMd", doc.getBodyMd());
         doc.setBodyMd(bodyMd);
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.CONCEPT_DOC, conceptDocUuid,

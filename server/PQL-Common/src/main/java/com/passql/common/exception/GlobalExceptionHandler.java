@@ -3,6 +3,7 @@ package com.passql.common.exception;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.LogValueSanitizer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -39,6 +40,9 @@ public class GlobalExceptionHandler {
     // 처리되지 않은 예외 응답 문구 (내부 메시지 노출 방지용 고정값)
     private static final String UNHANDLED_EXCEPTION_MESSAGE = "서버 내부 오류가 발생했습니다";
 
+    // 로그에 남기는 예외 원문 최대 길이 (문자 수)
+    private static final int LOG_EXCEPTION_MESSAGE_MAX_LENGTH = 200;
+
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ErrorResponse> handleCustomException(CustomException e, HttpServletRequest request) {
         String errorCode = e.getErrorCode() != null ? e.getErrorCode().name() : null;
@@ -57,8 +61,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
         IllegalArgumentException e, HttpServletRequest request) {
-        log.warn("IllegalArgumentException 발생: path={}, message={}", request.getRequestURI(), e.getMessage());
-        return toResponse(ErrorCode.ILLEGAL_ARGUMENT, e.getMessage());
+        // JDK·라이브러리 원문(enum 클래스명, 잘못된 UUID 등)은 로그로만, 응답은 ErrorCode 기본 문구
+        log.warn("[exception handler] IllegalArgumentException : path={}, message={}",
+            request.getRequestURI(), LogValueSanitizer.toLogSafeText(e.getMessage(), LOG_EXCEPTION_MESSAGE_MAX_LENGTH));
+        return toResponse(ErrorCode.ILLEGAL_ARGUMENT);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

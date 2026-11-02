@@ -22,6 +22,8 @@ lib/presentation/design/
 │   ├── passql_radius.dart      # PassqlRadius: 모서리
 │   ├── passql_size.dart        # PassqlSize: 버튼·바·행 높이, 터치 영역, 로딩 반지름 등
 │   ├── passql_icon_size.dart   # PassqlIconSize: 아이콘 크기 단계
+│   ├── passql_opacity.dart     # PassqlOpacity: 토큰 색 위 투명도 단계 (화면에서 alpha 숫자 금지)
+│   ├── passql_social_brand_colors.dart # PassqlSocialBrandColors: 소셜 로그인 버튼 브랜드 고정색
 │   └── passql_motion.dart      # PassqlMotion: 애니메이션 시간·곡선
 └── components/                 # 3번 이상 쓰이는 UI (파일명 = 주된 타입명)
 ```
@@ -31,6 +33,7 @@ lib/presentation/design/
 | 색 이름과 라이트/다크 값 | `lib/presentation/design/tokens/passql_colors.dart` |
 | 글자 크기·굵기·줄 높이 | `lib/presentation/design/tokens/passql_typography.dart` |
 | 간격·모서리·크기·아이콘 크기 | `tokens/passql_spacing.dart`, `passql_radius.dart`, `passql_size.dart`, `passql_icon_size.dart` |
+| 색 위 투명도 | `tokens/passql_opacity.dart` (`withValues(alpha: PassqlOpacity.*)`) |
 | 다크 판정 | `passql_theme.dart` 의 `context.isDark` (다른 방법으로 판정하지 않는다) |
 | 화면 배경색 | 테마(`scaffoldBackgroundColor`)가 정함. `Scaffold(backgroundColor:)` 로 같은 값을 다시 넣지 않는다 |
 | 글 속 인라인 코드 크기 | `PassqlTypography.inlineCodeOf(주변 스타일)` |
@@ -78,6 +81,8 @@ lib/presentation/design/
 | `PassqlPopIn` | 톡 튀어나오는 등장 (반짝이, 결과 마크) |
 | `PassqlAiHeader` | AI 내용 머리: 반짝이 팝 + 제목 미끄러짐 |
 | `PassqlLogo` | 라이트/다크 워드마크 |
+| `PassqlCountBadge` | 안 읽은 개수 배지: 한 자리 원형, 두 자리 이상 가로 알약, 상한 넘으면 `99+`, 높이 `PassqlSize.notificationBadge` 고정 |
+| `PassqlKeepAllText` | 단어 중간 줄바꿈 방지 글자(좁은 카드·시트 문장), 스크린리더는 원문 |
 | `PassqlNotificationBellButton` | 홈 상단 종 아이콘(강조색) + 안 읽은 개수 배지(빨강 `countBadge`, 10 이상 9+, #756). 알림함 진입은 이 버튼으로만 (규칙 테스트) |
 | `PassqlLockedPreview` | 잠긴 기능 묶음: 흐린 가짜 미리보기 + 가운데 한 줄 + 알약 `이용권으로 열기`, 영역 전체 탭 > `onUnlock` (#576). 프로 안내 시트는 `widgets/pro/pro_offer_sheet.dart` 의 `showProOfferSheet` |
 | `PassqlPassTicket` (+`PassqlPassTicketTier`, `PassqlPassTicketField`) / `PassqlPassUsageGauge` | passQL PASS 탑승권 (#749): 본문(제목·경로·정보 칸·혜택 아이콘·footer) + 절취선 + 떼는 칸. 무료 회색·프로 그라데이션, 빛줄기·홀로그램·기울기 선택, 동작 줄이기면 효과 정지. 사용량 게이지는 빛이 지나감. 내 프로필·이용권 구매 시트·정보 시트가 쓴다 |
@@ -90,7 +95,8 @@ lib/presentation/design/
 화면(`lib/presentation/pages`, `widgets`, `flows`)은 토큰과 컴포넌트만 조합한다.
 
 - 색은 `context.passqlColors` 의 의미 이름으로만 고른다. `Color(0x...)`, `Colors.white/black` 금지
-- 읽는 글자색: 강조 글자는 `accentText`(accent 는 채움·테두리), 주황 글자는 `warningText`, 진한 의미색 채움 위 글자는 `onSemantic`, 보조 글자는 `secondaryLabel`. `tertiaryLabel` 은 비활성·장식(쉐브론) 전용, 기능 아이콘은 `iconSecondary`. 대비 기준(글자 4.5·아이콘 3, 라이트·다크)은 `test/design/passql_contrast_test.dart` 가 검사
+- 읽는 글자색: 강조 글자는 `accentText`(accent 는 채움·테두리), 주황 글자는 `warningText`, 진한 의미색 채움 위 글자는 `onSemantic`, 보조 글자는 `secondaryLabel`. `tertiaryLabel` 은 비활성·장식(쉐브론) 전용, 기능 아이콘은 `iconSecondary`. 대비 기준(글자 4.5·아이콘 3, 라이트·다크)을 검사하는 테스트는 지금 없음 (#680 에서 삭제) > 새 색 조합은 직접 확인
+- 투명도는 `PassqlOpacity` 토큰으로 (`withValues(alpha: 0.2)` 같은 숫자 금지, 규칙 테스트 없음)
 - 간격·크기·글자는 토큰으로. 필요한 토큰이 없으면 토큰을 먼저 추가하고, 한 파일에서만 쓰는 배치 숫자는 이름 있는 상수로 둔다
 - 자산은 컴포넌트로(`PassqlLogo`). `Image.asset(` 금지
 - 흐림(`ImageFilter.blur(`)은 `PassqlLockedPreview`·`PassqlGlass` 로만. 화면 직접 사용 금지
@@ -107,4 +113,4 @@ lib/presentation/design/
 - 같은 UI 가 3곳째 생기면 `components/` 에 `passql_<이름>.dart` 로 만들고 `design.dart` 에 export 한다
 - 파일 하나에 주된 타입 하나, 파일명 = 타입명. boolean 속성은 `is/has/can/should` 로 시작
 - 색·크기는 토큰에서 가져온다. 컴포넌트 안에서만 쓰는 규격 숫자는 이름 있는 상수 + 한 줄 주석
-- 라이트·다크 양쪽에서 확인한다 (`test/design/dark_smoke_test.dart` 참고)
+- 라이트·다크 양쪽에서 확인한다 (다크 스모크 테스트는 #680 에서 삭제되어 지금 자동 검사 없음 > 시뮬레이터에서 직접 확인)

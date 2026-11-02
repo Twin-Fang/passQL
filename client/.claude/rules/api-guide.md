@@ -46,7 +46,7 @@ Frontend ──(/api)──> Backend(Spring) ──(x-api-key)──> AI Server(
 - 오늘의 문제는 `/daily-set/today`(`src/api/dailySet.ts`) 를 쓴다. 서버에 `/questions/today` 는 없다.
 - `fetchRecommendations`: 활성 문제 풀에서 랜덤 N개 반환. size 기본 3, 최대 5. 제외 UUID 가 쿼리스트링 한도를 넘지 않게 POST body 로 보낸다.
 - `submitAnswer`: body `choiceSetId`(UUID, 필수) + `selectedChoiceKey` + `sessionUuid`. 응답 `SubmitResult`에 `selectedResult`/`correctResult`(ExecuteResult), `correctSql`/`selectedSql` — EXECUTABLE 문제에서 양쪽 SQL 실행 결과 비교 가능.
-- `generateChoices`: AI가 4지선다 선택지를 실시간 SSE 스트림으로 생성. 이벤트 타입: `status`(generating/validating), `complete`(choiceSetId+choices), `error`. EventSource 는 헤더를 못 붙여 `fetch` 스트림으로 Bearer 토큰을 보낸다(`apiFetch` 예외 1곳).
+- `generateChoices`: AI가 4지선다 선택지를 실시간 SSE 스트림으로 생성. 이벤트 타입: `status`(generating/validating), `complete`(choiceSetId+choices), `error`. EventSource 는 헤더를 못 붙여 `fetch` 스트림으로 Bearer 토큰을 보낸다. `apiFetch` 예외는 2곳: 이 SSE(`src/api/questions.ts` `generateChoices`), 외부 Google 토큰 폐기(`src/lib/socialAccountRevoke.ts`, 백엔드 아님).
 
 ### AI (`src/api/ai.ts`)
 
@@ -172,7 +172,7 @@ Frontend ──(/api)──> Backend(Spring) ──(x-api-key)──> AI Server(
 
 1. **`apiFetch<T>()` 래퍼 필수** — `fetch()` 직접 호출 금지. `src/api/client.ts`의 래퍼가 타임아웃, Content-Type, 에러 변환을 처리함.
 2. **인증 헤더** — 직접 넣지 않는다. `apiFetch` 가 Bearer 토큰 주입·401 재발급을 처리한다. 토큰·저장 키는 `src/stores/authStore.ts` 한 곳(`localStorage` 직접 접근 금지).
-3. **응답·요청 타입** — 서버 계약에서 생성된 `src/types/generated/openapi.ts` 를 `src/types/api.ts` 에서 `export type X = ApiSchemas["X"]` 별칭으로만 노출한다. `api.ts` 에 `...Response`/`...Request` interface 를 손으로 쓰지 않는다(규칙 `client-no-handwritten-api-type`). 서버가 enum 을 String 으로 내보낸 필드만 `Omit<...> & { 필드: 유니온 }` 으로 좁히고, 생성본에 스키마가 없는 웹 전용(SSE 이벤트·제네릭 `Page<T>`·화면 상태)만 손타입으로 두며 이유를 한 줄 주석으로 남긴다.
+3. **응답·요청 타입** — 서버 계약에서 생성된 `src/types/generated/openapi.ts` 를 `src/types/api.ts` 에서 `export type X = ApiSchemas["X"]` 별칭으로만 노출한다. `types/api.ts`·`src/api/*.ts` 에 `...Response`/`...Request` interface 를 손으로 쓰지 않는다(규칙 `client-no-handwritten-api-type`). 엔드포인트 모듈은 `types/api.ts` 별칭을 import 해서 쓴다. 서버가 enum 을 String 으로 내보낸 필드만 `Omit<...> & { 필드: 유니온 }` 으로 좁히고, 생성본에 스키마가 없는 웹 전용(SSE 이벤트·제네릭 `Page<T>`·화면 상태)만 손타입으로 두며 이유를 한 줄 주석으로 남긴다.
 4. **파일 위치** — 도메인별 `src/api/{domain}.ts`. 새 도메인이면 새 파일 생성.
 5. **쿼리 파라미터** — `URLSearchParams`로 조립. optional 파라미터는 `!= null` 체크 후 set.
 6. **POST body** — `JSON.stringify()` 후 body에 전달. Content-Type은 client.ts가 자동 설정.

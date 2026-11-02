@@ -3,6 +3,7 @@ package com.passql.application.notification;
 import com.passql.common.util.ClientPageSize;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.UuidUtils;
 import com.passql.meta.dto.VisibleNoticeSummary;
 import com.passql.meta.service.AppNoticeService;
 import com.passql.member.constant.NotificationCategory;
@@ -219,11 +220,8 @@ public class MemberNotificationQueryService {
     }
 
     private static UUID parseUuid(String value) {
-        try {
-            return UUID.fromString(value);
-        } catch (IllegalArgumentException | NullPointerException e) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "notification id");
-        }
+        return UuidUtils.parseOrEmpty(value)
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_INPUT_VALUE, "notification id"));
     }
 
     /** 목록 커서: 마지막 항목의 (createdAt, uuid) */

@@ -9,6 +9,7 @@ from typing import Any
 from src.clients import llm_client
 from src.clients.llm_client import LlmResult
 from src.core.exceptions import CustomError, InvalidRequestError
+from src.core.external_call_limits import LOGGED_RESPONSE_TEXT_MAXIMUM_LENGTH
 from src.models.ai_request import (
     GenerateChoiceSetRequest,
     GenerateQuestionFullRequest,
@@ -25,13 +26,10 @@ from src.models.ai_response import (
 
 logger = logging.getLogger(__name__)
 
-# 스키마 위반 로그에 남길 AI 응답 최대 길이
-LOGGED_PAYLOAD_MAXIMUM_LENGTH = 500
-
 
 def _truncate_payload_for_log(payload: Any) -> str:
-    """AI 응답 dict > 로그용 문자열 (LOGGED_PAYLOAD_MAXIMUM_LENGTH 자 제한)"""
-    return str(payload)[:LOGGED_PAYLOAD_MAXIMUM_LENGTH]
+    """AI 응답 dict > 로그용 문자열 (LOGGED_RESPONSE_TEXT_MAXIMUM_LENGTH 자 제한)"""
+    return str(payload)[:LOGGED_RESPONSE_TEXT_MAXIMUM_LENGTH]
 
 
 class QuestionGenerationService:
@@ -99,7 +97,7 @@ class QuestionGenerationService:
             raw_choices = payload["seed_choices"]
             seed_choices = [GeneratedChoice(**c) for c in raw_choices]
         except (KeyError, TypeError, ValueError) as e:
-            logger.error(f"generate_question_full 응답 스키마 위반: {e} payload={_truncate_payload_for_log(payload)}")
+            logger.error(f"[generate-question-full] response schema violation : {e} payload={_truncate_payload_for_log(payload)}")
             raise CustomError(f"AI 응답 스키마 위반: {e}")
 
         return GenerateQuestionFullResponse(
@@ -147,7 +145,7 @@ class QuestionGenerationService:
             raw_choices = payload["choices"]
             choices = [GeneratedChoice(**c) for c in raw_choices]
         except (KeyError, TypeError, ValueError) as e:
-            logger.error(f"generate_choice_set 응답 스키마 위반: {e} payload={_truncate_payload_for_log(payload)}")
+            logger.error(f"[generate-choice-set] response schema violation : {e} payload={_truncate_payload_for_log(payload)}")
             raise CustomError(f"AI 응답 스키마 위반: {e}")
 
         return GenerateChoiceSetResponse(

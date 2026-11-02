@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchLegal, LEGAL_TITLE, type LegalType } from "../api/legal";
+import { fetchLegal, LEGAL_TITLE } from "../api/legal";
+import type { LegalType } from "../types/api";
 import MarkdownText from "./MarkdownText";
 
 /**

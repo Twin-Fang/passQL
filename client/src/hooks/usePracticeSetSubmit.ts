@@ -100,7 +100,9 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
             void queryClient.prefetchQuery(practiceAiCommentQueryOptions(storeSessionId));
           }
         }
-      } catch {
+      } catch (error) {
+        // 화면은 오답 처리로 진행 (실패 처리 정책 유지), 원인만 남김
+        console.warn("[practice set] submit failed", error);
         const fallback: SubmitResult = {
           isCorrect: false,
           correctKey: "?",

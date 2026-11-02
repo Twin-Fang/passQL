@@ -14,7 +14,7 @@ from src.core.config import settings
 logger = logging.getLogger(__name__)
 
 REDIS_PREFIX = "passql:settings:"
-_RETRY_INTERVAL_SEC = 30  # 연결 실패 후 재시도 대기 시간
+_RETRY_INTERVAL_SECONDS = 30  # 연결 실패 후 재시도 대기 시간
 # 연결·읽기 대기 상한 (2초, Gemini 호출 경로를 오래 막지 않게)
 REDIS_SOCKET_TIMEOUT_SECONDS = 2
 # 로그에 값 대신 *** 를 남길 설정 키 조각
@@ -29,7 +29,7 @@ async def _get_redis() -> redis_asyncio.Redis | None:
     if _redis_client is not None:
         return _redis_client
     # 실패 후 쿨다운이 끝나지 않았으면 즉시 None 반환 (타임아웃 반복 방지)
-    if time.monotonic() - _last_failure_time < _RETRY_INTERVAL_SEC:
+    if time.monotonic() - _last_failure_time < _RETRY_INTERVAL_SECONDS:
         return None
     client = redis_asyncio.Redis(
         host=settings.REDIS_HOST,
@@ -46,7 +46,7 @@ async def _get_redis() -> redis_asyncio.Redis | None:
     except Exception as e:
         _last_failure_time = time.monotonic()
         await client.aclose()
-        logger.warning(f"[redis app setting] connect failed, retry after {_RETRY_INTERVAL_SEC}s : {e}")
+        logger.warning(f"[redis app setting] connect failed, retry after {_RETRY_INTERVAL_SECONDS}s : {e}")
     return _redis_client
 
 

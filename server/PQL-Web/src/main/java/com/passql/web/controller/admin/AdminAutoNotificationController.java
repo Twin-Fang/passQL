@@ -1,8 +1,6 @@
 package com.passql.web.controller.admin;
 
 import com.passql.application.notification.AutoNotificationService;
-import com.passql.common.exception.CustomException;
-import com.passql.common.exception.constant.ErrorCode;
 import com.passql.member.constant.AutoNotificationRuleType;
 import com.passql.member.constant.PushLinkTarget;
 import com.passql.web.dto.notification.AutoNotificationRuleUpdateRequest;
@@ -53,7 +51,7 @@ public class AdminAutoNotificationController {
     @PutMapping("/{ruleType}")
     @ResponseBody
     public ResponseEntity<Void> update(@PathVariable String ruleType, @RequestBody AutoNotificationRuleUpdateRequest request) {
-        AutoNotificationRuleType type = parseRuleType(ruleType);
+        AutoNotificationRuleType type = AutoNotificationRuleType.fromRequestValue(ruleType);
         PushLinkTarget linkTarget = request.linkTarget() == null ? null : PushLinkTarget.fromRequestValue(request.linkTarget());
         autoNotificationService.updateRule(type, Boolean.TRUE.equals(request.isEnabled()), request.sendHour(),
                 request.thresholdDays(), request.title(), request.body(), linkTarget);
@@ -64,14 +62,6 @@ public class AdminAutoNotificationController {
     @GetMapping("/{ruleType}/target-count")
     @ResponseBody
     public Map<String, Integer> targetCount(@PathVariable String ruleType) {
-        return Map.of("memberCount", autoNotificationService.countTargets(parseRuleType(ruleType), LocalDate.now(SERVER_ZONE)));
-    }
-
-    private static AutoNotificationRuleType parseRuleType(String ruleType) {
-        try {
-            return AutoNotificationRuleType.valueOf(ruleType);
-        } catch (IllegalArgumentException e) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "ruleType");
-        }
+        return Map.of("memberCount", autoNotificationService.countTargets(AutoNotificationRuleType.fromRequestValue(ruleType), LocalDate.now(SERVER_ZONE)));
     }
 }
