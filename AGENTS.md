@@ -22,10 +22,12 @@ Every workflow is a repository skill, paired in `.claude/skills/<name>/`
 skills in all: the 13 workflows, the `second-brain` umbrella router for
 ambiguous intents, and `update-vault` (apply a template update to an existing vault). Invoke as `/name` in Claude Code, `$name` or natural
 language in Codex, or automatically / via skill in Antigravity (Gemini).
-Each pair's SKILL.md files are kept byte-identical (guarded by
-`bin/test.sh`). The legacy `.claude/commands/` and `.codex/prompts/`
-surfaces are retired; re-running the installer removes their
-marker-bearing leftovers from older installs.
+Each pair's SKILL.md files are kept byte-identical. This repository has no
+automated guard for that (the template's `bin/test.sh` is not installed here):
+after editing one side, copy it to the other and confirm with
+`cmp .claude/skills/<name>/SKILL.md .agents/skills/<name>/SKILL.md`.
+The legacy `.claude/commands/` and `.codex/prompts/` folders are retired and
+do not exist in this repository.
 
 ## Session start (applies to every CLI)
 
