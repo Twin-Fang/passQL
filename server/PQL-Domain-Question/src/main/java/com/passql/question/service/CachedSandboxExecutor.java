@@ -5,18 +5,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.passql.common.util.Sha256Hex;
 import com.passql.question.dto.ExecuteResult;
 import com.passql.question.entity.Question;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.Collection;
-import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -179,7 +176,7 @@ public class CachedSandboxExecutor {
                 Objects.toString(question.getSchemaSampleData(), ""),
                 Objects.toString(question.getUpdatedAt(), ""),
                 toNormalizedSql(sql));
-        return REDIS_KEY_PREFIX + question.getQuestionUuid() + ":" + sha256Hex(fingerprint);
+        return REDIS_KEY_PREFIX + question.getQuestionUuid() + ":" + Sha256Hex.of(fingerprint);
     }
 
     /** SQL 정리: 줄바꿈 통일 + 앞뒤 공백·끝 세미콜론 제거 (문자열 안 공백은 그대로) */
@@ -189,14 +186,5 @@ public class CachedSandboxExecutor {
             normalizedSql = normalizedSql.substring(0, normalizedSql.length() - 1).strip();
         }
         return normalizedSql;
-    }
-
-    private static String sha256Hex(String text) {
-        try {
-            byte[] digest = MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(digest);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 unavailable", e);
-        }
     }
 }

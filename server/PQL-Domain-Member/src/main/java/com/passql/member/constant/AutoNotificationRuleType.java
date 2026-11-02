@@ -1,5 +1,7 @@
 package com.passql.member.constant;
 
+import com.passql.common.util.RequestEnumParser;
+
 /**
  * 재방문 자동 알림 규칙 5종 (이름이 auto_notification_rule.rule_type 저장값, 변경 금지)
  * hasThresholdDays: 미접속 일수를 규칙에 두는지, linkTarget 은 QUESTION_DETAIL 제외
@@ -38,5 +40,10 @@ public enum AutoNotificationRuleType {
 
     public AutoNotificationGroup getGroup() {
         return group;
+    }
+
+    /** 요청값 > AutoNotificationRuleType (null·공백·없는 값 > INVALID_INPUT_VALUE) */
+    public static AutoNotificationRuleType fromRequestValue(String requestValue) {
+        return RequestEnumParser.parse(AutoNotificationRuleType.class, requestValue);
     }
 }

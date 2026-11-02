@@ -84,7 +84,7 @@ th:data-href="@{/admin/members/{uuid}(uuid=${m.memberUuid})}"
 - **Entity를 추가/변경하면 반드시 대응하는 마이그레이션 파일을 함께 작성해야 한다**
 - 기존 마이그레이션 파일은 절대 수정하지 말 것 (새 버전 파일로 추가)
 - SQL 작성 시 테이블/컬럼 생성은 반드시 `IF NOT EXISTS` 사용, 삭제는 `IF EXISTS` 사용
-- 시드 INSERT는 `ON DUPLICATE KEY UPDATE`로 멱등성을 보장한다
+- 시드 INSERT는 PostgreSQL `ON CONFLICT ... DO NOTHING` / `DO UPDATE`로 멱등성을 보장한다
 
 ### 마이그레이션 이력 확인
 
@@ -97,6 +97,7 @@ th:data-href="@{/admin/members/{uuid}(uuid=${m.memberUuid})}"
 ```
 server/
 ├── PQL-Web/               # 진입점: Controller, Config, 보안, 스케줄러, 기동 작업(init), 템플릿·정적 자원, Flyway
+│                          #   service/: 관리자 화면 전용 서비스 (공지 푸시, 문제 일괄 수정·삭제, 세션, 토픽 관리)
 ├── PQL-Application/       # 여러 도메인을 묶는 응용 서비스 (데일리 세트, 추천, AI 해설, 선택지 생성 SSE 등)
 ├── PQL-Common/            # 공통: BaseEntity, ErrorCode·CustomException·GlobalExceptionHandler, util
 ├── PQL-Domain-Member/     # 회원·인증(JWT, 소셜 로그인)
@@ -111,7 +112,7 @@ server/
 ## BaseEntity
 
 `PQL-Common`의 `BaseEntity`를 상속하면 아래 컬럼이 자동으로 포함된다:
-- `created_at`, `updated_at` (DATETIME(6))
+- `created_at`, `updated_at` (`LocalDateTime` > PostgreSQL `TIMESTAMP(6)`, 시간대 없음)
 - `created_by`, `updated_by` (VARCHAR(255))
 
 ---
@@ -181,7 +182,7 @@ private boolean isTestAccount;
 
 - 모든 `@Configuration` 클래스는 `PQL-Web/src/main/java/com/passql/web/config/` 에 둔다.
 - Domain 모듈 안에 Config를 두지 않는다.
-- 예: `JpaAuditingConfig`, `SuhRandomKitConfig`, `SwaggerConfig`, `WebMvcConfig`.
+- 예: `JpaConfig`, `SuhRandomKitConfig`, `SwaggerConfig`, `WebMvcConfig`.
 
 ### 로직적 유틸은 PQL-Common/util
 

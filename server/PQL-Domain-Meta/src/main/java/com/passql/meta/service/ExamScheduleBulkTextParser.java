@@ -1,5 +1,6 @@
 package com.passql.meta.service;
 
+import com.passql.common.util.RequestEnumParser;
 import com.passql.meta.constant.CertType;
 
 import java.time.LocalDate;
@@ -71,11 +72,7 @@ public final class ExamScheduleBulkTextParser {
     }
 
     private static CertType parseCertTypeOrNull(String value) {
-        try {
-            return CertType.valueOf(value.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+        return RequestEnumParser.parseOrNull(CertType.class, value.toUpperCase());
     }
 
     private static Integer parseRoundOrNull(String value) {
