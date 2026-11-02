@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Home } from "lucide-react";
 import { submitAnswer } from "../api/questions";
 import { invalidateLearningRecordQueries } from "../lib/learningRecordQueries";
+import { RECOMMENDATIONS_QUERY_KEY } from "../hooks/useHome";
 import { usePracticeStore } from "../stores/practiceStore";
 
 import QuestionDetail from "./QuestionDetail";
@@ -62,7 +63,7 @@ export default function RecommendationPractice() {
         const result = await submitAnswer(questionUuid, choiceSetId, selectedChoiceKey, sessionUuid);
         // 추천 문제·학습 현황 무효화 (복귀 시 재요청) — 홈 복귀 시 새 목록·heatmap 반영
         // excludeUuids=[]로 새 랜덤 세트를 받음 — 문제를 푼 직후이므로 의도된 동작
-        queryClient.invalidateQueries({ queryKey: ["recommendations"] });
+        queryClient.invalidateQueries({ queryKey: RECOMMENDATIONS_QUERY_KEY });
         invalidateLearningRecordQueries(queryClient);
         // 해설함 등록 > 미리보기 즉시 조회 시작 (다시 풀기 기록도 해설함에 남음)
         const explanationEntry = buildExplanationHistoryEntry({

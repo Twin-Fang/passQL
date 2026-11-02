@@ -254,3 +254,39 @@ export type CommunityImageUploadResult = ApiSchemas["CommunityImageUploadRespons
 export type SolveSnapshot = ApiSchemas["SolveSnapshot"];
 
 export type BlockedMember = ApiSchemas["BlockedMemberResponse"];
+
+// === 인증 (#789) ===
+export type AuthProvider = ApiSchemas["LoginRequest"]["authProvider"];
+
+export type LoginRequest = ApiSchemas["LoginRequest"];
+
+export type LoginResponse = ApiSchemas["LoginResponse"];
+
+export type ReissueRequest = ApiSchemas["ReissueRequest"];
+
+export type ReissueResponse = ApiSchemas["ReissueResponse"];
+
+// 인가 코드 로그인 제공자 3개 (#509): 서버 enum 은 제공자 전체라 웹에서 좁힘
+export type AuthorizationCodeProvider = Extract<AuthProvider, "KAKAO" | "NAVER" | "GITHUB">;
+
+// codeVerifier: PKCE (GitHub 만, 없으면 JSON 에서 빠짐)
+export type AuthorizationCodeLoginRequest = Omit<ApiSchemas["AuthorizationCodeLoginRequest"], "authProvider"> & {
+  readonly authProvider: AuthorizationCodeProvider;
+};
+
+// 제공자 공개 설정: 사용 여부 + 공개 client ID (secret 없음)
+export type SocialLoginClientConfig = ApiSchemas["SocialLoginClientConfig"];
+
+// === 문제 신고 ===
+export type ReportCategory = ApiSchemas["ReportRequest"]["categories"][number];
+
+// choiceSetUuid·detail: 서버 record 는 null 허용인데 계약은 필수로 표기 > 선택으로 완화
+export type ReportRequest = Omit<ApiSchemas["ReportRequest"], "choiceSetUuid" | "detail"> &
+  Partial<Pick<ApiSchemas["ReportRequest"], "choiceSetUuid" | "detail">>;
+
+export type ReportStatusResponse = ApiSchemas["ReportStatusResponse"];
+
+// === 약관 ===
+export type LegalType = ApiSchemas["LegalResponse"]["type"];
+
+export type LegalResponse = ApiSchemas["LegalResponse"];

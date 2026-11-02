@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Flag } from "lucide-react";
 import { submitReport } from "../api/reports";
-import type { ReportCategory } from "../api/reports";
+import type { ReportCategory } from "../types/api";
 import { ApiError } from "../api/client";
 import { useAuthStore } from "../stores/authStore";
 
