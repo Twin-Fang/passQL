@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../logging/app_logger.dart';
+
 /// iOS 추적 허용(ATT) 기기 접근 포트 4개: 플랫폼 확인, 상태 조회, 허용 요청, 앱 활성 대기
 /// 테스트는 가짜로 바꿔 SDK·OS 팝업을 띄우지 않음
 abstract interface class TrackingAuthorizationPlatform {
@@ -101,7 +103,7 @@ class AdConsent {
       }
       return status;
     } catch (error) {
-      debugPrint('[ads consent] tracking request failed : $error');
+      AppLogger.warn('ads consent', 'tracking request failed : $error');
       return null;
     }
   }

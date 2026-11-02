@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import '../logging/app_logger.dart';
 import 'ad_placement.dart';
 import 'ad_request_preparer.dart';
 
@@ -33,8 +33,9 @@ Future<NativeAd?> loadNativeAdOrNull({
           }
         },
         onAdFailedToLoad: (_, error) {
-          debugPrint(
-            '[ads native] load failed ${placement.name} : ${error.code}',
+          AppLogger.warn(
+            'ads native',
+            'load failed ${placement.name} : ${error.code}',
           );
           // 해제는 아래 null 경로 한 곳에서 (실패·시간 초과 공통)
           if (!loadCompleter.isCompleted) loadCompleter.complete(null);
@@ -45,7 +46,7 @@ Future<NativeAd?> loadNativeAdOrNull({
     final loadedAd = await loadCompleter.future.timeout(
       loadTimeout,
       onTimeout: () {
-        debugPrint('[ads native] load timeout ${placement.name}');
+        AppLogger.warn('ads native', 'load timeout ${placement.name}');
         return null;
       },
     );
@@ -56,7 +57,7 @@ Future<NativeAd?> loadNativeAdOrNull({
     return loadedAd;
   } catch (error) {
     // 광고는 보조 요소 > 사용자 알림 없이 기록만
-    debugPrint('[ads native] prepare failed ${placement.name} : $error');
+    AppLogger.warn('ads native', 'prepare failed ${placement.name} : $error');
     await nativeAd?.dispose();
     return null;
   }

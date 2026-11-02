@@ -40,10 +40,13 @@ class HeatmapWidget extends StatelessWidget {
   /// solvedCount → 히트맵 색상 (5단계). 0단계는 fill, 나머지는 accent 알파 단계.
   static Color cellColorFor(PassqlColors colors, int count) {
     if (count == 0) return colors.fill;
-    if (count <= 1) return colors.accent.withValues(alpha: 0.25);
-    if (count <= 3) return colors.accent.withValues(alpha: 0.5);
-    if (count <= 6) return colors.accent.withValues(alpha: 0.75);
-    return colors.accent;
+    if (count > 6) return colors.accent;
+    final accentAlpha = switch (count) {
+      <= 1 => PassqlOpacity.heatmapLow,
+      <= 3 => PassqlOpacity.heatmapMedium,
+      _ => PassqlOpacity.heatmapHigh,
+    };
+    return colors.accent.withValues(alpha: accentAlpha);
   }
 
   /// solvedCount → 칸 날짜 숫자 색 (칸 색 위 4.5 이상, 대비 테스트가 같은 함수로 검사)

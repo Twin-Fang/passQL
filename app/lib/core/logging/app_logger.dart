@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
+
 import '../utils/date_format.dart';
 import 'app_log_file_store.dart';
 import 'app_log_masker.dart';
@@ -86,6 +88,8 @@ abstract final class AppLogger {
   }
 
   static void _record(String levelCode, String tag, String message) {
+    // 디버그 콘솔 미러 (start 전 포함, 파일 기록과 별개)
+    if (kDebugMode) debugPrint('$levelCode [$tag] $message');
     if (_store == null) return;
     // 마스킹 먼저 (자르기 경계에 걸린 비밀값이 패턴을 피하지 않게) > 2KB 제한
     final maskedMessage = AppLogMasker.mask(message);
