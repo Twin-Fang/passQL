@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<!-- 이어지는 두 장의 틀: 넓은 캔버스 한 장을 찍고 render.py 가 가운데 간격을 버리고 좌우로 자른다 -->
+<style>
+  @font-face { font-family: Pretendard; font-weight: 700; src: url("{{font_dir}}/Pretendard-Bold.ttf"); }
+  :root {
+    --w: {{width}}px; --h: {{height}}px; --canvas: {{canvas_width}}px; --gap: {{gap}}px;
+    --u: calc(var(--w) / 190);
+    /* 앱 토큰(lib/presentation/design/tokens/passql_colors.dart): light.accent, light.onAccent, dark.card */
+    --accent: #5856D6; --on-accent: #FFFFFF; --phone: #1C1C1E;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: var(--canvas); height: var(--h); overflow: hidden; background: var(--accent); }
+  body { position: relative; color: var(--on-accent); }
+  h1 { position: absolute; top: calc(var(--u) * 20);
+       font: 700 calc(var(--u) * 19) / 1.27 Pretendard, sans-serif; letter-spacing: -0.02em; white-space: nowrap; }
+  h1.left { left: calc(var(--u) * 14); }
+  h1.right { left: calc(var(--w) + var(--gap) + var(--u) * 14); }
+  /* 사용자가 고른 구도: 폰을 크게 키워 22도 눕히고 경계 가운데에 걸친다 */
+  .phone { position: absolute; left: calc(50% - var(--u) * 118); top: calc(var(--u) * 122); width: calc(var(--u) * 236);
+           padding: calc(var(--u) * 6); background: var(--phone); border-radius: calc(var(--u) * 36); transform: rotate(22deg); }
+  .screen { width: 100%; aspect-ratio: {{shot_aspect}}; border-radius: calc(var(--u) * 30);
+            background: #000 url("{{shot}}") 0 -{{shot_offset}}px / 100% auto no-repeat; }
+</style>
+</head>
+<body>
+  <h1 class="left">{{headline_left}}</h1>
+  <h1 class="right">{{headline_right}}</h1>
+  <div class="phone"><div class="screen"></div></div>
+</body>
+</html>

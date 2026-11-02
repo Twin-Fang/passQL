@@ -1,79 +1,88 @@
 {
-  "_comment": "스토어 홍보 이미지 장면. 순서 = 스토어 노출 순서. shot 은 app/docs/store/promo/source 안 원본 캡처(tool/store_shots 로 찍음). headline 의 <em> 은 강조색, <br> 은 줄바꿈",
+  "_comment": "스토어 홍보 이미지 장면. 순서 = 스토어 노출 순서. shot 은 app/docs/store/promo/source 안 원본 캡처(tool/store_shots 로 찍음). headline 의 <br> 은 줄바꿈. kind: single(한 장) | pair(두 장이 이어짐) | diagonal(라이트·다크 대각선). align: 캡처의 top 또는 bottom 을 보여 줌. gap: 스토어에서 장과 장 사이 간격(px)",
   "targets": {
     "ios-6.9": {
       "width": 1320,
-      "height": 2868
+      "height": 2868,
+      "gap": 40
     },
     "ios-6.5": {
       "width": 1284,
-      "height": 2778
+      "height": 2778,
+      "gap": 39
     },
     "ios-6.3": {
       "width": 1206,
-      "height": 2622
+      "height": 2622,
+      "gap": 37
     },
     "android-phone": {
-      "width": 1080,
-      "height": 1920
+      "width": 2160,
+      "height": 3840,
+      "gap": 128
     }
   },
   "wide": {
     "app_name": "passQL",
-    "headline": "책 없이,<br><em>앱 하나로 SQLD</em>",
-    "sub": "최신 출제 경향 · SQL 직접 실행 · AI 해설",
-    "front": "01_home.png",
-    "back": "04_execute.png"
+    "headline": "책 없이,<br>앱 하나로 SQLD",
+    "front": "s1_execute.png",
+    "back": "s5_trend.png"
   },
   "scenes": [
     {
-      "id": "01",
-      "shot": "01_home.png",
-      "eyebrow": "SQLD 합격 준비",
-      "headline": "책 없이,<br><em>앱 하나로 SQLD</em>",
-      "sub": "개념 문제부터 실전 SQL까지 한 곳에서 끝내요"
-    },
-    {
-      "id": "02",
-      "shot": "03_trend.png",
-      "eyebrow": "최신 출제 경향",
-      "headline": "<em>요즘 시험</em>에 나오는<br>유형 그대로",
-      "sub": "최근 회차 출제 유형을 분석해 문제에 바로 반영해요"
+      "kind": "pair",
+      "ids": [
+        "01",
+        "02"
+      ],
+      "headlines": [
+        "책 없이,<br>앱 하나로 SQLD",
+        "보기 SQL을<br>직접 실행해 봐요"
+      ],
+      "shot": "s1_execute.png"
     },
     {
       "id": "03",
-      "shot": "02_questions.png",
-      "eyebrow": "주제별 문제",
-      "headline": "<em>주제별</em>로<br>차근차근",
-      "sub": "데이터 모델링부터 서브쿼리까지 SQLD 전 범위"
+      "kind": "single",
+      "headline": "답 외우기는 그만,<br>매번 새 선택지",
+      "shot": "s3_real_mode.png",
+      "align": "bottom"
     },
     {
       "id": "04",
-      "shot": "04_execute.png",
-      "eyebrow": "SQL 직접 실행",
-      "headline": "보기 SQL을<br><em>직접 실행</em>해 봐요",
-      "sub": "결과 표를 보며 왜 정답인지 눈으로 확인해요"
+      "kind": "single",
+      "headline": "틀린 이유,<br>AI가 바로 짚어 줘요",
+      "shot": "s4_ai.png",
+      "align": "bottom"
     },
     {
       "id": "05",
-      "shot": "05_ai.png",
-      "eyebrow": "AI 해설",
-      "headline": "틀린 이유,<br><em>AI가 바로</em> 짚어 줘요",
-      "sub": "내가 고른 답이 왜 틀렸는지 바로 알려 줘요"
+      "kind": "single",
+      "headline": "요즘 시험 유형,<br>그대로 담았어요",
+      "shot": "s5_trend.png",
+      "align": "top"
     },
     {
       "id": "06",
-      "shot": "06_stats.png",
-      "eyebrow": "합격 준비도",
-      "headline": "내 실력,<br><em>숫자로</em> 확인해요",
-      "sub": "정확도·학습 범위·최신 경향으로 준비도를 계산해요"
+      "kind": "single",
+      "headline": "내 실력,<br>숫자로 확인해요",
+      "shot": "s6_stats.png",
+      "align": "top"
     },
     {
       "id": "07",
-      "shot": "08_leader.png",
-      "eyebrow": "오늘의 세트",
-      "headline": "매일 같은 문제로<br><em>함께 겨뤄요</em>",
-      "sub": "하루 5문제, 순위를 보며 꾸준히 이어 가요"
+      "kind": "diagonal",
+      "headline": "개념은 핵심만,<br>바로 문제로",
+      "shot": "s7_concept.png",
+      "align": "top",
+      "shot_light": "s7_concept_light.png"
+    },
+    {
+      "id": "08",
+      "kind": "single",
+      "headline": "매일 같은 문제로<br>함께 겨뤄요",
+      "shot": "s8_leader.png",
+      "align": "top"
     }
   ]
 }

@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
 import 'passql_brand_bar_scroll_view.dart';
+import 'passql_refresh_control.dart';
 
 /// 탭 화면 공통 틀: 큰 제목이 스크롤하면 작은 제목 + 글래스 바로 접힌다.
 class PassqlLargeTitleScrollView extends StatelessWidget {
@@ -39,6 +40,13 @@ class PassqlLargeTitleScrollView extends StatelessWidget {
           parent: BouncingScrollPhysics(),
         ),
         slivers: [
+          // 새로고침 표시는 큰 제목 위: 제목 아래에 두면 당길 때 제목과 내용 사이가 벌어짐 (#772)
+          if (onRefresh != null)
+            PassqlRefreshControl(
+              onRefresh: onRefresh!,
+              // 점이 큰 제목 바로 위에 오게 상단 바(상태 표시줄 + 바)만큼 내림
+              indicatorOffset: MediaQuery.paddingOf(context).top + PassqlSize.navBar,
+            ),
           CupertinoSliverNavigationBar(
             transitionBetweenRoutes: false,
             largeTitle:
@@ -61,8 +69,6 @@ class PassqlLargeTitleScrollView extends StatelessWidget {
               bottom: BorderSide(color: colors.separator, width: PassqlSize.hairline),
             ),
           ),
-          if (onRefresh != null)
-            CupertinoSliverRefreshControl(onRefresh: onRefresh),
           ...slivers,
           // 탭 바(extendBody) 뒤로 마지막 콘텐츠가 가려지지 않게 한다.
           SliverToBoxAdapter(child: SizedBox(height: bottomInset + PassqlSpacing.xl)),

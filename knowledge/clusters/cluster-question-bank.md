@@ -2,7 +2,7 @@
 type: cluster
 topic: question-bank
 created: 2026-10-29
-members: 70
+members: 74
 status: active
 related: []
 ---
@@ -33,6 +33,9 @@ related: []
 - [[DEC-0165-numeric-choices-ascending]] — 보기가 모두 숫자면 섞지 않고 오름차순으로 보여 준다
 - [[DEC-0193-choice-set-prompts-benchmarked-adoption]] — 선택지 생성 프롬프트는 운영 문제 x Haiku·Gemini 비교 결과로 채택 — 결과가 다른 것은 #699 v2 유지, `max_tokens` 4096, Gemini 온도 유지
 - [[DEC-0197-provide-answer-sql-result-in-prompt]] — 일반 SQL(AI_ONLY) 선택지 생성은 기준 SQL을 샌드박스로 실행한 결과를 프롬프트에 주고, 재시도에는 보기별 실제 실행 결과와 "기준과 같음/다름"을 준다
+- [[DEC-0225-oracle-conversion-single-converter]] — Oracle 변환·감지는 `OracleSqlCompatibilityConverter` 한 곳에서, 컨트롤러는 서비스 호출만 (호출부별 차이 보존)
+- [[DEC-0226-vector-prune-after-deactivation-commit]] — 문제 비활성화 후 벡터 정리는 `QuestionsDeactivatedEvent` 커밋 후 리스너에서 1회, 실패는 로그만
+- [[DEC-0228-concept-ai-only-rewritten-as-curated]] — `AI_ONLY` 개념 문제 49개는 비활성화하고 상황·결과형 고정 보기(`CURATED_ONLY`) 문제로 재작성 (오답은 실제 오개념, 결과형은 Oracle 21c 검증)
 
 ## 대체된 결정 (역사)
 - [[DEC-0028-realtime-choice-set-with-prefetch]] → DEC-0087
@@ -90,3 +93,4 @@ related: []
 - [[ISS-0416-choice-set-prompts-claude-gemini]] (resolved, GitHub #710) — 선택지 생성 프롬프트 Claude·Gemini 공통 개선
 - [[ISS-0419-ai-only-choice-answer-result-feedback]] (resolved, GitHub #720) — 일반 SQL 선택지 생성 — 기준 실행 결과 제공, 재시도 실행 결과 피드백
 - [[ISS-0420-questions-tab-trend-section-layout]] (resolved, GitHub #726) — 문제 탭 경향 화면 구간 개편 (앱)
+- [[ISS-0435-concept-ai-only-49-rewrite-curated]] (resolved, GitHub #767) — AI 선택지 개념 문제 49개 — 정답 오류와 의미 없는 보기, 고정 보기 문제로 재작성

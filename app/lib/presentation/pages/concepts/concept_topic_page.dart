@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,10 +6,11 @@ import '../../../data/models/concept/concept_models.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/concept_providers.dart';
+import '../../widgets/concept/concept_status_mark.dart';
 import '../../widgets/pro/locked_preview_samples.dart';
 import '../../widgets/pro/pro_locked_section.dart';
 
-/// 단원 상세 (#577): 단원 진행 머리 > 개념 목록(상태별 표시) > 하단 이어서 학습 버튼
+/// 단원 상세 (#577, #764): 머리 구간(남은 개념 큰 글자·막대) > 개념 구간(상태별 줄) > 하단 이어서 학습 버튼
 /// 순서를 강제하지 않음: 어떤 개념이든 바로 열 수 있음. 잠긴 단원은 블러 잠금
 class ConceptTopicPage extends ConsumerWidget {
   const ConceptTopicPage({super.key, required this.topicUuid});
@@ -70,7 +70,7 @@ class ConceptTopicPage extends ConsumerWidget {
   }
 }
 
-/// 진행 머리 카드 + 개념 목록
+/// 머리 구간 + 개념 구간 (다른 탭처럼 위·사이 회색 띠)
 class _ConceptListBody extends StatelessWidget {
   const _ConceptListBody({required this.list});
 
@@ -78,68 +78,95 @@ class _ConceptListBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    final solvedCount = list.concepts
-        .where((concept) => concept.status == ConceptStatus.solved)
-        .length;
-    final remainingCount = list.concepts.length - solvedCount;
-    final progress = list.concepts.isEmpty
-        ? 0.0
-        : solvedCount / list.concepts.length;
     return ListView(
-      padding: EdgeInsets.fromLTRB(
-        PassqlSpacing.lg,
-        PassqlSpacing.sm,
-        PassqlSpacing.lg,
-        MediaQuery.paddingOf(context).bottom + PassqlSpacing.xxl,
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.paddingOf(context).bottom + PassqlSpacing.xxl,
       ),
       children: [
-        PassqlCard(
-          child: Row(
-            children: [
-              PassqlProgressRing(
-                value: progress,
-                centerText: '$solvedCount/${list.concepts.length}',
-              ),
-              const SizedBox(width: PassqlSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      remainingCount == 0
-                          ? '이 단원을 모두 끝냈어요'
-                          : '남은 개념 $remainingCount개',
-                      style: PassqlTypography.headline.copyWith(
-                        color: colors.label,
-                      ),
-                    ),
-                    const SizedBox(height: PassqlSpacing.xxs),
-                    Text(
-                      '아는 개념은 읽기를 건너뛰고 문제만 풀어도 돼요.',
-                      style: PassqlTypography.footnote.copyWith(
-                        color: colors.secondaryLabel,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+        const PassqlSectionGap(),
+        PassqlReveal(child: _TopicProgressSection(list: list)),
+        const PassqlSectionGap(),
+        PassqlReveal(
+          index: 1,
+          child: PassqlSection(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final (index, concept) in list.concepts.indexed)
+                  _ConceptRow(order: index + 1, concept: concept),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: PassqlSpacing.lg),
-        PassqlGroupedSection(
-          children: [
-            for (final (index, concept) in list.concepts.indexed)
-              _ConceptRow(order: index + 1, concept: concept),
-          ],
         ),
       ],
     );
   }
 }
 
-/// 개념 한 줄: 상태 아이콘(완료 체크, 읽음 책, 안 함 순번) > 제목 > 상태 문구
+/// 머리 구간: "N단원 · 이름" > 남은 개념 큰 글자 > 막대.
+/// "건너뛰어도 돼요" 안내는 아직 아무것도 안 본 단원에서만 (올 때마다 같은 문장을 반복하지 않게)
+class _TopicProgressSection extends ConsumerWidget {
+  const _TopicProgressSection({required this.list});
+
+  final ConceptListResponse list;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.passqlColors;
+    // 단원 순번은 단원 목록에만 있음 (개념 탭에서 왔으면 이미 불러온 값, 없으면 이름만)
+    final topicOrder = ref
+        .watch(conceptTopicsProvider)
+        .valueOrNull
+        ?.topics
+        .where((topic) => topic.topicUuid == list.topicUuid)
+        .firstOrNull
+        ?.orderIndex;
+    final total = list.concepts.length;
+    final solvedCount = list.concepts
+        .where((concept) => concept.status == ConceptStatus.solved)
+        .length;
+    final remainingCount = total - solvedCount;
+    final isUntouched = list.concepts.every(
+      (concept) => concept.status == ConceptStatus.notStarted,
+    );
+    return PassqlSection(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            topicOrder == null
+                ? list.displayName
+                : '${topicOrder + 1}단원 · ${list.displayName}',
+            style: PassqlTypography.subheadline.copyWith(
+              color: colors.secondaryLabel,
+            ),
+          ),
+          const SizedBox(height: PassqlSpacing.hairlineGap),
+          Text(
+            remainingCount == 0 ? '이 단원을 모두 끝냈어요' : '남은 개념 $remainingCount개',
+            style: PassqlTypography.title1.copyWith(color: colors.label),
+          ),
+          if (isUntouched) ...[
+            const SizedBox(height: PassqlSpacing.xxs),
+            Text(
+              '아는 개념은 읽기를 건너뛰고 문제만 풀어도 돼요.',
+              style: PassqlTypography.subheadline.copyWith(
+                color: colors.secondaryLabel,
+              ),
+            ),
+          ],
+          const SizedBox(height: PassqlSpacing.sm),
+          PassqlProgressBar(
+            value: total == 0 ? 0 : solvedCount / total,
+            semanticValue: '개념 $total개 중 $solvedCount개 끝냄',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 개념 한 줄: 상태 원(완료 체크·읽음 보라 번호·안 함 회색 번호) > 제목(두 줄까지) > 오른쪽 짧은 상태
 class _ConceptRow extends StatelessWidget {
   const _ConceptRow({required this.order, required this.concept});
 
@@ -148,61 +175,44 @@ class _ConceptRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    final (markKind, trailingText, trailingColor) = switch (concept.status) {
+      ConceptStatus.solved => (
+        ConceptStatusMarkKind.done,
+        '${concept.checkCorrectCount}/${concept.checkQuestionCount}',
+        colors.correctText,
+      ),
+      ConceptStatus.read => (
+        ConceptStatusMarkKind.active,
+        '읽음',
+        colors.accentText,
+      ),
+      ConceptStatus.notStarted => (
+        ConceptStatusMarkKind.idle,
+        null,
+        colors.secondaryLabel,
+      ),
+    };
     return PassqlListRow(
-      leading: _ConceptStatusIcon(order: order, status: concept.status),
+      hasHorizontalPadding: false,
+      leading: ConceptStatusMark(
+        shape: ConceptStatusMarkShape.circle,
+        status: markKind,
+        order: order,
+      ),
       title: concept.title,
-      subtitle: _statusTextOf(concept),
+      titleMaxLines: 2,
+      trailing: trailingText == null
+          ? null
+          : Text(
+              trailingText,
+              style: PassqlTypography.subheadline.copyWith(
+                color: trailingColor,
+                fontFeatures: PassqlTypography.tabular,
+              ),
+            ),
       hasChevron: true,
       onTap: () => context.push(AppRoutes.conceptStudy(concept.conceptUuid)),
-    );
-  }
-
-  /// 상태 > 한 줄 문구 (확인 문제 정답 수 포함)
-  static String _statusTextOf(ConceptSummary concept) {
-    final checkText =
-        '확인 ${concept.checkCorrectCount}/${concept.checkQuestionCount}';
-    return switch (concept.status) {
-      ConceptStatus.solved => '풀이 완료 · $checkText',
-      ConceptStatus.read => '읽음 · 확인 문제 남음',
-      ConceptStatus.notStarted => concept.summary ?? '아직 안 봤어요',
-    };
-  }
-}
-
-/// 상태 아이콘 (스크린리더는 행 문구로 읽음)
-class _ConceptStatusIcon extends StatelessWidget {
-  const _ConceptStatusIcon({required this.order, required this.status});
-
-  final int order;
-  final ConceptStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    final Widget icon = switch (status) {
-      ConceptStatus.solved => Icon(
-        CupertinoIcons.checkmark_circle_fill,
-        color: colors.correct,
-        size: PassqlIconSize.lg,
-      ),
-      ConceptStatus.read => Icon(
-        CupertinoIcons.book_fill,
-        color: colors.accent,
-        size: PassqlIconSize.lg,
-      ),
-      ConceptStatus.notStarted => Text(
-        '$order',
-        style: PassqlTypography.subheadlineSemibold.copyWith(
-          color: colors.secondaryLabel,
-          fontFeatures: PassqlTypography.tabular,
-        ),
-      ),
-    };
-    return ExcludeSemantics(
-      child: SizedBox.square(
-        dimension: PassqlIconSize.lg,
-        child: Center(child: icon),
-      ),
     );
   }
 }

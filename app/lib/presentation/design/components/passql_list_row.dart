@@ -15,6 +15,7 @@ class PassqlListRow extends StatelessWidget {
     this.isDestructive = false,
     this.hasHorizontalPadding = true,
     this.isCentered = false,
+    this.titleMaxLines,
     this.onTap,
   });
 
@@ -30,6 +31,9 @@ class PassqlListRow extends StatelessWidget {
 
   /// true: 제목·부제를 가운데 정렬 (iOS 액션 시트처럼 동작만 고르는 메뉴 시트용, #741)
   final bool isCentered;
+
+  /// 제목 최대 줄 수 (넘치면 말줄임). null 이면 줄 수 제한 없음 (긴 개념 제목 두 줄까지, #764)
+  final int? titleMaxLines;
   final VoidCallback? onTap;
 
   /// 한 줄 제목일 때 행 높이가 44pt 가 되는 위아래 여백 (iOS 설정 앱 규격)
@@ -60,6 +64,10 @@ class PassqlListRow extends StatelessWidget {
                 children: [
                   Text(
                     title,
+                    maxLines: titleMaxLines,
+                    overflow: titleMaxLines == null
+                        ? null
+                        : TextOverflow.ellipsis,
                     textAlign: isCentered ? TextAlign.center : null,
                     style: PassqlTypography.body.copyWith(
                       color: isDestructive ? colors.wrongText : colors.label,

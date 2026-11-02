@@ -2,7 +2,7 @@
 type: cluster
 topic: ai
 created: 2026-10-29
-members: 96
+members: 99
 status: active
 related: []
 ---
@@ -49,6 +49,8 @@ AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 - [[DEC-0195-targeted-regeneration-without-version-bump]] — 해설 일부만 다시 만들 때는 프롬프트 버전을 올리지 않고 대상 세트만 `explanation_prompt_version`을 낮춰 백필이 재생성하게 한다
 - [[DEC-0196-gemini-fallback-3-1-flash-lite]] — 2순위 Gemini 대체 모델은 `gemini-3.1-flash-lite` (1순위 `claude-haiku-5-5` 유지)
 - [[DEC-0197-provide-answer-sql-result-in-prompt]] — 일반 SQL(AI_ONLY) 선택지 생성은 기준 SQL을 샌드박스로 실행한 결과를 프롬프트에 주고, 재시도에는 보기별 실제 실행 결과와 "기준과 같음/다름"을 준다
+- [[DEC-0226-vector-prune-after-deactivation-commit]] — 문제 비활성화 후 벡터 정리는 `QuestionsDeactivatedEvent` 커밋 후 리스너에서 1회, 실패는 로그만
+- [[DEC-0228-concept-ai-only-rewritten-as-curated]] — `AI_ONLY` 개념 문제 49개는 비활성화하고 상황·결과형 고정 보기(`CURATED_ONLY`) 문제로 재작성
 
 ## 대체된 결정 (역사)
 - [[DEC-0020-gemini-flash-lite-primary-llm]] → DEC-0029
@@ -116,3 +118,4 @@ AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 - [[ISS-0417-sequential-execution-explanation-errors]] (resolved, GitHub #716) — AI 해설 차례 실행 문제 근거 오류와 재발 방지
 - [[ISS-0418-gemini-fallback-model-3-1-flash-lite]] (resolved, GitHub #719) — Gemini 대체 모델 `gemini-3.1-flash-lite`로 변경
 - [[ISS-0419-ai-only-choice-answer-result-feedback]] (resolved, GitHub #720) — 일반 SQL 선택지 생성 — 기준 실행 결과 제공, 재시도 실행 결과 피드백
+- [[ISS-0435-concept-ai-only-49-rewrite-curated]] (resolved, GitHub #767) — AI 선택지 개념 문제 49개 — 정답 오류와 의미 없는 보기, 고정 보기 문제로 재작성

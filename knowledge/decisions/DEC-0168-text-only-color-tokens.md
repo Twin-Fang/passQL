@@ -7,7 +7,7 @@ topics: [design-system]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0356-home-questions-tab-restructure]]", "[[ISS-0356-home-questions-tab-restructure-report]]", "[[DEC-0216-count-badge-contrast-exception]]"]
+related: ["[[ISS-0356-home-questions-tab-restructure]]", "[[ISS-0356-home-questions-tab-restructure-report]]", "[[DEC-0216-count-badge-contrast-exception]]", "[[DEC-0220-check-on-semantic-fill-uses-on-semantic]]"]
 ---
 
 # DEC-0168: 글자에는 브랜드 `accent` 대신 글자 전용 토큰(`accentText` 등)을 쓴다

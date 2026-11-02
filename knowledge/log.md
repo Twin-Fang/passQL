@@ -59,3 +59,25 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-10-29 19:55 | W6 | check W10 수정: cluster-design-system members 108 | cluster-design-system
 - 2026-10-29 21:54 | W6 | #756 이슈·완료 리포트 지식화, 결정 1건(W4: DEC-0168과 충돌 > 사용자 선택 조건부 유지), DEC-0168 related 링크, design-system·home·notification 클러스터 갱신 | ISS-0431, DEC-0216, DEC-0168, cluster-design-system, cluster-home, cluster-notification
 - 2026-10-29 21:54 | W6 | check W10 수정: members design-system 110, home 66, notification 17 | cluster-design-system, cluster-home, cluster-notification
+- 2026-10-30 13:37 | W6 | #764 이슈·완료 리포트 지식화, 결정 4건(W4: DEC-0168과 충돌 없음, DEC-0220은 그 적용), DEC-0168 related 링크, concept-learning·design-system 클러스터 갱신 | ISS-0432, DEC-0217, DEC-0218, DEC-0219, DEC-0220, DEC-0168, cluster-concept-learning, cluster-design-system
+- 2026-10-30 13:37 | W6 | check W10 수정: members concept-learning 6, design-system 115 | cluster-concept-learning, cluster-design-system
+- 2026-10-31 00:36 | W6 | #764 결과 화면 개편 반영: DEC-0218·0220 갱신, DEC-0221·0222 신규, ISS-0432 이슈·완료 리포트 갱신, concept-learning·design-system 클러스터 | ISS-0432, DEC-0218, DEC-0220, DEC-0221, DEC-0222, cluster-concept-learning, cluster-design-system
+- 2026-10-31 00:36 | W6 | check W10 수정: members concept-learning 8, design-system 117 | cluster-concept-learning, cluster-design-system
+- 2026-10-31 20:52 | W6 | #764 점수판 효과 확정 반영: DEC-0222 갱신, ISS-0432 이슈·완료 리포트 갱신 | DEC-0222, ISS-0432
+- 2026-10-31 21:11 | W6 | #764 폭죽 제거 반영: DEC-0218·DEC-0222·ISS-0432 이슈·완료 리포트 갱신 | DEC-0218, DEC-0222, ISS-0432
+- 2026-10-31 21:28 | W6 | #759·#762·#767 이슈·완료 리포트 지식화, 결정 6건(W4: DEC-0046·DEC-0118·DEC-0158·DEC-0203과 충돌 없음, DEC-0225·DEC-0228은 그 연장), dev-workflow·question-bank·ai·design-system 클러스터 갱신 | ISS-0433, ISS-0434, ISS-0435, DEC-0223, DEC-0224, DEC-0225, DEC-0226, DEC-0227, DEC-0228, cluster-dev-workflow, cluster-question-bank, cluster-ai, cluster-design-system
+- 2026-10-31 21:28 | W6 | check W10 수정: members dev-workflow 68, question-bank 74, ai 99, design-system 118 | cluster-dev-workflow, cluster-question-bank, cluster-ai, cluster-design-system
+- 2026-10-31 23:49 | W6 | #772 이슈 지식화(리포트 전, open), 결정 3건(W4: DEC-0222·DEC-0116·DEC-0136과 충돌 없음), design-system 클러스터 갱신(members 122) | ISS-0436, DEC-0229, DEC-0230, DEC-0231, cluster-design-system
+- 2026-11-01 00:14 | W6 | #772 완료 리포트 지식화(리포트 댓글 6545221166, PR #773 미머지), ISS-0436 resolved, design-system 클러스터 갱신 | ISS-0436, cluster-design-system
+- 2026-11-01 00:26 | W6 | update | ISS-0436 이슈·완료 리포트 머지 상태 갱신 (PR #773 머지 95514249)
+- 2026-11-01 09:36 | W6 | create | ISS-0437 이슈·완료 리포트 (#774, PR 미머지)
+- 2026-11-01 09:36 | W6 | create | DEC-0232 설정 화면 모드 '기기 설정' 칸, 설명 줄 없음
+- 2026-11-01 14:10 | W6 | update | ISS-0437 이슈·완료 리포트 머지 상태 갱신 (PR #775)
+- 2026-11-01 20:26 | W6 | create | ISS-0438 이슈·완료 리포트 (#776, PR #777 미머지)
+- 2026-11-01 20:26 | W6 | create | DEC-0233 스토어 이미지 토큰 스타일(DEC-0169 대체), DEC-0234 이미지 PRO 표시 없음
+- 2026-11-01 20:26 | W6 | update | DEC-0169 superseded, cluster-store-release 갱신
+- 2026-11-01 20:26 | W6 | update | cluster-store-release members 53 (check W10)
+- 2026-11-01 22:55 | W6 | create | ISS-0439 이슈·완료 리포트 (#778, PR 미머지)
+- 2026-11-01 22:55 | W6 | create | DEC-0235 스토어 이미지 SQL 키워드 제거 (DEC-0233 대체)
+- 2026-11-01 22:55 | W6 | update | DEC-0233 superseded, cluster-store-release 갱신
+- 2026-11-01 22:50 | W6 | update | cluster-store-release members 55 (check W10)

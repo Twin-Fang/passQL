@@ -94,7 +94,9 @@ Future<void> _sweepConcept(
     await notifier.submit(question.questionUuid);
     await Future<void>.delayed(_settleDuration);
     await captureToEnd('q${number}_answer');
-    notifier.goToNextQuestion();
+    notifier.goToNextQuestion([
+      for (final item in questions) item.questionUuid,
+    ]);
     await Future<void>.delayed(_settleDuration);
   }
   await Future<void>.delayed(_resultAnimationDuration);

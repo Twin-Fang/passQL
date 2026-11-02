@@ -5,7 +5,7 @@ import 'source_scan.dart';
 /// 디자인 시스템 우회 금지 규칙: 화면 코드(pages·widgets·flows)는 토큰과 공통 컴포넌트만 쓴다.
 /// 원본: lib/presentation/design (tokens, components). 새 예외는 [_allowedUsages] 에 이유와 함께 추가
 
-/// 금지 패턴 10종 > 대신 쓸 공통 지점
+/// 금지 패턴 11종 > 대신 쓸 공통 지점
 final _bannedPatterns = <String, (RegExp, String)>{
   'Color(0x': (RegExp(r'Color\(0x'), 'PassqlColors 토큰 (context.passqlColors)'),
   'Colors.white/black': (
@@ -24,6 +24,10 @@ final _bannedPatterns = <String, (RegExp, String)>{
   'CupertinoActivityIndicator(': (
     RegExp(r'CupertinoActivityIndicator\('),
     'PassqlLoadingIndicator',
+  ),
+  'CupertinoSliverRefreshControl(': (
+    RegExp(r'CupertinoSliverRefreshControl\('),
+    'PassqlRefreshControl (당겨서 새로고침 빛 표시, #772)',
   ),
   'Curves.': (RegExp(r'\bCurves\.'), 'PassqlMotion 곡선 토큰'),
   'duration: Duration(': (

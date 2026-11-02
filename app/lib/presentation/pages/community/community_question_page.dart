@@ -123,7 +123,7 @@ class _CommunityQuestionPageState extends ConsumerState<CommunityQuestionPage> {
         parent: BouncingScrollPhysics(),
       ),
       slivers: [
-        CupertinoSliverRefreshControl(onRefresh: _notifier.reload),
+        PassqlRefreshControl(onRefresh: _notifier.reload),
         if (postsState.items.isEmpty)
           SliverFillRemaining(
             hasScrollBody: false,

@@ -65,20 +65,75 @@ def capture_page(page: Path, width: int, height: int, out: Path) -> None:
         image.convert("RGB").save(out)
 
 
-def render_scene(target_name: str, target: dict, scene: dict) -> Path:
-    """세로형 1장: 장면 문구 + 원본 캡처 > {규격}/{id}.png"""
+def pair_crop_boxes(width: int, height: int, gap: int) -> tuple[tuple[int, int, int, int], tuple[int, int, int, int]]:
+    """넓은 캔버스에서 좌우 장의 영역 (가운데 간격은 버림)"""
+    return (0, 0, width, height), (width + gap, 0, width * 2 + gap, height)
+
+
+def shot_offset(target: dict, align: str, aspect: float) -> int:
+    """align=bottom 이면 캡처 아래쪽이 슬라이드 아래에 오도록 위로 미는 양(px). 비율은 template.html 의 폰 값과 같음"""
+    if align != "bottom":
+        return 0
+    unit = target["width"] / 190
+    screen_height = unit * 154 / aspect
+    visible_height = target["height"] - unit * 108
+    return max(0, int(screen_height - visible_height))
+
+
+def pair_shot_offset(target: dict, aspect: float) -> int:
+    """이어지는 두 장의 폰: 실행 결과가 보이도록 캡처 아래쪽을 슬라이드 아래에 맞추는 양(px). 비율은 pair_template.html 의 폰 값과 같음"""
+    unit = target["width"] / 190
+    screen_height = unit * 224 / aspect
+    visible_height = target["height"] - unit * 108
+    return max(0, int(screen_height - visible_height))
+
+
+def render_pair(target_name: str, target: dict, scene: dict) -> list[Path]:
+    """이어지는 두 장: 넓은 캔버스를 찍어 좌우로 잘라 저장"""
+    width, height, gap = target["width"], target["height"], target["gap"]
     shot = SOURCE_DIR / scene["shot"]
-    # 문구는 scenes.json 의 신뢰된 값 — headline 은 <br>·<em> 그대로, 나머지는 이스케이프
-    page = fill_template("template.html", {
+    canvas_width = width * 2 + gap
+    page = fill_template("pair_template.html", {
+        "width": str(width), "height": str(height), "gap": str(gap), "canvas_width": str(canvas_width),
+        "font_dir": FONT_DIR.as_uri(), "shot": shot.as_uri(), "shot_aspect": f"{read_aspect(shot):.6f}",
+        "shot_offset": str(pair_shot_offset(target, read_aspect(shot))),
+        "headline_left": scene["headlines"][0], "headline_right": scene["headlines"][1],
+    })
+    wide = OUT_DIR / target_name / f"{scene['ids'][0]}_wide.png"
+    capture_page(page, canvas_width, height, wide)
+    outs = []
+    with Image.open(wide) as image:
+        for scene_id, box in zip(scene["ids"], pair_crop_boxes(width, height, gap)):
+            out = OUT_DIR / target_name / f"{scene_id}.png"
+            image.crop(box).save(out)
+            outs.append(out)
+    wide.unlink()
+    return outs
+
+
+def render_single(target_name: str, target: dict, scene: dict) -> list[Path]:
+    """세로형 1장: 헤드라인 + 원본 캡처 > {규격}/{id}.png"""
+    shot = SOURCE_DIR / scene["shot"]
+    aspect = read_aspect(shot)
+    # 문구는 scenes.json 의 신뢰된 값 — headline 은 <br> 그대로
+    is_diagonal = scene["kind"] == "diagonal"
+    page = fill_template("diagonal_template.html" if is_diagonal else "template.html", {
         "width": str(target["width"]), "height": str(target["height"]),
-        "font_dir": FONT_DIR.as_uri(), "shot": shot.as_uri(),
-        "shot_aspect": f"{read_aspect(shot):.6f}",
-        "eyebrow": html.escape(scene["eyebrow"]), "headline": scene["headline"],
-        "sub": html.escape(scene["sub"]),
+        "shot_light": (SOURCE_DIR / scene["shot_light"]).as_uri() if is_diagonal else "",
+        "font_dir": FONT_DIR.as_uri(), "shot": shot.as_uri(), "shot_aspect": f"{aspect:.6f}",
+        "shot_offset": str(shot_offset(target, scene.get("align", "top"), aspect)),
+        "headline": scene["headline"],
     })
     out = OUT_DIR / target_name / f"{scene['id']}.png"
     capture_page(page, target["width"], target["height"], out)
-    return out
+    return [out]
+
+
+def render_scene(target_name: str, target: dict, scene: dict) -> list[Path]:
+    """장면 종류에 맞는 렌더 > 만든 파일 목록"""
+    if scene["kind"] == "pair":
+        return render_pair(target_name, target, scene)
+    return render_single(target_name, target, scene)
 
 
 def render_feature_graphic(wide: dict) -> Path:
@@ -87,7 +142,7 @@ def render_feature_graphic(wide: dict) -> Path:
     page = fill_template("wide_template.html", {
         "width": str(width), "height": str(height), "font_dir": FONT_DIR.as_uri(),
         "logo": LOGO.as_uri(), "app_name": html.escape(wide["app_name"]),
-        "headline": wide["headline"], "sub": html.escape(wide["sub"]),
+        "headline": wide["headline"],
         "shot_front": (SOURCE_DIR / wide["front"]).as_uri(),
         "shot_back": (SOURCE_DIR / wide["back"]).as_uri(),
         "shot_aspect": f"{read_aspect(SOURCE_DIR / wide['front']):.6f}",
@@ -108,7 +163,8 @@ def main() -> None:
         if args.only and args.only != target_name:
             continue
         for scene in config["scenes"]:
-            print(f"made {render_scene(target_name, target, scene).relative_to(APP_ROOT)}")
+            for out in render_scene(target_name, target, scene):
+                print(f"made {out.relative_to(APP_ROOT)}")
     # 가로형 그래픽 이미지
     if args.only in (None, "feature"):
         print(f"made {render_feature_graphic(config['wide']).relative_to(APP_ROOT)}")

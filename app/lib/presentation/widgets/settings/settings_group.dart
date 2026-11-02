@@ -4,14 +4,23 @@ import '../../design/design.dart';
 
 /// 설정 화면의 묶음. 디자인 시스템의 [PassqlGroupedSection] 을 기존 이름으로 감싼 얇은 래퍼다.
 class SettingsGroup extends StatelessWidget {
-  const SettingsGroup({super.key, this.title, required this.children});
+  const SettingsGroup({
+    super.key,
+    this.title,
+    this.footer,
+    required this.children,
+  });
 
   final String? title;
+
+  /// 묶음 아래 안내 한 줄
+  final String? footer;
   final List<Widget> children;
 
   @override
   Widget build(BuildContext context) => PassqlGroupedSection(
     header: title,
+    footer: footer,
     // 아이콘 타일(29) + 좌측 inset(16) + 간격(12) 만큼 들여 쓴 iOS 설정 앱식 구분선.
     separatorIndent: PassqlSpacing.md + PassqlSize.iconTile + PassqlSpacing.sm,
     children: children,

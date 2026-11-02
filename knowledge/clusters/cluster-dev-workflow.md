@@ -2,7 +2,7 @@
 type: cluster
 topic: dev-workflow
 created: 2026-10-29
-members: 63
+members: 68
 status: active
 related: []
 ---
@@ -41,6 +41,8 @@ related: []
 - [[DEC-0183-keep-only-contract-architecture-tests]] — 기능 테스트는 전부 삭제하고 API 계약 테스트와 아키텍처 규칙 테스트만 남긴다
 - [[DEC-0213-ingest-after-report-same-pr]] — 볼트는 모노레포 knowledge/에 두고, pro-report 직후 지식화해 그 이슈의 같은 PR에 커밋한다
 - [[DEC-0214-no-local-design-docs-in-public-vault]] — 퍼블릭 레포 볼트에는 로컬 전용 설계 문서를 넣지 않고, 서버 경로·호스트·내부 포트를 쓰지 않는다
+- [[DEC-0223-audit-followup-small-fixes-split-design]] — 감사 후속은 동작을 바꾸지 않는 작은 수정만 그 이슈에서, 설계 필요 항목은 후속 이슈로, 제품 결정 필요 항목은 사용자 확인으로 나눈다
+- [[DEC-0224-attach-to-existing-common-points]] — 사본 정리는 기존 공통 위치(`UuidUtils`, `PassqlThemeContext`, `crash_reporter`)에 붙이고, 호출부 동작이 다른 곳은 뺀다
 
 ## 대체된 결정 (역사)
 - [[DEC-0068-dev-mode-hidden-easter-egg]] → null
@@ -83,3 +85,5 @@ related: []
 - [[ISS-0391-expand-abbreviated-local-names]] (resolved, GitHub #642) — 앱·서버·웹 지역 변수에 약어 이름이 남아 있음 (계약 이름 제외)
 - [[ISS-0406-delete-functional-tests-keep-contracts]] (resolved, GitHub #680) — 기능 테스트 삭제, 계약·아키텍처 규칙 테스트만 유지
 - [[ISS-0429-second-brain-vault-adoption]] (resolved, GitHub #751) — 세컨드 브레인 도입 (이슈, 리포트 지식화와 결정 기록)
+- [[ISS-0433-second-architecture-audit-followup]] (resolved, GitHub #759) — 2차 아키텍처 감사 후속 — 오류 보고 누락과 복사 로직 정리
+- [[ISS-0434-audit-followup-split-large-files]] (resolved, GitHub #762) — 감사 후속 구조 정리 — 큰 파일 분리와 복사 로직 통합

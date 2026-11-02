@@ -2,7 +2,7 @@
 type: cluster
 topic: store-release
 created: 2026-10-29
-members: 50
+members: 55
 status: active
 related: []
 ---
@@ -28,12 +28,14 @@ related: []
 - [[DEC-0132-push-permission-pre-prompt-sheet]] — 알림 권한은 앱 안내 시트 뒤 "알림 받기"를 눌렀을 때만 시스템 창으로 요청, "나중에"는 7일간 다시 묻지 않음
 - [[DEC-0139-intro-site-generated-from-src]] — 소개 사이트(gh-pages)는 `_src/` 생성 스크립트로만 만들고 HTML을 손으로 고치지 않는다
 - [[DEC-0140-no-spa-prerender-web-app]] — 웹 앱은 SPA 사전 렌더링을 하지 않고 `index.html` 정적 태그로만 검색 노출을 맞춘다
-- [[DEC-0169-store-listing-korean-only]] — 스토어 홍보 이미지·설명은 한국어만 만들고, 문구는 `scenes.json`에서 도구로 렌더링한다
+- [[DEC-0235-store-images-no-sql-keyword]] — 스토어 홍보 이미지와 그래픽 이미지에 큰 SQL 키워드를 넣지 않는다
+- [[DEC-0234-no-pro-mark-on-store-images]] — 스토어 이미지에 PRO 표시를 넣지 않고, 유료 기능 안내는 설명 문구로 한다
 - [[DEC-0176-license-holder-kollylab]] — `LICENSE` 저작권자·Licensor는 `KOLLYLAB (콜리랩)`, 문의 연락처는 운영자 이메일 하나, 사업자 식별 정보는 공개 레포에 넣지 않는다
 - [[DEC-0201-play-promote-closed-testing-default-false]] — Play 수동 배포의 비공개 테스트(alpha) 승급은 기본 끔 — 필요할 때만 체크해서 승급
 
 ## 대체된 결정 (역사)
-- 없음
+- [[DEC-0233-store-images-accent-keyword-style]] — 스토어 홍보 이미지는 앱 토큰의 `accent` 단색 바탕과 큰 SQL 키워드로 만들고, 한국어와 `scenes.json` 렌더 방식은 유지한다 (대체: DEC-0235)
+- [[DEC-0169-store-listing-korean-only]] — 스토어 홍보 이미지·설명은 한국어만 만들고, 문구는 `scenes.json`에서 도구로 렌더링한다 (대체: DEC-0233)
 
 ## 관련 이슈
 - [[ISS-0355-store-review-status-tracking-issue]] (open, GitHub #570) — 스토어 심사 상태 자동 알림 (구독용, 닫지 않음)
@@ -67,6 +69,8 @@ related: []
 - [[ISS-0353-android-production-access-not-granted]] (resolved, GitHub #568) — Android 프로덕션 승급 실패 — Play 계정 프로덕션 액세스 미승인
 - [[ISS-0354-store-review-status-notifications]] (resolved, GitHub #569) — 스토어 심사 결과를 개인 메일로 받기 — 자동 상태 알림과 계정 알림 설정
 - [[ISS-0360-store-promo-images-descriptions]] (resolved, GitHub #586) — 스토어 홍보 이미지·설명 문구 새로 만들기
+- [[ISS-0438-store-promo-images-v2]] (resolved, GitHub #776, PR #777 미머지 시점 기록) — 스토어 홍보 이미지 v2 교체
+- [[ISS-0439-store-images-no-sql-keyword]] (resolved, GitHub #778, PR 미머지 시점 기록) — 스토어 이미지에서 SQL 키워드 제거
 - [[ISS-0389-license-holder-kollylab]] (resolved, GitHub #638) — LICENSE 저작권자·Licensor가 해커톤 팀 이름으로 남아 있고 문의 연락처가 정리되지 않음
 - [[ISS-0397-promo-site-overhaul-operator-notice]] (resolved, GitHub #650) — 홍보 페이지(github.io) 전체 재정비와 약관 운영자 표기
 - [[ISS-0401-hide-question-counts-exam-trend]] (resolved, GitHub #660) — 최신 경향 화면에서 문제 수·표본 크기 숨기기

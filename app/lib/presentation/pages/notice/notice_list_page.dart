@@ -67,7 +67,7 @@ class _NoticeListPageState extends ConsumerState<NoticeListPage> {
         parent: BouncingScrollPhysics(),
       ),
       slivers: [
-        CupertinoSliverRefreshControl(
+        PassqlRefreshControl(
           onRefresh: () => ref.read(noticeListProvider.notifier).reload(),
         ),
         if (listState.notices.isEmpty)

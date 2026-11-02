@@ -2,8 +2,8 @@
 # Flutter Android Play Store 내부 테스트 배포 워크플로우
 # ===================================================================
 #
-# 수동 실행 시 main 브랜치로 Android AAB를 빌드하고
-# Play Store 내부 테스트에 자동 배포합니다.
+# deploy 반영(app 변경) 또는 수동 실행 시 main 브랜치로 Android AAB를 빌드하고
+# Play Store 내부 테스트에 올린 뒤 배포 모드에 따라 프로덕션으로 승급합니다.
 #
 # ===================================================================
 # 🔑 필수 GitHub Secrets
@@ -16,13 +16,18 @@
 # GOOGLE_SERVICES_JSON: Firebase google-services.json
 # GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64: Play Console 서비스 계정 (base64)
 #   └ passQL: GCP 프로젝트 passql 의 play-publisher@passql.iam.gserviceaccount.com
-#     (Play Console 권한: passQL 앱 정보 보기 + 테스트 트랙 출시. 프로덕션 출시 권한 없음 — #376)
+#     (Play Console 권한: passQL 앱 정보 보기 + 테스트 트랙 출시 + 프로덕션 출시 — #376 제한을 #770 에서 해제)
 # ===================================================================
 
 name: PROJECT-FLUTTER-ANDROID-PLAYSTORE-INTERNAL-CICD
 
 on:
-  # 자동 실행을 껐다(수동 실행만 가능). 서명키/스토어 준비 전이거나 이 프로젝트에 해당하지 않는 배포다.
+  # 자동 실행: 릴리스 PR(main > deploy) 머지로 app/ 가 바뀐 배포만 (#770)
+  # 앱 변경 없는 서버 배포는 돌지 않음 > 진행 중인 심사를 새 제출로 취소하지 않음 (#729)
+  push:
+    branches: [deploy]
+    paths: ['app/**']
+  # 수동 실행: 모드 직접 선택
   workflow_dispatch:
     inputs:
       deploy_mode:
@@ -68,8 +73,8 @@ env:
   # Play 스토어 '새로운 기능' 문구 고정: 출시(store_prepare·store_submit)에서만 이 문구, store_only·""이면 CHANGELOG.json 해당 버전 (iOS 워크플로 같은 이름 설정과 함께 바꾼다)
   # 스토어·심사자에게 보이는 칸만 해당. Firebase 테스터 노트는 CHANGELOG 그대로
   STORE_WHATS_NEW_OVERRIDE: "앱 안정성과 사용성을 개선했습니다."
-  # 배포 모드 (store_only | store_prepare | store_submit)
-  DEPLOY_MODE: ${{ github.event.inputs.deploy_mode || vars.ANDROID_DEPLOY_MODE || 'store_only' }}
+  # 배포 모드 (store_only | store_prepare | store_submit): 수동 선택 > 레포 변수 ANDROID_DEPLOY_MODE(끄기 스위치) > 자동 실행 store_submit, 수동 store_only (#770)
+  DEPLOY_MODE: ${{ github.event.inputs.deploy_mode || vars.ANDROID_DEPLOY_MODE || (github.event_name == 'push' && 'store_submit' || 'store_only') }}
   # 트랙 승급 스위치 — DEPLOY_MODE 와 독립이다 (projectops #618).
   # 비공개 승급은 매번 Google 검토를 타서 진행 중인 프로덕션 심사를 취소시킴 > 기본 끔 (#729)
   # 우선순위: 수동 실행 입력 > 레포 변수 ANDROID_PROMOTE_TO_CLOSED_TESTING > false

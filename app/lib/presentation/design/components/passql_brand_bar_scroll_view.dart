@@ -5,6 +5,7 @@ import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
 import 'passql_glass.dart';
 import 'passql_logo.dart';
+import 'passql_refresh_control.dart';
 
 /// 홈 탭 틀: 왼쪽 로고(또는 leading) + 오른쪽 버튼 한 줄 상단 바(고정), 아래 내용 스크롤
 /// 바 배경: 맨 위 투명 > 내용이 바 밑으로 지나가면 글래스 + 헤어라인 (큰 제목 탭과 같은 scroll-edge 모양)
@@ -70,7 +71,7 @@ class _PassqlBrandBarScrollViewState extends State<PassqlBrandBarScrollView> {
               ),
             ),
             if (widget.onRefresh != null)
-              CupertinoSliverRefreshControl(onRefresh: widget.onRefresh),
+              PassqlRefreshControl(onRefresh: widget.onRefresh!),
             ...widget.slivers,
             // 탭 바(extendBody) 뒤로 마지막 콘텐츠가 가려지지 않게 한다.
             SliverToBoxAdapter(

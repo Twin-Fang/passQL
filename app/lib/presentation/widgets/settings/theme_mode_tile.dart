@@ -6,14 +6,15 @@ import '../../design/design.dart';
 import '../../providers/theme_mode_provider.dart';
 import 'settings_group.dart';
 
-/// 화면 모드 표시 이름 (자동 > 기기의 라이트/다크 설정을 따름)
+/// 화면 모드 표시 이름. iOS 의 '자동'(시간 기준 전환)과 헷갈리지 않게 시스템 모드는 '기기 설정' (#774)
 String themeModeLabel(ThemeMode mode) => switch (mode) {
-  ThemeMode.system => '자동',
+  ThemeMode.system => '기기 설정',
   ThemeMode.light => '라이트',
   ThemeMode.dark => '다크',
 };
 
-/// 화면 모드 설정 줄: 시트 없이 줄 아래 세그먼트에서 자동/라이트/다크를 바로 고른다.
+/// 화면 모드 설정 줄: 시트 없이 줄 아래 세그먼트에서 기기 설정/라이트/다크를 바로 고른다.
+/// 고를 때 줄 높이가 바뀌지 않게 보조 설명은 두지 않는다 (#774).
 class ThemeModeTile extends ConsumerWidget {
   const ThemeModeTile({super.key});
 
@@ -26,7 +27,6 @@ class ThemeModeTile extends ConsumerWidget {
           icon: CupertinoIcons.circle_lefthalf_fill,
           iconColor: context.passqlColors.accent,
           title: '화면 모드',
-          subtitle: mode == ThemeMode.system ? '기기의 라이트/다크 설정을 따라요' : null,
           shouldShowChevron: false,
         ),
         Padding(

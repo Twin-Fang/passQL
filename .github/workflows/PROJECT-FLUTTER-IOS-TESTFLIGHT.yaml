@@ -62,7 +62,12 @@
 name: PROJECT-iOS-TestFlight-Deploy
 
 on:
-  # 자동 실행을 껐다(수동 실행만 가능). 서명키/스토어 준비 전이거나 이 프로젝트에 해당하지 않는 배포다.
+  # 자동 실행: 릴리스 PR(main > deploy) 머지로 app/ 가 바뀐 배포만 (#770)
+  # 앱 변경 없는 서버 배포는 돌지 않음 > 진행 중인 심사를 새 제출로 취소하지 않음 (#729)
+  push:
+    branches: [deploy]
+    paths: ['app/**']
+  # 수동 실행: 모드 직접 선택
   workflow_dispatch:
     inputs:
       deploy_mode:
@@ -104,13 +109,14 @@ env:
   # ============================================
   # 📝 배포 모드 — main 배포 시 App Store 어디까지 올릴지
   # ============================================
-  #   store_only    : TestFlight 업로드까지만 (기본)
+  #   store_only    : TestFlight 업로드까지만 (수동 실행 기본)
   #   store_prepare : + App Store Connect 버전 생성·빌드 연결·문구 입력 (제출 버튼은 사람이 누른다)
   #   store_submit  : + 심사 자동 제출, 승인되면 자동 출시
   # 값은 레포 변수 IOS_DEPLOY_MODE 에서 읽는다 (Settings → Secrets and variables → Actions → Variables).
   # 코드가 아니라 레포 변수에 두는 이유: 급할 때 배포 없이 자동 제출을 바로 끌 수 있어야 한다 (값을 store_only 로).
   # 수동 실행(workflow_dispatch)에서 고른 값이 있으면 그것이 우선한다.
-  DEPLOY_MODE: ${{ github.event.inputs.deploy_mode || vars.IOS_DEPLOY_MODE || 'store_only' }}
+  # 변수가 비어 있으면: deploy 자동 실행 store_submit, 수동 실행 store_only (#770)
+  DEPLOY_MODE: ${{ github.event.inputs.deploy_mode || vars.IOS_DEPLOY_MODE || (github.event_name == 'push' && 'store_submit' || 'store_only') }}
 
   # ============================================
   # 📝 스토어 '새로운 기능(What's New)' 문구 덮어쓰기
