@@ -87,22 +87,22 @@ class SharedPreferencesInterstitialShowHistoryStore
   }
 }
 
-/// 전면 광고 빈도 제한 3개: 설치 후 첫 결과 2회는 광고 없음, 노출 간격 5분 이상, 하루 최대 3회 (기기 현지 날짜 기준)
+/// 전면 광고 빈도 제한 3개: 설치 후 첫 결과 1회는 광고 없음, 노출 간격 3분 이상, 하루 최대 5회 (기기 현지 날짜 기준, #787)
 class InterstitialFrequencyCap {
   InterstitialFrequencyCap(this._store);
 
-  /// 연속 노출 최소 간격 (5분)
-  static const minimumIntervalBetweenShows = Duration(minutes: 5);
+  /// 연속 노출 최소 간격 (3분)
+  static const minimumIntervalBetweenShows = Duration(minutes: 3);
 
   /// 하루 최대 노출 횟수
-  static const maximumShowsPerDay = 3;
+  static const maximumShowsPerDay = 5;
 
   /// 광고 없이 넘기는 첫 결과 화면 진입 횟수 (첫 학습 경험 보호)
-  static const freeResultEntryCount = 2;
+  static const freeResultEntryCount = 1;
 
   final InterstitialShowHistoryStore _store;
 
-  /// 지금 보여도 되는지 (첫 결과 유예 지남 + 오늘 남은 횟수 + 마지막 노출 뒤 5분 경과)
+  /// 지금 보여도 되는지 (첫 결과 유예 지남 + 오늘 남은 횟수 + 마지막 노출 뒤 최소 간격 경과)
   Future<bool> canShowAt(DateTime now) async {
     final history = await _store.read();
     if (history.resultEntryCount <= freeResultEntryCount) return false;
