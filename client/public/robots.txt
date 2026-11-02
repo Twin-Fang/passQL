@@ -3,6 +3,8 @@ User-agent: *
 Allow: /$
 Allow: /login
 Allow: /legal/
+# AdMob 앱 인증: 개발자 웹사이트 루트의 app-ads.txt 를 크롤러가 읽어야 함 (막히면 광고 게재 제한, #783)
+Allow: /app-ads.txt
 Disallow: /
 # 주소 원본: src/constants/siteUrls.ts PRODUCTION_SITE_URL (siteUrls.test.ts 가 일치 검사)
 Sitemap: https://passql.vercel.app/sitemap.xml
