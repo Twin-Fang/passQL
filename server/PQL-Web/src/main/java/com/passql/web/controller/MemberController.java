@@ -53,6 +53,12 @@ public class MemberController implements MemberControllerDocs {
         return featureAccessPolicy.getPlan(loginMember.memberUuid());
     }
 
+    // 보상형 광고 시청 뒤 무료 한도 +5 (하루 2회, #808)
+    @PostMapping("/me/plan/ad-bonus")
+    public MemberPlanResponse grantAdBonus(@AuthMember LoginMember loginMember) {
+        return featureAccessPolicy.grantAdBonus(loginMember.memberUuid());
+    }
+
     /** 회원 탈퇴. 성공하면 본문 없이 204. */
     @DeleteMapping("/me")
     @ResponseStatus(HttpStatus.NO_CONTENT)
