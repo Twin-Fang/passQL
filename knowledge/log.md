@@ -83,3 +83,5 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-01 22:50 | W6 | update | cluster-store-release members 55 (check W10)
 - 2026-11-02 14:43 | W6 | create issue+completion-report (GitHub #789) | ISS-0440
 - 2026-11-02 14:43 | W6 | create decision (raw exception message blocked at handler) | DEC-0236
+- 2026-11-03 13:20 | W6 | create issue+completion-report (GitHub #791) | ISS-0441
+- 2026-11-03 13:20 | W6 | create decision (request body DTO with validation) | DEC-0237
