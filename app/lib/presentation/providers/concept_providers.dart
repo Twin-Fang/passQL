@@ -54,7 +54,6 @@ class ConceptStudyState {
     this.isSubmitting = false,
     this.pendingAnchor,
     this.isInitialized = false,
-    this.topicSolvedCountAtStart,
     this.rereadAnchors = const {},
   });
 
@@ -69,8 +68,6 @@ class ConceptStudyState {
   final String? pendingAnchor;
   // 서버 진행(마지막 모드·깊이)으로 처음 한 번 맞췄는지
   final bool isInitialized;
-  // 이 개념 화면을 처음 열었을 때 단원의 끝낸 개념 수 (결과의 단원 숫자 +1 연출 비교용)
-  final int? topicSolvedCountAtStart;
   // 결과 화면에서 "다시 읽기"로 다녀온 문단 (돌아오면 그 문제 줄에 읽음 표시)
   final Set<String> rereadAnchors;
 
@@ -87,7 +84,6 @@ class ConceptStudyState {
     String? pendingAnchor,
     bool shouldClearPendingAnchor = false,
     bool? isInitialized,
-    int? topicSolvedCountAtStart,
     Set<String>? rereadAnchors,
   }) {
     return ConceptStudyState(
@@ -102,8 +98,6 @@ class ConceptStudyState {
           ? null
           : (pendingAnchor ?? this.pendingAnchor),
       isInitialized: isInitialized ?? this.isInitialized,
-      topicSolvedCountAtStart:
-          topicSolvedCountAtStart ?? this.topicSolvedCountAtStart,
       rereadAnchors: rereadAnchors ?? this.rereadAnchors,
     );
   }
@@ -113,11 +107,25 @@ class ConceptStudyState {
 /// 진행 저장은 화면을 막지 않는 선택 호출 (실패해도 학습은 계속)
 class ConceptStudyNotifier
     extends AutoDisposeFamilyNotifier<ConceptStudyState, String> {
+  /// 서버에 남은 마지막 모드·깊이로 시작 (화면은 상세를 불러온 뒤 이 상태를 읽음, 늦게 오면 도착 때 1회)
   @override
-  ConceptStudyState build(String conceptUuid) => const ConceptStudyState();
+  ConceptStudyState build(String conceptUuid) {
+    ref.listen(conceptDetailProvider(conceptUuid), (_, next) {
+      final loadedDetail = next.valueOrNull;
+      if (loadedDetail != null) _initializeFrom(loadedDetail);
+    });
+    final detail = ref.read(conceptDetailProvider(conceptUuid)).valueOrNull;
+    return detail == null
+        ? const ConceptStudyState()
+        : ConceptStudyState(
+            mode: detail.lastMode,
+            depth: detail.lastDepth,
+            isInitialized: true,
+          );
+  }
 
   /// 서버에 남은 마지막 모드·깊이로 처음 한 번만 맞춤
-  void initializeFrom(ConceptDetailResponse detail) {
+  void _initializeFrom(ConceptDetailResponse detail) {
     if (state.isInitialized) return;
     state = state.copyWith(
       mode: detail.lastMode,
@@ -175,12 +183,6 @@ class ConceptStudyNotifier
       state = state.copyWith(isSubmitting: false);
       rethrow;
     }
-  }
-
-  /// 처음 단원 완료 수를 한 번만 기억 (뒤에 새로고침된 값과 비교해 이번에 끝냈는지 판단)
-  void rememberTopicSolvedCount(int solvedCount) {
-    if (state.topicSolvedCountAtStart != null) return;
-    state = state.copyWith(topicSolvedCountAtStart: solvedCount);
   }
 
   /// 다음 문제: 지금 뒤에서 아직 채점 안 한 문제로 (틀린 문제만 다시 풀 때 맞힌 문제는 건너뜀), 없으면 결과

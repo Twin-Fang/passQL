@@ -83,7 +83,7 @@ class PlanNotifier extends AutoDisposeAsyncNotifier<MemberPlanResponse> {
     final isKnownFree =
         knownPlan != null &&
         knownPlan.isBillingEnabled &&
-        knownPlan.plan == MemberPlanType.free;
+        knownPlan.plan.isFree;
     if (isKnownFree) return;
     await refresh();
   }
@@ -122,7 +122,7 @@ extension MemberPlanDailyUsage on MemberPlanResponse {
 
 /// 프로(이용권 보유) 여부. 등급을 모르면 false
 final isProProvider = Provider.autoDispose<bool>(
-  (ref) => ref.watch(knownPlanProvider)?.plan == MemberPlanType.pro,
+  (ref) => ref.watch(knownPlanProvider)?.plan.isPro ?? false,
 );
 
 /// 결제 UI(칩·카드·시트·블러)를 그릴지: 앱 결제 플랫폼(Android·iOS) + 등급 확정 + 서버 결제 스위치 + 무료

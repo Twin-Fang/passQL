@@ -14,7 +14,7 @@ _$MemberPlanResponseImpl _$$MemberPlanResponseImplFromJson(
       $enumDecodeNullable(
         _$MemberPlanTypeEnumMap,
         json['plan'],
-        unknownValue: MemberPlanType.free,
+        unknownValue: MemberPlanType.unknown,
       ) ??
       MemberPlanType.free,
   proExpiresAt: json['proExpiresAt'] == null
@@ -54,6 +54,7 @@ Map<String, dynamic> _$$MemberPlanResponseImplToJson(
 const _$MemberPlanTypeEnumMap = {
   MemberPlanType.free: 'FREE',
   MemberPlanType.pro: 'PRO',
+  MemberPlanType.unknown: 'UNKNOWN',
 };
 
 _$PassOptionImpl _$$PassOptionImplFromJson(Map<String, dynamic> json) =>

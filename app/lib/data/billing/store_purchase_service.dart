@@ -146,7 +146,7 @@ abstract class StorePurchaseService implements ProPurchasePort {
     final isActivePurchase = _activePurchase != null;
     final verifiedPlan = await _verifyPurchase(purchase);
     // 서버가 결제 대기로 보면 등급 그대로 > pending
-    final isPro = verifiedPlan?.plan == MemberPlanType.pro;
+    final isPro = verifiedPlan?.plan.isPro ?? false;
     if (isActivePurchase) {
       completeActivePurchase(
         isPro ? ProPurchaseOutcome.success : ProPurchaseOutcome.pending,
@@ -189,7 +189,7 @@ abstract class StorePurchaseService implements ProPurchasePort {
       final verifiedPlans = await Future.wait(
         unverifiedPurchases.map(_verifyPurchase),
       );
-      return verifiedPlans.any((plan) => plan?.plan == MemberPlanType.pro);
+      return verifiedPlans.any((plan) => plan?.plan.isPro ?? false);
     } on Object catch (error) {
       AppLogger.warn('billing', 'resend unverified failed : $error');
       return false;

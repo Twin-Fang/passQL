@@ -87,10 +87,11 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 | `ad_placement_rules_test.dart` | core/ads 밖의 `google_mobile_ads`·ATT import, 허용 목록(탭 쉘·홈·통계·토픽 목록·결과 화면 2곳·main) 밖의 광고 사용, 탭 쉘 밖·2개 이상의 한 줄 띠와 탭별 배너, 홈·통계 밖·화면당 2개 이상의 인라인 카드, 토픽 목록 밖의 네이티브 카드, 풀이·로그인·약관·설정·차단 화면의 광고, `ad_request_preparer.dart` 밖의 `AdRequest(` 조립, 사용자 정보를 실은 광고 요청 |
 | `layer_dependency_test.dart` | core 의 data·presentation·router import, data 의 presentation·router import, design 의 providers·pages·widgets·flows import, 화면의 `data/sources` 직접 import, core/monitoring 밖의 Crashlytics·Analytics SDK, core/push 밖의 firebase_messaging, core/notification 밖의 app_badge_plus, core/storage 밖의 shared_preferences 직접 import, 종 아이콘 밖의 알림함 경로 |
 | `logging_rules_test.dart` | lib 의 `debugPrint(` 직접 사용 (`AppLogger.info·warn·error(태그, 영어 문구)` 사용. 예외 2곳: AppLogger 내부 콘솔 미러, 디버그 전용 Dio 본문 출력) |
+| `file_size_rules_test.dart` | lib 의 손으로 쓴 Dart 파일(생성 파일 제외) 500줄 초과 (300줄부터 분리 검토, 예외는 `_allowedOversizedFiles`) |
 | `server_api_schema_test.dart` | 앱 모델 필드 <-> `api-contract/openapi.json` 어긋남 (서버에 없는 필드, 기본값 없는 nullable, 타입 불일치, #493) |
 | `architecture_rules_test.dart` | 레포 공통 규칙(`docs/architecture/rules/*.rule`)의 새 위반·고쳐진 동결 항목 (pro-architecture-consult 템플릿) |
 
-- 예외는 각 테스트의 allow-list(`_allowedUsages`, `_allowedReverseImports`, `_allowedDebugPrintUsages`)에 파일과 **이유**를 적어서만 둔다. 비어 있는 것이 정상이다.
+- 예외는 각 테스트의 allow-list(`_allowedUsages`, `_allowedReverseImports`, `_allowedDebugPrintUsages`, `_allowedOversizedFiles`)에 파일과 **이유**를 적어서만 둔다. 비어 있는 것이 정상이다.
 
 ## 인증 구조
 

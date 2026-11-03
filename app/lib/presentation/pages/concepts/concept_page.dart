@@ -10,8 +10,8 @@ import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../flows/concept_related_flow.dart';
 import '../../providers/concept_providers.dart';
+import '../../providers/concept_unit_progress_provider.dart';
 import '../../widgets/concept/concept_read_view.dart';
-import '../../widgets/concept/concept_result_view.dart';
 import '../../widgets/concept/concept_solve_view.dart';
 import '../../widgets/pro/locked_preview_samples.dart';
 import '../../widgets/pro/pro_locked_section.dart';
@@ -89,23 +89,7 @@ class _ConceptStudyScaffold extends ConsumerWidget {
     final conceptUuid = detail.conceptUuid;
     final study = ref.watch(conceptStudyProvider(conceptUuid));
     final notifier = ref.read(conceptStudyProvider(conceptUuid).notifier);
-    final topicConcepts = ref
-        .watch(conceptListProvider(detail.topicUuid))
-        .valueOrNull;
-    final topicSolvedCount = topicConcepts?.concepts
-        .where((concept) => concept.status == ConceptStatus.solved)
-        .length;
-
-    // 서버에 남은 마지막 모드·깊이로 처음 한 번 맞춤, 결과의 단원 +1 연출용으로 처음 단원 완료 수 기억
-    if (!study.isInitialized ||
-        (topicSolvedCount != null && study.topicSolvedCountAtStart == null)) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        notifier.initializeFrom(detail);
-        if (topicSolvedCount != null) {
-          notifier.rememberTopicSolvedCount(topicSolvedCount);
-        }
-      });
-    }
+    final unitProgress = ref.watch(conceptUnitProgressProvider(conceptUuid));
 
     final isReading = study.mode == ConceptStudyMode.read;
     final selectedTab = !isReading
@@ -118,51 +102,8 @@ class _ConceptStudyScaffold extends ConsumerWidget {
       ConceptRelatedFlow.maximumQuestionCount,
     );
     final nextActionLabel = detail.nextConceptUuid == null ? '단원으로' : '다음 개념';
-    final topics = ref.watch(conceptTopicsProvider).valueOrNull?.topics;
-    final topicOrder = topics
-        ?.where((topic) => topic.topicUuid == detail.topicUuid)
-        .firstOrNull
-        ?.orderIndex;
     // 단원을 다 끝낸 한 장에서 바로 이어 갈 다음 단원 (잠긴 단원은 건너뜀)
-    final nextTopic = topicOrder == null
-        ? null
-        : topics
-              ?.where(
-                (topic) => topic.orderIndex > topicOrder && !topic.isLocked,
-              )
-              .fold<ConceptTopicSummary?>(
-                null,
-                (best, topic) =>
-                    best == null || topic.orderIndex < best.orderIndex
-                    ? topic
-                    : best,
-              );
-    final unitProgress = topicConcepts == null || topicSolvedCount == null
-        ? null
-        : ConceptUnitProgress(
-            label: topicOrder == null
-                ? topicConcepts.displayName
-                : '${topicOrder + 1}단원 · ${topicConcepts.displayName}',
-            solvedCountBefore:
-                study.topicSolvedCountAtStart ?? topicSolvedCount,
-            solvedCount: topicSolvedCount,
-            total: topicConcepts.concepts.length,
-            nextUnitLabel: nextTopic == null
-                ? null
-                : '${nextTopic.orderIndex + 1}단원',
-            // 전체: 다른 단원은 목록 값, 이 단원은 방금 센 값 (목록 새로고침 시차를 피함)
-            overallSolvedCount: topics == null
-                ? 0
-                : topics.fold<int>(
-                    topicSolvedCount,
-                    (sum, topic) => topic.topicUuid == detail.topicUuid
-                        ? sum
-                        : sum + topic.completedCount,
-                  ),
-            overallTotal: topics == null
-                ? 0
-                : topics.fold<int>(0, (sum, topic) => sum + topic.conceptCount),
-          );
+    final nextUnitTopicUuid = unitProgress?.nextUnitTopicUuid;
 
     /// 세그먼트 선택 > 모드·깊이로 나눠 저장
     void selectTab(_ConceptStudyTab tab) {
@@ -242,10 +183,10 @@ class _ConceptStudyScaffold extends ConsumerWidget {
                     AppRoutes.conceptRelated(conceptUuid, detail.title),
                   ),
                   // 다음 단원 상세로 바꿔치기 (뒤로 가면 지금 단원 목록)
-                  onNextUnitPressed: nextTopic == null
+                  onNextUnitPressed: nextUnitTopicUuid == null
                       ? null
                       : () => context.pushReplacement(
-                          AppRoutes.conceptTopic(nextTopic.topicUuid),
+                          AppRoutes.conceptTopic(nextUnitTopicUuid),
                         ),
                 ),
               ],

@@ -2,18 +2,18 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/logging/app_logger.dart';
 import '../../core/network/api_call.dart';
 import '../../core/network/safe_call.dart';
 import '../../data/community/community_image_compressor.dart';
 import '../../data/models/community/community_models.dart';
 import '../../data/sources/api_providers.dart';
 import '../../data/sources/community_api.dart';
+import 'paged_list_load_more.dart';
 import 'session_reset.dart';
 
 /// 피드 탭 1개의 목록 상태: 불러온 카드, 다음 커서, 추가 로딩 중 여부
 @immutable
-class CommunityFeedState {
+class CommunityFeedState implements PagedListState<CommunityFeedState> {
   const CommunityFeedState({
     required this.items,
     this.nextCursor,
@@ -24,10 +24,13 @@ class CommunityFeedState {
 
   /// null 이면 마지막 페이지
   final String? nextCursor;
+  @override
   final bool isLoadingMore;
 
+  @override
   bool get hasMore => nextCursor != null;
 
+  @override
   CommunityFeedState copyWith({bool? isLoadingMore}) => CommunityFeedState(
     items: items,
     nextCursor: nextCursor,
@@ -61,25 +64,20 @@ class CommunityFeedNotifier
   }
 
   /// 다음 페이지 이어 붙이기 (마지막 페이지·로딩 중·실패 > 변화 없음)
-  Future<void> loadMore() async {
-    final current = state.valueOrNull;
-    if (current == null || !current.hasMore || current.isLoadingMore) return;
-    state = AsyncData(current.copyWith(isLoadingMore: true));
-    try {
+  Future<void> loadMore() => appendNextPage(
+    current: state.valueOrNull,
+    onStateChanged: (nextState) => state = AsyncData(nextState),
+    logTag: 'community feed',
+    fetchAppendedState: (current) async {
       final page = await ref
           .read(communityApiProvider)
           .getFeed(source: arg.serverValue, cursor: current.nextCursor);
-      state = AsyncData(
-        CommunityFeedState(
-          items: [...current.items, ...page.items],
-          nextCursor: page.nextCursor,
-        ),
+      return CommunityFeedState(
+        items: [...current.items, ...page.items],
+        nextCursor: page.nextCursor,
       );
-    } catch (error) {
-      AppLogger.warn('community feed', 'load more failed : $error');
-      state = AsyncData(current.copyWith(isLoadingMore: false));
-    }
-  }
+    },
+  );
 }
 
 final communityFeedProvider = AsyncNotifierProvider.autoDispose
@@ -92,7 +90,7 @@ typedef CommunityPostsQuery = ({String questionUuid, CommunityPostSort sort});
 
 /// 의견 목록 상태: 불러온 글, 다음 커서, 추가 로딩 중 여부
 @immutable
-class CommunityPostsState {
+class CommunityPostsState implements PagedListState<CommunityPostsState> {
   const CommunityPostsState({
     required this.items,
     this.nextCursor,
@@ -103,10 +101,13 @@ class CommunityPostsState {
 
   /// null 이면 마지막 페이지
   final String? nextCursor;
+  @override
   final bool isLoadingMore;
 
+  @override
   bool get hasMore => nextCursor != null;
 
+  @override
   CommunityPostsState copyWith({
     List<CommunityPost>? items,
     bool? isLoadingMore,
@@ -147,27 +148,22 @@ class CommunityPostsNotifier
   }
 
   /// 다음 페이지 이어 붙이기 (마지막 페이지·로딩 중·실패 > 변화 없음)
-  Future<void> loadMore() async {
-    final current = state.valueOrNull;
-    if (current == null || !current.hasMore || current.isLoadingMore) return;
-    state = AsyncData(current.copyWith(isLoadingMore: true));
-    try {
+  Future<void> loadMore() => appendNextPage(
+    current: state.valueOrNull,
+    onStateChanged: (nextState) => state = AsyncData(nextState),
+    logTag: 'community posts',
+    fetchAppendedState: (current) async {
       final page = await _api.getQuestionPosts(
         arg.questionUuid,
         sort: arg.sort.serverValue,
         cursor: current.nextCursor,
       );
-      state = AsyncData(
-        CommunityPostsState(
-          items: [...current.items, ...page.items],
-          nextCursor: page.nextCursor,
-        ),
+      return CommunityPostsState(
+        items: [...current.items, ...page.items],
+        nextCursor: page.nextCursor,
       );
-    } catch (error) {
-      AppLogger.warn('community posts', 'load more failed : $error');
-      state = AsyncData(current.copyWith(isLoadingMore: false));
-    }
-  }
+    },
+  );
 
   /// 이미지 1장 업로드: 본체 + 썸네일 multipart > 서버 imageUuid (실패는 AppException 그대로)
   Future<String> uploadImage(CompressedCommunityImage compressed) async {

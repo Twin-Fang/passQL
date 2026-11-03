@@ -23,8 +23,8 @@ MemberPlanResponse _$MemberPlanResponseFromJson(Map<String, dynamic> json) {
 mixin _$MemberPlanResponse {
   // 서버 결제 스위치 (false 면 서버가 모든 회원을 프로처럼 취급)
   bool get isBillingEnabled =>
-      throw _privateConstructorUsedError; // 서버에 새 등급이 생겨도 깨지지 않게 모르는 값은 무료로 봄
-  @JsonKey(unknownEnumValue: MemberPlanType.free)
+      throw _privateConstructorUsedError; // 서버에 새 등급이 생겨도 깨지지 않게 모르는 값은 unknown (판정은 무료)
+  @JsonKey(unknownEnumValue: MemberPlanType.unknown)
   MemberPlanType get plan => throw _privateConstructorUsedError; // 프로 만료 시각 (KST, 무료면 null)
   DateTime? get proExpiresAt =>
       throw _privateConstructorUsedError; // 오늘 제출한 서로 다른 랜덤 문제 수 (오늘의 문제 제외)
@@ -59,7 +59,7 @@ abstract class $MemberPlanResponseCopyWith<$Res> {
   @useResult
   $Res call({
     bool isBillingEnabled,
-    @JsonKey(unknownEnumValue: MemberPlanType.free) MemberPlanType plan,
+    @JsonKey(unknownEnumValue: MemberPlanType.unknown) MemberPlanType plan,
     DateTime? proExpiresAt,
     int todayRandomSolvedCount,
     int dailyFreeLimit,
@@ -150,7 +150,7 @@ abstract class _$$MemberPlanResponseImplCopyWith<$Res>
   @useResult
   $Res call({
     bool isBillingEnabled,
-    @JsonKey(unknownEnumValue: MemberPlanType.free) MemberPlanType plan,
+    @JsonKey(unknownEnumValue: MemberPlanType.unknown) MemberPlanType plan,
     DateTime? proExpiresAt,
     int todayRandomSolvedCount,
     int dailyFreeLimit,
@@ -233,7 +233,7 @@ class __$$MemberPlanResponseImplCopyWithImpl<$Res>
 class _$MemberPlanResponseImpl implements _MemberPlanResponse {
   const _$MemberPlanResponseImpl({
     this.isBillingEnabled = false,
-    @JsonKey(unknownEnumValue: MemberPlanType.free)
+    @JsonKey(unknownEnumValue: MemberPlanType.unknown)
     this.plan = MemberPlanType.free,
     this.proExpiresAt,
     this.todayRandomSolvedCount = 0,
@@ -251,9 +251,9 @@ class _$MemberPlanResponseImpl implements _MemberPlanResponse {
   @override
   @JsonKey()
   final bool isBillingEnabled;
-  // 서버에 새 등급이 생겨도 깨지지 않게 모르는 값은 무료로 봄
+  // 서버에 새 등급이 생겨도 깨지지 않게 모르는 값은 unknown (판정은 무료)
   @override
-  @JsonKey(unknownEnumValue: MemberPlanType.free)
+  @JsonKey(unknownEnumValue: MemberPlanType.unknown)
   final MemberPlanType plan;
   // 프로 만료 시각 (KST, 무료면 null)
   @override
@@ -353,7 +353,8 @@ class _$MemberPlanResponseImpl implements _MemberPlanResponse {
 abstract class _MemberPlanResponse implements MemberPlanResponse {
   const factory _MemberPlanResponse({
     final bool isBillingEnabled,
-    @JsonKey(unknownEnumValue: MemberPlanType.free) final MemberPlanType plan,
+    @JsonKey(unknownEnumValue: MemberPlanType.unknown)
+    final MemberPlanType plan,
     final DateTime? proExpiresAt,
     final int todayRandomSolvedCount,
     final int dailyFreeLimit,
@@ -368,9 +369,9 @@ abstract class _MemberPlanResponse implements MemberPlanResponse {
 
   // 서버 결제 스위치 (false 면 서버가 모든 회원을 프로처럼 취급)
   @override
-  bool get isBillingEnabled; // 서버에 새 등급이 생겨도 깨지지 않게 모르는 값은 무료로 봄
+  bool get isBillingEnabled; // 서버에 새 등급이 생겨도 깨지지 않게 모르는 값은 unknown (판정은 무료)
   @override
-  @JsonKey(unknownEnumValue: MemberPlanType.free)
+  @JsonKey(unknownEnumValue: MemberPlanType.unknown)
   MemberPlanType get plan; // 프로 만료 시각 (KST, 무료면 null)
   @override
   DateTime? get proExpiresAt; // 오늘 제출한 서로 다른 랜덤 문제 수 (오늘의 문제 제외)
