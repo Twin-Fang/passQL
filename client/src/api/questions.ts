@@ -6,6 +6,7 @@ import type {
   QuestionDetail,
   SubmitResult,
   ExecuteResult,
+  QuestionExecutePayload,
   RecommendationsResponse,
   SseStatusEvent,
   SseErrorEvent,
@@ -246,6 +247,6 @@ export function executeChoice(
 ): Promise<ExecuteResult> {
   return apiFetch(`/questions/${questionUuid}/execute`, {
     method: "POST",
-    body: JSON.stringify({ sql }),
+    body: JSON.stringify({ sql } satisfies QuestionExecutePayload),
   });
 }

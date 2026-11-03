@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../data/models/concept/concept_models.dart';
+import '../../../data/models/concept/concept_unit_progress.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/concept_providers.dart';
+import '../../providers/concept_unit_progress_provider.dart';
 import '../../widgets/concept/concept_status_mark.dart';
 import '../../widgets/pro/locked_preview_samples.dart';
 import '../../widgets/pro/pro_locked_section.dart';
@@ -114,17 +116,12 @@ class _TopicProgressSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.passqlColors;
     // 단원 순번은 단원 목록에만 있음 (개념 탭에서 왔으면 이미 불러온 값, 없으면 이름만)
-    final topicOrder = ref
-        .watch(conceptTopicsProvider)
-        .valueOrNull
-        ?.topics
-        .where((topic) => topic.topicUuid == list.topicUuid)
-        .firstOrNull
-        ?.orderIndex;
+    final unitLabel = toConceptUnitLabel(
+      ref.watch(conceptTopicOrderProvider(list.topicUuid)),
+      displayName: list.displayName,
+    );
     final total = list.concepts.length;
-    final solvedCount = list.concepts
-        .where((concept) => concept.status == ConceptStatus.solved)
-        .length;
+    final solvedCount = list.solvedConceptCount;
     final remainingCount = total - solvedCount;
     final isUntouched = list.concepts.every(
       (concept) => concept.status == ConceptStatus.notStarted,
@@ -134,9 +131,7 @@ class _TopicProgressSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            topicOrder == null
-                ? list.displayName
-                : '${topicOrder + 1}단원 · ${list.displayName}',
+            unitLabel,
             style: PassqlTypography.subheadline.copyWith(
               color: colors.secondaryLabel,
             ),

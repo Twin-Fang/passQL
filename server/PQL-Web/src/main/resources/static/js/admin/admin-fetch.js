@@ -162,6 +162,25 @@
         });
     }
 
+    /**
+     * 폼 제출 전 확인 창: onsubmit="return AdminUi.confirmBeforeSubmit(event, '...')"
+     * 제출 막음 > 확인 창 > 확인 시 같은 제출 버튼으로 다시 제출 (재진입은 통과)
+     */
+    function confirmBeforeSubmit(submitEvent, message, options = {}) {
+        const form = submitEvent.target;
+        if (form.dataset.isSubmitConfirmed === 'true') {
+            delete form.dataset.isSubmitConfirmed;
+            return true;
+        }
+        submitEvent.preventDefault();
+        confirmDanger(message, options).then(isConfirmed => {
+            if (!isConfirmed) return;
+            form.dataset.isSubmitConfirmed = 'true';
+            form.requestSubmit(submitEvent.submitter || undefined);
+        });
+        return false;
+    }
+
     /** HTML 이스케이프 (innerHTML 템플릿용) */
     function escapeHtml(value) {
         if (value === null || value === undefined) return '';
@@ -183,5 +202,5 @@
         delete: (url, body) => request(url, { method: 'DELETE', body }),
         AdminApiError
     };
-    window.AdminUi = { toast, showError, reloadWithToast, navigateWithToast, confirmDanger, escapeHtml };
+    window.AdminUi = { toast, showError, reloadWithToast, navigateWithToast, confirmDanger, confirmBeforeSubmit, escapeHtml };
 })();

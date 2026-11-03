@@ -40,7 +40,7 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
   const [feedbackExplanationEntry, setFeedbackExplanationEntry] = useState<ExplanationHistoryEntry | null>(null);
   const addExplanationEntry = useExplanationHistoryStore((state) => state.addEntry);
   // 답안 제출 API 호출 중 화면 조작 차단
-  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   // 연타 방지 — React state는 async 클로저에서 stale하므로 ref로 동기 플래그 관리
   const isProcessingRef = useRef(false);
 
@@ -60,7 +60,7 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
       isProcessingRef.current = true;
       // 결과 화면에서 선택지 키(A/B/C/D) 대신 실제 선택지 텍스트를 보여주기 위해 body 추출
       const selectedChoiceBody = choices.find((c) => c.key === selectedChoiceKey)?.body ?? selectedChoiceKey;
-      setSubmitting(true);
+      setIsSubmitting(true);
       try {
         const result = await submitAnswer(
           displayQuestion.questionUuid,
@@ -100,7 +100,9 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
             void queryClient.prefetchQuery(practiceAiCommentQueryOptions(storeSessionId));
           }
         }
-      } catch {
+      } catch (error) {
+        // 화면은 오답 처리로 진행 (실패 처리 정책 유지), 원인만 남김
+        console.warn("[practice set] submit failed", error);
         const fallback: SubmitResult = {
           isCorrect: false,
           correctKey: "?",
@@ -127,7 +129,7 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
         );
       } finally {
         isProcessingRef.current = false;
-        setSubmitting(false);
+        setIsSubmitting(false);
       }
     },
     [displayQuestion, submitAndAdvance, currentIndex, totalQuestions, queryClient, storeSessionId, addExplanationEntry],
@@ -149,7 +151,7 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
     feedback,
     feedbackChoiceSetUuid,
     feedbackExplanationEntry,
-    isSubmitting: submitting,
+    isSubmitting,
     displayIndex,
     displayQuestion,
     submitPracticeAnswer,

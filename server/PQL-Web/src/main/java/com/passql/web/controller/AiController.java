@@ -7,15 +7,17 @@ import com.passql.ai.dto.AiResult;
 import com.passql.ai.dto.SimilarQuestion;
 import com.passql.application.service.AiExplainService;
 import com.passql.application.service.RecommendationService;
+import com.passql.question.dto.explanation.ChoiceDiffExplanationRequest;
 import com.passql.question.dto.explanation.ChoiceExplanationResponse;
+import com.passql.question.dto.explanation.ErrorExplanationRequest;
 import com.passql.member.auth.presentation.annotation.AuthMember;
 import com.passql.member.auth.presentation.security.LoginMember;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -34,23 +36,20 @@ public class AiController implements AiControllerDocs {
     @PostMapping("/explain-error")
     public ResponseEntity<AiResult> explainError(
         @AuthMember LoginMember loginMember,
-        @RequestBody Map<String, Object> body
+        @Valid @RequestBody ErrorExplanationRequest request
     ) {
-        UUID questionUuid = UUID.fromString(body.get("questionUuid").toString());
-        String sql = (String) body.get("sql");
-        String errorMessage = (String) body.get("errorMessage");
-        return ResponseEntity.ok(aiExplainService.explainError(loginMember.memberUuid(), questionUuid, sql, errorMessage));
+        return ResponseEntity.ok(aiExplainService.explainError(
+            loginMember.memberUuid(), request.questionUuid(), request.sql(), request.errorMessage()));
     }
 
     @RequiresProFeature(ProFeature.ERROR_EXPLANATION)
     @PostMapping("/diff-explain")
     public ResponseEntity<AiResult> diffExplain(
         @AuthMember LoginMember loginMember,
-        @RequestBody Map<String, Object> body
+        @Valid @RequestBody ChoiceDiffExplanationRequest request
     ) {
-        UUID questionUuid = UUID.fromString(body.get("questionUuid").toString());
-        String selectedChoiceKey = (String) body.get("selectedChoiceKey");
-        return ResponseEntity.ok(aiExplainService.diffExplain(loginMember.memberUuid(), questionUuid, selectedChoiceKey));
+        return ResponseEntity.ok(aiExplainService.diffExplain(
+            loginMember.memberUuid(), request.questionUuid(), request.selectedChoiceKey()));
     }
 
     @GetMapping("/choice-explanation")

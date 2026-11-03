@@ -117,12 +117,10 @@ public class ConceptAdminService {
     @Transactional
     public void updateContent(UUID conceptUuid, String title, String summary, String coreMd, String detailMd) {
         ConceptTag concept = findConcept(conceptUuid);
-        Set<String> anchors;
-        try {
-            anchors = detailSectionParser.findAnchors(detailMd);
-        } catch (IllegalArgumentException e) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, e.getMessage());
-        }
+        detailSectionParser.findFormatViolation(detailMd).ifPresent(violationReason -> {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, violationReason);
+        });
+        Set<String> anchors = detailSectionParser.findAnchors(detailMd);
         List<String> missingAnchors = checkQuestionRepository.findByConceptTagUuidOrderBySortOrderAsc(conceptUuid).stream()
             .map(ConceptCheckQuestion::getRereadAnchor)
             .filter(anchor -> !anchors.contains(anchor))

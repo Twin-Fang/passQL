@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/ads/ad_placement.dart';
+import '../../../core/monitoring/crash_reporter.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/home_providers.dart';
@@ -61,7 +62,12 @@ class StatsPage extends ConsumerWidget {
             ref.invalidate(profileDailySetProvider);
             try {
               await ref.read(statsDataProvider.future);
-            } catch (_) {
+            } catch (exception, stackTrace) {
+              reportIfUnexpectedFailure(
+                exception,
+                stackTrace,
+                reason: 'statsRefresh',
+              );
               if (context.mounted) showAppToast(context, '새로고침하지 못했어요');
             }
           },

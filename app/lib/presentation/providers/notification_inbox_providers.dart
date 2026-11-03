@@ -1,16 +1,18 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/logging/app_logger.dart';
 import '../../core/network/api_call.dart';
 import '../../data/models/meta/app_config.dart';
 import '../../data/models/notification/notification_models.dart';
 import '../../data/sources/api_providers.dart';
+import 'paged_list_load_more.dart';
 import 'session_reset.dart';
 import 'unread_notification_providers.dart';
 
 /// 알림함 탭 1개의 목록 상태: 불러온 항목, 다음 페이지 커서, 추가 로딩 중 여부
 @immutable
-class NotificationInboxState {
+class NotificationInboxState implements PagedListState<NotificationInboxState> {
   const NotificationInboxState({
     required this.items,
     this.nextCursor,
@@ -21,10 +23,13 @@ class NotificationInboxState {
 
   /// null 이면 마지막 페이지
   final String? nextCursor;
+  @override
   final bool isLoadingMore;
 
+  @override
   bool get hasMore => nextCursor != null;
 
+  @override
   NotificationInboxState copyWith({
     List<NotificationItem>? items,
     bool? isLoadingMore,
@@ -66,28 +71,23 @@ class NotificationInboxNotifier
   }
 
   /// 다음 페이지 이어 붙이기 (마지막 페이지·로딩 중·실패 > 변화 없음)
-  Future<void> loadMore() async {
-    final current = state.valueOrNull;
-    if (current == null || !current.hasMore || current.isLoadingMore) return;
-    state = AsyncData(current.copyWith(isLoadingMore: true));
-    try {
+  Future<void> loadMore() => appendNextPage(
+    current: state.valueOrNull,
+    onStateChanged: (nextState) => state = AsyncData(nextState),
+    logTag: 'notification inbox',
+    fetchAppendedState: (current) async {
       final page = await ref
           .read(notificationApiProvider)
           .getNotifications(
             category: arg.serverValue,
             cursor: current.nextCursor,
           );
-      state = AsyncData(
-        NotificationInboxState(
-          items: [...current.items, ...page.items],
-          nextCursor: page.nextCursor,
-        ),
+      return NotificationInboxState(
+        items: [...current.items, ...page.items],
+        nextCursor: page.nextCursor,
       );
-    } catch (error) {
-      debugPrint('[notification inbox] load more failed : $error');
-      state = AsyncData(current.copyWith(isLoadingMore: false));
-    }
-  }
+    },
+  );
 
   /// 1건 읽음: 화면에 먼저 반영 > 서버 (실패해도 화면은 유지) > 개수 재조회
   Future<void> markRead(String notificationId) async {
@@ -106,7 +106,7 @@ class NotificationInboxNotifier
           .read(notificationApiProvider)
           .markRead(notificationId, arg.serverValue);
     } catch (error) {
-      debugPrint('[notification inbox] mark read failed : $error');
+      AppLogger.warn('notification inbox', 'mark read failed : $error');
     }
     await ref.read(unreadNotificationCountProvider.notifier).refresh();
   }

@@ -49,7 +49,7 @@ class QuestionRecommendationService:
 
         # 쿼리에 사용할 오답 벡터가 없으면 빈 결과 — Java에서 RANDOM fallback 적용
         if not source_vectors:
-            logger.info("[recommend] 쿼리 벡터 없음 — 빈 결과 반환 (Java RANDOM fallback 예정)")
+            logger.info("[recommend] no query vector, returning empty result (Java RANDOM fallback expected)")
             return RecommendResponse(items=[], query_source_count=0)
 
         # 여러 벡터를 단순 평균하여 쿼리 벡터 합성
@@ -76,7 +76,7 @@ class QuestionRecommendationService:
             if r.get("payload", {}).get("question_uuid")
         ]
 
-        logger.info(f"[recommend] 추천 완료: {len(items)}개")
+        logger.info(f"[recommend] completed : item_count={len(items)}")
         return RecommendResponse(items=items, query_source_count=len(source_vectors))
 
 

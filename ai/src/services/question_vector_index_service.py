@@ -98,7 +98,7 @@ class QuestionVectorIndexService:
             payload=payload,
         )
 
-        logger.info(f"[index-question] 적재 완료: question_uuid={req.question_uuid}, created={created}")
+        logger.info(f"[index-question] indexed : question_uuid={req.question_uuid}, created={created}")
         return IndexQuestionResponse(question_uuid=req.question_uuid, created=created)
 
     async def index_questions_bulk(self, req: IndexQuestionsBulkRequest) -> IndexQuestionsBulkResponse:
@@ -116,20 +116,20 @@ class QuestionVectorIndexService:
         Raises:
             CustomError: 치명적 오류 시
         """
-        logger.info(f"[index-questions-bulk] 총 {len(req.questions)}개 처리 시작")
+        logger.info(f"[index-questions-bulk] started : total={len(req.questions)}")
 
         succeeded = 0
         failed_uuids: list[str] = []
 
-        for q in req.questions:
+        for question_request in req.questions:
             try:
-                await self.index_question(q)
+                await self.index_question(question_request)
                 succeeded += 1
             except Exception as e:
-                logger.warning(f"[index-questions-bulk] 개별 실패: question_uuid={q.question_uuid}, err={e}")
-                failed_uuids.append(q.question_uuid)
+                logger.warning(f"[index-questions-bulk] item failed : question_uuid={question_request.question_uuid}, err={e}")
+                failed_uuids.append(question_request.question_uuid)
 
-        logger.info(f"[index-questions-bulk] 완료: succeeded={succeeded}, failed={len(failed_uuids)}")
+        logger.info(f"[index-questions-bulk] completed : succeeded={succeeded}, failed={len(failed_uuids)}")
         return IndexQuestionsBulkResponse(
             total=len(req.questions),
             succeeded=succeeded,
@@ -151,7 +151,7 @@ class QuestionVectorIndexService:
         Returns:
             IndexStatusResponse: 컬렉션 포인트 수, DB 문제 수, 미색인 수, 미색인 UUID 목록
         """
-        logger.info(f"[index-status] 요청: db_uuid_count={len(req.question_uuids)}")
+        logger.info(f"[index-status] request : db_uuid_count={len(req.question_uuids)}")
 
         # Qdrant에서 현재 색인된 모든 UUID 수집
         qdrant_ids = await qdrant_search_client.scroll_all_ids(settings.QDRANT_COLLECTION)
@@ -162,12 +162,12 @@ class QuestionVectorIndexService:
         unindexed = list(db_uuid_set - qdrant_uuid_set)
 
         logger.info(
-            f"[index-status] 결과: db={len(db_uuid_set)}, qdrant={len(qdrant_uuid_set)}, "
-            f"미색인={len(unindexed)}"
+            f"[index-status] result : db={len(db_uuid_set)}, qdrant={len(qdrant_uuid_set)}, "
+            f"unindexed={len(unindexed)}"
         )
         # 미색인 UUID 앞 10개만 DEBUG 출력 (목록이 길 경우 로그 폭발 방지)
         logger.debug(
-            f"[index-status] 미색인 UUID (앞 10개): "
+            f"[index-status] unindexed uuids (first 10) : "
             f"{unindexed[:10]}{'...' if len(unindexed) > 10 else ''}"
         )
 
@@ -193,7 +193,7 @@ class QuestionVectorIndexService:
         orphans = sorted(set(qdrant_ids) - set(req.question_uuids))
         await qdrant_search_client.delete_points(settings.QDRANT_COLLECTION, orphans)
 
-        logger.info(f"[prune-index] 고아 벡터 삭제: {len(orphans)}개 (활성 {len(req.question_uuids)}개 기준)")
+        logger.info(f"[prune-index] orphan vectors deleted : count={len(orphans)}, active_count={len(req.question_uuids)}")
         return PruneIndexResponse(deleted_count=len(orphans), deleted_uuids=orphans)
 
 

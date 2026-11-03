@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/ads/ad_placement.dart';
+import '../../../core/monitoring/crash_reporter.dart';
 import '../../../data/models/notification/notification_models.dart';
 import '../../../router/app_routes.dart';
 import '../../../router/questions_tab_view.dart';
@@ -67,7 +68,12 @@ class HomePage extends ConsumerWidget {
             ref.invalidate(examTrendReportProvider);
             try {
               await ref.read(homeDataProvider.future);
-            } catch (_) {
+            } catch (exception, stackTrace) {
+              reportIfUnexpectedFailure(
+                exception,
+                stackTrace,
+                reason: 'homeRefresh',
+              );
               if (context.mounted) showAppToast(context, '새로고침하지 못했어요');
             }
           },

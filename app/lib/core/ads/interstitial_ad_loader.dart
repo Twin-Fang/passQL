@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import '../logging/app_logger.dart';
 import 'ad_placement.dart';
 import 'ad_request_preparer.dart';
 
@@ -65,8 +66,9 @@ class GoogleInterstitialAdLoader implements InterstitialAdLoader {
             }
           },
           onAdFailedToLoad: (error) {
-            debugPrint(
-              '[ads interstitial] load failed ${placement.name} : ${error.code}',
+            AppLogger.warn(
+              'ads interstitial',
+              'load failed ${placement.name} : ${error.code}',
             );
             if (!loadCompleter.isCompleted) loadCompleter.complete(null);
           },
@@ -75,7 +77,7 @@ class GoogleInterstitialAdLoader implements InterstitialAdLoader {
       final loadedAd = await loadCompleter.future.timeout(
         _loadTimeout,
         onTimeout: () {
-          debugPrint('[ads interstitial] load timeout ${placement.name}');
+          AppLogger.warn('ads interstitial', 'load timeout ${placement.name}');
           return null;
         },
       );
@@ -87,8 +89,9 @@ class GoogleInterstitialAdLoader implements InterstitialAdLoader {
         dispose: loadedAd.dispose,
       );
     } catch (error) {
-      debugPrint(
-        '[ads interstitial] prepare failed ${placement.name} : $error',
+      AppLogger.warn(
+        'ads interstitial',
+        'prepare failed ${placement.name} : $error',
       );
       return null;
     }
@@ -107,7 +110,7 @@ class GoogleInterstitialAdLoader implements InterstitialAdLoader {
         onClosed();
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
-        debugPrint('[ads interstitial] show failed : ${error.code}');
+        AppLogger.warn('ads interstitial', 'show failed : ${error.code}');
         ad.dispose();
         onClosed();
       },

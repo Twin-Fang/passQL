@@ -1,5 +1,6 @@
 package com.passql.application.entitlement;
 
+import com.passql.member.constant.MemberPlan;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
@@ -9,7 +10,7 @@ import java.util.List;
  * 내 등급 응답: 결제 스위치, 등급(FREE/PRO), 프로 만료일, 오늘 무료 사용량, 최근 구매, 판매 이용권
  *
  * @param isBillingEnabled       회원 기준 결제 켜짐 (전체 스위치 또는 미리보기 목록 회원, false 면 앱은 잠금 UI 를 그리지 않음)
- * @param plan                   "FREE" 또는 "PRO" (스위치 꺼짐이면 항상 "PRO")
+ * @param plan                   FREE 또는 PRO (스위치 꺼짐이면 항상 PRO, 와이어 값은 enum 이름)
  * @param proExpiresAt           프로 만료 시각 KST (유효한 프로가 아니면 null)
  * @param todayRandomSolvedCount 오늘 푼 무료 랜덤 문제 수
  * @param dailyFreeLimit         무료 하루 랜덤 문제 한도
@@ -20,7 +21,7 @@ import java.util.List;
  */
 public record MemberPlanResponse(
     boolean isBillingEnabled,
-    String plan,
+    MemberPlan plan,
     @Schema(nullable = true) LocalDateTime proExpiresAt,
     int todayRandomSolvedCount,
     int dailyFreeLimit,

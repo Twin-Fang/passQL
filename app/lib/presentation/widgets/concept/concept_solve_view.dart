@@ -2,7 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/app_exception.dart';
+import '../../../core/monitoring/crash_reporter.dart';
 import '../../../data/models/concept/concept_models.dart';
+import '../../../data/models/concept/concept_unit_progress.dart';
 import '../../design/design.dart';
 import '../../providers/concept_providers.dart';
 import '../common/app_toast.dart';
@@ -135,7 +137,12 @@ class _QuestionStep extends ConsumerWidget {
     Future<void> submit() async {
       try {
         await notifier.submit(question.questionUuid);
-      } catch (error) {
+      } catch (error, stackTrace) {
+        reportIfUnexpectedFailure(
+          error,
+          stackTrace,
+          reason: 'conceptSubmit:$conceptUuid',
+        );
         if (!context.mounted) return;
         final message = error is AppException
             ? error.message

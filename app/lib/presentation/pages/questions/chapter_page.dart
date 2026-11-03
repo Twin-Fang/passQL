@@ -459,7 +459,9 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
         if (_isCompleting) ...[
           ModalBarrier(
             dismissible: false,
-            color: context.passqlColors.label.withValues(alpha: 0.2),
+            color: context.passqlColors.label.withValues(
+              alpha: PassqlOpacity.blockingBarrier,
+            ),
           ),
           const Center(
             child: PassqlLoadingIndicator(size: PassqlLoadingSize.blocking),

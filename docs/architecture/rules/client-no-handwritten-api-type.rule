@@ -1,3 +1,3 @@
-description=types/api.ts 에 생성본과 겹치는 Response·Request 손타입 추가 금지 (generated/openapi.ts 사용)
-paths=client/src/types/api.ts
+description=types/api.ts·src/api 에 생성본과 겹치는 Response·Request 손타입 추가 금지 (generated/openapi.ts 참조 별칭 사용)
+paths=client/src/types/api.ts,client/src/api/
 pattern=^export interface \w+(Response|Request)\b

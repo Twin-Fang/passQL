@@ -27,7 +27,7 @@ lib/
 │   ├── billing/            # 이용권 결제 포트(ProPurchasePort)·긴 이용권 할인 계산, 프로 접근 거부(403) 인터셉터·신호
 │   ├── diagnostics/        # 의견 보내기 기기 진단 정보 수집(AppDiagnosticsCollector, 소리 모드 채널)
 │   ├── error/              # ErrorCode(서버 코드 매핑), AppException (서버 오류를 사용자 문구로 변환)
-│   ├── logging/            # 앱 로그(AppLogger): 마스킹 > 메모리 버퍼 > 파일 기록·회전, API 호출·생명주기 로그
+│   ├── logging/            # 앱 로그(AppLogger): 마스킹 > 메모리 버퍼 > 파일 기록·회전(디버그는 콘솔 미러), API 호출·생명주기 로그
 │   ├── monitoring/         # 오류 수집(CrashReporter, reportIfUnexpectedFailure)·분석(AppAnalytics, 이벤트 이름 상수) 공통 지점
 │   ├── network/            # dio_client(buildBackendDio·plainDioProvider), safe_call(safeCall·safeCallAll·SafeCallSlot),
 │   │                       # api_call(callApiThrowingAppException: Dio 오류 > AppException 공통 변환)
@@ -53,9 +53,10 @@ lib/
 └── router/                 # app_router, app_routes(모든 경로 상수), result_route_arguments(결과 화면 이동 인자·extra 해석)
 test/
 ├── architecture/           # 규칙 테스트 (아래 절 참고)
-├── core/ data/ design/ presentation/ router/   # lib 구조를 따르는 단위·위젯 테스트
-└── helpers/                # pump_app, fakes/(FakeHttpClientAdapter, FakeMemberApi, 푸시 가짜)
+├── core/ data/ presentation/   # lib 구조를 따르는 단위·위젯 테스트
+└── helpers/                # fakes/(FakeHttpClientAdapter)
 tool/store_shots/           # 스토어 스크린샷용 가짜 API 진입점 (운영 코드 아님)
+tool/store_art/             # 스토어 홍보 이미지 생성(render.py: 캡처 + scenes.json 문구 > 규격 PNG)
 ```
 
 ## Passql 디자인 시스템
@@ -85,10 +86,12 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 | `design_system_rules_test.dart` | pages·widgets·flows 에서 `Color(0x`, `Colors.white/black`, `Image.asset(`, `showModalBottomSheet(`, `showCupertinoDialog(`, `CupertinoActivityIndicator(`·`CupertinoSliverRefreshControl(`·`ImageFilter.blur(` 직접 사용, `go('/...')`·`push('/...')` 라우트 문자열, 글자색 `tertiaryLabel`·`accent`(대비 미달 > `secondaryLabel`·`accentText`), 탭 동작 없는 `Semantics(button + excludeSemantics)`, 시트 파일(`*_sheet`·`*_dock`)의 닫기 X 아이콘 |
 | `ad_placement_rules_test.dart` | core/ads 밖의 `google_mobile_ads`·ATT import, 허용 목록(탭 쉘·홈·통계·토픽 목록·결과 화면 2곳·main) 밖의 광고 사용, 탭 쉘 밖·2개 이상의 한 줄 띠와 탭별 배너, 홈·통계 밖·화면당 2개 이상의 인라인 카드, 토픽 목록 밖의 네이티브 카드, 풀이·로그인·약관·설정·차단 화면의 광고, `ad_request_preparer.dart` 밖의 `AdRequest(` 조립, 사용자 정보를 실은 광고 요청 |
 | `layer_dependency_test.dart` | core 의 data·presentation·router import, data 의 presentation·router import, design 의 providers·pages·widgets·flows import, 화면의 `data/sources` 직접 import, core/monitoring 밖의 Crashlytics·Analytics SDK, core/push 밖의 firebase_messaging, core/notification 밖의 app_badge_plus, core/storage 밖의 shared_preferences 직접 import, 종 아이콘 밖의 알림함 경로 |
+| `logging_rules_test.dart` | lib 의 `debugPrint(` 직접 사용 (`AppLogger.info·warn·error(태그, 영어 문구)` 사용. 예외 2곳: AppLogger 내부 콘솔 미러, 디버그 전용 Dio 본문 출력) |
+| `file_size_rules_test.dart` | lib 의 손으로 쓴 Dart 파일(생성 파일 제외) 500줄 초과 (300줄부터 분리 검토, 예외는 `_allowedOversizedFiles`) |
 | `server_api_schema_test.dart` | 앱 모델 필드 <-> `api-contract/openapi.json` 어긋남 (서버에 없는 필드, 기본값 없는 nullable, 타입 불일치, #493) |
 | `architecture_rules_test.dart` | 레포 공통 규칙(`docs/architecture/rules/*.rule`)의 새 위반·고쳐진 동결 항목 (pro-architecture-consult 템플릿) |
 
-- 예외는 각 테스트의 allow-list(`_allowedUsages`, `_allowedReverseImports`)에 파일과 **이유**를 적어서만 둔다. 비어 있는 것이 정상이다.
+- 예외는 각 테스트의 allow-list(`_allowedUsages`, `_allowedReverseImports`, `_allowedDebugPrintUsages`, `_allowedOversizedFiles`)에 파일과 **이유**를 적어서만 둔다. 비어 있는 것이 정상이다.
 
 ## 인증 구조
 

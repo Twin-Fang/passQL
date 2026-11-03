@@ -4,6 +4,7 @@ import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.dto.AppSettingChangeHistory;
 import com.passql.meta.dto.AppSettingRollbackRequest;
+import com.passql.meta.dto.AppSettingValueRequest;
 import com.passql.meta.service.AppSettingHistoryService;
 import com.passql.meta.service.AppSettingService;
 import com.passql.web.support.AdminMenu;
@@ -16,7 +17,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @Controller
 @RequestMapping("/admin/settings")
@@ -37,19 +37,19 @@ public class AdminSettingController {
     @PutMapping("/{key}/secret")
     @ResponseBody
     public ResponseEntity<Void> updateSecretSetting(@PathVariable String key,
-                                                    @RequestBody Map<String, String> body) {
-        appSettingService.saveSecret(key, body.get("value"));
+                                                    @Valid @RequestBody AppSettingValueRequest request) {
+        appSettingService.saveSecret(key, request.value());
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{key}")
     @ResponseBody
     public ResponseEntity<Void> updateSetting(@PathVariable String key,
-                                              @RequestBody Map<String, String> body) {
+                                              @Valid @RequestBody AppSettingValueRequest request) {
         if (AppSettingService.isSensitiveKey(key)) {
             throw new CustomException(ErrorCode.SETTING_SENSITIVE_UPDATE_FORBIDDEN);
         }
-        appSettingService.save(key, body.get("value"));
+        appSettingService.save(key, request.value());
         return ResponseEntity.ok().build();
     }
 

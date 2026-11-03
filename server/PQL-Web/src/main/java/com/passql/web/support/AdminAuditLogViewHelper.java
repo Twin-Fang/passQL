@@ -3,6 +3,7 @@ package com.passql.web.support;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.passql.common.audit.constant.AdminAuditTargetType;
+import com.passql.common.util.UuidUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -14,7 +15,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * 감사 로그 화면 표시 보조 (템플릿에서 ${@adminAuditLogViewHelper...} 로 호출)
@@ -89,14 +89,7 @@ public class AdminAuditLogViewHelper {
     }
 
     private String toDetailPathIfUuid(String detailPrefix, String targetId, String listPath) {
-        if (targetId != null) {
-            try {
-                return detailPrefix + UUID.fromString(targetId);
-            } catch (IllegalArgumentException e) {
-                return listPath;
-            }
-        }
-        return listPath;
+        return UuidUtils.parseOrEmpty(targetId).map(targetUuid -> detailPrefix + targetUuid).orElse(listPath);
     }
 
     /** JSON 값 > 표시 문자열 (없음 null, JSON null 은 "null", 객체·배열은 JSON 문자열) */

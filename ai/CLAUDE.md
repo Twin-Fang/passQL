@@ -15,12 +15,13 @@ SQL 오류 설명·오답 해설은 Spring(`AiExplainService`)이 `AiChatClient`
   - fallback: 429·401·402·403·404·5xx·전송 오류·크레딧 부족 400 > 다음 연결, 그 외 즉시 실패
 - **임베딩**: Ollama (`ollama_client`) — 임베딩 전용 (채팅·fallback 없음)
 - **벡터 검색**: Qdrant (`qdrant_search_client`) — 문제 색인·개인화 추천
-- **동적 설정**: Redis (`redis_app_setting_client`) — Spring 관리자 설정(`passql:settings:*`) 읽기
+- **Redis 읽기**: `redis_app_setting_client` — AI 연결 목록(`passql:ai:connections`) 원문 읽기 (`get_raw_value`)
 - **패키지 관리**: `pyproject.toml` (uv/pip)
 
 ## Project Structure
 
 의존 방향: `apis` > `services` > `clients`. `tests/test_layer_import_rules.py`가 강제한다.
+`docs/architecture/rules/ai-*.rule` 은 `tests/architecture/test_architecture_rules.py` 가 판정한다 (동기 redis import 금지, 로그 한글 금지).
 
 ```
 src/
@@ -35,26 +36,29 @@ src/
 ├── clients/                      # 외부 시스템 호출
 │   ├── llm_client.py             # LLM 단일 진입점 (시도 순서 > 연결별 호출 > fallback)
 │   ├── ai_connection_store.py    # Redis AI 연결 목록 읽기·키 복호화·비상 연결
+│   ├── setting_secret_cipher.py  # 설정 비밀값 복호화 (AES-256-GCM, Spring SettingSecretCipher 암호문)
+│   ├── token_usage.py            # LLM 호출 1건 토큰 사용량 전달 (클라이언트 > llm_client > Spring) (#699)
 │   ├── llm_schema.py             # Gemini 스키마 > JSON Schema
 │   ├── gemini_client.py
 │   ├── claude_client.py          # Messages API (JSON 강제 응답 = 도구 강제 호출)
 │   ├── openai_client.py          # Chat Completions (json_object + 스키마 지시)
 │   ├── ollama_client.py          # 임베딩
 │   ├── qdrant_search_client.py
-│   ├── redis_app_setting_client.py   # redis.asyncio (동기 redis import 금지)
+│   ├── redis_app_setting_client.py   # redis.asyncio Redis 읽기 (동기 redis import 금지)
 │   └── shared_http_client.py         # 공유 httpx 클라이언트(lifespan) + 재시도 + CustomError 변환
 ├── core/
 │   ├── config.py                 # 환경변수 설정 단일 원본 (컬렉션 이름·임베딩 차원 포함)
 │   ├── exception_handlers.py     # CustomError > 자기 status(입력 오류 400), 예기치 않은 예외 > 500
 │   ├── exceptions.py             # CustomError(status_code), InvalidRequestError(400)
+│   ├── external_call_limits.py   # 외부 호출 공통 상한 (LLM 대기 30초, 실패 로그 응답 길이 500자)
 │   ├── retry.py                  # 외부 호출 일시 오류(타임아웃·429·5xx) 재시도 최대 2회
-│   └── logging.py
+│   └── logging.py                # 로그 설정 (문구는 영어 + 기능 접두사 `[feature] ...`)
 ├── models/                       # 요청/응답 스키마 (Pydantic)
 │   ├── ai_request.py
 │   └── ai_response.py
 └── utils/
     └── auth.py                   # x-api-key 인증
-tests/                            # pytest (계약 스냅샷·엔드포인트·계층 규칙)
+tests/                            # pytest (Spring 호출 계약 스냅샷·LLM 연결 fallback·계층 규칙·아키텍처 규칙)
 ```
 
 ## 엔드포인트 (호출처: `server/PQL-Domain-AI/.../AiGatewayClient.java`)
@@ -75,8 +79,8 @@ tests/                            # pytest (계약 스냅샷·엔드포인트·�
 ## 설정 우선순위
 
 - 모든 설정은 `src/core/config.py`의 `settings` 한 곳에서 읽는다 (시스템 환경변수 > `.env.{ENVIRONMENT}` > `.env`).
-- 관리자 화면에서 바꾸는 값(Redis `passql:settings:*`)은 `redis_app_setting_client`만 읽는다:
-  `ai.gemini_api_key`. 없으면 `settings` 값.
+- 관리자 설정(Redis `passql:settings:*`)은 현재 읽지 않는다. `redis_app_setting_client.get_setting` 이 있으나 호출처 없음.
+  Gemini 등 LLM 키는 Spring 관리자 "AI 연결"(Redis `passql:ai:connections`) > env 비상 연결 순으로 쓴다.
 - 임베딩 모델은 `.env`의 `OLLAMA_EMBED_MODEL` 하나만 쓴다(관리자 설정 `ai.ollama_embed_model`은 읽지 않음, 운영 DB 값 `bge-m3`는 미사용 잔재).
 - Gemini 모델·프롬프트는 Spring이 요청마다 `llm_config`로 내려준다.
 - `EMBEDDING_VECTOR_DIMENSION`은 임베딩 모델에 묶여 있다. 모델을 바꾸면 차원도 바꾸고 Qdrant 컬렉션을 재생성·재색인한다.
@@ -99,12 +103,12 @@ tests/                            # pytest (계약 스냅샷·엔드포인트·�
 uvicorn src.main:app --reload
 
 # 테스트
-uv sync --group dev   # 또는 uv pip install . pytest
-pytest
+uv sync --group dev && uv pip install .   # 버전 테스트가 패키지 메타데이터를 읽음
+uv run pytest
 
 # Docker 빌드/실행
 docker build -t passql-ai .
-docker run --env-file .env.dev -p 8000:8000 passql-ai
+docker run --env-file .env.dev -p 8093:8093 passql-ai   # Dockerfile EXPOSE·uvicorn 포트 8093
 ```
 
 ## 금지 규칙

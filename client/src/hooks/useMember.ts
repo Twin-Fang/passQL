@@ -5,12 +5,15 @@ import { useAuthStore } from "../stores/authStore";
 import { useMemberQueryScope } from "./useMemberQueryScope";
 import type { NicknameCheckResponse, NicknameChangeResponse, ChoiceGenerationMode } from "../types/api";
 
+// 회원 정보 쿼리 키 접두사 (무효화 시 회원 UUID 무관 전체)
+const MEMBER_QUERY_KEY = ["member"] as const;
+
 export function useMember() {
   const { memberUuid, isMemberQueryEnabled } = useMemberQueryScope();
   const setNickname = useAuthStore((s) => s.setNickname);
 
   const query = useQuery({
-    queryKey: ["member", memberUuid],
+    queryKey: [...MEMBER_QUERY_KEY, memberUuid],
     queryFn: fetchMe,
     enabled: isMemberQueryEnabled,
     staleTime: 1000 * 60 * 10,
@@ -36,7 +39,7 @@ export function useRegenerateNickname() {
     mutationFn: regenerateNickname,
     onSuccess: (result) => {
       setNickname(result.nickname);
-      queryClient.invalidateQueries({ queryKey: ["member"] });
+      queryClient.invalidateQueries({ queryKey: MEMBER_QUERY_KEY });
     },
   });
 }
@@ -57,7 +60,7 @@ export function useChangeNickname() {
     mutationFn: (nickname: string) => changeNickname(nickname),
     onSuccess: (result) => {
       setNickname(result.nickname);
-      queryClient.invalidateQueries({ queryKey: ["member"] });
+      queryClient.invalidateQueries({ queryKey: MEMBER_QUERY_KEY });
     },
   });
 }
@@ -73,7 +76,7 @@ export function useUpdateChoiceGenerationMode() {
   >({
     mutationFn: (mode: ChoiceGenerationMode) => updateChoiceGenerationMode(mode),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["member"] });
+      queryClient.invalidateQueries({ queryKey: MEMBER_QUERY_KEY });
     },
   });
 }

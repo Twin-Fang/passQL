@@ -20,8 +20,11 @@ export function useGreeting() {
   });
 }
 
+// 추천 문제 쿼리 키 접두사 (제출 후 무효화는 회원 UUID 무관 전체)
+export const RECOMMENDATIONS_QUERY_KEY = ["recommendations"] as const;
+
 const RECOMMENDATIONS_KEY = (memberUuid: string | null) =>
-  ["recommendations", memberUuid] as const;
+  [...RECOMMENDATIONS_QUERY_KEY, memberUuid] as const;
 
 export function useRecommendations() {
   const { memberUuid, isMemberQueryEnabled } = useMemberQueryScope();

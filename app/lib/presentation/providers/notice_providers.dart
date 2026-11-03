@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/network/api_call.dart';
 import '../../data/models/meta/app_config.dart';
 import '../../data/sources/api_providers.dart';
+import 'paged_list_load_more.dart';
 
 /// 공지 상세 1건 (공개 API, 화면을 떠나면 버림). 실패는 AppException (없는 공지 > ErrorCode.notFound)
 final noticeDetailProvider = FutureProvider.autoDispose.family<AppNotice, String>(
@@ -14,7 +15,7 @@ final noticeDetailProvider = FutureProvider.autoDispose.family<AppNotice, String
 
 /// 공지 목록 상태: 불러온 공지, 다음에 요청할 페이지, 다음 페이지 유무, 추가 로딩 중 여부
 @immutable
-class NoticeListState {
+class NoticeListState implements PagedListState<NoticeListState> {
   const NoticeListState({
     required this.notices,
     required this.nextPage,
@@ -25,8 +26,13 @@ class NoticeListState {
   final List<AppNotice> notices;
   final int nextPage;
   final bool hasNextPage;
+  @override
   final bool isLoadingMore;
 
+  @override
+  bool get hasMore => hasNextPage;
+
+  @override
   NoticeListState copyWith({bool? isLoadingMore}) => NoticeListState(
     notices: notices,
     nextPage: nextPage,
@@ -59,26 +65,21 @@ class NoticeListNotifier extends AutoDisposeAsyncNotifier<NoticeListState> {
   }
 
   /// 다음 페이지 이어 붙이기 (마지막 페이지·로딩 중·실패 > 변화 없음)
-  Future<void> loadMore() async {
-    final current = state.valueOrNull;
-    if (current == null || !current.hasNextPage || current.isLoadingMore) return;
-    state = AsyncData(current.copyWith(isLoadingMore: true));
-    try {
+  Future<void> loadMore() => appendNextPage(
+    current: state.valueOrNull,
+    onStateChanged: (nextState) => state = AsyncData(nextState),
+    logTag: 'notice list',
+    fetchAppendedState: (current) async {
       final page = await ref
           .read(metaApiProvider)
           .getNotices(page: current.nextPage, size: pageSize);
-      state = AsyncData(
-        NoticeListState(
-          notices: [...current.notices, ...page.notices],
-          nextPage: page.page + 1,
-          hasNextPage: page.hasNextPage,
-        ),
+      return NoticeListState(
+        notices: [...current.notices, ...page.notices],
+        nextPage: page.page + 1,
+        hasNextPage: page.hasNextPage,
       );
-    } catch (error) {
-      debugPrint('[notice list] load more failed : $error');
-      state = AsyncData(current.copyWith(isLoadingMore: false));
-    }
-  }
+    },
+  );
 }
 
 final noticeListProvider =

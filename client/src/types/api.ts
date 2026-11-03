@@ -62,6 +62,8 @@ export interface ChoiceSetGeneratedEvent {
 
 export type ExecuteResult = ApiSchemas["ExecuteResult"];
 
+export type QuestionExecutePayload = ApiSchemas["QuestionExecuteRequest"];
+
 // === Page ===
 // 생성본은 PageQuestionSummary 하나뿐 > 여러 목록에 쓰는 제네릭 손타입 유지
 export interface Page<T> {
@@ -137,24 +139,20 @@ export type NicknameCheckResponse = ApiSchemas["NicknameCheckResponse"];
 
 export type NicknameChangeResponse = ApiSchemas["NicknameChangeResponse"];
 
-// 내 등급 (#576): plan "FREE" | "PRO" (계약은 string) / 결제 꺼짐이면 isBillingEnabled false, 전원 프로 취급
+// 내 등급 (#576): 결제 꺼짐이면 isBillingEnabled false, 전원 프로 취급
 export type MemberPlanResponse = ApiSchemas["MemberPlanResponse"];
+
+// 등급 값 "FREE" | "PRO" (계약 enum, #791)
+export type MemberPlan = MemberPlanResponse["plan"];
 
 // 서버 오류 코드 (ErrorResponse.errorCode)
 export type ApiErrorCode = ApiSchemas["ErrorCode"];
 
 // === AI Payloads ===
-// 서버 요청 본문이 Map 이라 스키마 없음 > 웹 손타입 유지
-export interface ExplainErrorPayload {
-  readonly questionUuid: string;
-  readonly sql: string;
-  readonly errorMessage: string;
-}
+export type ExplainErrorPayload = ApiSchemas["ErrorExplanationRequest"];
 
-export interface DiffExplainPayload {
-  readonly questionUuid: string;
-  readonly selectedChoiceKey: string;
-}
+// selectedChoiceKey 생략 시 서버가 마지막 제출의 보기 사용
+export type DiffExplainPayload = ApiSchemas["ChoiceDiffExplanationRequest"];
 
 // === Today / Recommendations ===
 // === Daily Set ===
@@ -254,3 +252,39 @@ export type CommunityImageUploadResult = ApiSchemas["CommunityImageUploadRespons
 export type SolveSnapshot = ApiSchemas["SolveSnapshot"];
 
 export type BlockedMember = ApiSchemas["BlockedMemberResponse"];
+
+// === 인증 (#789) ===
+export type AuthProvider = ApiSchemas["LoginRequest"]["authProvider"];
+
+export type LoginRequest = ApiSchemas["LoginRequest"];
+
+export type LoginResponse = ApiSchemas["LoginResponse"];
+
+export type ReissueRequest = ApiSchemas["ReissueRequest"];
+
+export type ReissueResponse = ApiSchemas["ReissueResponse"];
+
+// 인가 코드 로그인 제공자 3개 (#509): 서버 enum 은 제공자 전체라 웹에서 좁힘
+export type AuthorizationCodeProvider = Extract<AuthProvider, "KAKAO" | "NAVER" | "GITHUB">;
+
+// codeVerifier: PKCE (GitHub 만, 없으면 JSON 에서 빠짐)
+export type AuthorizationCodeLoginRequest = Omit<ApiSchemas["AuthorizationCodeLoginRequest"], "authProvider"> & {
+  readonly authProvider: AuthorizationCodeProvider;
+};
+
+// 제공자 공개 설정: 사용 여부 + 공개 client ID (secret 없음)
+export type SocialLoginClientConfig = ApiSchemas["SocialLoginClientConfig"];
+
+// === 문제 신고 ===
+export type ReportCategory = ApiSchemas["ReportRequest"]["categories"][number];
+
+// choiceSetUuid·detail: 서버 record 는 null 허용인데 계약은 필수로 표기 > 선택으로 완화
+export type ReportRequest = Omit<ApiSchemas["ReportRequest"], "choiceSetUuid" | "detail"> &
+  Partial<Pick<ApiSchemas["ReportRequest"], "choiceSetUuid" | "detail">>;
+
+export type ReportStatusResponse = ApiSchemas["ReportStatusResponse"];
+
+// === 약관 ===
+export type LegalType = ApiSchemas["LegalResponse"]["type"];
+
+export type LegalResponse = ApiSchemas["LegalResponse"];

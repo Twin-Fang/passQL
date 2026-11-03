@@ -5,12 +5,25 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'member_plan_response.freezed.dart';
 part 'member_plan_response.g.dart';
 
-/// 회원 등급 2종: 무료, 프로(이용권 보유)
+/// 회원 등급: 무료, 프로(이용권 보유), 모름(앱이 모르는 새 서버 등급 > 무료와 같게 판정)
+/// JSON 값 = [wireValue] (서버 MemberPlan enum FREE·PRO 와 같은 글자)
+@JsonEnum(valueField: 'wireValue')
 enum MemberPlanType {
-  @JsonValue('FREE')
-  free,
-  @JsonValue('PRO')
-  pro,
+  free('FREE'),
+  pro('PRO'),
+  // 서버에 새 등급이 생겨도 깨지지 않게 받는 자리 (서버가 보내지 않는 값)
+  unknown('UNKNOWN');
+
+  const MemberPlanType(this.wireValue);
+
+  /// 서버 JSON 글자
+  final String wireValue;
+
+  /// 프로(이용권 보유)인가
+  bool get isPro => this == MemberPlanType.pro;
+
+  /// 무료로 판정하는가 (모르는 등급 포함)
+  bool get isFree => !isPro;
 }
 
 /// GET /members/me/plan 응답 (구매 확인 응답도 같은 형태)
@@ -20,8 +33,8 @@ class MemberPlanResponse with _$MemberPlanResponse {
   const factory MemberPlanResponse({
     // 서버 결제 스위치 (false 면 서버가 모든 회원을 프로처럼 취급)
     @Default(false) bool isBillingEnabled,
-    // 서버에 새 등급이 생겨도 깨지지 않게 모르는 값은 무료로 봄
-    @JsonKey(unknownEnumValue: MemberPlanType.free)
+    // 서버에 새 등급이 생겨도 깨지지 않게 모르는 값은 unknown (판정은 무료)
+    @JsonKey(unknownEnumValue: MemberPlanType.unknown)
     @Default(MemberPlanType.free)
     MemberPlanType plan,
     // 프로 만료 시각 (KST, 무료면 null)

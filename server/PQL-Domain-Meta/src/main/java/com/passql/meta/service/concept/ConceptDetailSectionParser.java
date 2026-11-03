@@ -6,13 +6,14 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * 자세히 본문 > 문단 목록: "## 제목 {#앵커}" 줄로 나눔 (코드 블록 안 줄은 제외)
- * 형식 위반(앵커 없는 제목, 앵커 중복, 첫 제목 앞 글) > IllegalArgumentException (줄 번호 포함)
+ * 형식 위반(앵커 없는 제목, 앵커 중복, 첫 제목 앞 글) > IllegalArgumentException (줄 번호 포함), 사유만 필요하면 findFormatViolation
  */
 @Component
 public class ConceptDetailSectionParser {
@@ -24,8 +25,22 @@ public class ConceptDetailSectionParser {
     // 코드 펜스 시작·끝
     private static final String CODE_FENCE = "```";
 
-    /** 자세히 본문 > 문단 목록 (등장 순서) */
+    /** 자세히 본문 > 문단 목록 (등장 순서, 형식 위반 > IllegalArgumentException) */
     public List<ConceptDetailSection> parse(String detailMd) {
+        ParseOutcome outcome = parseToOutcome(detailMd);
+        if (outcome.violationReason() != null) {
+            throw new IllegalArgumentException(outcome.violationReason());
+        }
+        return outcome.sections();
+    }
+
+    /** 자세히 본문 > 형식 위반 사유 (없으면 empty, 줄 번호 포함 관리자 표시용) */
+    public Optional<String> findFormatViolation(String detailMd) {
+        return Optional.ofNullable(parseToOutcome(detailMd).violationReason());
+    }
+
+    /** 자세히 본문 > 문단 목록 또는 첫 형식 위반 사유 */
+    private ParseOutcome parseToOutcome(String detailMd) {
         List<ConceptDetailSection> sections = new ArrayList<>();
         Set<String> seenAnchors = new LinkedHashSet<>();
         String currentAnchor = null;
@@ -45,7 +60,7 @@ public class ConceptDetailSectionParser {
             boolean isHeadingCandidate = !isInsideCodeFence && line.startsWith(HEADING_PREFIX);
             if (!isHeadingCandidate) {
                 if (currentAnchor == null && !line.isBlank()) {
-                    throw new IllegalArgumentException("text before first section at line " + lineNumber);
+                    return ParseOutcome.violation("text before first section at line " + lineNumber);
                 }
                 currentBody.append(line).append('\n');
                 continue;
@@ -54,11 +69,11 @@ public class ConceptDetailSectionParser {
             // 새 문단 시작 (앵커 형식·중복 검사)
             Matcher matcher = SECTION_HEADING.matcher(line);
             if (!matcher.matches()) {
-                throw new IllegalArgumentException("section heading without anchor at line " + lineNumber);
+                return ParseOutcome.violation("section heading without anchor at line " + lineNumber);
             }
             String anchor = matcher.group(2);
             if (!seenAnchors.add(anchor)) {
-                throw new IllegalArgumentException("duplicate anchor '" + anchor + "' at line " + lineNumber);
+                return ParseOutcome.violation("duplicate anchor '" + anchor + "' at line " + lineNumber);
             }
             if (currentAnchor != null) {
                 sections.add(new ConceptDetailSection(currentAnchor, currentTitle, currentBody.toString().strip()));
@@ -71,7 +86,7 @@ public class ConceptDetailSectionParser {
         if (currentAnchor != null) {
             sections.add(new ConceptDetailSection(currentAnchor, currentTitle, currentBody.toString().strip()));
         }
-        return sections;
+        return new ParseOutcome(sections, null);
     }
 
     /** 자세히 본문 > 앵커 집합 (등장 순서 유지) */
@@ -79,5 +94,13 @@ public class ConceptDetailSectionParser {
         Set<String> anchors = new LinkedHashSet<>();
         parse(detailMd).forEach(section -> anchors.add(section.anchor()));
         return anchors;
+    }
+
+    /** 파싱 결과: 문단 목록 또는 위반 사유 (violationReason null 이면 정상) */
+    private record ParseOutcome(List<ConceptDetailSection> sections, String violationReason) {
+
+        static ParseOutcome violation(String violationReason) {
+            return new ParseOutcome(List.of(), violationReason);
+        }
     }
 }

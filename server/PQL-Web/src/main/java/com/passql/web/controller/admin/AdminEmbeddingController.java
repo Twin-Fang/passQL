@@ -5,6 +5,7 @@ import com.passql.ai.dto.IndexStatusResult;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.question.dto.EmbeddingIndexProgress;
+import com.passql.question.dto.EmbeddingIndexSelectedRequest;
 import com.passql.question.dto.IndexQuestionPreview;
 import com.passql.question.service.EmbeddingIndexRunService;
 import com.passql.question.service.QuestionVectorIndexService;
@@ -96,11 +97,11 @@ public class AdminEmbeddingController {
     @PostMapping("/index-selected")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> indexSelected(
-            @RequestBody Map<String, List<String>> body, Principal adminPrincipal) {
-        List<String> uuids = body.get("uuids");
-        if (uuids == null || uuids.isEmpty()) {
+            @RequestBody EmbeddingIndexSelectedRequest request, Principal adminPrincipal) {
+        if (!request.hasTargets()) {
             throw new CustomException(ErrorCode.EMBEDDING_INDEX_TARGET_EMPTY);
         }
+        List<String> uuids = request.uuids();
 
         log.info("[admin-embeddings] 선택 재색인 시작: count={}", uuids.size());
         IndexQuestionsBulkResult result = embeddingIndexRunService.runSelectedSynchronously(uuids, adminPrincipal.getName());

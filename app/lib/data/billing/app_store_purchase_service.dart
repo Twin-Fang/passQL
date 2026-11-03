@@ -1,10 +1,10 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
 
 import '../../core/billing/pro_purchase_port.dart';
+import '../../core/logging/app_logger.dart';
 import '../models/billing/app_store_verify_request.dart';
 import '../models/member/member_plan_response.dart';
 import 'store_purchase_service.dart';
@@ -48,8 +48,9 @@ class AppStorePurchaseService extends StorePurchaseService {
   @override
   Future<void> onPurchaseLaunchFailed(Object error) async {
     final errorCode = error is PlatformException ? error.code : null;
-    debugPrint(
-      '[billing] app store purchase start failed : ${errorCode ?? error.runtimeType}',
+    AppLogger.warn(
+      'billing',
+      'app store purchase start failed : ${errorCode ?? error.runtimeType}',
     );
     switch (errorCode) {
       case _duplicateTransactionErrorCode:
@@ -86,14 +87,20 @@ class AppStorePurchaseService extends StorePurchaseService {
   @override
   Future<void> onPurchaseUpdates(List<PurchaseDetails> purchases) async {
     for (final purchase in purchases) {
-      debugPrint('[billing] purchase update : status=${purchase.status.name}');
+      AppLogger.info(
+        'billing',
+        'purchase update : status=${purchase.status.name}',
+      );
       switch (purchase.status) {
         case PurchaseStatus.pending:
           completeActivePurchase(ProPurchaseOutcome.pending);
         case PurchaseStatus.canceled:
           completeActivePurchase(ProPurchaseOutcome.cancelled);
         case PurchaseStatus.error:
-          debugPrint('[billing] purchase failed : ${purchase.error?.code}');
+          AppLogger.warn(
+            'billing',
+            'purchase failed : ${purchase.error?.code}',
+          );
           completeActivePurchase(ProPurchaseOutcome.failed);
         case PurchaseStatus.purchased || PurchaseStatus.restored:
           await onPurchaseCompleted(purchase);

@@ -1,5 +1,6 @@
 import 'package:app_badge_plus/app_badge_plus.dart';
-import 'package:flutter/foundation.dart';
+
+import '../logging/app_logger.dart';
 
 /// 앱 아이콘 숫자 반영: 개수 > 숫자 표시, 0 > 제거
 /// 기본은 아무것도 하지 않는 구현 > main 에서 [startAppIconBadge] 로 교체 (테스트는 가짜 구현)
@@ -32,7 +33,7 @@ class AppBadgePlusIconBadgeUpdater extends AppIconBadgeUpdater {
       await AppBadgePlus.updateBadge(unreadCount < 0 ? 0 : unreadCount);
     } catch (error) {
       // 숫자는 보조 표시라 실패해도 앱 동작에 영향 없음
-      debugPrint('[app icon badge] update failed : $error');
+      AppLogger.warn('app icon badge', 'update failed : $error');
     }
   }
 }
