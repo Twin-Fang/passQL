@@ -32,7 +32,7 @@ export default function ReportModal({
   const isLoggedIn = useAuthStore((s) => !!s.accessToken);
   const [selected, setSelected] = useState<Set<ReportCategory>>(new Set());
   const [detail, setDetail] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // ESC 키로 모달 닫기 + 배경 스크롤 잠금
@@ -61,11 +61,11 @@ export default function ReportModal({
   const canSubmit =
     selected.size > 0 &&
     (!selected.has("ETC") || detail.trim().length > 0) &&
-    !loading;
+    !isSubmitting;
 
   const handleSubmit = async () => {
     if (!isLoggedIn || !canSubmit) return;
-    setLoading(true);
+    setIsSubmitting(true);
     setError(null);
     try {
       await submitReport(questionUuid, {
@@ -84,7 +84,7 @@ export default function ReportModal({
         setError("신고 제출에 실패했습니다. 잠시 후 다시 시도해주세요.");
       }
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -107,7 +107,7 @@ export default function ReportModal({
             return (
               <label
                 key={value}
-                className={`report-category-row ${isSelected ? "report-category-row--selected" : ""} ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
+                className={`report-category-row ${isSelected ? "report-category-row--selected" : ""} ${isSubmitting ? "opacity-60 cursor-not-allowed" : ""}`}
               >
                 <span className={`report-radio ${isSelected ? "report-radio--selected" : ""}`}>
                   {isSelected && <span className="report-radio-dot" />}
@@ -117,7 +117,7 @@ export default function ReportModal({
                   className="sr-only"
                   checked={isSelected}
                   onChange={() => toggle(value)}
-                  disabled={loading}
+                  disabled={isSubmitting}
                 />
                 <span className={isSelected ? "report-category-label--selected" : "report-category-label"}>
                   {label}
@@ -134,7 +134,7 @@ export default function ReportModal({
               rows={3}
               value={detail}
               onChange={(e) => setDetail(e.target.value)}
-              disabled={loading}
+              disabled={isSubmitting}
             />
           )}
         </div>
@@ -146,11 +146,11 @@ export default function ReportModal({
 
         {/* 액션 버튼 */}
         <div className="flex gap-2">
-          <button type="button" className="btn-cancel" onClick={onClose} disabled={loading}>
+          <button type="button" className="btn-cancel" onClick={onClose} disabled={isSubmitting}>
             취소
           </button>
           <button type="button" className="btn-report" onClick={handleSubmit} disabled={!canSubmit}>
-            {loading ? (
+            {isSubmitting ? (
               <span className="inline-block w-4 h-4 border-2 border-on-brand border-t-transparent rounded-full animate-spin" />
             ) : (
               "신고하기"
