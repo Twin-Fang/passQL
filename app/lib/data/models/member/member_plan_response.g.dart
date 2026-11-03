@@ -23,6 +23,10 @@ _$MemberPlanResponseImpl _$$MemberPlanResponseImplFromJson(
   todayRandomSolvedCount:
       (json['todayRandomSolvedCount'] as num?)?.toInt() ?? 0,
   dailyFreeLimit: (json['dailyFreeLimit'] as num?)?.toInt() ?? 0,
+  todayFreeLimit: (json['todayFreeLimit'] as num?)?.toInt() ?? 0,
+  dailyBonus: json['dailyBonus'] == null
+      ? const DailyFreeBonus()
+      : DailyFreeBonus.fromJson(json['dailyBonus'] as Map<String, dynamic>),
   purchasableUntil: json['purchasableUntil'] == null
       ? null
       : DateTime.parse(json['purchasableUntil'] as String),
@@ -45,6 +49,8 @@ Map<String, dynamic> _$$MemberPlanResponseImplToJson(
   'proExpiresAt': instance.proExpiresAt?.toIso8601String(),
   'todayRandomSolvedCount': instance.todayRandomSolvedCount,
   'dailyFreeLimit': instance.dailyFreeLimit,
+  'todayFreeLimit': instance.todayFreeLimit,
+  'dailyBonus': instance.dailyBonus,
   'purchasableUntil': instance.purchasableUntil?.toIso8601String(),
   'passOptions': instance.passOptions,
   'lastPurchasedAt': instance.lastPurchasedAt?.toIso8601String(),
@@ -54,6 +60,27 @@ Map<String, dynamic> _$$MemberPlanResponseImplToJson(
 const _$MemberPlanTypeEnumMap = {
   MemberPlanType.free: 'FREE',
   MemberPlanType.pro: 'PRO',
+};
+
+_$DailyFreeBonusImpl _$$DailyFreeBonusImplFromJson(Map<String, dynamic> json) =>
+    _$DailyFreeBonusImpl(
+      isDailySetCompletionEarned:
+          json['isDailySetCompletionEarned'] as bool? ?? false,
+      isDailySetAccuracyEarned:
+          json['isDailySetAccuracyEarned'] as bool? ?? false,
+      adBonusUsedCount: (json['adBonusUsedCount'] as num?)?.toInt() ?? 0,
+      adBonusMaxCount: (json['adBonusMaxCount'] as num?)?.toInt() ?? 0,
+      bonusQuestionCount: (json['bonusQuestionCount'] as num?)?.toInt() ?? 0,
+    );
+
+Map<String, dynamic> _$$DailyFreeBonusImplToJson(
+  _$DailyFreeBonusImpl instance,
+) => <String, dynamic>{
+  'isDailySetCompletionEarned': instance.isDailySetCompletionEarned,
+  'isDailySetAccuracyEarned': instance.isDailySetAccuracyEarned,
+  'adBonusUsedCount': instance.adBonusUsedCount,
+  'adBonusMaxCount': instance.adBonusMaxCount,
+  'bonusQuestionCount': instance.bonusQuestionCount,
 };
 
 _$PassOptionImpl _$$PassOptionImplFromJson(Map<String, dynamic> json) =>

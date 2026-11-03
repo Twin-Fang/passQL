@@ -12,6 +12,7 @@ import '../../providers/home_providers.dart';
 import '../../providers/plan_providers.dart';
 import '../../providers/profile_pass_providers.dart';
 import '../../providers/settings_providers.dart';
+import '../ads/rewarded_ad_bonus_button.dart';
 import '../common/app_toast.dart';
 import 'pro_benefits.dart';
 import 'pro_offer_benefit_list.dart';
@@ -31,7 +32,8 @@ const String _sheetTitle = '이용권';
 
 /// 프로 안내 시트 (모든 진입점이 공유하는 한 장, #749): 문장 제목 > 기간 줄 > 들어온 이유 > 강조 혜택 > 내 이름 PRO 탑승권 > 달라지는 점 > 이용권 고르기(1개월이면 3개월 권유) > 복원 > 각주 + 아래 고정 구매 버튼
 /// 이용권 목록은 등급 응답 passOptions (서버 순서 3개월 먼저 > 첫 칸 기본 선택)
-/// [reason]: 진입점별 한 줄 (예: 오늘 무료 10문제를 다 풀었어요)
+/// [reason]: 진입점별 한 줄 (예: 오늘 무료 문제를 다 풀었어요)
+/// [isDailyLimitEntry]: 무료 하루 한도로 열림 > 이유 줄 아래 광고 보너스 버튼 (#808)
 /// 성공 > 시트 닫힘 > 호출 화면에서 토스트, 그 외 결과는 시트 안 한 줄
 Future<void> showProOfferSheet(
   BuildContext context,
@@ -39,6 +41,7 @@ Future<void> showProOfferSheet(
   String? reason,
   // 탑승권 혜택 아이콘에서 열었을 때 그 혜택 순서(proBenefits 기준) > 시트가 그 줄을 강조 (#749)
   int? focusedBenefitIndex,
+  bool isDailyLimitEntry = false,
 }) async {
   if (_isOfferSheetOpen) return;
   _isOfferSheetOpen = true;
@@ -46,6 +49,8 @@ Future<void> showProOfferSheet(
   final proExpiresAt = knownPlan?.proExpiresAt;
   // 시트가 닫힐 때 호출 화면이 이미 사라졌을 수 있어 ref 는 기다리기 전에 읽어 둔다
   final revealNotifier = ref.read(profilePassRevealPendingProvider.notifier);
+  // 시트 안에서 광고 보너스를 받았는가 (닫힌 뒤 호출 화면에서 토스트)
+  var isAdBonusGranted = false;
   try {
     final isPurchased = await showPassqlSheet<bool>(
       context,
@@ -58,6 +63,8 @@ Future<void> showProOfferSheet(
             : null,
         dailyFreeLimit: knownPlan?.dailyFreeLimit ?? 0,
         reason: reason,
+        isDailyLimitEntry: isDailyLimitEntry,
+        onAdBonusGranted: () => isAdBonusGranted = true,
         focusedBenefitIndex: focusedBenefitIndex,
         nickname: ref.read(settingsDataProvider).valueOrNull?.nickname ?? '',
         examSchedule: ref.read(examScheduleProvider).valueOrNull,
@@ -67,6 +74,10 @@ Future<void> showProOfferSheet(
       // 어느 진입점에서 샀든 다음 프로필 진입 때 탑승권 연출을 한 번 보여 준다 (#749)
       await revealNotifier.markPending();
       if (context.mounted) showAppToast(context, proPurchaseSucceededMessage);
+    } else if (isAdBonusGranted && context.mounted) {
+      final bonusQuestionCount =
+          ref.read(knownPlanProvider)?.dailyBonus.bonusQuestionCount ?? 0;
+      showAppToast(context, adBonusGrantedMessageOf(bonusQuestionCount));
     }
   } catch (_) {
     // 시트를 띄우지 못한 경우만 여기서 내림
@@ -81,6 +92,8 @@ class _ProOfferSheetBody extends ConsumerStatefulWidget {
     required this.activeProExpiresAt,
     required this.dailyFreeLimit,
     required this.reason,
+    required this.isDailyLimitEntry,
+    required this.onAdBonusGranted,
     required this.focusedBenefitIndex,
     required this.nickname,
     required this.examSchedule,
@@ -92,6 +105,12 @@ class _ProOfferSheetBody extends ConsumerStatefulWidget {
   final DateTime? activeProExpiresAt;
   final int dailyFreeLimit;
   final String? reason;
+
+  /// 무료 하루 한도로 열림 (광고 보너스 버튼 대상)
+  final bool isDailyLimitEntry;
+
+  /// 광고 보너스가 등급에 반영됨 (시트는 스스로 닫힘)
+  final VoidCallback onAdBonusGranted;
 
   /// 탑승권 혜택 아이콘에서 열었으면 그 혜택 순서 (proBenefits 기준)
   final int? focusedBenefitIndex;
@@ -232,6 +251,11 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
                   reason: widget.reason,
                   focusedBenefit: _focusedBenefitOf(benefits),
                 ),
+                // 하루 한도로 열림 > 결제 대신 광고로 한도 늘리기 (보일 조건은 버튼이 판단, #808)
+                if (widget.isDailyLimitEntry) ...[
+                  const SizedBox(height: PassqlSpacing.md),
+                  RewardedAdBonusButton(onBonusGranted: _closeAfterAdBonus),
+                ],
                 const SizedBox(height: PassqlSpacing.md),
                 ProOfferTicketPreview(
                   nickname: widget.nickname,
@@ -274,6 +298,12 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
         ),
       ],
     );
+  }
+
+  /// 광고 보너스 반영 > 호출부에 알리고 시트 닫기 (구매가 아니므로 false)
+  void _closeAfterAdBonus() {
+    widget.onAdBonusGranted();
+    Navigator.of(context).pop(false);
   }
 
   void _select(PassOption option) => setState(() {

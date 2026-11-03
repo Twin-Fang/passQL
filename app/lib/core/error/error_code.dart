@@ -41,10 +41,11 @@ enum ErrorCode {
   // 의견 보내기: 첨부 저장소 일시 장애 (503, 5xx 공통 문구 대신 전용 기본 문구)
   feedbackAttachmentUnavailable,
 
-  // 결제: 이용권 필요(403), 무료 하루 한도 도달(403), 프로 공정 사용 하루 한도 도달(429)
+  // 결제: 이용권 필요(403), 무료 하루 한도 도달(403), 프로 공정 사용 하루 한도 도달(429), 광고 보너스 하루 횟수 소진(409)
   proRequired,
   freeDailyLimitReached,
   fairUseDailyLimitReached,
+  adBonusDailyLimitReached,
 
   // 데일리 세트
   dailySetAlreadyCompleted,
@@ -128,6 +129,7 @@ abstract final class ErrorCodeMapper {
     'PRO_REQUIRED': ErrorCode.proRequired,
     'FREE_DAILY_LIMIT_REACHED': ErrorCode.freeDailyLimitReached,
     'FAIR_USE_DAILY_LIMIT_REACHED': ErrorCode.fairUseDailyLimitReached,
+    'AD_BONUS_DAILY_LIMIT_REACHED': ErrorCode.adBonusDailyLimitReached,
     'DAILY_SET_ALREADY_COMPLETED': ErrorCode.dailySetAlreadyCompleted,
     'DAILY_SET_NOT_FOUND': ErrorCode.dailySetNotFound,
     // AI 사용 불가: 서버 연결 실패, 대체 경로 실패, 선택지 생성 실패(SSE GENERATION_FAILED 포함)

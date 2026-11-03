@@ -88,6 +88,12 @@ class PlanNotifier extends AutoDisposeAsyncNotifier<MemberPlanResponse> {
     await refresh();
   }
 
+  /// 광고 보너스 받기 > 응답 등급 반영 (실패는 호출부로, 화면이 사유 표시)
+  Future<void> grantAdBonus() async {
+    final grantedPlan = await ref.read(memberApiProvider).grantAdBonus();
+    state = AsyncData(_applyDebugOverride(grantedPlan));
+  }
+
   Future<void> _fetchLatestPlan() async {
     final latestPlan = await safeCall(
       ref.read(memberApiProvider).getMyPlan(),
@@ -115,9 +121,14 @@ final knownPlanProvider = Provider.autoDispose<MemberPlanResponse?>((ref) {
 
 /// 무료 하루 랜덤 사용량 판정 (홈 카드·제출 뒤 갱신 공통)
 extension MemberPlanDailyUsage on MemberPlanResponse {
+  /// 오늘 유효 한도 (보너스 포함, 옛 서버 응답이면 기본 한도)
+  int get effectiveTodayFreeLimit =>
+      todayFreeLimit > 0 ? todayFreeLimit : dailyFreeLimit;
+
   /// 오늘 무료 랜덤 한도를 다 썼는가 (한도 0 = 결제 꺼짐·값 없음이면 false)
   bool get isDailyFreeLimitReached =>
-      dailyFreeLimit > 0 && todayRandomSolvedCount >= dailyFreeLimit;
+      effectiveTodayFreeLimit > 0 &&
+      todayRandomSolvedCount >= effectiveTodayFreeLimit;
 }
 
 /// 프로(이용권 보유) 여부. 등급을 모르면 false

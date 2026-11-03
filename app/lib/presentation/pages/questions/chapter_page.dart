@@ -128,7 +128,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final feedbackResult = await showProAccessFeedback(context, ref, error);
-      if (feedbackResult == ProAccessFeedbackResult.sheetUnlockedPro &&
+      if (feedbackResult == ProAccessFeedbackResult.sheetUnlocked &&
           mounted) {
         onUnlockedPro();
       }

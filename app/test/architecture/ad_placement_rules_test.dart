@@ -38,6 +38,8 @@ const Map<String, String> _allowedAdModuleUsers = {
       '오늘의 세트를 막 끝낸 결과 화면 진입 전면 광고',
   'lib/presentation/pages/questions/chapter_result_page.dart':
       '챕터를 끝까지 푼 결과 화면 진입 전면 광고',
+  'lib/presentation/widgets/pro/pro_offer_sheet.dart':
+      '무료 하루 한도로 열린 이용권 시트에서 사용자가 눌러 보는 보상형 광고 버튼 1개 (#808)',
 };
 
 /// 광고를 절대 두지 않는 곳 (폴더 또는 파일)

@@ -28,8 +28,12 @@ class MemberPlanResponse with _$MemberPlanResponse {
     DateTime? proExpiresAt,
     // 오늘 제출한 서로 다른 랜덤 문제 수 (오늘의 문제 제외)
     @Default(0) int todayRandomSolvedCount,
-    // 무료 하루 랜덤 문제 한도
+    // 무료 하루 랜덤 문제 기본 한도 (보너스 제외, 혜택 비교 문구용)
     @Default(0) int dailyFreeLimit,
+    // 오늘 무료 랜덤 문제 유효 한도 (기본 + 받은 보너스, 옛 서버면 0, #808)
+    @Default(0) int todayFreeLimit,
+    // 오늘 받은 무료 한도 보너스 (#808)
+    @Default(DailyFreeBonus()) DailyFreeBonus dailyBonus,
     // deprecated: 옛 앱(1.36·1.37) 호환용 3개월권 예상 만료일. 화면은 passOptions 사용
     DateTime? purchasableUntil,
     // 구매할 수 있는 이용권 (서버 순서: 3개월 먼저, 결제 꺼짐·상품 없음이면 빈 목록)
@@ -42,6 +46,35 @@ class MemberPlanResponse with _$MemberPlanResponse {
 
   factory MemberPlanResponse.fromJson(Map<String, dynamic> json) =>
       _$MemberPlanResponseFromJson(json);
+}
+
+/// 오늘 받은 무료 한도 보너스 3종: 오늘의 세트 완료, 세트 정답률, 광고 시청 (#808)
+@freezed
+class DailyFreeBonus with _$DailyFreeBonus {
+  const DailyFreeBonus._();
+
+  const factory DailyFreeBonus({
+    // 오늘의 세트 완료(배정 문제 전부 제출) 보너스 받음
+    @Default(false) bool isDailySetCompletionEarned,
+    // 오늘의 세트 정답 80% 이상 보너스 받음
+    @Default(false) bool isDailySetAccuracyEarned,
+    // 오늘 받은 광고 보너스 횟수
+    @Default(0) int adBonusUsedCount,
+    // 하루 광고 보너스 최대 횟수
+    @Default(0) int adBonusMaxCount,
+    // 보너스 1회분 문제 수
+    @Default(0) int bonusQuestionCount,
+  }) = _DailyFreeBonus;
+
+  factory DailyFreeBonus.fromJson(Map<String, dynamic> json) =>
+      _$DailyFreeBonusFromJson(json);
+
+  /// 오늘 광고 보너스를 더 받을 수 있는가
+  bool get hasRemainingAdBonus => adBonusUsedCount < adBonusMaxCount;
+
+  /// 오늘 남은 광고 보너스 횟수
+  int get remainingAdBonusCount =>
+      hasRemainingAdBonus ? adBonusMaxCount - adBonusUsedCount : 0;
 }
 
 /// 이용권 1종: 스토어 상품 ID, 이용 일수, 지금 사면 될 만료일 (KST)
