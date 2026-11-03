@@ -5,9 +5,12 @@ import com.passql.application.concept.admin.ConceptBundleImportService;
 import com.passql.application.concept.admin.dto.ConceptBundle;
 import com.passql.application.concept.admin.dto.ConceptBundleImportResult;
 import com.passql.application.concept.admin.dto.ConceptBundleValidationResult;
+import com.passql.application.concept.admin.dto.ConceptContentUpdateRequest;
+import com.passql.application.concept.admin.dto.ConceptPublishStatusRequest;
 import com.passql.meta.constant.ConceptPublishStatus;
 import com.passql.web.support.AdminMenu;
 import com.passql.web.support.AdminPage;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -68,8 +71,9 @@ public class AdminConceptLearningController {
     /** 공개 상태 변경 (JSON body: { "status": "PUBLISHED" | "DRAFT" }) */
     @PutMapping("/{conceptUuid}/status")
     @ResponseBody
-    public ResponseEntity<Void> changeStatus(@PathVariable UUID conceptUuid, @RequestBody Map<String, String> body) {
-        conceptAdminService.changePublishStatus(conceptUuid, ConceptPublishStatus.fromRequestValue(body.get("status")));
+    public ResponseEntity<Void> changeStatus(@PathVariable UUID conceptUuid,
+                                             @Valid @RequestBody ConceptPublishStatusRequest request) {
+        conceptAdminService.changePublishStatus(conceptUuid, ConceptPublishStatus.fromRequestValue(request.status()));
         return ResponseEntity.ok().build();
     }
 
@@ -83,9 +87,10 @@ public class AdminConceptLearningController {
     /** 본문 수정 (JSON body: title, summary, coreMd, detailMd) */
     @PutMapping("/{conceptUuid}/content")
     @ResponseBody
-    public ResponseEntity<Void> updateContent(@PathVariable UUID conceptUuid, @RequestBody Map<String, String> body) {
-        conceptAdminService.updateContent(conceptUuid, body.get("title"), body.get("summary"),
-            body.get("coreMd"), body.get("detailMd"));
+    public ResponseEntity<Void> updateContent(@PathVariable UUID conceptUuid,
+                                              @Valid @RequestBody ConceptContentUpdateRequest request) {
+        conceptAdminService.updateContent(conceptUuid, request.title(), request.summary(),
+            request.coreMd(), request.detailMd());
         return ResponseEntity.ok().build();
     }
 }

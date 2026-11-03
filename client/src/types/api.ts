@@ -62,6 +62,8 @@ export interface ChoiceSetGeneratedEvent {
 
 export type ExecuteResult = ApiSchemas["ExecuteResult"];
 
+export type QuestionExecutePayload = ApiSchemas["QuestionExecuteRequest"];
+
 // === Page ===
 // 생성본은 PageQuestionSummary 하나뿐 > 여러 목록에 쓰는 제네릭 손타입 유지
 export interface Page<T> {
@@ -137,24 +139,20 @@ export type NicknameCheckResponse = ApiSchemas["NicknameCheckResponse"];
 
 export type NicknameChangeResponse = ApiSchemas["NicknameChangeResponse"];
 
-// 내 등급 (#576): plan "FREE" | "PRO" (계약은 string) / 결제 꺼짐이면 isBillingEnabled false, 전원 프로 취급
+// 내 등급 (#576): 결제 꺼짐이면 isBillingEnabled false, 전원 프로 취급
 export type MemberPlanResponse = ApiSchemas["MemberPlanResponse"];
+
+// 등급 값 "FREE" | "PRO" (계약 enum, #791)
+export type MemberPlan = MemberPlanResponse["plan"];
 
 // 서버 오류 코드 (ErrorResponse.errorCode)
 export type ApiErrorCode = ApiSchemas["ErrorCode"];
 
 // === AI Payloads ===
-// 서버 요청 본문이 Map 이라 스키마 없음 > 웹 손타입 유지
-export interface ExplainErrorPayload {
-  readonly questionUuid: string;
-  readonly sql: string;
-  readonly errorMessage: string;
-}
+export type ExplainErrorPayload = ApiSchemas["ErrorExplanationRequest"];
 
-export interface DiffExplainPayload {
-  readonly questionUuid: string;
-  readonly selectedChoiceKey: string;
-}
+// selectedChoiceKey 생략 시 서버가 마지막 제출의 보기 사용
+export type DiffExplainPayload = ApiSchemas["ChoiceDiffExplanationRequest"];
 
 // === Today / Recommendations ===
 // === Daily Set ===

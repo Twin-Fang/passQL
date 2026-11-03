@@ -1829,7 +1829,7 @@ export interface paths {
         put?: never;
         /**
          * SQL 실행
-         * @description EXECUTABLE 문제만 허용. body: { "sql": "SELECT ..." }. CONCEPT_ONLY 문제에 호출 시 400 INVALID_EXECUTION_MODE 반환.
+         * @description EXECUTABLE 문제만 허용. body: { "sql": "SELECT ..." }. sql 누락·빈 값은 400 VALIDATION_ERROR, CONCEPT_ONLY 문제에 호출 시 400 INVALID_EXECUTION_MODE 반환.
          */
         post: operations["executeChoice"];
         delete?: never;
@@ -2032,6 +2032,20 @@ export interface components {
             isCorrect: boolean;
             /** @description 맞거나 틀린 이유 한 줄 */
             reason: string;
+        };
+        /** @description 선택지 해설 요청 (동기, 출시 앱 호환) */
+        ChoiceDiffExplanationRequest: {
+            /**
+             * Format: uuid
+             * @description 문제 UUID
+             * @example 550e8400-e29b-41d4-a716-446655440000
+             */
+            questionUuid: string;
+            /**
+             * @description 고른 보기 키 (생략 시 마지막 제출의 보기)
+             * @example A
+             */
+            selectedChoiceKey?: string | null;
         };
         ChoiceExplanation: {
             /** @description 보기별 판정 (보기 키 순서) */
@@ -2323,6 +2337,25 @@ export interface components {
          * @enum {string}
          */
         ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "REQUEST_TOO_LARGE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "EMBEDDING_INDEX_ALREADY_RUNNING" | "PROMPT_NOT_FOUND" | "PROMPT_HISTORY_NOT_FOUND" | "PROMPT_ACTIVE_DELETE_FORBIDDEN" | "TOPIC_NOT_FOUND" | "CONCEPT_NOT_FOUND" | "CONCEPT_CHECK_QUESTION_NOT_FOUND" | "TOPIC_DUPLICATE" | "TOPIC_HAS_QUESTIONS" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_CHALLENGE_RANGE_INVALID" | "DAILY_CHALLENGE_TOO_MANY_QUESTIONS" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "FEEDBACK_IMAGE_TOO_MANY" | "FEEDBACK_IMAGE_INVALID" | "FEEDBACK_ATTACHMENT_TOO_LARGE" | "FEEDBACK_ATTACHMENT_INVALID" | "FEEDBACK_DAILY_LIMIT_EXCEEDED" | "FEEDBACK_STORAGE_UNAVAILABLE" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "APP_MAINTENANCE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "COMMUNITY_POST_NOT_FOUND" | "COMMUNITY_SOLVE_REQUIRED" | "COMMUNITY_CONTENT_INVALID" | "COMMUNITY_CONTENT_FORBIDDEN_WORD" | "COMMUNITY_POST_DUPLICATE" | "COMMUNITY_POST_RATE_LIMITED" | "COMMUNITY_POST_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_POST_FORBIDDEN" | "COMMUNITY_SELF_REPORT_FORBIDDEN" | "COMMUNITY_SELF_BLOCK_FORBIDDEN" | "COMMUNITY_BLOCK_NOT_FOUND" | "COMMUNITY_IMAGE_STORAGE_UNAVAILABLE" | "COMMUNITY_IMAGE_INVALID_FORMAT" | "COMMUNITY_IMAGE_TOO_LARGE" | "COMMUNITY_IMAGE_DIMENSION_EXCEEDED" | "COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED" | "COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_IMAGE_QUOTA_EXCEEDED" | "COMMUNITY_IMAGE_NOT_FOUND" | "COMMUNITY_IMAGE_TOO_MANY" | "COMMUNITY_IMAGE_INVALID_ATTACHMENT" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "ADMIN_ACCOUNT_SELF_DELETE_FORBIDDEN" | "ADMIN_ACCOUNT_DELETE_REQUIRES_DISABLED" | "ADMIN_ACCOUNT_LAST_ADMIN_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_INACTIVE_DAYS_INVALID" | "PUSH_SCHEDULE_TIME_INVALID" | "PUSH_NOT_SCHEDULED" | "PUSH_RETRACT_NOT_DISPATCHED" | "PUSH_TEMPLATE_NOT_FOUND" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER" | "SOCIAL_LOGIN_UNAVAILABLE" | "INVALID_SOCIAL_AUTHORIZATION_CODE" | "INVALID_SOCIAL_TOKEN" | "PRO_REQUIRED" | "FREE_DAILY_LIMIT_REACHED" | "FAIR_USE_DAILY_LIMIT_REACHED";
+        /** @description SQL 실행 오류 AI 해설 요청 */
+        ErrorExplanationRequest: {
+            /**
+             * @description 샌드박스 실행 오류 메시지
+             * @example column "ename" must appear in the GROUP BY clause
+             */
+            errorMessage: string;
+            /**
+             * Format: uuid
+             * @description 문제 UUID
+             * @example 550e8400-e29b-41d4-a716-446655440000
+             */
+            questionUuid: string;
+            /**
+             * @description 실행한 선택지 SQL
+             * @example SELECT ename, COUNT(*) FROM emp
+             */
+            sql: string;
+        };
         /** @description API 에러 응답 표준 형식 */
         ErrorResponse: {
             errorCode: components["schemas"]["ErrorCode"];
@@ -2500,7 +2533,8 @@ export interface components {
             /** Format: date-time */
             lastPurchasedAt: string | null;
             passOptions: components["schemas"]["PassOption"][];
-            plan: string;
+            /** @enum {string} */
+            plan: "FREE" | "PRO";
             /** Format: date-time */
             proExpiresAt: string | null;
             /**
@@ -2640,6 +2674,14 @@ export interface components {
             stem: string;
             subtopicName: string | null;
             topicName: string | null;
+        };
+        /** @description 선택지 SQL 실행 요청 */
+        QuestionExecuteRequest: {
+            /**
+             * @description 실행할 SQL
+             * @example SELECT * FROM emp
+             */
+            sql: string;
         };
         QuestionSchemaColumn: {
             isForeignKey: boolean;
@@ -2881,9 +2923,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
-                    [key: string]: unknown;
-                };
+                "application/json": components["schemas"]["ChoiceDiffExplanationRequest"];
             };
         };
         responses: {
@@ -2907,9 +2947,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
-                    [key: string]: unknown;
-                };
+                "application/json": components["schemas"]["ErrorExplanationRequest"];
             };
         };
         responses: {
@@ -4402,9 +4440,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
-                    [key: string]: string;
-                };
+                "application/json": components["schemas"]["QuestionExecuteRequest"];
             };
         };
         responses: {

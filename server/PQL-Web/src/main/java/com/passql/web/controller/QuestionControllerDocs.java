@@ -5,6 +5,7 @@ import com.passql.member.auth.presentation.annotation.AuthMember;
 import com.passql.member.auth.presentation.security.LoginMember;
 import com.passql.question.dto.ExecuteResult;
 import com.passql.question.dto.QuestionDetail;
+import com.passql.question.dto.QuestionExecuteRequest;
 import com.passql.question.dto.QuestionSummary;
 import com.passql.question.dto.RecommendationsRequest;
 import com.passql.question.dto.RecommendationsResponse;
@@ -12,6 +13,7 @@ import com.passql.question.dto.SubmitRequest;
 import com.passql.question.dto.SubmitResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import kr.suhsaechan.suhapilog.annotation.ApiLog;
 import kr.suhsaechan.suhapilog.annotation.ApiLogs;
 import org.springframework.data.domain.Page;
@@ -23,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Tag(name = "Question", description = "문제 조회 / SQL 실행 / 제출")
@@ -89,13 +90,14 @@ public interface QuestionControllerDocs {
       @ApiLog(date = "2026.04.07", author = Author.SUHSAECHAN, issueNumber = 1, description = "SQL 실행(테스트) API 추가"),
       @ApiLog(date = "2026.04.08", author = Author.SUHSAECHAN, issueNumber = 22, description = "PathVariable: Long id → UUID questionUuid"),
       @ApiLog(date = "2026.04.10", author = Author.SUHSAECHAN, issueNumber = 70, description = "QuestionExecutionService 경유로 전환: sandboxDbName 기반 실행, CONCEPT_ONLY 에러 처리 추가"),
+      @ApiLog(date = "2026.11.03", author = Author.SUHSAECHAN, issueNumber = 791, description = "요청 본문 Map → QuestionExecuteRequest (필드명 동일, sql 누락·빈 값은 400 VALIDATION_ERROR)"),
   })
   @Operation(summary = "SQL 실행",
       description = "EXECUTABLE 문제만 허용. body: { \"sql\": \"SELECT ...\" }. " +
-          "CONCEPT_ONLY 문제에 호출 시 400 INVALID_EXECUTION_MODE 반환.")
+          "sql 누락·빈 값은 400 VALIDATION_ERROR, CONCEPT_ONLY 문제에 호출 시 400 INVALID_EXECUTION_MODE 반환.")
   ResponseEntity<ExecuteResult> executeChoice(
       @PathVariable UUID questionUuid,
-      @RequestBody Map<String, String> body
+      @Valid @RequestBody QuestionExecuteRequest request
   );
 
   @ApiLogs({

@@ -44,9 +44,6 @@ public class FeatureAccessPolicy {
 
     // 서비스 기준 시간대 (등급 만료일·하루 구간은 KST 로컬 저장값)
     static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
-    // 등급 응답 문자열
-    private static final String PLAN_PRO = "PRO";
-    private static final String PLAN_FREE = "FREE";
     // app_settings: 안드로이드 결제 사용 여부 ('true' 사용, 'false'·행 없음·저장소 장애 미사용)
     private static final boolean IS_BILLING_ENABLED_BY_DEFAULT = false;
     // app_settings concept.free_topic_count 읽기 실패·행 없음 기본값 (단원 수)
@@ -215,7 +212,7 @@ public class FeatureAccessPolicy {
 
         return new MemberPlanResponse(
             isBillingEnabled,
-            isPro ? PLAN_PRO : PLAN_FREE,
+            isPro ? MemberPlan.PRO : MemberPlan.FREE,
             activeProExpiresAtOrNull,
             todayRandomSolvedCount,
             DAILY_FREE_LIMIT,
