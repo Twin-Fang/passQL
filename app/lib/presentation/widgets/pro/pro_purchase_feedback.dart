@@ -6,6 +6,9 @@ import '../../providers/plan_providers.dart';
 /// 구매 성공 토스트 (시트가 닫힌 뒤 호출부 화면에서 띄움)
 const String proPurchaseSucceededMessage = '이용권이 열렸어요';
 
+/// 연장 성공 토스트 (이용 중 재구매 > 현재 만료일 뒤로 이어 붙음)
+const String proExtendSucceededMessage = '이용권을 연장했어요';
+
 // 시트 안 한 줄 안내 문구 (시트가 토스트를 가리므로 성공 외 결과는 시트 안에 표시)
 const String _purchasePendingMessage = '결제가 확인되면 열려요';
 const String _purchaseFailedMessage = '결제를 마치지 못했어요';

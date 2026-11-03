@@ -170,6 +170,7 @@ class _ProPassState extends ConsumerState<_ProPass> {
     final daysLeft = expiresAt == null ? null : daysUntilDate(expiresAt);
     void openInfo() => showProInfoSheet(
       context,
+      ref,
       proExpiresAt: expiresAt,
       purchasedAt: plan?.lastPurchasedAt,
       orderId: plan?.lastOrderId,

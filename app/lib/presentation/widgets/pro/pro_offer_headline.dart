@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/utils/exam_dday.dart';
 import '../../design/design.dart';
 import 'pro_benefits.dart';
 
 /// 프로 안내 시트 머리: 문장 제목 > 기간 줄(무료 최대치) > 들어온 이유 > 강조 혜택
+/// 이용 중이면 제목만 연장 문장 (N일 남은 이용권, 이어서 연장해요)
 class ProOfferHeadline extends StatelessWidget {
   const ProOfferHeadline({
     super.key,
     required this.daysUntilExam,
+    required this.activeProExpiresAt,
     required this.freeCap,
     required this.dailyFreeLimit,
     required this.reason,
@@ -16,6 +19,9 @@ class ProOfferHeadline extends StatelessWidget {
 
   /// 시험까지 남은 날 (일정 없으면 null)
   final int? daysUntilExam;
+
+  /// 이용 중인 프로 만료일 (무료·만료면 null > 구매 문장)
+  final DateTime? activeProExpiresAt;
 
   /// 시험까지 무료 최대 문제 수 (null 이면 기간 줄 생략)
   final int? freeCap;
@@ -31,6 +37,10 @@ class ProOfferHeadline extends StatelessWidget {
     final daysUntil = daysUntilExam;
     final reason = this.reason;
     final focusedBenefit = this.focusedBenefit;
+    final activeProExpiresAt = this.activeProExpiresAt;
+    final proDaysLeft = activeProExpiresAt == null
+        ? null
+        : daysUntilDate(activeProExpiresAt);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -41,15 +51,23 @@ class ProOfferHeadline extends StatelessWidget {
           child: Text.rich(
             TextSpan(
               style: PassqlTypography.title2.copyWith(color: colors.label),
-              children: [
-                if (daysUntil != null && daysUntil > 0)
-                  TextSpan(text: '시험까지 $daysUntil일,\n'),
-                TextSpan(
-                  text: '제한 없이',
-                  style: TextStyle(color: colors.accentText),
-                ),
-                const TextSpan(text: ' 풀고 합격해요'),
-              ],
+              children: proDaysLeft != null
+                  ? [
+                      TextSpan(
+                        text: '$proDaysLeft일',
+                        style: TextStyle(color: colors.accentText),
+                      ),
+                      const TextSpan(text: ' 남은 이용권,\n이어서 연장해요'),
+                    ]
+                  : [
+                      if (daysUntil != null && daysUntil > 0)
+                        TextSpan(text: '시험까지 $daysUntil일,\n'),
+                      TextSpan(
+                        text: '제한 없이',
+                        style: TextStyle(color: colors.accentText),
+                      ),
+                      const TextSpan(text: ' 풀고 합격해요'),
+                    ],
             ),
           ),
         ),

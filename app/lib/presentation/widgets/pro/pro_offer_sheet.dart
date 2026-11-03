@@ -5,7 +5,6 @@ import '../../../core/billing/pass_option_pricing.dart';
 import '../../../core/billing/pro_purchase_port.dart';
 import '../../../core/utils/exam_dday.dart';
 import '../../../core/utils/profile_pass_values.dart';
-import '../../../data/models/exam/exam_schedule_response.dart';
 import '../../../data/models/member/member_plan_response.dart';
 import '../../design/design.dart';
 import '../../providers/home_providers.dart';
@@ -44,6 +43,11 @@ Future<void> showProOfferSheet(
   _isOfferSheetOpen = true;
   final knownPlan = ref.read(knownPlanProvider);
   final proExpiresAt = knownPlan?.proExpiresAt;
+  // 지금 프로 이용 중일 때만 현재 만료일 > 연장 시트 (제목·미리보기·완료 문구가 연장용)
+  final activeProExpiresAt =
+      proExpiresAt != null && proExpiresAt.isAfter(DateTime.now())
+      ? proExpiresAt
+      : null;
   // 시트가 닫힐 때 호출 화면이 이미 사라졌을 수 있어 ref 는 기다리기 전에 읽어 둔다
   final revealNotifier = ref.read(profilePassRevealPendingProvider.notifier);
   try {
@@ -51,22 +55,26 @@ Future<void> showProOfferSheet(
       context,
       builder: (_) => _ProOfferSheetBody(
         passOptions: knownPlan?.passOptions ?? const [],
-        // 지금 프로 이용 중일 때만 현재 만료일 > 연장 미리보기
-        activeProExpiresAt:
-            proExpiresAt != null && proExpiresAt.isAfter(DateTime.now())
-            ? proExpiresAt
-            : null,
+        activeProExpiresAt: activeProExpiresAt,
         dailyFreeLimit: knownPlan?.dailyFreeLimit ?? 0,
         reason: reason,
         focusedBenefitIndex: focusedBenefitIndex,
-        nickname: ref.read(settingsDataProvider).valueOrNull?.nickname ?? '',
-        examSchedule: ref.read(examScheduleProvider).valueOrNull,
       ),
     );
     if (isPurchased == true) {
-      // 어느 진입점에서 샀든 다음 프로필 진입 때 탑승권 연출을 한 번 보여 준다 (#749)
-      await revealNotifier.markPending();
-      if (context.mounted) showAppToast(context, proPurchaseSucceededMessage);
+      // 연장은 이미 PRO 탑승권이라 무료 > 프로 연출 없음
+      if (activeProExpiresAt == null) {
+        // 어느 진입점에서 샀든 다음 프로필 진입 때 탑승권 연출을 한 번 보여 준다 (#749)
+        await revealNotifier.markPending();
+      }
+      if (context.mounted) {
+        showAppToast(
+          context,
+          activeProExpiresAt == null
+              ? proPurchaseSucceededMessage
+              : proExtendSucceededMessage,
+        );
+      }
     }
   } catch (_) {
     // 시트를 띄우지 못한 경우만 여기서 내림
@@ -82,8 +90,6 @@ class _ProOfferSheetBody extends ConsumerStatefulWidget {
     required this.dailyFreeLimit,
     required this.reason,
     required this.focusedBenefitIndex,
-    required this.nickname,
-    required this.examSchedule,
   });
 
   final List<PassOption> passOptions;
@@ -95,12 +101,6 @@ class _ProOfferSheetBody extends ConsumerStatefulWidget {
 
   /// 탑승권 혜택 아이콘에서 열었으면 그 혜택 순서 (proBenefits 기준)
   final int? focusedBenefitIndex;
-
-  /// 미리보기 탑승권 승객 칸
-  final String nickname;
-
-  /// 미리보기 탑승권 목적지·시험일, 제목의 남은 날 (없으면 일정 없는 문장)
-  final ExamScheduleResponse? examSchedule;
 
   @override
   ConsumerState<_ProOfferSheetBody> createState() => _ProOfferSheetBodyState();
@@ -201,11 +201,16 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
     final selectedLabel = selectedOption == null
         ? _sheetTitle
         : '${passMonthsLabelOf(selectedOption)} 이용권';
-    final schedule = widget.examSchedule;
+    // 시험 일정: 닉네임과 같이 시트가 떠 있는 동안 도착하면 채움 (결과 화면에서 바로 열 때 등)
+    final schedule = ref.watch(examScheduleProvider).valueOrNull;
     final daysUntil = schedule == null
         ? null
         : daysUntilExam(schedule.examDate);
     final benefits = proBenefits(dailyFreeLimit: widget.dailyFreeLimit);
+    final activeProExpiresAt = widget.activeProExpiresAt;
+    final isExtending = activeProExpiresAt != null;
+    // 승객 칸: 시트가 떠 있는 동안 닉네임이 도착하면 채움 (홈에서 바로 열면 아직 안 불러온 상태)
+    final nickname = ref.watch(settingsDataProvider).valueOrNull?.nickname ?? '';
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -224,24 +229,31 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
               children: [
                 ProOfferHeadline(
                   daysUntilExam: daysUntil,
-                  freeCap: freeCapUntilExam(
-                    daysUntilExam: daysUntil,
-                    limit: widget.dailyFreeLimit,
-                  ),
+                  activeProExpiresAt: activeProExpiresAt,
+                  // 연장이면 무료 최대치 줄 없음 (이미 제한 없이 푸는 중)
+                  freeCap: isExtending
+                      ? null
+                      : freeCapUntilExam(
+                          daysUntilExam: daysUntil,
+                          limit: widget.dailyFreeLimit,
+                        ),
                   dailyFreeLimit: widget.dailyFreeLimit,
                   reason: widget.reason,
                   focusedBenefit: _focusedBenefitOf(benefits),
                 ),
                 const SizedBox(height: PassqlSpacing.md),
                 ProOfferTicketPreview(
-                  nickname: widget.nickname,
+                  nickname: nickname,
                   examSchedule: schedule,
                   selectedOption: selectedOption,
                   benefits: benefits,
-                  activeProExpiresAt: widget.activeProExpiresAt,
+                  activeProExpiresAt: activeProExpiresAt,
                 ),
-                const SizedBox(height: PassqlSpacing.xl),
-                ProOfferBenefitList(benefits: benefits),
+                // 「PRO로 달라지는 점」은 무료 회원용 (연장이면 이미 쓰는 혜택)
+                if (!isExtending) ...[
+                  const SizedBox(height: PassqlSpacing.xl),
+                  ProOfferBenefitList(benefits: benefits),
+                ],
                 const SizedBox(height: PassqlSpacing.md),
                 // 이용권 고르기 (서버 순서대로, 결제 중에는 바꿀 수 없음)
                 ProOfferPassOptionList(
