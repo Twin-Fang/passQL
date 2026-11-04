@@ -113,7 +113,7 @@ const double _systemButtonsInset = 40;
 /// 고정값으로 깎으면 inset 이 작은 Android 제스처 바에서 아이콘이 바에 붙어 보여 비율로 줄인다(iOS 34→20, Android 24→14).
 const double _insetKeepRatio = 0.6;
 
-/// 하단 여백. 홈 인디케이터·제스처 바는 일부만 비워 두고,
+/// 하단 여백. inset 없음은 0, 홈 인디케이터·제스처 바는 일부만 비워 두고,
 /// 3버튼 내비게이션은 아이콘이 버튼에 가리지 않도록 inset 을 그대로 둔다.
 double _resolveBottomPadding(BuildContext context) {
   // 기존 SafeArea 와 같은 기준(padding)을 써서 키보드가 올라올 때 동작도 그대로 둔다

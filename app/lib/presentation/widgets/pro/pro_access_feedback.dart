@@ -29,6 +29,7 @@ enum ProAccessFeedbackResult {
 
 /// 서버 프로 접근 오류 > 안내 공통 지점
 /// 프로 필요·무료 하루 한도 > 프로 안내 시트 (결제 UI 대상일 때만), 공정 사용 한도 > 토스트
+/// 시트 결과가 프로 전환·광고 보너스면 sheetUnlocked (호출부가 다시 요청)
 /// 결제 UI 대상이 아니면 등급 1회 다시 받아 재판정 (앱은 프로로 아는데 서버는 무료 = 만료·회수)
 /// 네트워크 인터셉터가 아니라 사용자가 연 화면에서 부름: 미리 받기·백그라운드 조회까지 시트가 뜨면 §4-5 자동 팝업 금지 위반
 Future<ProAccessFeedbackResult> showProAccessFeedback(

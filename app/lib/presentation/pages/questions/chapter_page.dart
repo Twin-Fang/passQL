@@ -117,12 +117,12 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     return chapter.questionUuids[nextIndex];
   }
 
-  /// 현재 문제 실패 1회 안내: 프로 접근 오류면 시트·토스트 > 시트로 프로가 됐을 때만 [onUnlockedPro]
+  /// 현재 문제 실패 1회 안내: 프로 접근 오류면 시트·토스트 > 시트로 열렸을 때만(프로 전환·광고 보너스) [onUnlocked]
   /// 현재 문제만 대상 (미리 받기 실패는 그 문제로 넘어왔을 때 여기서 안내, 풀이 도중 시트 금지 §4-5)
   void _showProAccessFeedbackOnce(
     Object noticeKey,
     Object error,
-    VoidCallback onUnlockedPro,
+    VoidCallback onUnlocked,
   ) {
     if (!_proAccessNoticedKeys.add(noticeKey)) return;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -130,7 +130,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
       final feedbackResult = await showProAccessFeedback(context, ref, error);
       if (feedbackResult == ProAccessFeedbackResult.sheetUnlocked &&
           mounted) {
-        onUnlockedPro();
+        onUnlocked();
       }
     });
   }

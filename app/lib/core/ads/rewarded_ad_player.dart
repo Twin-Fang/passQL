@@ -7,6 +7,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'ad_placement.dart';
 import 'ad_request_preparer.dart';
 import 'full_screen_ad_guard.dart';
+import 'full_screen_ad_loading.dart';
 
 /// 보상형 광고 결과 3종
 enum RewardedAdOutcome {
@@ -30,9 +31,6 @@ final rewardedAdPlayerProvider = Provider<RewardedAdPlayer>(
 class GoogleRewardedAdPlayer implements RewardedAdPlayer {
   GoogleRewardedAdPlayer(this._requestPreparer);
 
-  // 이 시간 안에 안 오면 포기 (사용자가 다시 누름)
-  static const _loadTimeout = Duration(seconds: 30);
-
   final AdRequestPreparer _requestPreparer;
 
   @override
@@ -46,44 +44,21 @@ class GoogleRewardedAdPlayer implements RewardedAdPlayer {
     return _show(rewardedAd);
   }
 
-  /// 로드: 실패·미설정·시간 초과면 null (시간 초과 뒤 늦게 온 광고는 해제)
-  Future<RewardedAd?> _load(AdPlacement placement) async {
-    try {
-      final preparedRequest = await _requestPreparer.prepare(placement);
-      if (preparedRequest == null) return null;
-
-      final loadCompleter = Completer<RewardedAd?>();
-      await RewardedAd.load(
-        adUnitId: preparedRequest.unitId,
-        request: preparedRequest.request,
-        rewardedAdLoadCallback: RewardedAdLoadCallback(
-          onAdLoaded: (ad) {
-            if (loadCompleter.isCompleted) {
-              ad.dispose();
-            } else {
-              loadCompleter.complete(ad);
-            }
-          },
-          onAdFailedToLoad: (error) {
-            debugPrint(
-              '[ads rewarded] load failed ${placement.name} : ${error.code}',
-            );
-            if (!loadCompleter.isCompleted) loadCompleter.complete(null);
-          },
+  /// 로드: 실패·미설정·시간 초과면 null (공통 로드)
+  Future<RewardedAd?> _load(AdPlacement placement) =>
+      loadFullScreenAd<RewardedAd>(
+        requestPreparer: _requestPreparer,
+        placement: placement,
+        logLabel: 'rewarded',
+        startLoad: (preparedRequest, onLoaded, onFailed) => RewardedAd.load(
+          adUnitId: preparedRequest.unitId,
+          request: preparedRequest.request,
+          rewardedAdLoadCallback: RewardedAdLoadCallback(
+            onAdLoaded: onLoaded,
+            onAdFailedToLoad: onFailed,
+          ),
         ),
       );
-      return await loadCompleter.future.timeout(
-        _loadTimeout,
-        onTimeout: () {
-          debugPrint('[ads rewarded] load timeout ${placement.name}');
-          return null;
-        },
-      );
-    } catch (error) {
-      debugPrint('[ads rewarded] prepare failed ${placement.name} : $error');
-      return null;
-    }
-  }
 
   /// 표시 > 닫힘까지 대기. 닫힘·표시 실패 모두 해제 + 표시 중 해제 (성공·실패 공통)
   Future<RewardedAdOutcome> _show(RewardedAd rewardedAd) {

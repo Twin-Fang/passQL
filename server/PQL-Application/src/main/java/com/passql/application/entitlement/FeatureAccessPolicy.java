@@ -8,9 +8,7 @@ import com.passql.member.constant.MemberPlan;
 import com.passql.member.constant.PassProduct;
 import com.passql.member.constant.PurchaseStatus;
 import com.passql.member.entity.EntitlementPurchase;
-import com.passql.member.entity.MemberDailyAdBonus;
 import com.passql.member.entity.MemberEntitlement;
-import com.passql.member.repository.MemberDailyAdBonusRepository;
 import com.passql.member.repository.EntitlementPurchaseRepository;
 import com.passql.member.repository.MemberEntitlementRepository;
 import com.passql.meta.constant.AppSettingKeys;
@@ -18,7 +16,6 @@ import com.passql.meta.service.AppSettingService;
 import com.passql.submission.repository.SubmissionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -26,7 +23,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
-import java.util.OptionalInt;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -66,7 +62,7 @@ public class FeatureAccessPolicy {
     private final DailyQuestionCounter dailyQuestionCounter;
     private final EntitlementPurchaseRepository entitlementPurchaseRepository;
     private final DailyFreeBonusReader dailyFreeBonusReader;
-    private final MemberDailyAdBonusRepository memberDailyAdBonusRepository;
+    private final DailyAdBonusRecorder dailyAdBonusRecorder;
     private final Clock clock;
 
     @Autowired
@@ -77,10 +73,10 @@ public class FeatureAccessPolicy {
                                DailyQuestionCounter dailyQuestionCounter,
                                EntitlementPurchaseRepository entitlementPurchaseRepository,
                                DailyFreeBonusReader dailyFreeBonusReader,
-                               MemberDailyAdBonusRepository memberDailyAdBonusRepository) {
+                               DailyAdBonusRecorder dailyAdBonusRecorder) {
         this(memberEntitlementRepository, appSettingService, passExpiryCalculator,
             submissionRepository, dailyQuestionCounter, entitlementPurchaseRepository,
-            dailyFreeBonusReader, memberDailyAdBonusRepository, Clock.system(SERVICE_ZONE));
+            dailyFreeBonusReader, dailyAdBonusRecorder, Clock.system(SERVICE_ZONE));
     }
 
     FeatureAccessPolicy(MemberEntitlementRepository memberEntitlementRepository,
@@ -90,7 +86,7 @@ public class FeatureAccessPolicy {
                         DailyQuestionCounter dailyQuestionCounter,
                         EntitlementPurchaseRepository entitlementPurchaseRepository,
                         DailyFreeBonusReader dailyFreeBonusReader,
-                        MemberDailyAdBonusRepository memberDailyAdBonusRepository, Clock clock) {
+                        DailyAdBonusRecorder dailyAdBonusRecorder, Clock clock) {
         this.memberEntitlementRepository = memberEntitlementRepository;
         this.appSettingService = appSettingService;
         this.passExpiryCalculator = passExpiryCalculator;
@@ -98,7 +94,7 @@ public class FeatureAccessPolicy {
         this.dailyQuestionCounter = dailyQuestionCounter;
         this.entitlementPurchaseRepository = entitlementPurchaseRepository;
         this.dailyFreeBonusReader = dailyFreeBonusReader;
-        this.memberDailyAdBonusRepository = memberDailyAdBonusRepository;
+        this.dailyAdBonusRecorder = dailyAdBonusRecorder;
         this.clock = clock;
     }
 
@@ -209,28 +205,11 @@ public class FeatureAccessPolicy {
         if (isPro(memberUuid)) {
             return getPlan(memberUuid);
         }
-        if (!saveNextAdBonus(memberUuid) && !saveNextAdBonus(memberUuid)) {
+        if (!dailyAdBonusRecorder.saveNextAdBonus(memberUuid) && !dailyAdBonusRecorder.saveNextAdBonus(memberUuid)) {
             log.info("[pro access] rejected 409 : ad bonus daily limit, member={}", memberUuid);
             throw new CustomException(ErrorCode.AD_BONUS_DAILY_LIMIT_REACHED);
         }
         return getPlan(memberUuid);
-    }
-
-    /** 다음 빈 칸에 광고 보너스 저장, 오늘 칸이 없거나 동시 저장에 졌으면 false */
-    private boolean saveNextAdBonus(UUID memberUuid) {
-        OptionalInt nextSlot = DailyFreeBonusRule.nextAdBonusSlot(dailyFreeBonusReader.countAdBonusUsedToday(memberUuid));
-        if (nextSlot.isEmpty()) {
-            return false;
-        }
-        try {
-            memberDailyAdBonusRepository.saveAndFlush(MemberDailyAdBonus.of(
-                memberUuid, dailyFreeBonusReader.today(), nextSlot.getAsInt(), LocalDateTime.now(clock)));
-        } catch (DataIntegrityViolationException e) {
-            log.info("[pro access] ad bonus slot taken, retrying : member={}, slot={}", memberUuid, nextSlot.getAsInt());
-            return false;
-        }
-        log.info("[pro access] ad bonus granted : member={}, slot={}", memberUuid, nextSlot.getAsInt());
-        return true;
     }
 
     /** 내 등급 응답 (이용권 목록·오늘 사용량·보너스·최근 구매는 회원 기준 결제 켜짐일 때만, 최근 구매는 검증 구매 기준) */
