@@ -8,7 +8,7 @@ bootJar { enabled = false }
 
 allprojects {
     group = 'com.passql'
-    version = '1.75.10'
+    version = '1.75.11'
     repositories {
         mavenCentral()
         maven {
