@@ -116,6 +116,13 @@ jobs:
           printf '%s\n' "$ENV_CONTENT" > .env
           echo ".env file created"
 
+      # 빌드 프로파일 release (#820): .env 개발 키 제거 + 개발자 도구·개발 플래그 꺼짐 검증 (켜져 있으면 빌드 중단)
+      - name: 빌드 프로파일 적용 (release)
+        run: |
+          python3 "${{ github.workspace }}/.github/scripts/apply_build_profile.py" \
+            release ".env" \
+            --config "${{ github.workspace }}/.github/config/build-profile.json"
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -256,6 +263,13 @@ jobs:
         run: |
           printf '%s\n' "$ENV_CONTENT" > .env
           echo "✅ .env 파일 생성됨 (크기: $(wc -c < .env) bytes)"
+
+      # 빌드 프로파일 release (#820): .env 개발 키 제거 + 개발자 도구·개발 플래그 꺼짐 검증 (켜져 있으면 빌드 중단)
+      - name: 빌드 프로파일 적용 (release)
+        run: |
+          python3 "${{ github.workspace }}/.github/scripts/apply_build_profile.py" \
+            release ".env" \
+            --config "${{ github.workspace }}/.github/config/build-profile.json"
 
       # Release Keystore 설정
       - name: Setup Release Keystore
