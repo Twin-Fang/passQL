@@ -41,7 +41,7 @@ class PassqlTabBar extends StatelessWidget {
         padding: EdgeInsets.only(bottom: _resolveBottomPadding(context)),
         child: SizedBox(
           height: PassqlSize.tabBar,
-          // stretch: 탭마다 바 높이를 꽉 채워 누르는 영역이 내용 크기로 줄지 않고, 아이콘이 위 여백 기준으로 놓인다
+          // stretch: 탭마다 바 높이를 꽉 채워 누르는 영역이 내용 크기로 줄지 않음 (내용은 탭 안에서 세로 가운데)
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -74,7 +74,7 @@ class PassqlTabBar extends StatelessWidget {
 }
 
 /// 탭 하나의 겉모습: 아이콘 위, 라벨 아래 (선택이면 강조색(accentText, 아이콘·라벨 동일) 채운 아이콘, 아니면 보조색 선 아이콘).
-/// 위 끝에서 [PassqlSize.tabBarIconTop] 만큼 띄워 아이콘 위가 답답하지 않게 한다 (#755)
+/// 아이콘·라벨 묶음을 바 높이 안 세로 가운데에 둠 > 글자 배율과 무관하게 위아래 여백 같음 (#810)
 class _TabItemContent extends StatelessWidget {
   const _TabItemContent({required this.item, required this.isSelected});
   final PassqlTabItem item;
@@ -84,8 +84,7 @@ class _TabItemContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final color = isSelected ? colors.accentText : colors.secondaryLabel;
-    return Padding(
-      padding: const EdgeInsets.only(top: PassqlSize.tabBarIconTop),
+    return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -119,6 +118,8 @@ const double _insetKeepRatio = 0.6;
 double _resolveBottomPadding(BuildContext context) {
   // 기존 SafeArea 와 같은 기준(padding)을 써서 키보드가 올라올 때 동작도 그대로 둔다
   final bottomInset = MediaQuery.paddingOf(context).bottom;
+  // 하단 inset 없음(아래 띠가 여백을 가져감·홈 버튼 기기) > 추가 여백 없음, 탭 안 위아래 여백만 (#810)
+  if (bottomInset == 0) return 0;
   if (bottomInset > _systemButtonsInset) return bottomInset;
   return math.max(bottomInset * _insetKeepRatio, PassqlSpacing.xs);
 }
