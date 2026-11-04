@@ -5,6 +5,7 @@
 | `promo/source/` | 원본 캡처 (`tool/store_shots/capture_store_set.sh`, iPhone 16 Pro 시뮬레이터, 다크·라이트 장면별) |
 | `promo/ios-6.9/` `promo/ios-6.5/` `promo/ios-6.3/` `promo/android-phone/` | 홍보 이미지 8장 (1320x2868 · 1284x2778 · 1206x2622 · 2160x3840). 1, 2장은 스토어 간격을 고려해 이어지는 한 쌍. App Store 필수 칸은 6.3", 다른 iPhone 크기는 이 이미지를 축소해 씀 |
 | `promo/feature-graphic.png` | Play 그래픽 이미지 1024x500 |
+| `play-listing-icon-512.png` | Play 등록정보 앱 아이콘 512x512. `brand/generate_brand_assets_for_all_platforms.py` 가 앱 아이콘 원본에서 생성, Play Console 에 직접 올림 (App Store 는 앱 빌드 아이콘을 씀) |
 | `descriptions/` | Play 짧은·전체 설명, App Store 부제·프로모션·키워드·설명 |
 
 생성: 문구는 `tool/store_art/scenes.json` 만 고치고 `python3 -I app/tool/store_art/render.py` (레포 루트에서).
