@@ -8,7 +8,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../core/ads/ad_placement.dart';
 import '../../../core/config/app_build_flavor.dart';
-import '../../../core/network/dio_client.dart';
+import '../../../core/config/env_keys.dart';
 import '../../design/design.dart';
 import '../../providers/plan_providers.dart';
 import '../../providers/session_reset.dart';
@@ -106,7 +106,7 @@ class DevToolsSheet extends ConsumerWidget {
     return [
       ('빌드 종류', AppBuildFlavor.isDevBuild ? '개발용 (APP_FLAVOR=dev)' : '디버그'),
       ('광고 단위', AdUnitIds.shouldUseTestAds ? '테스트' : '실제'),
-      ('서버', _backendHostOf(dotenv.maybeGet(backendBaseUrlEnvKey))),
+      ('서버', _backendHostOf(dotenv.maybeGet(EnvKeys.backendBaseUrl))),
       ('회원', ref.watch(currentMemberUuidProvider) ?? '로그아웃'),
       (
         '오늘 랜덤',
@@ -135,7 +135,7 @@ class DevToolsSheet extends ConsumerWidget {
       'appVersion': '${packageInfo.version}+${packageInfo.buildNumber}',
       'isDevBuild': AppBuildFlavor.isDevBuild,
       'isTestAds': AdUnitIds.shouldUseTestAds,
-      'backendHost': _backendHostOf(dotenv.maybeGet(backendBaseUrlEnvKey)),
+      'backendHost': _backendHostOf(dotenv.maybeGet(EnvKeys.backendBaseUrl)),
       'memberUuid': ref.read(currentMemberUuidProvider),
       'debugPlan': ref.read(debugPlanOverrideProvider)?.name,
       'limitSimulation': ref.read(devLimitSimulationProvider).name,
