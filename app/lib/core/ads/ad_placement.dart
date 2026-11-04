@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import '../config/app_build_flavor.dart';
+
 /// 광고 자리 7종: 형식이 아니라 배치별로 광고 단위를 나눈다 (콘솔에서 자리별 수익 비교)
 /// .env 키: PASSQL_ADMOB_{ANDROID|IOS}_{envSuffix}
 enum AdPlacement {
@@ -81,8 +83,9 @@ abstract final class AdUnitIds {
     return value.isEmpty ? null : value;
   }
 
-  /// 디버그·프로필 빌드는 항상 테스트 광고 (릴리스만 .env 의 실제 단위)
-  static bool get shouldUseTestAds => kDebugMode || kProfileMode;
+  /// 디버그·프로필·개발용(테스트 배포) 빌드는 항상 테스트 광고 (운영 빌드만 .env 의 실제 단위, #809)
+  static bool get shouldUseTestAds =>
+      kDebugMode || kProfileMode || AppBuildFlavor.isDevBuild;
 
   /// 실제 앱에서 쓰는 해석: 빌드 모드 + .env
   static String? unitIdFor(AdPlacement placement, {required bool isIos}) =>

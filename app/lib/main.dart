@@ -24,6 +24,7 @@ import 'presentation/providers/onboarding_providers.dart';
 import 'presentation/providers/pro_purchase_sync.dart';
 import 'presentation/providers/push_notification_providers.dart';
 import 'presentation/providers/theme_mode_provider.dart';
+import 'presentation/widgets/dev_tools/dev_tools_overlay.dart';
 import 'router/app_launch_gate_routing.dart';
 import 'router/app_router.dart';
 import 'router/screen_view_tracker.dart';
@@ -129,8 +130,9 @@ class PassqlApp extends ConsumerWidget {
       // 설정 > 화면 모드에서 고른 값(기본: 시스템 설정 따르기).
       themeMode: ref.watch(themeModeProvider),
       routerConfig: AppRouter.router,
-      // 시스템 글자 크기는 상한까지만 반영
-      builder: PassqlTextScaleLimit.wrap,
+      // 시스템 글자 크기는 상한까지만 반영 > 개발자 도구 플로팅 버튼 (디버그·개발용 빌드만, #809)
+      builder: (context, child) =>
+          DevToolsOverlay.wrap(context, PassqlTextScaleLimit.wrap(context, child)),
     );
   }
 }
