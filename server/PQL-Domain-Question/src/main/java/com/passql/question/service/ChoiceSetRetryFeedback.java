@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 선택지 세트 재시도 피드백 누적: 동치 SQL, 직전 실행 결과(결과 표 문제는 거부 사유 포함), 기준 결과
+ * 선택지 세트 재시도 피드백 누적: 동치 SQL, 직전 실행 결과(결과 표 문제는 버린 이유 포함), 기준 결과, 결과 표 문제 모은 오답
  * 생성 1회 실행 동안만 유지, 다음 시도 AI 요청에 포함
  */
 final class ChoiceSetRetryFeedback {
@@ -18,6 +18,8 @@ final class ChoiceSetRetryFeedback {
     // 기준 SQL 실행 결과 포함 여부: 프롬프트가 받을 때만 첫 시도에 1회 실행 (#720)
     private final boolean shouldIncludeAnswerResult;
     private ExecuteResult expectedResult;
+    // 결과 표 문제: 시도마다 건진 오답 표 (3개 모이면 조립, #828)
+    private final List<ResultTableChoiceBuilder.WrongTable> collectedWrongTables = new ArrayList<>();
 
     ChoiceSetRetryFeedback(boolean shouldIncludeAnswerResult) {
         this.shouldIncludeAnswerResult = shouldIncludeAnswerResult;
@@ -46,5 +48,9 @@ final class ChoiceSetRetryFeedback {
 
     void recordExpectedResult(ExecuteResult executedExpectedResult) {
         this.expectedResult = executedExpectedResult;
+    }
+
+    List<ResultTableChoiceBuilder.WrongTable> collectedWrongTables() {
+        return collectedWrongTables;
     }
 }
