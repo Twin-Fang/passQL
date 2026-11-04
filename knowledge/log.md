@@ -115,3 +115,4 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-05 03:40 | W4 | create | DEC-0249 결과 표 보기는 실제 실행 결과 (supersedes DEC-0050), DEC-0250 미검증 세트 저장·노출 금지 (supersedes DEC-0055), DEC-0251 연습 모드 검증 세트 5개 중 무작위 (supersedes DEC-0087)
 - 2026-11-05 03:40 | W4 | update | DEC-0050, DEC-0055, DEC-0087 status superseded, superseded_by 기록
 - 2026-11-05 03:40 | W6 | update | cluster-practice, cluster-ai, cluster-question-bank 갱신
+- 2026-11-05 04:10 | W4 | update | DEC-0249 결정 절: 정답 표 고정 + 시도마다 오답 모으기(운영 첫 적용 13개 중 4개 실패 반영), 해설 정리·날짜 문자열
