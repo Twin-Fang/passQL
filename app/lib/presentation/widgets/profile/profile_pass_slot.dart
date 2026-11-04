@@ -81,7 +81,9 @@ class _FreePass extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.passqlColors;
     final exam = _examOf(schedule);
-    final limit = plan?.dailyFreeLimit ?? 0;
+    // 게이지는 오늘 유효 한도(보너스 포함), 혜택 아이콘은 기본 한도 (#814)
+    final limit = plan?.effectiveTodayFreeLimit ?? 0;
+    final baseLimit = plan?.dailyFreeLimit ?? 0;
     final used = plan?.todayRandomSolvedCount ?? 0;
     final isDone = isFreeLimitReached(used: used, limit: limit);
     final examDate = exam.examDate;
@@ -96,7 +98,7 @@ class _FreePass extends ConsumerWidget {
           const PassqlPassTicketField('시험 일정', '준비 중'),
         PassqlPassTicketField('승객', nickname),
       ],
-      benefitIcons: _benefitIconsOf(context, limit),
+      benefitIcons: _benefitIconsOf(context, baseLimit),
       stubLabel: 'PRO로\n업그레이드',
       // 등급 응답이 없으면(디버그 강제 등) 사용량 줄 생략
       footer: plan == null || limit <= 0

@@ -5,8 +5,8 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'ad_placement.dart';
 import 'ad_request_preparer.dart';
-import 'full_screen_ad_guard.dart';
 import 'full_screen_ad_loading.dart';
+import 'full_screen_ad_showing.dart';
 import 'loaded_full_screen_ad.dart';
 
 /// 전면 광고 로더 포트. 테스트는 가짜로 바꿔 SDK 를 띄우지 않음
@@ -49,25 +49,18 @@ class GoogleInterstitialAdLoader implements InterstitialAdLoader {
     );
   }
 
-  /// 표시: 콜백 연결 > show. 닫힘·표시 실패 모두 해제 후 onClosed (성공·실패 공통)
+  /// 표시: 공통 표시(닫힘·표시 실패·show 예외 모두 해제 후 onClosed)
   static void _show(
     InterstitialAd interstitialAd, {
     required VoidCallback onShown,
     required VoidCallback onClosed,
-  }) {
-    interstitialAd.fullScreenContentCallback = FullScreenContentCallback(
-      onAdShowedFullScreenContent: (_) => onShown(),
-      onAdClicked: (_) => FullScreenAdGuard.recordAdClicked(),
-      onAdDismissedFullScreenContent: (ad) {
-        ad.dispose();
-        onClosed();
-      },
-      onAdFailedToShowFullScreenContent: (ad, error) {
-        debugPrint('[ads interstitial] show failed : ${error.code}');
-        ad.dispose();
-        onClosed();
-      },
-    );
-    unawaited(interstitialAd.show());
-  }
+  }) => showFullScreenAd<InterstitialAd>(
+    ad: interstitialAd,
+    logLabel: 'interstitial',
+    attachCallback: (callback) =>
+        interstitialAd.fullScreenContentCallback = callback,
+    show: interstitialAd.show,
+    onShown: onShown,
+    onClosed: onClosed,
+  );
 }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/ads/ad_placement.dart';
 import '../../../core/ads/rewarded_ad_player.dart';
 import '../../../core/error/app_exception.dart';
+import '../../../core/error/error_code.dart';
 import '../../design/design.dart';
 import '../../providers/ad_providers.dart';
 import '../../providers/plan_providers.dart';
@@ -51,7 +52,7 @@ class _RewardedAdBonusButtonState extends ConsumerState<RewardedAdBonusButton> {
     switch (outcome) {
       case RewardedAdOutcome.rewarded:
         try {
-          await container.read(planProvider.notifier).grantAdBonus();
+          await _grantAdBonusWithRetry(container);
           if (!mounted) return;
           widget.onBonusGranted();
           return;
@@ -69,6 +70,20 @@ class _RewardedAdBonusButtonState extends ConsumerState<RewardedAdBonusButton> {
       _isBusy = false;
       _statusMessage = failureMessage;
     });
+  }
+
+  /// 보너스 받기: 일시 실패(네트워크 등)면 1회 재시도, 하루 횟수 소진(409)은 재시도 없음 (#814)
+  static Future<void> _grantAdBonusWithRetry(
+    ProviderContainer container,
+  ) async {
+    try {
+      await container.read(planProvider.notifier).grantAdBonus();
+    } catch (error) {
+      if (error.asAppException.code == ErrorCode.adBonusDailyLimitReached) {
+        rethrow;
+      }
+      await container.read(planProvider.notifier).grantAdBonus();
+    }
   }
 
   @override

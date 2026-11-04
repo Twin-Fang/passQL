@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -8,6 +7,7 @@ import 'ad_placement.dart';
 import 'ad_request_preparer.dart';
 import 'full_screen_ad_guard.dart';
 import 'full_screen_ad_loading.dart';
+import 'full_screen_ad_showing.dart';
 
 /// 보상형 광고 결과 3종
 enum RewardedAdOutcome {
@@ -60,31 +60,28 @@ class GoogleRewardedAdPlayer implements RewardedAdPlayer {
         ),
       );
 
-  /// 표시 > 닫힘까지 대기. 닫힘·표시 실패 모두 해제 + 표시 중 해제 (성공·실패 공통)
+  /// 표시 > 닫힘까지 대기: 공통 표시(끝나는 경로 3개 모두) > 표시 중 해제 > 보상 여부로 결과
   Future<RewardedAdOutcome> _show(RewardedAd rewardedAd) {
     final closedCompleter = Completer<RewardedAdOutcome>();
     var isRewarded = false;
-    void finish(Ad ad, RewardedAdOutcome outcome) {
-      ad.dispose();
-      FullScreenAdGuard.markFullScreenAdClosed();
-      if (!closedCompleter.isCompleted) closedCompleter.complete(outcome);
-    }
-
-    rewardedAd.fullScreenContentCallback = FullScreenContentCallback(
-      onAdClicked: (_) => FullScreenAdGuard.recordAdClicked(),
-      onAdDismissedFullScreenContent: (ad) => finish(
-        ad,
-        isRewarded
-            ? RewardedAdOutcome.rewarded
-            : RewardedAdOutcome.dismissedWithoutReward,
-      ),
-      onAdFailedToShowFullScreenContent: (ad, error) {
-        debugPrint('[ads rewarded] show failed : ${error.code}');
-        finish(ad, RewardedAdOutcome.unavailable);
+    FullScreenAdGuard.markFullScreenAdShowing();
+    showFullScreenAd<RewardedAd>(
+      ad: rewardedAd,
+      logLabel: 'rewarded',
+      attachCallback: (callback) =>
+          rewardedAd.fullScreenContentCallback = callback,
+      show: () =>
+          rewardedAd.show(onUserEarnedReward: (_, _) => isRewarded = true),
+      onShown: () {},
+      onClosed: () {
+        FullScreenAdGuard.markFullScreenAdClosed();
+        closedCompleter.complete(
+          isRewarded
+              ? RewardedAdOutcome.rewarded
+              : RewardedAdOutcome.dismissedWithoutReward,
+        );
       },
     );
-    FullScreenAdGuard.markFullScreenAdShowing();
-    unawaited(rewardedAd.show(onUserEarnedReward: (_, _) => isRewarded = true));
     return closedCompleter.future;
   }
 }
