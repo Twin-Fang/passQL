@@ -2,7 +2,7 @@
 type: cluster
 topic: ci-deploy
 created: 2026-10-29
-members: 62
+members: 63
 status: active
 related: []
 ---
@@ -41,6 +41,7 @@ CI/CD·배포·버전 관리·빌드
 - [[DEC-0021-vercel-git-integration-deploy-branch]] → DEC-0060
 
 ## 관련 이슈
+- [[ISS-0452-server-only-release-triggers-store-submit]] (resolved, GitHub #840) — 서버만 바꾼 릴리스에도 버전 줄 변경으로 스토어 심사 제출 자동 실행 > pubspec 제외
 - [[ISS-0449-dev-tools-store-build-guard]] (resolved, GitHub #820) — 개발자 도구 스토어 빌드 차단 보장 (컴파일 상수, Android 스토어 프로파일, 규칙 테스트)
 - [[ISS-0444-test-build-dev-tools-overlay]] (resolved, GitHub #809) — 테스트 빌드 개발자 도구 (빌드 프로파일 test/release)
 - [[ISS-0355-store-review-status-tracking-issue]] (open, GitHub #570) — 스토어 심사 상태 자동 알림 (구독용, 닫지 않음)
