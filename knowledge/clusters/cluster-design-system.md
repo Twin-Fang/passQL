@@ -2,7 +2,7 @@
 type: cluster
 topic: design-system
 created: 2026-10-29
-members: 126
+members: 130
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 디자인 토큰·공통 UI 컴포넌트·폰트·테마
 
 ## 현재 상태 요약
-(2026-11-04, 자동 생성) 활성 결정 46개, 열린 이슈 2개. 하단 탭 바는 아이콘 + 라벨을 바 안 세로 가운데, 높이 50 — [[DEC-0241-tab-bar-content-vertically-centered]] (작성 시점 미머지). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-04, 자동 생성) 활성 결정 47개, 열린 이슈 2개. 하단 탭 바는 아이콘 + 라벨을 바 안 세로 가운데, 높이 50 — [[DEC-0241-tab-bar-content-vertically-centered]] (#817 릴리스 반영). 앱 아이콘은 연보라 그라데이션 + `pass`/`QL` 2줄 — [[DEC-0242-app-icon-lavender-two-line-pass-ql]] (main 머지, 작성 시점 미배포). 프로필 상단은 A안(카드형)이고 프로필·정보 시트 탑승권 칸 통일([[DEC-0208-pass-ticket-fields-unified]])은 대체됐다 — [[DEC-0243-profile-top-card-style-a]] (PR #822, 작성 시점 미머지). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0017-fullscreen-result-screen]] — 제출 결과 화면은 풀스크린 1종으로 통일 (bottom sheet 변형 미채택)
@@ -44,7 +44,6 @@ related: []
 - [[DEC-0205-pro-benefits-single-source]] — 앱 이용권 혜택 목록은 `pro_benefits.dart` 한 곳을 원본으로 쓰고, 실제 잠금이 있는 기능만 보인다
 - [[DEC-0206-topic-accuracy-list-with-octagon-chart]] — 앱 영역별 정답률은 목록을 기본으로 두고 같은 자리에서 8각 차트로 바꿔 본다 (레이더·막대 두 장 통합, `fl_chart` 제거)
 - [[DEC-0207-pass-ticket-upright-float-shadow]] — passQL PASS 탑승권은 시트에서도 기울이지 않고 정방향으로 두고, 띄움 그림자만 쓴다
-- [[DEC-0208-pass-ticket-fields-unified]] — 프로필·정보 시트 탑승권 칸은 승객 · 남은 날 · 시험일, 떼는 칸 글자는 "사용 중"으로 통일하고 바코드 폭은 그 글자 폭에 맞춘다
 - [[DEC-0209-pass-ticket-label-size-only]] — 탑승권 정보 칸은 라벨만 12 → 11로 줄이고 값은 13을 유지한다
 - [[DEC-0210-benefit-icons-reuse-app-icons]] — 이용권 혜택 아이콘은 앱에서 같은 기능에 이미 쓰는 아이콘으로 통일한다
 - [[DEC-0211-benefit-colors-per-benefit]] — 혜택 아이콘 색은 혜택마다 다른 색으로 두고, 출제 경향 불꽃만 문제 탭 불꽃 색(`warning`)을 쓴다
@@ -62,6 +61,8 @@ related: []
 - [[DEC-0230-refresh-dots-above-large-title-fixed]] — 새로고침 점은 큰 제목 위, 아무리 당겨도 화면에 고정
 - [[DEC-0231-refresh-glow-on-release-wave-while-holding]] — 끝까지 당기면 손 뗄 때까지 물결 반복, 손 떼는 순간 빛이 화면 끝까지
 - [[DEC-0241-tab-bar-content-vertically-centered]] — 하단 탭 바 내용은 세로 가운데, 높이 54 > 50, 하단 inset 0이면 최소 여백 없음 (`tabBarIconTop` 삭제)
+- [[DEC-0242-app-icon-lavender-two-line-pass-ql]] — 앱 아이콘은 시안 8번: 연보라 세로 그라데이션 + `pass`(남색)·`QL`(18% 진하게) 2줄, 가로 로고에서 합성, 다크·틴트 아이콘 없음
+- [[DEC-0243-profile-top-card-style-a]] — 프로필 상단 A안(카드형): 계정 줄 + 무료는 탑승권 대신 오늘 남은 문제·업그레이드 배너, 프로는 남은 날 큰 숫자 PRO 탑승권 카드(승객 · 만료일 · 이용권) + 이어서 연장 (DEC-0208 대체)
 
 ## 대체된 결정 (역사)
 - [[DEC-0018-four-tab-bottom-navigation]] → null
@@ -69,8 +70,11 @@ related: []
 - [[DEC-0101-bottom-tab-icons-only]] → DEC-0157
 - [[DEC-0157-community-bottom-tab]] → DEC-0167
 - [[DEC-0167-five-tabs-with-text-labels]] → DEC-0171
+- [[DEC-0208-pass-ticket-fields-unified]] → DEC-0243
 
 ## 관련 이슈
+- [[ISS-0448-mypage-account-pass-area-promo-code]] (resolved, GitHub #816) — 마이페이지 계정·이용권 영역과 결제 유도, 할인 표시, 프로모션 코드
+- [[ISS-0446-app-icon-light-lavender-background]] (resolved, GitHub #766) — 앱 아이콘 배경을 밝게 (어두운 남색 배경에서 글자가 안 보임)
 - [[ISS-0445-tab-bar-equal-vertical-spacing]] (resolved, GitHub #810) — 하단 탭 바 아이콘·라벨 위아래 여백을 같게, 최소로
 - [[ISS-0436-app-pull-to-refresh-glow-indicator]] (resolved, GitHub #772) — 앱 당겨서 새로고침 표시를 웨이브 점 + 화면 전체 빛으로 교체
 - [[ISS-0432-app-concept-tab-redesign]] (resolved, GitHub #764) — 앱 개념 탭 UI/UX 개편

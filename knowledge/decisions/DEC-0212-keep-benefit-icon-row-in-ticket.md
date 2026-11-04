@@ -7,7 +7,7 @@ topics: [design-system, billing]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0428-app-profile-tab-redesign]]", "[[ISS-0428-app-profile-tab-redesign-report]]", "[[DEC-0205-pro-benefits-single-source]]"]
+related: ["[[ISS-0428-app-profile-tab-redesign]]", "[[ISS-0428-app-profile-tab-redesign-report]]", "[[DEC-0205-pro-benefits-single-source]]", "[[DEC-0243-profile-top-card-style-a]]"]
 ---
 
 # DEC-0212: 탑승권 안의 혜택 아이콘 줄은 유지한다 (세 곳 모양 통일)

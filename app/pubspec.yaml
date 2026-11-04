@@ -1,7 +1,7 @@
 name: passql_app
 description: "passQL - SQL 학습 앱"
 publish_to: none
-version: 1.75.1+456
+version: 1.75.4+459
 environment:
   sdk: ^3.9.2
 dependencies:
@@ -106,6 +106,6 @@ flutter_launcher_icons:
   ios: true
   # 정식 아이콘(#317 정사각형 로고). 교체할 때는 이 파일만 바꾸고 `dart run flutter_launcher_icons` 로 다시 생성한다.
   image_path: "assets/app_icon_1024.png"
-  adaptive_icon_background: "#060C26"
+  adaptive_icon_background: "#F2F1FF"
   adaptive_icon_foreground: "assets/app_icon_foreground.png"
   remove_alpha_ios: true

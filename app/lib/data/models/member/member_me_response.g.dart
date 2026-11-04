@@ -21,6 +21,11 @@ _$MemberMeResponseImpl _$$MemberMeResponseImplFromJson(
       : DateTime.parse(json['nicknameChangedAt'] as String),
   authProvider: json['authProvider'] as String?,
   providerUserId: json['providerUserId'] as String?,
+  createdAt: json['createdAt'] == null
+      ? null
+      : DateTime.parse(json['createdAt'] as String),
+  maskedEmail: json['maskedEmail'] as String?,
+  memberCode: json['memberCode'] as String?,
 );
 
 Map<String, dynamic> _$$MemberMeResponseImplToJson(
@@ -33,6 +38,9 @@ Map<String, dynamic> _$$MemberMeResponseImplToJson(
   'nicknameChangedAt': instance.nicknameChangedAt?.toIso8601String(),
   'authProvider': instance.authProvider,
   'providerUserId': instance.providerUserId,
+  'createdAt': instance.createdAt?.toIso8601String(),
+  'maskedEmail': instance.maskedEmail,
+  'memberCode': instance.memberCode,
 };
 
 const _$ChoiceGenerationModeEnumMap = {

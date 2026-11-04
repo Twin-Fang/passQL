@@ -39,3 +39,13 @@ PassDiscount? calculatePassDiscount({
     monthlyPrice: monthlyPrice,
   );
 }
+
+/// 하루 가격(원): 이용권 가격 / 이용 일수, 1원 단위 반올림 (9,900원·90일 > 110, 4,400원·30일 > 147)
+/// 10원 단위로 내리면 1개월권이 140원으로 실제보다 싸 보여 1원 단위 반올림. 가격·일수가 없으면 null
+int? calculateDailyPassPrice({
+  required double? passPrice,
+  required int durationDays,
+}) {
+  if (passPrice == null || passPrice <= 0 || durationDays <= 0) return null;
+  return (passPrice / durationDays).round();
+}

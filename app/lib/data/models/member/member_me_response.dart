@@ -21,6 +21,12 @@ class MemberMeResponse with _$MemberMeResponse {
     String? authProvider,
     // 제공자 회원 식별자 (GOOGLE·APPLE 은 Firebase uid): 탈퇴 재인증 계정 대조 기준
     String? providerUserId,
+    // 가입 시각 (KST): 계정 화면 가입일 (#816)
+    DateTime? createdAt,
+    // 가린 이메일 (예: sq***@kakao.com, 이메일 없는 제공자면 null, #816)
+    String? maskedEmail,
+    // 회원 번호 표시값 (PQL- + UUID 앞 8자리 대문자): 문의 때 회원 확인 (#816)
+    String? memberCode,
   }) = _MemberMeResponse;
 
   factory MemberMeResponse.fromJson(Map<String, dynamic> json) =>

@@ -4,16 +4,17 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 /// 빌드 종류 (#809): 개발용 빌드 판정(컴파일타임 APP_FLAVOR), 개발자 도구 노출 판정
 /// 개발용 = --dart-define=APP_FLAVOR=dev (워크플로 빌드 프로파일 test, .github/config/build-profile.json)
 abstract final class AppBuildFlavor {
-  static const String _flavor = String.fromEnvironment('APP_FLAVOR');
 
   // .env: 개발자 도구 표시 ('true' 일 때만, 디버그·개발용 빌드에서만 의미 있음)
   static const String showDevToolsEnvKey = 'APP_SHOW_DEV_TOOLS';
 
-  /// 개발용 빌드인가 (.env 로는 바꿀 수 없음)
-  static bool get isDevBuild => _flavor == 'dev';
+  /// 개발용 빌드인가 (컴파일 상수, .env 로는 바꿀 수 없음)
+  static const bool isDevBuild =
+      String.fromEnvironment('APP_FLAVOR') == 'dev';
 
-  /// 개발 장치를 쓸 수 있는 빌드: 디버그 또는 개발용 (운영 빌드는 false)
-  static bool get canUseDevTools => kDebugMode || isDevBuild;
+  /// 개발 장치를 쓸 수 있는 빌드: 디버그 또는 개발용 (컴파일 상수, #820)
+  /// 스토어 빌드는 상수 false > 이 값으로 막은 개발자 도구 코드는 빌드에서 빠짐
+  static const bool canUseDevTools = kDebugMode || isDevBuild;
 
   /// 개발자 도구를 그릴지 (빌드 + .env 두 층 모두 켜져야 함)
   static bool get shouldShowDevTools => isDevToolsVisible(

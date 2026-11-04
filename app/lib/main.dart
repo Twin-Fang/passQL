@@ -63,6 +63,8 @@ Future<void> main() async {
       ),
       // 플랫폼별 결제 어댑터 (Android Play, iOS App Store)
       proPurchasePortOverride,
+      // 플랫폼별 스토어 프로모션 코드 (iOS 오퍼 코드 시트, Android Play 코드 화면, #816)
+      promoCodeRedemptionPortOverride,
     ],
   );
   await container.read(authProvider.future);

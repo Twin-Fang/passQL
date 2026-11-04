@@ -7,7 +7,7 @@ topics: [design-system, ci-deploy]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0265-brand-assets-single-source]]", "[[ISS-0265-brand-assets-single-source-report]]", "[[DEC-0118-single-source-commonization-rules]]", "[[DEC-0121-unified-brand-color]]"]
+related: ["[[ISS-0265-brand-assets-single-source]]", "[[ISS-0265-brand-assets-single-source-report]]", "[[DEC-0118-single-source-commonization-rules]]", "[[DEC-0121-unified-brand-color]]", "[[DEC-0242-app-icon-lavender-two-line-pass-ql]]"]
 ---
 
 # DEC-0124: 브랜드 자산 원본은 레포 루트 `brand/` 하나, 플랫폼 사본은 스크립트로만 생성하고 CI 해시 검사

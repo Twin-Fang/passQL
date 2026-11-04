@@ -3,12 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../config/env_keys.dart';
 import '../logging/app_log_interceptor.dart';
 import 'debug_log_interceptor.dart';
 import 'get_retry_interceptor.dart';
 
-// .env: 서버 API 주소 키 (예: https://api.example.com/api)
-const String backendBaseUrlEnvKey = 'BACKEND_BASE_URL';
+// .env: 서버 API 주소 키 (원본 EnvKeys)
+const String backendBaseUrlEnvKey = EnvKeys.backendBaseUrl;
 
 /// .env 서버 주소 읽기. 비어 있으면 빈 주소로 요청이 나가지 않게 즉시 실패
 /// main 에서 앱 시작 직후 한 번 호출해 설정 누락을 첫 화면 전에 드러냄

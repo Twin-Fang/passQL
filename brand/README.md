@@ -5,6 +5,7 @@
 ## 다시 만드는 명령
 
 ```bash
+python3 brand/compose_app_icon.py                                  # 앱 아이콘 원본 2개 합성 (가로 로고 > pass·QL 2줄, #766)
 python3 brand/generate_brand_assets_for_all_platforms.py          # 사본 생성 (Pillow 필요)
 python3 brand/generate_brand_assets_for_all_platforms.py --check  # 원본 <-> 사본 비교만 (CI 와 동일)
 ```
@@ -16,8 +17,8 @@ CI: `.github/workflows/PROJECT-COMMON-BRAND-ASSETS-CHECK.yaml` 이 `--check` 를
 | 파일 | 내용 |
 |------|------|
 | `logo_horizontal.png` | 가로 로고, 투명 배경 (1336x364) |
-| `app_icon_1024.png` | 앱 아이콘, 불투명 (1024x1024) |
-| `app_icon_adaptive_foreground.png` | Android 적응형 아이콘 전경, 투명 (1024x1024) |
+| `app_icon_1024.png` | 앱 아이콘, 불투명 (1024x1024). `compose_app_icon.py` 가 가로 로고로 만든다 (연보라 그라데이션 `appIconGradient` 위 pass·QL) |
+| `app_icon_adaptive_foreground.png` | Android 적응형 아이콘 전경, 투명 (1024x1024). `compose_app_icon.py` 가 원형 안전 영역 안에 만든다 |
 | `brand-colors.json` | 브랜드 색 (accent 라이트·다크, 아이콘 배경, 시작 화면 배경, OG 배경) |
 
 ## 사본 (원본 > 사본)
