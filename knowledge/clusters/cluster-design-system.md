@@ -2,7 +2,7 @@
 type: cluster
 topic: design-system
 created: 2026-10-29
-members: 122
+members: 126
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 디자인 토큰·공통 UI 컴포넌트·폰트·테마
 
 ## 현재 상태 요약
-(2026-11-01, 자동 생성) 활성 결정 45개, 열린 이슈 2개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-04, 자동 생성) 활성 결정 46개, 열린 이슈 2개. 하단 탭 바는 아이콘 + 라벨을 바 안 세로 가운데, 높이 50 — [[DEC-0241-tab-bar-content-vertically-centered]] (작성 시점 미머지). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0017-fullscreen-result-screen]] — 제출 결과 화면은 풀스크린 1종으로 통일 (bottom sheet 변형 미채택)
@@ -61,6 +61,7 @@ related: []
 - [[DEC-0229-refresh-wave-dots-fullscreen-glow-component]] — 당겨서 새로고침은 iOS 스피너 대신 웨이브 점 + 화면 전체 빛 공통 컴포넌트(`PassqlRefreshControl`), 빛은 점수판과 같은 `PassqlGlow`
 - [[DEC-0230-refresh-dots-above-large-title-fixed]] — 새로고침 점은 큰 제목 위, 아무리 당겨도 화면에 고정
 - [[DEC-0231-refresh-glow-on-release-wave-while-holding]] — 끝까지 당기면 손 뗄 때까지 물결 반복, 손 떼는 순간 빛이 화면 끝까지
+- [[DEC-0241-tab-bar-content-vertically-centered]] — 하단 탭 바 내용은 세로 가운데, 높이 54 > 50, 하단 inset 0이면 최소 여백 없음 (`tabBarIconTop` 삭제)
 
 ## 대체된 결정 (역사)
 - [[DEC-0018-four-tab-bottom-navigation]] → null
@@ -70,6 +71,7 @@ related: []
 - [[DEC-0167-five-tabs-with-text-labels]] → DEC-0171
 
 ## 관련 이슈
+- [[ISS-0445-tab-bar-equal-vertical-spacing]] (resolved, GitHub #810) — 하단 탭 바 아이콘·라벨 위아래 여백을 같게, 최소로
 - [[ISS-0436-app-pull-to-refresh-glow-indicator]] (resolved, GitHub #772) — 앱 당겨서 새로고침 표시를 웨이브 점 + 화면 전체 빛으로 교체
 - [[ISS-0432-app-concept-tab-redesign]] (resolved, GitHub #764) — 앱 개념 탭 UI/UX 개편
 - [[ISS-0431-app-home-top-bell-notice-banner]] (resolved, GitHub #756) — 홈 알림 아이콘 색과 공지 배너 개편
