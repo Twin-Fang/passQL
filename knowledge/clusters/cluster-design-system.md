@@ -2,7 +2,7 @@
 type: cluster
 topic: design-system
 created: 2026-10-29
-members: 130
+members: 132
 status: active
 related: []
 ---
@@ -64,6 +64,8 @@ related: []
 - [[DEC-0242-app-icon-lavender-two-line-pass-ql]] — 앱 아이콘은 시안 8번: 연보라 세로 그라데이션 + `pass`(남색)·`QL`(18% 진하게) 2줄, 가로 로고에서 합성, 다크·틴트 아이콘 없음
 - [[DEC-0243-profile-top-card-style-a]] — 프로필 상단 A안(카드형): 계정 줄 + 무료는 탑승권 대신 오늘 남은 문제·업그레이드 배너, 프로는 남은 날 큰 숫자 PRO 탑승권 카드(승객 · 만료일 · 이용권) + 이어서 연장 (DEC-0208 대체)
 
+- [[DEC-0248-site-icons-generated-from-brand]] — 소개 사이트 아이콘·OG와 Play 등록정보 아이콘 512는 앱 아이콘 원본에서 생성
+
 ## 대체된 결정 (역사)
 - [[DEC-0018-four-tab-bottom-navigation]] → null
 - [[DEC-0022-design-md-single-source-of-truth]] → DEC-0121
@@ -73,6 +75,7 @@ related: []
 - [[DEC-0208-pass-ticket-fields-unified]] → DEC-0243
 
 ## 관련 이슈
+- [[ISS-0450-promo-site-dynamic-revamp]] (resolved, GitHub #823) — 홍보 페이지 다이나믹 개편, 새 아이콘·새 기능·Play 공개 반영
 - [[ISS-0448-mypage-account-pass-area-promo-code]] (resolved, GitHub #816) — 마이페이지 계정·이용권 영역과 결제 유도, 할인 표시, 프로모션 코드
 - [[ISS-0446-app-icon-light-lavender-background]] (resolved, GitHub #766) — 앱 아이콘 배경을 밝게 (어두운 남색 배경에서 글자가 안 보임)
 - [[ISS-0445-tab-bar-equal-vertical-spacing]] (resolved, GitHub #810) — 하단 탭 바 아이콘·라벨 위아래 여백을 같게, 최소로

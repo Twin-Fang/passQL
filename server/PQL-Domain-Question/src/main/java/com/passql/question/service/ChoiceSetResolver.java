@@ -15,8 +15,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
 
 /**
  * 정책에 따라 사용자에게 제공할 선택지 세트를 resolve 한다.
@@ -115,7 +118,8 @@ public class ChoiceSetResolver {
     private QuestionChoiceSet resolveAiOnly(UUID questionUuid, UUID memberUuid, ChoiceGenerationMode mode) {
         if (mode == ChoiceGenerationMode.REAL) {
             log.info("[resolver] ai-only REAL mode, runtime generation: questionUuid={}", questionUuid);
-            return choiceSetGenerationService.generate(questionUuid, memberUuid, ChoiceSetSource.AI_RUNTIME);
+            return generateOrReuseValidated(questionUuid,
+                    () -> choiceSetGenerationService.generate(questionUuid, memberUuid, ChoiceSetSource.AI_RUNTIME));
         }
 
         // 연습 모드: 1순위 본인 프리페치 → 2순위 전체 OK → 미스 시 생성
@@ -129,8 +133,7 @@ public class ChoiceSetResolver {
             return set;
         }
 
-        Optional<QuestionChoiceSet> reusable = choiceSetRepository
-                .findFirstByQuestionUuidAndStatusOrderByCreatedAtDesc(questionUuid, ChoiceSetStatus.OK);
+        Optional<QuestionChoiceSet> reusable = pickValidatedReusable(questionUuid);
         if (reusable.isPresent()) {
             log.info("[resolver] ai-only PRACTICE reuse HIT: questionUuid={}", questionUuid);
             return reusable.get();
@@ -143,7 +146,8 @@ public class ChoiceSetResolver {
     private QuestionChoiceSet resolveResultMatch(UUID questionUuid, UUID memberUuid, ChoiceGenerationMode mode) {
         if (mode == ChoiceGenerationMode.REAL) {
             log.info("[resolver] result-match REAL mode, runtime generation: questionUuid={}", questionUuid);
-            return choiceSetGenerationService.generateResultMatch(questionUuid, memberUuid, ChoiceSetSource.AI_RUNTIME);
+            return generateOrReuseValidated(questionUuid,
+                    () -> choiceSetGenerationService.generateResultMatch(questionUuid, memberUuid, ChoiceSetSource.AI_RUNTIME));
         }
 
         // 연습 모드: 1순위 본인 프리페치 → 2순위 전체 OK → 미스 시 생성
@@ -157,8 +161,7 @@ public class ChoiceSetResolver {
             return set;
         }
 
-        Optional<QuestionChoiceSet> reusable = choiceSetRepository
-                .findFirstByQuestionUuidAndStatusOrderByCreatedAtDesc(questionUuid, ChoiceSetStatus.OK);
+        Optional<QuestionChoiceSet> reusable = pickValidatedReusable(questionUuid);
         if (reusable.isPresent()) {
             log.info("[resolver] result-match PRACTICE reuse HIT: questionUuid={}", questionUuid);
             return reusable.get();
@@ -166,5 +169,36 @@ public class ChoiceSetResolver {
 
         log.info("[resolver] result-match MISS, runtime generation: questionUuid={}", questionUuid);
         return choiceSetGenerationService.generateResultMatch(questionUuid, memberUuid, ChoiceSetSource.AI_RUNTIME);
+    }
+
+    /**
+     * 검증 통과 세트 재사용 (#828): 최신 5개 중 무작위 1개 (같은 문제도 세트가 바뀜), 검증 실패 세트 제외
+     */
+    private Optional<QuestionChoiceSet> pickValidatedReusable(UUID questionUuid) {
+        List<QuestionChoiceSet> candidates = choiceSetRepository
+                .findTop5ByQuestionUuidAndStatusAndSandboxValidationPassedOrderByCreatedAtDesc(
+                        questionUuid, ChoiceSetStatus.OK, true);
+        if (candidates.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(candidates.get(ThreadLocalRandom.current().nextInt(candidates.size())));
+    }
+
+    /**
+     * 실전 모드 새 세트 생성, 3회 모두 검증 실패면 검증 통과 세트 재사용 (#828: 미검증 세트 저장 대신)
+     * 재사용할 세트도 없으면 생성 실패 그대로
+     */
+    private QuestionChoiceSet generateOrReuseValidated(UUID questionUuid, Supplier<QuestionChoiceSet> generation) {
+        try {
+            return generation.get();
+        } catch (CustomException e) {
+            Optional<QuestionChoiceSet> reusable = pickValidatedReusable(questionUuid);
+            if (reusable.isEmpty()) {
+                throw e;
+            }
+            log.warn("[resolver] runtime generation failed, reuse validated set : questionUuid={}, code={}",
+                    questionUuid, e.getErrorCode());
+            return reusable.get();
+        }
     }
 }

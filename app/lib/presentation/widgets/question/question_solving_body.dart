@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../data/models/question/choice_item.dart';
 import '../../../data/models/question/question_detail.dart';
 import '../../../data/models/question/submit_result.dart';
 import '../../design/design.dart';
@@ -128,10 +129,11 @@ class QuestionSolvingBody extends StatelessWidget {
   List<Widget> _buildGradedExecutionSections(SubmitResult result) {
     final selectedResult = result.selectedResult;
     final correctResult = result.correctResult;
+    // 서버 정답 SQL 우선, 없으면 SQL 보기 본문만 (결과 표 보기 본문은 JSON 이라 실행 불가, #828)
     final correctSql =
         result.correctSql ??
         interaction.activeChoices
-            .where((choice) => choice.key == result.correctKey)
+            .where((choice) => choice.key == result.correctKey && choice.isSql)
             .firstOrNull
             ?.body;
     return [
