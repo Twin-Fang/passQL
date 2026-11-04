@@ -11,6 +11,7 @@
 <a href="https://apps.apple.com/kr/app/id6762165005"><img src="https://img.shields.io/badge/App_Store-다운로드-0D96F6?style=for-the-badge&logo=apple&logoColor=white" alt="App Store" /></a>
 <a href="https://passql.vercel.app/"><img src="https://img.shields.io/badge/Web-바로_써보기-5E5CE6?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Web" /></a>
 <a href="https://play.google.com/store/apps/details?id=com.coldredrice.passql"><img src="https://img.shields.io/badge/Google_Play-다운로드-3DDC84?style=for-the-badge&logo=googleplay&logoColor=white" alt="Google Play" /></a>
+<a href="https://twin-fang.github.io/passQL/"><img src="https://img.shields.io/badge/소개_페이지-둘러보기-0B0B12?style=for-the-badge&logo=githubpages&logoColor=white" alt="소개 페이지" /></a>
 
 <br/>
 
@@ -69,7 +70,7 @@
   <tr>
     <td valign="top">
       <h4>보기 SQL 직접 실행</h4>
-      선택지 SQL을 실제로 실행해 결과 표를 보여 줍니다. 외우지 않고 왜 정답인지 눈으로 확인합니다.
+      제출하면 보기마다 SQL을 실제로 실행해 결과 표를 보여 줍니다. 틀리면 내 답과 정답의 실행 결과를 나란히 비교해 어디서 갈렸는지 확인합니다.
     </td>
     <td valign="top">
       <h4>AI 해설과 오답 노트</h4>
@@ -84,6 +85,16 @@
     <td valign="top">
       <h4>오늘의 세트와 순위</h4>
       매일 모든 회원이 같은 5문제를 풀고 순위를 겨룹니다. 점수는 서버가 제출 기록으로 검증합니다.
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <h4>단원별 개념 학습</h4>
+      단원마다 핵심, 자세히, 문제 세 단계로 익힙니다. 꼭 기억할 것을 읽고 바로 문제로 확인합니다.
+    </td>
+    <td valign="top">
+      <h4>매번 새 선택지</h4>
+      같은 문제도 풀 때마다 선택지가 새로 바뀝니다. 보기 순서를 외우지 않고 개념으로 풀게 됩니다.
     </td>
   </tr>
 </table>
