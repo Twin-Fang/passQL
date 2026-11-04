@@ -631,7 +631,8 @@ jobs:
 
   deploy-playstore:
     name: Play Store 내부 테스트 배포
-    runs-on: ubuntu-latest
+    # ruby/setup-ruby 3.4.1 이 ubuntu-26.04 에 없어 24.04 고정 (#826)
+    runs-on: ubuntu-24.04
     needs: [prepare-build, build-android]
     defaults:
       run:
