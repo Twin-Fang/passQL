@@ -477,7 +477,8 @@ jobs:
 
   build-android-test:
     name: Android 테스트 APK 빌드
-    runs-on: ubuntu-latest
+    # ruby/setup-ruby 3.4.1 이 ubuntu-26.04 에 없어 24.04 고정 (#826)
+    runs-on: ubuntu-24.04
     needs: prepare-test-build
 
     defaults:
