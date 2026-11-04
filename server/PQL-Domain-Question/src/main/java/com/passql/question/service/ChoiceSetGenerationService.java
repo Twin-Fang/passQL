@@ -276,8 +276,10 @@ public class ChoiceSetGenerationService {
         int collectedCount = feedback.collectedWrongTables().size();
         List<ResultTableChoiceBuilder.WrongTable> wrongTables = pickWrongTables(feedback, attempt);
         if (wrongTables != null) {
+            // 빈 결과 예비 사용 여부 (예비 없으면 false, 불변 리스트 contains(null) 예외 방지)
+            boolean usesEmptyWrongTable = feedback.emptyWrongTable() != null && wrongTables.contains(feedback.emptyWrongTable());
             log.debug("[choice-gen-result-match] 오답 확보, 저장: collected={}, usesEmpty={}, attempt={}",
-                    collectedCount, wrongTables.contains(feedback.emptyWrongTable()), attempt);
+                    collectedCount, usesEmptyWrongTable, attempt);
             ResultTableChoiceBuilder.AssembledChoices assembled = resultTableChoiceBuilder.assemble(
                     screened.correctTableJson(), wrongTables);
             GenerateChoiceSetResult tableResult = new GenerateChoiceSetResult(assembled.choices(), aiResult.metadata());
