@@ -2,7 +2,7 @@
 type: cluster
 topic: ai
 created: 2026-10-29
-members: 99
+members: 103
 status: active
 related: []
 ---
@@ -20,15 +20,12 @@ AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 - [[DEC-0040-choice-response-hides-answer]] — 선택지 생성 응답에는 정답·해설을 넣지 않고, 정답 판정은 제출 시 서버가 `choiceSetId`의 선택지 세트로 한다
 - [[DEC-0042-ai-comment-cache-evict-on-submit]] — AI 영역 분석 코멘트는 별도 API로 Redis 24시간 캐싱하고, 제출 시 직접 evict한다
 - [[DEC-0049-ai-only-redefined-sql-equivalence]] — `AI_ONLY` 정책은 "주어진 SQL과 동일한 실행 결과를 내는 SQL 고르기"로 재정의한다
-- [[DEC-0050-result-match-text-choices]] — "실행 결과로 올바른 것은?" 유형은 `RESULT_MATCH` 정책 — 선택지는 결과 JSON(`kind = TEXT`), 검증은 `answerSql` 결과와 비교
 - [[DEC-0052-result-match-policy-equivalence-type]] — AI_ONLY EXECUTABLE 문제는 "동일 결과를 내는 SQL 찾기" 유형으로 재정의하고 `RESULT_MATCH` 선택지 정책을 추가
-- [[DEC-0055-multiple-correct-ai-fallback-save]] — 3회 재시도 후에도 `MULTIPLE_CORRECT`면 AI의 `isCorrect` 판단으로 fallback 저장 (`sandbox_validation_passed=false`)
 - [[DEC-0074-shared-markdowntext-component]] — AI 텍스트·해설·지문은 공용 `MarkdownText`로 렌더링하고 `useAiText`는 쓰지 않는다
 - [[DEC-0076-markdown-rules-for-generated-content]] — 문제 콘텐츠(stem·hint·rationale)는 마크다운 활용 규칙을 따른다
 - [[DEC-0077-rag-recommendation-with-random-fallback]] — 문제 추천은 Qdrant 벡터 검색 기반 개인화, 신호 집계는 Java·검색은 Python, 실패 시 RANDOM 폴백
 - [[DEC-0083-session-scoped-recommendation-exclusion]] — 추천 새로고침은 이번 세션에서 본 문제만 제외하고, 푼 문제 영구 제외는 하지 않는다
 - [[DEC-0086-permit-async-dispatch-in-security]] — Spring Security에서 `DispatcherType.ASYNC`는 인증 재검사 없이 `permitAll()`
-- [[DEC-0087-choice-generation-practice-real-mode]] — 선택지 생성 모드를 연습(`PRACTICE`, 검증된 선택지 재사용)과 실전(`REAL`, 항상 AI 실시간 생성)으로 나눈다
 - [[DEC-0100-explain-prompt-context-in-server]] — AI 해설 프롬프트에 규칙·샘플 데이터·전체 선택지를 서버(`AiExplainService`)가 넣는다
 - [[DEC-0113-similar-via-recommend-reuse]] — 유사 문제는 AI 서버를 새로 만들지 않고 기존 `POST /api/ai/recommend`를 Spring에서 조합해 쓴다
 - [[DEC-0122-remove-python-ai-stubs]] — Python AI 서버의 미구현 스텁 3개(`explain_error`·`diff_explain`·`similar`)를 삭제하고 문서를 정정한다
@@ -51,8 +48,14 @@ AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 - [[DEC-0197-provide-answer-sql-result-in-prompt]] — 일반 SQL(AI_ONLY) 선택지 생성은 기준 SQL을 샌드박스로 실행한 결과를 프롬프트에 주고, 재시도에는 보기별 실제 실행 결과와 "기준과 같음/다름"을 준다
 - [[DEC-0226-vector-prune-after-deactivation-commit]] — 문제 비활성화 후 벡터 정리는 `QuestionsDeactivatedEvent` 커밋 후 리스너에서 1회, 실패는 로그만
 - [[DEC-0228-concept-ai-only-rewritten-as-curated]] — `AI_ONLY` 개념 문제 49개는 비활성화하고 상황·결과형 고정 보기(`CURATED_ONLY`) 문제로 재작성
+- [[DEC-0249-result-table-choices-from-executed-sql]] — 결과 표 문제 보기는 AI가 쓴 보기 SQL의 실제 실행 결과로만 (오답 표를 지어내지 않음)
+- [[DEC-0250-never-store-unvalidated-sql-choice-sets]] — SQL·결과 표 보기 세트는 샌드박스 검증 통과만 저장·노출, 전수 검증으로 기존 세트 재채점
+- [[DEC-0251-practice-reuse-random-validated-sets]] — 연습 모드는 검증 통과 세트 최신 5개 중 무작위, 실전 모드는 매번 생성
 
 ## 대체된 결정 (역사)
+- [[DEC-0087-choice-generation-practice-real-mode]] → DEC-0251
+- [[DEC-0055-multiple-correct-ai-fallback-save]] → DEC-0250
+- [[DEC-0050-result-match-text-choices]] → DEC-0249
 - [[DEC-0020-gemini-flash-lite-primary-llm]] → DEC-0029
 - [[DEC-0028-realtime-choice-set-with-prefetch]] → DEC-0087
 - [[DEC-0029-python-ai-server-primary-gemini-fallback]] → DEC-0187
@@ -62,6 +65,7 @@ AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 - [[DEC-0147-keep-explanation-sheet-while-solving]] → DEC-0154
 
 ## 관련 이슈
+- [[ISS-0451-result-table-choices-fabricated-unvalidated-sets]] (open, GitHub #828) — 결과 표 오답을 AI가 지어냄, 미검증 세트 저장, 직접 실행해보기에 결과 JSON
 - [[ISS-0357-choice-set-ai-server-half-failing]] (open, GitHub #575) — 선택지 생성 AI 서버 호출 절반 실패, 원인 조사
 - [[ISS-0412-ai-explanation-quality-cost-optimization]] (open, GitHub #699) — AI 해설 품질, 호출 빈도, 비용 최적화와 해설 시트 정리
 - [[ISS-0015-gemini-primary-ollama-fallback]] (resolved, GitHub #16) — AI 클라이언트를 Gemini 2.0 Flash-Lite 기반으로 전환, Ollama Fallback 구조

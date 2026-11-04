@@ -4,9 +4,9 @@ id: DEC-0055
 created: 2026-04-11
 reviewed: null
 topics: [ai, practice]
-status: active
+status: superseded
 supersedes: DEC-0030
-superseded_by: null
+superseded_by: DEC-0250
 related: ["[[ISS-0074-anti-equivalence-prompt-v4]]", "[[ISS-0074-anti-equivalence-prompt-v4-report]]", "[[DEC-0030-answer-sql-sandbox-ground-truth]]", "[[DEC-0137-pregenerate-choice-explanations-db]]"]
 ---
 
