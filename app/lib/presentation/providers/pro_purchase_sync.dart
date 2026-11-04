@@ -6,7 +6,11 @@ import 'package:go_router/go_router.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 import '../../core/billing/pro_purchase_port.dart';
+import '../../core/billing/promo_code_redemption_port.dart';
+import '../../core/utils/external_url_launcher.dart';
+import '../../data/billing/app_store_promo_code_redeemer.dart';
 import '../../data/billing/app_store_purchase_service.dart';
+import '../../data/billing/play_promo_code_redeemer.dart';
 import '../../data/billing/play_purchase_service.dart';
 import '../../data/billing/store_purchase_service.dart';
 import '../../data/sources/api_providers.dart';
@@ -60,6 +64,20 @@ final Override proPurchasePortOverride = proPurchasePortProvider.overrideWith(
       ref.watch(storePurchaseServiceProvider) ??
       const UnavailableProPurchasePort(),
 );
+
+/// 프로모션 코드 포트 교체 (main 컨테이너 생성 때, #816): iOS App Store 오퍼 코드 시트, Android Play 코드 화면, 그 외 없음
+final Override promoCodeRedemptionPortOverride = promoCodeRedemptionPortProvider
+    .overrideWith(
+      (ref) => switch (ref.watch(targetPlatformProvider)) {
+        TargetPlatform.iOS => AppStorePromoCodeRedeemer(
+          store: ref.read(inAppPurchaseProvider),
+        ),
+        TargetPlatform.android => PlayPromoCodeRedeemer(
+          openExternalUrl: launchExternalUrl,
+        ),
+        _ => const UnavailablePromoCodeRedemptionPort(),
+      },
+    );
 
 /// 등급·결제 연결 (main 에서 1회)
 /// 전 플랫폼: 등급 앱 수명 유지(로그인·회원 전환 때 다시 받음) > 앱 복귀 때 등급 갱신(첫 조회 실패 복구 포함)

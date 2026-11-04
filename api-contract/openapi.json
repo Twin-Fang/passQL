@@ -1455,6 +1455,12 @@
             "format" : "date-time",
             "type" : "string"
           },
+          "maskedEmail" : {
+            "type" : [ "string", "null" ]
+          },
+          "memberCode" : {
+            "type" : "string"
+          },
           "memberUuid" : {
             "format" : "uuid",
             "type" : "string"
@@ -1476,7 +1482,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "authProvider", "choiceGenerationMode", "createdAt", "isTestAccount", "lastSeenAt", "memberUuid", "nickname", "nicknameChangedAt", "providerUserId", "role", "status" ],
+        "required" : [ "authProvider", "choiceGenerationMode", "createdAt", "isTestAccount", "lastSeenAt", "maskedEmail", "memberCode", "memberUuid", "nickname", "nicknameChangedAt", "providerUserId", "role", "status" ],
         "type" : "object"
       },
       "MemberPlanResponse" : {
@@ -1799,6 +1805,46 @@
           }
         },
         "required" : [ "correctRate", "readiness", "solvedCount", "streakDays" ],
+        "type" : "object"
+      },
+      "PurchaseHistoryEntryResponse" : {
+        "properties" : {
+          "currencyCode" : {
+            "type" : [ "string", "null" ]
+          },
+          "grantedDays" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "grantedExpiresAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "kind" : {
+            "enum" : [ "STORE_PURCHASE", "ADMIN_GRANT" ],
+            "type" : "string"
+          },
+          "priceAmountMicros" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "productId" : {
+            "type" : [ "string", "null" ]
+          },
+          "purchasedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "status" : {
+            "enum" : [ "VERIFIED", "REVOKED" ],
+            "type" : [ "string", "null" ]
+          },
+          "store" : {
+            "enum" : [ "PLAY", "APP_STORE" ],
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "currencyCode", "grantedDays", "grantedExpiresAt", "kind", "priceAmountMicros", "productId", "purchasedAt", "status", "store" ],
         "type" : "object"
       },
       "PushTokenRegisterRequest" : {
@@ -3504,7 +3550,7 @@
         "tags" : [ "Member" ]
       },
       "get" : {
-        "description" : "## 인증(JWT): **필요**\n\n## 요청 헤더\n- **`Authorization`**: Bearer {accessToken}\n\n## 반환값 (MemberMeResponse)\n- 회원 정보 전체\n- **`authProvider`**: 가입 제공자 (GOOGLE, KAKAO, NAVER, APPLE, GITHUB)\n- **`providerUserId`**: 제공자 사용자 ID (Google·Apple 은 Firebase uid). 탈퇴 재인증 시 같은 계정인지 대조용\n\n## 설명\n- JWT AccessToken에서 회원 UUID를 추출하여 본인 정보를 조회한다.\n- last_seen_at을 throttled 방식으로 갱신한다.\n",
+        "description" : "## 인증(JWT): **필요**\n\n## 요청 헤더\n- **`Authorization`**: Bearer {accessToken}\n\n## 반환값 (MemberMeResponse)\n- 회원 정보 전체\n- **`authProvider`**: 가입 제공자 (GOOGLE, KAKAO, NAVER, APPLE, GITHUB)\n- **`providerUserId`**: 제공자 사용자 ID (Google·Apple 은 Firebase uid). 탈퇴 재인증 시 같은 계정인지 대조용\n- **`createdAt`**: 가입 시각 KST (계정 화면 가입일)\n- **`maskedEmail`**: 가린 이메일 (아이디 앞 2자 + `***` + `@도메인`, 이메일 없으면 null)\n- **`memberCode`**: 회원 번호 표시값 (`PQL-` + 회원 UUID 앞 8자리 대문자, 문의 때 회원 확인용)\n\n## 설명\n- JWT AccessToken에서 회원 UUID를 추출하여 본인 정보를 조회한다.\n- last_seen_at을 throttled 방식으로 갱신한다.\n",
         "operationId" : "getMe",
         "responses" : {
           "200" : {
@@ -3823,6 +3869,29 @@
           }
         },
         "summary" : "무료 한도 광고 보너스 받기",
+        "tags" : [ "Member" ]
+      }
+    },
+    "/api/members/me/purchases" : {
+      "get" : {
+        "description" : "## 인증(JWT): **필요**\n\n## 요청 헤더\n- **`Authorization`**: Bearer {accessToken}\n\n## 반환값 (List<PurchaseHistoryEntryResponse>, 최신순)\n- **`kind`**: STORE_PURCHASE(스토어 구매) 또는 ADMIN_GRANT(운영 지급)\n- **`purchasedAt`**: 구매·지급 시각 KST\n- **`productId`** / **`store`** / **`status`**: 상품 ID, PLAY·APP_STORE, VERIFIED·REVOKED (운영 지급이면 null)\n- **`grantedExpiresAt`**: 이 구매·지급으로 정해진 프로 만료 시각 KST\n- **`grantedDays`**: 더한 이용 일수 (모르면 null)\n- **`priceAmountMicros`** / **`currencyCode`**: 결제 금액 x 1,000,000 · 통화 (스토어가 알려 준 값만, 없으면 null)\n\n## 설명\n- 스토어 구매 전체 + 최근 관리자 감사 로그 50건 중 프로 부여를 합쳐 최신순으로 돌려준다\n- 구매 토큰·주문 번호·지급 사유는 내보내지 않는다. 관리자 회수는 내역에 넣지 않는다\n",
+        "operationId" : "getMyPurchases",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/PurchaseHistoryEntryResponse"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "내 구매 내역 조회",
         "tags" : [ "Member" ]
       }
     },

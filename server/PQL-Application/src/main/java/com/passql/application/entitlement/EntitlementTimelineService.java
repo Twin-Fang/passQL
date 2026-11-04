@@ -35,7 +35,7 @@ public class EntitlementTimelineService {
     // 타임라인 최대 표시 건수
     static final int MAX_TIMELINE_EVENT_COUNT = 50;
     // 감사 로그 요약에서 이용권 변경을 알아보는 키 (EntitlementAdminService 가 기록)
-    private static final String EXPIRES_AT_SUMMARY_KEY = "proExpiresAt";
+    private static final String EXPIRES_AT_SUMMARY_KEY = EntitlementAdminService.EXPIRES_AT_SUMMARY_KEY;
     private static final String ORDER_SUMMARY_KEY = "order";
     private static final String EMPTY_VALUE_TEXT = "-";
 

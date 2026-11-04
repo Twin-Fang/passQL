@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/auth/auth_session.dart';
 import '../../core/error/app_exception.dart';
 import '../../core/monitoring/crash_reporter.dart';
 import '../../core/network/api_call.dart';
@@ -10,20 +11,36 @@ import '../../data/models/member/nickname_models.dart';
 import 'auth_provider.dart';
 import 'session_reset.dart';
 
-/// 설정 화면 데이터 집계 모델
+/// 설정·계정 화면 데이터 집계 모델 (계정 칸은 #816)
 class SettingsData {
   final String memberUuid;
   final String nickname;
   final ChoiceGenerationMode choiceMode;
 
+  /// 로그인 제공자 (모르는 값이면 null)
+  final SocialProvider? authProvider;
+
+  /// 가입 시각 (KST)
+  final DateTime? joinedAt;
+
+  /// 가린 이메일 (이메일 없는 제공자면 null)
+  final String? maskedEmail;
+
+  /// 회원 번호 표시값 (예: PQL-9B22FE8A, 옛 서버면 null)
+  final String? memberCode;
+
   const SettingsData({
     required this.memberUuid,
     required this.nickname,
     required this.choiceMode,
+    this.authProvider,
+    this.joinedAt,
+    this.maskedEmail,
+    this.memberCode,
   });
 }
 
-/// 설정 화면 회원 데이터: GET /members/me > 회원 ID·닉네임·선택지 모드
+/// 설정·계정 화면 회원 데이터: GET /members/me > 회원 ID·닉네임·선택지 모드·로그인 제공자·가입일·가린 이메일·회원 번호
 /// 로그아웃이면 로딩 유지 (API 호출 없음)
 final settingsDataProvider = FutureProvider.autoDispose<SettingsData>((
   ref,
@@ -36,6 +53,10 @@ final settingsDataProvider = FutureProvider.autoDispose<SettingsData>((
     memberUuid: me.memberUuid,
     nickname: me.nickname,
     choiceMode: me.choiceGenerationMode ?? ChoiceGenerationMode.practice,
+    authProvider: SocialProvider.fromServerValue(me.authProvider),
+    joinedAt: me.createdAt,
+    maskedEmail: me.maskedEmail,
+    memberCode: me.memberCode,
   );
 });
 

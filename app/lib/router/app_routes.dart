@@ -93,6 +93,9 @@ abstract final class AppRoutes {
   /// 차단한 사용자 관리 (#525). 설정에서 진입
   static const String blockedMembers = '/settings/blocked-members';
 
+  /// 계정·이용권 관리 (#816). 프로필 계정 줄 `관리`·프로모션 코드 행에서 진입
+  static const String account = '/account';
+
   /// 알림함 (알림·공지 탭). 홈 종 아이콘에서 진입
   static const String notificationInbox = '/notifications';
 

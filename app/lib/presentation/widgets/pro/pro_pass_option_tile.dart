@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import '../../design/design.dart';
 
-/// 이용권 1칸 (결제 시트에서 하나 고름, #749): 라디오 > 이름 + 아래 작은 글자(월 환산·만료일) > 원래 값 줄긋기 + 가격.
+/// 이용권 1칸 (결제 시트에서 하나 고름, #749): 라디오 > 이름 + 아래 작은 글자(월 환산·만료일) > 원래 값 줄긋기 + 가격 + 하루 가격(#816).
 /// 할인이 있으면 왼쪽 위 빨간 리본. 선택 칸 = 강조 테두리 + 옅은 강조 배경 (선택지 카드와 같은 규칙)
 /// 스크린리더는 이름·가격·할인·만료일을 한 번에 읽음
 class ProPassOptionTile extends StatelessWidget {
@@ -16,6 +16,7 @@ class ProPassOptionTile extends StatelessWidget {
     this.undiscountedPrice,
     this.monthlyLabel,
     this.expiryLabel,
+    this.dailyPriceLabel,
   });
 
   /// 예: 3개월
@@ -38,6 +39,9 @@ class ProPassOptionTile extends StatelessWidget {
   /// 예: 2027.01.26까지
   final String? expiryLabel;
 
+  /// 예: 하루 약 110원 (가격 아래, 리본 있는 칸은 강조색)
+  final String? dailyPriceLabel;
+
   // 선택 칸 테두리 두께 (선택 1.5 · 기본 1, 선택지 카드와 같은 규격)
   static const double _selectedBorderWidth = 1.5;
   static const double _idleBorderWidth = 1;
@@ -49,6 +53,7 @@ class ProPassOptionTile extends StatelessWidget {
     ?displayPrice,
     ?ribbonLabel,
     ?monthlyLabel,
+    ?dailyPriceLabel,
     ?expiryLabel,
   ].join(', ');
 
@@ -60,6 +65,7 @@ class ProPassOptionTile extends StatelessWidget {
     final undiscountedPrice = this.undiscountedPrice;
     final monthlyLabel = this.monthlyLabel;
     final expiryLabel = this.expiryLabel;
+    final dailyPriceLabel = this.dailyPriceLabel;
     final tile = AnimatedContainer(
       duration: PassqlMotion.durationOf(context, PassqlMotion.fast),
       curve: PassqlMotion.curve,
@@ -129,6 +135,19 @@ class ProPassOptionTile extends StatelessWidget {
                   displayPrice,
                   style: PassqlTypography.title3.copyWith(color: colors.label),
                 ),
+                if (dailyPriceLabel != null)
+                  Text(
+                    dailyPriceLabel,
+                    style:
+                        (ribbonLabel == null
+                                ? PassqlTypography.caption
+                                : PassqlTypography.captionSemibold)
+                            .copyWith(
+                              color: ribbonLabel == null
+                                  ? colors.secondaryLabel
+                                  : colors.accentText,
+                            ),
+                  ),
               ],
             ),
           ],

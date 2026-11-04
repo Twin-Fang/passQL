@@ -7,18 +7,14 @@ import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/home_providers.dart';
 import '../../providers/settings_providers.dart';
-import '../common/app_toast.dart';
-import '../settings/nickname_edit_sheet.dart';
-import 'profile_pass_slot.dart';
+import 'profile_account_row.dart';
+import 'profile_plan_area.dart';
 
-// 이름 줄 이니셜 원 지름 (누르는 영역 44 안에 들어가는 크기)
-const double _nameAvatarSize = 40;
-// 누르는 영역 44 안에서 원 위아래로 생기는 빈 공간
-const double _nameRowVerticalSlack = (44 - _nameAvatarSize) / 2;
-// 닉네임 불러오는 동안 자리 폭 (닉네임 평균 길이 정도)
-const double _nameSkeletonWidth = 120;
+// 누르는 영역 44 안에서 이니셜 원 위아래로 생기는 빈 공간
+const double _nameRowVerticalSlack =
+    (PassqlSize.minTouchTarget - profileAccountAvatarSize) / 2;
 
-/// 내 프로필 첫 구간 (#749): 이름 줄 > 내 정답률 큰 숫자 + 푼 문제·연속 학습 한 줄 > 탑승권.
+/// 내 프로필 첫 구간 (#749, #816 A안): 계정 줄 > 내 정답률 큰 숫자 + 푼 문제·연속 학습 한 줄 > 이용권 자리.
 /// 푼 문제가 0개면 큰 숫자 대신 안내 + 버튼 하나 (지금 빈 상태 카드와 같은 분기)
 class ProfileStatusSection extends ConsumerWidget {
   const ProfileStatusSection({super.key, required this.progress});
@@ -47,8 +43,10 @@ class ProfileStatusSection extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _NameRow(
+          ProfileAccountRow(
             nickname: nickname,
+            authProvider: settings.valueOrNull?.authProvider,
+            joinedAt: settings.valueOrNull?.joinedAt,
             isLoading: settings.isLoading && nickname.isEmpty,
             hasError: settings.hasError && nickname.isEmpty,
             onRetry: () => ref.invalidate(settingsDataProvider),
@@ -94,99 +92,8 @@ class ProfileStatusSection extends ConsumerWidget {
             ),
           ],
           const SizedBox(height: PassqlSpacing.md),
-          ProfilePassSlot(nickname: nickname),
+          ProfilePlanArea(nickname: nickname),
         ],
-      ),
-    );
-  }
-}
-
-/// 맨 위 작은 이름 줄: 누르면 지금처럼 닉네임 편집 시트 (기존 닉네임 카드 대신)
-class _NameRow extends StatelessWidget {
-  const _NameRow({
-    required this.nickname,
-    required this.isLoading,
-    required this.hasError,
-    required this.onRetry,
-  });
-
-  final String nickname;
-  final bool isLoading;
-  final bool hasError;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    if (isLoading) {
-      return const PassqlLoadingSemantics(
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: PassqlSkeletonBox(
-            width: _nameSkeletonWidth,
-            height: _nameAvatarSize,
-          ),
-        ),
-      );
-    }
-    if (hasError) {
-      return PassqlPressable(
-        onTap: onRetry,
-        semanticLabel: '정보를 불러오지 못했어요, 다시 시도',
-        child: Text(
-          '정보를 불러오지 못했어요 · 다시 시도',
-          style: PassqlTypography.footnote.copyWith(
-            color: colors.secondaryLabel,
-          ),
-        ),
-      );
-    }
-    final initial = nickname.isEmpty ? '?' : nickname.characters.first;
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: PassqlPressable(
-        hasMinimumTouchTarget: true,
-        semanticLabel: '닉네임 $nickname, 편집',
-        onTap: () async {
-          final isChanged = await NicknameEditSheet.show(context, nickname);
-          if (isChanged == true && context.mounted) {
-            showAppToast(context, '닉네임이 변경됐어요');
-          }
-        },
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: _nameAvatarSize,
-              height: _nameAvatarSize,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: colors.accentTint,
-                shape: BoxShape.circle,
-              ),
-              child: Text(
-                initial,
-                style: PassqlTypography.headline.copyWith(
-                  color: colors.accentText,
-                ),
-              ),
-            ),
-            const SizedBox(width: PassqlSpacing.sm),
-            Flexible(
-              child: Text(
-                nickname,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: PassqlTypography.title3.copyWith(color: colors.label),
-              ),
-            ),
-            Icon(
-              CupertinoIcons.chevron_forward,
-              size: PassqlIconSize.md,
-              color: colors.tertiaryLabel,
-            ),
-          ],
-        ),
       ),
     );
   }
