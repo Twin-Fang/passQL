@@ -87,7 +87,15 @@ Future<ProOfferSheetOutcome> showProOfferSheet(
       if (context.mounted) {
         final bonusQuestionCount =
             ref.read(knownPlanProvider)?.dailyBonus.bonusQuestionCount ?? 0;
-        showAppToast(context, adBonusGrantedMessageOf(bonusQuestionCount));
+        // 광고 직후 결제 권유 (#816 유도 5): 토스트 버튼으로 시트 다시 열기 (호출 화면이 살아 있을 때만)
+        showAppToast(
+          context,
+          adBonusGrantedMessageOf(bonusQuestionCount),
+          actionLabel: '광고 없이 풀기',
+          onAction: () {
+            if (context.mounted) showProOfferSheet(context, ref);
+          },
+        );
       }
       return ProOfferSheetOutcome.adBonusGranted;
     }

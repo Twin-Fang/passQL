@@ -31,9 +31,11 @@ class DebugPlanOverrideNotifier extends Notifier<ProDebugPlan?> {
   }
 }
 
-/// 무료 한도 흉내 5종 (#809): 화면 표시만 바꿈, 서버 데이터는 그대로
+/// 무료 한도 흉내 6종 (#809, 결제 켜짐 흉내 #816): 화면 표시만 바꿈, 서버 데이터는 그대로
 enum DevLimitSimulation {
   none('끔 (서버값)'),
+  // 결제 꺼진 서버에서 무료 화면(A안 카드·배너·계정 화면) 확인용: 보너스·사용량 없음
+  billingOnFree('결제 켜짐 흉내 (무료, 한도 없음)'),
   limitReached('한도 소진 (광고 2번 남음)'),
   oneAdBonusUsed('한도 소진 (광고 1번 받음)'),
   adBonusesUsedUp('한도 소진 (광고 다 씀)'),
@@ -95,6 +97,7 @@ MemberPlanResponse applyDevPlanOverrides(
         DevLimitSimulation.oneAdBonusUsed => (1, false, true),
         DevLimitSimulation.adBonusesUsedUp => (2, false, true),
         DevLimitSimulation.dailySetBonusesEarned => (0, true, false),
+        DevLimitSimulation.billingOnFree ||
         DevLimitSimulation.none => (0, false, false),
       };
   final baseLimit = plan.dailyFreeLimit > 0

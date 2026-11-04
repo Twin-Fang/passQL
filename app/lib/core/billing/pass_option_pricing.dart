@@ -68,6 +68,26 @@ class PassOptionPricing<Option> {
     return total.round();
   }
 
+  /// 하루 가격(원, 1원 단위 반올림): 스토어 가격 / 이용 일수 (가격 없음 > null)
+  int? dailyPriceOf(Option option) => calculateDailyPassPrice(
+    passPrice: _rawPriceOf(option),
+    durationDays: durationDaysOf(option),
+  );
+
+  /// 할인이 가장 큰 이용권 (가격을 읽은 것 중, 할인 없음 > null): 배너·리본 강조 대상
+  Option? get bestDiscountOption {
+    Option? bestOption;
+    var bestPercent = 0;
+    for (final candidate in options) {
+      final percent = discountOf(candidate)?.discountPercent ?? 0;
+      if (percent > bestPercent) {
+        bestOption = candidate;
+        bestPercent = percent;
+      }
+    }
+    return bestOption;
+  }
+
   /// 기준(가장 짧은) 칸을 골랐을 때 가장 긴 이용권 권유 (없으면 null)
   PassUpgradeSuggestion<Option>? upgradeSuggestionFor(Option? selectedOption) {
     final base = baseOption;

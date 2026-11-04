@@ -32,6 +32,7 @@ import '../presentation/pages/questions/question_detail_page.dart';
 import '../presentation/pages/result/result_page.dart';
 import '../presentation/pages/stats/stats_page.dart';
 import '../presentation/pages/settings/settings_page.dart';
+import '../presentation/pages/account/account_page.dart';
 import '../presentation/pages/settings/wrong_notes_page.dart';
 import '../presentation/widgets/app_shell.dart';
 import 'app_launch_gate_routing.dart';
@@ -283,6 +284,13 @@ abstract final class AppRouter {
         path: AppRoutes.blockedMembers,
         parentNavigatorKey: _rootKey,
         builder: (_, _) => const BlockedMembersPage(),
+      ),
+
+      // 풀스크린: 계정·이용권 관리 (#816, 프로필 계정 줄에서 진입)
+      GoRoute(
+        path: AppRoutes.account,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const AccountPage(),
       ),
 
       // 풀스크린: 챕터 플로우 (/questions/chapter?topic=CODE&topicName=NAME)

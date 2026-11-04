@@ -49,6 +49,9 @@ public class EntitlementAdminService {
     private static final BigDecimal MICROS_PER_CURRENCY_UNIT = BigDecimal.valueOf(1_000_000L);
     // 감사 로그 요약의 사유 키 (타임라인이 같은 키로 읽음)
     public static final String REASON_SUMMARY_KEY = "reason";
+    // 감사 로그 요약의 만료일·부여 경로 키 (타임라인·내 구매 내역이 같은 키로 읽음)
+    public static final String EXPIRES_AT_SUMMARY_KEY = "proExpiresAt";
+    public static final String SOURCE_SUMMARY_KEY = "source";
 
     private final MemberRepository memberRepository;
     private final MemberEntitlementRepository memberEntitlementRepository;
@@ -110,8 +113,8 @@ public class EntitlementAdminService {
 
         log.info("[billing] admin grant : member={}, expires {} -> {}", memberUuid, previousExpiresAt, newExpiresAt);
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.MEMBER, memberUuid, AdminAuditAction.UPDATE,
-            AdminAuditEvent.summary("proExpiresAt", previousExpiresAt),
-            AdminAuditEvent.summary("proExpiresAt", newExpiresAt, "source", EntitlementSource.ADMIN_GRANT,
+            AdminAuditEvent.summary(EXPIRES_AT_SUMMARY_KEY, previousExpiresAt),
+            AdminAuditEvent.summary(EXPIRES_AT_SUMMARY_KEY, newExpiresAt, SOURCE_SUMMARY_KEY, EntitlementSource.ADMIN_GRANT,
                 REASON_SUMMARY_KEY, trimmedReason)));
         return previousExpiresAt != null && previousExpiresAt.isAfter(newExpiresAt);
     }
@@ -130,8 +133,8 @@ public class EntitlementAdminService {
 
         log.info("[billing] admin revoke : member={}, expires {} -> null", memberUuid, previousExpiresAt);
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.MEMBER, memberUuid, AdminAuditAction.RETRACT,
-            AdminAuditEvent.summary("proExpiresAt", previousExpiresAt),
-            AdminAuditEvent.summary("proExpiresAt", null, REASON_SUMMARY_KEY, trimmedReason)));
+            AdminAuditEvent.summary(EXPIRES_AT_SUMMARY_KEY, previousExpiresAt),
+            AdminAuditEvent.summary(EXPIRES_AT_SUMMARY_KEY, null, REASON_SUMMARY_KEY, trimmedReason)));
     }
 
     /**
@@ -162,9 +165,9 @@ public class EntitlementAdminService {
             memberUuid, purchase.getOrderId(), revocationResult.beforeExpiresAt(), revocationResult.afterExpiresAt());
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.MEMBER, memberUuid, AdminAuditAction.RETRACT,
             AdminAuditEvent.summary("order", purchase.getOrderId(), "purchaseStatus", PurchaseStatus.VERIFIED,
-                "proExpiresAt", revocationResult.beforeExpiresAt()),
+                EXPIRES_AT_SUMMARY_KEY, revocationResult.beforeExpiresAt()),
             AdminAuditEvent.summary("order", purchase.getOrderId(), "purchaseStatus", PurchaseStatus.REVOKED,
-                "proExpiresAt", revocationResult.afterExpiresAt(), REASON_SUMMARY_KEY, trimmedReason)));
+                EXPIRES_AT_SUMMARY_KEY, revocationResult.afterExpiresAt(), REASON_SUMMARY_KEY, trimmedReason)));
         return revocationResult;
     }
 

@@ -2,7 +2,7 @@
 type: cluster
 topic: dev-workflow
 created: 2026-10-29
-members: 70
+members: 72
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 개발 도구·projectops·테스트 정책·문서·API 계약
 
 ## 현재 상태 요약
-(2026-11-04, 자동 생성) 활성 결정 28개, 열린 이슈 1개. 앱 테스트 빌드 개발자 도구는 두 층 게이트로 테스트 빌드에만 켠다 — [[DEC-0240-dev-tools-two-layer-gate-test-builds]] (작성 시점 미머지). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-04, 자동 생성) 활성 결정 29개, 열린 이슈 1개. 앱 테스트 빌드 개발자 도구는 두 층 게이트로 테스트 빌드에만 켠다 — [[DEC-0240-dev-tools-two-layer-gate-test-builds]] (#817 릴리스 반영). 개발자 도구에는 운영 데이터 변경 기능을 넣지 않고, 스토어 빌드 제외는 컴파일 상수 + 두 스토어 워크플로 release 프로파일 + 규칙 테스트로 보장한다 — [[DEC-0246-dev-tools-no-prod-writes-store-exclusion]] (main 머지, 작성 시점 미배포). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0010-spring-multimodule-layering]] — Spring 서버는 `PQL-Common` → `PQL-Domain-*` → `PQL-Application` → `PQL-Web` 단방향 멀티모듈
@@ -44,11 +44,13 @@ related: []
 - [[DEC-0223-audit-followup-small-fixes-split-design]] — 감사 후속은 동작을 바꾸지 않는 작은 수정만 그 이슈에서, 설계 필요 항목은 후속 이슈로, 제품 결정 필요 항목은 사용자 확인으로 나눈다
 - [[DEC-0224-attach-to-existing-common-points]] — 사본 정리는 기존 공통 위치(`UuidUtils`, `PassqlThemeContext`, `crash_reporter`)에 붙이고, 호출부 동작이 다른 곳은 뺀다
 - [[DEC-0240-dev-tools-two-layer-gate-test-builds]] — 앱 개발자 도구는 `APP_FLAVOR=dev`(또는 디버그)와 `.env` `APP_SHOW_DEV_TOOLS=true` 두 층이 모두 켜질 때만, 강제값은 표시만 바꿈
+- [[DEC-0246-dev-tools-no-prod-writes-store-exclusion]] — 개발자 도구에 운영 데이터 변경 기능 없음, 스토어 빌드 제외는 컴파일 상수 + 두 스토어 워크플로 release 프로파일 + 규칙 테스트
 
 ## 대체된 결정 (역사)
 - [[DEC-0068-dev-mode-hidden-easter-egg]] → null
 
 ## 관련 이슈
+- [[ISS-0449-dev-tools-store-build-guard]] (resolved, GitHub #820) — 개발자 도구 스토어 빌드 차단 보장 (컴파일 상수, Android 스토어 프로파일, 규칙 테스트)
 - [[ISS-0444-test-build-dev-tools-overlay]] (resolved, GitHub #809) — 테스트 빌드 개발자 도구 (플로팅 버튼으로 등급·광고·무료 한도 상태 확인)
 - [[ISS-0387-remove-total-question-count-compat]] (open, GitHub #632) — 카테고리별 전체 문제 수(`totalQuestionCount`) 응답 제거 — 구버전 앱 호환 처리와 최소 버전 상향
 - [[ISS-0007-sqld-platform-prd-document]] (resolved, GitHub #2) — SQLD 학습 플랫폼 PRD 문서 작성 및 설계 명세화
