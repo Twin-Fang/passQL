@@ -7,8 +7,8 @@ SITE_URL = "https://twin-fang.github.io/passQL/"
 WEB_APP_URL = "https://passql.vercel.app"
 APP_STORE_URL = "https://apps.apple.com/kr/app/passql/id6762165005"
 APP_STORE_ID = "6762165005"
-# Play 공개 페이지는 비공개 테스트 중이라 404 (#353) > 배지 대신 "출시 준비 중" 표기
-IS_PLAY_STORE_PUBLIC = False
+# Play 공개 여부 (#353 비공개 테스트 > 2026-11 공개 확인, #823): 배지·JSON-LD 설치 주소·FAQ 가 함께 바뀜
+IS_PLAY_STORE_PUBLIC = True
 PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.coldredrice.passql"
 OFFICIAL_EXAM_URL = "https://www.dataq.or.kr"
 CONTACT_EMAIL = "chan4760@naver.com"
@@ -29,8 +29,9 @@ NEXT_EXAM_NAME = "SQLD 제63회"
 NEXT_EXAM_DATE = "2026-11-14"
 NEXT_EXAM_DATE_LABEL = "2026년 11월 14일 (토)"
 
-# 무료·Pro 비교 노출 여부 (결제 끄면 False). 가격은 스토어가 정하므로 숫자를 쓰지 않음
-IS_PRO_PLAN_VISIBLE = True
+# 무료·Pro 비교 노출 여부: 운영 결제 스위치(app_settings billing.android.enabled)와 맞춤
+# False = 결제 꺼짐 > 비교표 대신 "지금 모든 기능 무료" 안내 (#823). 가격은 스토어가 정하므로 숫자를 쓰지 않음
+IS_PRO_PLAN_VISIBLE = False
 
 # 시험 범위: 운영 API /api/meta/topics 의 주제 9개 (sortOrder 순)
 SQLD_SUBJECTS = [
@@ -50,7 +51,7 @@ SQLD_SUBJECTS = [
 # ── 첫 화면 ──
 HOME_TITLE = "passQL — SQLD 문제 풀이 앱 | 최신 기출 경향, AI 해설, 매일 5문제"
 HOME_DESCRIPTION = ("책 없이 앱 하나로 SQLD 준비. 제58~62회 복원 기출 경향을 반영한 문제를 풀고, "
-                    "틀린 이유는 AI 해설로 바로 확인하세요. 매일 5문제 오늘의 세트, 오답 노트, 합격 준비도까지.")
+                    "보기 SQL을 직접 실행하고, 틀린 이유는 AI 해설로 바로 확인하세요. 단원별 개념 학습, 매일 5문제 오늘의 세트, 합격 준비도까지. iPhone·Android·웹.")
 
 HERO_EYEBROW = "SQLD 자격증 문제 풀이 앱"
 HERO_TITLE_LEAD = "SQLD,"
@@ -64,7 +65,7 @@ HERO_POINTS = [
     ("trending_up", "제58~62회 기출 경향 반영"),
     ("auto_awesome", "틀린 이유까지 AI 해설"),
 ]
-HERO_STORE_NOTE = "무료로 시작 · 소셜 계정으로 바로 로그인 · Android 앱은 출시 준비 중이라 웹으로 이용할 수 있어요"
+HERO_STORE_NOTE = "무료로 시작 · 소셜 계정으로 바로 로그인 · iPhone, Android, 웹 어디서나 같은 기록"
 
 # 수험생 고민 > 해결: (아이콘, 고민, 해결)
 PAIN_POINTS = [
@@ -78,28 +79,32 @@ PAIN_POINTS = [
      "하루 5문제 오늘의 세트와 연속 학습일, 시험 D-day 알림이 매일 공부를 이어 줘요."),
 ]
 
-# 기능 카드: (아이콘, 제목, 설명)
+# 기능 카드: (아이콘, 제목, 설명) — 4열 x 3줄
 FEATURES = [
     ("local_fire_department", "오늘의 세트",
      "매일 모든 회원이 같은 5문제를 풀고 순위를 확인해요. 부담 없는 분량이라 매일 이어 가기 좋아요."),
+    ("school", "단원별 개념 학습",
+     "핵심, 자세히, 문제 세 단계로 단원을 익혀요. 꼭 기억할 것을 읽고 바로 문제로 확인해요."),
+    ("terminal", "보기 SQL 직접 실행",
+     "제출하면 보기마다 실제 DB에서 SQL을 실행해요. 외우지 말고 결과 표로 확인하세요."),
+    ("compare_arrows", "내 답 vs 정답 비교",
+     "틀리면 내가 고른 SQL과 정답 SQL의 실행 결과를 나란히 보여 줘요. 어디서 갈렸는지 바로 보여요."),
+    ("shuffle", "매번 새 선택지",
+     "같은 문제도 풀 때마다 선택지가 새로 바뀌어요. 답을 외우지 않고 개념으로 풀게 돼요."),
+    ("auto_awesome", "AI 해설",
+     "정답 근거, 시험 팁, 핵심 개념을 정리하고 내가 고른 오답이 왜 틀렸는지 설명해요."),
     ("trending_up", "최신 경향",
      "제58~62회 복원 기출과 수험생 후기를 분석했어요. 과목별 비중과 최근 늘어난 유형부터 풀 수 있어요."),
     ("category", "주제별 · TOP 10",
      "데이터 모델링부터 윈도우 함수까지 9개 주제로 나눴어요. 자주 나오는 개념은 TOP 10으로 먼저 잡아요."),
-    ("terminal", "보기 SQL 직접 실행",
-     "보기의 SQL을 실제로 실행해 결과 표를 보여 줘요. 외우지 말고 왜 정답인지 눈으로 확인하세요."),
-    ("auto_awesome", "AI 해설",
-     "정답 근거, 시험 팁, 핵심 개념을 정리하고 내가 고른 오답이 왜 틀렸는지 설명해요."),
     ("edit_note", "오답 노트",
      "틀린 문제는 오답 노트에 모여 다시 풀어요. 연습과 실전 풀이 모드를 골라 쓸 수 있어요."),
     ("speed", "합격 준비도",
-     "정확도, 학습 범위, 최신 경향 대비를 합쳐 지금 얼마나 준비됐는지 숫자로 보여 줘요."),
-    ("calendar_month", "시험 D-day · 달력",
-     "푼 날이 달력에 쌓이고 연속 학습일이 이어져요. 시험까지 남은 날도 홈에서 바로 보여요."),
+     "정답률, 영역별 약점, AI 분석으로 지금 얼마나 준비됐는지, 어디를 더 풀지 보여 줘요."),
     ("forum", "토론",
      "헷갈리는 문제는 다른 수험생과 이야기 나눠요. 같은 시험을 준비하는 사람들이 모여 있어요."),
-    ("notifications_active", "알림",
-     "오늘의 세트가 열리면, 시험이 다가오면 알려 드려요. 잊지 않고 매일 풀 수 있어요."),
+    ("notifications_active", "알림 · D-day",
+     "오늘의 세트가 열리면, 시험이 다가오면 알려 드려요. 시험까지 남은 날도 홈에서 바로 보여요."),
 ]
 
 # 학습 흐름 4단계: (아이콘, 제목, 설명)
@@ -126,20 +131,64 @@ TREND_RISING_PATTERNS = [
     ("ROWNUM 실행 순서", "ROWNUM이 ORDER BY보다 먼저 붙는 점과 부등 조건에서 행이 탈락하는 점을 노려요.", "61·62회"),
 ]
 
-# 화면 모음: (파일, 이름, 설명) — 원본 캡처 main app/docs/store/promo/source, 문제 은행 규모가 보이는 화면 제외 (#636)
+# 화면 모음: (파일, 이름, 설명) — 원본 캡처 main app/docs/store/promo/source (#776), 문제 은행 규모가 보이는 화면 제외 (#636)
 SCREENSHOTS = [
-    ("home.webp", "홈", "오늘의 세트, 시험 D-day, 이번 시험 출제 경향"),
-    ("trend.webp", "최신 경향", "과목별 비중과 늘어난 유형"),
-    ("questions.webp", "문제", "주제별로 골라 풀기, 오답 노트, 풀이 모드"),
-    ("execute.webp", "SQL 실행", "보기 SQL을 실행해 결과 표 확인"),
+    ("execute.webp", "SQL 실행", "보기마다 실제 DB에서 실행"),
+    ("real.webp", "매번 새 선택지", "풀 때마다 바뀌는 보기"),
     ("ai.webp", "AI 해설", "틀린 이유와 기억할 포인트"),
-    ("stats.webp", "합격 준비도", "정확도·범위·최신성, 학습 달력"),
+    ("concept-light.webp", "개념 학습", "단원별 꼭 기억할 것"),
+    ("trend.webp", "최신 경향", "과목별 비중과 늘어난 유형"),
+    ("stats.webp", "내 실력", "정답률, 영역별 약점, AI 분석"),
     ("rank.webp", "오늘의 순위", "오늘의 세트 리더보드"),
 ]
-# 첫 화면 폰 목업 (앞, 뒤)
-HERO_FRONT_SCREENSHOT = "home.webp"
-HERO_BACK_SCREENSHOT = "questions.webp"
+# 첫 화면 폰: 몇 초마다 순서대로 바뀌는 화면 (첫 장이 기본, JS 없으면 첫 장만)
+HERO_SCREENSHOTS = [
+    ("execute.webp", "passQL 문제 풀이 화면. 보기 SQL을 실제 DB에서 실행해 결과 표를 보여 줌."),
+    ("ai.webp", "passQL AI 해설 화면. 틀린 이유와 기억할 포인트."),
+    ("concept.webp", "passQL 개념 학습 화면. 단원별 꼭 기억할 것 5가지."),
+    ("stats.webp", "passQL 프로필 화면. 정답률과 영역별 약점, AI 분석."),
+]
+# 첫 화면 폰 옆 떠 있는 카드: (아이콘, 굵은 글, 작은 글)
+HERO_FLOATING_CARDS = [
+    ("check_circle", "보기 A 실행 성공", "실제 DB · 12ms"),
+    ("auto_awesome", "AI 해설", "HAVING은 그룹 조건"),
+    ("speed", "정답률 78%", "약점: 윈도우 함수"),
+]
 TREND_SCREENSHOT = "trend.webp"
+
+# 흐르는 주제 띠 (2줄, 반대 방향)
+MARQUEE_TOPIC_ROWS = [
+    ["SELECT 기본", "JOIN", "서브쿼리", "윈도우 함수", "그룹함수", "계층 쿼리", "PIVOT", "데이터 모델링", "정규화"],
+    ["NULL 함정", "ROWNUM", "NOT IN", "GROUP BY", "HAVING", "DDL / DML / TCL", "트랜잭션", "식별자", "집합 연산"],
+]
+
+# 숫자로 보는 passQL: (숫자, 단위, 설명) — 문제 은행 규모 수치는 쓰지 않음 (#636)
+STAT_COUNTERS = [
+    (9, "개", "SQLD 출제 주제"),
+    (5, "회차", "최근 기출 경향 분석"),
+    (5, "문제", "매일 오늘의 세트"),
+]
+# 결제 꺼짐 동안 네 번째 숫자 (IS_PRO_PLAN_VISIBLE False 일 때만)
+FREE_STAT_COUNTER = (0, "원", "지금은 모든 기능 무료")
+
+# 기능 자세히 (화면 + 설명, 스크롤 효과): (캡처, 꼬리표, 제목, 설명, 떠 있는 카드 아이콘, 카드 글)
+SHOWCASE_ITEMS = [
+    ("execute.webp", "SQL 직접 실행", "외우지 말고,\n실행해서 확인해요",
+     "제출하면 보기마다 실제 DB에서 SQL을 실행해요. 틀리면 내 답과 정답의 결과 표를 나란히 비교해 어디서 갈렸는지 보여 줘요.",
+     "terminal", "3행 반환 · 12ms"),
+    ("real.webp", "매번 새 선택지", "답 외우기는 그만,\n매번 새 선택지",
+     "같은 문제도 풀 때마다 선택지가 새로 바뀌어요. 보기 순서를 외우는 대신 개념으로 푸는 힘이 붙어요.",
+     "shuffle", "선택지를 새로 만들었어요"),
+    ("ai.webp", "AI 해설", "틀린 이유,\nAI가 바로 짚어 줘요",
+     "내가 고른 오답이 왜 틀렸는지, 정답과 무엇이 다른지, 시험장에서 기억할 포인트까지 한 번에 정리해요.",
+     "auto_awesome", "기억할 포인트 정리"),
+    ("concept.webp", "단원별 개념 학습", "개념은 핵심만,\n바로 문제로",
+     "단원마다 꼭 기억할 것을 먼저 읽고, 자세히 보고, 바로 문제로 확인해요. 두꺼운 수험서 없이도 흐름이 잡혀요.",
+     "school", "꼭 기억할 것 5가지"),
+    ("stats.webp", "합격 준비도", "내 실력,\n숫자로 확인해요",
+     "정답률과 영역별 약점, AI 분석으로 지금 어디가 약한지 알려 줘요. 약한 주제부터 다시 풀면 돼요.",
+     "speed", "정답률 78%"),
+]
 
 # 무료·Pro 비교 (원본: main app/lib/presentation/widgets/pro/pro_plan_comparison_table.dart): (항목, 무료, Pro), None = 제공 안 함
 PLAN_ROWS = [
@@ -152,14 +201,24 @@ PLAN_ROWS = [
 ]
 PLAN_NOTE = "Pro 이용권은 1개월·3개월 두 가지이며 자동 결제되지 않아요. 가격은 앱에서 확인할 수 있어요."
 
+# 결제 꺼짐 동안 비교표 대신 보이는 안내 (IS_PRO_PLAN_VISIBLE False)
+FREE_NOW_TITLE = "지금은 모든 기능이 무료예요"
+FREE_NOW_LEAD = "SQL 실행, 보기별 AI 해설, 최신 경향, 개념 학습까지 전부 열려 있어요. 가입만 하면 바로 풀 수 있어요."
+FREE_NOW_POINTS = [
+    ("terminal", "보기 SQL 직접 실행"),
+    ("auto_awesome", "보기별 AI 해설"),
+    ("trending_up", "최신 출제 경향"),
+    ("school", "단원별 개념 학습"),
+]
+
 FINAL_CTA_TITLE = "시험 전까지, 하루 5문제부터"
 FINAL_CTA_LEAD = "오늘의 세트 한 번만 풀어 보세요. 어디가 약한지 바로 보여요."
 
 # 페이지 공통 FAQ (index 화면 + FAQPage JSON-LD)
 HOME_FAQS = [
     ("passQL은 무료인가요?",
-     "무료로 내려받아 바로 시작할 수 있어요. 무료로는 하루 일정량의 문제를 풀 수 있고, "
-     "Pro 이용권(1개월·3개월)을 쓰면 문제를 제한 없이 풀고 SQL 실행, 보기별 전체 해설, 최신 출제 경향까지 열려요. 자동 결제는 없어요."),
+     "네, 무료로 내려받아 바로 시작할 수 있고 지금은 SQL 실행, 보기별 AI 해설, 최신 출제 경향까지 모든 기능이 열려 있어요. "
+     "나중에 Pro 이용권(1개월·3개월, 자동 결제 없음)이 생기면 무료로는 하루 일정량을 풀 수 있어요."),
     ("SQLD 시험 범위를 모두 다루나요?",
      "SQLD 두 과목의 범위를 9개 주제로 나눠 문제를 제공해요. 1과목 데이터 모델링, 2과목 SELECT·DDL/DML/TCL·함수·JOIN·서브쿼리·그룹함수·윈도우 함수·계층과 PIVOT이에요."),
     ("최신 출제 경향은 어떻게 반영하나요?",
@@ -170,8 +229,10 @@ HOME_FAQS = [
      "SQLP 필기의 데이터 모델링, SQL 기본 및 활용 과목은 SQLD와 범위가 겹쳐 그대로 연습할 수 있어요. SQL 고급 활용 및 튜닝 과목과 실기는 아직 다루지 않아요."),
     ("앱을 설치하지 않고 쓸 수 있나요?",
      "네. passql.vercel.app 에서 로그인하면 앱과 같은 학습 기록으로 이어서 풀 수 있어요."),
-    ("Android 앱은 언제 나오나요?",
-     "Google Play 출시를 준비하고 있어요. 그전에는 Android 휴대폰의 브라우저에서 웹으로 이용할 수 있어요."),
+    ("Android에서도 쓸 수 있나요?",
+     "네. Google Play에서 passQL을 내려받을 수 있어요. iPhone은 App Store, PC는 웹에서 같은 계정으로 이어서 풀 수 있어요."),
+    ("개념 공부도 앱에서 할 수 있나요?",
+     "네. 단원마다 꼭 기억할 것, 자세한 설명, 확인 문제를 순서대로 볼 수 있어요. 개념을 읽고 바로 문제로 확인해요."),
 ]
 
 SQLD_FAQS = [

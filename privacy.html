@@ -30,8 +30,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0..1,0&amp;icon_names=arrow_forward,auto_awesome,calendar_month,category,check_circle,chevron_left,chevron_right,close,download,edit_note,event,expand_more,forum,help,language,local_fire_department,mail,menu_book,notifications_active,remove,schedule,speed,terminal,trending_up,update,workspace_premium&amp;display=block">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0..1,0&amp;icon_names=arrow_forward,auto_awesome,calendar_month,category,celebration,check_circle,chevron_left,chevron_right,close,compare_arrows,download,edit_note,event,expand_more,forum,help,language,local_fire_department,mail,menu_book,notifications_active,remove,schedule,school,shuffle,speed,terminal,trending_up,update,workspace_premium&amp;display=block">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="effects.css">
 <script>document.documentElement.classList.add("js")</script>
 </head>
 <body>
@@ -44,7 +45,7 @@
     </a>
     <div class="nav-links">
       <a href="sqld/">SQLD 안내</a>
-      <a class="nav-cta" href="https://apps.apple.com/kr/app/passql/id6762165005" rel="noopener"><span class="ms" aria-hidden="true">download</span>앱 받기</a>
+      <a class="nav-cta" href="https://apps.apple.com/kr/app/passql/id6762165005" rel="noopener" data-android-href="https://play.google.com/store/apps/details?id=com.coldredrice.passql"><span class="ms" aria-hidden="true">download</span>앱 받기</a>
     </div>
   </div>
 </nav>
@@ -61,10 +62,11 @@
 <p>커뮤니티에서 이용자가 직접 작성한 의견(텍스트)과 첨부한 사진(글당 최대 2장), 이용자가 공유하기로 선택한 풀이 요약(정답 여부, 시도 횟수)이 저장되며, 자동으로 만들어진 닉네임과 함께 다른 이용자에게 표시됩니다. 사진은 기기 또는 브라우저에서 WebP 형식으로 변환·압축해 올리며, 촬영 위치 등 부가 정보(EXIF)는 저장하지 않습니다. 신고·차단 이용 시 신고 내용과 차단 대상이 함께 저장됩니다.</p>
 <p>GitHub와 네이버로 로그인한 경우, 회원 탈퇴 시 제공자 연결을 해제하기 위해 제공자가 발급한 접근 토큰을 암호화해 보관하며 탈퇴 시 즉시 삭제합니다.</p>
 <p>모바일 앱에서는 오류 분석과 서비스 개선을 위해 앱 오류 기록과 이용 기록이 Google Firebase(Crashlytics, Analytics)를 통해 처리될 수 있습니다. 광고 제공을 위해 기기의 광고 식별자(Android 광고 ID, iOS IDFA), 기기·앱 정보, 광고 노출·클릭 기록이 Google AdMob을 통해 처리될 수 있습니다. iOS에서는 추적을 허용한 경우에만 IDFA가 사용됩니다.</p>
+<p>의견 보내기를 이용하면 이용자가 작성한 글과 첨부한 사진이 저장됩니다. 사진은 기기에서 WebP 형식으로 변환·압축해 보내며, 촬영 위치 등 부가 정보(EXIF)는 저장하지 않습니다. &#x27;진단 정보 같이 보내기&#x27;를 켠 경우에만 문제 확인을 위해 앱 정보(버전, 로그인 방식, 화면 모드, 알림 권한 등), 기기 정보(모델, OS 버전, 화면 크기, 언어), 시스템 상태(절전 모드, 배터리, 네트워크 종류, 소리 모드)와 최근 앱 사용 기록(화면 이동, 서버 요청 결과, 오류)이 함께 전송됩니다. 앱 사용 기록은 기기 안에 일정 용량까지만 보관하며, 인증 정보와 이메일 등 민감한 값은 가린 뒤 기록합니다.</p>
 <h2>2. 수집 목적</h2>
 <p>수집된 정보는 회원 식별 및 서비스 제공, 맞춤형 학습 데이터 제공, 서비스 개선 및 통계 분석 목적으로만 사용됩니다.</p>
 <h2>3. 보유 기간</h2>
-<p>회원 탈퇴 시 닉네임과 로그인 제공자 회원 식별 번호를 즉시 삭제하고, 로그인 제공자와의 연결(카카오·네이버·GitHub·Google·Apple)을 해제합니다. 문제 풀이 이력 등 학습 기록은 개인을 알아볼 수 없도록 익명 처리한 상태로 문제 품질 개선과 통계 목적으로만 보관합니다. 커뮤니티에 작성한 글은 작성자를 알아볼 수 없도록 닉네임을 익명 처리한 상태로 유지하고, 첨부한 사진은 회원 탈퇴 시 저장소에서 삭제합니다. 이용자가 직접 삭제한 글은 더 이상 노출되지 않으며 그 글의 사진도 저장소에서 삭제합니다. 신고·차단 기록은 회원 탈퇴 시 삭제합니다. 같은 계정으로 다시 가입하면 이전 기록과 연결되지 않는 새 회원으로 가입됩니다. 관계 법령에 따라 보존이 필요한 경우 해당 기간 동안 보관 후 파기합니다.</p>
+<p>회원 탈퇴 시 닉네임과 로그인 제공자 회원 식별 번호를 즉시 삭제하고, 로그인 제공자와의 연결(카카오·네이버·GitHub·Google·Apple)을 해제합니다. 문제 풀이 이력 등 학습 기록은 개인을 알아볼 수 없도록 익명 처리한 상태로 문제 품질 개선과 통계 목적으로만 보관합니다. 커뮤니티에 작성한 글은 작성자를 알아볼 수 없도록 닉네임을 익명 처리한 상태로 유지하고, 첨부한 사진은 회원 탈퇴 시 저장소에서 삭제합니다. 이용자가 직접 삭제한 글은 더 이상 노출되지 않으며 그 글의 사진도 저장소에서 삭제합니다. 신고·차단 기록은 회원 탈퇴 시 삭제합니다. 의견 보내기로 보낸 사진, 진단 정보, 앱 사용 기록은 회원 탈퇴 시 삭제합니다. 같은 계정으로 다시 가입하면 이전 기록과 연결되지 않는 새 회원으로 가입됩니다. 관계 법령에 따라 보존이 필요한 경우 해당 기간 동안 보관 후 파기합니다.</p>
 <h2>4. 제3자 제공</h2>
 <p>회사는 이용자의 개인정보를 원칙적으로 외부에 제공하지 않습니다. 단, 법령에 의한 경우 또는 이용자가 동의한 경우는 예외로 합니다.</p>
 <p>앱의 광고는 Google LLC의 AdMob이 제공합니다. 광고 제공과 성과 측정을 위해 위 광고 식별자와 기기 정보가 Google에 전달될 수 있으며, Google의 개인정보 처리는 Google 개인정보처리방침(<a href="https://policies.google.com/privacy" rel="noopener">https://policies.google.com/privacy</a>)을 따릅니다.</p>

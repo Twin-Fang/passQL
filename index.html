@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>passQL — SQLD 문제 풀이 앱 | 최신 기출 경향, AI 해설, 매일 5문제</title>
-<meta name="description" content="책 없이 앱 하나로 SQLD 준비. 제58~62회 복원 기출 경향을 반영한 문제를 풀고, 틀린 이유는 AI 해설로 바로 확인하세요. 매일 5문제 오늘의 세트, 오답 노트, 합격 준비도까지.">
+<meta name="description" content="책 없이 앱 하나로 SQLD 준비. 제58~62회 복원 기출 경향을 반영한 문제를 풀고, 보기 SQL을 직접 실행하고, 틀린 이유는 AI 해설로 바로 확인하세요. 단원별 개념 학습, 매일 5문제 오늘의 세트, 합격 준비도까지. iPhone·Android·웹.">
 <link rel="canonical" href="https://twin-fang.github.io/passQL/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="passQL">
 <meta property="og:locale" content="ko_KR">
 <meta property="og:title" content="passQL — SQLD 문제 풀이 앱 | 최신 기출 경향, AI 해설, 매일 5문제">
-<meta property="og:description" content="책 없이 앱 하나로 SQLD 준비. 제58~62회 복원 기출 경향을 반영한 문제를 풀고, 틀린 이유는 AI 해설로 바로 확인하세요. 매일 5문제 오늘의 세트, 오답 노트, 합격 준비도까지.">
+<meta property="og:description" content="책 없이 앱 하나로 SQLD 준비. 제58~62회 복원 기출 경향을 반영한 문제를 풀고, 보기 SQL을 직접 실행하고, 틀린 이유는 AI 해설로 바로 확인하세요. 단원별 개념 학습, 매일 5문제 오늘의 세트, 합격 준비도까지. iPhone·Android·웹.">
 <meta property="og:url" content="https://twin-fang.github.io/passQL/">
 <meta property="og:image" content="https://twin-fang.github.io/passQL/icon/og.png">
 <meta property="og:image:width" content="1200">
@@ -18,7 +18,7 @@
 <meta property="og:image:alt" content="passQL — SQLD 문제 풀이 앱">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="passQL — SQLD 문제 풀이 앱 | 최신 기출 경향, AI 해설, 매일 5문제">
-<meta name="twitter:description" content="책 없이 앱 하나로 SQLD 준비. 제58~62회 복원 기출 경향을 반영한 문제를 풀고, 틀린 이유는 AI 해설로 바로 확인하세요. 매일 5문제 오늘의 세트, 오답 노트, 합격 준비도까지.">
+<meta name="twitter:description" content="책 없이 앱 하나로 SQLD 준비. 제58~62회 복원 기출 경향을 반영한 문제를 풀고, 보기 SQL을 직접 실행하고, 틀린 이유는 AI 해설로 바로 확인하세요. 단원별 개념 학습, 매일 5문제 오늘의 세트, 합격 준비도까지. iPhone·Android·웹.">
 <meta name="twitter:image" content="https://twin-fang.github.io/passQL/icon/og.png">
 <meta name="apple-itunes-app" content="app-id=6762165005">
 <meta name="color-scheme" content="light dark">
@@ -30,8 +30,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0..1,0&amp;icon_names=arrow_forward,auto_awesome,calendar_month,category,check_circle,chevron_left,chevron_right,close,download,edit_note,event,expand_more,forum,help,language,local_fire_department,mail,menu_book,notifications_active,remove,schedule,speed,terminal,trending_up,update,workspace_premium&amp;display=block">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0..1,0&amp;icon_names=arrow_forward,auto_awesome,calendar_month,category,celebration,check_circle,chevron_left,chevron_right,close,compare_arrows,download,edit_note,event,expand_more,forum,help,language,local_fire_department,mail,menu_book,notifications_active,remove,schedule,school,shuffle,speed,terminal,trending_up,update,workspace_premium&amp;display=block">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="effects.css">
 <script>document.documentElement.classList.add("js")</script>
 <script type="application/ld+json">
 {
@@ -42,16 +43,18 @@
   "패스큐엘",
   "passQL SQLD"
  ],
- "description": "책 없이 앱 하나로 SQLD 준비. 최신 출제 경향 문제, 보기 SQL 직접 실행, AI 해설, 매일 5문제 오늘의 세트, 오답 노트, 합격 준비도.",
+ "description": "책 없이 앱 하나로 SQLD 준비. 최신 출제 경향 문제, 보기 SQL 직접 실행, AI 해설, 단원별 개념 학습, 매일 5문제 오늘의 세트, 오답 노트, 합격 준비도.",
  "applicationCategory": "EducationalApplication",
  "operatingSystem": "iOS, Android, Web",
  "inLanguage": "ko",
  "url": "https://twin-fang.github.io/passQL/",
  "downloadUrl": [
-  "https://apps.apple.com/kr/app/passql/id6762165005"
+  "https://apps.apple.com/kr/app/passql/id6762165005",
+  "https://play.google.com/store/apps/details?id=com.coldredrice.passql"
  ],
  "installUrl": [
-  "https://apps.apple.com/kr/app/passql/id6762165005"
+  "https://apps.apple.com/kr/app/passql/id6762165005",
+  "https://play.google.com/store/apps/details?id=com.coldredrice.passql"
  ],
  "image": "https://twin-fang.github.io/passQL/icon/og.png",
  "offers": {
@@ -87,7 +90,7 @@
    "name": "passQL은 무료인가요?",
    "acceptedAnswer": {
     "@type": "Answer",
-    "text": "무료로 내려받아 바로 시작할 수 있어요. 무료로는 하루 일정량의 문제를 풀 수 있고, Pro 이용권(1개월·3개월)을 쓰면 문제를 제한 없이 풀고 SQL 실행, 보기별 전체 해설, 최신 출제 경향까지 열려요. 자동 결제는 없어요."
+    "text": "네, 무료로 내려받아 바로 시작할 수 있고 지금은 SQL 실행, 보기별 AI 해설, 최신 출제 경향까지 모든 기능이 열려 있어요. 나중에 Pro 이용권(1개월·3개월, 자동 결제 없음)이 생기면 무료로는 하루 일정량을 풀 수 있어요."
    }
   },
   {
@@ -132,10 +135,18 @@
   },
   {
    "@type": "Question",
-   "name": "Android 앱은 언제 나오나요?",
+   "name": "Android에서도 쓸 수 있나요?",
    "acceptedAnswer": {
     "@type": "Answer",
-    "text": "Google Play 출시를 준비하고 있어요. 그전에는 Android 휴대폰의 브라우저에서 웹으로 이용할 수 있어요."
+    "text": "네. Google Play에서 passQL을 내려받을 수 있어요. iPhone은 App Store, PC는 웹에서 같은 계정으로 이어서 풀 수 있어요."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "개념 공부도 앱에서 할 수 있나요?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "네. 단원마다 꼭 기억할 것, 자세한 설명, 확인 문제를 순서대로 볼 수 있어요. 개념을 읽고 바로 문제로 확인해요."
    }
   }
  ]
@@ -151,29 +162,32 @@
       passQL
     </a>
     <div class="nav-links">
-      <a class="nav-section" href="#features">기능</a>
+      <a class="nav-section" href="#showcase">기능</a>
       <a class="nav-section" href="#trend">최신 경향</a>
       <a class="nav-section" href="#faq">자주 묻는 질문</a>
       <a href="sqld/">SQLD 안내</a>
-      <a class="nav-cta" href="https://apps.apple.com/kr/app/passql/id6762165005" rel="noopener"><span class="ms" aria-hidden="true">download</span>앱 받기</a>
+      <a class="nav-cta" href="https://apps.apple.com/kr/app/passql/id6762165005" rel="noopener" data-android-href="https://play.google.com/store/apps/details?id=com.coldredrice.passql"><span class="ms" aria-hidden="true">download</span>앱 받기</a>
     </div>
   </div>
 </nav>
 
 <main id="main">
 <header class="hero">
+  <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
   <div class="wrap hero-in">
     <div class="hero-copy">
+      <img class="hero-icon" src="icon/mark.png" width="84" height="84" alt="" aria-hidden="true">
       <p class="eyebrow"><span class="ms" aria-hidden="true">check_circle</span>SQLD 자격증 문제 풀이 앱</p>
       <p class="hero-dday" data-dday-show hidden><span class="ms" aria-hidden="true">event</span>SQLD 제63회까지 <strong data-dday-label></strong></p>
       <h1>SQLD,<br><span class="hl">앱 하나로</span> 끝내세요</h1>
       <p class="lead">두꺼운 수험서 대신 최신 출제 경향을 반영한 문제를 풀고, 틀린 이유는 AI 해설로 바로 확인하세요. 매일 5문제부터 합격 준비도까지 passQL 하나면 충분해요.</p>
       <ul class="hero-points"><li><span class="ms" aria-hidden="true">local_fire_department</span>매일 5문제 오늘의 세트</li><li><span class="ms" aria-hidden="true">trending_up</span>제58~62회 기출 경향 반영</li><li><span class="ms" aria-hidden="true">auto_awesome</span>틀린 이유까지 AI 해설</li></ul>
       <div class="cta">
-        <a class="btn btn-primary btn-store" href="https://apps.apple.com/kr/app/passql/id6762165005" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.8 1.2 1.8 2.6 3.1 2.5 1.3-.1 1.7-.8 3.2-.8s1.9.8 3.2.8c1.3 0 2.2-1.2 3-2.5.9-1.4 1.3-2.7 1.3-2.8 0 0-2.6-1-2.6-4.1zM13.9 5c.7-.8 1.2-2 1-3.1-1 0-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.4z"/></svg><span><small>무료 다운로드</small>App Store</span></a>
+        <a class="btn btn-primary btn-store btn-app-store" href="https://apps.apple.com/kr/app/passql/id6762165005" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.8 1.2 1.8 2.6 3.1 2.5 1.3-.1 1.7-.8 3.2-.8s1.9.8 3.2.8c1.3 0 2.2-1.2 3-2.5.9-1.4 1.3-2.7 1.3-2.8 0 0-2.6-1-2.6-4.1zM13.9 5c.7-.8 1.2-2 1-3.1-1 0-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.4z"/></svg><span><small>무료 다운로드</small>App Store</span></a>
+        <a class="btn btn-store btn-play" href="https://play.google.com/store/apps/details?id=com.coldredrice.passql" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 2.3 13.4 12l-9.8 9.7c-.4-.2-.6-.6-.6-1.1V3.4c0-.5.2-.9.6-1.1zm11 8.5 2.6-2.6 3.4 1.9c.9.5.9 1.8 0 2.3l-3.4 1.9-2.6-2.6-1.2-1.2zM5 1.6l10.8 6.2-2.4 2.4zm8.4 12.2 2.4 2.4L5 22.4z"/></svg><span><small>다운로드</small>Google Play</span></a>
         <a class="btn btn-ghost" href="https://passql.vercel.app" rel="noopener"><span class="ms" aria-hidden="true">language</span>웹에서 바로 풀기</a>
       </div>
-      <p class="note">무료로 시작 · 소셜 계정으로 바로 로그인 · Android 앱은 출시 준비 중이라 웹으로 이용할 수 있어요</p>
+      <p class="note">무료로 시작 · 소셜 계정으로 바로 로그인 · iPhone, Android, 웹 어디서나 같은 기록</p>
     </div>
     <div class="hero-art">
       <div class="dday-card" data-exam-date="2026-11-14">
@@ -184,11 +198,57 @@
           <p class="dday-date" data-dday-date hidden>2026년 11월 14일 (토)</p>
         </div>
       </div>
-      <div class="phone phone-back"><img src="shots/questions.webp" width="560" height="1217" alt="passQL 문제 화면. 주제별 목록, 오답 노트, 풀이 모드." loading="lazy" decoding="async"></div>
-      <div class="phone phone-front"><img src="shots/home.webp" width="560" height="1217" alt="passQL 홈 화면. 오늘의 5문제, SQLD 63회 D-day, 이번 시험 출제 경향 카드." fetchpriority="high"></div>
+      <div class="hero-stage" data-scroll-lift>
+        <div class="phone hero-phone">
+          <div class="screen-stack" data-screen-cycle><img src="shots/execute.webp" width="560" height="1218" alt="passQL 문제 풀이 화면. 보기 SQL을 실제 DB에서 실행해 결과 표를 보여 줌." fetchpriority="high" class="is-active"><img src="shots/ai.webp" width="560" height="1218" alt="passQL AI 해설 화면. 틀린 이유와 기억할 포인트." loading="lazy" decoding="async" aria-hidden="true"><img src="shots/concept.webp" width="560" height="1218" alt="passQL 개념 학습 화면. 단원별 꼭 기억할 것 5가지." loading="lazy" decoding="async" aria-hidden="true"><img src="shots/stats.webp" width="560" height="1218" alt="passQL 프로필 화면. 정답률과 영역별 약점, AI 분석." loading="lazy" decoding="async" aria-hidden="true"></div>
+          <span class="phone-shine" aria-hidden="true"></span>
+        </div>
+        <div class="float-card float-card-1" aria-hidden="true">
+          <span class="ms" aria-hidden="true">check_circle</span><span><strong>보기 A 실행 성공</strong><small>실제 DB · 12ms</small></span>
+        </div>
+        <div class="float-card float-card-2" aria-hidden="true">
+          <span class="ms" aria-hidden="true">auto_awesome</span><span><strong>AI 해설</strong><small>HAVING은 그룹 조건</small></span>
+        </div>
+        <div class="float-card float-card-3" aria-hidden="true">
+          <span class="ms" aria-hidden="true">speed</span><span><strong>정답률 78%</strong><small>약점: 윈도우 함수</small></span>
+        </div>
+        <div class="screen-dots" data-screen-dots aria-hidden="true"><span class="is-active"></span><span></span><span></span><span></span></div>
+      </div>
     </div>
   </div>
 </header>
+<section class="marquee" aria-label="다루는 주제">
+    <div class="marquee-row ">
+      <ul class="marquee-track"><li>SELECT 기본</li><li>JOIN</li><li>서브쿼리</li><li>윈도우 함수</li><li>그룹함수</li><li>계층 쿼리</li><li>PIVOT</li><li>데이터 모델링</li><li>정규화</li></ul>
+      <ul class="marquee-track" aria-hidden="true"><li>SELECT 기본</li><li>JOIN</li><li>서브쿼리</li><li>윈도우 함수</li><li>그룹함수</li><li>계층 쿼리</li><li>PIVOT</li><li>데이터 모델링</li><li>정규화</li></ul>
+    </div>
+    <div class="marquee-row marquee-row-reverse">
+      <ul class="marquee-track"><li>NULL 함정</li><li>ROWNUM</li><li>NOT IN</li><li>GROUP BY</li><li>HAVING</li><li>DDL / DML / TCL</li><li>트랜잭션</li><li>식별자</li><li>집합 연산</li></ul>
+      <ul class="marquee-track" aria-hidden="true"><li>NULL 함정</li><li>ROWNUM</li><li>NOT IN</li><li>GROUP BY</li><li>HAVING</li><li>DDL / DML / TCL</li><li>트랜잭션</li><li>식별자</li><li>집합 연산</li></ul>
+    </div>
+</section>
+<section class="stats-strip" aria-label="숫자로 보는 passQL">
+  <div class="wrap">
+    <ul class="stats">
+      <li class="stat reveal">
+        <p class="stat-number"><span data-count-to="9">9</span><small>개</small></p>
+        <p class="stat-label">SQLD 출제 주제</p>
+      </li>
+      <li class="stat reveal">
+        <p class="stat-number"><span data-count-to="5">5</span><small>회차</small></p>
+        <p class="stat-label">최근 기출 경향 분석</p>
+      </li>
+      <li class="stat reveal">
+        <p class="stat-number"><span data-count-to="5">5</span><small>문제</small></p>
+        <p class="stat-label">매일 오늘의 세트</p>
+      </li>
+      <li class="stat reveal">
+        <p class="stat-number"><span data-count-to="0">0</span><small>원</small></p>
+        <p class="stat-label">지금은 모든 기능 무료</p>
+      </li>
+    </ul>
+  </div>
+</section>
 <section id="why" class="section">
   <div class="wrap">
     <p class="kicker">수험생 고민</p>
@@ -214,61 +274,133 @@
     </div>
   </div>
 </section>
+<section id="showcase" class="section showcase">
+  <div class="wrap">
+    <p class="kicker">이렇게 공부해요</p>
+    <h2>풀고, 실행하고, 이해하고</h2>
+    <p class="sec-lead">문제 하나를 풀 때마다 결과 표와 해설이 함께 따라와요.</p>
+    <article class="show-row">
+      <div class="show-art" data-scroll-tilt="1">
+        <div class="phone show-phone"><img src="shots/execute.webp" width="560" height="1218" alt="passQL SQL 직접 실행 화면" loading="lazy" decoding="async"></div>
+        <div class="show-chip" aria-hidden="true"><span class="ms" aria-hidden="true">terminal</span>3행 반환 · 12ms</div>
+      </div>
+      <div class="show-copy reveal">
+        <p class="kicker">SQL 직접 실행</p>
+        <h3>외우지 말고,<br>실행해서 확인해요</h3>
+        <p>제출하면 보기마다 실제 DB에서 SQL을 실행해요. 틀리면 내 답과 정답의 결과 표를 나란히 비교해 어디서 갈렸는지 보여 줘요.</p>
+      </div>
+    </article>
+    <article class="show-row show-row-flip">
+      <div class="show-art" data-scroll-tilt="-1">
+        <div class="phone show-phone"><img src="shots/real.webp" width="560" height="1218" alt="passQL 매번 새 선택지 화면" loading="lazy" decoding="async"></div>
+        <div class="show-chip" aria-hidden="true"><span class="ms" aria-hidden="true">shuffle</span>선택지를 새로 만들었어요</div>
+      </div>
+      <div class="show-copy reveal">
+        <p class="kicker">매번 새 선택지</p>
+        <h3>답 외우기는 그만,<br>매번 새 선택지</h3>
+        <p>같은 문제도 풀 때마다 선택지가 새로 바뀌어요. 보기 순서를 외우는 대신 개념으로 푸는 힘이 붙어요.</p>
+      </div>
+    </article>
+    <article class="show-row">
+      <div class="show-art" data-scroll-tilt="1">
+        <div class="phone show-phone"><img src="shots/ai.webp" width="560" height="1218" alt="passQL AI 해설 화면" loading="lazy" decoding="async"></div>
+        <div class="show-chip" aria-hidden="true"><span class="ms" aria-hidden="true">auto_awesome</span>기억할 포인트 정리</div>
+      </div>
+      <div class="show-copy reveal">
+        <p class="kicker">AI 해설</p>
+        <h3>틀린 이유,<br>AI가 바로 짚어 줘요</h3>
+        <p>내가 고른 오답이 왜 틀렸는지, 정답과 무엇이 다른지, 시험장에서 기억할 포인트까지 한 번에 정리해요.</p>
+      </div>
+    </article>
+    <article class="show-row show-row-flip">
+      <div class="show-art" data-scroll-tilt="-1">
+        <div class="phone show-phone"><img src="shots/concept.webp" width="560" height="1218" alt="passQL 단원별 개념 학습 화면" loading="lazy" decoding="async"></div>
+        <div class="show-chip" aria-hidden="true"><span class="ms" aria-hidden="true">school</span>꼭 기억할 것 5가지</div>
+      </div>
+      <div class="show-copy reveal">
+        <p class="kicker">단원별 개념 학습</p>
+        <h3>개념은 핵심만,<br>바로 문제로</h3>
+        <p>단원마다 꼭 기억할 것을 먼저 읽고, 자세히 보고, 바로 문제로 확인해요. 두꺼운 수험서 없이도 흐름이 잡혀요.</p>
+      </div>
+    </article>
+    <article class="show-row">
+      <div class="show-art" data-scroll-tilt="1">
+        <div class="phone show-phone"><img src="shots/stats.webp" width="560" height="1218" alt="passQL 합격 준비도 화면" loading="lazy" decoding="async"></div>
+        <div class="show-chip" aria-hidden="true"><span class="ms" aria-hidden="true">speed</span>정답률 78%</div>
+      </div>
+      <div class="show-copy reveal">
+        <p class="kicker">합격 준비도</p>
+        <h3>내 실력,<br>숫자로 확인해요</h3>
+        <p>정답률과 영역별 약점, AI 분석으로 지금 어디가 약한지 알려 줘요. 약한 주제부터 다시 풀면 돼요.</p>
+      </div>
+    </article>
+  </div>
+</section>
 <section id="features" class="section band">
   <div class="wrap">
     <p class="kicker">기능</p>
     <h2>합격에 필요한 건 다 들어 있어요</h2>
     <p class="sec-lead">문제, 해설, 경향, 기록까지. 다른 교재나 앱을 오가지 않아도 돼요.</p>
     <div class="feature-grid">
-      <article class="feature reveal">
+      <article class="feature reveal" style="--reveal-order:0">
         <span class="feature-icon"><span class="ms" aria-hidden="true">local_fire_department</span></span>
         <h3>오늘의 세트</h3>
         <p>매일 모든 회원이 같은 5문제를 풀고 순위를 확인해요. 부담 없는 분량이라 매일 이어 가기 좋아요.</p>
       </article>
-      <article class="feature reveal">
-        <span class="feature-icon"><span class="ms" aria-hidden="true">trending_up</span></span>
-        <h3>최신 경향</h3>
-        <p>제58~62회 복원 기출과 수험생 후기를 분석했어요. 과목별 비중과 최근 늘어난 유형부터 풀 수 있어요.</p>
+      <article class="feature reveal" style="--reveal-order:1">
+        <span class="feature-icon"><span class="ms" aria-hidden="true">school</span></span>
+        <h3>단원별 개념 학습</h3>
+        <p>핵심, 자세히, 문제 세 단계로 단원을 익혀요. 꼭 기억할 것을 읽고 바로 문제로 확인해요.</p>
       </article>
-      <article class="feature reveal">
-        <span class="feature-icon"><span class="ms" aria-hidden="true">category</span></span>
-        <h3>주제별 · TOP 10</h3>
-        <p>데이터 모델링부터 윈도우 함수까지 9개 주제로 나눴어요. 자주 나오는 개념은 TOP 10으로 먼저 잡아요.</p>
-      </article>
-      <article class="feature reveal">
+      <article class="feature reveal" style="--reveal-order:2">
         <span class="feature-icon"><span class="ms" aria-hidden="true">terminal</span></span>
         <h3>보기 SQL 직접 실행</h3>
-        <p>보기의 SQL을 실제로 실행해 결과 표를 보여 줘요. 외우지 말고 왜 정답인지 눈으로 확인하세요.</p>
+        <p>제출하면 보기마다 실제 DB에서 SQL을 실행해요. 외우지 말고 결과 표로 확인하세요.</p>
       </article>
-      <article class="feature reveal">
+      <article class="feature reveal" style="--reveal-order:3">
+        <span class="feature-icon"><span class="ms" aria-hidden="true">compare_arrows</span></span>
+        <h3>내 답 vs 정답 비교</h3>
+        <p>틀리면 내가 고른 SQL과 정답 SQL의 실행 결과를 나란히 보여 줘요. 어디서 갈렸는지 바로 보여요.</p>
+      </article>
+      <article class="feature reveal" style="--reveal-order:0">
+        <span class="feature-icon"><span class="ms" aria-hidden="true">shuffle</span></span>
+        <h3>매번 새 선택지</h3>
+        <p>같은 문제도 풀 때마다 선택지가 새로 바뀌어요. 답을 외우지 않고 개념으로 풀게 돼요.</p>
+      </article>
+      <article class="feature reveal" style="--reveal-order:1">
         <span class="feature-icon"><span class="ms" aria-hidden="true">auto_awesome</span></span>
         <h3>AI 해설</h3>
         <p>정답 근거, 시험 팁, 핵심 개념을 정리하고 내가 고른 오답이 왜 틀렸는지 설명해요.</p>
       </article>
-      <article class="feature reveal">
+      <article class="feature reveal" style="--reveal-order:2">
+        <span class="feature-icon"><span class="ms" aria-hidden="true">trending_up</span></span>
+        <h3>최신 경향</h3>
+        <p>제58~62회 복원 기출과 수험생 후기를 분석했어요. 과목별 비중과 최근 늘어난 유형부터 풀 수 있어요.</p>
+      </article>
+      <article class="feature reveal" style="--reveal-order:3">
+        <span class="feature-icon"><span class="ms" aria-hidden="true">category</span></span>
+        <h3>주제별 · TOP 10</h3>
+        <p>데이터 모델링부터 윈도우 함수까지 9개 주제로 나눴어요. 자주 나오는 개념은 TOP 10으로 먼저 잡아요.</p>
+      </article>
+      <article class="feature reveal" style="--reveal-order:0">
         <span class="feature-icon"><span class="ms" aria-hidden="true">edit_note</span></span>
         <h3>오답 노트</h3>
         <p>틀린 문제는 오답 노트에 모여 다시 풀어요. 연습과 실전 풀이 모드를 골라 쓸 수 있어요.</p>
       </article>
-      <article class="feature reveal">
+      <article class="feature reveal" style="--reveal-order:1">
         <span class="feature-icon"><span class="ms" aria-hidden="true">speed</span></span>
         <h3>합격 준비도</h3>
-        <p>정확도, 학습 범위, 최신 경향 대비를 합쳐 지금 얼마나 준비됐는지 숫자로 보여 줘요.</p>
+        <p>정답률, 영역별 약점, AI 분석으로 지금 얼마나 준비됐는지, 어디를 더 풀지 보여 줘요.</p>
       </article>
-      <article class="feature reveal">
-        <span class="feature-icon"><span class="ms" aria-hidden="true">calendar_month</span></span>
-        <h3>시험 D-day · 달력</h3>
-        <p>푼 날이 달력에 쌓이고 연속 학습일이 이어져요. 시험까지 남은 날도 홈에서 바로 보여요.</p>
-      </article>
-      <article class="feature reveal">
+      <article class="feature reveal" style="--reveal-order:2">
         <span class="feature-icon"><span class="ms" aria-hidden="true">forum</span></span>
         <h3>토론</h3>
         <p>헷갈리는 문제는 다른 수험생과 이야기 나눠요. 같은 시험을 준비하는 사람들이 모여 있어요.</p>
       </article>
-      <article class="feature reveal">
+      <article class="feature reveal" style="--reveal-order:3">
         <span class="feature-icon"><span class="ms" aria-hidden="true">notifications_active</span></span>
-        <h3>알림</h3>
-        <p>오늘의 세트가 열리면, 시험이 다가오면 알려 드려요. 잊지 않고 매일 풀 수 있어요.</p>
+        <h3>알림 · D-day</h3>
+        <p>오늘의 세트가 열리면, 시험이 다가오면 알려 드려요. 시험까지 남은 날도 홈에서 바로 보여요.</p>
       </article>
     </div>
   </div>
@@ -326,7 +458,7 @@
         </div>
       </div>
     </div>
-    <div class="phone trend-phone"><img src="shots/trend.webp" width="560" height="1217" alt="passQL 최신 경향 화면. 제58~62회 분석 요약과 과목별 비중." loading="lazy" decoding="async"></div>
+    <div class="phone trend-phone"><img src="shots/trend.webp" width="560" height="1218" alt="passQL 최신 경향 화면. 제58~62회 분석 요약과 과목별 비중." loading="lazy" decoding="async"></div>
   </div>
   <div class="wrap">
     <ul class="patterns">
@@ -385,54 +517,43 @@
   </div>
   <div class="gallery" data-gallery tabindex="0" aria-label="앱 화면 모음, 옆으로 넘겨 보기">
       <figure class="shot">
-        <div class="phone "><img src="shots/home.webp" width="560" height="1217" alt="passQL 홈 화면. 오늘의 세트, 시험 D-day, 이번 시험 출제 경향" loading="lazy" decoding="async"></div>
-        <figcaption><strong>홈</strong><span>오늘의 세트, 시험 D-day, 이번 시험 출제 경향</span></figcaption>
+        <div class="phone "><img src="shots/execute.webp" width="560" height="1218" alt="passQL SQL 실행 화면. 보기마다 실제 DB에서 실행" loading="lazy" decoding="async"></div>
+        <figcaption><strong>SQL 실행</strong><span>보기마다 실제 DB에서 실행</span></figcaption>
       </figure>
       <figure class="shot">
-        <div class="phone "><img src="shots/trend.webp" width="560" height="1217" alt="passQL 최신 경향 화면. 과목별 비중과 늘어난 유형" loading="lazy" decoding="async"></div>
-        <figcaption><strong>최신 경향</strong><span>과목별 비중과 늘어난 유형</span></figcaption>
+        <div class="phone "><img src="shots/real.webp" width="560" height="1218" alt="passQL 매번 새 선택지 화면. 풀 때마다 바뀌는 보기" loading="lazy" decoding="async"></div>
+        <figcaption><strong>매번 새 선택지</strong><span>풀 때마다 바뀌는 보기</span></figcaption>
       </figure>
       <figure class="shot">
-        <div class="phone "><img src="shots/questions.webp" width="560" height="1217" alt="passQL 문제 화면. 주제별로 골라 풀기, 오답 노트, 풀이 모드" loading="lazy" decoding="async"></div>
-        <figcaption><strong>문제</strong><span>주제별로 골라 풀기, 오답 노트, 풀이 모드</span></figcaption>
-      </figure>
-      <figure class="shot">
-        <div class="phone "><img src="shots/execute.webp" width="560" height="1217" alt="passQL SQL 실행 화면. 보기 SQL을 실행해 결과 표 확인" loading="lazy" decoding="async"></div>
-        <figcaption><strong>SQL 실행</strong><span>보기 SQL을 실행해 결과 표 확인</span></figcaption>
-      </figure>
-      <figure class="shot">
-        <div class="phone "><img src="shots/ai.webp" width="560" height="1217" alt="passQL AI 해설 화면. 틀린 이유와 기억할 포인트" loading="lazy" decoding="async"></div>
+        <div class="phone "><img src="shots/ai.webp" width="560" height="1218" alt="passQL AI 해설 화면. 틀린 이유와 기억할 포인트" loading="lazy" decoding="async"></div>
         <figcaption><strong>AI 해설</strong><span>틀린 이유와 기억할 포인트</span></figcaption>
       </figure>
       <figure class="shot">
-        <div class="phone "><img src="shots/stats.webp" width="560" height="1217" alt="passQL 합격 준비도 화면. 정확도·범위·최신성, 학습 달력" loading="lazy" decoding="async"></div>
-        <figcaption><strong>합격 준비도</strong><span>정확도·범위·최신성, 학습 달력</span></figcaption>
+        <div class="phone "><img src="shots/concept-light.webp" width="560" height="1218" alt="passQL 개념 학습 화면. 단원별 꼭 기억할 것" loading="lazy" decoding="async"></div>
+        <figcaption><strong>개념 학습</strong><span>단원별 꼭 기억할 것</span></figcaption>
       </figure>
       <figure class="shot">
-        <div class="phone "><img src="shots/rank.webp" width="560" height="1217" alt="passQL 오늘의 순위 화면. 오늘의 세트 리더보드" loading="lazy" decoding="async"></div>
+        <div class="phone "><img src="shots/trend.webp" width="560" height="1218" alt="passQL 최신 경향 화면. 과목별 비중과 늘어난 유형" loading="lazy" decoding="async"></div>
+        <figcaption><strong>최신 경향</strong><span>과목별 비중과 늘어난 유형</span></figcaption>
+      </figure>
+      <figure class="shot">
+        <div class="phone "><img src="shots/stats.webp" width="560" height="1218" alt="passQL 내 실력 화면. 정답률, 영역별 약점, AI 분석" loading="lazy" decoding="async"></div>
+        <figcaption><strong>내 실력</strong><span>정답률, 영역별 약점, AI 분석</span></figcaption>
+      </figure>
+      <figure class="shot">
+        <div class="phone "><img src="shots/rank.webp" width="560" height="1218" alt="passQL 오늘의 순위 화면. 오늘의 세트 리더보드" loading="lazy" decoding="async"></div>
         <figcaption><strong>오늘의 순위</strong><span>오늘의 세트 리더보드</span></figcaption>
       </figure>
   </div>
 </section>
-<section id="plan" class="section band">
+<section id="plan" class="section">
   <div class="wrap narrow">
-    <p class="kicker">무료와 Pro</p>
-    <h2>무료로 시작하고, 필요할 때 Pro로</h2>
-    <p class="sec-lead">먼저 무료로 풀어 보고, 시험이 가까워지면 이용권으로 전부 열어요.</p>
-    <div class="plan-card">
-      <table class="plan">
-        <thead><tr><th scope="col"><span class="sr-only">항목</span></th><th scope="col">무료</th><th scope="col" class="plan-pro"><span class="ms" aria-hidden="true">workspace_premium</span>Pro</th></tr></thead>
-        <tbody>
-          <tr><th scope="row">문제 풀이</th><td>하루 일정량</td><td>제한 없음</td></tr>
-          <tr><th scope="row">AI 해설</th><td>한 줄 요약</td><td>보기별 전체</td></tr>
-          <tr><th scope="row">보기 SQL 직접 실행</th><td class="plan-no"><span class="ms" aria-hidden="true">remove</span><span class="sr-only">제공 안 함</span></td><td class="plan-yes"><span class="ms" aria-hidden="true">check_circle</span><span class="sr-only">포함</span></td></tr>
-          <tr><th scope="row">실전 모드 · 토픽</th><td class="plan-no"><span class="ms" aria-hidden="true">remove</span><span class="sr-only">제공 안 함</span></td><td class="plan-yes"><span class="ms" aria-hidden="true">check_circle</span><span class="sr-only">포함</span></td></tr>
-          <tr><th scope="row">최신 출제 경향</th><td class="plan-no"><span class="ms" aria-hidden="true">remove</span><span class="sr-only">제공 안 함</span></td><td class="plan-yes"><span class="ms" aria-hidden="true">check_circle</span><span class="sr-only">포함</span></td></tr>
-          <tr><th scope="row">학습 통계</th><td>기본</td><td>약점 분석</td></tr>
-        </tbody>
-      </table>
+    <div class="free-card reveal">
+      <span class="free-badge"><span class="ms" aria-hidden="true">celebration</span>0원</span>
+      <h2>지금은 모든 기능이 무료예요</h2>
+      <p class="sec-lead">SQL 실행, 보기별 AI 해설, 최신 경향, 개념 학습까지 전부 열려 있어요. 가입만 하면 바로 풀 수 있어요.</p>
+      <ul class="free-points"><li><span class="ms" aria-hidden="true">terminal</span>보기 SQL 직접 실행</li><li><span class="ms" aria-hidden="true">auto_awesome</span>보기별 AI 해설</li><li><span class="ms" aria-hidden="true">trending_up</span>최신 출제 경향</li><li><span class="ms" aria-hidden="true">school</span>단원별 개념 학습</li></ul>
     </div>
-    <p class="plan-note">Pro 이용권은 1개월·3개월 두 가지이며 자동 결제되지 않아요. 가격은 앱에서 확인할 수 있어요.</p>
   </div>
 </section>
 <section id="faq" class="section">
@@ -441,7 +562,7 @@
     <div class="faq">
       <details class="faq-item">
         <summary>passQL은 무료인가요?<span class="ms faq-chevron" aria-hidden="true">expand_more</span></summary>
-        <p>무료로 내려받아 바로 시작할 수 있어요. 무료로는 하루 일정량의 문제를 풀 수 있고, Pro 이용권(1개월·3개월)을 쓰면 문제를 제한 없이 풀고 SQL 실행, 보기별 전체 해설, 최신 출제 경향까지 열려요. 자동 결제는 없어요.</p>
+        <p>네, 무료로 내려받아 바로 시작할 수 있고 지금은 SQL 실행, 보기별 AI 해설, 최신 출제 경향까지 모든 기능이 열려 있어요. 나중에 Pro 이용권(1개월·3개월, 자동 결제 없음)이 생기면 무료로는 하루 일정량을 풀 수 있어요.</p>
       </details>
       <details class="faq-item">
         <summary>SQLD 시험 범위를 모두 다루나요?<span class="ms faq-chevron" aria-hidden="true">expand_more</span></summary>
@@ -464,8 +585,12 @@
         <p>네. passql.vercel.app 에서 로그인하면 앱과 같은 학습 기록으로 이어서 풀 수 있어요.</p>
       </details>
       <details class="faq-item">
-        <summary>Android 앱은 언제 나오나요?<span class="ms faq-chevron" aria-hidden="true">expand_more</span></summary>
-        <p>Google Play 출시를 준비하고 있어요. 그전에는 Android 휴대폰의 브라우저에서 웹으로 이용할 수 있어요.</p>
+        <summary>Android에서도 쓸 수 있나요?<span class="ms faq-chevron" aria-hidden="true">expand_more</span></summary>
+        <p>네. Google Play에서 passQL을 내려받을 수 있어요. iPhone은 App Store, PC는 웹에서 같은 계정으로 이어서 풀 수 있어요.</p>
+      </details>
+      <details class="faq-item">
+        <summary>개념 공부도 앱에서 할 수 있나요?<span class="ms faq-chevron" aria-hidden="true">expand_more</span></summary>
+        <p>네. 단원마다 꼭 기억할 것, 자세한 설명, 확인 문제를 순서대로 볼 수 있어요. 개념을 읽고 바로 문제로 확인해요.</p>
       </details>
     </div>
   </div>
@@ -473,12 +598,13 @@
 
 <section class="final-cta">
   <div class="wrap narrow">
-    <img class="final-mark" src="icon/mark.png" width="72" height="72" alt="" aria-hidden="true">
+    <img class="final-mark" src="icon/mark.png" width="88" height="88" alt="" aria-hidden="true">
     <h2>시험 전까지, 하루 5문제부터</h2>
     <p class="final-dday"><span class="ms" aria-hidden="true">event</span><span data-dday-inline>SQLD 제63회 · 2026년 11월 14일 (토)</span></p>
     <p class="sec-lead">오늘의 세트 한 번만 풀어 보세요. 어디가 약한지 바로 보여요.</p>
     <div class="cta">
-        <a class="btn btn-primary btn-store" href="https://apps.apple.com/kr/app/passql/id6762165005" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.8 1.2 1.8 2.6 3.1 2.5 1.3-.1 1.7-.8 3.2-.8s1.9.8 3.2.8c1.3 0 2.2-1.2 3-2.5.9-1.4 1.3-2.7 1.3-2.8 0 0-2.6-1-2.6-4.1zM13.9 5c.7-.8 1.2-2 1-3.1-1 0-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.4z"/></svg><span><small>무료 다운로드</small>App Store</span></a>
+        <a class="btn btn-primary btn-store btn-app-store" href="https://apps.apple.com/kr/app/passql/id6762165005" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.8 1.2 1.8 2.6 3.1 2.5 1.3-.1 1.7-.8 3.2-.8s1.9.8 3.2.8c1.3 0 2.2-1.2 3-2.5.9-1.4 1.3-2.7 1.3-2.8 0 0-2.6-1-2.6-4.1zM13.9 5c.7-.8 1.2-2 1-3.1-1 0-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.4z"/></svg><span><small>무료 다운로드</small>App Store</span></a>
+        <a class="btn btn-store btn-play" href="https://play.google.com/store/apps/details?id=com.coldredrice.passql" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 2.3 13.4 12l-9.8 9.7c-.4-.2-.6-.6-.6-1.1V3.4c0-.5.2-.9.6-1.1zm11 8.5 2.6-2.6 3.4 1.9c.9.5.9 1.8 0 2.3l-3.4 1.9-2.6-2.6-1.2-1.2zM5 1.6l10.8 6.2-2.4 2.4zm8.4 12.2 2.4 2.4L5 22.4z"/></svg><span><small>다운로드</small>Google Play</span></a>
         <a class="btn btn-ghost" href="https://passql.vercel.app" rel="noopener"><span class="ms" aria-hidden="true">language</span>웹에서 바로 풀기</a>
       </div>
   </div>

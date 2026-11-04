@@ -1,0 +1,249 @@
+/* passQL 소개 사이트 움직임·새 구역 (#823): 첫 화면 오로라·폰 화면 바꾸기·떠 있는 카드·주제 띠·숫자·기능 자세히·무료 안내
+   style.css 토큰만 사용, 스크롤 값(--lift, --tilt)은 site.js 가 0..1 로 넣음
+   동작 줄이기면 전부 정지 (맨 아래) */
+
+/* ── 첫 화면 오로라 배경 (흐릿한 빛 3개가 천천히 떠다님) ── */
+.hero:not(.hero-guide)::before { display: none; }
+.aurora { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.aurora span {
+  position: absolute; width: 46vmax; height: 46vmax; border-radius: 50%;
+  filter: blur(70px); opacity: 0.55; will-change: transform;
+}
+.aurora span:nth-child(1) { left: -12vmax; top: -16vmax; background: var(--accent-glow); animation: aurora-drift-a 18s ease-in-out infinite alternate; }
+.aurora span:nth-child(2) { right: -14vmax; top: 4vmax; background: rgba(175, 82, 222, 0.22); animation: aurora-drift-b 22s ease-in-out infinite alternate; }
+.aurora span:nth-child(3) { left: 20%; bottom: -24vmax; background: var(--accent-tint); animation: aurora-drift-a 26s ease-in-out infinite alternate-reverse; }
+@keyframes aurora-drift-a { to { transform: translate(8vmax, 6vmax) scale(1.12); } }
+@keyframes aurora-drift-b { to { transform: translate(-10vmax, 8vmax) scale(0.9); } }
+
+/* ── 첫 화면 앱 아이콘 (떠오름 + 빛 고리) ── */
+.hero-icon {
+  display: block; width: 84px; height: 84px; margin: 0 0 22px; border-radius: 20px;
+  box-shadow: 0 14px 34px -10px var(--accent-glow), 0 0 0 1px var(--line);
+  animation: icon-float 5s ease-in-out infinite;
+}
+@keyframes icon-float { 50% { transform: translateY(-6px); } }
+.hero-copy .eyebrow { margin-top: 0; }
+
+/* ── 첫 화면 폰: 겹친 캡처를 차례로 보여 줌 ── */
+.hero-art { min-height: 640px; perspective: 1400px; }
+.hero-stage {
+  position: relative; display: flex; flex-direction: column; align-items: center;
+  /* --lift: 0 화면 아래에서 들어올 때 > 1 제자리 (site.js) */
+  transform: rotateX(calc((1 - var(--lift, 1)) * 16deg)) translateY(calc((1 - var(--lift, 1)) * 40px)) scale(calc(0.94 + var(--lift, 1) * 0.06));
+  transform-origin: 50% 100%;
+}
+.hero-phone { width: 286px; }
+.screen-stack { position: relative; aspect-ratio: 560 / 1218; border-radius: 37px; overflow: hidden; }
+.screen-stack img {
+  position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 0;
+  opacity: 0; transform: scale(1.04); transition: opacity 0.7s var(--ease), transform 1.2s var(--ease);
+}
+.screen-stack img.is-active { z-index: 2; opacity: 1; transform: none; }
+.screen-stack img.is-previous { z-index: 1; opacity: 1; transform: none; transition: none; }
+/* 화면 위로 지나가는 빛 (화면이 바뀔 때 1회) */
+.phone-shine {
+  position: absolute; inset: 9px; border-radius: 37px; overflow: hidden; pointer-events: none;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.28) 50%, transparent 65%) no-repeat;
+  background-size: 250% 100%; background-position: 130% 0;
+}
+.phone-shine.is-sweeping { animation: shine-sweep 1.1s var(--ease); }
+@keyframes shine-sweep { from { background-position: 130% 0; } to { background-position: -40% 0; } }
+.screen-dots { display: flex; gap: 6px; margin-top: 18px; }
+.screen-dots span { width: 6px; height: 6px; border-radius: 999px; background: var(--line); transition: width 0.4s var(--ease), background 0.4s; }
+.screen-dots span.is-active { width: 22px; background: var(--accent); }
+
+/* 폰 옆 떠 있는 카드 3개 (서로 다른 박자로 둥실) */
+.float-card {
+  position: absolute; z-index: 3; display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px 10px 10px; border-radius: 16px;
+  background: var(--nav-bg); border: 1px solid var(--line); box-shadow: var(--shadow-phone);
+  -webkit-backdrop-filter: blur(14px) saturate(160%); backdrop-filter: blur(14px) saturate(160%);
+  font-size: 13px; line-height: 1.3; white-space: nowrap;
+  animation: card-bob 6s ease-in-out infinite;
+}
+.float-card > .ms {
+  display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; font-size: 20px;
+  background: var(--accent-tint); color: var(--accent-text); font-variation-settings: "FILL" 1; vertical-align: 0;
+}
+.float-card-1 > .ms { color: var(--correct); }
+.float-card strong { display: block; font-size: 14px; }
+.float-card small { display: block; color: var(--muted); font-size: 12px; }
+.float-card-1 { top: 12%; left: -36%; }
+.float-card-2 { top: 44%; right: -40%; animation-delay: -2s; }
+.float-card-3 { bottom: 16%; left: -30%; animation-delay: -4s; }
+@keyframes card-bob { 50% { transform: translateY(-10px); } }
+
+/* D-day 카드는 폰 아래로 */
+.hero-art .dday-card { left: auto; right: 0; bottom: 24px; z-index: 4; }
+
+/* ── 흐르는 주제 띠 ── */
+.marquee {
+  padding: 26px 0; border-block: 1px solid var(--line); background: var(--bg-soft); overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.marquee-row { display: flex; width: max-content; animation: marquee-move 38s linear infinite; }
+.marquee-row + .marquee-row { margin-top: 12px; }
+.marquee-row-reverse { animation-direction: reverse; animation-duration: 44s; }
+.marquee-track { display: flex; gap: 12px; margin: 0; padding: 0 12px 0 0; list-style: none; }
+.marquee-track li {
+  padding: 9px 18px; border-radius: 999px; white-space: nowrap; font-weight: 700; font-size: 15px;
+  background: var(--surface); border: 1px solid var(--line); color: var(--text);
+}
+.marquee-row-reverse .marquee-track li { background: var(--accent-tint); border-color: transparent; color: var(--accent-text); }
+@keyframes marquee-move { to { transform: translateX(-50%); } }
+
+/* ── 숫자로 보는 passQL ── */
+.stats-strip { padding: 64px 0 8px; }
+.stats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.stat { padding: 24px 20px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-card); text-align: center; }
+.stat p { margin: 0; }
+.stat-number { font-size: clamp(40px, 6vw, 56px); font-weight: 800; letter-spacing: -0.04em; line-height: 1.1; }
+.stat-number span {
+  background: linear-gradient(100deg, var(--accent) 10%, var(--accent-2) 90%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  font-variant-numeric: tabular-nums;
+}
+.stat-number small { margin-left: 2px; font-size: 0.42em; font-weight: 700; color: var(--muted); letter-spacing: 0; }
+.stat-label { margin-top: 6px !important; color: var(--muted); font-size: 15px; font-weight: 600; }
+
+/* ── 기능 자세히 (스크롤로 기울어지며 들어오는 폰) ── */
+.showcase { overflow: clip; }
+.show-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 64px; align-items: center; margin-top: 72px; }
+.show-row-flip .show-art { order: 2; }
+.show-art {
+  position: relative; display: flex; justify-content: center; perspective: 1200px;
+}
+.show-phone {
+  width: 280px;
+  /* --tilt: 0 들어오기 전 > 1 제자리, --tilt-direction: 1 왼쪽에서 / -1 오른쪽에서 (site.js) */
+  transform:
+    rotateY(calc((1 - var(--tilt, 1)) * var(--tilt-direction, 1) * -28deg))
+    rotateX(calc((1 - var(--tilt, 1)) * 10deg))
+    translateY(calc((1 - var(--tilt, 1)) * 70px))
+    scale(calc(0.86 + var(--tilt, 1) * 0.14));
+  opacity: calc(0.35 + var(--tilt, 1) * 0.65);
+}
+.show-art::before {
+  content: ""; position: absolute; z-index: -1; width: 78%; aspect-ratio: 1; top: 14%; border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-glow), transparent 68%); filter: blur(10px);
+  transform: scale(calc(0.6 + var(--tilt, 1) * 0.5));
+}
+.show-chip {
+  position: absolute; bottom: 18%; right: 6%; z-index: 2; display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px; border-radius: 999px; background: var(--accent); color: var(--on-accent);
+  font-weight: 700; font-size: 14px; box-shadow: var(--shadow-phone); white-space: nowrap;
+  transform: translateY(calc((1 - var(--tilt, 1)) * 40px)) scale(calc(0.7 + var(--tilt, 1) * 0.3));
+  opacity: var(--tilt, 1);
+}
+.show-chip .ms { font-variation-settings: "FILL" 1; }
+.show-row-flip .show-chip { right: auto; left: 6%; }
+.show-copy h3 { margin: 0 0 14px; font-size: clamp(28px, 3.6vw, 40px); letter-spacing: -0.03em; }
+.show-copy p:last-child { margin: 0; color: var(--muted); font-size: 18px; max-width: 30em; }
+
+/* ── 기능 카드 순서대로 등장 ── */
+.js .feature.reveal { transition-delay: calc(var(--reveal-order, 0) * 80ms); }
+.feature-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.feature { transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease); }
+.feature:hover { transform: translateY(-4px); box-shadow: var(--shadow-phone); }
+
+/* 최신 경향 막대: 화면에 들어오면 0에서 차오름 */
+.js .share-bar span { transform-origin: left; transform: scaleX(0); transition: transform 1.1s var(--ease); }
+.js .share.is-visible .share-bar span { transform: scaleX(1); }
+
+/* ── 화면 모음: 가운데 장일수록 크게 (site.js 가 --focus 0..1) ── */
+.gallery .shot .phone { transform: scale(calc(0.88 + var(--focus, 1) * 0.12)); transition: transform 0.2s linear; }
+.gallery .shot figcaption { opacity: calc(0.4 + var(--focus, 1) * 0.6); }
+
+/* ── 지금 모든 기능 무료 ── */
+.free-card {
+  position: relative; overflow: hidden; padding: 48px 40px; border-radius: var(--radius-lg); text-align: center;
+  background: linear-gradient(135deg, var(--accent) 0%, #7a5af0 55%, var(--accent-2) 100%); color: var(--on-accent);
+  box-shadow: var(--shadow-phone);
+}
+.free-card::after {
+  content: ""; position: absolute; inset: -40%; pointer-events: none;
+  background: conic-gradient(from 0deg, transparent 0 70%, rgba(255, 255, 255, 0.18) 80%, transparent 90%);
+  animation: free-spin 9s linear infinite;
+}
+@keyframes free-spin { to { transform: rotate(360deg); } }
+.free-card > * { position: relative; z-index: 1; }
+.free-card h2 { margin: 18px 0 10px; }
+.free-card .sec-lead { margin: 0 auto 26px; color: rgba(255, 255, 255, 0.86); }
+.free-badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2); font-size: 22px; font-weight: 800;
+}
+.free-badge .ms { font-variation-settings: "FILL" 1; }
+.free-points { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.free-points li {
+  display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16); font-weight: 700; font-size: 15px;
+}
+
+/* ── 마지막 다운로드: 아이콘 숨쉬는 빛 ── */
+.final-mark { border-radius: 22px; animation: icon-glow 3.2s ease-in-out infinite; }
+@keyframes icon-glow {
+  50% { box-shadow: 0 0 0 10px var(--accent-tint), 0 24px 50px -16px var(--accent-glow); transform: translateY(-4px); }
+}
+
+/* ── 반응형 ── */
+@media (max-width: 1120px) {
+  .feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 1000px) {
+  .hero-icon { margin-inline: auto; }
+  .hero-art { min-height: 0; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .show-row, .show-row-flip { grid-template-columns: 1fr; gap: 32px; margin-top: 64px; }
+  .show-row-flip .show-art { order: 0; }
+  .show-copy { text-align: center; }
+  .show-copy p:last-child { margin-inline: auto; }
+  .hero-art { flex-direction: column; }
+  .hero-art .dday-card { position: static; order: 2; margin-top: 20px; }
+}
+@media (max-width: 720px) {
+  .hero-icon { width: 72px; height: 72px; border-radius: 17px; margin-bottom: 18px; }
+  .hero-phone { width: 230px; }
+  .float-card { padding: 8px 12px 8px 8px; font-size: 12px; }
+  .float-card > .ms { width: 30px; height: 30px; font-size: 18px; }
+  .float-card strong { font-size: 13px; }
+  .float-card-1 { top: 10%; left: -22%; }
+  .float-card-2 { top: 42%; right: -24%; }
+  .float-card-3 { bottom: 18%; left: -18%; }
+  /* 모바일은 첫 화면 위 D-day 알약이 대신함 */
+  .hero-art .dday-card { display: none; }
+  .hero-art { padding-top: 24px; }
+  .marquee { padding: 18px 0; }
+  .marquee-track li { padding: 7px 14px; font-size: 14px; }
+  .stats-strip { padding: 48px 0 0; }
+  .stats { gap: 10px; }
+  .stat { padding: 18px 12px; }
+  .stat-label { font-size: 13px; }
+  .show-phone { width: 236px; }
+  .show-chip { font-size: 13px; padding: 8px 13px; bottom: 12%; right: 0; }
+  .show-row-flip .show-chip { left: 0; }
+  .show-copy p:last-child { font-size: 16px; }
+  .feature-grid { grid-template-columns: 1fr; gap: 10px; }
+  .feature { padding: 16px 18px; }
+  .feature p { font-size: 14px; line-height: 1.6; }
+  .show-chip { right: 8px; }
+  .show-row-flip .show-chip { left: 8px; }
+  .show-copy .kicker { margin-top: 8px; }
+  .free-card { padding: 36px 20px; }
+}
+
+/* 동작 줄이기: 반복 움직임·스크롤 기울기 끔, 첫 화면 캡처 1장 고정 */
+@media (prefers-reduced-motion: reduce) {
+  .aurora span, .hero-icon, .float-card, .marquee-row, .free-card::after, .final-mark { animation: none; }
+  .hero-stage, .show-phone, .show-chip, .show-art::before, .gallery .shot .phone { transform: none; opacity: 1; }
+  .js .share-bar span { transform: none; transition: none; }
+  .js .feature.reveal { transition-delay: 0s; }
+  .marquee-row { flex-wrap: wrap; width: auto; justify-content: center; }
+  .marquee-track[aria-hidden="true"] { display: none; }
+}
+
+/* Play 버튼: 기본은 테두리 버튼, Android 방문자(html.is-android, site.js)는 Play 가 앞·진하게 */
+.btn-play { background: var(--surface); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-card); }
+.is-android .btn-play { order: -1; background: var(--text); color: var(--bg); border-color: transparent; }
+.is-android .btn-app-store { background: var(--surface); color: var(--text); border: 1px solid var(--line); }

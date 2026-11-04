@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-"""첫 화면(index) 생성 (#650): 첫 화면 > 고민 > 기능 > 학습 흐름 > 최신 경향 > 범위 > 화면 > 요금 > FAQ > 다운로드
-문구는 site_content.py, 모양은 style.css, 동작(D-day·등장 효과·화면 넘기기)은 site.js
+"""첫 화면(index) 생성 (#650, #823): 첫 화면 > 주제 띠 > 숫자 > 고민 > 기능 자세히 > 기능 > 학습 흐름 > 최신 경향
+> 범위 > 화면 > 무료 안내 또는 요금 > FAQ > 다운로드
+문구는 site_content.py, 모양은 style.css·effects.css, 동작(D-day·화면 바꾸기·스크롤 효과·숫자)은 site.js
 """
 
 import site_content as content
@@ -8,19 +9,13 @@ from site_head import (
     build_app_json_ld, build_faq_json_ld, escape, render_faq_section, render_footer,
     render_head, render_nav, render_store_buttons, render_subject_cards, render_symbol,
 )
+from site_showcase import (
+    render_free_now_section, render_hero_phone, render_marquee, render_phone, render_showcase_section,
+    render_stat_counters,
+)
 
 # 상단 바 구역 링크: (앵커, 이름)
-HOME_SECTION_LINKS = [("#features", "기능"), ("#trend", "최신 경향"), ("#faq", "자주 묻는 질문")]
-# 캡처 원본 크기 비율 (1206x2622 > WebP 560 폭)
-SCREENSHOT_WIDTH_PIXELS = 560
-SCREENSHOT_HEIGHT_PIXELS = 1217
-
-
-def render_phone(file_name, alt_text, extra_class="", is_lazy=True):
-    """폰 테두리 목업 + 앱 캡처"""
-    loading = ' loading="lazy" decoding="async"' if is_lazy else ' fetchpriority="high"'
-    return (f'<div class="phone {extra_class}"><img src="shots/{file_name}" width="{SCREENSHOT_WIDTH_PIXELS}" '
-            f'height="{SCREENSHOT_HEIGHT_PIXELS}" alt="{escape(alt_text)}"{loading}></div>')
+HOME_SECTION_LINKS = [("#showcase", "기능"), ("#trend", "최신 경향"), ("#faq", "자주 묻는 질문")]
 
 
 def render_hero():
@@ -29,8 +24,10 @@ def render_hero():
     )
     return f"""
 <header class="hero">
+  <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
   <div class="wrap hero-in">
     <div class="hero-copy">
+      <img class="hero-icon" src="icon/mark.png" width="84" height="84" alt="" aria-hidden="true">
       <p class="eyebrow">{render_symbol("check_circle")}{escape(content.HERO_EYEBROW)}</p>
       <p class="hero-dday" data-dday-show hidden>{render_symbol("event")}{escape(content.NEXT_EXAM_NAME)}까지 <strong data-dday-label></strong></p>
       <h1>{escape(content.HERO_TITLE_LEAD)}<br><span class="hl">{escape(content.HERO_TITLE_HIGHLIGHT)}</span> {escape(content.HERO_TITLE_TAIL)}</h1>
@@ -41,8 +38,7 @@ def render_hero():
     </div>
     <div class="hero-art">
       {render_dday_card()}
-      {render_phone(content.HERO_BACK_SCREENSHOT, "passQL 문제 화면. 주제별 목록, 오답 노트, 풀이 모드.", "phone-back")}
-      {render_phone(content.HERO_FRONT_SCREENSHOT, "passQL 홈 화면. 오늘의 5문제, SQLD 63회 D-day, 이번 시험 출제 경향 카드.", "phone-front", is_lazy=False)}
+      {render_hero_phone()}
     </div>
   </div>
 </header>"""
@@ -84,12 +80,12 @@ def render_pain_section():
 def render_feature_section():
     cards = "".join(
         f"""
-      <article class="feature reveal">
+      <article class="feature reveal" style="--reveal-order:{index % 4}">
         <span class="feature-icon">{render_symbol(icon_name)}</span>
         <h3>{escape(title)}</h3>
         <p>{escape(text)}</p>
       </article>"""
-        for icon_name, title, text in content.FEATURES
+        for index, (icon_name, title, text) in enumerate(content.FEATURES)
     )
     return f"""
 <section id="features" class="section band">
@@ -245,7 +241,7 @@ def render_final_cta():
     return f"""
 <section class="final-cta">
   <div class="wrap narrow">
-    <img class="final-mark" src="icon/mark.png" width="72" height="72" alt="" aria-hidden="true">
+    <img class="final-mark" src="icon/mark.png" width="88" height="88" alt="" aria-hidden="true">
     <h2>{escape(content.FINAL_CTA_TITLE)}</h2>
     <p class="final-dday">{render_symbol("event")}<span data-dday-inline>{escape(content.NEXT_EXAM_NAME)} · {escape(content.NEXT_EXAM_DATE_LABEL)}</span></p>
     <p class="sec-lead">{escape(content.FINAL_CTA_LEAD)}</p>
@@ -273,9 +269,10 @@ def render_home_page():
         [build_app_json_ld(), build_website_json_ld(), build_faq_json_ld(content.HOME_FAQS)],
     )
     body = "".join([
-        '\n<main id="main">', render_hero(), render_pain_section(), render_feature_section(),
-        render_flow_section(), render_trend_section(), render_scope_section(), render_screen_gallery(),
-        render_plan_section(), "\n" + render_faq_section(content.HOME_FAQS), render_final_cta(), "\n</main>\n",
+        '\n<main id="main">', render_hero(), render_marquee(), render_stat_counters(), render_pain_section(),
+        render_showcase_section(), render_feature_section(), render_flow_section(), render_trend_section(),
+        render_scope_section(), render_screen_gallery(), render_free_now_section(), render_plan_section(),
+        "\n" + render_faq_section(content.HOME_FAQS), render_final_cta(), "\n</main>\n",
     ])
     return (head + render_nav(root, HOME_SECTION_LINKS) + body
             + '<script src="site.js" defer></script>\n' + render_footer(root))

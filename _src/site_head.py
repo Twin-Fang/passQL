@@ -13,10 +13,10 @@ def escape(text):
 
 # Material Symbols 아이콘 이름 원본 (웹폰트 icon_names 부분 집합 > 쓰는 글리프만 내려받음)
 MATERIAL_SYMBOL_NAMES = frozenset({
-    "arrow_forward", "auto_awesome", "calendar_month", "category", "check_circle", "chevron_left",
-    "chevron_right", "close", "download", "edit_note", "event", "expand_more", "forum", "help",
+    "arrow_forward", "auto_awesome", "calendar_month", "category", "celebration", "check_circle", "chevron_left",
+    "chevron_right", "close", "compare_arrows", "download", "edit_note", "event", "expand_more", "forum", "help",
     "language", "local_fire_department", "mail", "menu_book", "notifications_active", "remove",
-    "schedule", "speed", "terminal", "trending_up", "update", "workspace_premium",
+    "schedule", "school", "shuffle", "speed", "terminal", "trending_up", "update", "workspace_premium",
 })
 # 글꼴: 본문 Pretendard, 아이콘 Material Symbols Rounded (채움 0..1 축만)
 PRETENDARD_STYLESHEET_URL = "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
@@ -81,6 +81,7 @@ def render_head(title, description, path, root, json_ld_items=(), is_indexable=T
 <link rel="stylesheet" href="{PRETENDARD_STYLESHEET_URL}">
 <link rel="stylesheet" href="{escape(MATERIAL_SYMBOLS_STYLESHEET_URL)}">
 <link rel="stylesheet" href="{root}style.css">
+<link rel="stylesheet" href="{root}effects.css">
 <script>document.documentElement.classList.add("js")</script>
 {json_ld_blocks}</head>
 """
@@ -101,7 +102,7 @@ def render_nav(root, section_links=()):
     </a>
     <div class="nav-links">{section_anchors}
       <a href="{root}sqld/">SQLD 안내</a>
-      <a class="nav-cta" href="{content.APP_STORE_URL}" rel="noopener">{render_symbol("download")}앱 받기</a>
+      <a class="nav-cta" href="{content.APP_STORE_URL}" rel="noopener"{render_play_link_attribute()}>{render_symbol("download")}앱 받기</a>
     </div>
   </div>
 </nav>
@@ -112,16 +113,21 @@ APPLE_LOGO_SVG = ('<svg width="20" height="20" viewBox="0 0 24 24" fill="current
 GOOGLE_PLAY_LOGO_SVG = ('<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 2.3 13.4 12l-9.8 9.7c-.4-.2-.6-.6-.6-1.1V3.4c0-.5.2-.9.6-1.1zm11 8.5 2.6-2.6 3.4 1.9c.9.5.9 1.8 0 2.3l-3.4 1.9-2.6-2.6-1.2-1.2zM5 1.6l10.8 6.2-2.4 2.4zm8.4 12.2 2.4 2.4L5 22.4z"/></svg>')
 
 
+def render_play_link_attribute():
+    """Android 방문자에게 Play 주소로 바꿔 줄 data 속성 (site.js, Play 공개일 때만)"""
+    return f' data-android-href="{content.PLAY_STORE_URL}"' if content.IS_PLAY_STORE_PUBLIC else ""
+
+
 def render_store_buttons(root, extra_class=""):
     """다운로드 버튼: App Store + (Play 공개 시 Play) + 웹"""
     play_button = (
         f"""
-        <a class="btn btn-store" href="{content.PLAY_STORE_URL}" rel="noopener">{GOOGLE_PLAY_LOGO_SVG}<span><small>다운로드</small>Google Play</span></a>"""
+        <a class="btn btn-store btn-play" href="{content.PLAY_STORE_URL}" rel="noopener">{GOOGLE_PLAY_LOGO_SVG}<span><small>다운로드</small>Google Play</span></a>"""
         if content.IS_PLAY_STORE_PUBLIC else ""
     )
     class_names = f"cta {extra_class}".strip()
     return f"""<div class="{class_names}">
-        <a class="btn btn-primary btn-store" href="{content.APP_STORE_URL}" rel="noopener">{APPLE_LOGO_SVG}<span><small>무료 다운로드</small>App Store</span></a>{play_button}
+        <a class="btn btn-primary btn-store btn-app-store" href="{content.APP_STORE_URL}" rel="noopener">{APPLE_LOGO_SVG}<span><small>무료 다운로드</small>App Store</span></a>{play_button}
         <a class="btn btn-ghost" href="{content.WEB_APP_URL}" rel="noopener">{render_symbol("language")}웹에서 바로 풀기</a>
       </div>"""
 
@@ -216,7 +222,7 @@ def build_app_json_ld():
         "@type": "MobileApplication",
         "name": "passQL",
         "alternateName": ["패스큐엘", "passQL SQLD"],
-        "description": "책 없이 앱 하나로 SQLD 준비. 최신 출제 경향 문제, 보기 SQL 직접 실행, AI 해설, 매일 5문제 오늘의 세트, 오답 노트, 합격 준비도.",
+        "description": "책 없이 앱 하나로 SQLD 준비. 최신 출제 경향 문제, 보기 SQL 직접 실행, AI 해설, 단원별 개념 학습, 매일 5문제 오늘의 세트, 오답 노트, 합격 준비도.",
         "applicationCategory": "EducationalApplication",
         "operatingSystem": "iOS, Android, Web",
         "inLanguage": "ko",
