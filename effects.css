@@ -10,7 +10,7 @@
   filter: blur(70px); opacity: 0.55; will-change: transform;
 }
 .aurora span:nth-child(1) { left: -12vmax; top: -16vmax; background: var(--accent-glow); animation: aurora-drift-a 18s ease-in-out infinite alternate; }
-.aurora span:nth-child(2) { right: -14vmax; top: 4vmax; background: rgba(175, 82, 222, 0.22); animation: aurora-drift-b 22s ease-in-out infinite alternate; }
+.aurora span:nth-child(2) { right: -14vmax; top: 4vmax; background: color-mix(in srgb, var(--accent-2) 22%, transparent); animation: aurora-drift-b 22s ease-in-out infinite alternate; }
 .aurora span:nth-child(3) { left: 20%; bottom: -24vmax; background: var(--accent-tint); animation: aurora-drift-a 26s ease-in-out infinite alternate-reverse; }
 @keyframes aurora-drift-a { to { transform: translate(8vmax, 6vmax) scale(1.12); } }
 @keyframes aurora-drift-b { to { transform: translate(-10vmax, 8vmax) scale(0.9); } }
@@ -158,7 +158,7 @@
 /* ── 지금 모든 기능 무료 ── */
 .free-card {
   position: relative; overflow: hidden; padding: 48px 40px; border-radius: var(--radius-lg); text-align: center;
-  background: linear-gradient(135deg, var(--accent) 0%, #7a5af0 55%, var(--accent-2) 100%); color: var(--on-accent);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%); color: var(--on-accent);
   box-shadow: var(--shadow-phone);
 }
 .free-card::after {

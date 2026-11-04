@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """사이트 아이콘·공유 이미지 생성 (#823): 앱 아이콘 원본 1장 > mark·favicon·og
 실행: python3 -I _src/build_icons.py <main 레포 루트>  (gh-pages 루트에서)
-원본: main brand/app_icon_1024.png (#766), 글꼴 app/assets/fonts/Pretendard-*, 캡처 shots/execute.webp
+원본: main brand/app_icon_1024.png (#766)·brand-colors.json, 글꼴 app/assets/fonts/Pretendard-*, 캡처 shots/execute.webp
 og 는 Chrome 헤드리스로 찍음 (글꼴·한글 조판을 브라우저에 맡김)
 """
 
+import json
 import os
 import subprocess
 import sys
@@ -28,14 +29,14 @@ OG_TEMPLATE = """<!doctype html><html lang="ko"><head><meta charset="utf-8"><sty
 @font-face {{ font-family: P; src: url("{font_dir}/Pretendard-Bold.ttf"); font-weight: 800; }}
 @font-face {{ font-family: P; src: url("{font_dir}/Pretendard-SemiBold.ttf"); font-weight: 600; }}
 html, body {{ margin: 0; width: 1200px; height: 630px; overflow: hidden; }}
-body {{ font-family: P, sans-serif; background: linear-gradient(135deg, #f7f6ff 0%, #ecebff 55%, #dcdaff 100%); color: #0b0b12; position: relative; }}
+body {{ font-family: P, sans-serif; background: linear-gradient(135deg, {gradient_top} 0%, {gradient_bottom} 100%); color: #0b0b12; position: relative; }}
 .copy {{ position: absolute; left: 80px; top: 92px; width: 640px; }}
 .brand {{ display: flex; align-items: center; gap: 20px; font-size: 40px; font-weight: 800; letter-spacing: -0.02em; }}
 .brand img {{ width: 92px; height: 92px; border-radius: 22px; box-shadow: 0 12px 30px rgba(72, 70, 194, 0.28); }}
 h1 {{ margin: 44px 0 0; font-size: 76px; line-height: 1.12; letter-spacing: -0.035em; font-weight: 800; }}
-h1 span {{ color: #4846c2; }}
+h1 span {{ color: {accent}; }}
 p {{ margin: 30px 0 0; font-size: 28px; font-weight: 600; color: #545463; }}
-.stores {{ margin-top: 26px; font-size: 24px; font-weight: 600; color: #4846c2; }}
+.stores {{ margin-top: 26px; font-size: 24px; font-weight: 600; color: {accent}; }}
 .phone {{ position: absolute; right: 70px; top: 70px; width: 300px; padding: 10px; border-radius: 52px; background: #101015;
   transform: rotate(8deg); box-shadow: 0 40px 80px -20px rgba(40, 36, 120, 0.5); }}
 .phone img {{ display: block; width: 100%; border-radius: 42px; }}
@@ -58,9 +59,12 @@ def write_resized_icons(brand_icon):
     brand_icon.save(SITE_ROOT / "favicon.ico", sizes=FAVICON_ICO_SIZES)
 
 
-def write_open_graph_image(brand_icon_path, font_dir):
-    """공유 이미지: 템플릿 채움 > Chrome 캡처 > 크기 검증"""
+def write_open_graph_image(brand_icon_path, font_dir, brand_colors):
+    """공유 이미지: 템플릿 채움(배경·강조색은 brand-colors.json) > Chrome 캡처 > 크기 검증"""
     page_html = OG_TEMPLATE.format(
+        gradient_top=brand_colors["appIconGradient"]["top"],
+        gradient_bottom=brand_colors["appIconGradient"]["bottom"],
+        accent=brand_colors["accent"]["light"],
         font_dir=Path(font_dir).resolve().as_uri(),
         icon_uri=Path(brand_icon_path).resolve().as_uri(),
         shot_uri=(SITE_ROOT / "shots" / "execute.webp").as_uri(),
@@ -90,7 +94,8 @@ def main():
     brand_icon_path = main_root / "brand" / "app_icon_1024.png"
     brand_icon = Image.open(brand_icon_path).convert("RGB")
     write_resized_icons(brand_icon)
-    write_open_graph_image(brand_icon_path, main_root / "app" / "assets" / "fonts")
+    brand_colors = json.loads((main_root / "brand" / "brand-colors.json").read_text(encoding="utf-8"))
+    write_open_graph_image(brand_icon_path, main_root / "app" / "assets" / "fonts", brand_colors)
     print("[site icons] wrote mark, favicon-32, favicon-180, favicon.ico, og")
 
 
