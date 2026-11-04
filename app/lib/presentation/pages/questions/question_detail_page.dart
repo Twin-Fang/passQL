@@ -40,7 +40,7 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
   /// 이번 로드 실패의 프로 접근 안내를 띄웠는지 (다시 시도하면 내림)
   late bool _isProAccessNoticed = widget.isPushEntry;
 
-  /// 상세 실패 1회 안내: 프로 접근 오류면 시트·토스트 > 시트로 프로가 됐을 때만 다시 받기
+  /// 상세 실패 1회 안내: 프로 접근 오류면 시트·토스트 > 시트로 열렸을 때만(프로 전환·광고 보너스) 다시 받기
   void _showProAccessFeedbackOnce(Object error) {
     if (_isProAccessNoticed) return;
     _isProAccessNoticed = true;

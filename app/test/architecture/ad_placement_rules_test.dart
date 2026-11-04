@@ -38,6 +38,8 @@ const Map<String, String> _allowedAdModuleUsers = {
       '오늘의 세트를 막 끝낸 결과 화면 진입 전면 광고',
   'lib/presentation/pages/questions/chapter_result_page.dart':
       '챕터를 끝까지 푼 결과 화면 진입 전면 광고',
+  'lib/presentation/widgets/dev_tools/dev_tools_sheet.dart':
+      '개발자 도구 광고 구역 (디버그·개발용 빌드에서만 보임, 테스트 광고, #809)',
   'lib/presentation/widgets/pro/pro_offer_sheet.dart':
       '무료 하루 한도로 열린 이용권 시트에서 사용자가 눌러 보는 보상형 광고 버튼 1개 (#808)',
 };

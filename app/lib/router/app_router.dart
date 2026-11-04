@@ -48,6 +48,9 @@ final _rootKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 /// - StatefulShellRoute: 바텀 탭 5개 (홈/개념/문제/토론/프로필, 개념은 이용 가능할 때만 보임), 탭별 상태 유지
 /// - 루트 라우트: 풀스크린 페이지 (챕터, 챕터 결과, 문제 상세, 결과)
 abstract final class AppRouter {
+  /// 최상위 Navigator 키 (라우터 바깥 위젯이 시트를 띄울 때, 예: 개발자 도구 #809)
+  static GlobalKey<NavigatorState> get rootNavigatorKey => _rootKey;
+
   /// 로그인 여부. main 에서 인증 상태를 구독해 갱신하고, 값이 바뀌면 라우터가 redirect 를 다시 평가한다.
   static final ValueNotifier<bool> authenticated = ValueNotifier<bool>(false);
 

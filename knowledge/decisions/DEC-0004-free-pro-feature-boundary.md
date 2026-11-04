@@ -7,7 +7,7 @@ topics: [billing]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0003-free-pro-plan-android-exam-pass]]"]
+related: ["[[ISS-0003-free-pro-plan-android-exam-pass]]", "[[DEC-0239-free-daily-limit-bonus-three-kinds]]"]
 ---
 
 # DEC-0004: 무료/프로 기능 경계 — 무료도 계속 쓸 수 있되 쓸수록 프로가 아쉬운 구조

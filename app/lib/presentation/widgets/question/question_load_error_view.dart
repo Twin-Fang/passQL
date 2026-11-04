@@ -74,7 +74,7 @@ class QuestionLoadErrorView extends ConsumerWidget {
     );
   }
 
-  /// '이용권으로 열기': 프로 접근 안내 공통 지점 > 시트로 프로가 되면 다시 받기
+  /// '이용권으로 열기': 프로 접근 안내 공통 지점 > 시트로 열리면(프로 전환·광고 보너스) 다시 받기
   Future<void> _openProOffer(BuildContext context, WidgetRef ref) async {
     final feedbackResult = await showProAccessFeedback(context, ref, error);
     if (feedbackResult == ProAccessFeedbackResult.sheetUnlocked) onRetry();

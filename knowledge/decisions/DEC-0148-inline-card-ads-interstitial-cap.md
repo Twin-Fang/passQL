@@ -4,10 +4,10 @@ id: DEC-0148
 created: 2026-10-18
 reviewed: null
 topics: [ads]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
-related: ["[[ISS-0320-ads-cards-notification-sheet-home]]", "[[ISS-0320-ads-cards-notification-sheet-home-report]]", "[[DEC-0153-single-native-strip-under-tab-bar]]"]
+superseded_by: DEC-0238
+related: ["[[ISS-0320-ads-cards-notification-sheet-home]]", "[[ISS-0320-ads-cards-notification-sheet-home-report]]", "[[DEC-0153-single-native-strip-under-tab-bar]]", "[[DEC-0238-app-open-ad-and-interstitial-cap-retune]]"]
 ---
 
 # DEC-0148: 홈·통계에는 앱 카드 모양 인라인 광고, 전면 광고는 첫 결과 2회 건너뛰고 5분 간격·하루 3회
