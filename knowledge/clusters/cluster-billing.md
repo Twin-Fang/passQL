@@ -2,7 +2,7 @@
 type: cluster
 topic: billing
 created: 2026-10-29
-members: 33
+members: 34
 status: active
 related: []
 ---
@@ -32,12 +32,15 @@ related: []
 - [[DEC-0244-promo-code-store-codes-only]] — 프로모션 코드는 스토어 코드만(iOS 오퍼 코드, Android Play 프로모 코드), 자체 서버 코드 없음(가이드라인 3.1.1), 운영 보상은 관리자 부여 유지
 - [[DEC-0245-free-limit-daily-reset-kept]] — 무료 한도 초기화는 하루(KST 0시) 유지, 시간 충전 안 함
 
+- [[DEC-0247-promo-site-free-banner-while-billing-off]] — 결제 스위치가 꺼진 동안 소개 사이트는 비교표 대신 "지금은 모든 기능이 무료" 안내 (`IS_PRO_PLAN_VISIBLE`)
+
 ## 대체된 결정 (역사)
 - [[DEC-0001-pro-monthly-yearly-subscription]] → DEC-0002
 - [[DEC-0002-exam-pass-until-next-sqld]] → DEC-0003
 - [[DEC-0208-pass-ticket-fields-unified]] → DEC-0243
 
 ## 관련 이슈
+- [[ISS-0450-promo-site-dynamic-revamp]] (resolved, GitHub #823) — 소개 사이트 무료 안내(결제 꺼짐 동안)
 - [[ISS-0448-mypage-account-pass-area-promo-code]] (resolved, GitHub #816) — 마이페이지 계정·이용권 영역과 결제 유도, 할인 표시, 프로모션 코드
 - [[ISS-0447-full-screen-ad-show-failure-bonus-retry]] (resolved, GitHub #814) — 광고 표시 실패 시 전체 화면 광고 멈춤, 보너스 요청 재시도 없음
 - [[ISS-0443-free-daily-limit-bonus]] (resolved, GitHub #808) — 무료 하루 한도 보너스 (오늘의 세트 완료·정답률·보상형 광고)
