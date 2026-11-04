@@ -18,7 +18,7 @@ import java.util.Map;
 
 /**
  * 선택지 세트 AI 요청 조립: 유형 2개(SQL 보기, 개념) 문맥·프롬프트·응답 스키마, 재시도 피드백
- * 결과 표 문제(RESULT_MATCH)도 SQL 보기로 요청하고 서버가 실행 결과 표로 바꿈 (#828)
+ * 결과 표 문제(RESULT_MATCH)는 전용 프롬프트로 오해 SQL 을 요청하고 서버가 실행 결과 표로 바꿈 (#828, 지시문은 DB 프롬프트에만)
  * 공통 응답 스키마 1개 + 유형별 문맥·user prompt 치환
  */
 @Component
@@ -57,22 +57,6 @@ public class ChoiceSetGenerationRequestFactory {
             - 1개 선택지: 샘플 데이터 기준으로 실행 결과가 다른 SQL (is_correct=true)
             - 같은 결과 3개는 행 수·값·컬럼 수까지 모두 같아야 한다. 샘플 데이터(NULL 포함)로 직접 계산해 확인할 것
             - 다른 결과 1개는 NULL 처리, 집계 범위 등 학습 포인트가 드러나는 차이로 만들 것""";
-    // RESULT_MATCH user prompt 추가 지시: 화면에는 SQL 대신 실행 결과 표만 보임 > 오답은 수험생 오해를 SQL 로 재현 (#828)
-    private static final String RESULT_TABLE_INSTRUCTION = """
-
-
-            [유형 지시 — 위 지시보다 우선]
-            이 문제는 수험생이 [기준 SQL]의 실행 결과 표를 고르는 유형이다. 화면에는 선택지 SQL 이 아니라 그 SQL 을 실제로 실행한 결과 표만 보인다.
-            - 정답 1개(is_correct=true): 기준 SQL 과 결과가 완전히 같은 SQL
-            - 오답 3개(is_correct=false): 수험생이 기준 SQL 을 잘못 이해했을 때 머릿속으로 계산하는 결과를 그대로 내는 SQL. 오답마다 서로 다른 오해 하나를 담는다
-              (NULL 이 섞인 집계·비교, COUNT(*) <-> COUNT(컬럼), 조인으로 빠지거나 늘어나는 행, WHERE <-> HAVING 적용 시점, 중복 제거, 서브쿼리 범위, 정렬·순위 순서 등에서 이 문제에 맞는 것)
-            - 4개 결과는 서로 모두 달라야 한다. 오답끼리 같은 결과도 안 된다
-            - 결과 열 이름·순서·개수는 4개 모두 기준 SQL 과 똑같이 둔다 (열이 다르면 표 머리글만 보고 지워진다)
-            - 오답 결과가 0행이 되거나 실행 오류가 나는 SQL 은 쓰지 않는다
-            - 오답은 정답과 한두 칸만 다르게 만들어 결과 표만 보고는 바로 지울 수 없게 한다
-            - rationale 에는 그 오해와 결과가 어떻게 달라지는지를 수험생 눈높이 한 문장으로 적는다 (SQL 문장 언급 금지)
-            - 요청마다 오해 조합을 새로 골라 같은 문제도 매번 다른 함정이 되게 한다""";
-
     /**
      * SQL 보기 요청 조립(AI_ONLY·ODD_ONE_OUT·RESULT_MATCH): 기준 실행 결과 치환 > 동치 SQL 피드백 > 유형 지시 > 직전 실행 결과 피드백
      * expectedResult null: 템플릿에 {answer_result} 없음 (치환 생략)
@@ -95,10 +79,6 @@ public class ChoiceSetGenerationRequestFactory {
             }
             feedback.append("위 SQL과 다른 표현/문법으로 명확히 다른 결과를 내는 오답 SQL을 생성해야 한다.");
             userTemplate = userTemplate + feedback;
-        }
-        // 결과 표 고르기 유형: 실행 결과 표 출제 지시 추가 (#828)
-        if (question.getChoiceSetPolicy() == ChoiceSetPolicy.RESULT_MATCH) {
-            userTemplate = userTemplate + RESULT_TABLE_INSTRUCTION;
         }
         // 결과가 다른 것 고르기 유형: 3:1 출제 지시 추가
         if (question.getChoiceSetPolicy() == ChoiceSetPolicy.ODD_ONE_OUT) {

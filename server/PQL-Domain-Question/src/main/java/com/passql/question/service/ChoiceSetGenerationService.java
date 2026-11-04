@@ -38,6 +38,8 @@ public class ChoiceSetGenerationService {
     private static final String PROMPT_KEY = "generate_choice_set";
     // CONCEPT_ONLY 전용 프롬프트 키 — Sandbox 없이 텍스트 선택지 생성
     private static final String CONCEPT_PROMPT_KEY = "generate_choice_set_concept";
+    // RESULT_MATCH 전용 프롬프트 키 (v3 이상: 오해 SQL 4개 후보, 지시문은 운영 DB 에만, #828)
+    private static final String RESULT_MATCH_PROMPT_KEY = "generate_choice_set_result_match";
     // ODD_ONE_OUT 전용 프롬프트 키 — 기준과 같은 결과 3개 + 다른 결과 1개(정답), SandboxValidator 3:1 판정과 짝 (#699)
     private static final String ODD_ONE_OUT_PROMPT_KEY = "generate_choice_set_odd_one_out";
 
@@ -112,12 +114,13 @@ public class ChoiceSetGenerationService {
     }
 
     /**
-     * RESULT_MATCH 전용 (#828): AI 는 보기 SQL 4개(정답 1 + 오해 3)만 쓰고, 보이는 결과 표는 전부 실제 실행 결과
-     * 시도마다: 표준 SQL 요청(결과 표 유형 지시 포함) > 보기 실행·판정 > 통과 시 결과 표 보기로 저장
+     * RESULT_MATCH 전용 (#828): AI 는 오해 SQL 후보만 쓰고, 보이는 결과 표는 전부 실제 실행 결과
+     * 시도마다: 전용 프롬프트 요청 > 후보 실행·오답 모으기 > 3개 모이면 정답 표와 조립해 저장
      */
     public QuestionChoiceSet generateResultMatch(UUID questionUuid, UUID memberUuid, ChoiceSetSource source) {
-        ChoiceSetGenerationRun run = startStandardRun(questionUuid, memberUuid, source);
-        Question question = run.question();
+        Question question = questionService.getQuestionEntity(questionUuid);
+        PromptTemplate prompt = promptService.getActivePrompt(RESULT_MATCH_PROMPT_KEY);
+        ChoiceSetGenerationRun run = new ChoiceSetGenerationRun(questionUuid, question, memberUuid, source, prompt);
 
         // schemaDdl·answerSql 없이는 실행 결과 표를 만들 수 없음
         if (question.getSchemaDdl() == null || question.getSchemaDdl().isBlank()) {
@@ -288,8 +291,12 @@ public class ChoiceSetGenerationService {
         List<String> resultLines = new ArrayList<>(
                 requestFactory.toChoiceResultLines(aiResult.choices(), screened.report(), true));
         screened.discardByKey().forEach((key, discard) -> resultLines.add(key + " 버림: " + discard.retryFeedback()));
-        resultLines.add("지금까지 쓸 수 있는 오답 결과 " + collectedCount + "개 확보. 위 결과들과 겹치지 않는 새 오해로 "
-                + "결과가 서로 다른 오답 SQL 3개를 다시 만들 것.");
+        // 이미 모은 오답 결과 (이 결과를 다시 내면 중복으로 버려짐)
+        // 중괄호는 대괄호로 (프롬프트 {placeholder} 치환 오염 방지, serializeExecuteResult 와 같은 규칙)
+        feedback.collectedWrongTables().forEach(wrongTable -> resultLines.add("확보한 오답 결과 (다시 내지 말 것): "
+                + wrongTable.tableJson().replace("{", "[").replace("}", "]")));
+        resultLines.add("지금까지 쓸 수 있는 오답 결과 " + collectedCount + "개 확보, " + (ResultTableChoiceBuilder.WRONG_CHOICE_COUNT - collectedCount)
+                + "개 더 필요. 위 결과들과 모두 다른 결과가 나오는 새 오해로 후보 SQL 4개를 다시 만들 것.");
         feedback.replacePreviousChoiceResultLines(resultLines);
         return null;
     }
