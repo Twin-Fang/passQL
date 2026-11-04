@@ -32,7 +32,7 @@ import java.util.Objects;
 
 /**
  * 선택지 세트 전수 검증 (#828): 노출 중(OK) 세트를 샌드박스로 다시 채점, 읽기 전용(내리기는 관리자 일괄 비활성화)
- * 판정 기준: SQL 보기 재실행 정답 1개·표시 정답 일치, 결과 표 보기 정답 표 일치·빈 오답·중복·옛 방식(AI가 지은 표), 정책과 다른 보기 종류
+ * 판정 기준: SQL 보기 재실행 정답 1개·표시 정답 일치, 결과 표 보기 정답 표 일치·중복·옛 방식(AI가 지은 표), 정책과 다른 보기 종류
  */
 @Slf4j
 @Service
@@ -44,8 +44,6 @@ public class ChoiceSetIntegrityAuditService {
     static final int LEGACY_RESULT_TABLE_PROMPT_MAX_VERSION = 2;
     // 한 번에 검사하는 세트 수 상한 (세트마다 임시 샌드박스 1개)
     private static final int MAX_PAGE_SIZE = 50;
-    // 빈 결과 표 JSON
-    private static final String EMPTY_TABLE_BODY = "[]";
 
     private final QuestionChoiceSetRepository choiceSetRepository;
     private final QuestionChoiceSetItemRepository choiceSetItemRepository;
@@ -110,7 +108,7 @@ public class ChoiceSetIntegrityAuditService {
     }
 
     /**
-     * 결과 표 보기: 정책과 다른 SQL 보기 > 옛 방식(AI가 지은 표) > 정답 표 1개·표시 일치 > 빈 오답 > 중복 표
+     * 결과 표 보기: 정책과 다른 SQL 보기 > 옛 방식(AI가 지은 표) > 정답 표 1개·표시 일치 > 중복 표
      */
     private AuditItem auditResultTable(QuestionChoiceSet choiceSet, Question question,
                                        List<QuestionChoiceSetItem> items, boolean isAllSql) {
@@ -128,11 +126,6 @@ public class ChoiceSetIntegrityAuditService {
         AuditItem correctKeyCheck = compareCorrectKey(choiceSet, question, items, report);
         if (correctKeyCheck.verdict() != Verdict.VALID) {
             return correctKeyCheck;
-        }
-        boolean hasEmptyWrongTable = !expected.rows().isEmpty() && items.stream()
-                .anyMatch(item -> !Boolean.TRUE.equals(item.getIsCorrect()) && EMPTY_TABLE_BODY.equals(item.getBody().strip()));
-        if (hasEmptyWrongTable) {
-            return toItem(choiceSet, question, Verdict.WEAK_DISTRACTOR, "빈 결과(0행) 오답");
         }
         String duplicateBody = ChoiceBodyDuplicateFinder.findDuplicateBody(
                 items.stream().map(QuestionChoiceSetItem::getBody).toList());

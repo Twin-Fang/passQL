@@ -272,12 +272,14 @@ public class ChoiceSetGenerationService {
         ResultTableChoiceBuilder.ScreenedAttempt screened =
                 resultTableChoiceBuilder.screenAttempt(question, aiResult.choices(), feedback.collectedWrongTables());
         feedback.collectedWrongTables().addAll(screened.newWrongTables());
+        feedback.keepEmptyWrongTableIfAbsent(screened.emptyWrongTable());
         int collectedCount = feedback.collectedWrongTables().size();
-        if (collectedCount >= ResultTableChoiceBuilder.WRONG_CHOICE_COUNT) {
-            log.debug("[choice-gen-result-match] 오답 {}개 확보, 저장: attempt={}", collectedCount, attempt);
+        List<ResultTableChoiceBuilder.WrongTable> wrongTables = pickWrongTables(feedback, attempt);
+        if (wrongTables != null) {
+            log.debug("[choice-gen-result-match] 오답 확보, 저장: collected={}, usesEmpty={}, attempt={}",
+                    collectedCount, wrongTables.contains(feedback.emptyWrongTable()), attempt);
             ResultTableChoiceBuilder.AssembledChoices assembled = resultTableChoiceBuilder.assemble(
-                    screened.correctTableJson(),
-                    feedback.collectedWrongTables().subList(0, ResultTableChoiceBuilder.WRONG_CHOICE_COUNT));
+                    screened.correctTableJson(), wrongTables);
             GenerateChoiceSetResult tableResult = new GenerateChoiceSetResult(assembled.choices(), aiResult.metadata());
             return choiceSetSaveService.saveResultMatch(
                     question, run.source(), run.memberUuid(), run.prompt(), tableResult, assembled.report(), attempt);
@@ -298,6 +300,24 @@ public class ChoiceSetGenerationService {
         resultLines.add("지금까지 쓸 수 있는 오답 결과 " + collectedCount + "개 확보, " + (ResultTableChoiceBuilder.WRONG_CHOICE_COUNT - collectedCount)
                 + "개 더 필요. 위 결과들과 모두 다른 결과가 나오는 새 오해로 후보 SQL 4개를 다시 만들 것.");
         feedback.replacePreviousChoiceResultLines(resultLines);
+        return null;
+    }
+
+    /**
+     * 조립할 오답 3개: 빈 결과 아닌 오답 3개 > (마지막 시도만) 빈 결과 아닌 2개 + 빈 결과 예비 1개 > 모자라면 null
+     */
+    private static List<ResultTableChoiceBuilder.WrongTable> pickWrongTables(ChoiceSetRetryFeedback feedback, int attempt) {
+        List<ResultTableChoiceBuilder.WrongTable> collected = feedback.collectedWrongTables();
+        int wrongChoiceCount = ResultTableChoiceBuilder.WRONG_CHOICE_COUNT;
+        if (collected.size() >= wrongChoiceCount) {
+            return List.copyOf(collected.subList(0, wrongChoiceCount));
+        }
+        boolean isLastAttempt = attempt >= MAX_ATTEMPTS;
+        if (isLastAttempt && collected.size() == wrongChoiceCount - 1 && feedback.emptyWrongTable() != null) {
+            List<ResultTableChoiceBuilder.WrongTable> withEmpty = new ArrayList<>(collected);
+            withEmpty.add(feedback.emptyWrongTable());
+            return withEmpty;
+        }
         return null;
     }
 }
