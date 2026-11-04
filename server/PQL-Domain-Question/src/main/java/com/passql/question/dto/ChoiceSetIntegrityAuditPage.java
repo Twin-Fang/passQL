@@ -35,7 +35,7 @@ public record ChoiceSetIntegrityAuditPage(
         POLICY_KIND_MISMATCH,
         // 오답 표를 AI가 직접 쓴 옛 방식 결과 표 세트
         FABRICATED_RESULT_TABLE,
-        // 빈 결과 오답·같은 표 중복 (바로 지워지는 보기)
+        // 같은 결과 표 보기 중복 (바로 지워지는 보기)
         WEAK_DISTRACTOR;
 
         /** 내릴 대상 (정상·제외·오류 제외) */

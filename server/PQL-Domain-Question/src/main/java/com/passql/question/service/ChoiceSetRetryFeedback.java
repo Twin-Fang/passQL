@@ -20,6 +20,8 @@ final class ChoiceSetRetryFeedback {
     private ExecuteResult expectedResult;
     // 결과 표 문제: 시도마다 건진 오답 표 (3개 모이면 조립, #828)
     private final List<ResultTableChoiceBuilder.WrongTable> collectedWrongTables = new ArrayList<>();
+    // 결과 표 문제: 빈 결과 예비 오답 1개 (마지막 시도에 모자랄 때만 사용)
+    private ResultTableChoiceBuilder.WrongTable emptyWrongTable;
 
     ChoiceSetRetryFeedback(boolean shouldIncludeAnswerResult) {
         this.shouldIncludeAnswerResult = shouldIncludeAnswerResult;
@@ -52,5 +54,16 @@ final class ChoiceSetRetryFeedback {
 
     List<ResultTableChoiceBuilder.WrongTable> collectedWrongTables() {
         return collectedWrongTables;
+    }
+
+    ResultTableChoiceBuilder.WrongTable emptyWrongTable() {
+        return emptyWrongTable;
+    }
+
+    /** 빈 결과 예비 오답은 처음 건진 1개만 보관 */
+    void keepEmptyWrongTableIfAbsent(ResultTableChoiceBuilder.WrongTable candidate) {
+        if (emptyWrongTable == null && candidate != null) {
+            emptyWrongTable = candidate;
+        }
     }
 }

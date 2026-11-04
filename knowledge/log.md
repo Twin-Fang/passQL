@@ -116,3 +116,4 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-05 03:40 | W4 | update | DEC-0050, DEC-0055, DEC-0087 status superseded, superseded_by 기록
 - 2026-11-05 03:40 | W6 | update | cluster-practice, cluster-ai, cluster-question-bank 갱신
 - 2026-11-05 04:10 | W4 | update | DEC-0249 결정 절: 정답 표 고정 + 시도마다 오답 모으기(운영 첫 적용 13개 중 4개 실패 반영), 해설 정리·날짜 문자열
+- 2026-11-05 04:20 | W4 | update | DEC-0249 결정 절: 빈 결과 예비 오답 1개(마지막 시도만), 지시문은 운영 DB 전용 프롬프트에만
