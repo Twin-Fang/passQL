@@ -137,9 +137,8 @@ public class ChoiceSetSaveService {
     }
 
     /**
-     * RESULT_MATCH 선택지 세트 성공 저장.
-     * kind=TEXT, is_correct=샌드박스 검증 결과 기반(ValidationReport).
-     * answerSql Sandbox 실행 + JSON 비교 검증을 통과한 세트.
+     * RESULT_MATCH 선택지 세트 성공 저장 (#828)
+     * kind=TEXT(실행 결과 표 JSON), is_correct=실행 판정(ValidationReport), 보기 SQL 4개 실행·판정을 통과한 세트만
      */
     @Transactional
     public QuestionChoiceSet saveResultMatch(
@@ -157,7 +156,7 @@ public class ChoiceSetSaveService {
                 .temperature(prompt.getTemperature())
                 .maxTokens(prompt.getMaxTokens())
                 .generationAttempts(attempts)
-                .sandboxValidationPassed(true) // answerSql 실행 + JSON 비교 검증 통과
+                .sandboxValidationPassed(true) // 보기 SQL 실제 실행 결과 + 정답 1개·오답 서로 다름 판정 통과
                 .isReusable(false)
                 .totalElapsedMs(result.metadata() != null ? result.metadata().elapsedMs() : 0)
                 .build();
@@ -172,14 +171,14 @@ public class ChoiceSetSaveService {
         List<GeneratedChoiceDto> choices = result.choices();
         for (int i = 0; i < choices.size(); i++) {
             GeneratedChoiceDto c = choices.get(i);
-            // is_correct는 AI 판단이 아닌 JSON 비교 검증 결과로 덮어쓰기
+            // is_correct는 AI 판단이 아닌 실행 판정 결과로 덮어쓰기
             boolean correct = correctMap.getOrDefault(c.key(), false);
             QuestionChoiceSetItem item = QuestionChoiceSetItem.builder()
                     .choiceSetUuid(set.getChoiceSetUuid())
                     .choiceKey(c.key())
                     .sortOrder(i)
                     .kind(ChoiceKind.TEXT)   // RESULT_MATCH는 항상 TEXT
-                    .body(c.body())          // JSON 배열 문자열
+                    .body(c.body())          // 실행 결과 표 JSON 배열 문자열
                     .isCorrect(correct)
                     .rationale(c.rationale())
                     .build();
@@ -190,52 +189,6 @@ public class ChoiceSetSaveService {
                 question.getQuestionUuid(), attempts, set.getChoiceSetUuid());
         // 커밋 후 선택지별 AI 해설 미리 생성 (#496)
         eventPublisher.publishEvent(new ChoiceSetReadyEvent(set.getChoiceSetUuid()));
-        return set;
-    }
-
-    /**
-     * MULTIPLE_CORRECT fallback 저장 — 샌드박스 검증 실패 시 AI isCorrect 기반으로 저장.
-     * sandboxValidationPassed=false로 기록해 데이터 품질 추적 가능하게 한다.
-     * CONCEPT_ONLY의 saveConceptSuccess()와 동일한 신뢰 전략 — AI isCorrect 직접 사용.
-     */
-    @Transactional
-    public QuestionChoiceSet saveWithAiCorrect(
-            Question question, ChoiceSetSource source, UUID memberUuid,
-            PromptTemplate prompt, GenerateChoiceSetResult result, int attempts) {
-
-        QuestionChoiceSet set = QuestionChoiceSet.builder()
-                .questionUuid(question.getQuestionUuid())
-                .source(source)
-                .status(ChoiceSetStatus.OK)
-                .generatedForMemberUuid(memberUuid)
-                .promptTemplateUuid(prompt.getPromptTemplateUuid())
-                .modelName(prompt.getModel())
-                .temperature(prompt.getTemperature())
-                .maxTokens(prompt.getMaxTokens())
-                .generationAttempts(attempts)
-                .sandboxValidationPassed(false) // 샌드박스 MULTIPLE_CORRECT 실패 후 AI 판단 fallback
-                .isReusable(false)
-                .totalElapsedMs(result.metadata() != null ? result.metadata().elapsedMs() : 0)
-                .build();
-        set = choiceSetRepository.saveAndFlush(set);
-
-        List<GeneratedChoiceDto> choices = result.choices();
-        for (int i = 0; i < choices.size(); i++) {
-            GeneratedChoiceDto c = choices.get(i);
-            QuestionChoiceSetItem item = QuestionChoiceSetItem.builder()
-                    .choiceSetUuid(set.getChoiceSetUuid())
-                    .choiceKey(c.key())
-                    .sortOrder(i)
-                    .kind(ChoiceKind.SQL)
-                    .body(c.body())
-                    .isCorrect(c.isCorrect()) // AI 판단 직접 사용
-                    .rationale(c.rationale())
-                    .build();
-            choiceSetItemRepository.save(item);
-        }
-
-        log.info("[choice-gen] ai-fallback success: questionUuid={}, attempts={}, setUuid={}",
-                question.getQuestionUuid(), attempts, set.getChoiceSetUuid());
         return set;
     }
 

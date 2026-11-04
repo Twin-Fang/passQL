@@ -75,7 +75,8 @@ public class SubmissionService {
         if (question != null && question.getExecutionMode() == ExecutionMode.EXECUTABLE) {
             // SQL 보기만 실행 (결과표 TEXT 보기는 SQL 이 아니라 실행하면 문법 오류)
             selectedSql = sqlBodyOrNull(selected);
-            correctSql = sqlBodyOrNull(correct);
+            // 결과 표 보기 정답은 문제의 정답 SQL (직접 실행해보기 시작 SQL, 정답 결과 표시) (#828)
+            correctSql = correctSqlOrNull(question, correct);
 
             // 결과 캐시 우선, 빠진 SQL만 영구 DB 또는 임시 DB 1회에서 실행 (#727)
             Map<String, ExecuteResult> resultBySql =
@@ -106,6 +107,16 @@ public class SubmissionService {
                 structuredExplanation != null ? ChoiceExplanationComposer.toMarkdown(structuredExplanation) : selected.getExplanation(),
                 structuredExplanation
         );
+    }
+
+    /** 정답 SQL: SQL 보기면 보기 본문, 결과 표(TEXT) 보기면 문제의 정답 SQL, 없으면 null */
+    private static String correctSqlOrNull(Question question, QuestionChoiceSetItem correct) {
+        String correctChoiceSql = sqlBodyOrNull(correct);
+        if (correctChoiceSql != null || correct == null) {
+            return correctChoiceSql;
+        }
+        String answerSql = question.getAnswerSql();
+        return answerSql != null && !answerSql.isBlank() ? answerSql.strip() : null;
     }
 
     /** 실행할 SQL 본문: SQL 보기면 본문, 결과표(TEXT) 보기나 없는 보기면 null */

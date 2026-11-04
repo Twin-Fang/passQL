@@ -39,8 +39,8 @@ class ChoiceItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final resultRows = item.kind == 'SQL' ? null : parseResultRows(item.body);
-    final Widget body = item.kind == 'SQL'
+    final resultRows = item.isSql ? null : parseResultRows(item.body);
+    final Widget body = item.isSql
         // 선택 가능한 코드면 카드 탭과 길게 누르기가 겹치므로 선택은 끈다.
         ? PassqlCodeBlock(
             code: item.body,

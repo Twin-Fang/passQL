@@ -3,6 +3,7 @@ package com.passql.question.repository;
 import com.passql.question.constant.ChoiceSetSource;
 import com.passql.question.constant.ChoiceSetStatus;
 import com.passql.question.entity.QuestionChoiceSet;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -43,6 +44,17 @@ public interface QuestionChoiceSetRepository extends JpaRepository<QuestionChoic
     Optional<QuestionChoiceSet>
         findFirstByQuestionUuidAndStatusOrderByCreatedAtDesc(
             UUID questionUuid, ChoiceSetStatus status);
+
+    /**
+     * 검증 통과 세트 재사용 후보 (#828): 샌드박스 검증 통과·status 일치 최신 5개 (SQL·결과 표 문제)
+     * 검증 실패 세트는 재사용하지 않음
+     */
+    List<QuestionChoiceSet>
+        findTop5ByQuestionUuidAndStatusAndSandboxValidationPassedOrderByCreatedAtDesc(
+            UUID questionUuid, ChoiceSetStatus status, Boolean sandboxValidationPassed);
+
+    /** 전수 검증 (#828): status 일치 세트 페이지 */
+    Page<QuestionChoiceSet> findByStatus(ChoiceSetStatus status, Pageable pageable);
 
     /** 고정 세트 조회 (#511): 특정 출처(ADMIN_SEED·ADMIN_CURATED) 중 status 일치 최신 1개 */
     Optional<QuestionChoiceSet>
