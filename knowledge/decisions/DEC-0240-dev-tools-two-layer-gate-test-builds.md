@@ -7,7 +7,7 @@ topics: [dev-workflow, ci-deploy]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0444-test-build-dev-tools-overlay]]", "[[ISS-0444-test-build-dev-tools-overlay-report]]", "[[DEC-0202-test-build-shared-version-adjust-no-block]]", "[[DEC-0005-ship-with-billing-switch-off]]"]
+related: ["[[ISS-0444-test-build-dev-tools-overlay]]", "[[ISS-0444-test-build-dev-tools-overlay-report]]", "[[DEC-0202-test-build-shared-version-adjust-no-block]]", "[[DEC-0005-ship-with-billing-switch-off]]", "[[DEC-0246-dev-tools-no-prod-writes-store-exclusion]]"]
 ---
 
 # DEC-0240: 앱 개발자 도구는 테스트 빌드에만 — 컴파일타임 `APP_FLAVOR=dev`와 `.env` `APP_SHOW_DEV_TOOLS=true` 두 층이 모두 켜져야 보이고, 강제값은 표시만 바꾼다

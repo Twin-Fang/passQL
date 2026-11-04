@@ -94,3 +94,17 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-04 10:01 | W6 | update | DEC-0215 related에 DEC-0241 추가
 - 2026-11-04 10:01 | W6 | update | cluster-ads, cluster-billing, cluster-dev-workflow, cluster-ci-deploy, cluster-design-system 갱신
 - 2026-11-04 10:01 | W6 | update | cluster members 갱신 ads 11, billing 28, ci-deploy 60, design-system 126, dev-workflow 70 (check W10)
+- 2026-11-04 11:42 | W6 | create | ISS-0446 이슈·완료 리포트 (#766, PR #818 머지·미배포)
+- 2026-11-04 11:42 | W6 | create | DEC-0242 앱 아이콘 시안 8번 (DEC-0124 related, 대체 없음 — 기존 아이콘 활성 결정 없음)
+- 2026-11-04 11:42 | W6 | update | DEC-0124 related에 DEC-0242 추가
+- 2026-11-04 11:42 | W6 | create | ISS-0447 이슈·완료 리포트 (#814, PR #815 머지·#817 릴리스)
+- 2026-11-04 11:42 | W6 | create | ISS-0448 이슈·완료 리포트 (#816, PR #822 미머지)
+- 2026-11-04 11:42 | W6 | create | DEC-0243 프로필 상단 A안 (DEC-0208 대체)
+- 2026-11-04 11:42 | W4 | update | DEC-0208 superseded (superseded_by DEC-0243)
+- 2026-11-04 11:42 | W6 | update | DEC-0207, DEC-0212, DEC-0204 related에 DEC-0243 추가 (대체 없음)
+- 2026-11-04 11:42 | W6 | create | DEC-0244 프로모션 코드 스토어 코드만, DEC-0245 무료 한도 하루 초기화 유지
+- 2026-11-04 11:42 | W6 | create | ISS-0449 이슈·완료 리포트 (#820, PR #821 머지·미배포)
+- 2026-11-04 11:42 | W6 | create | DEC-0246 개발자 도구 운영 변경 금지·스토어 빌드 제외 세 겹 (DEC-0240 related)
+- 2026-11-04 11:42 | W6 | update | DEC-0240 related에 DEC-0246 추가
+- 2026-11-04 11:42 | W6 | update | cluster-design-system, cluster-billing, cluster-ads, cluster-auth-member, cluster-store-release, cluster-dev-workflow, cluster-ci-deploy 갱신
+- 2026-11-04 11:42 | W6 | update | cluster members 갱신 ads 12, auth-member 52, billing 33, ci-deploy 62, design-system 130, dev-workflow 72, store-release 58 (check W10)

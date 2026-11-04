@@ -7,7 +7,7 @@ topics: [progress-stats, home]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0428-app-profile-tab-redesign]]", "[[ISS-0428-app-profile-tab-redesign-report]]"]
+related: ["[[ISS-0428-app-profile-tab-redesign]]", "[[ISS-0428-app-profile-tab-redesign-report]]", "[[DEC-0243-profile-top-card-style-a]]"]
 ---
 
 # DEC-0204: 앱 프로필 탭은 "내 기록을 보는 곳" — 다른 탭에 이미 있는 정보는 빼고 내 상태 > AI 분석 > 영역별 정답률 > 광고 순으로 둔다

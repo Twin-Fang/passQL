@@ -7,7 +7,7 @@ topics: [design-system, billing]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0428-app-profile-tab-redesign]]", "[[ISS-0428-app-profile-tab-redesign-report]]"]
+related: ["[[ISS-0428-app-profile-tab-redesign]]", "[[ISS-0428-app-profile-tab-redesign-report]]", "[[DEC-0243-profile-top-card-style-a]]"]
 ---
 
 # DEC-0207: passQL PASS 탑승권은 시트에서도 기울이지 않고 정방향으로 두고, 띄움 그림자만 쓴다
