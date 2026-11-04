@@ -17,10 +17,9 @@ public record DailyFreeBonus(
     int bonusQuestionCount
 ) {
 
-    /** 보너스 없음 (결제 꺼짐·프로) */
+    /** 보너스 없음 (결제 꺼짐·프로, 광고 보너스 대상 아님 > 최대 횟수 0, #814) */
     public static DailyFreeBonus none() {
-        return new DailyFreeBonus(false, false, 0,
-            DailyFreeBonusRule.AD_BONUS_MAX_COUNT_PER_DAY, DailyFreeBonusRule.BONUS_QUESTION_COUNT);
+        return new DailyFreeBonus(false, false, 0, 0, DailyFreeBonusRule.BONUS_QUESTION_COUNT);
     }
 
     /** 받은 보너스 합계 (문제 수) */
