@@ -2,7 +2,7 @@
 type: cluster
 topic: question-bank
 created: 2026-10-29
-members: 74
+members: 76
 status: active
 related: []
 ---
@@ -19,7 +19,6 @@ related: []
 - [[DEC-0038-question-json-roundtrip-format]] — 문제 JSON 내보내기·가져오기는 `questionUuid` 유무로 신규/업데이트를 가르고, 토픽은 `topicUuid` 대신 `topicCode`로 쓴다
 - [[DEC-0046-oracle-sql-translate-or-concept-only]] — Oracle SQL은 안전한 1:1 치환(`NVL`, `SYSDATE`)만 자동 변환하고, 남는 Oracle 전용 문법은 `CONCEPT_ONLY`로 전환한다
 - [[DEC-0049-ai-only-redefined-sql-equivalence]] — `AI_ONLY` 정책은 "주어진 SQL과 동일한 실행 결과를 내는 SQL 고르기"로 재정의한다
-- [[DEC-0050-result-match-text-choices]] — "실행 결과로 올바른 것은?" 유형은 `RESULT_MATCH` 정책 — 선택지는 결과 JSON(`kind = TEXT`), 검증은 `answerSql` 결과와 비교
 - [[DEC-0056-stem-sql-code-block-rule]] — SQL이 들어간 문제 stem은 ```sql 코드 블록으로 쓴다 — 새 문제 생성 규칙이며 기존 예시는 수동으로 바꾼다
 - [[DEC-0067-short-meaningful-table-names]] — 문제 스키마 테이블 이름은 시험 회차·번호 대신 짧고 의미 있는 이름으로
 - [[DEC-0075-stem-pattern-choice-set-policy-mapping]] — stem 패턴별 `choiceSetPolicy` 매핑 (`AI_ONLY` / `RESULT_MATCH` / `ODD_ONE_OUT`)
@@ -36,14 +35,17 @@ related: []
 - [[DEC-0225-oracle-conversion-single-converter]] — Oracle 변환·감지는 `OracleSqlCompatibilityConverter` 한 곳에서, 컨트롤러는 서비스 호출만 (호출부별 차이 보존)
 - [[DEC-0226-vector-prune-after-deactivation-commit]] — 문제 비활성화 후 벡터 정리는 `QuestionsDeactivatedEvent` 커밋 후 리스너에서 1회, 실패는 로그만
 - [[DEC-0228-concept-ai-only-rewritten-as-curated]] — `AI_ONLY` 개념 문제 49개는 비활성화하고 상황·결과형 고정 보기(`CURATED_ONLY`) 문제로 재작성 (오답은 실제 오개념, 결과형은 Oracle 21c 검증)
+- [[DEC-0249-result-table-choices-from-executed-sql]] — 결과 표 문제 보기는 AI가 쓴 보기 SQL의 실제 실행 결과로만 (오답 표를 지어내지 않음)
 
 ## 대체된 결정 (역사)
+- [[DEC-0050-result-match-text-choices]] → DEC-0249
 - [[DEC-0028-realtime-choice-set-with-prefetch]] → DEC-0087
 - [[DEC-0030-answer-sql-sandbox-ground-truth]] → DEC-0055
 - [[DEC-0037-question-hard-delete-cascade]] → DEC-0127
 - [[DEC-0044-bulk-delete-per-item-transaction]] → null
 
 ## 관련 이슈
+- [[ISS-0451-result-table-choices-fabricated-unvalidated-sets]] (open, GitHub #828) — 결과 표 오답을 AI가 지어냄, 미검증 세트 저장, 직접 실행해보기에 결과 JSON
 - [[ISS-0029-realtime-ai-choice-set-prefetch]] (resolved, GitHub #39) — 실시간 AI 선택지 세트 생성 및 프리페치 아키텍처
 - [[ISS-0032-admin-direct-question-register]] (resolved, GitHub #46) — 관리자 퀴즈 문제 직접 등록
 - [[ISS-0034-register-form-json-import-guide]] (resolved, GitHub #49) — 문제 직접 등록 폼 JSON 불러오기와 등록 가이드

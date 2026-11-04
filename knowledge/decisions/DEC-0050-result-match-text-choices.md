@@ -4,9 +4,9 @@ id: DEC-0050
 created: 2026-04-11
 reviewed: null
 topics: [question-bank, practice, ai]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0249
 related: ["[[ISS-0063-result-match-policy]]", "[[ISS-0063-result-match-policy-report]]", "[[DEC-0049-ai-only-redefined-sql-equivalence]]"]
 ---
 

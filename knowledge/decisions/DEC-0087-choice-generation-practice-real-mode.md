@@ -4,9 +4,9 @@ id: DEC-0087
 created: 2026-04-27
 reviewed: null
 topics: [ai, practice]
-status: active
+status: superseded
 supersedes: DEC-0028
-superseded_by: null
+superseded_by: DEC-0251
 related: ["[[ISS-0167-choice-generation-practice-real-mode]]", "[[ISS-0174-app-wrong-notes-nickname-choice-mode]]", "[[DEC-0028-realtime-choice-set-with-prefetch]]", "[[DEC-0141-curated-only-oracle-verified-choices]]", "[[DEC-0158-new-questions-concept-only-curated]]", "[[DEC-0052-result-match-policy-equivalence-type]]"]
 ---
 
