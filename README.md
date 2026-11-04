@@ -10,7 +10,7 @@
 
 <a href="https://apps.apple.com/kr/app/id6762165005"><img src="https://img.shields.io/badge/App_Store-다운로드-0D96F6?style=for-the-badge&logo=apple&logoColor=white" alt="App Store" /></a>
 <a href="https://passql.vercel.app/"><img src="https://img.shields.io/badge/Web-바로_써보기-5E5CE6?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Web" /></a>
-<img src="https://img.shields.io/badge/Google_Play-준비_중-3DDC84?style=for-the-badge&logo=googleplay&logoColor=white" alt="Google Play 준비 중" />
+<a href="https://play.google.com/store/apps/details?id=com.coldredrice.passql"><img src="https://img.shields.io/badge/Google_Play-다운로드-3DDC84?style=for-the-badge&logo=googleplay&logoColor=white" alt="Google Play" /></a>
 
 <br/>
 
