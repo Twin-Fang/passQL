@@ -108,3 +108,6 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-04 11:42 | W6 | update | DEC-0240 related에 DEC-0246 추가
 - 2026-11-04 11:42 | W6 | update | cluster-design-system, cluster-billing, cluster-ads, cluster-auth-member, cluster-store-release, cluster-dev-workflow, cluster-ci-deploy 갱신
 - 2026-11-04 11:42 | W6 | update | cluster members 갱신 ads 12, auth-member 52, billing 33, ci-deploy 62, design-system 130, dev-workflow 72, store-release 58 (check W10)
+- 2026-11-05 02:30 | W6 | create | ISS-0450 이슈·완료 리포트 (#823, gh-pages 게시, PR #825)
+- 2026-11-05 02:30 | W6 | create | DEC-0247 결제 꺼짐 동안 소개 사이트 무료 안내, DEC-0248 사이트·Play 아이콘 원본 생성 (DEC-0139 related)
+- 2026-11-05 02:30 | W6 | update | cluster-store-release, cluster-design-system, cluster-billing 갱신 (members store-release 61, design-system 132, billing 34)
