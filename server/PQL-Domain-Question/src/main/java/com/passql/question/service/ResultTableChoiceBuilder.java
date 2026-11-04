@@ -50,9 +50,10 @@ public class ResultTableChoiceBuilder {
     }
 
     /**
-     * 시도 1회 결과: 기준 결과 표 JSON, 이번에 새로 건진 오답, 재시도 피드백용 검증 보고·버린 이유
+     * 시도 1회 결과: 기준 결과 표 JSON, 이번에 새로 건진 오답, 빈 결과 예비 오답(없으면 null), 재시도 피드백용 검증 보고·버린 이유
+     * 빈 결과 예비 오답: 실제 오해 SQL 결과라 정당하지만 쉽게 지워져서, 마지막 시도에 오답이 모자랄 때만 1개 씀
      */
-    public record ScreenedAttempt(String correctTableJson, List<WrongTable> newWrongTables,
+    public record ScreenedAttempt(String correctTableJson, List<WrongTable> newWrongTables, WrongTable emptyWrongTable,
                                   ValidationReport report, Map<String, ResultTableChoiceJudge.Discard> discardByKey) {
     }
 
@@ -78,7 +79,16 @@ public class ResultTableChoiceBuilder {
                             toLearnerRationale(rationaleByKey.get(key)));
                 })
                 .toList();
-        return new ScreenedAttempt(toTableJson(executed.expected()), newWrongTables,
+        WrongTable emptyWrongTable = screening.discardByKey().entrySet().stream()
+                .filter(entry -> entry.getValue() == ResultTableChoiceJudge.Discard.EMPTY_RESULT)
+                .findFirst()
+                .map(entry -> {
+                    ExecuteResult result = executed.resultsByKey().get(entry.getKey());
+                    return new WrongTable(toTableJson(result), ResultTableChoiceJudge.toSignature(result),
+                            toLearnerRationale(rationaleByKey.get(entry.getKey())));
+                })
+                .orElse(null);
+        return new ScreenedAttempt(toTableJson(executed.expected()), newWrongTables, emptyWrongTable,
                 toReport(executed), screening.discardByKey());
     }
 
