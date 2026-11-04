@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'ad_placement.dart';
+import 'full_screen_ad_guard.dart';
+import 'loaded_full_screen_ad.dart';
 import 'interstitial_ad_loader.dart';
 import 'interstitial_frequency_cap.dart';
 
@@ -26,7 +28,7 @@ class InterstitialAdController {
   final InterstitialFrequencyCap _frequencyCap;
   final DateTime Function() _now;
 
-  LoadedInterstitial? _readyAd;
+  LoadedFullScreenAd? _readyAd;
   Future<void>? _inFlightLoad;
   bool _isShowing = false;
 
@@ -46,7 +48,8 @@ class InterstitialAdController {
   Future<bool> showIfAllowed() async {
     // 첫 결과 유예는 진입 횟수 기준 (광고 준비·표시 여부와 무관하게 셈)
     await _frequencyCap.recordResultEntry();
-    if (_isShowing) return false;
+    // 앱 오프닝 광고가 떠 있으면 겹쳐 띄우지 않음
+    if (_isShowing || FullScreenAdGuard.isFullScreenAdShowing) return false;
     _discardExpiredAd();
     final readyAd = _readyAd;
     if (readyAd == null) {
@@ -55,14 +58,20 @@ class InterstitialAdController {
     }
     if (!await _frequencyCap.canShowAt(_now())) return false;
     // 기다리는 사이 다른 호출이 가져갔으면 중단
-    if (!identical(_readyAd, readyAd) || _isShowing) return false;
+    if (!identical(_readyAd, readyAd) ||
+        _isShowing ||
+        FullScreenAdGuard.isFullScreenAdShowing) {
+      return false;
+    }
 
     _readyAd = null;
     _isShowing = true;
+    FullScreenAdGuard.markFullScreenAdShowing();
     readyAd.show(
       onShown: () => unawaited(_frequencyCap.recordShownAt(_now())),
       onClosed: () {
         _isShowing = false;
+        FullScreenAdGuard.markFullScreenAdClosed();
         // 닫힌 뒤 다음 결과 화면용으로 미리 불러옴 (오늘 남은 횟수 있을 때만)
         unawaited(preload());
       },
