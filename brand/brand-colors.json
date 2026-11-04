@@ -3,10 +3,14 @@
     "light": "#5856D6",
     "dark": "#5E5CE6"
   },
-  "appIconBackground": "#060C26",
+  "appIconBackground": "#F2F1FF",
   "splashBackground": {
     "light": "#FFFFFF",
     "dark": "#000000"
   },
-  "openGraphBackground": "#FFFFFF"
+  "openGraphBackground": "#FFFFFF",
+  "appIconGradient": {
+    "top": "#F7F6FF",
+    "bottom": "#ECEBFF"
+  }
 }
