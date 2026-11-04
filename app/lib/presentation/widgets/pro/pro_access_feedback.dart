@@ -8,10 +8,10 @@ import '../common/app_toast.dart';
 import 'pro_offer_sheet.dart';
 
 /// 무료 하루 한도 사유 한 줄 (한도 화면 제목, 시트 이유 첫 줄)
-const String freeDailyLimitReason = '오늘 무료 10문제를 다 풀었어요';
+const String freeDailyLimitReason = '오늘 무료 문제를 다 풀었어요';
 
 /// 무료 하루 한도가 다시 열리는 때 (KST 0시, 스펙 §3)
-const String freeDailyLimitResetNotice = '내일 0시에 10문제가 다시 열려요';
+const String freeDailyLimitResetNotice = '내일 0시에 다시 열려요';
 
 /// 프로 공정 사용 한도가 다시 열리는 때 (KST 0시)
 const String fairUseLimitResetNotice = '내일 0시에 다시 풀 수 있어요';
@@ -20,11 +20,11 @@ const String fairUseLimitResetNotice = '내일 0시에 다시 풀 수 있어요'
 const String freeDailyLimitSheetReason =
     '$freeDailyLimitReason\n$freeDailyLimitResetNotice';
 
-/// 프로 접근 오류 안내 결과 3종 (호출부는 sheetUnlockedPro 일 때만 다시 요청)
+/// 프로 접근 오류 안내 결과 3종 (호출부는 sheetUnlocked 일 때만 다시 요청)
 enum ProAccessFeedbackResult {
   notHandled, // 프로 접근 오류 아님 또는 결제 UI 대상 아님 > 호출부 기존 오류 문구
   shown, // 시트·토스트를 띄움, 등급 그대로 (다시 요청해도 같은 오류)
-  sheetUnlockedPro, // 시트 전 무료 > 닫힌 뒤 프로
+  sheetUnlocked, // 시트가 닫힌 뒤 열림: 무료 > 프로, 또는 하루 한도 > 광고 보너스로 한도 남음 (#808)
 }
 
 /// 서버 프로 접근 오류 > 안내 공통 지점
@@ -47,16 +47,22 @@ Future<ProAccessFeedbackResult> showProAccessFeedback(
         return ProAccessFeedbackResult.notHandled;
       }
       final wasPro = ref.read(isProProvider);
-      await showProOfferSheet(
+      final isDailyLimitEntry =
+          exception.code == ErrorCode.freeDailyLimitReached;
+      final sheetOutcome = await showProOfferSheet(
         context,
         ref,
-        reason: exception.code == ErrorCode.freeDailyLimitReached
-            ? freeDailyLimitSheetReason
-            : null,
+        reason: isDailyLimitEntry ? freeDailyLimitSheetReason : null,
+        isDailyLimitEntry: isDailyLimitEntry,
       );
-      final isProNow = context.mounted && ref.read(isProProvider);
-      return !wasPro && isProNow
-          ? ProAccessFeedbackResult.sheetUnlockedPro
+      if (!context.mounted) return ProAccessFeedbackResult.shown;
+      final isProNow = ref.read(isProProvider);
+      // 시트 결과로만 판정 (기억한 등급 값으로 추론하면 그냥 닫아도 다시 요청 > 시트 반복)
+      final isUnlocked =
+          (!wasPro && isProNow) ||
+          sheetOutcome == ProOfferSheetOutcome.adBonusGranted;
+      return isUnlocked
+          ? ProAccessFeedbackResult.sheetUnlocked
           : ProAccessFeedbackResult.shown;
     default:
       return ProAccessFeedbackResult.notHandled;

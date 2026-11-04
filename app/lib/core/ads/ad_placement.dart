@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-/// 광고 자리 6종: 형식이 아니라 배치별로 광고 단위를 나눈다 (콘솔에서 자리별 수익 비교)
+/// 광고 자리 7종: 형식이 아니라 배치별로 광고 단위를 나눈다 (콘솔에서 자리별 수익 비교)
 /// .env 키: PASSQL_ADMOB_{ANDROID|IOS}_{envSuffix}
 enum AdPlacement {
   // 탭 셸 하단 탭 바 아래 한 줄 네이티브 띠 (메인 탭 5개 공통 1개, #527)
@@ -14,7 +14,9 @@ enum AdPlacement {
   // 풀이를 마친 결과 화면 진입 전면 광고 (오늘의 세트·챕터 결과 공통)
   interstitialResult('INTERSTITIAL_RESULT'),
   // 백그라운드에서 탭 화면으로 돌아올 때 앱 오프닝 광고 (첫 실행 제외, #787)
-  appOpenResume('APP_OPEN');
+  appOpenResume('APP_OPEN'),
+  // 무료 하루 한도 시트에서 사용자가 눌러 보는 보상형 광고 (+5문제, 하루 2회, #808)
+  rewardedDailyBonus('REWARDED_DAILY_BONUS');
 
   const AdPlacement(this.envSuffix);
 
@@ -44,6 +46,11 @@ abstract final class AdUnitIds {
     ios: 'ca-app-pub-3940256099942544/5575463023',
   );
 
+  static const _testRewarded = (
+    android: 'ca-app-pub-3940256099942544/5224354917',
+    ios: 'ca-app-pub-3940256099942544/1712485313',
+  );
+
   static const _testUnitIdsByPlacement =
       <AdPlacement, ({String android, String ios})>{
         AdPlacement.nativeStrip: _testNative,
@@ -52,6 +59,7 @@ abstract final class AdUnitIds {
         AdPlacement.nativeQuestions: _testNative,
         AdPlacement.interstitialResult: _testInterstitial,
         AdPlacement.appOpenResume: _testAppOpen,
+        AdPlacement.rewardedDailyBonus: _testRewarded,
       };
 
   /// .env 키 (예: PASSQL_ADMOB_ANDROID_NATIVE_STRIP)
