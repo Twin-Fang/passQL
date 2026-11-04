@@ -36,7 +36,7 @@ class RandomPracticeRow extends ConsumerWidget {
       trailing: hasDailyUsage
           ? Text(
               '오늘 랜덤 ${knownPlan.todayRandomSolvedCount} / '
-              '${knownPlan.dailyFreeLimit}',
+              '${knownPlan.effectiveTodayFreeLimit}',
               style: PassqlTypography.footnoteSemibold.copyWith(
                 color: colors.secondaryLabel,
               ),
@@ -51,6 +51,7 @@ class RandomPracticeRow extends ConsumerWidget {
   }
 
   /// 한도 소진으로 보일 때 탭: 등급 다시 받기(날짜 변경·구매 반영) > 여전히 한도면 시트, 아니면 풀이 진입
+  /// 시트에서 광고 보너스·구매로 한도가 풀렸으면 이어서 풀이 진입 (#808)
   Future<void> _openAfterUsageSync(BuildContext context, WidgetRef ref) async {
     await ref.read(planProvider.notifier).refresh();
     if (!context.mounted) return;
@@ -59,8 +60,16 @@ class RandomPracticeRow extends ConsumerWidget {
         ref.read(shouldShowProUiProvider) &&
         latestPlan?.isDailyFreeLimitReached == true;
     if (isStillLimited) {
-      await showProOfferSheet(context, ref, reason: freeDailyLimitSheetReason);
-      return;
+      final sheetOutcome = await showProOfferSheet(
+        context,
+        ref,
+        reason: freeDailyLimitSheetReason,
+        isDailyLimitEntry: true,
+      );
+      if (!context.mounted ||
+          sheetOutcome == ProOfferSheetOutcome.dismissed) {
+        return;
+      }
     }
     context.push(AppRoutes.randomPractice);
   }

@@ -206,8 +206,10 @@ public enum ErrorCode {
 
     // Billing (무료·프로 플랜, #576)
     PRO_REQUIRED(HttpStatus.FORBIDDEN, "이용권이 필요한 기능이에요"),
-    FREE_DAILY_LIMIT_REACHED(HttpStatus.FORBIDDEN, "오늘 무료 10문제를 다 풀었어요"),
-    FAIR_USE_DAILY_LIMIT_REACHED(HttpStatus.TOO_MANY_REQUESTS, "오늘 풀 수 있는 문제를 모두 풀었어요");
+    FREE_DAILY_LIMIT_REACHED(HttpStatus.FORBIDDEN, "오늘 무료 문제를 다 풀었어요"),
+    FAIR_USE_DAILY_LIMIT_REACHED(HttpStatus.TOO_MANY_REQUESTS, "오늘 풀 수 있는 문제를 모두 풀었어요"),
+    // 무료 한도 광고 보너스 하루 횟수 소진 (#808)
+    AD_BONUS_DAILY_LIMIT_REACHED(HttpStatus.CONFLICT, "오늘 광고 보너스를 모두 받았어요");
 
     private final HttpStatus status;
     private final String message;

@@ -6,6 +6,7 @@ import com.passql.member.auth.presentation.security.LoginMember;
 import com.passql.member.dto.ChoiceGenerationModeUpdateRequest;
 import com.passql.member.dto.ChoiceGenerationModeUpdateResponse;
 import com.passql.application.entitlement.MemberPlanResponse;
+import com.passql.application.entitlement.PurchaseHistoryEntryResponse;
 import com.passql.member.dto.MemberMeResponse;
 import com.passql.member.dto.NicknameChangeRequest;
 import com.passql.member.dto.NicknameChangeResponse;
@@ -22,6 +23,8 @@ import kr.suhsaechan.suhapilog.annotation.ApiLogs;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
+
 @Tag(name = "Member", description = "회원 조회 / 닉네임 재생성 / 닉네임 직접 변경 / 선택지 생성 모드 변경")
 public interface MemberControllerDocs {
 
@@ -29,6 +32,7 @@ public interface MemberControllerDocs {
       @ApiLog(date = "2026.04.07", author = Author.SUHSAECHAN, issueNumber = 6, description = "본인 정보 조회 API 추가"),
       @ApiLog(date = "2026.04.18", author = Author.SUHSAECHAN, issueNumber = 271, description = "memberUuid 쿼리 파라미터 → @AuthMember 토큰 기반으로 전환"),
       @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 516, description = "응답에 가입 제공자 authProvider, 제공자 사용자 ID providerUserId 추가 (탈퇴 연결 해제 분기·재인증 계정 대조용)"),
+      @ApiLog(date = "2026.11.04", author = Author.SUHSAECHAN, issueNumber = 816, description = "응답에 가린 이메일 maskedEmail, 회원 번호 표시값 memberCode 추가 (계정·이용권 화면)"),
   })
   @Operation(
       summary = "본인 정보 조회",
@@ -42,6 +46,9 @@ public interface MemberControllerDocs {
           - 회원 정보 전체
           - **`authProvider`**: 가입 제공자 (GOOGLE, KAKAO, NAVER, APPLE, GITHUB)
           - **`providerUserId`**: 제공자 사용자 ID (Google·Apple 은 Firebase uid). 탈퇴 재인증 시 같은 계정인지 대조용
+          - **`createdAt`**: 가입 시각 KST (계정 화면 가입일)
+          - **`maskedEmail`**: 가린 이메일 (아이디 앞 2자 + `***` + `@도메인`, 이메일 없으면 null)
+          - **`memberCode`**: 회원 번호 표시값 (`PQL-` + 회원 UUID 앞 8자리 대문자, 문의 때 회원 확인용)
 
           ## 설명
           - JWT AccessToken에서 회원 UUID를 추출하여 본인 정보를 조회한다.
@@ -53,6 +60,7 @@ public interface MemberControllerDocs {
   @ApiLogs({
       @ApiLog(date = "2026.10.22", author = Author.SUHSAECHAN, issueNumber = 576, description = "내 등급 조회 API 추가 (플랜·프로 만료일·오늘 무료 사용량·구매 가능 마감일)"),
       @ApiLog(date = "2026.10.23", author = Author.SUHSAECHAN, issueNumber = 591, description = "응답에 판매 이용권 목록 passOptions 추가, purchasableUntil deprecated (3개월권 값)"),
+      @ApiLog(date = "2026.11.04", author = Author.SUHSAECHAN, issueNumber = 808, description = "응답에 오늘 유효 한도 todayFreeLimit·보너스 dailyBonus 추가, dailyFreeLimit 은 기본 한도"),
   })
   @Operation(
       summary = "내 등급 조회",
@@ -67,7 +75,7 @@ public interface MemberControllerDocs {
           - **`plan`**: FREE 또는 PRO (스위치 꺼짐이면 항상 PRO)
           - **`proExpiresAt`**: 프로 만료 시각 KST (유효한 프로가 아니면 null)
           - **`todayRandomSolvedCount`**: 오늘 푼 무료 랜덤 문제 수
-          - **`dailyFreeLimit`**: 무료 하루 랜덤 문제 한도
+          - **`dailyFreeLimit`**: 무료 하루 랜덤 문제 기본 한도 (보너스 제외, 10)
           - **`purchasableUntil`**: deprecated — `passOptions` 3개월권 `expiresAtIfPurchased` 와 같은 값 (출시 앱 1.36·1.37 호환, 결제 꺼짐이면 null)
           - **`lastPurchasedAt`**: 가장 최근 검증 구매 시각 KST (없으면 null)
           - **`lastOrderId`**: 가장 최근 검증 구매의 Play 주문 번호 (없으면 null)
@@ -75,9 +83,65 @@ public interface MemberControllerDocs {
             - `productId`: Play 상품 ID (`pro_pass_3m`, `pro_pass_1m`)
             - `durationDays`: 이용 일수 (90, 30)
             - `expiresAtIfPurchased`: 지금 구매하면 될 프로 만료 시각 KST (보유 중이면 현재 만료일 뒤로 이어 붙인 값)
+          - **`todayFreeLimit`**: 오늘 무료 랜덤 문제 유효 한도 (기본 + 받은 보너스, 결제 꺼짐·프로면 기본)
+          - **`dailyBonus`**: 오늘 받은 무료 한도 보너스
+            - `isDailySetCompletionEarned`: 오늘의 세트 완료(배정 문제 전부 제출) +5
+            - `isDailySetAccuracyEarned`: 오늘의 세트 정답 80% 이상 +5
+            - `adBonusUsedCount` / `adBonusMaxCount`: 광고 보너스 받은 횟수 / 하루 최대 (2)
+            - `bonusQuestionCount`: 보너스 1회분 문제 수 (5)
           """
   )
   MemberPlanResponse getMyPlan(@AuthMember LoginMember loginMember);
+
+  @ApiLogs({
+      @ApiLog(date = "2026.11.04", author = Author.SUHSAECHAN, issueNumber = 816, description = "내 구매 내역 조회 API 추가 (스토어 구매 + 운영 지급)"),
+  })
+  @Operation(
+      summary = "내 구매 내역 조회",
+      description = """
+          ## 인증(JWT): **필요**
+
+          ## 요청 헤더
+          - **`Authorization`**: Bearer {accessToken}
+
+          ## 반환값 (List<PurchaseHistoryEntryResponse>, 최신순)
+          - **`kind`**: STORE_PURCHASE(스토어 구매) 또는 ADMIN_GRANT(운영 지급)
+          - **`purchasedAt`**: 구매·지급 시각 KST
+          - **`productId`** / **`store`** / **`status`**: 상품 ID, PLAY·APP_STORE, VERIFIED·REVOKED (운영 지급이면 null)
+          - **`grantedExpiresAt`**: 이 구매·지급으로 정해진 프로 만료 시각 KST
+          - **`grantedDays`**: 더한 이용 일수 (모르면 null)
+          - **`priceAmountMicros`** / **`currencyCode`**: 결제 금액 x 1,000,000 · 통화 (스토어가 알려 준 값만, 없으면 null)
+
+          ## 설명
+          - 스토어 구매 전체 + 최근 관리자 감사 로그 50건 중 프로 부여를 합쳐 최신순으로 돌려준다
+          - 구매 토큰·주문 번호·지급 사유는 내보내지 않는다. 관리자 회수는 내역에 넣지 않는다
+          """
+  )
+  List<PurchaseHistoryEntryResponse> getMyPurchases(@AuthMember LoginMember loginMember);
+
+  @ApiLogs({
+      @ApiLog(date = "2026.11.04", author = Author.SUHSAECHAN, issueNumber = 808, description = "무료 한도 광고 보너스 받기 API 추가"),
+  })
+  @Operation(
+      summary = "무료 한도 광고 보너스 받기",
+      description = """
+          ## 인증(JWT): **필요**
+
+          ## 요청 헤더
+          - **`Authorization`**: Bearer {accessToken}
+
+          ## 반환값 (MemberPlanResponse)
+          - 보너스를 반영한 내 등급 (`todayFreeLimit` +5, `dailyBonus.adBonusUsedCount` +1)
+
+          ## 설명
+          - 앱이 보상형 광고 보상 콜백 뒤에 호출한다 (서버 측 광고 확인 없음, 하루 2회 상한)
+          - 결제 꺼짐·프로 회원은 쌓지 않고 현재 등급을 그대로 반환한다
+
+          ## 에러코드
+          - **`AD_BONUS_DAILY_LIMIT_REACHED`** (409): 오늘 광고 보너스를 모두 받음
+          """
+  )
+  MemberPlanResponse grantAdBonus(@AuthMember LoginMember loginMember);
 
   @ApiLogs({
       @ApiLog(date = "2026.04.07", author = Author.SUHSAECHAN, issueNumber = 6, description = "닉네임 재생성 API 추가"),

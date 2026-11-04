@@ -16,6 +16,14 @@ final shouldShowProBadgeProvider = Provider.autoDispose<bool>((ref) {
   return knownPlan.isBillingEnabled && knownPlan.plan == MemberPlanType.pro;
 });
 
+/// 결제 UI 대상인가 (#816): 무료 잠금 UI 또는 프로 표시 중 하나라도 그림 (결제 꺼짐·등급 모름이면 false)
+/// 계정 화면 이용권·프로모션 코드 묶음, 프로필 구매 복원·코드 행이 같은 판정을 씀
+final isBillingUiTargetProvider = Provider.autoDispose<bool>(
+  (ref) =>
+      ref.watch(shouldShowProUiProvider) ||
+      ref.watch(shouldShowProBadgeProvider),
+);
+
 /// 랜덤 풀기 진입(홈 카드·문제 탭 행)을 보일지: 서버 결제 스위치 켜짐 또는 디버그 'free' 강제
 /// 결제 꺼짐·등급 모름이면 숨김 (잠금 UI 없음)
 final isRandomPracticeVisibleProvider = Provider.autoDispose<bool>((ref) {

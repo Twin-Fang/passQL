@@ -7,7 +7,7 @@ topics: [design-system]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[DEC-0116-app-apple-hig-design-system]]", "[[ISS-0430-app-bottom-tab-bar-icon-motion]]", "[[ISS-0430-app-bottom-tab-bar-icon-motion-report]]"]
+related: ["[[DEC-0116-app-apple-hig-design-system]]", "[[ISS-0430-app-bottom-tab-bar-icon-motion]]", "[[ISS-0430-app-bottom-tab-bar-icon-motion-report]]", "[[DEC-0241-tab-bar-content-vertically-centered]]"]
 ---
 
 # DEC-0215: 하단 탭 바 아이콘만 직접 그린 아이콘을 쓴다 (선택 시 같은 윤곽을 강조색으로 채우고 일부가 움직임)

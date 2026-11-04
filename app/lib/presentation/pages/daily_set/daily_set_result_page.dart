@@ -11,6 +11,7 @@ import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
 import '../../providers/daily_set_providers.dart';
 import '../../widgets/ads/interstitial_ad_on_enter.dart';
+import '../../widgets/daily_set/daily_set_bonus_card.dart';
 import '../../widgets/notification/study_result_seen_recorder.dart';
 
 /// 상단 바·점수 머리에 쓰는 화면 이름
@@ -152,6 +153,8 @@ class _ResultBody extends ConsumerWidget {
               label: '순위에 반영하지 못했어요. $saveError',
             ),
           ),
+        // 완료로 받은 무료 한도 보너스 (무료 회원만 보임, #808)
+        if (saveError == null) DailySetBonusCard(assignedQuestionCount: total),
         if (results.isNotEmpty)
           PassqlGroupedSection(
             header: '문제별 결과',

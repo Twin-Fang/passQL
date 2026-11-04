@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 @Service
 public class FeatureAccessPolicy {
 
-    // 무료 하루 랜덤 문제 한도 (개)
+    // 무료 하루 랜덤 문제 기본 한도 (개, 보너스 제외)
     public static final int DAILY_FREE_LIMIT = 10;
 
     // 프로 하루 공정 사용 한도 (개, 화면에 드러내지 않음)
@@ -61,6 +61,8 @@ public class FeatureAccessPolicy {
     private final SubmissionRepository submissionRepository;
     private final DailyQuestionCounter dailyQuestionCounter;
     private final EntitlementPurchaseRepository entitlementPurchaseRepository;
+    private final DailyFreeBonusReader dailyFreeBonusReader;
+    private final DailyAdBonusRecorder dailyAdBonusRecorder;
     private final Clock clock;
 
     @Autowired
@@ -69,9 +71,12 @@ public class FeatureAccessPolicy {
                                PassExpiryCalculator passExpiryCalculator,
                                SubmissionRepository submissionRepository,
                                DailyQuestionCounter dailyQuestionCounter,
-                               EntitlementPurchaseRepository entitlementPurchaseRepository) {
+                               EntitlementPurchaseRepository entitlementPurchaseRepository,
+                               DailyFreeBonusReader dailyFreeBonusReader,
+                               DailyAdBonusRecorder dailyAdBonusRecorder) {
         this(memberEntitlementRepository, appSettingService, passExpiryCalculator,
-            submissionRepository, dailyQuestionCounter, entitlementPurchaseRepository, Clock.system(SERVICE_ZONE));
+            submissionRepository, dailyQuestionCounter, entitlementPurchaseRepository,
+            dailyFreeBonusReader, dailyAdBonusRecorder, Clock.system(SERVICE_ZONE));
     }
 
     FeatureAccessPolicy(MemberEntitlementRepository memberEntitlementRepository,
@@ -79,13 +84,17 @@ public class FeatureAccessPolicy {
                         PassExpiryCalculator passExpiryCalculator,
                         SubmissionRepository submissionRepository,
                         DailyQuestionCounter dailyQuestionCounter,
-                        EntitlementPurchaseRepository entitlementPurchaseRepository, Clock clock) {
+                        EntitlementPurchaseRepository entitlementPurchaseRepository,
+                        DailyFreeBonusReader dailyFreeBonusReader,
+                        DailyAdBonusRecorder dailyAdBonusRecorder, Clock clock) {
         this.memberEntitlementRepository = memberEntitlementRepository;
         this.appSettingService = appSettingService;
         this.passExpiryCalculator = passExpiryCalculator;
         this.submissionRepository = submissionRepository;
         this.dailyQuestionCounter = dailyQuestionCounter;
         this.entitlementPurchaseRepository = entitlementPurchaseRepository;
+        this.dailyFreeBonusReader = dailyFreeBonusReader;
+        this.dailyAdBonusRecorder = dailyAdBonusRecorder;
         this.clock = clock;
     }
 
@@ -155,7 +164,7 @@ public class FeatureAccessPolicy {
     }
 
     /**
-     * 문제 열기 제한: 스위치 > 오늘의 문제 > 예전에 푼 문제 > 오늘 새로 연 수(무료 10, 프로 200)
+     * 문제 열기 제한: 스위치 > 오늘의 문제 > 예전에 푼 문제 > 오늘 새로 연 수(무료 10 + 보너스, 프로 200)
      * 회원 기준 결제 꺼짐, 오늘의 문제, 제출 이력 있는 문제는 항상 통과
      */
     public void assertCanOpenQuestion(UUID memberUuid, UUID questionUuid) {
@@ -180,13 +189,30 @@ public class FeatureAccessPolicy {
             }
             return;
         }
-        if (todayRandomSolvedCount >= DAILY_FREE_LIMIT) {
-            log.info("[pro access] rejected 403 : free daily limit, member={}, count={}", memberUuid, todayRandomSolvedCount);
+        int todayFreeLimit = DAILY_FREE_LIMIT + dailyFreeBonusReader.readToday(memberUuid).totalBonusQuestionCount();
+        if (todayRandomSolvedCount >= todayFreeLimit) {
+            log.info("[pro access] rejected 403 : free daily limit, member={}, count={}, limit={}",
+                memberUuid, todayRandomSolvedCount, todayFreeLimit);
             throw new CustomException(ErrorCode.FREE_DAILY_LIMIT_REACHED);
         }
     }
 
-    /** 내 등급 응답 (이용권 목록·오늘 사용량·최근 구매는 회원 기준 결제 켜짐일 때만, 최근 구매는 검증 구매 기준) */
+    /**
+     * 광고 보너스 1회 받기 (#808): 결제 꺼짐·프로 > 쌓지 않고 현재 등급, 오늘 다 씀 > 409, 그 외 빈 칸 기록 > 등급
+     * 같은 칸 동시 저장(unique 충돌) > 횟수 다시 읽어 1회 재시도
+     */
+    public MemberPlanResponse grantAdBonus(UUID memberUuid) {
+        if (isPro(memberUuid)) {
+            return getPlan(memberUuid);
+        }
+        if (!dailyAdBonusRecorder.saveNextAdBonus(memberUuid) && !dailyAdBonusRecorder.saveNextAdBonus(memberUuid)) {
+            log.info("[pro access] rejected 409 : ad bonus daily limit, member={}", memberUuid);
+            throw new CustomException(ErrorCode.AD_BONUS_DAILY_LIMIT_REACHED);
+        }
+        return getPlan(memberUuid);
+    }
+
+    /** 내 등급 응답 (이용권 목록·오늘 사용량·보너스·최근 구매는 회원 기준 결제 켜짐일 때만, 최근 구매는 검증 구매 기준) */
     public MemberPlanResponse getPlan(UUID memberUuid) {
         boolean isBillingEnabled = isBillingEnabledFor(memberUuid);
         MemberEntitlement activeProEntitlement = findActiveProEntitlement(memberUuid);
@@ -204,6 +230,8 @@ public class FeatureAccessPolicy {
             .orElse(null);
 
         int todayRandomSolvedCount = isBillingEnabled ? dailyQuestionCounter.countTodayRandomSolved(memberUuid) : 0;
+        // 무료 보너스 (결제 꺼짐·프로는 보너스 없음 = 기본 한도)
+        DailyFreeBonus dailyBonus = isPro ? DailyFreeBonus.none() : dailyFreeBonusReader.readToday(memberUuid);
 
         // 이용권 정보 시트용 최근 검증 구매 (결제 꺼짐·관리자 부여만 있으면 없음)
         EntitlementPurchase lastVerifiedPurchase = isBillingEnabled
@@ -221,7 +249,9 @@ public class FeatureAccessPolicy {
             purchasableUntil,
             lastVerifiedPurchase != null ? lastVerifiedPurchase.getPurchasedAt() : null,
             lastVerifiedPurchase != null ? lastVerifiedPurchase.getOrderId() : null,
-            passOptions);
+            passOptions,
+            DAILY_FREE_LIMIT + dailyBonus.totalBonusQuestionCount(),
+            dailyBonus);
     }
 
     /** PassProduct 선언 순서(3개월 먼저) > 이용권 칸 목록 (보유 중이면 현재 만료일 뒤로 이어 붙인 만료일) */

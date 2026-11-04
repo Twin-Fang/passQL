@@ -947,6 +947,9 @@ export interface paths {
          *     - 회원 정보 전체
          *     - **`authProvider`**: 가입 제공자 (GOOGLE, KAKAO, NAVER, APPLE, GITHUB)
          *     - **`providerUserId`**: 제공자 사용자 ID (Google·Apple 은 Firebase uid). 탈퇴 재인증 시 같은 계정인지 대조용
+         *     - **`createdAt`**: 가입 시각 KST (계정 화면 가입일)
+         *     - **`maskedEmail`**: 가린 이메일 (아이디 앞 2자 + `***` + `@도메인`, 이메일 없으면 null)
+         *     - **`memberCode`**: 회원 번호 표시값 (`PQL-` + 회원 UUID 앞 8자리 대문자, 문의 때 회원 확인용)
          *
          *     ## 설명
          *     - JWT AccessToken에서 회원 UUID를 추출하여 본인 정보를 조회한다.
@@ -1255,7 +1258,7 @@ export interface paths {
          *     - **`plan`**: FREE 또는 PRO (스위치 꺼짐이면 항상 PRO)
          *     - **`proExpiresAt`**: 프로 만료 시각 KST (유효한 프로가 아니면 null)
          *     - **`todayRandomSolvedCount`**: 오늘 푼 무료 랜덤 문제 수
-         *     - **`dailyFreeLimit`**: 무료 하루 랜덤 문제 한도
+         *     - **`dailyFreeLimit`**: 무료 하루 랜덤 문제 기본 한도 (보너스 제외, 10)
          *     - **`purchasableUntil`**: deprecated — `passOptions` 3개월권 `expiresAtIfPurchased` 와 같은 값 (출시 앱 1.36·1.37 호환, 결제 꺼짐이면 null)
          *     - **`lastPurchasedAt`**: 가장 최근 검증 구매 시각 KST (없으면 null)
          *     - **`lastOrderId`**: 가장 최근 검증 구매의 Play 주문 번호 (없으면 null)
@@ -1263,8 +1266,82 @@ export interface paths {
          *       - `productId`: Play 상품 ID (`pro_pass_3m`, `pro_pass_1m`)
          *       - `durationDays`: 이용 일수 (90, 30)
          *       - `expiresAtIfPurchased`: 지금 구매하면 될 프로 만료 시각 KST (보유 중이면 현재 만료일 뒤로 이어 붙인 값)
+         *     - **`todayFreeLimit`**: 오늘 무료 랜덤 문제 유효 한도 (기본 + 받은 보너스, 결제 꺼짐·프로면 기본)
+         *     - **`dailyBonus`**: 오늘 받은 무료 한도 보너스
+         *       - `isDailySetCompletionEarned`: 오늘의 세트 완료(배정 문제 전부 제출) +5
+         *       - `isDailySetAccuracyEarned`: 오늘의 세트 정답 80% 이상 +5
+         *       - `adBonusUsedCount` / `adBonusMaxCount`: 광고 보너스 받은 횟수 / 하루 최대 (2)
+         *       - `bonusQuestionCount`: 보너스 1회분 문제 수 (5)
          */
         get: operations["getMyPlan"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/members/me/plan/ad-bonus": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 무료 한도 광고 보너스 받기
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 요청 헤더
+         *     - **`Authorization`**: Bearer {accessToken}
+         *
+         *     ## 반환값 (MemberPlanResponse)
+         *     - 보너스를 반영한 내 등급 (`todayFreeLimit` +5, `dailyBonus.adBonusUsedCount` +1)
+         *
+         *     ## 설명
+         *     - 앱이 보상형 광고 보상 콜백 뒤에 호출한다 (서버 측 광고 확인 없음, 하루 2회 상한)
+         *     - 결제 꺼짐·프로 회원은 쌓지 않고 현재 등급을 그대로 반환한다
+         *
+         *     ## 에러코드
+         *     - **`AD_BONUS_DAILY_LIMIT_REACHED`** (409): 오늘 광고 보너스를 모두 받음
+         */
+        post: operations["grantAdBonus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/members/me/purchases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 내 구매 내역 조회
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 요청 헤더
+         *     - **`Authorization`**: Bearer {accessToken}
+         *
+         *     ## 반환값 (List<PurchaseHistoryEntryResponse>, 최신순)
+         *     - **`kind`**: STORE_PURCHASE(스토어 구매) 또는 ADMIN_GRANT(운영 지급)
+         *     - **`purchasedAt`**: 구매·지급 시각 KST
+         *     - **`productId`** / **`store`** / **`status`**: 상품 ID, PLAY·APP_STORE, VERIFIED·REVOKED (운영 지급이면 null)
+         *     - **`grantedExpiresAt`**: 이 구매·지급으로 정해진 프로 만료 시각 KST
+         *     - **`grantedDays`**: 더한 이용 일수 (모르면 null)
+         *     - **`priceAmountMicros`** / **`currencyCode`**: 결제 금액 x 1,000,000 · 통화 (스토어가 알려 준 값만, 없으면 null)
+         *
+         *     ## 설명
+         *     - 스토어 구매 전체 + 최근 관리자 감사 로그 50건 중 프로 부여를 합쳐 최신순으로 돌려준다
+         *     - 구매 토큰·주문 번호·지급 사유는 내보내지 않는다. 관리자 회수는 내역에 넣지 않는다
+         */
+        get: operations["getMyPurchases"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2296,6 +2373,16 @@ export interface components {
             /** Format: uuid */
             topicUuid: string;
         };
+        DailyFreeBonus: {
+            /** Format: int32 */
+            adBonusMaxCount: number;
+            /** Format: int32 */
+            adBonusUsedCount: number;
+            /** Format: int32 */
+            bonusQuestionCount: number;
+            isDailySetAccuracyEarned: boolean;
+            isDailySetCompletionEarned: boolean;
+        };
         DailySetCompleteRequest: {
             /** Format: int32 */
             correctCount: number;
@@ -2322,7 +2409,7 @@ export interface components {
          * @description 서버 ErrorCode enum 이름 (응답 errorCode 값)
          * @enum {string}
          */
-        ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "REQUEST_TOO_LARGE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "EMBEDDING_INDEX_ALREADY_RUNNING" | "PROMPT_NOT_FOUND" | "PROMPT_HISTORY_NOT_FOUND" | "PROMPT_ACTIVE_DELETE_FORBIDDEN" | "TOPIC_NOT_FOUND" | "CONCEPT_NOT_FOUND" | "CONCEPT_CHECK_QUESTION_NOT_FOUND" | "TOPIC_DUPLICATE" | "TOPIC_HAS_QUESTIONS" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_CHALLENGE_RANGE_INVALID" | "DAILY_CHALLENGE_TOO_MANY_QUESTIONS" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "FEEDBACK_IMAGE_TOO_MANY" | "FEEDBACK_IMAGE_INVALID" | "FEEDBACK_ATTACHMENT_TOO_LARGE" | "FEEDBACK_ATTACHMENT_INVALID" | "FEEDBACK_DAILY_LIMIT_EXCEEDED" | "FEEDBACK_STORAGE_UNAVAILABLE" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "APP_MAINTENANCE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "COMMUNITY_POST_NOT_FOUND" | "COMMUNITY_SOLVE_REQUIRED" | "COMMUNITY_CONTENT_INVALID" | "COMMUNITY_CONTENT_FORBIDDEN_WORD" | "COMMUNITY_POST_DUPLICATE" | "COMMUNITY_POST_RATE_LIMITED" | "COMMUNITY_POST_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_POST_FORBIDDEN" | "COMMUNITY_SELF_REPORT_FORBIDDEN" | "COMMUNITY_SELF_BLOCK_FORBIDDEN" | "COMMUNITY_BLOCK_NOT_FOUND" | "COMMUNITY_IMAGE_STORAGE_UNAVAILABLE" | "COMMUNITY_IMAGE_INVALID_FORMAT" | "COMMUNITY_IMAGE_TOO_LARGE" | "COMMUNITY_IMAGE_DIMENSION_EXCEEDED" | "COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED" | "COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_IMAGE_QUOTA_EXCEEDED" | "COMMUNITY_IMAGE_NOT_FOUND" | "COMMUNITY_IMAGE_TOO_MANY" | "COMMUNITY_IMAGE_INVALID_ATTACHMENT" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "ADMIN_ACCOUNT_SELF_DELETE_FORBIDDEN" | "ADMIN_ACCOUNT_DELETE_REQUIRES_DISABLED" | "ADMIN_ACCOUNT_LAST_ADMIN_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_INACTIVE_DAYS_INVALID" | "PUSH_SCHEDULE_TIME_INVALID" | "PUSH_NOT_SCHEDULED" | "PUSH_RETRACT_NOT_DISPATCHED" | "PUSH_TEMPLATE_NOT_FOUND" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER" | "SOCIAL_LOGIN_UNAVAILABLE" | "INVALID_SOCIAL_AUTHORIZATION_CODE" | "INVALID_SOCIAL_TOKEN" | "PRO_REQUIRED" | "FREE_DAILY_LIMIT_REACHED" | "FAIR_USE_DAILY_LIMIT_REACHED";
+        ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "REQUEST_TOO_LARGE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "EMBEDDING_INDEX_ALREADY_RUNNING" | "PROMPT_NOT_FOUND" | "PROMPT_HISTORY_NOT_FOUND" | "PROMPT_ACTIVE_DELETE_FORBIDDEN" | "TOPIC_NOT_FOUND" | "CONCEPT_NOT_FOUND" | "CONCEPT_CHECK_QUESTION_NOT_FOUND" | "TOPIC_DUPLICATE" | "TOPIC_HAS_QUESTIONS" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_CHALLENGE_RANGE_INVALID" | "DAILY_CHALLENGE_TOO_MANY_QUESTIONS" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "FEEDBACK_IMAGE_TOO_MANY" | "FEEDBACK_IMAGE_INVALID" | "FEEDBACK_ATTACHMENT_TOO_LARGE" | "FEEDBACK_ATTACHMENT_INVALID" | "FEEDBACK_DAILY_LIMIT_EXCEEDED" | "FEEDBACK_STORAGE_UNAVAILABLE" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "APP_MAINTENANCE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "COMMUNITY_POST_NOT_FOUND" | "COMMUNITY_SOLVE_REQUIRED" | "COMMUNITY_CONTENT_INVALID" | "COMMUNITY_CONTENT_FORBIDDEN_WORD" | "COMMUNITY_POST_DUPLICATE" | "COMMUNITY_POST_RATE_LIMITED" | "COMMUNITY_POST_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_POST_FORBIDDEN" | "COMMUNITY_SELF_REPORT_FORBIDDEN" | "COMMUNITY_SELF_BLOCK_FORBIDDEN" | "COMMUNITY_BLOCK_NOT_FOUND" | "COMMUNITY_IMAGE_STORAGE_UNAVAILABLE" | "COMMUNITY_IMAGE_INVALID_FORMAT" | "COMMUNITY_IMAGE_TOO_LARGE" | "COMMUNITY_IMAGE_DIMENSION_EXCEEDED" | "COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED" | "COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_IMAGE_QUOTA_EXCEEDED" | "COMMUNITY_IMAGE_NOT_FOUND" | "COMMUNITY_IMAGE_TOO_MANY" | "COMMUNITY_IMAGE_INVALID_ATTACHMENT" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "ADMIN_ACCOUNT_SELF_DELETE_FORBIDDEN" | "ADMIN_ACCOUNT_DELETE_REQUIRES_DISABLED" | "ADMIN_ACCOUNT_LAST_ADMIN_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_INACTIVE_DAYS_INVALID" | "PUSH_SCHEDULE_TIME_INVALID" | "PUSH_NOT_SCHEDULED" | "PUSH_RETRACT_NOT_DISPATCHED" | "PUSH_TEMPLATE_NOT_FOUND" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER" | "SOCIAL_LOGIN_UNAVAILABLE" | "INVALID_SOCIAL_AUTHORIZATION_CODE" | "INVALID_SOCIAL_TOKEN" | "PRO_REQUIRED" | "FREE_DAILY_LIMIT_REACHED" | "FAIR_USE_DAILY_LIMIT_REACHED" | "AD_BONUS_DAILY_LIMIT_REACHED";
         /** @description API 에러 응답 표준 형식 */
         ErrorResponse: {
             errorCode: components["schemas"]["ErrorCode"];
@@ -2483,6 +2570,8 @@ export interface components {
             isTestAccount: boolean;
             /** Format: date-time */
             lastSeenAt: string;
+            maskedEmail: string | null;
+            memberCode: string;
             /** Format: uuid */
             memberUuid: string;
             nickname: string;
@@ -2493,6 +2582,7 @@ export interface components {
             status: string;
         };
         MemberPlanResponse: {
+            dailyBonus: components["schemas"]["DailyFreeBonus"];
             /** Format: int32 */
             dailyFreeLimit: number;
             isBillingEnabled: boolean;
@@ -2508,6 +2598,8 @@ export interface components {
              * @deprecated
              */
             purchasableUntil: string | null;
+            /** Format: int32 */
+            todayFreeLimit: number;
             /** Format: int32 */
             todayRandomSolvedCount: number;
         };
@@ -2608,6 +2700,24 @@ export interface components {
             solvedCount: number;
             /** Format: int32 */
             streakDays: number;
+        };
+        PurchaseHistoryEntryResponse: {
+            currencyCode: string | null;
+            /** Format: int32 */
+            grantedDays: number | null;
+            /** Format: date-time */
+            grantedExpiresAt: string | null;
+            /** @enum {string} */
+            kind: "STORE_PURCHASE" | "ADMIN_GRANT";
+            /** Format: int64 */
+            priceAmountMicros: number | null;
+            productId: string | null;
+            /** Format: date-time */
+            purchasedAt: string;
+            /** @enum {string|null} */
+            status: "VERIFIED" | "REVOKED" | null;
+            /** @enum {string|null} */
+            store: "PLAY" | "APP_STORE" | null;
         };
         PushTokenRegisterRequest: {
             isPushEnabled?: boolean;
@@ -3950,6 +4060,46 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["MemberPlanResponse"];
+                };
+            };
+        };
+    };
+    grantAdBonus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MemberPlanResponse"];
+                };
+            };
+        };
+    };
+    getMyPurchases: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PurchaseHistoryEntryResponse"][];
                 };
             };
         };

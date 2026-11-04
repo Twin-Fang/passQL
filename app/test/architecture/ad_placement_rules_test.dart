@@ -29,9 +29,8 @@ const List<String> _adModulePaths = [
 const Map<String, String> _allowedAdModuleUsers = {
   'lib/main.dart': '앱 시작 첫 프레임 뒤 iOS 추적 허용 질문 1회 (광고를 그리지 않음)',
   'lib/presentation/widgets/app_shell.dart':
-      '메인 탭 4개 공통 하단 탭 바 아래 한 줄 띠 + 결과 화면 전면 광고 미리 불러오기',
-  'lib/presentation/pages/home/home_page.dart':
-      '학습 현황 아래 인라인 배너 구간 1개',
+      '메인 탭 4개 공통 하단 탭 바 아래 한 줄 띠 + 결과 화면 전면 광고 미리 불러오기 + 탭 화면 복귀 앱 오프닝 광고',
+  'lib/presentation/pages/home/home_page.dart': '학습 현황 아래 인라인 배너 구간 1개',
   'lib/presentation/pages/stats/stats_page.dart': '통계 콘텐츠 맨 아래 인라인 배너 카드 1개',
   'lib/presentation/pages/questions/topic_list_page.dart':
       '토픽 목록 사이 네이티브 1칸 + 최신 경향(유형 <-> 공부 팁)·개념 TOP 10(5위 <-> 6위) 네이티브 각 1칸',
@@ -39,6 +38,10 @@ const Map<String, String> _allowedAdModuleUsers = {
       '오늘의 세트를 막 끝낸 결과 화면 진입 전면 광고',
   'lib/presentation/pages/questions/chapter_result_page.dart':
       '챕터를 끝까지 푼 결과 화면 진입 전면 광고',
+  'lib/presentation/widgets/dev_tools/dev_tools_sheet.dart':
+      '개발자 도구 광고 구역 (디버그·개발용 빌드에서만 보임, 테스트 광고, #809)',
+  'lib/presentation/widgets/pro/pro_offer_sheet.dart':
+      '무료 하루 한도로 열린 이용권 시트에서 사용자가 눌러 보는 보상형 광고 버튼 1개 (#808)',
 };
 
 /// 광고를 절대 두지 않는 곳 (폴더 또는 파일)

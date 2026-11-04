@@ -5,6 +5,7 @@ import '../models/member/member_me_response.dart';
 import '../models/member/member_plan_response.dart';
 import '../models/member/nickname_models.dart';
 import '../models/member/nickname_regenerate_response.dart';
+import '../models/member/purchase_history_entry_response.dart';
 
 part 'member_api.g.dart';
 
@@ -19,6 +20,14 @@ abstract class MemberApiClient {
   /// 내 등급: 프로 여부·만료일·오늘 푼 랜덤 문제 수·무료 한도.
   @GET('/members/me/plan')
   Future<MemberPlanResponse> getMyPlan();
+
+  /// 내 구매 내역: 스토어 구매 + 운영 지급, 최신순 (#816)
+  @GET('/members/me/purchases')
+  Future<List<PurchaseHistoryEntryResponse>> getMyPurchases();
+
+  /// 보상형 광고 시청 뒤 무료 한도 +5 (하루 2회, 넘으면 409 AD_BONUS_DAILY_LIMIT_REACHED, #808)
+  @POST('/members/me/plan/ad-bonus')
+  Future<MemberPlanResponse> grantAdBonus();
 
   /// 회원 탈퇴. 성공하면 서버가 204 를 돌려주고 이후 이 계정의 토큰은 쓸 수 없다.
   @DELETE('/members/me')

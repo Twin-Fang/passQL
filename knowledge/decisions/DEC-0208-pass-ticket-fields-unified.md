@@ -4,10 +4,10 @@ id: DEC-0208
 created: 2026-10-29
 reviewed: null
 topics: [design-system, billing]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
-related: ["[[ISS-0428-app-profile-tab-redesign]]", "[[ISS-0428-app-profile-tab-redesign-report]]"]
+superseded_by: DEC-0243
+related: ["[[ISS-0428-app-profile-tab-redesign]]", "[[ISS-0428-app-profile-tab-redesign-report]]", "[[DEC-0243-profile-top-card-style-a]]"]
 ---
 
 # DEC-0208: 프로필·정보 시트 탑승권 칸은 승객 · 남은 날 · 시험일, 떼는 칸 글자는 "사용 중"으로 통일하고 바코드 폭은 그 글자 폭에 맞춘다

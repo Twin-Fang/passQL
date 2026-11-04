@@ -2,6 +2,8 @@ package com.passql.web.controller;
 
 import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.application.entitlement.MemberPlanResponse;
+import com.passql.application.entitlement.MemberPurchaseHistoryService;
+import com.passql.application.entitlement.PurchaseHistoryEntryResponse;
 import com.passql.application.entitlement.ProFeature;
 import com.passql.member.constant.ChoiceGenerationMode;
 import com.passql.member.auth.presentation.annotation.AuthMember;
@@ -32,6 +34,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/members")
 @RequiredArgsConstructor
@@ -41,6 +45,7 @@ public class MemberController implements MemberControllerDocs {
     private final MemberService memberService;
     private final MemberPushTokenService memberPushTokenService;
     private final FeatureAccessPolicy featureAccessPolicy;
+    private final MemberPurchaseHistoryService memberPurchaseHistoryService;
 
     @GetMapping("/me")
     public MemberMeResponse getMe(@AuthMember LoginMember loginMember) {
@@ -51,6 +56,18 @@ public class MemberController implements MemberControllerDocs {
     @GetMapping("/me/plan")
     public MemberPlanResponse getMyPlan(@AuthMember LoginMember loginMember) {
         return featureAccessPolicy.getPlan(loginMember.memberUuid());
+    }
+
+    // 내 구매 내역: 스토어 구매 + 운영 지급, 최신순 (#816)
+    @GetMapping("/me/purchases")
+    public List<PurchaseHistoryEntryResponse> getMyPurchases(@AuthMember LoginMember loginMember) {
+        return memberPurchaseHistoryService.getPurchaseHistory(loginMember.memberUuid());
+    }
+
+    // 보상형 광고 시청 뒤 무료 한도 +5 (하루 2회, #808)
+    @PostMapping("/me/plan/ad-bonus")
+    public MemberPlanResponse grantAdBonus(@AuthMember LoginMember loginMember) {
+        return featureAccessPolicy.grantAdBonus(loginMember.memberUuid());
     }
 
     /** 회원 탈퇴. 성공하면 본문 없이 204. */

@@ -31,7 +31,13 @@ mixin _$MemberMeResponse {
       throw _privateConstructorUsedError; // 로그인 제공자 서버 값 (GOOGLE, APPLE, KAKAO, NAVER, GITHUB): 탈퇴 연결 해제 분기 기준
   String? get authProvider =>
       throw _privateConstructorUsedError; // 제공자 회원 식별자 (GOOGLE·APPLE 은 Firebase uid): 탈퇴 재인증 계정 대조 기준
-  String? get providerUserId => throw _privateConstructorUsedError;
+  String? get providerUserId =>
+      throw _privateConstructorUsedError; // 가입 시각 (KST): 계정 화면 가입일 (#816)
+  DateTime? get createdAt =>
+      throw _privateConstructorUsedError; // 가린 이메일 (예: sq***@kakao.com, 이메일 없는 제공자면 null, #816)
+  String? get maskedEmail =>
+      throw _privateConstructorUsedError; // 회원 번호 표시값 (PQL- + UUID 앞 8자리 대문자): 문의 때 회원 확인 (#816)
+  String? get memberCode => throw _privateConstructorUsedError;
 
   /// Serializes this MemberMeResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -58,6 +64,9 @@ abstract class $MemberMeResponseCopyWith<$Res> {
     DateTime? nicknameChangedAt,
     String? authProvider,
     String? providerUserId,
+    DateTime? createdAt,
+    String? maskedEmail,
+    String? memberCode,
   });
 }
 
@@ -82,6 +91,9 @@ class _$MemberMeResponseCopyWithImpl<$Res, $Val extends MemberMeResponse>
     Object? nicknameChangedAt = freezed,
     Object? authProvider = freezed,
     Object? providerUserId = freezed,
+    Object? createdAt = freezed,
+    Object? maskedEmail = freezed,
+    Object? memberCode = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -109,6 +121,18 @@ class _$MemberMeResponseCopyWithImpl<$Res, $Val extends MemberMeResponse>
                 ? _value.providerUserId
                 : providerUserId // ignore: cast_nullable_to_non_nullable
                       as String?,
+            createdAt: freezed == createdAt
+                ? _value.createdAt
+                : createdAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            maskedEmail: freezed == maskedEmail
+                ? _value.maskedEmail
+                : maskedEmail // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            memberCode: freezed == memberCode
+                ? _value.memberCode
+                : memberCode // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -132,6 +156,9 @@ abstract class _$$MemberMeResponseImplCopyWith<$Res>
     DateTime? nicknameChangedAt,
     String? authProvider,
     String? providerUserId,
+    DateTime? createdAt,
+    String? maskedEmail,
+    String? memberCode,
   });
 }
 
@@ -155,6 +182,9 @@ class __$$MemberMeResponseImplCopyWithImpl<$Res>
     Object? nicknameChangedAt = freezed,
     Object? authProvider = freezed,
     Object? providerUserId = freezed,
+    Object? createdAt = freezed,
+    Object? maskedEmail = freezed,
+    Object? memberCode = freezed,
   }) {
     return _then(
       _$MemberMeResponseImpl(
@@ -182,6 +212,18 @@ class __$$MemberMeResponseImplCopyWithImpl<$Res>
             ? _value.providerUserId
             : providerUserId // ignore: cast_nullable_to_non_nullable
                   as String?,
+        createdAt: freezed == createdAt
+            ? _value.createdAt
+            : createdAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        maskedEmail: freezed == maskedEmail
+            ? _value.maskedEmail
+            : maskedEmail // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        memberCode: freezed == memberCode
+            ? _value.memberCode
+            : memberCode // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -198,6 +240,9 @@ class _$MemberMeResponseImpl implements _MemberMeResponse {
     this.nicknameChangedAt,
     this.authProvider,
     this.providerUserId,
+    this.createdAt,
+    this.maskedEmail,
+    this.memberCode,
   });
 
   factory _$MemberMeResponseImpl.fromJson(Map<String, dynamic> json) =>
@@ -219,10 +264,19 @@ class _$MemberMeResponseImpl implements _MemberMeResponse {
   // 제공자 회원 식별자 (GOOGLE·APPLE 은 Firebase uid): 탈퇴 재인증 계정 대조 기준
   @override
   final String? providerUserId;
+  // 가입 시각 (KST): 계정 화면 가입일 (#816)
+  @override
+  final DateTime? createdAt;
+  // 가린 이메일 (예: sq***@kakao.com, 이메일 없는 제공자면 null, #816)
+  @override
+  final String? maskedEmail;
+  // 회원 번호 표시값 (PQL- + UUID 앞 8자리 대문자): 문의 때 회원 확인 (#816)
+  @override
+  final String? memberCode;
 
   @override
   String toString() {
-    return 'MemberMeResponse(memberUuid: $memberUuid, nickname: $nickname, choiceGenerationMode: $choiceGenerationMode, nicknameChangedAt: $nicknameChangedAt, authProvider: $authProvider, providerUserId: $providerUserId)';
+    return 'MemberMeResponse(memberUuid: $memberUuid, nickname: $nickname, choiceGenerationMode: $choiceGenerationMode, nicknameChangedAt: $nicknameChangedAt, authProvider: $authProvider, providerUserId: $providerUserId, createdAt: $createdAt, maskedEmail: $maskedEmail, memberCode: $memberCode)';
   }
 
   @override
@@ -241,7 +295,13 @@ class _$MemberMeResponseImpl implements _MemberMeResponse {
             (identical(other.authProvider, authProvider) ||
                 other.authProvider == authProvider) &&
             (identical(other.providerUserId, providerUserId) ||
-                other.providerUserId == providerUserId));
+                other.providerUserId == providerUserId) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.maskedEmail, maskedEmail) ||
+                other.maskedEmail == maskedEmail) &&
+            (identical(other.memberCode, memberCode) ||
+                other.memberCode == memberCode));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -254,6 +314,9 @@ class _$MemberMeResponseImpl implements _MemberMeResponse {
     nicknameChangedAt,
     authProvider,
     providerUserId,
+    createdAt,
+    maskedEmail,
+    memberCode,
   );
 
   /// Create a copy of MemberMeResponse
@@ -282,6 +345,9 @@ abstract class _MemberMeResponse implements MemberMeResponse {
     final DateTime? nicknameChangedAt,
     final String? authProvider,
     final String? providerUserId,
+    final DateTime? createdAt,
+    final String? maskedEmail,
+    final String? memberCode,
   }) = _$MemberMeResponseImpl;
 
   factory _MemberMeResponse.fromJson(Map<String, dynamic> json) =
@@ -299,7 +365,13 @@ abstract class _MemberMeResponse implements MemberMeResponse {
   @override
   String? get authProvider; // 제공자 회원 식별자 (GOOGLE·APPLE 은 Firebase uid): 탈퇴 재인증 계정 대조 기준
   @override
-  String? get providerUserId;
+  String? get providerUserId; // 가입 시각 (KST): 계정 화면 가입일 (#816)
+  @override
+  DateTime? get createdAt; // 가린 이메일 (예: sq***@kakao.com, 이메일 없는 제공자면 null, #816)
+  @override
+  String? get maskedEmail; // 회원 번호 표시값 (PQL- + UUID 앞 8자리 대문자): 문의 때 회원 확인 (#816)
+  @override
+  String? get memberCode;
 
   /// Create a copy of MemberMeResponse
   /// with the given fields replaced by the non-null parameter values.

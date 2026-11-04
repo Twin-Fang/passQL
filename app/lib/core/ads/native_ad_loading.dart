@@ -5,6 +5,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'ad_placement.dart';
 import 'ad_request_preparer.dart';
+import 'full_screen_ad_guard.dart';
 
 /// 네이티브 광고 1개 로드 공통(템플릿 카드·한 줄 띠): 요청 준비 > 광고 조립 > 로드 > 시간 초과 대기
 /// 실패·미설정·시간 초과·예외면 해제 후 null (예외 없음)
@@ -27,6 +28,8 @@ Future<NativeAd?> loadNativeAdOrNull({
     nativeAd = buildNativeAd(
       preparedRequest,
       NativeAdListener(
+        // 광고가 연 외부 화면에서 돌아올 때 앱 오프닝 광고 제외용
+        onAdClicked: (_) => FullScreenAdGuard.recordAdClicked(),
         onAdLoaded: (ad) {
           if (!loadCompleter.isCompleted) {
             loadCompleter.complete(ad as NativeAd);
