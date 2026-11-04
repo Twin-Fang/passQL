@@ -2,7 +2,7 @@
 type: cluster
 topic: ci-deploy
 created: 2026-10-29
-members: 58
+members: 60
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 CI/CD·배포·버전 관리·빌드
 
 ## 현재 상태 요약
-(2026-10-29, 자동 생성) 활성 결정 19개, 열린 이슈 2개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-04, 자동 생성) 활성 결정 19개, 열린 이슈 2개. 빌드 프로파일 `build-profile.json`의 `test`가 개발자 도구 값을 켜고 `release`가 꺼짐을 검증한다 — [[DEC-0240-dev-tools-two-layer-gate-test-builds]] (작성 시점 미머지). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0009-main-verify-deploy-branch-release]] — `main`은 빌드 검증만, 실제 배포는 `deploy` 브랜치에서만 트리거
@@ -34,11 +34,13 @@ CI/CD·배포·버전 관리·빌드
 - [[DEC-0181-commit-ios-package-resolved]] — iOS `Podfile.lock`과 SPM `Package.resolved` 2개를 레포에 커밋해 의존성 버전을 고정한다
 - [[DEC-0201-play-promote-closed-testing-default-false]] — Play 수동 배포의 비공개 테스트(alpha) 승급은 기본 끔 — 필요할 때만 체크해서 승급
 - [[DEC-0202-test-build-shared-version-adjust-no-block]] — 앱 테스트 빌드는 막지 않고 닫힌 버전이면 다음 패치로 올리며, Android도 iOS 번들 ID 기준의 같은 판단을 쓴다
+- [[DEC-0240-dev-tools-two-layer-gate-test-builds]] — 테스트 빌드 프로파일만 `APP_FLAVOR=dev`·`APP_SHOW_DEV_TOOLS=true`를 켜고 release는 개발 키 꺼짐 검증
 
 ## 대체된 결정 (역사)
 - [[DEC-0021-vercel-git-integration-deploy-branch]] → DEC-0060
 
 ## 관련 이슈
+- [[ISS-0444-test-build-dev-tools-overlay]] (resolved, GitHub #809) — 테스트 빌드 개발자 도구 (빌드 프로파일 test/release)
 - [[ISS-0355-store-review-status-tracking-issue]] (open, GitHub #570) — 스토어 심사 상태 자동 알림 (구독용, 닫지 않음)
 - [[ISS-0424-xcode27-pod-deployment-target]] (open, GitHub #732) — Xcode 27에서 iOS 빌드 실패 — Pod 최소 iOS 버전 미달
 - [[ISS-0006-init-ai-and-spring-servers]] (resolved, GitHub #1) — AI 서버·Spring 서버 초기 프로젝트 구성

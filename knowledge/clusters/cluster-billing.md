@@ -2,7 +2,7 @@
 type: cluster
 topic: billing
 created: 2026-10-29
-members: 26
+members: 28
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 무료/프로 등급, 이용권 상품과 가격, 스토어(Play·App Store) 결제 검증, 결제 스위치. 서버 `FeatureAccessPolicy`가 등급 판정의 유일한 지점이다.
 
 ## 현재 상태 요약
-(2026-10-29) 상품은 1개월권 ₩4,400·3개월권 ₩9,900 기간제 이용권, 자동 갱신 없음, 3개월권 기본 선택 — [[DEC-0003-one-and-three-month-pass]]. 무료/프로 경계는 [[DEC-0004-free-pro-feature-boundary]]. Android(Play 일회성)·iOS(비갱신 구독) 결제와 iOS·웹 잠금은 구현됐지만 결제 스위치는 전체로는 꺼진 채 — [[DEC-0005-ship-with-billing-switch-off]]. 2026-10-23부터 관리자 설정 `billing.preview_member_uuids`에 등록된 심사 계정만 결제가 켜지고, iOS 1.41.0 + 이용권 2개가 심사 대기 중이다. 켜기 전 남은 일(Apple 심사 결과, 실구매·환불 확인, Play 프로덕션, 최소 버전 1.41.0 상향)은 [[ISS-0361-billing-switch-final-checks]](열림, GitHub #596).
+(2026-11-04) 상품은 1개월권 ₩4,400·3개월권 ₩9,900 기간제 이용권, 자동 갱신 없음, 3개월권 기본 선택 — [[DEC-0003-one-and-three-month-pass]]. 무료/프로 경계는 [[DEC-0004-free-pro-feature-boundary]]. Android(Play 일회성)·iOS(비갱신 구독) 결제와 iOS·웹 잠금은 구현됐지만 결제 스위치는 전체로는 꺼진 채 — [[DEC-0005-ship-with-billing-switch-off]]. 2026-10-23부터 관리자 설정 `billing.preview_member_uuids`에 등록된 심사 계정만 결제가 켜지고, iOS 1.41.0 + 이용권 2개가 심사 대기 중이다. 켜기 전 남은 일(Apple 심사 결과, 실구매·환불 확인, Play 프로덕션, 최소 버전 1.41.0 상향)은 [[ISS-0361-billing-switch-final-checks]](열림, GitHub #596). 무료 랜덤 풀기 한도는 기본 10 + 보너스 3종(세트 완료 +5, 세트 정답률 80% +5, 보상형 광고 +5×2, 최대 30)으로 넓혔고, 응답은 `dailyFreeLimit`(기본 10) 외에 `todayFreeLimit`·`dailyBonus`를 준다 — [[DEC-0239-free-daily-limit-bonus-three-kinds]](DEC-0004의 랜덤 풀기 행을 구체화, 작성 시점 2026-11-04 미머지·미배포). 결제 스위치를 켤 때 최소 지원 버전을 이 기능이 들어간 버전으로 올려야 한다.
 
 ## 활성 결정
 - [[DEC-0003-one-and-three-month-pass]] — 1개월권 ₩4,400 · 3개월권 ₩9,900 기간제 이용권 (자동 갱신 없음)
@@ -28,12 +28,14 @@ related: []
 - [[DEC-0210-benefit-icons-reuse-app-icons]] — 이용권 혜택 아이콘은 앱에서 같은 기능에 이미 쓰는 아이콘으로 통일한다
 - [[DEC-0211-benefit-colors-per-benefit]] — 혜택 아이콘 색은 혜택마다 다른 색으로 두고, 출제 경향 불꽃만 문제 탭 불꽃 색(`warning`)을 쓴다
 - [[DEC-0212-keep-benefit-icon-row-in-ticket]] — 탑승권 안의 혜택 아이콘 줄은 유지한다 (세 곳 모양 통일)
+- [[DEC-0239-free-daily-limit-bonus-three-kinds]] — 무료 랜덤 풀기 한도 기본 10 + 세트 완료·정답률·보상형 광고(+5×2) 보너스, 최대 30, 광고는 앱 신고 방식
 
 ## 대체된 결정 (역사)
 - [[DEC-0001-pro-monthly-yearly-subscription]] → DEC-0002
 - [[DEC-0002-exam-pass-until-next-sqld]] → DEC-0003
 
 ## 관련 이슈
+- [[ISS-0443-free-daily-limit-bonus]] (resolved, GitHub #808) — 무료 하루 한도 보너스 (오늘의 세트 완료·정답률·보상형 광고)
 - [[ISS-0304-ads-rewarded-banner-pro-hide]] (open, GitHub #499) — 광고 도입(보상형·하단 배너) → Pro 회원 광고 숨김
 - [[ISS-0358-concept-learning-by-unit]] (open, GitHub #577) — 단원별 개념 학습 (수험서 대체)
 - [[ISS-0361-billing-switch-final-checks]] (open, GitHub #596) — 결제 스위치 켜기 전 최종 점검 (실구매·심사·최소 버전)

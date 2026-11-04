@@ -5,6 +5,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'ad_placement.dart';
 import 'ad_request_preparer.dart';
+import 'full_screen_ad_guard.dart';
 import 'loaded_ad_view.dart';
 
 /// 배너 로더 포트. 테스트는 가짜로 바꿔 SDK 를 띄우지 않음
@@ -48,6 +49,8 @@ class GoogleAdBannerLoader implements AdBannerLoader {
         size: size,
         request: preparedRequest.request,
         listener: BannerAdListener(
+          // 광고가 연 외부 화면에서 돌아올 때 앱 오프닝 광고 제외용
+          onAdClicked: (_) => FullScreenAdGuard.recordAdClicked(),
           onAdLoaded: (ad) {
             if (!loadCompleter.isCompleted) {
               loadCompleter.complete(ad as BannerAd);

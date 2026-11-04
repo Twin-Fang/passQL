@@ -5,12 +5,15 @@ import '../../core/billing/pro_access_denied_signal.dart';
 import '../../core/network/safe_call.dart';
 import '../../data/models/member/member_plan_response.dart';
 import '../../data/sources/api_providers.dart';
+import 'dev_plan_overrides.dart';
 import 'session_reset.dart';
 
-/// 디버그 전용 등급 강제값: --dart-define=PRO_DEBUG_PLAN=free|pro (릴리스 빌드는 무시)
-enum ProDebugPlan { free, pro }
-
-const String _debugPlanDefine = String.fromEnvironment('PRO_DEBUG_PLAN');
+export 'dev_plan_overrides.dart'
+    show
+        DevLimitSimulation,
+        ProDebugPlan,
+        debugPlanOverrideProvider,
+        devLimitSimulationProvider;
 
 /// 결제 UI 대상 플랫폼 (테스트에서 교체, 직접 Platform 호출 금지)
 final targetPlatformProvider = Provider<TargetPlatform>(
@@ -28,15 +31,6 @@ final isStoreBillingPlatformProvider = Provider<bool>(
   (ref) => _storeBillingPlatforms.contains(ref.watch(targetPlatformProvider)),
 );
 
-/// 디버그 등급 강제값. 디버그 빌드에서 지정했을 때만 값이 있음
-final debugPlanOverrideProvider = Provider<ProDebugPlan?>((ref) {
-  if (!kDebugMode) return null;
-  for (final debugPlan in ProDebugPlan.values) {
-    if (debugPlan.name == _debugPlanDefine) return debugPlan;
-  }
-  return null;
-});
-
 /// 회원 등급 단일 원본: GET /members/me/plan (회원별 autoDispose, 로그아웃이면 API 호출 없음)
 /// 첫 조회 실패 > 오류 상태(등급 모름, refresh·다음 build 에서 재시도), 이후 조회 실패 > 마지막 값 유지
 /// 서버 프로 접근 거부 신호 > 앱이 무료로 알고 있지 않으면 다시 받기 (만료·회수 반영)
@@ -49,6 +43,9 @@ class PlanNotifier extends AutoDisposeAsyncNotifier<MemberPlanResponse> {
   /// 진행 중인 다시 받기 (동시 요청을 한 번으로 합침)
   Future<void>? _inFlightRefresh;
 
+  /// 마지막 서버 등급 (개발 강제값을 바꿨을 때 다시 적용할 원본, #809)
+  MemberPlanResponse? _lastServerPlan;
+
   @override
   Future<MemberPlanResponse> build() async {
     final denialSubscription = ref
@@ -60,7 +57,7 @@ class PlanNotifier extends AutoDisposeAsyncNotifier<MemberPlanResponse> {
       return waitForSignedInMember();
     }
     // 실패는 던져서 오류 상태로 둠 (무료로 저장하지 않음)
-    return _applyDebugOverride(await ref.read(memberApiProvider).getMyPlan());
+    return _acceptServerPlan(await ref.read(memberApiProvider).getMyPlan());
   }
 
   /// 구매·복원·앱 복귀·제출 때 다시 받기 (실패하면 현재 상태 유지: 마지막 값 또는 오류)
@@ -88,21 +85,47 @@ class PlanNotifier extends AutoDisposeAsyncNotifier<MemberPlanResponse> {
     await refresh();
   }
 
+  /// 광고 보너스 받기 > 응답 등급 반영 (실패는 호출부로, 화면이 사유 표시)
+  /// 개발자 도구 한도 흉내 중이면 서버 대신 흉내 단계만 넘김 (#809)
+  Future<void> grantAdBonus() async {
+    if (ref.read(devLimitSimulationProvider) != DevLimitSimulation.none) {
+      ref.read(devLimitSimulationProvider.notifier).recordSimulatedAdBonus();
+      reapplyDevOverrides();
+      return;
+    }
+    final grantedPlan = await ref.read(memberApiProvider).grantAdBonus();
+    state = AsyncData(_acceptServerPlan(grantedPlan));
+  }
+
+  /// 개발 강제값(등급·한도 흉내)을 바꾼 뒤 마지막 서버 등급에 다시 적용 (서버 요청 없음)
+  void reapplyDevOverrides() {
+    final lastServerPlan = _lastServerPlan;
+    if (lastServerPlan != null) {
+      state = AsyncData(_applyDevOverrides(lastServerPlan));
+    }
+  }
+
   Future<void> _fetchLatestPlan() async {
     final latestPlan = await safeCall(
       ref.read(memberApiProvider).getMyPlan(),
       label: 'plan',
     );
-    if (latestPlan != null) state = AsyncData(_applyDebugOverride(latestPlan));
+    if (latestPlan != null) state = AsyncData(_acceptServerPlan(latestPlan));
   }
 
-  /// 서버 등급에 디버그 강제값 반영
-  MemberPlanResponse _applyDebugOverride(MemberPlanResponse serverPlan) =>
-      switch (ref.read(debugPlanOverrideProvider)) {
-        ProDebugPlan.free => serverPlan.copyWith(plan: MemberPlanType.free),
-        ProDebugPlan.pro => serverPlan.copyWith(plan: MemberPlanType.pro),
-        null => serverPlan,
-      };
+  /// 서버 등급 받기: 원본 보관 > 개발 강제값 반영
+  MemberPlanResponse _acceptServerPlan(MemberPlanResponse serverPlan) {
+    _lastServerPlan = serverPlan;
+    return _applyDevOverrides(serverPlan);
+  }
+
+  /// 서버 등급에 개발 강제값 반영 (운영 빌드는 강제값이 늘 비어 원본 그대로)
+  MemberPlanResponse _applyDevOverrides(MemberPlanResponse serverPlan) =>
+      applyDevPlanOverrides(
+        serverPlan,
+        debugPlan: ref.read(debugPlanOverrideProvider),
+        simulation: ref.read(devLimitSimulationProvider),
+      );
 }
 
 /// 확정된 등급. 로딩·첫 조회 실패·회원 전환 중(이전 회원 값을 안고 로딩)이면 null = 등급 모름
@@ -115,9 +138,14 @@ final knownPlanProvider = Provider.autoDispose<MemberPlanResponse?>((ref) {
 
 /// 무료 하루 랜덤 사용량 판정 (홈 카드·제출 뒤 갱신 공통)
 extension MemberPlanDailyUsage on MemberPlanResponse {
+  /// 오늘 유효 한도 (보너스 포함, 옛 서버 응답이면 기본 한도)
+  int get effectiveTodayFreeLimit =>
+      todayFreeLimit > 0 ? todayFreeLimit : dailyFreeLimit;
+
   /// 오늘 무료 랜덤 한도를 다 썼는가 (한도 0 = 결제 꺼짐·값 없음이면 false)
   bool get isDailyFreeLimitReached =>
-      dailyFreeLimit > 0 && todayRandomSolvedCount >= dailyFreeLimit;
+      effectiveTodayFreeLimit > 0 &&
+      todayRandomSolvedCount >= effectiveTodayFreeLimit;
 }
 
 /// 프로(이용권 보유) 여부. 등급을 모르면 false

@@ -53,6 +53,7 @@ public interface MemberControllerDocs {
   @ApiLogs({
       @ApiLog(date = "2026.10.22", author = Author.SUHSAECHAN, issueNumber = 576, description = "내 등급 조회 API 추가 (플랜·프로 만료일·오늘 무료 사용량·구매 가능 마감일)"),
       @ApiLog(date = "2026.10.23", author = Author.SUHSAECHAN, issueNumber = 591, description = "응답에 판매 이용권 목록 passOptions 추가, purchasableUntil deprecated (3개월권 값)"),
+      @ApiLog(date = "2026.11.04", author = Author.SUHSAECHAN, issueNumber = 808, description = "응답에 오늘 유효 한도 todayFreeLimit·보너스 dailyBonus 추가, dailyFreeLimit 은 기본 한도"),
   })
   @Operation(
       summary = "내 등급 조회",
@@ -67,7 +68,7 @@ public interface MemberControllerDocs {
           - **`plan`**: FREE 또는 PRO (스위치 꺼짐이면 항상 PRO)
           - **`proExpiresAt`**: 프로 만료 시각 KST (유효한 프로가 아니면 null)
           - **`todayRandomSolvedCount`**: 오늘 푼 무료 랜덤 문제 수
-          - **`dailyFreeLimit`**: 무료 하루 랜덤 문제 한도
+          - **`dailyFreeLimit`**: 무료 하루 랜덤 문제 기본 한도 (보너스 제외, 10)
           - **`purchasableUntil`**: deprecated — `passOptions` 3개월권 `expiresAtIfPurchased` 와 같은 값 (출시 앱 1.36·1.37 호환, 결제 꺼짐이면 null)
           - **`lastPurchasedAt`**: 가장 최근 검증 구매 시각 KST (없으면 null)
           - **`lastOrderId`**: 가장 최근 검증 구매의 Play 주문 번호 (없으면 null)
@@ -75,9 +76,39 @@ public interface MemberControllerDocs {
             - `productId`: Play 상품 ID (`pro_pass_3m`, `pro_pass_1m`)
             - `durationDays`: 이용 일수 (90, 30)
             - `expiresAtIfPurchased`: 지금 구매하면 될 프로 만료 시각 KST (보유 중이면 현재 만료일 뒤로 이어 붙인 값)
+          - **`todayFreeLimit`**: 오늘 무료 랜덤 문제 유효 한도 (기본 + 받은 보너스, 결제 꺼짐·프로면 기본)
+          - **`dailyBonus`**: 오늘 받은 무료 한도 보너스
+            - `isDailySetCompletionEarned`: 오늘의 세트 완료(배정 문제 전부 제출) +5
+            - `isDailySetAccuracyEarned`: 오늘의 세트 정답 80% 이상 +5
+            - `adBonusUsedCount` / `adBonusMaxCount`: 광고 보너스 받은 횟수 / 하루 최대 (2)
+            - `bonusQuestionCount`: 보너스 1회분 문제 수 (5)
           """
   )
   MemberPlanResponse getMyPlan(@AuthMember LoginMember loginMember);
+
+  @ApiLogs({
+      @ApiLog(date = "2026.11.04", author = Author.SUHSAECHAN, issueNumber = 808, description = "무료 한도 광고 보너스 받기 API 추가"),
+  })
+  @Operation(
+      summary = "무료 한도 광고 보너스 받기",
+      description = """
+          ## 인증(JWT): **필요**
+
+          ## 요청 헤더
+          - **`Authorization`**: Bearer {accessToken}
+
+          ## 반환값 (MemberPlanResponse)
+          - 보너스를 반영한 내 등급 (`todayFreeLimit` +5, `dailyBonus.adBonusUsedCount` +1)
+
+          ## 설명
+          - 앱이 보상형 광고 보상 콜백 뒤에 호출한다 (서버 측 광고 확인 없음, 하루 2회 상한)
+          - 결제 꺼짐·프로 회원은 쌓지 않고 현재 등급을 그대로 반환한다
+
+          ## 에러코드
+          - **`AD_BONUS_DAILY_LIMIT_REACHED`** (409): 오늘 광고 보너스를 모두 받음
+          """
+  )
+  MemberPlanResponse grantAdBonus(@AuthMember LoginMember loginMember);
 
   @ApiLogs({
       @ApiLog(date = "2026.04.07", author = Author.SUHSAECHAN, issueNumber = 6, description = "닉네임 재생성 API 추가"),

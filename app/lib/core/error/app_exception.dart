@@ -135,8 +135,9 @@ class AppException implements Exception {
     ErrorCode.feedbackAttachmentUnavailable:
         '지금은 첨부를 보낼 수 없어요. 사진과 진단 정보를 빼고 다시 보내 주세요.',
     ErrorCode.proRequired: '이용권이 필요한 기능이에요.',
-    ErrorCode.freeDailyLimitReached: '오늘 무료 10문제를 다 풀었어요.',
+    ErrorCode.freeDailyLimitReached: '오늘 무료 문제를 다 풀었어요.',
     ErrorCode.fairUseDailyLimitReached: '오늘 풀 수 있는 문제를 모두 풀었어요.',
+    ErrorCode.adBonusDailyLimitReached: '오늘 광고 보너스를 모두 받았어요.',
     ErrorCode.dailySetAlreadyCompleted: '오늘의 세트를 이미 완료했어요.',
     ErrorCode.dailySetNotFound: '오늘의 세트가 아직 준비되지 않았어요.',
     ErrorCode.aiUnavailable: 'AI 기능을 잠시 사용할 수 없어요.',

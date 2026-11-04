@@ -1,4 +1,4 @@
-/// 기기 저장 키 원본 18개: 일반 저장소(DevicePreferences) 13개 + 보안 저장소(TokenStore) 5개
+/// 기기 저장 키 원본 21개: 일반 저장소(DevicePreferences) 16개 + 보안 저장소(TokenStore) 5개
 /// 값은 기존 설치의 저장 데이터를 읽는 키 > 문자열 값을 바꾸지 않음
 abstract final class StorageKeys {
   // ─── 일반 저장소 (SharedPreferences, 앱 삭제 시 함께 지워짐) ───
@@ -29,6 +29,12 @@ abstract final class StorageKeys {
   // 결과 화면 진입 누적 횟수 (전면 광고 첫 결과 유예)
   static const String interstitialResultEntryCount =
       'ads_interstitial_result_entry_count';
+  // 마지막 앱 오프닝 광고 노출 시각 (epoch 밀리초)
+  static const String appOpenAdLastShownAt = 'ads_app_open_last_shown_at_ms';
+  // 앱 오프닝 광고 노출 횟수를 센 날짜 (yyyy-MM-dd)
+  static const String appOpenAdShownDay = 'ads_app_open_shown_day';
+  // 위 날짜의 앱 오프닝 광고 노출 횟수
+  static const String appOpenAdShownCount = 'ads_app_open_shown_count';
   // 신규 가입 후 온보딩을 아직 마치지 않았는지 (bool, 로그인 세션이 끝나면 지움)
   static const String onboardingPending = 'onboarding_pending';
   // 내 프로필 프로 탑승권을 접어 두었는지 (bool, 없으면 접힘, #749)

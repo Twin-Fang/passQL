@@ -29,8 +29,12 @@ mixin _$MemberPlanResponse {
   DateTime? get proExpiresAt =>
       throw _privateConstructorUsedError; // 오늘 제출한 서로 다른 랜덤 문제 수 (오늘의 문제 제외)
   int get todayRandomSolvedCount =>
-      throw _privateConstructorUsedError; // 무료 하루 랜덤 문제 한도
+      throw _privateConstructorUsedError; // 무료 하루 랜덤 문제 기본 한도 (보너스 제외, 혜택 비교 문구용)
   int get dailyFreeLimit =>
+      throw _privateConstructorUsedError; // 오늘 무료 랜덤 문제 유효 한도 (기본 + 받은 보너스, 옛 서버면 0, #808)
+  int get todayFreeLimit =>
+      throw _privateConstructorUsedError; // 오늘 받은 무료 한도 보너스 (#808)
+  DailyFreeBonus get dailyBonus =>
       throw _privateConstructorUsedError; // deprecated: 옛 앱(1.36·1.37) 호환용 3개월권 예상 만료일. 화면은 passOptions 사용
   DateTime? get purchasableUntil =>
       throw _privateConstructorUsedError; // 구매할 수 있는 이용권 (서버 순서: 3개월 먼저, 결제 꺼짐·상품 없음이면 빈 목록)
@@ -63,11 +67,15 @@ abstract class $MemberPlanResponseCopyWith<$Res> {
     DateTime? proExpiresAt,
     int todayRandomSolvedCount,
     int dailyFreeLimit,
+    int todayFreeLimit,
+    DailyFreeBonus dailyBonus,
     DateTime? purchasableUntil,
     List<PassOption> passOptions,
     DateTime? lastPurchasedAt,
     String? lastOrderId,
   });
+
+  $DailyFreeBonusCopyWith<$Res> get dailyBonus;
 }
 
 /// @nodoc
@@ -90,6 +98,8 @@ class _$MemberPlanResponseCopyWithImpl<$Res, $Val extends MemberPlanResponse>
     Object? proExpiresAt = freezed,
     Object? todayRandomSolvedCount = null,
     Object? dailyFreeLimit = null,
+    Object? todayFreeLimit = null,
+    Object? dailyBonus = null,
     Object? purchasableUntil = freezed,
     Object? passOptions = null,
     Object? lastPurchasedAt = freezed,
@@ -117,6 +127,14 @@ class _$MemberPlanResponseCopyWithImpl<$Res, $Val extends MemberPlanResponse>
                 ? _value.dailyFreeLimit
                 : dailyFreeLimit // ignore: cast_nullable_to_non_nullable
                       as int,
+            todayFreeLimit: null == todayFreeLimit
+                ? _value.todayFreeLimit
+                : todayFreeLimit // ignore: cast_nullable_to_non_nullable
+                      as int,
+            dailyBonus: null == dailyBonus
+                ? _value.dailyBonus
+                : dailyBonus // ignore: cast_nullable_to_non_nullable
+                      as DailyFreeBonus,
             purchasableUntil: freezed == purchasableUntil
                 ? _value.purchasableUntil
                 : purchasableUntil // ignore: cast_nullable_to_non_nullable
@@ -137,6 +155,16 @@ class _$MemberPlanResponseCopyWithImpl<$Res, $Val extends MemberPlanResponse>
           as $Val,
     );
   }
+
+  /// Create a copy of MemberPlanResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $DailyFreeBonusCopyWith<$Res> get dailyBonus {
+    return $DailyFreeBonusCopyWith<$Res>(_value.dailyBonus, (value) {
+      return _then(_value.copyWith(dailyBonus: value) as $Val);
+    });
+  }
 }
 
 /// @nodoc
@@ -154,11 +182,16 @@ abstract class _$$MemberPlanResponseImplCopyWith<$Res>
     DateTime? proExpiresAt,
     int todayRandomSolvedCount,
     int dailyFreeLimit,
+    int todayFreeLimit,
+    DailyFreeBonus dailyBonus,
     DateTime? purchasableUntil,
     List<PassOption> passOptions,
     DateTime? lastPurchasedAt,
     String? lastOrderId,
   });
+
+  @override
+  $DailyFreeBonusCopyWith<$Res> get dailyBonus;
 }
 
 /// @nodoc
@@ -180,6 +213,8 @@ class __$$MemberPlanResponseImplCopyWithImpl<$Res>
     Object? proExpiresAt = freezed,
     Object? todayRandomSolvedCount = null,
     Object? dailyFreeLimit = null,
+    Object? todayFreeLimit = null,
+    Object? dailyBonus = null,
     Object? purchasableUntil = freezed,
     Object? passOptions = null,
     Object? lastPurchasedAt = freezed,
@@ -207,6 +242,14 @@ class __$$MemberPlanResponseImplCopyWithImpl<$Res>
             ? _value.dailyFreeLimit
             : dailyFreeLimit // ignore: cast_nullable_to_non_nullable
                   as int,
+        todayFreeLimit: null == todayFreeLimit
+            ? _value.todayFreeLimit
+            : todayFreeLimit // ignore: cast_nullable_to_non_nullable
+                  as int,
+        dailyBonus: null == dailyBonus
+            ? _value.dailyBonus
+            : dailyBonus // ignore: cast_nullable_to_non_nullable
+                  as DailyFreeBonus,
         purchasableUntil: freezed == purchasableUntil
             ? _value.purchasableUntil
             : purchasableUntil // ignore: cast_nullable_to_non_nullable
@@ -238,6 +281,8 @@ class _$MemberPlanResponseImpl implements _MemberPlanResponse {
     this.proExpiresAt,
     this.todayRandomSolvedCount = 0,
     this.dailyFreeLimit = 0,
+    this.todayFreeLimit = 0,
+    this.dailyBonus = const DailyFreeBonus(),
     this.purchasableUntil,
     final List<PassOption> passOptions = const <PassOption>[],
     this.lastPurchasedAt,
@@ -262,10 +307,18 @@ class _$MemberPlanResponseImpl implements _MemberPlanResponse {
   @override
   @JsonKey()
   final int todayRandomSolvedCount;
-  // 무료 하루 랜덤 문제 한도
+  // 무료 하루 랜덤 문제 기본 한도 (보너스 제외, 혜택 비교 문구용)
   @override
   @JsonKey()
   final int dailyFreeLimit;
+  // 오늘 무료 랜덤 문제 유효 한도 (기본 + 받은 보너스, 옛 서버면 0, #808)
+  @override
+  @JsonKey()
+  final int todayFreeLimit;
+  // 오늘 받은 무료 한도 보너스 (#808)
+  @override
+  @JsonKey()
+  final DailyFreeBonus dailyBonus;
   // deprecated: 옛 앱(1.36·1.37) 호환용 3개월권 예상 만료일. 화면은 passOptions 사용
   @override
   final DateTime? purchasableUntil;
@@ -289,7 +342,7 @@ class _$MemberPlanResponseImpl implements _MemberPlanResponse {
 
   @override
   String toString() {
-    return 'MemberPlanResponse(isBillingEnabled: $isBillingEnabled, plan: $plan, proExpiresAt: $proExpiresAt, todayRandomSolvedCount: $todayRandomSolvedCount, dailyFreeLimit: $dailyFreeLimit, purchasableUntil: $purchasableUntil, passOptions: $passOptions, lastPurchasedAt: $lastPurchasedAt, lastOrderId: $lastOrderId)';
+    return 'MemberPlanResponse(isBillingEnabled: $isBillingEnabled, plan: $plan, proExpiresAt: $proExpiresAt, todayRandomSolvedCount: $todayRandomSolvedCount, dailyFreeLimit: $dailyFreeLimit, todayFreeLimit: $todayFreeLimit, dailyBonus: $dailyBonus, purchasableUntil: $purchasableUntil, passOptions: $passOptions, lastPurchasedAt: $lastPurchasedAt, lastOrderId: $lastOrderId)';
   }
 
   @override
@@ -306,6 +359,10 @@ class _$MemberPlanResponseImpl implements _MemberPlanResponse {
                 other.todayRandomSolvedCount == todayRandomSolvedCount) &&
             (identical(other.dailyFreeLimit, dailyFreeLimit) ||
                 other.dailyFreeLimit == dailyFreeLimit) &&
+            (identical(other.todayFreeLimit, todayFreeLimit) ||
+                other.todayFreeLimit == todayFreeLimit) &&
+            (identical(other.dailyBonus, dailyBonus) ||
+                other.dailyBonus == dailyBonus) &&
             (identical(other.purchasableUntil, purchasableUntil) ||
                 other.purchasableUntil == purchasableUntil) &&
             const DeepCollectionEquality().equals(
@@ -327,6 +384,8 @@ class _$MemberPlanResponseImpl implements _MemberPlanResponse {
     proExpiresAt,
     todayRandomSolvedCount,
     dailyFreeLimit,
+    todayFreeLimit,
+    dailyBonus,
     purchasableUntil,
     const DeepCollectionEquality().hash(_passOptions),
     lastPurchasedAt,
@@ -357,6 +416,8 @@ abstract class _MemberPlanResponse implements MemberPlanResponse {
     final DateTime? proExpiresAt,
     final int todayRandomSolvedCount,
     final int dailyFreeLimit,
+    final int todayFreeLimit,
+    final DailyFreeBonus dailyBonus,
     final DateTime? purchasableUntil,
     final List<PassOption> passOptions,
     final DateTime? lastPurchasedAt,
@@ -375,9 +436,13 @@ abstract class _MemberPlanResponse implements MemberPlanResponse {
   @override
   DateTime? get proExpiresAt; // 오늘 제출한 서로 다른 랜덤 문제 수 (오늘의 문제 제외)
   @override
-  int get todayRandomSolvedCount; // 무료 하루 랜덤 문제 한도
+  int get todayRandomSolvedCount; // 무료 하루 랜덤 문제 기본 한도 (보너스 제외, 혜택 비교 문구용)
   @override
-  int get dailyFreeLimit; // deprecated: 옛 앱(1.36·1.37) 호환용 3개월권 예상 만료일. 화면은 passOptions 사용
+  int get dailyFreeLimit; // 오늘 무료 랜덤 문제 유효 한도 (기본 + 받은 보너스, 옛 서버면 0, #808)
+  @override
+  int get todayFreeLimit; // 오늘 받은 무료 한도 보너스 (#808)
+  @override
+  DailyFreeBonus get dailyBonus; // deprecated: 옛 앱(1.36·1.37) 호환용 3개월권 예상 만료일. 화면은 passOptions 사용
   @override
   DateTime? get purchasableUntil; // 구매할 수 있는 이용권 (서버 순서: 3개월 먼저, 결제 꺼짐·상품 없음이면 빈 목록)
   @override
@@ -392,6 +457,287 @@ abstract class _MemberPlanResponse implements MemberPlanResponse {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$MemberPlanResponseImplCopyWith<_$MemberPlanResponseImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+DailyFreeBonus _$DailyFreeBonusFromJson(Map<String, dynamic> json) {
+  return _DailyFreeBonus.fromJson(json);
+}
+
+/// @nodoc
+mixin _$DailyFreeBonus {
+  // 오늘의 세트 완료(배정 문제 전부 제출) 보너스 받음
+  bool get isDailySetCompletionEarned =>
+      throw _privateConstructorUsedError; // 오늘의 세트 정답 80% 이상 보너스 받음
+  bool get isDailySetAccuracyEarned =>
+      throw _privateConstructorUsedError; // 오늘 받은 광고 보너스 횟수
+  int get adBonusUsedCount =>
+      throw _privateConstructorUsedError; // 하루 광고 보너스 최대 횟수
+  int get adBonusMaxCount => throw _privateConstructorUsedError; // 보너스 1회분 문제 수
+  int get bonusQuestionCount => throw _privateConstructorUsedError;
+
+  /// Serializes this DailyFreeBonus to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of DailyFreeBonus
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $DailyFreeBonusCopyWith<DailyFreeBonus> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $DailyFreeBonusCopyWith<$Res> {
+  factory $DailyFreeBonusCopyWith(
+    DailyFreeBonus value,
+    $Res Function(DailyFreeBonus) then,
+  ) = _$DailyFreeBonusCopyWithImpl<$Res, DailyFreeBonus>;
+  @useResult
+  $Res call({
+    bool isDailySetCompletionEarned,
+    bool isDailySetAccuracyEarned,
+    int adBonusUsedCount,
+    int adBonusMaxCount,
+    int bonusQuestionCount,
+  });
+}
+
+/// @nodoc
+class _$DailyFreeBonusCopyWithImpl<$Res, $Val extends DailyFreeBonus>
+    implements $DailyFreeBonusCopyWith<$Res> {
+  _$DailyFreeBonusCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of DailyFreeBonus
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? isDailySetCompletionEarned = null,
+    Object? isDailySetAccuracyEarned = null,
+    Object? adBonusUsedCount = null,
+    Object? adBonusMaxCount = null,
+    Object? bonusQuestionCount = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            isDailySetCompletionEarned: null == isDailySetCompletionEarned
+                ? _value.isDailySetCompletionEarned
+                : isDailySetCompletionEarned // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            isDailySetAccuracyEarned: null == isDailySetAccuracyEarned
+                ? _value.isDailySetAccuracyEarned
+                : isDailySetAccuracyEarned // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            adBonusUsedCount: null == adBonusUsedCount
+                ? _value.adBonusUsedCount
+                : adBonusUsedCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            adBonusMaxCount: null == adBonusMaxCount
+                ? _value.adBonusMaxCount
+                : adBonusMaxCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            bonusQuestionCount: null == bonusQuestionCount
+                ? _value.bonusQuestionCount
+                : bonusQuestionCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$DailyFreeBonusImplCopyWith<$Res>
+    implements $DailyFreeBonusCopyWith<$Res> {
+  factory _$$DailyFreeBonusImplCopyWith(
+    _$DailyFreeBonusImpl value,
+    $Res Function(_$DailyFreeBonusImpl) then,
+  ) = __$$DailyFreeBonusImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    bool isDailySetCompletionEarned,
+    bool isDailySetAccuracyEarned,
+    int adBonusUsedCount,
+    int adBonusMaxCount,
+    int bonusQuestionCount,
+  });
+}
+
+/// @nodoc
+class __$$DailyFreeBonusImplCopyWithImpl<$Res>
+    extends _$DailyFreeBonusCopyWithImpl<$Res, _$DailyFreeBonusImpl>
+    implements _$$DailyFreeBonusImplCopyWith<$Res> {
+  __$$DailyFreeBonusImplCopyWithImpl(
+    _$DailyFreeBonusImpl _value,
+    $Res Function(_$DailyFreeBonusImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of DailyFreeBonus
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? isDailySetCompletionEarned = null,
+    Object? isDailySetAccuracyEarned = null,
+    Object? adBonusUsedCount = null,
+    Object? adBonusMaxCount = null,
+    Object? bonusQuestionCount = null,
+  }) {
+    return _then(
+      _$DailyFreeBonusImpl(
+        isDailySetCompletionEarned: null == isDailySetCompletionEarned
+            ? _value.isDailySetCompletionEarned
+            : isDailySetCompletionEarned // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        isDailySetAccuracyEarned: null == isDailySetAccuracyEarned
+            ? _value.isDailySetAccuracyEarned
+            : isDailySetAccuracyEarned // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        adBonusUsedCount: null == adBonusUsedCount
+            ? _value.adBonusUsedCount
+            : adBonusUsedCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        adBonusMaxCount: null == adBonusMaxCount
+            ? _value.adBonusMaxCount
+            : adBonusMaxCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        bonusQuestionCount: null == bonusQuestionCount
+            ? _value.bonusQuestionCount
+            : bonusQuestionCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$DailyFreeBonusImpl extends _DailyFreeBonus {
+  const _$DailyFreeBonusImpl({
+    this.isDailySetCompletionEarned = false,
+    this.isDailySetAccuracyEarned = false,
+    this.adBonusUsedCount = 0,
+    this.adBonusMaxCount = 0,
+    this.bonusQuestionCount = 0,
+  }) : super._();
+
+  factory _$DailyFreeBonusImpl.fromJson(Map<String, dynamic> json) =>
+      _$$DailyFreeBonusImplFromJson(json);
+
+  // 오늘의 세트 완료(배정 문제 전부 제출) 보너스 받음
+  @override
+  @JsonKey()
+  final bool isDailySetCompletionEarned;
+  // 오늘의 세트 정답 80% 이상 보너스 받음
+  @override
+  @JsonKey()
+  final bool isDailySetAccuracyEarned;
+  // 오늘 받은 광고 보너스 횟수
+  @override
+  @JsonKey()
+  final int adBonusUsedCount;
+  // 하루 광고 보너스 최대 횟수
+  @override
+  @JsonKey()
+  final int adBonusMaxCount;
+  // 보너스 1회분 문제 수
+  @override
+  @JsonKey()
+  final int bonusQuestionCount;
+
+  @override
+  String toString() {
+    return 'DailyFreeBonus(isDailySetCompletionEarned: $isDailySetCompletionEarned, isDailySetAccuracyEarned: $isDailySetAccuracyEarned, adBonusUsedCount: $adBonusUsedCount, adBonusMaxCount: $adBonusMaxCount, bonusQuestionCount: $bonusQuestionCount)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$DailyFreeBonusImpl &&
+            (identical(
+                  other.isDailySetCompletionEarned,
+                  isDailySetCompletionEarned,
+                ) ||
+                other.isDailySetCompletionEarned ==
+                    isDailySetCompletionEarned) &&
+            (identical(
+                  other.isDailySetAccuracyEarned,
+                  isDailySetAccuracyEarned,
+                ) ||
+                other.isDailySetAccuracyEarned == isDailySetAccuracyEarned) &&
+            (identical(other.adBonusUsedCount, adBonusUsedCount) ||
+                other.adBonusUsedCount == adBonusUsedCount) &&
+            (identical(other.adBonusMaxCount, adBonusMaxCount) ||
+                other.adBonusMaxCount == adBonusMaxCount) &&
+            (identical(other.bonusQuestionCount, bonusQuestionCount) ||
+                other.bonusQuestionCount == bonusQuestionCount));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    isDailySetCompletionEarned,
+    isDailySetAccuracyEarned,
+    adBonusUsedCount,
+    adBonusMaxCount,
+    bonusQuestionCount,
+  );
+
+  /// Create a copy of DailyFreeBonus
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$DailyFreeBonusImplCopyWith<_$DailyFreeBonusImpl> get copyWith =>
+      __$$DailyFreeBonusImplCopyWithImpl<_$DailyFreeBonusImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$DailyFreeBonusImplToJson(this);
+  }
+}
+
+abstract class _DailyFreeBonus extends DailyFreeBonus {
+  const factory _DailyFreeBonus({
+    final bool isDailySetCompletionEarned,
+    final bool isDailySetAccuracyEarned,
+    final int adBonusUsedCount,
+    final int adBonusMaxCount,
+    final int bonusQuestionCount,
+  }) = _$DailyFreeBonusImpl;
+  const _DailyFreeBonus._() : super._();
+
+  factory _DailyFreeBonus.fromJson(Map<String, dynamic> json) =
+      _$DailyFreeBonusImpl.fromJson;
+
+  // 오늘의 세트 완료(배정 문제 전부 제출) 보너스 받음
+  @override
+  bool get isDailySetCompletionEarned; // 오늘의 세트 정답 80% 이상 보너스 받음
+  @override
+  bool get isDailySetAccuracyEarned; // 오늘 받은 광고 보너스 횟수
+  @override
+  int get adBonusUsedCount; // 하루 광고 보너스 최대 횟수
+  @override
+  int get adBonusMaxCount; // 보너스 1회분 문제 수
+  @override
+  int get bonusQuestionCount;
+
+  /// Create a copy of DailyFreeBonus
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$DailyFreeBonusImplCopyWith<_$DailyFreeBonusImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
