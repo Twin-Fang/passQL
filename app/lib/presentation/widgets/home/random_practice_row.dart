@@ -60,16 +60,16 @@ class RandomPracticeRow extends ConsumerWidget {
         ref.read(shouldShowProUiProvider) &&
         latestPlan?.isDailyFreeLimitReached == true;
     if (isStillLimited) {
-      await showProOfferSheet(
+      final sheetOutcome = await showProOfferSheet(
         context,
         ref,
         reason: freeDailyLimitSheetReason,
         isDailyLimitEntry: true,
       );
-      final isLimitLifted =
-          ref.read(isProProvider) ||
-          ref.read(knownPlanProvider)?.isDailyFreeLimitReached == false;
-      if (!context.mounted || !isLimitLifted) return;
+      if (!context.mounted ||
+          sheetOutcome == ProOfferSheetOutcome.dismissed) {
+        return;
+      }
     }
     context.push(AppRoutes.randomPractice);
   }

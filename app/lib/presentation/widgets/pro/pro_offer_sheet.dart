@@ -27,6 +27,13 @@ import 'pro_purchase_feedback.dart';
 /// 시트 본문이 사라질 때(닫힘 연출 끝·화면 해체) 내려감
 bool _isOfferSheetOpen = false;
 
+/// 시트 결과 3종 (호출부가 이어서 할 일을 정함, #808)
+enum ProOfferSheetOutcome {
+  dismissed, // 그냥 닫음 또는 이미 다른 시트가 떠 있어 열지 않음
+  purchased, // 이용권 구매·복원 성공
+  adBonusGranted, // 광고 보너스로 오늘 한도가 늘어남
+}
+
 /// 구매 버튼 기본 문구(이용권 목록이 없을 때)
 const String _sheetTitle = '이용권';
 
@@ -35,7 +42,7 @@ const String _sheetTitle = '이용권';
 /// [reason]: 진입점별 한 줄 (예: 오늘 무료 문제를 다 풀었어요)
 /// [isDailyLimitEntry]: 무료 하루 한도로 열림 > 이유 줄 아래 광고 보너스 버튼 (#808)
 /// 성공 > 시트 닫힘 > 호출 화면에서 토스트, 그 외 결과는 시트 안 한 줄
-Future<void> showProOfferSheet(
+Future<ProOfferSheetOutcome> showProOfferSheet(
   BuildContext context,
   WidgetRef ref, {
   String? reason,
@@ -43,7 +50,7 @@ Future<void> showProOfferSheet(
   int? focusedBenefitIndex,
   bool isDailyLimitEntry = false,
 }) async {
-  if (_isOfferSheetOpen) return;
+  if (_isOfferSheetOpen) return ProOfferSheetOutcome.dismissed;
   _isOfferSheetOpen = true;
   final knownPlan = ref.read(knownPlanProvider);
   final proExpiresAt = knownPlan?.proExpiresAt;
@@ -74,11 +81,17 @@ Future<void> showProOfferSheet(
       // 어느 진입점에서 샀든 다음 프로필 진입 때 탑승권 연출을 한 번 보여 준다 (#749)
       await revealNotifier.markPending();
       if (context.mounted) showAppToast(context, proPurchaseSucceededMessage);
-    } else if (isAdBonusGranted && context.mounted) {
-      final bonusQuestionCount =
-          ref.read(knownPlanProvider)?.dailyBonus.bonusQuestionCount ?? 0;
-      showAppToast(context, adBonusGrantedMessageOf(bonusQuestionCount));
+      return ProOfferSheetOutcome.purchased;
     }
+    if (isAdBonusGranted) {
+      if (context.mounted) {
+        final bonusQuestionCount =
+            ref.read(knownPlanProvider)?.dailyBonus.bonusQuestionCount ?? 0;
+        showAppToast(context, adBonusGrantedMessageOf(bonusQuestionCount));
+      }
+      return ProOfferSheetOutcome.adBonusGranted;
+    }
+    return ProOfferSheetOutcome.dismissed;
   } catch (_) {
     // 시트를 띄우지 못한 경우만 여기서 내림
     _isOfferSheetOpen = false;

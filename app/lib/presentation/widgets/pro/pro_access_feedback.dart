@@ -49,7 +49,7 @@ Future<ProAccessFeedbackResult> showProAccessFeedback(
       final wasPro = ref.read(isProProvider);
       final isDailyLimitEntry =
           exception.code == ErrorCode.freeDailyLimitReached;
-      await showProOfferSheet(
+      final sheetOutcome = await showProOfferSheet(
         context,
         ref,
         reason: isDailyLimitEntry ? freeDailyLimitSheetReason : null,
@@ -57,11 +57,11 @@ Future<ProAccessFeedbackResult> showProAccessFeedback(
       );
       if (!context.mounted) return ProAccessFeedbackResult.shown;
       final isProNow = ref.read(isProProvider);
-      // 광고 보너스로 한도가 늘었으면 막혔던 문제를 이어 엶
-      final isDailyLimitLifted =
-          isDailyLimitEntry &&
-          ref.read(knownPlanProvider)?.isDailyFreeLimitReached == false;
-      return (!wasPro && isProNow) || isDailyLimitLifted
+      // 시트 결과로만 판정 (기억한 등급 값으로 추론하면 그냥 닫아도 다시 요청 > 시트 반복)
+      final isUnlocked =
+          (!wasPro && isProNow) ||
+          sheetOutcome == ProOfferSheetOutcome.adBonusGranted;
+      return isUnlocked
           ? ProAccessFeedbackResult.sheetUnlocked
           : ProAccessFeedbackResult.shown;
     default:

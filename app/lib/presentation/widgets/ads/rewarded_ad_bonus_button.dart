@@ -42,15 +42,16 @@ class _RewardedAdBonusButtonState extends ConsumerState<RewardedAdBonusButton> {
       _isBusy = true;
       _statusMessage = null;
     });
-    final outcome = await ref
+    // 광고를 보는 사이 시트가 닫혀도 보상은 기록 > 컨테이너는 기다리기 전에 잡아 둠
+    final container = ProviderScope.containerOf(context);
+    final outcome = await container
         .read(rewardedAdPlayerProvider)
         .loadAndShow(AdPlacement.rewardedDailyBonus);
-    if (!mounted) return;
     String? failureMessage;
     switch (outcome) {
       case RewardedAdOutcome.rewarded:
         try {
-          await ref.read(planProvider.notifier).grantAdBonus();
+          await container.read(planProvider.notifier).grantAdBonus();
           if (!mounted) return;
           widget.onBonusGranted();
           return;
