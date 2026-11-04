@@ -252,7 +252,8 @@ public class ChoiceSetGenerationService {
     }
 
     /**
-     * 결과 비교 문제 1회 시도 (#828): 요청(피드백 포함) > AI 보기 SQL > 실행·판정 > 결과 표 보기 저장 (거부 시 null)
+     * 결과 비교 문제 1회 시도 (#828): 요청(피드백 포함) > AI 보기 SQL > 실행해 쓸 만한 오답 모으기
+     * 서로 다른 오답 3개가 모이면 정답 표(기준 SQL 결과)와 조립해 저장, 모자라면 null (모은 오답은 다음 시도로)
      */
     private QuestionChoiceSet attemptResultMatch(ChoiceSetGenerationRun run, ChoiceSetRetryFeedback feedback, int attempt) {
         Question question = run.question();
@@ -265,39 +266,31 @@ public class ChoiceSetGenerationService {
         GenerateChoiceSetResult aiResult = aiGatewayClient.generateChoiceSet(request);
         run.recordAiResult(aiResult);
 
-        ResultTableChoiceBuilder.ResultTableAttempt tableAttempt =
-                resultTableChoiceBuilder.buildAttempt(question, aiResult.choices());
-        ResultTableChoiceJudge.Verdict verdict = tableAttempt.verdict();
-        if (verdict.isAccepted()) {
-            log.debug("[choice-gen-result-match] 판정 통과, 저장: attempt={}, correctKey={}", attempt, verdict.correctKey());
-            GenerateChoiceSetResult tableResult = new GenerateChoiceSetResult(tableAttempt.tableChoices(), aiResult.metadata());
+        ResultTableChoiceBuilder.ScreenedAttempt screened =
+                resultTableChoiceBuilder.screenAttempt(question, aiResult.choices(), feedback.collectedWrongTables());
+        feedback.collectedWrongTables().addAll(screened.newWrongTables());
+        int collectedCount = feedback.collectedWrongTables().size();
+        if (collectedCount >= ResultTableChoiceBuilder.WRONG_CHOICE_COUNT) {
+            log.debug("[choice-gen-result-match] 오답 {}개 확보, 저장: attempt={}", collectedCount, attempt);
+            ResultTableChoiceBuilder.AssembledChoices assembled = resultTableChoiceBuilder.assemble(
+                    screened.correctTableJson(),
+                    feedback.collectedWrongTables().subList(0, ResultTableChoiceBuilder.WRONG_CHOICE_COUNT));
+            GenerateChoiceSetResult tableResult = new GenerateChoiceSetResult(assembled.choices(), aiResult.metadata());
             return choiceSetSaveService.saveResultMatch(
-                    question, run.source(), run.memberUuid(), run.prompt(), tableResult, tableAttempt.report(), attempt);
+                    question, run.source(), run.memberUuid(), run.prompt(), tableResult, assembled.report(), attempt);
         }
 
-        // 거부: 정답 수 > 오류 코드, 동치 SQL·직전 실행 결과·거부 사유를 다음 요청 피드백으로
-        ErrorCode errorCode = toResultTableErrorCode(verdict.rejection(), tableAttempt.report(), run);
-        log.info("[choice-gen-result-match] rejected: reason={}, keys={}, code={}, attempt={}/{}, questionUuid={}",
-                verdict.rejection(), verdict.rejectedKeys(), errorCode, attempt, MAX_ATTEMPTS, run.questionUuid());
-        if (verdict.rejection() == ResultTableChoiceJudge.Rejection.MULTIPLE_CORRECT) {
-            requestFactory.collectEquivalentSqls(aiResult.choices(), tableAttempt.report(), feedback.equivalentSqls());
-        }
+        // 모자람: 정답과 같은 오답 SQL 은 동치 피드백, 보기별 실제 결과·버린 이유·모은 개수를 다음 요청에
+        run.recordErrorCode(ErrorCode.CHOICE_SET_GENERATION_FAILED);
+        log.info("[choice-gen-result-match] wrong tables short: collected={}, discards={}, attempt={}/{}, questionUuid={}",
+                collectedCount, screened.discardByKey(), attempt, MAX_ATTEMPTS, run.questionUuid());
+        requestFactory.collectEquivalentSqls(aiResult.choices(), screened.report(), feedback.equivalentSqls());
         List<String> resultLines = new ArrayList<>(
-                requestFactory.toChoiceResultLines(aiResult.choices(), tableAttempt.report(), true));
-        resultLines.add("판정: " + verdict.rejection().retryFeedback()
-                + (verdict.rejectedKeys().isEmpty() ? "" : " (해당 보기: " + String.join(", ", verdict.rejectedKeys()) + ")"));
+                requestFactory.toChoiceResultLines(aiResult.choices(), screened.report(), true));
+        screened.discardByKey().forEach((key, discard) -> resultLines.add(key + " 버림: " + discard.retryFeedback()));
+        resultLines.add("지금까지 쓸 수 있는 오답 결과 " + collectedCount + "개 확보. 위 결과들과 겹치지 않는 새 오해로 "
+                + "결과가 서로 다른 오답 SQL 3개를 다시 만들 것.");
         feedback.replacePreviousChoiceResultLines(resultLines);
         return null;
-    }
-
-    /** 거부 사유 > 실패 기록 코드 (정답 0·2개는 기존 검증 코드, 그 외는 생성 실패) */
-    private static ErrorCode toResultTableErrorCode(ResultTableChoiceJudge.Rejection rejection, ValidationReport report,
-                                                    ChoiceSetGenerationRun run) {
-        if (rejection == ResultTableChoiceJudge.Rejection.NO_CORRECT
-                || rejection == ResultTableChoiceJudge.Rejection.MULTIPLE_CORRECT) {
-            return run.recordValidationFailure(report.correctCount());
-        }
-        run.recordErrorCode(ErrorCode.CHOICE_SET_GENERATION_FAILED);
-        return ErrorCode.CHOICE_SET_GENERATION_FAILED;
     }
 }
