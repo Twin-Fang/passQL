@@ -13,17 +13,23 @@ import '../../providers/plan_providers.dart';
 import '../../providers/settings_providers.dart';
 import '../common/app_toast.dart';
 import 'pro_benefits.dart';
+import 'pro_offer_sheet.dart';
 import 'pro_purchase_feedback.dart';
 
-/// 이용권 정보 시트 (#749): 문장 제목(오늘 더 푼 문제) > 기간 줄 > 내 탑승권 > 이용 중인 혜택(접힘) > 구매일·주문 번호(복사) > 작은 복원
+/// 정보 시트 닫힘 사유 2종: 복원 성공 > 토스트, 연장 > 이용권 시트
+enum _ProInfoSheetResult { restored, extend }
+
+/// 이용권 정보 시트 (#749): 문장 제목(오늘 더 푼 문제) > 기간 줄 > 내 탑승권 > 이용 중인 혜택(접힘) > 구매일·주문 번호(복사) > 연장 버튼 > 작은 복원
 /// 구매일·주문 번호는 서버가 주기 전까지 null 이고, 값이 있을 때만 행을 그림
+/// 연장: 정보 시트 닫힘 > 이용권 시트 (시트 위에 시트를 겹치지 않음, 서버가 현재 만료일 뒤로 이어 붙임)
 Future<void> showProInfoSheet(
-  BuildContext context, {
+  BuildContext context,
+  WidgetRef ref, {
   DateTime? proExpiresAt,
   DateTime? purchasedAt,
   String? orderId,
 }) async {
-  final isRestored = await showPassqlSheet<bool>(
+  final result = await showPassqlSheet<_ProInfoSheetResult>(
     context,
     builder: (_) => _ProInfoSheetBody(
       proExpiresAt: proExpiresAt,
@@ -31,8 +37,14 @@ Future<void> showProInfoSheet(
       orderId: orderId,
     ),
   );
-  if (isRestored == true && context.mounted) {
-    showAppToast(context, proPurchaseSucceededMessage);
+  if (!context.mounted) return;
+  switch (result) {
+    case _ProInfoSheetResult.restored:
+      showAppToast(context, proPurchaseSucceededMessage);
+    case _ProInfoSheetResult.extend:
+      await showProOfferSheet(context, ref);
+    case null:
+      break;
   }
 }
 
@@ -69,7 +81,7 @@ class _ProInfoSheetBodyState extends ConsumerState<_ProInfoSheetBody> {
     await refreshPlanIfPurchased(container, outcome);
     if (!mounted) return;
     if (outcome == ProPurchaseOutcome.success) {
-      Navigator.of(context).pop(true);
+      Navigator.of(context).pop(_ProInfoSheetResult.restored);
       return;
     }
     setState(() {
@@ -292,6 +304,15 @@ class _ProInfoSheetBodyState extends ConsumerState<_ProInfoSheetBody> {
                 ),
               ),
             ),
+          const SizedBox(height: PassqlSpacing.md),
+          // 연장: 이용권 시트에서 기간 고름 (복원 중에는 막음)
+          PassqlButton(
+            label: '이용권 연장하기',
+            variant: PassqlButtonVariant.tinted,
+            onPressed: _isRestoring
+                ? null
+                : () => Navigator.of(context).pop(_ProInfoSheetResult.extend),
+          ),
           // 복원은 버튼 대신 작은 글자 한 줄 (누르는 높이 44는 유지)
           PassqlPressable(
             hasMinimumTouchTarget: true,
