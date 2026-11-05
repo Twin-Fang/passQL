@@ -124,3 +124,14 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-05 09:26 | W6 | ingest issue+report #835 | ISS-0453-app-concept-reading-readability-redesign, ISS-0453-app-concept-reading-readability-redesign-report
 - 2026-11-05 09:26 | W4 | new decisions, DEC-0217 superseded | DEC-0252-concept-reading-single-scroll, DEC-0253-concept-collapse-only-long-later-sections, DEC-0217-concept-study-single-segment
 - 2026-11-05 09:26 | W2 | cluster update | cluster-concept-learning
+- 2026-11-05 10:43 | W6 | ingest issue+report #819 | ISS-0454-dev-tools-situation-simulation, ISS-0454-dev-tools-situation-simulation-report
+- 2026-11-05 10:43 | W4 | new decision | DEC-0254-app-clock-single-today-source
+- 2026-11-05 10:43 | W2 | cluster update | cluster-dev-workflow
+- 2026-11-05 10:43 | W2 | fix members count, summary refresh | cluster-dev-workflow
+- 2026-11-05 13:11 | W6 | ingest issue+report #848 | ISS-0456-concept-lesson-textbook-blocks, ISS-0456-concept-lesson-textbook-blocks-report
+- 2026-11-05 13:11 | W4 | new decision, DEC-0253 superseded | DEC-0256-concept-lesson-blocks-by-table-header, DEC-0253-concept-collapse-only-long-later-sections
+- 2026-11-05 13:11 | W2 | cluster update | cluster-concept-learning
+- 2026-11-05 13:10 | W6 | ingest issue+report #849 | ISS-0455-sql-code-font-mixed-hangul, ISS-0455-sql-code-font-mixed-hangul-report
+- 2026-11-05 13:10 | W4 | new decision | DEC-0255-code-font-d2coding-subset
+- 2026-11-05 13:10 | W2 | cluster update | cluster-design-system
+- 2026-11-05 13:10 | W2 | fix members count | cluster-design-system

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'ad_placement.dart';
+import '../utils/app_clock.dart';
 import 'app_open_ad_loader.dart';
 import 'app_open_frequency_cap.dart';
 import 'full_screen_ad_guard.dart';
@@ -17,7 +18,7 @@ class AppOpenAdController {
     DateTime Function()? now,
   }) : _loader = loader,
        _frequencyCap = frequencyCap,
-       _now = now ?? DateTime.now;
+       _now = now ?? AppClock.now;
 
   /// 이보다 짧게 나갔다 오면 광고 없음 (권한 창·공유·로그인 같은 짧은 전환, 30초)
   static const minimumBackgroundDuration = Duration(seconds: 30);

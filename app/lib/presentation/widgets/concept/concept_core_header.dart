@@ -1,73 +1,96 @@
 import 'package:flutter/cupertino.dart';
 
+import '../../../data/models/concept/concept_models.dart';
 import '../../design/design.dart';
-import '../question/markdown_lite_text.dart';
-import 'concept_markdown_body.dart';
 import 'concept_reading_parser.dart';
 
-/// 개념 맨 위 구간 (#835): 읽는 시간 줄 > 한 줄 핵심(요약) > 꼭 기억할 것 번호 카드
-/// 핵심 글머리 한 줄 = 카드 하나, 글머리가 아닌 핵심 글은 원문 그대로
+/// 개념 맨 위 구간 (#848): 읽는 시간 줄 > 한 줄 핵심(큰 글씨) > 이번에 배울 것 목차 칩 (누르면 그 문단으로)
+/// 꼭 기억할 것(coreMd)은 맨 끝 한 장 요약(ConceptLessonRecap)으로
 class ConceptCoreHeader extends StatelessWidget {
   const ConceptCoreHeader({
     super.key,
     required this.summary,
-    required this.coreMd,
-    required this.sectionCount,
+    required this.sections,
     required this.readMinutes,
+    required this.onSectionPressed,
   });
 
   final String? summary;
-  final String coreMd;
-  final int sectionCount;
+  final List<ConceptDetailSection> sections;
   final int readMinutes;
+
+  /// 목차 한 줄을 눌렀을 때 (문단 앵커)
+  final ValueChanged<String> onSectionPressed;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final summaryText = summary?.trim() ?? '';
-    final keyPoints = ConceptReadingParser.parseCoreKeyPoints(coreMd);
-    final hasCoreText = coreMd.trim().isNotEmpty;
     return PassqlSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            '약 $readMinutes분 · 설명 $sectionCount개',
-            style: PassqlTypography.footnote.copyWith(
-              color: colors.secondaryLabel,
+          PassqlReveal(
+            child: Row(
+              children: [
+                Icon(
+                  CupertinoIcons.time,
+                  size: PassqlIconSize.sm,
+                  color: colors.iconSecondary,
+                ),
+                const SizedBox(width: PassqlSpacing.xxs),
+                Text(
+                  '약 $readMinutes분 · ${sections.length}개 구간',
+                  style: PassqlTypography.footnote.copyWith(
+                    color: colors.secondaryLabel,
+                  ),
+                ),
+              ],
             ),
           ),
           if (summaryText.isNotEmpty) ...[
             const SizedBox(height: PassqlSpacing.sm),
-            PassqlCallout(
-              kind: PassqlCalloutKind.accent,
-              icon: CupertinoIcons.lightbulb_fill,
-              label: '한 줄 핵심',
-              child: Text(
-                summaryText,
-                style: PassqlTypography.title3.copyWith(color: colors.label),
+            PassqlReveal(
+              index: 1,
+              child: Semantics(
+                header: true,
+                child: Text(
+                  summaryText,
+                  style: PassqlTypography.title1.copyWith(color: colors.label),
+                ),
               ),
             ),
           ],
-          if (hasCoreText) ...[
-            const SizedBox(height: PassqlSpacing.xl),
-            Semantics(
-              header: true,
+          if (sections.isNotEmpty) ...[
+            const SizedBox(height: PassqlSpacing.lg),
+            PassqlReveal(
+              index: 2,
               child: Text(
-                keyPoints.length > 1
-                    ? '꼭 기억할 것 ${keyPoints.length}가지'
-                    : '꼭 기억할 것',
-                style: PassqlTypography.headline.copyWith(color: colors.label),
+                '이번에 배울 것',
+                style: PassqlTypography.footnoteSemibold.copyWith(
+                  color: colors.secondaryLabel,
+                ),
               ),
             ),
-            const SizedBox(height: PassqlSpacing.sm),
-            if (keyPoints.isEmpty)
-              ConceptMarkdownBody(coreMd)
-            else
-              for (final (index, keyPoint) in keyPoints.indexed) ...[
-                if (index > 0) const SizedBox(height: PassqlSpacing.xs),
-                _KeyPointCard(order: index + 1, text: keyPoint),
+            const SizedBox(height: PassqlSpacing.xs),
+            // 목차 칩 (한 화면을 다 차지하지 않게 줄바꿈 칩으로)
+            Wrap(
+              spacing: PassqlSpacing.xs,
+              runSpacing: PassqlSpacing.xs,
+              children: [
+                for (final (index, section) in sections.indexed)
+                  PassqlReveal(
+                    index: index + 3,
+                    child: _TableOfContentsChip(
+                      order: index + 1,
+                      title: ConceptReadingParser.splitTitle(
+                        section.title,
+                      ).title,
+                      onPressed: () => onSectionPressed(section.anchor),
+                    ),
+                  ),
               ],
+            ),
           ],
         ],
       ),
@@ -75,60 +98,47 @@ class ConceptCoreHeader extends StatelessWidget {
   }
 }
 
-/// 기억할 것 한 장: 보라 번호 원 + 한 문장 (번호와 글을 한 번에 읽힘)
-class _KeyPointCard extends StatelessWidget {
-  const _KeyPointCard({required this.order, required this.text});
+/// 목차 칩: 두 자리 번호 + 제목 (누르면 그 문단으로 스크롤)
+class _TableOfContentsChip extends StatelessWidget {
+  const _TableOfContentsChip({
+    required this.order,
+    required this.title,
+    required this.onPressed,
+  });
 
   final int order;
-  final String text;
-
-  // 번호 원 최소 지름 (큰 글자에서는 글자에 맞춰 커짐)
-  static const double _orderCircleMinDiameter = 24;
+  final String title;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    return MergeSemantics(
+    return PassqlPressable(
+      onTap: onPressed,
+      semanticLabel: '$order. $title 로 이동',
+      hasMinimumTouchTarget: true,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(
-          PassqlSpacing.sm,
-          PassqlSpacing.sm,
-          PassqlSpacing.md,
-          PassqlSpacing.sm,
+        padding: const EdgeInsets.symmetric(
+          horizontal: PassqlSpacing.sm,
+          vertical: PassqlSpacing.xs,
         ),
         decoration: BoxDecoration(
           color: colors.background,
-          borderRadius: BorderRadius.circular(PassqlRadius.md),
+          borderRadius: BorderRadius.circular(PassqlRadius.capsule),
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 본문 첫 줄 위 여백(xxs)과 맞춤
-            Padding(
-              padding: const EdgeInsets.only(top: PassqlSpacing.xxs),
-              child: Container(
-                constraints: const BoxConstraints(
-                  minWidth: _orderCircleMinDiameter,
-                  minHeight: _orderCircleMinDiameter,
-                ),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: colors.accentTint,
-                  borderRadius: BorderRadius.circular(PassqlRadius.capsule),
-                ),
-                child: Text(
-                  '$order',
-                  style: PassqlTypography.footnoteSemibold.copyWith(
-                    color: colors.accentText,
-                  ),
+        child: Text.rich(
+          TextSpan(
+            style: PassqlTypography.subheadline.copyWith(color: colors.label),
+            children: [
+              TextSpan(
+                text: '${order.toString().padLeft(2, '0')}  ',
+                style: PassqlTypography.subheadlineSemibold.copyWith(
+                  color: colors.accentText,
                 ),
               ),
-            ),
-            const SizedBox(width: PassqlSpacing.sm),
-            Expanded(
-              child: MarkdownLiteText(text, style: MarkdownLiteStyle.article),
-            ),
-          ],
+              TextSpan(text: title),
+            ],
+          ),
         ),
       ),
     );

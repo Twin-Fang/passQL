@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/utils/app_clock.dart';
 import '../../providers/learning_refresh.dart';
 import '../../providers/unread_notification_providers.dart';
 
@@ -10,7 +11,7 @@ class AppLifecycleRefresher extends ConsumerStatefulWidget {
   const AppLifecycleRefresher({
     super.key,
     required this.child,
-    this.readCurrentTime = DateTime.now,
+    this.readCurrentTime = AppClock.now,
   });
 
   final Widget child;

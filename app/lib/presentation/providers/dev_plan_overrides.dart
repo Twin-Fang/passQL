@@ -78,17 +78,21 @@ const int _simulatedAdBonusMaxCount = 2;
 const int _simulatedBaseLimitFallback = 10;
 
 /// 서버 등급 > 개발 강제값 반영: 등급 강제 > 한도 흉내 (흉내는 결제 켜진 무료 회원으로 바꿈)
+/// 한도 흉내 없이 날짜를 넘겼으면 오늘 사용량·보너스를 새 날(0)로 (#819, 서버 한도는 그대로)
 MemberPlanResponse applyDevPlanOverrides(
   MemberPlanResponse serverPlan, {
   required ProDebugPlan? debugPlan,
   required DevLimitSimulation simulation,
+  int shiftedDayCount = 0,
 }) {
   final plan = switch (debugPlan) {
     ProDebugPlan.free => serverPlan.copyWith(plan: MemberPlanType.free),
     ProDebugPlan.pro => serverPlan.copyWith(plan: MemberPlanType.pro),
     null => serverPlan,
   };
-  if (simulation == DevLimitSimulation.none) return plan;
+  if (simulation == DevLimitSimulation.none) {
+    return shiftedDayCount > 0 ? _asFreshDayUsage(plan) : plan;
+  }
 
   // 흉내별 (광고 받은 횟수, 세트 보너스 받음, 한도 소진)
   final (adBonusUsedCount, isDailySetBonusEarned, isLimitReached) =
@@ -121,3 +125,14 @@ MemberPlanResponse applyDevPlanOverrides(
     ),
   );
 }
+
+/// 새 날 사용량: 오늘 푼 수 0, 유효 한도 = 기본 한도, 받은 보너스 없음 (보너스 규칙 값은 유지)
+MemberPlanResponse _asFreshDayUsage(MemberPlanResponse plan) => plan.copyWith(
+  todayRandomSolvedCount: 0,
+  todayFreeLimit: plan.dailyFreeLimit,
+  dailyBonus: plan.dailyBonus.copyWith(
+    isDailySetCompletionEarned: false,
+    isDailySetAccuracyEarned: false,
+    adBonusUsedCount: 0,
+  ),
+);

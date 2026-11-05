@@ -4,9 +4,9 @@ id: DEC-0253
 created: 2026-11-05
 reviewed: null
 topics: [concept-learning]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0256
 related: ["[[ISS-0453-app-concept-reading-readability-redesign]]", "[[DEC-0252-concept-reading-single-scroll]]"]
 ---
 

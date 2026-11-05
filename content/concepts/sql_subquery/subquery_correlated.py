@@ -1,10 +1,29 @@
 """개념: 연관 서브쿼리와 EXISTS (6단원, 확인 문제 5개)"""
 
-from concept_bundle import choice, question, sql_check
+from concept_bundle import choice, question, sql_check, sql_example
 from concept_dataset import DEPARTMENT_TABLE_MD, to_employee_table_md
 
 # 이 개념의 계산에 쓰는 열 전부 (관리자사번·급여·부서번호)
 EMPLOYEE_TABLE = to_employee_table_md("사번", "이름", "관리자사번", "급여", "부서번호")
+
+# 본문 예시: SQL 블록 + 결과 표 = 검증 항목 (sql_example 한 원본)
+DEPARTMENT_AVERAGE_EXAMPLE = sql_example(
+    """SELECT e.이름, e.부서번호, e.급여
+FROM 사원 e
+WHERE e.급여 > (SELECT AVG(s.급여)
+                FROM 사원 s
+                WHERE s.부서번호 = e.부서번호);""",
+    ("이름", "부서번호", "급여"), [["박서준", 20, 2800], ["최유나", 30, 3200]], is_ordered=False)
+EXISTS_EXAMPLE = sql_example(
+    """SELECT d.부서명
+FROM 부서 d
+WHERE EXISTS (SELECT 1 FROM 사원 e WHERE e.부서번호 = d.부서번호);""",
+    ("부서명",), [["기획부"], ["개발부"], ["영업부"]], is_ordered=False)
+NOT_EXISTS_EXAMPLE = sql_example(
+    """SELECT d.부서명
+FROM 부서 d
+WHERE NOT EXISTS (SELECT 1 FROM 사원 e WHERE e.부서번호 = d.부서번호);""",
+    ("부서명",), [["인사부"]])
 
 CONCEPT = {
     "tagKey": "subquery-correlated",
@@ -13,47 +32,36 @@ CONCEPT = {
     "title": "연관 서브쿼리와 EXISTS",
     "summary": "메인 쿼리의 행마다 다시 계산되는 서브쿼리이고, EXISTS는 행이 있는지만 봐요",
     "coreMd": (
-        "- 연관 서브쿼리는 서브쿼리 안에서 메인 쿼리의 열을 참조하고, 메인 쿼리의 행이 바뀔 때마다 그 행의 값으로 다시 계산돼요.\n"
-        "- `EXISTS`는 서브쿼리 결과에 행이 하나라도 있으면 참이고 어떤 값이 나오는지는 보지 않아서, 보통 `SELECT 1`로 적어요.\n"
-        "- `NOT IN` 서브쿼리 결과에 NULL이 하나라도 섞이면 결과가 0행이 되지만, `NOT EXISTS`는 NULL과 상관없이 짝이 없는 행을 찾아 줘요.\n"
-        "- 그래서 사원이 없는 부서를 찾을 때 `NOT IN (SELECT 부서번호 FROM 사원)`은 0행이 나오고, `NOT EXISTS`는 인사부를 돌려줘요."
+        "- 연관 서브쿼리는 메인 쿼리의 열을 참조하고, 메인 쿼리 행이 바뀔 때마다 다시 계산돼요.\n"
+        "- `EXISTS`는 행이 하나라도 있으면 참이고 값은 보지 않아서, 보통 `SELECT 1`로 적어요.\n"
+        "- `NOT IN` 서브쿼리 결과에 NULL이 하나라도 있으면 결과는 0행이에요.\n"
+        "- `NOT EXISTS`는 NULL과 상관없이 짝이 없는 행을 찾아서, 사원이 없는 인사부를 돌려줘요."
     ),
-    "detailMd": f"""## 왜 필요한가요 {{#why}}
+    "detailMd": f"""## 자기 부서 평균과 비교하기 — 사원마다 기준이 달라요 {{#why}}
 
-앞에서는 전체 평균보다 급여가 많은 사원을 찾았어요. 그때 서브쿼리는 평균 2612.5라는 값 하나만 구하면 됐고, 모든 사원이 같은 값과 비교됐어요. 이번에는 "자기 부서 평균보다 급여가 많은 사원"을 찾으려고 해요.
+전체 평균과 비교할 때는 서브쿼리가 값 하나만 구하면 됐어요. "자기 부서 평균보다 많은 사원"은 박서준은 개발부 평균과, 최유나는 영업부 평균과 비교해야 해서, 서브쿼리가 지금 보는 사원의 부서를 알아야 해요.
 
-이 조건에서는 비교할 값이 사원마다 달라져요. 20번 개발부의 박서준은 개발부 평균과, 30번 영업부의 최유나는 영업부 평균과 비교해야 하거든요. 그래서 서브쿼리가 "지금 메인 쿼리가 보고 있는 사원이 어느 부서인지" 알아야 하는데, 이렇게 메인 쿼리의 값을 받아 쓰는 서브쿼리가 연관 서브쿼리예요.
-
-이 글의 예시는 모두 아래 두 표로 계산해요. 윤서연(1008)은 부서가 정해지지 않아 부서번호가 NULL이고, 사장 김민수(1001)는 위에 관리자가 없어서 관리자사번이 NULL이에요. 인사부(40번)에는 소속 사원이 없어요.
+예시는 모두 아래 두 표로 계산해요. 윤서연(1008)은 부서번호가 NULL이고, 사장 김민수(1001)는 관리자사번이 NULL이며, 인사부(40번)에는 사원이 없어요.
 
 {EMPLOYEE_TABLE}
 
 {DEPARTMENT_TABLE_MD}
 
-## 한 줄 정의 {{#definition}}
+## 한 줄 정의 — 메인 쿼리의 열을 받아 쓰는 서브쿼리 {{#definition}}
 
-연관 서브쿼리(Correlated Subquery)는 서브쿼리 안에서 메인 쿼리의 열을 참조하는 서브쿼리이고, 상관 서브쿼리라고도 불러요. 메인 쿼리의 열을 쓰지 않아서 혼자 실행해도 되는 서브쿼리는 비연관 서브쿼리라고 해요.
+| 용어 | 뜻 |
+|---|---|
+| 연관 서브쿼리 (Correlated Subquery) | 서브쿼리 안에서 메인 쿼리의 열을 참조하는 서브쿼리예요. 상관 서브쿼리라고도 불러요 |
+| 비연관 서브쿼리 | 메인 쿼리의 열을 쓰지 않아서 혼자 실행해도 되는 서브쿼리예요 |
+| 별칭 (Alias) | 테이블에 붙이는 짧은 이름이에요. 같은 사원 테이블을 바깥은 `e`, 안쪽은 `s`로 구분했어요 |
 
-```sql
-SELECT e.이름, e.부서번호, e.급여
-FROM 사원 e
-WHERE e.급여 > (SELECT AVG(s.급여)
-                FROM 사원 s
-                WHERE s.부서번호 = e.부서번호);
-```
+`AVG(s.급여)`는 급여의 평균을 구하는 함수예요. 서브쿼리 안의 `e.부서번호`가 메인 쿼리의 열이라서, 이 서브쿼리는 혼자 떼어 내면 실행되지 않아요.
 
-`AVG(s.급여)`는 급여의 평균을 구하는 함수예요. 메인 쿼리와 서브쿼리가 같은 사원 테이블을 쓰기 때문에, 바깥 사원 테이블에는 `e`, 안쪽 사원 테이블에는 `s`라는 별칭(Alias, 테이블에 붙이는 짧은 이름)을 붙여 구분했어요. 서브쿼리 안의 `e.부서번호`가 메인 쿼리의 열이고, 이 부분이 두 쿼리를 연결해 줘요. 이 서브쿼리는 `e`가 무엇인지 알아야 실행할 수 있어서 혼자 떼어 내면 실행되지 않아요.
+{DEPARTMENT_AVERAGE_EXAMPLE.markdown}
 
-결과로는 아래 두 명이 나와요.
+## 행마다 다시 계산돼요 — 사원 한 명씩 따라가기 {{#row-by-row}}
 
-| 이름 | 부서번호 | 급여 |
-|---|---|---|
-| 박서준 | 20 | 2800 |
-| 최유나 | 30 | 3200 |
-
-## 행마다 다시 계산돼요 {{#row-by-row}}
-
-연관 서브쿼리의 결과는 메인 쿼리가 사원 한 명을 볼 때마다 그 사원의 부서번호로 다시 계산된다고 생각하면 이해하기 쉬워요. 위 SQL이 사원 8명을 차례로 볼 때 서브쿼리가 구하는 값은 아래와 같아요.
+메인 쿼리가 사원 한 명을 볼 때마다 서브쿼리가 그 사원의 부서번호로 평균을 다시 구한다고 보면 돼요.
 
 | 메인 쿼리가 보는 사원 | 서브쿼리가 구한 부서 평균 | 급여 > 평균 |
 |---|---|---|
@@ -66,31 +74,42 @@ WHERE e.급여 > (SELECT AVG(s.급여)
 | 오지민 (30번, 2200) | 2700 | 거짓 |
 | 윤서연 (NULL, 2000) | NULL | UNKNOWN |
 
-김민수는 10번 부서에 혼자라 부서 평균이 자기 급여와 같아서 남지 않아요. 한도윤도 급여가 평균과 똑같은 2700이라 `>` 조건을 넘지 못해요. 윤서연은 부서번호가 NULL이라 `s.부서번호 = NULL`을 만족하는 행이 없고, 행이 없으니 평균도 NULL이 되어 비교 결과가 UNKNOWN이에요.
+김민수는 부서에 혼자라 평균이 자기 급여와 같고, 한도윤은 평균과 똑같은 2700이라 `>`를 넘지 못해요. 윤서연은 `s.부서번호 = NULL`을 만족하는 행이 없어서 평균이 NULL이 되고, 비교가 UNKNOWN이라 빠져요.
 
-비연관 서브쿼리는 메인 쿼리와 상관없이 한 번 계산한 값을 모든 행이 함께 쓰지만, 연관 서브쿼리는 메인 쿼리 행의 값이 바뀌면 결과도 바뀐다는 점이 달라요.
+| 비교 | 비연관 서브쿼리 | 연관 서브쿼리 |
+|---|---|---|
+| 메인 쿼리 열 참조 | 하지 않아요 | 해요 |
+| 계산 | 한 번 구한 값을 모든 행이 함께 써요 | 메인 쿼리 행의 값이 바뀌면 결과도 바뀌어요 |
+| 혼자 실행 | 돼요 | 안 돼요 |
 
-## EXISTS와 NOT EXISTS {{#exists}}
+## EXISTS와 NOT EXISTS — 행이 있는지만 봐요 {{#exists}}
 
-`EXISTS (서브쿼리)`는 서브쿼리 결과에 행이 하나라도 있으면 참, 하나도 없으면 거짓이에요. 값을 비교하지 않고 행이 있는지만 확인하기 때문에, 보통 연관 서브쿼리와 함께 써서 "짝이 되는 행이 있는가"를 물어요.
+| 용어 | 뜻 |
+|---|---|
+| `EXISTS (서브쿼리)` | 서브쿼리 결과에 행이 하나라도 있으면 참, 없으면 거짓이에요 |
+| `NOT EXISTS (서브쿼리)` | 서브쿼리 결과에 행이 하나도 없으면 참이에요 |
 
-```sql
-SELECT d.부서명
-FROM 부서 d
-WHERE EXISTS (SELECT 1 FROM 사원 e WHERE e.부서번호 = d.부서번호);
+EXISTS는 값을 비교하지 않으니, 보통 연관 서브쿼리와 함께 "짝이 되는 행이 있는가"를 물어요. 부서마다 그 부서번호를 가진 사원이 있는지 찾으면 세 부서가 나와요.
 
-SELECT d.부서명
-FROM 부서 d
-WHERE NOT EXISTS (SELECT 1 FROM 사원 e WHERE e.부서번호 = d.부서번호);
-```
+{EXISTS_EXAMPLE.markdown}
 
-첫 번째 SQL은 부서마다 그 부서번호를 가진 사원이 있는지 찾아보고, 있으면 참으로 보아 기획부, 개발부, 영업부를 돌려줘요. 인사부(40번)는 소속 사원이 없어서 EXISTS가 거짓이 되고, 대신 두 번째 SQL의 NOT EXISTS에서 참이 되어 인사부 하나만 나와요.
+인사부는 소속 사원이 없어서 EXISTS가 거짓이고, NOT EXISTS에서는 참이 돼요.
 
-서브쿼리 SELECT 절에 `1`을 적는 이유는 EXISTS가 어떤 값이 나오는지 보지 않기 때문이에요. `SELECT *`나 `SELECT 이름`이라고 적어도 결과는 같고, `1`은 "값은 상관없다"는 뜻으로 관례처럼 써요.
+{NOT_EXISTS_EXAMPLE.markdown}
 
-## 자주 헷갈리는 점 {{#confusing}}
+| 바로 확인 | 정답 | 이유 |
+|---|---|---|
+| EXISTS 서브쿼리를 `SELECT 이름`으로 바꾸면 결과가 달라져요 | X | EXISTS는 값을 보지 않아서 `SELECT *`나 `SELECT 이름`도 결과가 같아요. `1`은 "값은 상관없다"는 관례예요 |
+| 연관 서브쿼리는 혼자 떼어 내 실행할 수 없어요 | O | 메인 쿼리의 열(`e.부서번호`)이 무엇인지 알아야 실행돼요 |
 
-**NOT IN과 NOT EXISTS는 NULL 때문에 결과가 달라져요.** 두 SQL은 같은 질문처럼 보이지만, 사원이 없는 부서를 각각의 방법으로 찾아보면 결과가 갈려요.
+## 자주 헷갈리는 점 — NOT IN 안의 NULL {{#confusing}}
+
+| 한 줄 공식 | 뜻 |
+|---|---|
+| NOT IN 안에 NULL이 하나라도 있으면 결과 0건 | "모두와 달라야 한다"를 AND로 묻는데, NULL과의 비교가 UNKNOWN이라 참이 되지 못해요 |
+| 해결은 NOT EXISTS 또는 IS NOT NULL | NOT EXISTS로 바꾸거나 서브쿼리에 `WHERE 열 IS NOT NULL`을 붙여 NULL을 미리 빼요 |
+
+사원이 없는 부서를 두 방법으로 찾으면 결과가 갈려요.
 
 ```sql
 SELECT 부서명
@@ -100,23 +119,29 @@ WHERE 부서번호 NOT IN (SELECT 부서번호 FROM 사원);  -- 0행이 나와�
 SELECT d.부서명
 FROM 부서 d
 WHERE NOT EXISTS (SELECT 1 FROM 사원 e WHERE e.부서번호 = d.부서번호);  -- 인사부가 나와요
-```
 
-NOT IN 쪽의 서브쿼리는 사원들의 부서번호 10, 20, 20, 30, 20, 30, 30, NULL을 돌려주는데, 마지막 NULL은 부서가 없는 윤서연의 값이에요. 인사부의 40을 검사하면 `40 <> 10 AND 40 <> 20 AND ... AND 40 <> NULL`이 되고, 마지막 비교만 UNKNOWN이에요.
-
-AND는 묶인 조건이 모두 참이어야 참이 되는데, 참 AND UNKNOWN은 UNKNOWN이에요. 그래서 앞의 비교가 모두 참이어도 전체는 UNKNOWN에 머무르고, WHERE 절은 참인 행만 남기므로 인사부는 빠져요. 다른 부서도 모두 마찬가지라서 결과가 0행이 나와요.
-
-NOT EXISTS 쪽은 부서마다 `e.부서번호 = d.부서번호`를 만족하는 사원이 있는지만 찾아요. 윤서연의 행은 어느 부서와도 같지 않으니 그냥 걸러질 뿐 결과를 망가뜨리지 않고, 40번 부서는 짝이 되는 사원이 없으니 NOT EXISTS가 참이 돼요. 같은 결과를 NOT IN으로 얻으려면 서브쿼리에 `WHERE 부서번호 IS NOT NULL`을 붙여 NULL을 미리 빼야 해요.
-
-```sql
 SELECT 부서명
 FROM 부서
 WHERE 부서번호 NOT IN (SELECT 부서번호 FROM 사원 WHERE 부서번호 IS NOT NULL);  -- 인사부가 나와요
 ```
 
-**NOT IN 서브쿼리가 돌려주는 열에 NULL이 있는지부터 봐야 해요.** 부서번호뿐 아니라 관리자사번 열도 마찬가지예요. 사장 김민수는 관리자가 없어서 관리자사번이 NULL이므로, 서브쿼리가 관리자사번 열을 돌려주는 NOT IN은 같은 이유로 어떤 행도 참이 되지 못해요.
+| 단계 | 내용 |
+|---|---|
+| 서브쿼리 결과 | 사원들의 부서번호 10, 20, 20, 30, 20, 30, 30, NULL이에요. NULL은 윤서연의 값이에요 |
+| 인사부 40 검사 | `40 <> 10 AND 40 <> 20 AND ... AND 40 <> NULL`이 되고, 마지막 비교만 UNKNOWN이에요 |
+| AND로 합치기 | 참 AND UNKNOWN은 UNKNOWN이라 전체가 UNKNOWN에 머물러요 |
+| WHERE 거르기 | WHERE는 참인 행만 남기므로 인사부도, 다른 부서도 모두 빠져 0행이에요 |
 
-**NULL이 메인 쿼리 쪽에 있어도 NOT IN은 결과가 달라요.** 이번에는 부서 표에 없는 부서번호를 가진 사원을 찾아볼게요. `WHERE 부서번호 NOT IN (SELECT 부서번호 FROM 부서)`는 0행이 나와요. 윤서연의 부서번호 NULL과 10, 20, 30, 40을 비교하면 모두 UNKNOWN이 되기 때문이에요. 반면 NOT EXISTS로 쓰면 부서 표에서 짝을 찾지 못한 윤서연이 정상적으로 나와요.
+NOT EXISTS는 부서마다 `e.부서번호 = d.부서번호`인 사원이 있는지만 찾으니, 윤서연의 행은 그냥 걸러질 뿐 결과를 망가뜨리지 않아요.
+
+| 헷갈리는 말 | 실제로는 |
+|---|---|
+| NOT IN과 NOT EXISTS는 언제나 결과가 같아요 | 서브쿼리 결과에 NULL이 있으면 NOT IN만 0행이 돼요 |
+| 부서번호 열만 조심하면 돼요 | 관리자사번도 사장 김민수가 NULL이라, 관리자사번을 돌려주는 NOT IN은 어떤 행도 참이 되지 못해요 |
+| NULL이 메인 쿼리 쪽에 있으면 상관없어요 | `부서번호 NOT IN (SELECT 부서번호 FROM 부서)`는 윤서연의 NULL이 10, 20, 30, 40과 모두 UNKNOWN이라 0행이에요. NOT EXISTS로 쓰면 윤서연이 나와요 |
+| IN도 NULL이 섞이면 결과가 망가져요 | IN은 OR로 묶여 하나만 참이면 되니, `부서번호 IN (SELECT 부서번호 FROM 사원)`은 기획부, 개발부, 영업부가 정상으로 나와요. EXISTS도 같아요 |
+| 사원이 없으면 `EXISTS (SELECT COUNT(*) ...)`는 거짓이에요 | COUNT(*)는 행 개수를 세는 집계 함수라 사원이 없어도 0이라는 한 행을 돌려줘요. 그래서 인사부까지 네 부서가 모두 나와요 |
+| 연결 조건이 없어도 EXISTS는 행마다 따로 판단해요 | `EXISTS (SELECT 1 FROM 부서 d WHERE d.지역 = '서울')`은 메인 쿼리 열을 안 써서 모든 사원에게 참이 되고 8명이 다 나와요. 반대로 서브쿼리가 비면 하나도 안 나와요 |
 
 ```sql
 SELECT e.이름
@@ -124,15 +149,16 @@ FROM 사원 e
 WHERE NOT EXISTS (SELECT 1 FROM 부서 d WHERE d.부서번호 = e.부서번호);  -- 윤서연이 나와요
 ```
 
-**IN과 EXISTS는 이 차이가 없어요.** `부서번호 IN (SELECT 부서번호 FROM 사원)`은 목록 중 하나와만 같으면 참이라서, 목록에 NULL이 섞여 있어도 기획부, 개발부, 영업부가 정상적으로 나와요. OR로 묶인 비교는 하나만 참이면 전체가 참이 되기 때문이에요. NULL 때문에 결과가 망가지는 것은 "모두와 달라야 한다"를 AND로 묻는 NOT IN 쪽이에요.
+| 바로 확인 | 정답 | 이유 |
+|---|---|---|
+| `사번 NOT IN (SELECT 관리자사번 FROM 사원)`은 부하 직원이 없는 사원을 돌려줘요 | X | 관리자사번에 김민수의 NULL이 있어서 0행이에요 |
+| `NOT IN` 서브쿼리에 `IS NOT NULL`을 붙이면 NOT EXISTS와 같은 결과를 얻을 수 있어요 | O | NULL을 미리 빼면 UNKNOWN이 생기지 않아요 |
 
-**EXISTS 안에 집계 함수를 쓰면 언제나 참이 돼요.** 집계 함수는 COUNT(행 개수)처럼 여러 행을 모아 값 하나를 계산하는 함수예요. `EXISTS (SELECT COUNT(*) FROM 사원 e WHERE e.부서번호 = d.부서번호)`는 인사부까지 네 부서를 모두 돌려줘요. 사원이 없어도 COUNT(*)는 0이라는 한 행을 돌려주고, EXISTS는 값이 0인지가 아니라 행이 있는지만 보기 때문이에요.
+## 시험에서는 이렇게 나와요 — NULL부터 찾기 {{#exam-point}}
 
-**연결 조건을 빠뜨리면 모든 행이 나오거나 하나도 나오지 않아요.** `EXISTS (SELECT 1 FROM 부서 d WHERE d.지역 = '서울')`처럼 메인 쿼리의 열을 쓰지 않으면, 서울 부서가 하나라도 있는 한 모든 사원에게 참이 되어 8명이 모두 나와요. EXISTS를 쓸 때는 서브쿼리 안에 메인 쿼리와 연결하는 조건이 있는지 꼭 확인해야 해요.
+NOT IN과 NOT EXISTS를 쓴 SQL 두 개를 주고 결과가 같은지, 각각 몇 행인지 묻는 문제가 자주 나와요. 서브쿼리가 돌려주는 열과 메인 쿼리에서 비교하는 열에 NULL이 있는지부터 확인하면 대부분 풀려요.
 
-## 시험에서는 이렇게 나와요 {{#exam-point}}
-
-NOT IN과 NOT EXISTS를 쓴 SQL 두 개를 주고 결과가 같은지, 각각 몇 행인지 묻는 문제가 자주 나와요. 서브쿼리가 돌려주는 열과 메인 쿼리에서 비교하는 열에 NULL이 있는지부터 확인하면 대부분 풀려요. 그 밖에 연관 서브쿼리로 "자기 부서 평균보다 많은" 사원을 고르는 문제, EXISTS의 SELECT 목록이 결과에 영향을 주는지 묻는 문제가 나와요.""",
+그 밖에 연관 서브쿼리로 "자기 부서 평균보다 많은" 사원을 고르는 문제와, EXISTS의 SELECT 목록이 결과에 영향을 주는지 묻는 문제가 나와요.""",
     "checkQuestions": [
         question(1, "연관 서브쿼리를 가장 알맞게 설명한 것은 무엇인가요?", "definition",
                  "연관 서브쿼리는 서브쿼리 안에서 메인 쿼리의 열을 참조해요. 그래서 메인 쿼리의 행이 바뀔 때마다 그 행의 값으로 다시 계산돼요.",
@@ -171,18 +197,17 @@ NOT IN과 NOT EXISTS를 쓴 SQL 두 개를 주고 결과가 같은지, 각각 �
     ],
     "relatedQuestionUuids": [],
     "sqlChecks": [
-        sql_check("SELECT e.이름, e.부서번호, e.급여 FROM 사원 e WHERE e.급여 > "
-                  "(SELECT AVG(s.급여) FROM 사원 s WHERE s.부서번호 = e.부서번호)",
-                  [["박서준", 20, 2800], ["최유나", 30, 3200]]),
+        # 본문 결과 표
+        DEPARTMENT_AVERAGE_EXAMPLE.check,
+        EXISTS_EXAMPLE.check,
+        NOT_EXISTS_EXAMPLE.check,
         sql_check("SELECT 부서번호, AVG(급여) FROM 사원 GROUP BY 부서번호",
                   [[10, 3000], [20, 2600], [30, 2700], [None, 2000]]),
-        # EXISTS·NOT EXISTS (사원 없는 부서 40)
-        sql_check("SELECT d.부서명 FROM 부서 d WHERE EXISTS (SELECT 1 FROM 사원 e WHERE e.부서번호 = d.부서번호)",
-                  [["기획부"], ["개발부"], ["영업부"]]),
+        # EXISTS 는 SELECT 목록과 무관
         sql_check("SELECT d.부서명 FROM 부서 d WHERE EXISTS (SELECT * FROM 사원 e WHERE e.부서번호 = d.부서번호)",
                   [["기획부"], ["개발부"], ["영업부"]]),
-        sql_check("SELECT d.부서명 FROM 부서 d WHERE NOT EXISTS (SELECT 1 FROM 사원 e WHERE e.부서번호 = d.부서번호)",
-                  [["인사부"]]),
+        sql_check("SELECT d.부서명 FROM 부서 d WHERE EXISTS (SELECT e.이름 FROM 사원 e WHERE e.부서번호 = d.부서번호)",
+                  [["기획부"], ["개발부"], ["영업부"]]),
         # NOT IN <-> NOT EXISTS (NULL 부서 사원 1008)
         sql_check("SELECT 부서명 FROM 부서 WHERE 부서번호 NOT IN (SELECT 부서번호 FROM 사원);", []),
         sql_check("SELECT 부서명 FROM 부서 WHERE 부서번호 NOT IN (SELECT 부서번호 FROM 사원 WHERE 부서번호 IS NOT NULL)",
@@ -195,6 +220,7 @@ NOT IN과 NOT EXISTS를 쓴 SQL 두 개를 주고 결과가 같은지, 각각 �
         sql_check("SELECT d.부서명 FROM 부서 d WHERE EXISTS (SELECT COUNT(*) FROM 사원 e WHERE e.부서번호 = d.부서번호)",
                   [["기획부"], ["개발부"], ["영업부"], ["인사부"]]),
         sql_check("SELECT COUNT(*) FROM 사원 e WHERE EXISTS (SELECT 1 FROM 부서 d WHERE d.지역 = '서울')", [[8]]),
+        sql_check("SELECT COUNT(*) FROM 사원 e WHERE EXISTS (SELECT 1 FROM 부서 d WHERE d.지역 = '제주')", [[0]]),
         # 부하 직원 없는 사원 (김민수 관리자사번 NULL)
         sql_check("SELECT 이름 FROM 사원 WHERE 사번 NOT IN (SELECT 관리자사번 FROM 사원);", []),
         sql_check("SELECT e.이름 FROM 사원 e WHERE NOT EXISTS (SELECT 1 FROM 사원 s WHERE s.관리자사번 = e.사번)",

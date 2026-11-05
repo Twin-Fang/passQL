@@ -6,6 +6,11 @@ from concept_dataset import to_employee_table_md, to_markdown_table
 EMPLOYEE_SORT_TABLE = to_employee_table_md("사번", "이름", "직급", "급여", "커미션", "부서번호")
 EMPLOYEE_COMMISSION_TABLE = to_employee_table_md("사번", "이름", "커미션")
 
+# 기본 정렬 예시: 급여 내림차순, 동점이면 이름순 (sql_example 한 원본)
+SALARY_DESC_EXAMPLE = sql_example("SELECT 이름, 급여 FROM 사원 ORDER BY 급여 DESC, 이름;", ("이름", "급여"), [
+    ["최유나", 3200], ["김민수", 3000], ["박서준", 2800], ["한도윤", 2700],
+    ["이지은", 2500], ["정하늘", 2500], ["오지민", 2200], ["윤서연", 2000]])
+
 MULTI_COLUMN_SORT_SQL = "SELECT 이름, 부서번호, 급여 FROM 사원 ORDER BY 부서번호, 급여 DESC, 이름;"
 # 여러 열 정렬 예시: SQL 블록 + 결과 표 = 검증 항목 (sql_example 한 원본)
 MULTI_COLUMN_SORT_EXAMPLE = sql_example(MULTI_COLUMN_SORT_SQL, ("이름", "부서번호", "급여"), [
@@ -47,49 +52,56 @@ CONCEPT = {
     "topicCode": "sql_basic_select",
     "sortOrder": 7,
     "title": "ORDER BY",
-    "summary": "결과 행의 순서를 정하는 절이고, SELECT 문에서 가장 마지막에 처리돼요",
+    "summary": "결과 행의 순서를 정하는 절이고, 가장 마지막에 처리돼요",
     "coreMd": (
-        "- ORDER BY를 쓰지 않으면 결과 행의 순서는 보장되지 않고, 정렬 방향을 적지 않으면 오름차순(ASC)으로 정렬돼요.\n"
-        "- `ORDER BY 부서번호, 급여 DESC`에서 DESC는 바로 앞의 급여에만 걸리고, 부서번호는 오름차순 그대로예요.\n"
-        "- 열 이름 대신 SELECT 절의 별칭이나 위치 번호(1, 2, ...)로 정렬할 수 있는데, 이는 ORDER BY가 SELECT보다 뒤에 처리되기 때문이에요.\n"
-        "- Oracle은 NULL을 가장 큰 값으로 봐서 오름차순이면 맨 뒤, 내림차순이면 맨 앞에 두고, SQL Server는 그 반대예요. 위치를 바꾸려면 NULLS FIRST·NULLS LAST를 써요."
+        "- ORDER BY가 없으면 결과 순서는 보장되지 않고, 방향을 적지 않으면 오름차순(ASC)이에요.\n"
+        "- `ORDER BY 부서번호, 급여 DESC`의 DESC는 바로 앞 급여에만 걸리고, 부서번호는 오름차순 그대로예요.\n"
+        "- ORDER BY는 SELECT보다 뒤에 처리되어서 SELECT의 별칭이나 위치 번호(1, 2, ...)로도 정렬해요.\n"
+        "- Oracle은 NULL을 가장 큰 값으로 봐서 오름차순이면 맨 뒤에 두고, SQL Server는 그 반대예요.\n"
+        "- NULL 위치는 NULLS FIRST·NULLS LAST로 바꾸고, DISTINCT가 있으면 SELECT에 없는 열로 정렬할 수 없어요."
     ),
-    "detailMd": f"""## 왜 필요한가요 {{#why}}
+    "detailMd": f"""## 왜 필요할까요 — 순서는 약속되지 않아서 {{#why}}
 
-`SELECT 이름 FROM 사원`을 실행하면 결과가 사번 순서로 나오는 것처럼 보이지만, 데이터베이스는 이 순서를 약속하지 않아요. 데이터가 늘거나 내부 저장 방식이 바뀌면 같은 SQL도 다른 순서로 나올 수 있어요. "급여가 높은 순서", "입사일이 빠른 순서"처럼 순서가 의미 있을 때는 반드시 ORDER BY로 순서를 정해 줘야 해요. 예시는 아래 사원 표를 기준으로 해요.
+`SELECT 이름 FROM 사원`이 사번 순서로 나오는 것처럼 보여도, 데이터베이스는 이 순서를 약속하지 않아요. 데이터가 늘거나 저장 방식이 바뀌면 같은 SQL도 다른 순서로 나올 수 있어서, 순서가 의미 있을 때는 반드시 ORDER BY를 써요.
 
 {EMPLOYEE_SORT_TABLE}
 
-## 한 줄 정의 {{#definition}}
+## 한 줄 정의 — ASC가 기본이에요 {{#definition}}
 
-ORDER BY는 결과 행을 지정한 열의 값 순서대로 줄 세우는 절이에요. 열 뒤에 **ASC**(오름차순, 작은 값부터)나 **DESC**(내림차순, 큰 값부터)를 적고, 아무것도 적지 않으면 ASC로 정렬해요. 숫자는 작은 수부터, 날짜는 이른 날짜부터, 문자는 가나다·ABC 순서가 오름차순이에요.
+ORDER BY는 결과 행을 지정한 열의 값 순서대로 줄 세우는 절이고, SELECT 문의 맨 끝에 한 번만 써요. 저장된 데이터는 그대로 두고 보여 주는 순서만 바꿔요.
 
-```sql
-SELECT 이름, 급여 FROM 사원 ORDER BY 급여 DESC, 이름;   -- 급여가 높은 순서로, 같으면 이름순으로 세워요
-```
+| 용어 | 뜻 |
+|---|---|
+| ASC (오름차순) | 작은 값부터예요. 방향을 적지 않으면 ASC예요 |
+| DESC (내림차순) | 큰 값부터예요 |
+| 오름차순의 뜻 | 숫자는 작은 수부터, 날짜는 이른 날짜부터, 문자는 가나다·ABC 순서예요 |
 
-ORDER BY는 데이터를 저장된 상태 그대로 두고 보여 주는 순서만 바꿔요. 그리고 SELECT 문의 맨 끝에 한 번만 써요.
+{SALARY_DESC_EXAMPLE.markdown}
 
-## 여러 열로 정렬하기 {{#multi-column}}
+## 여러 열로 정렬하기 — 앞 열이 같을 때만 다음 열 {{#multi-column}}
 
-ORDER BY에 열을 여러 개 쓰면, 첫 번째 열로 줄을 세운 뒤 그 값이 같은 행끼리만 두 번째 열로 다시 줄을 세워요. 아래 SQL은 부서번호 오름차순으로 세우고, 같은 부서 안에서는 급여가 높은 순서로, 급여까지 같으면 이름순으로 세워요.
+첫 번째 열로 줄을 세운 뒤, 그 값이 같은 행끼리만 두 번째 열로 다시 세워요. 최유나는 급여가 가장 높지만 30번 부서라서 다섯 번째에 있어요.
 
 {MULTI_COLUMN_SORT_EXAMPLE.markdown}
 
-최유나는 급여가 가장 높지만 30번 부서라서 다섯 번째에 있어요. 두 번째 열은 첫 번째 열의 값이 같을 때만 순서를 정하기 때문이에요. 부서번호가 NULL인 윤서연이 맨 뒤에 있는 이유는 아래 NULL 문단에서 설명해요.
+| 단계 | 내용 |
+|---|---|
+| 부서번호 (ASC) | 10, 20, 30, NULL 순서로 무리를 나눠요 |
+| 급여 DESC | 같은 부서 안에서 급여가 높은 순서로 세워요 |
+| 이름 (ASC) | 급여까지 같은 이지은과 정하늘을 이름순으로 세워요 |
 
-## 별칭과 위치 번호로 정렬하기 {{#position-alias}}
+## 별칭과 위치 번호 — SELECT 뒤라서 쓸 수 있어요 {{#position-alias}}
 
-ORDER BY는 SELECT 문에서 가장 마지막에 처리되기 때문에, SELECT 절에서 만든 별칭을 그대로 쓸 수 있어요. 또 SELECT 절에 적은 열의 순서를 숫자로 적어서, 1이면 첫 번째 열, 2면 두 번째 열로 정렬할 수도 있어요. 열 이름, 별칭, 위치 번호는 한 ORDER BY 안에서 섞어 써도 돼요.
+ORDER BY는 가장 마지막에 처리되어서 SELECT의 별칭을 그대로 쓰고, SELECT 절의 열 순서를 숫자로 적어 정렬할 수도 있어요. 열 이름, 별칭, 위치 번호는 한 ORDER BY 안에서 섞어 써도 돼요.
 
 ```sql
 SELECT 이름, 급여 * 12 AS 연봉 FROM 사원 ORDER BY 연봉 DESC, 이름;   -- 별칭으로 정렬해요
 SELECT 이름, 급여 FROM 사원 ORDER BY 2 DESC, 1;                     -- 2번째 열인 급여의 내림차순, 같으면 1번째 열인 이름순이에요
 ```
 
-## NULL은 어디에 놓일까요 {{#null-order}}
+## NULL은 어디에 놓일까요 — Oracle은 가장 큰 값 {{#null-order}}
 
-Oracle은 정렬할 때 NULL을 어떤 값보다도 큰 값처럼 다뤄요. 그래서 오름차순이면 NULL이 맨 뒤에, 내림차순이면 맨 앞에 와요. 커미션 열로 확인해 보면 이렇게 돼요.
+Oracle은 NULL을 어떤 값보다도 큰 값처럼 다뤄서, 오름차순이면 맨 뒤에, 내림차순이면 맨 앞에 둬요. NULL 행이 정렬 결과에서 빠지지는 않아요.
 
 {EMPLOYEE_COMMISSION_TABLE}
 
@@ -100,7 +112,7 @@ Oracle은 정렬할 때 NULL을 어떤 값보다도 큰 값처럼 다뤄요. 그
 
 {COMMISSION_DEFAULT_ORDER_TABLE}
 
-NULL을 원하는 쪽에 두고 싶으면 정렬 방향 뒤에 **NULLS FIRST**(NULL을 맨 앞)나 **NULLS LAST**(NULL을 맨 뒤)를 붙여요. 이 옵션은 그 열의 정렬에만 적용돼요.
+방향 뒤에 **NULLS FIRST**(NULL을 맨 앞)나 **NULLS LAST**(NULL을 맨 뒤)를 붙이면 위치를 바꿀 수 있고, 이 옵션은 그 열의 정렬에만 적용돼요.
 
 ```sql
 {COMMISSION_NULLS_FIRST[0]}
@@ -109,32 +121,41 @@ NULL을 원하는 쪽에 두고 싶으면 정렬 방향 뒤에 **NULLS FIRST**(N
 
 {COMMISSION_NULLS_OPTION_TABLE}
 
-## 자주 헷갈리는 점 {{#confusing}}
+| DBMS | 오름차순에서 NULL | 내림차순에서 NULL |
+|---|---|---|
+| Oracle (NULL이 가장 큼) | 맨 뒤 | 맨 앞 |
+| SQL Server (NULL이 가장 작음) | 맨 앞 | 맨 뒤 |
 
-**DESC는 바로 앞의 열 하나에만 걸려요.** `ORDER BY 부서번호, 급여 DESC`를 "둘 다 내림차순"으로 읽기 쉬운데, 부서번호 뒤에는 방향이 없으니 기본값인 ASC가 적용돼요. 두 열 모두 내림차순으로 정렬하려면 `ORDER BY 부서번호 DESC, 급여 DESC`처럼 열마다 DESC를 적어야 해요.
+## 자주 헷갈리는 점 — DESC의 범위, 위치 번호, DISTINCT {{#confusing}}
 
-**NULL의 위치는 데이터베이스마다 달라요.** Oracle은 NULL을 가장 큰 값으로 보지만, SQL Server는 NULL을 가장 작은 값으로 봐서 오름차순이면 NULL이 맨 앞에 와요. 시험에서 "Oracle에서 오름차순 정렬하면 NULL은 맨 앞에 온다" 같은 보기는 틀린 설명이에요. NULL 행이 정렬 결과에서 빠지는 것은 아니라는 점도 함께 기억해 두면 좋아요.
-
-**위치 번호는 테이블이 아니라 SELECT 절의 순서예요.** `SELECT 이름, 급여 FROM 사원 ORDER BY 2`에서 2는 사원 테이블의 두 번째 열(이름)이 아니라 SELECT 절의 두 번째 열인 급여예요. SELECT 절에 열이 두 개뿐인데 `ORDER BY 3`이라고 쓰면 세 번째 열이 없어서 오류가 나요.
+| 헷갈리는 말 | 실제로는 |
+|---|---|
+| `ORDER BY 부서번호, 급여 DESC`는 두 열 모두 내림차순이에요 | DESC는 바로 앞 급여에만 걸리고 부서번호는 ASC예요. 둘 다 내리려면 열마다 DESC를 적어요 |
+| Oracle에서 오름차순으로 정렬하면 NULL이 맨 앞에 와요 | Oracle은 NULL을 가장 큰 값으로 봐서 맨 뒤예요. 맨 앞은 SQL Server의 동작이에요 |
+| `ORDER BY 2`는 테이블의 두 번째 열로 정렬해요 | SELECT 절의 두 번째 열이에요. SELECT에 열이 두 개뿐인데 `ORDER BY 3`이면 오류(ORA-01785, 위치 번호가 열 수를 넘음)예요 |
+| SELECT 절에 없는 열로는 정렬할 수 없어요 | 보통은 돼요. DISTINCT나 GROUP BY가 있을 때만 제한돼요 |
+| DISTINCT를 써도 아무 열로나 정렬할 수 있어요 | 20번 부서 한 행 뒤에 급여 2500, 2800, 2500이 겹쳐 어느 값으로 세울지 정할 수 없어서 오류(ORA-01791, SELECT 목록에 없는 식)예요 |
+| GROUP BY를 쓰면 원래 열 아무거나로 정렬해요 | GROUP BY에 적은 열이나 `MAX(급여)` 같은 그룹 함수로만 정렬해요 |
 
 ```sql
-SELECT 이름, 급여 FROM 사원 ORDER BY 3;   -- 오류: SELECT 절에 3번째 열이 없어요
-```
-
-**SELECT 절에 없는 열로도 정렬할 수 있지만, 예외가 있어요.** `SELECT 이름 FROM 사원 ORDER BY 급여 DESC`처럼 보여 주지 않는 열로 정렬해도 문제가 없어요. 하지만 DISTINCT를 쓰면 SELECT 절에 있는 열로만 정렬할 수 있어요. `SELECT DISTINCT 부서번호`는 20번 부서를 한 행으로 줄이는데, 그 한 행 뒤에는 이지은 2500, 박서준 2800, 정하늘 2500 세 사람의 급여가 겹쳐 있어요. 이 행을 2500으로 보고 줄을 세울지 2800으로 보고 세울지 정할 수 없어서, Oracle은 SELECT 목록에 없는 식이라는 오류(ORA-01791)를 내요. GROUP BY(같은 값끼리 행을 묶는 절)를 쓴 경우도 같은 이유로, GROUP BY에 적은 열이나 `MAX(급여)`처럼 묶음마다 값 하나를 계산하는 그룹 함수로만 정렬할 수 있어요. MAX는 묶음에서 가장 큰 값을 돌려주는 함수이고, 7단원에서 다뤄요.
-
-```sql
+SELECT 이름, 급여 FROM 사원 ORDER BY 3;                                        -- 오류: SELECT 절에 3번째 열이 없어요
 SELECT 이름 FROM 사원 ORDER BY 급여 DESC;                                       -- 정상으로 실행돼요
 SELECT DISTINCT 부서번호 FROM 사원 ORDER BY 급여;                               -- 오류: DISTINCT가 있으면 SELECT에 없는 열로 못 세워요
 SELECT 부서번호, COUNT(*) FROM 사원 GROUP BY 부서번호 ORDER BY 급여;            -- 오류: 급여는 GROUP BY에 없는 열이에요
 SELECT 부서번호, COUNT(*) FROM 사원 GROUP BY 부서번호 ORDER BY MAX(급여) DESC;  -- 그룹 함수로는 정렬할 수 있어요
 ```
 
-**ORDER BY는 모든 절 가운데 가장 늦게 처리돼요.** 별칭을 쓸 수 있는 것도 이 때문이고, 다음 개념인 ROWNUM에서 "정렬하기 전에 번호가 먼저 붙는" 문제가 생기는 것도 이 때문이에요. ORDER BY가 결과를 줄 세우는 시점에는 WHERE에서 고를 행이 이미 모두 정해져 있어요.
+GROUP BY는 같은 값끼리 행을 묶는 절이고, MAX는 묶음에서 가장 큰 값을 돌려주는 그룹 함수예요(7단원). ORDER BY가 줄을 세우는 시점에는 WHERE가 고를 행이 이미 정해져 있어서, 다음 개념 ROWNUM에서는 "정렬보다 번호가 먼저 붙는" 문제가 생겨요.
+
+| 바로 확인 | 정답 | 이유 |
+|---|---|---|
+| `ORDER BY 커미션 DESC NULLS LAST`는 NULL을 맨 뒤에 둬요 | O | NULLS LAST가 기본 위치인 맨 앞 대신 맨 뒤로 보내요 |
+| 한 ORDER BY 안에 열 이름과 위치 번호를 섞어 쓰면 오류가 나요 | X | 열 이름, 별칭, 위치 번호는 섞어 써도 돼요 |
+| ORDER BY를 쓰지 않으면 결과는 항상 사번 순서로 나와요 | X | 순서가 보장되지 않아서, 같은 SQL도 다른 순서로 나올 수 있어요 |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 
-정렬 결과를 보여 주고 알맞은 ORDER BY를 고르거나, ORDER BY를 주고 몇 번째 행이 누구인지 묻는 문제가 많아요. 이때는 열마다 ASC와 DESC를 따로 확인하고, NULL이 있는 열이면 Oracle 기준으로 오름차순일 때 맨 뒤에 놓으면 돼요. 그 밖에 위치 번호가 SELECT 절 열 수를 넘거나, DISTINCT와 함께 SELECT 절에 없는 열로 정렬해서 오류가 나는 SQL을 고르는 문제가 나와요.""",
+정렬 결과를 보고 알맞은 ORDER BY를 고르거나, 몇 번째 행이 누구인지 묻는 문제가 많아요. 열마다 ASC와 DESC를 따로 확인하고, NULL은 Oracle 기준으로 오름차순일 때 맨 뒤에 놓으면 되며, 위치 번호나 DISTINCT 때문에 오류가 나는 SQL을 고르는 문제도 나와요.""",
     "checkQuestions": [
         question(1, "ORDER BY에서 정렬 방향을 적지 않으면 어떻게 정렬되나요?", "definition",
                  "정렬 방향을 적지 않으면 기본값인 ASC, 즉 오름차순으로 정렬돼요. 내림차순을 원하면 DESC를 적어야 해요.",
@@ -170,9 +191,7 @@ SELECT 부서번호, COUNT(*) FROM 사원 GROUP BY 부서번호 ORDER BY MAX(급
     ],
     "relatedQuestionUuids": [],
     "sqlChecks": [
-        sql_check("SELECT 이름, 급여 FROM 사원 ORDER BY 급여 DESC, 이름",
-                  [["최유나", 3200], ["김민수", 3000], ["박서준", 2800], ["한도윤", 2700],
-                   ["이지은", 2500], ["정하늘", 2500], ["오지민", 2200], ["윤서연", 2000]], is_ordered=True),
+        SALARY_DESC_EXAMPLE.check,
         MULTI_COLUMN_SORT_EXAMPLE.check,
         sql_check("SELECT 이름, 급여 * 12 AS 연봉 FROM 사원 ORDER BY 연봉 DESC, 이름",
                   [["최유나", 38400], ["김민수", 36000], ["박서준", 33600], ["한도윤", 32400],

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import 'app_log_entry.dart';
 import 'app_logger.dart';
 
 /// API 호출 로그 (전 빌드): "{METHOD} {path} {status} {elapsedMilliseconds}ms" (실패 시 서버 errorCode 추가)
@@ -7,7 +8,7 @@ import 'app_logger.dart';
 class AppLogInterceptor extends Interceptor {
   // RequestOptions.extra: 요청 시작 시각
   static const String _startedAtExtraKey = 'appLogStartedAt';
-  static const String _logTag = 'api';
+  static const String _logTag = AppLogEntry.apiTag;
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
