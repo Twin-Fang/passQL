@@ -63,7 +63,7 @@ related: []
 - [[DEC-0147-keep-explanation-sheet-while-solving]] → DEC-0154
 
 ## 관련 이슈
-- [[ISS-0451-result-table-choices-fabricated-unvalidated-sets]] (open, GitHub #828) — 결과 표 오답을 AI가 지어냄, 미검증 세트 저장, 직접 실행해보기에 결과 JSON
+- [[ISS-0451-result-table-choices-fabricated-unvalidated-sets]] (resolved, GitHub #828) — 결과 표 오답을 AI가 지어냄, 미검증 세트 저장, 직접 실행해보기에 결과 JSON
 - [[ISS-0412-ai-explanation-quality-cost-optimization]] (open, GitHub #699) — AI 해설 품질, 호출 빈도, 비용 최적화와 해설 시트 정리
 - [[ISS-0022-daily-challenge-domain-api]] (resolved, GitHub #26) — Daily Challenge 도메인, 오늘의 챌린지 API, 관리자 화면
 - [[ISS-0023-random-question-recommendations-api]] (resolved, GitHub #27) — 랜덤 추천 문제 API (Question Recommendations)

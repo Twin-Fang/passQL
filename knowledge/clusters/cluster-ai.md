@@ -65,7 +65,7 @@ AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 - [[DEC-0147-keep-explanation-sheet-while-solving]] → DEC-0154
 
 ## 관련 이슈
-- [[ISS-0451-result-table-choices-fabricated-unvalidated-sets]] (open, GitHub #828) — 결과 표 오답을 AI가 지어냄, 미검증 세트 저장, 직접 실행해보기에 결과 JSON
+- [[ISS-0451-result-table-choices-fabricated-unvalidated-sets]] (resolved, GitHub #828) — 결과 표 오답을 AI가 지어냄, 미검증 세트 저장, 직접 실행해보기에 결과 JSON
 - [[ISS-0357-choice-set-ai-server-half-failing]] (open, GitHub #575) — 선택지 생성 AI 서버 호출 절반 실패, 원인 조사
 - [[ISS-0412-ai-explanation-quality-cost-optimization]] (open, GitHub #699) — AI 해설 품질, 호출 빈도, 비용 최적화와 해설 시트 정리
 - [[ISS-0015-gemini-primary-ollama-fallback]] (resolved, GitHub #16) — AI 클라이언트를 Gemini 2.0 Flash-Lite 기반으로 전환, Ollama Fallback 구조

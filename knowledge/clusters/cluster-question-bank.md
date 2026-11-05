@@ -45,7 +45,7 @@ related: []
 - [[DEC-0044-bulk-delete-per-item-transaction]] → null
 
 ## 관련 이슈
-- [[ISS-0451-result-table-choices-fabricated-unvalidated-sets]] (open, GitHub #828) — 결과 표 오답을 AI가 지어냄, 미검증 세트 저장, 직접 실행해보기에 결과 JSON
+- [[ISS-0451-result-table-choices-fabricated-unvalidated-sets]] (resolved, GitHub #828) — 결과 표 오답을 AI가 지어냄, 미검증 세트 저장, 직접 실행해보기에 결과 JSON
 - [[ISS-0029-realtime-ai-choice-set-prefetch]] (resolved, GitHub #39) — 실시간 AI 선택지 세트 생성 및 프리페치 아키텍처
 - [[ISS-0032-admin-direct-question-register]] (resolved, GitHub #46) — 관리자 퀴즈 문제 직접 등록
 - [[ISS-0034-register-form-json-import-guide]] (resolved, GitHub #49) — 문제 직접 등록 폼 JSON 불러오기와 등록 가이드

@@ -5,15 +5,15 @@ created: 2026-11-05
 topics: [practice, ai, question-bank]
 symptoms: ["결과 표 오답 지어냄", "결과 없음 0행 보기", "근거 없는 합계", "선택지 잘못됨", "정답률 0%", "직접 실행해보기 결과 JSON", "SELECT 또는 WITH 구문만 허용됩니다", "검증 실패 세트 노출", "AI 정답 판단 저장", "같은 세트 반복 노출", "프리페치 정책 무시", RESULT_MATCH, saveWithAiCorrect, sandboxValidationPassed, generate_choice_set_result_match, PrefetchService]
 root_cause: "결과 표 문제(RESULT_MATCH)는 AI가 오답 결과 표 JSON을 직접 써서 실제 SQL 실행 결과가 아닌 보기(빈 결과, 근거 없는 숫자)가 저장됐고, SQL 보기는 3회 검증 실패 시 AI 정답 표시를 믿고 저장(DEC-0055), 프리페치는 정책과 무관하게 SQL 보기를 생성했으며, 제출 응답이 결과 표 정답의 SQL을 비워 앱이 결과 JSON을 직접 실행 칸에 넣었다"
-status: open
-resolution: null
-related: ["[[DEC-0249-result-table-choices-from-executed-sql]]", "[[DEC-0250-never-store-unvalidated-sql-choice-sets]]", "[[DEC-0251-practice-reuse-random-validated-sets]]", "[[DEC-0050-result-match-text-choices]]", "[[DEC-0055-multiple-correct-ai-fallback-save]]", "[[DEC-0087-choice-generation-practice-real-mode]]"]
+status: resolved
+resolution: "[[ISS-0451-result-table-choices-fabricated-unvalidated-sets-report]]"
+related: ["[[ISS-0451-result-table-choices-fabricated-unvalidated-sets-report]]", "[[DEC-0249-result-table-choices-from-executed-sql]]", "[[DEC-0250-never-store-unvalidated-sql-choice-sets]]", "[[DEC-0251-practice-reuse-random-validated-sets]]", "[[DEC-0050-result-match-text-choices]]", "[[DEC-0055-multiple-correct-ai-fallback-save]]", "[[DEC-0087-choice-generation-practice-real-mode]]"]
 source: "https://github.com/Twin-Fang/passQL/issues/828"
 ---
 
 # ISS-0451: 결과 표 문제 오답을 AI가 지어냄, 미검증 세트 저장, 직접 실행해보기에 결과 JSON
 
-GitHub #828 이슈 본문 기준. 원본 사본: `_sources/issues/ISS-0451-result-table-choices-fabricated-unvalidated-sets.md` (로컬 전용).
+GitHub #828 이슈 본문 기준. 원본 사본: `_sources/issues/ISS-0451-result-table-choices-fabricated-unvalidated-sets.md` (로컬 전용). 완료 리포트: [[ISS-0451-result-table-choices-fabricated-unvalidated-sets-report]]
 
 ## 증상
 - 2026-11-05 오늘의 세트 그룹함수 문제("다음 SQL의 실행 결과로 올바른 것은?", `SELECT DEPT_ID, COUNT(*), SUM(SAL) ... GROUP BY DEPT_ID`)의 보기 중 C "결과 없음 0행"(데이터가 있는 표에 GROUP BY), D "TOTAL 3000"(어떤 실수 SQL로도 안 나오는 값). 정답 A는 맞음.
