@@ -7,9 +7,9 @@ abstract final class PassqlTypography {
   static const _medium = 'Pretendard-Medium';
   static const _semibold = 'Pretendard-SemiBold';
   static const _bold = 'Pretendard-Bold';
-  // 코드 글꼴 (pubspec 등록, Regular·Bold 2종)
-  static const _code = 'JetBrainsMono';
-  // 코드 글꼴에 없는 한글(테이블·컬럼 이름)은 본문 글꼴로 (기기별 시스템 글꼴 차이 방지)
+  // 코드 글꼴 (pubspec 등록, Regular·Bold 2종): 한글까지 고정폭이라 한글 섞인 SQL 도 한 글꼴로 고르게 (#849)
+  static const _code = 'D2Coding';
+  // 부분 글꼴(한글 2,350자)에 없는 드문 글자만 본문 글꼴로 (기기별 시스템 글꼴 차이 방지)
   static const _codeFallback = ['Pretendard-Regular', 'Menlo', 'Courier', 'monospace'];
 
   static TextStyle _t(
@@ -42,10 +42,12 @@ abstract final class PassqlTypography {
   static final tabLabel = _t(_medium, 10, 12); // 하단 탭 라벨 (iOS 탭 바 규격)
   static const code = TextStyle(
     fontFamily: _code,
-    // 한글 등 코드 글꼴에 없는 글자는 시스템 고정폭 글꼴로 대체
+    // 부분 글꼴에 없는 드문 글자는 본문 글꼴로 대체
     fontFamilyFallback: _codeFallback,
     fontSize: 14,
     height: 20 / 14,
+    // 본문 글자(_t)와 같게 줄 간격을 위아래 반씩 나눔
+    leadingDistribution: TextLeadingDistribution.even,
   );
   // 결과 표 셀처럼 좁은 칸의 코드
   static const codeCompact = TextStyle(
@@ -53,6 +55,7 @@ abstract final class PassqlTypography {
     fontFamilyFallback: _codeFallback,
     fontSize: 12,
     height: 20 / 14, // code 와 같은 줄 높이 비율
+    leadingDistribution: TextLeadingDistribution.even,
   );
   // 실행 오류 코드처럼 눈에 띄어야 하는 코드
   static const codeEmphasis = TextStyle(
@@ -61,6 +64,7 @@ abstract final class PassqlTypography {
     fontSize: 13,
     fontWeight: FontWeight.w700,
     height: 20 / 14, // code 와 같은 줄 높이 비율
+    leadingDistribution: TextLeadingDistribution.even,
   );
   // 글 속 인라인 코드: 주변 글자 대비 크기 비율 (고정폭 글꼴이 같은 크기에서 커 보임)
   static const double inlineCodeScale = 0.92;
