@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 // 앱에 싣는 글꼴과 라이선스 에셋 경로 2종 (pubspec assets 에 등록)
 const Map<String, String> _fontLicenseAssetPathByPackage = {
   'Pretendard': 'assets/fonts/Pretendard-OFL.txt',
-  'JetBrains Mono': 'assets/fonts/JetBrainsMono-OFL.txt',
+  'D2Coding': 'assets/fonts/D2Coding-OFL.txt',
 };
 
 bool _hasRegisteredFontLicenses = false;

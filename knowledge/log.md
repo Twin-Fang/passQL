@@ -128,3 +128,7 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-05 10:43 | W4 | new decision | DEC-0254-app-clock-single-today-source
 - 2026-11-05 10:43 | W2 | cluster update | cluster-dev-workflow
 - 2026-11-05 10:43 | W2 | fix members count, summary refresh | cluster-dev-workflow
+- 2026-11-05 13:10 | W6 | ingest issue+report #849 | ISS-0455-sql-code-font-mixed-hangul, ISS-0455-sql-code-font-mixed-hangul-report
+- 2026-11-05 13:10 | W4 | new decision | DEC-0255-code-font-d2coding-subset
+- 2026-11-05 13:10 | W2 | cluster update | cluster-design-system
+- 2026-11-05 13:10 | W2 | fix members count | cluster-design-system

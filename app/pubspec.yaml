@@ -79,7 +79,7 @@ flutter:
     - assets/logo.png
     - assets/logo_dark.png
     # 오픈소스 라이선스 화면에 싣는 글꼴 라이선스 (OFL)
-    - assets/fonts/JetBrainsMono-OFL.txt
+    - assets/fonts/D2Coding-OFL.txt
     - assets/fonts/Pretendard-OFL.txt
   # 굵기 토큰(passql_typography.dart)이 쓰는 4종만 등록. 굵기를 추가하면 파일·토큰을 함께 추가
   fonts:
@@ -95,11 +95,11 @@ flutter:
     - family: Pretendard-Bold
       fonts:
         - asset: assets/fonts/Pretendard-Bold.ttf
-    # 코드 글꼴: 합자 없는 NL 판(SQL 의 <>, >=, != 를 기호 그대로 표시). 라이선스 assets/fonts/JetBrainsMono-OFL.txt
-    - family: JetBrainsMono
+    # 코드 글꼴 (#849): 한글까지 고정폭인 D2Coding 합자 없는 판, 영문·기호·한글 2,350자만 남긴 부분 글꼴. 라이선스 assets/fonts/D2Coding-OFL.txt
+    - family: D2Coding
       fonts:
-        - asset: assets/fonts/JetBrainsMonoNL-Regular.ttf
-        - asset: assets/fonts/JetBrainsMonoNL-Bold.ttf
+        - asset: assets/fonts/D2Coding-Regular.ttf
+        - asset: assets/fonts/D2Coding-Bold.ttf
           weight: 700
 flutter_launcher_icons:
   android: true

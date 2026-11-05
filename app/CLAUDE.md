@@ -13,7 +13,7 @@ SQLD·SQLP 학습 서비스 passQL의 모바일 앱. 서버(`server/`)와만 통
 - **인증**: Firebase Auth + Google Sign-In + Sign in with Apple, 카카오(kakao_flutter_sdk_user)·네이버(flutter_naver_login)·GitHub(flutter_web_auth_2), 토큰은 flutter_secure_storage
 - **UI**: flutter_svg, shimmer, 아이콘은 CupertinoIcons (하단 탭 바만 직접 그린 `PassqlTabIcon`, 경로 해석 path_parsing)
 - **기기 정보**: package_info_plus(앱 버전), device_info_plus(의견 보내기 기기 정보)
-- **폰트**: Pretendard 4굵기(Regular·Medium·SemiBold·Bold), 코드용 JetBrains Mono NL(Regular·Bold) — `assets/fonts`, 라이선스 OFL 동봉
+- **폰트**: Pretendard 4굵기(Regular·Medium·SemiBold·Bold), 코드용 D2Coding(Regular·Bold, 한글까지 고정폭, 영문·기호·한글 2,350자 부분 글꼴, #849) — `assets/fonts`, 라이선스 OFL 동봉
 
 ## Project Structure
 
