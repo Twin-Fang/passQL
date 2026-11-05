@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/sources/api_providers.dart';
 import '../../core/error/app_exception.dart';
+import '../../core/utils/app_clock.dart';
 import '../../core/network/safe_call.dart';
 import '../../data/models/home/greeting_response.dart';
 import '../../data/models/home/recommendations_request.dart';
@@ -9,6 +10,7 @@ import '../../data/models/daily_set/daily_set_models.dart';
 import '../../data/models/progress/heatmap_response.dart';
 import '../../data/models/progress/progress_response.dart';
 import '../../data/models/exam/exam_schedule_response.dart';
+import 'dev_situation_overrides.dart';
 import 'pro_ui_providers.dart';
 import 'session_reset.dart';
 
@@ -50,15 +52,27 @@ class HomeLearningStatus {
 
 /// 선택한 시험 일정 하나 (홈 상단 바·내 프로필 탑승권 공용, #749). 선택이 없거나 실패하면 null
 /// 내 프로필이 인사말까지 다시 부르지 않도록 홈 묶음에서 떼어 냈다
+/// 개발자 도구 시험일 흉내 반영 (#819, 흉내를 바꿔도 서버 재요청 없음)
 final examScheduleProvider = FutureProvider.autoDispose<ExamScheduleResponse?>((
   ref,
 ) async {
-  if (ref.watch(currentMemberUuidProvider) == null) return null;
-  return safeCall<ExamScheduleResponse?>(
-    ref.read(examScheduleApiProvider).getSelectedSchedule(),
-    label: 'examSchedule',
+  final serverSchedule = await ref.watch(_serverExamScheduleProvider.future);
+  return applyDevExamDdayOverride(
+    serverSchedule,
+    simulation: ref.watch(devExamDdaySimulationProvider),
+    today: AppClock.now(),
   );
 });
+
+/// 서버 시험 일정 원본 (흉내 반영 전)
+final _serverExamScheduleProvider =
+    FutureProvider.autoDispose<ExamScheduleResponse?>((ref) async {
+      if (ref.watch(currentMemberUuidProvider) == null) return null;
+      return safeCall<ExamScheduleResponse?>(
+        ref.read(examScheduleApiProvider).getSelectedSchedule(),
+        label: 'examSchedule',
+      );
+    });
 
 /// 내 프로필 빈 상태(푼 문제 0개)의 버튼 분기용 오늘의 세트 (#749). 홈 학습 묶음(진행·히트맵 포함)을 부르지 않으려고 따로 둔다
 final profileDailySetProvider =
@@ -157,6 +171,7 @@ void invalidateHomeData(void Function(ProviderOrFamily provider) invalidate) {
   invalidate(homeOverviewProvider);
   // 개요는 공유 시험 일정을 watch 만 해서, 일정까지 비워야 새로 받는다 (#749)
   invalidate(examScheduleProvider);
+  invalidate(_serverExamScheduleProvider);
   invalidate(homeRecommendationsProvider);
   invalidate(homeLearningStatusProvider);
   // 테스트에서 합친 Provider 만 override 해도 다시 불러오도록 함께 비움

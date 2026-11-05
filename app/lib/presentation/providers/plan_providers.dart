@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/billing/pro_access_denied_signal.dart';
 import '../../core/network/safe_call.dart';
+import '../../core/utils/app_clock.dart';
 import '../../data/models/member/member_plan_response.dart';
 import '../../data/sources/api_providers.dart';
 import 'dev_plan_overrides.dart';
@@ -125,6 +126,7 @@ class PlanNotifier extends AutoDisposeAsyncNotifier<MemberPlanResponse> {
         serverPlan,
         debugPlan: ref.read(debugPlanOverrideProvider),
         simulation: ref.read(devLimitSimulationProvider),
+        shiftedDayCount: AppClock.devShiftedDayCount,
       );
 }
 
