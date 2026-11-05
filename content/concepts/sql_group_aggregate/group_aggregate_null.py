@@ -94,7 +94,20 @@ SUM과 AVG에 `SUM(이름)`처럼 문자 열을 넣으면 ORA-01722(숫자가 �
 
 {COUNT_EXAMPLE.markdown}
 
-커미션이 있는 사원은 이지은(300), 박서준(0), 한도윤(500), 오지민(200) 네 명이에요. 박서준의 0은 값이라서 세는 데 들어가고, 부서번호가 NULL인 윤서연이 빠져서 `COUNT(부서번호)`는 7이에요.
+`COUNT(커미션)`은 커미션이 NULL인 행을 빼고 세요.
+
+| 행 | 처리 |
+|---|---|
+| 김민수 NULL | 빠짐 |
+| 이지은 300 | 남음 |
+| 박서준 0 | 남음 |
+| 최유나 NULL | 빠짐 |
+| 정하늘 NULL | 빠짐 |
+| 한도윤 500 | 남음 |
+| 오지민 200 | 남음 |
+| 윤서연 NULL | 빠짐 |
+
+박서준의 0은 값이라서 세는 데 들어가고, 부서번호가 NULL인 윤서연이 빠져서 `COUNT(부서번호)`는 7이에요.
 
 {SUM_AVG_EXAMPLE.markdown}
 
@@ -216,6 +229,8 @@ SELECT 이름, MAX(급여) FROM 사원;
         sql_error_check("SELECT SUM(이름) FROM 사원", "ORA-01722"),
         # NULL 제외 (COUNT 두 형태, SUM·AVG)
         COUNT_EXAMPLE.check,
+        # COUNT(커미션) 그림: 세는 4명
+        sql_check("SELECT 이름 FROM 사원 WHERE 커미션 IS NOT NULL", [["이지은"], ["박서준"], ["한도윤"], ["오지민"]]),
         SUM_AVG_EXAMPLE.check,
         sql_check("SELECT COUNT(*), COUNT(커미션), COUNT(부서번호) FROM 사원", [[8, 4, 7]]),
         sql_check("SELECT SUM(커미션), AVG(커미션) FROM 사원", [[1000, 250]]),

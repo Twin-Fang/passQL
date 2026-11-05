@@ -1,7 +1,8 @@
 """개념: INNER JOIN (5단원, 확인 문제 5개)"""
 
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
-from concept_dataset import DEPARTMENT_TABLE_MD, EMPLOYEE_TABLE_MD, SALARY_GRADE_TABLE_MD
+from concept_dataset import (DEPARTMENT_ROWS, DEPARTMENT_TABLE_MD, EMPLOYEE_ROWS, EMPLOYEE_TABLE_MD,
+                             SALARY_GRADE_TABLE_MD, to_markdown_table)
 
 # 본문·문제 공통 SQL
 INNER_JOIN_COUNT_SQL = "SELECT COUNT(*) FROM 사원 E INNER JOIN 부서 D ON E.부서번호 = D.부서번호;"
@@ -16,6 +17,8 @@ INNER_JOIN_ROWS = [["김민수", "기획부"], ["이지은", "개발부"], ["박
 # 세 표 조인 결과 7행 (이름, 부서명, 등급)
 THREE_TABLES_ROWS = [["김민수", "기획부", 4], ["이지은", "개발부", 2], ["정하늘", "개발부", 2], ["박서준", "개발부", 3],
                      ["오지민", "영업부", 1], ["한도윤", "영업부", 3], ["최유나", "영업부", 4]]
+# 세 표 조인 예시의 WHERE G.등급 >= 3 (본문 결과 표·거르기 그림 공통)
+MINIMUM_KEPT_GRADE = 3
 
 # 본문 예시: SQL 블록 + 결과 표 = 검증 항목 (sql_example 한 원본, 정렬 없는 조인이라 순서 무시)
 INNER_JOIN_EXAMPLE = sql_example(
@@ -25,7 +28,18 @@ THREE_TABLES_GRADE_EXAMPLE = sql_example(
     "SELECT E.이름, D.부서명, G.등급\nFROM 사원 E\n  JOIN 부서 D ON E.부서번호 = D.부서번호\n"
     "  JOIN 급여등급 G ON E.급여 BETWEEN G.최저급여 AND G.최고급여\nWHERE G.등급 >= 3;",
     ("이름", "부서명", "등급"),
-    [["김민수", "기획부", 4], ["박서준", "개발부", 3], ["한도윤", "영업부", 3], ["최유나", "영업부", 4]], is_ordered=False)
+    [row for row in THREE_TABLES_ROWS if row[2] >= MINIMUM_KEPT_GRADE], is_ordered=False)
+
+# 조인 연결 그림 (#853): 결과 행 > "이름 (부서번호)" | "부서명 (부서번호)"
+_EMPLOYEE_BY_NAME = {row[1]: row for row in EMPLOYEE_ROWS}
+_DEPARTMENT_BY_NAME = {row[1]: row for row in DEPARTMENT_ROWS}
+INNER_JOIN_DIAGRAM_MD = to_markdown_table(("왼쪽 행", "오른쪽 행"), [
+    [f"{name} ({_EMPLOYEE_BY_NAME[name][7]})", f"{department} ({_DEPARTMENT_BY_NAME[department][0]})"]
+    for name, department in INNER_JOIN_ROWS])
+# 행 거르기 그림 (#853): 세 표 조인 7행 > WHERE G.등급 >= 3 으로 남음·빠짐
+GRADE_FILTER_DIAGRAM_MD = to_markdown_table(("행", "처리"), [
+    [f"{name} {grade}등급", "남음" if grade >= MINIMUM_KEPT_GRADE else "빠짐"]
+    for name, _department, grade in THREE_TABLES_ROWS])
 
 CONCEPT = {
     "tagKey": "join-inner",
@@ -79,6 +93,10 @@ WHERE 거르는 조건;
 
 {INNER_JOIN_EXAMPLE.markdown}
 
+괄호 안의 부서번호가 같은 행끼리 선으로 이어져요.
+
+{INNER_JOIN_DIAGRAM_MD}
+
 `사원 E`, `부서 D`의 E와 D는 표에 붙인 별칭이에요. 결과는 Oracle 방식으로 `WHERE E.부서번호 = D.부서번호`라고 쓴 등가 조인과 똑같은 7행이고, 문법만 달라요.
 
 ## 짝이 없는 행은 빠져요 — 윤서연과 인사부 {{#unmatched}}
@@ -127,6 +145,8 @@ SELECT E.이름, D.부서명 FROM 사원 E JOIN 부서 D ON E.부서번호 = D.�
 | 사원 JOIN 부서 | 부서번호로 이어서 7행이 돼요. 부서번호가 NULL인 윤서연은 여기서 빠져요 |
 | JOIN 급여등급 | 7행마다 급여가 범위에 드는 등급 하나가 붙어요. ON 절에 BETWEEN을 쓴 비등가 조건이에요 |
 | WHERE G.등급 >= 3 | 이어진 결과에서 3등급 이상인 4행만 골라요 |
+
+{GRADE_FILTER_DIAGRAM_MD}
 
 윤서연은 급여 2000으로 1등급과 짝이 맞지만, 첫 번째 조인에서 이미 빠졌기 때문에 등급 조건이 없어도 결과에 나오지 않아요.
 

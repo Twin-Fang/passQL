@@ -1,7 +1,7 @@
 """개념: OUTER JOIN (5단원, 확인 문제 5개)"""
 
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
-from concept_dataset import DEPARTMENT_TABLE_MD, EMPLOYEE_TABLE_MD
+from concept_dataset import DEPARTMENT_ROWS, DEPARTMENT_TABLE_MD, EMPLOYEE_ROWS, EMPLOYEE_TABLE_MD, to_markdown_table
 
 # 본문·문제 공통 SQL
 LEFT_JOIN_SQL = "SELECT E.이름, D.부서명 FROM 사원 E LEFT OUTER JOIN 부서 D ON E.부서번호 = D.부서번호"
@@ -19,6 +19,12 @@ RIGHT_JOIN_ROWS = MATCHED_ROWS + [[None, "인사부"]]
 FULL_JOIN_ROWS = MATCHED_ROWS + [["윤서연", None], [None, "인사부"]]
 # 부서 기준, 급여 3000 이상 사원만 붙임 (조건을 ON 에 둔 결과 4행)
 HIGH_SALARY_ON_ROWS = [["기획부", "김민수"], ["개발부", None], ["영업부", "최유나"], ["인사부", None]]
+# 부서 기준 LEFT JOIN 8행 (부서명, 이름, 급여), WHERE 로 거르기 전 (인사부는 이름·급여 NULL)
+DEPARTMENT_EMPLOYEE_SALARY_ROWS = [["기획부", "김민수", 3000], ["개발부", "이지은", 2500], ["개발부", "박서준", 2800],
+                                   ["개발부", "정하늘", 2500], ["영업부", "최유나", 3200], ["영업부", "한도윤", 2700],
+                                   ["영업부", "오지민", 2200], ["인사부", None, None]]
+# ON <-> WHERE 예시의 급여 조건 (E.급여 >= 3000)
+HIGH_SALARY_MINIMUM = 3000
 
 # 본문 예시: SQL 블록 + 결과 표 = 검증 항목 (sql_example 한 원본, 정렬 없는 조인이라 순서 무시)
 NAME_DEPARTMENT_COLUMNS = ("이름", "부서명")
@@ -46,6 +52,33 @@ DEPARTMENT_COUNT_EXAMPLE = sql_example(
     "GROUP BY D.부서명;",
     ("부서명", "COUNT(*)", "COUNT(E.사번)"),
     [["기획부", 1, 1], ["개발부", 3, 3], ["영업부", 3, 3], ["인사부", 1, 0]], is_ordered=False)
+
+# 그림 블록 (#853): 위 검증된 결과 행 > 잇는 값(부서번호)·거르는 값(급여)이 보이는 행 글
+JOIN_DIAGRAM_COLUMNS = ("왼쪽 행", "오른쪽 행")
+_EMPLOYEE_BY_NAME = {row[1]: row for row in EMPLOYEE_ROWS}
+_DEPARTMENT_BY_NAME = {row[1]: row for row in DEPARTMENT_ROWS}
+
+
+def _to_cell_text(value):
+    """None > NULL (행 글 안의 빈 값 표시)"""
+    return "NULL" if value is None else value
+
+
+# 사원 기준 LEFT JOIN: "윤서연 (NULL)" | NULL 칸
+LEFT_JOIN_DIAGRAM_MD = to_markdown_table(JOIN_DIAGRAM_COLUMNS, [
+    [f"{name} ({_to_cell_text(_EMPLOYEE_BY_NAME[name][7])})",
+     None if department is None else f"{department} ({_DEPARTMENT_BY_NAME[department][0]})"]
+    for name, department in LEFT_JOIN_ROWS])
+# 부서 기준, 급여 조건을 ON 에 둠: "기획부 (10)" | "김민수 3000" 또는 NULL 칸
+HIGH_SALARY_ON_DIAGRAM_MD = to_markdown_table(JOIN_DIAGRAM_COLUMNS, [
+    [f"{department} ({_DEPARTMENT_BY_NAME[department][0]})",
+     None if name is None else f"{name} {_EMPLOYEE_BY_NAME[name][5]}"]
+    for department, name in HIGH_SALARY_ON_ROWS])
+# 급여 조건을 WHERE 에 둠: 조인 8행 > 급여 3000 이상만 남음 (NULL 급여도 빠짐)
+HIGH_SALARY_WHERE_FILTER_DIAGRAM_MD = to_markdown_table(("행", "처리"), [
+    [f"{department} {_to_cell_text(name)} {_to_cell_text(salary)}",
+     "남음" if salary is not None and salary >= HIGH_SALARY_MINIMUM else "빠짐"]
+    for department, name, salary in DEPARTMENT_EMPLOYEE_SALARY_ROWS])
 
 CONCEPT = {
     "tagKey": "join-outer",
@@ -88,6 +121,10 @@ CONCEPT = {
 
 {LEFT_JOIN_EXAMPLE.markdown}
 
+괄호 안의 부서번호로 짝을 잇고, 짝이 없는 행은 NULL 칸과 이어져요.
+
+{LEFT_JOIN_DIAGRAM_MD}
+
 {RIGHT_JOIN_EXAMPLE.markdown}
 
 {FULL_JOIN_EXAMPLE.markdown}
@@ -127,6 +164,10 @@ SELECT E.이름, D.부서명 FROM 사원 E, 부서 D WHERE E.부서번호(+) = D
 
 {HIGH_SALARY_ON_EXAMPLE.markdown}
 
+왼쪽은 부서명과 부서번호, 오른쪽은 짝지어진 사원의 이름과 급여예요.
+
+{HIGH_SALARY_ON_DIAGRAM_MD}
+
 {HIGH_SALARY_WHERE_EXAMPLE.markdown}
 
 ON 절의 조건은 짝을 찾을 때 쓰여서, 급여 3000 이상인 사원이 없는 개발부와 인사부도 기준 행으로 남고 이름만 NULL이 돼요. WHERE 절의 조건은 조인이 끝난 뒤에 쓰여서 아래 순서로 행이 줄어요.
@@ -136,6 +177,8 @@ ON 절의 조건은 짝을 찾을 때 쓰여서, 급여 3000 이상인 사원이
 | 조인 | 급여와 상관없이 짝 7행과 (인사부, NULL) 1행, 모두 8행을 만들어요 |
 | WHERE 거르기 | 급여 3000 미만인 다섯 행이 빠져요. 인사부 행도 급여가 NULL이라 `E.급여 >= 3000`이 UNKNOWN(알 수 없음)이 되어 빠져요 |
 | 결과 | 김민수와 최유나 2행만 남아서, INNER JOIN에 같은 조건을 건 것과 같아져요 |
+
+{HIGH_SALARY_WHERE_FILTER_DIAGRAM_MD}
 
 ## 짝 없는 행 찾기와 세기 — IS NULL과 COUNT {{#count}}
 
@@ -226,6 +269,9 @@ SELECT D.부서명, E.이름 FROM 부서 D, 사원 E WHERE D.부서번호 = E.�
         DEPARTMENT_COUNT_EXAMPLE.check,
         # 본문: LEFT 원문, 표 순서 바꾸기
         sql_check(LEFT_JOIN_SQL, LEFT_JOIN_ROWS),
+        # 본문 거르기 그림: WHERE 로 거르기 전 부서 기준 8행
+        sql_check("SELECT D.부서명, E.이름, E.급여 FROM 부서 D LEFT JOIN 사원 E ON D.부서번호 = E.부서번호",
+                  DEPARTMENT_EMPLOYEE_SALARY_ROWS),
         sql_check("SELECT E.이름, D.부서명 FROM 부서 D LEFT JOIN 사원 E ON E.부서번호 = D.부서번호", RIGHT_JOIN_ROWS),
         # 본문: (+) 표기와 제약
         sql_check("SELECT E.이름, D.부서명 FROM 사원 E, 부서 D WHERE E.부서번호 = D.부서번호(+)", LEFT_JOIN_ROWS),

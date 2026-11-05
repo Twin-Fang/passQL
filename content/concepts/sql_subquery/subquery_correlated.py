@@ -93,6 +93,13 @@ EXISTS는 값을 비교하지 않으니, 보통 연관 서브쿼리와 함께 "�
 
 {EXISTS_EXAMPLE.markdown}
 
+| 행 | 처리 |
+|---|---|
+| 기획부 10 (사원 1명) | 남음 |
+| 개발부 20 (사원 3명) | 남음 |
+| 영업부 30 (사원 3명) | 남음 |
+| 인사부 40 (사원 0명) | 빠짐 |
+
 인사부는 소속 사원이 없어서 EXISTS가 거짓이고, NOT EXISTS에서는 참이 돼요.
 
 {NOT_EXISTS_EXAMPLE.markdown}
@@ -200,6 +207,9 @@ NOT IN과 NOT EXISTS를 쓴 SQL 두 개를 주고 결과가 같은지, 각각 �
         # 본문 결과 표
         DEPARTMENT_AVERAGE_EXAMPLE.check,
         EXISTS_EXAMPLE.check,
+        # EXISTS 그림: 부서별 사원 수
+        sql_check("SELECT d.부서명, COUNT(e.사번) FROM 부서 d LEFT JOIN 사원 e ON e.부서번호 = d.부서번호 GROUP BY d.부서명",
+                  [["기획부", 1], ["개발부", 3], ["영업부", 3], ["인사부", 0]]),
         NOT_EXISTS_EXAMPLE.check,
         sql_check("SELECT 부서번호, AVG(급여) FROM 사원 GROUP BY 부서번호",
                   [[10, 3000], [20, 2600], [30, 2700], [None, 2000]]),
