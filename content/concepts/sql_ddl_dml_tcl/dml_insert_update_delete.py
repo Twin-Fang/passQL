@@ -84,76 +84,74 @@ CONCEPT = {
     "title": "INSERT·UPDATE·DELETE",
     "summary": "테이블의 행을 넣고 고치고 지우는 DML이고, COMMIT 전까지는 되돌릴 수 있어요",
     "coreMd": (
-        "- INSERT에서 열 목록을 생략하면 모든 열에 테이블 정의 순서대로 값을 넣고, 일부 열만 적으면 빠진 열은 DEFAULT 값이나 NULL이 돼요.\n"
-        "- UPDATE와 DELETE에서 WHERE를 빼면 테이블의 모든 행이 바뀌거나 지워져요.\n"
-        "- `INSERT INTO 테이블 SELECT ...`는 조회 결과를 한꺼번에 넣고, INSERT ALL은 맞는 WHEN 절을 모두, INSERT FIRST는 처음 맞는 WHEN 절 하나만 실행해요.\n"
-        "- Oracle은 `DELETE 사원 WHERE ...`처럼 FROM을 생략할 수 있고, DELETE는 열이 아니라 행 전체를 지워요.\n"
+        "- INSERT에서 열 목록을 생략하면 모든 열에 정의 순서대로 넣고, 적지 않은 열은 DEFAULT 값이나 NULL이 돼요.\n"
+        "- UPDATE와 DELETE에서 WHERE를 빼면 모든 행이 대상이에요.\n"
+        "- INSERT ALL은 맞는 WHEN을 모두, INSERT FIRST는 처음 맞는 WHEN 하나만 실행해요.\n"
+        "- Oracle은 DELETE의 FROM은 생략할 수 있지만, INSERT의 INTO는 생략할 수 없어요.\n"
         "- DML 결과는 COMMIT 전까지 내 세션에서만 보이고, ROLLBACK하면 되돌아가요."
     ),
-    "detailMd": f"""## 왜 필요한가요 {{#why}}
+    "detailMd": f"""## DML이란 — 테이블 안의 행을 다루는 명령 {{#why}}
 
-CREATE TABLE로 테이블을 만들어도 처음에는 빈 표예요. 표에 행을 넣고, 넣은 값을 고치고, 필요 없는 행을 지우는 명령어가 각각 INSERT, UPDATE, DELETE이고, 이들을 DML(Data Manipulation Language, 데이터 조작어)이라고 불러요. 데이터를 읽는 SELECT와 다음 개념에서 볼 MERGE도 DML에 들어가요.
+CREATE TABLE로 만든 테이블은 처음에 빈 표예요. 행을 넣고, 고치고, 지우는 INSERT, UPDATE, DELETE를 DML(Data Manipulation Language, 데이터 조작어)이라고 불러요.
 
-DDL이 테이블의 구조를 다룬다면 DML은 테이블 안의 행을 다뤄요. 또 Oracle은 DDL을 실행할 때 그 앞과 뒤에서 자동으로 확정하지만, DML은 COMMIT으로 확정하기 전까지 ROLLBACK으로 되돌릴 수 있다는 점도 달라요.
+| 구분 | DDL | DML |
+|---|---|---|
+| 다루는 것 | 테이블의 구조 | 테이블 안의 행 |
+| 명령어 | CREATE, ALTER, DROP, RENAME, TRUNCATE | SELECT, INSERT, UPDATE, DELETE, MERGE |
+| 확정 | 실행 앞뒤로 자동 커밋돼요 | COMMIT 전까지 ROLLBACK으로 되돌릴 수 있어요 |
 
-이 개념의 예시와 확인 문제는 공통 예시 데이터의 사원 표 8명을 고쳐요. 계산에 쓰는 열은 아래와 같아요.
+이 개념의 예시와 확인 문제는 공통 예시 데이터의 사원 8명을 고쳐요. 계산에 쓰는 열은 아래와 같아요.
 
 {EMPLOYEE_DML_TABLE}
 
-## INSERT: 행 넣기 {{#insert}}
+## INSERT — 열 목록을 적느냐 생략하느냐 {{#insert}}
 
-INSERT는 열 목록을 적는 방법과 생략하는 방법 두 가지로 쓸 수 있어요.
+| 구분 | 열 목록 생략 | 열 목록 적음 |
+|---|---|---|
+| 모양 | `INSERT INTO 부서 VALUES (...)` | `INSERT INTO 부서 (부서번호, 부서명) VALUES (...)` |
+| 값의 개수와 순서 | 모든 열, 테이블을 만들 때 정한 순서 | 적은 열, 적은 순서 |
+| 적지 않은 열 | 없어요 (모든 열을 적어야 해요) | DEFAULT 값, 없으면 NULL |
 
-```sql
--- 문법
-INSERT INTO 테이블 (열1, 열2, ...) VALUES (값1, 값2, ...);
-INSERT INTO 테이블 VALUES (값1, 값2, ...);
-```
-
-열 목록을 생략하면 테이블의 모든 열에, 테이블을 만들 때 정한 열 순서대로 값을 넣어야 해요. 부서 표는 부서번호, 부서명, 지역 순서라서 값도 세 개를 그 순서로 적어요. 열 목록을 적으면 적은 순서대로 값을 맞추면 되고, 적지 않은 열에는 DEFAULT로 정한 기본값이 들어가며, 기본값이 없으면 NULL이 들어가요.
+부서 표는 부서번호, 부서명, 지역 순서로 만들어져 있어요. 그래서 열 목록을 생략하면 값 세 개를 그 순서로 적어요.
 
 {INSERT_FORMS_EXAMPLE.markdown}
 
-값의 개수가 열과 맞지 않으면 오류가 나요. 값이 모자라면 ORA-00947(값이 모자람), 남으면 ORA-00913(값이 너무 많음)이에요. NOT NULL 열을 열 목록에서 빼도, 그 열에 NULL이 들어가려다 막혀서 오류(ORA-01400, NULL을 넣을 수 없음)가 나요.
+값의 개수가 열과 맞지 않으면 모자랄 때 ORA-00947(값이 모자람), 남을 때 ORA-00913(값이 너무 많음) 오류가 나요. NOT NULL 열을 열 목록에서 빼면 NULL이 들어가려다 막혀서 ORA-01400(NULL을 넣을 수 없음) 오류가 나요.
 
 ```sql
 INSERT INTO 부서 VALUES (80, '감사부');                      -- 오류: 지역 값이 없어요 (ORA-00947)
 INSERT INTO 부서 (부서번호, 지역) VALUES (80, '대전');        -- 오류: 부서명은 NOT NULL이에요 (ORA-01400)
 ```
 
-문자와 날짜 값은 작은따옴표로 감싸요. 날짜는 `DATE '2026-10-27'`처럼 DATE를 앞에 붙여 쓰면 설정과 관계없이 정확히 들어가요. 그냥 `'2026-10-27'`이라고 쓰면 데이터베이스의 날짜 형식 설정에 따라 오류가 날 수 있어요.
+문자와 날짜 값은 작은따옴표로 감싸요. 날짜는 `DATE '2026-10-27'`처럼 DATE를 붙이면 설정과 관계없이 정확히 들어가고, 그냥 `'2026-10-27'`이라고 쓰면 데이터베이스의 날짜 형식 설정에 따라 오류가 날 수 있어요.
 
-## INSERT ... SELECT: 조회 결과를 한꺼번에 넣기 {{#insert-select}}
+| 바로 확인 | 정답 | 이유 |
+|---|---|---|
+| 열 목록을 적으면 테이블 정의와 다른 순서로 값을 적어도 돼요 | O | 값은 적은 열 목록의 순서에 맞추면 돼요 |
 
-VALUES 자리에 SELECT 문을 바로 쓰면, 조회된 행이 몇 개든 한 문장으로 모두 넣을 수 있어요. 아래는 20번 부서 사원을 보관용 표로 옮겨 담은 예시예요. 보관용 표는 CTAS로 구조만 복사해서 먼저 만들어 두었어요.
+## INSERT ... SELECT — 조회 결과를 한꺼번에 넣기 {{#insert-select}}
+
+VALUES 자리에 SELECT 문을 바로 쓰면, 조회된 행이 몇 개든 한 문장으로 모두 넣어요. 아래는 CTAS로 구조만 복사해 둔 보관용 표에 20번 부서 사원을 옮겨 담은 예시예요.
 
 {INSERT_SELECT_EXAMPLE.markdown}
 
-이때 VALUES는 쓰지 않아요. `VALUES (SELECT ...)`처럼 쓰면 오류(ORA-00936, 값 자리의 식이 잘못됨)가 나요. SELECT가 돌려주는 열의 개수와 순서는 넣을 열과 맞아야 해요.
+| 헷갈리는 말 | 실제로는 |
+|---|---|
+| SELECT 앞에도 VALUES를 붙여요 | VALUES는 쓰지 않아요. `VALUES (SELECT ...)`처럼 쓰면 오류(ORA-00936, 값 자리의 식이 잘못됨)가 나요 |
+| SELECT의 열은 아무렇게나 골라도 돼요 | SELECT가 돌려주는 열의 개수와 순서가 넣을 열과 맞아야 해요 |
+| INSERT ... SELECT와 CTAS는 같은 명령이에요 | INSERT ... SELECT는 이미 있는 표에 행을 더하는 DML이라 ROLLBACK할 수 있어요. CTAS는 표를 새로 만드는 DDL이라 자동으로 커밋돼요 |
 
-## 다중 INSERT: INSERT ALL과 INSERT FIRST {{#multi-insert}}
+## 다중 INSERT — ALL은 맞는 것 모두, FIRST는 처음 하나 {{#multi-insert}}
 
-Oracle은 SELECT 결과를 한 번 읽어서 여러 표에 나눠 넣는 다중 INSERT를 지원해요. 끝에 쓴 SELECT(서브쿼리)가 돌려준 행마다 INTO 절을 따져서, 그 행을 어느 표에 넣을지 정해요.
+Oracle은 끝에 쓴 SELECT(서브쿼리) 결과를 한 번 읽어서 여러 표에 나눠 넣는 다중 INSERT를 지원해요. 조건 없이 쓰면 SELECT가 돌려준 행 하나하나가 모든 INTO 절의 표에 들어가요.
 
-```sql
--- 문법: 조건 없이 모든 INTO를 실행해요
-INSERT ALL
-  INTO 표1 VALUES (...)
-  INTO 표2 VALUES (...)
-SELECT ... FROM ...;
--- 문법: WHEN 조건에 따라 나눠 넣어요 (ALL 또는 FIRST)
-INSERT ALL
-  WHEN 조건1 THEN INTO 표1 VALUES (...)
-  WHEN 조건2 THEN INTO 표2 VALUES (...)
-  ELSE INTO 표3 VALUES (...)
-SELECT ... FROM ...;
-```
-
-조건 없이 쓰면 SELECT가 돌려준 행 하나하나가 모든 INTO 절의 표에 들어가요. 아래는 30번 부서 3명을 두 표에 동시에 넣은 예시예요. 마지막 SELECT의 괄호 안 SELECT는 각 표의 행 수를 하나씩 세어 한 줄로 보여 주고(스칼라 서브쿼리, 서브쿼리 단원), DUAL은 Oracle이 미리 준비해 둔 한 행짜리 표예요.
+마지막 SELECT의 괄호 안 SELECT는 각 표의 행 수를 하나씩 세어 한 줄로 보여 주는 스칼라 서브쿼리로, 서브쿼리 단원에서 다뤄요. DUAL은 Oracle이 미리 준비해 둔 한 행짜리 표예요.
 
 {UNCONDITIONAL_INSERT_ALL_EXAMPLE.markdown}
 
-WHEN 조건을 붙이면 ALL과 FIRST가 다르게 움직여요. INSERT ALL은 행마다 맞는 WHEN 절을 모두 실행하고, INSERT FIRST는 위에서부터 따져서 처음 맞는 WHEN 절 하나만 실행해요. ELSE는 어떤 WHEN에도 맞지 않은 행만 받아요. 아래 두 예시는 키워드만 다르고, 급여가 2700 이상이면 고급여사원, 20번 부서면 개발부사원, 나머지는 기타사원에 넣어요.
+WHEN 조건을 붙이면 INSERT ALL은 행마다 맞는 WHEN 절을 모두 실행하고, INSERT FIRST는 위에서부터 따져 처음 맞는 WHEN 절 하나만 실행해요. ELSE는 어떤 WHEN에도 맞지 않은 행만 받아요.
+
+아래 두 예시는 키워드만 달라요. 급여가 2700 이상이면 고급여사원, 20번 부서면 개발부사원, 나머지는 기타사원에 넣어요.
 
 {INSERT_ALL_EXAMPLE.markdown}
 
@@ -172,39 +170,50 @@ WHEN 조건을 붙이면 ALL과 FIRST가 다르게 움직여요. INSERT ALL은 �
 | 1007 오지민 | 거짓 | 거짓 | 기타사원 (ELSE) | 기타사원 (ELSE) |
 | 1008 윤서연 | 거짓 | UNKNOWN (부서번호 NULL) | 기타사원 (ELSE) | 기타사원 (ELSE) |
 
-박서준은 두 조건에 모두 맞아서, INSERT ALL에서는 두 표에 들어가고 INSERT FIRST에서는 먼저 맞은 고급여사원에만 들어가요. 그래서 넣은 행은 모두 INSERT ALL이 9행(4 + 3 + 2), INSERT FIRST가 8행(4 + 2 + 2)이에요.
+박서준은 두 조건에 모두 맞아서 INSERT ALL에서는 두 표에, INSERT FIRST에서는 먼저 맞은 고급여사원에만 들어가요. 그래서 넣은 행은 모두 INSERT ALL이 9행(4 + 3 + 2), INSERT FIRST가 8행(4 + 2 + 2)이에요.
 
-## UPDATE: 값 고치기 {{#update}}
+| 바로 확인 | 정답 | 이유 |
+|---|---|---|
+| INSERT FIRST에 ELSE까지 있으면 넣은 행 수의 합이 SELECT 결과 행 수와 같아요 | O | 행마다 꼭 한 표에만 들어가요. INSERT ALL은 그 합이 더 커질 수 있어요 |
 
-UPDATE는 SET 뒤에 바꿀 열과 새 값을 적고, WHERE로 바꿀 행을 골라요. 새 값에는 `급여 + 100`처럼 지금 값을 이용한 계산을 쓸 수 있어요. 아래는 30번 부서 사원의 급여를 100씩 올린 예시예요.
+## UPDATE — SET으로 새 값, WHERE로 고칠 행 {{#update}}
+
+UPDATE는 SET 뒤에 바꿀 열과 새 값을 적고, WHERE로 바꿀 행을 골라요. 새 값에는 `급여 + 100`처럼 지금 값을 이용한 계산을 쓸 수 있어요.
 
 {SALES_DEPARTMENT_SALARY_TABLE}
 
 {UPDATE_EXPRESSION_EXAMPLE.markdown}
 
-여러 열을 한 번에 고칠 때는 SET 뒤에 쉼표로 이어 적고, 새 값 자리에 서브쿼리(괄호 안에 넣은 SELECT)를 써도 돼요. 아래의 `MAX(급여)`는 가장 큰 급여를 구하는 함수라서 3200이 나오고, 그룹 함수 단원에서 자세히 다뤄요.
+여러 열은 SET 뒤에 쉼표로 이어 적고, 새 값 자리에는 서브쿼리(괄호 안에 넣은 SELECT)를 써도 돼요. 아래의 `MAX(급여)`는 가장 큰 급여를 구하는 함수라서 3200이 나오고, 그룹 함수 단원에서 다뤄요.
 
 {UPDATE_COLUMNS_SUBQUERY_EXAMPLE.markdown}
 
-## DELETE: 행 지우기 {{#delete}}
+## DELETE와 COMMIT 전 상태 — 확정 전에는 되돌릴 수 있어요 {{#before-commit}}
 
 DELETE는 WHERE로 고른 행을 통째로 지워요. 표준 문법은 `DELETE FROM 테이블`이지만, Oracle은 FROM을 생략한 `DELETE 테이블`도 받아 줘요.
 
 ```sql
 DELETE FROM 사원 WHERE 사번 = 1008;
 DELETE 사원 WHERE 부서번호 = 30;    -- FROM을 생략했어요
-SELECT COUNT(*) FROM 사원;          -- 4가 나와요
+SELECT COUNT(*) FROM 사원;          -- 윤서연과 30번 부서 3명이 지워져서 4가 나와요
 ```
 
-남은 행을 세어 주는 `COUNT(*)`로 확인하면, 8명에서 윤서연과 30번 부서 3명이 지워져 4명이 남아요. COUNT 같은 함수는 그룹 함수 단원에서 따로 배워요.
+`COUNT(*)`는 남은 행을 세는 함수로 그룹 함수 단원에서 배워요. DELETE는 행 단위로만 지워서 `DELETE 이름 FROM 사원`처럼 열을 고를 수 없어요(ORA-00933, 문장이 잘못 끝남).
 
-DELETE는 행 단위로만 지우기 때문에 `DELETE 이름 FROM 사원`처럼 열을 고를 수 없어요(ORA-00933, 문장이 잘못 끝남). 한 칸만 비우고 싶으면 `UPDATE ... SET 열 = NULL`을 쓰고, 열 자체를 없애고 싶으면 `ALTER TABLE ... DROP COLUMN`을 써요. 외래 키로 참조되고 있는 부모 행은 DELETE로도 지울 수 없는데, 이 내용은 제약조건 개념에서 다뤘어요.
+| 하고 싶은 일 | 쓰는 문장 |
+|---|---|
+| 행 전체 지우기 | `DELETE FROM 사원 WHERE ...` |
+| 한 칸만 비우기 | `UPDATE 사원 SET 열 = NULL WHERE ...` |
+| 열 자체를 없애기 | `ALTER TABLE 사원 DROP COLUMN 열` |
 
-## 실행 후 COMMIT 전 상태 {{#before-commit}}
+외래 키가 참조하는 부모 행은 DELETE로도 지울 수 없고, 이 내용은 제약조건 개념에서 다뤘어요. INSERT, UPDATE, DELETE의 결과는 실행하자마자 확정되지 않아요.
 
-INSERT, UPDATE, DELETE를 실행해도 결과가 바로 확정되지는 않아요. COMMIT 전까지 바뀐 내용은 실행한 사람의 세션(데이터베이스에 접속한 연결 하나)에서만 보이고, 다른 사용자는 바뀌기 전의 값을 봐요. 바뀐 행에는 잠금(lock)이 걸려서, 다른 사용자가 같은 행을 고치려고 하면 끝날 때까지 기다려야 해요.
-
-이 상태에서 COMMIT하면 변경이 확정되어 모두가 보게 되고, ROLLBACK하면 마지막 COMMIT 상태로 되돌아가요.
+| 용어 | 뜻 |
+|---|---|
+| 세션 | 데이터베이스에 접속한 연결 하나예요. COMMIT 전까지 바뀐 내용은 실행한 세션에서만 보이고, 다른 사용자는 바뀌기 전 값을 봐요 |
+| 잠금 (lock) | 바뀐 행에 걸리는 표시예요. 다른 사용자가 같은 행을 고치려면 끝날 때까지 기다려야 해요 |
+| COMMIT | 변경을 확정해서 모두가 보게 해요 |
+| ROLLBACK | 마지막 COMMIT 상태로 되돌려요. 트랜잭션 개념에서 자세히 다뤄요 |
 
 ```sql
 DELETE FROM 사원;
@@ -213,39 +222,36 @@ ROLLBACK;
 SELECT COUNT(*) FROM 사원;   -- 되돌아와서 8이 나와요
 ```
 
-트랜잭션과 COMMIT, ROLLBACK은 뒤의 트랜잭션 개념에서 자세히 다뤄요.
+| 바로 확인 | 정답 | 이유 |
+|---|---|---|
+| COMMIT 전이라도 다른 사용자는 내가 지운 결과를 바로 봐요 | X | COMMIT 전까지는 실행한 세션에서만 보여요 |
 
-## 자주 헷갈리는 점 {{#confusing}}
+## 자주 헷갈리는 점 — WHERE 생략, NULL 계산, 생략할 수 있는 키워드 {{#confusing}}
 
-**WHERE를 빼면 모든 행이 대상이에요.** `UPDATE 사원 SET 커미션 = 0`은 8명 모두의 커미션을 0으로 바꾸고, `DELETE FROM 사원`은 8명을 모두 지워요. 오류가 나지 않으니 실수를 알아채기 어려워요. 시험에서도 WHERE 없는 UPDATE나 DELETE의 결과 행 수를 물으면 전체 행 수가 답이에요.
+| 헷갈리는 말 | 실제로는 |
+|---|---|
+| WHERE 없는 UPDATE나 DELETE는 오류가 나요 | 오류 없이 모든 행이 대상이에요. `UPDATE 사원 SET 커미션 = 0`은 8명 모두를 바꾸고, 결과 행 수를 물으면 전체 행 수가 답이에요 |
+| NULL인 커미션에 100을 더하면 100이 돼요 | NULL + 100은 NULL이에요. 김민수, 최유나, 정하늘, 윤서연 4명은 그대로 NULL이고 이지은은 400, 박서준은 100이 돼요 |
+| NULL을 0으로 보고 더하는 방법은 없어요 | `NVL(커미션, 0) + 100`처럼 써요. NVL은 NULL을 다른 값으로 바꾸는 함수로 SQL 함수 단원에서 다뤄요 |
+| WHERE 없는 DELETE와 TRUNCATE는 같아요 | 행이 0개가 되는 결과만 같아요. DELETE는 DML이라 ROLLBACK과 WHERE가 되고, TRUNCATE는 DDL이라 자동 커밋돼요. 구조까지 없애는 것은 DROP이에요 |
+| Oracle에서는 INSERT의 INTO도 생략할 수 있어요 | INTO를 빼면 오류(ORA-00925, INTO 키워드 누락)가 나요. 생략할 수 있는 것은 DELETE의 FROM이에요 |
+| 오류가 난 DELETE도 지울 수 있는 행은 지워요 | 오류가 난 문장은 통째로 취소되고, 그 전에 성공한 다른 문장은 그대로 남아요 |
+| INSERT FIRST도 WHEN 순서와 관계없이 결과가 같아요 | 고급여사원 표에 `WHEN 급여 >= 2700`과 `WHEN 급여 >= 3000`을 둘 다 쓰면, ALL은 김민수와 최유나가 두 번씩 들어가 6행, FIRST는 위의 조건 하나만 실행되어 4행이에요 |
+| 다중 INSERT로 고정값을 넣을 때는 SELECT가 없어도 돼요 | 끝에 SELECT가 꼭 있어야 해서 `SELECT * FROM DUAL`을 붙여요. INSERT FIRST는 WHEN 없이 쓸 수 없어요 |
 
-**NULL이 섞인 계산은 UPDATE에서도 NULL이에요.** 맨 위 사원 표에서 커미션이 NULL인 사원은 김민수, 최유나, 정하늘, 윤서연 4명이에요. `UPDATE 사원 SET 커미션 = 커미션 + 100`을 실행하면 이지은은 400, 박서준은 100이 되지만, 김민수처럼 NULL이던 4명은 NULL + 100이 NULL이라서 여전히 NULL이에요. NULL을 0으로 보고 더하려면 `NVL(커미션, 0) + 100`처럼 써야 하고, NVL은 SQL 함수 단원에서 다뤄요.
-
-**같은 `= NULL`이라도 SET과 WHERE에서 뜻이 달라요.** SET에서는 값을 넣는 대입이고, WHERE에서는 값이 같은지 묻는 비교예요.
+같은 `= NULL`이라도 SET에서는 값을 넣는 대입이고, WHERE에서는 같은지 묻는 비교예요. 그래서 NULL인 행을 고를 때는 WHERE에 `IS NULL`을 써요.
 
 | 자리 | 예 | 뜻 | 결과 |
 |---|---|---|---|
-| SET | `UPDATE 사원 SET 커미션 = NULL WHERE 사번 = 1002` | 커미션을 NULL로 바꾸라는 대입이에요 | 이지은의 커미션이 NULL이 돼요 |
-| WHERE | `UPDATE 사원 SET 급여 = 급여 * 2 WHERE 급여 = NULL` | 급여가 NULL과 같은지 묻는 비교예요 | 비교 결과가 늘 UNKNOWN이라 바뀌는 행이 없어요 |
+| SET | `UPDATE 사원 SET 커미션 = NULL WHERE 사번 = 1002` | 커미션을 NULL로 바꾸라는 대입 | 이지은의 커미션이 NULL이 돼요 |
+| WHERE | `UPDATE 사원 SET 급여 = 급여 * 2 WHERE 급여 = NULL` | 급여가 NULL과 같은지 묻는 비교 | 결과가 늘 UNKNOWN이라 바뀌는 행이 없어요 |
 
-그래서 NULL인 행을 고를 때는 WHERE에 `IS NULL`을 써야 해요.
-
-**INSERT ... SELECT와 CTAS는 테이블이 있느냐가 달라요.** `INSERT INTO 사원보관 SELECT ...`는 이미 있는 테이블에 행을 더하는 DML이고, `CREATE TABLE 사원보관 AS SELECT ...`는 테이블을 새로 만드는 DDL이에요. 그래서 INSERT ... SELECT는 ROLLBACK할 수 있고, CTAS는 자동으로 커밋돼요.
-
-**DELETE 전체 삭제와 TRUNCATE는 결과만 같아요.** `DELETE FROM 사원`과 `TRUNCATE TABLE 사원` 모두 행이 0개가 되지만, DELETE는 DML이라 ROLLBACK할 수 있고 WHERE도 붙일 수 있어요. TRUNCATE는 DDL이라 자동으로 커밋되어 되돌릴 수 없고, 테이블 구조까지 없애는 것은 DROP이에요.
-
-**오류가 난 문장은 그 문장 전체가 취소돼요.** `DELETE FROM 부서`는 네 부서를 모두 지우려고 하는데, 사원이 있는 10·20·30번 부서에서 외래 키 오류가 나요. 이때 사원이 없는 40번 부서만 지워지고 끝나는 것이 아니라, 문장 하나가 통째로 취소되어 네 부서가 모두 남아요. 그 전에 성공한 다른 문장은 그대로 남아 있어요.
+`DELETE FROM 부서`는 사원이 있는 10·20·30번 부서에서 외래 키 오류가 나요. 사원이 없는 40번만 지워지고 끝나는 것이 아니라 문장 하나가 통째로 취소돼요.
 
 ```sql
 DELETE FROM 부서;            -- 오류: 사원이 있는 부서가 있어요 (ORA-02292)
 SELECT COUNT(*) FROM 부서;   -- 40번도 지워지지 않아서 4가 나와요
 ```
-
-**INSERT ALL은 한 행이 여러 표에 들어갈 수 있고, INSERT FIRST는 한 표에만 들어가요.** 여러 WHEN에 동시에 맞는 행이 있을 때 결과가 갈려요. INSERT FIRST에 ELSE까지 있으면 SELECT가 돌려준 행이 꼭 한 번씩 들어가서, 넣은 행 수의 합이 SELECT 결과 행 수와 같아요. INSERT ALL은 그 합이 더 커질 수 있어요.
-
-**INSERT FIRST는 WHEN의 순서가 결과를 바꿔요.** 같은 고급여사원 표에 `WHEN 급여 >= 2700`과 `WHEN 급여 >= 3000`을 둘 다 쓰면, INSERT ALL에서는 김민수와 최유나가 두 조건에 모두 맞아 두 번씩 들어가서 6행이 돼요. INSERT FIRST로 바꾸면 위의 조건 하나만 실행되어 한 사람이 한 번만 들어가므로 4행이에요.
-
-**다중 INSERT 끝에는 SELECT가 꼭 있어야 해요.** 고정된 값 몇 행을 넣을 때도 끝에 `SELECT * FROM DUAL`을 붙여요. 또 INSERT FIRST는 WHEN 없이 쓸 수 없어요.
 
 ```sql
 CREATE TABLE 사원이름 (사번 NUMBER(4), 이름 VARCHAR2(20));
@@ -258,11 +264,15 @@ SELECT * FROM DUAL;
 SELECT COUNT(*) FROM 사원이름;                                                  -- 두 행이 들어가서 2가 나와요
 ```
 
-**INSERT의 INTO는 생략할 수 없어요.** DELETE의 FROM은 Oracle에서 생략할 수 있지만, INSERT의 INTO를 빼고 `INSERT 부서 VALUES (...)`라고 쓰면 오류(ORA-00925, INTO 키워드 누락)가 나요. 생략 가능한 키워드를 묻는 보기에서 둘이 섞여 나와요.
+| 바로 확인 | 정답 | 이유 |
+|---|---|---|
+| UPDATE의 새 값 자리에는 서브쿼리를 쓸 수 없어요 | X | `SET 급여 = (SELECT MAX(급여) FROM 사원)`처럼 쓸 수 있어요 |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 
-예시 표를 주고 INSERT, UPDATE, DELETE를 실행한 뒤의 결과 행 수나 값을 묻는 문제가 가장 많아요. 이때는 WHERE 조건에 맞는 행이 몇 개인지, NULL이 섞인 계산이 있는지, 중간에 ROLLBACK이 있는지를 차례로 확인하면 돼요. 열 목록을 생략한 INSERT의 값 개수, Oracle에서 생략할 수 있는 키워드, DELETE와 TRUNCATE의 차이도 보기로 자주 나와요. 최근에는 INSERT FIRST나 INSERT ALL을 주고 표마다 들어간 행 수를 묻는 문제도 나왔는데, 위의 추적 표처럼 행마다 맞는 WHEN을 적어 보면 풀려요.""",
+예시 표를 주고 INSERT, UPDATE, DELETE를 실행한 뒤의 결과 행 수나 값을 묻는 문제가 가장 많아요. WHERE에 맞는 행이 몇 개인지, NULL이 섞인 계산이 있는지, 중간에 ROLLBACK이 있는지를 차례로 확인하면 돼요.
+
+열 목록을 생략한 INSERT의 값 개수, Oracle에서 생략할 수 있는 키워드, DELETE와 TRUNCATE의 차이도 보기로 자주 나와요. INSERT FIRST나 INSERT ALL을 주고 표마다 들어간 행 수를 묻는 문제는 위의 추적 표처럼 행마다 맞는 WHEN을 적어 보면 풀려요.""",
     "checkQuestions": [
         question(1, "테이블에 이미 들어 있는 행의 값을 고치는 명령어는 무엇인가요?", "update",
                  "UPDATE는 SET으로 새 값을 정하고 WHERE로 고칠 행을 골라 값을 바꿔요. INSERT는 행을 더하고, DELETE는 행을 지워요.",

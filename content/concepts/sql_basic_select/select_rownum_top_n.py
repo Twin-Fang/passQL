@@ -13,22 +13,27 @@ CONCEPT = {
     "topicCode": "sql_basic_select",
     "sortOrder": 8,
     "title": "ROWNUM과 TOP N",
-    "summary": "ROWNUM은 정렬 전에 붙는 번호라서, 상위 N개는 먼저 정렬한 뒤에 잘라야 해요",
+    "summary": "ROWNUM은 정렬 전에 붙는 번호라서, 정렬한 뒤에 잘라야 해요",
     "coreMd": (
-        "- ROWNUM은 WHERE 조건을 통과한 행에 1부터 차례로 붙는 번호(가상 열)이고, ORDER BY보다 먼저 붙어요.\n"
-        "- `ROWNUM = 1`, `ROWNUM <= N`은 되지만 `ROWNUM = 2`, `ROWNUM > 1`은 첫 행부터 탈락해서 항상 0행이에요.\n"
-        "- 급여 상위 N명처럼 정렬한 뒤 자르려면, 정렬한 SELECT를 FROM 절 괄호 안(인라인 뷰)에 넣고 바깥에서 ROWNUM으로 잘라요.\n"
-        "- Oracle 12c부터는 `ORDER BY ... FETCH FIRST N ROWS ONLY`로, SQL Server는 `TOP(N)`으로 정렬 후 상위 N개를 바로 구하고, `WITH TIES`를 붙이면 N번째와 같은 값도 함께 나와요."
+        "- ROWNUM은 WHERE 조건을 통과한 행에 1부터 붙는 가상 열이고, ORDER BY보다 먼저 붙어요.\n"
+        "- `ROWNUM = 1`, `ROWNUM <= N`은 되지만 `ROWNUM = 2`, `ROWNUM > 1`은 늘 0행이에요.\n"
+        "- 정렬한 상위 N개는 정렬한 SELECT를 인라인 뷰에 넣고 바깥에서 ROWNUM으로 잘라요.\n"
+        "- Oracle 12c의 `FETCH FIRST N ROWS ONLY`와 SQL Server의 `TOP(N)`은 정렬한 뒤에 잘라요.\n"
+        "- `WITH TIES`는 N번째와 같은 값도 함께 가져오고, ORDER BY가 꼭 있어야 해요."
     ),
-    "detailMd": f"""## 왜 필요한가요 {{#why}}
+    "detailMd": f"""## 왜 필요할까요 — 앞쪽 몇 행만 필요할 때 {{#why}}
 
-"급여가 가장 높은 사원 3명"이나 "가장 최근에 입사한 2명"처럼, 결과 중 앞쪽 몇 행만 필요할 때가 많아요. 이런 조회를 상위 N개, 영어로 **TOP N** 조회라고 불러요. Oracle에서는 오래전부터 ROWNUM으로 TOP N을 구해 왔는데, ROWNUM이 번호를 붙이는 시점을 모르면 엉뚱한 결과가 나와요. 예시는 아래 사원 표를 기준으로 해요.
+"급여가 가장 높은 3명"처럼 결과의 앞쪽 몇 행만 필요한 조회를 상위 N개, 곧 **TOP N** 조회라고 해요. Oracle은 오래전부터 ROWNUM으로 TOP N을 구했는데, 번호가 붙는 시점을 모르면 엉뚱한 결과가 나와요.
 
 {EMPLOYEE_SALARY_TABLE}
 
-## ROWNUM이란 {{#definition}}
+## ROWNUM이란 — WHERE를 통과한 행에 붙는 번호 {{#definition}}
 
-ROWNUM은 Oracle이 조회 결과의 행마다 1, 2, 3 하고 차례로 붙여 주는 번호예요. 테이블에 저장된 열이 아니라 조회할 때만 생기는 열이라서 **가상 열**(의사 컬럼, pseudo column)이라고 불러요. 사원 테이블에는 ROWNUM이라는 열이 없지만, SELECT 절이나 WHERE 절에서 열처럼 쓸 수 있어요.
+| 용어 | 뜻 |
+|---|---|
+| ROWNUM | Oracle이 조회 결과의 행마다 1, 2, 3 차례로 붙이는 번호예요 |
+| 가상 열 (의사 컬럼, pseudo column) | 테이블에 저장되지 않고 조회할 때만 생기는 열이에요. SELECT 절과 WHERE 절에서 열처럼 써요 |
+| 번호가 붙는 시점 | WHERE를 처리하는 동안이에요. 나머지 조건을 통과한 행에만 다음 번호를 줘요 |
 
 ```sql
 SELECT ROWNUM, 이름 FROM 사원 WHERE ROWNUM <= 3;   -- 앞에서 3행만 나와요
@@ -40,9 +45,7 @@ SELECT ROWNUM, 이름 FROM 사원 WHERE ROWNUM <= 3;   -- 앞에서 3행만 나�
 | 2 | 이지은 |
 | 3 | 박서준 |
 
-이 결과는 사원 테이블이 사번 순서대로 저장되어 있어서 이렇게 나온 것이고, ORDER BY 없이 어떤 행이 먼저 읽힐지는 보장되지 않아요.
-
-번호는 WHERE 절을 처리하는 동안 붙어요. Oracle은 행을 하나 읽을 때마다 나머지 WHERE 조건을 확인하고, 통과한 행에만 다음 번호를 줘요. 그래서 다른 조건과 함께 쓰면 그 조건을 통과한 행끼리 1번부터 번호를 받아요.
+이 결과는 테이블이 사번 순서로 저장되어 나온 것이고, ORDER BY 없이 어떤 행이 먼저 읽힐지는 보장되지 않아요. 다른 조건과 함께 쓰면 그 조건을 통과한 행끼리 1번부터 받아요.
 
 ```sql
 SELECT ROWNUM, 이름 FROM 사원 WHERE 부서번호 = 30 AND ROWNUM <= 2;   -- 30번 부서 사람끼리 1번부터 받아요
@@ -53,9 +56,9 @@ SELECT ROWNUM, 이름 FROM 사원 WHERE 부서번호 = 30 AND ROWNUM <= 2;   -- 
 | 1 | 최유나 |
 | 2 | 한도윤 |
 
-## 정렬한 뒤 상위 N개 구하기 {{#inline-view}}
+## 정렬한 뒤 자르기 — ROWNUM은 정렬보다 먼저 {{#inline-view}}
 
-ROWNUM은 WHERE 단계에서 붙고 ORDER BY는 가장 마지막에 처리되므로, 한 SELECT 안에서 함께 쓰면 "번호를 붙여 3명을 자른 뒤에 정렬"하게 돼요. 급여 상위 3명을 원했는데, 테이블에서 먼저 읽힌 3명을 급여순으로 줄 세운 결과가 나와요. 번호가 1, 3, 2로 뒤섞인 것을 보면 정렬보다 번호가 먼저 붙었다는 것을 알 수 있어요.
+한 SELECT 안에 ROWNUM과 ORDER BY를 함께 쓰면, 먼저 읽힌 3명을 자른 뒤에 급여순으로 세워요. 번호가 1, 3, 2로 뒤섞인 것이 정렬보다 번호가 먼저 붙었다는 증거예요.
 
 ```sql
 SELECT ROWNUM, 이름, 급여 FROM 사원 WHERE ROWNUM <= 3 ORDER BY 급여 DESC;   -- 3명을 자른 뒤에 정렬해요
@@ -67,7 +70,12 @@ SELECT ROWNUM, 이름, 급여 FROM 사원 WHERE ROWNUM <= 3 ORDER BY 급여 DESC
 | 3 | 박서준 | 2800 |
 | 2 | 이지은 | 2500 |
 
-올바르게 구하려면 정렬을 먼저 끝낸 결과에 번호를 붙여야 해요. FROM 절 안에 괄호로 SELECT 문을 넣으면 그 결과를 하나의 테이블처럼 쓸 수 있는데, 이것을 **인라인 뷰**라고 불러요. 안쪽 SELECT에서 급여순으로 정렬하고, 바깥 SELECT에서 ROWNUM으로 3명을 자르면 돼요. 인라인 뷰는 서브쿼리 단원에서 자세히 다뤄요.
+FROM 절 안에 괄호로 넣은 SELECT 문은 하나의 테이블처럼 쓸 수 있고, 이것을 **인라인 뷰**라고 해요(6단원). 올바른 상위 N개는 아래 순서로 구해요.
+
+| 단계 | 내용 |
+|---|---|
+| 1 안쪽 SELECT | 인라인 뷰 안에서 급여 내림차순으로 정렬해요 |
+| 2 바깥 WHERE | 정렬이 끝난 결과에 ROWNUM을 붙이고 `ROWNUM <= 3`으로 잘라요 |
 
 ```sql
 {TOP_THREE_SALARY_SQL}   -- 정렬한 뒤에 3명을 잘라요
@@ -79,7 +87,7 @@ SELECT ROWNUM, 이름, 급여 FROM 사원 WHERE ROWNUM <= 3 ORDER BY 급여 DESC
 | 김민수 | 3000 |
 | 박서준 | 2800 |
 
-3위부터 4위까지처럼 중간 구간이 필요하면 인라인 뷰를 한 번 더 감싸요. 안쪽에서 붙인 ROWNUM에 `rn` 같은 별칭을 주면, 바깥 쿼리에서는 rn이 이미 값이 정해진 보통 열이 되어서 `rn >= 3`도 쓸 수 있어요.
+3위부터 4위처럼 중간 구간은 인라인 뷰를 한 번 더 감싸요. 안쪽 ROWNUM에 `rn` 같은 별칭을 주면 바깥에서는 값이 정해진 보통 열이 되어 `rn >= 3`도 쓸 수 있어요.
 
 ```sql
 SELECT 이름, 급여
@@ -94,9 +102,15 @@ WHERE rn >= 3;   -- 3위와 4위만 남아요
 | 박서준 | 2800 |
 | 한도윤 | 2700 |
 
-## FETCH FIRST로 바로 자르기 {{#fetch-first}}
+## FETCH FIRST — 정렬한 뒤 바로 잘라요 {{#fetch-first}}
 
-Oracle 12c부터는 ORDER BY 뒤에 **FETCH FIRST N ROWS ONLY**를 붙여서, 인라인 뷰 없이 정렬한 결과의 앞쪽 N행만 가져올 수 있어요. FETCH는 ORDER BY 다음에 처리되므로 ROWNUM 같은 함정이 없어요. 앞쪽 몇 행을 건너뛰고 싶으면 `OFFSET 건너뛸 행 수 ROWS`를 앞에 붙이는데, 이때는 FIRST 대신 NEXT라고 쓰는 경우가 많고 뜻은 같아요.
+Oracle 12c부터는 ORDER BY 뒤에 **FETCH FIRST N ROWS ONLY**를 붙여 인라인 뷰 없이 앞쪽 N행을 가져와요. FETCH는 ORDER BY 다음에 처리되어 ROWNUM 같은 함정이 없어요.
+
+| 용어 | 뜻 |
+|---|---|
+| FETCH FIRST N ROWS ONLY | 정렬한 결과에서 앞쪽 N행만 가져와요 |
+| OFFSET M ROWS | 앞쪽 M행을 건너뛰어요. 이때 FIRST 대신 NEXT로 쓰는 경우가 많고 뜻은 같아요 |
+| WITH TIES | ONLY 대신 쓰면 N번째 행과 정렬 값이 같은 행까지 함께 가져와요 |
 
 ```sql
 SELECT 이름, 급여 FROM 사원 ORDER BY 급여 DESC FETCH FIRST 3 ROWS ONLY;              -- 상위 3명이에요
@@ -108,7 +122,7 @@ SELECT 이름, 급여 FROM 사원 ORDER BY 급여 DESC OFFSET 2 ROWS FETCH NEXT 
 | `FETCH FIRST 3 ROWS ONLY` | 최유나 3200, 김민수 3000, 박서준 2800 |
 | `OFFSET 2 ROWS FETCH NEXT 2 ROWS ONLY` | 박서준 2800, 한도윤 2700 |
 
-ONLY 대신 **WITH TIES**를 쓰면, N번째 행과 정렬 값이 같은 행까지 함께 가져와요. 급여 상위 5명을 구하면 5번째가 2500인데, 2500인 사원이 이지은과 정하늘 두 명이라서 WITH TIES는 6행을 돌려줘요. ONLY로 쓰면 5행에서 끊기기 때문에 두 사람 중 한 명만 나오고, 어느 쪽이 나올지는 정해지지 않아요.
+급여 상위 5명의 5번째는 2500인데, 2500인 사원이 이지은과 정하늘 두 명이라 WITH TIES는 6행을 돌려줘요. ONLY로 쓰면 5행에서 끊겨서 두 사람 중 한 명만 나오고, 어느 쪽이 나올지는 정해지지 않아요.
 
 ```sql
 SELECT 이름, 급여 FROM 사원 ORDER BY 급여 DESC FETCH FIRST 5 ROWS WITH TIES;   -- 동점자까지 6행이 나와요
@@ -123,9 +137,9 @@ SELECT 이름, 급여 FROM 사원 ORDER BY 급여 DESC FETCH FIRST 5 ROWS WITH T
 | 이지은 | 2500 |
 | 정하늘 | 2500 |
 
-## SQL Server의 TOP {{#top}}
+## SQL Server의 TOP — SELECT 바로 뒤에 {{#top}}
 
-SQL Server는 ROWNUM 대신 SELECT 바로 뒤에 `TOP(N)`을 써요. TOP은 ORDER BY로 정렬한 결과에서 앞쪽 N행을 고르기 때문에, 인라인 뷰 없이도 올바른 상위 N개가 나와요. `TOP(N) WITH TIES`는 Oracle의 WITH TIES처럼 N번째와 같은 값을 함께 가져오고, 무엇이 같은지 판단할 정렬 기준이 필요해서 반드시 ORDER BY와 함께 써야 해요. 아래 문장은 SQL Server 문법이라 Oracle에서는 실행되지 않아요.
+SQL Server는 SELECT 바로 뒤에 `TOP(N)`을 쓰고, ORDER BY로 정렬한 결과에서 앞쪽 N행을 골라서 인라인 뷰가 필요 없어요. `TOP(N) WITH TIES`는 같은 값을 판단할 기준이 있어야 해서 반드시 ORDER BY와 함께 쓰고, 아래 문장은 Oracle에서는 실행되지 않아요.
 
 ```sql
 -- 문법: SQL Server
@@ -133,49 +147,56 @@ SELECT TOP(3) 이름, 급여 FROM 사원 ORDER BY 급여 DESC;
 SELECT TOP(5) WITH TIES 이름, 급여 FROM 사원 ORDER BY 급여 DESC;
 ```
 
-## 자주 헷갈리는 점 {{#confusing}}
+| 방법 | 자르는 시점 | 동점 포함 |
+|---|---|---|
+| ROWNUM (Oracle) | WHERE 단계, 정렬 전 | 없음 |
+| FETCH FIRST (Oracle 12c) | ORDER BY 다음 | WITH TIES |
+| TOP(N) (SQL Server) | ORDER BY 다음 | WITH TIES (ORDER BY 필수) |
 
-**`ROWNUM = 2`와 `ROWNUM > 1`은 항상 0행이에요.** Oracle은 행을 하나씩 읽으면서 "이 행이 통과하면 받을 번호"를 후보로 들고 조건을 검사해요. 행이 조건을 통과해야 그 번호를 받고 후보가 1 늘어나며, 탈락하면 번호를 받지 못하고 후보도 그대로예요. 사원 표가 사번 순서로 읽힌다고 하고 `ROWNUM <= 3`부터 따라가 볼게요.
+## 자주 헷갈리는 점 — ROWNUM = 2가 0행인 이유 {{#confusing}}
 
-| 읽은 행 | 지금 ROWNUM 후보 | ROWNUM <= 3 결과 | 번호 부여 |
-|---|---|---|---|
-| 김민수 | 1 | 참 | 1번을 받고 결과에 남아요 |
-| 이지은 | 2 | 참 | 2번을 받아요 |
-| 박서준 | 3 | 참 | 3번을 받아요 |
-| 최유나 | 4 | 거짓 | 버려지고 후보는 4 그대로예요 |
-| 정하늘부터 윤서연까지 | 4 | 거짓 | 모두 버려져요 |
+Oracle은 행을 읽을 때마다 "통과하면 받을 번호"를 후보로 들고 조건을 검사하고, 통과한 행만 번호를 받아 후보가 1 늘어나요. `ROWNUM <= 3`과 `ROWNUM = 2`를 사번 순서대로 따라가면 차이가 보여요.
 
-같은 과정을 `ROWNUM = 2`로 따라가면, 첫 행이 후보 1번으로 검사받는 순간부터 막혀요.
+| 읽은 행 | 후보 번호 | ROWNUM <= 3 |
+|---|---|---|
+| 김민수 | 1 | 참, 1번을 받아요 |
+| 이지은 | 2 | 참, 2번을 받아요 |
+| 박서준 | 3 | 참, 3번을 받아요 |
+| 최유나부터 윤서연까지 | 4 | 거짓, 후보는 4 그대로라 모두 버려져요 |
 
-| 읽은 행 | 지금 ROWNUM 후보 | ROWNUM = 2 결과 | 번호 부여 |
-|---|---|---|---|
-| 김민수 | 1 | 거짓 | 버려지고 후보는 1 그대로예요 |
-| 이지은 | 1 | 거짓 | 버려지고 후보는 1 그대로예요 |
-| 박서준부터 윤서연까지 | 1 | 거짓 | 모두 버려져요 |
+| 읽은 행 | 후보 번호 | ROWNUM = 2 |
+|---|---|---|
+| 김민수 | 1 | 거짓, 후보는 1 그대로예요 |
+| 이지은 | 1 | 거짓, 후보는 1 그대로예요 |
+| 박서준부터 윤서연까지 | 1 | 거짓, 모두 버려져요 |
 
-아무도 1번을 받지 못하니 후보가 2가 되는 순간이 오지 않아서 결과는 0행이에요. `ROWNUM > 1`도 후보 1에서 모두 거짓이 되어 0행이고, `ROWNUM = 1`, `ROWNUM <= 3`, `ROWNUM < 4`처럼 1번이 통과할 수 있는 조건만 정상으로 동작해요.
+아무도 1번을 받지 못하면 후보가 2가 되는 순간이 오지 않아서 `ROWNUM = 2`는 0행이에요.
 
 ```sql
 SELECT 이름 FROM 사원 WHERE ROWNUM = 1;   -- 김민수 한 명이 나와요
 SELECT 이름 FROM 사원 WHERE ROWNUM = 2;   -- 0행이 나와요
 SELECT 이름 FROM 사원 WHERE ROWNUM > 1;   -- 0행이 나와요
-```
-
-**인라인 뷰 밖에서는 rn을 자유롭게 비교할 수 있어요.** 앞에서 본 것처럼 안쪽 쿼리에서 ROWNUM에 붙인 별칭 rn은, 바깥 쿼리 입장에서는 숫자가 이미 들어 있는 보통 열이에요. 안쪽 쿼리가 끝나는 순간 rn 값은 결과 표에 적힌 숫자로 굳어지고, 바깥 WHERE는 번호를 새로 붙이지 않고 그 숫자를 읽기만 하기 때문이에요. 그래서 바깥에서 `rn = 2`라고 쓰면 0행이 아니라 2번째 행이 정상으로 나와요. 0행이 되는 것은 ROWNUM을 같은 SELECT의 WHERE에서 바로 비교할 때뿐이에요.
-
-```sql
 SELECT 이름 FROM (SELECT ROWNUM AS rn, 이름 FROM (SELECT 이름, 급여 FROM 사원 ORDER BY 급여 DESC)) WHERE rn = 2;   -- 김민수 한 명이 나와요
 ```
 
-**ORDER BY를 인라인 뷰 바깥에 두면 소용이 없어요.** 상위 N개 문제의 오답 보기는 대부분 `WHERE ROWNUM <= 3 ORDER BY 급여 DESC`처럼 같은 SELECT 안에 둘을 함께 쓴 모양이에요. 정렬 방향을 반대로 쓴 인라인 뷰(`ORDER BY 급여`)도 하위 3명이 나오는 오답이에요. 정렬은 안쪽에서, ROWNUM은 바깥에서라는 순서를 보기마다 확인하면 돼요.
+| 헷갈리는 말 | 실제로는 |
+|---|---|
+| `ROWNUM = 2`는 두 번째 행을 돌려줘요 | 첫 행부터 탈락해서 늘 0행이에요. `ROWNUM > 1`도 0행이에요 |
+| 1번이 없는 조건도 ROWNUM에 쓸 수 있어요 | `ROWNUM = 1`, `<= 3`, `< 4`처럼 1번이 통과할 수 있는 조건만 정상으로 동작해요 |
+| 인라인 뷰 밖에서 `rn = 2`를 써도 0행이에요 | 안쪽에서 붙인 rn은 숫자로 굳은 보통 열이라 2번째 행이 정상으로 나와요. 0행은 같은 SELECT의 WHERE에서 ROWNUM을 바로 비교할 때뿐이에요 |
+| `WHERE ROWNUM <= 3 ORDER BY 급여 DESC`는 상위 3명이에요 | 먼저 읽힌 3명을 자른 뒤 정렬해요. 정렬은 안쪽, ROWNUM은 바깥이에요 |
+| 인라인 뷰 안에서 `ORDER BY 급여`로 정렬해도 상위 3명이에요 | 오름차순이라 하위 3명이 나와요. 정렬 방향도 확인해요 |
+| ROWNUM과 ROW_NUMBER는 같은 것이에요 | ROWNUM은 가상 열이고, `ROW_NUMBER() OVER (ORDER BY 급여 DESC)`는 정렬 기준을 직접 정하는 윈도우 함수예요(8단원) |
 
-**FETCH FIRST와 TOP은 ORDER BY 뒤에 적용돼요.** ROWNUM만 정렬보다 먼저 붙고, Oracle의 FETCH FIRST와 SQL Server의 TOP은 정렬이 끝난 결과에서 자르기 때문에 인라인 뷰가 필요 없어요. 두 방법 모두 WITH TIES를 쓸 때는 ORDER BY가 있어야 같은 값을 판단할 수 있어요.
-
-**ROWNUM과 ROW_NUMBER는 다른 것이에요.** ROWNUM은 Oracle의 가상 열이고, `ROW_NUMBER() OVER (ORDER BY 급여 DESC)`는 정렬 기준을 직접 정해서 번호를 매기는 윈도우 함수예요. ROW_NUMBER로 TOP N을 구하는 방법은 윈도우 함수 단원에서 다뤄요.
+| 바로 확인 | 정답 | 이유 |
+|---|---|---|
+| `ROWNUM < 4`는 앞에서 3행을 돌려줘요 | O | 1번이 통과할 수 있는 조건이라 1, 2, 3번이 붙어요 |
+| FETCH FIRST는 ROWNUM처럼 정렬보다 먼저 행을 잘라요 | X | FETCH는 ORDER BY 다음에 처리되어 정렬한 결과를 잘라요 |
+| SQL Server에서 `TOP(5) WITH TIES`는 ORDER BY 없이도 쓸 수 있어요 | X | 같은 값을 판단할 정렬 기준이 필요해서 ORDER BY가 꼭 있어야 해요 |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 
-여러 SQL 중 급여 상위 N명을 올바르게 구하는 것을 고르는 문제가 가장 많아요. 정렬이 인라인 뷰 안에 있고 ROWNUM이 바깥에 있는지, 정렬 방향이 맞는지를 확인하면 돼요. 그 밖에 `ROWNUM = 2`나 `ROWNUM > 1`의 결과 행 수를 묻는 문제, WITH TIES를 붙였을 때 동점자까지 나오는 행 수를 묻는 문제, SQL Server의 TOP 문법을 묻는 문제가 나와요.""",
+여러 SQL 중 급여 상위 N명을 올바르게 구하는 것을 고르는 문제가 가장 많고, 정렬이 인라인 뷰 안에 있는지와 정렬 방향이 맞는지를 확인하면 돼요. `ROWNUM = 2`나 `ROWNUM > 1`의 행 수, WITH TIES의 동점자 행 수, SQL Server의 TOP 문법을 묻는 문제도 나와요.""",
     "checkQuestions": [
         question(1, "Oracle의 ROWNUM에 대한 설명으로 알맞은 것은 무엇인가요?", "definition",
                  "ROWNUM은 테이블에 저장된 열이 아니라, 조회할 때 WHERE 조건을 통과한 행에 1부터 붙는 가상 열이에요. ORDER BY보다 먼저 붙어요.",

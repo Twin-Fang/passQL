@@ -1,35 +1,53 @@
 """개념: WHERE 절과 NULL (2단원, 확인 문제 5개)"""
 
-from concept_bundle import choice, question, sql_check
+from concept_bundle import choice, question, sql_check, sql_example
 from concept_dataset import to_employee_table_md
 
 EMPLOYEE_COMMISSION_TABLE = to_employee_table_md("사번", "이름", "급여", "커미션", "부서번호")
+
+# NULL 섞인 덧셈 <-> NVL 로 0 보고 더하기 (김민수 커미션 NULL, 이지은 300, 박서준 0)
+NULL_ARITHMETIC_EXAMPLE = sql_example(
+    "SELECT 이름, 급여 + 커미션 AS 합계, 급여 + NVL(커미션, 0) AS 보정합계\n"
+    "FROM 사원 WHERE 사번 IN (1001, 1002, 1003);",
+    ("이름", "합계", "보정합계"),
+    [["김민수", None, 3000], ["이지은", 2800, 2800], ["박서준", 2800, 2800]], is_ordered=False)
 
 CONCEPT = {
     "tagKey": "select-where-null",
     "topicCode": "sql_basic_select",
     "sortOrder": 6,
     "title": "WHERE 절과 NULL",
-    "summary": "NULL과 비교하면 참도 거짓도 아니어서, IS NULL로만 찾을 수 있어요",
+    "summary": "NULL과 비교하면 참도 거짓도 아니라서, IS NULL로만 찾아요",
     "coreMd": (
-        "- NULL은 값이 없거나 아직 모른다는 표시라서, 숫자 0이나 빈칸 문자와는 달라요.\n"
-        "- NULL과 무엇을 비교해도(=, <>, >) 결과는 참도 거짓도 아닌 UNKNOWN이 되고, WHERE 절은 참인 행만 남기므로 그 행은 빠져요.\n"
-        "- 그래서 NULL을 찾을 때는 `= NULL`이 아니라 `IS NULL`을, NULL이 아닌 행을 찾을 때는 `IS NOT NULL`을 써요.\n"
-        "- NULL이 섞인 계산은 결과도 NULL이 되고, Oracle에서는 빈 문자열(`''`)도 NULL로 처리해요."
+        "- NULL은 값이 없거나 아직 모른다는 표시라서 숫자 0이나 빈칸 글자와 달라요.\n"
+        "- NULL과 무엇을 비교해도 UNKNOWN이 되고, WHERE는 참인 행만 남기므로 그 행은 빠져요.\n"
+        "- NULL을 찾을 때는 `= NULL`이 아니라 `IS NULL`, 아닌 행은 `IS NOT NULL`을 써요.\n"
+        "- NULL이 섞인 계산은 결과도 NULL이고, Oracle은 빈 문자열(`''`)도 NULL로 다뤄요."
     ),
-    "detailMd": f"""## 왜 헷갈리나요 {{#why}}
+    "detailMd": f"""## 왜 헷갈릴까요 — 오류 없이 0행이 나와서 {{#why}}
 
-SQL을 처음 배우면 "커미션이 없는 사원"을 찾으려고 `WHERE 커미션 = NULL`이라고 쓰기 쉬운데, 이렇게 쓰면 오류도 나지 않고 결과가 0행으로 나와요. 오류가 나지 않으니 무엇이 잘못됐는지 알기 어렵고, 그래서 시험에서도 이 부분을 자주 물어요. 아래에서는 모든 예시를 이 사원 표 하나로 설명할게요.
+"커미션이 없는 사원"을 찾으려고 `WHERE 커미션 = NULL`이라고 쓰면, 오류도 나지 않고 결과만 0행으로 나와요. 무엇이 잘못됐는지 알기 어려워서 시험에서도 자주 묻고, 아래 사원 표 하나로 모든 예시를 설명해요.
 
 {EMPLOYEE_COMMISSION_TABLE}
 
-## NULL은 값이 아니에요 {{#definition}}
+## NULL은 값이 아니에요 — 0과도 빈칸과도 달라요 {{#definition}}
 
-NULL은 "값이 없음" 또는 "아직 모름"을 뜻하는 표시예요. 김민수의 커미션이 NULL이라는 것은 커미션이 0원이라는 뜻이 아니라, 커미션이 정해지지 않았거나 알 수 없다는 뜻이에요. 그래서 박서준처럼 커미션이 0인 사원과 김민수처럼 커미션이 NULL인 사원은 서로 다른 상태예요.
+| 용어 | 뜻 |
+|---|---|
+| NULL | 값이 없음, 또는 아직 모름을 뜻하는 표시예요. 김민수의 커미션 NULL은 0원이 아니라 정해지지 않았다는 뜻이에요 |
+| 0 | 숫자 값이에요. 커미션이 0인 박서준과 NULL인 김민수는 서로 다른 상태예요 |
+| UNKNOWN | NULL이 들어간 비교의 결과예요. 참(TRUE)도 거짓(FALSE)도 아닌 "모름"이에요 |
 
-## 비교하면 UNKNOWN이 돼요 {{#unknown}}
+NULL 규칙은 아래 두 줄로 외우고, 문제를 풀 때마다 NULL이 있는 칸부터 찾으면 몸에 붙어요.
 
-모르는 값과 무엇을 비교해도 맞는지 틀린지 알 수 없어요. 그래서 SQL은 NULL이 들어간 비교의 결과를 참(TRUE)도 거짓(FALSE)도 아닌 **UNKNOWN**으로 처리해요. 그런데 WHERE 절은 조건이 참인 행만 남기기 때문에, UNKNOWN이 나온 행은 결과에서 빠져요.
+| NULL이 섞이면 | 결과 |
+|---|---|
+| 계산 (`+`, `-`, `*`, `/`) | NULL |
+| 비교 (`=`, `<>`, `>`, IN 등) | UNKNOWN, 그래서 WHERE에서 빠져요 |
+
+## 비교하면 UNKNOWN — 그래서 IS NULL로 찾아요 {{#unknown}}
+
+모르는 값과 무엇을 비교해도 맞는지 틀린지 알 수 없어서 결과가 UNKNOWN이 되고, WHERE 절은 참인 행만 남기니 그 행은 빠져요. NULL 여부를 확인하는 전용 연산자는 `IS NULL`과 `IS NOT NULL`이고, 이 둘은 UNKNOWN이 아니라 참이나 거짓으로 답해요.
 
 ```sql
 SELECT 이름 FROM 사원 WHERE 커미션 = NULL;      -- 모든 행이 UNKNOWN이라 0행이에요
@@ -43,33 +61,47 @@ SELECT 이름 FROM 사원 WHERE 커미션 IS NOT NULL; -- 커미션이 있는 �
 | `커미션 IS NULL` | 김민수, 최유나, 정하늘, 윤서연 |
 | `커미션 IS NOT NULL` | 이지은, 박서준, 한도윤, 오지민 |
 
-NULL 자체를 확인하는 전용 연산자가 `IS NULL`과 `IS NOT NULL`이고, 이 둘은 UNKNOWN이 아니라 참이나 거짓으로 답해요.
+## NULL이 섞인 계산 — 결과도 NULL {{#null-arithmetic}}
 
-## 자주 헷갈리는 점 {{#confusing}}
+김민수의 `급여 + 커미션`은 3000이 아니라 NULL이에요. 커미션이 없을 때 0으로 보고 더하려면 `NVL(커미션, 0)`을 쓰는데, NVL은 첫 값이 NULL이면 두 번째 값을 돌려주는 함수이고 4단원에서 자세히 다뤄요.
 
-**같지 않다(`<>`)로 걸러도 NULL은 따라 나오지 않아요.** "커미션이 300이 아닌 사원"을 `WHERE 커미션 <> 300`으로 찾으면 박서준, 한도윤, 오지민 세 명만 나와요. 커미션이 NULL인 네 명은 커미션이 300이 아닌데도, 비교 결과가 UNKNOWN이라서 빠지기 때문이에요. NULL인 사원까지 포함하려면 `WHERE 커미션 <> 300 OR 커미션 IS NULL`처럼 따로 적어야 해요.
+{NULL_ARITHMETIC_EXAMPLE.markdown}
 
-**NOT IN 목록에 NULL이 하나라도 있으면 결과가 0행이 돼요.** `WHERE 부서번호 NOT IN (10, NULL)`은 `부서번호 <> 10 AND 부서번호 <> NULL`과 같은데, 뒤쪽 비교가 항상 UNKNOWN이라서 전체가 참이 될 수 없어요. 반대로 `IN (10, NULL)`은 `= 10 OR = NULL`이라서, 부서번호가 10인 김민수 한 명은 정상적으로 나와요.
+## 자주 헷갈리는 점 — <>, NOT IN, AND·OR {{#confusing}}
 
-**NULL이 섞인 계산은 결과도 NULL이에요.** `급여 + 커미션`을 계산하면 이지은과 박서준은 2800이 나오지만, 김민수는 3000이 아니라 NULL이 나와요. 커미션이 NULL인 나머지 세 명도 마찬가지예요. 커미션이 없을 때 0으로 보고 더하려면 `급여 + NVL(커미션, 0)`처럼 써요. NVL은 첫 번째 값이 NULL이면 두 번째 값(여기서는 0)을, 아니면 원래 값을 돌려주는 함수이고, SQL 함수 단원에서 자세히 다뤄요.
+| 헷갈리는 말 | 실제로는 |
+|---|---|
+| `커미션 <> 300`이면 커미션이 NULL인 사원도 나와요 | NULL인 네 명은 비교가 UNKNOWN이라 빠지고 박서준, 한도윤, 오지민만 나와요. 포함하려면 `OR 커미션 IS NULL`을 따로 적어요 |
+| `NOT IN (10, NULL)`은 10번이 아닌 사원을 찾아요 | `<> 10 AND <> NULL`인데 뒤쪽이 늘 UNKNOWN이라 0행이에요. `IN (10, NULL)`은 OR이라 김민수 한 명이 나와요 |
+| 커미션이 NULL이면 0으로 보고 더해요 | 계산 결과가 NULL이에요. 0으로 보려면 NVL을 써요 |
+| `NULL = NULL`은 참이에요 | NULL끼리 비교해도 UNKNOWN이에요 |
+| `이름 = ''`로 빈 이름을 찾을 수 있어요 | Oracle은 빈 문자열을 NULL로 다뤄서 `= ''`는 `= NULL`과 같고 0행이에요. `커미션 = ''`처럼 숫자 열에 써도 0행이고, SQL Server는 빈 문자열과 NULL을 구분해요 |
 
-**AND와 OR에 UNKNOWN이 섞이면 결과가 달라져요.** UNKNOWN을 "참일 수도, 거짓일 수도 있는 값"으로 보고, 어느 쪽이어도 결과가 같으면 그 결과가 되고 달라지면 UNKNOWN으로 남는다고 생각하면 아래 표가 바로 나와요.
+UNKNOWN을 "참일 수도 거짓일 수도 있는 값"으로 보면, 어느 쪽이어도 결과가 같을 때만 그 결과가 정해져요.
 
 | 조합 | 결과 | 이유 |
 |---|---|---|
-| 거짓 AND UNKNOWN | 거짓 | 한쪽이 거짓이면 AND는 무조건 거짓 |
-| 참 AND UNKNOWN | UNKNOWN | UNKNOWN 쪽에 따라 참도 거짓도 될 수 있음 |
-| 참 OR UNKNOWN | 참 | 한쪽이 참이면 OR는 무조건 참 |
-| 거짓 OR UNKNOWN | UNKNOWN | UNKNOWN 쪽에 따라 참도 거짓도 될 수 있음 |
-| NOT UNKNOWN | UNKNOWN | 모르는 값을 뒤집어도 여전히 모름 |
+| 거짓 AND UNKNOWN | 거짓 | 한쪽이 거짓이면 AND는 늘 거짓 |
+| 참 AND UNKNOWN | UNKNOWN | UNKNOWN 쪽에 따라 참도 거짓도 됨 |
+| 참 OR UNKNOWN | 참 | 한쪽이 참이면 OR는 늘 참 |
+| 거짓 OR UNKNOWN | UNKNOWN | UNKNOWN 쪽에 따라 참도 거짓도 됨 |
+| NOT UNKNOWN | UNKNOWN | 모르는 값을 뒤집어도 모름 |
 
-`NULL = NULL`도 참이 아니라 UNKNOWN이라는 점을 함께 기억해 두면 좋아요.
+```sql
+SELECT 이름 FROM 사원 WHERE 커미션 <> 300 OR 커미션 IS NULL;   -- 이지은을 뺀 7명이 나와요
+SELECT 이름 FROM 사원 WHERE 부서번호 IN (10, NULL);             -- 김민수 한 명이 나와요
+SELECT 이름 FROM 사원 WHERE 이름 = '';                          -- 빈 문자열이 NULL이라 0행이에요
+```
 
-**Oracle에서는 빈 문자열이 곧 NULL이에요.** Oracle은 빈 문자열 `''`를 NULL로 다루기 때문에 `WHERE 이름 = ''`는 아무 행도 돌려주지 않아요. `WHERE 커미션 = ''`처럼 다른 열에 써도 사실상 `= NULL`과 같은 조건이 되어서, 결과는 역시 0행이에요. SQL Server처럼 빈 문자열과 NULL을 구분하는 데이터베이스도 있어서, 시험 보기에서 이 차이를 묻기도 해요.
+| 바로 확인 | 정답 | 이유 |
+|---|---|---|
+| 거짓 AND UNKNOWN의 결과는 거짓이에요 | O | 한쪽이 거짓이면 다른 쪽과 상관없이 AND는 거짓이에요 |
+| 커미션이 0인 박서준은 `커미션 IS NULL` 조건에 걸려요 | X | 0은 값이라서 박서준에게 IS NULL은 거짓이에요 |
+| `IS NOT NULL`의 결과는 UNKNOWN이 될 수 없어요 | O | IS NULL과 IS NOT NULL은 참이나 거짓으로만 답해요 |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 
-예시 표를 주고 `<>`나 `NOT IN`을 쓴 SQL의 결과 행 수를 묻는 문제가 가장 많아요. 이때는 조건 칸에 NULL이 있는 행부터 찾아서 결과에서 빼고 세면 실수가 줄어요. 그 밖에 NULL을 찾는 올바른 조건을 고르는 문제, NULL이 섞인 계산 결과를 묻는 문제, 참·거짓·UNKNOWN의 AND와 OR 결과를 묻는 문제가 자주 나와요.""",
+예시 표를 주고 `<>`나 `NOT IN`을 쓴 SQL의 결과 행 수를 묻는 문제가 가장 많고, 조건 칸에 NULL이 있는 행부터 빼고 세면 실수가 줄어요. NULL을 찾는 올바른 조건, NULL이 섞인 계산 결과, 참·거짓·UNKNOWN의 AND와 OR 결과도 자주 물어요.""",
     "checkQuestions": [
         question(1, "커미션이 NULL인 사원을 찾는 WHERE 조건으로 올바른 것은 무엇인가요?", "unknown",
                  "NULL과의 비교는 UNKNOWN이 되므로 = NULL로는 찾을 수 없어요. NULL 여부는 IS NULL로 확인해요.",
@@ -116,6 +148,7 @@ NULL 자체를 확인하는 전용 연산자가 `IS NULL`과 `IS NOT NULL`이고
         sql_check("SELECT 이름 FROM 사원 WHERE 부서번호 IN (10, NULL)", [["김민수"]]),
         sql_check("SELECT 급여 + 커미션 FROM 사원 WHERE 사번 = 1001;", [[None]]),
         sql_check("SELECT 이름, 급여 + 커미션 FROM 사원 WHERE 사번 IN (1002, 1003)", [["이지은", 2800], ["박서준", 2800]]),
+        NULL_ARITHMETIC_EXAMPLE.check,
         sql_check("SELECT 이름 FROM 사원 WHERE 이름 = ''", []),
         sql_check("SELECT 이름 FROM 사원 WHERE 커미션 = ''", []),
     ],
