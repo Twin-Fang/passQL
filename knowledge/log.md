@@ -135,3 +135,4 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-05 13:10 | W4 | new decision | DEC-0255-code-font-d2coding-subset
 - 2026-11-05 13:10 | W2 | cluster update | cluster-design-system
 - 2026-11-05 13:10 | W2 | fix members count | cluster-design-system
+- 2026-11-05 13:40 | W6 | update open issue (11-04 화면 검증, 11-05 앱 수정·CI) | ISS-0361
