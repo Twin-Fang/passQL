@@ -3,13 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/question/question_schema_table.dart';
 import '../../design/design.dart';
+import '../../providers/plan_providers.dart';
 import '../../providers/sql_practice_providers.dart';
 import '../pro/locked_preview_samples.dart';
 import '../pro/pro_locked_section.dart';
+import '../pro/pro_offer_sheet.dart';
 import 'execute_result_card.dart';
 import 'sql_practice_editor_sheet.dart';
 
+// 프로 안내 시트 강조 혜택: SQL 직접 실행 (proBenefits 순서)
+const int _sqlExecutionBenefitIndex = 1;
+
 /// 채점 뒤 직접 실행해보기 칸: 시작 SQL(정답·내 답·빈 칸) > 고치기 시트 > 실제 DB 실행 결과 (#727)
+/// 무료·결제 켜짐: 실행 > 요청 없이 이용권 시트 (실행 결과 잠금은 위 결과 칸 하나만)
 class SqlPracticeCard extends ConsumerWidget {
   const SqlPracticeCard({
     super.key,
@@ -43,6 +49,20 @@ class SqlPracticeCard extends ConsumerWidget {
     final practice = ref.watch(sqlPracticeProvider(questionUuid));
     final notifier = ref.read(sqlPracticeProvider(questionUuid).notifier);
     final currentSql = practice.draftSql ?? _startSqlOf(practice.start);
+    final isExecutionLocked = ref.watch(shouldShowProUiProvider);
+
+    /// 실행: 잠금이면 이용권 시트, 아니면 실제 DB 실행
+    Future<void> runOrOpenOffer(String sql) async {
+      if (isExecutionLocked) {
+        await showProOfferSheet(
+          context,
+          ref,
+          focusedBenefitIndex: _sqlExecutionBenefitIndex,
+        );
+        return;
+      }
+      await notifier.run(sql);
+    }
 
     /// 고치기 시트 > 실행을 눌렀으면 고친 SQL 실행
     Future<void> openEditor() async {
@@ -54,7 +74,7 @@ class SqlPracticeCard extends ConsumerWidget {
       );
       if (shouldRun != true) return;
       final latestPractice = ref.read(sqlPracticeProvider(questionUuid));
-      await notifier.run(
+      await runOrOpenOffer(
         latestPractice.draftSql ?? _startSqlOf(latestPractice.start),
       );
     }
@@ -98,10 +118,11 @@ class SqlPracticeCard extends ConsumerWidget {
             const SizedBox(height: PassqlSpacing.sm),
             _PracticeActions(
               isExecuting: practice.isExecuting,
+              isRunLocked: isExecutionLocked,
               onEdit: openEditor,
               onRun: currentSql.trim().isEmpty
                   ? null
-                  : () => notifier.run(currentSql),
+                  : () => runOrOpenOffer(currentSql),
             ),
             _PracticeOutcome(practice: practice),
           ],
@@ -148,15 +169,17 @@ class _PracticeSqlPreview extends StatelessWidget {
   }
 }
 
-/// 고치기 · 실행 버튼 한 줄 ([onRun] null 이면 실행 비활성)
+/// 고치기 · 실행 버튼 한 줄 ([onRun] null 이면 실행 비활성, 잠금이면 실행 아이콘 자물쇠)
 class _PracticeActions extends StatelessWidget {
   const _PracticeActions({
     required this.isExecuting,
+    required this.isRunLocked,
     required this.onEdit,
     required this.onRun,
   });
 
   final bool isExecuting;
+  final bool isRunLocked;
   final VoidCallback onEdit;
   final VoidCallback? onRun;
 
@@ -177,7 +200,9 @@ class _PracticeActions extends StatelessWidget {
         Expanded(
           child: PassqlButton(
             label: '실행',
-            icon: CupertinoIcons.play_fill,
+            icon: isRunLocked
+                ? CupertinoIcons.lock_fill
+                : CupertinoIcons.play_fill,
             isLoading: isExecuting,
             onPressed: onRun,
             size: PassqlButtonSize.regular,
