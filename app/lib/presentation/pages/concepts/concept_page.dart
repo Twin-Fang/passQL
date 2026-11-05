@@ -11,6 +11,7 @@ import '../../design/design.dart';
 import '../../flows/concept_related_flow.dart';
 import '../../providers/concept_providers.dart';
 import '../../widgets/concept/concept_read_view.dart';
+import '../../widgets/concept/concept_reading_parser.dart';
 import '../../widgets/concept/concept_result_view.dart';
 import '../../widgets/concept/concept_solve_view.dart';
 import '../../widgets/pro/locked_preview_samples.dart';
@@ -223,7 +224,8 @@ class _ConceptStudyScaffold extends ConsumerWidget {
                   // 풀이 시트의 다시 읽기 버튼에 "4. 문단 제목"을 보여 주려고 (읽기 문단 카드 번호와 같게)
                   rereadLabelByAnchor: {
                     for (final (i, section) in detail.detailSections.indexed)
-                      section.anchor: '${i + 1}. ${section.title}',
+                      section.anchor:
+                          '${i + 1}. ${ConceptReadingParser.splitTitle(section.title).title}',
                   },
                   relatedQuestionCount: relatedQuestionCount,
                   onRelatedQuestionsPressed: () => context.push(
