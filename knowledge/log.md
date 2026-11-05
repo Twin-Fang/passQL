@@ -128,3 +128,6 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-05 10:43 | W4 | new decision | DEC-0254-app-clock-single-today-source
 - 2026-11-05 10:43 | W2 | cluster update | cluster-dev-workflow
 - 2026-11-05 10:43 | W2 | fix members count, summary refresh | cluster-dev-workflow
+- 2026-11-05 13:11 | W6 | ingest issue+report #848 | ISS-0456-concept-lesson-textbook-blocks, ISS-0456-concept-lesson-textbook-blocks-report
+- 2026-11-05 13:11 | W4 | new decision, DEC-0253 superseded | DEC-0256-concept-lesson-blocks-by-table-header, DEC-0253-concept-collapse-only-long-later-sections
+- 2026-11-05 13:11 | W2 | cluster update | cluster-concept-learning
