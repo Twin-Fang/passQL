@@ -1,6 +1,6 @@
 """개념: SELECT 문의 구조와 실행 순서 (2단원, 확인 문제 5개)"""
 
-from concept_bundle import choice, question, sql_check, sql_error_check
+from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
 from concept_dataset import to_employee_table_md
 
 EMPLOYEE_SALARY_TABLE = to_employee_table_md("사번", "이름", "급여", "부서번호")
@@ -14,27 +14,42 @@ GROUPED_EXAMPLE_SQL = (
     "HAVING COUNT(*) >= 2\n"
     "ORDER BY 인원 DESC;"
 )
+GROUPED_EXAMPLE = sql_example(GROUPED_EXAMPLE_SQL, ("부서번호", "인원"), [[20, 3], [30, 2]])
+# WHERE 에 별칭 대신 계산식을 다시 적은 예시 (연봉 30000 초과 4명)
+ANNUAL_SALARY_WHERE_EXAMPLE = sql_example(
+    "SELECT 이름, 급여 * 12 AS 연봉 FROM 사원 WHERE 급여 * 12 > 30000;", ("이름", "연봉"),
+    [["김민수", 36000], ["박서준", 33600], ["최유나", 38400], ["한도윤", 32400]], is_ordered=False)
+# HAVING 에 별칭 대신 식을 다시 적은 예시 (3명 이상 부서 2개)
+HAVING_COUNT_EXAMPLE = sql_example(
+    "SELECT 부서번호, COUNT(*) AS 인원 FROM 사원 GROUP BY 부서번호 HAVING COUNT(*) >= 3;", ("부서번호", "인원"),
+    [[20, 3], [30, 3]], is_ordered=False)
 
 CONCEPT = {
     "tagKey": "select-structure-order",
     "topicCode": "sql_basic_select",
     "sortOrder": 2,
     "title": "SELECT 문의 구조와 실행 순서",
-    "summary": "SELECT 문은 쓰는 순서와 실행되는 순서가 달라서, 별칭을 쓸 수 있는 곳이 갈려요",
+    "summary": "쓰는 순서와 실행 순서가 달라서, 별칭을 쓸 수 있는 곳이 갈려요",
     "coreMd": (
-        "- SELECT 문은 SELECT, FROM, WHERE, GROUP BY, HAVING, ORDER BY 순서로 쓰지만, 실제로는 FROM, WHERE, GROUP BY, HAVING, SELECT, ORDER BY 순서로 처리돼요.\n"
-        "- SELECT 절이 끝에서 두 번째로 처리되기 때문에, SELECT에서 붙인 별칭은 WHERE·GROUP BY·HAVING에서는 쓸 수 없고 ORDER BY에서만 쓸 수 있어요.\n"
-        "- Oracle은 FROM 절을 꼭 써야 해서, 표 없이 계산만 할 때는 한 행짜리 표 `DUAL`을 FROM에 적어요."
+        "- SELECT 문은 SELECT, FROM, WHERE, GROUP BY, HAVING, ORDER BY 순서로 써요.\n"
+        "- 실제로는 FROM, WHERE, GROUP BY, HAVING, SELECT, ORDER BY 순서로 처리돼요.\n"
+        "- SELECT에서 붙인 별칭은 WHERE·GROUP BY·HAVING에서는 못 쓰고 ORDER BY에서만 써요.\n"
+        "- WHERE는 묶기 전에 처리되어서 COUNT 같은 그룹 함수를 쓸 수 없어요.\n"
+        "- Oracle은 FROM 절이 꼭 있어야 해서, 계산만 할 때는 한 행짜리 표 `DUAL`을 적어요."
     ),
-    "detailMd": f"""## 왜 실행 순서를 알아야 하나요 {{#why}}
+    "detailMd": f"""## 왜 실행 순서를 알아야 할까요 — 별칭과 오류를 가르는 기준 {{#why}}
 
-테이블, 행, 열이 무엇인지와 SQL이 어떤 언어인지는 바로 앞 개념 "관계형 데이터베이스와 SQL의 특징"에서 다뤘어요. 이 개념은 SQL 문장 중 가장 많이 쓰는 SELECT 문이 어떤 절로 이루어지고, 그 절들이 어떤 순서로 처리되는지를 다뤄요. 처리 순서를 알아야 SELECT에서 붙인 이름을 어디에 쓸 수 있는지, 어떤 SQL이 오류가 나는지를 판단할 수 있어요.
+SELECT 문은 가장 많이 쓰는 SQL 문장인데, 쓴 순서와 처리되는 순서가 달라요. 처리 순서를 알아야 SELECT에서 붙인 이름을 어디에 쓸 수 있는지, 어떤 SQL이 오류가 나는지를 판단할 수 있어요.
 
-SQL로 쓴 명령 하나를 SQL 문장이라고 하고, 문장 끝에는 세미콜론(`;`)을 붙여요. `SELECT`, `select`처럼 명령어는 대문자와 소문자를 구분하지 않지만, 작은따옴표 안에 쓴 값(`'김민수'`)은 글자 그대로 비교해요.
+| 용어 | 뜻 |
+|---|---|
+| SQL 문장 | SQL로 쓴 명령 하나예요. 문장 끝에는 세미콜론(`;`)을 붙여요 |
+| 명령어의 대소문자 | `SELECT`와 `select`는 같아요. 명령어는 대소문자를 구분하지 않아요 |
+| 작은따옴표 안의 값 | `'김민수'`처럼 따옴표 안에 쓴 값은 글자 그대로 비교해요 |
 
-## SELECT 문의 생김새 {{#definition}}
+## SELECT 문의 생김새 — 정해진 순서로 쓰는 여섯 절 {{#definition}}
 
-SELECT 문은 테이블에서 원하는 행과 열을 골라 보여 달라는 문장이에요. 문장은 몇 개의 **절**로 이루어지는데, 절은 `WHERE 급여 >= 2500`처럼 키워드 하나로 시작하는 문장의 한 부분을 말해요. 절은 정해진 순서대로만 쓸 수 있어요.
+**절**은 `WHERE 급여 >= 2500`처럼 키워드 하나로 시작하는 문장의 한 부분이에요. SELECT 문은 아래 여섯 절을 이 순서대로만 쓸 수 있어요.
 
 | 쓰는 순서 | 절 | 하는 일 | 꼭 써야 하나요 |
 |---|---|---|---|
@@ -42,98 +57,112 @@ SELECT 문은 테이블에서 원하는 행과 열을 골라 보여 달라는 �
 | 2 | FROM | 읽을 테이블을 정해요 | Oracle에서는 필수 |
 | 3 | WHERE | 조건에 맞는 행만 남겨요 | 선택 |
 | 4 | GROUP BY | 같은 값끼리 행을 묶어요 | 선택 |
-| 5 | HAVING | 묶은 결과 중 조건에 맞는 묶음만 남겨요 | 선택 |
+| 5 | HAVING | 묶음 중 조건에 맞는 묶음만 남겨요 | 선택 |
 | 6 | ORDER BY | 결과 행의 순서를 정해요 | 선택 |
 
-가장 짧은 SELECT 문은 SELECT와 FROM만으로 이루어져요. `*`는 "모든 열"을 뜻해요.
+가장 짧은 SELECT 문은 SELECT와 FROM만으로 이루어져요. `*`는 모든 열을 뜻해요.
 
 ```sql
 SELECT * FROM 사원;              -- 사원 테이블의 모든 열을 보여 줘요
 SELECT 이름, 급여 FROM 사원;     -- 이름과 급여 열만 보여 줘요
 ```
 
-## 쓰는 순서와 실행 순서 {{#execution-order}}
+## 실행 순서 — FROM에서 시작해 ORDER BY로 끝나요 {{#execution-order}}
 
-SELECT 문은 위에서 아래로 쓴 순서대로 처리되지 않아요. 데이터베이스는 "어느 테이블을 읽을지"를 알아야 일을 시작할 수 있기 때문에 FROM부터 처리하고, 보여 줄 열을 정하는 SELECT는 거의 끝에 처리해요. 이 순서를 논리적 실행 순서라고 불러요.
+데이터베이스는 어느 테이블을 읽을지 알아야 일을 시작할 수 있어서 FROM부터 처리하고, 보여 줄 열을 정하는 SELECT는 끝에서 두 번째로 처리해요. 이 순서를 **논리적 실행 순서**라고 불러요.
 
-1. FROM: 읽을 테이블을 정해요.
-2. WHERE: 조건에 맞는 행만 남겨요.
-3. GROUP BY: 남은 행을 같은 값끼리 묶어요.
-4. HAVING: 묶음 중 조건에 맞는 묶음만 남겨요.
-5. SELECT: 보여 줄 열과 계산식을 만들고, 별칭(열에 새로 붙이는 이름)을 붙여요.
-6. ORDER BY: 결과 행의 순서를 정해요.
+| 단계 | 내용 |
+|---|---|
+| 1 FROM | 읽을 테이블을 정해요 |
+| 2 WHERE | 조건에 맞는 행만 남겨요 |
+| 3 GROUP BY | 남은 행을 같은 값끼리 묶어요 |
+| 4 HAVING | 묶음 중 조건에 맞는 묶음만 남겨요 |
+| 5 SELECT | 보여 줄 열과 계산식을 만들고 별칭을 붙여요 |
+| 6 ORDER BY | 결과 행의 순서를 정해요 |
 
-아래 SQL을 이 순서대로 따라가 볼게요. `COUNT(*)`는 묶음마다 행이 몇 개인지 세는 함수예요. 이렇게 여러 행을 묶어 값 하나를 계산하는 함수를 **그룹 함수**라고 부르고, 7단원에서 자세히 다뤄요. `AS 인원`은 계산한 열에 "인원"이라는 새 이름을 붙인다는 뜻이고, 이런 이름을 **별칭**이라고 불러요.
+| 외우기 | 뜻 |
+|---|---|
+| 프 | FROM: 테이블을 가져와요 |
+| 웨 | WHERE: 행을 걸러요 |
+| 그 | GROUP BY: 행을 묶어요 |
+| 해 | HAVING: 묶음을 걸러요 |
+| 셀 | SELECT: 열을 골라요 |
+| 오 | ORDER BY: 줄을 세워요 |
+
+쓰는 순서는 SELECT가 맨 앞이고 실행 순서는 FROM이 맨 앞이라, 시험은 이 두 순서를 섞어 보기로 내요. ORDER BY는 두 순서 모두에서 맨 끝이에요.
+
+## 한 문장 따라가기 — 단계마다 줄어드는 행 {{#walkthrough}}
+
+`COUNT(*)`는 묶음마다 행 수를 세는 함수이고, 이렇게 여러 행으로 값 하나를 내는 함수를 **그룹 함수**라고 불러요(7단원). `AS 인원`은 계산한 열에 새 이름을 붙이는 **별칭**이에요.
 
 {EMPLOYEE_SALARY_TABLE}
 
-```sql
-{GROUPED_EXAMPLE_SQL}
-```
+{GROUPED_EXAMPLE.markdown}
 
-| 순서 | 절 | 이 단계가 끝난 뒤 남는 것 |
-|---|---|---|
-| 1 | FROM 사원 | 8명 전부 |
-| 2 | WHERE 급여 >= 2500 | 급여가 2500 미만인 오지민, 윤서연이 빠지고 6명 |
-| 3 | GROUP BY 부서번호 | 10번 1명, 20번 3명, 30번 2명의 세 묶음 |
-| 4 | HAVING COUNT(*) >= 2 | 한 명뿐인 10번이 빠지고 20번, 30번 두 묶음 |
-| 5 | SELECT 부서번호, COUNT(*) AS 인원 | 묶음마다 부서번호와 인원 열이 만들어져요 |
-| 6 | ORDER BY 인원 DESC | 인원이 많은 순서로 줄을 세워요 |
-
-| 부서번호 | 인원 |
+| 단계 | 내용 |
 |---|---|
-| 20 | 3 |
-| 30 | 2 |
+| 1 FROM 사원 | 8명 전부가 대상이에요 |
+| 2 WHERE 급여 >= 2500 | 2500 미만인 오지민, 윤서연이 빠지고 6명이 남아요 |
+| 3 GROUP BY 부서번호 | 10번 1명, 20번 3명, 30번 2명의 세 묶음이 생겨요 |
+| 4 HAVING COUNT(*) >= 2 | 한 명뿐인 10번이 빠지고 두 묶음이 남아요 |
+| 5 SELECT | 묶음마다 부서번호와 인원 열을 만들어요 |
+| 6 ORDER BY 인원 DESC | 인원이 많은 순서로 줄을 세워요 |
 
-## 자주 헷갈리는 점 {{#confusing}}
+## 자주 헷갈리는 점 — 별칭은 ORDER BY에서만 {{#confusing}}
 
-**WHERE에서는 SELECT의 별칭을 쓸 수 없어요.** 연봉이 30000보다 많은 사람을 찾으려고 아래 첫 문장처럼 쓰면 오류가 나요. WHERE는 2번째로 처리되는데, "연봉"이라는 이름은 5번째 단계인 SELECT에서야 생기기 때문이에요. WHERE가 일하는 시점에는 사원 테이블에 연봉이라는 열이 없으니, 계산식을 그대로 다시 적어야 해요.
+연봉이라는 별칭은 5번째인 SELECT에서야 생겨요. 그래서 2번째인 WHERE에서 연봉을 쓰면 오류가 나고, 계산식을 그대로 다시 적어야 해요.
 
 ```sql
-SELECT 이름, 급여 * 12 AS 연봉 FROM 사원 WHERE 연봉 > 30000;    -- 오류: WHERE 시점에는 연봉이라는 열이 없어요
-SELECT 이름, 급여 * 12 AS 연봉 FROM 사원 WHERE 급여 * 12 > 30000; -- 계산식을 다시 적으면 정상이에요
+SELECT 이름, 급여 * 12 AS 연봉 FROM 사원 WHERE 연봉 > 30000;  -- 오류: WHERE 시점에는 연봉이라는 열이 없어요 (ORA-00904, 없는 열 이름)
 ```
 
-| 이름 | 연봉 |
+{ANNUAL_SALARY_WHERE_EXAMPLE.markdown}
+
+HAVING도 SELECT보다 먼저라서 별칭 대신 식을 다시 적어요. ORDER BY는 SELECT 뒤라서 `ORDER BY 연봉 DESC`, `ORDER BY 인원`처럼 별칭을 그대로 써도 돼요.
+
+```sql
+SELECT 부서번호, COUNT(*) AS 인원 FROM 사원 GROUP BY 부서번호 HAVING 인원 >= 3;  -- 오류: 별칭은 HAVING에서 못 써요
+SELECT 이름 FROM 사원 WHERE 급여 > AVG(급여);  -- 오류: WHERE에는 그룹 함수를 못 써요 (ORA-00934, 그룹 함수를 쓸 수 없는 자리)
+SELECT 이름, 급여 * 12 AS 연봉 FROM 사원 ORDER BY 연봉 DESC;  -- ORDER BY에서는 별칭이 정상으로 쓰여요
+```
+
+{HAVING_COUNT_EXAMPLE.markdown}
+
+| 헷갈리는 말 | 실제로는 |
 |---|---|
-| 김민수 | 36000 |
-| 박서준 | 33600 |
-| 최유나 | 38400 |
-| 한도윤 | 32400 |
+| WHERE에서도 SELECT의 별칭을 쓸 수 있어요 | WHERE는 SELECT보다 먼저 처리되어 별칭을 몰라요. 계산식을 다시 적어요 |
+| HAVING은 GROUP BY 뒤라서 별칭을 써도 돼요 | HAVING도 SELECT보다 먼저예요. `COUNT(*) >= 3`처럼 식을 다시 적어요 |
+| 별칭은 SELECT 밖에서는 어디서도 못 써요 | SELECT 뒤에 처리되는 ORDER BY 한 곳에서는 쓸 수 있어요 |
+| 묶음의 개수나 평균 조건은 WHERE에 적어요 | WHERE는 묶기 전이라 그룹 함수를 못 써요. 묶음 조건은 HAVING에 적어요 |
+| DBMS는 실행 순서 그대로 실제 작업을 해요 | 결과를 정하는 논리적 규칙이에요. 내부 작업 순서를 바꿔도 결과는 이 순서로 처리한 것과 같아요 |
 
-**ORDER BY에서는 별칭을 쓸 수 있어요.** ORDER BY는 SELECT보다 뒤인 6번째로 처리되므로, 그때는 연봉이라는 이름이 이미 만들어져 있어요. 그래서 `ORDER BY 연봉 DESC`는 정상으로 실행돼요. 별칭을 쓸 수 있는 곳은 SELECT 뒤에 처리되는 ORDER BY 하나뿐이라고 기억하면 돼요.
+AVG는 평균을 구하는 그룹 함수이고, 그룹 함수와 HAVING은 7단원에서 자세히 다뤄요.
 
-```sql
-SELECT 이름, 급여 * 12 AS 연봉 FROM 사원 ORDER BY 연봉 DESC;
-```
+## FROM 없는 계산 — Oracle은 DUAL을 적어요 {{#dual}}
 
-**GROUP BY와 HAVING도 SELECT보다 먼저라서 별칭을 못 써요.** `HAVING 인원 >= 3`처럼 별칭을 쓰면 WHERE와 같은 이유로 오류가 나요. HAVING에는 `COUNT(*) >= 3`처럼 식을 다시 적고, ORDER BY에서는 `인원`을 그대로 써도 돼요.
-
-```sql
-SELECT 부서번호, COUNT(*) AS 인원 FROM 사원 GROUP BY 부서번호 HAVING 인원 >= 3;       -- 오류: 별칭은 HAVING에서 못 써요
-SELECT 부서번호, COUNT(*) AS 인원 FROM 사원 GROUP BY 부서번호 HAVING COUNT(*) >= 3; -- 식을 다시 적으면 정상이에요
-```
-
-| 부서번호 | 인원 |
-|---|---|
-| 20 | 3 |
-| 30 | 3 |
-
-**WHERE에는 COUNT 같은 그룹 함수를 쓸 수 없어요.** 그룹 함수는 묶음마다 값을 계산하는 함수인데, WHERE는 행을 묶기 전(GROUP BY보다 먼저)에 처리되므로, 아직 묶음이 없어서 묶음의 개수나 평균을 계산할 수 없어요. 묶음에 거는 조건은 HAVING에 적어요. 자세한 내용은 그룹 함수 단원에서 다뤄요.
-
-**Oracle은 FROM 절이 없으면 오류가 나요.** 테이블과 상관없이 `3 * 4` 같은 계산만 하고 싶을 때도 Oracle은 FROM을 요구해요. 이럴 때 쓰는 테이블이 **DUAL**인데, Oracle이 처음부터 만들어 두는 한 행, 한 열(DUMMY 열, 값 `X`)짜리 테이블이에요. 행이 하나뿐이라 계산 결과도 한 번만 나와요. SQL Server는 FROM 없이 `SELECT 3 * 4`만 써도 실행된다는 점이 다르고, 시험에서는 이 차이를 보기로 내기도 해요.
+Oracle은 `3 * 4` 같은 계산만 할 때도 FROM을 요구해요. 이럴 때 쓰는 **DUAL**은 Oracle이 처음부터 만들어 두는 한 행, 한 열(DUMMY 열, 값 `X`)짜리 테이블이라 계산 결과가 한 번만 나와요.
 
 ```sql
 SELECT 3 * 4 FROM DUAL;   -- 결과는 12예요
 SELECT * FROM DUAL;       -- X 한 행이 나와요
-SELECT 3 * 4;             -- 오류: Oracle은 FROM을 꼭 써야 해요
+SELECT 3 * 4;             -- 오류: Oracle은 FROM을 꼭 써야 해요 (ORA-00923, FROM이 있어야 할 자리)
 ```
 
-**실행 순서는 결과를 정하는 규칙이지, 실제 작업 순서가 아니에요.** 데이터베이스는 더 빨리 끝내려고 내부에서 작업 순서를 바꾸기도 해요. 하지만 결과는 항상 위 여섯 단계 순서대로 처리한 것과 같아서, 별칭이나 그룹 함수를 어디에 쓸 수 있는지는 이 순서로 판단하면 돼요.
+| DBMS | `SELECT 3 * 4` (FROM 없음) |
+|---|---|
+| Oracle | 오류가 나요. `FROM DUAL`을 붙여요 |
+| SQL Server | FROM 없이도 실행돼요 |
+
+| 바로 확인 | 정답 | 이유 |
+|---|---|---|
+| HAVING은 SELECT보다 먼저 처리돼요 | O | 순서는 GROUP BY, HAVING 다음에 SELECT예요 |
+| GROUP BY 절에는 SELECT에서 붙인 별칭을 쓸 수 있어요 | X | GROUP BY도 SELECT보다 먼저 처리되어 별칭을 몰라요 |
+| DUAL은 행이 하나뿐이라 `SELECT 3 * 4 FROM DUAL`은 한 행이 나와요 | O | DUAL은 DUMMY 열 하나, 값 X 한 행짜리 테이블이에요 |
+| SQL Server도 FROM이 없는 SELECT는 오류가 나요 | X | FROM을 꼭 요구하는 것은 Oracle이고, SQL Server는 FROM 없이도 실행돼요 |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 
-절들을 섞어 놓고 논리적 실행 순서대로 고르는 문제가 가장 많이 나와요. FROM에서 시작하고 SELECT가 끝에서 두 번째, ORDER BY가 맨 끝이라는 것만 확실히 하면 풀 수 있어요. 그다음으로 SELECT에서 붙인 별칭을 WHERE나 HAVING에 써서 오류가 나는 SQL을 고르는 문제가 자주 나와요. TRUNCATE·COMMIT·GRANT 같은 명령어의 분류를 묻는 문제는 앞 개념 "관계형 데이터베이스와 SQL의 특징"에서 다뤄요.""",
+절들을 섞어 놓고 논리적 실행 순서대로 고르는 문제가 가장 많이 나오고, SELECT가 끝에서 두 번째라는 점만 확실하면 풀려요. SELECT 별칭을 WHERE나 HAVING에 써서 오류가 나는 SQL을 고르는 문제도 자주 나오고, 명령어 분류는 앞 개념 "관계형 데이터베이스와 SQL의 특징"에서 다뤄요.""",
     "checkQuestions": [
         question(1, "SELECT 문의 논리적 실행 순서로 알맞은 것은 무엇인가요?", "execution-order",
                  "읽을 테이블을 정하는 FROM이 가장 먼저 처리되고, 보여 줄 열을 정하는 SELECT는 ORDER BY 바로 앞에 처리돼요.",
@@ -170,11 +199,10 @@ SELECT 3 * 4;             -- 오류: Oracle은 FROM을 꼭 써야 해요
     ],
     "relatedQuestionUuids": [],
     "sqlChecks": [
-        sql_check(GROUPED_EXAMPLE_SQL, [[20, 3], [30, 2]], is_ordered=True),
+        GROUPED_EXAMPLE.check,
         sql_error_check("SELECT 이름, 급여 * 12 AS 연봉 FROM 사원 WHERE 연봉 > 30000;", "ORA-00904"),
-        sql_check("SELECT 이름, 급여 * 12 AS 연봉 FROM 사원 WHERE 급여 * 12 > 30000",
-                  [["김민수", 36000], ["박서준", 33600], ["최유나", 38400], ["한도윤", 32400]]),
-        sql_check("SELECT 부서번호, COUNT(*) AS 인원 FROM 사원 GROUP BY 부서번호 HAVING COUNT(*) >= 3", [[20, 3], [30, 3]]),
+        ANNUAL_SALARY_WHERE_EXAMPLE.check,
+        HAVING_COUNT_EXAMPLE.check,
         sql_error_check("SELECT 부서번호, COUNT(*) AS 인원 FROM 사원 GROUP BY 부서번호 HAVING 인원 >= 3", "ORA-00904"),
         sql_error_check("SELECT 이름 FROM 사원 WHERE 급여 > AVG(급여)", "ORA-00934"),
         sql_check("SELECT 3 * 4 FROM DUAL", [[12]]),

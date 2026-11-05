@@ -1,6 +1,6 @@
 """개념: NATURAL JOIN과 USING (5단원, 확인 문제 5개)"""
 
-from concept_bundle import choice, question, sql_check, sql_error_check
+from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
 from concept_dataset import (DEPARTMENT_ROWS, DEPARTMENT_TABLE_MD, EMPLOYEE_ROWS, EMPLOYEE_TABLE_MD,
                              SALARY_GRADE_TABLE_MD, to_markdown_table)
 
@@ -26,6 +26,18 @@ _DEPARTMENT_BY_NUMBER = {row[0]: row for row in DEPARTMENT_ROWS}
 USING_SELECT_ALL_ROWS = [[employee[7], *employee[:7], *_DEPARTMENT_BY_NUMBER[employee[7]][1:]]
                          for employee in EMPLOYEE_ROWS if employee[7] is not None]
 
+# 본문 예시: SQL 블록 + 결과 표 = 검증 항목 (sql_example 한 원본, NATURAL 은 정렬 없어 순서 무시)
+NATURAL_JOIN_EXAMPLE = sql_example(
+    "SELECT 사번, 이름, 부서번호, 부서명\nFROM 사원 NATURAL JOIN 부서;",
+    ("사번", "이름", "부서번호", "부서명"),
+    [[row[0], row[1], row[7], _DEPARTMENT_BY_NUMBER[row[7]][1]] for row in EMPLOYEE_ROWS if row[7] is not None],
+    is_ordered=False)
+USING_JOIN_EXAMPLE = sql_example(
+    "SELECT 이름, 부서명\nFROM 사원 JOIN 부서 USING (부서번호)\nORDER BY 부서번호, 이름;",
+    ("이름", "부서명"),
+    [["김민수", "기획부"], ["박서준", "개발부"], ["이지은", "개발부"], ["정하늘", "개발부"],
+     ["오지민", "영업부"], ["최유나", "영업부"], ["한도윤", "영업부"]])
+
 CONCEPT = {
     "tagKey": "join-natural-using",
     "topicCode": "sql_join",
@@ -33,67 +45,48 @@ CONCEPT = {
     "title": "NATURAL JOIN과 USING",
     "summary": "이름이 같은 열로 알아서 잇는 NATURAL JOIN, 잇는 열을 고르는 USING이에요",
     "coreMd": (
-        "- NATURAL JOIN은 두 표에서 이름이 같은 모든 열을 찾아, 그 값이 모두 같은 행끼리 등가 조인해요.\n"
+        "- NATURAL JOIN은 이름이 같은 모든 열을 찾아, 그 값이 모두 같은 행끼리 등가 조인해요.\n"
         "- USING은 이름이 같은 열 가운데 조인에 쓸 열만 `USING (부서번호)`처럼 괄호 안에 적어요.\n"
-        "- 두 방식 모두 조인에 쓴 공통 열에는 `E.부서번호`처럼 테이블 이름이나 별칭을 붙일 수 없고, 붙이면 오류가 나요.\n"
-        "- `SELECT *`로 보면 공통 열은 결과 맨 앞에 한 번만 나와서, 사원과 부서를 ON으로 이을 때(11열)보다 하나 적은 10열이 돼요."
+        "- 두 방식 모두 조인에 쓴 공통 열에는 `E.부서번호`처럼 접두사를 붙일 수 없어요.\n"
+        "- `SELECT *`로 보면 공통 열은 맨 앞에 한 번만 나와서, 사원과 부서를 ON으로 이을 때(11열)보다 하나 적은 10열이에요."
     ),
-    "detailMd": f"""## 왜 필요한가요 {{#why}}
+    "detailMd": f"""## 왜 필요한가요 — 같은 이름의 열이면 짧게 {{#why}}
 
-사원과 부서를 이을 때마다 `ON E.부서번호 = D.부서번호`라고 쓰는데, 두 표에서 잇는 열의 이름이 똑같은 경우가 많아요. 이렇게 열 이름이 같을 때 조건을 짧게 쓰도록 만든 문법이 NATURAL JOIN과 USING이에요. 둘 다 `=`로 잇는 등가 조인만 할 수 있고, BETWEEN 같은 비등가 조건은 ON 절로 써야 해요.
+사원과 부서를 이을 때마다 `ON E.부서번호 = D.부서번호`라고 쓰는데, 잇는 열의 이름이 두 표에서 똑같은 경우가 많아요. 이럴 때 조건을 짧게 쓰는 문법이 NATURAL JOIN과 USING이에요.
 
-이 개념은 열 이름과 열 개수가 중요해서, 사원 표(8열)와 부서 표(3열)를 열까지 모두 보여 줄게요. 두 표에 똑같이 있는 열 이름은 부서번호 하나뿐이에요.
+| 문법 | 잇는 열 | 쓸 수 있는 조건 |
+|---|---|---|
+| `ON 조건` | 조건에 적은 열 | `=`, BETWEEN 등 무엇이든 |
+| `USING (열)` | 괄호 안에 고른 같은 이름의 열 | `=`만 (등가 조인) |
+| `NATURAL JOIN` | 이름이 같은 모든 열 (데이터베이스가 찾음) | `=`만 (등가 조인) |
+
+이 개념은 열 이름과 열 개수가 중요해서 표를 열까지 모두 보여 줘요. 사원 표(8열)와 부서 표(3열)에 똑같이 있는 열 이름은 부서번호 하나뿐이고, 급여등급 표(3열)는 사원 표와 같은 이름의 열이 없어요.
 
 {EMPLOYEE_TABLE_MD}
 
 {DEPARTMENT_TABLE_MD}
 
-## NATURAL JOIN {{#natural}}
+{SALARY_GRADE_TABLE_MD}
 
-NATURAL JOIN은 ON 절 없이 쓰고, 데이터베이스가 두 표에서 이름이 같은 열을 스스로 찾아 그 값이 같은 행끼리 이어요. 사원 표와 부서 표에서 이름이 같은 열은 부서번호 하나뿐이라서, 아래 SQL은 부서번호로 등가 조인한 것과 같아요.
+## NATURAL JOIN — 이름이 같은 열로 알아서 {{#natural}}
 
-```sql
-SELECT 사번, 이름, 부서번호, 부서명
-FROM 사원 NATURAL JOIN 부서;
-```
+NATURAL JOIN은 ON 절 없이 쓰고, 데이터베이스가 이름이 같은 열을 스스로 찾아 그 값이 같은 행끼리 이어요. 사원과 부서는 부서번호만 이름이 같아서, 아래 SQL은 부서번호로 등가 조인한 것과 같아요.
 
-| 사번 | 이름 | 부서번호 | 부서명 |
-|---|---|---|---|
-| 1001 | 김민수 | 10 | 기획부 |
-| 1002 | 이지은 | 20 | 개발부 |
-| 1003 | 박서준 | 20 | 개발부 |
-| 1004 | 최유나 | 30 | 영업부 |
-| 1005 | 정하늘 | 20 | 개발부 |
-| 1006 | 한도윤 | 30 | 영업부 |
-| 1007 | 오지민 | 30 | 영업부 |
+{NATURAL_JOIN_EXAMPLE.markdown}
 
-등가 조인이므로 부서번호가 NULL인 윤서연과 사원이 없는 인사부는 빠지고 7행이 나와요. SELECT 절에 `부서번호`를 `E.`나 `사원.` 같은 접두사 없이 썼는데도 오류가 나지 않는 점을 눈여겨봐 두세요. NATURAL JOIN에서는 두 표의 부서번호가 하나의 열로 합쳐지기 때문이에요.
+등가 조인이라서 부서번호가 NULL인 윤서연과 사원이 없는 인사부는 빠지고 7행이 나와요. SELECT 절의 `부서번호`에 `E.` 같은 접두사가 없어도 되는 까닭은 두 표의 부서번호가 하나의 열로 합쳐지기 때문이에요.
 
-## USING {{#using}}
+## USING — 잇는 열을 직접 골라요 {{#using}}
 
-USING은 이름이 같은 열 가운데 조인에 쓸 열을 직접 골라 괄호 안에 적어요. `JOIN` 앞에 `INNER`를 붙여도 되고, 열이 여러 개면 `USING (열1, 열2)`처럼 쉼표로 나열해요. 아래 SQL의 `ORDER BY 부서번호, 이름`은 결과를 부서번호 순으로, 같은 부서 안에서는 이름 순으로 정렬하라는 뜻이에요.
+USING은 이름이 같은 열 가운데 조인에 쓸 열을 괄호 안에 적어요. `JOIN` 앞에 `INNER`를 붙여도 되고, 열이 여러 개면 `USING (열1, 열2)`처럼 쉼표로 나열해요.
 
-```sql
-SELECT 이름, 부서명
-FROM 사원 JOIN 부서 USING (부서번호)
-ORDER BY 부서번호, 이름;
-```
+{USING_JOIN_EXAMPLE.markdown}
 
-| 이름 | 부서명 |
-|---|---|
-| 김민수 | 기획부 |
-| 박서준 | 개발부 |
-| 이지은 | 개발부 |
-| 정하늘 | 개발부 |
-| 오지민 | 영업부 |
-| 최유나 | 영업부 |
-| 한도윤 | 영업부 |
+`ORDER BY 부서번호, 이름`은 부서번호 순으로, 같은 부서 안에서는 이름 순으로 정렬하라는 뜻이에요. USING에 적은 부서번호도 하나의 열로 합쳐져서 ORDER BY에서 접두사 없이 쓸 수 있어요.
 
-USING에 적은 부서번호도 NATURAL JOIN처럼 하나의 열로 합쳐지므로, ORDER BY 절에서 접두사 없이 `부서번호`라고 쓸 수 있어요.
+## 결과 열이 몇 개인가요 — 공통 열은 한 번만 {{#columns}}
 
-## 결과 열이 몇 개인가요 {{#columns}}
-
-`SELECT *`의 `*`는 모든 열을 보여 달라는 뜻이에요. 위 표에서 본 것처럼 사원 표는 8열(사번, 이름, 직급, 관리자사번, 입사일, 급여, 커미션, 부서번호), 부서 표는 3열(부서번호, 부서명, 지역)이에요. 같은 조인을 세 가지 방식으로 쓰고 `SELECT *`로 보면, 부서번호가 나오는 모양이 달라요.
+`SELECT *`의 `*`는 모든 열을 보여 달라는 뜻이에요. 같은 조인을 세 가지 방식으로 쓰고 `SELECT *`로 보면 부서번호가 나오는 모양이 달라요.
 
 | 방식 | SELECT * 열 수 | 부서번호 열 |
 |---|---|---|
@@ -101,38 +94,60 @@ USING에 적은 부서번호도 NATURAL JOIN처럼 하나의 열로 합쳐지므
 | `USING (부서번호)` | 8 + 3 - 1 = 10열 | 맨 앞에 한 번만 나와요 |
 | `NATURAL JOIN` | 8 + 3 - 1 = 10열 | 맨 앞에 한 번만 나와요 |
 
-USING과 NATURAL JOIN의 열 순서는 공통 열이 맨 앞에 오고, 그다음 왼쪽 표의 나머지 열, 오른쪽 표의 나머지 열 순서예요. 그래서 `사원 NATURAL JOIN 부서`의 첫 행은 부서번호 10, 그 뒤로 사원 열(1001, 김민수, 사장, ...), 마지막에 부서 열(기획부, 서울) 순서로 나와요. ON으로 이으면 열을 합치지 않고 두 표의 열을 원래 순서대로 모두 이어 붙여요.
+USING과 NATURAL JOIN은 열을 아래 순서로 늘어놓고, ON은 열을 합치지 않고 두 표의 열을 원래 순서대로 모두 이어 붙여요.
+
+| 단계 | 내용 |
+|---|---|
+| 공통 열 | 부서번호가 맨 앞에 한 번 나와요 |
+| 왼쪽 표의 나머지 | 사원 표의 사번, 이름, 직급, 관리자사번, 입사일, 급여, 커미션 7열이 이어져요 |
+| 오른쪽 표의 나머지 | 부서 표의 부서명, 지역 2열이 끝에 붙어요 |
+
+| 바로 확인 | 정답 | 이유 |
+|---|---|---|
+| `사원 NATURAL JOIN 부서`를 `SELECT *`로 보면 첫 행은 10, 1001, 김민수 순서로 시작해요 | O | 공통 열인 부서번호가 맨 앞에 오고, 그 뒤에 사원 열이 이어져요 |
 
 ## 자주 헷갈리는 점 {{#confusing}}
 
-**공통 열에 접두사를 붙이면 오류가 나요.** NATURAL JOIN과 USING에서 조인에 쓴 열은 어느 한 표의 열이 아니라 합쳐진 하나의 열이에요. 그래서 SELECT 절이든 WHERE 절이든 `E.부서번호`나 `사원.부서번호`처럼 쓰면 오류가 나요. USING 괄호 안에 접두사를 붙여도 오류예요. 반대로 공통 열이 아닌 `D.부서명` 같은 열에는 접두사를 붙여도 괜찮아요.
+외울 규칙은 하나예요. **NATURAL JOIN과 USING으로 합쳐진 열에는 접두사를 붙이지 않아요.**
+
+| 헷갈리는 말 | 실제로는 |
+|---|---|
+| NATURAL JOIN에서도 공통 열에 `E.부서번호`처럼 접두사를 붙여야 정확해요 | 합쳐진 공통 열에 접두사를 붙이면 SELECT 절이든 WHERE 절이든 오류예요 (ORA-25155, 공통 열에 붙인 접두사) |
+| USING에 쓴 열은 `E.부서번호`로 불러야 해요 | USING 열에도 접두사를 붙이면 오류예요 (ORA-25154, USING 열에 붙인 접두사). 괄호 안에 `USING (E.부서번호)`로 써도 오류예요 (ORA-01748, 열 이름만 쓸 수 있음) |
+| NATURAL JOIN과 USING에서는 접두사를 아예 못 써요 | 공통 열이 아닌 `D.부서명` 같은 열에는 붙여도 괜찮아요 |
+| NATURAL JOIN에 ON이나 USING을 덧붙여 잇는 열을 바꿀 수 있어요 | 둘 다 함께 쓸 수 없어서 ORA-00933(문법에 없는 단어) 오류가 나요 |
+| NATURAL JOIN과 USING으로 BETWEEN 같은 범위 조건도 쓸 수 있어요 | 둘 다 `=`로 잇는 등가 조인만 해요. 비등가 조건은 ON 절로 써요 |
+| 이름이 같은 열이 하나도 없으면 NATURAL JOIN은 오류가 나요 | 오류 없이 모든 행을 짝지어요. 사원 8행 × 급여등급 4행 = 32행이라서 행 수를 보고서야 알아채요 |
+| 이름이 같은 열이면 데이터 타입이 달라도 이어져요 | 숫자와 날짜처럼 서로 비교할 수 없으면 ORA-00932(데이터 타입이 맞지 않음) 오류가 나요 |
+| NATURAL JOIN은 잇고 싶은 열 하나로만 이어요 | 이름이 같은 열을 모두 비교해요. 이름만 같고 뜻이 다른 열이 있으면 엉뚱한 결과가 나와요 (아래 문단) |
+| 두 문법은 SQL Server에서도 똑같이 써요 | ANSI 표준이라 Oracle은 지원하지만 SQL Server는 지원하지 않아서, SQL Server에서는 ON 절로 써요 |
 
 ```sql
-SELECT E.부서번호 FROM 사원 E NATURAL JOIN 부서 D;                -- 오류: NATURAL JOIN의 공통 열에는 접두사를 붙일 수 없어요 (ORA-25155, 공통 열에 붙인 접두사)
-SELECT 이름 FROM 사원 NATURAL JOIN 부서 WHERE 사원.부서번호 = 20;  -- 오류: WHERE 절에서도 공통 열에 접두사를 붙일 수 없어요 (ORA-25155, 공통 열에 붙인 접두사)
-SELECT E.부서번호 FROM 사원 E JOIN 부서 D USING (부서번호);        -- 오류: USING에 쓴 열에도 접두사를 붙일 수 없어요 (ORA-25154, USING 열에 붙인 접두사)
-SELECT 이름 FROM 사원 E JOIN 부서 D USING (E.부서번호);            -- 오류: USING 괄호 안에는 열 이름만 써요 (ORA-01748, 열 이름만 쓸 수 있음)
-SELECT D.부서명 FROM 사원 NATURAL JOIN 부서 D;                     -- 공통 열이 아니라서 실행돼요
+SELECT E.부서번호 FROM 사원 E NATURAL JOIN 부서 D;                         -- 오류: 공통 열에 접두사를 붙였어요 (ORA-25155, 공통 열에 붙인 접두사)
+SELECT 이름 FROM 사원 NATURAL JOIN 부서 WHERE 사원.부서번호 = 20;           -- 오류: WHERE 절에서도 같아요 (ORA-25155, 공통 열에 붙인 접두사)
+SELECT E.부서번호 FROM 사원 E JOIN 부서 D USING (부서번호);                 -- 오류: USING 열에 접두사를 붙였어요 (ORA-25154, USING 열에 붙인 접두사)
+SELECT 이름 FROM 사원 E JOIN 부서 D USING (E.부서번호);                     -- 오류: 괄호 안에는 열 이름만 써요 (ORA-01748, 열 이름만 쓸 수 있음)
+SELECT D.부서명 FROM 사원 NATURAL JOIN 부서 D;                              -- 공통 열이 아니라서 실행돼요
+SELECT 이름 FROM 사원 NATURAL JOIN 부서 ON 사원.부서번호 = 부서.부서번호;  -- 오류: NATURAL JOIN에는 ON을 함께 못 써요 (ORA-00933, 문법에 없는 단어)
+SELECT 이름 FROM 사원 NATURAL JOIN 부서 USING (부서번호);                  -- 오류: USING도 함께 못 써요 (ORA-00933, 문법에 없는 단어)
 ```
 
-**NATURAL JOIN에는 ON 절도, USING도 함께 쓸 수 없어요.** NATURAL JOIN은 조인할 열을 데이터베이스가 정하므로 조건을 따로 적을 자리가 없어요. ON이나 USING을 덧붙이면 ORA-00933 오류가 나는데, 문법에 없는 단어가 문장 뒤에 붙었다는 뜻이에요.
+| 바로 확인 | 정답 | 이유 |
+|---|---|---|
+| USING 괄호 안에 `E.부서번호`처럼 접두사를 붙이면 오류가 나요 | O | 괄호 안에는 열 이름만 쓸 수 있어요 |
+| `사원 NATURAL JOIN 부서`에 ON 절을 덧붙이면 그 조건이 먼저 적용돼요 | X | NATURAL JOIN에는 ON을 함께 쓸 수 없어서 오류가 나요 |
 
-```sql
-SELECT 이름 FROM 사원 NATURAL JOIN 부서 ON 사원.부서번호 = 부서.부서번호;  -- 오류: NATURAL JOIN에는 ON을 함께 쓸 수 없어요 (ORA-00933, 문법에 없는 단어)
-SELECT 이름 FROM 사원 NATURAL JOIN 부서 USING (부서번호);                  -- 오류: USING도 함께 쓸 수 없어요 (ORA-00933, 문법에 없는 단어)
-```
+## 이름만 같은 열 — NATURAL JOIN의 함정 {{#same-name}}
 
-**이름만 같고 뜻이 다른 열이 있으면 NATURAL JOIN은 엉뚱한 결과를 내요.** 프로젝트 이름을 `이름`이라는 열에 담은 프로젝트 표를 예로 들면 다음과 같아요.
+프로젝트 이름을 `이름`이라는 열에 담은 프로젝트 표가 있으면, 사원 표와 이름이 같은 열이 부서번호와 이름 두 개가 돼요.
 
 {PROJECT_TABLE_MD}
 
-이 표와 사원 표에는 이름이 같은 열이 부서번호와 이름, 두 개 있어요. 그래서 이 경우는 세 단계로 나눠 보면 이해하기 쉬워요.
-
-1. NATURAL JOIN은 두 열을 모두 비교해서, 부서번호도 같고 이름도 같은 행만 이어요. 사원 이름과 프로젝트 이름이 같은 행은 없으니 결과는 0행이에요.
-2. 부서번호로만 잇고 싶다면 `USING (부서번호)`처럼 잇는 열을 하나로 정해 줘요. 그러면 부서번호만 하나의 열로 합쳐지고, 20번과 30번 부서 사원 6명이 프로젝트와 짝지어져요.
-3. USING에 적지 않은 `이름`은 합쳐지지 않고 사원 쪽과 프로젝트 쪽에 따로 남아요. 두 표에 같은 이름의 열이 따로 있으니, 이 열을 쓸 때는 보통의 조인처럼 `E.이름`, `P.이름`으로 접두사를 붙여야 해요.
-
-정리하면 접두사 규칙은 하나예요. USING이나 NATURAL JOIN으로 합쳐진 열에는 접두사를 붙이지 않고, 합쳐지지 않았는데 두 표에 같은 이름으로 있는 열에는 접두사를 붙여요.
+| 단계 | 내용 |
+|---|---|
+| NATURAL JOIN | 부서번호와 이름을 모두 비교해요. 사원 이름과 프로젝트 이름이 같은 행이 없어서 0행이에요 |
+| USING (부서번호) | 부서번호만 하나의 열로 합쳐서 이어요. 20번과 30번 부서 사원 6명이 프로젝트와 짝지어져요 |
+| 남은 이름 열 | USING에 적지 않은 이름은 사원 쪽과 프로젝트 쪽에 따로 남아서 `E.이름`, `P.이름`처럼 접두사를 붙여요 |
 
 ```sql
 CREATE TABLE 프로젝트 (프로젝트번호 NUMBER(3), 이름 VARCHAR2(20), 부서번호 NUMBER(2));
@@ -143,19 +158,16 @@ SELECT E.이름, P.이름 AS 프로젝트명 FROM 사원 E JOIN 프로젝트 P U
 SELECT 이름 FROM 사원 E JOIN 프로젝트 P USING (부서번호);                       -- 오류: 이름 열이 두 표에 다 있어요 (ORA-00918, 열 이름이 모호함)
 ```
 
-위에서 `COUNT(*)`는 결과 행이 몇 개인지 세어 주는 함수(7단원)이고, `AS 프로젝트명`은 결과 열에 보여 줄 이름을 바꾸는 별칭이에요.
-
-**이름이 같은 열이 하나도 없으면 NATURAL JOIN은 모든 행을 짝지어요.** 급여등급 표의 열은 등급, 최저급여, 최고급여라서 사원 표와 이름이 같은 열이 하나도 없어요.
-
-{SALARY_GRADE_TABLE_MD}
-
-그래서 `사원 NATURAL JOIN 급여등급`은 비교할 조건 없이 사원 8행 하나하나를 등급 4행과 모두 짝지어 8 × 4 = 32행을 만들어요. 오류가 나지 않으니 결과 행 수를 보고서야 알아채게 돼요. 반대로 이름이 같은 열이 있는데 데이터 타입이 숫자와 날짜처럼 서로 비교할 수 없으면 ORA-00932(데이터 타입이 맞지 않음) 오류가 나요.
-
-**SQL Server에서는 두 문법을 쓸 수 없어요.** NATURAL JOIN과 USING은 ANSI 표준에 있고 Oracle은 지원하지만, SQL Server는 지원하지 않아요. SQL Server에서는 ON 절로 조건을 적어야 해요.
+`COUNT(*)`는 결과 행이 몇 개인지 세는 함수(7단원)이고, `AS 프로젝트명`은 결과 열에 보여 줄 이름을 바꾸는 별칭이에요. 접두사 규칙을 정리하면, 합쳐진 열에는 붙이지 않고 합쳐지지 않은 채 두 표에 같은 이름으로 있는 열에는 붙여요.
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 
-공통 열에 접두사를 붙인 SQL을 보여 주고 오류가 나는 것을 고르는 문제가 가장 자주 나와요. `SELECT *` 결과의 열 개수나 첫 번째 열을 묻는 문제도 흔한데, ON이면 두 표 열 수의 합이고 USING과 NATURAL JOIN이면 공통 열 수만큼 빼면 돼요. 이름이 같은 열이 두 개 이상인 표에 NATURAL JOIN을 써서 결과 행 수를 묻는 문제도 나와요.""",
+| 나오는 문제 | 푸는 법 |
+|---|---|
+| 오류가 나는 SQL 고르기 | 공통 열에 접두사가 붙었는지, NATURAL JOIN에 ON이나 USING이 붙었는지 봐요 |
+| `SELECT *` 결과의 열 개수와 첫 열 | ON이면 두 표 열 수의 합, USING과 NATURAL이면 공통 열 수만큼 빼고, 첫 열은 공통 열이에요 |
+| 같은 이름의 열이 둘 이상인 표의 NATURAL JOIN 행 수 | 이름이 같은 열을 모두 비교해서 짝을 세요 |
+| 같은 이름의 열이 없는 표의 NATURAL JOIN 행 수 | 두 표 행 수를 곱해요 |""",
     "checkQuestions": [
         question(1, "NATURAL JOIN을 가장 알맞게 설명한 것은 무엇인가요?", "natural",
                  "NATURAL JOIN은 두 표에서 이름이 같은 모든 열을 찾아 그 값이 같은 행끼리 등가 조인해요. 잇는 열을 직접 고르는 것은 USING이에요.",
@@ -194,19 +206,16 @@ SELECT 이름 FROM 사원 E JOIN 프로젝트 P USING (부서번호);           
     ],
     "relatedQuestionUuids": [],
     "sqlChecks": [
-        # 본문: NATURAL JOIN, USING, 열 개수·순서
-        sql_check("SELECT 사번, 이름, 부서번호, 부서명 FROM 사원 NATURAL JOIN 부서",
-                  [[1001, "김민수", 10, "기획부"], [1002, "이지은", 20, "개발부"], [1003, "박서준", 20, "개발부"],
-                   [1004, "최유나", 30, "영업부"], [1005, "정하늘", 20, "개발부"], [1006, "한도윤", 30, "영업부"],
-                   [1007, "오지민", 30, "영업부"]]),
-        sql_check("SELECT 이름, 부서명 FROM 사원 JOIN 부서 USING (부서번호) ORDER BY 부서번호, 이름",
-                  [["김민수", "기획부"], ["박서준", "개발부"], ["이지은", "개발부"], ["정하늘", "개발부"],
-                   ["오지민", "영업부"], ["최유나", "영업부"], ["한도윤", "영업부"]], is_ordered=True),
+        # 본문 예시 2개 (sql_example: NATURAL JOIN, USING + 정렬)
+        NATURAL_JOIN_EXAMPLE.check,
+        USING_JOIN_EXAMPLE.check,
+        # 본문: 열 개수·순서 (ON 11열, NATURAL 10열 + 첫 행 10, 1001, 김민수 ...)
         sql_check("SELECT * FROM 사원 NATURAL JOIN 부서", USING_SELECT_ALL_ROWS),
         sql_check("SELECT * FROM 사원 E JOIN 부서 D ON E.부서번호 = D.부서번호 WHERE E.사번 = 1001",
                   [[1001, "김민수", "사장", None, "2015-03-02", 3000, None, 10, 10, "기획부", "서울"]]),
         sql_check("SELECT * FROM 사원 NATURAL JOIN 부서 WHERE 사번 = 1001",
                   [[10, 1001, "김민수", "사장", None, "2015-03-02", 3000, None, "기획부", "서울"]]),
+        # 본문: 함정 (두 열 비교, 타입 불일치)
         sql_check("SELECT COUNT(*) FROM 사원 JOIN 프로젝트 USING (부서번호, 이름)", [[0]], setup=PROJECT_SETUP_SQL),
         sql_error_check("SELECT 비고 FROM 사원 NATURAL JOIN 부서날짜", "ORA-00932",
                         setup="CREATE TABLE 부서날짜 (부서번호 DATE, 비고 VARCHAR2(10));\n"

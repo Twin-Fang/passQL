@@ -20,14 +20,22 @@ class ConceptPitfallSplit {
   final List<ConceptPitfall> pitfalls;
 }
 
+/// 문단 제목 나눔 결과: 큰 제목 + (선택) 부제
+class ConceptSectionTitle {
+  const ConceptSectionTitle({required this.title, required this.subtitle});
+
+  final String title;
+  final String? subtitle;
+}
+
 /// 개념 본문 마크다운 > 화면 조각 (서버·콘텐츠 형식은 그대로, 앱 렌더러에서만 나눔, #835)
 abstract final class ConceptReadingParser {
+  // 문단 제목 안 부제 구분 ("제목 — 부제", 옛 앱은 한 줄 제목으로 보임, #848)
+  static const String _subtitleSeparator = ' — ';
   // 글머리 줄 ("- 내용" / "* 내용")
   static final RegExp _bulletLineRe = RegExp(r'^\s*[-*]\s+(.+)$');
   // 문단 맨 앞 굵은 문장 (**문장**)
   static final RegExp _boldLeadRe = RegExp(r'^\*\*([^\n]+?)\*\*\s*');
-  // 미리보기에서 지울 인라인 표기 (굵게·인라인 코드)
-  static final RegExp _inlineMarkerRe = RegExp(r'\*\*|`');
   static const String _codeFence = '```';
 
   // 한국어 설명글을 소리 내지 않고 읽는 분당 글자 수 근사 (짧은 글도 최소 1분)
@@ -41,6 +49,21 @@ abstract final class ConceptReadingParser {
     'exam-point' => ConceptSectionKind.examPoint,
     _ => ConceptSectionKind.general,
   };
+
+  /// 문단 제목 > 큰 제목 + 부제 (구분자가 없으면 부제 없음)
+  static ConceptSectionTitle splitTitle(String rawTitle) {
+    final separatorIndex = rawTitle.indexOf(_subtitleSeparator);
+    if (separatorIndex < 0) {
+      return ConceptSectionTitle(title: rawTitle.trim(), subtitle: null);
+    }
+    final subtitle = rawTitle
+        .substring(separatorIndex + _subtitleSeparator.length)
+        .trim();
+    return ConceptSectionTitle(
+      title: rawTitle.substring(0, separatorIndex).trim(),
+      subtitle: subtitle.isEmpty ? null : subtitle,
+    );
+  }
 
   /// 핵심 마크다운 > 글머리 줄 내용 목록 (글머리 아닌 줄이 섞이면 빈 목록 > 원문 그대로 그림)
   static List<String> parseCoreKeyPoints(String coreMd) {
@@ -112,20 +135,6 @@ abstract final class ConceptReadingParser {
     }
     flushParagraph();
     return paragraphs;
-  }
-
-  /// 접힌 문단 미리보기: 첫 글 문단(표·코드·목록 제외)의 표기를 지운 글, 없으면 null
-  static String? previewTextOf(String bodyMd) {
-    for (final paragraph in splitParagraphs(bodyMd)) {
-      final isPlainText =
-          !paragraph.startsWith('|') &&
-          !paragraph.startsWith(_codeFence) &&
-          !_bulletLineRe.hasMatch(paragraph.split('\n').first);
-      if (isPlainText) {
-        return paragraph.replaceAll(_inlineMarkerRe, '').replaceAll('\n', ' ');
-      }
-    }
-    return null;
   }
 
   /// 읽는 시간(분): 제목 + 본문 글자 수 (표 줄은 훑어보는 자료라 제외, 표까지 세면 과하게 나옴)

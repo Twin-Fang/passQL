@@ -43,6 +43,7 @@ export 'components/passql_refresh_control.dart';
 export 'components/passql_result_mark.dart';
 export 'components/passql_result_scaffold.dart';
 export 'components/passql_reveal.dart';
+export 'components/passql_scroll_reveal.dart';
 export 'components/passql_score_header.dart';
 export 'components/passql_section.dart';
 export 'components/passql_section_header.dart';
