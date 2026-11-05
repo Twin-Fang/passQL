@@ -68,13 +68,8 @@ Future<void> _sweepConcept(
   await Future<void>.delayed(_settleDuration);
   final notifier = container.read(conceptStudyProvider(conceptUuid).notifier);
 
-  // 읽기: 핵심만 > 자세히 (각각 끝까지)
-  notifier.selectDepth(ConceptReadingDepth.core);
-  await Future<void>.delayed(_settleDuration);
-  await captureToEnd('core');
-  notifier.selectDepth(ConceptReadingDepth.detail);
-  await Future<void>.delayed(_settleDuration);
-  await captureToEnd('detail');
+  // 읽기: 한 스크롤 개념 화면 끝까지 (#835)
+  await captureToEnd('read');
 
   // 풀기: 문제 화면 > 보기 고르고 채점 > 풀이 화면 > 다음
   notifier.selectMode(ConceptStudyMode.solve);

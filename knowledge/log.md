@@ -121,3 +121,6 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-05 08:40 | W6 | update | ISS-0451 status resolved, resolution 연결
 - 2026-11-05 08:40 | W6 | create | ISS-0452 이슈·완료 리포트 (#840, PR #841)
 - 2026-11-05 08:40 | W6 | update | cluster-practice·ai·question-bank ISS-0451 resolved, cluster-ci-deploy·store-release ISS-0452 추가
+- 2026-11-05 09:26 | W6 | ingest issue+report #835 | ISS-0453-app-concept-reading-readability-redesign, ISS-0453-app-concept-reading-readability-redesign-report
+- 2026-11-05 09:26 | W4 | new decisions, DEC-0217 superseded | DEC-0252-concept-reading-single-scroll, DEC-0253-concept-collapse-only-long-later-sections, DEC-0217-concept-study-single-segment
+- 2026-11-05 09:26 | W2 | cluster update | cluster-concept-learning
