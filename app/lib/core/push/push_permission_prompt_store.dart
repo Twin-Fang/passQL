@@ -33,6 +33,10 @@ class PushPermissionPromptStore {
     (now ?? DateTime.now()).millisecondsSinceEpoch,
   );
 
+  /// "나중에" 기록 지우기 (개발자 도구 권한 안내 다시 보기, #819)
+  Future<void> clearDeferral() =>
+      DevicePreferences.remove(StorageKeys.pushPermissionPromptDeferredAt);
+
   /// 풀이 결과 화면 진입 기록 (오늘의 세트·챕터 결과)
   Future<void> markStudyResultSeen() async => DevicePreferences.writeBool(
     StorageKeys.pushPermissionPromptStudyResultSeen,

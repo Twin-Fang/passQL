@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import '../../../core/utils/app_clock.dart';
 import '../../../data/models/progress/heatmap_response.dart';
 import '../../design/design.dart';
 import 'section_or_card.dart';
@@ -68,7 +69,7 @@ class HeatmapWidget extends StatelessWidget {
   }
 
   DateTime get _todayDate {
-    final now = today ?? DateTime.now();
+    final now = today ?? AppClock.now();
     return DateTime(now.year, now.month, now.day);
   }
 

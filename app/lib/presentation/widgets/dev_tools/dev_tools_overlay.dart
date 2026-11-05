@@ -27,15 +27,20 @@ class _DevToolsOverlayState extends State<DevToolsOverlay> {
   /// 버튼 위치 (처음 그릴 때 오른쪽 아래로 정함)
   Offset? _buttonOffset;
 
-  /// 도구 시트 열기 (라우터보다 위라 최상위 Navigator 로 띄움)
-  void _openSheet() {
+  // 시트가 열려 있는 동안 버튼 숨김 (시트 위 행을 가리지 않게, 중복 열기 방지)
+  bool _isSheetOpen = false;
+
+  /// 도구 시트 열기 (라우터보다 위라 최상위 Navigator 로 띄움) > 닫히면 버튼 다시 표시
+  Future<void> _openSheet() async {
     final navigatorContext = AppRouter.rootNavigatorKey.currentContext;
-    if (navigatorContext == null) return;
-    showPassqlSheet<void>(
+    if (navigatorContext == null || _isSheetOpen) return;
+    setState(() => _isSheetOpen = true);
+    await showPassqlSheet<void>(
       navigatorContext,
       title: '개발자 도구',
       builder: (_) => const DevToolsSheet(),
     );
+    if (mounted) setState(() => _isSheetOpen = false);
   }
 
   /// 끌기: 화면 안으로만 (안전 영역 안쪽)
@@ -68,31 +73,32 @@ class _DevToolsOverlayState extends State<DevToolsOverlay> {
     return Stack(
       children: [
         widget.child,
-        Positioned(
-          left: buttonOffset.dx,
-          top: buttonOffset.dy,
-          child: GestureDetector(
-            onPanUpdate: (details) =>
-                _moveButton(details.delta, screenSize, safePadding),
-            child: PassqlPressable(
-              onTap: _openSheet,
-              semanticLabel: '개발자 도구',
-              child: Container(
-                width: _buttonDiameter,
-                height: _buttonDiameter,
-                decoration: BoxDecoration(
-                  color: colors.accent,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  CupertinoIcons.hammer_fill,
-                  size: PassqlIconSize.lg,
-                  color: colors.onAccent,
+        if (!_isSheetOpen)
+          Positioned(
+            left: buttonOffset.dx,
+            top: buttonOffset.dy,
+            child: GestureDetector(
+              onPanUpdate: (details) =>
+                  _moveButton(details.delta, screenSize, safePadding),
+              child: PassqlPressable(
+                onTap: _openSheet,
+                semanticLabel: '개발자 도구',
+                child: Container(
+                  width: _buttonDiameter,
+                  height: _buttonDiameter,
+                  decoration: BoxDecoration(
+                    color: colors.accent,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    CupertinoIcons.hammer_fill,
+                    size: PassqlIconSize.lg,
+                    color: colors.onAccent,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
       ],
     );
   }

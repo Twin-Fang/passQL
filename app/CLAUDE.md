@@ -34,7 +34,7 @@ lib/
 │   ├── notification/       # 앱 아이콘 숫자(AppIconBadgeUpdater, app_badge_plus 는 여기서만), 알림 권한 안내 결과
 │   ├── push/               # 푸시 SDK 포트(PushMessagingClient)·이동 허용 목록(PushLink)·안내 기록. 등록·삭제는 data/push/PushNotificationService
 │   ├── storage/            # 기기 저장 키 원본(StorageKeys), 일반 저장소 공통 지점(DevicePreferences, shared_preferences 는 여기서만)
-│   └── utils/ validation/
+│   └── utils/ validation/  # utils/app_clock.dart: 앱 시각 단일 원본 AppClock (오늘·D-day·하루 횟수 판정은 DateTime.now() 대신, 개발자 도구 날짜 넘기기 #819)
 ├── data/                   # presentation·router 를 import 하지 않는다
 │   ├── billing/            # 스토어 결제 어댑터(Play·App Store): 상품 조회 > 결제 창 > 서버 확인 > 구매 처리 완료
 │   ├── community/          # 커뮤니티 첨부 이미지 압축 (서버 한도와 같은 값)

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/billing/pass_option_pricing.dart';
 import '../../../core/billing/pro_purchase_port.dart';
+import '../../../core/utils/app_clock.dart';
 import '../../../core/utils/exam_dday.dart';
 import '../../../core/utils/profile_pass_values.dart';
 import '../../../data/models/exam/exam_schedule_response.dart';
@@ -65,7 +66,7 @@ Future<ProOfferSheetOutcome> showProOfferSheet(
         passOptions: knownPlan?.passOptions ?? const [],
         // 지금 프로 이용 중일 때만 현재 만료일 > 연장 미리보기
         activeProExpiresAt:
-            proExpiresAt != null && proExpiresAt.isAfter(DateTime.now())
+            proExpiresAt != null && proExpiresAt.isAfter(AppClock.now())
             ? proExpiresAt
             : null,
         dailyFreeLimit: knownPlan?.dailyFreeLimit ?? 0,
