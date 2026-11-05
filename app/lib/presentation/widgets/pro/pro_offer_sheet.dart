@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/billing/pass_option_pricing.dart';
 import '../../../core/billing/pro_purchase_port.dart';
+import '../../../core/utils/app_clock.dart';
 import '../../../core/utils/exam_dday.dart';
 import '../../../core/utils/profile_pass_values.dart';
 import '../../../data/models/member/member_plan_response.dart';
@@ -55,7 +56,7 @@ Future<ProOfferSheetOutcome> showProOfferSheet(
   final proExpiresAt = knownPlan?.proExpiresAt;
   // 지금 프로 이용 중일 때만 현재 만료일 > 연장 시트 (제목·미리보기·완료 문구가 연장용)
   final activeProExpiresAt =
-      proExpiresAt != null && proExpiresAt.isAfter(DateTime.now())
+      proExpiresAt != null && proExpiresAt.isAfter(AppClock.now())
       ? proExpiresAt
       : null;
   // 시트가 닫힐 때 호출 화면이 이미 사라졌을 수 있어 ref 는 기다리기 전에 읽어 둔다

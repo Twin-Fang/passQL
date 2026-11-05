@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/error/app_exception.dart';
+import '../../core/push/dev_simulated_push_messaging_client.dart';
 import '../../core/push/push_link.dart';
 import '../../core/push/push_messaging_client.dart';
 import '../models/member/push_token_models.dart';
@@ -140,9 +141,12 @@ class PushNotificationService {
 }
 
 /// 앱 전역 푸시 서비스 (테스트는 messagingClient·API 를 가짜로 override)
+/// 개발 장치 빌드는 개발자 도구 푸시 흉내를 끼워 넣을 수 있게 감쌈 (#819)
 final pushNotificationServiceProvider = Provider<PushNotificationService>(
   (ref) => PushNotificationService(
-    messagingClient: PushMessagingClient.current,
+    messagingClient: DevSimulatedPushMessagingClient.wrapIfAllowed(
+      PushMessagingClient.current,
+    ),
     pushTokenApi: ref.watch(pushTokenApiProvider),
   ),
 );

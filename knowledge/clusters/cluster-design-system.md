@@ -2,7 +2,7 @@
 type: cluster
 topic: design-system
 created: 2026-10-29
-members: 130
+members: 136
 status: active
 related: []
 ---
@@ -13,9 +13,10 @@ related: []
 디자인 토큰·공통 UI 컴포넌트·폰트·테마
 
 ## 현재 상태 요약
-(2026-11-04, 자동 생성) 활성 결정 47개, 열린 이슈 2개. 하단 탭 바는 아이콘 + 라벨을 바 안 세로 가운데, 높이 50 — [[DEC-0241-tab-bar-content-vertically-centered]] (#817 릴리스 반영). 앱 아이콘은 연보라 그라데이션 + `pass`/`QL` 2줄 — [[DEC-0242-app-icon-lavender-two-line-pass-ql]] (main 머지, 작성 시점 미배포). 프로필 상단은 A안(카드형)이고 프로필·정보 시트 탑승권 칸 통일([[DEC-0208-pass-ticket-fields-unified]])은 대체됐다 — [[DEC-0243-profile-top-card-style-a]] (PR #822, 작성 시점 미머지). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-05, 자동 생성) 활성 결정 48개, 열린 이슈 2개. 코드 글꼴은 D2Coding 부분 글꼴 — [[DEC-0255-code-font-d2coding-subset]] (#849). 하단 탭 바는 아이콘 + 라벨을 바 안 세로 가운데, 높이 50 — [[DEC-0241-tab-bar-content-vertically-centered]] (#817 릴리스 반영). 앱 아이콘은 연보라 그라데이션 + `pass`/`QL` 2줄 — [[DEC-0242-app-icon-lavender-two-line-pass-ql]] (main 머지, 작성 시점 미배포). 프로필 상단은 A안(카드형)이고 프로필·정보 시트 탑승권 칸 통일([[DEC-0208-pass-ticket-fields-unified]])은 대체됐다 — [[DEC-0243-profile-top-card-style-a]] (PR #822, 작성 시점 미머지). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
+- [[DEC-0255-code-font-d2coding-subset]] — 코드 글꼴은 한글까지 고정폭인 D2Coding 부분 글꼴
 - [[DEC-0017-fullscreen-result-screen]] — 제출 결과 화면은 풀스크린 1종으로 통일 (bottom sheet 변형 미채택)
 - [[DEC-0057-confirm-modal-bottom-sheet-all-sizes]] — `ConfirmModal`은 데스크톱도 화면 너비 100% 바텀시트 단일 레이아웃
 - [[DEC-0059-ai-question-terminology]] — 사용자 화면의 "문제"를 "AI문제"로 통일하고 lucide `Sparkles`를 AI 표시 전용 아이콘으로 쓴다
@@ -64,6 +65,8 @@ related: []
 - [[DEC-0242-app-icon-lavender-two-line-pass-ql]] — 앱 아이콘은 시안 8번: 연보라 세로 그라데이션 + `pass`(남색)·`QL`(18% 진하게) 2줄, 가로 로고에서 합성, 다크·틴트 아이콘 없음
 - [[DEC-0243-profile-top-card-style-a]] — 프로필 상단 A안(카드형): 계정 줄 + 무료는 탑승권 대신 오늘 남은 문제·업그레이드 배너, 프로는 남은 날 큰 숫자 PRO 탑승권 카드(승객 · 만료일 · 이용권) + 이어서 연장 (DEC-0208 대체)
 
+- [[DEC-0248-site-icons-generated-from-brand]] — 소개 사이트 아이콘·OG와 Play 등록정보 아이콘 512는 앱 아이콘 원본에서 생성
+
 ## 대체된 결정 (역사)
 - [[DEC-0018-four-tab-bottom-navigation]] → null
 - [[DEC-0022-design-md-single-source-of-truth]] → DEC-0121
@@ -73,6 +76,8 @@ related: []
 - [[DEC-0208-pass-ticket-fields-unified]] → DEC-0243
 
 ## 관련 이슈
+- [[ISS-0455-sql-code-font-mixed-hangul]] (resolved, GitHub #849) — 한글 섞인 SQL 이 두 글꼴로 갈라져 울퉁불퉁하게 읽힘
+- [[ISS-0450-promo-site-dynamic-revamp]] (resolved, GitHub #823) — 홍보 페이지 다이나믹 개편, 새 아이콘·새 기능·Play 공개 반영
 - [[ISS-0448-mypage-account-pass-area-promo-code]] (resolved, GitHub #816) — 마이페이지 계정·이용권 영역과 결제 유도, 할인 표시, 프로모션 코드
 - [[ISS-0446-app-icon-light-lavender-background]] (resolved, GitHub #766) — 앱 아이콘 배경을 밝게 (어두운 남색 배경에서 글자가 안 보임)
 - [[ISS-0445-tab-bar-equal-vertical-spacing]] (resolved, GitHub #810) — 하단 탭 바 아이콘·라벨 위아래 여백을 같게, 최소로

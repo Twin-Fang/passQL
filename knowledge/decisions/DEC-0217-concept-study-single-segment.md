@@ -4,9 +4,9 @@ id: DEC-0217
 created: 2026-10-30
 reviewed: null
 topics: [concept-learning, design-system]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0252
 related: ["[[ISS-0432-app-concept-tab-redesign]]", "[[ISS-0432-app-concept-tab-redesign-report]]"]
 ---
 

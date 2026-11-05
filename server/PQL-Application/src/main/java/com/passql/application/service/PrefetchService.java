@@ -66,7 +66,8 @@ public class PrefetchService {
                 return;
             }
 
-            choiceSetGenerationService.generate(nextQuestionUuid, session.getMemberUuid(),
+            // 정책별 생성 경로 (결과 표 문제에 SQL 보기 세트가 미리 만들어지지 않게, #828)
+            choiceSetGenerationService.generateForQuestion(nextQuestionUuid, session.getMemberUuid(),
                     ChoiceSetSource.AI_PREFETCH);
             log.info("[prefetch] success: sessionUuid={}, nextIndex={}", sessionUuid, nextIndex);
 

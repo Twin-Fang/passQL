@@ -8,7 +8,7 @@ import com.passql.meta.entity.PromptTemplate;
 import com.passql.meta.service.PromptService;
 import com.passql.question.constant.ChoiceSetPolicy;
 import com.passql.question.constant.ChoiceSetSource;
-import com.passql.question.dto.ExecuteResult;
+import com.passql.question.constant.ExecutionMode;
 import com.passql.question.dto.ValidationReport;
 import com.passql.question.entity.Question;
 import com.passql.question.entity.QuestionChoiceSet;
@@ -16,12 +16,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.UUID;
 
 /**
  * AI 선택지 세트 생성 + 샌드박스 검증 재시도 루프.
- * 요청 조립은 ChoiceSetGenerationRequestFactory, RESULT_MATCH 실행·비교는 ResultMatchChoiceValidator
+ * 요청 조립은 ChoiceSetGenerationRequestFactory, RESULT_MATCH 보기 실행·판정은 ResultTableChoiceBuilder
+ * 저장은 샌드박스 검증 통과 세트만 (SQL·결과형), 개념 문제만 AI 정답 표시 사용
  * <p>
  * 비트랜잭션 — AI·샌드박스 호출이 수 초 걸리므로 긴 트랜잭션 금지.
  * save는 ChoiceSetSaveService(별도 빈)에 위임하여 self-invocation 문제 방지.
@@ -35,7 +38,7 @@ public class ChoiceSetGenerationService {
     private static final String PROMPT_KEY = "generate_choice_set";
     // CONCEPT_ONLY 전용 프롬프트 키 — Sandbox 없이 텍스트 선택지 생성
     private static final String CONCEPT_PROMPT_KEY = "generate_choice_set_concept";
-    // RESULT_MATCH 전용 프롬프트 키 — answerSql 실행 결과 JSON을 컨텍스트로 제공
+    // RESULT_MATCH 전용 프롬프트 키 (v3 이상: 오해 SQL 4개 후보, 지시문은 운영 DB 에만, #828)
     private static final String RESULT_MATCH_PROMPT_KEY = "generate_choice_set_result_match";
     // ODD_ONE_OUT 전용 프롬프트 키 — 기준과 같은 결과 3개 + 다른 결과 1개(정답), SandboxValidator 3:1 판정과 짝 (#699)
     private static final String ODD_ONE_OUT_PROMPT_KEY = "generate_choice_set_odd_one_out";
@@ -67,6 +70,7 @@ public class ChoiceSetGenerationService {
     private final AiGatewayClient aiGatewayClient;
     private final SandboxValidator sandboxValidator;
     private final ResultMatchChoiceValidator resultMatchChoiceValidator;
+    private final ResultTableChoiceBuilder resultTableChoiceBuilder;
     private final ChoiceSetSaveService choiceSetSaveService;
     private final ChoiceSetGenerationRequestFactory requestFactory;
     private final ChoiceSetAttemptRunner attemptRunner;
@@ -92,7 +96,7 @@ public class ChoiceSetGenerationService {
 
     /**
      * 선택지 세트를 AI로 생성하고 샌드박스로 검증한다.
-     * 최대 3회 재시도 후 실패 시 CustomException을 던진다.
+     * 최대 3회 재시도 후 실패 시 CustomException을 던진다 (검증 실패 세트는 저장하지 않음, #828)
      * <p>
      * MULTIPLE_CORRECT 실패 시 이전 시도에서 정답과 동일한 결과를 낸 오답 SQL을
      * 피드백으로 누적하여 다음 AI 요청에 포함한다.
@@ -106,22 +110,19 @@ public class ChoiceSetGenerationService {
         if (savedChoiceSet != null) {
             return savedChoiceSet;
         }
-        QuestionChoiceSet aiTrustedChoiceSet = saveWithAiCorrectIfTrustable(run);
-        if (aiTrustedChoiceSet != null) {
-            return aiTrustedChoiceSet;
-        }
         throw attemptRunner.saveFailedAfterRetries(run, "questionUuid=" + questionUuid + ", source=" + source);
     }
 
     /**
-     * RESULT_MATCH 전용: answerSql을 Sandbox에서 실행 후 결과를 AI에 전달하여
-     * 정답 결과 JSON 1개 + 오답 결과 JSON 3개를 생성한다.
-     * Sandbox는 1회만 사용(answerSql 실행용) — 검증은 JSON 비교로 처리.
+     * RESULT_MATCH 전용 (#828): AI 는 오해 SQL 후보만 쓰고, 보이는 결과 표는 전부 실제 실행 결과
+     * 시도마다: 전용 프롬프트 요청 > 후보 실행·오답 모으기 > 3개 모이면 정답 표와 조립해 저장
      */
     public QuestionChoiceSet generateResultMatch(UUID questionUuid, UUID memberUuid, ChoiceSetSource source) {
         Question question = questionService.getQuestionEntity(questionUuid);
+        PromptTemplate prompt = promptService.getActivePrompt(RESULT_MATCH_PROMPT_KEY);
+        ChoiceSetGenerationRun run = new ChoiceSetGenerationRun(questionUuid, question, memberUuid, source, prompt);
 
-        // schemaDdl 없이는 Sandbox 실행 불가
+        // schemaDdl·answerSql 없이는 실행 결과 표를 만들 수 없음
         if (question.getSchemaDdl() == null || question.getSchemaDdl().isBlank()) {
             throw new CustomException(ErrorCode.SANDBOX_SETUP_FAILED, "RESULT_MATCH는 schemaDdl이 필수입니다.");
         }
@@ -129,21 +130,28 @@ public class ChoiceSetGenerationService {
             throw new CustomException(ErrorCode.SANDBOX_ANSWER_SQL_FAILED, "RESULT_MATCH는 answerSql이 필수입니다.");
         }
 
-        PromptTemplate prompt = promptService.getActivePrompt(RESULT_MATCH_PROMPT_KEY);
-        log.debug("[choice-gen-result-match] 요청 시작: questionUuid={}", questionUuid);
-
-        // answerSql을 Sandbox에서 1회 실행 — 이 결과를 AI 컨텍스트 + 검증에 재사용
-        ExecuteResult expectedResult = resultMatchChoiceValidator.executeExpectedResult(question);
-        log.debug("[choice-gen-result-match] answerSql 실행 완료: rowCount={}", expectedResult.rowCount());
-
-        ChoiceSetGenerationRun run = new ChoiceSetGenerationRun(questionUuid, question, memberUuid, source, prompt);
-        ChoiceSetRetryFeedback feedback = new ChoiceSetRetryFeedback(false);
+        ChoiceSetRetryFeedback feedback = new ChoiceSetRetryFeedback(requestFactory.hasAnswerResultPlaceholder(run.prompt()));
         QuestionChoiceSet savedChoiceSet = attemptRunner.runAttempts(run, RESULT_MATCH_RETRY_RULE,
-                attempt -> attemptResultMatch(run, expectedResult, feedback, attempt));
+                attempt -> attemptResultMatch(run, feedback, attempt));
         if (savedChoiceSet != null) {
             return savedChoiceSet;
         }
         throw attemptRunner.saveFailedAfterRetries(run, "result-match questionUuid=" + questionUuid);
+    }
+
+    /**
+     * 문제 정책 > 생성 경로 (#828): 개념형 > 개념 보기, 결과 표 > 결과형, 그 외 SQL 보기
+     * 프리페치·관리자 재생성 공용 (정책과 다른 보기 세트가 만들어지지 않게)
+     */
+    public QuestionChoiceSet generateForQuestion(UUID questionUuid, UUID memberUuid, ChoiceSetSource source) {
+        Question question = questionService.getQuestionEntity(questionUuid);
+        if (question.getExecutionMode() == ExecutionMode.CONCEPT_ONLY) {
+            return generateConcept(questionUuid, memberUuid, source);
+        }
+        if (question.getChoiceSetPolicy() == ChoiceSetPolicy.RESULT_MATCH) {
+            return generateResultMatch(questionUuid, memberUuid, source);
+        }
+        return generate(questionUuid, memberUuid, source);
     }
 
     /** SQL 보기 정책 > 프롬프트 키 (ODD_ONE_OUT 은 정답 방향이 반대라 전용 프롬프트, 그 외 기본) */
@@ -247,63 +255,71 @@ public class ChoiceSetGenerationService {
     }
 
     /**
-     * 3회 다 실패 — MULTIPLE_CORRECT이고 AI isCorrect=true가 1개 이상이면 AI 판단 신뢰 후 저장
-     * 단, 전부 정답(aiCorrectCount == choices.size())이면 문제로서 의미 없으므로 null (에러 처리)
+     * 결과 비교 문제 1회 시도 (#828): 요청(피드백 포함) > AI 보기 SQL > 실행해 쓸 만한 오답 모으기
+     * 서로 다른 오답 3개가 모이면 정답 표(기준 SQL 결과)와 조립해 저장, 모자라면 null (모은 오답은 다음 시도로)
      */
-    private QuestionChoiceSet saveWithAiCorrectIfTrustable(ChoiceSetGenerationRun run) {
-        GenerateChoiceSetResult lastResult = run.lastResult();
-        if (run.lastErrorCode() != ErrorCode.CHOICE_SET_VALIDATION_MULTIPLE_CORRECT || lastResult == null) {
-            return null;
+    private QuestionChoiceSet attemptResultMatch(ChoiceSetGenerationRun run, ChoiceSetRetryFeedback feedback, int attempt) {
+        Question question = run.question();
+        if (feedback.isExpectedResultPending()) {
+            feedback.recordExpectedResult(resultMatchChoiceValidator.executeExpectedResult(question));
         }
-        long aiCorrectCount = lastResult.choices().stream()
-                .filter(GeneratedChoiceDto::isCorrect)
-                .count();
-        if (aiCorrectCount >= 1 && aiCorrectCount < lastResult.choices().size()) {
-            // 정답이 일부 — "맞는 것은?" 유형에서 정답 중 하나를 고르면 정답 처리되므로 문제없음
-            log.warn("[choice-gen] MULTIPLE_CORRECT fallback: AI isCorrect={}개 신뢰, sandboxValidationPassed=false 저장. questionUuid={}", aiCorrectCount, run.questionUuid());
-            return choiceSetSaveService.saveWithAiCorrect(
-                    run.question(), run.source(), run.memberUuid(), run.prompt(), lastResult, MAX_ATTEMPTS);
+        GenerateChoiceSetRequest request = requestFactory.buildStandardRequest(
+                question, run.prompt(), feedback.equivalentSqls(), feedback.previousChoiceResultLines(), feedback.expectedResult());
+        log.debug("[choice-gen-result-match] AI 호출 시작: attempt={}/{}, questionUuid={}", attempt, MAX_ATTEMPTS, run.questionUuid());
+        GenerateChoiceSetResult aiResult = aiGatewayClient.generateChoiceSet(request);
+        run.recordAiResult(aiResult);
+
+        ResultTableChoiceBuilder.ScreenedAttempt screened =
+                resultTableChoiceBuilder.screenAttempt(question, aiResult.choices(), feedback.collectedWrongTables());
+        feedback.collectedWrongTables().addAll(screened.newWrongTables());
+        feedback.keepEmptyWrongTableIfAbsent(screened.emptyWrongTable());
+        int collectedCount = feedback.collectedWrongTables().size();
+        List<ResultTableChoiceBuilder.WrongTable> wrongTables = pickWrongTables(feedback, attempt);
+        if (wrongTables != null) {
+            // 빈 결과 예비 사용 여부 (예비 없으면 false, 불변 리스트 contains(null) 예외 방지)
+            boolean usesEmptyWrongTable = feedback.emptyWrongTable() != null && wrongTables.contains(feedback.emptyWrongTable());
+            log.debug("[choice-gen-result-match] 오답 확보, 저장: collected={}, usesEmpty={}, attempt={}",
+                    collectedCount, usesEmptyWrongTable, attempt);
+            ResultTableChoiceBuilder.AssembledChoices assembled = resultTableChoiceBuilder.assemble(
+                    screened.correctTableJson(), wrongTables);
+            GenerateChoiceSetResult tableResult = new GenerateChoiceSetResult(assembled.choices(), aiResult.metadata());
+            return choiceSetSaveService.saveResultMatch(
+                    question, run.source(), run.memberUuid(), run.prompt(), tableResult, assembled.report(), attempt);
         }
-        log.error("[choice-gen] MULTIPLE_CORRECT fallback 불가: aiCorrectCount={}. questionUuid={}", aiCorrectCount, run.questionUuid());
+
+        // 모자람: 정답과 같은 오답 SQL 은 동치 피드백, 보기별 실제 결과·버린 이유·모은 개수를 다음 요청에
+        run.recordErrorCode(ErrorCode.CHOICE_SET_GENERATION_FAILED);
+        log.info("[choice-gen-result-match] wrong tables short: collected={}, discards={}, attempt={}/{}, questionUuid={}",
+                collectedCount, screened.discardByKey(), attempt, MAX_ATTEMPTS, run.questionUuid());
+        requestFactory.collectEquivalentSqls(aiResult.choices(), screened.report(), feedback.equivalentSqls());
+        List<String> resultLines = new ArrayList<>(
+                requestFactory.toChoiceResultLines(aiResult.choices(), screened.report(), true));
+        screened.discardByKey().forEach((key, discard) -> resultLines.add(key + " 버림: " + discard.retryFeedback()));
+        // 이미 모은 오답 결과 (이 결과를 다시 내면 중복으로 버려짐)
+        // 중괄호는 대괄호로 (프롬프트 {placeholder} 치환 오염 방지, serializeExecuteResult 와 같은 규칙)
+        feedback.collectedWrongTables().forEach(wrongTable -> resultLines.add("확보한 오답 결과 (다시 내지 말 것): "
+                + wrongTable.tableJson().replace("{", "[").replace("}", "]")));
+        resultLines.add("지금까지 쓸 수 있는 오답 결과 " + collectedCount + "개 확보, " + (ResultTableChoiceBuilder.WRONG_CHOICE_COUNT - collectedCount)
+                + "개 더 필요. 위 결과들과 모두 다른 결과가 나오는 새 오해로 후보 SQL 4개를 다시 만들 것.");
+        feedback.replacePreviousChoiceResultLines(resultLines);
         return null;
     }
 
-    /** 결과 비교 문제 1회 시도: AI 호출 > JSON 비교 검증 > 중복 보기 확인 > 저장 (실패 시 null) */
-    private QuestionChoiceSet attemptResultMatch(ChoiceSetGenerationRun run, ExecuteResult expectedResult,
-                                                 ChoiceSetRetryFeedback feedback, int attempt) {
-        log.debug("[choice-gen-result-match] AI 호출 시작: attempt={}/{}", attempt, MAX_ATTEMPTS);
-        GenerateChoiceSetRequest request = requestFactory.buildResultMatchRequest(
-                run.question(), run.prompt(), expectedResult, feedback.resultMatchRetryFeedback());
-        GenerateChoiceSetResult aiResult = aiGatewayClient.generateChoiceSet(request);
-        run.recordAiResult(aiResult);
-        log.debug("[choice-gen-result-match] AI 응답 수신: choiceCount={}", aiResult.choices().size());
-
-        // JSON 비교 검증 (Sandbox 재호출 없음)
-        ValidationReport report = resultMatchChoiceValidator.validate(aiResult.choices(), expectedResult);
-        log.debug("[choice-gen-result-match] 검증 완료: correctCount={}", report.correctCount());
-
-        // 같은 결과 표 보기가 2개면 재생성 (#555)
-        if (report.correctCount() != 1) {
-            feedback.replaceResultMatchRetryFeedback(requestFactory.toResultMatchRetryFeedback(report));
+    /**
+     * 조립할 오답 3개: 빈 결과 아닌 오답 3개 > (마지막 시도만) 빈 결과 아닌 2개 + 빈 결과 예비 1개 > 모자라면 null
+     */
+    private static List<ResultTableChoiceBuilder.WrongTable> pickWrongTables(ChoiceSetRetryFeedback feedback, int attempt) {
+        List<ResultTableChoiceBuilder.WrongTable> collected = feedback.collectedWrongTables();
+        int wrongChoiceCount = ResultTableChoiceBuilder.WRONG_CHOICE_COUNT;
+        if (collected.size() >= wrongChoiceCount) {
+            return List.copyOf(collected.subList(0, wrongChoiceCount));
         }
-        boolean hasDuplicateChoice = ChoiceBodyDuplicateFinder.findDuplicateBody(
-                aiResult.choices().stream().map(GeneratedChoiceDto::body).toList()) != null;
-        if (hasDuplicateChoice) {
-            run.recordErrorCode(ErrorCode.CHOICE_SET_GENERATION_FAILED);
-            log.info("[choice-gen-result-match] validation failed: duplicate choice body, attempt={}/{}",
-                    attempt, MAX_ATTEMPTS);
-            return null;
+        boolean isLastAttempt = attempt >= MAX_ATTEMPTS;
+        if (isLastAttempt && collected.size() == wrongChoiceCount - 1 && feedback.emptyWrongTable() != null) {
+            List<ResultTableChoiceBuilder.WrongTable> withEmpty = new ArrayList<>(collected);
+            withEmpty.add(feedback.emptyWrongTable());
+            return withEmpty;
         }
-
-        if (report.correctCount() == 1) {
-            log.debug("[choice-gen-result-match] 검증 통과, 저장: attempt={}", attempt);
-            return choiceSetSaveService.saveResultMatch(
-                    run.question(), run.source(), run.memberUuid(), run.prompt(), aiResult, report, attempt);
-        }
-
-        ErrorCode errorCode = run.recordValidationFailure(report.correctCount());
-        log.info("[choice-gen-result-match] validation failed: code={}, attempt={}/{}",
-                errorCode, attempt, MAX_ATTEMPTS);
         return null;
     }
 }

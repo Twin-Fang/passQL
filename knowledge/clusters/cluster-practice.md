@@ -2,7 +2,7 @@
 type: cluster
 topic: practice
 created: 2026-10-29
-members: 147
+members: 151
 status: active
 related: []
 ---
@@ -22,18 +22,15 @@ related: []
 - [[DEC-0047-execute-uses-temp-sandbox-db]] — `sandboxDbName`이 없는 문제의 `/execute`는 호출마다 `SandboxPool` 임시 DB를 만들어 실행하고 지운다
 - [[DEC-0048-daily-challenge-wrong-answer-not-submitted]] — 데일리 챌린지는 정답일 때만 서버에 제출하고, 오답은 로컬 피드백 후 다시 풀게 한다
 - [[DEC-0049-ai-only-redefined-sql-equivalence]] — `AI_ONLY` 정책은 "주어진 SQL과 동일한 실행 결과를 내는 SQL 고르기"로 재정의한다
-- [[DEC-0050-result-match-text-choices]] — "실행 결과로 올바른 것은?" 유형은 `RESULT_MATCH` 정책 — 선택지는 결과 JSON(`kind = TEXT`), 검증은 `answerSql` 결과와 비교
 - [[DEC-0051-no-auto-execute-review-after-submit]] — 선택지 클릭 시 SQL 자동 실행을 없애고, 제출 후 `ChoiceReview`에서 각 선택지를 실행해 비교한다
 - [[DEC-0052-result-match-policy-equivalence-type]] — AI_ONLY EXECUTABLE 문제는 "동일 결과를 내는 SQL 찾기" 유형으로 재정의하고 `RESULT_MATCH` 선택지 정책을 추가
 - [[DEC-0053-spa-only-leave-blocker]] — 풀이 이탈 경고는 `useBlocker`로 SPA 내 이동만 막고 `beforeunload`(탭 닫기·새로고침)는 막지 않는다
 - [[DEC-0054-postgresql-sandbox-engine]] — Sandbox(와 앱 datasource) DB 엔진을 MariaDB에서 PostgreSQL로 전면 전환
-- [[DEC-0055-multiple-correct-ai-fallback-save]] — 3회 재시도 후에도 `MULTIPLE_CORRECT`면 AI의 `isCorrect` 판단으로 fallback 저장 (`sandbox_validation_passed=false`)
 - [[DEC-0056-stem-sql-code-block-rule]] — SQL이 들어간 문제 stem은 ```sql 코드 블록으로 쓴다 — 새 문제 생성 규칙이며 기존 예시는 수동으로 바꾼다
 - [[DEC-0057-confirm-modal-bottom-sheet-all-sizes]] — `ConfirmModal`은 데스크톱도 화면 너비 100% 바텀시트 단일 레이아웃
 - [[DEC-0058-on-demand-choice-execution-after-submit]] — EXECUTABLE 제출 후 실행 결과는 선택지 카드별 실행 버튼으로 골라 보게 한다 (전체 자동 노출 폐기, 풀이 중에는 실행 버튼 없음)
 - [[DEC-0062-separate-recommendation-practice-page]] — 홈 추천 문제는 QuestionDetail 직접 링크 대신 전용 `RecommendationPractice` 페이지로 풀고, 정답·오답 모두 제출 기록한다
 - [[DEC-0073-session-result-fixed-at-first-submit]] — 세션 결과는 최초 제출 기준으로 고정하고, 복습은 통계에만 반영한다
-- [[DEC-0087-choice-generation-practice-real-mode]] — 선택지 생성 모드를 연습(`PRACTICE`, 검증된 선택지 재사용)과 실전(`REAL`, 항상 AI 실시간 생성)으로 나눈다
 - [[DEC-0089-shared-question-flow-for-solving]] — 앱 풀이 화면은 하나로 두고, 풀이 방식마다 `QuestionFlow`만 구현한다
 - [[DEC-0090-app-no-separate-recommendation-screen]] — 앱은 추천 문제 전용 풀이 화면을 만들지 않고 일반 문제 풀이 화면을 그대로 쓴다
 - [[DEC-0113-similar-via-recommend-reuse]] — 유사 문제는 AI 서버를 새로 만들지 않고 기존 `POST /api/ai/recommend`를 Spring에서 조합해 쓴다
@@ -51,8 +48,14 @@ related: []
 - [[DEC-0194-explanation-working-notes-evidence-priority]] — 선택지 세트 해설은 보이지 않는 풀이 메모(`workingNotes`)를 먼저 쓰게 하고, 근거 우선순위는 실행 결과 > 고정 세트 검증된 풀이 > 생성 근거 > 자체 계산
 - [[DEC-0199-choice-execution-only-after-submit]] — 앱 실행형 문제의 보기 실행은 제출 뒤에만 연다 (고르기와 실행 분리, 제출 전에는 안내 문구만)
 - [[DEC-0200-shared-sandbox-result-cache]] — 샌드박스 실행 결과는 `CachedSandboxExecutor` 한 곳에서 회원 간 공유 캐시(메모리 30분 > Redis 7일)로 재사용한다
+- [[DEC-0249-result-table-choices-from-executed-sql]] — 결과 표 문제 보기는 AI가 쓴 보기 SQL의 실제 실행 결과로만 (오답 표를 지어내지 않음)
+- [[DEC-0250-never-store-unvalidated-sql-choice-sets]] — SQL·결과 표 보기 세트는 샌드박스 검증 통과만 저장·노출, 전수 검증으로 기존 세트 재채점
+- [[DEC-0251-practice-reuse-random-validated-sets]] — 연습 모드는 검증 통과 세트 최신 5개 중 무작위, 실전 모드는 매번 생성
 
 ## 대체된 결정 (역사)
+- [[DEC-0087-choice-generation-practice-real-mode]] → DEC-0251
+- [[DEC-0055-multiple-correct-ai-fallback-save]] → DEC-0250
+- [[DEC-0050-result-match-text-choices]] → DEC-0249
 - [[DEC-0016-auto-execute-on-choice-click]] → DEC-0051
 - [[DEC-0028-realtime-choice-set-with-prefetch]] → DEC-0087
 - [[DEC-0030-answer-sql-sandbox-ground-truth]] → DEC-0055
@@ -60,6 +63,7 @@ related: []
 - [[DEC-0147-keep-explanation-sheet-while-solving]] → DEC-0154
 
 ## 관련 이슈
+- [[ISS-0451-result-table-choices-fabricated-unvalidated-sets]] (resolved, GitHub #828) — 결과 표 오답을 AI가 지어냄, 미검증 세트 저장, 직접 실행해보기에 결과 JSON
 - [[ISS-0412-ai-explanation-quality-cost-optimization]] (open, GitHub #699) — AI 해설 품질, 호출 빈도, 비용 최적화와 해설 시트 정리
 - [[ISS-0022-daily-challenge-domain-api]] (resolved, GitHub #26) — Daily Challenge 도메인, 오늘의 챌린지 API, 관리자 화면
 - [[ISS-0023-random-question-recommendations-api]] (resolved, GitHub #27) — 랜덤 추천 문제 API (Question Recommendations)

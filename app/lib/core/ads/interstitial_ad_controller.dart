@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'ad_placement.dart';
+import '../utils/app_clock.dart';
 import 'full_screen_ad_guard.dart';
 import 'loaded_full_screen_ad.dart';
 import 'interstitial_ad_loader.dart';
@@ -17,7 +18,7 @@ class InterstitialAdController {
     DateTime Function()? now,
   }) : _loader = loader,
        _frequencyCap = frequencyCap,
-       _now = now ?? DateTime.now;
+       _now = now ?? AppClock.now;
 
   /// 불러 둔 광고 유효 시간 (AdMob 전면 광고는 1시간 뒤 만료 > 여유 5분)
   static const loadedAdValidDuration = Duration(minutes: 55);

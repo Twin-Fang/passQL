@@ -85,16 +85,17 @@ CONCEPT = {
     "title": "윈도우 함수 문법",
     "summary": "행을 줄이지 않고, 각 행 옆에 묶음별 계산값을 붙이는 함수예요",
     "coreMd": (
-        "- 윈도우 함수는 GROUP BY와 달리 행을 줄이지 않고, 행을 그대로 둔 채 각 행 옆에 계산한 값을 붙여요.\n"
-        "- 모양은 `함수() OVER (PARTITION BY 묶을 열 ORDER BY 정렬할 열 윈도우 절)`이고, 세 부분은 문법상 생략할 수 있지만, 순위 함수처럼 ORDER BY가 꼭 필요한 함수도 있어요.\n"
-        "- ORDER BY만 쓰고 윈도우 절을 빼면 `RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW`가 기본 범위라서 누적값이 나와요.\n"
-        "- 윈도우 함수는 WHERE 절에 쓸 수 없어서, 결과로 거르려면 인라인 뷰로 감싼 뒤 바깥 WHERE에서 걸러요."
+        "- 윈도우 함수는 GROUP BY와 달리 행을 줄이지 않고, 각 행 옆에 계산한 값을 붙여요.\n"
+        "- 모양은 `함수() OVER (PARTITION BY 열 ORDER BY 열 윈도우 절)`이고, 세 부분은 문법상 생략할 수 있어요.\n"
+        "- 다만 순위 함수처럼 OVER 안에 ORDER BY가 꼭 있어야 하는 함수도 있어요.\n"
+        "- ORDER BY만 쓰고 윈도우 절을 빼면 `RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW`가 기본이라 누적값이 나와요.\n"
+        "- 윈도우 함수는 WHERE 절에 쓸 수 없어서, 인라인 뷰로 감싼 뒤 바깥 WHERE에서 걸러요."
     ),
-    "detailMd": f"""## 왜 필요한가요 {{#why}}
+    "detailMd": f"""## GROUP BY로는 안 되는 일 — 행을 남긴 채 합계 붙이기 {{#why}}
 
-사원마다 자기 급여와 소속 부서의 급여 합계를 한 줄에 나란히 보고 싶은 상황을 떠올려 봐요. GROUP BY로는 이 결과를 만들 수 없는데, GROUP BY는 같은 부서의 행을 한 행으로 합쳐 버리기 때문이에요. 합계는 구할 수 있어도 그 안에 누가 있었는지는 결과에서 사라져요.
+사원마다 자기 급여와 부서의 급여 합계를 한 줄에 나란히 보고 싶다고 해 봐요. GROUP BY는 같은 부서의 행을 한 행으로 합쳐 버려서, 합계는 나와도 그 안에 누가 있었는지는 사라져요.
 
-예시는 회사 사원 여덟 명의 표에서 아래 네 열만 골라 계산해요. 부서번호 10은 기획부, 20은 개발부, 30은 영업부이고, 부서번호가 NULL인 윤서연은 아직 부서가 없는 사원이에요.
+예시는 사원 여덟 명의 네 열로 계산해요. 부서번호 10은 기획부, 20은 개발부, 30은 영업부이고, 부서번호가 NULL인 윤서연은 아직 부서가 없어요.
 
 {EMPLOYEE_BASE_TABLE}
 
@@ -106,9 +107,15 @@ CONCEPT = {
 
 같은 개발부인 이지은, 박서준, 정하늘은 모두 7800을 받았어요. 부서가 없는 윤서연은 NULL끼리 한 묶음이 되어 자기 급여 2000을 받았어요.
 
-## 한 줄 정의 {{#definition}}
+## 한 줄 정의 — OVER 괄호 안의 세 부분 {{#definition}}
 
-윈도우 함수(Window Function)는 여러 행을 함께 보고 계산한 값을, 행을 줄이지 않은 채 각 행에 하나씩 붙여 주는 함수예요. 계산할 때 들여다보는 행의 범위를 창문(윈도우)이라고 부르고, Oracle 문서에서는 분석 함수(Analytic Function)라는 이름을 써요. 함수 뒤에 `OVER`를 붙이고, 괄호 안에 세 부분을 적어요.
+| 용어 | 뜻 |
+|---|---|
+| 윈도우 함수 (Window Function) | 여러 행을 함께 보고 계산한 값을, 행을 줄이지 않은 채 각 행에 하나씩 붙이는 함수예요 |
+| 윈도우 | 계산할 때 들여다보는 행의 범위예요. 창문이라는 뜻이에요 |
+| 분석 함수 (Analytic Function) | Oracle 문서에서 윈도우 함수를 부르는 이름이에요 |
+
+함수 뒤에 `OVER`를 붙이고, 괄호 안에 세 부분을 적어요.
 
 ```sql
 -- 문법
@@ -118,15 +125,15 @@ SELECT 열, 함수(인자) OVER (PARTITION BY 묶을 열
 FROM 테이블;
 ```
 
-세 부분은 문법상 모두 생략할 수 있지만, 순위 함수처럼 ORDER BY가 꼭 있어야 하는 함수도 있어요. 각 부분이 하는 일은 아래와 같아요.
-
 | 부분 | 하는 일 | 생략하면 |
 |---|---|---|
 | PARTITION BY | 행을 묶음(파티션)으로 나눠요 | 전체 행이 한 묶음이 돼요 |
-| ORDER BY | 묶음 안에서 행의 순서를 정해요 | 순서가 필요한 순위 함수 등은 오류가 나요 |
-| 윈도우 절 | 계산에 넣을 행의 범위를 정해요 | ORDER BY가 있으면 RANGE 기준으로 첫 행부터 현재 행까지, 없으면 묶음 전체예요 |
+| ORDER BY | 묶음 안에서 행의 순서를 정해요 | 순위 함수처럼 순서가 필요한 함수는 오류가 나요 |
+| 윈도우 절 | 계산에 넣을 행의 범위를 정해요 | ORDER BY가 있으면 RANGE 기준 첫 행~현재 행, 없으면 묶음 전체예요 |
 
-SQLD에서는 윈도우 함수를 네 종류로 나눠서 묻고, 이 단원의 다음 개념들이 한 종류씩 다뤄요.
+## 네 종류 — 순위·집계·행 순서·비율 {{#kinds}}
+
+SQLD는 윈도우 함수를 네 종류로 나눠서 물어요. 이 단원의 다음 개념들이 한 종류씩 다뤄요.
 
 | 종류 | 함수 |
 |---|---|
@@ -135,73 +142,117 @@ SQLD에서는 윈도우 함수를 네 종류로 나눠서 묻고, 이 단원의 
 | 행 순서 함수 | FIRST_VALUE, LAST_VALUE, LAG, LEAD |
 | 비율 함수 | RATIO_TO_REPORT, PERCENT_RANK, CUME_DIST, NTILE |
 
-## PARTITION BY와 GROUP BY {{#partition}}
+## PARTITION BY와 GROUP BY — 묶는 방식은 같고 행 수가 달라요 {{#partition}}
 
-PARTITION BY와 GROUP BY는 같은 값을 가진 행끼리 묶는다는 점에서 닮았지만, 결과 행 수가 달라요. GROUP BY는 묶음마다 한 행만 남기고, PARTITION BY는 묶음을 계산 범위로만 쓰고 행은 모두 남겨요. 그래서 윈도우 함수를 쓸 때는 이름처럼 묶음 기준이 아닌 열도 SELECT 절에 자유롭게 넣을 수 있어요.
+| 비교 | GROUP BY | PARTITION BY |
+|---|---|---|
+| 쓰는 자리 | GROUP BY 절 | OVER 괄호 안 |
+| 결과 행 수 | 묶음마다 한 행 | 원래 행 수 그대로 |
+| SELECT에 넣을 수 있는 열 | 묶음 기준 열과 집계 결과 | 어떤 열이든 |
+| NULL 값 | NULL끼리 한 그룹 | NULL끼리 한 묶음 |
 
-PARTITION BY를 아예 빼면 테이블 전체가 한 묶음이 돼요. 아래 SQL은 같은 `COUNT(*)`에 PARTITION BY를 빼거나 넣었을 때의 차이를 한 번에 보여 줘요.
+PARTITION BY를 아예 빼면 테이블 전체가 한 묶음이 돼요. 같은 `COUNT(*)`에 PARTITION BY를 빼거나 넣으면 아래처럼 달라져요.
 
 {PARTITION_COUNT_EXAMPLE.markdown}
 
-`OVER ()`처럼 괄호를 비워 두면 모든 행에 전체 인원 8이 붙고, `PARTITION BY 부서번호`를 넣으면 각 행에 자기 부서의 인원이 붙어요. GROUP BY에서 NULL이 한 그룹이 되듯이, PARTITION BY에서도 부서번호가 NULL인 윤서연은 혼자 한 묶음이 돼요.
+`OVER ()`처럼 괄호를 비우면 모든 행에 전체 인원 8이 붙어요. `PARTITION BY 부서번호`를 넣으면 자기 부서의 인원이 붙고, 윤서연은 혼자 한 묶음이 돼요.
 
-## ORDER BY와 윈도우 절 {{#window-clause}}
+| 바로 확인 | 정답 | 이유 |
+|---|---|---|
+| PARTITION BY를 쓰면 GROUP BY처럼 결과 행 수가 줄어요 | X | PARTITION BY는 계산 범위만 나누고 행은 모두 남겨요 |
+| SUM(급여) OVER ()는 모든 행에 테이블 전체 합을 붙여요 | O | 괄호를 비우면 전체 행이 한 묶음이고, 범위도 묶음 전체예요 |
 
-OVER 안의 ORDER BY는 묶음 안에서 행을 줄 세우고, 윈도우 절은 그 줄에서 현재 행을 기준으로 어디부터 어디까지를 계산에 넣을지 정해요. 범위는 `ROWS BETWEEN 시작 AND 끝`이나 `RANGE BETWEEN 시작 AND 끝` 모양으로 적고, 시작과 끝에는 아래 다섯 가지를 쓸 수 있어요.
+## 윈도우 절 — 계산에 넣을 행의 범위 {{#window-clause}}
 
-| 표현 | 뜻 |
+OVER 안의 ORDER BY가 묶음 안에서 행을 줄 세우면, 윈도우 절은 현재 행을 기준으로 어디부터 어디까지 계산할지 정해요. 모양은 `ROWS BETWEEN 시작 AND 끝`이나 `RANGE BETWEEN 시작 AND 끝`이에요.
+
+| 용어 | 뜻 |
 |---|---|
-| UNBOUNDED PRECEDING | 묶음의 첫 행 |
-| n PRECEDING | 현재 행보다 n만큼 앞 |
-| CURRENT ROW | 현재 행 |
-| n FOLLOWING | 현재 행보다 n만큼 뒤 |
-| UNBOUNDED FOLLOWING | 묶음의 마지막 행 |
+| ROWS | 행을 한 줄씩 세어서 범위를 정해요 |
+| RANGE | ORDER BY 열의 값을 기준으로 범위를 정해서, 값이 같은 행을 한꺼번에 넣어요 |
+| UNBOUNDED PRECEDING | 묶음의 첫 행이에요. UNBOUNDED는 "끝없이", PRECEDING은 "앞선"이라는 뜻이고, 시작 자리에만 써요 |
+| n PRECEDING | 현재 행보다 n만큼 앞이에요 |
+| CURRENT ROW | 현재 행이에요 |
+| n FOLLOWING | 현재 행보다 n만큼 뒤예요. FOLLOWING은 "뒤따르는"이라는 뜻이에요 |
+| UNBOUNDED FOLLOWING | 묶음의 마지막 행이고, 끝 자리에만 써요 |
 
-PRECEDING은 "앞선", FOLLOWING은 "뒤따르는", UNBOUNDED는 "끝없이"라는 뜻이에요. ROWS는 행을 한 줄씩 세어서 범위를 정하고, RANGE는 ORDER BY 열의 값을 기준으로 범위를 정해요. 두 방식은 값이 같은 행이 있을 때 결과가 갈리는데, 이 차이는 집계 윈도우 함수 개념에서 자세히 다뤄요.
-
-영업부 세 명으로 범위를 바꿔 보면 차이가 바로 보여요. 세 열 모두 급여 합계를 구하지만, 계산에 넣는 행이 서로 달라요.
+영업부 세 명으로 범위만 바꿔 봤어요. 세 열 모두 급여 합계인데, 계산에 넣는 행이 서로 달라요.
 
 {WINDOW_RANGE_EXAMPLE.markdown}
 
-`기본` 열은 윈도우 절을 쓰지 않았는데도 첫 행부터 현재 행까지 더한 누적 합이 나왔어요. ORDER BY가 있고 윈도우 절이 없으면 `RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW`가 기본 범위로 쓰이기 때문이에요. `앞한행` 열은 바로 앞 행과 현재 행만 더했고, `끝까지` 열은 현재 행부터 마지막 행까지 더했어요. BETWEEN을 빼고 `ROWS 1 PRECEDING`처럼 시작만 적으면 끝은 CURRENT ROW로 정해져서 `앞한행`과 같은 결과가 나와요.
+| 열 | 계산 범위 | 그래서 나온 값 |
+|---|---|---|
+| 기본 | 윈도우 절 없음, 곧 RANGE 첫 행~현재 행 | 누적 합 |
+| 앞한행 | ROWS 바로 앞 행~현재 행 | 두 행의 합 |
+| 끝까지 | ROWS 현재 행~마지막 행 | 남은 행의 합 |
 
-## 자주 헷갈리는 점 {{#confusing}}
+BETWEEN을 빼고 `ROWS 1 PRECEDING`처럼 시작만 적으면 끝은 CURRENT ROW로 정해져요. 그래서 `앞한행`과 같은 결과가 나와요.
 
-**OVER 안에 ORDER BY를 넣는 순간 합계가 누적 합계로 바뀌어요.** `SUM(급여) OVER (PARTITION BY 부서번호)`는 부서 전체 합을 붙이지만, 같은 식에 `ORDER BY 급여`만 더해도 기본 범위가 첫 행부터 현재 행까지로 바뀌어 누적 합이 나와요. ORDER BY를 넣고도 부서 전체 합을 원하면 `ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING`을 직접 적어야 해요.
+## 쓸 수 있는 자리 — SELECT 절과 ORDER BY 절뿐 {{#position}}
 
-**기본 범위는 ROWS가 아니라 RANGE예요.** RANGE는 ORDER BY 값이 같은 행을 한꺼번에 범위에 넣기 때문에, 급여가 2500으로 같은 이지은과 정하늘은 누적 합도 똑같이 5000이 나와요.
+| 단계 | 내용 |
+|---|---|
+| FROM | 테이블에서 행을 가져와요 |
+| WHERE | 조건으로 행을 걸러요 |
+| GROUP BY | 행을 그룹으로 묶어요 |
+| HAVING | 그룹을 조건으로 걸러요 |
+| 윈도우 함수 | 남은 행으로 SELECT 절의 윈도우 함수를 계산해요 |
+| ORDER BY | 결과를 정렬해요 |
 
-{DEFAULT_TIE_EXAMPLE.markdown}
-
-한 줄씩 더했다면 2500, 5000, 7800이 되었을 텐데, 기본 범위는 값이 같은 행을 한 덩어리로 보므로 두 사람 모두 5000을 받아요.
-
-**윈도우 함수는 WHERE 절에 쓸 수 없어요.** SELECT 문은 FROM, WHERE, GROUP BY, HAVING으로 행을 고르고 묶는 일을 모두 마친 다음에 윈도우 함수를 계산하고, 마지막으로 ORDER BY로 정렬해요. 그래서 윈도우 함수는 SELECT 절과 ORDER BY 절에만 쓸 수 있고, WHERE·GROUP BY·HAVING 절에 쓰면 ORA-30483(윈도우 함수를 쓸 수 없는 자리) 오류가 나요. 아래 예시의 RANK는 순위를 매기는 함수이고, 다음 개념에서 자세히 다뤄요.
+윈도우 함수는 행을 고르고 묶는 일이 다 끝난 뒤에 계산돼요. 그래서 WHERE·GROUP BY·HAVING 절에 쓰면 ORA-30483(윈도우 함수를 쓸 수 없는 자리) 오류가 나요.
 
 ```sql
 -- 오류: 윈도우 함수는 WHERE 절에 쓸 수 없어요 (ORA-30483)
 SELECT 이름, 급여 FROM 사원 WHERE RANK() OVER (ORDER BY 급여 DESC) <= 3;
 ```
 
-윈도우 함수의 결과로 행을 거르고 싶다면, 윈도우 함수를 계산한 SELECT 문을 인라인 뷰(FROM 절 안에 넣은 서브쿼리)로 감싸고 바깥 WHERE에서 걸러요. 이 방법은 윈도우 함수로 TOP N 개념에서 더 자세히 다뤄요.
+결과로 거르려면 윈도우 함수를 계산한 SELECT 문을 인라인 뷰(FROM 절 안에 넣은 서브쿼리)로 감싸고, 바깥 WHERE에서 걸러요. RANK는 순위를 매기는 함수로 다음 개념에서 다루고, 거르는 방법은 윈도우 함수로 TOP N 개념에서 더 다뤄요.
 
 {INLINE_VIEW_EXAMPLE.markdown}
 
-**GROUP BY와 함께 쓰면 GROUP BY가 끝난 결과에 윈도우 함수를 적용해요.** 윈도우 함수는 GROUP BY보다 나중에 계산되므로, 부서별 합계에 순위를 매기는 것처럼 집계 결과를 OVER 안에서 쓸 수 있어요.
+반대로 GROUP BY보다 나중에 계산되기 때문에, 집계 결과를 OVER 안에서 쓸 수 있어요. 아래는 부서별 합계에 순위를 매긴 예시예요.
 
 {GROUP_RANK_EXAMPLE.markdown}
 
-**함수마다 OVER 안에 꼭 있어야 하는 것과 쓸 수 없는 것이 달라요.** 순위 함수, LAG·LEAD, PERCENT_RANK·CUME_DIST·NTILE은 ORDER BY가 없으면 순서를 정할 수 없어서 ORA-30485(OVER 안에 ORDER BY가 없음) 오류가 나요. 반대로 윈도우 절은 집계 함수와 FIRST_VALUE·LAST_VALUE에만 쓸 수 있고, RANK 같은 순위 함수에 적으면 문법 오류가 나요. 윈도우 절의 시작은 끝보다 앞이어야 해서, `ROWS BETWEEN CURRENT ROW AND UNBOUNDED PRECEDING`처럼 거꾸로 적어도 ORA-30486(윈도우 범위가 잘못됨) 오류가 나요.
+## 자주 헷갈리는 점 {{#confusing}}
+
+| 헷갈리는 말 | 실제로는 |
+|---|---|
+| OVER 안에 ORDER BY를 더해도 SUM은 묶음 전체 합이에요 | ORDER BY를 넣는 순간 기본 범위가 첫 행~현재 행이 되어 누적 합이 나와요. 전체 합이 필요하면 ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING을 직접 적어요 |
+| ORDER BY만 쓸 때 기본 범위는 ROWS예요 | 기본은 RANGE예요. 그래서 ORDER BY 값이 같은 행은 누적값도 같아요 |
+| 윈도우 함수는 WHERE 절의 조건으로 쓸 수 있어요 | WHERE보다 나중에 계산돼서 ORA-30483 오류가 나요. 인라인 뷰로 감싼 뒤 바깥에서 걸러요 |
+| PARTITION BY를 빼면 오류가 나요 | 전체 행이 한 묶음이 될 뿐이에요 |
+| 순위 함수도 OVER 안의 ORDER BY를 생략할 수 있어요 | 순위 함수, LAG·LEAD, PERCENT_RANK·CUME_DIST·NTILE은 ORDER BY가 없으면 ORA-30485(OVER 안에 ORDER BY가 없음) 오류가 나요 |
+| 윈도우 절은 어떤 윈도우 함수에나 붙일 수 있어요 | 집계 함수와 FIRST_VALUE·LAST_VALUE에만 써요. RANK 같은 순위 함수에 붙이면 문법 오류가 나요 |
+| 범위의 시작과 끝은 순서를 바꿔 적어도 돼요 | 시작이 끝보다 앞이어야 해요. 거꾸로 적으면 ORA-30486(윈도우 범위가 잘못됨) 오류가 나요 |
+
+급여가 2500으로 같은 이지은과 정하늘은 기본 범위에서 누적 합도 똑같이 5000이에요. 한 줄씩 더했다면 2500, 5000, 7800이 되었을 텐데, RANGE는 값이 같은 행을 한 덩어리로 봐요.
+
+{DEFAULT_TIE_EXAMPLE.markdown}
 
 ```sql
 -- 오류: 순위 함수에 ORDER BY가 없어요 (ORA-30485)
 SELECT 이름, RANK() OVER () FROM 사원;
 -- 오류: 순위 함수에는 윈도우 절을 쓸 수 없어요
 SELECT 이름, RANK() OVER (ORDER BY 급여 ROWS UNBOUNDED PRECEDING) FROM 사원;
+-- 오류: 범위의 끝이 시작보다 앞이에요 (ORA-30486)
+SELECT 이름, SUM(급여) OVER (ORDER BY 급여 ROWS BETWEEN CURRENT ROW AND UNBOUNDED PRECEDING) FROM 사원;
 ```
+
+| 바로 확인 | 정답 | 이유 |
+|---|---|---|
+| ROWS 1 PRECEDING은 앞 한 행부터 마지막 행까지를 뜻해요 | X | 시작만 적으면 끝은 CURRENT ROW라서, 앞 한 행과 현재 행이에요 |
+| 윈도우 함수는 GROUP BY로 만든 합계에 순위를 매길 수 있어요 | O | 윈도우 함수는 GROUP BY가 끝난 결과에 적용돼요 |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 
-GROUP BY와 윈도우 함수의 결과 행 수를 비교하는 문제와, ORDER BY만 쓴 SUM의 결과 표를 채우는 문제가 자주 나와요. 표를 채울 때는 OVER 안에 ORDER BY가 있는지부터 보고, 있으면 누적 합이고 동점 행끼리는 값이 같다는 점을 떠올리면 돼요. 그 밖에 윈도우 함수를 WHERE 절에 쓴 SQL을 오류로 고르는 문제, ROWS·RANGE와 PRECEDING·FOLLOWING을 바르게 조합한 윈도우 절을 고르는 문제, 함수를 네 종류로 분류하는 문제가 나와요.""",
+| 나오는 문제 | 푸는 법 |
+|---|---|
+| GROUP BY와 윈도우 함수의 결과 행 수 비교 | 윈도우 함수는 행을 줄이지 않아요 |
+| ORDER BY만 쓴 SUM의 결과 표 채우기 | 누적 합이고, 동점 행끼리는 값이 같아요 |
+| 오류가 나는 SQL 고르기 | WHERE 절의 윈도우 함수, ORDER BY 없는 순위 함수를 찾아요 |
+| 바른 윈도우 절 고르기 | ROWS·RANGE 뒤에 시작이 끝보다 앞인지 봐요 |
+| 함수를 네 종류로 나누기 | 순위, 집계, 행 순서, 비율 표를 떠올려요 |""",
     "checkQuestions": [
         question(1, "윈도우 함수에 대한 설명으로 옳은 것은 무엇인가요?", "definition",
                  "윈도우 함수는 행 수를 그대로 두고 계산값을 각 행에 붙여요. PARTITION BY는 생략할 수 있고, WHERE 절에는 쓸 수 없어요.",
@@ -257,6 +308,8 @@ GROUP BY와 윈도우 함수의 결과 행 수를 비교하는 문제와, ORDER 
         sql_error_check("SELECT 이름, RANK() OVER () FROM 사원", "ORA-30485"),
         sql_error_check("SELECT 이름, RANK() OVER (ORDER BY 급여 ROWS UNBOUNDED PRECEDING) FROM 사원", "ORA-00907"),
         sql_error_check("SELECT 이름, SUM(급여) OVER (ORDER BY 급여 ROWS BETWEEN CURRENT ROW AND UNBOUNDED PRECEDING) FROM 사원", "ORA-30486"),
+        # 본문 용어 카드: UNBOUNDED FOLLOWING 은 끝 자리에만 (시작 자리면 범위 오류)
+        sql_error_check("SELECT 이름, SUM(급여) OVER (ORDER BY 급여 ROWS BETWEEN UNBOUNDED FOLLOWING AND CURRENT ROW) FROM 사원", "ORA-30486"),
         # 확인 문제 2·4번 stemSql
         sql_check("SELECT 이름, SUM(급여) OVER (PARTITION BY 부서번호) AS 부서합계 FROM 사원;",
                   [[name, total] for name, _, _, total in PARTITION_SUM_ROWS]),

@@ -1,3 +1,5 @@
+import 'app_clock.dart';
+
 // 내 프로필 탑승권·이용권 시트에 보이는 숫자 계산 (#749)
 // 화면에 지어낸 숫자를 쓰지 않도록 모두 등급 응답·시험 일정·스토어 가격에서만 계산한다.
 
@@ -50,7 +52,7 @@ String? aiAnalyzedLabel(String? generatedAt, {DateTime? now}) {
   if (parsed == null) return null;
   // 오프셋이 붙은 값은 기기 시각으로, 오프셋 없는 값은 서버(KST) 시각 그대로 본다
   final at = parsed.isUtc ? parsed.toLocal() : parsed;
-  final today = now ?? DateTime.now();
+  final today = now ?? AppClock.now();
   final isToday =
       at.year == today.year && at.month == today.month && at.day == today.day;
   if (!isToday) return '${at.month}월 ${at.day}일 분석';

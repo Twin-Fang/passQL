@@ -17,7 +17,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 선택지 세트 AI 요청 조립: 유형 3개(표준 SQL, 개념, 결과 일치) 문맥·프롬프트·응답 스키마, 재시도 피드백
+ * 선택지 세트 AI 요청 조립: 유형 2개(SQL 보기, 개념) 문맥·프롬프트·응답 스키마, 재시도 피드백
+ * 결과 표 문제(RESULT_MATCH)는 전용 프롬프트로 오해 SQL 을 요청하고 서버가 실행 결과 표로 바꿈 (#828, 지시문은 DB 프롬프트에만)
  * 공통 응답 스키마 1개 + 유형별 문맥·user prompt 치환
  */
 @Component
@@ -44,7 +45,7 @@ public class ChoiceSetGenerationRequestFactory {
             ),
             "required", List.of("choices")
     );
-    // user prompt 치환 자리: 정답 SQL 실행 결과 텍스트 (RESULT_MATCH, generate_choice_set v6 이상) (#720)
+    // user prompt 치환 자리: 정답 SQL 실행 결과 텍스트 (generate_choice_set v6 이상) (#720)
     private static final String ANSWER_RESULT_PLACEHOLDER = "{answer_result}";
     // ODD_ONE_OUT user prompt 추가 지시: 공통 프롬프트(정답 1개만 기준 SQL과 같은 결과)와 반대인 검증 기준(3개 같은 결과, 1개 다른 결과)에 맞춤 (#704)
     private static final String ODD_ONE_OUT_INSTRUCTION = """
@@ -56,9 +57,8 @@ public class ChoiceSetGenerationRequestFactory {
             - 1개 선택지: 샘플 데이터 기준으로 실행 결과가 다른 SQL (is_correct=true)
             - 같은 결과 3개는 행 수·값·컬럼 수까지 모두 같아야 한다. 샘플 데이터(NULL 포함)로 직접 계산해 확인할 것
             - 다른 결과 1개는 NULL 처리, 집계 범위 등 학습 포인트가 드러나는 차이로 만들 것""";
-
     /**
-     * AI_ONLY·ODD_ONE_OUT 요청 조립: 기준 실행 결과 치환 > 동치 SQL 피드백 > 유형별 직전 실행 결과 피드백
+     * SQL 보기 요청 조립(AI_ONLY·ODD_ONE_OUT·RESULT_MATCH): 기준 실행 결과 치환 > 동치 SQL 피드백 > 유형 지시 > 직전 실행 결과 피드백
      * expectedResult null: 템플릿에 {answer_result} 없음 (치환 생략)
      */
     public GenerateChoiceSetRequest buildStandardRequest(
@@ -129,21 +129,6 @@ public class ChoiceSetGenerationRequestFactory {
     }
 
     /**
-     * RESULT_MATCH 전용 AI 요청 빌드 — answerSql 실행 결과를 user prompt에 직접 치환하여 포함.
-     */
-    public GenerateChoiceSetRequest buildResultMatchRequest(
-            Question question, PromptTemplate prompt, ExecuteResult expectedResult, String retryFeedback) {
-        // {answer_result} 플레이스홀더를 실행 결과 텍스트로 치환하여 AI에 전달
-        String userPrompt = prompt.getUserTemplate()
-                .replace(ANSWER_RESULT_PLACEHOLDER, serializeExecuteResult(expectedResult));
-        // 직전 시도 채점 피드백 (정답 표 중복·누락 교정)
-        if (retryFeedback != null) {
-            userPrompt = userPrompt + "\n\n[재시도 피드백]\n" + retryFeedback;
-        }
-        return new GenerateChoiceSetRequest(toSqlContext(question), toLlmConfig(prompt, userPrompt));
-    }
-
-    /**
      * MULTIPLE_CORRECT 실패 시 정답과 동치(동일 결과)인 오답 SQL을 피드백 목록에 추가한다.
      * AI가 is_correct=false로 설정했지만 sandbox 결과 matchesExpected=true인 선택지를 수집한다.
      */
@@ -193,22 +178,6 @@ public class ChoiceSetGenerationRequestFactory {
             resultLines.add(choice.key() + ": " + choice.body() + " > " + resultText + matchText);
         }
         return resultLines;
-    }
-
-    /**
-     * RESULT_MATCH 실패 시도 > 재시도 피드백 문구 (정답 표 2개 이상: 겹친 보기 key, 0개: 정답 표 복사 지시)
-     */
-    public String toResultMatchRetryFeedback(ValidationReport report) {
-        List<String> matchedKeys = report.items().stream()
-                .filter(ValidationReport.ChoiceValidation::matchesExpected)
-                .map(ValidationReport.ChoiceValidation::key)
-                .toList();
-        if (matchedKeys.isEmpty()) {
-            return "직전 시도에서 기준 실행 결과와 같은 표가 하나도 없었다. 정답 body 는 기준 SQL 실행 결과의 행·값을 그대로 옮길 것.";
-        }
-        return "직전 시도에서 " + String.join(", ", matchedKeys)
-                + " 가 모두 기준 실행 결과와 같은 표로 채점되었다(행 순서·키 대소문자 무시). "
-                + "정답 1개만 남기고 나머지는 셀 값이나 행 수를 바꿔 확실히 다른 표로 만들 것.";
     }
 
     /** 문제 > SQL 문맥 (지문·정답 SQL·스키마·난이도) */

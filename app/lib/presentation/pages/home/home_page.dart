@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/ads/ad_placement.dart';
+import '../../../core/utils/app_clock.dart';
 import '../../../data/models/notification/notification_models.dart';
 import '../../../router/app_routes.dart';
 import '../../../router/questions_tab_view.dart';
@@ -127,7 +128,7 @@ class _HomeContent extends ConsumerWidget {
     final examTrendReport = examTrendReportAsync.valueOrNull;
     final dailyStudyTip = examTrendReport == null
         ? null
-        : selectDailyStudyTip(examTrendReport.studyTips, DateTime.now());
+        : selectDailyStudyTip(examTrendReport.studyTips, AppClock.now());
     final greeting = data.greeting;
 
     final readiness = data.progress?.readiness;
@@ -210,7 +211,7 @@ class _HomeContent extends ConsumerWidget {
               // 시작 카드는 날짜마다 다음 유형으로 (같은 날은 같은 카드)
               patterns: rotateToDailyStart(
                 examTrendReport.risingPatterns,
-                DateTime.now(),
+                AppClock.now(),
               ),
               updatedDate: examTrendReport.updatedDate,
               onSolveTopic: (topicCode, topicName) => context.push(

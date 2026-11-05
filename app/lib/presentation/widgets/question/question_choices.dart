@@ -62,8 +62,7 @@ class QuestionChoices extends StatelessWidget {
     }
 
     final hasRunnableChoice =
-        isExecutable &&
-        interaction.activeChoices.any((choice) => choice.kind == 'SQL');
+        isExecutable && interaction.activeChoices.any((choice) => choice.isSql);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -82,8 +81,7 @@ class QuestionChoices extends StatelessWidget {
   /// 보기 카드 1개: 탭은 고르기, 채점 뒤 실행형 SQL 보기는 카드 탭·▶ 아이콘으로 실행
   /// 채점 전 실행 막음 (결과를 묻는 문제라 실행하면 정답이 보임)
   Widget _buildChoiceCard(int displayIndex, ChoiceItem item) {
-    final isRunnable =
-        isExecutable && item.kind == 'SQL' && submitResult != null;
+    final isRunnable = isExecutable && item.isSql && submitResult != null;
     void runThisChoice() =>
         notifier.runChoice(choiceKey: item.key, sql: item.body);
     return ChoiceItemCard(

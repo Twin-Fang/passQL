@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 선택지 세트 재시도 피드백 누적: SQL 문제(동치 SQL, 직전 실행 결과, 기준 결과), 결과 비교 문제(채점 피드백)
+ * 선택지 세트 재시도 피드백 누적: 동치 SQL, 직전 실행 결과(결과 표 문제는 버린 이유 포함), 기준 결과, 결과 표 문제 모은 오답
  * 생성 1회 실행 동안만 유지, 다음 시도 AI 요청에 포함
  */
 final class ChoiceSetRetryFeedback {
@@ -18,8 +18,10 @@ final class ChoiceSetRetryFeedback {
     // 기준 SQL 실행 결과 포함 여부: 프롬프트가 받을 때만 첫 시도에 1회 실행 (#720)
     private final boolean shouldIncludeAnswerResult;
     private ExecuteResult expectedResult;
-    // 결과 비교 문제 직전 시도 채점 피드백 (첫 시도 null)
-    private String resultMatchRetryFeedback;
+    // 결과 표 문제: 시도마다 건진 오답 표 (3개 모이면 조립, #828)
+    private final List<ResultTableChoiceBuilder.WrongTable> collectedWrongTables = new ArrayList<>();
+    // 결과 표 문제: 빈 결과 예비 오답 1개 (마지막 시도에 모자랄 때만 사용)
+    private ResultTableChoiceBuilder.WrongTable emptyWrongTable;
 
     ChoiceSetRetryFeedback(boolean shouldIncludeAnswerResult) {
         this.shouldIncludeAnswerResult = shouldIncludeAnswerResult;
@@ -50,11 +52,18 @@ final class ChoiceSetRetryFeedback {
         this.expectedResult = executedExpectedResult;
     }
 
-    String resultMatchRetryFeedback() {
-        return resultMatchRetryFeedback;
+    List<ResultTableChoiceBuilder.WrongTable> collectedWrongTables() {
+        return collectedWrongTables;
     }
 
-    void replaceResultMatchRetryFeedback(String retryFeedback) {
-        this.resultMatchRetryFeedback = retryFeedback;
+    ResultTableChoiceBuilder.WrongTable emptyWrongTable() {
+        return emptyWrongTable;
+    }
+
+    /** 빈 결과 예비 오답은 처음 건진 1개만 보관 */
+    void keepEmptyWrongTableIfAbsent(ResultTableChoiceBuilder.WrongTable candidate) {
+        if (emptyWrongTable == null && candidate != null) {
+            emptyWrongTable = candidate;
+        }
     }
 }

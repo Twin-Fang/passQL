@@ -5,10 +5,13 @@ import com.passql.question.constant.ChoiceSetStatus;
 import com.passql.question.dto.AdminChoiceSetBulkRequest;
 import com.passql.question.dto.AdminChoiceSetBulkResult;
 import com.passql.question.dto.AdminChoiceSetSearchCondition;
+import com.passql.question.dto.ChoiceSetIntegrityAuditPage;
 import com.passql.web.support.AdminPageRequest;
 import com.passql.question.entity.QuestionChoiceSet;
 import com.passql.question.entity.QuestionChoiceSetItem;
 import com.passql.question.service.AdminChoiceSetService;
+import com.passql.question.service.ChoiceSetGenerationService;
+import com.passql.question.service.ChoiceSetIntegrityAuditService;
 import com.passql.web.support.AdminMenu;
 import com.passql.web.support.AdminPage;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +34,8 @@ import java.util.UUID;
 public class AdminChoiceSetController {
 
     private final AdminChoiceSetService adminChoiceSetService;
+    private final ChoiceSetIntegrityAuditService choiceSetIntegrityAuditService;
+    private final ChoiceSetGenerationService choiceSetGenerationService;
 
     @GetMapping
     @AdminPage(menu = AdminMenu.CHOICE_SETS)
@@ -96,5 +101,23 @@ public class AdminChoiceSetController {
     @ResponseBody
     public ResponseEntity<AdminChoiceSetBulkResult> bulkPromote(@RequestBody AdminChoiceSetBulkRequest request) {
         return ResponseEntity.ok(adminChoiceSetService.promoteChoiceSets(request.choiceSetUuids()));
+    }
+
+    /** 노출 중 세트 전수 검증 1페이지 (#828, 읽기 전용: 내리기는 bulk-disable) */
+    @GetMapping("/integrity-audit")
+    @ResponseBody
+    public ResponseEntity<ChoiceSetIntegrityAuditPage> integrityAudit(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(choiceSetIntegrityAuditService.auditPage(page, size));
+    }
+
+    /** 문제 1개 새 세트 생성 (#828): 정책별 경로, 검증 통과 세트만 저장 > 새 세트 UUID */
+    @PostMapping("/regenerate/{questionUuid}")
+    @ResponseBody
+    public ResponseEntity<UUID> regenerate(@PathVariable UUID questionUuid) {
+        QuestionChoiceSet choiceSet = choiceSetGenerationService.generateForQuestion(
+                questionUuid, null, ChoiceSetSource.AI_RUNTIME);
+        return ResponseEntity.ok(choiceSet.getChoiceSetUuid());
     }
 }

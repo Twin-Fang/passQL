@@ -66,7 +66,8 @@ on:
   # 앱 변경 없는 서버 배포는 돌지 않음 > 진행 중인 심사를 새 제출로 취소하지 않음 (#729)
   push:
     branches: [deploy]
-    paths: ['app/**']
+    # 버전 줄만 바뀐 app/pubspec.yaml 은 제외 (릴리스 버전 커밋이 매번 바꿔 서버만 바뀐 배포도 심사 제출되던 문제, #840)
+    paths: ['app/**', '!app/pubspec.yaml']
   # 수동 실행: 모드 직접 선택
   workflow_dispatch:
     inputs:

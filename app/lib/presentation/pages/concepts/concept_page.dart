@@ -11,13 +11,14 @@ import '../../design/design.dart';
 import '../../flows/concept_related_flow.dart';
 import '../../providers/concept_providers.dart';
 import '../../widgets/concept/concept_read_view.dart';
+import '../../widgets/concept/concept_reading_parser.dart';
 import '../../widgets/concept/concept_result_view.dart';
 import '../../widgets/concept/concept_solve_view.dart';
 import '../../widgets/pro/locked_preview_samples.dart';
 import '../../widgets/pro/pro_locked_section.dart';
 
-/// 개념 학습 (#577, #764): 핵심 | 자세히 | 문제 전환 (읽기·풀기 둘 다 살려 두어 위치·진행 유지)
-/// 읽기 하단: 문제 풀기 · 다음 개념. 풀기는 자체 하단 버튼, 결과에서 관련 실전 문제로. 잠긴 단원(403)은 블러 잠금, 없는 개념(404)은 안내
+/// 개념 학습 (#577, #764, #835): 개념 | 확인 문제 전환 (읽기·풀기 둘 다 살려 두어 위치·진행 유지)
+/// 읽기는 한 스크롤(한 줄 핵심 > 기억할 것 > 문단 카드), 하단: 확인 문제 풀기 · 다음 개념. 풀기는 자체 하단 버튼, 결과에서 관련 실전 문제로. 잠긴 단원(403)은 블러 잠금, 없는 개념(404)은 안내
 class ConceptPage extends ConsumerWidget {
   const ConceptPage({super.key, required this.conceptUuid});
 
@@ -75,10 +76,10 @@ class _ConceptLoadError extends StatelessWidget {
   }
 }
 
-/// 위 세그먼트 3칸 (#764): 읽기 깊이 2개 + 풀기를 한 줄로 (값 = 모드·깊이 조합)
-enum _ConceptStudyTab { core, detail, quiz }
+/// 위 세그먼트 2칸 (#835): 읽기(한 스크롤) · 풀기
+enum _ConceptStudyTab { read, quiz }
 
-/// 상단 바 + 세그먼트(핵심·자세히·문제) + 본문(읽기·풀기 겹쳐 두고 하나만 보임) + 읽기 하단 버튼
+/// 상단 바 + 세그먼트(개념·확인 문제) + 본문(읽기·풀기 겹쳐 두고 하나만 보임) + 읽기 하단 버튼
 class _ConceptStudyScaffold extends ConsumerWidget {
   const _ConceptStudyScaffold({required this.detail});
 
@@ -108,11 +109,9 @@ class _ConceptStudyScaffold extends ConsumerWidget {
     }
 
     final isReading = study.mode == ConceptStudyMode.read;
-    final selectedTab = !isReading
-        ? _ConceptStudyTab.quiz
-        : study.depth == ConceptReadingDepth.detail
-        ? _ConceptStudyTab.detail
-        : _ConceptStudyTab.core;
+    final selectedTab = isReading
+        ? _ConceptStudyTab.read
+        : _ConceptStudyTab.quiz;
     final relatedQuestionCount = detail.relatedQuestionUuids.length.clamp(
       0,
       ConceptRelatedFlow.maximumQuestionCount,
@@ -164,20 +163,12 @@ class _ConceptStudyScaffold extends ConsumerWidget {
                 : topics.fold<int>(0, (sum, topic) => sum + topic.conceptCount),
           );
 
-    /// 세그먼트 선택 > 모드·깊이로 나눠 저장
-    void selectTab(_ConceptStudyTab tab) {
-      switch (tab) {
-        case _ConceptStudyTab.quiz:
-          notifier.selectMode(ConceptStudyMode.solve);
-        case _ConceptStudyTab.core || _ConceptStudyTab.detail:
-          notifier.selectMode(ConceptStudyMode.read);
-          notifier.selectDepth(
-            tab == _ConceptStudyTab.core
-                ? ConceptReadingDepth.core
-                : ConceptReadingDepth.detail,
-          );
-      }
-    }
+    /// 세그먼트 선택 > 모드 저장 (읽기 깊이는 한 스크롤로 합쳐 더 쓰지 않음)
+    void selectTab(_ConceptStudyTab tab) => notifier.selectMode(
+      tab == _ConceptStudyTab.quiz
+          ? ConceptStudyMode.solve
+          : ConceptStudyMode.read,
+    );
 
     /// 다음 개념으로 (같은 단원 안), 없으면 단원 목록으로
     void goToNextConcept() {
@@ -206,9 +197,8 @@ class _ConceptStudyScaffold extends ConsumerWidget {
               ),
               child: PassqlSegmentedControl<_ConceptStudyTab>(
                 segments: const [
-                  PassqlSegment(value: _ConceptStudyTab.core, label: '핵심'),
-                  PassqlSegment(value: _ConceptStudyTab.detail, label: '자세히'),
-                  PassqlSegment(value: _ConceptStudyTab.quiz, label: '문제'),
+                  PassqlSegment(value: _ConceptStudyTab.read, label: '개념'),
+                  PassqlSegment(value: _ConceptStudyTab.quiz, label: '확인 문제'),
                 ],
                 selectedValue: selectedTab,
                 onSelected: selectTab,
@@ -221,10 +211,9 @@ class _ConceptStudyScaffold extends ConsumerWidget {
               children: [
                 ConceptReadView(
                   detail: detail,
-                  depth: study.depth,
                   pendingAnchor: study.pendingAnchor,
                   onAnchorScrolled: notifier.consumePendingAnchor,
-                  onReachedDetailEnd: notifier.markRead,
+                  onReachedEnd: notifier.markRead,
                 ),
                 ConceptSolveView(
                   conceptUuid: conceptUuid,
@@ -232,10 +221,11 @@ class _ConceptStudyScaffold extends ConsumerWidget {
                   finishLabel: nextActionLabel,
                   onFinished: goToNextConcept,
                   unitProgress: unitProgress,
-                  // 풀이 시트의 다시 읽기 버튼에 "4. 문단 제목"을 보여 주려고 (자세히 칸 번호와 같게)
+                  // 풀이 시트의 다시 읽기 버튼에 "4. 문단 제목"을 보여 주려고 (읽기 문단 카드 번호와 같게)
                   rereadLabelByAnchor: {
                     for (final (i, section) in detail.detailSections.indexed)
-                      section.anchor: '${i + 1}. ${section.title}',
+                      section.anchor:
+                          '${i + 1}. ${ConceptReadingParser.splitTitle(section.title).title}',
                   },
                   relatedQuestionCount: relatedQuestionCount,
                   onRelatedQuestionsPressed: () => context.push(
@@ -253,19 +243,19 @@ class _ConceptStudyScaffold extends ConsumerWidget {
           ),
         ],
       ),
-      // 순서는 지금 앱 그대로: 왼쪽 문제 풀기(보조) · 오른쪽 다음 개념(주)
+      // 왼쪽 확인 문제 풀기(보조) · 오른쪽 다음 개념(주)
       bottomNavigationBar: isReading
           ? PassqlBottomActionBar(
               actions: [
                 PassqlButton(
-                  label: '문제 풀기',
+                  label: '확인 문제 풀기',
                   variant: PassqlButtonVariant.tinted,
                   onPressed: () => notifier.selectMode(ConceptStudyMode.solve),
                 ),
                 PassqlButton(
                   label: nextActionLabel,
                   onPressed: () {
-                    // 핵심만 읽고 넘어가도 읽음 (자세히는 끝까지 내리면 읽음)
+                    // 끝까지 내리지 않고 넘어가도 읽음
                     notifier.markRead();
                     goToNextConcept();
                   },

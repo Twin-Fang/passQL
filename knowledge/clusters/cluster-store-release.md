@@ -2,7 +2,7 @@
 type: cluster
 topic: store-release
 created: 2026-10-29
-members: 58
+members: 62
 status: active
 related: []
 ---
@@ -35,11 +35,16 @@ related: []
 - [[DEC-0242-app-icon-lavender-two-line-pass-ql]] — 앱 아이콘은 시안 8번: 연보라 세로 그라데이션 + `pass`(남색)·`QL`(18% 진하게) 2줄, 가로 로고에서 합성, 다크·틴트 아이콘 없음
 - [[DEC-0244-promo-code-store-codes-only]] — 프로모션 코드는 스토어 코드만(iOS 오퍼 코드, Android Play 프로모 코드), 자체 서버 코드 없음(가이드라인 3.1.1), 운영 보상은 관리자 부여 유지
 
+- [[DEC-0247-promo-site-free-banner-while-billing-off]] — 결제 스위치가 꺼진 동안 소개 사이트는 비교표 대신 "지금은 모든 기능이 무료" 안내 (`IS_PRO_PLAN_VISIBLE`)
+- [[DEC-0248-site-icons-generated-from-brand]] — 소개 사이트 아이콘·OG와 Play 등록정보 아이콘 512는 앱 아이콘 원본에서 생성
+
 ## 대체된 결정 (역사)
 - [[DEC-0233-store-images-accent-keyword-style]] — 스토어 홍보 이미지는 앱 토큰의 `accent` 단색 바탕과 큰 SQL 키워드로 만들고, 한국어와 `scenes.json` 렌더 방식은 유지한다 (대체: DEC-0235)
 - [[DEC-0169-store-listing-korean-only]] — 스토어 홍보 이미지·설명은 한국어만 만들고, 문구는 `scenes.json`에서 도구로 렌더링한다 (대체: DEC-0233)
 
 ## 관련 이슈
+- [[ISS-0452-server-only-release-triggers-store-submit]] (resolved, GitHub #840) — 서버만 바꾼 릴리스에도 버전 줄 변경으로 스토어 심사 제출 자동 실행 > pubspec 제외
+- [[ISS-0450-promo-site-dynamic-revamp]] (resolved, GitHub #823) — 홍보 페이지 다이나믹 개편, 새 아이콘·새 기능·Play 공개 반영
 - [[ISS-0446-app-icon-light-lavender-background]] (resolved, GitHub #766) — 앱 아이콘 배경을 밝게 (어두운 남색 배경에서 글자가 안 보임)
 - [[ISS-0355-store-review-status-tracking-issue]] (open, GitHub #570) — 스토어 심사 상태 자동 알림 (구독용, 닫지 않음)
 - [[ISS-0361-billing-switch-final-checks]] (open, GitHub #596) — 결제 스위치 켜기 전 최종 점검 (실구매·심사·최소 버전)
