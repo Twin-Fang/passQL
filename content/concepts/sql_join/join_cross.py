@@ -2,7 +2,7 @@
 
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
 from concept_dataset import (DEPARTMENT_ROWS, DEPARTMENT_TABLE_MD, EMPLOYEE_TABLE_MD, SALARY_GRADE_ROWS,
-                             SALARY_GRADE_TABLE_MD)
+                             SALARY_GRADE_TABLE_MD, to_markdown_table)
 
 # 본문·문제 공통 SQL
 DEPARTMENT_GRADE_ALL_SQL = "SELECT * FROM 부서 CROSS JOIN 급여등급;"
@@ -18,6 +18,9 @@ DEPARTMENT_GRADE_ALL_ROWS = [[*department, *grade] for department in DEPARTMENT_
 PLANNING_GRADE_EXAMPLE = sql_example(
     "SELECT D.부서명, G.등급\nFROM 부서 D CROSS JOIN 급여등급 G\nWHERE D.부서번호 = 10\nORDER BY G.등급;",
     ("부서명", "등급"), [["기획부", grade[0]] for grade in SALARY_GRADE_ROWS])
+# 조인 연결 그림 (#853): 기획부 한 행 > 등급 네 행 모두 (잇는 값 없이 전부 짝)
+PLANNING_GRADE_DIAGRAM_MD = to_markdown_table(
+    ("왼쪽 행", "오른쪽 행"), [["기획부 (10)", f"{grade[0]}등급"] for grade in SALARY_GRADE_ROWS])
 
 CONCEPT = {
     "tagKey": "join-cross",
@@ -71,6 +74,8 @@ SELECT COUNT(*) FROM 사원, 부서;            -- 조건 없이 쓰는 Oracle �
 부서와 급여등급을 CROSS JOIN하면 부서 4개 × 등급 4개 = 16행이 돼요. 그중 기획부의 행만 WHERE 절로 남겨 보면 모양이 잘 보여요.
 
 {PLANNING_GRADE_EXAMPLE.markdown}
+
+{PLANNING_GRADE_DIAGRAM_MD}
 
 기획부 한 행이 등급 네 행과 하나씩 짝지어져서 같은 부서명이 네 번 나와요. 나머지 세 부서도 네 행씩 만들어지므로 WHERE 절이 없으면 16행이에요.
 

@@ -1,7 +1,4 @@
-import '../question/result_rows_table.dart';
-import '../question/stem_markdown_table.dart';
-
-/// 개념 레슨 블록 8종 (#848): 글, SQL, 비교 표, 용어 카드, 단계, 외우는 법, 헷갈리는 말, 바로 확인
+/// 개념 레슨 블록 11종 (#848·#853): 글, SQL, 비교 표, 용어 카드, 단계, 외우는 법, 헷갈리는 말, 바로 확인, 조인 연결, 행 거르기, 집합 그림
 /// 원본은 표준 마크다운 그대로 (옛 앱은 표·글로 보임), 표 머리글로 블록 종류를 정함
 sealed class ConceptLessonBlock {
   const ConceptLessonBlock();
@@ -104,95 +101,103 @@ class ConceptQuickCheckBlock extends ConceptLessonBlock {
   final List<ConceptQuickCheck> checks;
 }
 
-/// 문단 마크다운 > 레슨 블록 목록: 코드 펜스 분리 > 표 분리 > 표 머리글로 종류 판정
-abstract final class ConceptLessonBlockParser {
-  // 코드 펜스(```sql ... ```)
-  static final RegExp _codeFenceRe = RegExp(r'```[A-Za-z]*\r?\n?([\s\S]*?)```');
+/// 조인 결과 한 줄: 왼쪽 행 + 오른쪽 행 (짝 없는 쪽은 NULL)
+class ConceptJoinPair {
+  const ConceptJoinPair({required this.left, required this.right});
 
-  // 블록 종류를 정하는 표 머리글 (원본 작성 규칙: content/concepts/README.md)
-  static const List<String> _termHeader = ['용어', '뜻'];
-  static const List<String> _stepsHeader = ['단계', '내용'];
-  static const List<String> _mnemonicHeader = ['외우기', '뜻'];
-  static const List<String> _refutationHeader = ['헷갈리는 말', '실제로는'];
-  static const List<String> _quickCheckHeader = ['바로 확인', '정답', '이유'];
-  // 바로 확인 정답 칸: 참
-  static const String _trueMark = 'O';
+  final String left;
+  final String right;
 
-  static List<ConceptLessonBlock> parse(String markdown) {
-    final blocks = <ConceptLessonBlock>[];
-    var cursor = 0;
-    for (final match in _codeFenceRe.allMatches(markdown)) {
-      _addTextAndTables(markdown.substring(cursor, match.start), blocks);
-      blocks.add(ConceptCodeBlock((match.group(1) ?? '').trimRight()));
-      cursor = match.end;
-    }
-    _addTextAndTables(markdown.substring(cursor), blocks);
-    return blocks;
-  }
+  bool get isLeftMissing => left.isEmpty || left == _missingRowLabel;
 
-  // 글 조각 > 표 블록·글 블록 (빈 글은 건너뜀)
-  static void _addTextAndTables(String raw, List<ConceptLessonBlock> blocks) {
-    for (final segment in splitStemMarkdownTables(raw)) {
-      if (segment is StemMarkdownTable) {
-        blocks.add(_toTableBlock(segment));
-        continue;
-      }
-      final text = (segment as String).trim();
-      if (text.isNotEmpty) blocks.add(ConceptTextBlock(text));
-    }
-  }
+  bool get isRightMissing => right.isEmpty || right == _missingRowLabel;
 
-  /// 표 > 머리글이 약속된 모양이면 그 블록, 아니면 일반 표
-  static ConceptLessonBlock _toTableBlock(StemMarkdownTable table) {
-    final header = table.columns.map((column) => column.trim()).toList();
-    // 칸이 모자란 행은 빈 글로 채움 (머리글 칸 수 기준), 표 해석이 null 로 바꾼 NULL 글자는 되돌림
-    final rows = [
-      for (final row in table.rows)
-        [
-          for (var column = 0; column < header.length; column++)
-            column < row.length
-                ? row[column]?.toString().trim() ?? sqlNullCellLabel
-                : '',
-        ],
-    ];
-    if (_isHeader(header, _termHeader)) {
-      return ConceptTermCardsBlock([
-        for (final row in rows) ConceptTerm(term: row[0], meaning: row[1]),
-      ]);
-    }
-    if (_isHeader(header, _stepsHeader)) {
-      return ConceptStepsBlock([
-        for (final row in rows) ConceptStep(title: row[0], detail: row[1]),
-      ]);
-    }
-    if (_isHeader(header, _mnemonicHeader)) {
-      return ConceptMnemonicBlock([
-        for (final row in rows) ConceptTerm(term: row[0], meaning: row[1]),
-      ]);
-    }
-    if (_isHeader(header, _refutationHeader)) {
-      return ConceptRefutationBlock([
-        for (final row in rows) ConceptRefutation(myth: row[0], fact: row[1]),
-      ]);
-    }
-    if (_isHeader(header, _quickCheckHeader)) {
-      return ConceptQuickCheckBlock([
-        for (final row in rows)
-          ConceptQuickCheck(
-            statement: row[0],
-            isTrue: row[1].toUpperCase() == _trueMark,
-            reason: row[2],
-          ),
-      ]);
-    }
-    return ConceptTableBlock(columns: table.columns, rows: table.rows);
-  }
+  // 짝 없는 쪽 표시 (원본 표의 NULL 글자)
+  static const String _missingRowLabel = 'NULL';
+}
 
-  static bool _isHeader(List<String> header, List<String> expected) {
-    if (header.length != expected.length) return false;
-    for (var index = 0; index < expected.length; index++) {
-      if (header[index] != expected[index]) return false;
-    }
-    return true;
-  }
+/// 조인 연결 그림 (머리글 `왼쪽 행 | 오른쪽 행`): 결과 한 줄 = 행 하나, 같은 행이 여러 번이면 선이 여러 개
+class ConceptJoinBlock extends ConceptLessonBlock {
+  const ConceptJoinBlock(this.pairs);
+
+  final List<ConceptJoinPair> pairs;
+
+  /// 왼쪽·오른쪽 표에 보일 행 (처음 나온 순서, 중복 제거, NULL 제외)
+  List<String> get leftRows => _distinct(
+    pairs.where((pair) => !pair.isLeftMissing).map((pair) => pair.left),
+  );
+
+  List<String> get rightRows => _distinct(
+    pairs.where((pair) => !pair.isRightMissing).map((pair) => pair.right),
+  );
+
+  static List<String> _distinct(Iterable<String> rows) => rows.toSet().toList();
+}
+
+/// 행 하나의 처리: 이름 + 결과(남음·빠짐·묶음 이름)
+class ConceptRowOutcome {
+  const ConceptRowOutcome({required this.row, required this.outcome});
+
+  final String row;
+  final String outcome;
+
+  bool get isRemoved => outcome == removedLabel;
+
+  bool get isKept => outcome == keptLabel;
+
+  /// 묶음 이름 (남음·빠짐이 아니면 그 글자가 묶음 이름)
+  String? get groupName => isRemoved || isKept ? null : outcome;
+
+  static const String removedLabel = '빠짐';
+  static const String keptLabel = '남음';
+}
+
+/// 행 거르기 그림 (머리글 `행 | 처리`): 빠지는 행은 지워지고, 묶음은 같은 색으로
+class ConceptRowFilterBlock extends ConceptLessonBlock {
+  const ConceptRowFilterBlock(this.rows);
+
+  final List<ConceptRowOutcome> rows;
+
+  /// 묶음 이름 목록 (처음 나온 순서)
+  List<String> get groupNames =>
+      rows.map((row) => row.groupName).whereType<String>().toSet().toList();
+}
+
+/// 집합 연산 하나: 연산 이름 + 결과 값
+class ConceptSetOperation {
+  const ConceptSetOperation({required this.name, required this.result});
+
+  final String name;
+  final String result;
+}
+
+/// 집합 그림 (머리글 `집합 | 값`): 앞 두 줄 = 두 집합(쉼표 구분 값), 나머지 줄 = 연산과 결과
+class ConceptSetBlock extends ConceptLessonBlock {
+  const ConceptSetBlock({
+    required this.leftName,
+    required this.leftValues,
+    required this.rightName,
+    required this.rightValues,
+    required this.operations,
+  });
+
+  final String leftName;
+  final List<String> leftValues;
+  final String rightName;
+  final List<String> rightValues;
+  final List<ConceptSetOperation> operations;
+
+  /// 겹치는 값 / 한쪽에만 있는 값 (중복 제거, 처음 나온 순서)
+  List<String> get sharedValues =>
+      leftValues.toSet().where(rightValues.contains).toList();
+
+  List<String> get leftOnlyValues => leftValues
+      .toSet()
+      .where((value) => !rightValues.contains(value))
+      .toList();
+
+  List<String> get rightOnlyValues => rightValues
+      .toSet()
+      .where((value) => !leftValues.contains(value))
+      .toList();
 }

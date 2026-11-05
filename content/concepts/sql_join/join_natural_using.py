@@ -12,6 +12,10 @@ PROJECT_SETUP_SQL = "\n".join(
     + [f"INSERT INTO 프로젝트 VALUES ({number}, '{name}', {department_number});"
        for number, name, department_number in PROJECT_ROWS])
 
+# 프로젝트 표를 USING (부서번호)로 이은 6행 (사원 이름, 프로젝트 이름)
+PROJECT_USING_ROWS = [["이지은", "신규 앱"], ["박서준", "신규 앱"], ["정하늘", "신규 앱"],
+                      ["최유나", "판촉 행사"], ["한도윤", "판촉 행사"], ["오지민", "판촉 행사"]]
+
 # 본문·문제 공통 SQL
 USING_SELECT_ALL_SQL = "SELECT * FROM 사원 JOIN 부서 USING (부서번호);"
 USING_QUALIFIER_SQL = "SELECT E.부서번호 FROM 사원 E JOIN 부서 D USING (부서번호)"
@@ -37,6 +41,13 @@ USING_JOIN_EXAMPLE = sql_example(
     ("이름", "부서명"),
     [["김민수", "기획부"], ["박서준", "개발부"], ["이지은", "개발부"], ["정하늘", "개발부"],
      ["오지민", "영업부"], ["최유나", "영업부"], ["한도윤", "영업부"]])
+
+# 조인 연결 그림 (#853): USING (부서번호) 6행 > "이름 (부서번호)" | "프로젝트 이름 (부서번호)"
+_EMPLOYEE_BY_NAME = {row[1]: row for row in EMPLOYEE_ROWS}
+_PROJECT_BY_NAME = {row[1]: row for row in PROJECT_ROWS}
+PROJECT_USING_DIAGRAM_MD = to_markdown_table(("왼쪽 행", "오른쪽 행"), [
+    [f"{employee} ({_EMPLOYEE_BY_NAME[employee][7]})", f"{project} ({_PROJECT_BY_NAME[project][2]})"]
+    for employee, project in PROJECT_USING_ROWS])
 
 CONCEPT = {
     "tagKey": "join-natural-using",
@@ -158,6 +169,10 @@ SELECT E.이름, P.이름 AS 프로젝트명 FROM 사원 E JOIN 프로젝트 P U
 SELECT 이름 FROM 사원 E JOIN 프로젝트 P USING (부서번호);                       -- 오류: 이름 열이 두 표에 다 있어요 (ORA-00918, 열 이름이 모호함)
 ```
 
+USING (부서번호)는 괄호 안의 부서번호만 비교해서, 사원 이름과 프로젝트 이름이 달라도 6행이 이어져요.
+
+{PROJECT_USING_DIAGRAM_MD}
+
 `COUNT(*)`는 결과 행이 몇 개인지 세는 함수(7단원)이고, `AS 프로젝트명`은 결과 열에 보여 줄 이름을 바꾸는 별칭이에요. 접두사 규칙을 정리하면, 합쳐진 열에는 붙이지 않고 합쳐지지 않은 채 두 표에 같은 이름으로 있는 열에는 붙여요.
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
@@ -224,8 +239,7 @@ SELECT 이름 FROM 사원 E JOIN 프로젝트 P USING (부서번호);           
         sql_check(USING_SELECT_ALL_SQL, USING_SELECT_ALL_ROWS),
         sql_check(PROJECT_NATURAL_COUNT_SQL, [[0]], setup=PROJECT_SETUP_SQL),
         sql_check("SELECT E.이름, P.이름 FROM 사원 E JOIN 프로젝트 P USING (부서번호)",
-                  [["이지은", "신규 앱"], ["박서준", "신규 앱"], ["정하늘", "신규 앱"],
-                   ["최유나", "판촉 행사"], ["한도윤", "판촉 행사"], ["오지민", "판촉 행사"]], setup=PROJECT_SETUP_SQL),
+                  PROJECT_USING_ROWS, setup=PROJECT_SETUP_SQL),
         sql_check(GRADE_NATURAL_COUNT_SQL, [[32]]),
         sql_check("SELECT 이름, 부서명 FROM 사원 NATURAL JOIN 부서", NAME_DEPARTMENT_ROWS),
         sql_check("SELECT 부서번호, 이름 FROM 사원 JOIN 부서 USING (부서번호)",

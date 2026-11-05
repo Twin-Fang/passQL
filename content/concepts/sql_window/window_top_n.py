@@ -137,11 +137,35 @@ PARTITION BY 없이 회사 전체에서 급여 상위 3명을 뽑으면 아래�
 
 {PARTITION_RANK_TOP_EXAMPLE.markdown}
 
+부서별로 순위를 매긴 여덟 명 가운데 3위인 오지민만 빠져요.
+
+| 행 | 처리 |
+|---|---|
+| 김민수 3000 1위 | 10번 |
+| 박서준 2800 1위 | 20번 |
+| 이지은 2500 2위 | 20번 |
+| 정하늘 2500 2위 | 20번 |
+| 최유나 3200 1위 | 30번 |
+| 한도윤 2700 2위 | 30번 |
+| 오지민 2200 3위 | 빠짐 |
+| 윤서연 2000 1위 | NULL |
+
 개발부는 이지은과 정하늘이 함께 2위라서 세 명이 나왔어요. RANK는 동점에 같은 순위를 주므로 "2위 이내"에 동점자가 모두 들어가고, 부서가 없는 윤서연도 NULL끼리 한 묶음이 되어 1위로 나왔어요.
 
 같은 SQL에서 RANK만 ROW_NUMBER로 바꾸면 부서마다 정확히 2명까지만 남아요.
 
 {PARTITION_ROW_NUMBER_TOP_EXAMPLE.markdown}
+
+| 행 | 처리 |
+|---|---|
+| 김민수 3000 1위 | 10번 |
+| 박서준 2800 1위 | 20번 |
+| 이지은 2500 2위 | 20번 |
+| 정하늘 2500 3위 | 빠짐 |
+| 최유나 3200 1위 | 30번 |
+| 한도윤 2700 2위 | 30번 |
+| 오지민 2200 3위 | 빠짐 |
+| 윤서연 2000 1위 | NULL |
 
 ROW_NUMBER는 동점이어도 2와 3을 나눠 주기 때문에 정하늘이 빠졌어요. 사번을 두 번째 정렬 기준으로 넣어서 이지은이 2번이 됐고, 사번이 없었다면 누가 남을지는 정해지지 않아요.
 
@@ -268,6 +292,11 @@ ROWNUM 함정을 위 사원 표로 보면, `WHERE ROWNUM <= 3 ORDER BY 급여 DE
         TOP_THREE_EXAMPLE.check,
         PARTITION_RANK_TOP_EXAMPLE.check,
         PARTITION_ROW_NUMBER_TOP_EXAMPLE.check,
+        # 부서별 순위 그림: 여덟 명 전체 순위 (RANK <-> ROW_NUMBER)
+        sql_check("SELECT 이름, RANK() OVER (PARTITION BY 부서번호 ORDER BY 급여 DESC) FROM 사원",
+                  [["김민수", 1], ["박서준", 1], ["이지은", 2], ["정하늘", 2], ["최유나", 1], ["한도윤", 2], ["오지민", 3], ["윤서연", 1]]),
+        sql_check("SELECT 이름, ROW_NUMBER() OVER (PARTITION BY 부서번호 ORDER BY 급여 DESC, 사번) FROM 사원",
+                  [["김민수", 1], ["박서준", 1], ["이지은", 2], ["정하늘", 3], ["최유나", 1], ["한도윤", 2], ["오지민", 3], ["윤서연", 1]]),
         ROWNUM_TOP_EXAMPLE.check,
         FETCH_WITH_TIES_EXAMPLE.check,
         INNER_FILTER_EXAMPLE.check,

@@ -4,13 +4,17 @@ import '../../design/design.dart';
 import '../question/markdown_lite_text.dart';
 import '../question/result_rows_table.dart';
 import 'concept_lesson_block.dart';
+import 'concept_join_diagram.dart';
+import 'concept_lesson_block_parser.dart';
 import 'concept_mnemonic_card.dart';
 import 'concept_quick_check_card.dart';
 import 'concept_refutation_cards.dart';
+import 'concept_row_filter_diagram.dart';
+import 'concept_set_diagram.dart';
 import 'concept_step_timeline.dart';
 import 'concept_term_cards.dart';
 
-/// 개념 문단 본문 (#848): 마크다운 > 레슨 블록 > 블록마다 스크롤 등장
+/// 개념 문단 본문 (#848·#853): 마크다운 > 레슨 블록 > 블록마다 스크롤 등장 (그림 블록은 들어온 뒤 움직임)
 /// 표·코드는 좁은 화면에서 가로 스크롤 (코드는 줄바꿈하지 않음)
 class ConceptLessonBody extends StatelessWidget {
   const ConceptLessonBody(this.markdown, {super.key});
@@ -50,6 +54,9 @@ class ConceptLessonBody extends StatelessWidget {
     ConceptRefutationBlock(:final refutations) => ConceptRefutationCards(
       refutations: refutations,
     ),
+    ConceptJoinBlock() => ConceptJoinDiagram(join: block),
+    ConceptRowFilterBlock() => ConceptRowFilterDiagram(filter: block),
+    ConceptSetBlock() => ConceptSetDiagram(set: block),
     ConceptQuickCheckBlock(:final checks) => Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
