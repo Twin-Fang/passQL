@@ -6,7 +6,7 @@ import '../../design/design.dart';
 import 'concept_lesson_block.dart';
 
 /// 조인 연결 그림 (#853): 왼쪽 표 행 | 오른쪽 표 행, 스크롤로 들어오면 짝마다 선이 차례로 그어짐
-/// 짝 없는 행은 반대쪽 NULL 칸과 점선으로 이어짐 (OUTER JOIN 에서 NULL 로 채워지는 모습)
+/// 짝 없는 행은 반대쪽 NULL 칸과 주의색 선으로 이어짐 (OUTER JOIN 에서 NULL 로 채워지는 모습)
 class ConceptJoinDiagram extends StatelessWidget {
   const ConceptJoinDiagram({super.key, required this.join});
 
@@ -80,7 +80,7 @@ class ConceptJoinDiagram extends StatelessWidget {
   }
 }
 
-/// 한쪽 표의 행 칸 세로 목록 (NULL 칸은 회색 점선 느낌의 흐린 칸)
+/// 한쪽 표의 행 칸 세로 목록 (NULL 칸은 흐린 바탕·회색 글자)
 class _RowColumn extends StatelessWidget {
   const _RowColumn({required this.rows});
 
