@@ -97,6 +97,7 @@ class _ProfileProPassCardState extends ConsumerState<ProfileProPassCard> {
             ),
       onTap: () => showProInfoSheet(
         context,
+        ref,
         proExpiresAt: expiresAt,
         purchasedAt: plan?.lastPurchasedAt,
         orderId: plan?.lastOrderId,

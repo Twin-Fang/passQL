@@ -267,7 +267,7 @@ class _TopicAccuracyRowTile extends StatelessWidget {
   }
 }
 
-/// 잠금(무료·결제 켜짐): 토픽 이름·타일만 진짜 값, 값 자리는 회색 막대, 아래 한 줄 > 이용권 시트
+/// 잠금(무료·결제 켜짐): 토픽 이름·타일만 진짜 값, 값 자리는 회색 막대, 행·아래 한 줄 어디를 눌러도 > 이용권 시트
 class _LockedTopicAccuracy extends ConsumerWidget {
   const _LockedTopicAccuracy({required this.topics});
 
@@ -281,6 +281,9 @@ class _LockedTopicAccuracy extends ConsumerWidget {
               ..sort((a, b) => (a.sortOrder ?? 0).compareTo(b.sortOrder ?? 0)))
             .take(_collapsedRowCount)
             .toList();
+    // 통계 혜택을 강조해 연 이용권 시트 (잠긴 행·안내 한 줄 공통)
+    void openOfferSheet() =>
+        showProOfferSheet(context, ref, focusedBenefitIndex: _statsBenefitIndex);
     return PassqlSection(
       title: '영역별 정답률',
       trailing: Row(
@@ -303,11 +306,10 @@ class _LockedTopicAccuracy extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 흐린 숫자는 읽어 봐야 의미가 없어 한 문장으로만 읽힌다
-          Semantics(
-            label: '영역별 정답률은 PRO에서 볼 수 있어요',
-            container: true,
-            excludeSemantics: true,
+          // 흐린 숫자는 읽어 봐야 의미가 없어 한 문장으로만 읽힌다 (행을 눌러도 이용권 시트)
+          PassqlPressable(
+            onTap: openOfferSheet,
+            semanticLabel: '영역별 정답률은 PRO에서 볼 수 있어요, 이용권 보기',
             child: Column(
               children: [
                 for (final topic in previewTopics)
@@ -328,11 +330,7 @@ class _LockedTopicAccuracy extends ConsumerWidget {
           ),
           const SizedBox(height: PassqlSpacing.xs),
           PassqlPressable(
-            onTap: () => showProOfferSheet(
-              context,
-              ref,
-              focusedBenefitIndex: _statsBenefitIndex,
-            ),
+            onTap: openOfferSheet,
             semanticLabel: '약한 영역 찾기는 PRO, 이용권 보기',
             child: Container(
               padding: const EdgeInsets.symmetric(

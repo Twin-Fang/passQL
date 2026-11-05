@@ -113,8 +113,9 @@ class _UpgradeSuggestion extends StatelessWidget {
         ),
         child: Row(
           children: [
+            // 단어 단위 줄바꿈 (좁은 폭에서 '씩)'만 다음 줄로 떨어지지 않게)
             Expanded(
-              child: Text(
+              child: PassqlKeepAllText(
                 message,
                 style: PassqlTypography.footnote.copyWith(color: colors.label),
               ),
