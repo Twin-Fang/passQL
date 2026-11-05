@@ -1,7 +1,7 @@
 """개념: 셀프 조인 (5단원, 확인 문제 5개)"""
 
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
-from concept_dataset import EMPLOYEE_TABLE_MD
+from concept_dataset import EMPLOYEE_ROWS, EMPLOYEE_TABLE_MD, to_markdown_table
 
 # 본문·문제 공통 SQL
 EMPLOYEE_MANAGER_SQL = "SELECT E.이름 AS 사원, M.이름 AS 관리자 FROM 사원 E, 사원 M WHERE E.관리자사번 = M.사번;"
@@ -37,6 +37,29 @@ EARNS_MORE_EXAMPLE = sql_example(
     "WHERE E.급여 > M.급여;",
     ("이름", "급여", "관리자", "관리자급여"),
     [["최유나", 3200, "김민수", 3000], ["박서준", 2800, "이지은", 2500]], is_ordered=False)
+
+# 조인 연결 그림 (#853): 사원 E "이름 (관리자사번)" | 관리자 M "이름 (사번)"
+JOIN_DIAGRAM_COLUMNS = ("왼쪽 행", "오른쪽 행")
+_EMPLOYEE_BY_NAME = {row[1]: row for row in EMPLOYEE_ROWS}
+
+
+def _to_employee_side_text(name):
+    """사원 쪽 행 글: 이름 (관리자사번, 없으면 NULL)"""
+    manager_number = _EMPLOYEE_BY_NAME[name][3]
+    return f"{name} ({'NULL' if manager_number is None else manager_number})"
+
+
+def _to_manager_side_text(name):
+    """관리자 쪽 행 글: 이름 (사번)"""
+    return f"{name} ({_EMPLOYEE_BY_NAME[name][0]})"
+
+
+EMPLOYEE_MANAGER_DIAGRAM_MD = to_markdown_table(JOIN_DIAGRAM_COLUMNS, [
+    [_to_employee_side_text(employee), _to_manager_side_text(manager)] for employee, manager in EMPLOYEE_MANAGER_ROWS])
+# 사원 쪽 기준 외부 조인: 짝 7행 + 김민수 > NULL 칸 (선이 엉키지 않게 맨 끝)
+EMPLOYEE_SIDE_OUTER_DIAGRAM_MD = to_markdown_table(JOIN_DIAGRAM_COLUMNS, [
+    *([_to_employee_side_text(employee), _to_manager_side_text(manager)] for employee, manager in EMPLOYEE_MANAGER_ROWS),
+    [_to_employee_side_text("김민수"), None]])
 
 CONCEPT = {
     "tagKey": "join-self",
@@ -79,6 +102,10 @@ CONCEPT = {
 
 {EMPLOYEE_MANAGER_EXAMPLE.markdown}
 
+왼쪽은 사원(E)의 이름과 관리자사번, 오른쪽은 관리자(M)의 이름과 사번이에요. 괄호 안의 번호가 같은 행끼리 이어져요.
+
+{EMPLOYEE_MANAGER_DIAGRAM_MD}
+
 ANSI 문법으로 `FROM 사원 E JOIN 사원 M ON E.관리자사번 = M.사번`이라고 써도 결과는 같아요. 결과는 관리자 수(3명)가 아니라 관리자가 있는 사원 수(7명)만큼 나오고, 부하가 여럿인 김민수는 부하 수만큼 반복돼요.
 
 ## 김민수가 빠지는 이유 — 사원 쪽 기준 외부 조인 {{#outer}}
@@ -86,6 +113,10 @@ ANSI 문법으로 `FROM 사원 E JOIN 사원 M ON E.관리자사번 = M.사번`�
 사장인 김민수는 관리자사번이 NULL이라서, `=` 비교가 참도 거짓도 아닌 UNKNOWN(알 수 없음)이 되어 짝이 맞지 않아요. 김민수도 남기려면 사원 쪽(E)을 기준으로 LEFT OUTER JOIN을 해요.
 
 {EMPLOYEE_SIDE_OUTER_EXAMPLE.markdown}
+
+김민수는 짝이 없어서 NULL 칸과 이어져요.
+
+{EMPLOYEE_SIDE_OUTER_DIAGRAM_MD}
 
 Oracle 방식으로는 NULL로 채워질 관리자 쪽(M)의 열에 `(+)`를 붙여 `WHERE E.관리자사번 = M.사번(+)`라고 써요. 기준을 잘못 골라 `사원 E RIGHT JOIN 사원 M ON E.관리자사번 = M.사번`이라고 쓰면 관리자 쪽(M)이 기준이 되어 다른 사람이 남아요.
 

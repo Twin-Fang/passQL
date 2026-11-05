@@ -1,7 +1,8 @@
 """개념: 등가 조인과 비등가 조인 (5단원, 확인 문제 5개)"""
 
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
-from concept_dataset import DEPARTMENT_TABLE_MD, EMPLOYEE_TABLE_MD, SALARY_GRADE_TABLE_MD
+from concept_dataset import (DEPARTMENT_ROWS, DEPARTMENT_TABLE_MD, EMPLOYEE_ROWS, EMPLOYEE_TABLE_MD, SALARY_GRADE_ROWS,
+                             SALARY_GRADE_TABLE_MD, to_markdown_table)
 
 # 본문·문제 공통 SQL (sqlChecks 와 글이 같은 문장을 쓰도록 한 곳에 둠)
 EQUI_JOIN_SQL = "SELECT E.이름, D.부서명 FROM 사원 E, 부서 D WHERE E.부서번호 = D.부서번호;"
@@ -13,6 +14,9 @@ THREE_TABLES_ONE_CONDITION_SQL = ("SELECT COUNT(*) FROM 사원 E, 부서 D, 급�
 # 사원·부서 등가 조인 결과 7행 (윤서연·인사부 제외)
 EQUI_JOIN_ROWS = [["김민수", "기획부"], ["이지은", "개발부"], ["박서준", "개발부"], ["정하늘", "개발부"],
                   ["최유나", "영업부"], ["한도윤", "영업부"], ["오지민", "영업부"]]
+# 비등가 조인 결과 8행 (이름, 급여, 등급), 급여 > 사번 순
+NON_EQUI_ROWS = [["윤서연", 2000, 1], ["오지민", 2200, 1], ["이지은", 2500, 2], ["정하늘", 2500, 2],
+                 ["한도윤", 2700, 3], ["박서준", 2800, 3], ["김민수", 3000, 4], ["최유나", 3200, 4]]
 
 # 본문 예시: SQL 블록 + 결과 표 = 검증 항목 (sql_example 한 원본, 조인 결과 순서는 보장 안 됨 > 정렬 없는 예시는 순서 무시)
 ORACLE_EQUI_EXAMPLE = sql_example(
@@ -22,9 +26,7 @@ ORACLE_EQUI_EXAMPLE = sql_example(
 NON_EQUI_EXAMPLE = sql_example(
     "SELECT E.이름, E.급여, G.등급\nFROM 사원 E, 급여등급 G\nWHERE E.급여 BETWEEN G.최저급여 AND G.최고급여\n"
     "ORDER BY E.급여, E.사번;",
-    ("이름", "급여", "등급"),
-    [["윤서연", 2000, 1], ["오지민", 2200, 1], ["이지은", 2500, 2], ["정하늘", 2500, 2],
-     ["한도윤", 2700, 3], ["박서준", 2800, 3], ["김민수", 3000, 4], ["최유나", 3200, 4]])
+    ("이름", "급여", "등급"), NON_EQUI_ROWS)
 THREE_TABLES_EXAMPLE = sql_example(
     "SELECT E.이름, D.부서명, G.등급\nFROM 사원 E, 부서 D, 급여등급 G\nWHERE E.부서번호 = D.부서번호\n"
     "  AND E.급여 BETWEEN G.최저급여 AND G.최고급여;",
@@ -34,6 +36,20 @@ THREE_TABLES_EXAMPLE = sql_example(
 EXTRA_FILTER_EXAMPLE = sql_example(
     "SELECT E.이름, D.부서명\nFROM 사원 E, 부서 D\nWHERE E.부서번호 = D.부서번호\n  AND E.급여 >= 2800;",
     ("이름", "부서명"), [["김민수", "기획부"], ["박서준", "개발부"], ["최유나", "영업부"]], is_ordered=False)
+
+# 조인 연결 그림 (#853): 위 검증된 결과 행 > 잇는 값이 보이는 행 글 (부서번호, 급여·등급 범위)
+JOIN_DIAGRAM_COLUMNS = ("왼쪽 행", "오른쪽 행")
+_EMPLOYEE_BY_NAME = {row[1]: row for row in EMPLOYEE_ROWS}
+_DEPARTMENT_BY_NAME = {row[1]: row for row in DEPARTMENT_ROWS}
+_GRADE_BY_NUMBER = {row[0]: row for row in SALARY_GRADE_ROWS}
+# "김민수 (10)" | "기획부 (10)"
+EQUI_JOIN_DIAGRAM_MD = to_markdown_table(JOIN_DIAGRAM_COLUMNS, [
+    [f"{name} ({_EMPLOYEE_BY_NAME[name][7]})", f"{department} ({_DEPARTMENT_BY_NAME[department][0]})"]
+    for name, department in EQUI_JOIN_ROWS])
+# "윤서연 2000" | "1등급 0~2299"
+NON_EQUI_DIAGRAM_MD = to_markdown_table(JOIN_DIAGRAM_COLUMNS, [
+    [f"{name} {salary}", f"{grade}등급 {_GRADE_BY_NUMBER[grade][1]}~{_GRADE_BY_NUMBER[grade][2]}"]
+    for name, salary, grade in NON_EQUI_ROWS])
 
 CONCEPT = {
     "tagKey": "join-equi-non-equi",
@@ -72,6 +88,10 @@ Oracle에서 오래 써 온 방식은 FROM 절에 표를 쉼표로 나열하고 
 
 {ORACLE_EQUI_EXAMPLE.markdown}
 
+괄호 안의 부서번호가 같은 행끼리 선으로 이어져요.
+
+{EQUI_JOIN_DIAGRAM_MD}
+
 데이터베이스는 사원 한 행마다 부서 네 행과 차례로 비교해서, 조건이 참인 짝만 남겨요. 사원은 8명인데 결과가 7행인 까닭은 아래 두 행이 짝을 찾지 못했기 때문이에요.
 
 | 빠진 행 | 이유 |
@@ -102,6 +122,10 @@ SELECT E.이름 FROM 사원 AS E, 부서 D WHERE E.부서번호 = D.부서번호
 {SALARY_GRADE_TABLE_MD}
 
 {NON_EQUI_EXAMPLE.markdown}
+
+급여가 최저급여와 최고급여 사이에 드는 등급으로 선이 이어져요.
+
+{NON_EQUI_DIAGRAM_MD}
 
 등급 범위가 겹치지도 비지도 않아서 사원마다 등급이 하나씩 붙고, 부서번호는 비교하지 않으니 부서가 없는 윤서연도 들어가요. 맨 끝의 `ORDER BY`는 결과를 급여가 낮은 순서로, 같으면 사번 순서로 정렬해요.
 

@@ -4,7 +4,7 @@ import '../../design/design.dart';
 import '../question/markdown_lite_text.dart';
 import 'concept_lesson_block.dart';
 
-/// 단계 흐름 (#848): 번호 원 + 세로 연결선 + 단계 이름 + 설명, 스크롤로 들어오면 단계가 차례로 켜짐
+/// 단계 흐름 (#848·#853): 번호 원 + 세로 연결선 + 단계 이름 + 설명, 스크롤로 들어오면 단계가 차례로 켜지고 연결선이 다음 단계로 차오름
 class ConceptStepTimeline extends StatelessWidget {
   const ConceptStepTimeline({super.key, required this.steps});
 
@@ -45,6 +45,8 @@ class _StepRow extends StatelessWidget {
   static const double _orderCircleDiameter = 28;
   // 연결선 두께
   static const double _connectorWidth = 2;
+  // 연결선이 다음 단계까지 차오르는 시간
+  static const Duration _connectorFillDuration = Duration(milliseconds: 700);
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +61,21 @@ class _StepRow extends StatelessWidget {
               bottom: 0,
               left: (_orderCircleDiameter - _connectorWidth) / 2,
               width: _connectorWidth,
-              child: ColoredBox(color: colors.accentTint),
+              // 옅은 바탕 선 위로 강조색 선이 위에서 아래로 차오름
+              child: ColoredBox(
+                color: colors.accentTint,
+                child: PassqlScrollProgress(
+                  duration: _connectorFillDuration,
+                  builder: (_, progress) => Align(
+                    alignment: Alignment.topCenter,
+                    child: FractionallySizedBox(
+                      heightFactor: progress,
+                      widthFactor: 1,
+                      child: ColoredBox(color: colors.accent),
+                    ),
+                  ),
+                ),
+              ),
             ),
           Padding(
             padding: EdgeInsets.only(bottom: isLast ? 0 : PassqlSpacing.md),

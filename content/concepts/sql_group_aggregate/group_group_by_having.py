@@ -89,6 +89,17 @@ CONCEPT = {
 
 {DEPARTMENT_SUMMARY_EXAMPLE.markdown}
 
+| 행 | 처리 |
+|---|---|
+| 김민수 3000 | 10번 |
+| 이지은 2500 | 20번 |
+| 박서준 2800 | 20번 |
+| 최유나 3200 | 30번 |
+| 정하늘 2500 | 20번 |
+| 한도윤 2700 | 30번 |
+| 오지민 2200 | 30번 |
+| 윤서연 2000 | NULL |
+
 여덟 행이 부서번호 값에 따라 네 그룹으로 묶였고, 그룹마다 한 행씩 나왔어요. 아래 부서 표에는 40번 인사부도 있지만, 이 쿼리는 사원 표의 부서번호 값으로만 그룹을 만들어서 사원이 없는 40번은 나오지 않아요.
 
 {DEPARTMENT_TABLE_MD}
@@ -109,6 +120,19 @@ GROUP BY와 HAVING의 규칙은 대부분 절을 처리하는 순서에서 나�
 아래 SQL은 WHERE에서 오지민(2200)과 윤서연(2000)을 먼저 빼므로 30번 부서는 2명이 되고, NULL 그룹은 아예 만들어지지 않아요. 남은 10번(1명), 20번(3명), 30번(2명) 가운데 HAVING이 1명뿐인 10번을 버려요.
 
 {WHERE_HAVING_EXAMPLE.markdown}
+
+두 단계를 거친 뒤 남는 사원과 묶음이에요. 김민수는 WHERE를 통과했지만 HAVING이 10번 그룹을 버릴 때 함께 사라져요.
+
+| 행 | 처리 |
+|---|---|
+| 김민수 10 3000 | 빠짐 |
+| 이지은 20 2500 | 20번 |
+| 박서준 20 2800 | 20번 |
+| 최유나 30 3200 | 30번 |
+| 정하늘 20 2500 | 20번 |
+| 한도윤 30 2700 | 30번 |
+| 오지민 30 2200 | 빠짐 |
+| 윤서연 NULL 2000 | 빠짐 |
 
 `COUNT(*)`는 묶은 뒤에야 그룹마다 값이 생기므로 WHERE에는 쓸 수 없어요.
 
@@ -273,6 +297,10 @@ WHERE와 HAVING이 함께 있는 SQL의 결과 행 수를 묻는 문제가 가�
         sql_error_check("SELECT 부서번호 AS 부서, COUNT(*) FROM 사원 GROUP BY 부서;", "ORA-00904"),
         # WHERE <-> HAVING (결과, WHERE 집계 오류, HAVING 열 제한)
         WHERE_HAVING_EXAMPLE.check,
+        # WHERE·HAVING 그림: 남는 사원 5명
+        sql_check("SELECT 이름 FROM 사원 WHERE 급여 >= 2500 AND 부서번호 IN "
+                  "(SELECT 부서번호 FROM 사원 WHERE 급여 >= 2500 GROUP BY 부서번호 HAVING COUNT(*) >= 2)",
+                  [["이지은"], ["박서준"], ["최유나"], ["정하늘"], ["한도윤"]]),
         sql_check("SELECT 부서번호, COUNT(*) AS 인원 FROM 사원 WHERE 급여 >= 2500 GROUP BY 부서번호 HAVING COUNT(*) >= 2 ORDER BY 부서번호",
                   [[20, 3], [30, 2]], is_ordered=True),
         sql_error_check("SELECT 부서번호, COUNT(*) FROM 사원 WHERE COUNT(*) >= 2 GROUP BY 부서번호", "ORA-00934"),

@@ -136,3 +136,7 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-05 13:10 | W2 | cluster update | cluster-design-system
 - 2026-11-05 13:10 | W2 | fix members count | cluster-design-system
 - 2026-11-05 13:40 | W6 | update open issue (11-04 화면 검증, 11-05 앱 수정·CI) | ISS-0361
+- 2026-11-05 19:40 | W6 | ingest issue+report #853 | ISS-0457-concept-animated-diagrams, ISS-0457-concept-animated-diagrams-report
+- 2026-11-05 19:40 | W4 | new decision | DEC-0257-concept-animated-diagram-blocks
+- 2026-11-05 19:40 | W2 | cluster update | cluster-concept-learning
+- 2026-11-05 19:41 | W2 | fix members count | cluster-concept-learning
