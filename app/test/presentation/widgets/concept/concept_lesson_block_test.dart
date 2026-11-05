@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/presentation/widgets/concept/concept_lesson_block.dart';
+import 'package:passql_app/presentation/widgets/concept/concept_lesson_block_parser.dart';
 import 'package:passql_app/presentation/widgets/concept/concept_reading_parser.dart';
 
 // 개념 원본 표기 계약 (content/concepts/README.md 「레슨 블록」): 표 머리글 > 블록 종류
@@ -66,5 +67,47 @@ SELECT 1 FROM DUAL;
     final withoutSubtitle = ConceptReadingParser.splitTitle('한 줄 정의');
     expect(withoutSubtitle.title, '한 줄 정의');
     expect(withoutSubtitle.subtitle, isNull);
+  });
+
+  test('그림 블록 3종: 조인 연결·행 거르기·집합 (#853)', () {
+    const markdown = """
+| 왼쪽 행 | 오른쪽 행 |
+|---|---|
+| 김민수 (10) | 기획부 (10) |
+| 이지은 (20) | 개발부 (20) |
+| 윤서연 (NULL) | NULL |
+
+| 행 | 처리 |
+|---|---|
+| 김민수 3000 | 남음 |
+| 이지은 2500 | 빠짐 |
+| 박서준 2500 | 20번 |
+
+| 집합 | 값 |
+|---|---|
+| A | 1, 1, 2, NULL |
+| B | 1, 3, NULL |
+| UNION | 1, 2, 3, NULL |
+| INTERSECT | 1, NULL |""";
+
+    final blocks = ConceptLessonBlockParser.parse(markdown);
+
+    final join = blocks[0] as ConceptJoinBlock;
+    expect(join.leftRows, ['김민수 (10)', '이지은 (20)', '윤서연 (NULL)']);
+    expect(join.rightRows, ['기획부 (10)', '개발부 (20)']);
+    expect(join.pairs.last.isRightMissing, isTrue);
+
+    final filter = blocks[1] as ConceptRowFilterBlock;
+    expect(filter.rows.map((row) => row.isRemoved), [false, true, false]);
+    expect(filter.groupNames, ['20번']);
+
+    final set = blocks[2] as ConceptSetBlock;
+    expect(set.sharedValues, ['1', 'NULL']);
+    expect(set.leftOnlyValues, ['2']);
+    expect(set.rightOnlyValues, ['3']);
+    expect(set.operations.map((operation) => operation.name), [
+      'UNION',
+      'INTERSECT',
+    ]);
   });
 }

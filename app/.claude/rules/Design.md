@@ -74,6 +74,7 @@ lib/presentation/design/
 | `PassqlBadge` (+`PassqlBadgeKind`) / `PassqlLatestTrendBadge` / `PassqlProgressBar` | 의미별 캡슐 태그(주제·보조·완료·연속·중요·AI·최신 경향, 아이콘·테두리), '최신 경향' 배지(문구 원본, #523), 진행 막대 |
 | `PassqlReveal` / `passqlRevealInOrder` | 처음 그려질 때 페이드 + 위로 8px, 순번별 지연(상한 8) (#495) |
 | `PassqlScrollReveal` | 스크롤로 화면에 들어올 때 한 번 페이드 + 위로, 순번별 지연 (개념 레슨 블록, #848). 스크롤 영역 밖이면 바로 등장, 동작 줄이기면 정지 |
+| `PassqlScrollProgress` | 스크롤로 들어오면 0 > 1 로 한 번 진행하는 그림 틀 (선 긋기·칠하기·빠지기, 개념 그림 블록 #853). 동작 줄이기면 처음부터 1 |
 | `PassqlFadeSwitcher` | 로딩 > 내용 같은 상태 교체 페이드 (상태마다 다른 key) |
 | `PassqlPageDots` | 넘김 페이지 점: 현재 페이지만 강조색 알약으로 늘어남 (홈 출제 경향 캐러셀·온보딩) |
 | `PassqlPageSlideSwitcher` | 본문 교체(다음 문제) 옆으로 미끄러짐 + 페이드 (항목마다 다른 key) |
