@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -43,23 +44,30 @@ public class ChoiceSetGenerationService {
     // ODD_ONE_OUT 전용 프롬프트 키 — 기준과 같은 결과 3개 + 다른 결과 1개(정답), SandboxValidator 3:1 판정과 짝 (#699)
     private static final String ODD_ONE_OUT_PROMPT_KEY = "generate_choice_set_odd_one_out";
 
-    // 개념 문제 재시도 규칙: 재시도 불가는 AI fallback 실패 1개
+    // AI 경로 재시도 불가 3개: 대체 경로까지 실패, LLM 연결 전부 실패·시간 초과, AI 서버 요청 거부 (같은 요청 반복 = 중복 과금, #877)
+    private static final Set<ErrorCode> AI_NON_RETRYABLE_ERROR_CODES = EnumSet.of(
+            ErrorCode.AI_FALLBACK_FAILED, ErrorCode.AI_UNAVAILABLE, ErrorCode.AI_SERVER_REQUEST_REJECTED);
+    // 샌드박스 재시도 불가 2개: 샌드박스 준비 실패, 기준 SQL 실패
+    private static final Set<ErrorCode> SANDBOX_NON_RETRYABLE_ERROR_CODES = EnumSet.of(
+            ErrorCode.SANDBOX_SETUP_FAILED, ErrorCode.SANDBOX_ANSWER_SQL_FAILED);
+
+    // 개념 문제 재시도 규칙: 재시도 불가는 AI 경로 3개
     private static final ChoiceSetRetryRule CONCEPT_RETRY_RULE = new ChoiceSetRetryRule("choice-gen-concept",
-            EnumSet.of(ErrorCode.AI_FALLBACK_FAILED),
-            (run, errorCode, attempt) -> log.error("[choice-gen-concept] AI fallback 실패, 재시도 불가: attempt={}, questionUuid={}",
-                    attempt, run.questionUuid()),
+            AI_NON_RETRYABLE_ERROR_CODES,
+            (run, errorCode, attempt) -> log.error("[choice-gen-concept] AI 실패, 재시도 불가: code={}, attempt={}, questionUuid={}",
+                    errorCode, attempt, run.questionUuid()),
             (run, exception, attempt) -> log.warn("[choice-gen-concept] transient error, retrying: code={}, attempt={}/{}",
                     exception.getErrorCode(), attempt, MAX_ATTEMPTS));
-    // SQL 문제 재시도 규칙: 재시도 불가 3개 (샌드박스 준비 실패, 기준 SQL 실패, AI fallback 실패)
+    // SQL 문제 재시도 규칙: 재시도 불가 5개 (샌드박스 2개 + AI 경로 3개)
     private static final ChoiceSetRetryRule STANDARD_RETRY_RULE = new ChoiceSetRetryRule("choice-gen",
-            EnumSet.of(ErrorCode.SANDBOX_SETUP_FAILED, ErrorCode.SANDBOX_ANSWER_SQL_FAILED, ErrorCode.AI_FALLBACK_FAILED),
+            combineErrorCodes(SANDBOX_NON_RETRYABLE_ERROR_CODES, AI_NON_RETRYABLE_ERROR_CODES),
             (run, errorCode, attempt) -> log.error("[choice-gen] 재시도 불가 에러: code={}, attempt={}, questionUuid={}",
                     errorCode, attempt, run.questionUuid()),
             (run, exception, attempt) -> log.warn("[choice-gen] transient error, retrying: code={}, attempt={}/{}",
                     exception.getErrorCode(), attempt, MAX_ATTEMPTS, exception));
-    // 결과 비교 문제 재시도 규칙: 재시도 불가 3개 (SQL 문제와 동일)
+    // 결과 비교 문제 재시도 규칙: 재시도 불가 5개 (SQL 문제와 동일)
     private static final ChoiceSetRetryRule RESULT_MATCH_RETRY_RULE = new ChoiceSetRetryRule("choice-gen-result-match",
-            EnumSet.of(ErrorCode.SANDBOX_SETUP_FAILED, ErrorCode.SANDBOX_ANSWER_SQL_FAILED, ErrorCode.AI_FALLBACK_FAILED),
+            combineErrorCodes(SANDBOX_NON_RETRYABLE_ERROR_CODES, AI_NON_RETRYABLE_ERROR_CODES),
             (run, errorCode, attempt) -> log.error("[choice-gen-result-match] 재시도 불가 에러: code={}, attempt={}",
                     errorCode, attempt),
             (run, exception, attempt) -> log.warn("[choice-gen-result-match] transient error, retrying: code={}, attempt={}/{}",
@@ -152,6 +160,13 @@ public class ChoiceSetGenerationService {
             return generateResultMatch(questionUuid, memberUuid, source);
         }
         return generate(questionUuid, memberUuid, source);
+    }
+
+    /** 재시도 불가 에러 코드 묶음 합치기 */
+    private static Set<ErrorCode> combineErrorCodes(Set<ErrorCode> firstCodes, Set<ErrorCode> secondCodes) {
+        EnumSet<ErrorCode> combinedCodes = EnumSet.copyOf(firstCodes);
+        combinedCodes.addAll(secondCodes);
+        return combinedCodes;
     }
 
     /** SQL 보기 정책 > 프롬프트 키 (ODD_ONE_OUT 은 정답 방향이 반대라 전용 프롬프트, 그 외 기본) */
