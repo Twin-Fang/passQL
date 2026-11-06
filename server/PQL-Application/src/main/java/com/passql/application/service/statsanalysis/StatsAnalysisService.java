@@ -4,6 +4,7 @@ import com.passql.ai.client.AiChatClient;
 import com.passql.ai.dto.AiAnalysisFinding;
 import com.passql.ai.dto.AiCommentResponse;
 import com.passql.ai.dto.AiStatsAnalysis;
+import com.passql.meta.constant.PromptKey;
 import com.passql.meta.entity.PromptTemplate;
 import com.passql.meta.service.PromptService;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +31,6 @@ import java.util.stream.Stream;
 // 클래스 단위 트랜잭션 없음: LLM 호출 동안 DB 커넥션을 잡지 않게 (#497)
 public class StatsAnalysisService {
 
-    /** 통계 AI 분석 프롬프트 키 (운영 DB prompt_template 에만 본문, 레포에 없음) */
-    static final String PROMPT_KEY_STATS_ANALYSIS = "ai_analysis_stats";
     // 문장 끝 부호 (평문 이어 붙일 때 마침표 보충 판정)
     private static final Pattern SENTENCE_END_PATTERN = Pattern.compile(".*[.!?]$");
 
@@ -58,7 +57,7 @@ public class StatsAnalysisService {
     /** 프롬프트 변수 3개 치환 > LLM > 토픽별 한 문장 (실패면 empty) */
     private Optional<Map<UUID, String>> requestInsights(UUID memberUuid, List<TopicLearningStat> focusTopics) {
         try {
-            PromptTemplate prompt = promptService.getActivePrompt(PROMPT_KEY_STATS_ANALYSIS);
+            PromptTemplate prompt = promptService.getActivePrompt(PromptKey.AI_ANALYSIS_STATS);
             String userPrompt = prompt.getUserTemplate()
                     .replace("{focusTopics}", StatsAnalysisPromptFormatter.formatFocusTopics(focusTopics))
                     .replace("{subtopicStats}", StatsAnalysisPromptFormatter.formatSubtopicStats(

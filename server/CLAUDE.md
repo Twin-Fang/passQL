@@ -251,6 +251,7 @@ throw new CustomException(ErrorCode.NOT_SELECT);
 ### 공통 지점
 
 - 설정 키: `PQL-Domain-Meta` `AppSettingKeys` (app_setting 키 문자열 직접 사용 금지)
+- 프롬프트 키 (#875): `PQL-Domain-Meta` `PromptKey` (prompt_template.key_name 문자열 직접 사용 금지, 관리자 등록 폼 선택지도 여기서, 규칙 `server-prompt-key-single-source`)
 - enum 요청값 변환: 각 enum 의 `fromRequestValue(String)` (잘못된 값 > `INVALID_INPUT_VALUE`)
 - 관리자 목록 페이지: `PQL-Web` `AdminPageRequest`
 - 관리자 화면 메뉴·제목: `@AdminPage(menu = AdminMenu.X)` (currentMenu·pageTitle 직접 넣지 않음)
