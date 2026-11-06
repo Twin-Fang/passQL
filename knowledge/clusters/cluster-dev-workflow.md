@@ -2,7 +2,7 @@
 type: cluster
 topic: dev-workflow
 created: 2026-10-29
-members: 74
+members: 75
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 개발 도구·projectops·테스트 정책·문서·API 계약
 
 ## 현재 상태 요약
-(2026-11-05, 자동 생성) 활성 결정 30개, 열린 이슈 1개. 앱의 "오늘"은 AppClock 하나로 판정하고 개발자 도구 상황 흉내는 앱 표시만 바꾼다 — [[DEC-0254-app-clock-single-today-source]] (#819). 앱 테스트 빌드 개발자 도구는 두 층 게이트로 테스트 빌드에만 켠다 — [[DEC-0240-dev-tools-two-layer-gate-test-builds]] (#817 릴리스 반영). 개발자 도구에는 운영 데이터 변경 기능을 넣지 않고, 스토어 빌드 제외는 컴파일 상수 + 두 스토어 워크플로 release 프로파일 + 규칙 테스트로 보장한다 — [[DEC-0246-dev-tools-no-prod-writes-store-exclusion]] (main 머지, 작성 시점 미배포). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-07, 자동 생성) 활성 결정 30개, 열린 이슈 1개. 웹 API 타입은 손 복사본 대신 생성 타입(`openapi.ts`) 별칭, 운영 주소 사본 검사 `siteUrls.test.ts`·디자인 토큰 규칙 테스트 복원 — [[ISS-0468-web-audit-cross-tab-reissue-logout]]. 앱의 "오늘"은 AppClock 하나로 판정하고 개발자 도구 상황 흉내는 앱 표시만 바꾼다 — [[DEC-0254-app-clock-single-today-source]] (#819). 앱 테스트 빌드 개발자 도구는 두 층 게이트로 테스트 빌드에만 켠다 — [[DEC-0240-dev-tools-two-layer-gate-test-builds]] (#817 릴리스 반영). 개발자 도구에는 운영 데이터 변경 기능을 넣지 않고, 스토어 빌드 제외는 컴파일 상수 + 두 스토어 워크플로 release 프로파일 + 규칙 테스트로 보장한다 — [[DEC-0246-dev-tools-no-prod-writes-store-exclusion]] (main 머지, 작성 시점 미배포). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0254-app-clock-single-today-source]] — 앱 "오늘" 판정은 AppClock 하나, 개발자 도구 흉내는 앱 표시만
@@ -51,6 +51,7 @@ related: []
 - [[DEC-0068-dev-mode-hidden-easter-egg]] → null
 
 ## 관련 이슈
+- [[ISS-0468-web-audit-cross-tab-reissue-logout]] (resolved, GitHub #881) — 웹 전체 점검: 탭 두 개면 모든 기기 로그아웃, 재발급 실패 강제 로그아웃, 선택지 생성 오류 사유
 - [[ISS-0454-dev-tools-situation-simulation]] (resolved, GitHub #819) — 개발자 도구 확장 (결제 켜짐, 온보딩, 시험일, 날짜 넘기기, 로그, 푸시, 권한 흉내)
 - [[ISS-0449-dev-tools-store-build-guard]] (resolved, GitHub #820) — 개발자 도구 스토어 빌드 차단 보장 (컴파일 상수, Android 스토어 프로파일, 규칙 테스트)
 - [[ISS-0444-test-build-dev-tools-overlay]] (resolved, GitHub #809) — 테스트 빌드 개발자 도구 (플로팅 버튼으로 등급·광고·무료 한도 상태 확인)

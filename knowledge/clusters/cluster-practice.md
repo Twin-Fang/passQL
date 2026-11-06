@@ -2,7 +2,7 @@
 type: cluster
 topic: practice
 created: 2026-10-29
-members: 156
+members: 160
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 문제 풀이·제출·실행 결과·오늘의 세트·데일리 챌린지·실전 모드
 
 ## 현재 상태 요약
-(2026-11-07, 자동 생성) 활성 결정 37개, 열린 이슈 2개. 앱 "실전 모드"는 "새 보기로 풀기"로 바뀌었고 "실전"은 모의고사 이름 — [[DEC-0261-real-mode-renamed-new-choices]]. SQLD 모의고사(고정 회차, 서버 판정, 무료 1회) — [[DEC-0264-mock-exam-fixed-rounds-server-judged]] (PR #889 머지, 이슈 #866 열림). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-07, 자동 생성) 활성 결정 38개, 열린 이슈 3개. 내린 보기 묶음(DISABLED·REPORTED)·비활성 문제는 열기·채점 모두 `CHOICE_SET_UNAVAILABLE`, 무료 제출은 샌드박스를 실행하지 않는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 무료 하루 한도 판정은 제출 기록 트랜잭션 안 회원 행 잠금 뒤 — [[DEC-0271-daily-limit-judged-in-submit-record-tx]] (PR #898 머지, [[ISS-0469-billing-switch-unverified-screens-races]] 열림). 웹 선택지 생성 시작 전 거부는 `errorCode` 사유를 보여 준다 — [[ISS-0468-web-audit-cross-tab-reissue-logout]]. 앱 "실전 모드"는 "새 보기로 풀기"로 바뀌었고 "실전"은 모의고사 이름 — [[DEC-0261-real-mode-renamed-new-choices]]. SQLD 모의고사(고정 회차, 서버 판정, 무료 1회) — [[DEC-0264-mock-exam-fixed-rounds-server-judged]] (PR #889 머지, 이슈 #866 열림). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0017-fullscreen-result-screen]] — 제출 결과 화면은 풀스크린 1종으로 통일 (bottom sheet 변형 미채택)
@@ -53,6 +53,7 @@ related: []
 - [[DEC-0251-practice-reuse-random-validated-sets]] — 연습 모드는 검증 통과 세트 최신 5개 중 무작위, 실전 모드는 매번 생성
 - [[DEC-0261-real-mode-renamed-new-choices]] — "실전 모드" > "새 보기로 풀기"(AI 새 보기/검증된 보기), 풀이 화면 모드 칩, "실전"은 모의고사에만 (#863)
 - [[DEC-0264-mock-exam-fixed-rounds-server-judged]] — SQLD 모의고사: 관리자 고정 회차(검증 세트), 시간·채점·응시 수 서버 판정, 무료 1회 체험·프로 무제한 (#866)
+- [[DEC-0271-daily-limit-judged-in-submit-record-tx]] — 무료 하루 한도 판정은 제출 기록 트랜잭션 안, 회원 행 잠금 뒤 (#867, PR #898)
 
 ## 대체된 결정 (역사)
 - [[DEC-0087-choice-generation-practice-real-mode]] → DEC-0251
@@ -65,6 +66,9 @@ related: []
 - [[DEC-0147-keep-explanation-sheet-while-solving]] → DEC-0154
 
 ## 관련 이슈
+- [[ISS-0469-billing-switch-unverified-screens-races]] (open, GitHub #867, PR #898 머지) — 결제 스위치 켜기 전 미확인 화면과 경합 점검: 제출 거부 사유 시트, 동시 제출 한도, 점검 중 외부 콜백, 해외 가격
+- [[ISS-0468-web-audit-cross-tab-reissue-logout]] (resolved, GitHub #881) — 웹 전체 점검: 탭 두 개면 모든 기기 로그아웃, 재발급 실패 강제 로그아웃, 선택지 생성 오류 사유
+- [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]] (resolved, GitHub #879) — 서버 전체 점검: AI 코멘트 LLM 호출 제한, OSIV DB 커넥션 점유, 내린 보기 묶음 채점, 설정 캐시, 예외 원문 노출
 - [[ISS-0461-plan-aligned-options-new-choices-mode]] (resolved, GitHub #863) — 요금제에 맞춘 옵션 재배치: 실전 모드 이름과 위치, 광고 제거 혜택, 중복 진입점
 - [[ISS-0462-web-wrong-notes-page-404]] (resolved, GitHub #865) — 웹 마이페이지 오답 전체보기 404, 웹 오답 노트 화면 없음
 - [[ISS-0463-sqld-mock-exam]] (open, GitHub #866) — SQLD 모의고사: 50문항 90분, 과목별 과락, 프로 핵심 기능 (PR #889 머지, 리포트 전)

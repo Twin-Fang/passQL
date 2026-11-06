@@ -2,7 +2,7 @@
 type: cluster
 topic: ops-infra
 created: 2026-10-29
-members: 62
+members: 66
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 운영 서버·로그·모니터링·DB·Flyway·인프라·성능
 
 ## 현재 상태 요약
-(2026-10-29, 자동 생성) 활성 결정 20개, 열린 이슈 2개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-07, 자동 생성) 활성 결정 21개, 열린 이슈 3개. 서버는 OSIV 를 끄고 응답 DTO 를 서비스 안에서 만든다 — [[DEC-0268-server-osiv-off]] (#879, 설정 캐시는 커밋 뒤 쓰기·TTL, 시간대는 `ServiceTimeZone` 한 곳 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]). 점검 모드에서도 외부 콜백(AdMob 보상 검증·App Store 알림)은 통과하고 경로는 `ExternalCallbackPaths` 한 곳 — [[DEC-0273-maintenance-mode-passes-external-callbacks]] (PR #898 머지). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0010-spring-multimodule-layering]] — Spring 서버는 `PQL-Common` → `PQL-Domain-*` → `PQL-Application` → `PQL-Web` 단방향 멀티모듈
@@ -35,11 +35,15 @@ related: []
 - [[DEC-0160-ai-call-log-tokens-cost-400-days]] — AI 비용은 `ai_call_log`의 모델·토큰 × 앱 설정 단가표로 추정하고, 호출 기록은 요약 테이블 없이 400일 보관한다
 - [[DEC-0161-member-activity-hourly-online-in-memory]] — 방문자는 회원당 시간당 1행(`member_activity_hour`)으로 기록하고, 접속 중 수는 메모리에서 최근 5분 활동으로 센다
 - [[DEC-0200-shared-sandbox-result-cache]] — 샌드박스 실행 결과는 `CachedSandboxExecutor` 한 곳에서 회원 간 공유 캐시(메모리 30분 > Redis 7일)로 재사용한다
+- [[DEC-0268-server-osiv-off]] — 서버 OSIV 끔, 응답 DTO 는 서비스 안에서 (#879)
+- [[DEC-0273-maintenance-mode-passes-external-callbacks]] — 점검 모드에서도 AdMob 보상 검증·App Store 알림 콜백 통과, 경로는 `ExternalCallbackPaths` 한 곳 (#867, PR #898)
 
 ## 대체된 결정 (역사)
 - [[DEC-0036-cross-domain-delete-service-in-web]] → null
 
 ## 관련 이슈
+- [[ISS-0469-billing-switch-unverified-screens-races]] (open, GitHub #867, PR #898 머지) — 결제 스위치 켜기 전 미확인 화면과 경합 점검: 제출 거부 사유 시트, 동시 제출 한도, 점검 중 외부 콜백, 해외 가격
+- [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]] (resolved, GitHub #879) — 서버 전체 점검: AI 코멘트 LLM 호출 제한, OSIV DB 커넥션 점유, 내린 보기 묶음 채점, 설정 캐시, 예외 원문 노출
 - [[ISS-0357-choice-set-ai-server-half-failing]] (open, GitHub #575) — 선택지 생성 AI 서버 호출 절반 실패, 원인 조사
 - [[ISS-0415-feedback-single-submit-attachments-diagnostics]] (open, GitHub #708) — 의견 보내기 개편 — 단건 전송, 이미지 첨부, 진단 정보와 로그
 - [[ISS-0006-init-ai-and-spring-servers]] (resolved, GitHub #1) — AI 서버·Spring 서버 초기 프로젝트 구성
