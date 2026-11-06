@@ -17,8 +17,7 @@ import java.util.Map;
 
 /**
  * AdMob 보상형 광고 서버 검증 콜백 서명 확인 (#860): 원본 쿼리 > 서명 대상·서명·key_id 분리 > 공개키 > ECDSA 검증 > 값
- * 서명 대상 = 쿼리에서 "&signature=" 앞부분 (Google 규격), 뒤는 정확히 signature·key_id 두 개만 허용
- * 실패 > 403 ACCESS_DENIED
+ * 서명 대상 = 쿼리 "&signature=" 앞부분 (Google 규격), 뒤는 signature·key_id 두 개만 허용, 실패 > 403 ACCESS_DENIED
  */
 @Slf4j
 @Component

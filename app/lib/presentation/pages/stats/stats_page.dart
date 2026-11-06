@@ -156,7 +156,7 @@ class _StatsAiCommentSection extends ConsumerWidget {
 /// 로딩 스켈레톤: 실제 구간 3개와 비슷한 높이로 자리를 잡는다
 // 스켈레톤 구간 높이 (어림값: 내 상태·AI 분석·영역 목록)
 const double _statusSkeletonHeight = 260;
-const double _aiSkeletonHeight = 120;
+const double _aiSkeletonHeight = 260;
 const double _topicSkeletonHeight = 280;
 
 class _StatsSkeleton extends StatelessWidget {

@@ -143,3 +143,5 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-07 02:36 | W6 | ingest issue + report, decision | ISS-0458, ISS-0458-report, DEC-0258
 - 2026-11-07 02:36 | W2 | cluster add DEC-0258 | cluster-billing, cluster-ai, cluster-progress-stats
 - 2026-11-07 02:36 | W2 | fix members count W10 | cluster-billing
+- 2026-11-07 02:37 | W6 | ingest issue + report, decision; cluster add | ISS-0459, ISS-0459-report, DEC-0259, cluster-ai, cluster-progress-stats
+- 2026-11-07 02:37 | W2 | fix members count W10 | cluster-ai, cluster-progress-stats

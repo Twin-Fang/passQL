@@ -18,6 +18,8 @@ public final class TextPreview {
     public static final int ERROR_MESSAGE_CHOICE_BODY_LENGTH = 30;
     // 실행 로그에 남기는 SQL 미리보기 (문자 수)
     public static final int LOG_SQL_LENGTH = 120;
+    // 통계 AI 분석 프롬프트의 최근 오답 지문 (문자 수, 한 줄로 편 뒤, #861)
+    public static final int AI_ANALYSIS_WRONG_STEM_LENGTH = 80;
 
     private static final String ELLIPSIS = "...";
 

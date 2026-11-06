@@ -2,7 +2,7 @@
 type: cluster
 topic: ai
 created: 2026-10-29
-members: 104
+members: 106
 status: active
 related: []
 ---
@@ -52,6 +52,7 @@ AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 - [[DEC-0250-never-store-unvalidated-sql-choice-sets]] — SQL·결과 표 보기 세트는 샌드박스 검증 통과만 저장·노출, 전수 검증으로 기존 세트 재채점
 - [[DEC-0251-practice-reuse-random-validated-sets]] — 연습 모드는 검증 통과 세트 최신 5개 중 무작위, 실전 모드는 매번 생성
 - [[DEC-0258-ai-comment-pro-only-all-forms]] — AI 코멘트는 결과·통계 모두 프로 전용 (#699 무료 하루 1회 폐지, #860)
+- [[DEC-0259-ai-analysis-server-decides-llm-explains]] — 통계 AI 분석: 서버가 판정·우선순위·문구, LLM 은 토픽별 헷갈리는 개념 한 문장 (#861)
 
 ## 대체된 결정 (역사)
 - [[DEC-0087-choice-generation-practice-real-mode]] → DEC-0251

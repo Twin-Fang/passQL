@@ -19,8 +19,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * 광고 보너스 받기 2경로 (#808, #860): 앱 신고(POST) · AdMob 서버 검증 콜백(SSV)
- * 같은 광고는 보상 표식(앱이 custom_data 로 실어 보냄)·거래 ID 로 1회만 기록
+ * 광고 보너스 받기 2경로 (#808, #860): 앱 신고(POST) · AdMob 서버 검증 콜백(SSV), 같은 광고는 보상 표식·거래 ID 로 1회만
  * ads.reward.ssv_required 켜짐 > 앱 신고는 콜백 기록 확인만, 꺼짐 > 앱 신고로도 기록 (출시 앱 호환)
  */
 @Slf4j

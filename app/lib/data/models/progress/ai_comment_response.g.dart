@@ -11,6 +11,9 @@ _$AiCommentResponseImpl _$$AiCommentResponseImplFromJson(
 ) => _$AiCommentResponseImpl(
   comment: json['comment'] as String,
   generatedAt: json['generatedAt'] as String?,
+  analysis: json['analysis'] == null
+      ? null
+      : AiStatsAnalysis.fromJson(json['analysis'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$$AiCommentResponseImplToJson(
@@ -18,4 +21,5 @@ Map<String, dynamic> _$$AiCommentResponseImplToJson(
 ) => <String, dynamic>{
   'comment': instance.comment,
   'generatedAt': instance.generatedAt,
+  'analysis': instance.analysis,
 };

@@ -1767,11 +1767,19 @@ export interface paths {
          *     - 프로 전용 (결제 켜짐 무료 회원 403 PRO_REQUIRED, 결제 꺼짐이면 모두 허용)
          *
          *     ## 반환값 (AiCommentResponse)
-         *     - comment: AI 생성 한국어 코멘트 (2~3문장, 약점 영역 파악 + 집중 학습 추천)
+         *     - comment: 한국어 코멘트. 세션: AI 2~3문장 / 통계: analysis 를 이어 붙인 평문 (구버전 앱 호환, 마크다운 없음)
          *     - generatedAt: 코멘트 생성(캐시 저장) 시각
+         *     - analysis (통계 화면만, 세션은 null): 서버 판정 구조화 분석
+         *       - headline: 한 줄 요약 (시험 30일 이내면 "D-N · " 접두)
+         *       - findings[] (최대 2): topicUuid, topicName(짧은 이름), kind(WEAK 약점·SHAKY 불안정·UNTRIED 판단 이름), solvedCount, correctRatePercent, evidence, insight(LLM 한 문장, 실패·근거 부족이면 null)
+         *       - trend: 이번 주 vs 지난주 정답률 (두 주 모두 풀이 있을 때만, 아니면 null)
+         *       - strength: 10문제 이상·85% 이상 중 최고 토픽 (없으면 null)
+         *       - actions[] (최대 2): type(PRACTICE_TOPIC 토픽 풀기·REVIEW_WRONG 최근 오답 다시 풀기), topicUuid·topicName(PRACTICE_TOPIC 만), count(표시용), label
+         *       - 판정 기준·문구는 서버 규칙 고정, LLM 실패해도 analysis 는 응답 (insight 만 null)
          *
          *     ## 캐싱
          *     - Redis key: ai-comment:{memberUuid}:{sessionUuid}, TTL 2시간
+         *     - 통계: ai-comment:{memberUuid}:stats:{날짜}:analysis-{최근 7일 풀이 수/10}, TTL 24시간 (LLM 실패 응답은 캐시하지 않음)
          *     - 같은 세션 재진입 시 동일 텍스트 반환 (불필요한 AI 호출 방지)
          *     - 새 세션 시작 시 새 sessionUuid로 자동 새 AI 호출
          *     - AI 호출 latency를 고려해 프론트엔드에서 비동기 로딩 권장
@@ -2071,7 +2079,38 @@ export interface components {
             /** @description 광고마다 만든 보상 표식 (AdMob 서버 검증 custom_data 와 같은 값) */
             rewardNonce: string | null;
         };
+        AiAnalysisAction: {
+            /** Format: int32 */
+            count: number;
+            label: string;
+            topicName: string | null;
+            /** Format: uuid */
+            topicUuid: string | null;
+            /** @enum {string} */
+            type: "PRACTICE_TOPIC" | "REVIEW_WRONG";
+        };
+        AiAnalysisFinding: {
+            /** Format: int32 */
+            correctRatePercent: number;
+            evidence: string;
+            insight: string | null;
+            /** @enum {string} */
+            kind: "WEAK" | "SHAKY" | "UNTRIED";
+            /** Format: int32 */
+            solvedCount: number;
+            topicName: string;
+            /** Format: uuid */
+            topicUuid: string;
+        };
+        AiAnalysisStrength: {
+            /** Format: int32 */
+            correctRatePercent: number;
+            topicName: string;
+            /** Format: uuid */
+            topicUuid: string;
+        };
         AiCommentResponse: {
+            analysis: components["schemas"]["AiStatsAnalysis"] | null;
             comment: string;
             /** Format: date-time */
             generatedAt: string | null;
@@ -2080,6 +2119,13 @@ export interface components {
             /** Format: int32 */
             promptVersion: number;
             text: string;
+        };
+        AiStatsAnalysis: {
+            actions: components["schemas"]["AiAnalysisAction"][];
+            findings: components["schemas"]["AiAnalysisFinding"][];
+            headline: string;
+            strength: components["schemas"]["AiAnalysisStrength"] | null;
+            trend: string | null;
         };
         AppConfigResponse: {
             android: components["schemas"]["AppPlatformVersionResponse"];

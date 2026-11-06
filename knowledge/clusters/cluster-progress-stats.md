@@ -2,7 +2,7 @@
 type: cluster
 topic: progress-stats
 created: 2026-10-29
-members: 40
+members: 42
 status: active
 related: []
 ---
@@ -26,6 +26,7 @@ related: []
 - [[DEC-0204-profile-drops-info-shown-elsewhere]] — 앱 프로필 탭은 "내 기록을 보는 곳" — 다른 탭에 이미 있는 정보는 빼고 내 상태 > AI 분석 > 영역별 정답률 > 광고 순으로 둔다
 - [[DEC-0206-topic-accuracy-list-with-octagon-chart]] — 앱 영역별 정답률은 목록을 기본으로 두고 같은 자리에서 8각 차트로 바꿔 본다 (레이더·막대 두 장 통합, `fl_chart` 제거)
 - [[DEC-0258-ai-comment-pro-only-all-forms]] — AI 코멘트는 결과·통계 모두 프로 전용 (#699 무료 하루 1회 폐지, #860)
+- [[DEC-0259-ai-analysis-server-decides-llm-explains]] — 통계 AI 분석: 서버가 판정·우선순위·문구, LLM 은 토픽별 헷갈리는 개념 한 문장 (#861)
 
 ## 대체된 결정 (역사)
 - [[DEC-0033-readiness-replaces-progress-rate]] → DEC-0078
