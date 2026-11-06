@@ -11,6 +11,8 @@ CONCEPTS_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(CONCEPTS_DIR))
 
 from concept_bundle import TOPIC_CODES  # noqa: E402
+from concept_memorize_rules import find_highlight_errors, find_memorize_errors  # noqa: E402
+from concept_table_width import find_wide_detail_tables, find_wide_stem_tables  # noqa: E402
 
 DEFAULT_OUTPUT_PATH = CONCEPTS_DIR / "build" / "concept_bundle.json"
 # 관련 문제 연결 원본: {tagKey: [운영 question UUID, ...]} (개념 화면 "관련 문제 더 풀기")
@@ -124,6 +126,13 @@ def validate_concept(path, concept, seen_tag_keys, seen_orders_by_topic):
         prose = re.sub(r"```[\s\S]*?```", "", concept.get(field) or "")
         if any(line.lstrip().startswith("|") and "||" in line for line in prose.splitlines()):
             errors.append(f"{field}: table row contains || (breaks table)")
+    # 꼭 외울 것 문단·형광펜·표 폭 (#876, 표 폭은 화면용 글 기준)
+    errors += find_memorize_errors(concept.get("detailMd") or "")
+    errors += find_highlight_errors(concept)
+    errors += find_wide_detail_tables(to_app_markdown(concept.get("detailMd") or ""))
+    for question in questions:
+        errors += [f"Q{question.get('sortOrder')}: {problem}"
+                   for problem in find_wide_stem_tables(to_app_markdown(question.get("stem") or ""))]
     warnings += lint_text(concept)
     return errors, warnings
 

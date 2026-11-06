@@ -1,8 +1,11 @@
 """개념: NATURAL JOIN과 USING (5단원, 확인 문제 5개)"""
 
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
-from concept_dataset import (DEPARTMENT_ROWS, DEPARTMENT_TABLE_MD, EMPLOYEE_ROWS, EMPLOYEE_TABLE_MD,
-                             SALARY_GRADE_TABLE_MD, to_markdown_table)
+from concept_dataset import (DEPARTMENT_ROWS, DEPARTMENT_TABLE_MD, EMPLOYEE_ROWS, SALARY_GRADE_TABLE_MD,
+                             to_employee_table_md, to_markdown_table)
+
+# 값 계산에 쓰는 열만 (8열 이름은 본문 문장에 모두 적음 > 열 개수 계산 가능)
+EMPLOYEE_JOIN_TABLE = to_employee_table_md("사번", "이름", "부서번호")
 
 # 이름만 같고 뜻이 다른 열(이름) 함정용 표: 프로젝트번호, 이름(프로젝트 이름), 부서번호
 PROJECT_ROWS = ((101, "신규 앱", 20), (102, "판촉 행사", 30))
@@ -56,10 +59,10 @@ CONCEPT = {
     "title": "NATURAL JOIN과 USING",
     "summary": "이름이 같은 열로 알아서 잇는 NATURAL JOIN, 잇는 열을 고르는 USING이에요",
     "coreMd": (
-        "- NATURAL JOIN은 이름이 같은 모든 열을 찾아, 그 값이 모두 같은 행끼리 등가 조인해요.\n"
+        "- NATURAL JOIN은 **이름이 같은 모든 열**을 찾아, 그 값이 모두 같은 행끼리 등가 조인해요.\n"
         "- USING은 이름이 같은 열 가운데 조인에 쓸 열만 `USING (부서번호)`처럼 괄호 안에 적어요.\n"
-        "- 두 방식 모두 조인에 쓴 공통 열에는 `E.부서번호`처럼 접두사를 붙일 수 없어요.\n"
-        "- `SELECT *`로 보면 공통 열은 맨 앞에 한 번만 나와서, 사원과 부서를 ON으로 이을 때(11열)보다 하나 적은 10열이에요."
+        "- 두 방식 모두 조인에 쓴 공통 열에는 `E.부서번호`처럼 **접두사를 붙일 수 없어요**.\n"
+        "- `SELECT *`로 보면 공통 열은 **맨 앞에 한 번만** 나와서, 사원과 부서를 ON으로 이을 때(11열)보다 하나 적은 10열이에요."
     ),
     "detailMd": f"""## 왜 필요한가요 — 같은 이름의 열이면 짧게 {{#why}}
 
@@ -71,9 +74,11 @@ CONCEPT = {
 | `USING (열)` | 괄호 안에 고른 같은 이름의 열 | `=`만 (등가 조인) |
 | `NATURAL JOIN` | 이름이 같은 모든 열 (데이터베이스가 찾음) | `=`만 (등가 조인) |
 
-이 개념은 열 이름과 열 개수가 중요해서 표를 열까지 모두 보여 줘요. 사원 표(8열)와 부서 표(3열)에 똑같이 있는 열 이름은 부서번호 하나뿐이고, 급여등급 표(3열)는 사원 표와 같은 이름의 열이 없어요.
+이 개념은 열 이름과 열 개수가 중요해요. 사원 표는 사번, 이름, 직급, 관리자사번, 입사일, 급여, 커미션, 부서번호 **8열**이고, 아래에는 값을 따라갈 사번·이름·부서번호만 보여요.
 
-{EMPLOYEE_TABLE_MD}
+부서 표(3열)와 급여등급 표(3열)는 모든 열을 보여요. 사원 표와 부서 표에 똑같이 있는 열 이름은 부서번호 하나뿐이고, 급여등급 표는 사원 표와 같은 이름의 열이 없어요.
+
+{EMPLOYEE_JOIN_TABLE}
 
 {DEPARTMENT_TABLE_MD}
 
@@ -119,7 +124,7 @@ USING과 NATURAL JOIN은 열을 아래 순서로 늘어놓고, ON은 열을 합�
 
 ## 자주 헷갈리는 점 {{#confusing}}
 
-외울 규칙은 하나예요. **NATURAL JOIN과 USING으로 합쳐진 열에는 접두사를 붙이지 않아요.**
+외울 규칙은 하나예요. NATURAL JOIN과 USING으로 합쳐진 열에는 **접두사를 붙이지 않아요**.
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -174,6 +179,19 @@ USING (부서번호)는 괄호 안의 부서번호만 비교해서, 사원 이�
 {PROJECT_USING_DIAGRAM_MD}
 
 `COUNT(*)`는 결과 행이 몇 개인지 세는 함수(7단원)이고, `AS 프로젝트명`은 결과 열에 보여 줄 이름을 바꾸는 별칭이에요. 접두사 규칙을 정리하면, 합쳐진 열에는 붙이지 않고 합쳐지지 않은 채 두 표에 같은 이름으로 있는 열에는 붙여요.
+
+## 꼭 외울 것 — 접두사와 결과 열 개수 {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| NATURAL JOIN이 잇는 열 | 이름이 같은 모든 열, =로만 비교(등가 조인) |
+| USING이 잇는 열 | 괄호 안에 고른 같은 이름의 열만 |
+| 합쳐진 공통 열의 접두사 | SELECT든 WHERE든 붙이면 오류, 다른 열은 붙여도 돼요 |
+| SELECT * 열 수 | ON은 두 표 열 수의 합, USING·NATURAL은 공통 열 수만큼 적음 |
+| SELECT * 첫 열 | USING·NATURAL은 공통 열이 맨 앞에 한 번 |
+| NATURAL JOIN에 ON·USING | 함께 못 써서 ORA-00933(문법에 없는 단어) 오류 |
+| 같은 이름의 열이 없으면 | NATURAL JOIN은 오류 없이 모든 행을 짝지어요 |
+| SQL Server에서 | NATURAL JOIN·USING을 지원하지 않아 ON으로 써요 |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 

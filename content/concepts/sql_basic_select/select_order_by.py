@@ -54,11 +54,11 @@ CONCEPT = {
     "title": "ORDER BY",
     "summary": "결과 행의 순서를 정하는 절이고, 가장 마지막에 처리돼요",
     "coreMd": (
-        "- ORDER BY가 없으면 결과 순서는 보장되지 않고, 방향을 적지 않으면 오름차순(ASC)이에요.\n"
-        "- `ORDER BY 부서번호, 급여 DESC`의 DESC는 바로 앞 급여에만 걸리고, 부서번호는 오름차순 그대로예요.\n"
+        "- ORDER BY가 없으면 결과 순서는 보장되지 않고, 방향을 적지 않으면 **오름차순(ASC)**이에요.\n"
+        "- `ORDER BY 부서번호, 급여 DESC`의 DESC는 **바로 앞 급여에만** 걸리고, 부서번호는 오름차순 그대로예요.\n"
         "- ORDER BY는 SELECT보다 뒤에 처리되어서 SELECT의 별칭이나 위치 번호(1, 2, ...)로도 정렬해요.\n"
-        "- Oracle은 NULL을 가장 큰 값으로 봐서 오름차순이면 맨 뒤에 두고, SQL Server는 그 반대예요.\n"
-        "- NULL 위치는 NULLS FIRST·NULLS LAST로 바꾸고, DISTINCT가 있으면 SELECT에 없는 열로 정렬할 수 없어요."
+        "- Oracle은 NULL을 **가장 큰 값**으로 봐서 오름차순이면 맨 뒤에 두고, SQL Server는 그 반대예요.\n"
+        "- NULL 위치는 **NULLS FIRST·NULLS LAST**로 바꾸고, DISTINCT가 있으면 SELECT에 없는 열로 정렬할 수 없어요."
     ),
     "detailMd": f"""## 왜 필요할까요 — 순서는 약속되지 않아서 {{#why}}
 
@@ -112,7 +112,7 @@ Oracle은 NULL을 어떤 값보다도 큰 값처럼 다뤄서, 오름차순이�
 
 {COMMISSION_DEFAULT_ORDER_TABLE}
 
-방향 뒤에 **NULLS FIRST**(NULL을 맨 앞)나 **NULLS LAST**(NULL을 맨 뒤)를 붙이면 위치를 바꿀 수 있고, 이 옵션은 그 열의 정렬에만 적용돼요.
+방향 뒤에 NULLS FIRST(NULL을 맨 앞)나 NULLS LAST(NULL을 맨 뒤)를 붙이면 위치를 바꿀 수 있고, 이 옵션은 그 열의 정렬에만 적용돼요.
 
 ```sql
 {COMMISSION_NULLS_FIRST[0]}
@@ -152,6 +152,19 @@ GROUP BY는 같은 값끼리 행을 묶는 절이고, MAX는 묶음에서 가장
 | `ORDER BY 커미션 DESC NULLS LAST`는 NULL을 맨 뒤에 둬요 | O | NULLS LAST가 기본 위치인 맨 앞 대신 맨 뒤로 보내요 |
 | 한 ORDER BY 안에 열 이름과 위치 번호를 섞어 쓰면 오류가 나요 | X | 열 이름, 별칭, 위치 번호는 섞어 써도 돼요 |
 | ORDER BY를 쓰지 않으면 결과는 항상 사번 순서로 나와요 | X | 순서가 보장되지 않아서, 같은 SQL도 다른 순서로 나올 수 있어요 |
+
+## 꼭 외울 것 — 방향의 범위와 NULL의 자리 {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| 방향을 적지 않으면 | ASC (오름차순) |
+| `부서번호, 급여 DESC`의 DESC | 급여에만 걸리고 부서번호는 ASC |
+| Oracle의 NULL 정렬 위치 | 가장 큰 값: ASC면 맨 뒤, DESC면 맨 앞 |
+| SQL Server의 NULL 위치 | 가장 작은 값: ASC면 맨 앞, DESC면 맨 뒤 |
+| NULL 위치를 바꾸는 옵션 | NULLS FIRST, NULLS LAST (그 열에만 적용) |
+| ORDER BY에 쓸 수 있는 것 | 열 이름, 별칭, 위치 번호 (섞어 써도 돼요) |
+| 위치 번호가 열 수를 넘으면 | 오류 |
+| DISTINCT와 SELECT에 없는 열 | 그 열로 정렬하면 오류 |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 

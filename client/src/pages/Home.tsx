@@ -18,6 +18,7 @@ import StudyStatusSection from "../components/home/StudyStatusSection";
 import ReadinessSection from "../components/home/ReadinessSection";
 import RecommendedQuestionsSection from "../components/home/RecommendedQuestionsSection";
 import ExamTrendEntryCard from "../components/home/ExamTrendEntryCard";
+import MockExamEntryCard from "../components/home/MockExamEntryCard";
 import TodayDiscussionCard from "../components/home/TodayDiscussionCard";
 
 /**
@@ -105,6 +106,9 @@ export default function Home() {
           onRetry={() => refetchDailySet()}
         />
       </section>
+
+      {/* SQLD 모의고사 진입 (#866) */}
+      <MockExamEntryCard className={s2.className} />
 
       {/* 출제 경향 진입 (#523) */}
       <ExamTrendEntryCard className={s2.className} />

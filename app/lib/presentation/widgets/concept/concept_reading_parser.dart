@@ -1,8 +1,8 @@
 import '../../../data/models/concept/concept_models.dart';
 
-/// 자세히 문단 종류 5가지 (앵커 기준, content/concepts/README.md 의 권장 앵커)
-/// why·definition·confusing·exam-point 외 앵커는 general (중립 모양)
-enum ConceptSectionKind { why, definition, confusing, examPoint, general }
+/// 자세히 문단 종류 6가지 (앵커 기준, content/concepts/README.md 의 권장 앵커)
+/// why·definition·confusing·memorize·exam-point 외 앵커는 general (중립 모양)
+enum ConceptSectionKind { why, definition, confusing, memorize, examPoint, general }
 
 /// 자주 헷갈리는 점 1개: 굵은 첫 문장 > 제목, 나머지 > 본문 마크다운
 class ConceptPitfall {
@@ -38,6 +38,9 @@ abstract final class ConceptReadingParser {
   static final RegExp _boldLeadRe = RegExp(r'^\*\*([^\n]+?)\*\*\s*');
   static const String _codeFence = '```';
 
+  /// 꼭 외울 것 문단 앵커 (#876, 목차 칩도 노랑으로 구분)
+  static const String memorizeAnchor = 'memorize';
+
   // 한국어 설명글을 소리 내지 않고 읽는 분당 글자 수 근사 (짧은 글도 최소 1분)
   static const int _charactersPerMinute = 500;
 
@@ -46,6 +49,7 @@ abstract final class ConceptReadingParser {
     'why' => ConceptSectionKind.why,
     'definition' => ConceptSectionKind.definition,
     'confusing' => ConceptSectionKind.confusing,
+    memorizeAnchor => ConceptSectionKind.memorize,
     'exam-point' => ConceptSectionKind.examPoint,
     _ => ConceptSectionKind.general,
   };

@@ -15,11 +15,11 @@ CONCEPT = {
     "title": "ROWNUM과 TOP N",
     "summary": "ROWNUM은 정렬 전에 붙는 번호라서, 정렬한 뒤에 잘라야 해요",
     "coreMd": (
-        "- ROWNUM은 WHERE 조건을 통과한 행에 1부터 붙는 가상 열이고, ORDER BY보다 먼저 붙어요.\n"
-        "- `ROWNUM = 1`, `ROWNUM <= N`은 되지만 `ROWNUM = 2`, `ROWNUM > 1`은 늘 0행이에요.\n"
-        "- 정렬한 상위 N개는 정렬한 SELECT를 인라인 뷰에 넣고 바깥에서 ROWNUM으로 잘라요.\n"
+        "- ROWNUM은 WHERE 조건을 통과한 행에 1부터 붙는 가상 열이고, **ORDER BY보다 먼저** 붙어요.\n"
+        "- `ROWNUM = 1`, `ROWNUM <= N`은 되지만 `ROWNUM = 2`, `ROWNUM > 1`은 **늘 0행**이에요.\n"
+        "- 정렬한 상위 N개는 정렬한 SELECT를 **인라인 뷰**에 넣고 바깥에서 ROWNUM으로 잘라요.\n"
         "- Oracle 12c의 `FETCH FIRST N ROWS ONLY`와 SQL Server의 `TOP(N)`은 정렬한 뒤에 잘라요.\n"
-        "- `WITH TIES`는 N번째와 같은 값도 함께 가져오고, ORDER BY가 꼭 있어야 해요."
+        "- `WITH TIES`는 N번째와 같은 값도 함께 가져오고, **ORDER BY가 꼭** 있어야 해요."
     ),
     "detailMd": f"""## 왜 필요할까요 — 앞쪽 몇 행만 필요할 때 {{#why}}
 
@@ -219,6 +219,19 @@ SELECT 이름 FROM (SELECT ROWNUM AS rn, 이름 FROM (SELECT 이름, 급여 FROM
 | `ROWNUM < 4`는 앞에서 3행을 돌려줘요 | O | 1번이 통과할 수 있는 조건이라 1, 2, 3번이 붙어요 |
 | FETCH FIRST는 ROWNUM처럼 정렬보다 먼저 행을 잘라요 | X | FETCH는 ORDER BY 다음에 처리되어 정렬한 결과를 잘라요 |
 | SQL Server에서 `TOP(5) WITH TIES`는 ORDER BY 없이도 쓸 수 있어요 | X | 같은 값을 판단할 정렬 기준이 필요해서 ORDER BY가 꼭 있어야 해요 |
+
+## 꼭 외울 것 — 번호가 붙는 시점과 자르는 방법 {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| ROWNUM이 붙는 시점 | WHERE 단계, ORDER BY보다 먼저 |
+| 제대로 동작하는 ROWNUM 조건 | `= 1`, `<= N`, `< N` (1번이 통과하는 조건) |
+| `ROWNUM = 2`, `ROWNUM > 1` | 오류 없이 늘 0행 |
+| 정렬한 상위 N개 (ROWNUM) | 인라인 뷰 안에서 정렬, 바깥에서 ROWNUM으로 자름 |
+| 인라인 뷰 밖의 별칭 rn | 보통 열이라 `rn = 2`, `rn >= 3`도 돼요 |
+| Oracle 12c의 상위 N개 | `ORDER BY ... FETCH FIRST N ROWS ONLY` |
+| SQL Server의 상위 N개 | `SELECT TOP(N) ...`, ORDER BY 다음에 잘라요 |
+| WITH TIES | N번째와 같은 값도 포함, ORDER BY 필수 |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 

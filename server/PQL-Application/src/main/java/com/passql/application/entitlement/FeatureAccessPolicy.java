@@ -171,7 +171,7 @@ public class FeatureAccessPolicy {
     }
 
     /**
-     * 하루 문제 수 판정 (열기·제출 공통): 스위치 > 오늘의 문제 > 예전에 푼 문제 > 오늘 제출한 수(무료 10 + 보너스, 프로 200)
+     * 하루 문제 수 판정 (열기·제출 공통): 스위치 > 오늘의 문제 > 예전에 푼 문제(모의고사 제외) > 오늘 제출한 수(무료 10 + 보너스, 프로 200)
      * 회원 기준 결제 꺼짐, 오늘의 문제, 제출 이력 있는 문제는 항상 통과
      */
     private void assertWithinDailyQuestionLimit(UUID memberUuid, UUID questionUuid, String actionForLog) {
@@ -182,8 +182,8 @@ public class FeatureAccessPolicy {
         if (dailyQuestionCounter.isTodaysDailyChallengeQuestion(questionUuid)) {
             return;
         }
-        // 예전에 한 번이라도 제출한 문제는 날짜와 무관하게 다시 열 수 있음
-        if (submissionRepository.existsByMemberUuidAndQuestionUuid(memberUuid, questionUuid)) {
+        // 예전에 한 번이라도 제출한 문제는 날짜와 무관하게 다시 열 수 있음 (모의고사 제출 제외)
+        if (submissionRepository.existsOutsideMockExam(memberUuid, questionUuid)) {
             return;
         }
 

@@ -8,9 +8,10 @@ import '../../../core/utils/external_url_launcher.dart';
 import '../../design/design.dart';
 import '../../../core/utils/word_wrap.dart';
 
-/// 글 종류 2종 > 글자 스타일·문단 간격
+/// 글 종류 3종 > 글자 스타일·문단 간격·굵게 모양
 /// explanation: AI 해설(작은 본문), article: 공지 본문(큰 본문, 넓은 문단 간격, #529)
-enum MarkdownLiteStyle { explanation, article }
+/// lesson: 개념 레슨 본문(article 크기, 굵게 = 외울 말 형광펜, #876)
+enum MarkdownLiteStyle { explanation, article, lesson }
 
 /// 마크다운 일부(굵게 `**`, 인라인 코드 `` ` ``, 목록 `* `/`- `, 링크 `[이름](https://...)`)만 그리는 가벼운 위젯.
 /// 전체 마크다운 패키지를 들이지 않고, AI 해설·공지 본문에 실제로 나오는 표기만 처리한다.
@@ -80,7 +81,8 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
     _linkRecognizers.clear();
   }
 
-  bool get _isArticle => widget.style == MarkdownLiteStyle.article;
+  /// 큰 본문 글자 (공지·개념 레슨)
+  bool get _isArticle => widget.style != MarkdownLiteStyle.explanation;
 
   /// 전체 시간 = 첫 지연 + (단어 수 - 1) × 간격 + 단어 하나 시간
   Duration _totalDurationOf(int wordCount) =>
@@ -158,8 +160,8 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
   ) {
     final spans = <InlineSpan>[];
     var cursor = 0;
-    void addSegment(String text, TextStyle? style) {
-      spans.addAll(_segmentSpans(text, style, base, wordCounter));
+    void addSegment(String text, TextStyle? style, {bool isCode = false}) {
+      spans.addAll(_segmentSpans(text, style, base, wordCounter, isCode: isCode));
     }
 
     for (final match in _inlineRe.allMatches(line)) {
@@ -167,13 +169,7 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
         addSegment(line.substring(cursor, match.start), null);
       }
       if (match.group(1) != null) {
-        addSegment(
-          match.group(1)!,
-          (_isArticle
-                  ? PassqlTypography.articleEmphasis
-                  : PassqlTypography.explanationEmphasis)
-              .copyWith(color: colors.label),
-        );
+        addSegment(match.group(1)!, _emphasisStyleOf(colors));
       } else if (match.group(3) != null) {
         spans.add(_linkSpan(match.group(3)!, match.group(4)!, colors));
       } else {
@@ -182,6 +178,7 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
           PassqlTypography.inlineCodeOf(
             base,
           ).copyWith(backgroundColor: colors.fill),
+          isCode: true,
         );
       }
       cursor = match.end;
@@ -195,6 +192,19 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
       child: ExcludeSemantics(child: richText),
     );
   }
+
+  /// 굵게 모양: 개념 레슨은 외울 말 형광펜(불투명 바탕 위 label 4.5 이상), 그 외는 굵은 글자
+  TextStyle _emphasisStyleOf(PassqlColors colors) => switch (widget.style) {
+    MarkdownLiteStyle.lesson => PassqlTypography.articleEmphasis.copyWith(
+      color: colors.label,
+      backgroundColor: colors.memorizeHighlight,
+    ),
+    MarkdownLiteStyle.article => PassqlTypography.articleEmphasis.copyWith(
+      color: colors.label,
+    ),
+    MarkdownLiteStyle.explanation =>
+      PassqlTypography.explanationEmphasis.copyWith(color: colors.label),
+  };
 
   /// 링크 조각: http·https 면 강조색 밑줄 + 탭 > 외부 브라우저, 아니면 이름만 글자로
   InlineSpan _linkSpan(String label, String url, PassqlColors colors) {
@@ -221,14 +231,14 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
     String text,
     TextStyle? style,
     TextStyle base,
-    _WordCounter wordCounter,
-  ) {
+    _WordCounter wordCounter, {
+    required bool isCode,
+  }) {
     if (!_isWordLayout) {
       // 일반 글자·강조는 단어 단위 줄바꿈, 코드 칩은 원문 그대로
-      final isCodeChip = style?.backgroundColor != null;
       return [
         TextSpan(
-          text: isCodeChip ? text : keepWordsTogether(text),
+          text: isCode ? text : keepWordsTogether(text),
           style: style,
         ),
       ];

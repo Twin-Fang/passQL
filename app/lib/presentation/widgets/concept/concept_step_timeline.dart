@@ -116,7 +116,7 @@ class _StepRow extends StatelessWidget {
                         const SizedBox(height: PassqlSpacing.xxs),
                         MarkdownLiteText(
                           step.detail,
-                          style: MarkdownLiteStyle.article,
+                          style: MarkdownLiteStyle.lesson,
                         ),
                       ],
                     ],

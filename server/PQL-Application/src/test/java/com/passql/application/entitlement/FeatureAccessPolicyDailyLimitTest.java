@@ -61,7 +61,7 @@ class FeatureAccessPolicyDailyLimitTest {
     void 한도에_닿아도_예전에_제출한_문제는_다시_낼_수_있다() {
         givenBillingEnabled(true);
         when(dailyQuestionCounter.countTodayRandomSolved(MEMBER_UUID)).thenReturn(FeatureAccessPolicy.DAILY_FREE_LIMIT);
-        when(submissionRepository.existsByMemberUuidAndQuestionUuid(MEMBER_UUID, QUESTION_UUID)).thenReturn(true);
+        when(submissionRepository.existsOutsideMockExam(MEMBER_UUID, QUESTION_UUID)).thenReturn(true);
 
         assertThatCode(() -> featureAccessPolicy.assertCanSubmitQuestion(MEMBER_UUID, QUESTION_UUID))
             .doesNotThrowAnyException();

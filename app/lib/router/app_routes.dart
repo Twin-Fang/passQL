@@ -9,6 +9,9 @@ abstract final class AppRoutes {
   static const String noticeUuidParameter = 'noticeUuid';
   static const String topicUuidParameter = 'topicUuid';
   static const String conceptUuidParameter = 'conceptUuid';
+  static const String mockExamRoundUuidParameter = 'roundUuid';
+  static const String mockExamAttemptUuidParameter = 'attemptUuid';
+  static const String mockExamQuestionNumberQuery = 'number';
   // 커뮤니티 피드 시작 탭 (값은 CommunityFeedSource.serverValue)
   static const String communitySourceQuery = 'source';
   static const String topicCodeQuery = 'topic';
@@ -185,4 +188,38 @@ abstract final class AppRoutes {
 
   /// 챕터 결과. 챕터 화면을 대신해 열려 뒤로 가면 챕터 진입 전 화면(문제 목록)으로 돌아간다.
   static const String chapterResult = '/chapter-result';
+
+  // SQLD 모의고사 (#866)
+  /// 회차 목록. 홈 모의고사 구간·문제 탭 모의고사 행에서 진입
+  static const String mockExams = '/mock-exams';
+
+  /// 라우터 정의용 시험 안내 경로 패턴: /mock-exams/rounds/:roundUuid
+  static const String mockExamGuidePattern =
+      '$mockExams/rounds/:$mockExamRoundUuidParameter';
+
+  /// 시험 안내 (시작 확인). 회차 목록에서 진입
+  static String mockExamGuide(String roundUuid) =>
+      '$mockExams/rounds/$roundUuid';
+
+  /// 라우터 정의용 풀이 경로 패턴: /mock-exams/attempts/:attemptUuid
+  static const String mockExamAttemptPattern =
+      '$mockExams/attempts/:$mockExamAttemptUuidParameter';
+
+  /// 풀이 (이어 풀기 포함). 시험 안내·회차 목록 이어 풀기 띠에서 진입
+  static String mockExamAttempt(String attemptUuid) =>
+      '$mockExams/attempts/$attemptUuid';
+
+  /// 라우터 정의용 결과 경로 패턴: /mock-exams/attempts/:attemptUuid/result
+  static const String mockExamResultPattern = '$mockExamAttemptPattern/result';
+
+  /// 결과. 풀이 화면을 대신해 열림, 회차 목록·점수 추이에서도 진입
+  static String mockExamResult(String attemptUuid) =>
+      '${mockExamAttempt(attemptUuid)}/result';
+
+  /// 라우터 정의용 문항 해설 경로 패턴: /mock-exams/attempts/:attemptUuid/review?number=N
+  static const String mockExamReviewPattern = '$mockExamAttemptPattern/review';
+
+  /// 문항 해설. 결과 번호판에서 진입 ([questionNumber] 번부터)
+  static String mockExamReview(String attemptUuid, int questionNumber) =>
+      '${mockExamAttempt(attemptUuid)}/review?$mockExamQuestionNumberQuery=$questionNumber';
 }

@@ -146,7 +146,7 @@ class _ConceptQuickCheckCardState extends State<ConceptQuickCheckCard> {
             const SizedBox(height: PassqlSpacing.xs),
             MarkdownLiteText(
               widget.check.reason,
-              style: MarkdownLiteStyle.article,
+              style: MarkdownLiteStyle.lesson,
             ),
           ],
         ],

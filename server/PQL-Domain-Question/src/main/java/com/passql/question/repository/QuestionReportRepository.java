@@ -24,6 +24,12 @@ public interface QuestionReportRepository extends JpaRepository<QuestionReport, 
 
     long countByStatus(ReportStatus status);
 
+    /** 문제별 신고 수 (상태 필터, 모의고사 문항 통계, #866). 열: questionUuid, count */
+    @Query("SELECT r.questionUuid, COUNT(r) FROM QuestionReport r "
+        + "WHERE r.questionUuid IN :questionUuids AND r.status = :status GROUP BY r.questionUuid")
+    List<Object[]> countByQuestionUuidsAndStatus(@Param("questionUuids") Collection<UUID> questionUuids,
+                                                 @Param("status") ReportStatus status);
+
     /**
      * 문제별 집계: 상태 목록·기간(createdAt >= from, < to)으로 거른 신고를 문제 단위로 묶음
      * pendingCount 는 필터 범위 안의 PENDING 수 (RESOLVED 필터면 항상 0)

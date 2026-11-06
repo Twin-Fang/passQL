@@ -56,6 +56,27 @@ const WRONG_NOTES_SAMPLE_SECTIONS: readonly LockedSampleSection[] = [
   { title: "조인", body: "OUTER JOIN 결과 행 수로 알맞은 것은?" },
 ];
 
+// 모의고사 과목 분석: 과목 점수·과락, 약한 토픽 (#866)
+const MOCK_EXAM_SUBJECT_SAMPLE_SECTIONS: readonly LockedSampleSection[] = [
+  { title: "1과목 데이터 모델링의 이해", body: "14 / 20점 · 정답 7개" },
+  { title: "2과목 SQL 기본 및 활용", body: "52 / 80점 · 정답 26개" },
+  { title: "약한 토픽", body: "계층형·PIVOT 33% · 윈도우 함수 40%" },
+];
+
+// 모의고사 문항 해설: 내 답·정답·보기 근거
+const MOCK_EXAM_REVIEW_SAMPLE_SECTIONS: readonly LockedSampleSection[] = [
+  { title: "17번 · 내 답 2 · 정답 4", body: "LEFT OUTER JOIN 은 왼쪽 행을 모두 남겨 결과가 5행이에요." },
+  { title: "보기 3 근거", body: "ON 절 조건과 WHERE 절 조건은 외부 조인에서 결과가 달라요." },
+  { title: "다음에 할 일", body: "조인 결과 행 수 문제를 10개 더 풀어 보세요." },
+];
+
+// 모의고사 점수 추이: 회차별 점수
+const MOCK_EXAM_SCORE_TREND_SAMPLE_SECTIONS: readonly LockedSampleSection[] = [
+  { title: "제1회", body: "58점 · 불합격" },
+  { title: "제2회", body: "66점 · 합격" },
+  { title: "제3회", body: "72점 · 합격" },
+];
+
 export function ExplanationLockedSample() {
   return <LockedSampleCard sections={EXPLANATION_SAMPLE_SECTIONS} />;
 }
@@ -74,4 +95,16 @@ export function ExamTrendLockedSample() {
 
 export function WrongNotesLockedSample() {
   return <LockedSampleCard sections={WRONG_NOTES_SAMPLE_SECTIONS} />;
+}
+
+export function MockExamSubjectLockedSample() {
+  return <LockedSampleCard sections={MOCK_EXAM_SUBJECT_SAMPLE_SECTIONS} />;
+}
+
+export function MockExamReviewLockedSample() {
+  return <LockedSampleCard sections={MOCK_EXAM_REVIEW_SAMPLE_SECTIONS} />;
+}
+
+export function MockExamScoreTrendLockedSample() {
+  return <LockedSampleCard sections={MOCK_EXAM_SCORE_TREND_SAMPLE_SECTIONS} />;
 }

@@ -4,8 +4,8 @@ import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
 import 'passql_badge.dart';
 
-/// 강조 상자 의미 2종: 강조(핵심·시험 포인트), 주의(자주 틀리는 점)
-enum PassqlCalloutKind { accent, warning }
+/// 강조 상자 의미 3종: 강조(핵심·시험 포인트), 주의(자주 틀리는 점), 외울 것(꼭 외울 것 카드, #876)
+enum PassqlCalloutKind { accent, warning, memorize }
 
 /// 강조 상자: 옅은 의미색 바탕 + 왼쪽 의미색 막대 + (선택) 아이콘·라벨 한 줄 + 내용
 /// 개념 학습 한 줄 핵심·자주 틀리는 점·시험 포인트 공통 (#835)
@@ -35,6 +35,7 @@ class PassqlCallout extends StatelessWidget {
   ) => switch (kind) {
     PassqlCalloutKind.accent => (colors.accent, colors.accentText),
     PassqlCalloutKind.warning => (colors.warning, colors.warningText),
+    PassqlCalloutKind.memorize => (colors.memorize, colors.memorizeText),
   };
 
   @override

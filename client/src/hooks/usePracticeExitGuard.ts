@@ -3,9 +3,9 @@ import { useNavigate, useBlocker } from "react-router-dom";
 
 /**
  * 풀이 중 이탈 확인: 브라우저 뒤로가기(blocker)와 나가기 버튼(모달) 모두 같은 확인 모달로
- * 나가기 확정 > blocker 해제 후 홈 이동 (이중 확인 방지)
+ * 나가기 확정 > blocker 해제 후 exitPath(기본 홈) 이동 (이중 확인 방지)
  */
-export function usePracticeExitGuard(shouldBlockNavigation: boolean) {
+export function usePracticeExitGuard(shouldBlockNavigation: boolean, exitPath = "/") {
   const navigate = useNavigate();
   // 나가기 버튼 클릭 시 이탈 확인 모달 — blocker와 독립적으로 제어
   const [exitModalOpen, setExitModalOpen] = useState(false);
@@ -15,12 +15,12 @@ export function usePracticeExitGuard(shouldBlockNavigation: boolean) {
   // useBlocker는 훅이므로 조건부 return 이전에 호출해야 함
   const blocker = useBlocker(shouldBlockNavigation && !exitConfirmed);
 
-  // exitConfirmed 시 blocker가 비활성화된 후 홈으로 이동 — 이중 차단 방지
+  // exitConfirmed 시 blocker가 비활성화된 후 나가기 경로로 이동 — 이중 차단 방지
   useEffect(() => {
     if (exitConfirmed) {
-      navigate("/");
+      navigate(exitPath);
     }
-  }, [exitConfirmed, navigate]);
+  }, [exitConfirmed, exitPath, navigate]);
 
   return {
     isExitConfirmOpen: blocker.state === "blocked" || exitModalOpen,
