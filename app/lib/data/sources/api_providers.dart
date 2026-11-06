@@ -19,6 +19,7 @@ import 'concept_api.dart';
 import 'exam_trend_api.dart';
 import 'home_api.dart';
 import 'member_api.dart';
+import 'mock_exam_api.dart';
 import 'meta_api.dart';
 import 'community_api.dart';
 import 'notification_api.dart';
@@ -140,4 +141,8 @@ final communityApiProvider = Provider<CommunityApiClient>(
 
 final billingApiProvider = Provider<BillingApiClient>(
   (ref) => BillingApiClient(ref.watch(dioProvider)),
+);
+
+final mockExamApiProvider = Provider<MockExamApiClient>(
+  (ref) => MockExamApiClient(ref.watch(dioProvider)),
 );

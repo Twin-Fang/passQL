@@ -10,6 +10,7 @@ import RouteError from "./pages/RouteError";
 import MaintenanceGate from "./components/MaintenanceGate";
 import UnreadTitleSync from "./components/UnreadTitleSync";
 import { isAuthenticated } from "./stores/authStore";
+import { MOCK_EXAM_ROUTE_PATTERNS } from "./constants/mockExamRoutes";
 
 const CategoryCards = lazy(() => import("./pages/CategoryCards"));
 const DailySet = lazy(() => import("./pages/DailySet"));
@@ -32,6 +33,10 @@ const SettingsFeedback = lazy(() => import("./pages/SettingsFeedback"));
 const Community = lazy(() => import("./pages/Community"));
 const CommunityQuestion = lazy(() => import("./pages/CommunityQuestion"));
 const CommunityMine = lazy(() => import("./pages/CommunityMine"));
+const MockExamRounds = lazy(() => import("./pages/MockExamRounds"));
+const MockExamGuide = lazy(() => import("./pages/MockExamGuide"));
+const MockExamAttempt = lazy(() => import("./pages/MockExamAttempt"));
+const MockExamResult = lazy(() => import("./pages/MockExamResult"));
 
 /** 인증 필수 가드 — 미로그인 시 /login으로 redirect */
 function RequireAuth() {
@@ -81,12 +86,24 @@ const router = createBrowserRouter([
               { path: "community", element: <Community /> },
               { path: "community/me", element: <CommunityMine /> },
               { path: "community/questions/:questionUuid", element: <CommunityQuestion /> },
+              // SQLD 모의고사 (#866): 회차 목록·시험 안내 (홈·AI문제 진입)
+              { path: MOCK_EXAM_ROUTE_PATTERNS.rounds, element: <MockExamRounds /> },
+              { path: MOCK_EXAM_ROUTE_PATTERNS.guide, element: <MockExamGuide /> },
             ],
           },
           // AppLayout 밖: 전체화면 몰입형 화면 (문제 풀이는 집중 모드)
           {
             path: "questions/:questionUuid",
             element: <QuestionDetail />,
+          },
+          // 모의고사 풀이·결과 — 탭바 없는 몰입형 (#866)
+          {
+            path: MOCK_EXAM_ROUTE_PATTERNS.attempt,
+            element: <MockExamAttempt />,
+          },
+          {
+            path: MOCK_EXAM_ROUTE_PATTERNS.result,
+            element: <MockExamResult />,
           },
           // 구 라우트 — /daily-set으로 redirect (북마크/외부 링크 호환)
           {

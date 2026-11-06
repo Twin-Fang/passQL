@@ -67,6 +67,13 @@ export class ApiError extends Error {
   }
 }
 
+/** 오류 > 서버 errorCode 문자열 (ApiError 아님·코드 없음은 null, 오류 코드 분기 공통) */
+export function toApiErrorCode(error: unknown): string | null {
+  if (!(error instanceof ApiError)) return null;
+  const errorCode = (error.body as { errorCode?: unknown } | null)?.errorCode;
+  return typeof errorCode === "string" ? errorCode : null;
+}
+
 // 응답 해석 방식: 기본 JSON, 인증이 필요한 이미지는 blob
 type ResponseKind = "json" | "blob";
 

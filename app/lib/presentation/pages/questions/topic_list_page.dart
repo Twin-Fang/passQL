@@ -21,6 +21,7 @@ import '../../widgets/pro/pro_plan_chip_slot.dart';
 import '../../widgets/question/choice_mode_shortcut_row.dart';
 import '../../widgets/question/questions_tab_segmented_control.dart';
 import '../../widgets/question/topic_card.dart';
+import '../../widgets/mock_exam/mock_exam_entry_row.dart';
 import '../../widgets/question/wrong_notes_shortcut_row.dart';
 import '../../../router/questions_tab_view.dart';
 
@@ -286,14 +287,18 @@ class _RandomPracticeSection extends ConsumerWidget {
   }
 }
 
-/// 세그먼트 아래 공통 영역: 오답 노트 + 새 보기로 풀기 (보기와 상관없이 항상 보임)
+/// 세그먼트 아래 공통 영역: 모의고사 + 오답 노트 + 새 보기로 풀기 (보기와 상관없이 항상 보임)
 class _CommonShortcutSection extends StatelessWidget {
   const _CommonShortcutSection();
 
   @override
   Widget build(BuildContext context) {
     return const PassqlGroupedSection(
-      children: [WrongNotesShortcutRow(), ChoiceModeShortcutRow()],
+      children: [
+        MockExamEntryRow(),
+        WrongNotesShortcutRow(),
+        ChoiceModeShortcutRow(),
+      ],
     );
   }
 }

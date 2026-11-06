@@ -12,6 +12,8 @@ interface ConfirmModalProps {
   readonly onCancel: () => void;
   // 주면 이 문구를 그대로 입력해야 확인 버튼이 눌린다 — 탈퇴처럼 실수로 누르면 안 되는 동작
   readonly requiredText?: string;
+  // true 면 확인 버튼을 Primary 로 (시험 시작처럼 확인이 권장 동작일 때)
+  readonly isConfirmEmphasized?: boolean;
 }
 
 export default function ConfirmModal({
@@ -23,6 +25,7 @@ export default function ConfirmModal({
   onConfirm,
   onCancel,
   requiredText,
+  isConfirmEmphasized = false,
 }: ConfirmModalProps) {
   const [typedText, setTypedText] = useState("");
   const canConfirm = requiredText === undefined || typedText.trim() === requiredText;
@@ -89,15 +92,15 @@ export default function ConfirmModal({
           {/* 유지 액션: Primary 버튼 (파괴적 액션 비강조 원칙) */}
           <button
             type="button"
-            className="btn btn-primary w-full"
+            className={`btn w-full ${isConfirmEmphasized ? "btn-secondary order-2" : "btn-primary"}`}
             onClick={onCancel}
           >
             {cancelLabel}
           </button>
-          {/* 파괴적 액션: Secondary 버튼 */}
+          {/* 파괴적 액션: Secondary 버튼 (권장 동작이면 Primary 로 위에) */}
           <button
             type="button"
-            className="btn btn-secondary w-full"
+            className={`btn w-full ${isConfirmEmphasized ? "btn-primary order-1" : "btn-secondary"}`}
             onClick={onConfirm}
             disabled={!canConfirm}
           >

@@ -6,6 +6,8 @@ export const CHART_COLOR = {
   grid: "var(--color-border)",
   axisLabel: "var(--color-text-secondary)",
   axisTick: "var(--color-text-caption)",
+  // 모의고사 합격선 가로줄 (#866)
+  passLine: "var(--color-semantic-success)",
 } as const;
 
 /** 정답률 구간 > 차트 막대 색 */
