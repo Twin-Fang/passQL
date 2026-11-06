@@ -1,8 +1,9 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { submitAnswer } from "../api/questions";
 import { practiceAiCommentQueryOptions } from "./usePracticeAiComment";
 import { invalidateLearningRecordQueries } from "../lib/learningRecordQueries";
+import { toProAccessErrorCode, type ProAccessErrorCode } from "../lib/proAccess";
 import {
   buildExplanationHistoryEntry,
   useExplanationHistoryStore,
@@ -26,9 +27,11 @@ interface PracticeSetSubmitOptions {
 
 // 피드백바 닫힘 후 새 제출 차단 시간 (다음 문제 렌더 완료까지, ms)
 const NEXT_QUESTION_TAP_GUARD_MILLISECONDS = 300;
+// 제출 실패 안내 토스트 표시 시간 (ms)
+const SUBMIT_FAILURE_TOAST_VISIBLE_MILLISECONDS = 3000;
 
 /**
- * 연습 세트 답안 제출: 연타 방지 > 채점 API > 결과 저장·다음 인덱스 (실패 시 오답 처리)
+ * 연습 세트 답안 제출: 연타 방지 > 채점 API > 결과 저장·다음 인덱스 (실패 시 기록 없이 같은 문제 유지)
  * 피드백 표시 중에는 직전 문제를 계속 보여 줌
  */
 export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, submitAndAdvance }: PracticeSetSubmitOptions) {
@@ -41,6 +44,17 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
   const addExplanationEntry = useExplanationHistoryStore((state) => state.addEntry);
   // 답안 제출 API 호출 중 화면 조작 차단
   const [submitting, setSubmitting] = useState(false);
+  // 제출 실패: 프로 접근 거부 사유(사유 창), 그 외 실패 토스트
+  const [submitProAccessErrorCode, setSubmitProAccessErrorCode] = useState<ProAccessErrorCode | null>(null);
+  const [isSubmitFailureToastVisible, setIsSubmitFailureToastVisible] = useState(false);
+  const failureToastTimerIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 토스트 타이머 언마운트 클린업
+  useEffect(() => {
+    return () => {
+      if (failureToastTimerIdRef.current !== null) clearTimeout(failureToastTimerIdRef.current);
+    };
+  }, []);
   // 연타 방지 — React state는 async 클로저에서 stale하므로 ref로 동기 플래그 관리
   const isProcessingRef = useRef(false);
 
@@ -53,10 +67,10 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
       selectedChoiceKey: string,
       choiceSetId: string,
       choices: readonly ChoiceItem[],
-    ) => {
-      if (!displayQuestion) return;
+    ): Promise<boolean> => {
+      if (!displayQuestion) return false;
       // 연타로 인한 중복 제출 방지 — ref는 동기적으로 즉시 반영됨
-      if (isProcessingRef.current) return;
+      if (isProcessingRef.current) return false;
       isProcessingRef.current = true;
       // 결과 화면에서 선택지 키(A/B/C/D) 대신 실제 선택지 텍스트를 보여주기 위해 body 추출
       const selectedChoiceBody = choices.find((c) => c.key === selectedChoiceKey)?.body ?? selectedChoiceKey;
@@ -100,31 +114,22 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
             void queryClient.prefetchQuery(practiceAiCommentQueryOptions(storeSessionId));
           }
         }
-      } catch {
-        const fallback: SubmitResult = {
-          isCorrect: false,
-          correctKey: "?",
-          rationale: "",
-          selectedResult: null,
-          correctResult: null,
-          selectedSql: null,
-          correctSql: null,
-          submissionUuid: null,
-          explanation: null,
-          structuredExplanation: null,
-          lockedSections: [],
-        };
-        setFeedback(fallback);
-        setFeedbackExplanationEntry(null);
-        // 제출 실패 시 submissionUuid 없음 → 신고 버튼 미표시
-        submitAndAdvance(
-          displayQuestion.questionUuid,
-          false,
-          selectedChoiceKey,
-          selectedChoiceBody,
-          undefined,
-          choiceSetId,
-        );
+        return true;
+      } catch (error) {
+        // 실패를 오답으로 기록하지 않음 > 같은 문제에서 다시 제출
+        const deniedErrorCode = toProAccessErrorCode(error);
+        if (deniedErrorCode) {
+          setSubmitProAccessErrorCode(deniedErrorCode);
+        } else {
+          console.warn("[practice set] submit failed", error);
+          setIsSubmitFailureToastVisible(true);
+          if (failureToastTimerIdRef.current !== null) clearTimeout(failureToastTimerIdRef.current);
+          failureToastTimerIdRef.current = setTimeout(
+            () => setIsSubmitFailureToastVisible(false),
+            SUBMIT_FAILURE_TOAST_VISIBLE_MILLISECONDS,
+          );
+        }
+        return false;
       } finally {
         isProcessingRef.current = false;
         setSubmitting(false);
@@ -145,6 +150,8 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
     }, NEXT_QUESTION_TAP_GUARD_MILLISECONDS);
   }, []);
 
+  const closeSubmitProAccessReason = useCallback(() => setSubmitProAccessErrorCode(null), []);
+
   return {
     feedback,
     feedbackChoiceSetUuid,
@@ -154,5 +161,8 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
     displayQuestion,
     submitPracticeAnswer,
     clearFeedbackForNextQuestion,
+    submitProAccessErrorCode,
+    closeSubmitProAccessReason,
+    isSubmitFailureToastVisible,
   };
 }
