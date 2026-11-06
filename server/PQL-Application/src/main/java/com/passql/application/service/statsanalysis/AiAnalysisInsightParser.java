@@ -55,6 +55,12 @@ public final class AiAnalysisInsightParser {
         return insightByTopicUuid;
     }
 
+    /** 세션 코멘트 LLM 원문 {"insight":"..."} > 한 문장 (없거나 버린 문장이면 null) */
+    public static String parseSingle(String rawOutput) throws Exception {
+        JsonNode textNode = OBJECT_MAPPER.readTree(stripCodeFence(rawOutput)).path("insight");
+        return textNode.isTextual() ? toValidSentence(textNode.asText()) : null;
+    }
+
     static String stripCodeFence(String rawOutput) {
         String trimmed = rawOutput == null ? "" : rawOutput.trim();
         Matcher fenceMatcher = CODE_FENCE_PATTERN.matcher(trimmed);

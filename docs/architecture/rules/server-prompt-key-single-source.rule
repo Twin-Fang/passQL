@@ -1,0 +1,5 @@
+description=프롬프트 키(prompt_template.key_name) 문자열 직접 사용 금지 (PQL-Domain-Meta PromptKey 한 곳, #875)
+paths=server/PQL-Application/src/main/java/,server/PQL-Common/src/main/java/,server/PQL-Domain-AI/src/main/java/,server/PQL-Domain-Member/src/main/java/,server/PQL-Domain-Meta/src/main/java/,server/PQL-Domain-Question/src/main/java/,server/PQL-Domain-Submission/src/main/java/,server/PQL-Web/src/main/java/,server/PQL-Web/src/main/resources/templates/,server/PQL-Web/src/main/resources/static/js/
+extensions=.java,.html,.js
+exclude=server/PQL-Domain-Meta/src/main/java/com/passql/meta/constant/PromptKey.java
+pattern=getActivePrompt\(\s*"|PROMPT_KEY\w*\s*=\s*"|["'](explain_error|diff_explain|similar|ai_comment|ai_comment_stats|ai_analysis_stats|ai_analysis_session|generate_choice_set\w*|generate_question_full)["']

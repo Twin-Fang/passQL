@@ -2,6 +2,7 @@
 AI 기능 요청 모델 정의
 """
 from typing import Any, Optional
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -16,6 +17,10 @@ MAXIMUM_RECENT_WRONG_QUESTION_COUNT = 100
 MAXIMUM_SOLVED_QUESTION_COUNT = 5_000
 # 활성 문제 UUID 전체 수 (Spring 활성 문제 전량, 문제 수 증가 여유)
 MAXIMUM_ACTIVE_QUESTION_COUNT = 200_000
+# LLM 출력 토큰 상한 (관리자 프롬프트 화면 최대 8192의 2배, 키 유출 시 요청당 비용 상한) (#877)
+MAXIMUM_OUTPUT_TOKEN_COUNT = 16_384
+# temperature 허용 범위 (제공자 공통 최대 2.0)
+MAXIMUM_TEMPERATURE = 2.0
 
 
 # === 실시간 선택지 세트 생성 (신규) ===
@@ -29,8 +34,8 @@ class LlmConfig(BaseModel):
     model: str
     system_prompt: str
     user_template: str
-    temperature: float = 0.8
-    max_tokens: int = 2048
+    temperature: float = Field(default=0.8, ge=0.0, le=MAXIMUM_TEMPERATURE)
+    max_tokens: int = Field(default=2048, ge=1, le=MAXIMUM_OUTPUT_TOKEN_COUNT)
     response_schema: Optional[dict[str, Any]] = None
 
 
@@ -47,7 +52,7 @@ class QuestionFullContext(BaseModel):
 
 class ChoiceSetContext(BaseModel):
     """사용자 풀이용 — 기존 문제에 대한 선택지 4개 세트 생성 컨텍스트"""
-    question_uuid: str
+    question_uuid: UUID
     stem: str
     # CONCEPT_ONLY 문제는 SQL·스키마 3개 없음 > Spring 이 null 전송 (프롬프트에는 빈 문자열로 치환, #575)
     answer_sql: Optional[str] = None
@@ -77,7 +82,8 @@ class TestPromptRequest(BaseModel):
 
 class IndexQuestionRequest(BaseModel):
     """문제 1개를 Qdrant에 임베딩 적재하는 요청"""
-    question_uuid: str
+    # Qdrant 포인트 ID 로 쓰임 (UUID 형식 아니면 422, Qdrant 500 대신)
+    question_uuid: UUID
     topic_display_name: str
     subtopic_display_name: Optional[str] = None
     difficulty: int = Field(ge=1, le=5)
@@ -98,11 +104,11 @@ class RecommendRequest(BaseModel):
     """
     size: int = Field(default=3, ge=1, le=5)
     # 최근 오답 문제 UUID 목록 — 이 문제들의 벡터를 쿼리로 활용
-    recent_wrong_question_uuids: list[str] = Field(
+    recent_wrong_question_uuids: list[UUID] = Field(
         default_factory=list, max_length=MAXIMUM_RECENT_WRONG_QUESTION_COUNT
     )
     # 이미 푼 문제 UUID 목록 — Qdrant 필터로 제외
-    solved_question_uuids: list[str] = Field(default_factory=list, max_length=MAXIMUM_SOLVED_QUESTION_COUNT)
+    solved_question_uuids: list[UUID] = Field(default_factory=list, max_length=MAXIMUM_SOLVED_QUESTION_COUNT)
 
 
 class IndexStatusRequest(BaseModel):
@@ -112,4 +118,4 @@ class IndexStatusRequest(BaseModel):
     Python이 Qdrant scroll과 비교하여 미색인 목록 반환.
     """
     # Java가 DB에서 조회한 전체 문제 UUID 목록
-    question_uuids: list[str] = Field(max_length=MAXIMUM_ACTIVE_QUESTION_COUNT)
+    question_uuids: list[UUID] = Field(max_length=MAXIMUM_ACTIVE_QUESTION_COUNT)

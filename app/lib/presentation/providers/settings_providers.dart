@@ -9,6 +9,7 @@ import '../../data/models/member/choice_generation_mode.dart';
 import '../../data/models/member/choice_mode_models.dart';
 import '../../data/models/member/nickname_models.dart';
 import 'auth_provider.dart';
+import 'plan_providers.dart';
 import 'session_reset.dart';
 
 /// 설정·계정 화면 데이터 집계 모델 (계정 칸은 #816)
@@ -145,3 +146,12 @@ final choiceModeProvider =
     AsyncNotifierProvider.autoDispose<ChoiceModeNotifier, ChoiceGenerationMode>(
       ChoiceModeNotifier.new,
     );
+
+/// 실제로 적용되는 선택지 모드: 무료(결제 켜짐)는 저장값과 무관하게 연습 (서버 FeatureAccessPolicy 보정과 같은 규칙)
+/// 설정 스위치·문제 탭 행·풀이 화면 표시·선택지 준비가 함께 씀
+final effectiveChoiceModeProvider =
+    Provider.autoDispose<AsyncValue<ChoiceGenerationMode>>((ref) {
+      final storedMode = ref.watch(choiceModeProvider);
+      if (!ref.watch(shouldShowProUiProvider)) return storedMode;
+      return storedMode.whenData((_) => ChoiceGenerationMode.practice);
+    });

@@ -83,6 +83,8 @@ public enum ErrorCode {
 
     // === AI Gateway / Choice Set Generation (신규: Sub-plan 1) ===
     AI_SERVER_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "AI 서버에 연결할 수 없습니다."),
+    // AI 서버가 요청 형식 오류(400·422)로 거부 > 대체 호출·재시도 없음 (#877)
+    AI_SERVER_REQUEST_REJECTED(HttpStatus.BAD_GATEWAY, "AI 서버가 요청을 처리할 수 없습니다."),
     AI_FALLBACK_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "AI 서버와 대체 경로 모두 실패했습니다."),
     AI_RESPONSE_PARSE_FAILED(HttpStatus.BAD_GATEWAY, "AI 응답을 해석할 수 없습니다."),
     AI_STRUCTURED_SCHEMA_VIOLATION(HttpStatus.BAD_GATEWAY, "AI가 스키마에 맞지 않는 응답을 반환했습니다."),

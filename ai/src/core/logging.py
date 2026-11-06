@@ -69,10 +69,10 @@ def setup_logging(log_level: str = "INFO", log_file: str = "logs/app.log"):
         error_handler.setFormatter(formatter)
         root_logger.addHandler(error_handler)
 
-        logging.info(f"로깅 시스템 초기화 완료 (환경: {environment}, 로그 경로: {log_dir})")
+        logging.info(f"[logging] initialized : environment={environment}, log_dir={log_dir}")
     else:
         # 개발 환경: 콘솔만 출력
-        logging.info(f"로깅 시스템 초기화 완료 (환경: {environment}, 파일 로그 비활성화)")
+        logging.info(f"[logging] initialized : environment={environment}, file log disabled")
 
 
 def get_logger(name: str) -> logging.Logger:

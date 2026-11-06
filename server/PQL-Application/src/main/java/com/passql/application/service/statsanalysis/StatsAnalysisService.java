@@ -4,6 +4,7 @@ import com.passql.ai.client.AiChatClient;
 import com.passql.ai.dto.AiAnalysisFinding;
 import com.passql.ai.dto.AiCommentResponse;
 import com.passql.ai.dto.AiStatsAnalysis;
+import com.passql.meta.constant.PromptKey;
 import com.passql.meta.entity.PromptTemplate;
 import com.passql.meta.service.PromptService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * 통계 화면 AI 분석 (#861): 데이터 조회 > 서버 판정 > 집중 토픽 있으면 LLM 한 문장 > 구버전 앱용 평문
+ * 통계 화면 AI 분석 (#861, #862): 데이터 조회 > 서버 판정 > 집중 토픽 있으면 LLM 한 문장 > 구버전 앱용 평문
  * LLM·해석 실패(프롬프트 없음 포함)는 insight 없이 분석 그대로 응답 (5xx 없음)
  */
 @Slf4j
@@ -30,8 +31,6 @@ import java.util.stream.Stream;
 // 클래스 단위 트랜잭션 없음: LLM 호출 동안 DB 커넥션을 잡지 않게 (#497)
 public class StatsAnalysisService {
 
-    /** 통계 AI 분석 프롬프트 키 (운영 DB prompt_template 에만 본문, 레포에 없음) */
-    static final String PROMPT_KEY_STATS_ANALYSIS = "ai_analysis_stats";
     // 문장 끝 부호 (평문 이어 붙일 때 마침표 보충 판정)
     private static final Pattern SENTENCE_END_PATTERN = Pattern.compile(".*[.!?]$");
 
@@ -58,7 +57,7 @@ public class StatsAnalysisService {
     /** 프롬프트 변수 3개 치환 > LLM > 토픽별 한 문장 (실패면 empty) */
     private Optional<Map<UUID, String>> requestInsights(UUID memberUuid, List<TopicLearningStat> focusTopics) {
         try {
-            PromptTemplate prompt = promptService.getActivePrompt(PROMPT_KEY_STATS_ANALYSIS);
+            PromptTemplate prompt = promptService.getActivePrompt(PromptKey.AI_ANALYSIS_STATS);
             String userPrompt = prompt.getUserTemplate()
                     .replace("{focusTopics}", StatsAnalysisPromptFormatter.formatFocusTopics(focusTopics))
                     .replace("{subtopicStats}", StatsAnalysisPromptFormatter.formatSubtopicStats(
@@ -79,7 +78,7 @@ public class StatsAnalysisService {
         List<AiAnalysisFinding> findings = analysis.findings().stream()
                 .map(finding -> finding.withInsight(insightByTopicUuid.get(finding.topicUuid())))
                 .toList();
-        return new AiStatsAnalysis(analysis.headline(), findings, analysis.trend(), analysis.strength(), analysis.actions());
+        return analysis.withFindings(findings);
     }
 
     private static AiCommentResponse toResponse(AiStatsAnalysis analysis) {
@@ -87,20 +86,27 @@ public class StatsAnalysisService {
     }
 
     /**
-     * 구버전 앱용 평문: 한 줄 요약 + 토픽별 한 문장(없으면 "토픽: 근거") 공백 연결, 마크다운 없음
-     * 예: "D-7 · 1과목 정답률 50%, 과락 위험이 커요. 데이터 모델링: 6문제 중 3문제 정답 (50%)."
+     * 구버전 앱용 평문: 한 줄 요약 + 예상 점수 + 토픽별 한 문장(없으면 "토픽: 근거") + 데이터 부족·다음 목표 공백 연결, 마크다운 없음
+     * 예: "D-7 · 1과목 정답률 50%, 과락 위험이 커요. 예상 58점 (1과목 예상 5/10 · 2과목 예상 24/40), 합격선 근처. 데이터 모델링: 6문제 중 3문제 정답 (50%)."
      */
     static String toPlainComment(AiStatsAnalysis analysis) {
+        Stream<String> forecastSentence = Stream.ofNullable(analysis.forecast())
+                .map(forecast -> "예상 " + forecast.expectedScore() + "점 (" + forecast.summary() + "), " + forecast.verdictLabel());
         Stream<String> findingSentences = analysis.findings().stream()
                 .map(finding -> finding.insight() != null
                         ? finding.insight()
                         : finding.topicName() + ": " + finding.evidence());
-        return Stream.concat(Stream.of(analysis.headline()), findingSentences)
+        Stream<String> guideSentences = Stream.concat(
+                Stream.ofNullable(analysis.readiness()).map(readiness -> readiness.message()),
+                Stream.ofNullable(analysis.nextGoal()));
+        return Stream.of(Stream.of(analysis.headline()), forecastSentence, findingSentences, guideSentences)
+                .flatMap(sentences -> sentences)
                 .map(StatsAnalysisService::withSentenceEnd)
                 .collect(Collectors.joining(" "));
     }
 
-    private static String withSentenceEnd(String sentence) {
+    /** 문장 끝 부호 없으면 마침표 보충 (평문 이어 붙이기, 세션 코멘트 공용) */
+    static String withSentenceEnd(String sentence) {
         return SENTENCE_END_PATTERN.matcher(sentence).matches() ? sentence : sentence + ".";
     }
 }

@@ -81,13 +81,19 @@
                       class="space-y-4">
 
                     <div class="grid grid-cols-2 gap-4">
-                        <!-- keyName -->
+                        <!-- keyName: 수정은 읽기 전용(서버도 기존 키 유지), 등록은 PromptKey + DB 옛 키 선택지 (#875) -->
                         <div class="form-control">
                             <label class="label"><span class="label-text font-medium">Key Name <span class="text-error">*</span></span></label>
-                            <select name="keyName" class="select select-bordered">
-                                <option value="explain_error" th:selected="${selectedPrompt?.keyName == 'explain_error'}">explain_error</option>
-                                <option value="diff_explain" th:selected="${selectedPrompt?.keyName == 'diff_explain'}">diff_explain</option>
-                                <option value="similar" th:selected="${selectedPrompt?.keyName == 'similar'}">similar</option>
+                            <th:block th:if="${selectedPrompt != null}">
+                                <input type="hidden" name="keyName" th:value="${selectedPrompt.keyName}"/>
+                                <div class="input input-bordered flex items-center bg-base-200 font-mono text-sm"
+                                     th:text="${selectedPrompt.keyName}">explain_error</div>
+                                <span class="label-text-alt text-base-content/50 mt-1">키는 수정할 수 없습니다. 다른 키는 새로 등록하세요.</span>
+                            </th:block>
+                            <select th:if="${selectedPrompt == null}" name="keyName" class="select select-bordered" required>
+                                <option th:each="keyOption : ${promptKeyOptions}"
+                                        th:value="${keyOption.keyName}"
+                                        th:text="${keyOption.label()}">explain_error — SQL 실행 오류 AI 해설</option>
                             </select>
                         </div>
 

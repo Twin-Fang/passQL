@@ -5,7 +5,7 @@
 // 빌드: flutter build ios --simulator -t tool/store_shots/main_shots.dart
 // 촬영: echo /stats > /tmp/passql_shot_route.txt && xcrun simctl launch <기기> com.coldredrice.passql
 // 연출(경로 대신 적음): execute-ok(SQL 실행 성공 표), execute-fail(SQL 실행 실패 카드), chapter-result(문제 목록 > 챕터 > 챕터 결과), ai-sheet(오답 AI 해설 시트),
-//   real-mode(실전 모드 문제 > 선택지 생성 중에서 멈춤),
+//   real-mode(새 보기로 풀기 문제 > 선택지 생성 중에서 멈춤),
 //   onboarding-1~4(온보딩 n장), onboarding-celebration(온보딩 첫 문제 축하), onboarding-tour(4장 넘김 > 축하 영상),
 //   withdraw-confirm(설정 > 회원 탈퇴 확인창 > 확인 문구 입력 영상),
 //   nickname-sheet(내 프로필 > 닉네임 변경 시트), nickname-toast(내 프로필 + 닉네임 변경 토스트),

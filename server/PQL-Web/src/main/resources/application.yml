@@ -102,6 +102,12 @@ resilience4j:
     instances:
       aiServer:
         retry-exception-predicate: com.passql.ai.client.AiServerRetryPredicate
+  # AI 서버가 응답으로 알린 실패(입력 오류·LLM 실패)는 AI 서버 장애가 아니라 서킷 실패로 세지 않음 (#877)
+  circuitbreaker:
+    instances:
+      aiServer:
+        ignore-exceptions:
+          - com.passql.ai.client.AiServerReportedFailureException
 
 ---
 # 로컬 개발(dev 프로필) 전용: Vite 개발 서버 콜백 허용 (#516, 운영 prod 프로필에는 적용되지 않음)

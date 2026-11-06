@@ -1,8 +1,6 @@
 package com.passql.application.service.statsanalysis;
 
-import com.passql.ai.constant.AiAnalysisActionType;
 import com.passql.ai.constant.AiFindingKind;
-import com.passql.ai.dto.AiAnalysisAction;
 import com.passql.ai.dto.AiAnalysisFinding;
 import com.passql.ai.dto.AiAnalysisStrength;
 import com.passql.ai.dto.AiStatsAnalysis;
@@ -13,10 +11,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 /**
- * 통계 AI 분석 서버 판정 (#861): 토픽 판정 > 집중 토픽 2개 > 강점 > 한 줄 요약·추세 > 바로 풀기 버튼
+ * 통계 AI 분석 서버 판정 (#861, #862): 데이터 부족(5문제 이상 토픽 없음) > 토픽 판정 > 집중 토픽 2개 > 예상 점수 > 강점·반복 오답 > 요약·추세 > 다음 할 일
  * 순수 규칙 (DB·LLM 없음). LLM 은 집중 토픽별 한 문장만 따로 붙임
  */
 public final class AiAnalysisPlanner {
@@ -33,13 +32,11 @@ public final class AiAnalysisPlanner {
     static final double STRENGTH_RATE_THRESHOLD = 0.85;
     // 한 줄 요약 앞 D-N 표기 기간 (일)
     static final int EXAM_PREFIX_DAYS = 30;
-    // 응답 count 값: 토픽 풀기 권장 문제 수 (앱·웹 이동·문구에는 안 씀)
-    static final int PRACTICE_COUNT = 5;
-    // 오답 노트 버튼: 마지막 시도 오답 3문제 이상일 때, 응답 count 최대 5
-    static final int REVIEW_WRONG_MIN_COUNT = 3;
-    static final int REVIEW_WRONG_MAX_COUNT = 5;
+    // 판정 기간 표기 (StatsAnalysisDataLoader 의 90일 누적과 같은 값)
+    static final String PERIOD_LABEL = "최근 " + StatsAnalysisDataLoader.ANALYSIS_STATS_RECENT_DAYS + "일 기준";
 
     static final String HEADLINE_NO_HISTORY = "아직 풀이 기록이 없어요";
+    static final String HEADLINE_NOT_ENOUGH_DATA = "아직 진단할 풀이가 부족해요";
 
     /** 토픽 판정 4종 (STABLE 안정권은 분석 대상 아님) */
     enum TopicJudgement { WEAK, SHAKY, UNTRIED, STABLE }
@@ -50,21 +47,44 @@ public final class AiAnalysisPlanner {
     /** 판정 입력 > 화면용 분석(insight 없음) + 집중 토픽 */
     public static StatsAnalysisPlan plan(StatsAnalysisInput input) {
         String examPrefix = toExamPrefix(input.daysUntilExam());
-        // 풀이 기록 없음: 판정할 근거가 없어 요약만
-        if (input.totalSolvedCount() == 0) {
-            AiStatsAnalysis emptyAnalysis = new AiStatsAnalysis(
-                    examPrefix + HEADLINE_NO_HISTORY, List.of(), null, null, List.of());
-            return new StatsAnalysisPlan(emptyAnalysis, List.of());
+        List<TopicLearningStat> topicStats = input.topicStats();
+        if (!hasJudgeableTopic(topicStats)) {
+            return new StatsAnalysisPlan(planNotEnoughData(input, examPrefix), List.of());
         }
-        List<TopicLearningStat> focusTopics = selectFocusTopics(input.topicStats(), input.daysUntilExam());
+        List<TopicLearningStat> focusTopics = selectFocusTopics(topicStats, input.daysUntilExam());
+        // 모두 안정권일 때만 다음 목표 (안 푼 토픽 시작 > 최신 경향)
+        Optional<TopicLearningStat> untouchedTopic = focusTopics.isEmpty()
+                ? AiAnalysisNextStepPlanner.selectUntouchedTopic(topicStats)
+                : Optional.empty();
         AiStatsAnalysis analysis = new AiStatsAnalysis(
                 examPrefix + toHeadlineBody(focusTopics, input.recentSolvedCount()),
-                focusTopics.stream().map(AiAnalysisPlanner::toFinding).toList(),
+                focusTopics.stream().map(stat -> toFinding(stat, input.conceptTopicUuids())).toList(),
                 toTrendText(input.twoWeekCounts()),
-                selectStrength(input.topicStats()).orElse(null),
-                buildActions(focusTopics, input.latestWrongQuestionCount())
+                selectStrength(topicStats).orElse(null),
+                AiAnalysisNextStepPlanner.buildActions(focusTopics, untouchedTopic,
+                        input.latestWrongQuestionCount(), input.repeatedWrongStat()),
+                PERIOD_LABEL,
+                ExamForecastCalculator.forecast(topicStats).orElse(null),
+                ExamForecastCalculator.toMissingDataHint(topicStats),
+                AiAnalysisNextStepPlanner.toRepeatedWrong(input.repeatedWrongStat()),
+                null,
+                focusTopics.isEmpty() ? AiAnalysisNextStepPlanner.toNextGoal(untouchedTopic) : null
         );
         return new StatsAnalysisPlan(analysis, focusTopics);
+    }
+
+    /** 데이터 부족: 요약(기록 없음·부족) + 진행 안내 + 랜덤·토픽 버튼 (진단·예상 점수·LLM 없음) */
+    private static AiStatsAnalysis planNotEnoughData(StatsAnalysisInput input, String examPrefix) {
+        Optional<TopicLearningStat> readinessTopic = AiAnalysisNextStepPlanner.selectReadinessTopic(input.topicStats());
+        String headlineBody = input.totalSolvedCount() == 0 ? HEADLINE_NO_HISTORY : HEADLINE_NOT_ENOUGH_DATA;
+        return new AiStatsAnalysis(examPrefix + headlineBody, List.of(), toTrendText(input.twoWeekCounts()), null,
+                AiAnalysisNextStepPlanner.buildReadinessActions(readinessTopic), PERIOD_LABEL, null, null, null,
+                AiAnalysisNextStepPlanner.toReadiness(readinessTopic), null);
+    }
+
+    /** 5문제 이상 푼 토픽이 하나라도 있는지 (없으면 데이터 부족) */
+    static boolean hasJudgeableTopic(List<TopicLearningStat> topicStats) {
+        return topicStats.stream().anyMatch(stat -> judge(stat) != TopicJudgement.UNTRIED);
     }
 
     static TopicJudgement judge(TopicLearningStat stat) {
@@ -190,30 +210,11 @@ public final class AiAnalysisPlanner {
         return "이번 주 정답률 " + thisWeekPercent + "%, " + comparison;
     }
 
-    /**
-     * 버튼 최대 2개: 첫 집중 토픽 풀기 > 오답 노트 (오답 3문제 이상)
-     * 앱·웹은 토픽 챕터·오답 노트로만 이동해 count 를 쓰지 않음 > 문구에 문제 수를 넣지 않음
-     */
-    static List<AiAnalysisAction> buildActions(List<TopicLearningStat> focusTopics, long latestWrongQuestionCount) {
-        List<AiAnalysisAction> actions = new ArrayList<>();
-        if (!focusTopics.isEmpty()) {
-            TopicLearningStat firstFocus = focusTopics.get(0);
-            String shortName = toShortTopicName(firstFocus.displayName());
-            actions.add(new AiAnalysisAction(AiAnalysisActionType.PRACTICE_TOPIC, firstFocus.topicUuid(), shortName,
-                    PRACTICE_COUNT, shortName + " 문제 풀기"));
-        }
-        if (latestWrongQuestionCount >= REVIEW_WRONG_MIN_COUNT) {
-            int reviewCount = (int) Math.min(latestWrongQuestionCount, REVIEW_WRONG_MAX_COUNT);
-            actions.add(new AiAnalysisAction(AiAnalysisActionType.REVIEW_WRONG, null, null,
-                    reviewCount, "오답 노트에서 다시 풀기"));
-        }
-        return actions;
-    }
-
-    /** 집중 토픽 > 응답 항목 (insight 는 LLM 결과로 나중에 채움) */
-    private static AiAnalysisFinding toFinding(TopicLearningStat stat) {
+    /** 집중 토픽 > 응답 항목 (insight 는 LLM 결과로 나중에 채움, 열 수 있는 개념 단원 있으면 바로 가기) */
+    private static AiAnalysisFinding toFinding(TopicLearningStat stat, Set<UUID> conceptTopicUuids) {
+        UUID conceptTopicUuid = conceptTopicUuids.contains(stat.topicUuid()) ? stat.topicUuid() : null;
         return new AiAnalysisFinding(stat.topicUuid(), toShortTopicName(stat.displayName()), toFindingKind(stat),
-                stat.solvedCount(), stat.correctRatePercent(), toEvidence(stat), null);
+                stat.solvedCount(), stat.correctRatePercent(), toEvidence(stat), null, conceptTopicUuid);
     }
 
     /** 표시용 짧은 이름: 끝 괄호 설명 제거 ("조인 (JOIN)" > "조인") */

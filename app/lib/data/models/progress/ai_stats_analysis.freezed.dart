@@ -26,7 +26,16 @@ mixin _$AiStatsAnalysis {
       throw _privateConstructorUsedError; // 이번 주 정답률 변화 한 줄 (비교할 기록 없으면 null)
   String? get trend => throw _privateConstructorUsedError;
   AiAnalysisStrength? get strength => throw _privateConstructorUsedError;
-  List<AiAnalysisAction> get actions => throw _privateConstructorUsedError;
+  List<AiAnalysisAction> get actions =>
+      throw _privateConstructorUsedError; // 판정 기간 표기 (예: 최근 90일 기준, 옛 서버면 빈 값)
+  String get periodLabel => throw _privateConstructorUsedError;
+  AiExamForecast? get forecast =>
+      throw _privateConstructorUsedError; // 예상 점수 근거 부족 안내 (예: 1과목 2문제 더 풀면 예상 점수를 알려 드려요)
+  String? get forecastHint => throw _privateConstructorUsedError;
+  AiRepeatedWrong? get repeatedWrong => throw _privateConstructorUsedError;
+  AiAnalysisReadiness? get readiness =>
+      throw _privateConstructorUsedError; // 모두 안정권일 때 다음 목표 한 줄
+  String? get nextGoal => throw _privateConstructorUsedError;
 
   /// Serializes this AiStatsAnalysis to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -51,9 +60,18 @@ abstract class $AiStatsAnalysisCopyWith<$Res> {
     String? trend,
     AiAnalysisStrength? strength,
     List<AiAnalysisAction> actions,
+    String periodLabel,
+    AiExamForecast? forecast,
+    String? forecastHint,
+    AiRepeatedWrong? repeatedWrong,
+    AiAnalysisReadiness? readiness,
+    String? nextGoal,
   });
 
   $AiAnalysisStrengthCopyWith<$Res>? get strength;
+  $AiExamForecastCopyWith<$Res>? get forecast;
+  $AiRepeatedWrongCopyWith<$Res>? get repeatedWrong;
+  $AiAnalysisReadinessCopyWith<$Res>? get readiness;
 }
 
 /// @nodoc
@@ -76,6 +94,12 @@ class _$AiStatsAnalysisCopyWithImpl<$Res, $Val extends AiStatsAnalysis>
     Object? trend = freezed,
     Object? strength = freezed,
     Object? actions = null,
+    Object? periodLabel = null,
+    Object? forecast = freezed,
+    Object? forecastHint = freezed,
+    Object? repeatedWrong = freezed,
+    Object? readiness = freezed,
+    Object? nextGoal = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -99,6 +123,30 @@ class _$AiStatsAnalysisCopyWithImpl<$Res, $Val extends AiStatsAnalysis>
                 ? _value.actions
                 : actions // ignore: cast_nullable_to_non_nullable
                       as List<AiAnalysisAction>,
+            periodLabel: null == periodLabel
+                ? _value.periodLabel
+                : periodLabel // ignore: cast_nullable_to_non_nullable
+                      as String,
+            forecast: freezed == forecast
+                ? _value.forecast
+                : forecast // ignore: cast_nullable_to_non_nullable
+                      as AiExamForecast?,
+            forecastHint: freezed == forecastHint
+                ? _value.forecastHint
+                : forecastHint // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            repeatedWrong: freezed == repeatedWrong
+                ? _value.repeatedWrong
+                : repeatedWrong // ignore: cast_nullable_to_non_nullable
+                      as AiRepeatedWrong?,
+            readiness: freezed == readiness
+                ? _value.readiness
+                : readiness // ignore: cast_nullable_to_non_nullable
+                      as AiAnalysisReadiness?,
+            nextGoal: freezed == nextGoal
+                ? _value.nextGoal
+                : nextGoal // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -115,6 +163,48 @@ class _$AiStatsAnalysisCopyWithImpl<$Res, $Val extends AiStatsAnalysis>
 
     return $AiAnalysisStrengthCopyWith<$Res>(_value.strength!, (value) {
       return _then(_value.copyWith(strength: value) as $Val);
+    });
+  }
+
+  /// Create a copy of AiStatsAnalysis
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $AiExamForecastCopyWith<$Res>? get forecast {
+    if (_value.forecast == null) {
+      return null;
+    }
+
+    return $AiExamForecastCopyWith<$Res>(_value.forecast!, (value) {
+      return _then(_value.copyWith(forecast: value) as $Val);
+    });
+  }
+
+  /// Create a copy of AiStatsAnalysis
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $AiRepeatedWrongCopyWith<$Res>? get repeatedWrong {
+    if (_value.repeatedWrong == null) {
+      return null;
+    }
+
+    return $AiRepeatedWrongCopyWith<$Res>(_value.repeatedWrong!, (value) {
+      return _then(_value.copyWith(repeatedWrong: value) as $Val);
+    });
+  }
+
+  /// Create a copy of AiStatsAnalysis
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $AiAnalysisReadinessCopyWith<$Res>? get readiness {
+    if (_value.readiness == null) {
+      return null;
+    }
+
+    return $AiAnalysisReadinessCopyWith<$Res>(_value.readiness!, (value) {
+      return _then(_value.copyWith(readiness: value) as $Val);
     });
   }
 }
@@ -134,10 +224,22 @@ abstract class _$$AiStatsAnalysisImplCopyWith<$Res>
     String? trend,
     AiAnalysisStrength? strength,
     List<AiAnalysisAction> actions,
+    String periodLabel,
+    AiExamForecast? forecast,
+    String? forecastHint,
+    AiRepeatedWrong? repeatedWrong,
+    AiAnalysisReadiness? readiness,
+    String? nextGoal,
   });
 
   @override
   $AiAnalysisStrengthCopyWith<$Res>? get strength;
+  @override
+  $AiExamForecastCopyWith<$Res>? get forecast;
+  @override
+  $AiRepeatedWrongCopyWith<$Res>? get repeatedWrong;
+  @override
+  $AiAnalysisReadinessCopyWith<$Res>? get readiness;
 }
 
 /// @nodoc
@@ -159,6 +261,12 @@ class __$$AiStatsAnalysisImplCopyWithImpl<$Res>
     Object? trend = freezed,
     Object? strength = freezed,
     Object? actions = null,
+    Object? periodLabel = null,
+    Object? forecast = freezed,
+    Object? forecastHint = freezed,
+    Object? repeatedWrong = freezed,
+    Object? readiness = freezed,
+    Object? nextGoal = freezed,
   }) {
     return _then(
       _$AiStatsAnalysisImpl(
@@ -182,6 +290,30 @@ class __$$AiStatsAnalysisImplCopyWithImpl<$Res>
             ? _value._actions
             : actions // ignore: cast_nullable_to_non_nullable
                   as List<AiAnalysisAction>,
+        periodLabel: null == periodLabel
+            ? _value.periodLabel
+            : periodLabel // ignore: cast_nullable_to_non_nullable
+                  as String,
+        forecast: freezed == forecast
+            ? _value.forecast
+            : forecast // ignore: cast_nullable_to_non_nullable
+                  as AiExamForecast?,
+        forecastHint: freezed == forecastHint
+            ? _value.forecastHint
+            : forecastHint // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        repeatedWrong: freezed == repeatedWrong
+            ? _value.repeatedWrong
+            : repeatedWrong // ignore: cast_nullable_to_non_nullable
+                  as AiRepeatedWrong?,
+        readiness: freezed == readiness
+            ? _value.readiness
+            : readiness // ignore: cast_nullable_to_non_nullable
+                  as AiAnalysisReadiness?,
+        nextGoal: freezed == nextGoal
+            ? _value.nextGoal
+            : nextGoal // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -196,6 +328,12 @@ class _$AiStatsAnalysisImpl implements _AiStatsAnalysis {
     this.trend,
     this.strength,
     final List<AiAnalysisAction> actions = const [],
+    this.periodLabel = '',
+    this.forecast,
+    this.forecastHint,
+    this.repeatedWrong,
+    this.readiness,
+    this.nextGoal,
   }) : _findings = findings,
        _actions = actions;
 
@@ -228,9 +366,26 @@ class _$AiStatsAnalysisImpl implements _AiStatsAnalysis {
     return EqualUnmodifiableListView(_actions);
   }
 
+  // 판정 기간 표기 (예: 최근 90일 기준, 옛 서버면 빈 값)
+  @override
+  @JsonKey()
+  final String periodLabel;
+  @override
+  final AiExamForecast? forecast;
+  // 예상 점수 근거 부족 안내 (예: 1과목 2문제 더 풀면 예상 점수를 알려 드려요)
+  @override
+  final String? forecastHint;
+  @override
+  final AiRepeatedWrong? repeatedWrong;
+  @override
+  final AiAnalysisReadiness? readiness;
+  // 모두 안정권일 때 다음 목표 한 줄
+  @override
+  final String? nextGoal;
+
   @override
   String toString() {
-    return 'AiStatsAnalysis(headline: $headline, findings: $findings, trend: $trend, strength: $strength, actions: $actions)';
+    return 'AiStatsAnalysis(headline: $headline, findings: $findings, trend: $trend, strength: $strength, actions: $actions, periodLabel: $periodLabel, forecast: $forecast, forecastHint: $forecastHint, repeatedWrong: $repeatedWrong, readiness: $readiness, nextGoal: $nextGoal)';
   }
 
   @override
@@ -244,7 +399,19 @@ class _$AiStatsAnalysisImpl implements _AiStatsAnalysis {
             (identical(other.trend, trend) || other.trend == trend) &&
             (identical(other.strength, strength) ||
                 other.strength == strength) &&
-            const DeepCollectionEquality().equals(other._actions, _actions));
+            const DeepCollectionEquality().equals(other._actions, _actions) &&
+            (identical(other.periodLabel, periodLabel) ||
+                other.periodLabel == periodLabel) &&
+            (identical(other.forecast, forecast) ||
+                other.forecast == forecast) &&
+            (identical(other.forecastHint, forecastHint) ||
+                other.forecastHint == forecastHint) &&
+            (identical(other.repeatedWrong, repeatedWrong) ||
+                other.repeatedWrong == repeatedWrong) &&
+            (identical(other.readiness, readiness) ||
+                other.readiness == readiness) &&
+            (identical(other.nextGoal, nextGoal) ||
+                other.nextGoal == nextGoal));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -256,6 +423,12 @@ class _$AiStatsAnalysisImpl implements _AiStatsAnalysis {
     trend,
     strength,
     const DeepCollectionEquality().hash(_actions),
+    periodLabel,
+    forecast,
+    forecastHint,
+    repeatedWrong,
+    readiness,
+    nextGoal,
   );
 
   /// Create a copy of AiStatsAnalysis
@@ -282,6 +455,12 @@ abstract class _AiStatsAnalysis implements AiStatsAnalysis {
     final String? trend,
     final AiAnalysisStrength? strength,
     final List<AiAnalysisAction> actions,
+    final String periodLabel,
+    final AiExamForecast? forecast,
+    final String? forecastHint,
+    final AiRepeatedWrong? repeatedWrong,
+    final AiAnalysisReadiness? readiness,
+    final String? nextGoal,
   }) = _$AiStatsAnalysisImpl;
 
   factory _AiStatsAnalysis.fromJson(Map<String, dynamic> json) =
@@ -296,7 +475,19 @@ abstract class _AiStatsAnalysis implements AiStatsAnalysis {
   @override
   AiAnalysisStrength? get strength;
   @override
-  List<AiAnalysisAction> get actions;
+  List<AiAnalysisAction> get actions; // 판정 기간 표기 (예: 최근 90일 기준, 옛 서버면 빈 값)
+  @override
+  String get periodLabel;
+  @override
+  AiExamForecast? get forecast; // 예상 점수 근거 부족 안내 (예: 1과목 2문제 더 풀면 예상 점수를 알려 드려요)
+  @override
+  String? get forecastHint;
+  @override
+  AiRepeatedWrong? get repeatedWrong;
+  @override
+  AiAnalysisReadiness? get readiness; // 모두 안정권일 때 다음 목표 한 줄
+  @override
+  String? get nextGoal;
 
   /// Create a copy of AiStatsAnalysis
   /// with the given fields replaced by the non-null parameter values.
@@ -321,7 +512,9 @@ mixin _$AiAnalysisFinding {
       throw _privateConstructorUsedError; // 숫자 근거 한 줄 (예: 6문제 중 3문제 정답 (50%))
   String get evidence =>
       throw _privateConstructorUsedError; // AI 오답 패턴 한 줄 (LLM 실패·근거 부족이면 null)
-  String? get insight => throw _privateConstructorUsedError;
+  String? get insight =>
+      throw _privateConstructorUsedError; // 열 수 있는 개념 학습 단원 (없으면 null, #862)
+  String? get conceptTopicUuid => throw _privateConstructorUsedError;
 
   /// Serializes this AiAnalysisFinding to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -348,6 +541,7 @@ abstract class $AiAnalysisFindingCopyWith<$Res> {
     int correctRatePercent,
     String evidence,
     String? insight,
+    String? conceptTopicUuid,
   });
 }
 
@@ -373,6 +567,7 @@ class _$AiAnalysisFindingCopyWithImpl<$Res, $Val extends AiAnalysisFinding>
     Object? correctRatePercent = null,
     Object? evidence = null,
     Object? insight = freezed,
+    Object? conceptTopicUuid = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -404,6 +599,10 @@ class _$AiAnalysisFindingCopyWithImpl<$Res, $Val extends AiAnalysisFinding>
                 ? _value.insight
                 : insight // ignore: cast_nullable_to_non_nullable
                       as String?,
+            conceptTopicUuid: freezed == conceptTopicUuid
+                ? _value.conceptTopicUuid
+                : conceptTopicUuid // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -427,6 +626,7 @@ abstract class _$$AiAnalysisFindingImplCopyWith<$Res>
     int correctRatePercent,
     String evidence,
     String? insight,
+    String? conceptTopicUuid,
   });
 }
 
@@ -451,6 +651,7 @@ class __$$AiAnalysisFindingImplCopyWithImpl<$Res>
     Object? correctRatePercent = null,
     Object? evidence = null,
     Object? insight = freezed,
+    Object? conceptTopicUuid = freezed,
   }) {
     return _then(
       _$AiAnalysisFindingImpl(
@@ -482,6 +683,10 @@ class __$$AiAnalysisFindingImplCopyWithImpl<$Res>
             ? _value.insight
             : insight // ignore: cast_nullable_to_non_nullable
                   as String?,
+        conceptTopicUuid: freezed == conceptTopicUuid
+            ? _value.conceptTopicUuid
+            : conceptTopicUuid // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -499,6 +704,7 @@ class _$AiAnalysisFindingImpl implements _AiAnalysisFinding {
     this.correctRatePercent = 0,
     this.evidence = '',
     this.insight,
+    this.conceptTopicUuid,
   });
 
   factory _$AiAnalysisFindingImpl.fromJson(Map<String, dynamic> json) =>
@@ -527,10 +733,13 @@ class _$AiAnalysisFindingImpl implements _AiAnalysisFinding {
   // AI 오답 패턴 한 줄 (LLM 실패·근거 부족이면 null)
   @override
   final String? insight;
+  // 열 수 있는 개념 학습 단원 (없으면 null, #862)
+  @override
+  final String? conceptTopicUuid;
 
   @override
   String toString() {
-    return 'AiAnalysisFinding(topicUuid: $topicUuid, topicName: $topicName, kind: $kind, solvedCount: $solvedCount, correctRatePercent: $correctRatePercent, evidence: $evidence, insight: $insight)';
+    return 'AiAnalysisFinding(topicUuid: $topicUuid, topicName: $topicName, kind: $kind, solvedCount: $solvedCount, correctRatePercent: $correctRatePercent, evidence: $evidence, insight: $insight, conceptTopicUuid: $conceptTopicUuid)';
   }
 
   @override
@@ -549,7 +758,9 @@ class _$AiAnalysisFindingImpl implements _AiAnalysisFinding {
                 other.correctRatePercent == correctRatePercent) &&
             (identical(other.evidence, evidence) ||
                 other.evidence == evidence) &&
-            (identical(other.insight, insight) || other.insight == insight));
+            (identical(other.insight, insight) || other.insight == insight) &&
+            (identical(other.conceptTopicUuid, conceptTopicUuid) ||
+                other.conceptTopicUuid == conceptTopicUuid));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -563,6 +774,7 @@ class _$AiAnalysisFindingImpl implements _AiAnalysisFinding {
     correctRatePercent,
     evidence,
     insight,
+    conceptTopicUuid,
   );
 
   /// Create a copy of AiAnalysisFinding
@@ -591,6 +803,7 @@ abstract class _AiAnalysisFinding implements AiAnalysisFinding {
     final int correctRatePercent,
     final String evidence,
     final String? insight,
+    final String? conceptTopicUuid,
   }) = _$AiAnalysisFindingImpl;
 
   factory _AiAnalysisFinding.fromJson(Map<String, dynamic> json) =
@@ -610,7 +823,9 @@ abstract class _AiAnalysisFinding implements AiAnalysisFinding {
   @override
   String get evidence; // AI 오답 패턴 한 줄 (LLM 실패·근거 부족이면 null)
   @override
-  String? get insight;
+  String? get insight; // 열 수 있는 개념 학습 단원 (없으면 null, #862)
+  @override
+  String? get conceptTopicUuid;
 
   /// Create a copy of AiAnalysisFinding
   /// with the given fields replaced by the non-null parameter values.
@@ -1082,5 +1297,871 @@ abstract class _AiAnalysisAction implements AiAnalysisAction {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$AiAnalysisActionImplCopyWith<_$AiAnalysisActionImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+AiExamForecast _$AiExamForecastFromJson(Map<String, dynamic> json) {
+  return _AiExamForecast.fromJson(json);
+}
+
+/// @nodoc
+mixin _$AiExamForecast {
+  // 100점 환산 (문항당 2점)
+  int get expectedScore => throw _privateConstructorUsedError;
+  int get subjectOneExpectedCount => throw _privateConstructorUsedError;
+  int get subjectOneQuestionCount =>
+      throw _privateConstructorUsedError; // 40% 미만 (과락)
+  bool get isSubjectOneFailRisk => throw _privateConstructorUsedError;
+  int get subjectTwoExpectedCount => throw _privateConstructorUsedError;
+  int get subjectTwoQuestionCount => throw _privateConstructorUsedError;
+  bool get isSubjectTwoFailRisk => throw _privateConstructorUsedError;
+  @JsonKey(unknownEnumValue: AiForecastVerdict.unknown)
+  AiForecastVerdict get verdict => throw _privateConstructorUsedError;
+  String get verdictLabel =>
+      throw _privateConstructorUsedError; // 예: 1과목 예상 6/10 · 2과목 예상 26/40
+  String get summary =>
+      throw _privateConstructorUsedError; // 예: 합격선까지 2문제 더 맞히면 돼요 / 과락 경고
+  String get detail => throw _privateConstructorUsedError;
+
+  /// Serializes this AiExamForecast to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of AiExamForecast
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $AiExamForecastCopyWith<AiExamForecast> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $AiExamForecastCopyWith<$Res> {
+  factory $AiExamForecastCopyWith(
+    AiExamForecast value,
+    $Res Function(AiExamForecast) then,
+  ) = _$AiExamForecastCopyWithImpl<$Res, AiExamForecast>;
+  @useResult
+  $Res call({
+    int expectedScore,
+    int subjectOneExpectedCount,
+    int subjectOneQuestionCount,
+    bool isSubjectOneFailRisk,
+    int subjectTwoExpectedCount,
+    int subjectTwoQuestionCount,
+    bool isSubjectTwoFailRisk,
+    @JsonKey(unknownEnumValue: AiForecastVerdict.unknown)
+    AiForecastVerdict verdict,
+    String verdictLabel,
+    String summary,
+    String detail,
+  });
+}
+
+/// @nodoc
+class _$AiExamForecastCopyWithImpl<$Res, $Val extends AiExamForecast>
+    implements $AiExamForecastCopyWith<$Res> {
+  _$AiExamForecastCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of AiExamForecast
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? expectedScore = null,
+    Object? subjectOneExpectedCount = null,
+    Object? subjectOneQuestionCount = null,
+    Object? isSubjectOneFailRisk = null,
+    Object? subjectTwoExpectedCount = null,
+    Object? subjectTwoQuestionCount = null,
+    Object? isSubjectTwoFailRisk = null,
+    Object? verdict = null,
+    Object? verdictLabel = null,
+    Object? summary = null,
+    Object? detail = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            expectedScore: null == expectedScore
+                ? _value.expectedScore
+                : expectedScore // ignore: cast_nullable_to_non_nullable
+                      as int,
+            subjectOneExpectedCount: null == subjectOneExpectedCount
+                ? _value.subjectOneExpectedCount
+                : subjectOneExpectedCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            subjectOneQuestionCount: null == subjectOneQuestionCount
+                ? _value.subjectOneQuestionCount
+                : subjectOneQuestionCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            isSubjectOneFailRisk: null == isSubjectOneFailRisk
+                ? _value.isSubjectOneFailRisk
+                : isSubjectOneFailRisk // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            subjectTwoExpectedCount: null == subjectTwoExpectedCount
+                ? _value.subjectTwoExpectedCount
+                : subjectTwoExpectedCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            subjectTwoQuestionCount: null == subjectTwoQuestionCount
+                ? _value.subjectTwoQuestionCount
+                : subjectTwoQuestionCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            isSubjectTwoFailRisk: null == isSubjectTwoFailRisk
+                ? _value.isSubjectTwoFailRisk
+                : isSubjectTwoFailRisk // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            verdict: null == verdict
+                ? _value.verdict
+                : verdict // ignore: cast_nullable_to_non_nullable
+                      as AiForecastVerdict,
+            verdictLabel: null == verdictLabel
+                ? _value.verdictLabel
+                : verdictLabel // ignore: cast_nullable_to_non_nullable
+                      as String,
+            summary: null == summary
+                ? _value.summary
+                : summary // ignore: cast_nullable_to_non_nullable
+                      as String,
+            detail: null == detail
+                ? _value.detail
+                : detail // ignore: cast_nullable_to_non_nullable
+                      as String,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$AiExamForecastImplCopyWith<$Res>
+    implements $AiExamForecastCopyWith<$Res> {
+  factory _$$AiExamForecastImplCopyWith(
+    _$AiExamForecastImpl value,
+    $Res Function(_$AiExamForecastImpl) then,
+  ) = __$$AiExamForecastImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    int expectedScore,
+    int subjectOneExpectedCount,
+    int subjectOneQuestionCount,
+    bool isSubjectOneFailRisk,
+    int subjectTwoExpectedCount,
+    int subjectTwoQuestionCount,
+    bool isSubjectTwoFailRisk,
+    @JsonKey(unknownEnumValue: AiForecastVerdict.unknown)
+    AiForecastVerdict verdict,
+    String verdictLabel,
+    String summary,
+    String detail,
+  });
+}
+
+/// @nodoc
+class __$$AiExamForecastImplCopyWithImpl<$Res>
+    extends _$AiExamForecastCopyWithImpl<$Res, _$AiExamForecastImpl>
+    implements _$$AiExamForecastImplCopyWith<$Res> {
+  __$$AiExamForecastImplCopyWithImpl(
+    _$AiExamForecastImpl _value,
+    $Res Function(_$AiExamForecastImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of AiExamForecast
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? expectedScore = null,
+    Object? subjectOneExpectedCount = null,
+    Object? subjectOneQuestionCount = null,
+    Object? isSubjectOneFailRisk = null,
+    Object? subjectTwoExpectedCount = null,
+    Object? subjectTwoQuestionCount = null,
+    Object? isSubjectTwoFailRisk = null,
+    Object? verdict = null,
+    Object? verdictLabel = null,
+    Object? summary = null,
+    Object? detail = null,
+  }) {
+    return _then(
+      _$AiExamForecastImpl(
+        expectedScore: null == expectedScore
+            ? _value.expectedScore
+            : expectedScore // ignore: cast_nullable_to_non_nullable
+                  as int,
+        subjectOneExpectedCount: null == subjectOneExpectedCount
+            ? _value.subjectOneExpectedCount
+            : subjectOneExpectedCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        subjectOneQuestionCount: null == subjectOneQuestionCount
+            ? _value.subjectOneQuestionCount
+            : subjectOneQuestionCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        isSubjectOneFailRisk: null == isSubjectOneFailRisk
+            ? _value.isSubjectOneFailRisk
+            : isSubjectOneFailRisk // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        subjectTwoExpectedCount: null == subjectTwoExpectedCount
+            ? _value.subjectTwoExpectedCount
+            : subjectTwoExpectedCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        subjectTwoQuestionCount: null == subjectTwoQuestionCount
+            ? _value.subjectTwoQuestionCount
+            : subjectTwoQuestionCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        isSubjectTwoFailRisk: null == isSubjectTwoFailRisk
+            ? _value.isSubjectTwoFailRisk
+            : isSubjectTwoFailRisk // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        verdict: null == verdict
+            ? _value.verdict
+            : verdict // ignore: cast_nullable_to_non_nullable
+                  as AiForecastVerdict,
+        verdictLabel: null == verdictLabel
+            ? _value.verdictLabel
+            : verdictLabel // ignore: cast_nullable_to_non_nullable
+                  as String,
+        summary: null == summary
+            ? _value.summary
+            : summary // ignore: cast_nullable_to_non_nullable
+                  as String,
+        detail: null == detail
+            ? _value.detail
+            : detail // ignore: cast_nullable_to_non_nullable
+                  as String,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$AiExamForecastImpl implements _AiExamForecast {
+  const _$AiExamForecastImpl({
+    this.expectedScore = 0,
+    this.subjectOneExpectedCount = 0,
+    this.subjectOneQuestionCount = 0,
+    this.isSubjectOneFailRisk = false,
+    this.subjectTwoExpectedCount = 0,
+    this.subjectTwoQuestionCount = 0,
+    this.isSubjectTwoFailRisk = false,
+    @JsonKey(unknownEnumValue: AiForecastVerdict.unknown)
+    this.verdict = AiForecastVerdict.unknown,
+    this.verdictLabel = '',
+    this.summary = '',
+    this.detail = '',
+  });
+
+  factory _$AiExamForecastImpl.fromJson(Map<String, dynamic> json) =>
+      _$$AiExamForecastImplFromJson(json);
+
+  // 100점 환산 (문항당 2점)
+  @override
+  @JsonKey()
+  final int expectedScore;
+  @override
+  @JsonKey()
+  final int subjectOneExpectedCount;
+  @override
+  @JsonKey()
+  final int subjectOneQuestionCount;
+  // 40% 미만 (과락)
+  @override
+  @JsonKey()
+  final bool isSubjectOneFailRisk;
+  @override
+  @JsonKey()
+  final int subjectTwoExpectedCount;
+  @override
+  @JsonKey()
+  final int subjectTwoQuestionCount;
+  @override
+  @JsonKey()
+  final bool isSubjectTwoFailRisk;
+  @override
+  @JsonKey(unknownEnumValue: AiForecastVerdict.unknown)
+  final AiForecastVerdict verdict;
+  @override
+  @JsonKey()
+  final String verdictLabel;
+  // 예: 1과목 예상 6/10 · 2과목 예상 26/40
+  @override
+  @JsonKey()
+  final String summary;
+  // 예: 합격선까지 2문제 더 맞히면 돼요 / 과락 경고
+  @override
+  @JsonKey()
+  final String detail;
+
+  @override
+  String toString() {
+    return 'AiExamForecast(expectedScore: $expectedScore, subjectOneExpectedCount: $subjectOneExpectedCount, subjectOneQuestionCount: $subjectOneQuestionCount, isSubjectOneFailRisk: $isSubjectOneFailRisk, subjectTwoExpectedCount: $subjectTwoExpectedCount, subjectTwoQuestionCount: $subjectTwoQuestionCount, isSubjectTwoFailRisk: $isSubjectTwoFailRisk, verdict: $verdict, verdictLabel: $verdictLabel, summary: $summary, detail: $detail)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$AiExamForecastImpl &&
+            (identical(other.expectedScore, expectedScore) ||
+                other.expectedScore == expectedScore) &&
+            (identical(
+                  other.subjectOneExpectedCount,
+                  subjectOneExpectedCount,
+                ) ||
+                other.subjectOneExpectedCount == subjectOneExpectedCount) &&
+            (identical(
+                  other.subjectOneQuestionCount,
+                  subjectOneQuestionCount,
+                ) ||
+                other.subjectOneQuestionCount == subjectOneQuestionCount) &&
+            (identical(other.isSubjectOneFailRisk, isSubjectOneFailRisk) ||
+                other.isSubjectOneFailRisk == isSubjectOneFailRisk) &&
+            (identical(
+                  other.subjectTwoExpectedCount,
+                  subjectTwoExpectedCount,
+                ) ||
+                other.subjectTwoExpectedCount == subjectTwoExpectedCount) &&
+            (identical(
+                  other.subjectTwoQuestionCount,
+                  subjectTwoQuestionCount,
+                ) ||
+                other.subjectTwoQuestionCount == subjectTwoQuestionCount) &&
+            (identical(other.isSubjectTwoFailRisk, isSubjectTwoFailRisk) ||
+                other.isSubjectTwoFailRisk == isSubjectTwoFailRisk) &&
+            (identical(other.verdict, verdict) || other.verdict == verdict) &&
+            (identical(other.verdictLabel, verdictLabel) ||
+                other.verdictLabel == verdictLabel) &&
+            (identical(other.summary, summary) || other.summary == summary) &&
+            (identical(other.detail, detail) || other.detail == detail));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    expectedScore,
+    subjectOneExpectedCount,
+    subjectOneQuestionCount,
+    isSubjectOneFailRisk,
+    subjectTwoExpectedCount,
+    subjectTwoQuestionCount,
+    isSubjectTwoFailRisk,
+    verdict,
+    verdictLabel,
+    summary,
+    detail,
+  );
+
+  /// Create a copy of AiExamForecast
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$AiExamForecastImplCopyWith<_$AiExamForecastImpl> get copyWith =>
+      __$$AiExamForecastImplCopyWithImpl<_$AiExamForecastImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$AiExamForecastImplToJson(this);
+  }
+}
+
+abstract class _AiExamForecast implements AiExamForecast {
+  const factory _AiExamForecast({
+    final int expectedScore,
+    final int subjectOneExpectedCount,
+    final int subjectOneQuestionCount,
+    final bool isSubjectOneFailRisk,
+    final int subjectTwoExpectedCount,
+    final int subjectTwoQuestionCount,
+    final bool isSubjectTwoFailRisk,
+    @JsonKey(unknownEnumValue: AiForecastVerdict.unknown)
+    final AiForecastVerdict verdict,
+    final String verdictLabel,
+    final String summary,
+    final String detail,
+  }) = _$AiExamForecastImpl;
+
+  factory _AiExamForecast.fromJson(Map<String, dynamic> json) =
+      _$AiExamForecastImpl.fromJson;
+
+  // 100점 환산 (문항당 2점)
+  @override
+  int get expectedScore;
+  @override
+  int get subjectOneExpectedCount;
+  @override
+  int get subjectOneQuestionCount; // 40% 미만 (과락)
+  @override
+  bool get isSubjectOneFailRisk;
+  @override
+  int get subjectTwoExpectedCount;
+  @override
+  int get subjectTwoQuestionCount;
+  @override
+  bool get isSubjectTwoFailRisk;
+  @override
+  @JsonKey(unknownEnumValue: AiForecastVerdict.unknown)
+  AiForecastVerdict get verdict;
+  @override
+  String get verdictLabel; // 예: 1과목 예상 6/10 · 2과목 예상 26/40
+  @override
+  String get summary; // 예: 합격선까지 2문제 더 맞히면 돼요 / 과락 경고
+  @override
+  String get detail;
+
+  /// Create a copy of AiExamForecast
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$AiExamForecastImplCopyWith<_$AiExamForecastImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+AiRepeatedWrong _$AiRepeatedWrongFromJson(Map<String, dynamic> json) {
+  return _AiRepeatedWrong.fromJson(json);
+}
+
+/// @nodoc
+mixin _$AiRepeatedWrong {
+  int get questionCount =>
+      throw _privateConstructorUsedError; // 그중 마지막 시도도 오답인 문제 수
+  int get unresolvedCount => throw _privateConstructorUsedError;
+  String get text => throw _privateConstructorUsedError;
+
+  /// Serializes this AiRepeatedWrong to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of AiRepeatedWrong
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $AiRepeatedWrongCopyWith<AiRepeatedWrong> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $AiRepeatedWrongCopyWith<$Res> {
+  factory $AiRepeatedWrongCopyWith(
+    AiRepeatedWrong value,
+    $Res Function(AiRepeatedWrong) then,
+  ) = _$AiRepeatedWrongCopyWithImpl<$Res, AiRepeatedWrong>;
+  @useResult
+  $Res call({int questionCount, int unresolvedCount, String text});
+}
+
+/// @nodoc
+class _$AiRepeatedWrongCopyWithImpl<$Res, $Val extends AiRepeatedWrong>
+    implements $AiRepeatedWrongCopyWith<$Res> {
+  _$AiRepeatedWrongCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of AiRepeatedWrong
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? questionCount = null,
+    Object? unresolvedCount = null,
+    Object? text = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            questionCount: null == questionCount
+                ? _value.questionCount
+                : questionCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            unresolvedCount: null == unresolvedCount
+                ? _value.unresolvedCount
+                : unresolvedCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            text: null == text
+                ? _value.text
+                : text // ignore: cast_nullable_to_non_nullable
+                      as String,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$AiRepeatedWrongImplCopyWith<$Res>
+    implements $AiRepeatedWrongCopyWith<$Res> {
+  factory _$$AiRepeatedWrongImplCopyWith(
+    _$AiRepeatedWrongImpl value,
+    $Res Function(_$AiRepeatedWrongImpl) then,
+  ) = __$$AiRepeatedWrongImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({int questionCount, int unresolvedCount, String text});
+}
+
+/// @nodoc
+class __$$AiRepeatedWrongImplCopyWithImpl<$Res>
+    extends _$AiRepeatedWrongCopyWithImpl<$Res, _$AiRepeatedWrongImpl>
+    implements _$$AiRepeatedWrongImplCopyWith<$Res> {
+  __$$AiRepeatedWrongImplCopyWithImpl(
+    _$AiRepeatedWrongImpl _value,
+    $Res Function(_$AiRepeatedWrongImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of AiRepeatedWrong
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? questionCount = null,
+    Object? unresolvedCount = null,
+    Object? text = null,
+  }) {
+    return _then(
+      _$AiRepeatedWrongImpl(
+        questionCount: null == questionCount
+            ? _value.questionCount
+            : questionCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        unresolvedCount: null == unresolvedCount
+            ? _value.unresolvedCount
+            : unresolvedCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        text: null == text
+            ? _value.text
+            : text // ignore: cast_nullable_to_non_nullable
+                  as String,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$AiRepeatedWrongImpl implements _AiRepeatedWrong {
+  const _$AiRepeatedWrongImpl({
+    this.questionCount = 0,
+    this.unresolvedCount = 0,
+    this.text = '',
+  });
+
+  factory _$AiRepeatedWrongImpl.fromJson(Map<String, dynamic> json) =>
+      _$$AiRepeatedWrongImplFromJson(json);
+
+  @override
+  @JsonKey()
+  final int questionCount;
+  // 그중 마지막 시도도 오답인 문제 수
+  @override
+  @JsonKey()
+  final int unresolvedCount;
+  @override
+  @JsonKey()
+  final String text;
+
+  @override
+  String toString() {
+    return 'AiRepeatedWrong(questionCount: $questionCount, unresolvedCount: $unresolvedCount, text: $text)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$AiRepeatedWrongImpl &&
+            (identical(other.questionCount, questionCount) ||
+                other.questionCount == questionCount) &&
+            (identical(other.unresolvedCount, unresolvedCount) ||
+                other.unresolvedCount == unresolvedCount) &&
+            (identical(other.text, text) || other.text == text));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, questionCount, unresolvedCount, text);
+
+  /// Create a copy of AiRepeatedWrong
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$AiRepeatedWrongImplCopyWith<_$AiRepeatedWrongImpl> get copyWith =>
+      __$$AiRepeatedWrongImplCopyWithImpl<_$AiRepeatedWrongImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$AiRepeatedWrongImplToJson(this);
+  }
+}
+
+abstract class _AiRepeatedWrong implements AiRepeatedWrong {
+  const factory _AiRepeatedWrong({
+    final int questionCount,
+    final int unresolvedCount,
+    final String text,
+  }) = _$AiRepeatedWrongImpl;
+
+  factory _AiRepeatedWrong.fromJson(Map<String, dynamic> json) =
+      _$AiRepeatedWrongImpl.fromJson;
+
+  @override
+  int get questionCount; // 그중 마지막 시도도 오답인 문제 수
+  @override
+  int get unresolvedCount;
+  @override
+  String get text;
+
+  /// Create a copy of AiRepeatedWrong
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$AiRepeatedWrongImplCopyWith<_$AiRepeatedWrongImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+AiAnalysisReadiness _$AiAnalysisReadinessFromJson(Map<String, dynamic> json) {
+  return _AiAnalysisReadiness.fromJson(json);
+}
+
+/// @nodoc
+mixin _$AiAnalysisReadiness {
+  String get message =>
+      throw _privateConstructorUsedError; // 진행 대상 토픽 짧은 이름 (토픽 없으면 null)
+  String? get topicName => throw _privateConstructorUsedError;
+  int get solvedCount => throw _privateConstructorUsedError;
+  int get targetCount => throw _privateConstructorUsedError;
+
+  /// Serializes this AiAnalysisReadiness to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of AiAnalysisReadiness
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $AiAnalysisReadinessCopyWith<AiAnalysisReadiness> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $AiAnalysisReadinessCopyWith<$Res> {
+  factory $AiAnalysisReadinessCopyWith(
+    AiAnalysisReadiness value,
+    $Res Function(AiAnalysisReadiness) then,
+  ) = _$AiAnalysisReadinessCopyWithImpl<$Res, AiAnalysisReadiness>;
+  @useResult
+  $Res call({
+    String message,
+    String? topicName,
+    int solvedCount,
+    int targetCount,
+  });
+}
+
+/// @nodoc
+class _$AiAnalysisReadinessCopyWithImpl<$Res, $Val extends AiAnalysisReadiness>
+    implements $AiAnalysisReadinessCopyWith<$Res> {
+  _$AiAnalysisReadinessCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of AiAnalysisReadiness
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? message = null,
+    Object? topicName = freezed,
+    Object? solvedCount = null,
+    Object? targetCount = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            message: null == message
+                ? _value.message
+                : message // ignore: cast_nullable_to_non_nullable
+                      as String,
+            topicName: freezed == topicName
+                ? _value.topicName
+                : topicName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            solvedCount: null == solvedCount
+                ? _value.solvedCount
+                : solvedCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            targetCount: null == targetCount
+                ? _value.targetCount
+                : targetCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$AiAnalysisReadinessImplCopyWith<$Res>
+    implements $AiAnalysisReadinessCopyWith<$Res> {
+  factory _$$AiAnalysisReadinessImplCopyWith(
+    _$AiAnalysisReadinessImpl value,
+    $Res Function(_$AiAnalysisReadinessImpl) then,
+  ) = __$$AiAnalysisReadinessImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String message,
+    String? topicName,
+    int solvedCount,
+    int targetCount,
+  });
+}
+
+/// @nodoc
+class __$$AiAnalysisReadinessImplCopyWithImpl<$Res>
+    extends _$AiAnalysisReadinessCopyWithImpl<$Res, _$AiAnalysisReadinessImpl>
+    implements _$$AiAnalysisReadinessImplCopyWith<$Res> {
+  __$$AiAnalysisReadinessImplCopyWithImpl(
+    _$AiAnalysisReadinessImpl _value,
+    $Res Function(_$AiAnalysisReadinessImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of AiAnalysisReadiness
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? message = null,
+    Object? topicName = freezed,
+    Object? solvedCount = null,
+    Object? targetCount = null,
+  }) {
+    return _then(
+      _$AiAnalysisReadinessImpl(
+        message: null == message
+            ? _value.message
+            : message // ignore: cast_nullable_to_non_nullable
+                  as String,
+        topicName: freezed == topicName
+            ? _value.topicName
+            : topicName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        solvedCount: null == solvedCount
+            ? _value.solvedCount
+            : solvedCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        targetCount: null == targetCount
+            ? _value.targetCount
+            : targetCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$AiAnalysisReadinessImpl implements _AiAnalysisReadiness {
+  const _$AiAnalysisReadinessImpl({
+    this.message = '',
+    this.topicName,
+    this.solvedCount = 0,
+    this.targetCount = 0,
+  });
+
+  factory _$AiAnalysisReadinessImpl.fromJson(Map<String, dynamic> json) =>
+      _$$AiAnalysisReadinessImplFromJson(json);
+
+  @override
+  @JsonKey()
+  final String message;
+  // 진행 대상 토픽 짧은 이름 (토픽 없으면 null)
+  @override
+  final String? topicName;
+  @override
+  @JsonKey()
+  final int solvedCount;
+  @override
+  @JsonKey()
+  final int targetCount;
+
+  @override
+  String toString() {
+    return 'AiAnalysisReadiness(message: $message, topicName: $topicName, solvedCount: $solvedCount, targetCount: $targetCount)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$AiAnalysisReadinessImpl &&
+            (identical(other.message, message) || other.message == message) &&
+            (identical(other.topicName, topicName) ||
+                other.topicName == topicName) &&
+            (identical(other.solvedCount, solvedCount) ||
+                other.solvedCount == solvedCount) &&
+            (identical(other.targetCount, targetCount) ||
+                other.targetCount == targetCount));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, message, topicName, solvedCount, targetCount);
+
+  /// Create a copy of AiAnalysisReadiness
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$AiAnalysisReadinessImplCopyWith<_$AiAnalysisReadinessImpl> get copyWith =>
+      __$$AiAnalysisReadinessImplCopyWithImpl<_$AiAnalysisReadinessImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$AiAnalysisReadinessImplToJson(this);
+  }
+}
+
+abstract class _AiAnalysisReadiness implements AiAnalysisReadiness {
+  const factory _AiAnalysisReadiness({
+    final String message,
+    final String? topicName,
+    final int solvedCount,
+    final int targetCount,
+  }) = _$AiAnalysisReadinessImpl;
+
+  factory _AiAnalysisReadiness.fromJson(Map<String, dynamic> json) =
+      _$AiAnalysisReadinessImpl.fromJson;
+
+  @override
+  String get message; // 진행 대상 토픽 짧은 이름 (토픽 없으면 null)
+  @override
+  String? get topicName;
+  @override
+  int get solvedCount;
+  @override
+  int get targetCount;
+
+  /// Create a copy of AiAnalysisReadiness
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$AiAnalysisReadinessImplCopyWith<_$AiAnalysisReadinessImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

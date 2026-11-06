@@ -16,67 +16,43 @@ class QuestionRecommendationService:
     문제 추천: 최근 오답 벡터 평균 > 푼 문제 제외 검색 (벡터 없으면 빈 결과, Spring 이 RANDOM 대체)
     """
 
-    async def recommend(self, req: RecommendRequest) -> RecommendResponse:
-        """
-        사용자의 최근 오답 문제 벡터를 기반으로 유사 문제를 추천.
-
-        흐름:
-        1. recent_wrong_question_uuids로 Qdrant에서 각 문제의 벡터 조회
-        2. 조회된 벡터들의 평균을 쿼리 벡터로 사용
-        3. solved_question_uuids를 must_not 필터로 Qdrant 검색
-        4. 벡터가 없으면 빈 결과 반환 (Java에서 RANDOM fallback 처리)
-
-        Args:
-            req: RecommendRequest
-
-        Returns:
-            RecommendResponse: 추천 문제 목록
-
-        Raises:
-            CustomError: Qdrant 검색 실패 시
-        """
+    async def recommend(self, request: RecommendRequest) -> RecommendResponse:
+        """추천: 오답 벡터 1회 일괄 조회 > 평균 쿼리 벡터 > 푼 문제 제외 검색 (오답 벡터 없으면 빈 결과)"""
         logger.info(
-            f"[recommend] size={req.size}, wrong_count={len(req.recent_wrong_question_uuids)}, "
-            f"solved_count={len(req.solved_question_uuids)}"
+            f"[recommend] size={request.size}, wrong_count={len(request.recent_wrong_question_uuids)}, "
+            f"solved_count={len(request.solved_question_uuids)}"
         )
 
-        # 오답 문제 벡터 수집
-        source_vectors: list[list[float]] = []
-        for uuid in req.recent_wrong_question_uuids:
-            vec = await qdrant_search_client.get_vector(settings.QDRANT_COLLECTION, uuid)
-            if vec:
-                source_vectors.append(vec)
+        # 오답 문제 벡터 수집 (요청 순서 유지, 중복 제거)
+        wrong_question_uuids = list(dict.fromkeys(str(uuid) for uuid in request.recent_wrong_question_uuids))
+        vector_by_question_uuid = await qdrant_search_client.retrieve_points(
+            settings.QDRANT_COLLECTION, wrong_question_uuids, should_include_vector=True
+        )
+        source_vectors = [vector for vector in vector_by_question_uuid.values() if vector]
 
-        # 쿼리에 사용할 오답 벡터가 없으면 빈 결과 — Java에서 RANDOM fallback 적용
+        # 쿼리에 쓸 오답 벡터가 없으면 빈 결과 (Spring 이 RANDOM 대체)
         if not source_vectors:
-            logger.info("[recommend] 쿼리 벡터 없음 — 빈 결과 반환 (Java RANDOM fallback 예정)")
+            logger.info("[recommend] no source vector : empty result (Spring RANDOM fallback)")
             return RecommendResponse(items=[], query_source_count=0)
 
-        # 여러 벡터를 단순 평균하여 쿼리 벡터 합성
-        dim = len(source_vectors[0])
-        query_vector = [
-            sum(v[i] for v in source_vectors) / len(source_vectors)
-            for i in range(dim)
-        ]
+        # 여러 벡터 단순 평균 > 쿼리 벡터
+        query_vector = [sum(components) / len(source_vectors) for components in zip(*source_vectors)]
 
-        # 이미 푼 문제 제외하여 Qdrant 검색
+        solved_question_uuids = [str(uuid) for uuid in request.solved_question_uuids]
         results = await qdrant_search_client.search(
             collection=settings.QDRANT_COLLECTION,
             vector=query_vector,
-            top_k=req.size,
-            must_not_ids=req.solved_question_uuids if req.solved_question_uuids else None,
+            top_k=request.size,
+            must_not_ids=solved_question_uuids or None,
         )
 
         items = [
-            RecommendedQuestion(
-                question_uuid=r["payload"]["question_uuid"],
-                score=r["score"],
-            )
-            for r in results
-            if r.get("payload", {}).get("question_uuid")
+            RecommendedQuestion(question_uuid=result["payload"]["question_uuid"], score=result["score"])
+            for result in results
+            if result.get("payload", {}).get("question_uuid")
         ]
 
-        logger.info(f"[recommend] 추천 완료: {len(items)}개")
+        logger.info(f"[recommend] completed : item_count={len(items)}")
         return RecommendResponse(items=items, query_source_count=len(source_vectors))
 
 

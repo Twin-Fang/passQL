@@ -5,6 +5,7 @@ import '../../core/logging/app_logger.dart';
 import '../../core/monitoring/app_analytics.dart';
 import '../../core/monitoring/crash_reporter.dart';
 import '../../data/sources/api_providers.dart';
+import '../../data/models/member/choice_generation_mode.dart';
 import '../../data/models/question/choice_item.dart';
 import '../../data/models/question/execute_request.dart';
 import '../../data/models/question/execute_result.dart';
@@ -14,6 +15,7 @@ import '../../data/models/question/submit_request.dart';
 import '../../data/models/question/submit_result.dart';
 import 'plan_providers.dart';
 import 'question_interaction_state.dart';
+import 'settings_providers.dart';
 
 export 'question_interaction_state.dart';
 import 'sql_execution_pacing.dart';
@@ -33,23 +35,51 @@ class QuestionInteractionNotifier
 
   StreamSubscription<SseEvent>? _sseSubscription;
 
+  /// 화면을 떠나 정리됐는지 (모드 응답을 기다리는 동안 떠난 경우 상태를 바꾸지 않음)
+  bool _isDisposed = false;
+
   String get _questionUuid => arg;
 
   @override
   QuestionInteractionState build(String questionUuid) {
-    ref.onDispose(() => _sseSubscription?.cancel());
+    ref.onDispose(() {
+      _isDisposed = true;
+      _sseSubscription?.cancel();
+    });
     return const QuestionInteractionState();
   }
 
-  /// 선택지 준비: 바로 쓸 수 있는 세트가 있으면 재사용, 없으면 SSE 로 새로 생성
-  void initializeChoices(QuestionDetail question) {
+  /// 선택지 준비: 새 보기 모드면 세트가 있어도 SSE 로 새로 받기 (고정 보기 문제는 서버가 고정 세트로 답함, DEC-0251·DEC-0141)
+  /// 그 외 바로 쓸 수 있는 세트 재사용 > 없으면 SSE 생성
+  Future<void> initializeChoices(QuestionDetail question) async {
     final readyChoiceSet = question.choiceSets
         .where((choiceSet) => choiceSet.status == _readyChoiceSetStatus)
         .firstOrNull;
-    if (readyChoiceSet != null) {
-      useExistingChoiceSet(readyChoiceSet.choiceSetUuid, readyChoiceSet.items);
+    if (readyChoiceSet == null) {
+      await startSseGeneration();
+      return;
+    }
+    final isFreshChoiceMode = await _isFreshChoiceModeEffective();
+    if (_isDisposed) return;
+    if (isFreshChoiceMode) {
+      await startSseGeneration();
     } else {
-      startSseGeneration();
+      useExistingChoiceSet(readyChoiceSet.choiceSetUuid, readyChoiceSet.items);
+    }
+  }
+
+  /// 실제 적용 모드가 새 보기(REAL)인가. 모드 조회 실패면 false (검증된 세트 재사용)
+  Future<bool> _isFreshChoiceModeEffective() async {
+    // autoDispose 라 응답이 올 때까지 구독을 걸어 둠
+    final modeSubscription = ref.listen(choiceModeProvider, (_, _) {});
+    try {
+      await ref.read(choiceModeProvider.future);
+      return ref.read(effectiveChoiceModeProvider).valueOrNull ==
+          ChoiceGenerationMode.real;
+    } catch (_) {
+      return false;
+    } finally {
+      modeSubscription.close();
     }
   }
 

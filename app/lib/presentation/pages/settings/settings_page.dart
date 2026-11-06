@@ -105,13 +105,8 @@ class SettingsPage extends ConsumerWidget {
                 SettingsGroup(
                   title: '알림',
                   footer: notificationPreferenceFooter(ref),
+                  // 알림함·공지는 홈 종 아이콘으로만 (여기는 받기 설정만, #863)
                   children: [
-                    // 알림함 안에 공지 탭이 있어 한 행으로 둘 다 안내
-                    SettingsRow(
-                      icon: CupertinoIcons.bell,
-                      title: '알림함·공지',
-                      onTap: () => context.push(AppRoutes.notificationInbox),
-                    ),
                     const PushNotificationTile(),
                     if (hasNotificationPreference)
                       for (final spec in notificationPreferenceRows)

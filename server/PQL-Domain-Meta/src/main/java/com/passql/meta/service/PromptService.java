@@ -5,8 +5,11 @@ import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.TextPreview;
 import com.passql.meta.constant.PromptChangeType;
+import com.passql.meta.constant.PromptKey;
 import com.passql.meta.dto.PromptHistoryItem;
+import com.passql.meta.dto.PromptKeyOption;
 import com.passql.meta.dto.PromptTemplateSaveRequest;
 import com.passql.meta.dto.PromptTestHistoryItem;
 import com.passql.meta.dto.PromptVersionItem;
@@ -17,6 +20,7 @@ import com.passql.meta.repository.PromptTemplateHistoryRepository;
 import com.passql.meta.repository.PromptTemplateRepository;
 import com.passql.meta.repository.PromptTestHistoryRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,11 +29,15 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -38,16 +46,32 @@ public class PromptService {
     private static final int MAX_HISTORY_COUNT = 50;
     // 테스트 실패 사유 최대 길이 (prompt_test_history.error_message VARCHAR(500))
     private static final int MAX_ERROR_MESSAGE_LENGTH = 500;
+    // 로그에 남기는 요청 key_name 최대 길이 (문자 수)
+    private static final int LOG_KEY_NAME_LENGTH = 100;
 
     private final PromptTemplateRepository promptTemplateRepository;
     private final PromptTemplateHistoryRepository promptTemplateHistoryRepository;
     private final PromptTestHistoryRepository promptTestHistoryRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    @Cacheable(value = "prompts", key = "#keyName")
-    public PromptTemplate getActivePrompt(String keyName) {
-        return promptTemplateRepository.findFirstByKeyNameAndIsActiveTrueOrderByVersionDesc(keyName)
+    /** 키의 활성 프롬프트 (캐시 키는 key_name 문자열 그대로) */
+    @Cacheable(value = "prompts", key = "#promptKey.keyName")
+    public PromptTemplate getActivePrompt(PromptKey promptKey) {
+        return promptTemplateRepository.findFirstByKeyNameAndIsActiveTrueOrderByVersionDesc(promptKey.getKeyName())
                 .orElseThrow(() -> new CustomException(ErrorCode.PROMPT_NOT_FOUND));
+    }
+
+    /** 등록 폼 키 선택지: PromptKey 전부 > DB 에만 남은 옛 키 (이름순, 옛 키도 숨기지 않음) */
+    public List<PromptKeyOption> listKeyOptions() {
+        Stream<PromptKeyOption> codeKeyOptions = Arrays.stream(PromptKey.values()).map(PromptKeyOption::from);
+        Stream<PromptKeyOption> unusedKeyOptions = findAll().stream()
+                .map(PromptTemplate::getKeyName)
+                .filter(Objects::nonNull)
+                .filter(keyName -> !PromptKey.isKnownKeyName(keyName))
+                .distinct()
+                .sorted()
+                .map(PromptKeyOption::unusedKey);
+        return Stream.concat(codeKeyOptions, unusedKeyOptions).toList();
     }
 
     public List<PromptTemplate> findAll() {
@@ -75,14 +99,18 @@ public class PromptService {
         return saved;
     }
 
-    /** 프롬프트 수정 (관리자 폼 요청 > 기존 행 덮어쓰기) */
+    /** 프롬프트 수정 (관리자 폼 요청 > 기존 행 덮어쓰기, key_name 은 기존 값 유지) */
     @Transactional
     @CacheEvict(value = "prompts", allEntries = true)
     public PromptTemplate update(UUID uuid, PromptTemplateSaveRequest request, String adminUsername) {
         PromptTemplate existing = promptTemplateRepository.findById(uuid)
                 .orElseThrow(() -> new CustomException(ErrorCode.PROMPT_NOT_FOUND));
         Map<String, Object> before = toPromptAuditSummary(existing);
-        existing.setKeyName(request.keyName());
+        // 키가 바뀌면 그 기능의 활성 프롬프트가 사라짐 > 요청 키 무시 (#875)
+        if (!Objects.equals(existing.getKeyName(), request.keyName())) {
+            log.warn("[prompt update] ignored keyName change : uuid={}, {} -> {}", uuid, existing.getKeyName(),
+                    toLogSafeKeyName(request.keyName()));
+        }
         existing.setVersion(request.version());
         existing.setIsActive(request.isActiveChecked());
         applySaveRequest(existing, request);
@@ -91,6 +119,11 @@ public class PromptService {
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.PROMPT, uuid, AdminAuditAction.UPDATE,
                 before, toPromptAuditSummary(saved)));
         return saved;
+    }
+
+    /** 로그용 요청 key_name 정리 (제어문자 > ?, 100자 제한) */
+    private static String toLogSafeKeyName(String keyName) {
+        return TextPreview.truncate(String.valueOf(keyName).replaceAll("\\p{Cntrl}", "?"), LOG_KEY_NAME_LENGTH);
     }
 
     /** 감사 기록용 프롬프트 요약 (본문은 앞부분만) */

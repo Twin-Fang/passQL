@@ -46,7 +46,7 @@ lib/
 ├── presentation/
 │   ├── design/             # Passql 디자인 시스템 (아래 절 참고)
 │   ├── flows/              # 문제 풀이 흐름 공통화 (question_flow, daily_set_flow)
-│   ├── pages/              # login, home, questions(문제 탭 세그먼트 주제별·최신 경향·개념 TOP 10 + 오답 노트 바로가기, 챕터·챕터 결과), result, stats, settings,
+│   ├── pages/              # login, home, questions(문제 탭 세그먼트 주제별·최신 경향·개념 TOP 10 + 오답 노트, 챕터·챕터 결과), result, profile(프로필 탭), settings,
 │   │                       # daily_set(결과·리더보드), feedback, legal
 │   ├── providers/          # Riverpod Provider·Notifier·Service (회원별 Provider 는 session_reset 의 currentMemberUuidProvider watch + autoDispose)
 │   └── widgets/            # 화면 조각 (설정 그룹, 문제 풀이 본문 등)
