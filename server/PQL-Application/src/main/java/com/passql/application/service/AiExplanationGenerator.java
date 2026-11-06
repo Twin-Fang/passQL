@@ -3,6 +3,7 @@ package com.passql.application.service;
 import com.passql.ai.client.AiChatClient;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.meta.constant.PromptKey;
 import com.passql.meta.entity.PromptTemplate;
 import com.passql.meta.service.PromptService;
 import com.passql.question.entity.Question;
@@ -14,15 +15,13 @@ import java.util.UUID;
 
 /**
  * SQL 오류 AI 해설 문구 생성: 프롬프트 조립 > Gemini 호출 > 공백 정리 (저장은 호출한 쪽 책임)
- * 프롬프트는 DB(prompt_template)의 'explain_error' 활성 버전 (관리자 화면에서 변경)
+ * 프롬프트는 DB(prompt_template)의 PromptKey.EXPLAIN_ERROR 활성 버전 (관리자 화면에서 변경)
  * 선택지 해설은 세트 단위 구조화 해설 ChoiceSetExplanationGenerator (#521)
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class AiExplanationGenerator {
-
-    static final String PROMPT_ERROR = "explain_error";
 
     /**
      * 답변 규칙. DB 프롬프트(system) 뒤 사용자 프롬프트 끝에 붙인다.
@@ -49,7 +48,7 @@ public class AiExplanationGenerator {
 
     /** SQL 실행 오류 해설: 문제·스키마·실행한 SQL·오류 메시지 */
     public GeneratedExplanation generateErrorExplanation(Question question, String sql, String errorMessage) {
-        PromptTemplate prompt = promptService.getActivePrompt(PROMPT_ERROR);
+        PromptTemplate prompt = promptService.getActivePrompt(PromptKey.EXPLAIN_ERROR);
         String userPrompt = """
                 문제: %s
 
