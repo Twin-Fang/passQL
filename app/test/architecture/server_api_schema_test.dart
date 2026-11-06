@@ -22,6 +22,19 @@ const Map<String, String> _specSchemaByAppClass = {
   'AppPlatformVersionPolicy': 'AppPlatformVersionResponse',
   'BusinessInfo': 'BusinessInfoResponse',
   'QuestionListResponse': 'PageQuestionSummary',
+  // 모의고사 (#866): 서버 안쪽 record 이름이 짧아 앱은 MockExam 접두사
+  'MockExamRule': 'MockExamRuleResponse',
+  'MockExamSubjectRule': 'SubjectRule',
+  'MockExamInProgressAttempt': 'InProgressAttempt',
+  'MockExamRoundSummary': 'RoundSummary',
+  'MockExamLastAttempt': 'LastAttempt',
+  'MockExamSheetQuestion': 'SheetQuestion',
+  'MockExamAnswerEntry': 'AnswerEntry',
+  'MockExamSubjectResult': 'SubjectResult',
+  'MockExamTopicResult': 'TopicResult',
+  'MockExamQuestionMark': 'QuestionMark',
+  'MockExamQuestionReview': 'QuestionReview',
+  'MockExamHistoryEntry': 'HistoryEntry',
 };
 
 /// 스펙에 대응이 없는 앱 전용 모델 {앱 클래스: 이유}

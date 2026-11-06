@@ -65,10 +65,14 @@ def to_code_list(texts):
     return ", ".join(f"`{text}`" for text in texts)
 
 
+# 기호 뜻 표 + 예시 표 두 개 (한 표 5열은 390pt 폰에서 칸이 쏠림, #876)
 METACHARACTER_TABLE = to_markdown_table(
-    ("기호", "뜻", "패턴 예", "참이 되는 문자열", "거짓이 되는 문자열"),
-    [(f"`{symbol}`", meaning, f"`{pattern}`", to_code_list(matching), to_code_list(other))
-     for symbol, meaning, pattern, matching, other in METACHARACTER_EXAMPLES])
+    ("기호", "뜻", "패턴 예"),
+    [(f"`{symbol}`", meaning, f"`{pattern}`") for symbol, meaning, pattern, _, _ in METACHARACTER_EXAMPLES]
+) + "\n\n" + to_markdown_table(
+    ("패턴 예", "참인 예", "거짓인 예"),
+    [(f"`{pattern}`", to_code_list(matching), to_code_list(other))
+     for _, _, pattern, matching, other in METACHARACTER_EXAMPLES])
 CHARACTER_CLASS_TABLE = to_markdown_table(
     ("표기", "뜻", f"REGEXP_COUNT('{CLASS_SAMPLE_TEXT}', 표기)"),
     [(f"`{notation}`", meaning, count) for notation, meaning, count in CHARACTER_CLASS_EXAMPLES])
@@ -122,9 +126,9 @@ CONCEPT = {
     "coreMd": (
         "- 정규 표현식은 \"숫자 4개\", \"김으로 시작\" 같은 문자열의 모양을 `.`, `*`, `[0-9]`, `^` 같은 기호로 적은 패턴이에요.\n"
         "- `REGEXP_LIKE`는 WHERE 절의 조건이고, `REGEXP_SUBSTR`·`REGEXP_INSTR`·`REGEXP_REPLACE`·`REGEXP_COUNT`는 꺼내기, 위치, 바꾸기, 횟수를 돌려주는 함수예요.\n"
-        "- LIKE는 전체가 맞아야 하지만 정규 표현식은 일부만 맞아도 참이라서, 전체를 고정하려면 `^`와 `$`를 붙여요.\n"
-        "- `*`는 0번 이상, `+`는 1번 이상, `?`는 0번 또는 1번이고, `^`는 대괄호 맨 앞에서만 부정이에요.\n"
-        "- 횟수 기호는 기본으로 가장 길게 맞추고(탐욕적 일치), 뒤에 `?`를 붙이면 가장 짧게 맞춰요(최소 일치)."
+        "- LIKE는 전체가 맞아야 하지만 정규 표현식은 **일부만 맞아도 참**이라서, 전체를 고정하려면 `^`와 `$`를 붙여요.\n"
+        "- `*`는 0번 이상, `+`는 1번 이상, `?`는 0번 또는 1번이고, `^`는 **대괄호 맨 앞**에서만 부정이에요.\n"
+        "- 횟수 기호는 기본으로 **가장 길게** 맞추고(탐욕적 일치), 뒤에 `?`를 붙이면 가장 짧게 맞춰요(최소 일치)."
     ),
     "detailMd": f"""## LIKE로는 못 적는 조건 — 왜 필요할까요 {{#why}}
 
@@ -150,7 +154,7 @@ LIKE로는 `%`(아무 글자 여러 개)와 `_`(아무 글자 하나) 두 가지
 
 ## 메타 문자 — 기호마다 뜻이 정해져 있어요 {{#metacharacters}}
 
-"참이 되는 문자열"은 `REGEXP_LIKE(문자열, 패턴)`이 참이 되는 예예요. 정규 표현식은 문자열의 일부만 패턴과 맞아도 참이라는 점을 기억하고 보면 돼요.
+"참인 예"는 `REGEXP_LIKE(문자열, 패턴)`이 참이 되는 문자열이에요. 정규 표현식은 문자열의 일부만 패턴과 맞아도 참이라는 점을 기억하고 보면 돼요.
 
 {METACHARACTER_TABLE}
 
@@ -196,7 +200,7 @@ REGEXP_COUNT(원본, 패턴 [, 시작 위치 [, 일치 옵션]])                
 
 {FUNCTION_TABLE}
 
-REGEXP_REPLACE는 n번째를 생략하거나 0을 주면 맞는 부분을 모두 바꾸고, 숫자를 주면 그 번째 것 하나만 바꿔요. 바꿀 문자열을 생략하면 맞는 부분을 지워 버려요.
+REGEXP_REPLACE는 n번째를 생략하거나 0을 주면 맞는 부분을 모두 바꾸고, 숫자를 주면 그 번째 것 하나만 바꿔요. 바꿀 문자열을 생략하면 맞는 부분을 **지워** 버려요.
 
 ```sql
 {REMOVE_SQL}  -- 01012345678이 나와요
@@ -313,6 +317,19 @@ LIKE를 정규 표현식처럼 쓰려면 `LIKE '%민%'`처럼 앞뒤에 `%`를 �
 | `REGEXP_LIKE(직급, '대리')`는 직급이 정확히 대리인 행만 골라요 | X | 일부만 맞아도 참이라서 직급 안에 대리가 들어 있으면 모두 골라요 |
 | `[^0-9]`는 숫자가 아닌 글자 하나와 맞아요 | O | 대괄호 맨 앞의 `^`는 부정이에요 |
 | `REGEXP_INSTR`는 맞는 부분이 없으면 NULL을 돌려줘요 | X | 위치를 찾지 못하면 0을 돌려줘요 |
+
+## 꼭 외울 것 — 기호의 뜻과 못 찾았을 때 {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| `*`, `+`, `?` | 0번 이상, 1번 이상, 0번 또는 1번 (앞 글자 하나에만) |
+| `^`의 두 뜻 | 대괄호 밖은 문자열 시작, 대괄호 맨 앞은 부정 |
+| `.`과 `\\.` | 아무 글자 하나, 진짜 마침표 |
+| 일부만 맞을 때 | 참이에요, 전체를 고정하려면 `^`와 `$` |
+| 기본 일치 방식 | 탐욕적(가장 길게), 횟수 기호 뒤 `?`면 최소 일치 |
+| 맞는 부분이 없을 때 | SUBSTR는 NULL, INSTR·COUNT는 0, REPLACE는 원본 |
+| REPLACE 바꿀 문자열 생략 | 맞는 부분을 지워요 |
+| REGEXP_LIKE를 쓰는 자리 | WHERE·CASE WHEN 조건만, SELECT 값은 오류 |
 
 ## 시험에서는 이렇게 나와요 — 함수 결과를 직접 계산 {{#exam-point}}
 

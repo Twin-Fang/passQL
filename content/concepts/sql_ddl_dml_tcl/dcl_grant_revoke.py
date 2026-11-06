@@ -19,11 +19,11 @@ CONCEPT = {
     "title": "GRANT·REVOKE와 ROLE",
     "summary": "누가 무엇을 할 수 있는지 권한을 주고 회수하고, 권한을 역할로 묶어 관리해요",
     "coreMd": (
-        "- 시스템 권한은 CREATE TABLE처럼 할 수 있는 작업이고, 객체 권한은 `SELECT ON 사원`처럼 객체 하나에 대한 권한이에요.\n"
+        "- 시스템 권한은 CREATE TABLE처럼 할 수 있는 작업이고, 객체 권한은 `SELECT ON 사원`처럼 **객체 하나**에 대한 권한이에요.\n"
         "- 권한은 `GRANT ... TO 사용자`로 주고 `REVOKE ... FROM 사용자`로 회수해요.\n"
-        "- WITH GRANT OPTION으로 받은 객체 권한은 연쇄로 회수되고, WITH ADMIN OPTION으로 받은 시스템 권한은 연쇄되지 않아요.\n"
-        "- ROLE은 권한 묶음이고, 기본 역할로 CONNECT(접속), RESOURCE(객체 생성), DBA(관리)가 있어요.\n"
-        "- 역할을 거쳐 받은 권한은 그 길이 끊기면 사라지지만, 직접 받은 권한은 남아요."
+        "- WITH GRANT OPTION으로 받은 객체 권한은 **연쇄로 회수**되고, WITH ADMIN OPTION으로 받은 시스템 권한은 연쇄되지 않아요.\n"
+        "- ROLE은 **권한 묶음**이고, 기본 역할로 CONNECT(접속), RESOURCE(객체 생성), DBA(관리)가 있어요.\n"
+        "- 역할을 거쳐 받은 권한은 그 길이 끊기면 사라지지만, **직접 받은 권한은 남아요**."
     ),
     "detailMd": """## 권한이란 — 누가 무엇을 할 수 있는지 정해요 {#why}
 
@@ -40,12 +40,18 @@ CONCEPT = {
 
 ## 시스템 권한과 객체 권한 — ON 객체가 붙느냐 {#privilege-types}
 
+| 용어 | 뜻 |
+|---|---|
+| 시스템 권한 | 데이터베이스 전체에서 어떤 작업을 할 수 있는지 정하는 권한이에요 |
+| 객체 권한 | 테이블·뷰(저장해 둔 SELECT 문) 같은 객체 하나에 무엇을 할 수 있는지 정하는 권한이에요 |
+| 다시 주기 옵션 | 받은 권한을 남에게 다시 주게 하는 옵션이에요 |
+
 | 구분 | 시스템 권한 | 객체 권한 |
 |---|---|---|
-| 무엇에 대한 권한 | 데이터베이스 전체에서 어떤 작업을 할 수 있는지 | 테이블·뷰(저장해 둔 SELECT 문) 같은 객체 하나에 무엇을 할 수 있는지 |
+| 대상 | 데이터베이스 전체의 작업 | 테이블·뷰 같은 객체 하나 |
 | 예 | CREATE SESSION(접속), CREATE TABLE, CREATE VIEW, CREATE USER | SELECT, INSERT, UPDATE, DELETE, ALTER, REFERENCES, INDEX, EXECUTE |
 | 주로 주는 사람 | DBA(관리자) | 객체의 소유자 |
-| 남에게 다시 주게 하는 옵션 | WITH ADMIN OPTION | WITH GRANT OPTION |
+| 다시 주기 옵션 | WITH ADMIN OPTION | WITH GRANT OPTION |
 
 CREATE SESSION은 데이터베이스에 접속하는 권한이라서, 계정을 만들어도 이 권한이 없으면 로그인할 수 없어요.
 
@@ -215,6 +221,19 @@ SELECT COUNT(*) FROM 사원 WHERE 사번 = 1008;   -- GRANT 때 DELETE가 함께
 | 바로 확인 | 정답 | 이유 |
 |---|---|---|
 | GRANT 앞에서 COMMIT하지 않은 DELETE는 GRANT와 함께 확정돼요 | O | DCL은 실행 앞뒤로 자동 커밋돼서, 뒤의 ROLLBACK으로 되돌릴 수 없어요 |
+
+## 꼭 외울 것 — 두 옵션의 회수 차이와 기본 역할 {#memorize}
+
+| 외울 것 | 답 |
+|---|---|
+| 시스템 권한과 객체 권한 | ON 객체가 붙으면 객체 권한, 없으면 시스템 권한 |
+| 주기와 회수의 전치사 | GRANT ... TO, REVOKE ... FROM |
+| 객체 권한 다시 주기 옵션 | WITH GRANT OPTION, 회수하면 준 권한까지 연쇄 회수 |
+| 시스템 권한·역할의 옵션 | WITH ADMIN OPTION, 회수해도 이미 준 권한은 남음 |
+| 역할에 줄 수 없는 옵션 | WITH GRANT OPTION (오류) |
+| 기본 역할 세 개 | CONNECT(접속), RESOURCE(객체 생성), DBA(관리) |
+| RESOURCE에 없는 권한 | CREATE VIEW (따로 받아야 해요) |
+| GRANT·REVOKE와 커밋 | 앞뒤로 자동 커밋, 앞의 DML도 확정 |
 
 ## 시험에서는 이렇게 나와요 {#exam-point}
 

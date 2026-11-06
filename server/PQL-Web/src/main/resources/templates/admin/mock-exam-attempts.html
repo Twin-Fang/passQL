@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<th:block layout:fragment="title">모의고사 응시 기록</th:block>
+
+<th:block layout:fragment="content">
+<!-- 모의고사 응시 기록 (#866): mock-exam-attempts.js 가 회차·회원 필터로 /admin/api/mock-exams/attempts 를 페이지 조회 (?roundUuid=&memberUuid= 로 진입 가능) -->
+<div class="space-y-4 max-w-[1400px]">
+
+    <div>
+        <a href="/admin/mock-exams" class="btn btn-sm btn-ghost gap-1">
+            <i data-lucide="arrow-left" class="size-4"></i>회차 목록으로
+        </a>
+    </div>
+
+    <!-- 필터: 회차, 회원 UUID -->
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body p-4">
+            <form id="attemptFilterForm" class="flex flex-wrap items-end gap-3">
+                <label class="flex flex-col gap-1">
+                    <span class="label-text text-xs">회차</span>
+                    <select id="roundFilter" class="select select-sm select-bordered w-64">
+                        <option value="">전체 회차</option>
+                    </select>
+                </label>
+                <label class="flex flex-col gap-1">
+                    <span class="label-text text-xs">회원 UUID</span>
+                    <input type="search" id="memberUuidFilter" class="input input-sm input-bordered w-80"
+                           placeholder="회원 UUID" maxlength="36" autocomplete="off"/>
+                </label>
+                <button type="submit" class="btn btn-sm btn-primary"><i data-lucide="search" class="size-4"></i>검색</button>
+                <button type="reset" class="btn btn-sm btn-ghost">초기화</button>
+                <span id="attemptTotal" class="ml-auto text-sm text-base-content/60">-</span>
+            </form>
+        </div>
+    </div>
+
+    <!-- 응시 목록 (JS 렌더링, 최신 시작 순) -->
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body p-0">
+            <div class="overflow-x-auto">
+                <table class="table table-sm w-full">
+                    <thead>
+                    <tr>
+                        <th class="w-36">시작</th>
+                        <th class="w-36">제출</th>
+                        <th class="w-32">회원</th>
+                        <th class="w-24">회차</th>
+                        <th class="w-20">상태</th>
+                        <th class="w-24">제출 이유</th>
+                        <th class="w-16 text-right">총점</th>
+                        <th class="w-16 text-right">1과목</th>
+                        <th class="w-16 text-right">2과목</th>
+                        <th class="w-24">결과</th>
+                    </tr>
+                    </thead>
+                    <tbody id="attemptTableBody">
+                    <tr>
+                        <td colspan="10" class="text-center py-12 text-base-content/50">
+                            <span class="loading loading-spinner loading-sm"></span>
+                            <span class="ml-2">로딩 중...</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="attemptPager" class="flex justify-center p-4"></div>
+        </div>
+    </div>
+</div>
+</th:block>
+
+<th:block layout:fragment="js">
+    <!-- 포맷터 (Chart.js 는 이 화면에서 쓰지 않음) -->
+    <script th:src="@{/js/admin/admin-chart.js}"></script>
+    <script th:src="@{/js/admin/mock-exam-common.js}"></script>
+    <script th:src="@{/js/admin/mock-exam-attempts.js}"></script>
+</th:block>
+</html>

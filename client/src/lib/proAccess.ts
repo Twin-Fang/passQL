@@ -1,4 +1,4 @@
-import { ApiError } from "../api/client";
+import { toApiErrorCode } from "../api/client";
 import {
   FAIR_USE_DAILY_LIMIT_REASON,
   FAIR_USE_LIMIT_RESET_NOTICE,
@@ -44,8 +44,7 @@ export function shouldShowProBadgeForPlan(plan: MemberPlanResponse | undefined):
 
 /** 오류 > 프로 접근 오류 코드 (그 외 오류는 null) */
 export function toProAccessErrorCode(error: unknown): ProAccessErrorCode | null {
-  if (!(error instanceof ApiError)) return null;
-  return toProAccessErrorCodeFromErrorCode((error.body as { errorCode?: unknown } | null)?.errorCode);
+  return toProAccessErrorCodeFromErrorCode(toApiErrorCode(error));
 }
 
 /** 오류 코드 값(응답 본문·SSE error 이벤트) > 프로 접근 오류 코드 (그 외는 null) */

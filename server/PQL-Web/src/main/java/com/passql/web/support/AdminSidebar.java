@@ -37,6 +37,7 @@ public final class AdminSidebar {
                     item("questions", "/admin/questions", "book-open", "문제 관리"),
                     item("reports", "/admin/reports", "flag", "신고 관리"),
                     item("daily-challenges", "/admin/daily-challenges", "calendar-check", "일일 챌린지"),
+                    item("mock-exams", "/admin/mock-exams", "clipboard-list", "모의고사"),
                     item("topics", "/admin/topics", "tags", "토픽/태그 관리"),
                     item("concepts", "/admin/concepts", "book", "개념 문서 관리"),
                     item("exam-schedules", "/admin/exam-schedules", "calendar-days", "시험 일정"))),

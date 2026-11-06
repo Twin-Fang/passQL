@@ -2,6 +2,7 @@ package com.passql.question.repository;
 
 import com.passql.question.constant.ChoiceSetSource;
 import com.passql.question.constant.ChoiceSetStatus;
+import com.passql.question.constant.ExecutionMode;
 import com.passql.question.entity.QuestionChoiceSet;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -159,4 +160,31 @@ public interface QuestionChoiceSetRepository extends JpaRepository<QuestionChoic
              where s.choiceSetUuid = :choiceSetUuid
             """)
     int markExplanationFailed(@Param("choiceSetUuid") UUID choiceSetUuid, @Param("now") LocalDateTime now);
+    /**
+     * 모의고사 출제 가능 세트 기준 (#866, 단일 원본): 활성 문제 + OK 세트 + 보기 N개 + 정답 1개
+     * + (개념형 또는 샌드박스 검증 통과 또는 관리자 고정 출처)
+     */
+    String MOCK_EXAM_ELIGIBLE_SET_QUERY = """
+            SELECT cs FROM QuestionChoiceSet cs, Question q
+            WHERE q.questionUuid = cs.questionUuid AND q.isActive = true AND cs.status = :okStatus
+              AND (q.executionMode = :conceptMode OR cs.sandboxValidationPassed = true OR cs.source IN :curatedSources)
+              AND (SELECT COUNT(i) FROM QuestionChoiceSetItem i WHERE i.choiceSetUuid = cs.choiceSetUuid) = :choiceCount
+              AND (SELECT COUNT(i) FROM QuestionChoiceSetItem i
+                   WHERE i.choiceSetUuid = cs.choiceSetUuid AND i.isCorrect = true) = 1
+            """;
+
+    /** 모의고사 출제 가능 세트 전체 (자동 구성·출제 가능 문제 수) */
+    @Query(MOCK_EXAM_ELIGIBLE_SET_QUERY)
+    List<QuestionChoiceSet> findMockExamEligibleSets(@Param("okStatus") ChoiceSetStatus okStatus,
+                                                     @Param("conceptMode") ExecutionMode conceptMode,
+                                                     @Param("curatedSources") Collection<ChoiceSetSource> curatedSources,
+                                                     @Param("choiceCount") long choiceCount);
+
+    /** 주어진 세트 중 모의고사 출제 가능 세트 (공개 검사·문항 교체) */
+    @Query(MOCK_EXAM_ELIGIBLE_SET_QUERY + " AND cs.choiceSetUuid IN :choiceSetUuids")
+    List<QuestionChoiceSet> findMockExamEligibleSetsAmong(@Param("okStatus") ChoiceSetStatus okStatus,
+                                                          @Param("conceptMode") ExecutionMode conceptMode,
+                                                          @Param("curatedSources") Collection<ChoiceSetSource> curatedSources,
+                                                          @Param("choiceCount") long choiceCount,
+                                                          @Param("choiceSetUuids") Collection<UUID> choiceSetUuids);
 }

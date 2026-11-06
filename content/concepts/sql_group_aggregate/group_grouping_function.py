@@ -74,8 +74,12 @@ HAVING_GROUPING_EXAMPLE = sql_example(
     is_ordered=False,
 )
 # CUBE(부서번호, 직급) 묶음별 GROUPING_ID 값
-GROUPING_ID_COLUMNS = ("묶음", "GROUPING(부서번호)", "GROUPING(직급)", "GROUPING_ID(부서번호, 직급)")
 GROUPING_ID_ROWS = [["(부서번호, 직급)", 0, 0, 0], ["(부서번호)", 0, 1, 1], ["(직급)", 1, 0, 2], ["()", 1, 1, 3]]
+# 화면 표: 두 GROUPING 값을 이진수 두 자리처럼 한 칸에 (390pt 폭, 값은 GROUPING_ID_ROWS 그대로)
+GROUPING_ID_TABLE = to_markdown_table(
+    ("묶음", "GROUPING(부서번호), GROUPING(직급)", "GROUPING_ID(부서번호, 직급)"),
+    [[group, f"{department_grouping}, {position_grouping}", grouping_id]
+     for group, department_grouping, position_grouping, grouping_id in GROUPING_ID_ROWS])
 
 CONCEPT = {
     "tagKey": "group-grouping-function",
@@ -84,11 +88,11 @@ CONCEPT = {
     "title": "GROUPING 함수",
     "summary": "소계와 총계 때문에 생긴 NULL이면 1, 아니면 0을 돌려줘요",
     "coreMd": (
-        "- `GROUPING(열)`은 그 열이 소계나 총계를 만들려고 묶음에서 빠졌으면 1, 실제 값으로 묶였으면 0이에요.\n"
-        "- 결과의 NULL이 원래 데이터인지 소계 표시인지 GROUPING으로 구분해요.\n"
+        "- `GROUPING(열)`은 그 열이 소계나 총계를 만들려고 묶음에서 **빠졌으면 1**, 실제 값으로 묶였으면 0이에요.\n"
+        "- 결과의 NULL이 **원래 데이터**인지 소계 표시인지 GROUPING으로 구분해요.\n"
         "- CASE나 DECODE와 함께 써서 소계와 총계 행에 '소계', '전체' 같은 이름을 붙여요.\n"
         "- 괄호 안에는 GROUP BY 열만 넣고, 다른 열은 ORA-00979(GROUP BY에 없는 열) 오류예요.\n"
-        "- `GROUPING_ID(A, B)`는 GROUPING(A) × 2 + GROUPING(B)라서 0, 1, 2, 3 가운데 하나예요."
+        "- `GROUPING_ID(A, B)`는 GROUPING(A) × 2 + GROUPING(B)라서 **0, 1, 2, 3** 가운데 하나예요."
     ),
     "detailMd": f"""## 같은 NULL, 다른 뜻 — GROUPING이 필요한 이유 {{#why}}
 
@@ -117,7 +121,7 @@ CONCEPT = {
 
 {ROLLUP_DEPARTMENT_GROUPING_EXAMPLE.markdown}
 
-윤서연 그룹은 원래 NULL인 값으로 묶인 것이라 0이고, 총계 행은 부서번호를 빼고 묶었으므로 1이에요. 헷갈리면 "이 칸의 NULL은 소계 때문에 생겼나요?"라고 묻고, 그렇다면 1, 아니라면 0이라고 답하면 돼요.
+윤서연 그룹은 원래 NULL인 값으로 묶인 것이라 **0**이고, 총계 행은 부서번호를 빼고 묶었으므로 1이에요. 헷갈리면 "이 칸의 NULL은 소계 때문에 생겼나요?"라고 묻고, 그렇다면 1, 아니라면 0이라고 답하면 돼요.
 
 ## 소계 행에 이름 붙이기 — CASE와 DECODE {{#label}}
 
@@ -163,13 +167,25 @@ GROUPING은 그룹마다 값이 하나라서 집계 함수처럼 HAVING과 ORDER
 
 이진수는 0과 1만으로 수를 나타내는 방법이고, 두 자리 이진수에서 왼쪽 자리는 2를, 오른쪽 자리는 1을 뜻해요. `GROUPING_ID(부서번호, 직급)`은 GROUPING(부서번호)를 왼쪽에, GROUPING(직급)을 오른쪽에 둔 이진수를 보통 숫자로 바꾼 값이라서, GROUPING(부서번호) × 2 + GROUPING(직급)으로 계산해요.
 
-{to_markdown_table(GROUPING_ID_COLUMNS, GROUPING_ID_ROWS)}
+{GROUPING_ID_TABLE}
 
 | 바로 확인 | 정답 | 이유 |
 |---|---|---|
 | `CUBE(부서번호, 직급)`의 총계 행은 `GROUPING_ID(부서번호, 직급)`이 3이에요 | O | 두 열이 모두 빠져서 1 × 2 + 1 = 3이에요 |
 | `HAVING GROUPING(부서번호) = 0`을 붙이면 윤서연 그룹도 빠져요 | X | 윤서연 그룹은 원래 NULL로 묶여서 0이라 남아요 |
 | CASE로 이름을 붙일 때 `ELSE 부서번호`처럼 숫자를 그대로 써도 돼요 | X | 문자 '전체'와 자료형이 달라 ORA-00932(자료형이 서로 맞지 않음) 오류가 나요 |
+
+## 꼭 외울 것 — 1과 0이 뜻하는 것 {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| `GROUPING(열)`이 1인 행 | 그 열이 묶음에서 빠진 소계·총계 행 |
+| `GROUPING(열)`이 0인 행 | 실제 값으로 묶은 행 (원래 NULL도 0) |
+| 괄호 안에 넣는 열 | GROUP BY 열만 (아니면 ORA-00979) |
+| `GROUPING_ID(A, B)` 계산 | GROUPING(A) × 2 + GROUPING(B) |
+| 총계 행의 `GROUPING_ID(A, B)` | 3 (두 열 모두 빠짐) |
+| 소계에 '전체' 붙이기 | CASE나 DECODE 조건에 GROUPING을 써요 |
+| 총계 행만 빼는 HAVING | `GROUPING(열) = 0` (원래 NULL 그룹은 남음) |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 

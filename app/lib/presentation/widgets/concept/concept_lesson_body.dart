@@ -6,6 +6,7 @@ import '../question/result_rows_table.dart';
 import 'concept_lesson_block.dart';
 import 'concept_join_diagram.dart';
 import 'concept_lesson_block_parser.dart';
+import 'concept_memorize_card.dart';
 import 'concept_mnemonic_card.dart';
 import 'concept_quick_check_card.dart';
 import 'concept_refutation_cards.dart';
@@ -15,7 +16,7 @@ import 'concept_step_timeline.dart';
 import 'concept_term_cards.dart';
 
 /// 개념 문단 본문 (#848·#853): 마크다운 > 레슨 블록 > 블록마다 스크롤 등장 (그림 블록은 들어온 뒤 움직임)
-/// 표·코드는 좁은 화면에서 가로 스크롤 (코드는 줄바꿈하지 않음)
+/// 표는 화면 폭에 맞춰 칸 안 줄바꿈, 그래도 넘치면 가로 스크롤 (#876). 코드는 줄바꿈 없이 가로 스크롤
 class ConceptLessonBody extends StatelessWidget {
   const ConceptLessonBody(this.markdown, {super.key});
 
@@ -39,7 +40,7 @@ class ConceptLessonBody extends StatelessWidget {
   static Widget _blockWidgetOf(ConceptLessonBlock block) => switch (block) {
     ConceptTextBlock(:final markdown) => MarkdownLiteText(
       markdown,
-      style: MarkdownLiteStyle.article,
+      style: MarkdownLiteStyle.lesson,
     ),
     // 교재형 SQL 예시는 들여쓰기·결과 주석 정렬이 중요 > 줄바꿈 대신 가로 스크롤
     ConceptCodeBlock(:final code) => PassqlCodeBlock(
@@ -47,10 +48,15 @@ class ConceptLessonBody extends StatelessWidget {
       shouldWrap: false,
     ),
     ConceptTableBlock(:final columns, :final rows) =>
-      ResultRowsTable.positional(columns: columns, rows: rows),
+      ResultRowsTable.positional(
+        columns: columns,
+        rows: rows,
+        shouldWrapCellsToFit: true,
+      ),
     ConceptTermCardsBlock(:final terms) => ConceptTermCards(terms: terms),
     ConceptStepsBlock(:final steps) => ConceptStepTimeline(steps: steps),
     ConceptMnemonicBlock() => ConceptMnemonicCard(mnemonic: block),
+    ConceptMemorizeBlock() => ConceptMemorizeCard(memorize: block),
     ConceptRefutationBlock(:final refutations) => ConceptRefutationCards(
       refutations: refutations,
     ),

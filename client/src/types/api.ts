@@ -140,6 +140,52 @@ export type AiAnalysisStrength = ApiSchemas["AiAnalysisStrength"];
 
 export type AiAnalysisAction = ApiSchemas["AiAnalysisAction"];
 
+// === SQLD 모의고사 (#866) ===
+// 형식·채점·등급 판정은 모두 서버 (examRule 로만 표시, 웹에 숫자 복사 금지)
+export type MockExamRoundListResponse = ApiSchemas["MockExamRoundListResponse"];
+
+export type MockExamRule = ApiSchemas["MockExamRuleResponse"];
+
+export type MockExamRoundSummary = ApiSchemas["RoundSummary"];
+
+export type MockExamInProgressAttempt = ApiSchemas["InProgressAttempt"];
+
+// startBlockReason: PRO_REQUIRED 체험 회차 아님 / FREE_TRIAL_USED 체험 소진 / OTHER_ATTEMPT_IN_PROGRESS 다른 회차 풀이 중
+export type MockExamStartBlockReason = NonNullable<MockExamRoundSummary["startBlockReason"]>;
+
+export type MockExamSheetResponse = ApiSchemas["MockExamSheetResponse"];
+
+export type MockExamSheetQuestion = ApiSchemas["SheetQuestion"];
+
+export type MockExamChoice = ApiSchemas["MockExamChoice"];
+
+export type MockExamSubject = MockExamSheetQuestion["subject"];
+
+export type MockExamAnswerSaveRequest = ApiSchemas["MockExamAnswerSaveRequest"];
+
+export type MockExamAnswerSaveResponse = ApiSchemas["MockExamAnswerSaveResponse"];
+
+export type MockExamAnswerEntry = ApiSchemas["AnswerEntry"];
+
+// lockedSections: 무료면 MOCK_EXAM_SUBJECT_DETAIL·MOCK_EXAM_REVIEW (subjects·topics·reviews 빈 값, nextStep null)
+export type MockExamResultResponse = ApiSchemas["MockExamResultResponse"];
+
+export type MockExamFailReason = MockExamResultResponse["failReason"];
+
+export type MockExamSubjectResult = ApiSchemas["SubjectResult"];
+
+export type MockExamTopicResult = ApiSchemas["TopicResult"];
+
+export type MockExamQuestionMark = ApiSchemas["QuestionMark"];
+
+export type MockExamQuestionReview = ApiSchemas["QuestionReview"];
+
+export type MockExamNextStep = ApiSchemas["MockExamNextStep"];
+
+export type MockExamHistoryResponse = ApiSchemas["MockExamHistoryResponse"];
+
+export type MockExamHistoryEntry = ApiSchemas["HistoryEntry"];
+
 // 통계 AI 분석 보강 (#862): 과목별 예상 점수, 데이터 부족 안내, 반복 오답
 export type AiExamForecast = ApiSchemas["AiExamForecast"];
 

@@ -26,6 +26,7 @@ import '../../widgets/home/fallback_stats_section.dart';
 import '../../widgets/home/greeting_section.dart';
 import '../../widgets/home/heatmap_widget.dart';
 import '../../widgets/home/readiness_card.dart';
+import '../../widgets/mock_exam/mock_exam_entry_row.dart';
 import '../../widgets/home/recommendations_section.dart';
 import '../../widgets/pro/pro_plan_chip_slot.dart';
 
@@ -198,6 +199,12 @@ class _HomeContent extends ConsumerWidget {
           onViewResult: () => context.push(AppRoutes.dailySetResult),
           onBrowse: () => context.go(AppRoutes.questions),
         ),
+      ),
+
+      // 모의고사 (#866): 오늘 할 일 다음, 풀이 중이면 이어 풀기
+      const PassqlSection(
+        title: 'SQLD 모의고사',
+        child: MockExamEntryRow(hasHorizontalPadding: false),
       ),
     ];
 

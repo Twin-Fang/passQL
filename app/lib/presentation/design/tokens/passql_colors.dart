@@ -17,6 +17,9 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     required this.wrongTint,
     required this.warning,
     required this.warningText,
+    required this.memorize,
+    required this.memorizeText,
+    required this.memorizeHighlight,
     required this.onSemantic,
     required this.countBadge,
     required this.onCountBadge,
@@ -52,6 +55,15 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
 
   /// 주황 글자 (배지·별점). warning 은 채움·점·큰 아이콘용
   final Color warningText;
+
+  /// 꼭 외울 것 (#876): 노랑 채움·막대·큰 아이콘. 글자는 memorizeText
+  final Color memorize;
+
+  /// 꼭 외울 것 라벨 글자·작은 아이콘 (card·memorize 옅은 바탕 위 4.5)
+  final Color memorizeText;
+
+  /// 외울 말 형광펜 바탕 (불투명, 위 글자는 label 4.5 이상)
+  final Color memorizeHighlight;
 
   /// 진한 의미색(correct·wrong·warning) 채움 위 글자 (흰 글자는 대비 2~3.5라 쓰지 않음)
   final Color onSemantic;
@@ -103,6 +115,10 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     warning: Color(0xFFFF9500),
     // 주황 그대로는 흰 바탕 2.2 > 갈색 계열로 어둡게
     warningText: Color(0xFF9A4500),
+    // 노랑 그대로는 흰 바탕 글자 대비 1.5 > 글자는 어두운 황토색
+    memorize: Color(0xFFFFCC00),
+    memorizeText: Color(0xFF7A5C00),
+    memorizeHighlight: Color(0xFFFFE680),
     onSemantic: Color(0xFF000000),
     countBadge: Color(0xFFFF3B30),
     onCountBadge: Color(0xFFFFFFFF),
@@ -138,6 +154,10 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     wrongTint: Color(0x33FF453A),
     warning: Color(0xFFFF9F0A),
     warningText: Color(0xFFFF9F0A),
+    memorize: Color(0xFFFFD60A),
+    memorizeText: Color(0xFFFFD60A),
+    // 다크 형광펜: 흰 글자가 읽히게 어두운 황토
+    memorizeHighlight: Color(0xFF5C4700),
     onSemantic: Color(0xFF000000),
     countBadge: Color(0xFFFF453A),
     onCountBadge: Color(0xFFFFFFFF),
@@ -172,6 +192,9 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
         wrongTint: wrongTint,
         warning: warning,
         warningText: warningText,
+        memorize: memorize,
+        memorizeText: memorizeText,
+        memorizeHighlight: memorizeHighlight,
         onSemantic: onSemantic,
         countBadge: countBadge,
         onCountBadge: onCountBadge,
@@ -208,6 +231,9 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
       wrongTint: lerpColor(wrongTint, other.wrongTint),
       warning: lerpColor(warning, other.warning),
       warningText: lerpColor(warningText, other.warningText),
+      memorize: lerpColor(memorize, other.memorize),
+      memorizeText: lerpColor(memorizeText, other.memorizeText),
+      memorizeHighlight: lerpColor(memorizeHighlight, other.memorizeHighlight),
       onSemantic: lerpColor(onSemantic, other.onSemantic),
       countBadge: lerpColor(countBadge, other.countBadge),
       onCountBadge: lerpColor(onCountBadge, other.onCountBadge),
