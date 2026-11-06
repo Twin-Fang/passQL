@@ -110,6 +110,7 @@ public interface ProgressControllerDocs {
         @ApiLog(date = "2026.10.27", author = Author.SUHSAECHAN, issueNumber = 699, description = "통계 코멘트(sessionUuid 없음) 무료 개방: 무료 하루 1회·프로 최근 풀이 10문제마다 갱신 (캐시 키 ai-comment:{memberUuid}:stats:{날짜}:{구간}, TTL 24h). 세션 코멘트는 프로 전용 유지 (무료 403 PRO_REQUIRED)"),
         @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 860, description = "통계·세션 코멘트 모두 프로 전용 (무료 403 PRO_REQUIRED), 세션 코멘트는 본인 세션 제출만 집계"),
         @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 861, description = "통계 코멘트에 구조화 분석(analysis) 추가: 서버 판정 집중 토픽 2개·근거·주간 추세·강점·바로 풀기 버튼, LLM 은 토픽별 한 문장(ai_analysis_stats). comment 는 구버전 앱용 평문 유지, 세션 코멘트 analysis=null"),
+        @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 862, description = "analysis 에 periodLabel·forecast(과목별 예상 점수·과락 판정)·forecastHint·repeatedWrong·readiness(데이터 부족)·nextGoal, findings[].conceptTopicUuid, 버튼 RANDOM_PRACTICE·PRACTICE_LATEST_TREND 추가. 세션 코멘트는 서버 문장 + 놓친 문제 LLM 한 문장(ai_analysis_session), LLM 실패해도 200. 통계 캐시 키 구간 접두 guide-"),
     })
     @Operation(
         summary = "AI 영역 분석 코멘트 조회",
@@ -123,19 +124,28 @@ public interface ProgressControllerDocs {
             - 프로 전용 (결제 켜짐 무료 회원 403 PRO_REQUIRED, 결제 꺼짐이면 모두 허용)
 
             ## 반환값 (AiCommentResponse)
-            - comment: 한국어 코멘트. 세션: AI 2~3문장 / 통계: analysis 를 이어 붙인 평문 (구버전 앱 호환, 마크다운 없음)
+            - comment: 한국어 코멘트. 세션: 서버 문장 + AI 한 문장 / 통계: analysis 를 이어 붙인 평문 (구버전 앱 호환, 마크다운 없음)
             - generatedAt: 코멘트 생성(캐시 저장) 시각
             - analysis (통계 화면만, 세션은 null): 서버 판정 구조화 분석
               - headline: 한 줄 요약 (시험 30일 이내면 "D-N · " 접두)
               - findings[] (최대 2): topicUuid, topicName(짧은 이름), kind(WEAK 약점·SHAKY 불안정·UNTRIED 판단 이름), solvedCount, correctRatePercent, evidence, insight(LLM 한 문장, 실패·근거 부족이면 null)
               - trend: 이번 주 vs 지난주 정답률 (두 주 모두 풀이 있을 때만, 아니면 null)
               - strength: 10문제 이상·85% 이상 중 최고 토픽 (없으면 null)
-              - actions[] (최대 2): type(PRACTICE_TOPIC 토픽 풀기·REVIEW_WRONG 최근 오답 다시 풀기), topicUuid·topicName(PRACTICE_TOPIC 만), count(표시용), label
+              - actions[] (최대 2): type(PRACTICE_TOPIC 토픽 풀기·REVIEW_WRONG 오답 다시 풀기·RANDOM_PRACTICE 랜덤 풀기·PRACTICE_LATEST_TREND 최신 경향 풀기), topicUuid·topicName(PRACTICE_TOPIC 만), count(표시용), label. 모르는 type 은 화면이 숨김
+              - findings[].conceptTopicUuid: 이 회원이 열 수 있는 개념 학습 단원(같은 토픽)일 때만, 아니면 null
+              - periodLabel: 판정 기간 표기 ("최근 90일 기준")
+              - forecast (근거 부족이면 null): SQLD 1과목 10·2과목 40문항 기준 예상 맞힐 수, expectedScore(100점), isSubjectOneFailRisk·isSubjectTwoFailRisk(40% 미만), verdict(SUBJECT_FAIL_RISK·PASS_LIKELY 70+·BORDERLINE 54~68·BELOW_PASS), verdictLabel, summary, detail
+                - 1과목 = 토픽 data_modeling 정답률, 2과목 = 나머지 토픽 같은 비중 평균(토픽별 풀이 적으면 2과목 전체 정답률 쪽으로 5문제분 당김), 최근 90일
+                - 1과목 5문제·2과목 20문제 미만이면 forecast=null, forecastHint="1과목 2문제 더 풀면 예상 점수를 알려 드려요"
+              - repeatedWrong (2문제 미만이면 null): 최근 90일 같은 문제 2번 이상 틀린 문제 수, 그중 마지막 시도도 오답인 수, text
+              - readiness (데이터 부족만): 5문제 이상 푼 토픽이 하나도 없을 때. message, topicName(가장 많이 푼 토픽), solvedCount, targetCount(5). 이때 findings·forecast 없음
+              - nextGoal (모두 안정권만): 안 푼 토픽 시작 또는 최신 경향 권유
               - 판정 기준·문구는 서버 규칙 고정, LLM 실패해도 analysis 는 응답 (insight 만 null)
+            - 세션 코멘트 comment: 서버 문장(점수 > 놓친 토픽 > 그 토픽 최근 90일 판정) + 오답 있으면 LLM 한 문장(ai_analysis_session), LLM 실패면 서버 문장만
 
             ## 캐싱
             - Redis key: ai-comment:{memberUuid}:{sessionUuid}, TTL 2시간
-            - 통계: ai-comment:{memberUuid}:stats:{날짜}:analysis-{최근 7일 풀이 수/10}, TTL 24시간 (LLM 실패 응답은 캐시하지 않음)
+            - 통계: ai-comment:{memberUuid}:stats:{날짜}:guide-{최근 7일 풀이 수/10}, TTL 24시간 (LLM 실패 응답은 캐시하지 않음, 세션도 같음)
             - 같은 세션 재진입 시 동일 텍스트 반환 (불필요한 AI 호출 방지)
             - 새 세션 시작 시 새 sessionUuid로 자동 새 AI 호출
             - AI 호출 latency를 고려해 프론트엔드에서 비동기 로딩 권장

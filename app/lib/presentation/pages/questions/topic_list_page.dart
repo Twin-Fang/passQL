@@ -39,10 +39,10 @@ const _sectionPadding = EdgeInsets.fromLTRB(
 );
 
 /// 문제 탭: 보기 3개 (주제별 | 최신 경향 | 개념 TOP 10)
-/// 공통(모든 보기) > 세그먼트 아래 오답 노트 + 풀이 모드 행
+/// 공통(모든 보기) > 세그먼트 아래 오답 노트 + 새 보기로 풀기 행
 /// 주제별 > 토픽 선택 (토픽 행 탭 시 /questions/chapter?topic=CODE&topicName=NAME 이동)
 /// 최신 경향·개념 TOP 10 > 출제 경향 응답 (행 탭 시 그 토픽의 최신 경향 문제 풀기)
-/// 무료(결제 켜짐): 세그먼트 없이 풀기 방식(랜덤 풀기) + 토픽 골라 풀기·실전 모드·약점 추천 묶음 블러 (토픽 목록·출제 경향 요청 없음)
+/// 무료(결제 켜짐): 세그먼트 없이 풀기 방식(랜덤 풀기) + 토픽 골라 풀기·새 보기로 풀기·약점 추천 묶음 블러 (토픽 목록·출제 경향 요청 없음)
 class TopicListPage extends ConsumerWidget {
   const TopicListPage({super.key, this.view = QuestionsTabView.byTopic});
 
@@ -286,7 +286,7 @@ class _RandomPracticeSection extends ConsumerWidget {
   }
 }
 
-/// 세그먼트 아래 공통 영역: 오답 노트 + 풀이 모드 (보기와 상관없이 항상 보임)
+/// 세그먼트 아래 공통 영역: 오답 노트 + 새 보기로 풀기 (보기와 상관없이 항상 보임)
 class _CommonShortcutSection extends StatelessWidget {
   const _CommonShortcutSection();
 

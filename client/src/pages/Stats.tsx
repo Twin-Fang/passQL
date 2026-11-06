@@ -90,7 +90,12 @@ export default function Stats() {
   const hasSolvedRecords = (progress?.solvedCount ?? 0) > 0;
 
   // AI 코멘트 — Stats 페이지는 세션 무관 전체 분석이므로 sessionUuid 빈 문자열 전달
-  const { data: aiComment, isLoading: aiCommentLoading } = useQuery({
+  const {
+    data: aiComment,
+    isLoading: aiCommentLoading,
+    isError: isAiCommentError,
+    refetch: refetchAiComment,
+  } = useQuery({
     queryKey: ["aiComment", uuid],
     queryFn: () => fetchAiComment(),
     enabled: !!uuid && shouldFetchAiComment,
@@ -219,6 +224,8 @@ export default function Stats() {
               comment={aiComment?.comment ?? null}
               analysis={aiComment?.analysis ?? null}
               isLoading={aiCommentLoading}
+              isError={isAiCommentError}
+              onRetry={() => void refetchAiComment()}
             />
           </section>
           {/* ④ 레이더 차트 */}
