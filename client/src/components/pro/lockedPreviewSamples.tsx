@@ -35,6 +35,12 @@ const STATS_SAMPLE_SECTIONS: readonly LockedSampleSection[] = [
   { title: "강한 토픽", body: "집계 함수 88% · 정렬 84%" },
 ];
 
+// AI 분석 코멘트: 약한 영역, 다음 공부 (#860)
+const AI_ANALYSIS_SAMPLE_SECTIONS: readonly LockedSampleSection[] = [
+  { title: "약한 영역", body: "조인과 서브쿼리 정답률이 낮아요. 최근 7일 동안 이 두 영역을 가장 많이 틀렸어요." },
+  { title: "다음 공부", body: "OUTER JOIN 결과 행 수 문제부터 다시 풀어 보세요." },
+];
+
 // 출제 경향: 과목 비중, 늘어난 유형, 예상
 const EXAM_TREND_SAMPLE_SECTIONS: readonly LockedSampleSection[] = [
   { title: "과목별 비중", body: "1과목 20% · 2과목 80%" },
@@ -55,6 +61,10 @@ export function ExplanationLockedSample() {
 
 export function StatsLockedSample() {
   return <LockedSampleCard sections={STATS_SAMPLE_SECTIONS} />;
+}
+
+export function AiAnalysisLockedSample() {
+  return <LockedSampleCard sections={AI_ANALYSIS_SAMPLE_SECTIONS} />;
 }
 
 export function ExamTrendLockedSample() {

@@ -108,6 +108,7 @@ public interface ProgressControllerDocs {
         @ApiLog(date = "2026.04.12", author = Author.SUHSAECHAN, issueNumber = 176, description = "sessionUuid 파라미터 추가. 캐시 키 세션 단위 변경(ai-comment:{memberUuid}:{sessionUuid}, TTL 2h). 프롬프트 DB 이관(ai_comment 키). 이번 세션 결과 + 누적 통계 통합 피드백."),
         @ApiLog(date = "2026.04.19", author = Author.SUHSAECHAN, issueNumber = 120, description = "memberUuid 쿼리 파라미터 → @AuthMember JWT 인증 전환"),
         @ApiLog(date = "2026.10.27", author = Author.SUHSAECHAN, issueNumber = 699, description = "통계 코멘트(sessionUuid 없음) 무료 개방: 무료 하루 1회·프로 최근 풀이 10문제마다 갱신 (캐시 키 ai-comment:{memberUuid}:stats:{날짜}:{구간}, TTL 24h). 세션 코멘트는 프로 전용 유지 (무료 403 PRO_REQUIRED)"),
+        @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 860, description = "통계·세션 코멘트 모두 프로 전용 (무료 403 PRO_REQUIRED), 세션 코멘트는 본인 세션 제출만 집계"),
     })
     @Operation(
         summary = "AI 영역 분석 코멘트 조회",
@@ -115,7 +116,10 @@ public interface ProgressControllerDocs {
             ## 인증(JWT): **필요**
 
             ## 요청 파라미터
-            - sessionUuid (UUID, required): 퀴즈 세션 식별자
+            - sessionUuid (UUID, optional): 퀴즈 세션 식별자 (없으면 통계 화면 코멘트, 본인 세션 제출만 집계)
+
+            ## 등급
+            - 프로 전용 (결제 켜짐 무료 회원 403 PRO_REQUIRED, 결제 꺼짐이면 모두 허용)
 
             ## 반환값 (AiCommentResponse)
             - comment: AI 생성 한국어 코멘트 (2~3문장, 약점 영역 파악 + 집중 학습 추천)

@@ -44,6 +44,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -63,6 +64,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class QuestionService {
+    // 회원 문제 목록 한 페이지 최대 크기 (개, 앱·웹은 10 사용, 큰 size 로 목록 통째 수집 방지 #860)
+    static final int MAX_QUESTION_LIST_PAGE_SIZE = 50;
+
     private final QuestionRepository questionRepository;
     private final QuestionChoiceRepository questionChoiceRepository;
     private final QuestionChoiceSetRepository choiceSetRepository;
@@ -72,7 +76,7 @@ public class QuestionService {
     private final SubtopicRepository subtopicRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    /** 문제 목록: 토픽·난이도·모드·최신 경향 필터 (isLatestTrend null 이면 전체) */
+    /** 문제 목록: 토픽·난이도·모드·최신 경향 필터 (isLatestTrend null 이면 전체), 페이지 크기 최대 50 */
     public Page<QuestionSummary> getQuestions(String topicCode, String subtopic, Integer difficulty, String mode,
                                               Boolean isLatestTrend, Pageable pageable) {
         UUID topicUuid = (topicCode != null && !topicCode.isBlank())
@@ -81,7 +85,10 @@ public class QuestionService {
         ExecutionMode executionMode = (mode != null && !mode.isBlank())
                 ? ExecutionMode.fromRequestValue(mode)
                 : null;
-        return questionRepository.findByFilters(topicUuid, difficulty, executionMode, isLatestTrend, pageable).map(this::toSummary);
+        Pageable cappedPageable = pageable.getPageSize() > MAX_QUESTION_LIST_PAGE_SIZE
+                ? PageRequest.of(pageable.getPageNumber(), MAX_QUESTION_LIST_PAGE_SIZE, pageable.getSort())
+                : pageable;
+        return questionRepository.findByFilters(topicUuid, difficulty, executionMode, isLatestTrend, cappedPageable).map(this::toSummary);
     }
 
     /** 관리자 문제 목록: 토픽·난이도·모드·지문 검색어·활성 여부 필터 */

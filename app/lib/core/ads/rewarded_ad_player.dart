@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -16,17 +17,34 @@ enum RewardedAdOutcome {
   unavailable, // 미설정·로드 실패·시간 초과·다른 전체 화면 광고 표시 중
 }
 
+/// 보상형 광고 서버 검증 값 (#860): AdMob 이 보상 시 서버 콜백(user_id·custom_data)에 그대로 실어 보냄
+class RewardedAdServerVerification {
+  const RewardedAdServerVerification({
+    required this.userId,
+    required this.customData,
+  });
+
+  /// 회원 UUID (서버가 보너스를 줄 회원)
+  final String userId;
+
+  /// 광고마다 만든 보상 표식 (앱 신고와 콜백을 같은 광고로 묶음)
+  final String customData;
+}
+
 /// 보상형 광고 재생 포트 (누를 때 불러와 바로 보임). 테스트는 가짜로 바꿔 SDK 를 띄우지 않음
 abstract interface class RewardedAdPlayer {
-  /// 불러오기 > 표시 > 닫힘까지 기다림 (예외 없음)
-  Future<RewardedAdOutcome> loadAndShow(AdPlacement placement);
+  /// 불러오기 > (서버 검증 값 설정) > 표시 > 닫힘까지 기다림 (예외 없음)
+  Future<RewardedAdOutcome> loadAndShow(
+    AdPlacement placement, {
+    RewardedAdServerVerification? serverVerification,
+  });
 }
 
 final rewardedAdPlayerProvider = Provider<RewardedAdPlayer>(
   (ref) => GoogleRewardedAdPlayer(ref.watch(adRequestPreparerProvider)),
 );
 
-/// google_mobile_ads 보상형 (#808): 공통 준비 > 로드(30초 제한) > 겹침 확인 > 표시 > 닫힘
+/// google_mobile_ads 보상형 (#808): 공통 준비 > 로드(30초 제한) > 겹침 확인 > 서버 검증 값 설정(#860) > 표시 > 닫힘
 /// 표시 중에는 전체 화면 광고 표시 중으로 기록 (앱 오프닝·전면 광고 겹침 방지, #787)
 class GoogleRewardedAdPlayer implements RewardedAdPlayer {
   GoogleRewardedAdPlayer(this._requestPreparer);
@@ -34,14 +52,37 @@ class GoogleRewardedAdPlayer implements RewardedAdPlayer {
   final AdRequestPreparer _requestPreparer;
 
   @override
-  Future<RewardedAdOutcome> loadAndShow(AdPlacement placement) async {
+  Future<RewardedAdOutcome> loadAndShow(
+    AdPlacement placement, {
+    RewardedAdServerVerification? serverVerification,
+  }) async {
     final rewardedAd = await _load(placement);
     if (rewardedAd == null) return RewardedAdOutcome.unavailable;
     if (FullScreenAdGuard.isFullScreenAdShowing) {
       rewardedAd.dispose();
       return RewardedAdOutcome.unavailable;
     }
+    if (serverVerification != null) {
+      await _applyServerVerification(rewardedAd, serverVerification);
+    }
     return _show(rewardedAd);
+  }
+
+  /// 서버 검증 값 설정, 실패해도 광고는 보임 (서버 검증 꺼짐 동안은 앱 신고로 기록되므로)
+  Future<void> _applyServerVerification(
+    RewardedAd rewardedAd,
+    RewardedAdServerVerification serverVerification,
+  ) async {
+    try {
+      await rewardedAd.setServerSideOptions(
+        ServerSideVerificationOptions(
+          userId: serverVerification.userId,
+          customData: serverVerification.customData,
+        ),
+      );
+    } catch (error) {
+      debugPrint('[ads rewarded] server verification options failed : $error');
+    }
   }
 
   /// 로드: 실패·미설정·시간 초과면 null (공통 로드)

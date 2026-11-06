@@ -4,8 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.passql.ai.client.AiChatClient;
 import com.passql.ai.dto.AiCommentResponse;
-import com.passql.application.entitlement.FeatureAccessPolicy;
-import com.passql.application.entitlement.ProFeature;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.entity.PromptTemplate;
@@ -39,8 +37,8 @@ public class AiCommentService {
     private static final long CACHE_TTL_HOURS = 2;
     /** 통계 화면 캐시 TTL — 키에 날짜가 있어 하루 넘게 둘 필요 없음 (#699) */
     private static final long STATS_CACHE_TTL_HOURS = 24;
-    /** 통계 화면 프로 갱신 단위 (최근 풀이 수 10문제마다 새 코멘트, 무료는 하루 1회, #699) */
-    static final int PRO_STATS_REFRESH_SOLVED_COUNT = 10;
+    /** 통계 화면 갱신 단위 (최근 풀이 수 10문제마다 새 코멘트, #699) */
+    static final int STATS_REFRESH_SOLVED_COUNT = 10;
     /** 통계 화면 AI 코멘트 프롬프트 키 — 세션 없는 누적 통계 전용 */
     private static final String PROMPT_KEY_STATS = "ai_comment_stats";
     /** 결과 화면 AI 코멘트 프롬프트 키 — 세션 결과 + 누적 통계 통합 */
@@ -56,7 +54,6 @@ public class AiCommentService {
     private final PromptService promptService;
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
-    private final FeatureAccessPolicy featureAccessPolicy;
 
     /**
      * AI 코멘트 반환.
@@ -64,19 +61,16 @@ public class AiCommentService {
      * - sessionUuid 없음(통계 화면): 'ai_comment_stats' 프롬프트, 최근 7일 활동 + 누적 토픽 통계
      *
      * 캐시 키: ai-comment:{memberUuid}:{sessionUuid} / ai-comment:{memberUuid}:stats:{날짜}:{갱신 구간}
+     * 등급 잠금은 컨트롤러 @RequiresProFeature(AI_COMMENT) 에서 (두 형태 모두 프로 전용, #860)
      */
     public AiCommentResponse getAiComment(UUID memberUuid, UUID sessionUuid) {
-        // 등급: 통계 코멘트는 무료도 하루 1회, 결과 화면 세션 코멘트는 프로만 (#699)
-        if (sessionUuid != null) {
-            featureAccessPolicy.requireFeature(memberUuid, ProFeature.AI_COMMENT);
-        }
         // 통계 화면: 같은 날 같은 갱신 구간이면 캐시 재사용 > 풀이마다 LLM 호출하지 않게 (#567, #699)
         RecentActivity recentActivity = sessionUuid == null ? findRecentActivity(memberUuid) : null;
         String recentActivitySummary = recentActivity != null ? recentActivity.toPromptText() : null;
         String cacheKey = sessionUuid != null
                 ? CACHE_KEY_PREFIX + memberUuid + ":" + sessionUuid
                 : CACHE_KEY_PREFIX + memberUuid + ":stats:"
-                        + toStatsRefreshBucket(recentActivity.today(), recentActivity.recentCount(), featureAccessPolicy.isPro(memberUuid));
+                        + toStatsRefreshBucket(recentActivity.today(), recentActivity.recentCount());
         long cacheTtlHours = sessionUuid != null ? CACHE_TTL_HOURS : STATS_CACHE_TTL_HOURS;
 
         Object cached = redisTemplate.opsForValue().get(cacheKey);
@@ -105,7 +99,7 @@ public class AiCommentService {
         String userPrompt;
         if (sessionUuid != null) {
             // 결과 화면: 세션 결과 변수 치환
-            String sessionStats = buildSessionStats(sessionUuid);
+            String sessionStats = buildSessionStats(memberUuid, sessionUuid);
             userPrompt = prompt.getUserTemplate()
                     .replace("{sessionStats}", sessionStats)
                     .replace("{topicStats}", topicStats);
@@ -165,14 +159,11 @@ public class AiCommentService {
     }
 
     /**
-     * 통계 코멘트 갱신 구간: 날짜 + (프로 최근 풀이 수 10문제 단위 | 무료 하루 1회)
-     * 예: 프로 23문제 > "2026-10-27:pro-2", 무료 > "2026-10-27:day"
+     * 통계 코멘트 갱신 구간: 날짜 + 최근 풀이 수 10문제 단위
+     * 예: 23문제 > "2026-10-27:pro-2"
      */
-    static String toStatsRefreshBucket(LocalDate today, long recentCount, boolean isPro) {
-        String dateText = today.format(DATE_FORMAT);
-        return isPro
-                ? dateText + ":pro-" + (recentCount / PRO_STATS_REFRESH_SOLVED_COUNT)
-                : dateText + ":day";
+    static String toStatsRefreshBucket(LocalDate today, long recentCount) {
+        return today.format(DATE_FORMAT) + ":pro-" + (recentCount / STATS_REFRESH_SOLVED_COUNT);
     }
 
     /**
@@ -190,9 +181,10 @@ public class AiCommentService {
                 + "최근 활동일: " + lastActiveText;
     }
 
-    /** 세션 내 제출 목록을 "토픽명: 정답/오답" 형태 텍스트로 변환 */
-    private String buildSessionStats(UUID sessionUuid) {
-        List<Object[]> rows = submissionRepository.findTopicResultsBySessionUuid(sessionUuid.toString());
+    /** 본인 세션 제출 목록 > "토픽명: 정답/오답" 텍스트 (남의 세션 UUID 면 빈 결과, #860) */
+    private String buildSessionStats(UUID memberUuid, UUID sessionUuid) {
+        List<Object[]> rows = submissionRepository.findTopicResultsByMemberUuidAndSessionUuid(
+                memberUuid.toString(), sessionUuid.toString());
         if (rows.isEmpty()) {
             return "세션 데이터 없음";
         }

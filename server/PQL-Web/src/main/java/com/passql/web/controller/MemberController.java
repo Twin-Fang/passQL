@@ -1,5 +1,7 @@
 package com.passql.web.controller;
 
+import com.passql.application.entitlement.AdBonusGrantService;
+import com.passql.application.entitlement.AdBonusRequest;
 import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.application.entitlement.MemberPlanResponse;
 import com.passql.application.entitlement.MemberPurchaseHistoryService;
@@ -46,6 +48,7 @@ public class MemberController implements MemberControllerDocs {
     private final MemberPushTokenService memberPushTokenService;
     private final FeatureAccessPolicy featureAccessPolicy;
     private final MemberPurchaseHistoryService memberPurchaseHistoryService;
+    private final AdBonusGrantService adBonusGrantService;
 
     @GetMapping("/me")
     public MemberMeResponse getMe(@AuthMember LoginMember loginMember) {
@@ -64,10 +67,13 @@ public class MemberController implements MemberControllerDocs {
         return memberPurchaseHistoryService.getPurchaseHistory(loginMember.memberUuid());
     }
 
-    // 보상형 광고 시청 뒤 무료 한도 +5 (하루 2회, #808)
+    // 보상형 광고 시청 뒤 무료 한도 +5 (하루 2회, #808), 본문 없는 출시 앱 요청 허용 (#860)
     @PostMapping("/me/plan/ad-bonus")
-    public MemberPlanResponse grantAdBonus(@AuthMember LoginMember loginMember) {
-        return featureAccessPolicy.grantAdBonus(loginMember.memberUuid());
+    public MemberPlanResponse grantAdBonus(
+        @AuthMember LoginMember loginMember,
+        @RequestBody(required = false) AdBonusRequest request
+    ) {
+        return adBonusGrantService.grantByAppReport(loginMember.memberUuid(), request != null ? request.rewardNonce() : null);
     }
 
     /** 회원 탈퇴. 성공하면 본문 없이 204. */

@@ -46,6 +46,9 @@ enum ErrorCode {
   freeDailyLimitReached,
   fairUseDailyLimitReached,
   adBonusDailyLimitReached,
+  // 광고 보너스 서버 검증: 콜백 도착 전(409, 잠시 뒤 다시 확인), 표식 없는 옛 앱(426) (#860)
+  adBonusVerificationPending,
+  adBonusAppUpdateRequired,
 
   // 데일리 세트
   dailySetAlreadyCompleted,
@@ -130,6 +133,8 @@ abstract final class ErrorCodeMapper {
     'FREE_DAILY_LIMIT_REACHED': ErrorCode.freeDailyLimitReached,
     'FAIR_USE_DAILY_LIMIT_REACHED': ErrorCode.fairUseDailyLimitReached,
     'AD_BONUS_DAILY_LIMIT_REACHED': ErrorCode.adBonusDailyLimitReached,
+    'AD_BONUS_VERIFICATION_PENDING': ErrorCode.adBonusVerificationPending,
+    'AD_BONUS_APP_UPDATE_REQUIRED': ErrorCode.adBonusAppUpdateRequired,
     'DAILY_SET_ALREADY_COMPLETED': ErrorCode.dailySetAlreadyCompleted,
     'DAILY_SET_NOT_FOUND': ErrorCode.dailySetNotFound,
     // AI 사용 불가: 서버 연결 실패, 대체 경로 실패, 선택지 생성 실패(SSE GENERATION_FAILED 포함)

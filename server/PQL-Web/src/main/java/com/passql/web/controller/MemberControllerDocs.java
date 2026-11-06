@@ -5,6 +5,7 @@ import com.passql.member.auth.presentation.annotation.AuthMember;
 import com.passql.member.auth.presentation.security.LoginMember;
 import com.passql.member.dto.ChoiceGenerationModeUpdateRequest;
 import com.passql.member.dto.ChoiceGenerationModeUpdateResponse;
+import com.passql.application.entitlement.AdBonusRequest;
 import com.passql.application.entitlement.MemberPlanResponse;
 import com.passql.application.entitlement.PurchaseHistoryEntryResponse;
 import com.passql.member.dto.MemberMeResponse;
@@ -121,6 +122,7 @@ public interface MemberControllerDocs {
 
   @ApiLogs({
       @ApiLog(date = "2026.11.04", author = Author.SUHSAECHAN, issueNumber = 808, description = "무료 한도 광고 보너스 받기 API 추가"),
+      @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 860, description = "선택 본문 rewardNonce 추가, AdMob 서버 검증(ads.reward.ssv_required) 켜짐이면 콜백 기록 확인만 (409 AD_BONUS_VERIFICATION_PENDING, 426 AD_BONUS_APP_UPDATE_REQUIRED)"),
   })
   @Operation(
       summary = "무료 한도 광고 보너스 받기",
@@ -130,18 +132,28 @@ public interface MemberControllerDocs {
           ## 요청 헤더
           - **`Authorization`**: Bearer {accessToken}
 
+          ## 요청 본문 (선택, AdBonusRequest)
+          - `rewardNonce`: 광고마다 앱이 만든 보상 표식 (AdMob 서버 검증 `custom_data` 와 같은 값). 출시 앱은 본문 없이 호출
+
           ## 반환값 (MemberPlanResponse)
           - 보너스를 반영한 내 등급 (`todayFreeLimit` +5, `dailyBonus.adBonusUsedCount` +1)
 
           ## 설명
-          - 앱이 보상형 광고 보상 콜백 뒤에 호출한다 (서버 측 광고 확인 없음, 하루 2회 상한)
+          - 앱이 보상형 광고 보상 콜백 뒤에 호출한다 (하루 2회 상한)
+          - 같은 `rewardNonce` 가 이미 기록됐으면(서버 검증 콜백 포함) 다시 쌓지 않고 현재 등급 반환
+          - `ads.reward.ssv_required` 꺼짐: 이 호출로 기록 / 켜짐: 기록하지 않고 AdMob 서버 검증 콜백 기록만 확인
           - 결제 꺼짐·프로 회원은 쌓지 않고 현재 등급을 그대로 반환한다
 
           ## 에러코드
           - **`AD_BONUS_DAILY_LIMIT_REACHED`** (409): 오늘 광고 보너스를 모두 받음
+          - **`AD_BONUS_VERIFICATION_PENDING`** (409): 검증 필수인데 콜백이 아직 안 옴 (잠시 뒤 다시 호출)
+          - **`AD_BONUS_APP_UPDATE_REQUIRED`** (426): 검증 필수인데 `rewardNonce` 없음 (옛 앱)
           """
   )
-  MemberPlanResponse grantAdBonus(@AuthMember LoginMember loginMember);
+  MemberPlanResponse grantAdBonus(
+      @AuthMember LoginMember loginMember,
+      @RequestBody(required = false) AdBonusRequest request
+  );
 
   @ApiLogs({
       @ApiLog(date = "2026.04.07", author = Author.SUHSAECHAN, issueNumber = 6, description = "닉네임 재생성 API 추가"),

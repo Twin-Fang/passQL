@@ -6,7 +6,7 @@ import { fetchTopicAnalysis, fetchAiComment } from "../api/progress";
 import { useAuthStore } from "../stores/authStore";
 import ErrorFallback from "../components/ErrorFallback";
 import LockedPreview from "../components/pro/LockedPreview";
-import { StatsLockedSample } from "../components/pro/lockedPreviewSamples";
+import { AiAnalysisLockedSample, StatsLockedSample } from "../components/pro/lockedPreviewSamples";
 import { LOCKED_PREVIEW_CAPTIONS } from "../constants/proAccessCopy";
 import { toProAccessErrorCode } from "../lib/proAccess";
 import StatsAnalysisCard from "../components/StatsAnalysisCard";
@@ -85,8 +85,9 @@ export default function Stats() {
   const hasTopicStats = (topicAnalysis?.topicStats.length ?? 0) > 0;
   // 토픽 분석 프로 필요(무료, 결제 켜짐) > 빈 상태 대신 잠금 미리보기 (#578)
   const isTopicAnalysisLocked = toProAccessErrorCode(topicAnalysisError) === "PRO_REQUIRED";
-  // 무료는 토픽 분석이 잠겨 있어도 푼 기록이 있으면 AI 코멘트 하루 1회 (#699)
-  const shouldFetchAiComment = hasTopicStats || (isTopicAnalysisLocked && (progress?.solvedCount ?? 0) > 0);
+  // AI 코멘트도 프로 전용 (#860) > 토픽 분석이 잠긴 무료 회원은 요청하지 않고 잠금 미리보기
+  const shouldFetchAiComment = hasTopicStats;
+  const hasSolvedRecords = (progress?.solvedCount ?? 0) > 0;
 
   // AI 코멘트 — Stats 페이지는 세션 무관 전체 분석이므로 sessionUuid 빈 문자열 전달
   const { data: aiComment, isLoading: aiCommentLoading } = useQuery({
@@ -230,13 +231,10 @@ export default function Stats() {
         </>
       ) : isTopicAnalysisLocked ? (
         <>
-          {/* ③ AI 코멘트 (무료 하루 1회, 푼 기록 있을 때) */}
-          {shouldFetchAiComment && (
+          {/* ③ AI 코멘트 잠금 (프로 전용, 푼 기록 있을 때) */}
+          {hasSolvedRecords && (
             <section className={s2.className}>
-              <StatsAnalysisCard
-                comment={aiComment?.comment ?? null}
-                isLoading={aiCommentLoading}
-              />
+              <LockedPreview preview={<AiAnalysisLockedSample />} caption={LOCKED_PREVIEW_CAPTIONS.aiAnalysis} />
             </section>
           )}
           <section className={s3.className}>
