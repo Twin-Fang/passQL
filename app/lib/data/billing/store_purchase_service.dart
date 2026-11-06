@@ -99,6 +99,7 @@ abstract class StorePurchaseService implements ProPurchasePort {
         product.id: PassPrice(
           displayPrice: product.price,
           rawPrice: product.rawPrice,
+          currencyCode: product.currencyCode,
         ),
     };
   }

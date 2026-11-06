@@ -1,4 +1,5 @@
 import '../../../core/billing/pass_discount.dart';
+import '../../../core/billing/pro_purchase_port.dart';
 import '../../../core/utils/date_format.dart';
 import '../../../core/utils/number_format.dart';
 import '../../../data/models/member/member_plan_response.dart';
@@ -11,7 +12,6 @@ const Map<String, String> _storeLabelByServerValue = {
 };
 // 결제 금액 micros > 통화 단위 (x 1,000,000)
 const int _microsPerCurrencyUnit = 1000000;
-const String _koreanWonCurrencyCode = 'KRW';
 
 /// 판매 이용권 {상품 ID: 이용 일수} (옛 구매 이름 찾기용, 등급 모름이면 빈 값)
 Map<String, int> durationDaysByProductIdOf(MemberPlanResponse? plan) => {
@@ -57,7 +57,7 @@ String? purchaseHistoryAmountOf(PurchaseHistoryEntryResponse entry) {
   final currencyCode = entry.currencyCode;
   if (micros == null || currencyCode == null) return null;
   final amount = (micros / _microsPerCurrencyUnit).round();
-  return currencyCode == _koreanWonCurrencyCode
+  return currencyCode == koreanWonCurrencyCode
       ? '${formatThousands(amount)}원'
       : '${formatThousands(amount)} $currencyCode';
 }

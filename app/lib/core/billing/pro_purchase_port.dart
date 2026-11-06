@@ -10,12 +10,25 @@ enum ProPurchaseOutcome {
   unavailable, // 결제를 쓸 수 없는 환경 (상품·스토어 없음)
 }
 
-/// 이용권 1종의 스토어 가격: 표시 문자열(₩9,900) + 숫자 가격(할인 계산용, 스토어 통화 단위)
+/// 원화 통화 코드 (ISO 4217)
+const String koreanWonCurrencyCode = 'KRW';
+
+/// 이용권 1종의 스토어 가격: 표시 문자열(₩9,900) + 숫자 가격(할인 계산용, 스토어 통화 단위) + 통화 코드
 class PassPrice {
-  const PassPrice({required this.displayPrice, required this.rawPrice});
+  const PassPrice({
+    required this.displayPrice,
+    required this.rawPrice,
+    required this.currencyCode,
+  });
 
   final String displayPrice;
   final double rawPrice;
+
+  /// 스토어 통화 코드 (ISO 4217, 예: KRW·USD)
+  final String currencyCode;
+
+  /// 원화 가격인가 (`원` 표기·원 단위 반올림 계산은 원화일 때만)
+  bool get isKoreanWon => currencyCode == koreanWonCurrencyCode;
 }
 
 /// 이용권 결제 포트: 시트는 SDK 를 모르고 이 포트만 부른다 (실제 어댑터는 Provider 교체로 연결)

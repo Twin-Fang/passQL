@@ -20,6 +20,7 @@ import java.util.List;
 /**
  * 점검 중 회원 API 차단: /api 요청 > 503 SERVICE_UNDER_MAINTENANCE (#464)
  * 통과 경로 2개: /api/meta (앱 시작 설정·약관), /api/auth (토큰 재발급 실패로 로그아웃되지 않게)
+ * 외부 콜백({@link ExternalCallbackPaths})도 통과: 점검 중 본 광고 보상·스토어 알림을 놓치지 않게 (#867)
  * API 보안 체인 CORS 필터 뒤에 등록 (웹이 503 을 CORS 오류가 아닌 응답으로 받게) — SecurityConfig
  */
 @Slf4j
@@ -54,8 +55,9 @@ public class MaintenanceModeFilter extends OncePerRequestFilter {
         objectMapper.writeValue(response.getWriter(), ErrorResponse.of(errorCode));
     }
 
-    /** 점검 중 통과 경로면 true */
+    /** 점검 중 통과 경로면 true (접두사 2개 또는 외부 콜백 경로) */
     static boolean isMaintenanceBypassPath(String path) {
-        return MAINTENANCE_BYPASS_PATH_PREFIXES.stream().anyMatch(path::startsWith);
+        return MAINTENANCE_BYPASS_PATH_PREFIXES.stream().anyMatch(path::startsWith)
+            || ExternalCallbackPaths.ALL.contains(path);
     }
 }

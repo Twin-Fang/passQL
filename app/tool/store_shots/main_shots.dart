@@ -1433,8 +1433,16 @@ class _ShotPurchasePort implements ProPurchasePort {
 
   @override
   Future<Map<String, PassPrice>> loadPassPrices(List<String> productIds) async => const {
-    'pro_pass_3m': PassPrice(displayPrice: '9,900원', rawPrice: 9900),
-    'pro_pass_1m': PassPrice(displayPrice: '4,400원', rawPrice: 4400),
+    'pro_pass_3m': PassPrice(
+      displayPrice: '9,900원',
+      rawPrice: 9900,
+      currencyCode: koreanWonCurrencyCode,
+    ),
+    'pro_pass_1m': PassPrice(
+      displayPrice: '4,400원',
+      rawPrice: 4400,
+      currencyCode: koreanWonCurrencyCode,
+    ),
   };
 
   @override
