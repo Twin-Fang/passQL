@@ -3,8 +3,6 @@ package com.passql.submission.readiness;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.time.ZoneId;
-
 /**
  * 합격 준비도(Readiness) 산식에서 사용하는 튜닝 가능 상수 모음.
  * 실험/조정 시 이 파일만 수정하면 전체 로직이 일관되게 반영된다.
@@ -62,7 +60,4 @@ public final class ReadinessConstants {
 
     /** 고른 학습 보너스 — 최대 +5% */
     public static final double BONUS_SPREAD = 0.05;
-
-    /** 서버 기준 타임존 — Recency/D-day 계산에 사용 */
-    public static final ZoneId ZONE = ZoneId.of("Asia/Seoul");
 }

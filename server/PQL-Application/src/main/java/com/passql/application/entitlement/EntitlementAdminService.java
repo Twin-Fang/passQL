@@ -6,6 +6,7 @@ import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.ServiceTimeZone;
 import com.passql.member.constant.EntitlementSource;
 import com.passql.member.constant.MemberPlan;
 import com.passql.member.constant.PurchaseStatus;
@@ -27,7 +28,6 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,8 +39,6 @@ import java.util.UUID;
 @Service
 public class EntitlementAdminService {
 
-    // 서비스 기준 시간대 (만료일·오늘 판정은 KST 로컬)
-    private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
     // 부여 만료 시각: 선택한 날짜의 마지막 순간 (23:59:59)
     private static final LocalTime GRANT_EXPIRES_TIME = LocalTime.of(23, 59, 59);
     // 부여·회수 사유 최대 길이 (문자, 감사 로그 요약 300자 안에 들어오게)
@@ -67,7 +65,7 @@ public class EntitlementAdminService {
                                    EntitlementPurchaseRevoker entitlementPurchaseRevoker,
                                    ApplicationEventPublisher eventPublisher) {
         this(memberRepository, memberEntitlementRepository, entitlementPurchaseRepository,
-            entitlementPurchaseRevoker, eventPublisher, Clock.system(SERVICE_ZONE));
+            entitlementPurchaseRevoker, eventPublisher, Clock.system(ServiceTimeZone.ZONE));
     }
 
     EntitlementAdminService(MemberRepository memberRepository,
@@ -206,7 +204,7 @@ public class EntitlementAdminService {
 
     /** KST 오늘 (시계 시간대와 무관) */
     private LocalDate todayInServiceZone() {
-        return LocalDate.ofInstant(clock.instant(), SERVICE_ZONE);
+        return LocalDate.ofInstant(clock.instant(), ServiceTimeZone.ZONE);
     }
 
     /** 유효한 프로 등급 행인지: PRO 이고 만료일이 지금 이후 (행 없음 false) */

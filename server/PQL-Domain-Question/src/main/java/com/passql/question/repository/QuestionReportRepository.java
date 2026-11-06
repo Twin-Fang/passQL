@@ -2,6 +2,7 @@ package com.passql.question.repository;
 
 import com.passql.question.constant.ReportStatus;
 import com.passql.question.entity.QuestionReport;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,6 +18,8 @@ public interface QuestionReportRepository extends JpaRepository<QuestionReport, 
 
     boolean existsByQuestionUuidAndMemberUuidAndSubmissionUuid(UUID questionUuid, UUID memberUuid, UUID submissionUuid);
 
+    // 관리자 상세 응답이 트랜잭션 밖에서 categories 를 읽으므로 함께 조회 (open-in-view 끔, #879)
+    @EntityGraph(attributePaths = "categories")
     List<QuestionReport> findByQuestionUuidOrderByCreatedAtDesc(UUID questionUuid);
 
     long countByStatus(ReportStatus status);

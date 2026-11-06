@@ -25,7 +25,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,15 +48,16 @@ public class SubmissionService {
     private final ExecutionLogRepository executionLogRepository;
     private final CachedSandboxExecutor cachedSandboxExecutor;
     private final TransactionTemplate transactionTemplate;
-    // AI 코멘트 캐시 무효화용 (submit 완료 시 evict)
-    private final RedisTemplate<String, Object> redisTemplate;
 
     /**
      * 답안 제출: 채점·기록 저장(짧은 트랜잭션) > 실행형이면 양쪽 SQL 실행 비교(트랜잭션 밖) > 결과
      * 샌드박스 실행이 수 초 걸려도 메인 DB 커넥션을 잡지 않게 나눈다 (#497)
+     *
+     * @param shouldRunSandbox 실행 결과를 볼 수 있는 회원만 true (무료는 응답에서 빠질 결과라 실행 생략, SQL 본문은 유지, #879)
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public SubmitResult submit(UUID memberUuid, UUID questionUuid, UUID choiceSetId, String selectedChoiceKey, UUID sessionUuid) {
+    public SubmitResult submit(UUID memberUuid, UUID questionUuid, UUID choiceSetId, String selectedChoiceKey, UUID sessionUuid,
+                               boolean shouldRunSandbox) {
         GradedSubmission graded = transactionTemplate.execute(status ->
                 gradeAndRecord(memberUuid, questionUuid, choiceSetId, selectedChoiceKey, sessionUuid));
         QuestionChoiceSetItem selected = graded.selected();
@@ -78,11 +78,13 @@ public class SubmissionService {
             // 결과 표 보기 정답은 문제의 정답 SQL (직접 실행해보기 시작 SQL, 정답 결과 표시) (#828)
             correctSql = correctSqlOrNull(question, correct);
 
-            // 결과 캐시 우선, 빠진 SQL만 영구 DB 또는 임시 DB 1회에서 실행 (#727)
-            Map<String, ExecuteResult> resultBySql =
-                    cachedSandboxExecutor.executeAll(question, Arrays.asList(selectedSql, correctSql));
-            selectedResult = selectedSql != null ? resultBySql.get(selectedSql) : null;
-            correctResult = correctSql != null ? resultBySql.get(correctSql) : null;
+            if (shouldRunSandbox) {
+                // 결과 캐시 우선, 빠진 SQL만 영구 DB 또는 임시 DB 1회에서 실행 (#727)
+                Map<String, ExecuteResult> resultBySql =
+                        cachedSandboxExecutor.executeAll(question, Arrays.asList(selectedSql, correctSql));
+                selectedResult = selectedSql != null ? resultBySql.get(selectedSql) : null;
+                correctResult = correctSql != null ? resultBySql.get(correctSql) : null;
+            }
         }
 
         // 7. AI 코멘트 캐시: 세션 단위(ai-comment:{memberUuid}:{sessionUuid})로 전환됨.
@@ -144,6 +146,17 @@ public class SubmissionService {
             log.warn("[question submit] rejected 400 : choice set belongs to another question, question={}, choiceSet={}",
                     questionUuid, choiceSetId);
             throw new CustomException(ErrorCode.QUIZ_SESSION_CHOICE_SET_MISMATCH);
+        }
+
+        // 내린 세트(DISABLED·REPORTED·FAILED)·비활성 문제는 채점하지 않음 (#879)
+        if (!choiceSet.getStatus().isServable()) {
+            log.warn("[question submit] rejected 404 : choice set not servable, choiceSet={}, status={}",
+                    choiceSetId, choiceSet.getStatus());
+            throw new CustomException(ErrorCode.CHOICE_SET_UNAVAILABLE);
+        }
+        if (!questionRepository.existsByQuestionUuidAndIsActiveTrue(questionUuid)) {
+            log.warn("[question submit] rejected 404 : question inactive, question={}", questionUuid);
+            throw new CustomException(ErrorCode.QUESTION_NOT_FOUND);
         }
 
         // 2. 선택한 선택지 조회

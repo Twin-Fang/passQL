@@ -1,6 +1,7 @@
 package com.passql.web.scheduler;
 
 import com.passql.ai.service.AiCallLogService;
+import com.passql.common.util.ServiceTimeZone;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -17,7 +18,7 @@ public class AiCallLogCleanupScheduler {
     private final AiCallLogService aiCallLogService;
 
     /** 매일 04시 10분 (서버 오류 기록 정리 04시와 겹치지 않게) */
-    @Scheduled(cron = "0 10 4 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 10 4 * * *", zone = ServiceTimeZone.ZONE_NAME)
     public void purgeExpired() {
         int deleted = aiCallLogService.purgeExpired();
         if (deleted > 0) {

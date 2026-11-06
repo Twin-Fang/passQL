@@ -4,6 +4,7 @@ import com.passql.common.dto.Author;
 import com.passql.member.auth.presentation.annotation.AuthMember;
 import com.passql.member.auth.presentation.security.LoginMember;
 import com.passql.question.dto.ExecuteResult;
+import com.passql.question.dto.ExecuteSqlRequest;
 import com.passql.question.dto.QuestionDetail;
 import com.passql.question.dto.QuestionSummary;
 import com.passql.question.dto.RecommendationsRequest;
@@ -23,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Tag(name = "Question", description = "문제 조회 / SQL 실행 / 제출")
@@ -80,6 +80,7 @@ public interface QuestionControllerDocs {
       @ApiLog(date = "2026.10.16", author = Author.SUHSAECHAN, issueNumber = 503, description = "정답 노출 차단: answerSql·isCorrect·rationale 은 null, choiceSets 는 최신 OK 세트 1개만"),
       @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 520, description = "schemaTables 추가: schemaDdl·schemaSampleData 를 테이블별 컬럼(이름·타입·PK·FK)·샘플 행으로 해석해 제공"),
       @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 523, description = "isLatestTrend 추가: 최신 출제 경향 반영 문제 여부 ('최신 경향' 배지)"),
+      @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 879, description = "비활성 문제는 404 QUESTION_NOT_FOUND"),
   })
   @Operation(summary = "문제 상세 조회", description = "풀이용 상세. 정답 SQL·정답 여부·해설은 내려가지 않는다(제출 응답에서만 제공).")
   ResponseEntity<QuestionDetail> getQuestion(
@@ -91,13 +92,14 @@ public interface QuestionControllerDocs {
       @ApiLog(date = "2026.04.07", author = Author.SUHSAECHAN, issueNumber = 1, description = "SQL 실행(테스트) API 추가"),
       @ApiLog(date = "2026.04.08", author = Author.SUHSAECHAN, issueNumber = 22, description = "PathVariable: Long id → UUID questionUuid"),
       @ApiLog(date = "2026.04.10", author = Author.SUHSAECHAN, issueNumber = 70, description = "QuestionExecutionService 경유로 전환: sandboxDbName 기반 실행, CONCEPT_ONLY 에러 처리 추가"),
+      @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 879, description = "본문 Map → ExecuteSqlRequest(필드 이름 sql 그대로), 빈 sql 은 400 VALIDATION_ERROR"),
   })
   @Operation(summary = "SQL 실행",
       description = "EXECUTABLE 문제만 허용. body: { \"sql\": \"SELECT ...\" }. " +
           "CONCEPT_ONLY 문제에 호출 시 400 INVALID_EXECUTION_MODE 반환.")
   ResponseEntity<ExecuteResult> executeChoice(
       @PathVariable UUID questionUuid,
-      @RequestBody Map<String, String> body
+      @RequestBody ExecuteSqlRequest request
   );
 
   @ApiLogs({
@@ -122,6 +124,8 @@ public interface QuestionControllerDocs {
               description = "SubmitRequest에 choiceSetId 추가, SubmitResult에 ExecuteResult 비교 필드(selectedResult/correctResult/correctSql/selectedSql) 추가"),
       @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 860,
               description = "다른 문제의 선택지 세트 제출 400 QUIZ_SESSION_CHOICE_SET_MISMATCH, 하루 문제 수 제한을 제출에도 적용(403 FREE_DAILY_LIMIT_REACHED·429 FAIR_USE_DAILY_LIMIT_REACHED), 무료 회원 같은 세트 재제출은 rationale 없음"),
+      @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 879,
+              description = "choiceSetId·selectedChoiceKey 필수(없으면 400 VALIDATION_ERROR), 내린 세트 404 CHOICE_SET_UNAVAILABLE, 비활성 문제 404 QUESTION_NOT_FOUND, 실행 결과를 못 보는 회원은 샌드박스 실행 생략"),
   })
   @Operation(summary = "문제 제출",
       description = "선택지 제출 후 정답 여부 + SQL 실행 결과 비교 반환. JWT 인증 필요. " +

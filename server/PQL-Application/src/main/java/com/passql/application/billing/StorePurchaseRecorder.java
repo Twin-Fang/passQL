@@ -1,6 +1,7 @@
 package com.passql.application.billing;
 
 import com.passql.application.entitlement.PassExpiryCalculator;
+import com.passql.common.util.ServiceTimeZone;
 import com.passql.member.constant.MemberPlan;
 import com.passql.member.constant.PassProduct;
 import com.passql.member.constant.PurchaseStatus;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,8 +28,6 @@ class StorePurchaseRecorder {
 
     // 기록 created_by·updated_by (JpaConfig auditor 의 회원 API 요청 값과 동일)
     private static final String AUDITOR_SYSTEM = "system";
-    // 서비스 기준 시간대 (구매 시각·만료일은 KST 로컬 저장값)
-    private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
 
     private final EntitlementPurchaseRepository entitlementPurchaseRepository;
     private final MemberEntitlementRepository memberEntitlementRepository;
@@ -44,7 +42,7 @@ class StorePurchaseRecorder {
         // 만료일 계산 (스토어 구매 시각 없으면 지금, 보유 중이면 현재 프로 만료일 뒤로 이용 일수만큼)
         PassProduct passProduct = purchase.passProduct();
         Instant purchasedInstant = purchase.purchasedAt() != null ? purchase.purchasedAt() : now;
-        LocalDateTime purchasedAt = LocalDateTime.ofInstant(purchasedInstant, SERVICE_ZONE);
+        LocalDateTime purchasedAt = LocalDateTime.ofInstant(purchasedInstant, ServiceTimeZone.ZONE);
         Optional<MemberEntitlement> entitlement = memberEntitlementRepository.findForUpdateByMemberUuid(memberUuid);
         LocalDateTime currentProExpiresAt = entitlement
             .filter(existing -> existing.getPlan() == MemberPlan.PRO)
@@ -58,7 +56,7 @@ class StorePurchaseRecorder {
         int insertedCount = entitlementPurchaseRepository.insertVerifiedIfAbsent(
             UUID.randomUUID(), memberUuid, purchase.store().name(), passProduct.getProductId(), purchase.orderId(),
             purchase.purchaseToken(), purchasedAt, PurchaseStatus.VERIFIED.name(), newExpiresAt,
-            passProduct.getDurationDays(), purchase.isConsumed(), LocalDateTime.ofInstant(now, SERVICE_ZONE), AUDITOR_SYSTEM,
+            passProduct.getDurationDays(), purchase.isConsumed(), LocalDateTime.ofInstant(now, ServiceTimeZone.ZONE), AUDITOR_SYSTEM,
             price != null ? price.amountMicros() : null, price != null ? price.currencyCode() : null);
         if (insertedCount == 0) {
             return Optional.empty();

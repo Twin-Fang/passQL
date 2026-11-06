@@ -1,6 +1,7 @@
 package com.passql.web.scheduler;
 
 import com.passql.application.community.CommunityStatsService;
+import com.passql.common.util.ServiceTimeZone;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -28,7 +29,7 @@ public class CommunityStatsScheduler {
     }
 
     /** 매일 04시 30분 (다른 정리 작업 04시, 04시 10·20분과 겹치지 않게) */
-    @Scheduled(cron = "0 30 4 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 30 4 * * *", zone = ServiceTimeZone.ZONE_NAME)
     public void reconcilePostCounters() {
         communityStatsService.reconcilePostCounters();
     }

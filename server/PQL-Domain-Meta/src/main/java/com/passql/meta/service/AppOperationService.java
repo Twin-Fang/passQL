@@ -2,6 +2,7 @@ package com.passql.meta.service;
 
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.ServiceTimeZone;
 import com.passql.meta.constant.AppSettingKeys;
 import com.passql.meta.dto.AppConfigResponse;
 import com.passql.meta.dto.AppLinksResponse;
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.regex.Pattern;
@@ -35,8 +35,6 @@ public class AppOperationService {
     public static final String NO_REQUIREMENT_VERSION = "0.0.0";
     // 버전 형식: 숫자 3개 (x.y.z)
     private static final Pattern VERSION_PATTERN = Pattern.compile("\\d{1,4}\\.\\d{1,4}\\.\\d{1,4}");
-    // 예약 시각은 관리자가 한국 시각으로 입력 > KST 기준 비교
-    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     // 점검 문구 최대 길이 (문자 수)
     private static final int MAINTENANCE_MESSAGE_MAX_LENGTH = 500;
 
@@ -84,7 +82,7 @@ public class AppOperationService {
      * 점검 중 여부: 수동 스위치 켜짐 또는 예약 구간 안 (설정 조회 실패 시 false — 설정 장애로 서비스 전체가 막히지 않게)
      */
     public boolean isUnderMaintenance() {
-        return isMaintenanceSwitchOn() || isInScheduledMaintenance(LocalDateTime.now(KST));
+        return isMaintenanceSwitchOn() || isInScheduledMaintenance(LocalDateTime.now(ServiceTimeZone.ZONE));
     }
 
     private boolean isMaintenanceSwitchOn() {

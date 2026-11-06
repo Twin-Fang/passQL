@@ -179,7 +179,7 @@ public class QuestionService {
      * 정답·해설은 제출 응답에서만 내려간다.
      */
     public QuestionDetail getQuestionForSolving(UUID questionUuid) {
-        Question question = getQuestionEntity(questionUuid);
+        Question question = getActiveQuestionEntity(questionUuid);
         List<QuestionDetail.ChoiceSetSummary> choiceSets = findSolvingChoiceSet(question)
                 .map(choiceSet -> List.of(toChoiceSetSummary(choiceSet, false, isCuratedChoiceSet(question, choiceSet))))
                 .orElse(List.of());
@@ -295,6 +295,13 @@ public class QuestionService {
 
     public Question getQuestionEntity(UUID questionUuid) {
         return questionRepository.findById(questionUuid)
+                .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
+    }
+
+    /** 풀이용 문제 조회: 없거나 비활성이면 404 QUESTION_NOT_FOUND (비활성 문제는 열기·보기 생성 거부, #879) */
+    public Question getActiveQuestionEntity(UUID questionUuid) {
+        return questionRepository.findById(questionUuid)
+                .filter(question -> Boolean.TRUE.equals(question.getIsActive()))
                 .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
     }
 

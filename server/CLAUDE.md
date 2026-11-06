@@ -187,7 +187,7 @@ private boolean isTestAccount;
 
 - 도메인에 종속되지 않는 순수 로직 유틸은 `PQL-Common/src/main/java/com/passql/common/util/` 에 둔다.
 - 예: `NicknameGenerator` (SuhRandomKit 래핑 + 중복 회피 알고리즘), `UuidUtils` 등.
-- Service에서는 이 유틸을 주입받아 호출만 한다 (테스트 용이성 확보).
+- 상태 없는 변환(`UuidUtils`, `TextPreview`, `ServiceTimeZone`)은 static 호출, 의존성이 있는 유틸(`NicknameGenerator`)만 빈으로 주입받는다.
 
 ### Controller는 PQL-Web/controller
 
@@ -219,7 +219,7 @@ private boolean isTestAccount;
 ## 패키지 컨벤션
 
 - 패키지 루트: `com.passql.{module}` (예: `com.passql.member`, `com.passql.question`).
-- 표준 하위 패키지: `entity`, `repository`, `service`, `dto`, `constant`, `exception`.
+- 표준 하위 패키지: `entity`, `repository`, `service`, `dto`, `constant` (도메인 `exception` 패키지는 두지 않는다 — 아래 예외 처리 규칙).
 
 ## Repository 컨벤션
 
@@ -258,7 +258,10 @@ throw new CustomException(ErrorCode.NOT_SELECT);
 - 관리자 화면 요청·토스트·확인 창: `static/js/admin/admin-fetch.js` (`AdminApi`, `AdminUi`), `alert()`·`confirm()` 금지
 - 리다이렉트 후 저장 토스트: `AdminFlash.TOAST_MESSAGE` 플래시 속성
 - 미리보기 자르기: `TextPreview.truncate` / `truncateWithEllipsis` + 용도별 길이 상수
-- UUID 짧은 표기: `UuidUtils.toShortForm`
+- UUID 짧은 표기·문자열 파싱: `UuidUtils.toShortForm` / `UuidUtils.parseOrEmpty` (`UUID.fromString` try-catch 사본 금지)
+- 서비스 시간대(KST): `PQL-Common` `ServiceTimeZone.ZONE` / `@Scheduled(zone = ServiceTimeZone.ZONE_NAME)` (`ZoneId.of("Asia/Seoul")` 사본 금지)
+- app_setting Redis 캐시: `PQL-Domain-Meta` `AppSettingCache` (커밋 뒤 쓰기·TTL, Redis 직접 쓰기 금지)
+- 요청 본문: 도메인 `dto/` 요청 record + `@Valid` (`Map` 본문 금지 — 필드가 빠지면 500)
 - 임시 샌드박스 실행: `SandboxExecutor.runInTemporarySandbox` (획득 > DDL·샘플 > 작업 > 반납, `SandboxPool.acquire` 직접 호출 금지)
 - 프롬프트 템플릿 > LLM 설정: `PromptLlmConfigFactory.toLlmConfig`
 - 무료·프로 등급 판정 (#576): `PQL-Application` `FeatureAccessPolicy`만 (등급·한도·결제 스위치 직접 조회 금지). 기능 전체 잠금은 `@RequiresProFeature`, 응답 일부 빼기는 `ProResponseRedactor`
@@ -280,6 +283,8 @@ SQL_SAFETY_VIOLATION(HttpStatus.BAD_REQUEST, "허용되지 않는 SQL입니다."
 
 - `@Service` + 생성자 주입(`@RequiredArgsConstructor`).
 - 클래스 레벨 `@Transactional(readOnly = true)` + 변경 메서드에 `@Transactional` 재선언.
+- `spring.jpa.open-in-view: false` — 트랜잭션 밖(컨트롤러·뷰)에서 지연 로딩 연관을 읽지 않는다. 필요하면 조회 시 `@EntityGraph`·fetch join 으로 함께 가져온다.
+- LLM·AI 서버·샌드박스 호출은 트랜잭션 밖에서 한다 (응답을 기다리는 동안 DB 커넥션을 쥐지 않게, #497).
 
 ## 테스트 코드 컨벤션
 

@@ -1,5 +1,6 @@
 package com.passql.application.entitlement;
 
+import com.passql.common.util.ServiceTimeZone;
 import com.passql.common.util.UuidUtils;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
@@ -20,7 +21,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -41,8 +41,6 @@ public class FeatureAccessPolicy {
     // 프로 하루 공정 사용 한도 (개, 화면에 드러내지 않음)
     public static final int DAILY_PRO_FAIR_USE_LIMIT = 200;
 
-    // 서비스 기준 시간대 (등급 만료일·하루 구간은 KST 로컬 저장값)
-    static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
     // 등급 응답 문자열
     private static final String PLAN_PRO = "PRO";
     private static final String PLAN_FREE = "FREE";
@@ -74,7 +72,7 @@ public class FeatureAccessPolicy {
                                DailyFreeBonusReader dailyFreeBonusReader) {
         this(memberEntitlementRepository, appSettingService, passExpiryCalculator,
             submissionRepository, dailyQuestionCounter, entitlementPurchaseRepository,
-            dailyFreeBonusReader, Clock.system(SERVICE_ZONE));
+            dailyFreeBonusReader, Clock.system(ServiceTimeZone.ZONE));
     }
 
     FeatureAccessPolicy(MemberEntitlementRepository memberEntitlementRepository,

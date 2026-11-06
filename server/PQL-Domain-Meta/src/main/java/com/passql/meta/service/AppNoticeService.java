@@ -6,6 +6,7 @@ import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.ServiceTimeZone;
 import com.passql.meta.dto.AdminAppNoticeResponse;
 import com.passql.meta.dto.AppNoticePageResponse;
 import com.passql.meta.dto.AppNoticeResponse;
@@ -23,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -38,8 +38,6 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class AppNoticeService {
 
-    // 노출 기간은 관리자가 한국 시각으로 입력 > 서버 시간대와 무관하게 KST 기준 비교
-    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     // 제목 최대 길이 (문자 수, app_notice.title 컬럼과 같음)
     private static final int TITLE_MAX_LENGTH = 100;
     // 본문 최대 길이 (문자 수)
@@ -52,14 +50,14 @@ public class AppNoticeService {
 
     /** 지금 노출할 공지 (중요 먼저 > 최근 등록 순) */
     public List<AppNoticeResponse> getVisibleNotices() {
-        return appNoticeRepository.findVisibleNotices(LocalDateTime.now(KST)).stream()
+        return appNoticeRepository.findVisibleNotices(LocalDateTime.now(ServiceTimeZone.ZONE)).stream()
                 .map(AppNoticeResponse::from)
                 .toList();
     }
 
     /** 지금 노출할 공지 요약 (알림함 공지 탭, 중요 먼저 > 최근 등록 순) */
     public List<VisibleNoticeSummary> getVisibleNoticeSummaries() {
-        return appNoticeRepository.findVisibleNotices(LocalDateTime.now(KST)).stream()
+        return appNoticeRepository.findVisibleNotices(LocalDateTime.now(ServiceTimeZone.ZONE)).stream()
                 .map(VisibleNoticeSummary::from)
                 .toList();
     }
@@ -68,7 +66,7 @@ public class AppNoticeService {
     public AppNoticePageResponse getPublishedNotices(Integer page, Integer size) {
         int pageIndex = page == null || page < 0 ? 0 : page;
         Page<AppNotice> noticePage = appNoticeRepository.findPublishedNotices(
-                LocalDateTime.now(KST), PageRequest.of(pageIndex, ClientPageSize.clamp(size)));
+                LocalDateTime.now(ServiceTimeZone.ZONE), PageRequest.of(pageIndex, ClientPageSize.clamp(size)));
         return new AppNoticePageResponse(
                 noticePage.getContent().stream().map(AppNoticeResponse::from).toList(),
                 pageIndex,
@@ -77,7 +75,7 @@ public class AppNoticeService {
 
     /** 게시 공지 1건 (비활성·노출 전·없음 > APP_NOTICE_NOT_FOUND) */
     public AppNoticeResponse getPublishedNotice(UUID noticeUuid) {
-        return appNoticeRepository.findPublishedNotice(noticeUuid, LocalDateTime.now(KST))
+        return appNoticeRepository.findPublishedNotice(noticeUuid, LocalDateTime.now(ServiceTimeZone.ZONE))
                 .map(AppNoticeResponse::from)
                 .orElseThrow(() -> new CustomException(ErrorCode.APP_NOTICE_NOT_FOUND));
     }
