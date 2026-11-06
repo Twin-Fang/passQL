@@ -44,6 +44,8 @@ const Map<String, String> _allowedAdModuleUsers = {
       '개발자 도구 진단 탭의 광고 단위 종류 표시 (디버그·개발용 빌드에서만 보임, #809·#819)',
   'lib/presentation/widgets/pro/pro_offer_sheet.dart':
       '무료 하루 한도로 열린 이용권 시트에서 사용자가 눌러 보는 보상형 광고 버튼 1개 (#808)',
+  'lib/core/review/store_review_prompter.dart':
+      '전면 광고가 떠 있으면 닫힐 때까지 스토어 평가 창을 미룸 (FullScreenAdGuard 읽기만, 광고를 그리지 않음, #864)',
 };
 
 /// 광고를 절대 두지 않는 곳 (폴더 또는 파일)

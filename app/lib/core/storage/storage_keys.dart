@@ -1,4 +1,4 @@
-/// 기기 저장 키 원본 21개: 일반 저장소(DevicePreferences) 16개 + 보안 저장소(TokenStore) 5개
+/// 기기 저장 키 원본 27개: 일반 저장소(DevicePreferences) 22개 + 보안 저장소(TokenStore) 5개
 /// 값은 기존 설치의 저장 데이터를 읽는 키 > 문자열 값을 바꾸지 않음
 abstract final class StorageKeys {
   // ─── 일반 저장소 (SharedPreferences, 앱 삭제 시 함께 지워짐) ───
@@ -41,6 +41,22 @@ abstract final class StorageKeys {
   static const String profilePassCollapsed = 'profile_pass_collapsed';
   // 이용권 구매 뒤 프로필 탑승권 연출을 아직 안 보여 줬는지 (bool, #749)
   static const String profilePassRevealPending = 'profile_pass_reveal_pending';
+  // 스토어 평가 요청 기록 (#864): 첫·마지막 학습 완료 시각 (epoch 밀리초)
+  static const String storeReviewFirstStudyCompletedAt =
+      'store_review_first_study_completed_at_ms';
+  static const String storeReviewLastStudyCompletedAt =
+      'store_review_last_study_completed_at_ms';
+  // 학습을 완료한 서로 다른 날 수
+  static const String storeReviewStudyDayCount = 'store_review_study_day_count';
+  // 오늘의 세트·모의고사 완료 누적 횟수
+  static const String storeReviewCompletedStudyCount =
+      'store_review_completed_study_count';
+  // 마지막 평가 요청 시각 (epoch 밀리초)
+  static const String storeReviewLastRequestedAt =
+      'store_review_last_requested_at_ms';
+  // 마지막 평가 요청 앱 버전 (x.y.z, 버전당 1회)
+  static const String storeReviewLastRequestedAppVersion =
+      'store_review_last_requested_app_version';
 
   // ─── 보안 저장소 (Keychain/Keystore, 인증 세션) ───
 

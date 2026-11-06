@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
+import '../../../core/review/store_review_prompt_rule.dart';
+import '../../../core/review/store_review_prompter.dart';
 import '../../../data/models/daily_set/daily_set_models.dart';
 import '../../../router/app_routes.dart';
 import '../../../router/result_route_arguments.dart';
@@ -13,6 +15,7 @@ import '../../providers/daily_set_providers.dart';
 import '../../widgets/ads/interstitial_ad_on_enter.dart';
 import '../../widgets/daily_set/daily_set_bonus_card.dart';
 import '../../widgets/notification/study_result_seen_recorder.dart';
+import '../../widgets/review/store_review_prompt_on_result.dart';
 
 /// 상단 바·점수 머리에 쓰는 화면 이름
 const _dailySetTitle = '오늘의 세트';
@@ -30,16 +33,29 @@ class DailySetResultPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final outcome = this.outcome;
     if (outcome != null) {
-      // 풀이를 막 끝낸 진입에만 전면 광고 시도 (홈 '이미 완료' 카드 진입은 제외)
+      // 풀이를 막 끝낸 진입에만 전면 광고·스토어 평가 요청 시도 (홈 '이미 완료' 카드 진입은 제외)
       // 결과를 본 기록 > 탭 화면 복귀 때 알림 권한 사전 안내 시점
+      // 좋은 결과: 순위 반영 성공 + 정답률 60% 이상
+      final total = outcome.results.length;
       return StudyResultSeenRecorder(
         child: InterstitialAdOnEnter(
-          child: _ResultBody(
-            correctCount: outcome.correctCount,
-            total: outcome.results.length,
-            results: outcome.results.map((result) => result.isCorrect).toList(),
-            saveError: outcome.saveError,
-            completedRank: outcome.completed?.rank,
+          child: StoreReviewPromptOnResult(
+            trigger: StoreReviewTrigger.dailySet,
+            isGoodResult:
+                outcome.saveError == null &&
+                StoreReviewPromptRule.isGoodDailySetScore(
+                  correctCount: outcome.correctCount,
+                  questionCount: total,
+                ),
+            child: _ResultBody(
+              correctCount: outcome.correctCount,
+              total: total,
+              results: outcome.results
+                  .map((result) => result.isCorrect)
+                  .toList(),
+              saveError: outcome.saveError,
+              completedRank: outcome.completed?.rank,
+            ),
           ),
         ),
       );

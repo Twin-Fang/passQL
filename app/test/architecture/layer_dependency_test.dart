@@ -25,24 +25,36 @@ const Map<String, List<String>> _forbiddenImportsByLayer = {
 /// 명시적 예외: {파일 경로: 이유}. 비어 있는 것이 정상
 const Map<String, String> _allowedReverseImports = {};
 
-/// 오류·분석 수집 SDK: core/monitoring 의 공통 지점만 직접 import (나머지는 공통 지점 경유)
-const List<String> _monitoringSdkPackages = [
-  'package:firebase_crashlytics/',
-  'package:firebase_analytics/',
+/// SDK 별 직접 import 를 허용하는 공통 지점 폴더 5개 (나머지는 공통 지점 경유)
+/// (규칙 이름, SDK 패키지 접두사 목록, 허용 폴더)
+const List<(String, List<String>, String)> _sdkHomeDirectoryRules = [
+  // 오류·분석 수집 SDK: core/monitoring 의 공통 지점
+  (
+    '오류·분석 수집 SDK 는 core/monitoring',
+    ['package:firebase_crashlytics/', 'package:firebase_analytics/'],
+    'lib/core/monitoring/',
+  ),
+  // 푸시 SDK: core/push (등록·삭제는 PushNotificationService 경유)
+  ('푸시 SDK 는 core/push', ['package:firebase_messaging/'], 'lib/core/push/'),
+  // 앱 아이콘 숫자 패키지: core/notification 의 AppIconBadgeUpdater
+  (
+    '앱 아이콘 숫자 패키지는 core/notification',
+    ['package:app_badge_plus/'],
+    'lib/core/notification/',
+  ),
+  // 기기 일반 저장소 SDK: core/storage 의 DevicePreferences (키는 StorageKeys 한 곳)
+  (
+    'SharedPreferences 는 core/storage',
+    ['package:shared_preferences/'],
+    'lib/core/storage/',
+  ),
+  // 스토어 평가 창 SDK: core/review 의 StoreReviewRequester (#864)
+  (
+    '스토어 평가 창 SDK 는 core/review',
+    ['package:in_app_review/'],
+    'lib/core/review/',
+  ),
 ];
-const String _monitoringDirectory = 'lib/core/monitoring/';
-
-/// 푸시 SDK: core/push 의 공통 지점만 직접 import (나머지는 PushNotificationService 경유)
-const String _pushSdkPackage = 'package:firebase_messaging/';
-const String _pushDirectory = 'lib/core/push/';
-
-/// 앱 아이콘 숫자 패키지: core/notification 의 AppIconBadgeUpdater 만 직접 import
-const String _iconBadgePackage = 'package:app_badge_plus/';
-const String _notificationDirectory = 'lib/core/notification/';
-
-/// 기기 일반 저장소 SDK: core/storage 의 DevicePreferences 만 직접 import (키는 StorageKeys 한 곳)
-const String _sharedPreferencesPackage = 'package:shared_preferences/';
-const String _storageDirectory = 'lib/core/storage/';
 
 /// 알림함 진입 경로: 종 아이콘(PassqlNotificationBellButton)을 둔 화면만 사용 {파일: 이유}
 const Map<String, String> _allowedNotificationInboxRouteUsages = {
@@ -89,65 +101,22 @@ void main() {
     expect(violations, isEmpty, reason: violations.join('\n'));
   });
 
-  test('오류·분석 수집 SDK 는 core/monitoring 에서만 import 한다', () {
-    final violations = <String>[];
-    for (final file in handWrittenDartFiles('lib')) {
-      final path = normalizedPath(file);
-      if (path.startsWith(_monitoringDirectory)) continue;
-      final lines = file.readAsLinesSync();
-      for (var lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-        if (_monitoringSdkPackages.any(lines[lineIndex].contains)) {
-          violations.add('$path:${lineIndex + 1}');
+  for (final (ruleName, sdkPackages, homeDirectory) in _sdkHomeDirectoryRules) {
+    test('$ruleName 에서만 import 한다', () {
+      final violations = <String>[];
+      for (final file in handWrittenDartFiles('lib')) {
+        final path = normalizedPath(file);
+        if (path.startsWith(homeDirectory)) continue;
+        final lines = file.readAsLinesSync();
+        for (var lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+          if (sdkPackages.any(lines[lineIndex].contains)) {
+            violations.add('$path:${lineIndex + 1}');
+          }
         }
       }
-    }
-    expect(violations, isEmpty, reason: violations.join('\n'));
-  });
-
-  test('푸시 SDK 는 core/push 에서만 import 한다', () {
-    final violations = <String>[];
-    for (final file in handWrittenDartFiles('lib')) {
-      final path = normalizedPath(file);
-      if (path.startsWith(_pushDirectory)) continue;
-      final lines = file.readAsLinesSync();
-      for (var lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-        if (lines[lineIndex].contains(_pushSdkPackage)) {
-          violations.add('$path:${lineIndex + 1}');
-        }
-      }
-    }
-    expect(violations, isEmpty, reason: violations.join('\n'));
-  });
-
-  test('앱 아이콘 숫자 패키지는 core/notification 에서만 import 한다', () {
-    final violations = <String>[];
-    for (final file in handWrittenDartFiles('lib')) {
-      final path = normalizedPath(file);
-      if (path.startsWith(_notificationDirectory)) continue;
-      final lines = file.readAsLinesSync();
-      for (var lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-        if (lines[lineIndex].contains(_iconBadgePackage)) {
-          violations.add('$path:${lineIndex + 1}');
-        }
-      }
-    }
-    expect(violations, isEmpty, reason: violations.join('\n'));
-  });
-
-  test('SharedPreferences 는 core/storage 에서만 import 한다', () {
-    final violations = <String>[];
-    for (final file in handWrittenDartFiles('lib')) {
-      final path = normalizedPath(file);
-      if (path.startsWith(_storageDirectory)) continue;
-      final lines = file.readAsLinesSync();
-      for (var lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-        if (lines[lineIndex].contains(_sharedPreferencesPackage)) {
-          violations.add('$path:${lineIndex + 1}');
-        }
-      }
-    }
-    expect(violations, isEmpty, reason: violations.join('\n'));
-  });
+      expect(violations, isEmpty, reason: violations.join('\n'));
+    });
+  }
 
   test('화면은 알림함 진입을 종 아이콘 컴포넌트로만 하고 직접 경로를 쓰지 않는다', () {
     final violations = <String>[];
