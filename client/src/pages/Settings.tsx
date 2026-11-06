@@ -16,7 +16,8 @@ import SettingsRow from "../components/SettingsRow";
 import SubpageLayout from "../components/SubpageLayout";
 import LegalModal from "../components/LegalModal";
 import { useBusinessInfoLines } from "../hooks/useBusinessInfoLines";
-import { LEGAL_TITLE, type LegalType } from "../api/legal";
+import { LEGAL_TITLE } from "../api/legal";
+import type { LegalType } from "../types/api";
 import { IS_GOOGLE_PLAY_PUBLIC } from "../constants/appStoreRelease";
 import { useMember, useUpdateChoiceGenerationMode } from "../hooks/useMember";
 import type { ChoiceGenerationMode } from "../types/api";
@@ -32,7 +33,7 @@ export default function Settings() {
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   // 회원 탈퇴 — 앱과 같은 흐름: 확인 → 서버 삭제 성공 시에만 세션 정리 (#433)
-  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
   const { androidUrl, iosUrl, hasAny: hasAppLinks } = useAppLinks();
@@ -78,7 +79,7 @@ export default function Settings() {
     // 제공자를 모르면 Apple 연결 해제를 건너뛸 수 있어 탈퇴하지 않는다
     const authProvider = memberData?.authProvider;
     const providerUserId = memberData?.providerUserId;
-    setWithdrawOpen(false);
+    setIsWithdrawModalOpen(false);
     setWithdrawError(null);
     if (!authProvider || !providerUserId) {
       setWithdrawError("회원 정보를 불러오는 중이에요. 잠시 후 다시 시도해 주세요.");
@@ -250,7 +251,7 @@ export default function Settings() {
             <button
               type="button"
               disabled={isLoggingOut || isWithdrawing}
-              onClick={() => setWithdrawOpen(true)}
+              onClick={() => setIsWithdrawModalOpen(true)}
               className="flex items-center justify-between px-4 py-3.5 w-full text-left cursor-pointer hover:bg-surface active:bg-surface transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="text-sm font-medium text-text-caption">
@@ -282,14 +283,14 @@ export default function Settings() {
         <LegalModal type={openedLegalType} onClose={() => setOpenedLegalType(null)} />
       )}
       <ConfirmModal
-        isOpen={withdrawOpen}
+        isOpen={isWithdrawModalOpen}
         title="정말 탈퇴할까요?"
         description="계정과 개인정보가 즉시 삭제되고 되돌릴 수 없어요. 같은 계정으로 다시 가입하면 기존 학습 기록 없이 새로 시작해요."
         confirmLabel="탈퇴하기"
         cancelLabel="계속 이용하기"
         requiredText="탈퇴하기"
         onConfirm={handleWithdraw}
-        onCancel={() => setWithdrawOpen(false)}
+        onCancel={() => setIsWithdrawModalOpen(false)}
       />
     </SubpageLayout>
   );

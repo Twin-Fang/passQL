@@ -4,6 +4,29 @@ import type { components } from "./generated/openapi";
 // 손타입은 생성본에 스키마가 없는 웹 전용(SSE 이벤트·제네릭 Page·화면 상태)만 유지
 type ApiSchemas = components["schemas"];
 
+// === Auth ===
+// 로그인 제공자 5개 (GOOGLE, KAKAO, NAVER, APPLE, GITHUB)
+export type AuthProvider = ApiSchemas["LoginRequest"]["authProvider"];
+
+/** 인가 코드 로그인 제공자 3개 (#509, 서버 enum 에서 좁힘 > 이름이 바뀌면 tsc 실패) */
+export type AuthorizationCodeProvider = Extract<AuthProvider, "KAKAO" | "NAVER" | "GITHUB">;
+
+export type LoginRequest = ApiSchemas["LoginRequest"];
+
+export type LoginResponse = ApiSchemas["LoginResponse"];
+
+export type ReissueRequest = ApiSchemas["ReissueRequest"];
+
+export type ReissueResponse = ApiSchemas["ReissueResponse"];
+
+// codeVerifier: PKCE code_verifier (GitHub 만, 없으면 JSON 에서 빠짐)
+export type AuthorizationCodeLoginRequest = Omit<ApiSchemas["AuthorizationCodeLoginRequest"], "authProvider"> & {
+  readonly authProvider: AuthorizationCodeProvider;
+};
+
+// 제공자 공개 설정: 사용 여부 + 공개 client ID (secret 없음)
+export type SocialLoginClientConfig = ApiSchemas["SocialLoginClientConfig"];
+
 // === Question ===
 export type ExecutionMode = ApiSchemas["QuestionSummary"]["executionMode"];
 export type ChoiceKind = ApiSchemas["ChoiceItem"]["kind"];
@@ -86,6 +109,20 @@ export type ProgressResponse = ApiSchemas["ProgressResponse"];
 export type WrongQuestionItem = ApiSchemas["WrongQuestionItem"];
 
 export type WrongQuestionsResponse = ApiSchemas["WrongQuestionsResponse"];
+
+// === 문제 신고 ===
+export type ReportCategory = ApiSchemas["ReportRequest"]["categories"][number];
+
+// 서버 record 에 필수 표시가 없어 생성본은 전부 필수 > 실제로 비워 보내는 2개(choiceSetUuid, detail)만 선택으로
+export type ReportRequest = Omit<ApiSchemas["ReportRequest"], "choiceSetUuid" | "detail">
+  & Partial<Pick<ApiSchemas["ReportRequest"], "choiceSetUuid" | "detail">>;
+
+export type ReportStatusResponse = ApiSchemas["ReportStatusResponse"];
+
+// === 약관 ===
+export type LegalType = ApiSchemas["LegalResponse"]["type"];
+
+export type LegalResponse = ApiSchemas["LegalResponse"];
 
 // === Topic Analysis (Issue #79) ===
 export type TopicStat = ApiSchemas["TopicStat"];

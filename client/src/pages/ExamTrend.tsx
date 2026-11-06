@@ -126,7 +126,8 @@ export default function ExamTrend() {
       />
       <TrendItemSection
         title={`자주 나오는 개념 TOP ${conceptItems.length}`}
-        footnote="최근 4회(58·60·61·62회) 합산 출제 문항 수 기준"
+        // 회차 목록은 요약의 서버 분석 근거(basisDescription)가 원본 > 여기선 고정 회차를 쓰지 않음
+        footnote="분석 회차 합산 출제 문항 수 기준"
         items={conceptItems}
         onSolve={startLatestTrendPractice}
         className={s2.className}
