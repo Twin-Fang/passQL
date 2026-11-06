@@ -155,10 +155,12 @@ public final class AiAnalysisPlanner {
             return "모든 토픽이 안정권이에요";
         }
         TopicLearningStat firstFocus = focusTopics.get(0);
+        // 1과목: 5문제 미만은 정답률을 믿지 않아 풀이 수로만 말함
         if (firstFocus.isSubjectOne()) {
-            return firstFocus.solvedCount() == 0
-                    ? "1과목 아직 0문제, 과락 위험이 커요"
-                    : "1과목 정답률 " + firstFocus.correctRatePercent() + "%, 과락 위험이 커요";
+            if (judge(firstFocus) == TopicJudgement.UNTRIED) {
+                return "1과목 아직 " + firstFocus.solvedCount() + "문제, 과락 위험이 커요";
+            }
+            return "1과목 정답률 " + firstFocus.correctRatePercent() + "%, 과락 위험이 커요";
         }
         String shortName = toShortTopicName(firstFocus.displayName());
         return switch (judge(firstFocus)) {

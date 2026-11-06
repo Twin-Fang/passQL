@@ -15,11 +15,7 @@ interface PracticeTopicButton {
   readonly topic: TopicTree;
 }
 
-/**
- * 서버 행동 > 웹 버튼 (PRACTICE_TOPIC만)
- * PRACTICE_TOPIC: topicUuid > 토픽 code 매핑, 못 찾으면 숨김
- * REVIEW_WRONG: 웹에 오답 다시 풀기 화면이 없어 숨김
- */
+/** 서버 행동 > 웹 버튼: PRACTICE_TOPIC 만 (토픽 code 못 찾으면 숨김), REVIEW_WRONG 은 웹 오답 화면이 없어 숨김 */
 function toPracticeTopicButtons(
   actions: readonly AiAnalysisAction[],
   topics: readonly TopicTree[],

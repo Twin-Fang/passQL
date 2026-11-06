@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 /**
  * LLM 출력 {"insights":[{"topicUuid","text"}]} > 토픽별 한 문장 (#861)
  * 방어 처리 5개: 코드 펜스 제거, 모르는 토픽 무시, 첫 문장만, 70자 자르기, 해요체("요")로 끝나지 않으면 버림
- * 해석 실패는 예외 그대로 (호출부가 insight 없이 응답)
+ * 해석 실패는 예외 그대로 > 호출부가 insight 없이 응답
  */
 public final class AiAnalysisInsightParser {
 

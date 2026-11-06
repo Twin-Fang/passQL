@@ -85,6 +85,8 @@ class AiAnalysisPlannerTest {
                 .isEqualTo("최근 7일 풀이가 없어요");
         assertThat(plan(List.of(subjectOne(0, 0)), ACTIVE_WEEKS, 40, 0).headline())
                 .isEqualTo("1과목 아직 0문제, 과락 위험이 커요");
+        assertThat(plan(List.of(subjectOne(3, 0.33)), ACTIVE_WEEKS, null, 0).headline())
+                .isEqualTo("1과목 아직 3문제, 과락 위험이 커요");
         assertThat(plan(List.of(subjectOne(20, 0.9), topic("조인 (JOIN)", 20, 0.45)), ACTIVE_WEEKS, null, 0).headline())
                 .isEqualTo("조인 정답률 45%가 가장 급해요");
         assertThat(plan(List.of(subjectOne(20, 0.9), topic("서브쿼리", 10, 0.7)), ACTIVE_WEEKS, null, 0).headline())

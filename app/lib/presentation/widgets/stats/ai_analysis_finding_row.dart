@@ -15,7 +15,7 @@ class AiAnalysisFindingRow extends StatelessWidget {
     AiFindingKind kind,
   ) => switch (kind) {
     AiFindingKind.weak => ('약점', PassqlBadgeKind.important, null),
-    // 주의 의미의 기본 아이콘(불꽃)은 연속 학습용이라 삼각 경고로 바꿈
+    // warning 기본 아이콘(불꽃)은 연속 학습 전용 > 불안정은 삼각 경고
     AiFindingKind.shaky => (
       '불안정',
       PassqlBadgeKind.warning,

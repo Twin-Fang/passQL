@@ -12,8 +12,7 @@ import java.util.UUID;
 
 /**
  * 통계 AI 분석 조회 전용 (#861): 세부 주제별 정답률, 최근 오답 문제, 마지막 시도 오답 수, 2주 정답률
- * SubmissionRepository 400줄 초과라 분리. 네이티브 쿼리(Submission <-> Question 연관관계 없음), 문제별 마지막 시도 기준
- * uuid 목록은 CAST(... AS varchar) IN (문자열 목록) 비교 (QuestionRepository 와 같은 방식)
+ * 네이티브 쿼리(Submission <-> Question 연관관계 없음), 문제별 마지막 시도 기준, uuid 목록은 CAST(... AS varchar) IN 비교
  */
 public interface StatsAnalysisQueryRepository extends Repository<Submission, UUID> {
 

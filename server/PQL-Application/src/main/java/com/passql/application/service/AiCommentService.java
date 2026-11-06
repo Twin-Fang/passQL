@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-// 클래스 단위 트랜잭션 없음: Gemini 호출 동안 DB 커넥션을 잡지 않게 (#497)
+// 클래스 단위 트랜잭션 없음: LLM 호출 동안 DB 커넥션을 잡지 않게 (#497)
 public class AiCommentService {
 
     private static final String CACHE_KEY_PREFIX = "ai-comment:";
@@ -116,7 +116,7 @@ public class AiCommentService {
                     prompt.getMaxTokens()
             );
         } catch (Exception e) {
-            log.error("Gemini AI comment generation failed for member={}, session={}", memberUuid, sessionUuid, e);
+            log.error("[ai comment] session comment generation failed : member={}, session={}", memberUuid, sessionUuid, e);
             throw new CustomException(ErrorCode.AI_UNAVAILABLE);
         }
         return new AiCommentResponse(comment.trim(), LocalDateTime.now());
