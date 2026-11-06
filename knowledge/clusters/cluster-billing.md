@@ -2,7 +2,7 @@
 type: cluster
 topic: billing
 created: 2026-10-29
-members: 34
+members: 36
 status: active
 related: []
 ---
@@ -33,6 +33,7 @@ related: []
 - [[DEC-0245-free-limit-daily-reset-kept]] — 무료 한도 초기화는 하루(KST 0시) 유지, 시간 충전 안 함
 
 - [[DEC-0247-promo-site-free-banner-while-billing-off]] — 결제 스위치가 꺼진 동안 소개 사이트는 비교표 대신 "지금은 모든 기능이 무료" 안내 (`IS_PRO_PLAN_VISIBLE`)
+- [[DEC-0258-ai-comment-pro-only-all-forms]] — AI 코멘트는 결과·통계 모두 프로 전용 (#699 무료 하루 1회 폐지, #860)
 
 ## 대체된 결정 (역사)
 - [[DEC-0001-pro-monthly-yearly-subscription]] → DEC-0002
