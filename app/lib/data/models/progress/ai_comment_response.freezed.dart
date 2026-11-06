@@ -21,8 +21,10 @@ AiCommentResponse _$AiCommentResponseFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$AiCommentResponse {
+  // 옛 앱 호환 글 코멘트 (analysis 없을 때 표시)
   String get comment => throw _privateConstructorUsedError;
   String? get generatedAt => throw _privateConstructorUsedError;
+  AiStatsAnalysis? get analysis => throw _privateConstructorUsedError;
 
   /// Serializes this AiCommentResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -41,7 +43,9 @@ abstract class $AiCommentResponseCopyWith<$Res> {
     $Res Function(AiCommentResponse) then,
   ) = _$AiCommentResponseCopyWithImpl<$Res, AiCommentResponse>;
   @useResult
-  $Res call({String comment, String? generatedAt});
+  $Res call({String comment, String? generatedAt, AiStatsAnalysis? analysis});
+
+  $AiStatsAnalysisCopyWith<$Res>? get analysis;
 }
 
 /// @nodoc
@@ -58,7 +62,11 @@ class _$AiCommentResponseCopyWithImpl<$Res, $Val extends AiCommentResponse>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? comment = null, Object? generatedAt = freezed}) {
+  $Res call({
+    Object? comment = null,
+    Object? generatedAt = freezed,
+    Object? analysis = freezed,
+  }) {
     return _then(
       _value.copyWith(
             comment: null == comment
@@ -69,9 +77,27 @@ class _$AiCommentResponseCopyWithImpl<$Res, $Val extends AiCommentResponse>
                 ? _value.generatedAt
                 : generatedAt // ignore: cast_nullable_to_non_nullable
                       as String?,
+            analysis: freezed == analysis
+                ? _value.analysis
+                : analysis // ignore: cast_nullable_to_non_nullable
+                      as AiStatsAnalysis?,
           )
           as $Val,
     );
+  }
+
+  /// Create a copy of AiCommentResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $AiStatsAnalysisCopyWith<$Res>? get analysis {
+    if (_value.analysis == null) {
+      return null;
+    }
+
+    return $AiStatsAnalysisCopyWith<$Res>(_value.analysis!, (value) {
+      return _then(_value.copyWith(analysis: value) as $Val);
+    });
   }
 }
 
@@ -84,7 +110,10 @@ abstract class _$$AiCommentResponseImplCopyWith<$Res>
   ) = __$$AiCommentResponseImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String comment, String? generatedAt});
+  $Res call({String comment, String? generatedAt, AiStatsAnalysis? analysis});
+
+  @override
+  $AiStatsAnalysisCopyWith<$Res>? get analysis;
 }
 
 /// @nodoc
@@ -100,7 +129,11 @@ class __$$AiCommentResponseImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? comment = null, Object? generatedAt = freezed}) {
+  $Res call({
+    Object? comment = null,
+    Object? generatedAt = freezed,
+    Object? analysis = freezed,
+  }) {
     return _then(
       _$AiCommentResponseImpl(
         comment: null == comment
@@ -111,6 +144,10 @@ class __$$AiCommentResponseImplCopyWithImpl<$Res>
             ? _value.generatedAt
             : generatedAt // ignore: cast_nullable_to_non_nullable
                   as String?,
+        analysis: freezed == analysis
+            ? _value.analysis
+            : analysis // ignore: cast_nullable_to_non_nullable
+                  as AiStatsAnalysis?,
       ),
     );
   }
@@ -119,19 +156,26 @@ class __$$AiCommentResponseImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$AiCommentResponseImpl implements _AiCommentResponse {
-  const _$AiCommentResponseImpl({required this.comment, this.generatedAt});
+  const _$AiCommentResponseImpl({
+    required this.comment,
+    this.generatedAt,
+    this.analysis,
+  });
 
   factory _$AiCommentResponseImpl.fromJson(Map<String, dynamic> json) =>
       _$$AiCommentResponseImplFromJson(json);
 
+  // 옛 앱 호환 글 코멘트 (analysis 없을 때 표시)
   @override
   final String comment;
   @override
   final String? generatedAt;
+  @override
+  final AiStatsAnalysis? analysis;
 
   @override
   String toString() {
-    return 'AiCommentResponse(comment: $comment, generatedAt: $generatedAt)';
+    return 'AiCommentResponse(comment: $comment, generatedAt: $generatedAt, analysis: $analysis)';
   }
 
   @override
@@ -141,12 +185,14 @@ class _$AiCommentResponseImpl implements _AiCommentResponse {
             other is _$AiCommentResponseImpl &&
             (identical(other.comment, comment) || other.comment == comment) &&
             (identical(other.generatedAt, generatedAt) ||
-                other.generatedAt == generatedAt));
+                other.generatedAt == generatedAt) &&
+            (identical(other.analysis, analysis) ||
+                other.analysis == analysis));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, comment, generatedAt);
+  int get hashCode => Object.hash(runtimeType, comment, generatedAt, analysis);
 
   /// Create a copy of AiCommentResponse
   /// with the given fields replaced by the non-null parameter values.
@@ -169,15 +215,19 @@ abstract class _AiCommentResponse implements AiCommentResponse {
   const factory _AiCommentResponse({
     required final String comment,
     final String? generatedAt,
+    final AiStatsAnalysis? analysis,
   }) = _$AiCommentResponseImpl;
 
   factory _AiCommentResponse.fromJson(Map<String, dynamic> json) =
       _$AiCommentResponseImpl.fromJson;
 
+  // 옛 앱 호환 글 코멘트 (analysis 없을 때 표시)
   @override
   String get comment;
   @override
   String? get generatedAt;
+  @override
+  AiStatsAnalysis? get analysis;
 
   /// Create a copy of AiCommentResponse
   /// with the given fields replaced by the non-null parameter values.

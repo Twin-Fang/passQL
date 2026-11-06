@@ -61,6 +61,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/meta/**").permitAll()
                 // App Store 서버 알림 (Apple 호출, JWT 대신 알림 JWS 서명으로 검증, #578)
                 .requestMatchers(HttpMethod.POST, "/api/billing/app-store/notifications").permitAll()
+                // AdMob 보상형 광고 서버 검증 콜백 (Google 호출, JWT 대신 쿼리 ECDSA 서명으로 검증, #860)
+                .requestMatchers(HttpMethod.GET, "/api/ads/admob/reward-callback").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .anyRequest().authenticated()
             )

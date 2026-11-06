@@ -138,6 +138,8 @@ class AppException implements Exception {
     ErrorCode.freeDailyLimitReached: '오늘 무료 문제를 다 풀었어요.',
     ErrorCode.fairUseDailyLimitReached: '오늘 풀 수 있는 문제를 모두 풀었어요.',
     ErrorCode.adBonusDailyLimitReached: '오늘 광고 보너스를 모두 받았어요.',
+    ErrorCode.adBonusVerificationPending: '광고 시청을 확인하고 있어요. 잠시 뒤 반영돼요.',
+    ErrorCode.adBonusAppUpdateRequired: '앱을 업데이트하면 광고 보너스를 받을 수 있어요.',
     ErrorCode.dailySetAlreadyCompleted: '오늘의 세트를 이미 완료했어요.',
     ErrorCode.dailySetNotFound: '오늘의 세트가 아직 준비되지 않았어요.',
     ErrorCode.aiUnavailable: 'AI 기능을 잠시 사용할 수 없어요.',

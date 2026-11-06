@@ -132,12 +132,19 @@ public class SubmissionService {
             Submission submission,
             QuestionChoiceSet choiceSet) {}
 
-    /** 세트·선택지 조회 > 정답 판정 > 세트 소비 시각 > 제출 저장 */
+    /** 세트 조회·문제 대조 > 선택지 조회 > 정답 판정 > 세트 소비 시각 > 제출 저장 */
     private GradedSubmission gradeAndRecord(UUID memberUuid, UUID questionUuid, UUID choiceSetId,
                                             String selectedChoiceKey, UUID sessionUuid) {
         // 1. ChoiceSet 조회
         QuestionChoiceSet choiceSet = choiceSetRepository.findById(choiceSetId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHOICE_SET_NOT_FOUND));
+
+        // 세트 문제 <-> URL 문제 (다른 문제 세트로 채점하면 정오·기록이 엉뚱한 문제에 쌓임, #860)
+        if (!questionUuid.equals(choiceSet.getQuestionUuid())) {
+            log.warn("[question submit] rejected 400 : choice set belongs to another question, question={}, choiceSet={}",
+                    questionUuid, choiceSetId);
+            throw new CustomException(ErrorCode.QUIZ_SESSION_CHOICE_SET_MISMATCH);
+        }
 
         // 2. 선택한 선택지 조회
         QuestionChoiceSetItem selected = choiceSetItemRepository

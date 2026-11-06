@@ -4,7 +4,7 @@
  * vercel.json redirects·public/legal/*.html 사본은 siteUrls.test.ts 가 일치 검사
  */
 
-// 웹 운영 주소 (Vercel, og:url·og:image 기준)
+// 웹 운영 주소 (Vercel, og:url·og:image 기준, iOS 마케팅 URL 사본 app/ios/fastlane/marketing_url.txt 와 함께 바꿈)
 export const PRODUCTION_SITE_URL = "https://passql.vercel.app";
 
 // 운영 API 기준 주소 (VITE_API_BASE_URL 미설정 시 기본값)

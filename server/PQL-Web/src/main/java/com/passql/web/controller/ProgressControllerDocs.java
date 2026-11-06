@@ -108,6 +108,8 @@ public interface ProgressControllerDocs {
         @ApiLog(date = "2026.04.12", author = Author.SUHSAECHAN, issueNumber = 176, description = "sessionUuid 파라미터 추가. 캐시 키 세션 단위 변경(ai-comment:{memberUuid}:{sessionUuid}, TTL 2h). 프롬프트 DB 이관(ai_comment 키). 이번 세션 결과 + 누적 통계 통합 피드백."),
         @ApiLog(date = "2026.04.19", author = Author.SUHSAECHAN, issueNumber = 120, description = "memberUuid 쿼리 파라미터 → @AuthMember JWT 인증 전환"),
         @ApiLog(date = "2026.10.27", author = Author.SUHSAECHAN, issueNumber = 699, description = "통계 코멘트(sessionUuid 없음) 무료 개방: 무료 하루 1회·프로 최근 풀이 10문제마다 갱신 (캐시 키 ai-comment:{memberUuid}:stats:{날짜}:{구간}, TTL 24h). 세션 코멘트는 프로 전용 유지 (무료 403 PRO_REQUIRED)"),
+        @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 860, description = "통계·세션 코멘트 모두 프로 전용 (무료 403 PRO_REQUIRED), 세션 코멘트는 본인 세션 제출만 집계"),
+        @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 861, description = "통계 코멘트에 구조화 분석(analysis) 추가: 서버 판정 집중 토픽 2개·근거·주간 추세·강점·바로 풀기 버튼, LLM 은 토픽별 한 문장(ai_analysis_stats). comment 는 구버전 앱용 평문 유지, 세션 코멘트 analysis=null"),
     })
     @Operation(
         summary = "AI 영역 분석 코멘트 조회",
@@ -115,14 +117,25 @@ public interface ProgressControllerDocs {
             ## 인증(JWT): **필요**
 
             ## 요청 파라미터
-            - sessionUuid (UUID, required): 퀴즈 세션 식별자
+            - sessionUuid (UUID, optional): 퀴즈 세션 식별자 (없으면 통계 화면 코멘트, 본인 세션 제출만 집계)
+
+            ## 등급
+            - 프로 전용 (결제 켜짐 무료 회원 403 PRO_REQUIRED, 결제 꺼짐이면 모두 허용)
 
             ## 반환값 (AiCommentResponse)
-            - comment: AI 생성 한국어 코멘트 (2~3문장, 약점 영역 파악 + 집중 학습 추천)
+            - comment: 한국어 코멘트. 세션: AI 2~3문장 / 통계: analysis 를 이어 붙인 평문 (구버전 앱 호환, 마크다운 없음)
             - generatedAt: 코멘트 생성(캐시 저장) 시각
+            - analysis (통계 화면만, 세션은 null): 서버 판정 구조화 분석
+              - headline: 한 줄 요약 (시험 30일 이내면 "D-N · " 접두)
+              - findings[] (최대 2): topicUuid, topicName(짧은 이름), kind(WEAK 약점·SHAKY 불안정·UNTRIED 판단 이름), solvedCount, correctRatePercent, evidence, insight(LLM 한 문장, 실패·근거 부족이면 null)
+              - trend: 이번 주 vs 지난주 정답률 (두 주 모두 풀이 있을 때만, 아니면 null)
+              - strength: 10문제 이상·85% 이상 중 최고 토픽 (없으면 null)
+              - actions[] (최대 2): type(PRACTICE_TOPIC 토픽 풀기·REVIEW_WRONG 최근 오답 다시 풀기), topicUuid·topicName(PRACTICE_TOPIC 만), count(표시용), label
+              - 판정 기준·문구는 서버 규칙 고정, LLM 실패해도 analysis 는 응답 (insight 만 null)
 
             ## 캐싱
             - Redis key: ai-comment:{memberUuid}:{sessionUuid}, TTL 2시간
+            - 통계: ai-comment:{memberUuid}:stats:{날짜}:analysis-{최근 7일 풀이 수/10}, TTL 24시간 (LLM 실패 응답은 캐시하지 않음)
             - 같은 세션 재진입 시 동일 텍스트 반환 (불필요한 AI 호출 방지)
             - 새 세션 시작 시 새 sessionUuid로 자동 새 AI 호출
             - AI 호출 latency를 고려해 프론트엔드에서 비동기 로딩 권장

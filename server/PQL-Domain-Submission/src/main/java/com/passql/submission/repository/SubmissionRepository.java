@@ -30,6 +30,9 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
     Optional<Submission> findFirstByMemberUuidAndQuestionUuidAndChoiceSetUuidOrderBySubmittedAtDesc(
             UUID memberUuid, UUID questionUuid, UUID choiceSetUuid);
 
+    /** 회원이 이 선택지 세트로 낸 답안 수 (무료 회원 같은 세트 재제출 판정, #860) */
+    long countByMemberUuidAndChoiceSetUuid(UUID memberUuid, UUID choiceSetUuid);
+
     /** 커뮤니티: 이 문제를 풀어 본(제출 기록이 있는) 회원인지 */
     boolean existsByMemberUuidAndQuestionUuid(UUID memberUuid, UUID questionUuid);
 
@@ -328,7 +331,7 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
                                        @Param("since") LocalDateTime since);
 
     /**
-     * 세션 내 제출 목록을 토픽명과 함께 조회 (AI 코멘트 세션 컨텍스트용).
+     * 회원 본인 세션 제출 목록을 토픽명과 함께 조회 (AI 코멘트 세션 컨텍스트용, 남의 세션 집계 차단 #860).
      *
      * 네이티브 쿼리 사용 이유: Submission↔Question↔Topic 간 @ManyToOne 연관관계가 없어
      * JPQL theta-join 시 데카르트 조인 발생 우려.
@@ -340,10 +343,12 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
         "FROM submission s " +
         "JOIN question q ON s.question_uuid = q.question_uuid " +
         "JOIN topic t ON q.topic_uuid = t.topic_uuid " +
-        "WHERE s.session_uuid = CAST(:sessionUuid AS uuid) " +
+        "WHERE s.member_uuid = CAST(:memberUuid AS uuid) " +
+        "  AND s.session_uuid = CAST(:sessionUuid AS uuid) " +
         "ORDER BY s.submitted_at ASC",
         nativeQuery = true)
-    List<Object[]> findTopicResultsBySessionUuid(@Param("sessionUuid") String sessionUuid);
+    List<Object[]> findTopicResultsByMemberUuidAndSessionUuid(@Param("memberUuid") String memberUuid,
+                                                             @Param("sessionUuid") String sessionUuid);
 
     /**
      * 통계 화면 AI 코멘트용 최근 N일 학습 현황 조회.

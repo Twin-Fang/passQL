@@ -78,6 +78,10 @@ public final class AppSettingKeys {
     public static final String CONCEPT_FREE_TOPIC_COUNT = "concept.free_topic_count";
     // app_setting: 개념 초안 미리보기 회원 UUID 목록 (쉼표 구분, 빈 값 대상 없음)
     public static final String CONCEPT_PREVIEW_MEMBER_UUIDS = "concept.preview_member_uuids";
+    // app_setting: 광고 보너스 AdMob 서버 검증 필수 (true 콜백으로만 기록·앱 신고는 확인만, false 앱 신고로도 기록, #860)
+    public static final String ADS_REWARD_SSV_REQUIRED = "ads.reward.ssv_required";
+    // app_setting: 서버 검증 콜백을 받을 보상형 광고 단위 ID 목록 (쉼표 구분, 빈 값 단위 확인 안 함)
+    public static final String ADS_REWARD_SSV_AD_UNIT_IDS = "ads.reward.ssv_ad_unit_ids";
     // app_setting: Play Developer API 서비스 계정 키 JSON (SECRET, 암호문 저장, 관리자 화면에서 변경, 비면 결제 확인 불가)
     public static final String BILLING_PLAY_SERVICE_ACCOUNT_JSON = "billing.play_service_account_json";
 

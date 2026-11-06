@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
+import '../models/member/ad_bonus_request.dart';
 import '../models/member/choice_mode_models.dart';
 import '../models/member/member_me_response.dart';
 import '../models/member/member_plan_response.dart';
@@ -26,8 +27,9 @@ abstract class MemberApiClient {
   Future<List<PurchaseHistoryEntryResponse>> getMyPurchases();
 
   /// 보상형 광고 시청 뒤 무료 한도 +5 (하루 2회, 넘으면 409 AD_BONUS_DAILY_LIMIT_REACHED, #808)
+  /// 서버 검증 켜짐이면 AdMob 콜백 기록 확인만 (도착 전 409 AD_BONUS_VERIFICATION_PENDING, #860)
   @POST('/members/me/plan/ad-bonus')
-  Future<MemberPlanResponse> grantAdBonus();
+  Future<MemberPlanResponse> grantAdBonus(@Body() AdBonusRequest body);
 
   /// 회원 탈퇴. 성공하면 서버가 204 를 돌려주고 이후 이 계정의 토큰은 쓸 수 없다.
   @DELETE('/members/me')

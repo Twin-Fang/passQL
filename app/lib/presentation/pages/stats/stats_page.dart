@@ -115,7 +115,7 @@ class _StatsContent extends StatelessWidget {
   }
 }
 
-/// AI 코멘트 자리: 기다리는 동안 스켈레톤, 오면 구간으로 교체, 없거나 실패하면 앞 띠와 함께 접힘
+/// AI 코멘트 자리: 무료(결제 켜짐)면 잠금 자리, 기다리는 동안 스켈레톤, 오면 구간으로 교체, 없거나 실패하면 앞 띠와 함께 접힘
 class _StatsAiCommentSection extends ConsumerWidget {
   const _StatsAiCommentSection();
 
@@ -124,7 +124,9 @@ class _StatsAiCommentSection extends ConsumerWidget {
     final aiCommentAsync = ref.watch(statsAiCommentProvider);
     final aiComment = aiCommentAsync.value;
     final Widget content;
-    if (aiCommentAsync.isLoading && aiComment == null) {
+    if (ref.watch(shouldShowProUiProvider)) {
+      content = const AiAnalysisLockedSection(key: ValueKey('locked'));
+    } else if (aiCommentAsync.isLoading && aiComment == null) {
       content = const AiAnalysisCardSkeleton(key: ValueKey('loading'));
     } else if (aiComment?.comment == null) {
       content = const SizedBox.shrink(key: ValueKey('empty'));
@@ -154,7 +156,7 @@ class _StatsAiCommentSection extends ConsumerWidget {
 /// 로딩 스켈레톤: 실제 구간 3개와 비슷한 높이로 자리를 잡는다
 // 스켈레톤 구간 높이 (어림값: 내 상태·AI 분석·영역 목록)
 const double _statusSkeletonHeight = 260;
-const double _aiSkeletonHeight = 120;
+const double _aiSkeletonHeight = 260;
 const double _topicSkeletonHeight = 280;
 
 class _StatsSkeleton extends StatelessWidget {

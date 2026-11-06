@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ChevronRight, Flame, Sparkles } from "lucide-react";
 import { useTopics } from "../hooks/useTopics";
 import { getTopicIcon } from "../constants/topicIcons";
-import { EmptyPracticeTopicError, generatePractice } from "../api/practice";
-import { usePracticeStore } from "../stores/practiceStore";
+import { EmptyPracticeTopicError } from "../api/practice";
+import { useStartTopicPractice } from "../hooks/useStartTopicPractice";
 import ErrorFallback from "../components/ErrorFallback";
 import { useStagger } from "../hooks/useStagger";
 import { useLatestTrendTopicCodes } from "../hooks/useExamTrend";
@@ -14,8 +14,7 @@ export default function CategoryCards() {
   const { data: topics, isLoading, isError, refetch } = useTopics();
   // 문제가 없는 카테고리 클릭 시 안내 모달 표시 여부
   const [showEmptyModal, setShowEmptyModal] = useState(false);
-  const navigate = useNavigate();
-  const startSession = usePracticeStore((s) => s.startSession);
+  const startTopicPractice = useStartTopicPractice();
   // 최신 경향 문제가 있는 토픽 (카드 배지, #523)
   const latestTrendTopicCodes = useLatestTrendTopicCodes();
 
@@ -26,9 +25,7 @@ export default function CategoryCards() {
 
   const handleSelect = async (code: string, displayName: string) => {
     try {
-      const { sessionId, questions } = await generatePractice(code);
-      startSession(sessionId, code, displayName, questions);
-      navigate(`/practice/${sessionId}`);
+      await startTopicPractice({ topicCode: code, sessionTitle: displayName });
     } catch (err) {
       // 문제가 없는 카테고리인 경우 안내 모달 표시
       if (err instanceof EmptyPracticeTopicError) {
