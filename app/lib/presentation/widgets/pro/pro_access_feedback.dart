@@ -59,9 +59,10 @@ Future<ProAccessFeedbackResult> showProAccessFeedback(
       if (!context.mounted) return ProAccessFeedbackResult.shown;
       final isProNow = ref.read(isProProvider);
       // 시트 결과로만 판정 (기억한 등급 값으로 추론하면 그냥 닫아도 다시 요청 > 시트 반복)
+      // 구매·광고 보너스는 확인 중에 시트를 닫았어도 결과가 옴 > 등급 다시 받기가 실패해도 다시 요청
       final isUnlocked =
           (!wasPro && isProNow) ||
-          sheetOutcome == ProOfferSheetOutcome.adBonusGranted;
+          sheetOutcome != ProOfferSheetOutcome.dismissed;
       return isUnlocked
           ? ProAccessFeedbackResult.sheetUnlocked
           : ProAccessFeedbackResult.shown;
