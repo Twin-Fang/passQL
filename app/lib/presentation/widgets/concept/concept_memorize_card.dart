@@ -41,7 +41,7 @@ class _ConceptMemorizeCardState extends State<ConceptMemorizeCard> {
     return PassqlCallout(
       kind: PassqlCalloutKind.memorize,
       icon: CupertinoIcons.bookmark_fill,
-      label: '꼭 외울 것 ${facts.length}개',
+      label: '외울 답 ${facts.length}개',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

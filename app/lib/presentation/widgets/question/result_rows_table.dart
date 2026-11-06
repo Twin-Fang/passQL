@@ -156,6 +156,8 @@ class ResultRowsTable extends StatelessWidget {
 
   // 칸 안 좌우 여백 (열 폭 계산에도 더함)
   static const double _cellHorizontalPadding = PassqlSpacing.sm;
+  // 잰 폭과 그릴 폭이 딱 같으면 소수 오차로 낱말이 쪼개짐 (예: NUL/L) > 1pt 여유
+  static const double _measureSlackPixels = 1;
 
   static (String, TextStyle) _valueCellOf(
     Object? value,
@@ -183,7 +185,7 @@ class ResultRowsTable extends StatelessWidget {
           textDirection: TextDirection.ltr,
           textScaler: textScaler,
         )..layout();
-        const padding = _cellHorizontalPadding * 2;
+        const padding = _cellHorizontalPadding * 2 + _measureSlackPixels;
         singleLineWidths[column] = math.max(
           singleLineWidths[column],
           painter.maxIntrinsicWidth.ceilToDouble() + padding,

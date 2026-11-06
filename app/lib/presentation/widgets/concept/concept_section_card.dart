@@ -93,7 +93,8 @@ class _SectionHeader extends StatelessWidget {
       ),
       ConceptSectionKind.memorize => (
         CupertinoIcons.bookmark_fill,
-        '꼭 외울 것',
+        // 제목이 늘 '꼭 외울 것'이라 라벨은 블록 성격으로
+        '암기 카드',
         colors.memorizeText,
       ),
       _ => (null, null, colors.accentText),
