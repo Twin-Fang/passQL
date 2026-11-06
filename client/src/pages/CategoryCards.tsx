@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight, Flame, Sparkles } from "lucide-react";
+import { ChevronRight, ClipboardCheck, Flame, Sparkles } from "lucide-react";
 import { useTopics } from "../hooks/useTopics";
 import { getTopicIcon } from "../constants/topicIcons";
 import { EmptyPracticeTopicError } from "../api/practice";
@@ -9,6 +9,8 @@ import ErrorFallback from "../components/ErrorFallback";
 import { useStagger } from "../hooks/useStagger";
 import { useLatestTrendTopicCodes } from "../hooks/useExamTrend";
 import LatestTrendBadge from "../components/LatestTrendBadge";
+import { MOCK_EXAM_ROUNDS_PATH } from "../constants/mockExamRoutes";
+import { MOCK_EXAM_TITLE } from "../constants/mockExamCopy";
 
 export default function CategoryCards() {
   const { data: topics, isLoading, isError, refetch } = useTopics();
@@ -65,6 +67,15 @@ export default function CategoryCards() {
         <p className="text-secondary mb-4">
           골라보세요, AI가 딱 맞는 문제를 만들어드릴게요
         </p>
+        {/* SQLD 모의고사 진입 (#866) */}
+        <Link
+          to={MOCK_EXAM_ROUNDS_PATH}
+          className="mb-2 flex items-center gap-3 bg-surface-card border border-border rounded-2xl px-4 py-3 hover:border-brand transition-colors"
+        >
+          <ClipboardCheck size={18} className="text-brand shrink-0" aria-hidden="true" />
+          <span className="flex-1 min-w-0 text-sm text-text-primary">{MOCK_EXAM_TITLE} 풀기</span>
+          <ChevronRight size={16} className="text-text-caption shrink-0" aria-hidden="true" />
+        </Link>
         {/* 출제 경향 진입 (#523) */}
         <Link
           to="/exam-trend"

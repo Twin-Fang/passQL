@@ -20,6 +20,10 @@ export const LOCKED_PREVIEW_CAPTIONS = {
   examTrend: "최근 기출 토픽 비중 · 이번 회차 예상",
   wrongNotes: "틀린 문제 모아보기 · 다시 풀기",
   aiAnalysis: "AI 약점 분석 · 다음 공부 추천",
+  // 모의고사 (#866): 결과 과목·토픽 분석, 문항 해설, 점수 추이
+  mockExamSubjectDetail: "과목별 점수 · 과락 · 토픽별 정답률",
+  mockExamReview: "문항별 해설 · 보기별 근거 · 다음에 할 일",
+  mockExamScoreTrend: "회차별 점수 추이 · 합격선 비교",
 } as const;
 
 // 사유 화면 3종 (앱 QuestionLoadErrorView 와 같은 문구)
