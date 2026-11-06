@@ -10,8 +10,87 @@
         },
         "type" : "object"
       },
+      "AiAnalysisAction" : {
+        "properties" : {
+          "count" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "label" : {
+            "type" : "string"
+          },
+          "topicName" : {
+            "type" : [ "string", "null" ]
+          },
+          "topicUuid" : {
+            "format" : "uuid",
+            "type" : [ "string", "null" ]
+          },
+          "type" : {
+            "enum" : [ "PRACTICE_TOPIC", "REVIEW_WRONG" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "count", "label", "topicName", "topicUuid", "type" ],
+        "type" : "object"
+      },
+      "AiAnalysisFinding" : {
+        "properties" : {
+          "correctRatePercent" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "evidence" : {
+            "type" : "string"
+          },
+          "insight" : {
+            "type" : [ "string", "null" ]
+          },
+          "kind" : {
+            "enum" : [ "WEAK", "SHAKY", "UNTRIED" ],
+            "type" : "string"
+          },
+          "solvedCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "topicName" : {
+            "type" : "string"
+          },
+          "topicUuid" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        },
+        "required" : [ "correctRatePercent", "evidence", "insight", "kind", "solvedCount", "topicName", "topicUuid" ],
+        "type" : "object"
+      },
+      "AiAnalysisStrength" : {
+        "properties" : {
+          "correctRatePercent" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "topicName" : {
+            "type" : "string"
+          },
+          "topicUuid" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        },
+        "required" : [ "correctRatePercent", "topicName", "topicUuid" ],
+        "type" : "object"
+      },
       "AiCommentResponse" : {
         "properties" : {
+          "analysis" : {
+            "oneOf" : [ {
+              "$ref" : "#/components/schemas/AiStatsAnalysis"
+            }, {
+              "type" : "null"
+            } ]
+          },
           "comment" : {
             "type" : "string"
           },
@@ -20,7 +99,7 @@
             "type" : [ "string", "null" ]
           }
         },
-        "required" : [ "comment", "generatedAt" ],
+        "required" : [ "analysis", "comment", "generatedAt" ],
         "type" : "object"
       },
       "AiResult" : {
@@ -34,6 +113,37 @@
           }
         },
         "required" : [ "promptVersion", "text" ],
+        "type" : "object"
+      },
+      "AiStatsAnalysis" : {
+        "properties" : {
+          "actions" : {
+            "items" : {
+              "$ref" : "#/components/schemas/AiAnalysisAction"
+            },
+            "type" : "array"
+          },
+          "findings" : {
+            "items" : {
+              "$ref" : "#/components/schemas/AiAnalysisFinding"
+            },
+            "type" : "array"
+          },
+          "headline" : {
+            "type" : "string"
+          },
+          "strength" : {
+            "oneOf" : [ {
+              "$ref" : "#/components/schemas/AiAnalysisStrength"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "trend" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "actions", "findings", "headline", "strength", "trend" ],
         "type" : "object"
       },
       "AppConfigResponse" : {
@@ -4228,7 +4338,7 @@
     },
     "/api/progress/ai-comment" : {
       "get" : {
-        "description" : "## 인증(JWT): **필요**\n\n## 요청 파라미터\n- sessionUuid (UUID, optional): 퀴즈 세션 식별자 (없으면 통계 화면 코멘트, 본인 세션 제출만 집계)\n\n## 등급\n- 프로 전용 (결제 켜짐 무료 회원 403 PRO_REQUIRED, 결제 꺼짐이면 모두 허용)\n\n## 반환값 (AiCommentResponse)\n- comment: AI 생성 한국어 코멘트 (2~3문장, 약점 영역 파악 + 집중 학습 추천)\n- generatedAt: 코멘트 생성(캐시 저장) 시각\n\n## 캐싱\n- Redis key: ai-comment:{memberUuid}:{sessionUuid}, TTL 2시간\n- 같은 세션 재진입 시 동일 텍스트 반환 (불필요한 AI 호출 방지)\n- 새 세션 시작 시 새 sessionUuid로 자동 새 AI 호출\n- AI 호출 latency를 고려해 프론트엔드에서 비동기 로딩 권장\n",
+        "description" : "## 인증(JWT): **필요**\n\n## 요청 파라미터\n- sessionUuid (UUID, optional): 퀴즈 세션 식별자 (없으면 통계 화면 코멘트, 본인 세션 제출만 집계)\n\n## 등급\n- 프로 전용 (결제 켜짐 무료 회원 403 PRO_REQUIRED, 결제 꺼짐이면 모두 허용)\n\n## 반환값 (AiCommentResponse)\n- comment: 한국어 코멘트. 세션: AI 2~3문장 / 통계: analysis 를 이어 붙인 평문 (구버전 앱 호환, 마크다운 없음)\n- generatedAt: 코멘트 생성(캐시 저장) 시각\n- analysis (통계 화면만, 세션은 null): 서버 판정 구조화 분석\n  - headline: 한 줄 요약 (시험 30일 이내면 \"D-N · \" 접두)\n  - findings[] (최대 2): topicUuid, topicName(짧은 이름), kind(WEAK 약점·SHAKY 불안정·UNTRIED 판단 이름), solvedCount, correctRatePercent, evidence, insight(LLM 한 문장, 실패·근거 부족이면 null)\n  - trend: 이번 주 vs 지난주 정답률 (두 주 모두 풀이 있을 때만, 아니면 null)\n  - strength: 10문제 이상·85% 이상 중 최고 토픽 (없으면 null)\n  - actions[] (최대 2): type(PRACTICE_TOPIC 토픽 풀기·REVIEW_WRONG 최근 오답 다시 풀기), topicUuid·topicName(PRACTICE_TOPIC 만), count(표시용), label\n  - 판정 기준·문구는 서버 규칙 고정, LLM 실패해도 analysis 는 응답 (insight 만 null)\n\n## 캐싱\n- Redis key: ai-comment:{memberUuid}:{sessionUuid}, TTL 2시간\n- 통계: ai-comment:{memberUuid}:stats:{날짜}:analysis-{최근 7일 풀이 수/10}, TTL 24시간 (LLM 실패 응답은 캐시하지 않음)\n- 같은 세션 재진입 시 동일 텍스트 반환 (불필요한 AI 호출 방지)\n- 새 세션 시작 시 새 sessionUuid로 자동 새 AI 호출\n- AI 호출 latency를 고려해 프론트엔드에서 비동기 로딩 권장\n",
         "operationId" : "getAiComment",
         "parameters" : [ {
           "in" : "query",

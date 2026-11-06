@@ -94,6 +94,15 @@ export type TopicAnalysisResponse = ApiSchemas["TopicAnalysisResponse"];
 
 export type AiCommentResponse = ApiSchemas["AiCommentResponse"];
 
+// 통계 AI 분석 구조 (#861): 세션 코멘트(결과 화면)는 analysis null
+export type AiStatsAnalysis = ApiSchemas["AiStatsAnalysis"];
+
+export type AiAnalysisFinding = ApiSchemas["AiAnalysisFinding"];
+
+export type AiAnalysisStrength = ApiSchemas["AiAnalysisStrength"];
+
+export type AiAnalysisAction = ApiSchemas["AiAnalysisAction"];
+
 // === Heatmap ===
 export type HeatmapEntry = ApiSchemas["HeatmapEntry"];
 

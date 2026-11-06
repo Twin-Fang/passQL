@@ -570,7 +570,40 @@ Object? _respond(RequestOptions o) {
     };
   }
   if (p.endsWith('/progress/ai-comment')) {
-    return {'comment': 'JOIN 과 서브쿼리 영역의 정답률이 좋아요. 윈도우 함수를 조금만 더 연습하면 합격권이에요!', 'generatedAt': '2026-10-07T09:00:00'};
+    // 통계 구조화 분석 (#861): 진단 > 약한 토픽 2 > 추세·강점 > 바로 풀기 2
+    return {
+      'comment': 'JOIN 과 서브쿼리 영역의 정답률이 좋아요. 윈도우 함수를 조금만 더 연습하면 합격권이에요!',
+      'generatedAt': '2026-10-07T09:00:00',
+      'analysis': {
+        'headline': 'D-7 · 1과목 정답률 50%, 과락 위험이 커요',
+        'findings': [
+          {
+            'topicUuid': _topics[0][0],
+            'topicName': _topics[0][2],
+            'kind': 'WEAK',
+            'solvedCount': 6,
+            'correctRatePercent': 50,
+            'evidence': '6문제 중 3문제 정답 (50%)',
+            'insight': '이행 함수 종속과 제2정규형 위반을 헷갈리는 것 같아요.',
+          },
+          {
+            'topicUuid': _topics[7][0],
+            'topicName': _topics[7][2],
+            'kind': 'SHAKY',
+            'solvedCount': 12,
+            'correctRatePercent': 67,
+            'evidence': '12문제 중 8문제 정답 (67%)',
+            'insight': '`ROWS` 와 `RANGE` 범위 차이에서 자주 틀려요.',
+          },
+        ],
+        'trend': '이번 주 정답률 66%, 지난주보다 8%p 올랐어요',
+        'strength': {'topicUuid': _topics[1][0], 'topicName': _topics[1][2], 'correctRatePercent': 92},
+        'actions': [
+          {'type': 'PRACTICE_TOPIC', 'topicUuid': _topics[0][0], 'topicName': _topics[0][2], 'count': 10, 'label': '${_topics[0][2]} 10문제 풀기'},
+          {'type': 'REVIEW_WRONG', 'topicUuid': null, 'topicName': null, 'count': 8, 'label': '최근 오답 8문제 다시 풀기'},
+        ],
+      },
+    };
   }
   if (p.endsWith('/progress/topic-analysis')) {
     return {

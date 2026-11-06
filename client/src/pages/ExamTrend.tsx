@@ -1,8 +1,7 @@
-import { useNavigate } from "react-router-dom";
 import { ChevronRight, Lightbulb } from "lucide-react";
 import { useLatestExamTrend } from "../hooks/useExamTrend";
-import { EmptyPracticeTopicError, generatePractice } from "../api/practice";
-import { usePracticeStore } from "../stores/practiceStore";
+import { EmptyPracticeTopicError } from "../api/practice";
+import { useStartTopicPractice } from "../hooks/useStartTopicPractice";
 import ErrorFallback from "../components/ErrorFallback";
 import LockedPreview from "../components/pro/LockedPreview";
 import { ExamTrendLockedSample } from "../components/pro/lockedPreviewSamples";
@@ -29,8 +28,7 @@ interface SolvableTrendItem {
  */
 export default function ExamTrend() {
   const { data: report, isLoading, isError, error, refetch } = useLatestExamTrend();
-  const navigate = useNavigate();
-  const startSession = usePracticeStore((s) => s.startSession);
+  const startTopicPractice = useStartTopicPractice();
   const stagger = useStagger();
   const s0 = stagger(0); // 요약
   const s1 = stagger(1); // 과목 비중·유형
@@ -39,9 +37,7 @@ export default function ExamTrend() {
   // 토픽 최신 경향 문제로 연습 세션 시작 (문제 0개·조회 실패면 화면 유지, AI문제 화면과 같은 처리)
   const startLatestTrendPractice = async (topicCode: string, topicName: string) => {
     try {
-      const { sessionId, questions } = await generatePractice(topicCode, { isLatestTrendOnly: true });
-      startSession(sessionId, topicCode, `${topicName} 최신 경향`, questions);
-      navigate(`/practice/${sessionId}`);
+      await startTopicPractice({ topicCode, sessionTitle: `${topicName} 최신 경향`, isLatestTrendOnly: true });
     } catch (err) {
       if (!(err instanceof EmptyPracticeTopicError)) console.warn("[exam trend] practice start failed", err);
     }

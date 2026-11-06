@@ -217,6 +217,7 @@ export default function Stats() {
           <section className={s2.className}>
             <StatsAnalysisCard
               comment={aiComment?.comment ?? null}
+              analysis={aiComment?.analysis ?? null}
               isLoading={aiCommentLoading}
             />
           </section>
