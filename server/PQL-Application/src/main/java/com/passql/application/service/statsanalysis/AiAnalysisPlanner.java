@@ -33,9 +33,9 @@ public final class AiAnalysisPlanner {
     static final double STRENGTH_RATE_THRESHOLD = 0.85;
     // 한 줄 요약 앞 D-N 표기 기간 (일)
     static final int EXAM_PREFIX_DAYS = 30;
-    // 토픽 풀기 버튼 문제 수 (한 번에 부담 없는 양)
+    // 응답 count 값: 토픽 풀기 권장 문제 수 (앱·웹 이동·문구에는 안 씀)
     static final int PRACTICE_COUNT = 5;
-    // 오답 다시 풀기 버튼: 마지막 시도 오답 3문제 이상일 때, 최대 5문제
+    // 오답 노트 버튼: 마지막 시도 오답 3문제 이상일 때, 응답 count 최대 5
     static final int REVIEW_WRONG_MIN_COUNT = 3;
     static final int REVIEW_WRONG_MAX_COUNT = 5;
 
@@ -190,19 +190,22 @@ public final class AiAnalysisPlanner {
         return "이번 주 정답률 " + thisWeekPercent + "%, " + comparison;
     }
 
-    /** 버튼 최대 2개: 첫 집중 토픽 풀기 > 최근 오답 다시 풀기 (3문제 이상) */
+    /**
+     * 버튼 최대 2개: 첫 집중 토픽 풀기 > 오답 노트 (오답 3문제 이상)
+     * 앱·웹은 토픽 챕터·오답 노트로만 이동해 count 를 쓰지 않음 > 문구에 문제 수를 넣지 않음
+     */
     static List<AiAnalysisAction> buildActions(List<TopicLearningStat> focusTopics, long latestWrongQuestionCount) {
         List<AiAnalysisAction> actions = new ArrayList<>();
         if (!focusTopics.isEmpty()) {
             TopicLearningStat firstFocus = focusTopics.get(0);
             String shortName = toShortTopicName(firstFocus.displayName());
             actions.add(new AiAnalysisAction(AiAnalysisActionType.PRACTICE_TOPIC, firstFocus.topicUuid(), shortName,
-                    PRACTICE_COUNT, shortName + " " + PRACTICE_COUNT + "문제 풀기"));
+                    PRACTICE_COUNT, shortName + " 문제 풀기"));
         }
         if (latestWrongQuestionCount >= REVIEW_WRONG_MIN_COUNT) {
             int reviewCount = (int) Math.min(latestWrongQuestionCount, REVIEW_WRONG_MAX_COUNT);
             actions.add(new AiAnalysisAction(AiAnalysisActionType.REVIEW_WRONG, null, null,
-                    reviewCount, "최근 오답 " + reviewCount + "문제 다시 풀기"));
+                    reviewCount, "오답 노트에서 다시 풀기"));
         }
         return actions;
     }
