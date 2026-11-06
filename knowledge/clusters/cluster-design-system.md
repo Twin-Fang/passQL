@@ -2,7 +2,7 @@
 type: cluster
 topic: design-system
 created: 2026-10-29
-members: 136
+members: 144
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 디자인 토큰·공통 UI 컴포넌트·폰트·테마
 
 ## 현재 상태 요약
-(2026-11-05, 자동 생성) 활성 결정 48개, 열린 이슈 2개. 코드 글꼴은 D2Coding 부분 글꼴 — [[DEC-0255-code-font-d2coding-subset]] (#849). 하단 탭 바는 아이콘 + 라벨을 바 안 세로 가운데, 높이 50 — [[DEC-0241-tab-bar-content-vertically-centered]] (#817 릴리스 반영). 앱 아이콘은 연보라 그라데이션 + `pass`/`QL` 2줄 — [[DEC-0242-app-icon-lavender-two-line-pass-ql]] (main 머지, 작성 시점 미배포). 프로필 상단은 A안(카드형)이고 프로필·정보 시트 탑승권 칸 통일([[DEC-0208-pass-ticket-fields-unified]])은 대체됐다 — [[DEC-0243-profile-top-card-style-a]] (PR #822, 작성 시점 미머지). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-07, 자동 생성) 활성 결정 50개, 열린 이슈 3개. 코드 글꼴은 D2Coding 부분 글꼴 — [[DEC-0255-code-font-d2coding-subset]] (#849). 하단 탭 바는 아이콘 + 라벨을 바 안 세로 가운데, 높이 50 — [[DEC-0241-tab-bar-content-vertically-centered]] (#817 릴리스 반영). 앱 아이콘은 연보라 그라데이션 + `pass`/`QL` 2줄 — [[DEC-0242-app-icon-lavender-two-line-pass-ql]] (main 머지, 작성 시점 미배포). 프로필 상단은 A안(카드형)이고 프로필·정보 시트 탑승권 칸 통일([[DEC-0208-pass-ticket-fields-unified]])은 대체됐으며, 이용권 행은 `/account` 한 곳·프로필은 "이용권 관리" 한 줄 — [[DEC-0263-pass-rows-on-account-screen-only]] (#863, DEC-0243 대체). 이용권 혜택은 광고 제거를 더한 7개 — [[DEC-0262-pro-benefits-seven-ad-removal]] (DEC-0205 대체). 개념 글 `**` 는 외울 말 형광펜(`memorizeHighlight` 토큰) — [[DEC-0266-concept-bold-highlight-memorize-section]]. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0255-code-font-d2coding-subset]] — 코드 글꼴은 한글까지 고정폭인 D2Coding 부분 글꼴
@@ -42,7 +42,6 @@ related: []
 - [[DEC-0189-home-section-layout-single-cta]] — 앱 홈은 카드 대신 좌우 끝까지 닿는 구간(면 + 회색 띠)으로 나누고, 채운 버튼은 「오늘의 세트 풀기」 하나만 둔다 (다른 탭은 카드 유지)
 - [[DEC-0192-readiness-activity-rings]] — 앱 홈 합격 준비도는 겹친 링 3개(정확도·범위·최신성) + 범례로, 색은 기존 앱 토큰
 - [[DEC-0198-cards-for-pick-lists-sections-for-reports]] — 앱에서 고르는 목록은 카드, 위에서 아래로 읽는 리포트는 구간 — 문제 탭은 최신 경향·개념 TOP 10만 구간으로
-- [[DEC-0205-pro-benefits-single-source]] — 앱 이용권 혜택 목록은 `pro_benefits.dart` 한 곳을 원본으로 쓰고, 실제 잠금이 있는 기능만 보인다
 - [[DEC-0206-topic-accuracy-list-with-octagon-chart]] — 앱 영역별 정답률은 목록을 기본으로 두고 같은 자리에서 8각 차트로 바꿔 본다 (레이더·막대 두 장 통합, `fl_chart` 제거)
 - [[DEC-0207-pass-ticket-upright-float-shadow]] — passQL PASS 탑승권은 시트에서도 기울이지 않고 정방향으로 두고, 띄움 그림자만 쓴다
 - [[DEC-0209-pass-ticket-label-size-only]] — 탑승권 정보 칸은 라벨만 12 → 11로 줄이고 값은 13을 유지한다
@@ -63,9 +62,11 @@ related: []
 - [[DEC-0231-refresh-glow-on-release-wave-while-holding]] — 끝까지 당기면 손 뗄 때까지 물결 반복, 손 떼는 순간 빛이 화면 끝까지
 - [[DEC-0241-tab-bar-content-vertically-centered]] — 하단 탭 바 내용은 세로 가운데, 높이 54 > 50, 하단 inset 0이면 최소 여백 없음 (`tabBarIconTop` 삭제)
 - [[DEC-0242-app-icon-lavender-two-line-pass-ql]] — 앱 아이콘은 시안 8번: 연보라 세로 그라데이션 + `pass`(남색)·`QL`(18% 진하게) 2줄, 가로 로고에서 합성, 다크·틴트 아이콘 없음
-- [[DEC-0243-profile-top-card-style-a]] — 프로필 상단 A안(카드형): 계정 줄 + 무료는 탑승권 대신 오늘 남은 문제·업그레이드 배너, 프로는 남은 날 큰 숫자 PRO 탑승권 카드(승객 · 만료일 · 이용권) + 이어서 연장 (DEC-0208 대체)
 
 - [[DEC-0248-site-icons-generated-from-brand]] — 소개 사이트 아이콘·OG와 Play 등록정보 아이콘 512는 앱 아이콘 원본에서 생성
+- [[DEC-0262-pro-benefits-seven-ad-removal]] — 혜택 원본 `pro_benefits.dart`, 실제 잠금만, 광고 제거 더해 7개·"새 보기·토픽" (#863, DEC-0205 대체)
+- [[DEC-0263-pass-rows-on-account-screen-only]] — 프로필 상단 A안 유지, 구매 내역·복원·프로모션 코드 행은 `/account` 한 곳·프로필은 "이용권 관리" 한 줄 (#863, DEC-0243 대체)
+- [[DEC-0266-concept-bold-highlight-memorize-section]] — 개념 글 `**` 형광펜, 개념마다 꼭 외울 것(`#memorize`, `| 외울 것 | 답 |`) 문단, 표 폭 빌드 점검 (#876)
 
 ## 대체된 결정 (역사)
 - [[DEC-0018-four-tab-bottom-navigation]] → null
@@ -74,8 +75,11 @@ related: []
 - [[DEC-0157-community-bottom-tab]] → DEC-0167
 - [[DEC-0167-five-tabs-with-text-labels]] → DEC-0171
 - [[DEC-0208-pass-ticket-fields-unified]] → DEC-0243
+- [[DEC-0205-pro-benefits-single-source]] → DEC-0262
+- [[DEC-0243-profile-top-card-style-a]] → DEC-0263
 
 ## 관련 이슈
+- [[ISS-0465-concept-memorize-highlight-wide-tables]] (open, GitHub #876) — 개념 학습 외울 부분 강조와 과목별 암기 포인트 보강, 가로로 긴 표 정리 (PR #890 머지, 리포트 전)
 - [[ISS-0455-sql-code-font-mixed-hangul]] (resolved, GitHub #849) — 한글 섞인 SQL 이 두 글꼴로 갈라져 울퉁불퉁하게 읽힘
 - [[ISS-0450-promo-site-dynamic-revamp]] (resolved, GitHub #823) — 홍보 페이지 다이나믹 개편, 새 아이콘·새 기능·Play 공개 반영
 - [[ISS-0448-mypage-account-pass-area-promo-code]] (resolved, GitHub #816) — 마이페이지 계정·이용권 영역과 결제 유도, 할인 표시, 프로모션 코드

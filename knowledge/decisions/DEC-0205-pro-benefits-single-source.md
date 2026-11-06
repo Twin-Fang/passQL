@@ -4,9 +4,9 @@ id: DEC-0205
 created: 2026-10-29
 reviewed: null
 topics: [billing, design-system]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0262
 related: ["[[ISS-0428-app-profile-tab-redesign]]", "[[ISS-0428-app-profile-tab-redesign-report]]", "[[DEC-0004-free-pro-feature-boundary]]", "[[DEC-0210-benefit-icons-reuse-app-icons]]", "[[DEC-0211-benefit-colors-per-benefit]]", "[[DEC-0212-keep-benefit-icon-row-in-ticket]]"]
 ---
 

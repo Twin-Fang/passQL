@@ -4,9 +4,9 @@ id: DEC-0243
 created: 2026-11-04
 reviewed: null
 topics: [design-system, billing, auth-member]
-status: active
+status: superseded
 supersedes: DEC-0208
-superseded_by: null
+superseded_by: DEC-0263
 related: ["[[ISS-0448-mypage-account-pass-area-promo-code]]", "[[ISS-0448-mypage-account-pass-area-promo-code-report]]", "[[DEC-0208-pass-ticket-fields-unified]]", "[[DEC-0207-pass-ticket-upright-float-shadow]]", "[[DEC-0212-keep-benefit-icon-row-in-ticket]]", "[[DEC-0204-profile-drops-info-shown-elsewhere]]", "[[DEC-0239-free-daily-limit-bonus-three-kinds]]", "[[DEC-0005-ship-with-billing-switch-off]]", "[[ISS-0428-app-profile-tab-redesign-report]]"]
 ---
 
