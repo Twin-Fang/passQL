@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchChoiceExplanation } from "../api/ai";
 import { useAuthStore } from "../stores/authStore";
 import { canPollAgain, computeNextPollDelayMilliseconds } from "../lib/choiceExplanationPolling";
+import { toCompleteChoiceExplanation } from "../lib/choiceExplanationPresentation";
 import type { ChoiceExplanation, ChoiceExplanationResponse } from "../types/api";
 
 export interface ChoiceExplanationTarget {
@@ -127,7 +128,8 @@ function toExplanationView(
       const lockedSections = response.lockedSections ?? NO_LOCKED_SECTIONS;
       // 구조화·마크다운·잠긴 묶음 모두 없으면 보여 줄 것이 없음 > 실패
       if (!response.explanation && !markdownText && lockedSections.length === 0) return failed(null);
-      return { phase: "ready", explanation: response.explanation, markdownText, lockedSections, retry };
+      const explanation = response.explanation ? toCompleteChoiceExplanation(response.explanation) : null;
+      return { phase: "ready", explanation, markdownText, lockedSections, retry };
     }
     case "GENERATING":
       // 재조회 횟수를 다 쓰면 실패 (재시도로 다시 기다림)
