@@ -34,8 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.springframework.util.StringUtils.hasText;
-
 @Slf4j
 @RestController
 @RequestMapping("/api/questions")
@@ -51,6 +49,8 @@ public class QuestionController implements QuestionControllerDocs {
     private final FeatureAccessPolicy featureAccessPolicy;
     private final ProResponseRedactor proResponseRedactor;
 
+    // 문제 목록은 토픽 골라 풀기 전용 (필터 없는 목록·최신 경향도 토픽 정보로 같은 기능을 대신하므로 함께 잠금, #860)
+    @RequiresProFeature(ProFeature.TOPIC_PRACTICE)
     @GetMapping
     public ResponseEntity<Page<QuestionSummary>> getQuestions(
         @AuthMember LoginMember loginMember,
@@ -61,14 +61,10 @@ public class QuestionController implements QuestionControllerDocs {
         @RequestParam(required = false) Boolean latestTrend,
         Pageable pageable
     ) {
-        // 토픽·세부 토픽 필터 연습은 프로 전용 (필터 없는 전체 목록은 무료 허용)
-        if (hasText(topic) || hasText(subtopic)) {
-            featureAccessPolicy.requireFeature(loginMember.memberUuid(), ProFeature.TOPIC_PRACTICE);
-        }
         return ResponseEntity.ok(questionService.getQuestions(topic, subtopic, difficulty, mode, latestTrend, pageable));
     }
 
-    // 랜덤 풀기 목록: 안 푼 문제 우선, 상세 열기에서 하루 제한 적용 (/{questionUuid} 보다 리터럴 경로가 먼저 매칭됨)
+    // 랜덤 풀기 목록: 안 푼 문제 우선, 상세 열기·제출에서 하루 제한 적용 (/{questionUuid} 보다 리터럴 경로가 먼저 매칭됨)
     @GetMapping("/random")
     public ResponseEntity<List<QuestionSummary>> getRandomQuestions(
         @AuthMember LoginMember loginMember,
@@ -131,9 +127,12 @@ public class QuestionController implements QuestionControllerDocs {
         @AuthMember LoginMember loginMember,
         @RequestBody SubmitRequest request
     ) {
+        // 하루 문제 수 제한 (열기와 같은 판정, 제출 시점 수 기준 #860)
+        featureAccessPolicy.assertCanSubmitQuestion(loginMember.memberUuid(), questionUuid);
         // 채점·샌드박스 실행은 그대로, 응답에서만 무료 회원 몫 밖 묶음을 뺀다
         SubmitResult submitResult = submissionService.submit(
                 loginMember.memberUuid(), questionUuid, request.choiceSetId(), request.selectedChoiceKey(), request.sessionUuid());
-        return ResponseEntity.ok(proResponseRedactor.redactSubmitResult(loginMember.memberUuid(), submitResult));
+        return ResponseEntity.ok(proResponseRedactor.redactSubmitResult(
+                loginMember.memberUuid(), request.choiceSetId(), submitResult));
     }
 }

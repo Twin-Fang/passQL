@@ -10,6 +10,7 @@ abstract final class LockedPreviewCaptions {
   static const String examTrend = '최근 기출 토픽 비중 · 이번 회차 예상';
   static const String realModeSetting = '실전 모드';
   static const String conceptTopics = '3단원부터 모든 개념과 확인 문제';
+  static const String aiAnalysis = 'AI 약점 분석 · 다음 공부 추천';
 }
 
 // 가짜 미리보기: 서버의 잠긴 내용이 아니라 모양만 그럴듯한 고정 예시 (통신을 가로채도 얻을 것이 없게)
@@ -114,6 +115,27 @@ class ConceptTopicsLockedSample extends StatelessWidget {
         _SampleSection(title: '3. DDL / DML / TCL', body: '개념 7개 · 데이터 타입, 제약조건, MERGE'),
         _SampleSection(title: '4. SQL 함수', body: '개념 6개 · 문자, 숫자, 날짜, NULL 함수'),
         _SampleSection(title: '5. 조인', body: '개념 6개 · INNER, OUTER, SELF 조인'),
+      ],
+    );
+  }
+}
+
+/// 프로필 AI 분석 코멘트 자리 (#860)
+class AiAnalysisLockedSample extends StatelessWidget {
+  const AiAnalysisLockedSample({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const _SampleCard(
+      children: [
+        _SampleSection(
+          title: '약한 영역',
+          body: '조인과 서브쿼리 정답률이 낮아요. 최근 7일 동안 이 두 영역을 가장 많이 틀렸어요.',
+        ),
+        _SampleSection(
+          title: '다음 공부',
+          body: 'OUTER JOIN 결과 행 수 문제부터 다시 풀어 보세요.',
+        ),
       ],
     );
   }

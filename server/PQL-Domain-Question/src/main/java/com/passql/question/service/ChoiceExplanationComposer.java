@@ -92,6 +92,11 @@ public final class ChoiceExplanationComposer {
         return WRONG_LABEL + " · " + selectedChoiceKey + " 선택, 정답은 " + correctChoiceKey + reasonSuffix;
     }
 
+    /** 이유 없는 판정 한 줄 (무료 회원: 다른 보기 이유를 판정으로 모으지 못하게, #860) 예: "오답 · B 선택, 정답은 A" */
+    public static String buildVerdictWithoutReason(boolean isSelectedCorrect, String selectedChoiceKey, String correctChoiceKey) {
+        return buildVerdict(isSelectedCorrect, selectedChoiceKey, correctChoiceKey, null);
+    }
+
     /**
      * 고른 보기 기준 해설 > 마크다운 (구조화 해설을 못 그리는 출시 앱·웹용 text)
      * 순서: 판정 > 정답 근거 > 핵심 개념 > 헷갈리는 지점 > 보기별 판단 > 시험 팁

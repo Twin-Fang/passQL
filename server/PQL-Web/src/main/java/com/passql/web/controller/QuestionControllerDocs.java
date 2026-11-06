@@ -33,8 +33,10 @@ public interface QuestionControllerDocs {
       @ApiLog(date = "2026.04.07", author = Author.SUHSAECHAN, issueNumber = 1, description = "문제 목록 조회 API 추가"),
       @ApiLog(date = "2026.04.08", author = Author.SUHSAECHAN, issueNumber = 22, description = "Entity UUID 통일 재작성: questionUuid/topicUuid 기반으로 응답 전환 (Long id → UUID)"),
       @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 523, description = "latestTrend 필터·응답 isLatestTrend 추가 (최신 출제 경향 문제만 풀기, '최신 경향' 배지)"),
+      @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 860, description = "필터 유무와 관계없이 프로 전용(TOPIC_PRACTICE, 무료 403 PRO_REQUIRED), 페이지 크기 최대 50"),
   })
-  @Operation(summary = "문제 목록 조회", description = "latestTrend=true 면 최신 출제 경향 문제만. 응답 isLatestTrend 는 '최신 경향' 배지 표시 여부.")
+  @Operation(summary = "문제 목록 조회", description = "토픽 골라 풀기 전용 (결제 켜짐 무료 회원 403 PRO_REQUIRED). " +
+      "latestTrend=true 면 최신 출제 경향 문제만. 응답 isLatestTrend 는 '최신 경향' 배지 표시 여부. size 최대 50 으로 보정.")
   ResponseEntity<Page<QuestionSummary>> getQuestions(
       @AuthMember LoginMember loginMember,
       @RequestParam(required = false) String topic,
@@ -50,7 +52,7 @@ public interface QuestionControllerDocs {
   })
   @Operation(summary = "랜덤 풀기 문제 목록",
       description = "활성 문제 중 안 푼 문제를 우선해 무작위로 고르고, 부족하면 푼 문제로 채운다. " +
-          "size 기본 10, 1~10 으로 보정. 목록만 내려주며 하루 문제 수 제한은 문제 상세 열기(GET /questions/{id})에서 적용.")
+          "size 기본 10, 1~10 으로 보정. 목록만 내려주며 하루 문제 수 제한은 문제 상세 열기(GET /questions/{id})와 제출에서 적용.")
   ResponseEntity<List<QuestionSummary>> getRandomQuestions(
       @AuthMember LoginMember loginMember,
       @RequestParam(defaultValue = "10") int size
@@ -118,11 +120,15 @@ public interface QuestionControllerDocs {
       @ApiLog(date = "2026.04.10", author = Author.SUHSAECHAN, issueNumber = 57, description = "Request Body를 Map → SubmitRequest DTO로 변경하여 Swagger 스키마 정확도 개선"),
       @ApiLog(date = "2026.04.10", author = Author.SUHSAECHAN, issueNumber = 69,
               description = "SubmitRequest에 choiceSetId 추가, SubmitResult에 ExecuteResult 비교 필드(selectedResult/correctResult/correctSql/selectedSql) 추가"),
+      @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 860,
+              description = "다른 문제의 선택지 세트 제출 400 QUIZ_SESSION_CHOICE_SET_MISMATCH, 하루 문제 수 제한을 제출에도 적용(403 FREE_DAILY_LIMIT_REACHED·429 FAIR_USE_DAILY_LIMIT_REACHED), 무료 회원 같은 세트 재제출은 rationale 없음"),
   })
   @Operation(summary = "문제 제출",
       description = "선택지 제출 후 정답 여부 + SQL 실행 결과 비교 반환. JWT 인증 필요. " +
           "Body: { \"choiceSetId\": \"uuid\", \"selectedChoiceKey\": \"A\" }. " +
-          "EXECUTABLE 문제: selectedResult/correctResult에 양쪽 SQL 실행 결과 포함. CONCEPT_ONLY: null.")
+          "EXECUTABLE 문제: selectedResult/correctResult에 양쪽 SQL 실행 결과 포함. CONCEPT_ONLY: null. " +
+          "choiceSetId 는 경로 문제의 세트여야 함(아니면 400 QUIZ_SESSION_CHOICE_SET_MISMATCH). " +
+          "하루 문제 수 제한은 문제 열기와 같은 판정(오늘의 문제·예전에 푼 문제는 제외).")
   ResponseEntity<SubmitResult> submit(
       @PathVariable UUID questionUuid,
       @AuthMember LoginMember loginMember,

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/billing/pro_access_denied_signal.dart';
 import '../../core/network/safe_call.dart';
 import '../../core/utils/app_clock.dart';
+import '../../data/models/member/ad_bonus_request.dart';
 import '../../data/models/member/member_plan_response.dart';
 import '../../data/sources/api_providers.dart';
 import 'dev_plan_overrides.dart';
@@ -87,14 +88,17 @@ class PlanNotifier extends AutoDisposeAsyncNotifier<MemberPlanResponse> {
   }
 
   /// 광고 보너스 받기 > 응답 등급 반영 (실패는 호출부로, 화면이 사유 표시)
+  /// [rewardNonce]: 이 광고의 보상 표식 (같은 표식은 서버가 1회만 기록 > 재시도해도 두 번 쌓이지 않음, #860)
   /// 개발자 도구 한도 흉내 중이면 서버 대신 흉내 단계만 넘김 (#809)
-  Future<void> grantAdBonus() async {
+  Future<void> grantAdBonus({required String rewardNonce}) async {
     if (ref.read(devLimitSimulationProvider) != DevLimitSimulation.none) {
       ref.read(devLimitSimulationProvider.notifier).recordSimulatedAdBonus();
       reapplyDevOverrides();
       return;
     }
-    final grantedPlan = await ref.read(memberApiProvider).grantAdBonus();
+    final grantedPlan = await ref
+        .read(memberApiProvider)
+        .grantAdBonus(AdBonusRequest(rewardNonce: rewardNonce));
     state = AsyncData(_acceptServerPlan(grantedPlan));
   }
 
