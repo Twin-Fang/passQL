@@ -50,6 +50,9 @@ jobs:
       # uv.lock 고정 버전으로 설치 > pytest (Dockerfile 과 같은 설치 방식, #877)
       - name: AI 서버 테스트
         working-directory: ai
+        # 앞 단계가 운영 .env 를 만들어 두므로 테스트 환경으로 고정 (prod 면 /mnt 로그 폴더를 만들다 실패)
+        env:
+          ENVIRONMENT: test
         run: |
           pip install uv==0.9.22
           uv venv --python ${{ env.PYTHON_VERSION }}
