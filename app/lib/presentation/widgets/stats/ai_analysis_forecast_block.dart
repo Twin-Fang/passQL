@@ -164,8 +164,9 @@ class _SubjectScoreRow extends StatelessWidget {
   final bool isFailRisk;
   final Duration fillDuration;
 
-  // 과목 이름 칸 폭 (두 줄 막대 시작점을 맞춤)
+  // 과목 이름 칸·숫자 칸 폭 (두 줄 막대 시작·끝점을 맞춤, 숫자는 "26/40" 한 줄)
   static const double _subjectNameWidth = 44;
+  static const double _countWidth = 48;
 
   @override
   Widget build(BuildContext context) {
@@ -193,12 +194,15 @@ class _SubjectScoreRow extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: PassqlSpacing.xs),
-        Text(
-          '$expectedCount/$questionCount',
-          style: PassqlTypography.footnoteSemibold.copyWith(
-            color: isFailRisk ? colors.warningText : colors.label,
-            fontFeatures: PassqlTypography.tabular,
+        SizedBox(
+          width: _countWidth,
+          child: Text(
+            '$expectedCount/$questionCount',
+            textAlign: TextAlign.end,
+            style: PassqlTypography.footnoteSemibold.copyWith(
+              color: isFailRisk ? colors.warningText : colors.label,
+              fontFeatures: PassqlTypography.tabular,
+            ),
           ),
         ),
       ],

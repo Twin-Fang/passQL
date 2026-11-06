@@ -219,6 +219,7 @@ class AiAnalysisErrorSection extends StatelessWidget {
                 onPressed: onRetry,
                 variant: PassqlButtonVariant.tinted,
                 size: PassqlButtonSize.small,
+                isFullWidth: false,
               ),
             ],
           ),
