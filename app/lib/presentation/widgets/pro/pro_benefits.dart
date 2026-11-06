@@ -10,7 +10,7 @@ const bool _isConceptLearningRowVisible = false;
 
 /// 이용권 혜택 한 줄 (#749): 비교표·탑승권 아이콘·이용권 시트가 모두 이 목록 하나를 읽는다
 /// [free] null = 무료 불가, [pro] null = 프로 포함(체크). [hue] 는 systemHueColor 색조 이름 ('warning' 은 앱 색 토큰)
-/// [icon] 은 앱에서 같은 기능에 이미 쓰는 아이콘으로 맞춘다 (해설 = AI 해설 sparkles, 실행 = SQL 실습 play, 실전 모드 = 문제 탭 풀이 모드 bolt, 출제 경향 = 최신 경향 flame, 통계 = 8각 차트 hexagon(타일 안이라 채운 모양))
+/// [icon] 은 앱에서 같은 기능에 이미 쓰는 아이콘으로 맞춘다 (해설 = AI 해설 sparkles, 실행 = SQL 실습 play, 새 보기 = 문제 탭 새 보기로 풀기 bolt, 출제 경향 = 최신 경향 flame, 통계 = 8각 차트 hexagon(타일 안이라 채운 모양), 광고 제거 = 안 보임 eye_slash)
 class ProBenefit {
   const ProBenefit({
     required this.label,
@@ -28,6 +28,7 @@ class ProBenefit {
 }
 
 /// 이용권 혜택 목록. 화면에 보이는 혜택은 앱에 실제 잠금이 있는 기능만 둔다 (스펙 4.2)
+/// 순서 = 탑승권 아이콘 순서·focusedBenefitIndex 기준 (새 혜택은 끝에 붙임)
 List<ProBenefit> proBenefits({required int dailyFreeLimit}) {
   final limit = dailyFreeLimit > 0 ? dailyFreeLimit : _fallbackDailyFreeLimit;
   return [
@@ -53,7 +54,7 @@ List<ProBenefit> proBenefits({required int dailyFreeLimit}) {
       hue: 'orange',
     ),
     const ProBenefit(
-      label: '실전 모드·토픽',
+      label: '새 보기·토픽',
       free: null,
       pro: null,
       icon: CupertinoIcons.bolt_fill,
@@ -72,6 +73,14 @@ List<ProBenefit> proBenefits({required int dailyFreeLimit}) {
       pro: '약점 분석',
       icon: CupertinoIcons.hexagon_fill,
       hue: 'red',
+    ),
+    // 결제로 산 프로는 광고 없음 (adsEnabledProvider 판정, #863)
+    const ProBenefit(
+      label: '광고 제거',
+      free: null,
+      pro: null,
+      icon: CupertinoIcons.eye_slash_fill,
+      hue: 'teal',
     ),
     if (_isConceptLearningRowVisible)
       const ProBenefit(
