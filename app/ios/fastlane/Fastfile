@@ -108,6 +108,20 @@ platform :ios do
         UI.message("⏭️  review_notes.txt 없음 — 심사 Notes는 ASC 기존값 유지")
       end
 
+      # 마케팅 URL: ios/fastlane/marketing_url.txt 원본 > 로케일마다 marketing_url.txt (AdMob iOS 앱 인증이 이 주소의 app-ads.txt 를 읽음, #864)
+      # 원본 값 = client/src/constants/siteUrls.ts PRODUCTION_SITE_URL, 파일이 없거나 비면 ASC 기존값 유지
+      marketing_src = File.join(workspace, ENV["APP_ROOT"] || ".", "ios", "fastlane", "marketing_url.txt")
+      marketing_url = File.file?(marketing_src) ? File.read(marketing_src).strip : ""
+      locales.each do |loc|
+        marketing_path = File.join(metadata_path, loc, "marketing_url.txt")
+        if marketing_url.empty?
+          FileUtils.rm_f(marketing_path)
+        else
+          File.write(marketing_path, marketing_url)
+        end
+      end
+      UI.message(marketing_url.empty? ? "⏭️  marketing_url.txt 없음 — 마케팅 URL은 ASC 기존값 유지" : "🔗 마케팅 URL: #{marketing_url}")
+
       UI.message("📂 metadata_path=#{metadata_path}")
 
       deliver(
