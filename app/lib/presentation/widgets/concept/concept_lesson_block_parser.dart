@@ -11,6 +11,7 @@ abstract final class ConceptLessonBlockParser {
   static const List<String> _termHeader = ['용어', '뜻'];
   static const List<String> _stepsHeader = ['단계', '내용'];
   static const List<String> _mnemonicHeader = ['외우기', '뜻'];
+  static const List<String> _memorizeHeader = ['외울 것', '답'];
   static const List<String> _refutationHeader = ['헷갈리는 말', '실제로는'];
   static const List<String> _quickCheckHeader = ['바로 확인', '정답', '이유'];
   static const List<String> _joinHeader = ['왼쪽 행', '오른쪽 행'];
@@ -72,6 +73,11 @@ abstract final class ConceptLessonBlockParser {
     }
     if (_isHeader(header, _mnemonicHeader)) {
       return ConceptMnemonicBlock([
+        for (final row in rows) ConceptTerm(term: row[0], meaning: row[1]),
+      ]);
+    }
+    if (_isHeader(header, _memorizeHeader)) {
+      return ConceptMemorizeBlock([
         for (final row in rows) ConceptTerm(term: row[0], meaning: row[1]),
       ]);
     }

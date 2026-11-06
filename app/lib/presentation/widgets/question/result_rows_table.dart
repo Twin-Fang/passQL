@@ -1,8 +1,11 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../core/utils/word_wrap.dart';
 import '../../design/design.dart';
+import 'table_column_fit.dart';
 
 /// SQL NULL 셀 표시 문구 (스키마 표, 실행 결과, 결과형 보기 공통)
 const String sqlNullCellLabel = 'NULL';
@@ -41,7 +44,8 @@ class ResultRowsTable extends StatelessWidget {
           [for (final column in rows.first.keys) row[column]],
       ],
       highlightedRowIndexes = const {},
-      highlightColor = null;
+      highlightColor = null,
+      shouldWrapCellsToFit = false;
 
   /// 열 목록과 위치 기준 행(SQL 실행 결과용). 같은 이름의 열이 있어도 값이 사라지지 않는다.
   const ResultRowsTable.positional({
@@ -50,6 +54,7 @@ class ResultRowsTable extends StatelessWidget {
     required List<List<Object?>> rows,
     this.highlightedRowIndexes = const {},
     this.highlightColor,
+    this.shouldWrapCellsToFit = false,
   }) : _rows = rows;
 
   final List<String> columns;
@@ -60,6 +65,9 @@ class ResultRowsTable extends StatelessWidget {
 
   /// [highlightedRowIndexes] 행 배경색 (옅은 정답·오답 색)
   final Color? highlightColor;
+
+  /// 넘치면 칸 안 줄바꿈으로 화면 폭에 맞춤 (개념 비교 표, #876). 낱말 폭 합도 넘치면 가로 스크롤
+  final bool shouldWrapCellsToFit;
 
   @override
   Widget build(BuildContext context) {
@@ -96,21 +104,15 @@ class ResultRowsTable extends StatelessWidget {
       color: colors.secondaryLabel,
     );
 
-    Widget buildCell(String text, TextStyle style) => Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: PassqlSpacing.sm,
-        vertical: PassqlSpacing.xs,
-      ),
-      child: Text(text, style: style),
-    );
-
-    // 값 칸: NULL > 흐린 NULL 문구, 그 외 > 글자 종류별 글꼴
-    Widget buildValueCell(Object? value) => value == null
-        ? buildCell(sqlNullCellLabel, nullCellStyle)
-        : buildCell(
-            '$value',
-            toTableCellTextStyle('$value', color: colors.label),
-          );
+    // 칸 글자·스타일: 머리 줄 > 값 줄 (NULL > 흐린 NULL 문구, 그 외 > 글자 종류별 글꼴, 모자란 칸은 빈칸)
+    final headerCells = [for (final column in columns) (column, headerStyle)];
+    final valueCellsByRow = [
+      for (final row in _rows)
+        [
+          for (var i = 0; i < columns.length; i++)
+            _valueCellOf(i < row.length ? row[i] : '', colors, nullCellStyle),
+        ],
+    ];
 
     return ClipRRect(
       borderRadius: const BorderRadius.all(Radius.circular(PassqlRadius.sm)),
@@ -124,42 +126,123 @@ class ResultRowsTable extends StatelessWidget {
         ),
         // 열이 적어 표가 카드보다 좁으면 오른쪽이 비어 보이므로, 최소 폭을 카드 폭에 맞춰 남는 폭을 열에 나눠 준다.
         child: LayoutBuilder(
-          builder: (context, constraints) => SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minWidth: constraints.maxWidth),
-              child: Table(
-                defaultColumnWidth: const IntrinsicColumnWidth(),
-                border: TableBorder(
-                  horizontalInside: BorderSide(color: colors.separator),
-                ),
-                children: [
-                  TableRow(
-                    decoration: BoxDecoration(color: colors.fill),
-                    children: [
-                      for (final column in columns)
-                        buildCell(column, headerStyle),
-                    ],
-                  ),
-                  for (final (rowIndex, row) in _rows.indexed)
-                    TableRow(
-                      decoration:
-                          highlightedRowIndexes.contains(rowIndex) &&
-                              highlightColor != null
-                          ? BoxDecoration(color: highlightColor)
-                          : null,
-                      children: [
-                        // 모자란 칸은 NULL 이 아니라 빈칸
-                        for (var i = 0; i < columns.length; i++)
-                          buildValueCell(i < row.length ? row[i] : ''),
-                      ],
-                    ),
-                ],
+          builder: (context, constraints) {
+            final fittedWidths = shouldWrapCellsToFit
+                ? _fittedColumnWidthsOf(
+                    context,
+                    [headerCells, ...valueCellsByRow],
+                    constraints.maxWidth,
+                  )
+                : null;
+            final table = _buildTable(
+              colors,
+              headerCells,
+              valueCellsByRow,
+              fittedWidths: fittedWidths,
+            );
+            if (fittedWidths != null) return table;
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                child: table,
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
+    );
+  }
+
+  // 칸 안 좌우 여백 (열 폭 계산에도 더함)
+  static const double _cellHorizontalPadding = PassqlSpacing.sm;
+
+  static (String, TextStyle) _valueCellOf(
+    Object? value,
+    PassqlColors colors,
+    TextStyle nullCellStyle,
+  ) => value == null
+      ? (sqlNullCellLabel, nullCellStyle)
+      : ('$value', toTableCellTextStyle('$value', color: colors.label));
+
+  /// 칸 글자 > 열마다 (한 줄 폭, 가장 긴 낱말 폭) 측정 > 화면 폭 안 열 폭 (맞출 수 없거나 필요 없으면 null)
+  static List<double>? _fittedColumnWidthsOf(
+    BuildContext context,
+    List<List<(String, TextStyle)>> cellsByRow,
+    double availableWidth,
+  ) {
+    final textScaler = MediaQuery.textScalerOf(context);
+    final columnCount = cellsByRow.first.length;
+    final singleLineWidths = List<double>.filled(columnCount, 0);
+    final longestWordWidths = List<double>.filled(columnCount, 0);
+    for (final row in cellsByRow) {
+      for (var column = 0; column < columnCount; column++) {
+        final (text, style) = row[column];
+        final painter = TextPainter(
+          text: TextSpan(text: keepWordsTogether(text), style: style),
+          textDirection: TextDirection.ltr,
+          textScaler: textScaler,
+        )..layout();
+        const padding = _cellHorizontalPadding * 2;
+        singleLineWidths[column] = math.max(
+          singleLineWidths[column],
+          painter.maxIntrinsicWidth.ceilToDouble() + padding,
+        );
+        longestWordWidths[column] = math.max(
+          longestWordWidths[column],
+          painter.minIntrinsicWidth.ceilToDouble() + padding,
+        );
+        painter.dispose();
+      }
+    }
+    return fitColumnWidths(
+      singleLineWidths: singleLineWidths,
+      longestWordWidths: longestWordWidths,
+      availableWidth: availableWidth,
+    );
+  }
+
+  /// 표: 머리 줄(회색 바탕) + 값 줄 (지정 행 배경). 맞춘 열 폭이 있으면 그 폭에서 칸 안 줄바꿈
+  Widget _buildTable(
+    PassqlColors colors,
+    List<(String, TextStyle)> headerCells,
+    List<List<(String, TextStyle)>> valueCellsByRow, {
+    required List<double>? fittedWidths,
+  }) {
+    final isWrapping = fittedWidths != null;
+    Widget buildCell((String, TextStyle) cell) => Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: _cellHorizontalPadding,
+        vertical: PassqlSpacing.xs,
+      ),
+      // 줄바꿈할 때는 한글 낱말 중간에서 끊기지 않게
+      child: Text(isWrapping ? keepWordsTogether(cell.$1) : cell.$1, style: cell.$2),
+    );
+
+    return Table(
+      defaultColumnWidth: const IntrinsicColumnWidth(),
+      columnWidths: fittedWidths == null
+          ? null
+          : {
+              for (final (column, width) in fittedWidths.indexed)
+                column: FixedColumnWidth(width),
+            },
+      border: TableBorder(horizontalInside: BorderSide(color: colors.separator)),
+      children: [
+        TableRow(
+          decoration: BoxDecoration(color: colors.fill),
+          children: [for (final cell in headerCells) buildCell(cell)],
+        ),
+        for (final (rowIndex, row) in valueCellsByRow.indexed)
+          TableRow(
+            decoration:
+                highlightedRowIndexes.contains(rowIndex) &&
+                    highlightColor != null
+                ? BoxDecoration(color: highlightColor)
+                : null,
+            children: [for (final cell in row) buildCell(cell)],
+          ),
+      ],
     );
   }
 }

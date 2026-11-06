@@ -51,7 +51,7 @@ class _TermCard extends StatelessWidget {
               style: PassqlTypography.title3.copyWith(color: colors.accentText),
             ),
             const SizedBox(height: PassqlSpacing.xxs),
-            MarkdownLiteText(term.meaning, style: MarkdownLiteStyle.article),
+            MarkdownLiteText(term.meaning, style: MarkdownLiteStyle.lesson),
           ],
         ),
       ),

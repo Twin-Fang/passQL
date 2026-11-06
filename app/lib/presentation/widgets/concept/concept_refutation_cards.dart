@@ -120,7 +120,7 @@ class _RefutationLine extends StatelessWidget {
                         )
                       : MarkdownLiteText(
                           text,
-                          style: MarkdownLiteStyle.article,
+                          style: MarkdownLiteStyle.lesson,
                         ),
                 ),
               ],

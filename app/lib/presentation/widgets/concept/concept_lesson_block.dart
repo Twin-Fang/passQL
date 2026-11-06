@@ -1,4 +1,4 @@
-/// 개념 레슨 블록 11종 (#848·#853): 글, SQL, 비교 표, 용어 카드, 단계, 외우는 법, 헷갈리는 말, 바로 확인, 조인 연결, 행 거르기, 집합 그림
+/// 개념 레슨 블록 12종 (#848·#853·#876): 글, SQL, 비교 표, 용어 카드, 단계, 외우는 법, 꼭 외울 것, 헷갈리는 말, 바로 확인, 조인 연결, 행 거르기, 집합 그림
 /// 원본은 표준 마크다운 그대로 (옛 앱은 표·글로 보임), 표 머리글로 블록 종류를 정함
 sealed class ConceptLessonBlock {
   const ConceptLessonBlock();
@@ -64,6 +64,14 @@ class ConceptMnemonicBlock extends ConceptLessonBlock {
 
   /// 두문자 (예: 원부이결다조)
   String get phrase => letters.map((letter) => letter.term).join();
+}
+
+/// 꼭 외울 것 카드 (머리글 `외울 것 | 답`, #876): 행마다 묻는 말 + 외울 답 (term = 묻는 말, meaning = 답)
+/// 답은 형광펜으로 보이고, 가리기를 켜면 답을 눌러야 보임
+class ConceptMemorizeBlock extends ConceptLessonBlock {
+  const ConceptMemorizeBlock(this.facts);
+
+  final List<ConceptTerm> facts;
 }
 
 /// 헷갈리는 말 한 쌍: 오해 > 실제

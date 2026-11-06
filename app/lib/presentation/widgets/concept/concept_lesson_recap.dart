@@ -93,7 +93,7 @@ class _RecapLine extends StatelessWidget {
         ),
         const SizedBox(width: PassqlSpacing.sm),
         Expanded(
-          child: MarkdownLiteText(text, style: MarkdownLiteStyle.article),
+          child: MarkdownLiteText(text, style: MarkdownLiteStyle.lesson),
         ),
       ],
     );
