@@ -19,6 +19,11 @@ import '../presentation/pages/app_gate/maintenance_page.dart';
 import '../presentation/pages/feedback/feedback_page.dart';
 import '../presentation/pages/home/home_page.dart';
 import '../presentation/pages/legal/legal_page.dart';
+import '../presentation/pages/mock_exam/mock_exam_guide_page.dart';
+import '../presentation/pages/mock_exam/mock_exam_result_page.dart';
+import '../presentation/pages/mock_exam/mock_exam_review_page.dart';
+import '../presentation/pages/mock_exam/mock_exam_round_list_page.dart';
+import '../presentation/pages/mock_exam/mock_exam_solving_page.dart';
 import '../presentation/pages/login/login_page.dart';
 import '../presentation/pages/onboarding/onboarding_celebration_page.dart';
 import '../presentation/pages/onboarding/onboarding_page.dart';
@@ -351,6 +356,52 @@ abstract final class AppRouter {
         path: AppRoutes.leaderboard,
         parentNavigatorKey: _rootKey,
         builder: (_, _) => const LeaderboardPage(),
+      ),
+
+      // SQLD 모의고사 (#866): 목록 > 안내 > 풀이 > 결과 > 문항 해설
+      GoRoute(
+        path: AppRoutes.mockExams,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const MockExamRoundListPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.mockExamGuidePattern,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => MockExamGuidePage(
+          roundUuid:
+              state.pathParameters[AppRoutes.mockExamRoundUuidParameter]!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.mockExamAttemptPattern,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => MockExamSolvingPage(
+          attemptUuid:
+              state.pathParameters[AppRoutes.mockExamAttemptUuidParameter]!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.mockExamResultPattern,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => MockExamResultPage(
+          attemptUuid:
+              state.pathParameters[AppRoutes.mockExamAttemptUuidParameter]!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.mockExamReviewPattern,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => MockExamReviewPage(
+          attemptUuid:
+              state.pathParameters[AppRoutes.mockExamAttemptUuidParameter]!,
+          initialQuestionNumber:
+              int.tryParse(
+                state.uri.queryParameters[AppRoutes
+                        .mockExamQuestionNumberQuery] ??
+                    '',
+              ) ??
+              1,
+        ),
       ),
 
       // 풀스크린: 문제 상세 + 결과
