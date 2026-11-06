@@ -1,6 +1,6 @@
 """src.core.retry
-외부 호출 일시 오류 재시도 공통 지점: 최대 2회, 지수 backoff (Gemini·Ollama·Qdrant 공통)
-일시 오류 판정은 호출하는 쪽이 넘긴다 (httpx·SDK 예외 종류가 달라서)
+외부 호출 일시 오류 재시도 공통 지점: 최대 2회, 지수 backoff (판정은 호출하는 쪽이 넘김, httpx·SDK 예외가 달라서)
+판정 2종: 과금 없는 호출(Ollama·Qdrant) 429·5xx·전송 오류, LLM 호출은 요청 미전송·429만 (#877)
 """
 import asyncio
 import logging
@@ -21,6 +21,11 @@ SERVER_ERROR_MINIMUM_STATUS_CODE = 500
 
 def is_transient_status_code(status_code: int) -> bool:
     return status_code == TOO_MANY_REQUESTS_STATUS_CODE or status_code >= SERVER_ERROR_MINIMUM_STATUS_CODE
+
+
+def is_rate_limited_status_code(status_code: int) -> bool:
+    """LLM 재시도 대상 상태: 429만 (5xx 는 처리 중 실패라 과금 여부 불명 > 다음 연결로 넘김)"""
+    return status_code == TOO_MANY_REQUESTS_STATUS_CODE
 
 
 async def call_with_retry(

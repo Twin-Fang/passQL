@@ -50,21 +50,19 @@ class OllamaClient:
             "input": text,
         }
 
-        logger.info(f"Ollama embed 호출: model={model}, text_length={len(text)}")
+        logger.info(f"[ollama embed] requested : model={model}, text_length={len(text)}")
 
         response = await send_request(
             "Ollama embed", "POST", url,
             headers=self._headers(), json_body=payload, timeout_seconds=self.timeout,
         )
-        data = response.json()
-
         # Ollama /api/embed 응답: {"embeddings": [[...]], ...}
-        embeddings = data.get("embeddings", [])
+        embeddings = response.json().get("embeddings", [])
         if not embeddings or not embeddings[0]:
             raise CustomError("Ollama embed 응답에 embeddings가 없습니다")
 
         vector = embeddings[0]
-        logger.info(f"Ollama embed 응답 수신: vector_dim={len(vector)}")
+        logger.info(f"[ollama embed] received : dimension={len(vector)}")
         return vector
 
 

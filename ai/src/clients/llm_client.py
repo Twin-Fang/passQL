@@ -1,7 +1,8 @@
 """src.clients.llm_client
 LLM 호출 단일 진입점: 연결 목록 > 시도 순서 > 연결별 호출 > 사용량 초과·키 문제·서버 오류면 다음 연결 (#695)
-규칙 원본은 Spring AiConnectionRouter (같은 판정·순서)
+규칙 원본은 Spring AiFallbackPolicy·AiCallAttemptPlanner, 요청 전체 시간 상한·최종 실패 > LlmUnavailableError (#877)
 """
+import asyncio
 import logging
 from dataclasses import dataclass
 from typing import Any, Awaitable, Callable
@@ -20,7 +21,8 @@ from src.clients.claude_client import claude_client
 from src.clients.gemini_client import gemini_client
 from src.clients.openai_client import openai_client
 from src.clients.token_usage import start_token_usage
-from src.core.exceptions import CustomError
+from src.core.exceptions import CustomError, ErrorKind, LlmUnavailableError
+from src.core.external_call_limits import LLM_REQUEST_DEADLINE_SECONDS
 from src.core.retry import SERVER_ERROR_MINIMUM_STATUS_CODE
 
 logger = logging.getLogger(__name__)
@@ -69,12 +71,12 @@ def to_provider(model: str | None) -> str | None:
 def plan_attempts(connections: list[AiConnection], prompt_model: str | None) -> list[LlmAttempt]:
     """시도 순서: 프롬프트 모델 제공자 연결(프롬프트 모델) 먼저 > 나머지 연결(각 기본 모델), 제공자 연결 없으면 전부 기본 모델"""
     prompt_provider = to_provider(prompt_model)
-    matching_connections = [c for c in connections if c.provider == prompt_provider]
+    matching_connections = [connection for connection in connections if connection.provider == prompt_provider]
     if not matching_connections:
-        return [LlmAttempt(c, c.default_model) for c in connections]
-    other_connections = [c for c in connections if c.provider != prompt_provider]
-    return ([LlmAttempt(c, prompt_model.strip()) for c in matching_connections]
-            + [LlmAttempt(c, c.default_model) for c in other_connections])
+        return [LlmAttempt(connection, connection.default_model) for connection in connections]
+    other_connections = [connection for connection in connections if connection.provider != prompt_provider]
+    return ([LlmAttempt(connection, prompt_model.strip()) for connection in matching_connections]
+            + [LlmAttempt(connection, connection.default_model) for connection in other_connections])
 
 
 def _read_status_and_body(error: BaseException) -> tuple[int | None, str]:
@@ -101,8 +103,10 @@ def is_fallback_error(error: BaseException) -> bool:
     return status_code == BAD_REQUEST_STATUS_CODE and any(marker in lowered_body for marker in ACCOUNT_ERROR_BODY_MARKERS)
 
 
-def _describe_error(error: BaseException) -> str:
+def _describe_error(error: BaseException | None) -> str:
     """로그용 오류 종류 (상태 코드 또는 예외 이름, 본문·키 미포함)"""
+    if error is None:
+        return "none"
     status_code, _ = _read_status_and_body(error)
     return f"http {status_code}" if status_code is not None else type(error.__cause__ or error).__name__
 
@@ -112,6 +116,23 @@ def _select_client(provider: str):
 
 
 async def _call_with_fallback(
+    operation_name: str, prompt_model: str | None, call: Callable[[Any, LlmAttempt], Awaitable[Any]]
+) -> LlmResult:
+    """요청 1건: 시간 상한 안에서 연결 순서대로 호출 > 실패는 종류가 정해진 오류로 변환"""
+    try:
+        async with asyncio.timeout(LLM_REQUEST_DEADLINE_SECONDS):
+            return await _call_connections_in_order(operation_name, prompt_model, call)
+    except TimeoutError as error:
+        logger.error(f"[llm fallback] {operation_name} deadline exceeded : {LLM_REQUEST_DEADLINE_SECONDS}s")
+        raise LlmUnavailableError(f"LLM 요청 시간 상한 초과 ({LLM_REQUEST_DEADLINE_SECONDS}초)") from error
+    except CustomError as error:
+        # 응답 형식 오류·연결 없음은 그대로, 그 외 호출 실패(제공자 400 등)는 LLM 사용 불가로
+        if error.error_kind != ErrorKind.INTERNAL_ERROR:
+            raise
+        raise LlmUnavailableError(f"LLM 호출 실패: {_describe_error(error)}") from error
+
+
+async def _call_connections_in_order(
     operation_name: str, prompt_model: str | None, call: Callable[[Any, LlmAttempt], Awaitable[Any]]
 ) -> LlmResult:
     """시도 순서대로 호출 > 성공 결과 / fallback 대상 오류면 다음 연결 / 그 외 즉시 raise / 전부 실패면 마지막 오류"""
@@ -137,9 +158,7 @@ async def _call_with_fallback(
                 f"model={attempt.model}, error={_describe_error(error)}, next connection"
             )
             last_error = error
-    if isinstance(last_error, CustomError):
-        raise last_error
-    raise CustomError("사용 가능한 AI 연결 없음") from last_error
+    raise LlmUnavailableError(f"사용 가능한 AI 연결 없음 (마지막 오류: {_describe_error(last_error)})") from last_error
 
 
 async def chat(
