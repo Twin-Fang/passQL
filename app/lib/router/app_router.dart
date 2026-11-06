@@ -30,10 +30,10 @@ import '../presentation/pages/questions/chapter_page.dart';
 import '../presentation/pages/questions/chapter_result_page.dart';
 import '../presentation/pages/questions/question_detail_page.dart';
 import '../presentation/pages/result/result_page.dart';
-import '../presentation/pages/stats/stats_page.dart';
+import '../presentation/pages/profile/profile_page.dart';
 import '../presentation/pages/settings/settings_page.dart';
 import '../presentation/pages/account/account_page.dart';
-import '../presentation/pages/settings/wrong_notes_page.dart';
+import '../presentation/pages/questions/wrong_notes_page.dart';
 import '../presentation/widgets/app_shell.dart';
 import 'app_launch_gate_routing.dart';
 import 'app_routes.dart';
@@ -192,7 +192,7 @@ abstract final class AppRouter {
               GoRoute(
                 path: AppRoutes.stats,
                 pageBuilder: (_, _) =>
-                    const NoTransitionPage(child: StatsPage()),
+                    const NoTransitionPage(child: ProfilePage()),
               ),
             ],
           ),

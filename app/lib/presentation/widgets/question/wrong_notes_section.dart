@@ -8,7 +8,7 @@ import '../../../data/models/progress/wrong_questions_response.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/wrong_questions_provider.dart';
-import '../question/stem_text.dart';
+import 'stem_text.dart';
 
 /// 오답 노트 섹션. 최근에 틀린 문제를 보여주고, 누르면 그 문제로 이동한다.
 class WrongNotesSection extends ConsumerWidget {
