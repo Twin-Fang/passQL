@@ -1,5 +1,5 @@
 """src.clients.qdrant_search_client
-Qdrant 벡터 DB 클라이언트 (search / upsert)
+Qdrant 벡터 DB 클라이언트: 컬렉션 확인·생성, 포인트 일괄 조회, 유사도 검색, 업서트, ID 전체 수집, 삭제
 """
 import logging
 
@@ -20,41 +20,27 @@ NOT_FOUND_STATUS_CODE = 404
 
 class QdrantSearchClient:
     """
-    Qdrant REST API 비동기 클라이언트: 벡터 저장, 유사도 검색
-    - search: 벡터 유사도 검색 (top_k 결과 반환)
-    - upsert: 벡터 + payload 저장 (없으면 삽입, 있으면 갱신)
+    Qdrant REST API 비동기 클라이언트
+    컬렉션 존재 확인은 프로세스당 1회 (확인된 이름 보관, 업서트 실패 시 forget_confirmed_collection 으로 다시 확인)
     """
 
     def __init__(self):
         self.base_url = settings.QDRANT_URL.rstrip("/")
         self.api_key = settings.QDRANT_API_KEY
         self.timeout = REQUEST_TIMEOUT_SECONDS
+        self._confirmed_collection_names: set[str] = set()
 
     def _headers(self) -> dict:
-        """공통 요청 헤더 반환"""
+        """공통 요청 헤더 (api-key 는 설정된 경우만)"""
         headers = {"Content-Type": "application/json"}
         if self.api_key:
             headers["api-key"] = self.api_key
         return headers
 
-    async def create_collection_if_not_exists(
-        self,
-        collection: str,
-        vector_size: int,
-    ) -> bool:
-        """
-        Qdrant 컬렉션이 없으면 생성 (있으면 스킵)
-
-        Args:
-            collection: 생성할 컬렉션 이름
-            vector_size: 벡터 차원 수 (settings.EMBEDDING_VECTOR_DIMENSION)
-
-        Returns:
-            bool: True=신규 생성, False=이미 존재
-
-        Raises:
-            CustomError: API 호출 실패 시
-        """
+    async def create_collection_if_not_exists(self, collection: str, vector_size: int) -> bool:
+        """컬렉션 확인 > 없으면 생성 (True = 신규 생성, 이미 확인된 컬렉션은 호출 없이 False)"""
+        if collection in self._confirmed_collection_names:
+            return False
         collection_url = f"{self.base_url}/collections/{collection}"
         check_response = await send_request(
             "Qdrant create_collection", "GET", collection_url,
@@ -62,50 +48,40 @@ class QdrantSearchClient:
             passthrough_status_codes=(NOT_FOUND_STATUS_CODE,),
         )
         if check_response.status_code != NOT_FOUND_STATUS_CODE:
-            logger.info(f"Qdrant 컬렉션 이미 존재: {collection}")
+            self._confirmed_collection_names.add(collection)
             return False
 
-        # 컬렉션 없음 > 생성
-        body = {
-            "vectors": {
-                "size": vector_size,
-                "distance": "Cosine",
-            }
-        }
+        # 컬렉션 없음 > 생성 (코사인 거리)
+        body = {"vectors": {"size": vector_size, "distance": "Cosine"}}
         await send_request(
             "Qdrant create_collection", "PUT", collection_url,
             headers=self._headers(), json_body=body, timeout_seconds=self.timeout,
         )
-        logger.info(f"Qdrant 컬렉션 생성 완료: {collection}, dim={vector_size}")
+        self._confirmed_collection_names.add(collection)
+        logger.info(f"[qdrant] collection created : {collection}, dimension={vector_size}")
         return True
 
-    async def get_vector(
-        self,
-        collection: str,
-        point_id: int | str,
-    ) -> list[float] | None:
-        """
-        Qdrant에서 특정 point의 벡터를 조회
+    def forget_confirmed_collection(self, collection: str) -> None:
+        """컬렉션 확인 기록 삭제 (컬렉션 재생성 등으로 쓰기가 실패했을 때 다음 호출에서 다시 확인)"""
+        self._confirmed_collection_names.discard(collection)
 
-        Args:
-            collection: 컬렉션 이름
-            point_id: 포인트 ID
-
-        Returns:
-            list[float] | None: 벡터 (없으면 None)
-
-        Raises:
-            CustomError: API 호출 실패 시
-        """
-        url = f"{self.base_url}/collections/{collection}/points/{point_id}"
+    async def retrieve_points(
+        self, collection: str, point_ids: list[str], should_include_vector: bool
+    ) -> dict[str, list[float] | None]:
+        """포인트 여러 개 1회 조회 > {포인트 ID: 벡터 또는 None} (없는 포인트 제외, 컬렉션 없으면 빈 dict)"""
+        if not point_ids:
+            return {}
+        url = f"{self.base_url}/collections/{collection}/points"
+        body = {"ids": point_ids, "with_payload": False, "with_vector": should_include_vector}
         response = await send_request(
-            "Qdrant get_vector", "GET", url,
-            headers=self._headers(), params={"with_vector": "true"}, timeout_seconds=self.timeout,
+            "Qdrant retrieve_points", "POST", url,
+            headers=self._headers(), json_body=body, timeout_seconds=self.timeout,
             passthrough_status_codes=(NOT_FOUND_STATUS_CODE,),
         )
         if response.status_code == NOT_FOUND_STATUS_CODE:
-            return None
-        return response.json().get("result", {}).get("vector")
+            return {}
+        points = response.json().get("result") or []
+        return {str(point["id"]): point.get("vector") for point in points if "id" in point}
 
     async def search(
         self,
@@ -114,118 +90,34 @@ class QdrantSearchClient:
         top_k: int = 3,
         must_not_ids: list[str] | None = None,
     ) -> list[dict]:
-        """
-        Qdrant 컬렉션에서 벡터 유사도 검색
-
-        Args:
-            collection: 검색할 컬렉션 이름
-            vector: 쿼리 벡터
-            top_k: 반환할 최대 결과 수
-            must_not_ids: 결과에서 제외할 question_uuid 목록 (이미 푼 문제 제외)
-
-        Returns:
-            list[dict]: [{"id": ..., "score": ..., "payload": {...}}, ...] 형식의 결과 목록
-
-        Raises:
-            CustomError: API 호출 실패 시
-        """
+        """벡터 유사도 검색 > [{"id", "score", "payload"}, ...] (must_not_ids: 결과에서 뺄 question_uuid 목록)"""
         url = f"{self.base_url}/collections/{collection}/points/search"
-        payload: dict = {
-            "vector": vector,
-            "limit": top_k,
-            "with_payload": True,
-        }
+        body: dict = {"vector": vector, "limit": top_k, "with_payload": True}
 
-        # 이미 푼 문제 제외 필터 — question_uuid payload 값 기준
+        # 이미 푼 문제 제외 필터 (question_uuid payload 값 기준)
         if must_not_ids:
-            payload["filter"] = {
-                "must_not": [
-                    {
-                        "key": "question_uuid",
-                        "match": {"any": must_not_ids},
-                    }
-                ]
-            }
-
-        logger.info(f"Qdrant search: collection={collection}, top_k={top_k}, vector_dim={len(vector)}, must_not_count={len(must_not_ids) if must_not_ids else 0}")
+            body["filter"] = {"must_not": [{"key": "question_uuid", "match": {"any": must_not_ids}}]}
 
         response = await send_request(
             "Qdrant search", "POST", url,
-            headers=self._headers(), json_body=payload, timeout_seconds=self.timeout,
+            headers=self._headers(), json_body=body, timeout_seconds=self.timeout,
         )
         results = response.json().get("result", [])
-        logger.info(f"Qdrant search 완료: 결과 수={len(results)}")
+        logger.info(
+            f"[qdrant] search : collection={collection}, top_k={top_k}, "
+            f"must_not_count={len(must_not_ids or [])}, result_count={len(results)}"
+        )
         return results
 
-    async def get_collection_info(self, collection: str) -> dict:
-        """
-        Qdrant 컬렉션 기본 정보 조회 (포인트 수, 벡터 차원, 상태).
-
-        Args:
-            collection: 조회할 컬렉션 이름
-
-        Returns:
-            dict: {"points_count": int, "vector_size": int, "status": str}
-                  컬렉션 미존재 시 {"points_count": 0, "vector_size": 0, "status": "not_found"}
-
-        Raises:
-            CustomError: API 호출 실패 시
-        """
-        url = f"{self.base_url}/collections/{collection}"
-        logger.debug(f"[qdrant] get_collection_info 요청: url={url}")
-        response = await send_request(
-            "Qdrant get_collection_info", "GET", url,
-            headers=self._headers(), timeout_seconds=self.timeout,
-            passthrough_status_codes=(NOT_FOUND_STATUS_CODE,),
-        )
-        if response.status_code == NOT_FOUND_STATUS_CODE:
-            logger.info(f"[qdrant] 컬렉션 없음: {collection}")
-            return {"points_count": 0, "vector_size": 0, "status": "not_found"}
-
-        result = response.json().get("result", {})
-        config = result.get("config", {}).get("params", {})
-        vectors_config = config.get("vectors", {})
-        # 단일 벡터 컬렉션 — vectors 키 없이 바로 size/distance
-        vector_size = vectors_config.get("size", 0) if isinstance(vectors_config, dict) else 0
-        points_count = result.get("points_count", 0)
-        status = result.get("status", "unknown")
-
-        logger.debug(
-            f"[qdrant] get_collection_info 응답: collection={collection}, "
-            f"points_count={points_count}, vector_size={vector_size}, status={status}"
-        )
-        return {"points_count": points_count, "vector_size": vector_size, "status": status}
-
     async def scroll_all_ids(self, collection: str) -> list[str]:
-        """
-        Qdrant 컬렉션의 모든 포인트 ID(UUID 문자열)를 페이지네이션으로 수집.
-
-        scroll API: limit=1000씩, next_page_offset이 None이 될 때까지 반복.
-        with_payload=false, with_vector=false — ID만 수집하여 응답 최소화.
-
-        Args:
-            collection: 조회할 컬렉션 이름
-
-        Returns:
-            list[str]: 전체 포인트 UUID 문자열 목록
-
-        Raises:
-            CustomError: API 호출 실패 시
-        """
+        """컬렉션 전체 포인트 ID 수집 (1000개씩 scroll, payload·벡터 제외, 컬렉션 없으면 빈 목록)"""
         url = f"{self.base_url}/collections/{collection}/points/scroll"
         all_ids: list[str] = []
         offset = None
-        page = 0
-
-        logger.info(f"[qdrant] scroll_all_ids 시작: collection={collection}")
 
         # 페이지 단위 수집 (next_page_offset 없을 때까지)
         while True:
-            body: dict = {
-                "limit": SCROLL_PAGE_SIZE,
-                "with_payload": False,
-                "with_vector": False,
-            }
+            body: dict = {"limit": SCROLL_PAGE_SIZE, "with_payload": False, "with_vector": False}
             if offset is not None:
                 body["offset"] = offset
 
@@ -235,75 +127,30 @@ class QdrantSearchClient:
                 passthrough_status_codes=(NOT_FOUND_STATUS_CODE,),
             )
             if response.status_code == NOT_FOUND_STATUS_CODE:
-                logger.info("[qdrant] scroll_all_ids: 컬렉션 없음 — 빈 목록 반환")
+                logger.info(f"[qdrant] scroll_all_ids : collection not found, empty list : {collection}")
                 return []
 
             result = response.json().get("result", {})
-            points = result.get("points", [])
-            next_offset = result.get("next_page_offset")
-
-            page_ids = [str(p["id"]) for p in points if "id" in p]
-            all_ids.extend(page_ids)
-
-            logger.debug(
-                f"[qdrant] scroll_all_ids page {page}: "
-                f"offset={offset}, collected={len(page_ids)}, total_so_far={len(all_ids)}"
-            )
-            page += 1
-
-            if not next_offset:
+            all_ids.extend(str(point["id"]) for point in result.get("points", []) if "id" in point)
+            offset = result.get("next_page_offset")
+            if not offset:
                 break
-            offset = next_offset
 
-        logger.info(f"[qdrant] scroll_all_ids 완료: collection={collection}, total={len(all_ids)}")
+        logger.info(f"[qdrant] scroll_all_ids : collection={collection}, total={len(all_ids)}")
         return all_ids
 
-    async def upsert(
-        self,
-        collection: str,
-        point_id: int | str,
-        vector: list[float],
-        payload: dict,
-    ) -> None:
-        """
-        Qdrant 컬렉션에 벡터 + payload 저장 (upsert)
-
-        Args:
-            collection: 저장할 컬렉션 이름
-            point_id: 포인트 ID (question_id 등)
-            vector: 저장할 벡터
-            payload: 저장할 메타데이터 딕셔너리
-
-        Raises:
-            CustomError: API 호출 실패 시
-        """
-        # TODO: 배치 upsert 지원 추가
+    async def upsert(self, collection: str, point_id: str, vector: list[float], payload: dict) -> None:
+        """벡터 + payload 저장 (없으면 삽입, 있으면 갱신)"""
         url = f"{self.base_url}/collections/{collection}/points"
-        body = {
-            "points": [
-                {
-                    "id": point_id,
-                    "vector": vector,
-                    "payload": payload,
-                }
-            ]
-        }
-
-        logger.info(f"Qdrant upsert: collection={collection}, id={point_id}, vector_dim={len(vector)}")
-
+        body = {"points": [{"id": point_id, "vector": vector, "payload": payload}]}
         await send_request(
             "Qdrant upsert", "PUT", url,
             headers=self._headers(), json_body=body, timeout_seconds=self.timeout,
         )
-        logger.info(f"Qdrant upsert 완료: id={point_id}")
+        logger.info(f"[qdrant] upsert : collection={collection}, id={point_id}, dimension={len(vector)}")
 
     async def delete_points(self, collection: str, point_ids: list[str]) -> None:
-        """
-        Qdrant 컬렉션에서 포인트를 ID로 삭제한다 (고아 벡터 정리용).
-
-        Raises:
-            CustomError: API 호출 실패 시
-        """
+        """포인트 ID 목록 삭제 (고아 벡터 정리용, 빈 목록이면 호출 없음)"""
         if not point_ids:
             return
         url = f"{self.base_url}/collections/{collection}/points/delete?wait=true"
@@ -311,7 +158,8 @@ class QdrantSearchClient:
             "Qdrant delete_points", "POST", url,
             headers=self._headers(), json_body={"points": point_ids}, timeout_seconds=self.timeout,
         )
-        logger.info(f"[qdrant] delete_points 완료: collection={collection}, count={len(point_ids)}")
+        logger.info(f"[qdrant] delete_points : collection={collection}, count={len(point_ids)}")
+
 
 # 싱글턴 인스턴스
 qdrant_search_client = QdrantSearchClient()

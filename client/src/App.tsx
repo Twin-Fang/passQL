@@ -23,6 +23,7 @@ const AnswerFeedback = lazy(() => import("./pages/AnswerFeedback"));
 const RecommendationPractice = lazy(() => import("./pages/RecommendationPractice"));
 const Stats = lazy(() => import("./pages/Stats"));
 const MyPage = lazy(() => import("./pages/MyPage"));
+const WrongNotes = lazy(() => import("./pages/WrongNotes"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const NoticeList = lazy(() => import("./pages/NoticeList"));
 const NoticeDetail = lazy(() => import("./pages/NoticeDetail"));
@@ -137,6 +138,11 @@ const router = createBrowserRouter([
           {
             path: "recommendation/:questionUuid",
             element: <RecommendationPractice />,
+          },
+          // 오답 노트 (#865) — 마이페이지 전체보기·통계 AI 분석 진입, 경로는 constants/wrongNotes 와 같음
+          {
+            path: "mypage/wrong-questions",
+            element: <WrongNotes />,
           },
           // 설정 서브페이지 — 마이페이지 톱니바퀴 진입 (탭바 없는 몰입형)
           {

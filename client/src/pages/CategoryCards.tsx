@@ -3,9 +3,9 @@ import { Link } from "react-router-dom";
 import { ChevronRight, ClipboardCheck, Flame, Sparkles } from "lucide-react";
 import { useTopics } from "../hooks/useTopics";
 import { getTopicIcon } from "../constants/topicIcons";
-import { EmptyPracticeTopicError } from "../api/practice";
 import { useStartTopicPractice } from "../hooks/useStartTopicPractice";
 import ErrorFallback from "../components/ErrorFallback";
+import ProAccessReasonModal from "../components/pro/ProAccessReasonModal";
 import { useStagger } from "../hooks/useStagger";
 import { useLatestTrendTopicCodes } from "../hooks/useExamTrend";
 import LatestTrendBadge from "../components/LatestTrendBadge";
@@ -16,7 +16,7 @@ export default function CategoryCards() {
   const { data: topics, isLoading, isError, refetch } = useTopics();
   // 문제가 없는 카테고리 클릭 시 안내 모달 표시 여부
   const [showEmptyModal, setShowEmptyModal] = useState(false);
-  const startTopicPractice = useStartTopicPractice();
+  const { startTopicPractice, proAccessErrorCode, closeProAccessReason } = useStartTopicPractice();
   // 최신 경향 문제가 있는 토픽 (카드 배지, #523)
   const latestTrendTopicCodes = useLatestTrendTopicCodes();
 
@@ -25,17 +25,10 @@ export default function CategoryCards() {
   const s0 = stagger(0); // 제목 + 서브텍스트
   const s1 = stagger(1); // 카드 그리드
 
+  // 토픽 연습 시작 (문제 0개 > 준비중 안내, 프로 접근 거부 > 사유 창)
   const handleSelect = async (code: string, displayName: string) => {
-    try {
-      await startTopicPractice({ topicCode: code, sessionTitle: displayName });
-    } catch (err) {
-      // 문제가 없는 카테고리인 경우 안내 모달 표시
-      if (err instanceof EmptyPracticeTopicError) {
-        setShowEmptyModal(true);
-      } else {
-        console.warn("[category cards] practice start failed", err);
-      }
-    }
+    const startResult = await startTopicPractice({ topicCode: code, sessionTitle: displayName });
+    if (startResult === "EMPTY_TOPIC") setShowEmptyModal(true);
   };
 
   if (isError) {
@@ -151,6 +144,8 @@ export default function CategoryCards() {
         </div>
       )}
 
+      {/* 무료(결제 켜짐) 토픽 연습 403 > 사유 창 (#865) */}
+      {proAccessErrorCode && <ProAccessReasonModal errorCode={proAccessErrorCode} onClose={closeProAccessReason} />}
     </div>
   );
 }

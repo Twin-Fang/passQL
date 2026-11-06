@@ -7,14 +7,14 @@ import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../account/login_provider_badge.dart';
 import '../common/app_toast.dart';
-import '../settings/nickname_edit_sheet.dart';
+import 'nickname_edit_sheet.dart';
 
 // 이니셜 원 지름 (누르는 영역 44 안에 들어가는 크기)
 const double profileAccountAvatarSize = 40;
 // 닉네임 불러오는 동안 자리 폭 (닉네임 평균 길이 정도)
 const double _nameSkeletonWidth = 120;
 
-/// 내 프로필 계정 줄 (#816 A안): 이니셜 + 닉네임(눌러서 편집) + 로그인 방법 배지·가입일 + `관리` > 계정·이용권 화면
+/// 내 프로필 계정 줄 (#816 A안): 이니셜 + 닉네임(연필 = 눌러서 편집, #863) + 로그인 방법 배지·가입일 + `관리` > 계정·이용권 화면
 /// 계정 정보는 결제 스위치와 무관하게 항상 보임
 class ProfileAccountRow extends StatelessWidget {
   const ProfileAccountRow({
@@ -156,10 +156,12 @@ class _NicknameBlock extends StatelessWidget {
                         ),
                       ),
                     ),
+                    // 이동(›)이 아니라 편집이라 연필, 누를 수 있게 강조색
+                    const SizedBox(width: PassqlSpacing.xxs),
                     Icon(
-                      CupertinoIcons.chevron_forward,
-                      size: PassqlIconSize.sm,
-                      color: colors.tertiaryLabel,
+                      CupertinoIcons.pencil,
+                      size: PassqlIconSize.md,
+                      color: colors.accentText,
                     ),
                   ],
                 ),

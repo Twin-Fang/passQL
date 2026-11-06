@@ -22,10 +22,17 @@ class PassqlPassUsageGauge extends StatefulWidget {
 
 class _PassqlPassUsageGaugeState extends State<PassqlPassUsageGauge>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: PassqlMotion.passGaugeShinePeriod,
-  )..repeat();
+  late final AnimationController _controller;
+
+  // initState 에서 만듦 (지연 생성이면 동작 줄이기 때 dispose 에서 처음 만들어져 비활성 요소 조회 오류)
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: PassqlMotion.passGaugeShinePeriod,
+    )..repeat();
+  }
 
   @override
   void dispose() {

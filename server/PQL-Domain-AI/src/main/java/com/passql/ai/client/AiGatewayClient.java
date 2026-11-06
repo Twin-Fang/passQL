@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.passql.ai.constant.AiCallSource;
+import com.passql.ai.constant.AiServerErrorKind;
 import com.passql.ai.dto.*;
 import com.passql.ai.dto.ComponentHealth;
 import com.passql.ai.service.AiCallLogService;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
@@ -26,7 +28,8 @@ import java.util.Set;
  * Java 코드에서 AI 기능 사용 시 유일한 진입점.
  * <p>
  * 메인 경로: Python AI 서버 (HTTP)
- * Fallback: {@link GeminiFallbackClient} (AiChatClient 로 AI 연결 직접 호출)
+ * Fallback: {@link GeminiFallbackClient} (AiChatClient 로 AI 연결 직접 호출) — AI 서버 장애일 때만
+ * AI 서버가 응답 본문 error_kind 로 알린 실패(입력 오류·LLM 실패)는 대체 호출 없이 그대로 던짐 (#877)
  */
 @Slf4j
 @Component
@@ -36,6 +39,8 @@ public class AiGatewayClient {
     private static final int HEALTH_CHECK_TIMEOUT_MILLISECONDS = 3000;
     private static final String HEALTH_PATH = "/health";
     private static final String INDEX_STATUS_PATH = "/api/ai/index-status";
+    // AI 서버 실패 응답 본문의 실패 종류 필드 (AI 서버 core/exception_handlers.py)
+    private static final String ERROR_KIND_FIELD = "error_kind";
     // 벡터 색인·검색 경로 5개 (LLM 아님 > 호출 출처 VECTOR_SEARCH 로 기록, #699)
     private static final Set<String> VECTOR_SEARCH_PATHS = Set.of(
             "/api/ai/index-question", "/api/ai/index-questions-bulk", "/api/ai/recommend",
@@ -89,6 +94,7 @@ public class AiGatewayClient {
 
     private GenerateQuestionFullResult generateQuestionFullFallback(
             GenerateQuestionFullRequest request, Throwable t) {
+        rethrowIfReportedByAiServer(t);
         log.warn("[AiGateway] generateQuestionFull fallback 진입: {}", t.getMessage());
         return fallbackClient.generateQuestionFull(request);
     }
@@ -105,6 +111,7 @@ public class AiGatewayClient {
 
     private GenerateChoiceSetResult generateChoiceSetFallback(
             GenerateChoiceSetRequest request, Throwable t) {
+        rethrowIfReportedByAiServer(t);
         log.warn("[AiGateway] generateChoiceSet fallback 진입: {}", t.getMessage());
         return fallbackClient.generateChoiceSet(request);
     }
@@ -120,6 +127,7 @@ public class AiGatewayClient {
     }
 
     private TestPromptResult testPromptFallback(TestPromptRequest request, Throwable t) {
+        rethrowIfReportedByAiServer(t);
         log.warn("[AiGateway] testPrompt fallback 진입: {}", t.getMessage());
         return fallbackClient.testPrompt(request);
     }
@@ -287,6 +295,34 @@ public class AiGatewayClient {
         return e.getClass().getSimpleName();
     }
 
+    /** AI 서버가 판정한 실패 > 대체 호출 없이 그대로 (같은 LLM 연결 목록을 다시 불러 중복 과금하지 않게, #877) */
+    private static void rethrowIfReportedByAiServer(Throwable throwable) {
+        if (throwable instanceof AiServerReportedFailureException reportedFailure) {
+            throw reportedFailure;
+        }
+    }
+
+    /** AI 서버 4xx·5xx 응답 > 본문 error_kind 로 판정 (AI 서버 판정 실패 > 해당 ErrorCode, 그 외 > AI_SERVER_UNAVAILABLE) */
+    private CustomException toAiServerFailure(String url, HttpStatusCodeException statusException) {
+        AiServerErrorKind errorKind = readErrorKind(statusException.getResponseBodyAsString());
+        String detail = "Python AI 서버 실패 응답: status=" + statusException.getStatusCode().value() + ", kind=" + errorKind;
+        if (errorKind.isReportedByHealthyAiServer()) {
+            log.warn("[AiGateway] Python AI 서버 판정 실패 (대체 호출 없음): url={}, {}", url, detail);
+            return new AiServerReportedFailureException(errorKind.getReportedErrorCode(), detail, statusException);
+        }
+        log.error("[AiGateway] Python AI 서버 호출 실패: url={}, {}", url, detail);
+        return new CustomException(ErrorCode.AI_SERVER_UNAVAILABLE, detail, statusException);
+    }
+
+    /** 실패 응답 본문 > error_kind (JSON 아님·필드 없음 > INTERNAL_ERROR, 프록시 502 HTML 등) */
+    private AiServerErrorKind readErrorKind(String responseBody) {
+        try {
+            return AiServerErrorKind.fromResponseValue(snakeCaseMapper.readTree(responseBody).path(ERROR_KIND_FIELD).asText(null));
+        } catch (Exception e) {
+            return AiServerErrorKind.INTERNAL_ERROR;
+        }
+    }
+
     private <T> T exchangeWithPython(String path, Object request, Class<T> responseType) {
         String url = baseUrl + path;
         try {
@@ -310,6 +346,8 @@ public class AiGatewayClient {
             return snakeCaseMapper.readValue(response.getBody(), responseType);
         } catch (CustomException e) {
             throw e;
+        } catch (HttpStatusCodeException e) {
+            throw toAiServerFailure(url, e);
         } catch (Exception e) {
             log.error("[AiGateway] Python AI 서버 호출 실패: url={}, error={}", url, e.getMessage());
             throw new CustomException(ErrorCode.AI_SERVER_UNAVAILABLE,

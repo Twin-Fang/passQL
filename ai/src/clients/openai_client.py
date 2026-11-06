@@ -8,7 +8,7 @@ from typing import Any
 from src.clients.llm_schema import to_json_schema
 from src.clients.shared_http_client import send_request
 from src.clients.token_usage import record_token_usage
-from src.core.exceptions import CustomError
+from src.core.exceptions import LlmResponseInvalidError
 from src.core.external_call_limits import LLM_CALL_TIMEOUT_SECONDS, LOGGED_RESPONSE_TEXT_MAXIMUM_LENGTH
 
 logger = logging.getLogger(__name__)
@@ -47,6 +47,7 @@ class OpenAiClient:
             headers={"Authorization": f"Bearer {api_key}"},
             json_body=request_body,
             timeout_seconds=LLM_CALL_TIMEOUT_SECONDS,
+            is_billed_request=True,
         )
         response_body = response.json()
         usage = response_body.get("usage") or {}
@@ -54,7 +55,7 @@ class OpenAiClient:
         choices = response_body.get("choices") or []
         text = (choices[0].get("message") or {}).get("content") if choices else None
         if not text or not text.strip():
-            raise CustomError(f"OpenAI returned empty response (model={request_body['model']})")
+            raise LlmResponseInvalidError(f"OpenAI returned empty response (model={request_body['model']})")
         return text
 
     async def chat(
@@ -89,7 +90,7 @@ class OpenAiClient:
                 f"[openai chat_structured] json parse failed : {error}, "
                 f"text={text[:LOGGED_RESPONSE_TEXT_MAXIMUM_LENGTH]}"
             )
-            raise CustomError("OpenAI structured 응답 JSON 파싱 실패") from error
+            raise LlmResponseInvalidError("OpenAI structured 응답 JSON 파싱 실패") from error
 
 
 # 싱글턴

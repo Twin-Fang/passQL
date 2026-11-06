@@ -35,9 +35,10 @@ const STATS_SAMPLE_SECTIONS: readonly LockedSampleSection[] = [
   { title: "강한 토픽", body: "집계 함수 88% · 정렬 84%" },
 ];
 
-// AI 분석 코멘트: 약한 영역, 다음 공부 (#860)
+// AI 분석 코멘트: 예상 점수, 약한 영역, 다음 공부 (#860, #862)
 const AI_ANALYSIS_SAMPLE_SECTIONS: readonly LockedSampleSection[] = [
-  { title: "약한 영역", body: "조인과 서브쿼리 정답률이 낮아요. 최근 7일 동안 이 두 영역을 가장 많이 틀렸어요." },
+  { title: "예상 점수 64점 · 합격선 근처", body: "1과목 예상 6/10 · 2과목 예상 26/40" },
+  { title: "약한 영역", body: "조인과 서브쿼리 정답률이 낮아요. 이 두 영역을 가장 많이 틀렸어요." },
   { title: "다음 공부", body: "OUTER JOIN 결과 행 수 문제부터 다시 풀어 보세요." },
 ];
 

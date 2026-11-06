@@ -14,12 +14,13 @@ import '../../widgets/common/app_toast.dart';
 import '../../widgets/profile/profile_status_section.dart';
 import '../../widgets/profile/topic_accuracy_section.dart';
 import '../../widgets/stats/ai_analysis_card.dart';
+import '../../widgets/stats/ai_analysis_card_skeleton.dart';
 
 /// 내 프로필 탭 (#749): 홈과 같은 구간 + 띠 구조.
 /// 내 상태(이름 줄·정답률·탑승권) > AI 분석 > 영역별 정답률 > 광고. 홈에 있는 준비도·히트맵·바로가기는 두지 않는다.
 /// 로딩: 구간 모양 스켈레톤 / 에러: 재시도 / 성공: 구간 순차 등장, pull-to-refresh 지원.
-class StatsPage extends ConsumerWidget {
-  const StatsPage({super.key});
+class ProfilePage extends ConsumerWidget {
+  const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -115,7 +116,7 @@ class _StatsContent extends StatelessWidget {
   }
 }
 
-/// AI 코멘트 자리: 무료(결제 켜짐)면 잠금 자리, 기다리는 동안 스켈레톤, 오면 구간으로 교체, 없거나 실패하면 앞 띠와 함께 접힘
+/// AI 코멘트 자리: 무료(결제 켜짐)면 잠금 자리, 기다리는 동안 스켈레톤, 오면 구간으로 교체, 실패하면 다시 시도 자리, 없으면 앞 띠와 함께 접힘
 class _StatsAiCommentSection extends ConsumerWidget {
   const _StatsAiCommentSection();
 
@@ -128,6 +129,11 @@ class _StatsAiCommentSection extends ConsumerWidget {
       content = const AiAnalysisLockedSection(key: ValueKey('locked'));
     } else if (aiCommentAsync.isLoading && aiComment == null) {
       content = const AiAnalysisCardSkeleton(key: ValueKey('loading'));
+    } else if (aiCommentAsync.hasError && aiComment == null) {
+      content = AiAnalysisErrorSection(
+        key: const ValueKey('error'),
+        onRetry: () => ref.invalidate(statsAiCommentProvider),
+      );
     } else if (aiComment?.comment == null) {
       content = const SizedBox.shrink(key: ValueKey('empty'));
     } else {

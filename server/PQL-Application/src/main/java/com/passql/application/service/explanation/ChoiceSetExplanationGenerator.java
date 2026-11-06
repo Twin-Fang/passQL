@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.passql.ai.client.AiChatClient;
+import com.passql.meta.constant.PromptKey;
 import com.passql.meta.entity.PromptTemplate;
 import com.passql.meta.service.PromptService;
 import com.passql.question.dto.explanation.ChoiceSetExplanation;
@@ -18,7 +19,7 @@ import java.util.Map;
 
 /**
  * 선택지 세트 구조화 해설 생성 (#521): 프롬프트 조립 > Gemini JSON 응답 > 파싱 > 검증 > 위반 있으면 위반 목록 붙여 1회 재시도
- * 모델·온도는 관리자 화면의 'diff_explain' 활성 프롬프트 설정을 따른다 (프롬프트 문구는 리소스 파일)
+ * 모델·온도는 관리자 화면의 PromptKey.DIFF_EXPLAIN 활성 프롬프트 설정을 따른다 (프롬프트 문구는 리소스 파일)
  * 저장은 호출한 쪽 책임, 호출 실패도 예외 대신 실패 결과로 돌려준다
  */
 @Slf4j
@@ -26,8 +27,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ChoiceSetExplanationGenerator {
 
-    // 모델·온도 설정을 빌려 오는 프롬프트 키 (선택지 해설 v2 모델 비교 결과, #356)
-    static final String MODEL_SETTING_PROMPT_KEY = "diff_explain";
     // 최대 시도 횟수 (첫 시도 + 위반 피드백 재시도 1회)
     static final int MAX_ATTEMPTS_PER_GENERATION = 2;
     // 응답 토큰 상한 (보기 4개 + 개념·지점 JSON, 사고 토큰 포함 여유)
@@ -56,7 +55,7 @@ public class ChoiceSetExplanationGenerator {
                                                          Map<String, String> resultSummaryByChoiceKey,
                                                          boolean isRationaleVerified) {
         long startedAt = System.currentTimeMillis();
-        PromptTemplate modelSetting = promptService.getActivePrompt(MODEL_SETTING_PROMPT_KEY);
+        PromptTemplate modelSetting = promptService.getActivePrompt(PromptKey.DIFF_EXPLAIN);
         String userPrompt = ChoiceSetExplanationPrompt.buildUserPrompt(question, items, resultSummaryByChoiceKey,
                 isRationaleVerified);
 

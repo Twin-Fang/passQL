@@ -18,12 +18,14 @@ on:
     paths:
       - 'server/**'
       - 'api-contract/**'
+      - 'ai/tests/snapshots/**'
   pull_request:
     branches:
       - main
     paths:
       - 'server/**'
       - 'api-contract/**'
+      - 'ai/tests/snapshots/**'
   workflow_dispatch:
 
 env:
@@ -64,6 +66,11 @@ jobs:
       - name: API 계약 검사
         working-directory: server
         run: ./gradlew :PQL-Web:test --tests 'com.passql.web.contract.OpenApiContractTest'
+
+      # Spring DTO <-> AI 서버 계약 스냅샷 (ai/tests/snapshots, AI 서버 pytest 와 같은 파일) (#877)
+      - name: AI 서버 계약 검사
+        working-directory: server
+        run: ./gradlew :PQL-Domain-AI:test --tests 'com.passql.ai.client.AiServerContractSnapshotTest'
 
       - name: 빌드 검증 완료
         run: |

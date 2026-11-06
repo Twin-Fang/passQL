@@ -149,6 +149,13 @@ export type MockExamHistoryResponse = ApiSchemas["MockExamHistoryResponse"];
 
 export type MockExamHistoryEntry = ApiSchemas["HistoryEntry"];
 
+// 통계 AI 분석 보강 (#862): 과목별 예상 점수, 데이터 부족 안내, 반복 오답
+export type AiExamForecast = ApiSchemas["AiExamForecast"];
+
+export type AiAnalysisReadiness = ApiSchemas["AiAnalysisReadiness"];
+
+export type AiRepeatedWrong = ApiSchemas["AiRepeatedWrong"];
+
 // === Heatmap ===
 export type HeatmapEntry = ApiSchemas["HeatmapEntry"];
 

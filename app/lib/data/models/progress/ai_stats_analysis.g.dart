@@ -24,6 +24,18 @@ _$AiStatsAnalysisImpl _$$AiStatsAnalysisImplFromJson(
           ?.map((e) => AiAnalysisAction.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
+  periodLabel: json['periodLabel'] as String? ?? '',
+  forecast: json['forecast'] == null
+      ? null
+      : AiExamForecast.fromJson(json['forecast'] as Map<String, dynamic>),
+  forecastHint: json['forecastHint'] as String?,
+  repeatedWrong: json['repeatedWrong'] == null
+      ? null
+      : AiRepeatedWrong.fromJson(json['repeatedWrong'] as Map<String, dynamic>),
+  readiness: json['readiness'] == null
+      ? null
+      : AiAnalysisReadiness.fromJson(json['readiness'] as Map<String, dynamic>),
+  nextGoal: json['nextGoal'] as String?,
 );
 
 Map<String, dynamic> _$$AiStatsAnalysisImplToJson(
@@ -34,6 +46,12 @@ Map<String, dynamic> _$$AiStatsAnalysisImplToJson(
   'trend': instance.trend,
   'strength': instance.strength,
   'actions': instance.actions,
+  'periodLabel': instance.periodLabel,
+  'forecast': instance.forecast,
+  'forecastHint': instance.forecastHint,
+  'repeatedWrong': instance.repeatedWrong,
+  'readiness': instance.readiness,
+  'nextGoal': instance.nextGoal,
 };
 
 _$AiAnalysisFindingImpl _$$AiAnalysisFindingImplFromJson(
@@ -52,6 +70,7 @@ _$AiAnalysisFindingImpl _$$AiAnalysisFindingImplFromJson(
   correctRatePercent: (json['correctRatePercent'] as num?)?.toInt() ?? 0,
   evidence: json['evidence'] as String? ?? '',
   insight: json['insight'] as String?,
+  conceptTopicUuid: json['conceptTopicUuid'] as String?,
 );
 
 Map<String, dynamic> _$$AiAnalysisFindingImplToJson(
@@ -64,6 +83,7 @@ Map<String, dynamic> _$$AiAnalysisFindingImplToJson(
   'correctRatePercent': instance.correctRatePercent,
   'evidence': instance.evidence,
   'insight': instance.insight,
+  'conceptTopicUuid': instance.conceptTopicUuid,
 };
 
 const _$AiFindingKindEnumMap = {
@@ -118,5 +138,90 @@ Map<String, dynamic> _$$AiAnalysisActionImplToJson(
 const _$AiAnalysisActionTypeEnumMap = {
   AiAnalysisActionType.practiceTopic: 'PRACTICE_TOPIC',
   AiAnalysisActionType.reviewWrong: 'REVIEW_WRONG',
+  AiAnalysisActionType.randomPractice: 'RANDOM_PRACTICE',
+  AiAnalysisActionType.practiceLatestTrend: 'PRACTICE_LATEST_TREND',
   AiAnalysisActionType.unknown: 'unknown',
+};
+
+_$AiExamForecastImpl _$$AiExamForecastImplFromJson(Map<String, dynamic> json) =>
+    _$AiExamForecastImpl(
+      expectedScore: (json['expectedScore'] as num?)?.toInt() ?? 0,
+      subjectOneExpectedCount:
+          (json['subjectOneExpectedCount'] as num?)?.toInt() ?? 0,
+      subjectOneQuestionCount:
+          (json['subjectOneQuestionCount'] as num?)?.toInt() ?? 0,
+      isSubjectOneFailRisk: json['isSubjectOneFailRisk'] as bool? ?? false,
+      subjectTwoExpectedCount:
+          (json['subjectTwoExpectedCount'] as num?)?.toInt() ?? 0,
+      subjectTwoQuestionCount:
+          (json['subjectTwoQuestionCount'] as num?)?.toInt() ?? 0,
+      isSubjectTwoFailRisk: json['isSubjectTwoFailRisk'] as bool? ?? false,
+      verdict:
+          $enumDecodeNullable(
+            _$AiForecastVerdictEnumMap,
+            json['verdict'],
+            unknownValue: AiForecastVerdict.unknown,
+          ) ??
+          AiForecastVerdict.unknown,
+      verdictLabel: json['verdictLabel'] as String? ?? '',
+      summary: json['summary'] as String? ?? '',
+      detail: json['detail'] as String? ?? '',
+    );
+
+Map<String, dynamic> _$$AiExamForecastImplToJson(
+  _$AiExamForecastImpl instance,
+) => <String, dynamic>{
+  'expectedScore': instance.expectedScore,
+  'subjectOneExpectedCount': instance.subjectOneExpectedCount,
+  'subjectOneQuestionCount': instance.subjectOneQuestionCount,
+  'isSubjectOneFailRisk': instance.isSubjectOneFailRisk,
+  'subjectTwoExpectedCount': instance.subjectTwoExpectedCount,
+  'subjectTwoQuestionCount': instance.subjectTwoQuestionCount,
+  'isSubjectTwoFailRisk': instance.isSubjectTwoFailRisk,
+  'verdict': _$AiForecastVerdictEnumMap[instance.verdict]!,
+  'verdictLabel': instance.verdictLabel,
+  'summary': instance.summary,
+  'detail': instance.detail,
+};
+
+const _$AiForecastVerdictEnumMap = {
+  AiForecastVerdict.subjectFailRisk: 'SUBJECT_FAIL_RISK',
+  AiForecastVerdict.passLikely: 'PASS_LIKELY',
+  AiForecastVerdict.borderline: 'BORDERLINE',
+  AiForecastVerdict.belowPass: 'BELOW_PASS',
+  AiForecastVerdict.unknown: 'unknown',
+};
+
+_$AiRepeatedWrongImpl _$$AiRepeatedWrongImplFromJson(
+  Map<String, dynamic> json,
+) => _$AiRepeatedWrongImpl(
+  questionCount: (json['questionCount'] as num?)?.toInt() ?? 0,
+  unresolvedCount: (json['unresolvedCount'] as num?)?.toInt() ?? 0,
+  text: json['text'] as String? ?? '',
+);
+
+Map<String, dynamic> _$$AiRepeatedWrongImplToJson(
+  _$AiRepeatedWrongImpl instance,
+) => <String, dynamic>{
+  'questionCount': instance.questionCount,
+  'unresolvedCount': instance.unresolvedCount,
+  'text': instance.text,
+};
+
+_$AiAnalysisReadinessImpl _$$AiAnalysisReadinessImplFromJson(
+  Map<String, dynamic> json,
+) => _$AiAnalysisReadinessImpl(
+  message: json['message'] as String? ?? '',
+  topicName: json['topicName'] as String?,
+  solvedCount: (json['solvedCount'] as num?)?.toInt() ?? 0,
+  targetCount: (json['targetCount'] as num?)?.toInt() ?? 0,
+);
+
+Map<String, dynamic> _$$AiAnalysisReadinessImplToJson(
+  _$AiAnalysisReadinessImpl instance,
+) => <String, dynamic>{
+  'message': instance.message,
+  'topicName': instance.topicName,
+  'solvedCount': instance.solvedCount,
+  'targetCount': instance.targetCount,
 };

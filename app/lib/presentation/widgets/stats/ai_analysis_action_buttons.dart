@@ -5,10 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../../../data/models/meta/topic_tree.dart';
 import '../../../data/models/progress/ai_stats_analysis.dart';
 import '../../../router/app_routes.dart';
+import '../../../router/questions_tab_view.dart';
 import '../../design/design.dart';
 import '../../providers/topic_providers.dart';
 
-/// 통계 AI 분석 바로 풀기 버튼 (#861): 토픽 문제 풀기 > 챕터 흐름, 최근 오답 다시 풀기 > 오답 노트
+/// 통계 AI 분석 바로 풀기 버튼 (#861, #862): 토픽 문제 풀기 > 챕터 흐름, 오답 다시 풀기 > 오답 노트,
+/// 랜덤 풀기 > 랜덤 풀기 풀이, 최신 경향 풀기 > 문제 탭 최신 경향 보기
 /// 이동할 곳을 모르는 버튼(모르는 종류·토픽 목록에 없는 토픽)은 숨김, 남은 버튼이 없으면 자리 없음
 class AiAnalysisActionButtons extends ConsumerWidget {
   const AiAnalysisActionButtons({super.key, required this.actions});
@@ -69,6 +71,11 @@ class AiAnalysisActionButtons extends ConsumerWidget {
         );
       case AiAnalysisActionType.reviewWrong:
         return () => context.push(AppRoutes.wrongNotes);
+      case AiAnalysisActionType.randomPractice:
+        return () => context.push(AppRoutes.randomPractice);
+      // 탭 루트라 go 로 탭 전환 (홈 출제 경향과 같은 이동)
+      case AiAnalysisActionType.practiceLatestTrend:
+        return () => context.go(QuestionsTabView.latestTrend.location);
       case AiAnalysisActionType.unknown:
         return null;
     }

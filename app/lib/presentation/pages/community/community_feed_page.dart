@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,8 +7,9 @@ import '../../design/design.dart';
 import '../../providers/community_providers.dart';
 import '../../widgets/common/load_more_scroll_metrics.dart';
 import '../../widgets/community/community_feed_list.dart';
+import '../../widgets/community/community_more_menu_sheet.dart';
 
-/// 토론 탭 첫 화면(탭 루트라 뒤로가기 없음) 커뮤니티 피드: 문제 탭과 같은 큰 제목 + 세그먼트 4칸(뜨는 토론·최신 경향·내가 푼 문제·내 의견), 본문은 [CommunityFeedList]
+/// 토론 탭 첫 화면(탭 루트라 뒤로가기 없음) 커뮤니티 피드: 문제 탭과 같은 큰 제목(+ 더보기 … > 차단 관리, #863) + 세그먼트 4칸(뜨는 토론·최신 경향·내가 푼 문제·내 의견), 본문은 [CommunityFeedList]
 /// [initialSource]: 시작 탭 (?source=mine 진입 시 mine)
 class CommunityFeedPage extends ConsumerStatefulWidget {
   const CommunityFeedPage({
@@ -52,6 +54,8 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
         onNotification: _loadMoreNearEnd,
         child: PassqlLargeTitleScrollView(
           title: '토론',
+          trailing: const _CommunityTabTrailing(),
+          isTrailingIconButton: true,
           onRefresh: () => _notifier.reload(),
           slivers: [
             SliverPadding(
@@ -78,6 +82,29 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
               source: _selectedSource,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 제목줄 오른쪽: 더보기(…) > 토론 메뉴 시트 (프로필 톱니바퀴와 같은 크기·색)
+class _CommunityTabTrailing extends StatelessWidget {
+  const _CommunityTabTrailing();
+
+  @override
+  Widget build(BuildContext context) {
+    return PassqlSemanticButton(
+      label: '토론 더보기',
+      onTap: () => showCommunityMoreMenuSheet(context),
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        minimumSize: const Size.square(PassqlSize.minTouchTarget),
+        onPressed: () => showCommunityMoreMenuSheet(context),
+        child: Icon(
+          CupertinoIcons.ellipsis_circle,
+          size: PassqlIconSize.xl,
+          color: context.passqlColors.label,
         ),
       ),
     );
