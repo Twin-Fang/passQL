@@ -1,6 +1,7 @@
 package com.passql.web.scheduler;
 
 import com.passql.application.community.CommunityImageService;
+import com.passql.common.util.ServiceTimeZone;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -16,7 +17,7 @@ public class CommunityImageCleanupScheduler {
 
     private final CommunityImageService communityImageService;
 
-    @Scheduled(cron = "0 15 * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 15 * * * *", zone = ServiceTimeZone.ZONE_NAME)
     public void cleanUpOrphanTemporaryImages() {
         try {
             communityImageService.cleanUpOrphanTemporaryImages(LocalDateTime.now());

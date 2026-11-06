@@ -8,6 +8,7 @@ import com.passql.ai.dto.IndexStatusRequest;
 import com.passql.ai.dto.IndexStatusResult;
 import com.passql.ai.dto.PruneIndexResult;
 import com.passql.common.util.TextPreview;
+import com.passql.common.util.UuidUtils;
 import com.passql.question.dto.IndexQuestionPreview;
 import com.passql.meta.entity.Subtopic;
 import com.passql.meta.entity.Topic;
@@ -21,7 +22,6 @@ import com.passql.question.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 /**
  * 문제 벡터 색인(Qdrant): 등록 직후 비동기 적재, 전체·선택 재색인, 삭제·비활성 문제 벡터 정리
  * 색인 요청 1건 = 토픽·서브토픽 이름 + 개념 태그 키 + 지문
+ * AI 서버 호출 메서드는 트랜잭션 없음: 조회마다 커넥션을 짧게 쓰고, AI 응답을 기다리는 동안 쥐지 않음 (#879)
  */
 @Slf4j
 @Service
@@ -54,13 +55,11 @@ public class QuestionVectorIndexService {
      * 활성 문제 전체를 Qdrant에 재색인한다 (관리자 "전체 색인" 버튼용).
      * 타임아웃 문제를 방지하기 위해 1개씩 순차 전송한다.
      */
-    @Transactional(readOnly = true)
     public IndexQuestionsBulkResult reindexAll() {
         return reindexAll(IndexProgressListener.NONE);
     }
 
     /** 활성 문제 전체 재색인 + 문제 1건마다 진행률 통지 (비동기 실행 이력용) */
-    @Transactional(readOnly = true)
     public IndexQuestionsBulkResult reindexAll(IndexProgressListener progressListener) {
         List<Question> questions = questionRepository.findByIsActiveTrue();
         log.info("[reindex-all] 전체 재색인 시작: 활성 문제 수={}", questions.size());
@@ -106,7 +105,6 @@ public class QuestionVectorIndexService {
     }
 
     /** 활성 문제 전체 색인 상태 조회 (AI 서버 장애 > null, 화면은 오류 배너) */
-    @Transactional(readOnly = true)
     public IndexStatusResult findIndexStatusOfActiveQuestions() {
         List<String> activeUuids = questionRepository.findAllActiveQuestionUuids();
         log.info("[index-status] DB 활성 문제 수={}", activeUuids.size());
@@ -124,7 +122,6 @@ public class QuestionVectorIndexService {
      *
      * @return 정리 결과, 건너뛰었거나 AI 서버 실패면 null
      */
-    @Transactional(readOnly = true)
     public PruneIndexResult pruneIndex() {
         List<String> activeUuids = questionRepository.findAllActiveQuestionUuids();
         if (activeUuids.isEmpty()) {
@@ -139,18 +136,16 @@ public class QuestionVectorIndexService {
      * 타임아웃 문제를 방지하기 위해 1개씩 순차 전송한다.
      * 존재하지 않는 UUID는 조용히 스킵한다.
      */
-    @Transactional(readOnly = true)
     public IndexQuestionsBulkResult reindexSelected(List<String> questionUuids) {
         return reindexSelected(questionUuids, IndexProgressListener.NONE);
     }
 
     /** 선택 문제 재색인 + 문제 1건마다 진행률 통지 (선택·실패 재시도 공통) */
-    @Transactional(readOnly = true)
     public IndexQuestionsBulkResult reindexSelected(List<String> questionUuids, IndexProgressListener progressListener) {
         log.info("[reindex-selected] 선택 재색인 시작: 요청 수={}", questionUuids.size());
 
         List<IndexQuestionRequest> requests = questionUuids.stream()
-                .map(uuidStr -> questionRepository.findById(UUID.fromString(uuidStr)).orElse(null))
+                .map(uuidText -> UuidUtils.parseOrEmpty(uuidText).flatMap(questionRepository::findById).orElse(null))
                 .filter(q -> q != null)
                 .map(q -> buildIndexRequest(q))
                 .toList();
@@ -227,11 +222,20 @@ public class QuestionVectorIndexService {
         indexQuestionAsync(event.questionUuid());
     }
 
-    /** 문제 비활성화 커밋 후 > 비활성 문제 벡터 정리 1회 (남기면 추천 결과에 삭제된 문제가 섞임, #412) */
+    /**
+     * 문제 비활성화 커밋 후 > 비활성 문제 벡터 정리 1회 (남기면 추천 결과에 삭제된 문제가 섞임, #412)
+     * 가상 스레드에서 실행: 커밋 직후 단계는 아직 요청의 커넥션을 쥐고 있어 AI 응답을 여기서 기다리지 않음
+     */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
-    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public void onQuestionsDeactivated(QuestionsDeactivatedEvent event) {
-        pruneIndex();
+        Thread.startVirtualThread(() -> {
+            try {
+                pruneIndex();
+            } catch (Exception e) {
+                // 정리 실패는 비활성화 결과에 영향 없음 (다음 비활성화·전체 재색인 때 다시 정리)
+                log.warn("[prune-index] 비활성화 후 정리 실패 (non-critical): cause={}", e.getClass().getSimpleName(), e);
+            }
+        });
     }
 
     /**

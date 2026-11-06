@@ -1,6 +1,7 @@
 package com.passql.submission.service;
 
 import com.passql.common.util.MarkdownTextStripper;
+import com.passql.common.util.ServiceTimeZone;
 import com.passql.common.util.TextPreview;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
@@ -66,7 +67,7 @@ public class ProgressService {
 
     private ReadinessResponse buildReadiness(UUID memberUuid) {
         // KST 기준 오늘 날짜 (JVM 기본 타임존과 무관하게 명시)
-        LocalDate today = LocalDate.now(ReadinessConstants.ZONE);
+        LocalDate today = LocalDate.now(ServiceTimeZone.ZONE);
 
         // 최근 N개 시도 (정답 여부 + 시각) — 단일 쿼리
         List<RecentAttemptProjection> recentAttempts = submissionRepository.findRecentAttemptsByMemberUuid(
@@ -83,7 +84,7 @@ public class ProgressService {
             : recentAttempts.get(0).submittedAt();
         LocalDate lastStudiedDate = lastStudiedAt == null
             ? null
-            : lastStudiedAt.atZone(ReadinessConstants.ZONE).toLocalDate();
+            : lastStudiedAt.atZone(ServiceTimeZone.ZONE).toLocalDate();
 
         int activeTopicCount = topicRepository.findByIsActiveTrueOrderBySortOrderAsc().size();
 
@@ -149,7 +150,7 @@ public class ProgressService {
         }
 
         // KST 기준 오늘 날짜 (JVM 기본 타임존과 무관하게 명시)
-        LocalDate today = LocalDate.now(ReadinessConstants.ZONE);
+        LocalDate today = LocalDate.now(ServiceTimeZone.ZONE);
         LocalDate effectiveFrom = (from != null) ? from : today.minusDays(30);
         LocalDate effectiveTo = (to != null) ? to : today;
 

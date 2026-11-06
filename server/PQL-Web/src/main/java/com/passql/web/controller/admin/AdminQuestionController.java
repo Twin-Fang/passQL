@@ -77,6 +77,7 @@ public class AdminQuestionController {
     @AdminPage(menu = AdminMenu.QUESTIONS, title = "문제 직접 등록")
     public String registerForm(Model model) {
         model.addAttribute("topics", metaService.getTopicTree());
+        model.addAttribute("choiceSetPolicies", ChoiceSetPolicy.values());
         return "admin/question-register";
     }
 
@@ -96,9 +97,9 @@ public class AdminQuestionController {
     ) {
         ChoiceSetPolicy policy = toChoiceSetPolicyOrAiOnly(choiceSetPolicy);
         ExecutionMode mode = ExecutionMode.fromRequestValue(executionMode);
-        // 고정 보기는 보기 입력이 있는 JSON 가져오기로만 등록 (보기 없이 만들면 AI 보기로 대체 출제, #511)
-        if (policy == ChoiceSetPolicy.CURATED_ONLY) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "CURATED_ONLY 문제는 JSON 가져오기로 보기와 함께 등록하세요.");
+        // 고정 보기는 보기 입력이 있는 JSON 가져오기로만 등록 (보기 없이 만들면 AI 보기로 대체 출제, #511), HYBRID 는 출제 미구현
+        if (!policy.isDirectRegistrationAllowed()) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, policy.name() + " 정책은 직접 등록할 수 없습니다: " + policy.getDisplayName());
         }
 
         // Oracle 문법 치환·전용 문법 감지(CONCEPT_ONLY 전환) 후 저장

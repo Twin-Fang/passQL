@@ -8,11 +8,10 @@ import com.passql.application.service.ChoiceGenerationStreamService;
 import com.passql.application.service.QuestionExecutionService;
 import com.passql.application.service.RandomPracticeService;
 import com.passql.application.service.RecommendationService;
-import com.passql.common.exception.CustomException;
-import com.passql.common.exception.constant.ErrorCode;
 import com.passql.member.auth.presentation.annotation.AuthMember;
 import com.passql.member.auth.presentation.security.LoginMember;
 import com.passql.question.dto.ExecuteResult;
+import com.passql.question.dto.ExecuteSqlRequest;
 import com.passql.question.dto.QuestionDetail;
 import com.passql.question.dto.QuestionSummary;
 import com.passql.question.dto.RecommendationsRequest;
@@ -21,6 +20,7 @@ import com.passql.question.dto.SubmitRequest;
 import com.passql.question.dto.SubmitResult;
 import com.passql.question.service.QuestionService;
 import com.passql.submission.service.SubmissionService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -31,7 +31,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -101,14 +100,10 @@ public class QuestionController implements QuestionControllerDocs {
     @PostMapping("/{questionUuid}/execute")
     public ResponseEntity<ExecuteResult> executeChoice(
         @PathVariable UUID questionUuid,
-        @RequestBody Map<String, String> body
+        @Valid @RequestBody ExecuteSqlRequest request
     ) {
-        String sql = body.get("sql");
-        if (sql == null || sql.isBlank()) {
-            throw new CustomException(ErrorCode.INVALID_REQUEST);
-        }
         // questionUuid.toString()이 아닌 question의 sandboxDbName 기반으로 실행
-        return ResponseEntity.ok(questionExecutionService.executeChoice(questionUuid, sql));
+        return ResponseEntity.ok(questionExecutionService.executeChoice(questionUuid, request.sql()));
     }
 
     @PostMapping(value = "/{questionUuid}/generate-choices", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -125,13 +120,14 @@ public class QuestionController implements QuestionControllerDocs {
     public ResponseEntity<SubmitResult> submit(
         @PathVariable UUID questionUuid,
         @AuthMember LoginMember loginMember,
-        @RequestBody SubmitRequest request
+        @Valid @RequestBody SubmitRequest request
     ) {
         // 하루 문제 수 제한 (열기와 같은 판정, 제출 시점 수 기준 #860)
         featureAccessPolicy.assertCanSubmitQuestion(loginMember.memberUuid(), questionUuid);
-        // 채점·샌드박스 실행은 그대로, 응답에서만 무료 회원 몫 밖 묶음을 뺀다
+        // 실행 결과를 못 보는 회원은 샌드박스 실행 생략, 응답에서 무료 회원 몫 밖 묶음을 뺀다 (#879)
         SubmitResult submitResult = submissionService.submit(
-                loginMember.memberUuid(), questionUuid, request.choiceSetId(), request.selectedChoiceKey(), request.sessionUuid());
+                loginMember.memberUuid(), questionUuid, request.choiceSetId(), request.selectedChoiceKey(), request.sessionUuid(),
+                featureAccessPolicy.canUse(loginMember.memberUuid(), ProFeature.SQL_EXECUTION));
         return ResponseEntity.ok(proResponseRedactor.redactSubmitResult(
                 loginMember.memberUuid(), request.choiceSetId(), submitResult));
     }

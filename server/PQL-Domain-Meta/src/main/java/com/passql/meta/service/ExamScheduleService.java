@@ -5,6 +5,7 @@ import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.ServiceTimeZone;
 import com.passql.meta.constant.CertType;
 import com.passql.meta.dto.ExamScheduleBulkResult;
 import com.passql.meta.dto.ExamScheduleCreateRequest;
@@ -19,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -34,8 +34,6 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class ExamScheduleService {
 
-    // 시험 날짜는 한국 기준이므로 서버 시간대와 무관하게 KST 로 오늘을 계산한다.
-    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     // 일괄 등록 오류 안내에 싣는 줄 수 (건)
     private static final int MAX_REPORTED_PARSE_ERRORS = 5;
 
@@ -62,7 +60,7 @@ public class ExamScheduleService {
      * 다가오는 시험이 없으면 선택된 일정을 그대로 돌려준다(아무것도 없는 것보다 낫다).
      */
     public Optional<ExamSchedule> findEffectiveSchedule() {
-        LocalDate today = LocalDate.now(KST);
+        LocalDate today = LocalDate.now(ServiceTimeZone.ZONE);
         Optional<ExamSchedule> selected = examScheduleRepository.findFirstByIsSelectedTrue();
         if (selected.isPresent() && !selected.get().getExamDate().isBefore(today)) {
             return selected;
@@ -143,7 +141,7 @@ public class ExamScheduleService {
 
     /** 한국 기준 오늘 (지난 일정 표시·정리 기준) */
     public LocalDate getTodayInKorea() {
-        return LocalDate.now(KST);
+        return LocalDate.now(ServiceTimeZone.ZONE);
     }
 
     /** 지난 일정 건수 (정리 버튼 표시용, 자격증 구분 없이 전체) */
@@ -187,7 +185,7 @@ public class ExamScheduleService {
         return new ExamScheduleBulkResult(createdRoundLabels.size(), skippedDuplicateCount);
     }
 
-    /** 지난 일정 정리: 시험일이 오늘(KST)보다 이전인 일정 삭제 (선택된 일정이 지났어도 삭제, 홈은 다가오는 시험으로 자동 전환) */
+    /** 지난 일정 정리: 시험일이 오늘(ServiceTimeZone.ZONE)보다 이전인 일정 삭제 (선택된 일정이 지났어도 삭제, 홈은 다가오는 시험으로 자동 전환) */
     @Transactional
     public ExamScheduleBulkResult deletePastSchedules() {
         List<ExamSchedule> pastSchedules = examScheduleRepository.findByExamDateBefore(getTodayInKorea());

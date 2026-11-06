@@ -1,6 +1,7 @@
 package com.passql.web.service;
 
 import com.passql.application.notification.MemberNotificationService;
+import com.passql.common.util.ServiceTimeZone;
 import com.passql.meta.dto.AppNoticeResponse;
 import com.passql.member.constant.PushAudience;
 import com.passql.member.constant.PushLinkTarget;
@@ -11,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 /**
  * 공지 등록 시 푸시 발송 옵션: 활성 공지 > 전체 회원 푸시 (노출 시작이 미래면 그 시각으로 예약)
@@ -25,8 +25,6 @@ public class AdminNoticePushService {
     /** 공지 푸시 결과: 즉시 발송, 예약, 건너뜀(비활성 공지), 실패 */
     public enum NoticePushResult { SENT, SCHEDULED, SKIPPED, FAILED }
 
-    // 공지 노출 시각은 KST 입력, 예약 비교도 KST (서버 시간대와 무관)
-    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     // 푸시 본문 말줄임 기준 (PushSendHistory.MAX_BODY_LENGTH 이내로 자르고 말줄임 1자)
     private static final String ELLIPSIS = "…";
 
@@ -50,7 +48,7 @@ public class AdminNoticePushService {
 
     /** 노출 시작이 먼 미래일 때만 예약 (곧 시작이거나 이미 시작이면 null = 즉시) */
     private static LocalDateTime resolveScheduledAt(LocalDateTime startsAt) {
-        if (startsAt == null || !startsAt.isAfter(LocalDateTime.now(KST).plusMinutes(2))) {
+        if (startsAt == null || !startsAt.isAfter(LocalDateTime.now(ServiceTimeZone.ZONE).plusMinutes(2))) {
             return null;
         }
         return startsAt;

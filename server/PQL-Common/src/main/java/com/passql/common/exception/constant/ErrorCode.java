@@ -95,6 +95,8 @@ public enum ErrorCode {
     CHOICE_SET_VALIDATION_NO_CORRECT(HttpStatus.UNPROCESSABLE_ENTITY, "생성된 선택지 중 정답이 없습니다."),
     CHOICE_SET_VALIDATION_MULTIPLE_CORRECT(HttpStatus.UNPROCESSABLE_ENTITY, "생성된 선택지 중 정답이 여러 개입니다."),
     CHOICE_SET_NOT_FOUND(HttpStatus.NOT_FOUND, "선택지 세트를 찾을 수 없습니다."),
+    // 관리자가 내렸거나 생성에 실패한 세트로 제출 (앱은 404 로 "찾을 수 없음" 분류, #879)
+    CHOICE_SET_UNAVAILABLE(HttpStatus.NOT_FOUND, "더 이상 풀 수 없는 보기입니다. 문제를 다시 열어 주세요."),
     CHOICE_SET_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 선택지를 찾을 수 없습니다."),
     CHOICE_SET_POLICY_NOT_IMPLEMENTED(HttpStatus.NOT_IMPLEMENTED, "해당 선택지 정책은 아직 지원되지 않습니다."),
 

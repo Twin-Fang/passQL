@@ -12,6 +12,10 @@ spring:
         enabled: true
   profiles:
     active: prod
+  jpa:
+    # 요청 내내 DB 커넥션을 쥐지 않게 끔: LLM·샌드박스 호출 동안 풀 고갈 방지 (#497 분리 유지, #879)
+    # 트랜잭션 밖에서 지연 로딩 연관(@ElementCollection 등)을 읽으면 조회 시점에 함께 가져온다
+    open-in-view: false
   output:
     ansi:
       # 컨테이너 로그에 색상 코드가 섞이면 grep·보관 파일 읽기가 어렵다 (#436)
@@ -30,7 +34,11 @@ spring:
 server:
   port: 8080
   # DSM 리버스 프록시의 X-Forwarded-Proto를 반영해야 리다이렉트가 https로 나간다 (#389)
-  forward-headers-strategy: framework
+  # native(Tomcat RemoteIpValve): X-Forwarded-For 를 오른쪽부터 읽어 내부 프록시가 아닌 첫 주소를 클라이언트 IP로 (#879)
+  #   경로: 클라이언트 > DSM nginx(실제 IP 덧붙임) > Traefik(도커망 172.x 덧붙임) > 앱. 요청 제한·관리자 로그인 IP 기준
+  #   맨 왼쪽 값은 클라이언트가 임의로 넣을 수 있어 쓰지 않음 (framework 방식은 맨 왼쪽을 씀)
+  #   내부 프록시 = Tomcat 기본 사설 대역(10/8, 172.16/12, 192.168/16, 127/8 등). 앞단에 CDN 을 두면 trusted-proxies 추가 필요
+  forward-headers-strategy: native
   servlet:
     session:
       cookie:
