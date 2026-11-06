@@ -117,6 +117,6 @@ class AiAnalysisPlannerTest {
         assertThat(analysis.actions()).extracting(action -> action.type())
                 .containsExactly(AiAnalysisActionType.PRACTICE_TOPIC, AiAnalysisActionType.REVIEW_WRONG);
         assertThat(analysis.actions()).extracting(action -> action.label())
-                .containsExactly("조인 5문제 풀기", "최근 오답 5문제 다시 풀기");
+                .containsExactly("조인 문제 풀기", "오답 노트에서 다시 풀기");
     }
 }
