@@ -2,18 +2,12 @@ package com.passql.application.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.passql.ai.client.AiChatClient;
 import com.passql.ai.dto.AiCommentResponse;
 import com.passql.application.service.statsanalysis.StatsAnalysisService;
 import com.passql.application.service.statsanalysis.StatsAnalysisService.StatsAnalysisResult;
-import com.passql.common.exception.CustomException;
-import com.passql.common.exception.constant.ErrorCode;
-import com.passql.meta.constant.PromptKey;
-import com.passql.meta.entity.PromptTemplate;
-import com.passql.meta.service.PromptService;
+import com.passql.application.service.statsanalysis.SessionCommentService;
+import com.passql.application.service.statsanalysis.SessionCommentService.SessionCommentResult;
 import com.passql.submission.repository.SubmissionRepository;
-import com.passql.submission.service.TopicAnalysisService;
-import com.passql.submission.dto.TopicAnalysisResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -26,7 +20,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -46,17 +39,15 @@ public class AiCommentService {
     /** 통계 화면 최근 활동 기간 (일) */
     private static final int RECENT_ACTIVITY_DAYS = 7;
 
-    private final AiChatClient aiChatClient;
-    private final TopicAnalysisService topicAnalysisService;
     private final SubmissionRepository submissionRepository;
-    private final PromptService promptService;
     private final StatsAnalysisService statsAnalysisService;
+    private final SessionCommentService sessionCommentService;
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
 
     /**
      * AI 코멘트 반환.
-     * - sessionUuid 있음(결과 화면): PromptKey.AI_COMMENT 프롬프트, 세션 결과 + 누적 토픽 통계 (analysis 없음)
+     * - sessionUuid 있음(결과 화면): 서버 판정 문장 + 놓친 문제 LLM 한 문장 (SessionCommentService, analysis 없음, #862)
      * - sessionUuid 없음(통계 화면): 서버 판정 구조화 분석 + 토픽별 한 문장 (StatsAnalysisService, #861)
      *
      * 캐시 키: ai-comment:{memberUuid}:{sessionUuid} / ai-comment:{memberUuid}:stats:{날짜}:{갱신 구간}
@@ -83,42 +74,13 @@ public class AiCommentService {
             return statsResult.response();
         }
 
-        AiCommentResponse response = generateSessionComment(memberUuid, sessionUuid);
-        writeCache(cacheKey, response, cacheTtlHours, memberUuid, sessionUuid);
+        // 결과 화면: 서버 문장은 항상 응답, LLM 실패면 캐시하지 않음 (#862)
+        SessionCommentResult sessionResult = sessionCommentService.comment(memberUuid, sessionUuid);
+        AiCommentResponse response = new AiCommentResponse(sessionResult.comment(), LocalDateTime.now());
+        if (sessionResult.isCacheable()) {
+            writeCache(cacheKey, response, cacheTtlHours, memberUuid, sessionUuid);
+        }
         return response;
-    }
-
-    /** 결과 화면 코멘트: 세션 결과 + 누적 토픽 통계 > PromptKey.AI_COMMENT 프롬프트 > LLM */
-    private AiCommentResponse generateSessionComment(UUID memberUuid, UUID sessionUuid) {
-        PromptTemplate prompt = promptService.getActivePrompt(PromptKey.AI_COMMENT);
-
-        TopicAnalysisResponse analysis = topicAnalysisService.getTopicAnalysis(memberUuid);
-        String topicStats;
-        try {
-            topicStats = objectMapper.writeValueAsString(analysis.topicStats());
-        } catch (JsonProcessingException e) {
-            log.error("Failed to serialize topic stats", e);
-            return new AiCommentResponse("분석 데이터를 처리하는 중 오류가 발생했습니다.", LocalDateTime.now());
-        }
-        String userPrompt = prompt.getUserTemplate()
-                .replace("{sessionStats}", buildSessionStats(memberUuid, sessionUuid))
-                .replace("{topicStats}", topicStats);
-
-        // LLM 호출 (모델 이름으로 Gemini·Claude 선택)
-        String comment;
-        try {
-            comment = aiChatClient.chat(
-                    prompt.getModel(),
-                    prompt.getSystemPrompt(),
-                    userPrompt,
-                    prompt.getTemperature(),
-                    prompt.getMaxTokens()
-            );
-        } catch (Exception e) {
-            log.error("[ai comment] session comment generation failed : member={}, session={}", memberUuid, sessionUuid, e);
-            throw new CustomException(ErrorCode.AI_UNAVAILABLE);
-        }
-        return new AiCommentResponse(comment.trim(), LocalDateTime.now());
     }
 
     private AiCommentResponse readCache(String cacheKey, UUID memberUuid) {
@@ -154,26 +116,10 @@ public class AiCommentService {
 
     /**
      * 통계 코멘트 갱신 구간: 날짜 + 최근 풀이 수 10문제 단위
-     * 예: 23문제 > "2026-10-27:analysis-2" (구조화 분석 이전 캐시 "pro-" 와 겹치지 않게, #861)
+     * 예: 23문제 > "2026-10-27:guide-2" (예상 점수·다음 할 일 없는 #861 캐시 "analysis-" 와 겹치지 않게, #862)
      */
     static String toStatsRefreshBucket(LocalDate today, long recentCount) {
-        return today.format(DATE_FORMAT) + ":analysis-" + (recentCount / STATS_REFRESH_SOLVED_COUNT);
-    }
-
-    /** 본인 세션 제출 목록 > "토픽명: 정답/오답" 텍스트 (남의 세션 UUID 면 빈 결과, #860) */
-    private String buildSessionStats(UUID memberUuid, UUID sessionUuid) {
-        List<Object[]> rows = submissionRepository.findTopicResultsByMemberUuidAndSessionUuid(
-                memberUuid.toString(), sessionUuid.toString());
-        if (rows.isEmpty()) {
-            return "세션 데이터 없음";
-        }
-        return rows.stream()
-                .map(row -> {
-                    String topicName = (String) row[0];
-                    Boolean isCorrect = (Boolean) row[1];
-                    return topicName + ": " + (Boolean.TRUE.equals(isCorrect) ? "정답" : "오답");
-                })
-                .collect(Collectors.joining("\n"));
+        return today.format(DATE_FORMAT) + ":guide-" + (recentCount / STATS_REFRESH_SOLVED_COUNT);
     }
 
     /**

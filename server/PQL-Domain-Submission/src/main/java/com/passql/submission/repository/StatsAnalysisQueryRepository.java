@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * 통계 AI 분석 조회 전용 (#861): 세부 주제별 정답률, 최근 오답 문제, 마지막 시도 오답 수, 2주 정답률
+ * 통계 AI 분석 조회 전용 (#861, #862): 세부 주제별 정답률, 최근 오답 문제, 마지막 시도 오답 수, 2주 정답률, 반복 오답, 세션 오답
  * 네이티브 쿼리(Submission <-> Question 연관관계 없음), 문제별 마지막 시도 기준, uuid 목록은 CAST(... AS varchar) IN 비교
  */
 public interface StatsAnalysisQueryRepository extends Repository<Submission, UUID> {
@@ -104,4 +104,49 @@ public interface StatsAnalysisQueryRepository extends Repository<Submission, UUI
     List<Object[]> findTwoWeekSubmissionCounts(@Param("memberUuid") String memberUuid,
                                                @Param("thisWeekStart") LocalDateTime thisWeekStart,
                                                @Param("lastWeekStart") LocalDateTime lastWeekStart);
+
+    /**
+     * since 이후 같은 문제를 minWrongCount 번 이상 틀린 활성 문제 (반복 오답, #862)
+     * Object[] = { String topicName, Boolean latestIsCorrect } (마지막 시도 정답 여부, 기간 안 기준)
+     */
+    @Query(value = """
+        WITH attempts AS (
+            SELECT s.question_uuid, s.is_correct,
+                   ROW_NUMBER() OVER (PARTITION BY s.question_uuid ORDER BY s.submitted_at DESC, s.submission_uuid DESC) AS rn,
+                   SUM(CASE WHEN s.is_correct = false THEN 1 ELSE 0 END) OVER (PARTITION BY s.question_uuid) AS wrong_count
+            FROM submission s
+            WHERE s.member_uuid = CAST(:memberUuid AS uuid)
+              AND s.submitted_at >= :since
+        )
+        SELECT t.display_name AS topic_name, a.is_correct
+        FROM attempts a
+        JOIN question q ON q.question_uuid = a.question_uuid
+        JOIN topic t ON t.topic_uuid = q.topic_uuid
+        WHERE a.rn = 1
+          AND a.wrong_count >= :minWrongCount
+          AND q.is_active = true
+        """, nativeQuery = true)
+    List<Object[]> findRepeatedWrongQuestionsAfter(@Param("memberUuid") String memberUuid,
+                                                   @Param("since") LocalDateTime since,
+                                                   @Param("minWrongCount") int minWrongCount);
+
+    /**
+     * 본인 세션에서 틀린 문제 (제출 순, 결과 화면 세션 코멘트 LLM 재료, #862)
+     * Object[] = { String topicName, String subtopicName(null 가능), String stem }
+     */
+    @Query(value = """
+        SELECT t.display_name AS topic_name, st.display_name AS subtopic_name, q.stem
+        FROM submission s
+        JOIN question q ON q.question_uuid = s.question_uuid
+        JOIN topic t ON t.topic_uuid = q.topic_uuid
+        LEFT JOIN subtopic st ON st.subtopic_uuid = q.subtopic_uuid
+        WHERE s.member_uuid = CAST(:memberUuid AS uuid)
+          AND s.session_uuid = CAST(:sessionUuid AS uuid)
+          AND s.is_correct = false
+        ORDER BY s.submitted_at ASC
+        LIMIT :limit
+        """, nativeQuery = true)
+    List<Object[]> findSessionWrongQuestions(@Param("memberUuid") String memberUuid,
+                                             @Param("sessionUuid") String sessionUuid,
+                                             @Param("limit") int limit);
 }
