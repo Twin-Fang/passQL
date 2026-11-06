@@ -1,8 +1,13 @@
-import { getAccessToken, getRefreshToken, useAuthStore } from "../stores/authStore";
+import { getAccessToken, useAuthStore } from "../stores/authStore";
 import { reissue } from "./auth";
 import { PRODUCTION_API_BASE_URL } from "../constants/siteUrls";
 import { useMaintenanceStore } from "../stores/maintenanceStore";
-import { clearMemberSession } from "../lib/memberSession";
+import { clearMemberSessionAndGoToLogin } from "../lib/memberSession";
+import {
+  createAccessTokenReissueCoordinator,
+  runWithAccessTokenReissueLock,
+} from "../lib/accessTokenReissueCoordinator";
+import type { ApiErrorCode } from "../types/api";
 
 // DEV 환경에서는 Vite 프록시(/api)를 사용하고, prod 환경에서는 실제 API 서버를 기본값으로 사용
 export const BASE_URL = import.meta.env.VITE_API_BASE_URL
@@ -121,63 +126,45 @@ async function fetchOnce<T>(
   }
 }
 
-// 토큰을 정리하고 로그인 화면으로 보낸다. 이미 로그인 화면이면 새로고침 루프를 막기 위해 이동하지 않는다
-function forceLogout() {
-  // 로그인 화면에 머무는 경우(새로고침 없음)에도 이전 회원 캐시가 남지 않게 함께 정리
-  clearMemberSession();
-  if (window.location.pathname !== "/login") {
-    window.location.href = "/login";
-  }
+// 재발급 실패 중 세션이 끝난 응답: 401 전부(무효·만료·재사용 판정) + 회원 없음(탈퇴), 그 외는 일시 오류
+const SESSION_ENDING_REISSUE_ERROR_CODES: ReadonlySet<string> = new Set<ApiErrorCode>(["MEMBER_NOT_FOUND"]);
+// 인증 필요·토큰 무효 응답 (apiFetch·SSE 재발급 기준)
+export const UNAUTHORIZED_HTTP_STATUS = 401;
+
+/** 재발급 실패가 세션 종료인지 (네트워크·타임아웃·5xx 는 false > 세션 유지) */
+function isSessionEndingReissueError(error: unknown): boolean {
+  if (!(error instanceof ApiError)) return false;
+  if (error.status === UNAUTHORIZED_HTTP_STATUS) return true;
+  const errorCode = (error.body as { errorCode?: unknown } | null)?.errorCode;
+  return typeof errorCode === "string" && SESSION_ENDING_REISSUE_ERROR_CODES.has(errorCode);
 }
 
-// 진행 중 재발급 1건 (동시 401 이 같은 결과를 기다림, 서버는 회전된 refresh 재사용 시 세션 전체 폐기)
-let accessTokenReissueInFlight: Promise<string> | null = null;
-
-/** 재발급 단일 비행: 진행 중이면 그 결과 공유, 없으면 새로 1회 > 새 access token */
-function reissueAccessTokenOnce(refreshToken: string): Promise<string> {
-  accessTokenReissueInFlight ??= reissueAccessToken(refreshToken).finally(() => {
-    accessTokenReissueInFlight = null;
-  });
-  return accessTokenReissueInFlight;
-}
-
-/** refresh token > 재발급 > 토큰 2개 저장 (rotating refresh token) */
-async function reissueAccessToken(refreshToken: string): Promise<string> {
-  useAuthStore.setState({ isRefreshing: true });
-  try {
-    const result = await reissue({ refreshToken });
-    useAuthStore.getState().setRotatedTokens(result);
-    return result.accessToken;
-  } finally {
-    useAuthStore.setState({ isRefreshing: false });
-  }
-}
+// 재발급 조율 1개 (탭 안 단일 비행 + 탭 간 잠금, 저장값은 매번 다시 읽음)
+const accessTokenReissueCoordinator = createAccessTokenReissueCoordinator({
+  readLatestStoredTokens: () => useAuthStore.getState().syncTokensFromStorage(),
+  requestRotatedTokens: (refreshToken) => reissue({ refreshToken }),
+  saveRotatedTokens: (rotatedTokens) => useAuthStore.getState().setRotatedTokens(rotatedTokens),
+  runExclusivelyAcrossTabs: runWithAccessTokenReissueLock,
+});
 
 /**
- * 401 이후 재시도용 access token: 다른 요청이 이미 재발급 > 그 토큰 / 아니면 재발급 1회
- * 재발급 불가(refresh 없음·실패)면 로그아웃 처리 후 null (apiFetch·SSE 공통 진입점)
+ * 401 이후 재시도용 access token: 다른 요청·탭이 이미 재발급 > 그 토큰 / 아니면 재발급 1회
+ * 세션 종료(로그아웃됨·401·회원 없음)면 로그아웃 처리 후 null, 일시 오류는 세션 유지하고 throw (apiFetch·SSE 공통 진입점)
  */
 export async function resolveAccessTokenAfterUnauthorized(
   requestAccessToken: string | null,
 ): Promise<string | null> {
-  // 응답 대기 중 다른 요청이 이미 재발급 완료 > 새 토큰으로 재시도만 (재발급 중복 방지)
-  const currentAccessToken = getAccessToken();
-  if (currentAccessToken && currentAccessToken !== requestAccessToken && !accessTokenReissueInFlight) {
-    return currentAccessToken;
-  }
-
-  const refreshToken = getRefreshToken();
-  // 재발급 수단이 없으면 무효 토큰을 든 채 홈에 갇히므로 바로 로그아웃 처리 (#398)
-  if (!refreshToken) {
-    forceLogout();
-    return null;
-  }
-
   try {
-    return await reissueAccessTokenOnce(refreshToken);
-  } catch {
-    // refresh도 실패하면 로그아웃 처리
-    forceLogout();
+    const reissueOutcome = await accessTokenReissueCoordinator.resolveAccessToken(requestAccessToken);
+    // 재발급 수단이 없으면 무효 토큰을 든 채 홈에 갇히므로 바로 로그아웃 처리 (#398)
+    if (reissueOutcome.kind === "signedOut") {
+      clearMemberSessionAndGoToLogin();
+      return null;
+    }
+    return reissueOutcome.accessToken;
+  } catch (reissueError) {
+    if (!isSessionEndingReissueError(reissueError)) throw reissueError;
+    clearMemberSessionAndGoToLogin();
     return null;
   }
 }
@@ -199,7 +186,7 @@ async function fetchWithReissue<T>(path: string, options: RequestInit, responseK
     return await fetchOnce<T>(path, options, requestAccessToken, responseKind);
   } catch (err) {
     // 인증 경로는 재시도 없음, 401이 아니면 그대로 throw
-    if (isAuthPath || !(err instanceof ApiError) || err.status !== 401) {
+    if (isAuthPath || !(err instanceof ApiError) || err.status !== UNAUTHORIZED_HTTP_STATUS) {
       throw err;
     }
 

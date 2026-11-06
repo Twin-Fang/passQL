@@ -24,3 +24,15 @@ export function clearMemberSession(): void {
     })
     .catch(() => {});
 }
+
+// 로그인 화면 경로 (이미 여기면 이동하지 않음 > 새로고침 루프 방지)
+const LOGIN_PATH = "/login";
+
+/** 세션 종료 > 회원 세션 정리 > 로그인 화면 (재발급 불가·다른 탭 로그아웃 공통) */
+export function clearMemberSessionAndGoToLogin(): void {
+  // 로그인 화면에 머무는 경우(새로고침 없음)에도 이전 회원 캐시가 남지 않게 함께 정리
+  clearMemberSession();
+  if (window.location.pathname !== LOGIN_PATH) {
+    window.location.href = LOGIN_PATH;
+  }
+}
