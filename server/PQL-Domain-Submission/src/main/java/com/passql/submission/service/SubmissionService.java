@@ -50,16 +50,19 @@ public class SubmissionService {
     private final TransactionTemplate transactionTemplate;
 
     /**
-     * 답안 제출: 채점·기록 저장(짧은 트랜잭션) > 실행형이면 양쪽 SQL 실행 비교(트랜잭션 밖) > 결과
+     * 답안 제출: 제출 확인·채점·기록 저장(짧은 트랜잭션) > 실행형이면 양쪽 SQL 실행 비교(트랜잭션 밖) > 결과
      * 샌드박스 실행이 수 초 걸려도 메인 DB 커넥션을 잡지 않게 나눈다 (#497)
      *
      * @param shouldRunSandbox 실행 결과를 볼 수 있는 회원만 true (무료는 응답에서 빠질 결과라 실행 생략, SQL 본문은 유지, #879)
+     * @param admissionCheck   기록 트랜잭션 첫 단계 확인 (하루 문제 수 판정을 기록과 원자적으로, #867)
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public SubmitResult submit(UUID memberUuid, UUID questionUuid, UUID choiceSetId, String selectedChoiceKey, UUID sessionUuid,
-                               boolean shouldRunSandbox) {
-        GradedSubmission graded = transactionTemplate.execute(status ->
-                gradeAndRecord(memberUuid, questionUuid, choiceSetId, selectedChoiceKey, sessionUuid));
+                               boolean shouldRunSandbox, SubmissionAdmissionCheck admissionCheck) {
+        GradedSubmission graded = transactionTemplate.execute(status -> {
+            admissionCheck.checkWithinRecordTransaction();
+            return gradeAndRecord(memberUuid, questionUuid, choiceSetId, selectedChoiceKey, sessionUuid);
+        });
         QuestionChoiceSetItem selected = graded.selected();
         QuestionChoiceSetItem correct = graded.correct();
         boolean isCorrect = graded.isCorrect();
