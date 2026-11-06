@@ -3,16 +3,17 @@ Google Gemini API 클라이언트 (google-genai SDK)
 """
 import json
 import logging
+from collections import OrderedDict
 from typing import Any
 
-import httpx
 from google import genai
 from google.genai import errors, types
 
+from src.clients.shared_http_client import is_unsent_request_error
 from src.clients.token_usage import record_token_usage
-from src.core.exceptions import CustomError
+from src.core.exceptions import CustomError, LlmResponseInvalidError
 from src.core.external_call_limits import LLM_CALL_TIMEOUT_SECONDS, LOGGED_RESPONSE_TEXT_MAXIMUM_LENGTH
-from src.core.retry import call_with_retry, is_transient_status_code
+from src.core.retry import call_with_retry, is_rate_limited_status_code
 
 logger = logging.getLogger(__name__)
 
@@ -30,13 +31,15 @@ CALL_TIMEOUT_MILLISECONDS = LLM_CALL_TIMEOUT_SECONDS * 1000
 # 응답 detail 고정 문구 (SDK 예외 문자열은 로그에만)
 CALL_FAILED_DETAIL = "Gemini API 호출 실패"
 JSON_PARSE_FAILED_DETAIL = "Gemini structured 응답 JSON 파싱 실패"
+# 키별 SDK 클라이언트 보관 상한 (연결 수보다 넉넉히, 키 교체 시 옛 클라이언트가 쌓이지 않게)
+MAXIMUM_CACHED_CLIENT_COUNT = 8
 
 
-def _is_transient_gemini_error(error: Exception) -> bool:
-    """재시도 대상: SDK 429·5xx 응답, 연결·타임아웃 등 전송 오류"""
+def _is_retryable_gemini_error(error: Exception) -> bool:
+    """재시도 대상: SDK 429 응답, 요청 미전송 오류 (읽기 시간 초과·5xx 는 과금됐을 수 있어 다음 연결로)"""
     if isinstance(error, errors.APIError):
-        return is_transient_status_code(error.code)
-    return isinstance(error, httpx.TransportError)
+        return is_rate_limited_status_code(error.code)
+    return is_unsent_request_error(error)
 
 
 class GeminiClient:
@@ -49,30 +52,34 @@ class GeminiClient:
     """
 
     def __init__(self) -> None:
-        # API 키 > SDK 클라이언트 (연결이 여러 개라 키마다 따로 보관)
-        self._client_by_api_key: dict[str, genai.Client] = {}
+        # API 키 > SDK 클라이언트 (최근 사용 순, 상한 넘으면 가장 오래 안 쓴 키부터 제거)
+        self._client_by_api_key: OrderedDict[str, genai.Client] = OrderedDict()
 
     def _get_client(self, api_key: str) -> genai.Client:
         client = self._client_by_api_key.get(api_key)
-        if client is None:
-            client = genai.Client(
-                api_key=api_key,
-                http_options=types.HttpOptions(timeout=CALL_TIMEOUT_MILLISECONDS),
-            )
-            self._client_by_api_key[api_key] = client
+        if client is not None:
+            self._client_by_api_key.move_to_end(api_key)
+            return client
+        client = genai.Client(
+            api_key=api_key,
+            http_options=types.HttpOptions(timeout=CALL_TIMEOUT_MILLISECONDS),
+        )
+        self._client_by_api_key[api_key] = client
+        if len(self._client_by_api_key) > MAXIMUM_CACHED_CLIENT_COUNT:
+            self._client_by_api_key.popitem(last=False)
         return client
 
     async def _generate_text(
         self, operation_name: str, api_key: str, model: str, user_prompt: str, config: types.GenerateContentConfig
     ) -> str:
-        """generate_content 1건: 일시 오류 재시도 > 빈 응답 검사 > 텍스트 (실패는 고정 문구 CustomError, 원인은 __cause__)"""
+        """generate_content 1건: 미전송·429 재시도 > 빈 응답 검사 > 텍스트 (호출 실패는 고정 문구 CustomError, 원인은 __cause__)"""
         client = self._get_client(api_key)
 
         async def generate_once():
             return await client.aio.models.generate_content(model=model, contents=user_prompt, config=config)
 
         try:
-            response = await call_with_retry(operation_name, generate_once, _is_transient_gemini_error)
+            response = await call_with_retry(operation_name, generate_once, _is_retryable_gemini_error)
         except Exception as error:
             logger.error(f"[{operation_name}] failed : model={model}, {error!r}", exc_info=True)
             raise CustomError(CALL_FAILED_DETAIL) from error
@@ -80,7 +87,7 @@ class GeminiClient:
         _record_usage(response)
         text = response.text
         if not text or not text.strip():
-            raise CustomError(f"Gemini returned empty response (model={model})")
+            raise LlmResponseInvalidError(f"Gemini returned empty response (model={model})")
         return text
 
     async def chat(
@@ -96,7 +103,7 @@ class GeminiClient:
         일반 텍스트 응답.
 
         Raises:
-            CustomError: Gemini 호출 실패 또는 빈 응답
+            CustomError: Gemini 호출 실패, LlmResponseInvalidError: 빈 응답
         """
         logger.debug(f"Gemini chat: model={model}, max_tokens={max_tokens}")
         config = types.GenerateContentConfig(
@@ -120,7 +127,7 @@ class GeminiClient:
         JSON 강제 응답 (response_schema = JSON Schema dict) > 파싱된 dict
 
         Raises:
-            CustomError: Gemini 호출 실패, 빈 응답, JSON 파싱 실패
+            CustomError: Gemini 호출 실패, LlmResponseInvalidError: 빈 응답·JSON 파싱 실패
         """
         logger.debug(f"Gemini chat_structured: model={model}, max_tokens={max_tokens}")
         config = types.GenerateContentConfig(
@@ -138,7 +145,7 @@ class GeminiClient:
                 f"[gemini chat_structured] json parse failed : {error}, "
                 f"text={text[:LOGGED_RESPONSE_TEXT_MAXIMUM_LENGTH]}"
             )
-            raise CustomError(JSON_PARSE_FAILED_DETAIL) from error
+            raise LlmResponseInvalidError(JSON_PARSE_FAILED_DETAIL) from error
 
 
 # 싱글턴
