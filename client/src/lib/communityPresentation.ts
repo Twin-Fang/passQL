@@ -1,4 +1,4 @@
-import { ApiError } from "../api/client";
+import { toApiErrorCode } from "../api/client";
 import type { CommunityFeedSource } from "../api/community";
 import type { SolveSnapshot } from "../types/api";
 import { toUserErrorMessage } from "./userErrorMessage";
@@ -60,12 +60,8 @@ const COMMUNITY_IMAGE_FALLBACK_MESSAGE_BY_CODE: Readonly<Record<string, string>>
   COMMUNITY_IMAGE_INVALID_ATTACHMENT: "첨부할 수 없는 사진이에요. 사진을 다시 선택해 주세요",
 };
 
-/** 오류 > errorCode 문자열 (없으면 null) */
-export function toErrorCode(error: unknown): string | null {
-  if (!(error instanceof ApiError)) return null;
-  const errorCode = (error.body as { errorCode?: unknown } | null)?.errorCode;
-  return typeof errorCode === "string" ? errorCode : null;
-}
+/** 오류 > errorCode 문자열 (없으면 null, 원본 api/client toApiErrorCode) */
+export const toErrorCode = toApiErrorCode;
 
 /** 풀이 전이라 의견을 볼 수 없는 오류인지 */
 export function isSolveRequiredError(error: unknown): boolean {

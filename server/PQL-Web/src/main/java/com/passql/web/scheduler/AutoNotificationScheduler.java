@@ -1,13 +1,13 @@
 package com.passql.web.scheduler;
 
 import com.passql.application.notification.AutoNotificationService;
+import com.passql.common.util.ServiceTimeZone;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 /**
  * 재방문 자동 알림 (#649): 매시 정각에 발송 시각이 현재 시(KST)인 켜진 규칙을 발송
@@ -18,13 +18,11 @@ import java.time.ZoneId;
 @RequiredArgsConstructor
 public class AutoNotificationScheduler {
 
-    private static final String SCHEDULER_ZONE = "Asia/Seoul";
-
     private final AutoNotificationService autoNotificationService;
 
-    @Scheduled(cron = "0 0 * * * *", zone = SCHEDULER_ZONE)
+    @Scheduled(cron = "0 0 * * * *", zone = ServiceTimeZone.ZONE_NAME)
     public void dispatchDueRules() {
-        int sentCount = autoNotificationService.dispatchDueRules(LocalDateTime.now(ZoneId.of(SCHEDULER_ZONE)));
+        int sentCount = autoNotificationService.dispatchDueRules(LocalDateTime.now(ServiceTimeZone.ZONE));
         if (sentCount > 0) {
             log.info("[auto notification] hourly run finished : sent={}", sentCount);
         }

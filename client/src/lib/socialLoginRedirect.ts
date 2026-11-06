@@ -1,4 +1,4 @@
-import type { AuthorizationCodeProvider } from "../api/auth";
+import type { AuthorizationCodeProvider } from "../types/api";
 
 // 인가 요청 때 만든 state 저장 키 (콜백에서 위조 요청 차단용 비교)
 const STATE_STORAGE_KEY = "passql.socialLogin.state";

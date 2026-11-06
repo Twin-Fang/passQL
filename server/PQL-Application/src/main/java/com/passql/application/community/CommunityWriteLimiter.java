@@ -2,6 +2,7 @@ package com.passql.application.community;
 
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.ServiceTimeZone;
 import com.passql.common.util.Sha256Hex;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +12,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.UUID;
 
 /**
@@ -35,7 +35,6 @@ public class CommunityWriteLimiter {
     private static final Duration DAY_WINDOW = Duration.ofDays(1);
     // 같은 내용 반복 차단 시간
     private static final Duration DUPLICATE_WINDOW = Duration.ofMinutes(5);
-    private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
 
     private final StringRedisTemplate stringRedisTemplate;
 
@@ -47,7 +46,7 @@ public class CommunityWriteLimiter {
                 log.warn("[community] rejected 429 : per-minute limit, member={}", memberUuid);
                 throw new CustomException(ErrorCode.COMMUNITY_POST_RATE_LIMITED);
             }
-            long dayCount = increase("community:rate:day:" + memberUuid + ":" + LocalDate.now(SERVICE_ZONE), DAY_WINDOW);
+            long dayCount = increase("community:rate:day:" + memberUuid + ":" + LocalDate.now(ServiceTimeZone.ZONE), DAY_WINDOW);
             if (dayCount > MAX_POSTS_PER_DAY) {
                 log.warn("[community] rejected 429 : daily limit, member={}", memberUuid);
                 throw new CustomException(ErrorCode.COMMUNITY_POST_DAILY_LIMIT_EXCEEDED);
@@ -65,7 +64,7 @@ public class CommunityWriteLimiter {
                 log.warn("[community image] rejected 429 : per-minute limit, member={}", memberUuid);
                 throw new CustomException(ErrorCode.COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED);
             }
-            long dayCount = increase("community:img:day:" + memberUuid + ":" + LocalDate.now(SERVICE_ZONE), DAY_WINDOW);
+            long dayCount = increase("community:img:day:" + memberUuid + ":" + LocalDate.now(ServiceTimeZone.ZONE), DAY_WINDOW);
             if (dayCount > MAX_IMAGE_UPLOADS_PER_DAY) {
                 log.warn("[community image] rejected 429 : daily limit, member={}", memberUuid);
                 throw new CustomException(ErrorCode.COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED);

@@ -57,8 +57,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
         IllegalArgumentException e, HttpServletRequest request) {
+        // 라이브러리 메시지에 내부 클래스 이름이 섞임("No enum constant com.passql…") > 응답은 고정 문구, 원문은 로그만 (#879)
         log.warn("IllegalArgumentException 발생: path={}, message={}", request.getRequestURI(), e.getMessage());
-        return toResponse(ErrorCode.ILLEGAL_ARGUMENT, e.getMessage());
+        return toResponse(ErrorCode.ILLEGAL_ARGUMENT);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

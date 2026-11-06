@@ -7,7 +7,7 @@ import 'concept_pitfall_card.dart';
 import 'concept_reading_parser.dart';
 
 /// 개념 문단 한 구간 (#848): 교과서식 머리(큰 번호·종류 라벨 > 제목 > 부제) + 레슨 블록 본문
-/// 자주 헷갈리는 점 > 주의색 머리, 시험 포인트 > 강조 상자, 옛 글의 굵은 문장 함정 > 함정 카드
+/// 자주 헷갈리는 점 > 주의색 머리, 꼭 외울 것 > 노랑 머리, 시험 포인트 > 강조 상자, 옛 글의 굵은 문장 함정 > 함정 카드
 class ConceptSectionCard extends StatelessWidget {
   const ConceptSectionCard({
     super.key,
@@ -91,6 +91,12 @@ class _SectionHeader extends StatelessWidget {
         '자주 틀리는 점',
         colors.warningText,
       ),
+      ConceptSectionKind.memorize => (
+        CupertinoIcons.bookmark_fill,
+        // 제목이 늘 '꼭 외울 것'이라 라벨은 블록 성격으로
+        '암기 카드',
+        colors.memorizeText,
+      ),
       _ => (null, null, colors.accentText),
     };
     return Column(
@@ -109,9 +115,11 @@ class _SectionHeader extends StatelessWidget {
               PassqlBadge(
                 text: label,
                 icon: icon,
-                kind: kind == ConceptSectionKind.confusing
-                    ? PassqlBadgeKind.warning
-                    : PassqlBadgeKind.topic,
+                kind: switch (kind) {
+                  ConceptSectionKind.confusing => PassqlBadgeKind.warning,
+                  ConceptSectionKind.memorize => PassqlBadgeKind.memorize,
+                  _ => PassqlBadgeKind.topic,
+                },
               ),
             ],
           ],

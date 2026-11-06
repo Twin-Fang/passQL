@@ -115,10 +115,10 @@ CONCEPT = {
     "title": "MERGE",
     "summary": "짝이 되는 행이 있으면 고치고, 없으면 새로 넣는 일을 한 문장으로 해요",
     "coreMd": (
-        "- MERGE는 원본 행마다 ON으로 짝을 찾아, 있으면 UPDATE하고 없으면 INSERT해요.\n"
-        "- Oracle에서는 ON 조건을 괄호로 감싸고, ON에 쓴 열은 UPDATE할 수 없어요.\n"
-        "- 두 WHEN 절 가운데 하나만 써도 되고, USING에는 테이블·뷰·서브쿼리를 쓸 수 있어요.\n"
-        "- UPDATE 뒤의 `DELETE WHERE`는 이번에 UPDATE된 행만, 고친 뒤의 값으로 따져 지워요."
+        "- MERGE는 원본 행마다 ON으로 짝을 찾아, **있으면 UPDATE하고 없으면 INSERT**해요.\n"
+        "- Oracle에서는 ON 조건을 **괄호**로 감싸고, ON에 쓴 열은 UPDATE할 수 없어요.\n"
+        "- 두 WHEN 절 가운데 **하나만 써도** 되고, USING에는 테이블·뷰·서브쿼리를 쓸 수 있어요.\n"
+        "- UPDATE 뒤의 `DELETE WHERE`는 **이번에 UPDATE된 행만**, 고친 뒤의 값으로 따져 지워요."
     ),
     "detailMd": f"""## 왜 MERGE일까요 — 고칠 행과 넣을 행이 섞여 있을 때 {{#why}}
 
@@ -232,6 +232,19 @@ USING 뒤에 서브쿼리를 괄호로 감싸 쓰고 별칭을 붙이면 원본�
 | 바로 확인 | 정답 | 이유 |
 |---|---|---|
 | MERGE를 실행하면 USING의 원본 표도 함께 바뀌어요 | X | 바뀌는 쪽은 INTO 뒤의 대상뿐이고, 원본은 읽기만 해요 |
+
+## 꼭 외울 것 — 짝이 있으면 UPDATE, 없으면 INSERT {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| MERGE 문법 순서 | INTO 대상 → USING 원본 → ON (조건) → WHEN 절 |
+| 짝이 있을 때와 없을 때 | MATCHED는 UPDATE, NOT MATCHED는 INSERT |
+| Oracle ON 조건의 괄호 | 꼭 감싸요 (없으면 오류) |
+| ON에 쓴 열 | UPDATE SET으로 고칠 수 없어요 |
+| WHEN 절 개수 | 둘 중 하나만 써도 돼요 |
+| USING에 올 수 있는 것 | 테이블, 뷰, 서브쿼리 |
+| DELETE WHERE의 대상 | 이번에 UPDATE된 행만, 고친 뒤 값으로 판단 |
+| MERGE의 분류 | DML (COMMIT 전 ROLLBACK 가능) |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 

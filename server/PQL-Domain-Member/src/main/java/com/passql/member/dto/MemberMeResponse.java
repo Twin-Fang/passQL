@@ -27,6 +27,9 @@ public class MemberMeResponse {
     // 닉네임 쿨다운 계산 기준 — null이면 변경 이력 없음
     @Schema(nullable = true)
     private LocalDateTime nicknameChangedAt;
+    // 닉네임을 다시 바꿀 수 있는 시각 (변경 + 3일, 화면 대기 안내 원본) — null이면 변경 이력 없음 (#881)
+    @Schema(nullable = true)
+    private LocalDateTime nicknameChangeAvailableAt;
     // 선택지 생성 모드 — PRACTICE(기본): 재사용, REAL: 항상 새로 생성
     @Schema(nullable = true)
     private ChoiceGenerationMode choiceGenerationMode;
@@ -53,6 +56,7 @@ public class MemberMeResponse {
             m.getCreatedAt(),
             m.getLastSeenAt(),
             m.getNicknameChangedAt(),
+            m.getNicknameChangeAvailableAt(),
             m.getChoiceGenerationMode(),
             m.getAuthProvider(),
             m.getProviderUserId(),

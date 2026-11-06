@@ -2,7 +2,7 @@
 type: cluster
 topic: admin
 created: 2026-10-29
-members: 89
+members: 93
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 관리자 Thymeleaf 화면과 관리자 API.
 
 ## 현재 상태 요약
-(2026-10-29) 관리자 화면의 변경 요청은 `layout.html` 공통 fetch 래퍼를 거친다 — [[DEC-0008-admin-csrf-common-fetch-wrapper]].
+(2026-11-07) 관리자 화면의 변경 요청은 `layout.html` 공통 fetch 래퍼를 거친다 — [[DEC-0008-admin-csrf-common-fetch-wrapper]]. 프롬프트 키는 `PromptKey` 원본에서 목록을 만들고 수정 때 키를 바꿀 수 없다 — [[DEC-0265-prompt-key-enum-single-source]]. 모의고사 회차는 `/admin/mock-exams` 에서 자동 구성·검수·공개한다 — [[DEC-0264-mock-exam-fixed-rounds-server-judged]].
 
 ## 활성 결정
 - [[DEC-0008-admin-csrf-common-fetch-wrapper]] — 관리자 CSRF 헤더는 화면별이 아니라 `layout.html` 공통 fetch 래퍼에서 붙인다
@@ -31,6 +31,8 @@ related: []
 - [[DEC-0160-ai-call-log-tokens-cost-400-days]] — AI 비용은 `ai_call_log`의 모델·토큰 × 앱 설정 단가표로 추정하고, 호출 기록은 요약 테이블 없이 400일 보관한다
 - [[DEC-0161-member-activity-hourly-online-in-memory]] — 방문자는 회원당 시간당 1행(`member_activity_hour`)으로 기록하고, 접속 중 수는 메모리에서 최근 5분 활동으로 센다
 - [[DEC-0188-ai-connections-priority-fallback]] — AI 키는 관리자 "AI 연결" 목록(제공자+키+기본 모델+우선순위)으로 관리하고, 한도·키·서버 오류면 다음 연결로 넘어가며 요청 형식 400은 즉시 실패
+- [[DEC-0264-mock-exam-fixed-rounds-server-judged]] — SQLD 모의고사: 관리자 고정 회차(검증 세트), 시간·채점·응시 수 서버 판정, 무료 1회 체험·프로 무제한 (#866)
+- [[DEC-0265-prompt-key-enum-single-source]] — 프롬프트 키는 `PromptKey` enum 단일 원본, 관리자 수정에서 키 변경 불가 (#875)
 
 ## 대체된 결정 (역사)
 - [[DEC-0026-sensitive-settings-masked-readonly]] → DEC-0107
@@ -40,6 +42,8 @@ related: []
 - [[DEC-0081-admin-session-chain-yml-account]] → DEC-0130
 
 ## 관련 이슈
+- [[ISS-0463-sqld-mock-exam]] (open, GitHub #866) — SQLD 모의고사: 50문항 90분, 과목별 과락, 프로 핵심 기능 (PR #889 머지, 리포트 전)
+- [[ISS-0464-admin-prompt-key-single-source]] (resolved, GitHub #875) — 관리자 프롬프트 수정 화면 키 목록 누락으로 저장 시 키가 바뀜, 프롬프트 키 한 곳으로
 - [[ISS-0273-fcm-push-notifications]] (open, GitHub #467) — FCM 푸시 알림 (토큰 등록, 발송 화면, 앱 수신)
 - [[ISS-0379-admin-settings-terms-history-restore]] (open, GitHub #624) — 관리자 설정·약관에 변경 이력·복원·검증이 없음
 - [[ISS-0382-admin-community-post-report-bulk]] (open, GitHub #627) — 관리자 토론 게시글·신고에 일괄 처리·처리 사유·제재 연계·통계가 없음

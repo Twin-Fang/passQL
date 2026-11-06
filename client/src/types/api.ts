@@ -4,6 +4,29 @@ import type { components } from "./generated/openapi";
 // 손타입은 생성본에 스키마가 없는 웹 전용(SSE 이벤트·제네릭 Page·화면 상태)만 유지
 type ApiSchemas = components["schemas"];
 
+// === Auth ===
+// 로그인 제공자 5개 (GOOGLE, KAKAO, NAVER, APPLE, GITHUB)
+export type AuthProvider = ApiSchemas["LoginRequest"]["authProvider"];
+
+/** 인가 코드 로그인 제공자 3개 (#509, 서버 enum 에서 좁힘 > 이름이 바뀌면 tsc 실패) */
+export type AuthorizationCodeProvider = Extract<AuthProvider, "KAKAO" | "NAVER" | "GITHUB">;
+
+export type LoginRequest = ApiSchemas["LoginRequest"];
+
+export type LoginResponse = ApiSchemas["LoginResponse"];
+
+export type ReissueRequest = ApiSchemas["ReissueRequest"];
+
+export type ReissueResponse = ApiSchemas["ReissueResponse"];
+
+// codeVerifier: PKCE code_verifier (GitHub 만, 없으면 JSON 에서 빠짐)
+export type AuthorizationCodeLoginRequest = Omit<ApiSchemas["AuthorizationCodeLoginRequest"], "authProvider"> & {
+  readonly authProvider: AuthorizationCodeProvider;
+};
+
+// 제공자 공개 설정: 사용 여부 + 공개 client ID (secret 없음)
+export type SocialLoginClientConfig = ApiSchemas["SocialLoginClientConfig"];
+
 // === Question ===
 export type ExecutionMode = ApiSchemas["QuestionSummary"]["executionMode"];
 export type ChoiceKind = ApiSchemas["ChoiceItem"]["kind"];
@@ -87,6 +110,20 @@ export type WrongQuestionItem = ApiSchemas["WrongQuestionItem"];
 
 export type WrongQuestionsResponse = ApiSchemas["WrongQuestionsResponse"];
 
+// === 문제 신고 ===
+export type ReportCategory = ApiSchemas["ReportRequest"]["categories"][number];
+
+// 서버 record 에 필수 표시가 없어 생성본은 전부 필수 > 실제로 비워 보내는 2개(choiceSetUuid, detail)만 선택으로
+export type ReportRequest = Omit<ApiSchemas["ReportRequest"], "choiceSetUuid" | "detail">
+  & Partial<Pick<ApiSchemas["ReportRequest"], "choiceSetUuid" | "detail">>;
+
+export type ReportStatusResponse = ApiSchemas["ReportStatusResponse"];
+
+// === 약관 ===
+export type LegalType = ApiSchemas["LegalResponse"]["type"];
+
+export type LegalResponse = ApiSchemas["LegalResponse"];
+
 // === Topic Analysis (Issue #79) ===
 export type TopicStat = ApiSchemas["TopicStat"];
 
@@ -102,6 +139,52 @@ export type AiAnalysisFinding = ApiSchemas["AiAnalysisFinding"];
 export type AiAnalysisStrength = ApiSchemas["AiAnalysisStrength"];
 
 export type AiAnalysisAction = ApiSchemas["AiAnalysisAction"];
+
+// === SQLD 모의고사 (#866) ===
+// 형식·채점·등급 판정은 모두 서버 (examRule 로만 표시, 웹에 숫자 복사 금지)
+export type MockExamRoundListResponse = ApiSchemas["MockExamRoundListResponse"];
+
+export type MockExamRule = ApiSchemas["MockExamRuleResponse"];
+
+export type MockExamRoundSummary = ApiSchemas["RoundSummary"];
+
+export type MockExamInProgressAttempt = ApiSchemas["InProgressAttempt"];
+
+// startBlockReason: PRO_REQUIRED 체험 회차 아님 / FREE_TRIAL_USED 체험 소진 / OTHER_ATTEMPT_IN_PROGRESS 다른 회차 풀이 중
+export type MockExamStartBlockReason = NonNullable<MockExamRoundSummary["startBlockReason"]>;
+
+export type MockExamSheetResponse = ApiSchemas["MockExamSheetResponse"];
+
+export type MockExamSheetQuestion = ApiSchemas["SheetQuestion"];
+
+export type MockExamChoice = ApiSchemas["MockExamChoice"];
+
+export type MockExamSubject = MockExamSheetQuestion["subject"];
+
+export type MockExamAnswerSaveRequest = ApiSchemas["MockExamAnswerSaveRequest"];
+
+export type MockExamAnswerSaveResponse = ApiSchemas["MockExamAnswerSaveResponse"];
+
+export type MockExamAnswerEntry = ApiSchemas["AnswerEntry"];
+
+// lockedSections: 무료면 MOCK_EXAM_SUBJECT_DETAIL·MOCK_EXAM_REVIEW (subjects·topics·reviews 빈 값, nextStep null)
+export type MockExamResultResponse = ApiSchemas["MockExamResultResponse"];
+
+export type MockExamFailReason = MockExamResultResponse["failReason"];
+
+export type MockExamSubjectResult = ApiSchemas["SubjectResult"];
+
+export type MockExamTopicResult = ApiSchemas["TopicResult"];
+
+export type MockExamQuestionMark = ApiSchemas["QuestionMark"];
+
+export type MockExamQuestionReview = ApiSchemas["QuestionReview"];
+
+export type MockExamNextStep = ApiSchemas["MockExamNextStep"];
+
+export type MockExamHistoryResponse = ApiSchemas["MockExamHistoryResponse"];
+
+export type MockExamHistoryEntry = ApiSchemas["HistoryEntry"];
 
 // 통계 AI 분석 보강 (#862): 과목별 예상 점수, 데이터 부족 안내, 반복 오답
 export type AiExamForecast = ApiSchemas["AiExamForecast"];

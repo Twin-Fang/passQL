@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<th:block layout:fragment="title">모의고사 관리</th:block>
+
+<th:block layout:fragment="content">
+<!-- 모의고사 회차 목록·자동 구성 (#866): mock-exams.js 가 /admin/api/mock-exams 를 불러옴, 조회 전용 계정은 구성 버튼 비활성 -->
+<div id="mockExamPage" class="space-y-5 max-w-[1400px]" th:data-can-write-admin="${canWriteAdmin == true}">
+
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h2 class="text-xl font-bold">SQLD 모의고사</h2>
+            <p class="text-base-content/60 text-sm mt-1">50문항 · 90분 · 과목별 과락. 회차를 자동 구성한 뒤 상세에서 문항을 바꾸고 공개 검사를 통과하면 공개할 수 있어요</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="/admin/mock-exams/attempts" class="btn btn-sm btn-outline gap-1">
+                <i data-lucide="list-checks" class="size-4"></i>응시 기록
+            </a>
+            <button type="button" class="btn btn-sm btn-ghost gap-1" id="reloadRoundsButton">
+                <i data-lucide="refresh-cw" class="size-4"></i>새로고침
+            </button>
+        </div>
+    </div>
+
+    <!-- 회차 목록 (행 클릭 > 회차 상세) -->
+    <section class="card bg-base-100 shadow-sm">
+        <div class="card-body p-0">
+            <div class="overflow-x-auto">
+                <table class="table table-sm w-full">
+                    <thead>
+                    <tr>
+                        <th class="w-16">번호</th>
+                        <th>제목</th>
+                        <th class="w-20">상태</th>
+                        <th class="w-16 text-right">문항</th>
+                        <th class="w-24 text-right">응시 / 채점</th>
+                        <th class="w-20 text-right">평균 점수</th>
+                        <th class="w-20 text-right">합격률</th>
+                        <th class="w-36">공개일</th>
+                        <th class="w-28">점검</th>
+                    </tr>
+                    </thead>
+                    <tbody id="roundTableBody">
+                    <tr>
+                        <td colspan="9" class="text-center py-12 text-base-content/50">
+                            <span class="loading loading-spinner loading-sm"></span>
+                            <span class="ml-2">로딩 중...</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 items-start">
+        <!-- 자동 구성: 회차 번호·제목·토픽별 문항 수 (과목 합계 10 / 40 일 때만 구성 가능) -->
+        <section class="card bg-base-100 shadow-sm xl:col-span-2">
+            <div class="card-body p-4 gap-3">
+                <h3 class="card-title text-base">
+                    <i data-lucide="wand-sparkles" class="size-5"></i>새 회차 자동 구성
+                </h3>
+                <p class="text-xs text-base-content/60">토픽별 문항 수 기본값은 공식 출제 비율입니다. 출제 가능 문제가 모자란 토픽은 같은 과목의 다른 토픽에서 채우고 경고로 알려 줘요.</p>
+
+                <form id="composeForm" class="space-y-3">
+                    <div class="flex flex-wrap items-end gap-3">
+                        <label class="flex flex-col gap-1">
+                            <span class="label-text text-xs">회차 번호</span>
+                            <input type="number" id="composeRoundNumber" min="1" required
+                                   class="input input-sm input-bordered w-28"/>
+                        </label>
+                        <label class="flex flex-col gap-1 grow">
+                            <span class="label-text text-xs">제목</span>
+                            <input type="text" id="composeTitle" maxlength="100" required
+                                   class="input input-sm input-bordered w-full"/>
+                        </label>
+                    </div>
+
+                    <div class="overflow-x-auto border border-base-300 rounded-lg">
+                        <table class="table table-sm w-full">
+                            <thead>
+                            <tr>
+                                <th class="w-20">과목</th>
+                                <th>토픽</th>
+                                <th class="w-24 text-right">출제 가능</th>
+                                <th class="w-28">구성 문항 수</th>
+                            </tr>
+                            </thead>
+                            <tbody id="composeTopicBody">
+                            <tr><td colspan="4" class="text-center py-6 text-base-content/50">불러오는 중...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 과목 합계 (JS 갱신) + 구성 버튼 -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span data-subject-total="SUBJECT_ONE" class="badge">1과목 -</span>
+                        <span data-subject-total="SUBJECT_TWO" class="badge">2과목 -</span>
+                        <span id="composeShortageNotice" class="text-xs text-warning" hidden></span>
+                        <button type="submit" id="composeSubmitButton" class="btn btn-sm btn-primary ml-auto" disabled>
+                            <i data-lucide="wand-sparkles" class="size-4"></i>초안 구성
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- 출제 가능 문제 수 (관리자 전용 #636): 과목별 합계와 기본 비율보다 모자란 토픽 -->
+        <section class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4 gap-3">
+                <h3 class="card-title text-base">
+                    <i data-lucide="database" class="size-5"></i>출제 가능 문제 수
+                </h3>
+                <p class="text-xs text-base-content/60">활성 문제 중 출제 기준(정상 세트·보기 4개·정답 1개, 실행형은 검증 통과 또는 관리자 고정 세트)을 채운 문제만 셉니다. 사용자에게는 보이지 않아요.</p>
+                <div id="eligibleSummary" class="space-y-3 text-sm">
+                    <p class="text-base-content/50">불러오는 중...</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 자동 구성 결과 경고 (경고가 있을 때만 열림) -->
+    <dialog id="composeResultModal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">초안을 만들었어요</h3>
+            <p class="py-2 text-sm" id="composeResultSummary"></p>
+            <p class="font-semibold text-sm mb-1 flex items-center gap-1">
+                <i data-lucide="triangle-alert" class="size-4 text-warning"></i><span>경고 <span id="composeResultWarningCount"></span>건</span>
+            </p>
+            <ul id="composeResultWarnings" class="list-disc pl-5 text-sm space-y-1 max-h-72 overflow-y-auto border border-base-300 rounded-lg py-2 pr-2"></ul>
+            <div class="modal-action">
+                <a id="composeResultDetailLink" href="#" class="btn btn-primary">회차 상세로 이동</a>
+            </div>
+        </div>
+    </dialog>
+</div>
+</th:block>
+
+<th:block layout:fragment="js">
+    <!-- 포맷터 (Chart.js 는 이 화면에서 쓰지 않음) -->
+    <script th:src="@{/js/admin/admin-chart.js}"></script>
+    <script th:src="@{/js/admin/mock-exam-common.js}"></script>
+    <script th:src="@{/js/admin/mock-exams.js}"></script>
+</th:block>
+</html>

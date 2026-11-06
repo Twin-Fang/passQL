@@ -89,10 +89,10 @@ CONCEPT = {
     "title": "윈도우 함수로 TOP N",
     "summary": "인라인 뷰에서 순위를 매기고 바깥에서 걸러, 부서별 상위 N명을 뽑아요",
     "coreMd": (
-        "- 윈도우 함수는 WHERE 절에 쓸 수 없어서, 인라인 뷰 안에서 순위를 매기고 바깥 WHERE로 걸러요.\n"
+        "- 윈도우 함수는 WHERE 절에 쓸 수 없어서, **인라인 뷰** 안에서 순위를 매기고 바깥 WHERE로 걸러요.\n"
         "- PARTITION BY를 넣으면 부서마다 1위부터 다시 매기므로, 부서별 상위 N명을 한 번에 구해요.\n"
-        "- 동점자를 모두 넣으려면 RANK나 DENSE_RANK를, 정확히 N명만 뽑으려면 ROW_NUMBER를 써요.\n"
-        "- ROWNUM과 `FETCH FIRST N ROWS`는 결과 전체에서만 N개를 자르고, 부서별로 나눠 뽑지는 못해요."
+        "- 동점자를 모두 넣으려면 RANK나 DENSE_RANK를, 정확히 N명만 뽑으려면 **ROW_NUMBER**를 써요.\n"
+        "- ROWNUM과 `FETCH FIRST N ROWS`는 **결과 전체에서만** N개를 자르고, 부서별로 나눠 뽑지는 못해요."
     ),
     "detailMd": f"""## 부서마다 상위 몇 명 — 왜 윈도우 함수일까요 {{#why}}
 
@@ -241,6 +241,19 @@ ROWNUM 함정을 위 사원 표로 보면, `WHERE ROWNUM <= 3 ORDER BY 급여 DE
 |---|---|---|
 | FETCH FIRST 3 ROWS WITH TIES로 부서마다 상위 3명을 뽑을 수 있어요 | X | FETCH FIRST는 결과 전체에서만 잘라서, 부서별로 나누려면 PARTITION BY를 쓴 순위 함수가 필요해요 |
 | ROW_NUMBER로 순위 <= 3을 거르면 동점자가 있어도 3행이에요 | O | ROW_NUMBER는 동점에도 서로 다른 번호를 줘요 |
+
+## 꼭 외울 것 — 몇 명이 남나 {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| 순위로 거르는 자리 | 인라인 뷰 바깥의 WHERE |
+| 같은 SELECT의 WHERE에 쓰면 | 오류 (ORA-30483, 윈도우 함수를 쓸 수 없는 자리) |
+| `ROW_NUMBER <= N` | 동점이 있어도 정확히 N행 |
+| RANK·DENSE_RANK <= N | 동점이 경계에 걸리면 N행보다 많을 수 있어요 |
+| 부서별 상위 N명 | 순위 함수 OVER 안에 PARTITION BY |
+| ROWNUM·FETCH FIRST | 결과 전체에서만 잘라요, 부서별로는 못 해요 |
+| `FETCH ... WITH TIES` | N번째 행과 정렬 값이 같은 행까지 함께 |
+| 조건을 인라인 뷰 안에 두면 | 순위를 매기기 전에 걸러서 결과가 달라요 |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 

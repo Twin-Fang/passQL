@@ -8,5 +8,10 @@ public enum ChoiceSetStatus {
     DISABLED,
     REPORTED,
     DRAFT,
-    FAILED
+    FAILED;
+
+    /** 풀이 화면에 열고 채점할 수 있는 상태 (OK 만, 내린 세트·생성 실패 세트 제외) */
+    public boolean isServable() {
+        return this == OK;
+    }
 }

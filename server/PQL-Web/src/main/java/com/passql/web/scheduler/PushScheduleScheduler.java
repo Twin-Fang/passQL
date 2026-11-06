@@ -1,6 +1,7 @@
 package com.passql.web.scheduler;
 
 import com.passql.application.notification.MemberNotificationService;
+import com.passql.common.util.ServiceTimeZone;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,7 +19,7 @@ public class PushScheduleScheduler {
     private final MemberNotificationService memberNotificationService;
 
     /** 매분 0초 (예약 시각은 분 단위 입력) */
-    @Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 * * * * *", zone = ServiceTimeZone.ZONE_NAME)
     public void dispatchDueSchedules() {
         int dispatchedCount = memberNotificationService.dispatchDueScheduledSends();
         if (dispatchedCount > 0) {

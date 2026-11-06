@@ -8,6 +8,7 @@ import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.application.entitlement.MemberPlanResponse;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.ServiceTimeZone;
 import com.passql.common.util.Sha256Hex;
 import com.passql.member.constant.PassProduct;
 import com.passql.member.constant.PurchaseStatus;
@@ -24,7 +25,6 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -44,8 +44,6 @@ public class PlayBillingService {
     private static final int CONSUMPTION_STATE_CONSUMED = 1;
     // 환불 조회 기간 (Play 허용 최대 30일, 요청 지연 여유 10분)
     private static final Duration VOIDED_PURCHASE_LOOKBACK = Duration.ofDays(30).minusMinutes(10);
-    // 서비스 기준 시간대 (만료일·구매 시각은 KST 로컬 저장값)
-    private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
     // 주문 번호 없는 구매의 대체값: 접두사 + SHA-256(토큰) 16진수 앞 32자
     private static final String FALLBACK_ORDER_ID_PREFIX = "PLAY-NO-ORDER-";
     private static final int FALLBACK_ORDER_ID_HEX_LENGTH = 32;
@@ -66,7 +64,7 @@ public class PlayBillingService {
                               FeatureAccessPolicy featureAccessPolicy,
                               TransactionTemplate transactionTemplate) {
         this(playDeveloperApiClient, entitlementPurchaseRepository, entitlementPurchaseRevoker,
-            storePurchaseRecorder, featureAccessPolicy, transactionTemplate, Clock.system(SERVICE_ZONE));
+            storePurchaseRecorder, featureAccessPolicy, transactionTemplate, Clock.system(ServiceTimeZone.ZONE));
     }
 
     PlayBillingService(PlayDeveloperApiClient playDeveloperApiClient,

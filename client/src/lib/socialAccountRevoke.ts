@@ -9,7 +9,7 @@ import {
   type AuthProvider as FirebaseAuthProvider,
   type UserCredential,
 } from "firebase/auth";
-import type { AuthProvider } from "../api/auth";
+import type { AuthProvider } from "../types/api";
 import { appleProvider, firebaseAuth, googleProvider } from "./firebase";
 
 /**

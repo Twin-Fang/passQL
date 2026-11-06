@@ -1,28 +1,33 @@
 import { RefreshCw, Sparkles } from "lucide-react";
-import type { ChoiceGenerationError } from "../../hooks/useQuestionChoices";
+import ProAccessReasonContent from "../pro/ProAccessReasonContent";
+import { toChoiceGenerationErrorMessage, type ChoiceGenerationError } from "../../lib/choiceGenerationError";
+import { toProAccessErrorCodeFromErrorCode } from "../../lib/proAccess";
 
 interface ChoiceGenerationStatusProps {
   readonly generationError: ChoiceGenerationError | null;
   readonly onRetry: () => void;
 }
 
-/** 에러 코드 > 사용자 메시지 (TIMEOUT, STREAM_CLOSED, 그 외) */
-function toGenerationErrorMessage(code: string): string {
-  if (code === "TIMEOUT") return "선택지 생성 시간이 초과되었어요";
-  if (code === "STREAM_CLOSED") return "서버 연결이 예기치 않게 끊겼어요";
-  return "선택지 생성에 실패했어요";
-}
-
 /**
- * 선택지가 아직 없을 때: AI 생성 중 표시 또는 SSE 에러 + 재시도 (EXECUTABLE, CONCEPT_ONLY 공통)
+ * 선택지가 아직 없을 때: AI 생성 중 / 한도·프로 필요 사유 / 그 외 오류 문구 + 재시도 (EXECUTABLE, CONCEPT_ONLY 공통)
  */
 export default function ChoiceGenerationStatus({ generationError, onRetry }: ChoiceGenerationStatusProps) {
+  // 하루 한도·프로 필요 > 사유 본문 (다시 시도해도 같은 거부라 재시도 없음, #881)
+  const proAccessErrorCode = toProAccessErrorCodeFromErrorCode(generationError?.code);
+  if (proAccessErrorCode) {
+    return (
+      <div role="status" className="mt-4 bg-surface-card border border-border rounded-2xl py-8 px-6">
+        <ProAccessReasonContent errorCode={proAccessErrorCode} />
+      </div>
+    );
+  }
+
   return (
     <div className="mt-4 bg-surface-card border border-border rounded-2xl text-center py-8 space-y-2">
       {generationError ? (
         <>
-          <p className="text-text-caption text-sm">{toGenerationErrorMessage(generationError.code)}</p>
-          {generationError.retryable && (
+          <p className="text-text-caption text-sm break-keep px-6">{toChoiceGenerationErrorMessage(generationError)}</p>
+          {generationError.isRetryable && (
             <button
               type="button"
               className="flex items-center gap-1.5 mx-auto text-brand text-sm font-medium"

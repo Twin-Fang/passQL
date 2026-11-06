@@ -24,14 +24,9 @@
                         <!-- 카테고리 필터 -->
                         <select class="select select-sm select-bordered" id="categoryFilter" onchange="applySettingFilters()">
                             <option value="">전체 카테고리</option>
-                            <option value="SANDBOX">SANDBOX</option>
-                            <option value="AI">AI</option>
-                            <option value="RATE_LIMIT">RATE_LIMIT</option>
-                            <option value="SYSTEM">SYSTEM</option>
-                            <option value="STORE">STORE</option>
-                            <option value="EXAM">EXAM</option>
-                            <option value="BILLING">BILLING</option>
-                            <option value="BUSINESS">BUSINESS</option>
+                            <!-- 실제 설정 행의 카테고리로 생성 (새 카테고리도 자동 포함) -->
+                            <option th:each="category : ${settingCategories}"
+                                    th:value="${category}" th:text="${category}">SANDBOX</option>
                         </select>
                     </div>
                 </div>

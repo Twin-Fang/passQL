@@ -1,5 +1,6 @@
 package com.passql.application.entitlement;
 
+import com.passql.common.util.ServiceTimeZone;
 import com.passql.common.util.UuidUtils;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
@@ -20,7 +21,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -41,8 +41,6 @@ public class FeatureAccessPolicy {
     // 프로 하루 공정 사용 한도 (개, 화면에 드러내지 않음)
     public static final int DAILY_PRO_FAIR_USE_LIMIT = 200;
 
-    // 서비스 기준 시간대 (등급 만료일·하루 구간은 KST 로컬 저장값)
-    static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
     // 등급 응답 문자열
     private static final String PLAN_PRO = "PRO";
     private static final String PLAN_FREE = "FREE";
@@ -74,7 +72,7 @@ public class FeatureAccessPolicy {
                                DailyFreeBonusReader dailyFreeBonusReader) {
         this(memberEntitlementRepository, appSettingService, passExpiryCalculator,
             submissionRepository, dailyQuestionCounter, entitlementPurchaseRepository,
-            dailyFreeBonusReader, Clock.system(SERVICE_ZONE));
+            dailyFreeBonusReader, Clock.system(ServiceTimeZone.ZONE));
     }
 
     FeatureAccessPolicy(MemberEntitlementRepository memberEntitlementRepository,
@@ -173,7 +171,7 @@ public class FeatureAccessPolicy {
     }
 
     /**
-     * 하루 문제 수 판정 (열기·제출 공통): 스위치 > 오늘의 문제 > 예전에 푼 문제 > 오늘 제출한 수(무료 10 + 보너스, 프로 200)
+     * 하루 문제 수 판정 (열기·제출 공통): 스위치 > 오늘의 문제 > 예전에 푼 문제(모의고사 제외) > 오늘 제출한 수(무료 10 + 보너스, 프로 200)
      * 회원 기준 결제 꺼짐, 오늘의 문제, 제출 이력 있는 문제는 항상 통과
      */
     private void assertWithinDailyQuestionLimit(UUID memberUuid, UUID questionUuid, String actionForLog) {
@@ -184,8 +182,8 @@ public class FeatureAccessPolicy {
         if (dailyQuestionCounter.isTodaysDailyChallengeQuestion(questionUuid)) {
             return;
         }
-        // 예전에 한 번이라도 제출한 문제는 날짜와 무관하게 다시 열 수 있음
-        if (submissionRepository.existsByMemberUuidAndQuestionUuid(memberUuid, questionUuid)) {
+        // 예전에 한 번이라도 제출한 문제는 날짜와 무관하게 다시 열 수 있음 (모의고사 제출 제외)
+        if (submissionRepository.existsOutsideMockExam(memberUuid, questionUuid)) {
             return;
         }
 

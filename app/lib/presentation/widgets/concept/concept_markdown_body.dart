@@ -33,7 +33,7 @@ class ConceptMarkdownBody extends StatelessWidget {
         }
         final text = (segment as String).trim();
         if (text.isNotEmpty) {
-          blocks.add(MarkdownLiteText(text, style: MarkdownLiteStyle.article));
+          blocks.add(MarkdownLiteText(text, style: MarkdownLiteStyle.lesson));
         }
       }
     }

@@ -925,7 +925,7 @@ export interface paths {
          *     - 429 FEEDBACK_DAILY_LIMIT_EXCEEDED
          *     - 503 FEEDBACK_STORAGE_UNAVAILABLE
          */
-        post: operations["submit_1"];
+        post: operations["submit_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -983,6 +983,7 @@ export interface paths {
          *     - **`authProvider`**: 가입 제공자 (GOOGLE, KAKAO, NAVER, APPLE, GITHUB)
          *     - **`providerUserId`**: 제공자 사용자 ID (Google·Apple 은 Firebase uid). 탈퇴 재인증 시 같은 계정인지 대조용
          *     - **`createdAt`**: 가입 시각 KST (계정 화면 가입일)
+         *     - **`nicknameChangeAvailableAt`**: 닉네임을 다시 바꿀 수 있는 시각 KST (마지막 변경 + 3일, 변경 이력 없으면 null)
          *     - **`maskedEmail`**: 가린 이메일 (아이디 앞 2자 + `***` + `@도메인`, 이메일 없으면 null)
          *     - **`memberCode`**: 회원 번호 표시값 (`PQL-` + 회원 UUID 앞 8자리 대문자, 문의 때 회원 확인용)
          *
@@ -1712,6 +1713,146 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/mock-exams/attempts/{attemptUuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 시험지
+         * @description 남은 시간(초)·50문항(정답 없음)·내 답·표시. 마감이 지났으면 채점 후 status SUBMITTED, questions 빈 목록.
+         */
+        get: operations["getSheet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mock-exams/attempts/{attemptUuid}/answers/{questionNumber}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * 문항 답 저장
+         * @description 고른 보기(null 선택 해제)·표시 여부. 마감 + 15초 뒤면 채점 후 409 MOCK_EXAM_TIME_OVER, 제출한 응시 409 MOCK_EXAM_ALREADY_SUBMITTED.
+         */
+        put: operations["saveAnswer"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mock-exams/attempts/{attemptUuid}/result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 결과
+         * @description 총점·합격·불합격 이유·문항 정오 공개. 과목별 점수·토픽별 정답률·문항 해설·다음에 할 일은 프로 전용(무료는 빈 값 + lockedSections). 풀이 중 409 MOCK_EXAM_NOT_SUBMITTED.
+         */
+        get: operations["getResult"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mock-exams/attempts/{attemptUuid}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 제출 (멱등)
+         * @description 기기에 남은 답 묶음은 마감 + 15초 안 도착분만 반영 > 채점 > 결과. 이미 채점된 응시는 같은 결과.
+         */
+        post: operations["submit_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mock-exams/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 점수 추이 (프로)
+         * @description 채점된 응시 제출 시간순. 무료 403 PRO_REQUIRED.
+         */
+        get: operations["getHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mock-exams/rounds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 회차 목록
+         * @description 시험 형식(examRule), 풀이 중 응시(이어 풀기), 공개 회차별 시작 가능 여부·막힌 이유·최고 점수·마지막 응시. 마감 지난 내 응시는 먼저 채점.
+         */
+        get: operations["getRounds"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mock-exams/rounds/{roundUuid}/attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 시작 또는 이어 풀기
+         * @description 같은 회차 풀이 중이면 그 응시 시험지, 아니면 새 응시(마감 = 지금 + 90분). 무료 체험 소진 403 MOCK_EXAM_FREE_TRIAL_USED, 체험 회차 아님 403 PRO_REQUIRED, 다른 회차 풀이 중 409 MOCK_EXAM_ATTEMPT_IN_PROGRESS.
+         */
+        post: operations["startOrResume"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/progress": {
         parameters: {
             query?: never;
@@ -2178,6 +2319,12 @@ export interface components {
             strength: components["schemas"]["AiAnalysisStrength"] | null;
             trend: string | null;
         };
+        AnswerEntry: {
+            isFlagged: boolean | null;
+            /** Format: int32 */
+            questionNumber: number;
+            selectedChoiceKey: string | null;
+        };
         AppConfigResponse: {
             android: components["schemas"]["AppPlatformVersionResponse"];
             businessInfo: components["schemas"]["BusinessInfoResponse"];
@@ -2551,11 +2698,16 @@ export interface components {
             questions: components["schemas"]["QuestionSummary"][];
             results: boolean[] | null;
         };
+        DiffExplainRequest: {
+            /** Format: uuid */
+            questionUuid: string;
+            selectedChoiceKey?: string;
+        };
         /**
          * @description 서버 ErrorCode enum 이름 (응답 errorCode 값)
          * @enum {string}
          */
-        ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "REQUEST_TOO_LARGE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "EMBEDDING_INDEX_ALREADY_RUNNING" | "PROMPT_NOT_FOUND" | "PROMPT_HISTORY_NOT_FOUND" | "PROMPT_ACTIVE_DELETE_FORBIDDEN" | "TOPIC_NOT_FOUND" | "CONCEPT_NOT_FOUND" | "CONCEPT_CHECK_QUESTION_NOT_FOUND" | "TOPIC_DUPLICATE" | "TOPIC_HAS_QUESTIONS" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_CHALLENGE_RANGE_INVALID" | "DAILY_CHALLENGE_TOO_MANY_QUESTIONS" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_SERVER_REQUEST_REJECTED" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "FEEDBACK_IMAGE_TOO_MANY" | "FEEDBACK_IMAGE_INVALID" | "FEEDBACK_ATTACHMENT_TOO_LARGE" | "FEEDBACK_ATTACHMENT_INVALID" | "FEEDBACK_DAILY_LIMIT_EXCEEDED" | "FEEDBACK_STORAGE_UNAVAILABLE" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "APP_MAINTENANCE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "COMMUNITY_POST_NOT_FOUND" | "COMMUNITY_SOLVE_REQUIRED" | "COMMUNITY_CONTENT_INVALID" | "COMMUNITY_CONTENT_FORBIDDEN_WORD" | "COMMUNITY_POST_DUPLICATE" | "COMMUNITY_POST_RATE_LIMITED" | "COMMUNITY_POST_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_POST_FORBIDDEN" | "COMMUNITY_SELF_REPORT_FORBIDDEN" | "COMMUNITY_SELF_BLOCK_FORBIDDEN" | "COMMUNITY_BLOCK_NOT_FOUND" | "COMMUNITY_IMAGE_STORAGE_UNAVAILABLE" | "COMMUNITY_IMAGE_INVALID_FORMAT" | "COMMUNITY_IMAGE_TOO_LARGE" | "COMMUNITY_IMAGE_DIMENSION_EXCEEDED" | "COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED" | "COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_IMAGE_QUOTA_EXCEEDED" | "COMMUNITY_IMAGE_NOT_FOUND" | "COMMUNITY_IMAGE_TOO_MANY" | "COMMUNITY_IMAGE_INVALID_ATTACHMENT" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "ADMIN_ACCOUNT_SELF_DELETE_FORBIDDEN" | "ADMIN_ACCOUNT_DELETE_REQUIRES_DISABLED" | "ADMIN_ACCOUNT_LAST_ADMIN_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_INACTIVE_DAYS_INVALID" | "PUSH_SCHEDULE_TIME_INVALID" | "PUSH_NOT_SCHEDULED" | "PUSH_RETRACT_NOT_DISPATCHED" | "PUSH_TEMPLATE_NOT_FOUND" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER" | "SOCIAL_LOGIN_UNAVAILABLE" | "INVALID_SOCIAL_AUTHORIZATION_CODE" | "INVALID_SOCIAL_TOKEN" | "PRO_REQUIRED" | "FREE_DAILY_LIMIT_REACHED" | "FAIR_USE_DAILY_LIMIT_REACHED" | "AD_BONUS_DAILY_LIMIT_REACHED" | "AD_BONUS_VERIFICATION_PENDING" | "AD_BONUS_APP_UPDATE_REQUIRED";
+        ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "REQUEST_TOO_LARGE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "EMBEDDING_INDEX_ALREADY_RUNNING" | "PROMPT_NOT_FOUND" | "PROMPT_HISTORY_NOT_FOUND" | "PROMPT_ACTIVE_DELETE_FORBIDDEN" | "TOPIC_NOT_FOUND" | "CONCEPT_NOT_FOUND" | "CONCEPT_CHECK_QUESTION_NOT_FOUND" | "TOPIC_DUPLICATE" | "TOPIC_HAS_QUESTIONS" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_CHALLENGE_RANGE_INVALID" | "DAILY_CHALLENGE_TOO_MANY_QUESTIONS" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_SERVER_REQUEST_REJECTED" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_UNAVAILABLE" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "FEEDBACK_IMAGE_TOO_MANY" | "FEEDBACK_IMAGE_INVALID" | "FEEDBACK_ATTACHMENT_TOO_LARGE" | "FEEDBACK_ATTACHMENT_INVALID" | "FEEDBACK_DAILY_LIMIT_EXCEEDED" | "FEEDBACK_STORAGE_UNAVAILABLE" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "APP_MAINTENANCE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "COMMUNITY_POST_NOT_FOUND" | "COMMUNITY_SOLVE_REQUIRED" | "COMMUNITY_CONTENT_INVALID" | "COMMUNITY_CONTENT_FORBIDDEN_WORD" | "COMMUNITY_POST_DUPLICATE" | "COMMUNITY_POST_RATE_LIMITED" | "COMMUNITY_POST_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_POST_FORBIDDEN" | "COMMUNITY_SELF_REPORT_FORBIDDEN" | "COMMUNITY_SELF_BLOCK_FORBIDDEN" | "COMMUNITY_BLOCK_NOT_FOUND" | "COMMUNITY_IMAGE_STORAGE_UNAVAILABLE" | "COMMUNITY_IMAGE_INVALID_FORMAT" | "COMMUNITY_IMAGE_TOO_LARGE" | "COMMUNITY_IMAGE_DIMENSION_EXCEEDED" | "COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED" | "COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_IMAGE_QUOTA_EXCEEDED" | "COMMUNITY_IMAGE_NOT_FOUND" | "COMMUNITY_IMAGE_TOO_MANY" | "COMMUNITY_IMAGE_INVALID_ATTACHMENT" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "ADMIN_ACCOUNT_SELF_DELETE_FORBIDDEN" | "ADMIN_ACCOUNT_DELETE_REQUIRES_DISABLED" | "ADMIN_ACCOUNT_LAST_ADMIN_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_INACTIVE_DAYS_INVALID" | "PUSH_SCHEDULE_TIME_INVALID" | "PUSH_NOT_SCHEDULED" | "PUSH_RETRACT_NOT_DISPATCHED" | "PUSH_TEMPLATE_NOT_FOUND" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER" | "SOCIAL_LOGIN_UNAVAILABLE" | "INVALID_SOCIAL_AUTHORIZATION_CODE" | "INVALID_SOCIAL_TOKEN" | "PRO_REQUIRED" | "FREE_DAILY_LIMIT_REACHED" | "FAIR_USE_DAILY_LIMIT_REACHED" | "AD_BONUS_DAILY_LIMIT_REACHED" | "AD_BONUS_VERIFICATION_PENDING" | "AD_BONUS_APP_UPDATE_REQUIRED" | "MOCK_EXAM_ROUND_NOT_FOUND" | "MOCK_EXAM_ATTEMPT_NOT_FOUND" | "MOCK_EXAM_ATTEMPT_IN_PROGRESS" | "MOCK_EXAM_FREE_TRIAL_USED" | "MOCK_EXAM_TIME_OVER" | "MOCK_EXAM_ALREADY_SUBMITTED" | "MOCK_EXAM_NOT_SUBMITTED" | "MOCK_EXAM_ROUND_NOT_EDITABLE" | "MOCK_EXAM_ROUND_NUMBER_DUPLICATED" | "MOCK_EXAM_PUBLISH_CHECK_FAILED";
         /** @description API 에러 응답 표준 형식 */
         ErrorResponse: {
             errorCode: components["schemas"]["ErrorCode"];
@@ -2630,6 +2782,20 @@ export interface components {
             rows: unknown[][];
             status: string | null;
         };
+        /** @description 보기 SQL 실행 요청 */
+        ExecuteSqlRequest: {
+            /**
+             * @description 실행할 SQL
+             * @example SELECT * FROM EMP
+             */
+            sql: string;
+        };
+        ExplainErrorRequest: {
+            errorMessage?: string;
+            /** Format: uuid */
+            questionUuid: string;
+            sql?: string;
+        };
         FeedbackSubmitRequest: {
             content: string;
         };
@@ -2657,11 +2823,53 @@ export interface components {
         HeatmapResponse: {
             entries: components["schemas"]["HeatmapEntry"][];
         };
+        HistoryEntry: {
+            /** Format: uuid */
+            attemptUuid: string;
+            /** @enum {string} */
+            failReason: "NONE" | "SUBJECT_FAIL" | "TOTAL_SCORE_BELOW";
+            isPassed: boolean;
+            /** Format: int32 */
+            roundNumber: number;
+            /** Format: int32 */
+            subjectOneScore: number;
+            /** Format: int32 */
+            subjectTwoScore: number;
+            /** Format: date-time */
+            submittedAt: string;
+            title: string;
+            /** Format: int32 */
+            totalScore: number;
+        };
+        InProgressAttempt: {
+            /** Format: int32 */
+            answeredCount: number;
+            /** Format: uuid */
+            attemptUuid: string;
+            /** Format: int64 */
+            remainingSeconds: number;
+            /** Format: int32 */
+            roundNumber: number;
+            /** Format: uuid */
+            roundUuid: string;
+            title: string;
+        };
         KeyConcept: {
             /** @description 개념 설명 한두 줄 */
             description: string;
             /** @description 개념명 (예: DENSE_RANK) */
             name: string;
+        };
+        LastAttempt: {
+            /** Format: uuid */
+            attemptUuid: string;
+            isPassed: boolean | null;
+            /** @enum {string} */
+            status: "IN_PROGRESS" | "SUBMITTED";
+            /** Format: date-time */
+            submittedAt: string | null;
+            /** Format: int32 */
+            totalScore: number | null;
         };
         LatestTrendTopicCount: {
             /** Format: int32 */
@@ -2722,6 +2930,8 @@ export interface components {
             memberUuid: string;
             nickname: string;
             /** Format: date-time */
+            nicknameChangeAvailableAt: string | null;
+            /** Format: date-time */
             nicknameChangedAt: string | null;
             providerUserId: string;
             role: string;
@@ -2748,6 +2958,113 @@ export interface components {
             todayFreeLimit: number;
             /** Format: int32 */
             todayRandomSolvedCount: number;
+        };
+        MockExamAnswerSaveRequest: {
+            /** @description null 이면 false */
+            isFlagged: boolean | null;
+            selectedChoiceKey: string | null;
+        };
+        MockExamAnswerSaveResponse: {
+            /** Format: int32 */
+            questionNumber: number;
+            /** Format: int64 */
+            remainingSeconds: number;
+        };
+        MockExamChoice: {
+            body: string;
+            isCorrect: boolean | null;
+            key: string;
+            /** @enum {string} */
+            kind: "SQL" | "TEXT";
+            rationale: string | null;
+        };
+        MockExamHistoryResponse: {
+            attempts: components["schemas"]["HistoryEntry"][];
+            /** Format: int32 */
+            passScore: number;
+        };
+        MockExamNextStep: {
+            actions: components["schemas"]["AiAnalysisAction"][];
+            headline: string;
+            message: string;
+        };
+        MockExamResultResponse: {
+            /** Format: uuid */
+            attemptUuid: string;
+            /** Format: int32 */
+            correctCount: number;
+            /**
+             * Format: int64
+             * @description 푼 시간 (초, 시작 ~ 제출, 시험 시간 상한)
+             */
+            elapsedSeconds: number;
+            /** @enum {string} */
+            failReason: "NONE" | "SUBJECT_FAIL" | "TOTAL_SCORE_BELOW";
+            isPassed: boolean;
+            /** @description 무료 회원 응답에서 뺀 묶음 이름 (MOCK_EXAM_SUBJECT_DETAIL, MOCK_EXAM_REVIEW) */
+            lockedSections: string[];
+            /** Format: int32 */
+            maxScore: number;
+            nextStep: components["schemas"]["MockExamNextStep"] | null;
+            /** Format: int32 */
+            passScore: number;
+            /** Format: int32 */
+            questionCount: number;
+            questionMarks: components["schemas"]["QuestionMark"][];
+            reviews: components["schemas"]["QuestionReview"][];
+            /** Format: int32 */
+            roundNumber: number;
+            /** Format: uuid */
+            roundUuid: string;
+            /** Format: date-time */
+            startedAt: string;
+            subjects: components["schemas"]["SubjectResult"][];
+            /** @enum {string} */
+            submitReason: "MEMBER" | "TIME_UP";
+            /** Format: date-time */
+            submittedAt: string;
+            title: string;
+            topics: components["schemas"]["TopicResult"][];
+            /** Format: int32 */
+            totalScore: number;
+        };
+        MockExamRoundListResponse: {
+            examRule: components["schemas"]["MockExamRuleResponse"];
+            inProgressAttempt: components["schemas"]["InProgressAttempt"] | null;
+            rounds: components["schemas"]["RoundSummary"][];
+        };
+        MockExamRuleResponse: {
+            /** Format: int32 */
+            durationMinutes: number;
+            /** Format: int32 */
+            maxScore: number;
+            /** Format: int32 */
+            passScore: number;
+            /** Format: int32 */
+            pointsPerQuestion: number;
+            /** Format: int32 */
+            questionCount: number;
+            subjects: components["schemas"]["SubjectRule"][];
+        };
+        MockExamSheetResponse: {
+            /** Format: uuid */
+            attemptUuid: string;
+            questions: components["schemas"]["SheetQuestion"][];
+            /**
+             * Format: int64
+             * @description 응답 시점 남은 시간 (초, 0 이상). 앱은 받은 순간부터 단조 시계로 줄임
+             */
+            remainingSeconds: number;
+            /** Format: int32 */
+            roundNumber: number;
+            /** Format: uuid */
+            roundUuid: string;
+            /** @enum {string} */
+            status: "IN_PROGRESS" | "SUBMITTED";
+            title: string;
+        };
+        MockExamSubmitRequest: {
+            answers: components["schemas"]["AnswerEntry"][] | null;
         };
         NicknameChangeRequest: {
             nickname: string;
@@ -2897,6 +3214,32 @@ export interface components {
             subtopicName: string | null;
             topicName: string | null;
         };
+        QuestionMark: {
+            isAnswered: boolean;
+            isCorrect: boolean;
+            isFlagged: boolean;
+            /** Format: int32 */
+            questionNumber: number;
+            /** @enum {string} */
+            subject: "SUBJECT_ONE" | "SUBJECT_TWO";
+        };
+        QuestionReview: {
+            choices: components["schemas"]["MockExamChoice"][];
+            correctChoiceKey: string;
+            explanationSummary: string | null;
+            isCorrect: boolean;
+            /** Format: int32 */
+            questionNumber: number;
+            /** Format: uuid */
+            questionUuid: string;
+            schemaDisplay: string | null;
+            schemaTables: components["schemas"]["QuestionSchemaTable"][];
+            selectedChoiceKey: string | null;
+            stem: string;
+            /** @enum {string} */
+            subject: "SUBJECT_ONE" | "SUBJECT_TWO";
+            topicName: string | null;
+        };
         QuestionSchemaColumn: {
             isForeignKey: boolean;
             isPrimaryKey: boolean;
@@ -2976,6 +3319,36 @@ export interface components {
         ReportStatusResponse: {
             reported: boolean;
         };
+        RoundSummary: {
+            /** Format: int32 */
+            bestScore: number | null;
+            canStart: boolean;
+            /** @description 무료 체험 회차 (공개 회차 중 번호가 가장 작은 회차) */
+            isFreeTrialRound: boolean;
+            lastAttempt: components["schemas"]["LastAttempt"] | null;
+            /** Format: int32 */
+            roundNumber: number;
+            /** Format: uuid */
+            roundUuid: string;
+            /** @enum {string|null} */
+            startBlockReason: "PRO_REQUIRED" | "FREE_TRIAL_USED" | "OTHER_ATTEMPT_IN_PROGRESS" | null;
+            /** Format: int32 */
+            submittedAttemptCount: number;
+            title: string;
+        };
+        SheetQuestion: {
+            choices: components["schemas"]["MockExamChoice"][];
+            isFlagged: boolean;
+            /** Format: int32 */
+            questionNumber: number;
+            schemaDisplay: string | null;
+            schemaTables: components["schemas"]["QuestionSchemaTable"][];
+            selectedChoiceKey: string | null;
+            stem: string;
+            /** @enum {string} */
+            subject: "SUBJECT_ONE" | "SUBJECT_TWO";
+            topicName: string | null;
+        };
         SimilarQuestion: {
             /** Format: uuid */
             questionUuid: string;
@@ -3008,6 +3381,33 @@ export interface components {
             /** Format: int64 */
             timeout: number | null;
         };
+        SubjectResult: {
+            /** Format: int32 */
+            correctCount: number;
+            /** Format: int32 */
+            failBelowScore: number;
+            isFailed: boolean;
+            /** Format: int32 */
+            maxScore: number;
+            name: string;
+            /** Format: int32 */
+            questionCount: number;
+            /** Format: int32 */
+            score: number;
+            /** @enum {string} */
+            subject: "SUBJECT_ONE" | "SUBJECT_TWO";
+        };
+        SubjectRule: {
+            /** Format: int32 */
+            failBelowScore: number;
+            /** Format: int32 */
+            maxScore: number;
+            name: string;
+            /** Format: int32 */
+            questionCount: number;
+            /** @enum {string} */
+            subject: "SUBJECT_ONE" | "SUBJECT_TWO";
+        };
         /** @description 문제 제출 요청 */
         SubmitRequest: {
             /**
@@ -3026,7 +3426,7 @@ export interface components {
              * @description 퀴즈 세션 UUID — AI 코멘트 세션 집계에 사용
              * @example 550e8400-e29b-41d4-a716-446655440001
              */
-            sessionUuid: string | null;
+            sessionUuid?: string | null;
         };
         SubmitResult: {
             correctKey: string | null;
@@ -3052,6 +3452,17 @@ export interface components {
         };
         TopicAnalysisResponse: {
             topicStats: components["schemas"]["TopicStat"][];
+        };
+        TopicResult: {
+            /** Format: int32 */
+            correctCount: number;
+            /** Format: int32 */
+            questionCount: number;
+            /** @enum {string} */
+            subject: "SUBJECT_ONE" | "SUBJECT_TWO";
+            topicName: string;
+            /** Format: uuid */
+            topicUuid: string;
         };
         TopicStat: {
             /** Format: double */
@@ -3155,9 +3566,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
-                    [key: string]: unknown;
-                };
+                "application/json": components["schemas"]["DiffExplainRequest"];
             };
         };
         responses: {
@@ -3181,9 +3590,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
-                    [key: string]: unknown;
-                };
+                "application/json": components["schemas"]["ExplainErrorRequest"];
             };
         };
         responses: {
@@ -3903,7 +4310,7 @@ export interface operations {
             };
         };
     };
-    submit_1: {
+    submit_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -4507,6 +4914,165 @@ export interface operations {
             };
         };
     };
+    getSheet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attemptUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MockExamSheetResponse"];
+                };
+            };
+        };
+    };
+    saveAnswer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attemptUuid: string;
+                questionNumber: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MockExamAnswerSaveRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MockExamAnswerSaveResponse"];
+                };
+            };
+        };
+    };
+    getResult: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attemptUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MockExamResultResponse"];
+                };
+            };
+        };
+    };
+    submit_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attemptUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["MockExamSubmitRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MockExamResultResponse"];
+                };
+            };
+        };
+    };
+    getHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MockExamHistoryResponse"];
+                };
+            };
+        };
+    };
+    getRounds: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MockExamRoundListResponse"];
+                };
+            };
+        };
+    };
+    startOrResume: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roundUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MockExamSheetResponse"];
+                };
+            };
+        };
+    };
     getProgress: {
         parameters: {
             query?: never;
@@ -4720,9 +5286,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
-                    [key: string]: string;
-                };
+                "application/json": components["schemas"]["ExecuteSqlRequest"];
             };
         };
         responses: {

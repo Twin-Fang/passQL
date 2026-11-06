@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -120,18 +119,5 @@ public class AiCommentService {
      */
     static String toStatsRefreshBucket(LocalDate today, long recentCount) {
         return today.format(DATE_FORMAT) + ":guide-" + (recentCount / STATS_REFRESH_SOLVED_COUNT);
-    }
-
-    /**
-     * AI 코멘트 캐시 무효화.
-     * - sessionUuid 있음: 결과 화면 캐시(ai-comment:{memberUuid}:{sessionUuid}) 삭제
-     * - sessionUuid 없음: 통계 화면 캐시(ai-comment:{memberUuid}:stats) 삭제
-     */
-    @Transactional
-    public void evictCache(UUID memberUuid, UUID sessionUuid) {
-        String cacheKey = sessionUuid != null
-                ? CACHE_KEY_PREFIX + memberUuid + ":" + sessionUuid
-                : CACHE_KEY_PREFIX + memberUuid + ":stats";
-        redisTemplate.delete(cacheKey);
     }
 }

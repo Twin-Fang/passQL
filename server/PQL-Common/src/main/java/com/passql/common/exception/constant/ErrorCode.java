@@ -95,6 +95,8 @@ public enum ErrorCode {
     CHOICE_SET_VALIDATION_NO_CORRECT(HttpStatus.UNPROCESSABLE_ENTITY, "생성된 선택지 중 정답이 없습니다."),
     CHOICE_SET_VALIDATION_MULTIPLE_CORRECT(HttpStatus.UNPROCESSABLE_ENTITY, "생성된 선택지 중 정답이 여러 개입니다."),
     CHOICE_SET_NOT_FOUND(HttpStatus.NOT_FOUND, "선택지 세트를 찾을 수 없습니다."),
+    // 관리자가 내렸거나 생성에 실패한 세트로 제출 (앱은 404 로 "찾을 수 없음" 분류, #879)
+    CHOICE_SET_UNAVAILABLE(HttpStatus.NOT_FOUND, "더 이상 풀 수 없는 보기입니다. 문제를 다시 열어 주세요."),
     CHOICE_SET_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 선택지를 찾을 수 없습니다."),
     CHOICE_SET_POLICY_NOT_IMPLEMENTED(HttpStatus.NOT_IMPLEMENTED, "해당 선택지 정책은 아직 지원되지 않습니다."),
 
@@ -215,7 +217,23 @@ public enum ErrorCode {
     // 광고 보너스 서버 검증 콜백 도착 전 (앱이 잠시 뒤 다시 확인, #860)
     AD_BONUS_VERIFICATION_PENDING(HttpStatus.CONFLICT, "광고 시청을 확인하고 있어요. 잠시 뒤 다시 확인해 주세요"),
     // 서버 검증 필수인데 보상 표식 없는 옛 앱 신고 (#860)
-    AD_BONUS_APP_UPDATE_REQUIRED(HttpStatus.UPGRADE_REQUIRED, "앱을 업데이트하면 광고 보너스를 받을 수 있어요");
+    AD_BONUS_APP_UPDATE_REQUIRED(HttpStatus.UPGRADE_REQUIRED, "앱을 업데이트하면 광고 보너스를 받을 수 있어요"),
+
+    // Mock Exam (SQLD 모의고사, #866, 앱·웹이 코드명으로 분기)
+    MOCK_EXAM_ROUND_NOT_FOUND(HttpStatus.NOT_FOUND, "모의고사 회차를 찾을 수 없어요"),
+    MOCK_EXAM_ATTEMPT_NOT_FOUND(HttpStatus.NOT_FOUND, "모의고사 응시 기록을 찾을 수 없어요"),
+    // 다른 회차를 풀고 있음 (진행 중 응시는 회원당 1개)
+    MOCK_EXAM_ATTEMPT_IN_PROGRESS(HttpStatus.CONFLICT, "풀고 있는 모의고사가 있어요. 먼저 마치고 시작해 주세요"),
+    // 무료 체험 1회 소진 (앱·웹은 이용권 안내)
+    MOCK_EXAM_FREE_TRIAL_USED(HttpStatus.FORBIDDEN, "무료 모의고사 체험을 이미 사용했어요"),
+    // 마감 + 유예 뒤 답 저장 (서버가 자동 채점 후 거부, 앱·웹은 결과 화면으로)
+    MOCK_EXAM_TIME_OVER(HttpStatus.CONFLICT, "시험 시간이 끝나 자동으로 제출했어요"),
+    MOCK_EXAM_ALREADY_SUBMITTED(HttpStatus.CONFLICT, "이미 제출한 모의고사예요"),
+    MOCK_EXAM_NOT_SUBMITTED(HttpStatus.CONFLICT, "아직 제출하지 않은 모의고사예요"),
+    // 관리자: 공개·보관 회차 문항 수정, 응시가 있는 회차 되돌리기
+    MOCK_EXAM_ROUND_NOT_EDITABLE(HttpStatus.CONFLICT, "공개했거나 응시 기록이 있는 회차는 고칠 수 없어요"),
+    MOCK_EXAM_ROUND_NUMBER_DUPLICATED(HttpStatus.CONFLICT, "이미 있는 회차 번호예요"),
+    MOCK_EXAM_PUBLISH_CHECK_FAILED(HttpStatus.BAD_REQUEST, "공개 검사를 통과하지 못했어요");
 
     private final HttpStatus status;
     private final String message;

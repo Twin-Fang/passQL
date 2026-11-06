@@ -2,6 +2,7 @@ package com.passql.question.repository;
 
 import com.passql.question.constant.ReportStatus;
 import com.passql.question.entity.QuestionReport;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,9 +18,17 @@ public interface QuestionReportRepository extends JpaRepository<QuestionReport, 
 
     boolean existsByQuestionUuidAndMemberUuidAndSubmissionUuid(UUID questionUuid, UUID memberUuid, UUID submissionUuid);
 
+    // 관리자 상세 응답이 트랜잭션 밖에서 categories 를 읽으므로 함께 조회 (open-in-view 끔, #879)
+    @EntityGraph(attributePaths = "categories")
     List<QuestionReport> findByQuestionUuidOrderByCreatedAtDesc(UUID questionUuid);
 
     long countByStatus(ReportStatus status);
+
+    /** 문제별 신고 수 (상태 필터, 모의고사 문항 통계, #866). 열: questionUuid, count */
+    @Query("SELECT r.questionUuid, COUNT(r) FROM QuestionReport r "
+        + "WHERE r.questionUuid IN :questionUuids AND r.status = :status GROUP BY r.questionUuid")
+    List<Object[]> countByQuestionUuidsAndStatus(@Param("questionUuids") Collection<UUID> questionUuids,
+                                                 @Param("status") ReportStatus status);
 
     /**
      * 문제별 집계: 상태 목록·기간(createdAt >= from, < to)으로 거른 신고를 문제 단위로 묶음

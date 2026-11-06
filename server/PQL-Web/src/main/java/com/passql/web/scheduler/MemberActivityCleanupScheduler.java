@@ -1,5 +1,6 @@
 package com.passql.web.scheduler;
 
+import com.passql.common.util.ServiceTimeZone;
 import com.passql.member.service.MemberActivityHourService;
 import com.passql.member.service.MemberActivityRecorder;
 import lombok.RequiredArgsConstructor;
@@ -19,13 +20,13 @@ public class MemberActivityCleanupScheduler {
     private final MemberActivityHourService memberActivityHourService;
 
     /** 10분마다 (온라인 수 계산 대상 맵 크기 유지) */
-    @Scheduled(cron = "0 */10 * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 */10 * * * *", zone = ServiceTimeZone.ZONE_NAME)
     public void removeStaleActivities() {
         memberActivityRecorder.removeStaleActivities();
     }
 
     /** 매일 04시 40분 (다른 정리 작업 04시~04시 30분과 겹치지 않게) */
-    @Scheduled(cron = "0 40 4 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 40 4 * * *", zone = ServiceTimeZone.ZONE_NAME)
     public void purgeExpired() {
         int deleted = memberActivityHourService.purgeExpired();
         if (deleted > 0) {

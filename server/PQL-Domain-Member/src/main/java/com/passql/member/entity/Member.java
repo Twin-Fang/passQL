@@ -46,6 +46,8 @@ public class Member extends SoftDeletableBaseEntity {
 
     // 관리자 메모 최대 길이 (문자 수)
     public static final int MAX_ADMIN_MEMO_LENGTH = 1000;
+    // 닉네임 변경 후 다시 바꿀 수 없는 기간 (일, 직접 변경·랜덤 재생성 공통)
+    public static final int NICKNAME_CHANGE_COOLDOWN_DAYS = 3;
 
     // === 식별 (코어) ===
     @Id
@@ -132,8 +134,15 @@ public class Member extends SoftDeletableBaseEntity {
 
     // 3일 쿨다운 여부 확인
     public boolean isNicknameChangeCooldown() {
-        if (nicknameChangedAt == null) return false;
-        return LocalDateTime.now().isBefore(nicknameChangedAt.plusDays(3));
+        LocalDateTime nicknameChangeAvailableAt = getNicknameChangeAvailableAt();
+        if (nicknameChangeAvailableAt == null) return false;
+        return LocalDateTime.now().isBefore(nicknameChangeAvailableAt);
+    }
+
+    /** 닉네임을 다시 바꿀 수 있는 시각: 마지막 변경 + 쿨다운 (변경 이력 없으면 null) */
+    public LocalDateTime getNicknameChangeAvailableAt() {
+        if (nicknameChangedAt == null) return null;
+        return nicknameChangedAt.plusDays(NICKNAME_CHANGE_COOLDOWN_DAYS);
     }
 
     // 제재 효력 여부: SUSPENDED 이면서 만료 전 (만료 시각 없으면 영구)
