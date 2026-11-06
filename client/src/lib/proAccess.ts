@@ -45,7 +45,11 @@ export function shouldShowProBadgeForPlan(plan: MemberPlanResponse | undefined):
 /** 오류 > 프로 접근 오류 코드 (그 외 오류는 null) */
 export function toProAccessErrorCode(error: unknown): ProAccessErrorCode | null {
   if (!(error instanceof ApiError)) return null;
-  const errorCode = (error.body as { errorCode?: unknown } | null)?.errorCode;
+  return toProAccessErrorCodeFromErrorCode((error.body as { errorCode?: unknown } | null)?.errorCode);
+}
+
+/** 오류 코드 값(응답 본문·SSE error 이벤트) > 프로 접근 오류 코드 (그 외는 null) */
+export function toProAccessErrorCodeFromErrorCode(errorCode: unknown): ProAccessErrorCode | null {
   return typeof errorCode === "string" && PRO_ACCESS_ERROR_CODES.has(errorCode)
     ? (errorCode as ProAccessErrorCode)
     : null;
