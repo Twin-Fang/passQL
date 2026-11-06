@@ -2,7 +2,7 @@
 type: cluster
 topic: auth-member
 created: 2026-10-29
-members: 52
+members: 54
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 로그인·회원가입·탈퇴·온보딩·프로필
 
 ## 현재 상태 요약
-(2026-11-04, 자동 생성) 활성 결정 13개, 열린 이슈 2개. 프로필 상단에 계정 줄(로그인 방법 배지·가입일)과 계정·이용권 화면 `/account`(가린 이메일 `maskedEmail`, 회원 번호 `memberCode` `PQL-xxxxxxxx`, 구매 내역)이 생겼다 — [[DEC-0243-profile-top-card-style-a]] (PR #822, 작성 시점 미머지). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-07, 자동 생성) 활성 결정 13개, 열린 이슈 2개. 프로필 상단에 계정 줄(로그인 방법 배지·가입일)과 계정·이용권 화면 `/account`(가린 이메일 `maskedEmail`, 회원 번호 `memberCode` `PQL-xxxxxxxx`, 구매 내역)가 있고, 구매 내역·구매 복원·프로모션 코드 행은 `/account` 한 곳, 프로필은 "이용권 관리" 한 줄, 닉네임은 프로필 연필 표시와 계정 화면 닉네임 행에서 바꾼다 — [[DEC-0263-pass-rows-on-account-screen-only]] (#863, DEC-0243 대체). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0012-nickname-via-suh-random-engine]] — 닉네임은 자체 단어 테이블 대신 `suh-random-engine` 라이브러리로 생성
@@ -28,12 +28,14 @@ related: []
 - [[DEC-0180-social-login-disabled-opacity-only]] — 소셜 로그인 버튼은 비활성일 때 회색으로 바꾸지 않고 투명도만 낮춘다 (브랜드 색 유지)
 - [[DEC-0184-new-member-onboarding-to-first-question]] — 앱 온보딩은 신규 가입자에게만 계정당 한 번, 4장 뒤 오늘의 세트 첫 문제로 이어지고 알림 권한은 묻지 않는다
 - [[DEC-0185-withdraw-fixed-confirm-phrase]] — 회원 탈퇴는 고정 문구 `탈퇴하기`를 입력해야 버튼이 활성화된다 (앱·웹 공통, 공통 확인창 옵션)
-- [[DEC-0243-profile-top-card-style-a]] — 프로필 상단 A안(카드형): 계정 줄 + 무료는 탑승권 대신 오늘 남은 문제·업그레이드 배너, 프로는 남은 날 큰 숫자 PRO 탑승권 카드(승객 · 만료일 · 이용권) + 이어서 연장 (DEC-0208 대체)
+- [[DEC-0263-pass-rows-on-account-screen-only]] — 프로필 상단 A안 유지, 구매 내역·복원·프로모션 코드 행은 `/account` 한 곳·프로필은 "이용권 관리" 한 줄 (#863, DEC-0243 대체)
 
 ## 대체된 결정 (역사)
 - [[DEC-0088-app-settings-tab-as-mypage]] → null
+- [[DEC-0243-profile-top-card-style-a]] → DEC-0263
 
 ## 관련 이슈
+- [[ISS-0461-plan-aligned-options-new-choices-mode]] (resolved, GitHub #863) — 요금제에 맞춘 옵션 재배치: 실전 모드 이름과 위치, 광고 제거 혜택, 중복 진입점
 - [[ISS-0448-mypage-account-pass-area-promo-code]] (resolved, GitHub #816) — 마이페이지 계정·이용권 영역과 결제 유도, 할인 표시, 프로모션 코드
 - [[ISS-0312-kakao-naver-github-apple-login]] (open, GitHub #509) — 카카오, 네이버, GitHub, Apple 로그인 지원
 - [[ISS-0398-per-type-notification-preferences]] (open, GitHub #653) — 알림 종류별 수신 설정 (앱 설정 화면 + 서버 저장)

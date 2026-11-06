@@ -145,3 +145,13 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-07 02:36 | W2 | fix members count W10 | cluster-billing
 - 2026-11-07 02:37 | W6 | ingest issue + report, decision; cluster add | ISS-0459, ISS-0459-report, DEC-0259, cluster-ai, cluster-progress-stats
 - 2026-11-07 02:37 | W2 | fix members count W10 | cluster-ai, cluster-progress-stats
+- 2026-11-07 06:19 | W6 | ingest issue + report, decision | ISS-0460, ISS-0460-report, DEC-0260 (#862)
+- 2026-11-07 06:19 | W6 | ingest issue + report, decisions | ISS-0461, ISS-0461-report, DEC-0261, DEC-0262, DEC-0263 (#863)
+- 2026-11-07 06:19 | W4 | supersede | DEC-0205 -> DEC-0262, DEC-0243 -> DEC-0263 (status·superseded_by only)
+- 2026-11-07 06:19 | W6 | ingest issue + report | ISS-0462, ISS-0462-report (#865)
+- 2026-11-07 06:19 | W6 | ingest open issue (no report yet), decision | ISS-0463, DEC-0264 (#866, PR #889)
+- 2026-11-07 06:19 | W6 | ingest issue + report, decision | ISS-0464, ISS-0464-report, DEC-0265 (#875)
+- 2026-11-07 06:19 | W6 | ingest open issue (no report yet), decision | ISS-0465, DEC-0266 (#876, PR #890)
+- 2026-11-07 06:19 | W6 | ingest issue + report, decision | ISS-0466, ISS-0466-report, DEC-0267 (#877)
+- 2026-11-07 06:19 | W2 | cluster update (entries, supersede moves, 현재 상태 요약) | cluster-progress-stats, cluster-ai, cluster-billing, cluster-practice, cluster-auth-member, cluster-design-system, cluster-ads, cluster-admin, cluster-concept-learning, cluster-security
+- 2026-11-07 06:19 | W2 | fix members count W10 (ads·billing·design-system·security 기존 차이 포함 실제 수로) | cluster-admin, cluster-ads, cluster-ai, cluster-auth-member, cluster-billing, cluster-concept-learning, cluster-design-system, cluster-practice, cluster-progress-stats, cluster-security
