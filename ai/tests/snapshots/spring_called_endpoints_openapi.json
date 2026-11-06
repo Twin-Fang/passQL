@@ -21,6 +21,7 @@
               "type": "integer"
             },
             "question_uuid": {
+              "format": "uuid",
               "type": "string"
             },
             "schema_ddl": {
@@ -69,6 +70,8 @@
           "properties": {
             "max_tokens": {
               "default": 2048,
+              "maximum": 16384.0,
+              "minimum": 1.0,
               "type": "integer"
             },
             "model": {
@@ -90,6 +93,8 @@
             },
             "temperature": {
               "default": 0.8,
+              "maximum": 2.0,
+              "minimum": 0.0,
               "type": "number"
             },
             "user_template": {
@@ -270,6 +275,8 @@
           "properties": {
             "max_tokens": {
               "default": 2048,
+              "maximum": 16384.0,
+              "minimum": 1.0,
               "type": "integer"
             },
             "model": {
@@ -291,6 +298,8 @@
             },
             "temperature": {
               "default": 0.8,
+              "maximum": 2.0,
+              "minimum": 0.0,
               "type": "number"
             },
             "user_template": {
@@ -425,6 +434,7 @@
           "type": "integer"
         },
         "question_uuid": {
+          "format": "uuid",
           "type": "string"
         },
         "stem": {
@@ -490,6 +500,7 @@
                 "type": "integer"
               },
               "question_uuid": {
+                "format": "uuid",
                 "type": "string"
               },
               "stem": {
@@ -566,6 +577,7 @@
       "properties": {
         "question_uuids": {
           "items": {
+            "format": "uuid",
             "type": "string"
           },
           "maxItems": 200000,
@@ -615,6 +627,7 @@
       "properties": {
         "question_uuids": {
           "items": {
+            "format": "uuid",
             "type": "string"
           },
           "maxItems": 200000,
@@ -652,6 +665,7 @@
       "properties": {
         "recent_wrong_question_uuids": {
           "items": {
+            "format": "uuid",
             "type": "string"
           },
           "maxItems": 100,
@@ -665,6 +679,7 @@
         },
         "solved_question_uuids": {
           "items": {
+            "format": "uuid",
             "type": "string"
           },
           "maxItems": 5000,
@@ -714,6 +729,8 @@
           "properties": {
             "max_tokens": {
               "default": 2048,
+              "maximum": 16384.0,
+              "minimum": 1.0,
               "type": "integer"
             },
             "model": {
@@ -735,6 +752,8 @@
             },
             "temperature": {
               "default": 0.8,
+              "maximum": 2.0,
+              "minimum": 0.0,
               "type": "number"
             },
             "user_template": {

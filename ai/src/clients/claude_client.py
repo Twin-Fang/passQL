@@ -7,7 +7,7 @@ from typing import Any
 from src.clients.llm_schema import to_json_schema
 from src.clients.shared_http_client import send_request
 from src.clients.token_usage import record_token_usage
-from src.core.exceptions import CustomError
+from src.core.exceptions import LlmResponseInvalidError
 from src.core.external_call_limits import LLM_CALL_TIMEOUT_SECONDS
 
 logger = logging.getLogger(__name__)
@@ -35,6 +35,7 @@ class ClaudeClient:
             headers={"x-api-key": api_key, "anthropic-version": CLAUDE_API_VERSION},
             json_body=request_body,
             timeout_seconds=LLM_CALL_TIMEOUT_SECONDS,
+            is_billed_request=True,
         )
         response_body = response.json()
         usage = response_body.get("usage") or {}
@@ -58,7 +59,7 @@ class ClaudeClient:
     async def chat(
         self, api_key: str, system_prompt: str, user_prompt: str, model: str, temperature: float, max_tokens: int
     ) -> str:
-        """일반 텍스트 응답 (text 블록 이어 붙임, 빈 응답 > CustomError)"""
+        """일반 텍스트 응답 (text 블록 이어 붙임, 빈 응답 > LlmResponseInvalidError)"""
         logger.debug(f"Claude chat: model={model}, max_tokens={max_tokens}")
         request_body = self._build_request_body(system_prompt, user_prompt, model, max_tokens)
         response_body = await self._send_messages("claude chat", api_key, request_body)
@@ -66,7 +67,7 @@ class ClaudeClient:
             block.get("text", "") for block in response_body.get("content", []) if block.get("type") == "text"
         )
         if not text.strip():
-            raise CustomError(f"Claude returned empty response (model={model})")
+            raise LlmResponseInvalidError(f"Claude returned empty response (model={model})")
         return text
 
     async def chat_structured(
@@ -93,7 +94,7 @@ class ClaudeClient:
             if block.get("type") == "tool_use" and isinstance(block.get("input"), dict):
                 return block["input"]
         logger.error(f"[claude chat_structured] no tool_use block : stop_reason={response_body.get('stop_reason')}")
-        raise CustomError("Claude structured 응답에 JSON 블록 없음")
+        raise LlmResponseInvalidError("Claude structured 응답에 JSON 블록 없음")
 
 
 # 싱글턴

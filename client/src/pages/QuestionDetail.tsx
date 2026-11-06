@@ -17,9 +17,9 @@ import { useQuestionDetail } from "../hooks/useQuestionDetail";
 import { useQuestionChoices } from "../hooks/useQuestionChoices";
 import { useChoiceExecutionCache } from "../hooks/useChoiceExecutionCache";
 import { useAiErrorExplanation } from "../hooks/useAiErrorExplanation";
-import { useQuestionAnswerSubmit } from "../hooks/useQuestionAnswerSubmit";
+import { useQuestionAnswerSubmit, type PracticeSubmitHandler } from "../hooks/useQuestionAnswerSubmit";
 import { usePracticeBottomBarHeight } from "../hooks/usePracticeBottomBarHeight";
-import type { ChoiceItem, SubmitResult } from "../types/api";
+import type { SubmitResult } from "../types/api";
 
 interface QuestionDetailProps {
   readonly practiceMode?: boolean;
@@ -27,11 +27,7 @@ interface QuestionDetailProps {
   readonly questionUuid?: string;
   // AI 코멘트 세션 집계용 — 연습/다시풀기 모드에서 store의 sessionId 전달
   readonly sessionUuid?: string;
-  readonly onPracticeSubmit?: (
-    selectedChoiceKey: string,
-    choiceSetId: string,
-    choices: readonly ChoiceItem[],
-  ) => void;
+  readonly onPracticeSubmit?: PracticeSubmitHandler;
   // 데일리 챌린지 모드: 제출 성공 시 호출자가 직접 네비게이션 제어
   readonly onSubmitSuccess?: (
     result: SubmitResult,

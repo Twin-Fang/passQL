@@ -1,65 +1,15 @@
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { Settings, Pencil, XCircle, ChevronRight } from "lucide-react";
+import { Settings, Pencil, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { useAuthStore } from "../stores/authStore";
 import { useStagger } from "../hooks/useStagger";
 import { useMember } from "../hooks/useMember";
+import { useWrongQuestions } from "../hooks/useWrongQuestions";
 import { isNicknameCooldown, formatNicknameCooldownMessage } from "../lib/nicknameCooldown";
-import { fetchWrongQuestions } from "../api/progress";
 import NicknameChangeModal from "../components/NicknameChangeModal";
-import ErrorFallback from "../components/ErrorFallback";
 import PlanChip from "../components/pro/PlanChip";
-import LockedPreview from "../components/pro/LockedPreview";
-import { WrongNotesLockedSample } from "../components/pro/lockedPreviewSamples";
-import { LOCKED_PREVIEW_CAPTIONS } from "../constants/proAccessCopy";
-import { toProAccessErrorCode } from "../lib/proAccess";
-import type { WrongQuestionItem } from "../types/api";
-
-// 틀린 문제 카드 한 줄
-function WrongQuestionRow({ item }: { readonly item: WrongQuestionItem }) {
-  const navigate = useNavigate();
-
-  const handleRetry = () => {
-    navigate(`/questions/${item.questionUuid}`);
-  };
-
-  return (
-    <div className="flex items-center gap-3 px-4 py-3 border-b border-border last:border-b-0">
-      <div className="w-9 h-9 rounded-tile bg-semantic-error-light flex items-center justify-center shrink-0">
-        <XCircle size={18} className="text-semantic-error" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-text-primary truncate">{item.stemPreview}</p>
-        <div className="flex items-center gap-1.5 mt-0.5">
-          {/* 토픽 뱃지 */}
-          <span className="text-micro font-medium bg-brand-light text-brand px-1.5 py-0.5 rounded">
-            {item.topicName}
-          </span>
-          <span className="text-caption2 text-text-caption">
-            {formatRelativeTime(item.lastWrongAt)}
-          </span>
-        </div>
-      </div>
-      <button
-        type="button"
-        onClick={handleRetry}
-        className="btn btn-primary btn-sm text-xs px-3 shrink-0"
-      >
-        다시 풀기
-      </button>
-    </div>
-  );
-}
-
-// 오답 시각을 "N일 전" 형태로 변환
-function formatRelativeTime(isoString: string): string {
-  const diff = Date.now() - new Date(isoString).getTime();
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  if (days === 0) return "오늘";
-  if (days === 1) return "어제";
-  return `${days}일 전`;
-}
+import WrongQuestionListState from "../components/wrongNotes/WrongQuestionListState";
+import { WRONG_NOTES_PATH, WRONG_NOTES_PREVIEW_COUNT } from "../constants/wrongNotes";
 
 export default function MyPage() {
   const navigate = useNavigate();
@@ -74,21 +24,8 @@ export default function MyPage() {
   const s1 = stagger(1);
   const s2 = stagger(2);
 
-  const {
-    data: wrongData,
-    isLoading: wrongLoading,
-    isError: wrongError,
-    error: wrongErrorCause,
-    refetch: refetchWrong,
-  } = useQuery({
-    queryKey: ["wrongQuestions", uuid],
-    queryFn: () => fetchWrongQuestions(5),
-    enabled: !!uuid,
-    staleTime: 1000 * 60 * 5,
-  });
-
-  // 오답 노트는 프로 기능 (무료 회원은 403 PRO_REQUIRED > 오류 대신 잠금 미리보기)
-  const isWrongNotesLocked = toProAccessErrorCode(wrongErrorCause) === "PRO_REQUIRED";
+  // 오답 미리보기 (프로 전용, 무료는 목록 상태 컴포넌트가 잠금 미리보기)
+  const wrongQuestions = useWrongQuestions(WRONG_NOTES_PREVIEW_COUNT);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -107,8 +44,7 @@ export default function MyPage() {
   // 닉네임 첫 글자로 아바타 이니셜 생성
   const avatarLetter = (nickname || uuid.slice(0, 1)).slice(0, 1).toUpperCase();
 
-  const wrongItems = wrongData?.items ?? [];
-  const totalWrongCount = wrongData?.totalCount ?? 0;
+  const totalWrongCount = wrongQuestions.data?.totalCount ?? 0;
 
   return (
     <div className="py-6 space-y-6">
@@ -167,10 +103,10 @@ export default function MyPage() {
                 </span>
               )}
             </div>
-            {totalWrongCount > 5 && (
+            {totalWrongCount > WRONG_NOTES_PREVIEW_COUNT && (
               <button
                 type="button"
-                onClick={() => navigate("/mypage/wrong-questions")}
+                onClick={() => navigate(WRONG_NOTES_PATH)}
                 className="flex items-center gap-0.5 text-xs text-brand font-medium"
               >
                 전체보기
@@ -179,48 +115,15 @@ export default function MyPage() {
             )}
           </div>
 
-          {/* 오답 목록 */}
-          {wrongLoading && (
-            <div className="space-y-0">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="flex items-center gap-3 px-4 py-3 border-b border-border last:border-b-0">
-                  <div className="w-9 h-9 rounded-tile bg-border animate-pulse" />
-                  <div className="flex-1 space-y-1.5">
-                    <div className="h-3.5 bg-border rounded animate-pulse w-3/4" />
-                    <div className="h-3 bg-border rounded animate-pulse w-1/3" />
-                  </div>
-                  <div className="w-16 h-7 bg-border rounded animate-pulse" />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {isWrongNotesLocked && (
-            <div className="p-4">
-              <LockedPreview preview={<WrongNotesLockedSample />} caption={LOCKED_PREVIEW_CAPTIONS.wrongNotes} />
-            </div>
-          )}
-
-          {wrongError && !isWrongNotesLocked && (
-            <div className="px-4 py-6">
-              <ErrorFallback onRetry={() => refetchWrong()} />
-            </div>
-          )}
-
-          {!wrongLoading && !wrongError && wrongItems.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-text-caption text-sm">틀린 문제가 없어요</p>
-              <p className="text-xs text-text-caption mt-1">문제를 풀면 오답이 여기에 쌓여요</p>
-            </div>
-          )}
-
-          {!wrongLoading && !wrongError && wrongItems.length > 0 && (
-            <div>
-              {wrongItems.map((item) => (
-                <WrongQuestionRow key={item.questionUuid} item={item} />
-              ))}
-            </div>
-          )}
+          {/* 오답 목록 (로딩·잠금·오류·빈 상태 포함) */}
+          <WrongQuestionListState
+            isLoading={wrongQuestions.isLoading}
+            error={wrongQuestions.error}
+            items={wrongQuestions.data?.items ?? []}
+            skeletonRowCount={3}
+            isInsideCard
+            onRetry={() => void wrongQuestions.refetch()}
+          />
         </div>
       </section>
 
