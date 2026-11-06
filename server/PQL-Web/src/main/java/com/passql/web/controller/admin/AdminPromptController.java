@@ -37,17 +37,23 @@ public class AdminPromptController {
     @GetMapping
     @AdminPage(menu = AdminMenu.PROMPTS)
     public String list(Model model) {
-        model.addAttribute("promptTemplates", promptService.findAll());
+        addPromptFormAttributes(model);
         return "admin/prompts";
     }
 
     @GetMapping("/{uuid}")
     @AdminPage(menu = AdminMenu.PROMPTS)
     public String detail(@PathVariable UUID uuid, Model model) {
-        model.addAttribute("promptTemplates", promptService.findAll());
+        addPromptFormAttributes(model);
         promptService.findById(uuid)
                 .ifPresent(pt -> model.addAttribute("selectedPrompt", pt));
         return "admin/prompts";
+    }
+
+    /** 목록·편집 폼 공통 모델: 프롬프트 목록, 등록 폼 키 선택지 (#875) */
+    private void addPromptFormAttributes(Model model) {
+        model.addAttribute("promptTemplates", promptService.findAll());
+        model.addAttribute("promptKeyOptions", promptService.listKeyOptions());
     }
 
     @PostMapping

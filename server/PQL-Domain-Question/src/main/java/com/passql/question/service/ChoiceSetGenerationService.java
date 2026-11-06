@@ -4,6 +4,7 @@ import com.passql.ai.client.AiGatewayClient;
 import com.passql.ai.dto.*;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.meta.constant.PromptKey;
 import com.passql.meta.entity.PromptTemplate;
 import com.passql.meta.service.PromptService;
 import com.passql.question.constant.ChoiceSetPolicy;
@@ -35,13 +36,6 @@ import java.util.UUID;
 public class ChoiceSetGenerationService {
 
     private static final int MAX_ATTEMPTS = ChoiceSetAttemptRunner.MAX_ATTEMPTS;
-    private static final String PROMPT_KEY = "generate_choice_set";
-    // CONCEPT_ONLY 전용 프롬프트 키 — Sandbox 없이 텍스트 선택지 생성
-    private static final String CONCEPT_PROMPT_KEY = "generate_choice_set_concept";
-    // RESULT_MATCH 전용 프롬프트 키 (v3 이상: 오해 SQL 4개 후보, 지시문은 운영 DB 에만, #828)
-    private static final String RESULT_MATCH_PROMPT_KEY = "generate_choice_set_result_match";
-    // ODD_ONE_OUT 전용 프롬프트 키 — 기준과 같은 결과 3개 + 다른 결과 1개(정답), SandboxValidator 3:1 판정과 짝 (#699)
-    private static final String ODD_ONE_OUT_PROMPT_KEY = "generate_choice_set_odd_one_out";
 
     // 개념 문제 재시도 규칙: 재시도 불가는 AI fallback 실패 1개
     private static final ChoiceSetRetryRule CONCEPT_RETRY_RULE = new ChoiceSetRetryRule("choice-gen-concept",
@@ -82,9 +76,9 @@ public class ChoiceSetGenerationService {
      */
     public QuestionChoiceSet generateConcept(UUID questionUuid, UUID memberUuid, ChoiceSetSource source) {
         Question question = questionService.getQuestionEntity(questionUuid);
-        PromptTemplate prompt = promptService.getActivePrompt(CONCEPT_PROMPT_KEY);
+        PromptTemplate prompt = promptService.getActivePrompt(PromptKey.GENERATE_CHOICE_SET_CONCEPT);
         GenerateChoiceSetRequest request = requestFactory.buildConceptRequest(question, prompt);
-        log.debug("[choice-gen-concept] 요청 빌드 완료: questionUuid={}, promptKey={}", questionUuid, CONCEPT_PROMPT_KEY);
+        log.debug("[choice-gen-concept] 요청 빌드 완료: questionUuid={}, promptKey={}", questionUuid, PromptKey.GENERATE_CHOICE_SET_CONCEPT.getKeyName());
 
         ChoiceSetGenerationRun run = new ChoiceSetGenerationRun(questionUuid, question, memberUuid, source, prompt);
         QuestionChoiceSet savedChoiceSet = attemptRunner.runAttempts(run, CONCEPT_RETRY_RULE, attempt -> attemptConcept(run, request, attempt));
@@ -119,7 +113,7 @@ public class ChoiceSetGenerationService {
      */
     public QuestionChoiceSet generateResultMatch(UUID questionUuid, UUID memberUuid, ChoiceSetSource source) {
         Question question = questionService.getQuestionEntity(questionUuid);
-        PromptTemplate prompt = promptService.getActivePrompt(RESULT_MATCH_PROMPT_KEY);
+        PromptTemplate prompt = promptService.getActivePrompt(PromptKey.GENERATE_CHOICE_SET_RESULT_MATCH);
         ChoiceSetGenerationRun run = new ChoiceSetGenerationRun(questionUuid, question, memberUuid, source, prompt);
 
         // schemaDdl·answerSql 없이는 실행 결과 표를 만들 수 없음
@@ -155,8 +149,8 @@ public class ChoiceSetGenerationService {
     }
 
     /** SQL 보기 정책 > 프롬프트 키 (ODD_ONE_OUT 은 정답 방향이 반대라 전용 프롬프트, 그 외 기본) */
-    static String toStandardPromptKey(ChoiceSetPolicy policy) {
-        return policy == ChoiceSetPolicy.ODD_ONE_OUT ? ODD_ONE_OUT_PROMPT_KEY : PROMPT_KEY;
+    static PromptKey toStandardPromptKey(ChoiceSetPolicy policy) {
+        return policy == ChoiceSetPolicy.ODD_ONE_OUT ? PromptKey.GENERATE_CHOICE_SET_ODD_ONE_OUT : PromptKey.GENERATE_CHOICE_SET;
     }
 
     /** 개념 문제 1회 시도: AI 호출 > is_correct 1개 확인 > 저장 (실패 시 null) */
@@ -190,9 +184,9 @@ public class ChoiceSetGenerationService {
     /** SQL 문제 실행 준비: 문제 조회 > 정책별 프롬프트 키 > 활성 프롬프트 */
     private ChoiceSetGenerationRun startStandardRun(UUID questionUuid, UUID memberUuid, ChoiceSetSource source) {
         Question question = questionService.getQuestionEntity(questionUuid);
-        String promptKey = toStandardPromptKey(question.getChoiceSetPolicy());
+        PromptKey promptKey = toStandardPromptKey(question.getChoiceSetPolicy());
         PromptTemplate prompt = promptService.getActivePrompt(promptKey);
-        log.debug("[choice-gen] 요청 빌드 완료: questionUuid={}, promptKey={}", questionUuid, promptKey);
+        log.debug("[choice-gen] 요청 빌드 완료: questionUuid={}, promptKey={}", questionUuid, promptKey.getKeyName());
         return new ChoiceSetGenerationRun(questionUuid, question, memberUuid, source, prompt);
     }
 
