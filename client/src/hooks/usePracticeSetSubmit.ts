@@ -43,7 +43,7 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
   const [feedbackExplanationEntry, setFeedbackExplanationEntry] = useState<ExplanationHistoryEntry | null>(null);
   const addExplanationEntry = useExplanationHistoryStore((state) => state.addEntry);
   // 답안 제출 API 호출 중 화면 조작 차단
-  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   // 제출 실패: 프로 접근 거부 사유(사유 창), 그 외 실패 토스트
   const [submitProAccessErrorCode, setSubmitProAccessErrorCode] = useState<ProAccessErrorCode | null>(null);
   const [isSubmitFailureToastVisible, setIsSubmitFailureToastVisible] = useState(false);
@@ -74,7 +74,7 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
       isProcessingRef.current = true;
       // 결과 화면에서 선택지 키(A/B/C/D) 대신 실제 선택지 텍스트를 보여주기 위해 body 추출
       const selectedChoiceBody = choices.find((c) => c.key === selectedChoiceKey)?.body ?? selectedChoiceKey;
-      setSubmitting(true);
+      setIsSubmitting(true);
       try {
         const result = await submitAnswer(
           displayQuestion.questionUuid,
@@ -132,7 +132,7 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
         return false;
       } finally {
         isProcessingRef.current = false;
-        setSubmitting(false);
+        setIsSubmitting(false);
       }
     },
     [displayQuestion, submitAndAdvance, currentIndex, totalQuestions, queryClient, storeSessionId, addExplanationEntry],
@@ -156,7 +156,7 @@ export function usePracticeSetSubmit({ questions, currentIndex, storeSessionId, 
     feedback,
     feedbackChoiceSetUuid,
     feedbackExplanationEntry,
-    isSubmitting: submitting,
+    isSubmitting,
     displayIndex,
     displayQuestion,
     submitPracticeAnswer,

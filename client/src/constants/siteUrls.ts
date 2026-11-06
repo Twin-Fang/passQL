@@ -1,7 +1,7 @@
 /**
  * 운영 주소 단일 원본: 웹 사이트, API, 공개 약관 (#462)
  * vite.config.ts(index.html og 태그)·api/client.ts 가 이 값을 읽음
- * vercel.json redirects·public/legal/*.html 사본은 siteUrls.test.ts 가 일치 검사
+ * 사본(vercel.json redirects, public/legal·robots·sitemap, iOS 마케팅 URL, 서버 소셜 콜백·CORS)은 siteUrls.test.ts 가 일치 검사
  */
 
 // 웹 운영 주소 (Vercel, og:url·og:image 기준, iOS 마케팅 URL 사본 app/ios/fastlane/marketing_url.txt 와 함께 바꿈)

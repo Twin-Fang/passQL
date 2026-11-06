@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { generateChoices } from "../api/questions";
+import {
+  CHOICE_GENERATION_TIMEOUT_ERROR,
+  toChoiceGenerationRejectionError,
+  toChoiceGenerationStreamError,
+  type ChoiceGenerationError,
+} from "../lib/choiceGenerationError";
 import type { ChoiceItem, QuestionDetail } from "../types/api";
 
 // 60초 내에 complete/error가 오지 않으면 클라이언트 타임아웃으로 에러 전환
 // AI 호출 + 샌드박스 3회 재시도 합산 예상 시간 기준
 const SSE_TIMEOUT_MS = 60_000;
-
-export interface ChoiceGenerationError {
-  readonly code: string;
-  readonly retryable: boolean;
-}
 
 /**
  * 문제 선택지 결정: GET 응답의 OK 선택지 세트, 없으면 SSE 생성 (타임아웃·재시도 포함)
@@ -61,7 +62,7 @@ export function useQuestionChoices(question: QuestionDetail | undefined, questio
     const timeoutId = setTimeout(() => {
       streamCleanup?.();
       if (!cancelled) {
-        setSseError({ code: "TIMEOUT", retryable: true });
+        setSseError(CHOICE_GENERATION_TIMEOUT_ERROR);
       }
     }, SSE_TIMEOUT_MS);
 
@@ -77,7 +78,14 @@ export function useQuestionChoices(question: QuestionDetail | undefined, questio
       onError: (event) => {
         clearTimeout(timeoutId);
         if (!cancelled) {
-          setSseError({ code: event.code, retryable: event.retryable });
+          setSseError(toChoiceGenerationStreamError(event));
+        }
+      },
+      // 스트림 시작 전 거부 (한도·프로 필요·요청 과다 등 오류 JSON)
+      onRejected: (rejection) => {
+        clearTimeout(timeoutId);
+        if (!cancelled) {
+          setSseError(toChoiceGenerationRejectionError(rejection));
         }
       },
     });

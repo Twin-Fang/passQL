@@ -1,4 +1,11 @@
-import { apiFetch, BASE_URL, reportMaintenanceIfDetected, resolveAccessTokenAfterUnauthorized } from "./client";
+import {
+  ApiError,
+  apiFetch,
+  BASE_URL,
+  reportMaintenanceIfDetected,
+  resolveAccessTokenAfterUnauthorized,
+  UNAUTHORIZED_HTTP_STATUS,
+} from "./client";
 import { getAccessToken } from "../stores/authStore";
 import type {
   Page,
@@ -16,8 +23,6 @@ import type {
 function logSseDiagnostic(...diagnosticValues: unknown[]): void {
   if (import.meta.env.DEV) console.debug(...diagnosticValues);
 }
-
-const UNAUTHORIZED_HTTP_STATUS = 401;
 
 interface QuestionListParams {
   readonly page?: number;
@@ -87,6 +92,8 @@ export function generateChoices(
     readonly onStatus: (event: SseStatusEvent) => void;
     readonly onComplete: (response: ChoiceSetGeneratedEvent) => void;
     readonly onError: (event: SseErrorEvent) => void;
+    // 스트림 시작 전 거부 (HTTP 오류 + 서버 오류 JSON, errorCode 유지)
+    readonly onRejected: (rejection: ApiError) => void;
   },
 ): () => void {
   const abortController = new AbortController();
@@ -110,7 +117,7 @@ export function generateChoices(
         // 점검 차단 503 도 apiFetch 와 같은 지점에서 점검 화면 전환
         const errorBody = await response.json().catch(() => null);
         reportMaintenanceIfDetected(response.status, errorBody);
-        callbacks.onError({ code: `HTTP_${response.status}`, message: `서버 오류 (${response.status})`, retryable: response.status >= 500 });
+        callbacks.onRejected(new ApiError(response.status, errorBody));
         return;
       }
 
