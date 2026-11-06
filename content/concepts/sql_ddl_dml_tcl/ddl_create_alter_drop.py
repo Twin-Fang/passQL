@@ -13,11 +13,11 @@ CONCEPT = {
     "title": "CREATE·ALTER·DROP·TRUNCATE",
     "summary": "테이블을 만들고 고치고 없애는 DDL이고, 실행하면 바로 확정돼요",
     "coreMd": (
-        "- DDL은 CREATE, ALTER, DROP, RENAME, TRUNCATE이고, Oracle에서는 실행 앞뒤로 자동 커밋돼요.\n"
-        "- 테이블 이름은 문자로 시작하고 문자·숫자·`_`·`$`·`#`만 쓰며, 예약어는 쓸 수 없어요.\n"
-        "- CTAS로 테이블을 복사하면 제약조건은 NOT NULL만 따라와요.\n"
+        "- DDL은 CREATE, ALTER, DROP, RENAME, TRUNCATE이고, Oracle에서는 실행 앞뒤로 **자동 커밋**돼요.\n"
+        "- 테이블 이름은 **문자로 시작**하고 문자·숫자·`_`·`$`·`#`만 쓰며, 예약어는 쓸 수 없어요.\n"
+        "- CTAS로 테이블을 복사하면 제약조건은 **NOT NULL만** 따라와요.\n"
         "- Oracle은 ADD·MODIFY에 COLUMN을 붙이지 않고, SQL Server는 MODIFY 대신 `ALTER COLUMN`을 써요.\n"
-        "- DELETE는 되돌릴 수 있고, TRUNCATE는 구조만 남기며, DROP은 테이블까지 없애요."
+        "- DELETE는 되돌릴 수 있고, TRUNCATE는 **구조만 남기며**, DROP은 테이블까지 없애요."
     ),
     "detailMd": """## SQL 문장의 네 가지 종류 — 구조, 데이터, 권한, 확정 {#why}
 
@@ -204,6 +204,19 @@ SQL Server는 같은 일을 다른 문법으로 해서, 시험 보기에 두 데
 | 바로 확인 | 정답 | 이유 |
 |---|---|---|
 | 행이 있는 테이블에도 DEFAULT를 함께 주면 NOT NULL 열을 더할 수 있어요 | O | 기존 행의 새 칸이 기본값으로 채워져서 NULL이 생기지 않아요 |
+
+## 꼭 외울 것 — DDL 다섯 개와 지우는 세 명령 {#memorize}
+
+| 외울 것 | 답 |
+|---|---|
+| DDL 다섯 개 | CREATE, ALTER, DROP, RENAME, TRUNCATE |
+| Oracle DDL과 커밋 | 실행 앞뒤로 자동 커밋, ROLLBACK 불가 |
+| 테이블 이름 규칙 | 문자로 시작, 문자·숫자·_·$·#만, 예약어 금지 |
+| CTAS로 따라오는 제약조건 | NOT NULL 하나 (DEFAULT도 안 따라와요) |
+| 구조만 복사하는 CTAS | `WHERE 1 = 2`처럼 늘 거짓인 조건을 붙여요 |
+| 열 변경 문법 | Oracle은 `MODIFY (열 타입)`, SQL Server는 `ALTER COLUMN` |
+| DELETE·TRUNCATE·DROP | DELETE만 ROLLBACK 가능, DROP만 구조까지 삭제 |
+| CASCADE CONSTRAINTS | 외래 키 규칙만 지우고 자식 행은 남겨요 |
 
 ## 시험에서는 이렇게 나와요 {#exam-point}
 

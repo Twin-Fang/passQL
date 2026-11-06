@@ -1,7 +1,10 @@
 """개념: OUTER JOIN (5단원, 확인 문제 5개)"""
 
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
-from concept_dataset import DEPARTMENT_ROWS, DEPARTMENT_TABLE_MD, EMPLOYEE_ROWS, EMPLOYEE_TABLE_MD, to_markdown_table
+from concept_dataset import DEPARTMENT_ROWS, DEPARTMENT_TABLE_MD, EMPLOYEE_ROWS, to_employee_table_md, to_markdown_table
+
+# 외부 조인 계산에 쓰는 열만 (사번: COUNT(E.사번)·IS NULL, 급여: ON·WHERE 조건, 커미션: IS NULL 함정)
+EMPLOYEE_JOIN_TABLE = to_employee_table_md("사번", "이름", "급여", "커미션", "부서번호")
 
 # 본문·문제 공통 SQL
 LEFT_JOIN_SQL = "SELECT E.이름, D.부서명 FROM 사원 E LEFT OUTER JOIN 부서 D ON E.부서번호 = D.부서번호"
@@ -87,18 +90,18 @@ CONCEPT = {
     "title": "OUTER JOIN",
     "summary": "짝이 없는 행도 버리지 않고, 모자란 쪽 열을 NULL로 채워 남겨요",
     "coreMd": (
-        "- OUTER JOIN은 기준 표의 행을 짝이 없어도 모두 남기고, 짝이 없는 상대 쪽 열은 NULL로 채워요.\n"
-        "- LEFT는 왼쪽, RIGHT는 오른쪽, FULL은 양쪽 표의 행을 모두 남기고, `OUTER`는 생략할 수 있어요.\n"
-        "- Oracle의 `(+)`는 NULL로 채워질 쪽 열에 붙여서 `E.부서번호 = D.부서번호(+)`가 사원 기준 LEFT JOIN이고, `(+)`로는 FULL을 못 써요.\n"
-        "- NULL로 채워지는 쪽 표의 조건을 WHERE에 두면 INNER JOIN처럼 되므로, 그 조건은 ON에 둬요."
+        "- OUTER JOIN은 기준 표의 행을 짝이 없어도 **모두 남기고**, 짝이 없는 상대 쪽 열은 NULL로 채워요.\n"
+        "- LEFT는 왼쪽, RIGHT는 오른쪽, FULL은 양쪽 표의 행을 모두 남기고, `OUTER`는 **생략**할 수 있어요.\n"
+        "- Oracle의 `(+)`는 **NULL로 채워질 쪽** 열에 붙여서 `E.부서번호 = D.부서번호(+)`가 사원 기준 LEFT JOIN이고, `(+)`로는 FULL을 못 써요.\n"
+        "- NULL로 채워지는 쪽 표의 조건을 WHERE에 두면 INNER JOIN처럼 되므로, 그 조건은 **ON에** 둬요."
     ),
     "detailMd": f"""## 왜 필요한가요 — 짝 없는 행도 남기기 {{#why}}
 
 부서별 사원 수 보고서를 INNER JOIN으로 만들면, 사원이 없는 인사부는 "0명"으로 나오지 않고 아예 사라져요. 부서가 정해지지 않은 윤서연도 사원 명단에서 사라지기는 마찬가지예요.
 
-이렇게 짝이 없는 행도 버리지 않고 남길 때 OUTER JOIN(외부 조인)을 써요. 예시는 모두 아래 사원 표(8명)와 부서 표(4개)로 계산해요.
+이렇게 짝이 없는 행도 버리지 않고 남길 때 OUTER JOIN(외부 조인)을 써요. 예시는 모두 아래 사원 표(8명)와 부서 표(4개)로 계산하고, 사원 표는 계산에 쓰는 다섯 열만 보여요.
 
-{EMPLOYEE_TABLE_MD}
+{EMPLOYEE_JOIN_TABLE}
 
 {DEPARTMENT_TABLE_MD}
 
@@ -135,7 +138,7 @@ LEFT에서는 윤서연의 부서명이, RIGHT에서는 인사부의 이름이 N
 
 ## Oracle의 (+) 표기 — 모자란 쪽에 붙여요 {{#oracle-plus}}
 
-Oracle 방식은 WHERE 절의 조인 조건에 `(+)`를 붙여 외부 조인을 표시해요. `(+)`를 붙이는 자리는 짝이 없을 때 NULL로 채워질 쪽 표의 열이에요.
+Oracle 방식은 WHERE 절의 조인 조건에 `(+)`를 붙여 외부 조인을 표시해요. `(+)`를 붙이는 자리는 짝이 없을 때 **NULL로 채워질 쪽** 표의 열이에요.
 
 | 한 줄로 외우기 | 뜻 |
 |---|---|
@@ -213,6 +216,19 @@ SELECT D.부서명, E.이름 FROM 부서 D, 사원 E WHERE D.부서번호 = E.�
 |---|---|---|
 | 사원 기준 LEFT JOIN에서 사원 쪽 조건을 ON에 두면, 조건에 맞지 않는 사원도 결과에 남아요 | O | ON 조건은 짝을 찾을 때만 쓰여서, 기준 행은 상대 열이 NULL인 채로 남아요 |
 | `WHERE E.부서번호 = D.부서번호(+)`의 기준 표는 사원이에요 | O | `(+)`가 없는 쪽이 기준이에요 |
+
+## 꼭 외울 것 — 기준 표와 (+) 위치 {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| LEFT·RIGHT·FULL의 기준 | 차례로 왼쪽 표, 오른쪽 표, 양쪽 표의 모든 행이 남아요 |
+| 외부 조인 결과 행 수 | 짝 맞는 행 수 + 기준 표에서 짝을 못 찾은 행 수 |
+| OUTER 키워드 | 생략할 수 있어서 LEFT JOIN만 써도 같아요 |
+| (+)를 붙이는 쪽 | NULL로 채워질 쪽 열, 기준 표는 (+)가 없는 쪽 |
+| (+)로 FULL 만들기 | 양쪽에 못 붙여서(ORA-01468) FULL은 ANSI 문법으로만 |
+| 상대 표 조건을 WHERE에 | NULL 행이 걸러져 INNER JOIN처럼 돼요 |
+| 기준 표 조건을 ON에 | 기준 행은 그대로 남고 상대 열만 NULL |
+| 짝 없는 부서의 인원 | COUNT(*)는 1, COUNT(상대 열)은 0 |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 

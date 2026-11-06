@@ -85,9 +85,9 @@ CONCEPT = {
     "summary": "범위의 첫 값·끝 값이나, 몇 칸 앞뒤 행의 값을 가져와요",
     "coreMd": (
         "- FIRST_VALUE와 LAST_VALUE는 윈도우 범위 안에서 첫 행과 마지막 행의 값을 가져와요.\n"
-        "- ORDER BY만 쓴 LAST_VALUE는 범위가 현재 행에서 끝나서 현재 행 값이 나오니, 끝까지 보려면 `UNBOUNDED FOLLOWING`까지 넓혀요.\n"
-        "- LAG는 앞 행, LEAD는 뒤 행의 값을 가져와요. 두 번째 인자는 몇 칸인지(생략하면 1), 세 번째 인자는 행이 없을 때 쓸 기본값이에요.\n"
-        "- 가져올 행이 없으면 기본값을 주지 않는 한 0이 아니라 NULL이 나와요.\n"
+        "- ORDER BY만 쓴 LAST_VALUE는 범위가 현재 행에서 끝나서 **현재 행 값**이 나오니, 끝까지 보려면 `UNBOUNDED FOLLOWING`까지 넓혀요.\n"
+        "- LAG는 **앞 행**, LEAD는 뒤 행의 값을 가져와요. 두 번째 인자는 몇 칸인지(생략하면 1), 세 번째 인자는 행이 없을 때 쓸 기본값이에요.\n"
+        "- 가져올 행이 없으면 기본값을 주지 않는 한 0이 아니라 **NULL**이 나와요.\n"
         "- LAG·LEAD는 OVER 안에 ORDER BY가 꼭 있어야 하고, 윈도우 절은 쓸 수 없어요."
     ),
     "detailMd": f"""## 다른 행의 값을 옆에 놓기 — 왜 필요할까요 {{#why}}
@@ -180,6 +180,19 @@ SELECT 이름, LAG(급여) OVER (ORDER BY 입사일 ROWS BETWEEN 1 PRECEDING AND
 | FIRST_VALUE는 ORDER BY만 써도 묶음의 첫 행 값을 돌려줘요 | O | 기본 범위가 늘 첫 행에서 시작해요 |
 | LAG(급여, 1, 0)과 LAG(급여)는 첫 행에서 같은 값을 돌려줘요 | X | 기본값 0을 준 쪽은 0, 주지 않은 쪽은 NULL이에요 |
 | IGNORE NULLS를 붙인 LAG는 NULL인 앞 행을 건너뛰고 그 앞의 값을 가져와요 | O | 값이 NULL인 행을 세지 않고 지나가요 |
+
+## 꼭 외울 것 — 앞 행, 뒤 행, 끝 값 {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| LAG | 앞 행의 값 |
+| LEAD | 뒤 행의 값 |
+| LAG·LEAD의 세 인자 | 열, 칸 수 (생략하면 1), 행이 없을 때 쓸 기본값 |
+| 가져올 행이 없으면 | NULL (기본값을 주면 그 값) |
+| ORDER BY만 쓴 LAST_VALUE | 현재 행 값 (범위가 현재 행에서 끝남) |
+| 끝 값을 모든 행에 붙이려면 | 범위의 끝을 UNBOUNDED FOLLOWING으로 |
+| LAG·LEAD의 OVER | ORDER BY 필수, 윈도우 절은 못 씀 |
+| NULL인 행 건너뛰기 | IGNORE NULLS (Oracle) |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 

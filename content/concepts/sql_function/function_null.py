@@ -63,10 +63,10 @@ CONCEPT = {
     "title": "NULL 관련 함수",
     "summary": "NULL을 다른 값으로 바꾸거나 값을 NULL로 만드는 함수이고, 인자 순서를 자주 물어요",
     "coreMd": (
-        "- `NVL(값, 대신할 값)`은 NULL일 때만 바꾸고, `NVL2(값, NULL이 아닐 때, NULL일 때)`는 NULL이 아닐 때 값을 먼저 적어요.\n"
-        "- `NULLIF(a, b)`는 같으면 NULL, 다르면 a이고, `COALESCE`는 처음으로 NULL이 아닌 값을 돌려줘요.\n"
-        "- NVL의 두 인자는 타입이 맞아야 해서, 숫자 커미션은 `NVL(TO_CHAR(커미션), '없음')`처럼 바꿔 써요.\n"
-        "- 행이 없으면 `NVL(열, 0)`은 0행이고, `NVL(MAX(열), 0)`은 0 한 행이에요.\n"
+        "- `NVL(값, 대신할 값)`은 NULL일 때만 바꾸고, `NVL2(값, NULL이 아닐 때, NULL일 때)`는 **NULL이 아닐 때 값을 먼저** 적어요.\n"
+        "- `NULLIF(a, b)`는 **같으면 NULL**, 다르면 a이고, `COALESCE`는 처음으로 NULL이 아닌 값을 돌려줘요.\n"
+        "- NVL의 두 인자는 **타입이 맞아야** 해서, 숫자 커미션은 `NVL(TO_CHAR(커미션), '없음')`처럼 바꿔 써요.\n"
+        "- 행이 없으면 `NVL(열, 0)`은 **0행**이고, `NVL(MAX(열), 0)`은 0 한 행이에요.\n"
         "- SQL Server의 `ISNULL`과 MySQL의 `IFNULL`은 NVL과 같고, 이름이 비슷한 `NULLIF`는 전혀 다른 함수예요."
     ),
     "detailMd": f"""## NULL 관련 함수가 하는 일 — NULL과 다른 값 사이를 바꿔요 {{#why}}
@@ -88,7 +88,7 @@ SELECT 급여 + 커미션 FROM 사원 WHERE 사번 = 1001;   -- 커미션이 NUL
 | NVL(a, b) | a가 NULL이면 b, 아니면 a | NVL(NULL, 0) | 0 |
 | NVL2(a, b, c) | a가 NULL이 아니면 b, NULL이면 c | NVL2(NULL, '있음', '없음') | 없음 |
 | NULLIF(a, b) | a와 b가 같으면 NULL, 다르면 a | NULLIF(10, 10) | NULL |
-| COALESCE(a, b, ...) | 왼쪽부터 보아 처음으로 NULL이 아닌 값 | COALESCE(NULL, NULL, 3, 4) | 3 |
+| COALESCE(a, b, ...) | 처음 만난 NULL 아닌 값 | COALESCE(NULL, NULL, 3, 4) | 3 |
 
 | 함수 | 외우는 말 |
 |---|---|
@@ -130,7 +130,7 @@ SELECT 급여 / 커미션 FROM 사원 WHERE 사번 = 1003;
 SELECT COALESCE(NULL, NULL, 3, 4), COALESCE(NULL, 'B', 'C'), NULLIF(10, 20) FROM DUAL;   -- 결과는 차례로 3, B, 10이에요
 ```
 
-COALESCE는 인자가 모두 NULL이면 NULL을 돌려주고, 인자를 두 개만 주면 NVL과 같은 일을 해요.
+COALESCE는 왼쪽부터 보아 처음으로 NULL이 아닌 값을 돌려줘요. 인자가 모두 NULL이면 NULL을 돌려주고, 인자를 두 개만 주면 NVL과 같은 일을 해요.
 
 ## 공집합과 NULL — 행이 없으면 NVL도 할 일이 없어요 {{#empty-set}}
 
@@ -218,6 +218,19 @@ SELECT MAX(NVL(급여, 0)), NVL(MAX(급여), 0) FROM 사원 WHERE 부서번호 =
 | COALESCE(NULL, NULL)의 결과는 NULL이에요 | O | 인자가 모두 NULL이면 NULL을 돌려줘요 |
 | 행이 없는 조건에서 COUNT(*)는 NULL을 돌려줘요 | X | COUNT는 예외로 0 한 행을 돌려줘요 |
 | NVL(커미션, '0')은 커미션이 숫자라서 오류가 나요 | X | '0'은 숫자로 바꿀 수 있어서 NVL은 동작해요 |
+
+## 꼭 외울 것 — 인자 순서와 DBMS별 이름 {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| NVL(a, b) | a가 NULL이면 b, 아니면 a |
+| NVL2(a, b, c)의 b와 c | b는 NULL이 아닐 때, c는 NULL일 때 |
+| NULLIF(a, b) | 같으면 NULL, 다르면 첫 번째 값 a |
+| COALESCE(a, b, ...) | 왼쪽부터 처음 만난 NULL 아닌 값, 모두 NULL이면 NULL |
+| 행이 없을 때 NVL과 집계 | NVL(열, 0)은 0행, NVL(MAX(열), 0)은 0 한 행 |
+| 숫자와 문자 섞기 | NVL은 둘째 인자를 첫 인자 타입으로 바꿔 보고, COALESCE는 오류 |
+| NVL과 같은 다른 이름 | SQL Server는 ISNULL(a, b), MySQL은 IFNULL(a, b) |
+| 표준 함수와 Oracle 전용 | NULLIF·COALESCE는 표준, NVL·NVL2는 Oracle |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 

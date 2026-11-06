@@ -79,10 +79,10 @@ CONCEPT = {
     "title": "CASE와 DECODE",
     "summary": "조건에 따라 다른 값을 고르는 식이고, 둘은 NULL을 비교하는 방식이 달라요",
     "coreMd": (
-        "- CASE는 위에서부터 처음 맞는 WHEN 하나의 값을 돌려주고, 맞는 것도 ELSE도 없으면 NULL이에요.\n"
-        "- 단순 CASE는 같은지(=)만 비교해서 `WHEN NULL`은 절대 맞지 않고, NULL은 `WHEN 열 IS NULL`로 찾아요.\n"
-        "- `DECODE`는 단순 CASE와 같은 일을 하지만 NULL과 NULL을 같다고 봐요.\n"
-        "- DECODE는 Oracle에만 있고, CASE는 SQL 표준이라 SQL Server에서도 써요."
+        "- CASE는 위에서부터 처음 맞는 WHEN 하나의 값을 돌려주고, 맞는 것도 ELSE도 없으면 **NULL**이에요.\n"
+        "- 단순 CASE는 **같은지(=)만** 비교해서 `WHEN NULL`은 절대 맞지 않고, NULL은 `WHEN 열 IS NULL`로 찾아요.\n"
+        "- `DECODE`는 단순 CASE와 같은 일을 하지만 **NULL과 NULL을 같다고** 봐요.\n"
+        "- DECODE는 **Oracle에만** 있고, CASE는 SQL 표준이라 SQL Server에서도 써요."
     ),
     "detailMd": f"""## CASE와 DECODE가 하는 일 — SQL 안의 IF 문 {{#why}}
 
@@ -124,7 +124,7 @@ CASE WHEN 조건1 THEN 결과1 WHEN 조건2 THEN 결과2 ELSE 기본값 END
 
 ## 처음 맞는 하나만 — WHEN은 위에서부터 확인해요 {{#first-match}}
 
-CASE는 처음 맞는 WHEN에서 멈추고, 뒤에 더 알맞은 조건이 있어도 보지 않아요. 그래서 범위가 겹치는 조건은 좁은 범위부터 적어야 해요.
+CASE는 **처음 맞는 WHEN**에서 멈추고, 뒤에 더 알맞은 조건이 있어도 보지 않아요. 그래서 범위가 겹치는 조건은 좁은 범위부터 적어야 해요.
 
 위 급여 등급에서 두 WHEN의 순서만 바꾸면, 급여가 3000 이상인 사원도 첫 조건 `급여 >= 2500`에서 걸려 '상'이 하나도 나오지 않아요.
 
@@ -186,6 +186,19 @@ SELECT CASE 부서번호 WHEN 10 THEN '기획' ELSE 부서번호 END FROM 사원
 |---|---|---|
 | 단순 CASE로도 `WHEN >= 3000` 같은 크기 비교를 쓸 수 있어요 | X | 단순 CASE는 같은지만 비교해서, 크기 비교는 검색 CASE로 써요 |
 | DECODE(커미션, NULL, '없음', '있음')은 커미션이 0인 박서준에게 '없음'을 돌려줘요 | X | 0은 NULL이 아니라서 기본값 '있음'이 나와요 |
+
+## 꼭 외울 것 — NULL 비교와 결과 타입 {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| CASE가 고르는 WHEN | 위에서부터 처음 맞는 하나, 그 뒤는 보지 않아요 |
+| 맞는 WHEN도 ELSE도 없으면 | NULL |
+| 단순 CASE와 검색 CASE | 단순은 같은지(=)만, 검색은 크기·범위·IS NULL까지 |
+| 단순 CASE의 WHEN NULL | 어떤 행에도 맞지 않아요 (NULL과의 = 비교는 UNKNOWN) |
+| DECODE의 NULL 비교 | NULL과 NULL을 같은 값으로 봐요 |
+| DECODE의 기본값 | 짝을 짓고 남는 마지막 인자, 없으면 NULL |
+| 결과 타입이 섞이면 | CASE는 ORA-00932(타입이 다름) 오류, DECODE는 첫 결과 타입으로 맞춤 |
+| 쓸 수 있는 DBMS | CASE는 표준이라 SQL Server도, DECODE는 Oracle 전용 |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 

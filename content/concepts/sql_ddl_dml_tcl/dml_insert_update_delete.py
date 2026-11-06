@@ -84,10 +84,10 @@ CONCEPT = {
     "title": "INSERT·UPDATE·DELETE",
     "summary": "테이블의 행을 넣고 고치고 지우는 DML이고, COMMIT 전까지는 되돌릴 수 있어요",
     "coreMd": (
-        "- INSERT에서 열 목록을 생략하면 모든 열에 정의 순서대로 넣고, 적지 않은 열은 DEFAULT 값이나 NULL이 돼요.\n"
-        "- UPDATE와 DELETE에서 WHERE를 빼면 모든 행이 대상이에요.\n"
-        "- INSERT ALL은 맞는 WHEN을 모두, INSERT FIRST는 처음 맞는 WHEN 하나만 실행해요.\n"
-        "- Oracle은 DELETE의 FROM은 생략할 수 있지만, INSERT의 INTO는 생략할 수 없어요.\n"
+        "- INSERT에서 열 목록을 생략하면 모든 열에 **정의 순서대로** 넣고, 적지 않은 열은 DEFAULT 값이나 NULL이 돼요.\n"
+        "- UPDATE와 DELETE에서 WHERE를 빼면 **모든 행**이 대상이에요.\n"
+        "- INSERT ALL은 맞는 WHEN을 모두, INSERT FIRST는 **처음 맞는 WHEN 하나**만 실행해요.\n"
+        "- Oracle은 DELETE의 FROM은 생략할 수 있지만, **INSERT의 INTO는 생략할 수 없어요**.\n"
         "- DML 결과는 COMMIT 전까지 내 세션에서만 보이고, ROLLBACK하면 되돌아가요."
     ),
     "detailMd": f"""## DML이란 — 테이블 안의 행을 다루는 명령 {{#why}}
@@ -241,10 +241,10 @@ SELECT COUNT(*) FROM 사원;   -- 되돌아와서 8이 나와요
 
 같은 `= NULL`이라도 SET에서는 값을 넣는 대입이고, WHERE에서는 같은지 묻는 비교예요. 그래서 NULL인 행을 고를 때는 WHERE에 `IS NULL`을 써요.
 
-| 자리 | 예 | 뜻 | 결과 |
+| 자리 | 예 (`UPDATE 사원` 뒤) | 뜻 | 결과 |
 |---|---|---|---|
-| SET | `UPDATE 사원 SET 커미션 = NULL WHERE 사번 = 1002` | 커미션을 NULL로 바꾸라는 대입 | 이지은의 커미션이 NULL이 돼요 |
-| WHERE | `UPDATE 사원 SET 급여 = 급여 * 2 WHERE 급여 = NULL` | 급여가 NULL과 같은지 묻는 비교 | 결과가 늘 UNKNOWN이라 바뀌는 행이 없어요 |
+| SET | `SET 커미션 = NULL WHERE 사번 = 1002` | 커미션을 NULL로 바꾸라는 대입 | 이지은의 커미션이 NULL이 돼요 |
+| WHERE | `SET 급여 = 급여 * 2 WHERE 급여 = NULL` | 급여가 NULL과 같은지 묻는 비교 | 결과가 늘 UNKNOWN이라 바뀌는 행이 없어요 |
 
 `DELETE FROM 부서`는 사원이 있는 10·20·30번 부서에서 외래 키 오류가 나요. 사원이 없는 40번만 지워지고 끝나는 것이 아니라 문장 하나가 통째로 취소돼요.
 
@@ -267,6 +267,19 @@ SELECT COUNT(*) FROM 사원이름;                                              
 | 바로 확인 | 정답 | 이유 |
 |---|---|---|
 | UPDATE의 새 값 자리에는 서브쿼리를 쓸 수 없어요 | X | `SET 급여 = (SELECT MAX(급여) FROM 사원)`처럼 쓸 수 있어요 |
+
+## 꼭 외울 것 — 빠진 열, 빠진 WHERE, 생략 키워드 {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| 열 목록을 생략한 INSERT | 모든 열의 값을 테이블 정의 순서대로 |
+| INSERT에서 빠진 열 | DEFAULT 값, 없으면 NULL (NOT NULL 열이면 오류) |
+| WHERE 없는 UPDATE·DELETE | 오류 없이 모든 행이 대상 |
+| NULL + 100 | NULL (0으로 보려면 NVL) |
+| INSERT ALL과 INSERT FIRST | ALL은 맞는 WHEN 모두, FIRST는 처음 맞는 하나 |
+| 다중 INSERT의 끝 | SELECT 필수 (고정값은 `SELECT * FROM DUAL`) |
+| Oracle에서 생략 가능한 키워드 | DELETE의 FROM (INSERT의 INTO는 생략 불가) |
+| 오류가 난 DML 문장 | 문장 전체가 취소, 앞서 성공한 문장은 남아요 |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 

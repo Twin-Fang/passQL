@@ -1,8 +1,11 @@
 """개념: CROSS JOIN (5단원, 확인 문제 5개)"""
 
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
-from concept_dataset import (DEPARTMENT_ROWS, DEPARTMENT_TABLE_MD, EMPLOYEE_TABLE_MD, SALARY_GRADE_ROWS,
-                             SALARY_GRADE_TABLE_MD, to_markdown_table)
+from concept_dataset import (DEPARTMENT_ROWS, DEPARTMENT_TABLE_MD, SALARY_GRADE_ROWS, SALARY_GRADE_TABLE_MD,
+                             to_employee_table_md, to_markdown_table)
+
+# 행 수 계산에 쓰는 열만 (급여: 급여등급 조인, 부서번호: 부서 조인, 8열 이름은 본문 문장에 적음)
+EMPLOYEE_JOIN_TABLE = to_employee_table_md("사번", "이름", "급여", "부서번호")
 
 # 본문·문제 공통 SQL
 DEPARTMENT_GRADE_ALL_SQL = "SELECT * FROM 부서 CROSS JOIN 급여등급;"
@@ -29,18 +32,20 @@ CONCEPT = {
     "title": "CROSS JOIN",
     "summary": "조건 없이 두 표의 행을 모든 경우로 짝지어 M × N 행을 만들어요",
     "coreMd": (
-        "- CROSS JOIN은 조인 조건 없이 모든 행을 서로 하나씩 짝짓고, 그 결과를 카티션 곱이라고 해요.\n"
-        "- 행 수는 두 표 행 수의 곱이고(사원 8행 × 부서 4행 = 32행), 열 수는 두 표 열 수의 합이에요.\n"
-        "- Oracle 방식에서 WHERE 절의 조인 조건을 빠뜨려도 오류 없이 카티션 곱이 생겨요.\n"
-        "- CROSS JOIN에는 ON 절을 쓸 수 없고, WHERE 절로 결과를 거르는 것은 돼요."
+        "- CROSS JOIN은 조인 조건 없이 모든 행을 서로 하나씩 짝짓고, 그 결과를 **카티션 곱**이라고 해요.\n"
+        "- 행 수는 두 표 행 수의 **곱**이고(사원 8행 × 부서 4행 = 32행), 열 수는 두 표 열 수의 합이에요.\n"
+        "- Oracle 방식에서 WHERE 절의 조인 조건을 빠뜨려도 **오류 없이** 카티션 곱이 생겨요.\n"
+        "- CROSS JOIN에는 **ON 절을 쓸 수 없고**, WHERE 절로 결과를 거르는 것은 돼요."
     ),
     "detailMd": f"""## 왜 알아야 하나요 — 갑자기 불어난 행 {{#why}}
 
 조인 결과가 갑자기 몇 배로 불어났다면, 대부분 표를 잇는 조건 하나를 빠뜨려서 모든 행이 서로 짝지어졌기 때문이에요. 시험에서도 이 행 수를 계산하는 문제가 자주 나오고, 모든 조합이 필요할 때는 일부러 쓰기도 해요.
 
-이 개념의 행 수는 모두 아래 세 표로 계산해요. 사원 표는 8행 8열이고, 부서 표와 급여등급 표는 각각 4행 3열이에요.
+이 개념의 행 수는 모두 아래 세 표로 계산해요. 사원 표는 8행 8열(사번, 이름, 직급, 관리자사번, 입사일, 급여, 커미션, 부서번호)이고, 부서 표와 급여등급 표는 각각 4행 3열이에요.
 
-{EMPLOYEE_TABLE_MD}
+사원 표는 조건 계산에 쓰는 네 열만 보여요.
+
+{EMPLOYEE_JOIN_TABLE}
 
 {DEPARTMENT_TABLE_MD}
 
@@ -129,6 +134,19 @@ SELECT COUNT(*) FROM 사원 E CROSS JOIN 부서 D WHERE E.부서번호 = D.부�
 | 바로 확인 | 정답 | 이유 |
 |---|---|---|
 | `사원 E JOIN 부서 D ON 1 = 1`의 결과는 CROSS JOIN과 같은 32행이에요 | O | 언제나 참인 조건이라 모든 짝이 남아요 |
+
+## 꼭 외울 것 — 행은 곱하고 열은 더해요 {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| 결과 행 수 | M행 × N행 |
+| 결과 열 수 | 두 표 열 수의 합 |
+| CROSS JOIN에 ON·USING | ORA-00933(문법에 없는 단어) 오류 |
+| CROSS JOIN에 WHERE | 쓸 수 있고, 조인이 끝난 결과를 걸러요 |
+| Oracle 방식에서 조건 누락 | 오류 없이 카티션 곱이 생겨요 |
+| 세 표 중 조건 하나 누락 | 이어진 표끼리 센 행 수 × 안 이어진 표의 행 수 |
+| ON 1 = 1 | 늘 참이라 CROSS JOIN과 같은 행 수 |
+| 같은 표를 조건 없이 두 번 | 8 × 8 = 64행처럼 행 수를 제곱해요 |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 

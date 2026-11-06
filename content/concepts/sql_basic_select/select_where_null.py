@@ -20,9 +20,9 @@ CONCEPT = {
     "summary": "NULL과 비교하면 참도 거짓도 아니라서, IS NULL로만 찾아요",
     "coreMd": (
         "- NULL은 값이 없거나 아직 모른다는 표시라서 숫자 0이나 빈칸 글자와 달라요.\n"
-        "- NULL과 무엇을 비교해도 UNKNOWN이 되고, WHERE는 참인 행만 남기므로 그 행은 빠져요.\n"
-        "- NULL을 찾을 때는 `= NULL`이 아니라 `IS NULL`, 아닌 행은 `IS NOT NULL`을 써요.\n"
-        "- NULL이 섞인 계산은 결과도 NULL이고, Oracle은 빈 문자열(`''`)도 NULL로 다뤄요."
+        "- NULL과 무엇을 비교해도 **UNKNOWN**이 되고, WHERE는 참인 행만 남기므로 그 행은 빠져요.\n"
+        "- NULL을 찾을 때는 `= NULL`이 아니라 **IS NULL**, 아닌 행은 `IS NOT NULL`을 써요.\n"
+        "- NULL이 섞인 계산은 결과도 NULL이고, Oracle은 **빈 문자열**(`''`)도 NULL로 다뤄요."
     ),
     "detailMd": f"""## 왜 헷갈릴까요 — 오류 없이 0행이 나와서 {{#why}}
 
@@ -111,6 +111,19 @@ SELECT 이름 FROM 사원 WHERE 이름 = '';                          -- 빈 문
 | 거짓 AND UNKNOWN의 결과는 거짓이에요 | O | 한쪽이 거짓이면 다른 쪽과 상관없이 AND는 거짓이에요 |
 | 커미션이 0인 박서준은 `커미션 IS NULL` 조건에 걸려요 | X | 0은 값이라서 박서준에게 IS NULL은 거짓이에요 |
 | `IS NOT NULL`의 결과는 UNKNOWN이 될 수 없어요 | O | IS NULL과 IS NOT NULL은 참이나 거짓으로만 답해요 |
+
+## 꼭 외울 것 — NULL이 끼면 무엇이 나오나 {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| NULL과 비교한 결과 | UNKNOWN (WHERE에서 빠져요) |
+| NULL을 찾는 조건 | `IS NULL`, `IS NOT NULL` (`= NULL`은 0행) |
+| NULL이 섞인 계산 | 결과도 NULL |
+| `<> 값` 조건과 NULL인 행 | 빠져요, 넣으려면 `OR 열 IS NULL` |
+| 거짓 AND UNKNOWN | 거짓 |
+| 참 OR UNKNOWN | 참 |
+| 참 AND UNKNOWN | UNKNOWN (NOT UNKNOWN도 UNKNOWN) |
+| Oracle의 빈 문자열 `''` | NULL로 다뤄요 (SQL Server는 구분) |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 
