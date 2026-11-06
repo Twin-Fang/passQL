@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Python AI 서버 장애 시 AiChatClient 를 직접 호출하는 fallback 래퍼 (모델 이름으로 Gemini·Claude 선택).
@@ -21,6 +23,9 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class GeminiFallbackClient {
+
+    // 템플릿 변수 자리 {이름} (이름 = 영문·숫자·밑줄, JSON 예시 중괄호는 해당 없음)
+    private static final Pattern TEMPLATE_VARIABLE_PATTERN = Pattern.compile("\\{([A-Za-z_][A-Za-z0-9_]*)\\}");
 
     private final AiChatClient aiChatClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -110,14 +115,20 @@ public class GeminiFallbackClient {
     //  내부 유틸
     // ========================
 
-    private String renderTemplate(String template, Map<String, String> variables) {
+    /**
+     * {변수} 한 번에 치환 (값 null > 빈 문자열, 모르는 이름은 그대로, AI 서버 render_template 과 같은 규칙)
+     * 한 번만 훑어 치환한 값 안의 {다른 변수} 가 다시 치환되지 않음 (#877)
+     */
+    static String renderTemplate(String template, Map<String, String> variables) {
         if (template == null) return "";
-        String rendered = template;
-        for (var entry : variables.entrySet()) {
-            rendered = rendered.replace("{" + entry.getKey() + "}",
-                    entry.getValue() != null ? entry.getValue() : "");
-        }
-        return rendered;
+        return TEMPLATE_VARIABLE_PATTERN.matcher(template).replaceAll(match -> {
+            String variableName = match.group(1);
+            if (!variables.containsKey(variableName)) {
+                return Matcher.quoteReplacement(match.group());
+            }
+            String variableValue = variables.get(variableName);
+            return Matcher.quoteReplacement(variableValue != null ? variableValue : "");
+        });
     }
 
     private Map<String, String> buildQuestionFullVars(QuestionFullContextDto ctx) {

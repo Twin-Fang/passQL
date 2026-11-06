@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from src.clients.redis_app_setting_client import get_raw_value
 from src.clients.setting_secret_cipher import SettingSecretError, decrypt_setting_secret, is_encrypted
 from src.core.config import settings
-from src.core.exceptions import CustomError
+from src.core.exceptions import LlmUnavailableError
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +83,7 @@ def build_emergency_connections() -> list[AiConnection]:
 
 
 async def load_ai_connections() -> list[AiConnection]:
-    """Redis 연결 목록 > 없으면 비상 연결 > 둘 다 없으면 CustomError"""
+    """Redis 연결 목록 > 없으면 비상 연결 > 둘 다 없으면 LlmUnavailableError"""
     connections = parse_ai_connections(await get_raw_value(AI_CONNECTIONS_REDIS_KEY))
     if connections:
         return connections
@@ -91,4 +91,4 @@ async def load_ai_connections() -> list[AiConnection]:
     if emergency_connections:
         logger.warning("[ai connection] redis list empty, env emergency connections used")
         return emergency_connections
-    raise CustomError("사용 가능한 AI 연결 없음")
+    raise LlmUnavailableError("사용 가능한 AI 연결 없음")

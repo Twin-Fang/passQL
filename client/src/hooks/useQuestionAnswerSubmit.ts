@@ -5,6 +5,16 @@ import { useSubmitAnswer } from "./useQuestionDetail";
 import { invalidateLearningRecordQueries } from "../lib/learningRecordQueries";
 import type { ChoiceItem, QuestionDetail, SubmitResult } from "../types/api";
 
+/**
+ * 연습 모드 제출 콜백: 부모가 채점 API 호출
+ * false 로 끝나면 제출 실패 > 같은 문제 다시 제출 허용 (그 외 반환은 제출 완료로 보고 연타 차단 유지)
+ */
+export type PracticeSubmitHandler = (
+  selectedChoiceKey: string,
+  choiceSetId: string,
+  choices: readonly ChoiceItem[],
+) => void | Promise<boolean | void>;
+
 interface QuestionAnswerSubmitOptions {
   readonly question: QuestionDetail | undefined;
   readonly questionUuid: string | undefined;
@@ -13,11 +23,7 @@ interface QuestionAnswerSubmitOptions {
   readonly choices: readonly ChoiceItem[];
   readonly choiceSetId: string;
   readonly practiceMode?: boolean;
-  readonly onPracticeSubmit?: (
-    selectedChoiceKey: string,
-    choiceSetId: string,
-    choices: readonly ChoiceItem[],
-  ) => void;
+  readonly onPracticeSubmit?: PracticeSubmitHandler;
   readonly onSubmitSuccess?: (result: SubmitResult, questionUuid: string) => void;
 }
 
@@ -54,7 +60,9 @@ export function useQuestionAnswerSubmit({
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
     if (practiceMode && onPracticeSubmit) {
-      onPracticeSubmit(selectedKey, choiceSetId, choices);
+      void Promise.resolve(onPracticeSubmit(selectedKey, choiceSetId, choices)).then((isSubmitted) => {
+        if (isSubmitted === false) isSubmittingRef.current = false;
+      });
       return;
     }
     submitMutation.mutate(

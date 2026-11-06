@@ -1,7 +1,7 @@
-import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import type { AppNotice } from "../types/api";
+import { useCloseOnEscape } from "../hooks/useCloseOnEscape";
 
 interface NoticeModalProps {
   readonly notice: Pick<AppNotice, "title" | "body">;
@@ -10,14 +10,7 @@ interface NoticeModalProps {
 
 /** 공지 본문 모달 (ESC·바깥 클릭·확인으로 닫기) (#464) */
 export default function NoticeModal({ notice, onClose }: NoticeModalProps) {
-  // ESC 닫기
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onClose]);
+  useCloseOnEscape(onClose);
 
   return createPortal(
     <div className="modal-overlay" onClick={onClose}>
