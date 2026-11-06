@@ -50,10 +50,7 @@ const Map<String, String> _allowedNotificationInboxRouteUsages = {
 };
 
 /// 종 아이콘 없이 목록 행으로 알림함에 들어가는 화면 {파일: 이유}
-const Map<String, String> _allowedNotificationInboxRowUsages = {
-  'lib/presentation/pages/settings/settings_page.dart':
-      'MY 탭 알림 묶음의 알림함·공지 행 (홈이 아닌 탭에서도 알림함 진입)',
-};
+const Map<String, String> _allowedNotificationInboxRowUsages = {};
 
 void main() {
   test('안쪽 계층(core·data·design)은 바깥 계층을 import 하지 않는다 (core 는 data 도 금지)', () {
