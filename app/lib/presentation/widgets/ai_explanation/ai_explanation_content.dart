@@ -5,13 +5,12 @@ import '../../design/design.dart';
 import '../../providers/ai_explanation_session_provider.dart';
 import '../../providers/choice_explanation_providers.dart';
 import '../../providers/plan_providers.dart';
-import '../pro/locked_preview_samples.dart';
-import '../pro/pro_locked_section.dart';
 import '../question/markdown_lite_text.dart';
 import 'ai_explanation_sections.dart';
+import 'ai_explanation_verdict.dart';
 
 /// 전체 해설 본문 (패널·단건 결과 공통): 상태별 기다림 > 구조화 섹션 / 마크다운 > 실패 안내·재시도·폴백
-/// 무료(결제 켜짐, FULL_EXPLANATION 잠김): 판정 한 줄 + 블러
+/// 무료(결제 켜짐, FULL_EXPLANATION 잠김): 판정 한 줄 + 블러 (판정이 비어 오거나 실패하고 폴백도 없으면 제출 결과로 조립한 판정, #867)
 class AiExplanationContent extends ConsumerWidget {
   const AiExplanationContent({super.key, required this.entry});
 
@@ -22,9 +21,19 @@ class AiExplanationContent extends ConsumerWidget {
     final provider = choiceExplanationProvider(entry.request);
     final explanationState = ref.watch(provider);
     final structuredExplanation = explanationState.explanation;
+    final shouldShowProUi = ref.watch(shouldShowProUiProvider);
     final isFullExplanationLocked =
-        explanationState.isFullExplanationLocked &&
-        ref.watch(shouldShowProUiProvider);
+        explanationState.isFullExplanationLocked && shouldShowProUi;
+    // 폴백 순서: 서버 마크다운(옛 해설) > 생성 근거
+    final fallbackText = explanationState.hasMarkdownText
+        ? explanationState.markdownText
+        : entry.rationale;
+    final verdictOnlySections = AiExplanationSections(
+      key: const ValueKey('verdictOnly'),
+      explanation: verdictOnlyExplanationOf(entry),
+      entry: entry,
+      isFullExplanationLocked: true,
+    );
     final Widget body = switch (explanationState.phase) {
       ChoiceExplanationPhase.loading => _LoadingBody(
         key: const ValueKey('loading'),
@@ -39,24 +48,25 @@ class AiExplanationContent extends ConsumerWidget {
           entry: entry,
           isFullExplanationLocked: isFullExplanationLocked,
         ),
-      // 판정까지 비어 온 무료 응답: 블러만
+      // 판정까지 비어 온 무료 응답: 제출 결과로 조립한 판정 + 블러
       ChoiceExplanationPhase.ready when isFullExplanationLocked =>
-        const ProLockedSection(
-          key: ValueKey('locked'),
-          preview: ExplanationLockedSample(),
-          caption: LockedPreviewCaptions.explanation,
-        ),
+        verdictOnlySections,
       ChoiceExplanationPhase.ready => MarkdownLiteText(
         key: const ValueKey('markdown'),
         explanationState.markdownText ?? '',
       ),
+      // 무료 재제출 실패(근거 폴백 없음): 다시 시도 대신 판정 + 블러 (풀려도 무료 몫은 판정뿐)
+      ChoiceExplanationPhase.failed
+          when shouldShowVerdictOnlyFor(
+            entry,
+            shouldShowProUi: shouldShowProUi,
+            fallbackText: fallbackText,
+          ) =>
+        verdictOnlySections,
       ChoiceExplanationPhase.failed => _FailureBody(
         key: const ValueKey('failed'),
         message: explanationState.failureMessage ?? '',
-        // 폴백 순서: 서버 마크다운(옛 해설) > 생성 근거
-        fallbackText: explanationState.hasMarkdownText
-            ? explanationState.markdownText
-            : entry.rationale,
+        fallbackText: fallbackText,
         onRetry: () => ref.read(provider.notifier).retry(),
       ),
     };
