@@ -47,9 +47,9 @@ const NON_COLOR_UTILITY_NAMES = new Set([
 ]);
 // 테두리 방향 (border-t, border-b-0 등)
 const BORDER_SIDE_PATTERN = /^[tblrxyse](-\d+)?$/;
-// 색 클래스 후보: 접두사-이름(/투명도)
+// 색 클래스 후보: 접두사-이름(/투명도), ring-offset·outline-offset 은 접두사로 먼저 떼어 굵기(-2)·색(-surface-card) 구분
 const COLOR_CLASS_PATTERN =
-  /(?<![\w-])(?:[a-z-]+:)*(border-[tblrxyse]|bg|text|border|fill|stroke|divide|ring|outline|decoration|placeholder)-([a-z](?:[a-z0-9-]*[a-z0-9])?)(?:\/\d+)?(?![\w-])/g;
+  /(?<![\w-])(?:[a-z-]+:)*(border-[tblrxyse]|bg|text|border|fill|stroke|divide|ring-offset|outline-offset|ring(?!-offset)|outline(?!-offset)|decoration|placeholder)-([a-z](?:[a-z0-9-]*[a-z0-9])?)(?:\/\d+)?(?![\w-])/g;
 const COLOR_VARIABLE_REFERENCE_PATTERN = /var\(--color-([a-z0-9-]+)/g;
 // hex 색: 6·8자리, 또는 영문자가 섞인 3·4자리 (#462 같은 이슈 번호 제외)
 const HEX_COLOR_PATTERN = /#(?:[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?|(?=[0-9]*[a-fA-F])[0-9a-fA-F]{3,4})\b/g;

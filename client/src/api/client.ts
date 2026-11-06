@@ -142,8 +142,8 @@ export const UNAUTHORIZED_HTTP_STATUS = 401;
 function isSessionEndingReissueError(error: unknown): boolean {
   if (!(error instanceof ApiError)) return false;
   if (error.status === UNAUTHORIZED_HTTP_STATUS) return true;
-  const errorCode = (error.body as { errorCode?: unknown } | null)?.errorCode;
-  return typeof errorCode === "string" && SESSION_ENDING_REISSUE_ERROR_CODES.has(errorCode);
+  const errorCode = toApiErrorCode(error);
+  return errorCode !== null && SESSION_ENDING_REISSUE_ERROR_CODES.has(errorCode);
 }
 
 // 재발급 조율 1개 (탭 안 단일 비행 + 탭 간 잠금, 저장값은 매번 다시 읽음)

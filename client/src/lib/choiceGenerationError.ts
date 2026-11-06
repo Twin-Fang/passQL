@@ -1,4 +1,4 @@
-import { ApiError } from "../api/client";
+import { toApiErrorCode, type ApiError } from "../api/client";
 import { toProAccessErrorCode } from "./proAccess";
 import { toUserErrorMessage } from "./userErrorMessage";
 import type { SseErrorEvent } from "../types/api";
@@ -32,9 +32,8 @@ export function toChoiceGenerationRejectionError(rejection: ApiError): ChoiceGen
   const proAccessErrorCode = toProAccessErrorCode(rejection);
   if (proAccessErrorCode) return { code: proAccessErrorCode, isRetryable: false, userMessage: null };
 
-  const errorCode = (rejection.body as { errorCode?: unknown } | null)?.errorCode;
   return {
-    code: typeof errorCode === "string" ? errorCode : `HTTP_${rejection.status}`,
+    code: toApiErrorCode(rejection) ?? `HTTP_${rejection.status}`,
     isRetryable: true,
     userMessage: toUserErrorMessage(rejection, CHOICE_GENERATION_FAILED_MESSAGE),
   };
