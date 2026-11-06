@@ -599,8 +599,8 @@ Object? _respond(RequestOptions o) {
         'trend': '이번 주 정답률 66%, 지난주보다 8%p 올랐어요',
         'strength': {'topicUuid': _topics[1][0], 'topicName': _topics[1][2], 'correctRatePercent': 92},
         'actions': [
-          {'type': 'PRACTICE_TOPIC', 'topicUuid': _topics[0][0], 'topicName': _topics[0][2], 'count': 10, 'label': '${_topics[0][2]} 10문제 풀기'},
-          {'type': 'REVIEW_WRONG', 'topicUuid': null, 'topicName': null, 'count': 8, 'label': '최근 오답 8문제 다시 풀기'},
+          {'type': 'PRACTICE_TOPIC', 'topicUuid': _topics[0][0], 'topicName': _topics[0][2], 'count': 5, 'label': '${_topics[0][2]} 5문제 풀기'},
+          {'type': 'REVIEW_WRONG', 'topicUuid': null, 'topicName': null, 'count': 5, 'label': '최근 오답 5문제 다시 풀기'},
         ],
       },
     };

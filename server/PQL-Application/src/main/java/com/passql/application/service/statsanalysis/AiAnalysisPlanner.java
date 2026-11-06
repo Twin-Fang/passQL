@@ -33,12 +33,11 @@ public final class AiAnalysisPlanner {
     static final double STRENGTH_RATE_THRESHOLD = 0.85;
     // 한 줄 요약 앞 D-N 표기 기간 (일)
     static final int EXAM_PREFIX_DAYS = 30;
-    // 토픽 풀기 버튼 문제 수: 최근 7일 쉬었으면 5, 아니면 10
-    static final int PRACTICE_COUNT_AFTER_BREAK = 5;
-    static final int PRACTICE_COUNT_DEFAULT = 10;
-    // 오답 다시 풀기 버튼: 마지막 시도 오답 3문제 이상일 때, 최대 10문제
+    // 토픽 풀기 버튼 문제 수 (한 번에 부담 없는 양)
+    static final int PRACTICE_COUNT = 5;
+    // 오답 다시 풀기 버튼: 마지막 시도 오답 3문제 이상일 때, 최대 5문제
     static final int REVIEW_WRONG_MIN_COUNT = 3;
-    static final int REVIEW_WRONG_MAX_COUNT = 10;
+    static final int REVIEW_WRONG_MAX_COUNT = 5;
 
     static final String HEADLINE_NO_HISTORY = "아직 풀이 기록이 없어요";
 
@@ -63,7 +62,7 @@ public final class AiAnalysisPlanner {
                 focusTopics.stream().map(AiAnalysisPlanner::toFinding).toList(),
                 toTrendText(input.twoWeekCounts()),
                 selectStrength(input.topicStats()).orElse(null),
-                buildActions(focusTopics, input.recentSolvedCount(), input.latestWrongQuestionCount())
+                buildActions(focusTopics, input.latestWrongQuestionCount())
         );
         return new StatsAnalysisPlan(analysis, focusTopics);
     }
@@ -192,15 +191,13 @@ public final class AiAnalysisPlanner {
     }
 
     /** 버튼 최대 2개: 첫 집중 토픽 풀기 > 최근 오답 다시 풀기 (3문제 이상) */
-    static List<AiAnalysisAction> buildActions(List<TopicLearningStat> focusTopics, long recentSolvedCount,
-                                               long latestWrongQuestionCount) {
+    static List<AiAnalysisAction> buildActions(List<TopicLearningStat> focusTopics, long latestWrongQuestionCount) {
         List<AiAnalysisAction> actions = new ArrayList<>();
         if (!focusTopics.isEmpty()) {
             TopicLearningStat firstFocus = focusTopics.get(0);
             String shortName = toShortTopicName(firstFocus.displayName());
-            int practiceCount = recentSolvedCount == 0 ? PRACTICE_COUNT_AFTER_BREAK : PRACTICE_COUNT_DEFAULT;
             actions.add(new AiAnalysisAction(AiAnalysisActionType.PRACTICE_TOPIC, firstFocus.topicUuid(), shortName,
-                    practiceCount, shortName + " " + practiceCount + "문제 풀기"));
+                    PRACTICE_COUNT, shortName + " " + PRACTICE_COUNT + "문제 풀기"));
         }
         if (latestWrongQuestionCount >= REVIEW_WRONG_MIN_COUNT) {
             int reviewCount = (int) Math.min(latestWrongQuestionCount, REVIEW_WRONG_MAX_COUNT);
