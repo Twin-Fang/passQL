@@ -19,8 +19,8 @@ import '../../widgets/stats/ai_analysis_card_skeleton.dart';
 /// 내 프로필 탭 (#749): 홈과 같은 구간 + 띠 구조.
 /// 내 상태(이름 줄·정답률·탑승권) > AI 분석 > 영역별 정답률 > 광고. 홈에 있는 준비도·히트맵·바로가기는 두지 않는다.
 /// 로딩: 구간 모양 스켈레톤 / 에러: 재시도 / 성공: 구간 순차 등장, pull-to-refresh 지원.
-class StatsPage extends ConsumerWidget {
-  const StatsPage({super.key});
+class ProfilePage extends ConsumerWidget {
+  const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

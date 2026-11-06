@@ -11,6 +11,7 @@ import '../pro/locked_preview_samples.dart';
 import '../pro/pro_locked_section.dart';
 import 'ai_explain_sheet.dart';
 import 'choice_display_label.dart';
+import 'choice_mode_indicator.dart';
 import 'execute_failure_card.dart';
 import 'execute_result_card.dart';
 import 'execution_comparison_card.dart';
@@ -20,7 +21,7 @@ import 'schema_section.dart';
 import 'reveal_above_bottom_bar.dart';
 import 'sql_practice_card.dart';
 
-/// 문제 풀이 본문 스크롤: 머리 > 지문 > 테이블(실행형) > 선택지 > 실행 중 표시 > 실행 결과 또는 실패 (무료면 블러)
+/// 문제 풀이 본문 스크롤: 머리 > 지문 > 테이블(실행형) > 보기 방식 > 선택지 > 실행 중 표시 > 실행 결과 또는 실패 (무료면 블러)
 /// > (채점 뒤 실행형) 내 답 vs 정답 비교 + 직접 실행해보기
 /// 챕터 풀이(ChapterPage)와 단건 풀이(QuestionDetailPage)가 함께 쓴다. 제출 바는 Scaffold 하단에 따로 붙는다.
 class QuestionSolvingBody extends StatelessWidget {
@@ -105,6 +106,8 @@ class QuestionSolvingBody extends StatelessWidget {
               schemaDdl: question.schemaDdl,
               schemaSampleData: question.schemaSampleData,
             ),
+          // 지금 보기 방식 (AI 새 보기·검증된 보기, 누르면 바꾸는 시트)
+          const ChoiceModeIndicator(),
           QuestionChoices(
             interaction: interaction,
             notifier: notifier,
