@@ -1,5 +1,6 @@
 package com.passql.web.scheduler;
 
+import com.passql.common.util.ServiceTimeZone;
 import com.passql.meta.service.ServerErrorLogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +15,7 @@ public class ServerErrorLogCleanupScheduler {
     private final ServerErrorLogService serverErrorLogService;
 
     /** 매일 04시 보관 기간(30일)이 지난 서버 오류 기록 삭제 — 컨테이너 로그 보관 기간(#436)과 맞춘다 */
-    @Scheduled(cron = "0 0 4 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 4 * * *", zone = ServiceTimeZone.ZONE_NAME)
     public void purgeExpired() {
         int deleted = serverErrorLogService.purgeExpired();
         if (deleted > 0) {

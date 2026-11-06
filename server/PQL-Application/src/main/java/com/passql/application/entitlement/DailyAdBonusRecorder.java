@@ -1,5 +1,6 @@
 package com.passql.application.entitlement;
 
+import com.passql.common.util.ServiceTimeZone;
 import com.passql.member.entity.MemberDailyAdBonus;
 import com.passql.member.repository.MemberDailyAdBonusRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +28,7 @@ public class DailyAdBonusRecorder {
     @Autowired
     public DailyAdBonusRecorder(MemberDailyAdBonusRepository memberDailyAdBonusRepository,
                                 DailyFreeBonusReader dailyFreeBonusReader) {
-        this(memberDailyAdBonusRepository, dailyFreeBonusReader, Clock.system(FeatureAccessPolicy.SERVICE_ZONE));
+        this(memberDailyAdBonusRepository, dailyFreeBonusReader, Clock.system(ServiceTimeZone.ZONE));
     }
 
     DailyAdBonusRecorder(MemberDailyAdBonusRepository memberDailyAdBonusRepository,

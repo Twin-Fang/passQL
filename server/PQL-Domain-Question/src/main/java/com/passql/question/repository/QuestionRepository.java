@@ -16,6 +16,9 @@ public interface QuestionRepository extends JpaRepository<Question, UUID>, JpaSp
 
     List<Question> findByIsActiveTrue();
 
+    // 풀이·채점 가능 여부 (비활성 문제 거부, #879)
+    boolean existsByQuestionUuidAndIsActiveTrue(UUID questionUuid);
+
     // 토픽·서브토픽 소속 문제 수 (비활성 포함, 삭제 가능 여부 판단·관리 화면 표시)
     long countByTopicUuid(UUID topicUuid);
 

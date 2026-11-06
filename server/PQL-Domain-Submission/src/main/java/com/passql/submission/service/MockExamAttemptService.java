@@ -1,5 +1,6 @@
 package com.passql.submission.service;
 
+import com.passql.common.util.ServiceTimeZone;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.submission.constant.MockExamAttemptStatus;
@@ -26,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -42,9 +42,6 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class MockExamAttemptService {
 
-    // 서비스 기준 시간대 (시작·마감 KST 로컬 저장값)
-    private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
-
     private final MockExamRoundRepository roundRepository;
     private final MockExamAttemptRepository attemptRepository;
     private final MockExamAnswerRepository answerRepository;
@@ -57,7 +54,7 @@ public class MockExamAttemptService {
                                   MockExamAnswerRepository answerRepository, MockExamPaperLoader paperLoader,
                                   MockExamAttemptFinalizer attemptFinalizer) {
         this(roundRepository, attemptRepository, answerRepository, paperLoader, attemptFinalizer,
-            Clock.system(SERVICE_ZONE));
+            Clock.system(ServiceTimeZone.ZONE));
     }
 
     MockExamAttemptService(MockExamRoundRepository roundRepository, MockExamAttemptRepository attemptRepository,

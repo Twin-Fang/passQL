@@ -1,5 +1,6 @@
 package com.passql.application.entitlement;
 
+import com.passql.common.util.ServiceTimeZone;
 import com.passql.member.repository.MemberDailyAdBonusRepository;
 import com.passql.question.entity.DailyChallenge;
 import com.passql.question.entity.DailySetSubmission;
@@ -36,7 +37,7 @@ public class DailyFreeBonusReader {
                                 SubmissionRepository submissionRepository,
                                 MemberDailyAdBonusRepository memberDailyAdBonusRepository) {
         this(dailySetSubmissionRepository, dailyChallengeRepository, submissionRepository,
-            memberDailyAdBonusRepository, Clock.system(FeatureAccessPolicy.SERVICE_ZONE));
+            memberDailyAdBonusRepository, Clock.system(ServiceTimeZone.ZONE));
     }
 
     DailyFreeBonusReader(DailySetSubmissionRepository dailySetSubmissionRepository,

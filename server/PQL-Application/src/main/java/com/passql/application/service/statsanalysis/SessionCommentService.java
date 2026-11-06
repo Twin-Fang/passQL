@@ -41,10 +41,15 @@ public class SessionCommentService {
     /** 세션 코멘트 평문 + 캐시 여부 (LLM 을 불렀다 실패했으면 캐시하지 않음) */
     public record SessionCommentResult(String comment, boolean isCacheable) {}
 
-    /** 본인 세션 결과 > 서버 문장 > (오답 있으면) LLM 한 문장 (남의 세션 UUID 면 결과 없음 문장, #860) */
+    /** 본인 세션 결과 > 서버 문장 > (오답 있으면) LLM 한 문장 (남의 세션·없는 세션은 고정 문장, 캐시 안 함) */
     public SessionCommentResult comment(UUID memberUuid, UUID sessionUuid) {
+        List<SessionResult> sessionResults = loadSessionResults(memberUuid, sessionUuid);
+        // 결과 없는 세션 UUID: LLM·토픽 집계 없이 고정 문장 (아무 UUID 로 캐시 키를 늘리지 못하게, #879)
+        if (sessionResults.isEmpty()) {
+            return new SessionCommentResult(joinSentences(List.of(SessionCommentPlanner.NO_SESSION_RESULT)), false);
+        }
         SessionCommentPlan plan = SessionCommentPlanner.plan(
-                loadSessionResults(memberUuid, sessionUuid), statsAnalysisDataLoader.loadTopicStats(memberUuid));
+                sessionResults, statsAnalysisDataLoader.loadTopicStats(memberUuid));
         List<String> sentences = new ArrayList<>(plan.sentences());
         if (!plan.hasWrongAnswers()) {
             return new SessionCommentResult(joinSentences(sentences), true);

@@ -2,6 +2,7 @@ package com.passql.application.service.statsanalysis;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.passql.common.util.UuidUtils;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -88,13 +89,6 @@ public final class AiAnalysisInsightParser {
     }
 
     private static UUID toUuidOrNull(String value) {
-        if (value == null) {
-            return null;
-        }
-        try {
-            return UUID.fromString(value.trim());
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+        return UuidUtils.parseOrEmpty(value == null ? null : value.trim()).orElse(null);
     }
 }

@@ -3,6 +3,7 @@ package com.passql.web.controller.admin;
 import com.passql.ai.constant.AiProvider;
 import com.passql.ai.dto.AiConnectionApiKeyRequest;
 import com.passql.ai.dto.AiConnectionCreateRequest;
+import com.passql.ai.dto.AiConnectionEnabledRequest;
 import com.passql.ai.dto.AiConnectionHealth;
 import com.passql.ai.dto.AiConnectionUpdateRequest;
 import com.passql.ai.service.AiConnectionAdminService;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -60,8 +60,8 @@ public class AdminAiConnectionController {
     /** 사용 켜기·끄기 (body: {"isEnabled": true}) */
     @PutMapping("/{uuid}/enabled")
     @ResponseBody
-    public ResponseEntity<Void> changeEnabled(@PathVariable UUID uuid, @RequestBody Map<String, Boolean> body) {
-        aiConnectionAdminService.changeEnabled(uuid, Boolean.TRUE.equals(body.get("isEnabled")));
+    public ResponseEntity<Void> changeEnabled(@PathVariable UUID uuid, @Valid @RequestBody AiConnectionEnabledRequest request) {
+        aiConnectionAdminService.changeEnabled(uuid, request.isEnabled());
         return ResponseEntity.ok().build();
     }
 

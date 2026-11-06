@@ -8,6 +8,7 @@ import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.application.entitlement.MemberPlanResponse;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.ServiceTimeZone;
 import com.passql.member.constant.PassProduct;
 import com.passql.member.constant.PurchaseStatus;
 import com.passql.member.constant.PurchaseStore;
@@ -20,7 +21,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -39,8 +39,6 @@ public class AppStoreBillingService {
     static final String PURCHASE_TOKEN_PREFIX = "appstore:";
     // 등급 회수 대상 알림 유형 2개: REFUND 환불, REVOKE 가족 공유 해제 등 회수
     private static final Set<String> REVOKING_NOTIFICATION_TYPES = Set.of("REFUND", "REVOKE");
-    // 서비스 기준 시간대 (만료일·구매 시각은 KST 로컬 저장값)
-    private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
 
     private final AppStoreSignedDataVerifier appStoreSignedDataVerifier;
     private final EntitlementPurchaseRepository entitlementPurchaseRepository;
@@ -58,7 +56,7 @@ public class AppStoreBillingService {
                                   FeatureAccessPolicy featureAccessPolicy,
                                   TransactionTemplate transactionTemplate) {
         this(appStoreSignedDataVerifier, entitlementPurchaseRepository, entitlementPurchaseRevoker,
-            storePurchaseRecorder, featureAccessPolicy, transactionTemplate, Clock.system(SERVICE_ZONE));
+            storePurchaseRecorder, featureAccessPolicy, transactionTemplate, Clock.system(ServiceTimeZone.ZONE));
     }
 
     AppStoreBillingService(AppStoreSignedDataVerifier appStoreSignedDataVerifier,

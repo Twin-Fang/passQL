@@ -1,53 +1,18 @@
 import { apiFetch } from "./client";
-
-export type AuthProvider = "GOOGLE" | "KAKAO" | "NAVER" | "APPLE" | "GITHUB";
-
-export interface LoginRequest {
-  readonly authProvider: AuthProvider;
-  readonly idToken: string;
-}
-
-export interface LoginResponse {
-  readonly accessToken: string;
-  readonly refreshToken: string;
-  readonly isNewMember: boolean;
-  readonly memberUuid: string;
-  readonly nickname: string;
-}
-
-export interface ReissueRequest {
-  readonly refreshToken: string;
-}
-
-export interface ReissueResponse {
-  readonly accessToken: string;
-  readonly refreshToken: string;
-}
+import type {
+  AuthorizationCodeLoginRequest,
+  LoginRequest,
+  LoginResponse,
+  ReissueRequest,
+  ReissueResponse,
+  SocialLoginClientConfig,
+} from "../types/api";
 
 export function login(req: LoginRequest): Promise<LoginResponse> {
   return apiFetch<LoginResponse>("/auth/login", {
     method: "POST",
     body: JSON.stringify(req),
   });
-}
-
-/** 인가 코드 로그인 제공자 3개 (#509) */
-export type AuthorizationCodeProvider = "KAKAO" | "NAVER" | "GITHUB";
-
-export interface AuthorizationCodeLoginRequest {
-  readonly authProvider: AuthorizationCodeProvider;
-  readonly code: string;
-  readonly redirectUri: string;
-  readonly state: string | null;
-  // PKCE code_verifier (GitHub 만, 없으면 JSON 에서 빠짐)
-  readonly codeVerifier?: string;
-}
-
-/** 제공자 공개 설정: 사용 여부 + 공개 client ID (secret 없음) */
-export interface SocialLoginClientConfig {
-  readonly authProvider: AuthorizationCodeProvider;
-  readonly isEnabled: boolean;
-  readonly clientId: string | null;
 }
 
 export function loginWithAuthorizationCode(req: AuthorizationCodeLoginRequest): Promise<LoginResponse> {

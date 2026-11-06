@@ -1,6 +1,7 @@
 package com.passql.web.controller.admin;
 
 import com.passql.meta.constant.ConceptDocSortType;
+import com.passql.meta.dto.ConceptDocBodyRequest;
 import com.passql.meta.dto.OrderedCodesRequest;
 import com.passql.meta.service.MetaService;
 import com.passql.web.support.AdminMenu;
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 import java.util.UUID;
 
 @Controller
@@ -51,8 +51,8 @@ public class AdminConceptController {
     @PutMapping("/{uuid}")
     @ResponseBody
     public ResponseEntity<Void> updateDoc(@PathVariable UUID uuid,
-                                          @RequestBody Map<String, String> body) {
-        metaService.updateDocBody(uuid, body.get("bodyMd"));
+                                          @RequestBody ConceptDocBodyRequest request) {
+        metaService.updateDocBody(uuid, request.bodyMd());
         return ResponseEntity.ok().build();
     }
 

@@ -2,6 +2,7 @@ package com.passql.application.feedback;
 
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.ServiceTimeZone;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -10,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.UUID;
 
 /**
@@ -25,14 +25,13 @@ public class FeedbackSubmitLimiter {
     // 하루 전송 한도
     static final int MAX_SUBMITS_PER_DAY = 10;
     private static final Duration DAY_WINDOW = Duration.ofDays(1);
-    private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
 
     private final StringRedisTemplate stringRedisTemplate;
 
     /** 전송 시도 1회 기록 > 하루 한도 초과면 429 FEEDBACK_DAILY_LIMIT_EXCEEDED */
     public void acquireSubmitPermit(UUID memberUuid) {
         try {
-            String dayKey = "feedback:rate:day:" + memberUuid + ":" + LocalDate.now(SERVICE_ZONE);
+            String dayKey = "feedback:rate:day:" + memberUuid + ":" + LocalDate.now(ServiceTimeZone.ZONE);
             Long count = stringRedisTemplate.opsForValue().increment(dayKey);
             if (count != null && count == 1L) {
                 stringRedisTemplate.expire(dayKey, DAY_WINDOW);

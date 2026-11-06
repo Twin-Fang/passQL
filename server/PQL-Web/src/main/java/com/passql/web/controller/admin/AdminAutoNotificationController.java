@@ -3,6 +3,7 @@ package com.passql.web.controller.admin;
 import com.passql.application.notification.AutoNotificationService;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.ServiceTimeZone;
 import com.passql.member.constant.AutoNotificationRuleType;
 import com.passql.member.constant.PushLinkTarget;
 import com.passql.web.dto.notification.AutoNotificationRuleUpdateRequest;
@@ -20,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -33,14 +33,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AdminAutoNotificationController {
 
-    private static final ZoneId SERVER_ZONE = ZoneId.of("Asia/Seoul");
-
     private final AutoNotificationService autoNotificationService;
 
     @GetMapping
     @AdminPage(menu = AdminMenu.AUTO_NOTIFICATIONS)
     public String page(Model model) {
-        model.addAttribute("ruleViews", autoNotificationService.findRuleViews(LocalDate.now(SERVER_ZONE)));
+        model.addAttribute("ruleViews", autoNotificationService.findRuleViews(LocalDate.now(ServiceTimeZone.ZONE)));
         // 문제 상세는 문제 UUID 가 필요해 자동 알림 이동 대상에서 제외
         List<PushLinkTarget> linkTargets = Arrays.stream(PushLinkTarget.values())
                 .filter(linkTarget -> !linkTarget.isQuestionUuidRequired()).toList();
@@ -64,7 +62,7 @@ public class AdminAutoNotificationController {
     @GetMapping("/{ruleType}/target-count")
     @ResponseBody
     public Map<String, Integer> targetCount(@PathVariable String ruleType) {
-        return Map.of("memberCount", autoNotificationService.countTargets(parseRuleType(ruleType), LocalDate.now(SERVER_ZONE)));
+        return Map.of("memberCount", autoNotificationService.countTargets(parseRuleType(ruleType), LocalDate.now(ServiceTimeZone.ZONE)));
     }
 
     private static AutoNotificationRuleType parseRuleType(String ruleType) {

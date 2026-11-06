@@ -249,8 +249,9 @@ public class ConceptLearningService {
             answeredKeys.size());
     }
 
+    /** 저장용 진행 행: 있으면 행 잠금 조회 (트랜잭션 끝까지), 없으면 새 행 (동시 첫 생성은 유니크 제약이 막음) */
     private MemberConceptProgress findOrCreateProgress(UUID memberUuid, UUID conceptUuid) {
-        return progressRepository.findByMemberUuidAndConceptTagUuid(memberUuid, conceptUuid)
+        return progressRepository.findForUpdate(memberUuid, conceptUuid)
             .orElseGet(() -> MemberConceptProgress.builder()
                 .memberUuid(memberUuid)
                 .conceptTagUuid(conceptUuid)

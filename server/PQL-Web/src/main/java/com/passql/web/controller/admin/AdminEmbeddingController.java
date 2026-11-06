@@ -6,6 +6,7 @@ import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.question.dto.EmbeddingIndexProgress;
 import com.passql.question.dto.IndexQuestionPreview;
+import com.passql.question.dto.IndexSelectedRequest;
 import com.passql.question.service.EmbeddingIndexRunService;
 import com.passql.question.service.QuestionVectorIndexService;
 import com.passql.web.support.AdminMenu;
@@ -96,8 +97,8 @@ public class AdminEmbeddingController {
     @PostMapping("/index-selected")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> indexSelected(
-            @RequestBody Map<String, List<String>> body, Principal adminPrincipal) {
-        List<String> uuids = body.get("uuids");
+            @RequestBody IndexSelectedRequest request, Principal adminPrincipal) {
+        List<String> uuids = request.uuids();
         if (uuids == null || uuids.isEmpty()) {
             throw new CustomException(ErrorCode.EMBEDDING_INDEX_TARGET_EMPTY);
         }

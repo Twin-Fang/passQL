@@ -1,6 +1,7 @@
 package com.passql.web.scheduler;
 
 import com.passql.application.billing.PlayBillingService;
+import com.passql.common.util.ServiceTimeZone;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,7 +19,7 @@ public class PlayVoidedPurchaseScheduler {
     private final PlayBillingService playBillingService;
 
     /** 매일 04시 50분 (다른 새벽 정리 작업과 겹치지 않게) */
-    @Scheduled(cron = "0 50 4 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 50 4 * * *", zone = ServiceTimeZone.ZONE_NAME)
     public void revokeVoidedPurchases() {
         try {
             playBillingService.revokeVoidedPurchases();
