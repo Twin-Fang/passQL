@@ -131,9 +131,24 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
     try {
       submitResult = await notifier.submit();
     } on AppException catch (exception) {
-      // 실패 원인별 문구 (네트워크, 서버 오류, 입력 오류 등)
-      if (context.mounted) showAppToast(context, exception.message);
-      return;
+      if (!context.mounted) return;
+      // 제출 시점 하루 한도·프로 필요 > 사유 시트(광고 보너스·이용권), 시트로 열리면 다시 제출 (#867)
+      final feedbackResult = await showProAccessFeedback(
+        context,
+        ref,
+        exception,
+      );
+      if (!context.mounted) return;
+      switch (feedbackResult) {
+        case ProAccessFeedbackResult.sheetUnlocked:
+          return _submitAnswer(context, notifier);
+        case ProAccessFeedbackResult.shown:
+          return;
+        case ProAccessFeedbackResult.notHandled:
+          // 실패 원인별 문구 (네트워크, 서버 오류, 입력 오류 등)
+          showAppToast(context, exception.message);
+          return;
+      }
     }
     if (!context.mounted || submitResult == null) return;
     // 풀이 결과가 홈과 통계에 반영되도록 캐시를 비운다.
