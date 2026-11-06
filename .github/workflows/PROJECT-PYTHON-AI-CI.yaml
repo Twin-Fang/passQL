@@ -3,7 +3,7 @@
 # ===================================================================
 #
 # 설명:
-# - main 브랜치 push / PR 시 Docker 빌드가 정상적으로 되는지만 검증
+# - main 브랜치 push / PR 시 테스트(계약 스냅샷·계층 규칙·판정)와 Docker 빌드 검증
 # - 배포는 수행하지 않음 (deploy 브랜치에서만 배포)
 # - ai/ 디렉토리 변경 시에만 실행
 #
@@ -41,6 +41,22 @@ jobs:
         run: |
           echo "${{ secrets.AI_ENV_FILE }}" > ai/.env
           echo "✅ .env 파일이 생성되었습니다"
+
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      # uv.lock 고정 버전으로 설치 > pytest (Dockerfile 과 같은 설치 방식, #877)
+      - name: AI 서버 테스트
+        working-directory: ai
+        run: |
+          pip install uv==0.9.22
+          uv venv --python ${{ env.PYTHON_VERSION }}
+          uv export --quiet --frozen --group dev --no-emit-project --format requirements-txt -o /tmp/requirements-dev.txt
+          uv pip install --require-hashes -r /tmp/requirements-dev.txt
+          uv pip install --no-deps .
+          .venv/bin/python -m pytest -q
 
       - name: Docker 빌드환경 설정
         uses: docker/setup-buildx-action@v3
