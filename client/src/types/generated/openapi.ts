@@ -983,6 +983,7 @@ export interface paths {
          *     - **`authProvider`**: 가입 제공자 (GOOGLE, KAKAO, NAVER, APPLE, GITHUB)
          *     - **`providerUserId`**: 제공자 사용자 ID (Google·Apple 은 Firebase uid). 탈퇴 재인증 시 같은 계정인지 대조용
          *     - **`createdAt`**: 가입 시각 KST (계정 화면 가입일)
+         *     - **`nicknameChangeAvailableAt`**: 닉네임을 다시 바꿀 수 있는 시각 KST (마지막 변경 + 3일, 변경 이력 없으면 null)
          *     - **`maskedEmail`**: 가린 이메일 (아이디 앞 2자 + `***` + `@도메인`, 이메일 없으면 null)
          *     - **`memberCode`**: 회원 번호 표시값 (`PQL-` + 회원 UUID 앞 8자리 대문자, 문의 때 회원 확인용)
          *
@@ -2721,6 +2722,8 @@ export interface components {
             /** Format: uuid */
             memberUuid: string;
             nickname: string;
+            /** Format: date-time */
+            nicknameChangeAvailableAt: string | null;
             /** Format: date-time */
             nicknameChangedAt: string | null;
             providerUserId: string;

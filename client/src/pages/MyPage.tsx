@@ -5,7 +5,7 @@ import { useAuthStore } from "../stores/authStore";
 import { useStagger } from "../hooks/useStagger";
 import { useMember } from "../hooks/useMember";
 import { useWrongQuestions } from "../hooks/useWrongQuestions";
-import { isNicknameCooldown, formatNicknameCooldownMessage } from "../lib/nicknameCooldown";
+import { isNicknameChangeWaiting, formatNicknameChangeWaitingMessage } from "../lib/nicknameCooldown";
 import NicknameChangeModal from "../components/NicknameChangeModal";
 import PlanChip from "../components/pro/PlanChip";
 import WrongQuestionListState from "../components/wrongNotes/WrongQuestionListState";
@@ -33,9 +33,10 @@ export default function MyPage() {
   };
 
   const handleNicknameEditClick = () => {
-    const changedAt = memberData?.nicknameChangedAt ?? null;
-    if (isNicknameCooldown(changedAt)) {
-      showToast(formatNicknameCooldownMessage(changedAt!));
+    // 대기 시각은 서버 값 (서버 거절 기준과 같음)
+    const nicknameChangeAvailableAt = memberData?.nicknameChangeAvailableAt ?? null;
+    if (nicknameChangeAvailableAt && isNicknameChangeWaiting(nicknameChangeAvailableAt)) {
+      showToast(formatNicknameChangeWaitingMessage(nicknameChangeAvailableAt));
       return;
     }
     setIsNicknameModalOpen(true);
