@@ -2,7 +2,7 @@
 type: cluster
 topic: security
 created: 2026-10-29
-members: 45
+members: 48
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 인증 토큰·CSRF·민감 정보 노출 등 보안 결함과 대책.
 
 ## 현재 상태 요약
-(2026-11-07) AI 서버 보호는 공유 키 하나에 입력 상한(`max_tokens`·삭제 비율·UUID 검증)과 운영 docs 끄기를 더했고, 키 교체·프록시 IP 허용 목록은 사람이 할 일로 남았다 — [[ISS-0466-llm-duplicate-billing-retry-fallback]]. 관리자 CSRF 헤더는 공통 fetch 래퍼가 붙인다 — [[DEC-0008-admin-csrf-common-fetch-wrapper]]. 인증 엔드포인트 본문은 서버 로그에 남기지 않는다([[ISS-0002-auth-response-body-logged-plaintext]]).
+(2026-11-07) 웹 토큰 재발급은 탭 간 Web Locks 로 한 번만 하고 잠금 안에서 저장값을 다시 읽어, 회전된 refresh token 재사용(서버가 전 기기 세션 폐기, [[DEC-0144-per-device-refresh-token-reuse-revoke]])을 막는다 — [[DEC-0269-web-reissue-single-across-tabs]]. 서버는 AI 코멘트를 본인 세션에만 LLM 으로 만들고 요청 제한을 걸며, 요청 제한 IP 는 X-Forwarded-For 오른쪽 값, 예외 원문 대신 고정 문구 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. AI 서버 보호는 공유 키 하나에 입력 상한(`max_tokens`·삭제 비율·UUID 검증)과 운영 docs 끄기를 더했고, 키 교체·프록시 IP 허용 목록은 사람이 할 일로 남았다 — [[ISS-0466-llm-duplicate-billing-retry-fallback]]. 관리자 CSRF 헤더는 공통 fetch 래퍼가 붙인다 — [[DEC-0008-admin-csrf-common-fetch-wrapper]]. 인증 엔드포인트 본문은 서버 로그에 남기지 않는다([[ISS-0002-auth-response-body-logged-plaintext]]).
 
 ## 활성 결정
 - [[DEC-0008-admin-csrf-common-fetch-wrapper]] — 관리자 CSRF 헤더는 화면별이 아니라 `layout.html` 공통 fetch 래퍼에서 붙인다
@@ -32,6 +32,7 @@ related: []
 - [[DEC-0143-server-side-social-unlink-on-withdraw]] — 탈퇴 시 소셜 제공자 연결 해제는 서버가 하고, GitHub·네이버 토큰은 암호화 보관한다
 - [[DEC-0144-per-device-refresh-token-reuse-revoke]] — refresh token은 기기별(`jti`)로 저장하고, 이미 회전된 토큰이 다시 오면 그 회원 세션을 전부 폐기한다
 - [[DEC-0214-no-local-design-docs-in-public-vault]] — 퍼블릭 레포 볼트에는 로컬 전용 설계 문서를 넣지 않고, 서버 경로·호스트·내부 포트를 쓰지 않는다
+- [[DEC-0269-web-reissue-single-across-tabs]] — 웹 재발급은 탭 간 Web Locks 로 한 번, 잠금 안 저장값 재확인, `storage` 이벤트로 탭 동기화 (#881)
 
 ## 대체된 결정 (역사)
 - [[DEC-0026-sensitive-settings-masked-readonly]] → DEC-0107
@@ -40,6 +41,8 @@ related: []
 - [[DEC-0133-encrypted-gemini-key-single-source]] → DEC-0188
 
 ## 관련 이슈
+- [[ISS-0468-web-audit-cross-tab-reissue-logout]] (resolved, GitHub #881) — 웹 전체 점검: 탭 두 개면 모든 기기 로그아웃, 재발급 실패 강제 로그아웃, 선택지 생성 오류 사유
+- [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]] (resolved, GitHub #879) — 서버 전체 점검: AI 코멘트 LLM 호출 제한, OSIV DB 커넥션 점유, 내린 보기 묶음 채점, 설정 캐시, 예외 원문 노출
 - [[ISS-0466-llm-duplicate-billing-retry-fallback]] (resolved, GitHub #877) — LLM 호출 중복 과금: 응답 시간 초과 재시도와 서버 대체 호출 겹침, AI 서버 키 보호
 - [[ISS-0386-admin-account-management]] (open, GitHub #631) — 관리자 계정 삭제·활동 이력 바로가기·세션 강제 종료·2FA·비밀번호 만료 정책이 없음
 - [[ISS-0001-admin-fetch-csrf-header-missing]] (resolved, GitHub #391) — 관리자 화면 fetch 요청에 CSRF 헤더가 없어 상태 변경이 403으로 실패
