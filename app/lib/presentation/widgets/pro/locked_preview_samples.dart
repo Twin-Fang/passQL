@@ -129,8 +129,12 @@ class AiAnalysisLockedSample extends StatelessWidget {
     return const _SampleCard(
       children: [
         _SampleSection(
+          title: '예상 점수 64점 · 합격선 근처',
+          body: '1과목 예상 6/10 · 2과목 예상 26/40',
+        ),
+        _SampleSection(
           title: '약한 영역',
-          body: '조인과 서브쿼리 정답률이 낮아요. 최근 7일 동안 이 두 영역을 가장 많이 틀렸어요.',
+          body: '조인과 서브쿼리 정답률이 낮아요. 이 두 영역을 가장 많이 틀렸어요.',
         ),
         _SampleSection(
           title: '다음 공부',

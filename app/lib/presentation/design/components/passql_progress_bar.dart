@@ -6,8 +6,16 @@ import '../tokens/passql_tokens.dart';
 
 /// 진행 막대 (0~1). 옆에 숫자가 없는 자리만 [semanticValue] 로 값을 읽게 함
 class PassqlProgressBar extends StatelessWidget {
-  const PassqlProgressBar({super.key, required this.value, this.semanticValue});
+  const PassqlProgressBar({
+    super.key,
+    required this.value,
+    this.semanticValue,
+    this.fillColor,
+  });
   final double value;
+
+  /// 채움 색 (null 이면 강조색). 의미가 다른 막대(과락 위험 등)만 의미 색을 넘김
+  final Color? fillColor;
 
   /// 스크린리더가 읽을 값 (예: '3/10'). null 이면 막대는 읽지 않음(옆 숫자가 대신 전달)
   final String? semanticValue;
@@ -30,7 +38,7 @@ class PassqlProgressBar extends StatelessWidget {
               widthFactor: value.clamp(0, 1),
               heightFactor: 1,
               alignment: Alignment.centerLeft,
-              child: ColoredBox(color: colors.accent),
+              child: ColoredBox(color: fillColor ?? colors.accent),
             ),
           ],
         ),
