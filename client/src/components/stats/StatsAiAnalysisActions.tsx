@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { EmptyPracticeTopicError } from "../../api/practice";
 import { useTopics } from "../../hooks/useTopics";
 import { useStartTopicPractice } from "../../hooks/useStartTopicPractice";
@@ -8,19 +9,24 @@ interface StatsAiAnalysisActionsProps {
   readonly actions: readonly AiAnalysisAction[];
 }
 
-/** 웹에서 실행할 수 있는 버튼 1개: 서버 label + 연습 시작에 쓸 토픽 */
-interface PracticeTopicButton {
+/** 웹에서 실행할 수 있는 버튼 1개: 서버 label + 이동 (토픽 연습 시작 또는 최신 경향 화면) */
+interface AnalysisActionButton {
   readonly key: string;
   readonly label: string;
-  readonly topic: TopicTree;
+  // 토픽 연습이면 토픽, 최신 경향 화면 이동이면 null
+  readonly topic: TopicTree | null;
 }
 
-/** 서버 행동 > 웹 버튼: PRACTICE_TOPIC 만 (토픽 code 못 찾으면 숨김), REVIEW_WRONG 은 웹 오답 화면이 없어 숨김 */
-function toPracticeTopicButtons(
+/**
+ * 서버 행동 > 웹 버튼: PRACTICE_TOPIC(토픽 code 못 찾으면 숨김), PRACTICE_LATEST_TREND(출제 경향 화면)
+ * REVIEW_WRONG·RANDOM_PRACTICE 는 웹에 오답 노트·랜덤 풀기 화면이 없어 숨김
+ */
+function toAnalysisActionButtons(
   actions: readonly AiAnalysisAction[],
   topics: readonly TopicTree[],
-): PracticeTopicButton[] {
-  return actions.flatMap((action) => {
+): AnalysisActionButton[] {
+  return actions.flatMap((action): AnalysisActionButton[] => {
+    if (action.type === "PRACTICE_LATEST_TREND") return [{ key: action.type, label: action.label, topic: null }];
     if (action.type !== "PRACTICE_TOPIC") return [];
     const topic = topics.find((candidate) => candidate.topicUuid === action.topicUuid);
     return topic ? [{ key: `${action.type}-${topic.topicUuid}`, label: action.label, topic }] : [];
@@ -31,13 +37,18 @@ function toPracticeTopicButtons(
 export default function StatsAiAnalysisActions({ actions }: StatsAiAnalysisActionsProps) {
   const { data: topics } = useTopics();
   const startTopicPractice = useStartTopicPractice();
+  const navigate = useNavigate();
   const [startingButtonKey, setStartingButtonKey] = useState<string | null>(null);
 
-  const practiceTopicButtons = toPracticeTopicButtons(actions, topics ?? []);
-  if (practiceTopicButtons.length === 0) return null;
+  const analysisActionButtons = toAnalysisActionButtons(actions, topics ?? []);
+  if (analysisActionButtons.length === 0) return null;
 
-  // 토픽 연습 시작 (문제 0개·조회 실패면 화면 유지, 출제 경향 화면과 같은 처리)
-  const onPracticeButtonPressed = async (button: PracticeTopicButton) => {
+  // 최신 경향은 출제 경향 화면으로, 토픽은 연습 시작 (문제 0개·조회 실패면 화면 유지, 출제 경향 화면과 같은 처리)
+  const onActionButtonPressed = async (button: AnalysisActionButton) => {
+    if (button.topic === null) {
+      navigate("/exam-trend");
+      return;
+    }
     setStartingButtonKey(button.key);
     try {
       await startTopicPractice({ topicCode: button.topic.code, sessionTitle: button.topic.displayName });
@@ -49,13 +60,13 @@ export default function StatsAiAnalysisActions({ actions }: StatsAiAnalysisActio
 
   return (
     <div className="flex flex-col gap-2 pt-1">
-      {practiceTopicButtons.map((button, index) => (
+      {analysisActionButtons.map((button, index) => (
         <button
           key={button.key}
           type="button"
           className={`btn w-full ${index === 0 ? "btn-primary" : "btn-secondary"}`}
           disabled={startingButtonKey !== null}
-          onClick={() => onPracticeButtonPressed(button)}
+          onClick={() => onActionButtonPressed(button)}
         >
           {startingButtonKey === button.key && <span className="loading loading-spinner loading-sm" />}
           {button.label}
