@@ -1,9 +1,9 @@
 import { ChevronRight, Lightbulb } from "lucide-react";
 import { useLatestExamTrend } from "../hooks/useExamTrend";
-import { EmptyPracticeTopicError } from "../api/practice";
 import { useStartTopicPractice } from "../hooks/useStartTopicPractice";
 import ErrorFallback from "../components/ErrorFallback";
 import LockedPreview from "../components/pro/LockedPreview";
+import ProAccessReasonModal from "../components/pro/ProAccessReasonModal";
 import { ExamTrendLockedSample } from "../components/pro/lockedPreviewSamples";
 import { LOCKED_PREVIEW_CAPTIONS } from "../constants/proAccessCopy";
 import { toProAccessErrorCode } from "../lib/proAccess";
@@ -28,19 +28,15 @@ interface SolvableTrendItem {
  */
 export default function ExamTrend() {
   const { data: report, isLoading, isError, error, refetch } = useLatestExamTrend();
-  const startTopicPractice = useStartTopicPractice();
+  const { startTopicPractice, proAccessErrorCode, closeProAccessReason } = useStartTopicPractice();
   const stagger = useStagger();
   const s0 = stagger(0); // 요약
   const s1 = stagger(1); // 과목 비중·유형
   const s2 = stagger(2); // 개념·팁
 
-  // 토픽 최신 경향 문제로 연습 세션 시작 (문제 0개·조회 실패면 화면 유지, AI문제 화면과 같은 처리)
-  const startLatestTrendPractice = async (topicCode: string, topicName: string) => {
-    try {
-      await startTopicPractice({ topicCode, sessionTitle: `${topicName} 최신 경향`, isLatestTrendOnly: true });
-    } catch (err) {
-      if (!(err instanceof EmptyPracticeTopicError)) console.warn("[exam trend] practice start failed", err);
-    }
+  // 토픽 최신 경향 문제로 연습 세션 시작 (문제 0개·조회 실패면 화면 유지, 프로 접근 거부는 사유 창)
+  const startLatestTrendPractice = (topicCode: string, topicName: string) => {
+    void startTopicPractice({ topicCode, sessionTitle: `${topicName} 최신 경향`, isLatestTrendOnly: true });
   };
 
   if (isError) {
@@ -148,6 +144,9 @@ export default function ExamTrend() {
           ))}
         </ul>
       </section>
+
+      {/* 무료(결제 켜짐) 최신 경향 연습 403 > 사유 창 (#865) */}
+      {proAccessErrorCode && <ProAccessReasonModal errorCode={proAccessErrorCode} onClose={closeProAccessReason} />}
     </div>
   );
 }

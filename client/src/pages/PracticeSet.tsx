@@ -16,9 +16,11 @@ import PracticeQuestionScrollArea from "../components/practice/PracticeQuestionS
 import WaitingForQuestion from "../components/practice/WaitingForQuestion";
 import ExitPracticeConfirmModal from "../components/practice/ExitPracticeConfirmModal";
 import ExplanationPanel from "../components/aiExplanation/ExplanationPanel";
+import ProAccessReasonModal from "../components/pro/ProAccessReasonModal";
 
 /**
  * 연습 세트 풀이: 문제 풀이 > 피드백바(신고) > 다음 문제, 마지막 문제 후 결과 화면 이동
+ * 제출 실패는 같은 문제 유지 (토스트 또는 프로 접근 사유 창)
  */
 export default function PracticeSet() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -41,6 +43,9 @@ export default function PracticeSet() {
     displayQuestion,
     submitPracticeAnswer,
     clearFeedbackForNextQuestion,
+    submitProAccessErrorCode,
+    closeSubmitProAccessReason,
+    isSubmitFailureToastVisible,
   } = usePracticeSetSubmit({ questions, currentIndex, storeSessionId, submitAndAdvance });
   const report = useSubmissionReport();
 
@@ -154,6 +159,20 @@ export default function PracticeSet() {
             <span>신고를 접수했어요.</span>
           </div>
         </div>
+      )}
+
+      {/* 제출 실패 토스트 — 기록 없이 같은 문제 유지, 다시 확인 가능 */}
+      {isSubmitFailureToastVisible && (
+        <div role="alert" className="fixed bottom-24 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
+          <p className="bg-surface-inverse text-text-inverse text-sm font-medium px-4 py-2.5 rounded-lg text-center break-keep">
+            채점 요청에 실패했어요. 다시 확인을 눌러 주세요.
+          </p>
+        </div>
+      )}
+
+      {/* 제출이 하루 한도·프로 필요로 막힘 > 사유 창 (닫으면 같은 문제 유지) */}
+      {submitProAccessErrorCode && (
+        <ProAccessReasonModal errorCode={submitProAccessErrorCode} onClose={closeSubmitProAccessReason} />
       )}
 
       {/* 채점 중 오버레이 — 제출 API 응답 전 화면 조작 차단 */}
