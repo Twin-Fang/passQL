@@ -2,7 +2,7 @@
 type: cluster
 topic: ai
 created: 2026-10-29
-members: 106
+members: 113
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 
 ## 현재 상태 요약
-(2026-10-29, 자동 생성) 활성 결정 40개, 열린 이슈 2개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-07, 자동 생성) 활성 결정 41개, 열린 이슈 2개. 통계 AI 분석은 서버 판정 + LLM 한 문장 — [[DEC-0259-ai-analysis-server-decides-llm-explains]], 예상 점수 — [[DEC-0260-exam-forecast-score-thresholds]]. 프롬프트 키 원본은 `PromptKey` — [[DEC-0265-prompt-key-enum-single-source]]. LLM 재시도·대체 호출은 `error_kind` 기준 — [[DEC-0267-ai-retry-fallback-by-error-kind]]. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0025-redis-shared-app-settings]] — Spring이 `app_setting`을 Redis(`passql:settings:{key}`)에 쓰고 AI 서버가 읽어 설정을 공유
@@ -53,6 +53,10 @@ AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 - [[DEC-0251-practice-reuse-random-validated-sets]] — 연습 모드는 검증 통과 세트 최신 5개 중 무작위, 실전 모드는 매번 생성
 - [[DEC-0258-ai-comment-pro-only-all-forms]] — AI 코멘트는 결과·통계 모두 프로 전용 (#699 무료 하루 1회 폐지, #860)
 - [[DEC-0259-ai-analysis-server-decides-llm-explains]] — 통계 AI 분석: 서버가 판정·우선순위·문구, LLM 은 토픽별 헷갈리는 개념 한 문장 (#861)
+- [[DEC-0260-exam-forecast-score-thresholds]] — 과목별 예상 점수는 서버 계산(1과목 data_modeling×10, 2과목 8토픽 평균×40, ×2점), 과목 40% 미만 과락·70점 합격권·54~68 합격선 근처 (#862)
+- [[DEC-0261-real-mode-renamed-new-choices]] — "실전 모드" > "새 보기로 풀기"(AI 새 보기/검증된 보기), 풀이 화면 모드 칩, "실전"은 모의고사에만 (#863)
+- [[DEC-0265-prompt-key-enum-single-source]] — 프롬프트 키는 `PromptKey` enum 단일 원본, 관리자 수정에서 키 변경 불가 (#875)
+- [[DEC-0267-ai-retry-fallback-by-error-kind]] — LLM 재시도는 연결 실패·429만, 직접 LLM 대체·서킷·선택지 재시도는 `error_kind`로 판정 (#877)
 
 ## 대체된 결정 (역사)
 - [[DEC-0087-choice-generation-practice-real-mode]] → DEC-0251
@@ -67,6 +71,9 @@ AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 - [[DEC-0147-keep-explanation-sheet-while-solving]] → DEC-0154
 
 ## 관련 이슈
+- [[ISS-0460-ai-analysis-forecast-concept-links]] (resolved, GitHub #862) — 통계 AI 분석 보강: 과목별 예상 점수, 개념 바로 가기, 빈 데이터 안내, 세션 코멘트 개편
+- [[ISS-0464-admin-prompt-key-single-source]] (resolved, GitHub #875) — 관리자 프롬프트 수정 화면 키 목록 누락으로 저장 시 키가 바뀜, 프롬프트 키 한 곳으로
+- [[ISS-0466-llm-duplicate-billing-retry-fallback]] (resolved, GitHub #877) — LLM 호출 중복 과금: 응답 시간 초과 재시도와 서버 대체 호출 겹침, AI 서버 키 보호
 - [[ISS-0451-result-table-choices-fabricated-unvalidated-sets]] (resolved, GitHub #828) — 결과 표 오답을 AI가 지어냄, 미검증 세트 저장, 직접 실행해보기에 결과 JSON
 - [[ISS-0357-choice-set-ai-server-half-failing]] (open, GitHub #575) — 선택지 생성 AI 서버 호출 절반 실패, 원인 조사
 - [[ISS-0412-ai-explanation-quality-cost-optimization]] (open, GitHub #699) — AI 해설 품질, 호출 빈도, 비용 최적화와 해설 시트 정리

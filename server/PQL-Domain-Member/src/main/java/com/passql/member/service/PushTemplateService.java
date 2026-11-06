@@ -1,5 +1,6 @@
 package com.passql.member.service;
 
+import com.passql.common.util.UuidUtils;
 import com.passql.common.audit.AdminAuditEvent;
 import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
@@ -63,10 +64,7 @@ public class PushTemplateService {
     }
 
     private static UUID parseQuestionUuidOrThrow(String linkQuestionUuid) {
-        try {
-            return UUID.fromString(linkQuestionUuid == null ? "" : linkQuestionUuid.trim());
-        } catch (IllegalArgumentException e) {
-            throw new CustomException(ErrorCode.PUSH_LINK_QUESTION_REQUIRED);
-        }
+        return UuidUtils.parseOrEmpty(linkQuestionUuid == null ? null : linkQuestionUuid.trim())
+                .orElseThrow(() -> new CustomException(ErrorCode.PUSH_LINK_QUESTION_REQUIRED));
     }
 }

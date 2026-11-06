@@ -1,5 +1,6 @@
 package com.passql.meta.service;
 
+import com.passql.common.util.ServiceTimeZone;
 import com.passql.meta.constant.AppSettingKeys;
 import com.passql.common.exception.CustomException;
 import com.passql.meta.constant.CertType;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
@@ -38,14 +38,12 @@ public class ExamScheduleCoverageService {
     /** 마지막 공고 확인이 이 일수보다 오래되면 화면에서 다시 확인을 권한다 */
     public static final int STALE_CHECK_DAYS = 30;
 
-    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
-
     private final ExamScheduleRepository repository;
     private final AppSettingService appSettingService;
 
     /** SQLD 는 서비스 대상이라 일정이 없어도 평가하고, 나머지는 일정이 하나라도 있을 때만 평가한다. */
     public List<ExamCoverage> getCoverages() {
-        LocalDate today = LocalDate.now(KST);
+        LocalDate today = LocalDate.now(ServiceTimeZone.ZONE);
         return java.util.Arrays.stream(CertType.values())
                 .map(type -> evaluate(type, repository.findByCertTypeOrderByRoundAsc(type), today))
                 .flatMap(Optional::stream)
@@ -111,14 +109,14 @@ public class ExamScheduleCoverageService {
 
     /** 마지막 확인일이 오래됐거나 기록이 없는지 */
     public boolean isCheckStale() {
-        LocalDate today = LocalDate.now(KST);
+        LocalDate today = LocalDate.now(ServiceTimeZone.ZONE);
         return getCheckedAt().map(d -> ChronoUnit.DAYS.between(d, today) > STALE_CHECK_DAYS).orElse(true);
     }
 
-    /** "공식 공고를 확인했다"는 기록 — 오늘(KST) 날짜를 저장한다. */
+    /** "공식 공고를 확인했다"는 기록 — 오늘(ServiceTimeZone.ZONE) 날짜를 저장한다. */
     @Transactional
     public LocalDate markChecked() {
-        LocalDate today = LocalDate.now(KST);
+        LocalDate today = LocalDate.now(ServiceTimeZone.ZONE);
         appSettingService.save(AppSettingKeys.EXAM_ANNOUNCEMENT_CHECKED_AT, today.toString());
         log.info("[exam-schedule] 공고 확인 기록: {}", today);
         return today;

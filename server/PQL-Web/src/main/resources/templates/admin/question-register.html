@@ -189,10 +189,13 @@
         <!-- 선택지 정책 -->
         <div class="form-control">
             <label class="label label-text font-semibold">선택지 정책 (choiceSetPolicy)</label>
+            <!-- 정책 목록·표시 이름은 ChoiceSetPolicy 한 곳, 직접 등록 불가 정책은 비활성 -->
             <select name="choiceSetPolicy" id="choiceSetPolicySelect" class="select select-bordered">
-                <option value="AI_ONLY" selected>AI_ONLY (기본 — AI가 선택지 생성)</option>
-                <option value="ODD_ONE_OUT">ODD_ONE_OUT ("결과가 다른 것은?" 유형)</option>
-                <option value="HYBRID">HYBRID (AI + 직접 작성 혼합)</option>
+                <option th:each="policy : ${choiceSetPolicies}"
+                        th:value="${policy.name()}"
+                        th:text="${policy.name() + ' (' + policy.displayName + ')'}"
+                        th:selected="${policy.name() == 'AI_ONLY'}"
+                        th:disabled="${!policy.directRegistrationAllowed}">AI_ONLY (AI 생성 (기본))</option>
             </select>
         </div>
 

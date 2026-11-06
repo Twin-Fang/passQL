@@ -46,16 +46,9 @@ function applyJson(data) {
         }
     }
 
-    // 선택지 정책 — select(등록 폼) 또는 hidden input(AI 생성 폼) 모두 지원
+    // 선택지 정책 (등록 폼): 목록에 있고 고를 수 있는 값만 반영, 아니면 경고 후 기존 선택 유지 (AI_ONLY 로 조용히 바뀌지 않게)
     if (data.choiceSetPolicy) {
-        const sel = document.getElementById('choiceSetPolicySelect');
-        if (sel) {
-            sel.value = data.choiceSetPolicy;
-        }
-        const hidden = document.getElementById('choiceSetPolicyHidden');
-        if (hidden) {
-            hidden.value = data.choiceSetPolicy;
-        }
+        applyChoiceSetPolicy(data.choiceSetPolicy);
     }
 
     // 텍스트 필드
@@ -82,6 +75,22 @@ async function _doApplyJson(data) {
         return;
     }
     applyJson(data);
+}
+
+/** 선택지 정책 select 반영: 없는 값·비활성(직접 등록 불가) 값은 경고만 */
+function applyChoiceSetPolicy(policyName) {
+    const policySelect = document.getElementById('choiceSetPolicySelect');
+    if (!policySelect) return;
+    const matchedOption = Array.from(policySelect.options).find(option => option.value === policyName);
+    if (!matchedOption) {
+        AdminUi.toast('알 수 없는 선택지 정책이라 반영하지 않았습니다: ' + policyName, 'warning');
+        return;
+    }
+    if (matchedOption.disabled) {
+        AdminUi.toast('직접 등록할 수 없는 선택지 정책입니다: ' + matchedOption.textContent, 'warning');
+        return;
+    }
+    policySelect.value = policyName;
 }
 
 function loadJsonFile(event) {

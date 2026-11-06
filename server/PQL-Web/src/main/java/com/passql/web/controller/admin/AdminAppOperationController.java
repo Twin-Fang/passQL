@@ -2,6 +2,7 @@ package com.passql.web.controller.admin;
 
 import com.passql.application.notification.MemberNotificationQueryService;
 import com.passql.meta.dto.AdminAppNoticeResponse;
+import com.passql.meta.dto.AppNoticeActiveRequest;
 import com.passql.meta.dto.AppNoticeResponse;
 import com.passql.meta.dto.AppNoticeSaveRequest;
 import com.passql.meta.dto.AppOperationSettingsRequest;
@@ -10,6 +11,7 @@ import com.passql.meta.service.AppOperationChangeHistoryService;
 import com.passql.meta.service.AppOperationService;
 import com.passql.member.service.PushNotificationService;
 import com.passql.web.service.AdminNoticePushService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -96,8 +98,8 @@ public class AdminAppOperationController {
     @PutMapping("/notices/{noticeUuid}/active")
     @ResponseBody
     public ResponseEntity<Void> changeNoticeActive(@PathVariable UUID noticeUuid,
-                                                   @RequestBody Map<String, Boolean> body) {
-        appNoticeService.changeNoticeActive(noticeUuid, Boolean.TRUE.equals(body.get("isActive")));
+                                                   @Valid @RequestBody AppNoticeActiveRequest request) {
+        appNoticeService.changeNoticeActive(noticeUuid, request.isActive());
         return ResponseEntity.ok().build();
     }
 

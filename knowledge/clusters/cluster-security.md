@@ -2,7 +2,7 @@
 type: cluster
 topic: security
 created: 2026-10-29
-members: 43
+members: 45
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 인증 토큰·CSRF·민감 정보 노출 등 보안 결함과 대책.
 
 ## 현재 상태 요약
-(2026-10-29) 관리자 CSRF 헤더는 공통 fetch 래퍼가 붙인다 — [[DEC-0008-admin-csrf-common-fetch-wrapper]]. 인증 엔드포인트 본문은 서버 로그에 남기지 않는다([[ISS-0002-auth-response-body-logged-plaintext]]).
+(2026-11-07) AI 서버 보호는 공유 키 하나에 입력 상한(`max_tokens`·삭제 비율·UUID 검증)과 운영 docs 끄기를 더했고, 키 교체·프록시 IP 허용 목록은 사람이 할 일로 남았다 — [[ISS-0466-llm-duplicate-billing-retry-fallback]]. 관리자 CSRF 헤더는 공통 fetch 래퍼가 붙인다 — [[DEC-0008-admin-csrf-common-fetch-wrapper]]. 인증 엔드포인트 본문은 서버 로그에 남기지 않는다([[ISS-0002-auth-response-body-logged-plaintext]]).
 
 ## 활성 결정
 - [[DEC-0008-admin-csrf-common-fetch-wrapper]] — 관리자 CSRF 헤더는 화면별이 아니라 `layout.html` 공통 fetch 래퍼에서 붙인다
@@ -40,6 +40,7 @@ related: []
 - [[DEC-0133-encrypted-gemini-key-single-source]] → DEC-0188
 
 ## 관련 이슈
+- [[ISS-0466-llm-duplicate-billing-retry-fallback]] (resolved, GitHub #877) — LLM 호출 중복 과금: 응답 시간 초과 재시도와 서버 대체 호출 겹침, AI 서버 키 보호
 - [[ISS-0386-admin-account-management]] (open, GitHub #631) — 관리자 계정 삭제·활동 이력 바로가기·세션 강제 종료·2FA·비밀번호 만료 정책이 없음
 - [[ISS-0001-admin-fetch-csrf-header-missing]] (resolved, GitHub #391) — 관리자 화면 fetch 요청에 CSRF 헤더가 없어 상태 변경이 403으로 실패
 - [[ISS-0002-auth-response-body-logged-plaintext]] (resolved, GitHub #396) — 인증 응답 본문(토큰·CSRF)이 서버 로그에 평문으로 기록됨

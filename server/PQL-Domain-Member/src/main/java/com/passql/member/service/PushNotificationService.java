@@ -1,5 +1,6 @@
 package com.passql.member.service;
 
+import com.passql.common.util.UuidUtils;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.member.constant.MemberStatus;
@@ -297,13 +298,7 @@ public class PushNotificationService {
     }
 
     private static UUID parseUuidOrThrow(String value, ErrorCode errorCode) {
-        if (value == null || value.isBlank()) {
-            throw new CustomException(errorCode);
-        }
-        try {
-            return UUID.fromString(value.trim());
-        } catch (IllegalArgumentException e) {
-            throw new CustomException(errorCode);
-        }
+        return UuidUtils.parseOrEmpty(value == null ? null : value.trim())
+                .orElseThrow(() -> new CustomException(errorCode));
     }
 }

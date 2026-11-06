@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -31,8 +30,6 @@ import java.util.Set;
 @Transactional(readOnly = true)
 public class AppSettingService {
 
-    public static final String REDIS_PREFIX = "passql:settings:";
-
     // settingKey 구분자(. _ -) 단위 조각이 이 단어로 끝나면 값을 마스킹 처리
     private static final Set<String> MASK_KEYWORDS = Set.of("key", "secret", "password", "token");
     // SECRET 목록 표시 문구 (긴 값도 마스크 대신 설정 여부만)
@@ -40,19 +37,19 @@ public class AppSettingService {
     static final String SECRET_NOT_CONFIGURED_LABEL = "미설정";
 
     private final AppSettingRepository appSettingRepository;
-    private final StringRedisTemplate redisTemplate;
+    private final AppSettingCache appSettingCache;
     private final ApplicationEventPublisher eventPublisher;
     private final SettingSecretCipher secretCipher;
 
     public String getString(String key) {
-        String cached = redisTemplate.opsForValue().get(REDIS_PREFIX + key);
+        String cached = appSettingCache.findOrNull(key);
         if (cached != null) return cached;
 
         String value = appSettingRepository.findBySettingKey(key)
                 .map(AppSetting::getValueText)
                 .orElseThrow(() -> new CustomException(ErrorCode.SETTING_NOT_FOUND));
 
-        redisTemplate.opsForValue().set(REDIS_PREFIX + key, value);
+        appSettingCache.putAfterCommit(key, value);
         return value;
     }
 
@@ -140,6 +137,16 @@ public class AppSettingService {
                 .toList();
     }
 
+    /** 설정 목록 > 카테고리 필터 선택지 (실제 행에 있는 값만, 이름순, 빈 값 제외) */
+    public static List<String> toDistinctCategories(List<SettingView> settings) {
+        return settings.stream()
+                .map(SettingView::category)
+                .filter(StringUtils::hasText)
+                .distinct()
+                .sorted()
+                .toList();
+    }
+
     /** 목록 표시값: SECRET > 설정됨·미설정, 그 외 민감 > 마스킹, 일반 > 원문 */
     private String toDisplayValue(AppSetting setting, boolean isSensitive) {
         if (isSecretSetting(setting)) {
@@ -159,7 +166,7 @@ public class AppSettingService {
         }
     }
 
-    /** 설정 저장: 행 조회 > value_type 형식 검사 > DB·Redis 반영 */
+    /** 설정 저장: 행 조회 > value_type 형식 검사 > DB 반영 > 커밋 뒤 Redis 반영 */
     @Transactional
     public void save(String key, String value) {
         AppSetting setting = appSettingRepository.findBySettingKey(key)
@@ -172,13 +179,13 @@ public class AppSettingService {
         String previousValue = setting.getValueText();
         setting.setValueText(value);
         appSettingRepository.save(setting);
-        redisTemplate.opsForValue().set(REDIS_PREFIX + key, value);
+        appSettingCache.putAfterCommit(key, value);
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.APP_SETTING, key, AdminAuditAction.UPDATE,
                 AdminAuditEvent.summary("value", toAuditValue(key, previousValue)),
                 AdminAuditEvent.summary("value", toAuditValue(key, value))));
     }
 
-    /** 비밀 설정 저장: 행 조회 > SECRET 확인 > 빈 값 거부 > 암호화 > DB·Redis 반영 (감사 기록은 마스킹) */
+    /** 비밀 설정 저장: 행 조회 > SECRET 확인 > 빈 값 거부 > 암호화 > DB 반영 > 커밋 뒤 Redis 반영 (감사 기록은 마스킹) */
     @Transactional
     public void saveSecret(String key, String plainValue) {
         AppSetting setting = appSettingRepository.findBySettingKey(key)
@@ -195,7 +202,7 @@ public class AppSettingService {
         String encrypted = secretCipher.encrypt(key, trimmedValue);
         setting.setValueText(encrypted);
         appSettingRepository.save(setting);
-        redisTemplate.opsForValue().set(REDIS_PREFIX + key, encrypted);
+        appSettingCache.putAfterCommit(key, encrypted);
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.APP_SETTING, key, AdminAuditAction.UPDATE,
                 AdminAuditEvent.summary("value", StringUtils.hasText(previousStored) ? "***" : ""),
                 AdminAuditEvent.summary("value", maskValue(trimmedValue))));
@@ -218,7 +225,7 @@ public class AppSettingService {
     @Transactional
     public void deleteSetting(String key) {
         appSettingRepository.findBySettingKey(key).ifPresent(appSettingRepository::delete);
-        redisTemplate.delete(REDIS_PREFIX + key);
+        appSettingCache.evictAfterCommit(key);
         log.info("[app-setting delete] removed : key={}", key);
     }
 
@@ -238,7 +245,7 @@ public class AppSettingService {
 
         // 이미 암호문 (이중 암호화 방지)
         if (SettingSecretCipher.isEncrypted(stored)) {
-            redisTemplate.opsForValue().set(REDIS_PREFIX + key, stored);
+            appSettingCache.putAfterCommit(key, stored);
             log.info("[app-setting sync-secret] warmed up : DB -> Redis : key={}", key);
             return;
         }
@@ -252,7 +259,7 @@ public class AppSettingService {
         String encrypted = secretCipher.encrypt(key, plainValue.trim());
         setting.setValueText(encrypted);
         appSettingRepository.save(setting);
-        redisTemplate.opsForValue().set(REDIS_PREFIX + key, encrypted);
+        appSettingCache.putAfterCommit(key, encrypted);
         log.info("[app-setting sync-secret] encrypted : {} -> DB, Redis : key={}",
                 StringUtils.hasText(stored) ? "legacy plaintext" : "default", key);
     }
@@ -292,7 +299,7 @@ public class AppSettingService {
 
         // DB 값 우선 (DB가 원본)
         if (StringUtils.hasText(setting.getValueText())) {
-            redisTemplate.opsForValue().set(REDIS_PREFIX + key, setting.getValueText());
+            appSettingCache.putAfterCommit(key, setting.getValueText());
             log.info("[app-setting sync] warmed up : DB -> Redis : key={}", key);
             return;
         }
@@ -304,7 +311,7 @@ public class AppSettingService {
         }
         setting.setValueText(defaultValue);
         appSettingRepository.save(setting);
-        redisTemplate.opsForValue().set(REDIS_PREFIX + key, defaultValue);
+        appSettingCache.putAfterCommit(key, defaultValue);
         log.info("[app-setting sync] filled : default -> DB, Redis : key={}, value={}",
                 key, isSensitiveKey(key) ? maskValue(defaultValue) : defaultValue);
     }

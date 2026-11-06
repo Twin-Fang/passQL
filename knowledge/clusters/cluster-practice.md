@@ -2,7 +2,7 @@
 type: cluster
 topic: practice
 created: 2026-10-29
-members: 151
+members: 156
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 문제 풀이·제출·실행 결과·오늘의 세트·데일리 챌린지·실전 모드
 
 ## 현재 상태 요약
-(2026-10-29, 자동 생성) 활성 결정 40개, 열린 이슈 1개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-07, 자동 생성) 활성 결정 37개, 열린 이슈 2개. 앱 "실전 모드"는 "새 보기로 풀기"로 바뀌었고 "실전"은 모의고사 이름 — [[DEC-0261-real-mode-renamed-new-choices]]. SQLD 모의고사(고정 회차, 서버 판정, 무료 1회) — [[DEC-0264-mock-exam-fixed-rounds-server-judged]] (PR #889 머지, 이슈 #866 열림). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0017-fullscreen-result-screen]] — 제출 결과 화면은 풀스크린 1종으로 통일 (bottom sheet 변형 미채택)
@@ -51,6 +51,8 @@ related: []
 - [[DEC-0249-result-table-choices-from-executed-sql]] — 결과 표 문제 보기는 AI가 쓴 보기 SQL의 실제 실행 결과로만 (오답 표를 지어내지 않음)
 - [[DEC-0250-never-store-unvalidated-sql-choice-sets]] — SQL·결과 표 보기 세트는 샌드박스 검증 통과만 저장·노출, 전수 검증으로 기존 세트 재채점
 - [[DEC-0251-practice-reuse-random-validated-sets]] — 연습 모드는 검증 통과 세트 최신 5개 중 무작위, 실전 모드는 매번 생성
+- [[DEC-0261-real-mode-renamed-new-choices]] — "실전 모드" > "새 보기로 풀기"(AI 새 보기/검증된 보기), 풀이 화면 모드 칩, "실전"은 모의고사에만 (#863)
+- [[DEC-0264-mock-exam-fixed-rounds-server-judged]] — SQLD 모의고사: 관리자 고정 회차(검증 세트), 시간·채점·응시 수 서버 판정, 무료 1회 체험·프로 무제한 (#866)
 
 ## 대체된 결정 (역사)
 - [[DEC-0087-choice-generation-practice-real-mode]] → DEC-0251
@@ -63,6 +65,9 @@ related: []
 - [[DEC-0147-keep-explanation-sheet-while-solving]] → DEC-0154
 
 ## 관련 이슈
+- [[ISS-0461-plan-aligned-options-new-choices-mode]] (resolved, GitHub #863) — 요금제에 맞춘 옵션 재배치: 실전 모드 이름과 위치, 광고 제거 혜택, 중복 진입점
+- [[ISS-0462-web-wrong-notes-page-404]] (resolved, GitHub #865) — 웹 마이페이지 오답 전체보기 404, 웹 오답 노트 화면 없음
+- [[ISS-0463-sqld-mock-exam]] (open, GitHub #866) — SQLD 모의고사: 50문항 90분, 과목별 과락, 프로 핵심 기능 (PR #889 머지, 리포트 전)
 - [[ISS-0451-result-table-choices-fabricated-unvalidated-sets]] (resolved, GitHub #828) — 결과 표 오답을 AI가 지어냄, 미검증 세트 저장, 직접 실행해보기에 결과 JSON
 - [[ISS-0412-ai-explanation-quality-cost-optimization]] (open, GitHub #699) — AI 해설 품질, 호출 빈도, 비용 최적화와 해설 시트 정리
 - [[ISS-0022-daily-challenge-domain-api]] (resolved, GitHub #26) — Daily Challenge 도메인, 오늘의 챌린지 API, 관리자 화면

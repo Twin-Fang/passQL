@@ -1,6 +1,8 @@
 package com.passql.web.controller;
 
 import com.passql.ai.dto.AiResult;
+import com.passql.ai.dto.DiffExplainRequest;
+import com.passql.ai.dto.ExplainErrorRequest;
 import com.passql.ai.dto.SimilarQuestion;
 import com.passql.common.dto.Author;
 import com.passql.member.auth.presentation.annotation.AuthMember;
@@ -16,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Tag(name = "AI", description = "AI 해설 / 유사 문제 조회")
@@ -26,11 +27,12 @@ public interface AiControllerDocs {
       @ApiLog(date = "2026.04.07", author = Author.SUHSAECHAN, issueNumber = 1, description = "SQL 에러 AI 해설 API 추가"),
       @ApiLog(date = "2026.04.08", author = Author.SUHSAECHAN, issueNumber = 22, description = "Header: X-User-UUID(String) → X-Member-UUID(UUID). Body 내 questionId(Long) → questionUuid(UUID)"),
       @ApiLog(date = "2026.04.19", author = Author.SUHSAECHAN, issueNumber = 120, description = "X-Member-UUID 헤더 → @AuthMember JWT 인증 전환"),
+      @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 879, description = "본문 Map → ExplainErrorRequest(필드 이름 그대로), questionUuid 누락·형식 오류는 500 대신 400"),
   })
   @Operation(summary = "SQL 에러 해설")
   ResponseEntity<AiResult> explainError(
       @AuthMember LoginMember loginMember,
-      @RequestBody Map<String, Object> body
+      @RequestBody ExplainErrorRequest request
   );
 
   @ApiLogs({
@@ -38,6 +40,7 @@ public interface AiControllerDocs {
       @ApiLog(date = "2026.04.08", author = Author.SUHSAECHAN, issueNumber = 22, description = "Header: X-User-UUID(String) → X-Member-UUID(UUID)"),
       @ApiLog(date = "2026.04.19", author = Author.SUHSAECHAN, issueNumber = 120, description = "X-Member-UUID 헤더 → @AuthMember JWT 인증 전환"),
       @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 521, description = "text 를 세트 구조화 해설의 마크다운으로 교체(판정·정답 근거·핵심 개념·헷갈리는 지점·보기별 판단·시험 팁). 출시 앱 호환용 동기 경로, 새 화면은 GET /api/ai/choice-explanation 사용"),
+      @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 879, description = "본문 Map → DiffExplainRequest(필드 이름 그대로), questionUuid 누락·형식 오류는 500 대신 400"),
   })
   @Operation(
       summary = "선택지 해설 (동기, 출시 앱 호환)",
@@ -56,7 +59,7 @@ public interface AiControllerDocs {
   )
   ResponseEntity<AiResult> diffExplain(
       @AuthMember LoginMember loginMember,
-      @RequestBody Map<String, Object> body
+      @RequestBody DiffExplainRequest request
   );
 
   @ApiLogs({

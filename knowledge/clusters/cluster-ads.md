@@ -2,7 +2,7 @@
 type: cluster
 topic: ads
 created: 2026-10-29
-members: 12
+members: 14
 status: active
 related: []
 ---
@@ -13,12 +13,13 @@ related: []
 광고
 
 ## 현재 상태 요약
-(2026-11-04) 앱 광고는 수익 우선으로 조정 중이다. 홈·통계 인라인 카드 광고(`AdInlineCard`)와 탭 셸 하단 한 줄 네이티브 띠([[DEC-0153-single-native-strip-under-tab-bar]])는 그대로이고, 결과 화면 전면 광고는 첫 결과 1회 건너뛰고 3분 간격·하루 5회, 탭 화면 복귀 시 앱 오프닝 광고(1시간 간격·하루 3회, 첫 실행·30초 미만·광고 이탈 제외)가 추가됐다 — [[DEC-0238-app-open-ad-and-interstitial-cap-retune]]. 전체 화면 광고는 `FullScreenAdGuard` 한 곳에서 겹침을 막고, 3종 모두 표시 공통 함수(`full_screen_ad_showing.dart`)가 닫힘·표시 실패·`show()` 예외를 1회만 처리한다 — [[ISS-0447-full-screen-ad-show-failure-bonus-retry]]. 무료 한도 소진 시 보상형 광고로 +5문제(하루 2회)를 여는 경로가 생겼고, 보너스 기록 일시 실패는 1회 재시도한다 — [[DEC-0239-free-daily-limit-bonus-three-kinds]](결제 스위치가 꺼져 아직 사용자에게 안 보임). #787·#808·#814는 2026-11-04 릴리스(#817)로 서버는 운영, 앱은 테스트 트랙(TestFlight·Play 내부 테스트)에 반영됐다. 열린 이슈 2개.
+(2026-11-07) 결제로 산 프로는 광고가 꺼지고, 이용권 혜택 목록에 광고 제거가 있다 — [[DEC-0262-pro-benefits-seven-ad-removal]]. 앱 광고는 수익 우선으로 조정 중이다. 홈·통계 인라인 카드 광고(`AdInlineCard`)와 탭 셸 하단 한 줄 네이티브 띠([[DEC-0153-single-native-strip-under-tab-bar]])는 그대로이고, 결과 화면 전면 광고는 첫 결과 1회 건너뛰고 3분 간격·하루 5회, 탭 화면 복귀 시 앱 오프닝 광고(1시간 간격·하루 3회, 첫 실행·30초 미만·광고 이탈 제외)가 추가됐다 — [[DEC-0238-app-open-ad-and-interstitial-cap-retune]]. 전체 화면 광고는 `FullScreenAdGuard` 한 곳에서 겹침을 막고, 3종 모두 표시 공통 함수(`full_screen_ad_showing.dart`)가 닫힘·표시 실패·`show()` 예외를 1회만 처리한다 — [[ISS-0447-full-screen-ad-show-failure-bonus-retry]]. 무료 한도 소진 시 보상형 광고로 +5문제(하루 2회)를 여는 경로가 생겼고, 보너스 기록 일시 실패는 1회 재시도한다 — [[DEC-0239-free-daily-limit-bonus-three-kinds]](결제 스위치가 꺼져 아직 사용자에게 안 보임). #787·#808·#814는 2026-11-04 릴리스(#817)로 서버는 운영, 앱은 테스트 트랙(TestFlight·Play 내부 테스트)에 반영됐다. 열린 이슈 2개.
 
 ## 활성 결정
 - [[DEC-0153-single-native-strip-under-tab-bar]] — 탭별 적응형 배너 대신 메인 탭바 아래 한 줄 네이티브 광고 띠 하나를 상시 둔다
 - [[DEC-0238-app-open-ad-and-interstitial-cap-retune]] — 탭 복귀 앱 오프닝 광고 추가, 전면 광고 첫 결과 1회 건너뛰고 3분 간격·하루 5회 (인라인 카드 광고·탭 하단 띠 유지, DEC-0148 대체)
 - [[DEC-0239-free-daily-limit-bonus-three-kinds]] — 무료 랜덤 풀기 한도 기본 10 + 세트 완료·정답률·보상형 광고(+5×2) 보너스, 최대 30
+- [[DEC-0262-pro-benefits-seven-ad-removal]] — 혜택 원본 `pro_benefits.dart`, 실제 잠금만, 광고 제거 더해 7개·"새 보기·토픽" (#863, DEC-0205 대체)
 
 ## 대체된 결정 (역사)
 - [[DEC-0148-inline-card-ads-interstitial-cap]] → DEC-0238

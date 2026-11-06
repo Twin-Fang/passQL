@@ -40,7 +40,8 @@ public class ChoiceSetResolver {
      * @param mode 호출자가 조회한 사용자의 선택지 생성 모드
      */
     public QuestionChoiceSet resolveForUser(UUID questionUuid, UUID memberUuid, ChoiceGenerationMode mode) {
-        Question question = questionService.getQuestionEntity(questionUuid);
+        // 비활성 문제는 보기 생성(LLM) 전에 거부
+        Question question = questionService.getActiveQuestionEntity(questionUuid);
 
         // 고정 보기 정책은 실행 모드보다 먼저 (Oracle 전용 개념형도 고정 세트 출제, #511)
         if (question.getChoiceSetPolicy() == ChoiceSetPolicy.CURATED_ONLY) {

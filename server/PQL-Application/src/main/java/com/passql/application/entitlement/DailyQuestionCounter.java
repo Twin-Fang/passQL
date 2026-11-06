@@ -1,5 +1,6 @@
 package com.passql.application.entitlement;
 
+import com.passql.common.util.ServiceTimeZone;
 import com.passql.question.entity.DailyChallenge;
 import com.passql.question.repository.DailyChallengeRepository;
 import com.passql.submission.repository.SubmissionRepository;
@@ -27,7 +28,7 @@ public class DailyQuestionCounter {
     @Autowired
     public DailyQuestionCounter(SubmissionRepository submissionRepository,
                                 DailyChallengeRepository dailyChallengeRepository) {
-        this(submissionRepository, dailyChallengeRepository, Clock.system(FeatureAccessPolicy.SERVICE_ZONE));
+        this(submissionRepository, dailyChallengeRepository, Clock.system(ServiceTimeZone.ZONE));
     }
 
     DailyQuestionCounter(SubmissionRepository submissionRepository,
