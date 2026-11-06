@@ -21,59 +21,57 @@ from src.models.ai_response import (
 
 logger = logging.getLogger(__name__)
 
+# 임베딩 텍스트에 넣을 문제 본문 앞부분 길이 (글자 수)
+EMBEDDED_STEM_PREVIEW_LENGTH = 300
+# 정리 1회 삭제 상한: 컬렉션 포인트의 50% 초과 삭제 거부 (호출부 버그·키 유출로 색인이 통째로 지워지지 않게, #877)
+PRUNE_MAXIMUM_DELETION_RATIO = 0.5
+# 작은 컬렉션은 비율과 무관하게 이 수까지 삭제 허용
+PRUNE_ALWAYS_ALLOWED_DELETION_COUNT = 20
+
+
+def is_prune_deletion_allowed(deletion_count: int, collection_point_count: int) -> bool:
+    """정리 삭제 수가 상한 이내인지 (상한 = max(20, 포인트 수 × 50%))"""
+    deletion_limit = max(PRUNE_ALWAYS_ALLOWED_DELETION_COUNT, collection_point_count * PRUNE_MAXIMUM_DELETION_RATIO)
+    return deletion_count <= deletion_limit
+
 
 class QuestionVectorIndexService:
     """
     문제 벡터 색인: 문제 텍스트 > Ollama 임베딩 > Qdrant 업서트, DB UUID <-> Qdrant UUID 비교·정리
     """
 
-    def _build_embed_text(self, req: IndexQuestionRequest) -> str:
-        """
-        문제 임베딩용 텍스트를 조합한다.
-        토픽/서브토픽/난이도/태그/문제 본문 앞 300자를 구조화된 형태로 결합.
-        """
-        topic_path = req.topic_display_name
-        if req.subtopic_display_name:
-            topic_path = f"{req.topic_display_name} > {req.subtopic_display_name}"
+    def _build_embed_text(self, request: IndexQuestionRequest) -> str:
+        """임베딩 텍스트: 토픽 경로·난이도·태그·본문 앞 300자를 구조화해 결합"""
+        topic_path = request.topic_display_name
+        if request.subtopic_display_name:
+            topic_path = f"{request.topic_display_name} > {request.subtopic_display_name}"
 
-        tags_str = ", ".join(req.tag_keys) if req.tag_keys else "없음"
-        stem_preview = req.stem[:300] if len(req.stem) > 300 else req.stem
+        joined_tags = ", ".join(request.tag_keys) if request.tag_keys else "없음"
+        stem_preview = request.stem[:EMBEDDED_STEM_PREVIEW_LENGTH]
 
         return (
             f"[TOPIC] {topic_path}\n"
-            f"[DIFFICULTY] {req.difficulty}/5\n"
-            f"[TAGS] {tags_str}\n"
+            f"[DIFFICULTY] {request.difficulty}/5\n"
+            f"[TAGS] {joined_tags}\n"
             f"[STEM] {stem_preview}"
         )
 
-    async def index_question(self, req: IndexQuestionRequest) -> IndexQuestionResponse:
-        """
-        문제 1개 임베딩 > Qdrant 문제 컬렉션(settings.QDRANT_COLLECTION) 업서트.
+    async def index_question(self, request: IndexQuestionRequest) -> IndexQuestionResponse:
+        """문제 1개: 컬렉션 확인(없으면 생성) > 기존 포인트 여부 > 임베딩 > 차원 검사 > 업서트 (실패 > CustomError)"""
+        question_uuid = str(request.question_uuid)
+        collection = settings.QDRANT_COLLECTION
+        logger.info(f"[index-question] question_uuid={question_uuid}")
 
-        컬렉션이 없으면 자동 생성한다.
+        await qdrant_search_client.create_collection_if_not_exists(collection, settings.EMBEDDING_VECTOR_DIMENSION)
 
-        Args:
-            req: IndexQuestionRequest
-
-        Returns:
-            IndexQuestionResponse: 적재 결과 (created 여부)
-
-        Raises:
-            CustomError: 임베딩 생성 또는 Qdrant 저장 실패 시
-        """
-        logger.info(f"[index-question] question_uuid={req.question_uuid}")
-
-        # 컬렉션 없으면 자동 생성
-        await qdrant_search_client.create_collection_if_not_exists(
-            settings.QDRANT_COLLECTION, settings.EMBEDDING_VECTOR_DIMENSION
+        # 기존 포인트 여부로 created 판단 (벡터 없이 ID 만 조회)
+        existing_points = await qdrant_search_client.retrieve_points(
+            collection, [question_uuid], should_include_vector=False
         )
-
-        # 기존 벡터 존재 여부로 created 판단
-        existing = await qdrant_search_client.get_vector(settings.QDRANT_COLLECTION, req.question_uuid)
-        created = existing is None
+        is_created = question_uuid not in existing_points
 
         # 임베딩 (모델은 .env 한 곳: 컬렉션 차원과 묶여 있어 관리자 설정으로 바꾸지 않음)
-        embed_text = self._build_embed_text(req)
+        embed_text = self._build_embed_text(request)
         embed_model = settings.OLLAMA_EMBED_MODEL
         vector = await ollama_client.embed(model=embed_model, text=embed_text)
         # 차원 불일치 (.env 모델만 바꾼 경우) > 업서트 전 원인 명시
@@ -83,118 +81,93 @@ class QuestionVectorIndexService:
                 f"expected={settings.EMBEDDING_VECTOR_DIMENSION}"
             )
 
-        # Qdrant upsert (question_uuid를 point_id로 사용)
+        # Qdrant upsert (question_uuid 를 point_id 로 사용)
         payload = {
-            "question_uuid": req.question_uuid,
-            "topic": req.topic_display_name,
-            "subtopic": req.subtopic_display_name or "",
-            "difficulty": req.difficulty,
-            "tag_keys": req.tag_keys,
+            "question_uuid": question_uuid,
+            "topic": request.topic_display_name,
+            "subtopic": request.subtopic_display_name or "",
+            "difficulty": request.difficulty,
+            "tag_keys": request.tag_keys,
         }
-        await qdrant_search_client.upsert(
-            collection=settings.QDRANT_COLLECTION,
-            point_id=req.question_uuid,
-            vector=vector,
-            payload=payload,
-        )
+        try:
+            await qdrant_search_client.upsert(
+                collection=collection, point_id=question_uuid, vector=vector, payload=payload
+            )
+        except CustomError:
+            # 컬렉션이 지워졌을 수 있음 > 다음 요청에서 존재 확인부터 다시
+            qdrant_search_client.forget_confirmed_collection(collection)
+            raise
 
-        logger.info(f"[index-question] 적재 완료: question_uuid={req.question_uuid}, created={created}")
-        return IndexQuestionResponse(question_uuid=req.question_uuid, created=created)
+        logger.info(f"[index-question] indexed : question_uuid={question_uuid}, created={is_created}")
+        return IndexQuestionResponse(question_uuid=question_uuid, created=is_created)
 
-    async def index_questions_bulk(self, req: IndexQuestionsBulkRequest) -> IndexQuestionsBulkResponse:
-        """
-        여러 문제를 순차적으로 임베딩 적재 (관리자 전체 재색인용).
+    async def index_questions_bulk(self, request: IndexQuestionsBulkRequest) -> IndexQuestionsBulkResponse:
+        """여러 문제 순차 적재 (관리자 전체 재색인용, 개별 실패는 건너뛰고 실패 목록 반환)"""
+        logger.info(f"[index-questions-bulk] started : total={len(request.questions)}")
 
-        개별 실패는 스킵하고 계속 진행하며 실패 목록을 반환한다.
-
-        Args:
-            req: IndexQuestionsBulkRequest
-
-        Returns:
-            IndexQuestionsBulkResponse: 성공/실패 집계
-
-        Raises:
-            CustomError: 치명적 오류 시
-        """
-        logger.info(f"[index-questions-bulk] 총 {len(req.questions)}개 처리 시작")
-
-        succeeded = 0
+        succeeded_count = 0
         failed_uuids: list[str] = []
 
-        for q in req.questions:
+        for question in request.questions:
             try:
-                await self.index_question(q)
-                succeeded += 1
-            except Exception as e:
-                logger.warning(f"[index-questions-bulk] 개별 실패: question_uuid={q.question_uuid}, err={e}")
-                failed_uuids.append(q.question_uuid)
+                await self.index_question(question)
+                succeeded_count += 1
+            except Exception as error:
+                logger.warning(
+                    f"[index-questions-bulk] item failed : question_uuid={question.question_uuid}, error={error}"
+                )
+                failed_uuids.append(str(question.question_uuid))
 
-        logger.info(f"[index-questions-bulk] 완료: succeeded={succeeded}, failed={len(failed_uuids)}")
+        logger.info(f"[index-questions-bulk] completed : succeeded={succeeded_count}, failed={len(failed_uuids)}")
         return IndexQuestionsBulkResponse(
-            total=len(req.questions),
-            succeeded=succeeded,
+            total=len(request.questions),
+            succeeded=succeeded_count,
             failed=len(failed_uuids),
             failed_uuids=failed_uuids,
         )
 
-    async def get_index_status(self, req: IndexStatusRequest) -> IndexStatusResponse:
-        """
-        DB 전체 문제 UUID와 Qdrant 색인 UUID를 비교하여 미색인 목록 반환.
+    async def get_index_status(self, request: IndexStatusRequest) -> IndexStatusResponse:
+        """DB 문제 UUID <-> Qdrant 포인트 UUID 비교 > 미색인·고아 수 (Qdrant 전체 ID scroll)"""
+        logger.info(f"[index-status] requested : db_uuid_count={len(request.question_uuids)}")
 
-        흐름:
-        1. Qdrant scroll_all_ids로 컬렉션의 모든 포인트 UUID 수집
-        2. DB UUID 집합과 차집합 계산 → 미색인 UUID 목록 도출
+        qdrant_uuid_set = set(await qdrant_search_client.scroll_all_ids(settings.QDRANT_COLLECTION))
+        db_uuid_set = {str(question_uuid) for question_uuid in request.question_uuids}
 
-        Args:
-            req: IndexStatusRequest (Java에서 전달한 DB 전체 문제 UUID 목록)
-
-        Returns:
-            IndexStatusResponse: 컬렉션 포인트 수, DB 문제 수, 미색인 수, 미색인 UUID 목록
-        """
-        logger.info(f"[index-status] 요청: db_uuid_count={len(req.question_uuids)}")
-
-        # Qdrant에서 현재 색인된 모든 UUID 수집
-        qdrant_ids = await qdrant_search_client.scroll_all_ids(settings.QDRANT_COLLECTION)
-        qdrant_uuid_set = set(qdrant_ids)
-        db_uuid_set = set(req.question_uuids)
-
-        # 차집합: DB에 있지만 Qdrant에 없는 UUID = 미색인
-        unindexed = list(db_uuid_set - qdrant_uuid_set)
+        # 차집합: DB 에 있지만 Qdrant 에 없는 UUID = 미색인
+        unindexed_uuids = list(db_uuid_set - qdrant_uuid_set)
 
         logger.info(
-            f"[index-status] 결과: db={len(db_uuid_set)}, qdrant={len(qdrant_uuid_set)}, "
-            f"미색인={len(unindexed)}"
+            f"[index-status] result : db={len(db_uuid_set)}, qdrant={len(qdrant_uuid_set)}, "
+            f"unindexed={len(unindexed_uuids)}"
         )
-        # 미색인 UUID 앞 10개만 DEBUG 출력 (목록이 길 경우 로그 폭발 방지)
-        logger.debug(
-            f"[index-status] 미색인 UUID (앞 10개): "
-            f"{unindexed[:10]}{'...' if len(unindexed) > 10 else ''}"
-        )
-
         return IndexStatusResponse(
             collection_points_count=len(qdrant_uuid_set),
             db_question_count=len(db_uuid_set),
-            unindexed_count=len(unindexed),
-            unindexed_uuids=unindexed,
+            unindexed_count=len(unindexed_uuids),
+            unindexed_uuids=unindexed_uuids,
             orphan_count=len(qdrant_uuid_set - db_uuid_set),
         )
 
-    async def prune_index(self, req: IndexStatusRequest) -> PruneIndexResponse:
+    async def prune_index(self, request: IndexStatusRequest) -> PruneIndexResponse:
         """
-        Java가 넘긴 활성 문제 UUID에 없는 Qdrant 포인트(고아 벡터)를 삭제한다 (#412).
-
-        문제 삭제·비활성 때 벡터를 지우는 경로가 없어, 남은 벡터가 추천 결과 상위를 차지했다.
-        활성 목록이 비어 있으면 컬렉션 전체 삭제가 되므로 거부한다 — 호출부 버그로 색인이 날아가는 것을 막는다.
+        활성 문제 UUID 에 없는 Qdrant 포인트(고아 벡터) 삭제 (#412)
+        거부 2가지 (400): 활성 목록 비어 있음(전체 삭제), 삭제 수가 상한 초과 (#877)
         """
-        if not req.question_uuids:
+        if not request.question_uuids:
             raise InvalidRequestError("활성 문제 UUID 목록이 비어 있어 정리를 거부합니다")
 
+        active_uuid_set = {str(question_uuid) for question_uuid in request.question_uuids}
         qdrant_ids = await qdrant_search_client.scroll_all_ids(settings.QDRANT_COLLECTION)
-        orphans = sorted(set(qdrant_ids) - set(req.question_uuids))
-        await qdrant_search_client.delete_points(settings.QDRANT_COLLECTION, orphans)
+        orphan_uuids = sorted(set(qdrant_ids) - active_uuid_set)
+        if not is_prune_deletion_allowed(len(orphan_uuids), len(qdrant_ids)):
+            raise InvalidRequestError(
+                f"정리 대상이 너무 많아 거부합니다: 삭제 {len(orphan_uuids)}개 / 전체 {len(qdrant_ids)}개 "
+                f"(상한 {int(PRUNE_MAXIMUM_DELETION_RATIO * 100)}%)"
+            )
+        await qdrant_search_client.delete_points(settings.QDRANT_COLLECTION, orphan_uuids)
 
-        logger.info(f"[prune-index] 고아 벡터 삭제: {len(orphans)}개 (활성 {len(req.question_uuids)}개 기준)")
-        return PruneIndexResponse(deleted_count=len(orphans), deleted_uuids=orphans)
+        logger.info(f"[prune-index] orphans deleted : {len(orphan_uuids)} (active {len(active_uuid_set)})")
+        return PruneIndexResponse(deleted_count=len(orphan_uuids), deleted_uuids=orphan_uuids)
 
 
 # 싱글턴 인스턴스

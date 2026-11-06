@@ -1,10 +1,10 @@
-import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import AppStoreBadgeLinks from "../AppStoreBadgeLinks";
 import { useAppLinks } from "../../hooks/useAppLinks";
 import { APP_STORE_FALLBACK_URL, IS_GOOGLE_PLAY_PUBLIC } from "../../constants/appStoreRelease";
 import { APP_PASS_GUIDE_DESCRIPTION, APP_PASS_GUIDE_TITLE } from "../../constants/proAccessCopy";
+import { useCloseOnEscape } from "../../hooks/useCloseOnEscape";
 
 interface AppPassGuideModalProps {
   readonly onClose: () => void;
@@ -19,14 +19,7 @@ export default function AppPassGuideModal({ onClose }: AppPassGuideModalProps) {
   const appStoreUrl = iosUrl ?? APP_STORE_FALLBACK_URL;
   const googlePlayUrl = IS_GOOGLE_PLAY_PUBLIC ? androidUrl : null;
 
-  // ESC 닫기
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onClose]);
+  useCloseOnEscape(onClose);
 
   return createPortal(
     <div className="modal-overlay" onClick={onClose}>

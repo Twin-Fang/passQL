@@ -40,7 +40,7 @@ final statsDataProvider = FutureProvider.autoDispose<StatsData>((ref) async {
   );
 });
 
-/// 통계 화면 AI 코멘트. 실패하면 null(카드 숨김). 프로 전용 > 무료(결제 켜짐)면 요청 없이 null (화면은 잠금 자리, #860)
+/// 통계 화면 AI 코멘트. 실패하면 오류 상태(화면은 다시 시도 자리, #862). 프로 전용 > 무료(결제 켜짐)면 요청 없이 null (화면은 잠금 자리, #860)
 /// 서버 캐시: 최근 풀이 10문제마다 새 코멘트 > 풀이마다 다시 받아도 LLM 호출 없음
 final statsAiCommentProvider = FutureProvider.autoDispose<AiCommentResponse?>((
   ref,
@@ -48,5 +48,8 @@ final statsAiCommentProvider = FutureProvider.autoDispose<AiCommentResponse?>((
   if (ref.watch(currentMemberUuidProvider) == null) return null;
   if (await watchIsProFeatureLocked(ref)) return null;
   final progressClient = ref.read(progressApiProvider);
-  return safeCall(progressClient.getAiComment(), label: 'statsAiComment');
+  // 한 칸짜리 묶음: 실패 기록·보고는 공통 지점에서, 실패면 오류로 던짐 (인증 만료는 그대로)
+  final aiComment = SafeCallSlot(progressClient.getAiComment());
+  await safeCallAll([aiComment]);
+  return aiComment.value;
 });

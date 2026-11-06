@@ -1,10 +1,13 @@
 import 'package:flutter/cupertino.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../data/models/progress/ai_stats_analysis.dart';
+import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../question/markdown_lite_text.dart';
 
-/// 약한 토픽 한 줄 (#861): 판정 칩 + 토픽 이름 > 숫자 근거 > (선택) AI 오답 패턴
+/// 약한 토픽 한 줄 (#861, #862): 판정 칩 + 토픽 이름 + (선택) 개념 보기 › > 숫자 근거 > (선택) AI 오답 패턴
+/// 개념 보기는 서버가 열 수 있는 단원을 알려 줄 때만 (같은 토픽의 개념 학습 단원)
 class AiAnalysisFindingRow extends StatelessWidget {
   const AiAnalysisFindingRow({super.key, required this.finding});
 
@@ -30,6 +33,7 @@ class AiAnalysisFindingRow extends StatelessWidget {
     final colors = context.passqlColors;
     final chip = chipOf(finding.kind);
     final insight = finding.insight;
+    final conceptTopicUuid = finding.conceptTopicUuid;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -50,6 +54,13 @@ class AiAnalysisFindingRow extends StatelessWidget {
                 ),
               ),
             ),
+            if (conceptTopicUuid != null)
+              PassqlSectionLink(
+                label: '개념 보기',
+                semanticLabel: '${finding.topicName} 개념 학습 보기',
+                onTap: () =>
+                    context.push(AppRoutes.conceptTopic(conceptTopicUuid)),
+              ),
           ],
         ),
         // 숫자 근거 (예: 6문제 중 3문제 정답 (50%))
@@ -65,7 +76,7 @@ class AiAnalysisFindingRow extends StatelessWidget {
         // AI 오답 패턴: `용어` 같은 표기를 강조로 바꿔 표시
         if (insight != null && insight.isNotEmpty) ...[
           const SizedBox(height: PassqlSpacing.xxs),
-          MarkdownLiteText(insight),
+          MarkdownLiteText(insight, isAnimated: true),
         ],
       ],
     );
