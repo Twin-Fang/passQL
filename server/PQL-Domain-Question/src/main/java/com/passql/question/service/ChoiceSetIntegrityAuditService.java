@@ -1,6 +1,7 @@
 package com.passql.question.service;
 
 import com.passql.ai.dto.GeneratedChoiceDto;
+import com.passql.meta.constant.PromptKey;
 import com.passql.meta.service.PromptService;
 import com.passql.question.constant.ChoiceKind;
 import com.passql.question.constant.ChoiceSetPolicy;
@@ -39,8 +40,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class ChoiceSetIntegrityAuditService {
 
-    // 옛 결과 표 생성 프롬프트: 키 + 이 버전 이하는 오답 표를 AI가 직접 써서 실제 실행 결과인지 확인할 수 없음 (#828 이전)
-    static final String LEGACY_RESULT_TABLE_PROMPT_KEY = "generate_choice_set_result_match";
+    // 옛 결과 표 생성 프롬프트: 결과 표 키의 이 버전 이하는 오답 표를 AI가 직접 써서 실제 실행 결과인지 확인할 수 없음 (#828 이전)
+    static final PromptKey LEGACY_RESULT_TABLE_PROMPT_KEY = PromptKey.GENERATE_CHOICE_SET_RESULT_MATCH;
     static final int LEGACY_RESULT_TABLE_PROMPT_MAX_VERSION = 2;
     // 한 번에 검사하는 세트 수 상한 (세트마다 임시 샌드박스 1개)
     private static final int MAX_PAGE_SIZE = 50;
@@ -158,7 +159,7 @@ public class ChoiceSetIntegrityAuditService {
             return false;
         }
         return promptService.findById(choiceSet.getPromptTemplateUuid())
-                .map(prompt -> LEGACY_RESULT_TABLE_PROMPT_KEY.equals(prompt.getKeyName())
+                .map(prompt -> LEGACY_RESULT_TABLE_PROMPT_KEY.getKeyName().equals(prompt.getKeyName())
                         && prompt.getVersion() <= LEGACY_RESULT_TABLE_PROMPT_MAX_VERSION)
                 .orElse(false);
     }

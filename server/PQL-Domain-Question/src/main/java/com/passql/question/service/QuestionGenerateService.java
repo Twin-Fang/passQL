@@ -7,6 +7,7 @@ import com.passql.common.audit.constant.AdminAuditAction;
 import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.meta.constant.PromptKey;
 import com.passql.meta.entity.PromptTemplate;
 import com.passql.meta.service.PromptService;
 import com.passql.question.constant.ChoiceKind;
@@ -45,8 +46,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class QuestionGenerateService {
 
-    private static final String PROMPT_KEY = "generate_question_full";
-
     private final AiGatewayClient aiGatewayClient;
     private final PromptService promptService;
     private final QuestionRepository questionRepository;
@@ -59,7 +58,7 @@ public class QuestionGenerateService {
      * AI에게 문제를 생성 요청한다 (저장하지 않음, 관리자 preview 용).
      */
     public GenerateQuestionFullResult generate(QuestionFullContextDto context) {
-        PromptTemplate prompt = promptService.getActivePrompt(PROMPT_KEY);
+        PromptTemplate prompt = promptService.getActivePrompt(PromptKey.GENERATE_QUESTION_FULL);
 
         Map<String, Object> responseSchema = Map.of(
                 "type", "object",
