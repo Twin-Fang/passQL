@@ -1767,19 +1767,28 @@ export interface paths {
          *     - 프로 전용 (결제 켜짐 무료 회원 403 PRO_REQUIRED, 결제 꺼짐이면 모두 허용)
          *
          *     ## 반환값 (AiCommentResponse)
-         *     - comment: 한국어 코멘트. 세션: AI 2~3문장 / 통계: analysis 를 이어 붙인 평문 (구버전 앱 호환, 마크다운 없음)
+         *     - comment: 한국어 코멘트. 세션: 서버 문장 + AI 한 문장 / 통계: analysis 를 이어 붙인 평문 (구버전 앱 호환, 마크다운 없음)
          *     - generatedAt: 코멘트 생성(캐시 저장) 시각
          *     - analysis (통계 화면만, 세션은 null): 서버 판정 구조화 분석
          *       - headline: 한 줄 요약 (시험 30일 이내면 "D-N · " 접두)
          *       - findings[] (최대 2): topicUuid, topicName(짧은 이름), kind(WEAK 약점·SHAKY 불안정·UNTRIED 판단 이름), solvedCount, correctRatePercent, evidence, insight(LLM 한 문장, 실패·근거 부족이면 null)
          *       - trend: 이번 주 vs 지난주 정답률 (두 주 모두 풀이 있을 때만, 아니면 null)
          *       - strength: 10문제 이상·85% 이상 중 최고 토픽 (없으면 null)
-         *       - actions[] (최대 2): type(PRACTICE_TOPIC 토픽 풀기·REVIEW_WRONG 최근 오답 다시 풀기), topicUuid·topicName(PRACTICE_TOPIC 만), count(표시용), label
+         *       - actions[] (최대 2): type(PRACTICE_TOPIC 토픽 풀기·REVIEW_WRONG 오답 다시 풀기·RANDOM_PRACTICE 랜덤 풀기·PRACTICE_LATEST_TREND 최신 경향 풀기), topicUuid·topicName(PRACTICE_TOPIC 만), count(표시용), label. 모르는 type 은 화면이 숨김
+         *       - findings[].conceptTopicUuid: 이 회원이 열 수 있는 개념 학습 단원(같은 토픽)일 때만, 아니면 null
+         *       - periodLabel: 판정 기간 표기 ("최근 90일 기준")
+         *       - forecast (근거 부족이면 null): SQLD 1과목 10·2과목 40문항 기준 예상 맞힐 수, expectedScore(100점), isSubjectOneFailRisk·isSubjectTwoFailRisk(40% 미만), verdict(SUBJECT_FAIL_RISK·PASS_LIKELY 70+·BORDERLINE 54~68·BELOW_PASS), verdictLabel, summary, detail
+         *         - 1과목 = 토픽 data_modeling 정답률, 2과목 = 나머지 토픽 같은 비중 평균(토픽별 풀이 적으면 2과목 전체 정답률 쪽으로 5문제분 당김), 최근 90일
+         *         - 1과목 5문제·2과목 20문제 미만이면 forecast=null, forecastHint="1과목 2문제 더 풀면 예상 점수를 알려 드려요"
+         *       - repeatedWrong (2문제 미만이면 null): 최근 90일 같은 문제 2번 이상 틀린 문제 수, 그중 마지막 시도도 오답인 수, text
+         *       - readiness (데이터 부족만): 5문제 이상 푼 토픽이 하나도 없을 때. message, topicName(가장 많이 푼 토픽), solvedCount, targetCount(5). 이때 findings·forecast 없음
+         *       - nextGoal (모두 안정권만): 안 푼 토픽 시작 또는 최신 경향 권유
          *       - 판정 기준·문구는 서버 규칙 고정, LLM 실패해도 analysis 는 응답 (insight 만 null)
+         *     - 세션 코멘트 comment: 서버 문장(점수 > 놓친 토픽 > 그 토픽 최근 90일 판정) + 오답 있으면 LLM 한 문장(ai_analysis_session), LLM 실패면 서버 문장만
          *
          *     ## 캐싱
          *     - Redis key: ai-comment:{memberUuid}:{sessionUuid}, TTL 2시간
-         *     - 통계: ai-comment:{memberUuid}:stats:{날짜}:analysis-{최근 7일 풀이 수/10}, TTL 24시간 (LLM 실패 응답은 캐시하지 않음)
+         *     - 통계: ai-comment:{memberUuid}:stats:{날짜}:guide-{최근 7일 풀이 수/10}, TTL 24시간 (LLM 실패 응답은 캐시하지 않음, 세션도 같음)
          *     - 같은 세션 재진입 시 동일 텍스트 반환 (불필요한 AI 호출 방지)
          *     - 새 세션 시작 시 새 sessionUuid로 자동 새 AI 호출
          *     - AI 호출 latency를 고려해 프론트엔드에서 비동기 로딩 권장
@@ -2087,9 +2096,11 @@ export interface components {
             /** Format: uuid */
             topicUuid: string | null;
             /** @enum {string} */
-            type: "PRACTICE_TOPIC" | "REVIEW_WRONG";
+            type: "PRACTICE_TOPIC" | "REVIEW_WRONG" | "RANDOM_PRACTICE" | "PRACTICE_LATEST_TREND";
         };
         AiAnalysisFinding: {
+            /** Format: uuid */
+            conceptTopicUuid: string | null;
             /** Format: int32 */
             correctRatePercent: number;
             evidence: string;
@@ -2101,6 +2112,14 @@ export interface components {
             topicName: string;
             /** Format: uuid */
             topicUuid: string;
+        };
+        AiAnalysisReadiness: {
+            message: string;
+            /** Format: int32 */
+            solvedCount: number;
+            /** Format: int32 */
+            targetCount: number;
+            topicName: string | null;
         };
         AiAnalysisStrength: {
             /** Format: int32 */
@@ -2115,6 +2134,32 @@ export interface components {
             /** Format: date-time */
             generatedAt: string | null;
         };
+        AiExamForecast: {
+            detail: string;
+            /** Format: int32 */
+            expectedScore: number;
+            isSubjectOneFailRisk: boolean;
+            isSubjectTwoFailRisk: boolean;
+            /** Format: int32 */
+            subjectOneExpectedCount: number;
+            /** Format: int32 */
+            subjectOneQuestionCount: number;
+            /** Format: int32 */
+            subjectTwoExpectedCount: number;
+            /** Format: int32 */
+            subjectTwoQuestionCount: number;
+            summary: string;
+            /** @enum {string} */
+            verdict: "SUBJECT_FAIL_RISK" | "PASS_LIKELY" | "BORDERLINE" | "BELOW_PASS";
+            verdictLabel: string;
+        };
+        AiRepeatedWrong: {
+            /** Format: int32 */
+            questionCount: number;
+            text: string;
+            /** Format: int32 */
+            unresolvedCount: number;
+        };
         AiResult: {
             /** Format: int32 */
             promptVersion: number;
@@ -2123,7 +2168,13 @@ export interface components {
         AiStatsAnalysis: {
             actions: components["schemas"]["AiAnalysisAction"][];
             findings: components["schemas"]["AiAnalysisFinding"][];
+            forecast: components["schemas"]["AiExamForecast"] | null;
+            forecastHint: string | null;
             headline: string;
+            nextGoal: string | null;
+            periodLabel: string;
+            readiness: components["schemas"]["AiAnalysisReadiness"] | null;
+            repeatedWrong: components["schemas"]["AiRepeatedWrong"] | null;
             strength: components["schemas"]["AiAnalysisStrength"] | null;
             trend: string | null;
         };

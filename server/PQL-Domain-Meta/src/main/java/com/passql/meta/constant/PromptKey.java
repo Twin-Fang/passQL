@@ -17,10 +17,10 @@ public enum PromptKey {
     EXPLAIN_ERROR("explain_error", "SQL 실행 오류 AI 해설"),
     // 선택지 세트 구조화 해설의 모델·온도 설정 (문구는 리소스 파일, 모델 비교 #356)
     DIFF_EXPLAIN("diff_explain", "선택지 해설 모델·온도 설정"),
-    // 결과 화면 AI 코멘트 (세션 결과 + 누적 통계)
-    AI_COMMENT("ai_comment", "결과 화면 AI 코멘트"),
     // 통계 화면 AI 분석 토픽별 한 문장 (본문은 운영 DB 에만, #861)
     AI_ANALYSIS_STATS("ai_analysis_stats", "통계 화면 AI 분석"),
+    // 결과 화면 세션 코멘트: 놓친 문제로 헷갈린 개념 한 문장 (본문은 운영 DB 에만, #862)
+    AI_ANALYSIS_SESSION("ai_analysis_session", "결과 화면 AI 코멘트"),
     // 실행형 선택지 세트 생성 (ODD_ONE_OUT 외 SQL 보기 정책 기본)
     GENERATE_CHOICE_SET("generate_choice_set", "실행형 선택지 세트 생성"),
     // 개념형 선택지 세트 생성 (샌드박스 없이 텍스트 보기)

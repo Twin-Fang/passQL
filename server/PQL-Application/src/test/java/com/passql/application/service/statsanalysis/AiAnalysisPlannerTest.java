@@ -5,12 +5,13 @@ import com.passql.ai.dto.AiStatsAnalysis;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * 통계 AI 분석 서버 판정 (#861): 집중 토픽 순서, 시험 임박 제외, 강점 기준, 한 줄 요약
+ * 통계 AI 분석 서버 판정 (#861, #862): 집중 토픽 순서, 시험 임박 제외, 강점 기준, 한 줄 요약, 데이터 부족·모두 안정권 다음 할 일
  */
 class AiAnalysisPlannerTest {
 
@@ -29,7 +30,13 @@ class AiAnalysisPlannerTest {
 
     private static AiStatsAnalysis plan(List<TopicLearningStat> topics, TwoWeekSubmissionCounts weeks,
                                         Integer daysUntilExam, long latestWrongCount) {
-        return AiAnalysisPlanner.plan(new StatsAnalysisInput(topics, 100, weeks, daysUntilExam, latestWrongCount)).analysis();
+        return AiAnalysisPlanner.plan(input(topics, 100, weeks, daysUntilExam, latestWrongCount)).analysis();
+    }
+
+    private static StatsAnalysisInput input(List<TopicLearningStat> topics, long totalSolvedCount,
+                                            TwoWeekSubmissionCounts weeks, Integer daysUntilExam, long latestWrongCount) {
+        return new StatsAnalysisInput(topics, totalSolvedCount, weeks, daysUntilExam, latestWrongCount,
+                RepeatedWrongStat.EMPTY, Set.of());
     }
 
     @Test
@@ -79,13 +86,15 @@ class AiAnalysisPlannerTest {
 
     @Test
     void 한_줄_요약은_첫_해당_경우를_고르고_시험_30일_이내면_D_접두() {
+        // 판단 가능한 토픽(5문제 이상)이 하나는 있어야 진단 (없으면 데이터 부족 안내)
+        TopicLearningStat stableSelect = topic("SELECT 기본", 20, 0.9);
         assertThat(plan(List.of(subjectOne(6, 0.5)), ACTIVE_WEEKS, 7, 0).headline())
                 .isEqualTo("D-7 · 1과목 정답률 50%, 과락 위험이 커요");
-        assertThat(plan(List.of(subjectOne(0, 0)), NO_RECENT_WEEK, null, 0).headline())
+        assertThat(plan(List.of(subjectOne(0, 0), stableSelect), NO_RECENT_WEEK, null, 0).headline())
                 .isEqualTo("최근 7일 풀이가 없어요");
-        assertThat(plan(List.of(subjectOne(0, 0)), ACTIVE_WEEKS, 40, 0).headline())
+        assertThat(plan(List.of(subjectOne(0, 0), stableSelect), ACTIVE_WEEKS, 40, 0).headline())
                 .isEqualTo("1과목 아직 0문제, 과락 위험이 커요");
-        assertThat(plan(List.of(subjectOne(3, 0.33)), ACTIVE_WEEKS, null, 0).headline())
+        assertThat(plan(List.of(subjectOne(3, 0.33), stableSelect), ACTIVE_WEEKS, null, 0).headline())
                 .isEqualTo("1과목 아직 3문제, 과락 위험이 커요");
         assertThat(plan(List.of(subjectOne(20, 0.9), topic("조인 (JOIN)", 20, 0.45)), ACTIVE_WEEKS, null, 0).headline())
                 .isEqualTo("조인 정답률 45%가 가장 급해요");
@@ -98,13 +107,56 @@ class AiAnalysisPlannerTest {
     }
 
     @Test
-    void 풀이_기록이_없으면_요약만_내고_집중_토픽이_없다() {
-        StatsAnalysisPlan emptyPlan = AiAnalysisPlanner.plan(new StatsAnalysisInput(
+    void 풀이_기록이_없으면_요약과_진행_안내만_내고_집중_토픽이_없다() {
+        StatsAnalysisPlan emptyPlan = AiAnalysisPlanner.plan(input(
                 List.of(subjectOne(0, 0)), 0, TwoWeekSubmissionCounts.EMPTY, null, 0));
 
         assertThat(emptyPlan.analysis().headline()).isEqualTo("아직 풀이 기록이 없어요");
         assertThat(emptyPlan.analysis().findings()).isEmpty();
+        assertThat(emptyPlan.analysis().readiness().solvedCount()).isZero();
         assertThat(emptyPlan.hasFocusTopics()).isFalse();
+    }
+
+    @Test
+    void 판단_가능한_토픽이_없으면_가장_많이_푼_토픽_진행과_랜덤_버튼() {
+        StatsAnalysisPlan thinPlan = AiAnalysisPlanner.plan(input(
+                List.of(subjectOne(2, 0.5), topic("조인 (JOIN)", 4, 0.5), topic("서브쿼리", 4, 1.0)),
+                10, ACTIVE_WEEKS, null, 5));
+
+        AiStatsAnalysis analysis = thinPlan.analysis();
+        assertThat(thinPlan.hasFocusTopics()).isFalse();
+        assertThat(analysis.headline()).isEqualTo("아직 진단할 풀이가 부족해요");
+        assertThat(analysis.forecast()).isNull();
+        // 동률이면 정렬 순서 앞 토픽
+        assertThat(analysis.readiness().topicName()).isEqualTo("조인");
+        assertThat(analysis.readiness().solvedCount()).isEqualTo(4);
+        assertThat(analysis.readiness().targetCount()).isEqualTo(5);
+        assertThat(analysis.actions()).extracting(action -> action.type())
+                .containsExactly(AiAnalysisActionType.RANDOM_PRACTICE, AiAnalysisActionType.PRACTICE_TOPIC);
+        assertThat(analysis.actions().get(1).label()).isEqualTo("조인 이어서 풀기");
+    }
+
+    @Test
+    void 모두_안정권이면_안_푼_토픽_시작_없으면_최신_경향() {
+        AiStatsAnalysis withUntouched = plan(List.of(subjectOne(20, 0.9), topic("윈도우 함수", 0, 0)), ACTIVE_WEEKS, null, 0);
+        assertThat(withUntouched.nextGoal()).isEqualTo("아직 안 푼 윈도우 함수까지 풀면 출제 범위를 모두 덮어요");
+        assertThat(withUntouched.actions().get(0).label()).isEqualTo("윈도우 함수 시작하기");
+
+        AiStatsAnalysis allTouched = plan(List.of(subjectOne(20, 0.9)), ACTIVE_WEEKS, null, 0);
+        assertThat(allTouched.actions()).extracting(action -> action.type())
+                .containsExactly(AiAnalysisActionType.PRACTICE_LATEST_TREND);
+    }
+
+    @Test
+    void 반복_오답은_2문제_이상일_때만_문구와_오답_버튼() {
+        StatsAnalysisInput repeatedInput = new StatsAnalysisInput(List.of(subjectOne(20, 0.9), topic("조인 (JOIN)", 20, 0.45)),
+                100, ACTIVE_WEEKS, null, 1, new RepeatedWrongStat(4, 3, "조인 (JOIN)"), Set.of());
+        AiStatsAnalysis analysis = AiAnalysisPlanner.plan(repeatedInput).analysis();
+
+        assertThat(analysis.repeatedWrong().text()).isEqualTo("4문제를 2번 이상 틀렸고, 3문제는 아직 못 맞혔어요. 대부분 조인 문제예요");
+        assertThat(analysis.actions()).extracting(action -> action.label())
+                .containsExactly("조인 문제 풀기", "반복 오답 다시 풀기");
+        assertThat(AiAnalysisNextStepPlanner.toRepeatedWrong(new RepeatedWrongStat(1, 1, null))).isNull();
     }
 
     @Test

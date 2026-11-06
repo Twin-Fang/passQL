@@ -26,11 +26,11 @@ class PromptServiceTest {
 
     @Test
     void 수정_요청의_키가_달라도_기존_키를_유지한다() {
-        // 기존 ai_comment 행 <-> 다른 키로 온 수정 요청 (#875: 폼이 explain_error 로 바꿔 보내던 경우)
+        // 기존 ai_analysis_session 행 <-> 다른 키로 온 수정 요청 (#875: 폼이 explain_error 로 바꿔 보내던 경우)
         UUID promptTemplateUuid = UUID.randomUUID();
         PromptTemplate existing = PromptTemplate.builder()
                 .promptTemplateUuid(promptTemplateUuid)
-                .keyName(PromptKey.AI_COMMENT.getKeyName())
+                .keyName(PromptKey.AI_ANALYSIS_SESSION.getKeyName())
                 .version(3)
                 .isActive(true)
                 .build();
@@ -42,7 +42,7 @@ class PromptServiceTest {
         PromptTemplate saved = promptService.update(promptTemplateUuid, request, "admin");
 
         // 키는 그대로, 나머지 값은 요청대로
-        assertThat(saved.getKeyName()).isEqualTo(PromptKey.AI_COMMENT.getKeyName());
+        assertThat(saved.getKeyName()).isEqualTo(PromptKey.AI_ANALYSIS_SESSION.getKeyName());
         assertThat(saved.getVersion()).isEqualTo(4);
         assertThat(saved.getSystemPrompt()).isEqualTo("system");
     }
