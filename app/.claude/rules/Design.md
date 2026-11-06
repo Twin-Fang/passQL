@@ -70,8 +70,8 @@ lib/presentation/design/
 | `PassqlResultMark` / `PassqlScoreHeader` / `PassqlResultScaffold` | 정답/오답 표시, 점수 고리, 결과 화면 3종 공통 틀 |
 | `PassqlChoiceCard` (+`PassqlChoiceState`) | 선택지 카드의 선택·채점 모양 (내용은 `ChoiceItemCard` 가 채움) |
 | `PassqlCodeBlock` | SQL 표시 블록 |
-| `PassqlCallout` (+`PassqlCalloutKind`) | 강조 상자: 옅은 의미색 바탕 + 왼쪽 막대 + 아이콘·라벨 한 줄 + 내용 (강조·주의 2종). 개념 학습 한 줄 핵심·자주 틀리는 점·시험 포인트 (#835) |
-| `PassqlBadge` (+`PassqlBadgeKind`) / `PassqlLatestTrendBadge` / `PassqlProgressBar` | 의미별 캡슐 태그(주제·보조·완료·연속·중요·AI·최신 경향, 아이콘·테두리), '최신 경향' 배지(문구 원본, #523), 진행 막대 |
+| `PassqlCallout` (+`PassqlCalloutKind`) | 강조 상자: 옅은 의미색 바탕 + 왼쪽 막대 + 아이콘·라벨 한 줄 + 내용 (강조·주의·외울 것 3종). 개념 학습 한 줄 핵심·자주 틀리는 점·시험 포인트 (#835), 꼭 외울 것 카드 (#876) |
+| `PassqlBadge` (+`PassqlBadgeKind`) / `PassqlLatestTrendBadge` / `PassqlProgressBar` | 의미별 캡슐 태그(주제·보조·완료·연속·중요·AI·최신 경향·외울 것, 아이콘·테두리), '최신 경향' 배지(문구 원본, #523), 진행 막대 |
 | `PassqlReveal` / `passqlRevealInOrder` | 처음 그려질 때 페이드 + 위로 8px, 순번별 지연(상한 8) (#495) |
 | `PassqlScrollReveal` | 스크롤로 화면에 들어올 때 한 번 페이드 + 위로, 순번별 지연 (개념 레슨 블록, #848). 스크롤 영역 밖이면 바로 등장, 동작 줄이기면 정지 |
 | `PassqlScrollProgress` | 스크롤로 들어오면 0 > 1 로 한 번 진행하는 그림 틀 (선 긋기·칠하기·빠지기, 개념 그림 블록 #853). 동작 줄이기면 처음부터 1 |
@@ -93,7 +93,7 @@ lib/presentation/design/
 화면(`lib/presentation/pages`, `widgets`, `flows`)은 토큰과 컴포넌트만 조합한다.
 
 - 색은 `context.passqlColors` 의 의미 이름으로만 고른다. `Color(0x...)`, `Colors.white/black` 금지
-- 읽는 글자색: 강조 글자는 `accentText`(accent 는 채움·테두리), 주황 글자는 `warningText`, 진한 의미색 채움 위 글자는 `onSemantic`, 보조 글자는 `secondaryLabel`. `tertiaryLabel` 은 비활성·장식(쉐브론) 전용, 기능 아이콘은 `iconSecondary`. 대비 기준(글자 4.5·아이콘 3, 라이트·다크)은 `test/design/passql_contrast_test.dart` 가 검사
+- 읽는 글자색: 강조 글자는 `accentText`(accent 는 채움·테두리), 주황 글자는 `warningText`, 노랑(외울 것) 글자는 `memorizeText`(형광펜 `memorizeHighlight` 위 글자는 `label`, #876), 진한 의미색 채움 위 글자는 `onSemantic`, 보조 글자는 `secondaryLabel`. `tertiaryLabel` 은 비활성·장식(쉐브론) 전용, 기능 아이콘은 `iconSecondary`. 대비 기준(글자 4.5·아이콘 3, 라이트·다크)은 `test/design/passql_contrast_test.dart` 가 검사
 - 간격·크기·글자는 토큰으로. 필요한 토큰이 없으면 토큰을 먼저 추가하고, 한 파일에서만 쓰는 배치 숫자는 이름 있는 상수로 둔다
 - 자산은 컴포넌트로(`PassqlLogo`). `Image.asset(` 금지
 - 흐림(`ImageFilter.blur(`)은 `PassqlLockedPreview`·`PassqlGlass` 로만. 화면 직접 사용 금지

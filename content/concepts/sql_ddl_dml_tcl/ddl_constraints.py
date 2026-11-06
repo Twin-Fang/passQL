@@ -48,11 +48,11 @@ CONCEPT = {
     "title": "제약조건",
     "summary": "테이블에 규칙을 걸어 잘못된 값의 입력·수정·삭제를 그 자리에서 막아요",
     "coreMd": (
-        "- 기본 키는 UNIQUE와 NOT NULL을 합친 것이고, 테이블에 하나만 둘 수 있어요.\n"
-        "- UNIQUE와 CHECK는 NULL을 막지 않아서, NULL까지 막으려면 NOT NULL을 함께 걸어요.\n"
-        "- 외래 키가 있으면 부모에 없는 값은 넣을 수 없고, 자식이 있는 부모 행은 지울 수 없어요.\n"
+        "- 기본 키는 **UNIQUE와 NOT NULL**을 합친 것이고, 테이블에 하나만 둘 수 있어요.\n"
+        "- UNIQUE와 CHECK는 **NULL을 막지 않아서**, NULL까지 막으려면 NOT NULL을 함께 걸어요.\n"
+        "- 외래 키가 있으면 **부모에 없는 값**은 넣을 수 없고, 자식이 있는 부모 행은 지울 수 없어요.\n"
         "- `ON DELETE CASCADE`는 자식 행도 지우고, `ON DELETE SET NULL`은 자식의 외래 키를 NULL로 바꿔요.\n"
-        "- DEFAULT는 아무것도 막지 않아서 제약조건이 아니에요."
+        "- DEFAULT는 아무것도 막지 않아서 **제약조건이 아니에요**."
     ),
     "detailMd": f"""## 제약조건이란 — 잘못된 값을 데이터베이스가 직접 막아요 {{#definition}}
 
@@ -246,6 +246,19 @@ DEFAULT 값은 열을 아예 적지 않았거나 값 자리에 `DEFAULT`라고 �
 | 바로 확인 | 정답 | 이유 |
 |---|---|---|
 | 사원의 부서번호를 NULL로 넣으면 외래 키 위반 오류가 나요 | X | 외래 키는 부모에 있는 값이거나 NULL이면 받아요 |
+
+## 꼭 외울 것 — 다섯 제약조건과 NULL {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| 기본 키 | UNIQUE + NOT NULL, 테이블에 하나 (복합 키도 하나) |
+| 고유 키와 NULL | NULL 여러 개 허용, 테이블에 여러 개 |
+| CHECK와 NULL | UNKNOWN이라 통과 (막으려면 NOT NULL) |
+| 외래 키 열에 넣을 수 있는 값 | 부모의 기본 키·고유 키에 있는 값 또는 NULL |
+| 옵션 없는 외래 키의 부모 삭제 | 자식 행이 있으면 거부 |
+| ON DELETE 두 옵션 | CASCADE는 자식 행 삭제, SET NULL은 외래 키를 NULL로 |
+| Oracle의 ON DELETE 옵션 | CASCADE, SET NULL 두 가지 (RESTRICT는 오류) |
+| NOT NULL을 나중에 붙이기 | `ALTER TABLE ... MODIFY (열 NOT NULL)` |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 

@@ -1,8 +1,11 @@
 """개념: INNER JOIN (5단원, 확인 문제 5개)"""
 
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
-from concept_dataset import (DEPARTMENT_ROWS, DEPARTMENT_TABLE_MD, EMPLOYEE_ROWS, EMPLOYEE_TABLE_MD,
-                             SALARY_GRADE_TABLE_MD, to_markdown_table)
+from concept_dataset import (DEPARTMENT_ROWS, DEPARTMENT_TABLE_MD, EMPLOYEE_ROWS, SALARY_GRADE_TABLE_MD,
+                             to_employee_table_md, to_markdown_table)
+
+# 조인 계산에 쓰는 열만 (사번: 1008 윤서연, 급여: 급여등급 조인, 부서번호: 부서 조인)
+EMPLOYEE_JOIN_TABLE = to_employee_table_md("사번", "이름", "급여", "부서번호")
 
 # 본문·문제 공통 SQL
 INNER_JOIN_COUNT_SQL = "SELECT COUNT(*) FROM 사원 E INNER JOIN 부서 D ON E.부서번호 = D.부서번호;"
@@ -48,10 +51,10 @@ CONCEPT = {
     "title": "INNER JOIN",
     "summary": "표준 문법으로 쓰는 조인이고, 양쪽 표에 짝이 있는 행만 남겨요",
     "coreMd": (
-        "- INNER JOIN은 `표1 INNER JOIN 표2 ON 조건`으로 쓰는 ANSI 표준 조인이고, `JOIN`만 써도 같아요.\n"
-        "- 양쪽에 짝이 있는 행만 남아서, 사원이 없는 부서 40과 부서가 없는 사원 1008은 빠져요.\n"
-        "- ON에는 잇는 조건, WHERE에는 거르는 조건을 쓰고, INNER JOIN에서는 거르는 조건을 어느 쪽에 써도 결과가 같아요.\n"
-        "- ON처럼 잇는 조건이 없으면 오류가 나고, 표가 세 개면 `JOIN ... ON`을 두 번 이어 써요."
+        "- INNER JOIN은 `표1 INNER JOIN 표2 ON 조건`으로 쓰는 **ANSI 표준** 조인이고, `JOIN`만 써도 같아요.\n"
+        "- 양쪽에 **짝이 있는 행만** 남아서, 사원이 없는 부서 40과 부서가 없는 사원 1008은 빠져요.\n"
+        "- ON에는 잇는 조건, WHERE에는 거르는 조건을 쓰고, INNER JOIN에서는 거르는 조건을 **어느 쪽에 써도** 결과가 같아요.\n"
+        "- ON처럼 잇는 조건이 없으면 **오류**가 나고, 표가 세 개면 `JOIN ... ON`을 두 번 이어 써요."
     ),
     "detailMd": f"""## 왜 필요한가요 — 잇는 조건을 따로 적기 {{#why}}
 
@@ -85,9 +88,9 @@ WHERE 거르는 조건;
 
 ## 예시 — Oracle 방식 등가 조인과 같은 결과 {{#example}}
 
-이 개념의 예시는 모두 아래 사원 표(8명)와 부서 표(4개)로 계산하고, 표 세 개를 잇는 예시에서는 급여등급 표도 함께 써요.
+이 개념의 예시는 모두 아래 사원 표(8명)와 부서 표(4개)로 계산하고, 표 세 개를 잇는 예시에서는 급여등급 표도 함께 써요. 사원 표는 계산에 쓰는 네 열만 보여요.
 
-{EMPLOYEE_TABLE_MD}
+{EMPLOYEE_JOIN_TABLE}
 
 {DEPARTMENT_TABLE_MD}
 
@@ -169,6 +172,19 @@ SELECT E.이름 FROM 사원 E JOIN 부서 D ON 부서번호 = 부서번호;  -- 
 | 바로 확인 | 정답 | 이유 |
 |---|---|---|
 | `부서 D JOIN 사원 E ON E.부서번호 = D.부서번호`도 7행을 돌려줘요 | O | INNER JOIN은 표 순서와 상관없이 짝이 같은 행을 남겨요 |
+
+## 꼭 외울 것 — 짝 있는 행만 남는 규칙 {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| INNER 키워드 | 생략할 수 있어서 JOIN만 써도 INNER JOIN |
+| 결과에 남는 행 | 양쪽에 짝이 있는 행만, NULL 키 행과 짝 없는 행은 빠짐 |
+| ON 절 없는 JOIN | ORA-00905(키워드가 빠짐) 오류 |
+| 거르는 조건의 자리 | INNER JOIN은 ON이든 WHERE든 결과가 같아요 |
+| 표 순서를 바꾸면 | INNER JOIN은 그대로, LEFT·RIGHT만 결과가 달라져요 |
+| ON에 쓸 수 있는 조건 | =뿐 아니라 BETWEEN 같은 비등가 조건도 돼요 |
+| 첫 조인에서 빠진 행 | 뒤에 잇는 조인에서도 나오지 않아요 |
+| 같은 결과의 Oracle 방식 | FROM에 쉼표로 나열, 잇는 조건은 WHERE에 |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 

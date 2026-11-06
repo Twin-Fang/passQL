@@ -55,10 +55,10 @@ CONCEPT = {
     "title": "트랜잭션과 COMMIT·ROLLBACK·SAVEPOINT",
     "summary": "여러 변경을 한 묶음으로 확정하거나 취소하고, 중간 지점까지만 되돌릴 수도 있어요",
     "coreMd": (
-        "- 트랜잭션은 함께 성공하거나 함께 취소되는 작업 묶음이고, ACID는 원자성·일관성·고립성·지속성이에요.\n"
-        "- COMMIT 전 변경은 내 세션에서만 보이고, 바뀐 행은 잠겨서 다른 사용자가 고칠 수 없어요.\n"
-        "- `ROLLBACK TO 저장점`은 그 뒤의 작업만 취소하고, 같은 이름의 저장점은 마지막 것이 기준이에요.\n"
-        "- Oracle은 DDL을 실행하면 앞의 DML까지 자동 커밋되고, SQL Server는 기본이 문장마다 자동 커밋이에요.\n"
+        "- 트랜잭션은 함께 성공하거나 함께 취소되는 작업 묶음이고, ACID는 **원자성·일관성·고립성·지속성**이에요.\n"
+        "- COMMIT 전 변경은 **내 세션에서만** 보이고, 바뀐 행은 잠겨서 다른 사용자가 고칠 수 없어요.\n"
+        "- `ROLLBACK TO 저장점`은 그 뒤의 작업만 취소하고, 같은 이름의 저장점은 **마지막 것**이 기준이에요.\n"
+        "- Oracle은 DDL을 실행하면 앞의 DML까지 **자동 커밋**되고, SQL Server는 기본이 문장마다 자동 커밋이에요.\n"
         "- 격리 수준은 높을수록 Dirty Read, Non-Repeatable Read, Phantom Read를 차례로 더 막아요."
     ),
     "detailMd": f"""## 왜 묶어서 처리할까요 — 출금만 되고 입금이 안 되면 안 돼서 {{#why}}
@@ -97,7 +97,7 @@ COMMIT은 트랜잭션에서 바꾼 내용을 모두 확정하고, ROLLBACK은 �
 
 | 시점 | 내 세션 | 다른 사용자 | 바뀐 행의 잠금 |
 |---|---|---|---|
-| COMMIT·ROLLBACK 전 | 바뀐 값이 보여요 | 바뀌기 전 값이 보여요 | 걸려 있어서 다른 사용자는 그 행을 고칠 수 없어요 |
+| COMMIT·ROLLBACK 전 | 바뀐 값이 보여요 | 바뀌기 전 값이 보여요 | 걸려 있어요 (다른 사용자는 못 고침) |
 | COMMIT 후 | 바뀐 값이 보여요 | 바뀐 값이 보여요 | 풀려요 |
 | ROLLBACK 후 | 바뀌기 전 값이 보여요 | 바뀌기 전 값이 보여요 | 풀려요 |
 
@@ -184,7 +184,7 @@ SQL Server도 설정을 바꾸면 Oracle처럼 첫 문장에서 트랜잭션이 
 | REPEATABLE READ | 막아요 | 막아요 | 생겨요 |
 | SERIALIZABLE | 막아요 | 막아요 | 막아요 |
 
-Oracle과 SQL Server 모두 기본 격리 수준은 READ COMMITTED예요. 다만 Oracle은 READ COMMITTED와 SERIALIZABLE만 지원해서, 다른 단계를 지정하면 오류가 나요.
+Oracle과 SQL Server 모두 기본 격리 수준은 **READ COMMITTED**예요. 다만 Oracle은 READ COMMITTED와 SERIALIZABLE만 지원해서, 다른 단계를 지정하면 오류가 나요.
 
 ```sql
 SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;   -- 오류: Oracle은 이 격리 수준을 지원하지 않아요 (ORA-02179)
@@ -217,6 +217,19 @@ SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;   -- 오류: Oracle은 이 격
 | 바로 확인 | 정답 | 이유 |
 |---|---|---|
 | 위 예시에서 60번 부서도 COMMIT으로 함께 확정돼요 | X | 60번은 저장점 가 뒤에 넣어서 ROLLBACK TO 가로 취소됐어요 |
+
+## 꼭 외울 것 — 저장점, 자동 커밋, 격리 수준 {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| ACID 두문자 | 원일고지: 원자성·일관성·고립성·지속성 |
+| ROLLBACK TO 저장점 | 그 뒤 작업만 취소, 트랜잭션은 계속 |
+| 같은 이름의 저장점 | 마지막에 만든 것만 남아요 |
+| 앞 저장점으로 돌아가면 | 그 뒤에 만든 저장점은 사라져요 |
+| Oracle에서 DDL을 실행하면 | 앞의 확정 안 된 DML까지 자동 커밋 |
+| SQL Server의 기본 커밋 | 문장마다 자동 커밋, 명시적 트랜잭션 안 DDL은 롤백 가능 |
+| 값이 바뀜 vs 행이 새로 생김 | 값이 바뀌면 Non-Repeatable Read, 새 행은 Phantom Read |
+| 기본 격리 수준 | READ COMMITTED (Oracle은 이것과 SERIALIZABLE만 지원) |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 

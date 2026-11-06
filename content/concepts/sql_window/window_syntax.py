@@ -85,11 +85,11 @@ CONCEPT = {
     "title": "윈도우 함수 문법",
     "summary": "행을 줄이지 않고, 각 행 옆에 묶음별 계산값을 붙이는 함수예요",
     "coreMd": (
-        "- 윈도우 함수는 GROUP BY와 달리 행을 줄이지 않고, 각 행 옆에 계산한 값을 붙여요.\n"
+        "- 윈도우 함수는 GROUP BY와 달리 **행을 줄이지 않고**, 각 행 옆에 계산한 값을 붙여요.\n"
         "- 모양은 `함수() OVER (PARTITION BY 열 ORDER BY 열 윈도우 절)`이고, 세 부분은 문법상 생략할 수 있어요.\n"
         "- 다만 순위 함수처럼 OVER 안에 ORDER BY가 꼭 있어야 하는 함수도 있어요.\n"
-        "- ORDER BY만 쓰고 윈도우 절을 빼면 `RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW`가 기본이라 누적값이 나와요.\n"
-        "- 윈도우 함수는 WHERE 절에 쓸 수 없어서, 인라인 뷰로 감싼 뒤 바깥 WHERE에서 걸러요."
+        "- ORDER BY만 쓰고 윈도우 절을 빼면 `RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW`가 기본이라 **누적값**이 나와요.\n"
+        "- 윈도우 함수는 WHERE 절에 쓸 수 없어서, **인라인 뷰**로 감싼 뒤 바깥 WHERE에서 걸러요."
     ),
     "detailMd": f"""## GROUP BY로는 안 되는 일 — 행을 남긴 채 합계 붙이기 {{#why}}
 
@@ -133,7 +133,7 @@ FROM 테이블;
 
 ## 네 종류 — 순위·집계·행 순서·비율 {{#kinds}}
 
-SQLD는 윈도우 함수를 네 종류로 나눠서 물어요. 이 단원의 다음 개념들이 한 종류씩 다뤄요.
+SQLD는 윈도우 함수를 **네 종류**로 나눠서 물어요. 이 단원의 다음 개념들이 한 종류씩 다뤄요.
 
 | 종류 | 함수 |
 |---|---|
@@ -243,6 +243,19 @@ SELECT 이름, SUM(급여) OVER (ORDER BY 급여 ROWS BETWEEN CURRENT ROW AND UN
 |---|---|---|
 | ROWS 1 PRECEDING은 앞 한 행부터 마지막 행까지를 뜻해요 | X | 시작만 적으면 끝은 CURRENT ROW라서, 앞 한 행과 현재 행이에요 |
 | 윈도우 함수는 GROUP BY로 만든 합계에 순위를 매길 수 있어요 | O | 윈도우 함수는 GROUP BY가 끝난 결과에 적용돼요 |
+
+## 꼭 외울 것 — OVER 괄호의 기본값 {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| 윈도우 함수 결과 행 수 | 원래 행 수 그대로, 줄지 않아요 |
+| OVER 안 세 부분 | PARTITION BY, ORDER BY, 윈도우 절 |
+| ORDER BY만 쓴 기본 범위 | RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW |
+| OVER 안에 ORDER BY 없음 | 묶음 전체가 범위 |
+| ROWS와 RANGE | ROWS는 행 개수, RANGE는 값 기준 (동점 함께) |
+| 시작만 적은 `ROWS 1 PRECEDING` | 끝은 CURRENT ROW |
+| 윈도우 함수를 쓰는 절 | SELECT와 ORDER BY만 (WHERE는 ORA-30483) |
+| 네 종류 | 순위, 집계, 행 순서, 비율 |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 

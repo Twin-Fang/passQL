@@ -49,9 +49,9 @@ CONCEPT = {
     "summary": "필요한 묶음 기준만 골라 적어서 한 번에 집계해요",
     "coreMd": (
         "- `GROUPING SETS`는 적은 묶음마다 따로 집계하고, 결과를 위아래로 이어 붙여 보여 줘요.\n"
-        "- `GROUPING SETS(A, B)`는 A별과 B별 집계만 만들고, 총계는 빈 괄호 `()`를 적어야 생겨요.\n"
-        "- `GROUPING SETS((A, B))`는 한 묶음이라 `GROUP BY A, B`와 같아서, 안쪽 괄호 위치가 묶음을 정해요.\n"
-        "- 적는 순서와 상관없이 같은 묶음을 만들고, ROLLUP과 CUBE도 GROUPING SETS로 바꿔 쓸 수 있어요."
+        "- `GROUPING SETS(A, B)`는 A별과 B별 집계만 만들고, 총계는 **빈 괄호** `()`를 적어야 생겨요.\n"
+        "- `GROUPING SETS((A, B))`는 한 묶음이라 `GROUP BY A, B`와 같아서, **안쪽 괄호 위치**가 묶음을 정해요.\n"
+        "- **적는 순서와 상관없이** 같은 묶음을 만들고, ROLLUP과 CUBE도 GROUPING SETS로 바꿔 쓸 수 있어요."
     ),
     "detailMd": f"""## 필요한 묶음만 — GROUPING SETS가 필요한 이유 {{#why}}
 
@@ -97,14 +97,22 @@ SELECT NULL, 직급, SUM(급여) FROM 사원 WHERE 부서번호 IN (20, 30) GROU
 
 ## 바꿔 쓰기 — ROLLUP과 CUBE도 GROUPING SETS로 {{#conversion}}
 
-ROLLUP과 CUBE가 만드는 묶음을 GROUPING SETS 안에 그대로 나열하면 같은 결과가 나와요. 열 하나짜리 묶음은 괄호를 빼도 되므로 오른쪽 칸처럼 줄여 써도 같아요.
+ROLLUP과 CUBE가 만드는 묶음을 GROUPING SETS 안에 그대로 나열하면 같은 결과가 나와요.
 
-| 원래 SQL | 같은 결과의 GROUPING SETS | 열 하나짜리 괄호를 뺀 모양 |
-|---|---|---|
-| `GROUP BY 부서번호, 직급` | `GROUPING SETS((부서번호, 직급))` | 같음 |
-| `ROLLUP(부서번호, 직급)` | `GROUPING SETS((부서번호, 직급), (부서번호), ())` | `GROUPING SETS((부서번호, 직급), 부서번호, ())` |
-| `CUBE(부서번호, 직급)` | `GROUPING SETS((부서번호, 직급), (부서번호), (직급), ())` | `GROUPING SETS((부서번호, 직급), 부서번호, 직급, ())` |
-| `GROUP BY 부서번호, ROLLUP(직급)` | `GROUPING SETS((부서번호, 직급), (부서번호))` | `GROUPING SETS((부서번호, 직급), 부서번호)` |
+| 원래 SQL | 같은 결과의 GROUPING SETS |
+|---|---|
+| `GROUP BY 부서번호, 직급` | `GROUPING SETS((부서번호, 직급))` |
+| `ROLLUP(부서번호, 직급)` | `GROUPING SETS((부서번호, 직급), (부서번호), ())` |
+| `CUBE(부서번호, 직급)` | `GROUPING SETS((부서번호, 직급), (부서번호), (직급), ())` |
+| `GROUP BY 부서번호, ROLLUP(직급)` | `GROUPING SETS((부서번호, 직급), (부서번호))` |
+
+열 하나짜리 묶음은 괄호를 빼도 되므로 아래처럼 줄여 써도 같아요. 첫 줄의 `GROUPING SETS((부서번호, 직급))`은 열 하나짜리 묶음이 없어서 줄일 괄호가 없어요.
+
+| 원래 SQL | 열 하나짜리 괄호를 뺀 모양 |
+|---|---|
+| `ROLLUP(부서번호, 직급)` | `GROUPING SETS((부서번호, 직급), 부서번호, ())` |
+| `CUBE(부서번호, 직급)` | `GROUPING SETS((부서번호, 직급), 부서번호, 직급, ())` |
+| `GROUP BY 부서번호, ROLLUP(직급)` | `GROUPING SETS((부서번호, 직급), 부서번호)` |
 
 두 열을 함께 묶은 (부서번호, 직급)은 괄호를 빼면 열 하나짜리 묶음 두 개로 바뀌므로 줄일 수 없어요. 두 SQL의 결과가 같은지 묻는 문제가 자주 나오니 이 표를 묶음 단위로 기억해 두면 좋아요.
 
@@ -133,6 +141,18 @@ SELECT 부서번호, 직급, SUM(급여) FROM 사원 WHERE 부서번호 IN (20, 
 | 결과에 총계 행이 없으면 GROUPING SETS를 의심해요 | O | ROLLUP과 CUBE는 늘 총계를 만들고, GROUPING SETS는 `()`를 적어야 생겨요 |
 | `GROUPING SETS((부서번호), (직급))`과 `GROUPING SETS(부서번호, 직급)`은 결과가 달라요 | X | 열 하나짜리 묶음의 괄호는 있어도 없어도 같아요 |
 | `GROUPING SETS((부서번호, 직급), 부서번호)`는 총계 행을 만들어요 | X | `()`가 없어서 조합과 부서별 소계만 나와요 |
+
+## 꼭 외울 것 — 적은 묶음만, 총계는 () {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| `GROUPING SETS(A, B)` | (A), (B) 두 묶음, 총계 없음 |
+| 총계를 넣으려면 | 빈 괄호 ()를 함께 적어요 |
+| `GROUPING SETS((A, B))` | 한 묶음, `GROUP BY A, B`와 같아요 |
+| 적는 순서를 바꾸면 | 결과가 같아요 (ROLLUP과 다름) |
+| 결과 행 수 세기 | 묶음마다 그룹 수를 더하고, ()가 있으면 1행 더 |
+| `ROLLUP(A, B)` 바꿔 쓰기 | GROUPING SETS((A, B), A, ()) |
+| `CUBE(A, B)` 바꿔 쓰기 | GROUPING SETS((A, B), A, B, ()) |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 

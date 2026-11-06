@@ -69,9 +69,9 @@ CONCEPT = {
     "summary": "같은 값을 가진 행끼리 묶어 집계하고, 묶은 결과를 HAVING으로 걸러요",
     "coreMd": (
         "- `GROUP BY 열`은 값이 같은 행끼리 그룹으로 묶고, 집계 함수를 그룹마다 계산해요.\n"
-        "- SELECT, HAVING, ORDER BY에는 GROUP BY 열과 집계 함수만 쓰고, 다른 열은 ORA-00979(GROUP BY에 없는 열) 오류예요.\n"
-        "- WHERE는 묶기 전에 행을, HAVING은 묶은 뒤에 그룹을 거르고, WHERE에는 집계 함수를 쓸 수 없어요.\n"
-        "- 실행 순서는 FROM > WHERE > GROUP BY > HAVING > SELECT > ORDER BY라서 GROUP BY에는 SELECT 별칭을 못 써요.\n"
+        "- SELECT, HAVING, ORDER BY에는 **GROUP BY 열과 집계 함수**만 쓰고, 다른 열은 ORA-00979(GROUP BY에 없는 열) 오류예요.\n"
+        "- WHERE는 묶기 전에 행을, HAVING은 묶은 뒤에 그룹을 거르고, WHERE에는 **집계 함수를 쓸 수 없어요**.\n"
+        "- 실행 순서는 FROM > WHERE > GROUP BY > HAVING > SELECT > ORDER BY라서 GROUP BY에는 **SELECT 별칭**을 못 써요.\n"
         "- 부서번호가 NULL인 행들도 한 그룹으로 묶여 결과에 한 행으로 나와요."
     ),
     "detailMd": f"""## 부서마다 따로 계산 — GROUP BY가 필요한 이유 {{#why}}
@@ -186,7 +186,7 @@ SELECT 부서번호 AS 부서, COUNT(*) FROM 사원 GROUP BY 부서;
 
 ## KEEP — 첫째·마지막 행의 값으로 집계 {{#keep}}
 
-"부서마다 가장 먼저 입사한 사람의 급여"는 `MIN(입사일)`로도, `MAX(급여)`로도 구할 수 없어요. Oracle은 집계 함수 뒤에 KEEP을 붙여, 정해 둔 순서로 줄 세운 맨 앞이나 맨 뒤 행만 남기고 집계할 수 있어요.
+"부서마다 가장 먼저 입사한 사람의 급여"는 `MIN(입사일)`로도, `MAX(급여)`로도 구할 수 없어요. Oracle은 집계 함수 뒤에 **KEEP**을 붙여, 정해 둔 순서로 줄 세운 맨 앞이나 맨 뒤 행만 남기고 집계할 수 있어요.
 
 ```sql
 -- 문법
@@ -231,6 +231,19 @@ SELECT MAX(급여) KEEP (RANK FIRST ORDER BY 입사일) FROM 사원;
 ```
 
 KEEP 뒤에 `OVER (PARTITION BY 부서번호)`를 붙이면 행을 줄이지 않고 사원마다 부서의 값을 함께 보여 주는 윈도우 함수가 돼요. 윈도우 함수는 8단원에서 다뤄요.
+
+## 꼭 외울 것 — 어느 절에 무엇을 쓰나 {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| 처리 순서 | FROM > WHERE > GROUP BY > HAVING > SELECT > ORDER BY |
+| WHERE와 HAVING | WHERE는 묶기 전 행, HAVING은 묶은 뒤 그룹을 걸러요 |
+| WHERE에 집계 함수 | 오류 (ORA-00934, 여기서 쓸 수 없는 그룹 함수) |
+| SELECT에 쓸 수 있는 것 | GROUP BY 열과 집계 함수만 (아니면 ORA-00979) |
+| SELECT 별칭을 쓰는 절 | ORDER BY만, GROUP BY에 쓰면 오류 |
+| 값이 NULL인 행들 | NULL끼리 한 그룹이 되어 한 행으로 나와요 |
+| GROUP BY 없이 HAVING | 테이블 전체가 그룹 하나예요 |
+| KEEP 괄호 안 순위 함수 | DENSE_RANK만 (FIRST는 맨 앞, LAST는 맨 뒤) |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 

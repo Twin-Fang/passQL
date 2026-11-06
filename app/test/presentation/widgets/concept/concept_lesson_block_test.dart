@@ -22,6 +22,10 @@ void main() {
 | 원 | 1차: 원자값 |
 | 부 | 2차: 부분 함수 종속 제거 |
 
+| 외울 것 | 답 |
+|---|---|
+| COUNT(*) | NULL 행까지 모두 세요 |
+
 | 헷갈리는 말 | 실제로는 |
 |---|---|
 | NULL 끼리 같아요 | = 비교는 UNKNOWN 이에요 |
@@ -46,13 +50,15 @@ SELECT 1 FROM DUAL;
       ConceptTermCardsBlock,
       ConceptStepsBlock,
       ConceptMnemonicBlock,
+      ConceptMemorizeBlock,
       ConceptRefutationBlock,
       ConceptQuickCheckBlock,
       ConceptTableBlock,
       ConceptCodeBlock,
     ]);
     expect((blocks[3] as ConceptMnemonicBlock).phrase, '원부');
-    final checks = (blocks[5] as ConceptQuickCheckBlock).checks;
+    expect((blocks[4] as ConceptMemorizeBlock).facts.single.meaning, 'NULL 행까지 모두 세요');
+    final checks = (blocks[6] as ConceptQuickCheckBlock).checks;
     // 정답 칸은 대소문자 구분 없이 O 만 참
     expect(checks.map((check) => check.isTrue), [true, false]);
   });
