@@ -146,6 +146,22 @@
         "required" : [ "actions", "findings", "headline", "strength", "trend" ],
         "type" : "object"
       },
+      "AnswerEntry" : {
+        "properties" : {
+          "isFlagged" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "questionNumber" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "selectedChoiceKey" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "isFlagged", "questionNumber", "selectedChoiceKey" ],
+        "type" : "object"
+      },
       "AppConfigResponse" : {
         "properties" : {
           "android" : {
@@ -1139,7 +1155,7 @@
       },
       "ErrorCode" : {
         "description" : "서버 ErrorCode enum 이름 (응답 errorCode 값)",
-        "enum" : [ "INTERNAL_SERVER_ERROR", "INVALID_REQUEST", "INVALID_INPUT_VALUE", "REQUEST_TOO_LARGE", "UNAUTHORIZED", "ACCESS_DENIED", "RESOURCE_NOT_FOUND", "METHOD_NOT_ALLOWED", "UNSUPPORTED_MEDIA_TYPE", "DATABASE_ERROR", "ILLEGAL_ARGUMENT", "VALIDATION_ERROR", "MESSAGE_NOT_READABLE", "MISSING_PARAMETER", "TYPE_MISMATCH", "DATA_INTEGRITY_VIOLATION", "EXTERNAL_API_ERROR", "NETWORK_ERROR", "SQL_SYNTAX", "SQL_SEMANTIC", "NOT_SELECT", "MULTIPLE_STATEMENTS", "TOO_LONG", "SANDBOX_TIMEOUT", "ROW_LIMIT_EXCEEDED", "RATE_LIMITED", "AI_UNAVAILABLE", "AI_TIMEOUT", "QUESTION_NOT_FOUND", "SANDBOX_DB_NOT_FOUND", "SETTING_NOT_FOUND", "SETTING_SENSITIVE_UPDATE_FORBIDDEN", "SETTING_SECRET_DECRYPT_FAILED", "EMBEDDING_INDEX_TARGET_EMPTY", "EMBEDDING_INDEX_ALREADY_RUNNING", "PROMPT_NOT_FOUND", "PROMPT_HISTORY_NOT_FOUND", "PROMPT_ACTIVE_DELETE_FORBIDDEN", "TOPIC_NOT_FOUND", "CONCEPT_NOT_FOUND", "CONCEPT_CHECK_QUESTION_NOT_FOUND", "TOPIC_DUPLICATE", "TOPIC_HAS_QUESTIONS", "EXAM_SCHEDULE_NOT_FOUND", "EXAM_SCHEDULE_DUPLICATE", "DAILY_CHALLENGE_QUESTION_INACTIVE", "DAILY_CHALLENGE_RANGE_INVALID", "DAILY_CHALLENGE_TOO_MANY_QUESTIONS", "DAILY_SET_ALREADY_COMPLETED", "DAILY_SET_NOT_FOUND", "MEMBER_NOT_FOUND", "MEMBER_ALREADY_WITHDRAWN", "MEMBER_SUSPENDED", "INVALID_SUSPEND_UNTIL", "NICKNAME_DUPLICATE", "NICKNAME_GENERATION_FAILED", "NICKNAME_COOLDOWN", "NICKNAME_INVALID", "NICKNAME_FORBIDDEN", "AI_SERVER_UNAVAILABLE", "AI_FALLBACK_FAILED", "AI_RESPONSE_PARSE_FAILED", "AI_STRUCTURED_SCHEMA_VIOLATION", "GENERATION_FAILED", "CHOICE_SET_GENERATION_FAILED", "CHOICE_SET_VALIDATION_NO_CORRECT", "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT", "CHOICE_SET_NOT_FOUND", "CHOICE_SET_ITEM_NOT_FOUND", "CHOICE_SET_POLICY_NOT_IMPLEMENTED", "SANDBOX_SETUP_FAILED", "SANDBOX_ANSWER_SQL_FAILED", "INVALID_EXECUTION_MODE", "QUIZ_SESSION_NOT_FOUND", "QUIZ_SESSION_ALREADY_COMPLETED", "QUIZ_SESSION_INDEX_OUT_OF_RANGE", "QUIZ_SESSION_CHOICE_SET_MISMATCH", "QUIZ_SESSION_INSUFFICIENT_QUESTIONS", "QUESTION_IN_ACTIVE_SESSION", "QUESTION_GENERATE_INPUT_INVALID", "FEEDBACK_NOT_FOUND", "FEEDBACK_CONTENT_EMPTY", "FEEDBACK_CONTENT_TOO_LONG", "FEEDBACK_IMAGE_TOO_MANY", "FEEDBACK_IMAGE_INVALID", "FEEDBACK_ATTACHMENT_TOO_LARGE", "FEEDBACK_ATTACHMENT_INVALID", "FEEDBACK_DAILY_LIMIT_EXCEEDED", "FEEDBACK_STORAGE_UNAVAILABLE", "SERVICE_UNDER_MAINTENANCE", "APP_VERSION_FORMAT_INVALID", "APP_NOTICE_NOT_FOUND", "APP_NOTICE_INPUT_INVALID", "APP_NOTICE_PERIOD_INVALID", "APP_MAINTENANCE_PERIOD_INVALID", "IMPORT_LIMIT_EXCEEDED", "EXPORT_NO_DATA", "REPORT_ALREADY_EXISTS", "REPORT_NOT_FOUND", "REPORT_ALREADY_RESOLVED", "REPORT_CHOICE_SET_REQUIRED", "COMMUNITY_POST_NOT_FOUND", "COMMUNITY_SOLVE_REQUIRED", "COMMUNITY_CONTENT_INVALID", "COMMUNITY_CONTENT_FORBIDDEN_WORD", "COMMUNITY_POST_DUPLICATE", "COMMUNITY_POST_RATE_LIMITED", "COMMUNITY_POST_DAILY_LIMIT_EXCEEDED", "COMMUNITY_POST_FORBIDDEN", "COMMUNITY_SELF_REPORT_FORBIDDEN", "COMMUNITY_SELF_BLOCK_FORBIDDEN", "COMMUNITY_BLOCK_NOT_FOUND", "COMMUNITY_IMAGE_STORAGE_UNAVAILABLE", "COMMUNITY_IMAGE_INVALID_FORMAT", "COMMUNITY_IMAGE_TOO_LARGE", "COMMUNITY_IMAGE_DIMENSION_EXCEEDED", "COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED", "COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED", "COMMUNITY_IMAGE_QUOTA_EXCEEDED", "COMMUNITY_IMAGE_NOT_FOUND", "COMMUNITY_IMAGE_TOO_MANY", "COMMUNITY_IMAGE_INVALID_ATTACHMENT", "ADMIN_ACCOUNT_NOT_FOUND", "ADMIN_ACCOUNT_DUPLICATE", "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED", "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN", "ADMIN_PASSWORD_TOO_WEAK", "ADMIN_WRITE_FORBIDDEN", "ADMIN_ACCOUNT_SELF_DELETE_FORBIDDEN", "ADMIN_ACCOUNT_DELETE_REQUIRES_DISABLED", "ADMIN_ACCOUNT_LAST_ADMIN_FORBIDDEN", "PUSH_TARGET_MEMBER_REQUIRED", "PUSH_LINK_QUESTION_REQUIRED", "PUSH_INACTIVE_DAYS_INVALID", "PUSH_SCHEDULE_TIME_INVALID", "PUSH_NOT_SCHEDULED", "PUSH_RETRACT_NOT_DISPATCHED", "PUSH_TEMPLATE_NOT_FOUND", "PUSH_SEND_HISTORY_NOT_FOUND", "PUSH_ALREADY_RETRACTED", "EXPIRED_FIREBASE_TOKEN", "INVALID_FIREBASE_TOKEN", "FIREBASE_SERVER_ERROR", "ACCESS_TOKEN_EXPIRED", "REFRESH_TOKEN_EXPIRED", "INVALID_TOKEN", "UNAUTHENTICATED_REQUEST", "UNSUPPORTED_AUTH_PROVIDER", "SOCIAL_LOGIN_UNAVAILABLE", "INVALID_SOCIAL_AUTHORIZATION_CODE", "INVALID_SOCIAL_TOKEN", "PRO_REQUIRED", "FREE_DAILY_LIMIT_REACHED", "FAIR_USE_DAILY_LIMIT_REACHED", "AD_BONUS_DAILY_LIMIT_REACHED", "AD_BONUS_VERIFICATION_PENDING", "AD_BONUS_APP_UPDATE_REQUIRED" ],
+        "enum" : [ "INTERNAL_SERVER_ERROR", "INVALID_REQUEST", "INVALID_INPUT_VALUE", "REQUEST_TOO_LARGE", "UNAUTHORIZED", "ACCESS_DENIED", "RESOURCE_NOT_FOUND", "METHOD_NOT_ALLOWED", "UNSUPPORTED_MEDIA_TYPE", "DATABASE_ERROR", "ILLEGAL_ARGUMENT", "VALIDATION_ERROR", "MESSAGE_NOT_READABLE", "MISSING_PARAMETER", "TYPE_MISMATCH", "DATA_INTEGRITY_VIOLATION", "EXTERNAL_API_ERROR", "NETWORK_ERROR", "SQL_SYNTAX", "SQL_SEMANTIC", "NOT_SELECT", "MULTIPLE_STATEMENTS", "TOO_LONG", "SANDBOX_TIMEOUT", "ROW_LIMIT_EXCEEDED", "RATE_LIMITED", "AI_UNAVAILABLE", "AI_TIMEOUT", "QUESTION_NOT_FOUND", "SANDBOX_DB_NOT_FOUND", "SETTING_NOT_FOUND", "SETTING_SENSITIVE_UPDATE_FORBIDDEN", "SETTING_SECRET_DECRYPT_FAILED", "EMBEDDING_INDEX_TARGET_EMPTY", "EMBEDDING_INDEX_ALREADY_RUNNING", "PROMPT_NOT_FOUND", "PROMPT_HISTORY_NOT_FOUND", "PROMPT_ACTIVE_DELETE_FORBIDDEN", "TOPIC_NOT_FOUND", "CONCEPT_NOT_FOUND", "CONCEPT_CHECK_QUESTION_NOT_FOUND", "TOPIC_DUPLICATE", "TOPIC_HAS_QUESTIONS", "EXAM_SCHEDULE_NOT_FOUND", "EXAM_SCHEDULE_DUPLICATE", "DAILY_CHALLENGE_QUESTION_INACTIVE", "DAILY_CHALLENGE_RANGE_INVALID", "DAILY_CHALLENGE_TOO_MANY_QUESTIONS", "DAILY_SET_ALREADY_COMPLETED", "DAILY_SET_NOT_FOUND", "MEMBER_NOT_FOUND", "MEMBER_ALREADY_WITHDRAWN", "MEMBER_SUSPENDED", "INVALID_SUSPEND_UNTIL", "NICKNAME_DUPLICATE", "NICKNAME_GENERATION_FAILED", "NICKNAME_COOLDOWN", "NICKNAME_INVALID", "NICKNAME_FORBIDDEN", "AI_SERVER_UNAVAILABLE", "AI_FALLBACK_FAILED", "AI_RESPONSE_PARSE_FAILED", "AI_STRUCTURED_SCHEMA_VIOLATION", "GENERATION_FAILED", "CHOICE_SET_GENERATION_FAILED", "CHOICE_SET_VALIDATION_NO_CORRECT", "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT", "CHOICE_SET_NOT_FOUND", "CHOICE_SET_ITEM_NOT_FOUND", "CHOICE_SET_POLICY_NOT_IMPLEMENTED", "SANDBOX_SETUP_FAILED", "SANDBOX_ANSWER_SQL_FAILED", "INVALID_EXECUTION_MODE", "QUIZ_SESSION_NOT_FOUND", "QUIZ_SESSION_ALREADY_COMPLETED", "QUIZ_SESSION_INDEX_OUT_OF_RANGE", "QUIZ_SESSION_CHOICE_SET_MISMATCH", "QUIZ_SESSION_INSUFFICIENT_QUESTIONS", "QUESTION_IN_ACTIVE_SESSION", "QUESTION_GENERATE_INPUT_INVALID", "FEEDBACK_NOT_FOUND", "FEEDBACK_CONTENT_EMPTY", "FEEDBACK_CONTENT_TOO_LONG", "FEEDBACK_IMAGE_TOO_MANY", "FEEDBACK_IMAGE_INVALID", "FEEDBACK_ATTACHMENT_TOO_LARGE", "FEEDBACK_ATTACHMENT_INVALID", "FEEDBACK_DAILY_LIMIT_EXCEEDED", "FEEDBACK_STORAGE_UNAVAILABLE", "SERVICE_UNDER_MAINTENANCE", "APP_VERSION_FORMAT_INVALID", "APP_NOTICE_NOT_FOUND", "APP_NOTICE_INPUT_INVALID", "APP_NOTICE_PERIOD_INVALID", "APP_MAINTENANCE_PERIOD_INVALID", "IMPORT_LIMIT_EXCEEDED", "EXPORT_NO_DATA", "REPORT_ALREADY_EXISTS", "REPORT_NOT_FOUND", "REPORT_ALREADY_RESOLVED", "REPORT_CHOICE_SET_REQUIRED", "COMMUNITY_POST_NOT_FOUND", "COMMUNITY_SOLVE_REQUIRED", "COMMUNITY_CONTENT_INVALID", "COMMUNITY_CONTENT_FORBIDDEN_WORD", "COMMUNITY_POST_DUPLICATE", "COMMUNITY_POST_RATE_LIMITED", "COMMUNITY_POST_DAILY_LIMIT_EXCEEDED", "COMMUNITY_POST_FORBIDDEN", "COMMUNITY_SELF_REPORT_FORBIDDEN", "COMMUNITY_SELF_BLOCK_FORBIDDEN", "COMMUNITY_BLOCK_NOT_FOUND", "COMMUNITY_IMAGE_STORAGE_UNAVAILABLE", "COMMUNITY_IMAGE_INVALID_FORMAT", "COMMUNITY_IMAGE_TOO_LARGE", "COMMUNITY_IMAGE_DIMENSION_EXCEEDED", "COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED", "COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED", "COMMUNITY_IMAGE_QUOTA_EXCEEDED", "COMMUNITY_IMAGE_NOT_FOUND", "COMMUNITY_IMAGE_TOO_MANY", "COMMUNITY_IMAGE_INVALID_ATTACHMENT", "ADMIN_ACCOUNT_NOT_FOUND", "ADMIN_ACCOUNT_DUPLICATE", "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED", "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN", "ADMIN_PASSWORD_TOO_WEAK", "ADMIN_WRITE_FORBIDDEN", "ADMIN_ACCOUNT_SELF_DELETE_FORBIDDEN", "ADMIN_ACCOUNT_DELETE_REQUIRES_DISABLED", "ADMIN_ACCOUNT_LAST_ADMIN_FORBIDDEN", "PUSH_TARGET_MEMBER_REQUIRED", "PUSH_LINK_QUESTION_REQUIRED", "PUSH_INACTIVE_DAYS_INVALID", "PUSH_SCHEDULE_TIME_INVALID", "PUSH_NOT_SCHEDULED", "PUSH_RETRACT_NOT_DISPATCHED", "PUSH_TEMPLATE_NOT_FOUND", "PUSH_SEND_HISTORY_NOT_FOUND", "PUSH_ALREADY_RETRACTED", "EXPIRED_FIREBASE_TOKEN", "INVALID_FIREBASE_TOKEN", "FIREBASE_SERVER_ERROR", "ACCESS_TOKEN_EXPIRED", "REFRESH_TOKEN_EXPIRED", "INVALID_TOKEN", "UNAUTHENTICATED_REQUEST", "UNSUPPORTED_AUTH_PROVIDER", "SOCIAL_LOGIN_UNAVAILABLE", "INVALID_SOCIAL_AUTHORIZATION_CODE", "INVALID_SOCIAL_TOKEN", "PRO_REQUIRED", "FREE_DAILY_LIMIT_REACHED", "FAIR_USE_DAILY_LIMIT_REACHED", "AD_BONUS_DAILY_LIMIT_REACHED", "AD_BONUS_VERIFICATION_PENDING", "AD_BONUS_APP_UPDATE_REQUIRED", "MOCK_EXAM_ROUND_NOT_FOUND", "MOCK_EXAM_ATTEMPT_NOT_FOUND", "MOCK_EXAM_ATTEMPT_IN_PROGRESS", "MOCK_EXAM_FREE_TRIAL_USED", "MOCK_EXAM_TIME_OVER", "MOCK_EXAM_ALREADY_SUBMITTED", "MOCK_EXAM_NOT_SUBMITTED", "MOCK_EXAM_ROUND_NOT_EDITABLE", "MOCK_EXAM_ROUND_NUMBER_DUPLICATED", "MOCK_EXAM_PUBLISH_CHECK_FAILED" ],
         "type" : "string"
       },
       "ErrorResponse" : {
@@ -1417,6 +1433,75 @@
         "required" : [ "entries" ],
         "type" : "object"
       },
+      "HistoryEntry" : {
+        "properties" : {
+          "attemptUuid" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "failReason" : {
+            "enum" : [ "NONE", "SUBJECT_FAIL", "TOTAL_SCORE_BELOW" ],
+            "type" : "string"
+          },
+          "isPassed" : {
+            "type" : "boolean"
+          },
+          "roundNumber" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "subjectOneScore" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "subjectTwoScore" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "submittedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "totalScore" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "attemptUuid", "failReason", "isPassed", "roundNumber", "subjectOneScore", "subjectTwoScore", "submittedAt", "title", "totalScore" ],
+        "type" : "object"
+      },
+      "InProgressAttempt" : {
+        "properties" : {
+          "answeredCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "attemptUuid" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "remainingSeconds" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "roundNumber" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "roundUuid" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "answeredCount", "attemptUuid", "remainingSeconds", "roundNumber", "roundUuid", "title" ],
+        "type" : "object"
+      },
       "KeyConcept" : {
         "properties" : {
           "description" : {
@@ -1429,6 +1514,31 @@
           }
         },
         "required" : [ "description", "name" ],
+        "type" : "object"
+      },
+      "LastAttempt" : {
+        "properties" : {
+          "attemptUuid" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "isPassed" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "status" : {
+            "enum" : [ "IN_PROGRESS", "SUBMITTED" ],
+            "type" : "string"
+          },
+          "submittedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "totalScore" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          }
+        },
+        "required" : [ "attemptUuid", "isPassed", "status", "submittedAt", "totalScore" ],
         "type" : "object"
       },
       "LatestTrendTopicCount" : {
@@ -1651,6 +1761,292 @@
           }
         },
         "required" : [ "dailyBonus", "dailyFreeLimit", "isBillingEnabled", "lastOrderId", "lastPurchasedAt", "passOptions", "plan", "proExpiresAt", "purchasableUntil", "todayFreeLimit", "todayRandomSolvedCount" ],
+        "type" : "object"
+      },
+      "MockExamAnswerSaveRequest" : {
+        "properties" : {
+          "isFlagged" : {
+            "description" : "null 이면 false",
+            "type" : [ "boolean", "null" ]
+          },
+          "selectedChoiceKey" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "type" : "object"
+      },
+      "MockExamAnswerSaveResponse" : {
+        "properties" : {
+          "questionNumber" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "remainingSeconds" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "questionNumber", "remainingSeconds" ],
+        "type" : "object"
+      },
+      "MockExamChoice" : {
+        "properties" : {
+          "body" : {
+            "type" : "string"
+          },
+          "isCorrect" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "key" : {
+            "type" : "string"
+          },
+          "kind" : {
+            "enum" : [ "SQL", "TEXT" ],
+            "type" : "string"
+          },
+          "rationale" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "body", "isCorrect", "key", "kind", "rationale" ],
+        "type" : "object"
+      },
+      "MockExamHistoryResponse" : {
+        "properties" : {
+          "attempts" : {
+            "items" : {
+              "$ref" : "#/components/schemas/HistoryEntry"
+            },
+            "type" : "array"
+          },
+          "passScore" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "attempts", "passScore" ],
+        "type" : "object"
+      },
+      "MockExamNextStep" : {
+        "properties" : {
+          "actions" : {
+            "items" : {
+              "$ref" : "#/components/schemas/AiAnalysisAction"
+            },
+            "type" : "array"
+          },
+          "headline" : {
+            "type" : "string"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "actions", "headline", "message" ],
+        "type" : "object"
+      },
+      "MockExamResultResponse" : {
+        "properties" : {
+          "attemptUuid" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "correctCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "elapsedSeconds" : {
+            "description" : "푼 시간 (초, 시작 ~ 제출, 시험 시간 상한)",
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "failReason" : {
+            "enum" : [ "NONE", "SUBJECT_FAIL", "TOTAL_SCORE_BELOW" ],
+            "type" : "string"
+          },
+          "isPassed" : {
+            "type" : "boolean"
+          },
+          "lockedSections" : {
+            "description" : "무료 회원 응답에서 뺀 묶음 이름 (MOCK_EXAM_SUBJECT_DETAIL, MOCK_EXAM_REVIEW)",
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "maxScore" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "nextStep" : {
+            "oneOf" : [ {
+              "$ref" : "#/components/schemas/MockExamNextStep"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "passScore" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "questionCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "questionMarks" : {
+            "items" : {
+              "$ref" : "#/components/schemas/QuestionMark"
+            },
+            "type" : "array"
+          },
+          "reviews" : {
+            "items" : {
+              "$ref" : "#/components/schemas/QuestionReview"
+            },
+            "type" : "array"
+          },
+          "roundNumber" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "roundUuid" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "startedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "subjects" : {
+            "items" : {
+              "$ref" : "#/components/schemas/SubjectResult"
+            },
+            "type" : "array"
+          },
+          "submitReason" : {
+            "enum" : [ "MEMBER", "TIME_UP" ],
+            "type" : "string"
+          },
+          "submittedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "topics" : {
+            "items" : {
+              "$ref" : "#/components/schemas/TopicResult"
+            },
+            "type" : "array"
+          },
+          "totalScore" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "attemptUuid", "correctCount", "elapsedSeconds", "failReason", "isPassed", "lockedSections", "maxScore", "nextStep", "passScore", "questionCount", "questionMarks", "reviews", "roundNumber", "roundUuid", "startedAt", "subjects", "submitReason", "submittedAt", "title", "topics", "totalScore" ],
+        "type" : "object"
+      },
+      "MockExamRoundListResponse" : {
+        "properties" : {
+          "examRule" : {
+            "$ref" : "#/components/schemas/MockExamRuleResponse"
+          },
+          "inProgressAttempt" : {
+            "oneOf" : [ {
+              "$ref" : "#/components/schemas/InProgressAttempt"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "rounds" : {
+            "items" : {
+              "$ref" : "#/components/schemas/RoundSummary"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "examRule", "inProgressAttempt", "rounds" ],
+        "type" : "object"
+      },
+      "MockExamRuleResponse" : {
+        "properties" : {
+          "durationMinutes" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "maxScore" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "passScore" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "pointsPerQuestion" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "questionCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "subjects" : {
+            "items" : {
+              "$ref" : "#/components/schemas/SubjectRule"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "durationMinutes", "maxScore", "passScore", "pointsPerQuestion", "questionCount", "subjects" ],
+        "type" : "object"
+      },
+      "MockExamSheetResponse" : {
+        "properties" : {
+          "attemptUuid" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "questions" : {
+            "items" : {
+              "$ref" : "#/components/schemas/SheetQuestion"
+            },
+            "type" : "array"
+          },
+          "remainingSeconds" : {
+            "description" : "응답 시점 남은 시간 (초, 0 이상). 앱은 받은 순간부터 단조 시계로 줄임",
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "roundNumber" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "roundUuid" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "status" : {
+            "enum" : [ "IN_PROGRESS", "SUBMITTED" ],
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "attemptUuid", "questions", "remainingSeconds", "roundNumber", "roundUuid", "status", "title" ],
+        "type" : "object"
+      },
+      "MockExamSubmitRequest" : {
+        "properties" : {
+          "answers" : {
+            "items" : {
+              "$ref" : "#/components/schemas/AnswerEntry"
+            },
+            "type" : [ "array", "null" ]
+          }
+        },
         "type" : "object"
       },
       "NicknameChangeRequest" : {
@@ -2059,6 +2455,80 @@
         "required" : [ "answerSql", "choiceSetPolicy", "choiceSets", "difficulty", "executionMode", "hint", "isLatestTrend", "questionUuid", "schemaDdl", "schemaDisplay", "schemaIntent", "schemaSampleData", "schemaTables", "stem", "subtopicName", "topicName" ],
         "type" : "object"
       },
+      "QuestionMark" : {
+        "properties" : {
+          "isAnswered" : {
+            "type" : "boolean"
+          },
+          "isCorrect" : {
+            "type" : "boolean"
+          },
+          "isFlagged" : {
+            "type" : "boolean"
+          },
+          "questionNumber" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "subject" : {
+            "enum" : [ "SUBJECT_ONE", "SUBJECT_TWO" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "isAnswered", "isCorrect", "isFlagged", "questionNumber", "subject" ],
+        "type" : "object"
+      },
+      "QuestionReview" : {
+        "properties" : {
+          "choices" : {
+            "items" : {
+              "$ref" : "#/components/schemas/MockExamChoice"
+            },
+            "type" : "array"
+          },
+          "correctChoiceKey" : {
+            "type" : "string"
+          },
+          "explanationSummary" : {
+            "type" : [ "string", "null" ]
+          },
+          "isCorrect" : {
+            "type" : "boolean"
+          },
+          "questionNumber" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "questionUuid" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "schemaDisplay" : {
+            "type" : [ "string", "null" ]
+          },
+          "schemaTables" : {
+            "items" : {
+              "$ref" : "#/components/schemas/QuestionSchemaTable"
+            },
+            "type" : "array"
+          },
+          "selectedChoiceKey" : {
+            "type" : [ "string", "null" ]
+          },
+          "stem" : {
+            "type" : "string"
+          },
+          "subject" : {
+            "enum" : [ "SUBJECT_ONE", "SUBJECT_TWO" ],
+            "type" : "string"
+          },
+          "topicName" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "choices", "correctChoiceKey", "explanationSummary", "isCorrect", "questionNumber", "questionUuid", "schemaDisplay", "schemaTables", "selectedChoiceKey", "stem", "subject", "topicName" ],
+        "type" : "object"
+      },
       "QuestionSchemaColumn" : {
         "properties" : {
           "isForeignKey" : {
@@ -2270,6 +2740,90 @@
         "required" : [ "reported" ],
         "type" : "object"
       },
+      "RoundSummary" : {
+        "properties" : {
+          "bestScore" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "canStart" : {
+            "type" : "boolean"
+          },
+          "isFreeTrialRound" : {
+            "description" : "무료 체험 회차 (공개 회차 중 번호가 가장 작은 회차)",
+            "type" : "boolean"
+          },
+          "lastAttempt" : {
+            "oneOf" : [ {
+              "$ref" : "#/components/schemas/LastAttempt"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "roundNumber" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "roundUuid" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "startBlockReason" : {
+            "enum" : [ "PRO_REQUIRED", "FREE_TRIAL_USED", "OTHER_ATTEMPT_IN_PROGRESS" ],
+            "type" : [ "string", "null" ]
+          },
+          "submittedAttemptCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "title" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "bestScore", "canStart", "isFreeTrialRound", "lastAttempt", "roundNumber", "roundUuid", "startBlockReason", "submittedAttemptCount", "title" ],
+        "type" : "object"
+      },
+      "SheetQuestion" : {
+        "properties" : {
+          "choices" : {
+            "items" : {
+              "$ref" : "#/components/schemas/MockExamChoice"
+            },
+            "type" : "array"
+          },
+          "isFlagged" : {
+            "type" : "boolean"
+          },
+          "questionNumber" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "schemaDisplay" : {
+            "type" : [ "string", "null" ]
+          },
+          "schemaTables" : {
+            "items" : {
+              "$ref" : "#/components/schemas/QuestionSchemaTable"
+            },
+            "type" : "array"
+          },
+          "selectedChoiceKey" : {
+            "type" : [ "string", "null" ]
+          },
+          "stem" : {
+            "type" : "string"
+          },
+          "subject" : {
+            "enum" : [ "SUBJECT_ONE", "SUBJECT_TWO" ],
+            "type" : "string"
+          },
+          "topicName" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "choices", "isFlagged", "questionNumber", "schemaDisplay", "schemaTables", "selectedChoiceKey", "stem", "subject", "topicName" ],
+        "type" : "object"
+      },
       "SimilarQuestion" : {
         "properties" : {
           "questionUuid" : {
@@ -2350,6 +2904,67 @@
             "type" : [ "integer", "null" ]
           }
         },
+        "type" : "object"
+      },
+      "SubjectResult" : {
+        "properties" : {
+          "correctCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "failBelowScore" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "isFailed" : {
+            "type" : "boolean"
+          },
+          "maxScore" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "questionCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "score" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "subject" : {
+            "enum" : [ "SUBJECT_ONE", "SUBJECT_TWO" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "correctCount", "failBelowScore", "isFailed", "maxScore", "name", "questionCount", "score", "subject" ],
+        "type" : "object"
+      },
+      "SubjectRule" : {
+        "properties" : {
+          "failBelowScore" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "maxScore" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "questionCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "subject" : {
+            "enum" : [ "SUBJECT_ONE", "SUBJECT_TWO" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "failBelowScore", "maxScore", "name", "questionCount", "subject" ],
         "type" : "object"
       },
       "SubmitRequest" : {
@@ -2460,6 +3075,31 @@
           }
         },
         "required" : [ "topicStats" ],
+        "type" : "object"
+      },
+      "TopicResult" : {
+        "properties" : {
+          "correctCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "questionCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "subject" : {
+            "enum" : [ "SUBJECT_ONE", "SUBJECT_TWO" ],
+            "type" : "string"
+          },
+          "topicName" : {
+            "type" : "string"
+          },
+          "topicUuid" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        },
+        "required" : [ "correctCount", "questionCount", "subject", "topicName", "topicUuid" ],
         "type" : "object"
       },
       "TopicStat" : {
@@ -3602,7 +4242,7 @@
     "/api/feedback" : {
       "post" : {
         "description" : "## 인증(JWT): **필요**\n\n## 요청 (multipart/form-data)\n- **`request`** (application/json, 필수): `{ \"content\": \"...\" }` (앞뒤 공백 제거 후 1~500자)\n- **`images`** (선택, 0~10개): WebP 원본 (장당 600KB 이하, 긴 변 1920px 이하)\n- **`diagnostics`** (선택, application/json): 진단 정보 JSON 객체 (32KB 이하)\n- **`log`** (선택, application/gzip): 앱 로그 gzip (2MB 이하)\n\n## 반환값 (FeedbackSubmitResponse)\n- **`feedbackUuid`**: 생성된 의견 UUID\n- **`status`**: 초기 상태 (항상 PENDING)\n- **`createdAt`**: 생성 시각\n\n## 설명\n- 검증 순서: 글 > 이미지 장수 > 이미지 WebP·용량 > 진단 JSON > 로그 > 하루 한도(회원당 10건, Asia/Seoul)\n- WebP·gzip 판별은 바이트 앞부분으로만 한다 (Content-Type·확장자는 보지 않음)\n- 첨부가 있는데 저장소가 꺼져 있거나 업로드가 실패하면 글도 저장하지 않는다\n\n## 에러\n- 400 FEEDBACK_CONTENT_EMPTY / FEEDBACK_CONTENT_TOO_LONG / FEEDBACK_IMAGE_TOO_MANY / FEEDBACK_IMAGE_INVALID / FEEDBACK_ATTACHMENT_INVALID\n- 413 FEEDBACK_ATTACHMENT_TOO_LARGE\n- 429 FEEDBACK_DAILY_LIMIT_EXCEEDED\n- 503 FEEDBACK_STORAGE_UNAVAILABLE\n",
-        "operationId" : "submit_1",
+        "operationId" : "submit_2",
         "requestBody" : {
           "content" : {
             "multipart/form-data" : {
@@ -4316,6 +4956,218 @@
         "tags" : [ "Meta" ]
       }
     },
+    "/api/mock-exams/attempts/{attemptUuid}" : {
+      "get" : {
+        "description" : "남은 시간(초)·50문항(정답 없음)·내 답·표시. 마감이 지났으면 채점 후 status SUBMITTED, questions 빈 목록.",
+        "operationId" : "getSheet",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "attemptUuid",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MockExamSheetResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "시험지",
+        "tags" : [ "MockExam" ]
+      }
+    },
+    "/api/mock-exams/attempts/{attemptUuid}/answers/{questionNumber}" : {
+      "put" : {
+        "description" : "고른 보기(null 선택 해제)·표시 여부. 마감 + 15초 뒤면 채점 후 409 MOCK_EXAM_TIME_OVER, 제출한 응시 409 MOCK_EXAM_ALREADY_SUBMITTED.",
+        "operationId" : "saveAnswer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "attemptUuid",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "questionNumber",
+          "required" : true,
+          "schema" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MockExamAnswerSaveRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MockExamAnswerSaveResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "문항 답 저장",
+        "tags" : [ "MockExam" ]
+      }
+    },
+    "/api/mock-exams/attempts/{attemptUuid}/result" : {
+      "get" : {
+        "description" : "총점·합격·불합격 이유·문항 정오 공개. 과목별 점수·토픽별 정답률·문항 해설·다음에 할 일은 프로 전용(무료는 빈 값 + lockedSections). 풀이 중 409 MOCK_EXAM_NOT_SUBMITTED.",
+        "operationId" : "getResult",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "attemptUuid",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MockExamResultResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "결과",
+        "tags" : [ "MockExam" ]
+      }
+    },
+    "/api/mock-exams/attempts/{attemptUuid}/submit" : {
+      "post" : {
+        "description" : "기기에 남은 답 묶음은 마감 + 15초 안 도착분만 반영 > 채점 > 결과. 이미 채점된 응시는 같은 결과.",
+        "operationId" : "submit_1",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "attemptUuid",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MockExamSubmitRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MockExamResultResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "제출 (멱등)",
+        "tags" : [ "MockExam" ]
+      }
+    },
+    "/api/mock-exams/history" : {
+      "get" : {
+        "description" : "채점된 응시 제출 시간순. 무료 403 PRO_REQUIRED.",
+        "operationId" : "getHistory",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MockExamHistoryResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "점수 추이 (프로)",
+        "tags" : [ "MockExam" ]
+      }
+    },
+    "/api/mock-exams/rounds" : {
+      "get" : {
+        "description" : "시험 형식(examRule), 풀이 중 응시(이어 풀기), 공개 회차별 시작 가능 여부·막힌 이유·최고 점수·마지막 응시. 마감 지난 내 응시는 먼저 채점.",
+        "operationId" : "getRounds",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MockExamRoundListResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "회차 목록",
+        "tags" : [ "MockExam" ]
+      }
+    },
+    "/api/mock-exams/rounds/{roundUuid}/attempts" : {
+      "post" : {
+        "description" : "같은 회차 풀이 중이면 그 응시 시험지, 아니면 새 응시(마감 = 지금 + 90분). 무료 체험 소진 403 MOCK_EXAM_FREE_TRIAL_USED, 체험 회차 아님 403 PRO_REQUIRED, 다른 회차 풀이 중 409 MOCK_EXAM_ATTEMPT_IN_PROGRESS.",
+        "operationId" : "startOrResume",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "roundUuid",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MockExamSheetResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "시작 또는 이어 풀기",
+        "tags" : [ "MockExam" ]
+      }
+    },
     "/api/progress" : {
       "get" : {
         "description" : "## 인증(JWT): **필요**\n\n## 반환값 (ProgressResponse)\n- solvedCount: 푼 문제 수 (distinct questionUuid 기준)\n- correctRate: 정답률 (0.0~1.0, 마지막 시도 기준, 소수 둘째자리 반올림)\n- streakDays: 연속 학습 일수 (하루 그레이스 — 오늘 미제출이어도 어제까지 연속이면 유지)\n- 제출 이력 0건이면 solvedCount=0, correctRate=0.0, streakDays=0\n\n## readiness (합격 준비도 블록)\n- score: Accuracy × Coverage × Recency (0.0~1.0, 소수 둘째자리)\n- accuracy: 최근 50시도의 정답률\n- coverage: 최근 14일 내 푼 활성 토픽 수 / 활성 토픽 전체 수\n- recency: 마지막 학습일 기반 감쇠 계수 (0.70~1.00)\n- lastStudiedAt: 마지막 시도 시각 (ISO-8601), 미시도시 null\n- recentAttemptCount: 최근 50 윈도우 실제 시도 수\n- coveredTopicCount / activeTopicCount: 커버리지 분자/분모\n- daysUntilExam: 선택된 시험 일정 기준 D-day (없으면 null)\n- toneKey: 카피 톤 키 (NO_EXAM / ONBOARDING / POST_EXAM / TODAY / SPRINT / PUSH / STEADY / EARLY)\n",
@@ -4811,6 +5663,9 @@
   }, {
     "description" : "AI 해설 / 유사 문제 조회",
     "name" : "AI"
+  }, {
+    "description" : "SQLD 모의고사 (50문항 90분, 과목별 과락, 무료 체험 1회 · 프로 전체)",
+    "name" : "MockExam"
   }, {
     "description" : "의견 보내기 (글 + 이미지 + 진단 정보 + 앱 로그)",
     "name" : "Feedback"

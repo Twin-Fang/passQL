@@ -36,10 +36,22 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
     /** 커뮤니티: 이 문제를 풀어 본(제출 기록이 있는) 회원인지 */
     boolean existsByMemberUuidAndQuestionUuid(UUID memberUuid, UUID questionUuid);
 
-    /** 기간 [from, to) 안에 제출한 서로 다른 문제 수 (하루 문제 수 제한용, 같은 문제 재제출은 1건) */
+    /** 모의고사 밖에서 제출한 적 있는 문제인지 (하루 한도 "예전에 푼 문제" 판정, 모의고사 체험 문항이 상시 열람으로 바뀌지 않게 #866) */
+    @Query("""
+            SELECT COUNT(s) > 0 FROM Submission s
+            WHERE s.memberUuid = :memberUuid AND s.questionUuid = :questionUuid
+              AND NOT EXISTS (SELECT 1 FROM MockExamAttempt a WHERE a.mockExamAttemptUuid = s.sessionUuid)
+            """)
+    boolean existsOutsideMockExam(@Param("memberUuid") UUID memberUuid, @Param("questionUuid") UUID questionUuid);
+
+    /**
+     * 기간 [from, to) 안에 제출한 서로 다른 문제 수 (하루 문제 수 제한용, 같은 문제 재제출은 1건)
+     * 모의고사 응시 세션 제출은 제외 (모의고사를 본 날 무료 한도를 잃지 않게, #866)
+     */
     @Query("""
             SELECT COUNT(DISTINCT s.questionUuid) FROM Submission s
             WHERE s.memberUuid = :memberUuid AND s.submittedAt >= :from AND s.submittedAt < :to
+              AND NOT EXISTS (SELECT 1 FROM MockExamAttempt a WHERE a.mockExamAttemptUuid = s.sessionUuid)
             """)
     long countDistinctQuestionsSubmittedBetween(@Param("memberUuid") UUID memberUuid,
                                                 @Param("from") LocalDateTime from,
@@ -50,6 +62,7 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
             SELECT COUNT(DISTINCT s.questionUuid) FROM Submission s
             WHERE s.memberUuid = :memberUuid AND s.submittedAt >= :from AND s.submittedAt < :to
               AND s.questionUuid NOT IN :excludedQuestionUuids
+              AND NOT EXISTS (SELECT 1 FROM MockExamAttempt a WHERE a.mockExamAttemptUuid = s.sessionUuid)
             """)
     long countDistinctQuestionsSubmittedBetweenExcluding(@Param("memberUuid") UUID memberUuid,
                                                          @Param("from") LocalDateTime from,

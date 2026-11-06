@@ -14,5 +14,6 @@ public enum ProFeature {
     EXAM_TREND,         // 기출 경향
     TOPIC_ANALYSIS,     // 토픽 분석
     AI_COMMENT,         // AI 코멘트
-    CONCEPT_LEARNING    // 개념 학습 무료 단원 이후
+    CONCEPT_LEARNING,   // 개념 학습 무료 단원 이후
+    MOCK_EXAM           // 모의고사 전체 회차·재응시·과목별 분석·문항 해설·점수 추이 (무료는 체험 1회, #866)
 }
