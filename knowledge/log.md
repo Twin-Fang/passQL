@@ -155,3 +155,9 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-07 06:19 | W6 | ingest issue + report, decision | ISS-0466, ISS-0466-report, DEC-0267 (#877)
 - 2026-11-07 06:19 | W2 | cluster update (entries, supersede moves, 현재 상태 요약) | cluster-progress-stats, cluster-ai, cluster-billing, cluster-practice, cluster-auth-member, cluster-design-system, cluster-ads, cluster-admin, cluster-concept-learning, cluster-security
 - 2026-11-07 06:19 | W2 | fix members count W10 (ads·billing·design-system·security 기존 차이 포함 실제 수로) | cluster-admin, cluster-ads, cluster-ai, cluster-auth-member, cluster-billing, cluster-concept-learning, cluster-design-system, cluster-practice, cluster-progress-stats, cluster-security
+- 2026-11-07 07:14 | W6 | ingest issue + report, decision (W4 충돌 없음) | ISS-0467, ISS-0467-report, DEC-0268 (#879)
+- 2026-11-07 07:14 | W6 | ingest issue + report, decisions (W4: DEC-0144 와 충돌 없음) | ISS-0468, ISS-0468-report, DEC-0269, DEC-0270 (#881)
+- 2026-11-07 07:14 | W6 | ingest open issue (로컬 리포트만, PR #898 미머지), decisions (W4 충돌 없음) | ISS-0469, DEC-0271, DEC-0272, DEC-0273 (#867)
+- 2026-11-07 07:14 | W2 | cluster update (entries, 현재 상태 요약) | cluster-ops-infra, cluster-security, cluster-practice, cluster-ai, cluster-admin, cluster-auth-member, cluster-dev-workflow, cluster-billing, cluster-ads
+- 2026-11-07 07:14 | W2 | fix members count W10 (이번 추가분 반영) | cluster-admin, cluster-ads, cluster-ai, cluster-auth-member, cluster-billing, cluster-dev-workflow, cluster-ops-infra, cluster-practice, cluster-security
+- 2026-11-07 07:15 | W6 | update open issue·decisions (PR #898 머지, 리포트 댓글 게시 반영 — 이슈는 사람 확인 남아 열림) | ISS-0469, DEC-0271, DEC-0272, DEC-0273, cluster-ads, cluster-billing, cluster-ops-infra, cluster-practice

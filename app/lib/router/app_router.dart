@@ -386,6 +386,9 @@ abstract final class AppRouter {
         builder: (_, state) => MockExamResultPage(
           attemptUuid:
               state.pathParameters[AppRoutes.mockExamAttemptUuidParameter]!,
+          isJustSubmitted: ResultRouteArguments.isMockExamJustSubmitted(
+            state.extra,
+          ),
         ),
       ),
       GoRoute(

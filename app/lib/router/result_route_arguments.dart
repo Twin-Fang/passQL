@@ -43,7 +43,12 @@ class DailySetOutcome {
   final String? saveError;
 }
 
-/// 결과 화면 3종 이동 인자(GoRouterState.extra) 해석 공통 지점: 타입이 다르면 null (결과 없음·서버 기록 화면)
+/// 모의고사 결과 이동 인자: 풀이 화면에서 막 제출한 진입 표식 (회차 목록·점수 추이 진입은 없음)
+class MockExamSubmittedArguments {
+  const MockExamSubmittedArguments();
+}
+
+/// 결과 화면 4종 이동 인자(GoRouterState.extra) 해석 공통 지점: 타입이 다르면 null (결과 없음·서버 기록 화면)
 abstract final class ResultRouteArguments {
   /// 문제 결과: QuestionResultArguments 또는 옛 형식 SubmitResult(정답 라벨 없음)
   static QuestionResultArguments? questionResultOf(Object? extra) =>
@@ -60,4 +65,8 @@ abstract final class ResultRouteArguments {
   /// 챕터 결과 요약
   static ChapterSummary? chapterSummaryOf(Object? extra) =>
       extra is ChapterSummary ? extra : null;
+
+  /// 모의고사 결과: 막 제출한 진입인지 (스토어 평가 요청 대상)
+  static bool isMockExamJustSubmitted(Object? extra) =>
+      extra is MockExamSubmittedArguments;
 }

@@ -13,6 +13,8 @@ export interface ExplanationHistoryEntry {
   readonly questionLabel: string;
   readonly displayLabelByChoiceKey: DisplayLabelByChoiceKey;
   readonly isCorrect: boolean;
+  // 정답 보기 키 (해설 없이 판정 한 줄만 조립할 때, 모르면 null)
+  readonly correctChoiceKey: string | null;
   // 제출 응답의 구조화 해설 (있으면 조회 없이 즉시 표시)
   readonly initialExplanation: ChoiceExplanation | null;
   // 제출 응답의 잠긴 묶음 (무료면 FULL_EXPLANATION, #578)
@@ -86,6 +88,7 @@ export function buildExplanationHistoryEntry({
     questionLabel: questionNumber ? `${questionNumber}번 문제` : "이 문제",
     displayLabelByChoiceKey: buildDisplayLabelByChoiceKey(choices),
     isCorrect: result.isCorrect,
+    correctChoiceKey: result.correctKey ?? null,
     initialExplanation: result.structuredExplanation ?? null,
     initialLockedSections: result.lockedSections ?? [],
     fallbackText: result.explanation || result.rationale || null,

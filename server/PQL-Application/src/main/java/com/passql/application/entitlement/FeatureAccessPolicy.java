@@ -165,6 +165,7 @@ public class FeatureAccessPolicy {
     /**
      * 답안 제출 제한: 열기와 같은 판정을 제출 시점 수로 다시 (#860)
      * 열기는 자리를 맡아 두지 않음 > 한도 안에서 여러 문제를 열어 둔 뒤 몰아 제출해도 한도에서 멈춤
+     * 제출 경로는 {@link DailyQuestionSubmitAdmission} 으로만 부름 (기록 트랜잭션 안 회원 잠금 뒤, #867)
      */
     public void assertCanSubmitQuestion(UUID memberUuid, UUID questionUuid) {
         assertWithinDailyQuestionLimit(memberUuid, questionUuid, "submit");

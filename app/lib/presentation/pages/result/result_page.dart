@@ -66,6 +66,7 @@ class ResultPage extends ConsumerWidget {
             displayLabelByChoiceKey:
                 arguments?.displayLabelByChoiceKey ?? const {},
             rationale: result.rationale,
+            correctChoiceKey: result.correctKey,
           );
 
     // 오답이면 정답 선택지 키를 제목에 다시 보여 준다(기존 헤더 문구 보존).

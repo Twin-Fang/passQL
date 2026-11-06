@@ -51,12 +51,13 @@ class ProOfferPassOptionList extends StatelessWidget {
     );
   }
 
-  /// 이용권 1칸: 할인 있으면 리본·할인 전 값·월 환산, 가격 있으면 하루 가격 (#816)
+  /// 이용권 1칸: 할인 있으면 리본·할인 전 값·월 환산, 가격 있으면 하루 가격 (#816, 원 금액은 원화일 때만 #867)
   /// 할인이 가장 큰 칸 리본에만 `가장 많이 골라요`를 붙임
   Widget _buildOptionTile(PassOption option) {
     final discount = pricing.discountOf(option);
     final undiscountedPrice = pricing.undiscountedPriceOf(option);
     final dailyPrice = pricing.dailyPriceOf(option);
+    final monthlyPrice = pricing.monthlyPriceOf(option);
     final isRecommended = option == pricing.bestDiscountOption;
     final onSelect = this.onSelect;
     return ProPassOptionTile(
@@ -73,9 +74,9 @@ class ProOfferPassOptionList extends StatelessWidget {
       undiscountedPrice: undiscountedPrice == null
           ? null
           : '${formatThousands(undiscountedPrice)}원',
-      monthlyLabel: discount == null
+      monthlyLabel: monthlyPrice == null
           ? null
-          : '월 ${formatThousands(discount.monthlyPrice)}원',
+          : '월 ${formatThousands(monthlyPrice)}원',
       expiryLabel: '${formatDottedDate(option.expiresAtIfPurchased)}까지',
       isSelected: option == selectedOption,
       onTap: onSelect == null ? null : () => onSelect(option),

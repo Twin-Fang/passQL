@@ -1,5 +1,6 @@
 package com.passql.web.controller;
 
+import com.passql.application.entitlement.DailyQuestionSubmitAdmission;
 import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.application.entitlement.ProFeature;
 import com.passql.application.entitlement.ProResponseRedactor;
@@ -47,6 +48,7 @@ public class QuestionController implements QuestionControllerDocs {
     private final ChoiceGenerationStreamService choiceGenerationStreamService;
     private final FeatureAccessPolicy featureAccessPolicy;
     private final ProResponseRedactor proResponseRedactor;
+    private final DailyQuestionSubmitAdmission dailyQuestionSubmitAdmission;
 
     // 문제 목록은 토픽 골라 풀기 전용 (필터 없는 목록·최신 경향도 토픽 정보로 같은 기능을 대신하므로 함께 잠금, #860)
     @RequiresProFeature(ProFeature.TOPIC_PRACTICE)
@@ -122,12 +124,12 @@ public class QuestionController implements QuestionControllerDocs {
         @AuthMember LoginMember loginMember,
         @Valid @RequestBody SubmitRequest request
     ) {
-        // 하루 문제 수 제한 (열기와 같은 판정, 제출 시점 수 기준 #860)
-        featureAccessPolicy.assertCanSubmitQuestion(loginMember.memberUuid(), questionUuid);
         // 실행 결과를 못 보는 회원은 샌드박스 실행 생략, 응답에서 무료 회원 몫 밖 묶음을 뺀다 (#879)
+        // 하루 문제 수 제한은 기록 트랜잭션 안에서 회원 잠금 > 판정 (제출 시점 수 #860, 동시 제출 #867)
         SubmitResult submitResult = submissionService.submit(
                 loginMember.memberUuid(), questionUuid, request.choiceSetId(), request.selectedChoiceKey(), request.sessionUuid(),
-                featureAccessPolicy.canUse(loginMember.memberUuid(), ProFeature.SQL_EXECUTION));
+                featureAccessPolicy.canUse(loginMember.memberUuid(), ProFeature.SQL_EXECUTION),
+                dailyQuestionSubmitAdmission.forQuestion(loginMember.memberUuid(), questionUuid));
         return ResponseEntity.ok(proResponseRedactor.redactSubmitResult(
                 loginMember.memberUuid(), request.choiceSetId(), submitResult));
     }

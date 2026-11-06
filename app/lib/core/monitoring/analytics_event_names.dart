@@ -13,6 +13,7 @@ abstract final class AnalyticsEventNames {
   static const String notificationItemOpened = 'notification_item_opened';
   static const String notificationPermissionPrompt =
       'notification_permission_prompt';
+  static const String storeReviewRequested = 'store_review_requested';
 }
 
 /// 분석 이벤트 파라미터 이름 (값은 문자열·숫자만, 이메일·닉네임·SQL 답안 원문 금지)
@@ -38,4 +39,7 @@ abstract final class AnalyticsParameterNames {
 
   /// 권한 안내 결과: accepted, later, denied
   static const String promptResult = 'result';
+
+  /// 평가 요청을 일으킨 학습: daily_set, mock_exam
+  static const String reviewTrigger = 'trigger';
 }

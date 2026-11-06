@@ -2,7 +2,7 @@
 type: cluster
 topic: ai
 created: 2026-10-29
-members: 113
+members: 114
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 
 ## 현재 상태 요약
-(2026-11-07, 자동 생성) 활성 결정 41개, 열린 이슈 2개. 통계 AI 분석은 서버 판정 + LLM 한 문장 — [[DEC-0259-ai-analysis-server-decides-llm-explains]], 예상 점수 — [[DEC-0260-exam-forecast-score-thresholds]]. 프롬프트 키 원본은 `PromptKey` — [[DEC-0265-prompt-key-enum-single-source]]. LLM 재시도·대체 호출은 `error_kind` 기준 — [[DEC-0267-ai-retry-fallback-by-error-kind]]. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-07, 자동 생성) 활성 결정 41개, 열린 이슈 2개. 통계 AI 분석은 서버 판정 + LLM 한 문장 — [[DEC-0259-ai-analysis-server-decides-llm-explains]], 예상 점수 — [[DEC-0260-exam-forecast-score-thresholds]]. 프롬프트 키 원본은 `PromptKey` — [[DEC-0265-prompt-key-enum-single-source]]. LLM 재시도·대체 호출은 `error_kind` 기준 — [[DEC-0267-ai-retry-fallback-by-error-kind]]. AI 코멘트는 없는·남의 세션이면 LLM 없이 고정 응답, 회원별 요청 제한, 재색인은 트랜잭션 밖 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0025-redis-shared-app-settings]] — Spring이 `app_setting`을 Redis(`passql:settings:{key}`)에 쓰고 AI 서버가 읽어 설정을 공유
@@ -71,6 +71,7 @@ AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 - [[DEC-0147-keep-explanation-sheet-while-solving]] → DEC-0154
 
 ## 관련 이슈
+- [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]] (resolved, GitHub #879) — 서버 전체 점검: AI 코멘트 LLM 호출 제한, OSIV DB 커넥션 점유, 내린 보기 묶음 채점, 설정 캐시, 예외 원문 노출
 - [[ISS-0460-ai-analysis-forecast-concept-links]] (resolved, GitHub #862) — 통계 AI 분석 보강: 과목별 예상 점수, 개념 바로 가기, 빈 데이터 안내, 세션 코멘트 개편
 - [[ISS-0464-admin-prompt-key-single-source]] (resolved, GitHub #875) — 관리자 프롬프트 수정 화면 키 목록 누락으로 저장 시 키가 바뀜, 프롬프트 키 한 곳으로
 - [[ISS-0466-llm-duplicate-billing-retry-fallback]] (resolved, GitHub #877) — LLM 호출 중복 과금: 응답 시간 초과 재시도와 서버 대체 호출 겹침, AI 서버 키 보호

@@ -109,11 +109,12 @@ export default function AnswerFeedback() {
         {!isExecutable ? (
           <ConceptAnswerCards isCorrect={isCorrect} selectedBody={selectedBody} correctBody={correctBody} />
         ) : null}
+        {/* 세트 모름: 해설 글 카드 (무료 재제출처럼 글이 비면 빈 카드 대신 그리지 않음, #867) */}
         {explanationEntry ? (
           <AiExplanationCard entry={explanationEntry} />
-        ) : (
+        ) : (explanation || rationale) ? (
           <RationaleCard rationale={explanation || rationale} isAiExplanation={Boolean(explanation)} />
-        )}
+        ) : null}
         {isExecutable && execution.sqlChoices.length > 0 ? (
           <SqlComparisonSection
             sqlChoices={execution.sqlChoices}

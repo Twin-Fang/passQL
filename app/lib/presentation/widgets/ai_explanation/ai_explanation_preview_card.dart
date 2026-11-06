@@ -4,11 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../design/design.dart';
 import '../../providers/ai_explanation_session_provider.dart';
 import '../../providers/choice_explanation_providers.dart';
+import '../../providers/plan_providers.dart';
 import 'ai_explanation_inline_text.dart';
 import 'ai_explanation_verdict.dart';
 
 /// 제출 직후 해설 미리보기: 머리(AI 해설 · 전체 보기) > 내 보기 판정 한 줄 > 정답 근거 1줄
 /// 카드 전체가 '해설 전체 보기' 버튼. 기다리는 중이면 글 줄 스켈레톤 한 블록, 실패면 다시 시도
+/// 무료 회원이 판정까지 비어 받거나 폴백 없이 실패하면 제출 결과로 조립한 판정 한 줄 (#867)
 class AiExplanationPreviewCard extends ConsumerWidget {
   const AiExplanationPreviewCard({
     super.key,
@@ -27,6 +29,15 @@ class AiExplanationPreviewCard extends ConsumerWidget {
     final colors = context.passqlColors;
     final provider = choiceExplanationProvider(entry.request);
     final explanationState = ref.watch(provider);
+    final isFailedVerdictOnly =
+        explanationState.isFailed &&
+        shouldShowVerdictOnlyFor(
+          entry,
+          shouldShowProUi: ref.watch(shouldShowProUiProvider),
+          fallbackText: explanationState.hasMarkdownText
+              ? explanationState.markdownText
+              : entry.rationale,
+        );
     final previewStyle = PassqlTypography.footnote.copyWith(
       color: colors.secondaryLabel,
       height: PassqlTypography.explanationBody.height,
@@ -39,6 +50,13 @@ class AiExplanationPreviewCard extends ConsumerWidget {
       ),
       ChoiceExplanationPhase.ready => _ReadyPreview(
         key: const ValueKey('ready'),
+        entry: entry,
+        state: explanationState,
+        previewStyle: previewStyle,
+      ),
+      // 무료 재제출 실패(근거 폴백 없음): 다시 시도 대신 판정 한 줄
+      ChoiceExplanationPhase.failed when isFailedVerdictOnly => _ReadyPreview(
+        key: const ValueKey('verdictOnly'),
         entry: entry,
         state: explanationState,
         previewStyle: previewStyle,
@@ -161,7 +179,7 @@ class _PreviewHeader extends StatelessWidget {
   }
 }
 
-/// 준비됨: 구조화면 판정 한 줄 + 정답 근거 2줄, 마크다운만 있으면 첫 줄들 요약
+/// 준비됨: 구조화면 판정 한 줄 + 정답 근거 2줄, 마크다운만 있으면 첫 줄들 요약, 둘 다 없으면 판정 한 줄만
 class _ReadyPreview extends StatelessWidget {
   const _ReadyPreview({
     super.key,
@@ -177,7 +195,10 @@ class _ReadyPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final explanation = state.explanation;
+    // 구조화·마크다운 둘 다 없음(무료 판정 자리) > 제출 결과로 판정 조립
+    final explanation =
+        state.explanation ??
+        (state.hasMarkdownText ? null : verdictOnlyExplanationOf(entry));
     if (explanation == null) {
       return AiExplanationInlineText(
         _plainPreviewOf(state.markdownText ?? ''),

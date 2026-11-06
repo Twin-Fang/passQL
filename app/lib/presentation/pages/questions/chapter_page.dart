@@ -156,7 +156,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     ref.invalidate(questionDetailProvider(questionUuid));
   }
 
-  /// 제출: 선택 키 고정 > 서버 제출 > 결과 기록(성공) + 해설함 추가 또는 원인별 토스트(실패)
+  /// 제출: 선택 키 고정 > 서버 제출 > 결과 기록(성공) + 해설함 추가, 실패는 프로 접근 사유 시트(열리면 다시 제출) 또는 원인별 토스트
   Future<void> _submitCurrentQuestion(String currentUuid) async {
     // 선택 키·보기 표시 라벨·순번 미리 저장 (제출 후 interaction state가 바뀔 수 있으므로)
     final interactionBeforeSubmit = ref.read(
@@ -176,9 +176,24 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
             sessionUuid: widget.flow.shouldTrackSession ? _sessionUuid : null,
           );
     } on AppException catch (exception) {
-      // 실패 원인별 문구 (네트워크, 서버 오류, 입력 오류 등)
-      if (mounted) showAppToast(context, exception.message);
-      return;
+      if (!mounted) return;
+      // 제출 시점 하루 한도·프로 필요 > 사유 시트(광고 보너스·이용권), 시트로 열리면 다시 제출 (#867)
+      final feedbackResult = await showProAccessFeedback(
+        context,
+        ref,
+        exception,
+      );
+      if (!mounted) return;
+      switch (feedbackResult) {
+        case ProAccessFeedbackResult.sheetUnlocked:
+          return _submitCurrentQuestion(currentUuid);
+        case ProAccessFeedbackResult.shown:
+          return;
+        case ProAccessFeedbackResult.notHandled:
+          // 실패 원인별 문구 (네트워크, 서버 오류, 입력 오류 등)
+          showAppToast(context, exception.message);
+          return;
+      }
     }
     if (!mounted || submitResult == null) return;
 
@@ -219,6 +234,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
             questionNumber: questionNumber,
             displayLabelByChoiceKey: displayLabelByChoiceKey,
             rationale: result.rationale,
+            correctChoiceKey: result.correctKey,
           ),
         );
   }

@@ -14,6 +14,7 @@ class AiExplanationEntry {
     this.questionNumber,
     this.displayLabelByChoiceKey = const {},
     this.rationale,
+    this.correctChoiceKey,
   });
 
   final ChoiceExplanationRequest request;
@@ -27,6 +28,9 @@ class AiExplanationEntry {
 
   /// 생성 근거 (AI 해설이 없거나 실패했을 때 폴백)
   final String? rationale;
+
+  /// 정답 보기 키 (제출 응답 correctKey, 해설 없이 판정 한 줄만 조립할 때, 모르면 null)
+  final String? correctChoiceKey;
 
   String get id => request.id;
 
