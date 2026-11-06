@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../router/app_routes.dart';
+import '../../../router/result_route_arguments.dart';
 import '../../design/design.dart';
 import '../../providers/mock_exam_countdown.dart';
 import '../../providers/mock_exam_session_notifier.dart';
@@ -141,7 +142,10 @@ class _MockExamSolvingPageState extends ConsumerState<MockExamSolvingPage>
     _isLeavingToResult = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      context.pushReplacement(AppRoutes.mockExamResult(widget.attemptUuid));
+      context.pushReplacement(
+        AppRoutes.mockExamResult(widget.attemptUuid),
+        extra: const MockExamSubmittedArguments(),
+      );
     });
   }
 

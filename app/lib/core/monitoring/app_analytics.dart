@@ -33,7 +33,7 @@ class NoopAnalyticsBackend extends AnalyticsBackend {
   Future<void> setMemberIdentifier(String? memberUuid) async {}
 }
 
-/// 앱 분석 공통 지점: 핵심 이벤트 11종·화면 조회·회원 식별자 기록
+/// 앱 분석 공통 지점: 핵심 이벤트 12종·화면 조회·회원 식별자 기록
 /// 이벤트 이름·파라미터는 [AnalyticsEventNames]·[AnalyticsParameterNames] 한 곳에서만 씀
 class AppAnalytics {
   const AppAnalytics(this._backend);
@@ -113,6 +113,12 @@ class AppAnalytics {
   ) => _backend.logEvent(AnalyticsEventNames.notificationPermissionPrompt, {
     AnalyticsParameterNames.promptResult: promptResult.name,
   });
+
+  /// 스토어 평가 시스템 창 요청 (실제 노출 여부는 OS 가 정해 알 수 없음). [triggerName]: daily_set, mock_exam
+  Future<void> logStoreReviewRequested(String triggerName) => _backend.logEvent(
+    AnalyticsEventNames.storeReviewRequested,
+    {AnalyticsParameterNames.reviewTrigger: triggerName},
+  );
 
   Future<void> logScreenView(String screenName) =>
       _backend.logScreenView(screenName);

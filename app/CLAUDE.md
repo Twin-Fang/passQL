@@ -13,6 +13,7 @@ SQLD·SQLP 학습 서비스 passQL의 모바일 앱. 서버(`server/`)와만 통
 - **인증**: Firebase Auth + Google Sign-In + Sign in with Apple, 카카오(kakao_flutter_sdk_user)·네이버(flutter_naver_login)·GitHub(flutter_web_auth_2), 토큰은 flutter_secure_storage
 - **UI**: flutter_svg, shimmer, 아이콘은 CupertinoIcons (하단 탭 바만 직접 그린 `PassqlTabIcon`, 경로 해석 path_parsing)
 - **기기 정보**: package_info_plus(앱 버전), device_info_plus(의견 보내기 기기 정보)
+- **스토어 평가**: in_app_review(시스템 평가 창만, `core/review` 에서만 import, #864)
 - **폰트**: Pretendard 4굵기(Regular·Medium·SemiBold·Bold), 코드용 D2Coding(Regular·Bold, 한글까지 고정폭, 영문·기호·한글 2,350자 부분 글꼴, #849) — `assets/fonts`, 라이선스 OFL 동봉
 
 ## Project Structure
@@ -33,6 +34,7 @@ lib/
 │   │                       # api_call(callApiThrowingAppException: Dio 오류 > AppException 공통 변환)
 │   ├── notification/       # 앱 아이콘 숫자(AppIconBadgeUpdater, app_badge_plus 는 여기서만), 알림 권한 안내 결과
 │   ├── push/               # 푸시 SDK 포트(PushMessagingClient)·이동 허용 목록(PushLink)·안내 기록. 등록·삭제는 data/push/PushNotificationService
+│   ├── review/             # 스토어 평가 요청(#864): 기록(StoreReviewPromptHistory)·판정(StoreReviewPromptRule)·요청(StoreReviewPrompter). 화면은 StoreReviewPromptOnResult 만
 │   ├── storage/            # 기기 저장 키 원본(StorageKeys), 일반 저장소 공통 지점(DevicePreferences, shared_preferences 는 여기서만)
 │   └── utils/ validation/  # utils/app_clock.dart: 앱 시각 단일 원본 AppClock (오늘·D-day·하루 횟수 판정은 DateTime.now() 대신, 개발자 도구 날짜 넘기기 #819)
 ├── data/                   # presentation·router 를 import 하지 않는다
@@ -84,7 +86,7 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 |---|---|
 | `design_system_rules_test.dart` | pages·widgets·flows 에서 `Color(0x`, `Colors.white/black`, `Image.asset(`, `showModalBottomSheet(`, `showCupertinoDialog(`, `CupertinoActivityIndicator(`·`CupertinoSliverRefreshControl(`·`ImageFilter.blur(` 직접 사용, `go('/...')`·`push('/...')` 라우트 문자열, 글자색 `tertiaryLabel`·`accent`(대비 미달 > `secondaryLabel`·`accentText`), 탭 동작 없는 `Semantics(button + excludeSemantics)`, 시트 파일(`*_sheet`·`*_dock`)의 닫기 X 아이콘 |
 | `ad_placement_rules_test.dart` | core/ads 밖의 `google_mobile_ads`·ATT import, 허용 목록(탭 쉘·홈·통계·토픽 목록·결과 화면 2곳·main) 밖의 광고 사용, 탭 쉘 밖·2개 이상의 한 줄 띠와 탭별 배너, 홈·통계 밖·화면당 2개 이상의 인라인 카드, 토픽 목록 밖의 네이티브 카드, 풀이·로그인·약관·설정·차단 화면의 광고, `ad_request_preparer.dart` 밖의 `AdRequest(` 조립, 사용자 정보를 실은 광고 요청 |
-| `layer_dependency_test.dart` | core 의 data·presentation·router import, data 의 presentation·router import, design 의 providers·pages·widgets·flows import, 화면의 `data/sources` 직접 import, core/monitoring 밖의 Crashlytics·Analytics SDK, core/push 밖의 firebase_messaging, core/notification 밖의 app_badge_plus, core/storage 밖의 shared_preferences 직접 import, 종 아이콘 밖의 알림함 경로 |
+| `layer_dependency_test.dart` | core 의 data·presentation·router import, data 의 presentation·router import, design 의 providers·pages·widgets·flows import, 화면의 `data/sources` 직접 import, core/monitoring 밖의 Crashlytics·Analytics SDK, core/push 밖의 firebase_messaging, core/notification 밖의 app_badge_plus, core/storage 밖의 shared_preferences, core/review 밖의 in_app_review 직접 import, 종 아이콘 밖의 알림함 경로 |
 | `server_api_schema_test.dart` | 앱 모델 필드 <-> `api-contract/openapi.json` 어긋남 (서버에 없는 필드, 기본값 없는 nullable, 타입 불일치, #493) |
 | `architecture_rules_test.dart` | 레포 공통 규칙(`docs/architecture/rules/*.rule`)의 새 위반·고쳐진 동결 항목 (pro-architecture-consult 템플릿) |
 
