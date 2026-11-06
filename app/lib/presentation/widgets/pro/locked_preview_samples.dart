@@ -6,9 +6,9 @@ import '../../design/design.dart';
 abstract final class LockedPreviewCaptions {
   static const String explanation = '보기별 해설 · 함정 · 시험 팁';
   static const String executionResult = '보기 SQL을 직접 실행해 결과 비교';
-  static const String practiceModes = '토픽 골라 풀기 · 실전 모드 · 약점 추천';
+  static const String practiceModes = '토픽 골라 풀기 · 새 보기로 풀기 · 약점 추천';
   static const String examTrend = '최근 기출 토픽 비중 · 이번 회차 예상';
-  static const String realModeSetting = '실전 모드';
+  static const String freshChoices = '풀 때마다 AI가 만드는 새 보기';
   static const String conceptTopics = '3단원부터 모든 개념과 확인 문제';
   static const String aiAnalysis = 'AI 약점 분석 · 다음 공부 추천';
 }
@@ -63,7 +63,7 @@ class ExecutionResultLockedSample extends StatelessWidget {
   }
 }
 
-/// 풀기 방식 3종: 토픽 골라 풀기, 실전 모드, 약점 추천
+/// 풀기 방식 3종: 토픽 골라 풀기, 새 보기로 풀기, 약점 추천
 class PracticeModesLockedSample extends StatelessWidget {
   const PracticeModesLockedSample({super.key});
 
@@ -72,7 +72,7 @@ class PracticeModesLockedSample extends StatelessWidget {
     return const _SampleCard(
       children: [
         _SampleSection(title: '토픽 골라 풀기', body: '약한 토픽만 골라서 집중해서 풀어요.'),
-        _SampleSection(title: '실전 모드', body: '시험처럼 매번 새로운 함정 선택지가 나와요.'),
+        _SampleSection(title: '새 보기로 풀기', body: '같은 문제도 풀 때마다 새로운 함정 보기가 나와요.'),
         _SampleSection(title: '약점 추천', body: '많이 틀린 개념의 문제를 먼저 보여 줘요.'),
       ],
     );
@@ -141,15 +141,15 @@ class AiAnalysisLockedSample extends StatelessWidget {
   }
 }
 
-/// 설정의 실전 모드 선택 자리
-class RealModeSettingLockedSample extends StatelessWidget {
-  const RealModeSettingLockedSample({super.key});
+/// 새 보기로 풀기 선택 자리 (설정·풀이 화면 보기 방식 시트)
+class FreshChoicesLockedSample extends StatelessWidget {
+  const FreshChoicesLockedSample({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const _SampleCard(
       children: [
-        _SampleSection(title: '실전 모드', body: '매번 새로운 함정 선택지로 시험처럼 풀어요.'),
+        _SampleSection(title: 'AI 새 보기', body: '같은 문제도 매번 다른 함정 보기로 다시 풀어요.'),
       ],
     );
   }
