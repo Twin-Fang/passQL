@@ -18,10 +18,10 @@ CONCEPT = {
     "title": "뷰",
     "summary": "SELECT 문에 이름을 붙여 저장해 두고 테이블처럼 쓰는 가상 테이블이에요",
     "coreMd": (
-        "- 뷰는 SELECT 문만 저장한 가상 테이블이라, 조회할 때마다 기본 테이블에서 읽어 와요.\n"
-        "- 정의를 바꿀 때는 `CREATE OR REPLACE VIEW`를 쓰고, `ALTER VIEW`로는 바꿀 수 없어요.\n"
-        "- 장점은 독립성·편리성·보안성(독편보)이고, 뷰를 쓴다고 조회가 빨라지지는 않아요.\n"
-        "- 뷰에는 인덱스를 만들 수 없고, 집계나 DISTINCT가 든 뷰로는 데이터를 바꿀 수 없어요.\n"
+        "- 뷰는 **SELECT 문만** 저장한 가상 테이블이라, 조회할 때마다 기본 테이블에서 읽어 와요.\n"
+        "- 정의를 바꿀 때는 `CREATE OR REPLACE VIEW`를 쓰고, `ALTER VIEW`로는 **바꿀 수 없어요**.\n"
+        "- 장점은 독립성·편리성·보안성(**독편보**)이고, 뷰를 쓴다고 조회가 빨라지지는 않아요.\n"
+        "- 뷰에는 **인덱스**를 만들 수 없고, 집계나 DISTINCT가 든 뷰로는 데이터를 바꿀 수 없어요.\n"
         "- `WITH CHECK OPTION`은 뷰 조건을 벗어나는 변경을, `WITH READ ONLY`는 모든 변경을 막아요."
     ),
     "detailMd": f"""## 자주 쓰는 SELECT에 이름 붙이기 — 반복과 노출 줄이기 {{#why}}
@@ -167,7 +167,7 @@ UPDATE 사원연봉 SET 연봉 = 0 WHERE 사번 = 1001;  -- 오류: 계산한 �
 
 | 옵션 | 막는 것 | 위반하면 |
 |---|---|---|
-| `WITH CHECK OPTION` | 뷰의 WHERE 조건을 벗어나게 만드는 INSERT와 UPDATE | ORA-01402(WITH CHECK OPTION 조건 위반) 오류예요 |
+| `WITH CHECK OPTION` | 뷰 조건을 벗어나게 하는 INSERT·UPDATE | ORA-01402(WITH CHECK OPTION 조건 위반) 오류예요 |
 | `WITH READ ONLY` | 뷰를 통한 INSERT, UPDATE, DELETE 전부 | ORA-42399(읽기 전용 뷰에는 데이터 변경을 할 수 없음) 오류예요 |
 
 ```sql
@@ -259,6 +259,19 @@ SELECT COUNT(*) FROM 사원;     -- 강하나가 더해져 9명이에요
 | 뷰를 지우면 뷰가 보여 주던 사원 데이터도 함께 지워져요 | X | 저장된 SELECT 문만 사라지고 데이터는 기본 테이블에 남아요 |
 | WITH CHECK OPTION이 있는 개발부 뷰로 20번 사원을 새로 넣을 수 있어요 | O | 뷰 조건 안의 변경은 허용돼요 |
 | DISTINCT를 쓴 뷰로는 UPDATE를 할 수 없어요 | O | 여러 행이 한 행으로 합쳐져서 어느 행을 바꿀지 정할 수 없어요 |
+
+## 꼭 외울 것 — 옵션과 뷰가 못 하는 것 {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| 뷰에 저장되는 것 | SELECT 문만, 데이터는 기본 테이블에 있어요 |
+| 뷰의 장점 세 가지 | 독립성·편리성·보안성 (독편보) |
+| 뷰 정의 바꾸기 | CREATE OR REPLACE VIEW, ALTER VIEW로는 못 바꿔요 |
+| 뷰에 인덱스 | 만들 수 없고, 조회 때 기본 테이블 인덱스가 쓰여요 |
+| 뷰로 데이터를 못 바꾸는 뷰 | GROUP BY·집계 함수·DISTINCT가 든 뷰 |
+| WITH CHECK OPTION | 뷰 조건을 벗어나게 만드는 INSERT·UPDATE만 막아요 |
+| WITH READ ONLY | 뷰를 통한 INSERT·UPDATE·DELETE를 모두 막아요 |
+| 기본 테이블을 지우면 | 뷰 이름은 남고, 조회하면 ORA-04063(뷰에 오류가 있음) 오류 |
 
 ## 시험에서는 이렇게 나와요 — 틀린 특징 고르기 {{#exam-point}}
 

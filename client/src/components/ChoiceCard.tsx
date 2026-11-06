@@ -4,9 +4,11 @@ import MarkdownText from "./MarkdownText";
 import { ResultTable } from "./ResultTable";
 import { ResultMatchTable } from "./ResultMatchTable";
 import PlayIcon from "./PlayIcon";
+import { isResultTableChoiceBody } from "../lib/choiceBodyKind";
 
 interface ChoiceCardProps {
-  readonly choice: ChoiceItem;
+  // 표시에 쓰는 필드만 (모의고사 보기처럼 정렬 순서 없는 보기도 그대로 사용)
+  readonly choice: Pick<ChoiceItem, "key" | "kind" | "body">;
   readonly isSelected: boolean;
   readonly cached: ExecuteResult | undefined;
   readonly isExecutable: boolean;
@@ -20,15 +22,6 @@ interface ChoiceCardProps {
   ) => void;
 }
 
-/** body가 JSON 배열인지 판별 — RESULT_MATCH 선택지 감지용 */
-function isJsonArray(str: string): boolean {
-  try {
-    const parsed = JSON.parse(str);
-    return Array.isArray(parsed);
-  } catch {
-    return false;
-  }
-}
 
 export const ChoiceCard = memo(function ChoiceCard({
   choice,
@@ -41,9 +34,9 @@ export const ChoiceCard = memo(function ChoiceCard({
   onAskAi,
 }: ChoiceCardProps) {
   // RESULT_MATCH 선택지 판별: kind===TEXT + body가 JSON 배열
-  const isResultMatch = choice.kind === "TEXT" && isJsonArray(choice.body);
+  const isResultMatch = choice.kind === "TEXT" && isResultTableChoiceBody(choice.body);
   // CONCEPT_ONLY 텍스트 선택지: kind===TEXT + body가 JSON 배열 아님
-  const isConceptText = choice.kind === "TEXT" && !isJsonArray(choice.body);
+  const isConceptText = choice.kind === "TEXT" && !isResultTableChoiceBody(choice.body);
 
   return (
     // div[role=button]로 감싸야 내부 <button> (실행, AI에게 물어보기)이 중첩 버튼 위반 없이 동작한다

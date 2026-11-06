@@ -10,10 +10,10 @@ EMPLOYEE_PAY_TABLE = to_employee_table_md("사번", "이름", "급여", "커미�
 DEPARTMENT_30_TOTAL_PAY_EXAMPLE = sql_example(
     "SELECT 이름, 급여 + 커미션 FROM 사원 WHERE 부서번호 = 30;",
     ("이름", "급여 + 커미션"), [["최유나", None], ["한도윤", 3200], ["오지민", 2400]], is_ordered=False)
-# 집계 함수 다섯 개 (NULL 행 제외, COUNT(*) 만 모든 행)
+# 집계 함수 네 개 (NULL 행 제외, COUNT(*) 만 모든 행), 표 폭 때문에 MIN 은 sqlChecks 에서 따로 확인
 COMMISSION_AGGREGATE_EXAMPLE = sql_example(
-    "SELECT COUNT(*), COUNT(커미션), SUM(커미션), AVG(커미션), MIN(커미션) FROM 사원;",
-    ("COUNT(*)", "COUNT(커미션)", "SUM(커미션)", "AVG(커미션)", "MIN(커미션)"), [[8, 4, 1000, 250, 0]])
+    "SELECT COUNT(*), COUNT(커미션), SUM(커미션), AVG(커미션) FROM 사원;",
+    ("COUNT(*)", "COUNT(커미션)", "SUM(커미션)", "AVG(커미션)"), [[8, 4, 1000, 250]])
 # 평균 분모 비교: NULL 아닌 4명 <-> 전체 8명
 COMMISSION_AVERAGE_EXAMPLE = sql_example(
     "SELECT AVG(커미션), SUM(커미션) / COUNT(*) FROM 사원;",
@@ -30,11 +30,11 @@ CONCEPT = {
     "title": "NULL 속성",
     "summary": "값이 아직 정해지지 않았다는 표시라서, 계산과 집계가 달라져요",
     "coreMd": (
-        "- NULL은 값이 정해지지 않았거나 알 수 없다는 표시이고, 0이나 공백과 달라요.\n"
-        "- 주식별자는 존재성 때문에 어떤 경우에도 NULL을 허용하지 않아요.\n"
-        "- NULL이 섞인 산술 연산은 NULL, NULL과의 비교는 UNKNOWN이에요.\n"
+        "- NULL은 값이 정해지지 않았거나 알 수 없다는 표시이고, **0이나 공백**과 달라요.\n"
+        "- 주식별자는 **존재성** 때문에 어떤 경우에도 NULL을 허용하지 않아요.\n"
+        "- NULL이 섞인 산술 연산은 NULL, NULL과의 비교는 **UNKNOWN**이에요.\n"
         "- 집계 함수는 NULL인 행을 빼고 계산하고, COUNT(*)만 모든 행을 세요.\n"
-        "- AVG는 NULL이 아닌 행 수로 나누고, SUM(A + B)에서는 A나 B가 NULL인 행이 통째로 빠져요."
+        "- AVG는 **NULL이 아닌 행 수**로 나누고, SUM(A + B)에서는 A나 B가 NULL인 행이 통째로 빠져요."
     ),
     "detailMd": f"""## 왜 필요한가요 — 0과 "아직 없음"을 구별하려고 {{#why}}
 
@@ -85,7 +85,7 @@ INSERT INTO 사원 (사번, 이름) VALUES (1009, '홍길동'); -- 성공, 적�
 
 ## NULL이 섞인 계산과 비교 — 연산은 NULL, 비교는 UNKNOWN {{#operation}}
 
-모르는 값에 무엇을 더해도 여전히 모르는 값이라서, NULL이 섞인 산술 연산은 결과가 NULL이에요. NULL과 비교하면 참도 거짓도 아닌 UNKNOWN(알 수 없음)이 되고, WHERE 절은 참인 행만 남겨서 그 행은 빠져요.
+모르는 값에 무엇을 더해도 여전히 모르는 값이라서, NULL이 섞인 산술 연산은 결과가 NULL이에요. NULL과 비교하면 참도 거짓도 아닌 **UNKNOWN**(알 수 없음)이 되고, WHERE 절은 참인 행만 남겨서 그 행은 빠져요.
 
 | 식 (커미션이 NULL인 행) | 결과 |
 |---|---|
@@ -114,9 +114,9 @@ SELECT는 데이터를 조회하는 명령이고, WHERE 절은 조건에 맞는 
 
 {COMMISSION_AGGREGATE_EXAMPLE.markdown}
 
-박서준의 커미션 0은 NULL이 아닌 값이라서 COUNT(커미션)의 4에 들어가요. 그래서 커미션의 최솟값도 NULL이 아니라 0이에요.
+박서준의 커미션 0은 NULL이 아닌 값이라서 **COUNT(커미션)의 4**에 들어가요. 그래서 커미션의 최솟값도 NULL이 아니라 0이에요.
 
-AVG는 합계 1000을 8명이 아니라 커미션이 있는 4명으로 나눠요. NULL인 사원을 0으로 보고 8명 평균을 내려면 같은 사원 표에서 합계를 전체 행 수로 직접 나눠요.
+AVG는 합계 1000을 8명이 아니라 커미션이 있는 **4명**으로 나눠요. NULL인 사원을 0으로 보고 8명 평균을 내려면 같은 사원 표에서 합계를 전체 행 수로 직접 나눠요.
 
 {COMMISSION_AVERAGE_EXAMPLE.markdown}
 
@@ -141,6 +141,19 @@ AVG는 합계 1000을 8명이 아니라 커미션이 있는 4명으로 나눠요
 |---|---|---|
 | COUNT(*)는 커미션이 NULL인 행도 세요 | O | COUNT(*)는 칸 값과 상관없이 행 자체를 세요 |
 | MIN(커미션)은 NULL이 섞여 있으니 NULL이 나와요 | X | 집계 함수는 NULL을 빼고 계산해서 박서준의 0이 최솟값이에요 |
+
+## 꼭 외울 것 — NULL이 들어가면 무엇이 나오나 {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| NULL과 0, 공백 | 서로 다름 (0과 공백은 값이 있어 집계에 들어감) |
+| Oracle의 빈 문자열('') | NULL로 저장 |
+| 주식별자의 NULL | 존재성 때문에 언제나 허용 안 함 |
+| NULL이 섞인 산술 연산 | 결과도 NULL |
+| NULL과 =, > 비교 | UNKNOWN (WHERE에서 빠짐), 찾을 때는 IS NULL |
+| COUNT(*)와 COUNT(열) | COUNT(*)는 모든 행, COUNT(열)은 NULL인 행을 뺌 |
+| AVG의 분모 | NULL이 아닌 행 수 (커미션 평균 250, 8명 기준이면 125) |
+| SUM(A + B)의 NULL 행 | 행마다 먼저 더해 통째로 빠짐 (SUM(A) + SUM(B)와 다름) |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 
@@ -195,6 +208,8 @@ NULL이 섞인 표를 주고 집계 결과를 묻는 문제가 가장 많아요.
         sql_error_check("INSERT INTO 사원 (사번, 이름) VALUES (1009, NULL)", "ORA-01400"),
         DEPARTMENT_30_TOTAL_PAY_EXAMPLE.check,
         COMMISSION_AGGREGATE_EXAMPLE.check,
+        # 본문 "커미션의 최솟값도 0" (박서준의 0, NULL 제외)
+        sql_check("SELECT MIN(커미션) FROM 사원", [[0]]),
         COMMISSION_AVERAGE_EXAMPLE.check,
         sql_check("SELECT SUM(커미션) / COUNT(*) FROM 사원", [[125]]),
         TOTAL_PAY_SUM_EXAMPLE.check,

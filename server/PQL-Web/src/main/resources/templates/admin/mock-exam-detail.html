@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<th:block layout:fragment="title">모의고사 회차 상세</th:block>
+
+<th:block layout:fragment="content">
+<!-- 모의고사 회차 상세 (#866): mock-exam-detail.js 가 회차·문항·공개 검사·문항 통계를 불러옴, 조회 전용 계정은 동작 버튼 비활성 -->
+<div id="mockExamDetailPage" class="space-y-4 max-w-[1400px]"
+     th:data-round-uuid="${roundUuid}"
+     th:data-can-write-admin="${canWriteAdmin == true}">
+
+    <div class="flex flex-wrap items-center gap-2">
+        <a href="/admin/mock-exams" class="btn btn-sm btn-ghost gap-1">
+            <i data-lucide="arrow-left" class="size-4"></i>회차 목록으로
+        </a>
+        <a id="roundAttemptsLink" href="/admin/mock-exams/attempts" class="btn btn-sm btn-outline gap-1 ml-auto">
+            <i data-lucide="list-checks" class="size-4"></i>이 회차 응시 기록
+        </a>
+    </div>
+
+    <!-- 회차 정보 + 상태별 동작 (JS 렌더링) -->
+    <section class="card bg-base-100 shadow-sm">
+        <div class="card-body p-4 gap-3">
+            <div class="flex flex-wrap items-start gap-3">
+                <div class="space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h2 id="roundName" class="text-xl font-bold">불러오는 중...</h2>
+                        <span id="roundStatusBadge"></span>
+                    </div>
+                    <p id="roundMeta" class="text-sm text-base-content/60"></p>
+                </div>
+                <div id="roundActions" class="flex flex-wrap gap-2 ml-auto"></div>
+            </div>
+            <!-- 공개 검사 결과: 오류(공개 불가)·경고(공개 가능) -->
+            <div id="publishCheckBox" class="space-y-2"></div>
+        </div>
+    </section>
+
+    <!-- 탭: 문항 / 문항 통계 -->
+    <div role="tablist" class="tabs tabs-border">
+        <button type="button" role="tab" class="tab tab-active" data-tab="items">
+            <i data-lucide="list-ordered" class="size-4 mr-1"></i>문항 <span id="itemCountLabel" class="ml-1 text-base-content/50"></span>
+        </button>
+        <button type="button" role="tab" class="tab" data-tab="stats">
+            <i data-lucide="chart-column" class="size-4 mr-1"></i>문항 통계
+        </button>
+    </div>
+
+    <!-- 문항 표 (초안이면 교체 버튼) -->
+    <section id="panel-items" class="card bg-base-100 shadow-sm">
+        <div class="card-body p-0">
+            <div class="overflow-x-auto">
+                <table class="table table-sm w-full">
+                    <thead>
+                    <tr>
+                        <th class="w-12">번호</th>
+                        <th class="w-16">과목</th>
+                        <th class="w-32">토픽</th>
+                        <th class="w-14">난이도</th>
+                        <th class="w-16">방식</th>
+                        <th class="min-w-72">지문</th>
+                        <th class="w-24">세트 출처</th>
+                        <th class="w-20">출제 가능</th>
+                        <th class="w-40" id="itemActionHeader" hidden>교체</th>
+                    </tr>
+                    </thead>
+                    <tbody id="itemTableBody">
+                    <tr>
+                        <td colspan="9" class="text-center py-12 text-base-content/50">
+                            <span class="loading loading-spinner loading-sm"></span>
+                            <span class="ml-2">로딩 중...</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- 문항 통계 (채점된 응시 기준, 탭을 처음 열 때 조회) -->
+    <section id="panel-stats" class="card bg-base-100 shadow-sm hidden">
+        <div class="card-body p-0">
+            <div class="flex flex-wrap items-center gap-3 px-4 pt-4">
+                <p class="text-xs text-base-content/60">채점 끝난 응시 기준입니다. 정답률 30% 미만, 정답보다 많이 고른 오답 보기가 있으면 표시해요.</p>
+                <label class="flex items-center gap-2 text-sm cursor-pointer ml-auto">
+                    <input type="checkbox" id="reviewTargetOnlyFilter" class="checkbox checkbox-sm"/>
+                    점검 대상만 보기 (신호·미처리 신고)
+                </label>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="table table-sm w-full">
+                    <thead>
+                    <tr>
+                        <th class="w-12">번호</th>
+                        <th class="w-28">토픽</th>
+                        <th class="min-w-56">지문</th>
+                        <th class="w-16 text-right">채점</th>
+                        <th class="w-16 text-right">정답률</th>
+                        <th class="w-16 text-right">안 고름</th>
+                        <th class="w-52">보기별 선택률</th>
+                        <th class="w-28">점검 신호</th>
+                        <th class="w-20 text-right">미처리 신고</th>
+                    </tr>
+                    </thead>
+                    <tbody id="statTableBody">
+                    <tr><td colspan="9" class="text-center py-12 text-base-content/50">불러오는 중...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</div>
+</th:block>
+
+<th:block layout:fragment="js">
+    <!-- 포맷터 (Chart.js 는 이 화면에서 쓰지 않음), 문제 UUID 입력 창 -->
+    <script th:src="@{/js/admin/admin-chart.js}"></script>
+    <script th:src="@{/js/admin/admin-reason-prompt.js}"></script>
+    <script th:src="@{/js/admin/mock-exam-common.js}"></script>
+    <script th:src="@{/js/admin/mock-exam-item-stats.js}"></script>
+    <script th:src="@{/js/admin/mock-exam-detail.js}"></script>
+</th:block>
+</html>

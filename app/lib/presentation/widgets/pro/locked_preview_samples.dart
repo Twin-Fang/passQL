@@ -11,6 +11,9 @@ abstract final class LockedPreviewCaptions {
   static const String freshChoices = '풀 때마다 AI가 만드는 새 보기';
   static const String conceptTopics = '3단원부터 모든 개념과 확인 문제';
   static const String aiAnalysis = 'AI 약점 분석 · 다음 공부 추천';
+  static const String mockExamDetail = '과목별 점수 · 토픽별 약점 · 다음에 할 일';
+  static const String mockExamReview = '문항별 정답과 보기 해설';
+  static const String mockExamTrend = '회차별 점수 추이';
 }
 
 // 가짜 미리보기: 서버의 잠긴 내용이 아니라 모양만 그럴듯한 고정 예시 (통신을 가로채도 얻을 것이 없게)
@@ -140,6 +143,60 @@ class AiAnalysisLockedSample extends StatelessWidget {
           title: '다음 공부',
           body: 'OUTER JOIN 결과 행 수 문제부터 다시 풀어 보세요.',
         ),
+      ],
+    );
+  }
+}
+
+/// 모의고사 결과의 과목별 분석 자리 (#866)
+class MockExamDetailLockedSample extends StatelessWidget {
+  const MockExamDetailLockedSample({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const _SampleCard(
+      children: [
+        _SampleSection(
+          title: '1과목 데이터 모델링',
+          body: '14점 / 20점 · 정규화와 식별자에서 2문제를 놓쳤어요.',
+        ),
+        _SampleSection(
+          title: '2과목 SQL',
+          body: '52점 / 80점 · 윈도우 함수 정답률이 가장 낮아요.',
+        ),
+        _SampleSection(title: '다음에 할 일', body: '윈도우 함수 문제부터 다시 풀어 보세요.'),
+      ],
+    );
+  }
+}
+
+/// 모의고사 문항 해설 자리 (#866)
+class MockExamReviewLockedSample extends StatelessWidget {
+  const MockExamReviewLockedSample({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const _SampleCard(
+      children: [
+        _SampleSection(
+          title: '23번 · 정답 C',
+          body: 'GROUP BY 가 없으면 조건이 거짓이어도 COUNT 는 0 한 행을 돌려줘요.',
+        ),
+        _SampleSection(title: '내가 고른 B', body: '공집합으로 착각하기 쉬운 함정이에요.'),
+      ],
+    );
+  }
+}
+
+/// 모의고사 점수 추이 자리 (#866)
+class MockExamTrendLockedSample extends StatelessWidget {
+  const MockExamTrendLockedSample({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const _SampleCard(
+      children: [
+        _SampleSection(title: '제1회 → 제3회', body: '54점 → 62점 → 70점, 합격선을 넘었어요.'),
       ],
     );
   }

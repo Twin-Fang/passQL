@@ -50,6 +50,13 @@ enum ErrorCode {
   adBonusVerificationPending,
   adBonusAppUpdateRequired,
 
+  // 모의고사 (#866): 무료 체험 소진(403), 다른 회차 풀이 중(409), 시간 끝 자동 제출(409), 이미 제출(409), 아직 제출 전(409)
+  mockExamFreeTrialUsed,
+  mockExamAttemptInProgress,
+  mockExamTimeOver,
+  mockExamAlreadySubmitted,
+  mockExamNotSubmitted,
+
   // 데일리 세트
   dailySetAlreadyCompleted,
   dailySetNotFound,
@@ -135,6 +142,13 @@ abstract final class ErrorCodeMapper {
     'AD_BONUS_DAILY_LIMIT_REACHED': ErrorCode.adBonusDailyLimitReached,
     'AD_BONUS_VERIFICATION_PENDING': ErrorCode.adBonusVerificationPending,
     'AD_BONUS_APP_UPDATE_REQUIRED': ErrorCode.adBonusAppUpdateRequired,
+    'MOCK_EXAM_FREE_TRIAL_USED': ErrorCode.mockExamFreeTrialUsed,
+    'MOCK_EXAM_ATTEMPT_IN_PROGRESS': ErrorCode.mockExamAttemptInProgress,
+    'MOCK_EXAM_TIME_OVER': ErrorCode.mockExamTimeOver,
+    'MOCK_EXAM_ALREADY_SUBMITTED': ErrorCode.mockExamAlreadySubmitted,
+    'MOCK_EXAM_NOT_SUBMITTED': ErrorCode.mockExamNotSubmitted,
+    'MOCK_EXAM_ROUND_NOT_FOUND': ErrorCode.notFound,
+    'MOCK_EXAM_ATTEMPT_NOT_FOUND': ErrorCode.notFound,
     'DAILY_SET_ALREADY_COMPLETED': ErrorCode.dailySetAlreadyCompleted,
     'DAILY_SET_NOT_FOUND': ErrorCode.dailySetNotFound,
     // AI 사용 불가: 서버 연결 실패, 대체 경로 실패, 선택지 생성 실패(SSE GENERATION_FAILED 포함)

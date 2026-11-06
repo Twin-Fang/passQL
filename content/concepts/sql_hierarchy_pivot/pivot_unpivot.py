@@ -1,9 +1,12 @@
 """개념: PIVOT과 UNPIVOT (9단원, 확인 문제 5개)"""
 
 from concept_bundle import choice, question, sql_check, sql_example
-from concept_dataset import EMPLOYEE_TABLE_MD, to_employee_table_md, to_insert_statements, to_markdown_table
+from concept_dataset import to_employee_table_md, to_insert_statements, to_markdown_table
 
 EMPLOYEE_PIVOT_TABLE = to_employee_table_md("사번", "이름", "직급", "급여", "부서번호")
+# 원본 테이블을 그대로 PIVOT 할 때 결과 계산에 쓰는 열 (사번이 사원마다 달라 8행, 칸 값은 이름·급여·부서번호)
+EMPLOYEE_WHOLE_TABLE_KEY_TABLE = to_employee_table_md("사번", "이름", "급여", "부서번호")
+EMPLOYEE_ALL_COLUMN_NAMES = "사번, 이름, 직급, 관리자사번, 입사일, 급여, 커미션, 부서번호"
 
 # UNPIVOT 예시 전용 표: 지점별 1~3월 매출 (부산 2월은 NULL > INCLUDE NULLS 예시)
 MONTHLY_SALES_COLUMNS = ("지점", "일월", "이월", "삼월")
@@ -129,10 +132,10 @@ CONCEPT = {
     "summary": "PIVOT은 행의 값을 열로 세우고, UNPIVOT은 열을 다시 행으로 눕혀요",
     "coreMd": (
         "- `PIVOT (집계 함수 FOR 열 IN (값 AS 별칭, ...))`은 FOR 열의 값마다 새 열을 만들고, 그 칸을 집계 함수로 채워요.\n"
-        "- PIVOT은 집계와 FOR에 쓰지 않은 나머지 열 전부로 저절로 GROUP BY를 하므로, 필요한 열만 인라인 뷰로 골라 넣어요.\n"
-        "- IN 목록에 적은 값만 열이 되고, 목록에 없는 값을 가진 행은 어느 칸에도 들어가지 않아요.\n"
+        "- PIVOT은 집계와 FOR에 쓰지 않은 **나머지 열 전부**로 저절로 GROUP BY를 하므로, 필요한 열만 인라인 뷰로 골라 넣어요.\n"
+        "- **IN 목록에 적은 값만** 열이 되고, 목록에 없는 값을 가진 행은 어느 칸에도 들어가지 않아요.\n"
         "- PIVOT 안에는 집계 함수가 꼭 있어야 하고, IN 목록에는 상수만 쓸 수 있어요.\n"
-        "- UNPIVOT은 여러 열을 행으로 풀고, 기본으로는 NULL 칸의 행을 만들지 않아요(`INCLUDE NULLS`를 쓰면 만들어요)."
+        "- UNPIVOT은 여러 열을 행으로 풀고, 기본으로는 **NULL 칸의 행**을 만들지 않아요(`INCLUDE NULLS`를 쓰면 만들어요)."
     ),
     "detailMd": f"""## 세로를 가로로 — 왜 표를 돌릴까요 {{#why}}
 
@@ -214,9 +217,9 @@ PIVOT (
 | SUM을 COUNT(*)로 바꿔도 행 수는 그대로예요 | 급여가 집계에 쓰이지 않게 되어 급여가 묶는 기준으로 남고, 행 수가 바뀌어요 |
 | IN 목록의 값 개수만큼 행이 생겨요 | IN 목록의 값 개수는 열 수를 정하고, 행 수는 남은 열이 정해요 |
 
-실제 사원 표에는 아래처럼 열이 여덟 개 있어요. 인라인 뷰 없이 바로 넣으면 급여와 부서번호를 뺀 사번, 이름, 직급, 관리자사번, 입사일, 커미션 여섯 열이 모두 묶는 기준이 돼요.
+실제 사원 표에는 {EMPLOYEE_ALL_COLUMN_NAMES} 여덟 열이 있어요. 인라인 뷰 없이 바로 넣으면 급여와 부서번호를 뺀 **여섯 열**이 모두 묶는 기준이 되는데, 아래처럼 사번이 사원마다 달라서 한 사람이 한 묶음이 돼요.
 
-{EMPLOYEE_TABLE_MD}
+{EMPLOYEE_WHOLE_TABLE_KEY_TABLE}
 
 {PIVOT_WHOLE_TABLE_EXAMPLE.markdown}
 
@@ -321,6 +324,19 @@ UNPIVOT [INCLUDE NULLS] (
 |---|---|---|
 | UNPIVOT에 `INCLUDE NULLS`를 쓰면 월별매출 결과는 6행이에요 | O | 부산의 이월 NULL 칸도 행으로 만들어서 지점마다 3행씩이에요 |
 
+## 꼭 외울 것 — 행 수와 열 수를 정하는 것 {{#memorize}}
+
+| 외울 것 | 답 |
+|---|---|
+| PIVOT 괄호 안 모양 | 집계 함수 FOR 열 IN (값 AS 별칭, ...) |
+| PIVOT 행 수를 정하는 것 | 집계와 FOR에 쓰지 않은 남은 열 (없으면 1행) |
+| PIVOT 열 수를 정하는 것 | IN 목록의 값 개수 |
+| IN 목록에 없는 값 | 어느 칸에도 들어가지 않아요 |
+| 행이 없는 칸 | SUM이면 NULL, COUNT면 0 |
+| 집계 함수와 IN 목록 | 집계 함수는 필수, IN 목록은 상수만 |
+| UNPIVOT과 NULL 칸 | 기본 EXCLUDE NULLS라 행이 안 생겨요 (INCLUDE NULLS면 생김) |
+| PIVOT 없이 같은 결과 | CASE와 SUM, GROUP BY로 만들어요 |
+
 ## 시험에서는 이렇게 나와요 — 행 수와 칸 값 {{#exam-point}}
 
 PIVOT SQL을 주고 결과 표의 행 수나 특정 칸의 값을 묻는 문제가 가장 많아요.
@@ -340,7 +356,8 @@ PIVOT SQL을 주고 결과 표의 행 수나 특정 칸의 값을 묻는 문제�
                   choice("B", "값이 새 열로 바뀌는 열", True, "부서번호 값 10, 20이 기획부, 개발부 열이 돼요."),
                   choice("C", "결과를 정렬하는 기준 열", rationale="PIVOT은 정렬을 하지 않고, 순서는 ORDER BY로 정해요."),
                   choice("D", "행을 묶는 기준 열", rationale="행을 묶는 기준은 PIVOT에 쓰이지 않은 나머지 열이에요.")]),
-        question(2, "아래 사원 표(열 여덟 개)에 다음 SQL을 실행하면 몇 행이 나오나요?\n\n" + EMPLOYEE_TABLE_MD, "confusing",
+        question(2, "사원 표에는 " + EMPLOYEE_ALL_COLUMN_NAMES + " 여덟 열이 있고, 아래는 그중 네 열이에요. "
+                    "이 사원 표에 다음 SQL을 실행하면 몇 행이 나오나요?\n\n" + EMPLOYEE_WHOLE_TABLE_KEY_TABLE, "confusing",
                  "사원 표를 그대로 넣었으므로 급여와 부서번호를 뺀 나머지 열 전부로 묶여요. 사번이 사원마다 달라서 8명이 각자 한 그룹이 돼요.",
                  [choice("A", "1행", rationale="부서번호와 급여만 있는 인라인 뷰를 넣었을 때의 행 수예요."),
                   choice("B", "3행", rationale="IN 목록의 값 개수는 열 수이지 행 수가 아니에요."),

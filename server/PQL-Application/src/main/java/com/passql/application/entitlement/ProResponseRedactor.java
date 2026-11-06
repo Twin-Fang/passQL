@@ -4,6 +4,7 @@ import com.passql.question.dto.SubmitResult;
 import com.passql.question.dto.explanation.ChoiceExplanation;
 import com.passql.question.dto.explanation.ChoiceExplanationResponse;
 import com.passql.question.service.ChoiceExplanationComposer;
+import com.passql.submission.dto.mockexam.MockExamResultResponse;
 import com.passql.submission.repository.SubmissionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -15,7 +16,7 @@ import java.util.UUID;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
- * 응답 일부 빼기 단일 지점: 제출 응답, 선택지 해설 응답에서 무료 회원 몫이 아닌 묶음 제거 > lockedSections 표시
+ * 응답 일부 빼기 단일 지점: 제출 응답, 선택지 해설 응답, 모의고사 결과에서 무료 회원 몫이 아닌 묶음 제거 > lockedSections 표시
  * 무료: 이유 없는 판정 한 줄·정답 여부·정답 키 유지, 보기 근거(rationale)는 세트 첫 제출만, 프로(결제 꺼짐 포함)는 원본 그대로
  */
 @Component
@@ -83,6 +84,15 @@ public class ProResponseRedactor {
             response.promptVersion(),
             response.retryAfterMilliseconds(),
             lockedSections);
+    }
+
+    /** 모의고사 결과: 무료는 과목별 분석·문항 해설·다음에 할 일 제거 (총점·합격·불합격 이유·정오 번호판 유지, #866) */
+    public MockExamResultResponse redactMockExamResult(UUID memberUuid, MockExamResultResponse result) {
+        if (featureAccessPolicy.canUse(memberUuid, ProFeature.MOCK_EXAM)) {
+            return result;
+        }
+        return result.withoutProSections(List.of(
+            LockedSection.MOCK_EXAM_SUBJECT_DETAIL.name(), LockedSection.MOCK_EXAM_REVIEW.name()));
     }
 
     /** 같은 세트로 이 회원이 낸 답안이 2건 이상인가 (세트 모름이면 재제출로 보지 않음) */

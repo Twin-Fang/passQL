@@ -87,6 +87,8 @@ class ConceptCoreHeader extends StatelessWidget {
                         section.title,
                       ).title,
                       onPressed: () => onSectionPressed(section.anchor),
+                      isMemorizeSection:
+                          section.anchor == ConceptReadingParser.memorizeAnchor,
                     ),
                   ),
               ],
@@ -99,16 +101,19 @@ class ConceptCoreHeader extends StatelessWidget {
 }
 
 /// 목차 칩: 두 자리 번호 + 제목 (누르면 그 문단으로 스크롤)
+/// 꼭 외울 것 문단은 형광펜 바탕 + 책갈피 (시험 직전 바로 찾게, #876)
 class _TableOfContentsChip extends StatelessWidget {
   const _TableOfContentsChip({
     required this.order,
     required this.title,
     required this.onPressed,
+    required this.isMemorizeSection,
   });
 
   final int order;
   final String title;
   final VoidCallback onPressed;
+  final bool isMemorizeSection;
 
   @override
   Widget build(BuildContext context) {
@@ -123,17 +128,32 @@ class _TableOfContentsChip extends StatelessWidget {
           vertical: PassqlSpacing.xs,
         ),
         decoration: BoxDecoration(
-          color: colors.background,
+          color: isMemorizeSection
+              ? colors.memorizeHighlight
+              : colors.background,
           borderRadius: BorderRadius.circular(PassqlRadius.capsule),
         ),
         child: Text.rich(
           TextSpan(
             style: PassqlTypography.subheadline.copyWith(color: colors.label),
             children: [
+              if (isMemorizeSection)
+                WidgetSpan(
+                  alignment: PlaceholderAlignment.middle,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: PassqlSpacing.xxs),
+                    child: Icon(
+                      CupertinoIcons.bookmark_fill,
+                      size: PassqlIconSize.sm,
+                      color: colors.label,
+                    ),
+                  ),
+                ),
               TextSpan(
                 text: '${order.toString().padLeft(2, '0')}  ',
                 style: PassqlTypography.subheadlineSemibold.copyWith(
-                  color: colors.accentText,
+                  // 형광펜 바탕 위는 label (강조색 글자는 노랑 위 대비 부족)
+                  color: isMemorizeSection ? colors.label : colors.accentText,
                 ),
               ),
               TextSpan(text: title),

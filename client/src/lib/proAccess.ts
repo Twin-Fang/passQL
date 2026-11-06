@@ -1,4 +1,4 @@
-import { ApiError } from "../api/client";
+import { toApiErrorCode } from "../api/client";
 import {
   FAIR_USE_DAILY_LIMIT_REASON,
   FAIR_USE_LIMIT_RESET_NOTICE,
@@ -44,9 +44,8 @@ export function shouldShowProBadgeForPlan(plan: MemberPlanResponse | undefined):
 
 /** 오류 > 프로 접근 오류 코드 (그 외 오류는 null) */
 export function toProAccessErrorCode(error: unknown): ProAccessErrorCode | null {
-  if (!(error instanceof ApiError)) return null;
-  const errorCode = (error.body as { errorCode?: unknown } | null)?.errorCode;
-  return typeof errorCode === "string" && PRO_ACCESS_ERROR_CODES.has(errorCode)
+  const errorCode = toApiErrorCode(error);
+  return errorCode !== null && PRO_ACCESS_ERROR_CODES.has(errorCode)
     ? (errorCode as ProAccessErrorCode)
     : null;
 }

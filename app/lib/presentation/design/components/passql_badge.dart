@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
 
-/// 태그 의미 7종 > 색·아이콘 (화면은 의미만 고른다)
+/// 태그 의미 8종 > 색·아이콘 (화면은 의미만 고른다)
 enum PassqlBadgeKind {
   topic, // 주제·분류 (강조색, 아이콘 없음)
   neutral, // 보조 정보 (회색)
@@ -12,6 +12,7 @@ enum PassqlBadgeKind {
   important, // 중요 공지
   ai, // AI 생성 내용
   latestTrend, // 최신 출제 경향 반영 문제 (#523)
+  memorize, // 꼭 외울 것 (#876)
 }
 
 /// 작은 캡슐 태그: 옅은 배경 + 얇은 테두리 + (선택) 아이콘
@@ -47,6 +48,7 @@ class PassqlBadge extends StatelessWidget {
     PassqlBadgeKind.success => (colors.correct, colors.correctText),
     PassqlBadgeKind.warning => (colors.warning, colors.warningText),
     PassqlBadgeKind.important => (colors.wrong, colors.wrongText),
+    PassqlBadgeKind.memorize => (colors.memorize, colors.memorizeText),
   };
 
   /// 의미 > 기본 아이콘 (topic·neutral 은 없음)
@@ -57,6 +59,7 @@ class PassqlBadge extends StatelessWidget {
     PassqlBadgeKind.latestTrend => CupertinoIcons.flame_fill,
     PassqlBadgeKind.important => CupertinoIcons.exclamationmark_circle_fill,
     PassqlBadgeKind.ai => CupertinoIcons.sparkles,
+    PassqlBadgeKind.memorize => CupertinoIcons.bookmark_fill,
   };
 
   @override

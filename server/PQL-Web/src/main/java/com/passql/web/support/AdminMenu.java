@@ -20,6 +20,7 @@ public enum AdminMenu {
     TOPICS("topics", "토픽/태그 관리"),
     CONCEPTS("concepts", "개념 문서 관리"),
     DAILY_CHALLENGES("daily-challenges", "일일 챌린지 관리"),
+    MOCK_EXAMS("mock-exams", "모의고사 관리"),
     EXAM_SCHEDULES("exam-schedules", "시험 일정 관리"),
     FEEDBACKS("feedbacks", "건의사항 관리"),
     REPORTS("reports", "신고 관리"),
