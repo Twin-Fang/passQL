@@ -8,7 +8,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 'ai_analysis_stats' 프롬프트 변수 3개 조립 (#861): {focusTopics}, {subtopicStats}, {recentWrongs}
+ * PromptKey.AI_ANALYSIS_STATS 프롬프트 변수 3개 조립 (#861): {focusTopics}, {subtopicStats}, {recentWrongs}
  * 한 줄에 한 항목 ("- ..."), 비면 "(없음)"
  */
 public final class StatsAnalysisPromptFormatter {

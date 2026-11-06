@@ -8,6 +8,7 @@ import com.passql.application.service.statsanalysis.StatsAnalysisService;
 import com.passql.application.service.statsanalysis.StatsAnalysisService.StatsAnalysisResult;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.meta.constant.PromptKey;
 import com.passql.meta.entity.PromptTemplate;
 import com.passql.meta.service.PromptService;
 import com.passql.submission.repository.SubmissionRepository;
@@ -40,8 +41,6 @@ public class AiCommentService {
     private static final long STATS_CACHE_TTL_HOURS = 24;
     /** 통계 화면 갱신 단위 (최근 풀이 수 10문제마다 새 코멘트, #699) */
     static final int STATS_REFRESH_SOLVED_COUNT = 10;
-    /** 결과 화면 AI 코멘트 프롬프트 키 — 세션 결과 + 누적 통계 통합 */
-    private static final String PROMPT_KEY_SESSION = "ai_comment";
     // 캐시 키 날짜 형식 (yyyy-MM-dd)
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     /** 통계 화면 최근 활동 기간 (일) */
@@ -57,7 +56,7 @@ public class AiCommentService {
 
     /**
      * AI 코멘트 반환.
-     * - sessionUuid 있음(결과 화면): 'ai_comment' 프롬프트, 세션 결과 + 누적 토픽 통계 (analysis 없음)
+     * - sessionUuid 있음(결과 화면): PromptKey.AI_COMMENT 프롬프트, 세션 결과 + 누적 토픽 통계 (analysis 없음)
      * - sessionUuid 없음(통계 화면): 서버 판정 구조화 분석 + 토픽별 한 문장 (StatsAnalysisService, #861)
      *
      * 캐시 키: ai-comment:{memberUuid}:{sessionUuid} / ai-comment:{memberUuid}:stats:{날짜}:{갱신 구간}
@@ -89,9 +88,9 @@ public class AiCommentService {
         return response;
     }
 
-    /** 결과 화면 코멘트: 세션 결과 + 누적 토픽 통계 > 'ai_comment' 프롬프트 > LLM */
+    /** 결과 화면 코멘트: 세션 결과 + 누적 토픽 통계 > PromptKey.AI_COMMENT 프롬프트 > LLM */
     private AiCommentResponse generateSessionComment(UUID memberUuid, UUID sessionUuid) {
-        PromptTemplate prompt = promptService.getActivePrompt(PROMPT_KEY_SESSION);
+        PromptTemplate prompt = promptService.getActivePrompt(PromptKey.AI_COMMENT);
 
         TopicAnalysisResponse analysis = topicAnalysisService.getTopicAnalysis(memberUuid);
         String topicStats;
