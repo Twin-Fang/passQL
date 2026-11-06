@@ -93,7 +93,7 @@ lib/presentation/design/
 화면(`lib/presentation/pages`, `widgets`, `flows`)은 토큰과 컴포넌트만 조합한다.
 
 - 색은 `context.passqlColors` 의 의미 이름으로만 고른다. `Color(0x...)`, `Colors.white/black` 금지
-- 읽는 글자색: 강조 글자는 `accentText`(accent 는 채움·테두리), 주황 글자는 `warningText`, 진한 의미색 채움 위 글자는 `onSemantic`, 보조 글자는 `secondaryLabel`. `tertiaryLabel` 은 비활성·장식(쉐브론) 전용, 기능 아이콘은 `iconSecondary`. 대비 기준(글자 4.5·아이콘 3, 라이트·다크)은 `test/design/passql_contrast_test.dart` 가 검사
+- 읽는 글자색: 강조 글자는 `accentText`(accent 는 채움·테두리), 주황 글자는 `warningText`, 진한 의미색 채움 위 글자는 `onSemantic`, 보조 글자는 `secondaryLabel`. `tertiaryLabel` 은 비활성·장식(쉐브론) 전용, 기능 아이콘은 `iconSecondary`. 대비 기준은 글자 4.5·아이콘 3 (라이트·다크). 자동 검사 테스트는 없어(#680 에서 삭제) 새 색 토큰은 라이트·다크 캡처로 확인
 - 간격·크기·글자는 토큰으로. 필요한 토큰이 없으면 토큰을 먼저 추가하고, 한 파일에서만 쓰는 배치 숫자는 이름 있는 상수로 둔다
 - 자산은 컴포넌트로(`PassqlLogo`). `Image.asset(` 금지
 - 흐림(`ImageFilter.blur(`)은 `PassqlLockedPreview`·`PassqlGlass` 로만. 화면 직접 사용 금지
@@ -110,4 +110,4 @@ lib/presentation/design/
 - 같은 UI 가 3곳째 생기면 `components/` 에 `passql_<이름>.dart` 로 만들고 `design.dart` 에 export 한다
 - 파일 하나에 주된 타입 하나, 파일명 = 타입명. boolean 속성은 `is/has/can/should` 로 시작
 - 색·크기는 토큰에서 가져온다. 컴포넌트 안에서만 쓰는 규격 숫자는 이름 있는 상수 + 한 줄 주석
-- 라이트·다크 양쪽에서 확인한다 (`test/design/dark_smoke_test.dart` 참고)
+- 라이트·다크 양쪽에서 확인한다 (pro-launch 캡처, 기능 테스트는 두지 않음 #680)
