@@ -35,26 +35,19 @@ Future<void> _pump(WidgetTester tester, List<TopicStat> stats) {
 void main() {
   final stats = [_stat('a', 0.9), _stat('b', 0.4), _stat('c', 0.7)];
 
-  testWidgets('차트 아이콘을 누르면 8각 차트로 바뀌고 정렬 버튼은 숨는다', (tester) async {
+  testWidgets('8각 차트와 목록이 함께 보이고 정렬 버튼은 목록 위에 있다 (#909)', (tester) async {
     await _pump(tester, stats);
-    await tester.pumpAndSettle();
-    expect(find.text('정답률 낮은 순'), findsOneWidget);
-
-    await tester.tap(find.bySemanticsLabel('차트로 보기'));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('topic-accuracy-radar')), findsOneWidget);
-    expect(find.text('정답률 낮은 순'), findsNothing);
-
-    await tester.tap(find.bySemanticsLabel('목록으로 보기'));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('topic-accuracy-radar')), findsNothing);
+    expect(find.text('영역 b'), findsOneWidget);
     expect(find.text('정답률 낮은 순'), findsOneWidget);
   });
 
-  testWidgets('영역이 3개 미만이면 차트를 고를 수 없다 (면이 안 만들어짐)', (tester) async {
+  testWidgets('영역이 3개 미만이면 차트 없이 목록만 (면이 안 만들어짐)', (tester) async {
     await _pump(tester, stats.take(2).toList());
     await tester.pumpAndSettle();
-    expect(find.bySemanticsLabel('차트로 보기'), findsNothing);
+    expect(find.byKey(const Key('topic-accuracy-radar')), findsNothing);
+    expect(find.text('영역 a'), findsOneWidget);
   });
 }

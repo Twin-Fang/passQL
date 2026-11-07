@@ -1,125 +1,158 @@
-import { useState, useEffect } from "react";
-import { generateChoices } from "../api/questions";
+import { useState, useEffect, useRef, useCallback } from "react";
+import type { ChoiceGenerationError } from "../lib/choiceGenerationError";
+import { startChoiceGenerationStream, type PreparedChoiceSet } from "../lib/choiceGenerationStream";
 import {
-  CHOICE_GENERATION_TIMEOUT_ERROR,
-  toChoiceGenerationRejectionError,
-  toChoiceGenerationStreamError,
-  type ChoiceGenerationError,
-} from "../lib/choiceGenerationError";
-import type { ChoiceItem, QuestionDetail } from "../types/api";
+  FRESH_CHOICE_MODE,
+  VERIFIED_CHOICE_MODE,
+  planChoiceModeSwitch,
+  type ChoiceModeSwitchAction,
+} from "../lib/choiceModeSwitchPlan";
+import { useEffectiveChoiceMode } from "./useEffectiveChoiceMode";
+import type { ChoiceGenerationMode, ChoiceItem, QuestionDetail } from "../types/api";
 
-// 60초 내에 complete/error가 오지 않으면 클라이언트 타임아웃으로 에러 전환
-// AI 호출 + 샌드박스 3회 재시도 합산 예상 시간 기준
-const SSE_TIMEOUT_MS = 60_000;
+// 바로 쓸 수 있는 선택지 세트 상태값 (서버 choice_set.status)
+const READY_CHOICE_SET_STATUS = "OK";
+// 선택지를 SSE 로 만들 수 있는 문제 실행 방식
+const GENERATABLE_EXECUTION_MODES: ReadonlySet<QuestionDetail["executionMode"]> = new Set([
+  "EXECUTABLE",
+  "CONCEPT_ONLY",
+]);
+const NO_CHOICES: readonly ChoiceItem[] = [];
+
+/** 상세 응답의 OK 세트 > 검증된 보기 (없으면 null) */
+function toReadyChoiceSet(question: QuestionDetail): PreparedChoiceSet | null {
+  const readyChoiceSet = question.choiceSets?.find((choiceSet) => choiceSet.status === READY_CHOICE_SET_STATUS);
+  return readyChoiceSet ? { choiceSetId: readyChoiceSet.choiceSetUuid, choices: readyChoiceSet.items } : null;
+}
+
+export interface ChoiceModeChangeRequest {
+  // 저장된 새 방식의 실효 모드
+  readonly targetMode: ChoiceGenerationMode;
+  // 제출 중·뒤인지 (채점한 보기는 바꾸지 않음)
+  readonly hasSubmissionStarted: boolean;
+}
 
 /**
- * 문제 선택지 결정: GET 응답의 OK 선택지 세트, 없으면 SSE 생성 (타임아웃·재시도 포함)
- * SSE로 받은 선택지가 있으면 우선 사용
+ * 문제 선택지 준비 (#913): AI 새 보기면 OK 세트가 있어도 SSE 로 새로 받기 (고정 보기 문제는 서버가 고정 세트로 답함, DEC-0251)
+ * 그 외 OK 세트 재사용 > 없으면 SSE 생성. 풀이 중 보기 방식 변경은 applyChoiceModeChange 로 지금 문제에 반영
  */
 export function useQuestionChoices(question: QuestionDetail | undefined, questionUuid: string | undefined) {
-  // SSE로 생성된 선택지 (choiceSets[]가 비어있을 때 채워짐)
-  const [sseChoices, setSseChoices] = useState<readonly ChoiceItem[] | null>(
-    null,
+  const { effectiveMode, isModeSettled } = useEffectiveChoiceMode();
+  const [shownChoiceSet, setShownChoiceSet] = useState<PreparedChoiceSet | null>(null);
+  const [generationError, setGenerationError] = useState<ChoiceGenerationError | null>(null);
+
+  // 받아 둔 세트: 검증된 보기(상세의 OK 세트 또는 검증된 보기 모드 생성), AI 새 보기(새 보기 모드 생성)
+  const readyChoiceSetRef = useRef<PreparedChoiceSet | null>(null);
+  const freshChoiceSetRef = useRef<PreparedChoiceSet | null>(null);
+  // 진행 중인 생성의 모드 (없으면 null). 보기 방식을 바꿔도 끊지 않고 결과만 보관
+  const inFlightGenerationModeRef = useRef<ChoiceGenerationMode | null>(null);
+  // 진행 중인 생성 결과를 화면에 보여 줄지 (다른 세트로 바꿔 둔 동안은 보관만)
+  const isGenerationResultShownRef = useRef(true);
+  const stopGenerationRef = useRef<(() => void) | null>(null);
+  // 지금 문제에 적용 중인 실효 모드 (다시 시도 기준)
+  const appliedModeRef = useRef<ChoiceGenerationMode>(VERIFIED_CHOICE_MODE);
+
+  const stopGeneration = useCallback(() => {
+    stopGenerationRef.current?.();
+    stopGenerationRef.current = null;
+    inFlightGenerationModeRef.current = null;
+  }, []);
+
+  /** 받아 둔 세트로 교체 (진행 중 생성은 끊지 않고 결과만 보관) */
+  const showPreparedChoiceSet = useCallback((choiceSet: PreparedChoiceSet | null) => {
+    isGenerationResultShownRef.current = false;
+    setGenerationError(null);
+    setShownChoiceSet(choiceSet);
+  }, []);
+
+  /** SSE 생성 시작 (진행 중 생성은 끊고 새로) > 결과는 생성 모드 자리에 보관 > 보여 주는 중이면 화면 반영 */
+  const startGeneration = useCallback(
+    (generationMode: ChoiceGenerationMode) => {
+      if (!questionUuid) return;
+      stopGeneration();
+      isGenerationResultShownRef.current = true;
+      inFlightGenerationModeRef.current = generationMode;
+      setShownChoiceSet(null);
+      setGenerationError(null);
+      stopGenerationRef.current = startChoiceGenerationStream(questionUuid, {
+        onComplete: (generatedChoiceSet) => {
+          if (generationMode === FRESH_CHOICE_MODE) freshChoiceSetRef.current = generatedChoiceSet;
+          else readyChoiceSetRef.current ??= generatedChoiceSet;
+          stopGenerationRef.current = null;
+          inFlightGenerationModeRef.current = null;
+          if (isGenerationResultShownRef.current) setShownChoiceSet(generatedChoiceSet);
+        },
+        onError: (error) => {
+          stopGenerationRef.current = null;
+          inFlightGenerationModeRef.current = null;
+          // 보관만 하던 생성이면 화면은 그대로
+          if (isGenerationResultShownRef.current) setGenerationError(error);
+        },
+      });
+    },
+    [questionUuid, stopGeneration],
   );
-  const [sseChoiceSetId, setSseChoiceSetId] = useState<string | null>(null);
-  const [sseError, setSseError] = useState<ChoiceGenerationError | null>(null);
-  // 재시도 트리거용 카운터
-  const [sseRetryCount, setSseRetryCount] = useState(0);
 
-  // questionUuid가 바뀌면 SSE 상태 전체 초기화
-  // practiceMode에서 같은 컴포넌트 인스턴스로 문제가 교체될 때 이전 SSE 에러/결과가 남아
-  // needsSseGeneration의 !sseError 조건을 막아 새 SSE가 발화되지 않는 문제 방지
+  // 문제·실효 모드가 정해지면 1회 준비 (모드 조회 실패·비로그인은 검증된 보기)
+  const hasQuestionLoaded = question != null;
   useEffect(() => {
-    setSseChoices(null);
-    setSseChoiceSetId(null);
-    setSseError(null);
-    setSseRetryCount(0);
-  }, [questionUuid]);
-
-  const activeChoiceSet = question?.choiceSets?.find(
-    (cs) => cs.status === "OK",
-  );
-
-  useEffect(() => {
-    // question 비동기 로드 전이거나 UUID 없으면 스킵
-    if (!question || !questionUuid) return;
-
-    // SSE 생성이 필요 없는 조건:
-    //   - GET 응답에 이미 OK 선택지 있음 (activeChoiceSet != null)
-    //   - SSE complete로 받은 선택지 있음 (sseChoices != null)
-    //   - 에러 상태 (재시도 버튼 대기 중, sseRetryCount 변경 시 다시 실행됨)
-    const needsGeneration =
-      (question.executionMode === "EXECUTABLE" ||
-        question.executionMode === "CONCEPT_ONLY") &&
-      activeChoiceSet == null &&
-      sseChoices == null &&
-      !sseError;
-
-    if (!needsGeneration) return;
-
-    let cancelled = false;
-    let streamCleanup: (() => void) | null = null;
-    const timeoutId = setTimeout(() => {
-      streamCleanup?.();
-      if (!cancelled) {
-        setSseError(CHOICE_GENERATION_TIMEOUT_ERROR);
-      }
-    }, SSE_TIMEOUT_MS);
-
-    const cleanup = generateChoices(questionUuid, {
-      onStatus: () => {},
-      onComplete: (response) => {
-        clearTimeout(timeoutId);
-        if (!cancelled) {
-          setSseChoices(response.choices);
-          setSseChoiceSetId(response.choiceSetId);
-        }
-      },
-      onError: (event) => {
-        clearTimeout(timeoutId);
-        if (!cancelled) {
-          setSseError(toChoiceGenerationStreamError(event));
-        }
-      },
-      // 스트림 시작 전 거부 (한도·프로 필요·요청 과다 등 오류 JSON)
-      onRejected: (rejection) => {
-        clearTimeout(timeoutId);
-        if (!cancelled) {
-          setSseError(toChoiceGenerationRejectionError(rejection));
-        }
-      },
-    });
-    streamCleanup = cleanup;
-
-    return () => {
-      // StrictMode 이중 실행: 첫 번째 cleanup에서 cancelled=true로 콜백 무력화 + abort
-      // 두 번째 effect 실행 시 sseChoices/sseError가 여전히 null → needsGeneration=true
-      // → 두 번째 effect가 실제 SSE 연결을 담당 (React 권장 패턴)
-      cancelled = true;
-      clearTimeout(timeoutId);
-      cleanup();
-    };
-    // deps 설계:
-    //   question      — 비동기 로드 완료 시 effect 실행 (null → 객체 전환 감지)
-    //   questionUuid  — 문제 변경 시 새 SSE 시작
-    //   sseRetryCount — 재시도 버튼 클릭 시 새 SSE 시작
-    // sseChoices/sseError/activeChoiceSet은 effect 내부 needsGeneration 판단에만 사용
-    // deps에 포함하면 onComplete/onError 콜백 후 effect가 재실행되어 중복 요청 발생
+    if (!question || !questionUuid || !isModeSettled) return;
+    const readyChoiceSet = toReadyChoiceSet(question);
+    readyChoiceSetRef.current = readyChoiceSet;
+    freshChoiceSetRef.current = null;
+    appliedModeRef.current = effectiveMode ?? VERIFIED_CHOICE_MODE;
+    const shouldGenerate =
+      GENERATABLE_EXECUTION_MODES.has(question.executionMode) &&
+      (readyChoiceSet == null || appliedModeRef.current === FRESH_CHOICE_MODE);
+    if (shouldGenerate) startGeneration(appliedModeRef.current);
+    else showPreparedChoiceSet(readyChoiceSet);
+    // StrictMode 이중 실행·문제 교체·화면 이탈 시 진행 중 생성 중단
+    return stopGeneration;
+    // deps: 문제 로드·교체, 모드 확정 시점만. 모드 변경은 applyChoiceModeChange 가 반영 (재준비하면 받아 둔 세트를 잃음)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [question, questionUuid, sseRetryCount]);
+  }, [questionUuid, hasQuestionLoaded, isModeSettled]);
 
-  // SSE 실패 후 재시도 (상태 초기화 > 카운터 증가로 effect 재실행)
-  const retryChoiceGeneration = () => {
-    setSseChoices(null);
-    setSseChoiceSetId(null);
-    setSseError(null);
-    setSseRetryCount((c) => c + 1);
-  };
+  // 생성 실패 후 다시 시도 (지금 적용 중인 모드로)
+  const retryChoiceGeneration = useCallback(() => startGeneration(appliedModeRef.current), [startGeneration]);
+
+  /** 풀이 중 보기 방식 변경(저장 성공 뒤) 반영: 제출 전이면 지금 문제 보기 교체, 제출 중·뒤면 다음 풀이부터 (판정 planChoiceModeSwitch) */
+  const applyChoiceModeChange = useCallback(
+    ({ targetMode, hasSubmissionStarted }: ChoiceModeChangeRequest): ChoiceModeSwitchAction => {
+      const action = planChoiceModeSwitch({
+        hasSubmissionStarted,
+        targetMode,
+        hasReadyChoiceSet: readyChoiceSetRef.current != null,
+        hasFreshChoiceSet: freshChoiceSetRef.current != null,
+        inFlightGenerationMode: inFlightGenerationModeRef.current,
+      });
+      if (action === "KEEP_UNTIL_NEXT_SOLVE") return action;
+      appliedModeRef.current = targetMode;
+      switch (action) {
+        case "SHOW_READY_CHOICE_SET":
+          showPreparedChoiceSet(readyChoiceSetRef.current);
+          break;
+        case "SHOW_FRESH_CHOICE_SET":
+          showPreparedChoiceSet(freshChoiceSetRef.current);
+          break;
+        case "AWAIT_IN_FLIGHT_GENERATION":
+          isGenerationResultShownRef.current = true;
+          setShownChoiceSet(null);
+          setGenerationError(null);
+          break;
+        case "GENERATE_CHOICES":
+          startGeneration(targetMode);
+          break;
+      }
+      return action;
+    },
+    [showPreparedChoiceSet, startGeneration],
+  );
 
   return {
-    choices: sseChoices ?? activeChoiceSet?.items ?? [],
-    choiceSetId: sseChoiceSetId ?? activeChoiceSet?.choiceSetUuid ?? "",
-    choiceGenerationError: sseError,
+    choices: shownChoiceSet?.choices ?? NO_CHOICES,
+    choiceSetId: shownChoiceSet?.choiceSetId ?? "",
+    choiceGenerationError: generationError,
     retryChoiceGeneration,
+    applyChoiceModeChange,
   };
 }

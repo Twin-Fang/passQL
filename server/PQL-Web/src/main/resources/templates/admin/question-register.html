@@ -34,7 +34,7 @@
     <!-- 모달 (등록 가이드, JSON 붙여넣기) -->
     <th:block th:replace="~{admin/fragments/question-register-modals :: modals}"></th:block>
 
-    <form th:action="@{/admin/questions/register}" method="post" class="space-y-4">
+    <form th:action="@{/admin/questions/register}" method="post" class="space-y-4" data-format-check>
 
         <!-- 기본 정보 -->
         <div class="card bg-base-100 shadow">
@@ -215,6 +215,7 @@
 <th:block layout:fragment="js">
 <script th:src="@{/js/admin/question-json-loader.js}"></script>
 <script th:src="@{/js/admin/question-register.js}"></script>
+<script th:src="@{/js/admin/question-format-check.js}"></script>
 <script>lucide.createIcons();</script>
 </th:block>
 </html>

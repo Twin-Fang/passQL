@@ -26,7 +26,8 @@
         </div>
     </div>
 
-    <form th:action="@{/admin/questions/{uuid}/edit(uuid=${question.questionUuid})}" method="post" class="space-y-4">
+    <form th:action="@{/admin/questions/{uuid}/edit(uuid=${question.questionUuid})}" method="post" class="space-y-4"
+          data-format-check th:data-question-uuid="${question.questionUuid}">
 
         <!-- 기본 정보 -->
         <div class="card bg-base-100 shadow">
@@ -178,6 +179,7 @@
 
 <th:block layout:fragment="js">
 <script th:src="@{/js/admin/question-json-loader.js}"></script>
+<script th:src="@{/js/admin/question-format-check.js}"></script>
 <script>
     lucide.createIcons();
     initQuestionJsonLoader({ confirmOverwrite: true });

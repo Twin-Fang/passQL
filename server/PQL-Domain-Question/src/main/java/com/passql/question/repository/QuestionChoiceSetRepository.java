@@ -187,4 +187,12 @@ public interface QuestionChoiceSetRepository extends JpaRepository<QuestionChoic
                                                           @Param("curatedSources") Collection<ChoiceSetSource> curatedSources,
                                                           @Param("choiceCount") long choiceCount,
                                                           @Param("choiceSetUuids") Collection<UUID> choiceSetUuids);
+
+    /** 형식 점검 대상 세트 (#905): 지정 상태 + (고정 출처 또는 재사용 풀), 회원별 일회성 AI 세트는 제외 */
+    @Query("""
+            select cs from QuestionChoiceSet cs
+             where cs.status = :status and (cs.source in :sharedSources or cs.isReusable = true)
+            """)
+    List<QuestionChoiceSet> findSharedSetsForFormatAudit(@Param("status") ChoiceSetStatus status,
+                                                         @Param("sharedSources") Collection<ChoiceSetSource> sharedSources);
 }

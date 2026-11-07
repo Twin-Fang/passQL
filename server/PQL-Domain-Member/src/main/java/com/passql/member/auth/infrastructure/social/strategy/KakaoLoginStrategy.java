@@ -2,6 +2,7 @@ package com.passql.member.auth.infrastructure.social.strategy;
 
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.member.auth.domain.SocialProfile;
 import com.passql.member.auth.infrastructure.social.SocialApiRestTemplates;
 import com.passql.member.auth.infrastructure.social.oauth.SocialLoginProperties;
 import com.passql.member.constant.AuthProvider;
@@ -18,7 +19,8 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Map;
 
 /**
- * 카카오 로그인: 토큰 발급 앱(app_id) 검증, 사용자 ID 조회
+ * 카카오 로그인: 토큰 발급 앱(app_id) 검증, 사용자 ID·이메일·프로필 이미지 조회
+ * 이메일·이미지는 동의 항목이라 없을 수 있음 (콘솔 동의 항목 설정 필요, #908)
  */
 @Slf4j
 @Component
@@ -57,13 +59,25 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
         }
     }
 
+    /** 사용자 정보 > id, kakao_account.email(유효할 때만), profile.profile_image_url(기본 이미지 제외) */
     @Override
-    public String validateAndGetSocialId(String accessToken) {
-        String id = SocialStrategyResponses.stringOf(getJson(KAKAO_USER_INFO_URL, accessToken), "id");
+    public SocialProfile fetchSocialProfile(String accessToken) {
+        Map<String, Object> userInfo = getJson(KAKAO_USER_INFO_URL, accessToken);
+        String id = SocialStrategyResponses.stringOf(userInfo, "id");
         if (id == null) {
             throw SocialStrategyResponses.rejectedToken(AuthProvider.KAKAO, "user id missing");
         }
-        return id;
+        Map<String, Object> account = SocialStrategyResponses.childOf(userInfo, "kakao_account");
+        Map<String, Object> profile = SocialStrategyResponses.childOf(account, "profile");
+        // is_email_valid false: 다른 계정에 다시 쓰인 옛 이메일
+        boolean isEmailUsable = account.get("is_email_valid") == null
+                || SocialStrategyResponses.isTrue(account, "is_email_valid");
+        String email = isEmailUsable ? SocialStrategyResponses.stringOf(account, "email") : null;
+        // 기본 이미지면 이미지 없음 (앱·웹은 닉네임 첫 글자)
+        String profileImageUrl = SocialStrategyResponses.isTrue(profile, "is_default_image")
+                ? null
+                : SocialStrategyResponses.stringOf(profile, "profile_image_url");
+        return new SocialProfile(id, email, SocialStrategyResponses.isTrue(account, "is_email_verified"), profileImageUrl);
     }
 
     @Override

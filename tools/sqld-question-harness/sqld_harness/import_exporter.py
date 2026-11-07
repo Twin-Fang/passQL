@@ -1,5 +1,5 @@
 """
-등록 산출물: 지문 렌더(지문 + 데이터 표 + SQL) > 관리자 가져오기 JSON 항목 (서버 QuestionExportDto 모양 그대로)
+등록 산출물: 지문 렌더(지문 + SQL, 데이터는 ddl·data 스키마 표로만 #905) > 관리자 가져오기 JSON 항목 (서버 QuestionExportDto 모양 그대로)
 v2 메타(경향·개념·해설 초안)는 가져오기 JSON 에 넣지 않고 별도 메타 파일로 (서버 DTO 변경 전까지 호환 유지)
 """
 from .constants import CHOICE_KEYS
@@ -9,21 +9,11 @@ from .question_schema import get_choices, get_concepts, get_schema_version, get_
 IMPORT_EXECUTION_MODE = "CONCEPT_ONLY"
 # 고정 보기 세트 (서버 ChoiceSetPolicy, #511)
 IMPORT_CHOICE_SET_POLICY = "CURATED_ONLY"
-NULL_DISPLAY_TEXT = "NULL"
-
-
-def render_markdown_table(table):
-    header = "| " + " | ".join(table["columns"]) + " |"
-    divider = "| " + " | ".join("---" for _ in table["columns"]) + " |"
-    body = ["| " + " | ".join(NULL_DISPLAY_TEXT if value is None else str(value) for value in row) + " |" for row in table["rows"]]
-    return "\n".join([f"[{table['name']}]", header, divider, *body])
 
 
 def render_stem(question):
-    """지문 + 데이터 표 + SQL 블록 (개념형은 스키마 화면이 없어 지문에 데이터 포함)"""
+    """지문 + SQL 블록 (tables 는 data 대조용 작성 보조, 앱·웹은 ddl·data 로 스키마 표를 그림)"""
     parts = [str(question["stem"]).strip()]
-    for table in question.get("tables") or []:
-        parts.append(render_markdown_table(table))
     if question.get("displaySql"):
         parts.append("```sql\n" + question["displaySql"].strip() + "\n```")
     return "\n\n".join(parts)

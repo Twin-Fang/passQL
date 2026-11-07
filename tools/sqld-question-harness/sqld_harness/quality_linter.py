@@ -124,11 +124,12 @@ def _check_stem_clarity(question, add):
         add(SEVERITY_WARNING, "stem.question-form", "지문이 질문형으로 끝나지 않음")
     if not any(keyword in stem for keyword in STEM_SELECTION_KEYWORDS):
         add(SEVERITY_WARNING, "stem.selection-criterion", "무엇을 고르는지 기준 단어 없음 (옳은/옳지 않은/가장/결과 등)")
+    # 데이터는 스키마 표(ddl·data)로만 보임 > data 없는 tables 는 학습자에게 안 보임 (#905)
+    has_data = bool(str(question.get("data") or "").strip())
+    if question.get("tables") and not has_data:
+        add(SEVERITY_ERROR, "stem.table-outside-schema", "tables 가 있으나 data(INSERT) 없음 > 스키마 표로 보이게 data 작성")
     if is_concept_question(question):
         return
-    has_data = bool(str(question.get("data") or "").strip())
-    if has_data and not question.get("tables"):
-        add(SEVERITY_WARNING, "stem.data-hidden", "data 가 있으나 tables(지문 표) 없음 > 학습자가 데이터를 볼 수 없음")
     is_all_sql_choices = all(choice.get("kind") == "SQL" for choice in get_choices(question))
     if question.get("answerSql") and not question.get("displaySql") and not is_all_sql_choices:
         add(SEVERITY_WARNING, "stem.sql-hidden", "displaySql 없음 > 지문에 추적할 SQL 이 안 보임")

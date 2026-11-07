@@ -17,6 +17,7 @@ import com.passql.question.repository.QuestionChoiceSetItemRepository;
 import com.passql.question.repository.QuestionChoiceSetRepository;
 import com.passql.question.repository.QuestionRepository;
 import com.passql.question.service.ChoiceExplanationComposer;
+import com.passql.question.service.ForbiddenPunctuationCleaner;
 import com.passql.question.service.QuestionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -205,7 +206,9 @@ public class ChoiceExplanationService {
             choiceSetRepository.markExplanationFailed(choiceSetUuid, LocalDateTime.now());
             return false;
         }
-        choiceSetRepository.saveReadyExplanation(choiceSetUuid, ChoiceExplanationComposer.toJson(result.explanation()),
+        // 저장 전 줄표·가운뎃점 정리 (#905, 생성 저장 경로 공통 ForbiddenPunctuationCleaner)
+        choiceSetRepository.saveReadyExplanation(choiceSetUuid,
+                ChoiceExplanationComposer.toJson(ForbiddenPunctuationCleaner.clean(result.explanation())),
                 ChoiceSetExplanationPrompt.PROMPT_VERSION, LocalDateTime.now());
         log.info("[choice explanation] generated : choiceSet={} attempts={} elapsedMs={} warnings={}",
                 choiceSetUuid, result.attemptCount(), result.elapsedMilliseconds(), result.validation().warnings().size());

@@ -3,10 +3,10 @@
 from concept_bundle import choice, question, sql_check, sql_error_check
 from concept_dataset import DEPARTMENT_TABLE_MD, to_employee_table_md
 
-# 이 개념의 계산에 쓰는 열 전부 (직급·급여·부서번호)
+# 이 개념의 계산에 쓰는 열 전부 (직급, 급여, 부서번호)
 EMPLOYEE_TABLE = to_employee_table_md("사번", "이름", "직급", "급여", "부서번호")
 
-# 확인 문제·검증 공통: 개발부 사원만 보여 주는 뷰 (조건 검사 있음·없음)
+# 확인 문제, 검증 공통: 개발부 사원만 보여 주는 뷰 (조건 검사 있음, 없음)
 DEVELOPMENT_VIEW_SQL = "CREATE VIEW 개발부사원 AS SELECT 사번, 이름, 급여, 부서번호 FROM 사원 WHERE 부서번호 = 20;"
 DEVELOPMENT_CHECK_VIEW_SQL = ("CREATE VIEW 개발부사원 AS SELECT 사번, 이름, 부서번호 FROM 사원 WHERE 부서번호 = 20 "
                               "WITH CHECK OPTION;")
@@ -20,11 +20,11 @@ CONCEPT = {
     "coreMd": (
         "- 뷰는 **SELECT 문만** 저장한 가상 테이블이라, 조회할 때마다 기본 테이블에서 읽어 와요.\n"
         "- 정의를 바꿀 때는 `CREATE OR REPLACE VIEW`를 쓰고, `ALTER VIEW`로는 **바꿀 수 없어요**.\n"
-        "- 장점은 독립성·편리성·보안성(**독편보**)이고, 뷰를 쓴다고 조회가 빨라지지는 않아요.\n"
+        "- 장점은 독립성, 편리성, 보안성(**독편보**)이고, 뷰를 쓴다고 조회가 빨라지지는 않아요.\n"
         "- 뷰에는 **인덱스**를 만들 수 없고, 집계나 DISTINCT가 든 뷰로는 데이터를 바꿀 수 없어요.\n"
         "- `WITH CHECK OPTION`은 뷰 조건을 벗어나는 변경을, `WITH READ ONLY`는 모든 변경을 막아요."
     ),
-    "detailMd": f"""## 자주 쓰는 SELECT에 이름 붙이기 — 반복과 노출 줄이기 {{#why}}
+    "detailMd": f"""## 자주 쓰는 SELECT에 이름 붙이기: 반복과 노출 줄이기 {{#why}}
 
 개발부 사원 목록을 매일 보는 사람은 같은 SELECT 문을 매번 다시 적어야 하고, 여러 사람이 각자 적다 보면 조건을 틀리기도 해요. 다른 팀에 급여를 숨긴 사원 목록만 보여 주고 싶을 때도, 보여 줄 열만 고른 SELECT 문에 이름을 붙여 저장해 두면 돼요.
 
@@ -34,7 +34,7 @@ CONCEPT = {
 
 {DEPARTMENT_TABLE_MD}
 
-## 한 줄 정의 — 데이터 없는 가상 테이블 {{#definition}}
+## 한 줄 정의: 데이터 없는 가상 테이블 {{#definition}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -71,7 +71,7 @@ SELECT 이름, 급여 FROM 개발부사원;               -- 정하늘의 급여
 | 있는 기간 | 그 SQL 안에서만 쓰고 사라져요 | 이름과 함께 데이터베이스에 남아요 |
 | 다시 쓰기 | 못 해요 | 권한만 있으면 누구든 다시 써요 |
 
-## 만들고, 바꾸고, 지우기 — CREATE·CREATE OR REPLACE·DROP {{#create-replace-drop}}
+## 만들고, 바꾸고, 지우기: CREATE, CREATE OR REPLACE, DROP {{#create-replace-drop}}
 
 | 명령 | 하는 일 |
 |---|---|
@@ -106,7 +106,7 @@ DROP VIEW 개발부사원;
 SELECT COUNT(*) FROM 사원;  -- 8명이 그대로 있어요
 ```
 
-## 장점과 한계 — 독편보, 그리고 못 하는 것 {{#pros-cons}}
+## 장점과 한계: 독편보, 그리고 못 하는 것 {{#pros-cons}}
 
 | 외우기 | 뜻 |
 |---|---|
@@ -131,7 +131,7 @@ SELECT 급여 FROM 사원공개;  -- 오류: 뷰에 급여 열이 없어요
 | 정의 변경 | ALTER로 정의를 고칠 수 없어서 `CREATE OR REPLACE`로 다시 만들어요 |
 | 데이터 변경 | 뷰의 모양에 따라 뷰를 통한 INSERT, UPDATE, DELETE가 막혀요 |
 
-## 뷰로 데이터 바꾸기 — 단순한 뷰만 돼요 {{#view-dml}}
+## 뷰로 데이터 바꾸기: 단순한 뷰만 돼요 {{#view-dml}}
 
 뷰에는 데이터가 없으니, 뷰를 통해 바꾸면 실제로 바뀌는 것은 기본 테이블이에요. 뷰의 한 행이 기본 테이블의 어느 행인지 정할 수 있을 때만 바꿀 수 있어요.
 
@@ -163,11 +163,11 @@ SELECT 사번, 급여 * 12 AS 연봉 FROM 사원;
 UPDATE 사원연봉 SET 연봉 = 0 WHERE 사번 = 1001;  -- 오류: 계산한 열은 바꿀 수 없어요
 ```
 
-## WITH CHECK OPTION과 WITH READ ONLY — 뷰로 바꾸는 범위 정하기 {{#check-option}}
+## WITH CHECK OPTION과 WITH READ ONLY: 뷰로 바꾸는 범위 정하기 {{#check-option}}
 
 | 옵션 | 막는 것 | 위반하면 |
 |---|---|---|
-| `WITH CHECK OPTION` | 뷰 조건을 벗어나게 하는 INSERT·UPDATE | ORA-01402(WITH CHECK OPTION 조건 위반) 오류예요 |
+| `WITH CHECK OPTION` | 뷰 조건을 벗어나게 하는 INSERT, UPDATE | ORA-01402(WITH CHECK OPTION 조건 위반) 오류예요 |
 | `WITH READ ONLY` | 뷰를 통한 INSERT, UPDATE, DELETE 전부 | ORA-42399(읽기 전용 뷰에는 데이터 변경을 할 수 없음) 오류예요 |
 
 ```sql
@@ -191,7 +191,7 @@ WITH READ ONLY;
 UPDATE 개발부조회 SET 이름 = '정하늘' WHERE 사번 = 1005;  -- 오류: 읽기 전용 뷰예요
 ```
 
-## 자주 헷갈리는 점 — 저장, ALTER, 인덱스, 성능, 옵션 {{#confusing}}
+## 자주 헷갈리는 점: 저장, ALTER, 인덱스, 성능, 옵션 {{#confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -260,20 +260,20 @@ SELECT COUNT(*) FROM 사원;     -- 강하나가 더해져 9명이에요
 | WITH CHECK OPTION이 있는 개발부 뷰로 20번 사원을 새로 넣을 수 있어요 | O | 뷰 조건 안의 변경은 허용돼요 |
 | DISTINCT를 쓴 뷰로는 UPDATE를 할 수 없어요 | O | 여러 행이 한 행으로 합쳐져서 어느 행을 바꿀지 정할 수 없어요 |
 
-## 꼭 외울 것 — 옵션과 뷰가 못 하는 것 {{#memorize}}
+## 꼭 외울 것: 옵션과 뷰가 못 하는 것 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
 | 뷰에 저장되는 것 | SELECT 문만, 데이터는 기본 테이블에 있어요 |
-| 뷰의 장점 세 가지 | 독립성·편리성·보안성 (독편보) |
+| 뷰의 장점 세 가지 | 독립성, 편리성, 보안성 (독편보) |
 | 뷰 정의 바꾸기 | CREATE OR REPLACE VIEW, ALTER VIEW로는 못 바꿔요 |
 | 뷰에 인덱스 | 만들 수 없고, 조회 때 기본 테이블 인덱스가 쓰여요 |
-| 뷰로 데이터를 못 바꾸는 뷰 | GROUP BY·집계 함수·DISTINCT가 든 뷰 |
-| WITH CHECK OPTION | 뷰 조건을 벗어나게 만드는 INSERT·UPDATE만 막아요 |
-| WITH READ ONLY | 뷰를 통한 INSERT·UPDATE·DELETE를 모두 막아요 |
+| 뷰로 데이터를 못 바꾸는 뷰 | GROUP BY, 집계 함수, DISTINCT가 든 뷰 |
+| WITH CHECK OPTION | 뷰 조건을 벗어나게 만드는 INSERT, UPDATE만 막아요 |
+| WITH READ ONLY | 뷰를 통한 INSERT, UPDATE, DELETE를 모두 막아요 |
 | 기본 테이블을 지우면 | 뷰 이름은 남고, 조회하면 ORA-04063(뷰에 오류가 있음) 오류 |
 
-## 시험에서는 이렇게 나와요 — 틀린 특징 고르기 {{#exam-point}}
+## 시험에서는 이렇게 나와요: 틀린 특징 고르기 {{#exam-point}}
 
 뷰의 특징으로 옳지 않은 것을 고르는 문제가 가장 흔해요. 아래 보기가 정답(틀린 설명)으로 자주 나와요.
 
@@ -330,7 +330,7 @@ SELECT COUNT(*) FROM 사원;     -- 강하나가 더해져 9명이에요
                   setup=DEVELOPMENT_VIEW_SQL + "\nUPDATE 사원 SET 급여 = 2600 WHERE 사번 = 1005;"),
         sql_check("SELECT 급여 FROM 개발부사원 WHERE 사번 = 1005;", [[2600]],
                   setup=DEVELOPMENT_VIEW_SQL + "\nUPDATE 사원 SET 급여 = 2600 WHERE 사번 = 1005;"),
-        # 정의 바꾸기·지우기
+        # 정의 바꾸기, 지우기
         sql_check("SELECT * FROM 개발부사원",
                   [[1002, "이지은", "과장"], [1003, "박서준", "대리"], [1005, "정하늘", "사원"]],
                   setup="CREATE VIEW 개발부사원 AS SELECT 사번, 이름 FROM 사원 WHERE 부서번호 = 20;\n"
@@ -345,11 +345,11 @@ SELECT COUNT(*) FROM 사원;     -- 강하나가 더해져 9명이에요
         # 뷰 조회 <-> 같은 조건의 기본 테이블 조회 (같은 결과)
         sql_check("SELECT 이름 FROM 개발부사원 WHERE 급여 >= 2600", [["박서준"]], setup=DEVELOPMENT_VIEW_SQL),
         sql_check("SELECT 이름 FROM 사원 WHERE 부서번호 = 20 AND 급여 >= 2600", [["박서준"]]),
-        # 보안성·인덱스
+        # 보안성, 인덱스
         sql_error_check("SELECT 급여 FROM 사원공개", "ORA-00904",
                         setup="CREATE VIEW 사원공개 AS SELECT 사번, 이름, 직급, 부서번호 FROM 사원;"),
         sql_error_check("CREATE INDEX 개발부사원_이름 ON 개발부사원 (이름)", "ORA-01702", setup=DEVELOPMENT_VIEW_SQL),
-        # 뷰로 데이터 바꾸기 (단순 뷰 가능, 집계·DISTINCT·계산 열 불가)
+        # 뷰로 데이터 바꾸기 (단순 뷰 가능, 집계, DISTINCT, 계산 열 불가)
         sql_check("SELECT 직급 FROM 사원 WHERE 사번 = 1003", [["과장"]],
                   setup="CREATE VIEW 개발부사원 AS SELECT 사번, 이름, 직급 FROM 사원 WHERE 부서번호 = 20;\n"
                         "UPDATE 개발부사원 SET 직급 = '과장' WHERE 사번 = 1003;"),
@@ -359,7 +359,7 @@ SELECT COUNT(*) FROM 사원;     -- 강하나가 더해져 9명이에요
                         setup="CREATE VIEW 직급목록 AS SELECT DISTINCT 직급 FROM 사원;"),
         sql_error_check("UPDATE 사원연봉 SET 연봉 = 0 WHERE 사번 = 1001", "ORA-01733",
                         setup="CREATE VIEW 사원연봉 AS SELECT 사번, 급여 * 12 AS 연봉 FROM 사원;"),
-        # WITH CHECK OPTION (확인 문제 5)·WITH READ ONLY
+        # WITH CHECK OPTION (확인 문제 5), WITH READ ONLY
         sql_error_check("UPDATE 개발부사원 SET 부서번호 = 30 WHERE 사번 = 1005;", "ORA-01402", setup=DEVELOPMENT_CHECK_VIEW_SQL),
         sql_check("SELECT 부서번호 FROM 사원 WHERE 사번 = 1005", [[20]],
                   setup=DEVELOPMENT_CHECK_VIEW_SQL + "\nUPDATE 개발부사원 SET 부서번호 = 30 WHERE 사번 = 1005; -- 오류"),

@@ -1,32 +1,32 @@
-"""개념: CREATE·ALTER·DROP·TRUNCATE (3단원, 확인 문제 5개)"""
+"""개념: CREATE, ALTER, DROP, TRUNCATE (3단원, 확인 문제 5개)"""
 
 from concept_bundle import choice, question, sql_check, sql_error_check
 from concept_dataset import to_employee_table_md
 
-# ALTER 예시·확인 문제 5 계산용 (이름 길이, 직급 값, 커미션 NULL 4명)
+# ALTER 예시, 확인 문제 5 계산용 (이름 길이, 직급 값, 커미션 NULL 4명)
 EMPLOYEE_ALTER_TABLE = to_employee_table_md("사번", "이름", "직급", "커미션", "부서번호")
 
 CONCEPT = {
     "tagKey": "ddl-create-alter-drop",
     "topicCode": "sql_ddl_dml_tcl",
     "sortOrder": 2,
-    "title": "CREATE·ALTER·DROP·TRUNCATE",
+    "title": "CREATE, ALTER, DROP, TRUNCATE",
     "summary": "테이블을 만들고 고치고 없애는 DDL이고, 실행하면 바로 확정돼요",
     "coreMd": (
         "- DDL은 CREATE, ALTER, DROP, RENAME, TRUNCATE이고, Oracle에서는 실행 앞뒤로 **자동 커밋**돼요.\n"
-        "- 테이블 이름은 **문자로 시작**하고 문자·숫자·`_`·`$`·`#`만 쓰며, 예약어는 쓸 수 없어요.\n"
+        "- 테이블 이름은 **문자로 시작**하고 문자, 숫자, `_`, `$`, `#`만 쓰며, 예약어는 쓸 수 없어요.\n"
         "- CTAS로 테이블을 복사하면 제약조건은 **NOT NULL만** 따라와요.\n"
-        "- Oracle은 ADD·MODIFY에 COLUMN을 붙이지 않고, SQL Server는 MODIFY 대신 `ALTER COLUMN`을 써요.\n"
+        "- Oracle은 ADD, MODIFY에 COLUMN을 붙이지 않고, SQL Server는 MODIFY 대신 `ALTER COLUMN`을 써요.\n"
         "- DELETE는 되돌릴 수 있고, TRUNCATE는 **구조만 남기며**, DROP은 테이블까지 없애요."
     ),
-    "detailMd": """## SQL 문장의 네 가지 종류 — 구조, 데이터, 권한, 확정 {#why}
+    "detailMd": """## SQL 문장의 네 가지 종류: 구조, 데이터, 권한, 확정 {#why}
 
 데이터를 저장하려면 담을 테이블(표)부터 있어야 해요. 테이블을 만들고 고치고 없애는 명령어를 DDL(Data Definition Language, 데이터 정의어)이라고 불러요.
 
 | 종류 | 하는 일 | 명령어 |
 |---|---|---|
 | DDL (데이터 정의어) | 테이블 같은 구조를 만들고 바꾸고 없애요 | CREATE, ALTER, DROP, RENAME, TRUNCATE |
-| DML (데이터 조작어) | 테이블 안의 데이터를 조회·입력·수정·삭제해요 | SELECT, INSERT, UPDATE, DELETE, MERGE |
+| DML (데이터 조작어) | 테이블 안의 데이터를 조회, 입력, 수정, 삭제해요 | SELECT, INSERT, UPDATE, DELETE, MERGE |
 | DCL (데이터 제어어) | 다른 사용자에게 권한을 주고 회수해요 | GRANT, REVOKE |
 | TCL (트랜잭션 제어어) | 변경 내용을 확정하거나 취소해요 | COMMIT, ROLLBACK, SAVEPOINT |
 
@@ -34,7 +34,7 @@ CONCEPT = {
 |---|---|---|
 | TRUNCATE는 행을 지우는 명령이라서 DML이에요 | X | 테이블을 처음 만든 상태로 되돌리는 DDL이에요 |
 
-## CREATE TABLE과 이름 규칙 — 문자로 시작, 허용된 문자만 {#create}
+## CREATE TABLE과 이름 규칙: 문자로 시작, 허용된 문자만 {#create}
 
 `CREATE TABLE` 뒤에 테이블 이름을 쓰고, 괄호 안에 열 이름과 데이터 타입을 쉼표로 이어 적어요. 제약조건은 필요한 열에만 붙이고, `COUNT(*)`는 행이 몇 개인지 세는 함수로 그룹 함수 단원에서 다시 나와요.
 
@@ -66,7 +66,7 @@ CREATE TABLE 사원_2026 (번호 NUMBER);       -- 규칙을 지킨 이름이라
 
 이름을 큰따옴표로 감싸면(`"1분기매출"`) 규칙을 벗어난 이름도 만들 수 있어요. 다만 그 뒤로 쓸 때마다 큰따옴표를 붙여야 해서, 시험은 규칙을 지킨 이름을 기준으로 해요.
 
-## CTAS — 복사해서 만들면 NOT NULL만 따라와요 {#ctas}
+## CTAS: 복사해서 만들면 NOT NULL만 따라와요 {#ctas}
 
 `CREATE TABLE 새테이블 AS SELECT ...`처럼 SELECT 결과로 테이블을 만드는 방법을 CTAS(Create Table As Select)라고 불러요. 제약조건은 들어갈 값을 막는 규칙이고, 다음 개념에서 자세히 다뤄요.
 
@@ -89,14 +89,14 @@ CREATE TABLE 사원빈표 AS SELECT * FROM 사원 WHERE 1 = 2;
 SELECT COUNT(*) FROM 사원빈표;   -- 구조만 복사되어 0이 나와요
 ```
 
-## ALTER TABLE과 RENAME — 열과 이름을 고치는 형태 {#alter}
+## ALTER TABLE과 RENAME: 열과 이름을 고치는 형태 {#alter}
 
 이미 만든 테이블의 구조는 `ALTER TABLE`로 고치고, 테이블 이름은 `RENAME`으로도 바꿀 수 있어요.
 
 | 하는 일 | Oracle 문법 |
 |---|---|
 | 열 추가 | `ALTER TABLE 사원 ADD (이메일 VARCHAR2(50));` |
-| 열의 타입·크기·기본값 변경 | `ALTER TABLE 사원 MODIFY (이름 VARCHAR2(30));` |
+| 열의 타입, 크기, 기본값 변경 | `ALTER TABLE 사원 MODIFY (이름 VARCHAR2(30));` |
 | 열 삭제 | `ALTER TABLE 사원 DROP COLUMN 이메일;` |
 | 열 이름 변경 | `ALTER TABLE 사원 RENAME COLUMN 커미션 TO 수당;` |
 | 테이블 이름 변경 | `RENAME 급여등급 TO 급여구간;` 또는 `ALTER TABLE 급여등급 RENAME TO 급여구간;` |
@@ -121,7 +121,7 @@ ADD와 MODIFY는 괄호 안에 여러 열을 쉼표로 이어서 한 번에 고�
 |---|---|---|
 | ADD로 더한 열은 맨 뒤에 붙고, 이미 있던 행의 그 칸은 NULL이에요 | O | 새 칸에 넣은 값이 없어서 NULL로 채워져요 |
 
-## MODIFY의 조건 — 기존 데이터와 부딪히면 실패해요 {#modify}
+## MODIFY의 조건: 기존 데이터와 부딪히면 실패해요 {#modify}
 
 크기를 늘리는 것은 언제나 되지만, 나머지 변경은 이미 들어 있는 데이터와 맞을 때만 성공해요.
 
@@ -141,7 +141,7 @@ ALTER TABLE 사원 ADD (메모 VARCHAR2(10) NOT NULL);   -- 오류: 이미 행�
 
 행이 있는 테이블에 NOT NULL 열을 더하면 기존 행의 새 칸이 NULL이 되어 오류가 나요. `ADD (상태 VARCHAR2(10) DEFAULT '재직' NOT NULL)`처럼 기본값을 함께 주면 기존 행이 '재직'으로 채워져서 성공해요.
 
-## 지우는 세 가지 — DELETE·TRUNCATE·DROP {#truncate}
+## 지우는 세 가지: DELETE, TRUNCATE, DROP {#truncate}
 
 Oracle은 DDL을 실행할 때 그 앞과 뒤에서 자동으로 확정(커밋)해요. 그래서 TRUNCATE로 지운 행은 확정 전으로 되돌리는 ROLLBACK을 써도 돌아오지 않아요.
 
@@ -178,7 +178,7 @@ SELECT COUNT(*) FROM 사원;             -- 사원 데이터는 그대로라서 
 |---|---|---|
 | DROP TABLE 부서 CASCADE CONSTRAINTS를 실행하면 사원 행도 함께 지워져요 | X | 사원 쪽 외래 키 규칙만 지워지고 사원 8명은 그대로 남아요 |
 
-## 자주 헷갈리는 점 — COLUMN 키워드, CTAS, 자동 커밋 {#confusing}
+## 자주 헷갈리는 점: COLUMN 키워드, CTAS, 자동 커밋 {#confusing}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -205,17 +205,17 @@ SQL Server는 같은 일을 다른 문법으로 해서, 시험 보기에 두 데
 |---|---|---|
 | 행이 있는 테이블에도 DEFAULT를 함께 주면 NOT NULL 열을 더할 수 있어요 | O | 기존 행의 새 칸이 기본값으로 채워져서 NULL이 생기지 않아요 |
 
-## 꼭 외울 것 — DDL 다섯 개와 지우는 세 명령 {#memorize}
+## 꼭 외울 것: DDL 다섯 개와 지우는 세 명령 {#memorize}
 
 | 외울 것 | 답 |
 |---|---|
 | DDL 다섯 개 | CREATE, ALTER, DROP, RENAME, TRUNCATE |
 | Oracle DDL과 커밋 | 실행 앞뒤로 자동 커밋, ROLLBACK 불가 |
-| 테이블 이름 규칙 | 문자로 시작, 문자·숫자·_·$·#만, 예약어 금지 |
+| 테이블 이름 규칙 | 문자로 시작, 문자, 숫자, _, $, #만, 예약어 금지 |
 | CTAS로 따라오는 제약조건 | NOT NULL 하나 (DEFAULT도 안 따라와요) |
 | 구조만 복사하는 CTAS | `WHERE 1 = 2`처럼 늘 거짓인 조건을 붙여요 |
 | 열 변경 문법 | Oracle은 `MODIFY (열 타입)`, SQL Server는 `ALTER COLUMN` |
-| DELETE·TRUNCATE·DROP | DELETE만 ROLLBACK 가능, DROP만 구조까지 삭제 |
+| DELETE, TRUNCATE, DROP | DELETE만 ROLLBACK 가능, DROP만 구조까지 삭제 |
 | CASCADE CONSTRAINTS | 외래 키 규칙만 지우고 자식 행은 남겨요 |
 
 ## 시험에서는 이렇게 나와요 {#exam-point}
@@ -232,7 +232,7 @@ DELETE, TRUNCATE, DROP 비교 문제는 구조가 남는지, ROLLBACK이 되는�
                   choice("C", "RENAME", rationale="테이블 이름을 바꾸는 DDL이에요."),
                   choice("D", "UPDATE", True, "데이터를 수정하는 DML이라서 DDL이 아니에요.")]),
         question(2, "Oracle에서 테이블 이름으로 쓸 수 있는 것은 무엇인가요?", "create",
-                 "테이블 이름은 문자로 시작하고 문자·숫자·_·$·#만 써야 하며, 예약어는 쓸 수 없어요. 사원_2026은 이 규칙을 모두 지켜요.",
+                 "테이블 이름은 문자로 시작하고 문자, 숫자, _, $, #만 써야 하며, 예약어는 쓸 수 없어요. 사원_2026은 이 규칙을 모두 지켜요.",
                  [choice("A", "1분기매출", rationale="숫자로 시작해서 쓸 수 없어요."),
                   choice("B", "사원_2026", True, "문자로 시작하고 허용된 문자만 썼어요."),
                   choice("C", "사원-연락처", rationale="하이픈(-)은 이름에 쓸 수 없는 문자예요."),
@@ -259,7 +259,7 @@ DELETE, TRUNCATE, DROP 비교 문제는 구조가 남는지, ROLLBACK이 되는�
     ],
     "relatedQuestionUuids": [],
     "sqlChecks": [
-        # CREATE TABLE 직후 0행, 이름 규칙 (숫자 시작·하이픈·예약어·중복 이름·중복 열)
+        # CREATE TABLE 직후 0행, 이름 규칙 (숫자 시작, 하이픈, 예약어, 중복 이름, 중복 열)
         sql_check("CREATE TABLE 프로젝트 (프로젝트번호 NUMBER(3), 프로젝트명 VARCHAR2(30) NOT NULL, 시작일 DATE, 부서번호 NUMBER(2));\n"
                   "SELECT COUNT(*) FROM 프로젝트;", [[0]]),
         sql_error_check("CREATE TABLE 1분기매출 (금액 NUMBER)", "ORA-00903"),
@@ -269,7 +269,7 @@ DELETE, TRUNCATE, DROP 비교 문제는 구조가 남는지, ROLLBACK이 되는�
         sql_check("CREATE TABLE 사원_2026 (번호 NUMBER);\nSELECT COUNT(*) FROM 사원_2026;", [[0]]),
         sql_error_check("CREATE TABLE 중복열 (번호 NUMBER, 번호 NUMBER)", "ORA-00957"),
         sql_check("CREATE TABLE \"1분기매출\" (금액 NUMBER);\nSELECT COUNT(*) FROM \"1분기매출\";", [[0]]),
-        # CTAS: NOT NULL 만 복사 (기본 키·외래 키·CHECK·DEFAULT 는 빠짐)
+        # CTAS: NOT NULL 만 복사 (기본 키, 외래 키, CHECK, DEFAULT 는 빠짐)
         sql_check("SELECT COUNT(*) FROM 사원복사 WHERE 사번 = 1001", [[2]],
                   setup="CREATE TABLE 사원복사 AS SELECT * FROM 사원;\nINSERT INTO 사원복사 (사번, 이름) VALUES (1001, '김민수');"),
         sql_error_check("INSERT INTO 사원복사 (사번, 이름) VALUES (1009, NULL)", "ORA-01400",
@@ -292,7 +292,7 @@ DELETE, TRUNCATE, DROP 비교 문제는 구조가 남는지, ROLLBACK이 되는�
                   setup="ALTER TABLE 사원 ADD (이메일 VARCHAR2(50), 전화 VARCHAR2(20));"),
         sql_check("SELECT COUNT(*) FROM user_tab_columns WHERE table_name = '사원'", [[8]],
                   setup="ALTER TABLE 사원 ADD (이메일 VARCHAR2(50), 전화 VARCHAR2(20));\nALTER TABLE 사원 DROP (이메일, 전화);"),
-        # MODIFY 조건 (크기 줄이기·타입 변경·NOT NULL·NOT NULL 열 추가)
+        # MODIFY 조건 (크기 줄이기, 타입 변경, NOT NULL, NOT NULL 열 추가)
         sql_error_check("ALTER TABLE 사원 MODIFY (이름 VARCHAR2(3))", "ORA-01441"),
         sql_error_check("ALTER TABLE 사원 MODIFY (직급 NUMBER)", "ORA-01439"),
         sql_error_check("ALTER TABLE 사원 MODIFY (커미션 NOT NULL);", "ORA-02296"),

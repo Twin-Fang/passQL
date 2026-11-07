@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { XCircle } from "lucide-react";
 import type { WrongQuestionItem } from "../../types/api";
+import { toWrongNoteRetryPath } from "../../constants/wrongNotes";
 
 // 하루 길이 (ms)
 const DAY_MILLISECONDS = 1000 * 60 * 60 * 24;
@@ -13,7 +14,7 @@ function formatLastWrongDay(isoString: string): string {
   return `${elapsedDays}일 전`;
 }
 
-/** 오답 1건 행: 오답 표식 > 지문 미리보기 > 토픽·시점 > 다시 풀기 (문제 단독 풀이로 이동) */
+/** 오답 1건 행: 오답 표식 > 지문 미리보기 > 토픽·시점 > 다시 풀기 (문제 단독 풀이로 이동, 보기 방식 칩 없음) */
 export default function WrongQuestionRow({ item }: { readonly item: WrongQuestionItem }) {
   const navigate = useNavigate();
 
@@ -36,7 +37,7 @@ export default function WrongQuestionRow({ item }: { readonly item: WrongQuestio
       </div>
       <button
         type="button"
-        onClick={() => navigate(`/questions/${item.questionUuid}`)}
+        onClick={() => navigate(toWrongNoteRetryPath(item.questionUuid))}
         className="btn-compact shrink-0"
       >
         다시 풀기

@@ -1,14 +1,15 @@
 import 'dart:async';
 import 'dart:collection';
-import 'dart:typed_data';
+
+import 'package:flutter/foundation.dart';
 
 import '../config/app_build_flavor.dart';
 import 'app_log_entry.dart';
 import 'app_log_file_store.dart';
 import 'app_log_masker.dart';
 
-/// 앱 로그 진입점: 마스킹 > 메모리 버퍼 > 주기 flush 로 파일 기록 (+ 개발 빌드 최근 기록 200건)
-/// start 전 호출은 무시 (초기화 순서 안전), UI 의존 없음
+/// 앱 로그 진입점: 마스킹 > 메모리 버퍼 > 주기 flush 로 파일 기록 (+ 개발 빌드 최근 기록 200건, 디버그 콘솔 출력)
+/// start 전 호출은 파일 기록만 생략 (초기화 순서 안전), UI 의존 없음
 abstract final class AppLogger {
   // 버퍼 비우기 주기 (2초)
   static const Duration _flushInterval = Duration(seconds: 2);
@@ -98,7 +99,8 @@ abstract final class AppLogger {
   }
 
   static void _record(String levelCode, String tag, String message) {
-    if (_store == null) return;
+    final isConsoleMirrored = kDebugMode;
+    if (_store == null && !isConsoleMirrored) return;
     // 마스킹 먼저 (자르기 경계에 걸린 비밀값이 패턴을 피하지 않게) > 2KB 제한
     final maskedMessage = AppLogMasker.mask(message);
     final cappedMessage = maskedMessage.length > _maxMessageLength
@@ -110,6 +112,9 @@ abstract final class AppLogger {
       tag: tag,
       message: cappedMessage,
     );
+    // 디버그 빌드: 콘솔에도 출력 (앱 코드의 유일한 debugPrint 지점, 규칙 app-no-debug-print)
+    if (isConsoleMirrored) debugPrint('$levelCode [$tag] $cappedMessage');
+    if (_store == null) return;
     _bufferedLines.add(entry.toLine());
     // 스토어 빌드는 상수 false > 최근 기록 없음
     if (AppBuildFlavor.canUseDevTools) _rememberRecent(entry);

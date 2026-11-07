@@ -1,6 +1,6 @@
-"""개념: GRANT·REVOKE와 ROLE (3단원, 확인 문제 5개)
+"""개념: GRANT, REVOKE와 ROLE (3단원, 확인 문제 5개)
 
-다른 계정이 필요한 SQL 은 '-- 문법' 블록 (Oracle 21c 임시 계정으로 연쇄 회수·기본 역할 권한 확인, 2026-10-27)
+다른 계정이 필요한 SQL 은 '-- 문법' 블록 (Oracle 21c 임시 계정으로 연쇄 회수, 기본 역할 권한 확인, 2026-10-27)
 """
 
 from concept_bundle import choice, question, sql_check
@@ -16,7 +16,7 @@ CONCEPT = {
     "tagKey": "dcl-grant-revoke",
     "topicCode": "sql_ddl_dml_tcl",
     "sortOrder": 7,
-    "title": "GRANT·REVOKE와 ROLE",
+    "title": "GRANT, REVOKE와 ROLE",
     "summary": "누가 무엇을 할 수 있는지 권한을 주고 회수하고, 권한을 역할로 묶어 관리해요",
     "coreMd": (
         "- 시스템 권한은 CREATE TABLE처럼 할 수 있는 작업이고, 객체 권한은 `SELECT ON 사원`처럼 **객체 하나**에 대한 권한이에요.\n"
@@ -25,7 +25,7 @@ CONCEPT = {
         "- ROLE은 **권한 묶음**이고, 기본 역할로 CONNECT(접속), RESOURCE(객체 생성), DBA(관리)가 있어요.\n"
         "- 역할을 거쳐 받은 권한은 그 길이 끊기면 사라지지만, **직접 받은 권한은 남아요**."
     ),
-    "detailMd": """## 권한이란 — 누가 무엇을 할 수 있는지 정해요 {#why}
+    "detailMd": """## 권한이란: 누가 무엇을 할 수 있는지 정해요 {#why}
 
 회사 데이터베이스에는 여러 사람이 각자의 계정으로 접속하는데, 급여가 든 사원 표를 모두가 읽거나 고칠 수 있으면 안 돼요. 그래서 데이터베이스는 사용자마다 할 수 있는 일을 정해 두고, 허락받지 않은 작업은 거부해요.
 
@@ -38,17 +38,17 @@ CONCEPT = {
 
 이 글은 사원 표의 소유자 HR, 일반 사용자 KIM과 LEE, 관리자 DBA라는 계정을 가정해요. 계정이 여러 개 필요한 SQL이라서 문법 예시로만 보여 줘요.
 
-## 시스템 권한과 객체 권한 — ON 객체가 붙느냐 {#privilege-types}
+## 시스템 권한과 객체 권한: ON 객체가 붙느냐 {#privilege-types}
 
 | 용어 | 뜻 |
 |---|---|
 | 시스템 권한 | 데이터베이스 전체에서 어떤 작업을 할 수 있는지 정하는 권한이에요 |
-| 객체 권한 | 테이블·뷰(저장해 둔 SELECT 문) 같은 객체 하나에 무엇을 할 수 있는지 정하는 권한이에요 |
+| 객체 권한 | 테이블, 뷰(저장해 둔 SELECT 문) 같은 객체 하나에 무엇을 할 수 있는지 정하는 권한이에요 |
 | 다시 주기 옵션 | 받은 권한을 남에게 다시 주게 하는 옵션이에요 |
 
 | 구분 | 시스템 권한 | 객체 권한 |
 |---|---|---|
-| 대상 | 데이터베이스 전체의 작업 | 테이블·뷰 같은 객체 하나 |
+| 대상 | 데이터베이스 전체의 작업 | 테이블, 뷰 같은 객체 하나 |
 | 예 | CREATE SESSION(접속), CREATE TABLE, CREATE VIEW, CREATE USER | SELECT, INSERT, UPDATE, DELETE, ALTER, REFERENCES, INDEX, EXECUTE |
 | 주로 주는 사람 | DBA(관리자) | 객체의 소유자 |
 | 다시 주기 옵션 | WITH ADMIN OPTION | WITH GRANT OPTION |
@@ -59,7 +59,7 @@ CREATE SESSION은 데이터베이스에 접속하는 권한이라서, 계정을 
 |---|---|---|
 | GRANT 문장에 ON 객체가 붙어 있으면 시스템 권한이에요 | X | ON 객체가 붙으면 객체 권한이고, 없으면 시스템 권한이에요 |
 
-## GRANT와 REVOKE — 줄 때는 TO, 뺏을 때는 FROM {#grant-revoke}
+## GRANT와 REVOKE: 줄 때는 TO, 뺏을 때는 FROM {#grant-revoke}
 
 ```sql
 -- 문법
@@ -85,7 +85,7 @@ GRANT SELECT ON 사원 TO PUBLIC;        -- 모든 사용자에게 조회 권한
 | ALL | 그 객체에 줄 수 있는 모든 객체 권한이에요 |
 | PUBLIC | 특정 사용자가 아니라 데이터베이스의 모든 사용자예요 |
 
-## GRANT OPTION과 ADMIN OPTION — 회수가 이어지느냐 {#grant-option}
+## GRANT OPTION과 ADMIN OPTION: 회수가 이어지느냐 {#grant-option}
 
 두 옵션 모두 받은 사람이 그 권한을 남에게 다시 줄 수 있게 해요. 차이는 처음 준 사람이 회수할 때 나타나요.
 
@@ -120,7 +120,7 @@ REVOKE CREATE TABLE FROM KIM;
 |---|---|---|
 | 역할에 객체 권한을 줄 때 WITH GRANT OPTION을 붙일 수 있어요 | X | 역할에는 WITH GRANT OPTION을 붙일 수 없어서 오류가 나요 |
 
-## ROLE과 기본 역할 — 권한을 묶어서 주기 {#role}
+## ROLE과 기본 역할: 권한을 묶어서 주기 {#role}
 
 신입 사원 30명에게 같은 권한 다섯 개를 주려면 GRANT를 150번 실행해야 하고, 권한 하나를 바꿀 때도 30명을 다시 고쳐야 해요. 역할(ROLE)은 여러 권한에 이름을 붙여 묶어 둔 것이라, 권한은 역할에 주고 사용자에게는 역할을 주면 돼요.
 
@@ -152,7 +152,7 @@ CREATE USER KIM IDENTIFIED BY 비밀번호;
 GRANT CONNECT, RESOURCE TO KIM;
 ```
 
-## 역할 안의 역할과 DROP ROLE — 화살표로 길을 그려요 {#nested-role}
+## 역할 안의 역할과 DROP ROLE: 화살표로 길을 그려요 {#nested-role}
 
 역할은 다른 역할에도 줄 수 있고, 바깥 역할을 받은 사용자는 안쪽 역할의 권한까지 모두 가져요. 아래에서 조회역할은 조회 권한을, 팀역할은 입력 권한과 조회역할을 가지고 있어요.
 
@@ -197,7 +197,7 @@ GRANT SELECT ON 사원 TO LEE;
 |---|---|---|
 | 같은 권한을 다른 길로도 받았다면 한 길이 끊겨도 그 권한을 계속 써요 | O | 권한은 남은 길이 하나라도 있으면 유지돼요 |
 
-## 자주 헷갈리는 점 — TO와 FROM, 연쇄 회수, 없는 테이블 {#confusing}
+## 자주 헷갈리는 점: TO와 FROM, 연쇄 회수, 없는 테이블 {#confusing}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -222,24 +222,24 @@ SELECT COUNT(*) FROM 사원 WHERE 사번 = 1008;   -- GRANT 때 DELETE가 함께
 |---|---|---|
 | GRANT 앞에서 COMMIT하지 않은 DELETE는 GRANT와 함께 확정돼요 | O | DCL은 실행 앞뒤로 자동 커밋돼서, 뒤의 ROLLBACK으로 되돌릴 수 없어요 |
 
-## 꼭 외울 것 — 두 옵션의 회수 차이와 기본 역할 {#memorize}
+## 꼭 외울 것: 두 옵션의 회수 차이와 기본 역할 {#memorize}
 
 | 외울 것 | 답 |
 |---|---|
 | 시스템 권한과 객체 권한 | ON 객체가 붙으면 객체 권한, 없으면 시스템 권한 |
 | 주기와 회수의 전치사 | GRANT ... TO, REVOKE ... FROM |
 | 객체 권한 다시 주기 옵션 | WITH GRANT OPTION, 회수하면 준 권한까지 연쇄 회수 |
-| 시스템 권한·역할의 옵션 | WITH ADMIN OPTION, 회수해도 이미 준 권한은 남음 |
+| 시스템 권한, 역할의 옵션 | WITH ADMIN OPTION, 회수해도 이미 준 권한은 남음 |
 | 역할에 줄 수 없는 옵션 | WITH GRANT OPTION (오류) |
 | 기본 역할 세 개 | CONNECT(접속), RESOURCE(객체 생성), DBA(관리) |
 | RESOURCE에 없는 권한 | CREATE VIEW (따로 받아야 해요) |
-| GRANT·REVOKE와 커밋 | 앞뒤로 자동 커밋, 앞의 DML도 확정 |
+| GRANT, REVOKE와 커밋 | 앞뒤로 자동 커밋, 앞의 DML도 확정 |
 
 ## 시험에서는 이렇게 나와요 {#exam-point}
 
 권한을 주고받는 순서를 보여 주고 마지막 REVOKE 뒤에 누가 권한을 가지는지 묻는 문제가 가장 많아요. 객체 권한(GRANT OPTION)인지 시스템 권한(ADMIN OPTION)인지부터 확인하면 연쇄 회수 여부가 정해져요.
 
-시스템 권한과 객체 권한의 구분, TO와 FROM, 기본 역할 CONNECT·RESOURCE·DBA의 설명도 자주 나와요. 역할 안에 역할을 넣고 REVOKE나 DROP ROLE을 한 뒤의 권한을 묻는 문제는 위처럼 화살표로 길을 그려 추적하면 풀려요.""",
+시스템 권한과 객체 권한의 구분, TO와 FROM, 기본 역할 CONNECT, RESOURCE, DBA의 설명도 자주 나와요. 역할 안에 역할을 넣고 REVOKE나 DROP ROLE을 한 뒤의 권한을 묻는 문제는 위처럼 화살표로 길을 그려 추적하면 풀려요.""",
     "checkQuestions": [
         question(1, "다음 중 객체 권한에 해당하는 것은 무엇인가요?", "privilege-types",
                  "객체 권한은 특정 테이블 같은 객체 하나에 대한 권한이라 `ON 객체`가 붙어요. CREATE로 시작하는 나머지는 시스템 권한이에요.",

@@ -68,6 +68,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final isSigningIn = _signingInProvider != null;
+    // 지난번 로그인 방법 (기기 기록, 없으면 배지 없음, #908)
+    final recentLoginProvider = ref
+        .watch(recentLoginProviderProvider)
+        .valueOrNull;
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -91,6 +95,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 SocialLoginButton(
                   appearance: socialLoginAppearanceFor(provider, context),
                   isLoading: _signingInProvider == provider,
+                  isRecentLogin: provider == recentLoginProvider,
                   onPressed: isSigningIn ? null : () => _signIn(provider),
                 ),
               ],

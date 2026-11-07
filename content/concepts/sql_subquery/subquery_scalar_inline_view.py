@@ -3,7 +3,7 @@
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
 from concept_dataset import DEPARTMENT_TABLE_MD, to_employee_table_md
 
-# 이 개념의 계산에 쓰는 열 전부 (직급·급여·부서번호)
+# 이 개념의 계산에 쓰는 열 전부 (직급, 급여, 부서번호)
 EMPLOYEE_TABLE = to_employee_table_md("사번", "이름", "직급", "급여", "부서번호")
 
 # 본문 예시: SQL 블록 + 결과 표 = 검증 항목 (sql_example 한 원본)
@@ -69,7 +69,7 @@ CONCEPT = {
         "- `WITH 이름 AS (서브쿼리)`로 이름을 붙이면 본문에서 그 이름을 표처럼 써요.\n"
         "- Oracle은 인라인 뷰 별칭 앞에 **AS를 쓸 수 없어요**."
     ),
-    "detailMd": f"""## 값 하나 붙이기와 결과 다시 가공하기 — 두 가지 쓰임 {{#why}}
+    "detailMd": f"""## 값 하나 붙이기와 결과 다시 가공하기: 두 가지 쓰임 {{#why}}
 
 사원 이름 옆에 부서명 하나만 붙이고 싶을 때는 SELECT 절 안에서 바로 찾아오는 편이 읽기 쉬워요. 부서별 평균을 구한 뒤 다시 비교하거나 정렬한 뒤 세 명만 자를 때는, 한 번 만든 결과를 표처럼 놓고 SELECT를 한 번 더 해야 해요.
 
@@ -85,7 +85,7 @@ CONCEPT = {
 
 {DEPARTMENT_TABLE_MD}
 
-## 스칼라 서브쿼리 — 한 행 한 열, 값 하나 {{#scalar}}
+## 스칼라 서브쿼리: 한 행 한 열, 값 하나 {{#scalar}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -104,7 +104,7 @@ CONCEPT = {
 
 스칼라 서브쿼리는 SELECT 절 말고도 값 하나가 들어갈 자리라면 대부분 쓸 수 있어요. WHERE 절의 `급여 > (SELECT AVG(급여) FROM 사원)`도 값 하나를 돌려준다는 점에서 같은 성격이고, `AVG(급여)`는 급여의 평균을 구하는 함수예요.
 
-## 인라인 뷰 — FROM 절의 임시 표 {{#inline-view}}
+## 인라인 뷰: FROM 절의 임시 표 {{#inline-view}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -120,7 +120,7 @@ CONCEPT = {
 
 {INLINE_VIEW_TOP_EXAMPLE.markdown}
 
-## WITH 절 — 서브쿼리에 이름 붙여 앞으로 빼기 {{#with-clause}}
+## WITH 절: 서브쿼리에 이름 붙여 앞으로 빼기 {{#with-clause}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -132,7 +132,7 @@ CONCEPT = {
 
 인라인 뷰 예시와 같은 두 명이 나와요. `부서평균`은 이 SQL이 실행되는 동안에만 있는 이름이고, 서브쿼리가 길거나 여러 번 쓸 때 빼 두면 한 번 정의한 결과를 이름으로 여러 번 부를 수 있어요.
 
-## 자주 헷갈리는 점 — 행 수, 열 범위, TOP N 순서, AS {{#confusing}}
+## 자주 헷갈리는 점: 행 수, 열 범위, TOP N 순서, AS {{#confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -143,7 +143,7 @@ CONCEPT = {
 | `WHERE ROWNUM <= 3 ORDER BY 급여 DESC`로 상위 3명을 구해요 | ROWNUM은 ORDER BY보다 먼저 붙어서, 정렬 전에 세 행이 먼저 골라져요 |
 | 인라인 뷰 안에만 넣으면 ROWNUM과 ORDER BY를 같이 써도 돼요 | 한 SELECT 안에 둘이 있으면 인라인 뷰 안이라도 정렬 전에 잘려요. 정렬하는 SELECT와 자르는 SELECT를 따로 둬요 |
 | WHERE 절 서브쿼리 안에서 정렬하면 돼요 | WHERE 절 서브쿼리 안의 ORDER BY는 ORA-00907(오른쪽 괄호가 없음) 오류예요 |
-| 인라인 뷰 별칭 앞에도 AS를 쓸 수 있어요 | 열 별칭에는 AS를 써도 되지만, 테이블·인라인 뷰 별칭 앞에 AS를 쓰면 ORA-00933(SQL 문이 제대로 끝나지 않음) 오류예요 |
+| 인라인 뷰 별칭 앞에도 AS를 쓸 수 있어요 | 열 별칭에는 AS를 써도 되지만, 테이블, 인라인 뷰 별칭 앞에 AS를 쓰면 ORA-00933(SQL 문이 제대로 끝나지 않음) 오류예요 |
 
 ```sql
 SELECT 이름, (SELECT 이름 FROM 사원 WHERE 부서번호 = 20) FROM 사원;  -- 오류: 20번 부서는 3명이라 세 행이 돌아와요
@@ -196,7 +196,7 @@ SELECT a.이름 FROM (SELECT 이름 FROM 사원) a WHERE ROWNUM <= 1;  -- AS 없
 | 인라인 뷰는 실행이 끝난 뒤에도 데이터베이스에 남아 다시 쓸 수 있어요 | X | 인라인 뷰는 그 SQL을 실행하는 동안에만 있어요 |
 | 스칼라 서브쿼리는 짝이 없는 행을 결과에서 빼요 | X | 0행이면 NULL을 돌려주므로 행은 남아요. 외부 조인과 결과가 같아요 |
 
-## 꼭 외울 것 — 행 수와 바깥에서 쓰는 열 {{#memorize}}
+## 꼭 외울 것: 행 수와 바깥에서 쓰는 열 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
@@ -209,7 +209,7 @@ SELECT a.이름 FROM (SELECT 이름 FROM 사원) a WHERE ROWNUM <= 1;  -- AS 없
 | 인라인 뷰 별칭 앞의 AS | Oracle은 오류, AS는 열 별칭에만 |
 | WITH 절 모양 | WITH 이름 AS (서브쿼리), 본문에서 그 이름을 표처럼 |
 
-## 시험에서는 이렇게 나와요 — 0행·2행과 TOP N {{#exam-point}}
+## 시험에서는 이렇게 나와요: 0행, 2행과 TOP N {{#exam-point}}
 
 스칼라 서브쿼리가 0행이나 2행 이상을 돌려줄 때의 결과를 묻는 문제가 자주 나와요. 0행이면 NULL, 2행 이상이면 오류이고, 집계 함수를 쓰면 언제나 한 행이 나온다는 점까지 확인하면 돼요.
 
@@ -276,13 +276,13 @@ SELECT a.이름 FROM (SELECT 이름 FROM 사원) a WHERE ROWNUM <= 1;  -- AS 없
                         "ORA-00907"),
         sql_check("SELECT 이름 FROM (SELECT 이름, 급여 FROM 사원 WHERE ROWNUM <= 3 ORDER BY 급여 DESC)",
                   [["김민수"], ["박서준"], ["이지은"]], is_ordered=True),
-        # 스칼라 서브쿼리 행·열 개수 오류, 집계 함수 0행
+        # 스칼라 서브쿼리 행, 열 개수 오류, 집계 함수 0행
         sql_error_check("SELECT 이름, (SELECT 이름 FROM 사원 WHERE 부서번호 = 20) FROM 사원", "ORA-01427"),
         sql_error_check("SELECT e.이름, (SELECT d.부서명, d.지역 FROM 부서 d WHERE d.부서번호 = e.부서번호) FROM 사원 e",
                         "ORA-00913"),
         sql_check("SELECT d.부서명, (SELECT COUNT(*) FROM 사원 e WHERE e.부서번호 = d.부서번호) AS 사원수 FROM 부서 d WHERE d.부서번호 = 40;",
                   [["인사부", 0]]),
-        # 인라인 뷰 열 범위·별칭
+        # 인라인 뷰 열 범위, 별칭
         sql_error_check("SELECT 이름 FROM (SELECT 이름, 급여 FROM 사원) WHERE 직급 = '사원'", "ORA-00904"),
         sql_error_check("SELECT 평균급여 FROM (SELECT 부서번호, AVG(급여) FROM 사원 GROUP BY 부서번호);", "ORA-00904"),
         sql_error_check("SELECT a.이름 FROM (SELECT 이름 FROM 사원) AS a", "ORA-00933"),

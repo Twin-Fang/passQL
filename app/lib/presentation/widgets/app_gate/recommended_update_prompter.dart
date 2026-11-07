@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/logging/app_logger.dart';
 import '../../../core/utils/external_url_launcher.dart';
 import '../../design/design.dart';
 import '../../providers/app_config_providers.dart';
@@ -32,7 +33,7 @@ class _RecommendedUpdatePrompterState
         recommendedUpdateVersionToPromptProvider.future,
       );
     } catch (error) {
-      debugPrint('[recommended update] check failed : $error');
+      AppLogger.warn('recommended update', 'check failed : $error');
       return;
     }
     if (recommendedVersion == null || !mounted) return;

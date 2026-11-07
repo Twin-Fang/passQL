@@ -1,5 +1,6 @@
 package com.passql.member.auth.infrastructure.social.strategy;
 
+import com.passql.member.auth.domain.SocialProfile;
 import com.passql.member.auth.infrastructure.social.SocialApiRestTemplates;
 import com.passql.member.auth.infrastructure.social.oauth.SocialLoginProperties;
 import com.passql.member.constant.AuthProvider;
@@ -15,7 +16,8 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Map;
 
 /**
- * 네이버 로그인: 토큰 발급 앱(client_id) 검증, 사용자 ID 조회
+ * 네이버 로그인: 토큰 발급 앱(client_id) 검증, 사용자 ID·이메일·프로필 이미지 조회
+ * 이메일·이미지는 제공 항목이라 없을 수 있음 (콘솔 제공 정보 설정 필요, #908)
  */
 @Component
 public class NaverLoginStrategy implements SocialLoginStrategy {
@@ -52,14 +54,16 @@ public class NaverLoginStrategy implements SocialLoginStrategy {
         }
     }
 
+    /** 프로필 조회 > response.id, response.email, response.profile_image (네이버 이메일은 네이버가 확인한 값) */
     @Override
-    public String validateAndGetSocialId(String accessToken) {
+    public SocialProfile fetchSocialProfile(String accessToken) {
         Map<String, Object> profile = SocialStrategyResponses.childOf(getJson(NAVER_USER_INFO_URL, accessToken), RESPONSE_KEY);
         String id = SocialStrategyResponses.stringOf(profile, "id");
         if (id == null) {
             throw SocialStrategyResponses.rejectedToken(AuthProvider.NAVER, "user id missing");
         }
-        return id;
+        String email = SocialStrategyResponses.stringOf(profile, "email");
+        return new SocialProfile(id, email, email != null, SocialStrategyResponses.stringOf(profile, "profile_image"));
     }
 
     @Override

@@ -3,7 +3,7 @@
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
 from concept_dataset import DEPARTMENT_TABLE_MD, to_employee_table_md
 
-# 이 개념의 계산에 쓰는 열 전부 (직급·급여·부서번호)
+# 이 개념의 계산에 쓰는 열 전부 (직급, 급여, 부서번호)
 EMPLOYEE_TABLE = to_employee_table_md("사번", "이름", "직급", "급여", "부서번호")
 
 # 본문 예시: SQL 블록 + 결과 표 = 검증 항목 (sql_example 한 원본)
@@ -53,7 +53,7 @@ CONCEPT = {
         "- 짝 안에 NULL이 있으면 그 짝은 맞지 않아요.\n"
         "- Oracle은 이 문법을 지원하지만 SQL Server는 **지원하지 않아요**."
     ),
-    "detailMd": f"""## 자기 부서의 최고 급여 — 급여만 비교하면 생기는 구멍 {{#why}}
+    "detailMd": f"""## 자기 부서의 최고 급여: 급여만 비교하면 생기는 구멍 {{#why}}
 
 부서마다 급여를 가장 많이 받는 사원을 찾을 때 급여만 비교하면 "어느 부서든 최고 급여와 같은가"를 묻게 돼요. 영업부 사원이 개발부 최고 급여 2800을 받는다면 영업부 최고가 아닌데도 결과에 끼어드니, 부서번호와 급여를 함께 비교해야 해요.
 
@@ -68,7 +68,7 @@ CONCEPT = {
 
 {DEPARTMENT_TABLE_MD}
 
-## 한 줄 정의 — 열을 짝으로 묶어 비교해요 {{#definition}}
+## 한 줄 정의: 열을 짝으로 묶어 비교해요 {{#definition}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -85,7 +85,7 @@ CONCEPT = {
 
 이지은의 (20, 2500)은 20번 부서의 짝이 (20, 2800)이라 빠지고, 다른 사원들도 같은 이유로 빠져요.
 
-## 짝 비교의 세 가지 모양 — IN, 등호, 값 나열 {{#forms}}
+## 짝 비교의 세 가지 모양: IN, 등호, 값 나열 {{#forms}}
 
 | 모양 | 오른쪽에 오는 것 | 주의할 점 |
 |---|---|---|
@@ -101,7 +101,7 @@ CONCEPT = {
 
 {PAIR_LIST_EXAMPLE.markdown}
 
-## 자주 헷갈리는 점 — 짝 비교와 열별 비교 {{#confusing}}
+## 자주 헷갈리는 점: 짝 비교와 열별 비교 {{#confusing}}
 
 같은 입력으로 두 SQL을 비교해 봐요. 박서준(20번, 대리)이나 오지민(30번, 사원)과 부서도 직급도 같은 사원을 찾는 SQL이에요.
 
@@ -137,7 +137,7 @@ WHERE (부서번호, 급여) IN (SELECT 부서번호 FROM 사원);  -- 오류: �
 | 부서번호가 NULL인 윤서연은 부서별 최고 급여 짝 비교에서 결과에 나와요 | X | 짝 안의 NULL 비교가 UNKNOWN이라 빠져요 |
 | `(부서번호, 급여) = (서브쿼리)`의 서브쿼리가 두 행을 돌려주면 오류가 나요 | O | 등호는 짝 하나와만 비교할 수 있어요 |
 
-## 꼭 외울 것 — 짝의 위치와 열 개수 {{#memorize}}
+## 꼭 외울 것: 짝의 위치와 열 개수 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
@@ -150,7 +150,7 @@ WHERE (부서번호, 급여) IN (SELECT 부서번호 FROM 사원);  -- 오류: �
 | 짝 안에 NULL이 있으면 | 비교가 UNKNOWN이라 그 짝은 맞지 않아요 |
 | SQL Server 지원 | 지원하지 않아 EXISTS나 조인으로 바꿔 써요 |
 
-## 시험에서는 이렇게 나와요 — 짝 목록을 먼저 적기 {{#exam-point}}
+## 시험에서는 이렇게 나와요: 짝 목록을 먼저 적기 {{#exam-point}}
 
 부서별 최고 급여처럼 GROUP BY 결과와 짝을 비교하는 SQL의 결과를 묻는 문제가 가장 흔해요. 짝 비교와 열별 비교의 차이, 열 순서를 바꿨을 때의 결과, SQL Server 지원 여부도 보기로 자주 나와요.
 
@@ -214,7 +214,7 @@ WHERE (부서번호, 급여) IN (SELECT 부서번호 FROM 사원);  -- 오류: �
                   [["이지은"], ["박서준"], ["한도윤"]]),
         sql_check("SELECT 이름 FROM 사원 WHERE (부서번호, 직급) IN (SELECT 부서번호, 직급 FROM 사원 WHERE 사번 IN (1002, 1006))",
                   [["이지은"], ["한도윤"]]),
-        # 열 순서·개수
+        # 열 순서, 개수
         sql_check("SELECT 이름 FROM 사원 WHERE (부서번호, 급여) IN (SELECT MAX(급여), 부서번호 FROM 사원 GROUP BY 부서번호);", []),
         sql_error_check("SELECT 이름 FROM 사원 WHERE (부서번호, 급여) IN (SELECT 부서번호, 급여, 사번 FROM 사원)", "ORA-00913"),
         sql_error_check("SELECT 이름 FROM 사원 WHERE (부서번호, 급여) IN (SELECT 부서번호 FROM 사원)", "ORA-00947"),

@@ -4,9 +4,9 @@ id: DEC-0255
 created: 2026-11-05
 reviewed: null
 topics: [design-system]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0278
 related: ["[[ISS-0455-sql-code-font-mixed-hangul]]"]
 ---
 

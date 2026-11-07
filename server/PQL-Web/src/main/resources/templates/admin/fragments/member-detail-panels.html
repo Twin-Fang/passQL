@@ -8,8 +8,13 @@
             <!-- 프로필 카드 -->
             <div class="card bg-base-100 shadow">
                 <div class="card-body items-center text-center gap-3 py-8">
-                    <!-- 아바타 -->
-                    <div class="avatar placeholder">
+                    <!-- 아바타: 소셜 프로필 이미지 (#908), 없으면 닉네임 첫 글자 -->
+                    <div class="avatar" th:if="${member.profileImageUrl != null}">
+                        <div class="rounded-full size-20 bg-base-200">
+                            <img th:src="${member.profileImageUrl}" alt="프로필 이미지" referrerpolicy="no-referrer" loading="lazy">
+                        </div>
+                    </div>
+                    <div class="avatar placeholder" th:unless="${member.profileImageUrl != null}">
                         <div class="bg-primary text-primary-content rounded-full size-20 text-2xl font-bold">
                             <span th:text="${#strings.substring(member.nickname, 0, 1)}">N</span>
                         </div>

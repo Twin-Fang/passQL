@@ -20,6 +20,7 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     required this.memorize,
     required this.memorizeText,
     required this.memorizeHighlight,
+    required this.memoInkBlue,
     required this.onSemantic,
     required this.countBadge,
     required this.onCountBadge,
@@ -64,6 +65,9 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
 
   /// 외울 말 형광펜 바탕 (불투명, 위 글자는 label 4.5 이상)
   final Color memorizeHighlight;
+
+  /// 풀이 메모 파랑 펜 (#904). 빨강은 wrong, 검정은 label 을 씀
+  final Color memoInkBlue;
 
   /// 진한 의미색(correct·wrong·warning) 채움 위 글자 (흰 글자는 대비 2~3.5라 쓰지 않음)
   final Color onSemantic;
@@ -119,6 +123,7 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     memorize: Color(0xFFFFCC00),
     memorizeText: Color(0xFF7A5C00),
     memorizeHighlight: Color(0xFFFFE680),
+    memoInkBlue: Color(0xFF007AFF),
     onSemantic: Color(0xFF000000),
     countBadge: Color(0xFFFF3B30),
     onCountBadge: Color(0xFFFFFFFF),
@@ -158,6 +163,7 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     memorizeText: Color(0xFFFFD60A),
     // 다크 형광펜: 흰 글자가 읽히게 어두운 황토
     memorizeHighlight: Color(0xFF5C4700),
+    memoInkBlue: Color(0xFF0A84FF),
     onSemantic: Color(0xFF000000),
     countBadge: Color(0xFFFF453A),
     onCountBadge: Color(0xFFFFFFFF),
@@ -195,6 +201,7 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
         memorize: memorize,
         memorizeText: memorizeText,
         memorizeHighlight: memorizeHighlight,
+        memoInkBlue: memoInkBlue,
         onSemantic: onSemantic,
         countBadge: countBadge,
         onCountBadge: onCountBadge,
@@ -234,6 +241,7 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
       memorize: lerpColor(memorize, other.memorize),
       memorizeText: lerpColor(memorizeText, other.memorizeText),
       memorizeHighlight: lerpColor(memorizeHighlight, other.memorizeHighlight),
+      memoInkBlue: lerpColor(memoInkBlue, other.memoInkBlue),
       onSemantic: lerpColor(onSemantic, other.onSemantic),
       countBadge: lerpColor(countBadge, other.countBadge),
       onCountBadge: lerpColor(onCountBadge, other.onCountBadge),

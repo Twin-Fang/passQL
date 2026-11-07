@@ -14,6 +14,7 @@ abstract final class LockedPreviewCaptions {
   static const String mockExamDetail = '과목별 점수 · 토픽별 약점 · 다음에 할 일';
   static const String mockExamReview = '문항별 정답과 보기 해설';
   static const String mockExamTrend = '회차별 점수 추이';
+  static const String accuracyDetail = '어느 난이도에서 틀리는지, 오답이 줄고 있는지';
 }
 
 // 가짜 미리보기: 서버의 잠긴 내용이 아니라 모양만 그럴듯한 고정 예시 (통신을 가로채도 얻을 것이 없게)
@@ -197,6 +198,21 @@ class MockExamTrendLockedSample extends StatelessWidget {
     return const _SampleCard(
       children: [
         _SampleSection(title: '제1회 → 제3회', body: '54점 → 62점 → 70점, 합격선을 넘었어요.'),
+      ],
+    );
+  }
+}
+
+/// 프로필 난이도별 정답률·오답 정리 자리 (#909)
+class AccuracyDetailLockedSample extends StatelessWidget {
+  const AccuracyDetailLockedSample({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const _SampleCard(
+      children: [
+        _SampleSection(title: '난이도별 정답률', body: '쉬움 92%, 보통 74%, 어려움 48%'),
+        _SampleSection(title: '오답 정리', body: '틀린 문제 24개 중 15개를 다시 맞혔어요.'),
       ],
     );
   }

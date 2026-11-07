@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -87,6 +88,10 @@ public class Member extends SoftDeletableBaseEntity {
     @Column(nullable = false)
     private Boolean emailVerified;
 
+    // 소셜 계정 프로필 이미지 (https, 없거나 기본 이미지면 null, 로그인마다 최신 값, #908)
+    @Column(length = 1000)
+    private String profileImageUrl;
+
     // === 라이프사이클 ===
     private LocalDateTime withdrawnAt;
 
@@ -112,7 +117,7 @@ public class Member extends SoftDeletableBaseEntity {
 
     /** OAuth 소셜 로그인으로 신규 가입 시 호출. 닉네임은 호출자가 NicknameGenerator로 미리 만들어 전달한다. */
     public static Member signUp(String providerUserId, AuthProvider authProvider,
-                                String email, Boolean emailVerified, String nickname) {
+                                String email, Boolean emailVerified, String profileImageUrl, String nickname) {
         Member m = new Member();
         m.nickname = nickname;
         m.role = MemberRole.USER;
@@ -121,9 +126,28 @@ public class Member extends SoftDeletableBaseEntity {
         m.providerUserId = providerUserId;
         m.email = email;
         m.emailVerified = emailVerified != null ? emailVerified : false;
+        m.profileImageUrl = profileImageUrl;
         m.isTestAccount = false;
         m.lastSeenAt = LocalDateTime.now();
         return m;
+    }
+
+    /**
+     * 로그인 때 받은 소셜 정보 반영 (#908): 이메일은 받은 때만 교체 (동의 철회·Apple 가림 시 기존 유지), 이미지는 항상 최신 값
+     * 바뀐 값이 있으면 true
+     */
+    public boolean applySocialProfile(String latestEmail, boolean isLatestEmailVerified, String latestProfileImageUrl) {
+        boolean hasEmailChanged = latestEmail != null
+                && (!latestEmail.equals(email) || isLatestEmailVerified != Boolean.TRUE.equals(emailVerified));
+        boolean hasProfileImageChanged = !Objects.equals(latestProfileImageUrl, profileImageUrl);
+        if (hasEmailChanged) {
+            this.email = latestEmail;
+            this.emailVerified = isLatestEmailVerified;
+        }
+        if (hasProfileImageChanged) {
+            this.profileImageUrl = latestProfileImageUrl;
+        }
+        return hasEmailChanged || hasProfileImageChanged;
     }
 
     // 닉네임 직접 변경 — 쿨다운 갱신 포함

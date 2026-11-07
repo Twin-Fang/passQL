@@ -91,7 +91,7 @@
                     Step 3: 검토 &amp; 저장
                 </h2>
 
-                <form id="saveForm" th:action="@{/admin/questions}" method="post">
+                <form id="saveForm" th:action="@{/admin/questions}" method="post" data-format-check data-execution-mode="CONCEPT_ONLY">
                     <input type="hidden" name="topicUuid" id="topicUuidHidden" />
                     <input type="hidden" name="difficulty" id="difficultyHidden" />
                     <input type="hidden" name="schemaDdl" id="schemaDdlHidden" />
@@ -141,6 +141,7 @@
 </th:block>
 
 <th:block layout:fragment="js">
+<script th:src="@{/js/admin/question-format-check.js}"></script>
 <script>
     // Step1 입력값을 저장해두는 변수 (Step1이 hidden 이후에도 참조 가능)
     let _savedTopicUuid = '';

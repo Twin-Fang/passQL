@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { loginWithAuthorizationCode } from "../api/auth";
 import { useAuthStore } from "../stores/authStore";
+import { useRecentLoginProviderStore } from "../stores/recentLoginProviderStore";
 import { callbackUrlOf, isExpectedState, providerFromCallbackPath, takeSavedCodeVerifier } from "../lib/socialLoginRedirect";
 import PageLoadingFallback from "../components/PageLoadingFallback";
 
 /**
- * 소셜 인가 콜백 (#509): state 확인 > 인가 코드로 서버 로그인 > 홈
+ * 소셜 인가 콜백 (#509): state 확인 > 인가 코드로 서버 로그인 > 최근 로그인 기록(#908) > 홈
  * 실패하면 안내와 로그인 화면으로 돌아가는 링크
  */
 export default function AuthCallback() {
@@ -34,6 +35,8 @@ export default function AuthCallback() {
     }
     loginWithAuthorizationCode({ authProvider: provider, code, redirectUri: callbackUrlOf(provider), state, codeVerifier })
       .then((response) => {
+        // 로그인 화면 "최근 로그인" 기록 (#908)
+        useRecentLoginProviderStore.getState().rememberRecentLoginProvider(provider);
         setTokens({
           accessToken: response.accessToken,
           refreshToken: response.refreshToken,

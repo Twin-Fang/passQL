@@ -34,6 +34,7 @@ public interface MemberControllerDocs {
       @ApiLog(date = "2026.04.18", author = Author.SUHSAECHAN, issueNumber = 271, description = "memberUuid 쿼리 파라미터 → @AuthMember 토큰 기반으로 전환"),
       @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 516, description = "응답에 가입 제공자 authProvider, 제공자 사용자 ID providerUserId 추가 (탈퇴 연결 해제 분기·재인증 계정 대조용)"),
       @ApiLog(date = "2026.11.04", author = Author.SUHSAECHAN, issueNumber = 816, description = "응답에 가린 이메일 maskedEmail, 회원 번호 표시값 memberCode 추가 (계정·이용권 화면)"),
+      @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 908, description = "응답에 소셜 계정 이메일 email, 프로필 이미지 profileImageUrl 추가 (계정 화면 로그인 방법, 프로필 아바타)"),
   })
   @Operation(
       summary = "본인 정보 조회",
@@ -51,6 +52,8 @@ public interface MemberControllerDocs {
           - **`nicknameChangeAvailableAt`**: 닉네임을 다시 바꿀 수 있는 시각 KST (마지막 변경 + 3일, 변경 이력 없으면 null)
           - **`maskedEmail`**: 가린 이메일 (아이디 앞 2자 + `***` + `@도메인`, 이메일 없으면 null)
           - **`memberCode`**: 회원 번호 표시값 (`PQL-` + 회원 UUID 앞 8자리 대문자, 문의 때 회원 확인용)
+          - **`email`**: 소셜 계정 이메일 원문 (본인 응답 전용, 동의 안 함 등으로 없으면 null)
+          - **`profileImageUrl`**: 소셜 계정 프로필 이미지 https 주소 (없거나 기본 이미지면 null, 로그인 때마다 최신 값)
 
           ## 설명
           - JWT AccessToken에서 회원 UUID를 추출하여 본인 정보를 조회한다.

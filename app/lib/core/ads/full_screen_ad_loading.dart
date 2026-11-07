@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import '../logging/app_logger.dart';
 import 'ad_placement.dart';
 import 'ad_request_preparer.dart';
 
@@ -42,8 +42,9 @@ Future<T?> loadFullScreenAd<T extends Ad>({
         }
       },
       (error) {
-        debugPrint(
-          '[ads $logLabel] load failed ${placement.name} : ${error.code}',
+        AppLogger.warn(
+          'ads $logLabel',
+          'load failed ${placement.name} : ${error.code}',
         );
         if (!loadCompleter.isCompleted) loadCompleter.complete(null);
       },
@@ -51,12 +52,15 @@ Future<T?> loadFullScreenAd<T extends Ad>({
     return await loadCompleter.future.timeout(
       fullScreenAdLoadTimeout,
       onTimeout: () {
-        debugPrint('[ads $logLabel] load timeout ${placement.name}');
+        AppLogger.warn('ads $logLabel', 'load timeout ${placement.name}');
         return null;
       },
     );
   } catch (error) {
-    debugPrint('[ads $logLabel] prepare failed ${placement.name} : $error');
+    AppLogger.warn(
+      'ads $logLabel',
+      'prepare failed ${placement.name} : $error',
+    );
     return null;
   }
 }

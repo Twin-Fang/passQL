@@ -28,6 +28,8 @@ const APP_LIGHT_FIELD_BY_WEB_TOKEN: Readonly<Record<string, string>> = {
   "semantic-error": "wrong",
   "semantic-error-text": "wrongText",
   "semantic-warning": "warning",
+  "memo-ink-blue": "memoInkBlue",
+  "memo-highlighter": "memorize",
 };
 const APP_DARK_FIELD_BY_WEB_TOKEN: Readonly<Record<string, string>> = {
   "surface-inverse": "card",

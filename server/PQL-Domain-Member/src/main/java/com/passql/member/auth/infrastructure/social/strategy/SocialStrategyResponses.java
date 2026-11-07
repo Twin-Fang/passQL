@@ -28,6 +28,11 @@ final class SocialStrategyResponses {
         return value == null ? null : String.valueOf(value);
     }
 
+    /** 응답 본문 값이 true 인지 (JSON boolean·문자열 "true" 공통, 없으면 false) */
+    static boolean isTrue(Map<String, Object> body, String key) {
+        return Boolean.parseBoolean(stringOf(body, key));
+    }
+
     /** 거부 로그(원인 클래스만, 스택트레이스 없음) > INVALID_SOCIAL_TOKEN */
     static CustomException rejectedToken(Object provider, String reason) {
         log.warn("[social login] rejected 401 : {} ({})", reason, provider);

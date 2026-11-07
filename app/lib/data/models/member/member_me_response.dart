@@ -27,6 +27,10 @@ class MemberMeResponse with _$MemberMeResponse {
     String? maskedEmail,
     // 회원 번호 표시값 (PQL- + UUID 앞 8자리 대문자): 문의 때 회원 확인 (#816)
     String? memberCode,
+    // 소셜 계정 이메일 원문 (본인 응답 전용, 없으면 null): 계정 화면 로그인 방법 (#908)
+    String? email,
+    // 소셜 계정 프로필 이미지 https 주소 (없으면 null > 닉네임 첫 글자): 프로필 머리 (#908)
+    String? profileImageUrl,
   }) = _MemberMeResponse;
 
   factory MemberMeResponse.fromJson(Map<String, dynamic> json) =>

@@ -35,6 +35,7 @@ public final class AdminSidebar {
                     item("auto-notifications", "/admin/auto-notifications", "sparkles", "자동 알림"))),
             new Group("콘텐츠", List.of(
                     item("questions", "/admin/questions", "book-open", "문제 관리"),
+                    item("question-format", "/admin/question-format", "spell-check", "문제 형식 검사"),
                     item("reports", "/admin/reports", "flag", "신고 관리"),
                     item("daily-challenges", "/admin/daily-challenges", "calendar-check", "일일 챌린지"),
                     item("mock-exams", "/admin/mock-exams", "clipboard-list", "모의고사"),

@@ -402,6 +402,13 @@ function renderValidationModal(result) {
         if (item.sandboxStatus === 'FAIL' && item.sandboxError) {
             html += '<tr class="bg-error/5"><td></td><td colspan="5" class="text-xs text-error">' + escapeHtml(item.sandboxError) + '</td></tr>';
         }
+        // 형식 위반 사유별 줄 (#905): [사유] 위치: 설명
+        if (item.formatViolations && item.formatViolations.length > 0) {
+            const violationLines = item.formatViolations.map(violation =>
+                '<li><span class="badge badge-error badge-outline badge-xs mr-1">' + escapeHtml(violation.reasonDisplayName) + '</span>'
+                + escapeHtml(violation.location) + ': ' + escapeHtml(violation.detail) + '</li>').join('');
+            html += '<tr class="bg-error/5"><td></td><td colspan="5" class="text-xs"><ul class="space-y-0.5">' + violationLines + '</ul></td></tr>';
+        }
     }
 
     html += '</tbody></table></div>';

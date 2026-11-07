@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:in_app_review/in_app_review.dart';
 
 import '../ads/full_screen_ad_guard.dart';
+import '../logging/app_logger.dart';
 import '../monitoring/app_analytics.dart';
 import '../utils/app_clock.dart';
 import 'store_review_prompt_history.dart';
@@ -88,7 +88,7 @@ class StoreReviewPrompter {
         isGoodResult: isGoodResult,
       );
       if (decision != StoreReviewPromptDecision.eligible) {
-        debugPrint('[store review] skipped : ${decision.name}');
+        AppLogger.info('store review', 'skipped : ${decision.name}');
         return;
       }
       _isRequestPending = true;
@@ -103,7 +103,7 @@ class StoreReviewPrompter {
       }
     } catch (error) {
       // 평가 요청 실패는 학습 흐름에 영향 없음 > 기록만
-      debugPrint('[store review] request failed : $error');
+      AppLogger.warn('store review', 'request failed : $error');
     }
   }
 
@@ -115,11 +115,11 @@ class StoreReviewPrompter {
   }) async {
     await _waitUntilResultViewed();
     if (FullScreenAdGuard.isFullScreenAdShowing || !isResultStillVisible()) {
-      debugPrint('[store review] skipped : result screen left or ad showing');
+      AppLogger.info('store review', 'skipped : result screen left or ad showing');
       return;
     }
     if (!await _requester.isAvailable()) {
-      debugPrint('[store review] skipped : review not available');
+      AppLogger.info('store review', 'skipped : review not available');
       return;
     }
     await _requester.requestReview();

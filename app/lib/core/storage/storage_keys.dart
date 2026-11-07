@@ -1,4 +1,4 @@
-/// 기기 저장 키 원본 27개: 일반 저장소(DevicePreferences) 22개 + 보안 저장소(TokenStore) 5개
+/// 기기 저장 키 원본 28개: 일반 저장소(DevicePreferences) 23개 + 보안 저장소(TokenStore) 5개
 /// 값은 기존 설치의 저장 데이터를 읽는 키 > 문자열 값을 바꾸지 않음
 abstract final class StorageKeys {
   // ─── 일반 저장소 (SharedPreferences, 앱 삭제 시 함께 지워짐) ───
@@ -57,6 +57,8 @@ abstract final class StorageKeys {
   // 마지막 평가 요청 앱 버전 (x.y.z, 버전당 1회)
   static const String storeReviewLastRequestedAppVersion =
       'store_review_last_requested_app_version';
+  // 마지막으로 로그인에 성공한 제공자 서버 값 (KAKAO 등, 로그아웃해도 유지·탈퇴 시 삭제, #908)
+  static const String recentLoginProvider = 'recent_login_provider';
 
   // ─── 보안 저장소 (Keychain/Keystore, 인증 세션) ───
 

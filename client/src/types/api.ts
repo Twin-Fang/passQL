@@ -198,6 +198,15 @@ export type HeatmapEntry = ApiSchemas["HeatmapEntry"];
 
 export type HeatmapResponse = ApiSchemas["HeatmapResponse"];
 
+// === 프로필 학습 통계 (#909) ===
+export type StudyPatternResponse = ApiSchemas["StudyPatternResponse"];
+
+export type AccuracyDetailResponse = ApiSchemas["AccuracyDetailResponse"];
+
+export type DifficultyStat = ApiSchemas["DifficultyStat"];
+
+export type WeeklyWrongCount = ApiSchemas["WeeklyWrongCount"];
+
 // === Meta ===
 export type SubtopicItem = ApiSchemas["SubtopicItem"];
 
@@ -224,8 +233,8 @@ export type ChoiceExplanationResponse = ApiSchemas["ChoiceExplanationResponse"];
 export type ChoiceExplanationStatus = ChoiceExplanationResponse["status"];
 
 // === Member ===
-// 선택지 생성 모드
-export type ChoiceGenerationMode = ApiSchemas["MemberMeResponse"]["choiceGenerationMode"];
+// 선택지 생성 모드 (회원 응답 필드는 null 가능, 모드 값 자체는 PRACTICE | REAL)
+export type ChoiceGenerationMode = NonNullable<ApiSchemas["MemberMeResponse"]["choiceGenerationMode"]>;
 
 // nicknameChangedAt: null 이면 닉네임 변경 이력 없음 / authProvider: 탈퇴 시 제공자 연결 해제 분기 원본 (#516)
 export type MemberMeResponse = ApiSchemas["MemberMeResponse"];

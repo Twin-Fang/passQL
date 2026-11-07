@@ -57,7 +57,7 @@ abstract class StorePurchaseService implements ProPurchasePort {
     _purchaseSubscription ??= store.purchaseStream.listen(
       onPurchaseUpdates,
       onError: (Object error) =>
-          debugPrint('[billing] purchase stream error : $error'),
+          AppLogger.warn('billing', 'purchase stream error : $error'),
     );
   }
 
@@ -87,7 +87,7 @@ abstract class StorePurchaseService implements ProPurchasePort {
   /// 결제 창 열기 실패 처리 (기본: failed)
   @protected
   Future<void> onPurchaseLaunchFailed(Object error) async {
-    debugPrint('[billing] purchase start failed : $error');
+    AppLogger.warn('billing', 'purchase start failed : $error');
     completeActivePurchase(ProPurchaseOutcome.failed);
   }
 
@@ -112,7 +112,7 @@ abstract class StorePurchaseService implements ProPurchasePort {
     // 구매 계정 표시 필수: 서버가 확인 요청 회원과 대조 (회원 미확정이면 결제 창 안 염)
     final memberUuid = _readMemberUuid();
     if (memberUuid == null) {
-      debugPrint('[billing] purchase blocked : member not signed in');
+      AppLogger.warn('billing', 'purchase blocked : member not signed in');
       return ProPurchaseOutcome.failed;
     }
     final product = (await _loadProducts([productId]))[productId];
@@ -192,7 +192,7 @@ abstract class StorePurchaseService implements ProPurchasePort {
       );
       return verifiedPlans.any((plan) => plan?.plan == MemberPlanType.pro);
     } on Object catch (error) {
-      debugPrint('[billing] resend unverified failed : $error');
+      AppLogger.warn('billing', 'resend unverified failed : $error');
       return false;
     }
   }
@@ -216,15 +216,16 @@ abstract class StorePurchaseService implements ProPurchasePort {
       if (!await store.isAvailable()) return;
       final response = await store.queryProductDetails(productIds);
       if (response.error != null || response.notFoundIDs.isNotEmpty) {
-        debugPrint(
-          '[billing] product query failed : ${response.error?.message ?? 'not found ${response.notFoundIDs}'}',
+        AppLogger.warn(
+          'billing',
+          'product query failed : ${response.error?.message ?? 'not found ${response.notFoundIDs}'}',
         );
       }
       for (final product in response.productDetails) {
         _productById[product.id] = product;
       }
     } on Object catch (error) {
-      debugPrint('[billing] product query failed : $error');
+      AppLogger.warn('billing', 'product query failed : $error');
     }
   }
 
@@ -243,12 +244,12 @@ abstract class StorePurchaseService implements ProPurchasePort {
   ) async {
     try {
       final verifiedPlan = await requestServerVerification(purchase);
-      debugPrint('[billing] verified : plan=${verifiedPlan.plan.name}');
+      AppLogger.info('billing', 'verified : plan=${verifiedPlan.plan.name}');
       await _completePurchaseSafely(purchase);
       return verifiedPlan;
     } on Object catch (error) {
       // 구매 토큰·서명 거래는 로그에 넣지 않음
-      debugPrint('[billing] verify failed : ${error.runtimeType}');
+      AppLogger.warn('billing', 'verify failed : ${error.runtimeType}');
       return null;
     }
   }
@@ -259,7 +260,7 @@ abstract class StorePurchaseService implements ProPurchasePort {
     try {
       await store.completePurchase(purchase);
     } on Object catch (error) {
-      debugPrint('[billing] complete purchase failed : $error');
+      AppLogger.warn('billing', 'complete purchase failed : $error');
     }
   }
 
@@ -268,7 +269,7 @@ abstract class StorePurchaseService implements ProPurchasePort {
     try {
       return await _refreshPlan();
     } on Object catch (error) {
-      debugPrint('[billing] plan refresh failed : $error');
+      AppLogger.warn('billing', 'plan refresh failed : $error');
       return false;
     }
   }

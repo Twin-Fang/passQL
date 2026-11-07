@@ -3,13 +3,13 @@
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
 from concept_dataset import to_employee_table_md, to_markdown_table
 
-# 본문·문제의 계산에 쓰는 열 전부 (직급 > 여러 루트 예시, 급여 > 형제 정렬 예시)
+# 본문, 문제의 계산에 쓰는 열 전부 (직급 > 여러 루트 예시, 급여 > 형제 정렬 예시)
 EMPLOYEE_MANAGER_SALARY_TABLE = to_employee_table_md("사번", "이름", "직급", "관리자사번", "급여")
 
 # 순환 예시 준비: 김민수(1001)의 관리자를 박서준(1003)으로 바꿔 1001 > 1002 > 1003 > 1001 고리를 만듦
 MAKE_CYCLE_SQL = "UPDATE 사원 SET 관리자사번 = 1003 WHERE 사번 = 1001;"
 
-# 본문 SQL·결과 표와 검증 항목의 원본 (결과 순서까지 검증)
+# 본문 SQL, 결과 표와 검증 항목의 원본 (결과 순서까지 검증)
 PATH_ROOT_LEAF_SQL = """SELECT LEVEL, 이름,
        SYS_CONNECT_BY_PATH(이름, '/') AS 경로,
        CONNECT_BY_ROOT 이름 AS 루트,
@@ -92,7 +92,7 @@ FROM 사원
 START WITH 관리자사번 IS NULL
 CONNECT BY PRIOR 사번 = 관리자사번
 ORDER BY 급여 DESC;"""
-# 급여 2500 동점(이지은·정하늘)은 순서가 정해지지 않아 순서 없이 검증
+# 급여 2500 동점(이지은, 정하늘)은 순서가 정해지지 않아 순서 없이 검증
 ORDER_BY_ROWS = [
     [2, "최유나", 3200], [1, "김민수", 3000], [3, "박서준", 2800], [3, "한도윤", 2700],
     [2, "이지은", 2500], [3, "정하늘", 2500], [3, "오지민", 2200], [2, "윤서연", 2000],
@@ -124,7 +124,7 @@ CONCEPT = {
     "topicCode": "sql_hierarchy_pivot",
     "sortOrder": 3,
     "title": "계층 쿼리 함수와 정렬",
-    "summary": "경로·루트·잎을 알려 주는 함수와, 계층 모양을 지키는 정렬을 다뤄요",
+    "summary": "경로, 루트, 잎을 알려 주는 함수와, 계층 모양을 지키는 정렬을 다뤄요",
     "coreMd": (
         "- `SYS_CONNECT_BY_PATH(열, 구분자)`는 루트부터 지금 행까지의 값을 이어 붙이고, **맨 앞에도 구분자**가 붙어요.\n"
         "- `CONNECT_BY_ROOT 열`은 그 행이 속한 트리의 루트 값이고, 루트는 START WITH로 고른 시작 행이에요.\n"
@@ -132,13 +132,13 @@ CONCEPT = {
         "- `CONNECT_BY_ISCYCLE`은 자식 중에 자기 조상이 있는 행이면 1이고, `NOCYCLE`과 함께 쓸 때만 쓸 수 있어요.\n"
         "- `ORDER BY`는 트리 모양을 깨지만, `ORDER SIBLINGS BY`는 **형제끼리만** 정렬해서 모양을 지켜요."
     ),
-    "detailMd": f"""## LEVEL만으로는 모자라요 — 왜 필요할까요 {{#why}}
+    "detailMd": f"""## LEVEL만으로는 모자라요: 왜 필요할까요 {{#why}}
 
 LEVEL만 보아서는 어떤 사원이 누구를 거쳐 그 자리에 왔는지, 트리의 꼭대기가 누구인지, 더 아래에 부하가 있는지를 알 수 없어요. Oracle은 이런 정보를 계층 쿼리 전용 함수와 의사 열(테이블에 없지만 열처럼 꺼내 쓰는 값)로 주고, 조직도 모양을 지키는 정렬 문법도 따로 둬요.
 
 {EMPLOYEE_MANAGER_SALARY_TABLE}
 
-## 한눈에 보기 — 경로, 루트, 잎, 순환 {{#definition}}
+## 한눈에 보기: 경로, 루트, 잎, 순환 {{#definition}}
 
 아래 카드의 박서준 행 값은 김민수에서 출발해 아래로 펼쳤을 때의 값이에요.
 
@@ -154,7 +154,7 @@ LEVEL만 보아서는 어떤 사원이 누구를 거쳐 그 자리에 왔는지,
 | 잎 (leaf) | 나뭇가지 끝에 달린 잎처럼 더 내려갈 곳이 없는 행이에요 |
 | CONNECT_BY_ROOT | 함수처럼 보이지만 연산자예요. 연산자는 `+`나 `PRIOR`처럼 값 옆에 붙어서 일을 하는 기호나 단어라서, 괄호 없이 `CONNECT_BY_ROOT 이름`으로 써요 |
 
-## 예시 — 경로, 루트, 잎을 한 번에 보기 {{#example}}
+## 예시: 경로, 루트, 잎을 한 번에 보기 {{#example}}
 
 {PATH_ROOT_LEAF_EXAMPLE.markdown}
 
@@ -164,7 +164,7 @@ START WITH 조건에 맞는 행이 여러 개면 트리도 여러 개가 생기�
 
 {MULTI_ROOT_EXAMPLE.markdown}
 
-## 고리가 생기는 행 찾기 — CONNECT_BY_ISCYCLE {{#cycle}}
+## 고리가 생기는 행 찾기: CONNECT_BY_ISCYCLE {{#cycle}}
 
 아래 UPDATE 문으로 김민수의 관리자사번을 1003(박서준)으로 잘못 바꾸면 김민수 > 이지은 > 박서준 > 김민수로 돌아오는 고리가 생겨요. `CONNECT BY NOCYCLE`로 펼치면서 `CONNECT_BY_ISCYCLE`을 함께 보면 고리가 생기는 자리가 보여요.
 
@@ -177,7 +177,7 @@ START WITH 조건에 맞는 행이 여러 개면 트리도 여러 개가 생기�
 
 바뀐 데이터에서 박서준의 자식은 김민수인데, 김민수는 루트이자 박서준의 조상이라서 박서준이 1을 받았어요. NOCYCLE 덕분에 김민수가 박서준 아래에 다시 붙지 않으므로 김민수 행에는 1이 표시되지 않아요.
 
-## 정렬 — ORDER SIBLINGS BY와 ORDER BY {{#order-siblings}}
+## 정렬: ORDER SIBLINGS BY와 ORDER BY {{#order-siblings}}
 
 | 정렬 | 무엇을 줄 세우나 | 조직도 모양 |
 |---|---|---|
@@ -192,7 +192,7 @@ START WITH 조건에 맞는 행이 여러 개면 트리도 여러 개가 생기�
 
 일반 ORDER BY는 LEVEL 2인 최유나를 루트 김민수 앞에 놓고 박서준도 상사 이지은 앞에 놓아서 조직도 모양이 깨졌어요. 이지은과 정하늘은 급여가 2500으로 같아서 둘의 순서는 정해져 있지 않아요.
 
-## 자주 헷갈리는 점 — 루트와 잎은 결과 트리 기준 {{#confusing}}
+## 자주 헷갈리는 점: 루트와 잎은 결과 트리 기준 {{#confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -235,7 +235,7 @@ ORDER SIBLINGS BY의 정렬 기준은 ORDER BY처럼 열 이름과 ASC, DESC를 
 | 2단계까지만 펼치면 부하가 있는 이지은의 `CONNECT_BY_ISLEAF`는 0이에요 | X | CONNECT BY에서 펼치기를 멈추면 결과 트리 기준으로 잎이라서 1이에요 |
 | `ORDER BY`를 붙여도 자식 행은 항상 부모 행 바로 아래에 나와요 | X | 일반 ORDER BY는 결과 전체를 다시 줄 세워서 모양이 깨져요 |
 
-## 꼭 외울 것 — 경로·루트·잎·고리와 정렬 {{#memorize}}
+## 꼭 외울 것: 경로, 루트, 잎, 고리와 정렬 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
@@ -247,7 +247,7 @@ ORDER SIBLINGS BY의 정렬 기준은 ORDER BY처럼 열 이름과 ASC, DESC를 
 | ORDER SIBLINGS BY | 형제끼리만 정렬, 트리 모양 유지 |
 | 일반 ORDER BY | 결과 전체를 정렬해서 트리 모양이 깨져요 |
 
-## 시험에서는 이렇게 나와요 — 빈칸 채우기와 짝짓기 {{#exam-point}}
+## 시험에서는 이렇게 나와요: 빈칸 채우기와 짝짓기 {{#exam-point}}
 
 | 묻는 것 | 푸는 법 |
 |---|---|
