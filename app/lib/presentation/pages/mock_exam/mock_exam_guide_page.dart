@@ -5,8 +5,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/error/error_code.dart';
+import '../../../data/models/mock_exam/mock_exam_enums.dart';
+import '../../../data/models/mock_exam/mock_exam_round_list.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
+import '../../providers/mock_exam_countdown.dart';
 import '../../providers/mock_exam_providers.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/mock_exam/mock_exam_rule_rows.dart';
@@ -14,6 +17,7 @@ import '../../widgets/pro/pro_access_feedback.dart';
 import '../../widgets/pro/pro_offer_sheet.dart';
 
 /// 시험 안내 (#866): 형식·합격 기준·과락·자동 제출·이어 풀기·풀이 중 정답 없음 > 시작 확인 > 풀이
+/// 풀이 중 회차면 남은 시간·답한 문항 안내 > 확인 없이 이어 풀기 (#902)
 /// 무료 체험 회차면 "체험 1회" 안내. 시작 판정은 서버 (거부되면 이용권 안내·문구)
 class MockExamGuidePage extends ConsumerStatefulWidget {
   const MockExamGuidePage({super.key, required this.roundUuid});
@@ -27,15 +31,21 @@ class MockExamGuidePage extends ConsumerStatefulWidget {
 class _MockExamGuidePageState extends ConsumerState<MockExamGuidePage> {
   bool _isStarting = false;
 
-  Future<void> _confirmAndStart(int durationMinutes) async {
-    final isConfirmed = await showPassqlConfirmDialog(
-      context,
-      title: '시험을 시작할까요?',
-      message: '시작하면 $durationMinutes분 타이머가 바로 돌아가요.',
-      confirmLabel: '시작',
-      isDestructive: false,
-    );
-    if (!isConfirmed || !mounted) return;
+  /// 시작(확인 창 > 시작) 또는 이어 풀기(확인 없이) > 풀이 화면
+  Future<void> _startOrResume({
+    required int durationMinutes,
+    required bool isResuming,
+  }) async {
+    if (!isResuming) {
+      final isConfirmed = await showPassqlConfirmDialog(
+        context,
+        title: '시험을 시작할까요?',
+        message: '시작하면 $durationMinutes분 타이머가 바로 돌아가요.',
+        confirmLabel: '시작',
+        isDestructive: false,
+      );
+      if (!isConfirmed || !mounted) return;
+    }
     setState(() => _isStarting = true);
     try {
       final attemptUuid = await startOrResumeMockExam(ref, widget.roundUuid);
@@ -63,6 +73,8 @@ class _MockExamGuidePageState extends ConsumerState<MockExamGuidePage> {
     final round = roundList?.rounds
         .where((round) => round.roundUuid == widget.roundUuid)
         .firstOrNull;
+    final resumableAttempt = _resumableAttemptOf(roundList, round);
+    final isResuming = resumableAttempt != null;
     return Scaffold(
       appBar: PassqlNavBar(
         title: round?.title ?? '모의고사',
@@ -96,6 +108,10 @@ class _MockExamGuidePageState extends ConsumerState<MockExamGuidePage> {
                           ),
                         ),
                         const SizedBox(height: PassqlSpacing.lg),
+                        if (resumableAttempt != null) ...[
+                          _ResumeNotice(attempt: resumableAttempt),
+                          const SizedBox(height: PassqlSpacing.lg),
+                        ],
                         MockExamRuleRows(
                           rule: roundList.examRule,
                           isDetailed: true,
@@ -119,16 +135,51 @@ class _MockExamGuidePageState extends ConsumerState<MockExamGuidePage> {
                   PassqlBottomActionBar(
                     actions: [
                       PassqlButton(
-                        label: '시작하기',
+                        label: isResuming ? '이어서 풀기' : '시작하기',
                         isLoading: _isStarting,
-                        onPressed: () => _confirmAndStart(
-                          roundList.examRule.durationMinutes,
+                        onPressed: () => _startOrResume(
+                          durationMinutes: roundList.examRule.durationMinutes,
+                          isResuming: isResuming,
                         ),
                       ),
                     ],
                   ),
                 ],
               ),
+      ),
+    );
+  }
+
+  /// 이 회차의 풀이 중 응시 (회차 목록 응답의 풀이 중 응시, 없으면 null)
+  static MockExamInProgressAttempt? _resumableAttemptOf(
+    MockExamRoundListResponse? roundList,
+    MockExamRoundSummary? round,
+  ) {
+    final inProgressAttempt = roundList?.inProgressAttempt;
+    final isRoundInProgress =
+        round?.lastAttempt?.status == MockExamAttemptStatus.inProgress;
+    if (inProgressAttempt == null || !isRoundInProgress) return null;
+    return inProgressAttempt.roundUuid == round!.roundUuid
+        ? inProgressAttempt
+        : null;
+  }
+}
+
+/// 풀이 중 안내: 남은 시간(목록을 받은 시점 서버 기준)·답한 문항 수
+class _ResumeNotice extends StatelessWidget {
+  const _ResumeNotice({required this.attempt});
+
+  final MockExamInProgressAttempt attempt;
+
+  @override
+  Widget build(BuildContext context) {
+    return PassqlCallout(
+      kind: PassqlCalloutKind.accent,
+      icon: CupertinoIcons.timer,
+      label: '풀이 중',
+      child: Text(
+        '남은 시간 ${formatMockExamRemaining(attempt.remainingSeconds)}, '
+        '답한 문항 ${attempt.answeredCount}개예요. 이어서 풀면 남은 시간부터 계속돼요.',
       ),
     );
   }

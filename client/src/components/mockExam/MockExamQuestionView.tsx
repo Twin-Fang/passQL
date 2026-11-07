@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { CloudOff } from "lucide-react";
 import QuestionStemToggle from "../questionDetail/QuestionStemToggle";
-import { SchemaViewer } from "../SchemaViewer";
 import { ChoiceCard } from "../ChoiceCard";
 import { toSubjectShortLabel } from "../../lib/mockExamPresentation";
 import { MOCK_EXAM_UNSAVED_LABEL } from "../../constants/mockExamCopy";
@@ -19,7 +18,7 @@ interface MockExamQuestionViewProps {
 const ignoreChoiceExecution = () => {};
 
 /**
- * 모의고사 문항 1개: 과목·토픽 머리 > 지문 > 테이블 > 보기 (연습 화면 지문·테이블·보기 카드 재사용)
+ * 모의고사 문항 1개: 과목·토픽 머리 > 지문(테이블 포함) > 보기 (연습 화면 지문·테이블·보기 카드 재사용)
  * 실전처럼 정답·실행·해설 없음, 보기 다시 누르면 선택 해제 (호출부 판단)
  */
 export default function MockExamQuestionView({
@@ -50,9 +49,9 @@ export default function MockExamQuestionView({
         stem={question.stem}
         isStemOpen={isStemOpen}
         onToggle={() => setIsStemOpen((previous) => !previous)}
+        schemaTables={question.schemaTables}
+        schemaDdl={question.schemaDisplay}
       />
-
-      <SchemaViewer schemaTables={question.schemaTables} schemaDdl={question.schemaDisplay} />
 
       <section className="mt-4 space-y-3" aria-label="보기">
         {question.choices.map((choice) => (

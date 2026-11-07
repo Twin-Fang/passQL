@@ -55,8 +55,8 @@ lib/
 └── router/                 # app_router, app_routes(모든 경로 상수), result_route_arguments(결과 화면 이동 인자·extra 해석)
 test/
 ├── architecture/           # 규칙 테스트 (아래 절 참고)
-├── core/ data/ design/ presentation/ router/   # lib 구조를 따르는 단위·위젯 테스트
-└── helpers/                # pump_app, fakes/(FakeHttpClientAdapter, FakeMemberApi, 푸시 가짜)
+├── core/ data/ presentation/   # lib 구조를 따르는 계약·핵심 판정 최소 테스트 (기능 테스트는 두지 않음, #680)
+└── helpers/                # fakes/(FakeHttpClientAdapter)
 tool/store_shots/           # 스토어 스크린샷용 가짜 API 진입점 (운영 코드 아님)
 ```
 
@@ -88,7 +88,8 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 | `ad_placement_rules_test.dart` | core/ads 밖의 `google_mobile_ads`·ATT import, 허용 목록(탭 쉘·홈·통계·토픽 목록·결과 화면 2곳·main) 밖의 광고 사용, 탭 쉘 밖·2개 이상의 한 줄 띠와 탭별 배너, 홈·통계 밖·화면당 2개 이상의 인라인 카드, 토픽 목록 밖의 네이티브 카드, 풀이·로그인·약관·설정·차단 화면의 광고, `ad_request_preparer.dart` 밖의 `AdRequest(` 조립, 사용자 정보를 실은 광고 요청 |
 | `layer_dependency_test.dart` | core 의 data·presentation·router import, data 의 presentation·router import, design 의 providers·pages·widgets·flows import, 화면의 `data/sources` 직접 import, core/monitoring 밖의 Crashlytics·Analytics SDK, core/push 밖의 firebase_messaging, core/notification 밖의 app_badge_plus, core/storage 밖의 shared_preferences, core/review 밖의 in_app_review 직접 import, 종 아이콘 밖의 알림함 경로 |
 | `server_api_schema_test.dart` | 앱 모델 필드 <-> `api-contract/openapi.json` 어긋남 (서버에 없는 필드, 기본값 없는 nullable, 타입 불일치, #493) |
-| `architecture_rules_test.dart` | 레포 공통 규칙(`docs/architecture/rules/*.rule`)의 새 위반·고쳐진 동결 항목 (pro-architecture-consult 템플릿) |
+| `architecture_rules_test.dart` | 레포 공통 규칙(`docs/architecture/rules/*.rule`)의 새 위반·고쳐진 동결 항목 (pro-architecture-consult 템플릿). 앱 규칙: `app-no-debug-print`(로그는 `AppLogger`) 등 `app-*` |
+| `dev_tools_release_guard_test.dart` | 스토어 빌드에 개발자 도구가 새는 것: 빌드 프로파일 release 의 개발 키·플래그, 스토어 워크플로의 개발 플래그, 개발자 도구의 서버 API import, 컴파일 상수 없는 흉내 연결 지점 (#819·#820) |
 
 - 예외는 각 테스트의 allow-list(`_allowedUsages`, `_allowedReverseImports`)에 파일과 **이유**를 적어서만 둔다. 비어 있는 것이 정상이다.
 
@@ -97,6 +98,8 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 - 로그인: `POST /auth/login {authProvider, idToken}` → access/refresh JWT. 이후 요청은 `Authorization: Bearer`.
   - 제공자별 재료(`SocialCredential`, #509): Google·Apple Firebase ID 토큰, 카카오·네이버 SDK 액세스 토큰(`idToken` 자리) > `/auth/login`.
     GitHub 인가 코드(콜백 `passql://auth/callback/github`, state 대조, PKCE S256) > `POST /auth/login/code`(codeVerifier 포함). 제공자 연결은 `MultiProviderSocialSignIn`.
+  - iOS 는 UIScene 수명주기 (#880): `Info.plist` 장면 대리자 `FlutterSceneDelegate`, 플러그인 등록은 `AppDelegate.didInitializeImplicitFlutterEngine`.
+    복귀 URL 은 장면 이벤트로 전달: 카카오·Google·Firebase 는 플러그인이 직접, 네이버(`passqlnaver://`)는 `AppDelegate.swift` 의 `NaverLoginUrlSceneHandler`. 앱 대리자 `open url` 은 불리지 않는다.
   - `.env` 키: `KAKAO_NATIVE_APP_KEY`, `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`, `NAVER_CLIENT_NAME`. 네이티브 SDK 설정은 빌드 타임 값:
     Android 는 `build.gradle.kts`(manifestPlaceholders·resValue), iOS 는 `pod install` 때 `tool/gen_ios_social_login_config.sh` 가 `ios/Flutter/SocialLogin.xcconfig`(커밋 제외)로 만든다. 비면 해당 버튼은 준비 중 안내.
 - 401이면 인터셉터가 refresh로 재발급, 실패하면 세션 만료 신호(`SessionExpirySignal`) > `AuthNotifier` 로그아웃 > 라우터가 로그인 화면으로 보냄.
@@ -109,16 +112,18 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 
 ## 광고 (AdMob, #506·#527)
 
-- 자리 4종: 탭 셸 하단 탭 바 아래 한 줄 네이티브 띠(메인 탭 5개 공통 1개), 콘텐츠 안 인라인 배너 카드 `AdInlineCard`(홈 학습 현황 아래 구간, 통계 맨 아래),
-  문제 탭 네이티브 3칸(주제별 토픽 5개 뒤, 최신 경향 유형 <-> 공부 팁, 개념 TOP 10 5위 <-> 6위), 오늘의 세트·챕터 결과 진입 전면(설치 후 첫 결과 2회 제외·5분 간격·하루 3회, 기기 저장). 화면 안 광고는 '광고' 라벨(`AdLabel`) 필수.
+- 자리 원본은 `AdPlacement`(lib/core/ads/ad_placement.dart). 탭 셸 하단 탭 바 아래 한 줄 네이티브 띠(메인 탭 5개 공통 1개), 콘텐츠 안 인라인 배너 카드 `AdInlineCard`(홈 학습 현황 아래 구간, 프로필 통계 맨 아래),
+  문제 탭 네이티브 3칸(주제별 토픽 5개 뒤, 최신 경향 유형 <-> 공부 팁, 개념 TOP 10 5위 <-> 6위), 오늘의 세트·챕터 결과 진입 전면(설치 후 첫 결과 2회 제외·5분 간격·하루 3회, 기기 저장),
+  백그라운드에서 탭 화면 복귀 앱 오프닝(#787, 첫 실행 제외·1시간 간격·하루 3회), 무료 하루 한도 이용권 시트의 보상형 광고 버튼(#808, 사용자가 눌러서만·하루 2회). 화면 안 광고는 '광고' 라벨(`AdLabel`) 필수.
 - 한 줄 띠 (#527): `AdNativeStripSlot` > `GoogleAdNativeStripLoader`(factoryId `passqlStrip`, 색·배지 문구는 customOptions) > 네이티브 팩토리
-  (Android `PassqlStripNativeAdFactory.kt` + `res/layout/passql_strip_native_ad.xml`, iOS `ios/Runner/PassqlStripNativeAdFactory.swift`, 등록은 `MainActivity`·`AppDelegate`).
+  (Android `PassqlStripNativeAdFactory.kt` + `res/layout/passql_strip_native_ad.xml`, iOS `ios/Runner/PassqlStripNativeAdFactory.swift`, 등록은 `MainActivity`·`AppDelegate.didInitializeImplicitFlutterEngine`).
+- iOS SKAdNetwork 식별자는 Google AdMob iOS 시작 가이드 권장 목록 50개(`Info.plist`). Google 이 목록을 바꾸면 함께 갱신.
   셸 수명 동안 1회 로드(탭 전환 재로드 없음), 앱 복귀 때 1시간 넘은 광고만 교체, 라이트·다크 전환 시 다시 로드. 로드 전·실패면 탭 바만(띠 자리 0).
   customOptions 키·factoryId 는 Dart·Kotlin·Swift 3곳이 같은 값 (바꾸면 함께 바꿈). 띠에는 AD 배지·헤드라인 필수, AdChoices 는 SDK 기본 위치(가리지 않음).
 - 토픽 목록 네이티브 카드 (#522): `AdNativeSlot` > `GoogleAdNativeLoader`(factoryId `passqlNativeCard`, 미디어 120 이상) > 네이티브 팩토리
   (Android `PassqlNativeAdFactory.kt` + `res/layout/passql_native_ad_card.xml`, iOS `ios/Runner/PassqlNativeAdFactory.swift`, 등록은 띠와 같은 곳). 모양 값은 Dart `NativeAdCardStyle` 원본.
 - 허용 조건 `adsEnabledProvider`: 모바일 + 로그인. 디버그·프로필은 Google 테스트 단위 고정, 릴리스는 `.env` 값(비면 광고 없음).
-- `.env` 키: `PASSQL_ADMOB_{ANDROID|IOS}_APP_ID`, `PASSQL_ADMOB_{ANDROID|IOS}_{NATIVE_STRIP|BANNER_HOME|BANNER_STATS|NATIVE_QUESTIONS|INTERSTITIAL_RESULT}`.
+- `.env` 키: `PASSQL_ADMOB_{ANDROID|IOS}_APP_ID`, `PASSQL_ADMOB_{ANDROID|IOS}_{NATIVE_STRIP|BANNER_HOME|BANNER_STATS|NATIVE_QUESTIONS|INTERSTITIAL_RESULT|APP_OPEN|REWARDED_DAILY_BONUS}` (뒷부분은 `AdPlacement.envSuffix`).
   앱 ID 는 빌드 타임 값: Android 는 `build.gradle.kts` 가 직접 읽고, iOS 는 `pod install` 때 `tool/gen_ios_admob_config.sh` 가 `ios/Flutter/AdMob.xcconfig`(커밋 제외)로 만든다. 비면 Google 테스트 앱 ID.
 - iOS 추적 허용(ATT)은 앱 시작 첫 프레임 뒤 1회. 거부면 비개인화 요청.
 

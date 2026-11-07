@@ -41,7 +41,7 @@ const String _sheetTitle = '이용권';
 /// 이용권 목록은 등급 응답 passOptions (서버 순서 3개월 먼저 > 첫 칸 기본 선택)
 /// [reason]: 진입점별 한 줄 (예: 오늘 무료 문제를 다 풀었어요)
 /// [isDailyLimitEntry]: 무료 하루 한도로 열림 > 이유 줄 아래 광고 보너스 버튼 (#808)
-/// 성공 > 시트 닫힘 > 호출 화면에서 토스트, 그 외 결과는 시트 안 한 줄
+/// 성공 > 시트 닫힘 > 호출 화면에서 토스트, 그 외 결과는 시트 안 한 줄 (확인 중에 닫아도 확인 결과로 토스트·연출·호출부 재시도)
 Future<ProOfferSheetOutcome> showProOfferSheet(
   BuildContext context,
   WidgetRef ref, {
@@ -61,10 +61,10 @@ Future<ProOfferSheetOutcome> showProOfferSheet(
       : null;
   // 시트가 닫힐 때 호출 화면이 이미 사라졌을 수 있어 ref 는 기다리기 전에 읽어 둔다
   final revealNotifier = ref.read(profilePassRevealPendingProvider.notifier);
-  // 시트 안에서 광고 보너스를 받았는가 (닫힌 뒤 호출 화면에서 토스트)
-  var isAdBonusGranted = false;
+  // 시트 안에서 마지막으로 시작한 결제·광고 보너스 확인 (닫힌 뒤에도 끝까지 기다림)
+  Future<ProOfferSheetOutcome>? pendingConfirmation;
   try {
-    final isPurchased = await showPassqlSheet<bool>(
+    final closedOutcome = await showPassqlSheet<ProOfferSheetOutcome>(
       context,
       builder: (_) => _ProOfferSheetBody(
         passOptions: knownPlan?.passOptions ?? const [],
@@ -72,11 +72,15 @@ Future<ProOfferSheetOutcome> showProOfferSheet(
         dailyFreeLimit: knownPlan?.dailyFreeLimit ?? 0,
         reason: reason,
         isDailyLimitEntry: isDailyLimitEntry,
-        onAdBonusGranted: () => isAdBonusGranted = true,
+        onConfirmationStarted: (confirmation) =>
+            pendingConfirmation = confirmation,
         focusedBenefitIndex: focusedBenefitIndex,
       ),
     );
-    if (isPurchased == true) {
+    final outcome =
+        closedOutcome ??
+        await _awaitConfirmationAfterDismiss(pendingConfirmation);
+    if (outcome == ProOfferSheetOutcome.purchased) {
       // 연장은 이미 PRO 탑승권이라 무료 > 프로 연출 없음
       if (activeProExpiresAt == null) {
         // 어느 진입점에서 샀든 다음 프로필 진입 때 탑승권 연출을 한 번 보여 준다 (#749)
@@ -92,7 +96,7 @@ Future<ProOfferSheetOutcome> showProOfferSheet(
       }
       return ProOfferSheetOutcome.purchased;
     }
-    if (isAdBonusGranted) {
+    if (outcome == ProOfferSheetOutcome.adBonusGranted) {
       if (context.mounted) {
         final bonusQuestionCount =
             ref.read(knownPlanProvider)?.dailyBonus.bonusQuestionCount ?? 0;
@@ -116,6 +120,23 @@ Future<ProOfferSheetOutcome> showProOfferSheet(
   }
 }
 
+/// 그냥 닫힘 > 진행 중이던 확인 결과 (없으면 dismissed)
+Future<ProOfferSheetOutcome> _awaitConfirmationAfterDismiss(
+  Future<ProOfferSheetOutcome>? pendingConfirmation,
+) async => await pendingConfirmation ?? ProOfferSheetOutcome.dismissed;
+
+/// 확인 결과 > 시트 결과 (실패·예외는 dismissed, 기다리는 쪽이 없어도 처리 안 된 오류를 남기지 않게)
+Future<ProOfferSheetOutcome> _toSheetOutcome<T>(
+  Future<T> confirmation, {
+  required bool Function(T result) isUnlocked,
+  required ProOfferSheetOutcome unlockedOutcome,
+}) => confirmation
+    .then(
+      (result) =>
+          isUnlocked(result) ? unlockedOutcome : ProOfferSheetOutcome.dismissed,
+    )
+    .catchError((Object _) => ProOfferSheetOutcome.dismissed);
+
 class _ProOfferSheetBody extends ConsumerStatefulWidget {
   const _ProOfferSheetBody({
     required this.passOptions,
@@ -123,7 +144,7 @@ class _ProOfferSheetBody extends ConsumerStatefulWidget {
     required this.dailyFreeLimit,
     required this.reason,
     required this.isDailyLimitEntry,
-    required this.onAdBonusGranted,
+    required this.onConfirmationStarted,
     required this.focusedBenefitIndex,
   });
 
@@ -137,8 +158,9 @@ class _ProOfferSheetBody extends ConsumerStatefulWidget {
   /// 무료 하루 한도로 열림 (광고 보너스 버튼 대상)
   final bool isDailyLimitEntry;
 
-  /// 광고 보너스가 등급에 반영됨 (시트는 스스로 닫힘)
-  final VoidCallback onAdBonusGranted;
+  /// 결제·광고 보너스 확인 시작 (시트가 닫혀도 호출부가 결과를 기다림)
+  final void Function(Future<ProOfferSheetOutcome> confirmation)
+  onConfirmationStarted;
 
   /// 탑승권 혜택 아이콘에서 열었으면 그 혜택 순서 (proBenefits 기준)
   final int? focusedBenefitIndex;
@@ -199,17 +221,34 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
       _statusMessage = null;
     });
     final container = ProviderScope.containerOf(context);
-    final outcome = await action();
-    await refreshPlanIfPurchased(container, outcome);
+    final purchaseConfirmation = _confirmPurchase(container, action);
+    widget.onConfirmationStarted(
+      _toSheetOutcome(
+        purchaseConfirmation,
+        isUnlocked: (outcome) => outcome == ProPurchaseOutcome.success,
+        unlockedOutcome: ProOfferSheetOutcome.purchased,
+      ),
+    );
+    final outcome = await purchaseConfirmation;
     if (!mounted) return;
     if (outcome == ProPurchaseOutcome.success) {
-      Navigator.of(context).pop(true);
+      _closeSheetWith(ProOfferSheetOutcome.purchased);
       return;
     }
     setState(() {
       _isBusy = false;
       _statusMessage = proPurchaseStatusMessageOf(outcome);
     });
+  }
+
+  /// 결제·복원 > 성공이면 등급 다시 받기 (시트와 무관하게 끝까지)
+  static Future<ProPurchaseOutcome> _confirmPurchase(
+    ProviderContainer container,
+    Future<ProPurchaseOutcome> Function() action,
+  ) async {
+    final outcome = await action();
+    await refreshPlanIfPurchased(container, outcome);
+    return outcome;
   }
 
   /// 이용권 목록 + 스토어 가격 계산 (기준 이용권·할인·권유)
@@ -285,7 +324,10 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
                 // 하루 한도로 열림 > 결제 대신 광고로 한도 늘리기 (보일 조건은 버튼이 판단, #808)
                 if (widget.isDailyLimitEntry) ...[
                   const SizedBox(height: PassqlSpacing.md),
-                  RewardedAdBonusButton(onBonusGranted: _closeAfterAdBonus),
+                  RewardedAdBonusButton(
+                    onBonusAttemptStarted: _reportAdBonusAttempt,
+                    onBonusGranted: _closeAfterAdBonus,
+                  ),
                 ],
                 const SizedBox(height: PassqlSpacing.md),
                 ProOfferTicketPreview(
@@ -334,10 +376,24 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
     );
   }
 
-  /// 광고 보너스 반영 > 호출부에 알리고 시트 닫기 (구매가 아니므로 false)
-  void _closeAfterAdBonus() {
-    widget.onAdBonusGranted();
-    Navigator.of(context).pop(false);
+  /// 광고 보너스 시청·확인 시작 > 호출부에 결과 Future 전달
+  void _reportAdBonusAttempt(Future<bool> isBonusGranted) =>
+      widget.onConfirmationStarted(
+        _toSheetOutcome(
+          isBonusGranted,
+          isUnlocked: (isGranted) => isGranted,
+          unlockedOutcome: ProOfferSheetOutcome.adBonusGranted,
+        ),
+      );
+
+  /// 광고 보너스 반영 > 시트 닫기 (호출 화면에서 토스트)
+  void _closeAfterAdBonus() =>
+      _closeSheetWith(ProOfferSheetOutcome.adBonusGranted);
+
+  /// 시트가 맨 위일 때만 닫기 (이미 닫히는 중이면 pop 이 아래 화면을 닫음 > 결과는 확인 Future 로 전달됨)
+  void _closeSheetWith(ProOfferSheetOutcome outcome) {
+    if (ModalRoute.of(context)?.isCurrent != true) return;
+    Navigator.of(context).pop(outcome);
   }
 
   void _select(PassOption option) => setState(() {

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/error/app_exception.dart';
+import '../../../core/logging/app_logger.dart';
 import '../../../data/community/community_image_compressor.dart';
 import '../../design/design.dart';
 import '../../providers/community_providers.dart';
@@ -83,7 +84,7 @@ class _CommunityComposeSheetState extends ConsumerState<CommunityComposeSheet> {
     } on AppException catch (exception) {
       _showImageError(exception.message);
     } catch (error) {
-      debugPrint('[community compose] pick image failed : $error');
+      AppLogger.warn('community compose', 'pick image failed : $error');
       _showImageError('사진을 불러오지 못했어요. 다시 선택해 주세요.');
     }
   }

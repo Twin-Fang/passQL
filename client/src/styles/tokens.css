@@ -87,6 +87,7 @@
   --text-caption1: 12px;        /* 앱 caption */
   --text-footnote: 13px;        /* 앱 footnote */
   --text-subheadline: 15px;     /* 앱 subheadline */
+  --text-headline: 17px;        /* 앱 headline (지문 질문 문장) */
   --text-score-display: 96px;   /* 결과 화면 큰 점수 숫자 */
 
   /* ── 모서리 반경 (Tailwind 기본 단계에 없는 값) ── */

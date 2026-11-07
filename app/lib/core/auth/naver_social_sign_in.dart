@@ -1,10 +1,10 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_naver_login/flutter_naver_login.dart';
 import 'package:flutter_naver_login/interface/types/naver_login_result.dart';
 import 'package:flutter_naver_login/interface/types/naver_login_status.dart';
 
+import '../logging/app_logger.dart';
 import 'auth_session.dart';
 import 'social_credential.dart';
 import 'social_sign_in.dart';
@@ -28,13 +28,17 @@ class NaverSocialSignIn {
       final result = await _logIn();
       // 취소 > null (Android SDK 는 커스텀 탭 복귀 실패도 user_cancel 로 보고해 구분 불가, 로그만 남김)
       if (isCancelledResult(result)) {
-        debugPrint('[naver login] cancelled : status ${result.status.name}');
+        AppLogger.info(
+          'naver login',
+          'cancelled : status ${result.status.name}',
+        );
         return null;
       }
       if (result.status != NaverLoginStatus.loggedIn) {
-        debugPrint(
-          '[naver login] failed : status ${result.status.name}, '
-          'error ${sanitizeForLog(result.errorMessage)}',
+        AppLogger.warn(
+          'naver login',
+          'failed : status ${result.status.name}, '
+              'error ${sanitizeForLog(result.errorMessage)}',
         );
         throw const SocialSignInException(_failureMessage);
       }
@@ -43,7 +47,7 @@ class NaverSocialSignIn {
           result.accessToken?.accessToken ??
           (await FlutterNaverLogin.getCurrentAccessToken()).accessToken;
       if (accessToken.isEmpty) {
-        debugPrint('[naver login] failed : empty access token');
+        AppLogger.warn('naver login', 'failed : empty access token');
         throw const SocialSignInException(_failureMessage);
       }
       return SocialTokenCredential(
@@ -54,8 +58,9 @@ class NaverSocialSignIn {
       // iOS Info.plist 에 Nid 설정이 없으면 플러그인 미등록
       throw SocialSignInException.preparing();
     } on PlatformException catch (error) {
-      debugPrint(
-        '[naver login] failed : platform ${sanitizeForLog(error.code)}',
+      AppLogger.warn(
+        'naver login',
+        'failed : platform ${sanitizeForLog(error.code)}',
       );
       throw const SocialSignInException(_failureMessage);
     }

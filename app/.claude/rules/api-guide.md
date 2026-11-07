@@ -65,4 +65,4 @@ pages·widgets·flows ──> providers(Riverpod) ──> data/sources(Retrofit 
 ## 6. 테스트에서 서버 바꾸기
 
 - Provider override: `aiApiProvider.overrideWithValue(가짜)` 처럼 클라이언트 Provider 를 바꾼다
-- 공용 가짜: `test/helpers/fakes/` (`FakeHttpClientAdapter`, `FakeMemberApi`). 같은 가짜를 테스트마다 다시 만들지 않는다
+- 공용 가짜: `test/helpers/fakes/` (`FakeHttpClientAdapter`). 같은 가짜를 테스트마다 다시 만들지 않는다

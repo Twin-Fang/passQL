@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/logging/app_logger.dart';
 import '../presentation/providers/app_config_providers.dart';
 import 'app_routes.dart';
 
@@ -42,8 +43,9 @@ abstract final class AppLaunchGateRouting {
     try {
       await container.read(appLaunchDecisionProvider.future);
     } catch (error) {
-      debugPrint(
-        '[app launch gate] decision failed, launch without gate : $error',
+      AppLogger.warn(
+        'app launch gate',
+        'decision failed, launch without gate : $error',
       );
     }
   }
