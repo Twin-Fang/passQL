@@ -24,7 +24,7 @@
   },
   "wide": {
     "app_name": "passQL",
-    "headline": "책 없이,<br>앱 하나로 SQLD",
+    "headline": "외우지 말고,<br>실행해 보고<br>이해하는 SQLD",
     "front": "s1_execute.png",
     "back": "s5_trend.png"
   },
@@ -36,7 +36,7 @@
         "02"
       ],
       "headlines": [
-        "책 없이,<br>앱 하나로 SQLD",
+        "외우지 말고,<br>실행해 보고<br>이해하는 SQLD",
         "보기 SQL을<br>직접 실행해 봐요"
       ],
       "shot": "s1_execute.png"
@@ -44,9 +44,9 @@
     {
       "id": "03",
       "kind": "single",
-      "headline": "답 외우기는 그만,<br>매번 새 선택지",
-      "shot": "s3_real_mode.png",
-      "align": "bottom"
+      "headline": "같은 문제도,<br>매번 새 선택지",
+      "shot": "s1_execute.png",
+      "align": "top"
     },
     {
       "id": "04",
