@@ -78,6 +78,8 @@ android {
         release {
             // 릴리스는 항상 릴리스 키로 서명 (키가 없으면 아래 검사 작업이 빌드를 멈춤)
             signingConfig = signingConfigs.getByName("release")
+            // 앱 R8 규칙 (네이버 플러그인의 옛 SDK 참조 경고, #942)
+            proguardFiles("proguard-rules.pro")
         }
     }
 }

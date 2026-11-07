@@ -2,9 +2,11 @@ package com.coldredrice.passql
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.res.Configuration
 import android.media.AudioManager
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -16,6 +18,19 @@ import com.navercorp.nid.oauth.util.NidOAuthCallback
 
 // 네이버 로그인 플러그인이 FlutterFragmentActivity 를 요구 (ActivityResult 등록, #509)
 class MainActivity : FlutterFragmentActivity() {
+    // 네이버 로그인 진단 (#942): 로그인 중 화면 구성 변경(폴더블 접기·펴기, 창 크기) 기록
+    private var naverLoginConfigChanges = mutableListOf<String>()
+    private var isNaverLoginInProgress = false
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (isNaverLoginInProgress) naverLoginConfigChanges.add(describeWindow(newConfig))
+    }
+
+    /** 화면 구성 요약: 가로x세로dp, 방향 */
+    private fun describeWindow(config: Configuration): String =
+        "${config.screenWidthDp}x${config.screenHeightDp}dp " +
+            if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) "landscape" else "portrait"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         createDefaultNotificationChannel()
@@ -68,7 +83,11 @@ class MainActivity : FlutterFragmentActivity() {
                     return@setMethodCallHandler
                 }
                 when (call.method) {
-                    "login" -> logInWithNaver(call.argument<String>("behavior"), result)
+                    "login" -> logInWithNaver(
+                        call.argument<String>("behavior"),
+                        call.argument<Boolean>("isDeveloperLog") == true,
+                        result,
+                    )
                     "logout" -> NaverIdLoginSDK.logout(replyOnce(result))
                     "deleteToken" -> NidOAuth.disconnect(replyOnce(result))
                     else -> result.notImplemented()
@@ -76,26 +95,55 @@ class MainActivity : FlutterFragmentActivity() {
             }
     }
 
-    /** 로그인 방식 지정 > SDK 로그인 > 성공이면 액세스 토큰, 실패면 SDK 오류 코드·설명 */
-    private fun logInWithNaver(behavior: String?, result: MethodChannel.Result) {
+    /** 로그인 방식 지정 > SDK 로그인 > 성공이면 액세스 토큰, 실패면 SDK 오류 코드·설명 (둘 다 진단 정보 포함) */
+    private fun logInWithNaver(behavior: String?, isDeveloperLog: Boolean, result: MethodChannel.Result) {
+        NaverIdLoginSDK.showDevelopersLog(isDeveloperLog)
         NaverIdLoginSDK.behavior =
             if (behavior == "customTabs") NidOAuthBehavior.CUSTOMTABS else NidOAuthBehavior.DEFAULT
+        naverLoginConfigChanges = mutableListOf()
+        isNaverLoginInProgress = true
+        val startedAt = SystemClock.elapsedRealtime()
+        val startWindow = describeWindow(resources.configuration)
+
+        // 진단 정보 (로그용, 토큰·개인정보 없음)
+        fun diagnostics(): Map<String, Any?> = mapOf(
+            "sdkVersion" to NaverIdLoginSDK.getVersion(),
+            "behavior" to (behavior ?: "default"),
+            "isNaverAppInstalled" to isPackageInstalled(NAVER_APP_PACKAGE),
+            "elapsedMs" to (SystemClock.elapsedRealtime() - startedAt),
+            "startWindow" to startWindow,
+            "configChanges" to naverLoginConfigChanges.joinToString(" > ").ifEmpty { "none" },
+            "isInMultiWindow" to (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode),
+        )
+
         NaverIdLoginSDK.authenticate(this, object : NidOAuthCallback {
             override fun onSuccess() {
-                result.success(mapOf("accessToken" to NaverIdLoginSDK.getAccessToken()))
+                isNaverLoginInProgress = false
+                result.success(mapOf("accessToken" to NaverIdLoginSDK.getAccessToken(), "diagnostics" to diagnostics()))
             }
 
             override fun onFailure(errorCode: String, errorDescription: String) {
+                isNaverLoginInProgress = false
                 result.error(
                     NAVER_ERROR_LOGIN_FAILED,
                     errorDescription,
                     mapOf(
                         "errorCode" to NaverIdLoginSDK.getLastErrorCode().code,
                         "errorDescription" to NaverIdLoginSDK.getLastErrorDescription(),
+                        "callbackErrorCode" to errorCode,
+                        "diagnostics" to diagnostics(),
                     ),
                 )
             }
         })
+    }
+
+    /** 앱 설치 여부 (네이버 앱 로그인 경로 판단용, 매니페스트 queries 에 등록된 패키지만 보임) */
+    private fun isPackageInstalled(packageName: String): Boolean = try {
+        packageManager.getPackageInfo(packageName, 0)
+        true
+    } catch (_: Exception) {
+        false
     }
 
     /** 로그아웃·연동 해제 응답 (실패도 성공으로 돌려 앱 흐름은 계속, 원인은 Dart 로그) */
@@ -140,5 +188,7 @@ class MainActivity : FlutterFragmentActivity() {
         // 네이버 로그인 채널 오류 코드 (Dart naver_social_sign_in.dart 와 같은 값)
         private const val NAVER_ERROR_LOGIN_FAILED = "naver_login_failed"
         private const val NAVER_ERROR_NOT_INITIALIZED = "naver_not_initialized"
+        // 네이버 앱 패키지 (앱 로그인 경로)
+        private const val NAVER_APP_PACKAGE = "com.nhn.android.search"
     }
 }

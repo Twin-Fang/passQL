@@ -5,6 +5,7 @@ import 'package:flutter_naver_login/flutter_naver_login.dart';
 import 'package:flutter_naver_login/interface/types/naver_login_result.dart';
 import 'package:flutter_naver_login/interface/types/naver_login_status.dart';
 
+import '../config/app_build_flavor.dart';
 import '../logging/app_logger.dart';
 import 'auth_session.dart';
 import 'social_credential.dart';
@@ -96,7 +97,12 @@ class NaverSocialSignIn {
     try {
       final reply = await _androidLoginChannel.invokeMapMethod<String, dynamic>(
         'login',
-        {'behavior': behavior},
+        // 개발·테스트 빌드만 네이버 SDK 내부 로그(logcat) 켬
+        {'behavior': behavior, 'isDeveloperLog': AppBuildFlavor.canUseDevTools},
+      );
+      AppLogger.info(
+        'naver login',
+        'success : ${describeDiagnostics(reply?['diagnostics'])}',
       );
       return reply?['accessToken'] as String?;
     } on PlatformException catch (error) {
@@ -106,7 +112,8 @@ class NaverSocialSignIn {
         'naver login',
         'failed : behavior $behavior, platform ${sanitizeForLog(error.code)}, '
             'error ${sanitizeForLog(errorCode)}, '
-            'desc ${sanitizeForLog(details['errorDescription']?.toString())}',
+            'desc ${sanitizeForLog(details['errorDescription']?.toString())}, '
+            '${describeDiagnostics(details['diagnostics'])}',
       );
       if (isCancelledErrorCode(errorCode)) throw const _NaverLoginCancelled();
       if (behavior == _defaultBehavior) return null;
@@ -114,6 +121,15 @@ class NaverSocialSignIn {
     } on MissingPluginException {
       throw SocialSignInException.preparing();
     }
+  }
+
+  /// 네이티브 진단 정보 > 로그 한 줄 (SDK 버전, 방식, 네이버 앱 설치, 걸린 시간, 시작 창, 로그인 중 화면 변경, 멀티 윈도우)
+  static String describeDiagnostics(Object? diagnostics) {
+    if (diagnostics is! Map) return 'diag none';
+    String read(String key) => sanitizeForLog(diagnostics[key]?.toString());
+    return 'sdk ${read('sdkVersion')}, naverApp ${read('isNaverAppInstalled')}, '
+        '${read('elapsedMs')}ms, window ${read('startWindow')}, '
+        'changes ${read('configChanges')}, multiWindow ${read('isInMultiWindow')}';
   }
 
   /// SDK 취소 코드 판정 (사용자 취소 > 조용히 로그인 화면 유지)
