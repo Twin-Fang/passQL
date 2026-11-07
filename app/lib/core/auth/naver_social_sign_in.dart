@@ -111,7 +111,7 @@ class NaverSocialSignIn {
         'naver login',
         'failed : behavior $behavior, platform ${sanitizeForLog(error.code)}, '
             'error ${sanitizeForLog(errorCode)}, '
-            'desc ${sanitizeForLog(details['errorDescription']?.toString())}, '
+            'desc ${sanitizeForLog((details['errorDescription'] ?? error.message)?.toString())}, '
             '${describeDiagnostics(details['diagnostics'])}',
       );
       if (isCancelledErrorCode(errorCode)) throw const _NaverLoginCancelled();
@@ -185,7 +185,7 @@ class NaverSocialSignIn {
         errorMessage.contains('cancel');
   }
 
-  /// 로그용 값 정리 (null > none, 제어문자 > 공백, 100자 제한)
+  /// 로그용 값 정리 (null > none, 제어문자 > 공백, 400자 제한)
   static String sanitizeForLog(String? rawValue) {
     if (rawValue == null || rawValue.isEmpty) return 'none';
     final singleLine = rawValue.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ');
@@ -195,7 +195,7 @@ class NaverSocialSignIn {
   }
 
   // 로그 한 값 최대 길이 (문자 수)
-  static const int _maximumLogValueLength = 100;
+  static const int _maximumLogValueLength = 400;
 
   // .env 미로드(테스트 등)도 키 없음으로 처리
   static String _readClientIdFromEnv() {

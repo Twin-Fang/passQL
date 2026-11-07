@@ -7,6 +7,7 @@ import android.media.AudioManager
 import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
+import java.util.concurrent.atomic.AtomicBoolean
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -78,7 +79,13 @@ class MainActivity : FlutterFragmentActivity() {
     private fun registerNaverLoginChannel(flutterEngine: FlutterEngine) {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "passql/naver_login")
             .setMethodCallHandler { call, result ->
-                if (!ensureNaverSdkInitialized()) {
+                val isInitialized = try {
+                    ensureNaverSdkInitialized()
+                } catch (error: Throwable) {
+                    result.error(NAVER_ERROR_NOT_INITIALIZED, describeThrowable(error), null)
+                    return@setMethodCallHandler
+                }
+                if (!isInitialized) {
                     result.error(NAVER_ERROR_NOT_INITIALIZED, "naver sdk not initialized", null)
                     return@setMethodCallHandler
                 }
@@ -97,9 +104,6 @@ class MainActivity : FlutterFragmentActivity() {
 
     /** 로그인 방식 지정 > SDK 로그인 > 성공이면 액세스 토큰, 실패면 SDK 오류 코드·설명 (둘 다 진단 정보 포함) */
     private fun logInWithNaver(behavior: String?, isDeveloperLog: Boolean, result: MethodChannel.Result) {
-        NaverIdLoginSDK.showDevelopersLog(isDeveloperLog)
-        NaverIdLoginSDK.behavior =
-            if (behavior == "customTabs") NidOAuthBehavior.CUSTOMTABS else NidOAuthBehavior.DEFAULT
         naverLoginConfigChanges = mutableListOf()
         isNaverLoginInProgress = true
         val startedAt = SystemClock.elapsedRealtime()
@@ -107,7 +111,7 @@ class MainActivity : FlutterFragmentActivity() {
 
         // 진단 정보 (로그용, 토큰·개인정보 없음)
         fun diagnostics(): Map<String, Any?> = mapOf(
-            "sdkVersion" to NaverIdLoginSDK.getVersion(),
+            "sdkVersion" to runCatching { NaverIdLoginSDK.getVersion() }.getOrNull(),
             "behavior" to (behavior ?: "default"),
             "isNaverAppInstalled" to isPackageInstalled(NAVER_APP_PACKAGE),
             "elapsedMs" to (SystemClock.elapsedRealtime() - startedAt),
@@ -117,32 +121,55 @@ class MainActivity : FlutterFragmentActivity() {
         )
 
         // 응답 1회만 (SDK 콜백 중복 호출 시 Reply already submitted 로 앱 종료 방지)
-        var isReplied = false
-        NaverIdLoginSDK.authenticate(this, object : NidOAuthCallback {
-            override fun onSuccess() {
-                isNaverLoginInProgress = false
-                if (isReplied) return
-                isReplied = true
-                result.success(mapOf("accessToken" to NaverIdLoginSDK.getAccessToken(), "diagnostics" to diagnostics()))
-            }
+        val hasReplied = AtomicBoolean(false)
+        fun replyOnce(reply: () -> Unit) {
+            if (!hasReplied.compareAndSet(false, true)) return
+            isNaverLoginInProgress = false
+            reply()
+        }
 
-            override fun onFailure(errorCode: String, errorDescription: String) {
-                isNaverLoginInProgress = false
-                if (isReplied) return
-                isReplied = true
+        // SDK 내부 오류(NoClassDefFoundError 등)도 앱 종료 대신 실패 응답 + 원인 체인 (#942)
+        try {
+            NaverIdLoginSDK.showDevelopersLog(isDeveloperLog)
+            NaverIdLoginSDK.behavior =
+                if (behavior == "customTabs") NidOAuthBehavior.CUSTOMTABS else NidOAuthBehavior.DEFAULT
+            NaverIdLoginSDK.authenticate(this, object : NidOAuthCallback {
+                override fun onSuccess() = replyOnce {
+                    result.success(mapOf("accessToken" to NaverIdLoginSDK.getAccessToken(), "diagnostics" to diagnostics()))
+                }
+
+                override fun onFailure(errorCode: String, errorDescription: String) = replyOnce {
+                    result.error(
+                        NAVER_ERROR_LOGIN_FAILED,
+                        errorDescription,
+                        mapOf(
+                            "errorCode" to NaverIdLoginSDK.getLastErrorCode().code,
+                            "errorDescription" to NaverIdLoginSDK.getLastErrorDescription(),
+                            "callbackErrorCode" to errorCode,
+                            "diagnostics" to diagnostics(),
+                        ),
+                    )
+                }
+            })
+        } catch (error: Throwable) {
+            replyOnce {
                 result.error(
                     NAVER_ERROR_LOGIN_FAILED,
-                    errorDescription,
+                    error.javaClass.simpleName,
                     mapOf(
-                        "errorCode" to NaverIdLoginSDK.getLastErrorCode().code,
-                        "errorDescription" to NaverIdLoginSDK.getLastErrorDescription(),
-                        "callbackErrorCode" to errorCode,
+                        "errorCode" to NAVER_ERROR_SDK_CRASH,
+                        "errorDescription" to describeThrowable(error),
                         "diagnostics" to diagnostics(),
                     ),
                 )
             }
-        })
+        }
     }
+
+    /** 원인 체인 요약: 예외 이름: 메시지 > 원인 ... (최대 4단계, 메시지 앞 120자) */
+    private fun describeThrowable(error: Throwable): String =
+        generateSequence(error) { it.cause }.take(4)
+            .joinToString(" > ") { "${it.javaClass.name}: ${it.message.orEmpty().take(120)}" }
 
     /** 앱 설치 여부 (네이버 앱 로그인 경로 판단용, 매니페스트 queries 에 등록된 패키지만 보임) */
     private fun isPackageInstalled(packageName: String): Boolean = try {
@@ -194,6 +221,8 @@ class MainActivity : FlutterFragmentActivity() {
         // 네이버 로그인 채널 오류 코드 (Dart naver_social_sign_in.dart 와 같은 값)
         private const val NAVER_ERROR_LOGIN_FAILED = "naver_login_failed"
         private const val NAVER_ERROR_NOT_INITIALIZED = "naver_not_initialized"
+        // SDK 호출 중 예외 (errorCode 값, Dart 로그에 원인 체인과 함께 남음)
+        private const val NAVER_ERROR_SDK_CRASH = "sdk_crash"
         // 네이버 앱 패키지 (앱 로그인 경로)
         private const val NAVER_APP_PACKAGE = "com.nhn.android.search"
     }
