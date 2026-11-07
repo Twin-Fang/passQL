@@ -53,12 +53,14 @@ class QuestionFormatRuleTest {
     }
 
     @Test
-    @DisplayName("1 줄표 예외: 개념 글 문단 제목의 부제 구분 1곳만 허용, 본문 줄표는 거부")
-    void allowsConceptHeadingSeparatorOnly() {
-        assertThat(QuestionFormatRule.findConceptArticleDashViolations("## 왜 필요할까요 — 순서 {#why}\n본문", "개념 글"))
-                .isEmpty();
-        assertThat(QuestionFormatRule.findConceptArticleDashViolations("## 제목\n본문 — 설명", "개념 글"))
+    @DisplayName("1 개념 글: 소제목 부제 \" — \" 도 위반 (\"제목: 부제\" 로), 부제 쌍점은 통과")
+    void rejectsConceptHeadingDash() {
+        assertThat(QuestionFormatRule.findConceptArticlePunctuationViolations("## 왜 필요할까요 \u2014 순서 {#why}\n본문", "개념 글"))
                 .hasSize(1);
+        assertThat(ForbiddenPunctuationCleaner.clean("## 왜 필요할까요 \u2014 순서 {#why}"))
+                .isEqualTo("## 왜 필요할까요" + QuestionFormatRule.CONCEPT_HEADING_SUBTITLE_SEPARATOR + "순서 {#why}");
+        assertThat(QuestionFormatRule.findConceptArticlePunctuationViolations("## 왜 필요할까요: 순서 {#why}\n본문", "개념 글"))
+                .isEmpty();
     }
 
     @Test

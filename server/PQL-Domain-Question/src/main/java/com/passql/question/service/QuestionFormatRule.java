@@ -31,8 +31,8 @@ public final class QuestionFormatRule {
     public static final int REQUIRED_QUESTION_SENTENCE_COUNT = 1;
     // 목록 줄 기호 (#903 지문 블록 분해와 같은 기준)
     public static final String LIST_ITEM_PREFIX = "- ";
-    // 개념 글 문단 제목 부제 구분 (앱 ConceptReadingParser 가 나눠 그림 > 줄표 규칙 예외, 제목 줄 1곳만)
-    public static final String CONCEPT_HEADING_SUBTITLE_SEPARATOR = " \u2014 ";
+    // 개념 글 문단 제목 부제 구분 "## 제목: 부제 {#앵커}" (앱 ConceptReadingParser 와 같은 기준, #903)
+    public static final String CONCEPT_HEADING_SUBTITLE_SEPARATOR = ": ";
     // 줄표·가운뎃점 위반 설명에 보여 줄 앞뒤 글자 수
     private static final int PUNCTUATION_CONTEXT_LENGTH = 12;
 
@@ -50,7 +50,6 @@ public final class QuestionFormatRule {
     static final Pattern NON_DASH_LIST_MARKER = Pattern.compile("^(\\s*)([*•◦▪○●■□+])\\s+");
     private static final Pattern FORBIDDEN_PUNCTUATION = Pattern.compile(
             "[" + ForbiddenPunctuationCleaner.DASH_CHARACTERS + ForbiddenPunctuationCleaner.MIDDLE_DOT_CHARACTERS + "]");
-    private static final Pattern HEADING_LINE = Pattern.compile("^\\s*#{1,6}\\s");
 
     private QuestionFormatRule() {
     }
@@ -98,18 +97,10 @@ public final class QuestionFormatRule {
                 "짝은 \"용어: 설명\", 나열·문장은 쉼표로"));
     }
 
-    /** 개념 글 줄표·가운뎃점 검사: 문단 제목의 부제 구분 " — " 1곳은 예외 (앱이 부제로 나눠 그림), 원본은 content/concepts */
-    public static List<QuestionFormatViolation> findConceptArticleDashViolations(String markdown, String location) {
+    /** 개념 글 줄표·가운뎃점 검사 (소제목 부제 " — " 도 위반 > "제목: 부제"), 원본은 content/concepts 라 화면 자동 정리 안 함 */
+    public static List<QuestionFormatViolation> findConceptArticlePunctuationViolations(String markdown, String location) {
         if (!ForbiddenPunctuationCleaner.hasForbiddenPunctuation(markdown)) return List.of();
-        StringBuilder withoutHeadingSeparators = new StringBuilder();
-        for (String line : markdown.split("\n", -1)) {
-            boolean isHeading = HEADING_LINE.matcher(line).find();
-            withoutHeadingSeparators.append(isHeading ? line.replaceFirst(CONCEPT_HEADING_SUBTITLE_SEPARATOR, " ") : line)
-                    .append('\n');
-        }
-        String checkedText = withoutHeadingSeparators.toString();
-        if (!ForbiddenPunctuationCleaner.hasForbiddenPunctuation(checkedText)) return List.of();
-        return List.of(toPunctuationViolation(checkedText, location, false,
+        return List.of(toPunctuationViolation(markdown, location, false,
                 "개념 원본(content/concepts)에서 고친 뒤 다시 가져오기"));
     }
 

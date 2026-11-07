@@ -1,4 +1,4 @@
-"""개념: LIKE·BETWEEN·IN (2단원, 확인 문제 5개)"""
+"""개념: LIKE, BETWEEN, IN (2단원, 확인 문제 5개)"""
 
 from concept_bundle import choice, question, sql_check, sql_error_check
 from concept_dataset import to_employee_table_md
@@ -7,7 +7,7 @@ EMPLOYEE_RANGE_TABLE = to_employee_table_md("사번", "이름", "직급", "입�
 EMPLOYEE_NAME_TABLE = to_employee_table_md("사번", "이름")
 EMPLOYEE_DEPARTMENT_TABLE = to_employee_table_md("사번", "이름", "부서번호")
 
-# ESCAPE 예시용 표 (% · _ 가 값 안에 든 할인 코드 4개)
+# ESCAPE 예시용 표 (%, _ 가 값 안에 든 할인 코드 4개)
 DISCOUNT_CODE_SETUP = (
     "CREATE TABLE 할인코드 (코드 VARCHAR2(10));\n"
     "INSERT INTO 할인코드 VALUES ('10%');\n"
@@ -28,7 +28,7 @@ CONCEPT = {
     "tagKey": "select-like-between-in",
     "topicCode": "sql_basic_select",
     "sortOrder": 5,
-    "title": "LIKE·BETWEEN·IN",
+    "title": "LIKE, BETWEEN, IN",
     "summary": "글자 모양, 값의 범위, 값 목록으로 행을 고르는 세 조건이에요",
     "coreMd": (
         "- LIKE의 `%`는 0글자 이상, `_`는 **정확히 한 글자**이고, 이 글자 자체를 찾을 때는 ESCAPE로 표시 문자를 정해요.\n"
@@ -37,7 +37,7 @@ CONCEPT = {
         "- `(열1, 열2) IN ((값, 값), ...)`은 짝이 맞는 조합만 참이라, 열마다 따로 쓴 IN보다 결과가 좁아요.\n"
         "- SQL Server의 `'[KT]%'`는 K나 T로 시작하는 값이지만, Oracle LIKE에서는 대괄호가 보통 글자라 `REGEXP_LIKE(열, '^[KT]')`로 써요."
     ),
-    "detailMd": f"""## 왜 필요할까요 — 모양, 범위, 목록으로 고르기 {{#why}}
+    "detailMd": f"""## 왜 필요할까요: 모양, 범위, 목록으로 고르기 {{#why}}
 
 "김씨 성", "급여 2500에서 2800 사이", "직급이 대리나 과장"은 `=`와 `>=`만으로 쓰면 길어지거나 아예 쓸 수 없어요. 그래서 WHERE 절에 쓰는 LIKE, BETWEEN, IN이 따로 있고, 셋 다 앞에 NOT을 붙여 반대 조건을 만들어요.
 
@@ -49,7 +49,7 @@ CONCEPT = {
 
 {EMPLOYEE_RANGE_TABLE}
 
-## LIKE — %는 0글자 이상, _는 딱 한 글자 {{#like}}
+## LIKE: %는 0글자 이상, _는 딱 한 글자 {{#like}}
 
 LIKE 패턴 안에서 특별한 뜻을 갖는 기호를 **와일드카드**라고 해요. 와일드카드가 하나도 없는 패턴은 `=`와 같은 뜻이에요.
 
@@ -74,7 +74,7 @@ SELECT 이름 FROM 사원 WHERE 이름 NOT LIKE '%민%';  -- 민이 들어 있�
 | `LIKE '_서_'` | 박서준, 윤서연 |
 | `NOT LIKE '%민%'` | 이지은, 박서준, 최유나, 정하늘, 한도윤, 윤서연 |
 
-## ESCAPE — %와 _ 글자 자체를 찾기 {{#escape}}
+## ESCAPE: %와 _ 글자 자체를 찾기 {{#escape}}
 
 값 안에 `%`나 `_`가 실제 글자로 들어 있으면, 패턴의 `_`가 와일드카드로 읽혀서 밑줄이 없는 AB1까지 맞아요. ESCAPE로 표시 문자 하나를 정하면 그 바로 뒤의 `%`나 `_`는 보통 글자가 되고, 표시 문자는 `\\`나 `#`처럼 값에 잘 나오지 않는 글자로 골라요.
 
@@ -103,7 +103,7 @@ SELECT 코드 FROM 할인코드 WHERE 코드 LIKE '%#%%' ESCAPE '#';    -- # 뒤
 | `#%` | 표시 문자 # 바로 뒤라서 보통 글자 % 하나예요 |
 | 뒤의 `%` | 아무 글자나 0글자 이상이에요 |
 
-## SQL Server의 대괄호 — Oracle에서는 REGEXP_LIKE로 {{#bracket}}
+## SQL Server의 대괄호: Oracle에서는 REGEXP_LIKE로 {{#bracket}}
 
 SQL Server는 LIKE에서 대괄호(`[ ]`)도 와일드카드로 써요. 대괄호 하나가 글자 한 자리를 차지하고, 그 자리에 안에 적은 글자 중 하나가 와야 맞아요.
 
@@ -139,7 +139,7 @@ SELECT 코드 FROM 상품코드 WHERE REGEXP_LIKE(코드, '^[^KT]');   -- K도 T
 | `REGEXP_LIKE(코드, '^[KT]')` | K100, T200 |
 | `REGEXP_LIKE(코드, '^[^KT]')` | S300, B400 |
 
-## BETWEEN — 양 끝을 포함하는 범위 {{#between}}
+## BETWEEN: 양 끝을 포함하는 범위 {{#between}}
 
 `BETWEEN a AND b`는 `>= a AND <= b`와 같아서 양 끝 값이 포함돼요. 숫자뿐 아니라 날짜와 문자에도 쓰고, `NOT BETWEEN a AND b`는 범위 바깥인 `< a OR > b`예요.
 
@@ -152,7 +152,7 @@ SELECT 이름 FROM 사원 WHERE 입사일 BETWEEN DATE '2019-01-01' AND DATE '20
 | 조건 | 결과 |
 |---|---|
 | `급여 BETWEEN 2500 AND 2800` | 이지은, 박서준, 정하늘, 한도윤 |
-| `급여 NOT BETWEEN 2500 AND 2800` | 김민수, 최유나, 오지민, 윤서연 (경계 2500·2800은 빠져요) |
+| `급여 NOT BETWEEN 2500 AND 2800` | 김민수, 최유나, 오지민, 윤서연 (경계 2500, 2800은 빠져요) |
 | `입사일 BETWEEN DATE '2019-01-01' AND DATE '2020-12-31'` | 박서준, 한도윤 |
 
 급여순으로 세우면 `BETWEEN 2500 AND 2800`은 경계 값 2500과 2800까지 가운데 네 명을 남겨요.
@@ -168,7 +168,7 @@ SELECT 이름 FROM 사원 WHERE 입사일 BETWEEN DATE '2019-01-01' AND DATE '20
 | 오지민 2200 | 빠짐 |
 | 윤서연 2000 | 빠짐 |
 
-## IN — 목록 중 하나와 같은 값 {{#in}}
+## IN: 목록 중 하나와 같은 값 {{#in}}
 
 `직급 IN ('대리', '과장')`은 `직급 = '대리' OR 직급 = '과장'`을 짧게 쓴 것이에요. `NOT IN (10, 20)`은 `<> 10 AND <> 20`이에요.
 
@@ -195,7 +195,7 @@ SELECT 이름 FROM 사원 WHERE 부서번호 NOT IN (10, 20);   -- 10번도 20�
 | 오지민 30 | 남음 |
 | 윤서연 NULL | 빠짐 |
 
-## 자주 헷갈리는 점 — 경계, NULL, 짝 {{#confusing}}
+## 자주 헷갈리는 점: 경계, NULL, 짝 {{#confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -204,7 +204,7 @@ SELECT 이름 FROM 사원 WHERE 부서번호 NOT IN (10, 20);   -- 10번도 20�
 | 부서번호가 NULL인 윤서연은 `NOT IN (10, 20)`에 나와요 | NULL과 비교하면 참도 거짓도 아닌 UNKNOWN이라 빠져요 |
 | `IN` 목록의 NULL처럼 `NOT IN` 목록의 NULL도 무시돼요 | `NOT IN (10, NULL)`은 `<> NULL`이 늘 UNKNOWN이라 0행이에요. `IN (10, 20, NULL)`은 OR이라 10번, 20번은 나와요 |
 | `'_서_'`와 `'%서%'`는 같은 패턴이에요 | `'_서_'`는 정확히 세 글자, `'%서%'`는 길이와 상관없어요. 네 글자 이름이면 결과가 달라져요 |
-| `LIKE '%'`는 모든 행에 맞아요 | LIKE도 비교라서 값이 NULL인 행은 걸리지 않아요. 커미션이 NULL인 김민수·최유나·정하늘·윤서연이 빠져 4명이에요 |
+| `LIKE '%'`는 모든 행에 맞아요 | LIKE도 비교라서 값이 NULL인 행은 걸리지 않아요. 커미션이 NULL인 김민수, 최유나, 정하늘, 윤서연이 빠져 4명이에요 |
 | ESCAPE를 빼도 #은 표시 문자로 읽혀요 | ESCAPE가 없으면 #은 보통 글자라서 `'%#%%'`는 # 글자가 든 값을 찾고, 오류 없이 0행이 나와요 |
 | 표시 문자 뒤에는 아무 글자나 올 수 있어요 | %, _, 표시 문자 자신만 와요. `'%#a%' ESCAPE '#'`는 오류(ORA-01424, 표시 문자 뒤 글자가 잘못됨)예요 |
 
@@ -233,12 +233,12 @@ SELECT 이름 FROM 사원 WHERE 부서번호 IN (20, 30) AND 직급 IN ('대리'
 | `NOT BETWEEN 2500 AND 2800`의 결과에는 급여 2500인 사원이 빠져요 | O | 경계 값은 범위 안이라서 NOT BETWEEN에서는 빠져요 |
 | Oracle에서 `LIKE '[KT]%'`는 오류가 나요 | X | 대괄호를 보통 글자로 읽어서 오류 없이 0행이 나와요 |
 
-## 꼭 외울 것 — 와일드카드, 경계, NULL 목록 {{#memorize}}
+## 꼭 외울 것: 와일드카드, 경계, NULL 목록 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
 | LIKE의 `%`와 `_` | `%`는 0글자 이상, `_`는 정확히 한 글자 |
-| `%`·`_` 글자 자체 찾기 | ESCAPE로 표시 문자 한 글자를 정해요 |
+| `%`, `_` 글자 자체 찾기 | ESCAPE로 표시 문자 한 글자를 정해요 |
 | BETWEEN a AND b의 경계 | 양 끝 포함 (`>= a AND <= b`) |
 | BETWEEN 큰 값 AND 작은 값 | 오류 없이 0행 |
 | NOT IN 목록에 NULL | 늘 0행 (`<> NULL`이 UNKNOWN) |

@@ -3,10 +3,10 @@
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
 from concept_dataset import DEPARTMENT_ROWS, DEPARTMENT_TABLE_MD, EMPLOYEE_ROWS, to_employee_table_md, to_markdown_table
 
-# 외부 조인 계산에 쓰는 열만 (사번: COUNT(E.사번)·IS NULL, 급여: ON·WHERE 조건, 커미션: IS NULL 함정)
+# 외부 조인 계산에 쓰는 열만 (사번: COUNT(E.사번), IS NULL, 급여: ON, WHERE 조건, 커미션: IS NULL 함정)
 EMPLOYEE_JOIN_TABLE = to_employee_table_md("사번", "이름", "급여", "커미션", "부서번호")
 
-# 본문·문제 공통 SQL
+# 본문, 문제 공통 SQL
 LEFT_JOIN_SQL = "SELECT E.이름, D.부서명 FROM 사원 E LEFT OUTER JOIN 부서 D ON E.부서번호 = D.부서번호"
 FULL_JOIN_COUNT_SQL = "SELECT COUNT(*) FROM 사원 E FULL OUTER JOIN 부서 D ON E.부서번호 = D.부서번호;"
 HIGH_SALARY_WHERE_SQL = ("SELECT D.부서명, E.이름 FROM 부서 D LEFT JOIN 사원 E "
@@ -22,7 +22,7 @@ RIGHT_JOIN_ROWS = MATCHED_ROWS + [[None, "인사부"]]
 FULL_JOIN_ROWS = MATCHED_ROWS + [["윤서연", None], [None, "인사부"]]
 # 부서 기준, 급여 3000 이상 사원만 붙임 (조건을 ON 에 둔 결과 4행)
 HIGH_SALARY_ON_ROWS = [["기획부", "김민수"], ["개발부", None], ["영업부", "최유나"], ["인사부", None]]
-# 부서 기준 LEFT JOIN 8행 (부서명, 이름, 급여), WHERE 로 거르기 전 (인사부는 이름·급여 NULL)
+# 부서 기준 LEFT JOIN 8행 (부서명, 이름, 급여), WHERE 로 거르기 전 (인사부는 이름, 급여 NULL)
 DEPARTMENT_EMPLOYEE_SALARY_ROWS = [["기획부", "김민수", 3000], ["개발부", "이지은", 2500], ["개발부", "박서준", 2800],
                                    ["개발부", "정하늘", 2500], ["영업부", "최유나", 3200], ["영업부", "한도윤", 2700],
                                    ["영업부", "오지민", 2200], ["인사부", None, None]]
@@ -56,7 +56,7 @@ DEPARTMENT_COUNT_EXAMPLE = sql_example(
     ("부서명", "COUNT(*)", "COUNT(E.사번)"),
     [["기획부", 1, 1], ["개발부", 3, 3], ["영업부", 3, 3], ["인사부", 1, 0]], is_ordered=False)
 
-# 그림 블록 (#853): 위 검증된 결과 행 > 잇는 값(부서번호)·거르는 값(급여)이 보이는 행 글
+# 그림 블록 (#853): 위 검증된 결과 행 > 잇는 값(부서번호), 거르는 값(급여)이 보이는 행 글
 JOIN_DIAGRAM_COLUMNS = ("왼쪽 행", "오른쪽 행")
 _EMPLOYEE_BY_NAME = {row[1]: row for row in EMPLOYEE_ROWS}
 _DEPARTMENT_BY_NAME = {row[1]: row for row in DEPARTMENT_ROWS}
@@ -95,7 +95,7 @@ CONCEPT = {
         "- Oracle의 `(+)`는 **NULL로 채워질 쪽** 열에 붙여서 `E.부서번호 = D.부서번호(+)`가 사원 기준 LEFT JOIN이고, `(+)`로는 FULL을 못 써요.\n"
         "- NULL로 채워지는 쪽 표의 조건을 WHERE에 두면 INNER JOIN처럼 되므로, 그 조건은 **ON에** 둬요."
     ),
-    "detailMd": f"""## 왜 필요한가요 — 짝 없는 행도 남기기 {{#why}}
+    "detailMd": f"""## 왜 필요한가요: 짝 없는 행도 남기기 {{#why}}
 
 부서별 사원 수 보고서를 INNER JOIN으로 만들면, 사원이 없는 인사부는 "0명"으로 나오지 않고 아예 사라져요. 부서가 정해지지 않은 윤서연도 사원 명단에서 사라지기는 마찬가지예요.
 
@@ -105,7 +105,7 @@ CONCEPT = {
 
 {DEPARTMENT_TABLE_MD}
 
-## 한 줄 정의 — 기준 표는 모두 남아요 {{#definition}}
+## 한 줄 정의: 기준 표는 모두 남아요 {{#definition}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -120,7 +120,7 @@ CONCEPT = {
 
 결과 행 수는 "짝이 맞는 행 수 + 기준 표에서 짝을 못 찾은 행 수"로 세요. `OUTER`는 생략할 수 있어서 `LEFT JOIN`이라고만 써도 같아요.
 
-## LEFT·RIGHT·FULL — 같은 입력, 기준만 달라요 {{#right-full}}
+## LEFT, RIGHT, FULL: 같은 입력, 기준만 달라요 {{#right-full}}
 
 {LEFT_JOIN_EXAMPLE.markdown}
 
@@ -136,7 +136,7 @@ LEFT에서는 윤서연의 부서명이, RIGHT에서는 인사부의 이름이 N
 
 표 순서를 바꿔 `부서 D LEFT JOIN 사원 E`라고 써도 기준이 부서 표가 되므로 RIGHT JOIN과 같은 결과가 나와요.
 
-## Oracle의 (+) 표기 — 모자란 쪽에 붙여요 {{#oracle-plus}}
+## Oracle의 (+) 표기: 모자란 쪽에 붙여요 {{#oracle-plus}}
 
 Oracle 방식은 WHERE 절의 조인 조건에 `(+)`를 붙여 외부 조인을 표시해요. `(+)`를 붙이는 자리는 짝이 없을 때 **NULL로 채워질 쪽** 표의 열이에요.
 
@@ -161,7 +161,7 @@ SELECT E.이름, D.부서명 FROM 사원 E, 부서 D WHERE E.부서번호(+) = D
 |---|---|---|
 | `(+)`를 양쪽 열에 붙이면 FULL OUTER JOIN을 만들 수 있어요 | X | 양쪽에 붙이면 오류라서 FULL은 ANSI 문법으로만 써요 |
 
-## ON과 WHERE — 조건 위치가 결과를 바꿔요 {{#on-where}}
+## ON과 WHERE: 조건 위치가 결과를 바꿔요 {{#on-where}}
 
 아래 두 SQL은 부서를 기준으로 급여 3000 이상인 사원을 붙이려는 것이고, 급여 조건의 위치만 달라요. 급여가 3000 이상인 사원은 김민수(기획부, 3000)와 최유나(영업부, 3200)뿐이에요.
 
@@ -183,7 +183,7 @@ ON 절의 조건은 짝을 찾을 때 쓰여서, 급여 3000 이상인 사원이
 
 {HIGH_SALARY_WHERE_FILTER_DIAGRAM_MD}
 
-## 짝 없는 행 찾기와 세기 — IS NULL과 COUNT {{#count}}
+## 짝 없는 행 찾기와 세기: IS NULL과 COUNT {{#count}}
 
 `IS NULL`은 값이 NULL인지 확인하는 조건이에요. 외부 조인으로 NULL이 채워진 행만 남기면 짝이 없는 쪽을 찾을 수 있어요.
 
@@ -217,11 +217,11 @@ SELECT D.부서명, E.이름 FROM 부서 D, 사원 E WHERE D.부서번호 = E.�
 | 사원 기준 LEFT JOIN에서 사원 쪽 조건을 ON에 두면, 조건에 맞지 않는 사원도 결과에 남아요 | O | ON 조건은 짝을 찾을 때만 쓰여서, 기준 행은 상대 열이 NULL인 채로 남아요 |
 | `WHERE E.부서번호 = D.부서번호(+)`의 기준 표는 사원이에요 | O | `(+)`가 없는 쪽이 기준이에요 |
 
-## 꼭 외울 것 — 기준 표와 (+) 위치 {{#memorize}}
+## 꼭 외울 것: 기준 표와 (+) 위치 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
-| LEFT·RIGHT·FULL의 기준 | 차례로 왼쪽 표, 오른쪽 표, 양쪽 표의 모든 행이 남아요 |
+| LEFT, RIGHT, FULL의 기준 | 차례로 왼쪽 표, 오른쪽 표, 양쪽 표의 모든 행이 남아요 |
 | 외부 조인 결과 행 수 | 짝 맞는 행 수 + 기준 표에서 짝을 못 찾은 행 수 |
 | OUTER 키워드 | 생략할 수 있어서 LEFT JOIN만 써도 같아요 |
 | (+)를 붙이는 쪽 | NULL로 채워질 쪽 열, 기준 표는 (+)가 없는 쪽 |
@@ -275,7 +275,7 @@ SELECT D.부서명, E.이름 FROM 부서 D, 사원 E WHERE D.부서번호 = E.�
     ],
     "relatedQuestionUuids": [],
     "sqlChecks": [
-        # 본문 예시 7개 (sql_example: LEFT·RIGHT·FULL, ON <-> WHERE, IS NULL, COUNT)
+        # 본문 예시 7개 (sql_example: LEFT, RIGHT, FULL, ON <-> WHERE, IS NULL, COUNT)
         LEFT_JOIN_EXAMPLE.check,
         RIGHT_JOIN_EXAMPLE.check,
         FULL_JOIN_EXAMPLE.check,

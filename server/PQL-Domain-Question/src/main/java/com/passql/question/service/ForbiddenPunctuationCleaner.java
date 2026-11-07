@@ -4,6 +4,7 @@ import com.passql.question.dto.explanation.ChoiceAnalysis;
 import com.passql.question.dto.explanation.ChoiceSetExplanation;
 import com.passql.question.dto.explanation.KeyConcept;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -35,6 +36,10 @@ public final class ForbiddenPunctuationCleaner {
     // 코드 울타리 블록 (```...```, 닫히지 않으면 끝까지)
     private static final Pattern CODE_FENCE_BLOCK = Pattern.compile("```[\\s\\S]*?(?:```|$)");
     private static final Pattern INLINE_CODE = Pattern.compile("`[^`\\n]*`");
+    // 코드 자리 표시 (사용자 정의 영역 글자 + 순번, 정리 규칙에 걸리지 않음)
+    private static final String PLACEHOLDER_START = "\uE000";
+    private static final String PLACEHOLDER_END = "\uE001";
+    private static final Pattern PROTECTED_PLACEHOLDER = Pattern.compile(PLACEHOLDER_START + "(\\d+)" + PLACEHOLDER_END);
     // "→ A·B·C" 묶음: 화살표 뒤 가운뎃점으로 이은 낱말 2개 이상
     private static final String GROUP_WORD = "[^\\s" + MIDDLE_DOT_CHARACTERS + ",()`]+";
     private static final Pattern ARROW_MIDDLE_DOT_GROUP = Pattern.compile(
@@ -59,16 +64,14 @@ public final class ForbiddenPunctuationCleaner {
     /** 글 1개 정리 (금지 기호 없으면 원문 그대로, null > null) */
     public static String clean(String text) {
         if (text == null || !ANY_FORBIDDEN_PUNCTUATION.matcher(text).find()) return text;
-        StringBuilder cleaned = new StringBuilder(text.length());
-        Matcher fenceMatcher = CODE_FENCE_BLOCK.matcher(text);
-        int position = 0;
-        while (fenceMatcher.find()) {
-            cleaned.append(cleanOutsideFence(text.substring(position, fenceMatcher.start())));
-            cleaned.append(fenceMatcher.group());
-            position = fenceMatcher.end();
-        }
-        cleaned.append(cleanOutsideFence(text.substring(position)));
-        return cleaned.toString();
+        // 코드 자리 표시로 가림 > 전체 글 정리 > 되돌림 (줄 맨 앞·끝 판정이 코드 경계에서 끊기지 않게)
+        List<String> protectedParts = new ArrayList<>();
+        String masked = maskCode(text, CODE_FENCE_BLOCK, protectedParts);
+        masked = maskCode(masked, INLINE_CODE, protectedParts);
+        String cleaned = cleanPlainText(masked);
+        Matcher placeholderMatcher = PROTECTED_PLACEHOLDER.matcher(cleaned);
+        return placeholderMatcher.replaceAll(match ->
+                Matcher.quoteReplacement(protectedParts.get(Integer.parseInt(match.group(1)))));
     }
 
     /** 구조화 해설 전체 글 정리 (null > null) */
@@ -86,19 +89,15 @@ public final class ForbiddenPunctuationCleaner {
                 keyConcepts, confusingPoints, choiceAnalyses, clean(explanation.examTip()));
     }
 
-    // 울타리 밖: 인라인 코드는 → 가 있을 때만 정리, 나머지 글은 정리
-    private static String cleanOutsideFence(String text) {
-        StringBuilder cleaned = new StringBuilder(text.length());
-        Matcher inlineCodeMatcher = INLINE_CODE.matcher(text);
-        int position = 0;
-        while (inlineCodeMatcher.find()) {
-            cleaned.append(cleanPlainText(text.substring(position, inlineCodeMatcher.start())));
-            String inlineCode = inlineCodeMatcher.group();
-            cleaned.append(inlineCode.contains(DEPENDENCY_ARROW) ? cleanPlainText(inlineCode) : inlineCode);
-            position = inlineCodeMatcher.end();
-        }
-        cleaned.append(cleanPlainText(text.substring(position)));
-        return cleaned.toString();
+    // 코드 조각 > 자리 표시 (→ 든 인라인 코드는 함수 종속 표기라 가리지 않고 정리)
+    private static String maskCode(String text, Pattern codePattern, List<String> protectedParts) {
+        return codePattern.matcher(text).replaceAll(match -> {
+            if (match.group().startsWith("`") && !match.group().startsWith("```") && match.group().contains(DEPENDENCY_ARROW)) {
+                return Matcher.quoteReplacement(match.group());
+            }
+            protectedParts.add(match.group());
+            return PLACEHOLDER_START + (protectedParts.size() - 1) + PLACEHOLDER_END;
+        });
     }
 
     // 글: 화살표 묶음 > 줄 끝 기호 삭제 > 줄 맨 앞 기호 "- " > 가운뎃점 ", " > 줄표 ": "

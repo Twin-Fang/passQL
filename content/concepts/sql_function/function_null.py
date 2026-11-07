@@ -16,7 +16,7 @@ NVL_VERSUS_NVL2_EXAMPLE = sql_example(
      ["오지민", 200, 2400, "대상"], ["윤서연", None, 2000, "비대상"]],
 )
 
-# NULLIF 로 0 나누기 피하기: 커미션 300·0 두 사원
+# NULLIF 로 0 나누기 피하기: 커미션 300, 0 두 사원
 NULLIF_DIVISION_EXAMPLE = sql_example(
     "SELECT 이름, NULLIF(커미션, 0), ROUND(급여 / NULLIF(커미션, 0), 2)\n"
     "FROM 사원\n"
@@ -26,7 +26,7 @@ NULLIF_DIVISION_EXAMPLE = sql_example(
     [["이지은", 300, 8.33], ["박서준", None, None]],
 )
 
-# NVL·COALESCE(NULL 바꾸기) <-> NULLIF(같으면 NULL): 커미션 NULL·300·0 세 사원
+# NVL, COALESCE(NULL 바꾸기) <-> NULLIF(같으면 NULL): 커미션 NULL, 300, 0 세 사원
 NULL_REPLACE_VERSUS_NULLIF_EXAMPLE = sql_example(
     "SELECT 사번, 커미션, NVL(커미션, 0), COALESCE(커미션, 0), NULLIF(커미션, 0)\n"
     "FROM 사원\n"
@@ -69,7 +69,7 @@ CONCEPT = {
         "- 행이 없으면 `NVL(열, 0)`은 **0행**이고, `NVL(MAX(열), 0)`은 0 한 행이에요.\n"
         "- SQL Server의 `ISNULL`과 MySQL의 `IFNULL`은 NVL과 같고, 이름이 비슷한 `NULLIF`는 전혀 다른 함수예요."
     ),
-    "detailMd": f"""## NULL 관련 함수가 하는 일 — NULL과 다른 값 사이를 바꿔요 {{#why}}
+    "detailMd": f"""## NULL 관련 함수가 하는 일: NULL과 다른 값 사이를 바꿔요 {{#why}}
 
 NULL이 섞인 계산은 결과도 NULL이 돼서, 김민수의 급여 3000에 커미션 NULL을 더하면 NULL이 나와요. 그래서 "NULL이면 0으로 보라"고 알려 주는 함수가 필요하고, 반대로 0처럼 계산을 방해하는 값을 NULL로 바꾸는 함수도 있어요.
 
@@ -81,7 +81,7 @@ NULL이 섞인 계산은 결과도 NULL이 돼서, 김민수의 급여 3000에 �
 SELECT 급여 + 커미션 FROM 사원 WHERE 사번 = 1001;   -- 커미션이 NULL이라 결과도 NULL이에요
 ```
 
-## 네 가지 함수 한눈에 보기 — 바꾸는 쪽과 만드는 쪽 {{#definition}}
+## 네 가지 함수 한눈에 보기: 바꾸는 쪽과 만드는 쪽 {{#definition}}
 
 | 함수 | 돌려주는 값 | 예 | 결과 |
 |---|---|---|---|
@@ -110,7 +110,7 @@ NULLIF(a, b)      = CASE WHEN a = b THEN NULL ELSE a END
 COALESCE(a, b, c) = CASE WHEN a IS NOT NULL THEN a WHEN b IS NOT NULL THEN b ELSE c END
 ```
 
-## NVL과 NVL2 — 값을 바꾸나, 있는지로 고르나 {{#nvl-nvl2}}
+## NVL과 NVL2: 값을 바꾸나, 있는지로 고르나 {{#nvl-nvl2}}
 
 NVL은 첫 번째 값이 NULL일 때만 두 번째 값으로 바꿔요. NVL2는 NULL인지만 보고, 아니면 두 번째 값을, NULL이면 세 번째 값을 돌려줘요.
 
@@ -118,7 +118,7 @@ NVL은 첫 번째 값이 NULL일 때만 두 번째 값으로 바꿔요. NVL2는 
 
 커미션이 0인 박서준은 NULL이 아니라서 NVL은 0을 그대로 두고, NVL2는 '대상'을 돌려줘요.
 
-## NULLIF와 COALESCE — 같으면 NULL, 처음 만난 값 {{#nullif-coalesce}}
+## NULLIF와 COALESCE: 같으면 NULL, 처음 만난 값 {{#nullif-coalesce}}
 
 NULLIF는 NVL과 반대 방향으로 값을 NULL로 만들어요. 나누는 수를 `NULLIF(커미션, 0)`으로 감싸면 0이 NULL로 바뀌어 오류 대신 NULL이 나와요.
 
@@ -132,7 +132,7 @@ SELECT COALESCE(NULL, NULL, 3, 4), COALESCE(NULL, 'B', 'C'), NULLIF(10, 20) FROM
 
 COALESCE는 왼쪽부터 보아 처음으로 NULL이 아닌 값을 돌려줘요. 인자가 모두 NULL이면 NULL을 돌려주고, 인자를 두 개만 주면 NVL과 같은 일을 해요.
 
-## 공집합과 NULL — 행이 없으면 NVL도 할 일이 없어요 {{#empty-set}}
+## 공집합과 NULL: 행이 없으면 NVL도 할 일이 없어요 {{#empty-set}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -152,7 +152,7 @@ SELECT COUNT(*) FROM 사원 WHERE 부서번호 = 40;           -- COUNT는 NULL�
 
 "부서의 최고 급여를 구하되 사원이 없으면 0으로 보여 달라" 같은 요구에 이 방법을 써요. 집계 함수가 행을 묶는 방식은 그룹 함수 단원에서 자세히 다뤄요.
 
-## 다른 DBMS의 NULL 함수 — 이름은 달라도 뜻이 같은 것 {{#other-dbms}}
+## 다른 DBMS의 NULL 함수: 이름은 달라도 뜻이 같은 것 {{#other-dbms}}
 
 DBMS는 데이터베이스를 관리하는 프로그램이고, Oracle, SQL Server, MySQL이 그 예예요. 시험은 Oracle을 기준으로 하면서 다른 DBMS의 이름을 보기에 섞어 내요.
 
@@ -183,7 +183,7 @@ IFNULL과 NULLIF는 글자 순서만 바뀐 이름이라 함정으로 나와요.
 
 김민수(1001)의 NULL은 NULLIF가 바꿔 주지 않아서 그대로 NULL이에요. 박서준(1003)의 0은 두 번째 값 0과 같아서 NULLIF가 NULL로 만들어요.
 
-## 자주 헷갈리는 점 — 인자 순서, 0, 타입 {{#confusing}}
+## 자주 헷갈리는 점: 인자 순서, 0, 타입 {{#confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -219,7 +219,7 @@ SELECT MAX(NVL(급여, 0)), NVL(MAX(급여), 0) FROM 사원 WHERE 부서번호 =
 | 행이 없는 조건에서 COUNT(*)는 NULL을 돌려줘요 | X | COUNT는 예외로 0 한 행을 돌려줘요 |
 | NVL(커미션, '0')은 커미션이 숫자라서 오류가 나요 | X | '0'은 숫자로 바꿀 수 있어서 NVL은 동작해요 |
 
-## 꼭 외울 것 — 인자 순서와 DBMS별 이름 {{#memorize}}
+## 꼭 외울 것: 인자 순서와 DBMS별 이름 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
@@ -230,7 +230,7 @@ SELECT MAX(NVL(급여, 0)), NVL(MAX(급여), 0) FROM 사원 WHERE 부서번호 =
 | 행이 없을 때 NVL과 집계 | NVL(열, 0)은 0행, NVL(MAX(열), 0)은 0 한 행 |
 | 숫자와 문자 섞기 | NVL은 둘째 인자를 첫 인자 타입으로 바꿔 보고, COALESCE는 오류 |
 | NVL과 같은 다른 이름 | SQL Server는 ISNULL(a, b), MySQL은 IFNULL(a, b) |
-| 표준 함수와 Oracle 전용 | NULLIF·COALESCE는 표준, NVL·NVL2는 Oracle |
+| 표준 함수와 Oracle 전용 | NULLIF, COALESCE는 표준, NVL, NVL2는 Oracle |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 
@@ -298,10 +298,10 @@ SELECT MAX(NVL(급여, 0)), NVL(MAX(급여), 0) FROM 사원 WHERE 부서번호 =
         sql_check("SELECT COALESCE(NULL, NULL) FROM DUAL", [[None]]),
         sql_check("SELECT MAX(NVL(급여, 0)), NVL(MAX(급여), 0) FROM 사원 WHERE 부서번호 = 40", [[None, 0]]),
         sql_check("SELECT 급여 + 커미션 FROM 사원 WHERE 사번 = 1001", [[None]]),
-        # 확인 문제 (stemSql·보기)
+        # 확인 문제 (stemSql, 보기)
         sql_check("SELECT NVL2(커미션, '대상', '비대상') FROM 사원 WHERE 사번 = 1003;", [["대상"]]),
         sql_check("SELECT NULLIF(급여, 2500) FROM 사원 WHERE 사번 = 1006;", [[2700]]),
-        # 확인 문제 4 보기 (Oracle 에서 실행되는 NVL·COALESCE·NULLIF)
+        # 확인 문제 4 보기 (Oracle 에서 실행되는 NVL, COALESCE, NULLIF)
         NULL_REPLACE_VERSUS_NULLIF_EXAMPLE.check,
         sql_check("SELECT NVL(커미션, 0) FROM 사원 WHERE 부서번호 = 40", []),
         sql_check("SELECT MAX(NVL(커미션, 0)) FROM 사원 WHERE 부서번호 = 40", [[None]]),

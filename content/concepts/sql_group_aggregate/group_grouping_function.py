@@ -48,7 +48,7 @@ DECODE_LABEL_EXAMPLE = sql_example(
     DECODE_LABEL_ROWS,
     is_ordered=False,
 )
-# 두 열 ROLLUP 에 '소계'·'전체' 붙인 결과 (20·30번 부서)
+# 두 열 ROLLUP 에 '소계', '전체' 붙인 결과 (20, 30번 부서)
 TWO_COLUMN_LABEL_COLUMNS = ("부서", "직급구분", "급여합계")
 TWO_COLUMN_LABEL_ROWS = [
     ["20", "과장", 2500], ["20", "대리", 2800], ["20", "사원", 2500], ["20", "소계", 7800],
@@ -94,7 +94,7 @@ CONCEPT = {
         "- 괄호 안에는 GROUP BY 열만 넣고, 다른 열은 ORA-00979(GROUP BY에 없는 열) 오류예요.\n"
         "- `GROUPING_ID(A, B)`는 GROUPING(A) × 2 + GROUPING(B)라서 **0, 1, 2, 3** 가운데 하나예요."
     ),
-    "detailMd": f"""## 같은 NULL, 다른 뜻 — GROUPING이 필요한 이유 {{#why}}
+    "detailMd": f"""## 같은 NULL, 다른 뜻: GROUPING이 필요한 이유 {{#why}}
 
 윤서연(사번 1008)은 아직 부서가 정해지지 않아서 부서번호가 NULL이에요. 이 표 전체에 `ROLLUP(부서번호)`를 쓰면 부서번호가 NULL인 행이 두 개 나와요.
 
@@ -104,7 +104,7 @@ CONCEPT = {
 
 `(NULL, 2000)`은 부서가 없는 윤서연 한 명의 그룹이고, `(NULL, 20900)`은 부서번호를 묶음에서 뺀 총계예요. 둘 다 칸이 NULL이라 눈으로는 구분할 수 없어서 GROUPING 함수가 있어요.
 
-## 한 줄 정의 — 빠졌으면 1, 남았으면 0 {{#definition}}
+## 한 줄 정의: 빠졌으면 1, 남았으면 0 {{#definition}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -117,13 +117,13 @@ CONCEPT = {
 | NULL인지가 아니라 빠졌는지 | 칸이 NULL이어도 원래 데이터의 NULL이면 0이에요 |
 | GROUP BY 열만 | 괄호 안에 다른 열을 넣으면 ORA-00979(GROUP BY에 없는 열) 오류예요 |
 
-## 원래 NULL과 소계 NULL — 결과로 구분하기 {{#distinguish}}
+## 원래 NULL과 소계 NULL: 결과로 구분하기 {{#distinguish}}
 
 {ROLLUP_DEPARTMENT_GROUPING_EXAMPLE.markdown}
 
 윤서연 그룹은 원래 NULL인 값으로 묶인 것이라 **0**이고, 총계 행은 부서번호를 빼고 묶었으므로 1이에요. 헷갈리면 "이 칸의 NULL은 소계 때문에 생겼나요?"라고 묻고, 그렇다면 1, 아니라면 0이라고 답하면 돼요.
 
-## 소계 행에 이름 붙이기 — CASE와 DECODE {{#label}}
+## 소계 행에 이름 붙이기: CASE와 DECODE {{#label}}
 
 보고서에 NULL 대신 '전체'나 '소계'를 보이려면 GROUPING을 CASE나 DECODE의 조건으로 써요. CASE는 조건에 따라 다른 값을 돌려주는 식이고, 아래는 총계에 '전체', 원래 부서가 없는 행에 '미배정'을 붙여요.
 
@@ -141,11 +141,11 @@ DECODE는 첫 번째 값이 두 번째 값과 같으면 세 번째 값을, 다�
 
 총계 행은 부서번호와 직급이 모두 묶음에서 빠졌으므로, 두 칸에 각각 '전체'와 '소계'가 찍혀요.
 
-## 자주 헷갈리는 점 — 1과 0, DECODE의 빈틈 {{#confusing}}
+## 자주 헷갈리는 점: 1과 0, DECODE의 빈틈 {{#confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
-| GROUPING은 그 열로 묶였으면 1이에요 | 반대예요. 1은 그 열을 빼고 만든 소계·총계 행, 0은 실제 값으로 묶은 일반 행이에요 |
+| GROUPING은 그 열로 묶였으면 1이에요 | 반대예요. 1은 그 열을 빼고 만든 소계, 총계 행, 0은 실제 값으로 묶은 일반 행이에요 |
 | 칸이 NULL이면 GROUPING은 1이에요 | 윤서연 그룹처럼 원래 데이터의 NULL은 0이에요 |
 | DECODE로 '전체'를 붙이면 NULL이 모두 사라져요 | 윤서연 그룹은 GROUPING이 0이라 원래 값 NULL이 그대로 나와요. 이름을 붙이려면 CASE처럼 `부서번호 IS NULL` 조건을 따로 적어요 |
 | GROUP BY에 없는 열을 넣으면 GROUPING이 1을 돌려줘요 | 묶음 기준이 아닌 열은 빠졌는지 따질 수 없어서 ORA-00979(GROUP BY에 없는 열) 오류가 나요 |
@@ -157,13 +157,13 @@ DECODE는 첫 번째 값이 두 번째 값과 같으면 세 번째 값을, 다�
 SELECT 부서번호, GROUPING(직급) FROM 사원 GROUP BY ROLLUP(부서번호);
 ```
 
-## HAVING과 ORDER BY에서도 — 총계만 빼기 {{#filter-sort}}
+## HAVING과 ORDER BY에서도: 총계만 빼기 {{#filter-sort}}
 
 GROUPING은 그룹마다 값이 하나라서 집계 함수처럼 HAVING과 ORDER BY에 쓸 수 있어요. `HAVING GROUPING(부서번호) = 0`을 붙이면 총계 행만 빠지고, 윤서연 그룹은 0이라서 남아요.
 
 {HAVING_GROUPING_EXAMPLE.markdown}
 
-## GROUPING_ID — 여러 열의 GROUPING을 숫자 하나로 {{#grouping-id}}
+## GROUPING_ID: 여러 열의 GROUPING을 숫자 하나로 {{#grouping-id}}
 
 이진수는 0과 1만으로 수를 나타내는 방법이고, 두 자리 이진수에서 왼쪽 자리는 2를, 오른쪽 자리는 1을 뜻해요. `GROUPING_ID(부서번호, 직급)`은 GROUPING(부서번호)를 왼쪽에, GROUPING(직급)을 오른쪽에 둔 이진수를 보통 숫자로 바꾼 값이라서, GROUPING(부서번호) × 2 + GROUPING(직급)으로 계산해요.
 
@@ -175,11 +175,11 @@ GROUPING은 그룹마다 값이 하나라서 집계 함수처럼 HAVING과 ORDER
 | `HAVING GROUPING(부서번호) = 0`을 붙이면 윤서연 그룹도 빠져요 | X | 윤서연 그룹은 원래 NULL로 묶여서 0이라 남아요 |
 | CASE로 이름을 붙일 때 `ELSE 부서번호`처럼 숫자를 그대로 써도 돼요 | X | 문자 '전체'와 자료형이 달라 ORA-00932(자료형이 서로 맞지 않음) 오류가 나요 |
 
-## 꼭 외울 것 — 1과 0이 뜻하는 것 {{#memorize}}
+## 꼭 외울 것: 1과 0이 뜻하는 것 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
-| `GROUPING(열)`이 1인 행 | 그 열이 묶음에서 빠진 소계·총계 행 |
+| `GROUPING(열)`이 1인 행 | 그 열이 묶음에서 빠진 소계, 총계 행 |
 | `GROUPING(열)`이 0인 행 | 실제 값으로 묶은 행 (원래 NULL도 0) |
 | 괄호 안에 넣는 열 | GROUP BY 열만 (아니면 ORA-00979) |
 | `GROUPING_ID(A, B)` 계산 | GROUPING(A) × 2 + GROUPING(B) |
@@ -189,7 +189,7 @@ GROUPING은 그룹마다 값이 하나라서 집계 함수처럼 HAVING과 ORDER
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 
-ROLLUP이나 CUBE 결과 표를 주고 특정 행의 GROUPING 값을 묻거나, CASE·DECODE로 '소계'와 '전체'를 붙인 결과 표를 고르게 하는 문제가 많아요. 행마다 어떤 열이 묶음에서 빠졌는지 먼저 따지면 되고, 원래 데이터의 NULL은 GROUPING이 0이라는 점을 함정으로 자주 써요.""",
+ROLLUP이나 CUBE 결과 표를 주고 특정 행의 GROUPING 값을 묻거나, CASE, DECODE로 '소계'와 '전체'를 붙인 결과 표를 고르게 하는 문제가 많아요. 행마다 어떤 열이 묶음에서 빠졌는지 먼저 따지면 되고, 원래 데이터의 NULL은 GROUPING이 0이라는 점을 함정으로 자주 써요.""",
     "checkQuestions": [
         question(1, "`GROUPING(부서번호)`가 1을 돌려주는 경우는 언제인가요?", "definition",
                  "GROUPING은 그 열이 소계나 총계를 만들려고 묶음에서 빠졌을 때 1을 돌려줘요. 칸이 NULL인지를 묻는 함수가 아니에요.",

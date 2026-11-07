@@ -5,7 +5,7 @@ from concept_dataset import to_employee_table_md
 
 EMPLOYEE_SALARY_TABLE = to_employee_table_md("사번", "이름", "급여", "부서번호")
 
-# 급여 내림차순 정렬 결과를 인라인 뷰로 감싼 상위 3명 (본문·3번 문제 정답)
+# 급여 내림차순 정렬 결과를 인라인 뷰로 감싼 상위 3명 (본문, 3번 문제 정답)
 TOP_THREE_SALARY_SQL = "SELECT 이름, 급여 FROM (SELECT 이름, 급여 FROM 사원 ORDER BY 급여 DESC) WHERE ROWNUM <= 3;"
 
 CONCEPT = {
@@ -21,13 +21,13 @@ CONCEPT = {
         "- Oracle 12c의 `FETCH FIRST N ROWS ONLY`와 SQL Server의 `TOP(N)`은 정렬한 뒤에 잘라요.\n"
         "- `WITH TIES`는 N번째와 같은 값도 함께 가져오고, **ORDER BY가 꼭** 있어야 해요."
     ),
-    "detailMd": f"""## 왜 필요할까요 — 앞쪽 몇 행만 필요할 때 {{#why}}
+    "detailMd": f"""## 왜 필요할까요: 앞쪽 몇 행만 필요할 때 {{#why}}
 
 "급여가 가장 높은 3명"처럼 결과의 앞쪽 몇 행만 필요한 조회를 상위 N개, 곧 **TOP N** 조회라고 해요. Oracle은 오래전부터 ROWNUM으로 TOP N을 구했는데, 번호가 붙는 시점을 모르면 엉뚱한 결과가 나와요.
 
 {EMPLOYEE_SALARY_TABLE}
 
-## ROWNUM이란 — WHERE를 통과한 행에 붙는 번호 {{#definition}}
+## ROWNUM이란: WHERE를 통과한 행에 붙는 번호 {{#definition}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -56,7 +56,7 @@ SELECT ROWNUM, 이름 FROM 사원 WHERE 부서번호 = 30 AND ROWNUM <= 2;   -- 
 | 1 | 최유나 |
 | 2 | 한도윤 |
 
-## 정렬한 뒤 자르기 — ROWNUM은 정렬보다 먼저 {{#inline-view}}
+## 정렬한 뒤 자르기: ROWNUM은 정렬보다 먼저 {{#inline-view}}
 
 한 SELECT 안에 ROWNUM과 ORDER BY를 함께 쓰면, 먼저 읽힌 3명을 자른 뒤에 급여순으로 세워요. 번호가 1, 3, 2로 뒤섞인 것이 정렬보다 번호가 먼저 붙었다는 증거예요.
 
@@ -128,7 +128,7 @@ WHERE rn >= 3;   -- 3위와 4위만 남아요
 | 박서준 | 2800 |
 | 한도윤 | 2700 |
 
-## FETCH FIRST — 정렬한 뒤 바로 잘라요 {{#fetch-first}}
+## FETCH FIRST: 정렬한 뒤 바로 잘라요 {{#fetch-first}}
 
 Oracle 12c부터는 ORDER BY 뒤에 **FETCH FIRST N ROWS ONLY**를 붙여 인라인 뷰 없이 앞쪽 N행을 가져와요. FETCH는 ORDER BY 다음에 처리되어 ROWNUM 같은 함정이 없어요.
 
@@ -163,7 +163,7 @@ SELECT 이름, 급여 FROM 사원 ORDER BY 급여 DESC FETCH FIRST 5 ROWS WITH T
 | 이지은 | 2500 |
 | 정하늘 | 2500 |
 
-## SQL Server의 TOP — SELECT 바로 뒤에 {{#top}}
+## SQL Server의 TOP: SELECT 바로 뒤에 {{#top}}
 
 SQL Server는 SELECT 바로 뒤에 `TOP(N)`을 쓰고, ORDER BY로 정렬한 결과에서 앞쪽 N행을 골라서 인라인 뷰가 필요 없어요. `TOP(N) WITH TIES`는 같은 값을 판단할 기준이 있어야 해서 반드시 ORDER BY와 함께 쓰고, 아래 문장은 Oracle에서는 실행되지 않아요.
 
@@ -179,7 +179,7 @@ SELECT TOP(5) WITH TIES 이름, 급여 FROM 사원 ORDER BY 급여 DESC;
 | FETCH FIRST (Oracle 12c) | ORDER BY 다음 | WITH TIES |
 | TOP(N) (SQL Server) | ORDER BY 다음 | WITH TIES (ORDER BY 필수) |
 
-## 자주 헷갈리는 점 — ROWNUM = 2가 0행인 이유 {{#confusing}}
+## 자주 헷갈리는 점: ROWNUM = 2가 0행인 이유 {{#confusing}}
 
 Oracle은 행을 읽을 때마다 "통과하면 받을 번호"를 후보로 들고 조건을 검사하고, 통과한 행만 번호를 받아 후보가 1 늘어나요. `ROWNUM <= 3`과 `ROWNUM = 2`를 사번 순서대로 따라가면 차이가 보여요.
 
@@ -220,7 +220,7 @@ SELECT 이름 FROM (SELECT ROWNUM AS rn, 이름 FROM (SELECT 이름, 급여 FROM
 | FETCH FIRST는 ROWNUM처럼 정렬보다 먼저 행을 잘라요 | X | FETCH는 ORDER BY 다음에 처리되어 정렬한 결과를 잘라요 |
 | SQL Server에서 `TOP(5) WITH TIES`는 ORDER BY 없이도 쓸 수 있어요 | X | 같은 값을 판단할 정렬 기준이 필요해서 ORDER BY가 꼭 있어야 해요 |
 
-## 꼭 외울 것 — 번호가 붙는 시점과 자르는 방법 {{#memorize}}
+## 꼭 외울 것: 번호가 붙는 시점과 자르는 방법 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|

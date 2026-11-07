@@ -1,10 +1,10 @@
-"""개념: INSERT·UPDATE·DELETE (3단원, 확인 문제 5개)"""
+"""개념: INSERT, UPDATE, DELETE (3단원, 확인 문제 5개)"""
 
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
 from concept_dataset import to_employee_table_md
 
 SALES_DEPARTMENT_SALARY_TABLE = to_employee_table_md("사번", "이름", "급여", "부서번호", employee_numbers=(1004, 1006, 1007))
-# 이 개념 예시·확인 문제 계산용 (사원 8명: 직급·급여·커미션·부서번호)
+# 이 개념 예시, 확인 문제 계산용 (사원 8명: 직급, 급여, 커미션, 부서번호)
 EMPLOYEE_DML_TABLE = to_employee_table_md("사번", "이름", "직급", "급여", "커미션", "부서번호")
 
 PARTIAL_INSERT_STEM_SQL = "INSERT INTO 부서 (부서번호, 부서명) VALUES (60, '재무부');\nSELECT 지역 FROM 부서 WHERE 부서번호 = 60;"
@@ -12,7 +12,7 @@ UPDATE_ALL_STEM_SQL = "UPDATE 사원 SET 커미션 = 0;\nSELECT COUNT(*) FROM �
 UPDATE_NULL_STEM_SQL = "UPDATE 사원 SET 커미션 = 커미션 + 100;\nSELECT COUNT(*) FROM 사원 WHERE 커미션 IS NULL;"
 DELETE_ROLLBACK_STEM_SQL = "DELETE 사원 WHERE 부서번호 = 30;\nROLLBACK;\nSELECT COUNT(*) FROM 사원;"
 
-# 본문 예시: INSERT 두 형태 (열 목록 생략·일부 열·순서 바꾼 열 목록)
+# 본문 예시: INSERT 두 형태 (열 목록 생략, 일부 열, 순서 바꾼 열 목록)
 INSERT_FORMS_EXAMPLE = sql_example(
     "INSERT INTO 부서 VALUES (50, '총무부', '대전');                -- 모든 열에 정의 순서대로 넣어요\n"
     "INSERT INTO 부서 (부서번호, 부서명) VALUES (60, '재무부');      -- 지역은 NULL이 돼요\n"
@@ -33,7 +33,7 @@ UPDATE_EXPRESSION_EXAMPLE = sql_example(
     "SELECT 사번, 급여 FROM 사원 WHERE 부서번호 = 30 ORDER BY 사번;",
     ('사번', '급여'), [(1004, 3300), (1006, 2800), (1007, 2300)])
 
-# 본문 예시: UPDATE 여러 열·서브쿼리
+# 본문 예시: UPDATE 여러 열, 서브쿼리
 UPDATE_COLUMNS_SUBQUERY_EXAMPLE = sql_example(
     "UPDATE 사원 SET 직급 = '과장', 급여 = 2900 WHERE 사번 = 1003;\n"
     "UPDATE 사원 SET 급여 = (SELECT MAX(급여) FROM 사원) WHERE 사번 = 1008;\n"
@@ -81,7 +81,7 @@ CONCEPT = {
     "tagKey": "dml-insert-update-delete",
     "topicCode": "sql_ddl_dml_tcl",
     "sortOrder": 4,
-    "title": "INSERT·UPDATE·DELETE",
+    "title": "INSERT, UPDATE, DELETE",
     "summary": "테이블의 행을 넣고 고치고 지우는 DML이고, COMMIT 전까지는 되돌릴 수 있어요",
     "coreMd": (
         "- INSERT에서 열 목록을 생략하면 모든 열에 **정의 순서대로** 넣고, 적지 않은 열은 DEFAULT 값이나 NULL이 돼요.\n"
@@ -90,7 +90,7 @@ CONCEPT = {
         "- Oracle은 DELETE의 FROM은 생략할 수 있지만, **INSERT의 INTO는 생략할 수 없어요**.\n"
         "- DML 결과는 COMMIT 전까지 내 세션에서만 보이고, ROLLBACK하면 되돌아가요."
     ),
-    "detailMd": f"""## DML이란 — 테이블 안의 행을 다루는 명령 {{#why}}
+    "detailMd": f"""## DML이란: 테이블 안의 행을 다루는 명령 {{#why}}
 
 CREATE TABLE로 만든 테이블은 처음에 빈 표예요. 행을 넣고, 고치고, 지우는 INSERT, UPDATE, DELETE를 DML(Data Manipulation Language, 데이터 조작어)이라고 불러요.
 
@@ -104,7 +104,7 @@ CREATE TABLE로 만든 테이블은 처음에 빈 표예요. 행을 넣고, 고�
 
 {EMPLOYEE_DML_TABLE}
 
-## INSERT — 열 목록을 적느냐 생략하느냐 {{#insert}}
+## INSERT: 열 목록을 적느냐 생략하느냐 {{#insert}}
 
 | 구분 | 열 목록 생략 | 열 목록 적음 |
 |---|---|---|
@@ -129,7 +129,7 @@ INSERT INTO 부서 (부서번호, 지역) VALUES (80, '대전');        -- 오�
 |---|---|---|
 | 열 목록을 적으면 테이블 정의와 다른 순서로 값을 적어도 돼요 | O | 값은 적은 열 목록의 순서에 맞추면 돼요 |
 
-## INSERT ... SELECT — 조회 결과를 한꺼번에 넣기 {{#insert-select}}
+## INSERT ... SELECT: 조회 결과를 한꺼번에 넣기 {{#insert-select}}
 
 VALUES 자리에 SELECT 문을 바로 쓰면, 조회된 행이 몇 개든 한 문장으로 모두 넣어요. 아래는 CTAS로 구조만 복사해 둔 보관용 표에 20번 부서 사원을 옮겨 담은 예시예요.
 
@@ -141,7 +141,7 @@ VALUES 자리에 SELECT 문을 바로 쓰면, 조회된 행이 몇 개든 한 �
 | SELECT의 열은 아무렇게나 골라도 돼요 | SELECT가 돌려주는 열의 개수와 순서가 넣을 열과 맞아야 해요 |
 | INSERT ... SELECT와 CTAS는 같은 명령이에요 | INSERT ... SELECT는 이미 있는 표에 행을 더하는 DML이라 ROLLBACK할 수 있어요. CTAS는 표를 새로 만드는 DDL이라 자동으로 커밋돼요 |
 
-## 다중 INSERT — ALL은 맞는 것 모두, FIRST는 처음 하나 {{#multi-insert}}
+## 다중 INSERT: ALL은 맞는 것 모두, FIRST는 처음 하나 {{#multi-insert}}
 
 Oracle은 끝에 쓴 SELECT(서브쿼리) 결과를 한 번 읽어서 여러 표에 나눠 넣는 다중 INSERT를 지원해요. 조건 없이 쓰면 SELECT가 돌려준 행 하나하나가 모든 INTO 절의 표에 들어가요.
 
@@ -176,7 +176,7 @@ WHEN 조건을 붙이면 INSERT ALL은 행마다 맞는 WHEN 절을 모두 실�
 |---|---|---|
 | INSERT FIRST에 ELSE까지 있으면 넣은 행 수의 합이 SELECT 결과 행 수와 같아요 | O | 행마다 꼭 한 표에만 들어가요. INSERT ALL은 그 합이 더 커질 수 있어요 |
 
-## UPDATE — SET으로 새 값, WHERE로 고칠 행 {{#update}}
+## UPDATE: SET으로 새 값, WHERE로 고칠 행 {{#update}}
 
 UPDATE는 SET 뒤에 바꿀 열과 새 값을 적고, WHERE로 바꿀 행을 골라요. 새 값에는 `급여 + 100`처럼 지금 값을 이용한 계산을 쓸 수 있어요.
 
@@ -188,7 +188,7 @@ UPDATE는 SET 뒤에 바꿀 열과 새 값을 적고, WHERE로 바꿀 행을 골
 
 {UPDATE_COLUMNS_SUBQUERY_EXAMPLE.markdown}
 
-## DELETE와 COMMIT 전 상태 — 확정 전에는 되돌릴 수 있어요 {{#before-commit}}
+## DELETE와 COMMIT 전 상태: 확정 전에는 되돌릴 수 있어요 {{#before-commit}}
 
 DELETE는 WHERE로 고른 행을 통째로 지워요. 표준 문법은 `DELETE FROM 테이블`이지만, Oracle은 FROM을 생략한 `DELETE 테이블`도 받아 줘요.
 
@@ -226,7 +226,7 @@ SELECT COUNT(*) FROM 사원;   -- 되돌아와서 8이 나와요
 |---|---|---|
 | COMMIT 전이라도 다른 사용자는 내가 지운 결과를 바로 봐요 | X | COMMIT 전까지는 실행한 세션에서만 보여요 |
 
-## 자주 헷갈리는 점 — WHERE 생략, NULL 계산, 생략할 수 있는 키워드 {{#confusing}}
+## 자주 헷갈리는 점: WHERE 생략, NULL 계산, 생략할 수 있는 키워드 {{#confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -246,7 +246,7 @@ SELECT COUNT(*) FROM 사원;   -- 되돌아와서 8이 나와요
 | SET | `SET 커미션 = NULL WHERE 사번 = 1002` | 커미션을 NULL로 바꾸라는 대입 | 이지은의 커미션이 NULL이 돼요 |
 | WHERE | `SET 급여 = 급여 * 2 WHERE 급여 = NULL` | 급여가 NULL과 같은지 묻는 비교 | 결과가 늘 UNKNOWN이라 바뀌는 행이 없어요 |
 
-`DELETE FROM 부서`는 사원이 있는 10·20·30번 부서에서 외래 키 오류가 나요. 사원이 없는 40번만 지워지고 끝나는 것이 아니라 문장 하나가 통째로 취소돼요.
+`DELETE FROM 부서`는 사원이 있는 10, 20, 30번 부서에서 외래 키 오류가 나요. 사원이 없는 40번만 지워지고 끝나는 것이 아니라 문장 하나가 통째로 취소돼요.
 
 ```sql
 DELETE FROM 부서;            -- 오류: 사원이 있는 부서가 있어요 (ORA-02292)
@@ -268,13 +268,13 @@ SELECT COUNT(*) FROM 사원이름;                                              
 |---|---|---|
 | UPDATE의 새 값 자리에는 서브쿼리를 쓸 수 없어요 | X | `SET 급여 = (SELECT MAX(급여) FROM 사원)`처럼 쓸 수 있어요 |
 
-## 꼭 외울 것 — 빠진 열, 빠진 WHERE, 생략 키워드 {{#memorize}}
+## 꼭 외울 것: 빠진 열, 빠진 WHERE, 생략 키워드 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
 | 열 목록을 생략한 INSERT | 모든 열의 값을 테이블 정의 순서대로 |
 | INSERT에서 빠진 열 | DEFAULT 값, 없으면 NULL (NOT NULL 열이면 오류) |
-| WHERE 없는 UPDATE·DELETE | 오류 없이 모든 행이 대상 |
+| WHERE 없는 UPDATE, DELETE | 오류 없이 모든 행이 대상 |
 | NULL + 100 | NULL (0으로 보려면 NVL) |
 | INSERT ALL과 INSERT FIRST | ALL은 맞는 WHEN 모두, FIRST는 처음 맞는 하나 |
 | 다중 INSERT의 끝 | SELECT 필수 (고정값은 `SELECT * FROM DUAL`) |
@@ -314,7 +314,7 @@ SELECT COUNT(*) FROM 사원이름;                                              
                   choice("C", "8", True, "COMMIT 전이라 ROLLBACK으로 지우기 전 상태가 돼요."),
                   choice("D", "0", rationale="WHERE로 30번 부서만 골랐고, 그마저 ROLLBACK으로 되돌아와요.")],
                  stem_sql=DELETE_ROLLBACK_STEM_SQL),
-        question(5, "공통 예시 데이터(본문 맨 위 사원 표의 급여·부서번호)에서 다음 SQL을 차례로 실행하면 마지막 결과는 무엇인가요?", "multi-insert",
+        question(5, "공통 예시 데이터(본문 맨 위 사원 표의 급여, 부서번호)에서 다음 SQL을 차례로 실행하면 마지막 결과는 무엇인가요?", "multi-insert",
                  "INSERT FIRST는 처음 맞는 WHEN 하나만 실행해요. 20번 부서 3명 중 박서준은 급여 2800이라 먼저 고급여사원에 들어가서, 개발부사원에는 이지은과 정하늘 2명만 들어가요.",
                  [choice("A", "3", rationale="INSERT ALL이라면 3이지만, FIRST라서 박서준은 고급여사원에만 들어가요."),
                   choice("B", "4", rationale="급여 2700 이상인 고급여사원의 행 수예요."),
@@ -324,7 +324,7 @@ SELECT COUNT(*) FROM 사원이름;                                              
     ],
     "relatedQuestionUuids": [],
     "sqlChecks": [
-        # 다중 INSERT: 무조건 ALL, 조건부 ALL·FIRST, 추적 표, 확인 문제 5
+        # 다중 INSERT: 무조건 ALL, 조건부 ALL, FIRST, 추적 표, 확인 문제 5
         UNCONDITIONAL_INSERT_ALL_EXAMPLE.check,
         INSERT_ALL_EXAMPLE.check,
         INSERT_FIRST_EXAMPLE.check,

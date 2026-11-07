@@ -4,17 +4,17 @@ from concept_bundle import choice, question, sql_check, sql_error_check, sql_exa
 from concept_dataset import (DEPARTMENT_ROWS, DEPARTMENT_TABLE_MD, EMPLOYEE_ROWS, SALARY_GRADE_ROWS,
                              SALARY_GRADE_TABLE_MD, to_employee_table_md, to_markdown_table)
 
-# 조인 계산에 쓰는 열만 (사번: 1008 윤서연·동점 정렬, 급여: 비등가 조인, 부서번호: 등가 조인)
+# 조인 계산에 쓰는 열만 (사번: 1008 윤서연, 동점 정렬, 급여: 비등가 조인, 부서번호: 등가 조인)
 EMPLOYEE_JOIN_TABLE = to_employee_table_md("사번", "이름", "급여", "부서번호")
 
-# 본문·문제 공통 SQL (sqlChecks 와 글이 같은 문장을 쓰도록 한 곳에 둠)
+# 본문, 문제 공통 SQL (sqlChecks 와 글이 같은 문장을 쓰도록 한 곳에 둠)
 EQUI_JOIN_SQL = "SELECT E.이름, D.부서명 FROM 사원 E, 부서 D WHERE E.부서번호 = D.부서번호;"
 GRADE_AT_LEAST_THREE_SQL = ("SELECT E.이름 FROM 사원 E, 급여등급 G "
                             "WHERE E.급여 BETWEEN G.최저급여 AND G.최고급여 AND G.등급 >= 3;")
 THREE_TABLES_ONE_CONDITION_SQL = ("SELECT COUNT(*) FROM 사원 E, 부서 D, 급여등급 G "
                                   "WHERE E.부서번호 = D.부서번호;")
 
-# 사원·부서 등가 조인 결과 7행 (윤서연·인사부 제외)
+# 사원, 부서 등가 조인 결과 7행 (윤서연, 인사부 제외)
 EQUI_JOIN_ROWS = [["김민수", "기획부"], ["이지은", "개발부"], ["박서준", "개발부"], ["정하늘", "개발부"],
                   ["최유나", "영업부"], ["한도윤", "영업부"], ["오지민", "영업부"]]
 # 비등가 조인 결과 8행 (이름, 급여, 등급), 급여 > 사번 순
@@ -25,7 +25,7 @@ NON_EQUI_ROWS = [["윤서연", 2000, 1], ["오지민", 2200, 1], ["이지은", 2
 ORACLE_EQUI_EXAMPLE = sql_example(
     "SELECT 사원.이름, 부서.부서명\nFROM 사원, 부서\nWHERE 사원.부서번호 = 부서.부서번호;",
     ("이름", "부서명"), EQUI_JOIN_ROWS, is_ordered=False)
-# 급여 동점(이지은·정하늘 2500)은 사번으로 순서 고정
+# 급여 동점(이지은, 정하늘 2500)은 사번으로 순서 고정
 NON_EQUI_EXAMPLE = sql_example(
     "SELECT E.이름, E.급여, G.등급\nFROM 사원 E, 급여등급 G\nWHERE E.급여 BETWEEN G.최저급여 AND G.최고급여\n"
     "ORDER BY E.급여, E.사번;",
@@ -40,7 +40,7 @@ EXTRA_FILTER_EXAMPLE = sql_example(
     "SELECT E.이름, D.부서명\nFROM 사원 E, 부서 D\nWHERE E.부서번호 = D.부서번호\n  AND E.급여 >= 2800;",
     ("이름", "부서명"), [["김민수", "기획부"], ["박서준", "개발부"], ["최유나", "영업부"]], is_ordered=False)
 
-# 조인 연결 그림 (#853): 위 검증된 결과 행 > 잇는 값이 보이는 행 글 (부서번호, 급여·등급 범위)
+# 조인 연결 그림 (#853): 위 검증된 결과 행 > 잇는 값이 보이는 행 글 (부서번호, 급여, 등급 범위)
 JOIN_DIAGRAM_COLUMNS = ("왼쪽 행", "오른쪽 행")
 _EMPLOYEE_BY_NAME = {row[1]: row for row in EMPLOYEE_ROWS}
 _DEPARTMENT_BY_NAME = {row[1]: row for row in DEPARTMENT_ROWS}
@@ -66,7 +66,7 @@ CONCEPT = {
         "- 두 표에 같은 이름의 열이 있으면 `E.부서번호`처럼 접두사를 붙이고, 별칭을 정했으면 **별칭만** 써요.\n"
         "- 표 N개를 이으려면 조인 조건이 **최소 N-1개** 필요하고, 하나가 빠지면 결과가 몇 배로 불어나요."
     ),
-    "detailMd": f"""## 왜 조인이 필요한가요 — 나뉜 표를 다시 잇기 {{#why}}
+    "detailMd": f"""## 왜 조인이 필요한가요: 나뉜 표를 다시 잇기 {{#why}}
 
 1단원의 정규화는 같은 사실을 한 곳에만 적으려고 표를 나눠요. 그래서 사원 표에는 부서번호만 있고, 부서 이름과 지역은 부서 표에 따로 있어요. 사원 표에서는 이 개념의 계산에 쓰는 네 열만 보여요.
 
@@ -76,7 +76,7 @@ CONCEPT = {
 
 사원 이름과 부서 이름을 함께 보려면 두 표에서 부서번호가 같은 행끼리 짝지어 한 줄로 붙여야 해요. 이 일을 조인(JOIN)이라고 하고, 이 개념의 예시는 모두 위 두 표로 계산해요.
 
-## 한 줄 정의 — 같은 값이면 등가, 범위면 비등가 {{#definition}}
+## 한 줄 정의: 같은 값이면 등가, 범위면 비등가 {{#definition}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -85,7 +85,7 @@ CONCEPT = {
 | 등가 조인 (EQUI JOIN) | 조인 조건에 `=`를 써서 값이 같은 행끼리 이어요 |
 | 비등가 조인 (NON-EQUI JOIN) | `BETWEEN`, `>`, `<=`처럼 `=`가 아닌 연산자로 이어요. 예: 급여가 등급 범위 안에 드는지 |
 
-## Oracle 방식으로 쓰기 — FROM에 쉼표, WHERE에 조건 {{#oracle-syntax}}
+## Oracle 방식으로 쓰기: FROM에 쉼표, WHERE에 조건 {{#oracle-syntax}}
 
 Oracle에서 오래 써 온 방식은 FROM 절에 표를 쉼표로 나열하고 WHERE 절에 조인 조건을 적는 거예요. 다음 개념의 `JOIN ... ON`은 ANSI 표준 문법인데, 결과는 같아요.
 
@@ -102,7 +102,7 @@ Oracle에서 오래 써 온 방식은 FROM 절에 표를 쉼표로 나열하고 
 | 윤서연 (1008) | 부서번호가 NULL이에요. NULL과 비교하면 참도 거짓도 아닌 UNKNOWN(알 수 없음)이 되고, WHERE 절은 참인 짝만 남겨요 |
 | 인사부 (40) | 부서번호가 40인 사원이 없어요 |
 
-## 열 이름이 겹칠 때 — 접두사와 별칭 {{#qualifier}}
+## 열 이름이 겹칠 때: 접두사와 별칭 {{#qualifier}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -118,7 +118,7 @@ SELECT 사원.이름 FROM 사원 E, 부서 D WHERE E.부서번호 = D.부서번�
 SELECT E.이름 FROM 사원 AS E, 부서 D WHERE E.부서번호 = D.부서번호;  -- 오류: 테이블 별칭 앞에는 AS를 못 써요 (ORA-00933, 문법에 맞지 않는 단어)
 ```
 
-## 비등가 조인 — 급여가 범위 안에 들면 짝 {{#non-equi}}
+## 비등가 조인: 급여가 범위 안에 들면 짝 {{#non-equi}}
 
 급여등급 표에는 사원 표와 같은 값을 가진 열이 없어요. 대신 급여가 최저급여와 최고급여 사이에 들면 그 등급이 되므로, `=` 대신 `BETWEEN`으로 이어요.
 
@@ -143,7 +143,7 @@ SELECT E.이름 FROM 사원 AS E, 부서 D WHERE E.부서번호 = D.부서번호
 |---|---|---|
 | 위 비등가 조인에 `AND G.등급 = 2`를 더 붙이면 이지은과 정하늘 2행이 남아요 | O | 8행 가운데 등급이 2인 행은 급여 2500인 두 사람뿐이에요 |
 
-## 표 세 개를 이을 때 — 조인 조건은 최소 N-1개 {{#n-minus-one}}
+## 표 세 개를 이을 때: 조인 조건은 최소 N-1개 {{#n-minus-one}}
 
 표 N개를 빠짐없이 이으려면 조인 조건이 **최소 N-1개** 필요해요. 사원, 부서, 급여등급 세 표라면 사원과 부서를 잇는 조건, 사원과 급여등급을 잇는 조건이 하나씩 있어야 해요.
 
@@ -184,11 +184,11 @@ WHERE E.부서번호 = D.부서번호;  -- BETWEEN 조건이 빠져서 28이 나
 | `SELECT 이름 AS 사원명`처럼 열 별칭 앞에는 AS를 붙일 수 있어요 | O | AS를 붙일 수 없는 쪽은 FROM 절의 테이블 별칭이에요 |
 | 범위가 겹치는 표로 비등가 조인을 하면 오류가 나요 | X | 오류 없이 한 행이 여러 등급과 짝지어져서 결과 행이 늘어나요 |
 
-## 꼭 외울 것 — 행 수와 조건 개수 {{#memorize}}
+## 꼭 외울 것: 행 수와 조건 개수 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
-| 등가 조인과 비등가 조인 | 등가는 =로, 비등가는 BETWEEN·>=처럼 = 아닌 조건으로 이어요 |
+| 등가 조인과 비등가 조인 | 등가는 =로, 비등가는 BETWEEN, >=처럼 = 아닌 조건으로 이어요 |
 | 조인 열이 NULL인 행 | 짝을 못 찾아 빠져요 (NULL과의 비교는 UNKNOWN) |
 | 표 N개의 조인 조건 수 | 최소 N-1개, 거르는 조건은 더 붙여도 돼요 |
 | 조인 조건 하나가 빠지면 | 오류 없이, 이어지지 않은 표의 행 수만큼 곱해져요 |
@@ -251,7 +251,7 @@ WHERE E.부서번호 = D.부서번호;  -- BETWEEN 조건이 빠져서 28이 나
         NON_EQUI_EXAMPLE.check,
         THREE_TABLES_EXAMPLE.check,
         EXTRA_FILTER_EXAMPLE.check,
-        # 본문: 별칭·접두사, 등급 2 거르기, 겹치는 범위
+        # 본문: 별칭, 접두사, 등급 2 거르기, 겹치는 범위
         sql_check(EQUI_JOIN_SQL, EQUI_JOIN_ROWS),
         sql_error_check("SELECT 이름, 부서명, 부서번호 FROM 사원, 부서 WHERE 사원.부서번호 = 부서.부서번호", "ORA-00918"),
         sql_error_check("SELECT E.이름 FROM 사원 AS E, 부서 D WHERE E.부서번호 = D.부서번호", "ORA-00933"),

@@ -6,7 +6,7 @@ from concept_dataset import EMPLOYEE_ROWS, to_employee_table_md, to_markdown_tab
 # 셀프 조인 계산에 쓰는 열만 (관리자사번 <-> 사번으로 잇고 급여를 비교)
 EMPLOYEE_MANAGER_TABLE = to_employee_table_md("사번", "이름", "관리자사번", "급여")
 
-# 본문·문제 공통 SQL
+# 본문, 문제 공통 SQL
 EMPLOYEE_MANAGER_SQL = "SELECT E.이름 AS 사원, M.이름 AS 관리자 FROM 사원 E, 사원 M WHERE E.관리자사번 = M.사번;"
 MANAGER_NAME_SQL = "SELECT M.이름 AS 관리자 FROM 사원 E JOIN 사원 M ON E.관리자사번 = M.사번;"
 EARNS_MORE_THAN_MANAGER_SQL = ("SELECT E.이름 FROM 사원 E JOIN 사원 M "
@@ -76,7 +76,7 @@ CONCEPT = {
         "- 관리자사번이 NULL인 김민수는 빠져서 **7행**이고, 김민수까지 보려면 사원 쪽 기준 외부 조인으로 8행을 만들어요.\n"
         "- 관리자의 관리자는 같은 표를 세 번 읽어 찾고, 단계 수를 모르는 관계는 9단원의 **계층 쿼리**로 다뤄요."
     ),
-    "detailMd": f"""## 왜 필요한가요 — 관리자도 같은 표에 있어요 {{#why}}
+    "detailMd": f"""## 왜 필요한가요: 관리자도 같은 표에 있어요 {{#why}}
 
 사원 표의 관리자사번은 관리자의 사번이에요. 관리자도 회사의 사원이라서, 관리자의 정보는 다른 표가 아니라 같은 사원 표 안에 들어 있어요. 아래에는 셀프 조인에 쓰는 네 열만 보여요.
 
@@ -84,7 +84,7 @@ CONCEPT = {
 
 이지은의 관리자사번 1001이 누구인지 알려면 같은 표에서 사번이 1001인 행을 다시 찾아야 해요. 표 하나 안에서 행과 행을 짝짓는 이 방법이 셀프 조인이고, 예시는 모두 위 사원 표(8명)로 계산해요.
 
-## 한 줄 정의 — 같은 표를 두 번 읽기 {{#definition}}
+## 한 줄 정의: 같은 표를 두 번 읽기 {{#definition}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -99,7 +99,7 @@ CONCEPT = {
 | 조건 읽기 | `E.관리자사번 = M.사번`이면 E의 옆에 E의 관리자가 붙어요 |
 | 짝 세기 | 관리자사번이 NULL인 행부터 빼고 세요 |
 
-## 사원과 관리자 짝짓기 — 결과는 7행 {{#example}}
+## 사원과 관리자 짝짓기: 결과는 7행 {{#example}}
 
 두 열이 모두 `이름`이라서, SELECT 절에 `AS 사원`, `AS 관리자`처럼 결과 열 이름(별칭)을 붙여야 어느 쪽인지 구분돼요.
 
@@ -111,7 +111,7 @@ CONCEPT = {
 
 ANSI 문법으로 `FROM 사원 E JOIN 사원 M ON E.관리자사번 = M.사번`이라고 써도 결과는 같아요. 결과는 관리자 수(3명)가 아니라 관리자가 있는 사원 수(7명)만큼 나오고, 부하가 여럿인 김민수는 부하 수만큼 반복돼요.
 
-## 김민수가 빠지는 이유 — 사원 쪽 기준 외부 조인 {{#outer}}
+## 김민수가 빠지는 이유: 사원 쪽 기준 외부 조인 {{#outer}}
 
 사장인 김민수는 관리자사번이 NULL이라서, `=` 비교가 참도 거짓도 아닌 UNKNOWN(알 수 없음)이 되어 짝이 맞지 않아요. 김민수도 남기려면 사원 쪽(E)을 기준으로 LEFT OUTER JOIN을 해요.
 
@@ -133,7 +133,7 @@ Oracle 방식으로는 NULL로 채워질 관리자 쪽(M)의 열에 `(+)`를 붙
 |---|---|---|
 | `WHERE E.관리자사번 = M.사번(+)`는 김민수까지 8행을 돌려줘요 | O | 관리자 쪽에 `(+)`가 붙어서 사원 쪽이 기준이 돼요 |
 
-## 관리자의 관리자 — 같은 표를 세 번 {{#two-levels}}
+## 관리자의 관리자: 같은 표를 세 번 {{#two-levels}}
 
 관리자의 관리자를 찾으려면 사원 표를 한 번 더 읽어서, 관리자 쪽(M)의 관리자사번을 세 번째 별칭(T)의 사번과 이어요.
 
@@ -150,7 +150,7 @@ Oracle 방식으로는 NULL로 채워질 관리자 쪽(M)의 열에 `(+)`를 붙
 |---|---|---|
 | 위 SQL의 결과에 이지은도 사원으로 나와요 | X | 이지은의 관리자 김민수는 관리자사번이 NULL이라 두 번째 조인에서 빠져요 |
 
-## 조건의 방향 — 바꾸면 역할도 바뀌어요 {{#direction}}
+## 조건의 방향: 바꾸면 역할도 바뀌어요 {{#direction}}
 
 `E.관리자사번 = M.사번`에서는 E가 사원이고 M이 관리자예요. 조건을 `E.사번 = M.관리자사번`으로 바꾸면 E가 관리자, M이 부하가 돼요.
 
@@ -181,7 +181,7 @@ SELECT E.이름 FROM 사원 E, 사원 M WHERE E.관리자사번 = M.사번;   --
 
 {EARNS_MORE_EXAMPLE.markdown}
 
-## 꼭 외울 것 — 별칭 두 개와 기준 쪽 {{#memorize}}
+## 꼭 외울 것: 별칭 두 개와 기준 쪽 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
@@ -252,7 +252,7 @@ SELECT E.이름 FROM 사원 E, 사원 M WHERE E.관리자사번 = M.사번;   --
         sql_check("SELECT E.이름 AS 사원, M.이름 AS 관리자 FROM 사원 E RIGHT JOIN 사원 M ON E.관리자사번 = M.사번",
                   MANAGER_SIDE_OUTER_ROWS),
         sql_error_check("SELECT 이름 FROM 사원, 사원 WHERE 사원.관리자사번 = 사원.사번", "ORA-00918"),
-        # 확인 문제: stemSql, 3번 보기 (RIGHT·(+) 오답)
+        # 확인 문제: stemSql, 3번 보기 (RIGHT, (+) 오답)
         sql_check(MANAGER_NAME_SQL, [[manager] for _, manager in EMPLOYEE_MANAGER_ROWS]),
         sql_check(EARNS_MORE_THAN_MANAGER_SQL, [["최유나"], ["박서준"]]),
         sql_check("SELECT E.이름 AS 사원, M.이름 AS 관리자 FROM 사원 E RIGHT JOIN 사원 M ON E.관리자사번 = M.사번 WHERE E.이름 IS NULL",

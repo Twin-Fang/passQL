@@ -120,7 +120,7 @@ public class QuestionFormatAuditService {
         String link = "/admin/concepts/learning/" + doc.getConceptTagUuid() + "/preview";
         Map<String, String> textByLocation = Map.of("개념 제목", Objects.toString(doc.getTitle(), ""),
                 "개념 핵심", Objects.toString(doc.getCoreMd(), ""), "개념 자세히", Objects.toString(doc.getDetailMd(), ""));
-        textByLocation.forEach((location, text) -> QuestionFormatRule.findConceptArticleDashViolations(text, location)
+        textByLocation.forEach((location, text) -> QuestionFormatRule.findConceptArticlePunctuationViolations(text, location)
                 .forEach(violation -> rows.add(toRow(TARGET_CONCEPT_DOC, doc.getConceptDocUuid(), doc.getTitle(), link,
                         null, violation, false))));
     }

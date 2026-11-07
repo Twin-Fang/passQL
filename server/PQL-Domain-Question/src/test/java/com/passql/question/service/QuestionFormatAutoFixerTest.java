@@ -46,6 +46,7 @@ class QuestionFormatAutoFixerTest {
         assertThat(ForbiddenPunctuationCleaner.clean(fenced)).isEqualTo("설명: 아래\n```sql\nSELECT 'A\u2014B\u00B7C' FROM T\n```");
         assertThat(ForbiddenPunctuationCleaner.clean("`'A\u00B7B'` 값")).isEqualTo("`'A\u00B7B'` 값");
         assertThat(ForbiddenPunctuationCleaner.hasForbiddenPunctuation("`'A\u00B7B'` 값")).isFalse();
+        assertThat(ForbiddenPunctuationCleaner.clean("| `%`\u00B7`_` 글자 |")).isEqualTo("| `%`, `_` 글자 |");
     }
 
     @Test

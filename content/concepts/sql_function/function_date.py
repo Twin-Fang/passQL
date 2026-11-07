@@ -29,17 +29,17 @@ CONCEPT = {
         "- `ADD_MONTHS`는 결과 달에 같은 날이 없거나 원래 날짜가 말일이면 결과 달의 **말일**을 돌려줘요.\n"
         "- `MONTHS_BETWEEN(날짜1, 날짜2)`는 날짜1에서 날짜2를 빼서, 앞 날짜가 더 이르면 **음수**예요.\n"
         "- `NEXT_DAY`는 그날을 빼고 다음에 오는 요일을, `LAST_DAY`는 그 달의 마지막 날을 돌려줘요.\n"
-        "- `SYSDATE`에는 시각이 들어 있고, 날짜 `ROUND`는 **정오·16일·7월 1일**부터 올려요."
+        "- `SYSDATE`에는 시각이 들어 있고, 날짜 `ROUND`는 **정오, 16일, 7월 1일**부터 올려요."
     ),
-    "detailMd": f"""## 날짜 함수가 하는 일 — 달력 세기를 대신해 줘요 {{#why}}
+    "detailMd": f"""## 날짜 함수가 하는 일: 달력 세기를 대신해 줘요 {{#why}}
 
 입사한 지 몇 달인지, 수습 6개월이 끝나는 날이 언제인지를 달력으로 직접 세면 틀리기 쉬워요. 달마다 날 수가 다르고, 4년에 한 번은 2월이 29일까지 있는 윤년이 돌아오기 때문이에요.
 
-## 날짜 값과 SYSDATE — 날짜 안에는 시각도 들어 있어요 {{#definition}}
+## 날짜 값과 SYSDATE: 날짜 안에는 시각도 들어 있어요 {{#definition}}
 
 | 용어 | 뜻 |
 |---|---|
-| DATE | Oracle의 날짜 타입이에요. 연·월·일과 함께 시·분·초까지 한 값에 담아서, 화면에 날짜만 보여도 시각이 들어 있을 수 있어요 |
+| DATE | Oracle의 날짜 타입이에요. 연, 월, 일과 함께 시, 분, 초까지 한 값에 담아서, 화면에 날짜만 보여도 시각이 들어 있을 수 있어요 |
 | SYSDATE | 데이터베이스 서버 시계로 지금 날짜와 시각을 돌려줘요. 인자가 없어서 괄호 없이 써요 |
 | 날짜 리터럴 | `DATE '2024-01-31'`처럼 날짜를 직접 적은 값이에요. 따옴표 안은 언제나 '연-월-일' 모양이에요 |
 | 말일 | 그 달의 마지막 날이에요 |
@@ -53,7 +53,7 @@ SYSDATE는 실행할 때마다 값이 바뀌어서, 이 글의 예시는 날짜 
 SELECT SYSDATE, SYSDATE + 1, TRUNC(SYSDATE) FROM DUAL;
 ```
 
-## 날짜 계산 — 하루가 1이에요 {{#date-arithmetic}}
+## 날짜 계산: 하루가 1이에요 {{#date-arithmetic}}
 
 날짜에 숫자를 더하거나 빼면 Oracle은 그 숫자를 **일 수**로 봐요.
 
@@ -84,7 +84,7 @@ SELECT 이름, DATE '2024-12-31' - 입사일 FROM 사원 WHERE 사번 = 1008;   
 
 날짜끼리 뺄 때 시각이 섞여 있으면 18시간을 뜻하는 0.75처럼 소수가 나와요. 날짜끼리 더하는 것은 뜻이 없는 계산이라 Oracle이 막아요.
 
-## 달 단위 함수 — 한 달은 일 수로 더하지 않아요 {{#month-functions}}
+## 달 단위 함수: 한 달은 일 수로 더하지 않아요 {{#month-functions}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -104,7 +104,7 @@ NEXT_DAY의 요일 이름은 데이터베이스 언어 설정을 따라서, 영�
 
 {HIRE_DATE_MONTH_EXAMPLE.markdown}
 
-## 일부 꺼내기와 날짜 다듬기 — EXTRACT, 날짜 ROUND·TRUNC {{#extract-round-trunc}}
+## 일부 꺼내기와 날짜 다듬기: EXTRACT, 날짜 ROUND, TRUNC {{#extract-round-trunc}}
 
 `EXTRACT(YEAR FROM 날짜)`는 연도만 숫자로 꺼내고, YEAR 자리에 MONTH나 DAY를 쓰면 월이나 일을 꺼내요. HOUR 같은 시각 부분은 TIMESTAMP 타입에서만 꺼낼 수 있어서 DATE에 쓰면 오류가 나요.
 
@@ -135,7 +135,7 @@ SELECT TRUNC(TO_DATE('2024-01-31 23:59', 'YYYY-MM-DD HH24:MI')), ROUND(TO_DATE('
 -- 결과는 차례로 2024-01-31, 2024-02-01이에요
 ```
 
-## 자주 헷갈리는 점 — 말일, 부호, 그날 빼기 {{#confusing}}
+## 자주 헷갈리는 점: 말일, 부호, 그날 빼기 {{#confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -146,7 +146,7 @@ SELECT TRUNC(TO_DATE('2024-01-31 23:59', 'YYYY-MM-DD HH24:MI')), ROUND(TO_DATE('
 | 2024-02-29 + 1개월은 3월 29일이에요 | 원래 날짜가 말일이면 결과도 말일로 맞춰서 3월 31일이에요 |
 | MONTHS_BETWEEN은 늘 양수예요 | 앞 날짜에서 뒤 날짜를 빼서, 앞이 더 이르면 음수예요 |
 | NEXT_DAY는 그날이 그 요일이면 그날을 돌려줘요 | 그날은 후보에서 빠져요. 월요일인 2024-01-29의 NEXT_DAY 'MONDAY'는 2024-02-05예요 |
-| `WHERE 입사일 = SYSDATE`로 오늘 입사자를 찾아요 | SYSDATE에 시·분·초가 붙어 0시로 저장된 입사일과 같아지지 않아요. `TRUNC(SYSDATE)`로 시각을 버려요 |
+| `WHERE 입사일 = SYSDATE`로 오늘 입사자를 찾아요 | SYSDATE에 시, 분, 초가 붙어 0시로 저장된 입사일과 같아지지 않아요. `TRUNC(SYSDATE)`로 시각을 버려요 |
 
 ```sql
 SELECT DATE '2024-01-31' + 30, ADD_MONTHS(DATE '2024-01-31', 1), ADD_MONTHS(DATE '2023-01-31', 1) FROM DUAL;
@@ -178,7 +178,7 @@ SQL Server에서는 SYSDATE 대신 `GETDATE()`, 달 더하기는 `DATEADD(MONTH,
 | DATE '2024-01-31' + 1/1440은 2024-01-31 01:00:00이에요 | X | 1/1440은 1분이라서 00:01:00이에요 |
 | ROUND(DATE '2024-07-16', 'MM')은 2024-07-01이에요 | X | 16일부터는 다음 달 1일로 올려서 2024-08-01이에요 |
 
-## 꼭 외울 것 — 결과 타입과 말일 규칙 {{#memorize}}
+## 꼭 외울 것: 결과 타입과 말일 규칙 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
@@ -269,7 +269,7 @@ SQL Server에서는 SYSDATE 대신 `GETDATE()`, 달 더하기는 `DATEADD(MONTH,
         sql_check("SELECT ROUND(MONTHS_BETWEEN(DATE '2024-03-01', DATE '2024-01-15'), 4) FROM DUAL", [[1.5484]]),
         sql_check("SELECT ADD_MONTHS(DATE '2023-02-28', 1), DATE '2024-01-31' + 1/1440 FROM DUAL",
                   [["2023-03-31", "2024-01-31 00:01:00"]]),
-        # 확인 문제 (stemSql·보기)
+        # 확인 문제 (stemSql, 보기)
         sql_check("SELECT ADD_MONTHS(DATE '2024-01-31', 1) FROM DUAL;", [["2024-02-29"]]),
         sql_check("SELECT DATE '2024-01-31' + 31, DATE '2024-01-31' + 30 FROM DUAL", [["2024-03-02", "2024-03-01"]]),
         sql_check("SELECT MONTHS_BETWEEN(DATE '2024-01-15', DATE '2024-03-15') FROM DUAL;", [[-2]]),
