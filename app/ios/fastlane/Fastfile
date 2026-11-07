@@ -45,12 +45,14 @@ def find_version_locked_by_review(app_id)
   app = Spaceship::ConnectAPI::App.find(app_id)
   return nil if app.nil?
   versions = app.get_app_store_versions(filter: { platform: "IOS" })
-  # 신형(appVersionState)·구형(appStoreState) 상태 필드 둘 다 확인
-  locked = versions.find do |version|
+  # 신형(appVersionState)·구형(appStoreState) 상태 필드 둘 다 확인 (둘 다 못 읽으면 확인 불가로)
+  states_by_version = versions.map do |version|
     states = [:app_version_state, :app_store_state].filter_map { |field| version.respond_to?(field) ? version.public_send(field) : nil }
-    states.any? { |state| review_locked_states.include?(state) }
+    [version.version_string, states]
   end
-  locked&.version_string
+  return "상태 확인 불가" if states_by_version.any? { |_, states| states.empty? }
+  locked = states_by_version.find { |_, states| states.any? { |state| review_locked_states.include?(state) } }
+  locked&.first
 rescue StandardError => e
   UI.important("⚠️  심사 중 버전 조회 실패 (#{e.class})")
   "상태 확인 불가"
