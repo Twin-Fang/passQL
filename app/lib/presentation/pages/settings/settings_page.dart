@@ -155,6 +155,13 @@ class SettingsPage extends ConsumerWidget {
                         appVersion: appVersion,
                       ),
                     ),
+                    // 사업자 정보 (#658): 별도 화면, 값 없으면 줄 숨김
+                    if (ref.watch(hasBusinessInfoProvider))
+                      SettingsRow(
+                        icon: CupertinoIcons.building_2_fill,
+                        title: '사업자 정보',
+                        onTap: () => context.push(AppRoutes.businessInfo),
+                      ),
                     if (appVersion != null)
                       SettingsRow(
                         icon: CupertinoIcons.info,
@@ -165,8 +172,6 @@ class SettingsPage extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: PassqlSpacing.xl),
-                // 사업자 정보 (#658, 값 없으면 간격까지 숨김)
-                const BusinessInfoGroup(),
                 // 계정 작업은 한 묶음, 되돌릴 수 없는 탈퇴는 맨 아래 (#774)
                 SettingsGroup(
                   children: [

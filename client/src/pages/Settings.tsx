@@ -187,13 +187,15 @@ export default function Settings() {
                 onClick={() => setOpenedLegalType(legalType)}
               />
             ))}
-            {businessInfoLines.map((line) => (
+            {/* 사업자 정보는 별도 화면 (#658), 값 없으면 줄 숨김 */}
+            {businessInfoLines.length > 0 && (
               <SettingsRow
-                key={line.label}
-                label={line.label}
-                value={<p className="text-sm text-text-secondary break-all">{line.value}</p>}
+                label="사업자 정보"
+                value={null}
+                action={<ChevronRight size={16} className="text-text-caption" />}
+                onClick={() => navigate("/settings/business-info")}
               />
-            ))}
+            )}
           </div>
         </SettingsSection>
       </section>

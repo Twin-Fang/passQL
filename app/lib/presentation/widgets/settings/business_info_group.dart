@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/meta/app_config.dart';
-import '../../design/design.dart';
 import '../../providers/app_config_providers.dart';
 import 'settings_group.dart';
 
@@ -20,7 +19,7 @@ class BusinessInfoLine {
 }
 
 /// 사업자 정보 > 표시 줄 목록 (#658)
-/// 상호 없음 > 빈 목록(섹션 숨김), 그 외 빈 값 줄 제외
+/// 상호 없음 > 빈 목록(섹션 숨김), 그 외 빈 값 줄 제외, 문의 이메일은 표시하지 않음
 List<BusinessInfoLine> toBusinessInfoLines(BusinessInfo businessInfo) {
   final companyName = businessInfo.companyName?.trim() ?? '';
   if (companyName.isEmpty) return const [];
@@ -33,7 +32,6 @@ List<BusinessInfoLine> toBusinessInfoLines(BusinessInfo businessInfo) {
       '통신판매업 신고번호',
       businessInfo.mailOrderSalesNumber,
     ),
-    (CupertinoIcons.envelope, '문의', businessInfo.contactEmail),
   ];
   return [
     for (final (icon, label, value) in candidateLines)
@@ -42,7 +40,7 @@ List<BusinessInfoLine> toBusinessInfoLines(BusinessInfo businessInfo) {
   ];
 }
 
-/// 설정 > 사업자 정보 묶음 (#658)
+/// 사업자 정보 화면의 묶음 (#658, 설정에서는 한 줄로 진입)
 /// 원본은 서버 app-config businessInfo, 오프라인·구버전 서버·상호 없음 > 그리지 않음
 class BusinessInfoGroup extends ConsumerWidget {
   const BusinessInfoGroup({super.key});
@@ -55,21 +53,25 @@ class BusinessInfoGroup extends ConsumerWidget {
     final businessInfoLines = toBusinessInfoLines(businessInfo);
     if (businessInfoLines.isEmpty) return const SizedBox.shrink();
 
-    // 값이 길어도(이메일) 줄바꿈되게 제목=항목 이름, 부제=값
-    return Padding(
-      padding: const EdgeInsets.only(bottom: PassqlSpacing.xl),
-      child: SettingsGroup(
-        title: '사업자 정보',
-        children: [
-          for (final line in businessInfoLines)
-            SettingsRow(
-              icon: line.icon,
-              title: line.label,
-              subtitle: line.value,
-              shouldShowChevron: false,
-            ),
-        ],
-      ),
+    // 값이 길어도 줄바꿈되게 제목=항목 이름, 부제=값
+    return SettingsGroup(
+      children: [
+        for (final line in businessInfoLines)
+          SettingsRow(
+            icon: line.icon,
+            title: line.label,
+            subtitle: line.value,
+            shouldShowChevron: false,
+          ),
+      ],
     );
   }
 }
+
+/// 사업자 정보 값이 있는지 (설정의 진입 줄 표시 여부)
+final hasBusinessInfoProvider = Provider.autoDispose<bool>((ref) {
+  final businessInfo =
+      ref.watch(appConfigProvider).valueOrNull?.businessInfo ??
+      const BusinessInfo();
+  return toBusinessInfoLines(businessInfo).isNotEmpty;
+});
