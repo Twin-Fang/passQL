@@ -70,6 +70,7 @@ lib/presentation/design/
 | `PassqlResultMark` / `PassqlScoreHeader` / `PassqlResultScaffold` | 정답/오답 표시, 점수 고리, 결과 화면 3종 공통 틀 |
 | `PassqlChoiceCard` (+`PassqlChoiceState`) | 선택지 카드의 선택·채점 모양 (내용은 `ChoiceItemCard` 가 채움) |
 | `PassqlCodeBlock` | SQL 표시 블록 |
+| `PassqlMemoScope` / `PassqlMemoCanvas` / `PassqlMemoController` | 풀이 화면 메모 (#904): 틀(펜 버튼·도구 막대·켬 안내)은 문항 영역을, 층(Canvas)은 스크롤 내용을 감쌈. 켬이면 한 손가락 그리기·두 손가락 스크롤, 끔이면 메모는 흐리게 남고 터치는 전부 아래로. 컨트롤러는 화면 State 가 들고 응시 동안만 메모리에 (문항별 획·되돌리기). 틀 밖의 층은 내용만 그림 |
 | `PassqlCallout` (+`PassqlCalloutKind`) | 강조 상자: 옅은 의미색 바탕 + 왼쪽 막대 + 아이콘·라벨 한 줄 + 내용 (강조·주의·외울 것 3종). 개념 학습 한 줄 핵심·자주 틀리는 점·시험 포인트 (#835), 꼭 외울 것 카드 (#876) |
 | `PassqlBadge` (+`PassqlBadgeKind`) / `PassqlLatestTrendBadge` / `PassqlProgressBar` | 의미별 캡슐 태그(주제·보조·완료·연속·중요·AI·최신 경향·외울 것, 아이콘·테두리), '최신 경향' 배지(문구 원본, #523), 진행 막대 |
 | `PassqlReveal` / `passqlRevealInOrder` | 처음 그려질 때 페이드 + 위로 8px, 순번별 지연(상한 8) (#495) |

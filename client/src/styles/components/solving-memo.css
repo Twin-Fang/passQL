@@ -1,0 +1,23 @@
+/* 풀이 메모 (#904, 앱 PassqlMemoScope·PassqlMemoCanvas 대응) */
+
+/* 펜 버튼·도구 막대: 풀이 하단 고정 바 바로 위 (바 높이는 usePracticeBottomBarHeight 가 공개) */
+.solving-memo-controls {
+  bottom: calc(var(--practice-bottom-bar-height, 0px) + var(--space-md));
+}
+
+/* 떠 있는 바탕: 카드색 + 헤어라인 + 옅은 그림자 (앱 _PassqlMemoFloatingSurface, 그림자 0 4 14) */
+.solving-memo-surface {
+  background-color: var(--color-surface-card);
+  border: 1px solid color-mix(in srgb, var(--color-border) 50%, transparent);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--color-text-primary) 12%, transparent);
+}
+
+/* 고른 색 고리: 카드색 틈 2px + 같은 색 고리 1.5px (색은 currentColor) */
+.solving-memo-ink-dot--selected {
+  box-shadow: 0 0 0 2px var(--color-surface-card), 0 0 0 3.5px currentColor;
+}
+
+/* 메모 있음 점: 카드색 테두리로 버튼 바탕과 떨어져 보이게 */
+.solving-memo-has-memo-dot {
+  border: 2px solid var(--color-surface-card);
+}

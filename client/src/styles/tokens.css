@@ -51,6 +51,12 @@
   --color-semantic-warning-light: color-mix(in srgb, var(--color-semantic-warning) 12%, transparent);
   --color-semantic-warning-border: color-mix(in srgb, var(--color-semantic-warning) 40%, white);
 
+  /* ── 풀이 메모 펜 (#904, 앱 wrong·memoInkBlue·label, 형광펜 memorize) ── */
+  --color-memo-ink-red: var(--color-semantic-error);
+  --color-memo-ink-blue: #007AFF;
+  --color-memo-ink-black: var(--color-text-primary);
+  --color-memo-highlighter: #FFCC00;
+
   /* ── 반투명 덮개 (모달·시트 뒤 배경) ── */
   --color-scrim: color-mix(in srgb, var(--color-text-primary) 40%, transparent);
 

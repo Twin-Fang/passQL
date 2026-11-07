@@ -83,50 +83,54 @@ class QuestionSolvingBody extends StatelessWidget {
       padding: EdgeInsets.only(
         bottom: MediaQuery.paddingOf(context).bottom + PassqlSpacing.xl,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (topBadge != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                PassqlSpacing.md,
-                PassqlSpacing.md,
-                PassqlSpacing.md,
-                0,
+      // 메모 층 (#904): 메모 틀(PassqlMemoScope) 안에서만 동작, 밖이면 내용 그대로
+      child: PassqlMemoCanvas(
+        pageKey: questionUuid,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (topBadge != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  PassqlSpacing.md,
+                  PassqlSpacing.md,
+                  PassqlSpacing.md,
+                  0,
+                ),
+                child: Align(alignment: Alignment.centerLeft, child: topBadge),
               ),
-              child: Align(alignment: Alignment.centerLeft, child: topBadge),
+            // 난이도 + 실행 모드 뱃지
+            QuestionHeader(question: question),
+            // 지문 + 테이블 (테이블은 지문 카드 안, #903)
+            QuestionStem(
+              stem: question.stem,
+              schemaTables: question.schemaTables,
             ),
-          // 난이도 + 실행 모드 뱃지
-          QuestionHeader(question: question),
-          // 지문 + 테이블 (테이블은 지문 카드 안, #903)
-          QuestionStem(
-            stem: question.stem,
-            schemaTables: question.schemaTables,
-          ),
-          // 테이블을 해석하지 못해 DDL 원문만 있을 때 원문 상자
-          if (_isExecutable && question.schemaTables.isEmpty)
-            SchemaSection(
-              tables: const [],
-              schemaDdl: question.schemaDdl,
-              schemaSampleData: question.schemaSampleData,
+            // 테이블을 해석하지 못해 DDL 원문만 있을 때 원문 상자
+            if (_isExecutable && question.schemaTables.isEmpty)
+              SchemaSection(
+                tables: const [],
+                schemaDdl: question.schemaDdl,
+                schemaSampleData: question.schemaSampleData,
+              ),
+            // 지금 보기 방식 (AI 새 보기·검증된 보기, 누르면 바꾸는 시트)
+            const ChoiceModeIndicator(),
+            QuestionChoices(
+              interaction: interaction,
+              notifier: notifier,
+              isExecutable: _isExecutable,
+              submitResult: submitResult,
+              gradedSelectedKey: gradedSelectedKey,
+              shouldAlwaysAllowRetry: shouldAlwaysAllowRetry,
             ),
-          // 지금 보기 방식 (AI 새 보기·검증된 보기, 누르면 바꾸는 시트)
-          const ChoiceModeIndicator(),
-          QuestionChoices(
-            interaction: interaction,
-            notifier: notifier,
-            isExecutable: _isExecutable,
-            submitResult: submitResult,
-            gradedSelectedKey: gradedSelectedKey,
-            shouldAlwaysAllowRetry: shouldAlwaysAllowRetry,
-          ),
-          _ExecutionOutcomeSection(
-            outcomeKey: _executionOutcomeKey,
-            outcome: _buildExecutionOutcome(context),
-          ),
-          if (submitResult != null && _isExecutable)
-            ..._buildGradedExecutionSections(submitResult!),
-        ],
+            _ExecutionOutcomeSection(
+              outcomeKey: _executionOutcomeKey,
+              outcome: _buildExecutionOutcome(context),
+            ),
+            if (submitResult != null && _isExecutable)
+              ..._buildGradedExecutionSections(submitResult!),
+          ],
+        ),
       ),
     );
   }
