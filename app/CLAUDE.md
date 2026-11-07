@@ -103,7 +103,7 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 - 403 `MEMBER_SUSPENDED`면 이용 제한 신호(`MemberSuspensionSignal`) > `AuthNotifier` 로그아웃 > 로그인 화면에 안내 문구.
 - 회원 탈퇴 (#516): 제공자(세션 저장값 > `/members/me` authProvider) 기준 분기. Apple·Google 은 재인증 Firebase uid <-> `/members/me` providerUserId 대조
   (다르면 중단), Apple revoke 필수(취소·실패면 중단) > 서버 삭제 > Google disconnect·네이버 토큰 삭제(최선, 카카오는 서버 unlink·앱은 로그아웃만) > 세션 삭제.
-  회원별 로컬 저장값은 보안 저장소 세션뿐.
+  회원별 로컬 저장값은 보안 저장소 세션과 최근 로그인 제공자(로그인 화면 "최근 로그인" 표시, 로그아웃해도 유지, #908).
 - 소셜 토큰 검증 실패(INVALID_SOCIAL_TOKEN·INVALID_SOCIAL_AUTHORIZATION_CODE·INVALID/EXPIRED_FIREBASE_TOKEN)는 `socialLoginFailed` > 로그인 실패 문구.
 - 계정 범위 데이터 (#516): 회원별 Provider 는 `currentMemberUuidProvider` 를 watch(로그아웃이면 API 호출 없음) + autoDispose(이전 회원 값 미보존).
 

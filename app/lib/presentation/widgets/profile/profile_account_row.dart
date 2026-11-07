@@ -5,21 +5,23 @@ import '../../../core/auth/auth_session.dart';
 import '../../../core/utils/date_format.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
-import '../account/login_provider_badge.dart';
-import '../common/app_toast.dart';
-import 'nickname_edit_sheet.dart';
+import '../account/login_provider_appearance.dart';
+import '../account/login_provider_icon.dart';
 
-// 이니셜 원 지름 (누르는 영역 44 안에 들어가는 크기)
+// 프로필 사진 원 지름 (누르는 영역 44 안에 들어가는 크기)
 const double profileAccountAvatarSize = 40;
+// 로그인 방법 아이콘 크기 (아래 줄 footnote 글자 높이)
+const double _providerIconSize = PassqlIconSize.sm;
 // 닉네임 불러오는 동안 자리 폭 (닉네임 평균 길이 정도)
 const double _nameSkeletonWidth = 120;
 
-/// 내 프로필 계정 줄 (#816 A안): 이니셜 + 닉네임(연필 = 눌러서 편집, #863) + 로그인 방법 배지·가입일 + `관리` > 계정·이용권 화면
-/// 계정 정보는 결제 스위치와 무관하게 항상 보임
+/// 내 프로필 계정 줄 (#816 A안, #908): 프로필 사진 + 닉네임 + 로그인 방법 아이콘·가입일 + `관리`
+/// 줄 전체가 계정·이용권 화면 진입 (닉네임 변경은 그 화면에서만), 결제 스위치와 무관하게 항상 보임
 class ProfileAccountRow extends StatelessWidget {
   const ProfileAccountRow({
     super.key,
     required this.nickname,
+    required this.profileImageUrl,
     required this.authProvider,
     required this.joinedAt,
     required this.isLoading,
@@ -28,6 +30,7 @@ class ProfileAccountRow extends StatelessWidget {
   });
 
   final String nickname;
+  final String? profileImageUrl;
   final SocialProvider? authProvider;
   final DateTime? joinedAt;
   final bool isLoading;
@@ -60,33 +63,54 @@ class ProfileAccountRow extends StatelessWidget {
         ),
       );
     }
-    return Row(
-      children: [
-        Expanded(
-          child: _NicknameBlock(
-            nickname: nickname,
-            authProvider: authProvider,
-            joinedAt: joinedAt,
+    final provider = authProvider;
+    final joinedAt = this.joinedAt;
+    return PassqlPressable(
+      semanticLabel: [
+        '닉네임 $nickname',
+        if (provider != null) '${loginProviderLabelOf(provider)} 로그인',
+        if (joinedAt != null) '${formatDottedDate(joinedAt)} 가입',
+        '계정 관리',
+      ].join(', '),
+      onTap: () => context.push(AppRoutes.account),
+      child: Row(
+        children: [
+          PassqlAvatar(
+            size: profileAccountAvatarSize,
+            fallbackName: nickname,
+            imageUrl: profileImageUrl,
           ),
-        ),
-        const SizedBox(width: PassqlSpacing.xs),
-        PassqlPressable(
-          hasMinimumTouchTarget: true,
-          semanticLabel: '계정·이용권 관리',
-          onTap: () => context.push(AppRoutes.account),
-          child: Text(
-            '관리',
-            style: PassqlTypography.subheadlineSemibold.copyWith(
-              color: colors.accentText,
+          const SizedBox(width: PassqlSpacing.sm),
+          Expanded(
+            child: _NicknameBlock(
+              nickname: nickname,
+              authProvider: provider,
+              joinedAt: joinedAt,
             ),
           ),
-        ),
-      ],
+          const SizedBox(width: PassqlSpacing.xs),
+          // 줄 전체가 눌림 > 진입 표시 글자만 (누르는 영역 44 높이 유지)
+          ConstrainedBox(
+            constraints: const BoxConstraints(
+              minHeight: PassqlSize.minTouchTarget,
+            ),
+            child: Center(
+              widthFactor: 1,
+              child: Text(
+                '관리',
+                style: PassqlTypography.subheadlineSemibold.copyWith(
+                  color: colors.accentText,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-/// 이니셜 + 닉네임 + 로그인 방법·가입일 한 줄. 누르면 닉네임 편집 시트
+/// 닉네임 + 로그인 방법 아이콘·가입일 한 줄 (읽기 전용, 스크린리더는 줄 전체 라벨로)
 class _NicknameBlock extends StatelessWidget {
   const _NicknameBlock({
     required this.nickname,
@@ -101,96 +125,49 @@ class _NicknameBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final initial = nickname.isEmpty ? '?' : nickname.characters.first;
     final provider = authProvider;
     final joinedAt = this.joinedAt;
-    // 예: 로그인 · 2026.10.16 가입 (가입일 모르면 로그인만)
+    // 예: [카카오 아이콘] 로그인 · 2026.10.16 가입 (가입일 모르면 로그인만)
     final accountSummary = [
       if (provider != null) '로그인',
       if (joinedAt != null) '${formatDottedDate(joinedAt)} 가입',
     ].join(' · ');
-    return PassqlPressable(
-      semanticLabel: [
-        '닉네임 $nickname, 편집',
-        if (provider != null) '${loginProviderLabelOf(provider)} 로그인',
-        if (joinedAt != null) '${formatDottedDate(joinedAt)} 가입',
-      ].join(', '),
-      onTap: () async {
-        final isChanged = await NicknameEditSheet.show(context, nickname);
-        if (isChanged == true && context.mounted) {
-          showAppToast(context, '닉네임이 변경됐어요');
-        }
-      },
-      child: Row(
-        children: [
-          Container(
-            width: profileAccountAvatarSize,
-            height: profileAccountAvatarSize,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: colors.accentTint,
-              shape: BoxShape.circle,
-            ),
-            child: Text(
-              initial,
-              style: PassqlTypography.headline.copyWith(
-                color: colors.accentText,
-              ),
-            ),
-          ),
-          const SizedBox(width: PassqlSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        nickname,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: PassqlTypography.headline.copyWith(
-                          color: colors.label,
-                        ),
-                      ),
-                    ),
-                    // 이동(›)이 아니라 편집이라 연필, 누를 수 있게 강조색
-                    const SizedBox(width: PassqlSpacing.xxs),
-                    Icon(
-                      CupertinoIcons.pencil,
-                      size: PassqlIconSize.md,
-                      color: colors.accentText,
-                    ),
-                  ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          nickname,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: PassqlTypography.headline.copyWith(color: colors.label),
+        ),
+        if (accountSummary.isNotEmpty) ...[
+          const SizedBox(height: PassqlSpacing.hairlineGap),
+          Row(
+            children: [
+              if (provider != null) ...[
+                LoginProviderIcon(
+                  provider: provider,
+                  size: _providerIconSize,
+                  isSemanticLabelHidden: true,
                 ),
-                if (accountSummary.isNotEmpty) ...[
-                  const SizedBox(height: PassqlSpacing.hairlineGap),
-                  Row(
-                    children: [
-                      if (provider != null) ...[
-                        LoginProviderBadge(provider: provider),
-                        const SizedBox(width: PassqlSpacing.xxs),
-                      ],
-                      Flexible(
-                        child: Text(
-                          accountSummary,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: PassqlTypography.footnote.copyWith(
-                            color: colors.secondaryLabel,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                const SizedBox(width: PassqlSpacing.xxs),
               ],
-            ),
+              Flexible(
+                child: Text(
+                  accountSummary,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: PassqlTypography.footnote.copyWith(
+                    color: colors.secondaryLabel,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
-      ),
+      ],
     );
   }
 }

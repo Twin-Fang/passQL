@@ -171,3 +171,19 @@
 .btn-social--naver  { background-color: var(--color-social-naver); color: var(--color-on-brand); }
 .btn-social--github { background-color: var(--color-social-github); color: var(--color-on-brand); }
 .btn-social--apple  { background-color: var(--color-social-apple); color: var(--color-on-brand); }
+
+/* ── 로그인 제공자 아이콘 칸 (#908, 마이페이지 프로필·설정 내 계정): 색은 위 .btn-social--{제공자} 재사용 ── */
+.login-provider-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+}
+.login-provider-icon--small {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}

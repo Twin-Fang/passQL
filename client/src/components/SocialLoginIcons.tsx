@@ -2,10 +2,17 @@
 // 단색 아이콘은 currentColor (버튼 글자색 = tokens.css --color-social-*)
 // Google 로고만 제공사 지정 4색 고정 (eslint 예외 파일)
 
+// 아이콘 한 변 (px): 로그인 버튼 기본 18, 제공자 아이콘 칸은 작게 (#908)
+interface SocialLoginIconProps {
+  readonly size?: number;
+}
+
+const DEFAULT_ICON_SIZE = 18;
+
 // Google 브랜드 가이드 지정 로고 색 (토큰화 대상 아님)
-export function GoogleIcon() {
+export function GoogleIcon({ size = DEFAULT_ICON_SIZE }: SocialLoginIconProps) {
   return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <svg width={size} height={size} aria-hidden="true" viewBox="0 0 18 18" fill="none">
       <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z" fill="#4285F4" />
       <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z" fill="#34A853" />
       <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332Z" fill="#FBBC05" />
@@ -14,9 +21,9 @@ export function GoogleIcon() {
   );
 }
 
-export function KakaoIcon() {
+export function KakaoIcon({ size = DEFAULT_ICON_SIZE }: SocialLoginIconProps) {
   return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <svg width={size} height={size} aria-hidden="true" viewBox="0 0 18 18" fill="none">
       <path
         fillRule="evenodd"
         clipRule="evenodd"
@@ -27,17 +34,17 @@ export function KakaoIcon() {
   );
 }
 
-export function NaverIcon() {
+export function NaverIcon({ size = DEFAULT_ICON_SIZE }: SocialLoginIconProps) {
   return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <svg width={size} height={size} aria-hidden="true" viewBox="0 0 18 18" fill="none">
       <path d="M10.265 9.27 7.354 1H1v16h7.735V8.73L11.646 17H18V1h-7.735z" fill="currentColor" />
     </svg>
   );
 }
 
-export function GithubIcon() {
+export function GithubIcon({ size = DEFAULT_ICON_SIZE }: SocialLoginIconProps) {
   return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <svg width={size} height={size} aria-hidden="true" viewBox="0 0 18 18" fill="none">
       <path
         fillRule="evenodd"
         clipRule="evenodd"
@@ -48,9 +55,9 @@ export function GithubIcon() {
   );
 }
 
-export function AppleIcon() {
+export function AppleIcon({ size = DEFAULT_ICON_SIZE }: SocialLoginIconProps) {
   return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <svg width={size} height={size} aria-hidden="true" viewBox="0 0 18 18" fill="none">
       <path
         d="M14.045 9.58c-.02-2.02 1.65-2.99 1.724-3.04-1.408-1.058-2.584-.953-3.162-.935-1.117.117-2.196.674-2.763.674-.568 0-1.432-.66-2.363-.641-1.203.018-2.32.715-2.937 1.802C3.155 9.57 4.05 13.35 5.52 15.38c.73 1.043 1.595 2.21 2.728 2.169 1.099-.044 1.513-.707 2.841-.707 1.328 0 1.708.707 2.864.683 1.184-.02 1.929-1.057 2.647-2.106a9.87 9.87 0 0 0 1.196-2.431c-.028-.012-2.29-.879-2.314-3.408h.563ZM11.76 3.403c.605-.74.993-1.777.884-2.803-.855.036-1.89.571-2.503 1.291-.55.637-1.03 1.653-.9 2.628.956.073 1.913-.487 2.52-1.116Z"
         fill="currentColor"

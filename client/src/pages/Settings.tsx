@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-// Settings는 마이페이지 톱니바퀴로 진입하는 서브페이지 — 닉네임/계정 정보는 MyPage에서 관리, 여기선 문제풀이 모드·이용안내·앱정보·약관·사업자 정보·계정(로그아웃/탈퇴)을 다룸
+// Settings는 마이페이지 톱니바퀴·프로필 카드로 진입하는 서브페이지 — 내 계정(닉네임·로그인 방법, #908)·문제풀이 모드·이용안내·앱정보·약관·사업자 정보·계정(로그아웃/탈퇴)을 다룸
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, LogOut, ExternalLink } from "lucide-react";
 import { withdraw } from "../api/members";
@@ -14,6 +14,8 @@ import { useStagger } from "../hooks/useStagger";
 import SettingsSection from "../components/SettingsSection";
 import SettingsRow from "../components/SettingsRow";
 import SubpageLayout from "../components/SubpageLayout";
+import AccountInfoSection from "../components/AccountInfoSection";
+import { useRecentLoginProviderStore } from "../stores/recentLoginProviderStore";
 import LegalModal from "../components/LegalModal";
 import { useBusinessInfoLines } from "../hooks/useBusinessInfoLines";
 import { LEGAL_TITLE } from "../api/legal";
@@ -48,12 +50,13 @@ export default function Settings() {
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const stagger = useStagger();
-  const s0 = stagger(0); // 이용안내 섹션
-  const s1 = stagger(1); // 문제풀이 섹션
-  const s2 = stagger(2); // 앱 정보 섹션
-  const s3 = stagger(3); // 약관·사업자 정보 섹션
-  const s4 = stagger(4); // 로그아웃 섹션
-  const s5 = stagger(5); // 로고 + 카피라이트
+  const sAccount = stagger(0); // 내 계정 섹션
+  const s0 = stagger(1); // 이용안내 섹션
+  const s1 = stagger(2); // 문제풀이 섹션
+  const s2 = stagger(3); // 앱 정보 섹션
+  const s3 = stagger(4); // 약관·사업자 정보 섹션
+  const s4 = stagger(5); // 로그아웃 섹션
+  const s5 = stagger(6); // 로고 + 카피라이트
 
   useEffect(() => {
     return () => {
@@ -103,14 +106,18 @@ export default function Settings() {
     }
     // 같은 계정 재가입이 완전 신규처럼 보이도록 회원 캐시·저장값·Firebase 세션 정리
     clearMemberSession();
+    // 탈퇴한 계정의 로그인 방법을 다시 권하지 않게 최근 로그인 기록도 삭제 (로그아웃은 유지, #908)
+    useRecentLoginProviderStore.getState().clearRecentLoginProvider();
     navigate("/login", { replace: true });
   };
 
   return (
     <SubpageLayout title="설정">
+      <AccountInfoSection className={sAccount.className} />
+
       {/* 문제풀이 섹션 — 선택지 생성 모드 토글 */}
       <section className={s0.className}>
-        <SettingsSection label="문제풀이" isFirst>
+        <SettingsSection label="문제풀이">
           <div className="bg-surface-card border-y border-border">
             <div className="px-4 py-3.5">
               <div className="flex items-center justify-between mb-1.5">

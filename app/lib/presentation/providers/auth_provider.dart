@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/auth/auth_session.dart';
 import '../../core/auth/member_suspension_signal.dart';
+import '../../core/auth/recent_login_provider_store.dart';
 import '../../core/auth/session_expiry_signal.dart';
 import '../../core/auth/social_credential.dart';
 import '../../core/auth/social_sign_in.dart';
@@ -37,7 +38,7 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
     return ref.read(tokenStoreProvider).read();
   }
 
-  /// 소셜 로그인 → 서버 로그인 → 세션 저장.
+  /// 소셜 로그인 → 서버 로그인 → 세션 저장 → 최근 로그인 기록.
   ///
   /// 사용자가 소셜 로그인을 취소하면 아무 변화 없이 false 를 반환한다.
   /// 실패 시 [SocialSignInException] 으로 화면에 보여줄 메시지를 던진다.
@@ -59,6 +60,7 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
         await ref.read(onboardingPendingProvider.notifier).markPending();
       }
       state = AsyncData(session);
+      await _rememberRecentLoginProvider(provider);
       ref.read(appAnalyticsProvider).logLoginCompleted(provider.name);
       AppLogger.info('action', 'login success ${provider.name}');
       return true;
@@ -74,6 +76,15 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
             ? AppException.defaultMessageFor(ErrorCode.socialLoginFailed)
             : exception.message,
       );
+    }
+  }
+
+  /// 로그인 화면 "최근 로그인" 기록 (#908, 기기 저장 실패해도 로그인은 성공)
+  Future<void> _rememberRecentLoginProvider(SocialProvider provider) async {
+    try {
+      await RecentLoginProviderStore.save(provider);
+    } catch (_) {
+      AppLogger.warn('action', 'recent login save failed ${provider.name}');
     }
   }
 
@@ -144,9 +155,10 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
     await callApiThrowingAppException(ref.read(memberApiProvider).withdraw());
     // 제공자 연결 해제 (최선): 같은 계정 재로그인 시 동의부터 다시 > 신규 회원
     await socialSignIn.disconnectAfterWithdrawal(signedUpAccount.authProvider);
-    // 회원별 로컬 저장값은 보안 저장소 세션뿐 (나머지 기기 저장값은 회원 무관)
+    // 회원별 로컬 저장값: 보안 저장소 세션 + 최근 로그인 제공자 (탈퇴한 계정 방법을 다시 권하지 않게, #908)
     try {
       await ref.read(tokenStoreProvider).clear();
+      await RecentLoginProviderStore.clear();
       await socialSignIn.signOut();
       state = const AsyncData(null);
     } finally {
@@ -201,6 +213,11 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
 
 final authProvider = AsyncNotifierProvider<AuthNotifier, AuthSession?>(
   AuthNotifier.new,
+);
+
+/// 로그인 화면 "최근 로그인" 표시 대상 (#908): 화면에 들어올 때마다 기기 기록을 다시 읽음 (없으면 null)
+final recentLoginProviderProvider = FutureProvider.autoDispose<SocialProvider?>(
+  (ref) => RecentLoginProviderStore.read(),
 );
 
 /// 로그인 화면에 한 번 보여 줄 세션 종료 안내 (이용 제한 등, null이면 없음). 표시 후 로그인 화면이 비움
