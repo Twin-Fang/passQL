@@ -13,11 +13,10 @@ related: []
 개념 학습·단원
 
 ## 현재 상태 요약
-(2026-11-07, 자동 생성) 활성 결정 10개, 열린 이슈 2개. 개념 글 소제목 부제 구분자는 운영 콘텐츠와 레포 원본 모두 `: `로 바뀌었고 앱 해석기는 `: `와 옛 줄표를 모두 읽는다: [[DEC-0277-no-dash-middle-dot-server-cleaner]] (#905), [[DEC-0278-stem-blocks-single-table-shape]] (#903). [[DEC-0256-concept-lesson-blocks-by-table-header]]의 문단 제목 표기와 부분 충돌해 처리 결정 대기. 개념 글은 유형별 레슨 블록 — [[DEC-0256-concept-lesson-blocks-by-table-header]] (#848), 결과가 만들어지는 과정은 움직이는 그림 블록 — [[DEC-0257-concept-animated-diagram-blocks]] (#853). 외울 말은 `**` 형광펜, 개념마다 꼭 외울 것 문단, 표 폭은 빌드에서 검사 — [[DEC-0266-concept-bold-highlight-memorize-section]] (#876, PR #890 머지·이슈 열림). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-07, 자동 생성) 활성 결정 9개, 열린 이슈 2개. 개념 글 소제목 부제 구분자는 운영 콘텐츠와 레포 원본 모두 `: `로 바뀌었고 앱 해석기는 `: `와 옛 줄표를 모두 읽는다: [[DEC-0277-no-dash-middle-dot-server-cleaner]] (#905), [[DEC-0278-stem-blocks-single-table-shape]] (#903). 레슨 블록 구조는 그대로이고 문단 제목 표기만 바뀌어 [[DEC-0256-concept-lesson-blocks-by-table-header]]를 DEC-0277 이 대체했다. 개념 글은 유형별 레슨 블록(#848, [[DEC-0277-no-dash-middle-dot-server-cleaner]]가 이어받음), 결과가 만들어지는 과정은 움직이는 그림 블록 — [[DEC-0257-concept-animated-diagram-blocks]] (#853). 외울 말은 `**` 형광펜, 개념마다 꼭 외울 것 문단, 표 폭은 빌드에서 검사 — [[DEC-0266-concept-bold-highlight-memorize-section]] (#876, PR #890 머지·이슈 열림). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0252-concept-reading-single-scroll]] — 개념 읽기는 한 스크롤 카드 구조, 세그먼트 `개념 | 확인 문제`
-- [[DEC-0256-concept-lesson-blocks-by-table-header]] — 개념 글은 유형별 레슨 블록(표 머리글로 구분), 접기 없음, 스크롤 등장
 - [[DEC-0257-concept-animated-diagram-blocks]] — 조인 연결·행 거르기·집합 그림 블록(표 머리글로 구분), 스크롤로 들어오면 진행, 외우는 법 타일 뒤집기
 - [[DEC-0218-concept-result-ring-climax]] — 개념 결과: 문제마다 한 칸씩 차는 고리 + 햅틱, 큰 연출은 다 맞힘·단원 끝에만, 단원 숫자 `+1` 뒤 롤링
 - [[DEC-0219-keep-one-line-headlines-visualize-instructions]] — 감정·행동 한 줄 제목은 남기고 사용 안내 문장만 시각화
@@ -30,6 +29,7 @@ related: []
 ## 대체된 결정 (역사)
 - [[DEC-0253-concept-collapse-only-long-later-sections]] — 긴 문단만 접기 > [[DEC-0256-concept-lesson-blocks-by-table-header]]로 대체
 - [[DEC-0217-concept-study-single-segment]] — `핵심 | 자세히 | 문제` 세그먼트 > [[DEC-0252-concept-reading-single-scroll]]로 대체
+- [[DEC-0256-concept-lesson-blocks-by-table-header]] → DEC-0277
 
 ## 관련 이슈
 - [[ISS-0474-question-format-rule-forbidden-punctuation]] (resolved, GitHub #905): 문제 형식 규칙 하네스: 줄표 금지, 표는 스키마 한 곳, SQL 서식, 운영 데이터와 프롬프트 정리

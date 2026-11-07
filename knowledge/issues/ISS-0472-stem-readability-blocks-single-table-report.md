@@ -34,7 +34,7 @@ GitHub #903 리포트 댓글 기준 (2026-11-07, https://github.com/Twin-Fang/pa
 
 ## 남은 일
 - 시뮬레이터, 실기기 실제 화면 확인과 배포 뒤 실측은 후속 댓글.
-- W4: 코드 속 한글 본문 글꼴은 [[DEC-0255-code-font-d2coding-subset]], 개념 소제목 `: `는 [[DEC-0256-concept-lesson-blocks-by-table-header]]와 부분 충돌. 사용자 결정 대기.
+- W4: 코드 속 한글 본문 글꼴은 [[DEC-0255-code-font-d2coding-subset]]을 DEC-0278 이, 개념 소제목 `: `는 [[DEC-0256-concept-lesson-blocks-by-table-header]]를 DEC-0277 이 대체 (사용자 결정, 2026-11-07).
 
 ## 교훈
 같은 데이터를 두 경로(지문 글, 스키마 표)로 받는 화면은 "어느 쪽을 그릴지"를 한 판정에 모아야 한다. 각자 그리면 중복과 모양 차이가 생긴다.

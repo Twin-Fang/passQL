@@ -13,10 +13,9 @@ related: []
 디자인 토큰·공통 UI 컴포넌트·폰트·테마
 
 ## 현재 상태 요약
-(2026-11-07, 자동 생성) 활성 결정 51개, 열린 이슈 3개. 2026-11-07 main 머지(배포 전): 풀이 메모 컴포넌트 `PassqlMemoScope`([[ISS-0473-solving-memo-pen-toggle]]), 차트 `PassqlBarChart`([[DEC-0274-stats-radar-above-list-study-pattern-free]], DEC-0206 대체), 아바타 `PassqlAvatar`와 제공자 아이콘([[DEC-0276-account-provider-icon-email-avatar]], DEC-0263 대체), 지문 표 한 가지 모양과 테두리 SQL 상자([[DEC-0278-stem-blocks-single-table-shape]]). 지문 SQL 상자의 코드 속 한글은 본문 글꼴이라 [[DEC-0255-code-font-d2coding-subset]]과 부분 충돌, 처리 결정 대기. 코드 글꼴은 D2Coding 부분 글꼴 — [[DEC-0255-code-font-d2coding-subset]] (#849). 하단 탭 바는 아이콘 + 라벨을 바 안 세로 가운데, 높이 50 — [[DEC-0241-tab-bar-content-vertically-centered]] (#817 릴리스 반영). 앱 아이콘은 연보라 그라데이션 + `pass`/`QL` 2줄 — [[DEC-0242-app-icon-lavender-two-line-pass-ql]] (main 머지, 작성 시점 미배포). 프로필 상단은 A안(카드형)이고 프로필·정보 시트 탑승권 칸 통일([[DEC-0208-pass-ticket-fields-unified]])은 대체됐으며, 이용권 행은 `/account` 한 곳·프로필은 "이용권 관리" 한 줄(DEC-0263 에서 정하고 [[DEC-0276-account-provider-icon-email-avatar]]가 이어받음). 이용권 혜택은 광고 제거를 더한 7개 — [[DEC-0262-pro-benefits-seven-ad-removal]] (DEC-0205 대체). 개념 글 `**` 는 외울 말 형광펜(`memorizeHighlight` 토큰) — [[DEC-0266-concept-bold-highlight-memorize-section]]. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-07, 자동 생성) 활성 결정 50개, 열린 이슈 3개. 2026-11-07 main 머지(배포 전): 풀이 메모 컴포넌트 `PassqlMemoScope`([[ISS-0473-solving-memo-pen-toggle]]), 차트 `PassqlBarChart`([[DEC-0274-stats-radar-above-list-study-pattern-free]], DEC-0206 대체), 아바타 `PassqlAvatar`와 제공자 아이콘([[DEC-0276-account-provider-icon-email-avatar]], DEC-0263 대체), 지문 표 한 가지 모양과 테두리 SQL 상자([[DEC-0278-stem-blocks-single-table-shape]]). 코드 상자 속 한글은 본문 글꼴(DEC-0255 를 DEC-0278 이 대체, 코드 글꼴 D2Coding 부분 글꼴은 그대로). 코드 글꼴은 D2Coding 부분 글꼴(#849, 한글은 본문 글꼴로 바뀌어 [[DEC-0278-stem-blocks-single-table-shape]]가 대체). 하단 탭 바는 아이콘 + 라벨을 바 안 세로 가운데, 높이 50 — [[DEC-0241-tab-bar-content-vertically-centered]] (#817 릴리스 반영). 앱 아이콘은 연보라 그라데이션 + `pass`/`QL` 2줄 — [[DEC-0242-app-icon-lavender-two-line-pass-ql]] (main 머지, 작성 시점 미배포). 프로필 상단은 A안(카드형)이고 프로필·정보 시트 탑승권 칸 통일([[DEC-0208-pass-ticket-fields-unified]])은 대체됐으며, 이용권 행은 `/account` 한 곳·프로필은 "이용권 관리" 한 줄(DEC-0263 에서 정하고 [[DEC-0276-account-provider-icon-email-avatar]]가 이어받음). 이용권 혜택은 광고 제거를 더한 7개 — [[DEC-0262-pro-benefits-seven-ad-removal]] (DEC-0205 대체). 개념 글 `**` 는 외울 말 형광펜(`memorizeHighlight` 토큰) — [[DEC-0266-concept-bold-highlight-memorize-section]]. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
-- [[DEC-0255-code-font-d2coding-subset]] — 코드 글꼴은 한글까지 고정폭인 D2Coding 부분 글꼴
 - [[DEC-0017-fullscreen-result-screen]] — 제출 결과 화면은 풀스크린 1종으로 통일 (bottom sheet 변형 미채택)
 - [[DEC-0057-confirm-modal-bottom-sheet-all-sizes]] — `ConfirmModal`은 데스크톱도 화면 너비 100% 바텀시트 단일 레이아웃
 - [[DEC-0059-ai-question-terminology]] — 사용자 화면의 "문제"를 "AI문제"로 통일하고 lucide `Sparkles`를 AI 표시 전용 아이콘으로 쓴다
@@ -80,6 +79,7 @@ related: []
 - [[DEC-0243-profile-top-card-style-a]] → DEC-0263
 - [[DEC-0206-topic-accuracy-list-with-octagon-chart]] → DEC-0274
 - [[DEC-0263-pass-rows-on-account-screen-only]] → DEC-0276
+- [[DEC-0255-code-font-d2coding-subset]] → DEC-0278
 
 ## 관련 이슈
 - [[ISS-0477-stats-radar-default-study-pattern]] (resolved, GitHub #909): 통계 화면 개편: 육각형 그래프 기본, 차트와 학습 통계 추가

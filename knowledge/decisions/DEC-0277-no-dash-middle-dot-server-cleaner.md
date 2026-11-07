@@ -5,7 +5,7 @@ created: 2026-11-07
 reviewed: null
 topics: [question-bank, ai, concept-learning]
 status: active
-supersedes: null
+supersedes: DEC-0256
 superseded_by: null
 related: ["[[ISS-0474-question-format-rule-forbidden-punctuation]]", "[[ISS-0474-question-format-rule-forbidden-punctuation-report]]", "[[DEC-0278-stem-blocks-single-table-shape]]", "[[DEC-0076-markdown-rules-for-generated-content]]", "[[DEC-0256-concept-lesson-blocks-by-table-header]]", "[[DEC-0265-prompt-key-enum-single-source]]"]
 ---
@@ -21,7 +21,8 @@ related: ["[[ISS-0474-question-format-rule-forbidden-punctuation]]", "[[ISS-0474
 - **생성 쪽 두 겹:** 운영 DB 생성 프롬프트 맨 앞에 문체 규칙과 올바른 예를 두고(프롬프트 본문은 운영 DB에만), 서버가 AI 생성 결과(보기 근거와 본문, 해설 JSON 모든 문자열, SQL 오류 해설, 통계 분석, 세션 코멘트)를 저장하거나 응답하기 전에 `ForbiddenPunctuationCleaner` 하나로 다시 정리한다. 다른 곳에서 직접 치환하는 것은 동결 규칙 `server-punctuation-cleanup-single-entry`로 막는다.
 - **등록 쪽:** 문항 형식 규칙 단일 원본 `QuestionFormatRule`(사유별 결과, 규칙 7개)을 가져오기(위반 건너뜀), 관리자 저장(거부), 관리자 편집(새로 생긴 사유만 거부), 모의고사 공개 검사(경고)가 거친다.
 - **데이터 표는 스키마 표 한 곳:** 데이터가 있는 표는 스키마 표(컬럼, PK, FK, 행)로만 둔다. 같은 컬럼의 지문 표, `[EMP]` 머리말 지문 표는 위반. 문제 하네스는 지문에 데이터 표를 붙이지 않는다(lint).
-- **개념 글 소제목:** `## 제목: 부제` (구분자 `: `).
+- **개념 글 소제목:** `## 제목: 부제` (구분자 `: `). 운영 개념 글 소제목 447곳과 레포 원본 63개를 바꿨고, 앱 해석기는 `: `와 옛 줄표 구분자를 모두 읽는다(#903). [[DEC-0256-concept-lesson-blocks-by-table-header]]의 문단 제목 표기를 대체한다.
+- **DEC-0256에서 그대로인 것:** 개념 글은 내용 유형별 레슨 블록(정의와 용어는 용어 카드, 순서는 단계와 두문자 외우는 법, 분류와 비슷한 쌍은 비교 표, 규칙과 함정은 헷갈리는 말 + OX 바로 확인, SQL 은 풀이 예시), 블록은 표 머리글(`용어 | 뜻`, `단계 | 내용`, `외우기 | 뜻`, `헷갈리는 말 | 실제로는`, `바로 확인 | 정답 | 이유`)로 구분, 글 문단 2문장 이내, 외우는 법은 사실 검증한 것만, 긴 문단 접기 없음, 스크롤 등장(동작 줄이기면 정지).
 
 ## 검토한 대안 (Alternatives)
 - 프롬프트 규칙만으로 막기: 운영 실측에서 규칙을 프롬프트 맨 끝에 둔 버전이 다른 줄표를 8번 썼다. 규칙을 맨 앞으로 옮기고 예시를 넣자 0건이었지만 100% 보장이 안 되어 서버 정리를 필수로 넣었다 (#905 운영 반영 댓글, 구현 확인 댓글).
@@ -41,4 +42,4 @@ related: ["[[ISS-0474-question-format-rule-forbidden-punctuation]]", "[[ISS-0474
 
 ## 출처 (References)
 - GitHub #905 이슈 본문, 운영 반영 댓글, 코드 구현 확인 댓글, 리포트 댓글 (2026-11-07), PR #917
-- W4 충돌 검사: [[DEC-0076-markdown-rules-for-generated-content]](마크다운 활용 규칙), [[DEC-0265-prompt-key-enum-single-source]]와 충돌 없음. **[[DEC-0256-concept-lesson-blocks-by-table-header]] 「문단 제목은 제목 줄표 부제」와 부분 충돌** (구분자를 `: `로 바꿈). DEC-0256 은 이 노트 작성 시점에 active 로 두었고 처리(대체 또는 조건부 유지)는 사용자 결정 대기.
+- W4 충돌 검사: [[DEC-0076-markdown-rules-for-generated-content]](마크다운 활용 규칙), [[DEC-0265-prompt-key-enum-single-source]]와 충돌 없음. [[DEC-0256-concept-lesson-blocks-by-table-header]] 「문단 제목은 제목 줄표 부제」와 부분 충돌 > **신규로 대체** (사용자 결정, 2026-11-07). 근거: 사용자 "AI 는 ㅡ 이런 거 적거든, 안 적게 처리해", 운영 개념 글 소제목 447곳을 `제목: 부제`로 바꿈.

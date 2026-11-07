@@ -171,3 +171,5 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-07 13:34 | W6 | ingest issue + report, decision (W4: DEC-0255 코드 속 한글 글꼴·DEC-0256 문단 제목 구분자 부분 충돌, 사용자 결정 대기, 두 노트 active 유지) | ISS-0472, ISS-0472-report, DEC-0278 (#903)
 - 2026-11-07 13:34 | W6 | ingest issue + report | ISS-0470, ISS-0470-report (#880), ISS-0471, ISS-0471-report (#902), ISS-0473, ISS-0473-report (#904)
 - 2026-11-07 13:34 | W2 | cluster update (entries, supersede moves, 현재 상태 요약, members 실제 수로) | cluster-practice, cluster-question-bank, cluster-progress-stats, cluster-auth-member, cluster-ai, cluster-concept-learning, cluster-design-system, cluster-billing, cluster-ads, cluster-admin
+- 2026-11-07 13:37 | W4 | supersede (사용자 결정: 신규로 대체) | DEC-0255 -> DEC-0278, DEC-0256 -> DEC-0277 (옛 노트는 status·superseded_by only, 새 노트에 supersedes·이어받는 내용·근거)
+- 2026-11-07 13:37 | W2 | cluster update (supersede moves, 현재 상태 요약) + 리포트 남은 일 W4 갱신 | cluster-design-system, cluster-concept-learning, ISS-0472-report, ISS-0474-report
