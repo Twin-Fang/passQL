@@ -38,8 +38,8 @@ export async function buildAuthorizeUrl(provider: AuthorizationCodeProvider, cli
     redirect_uri: callbackUrlOf(provider),
     state,
   });
-  // GitHub 는 공개 프로필만 읽는다
-  if (provider === "GITHUB") params.set("scope", "read:user");
+  // GitHub: 공개 프로필 + 이메일 목록 (비공개 이메일도 계정 표시에 쓰도록, #908, 앱 github_social_sign_in.dart 와 같은 값)
+  if (provider === "GITHUB") params.set("scope", "read:user user:email");
   // 인가 코드 탈취 시 교환 차단 (S256)
   if (PKCE_PROVIDERS.has(provider)) {
     const codeVerifier = createCodeVerifier();

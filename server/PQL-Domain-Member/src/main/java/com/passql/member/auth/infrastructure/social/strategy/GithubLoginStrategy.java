@@ -3,6 +3,7 @@ package com.passql.member.auth.infrastructure.social.strategy;
 import com.passql.member.auth.domain.SocialProfile;
 import com.passql.member.auth.infrastructure.social.SocialApiRestTemplates;
 import com.passql.member.constant.AuthProvider;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -11,16 +12,22 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.Map;
 
 /**
- * GitHub 로그인: 사용자 ID·공개 이메일·아바타 조회 (서버가 코드 교환한 토큰만 사용, 토큰 직접 로그인은 AuthService 에서 거부)
- * 범위 read:user 라 이메일은 공개 설정한 값만 (비공개면 null, #908)
+ * GitHub 로그인: 사용자 ID·이메일·아바타 조회 (서버가 코드 교환한 토큰만 사용, 토큰 직접 로그인은 AuthService 에서 거부)
+ * 이메일: 공개 이메일 > 없으면 user:email 범위로 대표·인증 이메일 (범위 없는 옛 토큰·조회 실패면 null, #908)
  */
+@Slf4j
 @Component
 public class GithubLoginStrategy implements SocialLoginStrategy {
 
     private static final String GITHUB_USER_INFO_URL = "https://api.github.com/user";
+    // user:email 범위 필요 (비공개 이메일 포함 목록, 항목마다 email·primary·verified)
+    private static final String GITHUB_USER_EMAILS_URL = "https://api.github.com/user/emails";
+    private static final ParameterizedTypeReference<List<Map<String, Object>>> JSON_ARRAY = new ParameterizedTypeReference<>() {
+    };
     private static final ParameterizedTypeReference<Map<String, Object>> JSON_OBJECT = new ParameterizedTypeReference<>() {
     };
     private final RestTemplate restTemplate = SocialApiRestTemplates.create();
@@ -37,11 +44,35 @@ public class GithubLoginStrategy implements SocialLoginStrategy {
             if (id == null) {
                 throw SocialStrategyResponses.rejectedToken(AuthProvider.GITHUB, "user id missing");
             }
+            String avatarUrl = SocialStrategyResponses.stringOf(body, "avatar_url");
+            String verifiedPrimaryEmail = fetchVerifiedPrimaryEmail(headers);
+            if (verifiedPrimaryEmail != null) {
+                return new SocialProfile(id, verifiedPrimaryEmail, true, avatarUrl);
+            }
             // 공개 이메일 인증 여부는 응답에 없음 > 미인증으로 저장
-            return new SocialProfile(id, SocialStrategyResponses.stringOf(body, "email"), false,
-                    SocialStrategyResponses.stringOf(body, "avatar_url"));
+            return new SocialProfile(id, SocialStrategyResponses.stringOf(body, "email"), false, avatarUrl);
         } catch (RestClientException e) {
             throw SocialStrategyResponses.rejectedToken(AuthProvider.GITHUB, e.getClass().getSimpleName());
+        }
+    }
+
+    /** 대표·인증 이메일 (범위 없음·조회 실패·없음 > null, 로그인은 계속) */
+    private String fetchVerifiedPrimaryEmail(HttpHeaders headers) {
+        try {
+            List<Map<String, Object>> emails = restTemplate.exchange(
+                    GITHUB_USER_EMAILS_URL, HttpMethod.GET, new HttpEntity<>(headers), JSON_ARRAY).getBody();
+            if (emails == null) {
+                return null;
+            }
+            return emails.stream()
+                    .filter(email -> SocialStrategyResponses.isTrue(email, "primary")
+                            && SocialStrategyResponses.isTrue(email, "verified"))
+                    .map(email -> SocialStrategyResponses.stringOf(email, "email"))
+                    .findFirst()
+                    .orElse(null);
+        } catch (RestClientException e) {
+            log.info("[social login] github emails skipped : {}", e.getClass().getSimpleName());
+            return null;
         }
     }
 
