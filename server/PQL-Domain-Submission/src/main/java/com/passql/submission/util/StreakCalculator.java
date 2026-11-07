@@ -46,4 +46,24 @@ public final class StreakCalculator {
         }
         return streak;
     }
+
+    /**
+     * 지금까지 가장 길게 이어진 연속 학습 일수 (#909)
+     *
+     * @param dates distinct 날짜 목록 (정렬 무관)
+     */
+    public static int calculateLongest(List<Date> dates) {
+        if (dates == null || dates.isEmpty()) {
+            return 0;
+        }
+        List<LocalDate> sortedDates = dates.stream().map(Date::toLocalDate).distinct().sorted().toList();
+        int longest = 1;
+        int current = 1;
+        for (int index = 1; index < sortedDates.size(); index++) {
+            boolean isNextDay = sortedDates.get(index - 1).plusDays(1).equals(sortedDates.get(index));
+            current = isNextDay ? current + 1 : 1;
+            longest = Math.max(longest, current);
+        }
+        return longest;
+    }
 }

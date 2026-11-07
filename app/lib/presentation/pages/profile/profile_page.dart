@@ -7,17 +7,25 @@ import '../../../core/ads/ad_placement.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/home_providers.dart';
+import '../../providers/mock_exam_providers.dart';
 import '../../providers/plan_providers.dart';
 import '../../providers/stats_providers.dart';
 import '../../widgets/ads/ad_inline_card.dart';
 import '../../widgets/common/app_toast.dart';
+import '../../widgets/profile/accuracy_detail_locked_section.dart';
+import '../../widgets/profile/difficulty_accuracy_section.dart';
+import '../../widgets/profile/profile_mock_exam_trend_section.dart';
 import '../../widgets/profile/profile_status_section.dart';
+import '../../widgets/profile/study_record_section.dart';
+import '../../widgets/profile/study_time_pattern_section.dart';
 import '../../widgets/profile/topic_accuracy_section.dart';
+import '../../widgets/profile/wrong_note_progress_section.dart';
 import '../../widgets/stats/ai_analysis_card.dart';
 import '../../widgets/stats/ai_analysis_card_skeleton.dart';
 
-/// 내 프로필 탭 (#749): 홈과 같은 구간 + 띠 구조.
-/// 내 상태(이름 줄·정답률·탑승권) > AI 분석 > 영역별 정답률 > 광고. 홈에 있는 준비도·히트맵·바로가기는 두지 않는다.
+/// 내 프로필 탭 (#749, #909): 홈과 같은 구간 + 띠 구조.
+/// 내 상태(이름 줄·정답률·탑승권) > AI 분석 > 영역별 정답률 > 최근 4주 학습 > 공부하는 시간
+/// > 난이도별 정답률 > 오답 정리 > 모의고사 점수 추이 > 광고. 홈에 있는 준비도·히트맵·바로가기는 두지 않는다.
 /// 로딩: 구간 모양 스켈레톤 / 에러: 재시도 / 성공: 구간 순차 등장, pull-to-refresh 지원.
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -54,8 +62,9 @@ class ProfilePage extends ConsumerWidget {
           trailing: const _ProfileTabTrailing(),
           isTrailingIconButton: true,
           onRefresh: () async {
-            // 화면에 보이는 데이터 전부 (진행·토픽, AI 코멘트, 등급, 시험 일정, 빈 상태 세트)
+            // 화면에 보이는 데이터 전부 (진행·토픽·학습 패턴·정답률 상세, AI 코멘트, 등급, 시험 일정, 빈 상태 세트, 모의고사 추이)
             ref.invalidate(statsDataProvider);
+            ref.invalidate(mockExamHistoryProvider);
             ref.invalidate(statsAiCommentProvider);
             ref.invalidate(examScheduleProvider);
             ref.invalidate(profileDailySetProvider);
@@ -80,8 +89,8 @@ class ProfilePage extends ConsumerWidget {
   }
 }
 
-/// 구간 목록: 내 상태 > AI 분석 > 영역별 정답률 > 광고, 하나씩 등장. 구간 사이는 회색 띠.
-/// 푼 문제가 0개면 영역 목록은 두지 않는다 (볼 기록이 없음)
+/// 구간 목록: 내 상태 > AI 분석 > 영역별 정답률 > 학습 기록 > 공부 시간 > 정답률 상세(프로) > 모의고사 > 광고, 하나씩 등장.
+/// 구간 사이는 회색 띠. 푼 문제가 0개면 내 상태만 (볼 기록이 없음), 응답이 없는 구간은 자리째 뺌
 class _StatsContent extends StatelessWidget {
   final StatsData data;
   final bool isAnalysisLocked;
@@ -92,6 +101,10 @@ class _StatsContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final progress = data.progress;
     final hasRecords = (progress?.solvedCount ?? 0) > 0;
+    final studyPattern = data.studyPattern;
+    final accuracyDetail = data.accuracyDetail;
+    final hasDifficultyStats =
+        accuracyDetail?.difficultyStats.isNotEmpty ?? false;
     final sections = <Widget>[
       ProfileStatusSection(progress: progress),
       // AI 분석은 스스로 앞 띠를 두고, 없으면 띠째 접힌다
@@ -102,6 +115,28 @@ class _StatsContent extends StatelessWidget {
           topicStats: data.topicAnalysis?.topicStats,
           isLocked: isAnalysisLocked,
         ),
+        if (studyPattern != null) ...[
+          const PassqlSectionGap(),
+          StudyRecordSection(studyPattern: studyPattern),
+          const PassqlSectionGap(),
+          StudyTimePatternSection(studyPattern: studyPattern),
+        ],
+        // 프로 묶음: 무료(결제 켜짐)는 잠금 한 칸, 프로는 응답 있을 때만 두 구간
+        if (isAnalysisLocked) ...[
+          const PassqlSectionGap(),
+          const AccuracyDetailLockedSection(),
+        ] else if (accuracyDetail != null) ...[
+          if (hasDifficultyStats) ...[
+            const PassqlSectionGap(),
+            DifficultyAccuracySection(
+              difficultyStats: accuracyDetail.difficultyStats,
+            ),
+          ],
+          const PassqlSectionGap(),
+          WrongNoteProgressSection(accuracyDetail: accuracyDetail),
+        ],
+        // 모의고사 추이는 스스로 앞 띠를 두고, 기록이 없으면 띠째 없음
+        if (!isAnalysisLocked) const ProfileMockExamTrendSection(),
       ],
     ];
 

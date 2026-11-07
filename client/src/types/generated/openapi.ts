@@ -1892,6 +1892,37 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/progress/accuracy-detail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 정답률 상세 조회
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 등급
+         *     - 프로 전용 (결제 켜짐 무료 회원 403 PRO_REQUIRED, 토픽 분석과 같은 기능 단위)
+         *
+         *     ## 반환값 (AccuracyDetailResponse)
+         *     - difficultyStats: 난이도(1~5)별, 푼 문제가 있는 단계만. 전체 기록, 문제별 마지막 시도 기준
+         *       - difficulty, solvedCount(distinct 문제 수), correctRate(0.0~1.0, 둘째 자리)
+         *     - everWrongQuestionCount: 한 번이라도 틀린 활성 문제 수
+         *     - clearedWrongQuestionCount: 그중 마지막 시도가 정답인 문제 수 (다시 맞힘)
+         *     - remainingWrongTrend: 최근 8주(월요일 시작, 오래된 주 먼저)
+         *       - weekStartDate, remainingWrongCount(그 주가 끝난 시점에 마지막 시도가 오답인 활성 문제 수, 이번 주는 지금 기준)
+         */
+        get: operations["getAccuracyDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/progress/ai-comment": {
         parameters: {
             query?: never;
@@ -1967,6 +1998,43 @@ export interface paths {
          *       - correctCount: 해당 날짜 정답 수
          */
         get: operations["getHeatmap"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/progress/study-pattern": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 학습 패턴 조회
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 등급
+         *     - 무료·프로 모두 (히트맵과 같은 활동 기록)
+         *
+         *     ## 반환값 (StudyPatternResponse)
+         *     - 풀이 수는 제출 횟수 기준 (같은 문제 다시 풀기도 1회씩), 날짜·시각은 KST
+         *     - dailyWindowDays: 날짜별 기록 기간 (28일)
+         *     - dailyRecords: 오늘 포함 최근 28일, 오래된 날 먼저, 기록 없는 날도 0으로 포함 (date, solvedCount 풀이 수, correctCount 정답 수)
+         *     - recentAttemptCount / recentCorrectCount / recentStudyDayCount: 28일 풀이 수, 정답 수, 공부한 날 수
+         *     - accuracyChangePoints: 앞 14일 대비 뒤 14일 정답률 변화(%p, 각각 반올림한 % 의 차). 어느 쪽이든 5문제 미만이면 null
+         *     - patternWindowDays: 요일·시간대 분포 기간 (84일)
+         *     - weekdayAttemptCounts: 길이 7, 월(0) ~ 일(6) 풀이 수
+         *     - hourAttemptCounts: 길이 24, 0시 ~ 23시 풀이 수
+         *     - patternAttemptCount: 84일 풀이 수, minimumPatternAttemptCount: 가장 많은 칸 판정 최소 풀이 수 (10)
+         *     - busiestWeekdayIndex / busiestHour: 가장 많이 푼 요일(0~6)·시각(0~23), 같으면 앞 칸. 풀이가 최소 미만이면 null
+         *     - totalStudyDayCount: 지금까지 문제를 푼 날 수
+         *     - longestStreakDays: 지금까지 가장 길게 이어진 연속 학습 일수
+         */
+        get: operations["getStudyPattern"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2227,6 +2295,14 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AccuracyDetailResponse: {
+            /** Format: int32 */
+            clearedWrongQuestionCount: number;
+            difficultyStats: components["schemas"]["DifficultyStat"][];
+            /** Format: int32 */
+            everWrongQuestionCount: number;
+            remainingWrongTrend: components["schemas"]["WeeklyWrongCount"][];
+        };
         AdBonusRequest: {
             /** @description 광고마다 만든 보상 표식 (AdMob 서버 검증 custom_data 와 같은 값) */
             rewardNonce: string | null;
@@ -2704,6 +2780,14 @@ export interface components {
             /** Format: uuid */
             questionUuid: string;
             selectedChoiceKey?: string;
+        };
+        DifficultyStat: {
+            /** Format: double */
+            correctRate: number;
+            /** Format: int32 */
+            difficulty: number;
+            /** Format: int32 */
+            solvedCount: number;
         };
         /**
          * @description 서버 ErrorCode enum 이름 (응답 errorCode 값)
@@ -3385,6 +3469,35 @@ export interface components {
             /** Format: int64 */
             timeout: number | null;
         };
+        StudyPatternResponse: {
+            /** Format: int32 */
+            accuracyChangePoints: number;
+            /** Format: int32 */
+            busiestHour: number;
+            /** Format: int32 */
+            busiestWeekdayIndex: number;
+            dailyRecords: components["schemas"]["HeatmapEntry"][];
+            /** Format: int32 */
+            dailyWindowDays: number;
+            hourAttemptCounts: number[];
+            /** Format: int32 */
+            longestStreakDays: number;
+            /** Format: int32 */
+            minimumPatternAttemptCount: number;
+            /** Format: int32 */
+            patternAttemptCount: number;
+            /** Format: int32 */
+            patternWindowDays: number;
+            /** Format: int32 */
+            recentAttemptCount: number;
+            /** Format: int32 */
+            recentCorrectCount: number;
+            /** Format: int32 */
+            recentStudyDayCount: number;
+            /** Format: int32 */
+            totalStudyDayCount: number;
+            weekdayAttemptCounts: number[];
+        };
         SubjectResult: {
             /** Format: int32 */
             correctCount: number;
@@ -3496,6 +3609,12 @@ export interface components {
             notice: number;
             /** Format: int64 */
             total: number;
+        };
+        WeeklyWrongCount: {
+            /** Format: int32 */
+            remainingWrongCount: number;
+            /** Format: date */
+            weekStartDate: string;
         };
         WrongQuestionItem: {
             /** Format: date-time */
@@ -5097,6 +5216,26 @@ export interface operations {
             };
         };
     };
+    getAccuracyDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AccuracyDetailResponse"];
+                };
+            };
+        };
+    };
     getAiComment: {
         parameters: {
             query?: {
@@ -5138,6 +5277,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["HeatmapResponse"];
+                };
+            };
+        };
+    };
+    getStudyPattern: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StudyPatternResponse"];
                 };
             };
         };

@@ -6,11 +6,14 @@ import com.passql.ai.dto.AiCommentResponse;
 import com.passql.application.service.AiCommentService;
 import com.passql.member.auth.presentation.annotation.AuthMember;
 import com.passql.member.auth.presentation.security.LoginMember;
+import com.passql.submission.dto.AccuracyDetailResponse;
 import com.passql.submission.dto.HeatmapResponse;
 import com.passql.submission.dto.ProgressResponse;
+import com.passql.submission.dto.StudyPatternResponse;
 import com.passql.submission.dto.TopicAnalysisResponse;
 import com.passql.submission.dto.WrongQuestionsResponse;
 import com.passql.submission.service.ProgressService;
+import com.passql.submission.service.StudyStatsService;
 import com.passql.submission.service.TopicAnalysisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -28,6 +31,7 @@ public class ProgressController implements ProgressControllerDocs {
     private final ProgressService progressService;
     private final TopicAnalysisService topicAnalysisService;
     private final AiCommentService aiCommentService;
+    private final StudyStatsService studyStatsService;
 
     @GetMapping
     public ResponseEntity<ProgressResponse> getProgress(
@@ -70,5 +74,22 @@ public class ProgressController implements ProgressControllerDocs {
         @RequestParam(defaultValue = ProgressService.DEFAULT_WRONG_QUESTION_COUNT) int size
     ) {
         return ResponseEntity.ok(progressService.getWrongQuestions(loginMember.memberUuid(), size));
+    }
+
+    // 활동 기록이라 히트맵처럼 무료 (#909)
+    @GetMapping("/study-pattern")
+    public ResponseEntity<StudyPatternResponse> getStudyPattern(
+        @AuthMember LoginMember loginMember
+    ) {
+        return ResponseEntity.ok(studyStatsService.getStudyPattern(loginMember.memberUuid()));
+    }
+
+    // 약점 분석이라 토픽 분석과 같은 프로 기능 단위 (#909)
+    @RequiresProFeature(ProFeature.TOPIC_ANALYSIS)
+    @GetMapping("/accuracy-detail")
+    public ResponseEntity<AccuracyDetailResponse> getAccuracyDetail(
+        @AuthMember LoginMember loginMember
+    ) {
+        return ResponseEntity.ok(studyStatsService.getAccuracyDetail(loginMember.memberUuid()));
     }
 }
