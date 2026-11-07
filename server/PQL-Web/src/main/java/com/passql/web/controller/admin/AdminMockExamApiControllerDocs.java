@@ -39,8 +39,9 @@ public interface AdminMockExamApiControllerDocs {
     @Operation(summary = "초안 문항 교체", description = "questionUuid 지정(출제 가능·회차에 없음) 또는 생략 시 같은 토픽에서 자동. 초안만")
     ResponseEntity<Void> replaceItem(UUID roundUuid, UUID itemUuid, AdminMockExamItemReplaceRequest request);
 
-    @ApiLogs({@ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 866, description = "모의고사 공개 검사 API 추가")})
-    @Operation(summary = "공개 검사", description = "오류: 50문항·10/40, 번호 1~50, 문제 중복, 문제 활성·세트 출제 가능. 경고: 보기 근거 없음")
+    @ApiLogs({@ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 866, description = "모의고사 공개 검사 API 추가"),
+        @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 905, description = "공개 검사 경고에 문항 형식 위반 추가")})
+    @Operation(summary = "공개 검사", description = "오류: 50문항·10/40, 번호 1~50, 문제 중복, 문제 활성·세트 출제 가능. 경고: 보기 근거 없음, 문항 형식 위반(#905)")
     ResponseEntity<AdminMockExamPublishCheck> checkPublish(UUID roundUuid);
 
     @ApiLogs({@ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 866, description = "모의고사 회차 공개 API 추가")})

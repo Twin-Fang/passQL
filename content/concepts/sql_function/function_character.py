@@ -51,7 +51,7 @@ CONCEPT = {
         "- `LTRIM`과 `RTRIM`은 지울 글자를 여러 개 받지만, `TRIM`은 **한 글자만** 받아요.\n"
         "- `CONCAT`은 인자가 **두 개뿐**이고, Oracle에서는 NULL을 이어 붙여도 NULL이 되지 않아요."
     ),
-    "detailMd": f"""## 문자 함수가 하는 일 — 저장된 값은 두고 보여 줄 모양만 바꿔요 {{#why}}
+    "detailMd": f"""## 문자 함수가 하는 일: 저장된 값은 두고 보여 줄 모양만 바꿔요 {{#why}}
 
 사원 이름은 "김민수"로 저장되어 있지만, 화면에는 "김**"처럼 가려서 보여 주고 싶을 때가 있어요. 저장된 값은 그대로 두고 꺼낼 때만 모양을 바꾸려면 함수를 써요.
 
@@ -63,11 +63,11 @@ CONCEPT = {
 
 함수 이름이 하는 일을 거의 그대로 말해 줘서, 시험은 뜻보다 비슷한 함수끼리 결과가 어떻게 다른지를 더 자주 물어요.
 
-## 단일행 함수와 DUAL — 행마다 결과가 하나씩 나와요 {{#definition}}
+## 단일행 함수와 DUAL: 행마다 결과가 하나씩 나와요 {{#definition}}
 
 | 용어 | 뜻 |
 |---|---|
-| 단일행 함수 | 행 하나를 받을 때마다 결과를 하나씩 돌려줘요. 이 단원의 문자·숫자·날짜·변환·NULL 함수가 모두 여기에 들어요 |
+| 단일행 함수 | 행 하나를 받을 때마다 결과를 하나씩 돌려줘요. 이 단원의 문자, 숫자, 날짜, 변환, NULL 함수가 모두 여기에 들어요 |
 | 다중행 함수 | 여러 행을 묶어 결과 하나를 만들어요. `SUM`, `MAX` 같은 집계 함수이고, 그룹 함수 단원에서 다뤄요 |
 | 중첩 | 함수 안에 함수를 넣는 것이에요. 가장 안쪽 함수부터 계산해요 |
 | DUAL | Oracle이 준비해 둔 한 행짜리 테이블이에요. `FROM DUAL`로 쓰면 함수 결과만 한 줄로 볼 수 있어요 |
@@ -90,14 +90,14 @@ WHERE 절이 남긴 세 명에게 결과가 하나씩 나와서 결과도 세 �
 |---|---|---|
 | 단일행 함수는 WHERE 절에도 쓸 수 있어요 | O | SELECT, WHERE, ORDER BY 절에 모두 쓸 수 있어요 |
 
-## 대소문자와 길이 — INITCAP은 나머지를 소문자로 바꿔요 {{#case-length}}
+## 대소문자와 길이: INITCAP은 나머지를 소문자로 바꿔요 {{#case-length}}
 
 | 함수 | 하는 일 | 예 | 결과 |
 |---|---|---|---|
 | LOWER | 모두 소문자로 | LOWER('SQL Developer') | sql developer |
 | UPPER | 모두 대문자로 | UPPER('sql developer') | SQL DEVELOPER |
-| INITCAP | 단어 첫 글자만 대문자, 나머지 소문자 | INITCAP('sql DEVELOPER kim') | Sql Developer Kim |
-| LENGTH | 글자 수 (공백·한글도 한 글자) | LENGTH('SQL 개발자') | 7 |
+| INITCAP | 첫 글자만 대문자, 나머지 소문자 | INITCAP('sql DEVELOPER kim') | Sql Developer Kim |
+| LENGTH | 글자 수 (공백, 한글도 한 글자) | LENGTH('SQL 개발자') | 7 |
 
 INITCAP은 공백처럼 영문자나 숫자가 아닌 문자를 기준으로 단어를 나눠요. 원래 대문자였던 글자도 단어의 첫 글자가 아니면 소문자가 돼요.
 
@@ -106,7 +106,7 @@ SELECT LOWER('SQL Developer'), UPPER('sql developer'), INITCAP('sql DEVELOPER ki
 SELECT LENGTH('SQL 개발자') FROM DUAL;   -- 영어 3글자, 공백 1칸, 한글 3글자를 세서 7이에요
 ```
 
-## 자르고 찾기 — SUBSTR는 조각을, INSTR는 위치를 돌려줘요 {{#substr-instr}}
+## 자르고 찾기: SUBSTR는 조각을, INSTR는 위치를 돌려줘요 {{#substr-instr}}
 
 | 함수 | 모양 | 돌려주는 값 | 생략하면 |
 |---|---|---|---|
@@ -128,7 +128,7 @@ SELECT LENGTH('SQL 개발자') FROM DUAL;   -- 영어 3글자, 공백 1칸, 한�
 
 `INSTR('DATABASE', 'A', 3)`은 3번 T부터 찾기 시작해서 그 뒤의 첫 A인 4를 돌려줘요. 음수 시작 위치 -1은 뒤에서 앞쪽으로 찾지만, 돌려주는 번호는 앞에서 센 6이에요.
 
-## 채우고 지우기 — LPAD의 숫자는 결과 전체 길이예요 {{#pad-trim}}
+## 채우고 지우기: LPAD의 숫자는 결과 전체 길이예요 {{#pad-trim}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -156,7 +156,7 @@ SELECT TRIM('xy' FROM 'xySQL') FROM DUAL;
 | RPAD('AB', 5, '-')의 결과는 AB-----예요 | X | 5는 채울 개수가 아니라 전체 길이라서 AB---가 돼요 |
 | TRIM('  S Q L  ')은 가운데 공백까지 지워요 | X | TRIM은 양쪽 끝만 지워서 'S Q L'이 남아요 |
 
-## 바꾸고 잇기 — REPLACE는 덩어리, TRANSLATE는 글자 하나씩 {{#replace-concat}}
+## 바꾸고 잇기: REPLACE는 덩어리, TRANSLATE는 글자 하나씩 {{#replace-concat}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -183,7 +183,7 @@ SELECT ASCII('A'), CHR(65), ASCII('a') FROM DUAL;   -- 결과는 차례로 65, A
 
 셋 이상 이으려면 CONCAT을 겹쳐 쓰거나 `||`를 써요.
 
-## 자주 헷갈리는 점 — 짝을 이루는 함수의 한 칸 차이 {{#confusing}}
+## 자주 헷갈리는 점: 짝을 이루는 함수의 한 칸 차이 {{#confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -218,16 +218,16 @@ SQL Server 문법이 보기에 섞여 나오면 아래 짝을 떠올려요. 문�
 |---|---|---|
 | REPLACE('ABCABC', 'AB')의 결과는 CC예요 | O | 세 번째 인자를 빼면 찾은 AB를 모두 지워요 |
 
-## 꼭 외울 것 — 돌려주는 값과 인자 개수 {{#memorize}}
+## 꼭 외울 것: 돌려주는 값과 인자 개수 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
 | SUBSTR와 INSTR가 돌려주는 것 | SUBSTR는 잘라 낸 문자, INSTR는 위치 숫자(없으면 0) |
 | 위치 번호 세는 법 | 앞에서 1부터, 음수는 뒤에서 -1부터 |
 | SUBSTR의 음수 시작 위치 | 뒤에서 센 자리부터 오른쪽으로 잘라요 |
-| LPAD·RPAD의 숫자 | 채울 개수가 아니라 결과 전체 길이 |
+| LPAD, RPAD의 숫자 | 채울 개수가 아니라 결과 전체 길이 |
 | TRIM에 두 글자를 주면 | ORA-30001(지울 문자가 두 글자 이상) 오류 |
-| LTRIM·RTRIM의 지울 문자 | 여러 글자를 받아 그중 하나인 동안 계속 지워요 |
+| LTRIM, RTRIM의 지울 문자 | 여러 글자를 받아 그중 하나인 동안 계속 지워요 |
 | REPLACE와 TRANSLATE | 문자열 덩어리로 바꿈, 글자 하나씩 바꿈(짝 없으면 지움) |
 | CONCAT 인자와 NULL | 정확히 2개, Oracle은 NULL을 이어도 NULL이 아님 |
 
@@ -303,7 +303,7 @@ SQL Server 문법이 보기에 섞여 나오면 아래 짝을 떠올려요. 문�
         sql_check("SELECT ASCII('A'), CHR(65), ASCII('a') FROM DUAL", [[65, "A", 97]]),
         sql_check("SELECT SUBSTR('lee@sqld.kr', 1, INSTR('lee@sqld.kr', '@') - 1) FROM DUAL", [["lee"]]),
         sql_check("SELECT 'SQL' || NULL, CONCAT('SQL', NULL), TRIM(' S Q L ') FROM DUAL", [["SQL", "SQL", "S Q L"]]),
-        # 확인 문제 (stemSql·보기)
+        # 확인 문제 (stemSql, 보기)
         sql_check("SELECT 이름, LENGTH(이름) FROM 사원 WHERE 부서번호 = 20;", [["이지은", 3], ["박서준", 3], ["정하늘", 3]]),
         sql_check("SELECT SUBSTR('DATABASE', -4, 2) FROM DUAL;", [["BA"]]),
         sql_check("SELECT TRANSLATE('BANANA', 'AN', 'O') FROM DUAL;", [["BOOO"]]),

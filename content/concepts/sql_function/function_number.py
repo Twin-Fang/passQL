@@ -5,7 +5,7 @@ from concept_dataset import to_employee_table_md
 
 EMPLOYEE_SALARY_TABLE = to_employee_table_md("사번", "이름", "급여")
 
-# 월급 다듬기: ROUND(반올림)·CEIL(올림)·TRUNC(10 단위 버림), 사원 2명
+# 월급 다듬기: ROUND(반올림), CEIL(올림), TRUNC(10 단위 버림), 사원 2명
 MONTHLY_SALARY_EXAMPLE = sql_example(
     "SELECT 이름, 급여, ROUND(급여 / 12, 1), CEIL(급여 / 12), TRUNC(급여 / 12, -1)\n"
     "FROM 사원\n"
@@ -40,18 +40,18 @@ CONCEPT = {
     "topicCode": "sql_function",
     "sortOrder": 2,
     "title": "숫자 함수",
-    "summary": "숫자를 반올림·버림·올림하고 나머지를 구하는 함수이고, 음수일 때 결과가 갈라져요",
+    "summary": "숫자를 반올림, 버림, 올림하고 나머지를 구하는 함수이고, 음수일 때 결과가 갈라져요",
     "coreMd": (
         "- `ROUND`는 반올림, `TRUNC`는 버림이고, 자리 수가 **음수**면 10 단위, 100 단위로 다듬어요.\n"
         "- `CEIL`은 더 큰 정수 쪽으로, `FLOOR`는 더 작은 정수 쪽으로, `TRUNC`는 **0 쪽으로** 가요.\n"
         "- 그래서 -1.5에서 `ROUND`와 `FLOOR`는 -2, `CEIL`과 `TRUNC`는 -1이에요.\n"
         "- `MOD`의 나머지는 **앞의 수 부호**를 따라서 `MOD(-10, 3)`은 -1이고, `MOD(10, 0)`은 오류 없이 10이에요."
     ),
-    "detailMd": f"""## 숫자 함수가 하는 일 — 어디서 다듬느냐에 따라 금액이 달라져요 {{#why}}
+    "detailMd": f"""## 숫자 함수가 하는 일: 어디서 다듬느냐에 따라 금액이 달라져요 {{#why}}
 
 급여 2500을 12로 나누면 208.333...처럼 소수가 끝없이 이어져요. 반올림할지, 버릴지, 올릴지에 따라 금액이 달라지니 숫자 함수로 원하는 자리에서 다듬어요.
 
-## 숫자 함수 한눈에 보기 — 아홉 개, 헷갈리는 건 다섯 개 {{#definition}}
+## 숫자 함수 한눈에 보기: 아홉 개, 헷갈리는 건 다섯 개 {{#definition}}
 
 숫자 함수는 숫자를 받아 숫자를 돌려주는 단일행 함수예요. 시험이 결과를 헷갈리게 묻는 함수는 주로 ROUND, TRUNC, CEIL, FLOOR, MOD예요.
 
@@ -76,7 +76,7 @@ SELECT ABS(-15), SIGN(-15), POWER(2, 10), SQRT(16) FROM DUAL;
 -- 결과는 차례로 15, -1, 1024, 4예요
 ```
 
-## ROUND와 TRUNC — 자리 수가 음수면 소수점 왼쪽을 다듬어요 {{#round-trunc}}
+## ROUND와 TRUNC: 자리 수가 음수면 소수점 왼쪽을 다듬어요 {{#round-trunc}}
 
 두 번째 인자인 자리 수가 어디까지 남길지를 정해요. ROUND는 남길 자리 바로 오른쪽 한 자리가 5 이상이면 올리고, TRUNC는 그 자리를 보지 않고 버려요.
 
@@ -108,7 +108,7 @@ CEIL은 바로 아래에서 다루는데, 소수 부분이 있으면 다음 정�
 | ROUND(1250, -2)의 결과는 1300이에요 | O | 십의 자리가 5라서 백의 자리로 올라가요 |
 | TRUNC(1299, -2)는 십의 자리 9를 보고 1300으로 올려요 | X | TRUNC는 보지 않고 버려서 1200이에요 |
 
-## CEIL과 FLOOR — 천장과 바닥은 숫자 크기로 정해요 {{#ceil-floor}}
+## CEIL과 FLOOR: 천장과 바닥은 숫자 크기로 정해요 {{#ceil-floor}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -125,7 +125,7 @@ SELECT CEIL(1.5, 1) FROM DUAL;
 
 이미 정수인 값은 두 함수 모두 그대로 돌려줘요. ROUND와 달리 자리 수를 받지 않고 언제나 정수로 맞춰요.
 
-## 나머지와 부호 — MOD·ABS·SIGN·POWER·SQRT {{#mod-etc}}
+## 나머지와 부호: MOD, ABS, SIGN, POWER, SQRT {{#mod-etc}}
 
 | 함수 | 기억할 규칙 | 예 |
 |---|---|---|
@@ -150,7 +150,7 @@ MOD는 짝수와 홀수를 가를 때 자주 써요. 2로 나눈 나머지가 0�
 
 {EVEN_EMPLOYEE_NUMBER_EXAMPLE.markdown}
 
-## 자주 헷갈리는 점 — 음수에서는 네 함수가 갈라져요 {{#confusing}}
+## 자주 헷갈리는 점: 음수에서는 네 함수가 갈라져요 {{#confusing}}
 
 같은 1.5와 -1.5에 네 함수를 써 보면 차이가 바로 보여요.
 
@@ -184,13 +184,13 @@ SQL Server에서는 CEIL 대신 CEILING을 쓰고, MOD 함수 대신 `%` 연산�
 | FLOOR(-2.5)의 결과는 -3이에요 | O | -2.5보다 작은 쪽의 가장 가까운 정수는 -3이에요 |
 | MOD(10, -3)의 결과는 -1이에요 | X | 부호는 앞의 수 10을 따라서 1이에요 |
 
-## 꼭 외울 것 — 음수와 자리 수에서 갈리는 값 {{#memorize}}
+## 꼭 외울 것: 음수와 자리 수에서 갈리는 값 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
 | 자리 수 -1과 -2 | -1은 10 단위, -2는 100 단위로 다듬어요 |
 | 자리 수를 생략하면 | 0과 같아서 정수로 다듬어요 |
-| CEIL·FLOOR·TRUNC의 방향 | 차례로 큰 쪽, 작은 쪽, 0 쪽 |
+| CEIL, FLOOR, TRUNC의 방향 | 차례로 큰 쪽, 작은 쪽, 0 쪽 |
 | -1.5에 네 함수 | ROUND -2, CEIL -1, FLOOR -2, TRUNC -1 |
 | ROUND의 딱 절반(.5) | 0에서 먼 쪽 (1.5는 2, -1.5는 -2) |
 | MOD 나머지의 부호 | 앞의 수(나눠지는 수)를 따라요 |
@@ -255,7 +255,7 @@ SQL Server에서는 CEIL 대신 CEILING을 쓰고, MOD 함수 대신 `%` 연산�
         MONTHLY_SALARY_EXAMPLE.check,
         sql_check("SELECT CEIL(1.1), FLOOR(1.9), CEIL(-1.1), FLOOR(-1.9), CEIL(3) FROM DUAL", [[2, 1, -1, -2, 3]]),
         sql_error_check("SELECT CEIL(1.5, 1) FROM DUAL", "ORA-00909"),
-        # 꼭 외울 것·정의 문단: FLOOR 도 자리 수 인자 없음 (#876)
+        # 꼭 외울 것, 정의 문단: FLOOR 도 자리 수 인자 없음 (#876)
         sql_error_check("SELECT FLOOR(1.5, 1) FROM DUAL", "ORA-00909"),
         sql_check("SELECT MOD(10, 3), MOD(-10, 3), MOD(10, -3), MOD(10, 0) FROM DUAL", [[1, -1, 1, 10]]),
         sql_error_check("SELECT 10 / 0 FROM DUAL", "ORA-01476"),
@@ -266,7 +266,7 @@ SQL Server에서는 CEIL 대신 CEILING을 쓰고, MOD 함수 대신 `%` 연산�
         sql_check("SELECT FLOOR(-2.5), MOD(10, -3) FROM DUAL", [[-3, 1]]),
         sql_check("SELECT ROUND(1.1), CEIL(1.1) FROM DUAL", [[1, 2]]),
         sql_check("SELECT ROUND(1234.567, -2), ROUND(1250, -2), TRUNC(1299, -2) FROM DUAL", [[1200, 1300, 1200]]),
-        # 확인 문제 (stemSql·보기)
+        # 확인 문제 (stemSql, 보기)
         sql_check("SELECT ROUND(1234.567, -2) FROM DUAL;", [[1200]]),
         sql_check("SELECT CEIL(-1.5), TRUNC(-1.5), FLOOR(-1.5), ABS(-1.5) FROM DUAL", [[-1, -1, -2, 1.5]]),
         sql_check("SELECT MOD(-10, 3) FROM DUAL;", [[-1]]),

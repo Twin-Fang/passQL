@@ -9,11 +9,12 @@ import '../common/app_toast.dart';
 import '../pro/pro_offer_sheet.dart';
 
 /// 새 보기로 풀기 켜기·끄기 공통: 무료(결제 켜짐)가 켜면 저장 없이 프로 안내 시트 > 그 외 저장 (실패 사유 토스트)
-/// 설정 ChoiceModeTile·문제 탭 ChoiceModeShortcutRow 가 함께 씀
+/// 저장 성공 시에만 [onModeSaved] (풀이 화면 시트가 지금 문제에 반영, #907). ChoiceModeTile 이 씀
 Future<void> switchFreshChoiceMode(
   BuildContext context,
   WidgetRef ref, {
   required bool shouldUseFreshChoices,
+  VoidCallback? onModeSaved,
 }) async {
   if (shouldUseFreshChoices && ref.read(shouldShowProUiProvider)) {
     await showProOfferSheet(context, ref);
@@ -27,6 +28,7 @@ Future<void> switchFreshChoiceMode(
               ? ChoiceGenerationMode.real
               : ChoiceGenerationMode.practice,
         );
+    onModeSaved?.call();
   } on AppException catch (exception) {
     // 값은 Notifier 가 이전 상태로 되돌려 둠 (이유만 알림)
     if (context.mounted) showAppToast(context, exception.message);

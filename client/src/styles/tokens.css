@@ -51,6 +51,12 @@
   --color-semantic-warning-light: color-mix(in srgb, var(--color-semantic-warning) 12%, transparent);
   --color-semantic-warning-border: color-mix(in srgb, var(--color-semantic-warning) 40%, white);
 
+  /* ── 풀이 메모 펜 (#904, 앱 wrong·memoInkBlue·label, 형광펜 memorize) ── */
+  --color-memo-ink-red: var(--color-semantic-error);
+  --color-memo-ink-blue: #007AFF;
+  --color-memo-ink-black: var(--color-text-primary);
+  --color-memo-highlighter: #FFCC00;
+
   /* ── 반투명 덮개 (모달·시트 뒤 배경) ── */
   --color-scrim: color-mix(in srgb, var(--color-text-primary) 40%, transparent);
 
@@ -81,6 +87,7 @@
   --text-caption1: 12px;        /* 앱 caption */
   --text-footnote: 13px;        /* 앱 footnote */
   --text-subheadline: 15px;     /* 앱 subheadline */
+  --text-headline: 17px;        /* 앱 headline (지문 질문 문장) */
   --text-score-display: 96px;   /* 결과 화면 큰 점수 숫자 */
 
   /* ── 모서리 반경 (Tailwind 기본 단계에 없는 값) ── */

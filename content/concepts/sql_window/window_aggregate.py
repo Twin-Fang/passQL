@@ -90,15 +90,15 @@ CONCEPT = {
     "topicCode": "sql_window",
     "sortOrder": 3,
     "title": "집계 윈도우 함수",
-    "summary": "SUM·AVG 같은 집계 함수에 OVER를 붙여 합계·누적·이동 평균을 구해요",
+    "summary": "SUM, AVG 같은 집계 함수에 OVER를 붙여 합계, 누적, 이동 평균을 구해요",
     "coreMd": (
-        "- SUM·AVG·COUNT·MAX·MIN 뒤에 OVER를 붙이면, 행을 줄이지 않고 각 행에 집계값을 붙여요.\n"
+        "- SUM, AVG, COUNT, MAX, MIN 뒤에 OVER를 붙이면, 행을 줄이지 않고 각 행에 집계값을 붙여요.\n"
         "- OVER 안에 PARTITION BY만 쓰면 묶음 전체 값이, ORDER BY까지 쓰면 첫 행부터 현재 행까지의 **누적값**이 나와요.\n"
         "- ROWS는 행을 한 줄씩 세고, RANGE는 ORDER BY 값이 같은 행을 한꺼번에 넣어요. 기본은 **RANGE**라서 동점 행의 누적값이 같아요.\n"
         "- `ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING`처럼 앞뒤 행만 넣으면 이동 평균을 구해요.\n"
         "- **NULL**은 일반 집계처럼 빠지고, `COUNT(*)`만 NULL이 있는 행까지 세요."
     ),
-    "detailMd": f"""## 한 사람 값과 집계값을 한 줄에 — 왜 필요할까요 {{#why}}
+    "detailMd": f"""## 한 사람 값과 집계값을 한 줄에: 왜 필요할까요 {{#why}}
 
 "각 사원의 급여가 부서 평균보다 얼마나 높은가" 같은 질문은 사원 한 명의 값과 여러 사원의 집계값을 한 줄에 놓아야 답할 수 있어요. GROUP BY로 집계하면 사원 한 명 한 명의 행이 사라지고, 서브쿼리로 집계값을 다시 붙이면 SQL이 길어져요.
 
@@ -106,7 +106,7 @@ CONCEPT = {
 
 {EMPLOYEE_BASE_TABLE}
 
-## 한 줄 정의 — OVER 안에 무엇을 썼는지가 범위를 정해요 {{#definition}}
+## 한 줄 정의: OVER 안에 무엇을 썼는지가 범위를 정해요 {{#definition}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -120,9 +120,9 @@ CONCEPT = {
 | 비어 있음 | WHERE를 통과한 행 전체 | 전체 합 |
 | PARTITION BY만 | 같은 묶음의 모든 행 | 묶음 합 |
 | ORDER BY까지 | 묶음의 첫 행~현재 행 (RANGE) | 누적 합 |
-| ROWS·RANGE 윈도우 절 | 적은 범위 그대로 | 범위 합, 이동 합 |
+| ROWS, RANGE 윈도우 절 | 적은 범위 그대로 | 범위 합, 이동 합 |
 
-## 묶음 전체로 집계하기 — 부서 평균과의 차이 {{#partition}}
+## 묶음 전체로 집계하기: 부서 평균과의 차이 {{#partition}}
 
 PARTITION BY만 쓰면 같은 묶음의 모든 행이 계산 범위가 돼요. 윈도우 함수의 결과는 일반 열처럼 계산식에 쓸 수 있어서, 부서 평균과의 차이를 바로 구할 수 있어요.
 
@@ -130,7 +130,7 @@ PARTITION BY만 쓰면 같은 묶음의 모든 행이 계산 범위가 돼요. �
 
 개발부 평균은 (2500 + 2800 + 2500) / 3 = 2600이라서, 박서준은 평균보다 200 높고 이지은과 정하늘은 100 낮아요. MAX, MIN, COUNT도 같은 방식으로 쓰면 부서 최고 급여, 최저 급여, 인원이 각 행에 붙어요.
 
-## 누적 합 — ORDER BY를 넣으면 쌓여요 {{#running-total}}
+## 누적 합: ORDER BY를 넣으면 쌓여요 {{#running-total}}
 
 OVER 안에 ORDER BY를 더하면 계산 범위가 묶음의 첫 행부터 현재 행까지로 바뀌어서, 같은 SUM이 누적 합을 돌려줘요. 아래는 개발부와 영업부의 급여를 입사일 순서로 쌓은 결과예요.
 
@@ -143,7 +143,7 @@ OVER 안에 ORDER BY를 더하면 계산 범위가 묶음의 첫 행부터 현�
 | 쌓기 | 첫 행부터 현재 행까지 더해요. 박서준은 이지은 2500 + 자기 2800 = 5300이에요 |
 | 다시 시작 | 부서번호가 30으로 바뀌는 최유나 행에서 누적이 처음부터 다시 시작돼요 |
 
-## ROWS와 RANGE — 동점 행에서 갈려요 {{#rows-range}}
+## ROWS와 RANGE: 동점 행에서 갈려요 {{#rows-range}}
 
 | 비교 | ROWS | RANGE |
 |---|---|---|
@@ -166,7 +166,7 @@ RANGE에 숫자를 쓰면 행 개수가 아니라 값의 차이를 뜻해요. �
 
 한도윤(2700)의 범위는 2500부터 2900까지라서 이지은, 정하늘, 한도윤, 박서준 네 명이 들어가요. 같은 자리에 ROWS를 썼다면 앞뒤로 200개의 행을 뜻해요.
 
-## 이동 평균 — 앞뒤 몇 행만 보고 평균 내기 {{#moving-average}}
+## 이동 평균: 앞뒤 몇 행만 보고 평균 내기 {{#moving-average}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -185,7 +185,7 @@ RANGE에 숫자를 쓰면 행 개수가 아니라 값의 차이를 뜻해요. �
 |---|---|
 | OVER 안에 ORDER BY를 넣어도 SUM은 묶음 전체 합이에요 | 윈도우 절을 적지 않아도 RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW가 범위가 되어 누적 합이 나와요. 전체 합이 필요하면 ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING을 적어요 |
 | 동점인 두 행의 누적 합은 서로 달라요 | 윈도우 절을 적지 않았다면 기본이 RANGE라서 두 행의 누적값은 같아요. 달라지는 것은 ROWS를 직접 적었을 때예요 |
-| RANGE 2 PRECEDING은 두 행 앞까지예요 | RANGE의 숫자는 값의 차이예요. 그래서 급여나 입사일처럼 숫자·날짜 열 하나로만 정렬할 때 써요 |
+| RANGE 2 PRECEDING은 두 행 앞까지예요 | RANGE의 숫자는 값의 차이예요. 그래서 급여나 입사일처럼 숫자, 날짜 열 하나로만 정렬할 때 써요 |
 | 앞뒤 한 행씩 넣는 이동 평균은 늘 세 행으로 나눠요 | 첫 행과 마지막 행에서는 범위가 짧아져서 두 행의 평균이 나와요. 없는 행을 0으로 채우지 않아요 |
 | AVG(커미션) OVER ()는 커미션 합을 8명으로 나눠요 | NULL은 빠지므로 커미션이 있는 네 명의 합 1000을 4로 나눠 250이에요. 125가 아니에요 |
 | OVER ()는 테이블 전체 행을 봐요 | 윈도우 함수는 WHERE가 끝난 뒤에 계산돼서, WHERE를 통과한 행 전체만 봐요 |
@@ -200,7 +200,7 @@ RANGE에 숫자를 쓰면 행 개수가 아니라 값의 차이를 뜻해요. �
 | ORDER BY 급여에서 ROWS 2 PRECEDING은 급여가 2 작은 행까지예요 | X | ROWS의 숫자는 행 개수라서 두 행 앞까지예요 |
 | MAX(급여) OVER (PARTITION BY 부서번호)는 부서마다 최고 급여 한 행만 남겨요 | X | 행은 줄지 않고, 부서의 모든 행에 최고 급여가 붙어요 |
 
-## 꼭 외울 것 — 전체 합, 누적 합, 이동 합 {{#memorize}}
+## 꼭 외울 것: 전체 합, 누적 합, 이동 합 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
@@ -210,7 +210,7 @@ RANGE에 숫자를 쓰면 행 개수가 아니라 값의 차이를 뜻해요. �
 | 기본 범위에서 동점 행 | 누적값이 같아요 |
 | `RANGE 2 PRECEDING`의 2 | 값의 차이 (ROWS라면 행 개수) |
 | 앞뒤 한 행 이동 평균 | ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING |
-| 첫 행·끝 행의 이동 평균 | 범위가 짧아져 두 행으로 나눠요 |
+| 첫 행, 끝 행의 이동 평균 | 범위가 짧아져 두 행으로 나눠요 |
 | `AVG(커미션) OVER ()` | 250 (NULL 행은 분모에서 빠짐) |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
@@ -269,7 +269,7 @@ RANGE에 숫자를 쓰면 행 개수가 아니라 값의 차이를 뜻해요. �
         RANGE_VALUE_EXAMPLE.check,
         MOVING_AVERAGE_EXAMPLE.check,
         NULL_AGGREGATE_EXAMPLE.check,
-        # 본문 설명: MAX·MIN·COUNT 부서별, 사번을 빼도 ROWS 누적값 묶음은 2500·5000·7800, ORDER BY 후 전체 범위
+        # 본문 설명: MAX, MIN, COUNT 부서별, 사번을 빼도 ROWS 누적값 묶음은 2500, 5000, 7800, ORDER BY 후 전체 범위
         sql_check("SELECT 이름, MAX(급여) OVER (PARTITION BY 부서번호), MIN(급여) OVER (PARTITION BY 부서번호), "
                   "COUNT(*) OVER (PARTITION BY 부서번호) FROM 사원 WHERE 부서번호 = 20",
                   [["이지은", 2800, 2500, 3], ["박서준", 2800, 2500, 3], ["정하늘", 2800, 2500, 3]]),
@@ -283,7 +283,7 @@ RANGE에 숫자를 쓰면 행 개수가 아니라 값의 차이를 뜻해요. �
         sql_error_check("SELECT 이름, COUNT(*) OVER (ORDER BY 이름 RANGE 1 PRECEDING) FROM 사원", "ORA-00902"),
         # 본문 바로 확인: WHERE 로 거른 6명만 OVER () 범위
         sql_check("SELECT DISTINCT SUM(급여) OVER () FROM 사원 WHERE 부서번호 IN (20, 30)", [[15900]]),
-        # 확인 문제 2·3·5번 stemSql
+        # 확인 문제 2, 3, 5번 stemSql
         sql_check(RUNNING_STEM_SQL, [["최유나", 3200], ["한도윤", 5900], ["오지민", 8100]]),
         sql_check(ROWS_STEM_SQL, [["이지은", 2500], ["정하늘", 5000], ["박서준", 7800]]),
         sql_check(COUNT_STEM_SQL, [[name, 4] for name in ("김민수", "이지은", "박서준", "최유나", "정하늘", "한도윤", "오지민", "윤서연")]),

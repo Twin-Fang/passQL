@@ -1,6 +1,5 @@
-import 'package:flutter/foundation.dart';
-
 import '../error/app_exception.dart';
+import '../logging/app_logger.dart';
 import '../monitoring/crash_reporter.dart';
 
 /// 화면 일부(카드, 섹션)를 채우는 선택적 호출용 헬퍼.
@@ -15,7 +14,7 @@ Future<T?> safeCall<T>(Future<T> call, {String? label}) async {
     final error = exception.asAppException;
     if (error.isUnauthorized) rethrow;
     final logLabel = 'safeCall${label != null ? ':$label' : ''}';
-    debugPrint('[$logLabel] $error');
+    AppLogger.warn(logLabel, '$error');
     reportIfUnexpectedFailure(error, stackTrace, reason: logLabel);
     return null;
   }
@@ -44,7 +43,7 @@ class SafeCallSlot<T> {
     } catch (exception, stackTrace) {
       final error = exception.asAppException;
       if (error.isUnauthorized) throw error;
-      debugPrint('[$label] $error');
+      AppLogger.warn(label, '$error');
       reportIfUnexpectedFailure(error, stackTrace, reason: label);
       failure = error;
     }

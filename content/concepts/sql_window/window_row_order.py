@@ -45,7 +45,7 @@ LAG_DIFFERENCE_ROWS = [
     ["오지민", "2023-02-01", 2200, 2500, -300], ["윤서연", "2024-05-20", 2000, 2200, -200],
 ]
 
-# 두 번째 인자(칸 수) · 세 번째 인자(없을 때 기본값)
+# 두 번째 인자(칸 수), 세 번째 인자(없을 때 기본값)
 LAG_ARGUMENT_SQL = """SELECT 이름,
        LAG(급여, 2) OVER (ORDER BY 입사일) AS 두칸앞,
        LAG(급여, 1, 0) OVER (ORDER BY 입사일) AS 기본값0
@@ -82,15 +82,15 @@ CONCEPT = {
     "topicCode": "sql_window",
     "sortOrder": 4,
     "title": "행 순서 함수",
-    "summary": "범위의 첫 값·끝 값이나, 몇 칸 앞뒤 행의 값을 가져와요",
+    "summary": "범위의 첫 값, 끝 값이나, 몇 칸 앞뒤 행의 값을 가져와요",
     "coreMd": (
         "- FIRST_VALUE와 LAST_VALUE는 윈도우 범위 안에서 첫 행과 마지막 행의 값을 가져와요.\n"
         "- ORDER BY만 쓴 LAST_VALUE는 범위가 현재 행에서 끝나서 **현재 행 값**이 나오니, 끝까지 보려면 `UNBOUNDED FOLLOWING`까지 넓혀요.\n"
         "- LAG는 **앞 행**, LEAD는 뒤 행의 값을 가져와요. 두 번째 인자는 몇 칸인지(생략하면 1), 세 번째 인자는 행이 없을 때 쓸 기본값이에요.\n"
         "- 가져올 행이 없으면 기본값을 주지 않는 한 0이 아니라 **NULL**이 나와요.\n"
-        "- LAG·LEAD는 OVER 안에 ORDER BY가 꼭 있어야 하고, 윈도우 절은 쓸 수 없어요."
+        "- LAG, LEAD는 OVER 안에 ORDER BY가 꼭 있어야 하고, 윈도우 절은 쓸 수 없어요."
     ),
-    "detailMd": f"""## 다른 행의 값을 옆에 놓기 — 왜 필요할까요 {{#why}}
+    "detailMd": f"""## 다른 행의 값을 옆에 놓기: 왜 필요할까요 {{#why}}
 
 "바로 앞에 입사한 사람보다 급여가 얼마나 많은가" 같은 질문은 현재 행 옆에 다른 행의 값을 가져다 놓아야 답할 수 있어요. 일반 SQL로는 같은 테이블을 한 번 더 조인해야 하지만, 행 순서 함수는 정렬한 순서에서 원하는 위치의 값을 바로 꺼내 와요.
 
@@ -98,7 +98,7 @@ CONCEPT = {
 
 {EMPLOYEE_BASE_TABLE}
 
-## 한 줄 정의 — 네 함수는 가져오는 위치가 달라요 {{#definition}}
+## 한 줄 정의: 네 함수는 가져오는 위치가 달라요 {{#definition}}
 
 행 순서 함수는 OVER 안의 ORDER BY로 정한 순서에서, 특정 위치에 있는 행의 값을 현재 행으로 가져오는 함수예요.
 
@@ -111,7 +111,7 @@ CONCEPT = {
 
 입사일 순서로 줄을 세웠다면, LAG는 나보다 바로 먼저 입사한 사람을, LEAD는 바로 나중에 입사한 사람을 본다고 기억하면 쉬워요.
 
-## FIRST_VALUE와 LAST_VALUE — 끝 값은 범위를 넓혀야 나와요 {{#first-last}}
+## FIRST_VALUE와 LAST_VALUE: 끝 값은 범위를 넓혀야 나와요 {{#first-last}}
 
 영업부 세 명을 급여가 높은 순서로 세우고 첫 값과 끝 값을 가져왔어요. 끝 값은 기본 범위로 한 번, 범위를 끝까지 넓혀서 한 번 구했어요.
 
@@ -125,7 +125,7 @@ CONCEPT = {
 
 끝 값을 모든 행에 붙이려면 범위의 끝만 UNBOUNDED FOLLOWING이면 돼요. 그래서 `ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING`도 `끝값전체`와 같은 결과를 내요.
 
-## LAG와 LEAD — 몇 칸 앞뒤 행의 값 {{#lag-lead}}
+## LAG와 LEAD: 몇 칸 앞뒤 행의 값 {{#lag-lead}}
 
 LAG와 LEAD는 윈도우 범위가 아니라 현재 행에서 몇 칸 떨어졌는지로 위치를 정해요. 영업부 세 명을 입사일 순서로 세워 앞사람과 뒷사람을 가져왔어요.
 
@@ -151,7 +151,7 @@ LAG는 바로 앞 행과의 차이를 구할 때 자주 써요. 아래는 사원
 
 `LAG(급여, 2)`는 두 칸 앞을 보기 때문에, 세 번째인 이지은에게서 처음으로 김민수의 3000이 나와요. `LAG(급여, 1, 0)`은 앞 행이 없는 김민수에게 NULL 대신 0을 줘요.
 
-## IGNORE NULLS — NULL인 행을 건너뛰고 가져오기 {{#ignore-nulls}}
+## IGNORE NULLS: NULL인 행을 건너뛰고 가져오기 {{#ignore-nulls}}
 
 Oracle에서는 LAG, LEAD, FIRST_VALUE, LAST_VALUE 뒤에 `IGNORE NULLS`를 붙여 값이 NULL인 행을 건너뛸 수 있어요. 오지민의 바로 앞인 정하늘은 커미션이 NULL이라, `LAG(커미션)`은 NULL이지만 IGNORE NULLS를 붙이면 그 앞인 박서준의 0을 가져와요.
 
@@ -181,24 +181,24 @@ SELECT 이름, LAG(급여) OVER (ORDER BY 입사일 ROWS BETWEEN 1 PRECEDING AND
 | LAG(급여, 1, 0)과 LAG(급여)는 첫 행에서 같은 값을 돌려줘요 | X | 기본값 0을 준 쪽은 0, 주지 않은 쪽은 NULL이에요 |
 | IGNORE NULLS를 붙인 LAG는 NULL인 앞 행을 건너뛰고 그 앞의 값을 가져와요 | O | 값이 NULL인 행을 세지 않고 지나가요 |
 
-## 꼭 외울 것 — 앞 행, 뒤 행, 끝 값 {{#memorize}}
+## 꼭 외울 것: 앞 행, 뒤 행, 끝 값 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
 | LAG | 앞 행의 값 |
 | LEAD | 뒤 행의 값 |
-| LAG·LEAD의 세 인자 | 열, 칸 수 (생략하면 1), 행이 없을 때 쓸 기본값 |
+| LAG, LEAD의 세 인자 | 열, 칸 수 (생략하면 1), 행이 없을 때 쓸 기본값 |
 | 가져올 행이 없으면 | NULL (기본값을 주면 그 값) |
 | ORDER BY만 쓴 LAST_VALUE | 현재 행 값 (범위가 현재 행에서 끝남) |
 | 끝 값을 모든 행에 붙이려면 | 범위의 끝을 UNBOUNDED FOLLOWING으로 |
-| LAG·LEAD의 OVER | ORDER BY 필수, 윈도우 절은 못 씀 |
+| LAG, LEAD의 OVER | ORDER BY 필수, 윈도우 절은 못 씀 |
 | NULL인 행 건너뛰기 | IGNORE NULLS (Oracle) |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 
 | 나오는 문제 | 확인할 것 |
 |---|---|
-| LAG·LEAD 결과 표 채우기 | 첫 행·마지막 행의 NULL, 세 번째 인자의 기본값 |
+| LAG, LEAD 결과 표 채우기 | 첫 행, 마지막 행의 NULL, 세 번째 인자의 기본값 |
 | ORDER BY만 쓴 LAST_VALUE 결과 | 현재 행 값이 나오는 이유 |
 | 마지막 값을 제대로 가져오는 윈도우 절 고르기 | 범위의 끝이 UNBOUNDED FOLLOWING인지 |
 
@@ -258,7 +258,7 @@ SELECT 이름, LAG(급여) OVER (ORDER BY 입사일 ROWS BETWEEN 1 PRECEDING AND
                   [["최유나", None], ["한도윤", "최유나"], ["오지민", "한도윤"]]),
         sql_error_check("SELECT 이름, LAG(급여) OVER () FROM 사원", "ORA-30485"),
         sql_error_check("SELECT 이름, LAG(급여) OVER (ORDER BY 입사일 ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) FROM 사원", "ORA-00907"),
-        # 확인 문제 2·3·5번 stemSql
+        # 확인 문제 2, 3, 5번 stemSql
         sql_check(LEAD_STEM_SQL, [["최유나", 2700], ["한도윤", 2200], ["오지민", None]]),
         sql_check(LAST_VALUE_STEM_SQL, [["최유나", "최유나"], ["한도윤", "한도윤"], ["오지민", "오지민"]]),
         sql_check(LAG_DEFAULT_STEM_SQL, [["최유나", 0], ["한도윤", 0], ["오지민", 3200]]),

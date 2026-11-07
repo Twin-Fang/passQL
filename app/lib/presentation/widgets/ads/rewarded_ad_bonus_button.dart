@@ -23,12 +23,19 @@ const Duration _adBonusVerificationPollInterval = Duration(seconds: 2);
 const int _adBonusVerificationMaxAttempts = 5;
 
 /// 무료 하루 한도 광고 보너스 버튼 (#808): 광고 사용 가능 + 오늘 남은 횟수 있을 때만 보임
-/// 탭 > 보상 표식 만들기 > 보상형 광고(서버 검증 값: 회원·표식, #860) > 끝까지 보면 서버 보너스 확인 > [onBonusGranted]
+/// 탭 > [onBonusAttemptStarted] > 보상 표식 만들기 > 보상형 광고(서버 검증 값: 회원·표식, #860) > 끝까지 보면 서버 보너스 확인 > [onBonusGranted]
 /// 그 외 결과는 버튼 아래 한 줄
 class RewardedAdBonusButton extends ConsumerStatefulWidget {
-  const RewardedAdBonusButton({super.key, required this.onBonusGranted});
+  const RewardedAdBonusButton({
+    super.key,
+    required this.onBonusAttemptStarted,
+    required this.onBonusGranted,
+  });
 
-  /// 보너스가 등급에 반영된 뒤 (시트 닫기 등)
+  /// 시청·확인 시작: 보너스 반영 여부 Future (버튼이 사라져도 끝까지 진행 > 시트를 닫아도 결과 전달)
+  final void Function(Future<bool> isBonusGranted) onBonusAttemptStarted;
+
+  /// 보너스가 등급에 반영된 뒤, 버튼이 아직 화면에 있을 때만 (시트 닫기 등)
   final VoidCallback onBonusGranted;
 
   @override
@@ -43,15 +50,21 @@ class _RewardedAdBonusButtonState extends ConsumerState<RewardedAdBonusButton> {
   /// 마지막 실패 안내 (버튼 아래 한 줄)
   String? _statusMessage;
 
-  /// 광고 > 보상 받았으면 서버 보너스 > 반영 완료 알림
-  Future<void> _watchAdForBonus() async {
+  /// 시청·확인 시작 알림 > 진행 (결과 Future 는 시트 밖 호출부도 기다림)
+  void _startBonusAttempt() {
     if (_isBusy) return;
     setState(() {
       _isBusy = true;
       _statusMessage = null;
     });
-    // 광고를 보는 사이 시트가 닫혀도 보상은 기록 > 컨테이너는 기다리기 전에 잡아 둠
-    final container = ProviderScope.containerOf(context);
+    widget.onBonusAttemptStarted(
+      _watchAdForBonus(ProviderScope.containerOf(context)),
+    );
+  }
+
+  /// 광고 > 보상 받았으면 서버 보너스 > 반영 여부 (화면에 남아 있으면 완료 알림·실패 안내)
+  /// 광고를 보는 사이 시트가 닫혀도 보상은 기록 > 컨테이너는 기다리기 전에 잡아 둠
+  Future<bool> _watchAdForBonus(ProviderContainer container) async {
     // 광고마다 새 표식: AdMob 콜백(custom_data)과 앱 신고를 같은 광고로 묶음
     final rewardNonce = const Uuid().v4();
     final memberUuid = container.read(currentMemberUuidProvider);
@@ -71,9 +84,8 @@ class _RewardedAdBonusButtonState extends ConsumerState<RewardedAdBonusButton> {
       case RewardedAdOutcome.rewarded:
         try {
           await _confirmAdBonus(container, rewardNonce);
-          if (!mounted) return;
-          widget.onBonusGranted();
-          return;
+          if (mounted) widget.onBonusGranted();
+          return true;
         } catch (error) {
           failureMessage = error.asAppException.message;
         }
@@ -83,11 +95,13 @@ class _RewardedAdBonusButtonState extends ConsumerState<RewardedAdBonusButton> {
         // 끝까지 안 봄 > 안내 없이 다시 누를 수 있게
         failureMessage = null;
     }
-    if (!mounted) return;
-    setState(() {
-      _isBusy = false;
-      _statusMessage = failureMessage;
-    });
+    if (mounted) {
+      setState(() {
+        _isBusy = false;
+        _statusMessage = failureMessage;
+      });
+    }
+    return false;
   }
 
   /// 보너스 확인 (같은 표식이라 몇 번 불러도 1회만 기록)
@@ -146,7 +160,7 @@ class _RewardedAdBonusButtonState extends ConsumerState<RewardedAdBonusButton> {
           variant: PassqlButtonVariant.tinted,
           size: PassqlButtonSize.regular,
           isLoading: _isBusy,
-          onPressed: _watchAdForBonus,
+          onPressed: _startBonusAttempt,
         ),
         if (statusMessage != null) ...[
           const SizedBox(height: PassqlSpacing.xs),

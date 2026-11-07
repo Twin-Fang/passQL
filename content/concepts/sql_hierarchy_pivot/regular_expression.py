@@ -24,7 +24,7 @@ METACHARACTER_EXAMPLES = (
 CLASS_SAMPLE_TEXT = "a1 b_2"
 CHARACTER_CLASS_EXAMPLES = (
     ("\\d", "숫자 하나, [0-9]와 같아요", 2),
-    ("\\w", "글자·숫자·밑줄(_) 하나", 5),
+    ("\\w", "글자, 숫자, 밑줄(_) 하나", 5),
     ("\\s", "공백 하나 (스페이스, 탭, 줄바꿈)", 1),
     ("[[:digit:]]", "POSIX 표기의 숫자 하나", 2),
     ("[[:alpha:]]", "POSIX 표기의 글자 하나", 2),
@@ -84,7 +84,7 @@ MATCH_OPTION_TABLE = to_markdown_table(
 MATCH_OPTION_BLOCK_SQL = "\n".join(
     f"SELECT {expression} FROM DUAL;  -- {result}번 맞아요" for _, _, expression, result in MATCH_OPTION_EXAMPLES)
 
-# 본문 SQL·결과와 검증 항목의 원본
+# 본문 SQL, 결과와 검증 항목의 원본
 REGEXP_LIKE_PARTIAL_SQL = "SELECT 이름 FROM 사원 WHERE REGEXP_LIKE(이름, '민');"
 LIKE_WHOLE_SQL = "SELECT 이름 FROM 사원 WHERE 이름 LIKE '민';"
 LIKE_PERCENT_SQL = "SELECT 이름 FROM 사원 WHERE 이름 LIKE '%민%';"
@@ -125,12 +125,12 @@ CONCEPT = {
     "summary": "문자열의 모양을 기호로 적어서 찾고, 꺼내고, 바꾸는 방법이에요",
     "coreMd": (
         "- 정규 표현식은 \"숫자 4개\", \"김으로 시작\" 같은 문자열의 모양을 `.`, `*`, `[0-9]`, `^` 같은 기호로 적은 패턴이에요.\n"
-        "- `REGEXP_LIKE`는 WHERE 절의 조건이고, `REGEXP_SUBSTR`·`REGEXP_INSTR`·`REGEXP_REPLACE`·`REGEXP_COUNT`는 꺼내기, 위치, 바꾸기, 횟수를 돌려주는 함수예요.\n"
+        "- `REGEXP_LIKE`는 WHERE 절의 조건이고, `REGEXP_SUBSTR`, `REGEXP_INSTR`, `REGEXP_REPLACE`, `REGEXP_COUNT`는 꺼내기, 위치, 바꾸기, 횟수를 돌려주는 함수예요.\n"
         "- LIKE는 전체가 맞아야 하지만 정규 표현식은 **일부만 맞아도 참**이라서, 전체를 고정하려면 `^`와 `$`를 붙여요.\n"
         "- `*`는 0번 이상, `+`는 1번 이상, `?`는 0번 또는 1번이고, `^`는 **대괄호 맨 앞**에서만 부정이에요.\n"
         "- 횟수 기호는 기본으로 **가장 길게** 맞추고(탐욕적 일치), 뒤에 `?`를 붙이면 가장 짧게 맞춰요(최소 일치)."
     ),
-    "detailMd": f"""## LIKE로는 못 적는 조건 — 왜 필요할까요 {{#why}}
+    "detailMd": f"""## LIKE로는 못 적는 조건: 왜 필요할까요 {{#why}}
 
 LIKE로는 `%`(아무 글자 여러 개)와 `_`(아무 글자 하나) 두 가지만 쓸 수 있어요. 그래서 아래 같은 조건은 LIKE로 적을 수 없고, 정규 표현식(regular expression)을 써요.
 
@@ -140,7 +140,7 @@ LIKE로는 `%`(아무 글자 여러 개)와 `_`(아무 글자 하나) 두 가지
 | 숫자가 3개나 4개 이어진 부분 | 못 적어요 | `[0-9]{{3,4}}` |
 | 두 번째로 나오는 숫자 덩어리 | 못 적어요 | `REGEXP_SUBSTR(원본, '[0-9]+', 1, 2)` |
 
-## 한 줄 정의 — 문자열의 모양을 적은 패턴 {{#definition}}
+## 한 줄 정의: 문자열의 모양을 적은 패턴 {{#definition}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -152,7 +152,7 @@ LIKE로는 `%`(아무 글자 여러 개)와 `_`(아무 글자 하나) 두 가지
 
 {EMPLOYEE_NAME_TABLE}
 
-## 메타 문자 — 기호마다 뜻이 정해져 있어요 {{#metacharacters}}
+## 메타 문자: 기호마다 뜻이 정해져 있어요 {{#metacharacters}}
 
 "참인 예"는 `REGEXP_LIKE(문자열, 패턴)`이 참이 되는 문자열이에요. 정규 표현식은 문자열의 일부만 패턴과 맞아도 참이라는 점을 기억하고 보면 돼요.
 
@@ -171,7 +171,7 @@ LIKE로는 `%`(아무 글자 여러 개)와 `_`(아무 글자 하나) 두 가지
 
 {CHARACTER_CLASS_TABLE}
 
-## 함수 다섯 개 — 판단, 꺼내기, 위치, 바꾸기, 세기 {{#functions}}
+## 함수 다섯 개: 판단, 꺼내기, 위치, 바꾸기, 세기 {{#functions}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -213,7 +213,7 @@ REGEXP_REPLACE는 n번째를 생략하거나 0을 주면 맞는 부분을 모두
 {GROUP_SUBSTR_SQL}  -- pass.ql이 나와요
 ```
 
-## 일치 옵션 — 맞추는 방식을 바꾸는 문자 {{#match-options}}
+## 일치 옵션: 맞추는 방식을 바꾸는 문자 {{#match-options}}
 
 | 함수 | 일치 옵션 자리 |
 |---|---|
@@ -231,7 +231,7 @@ REGEXP_REPLACE는 n번째를 생략하거나 0을 주면 맞는 부분을 모두
 {REPLACE_OPTION_SQL}  -- 대소문자와 상관없이 둘 다 바뀌어서 # #이 돼요
 ```
 
-## 탐욕적 일치와 최소 일치 — 길게 또는 짧게 {{#greedy}}
+## 탐욕적 일치와 최소 일치: 길게 또는 짧게 {{#greedy}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -255,7 +255,7 @@ REGEXP_REPLACE는 n번째를 생략하거나 0을 주면 맞는 부분을 모두
 {GREEDY_RANGE_SQL}  -- aaa와 aa가 나와요
 ```
 
-## 자주 헷갈리는 점 — 일부 일치, 기호의 두 얼굴 {{#confusing}}
+## 자주 헷갈리는 점: 일부 일치, 기호의 두 얼굴 {{#confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -305,7 +305,7 @@ LIKE를 정규 표현식처럼 쓰려면 `LIKE '%민%'`처럼 앞뒤에 `%`를 �
 {OPTION_CONFLICT_SQL}  -- 1과 2가 나와요
 ```
 
-`'digit 1'`에서 한 겹 `[:digit:]`는 숫자 1이 아니라 d, i, g, i, t 다섯 글자와 맞아요. REGEXP_LIKE는 참·거짓을 값으로 꺼낼 수 없어서, SELECT 절에 쓰면 Oracle이 열 이름으로 읽어요.
+`'digit 1'`에서 한 겹 `[:digit:]`는 숫자 1이 아니라 d, i, g, i, t 다섯 글자와 맞아요. REGEXP_LIKE는 참, 거짓을 값으로 꺼낼 수 없어서, SELECT 절에 쓰면 Oracle이 열 이름으로 읽어요.
 
 ```sql
 -- 오류: REGEXP_LIKE는 조건이라 SELECT 절에 쓸 수 없어요 (ORA-00904, 없는 열 이름)
@@ -318,7 +318,7 @@ LIKE를 정규 표현식처럼 쓰려면 `LIKE '%민%'`처럼 앞뒤에 `%`를 �
 | `[^0-9]`는 숫자가 아닌 글자 하나와 맞아요 | O | 대괄호 맨 앞의 `^`는 부정이에요 |
 | `REGEXP_INSTR`는 맞는 부분이 없으면 NULL을 돌려줘요 | X | 위치를 찾지 못하면 0을 돌려줘요 |
 
-## 꼭 외울 것 — 기호의 뜻과 못 찾았을 때 {{#memorize}}
+## 꼭 외울 것: 기호의 뜻과 못 찾았을 때 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
@@ -327,11 +327,11 @@ LIKE를 정규 표현식처럼 쓰려면 `LIKE '%민%'`처럼 앞뒤에 `%`를 �
 | `.`과 `\\.` | 아무 글자 하나, 진짜 마침표 |
 | 일부만 맞을 때 | 참이에요, 전체를 고정하려면 `^`와 `$` |
 | 기본 일치 방식 | 탐욕적(가장 길게), 횟수 기호 뒤 `?`면 최소 일치 |
-| 맞는 부분이 없을 때 | SUBSTR는 NULL, INSTR·COUNT는 0, REPLACE는 원본 |
+| 맞는 부분이 없을 때 | SUBSTR는 NULL, INSTR, COUNT는 0, REPLACE는 원본 |
 | REPLACE 바꿀 문자열 생략 | 맞는 부분을 지워요 |
-| REGEXP_LIKE를 쓰는 자리 | WHERE·CASE WHEN 조건만, SELECT 값은 오류 |
+| REGEXP_LIKE를 쓰는 자리 | WHERE, CASE WHEN 조건만, SELECT 값은 오류 |
 
-## 시험에서는 이렇게 나와요 — 함수 결과를 직접 계산 {{#exam-point}}
+## 시험에서는 이렇게 나와요: 함수 결과를 직접 계산 {{#exam-point}}
 
 REGEXP_SUBSTR, REGEXP_INSTR, REGEXP_REPLACE, REGEXP_COUNT의 결과를 직접 계산하게 하는 문제가 가장 많아요.
 
@@ -344,7 +344,7 @@ REGEXP_SUBSTR, REGEXP_INSTR, REGEXP_REPLACE, REGEXP_COUNT의 결과를 직접 �
 
 그 밖에 메타 문자의 뜻, 탐욕적 일치와 최소 일치의 차이, LIKE와 REGEXP_LIKE의 차이가 자주 나와요.""",
     "checkQuestions": [
-        question(1, "Oracle 정규 표현식 중 값을 돌려주지 않고 WHERE 절에서 참·거짓을 판단하는 조건으로 쓰는 것은 무엇인가요?", "functions",
+        question(1, "Oracle 정규 표현식 중 값을 돌려주지 않고 WHERE 절에서 참, 거짓을 판단하는 조건으로 쓰는 것은 무엇인가요?", "functions",
                  "REGEXP_LIKE는 패턴과 맞는지를 판단하는 조건이라서 WHERE 절에 써요. 나머지 넷은 문자열이나 숫자를 돌려주는 함수예요.",
                  [choice("A", "REGEXP_LIKE", True, "패턴과 맞으면 참이 되는 조건이에요."),
                   choice("B", "REGEXP_SUBSTR", rationale="맞는 부분을 문자열로 꺼내 주는 함수예요."),
@@ -380,7 +380,7 @@ REGEXP_SUBSTR, REGEXP_INSTR, REGEXP_REPLACE, REGEXP_COUNT의 결과를 직접 �
     ],
     "relatedQuestionUuids": [],
     "sqlChecks": [
-        # 메타 문자 표 (행마다 참·거짓 문자열 확인)
+        # 메타 문자 표 (행마다 참, 거짓 문자열 확인)
         *[to_regexp_like_check(pattern, list(matching), list(other))
           for _, _, pattern, matching, other in METACHARACTER_EXAMPLES],
         # 짧은 표기 표
@@ -415,7 +415,7 @@ REGEXP_SUBSTR, REGEXP_INSTR, REGEXP_REPLACE, REGEXP_COUNT의 결과를 직접 �
         sql_check(NAME_PARTIAL_STEM_SQL, [["박서준"], ["윤서연"]]),
         sql_check(NTH_POSITION_STEM_SQL, [[5]]),
         sql_check(LAZY_STEM_SQL, [["x1y"]]),
-        # 확인 문제 4·5 오답 보기: 첫 덩어리 위치, 반환 옵션 1, 덩어리 값, 탐욕적 일치
+        # 확인 문제 4, 5 오답 보기: 첫 덩어리 위치, 반환 옵션 1, 덩어리 값, 탐욕적 일치
         sql_check("SELECT REGEXP_INSTR('x12y345z6', '[0-9]+'), REGEXP_INSTR('x12y345z6', '[0-9]+', 1, 2, 1),"
                   " REGEXP_SUBSTR('x12y345z6', '[0-9]+', 1, 2) FROM DUAL", [[2, 8, "345"]]),
         sql_check("SELECT REGEXP_SUBSTR('x1y2x3y', 'x.*y') FROM DUAL", [["x1y2x3y"]]),

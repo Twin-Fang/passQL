@@ -1,5 +1,5 @@
 """개념: 관계형 데이터베이스와 SQL의 특징 (2단원, 확인 문제 5개)
-범위: DB·DBMS > 관계형 구조(테이블·행·열·키) > SQL 특징 > 명령어 분류 > 관계대수"""
+범위: DB, DBMS > 관계형 구조(테이블, 행, 열, 키) > SQL 특징 > 명령어 분류 > 관계대수"""
 
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
 from concept_dataset import DEPARTMENT_TABLE_MD, to_employee_table_md, to_insert_statements, to_markdown_table
@@ -12,7 +12,7 @@ SELECTION_EXAMPLE = sql_example("SELECT * FROM 부서 WHERE 지역 = '서울';",
 # 프로젝트 연산 예시 (SQL 은 중복 행을 남김 > 서울 2번)
 PROJECTION_EXAMPLE = sql_example("SELECT 지역 FROM 부서;", ("지역",),
                                  [["서울"], ["판교"], ["부산"], ["서울"]], is_ordered=False)
-# 셀렉트 + 프로젝트 함께 (20번 부서 3명의 이름·급여)
+# 셀렉트 + 프로젝트 함께 (20번 부서 3명의 이름, 급여)
 SELECTION_PROJECTION_EXAMPLE = sql_example("SELECT 이름, 급여 FROM 사원 WHERE 부서번호 = 20;", ("이름", "급여"),
                                            [["이지은", 2500], ["박서준", 2800], ["정하늘", 2500]], is_ordered=False)
 
@@ -35,7 +35,7 @@ DIVISION_SETUP = "\n".join([
     *to_insert_statements("자격보유", CERTIFICATE_HOLDING_ROWS),
     *to_insert_statements("필수자격", REQUIRED_CERTIFICATE_ROWS),
 ])
-# 디비전 SQL (이중 NOT EXISTS: 이 사원이 갖지 않은 필수 자격이 하나도 없음) — 본문에는 6단원으로 연결만
+# 디비전 SQL (이중 NOT EXISTS: 이 사원이 갖지 않은 필수 자격이 하나도 없음): 본문에는 6단원으로 연결만
 DIVISION_SQL = (
     "SELECT DISTINCT a.사번 FROM 자격보유 a WHERE NOT EXISTS ("
     "SELECT 1 FROM 필수자격 r WHERE NOT EXISTS ("
@@ -51,11 +51,11 @@ CONCEPT = {
     "coreMd": (
         "- 관계형 데이터베이스는 데이터를 행과 열로 된 **테이블**에 담고, 기본키와 외래키로 테이블끼리 이어요.\n"
         "- SQL은 결과만 적고 처리 방법은 DBMS가 정하는 **선언적(비절차적) 언어**라서, \"절차적 언어\"는 틀린 보기예요.\n"
-        "- DML은 SELECT·INSERT·UPDATE·DELETE·MERGE, DDL은 CREATE·ALTER·DROP·RENAME·TRUNCATE, **DCL은 GRANT·REVOKE**, TCL은 COMMIT·ROLLBACK·SAVEPOINT예요.\n"
-        "- 합집합·교집합·차집합·곱집합은 UNION·INTERSECT·MINUS·CROSS JOIN에, 셀렉트는 WHERE에, 프로젝트는 SELECT 열 목록에 대응해요.\n"
+        "- DML은 SELECT, INSERT, UPDATE, DELETE, MERGE, DDL은 CREATE, ALTER, DROP, RENAME, TRUNCATE, **DCL은 GRANT, REVOKE**, TCL은 COMMIT, ROLLBACK, SAVEPOINT예요.\n"
+        "- 합집합, 교집합, 차집합, 곱집합은 UNION, INTERSECT, MINUS, CROSS JOIN에, 셀렉트는 WHERE에, 프로젝트는 SELECT 열 목록에 대응해요.\n"
         "- 디비전은 다른 테이블의 값을 모두 가진 쪽을 찾는 연산이고, SQL에는 **대응하는 명령어가 없어요**."
     ),
-    "detailMd": f"""## 데이터베이스와 DBMS — 함께 쓰는 데이터를 한곳에 {{#why}}
+    "detailMd": f"""## 데이터베이스와 DBMS: 함께 쓰는 데이터를 한곳에 {{#why}}
 
 사원 명단을 직원마다 각자 파일로 들고 있으면, 누군가 급여를 고쳐도 다른 사람의 파일은 그대로라서 값이 금세 어긋나요. 그래서 여러 사람이 함께 쓰는 데이터는 한곳에 모아 두고, 그 일을 맡는 소프트웨어를 따로 둬요.
 
@@ -65,7 +65,7 @@ CONCEPT = {
 | DBMS | 데이터베이스 관리 시스템이에요. 데이터베이스를 만들고 데이터를 저장하고 찾고 고치며, 여러 사람의 동시 사용과 권한도 관리해요 |
 | Oracle, SQL Server | DBMS 제품의 이름이에요. SQLD는 주로 Oracle 기준으로 나오고, SQL Server와 다른 문법도 함께 물어요 |
 
-## 관계형 데이터베이스 — 데이터를 표에 나눠 담아요 {{#definition}}
+## 관계형 데이터베이스: 데이터를 표에 나눠 담아요 {{#definition}}
 
 관계형 데이터베이스는 데이터를 칸이 나뉜 표, 곧 **테이블**에 담는 데이터베이스예요. 1970년에 E. F. Codd가 집합 이론을 바탕으로 제안한 관계형 모델에서 출발했고, 아래가 이 앱의 모든 예시에서 쓰는 사원 테이블과 부서 테이블이에요.
 
@@ -95,7 +95,7 @@ INSERT INTO 사원 (사번, 이름, 부서번호) VALUES (1009, '강하준', 40)
 
 INSERT는 테이블에 행을 넣는 명령이고 3단원에서 다뤄요. 키를 정하는 방법은 1단원 식별자 개념에서 자세히 다뤄요.
 
-## SQL의 특징 — 결과만 적고, 집합으로 처리해요 {{#sql-features}}
+## SQL의 특징: 결과만 적고, 집합으로 처리해요 {{#sql-features}}
 
 관계형 데이터베이스에 일을 시키는 언어를 **SQL**(Structured Query Language, 구조적 질의 언어)이라고 해요. 시험에 나오는 맞는 특징은 아래 세 가지예요.
 
@@ -123,7 +123,7 @@ SELECT 이름, 급여 FROM 사원 WHERE 부서번호 = 20;
 | 박서준 | 2900 |
 | 정하늘 | 2600 |
 
-## SQL 명령어의 종류 — DML·DDL·DCL·TCL {{#sql-types}}
+## SQL 명령어의 종류: DML, DDL, DCL, TCL {{#sql-types}}
 
 | 종류 | 하는 일 | 명령어 |
 |---|---|---|
@@ -132,9 +132,9 @@ SELECT 이름, 급여 FROM 사원 WHERE 부서번호 = 20;
 | DCL (데이터 제어어) | 다른 사용자에게 권한을 주고 빼앗아요 | GRANT, REVOKE |
 | TCL (트랜잭션 제어어) | 지금까지 한 변경을 확정하거나 취소해요 | COMMIT, ROLLBACK, SAVEPOINT |
 
-SELECT는 읽기만 해서 **DQL**(데이터 질의어)로 따로 부르기도 하지만, SQLD에서는 보통 DML에 넣어요. 트랜잭션은 계좌 이체의 출금과 입금처럼 함께 성공하거나 함께 취소되어야 하는 변경 묶음이고, DDL·DCL·TCL은 3단원에서 자세히 다뤄요.
+SELECT는 읽기만 해서 **DQL**(데이터 질의어)로 따로 부르기도 하지만, SQLD에서는 보통 DML에 넣어요. 트랜잭션은 계좌 이체의 출금과 입금처럼 함께 성공하거나 함께 취소되어야 하는 변경 묶음이고, DDL, DCL, TCL은 3단원에서 자세히 다뤄요.
 
-## 관계대수 — 테이블을 넣으면 테이블이 나오는 연산 {{#relational-algebra}}
+## 관계대수: 테이블을 넣으면 테이블이 나오는 연산 {{#relational-algebra}}
 
 관계대수는 테이블을 넣으면 테이블이 나오는 연산들의 모음이고, SQL은 이 연산을 문장으로 쓰게 만든 언어예요. 집합 이론에서 가져온 일반 집합 연산 네 가지와, 관계형 모델을 위해 만든 **순수 관계 연산** 네 가지로 나뉘어요.
 
@@ -183,7 +183,7 @@ SELECT COUNT(*) FROM 부서 CROSS JOIN 사원;                     -- 곱집합�
 
 SQL에는 디비전 명령어가 없어서 "이 사원이 갖지 않은 필수 자격이 하나도 없다"처럼 부정을 두 번 겹쳐 써요. 이때 쓰는 NOT EXISTS는 6단원 연관 서브쿼리와 EXISTS 개념에서 다뤄요.
 
-## 셀렉트와 프로젝트 — 행을 고르나, 열을 고르나 {{#select-project}}
+## 셀렉트와 프로젝트: 행을 고르나, 열을 고르나 {{#select-project}}
 
 지역이 서울인 행만 고르는 첫 SQL은 셀렉트 연산이고, 지역 열만 고르는 두 번째 SQL은 프로젝트 연산이에요. `*`는 모든 열을 뜻해요.
 
@@ -197,7 +197,7 @@ SQL에는 디비전 명령어가 없어서 "이 사원이 갖지 않은 필수 �
 SELECT DISTINCT 지역 FROM 부서;   -- 중복된 서울이 하나로 합쳐져서 세 행이 나와요
 ```
 
-## 자주 헷갈리는 점 — 이름이 비슷한 짝 {{#confusing}}
+## 자주 헷갈리는 점: 이름이 비슷한 짝 {{#confusing}}
 
 `SELECT 이름, 급여 FROM 사원 WHERE 부서번호 = 20`을 나눠 보면, 이름이 같은 SELECT 절이 셀렉트 연산이 아니라는 것이 보여요.
 
@@ -226,14 +226,14 @@ SELECT DISTINCT 지역 FROM 부서;   -- 중복된 서울이 하나로 합쳐져
 | SAVEPOINT는 TCL에 속해요 | O | COMMIT, ROLLBACK과 함께 변경을 다루는 트랜잭션 제어어예요 |
 | 합집합은 열 개수가 달라도 쓸 수 있어요 | X | 행을 통째로 비교하므로 열 개수와 데이터 종류가 같아야 해요 |
 
-## 꼭 외울 것 — 용어 짝과 명령어 분류 {{#memorize}}
+## 꼭 외울 것: 용어 짝과 명령어 분류 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
 | SQL의 성격 | 선언적(비절차적), 집합 단위 처리, 표준 언어 |
 | 차수와 카디널리티 | 차수는 열 개수, 카디널리티는 행 개수 |
 | DDL 다섯 개 | CREATE, ALTER, DROP, RENAME, TRUNCATE |
-| DCL과 TCL | DCL은 GRANT·REVOKE, TCL은 COMMIT·ROLLBACK·SAVEPOINT |
+| DCL과 TCL | DCL은 GRANT, REVOKE, TCL은 COMMIT, ROLLBACK, SAVEPOINT |
 | 셀렉트와 프로젝트 | 셀렉트는 WHERE(행), 프로젝트는 SELECT 열 목록(열) |
 | 순수 관계 연산 네 개 | 셀렉트, 프로젝트, 조인, 디비전 |
 | 디비전에 맞는 SQL 명령어 | 없음 (NOT EXISTS를 두 번 겹쳐 씀) |
@@ -284,12 +284,12 @@ SQL의 특징으로 알맞지 않은 것을 고르는 문제에서는 선언적,
         SELECTION_PROJECTION_EXAMPLE.check,
         sql_check("SELECT 이름, 급여 FROM 사원 WHERE 부서번호 = 20",
                   [["이지은", 2600], ["박서준", 2900], ["정하늘", 2600]], setup=RAISE_SALARY_SQL),
-        # 일반 집합 연산 (UNION·INTERSECT·MINUS·CROSS JOIN)
+        # 일반 집합 연산 (UNION, INTERSECT, MINUS, CROSS JOIN)
         sql_check("SELECT 부서번호 FROM 부서 UNION SELECT 부서번호 FROM 사원", [[10], [20], [30], [40], [None]]),
         sql_check("SELECT 부서번호 FROM 부서 INTERSECT SELECT 부서번호 FROM 사원", [[10], [20], [30]]),
         sql_check("SELECT 부서번호 FROM 부서 MINUS SELECT 부서번호 FROM 사원", [[40]]),
         sql_check("SELECT COUNT(*) FROM 부서 CROSS JOIN 사원", [[32]]),
-        # 셀렉트·프로젝트 (SQL 은 중복 유지, DISTINCT 로 제거)
+        # 셀렉트, 프로젝트 (SQL 은 중복 유지, DISTINCT 로 제거)
         SELECTION_EXAMPLE.check,
         PROJECTION_EXAMPLE.check,
         sql_check("SELECT DISTINCT 지역 FROM 부서", [["서울"], ["판교"], ["부산"]]),

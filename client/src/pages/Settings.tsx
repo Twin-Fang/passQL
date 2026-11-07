@@ -21,8 +21,8 @@ import { useBusinessInfoLines } from "../hooks/useBusinessInfoLines";
 import { LEGAL_TITLE } from "../api/legal";
 import type { LegalType } from "../types/api";
 import { IS_GOOGLE_PLAY_PUBLIC } from "../constants/appStoreRelease";
-import { useMember, useUpdateChoiceGenerationMode } from "../hooks/useMember";
-import type { ChoiceGenerationMode } from "../types/api";
+import { useMember } from "../hooks/useMember";
+import FreshChoicesToggleRow from "../components/choiceMode/FreshChoicesToggleRow";
 
 // 탈퇴 중단 사유 > 안내 문구 (Apple 연결 해제 실패·취소, Apple·Google 계정 불일치)
 const WITHDRAW_STOPPED_MESSAGE: Readonly<Record<Exclude<SocialRevokeResult, "READY_TO_WITHDRAW">, string>> = {
@@ -42,10 +42,8 @@ export default function Settings() {
   // 약관 본문 모달 (로그인 화면과 같은 컴포넌트, #658)
   const [openedLegalType, setOpenedLegalType] = useState<LegalType | null>(null);
   const businessInfoLines = useBusinessInfoLines();
-  // 문제풀이 섹션 — 선택지 생성 모드 토글
+  // 탈퇴 시 제공자 확인용 회원 정보
   const { data: memberData } = useMember();
-  const { mutate: updateMode, isPending: isModeUpdating } = useUpdateChoiceGenerationMode();
-  const currentMode: ChoiceGenerationMode = memberData?.choiceGenerationMode ?? "PRACTICE";
 
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -115,46 +113,11 @@ export default function Settings() {
     <SubpageLayout title="설정">
       <AccountInfoSection className={sAccount.className} />
 
-      {/* 문제풀이 섹션 — 선택지 생성 모드 토글 */}
+      {/* 문제풀이 섹션 — 새 보기로 풀기 (AI 새 보기 / 검증된 보기, 풀이 화면 보기 방식 시트와 같은 줄) */}
       <section className={s0.className}>
         <SettingsSection label="문제풀이">
           <div className="bg-surface-card border-y border-border">
-            <div className="px-4 py-3.5">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-sm font-medium text-text-primary">선택지 생성 모드</span>
-                <div className="flex gap-1 bg-surface rounded-lg p-0.5">
-                  <button
-                    type="button"
-                    disabled={isModeUpdating || currentMode === "PRACTICE"}
-                    onClick={() => updateMode("PRACTICE")}
-                    className={`text-xs px-3 py-1 rounded-md font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                      currentMode === "PRACTICE"
-                        ? "bg-brand text-on-brand"
-                        : "text-text-caption hover:text-text-secondary"
-                    }`}
-                  >
-                    연습
-                  </button>
-                  <button
-                    type="button"
-                    disabled={isModeUpdating || currentMode === "REAL"}
-                    onClick={() => updateMode("REAL")}
-                    className={`text-xs px-3 py-1 rounded-md font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                      currentMode === "REAL"
-                        ? "bg-brand text-on-brand"
-                        : "text-text-caption hover:text-text-secondary"
-                    }`}
-                  >
-                    실전
-                  </button>
-                </div>
-              </div>
-              <p className="text-xs text-text-caption">
-                {currentMode === "PRACTICE"
-                  ? "기존 검증된 선택지 재사용 → 빠르게 시작"
-                  : "매번 새 선택지 AI 생성 → 대기 있음"}
-              </p>
-            </div>
+            <FreshChoicesToggleRow />
           </div>
         </SettingsSection>
       </section>

@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import '../logging/app_logger.dart';
 import 'ad_placement.dart';
 import 'ad_request_preparer.dart';
 import 'full_screen_ad_guard.dart';
@@ -57,8 +58,9 @@ class GoogleAdBannerLoader implements AdBannerLoader {
             }
           },
           onAdFailedToLoad: (_, error) {
-            debugPrint(
-              '[ads banner] load failed ${placement.name} : ${error.code}',
+            AppLogger.warn(
+              'ads banner',
+              'load failed ${placement.name} : ${error.code}',
             );
             // 해제는 아래 null 경로 한 곳에서 (실패·시간 초과 공통)
             if (!loadCompleter.isCompleted) loadCompleter.complete(null);
@@ -69,7 +71,7 @@ class GoogleAdBannerLoader implements AdBannerLoader {
       final loadedAd = await loadCompleter.future.timeout(
         _loadTimeout,
         onTimeout: () {
-          debugPrint('[ads banner] load timeout ${placement.name}');
+          AppLogger.warn('ads banner', 'load timeout ${placement.name}');
           return null;
         },
       );
@@ -80,7 +82,7 @@ class GoogleAdBannerLoader implements AdBannerLoader {
       // 인라인 적응형은 요청 높이 0 > 로드 뒤 실제 크기로 틀 높이 결정
       final platformSize = await loadedAd.getPlatformAdSize();
       if (platformSize == null || platformSize.height <= 0) {
-        debugPrint('[ads banner] size unknown ${placement.name}');
+        AppLogger.warn('ads banner', 'size unknown ${placement.name}');
         await loadedAd.dispose();
         return null;
       }
@@ -95,7 +97,7 @@ class GoogleAdBannerLoader implements AdBannerLoader {
       );
     } catch (error) {
       // 광고는 보조 요소 > 사용자 알림 없이 기록만
-      debugPrint('[ads banner] prepare failed ${placement.name} : $error');
+      AppLogger.warn('ads banner', 'prepare failed ${placement.name} : $error');
       await bannerAd?.dispose();
       return null;
     }

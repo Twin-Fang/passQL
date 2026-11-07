@@ -33,11 +33,11 @@ CONCEPT = {
     "coreMd": (
         "- SELECT 문은 SELECT, FROM, WHERE, GROUP BY, HAVING, ORDER BY 순서로 써요.\n"
         "- 실제로는 **FROM**, WHERE, GROUP BY, HAVING, SELECT, ORDER BY 순서로 처리돼요.\n"
-        "- SELECT에서 붙인 별칭은 WHERE·GROUP BY·HAVING에서는 못 쓰고 **ORDER BY에서만** 써요.\n"
+        "- SELECT에서 붙인 별칭은 WHERE, GROUP BY, HAVING에서는 못 쓰고 **ORDER BY에서만** 써요.\n"
         "- WHERE는 묶기 전에 처리되어서 COUNT 같은 **그룹 함수**를 쓸 수 없어요.\n"
         "- Oracle은 FROM 절이 꼭 있어야 해서, 계산만 할 때는 한 행짜리 표 **DUAL**을 적어요."
     ),
-    "detailMd": f"""## 왜 실행 순서를 알아야 할까요 — 별칭과 오류를 가르는 기준 {{#why}}
+    "detailMd": f"""## 왜 실행 순서를 알아야 할까요: 별칭과 오류를 가르는 기준 {{#why}}
 
 SELECT 문은 가장 많이 쓰는 SQL 문장인데, 쓴 순서와 처리되는 순서가 달라요. 처리 순서를 알아야 SELECT에서 붙인 이름을 어디에 쓸 수 있는지, 어떤 SQL이 오류가 나는지를 판단할 수 있어요.
 
@@ -47,7 +47,7 @@ SELECT 문은 가장 많이 쓰는 SQL 문장인데, 쓴 순서와 처리되는 
 | 명령어의 대소문자 | `SELECT`와 `select`는 같아요. 명령어는 대소문자를 구분하지 않아요 |
 | 작은따옴표 안의 값 | `'김민수'`처럼 따옴표 안에 쓴 값은 글자 그대로 비교해요 |
 
-## SELECT 문의 생김새 — 정해진 순서로 쓰는 여섯 절 {{#definition}}
+## SELECT 문의 생김새: 정해진 순서로 쓰는 여섯 절 {{#definition}}
 
 `WHERE 급여 >= 2500`처럼 키워드 하나로 시작하는 문장의 한 부분을 **절**이라고 해요. SELECT 문은 아래 여섯 절을 이 순서대로만 쓸 수 있어요.
 
@@ -67,7 +67,7 @@ SELECT * FROM 사원;              -- 사원 테이블의 모든 열을 보여 �
 SELECT 이름, 급여 FROM 사원;     -- 이름과 급여 열만 보여 줘요
 ```
 
-## 실행 순서 — FROM에서 시작해 ORDER BY로 끝나요 {{#execution-order}}
+## 실행 순서: FROM에서 시작해 ORDER BY로 끝나요 {{#execution-order}}
 
 데이터베이스는 어느 테이블을 읽을지 알아야 일을 시작할 수 있어서 FROM부터 처리하고, 보여 줄 열을 정하는 SELECT는 끝에서 두 번째로 처리해요. 이 순서를 **논리적 실행 순서**라고 불러요.
 
@@ -91,7 +91,7 @@ SELECT 이름, 급여 FROM 사원;     -- 이름과 급여 열만 보여 줘요
 
 쓰는 순서는 SELECT가 맨 앞이고 실행 순서는 FROM이 맨 앞이라, 시험은 이 두 순서를 섞어 보기로 내요. ORDER BY는 두 순서 모두에서 맨 끝이에요.
 
-## 한 문장 따라가기 — 단계마다 줄어드는 행 {{#walkthrough}}
+## 한 문장 따라가기: 단계마다 줄어드는 행 {{#walkthrough}}
 
 `COUNT(*)`는 묶음마다 행 수를 세는 함수이고, 이렇게 여러 행으로 값 하나를 내는 함수를 그룹 함수라고 불러요(7단원). `AS 인원`은 계산한 열에 새 이름을 붙이는 **별칭**이에요.
 
@@ -108,7 +108,7 @@ SELECT 이름, 급여 FROM 사원;     -- 이름과 급여 열만 보여 줘요
 | 5 SELECT | 묶음마다 부서번호와 인원 열을 만들어요 |
 | 6 ORDER BY 인원 DESC | 인원이 많은 순서로 줄을 세워요 |
 
-## 자주 헷갈리는 점 — 별칭은 ORDER BY에서만 {{#confusing}}
+## 자주 헷갈리는 점: 별칭은 ORDER BY에서만 {{#confusing}}
 
 연봉이라는 별칭은 5번째인 SELECT에서야 생겨요. 그래서 2번째인 WHERE에서 연봉을 쓰면 오류가 나고, 계산식을 그대로 다시 적어야 해요.
 
@@ -138,7 +138,7 @@ SELECT 이름, 급여 * 12 AS 연봉 FROM 사원 ORDER BY 연봉 DESC;  -- ORDER
 
 AVG는 평균을 구하는 그룹 함수이고, 그룹 함수와 HAVING은 7단원에서 자세히 다뤄요.
 
-## FROM 없는 계산 — Oracle은 DUAL을 적어요 {{#dual}}
+## FROM 없는 계산: Oracle은 DUAL을 적어요 {{#dual}}
 
 Oracle은 `3 * 4` 같은 계산만 할 때도 FROM을 요구해요. 이럴 때 쓰는 **DUAL**은 Oracle이 처음부터 만들어 두는 한 행, 한 열(DUMMY 열, 값 `X`)짜리 테이블이라 계산 결과가 한 번만 나와요.
 
@@ -160,14 +160,14 @@ SELECT 3 * 4;             -- 오류: Oracle은 FROM을 꼭 써야 해요 (ORA-00
 | DUAL은 행이 하나뿐이라 `SELECT 3 * 4 FROM DUAL`은 한 행이 나와요 | O | DUAL은 DUMMY 열 하나, 값 X 한 행짜리 테이블이에요 |
 | SQL Server도 FROM이 없는 SELECT는 오류가 나요 | X | FROM을 꼭 요구하는 것은 Oracle이고, SQL Server는 FROM 없이도 실행돼요 |
 
-## 꼭 외울 것 — 쓰는 순서와 처리 순서 {{#memorize}}
+## 꼭 외울 것: 쓰는 순서와 처리 순서 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
 | 쓰는 순서 | SELECT → FROM → WHERE → GROUP BY → HAVING → ORDER BY |
 | 논리적 실행 순서 | FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY |
 | 실행 순서 두문자 | 프웨그해셀오 |
-| SELECT 별칭을 쓰는 절 | ORDER BY 한 곳 (WHERE·GROUP BY·HAVING은 오류) |
+| SELECT 별칭을 쓰는 절 | ORDER BY 한 곳 (WHERE, GROUP BY, HAVING은 오류) |
 | WHERE에 그룹 함수 | 못 써요, 묶음 조건은 HAVING에 적어요 |
 | Oracle의 FROM 없는 SELECT | 오류, `FROM DUAL`을 붙여요 (SQL Server는 실행) |
 | DUAL 테이블 | 한 행 한 열 (DUMMY 열, 값 X) |

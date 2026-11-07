@@ -23,6 +23,7 @@ import com.passql.question.dto.AdminQuestionSearchCondition;
 import com.passql.question.dto.ChoiceSetGenerateResponse;
 import com.passql.question.dto.CuratedChoiceDto;
 import com.passql.question.dto.QuestionDetail;
+import com.passql.question.dto.QuestionFormatInput;
 import com.passql.question.dto.QuestionSummary;
 import com.passql.question.dto.RecommendationsResponse;
 import com.passql.question.dto.TodayQuestionResponse;
@@ -396,6 +397,11 @@ public class QuestionService {
                                UUID topicUuid, UUID subtopicUuid) {
         Question q = questionRepository.findById(questionUuid)
                 .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
+        // 문항 형식 규칙 (#905): 저장본에 없던 위반 사유가 새로 생기면 거부
+        QuestionFormatGate.requireNoNewReasons(
+                QuestionFormatInput.withoutChoices(q.getStem(), q.getHint(), q.getSchemaDdl(), q.getSchemaSampleData(),
+                        q.getExecutionMode()),
+                QuestionFormatInput.withoutChoices(stem, hint, schemaDdl, schemaSampleData, executionMode));
         Map<String, Object> before = QuestionAuditSummary.of(q);
         q.setStem(stem);
         q.setSchemaDisplay(schemaDisplay);

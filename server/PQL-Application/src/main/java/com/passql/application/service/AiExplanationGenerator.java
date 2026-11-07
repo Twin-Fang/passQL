@@ -7,6 +7,7 @@ import com.passql.meta.constant.PromptKey;
 import com.passql.meta.entity.PromptTemplate;
 import com.passql.meta.service.PromptService;
 import com.passql.question.entity.Question;
+import com.passql.question.service.ForbiddenPunctuationCleaner;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -82,7 +83,8 @@ public class AiExplanationGenerator {
                     prompt.getTemperature() != null ? prompt.getTemperature() : 0.3f,
                     prompt.getMaxTokens() != null ? Math.max(prompt.getMaxTokens(), 1024) : 1024);
             if (text == null || text.isBlank()) throw new IllegalStateException("빈 응답");
-            return text.trim();
+            // 저장·응답 전 줄표·가운뎃점 정리 (#905, 지시문만으로는 보장 안 됨)
+            return ForbiddenPunctuationCleaner.clean(text.trim());
         } catch (Exception e) {
             log.error("[ai-explain] {} 실패: question={}", kind, questionUuid, e);
             throw new CustomException(ErrorCode.AI_UNAVAILABLE);

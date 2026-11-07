@@ -20,6 +20,8 @@ public final class TextPreview {
     public static final int LOG_SQL_LENGTH = 120;
     // 통계 AI 분석 프롬프트의 최근 오답 지문 (문자 수, 한 줄로 편 뒤, #861)
     public static final int AI_ANALYSIS_WRONG_STEM_LENGTH = 80;
+    // 관리자 형식 검사 화면의 지문·개념 미리보기 (문자 수, 한 줄로 편 뒤, #905)
+    public static final int FORMAT_AUDIT_STEM_LENGTH = 60;
 
     private static final String ELLIPSIS = "...";
 

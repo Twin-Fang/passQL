@@ -17,13 +17,13 @@ COUNT_EXAMPLE = sql_example(
     ("COUNT(*)", "COUNT(커미션)", "COUNT(부서번호)"),
     [[8, 4, 7]],
 )
-# SUM·AVG 도 NULL 행 건너뜀 (분모 4)
+# SUM, AVG 도 NULL 행 건너뜀 (분모 4)
 SUM_AVG_EXAMPLE = sql_example(
     "SELECT SUM(커미션), AVG(커미션) FROM 사원;",
     ("SUM(커미션)", "AVG(커미션)"),
     [[1000, 250]],
 )
-# 분모·NVL 위치 비교 (같은 입력, 세 식)
+# 분모, NVL 위치 비교 (같은 입력, 세 식)
 DENOMINATOR_EXAMPLE = sql_example(
     "SELECT SUM(커미션) / COUNT(*), AVG(NVL(커미션, 0)), NVL(AVG(커미션), 0) FROM 사원;",
     ("SUM(커미션)/COUNT(*)", "AVG(NVL(커미션, 0))", "NVL(AVG(커미션), 0)"),
@@ -41,7 +41,7 @@ DISTINCT_EXAMPLE = sql_example(
     ("COUNT(DISTINCT 부서번호)", "SUM(DISTINCT 급여)"),
     [[3, 18400]],
 )
-# 맞는 행 0건 (40번 부서) > 1행, COUNT 0·나머지 NULL
+# 맞는 행 0건 (40번 부서) > 1행, COUNT 0, 나머지 NULL
 EMPTY_GROUP_EXAMPLE = sql_example(
     "SELECT COUNT(*), SUM(급여), MAX(급여), NVL(SUM(급여), 0) FROM 사원 WHERE 부서번호 = 40;",
     ("COUNT(*)", "SUM(급여)", "MAX(급여)", "NVL(SUM(급여), 0)"),
@@ -61,13 +61,13 @@ CONCEPT = {
         "- 맞는 행이 없으면 COUNT는 **0**을, SUM, AVG, MAX, MIN은 NULL을 돌려줘요.\n"
         "- GROUP BY 없이 일반 열과 집계 함수를 함께 쓰면 ORA-00937(한 행으로 묶을 수 없는 그룹 함수) 오류가 나요."
     ),
-    "detailMd": f"""## 여러 행을 값 하나로 — 집계 함수가 하는 일 {{#why}}
+    "detailMd": f"""## 여러 행을 값 하나로: 집계 함수가 하는 일 {{#why}}
 
 "사원은 모두 몇 명인가요?"라는 질문에는 행을 하나씩 보여 주는 SELECT로 답하기 어려워요. 여덟 행을 숫자 하나로 줄여 주는 도구가 집계 함수이고, 이 글은 아래 사원 표로 설명해요.
 
 {EMPLOYEE_COMMISSION_TABLE}
 
-## 한 줄 정의 — 다섯 가지 집계 함수 {{#definition}}
+## 한 줄 정의: 다섯 가지 집계 함수 {{#definition}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -88,7 +88,7 @@ SUM과 AVG에 `SUM(이름)`처럼 문자 열을 넣으면 ORA-01722(숫자가 �
 
 같은 값끼리 묶는 GROUP BY 절은 다음 개념에서 배워요. 이 절 없이 집계 함수를 쓰면 테이블 전체가 한 묶음이라서 결과는 언제나 1행이에요.
 
-## NULL은 빼고 계산해요 — COUNT(*)와 COUNT(열) {{#null}}
+## NULL은 빼고 계산해요: COUNT(*)와 COUNT(열) {{#null}}
 
 `COUNT(*)`는 행 자체를 세므로 어떤 칸이 NULL이든 8을 돌려줘요. `COUNT(커미션)`처럼 괄호 안에 열을 적으면 그 열이 NULL이 아닌 행만 세요.
 
@@ -119,7 +119,7 @@ SUM, AVG, MAX, MIN도 NULL 행을 건너뛰어요. 그래서 `AVG(커미션)`은
 | `COUNT(열)` | 빼요 | 0 |
 | SUM, AVG, MAX, MIN | 빼요 | NULL |
 
-## 자주 헷갈리는 점 — 분모, NVL 위치, 행 안 계산 {{#confusing}}
+## 자주 헷갈리는 점: 분모, NVL 위치, 행 안 계산 {{#confusing}}
 
 시험은 NULL이 섞인 열의 평균과 합계에서 함정을 만들어요. 아래 표의 NVL은 NULL을 지정한 값으로 바꾸는 함수이고, `NVL(커미션, 0)`은 커미션이 NULL이면 0을 돌려줘요.
 
@@ -141,7 +141,7 @@ SUM, AVG, MAX, MIN도 NULL 행을 건너뛰어요. 그래서 `AVG(커미션)`은
 
 {ROW_SUM_EXAMPLE.markdown}
 
-## DISTINCT와 빈 결과 — 한 번만 세기, 그래도 1행 {{#distinct-empty}}
+## DISTINCT와 빈 결과: 한 번만 세기, 그래도 1행 {{#distinct-empty}}
 
 집계 함수 괄호 안에 DISTINCT를 쓰면 중복된 값을 하나로 줄인 뒤 집계해요. `SUM(DISTINCT 급여)`는 두 번 나오는 2500을 한 번만 더해서 20900보다 2500 적은 18400이에요.
 
@@ -156,7 +156,7 @@ SUM, AVG, MAX, MIN도 NULL 행을 건너뛰어요. 그래서 `AVG(커미션)`은
 | `SUM(DISTINCT 급여)`는 같은 급여 2500을 한 번만 더해요 | O | 중복 값을 하나로 줄인 뒤 더해서 18400이에요 |
 | 40번 부서 조건으로 `SUM(급여)`를 구하면 0이 나와요 | X | 더할 값이 없으면 SUM은 NULL을 돌려줘요 |
 
-## 일반 열과 함께 쓰면 — ORA-00937 {{#mixed-column}}
+## 일반 열과 함께 쓰면: ORA-00937 {{#mixed-column}}
 
 `MAX(급여)`는 값이 하나인데 이름은 여덟 개라서, 둘을 함께 SELECT 하면 한 행으로 만들 수 없어요. 그래서 급여가 가장 많은 사람의 이름이 나오지 않고 오류가 나요.
 
@@ -170,16 +170,16 @@ SELECT 이름, MAX(급여) FROM 사원;
 | 일반 열별로 집계하기 | 다음 개념인 GROUP BY로 그 열을 묶어요 |
 | 최댓값을 가진 사원 찾기 | 서브쿼리로 최댓값을 따로 구해 비교해요. 서브쿼리는 쿼리 안에 넣은 또 다른 쿼리이고 6단원에서 다뤄요 |
 
-## 꼭 외울 것 — NULL 행은 누가 세고 누가 빼나 {{#memorize}}
+## 꼭 외울 것: NULL 행은 누가 세고 누가 빼나 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
 | `COUNT(*)` | NULL 행까지 모든 행을 세요 |
-| `COUNT(열)`·SUM·AVG·MAX·MIN | 그 열이 NULL인 행을 빼고 계산해요 |
+| `COUNT(열)`, SUM, AVG 등 | 그 열이 NULL인 행을 빼고 계산해요 |
 | `AVG(열)`의 분모 | NULL이 아닌 행 수 (커미션은 8이 아니라 4) |
 | 맞는 행이 0건일 때 | 1행, COUNT는 0, 나머지는 NULL |
 | GROUP BY 없는 집계 결과 | 언제나 1행 |
-| SUM·AVG에 넣는 자료 | 숫자만, MAX·MIN·COUNT는 문자·날짜도 돼요 |
+| SUM, AVG에 넣는 자료 | 숫자만, MAX, MIN, COUNT는 문자, 날짜도 돼요 |
 | 일반 열 + 집계, GROUP BY 없음 | 오류 (ORA-00937, 한 행으로 묶을 수 없음) |
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
@@ -234,12 +234,12 @@ SELECT 이름, MAX(급여) FROM 사원;
     ],
     "relatedQuestionUuids": [],
     "sqlChecks": [
-        # 정의 (다섯 함수, 날짜 MAX·MIN, SUM 문자 열 오류)
+        # 정의 (다섯 함수, 날짜 MAX, MIN, SUM 문자 열 오류)
         FIVE_FUNCTIONS_EXAMPLE.check,
         sql_check("SELECT COUNT(*), SUM(급여), AVG(급여), MAX(급여), MIN(급여) FROM 사원", [[8, 20900, 2612.5, 3200, 2000]]),
         sql_check("SELECT MAX(입사일), MIN(입사일) FROM 사원", [["2024-05-20", "2015-03-02"]]),
         sql_error_check("SELECT SUM(이름) FROM 사원", "ORA-01722"),
-        # NULL 제외 (COUNT 두 형태, SUM·AVG)
+        # NULL 제외 (COUNT 두 형태, SUM, AVG)
         COUNT_EXAMPLE.check,
         # COUNT(커미션) 그림: 세는 4명
         sql_check("SELECT 이름 FROM 사원 WHERE 커미션 IS NOT NULL", [["이지은"], ["박서준"], ["한도윤"], ["오지민"]]),

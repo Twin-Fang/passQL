@@ -1,7 +1,11 @@
 package com.passql.submission.service;
 
+import com.passql.question.dto.QuestionFormatCheckResult;
+import com.passql.question.dto.QuestionFormatInput;
+import com.passql.question.dto.QuestionFormatViolation;
 import com.passql.question.entity.Question;
 import com.passql.question.entity.QuestionChoiceSetItem;
+import com.passql.question.service.QuestionFormatRule;
 import com.passql.submission.constant.MockExamSubject;
 import com.passql.submission.dto.mockexam.AdminMockExamPublishCheck;
 import com.passql.submission.entity.MockExamRoundItem;
@@ -17,7 +21,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * 공개 검사: 오류 4종(문항 수·과목 배분, 번호 1~50, 문제 중복, 문제 활성·세트 출제 가능) / 경고 1종(보기 근거 없음)
+ * 공개 검사: 오류 4종(문항 수·과목 배분, 번호 1~50, 문제 중복, 문제 활성·세트 출제 가능) / 경고 2종(보기 근거 없음, 형식 위반 #905)
  */
 @Component
 @RequiredArgsConstructor
@@ -68,6 +72,16 @@ public class MockExamPublishChecker {
                 .anyMatch(rationale -> rationale == null || rationale.isBlank());
             if (hasMissingRationale) {
                 warnings.add(item.getQuestionNumber() + "번 보기 근거(해설) 없는 보기 있음");
+            }
+            // 문항 형식 규칙 (#905): 경고만 (기존 문항은 관리자 형식 검사 화면에서 일괄 정리)
+            if (question != null) {
+                QuestionFormatCheckResult formatResult = QuestionFormatRule.check(
+                    QuestionFormatInput.from(question, paper.choiceItemsOf(item)));
+                if (!formatResult.isPassed()) {
+                    warnings.add(item.getQuestionNumber() + "번 형식 위반 " + formatResult.violations().size() + "건: "
+                        + formatResult.violations().stream().map(QuestionFormatViolation::getReasonDisplayName)
+                            .distinct().collect(Collectors.joining(", ")));
+                }
             }
         }
         return new AdminMockExamPublishCheck(errors.isEmpty(), errors, warnings);

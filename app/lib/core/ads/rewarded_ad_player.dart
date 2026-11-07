@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import '../logging/app_logger.dart';
 import 'ad_placement.dart';
 import 'ad_request_preparer.dart';
 import 'full_screen_ad_guard.dart';
@@ -81,7 +81,10 @@ class GoogleRewardedAdPlayer implements RewardedAdPlayer {
         ),
       );
     } catch (error) {
-      debugPrint('[ads rewarded] server verification options failed : $error');
+      AppLogger.warn(
+        'ads rewarded',
+        'server verification options failed : $error',
+      );
     }
   }
 

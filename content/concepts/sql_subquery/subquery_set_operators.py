@@ -3,7 +3,7 @@
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
 from concept_dataset import DEPARTMENT_TABLE_MD, to_employee_table_md
 
-# 이 개념의 계산에 쓰는 열 전부 (직급·급여·커미션·부서번호)
+# 이 개념의 계산에 쓰는 열 전부 (직급, 급여, 커미션, 부서번호)
 EMPLOYEE_TABLE = to_employee_table_md("사번", "이름", "직급", "급여", "커미션", "부서번호")
 
 # 본문 예시: SQL 블록 + 결과 표 = 검증 항목 (sql_example 한 원본)
@@ -18,7 +18,7 @@ MINUS_DISTINCT_EXAMPLE = sql_example(
 MINUS
 SELECT 부서번호 FROM 부서 WHERE 부서번호 = 10;""",
     ("부서번호",), [[20], [30], [None]], is_ordered=False)
-# 연산 순서: 위에서부터 <-> 괄호 (세 SELECT 결과 10·40 / 10·20·30 / 20·30·NULL)
+# 연산 순서: 위에서부터 <-> 괄호 (세 SELECT 결과 10, 40 / 10, 20, 30 / 20, 30, NULL)
 TOP_DOWN_ORDER_EXAMPLE = sql_example(
     """SELECT 부서번호 FROM 부서 WHERE 지역 = '서울'
 UNION
@@ -41,13 +41,13 @@ CONCEPT = {
     "title": "집합 연산자",
     "summary": "두 SELECT 결과를 위아래로 합치거나, 겹치는 행이나 빼고 남은 행을 구해요",
     "coreMd": (
-        "- **중복을 남기는** 것은 `UNION ALL`뿐이고, `UNION`·`INTERSECT`·`MINUS`는 중복을 없애요.\n"
+        "- **중복을 남기는** 것은 `UNION ALL`뿐이고, `UNION`, `INTERSECT`, `MINUS`는 중복을 없애요.\n"
         "- `MINUS`는 순서를 바꾸면 결과가 달라지고, SQL Server에서는 `EXCEPT`라고 불러요.\n"
         "- 열 개수와 타입이 맞아야 하고, 결과 열 이름은 **첫 SELECT**를 따르며, ORDER BY는 맨 끝에 한 번만 써요.\n"
         "- 집합 연산자는 **NULL끼리 같은 값**으로 보고 중복을 없애요.\n"
         "- Oracle은 집합 연산자의 우선순위가 **모두 같아서** 위에서부터 계산해요."
     ),
-    "detailMd": f"""## 서로 다른 SELECT 결과 묶기 — 벤 다이어그램처럼 {{#why}}
+    "detailMd": f"""## 서로 다른 SELECT 결과 묶기: 벤 다이어그램처럼 {{#why}}
 
 같은 테이블 안의 조건은 OR나 AND로 묶으면 되지만, 서로 다른 SELECT 문이 만든 결과끼리는 WHERE 절로 묶을 수 없어요. 집합 연산자는 두 결과를 벤 다이어그램처럼 합치거나, 겹치는 부분만 보거나, 한쪽에서 겹치는 부분을 빼 줘요.
 
@@ -57,7 +57,7 @@ CONCEPT = {
 
 {DEPARTMENT_TABLE_MD}
 
-## 한 줄 정의 — 결과 행을 아래로 붙여요 {{#definition}}
+## 한 줄 정의: 결과 행을 아래로 붙여요 {{#definition}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -105,7 +105,7 @@ SELECT 이름 FROM 사원 WHERE 급여 >= 2700;  -- A에서 박서준을 뺀 두
 
 UNION, UNION ALL, INTERSECT는 위아래를 바꿔도 결과 행이 같지만, MINUS는 순서가 바뀌면 결과가 달라져요. B MINUS A로 쓰면 개발부가 아닌 김민수, 최유나, 한도윤이 나오고, SQL Server에서는 MINUS를 EXCEPT라고 불러요.
 
-## 쓰는 규칙 — 열 개수·타입·열 이름·ORDER BY {{#rules}}
+## 쓰는 규칙: 열 개수, 타입, 열 이름, ORDER BY {{#rules}}
 
 | 규칙 | 어기면 |
 |---|---|
@@ -143,7 +143,7 @@ SELECT 이름 FROM 사원 WHERE 부서번호 = 20;  -- 오류: ORDER BY는 맨 �
 | 집합 연산 결과의 열 이름은 마지막 SELECT를 따라요 | X | 첫 번째 SELECT의 열 이름이나 별칭을 따라요 |
 | `ORDER BY 2`처럼 열 위치 번호로 정렬할 수 있어요 | O | 첫 번째 SELECT의 열 이름, 별칭, 위치 번호를 쓸 수 있어요 |
 
-## 자주 헷갈리는 점 — 중복, NULL, 계산 순서 {{#confusing}}
+## 자주 헷갈리는 점: 중복, NULL, 계산 순서 {{#confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -205,11 +205,11 @@ SELECT 커미션 FROM 사원 WHERE 부서번호 = 30;
 | `A MINUS B`와 `B MINUS A`는 결과가 같아요 | X | 차집합은 앞에서 뒤를 빼므로 순서가 바뀌면 결과가 달라져요 |
 | INTERSECT의 결과에는 같은 행이 두 번 나오지 않아요 | O | UNION ALL을 뺀 집합 연산자는 모두 중복을 없애요 |
 
-## 꼭 외울 것 — 중복, 열 규칙, 계산 순서 {{#memorize}}
+## 꼭 외울 것: 중복, 열 규칙, 계산 순서 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
-| 중복을 남기는 연산자 | UNION ALL뿐, UNION·INTERSECT·MINUS는 중복을 없애요 |
+| 중복을 남기는 연산자 | UNION ALL뿐, UNION, INTERSECT, MINUS는 중복을 없애요 |
 | MINUS의 순서와 다른 이름 | 순서를 바꾸면 결과가 달라지고, SQL Server는 EXCEPT |
 | 위아래 SELECT의 열 | 개수와 같은 위치의 타입이 맞아야, 다르면 오류 |
 | 결과 열 이름 | 첫 번째 SELECT의 열 이름이나 별칭 |
@@ -218,7 +218,7 @@ SELECT 커미션 FROM 사원 WHERE 부서번호 = 30;
 | Oracle의 계산 순서 | 우선순위가 모두 같아 위에서부터, 괄호가 먼저 |
 | SQL Server의 계산 순서 | INTERSECT를 다른 연산자보다 먼저 계산해요 |
 
-## 시험에서는 이렇게 나와요 — 값 목록으로 적고 세기 {{#exam-point}}
+## 시험에서는 이렇게 나와요: 값 목록으로 적고 세기 {{#exam-point}}
 
 두 표를 주고 집합 연산 결과의 행 수를 묻는 문제가 가장 많이 나와요. 아래 순서로 세면 돼요.
 
@@ -293,7 +293,7 @@ SELECT 커미션 FROM 사원 WHERE 부서번호 = 30;
                   [["이지은"], ["정하늘"]]),
         sql_check("SELECT 이름 FROM 사원 WHERE 급여 >= 2700 MINUS SELECT 이름 FROM 사원 WHERE 부서번호 = 20",
                   [["김민수"], ["최유나"], ["한도윤"]]),
-        # 규칙 (열 개수·타입·열 이름·ORDER BY 위치·위치 번호)
+        # 규칙 (열 개수, 타입, 열 이름, ORDER BY 위치, 위치 번호)
         sql_error_check("SELECT 이름, 급여 FROM 사원 WHERE 부서번호 = 10 UNION SELECT 이름 FROM 사원 WHERE 부서번호 = 20",
                         "ORA-01789"),
         sql_error_check("SELECT 이름, 급여 FROM 사원 WHERE 부서번호 = 10 UNION SELECT 이름, 입사일 FROM 사원 WHERE 부서번호 = 20",
@@ -305,7 +305,7 @@ SELECT 커미션 FROM 사원 WHERE 부서번호 = 30;
         sql_check("SELECT 이름 AS 사원명, 급여 FROM 사원 WHERE 부서번호 = 10 UNION "
                   "SELECT 이름 AS 직원, 급여 FROM 사원 WHERE 부서번호 = 20 ORDER BY 2 DESC, 1",
                   [["김민수", 3000], ["박서준", 2800], ["이지은", 2500], ["정하늘", 2500]], is_ordered=True),
-        # 중복 제거·NULL (커미션: 20번 300·0·NULL, 30번 NULL·500·200)
+        # 중복 제거, NULL (커미션: 20번 300, 0, NULL, 30번 NULL, 500, 200)
         sql_check("SELECT 커미션 FROM 사원 WHERE 부서번호 = 20 UNION SELECT 커미션 FROM 사원 WHERE 부서번호 = 30",
                   [[300], [0], [None], [500], [200]]),
         sql_check("SELECT 커미션 FROM 사원 WHERE 부서번호 = 20 UNION ALL SELECT 커미션 FROM 사원 WHERE 부서번호 = 30",
@@ -316,11 +316,11 @@ SELECT 커미션 FROM 사원 WHERE 부서번호 = 30;
         sql_check("SELECT 부서번호 FROM 부서 WHERE 지역 = '서울'", [[10], [40]]),
         sql_check("SELECT 부서번호 FROM 사원 WHERE 급여 >= 2800", [[10], [20], [30]]),
         sql_check("SELECT 부서번호 FROM 사원 WHERE 직급 = '사원'", [[20], [30], [None]]),
-        # 확인 문제 3 (급여 2600 미만 부서번호 20·20·30·NULL, 서울 부서 10·40)
+        # 확인 문제 3 (급여 2600 미만 부서번호 20, 20, 30, NULL, 서울 부서 10, 40)
         sql_check("SELECT 부서번호 FROM 사원 WHERE 급여 < 2600", [[20], [20], [30], [None]]),
         sql_check("SELECT 부서번호 FROM 사원 WHERE 급여 < 2600 UNION SELECT 부서번호 FROM 부서 WHERE 지역 = '서울';",
                   [[10], [20], [30], [40], [None]]),
-        # 확인 문제 5 (세 SELECT: 10·20·30·40 / 20·30·NULL / 30): 위에서부터 3행 <-> 괄호 2행
+        # 확인 문제 5 (세 SELECT: 10, 20, 30, 40 / 20, 30, NULL / 30): 위에서부터 3행 <-> 괄호 2행
         sql_check("SELECT 부서번호 FROM 사원 WHERE 급여 >= 3200", [[30]]),
         sql_check("SELECT 부서번호 FROM 부서 MINUS SELECT 부서번호 FROM 사원 WHERE 직급 = '사원' "
                   "UNION SELECT 부서번호 FROM 사원 WHERE 급여 >= 3200;", [[10], [30], [40]]),

@@ -6,3 +6,12 @@ export const WRONG_NOTES_PREVIEW_COUNT = 5;
 
 // 오답 노트 화면 개수 (앱 wrongNotePageSize, 서버 기본값과 같음)
 export const WRONG_NOTES_PAGE_SIZE = 20;
+
+// 문제 풀이 진입 경로 쿼리: 오답 노트 다시 풀기면 보기 방식 칩 숨김 (#913, 앱 AppRoutes.wrongNoteRetry 와 같은 값)
+export const QUESTION_ENTRY_QUERY = "entry";
+export const WRONG_NOTE_ENTRY_QUERY_VALUE = "wrong-note";
+
+/** 오답 노트 다시 풀기 경로: 문제 단독 풀이와 같은 화면, 보기 방식 칩 없음 */
+export function toWrongNoteRetryPath(questionUuid: string): string {
+  return `/questions/${questionUuid}?${QUESTION_ENTRY_QUERY}=${WRONG_NOTE_ENTRY_QUERY_VALUE}`;
+}

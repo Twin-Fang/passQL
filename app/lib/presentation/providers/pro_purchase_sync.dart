@@ -7,6 +7,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 
 import '../../core/billing/pro_purchase_port.dart';
 import '../../core/billing/promo_code_redemption_port.dart';
+import '../../core/logging/app_logger.dart';
 import '../../core/utils/external_url_launcher.dart';
 import '../../data/billing/app_store_promo_code_redeemer.dart';
 import '../../data/billing/app_store_purchase_service.dart';
@@ -111,7 +112,7 @@ Future<void> _refreshOnResume(
     await container.read(planProvider.notifier).refresh();
   } on Object catch (error) {
     // 인증 만료는 인터셉터가 세션 만료 신호로 처리
-    debugPrint('[billing] plan refresh on resume failed : $error');
+    AppLogger.warn('billing', 'plan refresh on resume failed : $error');
   }
   await service?.resendUnverifiedPurchases();
 }

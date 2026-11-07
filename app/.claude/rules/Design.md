@@ -70,6 +70,7 @@ lib/presentation/design/
 | `PassqlResultMark` / `PassqlScoreHeader` / `PassqlResultScaffold` | 정답/오답 표시, 점수 고리, 결과 화면 3종 공통 틀 |
 | `PassqlChoiceCard` (+`PassqlChoiceState`) | 선택지 카드의 선택·채점 모양 (내용은 `ChoiceItemCard` 가 채움) |
 | `PassqlCodeBlock` | SQL 표시 블록 |
+| `PassqlMemoScope` / `PassqlMemoCanvas` / `PassqlMemoController` | 풀이 화면 메모 (#904): 틀(펜 버튼·도구 막대·켬 안내)은 문항 영역을, 층(Canvas)은 스크롤 내용을 감쌈. 켬이면 한 손가락 그리기·두 손가락 스크롤, 끔이면 메모는 흐리게 남고 터치는 전부 아래로. 컨트롤러는 화면 State 가 들고 응시 동안만 메모리에 (문항별 획·되돌리기). 틀 밖의 층은 내용만 그림 |
 | `PassqlCallout` (+`PassqlCalloutKind`) | 강조 상자: 옅은 의미색 바탕 + 왼쪽 막대 + 아이콘·라벨 한 줄 + 내용 (강조·주의·외울 것 3종). 개념 학습 한 줄 핵심·자주 틀리는 점·시험 포인트 (#835), 꼭 외울 것 카드 (#876) |
 | `PassqlBadge` (+`PassqlBadgeKind`) / `PassqlLatestTrendBadge` / `PassqlProgressBar` | 의미별 캡슐 태그(주제·보조·완료·연속·중요·AI·최신 경향·외울 것, 아이콘·테두리), '최신 경향' 배지(문구 원본, #523), 진행 막대 |
 | `PassqlReveal` / `passqlRevealInOrder` | 처음 그려질 때 페이드 + 위로 8px, 순번별 지연(상한 8) (#495) |
@@ -94,7 +95,7 @@ lib/presentation/design/
 화면(`lib/presentation/pages`, `widgets`, `flows`)은 토큰과 컴포넌트만 조합한다.
 
 - 색은 `context.passqlColors` 의 의미 이름으로만 고른다. `Color(0x...)`, `Colors.white/black` 금지
-- 읽는 글자색: 강조 글자는 `accentText`(accent 는 채움·테두리), 주황 글자는 `warningText`, 노랑(외울 것) 글자는 `memorizeText`(형광펜 `memorizeHighlight` 위 글자는 `label`, #876), 진한 의미색 채움 위 글자는 `onSemantic`, 보조 글자는 `secondaryLabel`. `tertiaryLabel` 은 비활성·장식(쉐브론) 전용, 기능 아이콘은 `iconSecondary`. 대비 기준(글자 4.5·아이콘 3, 라이트·다크)은 `test/design/passql_contrast_test.dart` 가 검사
+- 읽는 글자색: 강조 글자는 `accentText`(accent 는 채움·테두리), 주황 글자는 `warningText`, 노랑(외울 것) 글자는 `memorizeText`(형광펜 `memorizeHighlight` 위 글자는 `label`, #876), 진한 의미색 채움 위 글자는 `onSemantic`, 보조 글자는 `secondaryLabel`. `tertiaryLabel` 은 비활성·장식(쉐브론) 전용, 기능 아이콘은 `iconSecondary`. 대비 기준은 글자 4.5·아이콘 3 (라이트·다크). 자동 검사는 외울 것 색만(`test/presentation/design/memorize_color_contrast_test.dart`), 그 밖의 새 색 토큰은 라이트·다크 캡처로 확인 (전체 대비 테스트는 #680 에서 삭제)
 - 간격·크기·글자는 토큰으로. 필요한 토큰이 없으면 토큰을 먼저 추가하고, 한 파일에서만 쓰는 배치 숫자는 이름 있는 상수로 둔다
 - 자산은 컴포넌트로(`PassqlLogo`). `Image.asset(` 금지
 - 흐림(`ImageFilter.blur(`)은 `PassqlLockedPreview`·`PassqlGlass` 로만. 화면 직접 사용 금지
@@ -111,4 +112,4 @@ lib/presentation/design/
 - 같은 UI 가 3곳째 생기면 `components/` 에 `passql_<이름>.dart` 로 만들고 `design.dart` 에 export 한다
 - 파일 하나에 주된 타입 하나, 파일명 = 타입명. boolean 속성은 `is/has/can/should` 로 시작
 - 색·크기는 토큰에서 가져온다. 컴포넌트 안에서만 쓰는 규격 숫자는 이름 있는 상수 + 한 줄 주석
-- 라이트·다크 양쪽에서 확인한다 (`test/design/dark_smoke_test.dart` 참고)
+- 라이트·다크 양쪽에서 확인한다 (pro-launch 캡처, 기능 테스트는 두지 않음 #680)
