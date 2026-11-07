@@ -77,6 +77,11 @@ const MOCK_EXAM_SCORE_TREND_SAMPLE_SECTIONS: readonly LockedSampleSection[] = [
   { title: "제3회", body: "72점 · 합격" },
 ];
 
+// AI 새 보기: 같은 문제 다른 함정 보기 (#913)
+const FRESH_CHOICES_SAMPLE_SECTIONS: readonly LockedSampleSection[] = [
+  { title: "AI 새 보기", body: "같은 문제도 매번 다른 함정 보기로 다시 풀어요." },
+];
+
 export function ExplanationLockedSample() {
   return <LockedSampleCard sections={EXPLANATION_SAMPLE_SECTIONS} />;
 }
@@ -107,4 +112,8 @@ export function MockExamReviewLockedSample() {
 
 export function MockExamScoreTrendLockedSample() {
   return <LockedSampleCard sections={MOCK_EXAM_SCORE_TREND_SAMPLE_SECTIONS} />;
+}
+
+export function FreshChoicesLockedSample() {
+  return <LockedSampleCard sections={FRESH_CHOICES_SAMPLE_SECTIONS} />;
 }
