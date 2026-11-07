@@ -127,11 +127,10 @@ class _NicknameBlock extends StatelessWidget {
     final colors = context.passqlColors;
     final provider = authProvider;
     final joinedAt = this.joinedAt;
-    // 예: [카카오 아이콘] 로그인 · 2026.10.16 가입 (가입일 모르면 로그인만)
-    final accountSummary = [
-      if (provider != null) '로그인',
-      if (joinedAt != null) '${formatDottedDate(joinedAt)} 가입',
-    ].join(' · ');
+    // 예: [카카오 아이콘] 2026.10.16 가입 (아이콘이 로그인 방법, 가입일 모르면 "로그인")
+    final accountSummary = joinedAt != null
+        ? '${formatDottedDate(joinedAt)} 가입'
+        : (provider != null ? '로그인' : '');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,

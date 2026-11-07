@@ -28,10 +28,8 @@ export default function MyPage() {
   const displayName = nickname || uuid.slice(0, 8);
   const authProvider = memberData?.authProvider;
   const joinedAt = memberData?.createdAt;
-  // 예: [카카오 아이콘] 로그인 · 2026.10.16 가입 (가입일 모르면 로그인만)
-  const accountSummary = [authProvider ? "로그인" : null, joinedAt ? `${formatDottedDate(joinedAt)} 가입` : null]
-    .filter(Boolean)
-    .join(" · ");
+  // 예: [카카오 아이콘] 2026.10.16 가입 (아이콘이 로그인 방법, 가입일 모르면 "로그인")
+  const accountSummary = joinedAt ? `${formatDottedDate(joinedAt)} 가입` : authProvider ? "로그인" : "";
 
   const totalWrongCount = wrongQuestions.data?.totalCount ?? 0;
 
