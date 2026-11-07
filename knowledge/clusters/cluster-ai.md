@@ -2,7 +2,7 @@
 type: cluster
 topic: ai
 created: 2026-10-29
-members: 119
+members: 120
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 
 ## 현재 상태 요약
-(2026-11-07, 자동 생성) 활성 결정 42개, 열린 이슈 2개. AI 생성 글(보기 근거와 본문, 해설, 통계 분석, 세션 코멘트)은 저장, 응답 전에 서버 `ForbiddenPunctuationCleaner` 하나로 줄표와 가운뎃점을 정리하고, 생성 프롬프트 12개는 맨 앞에 문체 규칙: [[DEC-0277-no-dash-middle-dot-server-cleaner]] (#905). AI 새 보기 칩은 제출 전 지금 문제부터 적용, 같은 화면 생성 겹침 없음, 웹도 회원 방식을 지킴: [[DEC-0275-choice-mode-chip-applies-before-submit]] (#907, #913, DEC-0261 대체). 이상 main 머지, 배포 전. 통계 AI 분석은 서버 판정 + LLM 한 문장 — [[DEC-0259-ai-analysis-server-decides-llm-explains]], 예상 점수 — [[DEC-0260-exam-forecast-score-thresholds]]. 프롬프트 키 원본은 `PromptKey` — [[DEC-0265-prompt-key-enum-single-source]]. LLM 재시도·대체 호출은 `error_kind` 기준 — [[DEC-0267-ai-retry-fallback-by-error-kind]]. AI 코멘트는 없는·남의 세션이면 LLM 없이 고정 응답, 회원별 요청 제한, 재색인은 트랜잭션 밖 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-07, 자동 생성) 활성 결정 42개, 열린 이슈 1개. AI 생성 글(보기 근거와 본문, 해설, 통계 분석, 세션 코멘트)은 저장, 응답 전에 서버 `ForbiddenPunctuationCleaner` 하나로 줄표와 가운뎃점을 정리하고, 생성 프롬프트 12개는 맨 앞에 문체 규칙: [[DEC-0277-no-dash-middle-dot-server-cleaner]] (#905). AI 새 보기 칩은 제출 전 지금 문제부터 적용, 같은 화면 생성 겹침 없음, 웹도 회원 방식을 지킴: [[DEC-0275-choice-mode-chip-applies-before-submit]] (#907, #913, DEC-0261 대체). 이상 main 머지, 배포 전. 통계 AI 분석은 서버 판정 + LLM 한 문장 — [[DEC-0259-ai-analysis-server-decides-llm-explains]], 예상 점수 — [[DEC-0260-exam-forecast-score-thresholds]]. 프롬프트 키 원본은 `PromptKey` — [[DEC-0265-prompt-key-enum-single-source]]. LLM 재시도·대체 호출은 `error_kind` 기준 — [[DEC-0267-ai-retry-fallback-by-error-kind]]. AI 코멘트는 없는·남의 세션이면 LLM 없이 고정 응답, 회원별 요청 제한, 재색인은 트랜잭션 밖 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0025-redis-shared-app-settings]] — Spring이 `app_setting`을 Redis(`passql:settings:{key}`)에 쓰고 AI 서버가 읽어 설정을 공유
@@ -73,6 +73,7 @@ AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 - [[DEC-0261-real-mode-renamed-new-choices]] → DEC-0275
 
 ## 관련 이슈
+- [[ISS-0479-sqld-real-format-trap-questions]] (resolved, GitHub #834): 실제 SQLD 출제 형식(결과 행 수, 오류 나는 SQL) 과 함정 문제 92개 등록, 결과 표 해설 지시문 교체, 개념형 AI 세트 8개 내림
 - [[ISS-0478-web-solving-ignores-fresh-choice-mode]] (resolved, GitHub #913): 웹 풀이가 AI 새 보기 설정을 무시함, 설정 이름 옛 표기, 칩 없음
 - [[ISS-0475-choice-mode-switch-current-question]] (resolved, GitHub #907): 보기 방식 바꾸면 지금 문제부터 바로 적용, 오답 노트에서는 칩 숨김
 - [[ISS-0474-question-format-rule-forbidden-punctuation]] (resolved, GitHub #905): 문제 형식 규칙 하네스: 줄표 금지, 표는 스키마 한 곳, SQL 서식, 운영 데이터와 프롬프트 정리
@@ -82,7 +83,7 @@ AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 - [[ISS-0466-llm-duplicate-billing-retry-fallback]] (resolved, GitHub #877) — LLM 호출 중복 과금: 응답 시간 초과 재시도와 서버 대체 호출 겹침, AI 서버 키 보호
 - [[ISS-0451-result-table-choices-fabricated-unvalidated-sets]] (resolved, GitHub #828) — 결과 표 오답을 AI가 지어냄, 미검증 세트 저장, 직접 실행해보기에 결과 JSON
 - [[ISS-0357-choice-set-ai-server-half-failing]] (open, GitHub #575) — 선택지 생성 AI 서버 호출 절반 실패, 원인 조사
-- [[ISS-0412-ai-explanation-quality-cost-optimization]] (open, GitHub #699) — AI 해설 품질, 호출 빈도, 비용 최적화와 해설 시트 정리
+- [[ISS-0412-ai-explanation-quality-cost-optimization]] (resolved, GitHub #699) — AI 해설 품질, 호출 빈도, 비용 최적화와 해설 시트 정리
 - [[ISS-0015-gemini-primary-ollama-fallback]] (resolved, GitHub #16) — AI 클라이언트를 Gemini 2.0 Flash-Lite 기반으로 전환, Ollama Fallback 구조
 - [[ISS-0024-admin-pages-ai-redis-settings]] (resolved, GitHub #30) — 관리자 페이지 전체 구현 및 AI 서버 Redis 설정 연동
 - [[ISS-0029-realtime-ai-choice-set-prefetch]] (resolved, GitHub #39) — 실시간 AI 선택지 세트 생성 및 프리페치 아키텍처

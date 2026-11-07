@@ -49,7 +49,7 @@ export default function Settings() {
   const sAccount = stagger(0); // 내 계정 섹션
   const s0 = stagger(1); // 이용안내 섹션
   const s1 = stagger(2); // 문제풀이 섹션
-  const s2 = stagger(3); // 앱 정보 섹션
+  const s2 = stagger(3); // 앱 섹션
   const s3 = stagger(4); // 약관 섹션
   const s4 = stagger(5); // 로그아웃 섹션
   const s5 = stagger(6); // 로고 + 카피라이트
@@ -134,9 +134,9 @@ export default function Settings() {
         </SettingsSection>
       </section>
 
-      {/* 앱 정보 섹션 */}
+      {/* 앱 섹션: 앱 정보 줄과 앱 받기 (머리말이 줄 이름과 겹치지 않게 "앱") */}
       <section className={s2.className}>
-        <SettingsSection label="앱 정보">
+        <SettingsSection label="앱">
           <div className="bg-surface-card border-y border-border divide-y divide-border">
             {/* 앱 정보 (#658): 버전 표시, 누르면 사업자 정보까지 */}
             <SettingsRow

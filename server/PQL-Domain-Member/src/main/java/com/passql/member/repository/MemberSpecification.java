@@ -85,6 +85,14 @@ public class MemberSpecification {
     }
 
     /** 회원 UUID 정확히 일치 (비면 조건 없음, 형식이 틀리면 결과 없음) */
+    /** 회원 UUID 앞 8자리 일치 (회원 번호 검색, 소문자 16진수 8자리. 비면 조건 없음, #929) */
+    public static Specification<Member> memberUuidStartsWith(String memberUuidPrefix) {
+        return (root, query, cb) ->
+            memberUuidPrefix == null || memberUuidPrefix.isBlank()
+                ? cb.conjunction()
+                : cb.like(root.get("memberUuid").as(String.class), memberUuidPrefix + "%");
+    }
+
     public static Specification<Member> memberUuidEquals(String memberUuidText) {
         return (root, query, cb) -> {
             if (memberUuidText == null || memberUuidText.isBlank()) {

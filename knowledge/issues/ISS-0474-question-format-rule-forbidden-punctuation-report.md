@@ -5,7 +5,7 @@ created: 2026-11-07
 topics: [question-bank, ai, admin, concept-learning]
 status: resolved
 resolves: "[[ISS-0474-question-format-rule-forbidden-punctuation]]"
-related: ["[[DEC-0277-no-dash-middle-dot-server-cleaner]]", "[[ISS-0472-stem-readability-blocks-single-table]]"]
+related: ["[[DEC-0277-no-dash-middle-dot-server-cleaner]]", "[[ISS-0472-stem-readability-blocks-single-table]]", "[[ISS-0480-stem-table-sql-format-data-cleanup-deferred]]", "[[DEC-0279-stem-table-data-cleanup-after-min-version]]"]
 source: "https://github.com/Twin-Fang/passQL/issues/905"
 ---
 
@@ -38,6 +38,7 @@ GitHub #905 리포트 댓글 기준 (2026-11-07, https://github.com/Twin-Fang/pa
 - 배포 뒤 운영 순서: `/admin/question-format` 사유별 건수 > 미리보기로 모의고사 문항 포함 전후 확인 > 선택 적용 > 자동으로 못 고치는 항목(실행형 지문 표, 질문 문장, SQL 서식) 손으로.
 - 출시 앱은 #903 앱 배포 전까지 개념 소제목 `제목: 부제`를 한 줄로 보임(깨지지 않음).
 - W4: 개념 소제목 구분자 변경으로 [[DEC-0256-concept-lesson-blocks-by-table-header]]를 DEC-0277 이 대체 (사용자 결정, 2026-11-07).
+- 2026-11-07 운영 적용 결과(#905 실측 댓글): 규칙 1(줄표, 가운뎃점) 0건 확인. 지문 표 자동 정리 273문제는 전부 개념형이라 옛 앱에서 표가 사라져 보류, 후속 GitHub #923 [[ISS-0480-stem-table-sql-format-data-cleanup-deferred]], 순서 [[DEC-0279-stem-table-data-cleanup-after-min-version]]. 이슈 닫힘.
 
 ## 교훈
 LLM 문체 규칙은 프롬프트 맨 앞에 예시와 함께 둘 때 실측에서 지켜졌지만 맨 끝에서는 무시됐다. 그래도 100%가 아니므로 금지 문자는 서버 후처리로 한 번 더 막는다.

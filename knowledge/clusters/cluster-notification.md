@@ -2,7 +2,7 @@
 type: cluster
 topic: notification
 created: 2026-10-29
-members: 17
+members: 18
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 푸시·알림
 
 ## 현재 상태 요약
-(2026-10-29, 자동 생성) 활성 결정 3개, 열린 이슈 3개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-10-29, 자동 생성) 활성 결정 3개, 열린 이슈 2개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0131-member-notification-inbox-single-entry]] — 회원 알림함은 `알림`/`공지` 두 탭, 생성 입구는 `MemberNotificationService` 하나, 일반 알림 90일 보관, 웹 브라우저 푸시는 하지 않음
@@ -28,7 +28,7 @@ related: []
 - [[ISS-0431-app-home-top-bell-notice-banner]] (resolved, GitHub #756) — 홈 알림 아이콘 색과 공지 배너 개편
 - [[ISS-0273-fcm-push-notifications]] (open, GitHub #467) — FCM 푸시 알림 (토큰 등록, 발송 화면, 앱 수신)
 - [[ISS-0396-duolingo-style-return-notifications]] (open, GitHub #649) — 듀오링고식 재방문 알림·부가 기능 설계와 관리자 제어
-- [[ISS-0398-per-type-notification-preferences]] (open, GitHub #653) — 알림 종류별 수신 설정 (앱 설정 화면 + 서버 저장)
+- [[ISS-0398-per-type-notification-preferences]] (resolved, GitHub #653) — 알림 종류별 수신 설정 (앱 설정 화면 + 서버 저장)
 - [[ISS-0270-maintenance-force-update-notices]] (resolved, GitHub #464) — 점검·강제/권장 업데이트·공지 수단이 없음
 - [[ISS-0271-discord-failure-alert-webhook]] (resolved, GitHub #465) — Discord 장애 알림 웹훅 (취소)
 - [[ISS-0297-notification-inbox-badge]] (resolved, GitHub #491) — 알림함이 없어 지난 알림·공지를 다시 볼 수 없고 새 알림 표시가 없음

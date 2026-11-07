@@ -2,7 +2,7 @@
 type: cluster
 topic: admin
 created: 2026-10-29
-members: 95
+members: 97
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 관리자 Thymeleaf 화면과 관리자 API.
 
 ## 현재 상태 요약
-(2026-11-07) 관리자 화면의 변경 요청은 `layout.html` 공통 fetch 래퍼를 거친다 — [[DEC-0008-admin-csrf-common-fetch-wrapper]]. 프롬프트 키는 `PromptKey` 원본에서 목록을 만들고 수정 때 키를 바꿀 수 없다 — [[DEC-0265-prompt-key-enum-single-source]]. 모의고사 회차는 `/admin/mock-exams` 에서 자동 구성·검수·공개한다 — [[DEC-0264-mock-exam-fixed-rounds-server-judged]]. 문제 등록 선택지 정책 목록(`CURATED_ONLY`·`RESULT_MATCH` 포함)과 설정 카테고리는 단일 원본에서 읽는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 관리자 `/admin/question-format`에서 문항 형식 위반을 사유별로 보고 자동 정리를 미리보기한 뒤 선택 적용한다: [[ISS-0474-question-format-rule-forbidden-punctuation]] (#905, main 머지, 배포 전).
+(2026-11-07) 관리자 화면의 변경 요청은 `layout.html` 공통 fetch 래퍼를 거친다 — [[DEC-0008-admin-csrf-common-fetch-wrapper]]. 프롬프트 키는 `PromptKey` 원본에서 목록을 만들고 수정 때 키를 바꿀 수 없다 — [[DEC-0265-prompt-key-enum-single-source]]. 모의고사 회차는 `/admin/mock-exams` 에서 자동 구성·검수·공개한다 — [[DEC-0264-mock-exam-fixed-rounds-server-judged]]. 문제 등록 선택지 정책 목록(`CURATED_ONLY`·`RESULT_MATCH` 포함)과 설정 카테고리는 단일 원본에서 읽는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 관리자 `/admin/question-format`에서 문항 형식 위반을 사유별로 보고 자동 정리를 미리보기한 뒤 선택 적용한다: [[ISS-0474-question-format-rule-forbidden-punctuation]] (#905, 운영 배포). 지문 표 자동 정리 적용은 #903 앱 보급과 최소 버전 상향 뒤: [[DEC-0279-stem-table-data-cleanup-after-min-version]] (#923 열림).
 
 ## 활성 결정
 - [[DEC-0008-admin-csrf-common-fetch-wrapper]] — 관리자 CSRF 헤더는 화면별이 아니라 `layout.html` 공통 fetch 래퍼에서 붙인다
@@ -33,6 +33,7 @@ related: []
 - [[DEC-0188-ai-connections-priority-fallback]] — AI 키는 관리자 "AI 연결" 목록(제공자+키+기본 모델+우선순위)으로 관리하고, 한도·키·서버 오류면 다음 연결로 넘어가며 요청 형식 400은 즉시 실패
 - [[DEC-0264-mock-exam-fixed-rounds-server-judged]] — SQLD 모의고사: 관리자 고정 회차(검증 세트), 시간·채점·응시 수 서버 판정, 무료 1회 체험·프로 무제한 (#866)
 - [[DEC-0265-prompt-key-enum-single-source]] — 프롬프트 키는 `PromptKey` enum 단일 원본, 관리자 수정에서 키 변경 불가 (#875)
+- [[DEC-0279-stem-table-data-cleanup-after-min-version]]: 운영 지문 표 자동 정리는 #903 앱이 두 스토어에 나오고 최소 지원 버전을 올린 뒤 적용, 그 전까지 데이터 그대로 (#905, #923)
 
 ## 대체된 결정 (역사)
 - [[DEC-0026-sensitive-settings-masked-readonly]] → DEC-0107
@@ -42,6 +43,7 @@ related: []
 - [[DEC-0081-admin-session-chain-yml-account]] → DEC-0130
 
 ## 관련 이슈
+- [[ISS-0480-stem-table-sql-format-data-cleanup-deferred]] (open, GitHub #923): 지문 중복 표와 SQL 서식 운영 데이터 정리, #903 앱 보급과 최소 버전 상향 뒤 적용
 - [[ISS-0474-question-format-rule-forbidden-punctuation]] (resolved, GitHub #905): 문제 형식 규칙 하네스: 줄표 금지, 표는 스키마 한 곳, SQL 서식, 운영 데이터와 프롬프트 정리
 - [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]] (resolved, GitHub #879) — 서버 전체 점검: AI 코멘트 LLM 호출 제한, OSIV DB 커넥션 점유, 내린 보기 묶음 채점, 설정 캐시, 예외 원문 노출
 - [[ISS-0463-sqld-mock-exam]] (open, GitHub #866) — SQLD 모의고사: 50문항 90분, 과목별 과락, 프로 핵심 기능 (PR #889 머지, 리포트 전)

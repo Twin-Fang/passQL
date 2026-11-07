@@ -173,3 +173,8 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-07 13:34 | W2 | cluster update (entries, supersede moves, 현재 상태 요약, members 실제 수로) | cluster-practice, cluster-question-bank, cluster-progress-stats, cluster-auth-member, cluster-ai, cluster-concept-learning, cluster-design-system, cluster-billing, cluster-ads, cluster-admin
 - 2026-11-07 13:37 | W4 | supersede (사용자 결정: 신규로 대체) | DEC-0255 -> DEC-0278, DEC-0256 -> DEC-0277 (옛 노트는 status·superseded_by only, 새 노트에 supersedes·이어받는 내용·근거)
 - 2026-11-07 13:37 | W2 | cluster update (supersede moves, 현재 상태 요약) + 리포트 남은 일 W4 갱신 | cluster-design-system, cluster-concept-learning, ISS-0472-report, ISS-0474-report
+- 2026-11-07 15:10 | W6 | ingest completion reports (이슈 resolved 전환) | ISS-0424-report (#732), ISS-0412-report (#699), ISS-0398-report (#653), ISS-0311-report (#506), ISS-0304-report (#499)
+- 2026-11-07 15:10 | W6 | ingest issue + report | ISS-0479, ISS-0479-report (#834)
+- 2026-11-07 15:10 | W6 | ingest issue (open) + decision (W4: DEC-0277·DEC-0278 충돌 없음, 적용 시점만 정함) | ISS-0480 (#923), DEC-0279
+- 2026-11-07 15:10 | W6 | update (related, 남은 일 운영 적용 결과) | ISS-0474, ISS-0474-report
+- 2026-11-07 15:10 | W2 | cluster update (resolved 표시, 새 항목, 요약 문장, 열린 이슈·활성 결정 수, members 실제 수로) | cluster-ads, cluster-practice, cluster-ai, cluster-billing, cluster-ci-deploy, cluster-auth-member, cluster-notification, cluster-question-bank, cluster-admin
