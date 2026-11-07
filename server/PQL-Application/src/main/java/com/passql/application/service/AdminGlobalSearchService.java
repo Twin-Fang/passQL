@@ -1,5 +1,6 @@
 package com.passql.application.service;
 
+import com.passql.common.util.MemberCode;
 import com.passql.common.util.UuidUtils;
 import com.passql.common.util.TextPreview;
 import com.passql.member.dto.MemberAdminListResponse;
@@ -18,8 +19,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * 관리자 전역 검색: 입력 1개 > 회원(UUID·닉네임)·문제(UUID) 후보
- * UUID 형식이면 회원·문제 정확 일치, 아니면 닉네임 부분 일치 (결과 최대 20건)
+ * 관리자 전역 검색: 입력 1개 > 회원(UUID·회원 번호·닉네임)·문제(UUID) 후보
+ * UUID 형식이면 회원·문제 정확 일치, 회원 번호(PQL-XXXXXXXX)면 UUID 앞자리 일치, 아니면 닉네임 부분 일치 (결과 최대 20건)
  */
 @Service
 @RequiredArgsConstructor
@@ -65,6 +66,10 @@ public class AdminGlobalSearchService {
         if (uuidKeyword.isPresent()) {
             return new Result(keyword, findMembersByUuid(uuidKeyword.get()), findQuestionsByUuid(uuidKeyword.get()));
         }
+        Optional<String> memberUuidPrefix = MemberCode.parseUuidPrefix(keyword);
+        if (memberUuidPrefix.isPresent()) {
+            return new Result(keyword, findMembersByUuidPrefix(memberUuidPrefix.get()), List.of());
+        }
         return new Result(keyword, findMembersByNickname(keyword), List.of());
     }
 
@@ -72,9 +77,20 @@ public class AdminGlobalSearchService {
         return memberAdminService.findMemberListItem(memberUuid).map(List::of).orElse(List.of());
     }
 
+    /** 회원 번호 > UUID 앞 8자리가 같은 회원 (앞자리만 같아 여러 명일 수 있음) */
+    private List<MemberAdminListResponse> findMembersByUuidPrefix(String memberUuidPrefix) {
+        MemberSearchCondition condition = new MemberSearchCondition();
+        condition.setMemberUuidPrefix(memberUuidPrefix);
+        return searchMembersIncludingTest(condition);
+    }
+
     private List<MemberAdminListResponse> findMembersByNickname(String nickname) {
         MemberSearchCondition condition = new MemberSearchCondition();
         condition.setNickname(nickname);
+        return searchMembersIncludingTest(condition);
+    }
+
+    private List<MemberAdminListResponse> searchMembersIncludingTest(MemberSearchCondition condition) {
         // 테스트 계정도 운영 중 문의 대상일 수 있어 포함
         condition.setIncludeTest(true);
         return memberAdminService.searchMembers(condition, PageRequest.of(0, MAX_MEMBER_RESULT_COUNT)).getContent();
