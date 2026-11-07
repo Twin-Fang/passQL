@@ -15,8 +15,9 @@
 # RELEASE_KEY_PASSWORD: key 비밀번호
 # GOOGLE_SERVICES_JSON: Firebase google-services.json
 # GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64: Play Console 서비스 계정 (base64)
-#   └ passQL: GCP 프로젝트 passql 의 play-publisher@passql.iam.gserviceaccount.com
-#     (Play Console 권한: passQL 앱 정보 보기 + 테스트 트랙 출시 + 프로덕션 출시 — #376 제한을 #770 에서 해제)
+#   └ passQL: GCP 프로젝트 romrom-474513 의 romrom-cicd@romrom-474513.iam.gserviceaccount.com
+#     (Play Console 계정 권한: 관리자, 만료 없음)
+#     play-publisher@passql 은 앱 권한 5개라 프로덕션 승급이 403 으로 실패해 교체 (#770)
 # ===================================================================
 
 name: PROJECT-FLUTTER-ANDROID-PLAYSTORE-INTERNAL-CICD
