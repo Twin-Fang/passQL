@@ -63,12 +63,18 @@ SELECT 1 FROM DUAL;
     expect(checks.map((check) => check.isTrue), [true, false]);
   });
 
-  test('문단 제목: " — " 뒤는 부제, 없으면 제목만', () {
+  test('문단 제목: ": "(옛 콘텐츠 " — ") 뒤는 부제, 없으면 제목만', () {
     final withSubtitle = ConceptReadingParser.splitTitle(
-      '세 가지 특징 — 추상화·단순화·명확화',
+      '세 가지 특징: 추상화·단순화·명확화',
     );
     expect(withSubtitle.title, '세 가지 특징');
     expect(withSubtitle.subtitle, '추상화·단순화·명확화');
+
+    final withLegacyDash = ConceptReadingParser.splitTitle(
+      '세 가지 특징 — 추상화·단순화·명확화',
+    );
+    expect(withLegacyDash.title, '세 가지 특징');
+    expect(withLegacyDash.subtitle, '추상화·단순화·명확화');
 
     final withoutSubtitle = ConceptReadingParser.splitTitle('한 줄 정의');
     expect(withoutSubtitle.title, '한 줄 정의');

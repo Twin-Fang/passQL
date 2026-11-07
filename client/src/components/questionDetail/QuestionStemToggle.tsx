@@ -1,6 +1,8 @@
 import { BookOpen } from "lucide-react";
-import MarkdownText from "../MarkdownText";
+import StemBlocks from "../question/StemBlocks";
 import LatestTrendBadge from "../LatestTrendBadge";
+import { toStemPreviewLine } from "../../lib/stemBlocks";
+import type { QuestionSchemaTable } from "../../types/api";
 
 interface QuestionStemToggleProps {
   readonly stem: string;
@@ -8,20 +10,24 @@ interface QuestionStemToggleProps {
   readonly onToggle: () => void;
   // 최신 출제 경향 반영 문제면 라벨 옆 배지 (#523)
   readonly isLatestTrend?: boolean;
-}
-
-/** 접힌 상태용 미리보기 — 마크다운 문법 제거 후 한 줄로 */
-function toStemPreviewLine(stem: string): string {
-  return stem
-    .replace(/```[\s\S]*?```/g, "[SQL]")
-    .replace(/\n/g, " ")
-    .trim();
+  // 스키마 표는 지문 카드 안에 같은 표 모양으로 (#903)
+  readonly schemaTables?: readonly QuestionSchemaTable[] | null;
+  readonly schemaDdl?: string | null;
+  readonly schemaSampleData?: string | null;
 }
 
 /**
- * 문제 지문 토글: 펼침 > 마크다운 전체, 접힘 > 한 줄 미리보기
+ * 문제 지문 토글: 펼침 > 지문 블록(스키마 표 포함), 접힘 > 한 줄 미리보기
  */
-export default function QuestionStemToggle({ stem, isStemOpen, onToggle, isLatestTrend = false }: QuestionStemToggleProps) {
+export default function QuestionStemToggle({
+  stem,
+  isStemOpen,
+  onToggle,
+  isLatestTrend = false,
+  schemaTables,
+  schemaDdl,
+  schemaSampleData,
+}: QuestionStemToggleProps) {
   return (
     <button
       type="button"
@@ -35,13 +41,9 @@ export default function QuestionStemToggle({ stem, isStemOpen, onToggle, isLates
         {isLatestTrend && <span className="ml-1 normal-case tracking-normal"><LatestTrendBadge /></span>}
       </div>
       {isStemOpen ? (
-        // 펼친 상태: MarkdownText로 코드 블록 포함 마크다운 렌더링
-        <MarkdownText
-          text={stem}
-          className="text-sm text-body min-w-0 w-full"
-        />
+        <StemBlocks stem={stem} schemaTables={schemaTables} schemaDdl={schemaDdl} schemaSampleData={schemaSampleData} />
       ) : (
-        // 접힌 상태: 마크다운 문법 제거 후 한 줄 truncate
+        // 접힌 상태: 표·코드 자리표시 후 한 줄 truncate
         <p className="text-body text-sm truncate">
           {toStemPreviewLine(stem)}
         </p>

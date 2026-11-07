@@ -1,6 +1,6 @@
 import MarkdownText from "../MarkdownText";
 import { ResultMatchTable } from "../ResultMatchTable";
-import { SchemaViewer } from "../SchemaViewer";
+import StemBlocks from "../question/StemBlocks";
 import RationaleCard from "../answerFeedback/RationaleCard";
 import { isResultTableChoiceBody } from "../../lib/choiceBodyKind";
 import type { MockExamChoice, MockExamQuestionReview } from "../../types/api";
@@ -34,14 +34,13 @@ function toChoiceTags(choice: MockExamChoice, review: MockExamQuestionReview): s
 }
 
 /**
- * 문항 해설 (프로): 지문 > 테이블 > 보기별 채점(정답·내 답) + 보기 근거 > 요약 해설
+ * 문항 해설 (프로): 지문(테이블 포함) > 보기별 채점(정답·내 답) + 보기 근거 > 요약 해설
  * 저장된 근거·요약만 표시 (AI 호출 없음)
  */
 export default function MockExamReviewDetail({ review }: MockExamReviewDetailProps) {
   return (
     <div className="space-y-3 pt-1">
-      <MarkdownText text={review.stem} className="text-sm text-body" />
-      <SchemaViewer schemaTables={review.schemaTables} schemaDdl={review.schemaDisplay} />
+      <StemBlocks stem={review.stem} schemaTables={review.schemaTables} schemaDdl={review.schemaDisplay} />
       {review.selectedChoiceKey === null && <p className="text-xs font-semibold text-text-caption">풀지 않은 문항이에요</p>}
 
       <ol className="space-y-2" aria-label="보기 채점">
