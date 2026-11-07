@@ -1,9 +1,9 @@
-"""개념: 트랜잭션과 COMMIT·ROLLBACK·SAVEPOINT (3단원, 확인 문제 5개)"""
+"""개념: 트랜잭션과 COMMIT, ROLLBACK, SAVEPOINT (3단원, 확인 문제 5개)"""
 
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
 from concept_dataset import to_employee_table_md
 
-# 저장점 예시·확인 문제 행 수 계산용 (사원 8명의 부서번호)
+# 저장점 예시, 확인 문제 행 수 계산용 (사원 8명의 부서번호)
 EMPLOYEE_DEPARTMENT_TABLE = to_employee_table_md("사번", "이름", "부서번호")
 
 COMMIT_ROLLBACK_SQL = (
@@ -52,16 +52,16 @@ CONCEPT = {
     "tagKey": "tcl-commit-rollback",
     "topicCode": "sql_ddl_dml_tcl",
     "sortOrder": 6,
-    "title": "트랜잭션과 COMMIT·ROLLBACK·SAVEPOINT",
+    "title": "트랜잭션과 COMMIT, ROLLBACK, SAVEPOINT",
     "summary": "여러 변경을 한 묶음으로 확정하거나 취소하고, 중간 지점까지만 되돌릴 수도 있어요",
     "coreMd": (
-        "- 트랜잭션은 함께 성공하거나 함께 취소되는 작업 묶음이고, ACID는 **원자성·일관성·고립성·지속성**이에요.\n"
+        "- 트랜잭션은 함께 성공하거나 함께 취소되는 작업 묶음이고, ACID는 **원자성, 일관성, 고립성, 지속성**이에요.\n"
         "- COMMIT 전 변경은 **내 세션에서만** 보이고, 바뀐 행은 잠겨서 다른 사용자가 고칠 수 없어요.\n"
         "- `ROLLBACK TO 저장점`은 그 뒤의 작업만 취소하고, 같은 이름의 저장점은 **마지막 것**이 기준이에요.\n"
         "- Oracle은 DDL을 실행하면 앞의 DML까지 **자동 커밋**되고, SQL Server는 기본이 문장마다 자동 커밋이에요.\n"
         "- 격리 수준은 높을수록 Dirty Read, Non-Repeatable Read, Phantom Read를 차례로 더 막아요."
     ),
-    "detailMd": f"""## 왜 묶어서 처리할까요 — 출금만 되고 입금이 안 되면 안 돼서 {{#why}}
+    "detailMd": f"""## 왜 묶어서 처리할까요: 출금만 되고 입금이 안 되면 안 돼서 {{#why}}
 
 계좌 이체는 A 계좌에서 10만 원을 빼는 UPDATE와 B 계좌에 10만 원을 더하는 UPDATE가 함께 실행되어야 해요. 첫 문장만 실행된 뒤 장애가 나면 10만 원이 어디에도 없게 되니, 둘 다 성공하면 함께 확정하고 하나라도 실패하면 함께 취소해요.
 
@@ -70,7 +70,7 @@ CONCEPT = {
 | 트랜잭션 (transaction) | 한 덩어리로 성공하거나 취소되어야 하는 작업 묶음이에요. Oracle에서는 첫 DML 문장을 실행할 때 시작되고, COMMIT이나 ROLLBACK을 하면 끝나요 |
 | TCL (Transaction Control Language, 트랜잭션 제어어) | 트랜잭션을 확정하거나 취소하는 명령어 COMMIT, ROLLBACK, SAVEPOINT예요 |
 
-## ACID — 트랜잭션이 지킬 네 가지 성질 {{#acid}}
+## ACID: 트랜잭션이 지킬 네 가지 성질 {{#acid}}
 
 네 성질의 영어 앞 글자를 따서 ACID라고 부르고, 데이터 모델링 단원의 트랜잭션과 데이터 모델 개념에서 본 내용과 같아요. 우리말 앞 글자로는 "원일고지"로 외워요.
 
@@ -83,9 +83,9 @@ CONCEPT = {
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
-| 독립성과 영속성은 ACID와 다른 성질이에요 | 고립성을 독립성·격리성, 지속성을 영속성으로 부르는 자료도 있어요. 뜻은 같아서 보기에 어느 쪽이 나와도 같은 성질이에요 |
+| 독립성과 영속성은 ACID와 다른 성질이에요 | 고립성을 독립성, 격리성, 지속성을 영속성으로 부르는 자료도 있어요. 뜻은 같아서 보기에 어느 쪽이 나와도 같은 성질이에요 |
 
-## COMMIT과 ROLLBACK — 확정 전과 후에 보이는 것 {{#before-commit}}
+## COMMIT과 ROLLBACK: 확정 전과 후에 보이는 것 {{#before-commit}}
 
 COMMIT은 트랜잭션에서 바꾼 내용을 모두 확정하고, ROLLBACK은 마지막 COMMIT 뒤에 바꾼 내용을 모두 취소해요. 아래에서 1008 삭제는 COMMIT으로 확정되고, 그 뒤의 1007 삭제만 취소되어 7명이 남아요.
 
@@ -97,7 +97,7 @@ COMMIT은 트랜잭션에서 바꾼 내용을 모두 확정하고, ROLLBACK은 �
 
 | 시점 | 내 세션 | 다른 사용자 | 바뀐 행의 잠금 |
 |---|---|---|---|
-| COMMIT·ROLLBACK 전 | 바뀐 값이 보여요 | 바뀌기 전 값이 보여요 | 걸려 있어요 (다른 사용자는 못 고침) |
+| COMMIT, ROLLBACK 전 | 바뀐 값이 보여요 | 바뀌기 전 값이 보여요 | 걸려 있어요 (다른 사용자는 못 고침) |
 | COMMIT 후 | 바뀐 값이 보여요 | 바뀐 값이 보여요 | 풀려요 |
 | ROLLBACK 후 | 바뀌기 전 값이 보여요 | 바뀌기 전 값이 보여요 | 풀려요 |
 
@@ -111,7 +111,7 @@ COMMIT은 트랜잭션에서 바꾼 내용을 모두 확정하고, ROLLBACK은 �
 |---|---|---|
 | 한 번 COMMIT한 내용도 ROLLBACK으로 되돌릴 수 있어요 | X | ROLLBACK은 마지막 COMMIT 뒤의 변경만 취소해요 |
 
-## SAVEPOINT와 ROLLBACK TO — 중간 지점까지만 되돌리기 {{#savepoint}}
+## SAVEPOINT와 ROLLBACK TO: 중간 지점까지만 되돌리기 {{#savepoint}}
 
 `SAVEPOINT 이름`으로 중간 지점(저장점)을 표시해 두면, `ROLLBACK TO 이름`으로 그 지점 뒤에 한 작업만 취소할 수 있어요. 아래 예시는 공통 예시 데이터의 사원 8명을 지우며, 부서번호는 아래와 같아요.
 
@@ -145,9 +145,9 @@ SELECT COUNT(*) FROM 사원;   -- 8이 나와요
 |---|---|---|
 | TO 없이 ROLLBACK만 쓰면 저장점과 관계없이 마지막 COMMIT 상태로 돌아가요 | O | 저장점은 ROLLBACK TO에만 쓰이고, ROLLBACK은 트랜잭션 처음으로 돌아가요 |
 
-## 자동 커밋 — Oracle의 DDL과 SQL Server의 기본값 {{#auto-commit}}
+## 자동 커밋: Oracle의 DDL과 SQL Server의 기본값 {{#auto-commit}}
 
-Oracle은 DML을 직접 COMMIT하기 전까지 확정하지 않지만, CREATE·ALTER·DROP·RENAME·TRUNCATE 같은 DDL과 GRANT·REVOKE 같은 DCL은 자동으로 커밋해요. DDL은 실행 앞뒤로 커밋되기 때문에, 그때까지 확정하지 않은 DML까지 함께 확정돼요.
+Oracle은 DML을 직접 COMMIT하기 전까지 확정하지 않지만, CREATE, ALTER, DROP, RENAME, TRUNCATE 같은 DDL과 GRANT, REVOKE 같은 DCL은 자동으로 커밋해요. DDL은 실행 앞뒤로 커밋되기 때문에, 그때까지 확정하지 않은 DML까지 함께 확정돼요.
 
 ```sql
 {DDL_AUTO_COMMIT_SQL}   -- 7이 나와요
@@ -165,7 +165,7 @@ Oracle은 DML을 직접 COMMIT하기 전까지 확정하지 않지만, CREATE·A
 
 SQL Server도 설정을 바꾸면 Oracle처럼 첫 문장에서 트랜잭션이 저절로 시작되어 COMMIT할 때까지 이어지게 할 수 있어요. 이것을 암시적 트랜잭션이라고 불러요.
 
-## 격리 수준과 이상 현상 — 높을수록 더 막고 더 느려요 {{#isolation}}
+## 격리 수준과 이상 현상: 높을수록 더 막고 더 느려요 {{#isolation}}
 
 여러 트랜잭션이 같은 데이터를 동시에 다루면, 서로의 작업이 끼어들면서 아래 세 가지 이상 현상이 생길 수 있어요.
 
@@ -194,7 +194,7 @@ SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;   -- 오류: Oracle은 이 격
 |---|---|---|
 | REPEATABLE READ에서도 Phantom Read는 생길 수 있어요 | O | 이미 읽은 행은 지켜 주지만, 새로 들어오는 행은 막지 못해요 |
 
-## 자주 헷갈리는 점 — 사라지는 저장점, 끝나지 않는 트랜잭션 {{#confusing}}
+## 자주 헷갈리는 점: 사라지는 저장점, 끝나지 않는 트랜잭션 {{#confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -218,11 +218,11 @@ SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;   -- 오류: Oracle은 이 격
 |---|---|---|
 | 위 예시에서 60번 부서도 COMMIT으로 함께 확정돼요 | X | 60번은 저장점 가 뒤에 넣어서 ROLLBACK TO 가로 취소됐어요 |
 
-## 꼭 외울 것 — 저장점, 자동 커밋, 격리 수준 {{#memorize}}
+## 꼭 외울 것: 저장점, 자동 커밋, 격리 수준 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
-| ACID 두문자 | 원일고지: 원자성·일관성·고립성·지속성 |
+| ACID 두문자 | 원일고지: 원자성, 일관성, 고립성, 지속성 |
 | ROLLBACK TO 저장점 | 그 뒤 작업만 취소, 트랜잭션은 계속 |
 | 같은 이름의 저장점 | 마지막에 만든 것만 남아요 |
 | 앞 저장점으로 돌아가면 | 그 뒤에 만든 저장점은 사라져요 |
@@ -249,14 +249,14 @@ SAVEPOINT와 ROLLBACK TO가 섞인 SQL을 주고 마지막 SELECT의 행 수를 
                   choice("B", "Non-Repeatable Read", rationale="이미 읽은 행이 바뀌거나 사라진 경우이고, 새 행이 생긴 경우가 아니에요."),
                   choice("C", "Phantom Read", True, "같은 조건에 없던 행이 새로 나타나는 현상이에요."),
                   choice("D", "SERIALIZABLE", rationale="SERIALIZABLE은 이상 현상이 아니라 세 현상을 모두 막는 격리 수준이에요.")]),
-        question(3, "공통 예시 데이터(사원 8명, 20번·30번 부서 각 3명)에서 다음 SQL을 차례로 실행하면 마지막 결과는 무엇인가요?", "savepoint",
-                 "1008을 지운 뒤 만든 저장점 첫째로 돌아가므로, 그 뒤에 지운 30번·20번 부서 6명만 되살아나요. 1008 삭제는 남아서 7명이에요.",
+        question(3, "공통 예시 데이터(사원 8명, 20번, 30번 부서 각 3명)에서 다음 SQL을 차례로 실행하면 마지막 결과는 무엇인가요?", "savepoint",
+                 "1008을 지운 뒤 만든 저장점 첫째로 돌아가므로, 그 뒤에 지운 30번, 20번 부서 6명만 되살아나요. 1008 삭제는 남아서 7명이에요.",
                  [choice("A", "4", rationale="ROLLBACK TO 둘째를 했을 때의 결과예요."),
                   choice("B", "1", rationale="ROLLBACK TO 전의 결과예요."),
                   choice("C", "8", rationale="저장점 첫째 앞에서 지운 1008은 되살아나지 않아요."),
                   choice("D", "7", True, "첫째 뒤의 삭제만 취소되어 7명이 남아요.")],
                  stem_sql=SAVEPOINT_STEM_SQL),
-        question(4, "공통 예시 데이터(사원 8명, 20번·30번 부서 각 3명)에서 다음 SQL을 차례로 실행하면 마지막 결과는 무엇인가요?", "confusing",
+        question(4, "공통 예시 데이터(사원 8명, 20번, 30번 부서 각 3명)에서 다음 SQL을 차례로 실행하면 마지막 결과는 무엇인가요?", "confusing",
                  "같은 이름의 저장점을 다시 만들면 마지막 것만 남아요. 그래서 30번 부서 삭제 뒤의 지점으로 돌아가 5명이 남아요.",
                  [choice("A", "5", True, "두 번째 저장점으로 돌아가 20번 부서 삭제만 취소돼요."),
                   choice("B", "8", rationale="첫 번째 저장점은 같은 이름의 두 번째 저장점으로 바뀌어 사라졌어요."),
@@ -295,7 +295,7 @@ SAVEPOINT와 ROLLBACK TO가 섞인 SQL을 주고 마지막 SELECT의 행 수를 
         # DDL 자동 커밋 (확인 문제 5), TRUNCATE 도 같음
         sql_check(DDL_AUTO_COMMIT_SQL, [[7]]),
         sql_check("INSERT INTO 부서 VALUES (50, '총무부', '대전');\nTRUNCATE TABLE 급여등급;\nROLLBACK;\nSELECT COUNT(*) FROM 부서;", [[5]]),
-        # Oracle 격리 수준: READ COMMITTED·SERIALIZABLE 만
+        # Oracle 격리 수준: READ COMMITTED, SERIALIZABLE 만
         sql_check("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;\nSELECT COUNT(*) FROM 사원;", [[8]]),
         sql_error_check("SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED", "ORA-02179"),
         sql_error_check("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ", "ORA-02179"),

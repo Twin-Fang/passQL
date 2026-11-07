@@ -3,10 +3,10 @@
 from concept_bundle import choice, question, sql_check, sql_example
 from concept_dataset import to_employee_table_md, to_markdown_table
 
-# 20·30번 부서 사원 6명 (ROLLUP 개념과 같은 예시 범위)
+# 20, 30번 부서 사원 6명 (ROLLUP 개념과 같은 예시 범위)
 DEPARTMENT_20_30_EMPLOYEE_TABLE = to_employee_table_md(
     "사번", "이름", "직급", "급여", "부서번호", employee_numbers=(1002, 1003, 1004, 1005, 1006, 1007))
-# 사원 8명 전체 (전체 행 수 18·13 계산용, 직급 5종류·부서번호 NULL 1명이 보여야 함)
+# 사원 8명 전체 (전체 행 수 18, 13 계산용, 직급 5종류, 부서번호 NULL 1명이 보여야 함)
 EMPLOYEE_POSITION_TABLE = to_employee_table_md("사번", "이름", "직급", "급여", "부서번호")
 
 # CUBE(부서번호, 직급) 결과 13행 (본문 표 = 검증 기대값)
@@ -29,7 +29,7 @@ CUBE_EXAMPLE = sql_example(
 
 
 def to_cross_table_md(cube_rows):
-    """CUBE 결과 행 > 부서(행) x 직급(열) 교차표 (소계·총계 칸 포함, 없는 조합은 -)"""
+    """CUBE 결과 행 > 부서(행) x 직급(열) 교차표 (소계, 총계 칸 포함, 없는 조합은 -)"""
     total_by_key = {(department, position): total for department, position, total in cube_rows}
     departments = sorted({row[0] for row in cube_rows if row[0] is not None})
     positions = sorted({row[1] for row in cube_rows if row[1] is not None})
@@ -55,7 +55,7 @@ CONCEPT = {
         "- 모든 조합을 만들므로 `CUBE(A, B)`와 `CUBE(B, A)`는 **같은 행들**을 돌려줘요.\n"
         "- 같은 열의 ROLLUP보다 B별 소계가 더 붙어서 행이 많고, 계산할 양도 늘어나요."
     ),
-    "detailMd": f"""## 양쪽 소계를 다 보고 싶을 때 — CUBE가 필요한 이유 {{#why}}
+    "detailMd": f"""## 양쪽 소계를 다 보고 싶을 때: CUBE가 필요한 이유 {{#why}}
 
 `ROLLUP(부서번호, 직급)`으로는 부서별 소계만 볼 수 있고, "회사 전체 대리의 급여 합계" 같은 직급별 소계는 볼 수 없어요. 부서 기준과 직급 기준을 양쪽 다 보고 싶을 때 쓰는 것이 CUBE예요.
 
@@ -67,7 +67,7 @@ CONCEPT = {
 
 {DEPARTMENT_20_30_EMPLOYEE_TABLE}
 
-## 한 줄 정의 — 만들 수 있는 모든 조합 {{#definition}}
+## 한 줄 정의: 만들 수 있는 모든 조합 {{#definition}}
 
 CUBE는 괄호 안 열로 만들 수 있는 모든 조합마다 집계하는 GROUP BY의 확장 기능이에요. 열마다 "묶음에 넣는다"와 "뺀다" 두 가지 선택이 있어서, 열이 n개면 묶음은 **2의 n제곱** 개가 돼요.
 
@@ -84,7 +84,7 @@ CUBE는 괄호 안 열로 만들 수 있는 모든 조합마다 집계하는 GRO
 | n개 열이면 2의 n제곱 묶음 | `CUBE(A, B, C)`는 (A, B, C), (A, B), (A, C), (B, C), (A), (B), (C), () 여덟 묶음이에요 |
 | 양방향 소계가 보이면 CUBE | 결과에 부서별 소계와 직급별 소계가 함께 있으면 CUBE로 봐요 |
 
-## 예시로 보는 결과 — 직급별 소계가 더 붙어요 {{#example}}
+## 예시로 보는 결과: 직급별 소계가 더 붙어요 {{#example}}
 
 {CUBE_EXAMPLE.markdown}
 
@@ -92,7 +92,7 @@ CUBE는 괄호 안 열로 만들 수 있는 모든 조합마다 집계하는 GRO
 
 마지막 `(NULL, NULL, 15900)` 행은 두 열을 모두 뺀 총계예요.
 
-## ROLLUP과 견주기 — 묶음 수와 열 순서 {{#compare-rollup}}
+## ROLLUP과 견주기: 묶음 수와 열 순서 {{#compare-rollup}}
 
 | 열 개수 | ROLLUP 묶음 수 (n + 1) | CUBE 묶음 수 (2의 n제곱) |
 |---|---|---|
@@ -106,11 +106,11 @@ CUBE는 괄호 안 열로 만들 수 있는 모든 조합마다 집계하는 GRO
 |---|---|---|
 | 직급별 소계 | 없어요 | 있어요 |
 | 열 순서를 바꾸면 | 소계 기준이 바뀌어 결과가 달라요 | 같은 행들이 나와요 |
-| 20·30번 여섯 명 행 수 | 6 + 2 + 1 = 9 | 6 + 2 + 4 + 1 = 13 |
+| 20, 30번 여섯 명 행 수 | 6 + 2 + 1 = 9 | 6 + 2 + 4 + 1 = 13 |
 
 `CUBE(직급, 부서번호)`도 위 예시와 똑같은 13행을 돌려줘요. 화면의 열 순서와 정렬 순서는 SELECT와 ORDER BY가 정할 뿐이에요.
 
-## 행 수 세기 — 묶음마다 그룹 수를 더해요 {{#row-count}}
+## 행 수 세기: 묶음마다 그룹 수를 더해요 {{#row-count}}
 
 같은 여섯 명이면 CUBE가 ROLLUP보다 직급 소계 4행만큼 많아요. 아래 사원 여덟 명 전체로 세면 차이가 더 커져요.
 
@@ -127,7 +127,7 @@ SELECT COUNT(*) FROM (SELECT 부서번호, 직급 FROM 사원 GROUP BY CUBE(부�
 SELECT COUNT(*) FROM (SELECT 부서번호, 직급 FROM 사원 GROUP BY ROLLUP(부서번호, 직급));  -- 13이 나와요
 ```
 
-## 자주 헷갈리는 점 — NULL의 두 뜻, 계산할 양 {{#confusing}}
+## 자주 헷갈리는 점: NULL의 두 뜻, 계산할 양 {{#confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -143,7 +143,7 @@ SELECT COUNT(*) FROM (SELECT 부서번호, 직급 FROM 사원 GROUP BY ROLLUP(�
 | `CUBE(A, B)`는 세 가지 묶음으로 집계해요 | X | (A, B), (A), (B), () 네 가지예요 |
 | 부서번호가 NULL인 윤서연은 CUBE 행 수를 셀 때 빼요 | X | NULL도 부서번호 값 하나로 세서 소계 1행이 돼요 |
 
-## 꼭 외울 것 — 모든 조합과 순서 무관 {{#memorize}}
+## 꼭 외울 것: 모든 조합과 순서 무관 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
@@ -176,7 +176,7 @@ SELECT COUNT(*) FROM (SELECT 부서번호, 직급 FROM 사원 GROUP BY ROLLUP(�
                   choice("B", "6가지", rationale="열 개수에 2를 곱한 값인데, CUBE는 2의 n제곱이에요."),
                   choice("C", "9가지", rationale="열 개수의 제곱인데, CUBE는 2의 n제곱이에요."),
                   choice("D", "8가지", True, "2의 3제곱이라서 8가지예요.")]),
-        question(3, "아래 20·30번 부서 사원 표에 다음 SQL을 실행하면 몇 행이 나오나요?\n\n" + DEPARTMENT_20_30_EMPLOYEE_TABLE, "confusing",
+        question(3, "아래 20, 30번 부서 사원 표에 다음 SQL을 실행하면 몇 행이 나오나요?\n\n" + DEPARTMENT_20_30_EMPLOYEE_TABLE, "confusing",
                  "(부서번호, 직급) 조합 6행, 부서 소계 2행, 직급 소계 4행, 총계 1행을 더해서 13행이에요.",
                  [choice("A", "13행", True, "조합 6행, 부서 2행, 직급 4행, 총계 1행이에요."),
                   choice("B", "9행", rationale="ROLLUP의 행 수이고, CUBE는 직급별 소계 4행이 더 붙어요."),

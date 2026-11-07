@@ -73,7 +73,7 @@ CONCEPT = {
         "- CUME_DIST는 현재 행까지(동점 포함) 쌓인 행 수를 전체 행 수로 나눈 값이라서, **0이 나오지 않아요**.\n"
         "- NTILE(n)은 행을 n개 그룹으로 나누고, 남는 행은 앞 그룹부터 하나씩 더 줘요(8행을 3개로 나누면 **3, 3, 2**)."
     ),
-    "detailMd": f"""## 몇 %인지, 몇 반인지 — 왜 필요할까요 {{#why}}
+    "detailMd": f"""## 몇 %인지, 몇 반인지: 왜 필요할까요 {{#why}}
 
 "내 급여가 부서 인건비의 몇 %인가", "나는 회사에서 상위 몇 %인가", "급여 순서로 세 반을 나누면 나는 몇 반인가" 같은 질문은 순위나 합계만으로는 바로 답하기 어려워요. 비율 함수는 합계로 나누거나 순위를 행 수로 나누는 계산을 함수 하나로 해 줘요.
 
@@ -81,7 +81,7 @@ CONCEPT = {
 
 {EMPLOYEE_BASE_TABLE}
 
-## 한 줄 정의 — 네 함수의 공식 {{#definition}}
+## 한 줄 정의: 네 함수의 공식 {{#definition}}
 
 비율 함수는 묶음 안에서 현재 행이 차지하는 비율이나 위치를 0과 1 사이의 값, 또는 그룹 번호로 돌려주는 윈도우 함수예요. NTILE은 그룹 번호를 돌려주지만, SQLD에서는 비율 함수로 분류해요.
 
@@ -99,7 +99,7 @@ CONCEPT = {
 | CUME_DIST | 첫 행도 0보다 큼, 마지막 1 | 꼭 있어야 해요 |
 | NTILE | 1~n | 꼭 있어야 해요 |
 
-## RATIO_TO_REPORT — 합계에서 차지하는 비율 {{#ratio-to-report}}
+## RATIO_TO_REPORT: 합계에서 차지하는 비율 {{#ratio-to-report}}
 
 RATIO_TO_REPORT는 "보고서 합계에 대한 비율"이라는 뜻이에요. 현재 행의 값을 묶음 전체의 합으로 나눠서, 묶음마다 비율을 모두 더하면 1이 돼요.
 
@@ -109,7 +109,7 @@ RATIO_TO_REPORT는 "보고서 합계에 대한 비율"이라는 뜻이에요. �
 
 `급여 / SUM(급여) OVER (PARTITION BY 부서번호)`라고 써도 같은 값이 나와요. 회사 전체 합계 대비 비율이 필요하면 `OVER ()`처럼 괄호를 비워요.
 
-## PERCENT_RANK와 CUME_DIST — 개발부 세 명으로 먼저 {{#small-example}}
+## PERCENT_RANK와 CUME_DIST: 개발부 세 명으로 먼저 {{#small-example}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -123,7 +123,7 @@ RATIO_TO_REPORT는 "보고서 합계에 대한 비율"이라는 뜻이에요. �
 | 이지은, 정하늘 (함께 1위) | (1 - 1) / (3 - 1) = 0 | 2500 이하 2명이라 2 / 3 = 0.67 |
 | 박서준 (3위) | (3 - 1) / (3 - 1) = 1 | 3 / 3 = 1 |
 
-## 전체 사원으로 보기 — 7로 나누고, 8로 나눠요 {{#full-example}}
+## 전체 사원으로 보기: 7로 나누고, 8로 나눠요 {{#full-example}}
 
 사원 8명으로 넓혀도 계산 방법은 같아요. PERCENT_RANK는 7(= 8 - 1)로 나누고 CUME_DIST는 8로 나누며, 긴 소수는 ROUND로 소수 셋째 자리까지 반올림했어요.
 
@@ -131,7 +131,7 @@ RATIO_TO_REPORT는 "보고서 합계에 대한 비율"이라는 뜻이에요. �
 
 3위인 이지은과 정하늘의 PERCENT_RANK는 (3 - 1) / 7 = 0.286이고, CUME_DIST는 급여 2500 이하인 네 명을 세어 4 / 8 = 0.5예요. 정렬의 첫 행인 윤서연도 CUME_DIST는 자기 자신을 세므로 1 / 8 = 0.125이고, 0이 되지 않아요.
 
-## NTILE — 남는 행은 앞 그룹부터 {{#ntile}}
+## NTILE: 남는 행은 앞 그룹부터 {{#ntile}}
 
 NTILE(n)은 정렬한 행을 n개의 그룹으로 최대한 고르게 나누고, 각 행에 1부터 n까지 그룹 번호를 붙여요.
 
@@ -173,7 +173,7 @@ SELECT 이름, NTILE(3) OVER () FROM 사원;
 | RATIO_TO_REPORT 값을 묶음마다 모두 더하면 행 수가 돼요 | X | 각 값이 합계로 나눈 비율이라서 모두 더하면 1이에요 |
 | 7명을 NTILE(2)로 나누면 4명, 3명이 돼요 | O | 몫 3, 나머지 1이라서 1번 그룹이 한 명 더 받아요 |
 
-## 꼭 외울 것 — 공식과 첫 행의 값 {{#memorize}}
+## 꼭 외울 것: 공식과 첫 행의 값 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
@@ -224,7 +224,7 @@ SELECT 이름, NTILE(3) OVER () FROM 사원;
                   choice("D", "오지민 0, 한도윤 0.33, 최유나 0.67", rationale="행 수 3이 아니라 행 수 - 1인 2로 나눠야 해요.")],
                  stem_sql=PERCENT_RANK_STEM_SQL),
         question(5, "사원 8명에게 다음 SQL을 실행하면, 1번부터 5번까지 각 그룹의 인원은 어떻게 되나요?", "ntile",
-                 "8을 5로 나누면 몫이 1, 나머지가 3이에요. 모든 그룹이 1명씩 받고 남은 3명이 1·2·3번 그룹에 하나씩 더 들어가서 2, 2, 2, 1, 1이 돼요.",
+                 "8을 5로 나누면 몫이 1, 나머지가 3이에요. 모든 그룹이 1명씩 받고 남은 3명이 1, 2, 3번 그룹에 하나씩 더 들어가서 2, 2, 2, 1, 1이 돼요.",
                  [choice("A", "2, 2, 2, 1, 1", True, "남는 3명을 앞 그룹부터 하나씩 더 줘요."),
                   choice("B", "1, 1, 2, 2, 2", rationale="남는 행은 뒤 그룹이 아니라 앞 그룹부터 받아요."),
                   choice("C", "2, 2, 2, 2, 0", rationale="NTILE은 빈 그룹을 만들지 않고 고르게 나눠요."),
@@ -238,7 +238,7 @@ SELECT 이름, NTILE(3) OVER () FROM 사원;
         SMALL_DISTRIBUTION_EXAMPLE.check,
         FULL_DISTRIBUTION_EXAMPLE.check,
         NTILE_EXAMPLE.check,
-        # 본문 설명: 급여 / SUM OVER 와 같음, 오류 2개, NTILE(5)·NTILE(10) 그룹 인원, 오름차순 NTILE(3) 동점 분리
+        # 본문 설명: 급여 / SUM OVER 와 같음, 오류 2개, NTILE(5), NTILE(10) 그룹 인원, 오름차순 NTILE(3) 동점 분리
         sql_check("SELECT 이름, ROUND(급여 / SUM(급여) OVER (PARTITION BY 부서번호), 2) FROM 사원 WHERE 부서번호 = 20",
                   [["이지은", 0.32], ["박서준", 0.36], ["정하늘", 0.32]]),
         sql_error_check("SELECT 이름, RATIO_TO_REPORT(급여) OVER (ORDER BY 급여) FROM 사원", "ORA-30487"),
@@ -252,12 +252,12 @@ SELECT 이름, NTILE(3) OVER () FROM 사원;
         sql_check("SELECT 이름, NTILE(3) OVER (ORDER BY 급여, 사번) FROM 사원 ORDER BY 급여, 사번",
                   [["윤서연", 1], ["오지민", 1], ["이지은", 1], ["정하늘", 2], ["한도윤", 2], ["박서준", 2], ["김민수", 3], ["최유나", 3]],
                   is_ordered=True),
-        # 본문 바로 확인: 묶음별 비율 합 1, 7명 NTILE(2) = 4·3
+        # 본문 바로 확인: 묶음별 비율 합 1, 7명 NTILE(2) = 4, 3
         sql_check("SELECT 부서번호, ROUND(SUM(비율), 6) FROM (SELECT 부서번호, RATIO_TO_REPORT(급여) OVER (PARTITION BY 부서번호) AS 비율 "
                   "FROM 사원 WHERE 부서번호 IN (20, 30)) GROUP BY 부서번호", [[20, 1], [30, 1]]),
         sql_check("SELECT 그룹, COUNT(*) FROM (SELECT NTILE(2) OVER (ORDER BY 사번) AS 그룹 FROM 사원 WHERE 부서번호 IS NOT NULL) "
                   "GROUP BY 그룹 ORDER BY 그룹", [[1, 4], [2, 3]], is_ordered=True),
-        # 확인 문제 2·3·4·5번 stemSql
+        # 확인 문제 2, 3, 4, 5번 stemSql
         sql_check(RATIO_STEM_SQL, [["김민수", None], ["이지은", 0.3], ["박서준", 0], ["최유나", None],
                                    ["정하늘", None], ["한도윤", 0.5], ["오지민", 0.2], ["윤서연", None]]),
         sql_check(CUME_DIST_STEM_SQL, [["이지은", 0.67], ["정하늘", 0.67], ["박서준", 1]]),

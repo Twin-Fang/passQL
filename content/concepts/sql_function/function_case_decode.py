@@ -84,15 +84,15 @@ CONCEPT = {
         "- `DECODE`는 단순 CASE와 같은 일을 하지만 **NULL과 NULL을 같다고** 봐요.\n"
         "- DECODE는 **Oracle에만** 있고, CASE는 SQL 표준이라 SQL Server에서도 써요."
     ),
-    "detailMd": f"""## CASE와 DECODE가 하는 일 — SQL 안의 IF 문 {{#why}}
+    "detailMd": f"""## CASE와 DECODE가 하는 일: SQL 안의 IF 문 {{#why}}
 
-부서번호 10, 20을 "기획", "개발"로 바꾸거나, 급여에 따라 상·중·하 등급을 붙이고 싶을 때가 있어요. 조건에 따라 다른 값을 고르는 이 일을 SQL에서는 CASE 식과 DECODE 함수가 맡아요.
+부서번호 10, 20을 "기획", "개발"로 바꾸거나, 급여에 따라 상, 중, 하 등급을 붙이고 싶을 때가 있어요. 조건에 따라 다른 값을 고르는 이 일을 SQL에서는 CASE 식과 DECODE 함수가 맡아요.
 
 아래 예시는 모두 이 사원 표로 설명해요.
 
 {EMPLOYEE_COMMISSION_TABLE}
 
-## CASE 식의 두 가지 모양 — 단순 CASE와 검색 CASE {{#definition}}
+## CASE 식의 두 가지 모양: 단순 CASE와 검색 CASE {{#definition}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -112,7 +112,7 @@ CASE 열 WHEN 값1 THEN 결과1 WHEN 값2 THEN 결과2 ELSE 기본값 END
 CASE WHEN 조건1 THEN 결과1 WHEN 조건2 THEN 결과2 ELSE 기본값 END
 ```
 
-## 예시로 보는 CASE — 같음은 단순, 크기는 검색 {{#example}}
+## 예시로 보는 CASE: 같음은 단순, 크기는 검색 {{#example}}
 
 부서번호를 이름으로 바꾸는 일은 같은지만 보면 되므로 단순 CASE로 써요.
 
@@ -122,7 +122,7 @@ CASE WHEN 조건1 THEN 결과1 WHEN 조건2 THEN 결과2 ELSE 기본값 END
 
 {SEARCHED_CASE_EXAMPLE.markdown}
 
-## 처음 맞는 하나만 — WHEN은 위에서부터 확인해요 {{#first-match}}
+## 처음 맞는 하나만: WHEN은 위에서부터 확인해요 {{#first-match}}
 
 CASE는 **처음 맞는 WHEN**에서 멈추고, 뒤에 더 알맞은 조건이 있어도 보지 않아요. 그래서 범위가 겹치는 조건은 좁은 범위부터 적어야 해요.
 
@@ -134,7 +134,7 @@ CASE는 **처음 맞는 WHEN**에서 멈추고, 뒤에 더 알맞은 조건이 �
 |---|---|---|
 | 범위가 겹치는 검색 CASE는 좁은 범위의 WHEN을 위에 적어야 해요 | O | 넓은 범위가 위에 있으면 좁은 범위의 행도 거기서 먼저 걸려요 |
 
-## DECODE — 비교값과 결과를 짝지어 적는 Oracle 함수 {{#decode}}
+## DECODE: 비교값과 결과를 짝지어 적는 Oracle 함수 {{#decode}}
 
 `DECODE(값, 비교1, 결과1, 비교2, 결과2, ..., 기본값)`는 값이 비교1과 같으면 결과1을, 비교2와 같으면 결과2를 돌려줘요. 짝을 이루고 남는 마지막 하나가 기본값이고, 기본값을 생략하면 NULL이에요.
 
@@ -152,7 +152,7 @@ SELECT 이름, DECODE(부서번호, 10, '기획', 20, '개발') FROM 사원 WHER
 | NULL과 NULL | 같지 않아요 (UNKNOWN) | 같다고 봐요 |
 | 맞는 것이 없고 기본값도 없을 때 | NULL | NULL |
 
-## 자주 헷갈리는 점 — NULL을 비교하는 방식이 달라요 {{#confusing}}
+## 자주 헷갈리는 점: NULL을 비교하는 방식이 달라요 {{#confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -187,13 +187,13 @@ SELECT CASE 부서번호 WHEN 10 THEN '기획' ELSE 부서번호 END FROM 사원
 | 단순 CASE로도 `WHEN >= 3000` 같은 크기 비교를 쓸 수 있어요 | X | 단순 CASE는 같은지만 비교해서, 크기 비교는 검색 CASE로 써요 |
 | DECODE(커미션, NULL, '없음', '있음')은 커미션이 0인 박서준에게 '없음'을 돌려줘요 | X | 0은 NULL이 아니라서 기본값 '있음'이 나와요 |
 
-## 꼭 외울 것 — NULL 비교와 결과 타입 {{#memorize}}
+## 꼭 외울 것: NULL 비교와 결과 타입 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
 | CASE가 고르는 WHEN | 위에서부터 처음 맞는 하나, 그 뒤는 보지 않아요 |
 | 맞는 WHEN도 ELSE도 없으면 | NULL |
-| 단순 CASE와 검색 CASE | 단순은 같은지(=)만, 검색은 크기·범위·IS NULL까지 |
+| 단순 CASE와 검색 CASE | 단순은 같은지(=)만, 검색은 크기, 범위, IS NULL까지 |
 | 단순 CASE의 WHEN NULL | 어떤 행에도 맞지 않아요 (NULL과의 = 비교는 UNKNOWN) |
 | DECODE의 NULL 비교 | NULL과 NULL을 같은 값으로 봐요 |
 | DECODE의 기본값 | 짝을 짓고 남는 마지막 인자, 없으면 NULL |
@@ -258,7 +258,7 @@ SELECT CASE 부서번호 WHEN 10 THEN '기획' ELSE 부서번호 END FROM 사원
                   [["윤서연", "기타", "미배정"]]),
         sql_error_check("SELECT CASE 부서번호 WHEN 10 THEN '기획' ELSE 부서번호 END FROM 사원", "ORA-00932"),
         DECODE_RESULT_TYPE_EXAMPLE.check,
-        # 확인 문제 (stemSql·보기)
+        # 확인 문제 (stemSql, 보기)
         sql_check("SELECT CASE WHEN 1 = 2 THEN 'A' END FROM DUAL", [[None]]),
         sql_check("SELECT CASE WHEN 급여 >= 2500 THEN '중' WHEN 급여 >= 3000 THEN '상' ELSE '하' END FROM 사원 WHERE 사번 = 1004;", [["중"]]),
         sql_check("SELECT CASE 부서번호 WHEN 10 THEN '기획' WHEN NULL THEN '미배정' ELSE '기타' END FROM 사원 WHERE 사번 = 1008;", [["기타"]]),

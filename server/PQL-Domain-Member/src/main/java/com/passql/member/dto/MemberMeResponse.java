@@ -40,6 +40,12 @@ public class MemberMeResponse {
     // 가린 이메일 (예: sq***@kakao.com) — 계정 화면 표시용, 이메일 없는 제공자면 null (#816)
     @Schema(nullable = true)
     private String maskedEmail;
+    // 소셜 계정 이메일 원문 — 본인 응답 전용, 계정 화면 로그인 방법 옆 표시 (동의 안 함·없으면 null, #908)
+    @Schema(nullable = true)
+    private String email;
+    // 소셜 계정 프로필 이미지 (https) — 프로필 머리 아바타, 없으면 null (닉네임 첫 글자, #908)
+    @Schema(nullable = true)
+    private String profileImageUrl;
     // 회원 번호 표시값 (PQL- + UUID 앞 8자리 대문자) — 문의 때 회원 확인, 로그 memberId 와 같은 앞자리 (#816)
     private String memberCode;
 
@@ -61,6 +67,8 @@ public class MemberMeResponse {
             m.getAuthProvider(),
             m.getProviderUserId(),
             EmailMasking.mask(m.getEmail()),
+            m.getEmail(),
+            m.getProfileImageUrl(),
             toMemberCode(m.getMemberUuid())
         );
     }

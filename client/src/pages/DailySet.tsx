@@ -15,6 +15,7 @@ import LoadingOverlay from "../components/LoadingOverlay";
 import ProgressBar from "../components/ProgressBar";
 import PracticeTopBar from "../components/practice/PracticeTopBar";
 import PracticeQuestionScrollArea from "../components/practice/PracticeQuestionScrollArea";
+import { useSolvingMemo } from "../hooks/useSolvingMemo";
 import ExplanationPanel from "../components/aiExplanation/ExplanationPanel";
 import {
   buildExplanationHistoryEntry,
@@ -25,6 +26,8 @@ import type { ChoiceItem, SubmitResult } from "../types/api";
 
 export default function DailySet() {
   const navigate = useNavigate();
+  // 문제별 메모 (#904): 이 풀이 화면 동안만 메모리에
+  const solvingMemo = useSolvingMemo();
   const queryClient = useQueryClient();
   const memberUuid = useAuthStore((s) => s.memberUuid ?? "");
   const { data: dailySet, isLoading } = useDailySet();
@@ -162,7 +165,7 @@ export default function DailySet() {
       </div>
 
       {/* 피드백바 높이(~200px)만큼 bottom padding — 마지막 초이스카드가 가려지지 않게 */}
-      <PracticeQuestionScrollArea hasFeedbackBar={!!feedback}>
+      <PracticeQuestionScrollArea hasFeedbackBar={!!feedback} memo={solvingMemo} memoPageKey={displayQuestion?.questionUuid}>
         {displayQuestion && (
           <QuestionDetail
             key={`${displayQuestion.questionUuid}-${store.currentIndex}`}

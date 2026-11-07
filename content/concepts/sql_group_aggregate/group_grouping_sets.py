@@ -3,10 +3,10 @@
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
 from concept_dataset import to_employee_table_md
 
-# 20·30번 부서 사원 6명 (ROLLUP·CUBE 개념과 같은 예시 범위)
+# 20, 30번 부서 사원 6명 (ROLLUP, CUBE 개념과 같은 예시 범위)
 DEPARTMENT_20_30_EMPLOYEE_TABLE = to_employee_table_md(
     "사번", "이름", "직급", "급여", "부서번호", employee_numbers=(1002, 1003, 1004, 1005, 1006, 1007))
-# 사원 8명 전체 (괄호 위치별 행 수 계산용, 직급 5종류·부서번호 NULL 1명이 보여야 함)
+# 사원 8명 전체 (괄호 위치별 행 수 계산용, 직급 5종류, 부서번호 NULL 1명이 보여야 함)
 EMPLOYEE_POSITION_TABLE = to_employee_table_md("사번", "이름", "직급", "급여", "부서번호")
 
 # GROUPING SETS(부서번호, 직급) 결과 6행 (본문 표 = 검증 기대값)
@@ -35,7 +35,7 @@ GRAND_TOTAL_EXAMPLE = sql_example(
     GROUPING_SETS_COLUMNS,
     GROUPING_SETS_ROWS + [GRAND_TOTAL_ROW],
 )
-# 20·30번 부서 (부서번호, 직급) 조합 6행
+# 20, 30번 부서 (부서번호, 직급) 조합 6행
 DETAIL_ROWS = [[20, "과장", 2500], [20, "대리", 2800], [20, "사원", 2500],
                [30, "대리", 2700], [30, "부장", 3200], [30, "사원", 2200]]
 ROLLUP_ROWS = DETAIL_ROWS + GROUPING_SETS_ROWS[:2] + [GRAND_TOTAL_ROW]
@@ -53,7 +53,7 @@ CONCEPT = {
         "- `GROUPING SETS((A, B))`는 한 묶음이라 `GROUP BY A, B`와 같아서, **안쪽 괄호 위치**가 묶음을 정해요.\n"
         "- **적는 순서와 상관없이** 같은 묶음을 만들고, ROLLUP과 CUBE도 GROUPING SETS로 바꿔 쓸 수 있어요."
     ),
-    "detailMd": f"""## 필요한 묶음만 — GROUPING SETS가 필요한 이유 {{#why}}
+    "detailMd": f"""## 필요한 묶음만: GROUPING SETS가 필요한 이유 {{#why}}
 
 부서별 합계와 직급별 합계만 보고 싶은데 `CUBE(부서번호, 직급)`을 쓰면 부서 안 직급별 합계와 총계까지 따라 나와요. 예전에는 두 쿼리를 따로 만들어 위아래로 이어 붙이는 UNION ALL 연산자로 합쳤지만, GROUPING SETS는 원하는 묶음만 골라 쿼리 하나로 해결해요.
 
@@ -61,7 +61,7 @@ CONCEPT = {
 
 {DEPARTMENT_20_30_EMPLOYEE_TABLE}
 
-## 한 줄 정의 — 적은 묶음마다 따로 집계해 합치기 {{#definition}}
+## 한 줄 정의: 적은 묶음마다 따로 집계해 합치기 {{#definition}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -78,7 +78,7 @@ UNION ALL
 SELECT NULL, 직급, SUM(급여) FROM 사원 WHERE 부서번호 IN (20, 30) GROUP BY 직급;
 ```
 
-## 괄호 위치 — 안쪽 괄호가 묶음 하나 {{#parentheses}}
+## 괄호 위치: 안쪽 괄호가 묶음 하나 {{#parentheses}}
 
 쉼표로 나눈 것 하나하나가 묶음이고, 안쪽 괄호로 감싼 열들은 함께 묶음 하나가 돼요. 아래 행 수는 이 사원 여덟 명 전체로 셌어요.
 
@@ -95,7 +95,7 @@ SELECT NULL, 직급, SUM(급여) FROM 사원 WHERE 부서번호 IN (20, 30) GROU
 
 첫째와 둘째 줄은 같은 두 묶음이라, 열 하나짜리 묶음은 괄호를 써도 되고 빼도 돼요. 셋째 줄은 두 열이 한 괄호 안이라 묶음이 하나뿐이고, 평범한 `GROUP BY 부서번호, 직급`과 같아요.
 
-## 바꿔 쓰기 — ROLLUP과 CUBE도 GROUPING SETS로 {{#conversion}}
+## 바꿔 쓰기: ROLLUP과 CUBE도 GROUPING SETS로 {{#conversion}}
 
 ROLLUP과 CUBE가 만드는 묶음을 GROUPING SETS 안에 그대로 나열하면 같은 결과가 나와요.
 
@@ -122,7 +122,7 @@ SELECT 부서번호, 직급, SUM(급여) FROM 사원 WHERE 부서번호 IN (20, 
 -- 두 SQL 모두 같은 9행이 나와요
 ```
 
-## 자주 헷갈리는 점 — 총계, 순서, SELECT 열 {{#confusing}}
+## 자주 헷갈리는 점: 총계, 순서, SELECT 열 {{#confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -142,7 +142,7 @@ SELECT 부서번호, 직급, SUM(급여) FROM 사원 WHERE 부서번호 IN (20, 
 | `GROUPING SETS((부서번호), (직급))`과 `GROUPING SETS(부서번호, 직급)`은 결과가 달라요 | X | 열 하나짜리 묶음의 괄호는 있어도 없어도 같아요 |
 | `GROUPING SETS((부서번호, 직급), 부서번호)`는 총계 행을 만들어요 | X | `()`가 없어서 조합과 부서별 소계만 나와요 |
 
-## 꼭 외울 것 — 적은 묶음만, 총계는 () {{#memorize}}
+## 꼭 외울 것: 적은 묶음만, 총계는 () {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
@@ -156,7 +156,7 @@ SELECT 부서번호, 직급, SUM(급여) FROM 사원 WHERE 부서번호 IN (20, 
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 
-GROUPING SETS를 쓴 SQL의 결과 행 수를 묻거나, ROLLUP·CUBE와 같은 결과를 내는 GROUPING SETS를 고르는 문제가 가장 많아요.
+GROUPING SETS를 쓴 SQL의 결과 행 수를 묻거나, ROLLUP, CUBE와 같은 결과를 내는 GROUPING SETS를 고르는 문제가 가장 많아요.
 
 | 자주 나오는 문제 | 푸는 기준 |
 |---|---|
@@ -169,7 +169,7 @@ GROUPING SETS를 쓴 SQL의 결과 행 수를 묻거나, ROLLUP·CUBE와 같은 
                   choice("B", "(부서번호), (직급), ()", rationale="()를 적지 않았으므로 총계는 생기지 않아요."),
                   choice("C", "(부서번호), (직급)", True, "적은 두 묶음만 집계해요."),
                   choice("D", "(부서번호, 직급)", rationale="두 열을 한 괄호에 넣은 GROUPING SETS((부서번호, 직급))의 묶음이에요.")]),
-        question(2, "아래 20·30번 부서 사원 표에 다음 SQL을 실행하면 몇 행이 나오나요?\n\n" + DEPARTMENT_20_30_EMPLOYEE_TABLE, "definition",
+        question(2, "아래 20, 30번 부서 사원 표에 다음 SQL을 실행하면 몇 행이 나오나요?\n\n" + DEPARTMENT_20_30_EMPLOYEE_TABLE, "definition",
                  "부서번호로 묶은 2행과 직급으로 묶은 4행(과장, 대리, 부장, 사원)을 합쳐 6행이에요. ()가 없으므로 총계는 없어요.",
                  [choice("A", "7행", rationale="총계 1행까지 셌는데, ()를 적지 않아서 총계는 없어요."),
                   choice("B", "9행", rationale="ROLLUP(부서번호, 직급)의 행 수예요."),

@@ -16,9 +16,9 @@ def test_import_item_keeps_v1_shape(not_in_question):
     assert "whyPlausible" not in item["choices"][1]
 
 
-def test_render_stem_includes_table_with_null_and_sql(not_in_question):
+def test_render_stem_has_sql_without_markdown_table(not_in_question):
     stem = render_stem(not_in_question)
-    assert "[T2]\n| ID |\n| --- |\n| 1 |\n| NULL |" in stem
+    assert "| ID |" not in stem and "[T2]" not in stem
     assert stem.endswith("```sql\nSELECT COUNT(*) FROM T1 WHERE ID NOT IN (SELECT ID FROM T2);\n```")
 
 

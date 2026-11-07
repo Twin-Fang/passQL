@@ -64,7 +64,7 @@ CONCEPT = {
     "topicCode": "sql_window",
     "sortOrder": 2,
     "title": "순위 함수",
-    "summary": "RANK·DENSE_RANK·ROW_NUMBER는 동점을 다루는 방식이 달라요",
+    "summary": "RANK, DENSE_RANK, ROW_NUMBER는 동점을 다루는 방식이 달라요",
     "coreMd": (
         "- RANK는 동점에 같은 순위를 주고, 동점인 행 수만큼 다음 순위를 건너뛰어요(**1, 1, 3**).\n"
         "- DENSE_RANK는 동점에 같은 순위를 주되, 다음 순위를 건너뛰지 않아요(**1, 1, 2**).\n"
@@ -72,7 +72,7 @@ CONCEPT = {
         "- 세 함수 모두 OVER 안에 ORDER BY가 꼭 있어야 하고, PARTITION BY를 넣으면 묶음마다 1부터 다시 매겨요.\n"
         "- Oracle은 NULL을 가장 큰 값으로 보므로, 내림차순 순위에서는 **NULL이 1등**이 돼요."
     ),
-    "detailMd": f"""## 몇 등인지 붙이기 — 문제는 동점이에요 {{#why}}
+    "detailMd": f"""## 몇 등인지 붙이기: 문제는 동점이에요 {{#why}}
 
 급여 순서로 줄 세우는 일은 ORDER BY로 충분하지만, 각 사원이 몇 등인지 숫자로 붙이려면 순위 함수가 필요해요. 이때 바로 부딪히는 문제가 동점이고, 동점을 어떻게 다룰지에 따라 쓰는 함수가 달라져요.
 
@@ -82,7 +82,7 @@ CONCEPT = {
 
 개발부의 이지은과 정하늘은 급여가 2500으로 같아요. 이 두 사람에게 같은 등수를 줄지, 그다음 사람은 몇 등으로 할지가 이 개념의 전부예요.
 
-## 한 줄 정의 — 세 함수는 동점만 다르게 다뤄요 {{#definition}}
+## 한 줄 정의: 세 함수는 동점만 다르게 다뤄요 {{#definition}}
 
 순위 함수는 OVER 안의 ORDER BY 순서대로 각 행에 순위 번호를 붙이는 윈도우 함수예요. 동점이 없으면 세 함수의 결과는 똑같아요.
 
@@ -100,7 +100,7 @@ CONCEPT = {
 
 RANK는 금메달이 둘이면 은메달 없이 다음 사람이 동메달을 받는 것과 같아요. DENSE는 "빽빽한"이라는 뜻이라서, DENSE_RANK는 빈 번호 없이 촘촘하게 매긴다고 기억하면 돼요.
 
-## 작은 예시 — 개발부 세 명 {{#small-example}}
+## 작은 예시: 개발부 세 명 {{#small-example}}
 
 급여가 높은 사람이 1등이 되도록 `ORDER BY 급여 DESC`로 정렬하고, 세 함수를 함께 적용했어요.
 
@@ -110,7 +110,7 @@ RANK는 금메달이 둘이면 은메달 없이 다음 사람이 동메달을 �
 
 이 예시에서는 동점 뒤에 다른 사람이 없어서 RANK와 DENSE_RANK의 차이가 드러나지 않아요. 차이는 동점 다음 사람에게서 나타나요.
 
-## 전체 사원으로 보기 — 동점 다음 사람에서 갈려요 {{#full-example}}
+## 전체 사원으로 보기: 동점 다음 사람에서 갈려요 {{#full-example}}
 
 {FULL_RANK_EXAMPLE.markdown}
 
@@ -124,7 +124,7 @@ RANK는 금메달이 둘이면 은메달 없이 다음 사람이 동메달을 �
 | DENSE_RANK의 가장 큰 값은 서로 다른 정렬 값의 개수와 같아요 | O | 빈 번호 없이 값이 바뀔 때마다 하나씩 올라가요 |
 | RANK와 DENSE_RANK는 동점인 두 사람에게 서로 다른 순위를 줘요 | X | 두 함수 모두 동점에는 같은 순위를 주고, 다음 순위만 달라요 |
 
-## 부서별 순위 — PARTITION BY면 1부터 다시 {{#partition}}
+## 부서별 순위: PARTITION BY면 1부터 다시 {{#partition}}
 
 OVER 안에 PARTITION BY를 넣으면 묶음마다 순위를 따로 매기고, 묶음이 바뀌면 다시 1부터 시작해요.
 
@@ -158,7 +158,7 @@ SELECT 이름, RANK() OVER () FROM 사원;
 | PARTITION BY를 빼고 ORDER BY만 써도 순위 함수는 실행돼요 | O | PARTITION BY를 빼면 전체 행이 한 묶음이 될 뿐이에요 |
 | NULLS LAST를 붙이면 NULL인 행은 순위 계산에서 빠져요 | X | NULL인 행도 순위를 받고, 맨 뒤로 갈 뿐이에요 |
 
-## 꼭 외울 것 — 동점 뒤 번호 세 가지 {{#memorize}}
+## 꼭 외울 것: 동점 뒤 번호 세 가지 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
@@ -225,11 +225,11 @@ SELECT 이름, RANK() OVER () FROM 사원;
         sql_error_check("SELECT 이름, ROW_NUMBER() OVER () FROM 사원", "ORA-30485"),
         # 본문 설명: 오름차순이면 가장 낮은 급여(윤서연)가 1등
         sql_check("SELECT 이름 FROM (SELECT 이름, RANK() OVER (ORDER BY 급여) AS 순위 FROM 사원) WHERE 순위 = 1", [["윤서연"]]),
-        # 정의 표 · 확인 문제 2번 (급여 3000, 2500, 2500, 2000 = 김민수·이지은·정하늘·윤서연)
+        # 정의 표, 확인 문제 2번 (급여 3000, 2500, 2500, 2000 = 김민수, 이지은, 정하늘, 윤서연)
         sql_check("SELECT 급여, RANK() OVER (ORDER BY 급여 DESC), DENSE_RANK() OVER (ORDER BY 급여 DESC), "
                   "ROW_NUMBER() OVER (ORDER BY 급여 DESC, 사번) FROM 사원 WHERE 사번 IN (1001, 1002, 1005, 1008) ORDER BY 급여 DESC, 사번",
                   [[3000, 1, 1, 1], [2500, 2, 2, 2], [2500, 2, 2, 3], [2000, 4, 3, 4]], is_ordered=True),
-        # 확인 문제 3·5번 stemSql
+        # 확인 문제 3, 5번 stemSql
         sql_check(RANK_STEM_SQL, [[name, rank] for name, _, rank, _, _ in FULL_RANK_ROWS]),
         sql_check(DENSE_RANK_STEM_SQL, [["이지은", 1], ["정하늘", 1], ["박서준", 2]]),
         # 확인 문제 5번 오답 보기 (RANK, ROW_NUMBER 오름차순)

@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import AiExplanationSheet from "../components/AiExplanationSheet";
-import { SchemaViewer } from "../components/SchemaViewer";
 import { SqlPlayground } from "../components/SqlPlayground";
 import LoadingOverlay from "../components/LoadingOverlay";
 import ExitPracticeConfirmModal from "../components/practice/ExitPracticeConfirmModal";
@@ -10,8 +9,11 @@ import QuestionDetailHeader from "../components/questionDetail/QuestionDetailHea
 import QuestionStemToggle from "../components/questionDetail/QuestionStemToggle";
 import ChoiceGenerationStatus from "../components/questionDetail/ChoiceGenerationStatus";
 import QuestionChoiceList from "../components/questionDetail/QuestionChoiceList";
+import ChoiceModeChip from "../components/questionDetail/ChoiceModeChip";
 import ProAccessReasonView from "../components/pro/ProAccessReasonView";
 import { toProAccessErrorCode } from "../lib/proAccess";
+import { isAppliedToCurrentQuestion } from "../lib/choiceModeSwitchPlan";
+import { QUESTION_ENTRY_QUERY, WRONG_NOTE_ENTRY_QUERY_VALUE } from "../constants/wrongNotes";
 import { executeChoice } from "../api/questions";
 import { useQuestionDetail } from "../hooks/useQuestionDetail";
 import { useQuestionChoices } from "../hooks/useQuestionChoices";
@@ -19,7 +21,7 @@ import { useChoiceExecutionCache } from "../hooks/useChoiceExecutionCache";
 import { useAiErrorExplanation } from "../hooks/useAiErrorExplanation";
 import { useQuestionAnswerSubmit, type PracticeSubmitHandler } from "../hooks/useQuestionAnswerSubmit";
 import { usePracticeBottomBarHeight } from "../hooks/usePracticeBottomBarHeight";
-import type { SubmitResult } from "../types/api";
+import type { ChoiceGenerationMode, SubmitResult } from "../types/api";
 
 interface QuestionDetailProps {
   readonly practiceMode?: boolean;
@@ -38,7 +40,7 @@ interface QuestionDetailProps {
 }
 
 /**
- * 문제 풀이 화면: 지문 > 스키마 > 선택지(SSE 생성 포함) > SQL 실행기 > 제출
+ * 문제 풀이 화면: 지문(스키마 표 포함) > 선택지(SSE 생성 포함) > SQL 실행기 > 제출
  * 단독 라우트와 연습·데일리 화면(practiceMode) 공용
  */
 export default function QuestionDetail({
@@ -53,12 +55,15 @@ export default function QuestionDetail({
   const { questionUuid: paramUuid } = useParams<{ questionUuid: string }>();
   const questionUuid = propUuid ?? paramUuid;
   const navigate = useNavigate();
+  // 오답 노트 다시 풀기 진입: 보기 방식 칩 숨김 (바꾸면 다른 오답 문제까지 바뀜, 회원 방식 그대로 풀이)
+  const [searchParams] = useSearchParams();
+  const isWrongNoteRetry = searchParams.get(QUESTION_ENTRY_QUERY) === WRONG_NOTE_ENTRY_QUERY_VALUE;
   const { data: question, isLoading, error: questionLoadError } = useQuestionDetail(questionUuid!);
 
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [isStemOpen, setIsStemOpen] = useState(true);
 
-  const { choices, choiceSetId, choiceGenerationError, retryChoiceGeneration } =
+  const { choices, choiceSetId, choiceGenerationError, retryChoiceGeneration, applyChoiceModeChange } =
     useQuestionChoices(question, questionUuid);
   const { executeCache, executingKeys, executeChoiceSql } = useChoiceExecutionCache(questionUuid!);
   const aiExplanation = useAiErrorExplanation(choices, questionUuid!);
@@ -76,6 +81,18 @@ export default function QuestionDetail({
 
   // 제출 바 높이 공개 > 해설 하단 시트가 제출 버튼을 가리지 않음 (#521)
   const submitBarRef = usePracticeBottomBarHeight();
+
+  // 제출 중·뒤 (채점한 보기는 보기 방식을 바꿔도 유지)
+  const hasSubmissionStarted = isSubmitPending || showExecution;
+  // 보기 방식 변경 > 지금 문제 보기 교체면 고른 보기 해제
+  const handleChoiceModeChanged = useCallback(
+    (targetMode: ChoiceGenerationMode) => {
+      const action = applyChoiceModeChange({ targetMode, hasSubmissionStarted });
+      if (isAppliedToCurrentQuestion(action)) setSelectedKey(null);
+      return action;
+    },
+    [applyChoiceModeChange, hasSubmissionStarted],
+  );
 
   const handleSelect = useCallback((choiceKey: string, _sql: string) => {
     // 풀이 중 SQL 자동 실행 없음 — 제출 후 결과 화면에서 실행
@@ -122,20 +139,21 @@ export default function QuestionDetail({
         />
       )}
 
-      {/* 문제 지문 (토글) */}
+      {/* 문제 지문 (토글, 스키마 표는 지문 카드 안) */}
       <QuestionStemToggle
         stem={question.stem}
         isStemOpen={isStemOpen}
         onToggle={() => setIsStemOpen((prev) => !prev)}
         isLatestTrend={question.isLatestTrend}
-      />
-
-      {/* 테이블 (지문 바로 아래, 스키마 없는 개념형은 렌더 안 함) */}
-      <SchemaViewer
         schemaTables={question.schemaTables}
         schemaDdl={question.schemaDdl}
         schemaSampleData={question.schemaSampleData}
       />
+
+      {/* 지금 보기 방식 칩 (누르면 바꾸는 시트 > 지금 문제에 반영, 오답 노트 다시 풀기는 숨김) */}
+      {!isWrongNoteRetry && (
+        <ChoiceModeChip hasSubmissionStarted={hasSubmissionStarted} onModeChanged={handleChoiceModeChanged} />
+      )}
 
       {/* 선택지 + SQL 실행기 */}
       {choices.length === 0 ? (

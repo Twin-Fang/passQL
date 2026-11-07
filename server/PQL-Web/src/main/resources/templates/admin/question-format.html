@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<th:block layout:fragment="title">문제 형식 검사</th:block>
+
+<th:block layout:fragment="content">
+
+    <!-- 점검 범위·위반 문제 수 -->
+    <div class="stats stats-vertical sm:stats-horizontal shadow w-full mb-4 bg-base-100">
+        <div class="stat">
+            <div class="stat-title">점검한 활성 문제</div>
+            <div class="stat-value text-2xl" th:text="${report.scannedQuestionCount()}">0</div>
+            <div class="stat-desc">공유 보기 세트 <span th:text="${report.scannedChoiceSetCount()}">0</span>개 포함</div>
+        </div>
+        <div class="stat">
+            <div class="stat-title">위반 있는 문제</div>
+            <div class="stat-value text-2xl text-error" th:text="${report.violatingQuestionCount()}">0</div>
+            <div class="stat-desc">지문·보기·세트 해설 기준</div>
+        </div>
+        <div class="stat">
+            <div class="stat-title">점검한 개념 글</div>
+            <div class="stat-value text-2xl" th:text="${report.scannedConceptCount()}">0</div>
+            <div class="stat-desc">원본은 content/concepts (자동 정리 안 함)</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-4">
+        <!-- 사유별 건수 (누르면 그 사유만) -->
+        <div class="card bg-base-100 shadow xl:col-span-1">
+            <div class="card-body p-4">
+                <h2 class="card-title text-base">
+                    <i data-lucide="list-checks" class="size-5"></i>
+                    규칙별 위반
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="table table-sm">
+                        <thead>
+                        <tr><th>규칙</th><th>사유</th><th class="text-right">건수</th><th class="text-right">자동</th></tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="reasonCount : ${report.reasonCounts()}"
+                            th:classappend="${selectedReason == reasonCount.reason()} ? 'bg-base-200'">
+                            <td th:text="${reasonCount.getRuleNumber()}">1</td>
+                            <td>
+                                <a class="link link-hover"
+                                   th:href="@{/admin/question-format(reason=${reasonCount.reason().name()})}"
+                                   th:text="${reasonCount.getDisplayName()}">줄표 사용</a>
+                            </td>
+                            <td class="text-right font-mono" th:classappend="${reasonCount.count() > 0} ? 'text-error'"
+                                th:text="${reasonCount.count()}">0</td>
+                            <td class="text-right font-mono" th:text="${reasonCount.autoFixableCount()}">0</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <a th:if="${selectedReason != null}" th:href="@{/admin/question-format}" class="btn btn-ghost btn-sm mt-2">전체 사유 보기</a>
+            </div>
+        </div>
+
+        <!-- 자동 정리: 미리보기 > 고른 문제 적용 -->
+        <div class="card bg-base-100 shadow xl:col-span-2">
+            <div class="card-body p-4">
+                <div class="flex flex-wrap items-center gap-2">
+                    <h2 class="card-title text-base mr-auto">
+                        <i data-lucide="wand-sparkles" class="size-5"></i>
+                        자동 정리
+                    </h2>
+                    <button type="button" id="formatFixPreviewButton" class="btn btn-sm btn-outline">
+                        <i data-lucide="eye" class="size-4"></i>
+                        미리보기
+                    </button>
+                    <button type="button" id="formatFixApplyButton" class="btn btn-sm btn-primary" disabled>
+                        <i data-lucide="check" class="size-4"></i>
+                        <span id="formatFixApplyLabel">선택 적용</span>
+                    </button>
+                </div>
+                <p class="text-sm text-base-content/70">
+                    스키마 표와 컬럼이 같은 지문 표 삭제(머리말 줄 포함), 개념형 지문 데이터 표를 스키마 표(CREATE TABLE·INSERT)로 옮김,
+                    목록 기호를 "- "로, 줄표는 "용어: 설명" 또는 쉼표로, 가운뎃점은 쉼표로 (보기 글·세트 해설 포함). 실행형 문제의 표·SQL 서식·질문 문장·PK 글 표시는 손으로.
+                </p>
+                <div id="formatFixPreviewContainer" class="space-y-2">
+                    <p class="text-sm text-base-content/60">미리보기를 누르면 바뀌는 문제와 필드 전후가 보입니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 위반 줄 -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-0">
+            <div class="flex flex-wrap items-center gap-2 p-4 pb-0">
+                <h2 class="card-title text-base mr-auto">
+                    <i data-lucide="triangle-alert" class="size-5"></i>
+                    위반 목록
+                    <span class="badge badge-ghost" th:text="${report.totalRowCount()} + '건'">0건</span>
+                </h2>
+                <span th:if="${report.getShownRowCount() < report.totalRowCount()}" class="text-sm text-warning"
+                      th:text="'앞 ' + ${report.getShownRowCount()} + '건만 표시, 사유를 골라 좁혀 보세요'">앞 1000건만 표시</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead>
+                    <tr>
+                        <th>대상</th>
+                        <th>내용</th>
+                        <th>모의고사</th>
+                        <th>위치</th>
+                        <th>사유</th>
+                        <th>설명</th>
+                        <th>자동</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${report.rows().isEmpty()}">
+                        <td colspan="7" class="text-center text-base-content/60 py-8">위반 없음</td>
+                    </tr>
+                    <tr th:each="row : ${report.rows()}" class="hover">
+                        <td class="whitespace-nowrap text-xs" th:text="${row.targetTypeLabel()}">문제</td>
+                        <td class="max-w-xs">
+                            <a class="link link-hover text-xs" th:href="@{${row.linkPath()}}" th:text="${row.targetPreview()}">지문 앞부분</a>
+                        </td>
+                        <td class="whitespace-nowrap text-xs" th:text="${row.mockExamLabel() ?: ''}"></td>
+                        <td class="whitespace-nowrap text-xs" th:text="${row.location()}">지문</td>
+                        <td class="whitespace-nowrap">
+                            <span class="badge badge-error badge-outline badge-sm" th:text="${row.getReasonDisplayName()}">줄표 사용</span>
+                        </td>
+                        <td class="text-xs min-w-64" th:text="${row.detail()}">설명</td>
+                        <td>
+                            <span th:if="${row.isAutoFixable()}" class="badge badge-success badge-sm">가능</span>
+                            <span th:unless="${row.isAutoFixable()}" class="badge badge-ghost badge-sm">손으로</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<th:block layout:fragment="js">
+<script th:src="@{/js/admin/question-format.js}"></script>
+<script>lucide.createIcons();</script>
+</th:block>
+</html>

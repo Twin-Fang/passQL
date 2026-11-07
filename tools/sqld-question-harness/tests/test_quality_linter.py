@@ -57,12 +57,17 @@ def test_stem_checklist(not_in_question):
     assert rules["stem.selection-criterion"] == "warning"
 
 
-def test_hidden_data_and_sql_are_warnings(not_in_question):
+def test_hidden_sql_is_warning_and_data_without_tables_is_fine(not_in_question):
     not_in_question.pop("tables")
     not_in_question.pop("displaySql")
     rules = rules_of(lint_question(not_in_question))
-    assert rules["stem.data-hidden"] == "warning"
+    assert "stem.data-hidden" not in rules
     assert rules["stem.sql-hidden"] == "warning"
+
+
+def test_tables_without_data_is_error(not_in_question):
+    not_in_question.pop("data")
+    assert rules_of(lint_question(not_in_question))["stem.table-outside-schema"] == "error"
 
 
 def test_table_row_as_string_is_shape_error(not_in_question):

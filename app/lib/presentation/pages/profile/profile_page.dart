@@ -66,10 +66,12 @@ class ProfilePage extends ConsumerWidget {
             ref.invalidate(statsDataProvider);
             ref.invalidate(mockExamHistoryProvider);
             ref.invalidate(statsAiCommentProvider);
-            ref.invalidate(planProvider);
             ref.invalidate(examScheduleProvider);
             ref.invalidate(profileDailySetProvider);
+            // 등급은 마지막 값을 둔 채 다시 받기 (무효화하면 로딩 동안 광고·PRO·잠금 UI 가 깜빡이고, 실패 시 잠금이 풀림)
+            final planRefresh = ref.read(planProvider.notifier).refresh();
             try {
+              await planRefresh;
               await ref.read(statsDataProvider.future);
             } catch (_) {
               if (context.mounted) showAppToast(context, '새로고침하지 못했어요');

@@ -40,6 +40,9 @@ class _MockExamSolvingPageState extends ConsumerState<MockExamSolvingPage>
   bool _isAutoSubmitStarted = false;
   bool _isLeavingToResult = false;
 
+  /// 문항별 메모 (#904): 이 응시 화면 동안만 메모리에, 나가거나 제출하면 사라짐
+  final PassqlMemoController _memoController = PassqlMemoController();
+
   MockExamSessionNotifier get _session =>
       ref.read(mockExamSessionProvider(widget.attemptUuid).notifier);
 
@@ -57,6 +60,7 @@ class _MockExamSolvingPageState extends ConsumerState<MockExamSolvingPage>
     _tickTimer?.cancel();
     _resyncTimer?.cancel();
     _remainingSeconds.dispose();
+    _memoController.dispose();
     super.dispose();
   }
 
@@ -196,6 +200,7 @@ class _MockExamSolvingPageState extends ConsumerState<MockExamSolvingPage>
                 ? const PassqlStatusView.loading()
                 : _SolvingBody(
                     session: session,
+                    memoController: _memoController,
                     onChoiceTap: _session.selectChoice,
                     onPrevious: () => _session.goTo(session.currentIndex - 1),
                     onNext: () => _session.goTo(session.currentIndex + 1),
@@ -256,6 +261,7 @@ class _NavTrailing extends StatelessWidget {
 class _SolvingBody extends StatelessWidget {
   const _SolvingBody({
     required this.session,
+    required this.memoController,
     required this.onChoiceTap,
     required this.onPrevious,
     required this.onNext,
@@ -265,6 +271,7 @@ class _SolvingBody extends StatelessWidget {
   });
 
   final MockExamSessionState session;
+  final PassqlMemoController memoController;
   final void Function(String choiceKey) onChoiceTap;
   final VoidCallback onPrevious;
   final VoidCallback onNext;
@@ -278,24 +285,32 @@ class _SolvingBody extends StatelessWidget {
     final answer = session.answerOf(question.questionNumber);
     return Column(
       children: [
+        // 메모: 펜 버튼으로 켜고 끔, 끄면 터치는 전부 문항으로 (#904)
         Expanded(
-          child: PassqlPageSlideSwitcher(
-            child: SingleChildScrollView(
-              key: ValueKey(question.questionNumber),
-              padding: const EdgeInsets.only(bottom: PassqlSpacing.xl),
-              child: MockExamQuestionView(
-                questionNumber: question.questionNumber,
-                subject: question.subject,
-                topicName: question.topicName,
-                stem: question.stem,
-                schemaTables: question.schemaTables,
-                choices: question.choices,
-                isFlagged: answer.isFlagged,
-                choiceStateOf: (choice) =>
-                    choice.key == answer.selectedChoiceKey
-                    ? PassqlChoiceState.selected
-                    : PassqlChoiceState.idle,
-                onChoiceTap: (choice) => onChoiceTap(choice.key),
+          child: PassqlMemoScope(
+            controller: memoController,
+            activePageKey: question.questionNumber,
+            child: PassqlPageSlideSwitcher(
+              child: SingleChildScrollView(
+                key: ValueKey(question.questionNumber),
+                padding: const EdgeInsets.only(bottom: PassqlSpacing.xl),
+                child: PassqlMemoCanvas(
+                  pageKey: question.questionNumber,
+                  child: MockExamQuestionView(
+                    questionNumber: question.questionNumber,
+                    subject: question.subject,
+                    topicName: question.topicName,
+                    stem: question.stem,
+                    schemaTables: question.schemaTables,
+                    choices: question.choices,
+                    isFlagged: answer.isFlagged,
+                    choiceStateOf: (choice) =>
+                        choice.key == answer.selectedChoiceKey
+                        ? PassqlChoiceState.selected
+                        : PassqlChoiceState.idle,
+                    onChoiceTap: (choice) => onChoiceTap(choice.key),
+                  ),
+                ),
               ),
             ),
           ),

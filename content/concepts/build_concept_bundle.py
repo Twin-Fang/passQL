@@ -32,9 +32,8 @@ PLAIN_TEXT_MARKUP_PATTERN = re.compile(r"`|\*\*")
 # SQL 주석에서 영문·숫자·기호 뒤 조사 앞 빈칸 (예: "TRIM 은", "WHERE 에서")
 SPACED_PARTICLE_PATTERN = re.compile(r"[A-Za-z0-9_)'\]] (은|는|이|가|을|를|에|에서|에는|의|로|으로|와|과|도|만)(?=[\s,.)]|$)")
 
-# 영문 사이 가운뎃점 뒤 줄바꿈 자리 (폭 0 빈칸): "SELECT·INSERT·UPDATE" 같은 긴 낱말이 글자 중간에서 잘리지 않게
-LATIN_MIDDLE_DOT_PATTERN = re.compile(r"(?<=[A-Za-z0-9_)])·(?=[A-Za-z(])")
-ZERO_WIDTH_SPACE = "\u200b"
+# 금지 기호 (#905, 서버 ForbiddenPunctuationCleaner 와 같은 5종): 줄표 — – ―, 가운뎃점 · ・ (코드 안은 제외, → 든 인라인 코드는 검사)
+FORBIDDEN_PUNCTUATION_PATTERN = re.compile("[\u2014\u2013\u2015\u00b7\u30fb]")
 # 굵게 구간 (**글자**)
 BOLD_SPAN_PATTERN = re.compile(r"\*\*(.+?)\*\*")
 
@@ -130,11 +129,30 @@ def validate_concept(path, concept, seen_tag_keys, seen_orders_by_topic):
     errors += find_memorize_errors(concept.get("detailMd") or "")
     errors += find_highlight_errors(concept)
     errors += find_wide_detail_tables(to_app_markdown(concept.get("detailMd") or ""))
+    errors += find_forbidden_punctuation_errors(concept)
     for question in questions:
         errors += [f"Q{question.get('sortOrder')}: {problem}"
                    for problem in find_wide_stem_tables(to_app_markdown(question.get("stem") or ""))]
     warnings += lint_text(concept)
     return errors, warnings
+
+
+def find_forbidden_punctuation_errors(concept):
+    """줄표·가운뎃점 (#905): 짝은 "용어: 설명", 나열은 쉼표, 소제목 부제도 "제목: 부제" (서버 형식 검사·운영 정리와 같은 기준)"""
+    texts = {field: concept.get(field) or "" for field in ("title", "summary", "coreMd", "detailMd")}
+    for question in concept.get("checkQuestions") or []:
+        where = f"Q{question.get('sortOrder')}"
+        texts[where + " stem"] = question.get("stem") or ""
+        texts[where + " explanation"] = question.get("explanation") or ""
+        for choice in question.get("choices") or []:
+            texts[where + " " + str(choice.get("choiceKey"))] = (choice.get("body") or "") + " " + (choice.get("rationale") or "")
+    errors = []
+    for where, text in texts.items():
+        prose = re.sub(r"`[^`\n]*`", lambda match: match.group() if "\u2192" in match.group() else "",
+                       re.sub(r"```[\s\S]*?(?:```|$)", "", text))
+        if FORBIDDEN_PUNCTUATION_PATTERN.search(prose):
+            errors.append(f"{where}: forbidden punctuation (dash or middle dot) > use ': ' or ', '")
+    return errors
 
 
 def validate_check_question(question, anchors):
@@ -202,8 +220,7 @@ def load_related_question_uuids_by_tag_key():
 def to_app_markdown(markdown):
     """앱 화면용 글 정리 (코드 펜스 안은 그대로)
     표 줄: 칸마다 인라인 코드 표시·굵게 짝 제거, 첫 칸이 빈 묶음 줄은 위 줄 값으로 채움 (앱 표 부품은 칸 글자를 그대로 그림)
-    글 줄: 굵게 구간 안 인라인 코드 표시 제거 (앱 렌더러는 굵게 안 코드를 못 그림)
-    공통: 영문 가운뎃점 뒤 줄바꿈 자리 (빈칸 없는 긴 영문 낱말이 글자 중간에서 잘림)"""
+    글 줄: 굵게 구간 안 인라인 코드 표시 제거 (앱 렌더러는 굵게 안 코드를 못 그림)"""
     if not markdown:
         return markdown
     lines, is_inside_fence, previous_first_cell = [], False, None
@@ -216,7 +233,6 @@ def to_app_markdown(markdown):
             else:
                 previous_first_cell = None
                 line = BOLD_SPAN_PATTERN.sub(lambda match: "**" + match.group(1).replace("`", "") + "**", line)
-            line = LATIN_MIDDLE_DOT_PATTERN.sub("·" + ZERO_WIDTH_SPACE, line)
         lines.append(line)
     return "\n".join(lines)
 

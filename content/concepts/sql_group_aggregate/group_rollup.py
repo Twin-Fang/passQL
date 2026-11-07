@@ -3,11 +3,11 @@
 from concept_bundle import choice, question, sql_check, sql_example
 from concept_dataset import to_employee_table_md
 
-# 20·30번 부서 사원 6명 (예시 범위, 1008 부서 NULL 은 GROUPING 함수 개념에서 다룸)
+# 20, 30번 부서 사원 6명 (예시 범위, 1008 부서 NULL 은 GROUPING 함수 개념에서 다룸)
 DEPARTMENT_20_30_EMPLOYEE_TABLE = to_employee_table_md(
     "사번", "이름", "직급", "급여", "부서번호", employee_numbers=(1002, 1003, 1004, 1005, 1006, 1007))
 
-# 사원 8명 전체 (전체 행 수 13·14 계산용, 직급 5종류·부서번호 NULL 1명이 보여야 함)
+# 사원 8명 전체 (전체 행 수 13, 14 계산용, 직급 5종류, 부서번호 NULL 1명이 보여야 함)
 EMPLOYEE_POSITION_TABLE = to_employee_table_md("사번", "이름", "직급", "급여", "부서번호")
 
 # ROLLUP(부서번호, 직급) 결과 9행 (본문 표 = 검증 기대값)
@@ -68,7 +68,7 @@ CONCEPT = {
         "- **오른쪽 열부터** 빠지므로 `ROLLUP(A, B)`와 `ROLLUP(B, A)`는 결과가 달라요.\n"
         "- 행 수는 (A, B) 조합 수, A 값의 개수, 총계 1행을 더해서 세요."
     ),
-    "detailMd": f"""## 소계와 총계를 한 번에 — ROLLUP이 필요한 이유 {{#why}}
+    "detailMd": f"""## 소계와 총계를 한 번에: ROLLUP이 필요한 이유 {{#why}}
 
 보고서에는 부서 안 직급별 합계와 함께 부서마다의 중간 합계, 회사 전체 합계가 한 표에 필요할 때가 많아요. GROUP BY만으로는 묶는 기준이 다른 쿼리 세 개를 따로 실행해 이어 붙여야 하지만, ROLLUP은 쿼리 하나로 끝내요.
 
@@ -81,7 +81,7 @@ CONCEPT = {
 
 {DEPARTMENT_20_30_EMPLOYEE_TABLE}
 
-## 한 줄 정의 — 오른쪽 열부터 하나씩 빼기 {{#definition}}
+## 한 줄 정의: 오른쪽 열부터 하나씩 빼기 {{#definition}}
 
 ROLLUP은 GROUP BY에 적은 열 목록을 **오른쪽부터 하나씩** 줄여 가며 여러 단계로 집계하는 GROUP BY의 확장 기능이에요. `ROLLUP(부서번호, 직급)`은 아래 세 단계를 만들어요.
 
@@ -99,13 +99,13 @@ ROLLUP은 GROUP BY에 적은 열 목록을 **오른쪽부터 하나씩** 줄여 
 
 ROLLUP은 같은 묶음을 나열한 `GROUPING SETS((부서번호, 직급), (부서번호), ())`와 결과가 같아요. GROUPING SETS는 묶음 기준을 직접 나열하는 문법이고, 그 개념에서 자세히 다뤄요.
 
-## 예시로 보는 결과 — 직급 칸 NULL이 소계 {{#example}}
+## 예시로 보는 결과: 직급 칸 NULL이 소계 {{#example}}
 
 {ROLLUP_DEPARTMENT_POSITION_EXAMPLE.markdown}
 
 `(20, NULL, 7800)`은 직급을 빼고 묶은 20번 부서 소계이고, `(NULL, NULL, 15900)`은 두 열을 모두 뺀 총계예요. ORDER BY에서 NULL은 오름차순일 때 맨 뒤로 가므로, 소계는 부서마다 마지막 줄에, 총계는 표 맨 끝에 놓여요.
 
-## 열 순서를 바꾸면 — 소계 기준이 바뀌어요 {{#order-matters}}
+## 열 순서를 바꾸면: 소계 기준이 바뀌어요 {{#order-matters}}
 
 `ROLLUP(직급, 부서번호)`는 오른쪽의 부서번호를 먼저 빼서 (직급, 부서번호), (직급), () 단계를 만들어요. 그래서 부서별 소계 대신 직급별 소계가 생겨요.
 
@@ -115,11 +115,11 @@ ROLLUP은 같은 묶음을 나열한 `GROUPING SETS((부서번호, 직급), (부
 |---|---|---|
 | 2단계 소계 | 부서별 2행 | 직급별 4행 (과장, 대리, 부장, 사원) |
 | 소계 행에서 값이 남는 열 | 부서번호 | 직급 |
-| 20·30번 여섯 명 행 수 | 6 + 2 + 1 = 9 | 6 + 4 + 1 = 11 |
+| 20, 30번 여섯 명 행 수 | 6 + 2 + 1 = 9 | 6 + 4 + 1 = 11 |
 
 괄호 안 맨 왼쪽 열은 소계 행에서도 값이 남아 소계의 기준이 되고, 그 오른쪽 열은 NULL이 돼요. ROLLUP 문제는 괄호 안 맨 왼쪽에 어떤 열이 있는지부터 확인하면 돼요.
 
-## 행 수 세기 — 단계마다 그룹 수를 더해요 {{#row-count}}
+## 행 수 세기: 단계마다 그룹 수를 더해요 {{#row-count}}
 
 1단계는 (부서번호, 직급) 조합 수, 2단계는 부서번호 값의 개수, 3단계는 언제나 1행이에요. 아래 사원 여덟 명 전체로 세면 행 수가 더 늘어나요.
 
@@ -138,7 +138,7 @@ SELECT COUNT(*) FROM (SELECT 부서번호, 직급 FROM 사원 GROUP BY ROLLUP(�
 
 부서번호가 NULL인 윤서연도 그룹 값 하나로 세야 한다는 점을 놓치기 쉬워요.
 
-## 자주 헷갈리는 점 — 소계 NULL, 괄호 밖 열, 묶은 열 {{#confusing}}
+## 자주 헷갈리는 점: 소계 NULL, 괄호 밖 열, 묶은 열 {{#confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -156,9 +156,9 @@ SELECT COUNT(*) FROM (SELECT 부서번호, 직급 FROM 사원 GROUP BY ROLLUP(�
 |---|---|---|
 | `ROLLUP(A, B, C)`는 네 단계로 집계해요 | O | (A, B, C), (A, B), (A), () 네 단계예요 |
 | `ROLLUP(부서번호, 직급)`에는 직급별 소계 행이 있어요 | X | 오른쪽 직급부터 빼므로 부서별 소계만 생겨요 |
-| `ROLLUP((부서번호, 직급))`을 20·30번 여섯 명에 쓰면 7행이에요 | O | 조합 6행과 총계 1행이에요 |
+| `ROLLUP((부서번호, 직급))`을 20, 30번 여섯 명에 쓰면 7행이에요 | O | 조합 6행과 총계 1행이에요 |
 
-## 꼭 외울 것 — 단계 수와 빠지는 순서 {{#memorize}}
+## 꼭 외울 것: 단계 수와 빠지는 순서 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
@@ -166,7 +166,7 @@ SELECT COUNT(*) FROM (SELECT 부서번호, 직급 FROM 사원 GROUP BY ROLLUP(�
 | `ROLLUP(A, B)`의 묶음 | (A, B), (A), () |
 | 묶음에서 빠지는 순서 | 오른쪽 열부터 하나씩 |
 | 열 순서를 바꾸면 | 소계 기준이 바뀌어 결과가 달라요 |
-| 소계·총계 행의 빠진 열 | NULL로 표시돼요 |
+| 소계, 총계 행의 빠진 열 | NULL로 표시돼요 |
 | `GROUP BY A, ROLLUP(B)` | (A, B), (A) 두 단계, 총계 없음 |
 | 결과 행 수 세기 | 단계마다 그룹 수를 더해요 (NULL 값도 한 그룹) |
 
@@ -191,14 +191,14 @@ ROLLUP을 쓴 SQL과 예시 표를 주고 결과 행 수를 묻는 문제가 가
                   choice("B", "회사 전체의 급여 총계", rationale="총계는 부서번호와 직급이 모두 NULL인 행이에요."),
                   choice("C", "20번 부서 전체의 급여 소계", True, "부서번호만으로 묶은 2단계 행이에요."),
                   choice("D", "20번 부서에서 급여가 가장 많은 사원의 급여", rationale="SUM(급여)를 썼으므로 합계이고, 7800은 세 명의 급여를 더한 값이에요.")]),
-        question(3, "아래 20·30번 부서 사원 표에 다음 SQL을 실행하면 몇 행이 나오나요?\n\n" + DEPARTMENT_20_30_EMPLOYEE_TABLE, "confusing",
+        question(3, "아래 20, 30번 부서 사원 표에 다음 SQL을 실행하면 몇 행이 나오나요?\n\n" + DEPARTMENT_20_30_EMPLOYEE_TABLE, "confusing",
                  "(부서번호, 직급) 조합 6행, 부서별 소계 2행, 총계 1행을 더해서 9행이에요.",
                  [choice("A", "6행", rationale="(부서번호, 직급) 조합만 센 것이고, 소계와 총계 행이 더 붙어요."),
                   choice("B", "8행", rationale="총계 1행을 빠뜨렸어요."),
                   choice("C", "13행", rationale="직급별 소계 4행까지 센 것인데, ROLLUP은 직급만 따로 묶지 않아요."),
                   choice("D", "9행", True, "조합 6행, 부서 소계 2행, 총계 1행이에요.")],
                  stem_sql="SELECT 부서번호, 직급, SUM(급여) FROM 사원 WHERE 부서번호 IN (20, 30) GROUP BY ROLLUP(부서번호, 직급);"),
-        question(4, "같은 20·30번 부서 사원 여섯 명을 대상으로, ROLLUP 안의 열 순서를 바꾼 다음 SQL을 실행하면 몇 행이 나오나요?\n\n" + DEPARTMENT_20_30_EMPLOYEE_TABLE, "confusing",
+        question(4, "같은 20, 30번 부서 사원 여섯 명을 대상으로, ROLLUP 안의 열 순서를 바꾼 다음 SQL을 실행하면 몇 행이 나오나요?\n\n" + DEPARTMENT_20_30_EMPLOYEE_TABLE, "confusing",
                  "ROLLUP(직급, 부서번호)는 부서번호를 먼저 빼서 직급별 소계를 만들어요. 조합 6행, 직급 소계 4행(과장, 대리, 부장, 사원), 총계 1행이라 11행이에요.",
                  [choice("A", "9행", rationale="ROLLUP은 열 순서에 따라 소계 기준이 바뀌어서 결과가 달라져요."),
                   choice("B", "11행", True, "조합 6행, 직급 소계 4행, 총계 1행이에요."),

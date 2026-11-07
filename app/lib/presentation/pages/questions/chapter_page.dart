@@ -63,6 +63,9 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
   bool _hasShownOnboardingCelebration = false;
   bool _isShowingOnboardingCelebration = false;
 
+  /// 문제별 메모 (#904): 이 풀이 화면 동안만 메모리에, 화면을 벗어나면 사라짐
+  final PassqlMemoController _memoController = PassqlMemoController();
+
   /// dispose 시점에는 ref 를 쓸 수 없으므로 컨테이너를 미리 잡아 둔다.
   late final ProviderContainer _container;
 
@@ -128,8 +131,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final feedbackResult = await showProAccessFeedback(context, ref, error);
-      if (feedbackResult == ProAccessFeedbackResult.sheetUnlocked &&
-          mounted) {
+      if (feedbackResult == ProAccessFeedbackResult.sheetUnlocked && mounted) {
         onUnlocked();
       }
     });
@@ -323,6 +325,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     // 챕터는 문제를 여러 번 제출하므로 매번이 아니라 화면을 벗어날 때 한 번만 갱신한다.
     // (중간에 나가도, 끝까지 풀고 결과 화면으로 가도 같은 경로를 탄다.)
     if (_hasSubmittedAny) refreshLearningData(_container.invalidate);
+    _memoController.dispose();
     super.dispose();
   }
 
@@ -385,52 +388,57 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
       // 문제 교체: 옆으로 미끄러지며 바뀜 (문제마다 key), 같은 문제 안 로딩 > 내용은 페이드
       // 해설 시트는 본문 위에 떠서 하단 바를 가리지 않음 (다음 문제로 넘어가면 닫히고 해설함에서 다시 열 수 있음)
       body: AiExplanationDock(
-        child: PassqlPageSlideSwitcher(
-          child: KeyedSubtree(
-            key: ValueKey(currentUuid),
-            child: PassqlFadeSwitcher(
-              child: detailAsync.when(
-                loading: () =>
-                    const QuestionSolvingSkeleton(key: ValueKey('loading')),
-                error: (error, _) {
-                  _showProAccessFeedbackOnce(
-                    currentUuid,
-                    error,
-                    () => _retryQuestionDetail(currentUuid),
-                  );
-                  return KeyedSubtree(
-                    key: const ValueKey('error'),
-                    child: QuestionLoadErrorView(
-                      error: error,
-                      onRetry: () => _retryQuestionDetail(currentUuid),
-                    ),
-                  );
-                },
-                data: (question) {
-                  _initializeChoicesOnce(currentUuid, question);
-                  // Scaffold 안쪽 context 여야 extendBody 가 더한 하단 바 높이를 읽는다.
-                  return Builder(
-                    key: const ValueKey('data'),
-                    builder: (context) => QuestionSolvingBody(
-                      questionUuid: currentUuid,
-                      question: question,
-                      interaction: interaction,
-                      notifier: interactionNotifier,
-                      // 제출 후에는 정답/오답을 선택지에 표시한다.
-                      submitResult: chapter.isAnswered
-                          ? chapter.lastSubmitResult
-                          : null,
-                      gradedSelectedKey: chapter.lastSelectedKey,
-                      // 재시도가 소용없는 오류여도 다시 눌러 볼 수 있게 두어 막다른 길을 만들지 않는다.
-                      shouldAlwaysAllowRetry: true,
-                      topBadge:
-                          widget.flow.isOnboarding &&
-                              !_hasShownOnboardingCelebration
-                          ? const PassqlBadge(text: '첫 문제')
-                          : null,
-                    ),
-                  );
-                },
+        // 메모: 펜 버튼으로 켜고 끔, 끄면 터치는 전부 문제로 (#904). 해설 시트는 메모 위에 뜸
+        child: PassqlMemoScope(
+          controller: _memoController,
+          activePageKey: currentUuid,
+          child: PassqlPageSlideSwitcher(
+            child: KeyedSubtree(
+              key: ValueKey(currentUuid),
+              child: PassqlFadeSwitcher(
+                child: detailAsync.when(
+                  loading: () =>
+                      const QuestionSolvingSkeleton(key: ValueKey('loading')),
+                  error: (error, _) {
+                    _showProAccessFeedbackOnce(
+                      currentUuid,
+                      error,
+                      () => _retryQuestionDetail(currentUuid),
+                    );
+                    return KeyedSubtree(
+                      key: const ValueKey('error'),
+                      child: QuestionLoadErrorView(
+                        error: error,
+                        onRetry: () => _retryQuestionDetail(currentUuid),
+                      ),
+                    );
+                  },
+                  data: (question) {
+                    _initializeChoicesOnce(currentUuid, question);
+                    // Scaffold 안쪽 context 여야 extendBody 가 더한 하단 바 높이를 읽는다.
+                    return Builder(
+                      key: const ValueKey('data'),
+                      builder: (context) => QuestionSolvingBody(
+                        questionUuid: currentUuid,
+                        question: question,
+                        interaction: interaction,
+                        notifier: interactionNotifier,
+                        // 제출 후에는 정답/오답을 선택지에 표시한다.
+                        submitResult: chapter.isAnswered
+                            ? chapter.lastSubmitResult
+                            : null,
+                        gradedSelectedKey: chapter.lastSelectedKey,
+                        // 재시도가 소용없는 오류여도 다시 눌러 볼 수 있게 두어 막다른 길을 만들지 않는다.
+                        shouldAlwaysAllowRetry: true,
+                        topBadge:
+                            widget.flow.isOnboarding &&
+                                !_hasShownOnboardingCelebration
+                            ? const PassqlBadge(text: '첫 문제')
+                            : null,
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
           ),

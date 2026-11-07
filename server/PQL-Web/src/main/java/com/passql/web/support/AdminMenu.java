@@ -15,6 +15,7 @@ public enum AdminMenu {
     MEMBERS("members", "회원 관리"),
     QUESTIONS("questions", "문제 관리"),
     CHOICE_SETS("choice-sets", "선택지 세트 이력"),
+    QUESTION_FORMAT("question-format", "문제 형식 검사"),
     PROMPTS("prompts", "프롬프트 관리"),
     AI_CONNECTIONS("ai-connections", "AI 연결 관리"),
     TOPICS("topics", "토픽/태그 관리"),

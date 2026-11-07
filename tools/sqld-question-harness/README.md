@@ -64,7 +64,7 @@ v1 문제(`schemaVersion` 없음)는 그대로 동작한다. v2 는 `schemaVersi
 | `difficultyReason` ★ | v2 | 난이도 근거 (결합 개념 수, 추적 단계 수) |
 | `concepts` ★ | v2 | 개념 태그 목록 (2~3개 결합 권장) |
 | `stem` | 필수 | 지문 |
-| `tables` | 결과형 권장 | 지문에 보일 표 `{name, columns, rows: [[...]]}` — 행은 반드시 리스트 |
+| `tables` | 결과형 권장 | data 대조용 표 `{name, columns, rows: [[...]]}`, 행은 반드시 리스트. 지문에 넣지 않고 앱·웹은 ddl·data 로 스키마 표를 그림 (#905) |
 | `displaySql` | 결과형 권장 | 지문에 보일 SQL |
 | `ddl`, `data`, `answerSql` | 실행형 | Oracle 실행 근거 |
 | `pick` | 선택 | `max`/`min`: count 보기 중 정답이 유일한 최대·최소 |
@@ -98,7 +98,8 @@ v1 문제(`schemaVersion` 없음)는 그대로 동작한다. v2 는 `schemaVersi
 | `balance.correct-longest` | warning | 정답 보기가 유일하게 가장 길고 오답 평균의 1.6배 이상 |
 | `balance.numeric-order` | info | 숫자 보기는 오름차순 배치 |
 | `stem.question-form`, `stem.selection-criterion` | warning | 질문형 끝맺음, 고르는 기준 단어 (옳은/옳지 않은/가장/결과/오류 등) |
-| `stem.data-hidden`, `stem.sql-hidden` | warning | data 는 있는데 tables 없음, answerSql 은 있는데 displaySql·SQL 보기 없음 |
+| `stem.table-outside-schema` | error | tables 는 있는데 data(INSERT) 없음 (데이터는 스키마 표로만 보임, #905) |
+| `stem.sql-hidden` | warning | answerSql 은 있는데 displaySql·SQL 보기 없음 |
 | `data.table-shape` | error | 표 행이 리스트가 아니거나 컬럼 수 불일치 (문자열 행은 글자 단위로 쪼개져 렌더링됨) |
 | `data.table-mismatch` | error | 지문 표와 실제 INSERT 데이터 불일치 (단순 `INSERT INTO t VALUES (...)` 만 비교) |
 | `expect.order-dependent` | warning | ORDER BY 없는 결과를 순서 있는 rows 로 비교 |

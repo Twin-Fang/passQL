@@ -12,6 +12,7 @@ import ExitPracticeConfirmModal from "../components/practice/ExitPracticeConfirm
 import LoadingOverlay from "../components/LoadingOverlay";
 import PracticeTopBar from "../components/practice/PracticeTopBar";
 import PracticeQuestionScrollArea from "../components/practice/PracticeQuestionScrollArea";
+import { useSolvingMemo } from "../hooks/useSolvingMemo";
 import ExplanationPanel from "../components/aiExplanation/ExplanationPanel";
 import {
   buildExplanationHistoryEntry,
@@ -23,6 +24,8 @@ import type { ChoiceItem, SubmitResult } from "../types/api";
 export default function RecommendationPractice() {
   const { questionUuid } = useParams<{ questionUuid: string }>();
   const navigate = useNavigate();
+  // 문제별 메모 (#904): 이 풀이 화면 동안만 메모리에
+  const solvingMemo = useSolvingMemo();
   const location = useLocation();
   const queryClient = useQueryClient();
   const { setReturnStep, sessionId: storeSessionId } = usePracticeStore();
@@ -107,7 +110,7 @@ export default function RecommendationPractice() {
       </div>
 
       {/* 피드백바 높이만큼 bottom padding — 마지막 선택지 카드가 가려지지 않게 */}
-      <PracticeQuestionScrollArea hasFeedbackBar={!!feedback}>
+      <PracticeQuestionScrollArea hasFeedbackBar={!!feedback} memo={solvingMemo} memoPageKey={questionUuid}>
         {/* 제출 후 showExecution=true — ChoiceCard 안에 SQL 실행 버튼 표시 */}
         <QuestionDetail
           key={`${questionUuid}-${retryCount}`}

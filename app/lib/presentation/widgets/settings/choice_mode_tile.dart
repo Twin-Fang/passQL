@@ -17,7 +17,10 @@ import 'settings_group.dart';
 /// 끄면 PRACTICE: 검증된 기존 보기를 먼저 쓰고 없을 때만 AI 가 만든다.
 /// 무료(결제 켜짐): 실효 모드(연습)로 표시 + 아래 잠금 자리 (서버도 연습으로 처리, §4-1)
 class ChoiceModeTile extends ConsumerWidget {
-  const ChoiceModeTile({super.key});
+  const ChoiceModeTile({super.key, this.onModeSaved});
+
+  /// 저장 성공 뒤 할 일 (풀이 화면 시트: 닫고 지금 문제에 반영). 설정 화면은 없음
+  final VoidCallback? onModeSaved;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -46,6 +49,7 @@ class ChoiceModeTile extends ConsumerWidget {
                 context,
                 ref,
                 shouldUseFreshChoices: value,
+                onModeSaved: onModeSaved,
               )
             : null,
       ),

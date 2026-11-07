@@ -7,7 +7,6 @@ import '../../design/design.dart';
 import '../question/choice_display_label.dart';
 import '../question/choice_item_card.dart';
 import '../question/question_sections.dart';
-import '../question/schema_section.dart';
 import 'mock_exam_number_grid.dart';
 
 /// 모의고사 문항 본문 (풀이·해설 공용): 머리 줄(번호·과목·토픽·표시) > 지문 > 테이블 > 보기
@@ -85,8 +84,7 @@ class MockExamQuestionView extends StatelessWidget {
             ],
           ),
         ),
-        QuestionStem(stem: stem),
-        if (schemaTables.isNotEmpty) SchemaSection(tables: schemaTables),
+        QuestionStem(stem: stem, schemaTables: schemaTables),
         const SizedBox(height: PassqlSpacing.xs),
         for (
           var displayIndex = 0;

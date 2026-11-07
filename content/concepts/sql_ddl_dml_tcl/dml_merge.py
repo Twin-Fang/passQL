@@ -3,10 +3,10 @@
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
 from concept_dataset import to_employee_table_md
 
-# 대상 사원 8명 (예시·확인 문제의 행 수와 급여 계산용)
+# 대상 사원 8명 (예시, 확인 문제의 행 수와 급여 계산용)
 MERGE_TARGET_EMPLOYEE_TABLE = to_employee_table_md("사번", "이름", "급여", "부서번호")
 
-# 블록 안에서 만드는 변경 표: 기존 사원 2명(1002·1007) + 새 사원 1명(1009)
+# 블록 안에서 만드는 변경 표: 기존 사원 2명(1002, 1007) + 새 사원 1명(1009)
 SALARY_CHANGE_SETUP = (
     "CREATE TABLE 급여변경 (사번 NUMBER(4), 이름 VARCHAR2(20), 새급여 NUMBER(5));\n"
     "INSERT INTO 급여변경 VALUES (1002, '이지은', 2700);\n"
@@ -117,10 +117,10 @@ CONCEPT = {
     "coreMd": (
         "- MERGE는 원본 행마다 ON으로 짝을 찾아, **있으면 UPDATE하고 없으면 INSERT**해요.\n"
         "- Oracle에서는 ON 조건을 **괄호**로 감싸고, ON에 쓴 열은 UPDATE할 수 없어요.\n"
-        "- 두 WHEN 절 가운데 **하나만 써도** 되고, USING에는 테이블·뷰·서브쿼리를 쓸 수 있어요.\n"
+        "- 두 WHEN 절 가운데 **하나만 써도** 되고, USING에는 테이블, 뷰, 서브쿼리를 쓸 수 있어요.\n"
         "- UPDATE 뒤의 `DELETE WHERE`는 **이번에 UPDATE된 행만**, 고친 뒤의 값으로 따져 지워요."
     ),
-    "detailMd": f"""## 왜 MERGE일까요 — 고칠 행과 넣을 행이 섞여 있을 때 {{#why}}
+    "detailMd": f"""## 왜 MERGE일까요: 고칠 행과 넣을 행이 섞여 있을 때 {{#why}}
 
 인사팀이 이번 달 급여 변경 목록을 보내왔어요. 이미 있는 사원 두 명의 새 급여와, 새로 들어온 사원 한 명이 섞여 있어요.
 
@@ -136,7 +136,7 @@ CONCEPT = {
 
 UPDATE와 INSERT로 나눠 하려면 어떤 사원이 이미 있는지부터 가려내야 해서 번거로워요. MERGE는 "짝이 있으면 고치고, 없으면 넣는다"를 한 문장으로 처리하고, 이런 동작을 업서트(upsert, update와 insert를 합친 말)라고도 불러요.
 
-## 문법 — INTO는 대상, USING은 원본, ON은 짝 찾기 {{#definition}}
+## 문법: INTO는 대상, USING은 원본, ON은 짝 찾기 {{#definition}}
 
 ```sql
 -- 문법
@@ -159,7 +159,7 @@ WHEN NOT MATCHED THEN
 
 별칭 t와 s는 대상과 원본을 짧게 부르려고 붙인 이름이고, 뷰와 서브쿼리는 서브쿼리 단원에서 자세히 다뤄요. 대상은 INTO에서 이미 정해졌으니, WHEN 절 안에는 `UPDATE SET ...`, `INSERT (열) VALUES (...)`처럼 테이블 이름 없이 적어요.
 
-## 예시 — 둘은 고치고 하나는 넣어요 {{#example}}
+## 예시: 둘은 고치고 하나는 넣어요 {{#example}}
 
 {BASIC_MERGE_EXAMPLE.markdown}
 
@@ -171,7 +171,7 @@ WHEN NOT MATCHED THEN
 |---|---|---|
 | 원본 목록에 없는 1001 김민수는 MERGE로 지워져요 | X | 원본에 없는 대상 행은 짝 찾기에 쓰이지 않아서 그대로 남아요 |
 
-## 한쪽 절만 쓰기와 조건 붙이기 — 필요한 동작만 골라요 {{#one-clause}}
+## 한쪽 절만 쓰기와 조건 붙이기: 필요한 동작만 골라요 {{#one-clause}}
 
 WHEN MATCHED와 WHEN NOT MATCHED는 둘 다 써도 되고 하나만 써도 돼요. 새 사원만 넣고 기존 사원의 급여는 건드리지 않으려면 NOT MATCHED 절만 써요.
 
@@ -183,7 +183,7 @@ WHEN MATCHED와 WHEN NOT MATCHED는 둘 다 써도 되고 하나만 써도 돼�
 
 이지은은 새 급여 2400이 지금 급여 2500보다 낮아서 바뀌지 않았어요. 오지민은 2200에서 2400으로 바뀌었어요.
 
-## DELETE WHERE — 방금 고친 행만, 고친 뒤 값으로 {{#delete-where}}
+## DELETE WHERE: 방금 고친 행만, 고친 뒤 값으로 {{#delete-where}}
 
 Oracle은 WHEN MATCHED의 UPDATE 뒤에 `DELETE WHERE 조건`을 붙일 수 있어요. 아래 원본은 이지은(1002)의 새 급여 2700과 오지민(1007)의 새 급여 2100이고, 지우는 조건은 `급여 < 2600`이에요.
 
@@ -209,7 +209,7 @@ Oracle은 WHEN MATCHED의 UPDATE 뒤에 `DELETE WHERE 조건`을 붙일 수 있�
 |---|---|---|
 | UPDATE 뒤 급여가 조건에 맞게 바뀐 행은 DELETE WHERE로 지워질 수 있어요 | O | 오지민처럼 고친 뒤 값이 조건에 맞으면 그 행이 지워져요 |
 
-## USING에 서브쿼리 쓰기 — 원본 표가 없어도 돼요 {{#using-subquery}}
+## USING에 서브쿼리 쓰기: 원본 표가 없어도 돼요 {{#using-subquery}}
 
 USING 뒤에 서브쿼리를 괄호로 감싸 쓰고 별칭을 붙이면 원본처럼 쓸 수 있어요. 아래는 이지은의 옛 급여 2000만 들어 있는 보관용 표에, 20번 부서 사원의 최신 급여를 맞춰 넣는 예시예요.
 
@@ -217,7 +217,7 @@ USING 뒤에 서브쿼리를 괄호로 감싸 쓰고 별칭을 붙이면 원본�
 
 이지은은 짝이 있어서 2500으로 고쳐졌어요. 보관용 표에 없던 박서준과 정하늘은 새로 들어갔어요.
 
-## 자주 헷갈리는 점 — 괄호, ON 열, WHEN 절 모양 {{#confusing}}
+## 자주 헷갈리는 점: 괄호, ON 열, WHEN 절 모양 {{#confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -233,7 +233,7 @@ USING 뒤에 서브쿼리를 괄호로 감싸 쓰고 별칭을 붙이면 원본�
 |---|---|---|
 | MERGE를 실행하면 USING의 원본 표도 함께 바뀌어요 | X | 바뀌는 쪽은 INTO 뒤의 대상뿐이고, 원본은 읽기만 해요 |
 
-## 꼭 외울 것 — 짝이 있으면 UPDATE, 없으면 INSERT {{#memorize}}
+## 꼭 외울 것: 짝이 있으면 UPDATE, 없으면 INSERT {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
@@ -296,7 +296,7 @@ USING 뒤에 서브쿼리를 괄호로 감싸 쓰고 별칭을 붙이면 원본�
         # 한쪽 절만, 절 끝 WHERE
         INSERT_ONLY_MERGE_EXAMPLE.check,
 MATCHED_WHERE_EXAMPLE.check,
-        # DELETE WHERE: 갱신 후 값으로 판단, 원본에 없는 행·새로 넣은 행은 대상 아님 (확인 문제 4)
+        # DELETE WHERE: 갱신 후 값으로 판단, 원본에 없는 행, 새로 넣은 행은 대상 아님 (확인 문제 4)
         DELETE_WHERE_EXAMPLE.check,
         sql_check(DELETE_WHERE_STEM_SQL, [[8]]),
         sql_check("SELECT 사번 FROM 사원 WHERE 사번 IN (1006, 1009)", [[1009]], setup=DELETE_WHERE_STEM_SQL),

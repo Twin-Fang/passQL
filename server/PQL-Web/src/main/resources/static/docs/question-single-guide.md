@@ -48,7 +48,7 @@
 stem에 선택지를 포함하는 것은 **절대 금지**다.
 
 ```
-// 잘못된 예시 — stem에 선택지가 포함된 경우
+// 잘못된 예시: stem에 선택지가 포함된 경우
 "stem": "다음 설명 중 맞는 것은?\n1. 테이블은 하나만 존재한다.\n2. 데이터는 파일에 저장된다.\n3. 복잡한 자료도 하나의 테이블로 관리한다.\n4. 모든 자료는 테이블에 저장된다."
 ```
 
@@ -63,10 +63,10 @@ stem은 **질문 문장만** 작성한다. 핵심 주제(개념명, 테이블명
 "stem": "엔터티(Entity)의 특성에 대한 설명 중 옳지 않은 것은?"
 "stem": "TRUNCATE TABLE과 DELETE의 차이에 대한 설명 중 옳은 것은?"
 
-// EXECUTABLE AI_ONLY 올바른 예시 — "동일한 결과를 내는 SQL은?" 유형
+// EXECUTABLE AI_ONLY 올바른 예시: "동일한 결과를 내는 SQL은?" 유형
 "stem": "다음 SQL과 동일한 실행 결과를 내는 SQL은?\n\n```sql\nSELECT e.name, d.dept_name\nFROM emp e\nINNER JOIN dept d ON e.dept_id = d.dept_id\nWHERE d.location = 'SEOUL';\n```"
 
-// EXECUTABLE RESULT_MATCH 올바른 예시 — "실행 결과로 올바른 것은?" 유형
+// EXECUTABLE RESULT_MATCH 올바른 예시: "실행 결과로 올바른 것은?" 유형
 "stem": "다음 SQL의 실행 결과로 올바른 것은?\n\n```sql\nSELECT e.name, d.dept_name\nFROM emp e\nINNER JOIN dept d ON e.dept_id = d.dept_id\nWHERE d.location = 'SEOUL';\n```"
 ```
 
@@ -77,10 +77,10 @@ stem에 SQL이 포함되는 경우(EXECUTABLE 문제) 반드시 ` ```sql ``` ` �
 **화면에서 코드 블록으로 렌더링되어 가독성이 크게 향상된다.**
 
 ```
-// ❌ 잘못된 방식 — SQL을 일반 텍스트로 삽입
+// ❌ 잘못된 방식: SQL을 일반 텍스트로 삽입
 "stem": "다음 SQL의 실행 결과로 올바른 것은?\n\nSELECT A.NAME FROM EMP;"
 
-// ✅ 올바른 방식 — SQL을 코드 블록으로 감싸기
+// ✅ 올바른 방식: SQL을 코드 블록으로 감싸기
 "stem": "다음 SQL의 실행 결과로 올바른 것은?\n\n```sql\nSELECT A.NAME FROM EMP;\n```"
 ```
 
@@ -134,6 +134,22 @@ stem에 SQL이 포함되는 경우(EXECUTABLE 문제) 반드시 ` ```sql ``` ` �
 - [ ] stem 질문 문장에서 SQL 키워드/함수명을 `` ` `` 으로 감쌌는가?
 - [ ] hint에서 핵심 함수명·키워드를 인라인 코드로 강조했는가?
 - [ ] hint에서 핵심 개념을 `**굵게**` 처리했는가?
+
+---
+
+## 형식 규칙 ★ (#905, 가져오기 검증·관리자 저장에서 사유별로 거부)
+
+판정 원본은 서버 `QuestionFormatRule`·`QuestionSqlFormatRule` 이다. 관리자 > 문제 형식 검사 화면에서 기존 문항 위반을 볼 수 있다.
+
+| # | 규칙 | 기준 |
+|---|------|------|
+| 1 | 줄표·가운뎃점 금지 | `—` `–` `―` `·` `・` 를 지문·힌트·보기·근거·해설에 쓰지 않는다. 짝은 `용어: 분류`, 나열과 문장은 쉼표 (쉼표·목록 글머리 `- ` 는 허용) |
+| 2 | 데이터 표는 스키마 표 한 곳 | `[EMP]` 머리말이 붙은 표, 스키마와 컬럼이 같은 표는 지문에 넣지 않는다. 개념 비교표·결과 표(`[결과]`)만 허용 |
+| 3 | PK·FK 는 스키마로만 | 지문에 `(PK)` `(FK)` 글·표 칸을 쓰지 않는다. DDL 의 `PRIMARY KEY`·`REFERENCES` 가 표에 표시된다 |
+| 4 | 자료형은 스키마로만 | 스키마 컬럼 이름 뒤에 그 자료형을 지문에 다시 적지 않는다 (DDL 문제는 코드 블록 안에) |
+| 5 | SQL 서식 | 키워드 대문자, SELECT 목록이 40자를 넘으면 항목마다 줄바꿈, 코드 안 한글 주석 금지 (맨 앞 `-- SQL 1` 같은 12자 이하 라벨 줄만) |
+| 6 | 질문 문장 | 지문(코드·표 밖)에 `?` 로 끝나는 문장이 정확히 1개 |
+| 7 | 목록 | 조건·속성 나열은 `- 용어: 설명` 줄 (`*` `•` 기호 금지) |
 
 ---
 
@@ -223,11 +239,11 @@ EXECUTABLE은 실제 SQL을 Sandbox에서 실행해 결과를 검증하는 문�
 각 문제는 **독립된 Sandbox(격리된 DB)에서 실행**된다. 문제 간 테이블 이름 충돌이 없으므로, **시험 회차나 문제 번호를 테이블 이름에 포함할 필요가 없다.**
 
 ```
-// ❌ 나쁜 예 — 시험 회차/문제 번호가 테이블명에 포함된 경우
+// ❌ 나쁜 예: 시험 회차/문제 번호가 테이블명에 포함된 경우
 CREATE TABLE SQLD_14 (NUM INT, CODE VARCHAR(1));
 CREATE TABLE SQLD46_01_EMP (EMP_ID INT, NAME VARCHAR(50));
 
-// ✅ 좋은 예 — 역할이 드러나는 짧고 명확한 이름
+// ✅ 좋은 예: 역할이 드러나는 짧고 명확한 이름
 CREATE TABLE EMP (EMP_ID INT, NAME VARCHAR(50));
 CREATE TABLE DEPT (DEPT_ID INT, DEPT_NAME VARCHAR(50));
 CREATE TABLE T1 (COL1 INT, COL2 VARCHAR(1));
@@ -367,7 +383,7 @@ difficulty: 1=개념 암기, 2=단순 SQL, 3=실행 추적, 4=복합 JOIN/서브
 
 executionMode:
   "EXECUTABLE"   → SQL 실행 결과를 묻는 문제
-  "CONCEPT_ONLY" → 개념·이론·용어 문제. 모든 스키마 필드 null.
+  "CONCEPT_ONLY" → 개념·이론·용어 문제. 데이터가 없으면 스키마 필드 null, 데이터를 보여 줄 때는 schemaDdl·schemaSampleData 로.
 
 hint: 핵심 개념 또는 함정 포인트 한 줄. 없으면 null.
 schemaDisplay: EXECUTABLE 필수. "테이블명 (컬럼명 타입, ...)\n테이블명2 (컬럼명 타입, ...)" 형태.
@@ -397,9 +413,10 @@ hint 작성 시:
 5. 보기끼리 내용이 같으면 안 된다 (서버 가져오기·생성 검증이 거부).
 6. 숫자 보기는 오름차순, 보기 길이는 비슷하게, 정답 위치(A~D)는 묶음 안에서 고르게.
 7. 샘플 데이터에는 함정이 드러나는 행을 반드시 넣는다: NULL, 동점, 조인 짝이 없는 행, 중복 값 중 해당되는 것.
-8. 지문에 표를 보여줄 때는 마크다운 표(| 열 | 열 | 다음 줄 | --- | --- |)를 쓴다. NULL 칸은 NULL 로 적는다.
+8. 데이터 표는 schemaDdl(CREATE TABLE, 키는 PRIMARY KEY·REFERENCES)과 schemaSampleData(INSERT, NULL 칸은 NULL)로만 넣는다. 앱이 스키마 표로 그리므로 지문에 [테이블명] 마크다운 표·(PK) 글·자료형을 다시 적지 않는다 (개념 비교표·결과 표만 지문 표 허용).
 9. difficulty 는 1~5 (결합 개념 수와 추적 단계 수로 정한다).
 10. hint 에 정답이나 정답 결과를 적지 않는다. 함정이 어디 있는지만 가리킨다.
+11. 형식 (서버 가져오기·저장 검증이 거부): 줄표(— – ―)와 가운뎃점(· ・) 금지(짝은 "용어: 설명", 나열과 문장은 쉼표), SQL 키워드 대문자, SELECT 목록이 40자를 넘으면 항목마다 줄바꿈, SQL 안 한글 주석 금지(맨 앞 "-- SQL 1" 같은 라벨 줄만), 지문에 "?" 로 끝나는 질문 문장 정확히 1개, 조건·속성 나열은 "- 용어: 설명" 줄.
 
 === 변환할 문제 ===
 
