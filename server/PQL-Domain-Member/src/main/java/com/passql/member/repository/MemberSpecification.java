@@ -90,7 +90,8 @@ public class MemberSpecification {
         return (root, query, cb) ->
             memberUuidPrefix == null || memberUuidPrefix.isBlank()
                 ? cb.conjunction()
-                : cb.like(root.get("memberUuid").as(String.class), memberUuidPrefix + "%");
+                // as(String.class) 는 SQL 형변환 없이 uuid LIKE text 가 되어 Postgres 가 거부 > text() 로 명시 변환
+                : cb.like(cb.function("text", String.class, root.get("memberUuid")), memberUuidPrefix + "%");
     }
 
     public static Specification<Member> memberUuidEquals(String memberUuidText) {
