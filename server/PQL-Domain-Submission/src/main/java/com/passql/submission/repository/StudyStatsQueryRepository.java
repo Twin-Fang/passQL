@@ -24,9 +24,8 @@ public interface StudyStatsQueryRepository extends Repository<Submission, UUID> 
                                                     @Param("since") LocalDateTime since);
 
     /**
-     * 전체 제출 시간순 + 문제 난이도·활성 여부 (난이도별 정답률·오답 추이용)
+     * 전체 제출 시간순 + 문제 난이도·활성 여부 (난이도별 정답률·오답 추이용, 네이티브: Submission <-> Question 연관관계 없음)
      * Object[] = { String questionUuid, Boolean isCorrect, Timestamp submittedAt, Number difficulty, Boolean isActive }
-     * 네이티브 이유: Submission <-> Question 연관관계 없음 (같은 모듈 다른 통계 쿼리와 같은 방식)
      */
     @Query(value = """
         SELECT CAST(s.question_uuid AS varchar), s.is_correct, s.submitted_at, q.difficulty, q.is_active
