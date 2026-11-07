@@ -12,6 +12,10 @@ import { toProAccessErrorCode } from "../lib/proAccess";
 import StatsAnalysisCard from "../components/StatsAnalysisCard";
 import StatsRadarChart from "../components/StatsRadarChart";
 import StatsTopicList from "../components/StatsTopicList";
+import StatsStudyRecordSection from "../components/stats/StatsStudyRecordSection";
+import StatsStudyTimeSection from "../components/stats/StatsStudyTimeSection";
+import StatsAccuracyDetailSection from "../components/stats/StatsAccuracyDetailSection";
+import { useStudyPattern } from "../hooks/useStudyStats";
 import AnchoredPopover from "../components/AnchoredPopover";
 import ProgressBar from "../components/ProgressBar";
 import { useStagger } from "../hooks/useStagger";
@@ -103,6 +107,9 @@ export default function Stats() {
     gcTime: 1000 * 60 * 60, // staleTime 과 동일: 탭 이탈 후 재진입 시 LLM 재호출 방지
   });
 
+  // 학습 패턴 (#909, 무료): 실패하면 구간만 숨김
+  const { data: studyPattern } = useStudyPattern();
+
   const readiness = progress?.readiness;
   const readinessPercent = readiness ? Math.round(readiness.score * 100) : null;
   const topicStats = topicAnalysis?.topicStats ?? [];
@@ -125,6 +132,7 @@ export default function Stats() {
   const s2 = stagger(2);
   const s3 = stagger(3);
   const s4 = stagger(4);
+  const s5 = stagger(5);
 
   if (progressLoading) {
     return (
@@ -256,6 +264,15 @@ export default function Stats() {
             문제를 풀면 여기에 실력이 나타나요
           </p>
         </section>
+      )}
+
+      {/* ⑥ 학습 기록·공부 시간(무료), 난이도별 정답률·오답 정리(프로, 무료는 잠금) (#909) */}
+      {hasSolvedRecords && (
+        <div className={`space-y-6 ${s5.className}`}>
+          {studyPattern && <StatsStudyRecordSection studyPattern={studyPattern} />}
+          {studyPattern && <StatsStudyTimeSection studyPattern={studyPattern} />}
+          <StatsAccuracyDetailSection />
+        </div>
       )}
     </div>
   );

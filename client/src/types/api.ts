@@ -198,6 +198,15 @@ export type HeatmapEntry = ApiSchemas["HeatmapEntry"];
 
 export type HeatmapResponse = ApiSchemas["HeatmapResponse"];
 
+// === 프로필 학습 통계 (#909) ===
+export type StudyPatternResponse = ApiSchemas["StudyPatternResponse"];
+
+export type AccuracyDetailResponse = ApiSchemas["AccuracyDetailResponse"];
+
+export type DifficultyStat = ApiSchemas["DifficultyStat"];
+
+export type WeeklyWrongCount = ApiSchemas["WeeklyWrongCount"];
+
 // === Meta ===
 export type SubtopicItem = ApiSchemas["SubtopicItem"];
 

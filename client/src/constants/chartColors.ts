@@ -8,6 +8,11 @@ export const CHART_COLOR = {
   axisTick: "var(--color-text-caption)",
   // 모의고사 합격선 가로줄 (#866)
   passLine: "var(--color-semantic-success)",
+  // 쌓은 막대의 나머지 몫·강조하지 않은 막대 (#909, 앱 accentTint)
+  brandTint: "var(--color-brand-light)",
+  // 남은 오답 막대: 이번 주 강조·지난 주들 (#909)
+  wrong: "var(--color-semantic-error)",
+  rest: "var(--color-surface-code)",
 } as const;
 
 /** 정답률 구간 > 차트 막대 색 */
