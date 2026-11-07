@@ -1,0 +1,5 @@
+description=줄표(— – ―)·가운뎃점(· ・) 치환 복사 금지 (생성·정리 저장 경로 공통 ForbiddenPunctuationCleaner 한 곳, #905)
+paths=server/PQL-Application/src/main/java/,server/PQL-Common/src/main/java/,server/PQL-Domain-AI/src/main/java/,server/PQL-Domain-Member/src/main/java/,server/PQL-Domain-Meta/src/main/java/,server/PQL-Domain-Question/src/main/java/,server/PQL-Domain-Submission/src/main/java/,server/PQL-Web/src/main/java/
+extensions=.java
+exclude=server/PQL-Domain-Question/src/main/java/com/passql/question/service/ForbiddenPunctuationCleaner.java
+pattern=replace(?:All|First)?\(\s*"(?:[—–―·・]|\\u201[34]|\\u2015|\\u00[bB]7|\\u30[fF][bB])

@@ -17,6 +17,8 @@ import com.passql.question.constant.ChoiceSetStatus;
 import com.passql.question.constant.Dialect;
 import com.passql.question.constant.ExecutionMode;
 import com.passql.question.dto.PostgresCompatibleSql;
+import com.passql.question.dto.QuestionFormatChoice;
+import com.passql.question.dto.QuestionFormatInput;
 import com.passql.question.entity.Question;
 import com.passql.question.entity.QuestionChoiceSet;
 import com.passql.question.entity.QuestionChoiceSetItem;
@@ -145,6 +147,9 @@ public class QuestionGenerateService {
             }
         }
 
+        // 문항 형식 규칙 (#905, 직접 등록·가져오기 새 문항 공통)
+        QuestionFormatGate.requirePassed(QuestionFormatInput.withoutChoices(stem, hint, schemaDdl, schemaSampleData, mode));
+
         Question question = Question.builder()
                 .topicUuid(topicUuid)
                 .subtopicUuid(subtopicUuid)
@@ -188,6 +193,12 @@ public class QuestionGenerateService {
             ChoiceSetPolicy choiceSetPolicy,
             List<GeneratedChoiceDto> seedChoices
     ) {
+        // 문항 형식 규칙 (#905, AI 생성 초안을 관리자가 검수한 보기 포함)
+        List<QuestionFormatChoice> formatChoices = seedChoices.stream()
+                .map(choice -> new QuestionFormatChoice(choice.key(), true, choice.body(), choice.rationale()))
+                .toList();
+        QuestionFormatGate.requirePassed(new QuestionFormatInput(stem, hint, schemaDdl, schemaSampleData, false, formatChoices));
+
         Question question = Question.builder()
                 .topicUuid(topicUuid)
                 .subtopicUuid(subtopicUuid)

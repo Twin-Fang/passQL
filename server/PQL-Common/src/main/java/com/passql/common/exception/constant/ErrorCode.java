@@ -117,6 +117,8 @@ public enum ErrorCode {
 
     // === Admin Question Generation (신규: Sub-plan 1) ===
     QUESTION_GENERATE_INPUT_INVALID(HttpStatus.BAD_REQUEST, "문제 생성 입력값이 올바르지 않습니다."),
+    // 문항 형식 규칙 위반 (#905, 상세에 사유 목록)
+    QUESTION_FORMAT_VIOLATION(HttpStatus.BAD_REQUEST, "문항 형식 규칙을 지키지 않았습니다."),
 
     // Feedback
     FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "건의사항을 찾을 수 없습니다."),

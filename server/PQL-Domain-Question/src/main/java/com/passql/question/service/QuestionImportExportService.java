@@ -190,6 +190,14 @@ public class QuestionImportExportService {
                 continue;
             }
 
+            // 문항 형식 규칙 재확인 (#905, 전체 등록 모드도 적용 > 저장 관문 예외로 묶음 전체가 되돌려지지 않게 미리 건너뜀)
+            QuestionFormatCheckResult formatResult = QuestionFormatRule.check(QuestionFormatInput.from(item));
+            if (!formatResult.isPassed()) {
+                log.warn("[import-batch] skipped format violation : index={}, count={}", i, formatResult.violations().size());
+                skipped++;
+                continue;
+            }
+
             if (item.questionUuid() != null && questionRepository.existsById(item.questionUuid())) {
                 questionService.updateQuestion(
                         item.questionUuid(), item.stem(), null,
