@@ -78,6 +78,10 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 - 상세 규칙: `.claude/rules/Design.md`, API 연동: `.claude/rules/api-guide.md`
 - 무료·프로 (#576): 등급 원본은 `planProvider`, 잠금 UI 표시 여부는 `shouldShowProUiProvider` 하나로 판정. 잠금 자리는 `PassqlLockedPreview`(화면은 `ProLockedSection`)만, 프로 에러(403)는 화면 진입점에서 `showProAccessFeedback`
 
+## 실행 확인 (테스트 환경)
+
+앱을 띄워 확인할 때의 기기 준비, 소셜 로그인 확인 표(제공자 앱 설치 여부별), 첫 실행 흐름 반복, 로그 보는 곳, 결과 기록 방법은 [docs/TESTING.md](docs/TESTING.md) (#944).
+
 ## 규칙 테스트 (test/architecture)
 
 문서로만 둔 규칙은 무너지므로 소스 스캔 테스트로 강제한다. `flutter test` 에 포함된다.
