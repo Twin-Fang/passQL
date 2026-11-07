@@ -89,34 +89,38 @@ class PassqlMemoScope extends StatelessWidget {
     // 빈 곳은 터치를 받지 않음 (아래 문항으로 그대로)
     return Stack(
       children: [
-        if (isMemoMode)
-          const Positioned(
-            top: PassqlSpacing.sm,
-            left: PassqlSpacing.md,
-            right: PassqlSpacing.md,
-            child: IgnorePointer(child: Center(child: _PassqlMemoHint())),
-          ),
         Positioned(
           left: PassqlSpacing.md,
           right: PassqlSpacing.md,
           bottom: bottomInset + PassqlSpacing.sm,
-          child: PassqlFadeSwitcher(
-            alignment: Alignment.bottomRight,
-            child: isMemoMode
-                ? _PassqlMemoToolbar(
-                    key: const ValueKey('memoToolbar'),
-                    controller: controller,
-                    activePageKey: activePageKey,
-                    onDone: () => _toggleMemoMode(context),
-                  )
-                : Align(
-                    key: const ValueKey('memoToggleButton'),
-                    alignment: Alignment.bottomRight,
-                    child: _PassqlMemoToggleButton(
-                      hasMemo: controller.hasStrokesOn(activePageKey),
-                      onTap: () => _toggleMemoMode(context),
-                    ),
-                  ),
+          // 켬 안내는 도구 막대 바로 위 (위쪽에 두면 문항 머리를 가림)
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (isMemoMode) ...[
+                const IgnorePointer(child: Center(child: _PassqlMemoHint())),
+                const SizedBox(height: PassqlSpacing.xs),
+              ],
+              PassqlFadeSwitcher(
+                alignment: Alignment.bottomRight,
+                child: isMemoMode
+                    ? _PassqlMemoToolbar(
+                        key: const ValueKey('memoToolbar'),
+                        controller: controller,
+                        activePageKey: activePageKey,
+                        onDone: () => _toggleMemoMode(context),
+                      )
+                    : Align(
+                        key: const ValueKey('memoToggleButton'),
+                        alignment: Alignment.bottomRight,
+                        child: _PassqlMemoToggleButton(
+                          hasMemo: controller.hasStrokesOn(activePageKey),
+                          onTap: () => _toggleMemoMode(context),
+                        ),
+                      ),
+              ),
+            ],
           ),
         ),
       ],
