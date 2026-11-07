@@ -5,15 +5,15 @@ created: 2026-10-27
 topics: [ai, practice]
 symptoms: ["해설 수준 차이", "관리자 선택지 세트 한 줄 메모", "메모 문장 잘림", "AI 해설 패널 닫기 X", "AI 호출 사용자 수 비례", "대시보드 비용 0", "모델 미기록", ODD_ONE_OUT, "결과가 다른 것 선택지 생성 실패"]
 root_cause: "#511에서 고정 세트를 구조화 해설 생성·백필 대상에서 제외했고, AI 코멘트 캐시 키·해설 미리 생성 범위·재시도 중첩·토큰 미기록이 호출과 비용을 키웠다"
-status: open
-resolution: null
+status: resolved
+resolution: "[[ISS-0412-ai-explanation-quality-cost-optimization-report]]"
 related: []
 source: "https://github.com/Twin-Fang/passQL/issues/699"
 ---
 
 # ISS-0412: AI 해설 품질, 호출 빈도, 비용 최적화와 해설 시트 정리
 
-GitHub #699 (원본: 이슈 본문과 댓글). 이슈는 열려 있다(라벨 작업중).
+GitHub #699 (원본: 이슈 본문과 댓글). 2026-11-07 닫힘, 완료 리포트 [[ISS-0412-ai-explanation-quality-cost-optimization-report]].
 
 ## 증상
 - 오늘의 문제에서 문제마다 해설 수준이 크게 다르다. AI 선택지 세트는 구조화 해설, 관리자 선택지 세트(212개)는 고른 보기의 한 줄 메모만, 일부는 문장이 잘림(예: "ENAME 은 공통 컬럼이 아니라 E. 허용.").
@@ -32,4 +32,4 @@ GitHub #699 (원본: 이슈 본문과 댓글). 이슈는 열려 있다(라벨 �
 - 남은 일(리포트): 앱 실기기에서 시트 끌어 내려 닫기·라이트·다크 확인, 남은 고정 세트 백필(10분마다 6세트).
 
 ## 근본 원인
-리포트 「원인」 표 참조 (위 조사 기록). 이슈가 열려 있어 최종 정리는 아직이다.
+리포트 「원인」 표 참조 (위 조사 기록). 최종 정리는 완료 리포트.

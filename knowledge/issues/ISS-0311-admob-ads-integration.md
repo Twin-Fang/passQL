@@ -5,15 +5,15 @@ created: 2026-10-16
 topics: [ads]
 symptoms: [광고 없음, google_mobile_ads, AdMob, 배너, 네이티브, 전면, ATT, app-ads.txt]
 root_cause: ""
-status: open
-resolution: null
+status: resolved
+resolution: "[[ISS-0311-admob-ads-integration-report]]"
 related: []
 source: "https://github.com/Twin-Fang/passQL/issues/506"
 ---
 
 # ISS-0311: AdMob 광고 연동 (배너·네이티브·전면)
 
-GitHub #506 (원본: 이슈 본문과 댓글). 이슈는 열려 있다(라벨 작업중).
+GitHub #506 (원본: 이슈 본문과 댓글). 2026-11-07 닫힘, 완료 리포트 [[ISS-0311-admob-ads-integration-report]].
 
 ## 증상
 앱에 광고 수익 수단이 없다. `google_mobile_ads` 패키지, AdMob 앱 ID, 광고 단위가 없고 AdMob 콘솔에 passQL 앱·광고 단위도 없다.
@@ -30,4 +30,4 @@ GitHub #506 (원본: 이슈 본문과 댓글). 이슈는 열려 있다(라벨 �
 - 이후 배치는 GitHub #527(탭바 아래 한 줄 띠)·#522(인라인 카드)로 바뀌었다.
 
 ## 근본 원인
-해당 없음 (기능 추가, 진행 중).
+해당 없음 (기능 추가).

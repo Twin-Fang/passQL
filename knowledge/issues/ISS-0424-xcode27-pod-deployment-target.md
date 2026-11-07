@@ -5,15 +5,15 @@ created: 2026-10-28
 topics: [ci-deploy]
 symptoms: ["Xcode 27 iOS 빌드 실패", IPHONEOS_DEPLOYMENT_TARGET, "Encountered error while building for device.", "range of supported deployment target versions is 15.0 to 27.1", Pods.xcodeproj]
 root_cause: "CocoaPods 라이브러리 다수가 최소 iOS 버전을 9.0~13.0으로 선언했고 Xcode 27은 지원 범위(15.0~27.1) 밖 값을 빌드 에러로 처리한다"
-status: open
-resolution: null
+status: resolved
+resolution: "[[ISS-0424-xcode27-pod-deployment-target-report]]"
 related: ["[[ISS-0403-ios-dependency-lockfiles-sync]]"]
 source: "https://github.com/Twin-Fang/passQL/issues/732"
 ---
 
 # ISS-0424: Xcode 27에서 iOS 빌드 실패 — Pod 최소 iOS 버전 미달
 
-GitHub #732 (원본: 이슈 본문과 댓글). 이슈는 열려 있다(라벨 작업중). 원본에 완료 리포트는 없다.
+GitHub #732 (원본: 이슈 본문과 댓글). 2026-11-07 닫힘, 완료 리포트 [[ISS-0424-xcode27-pod-deployment-target-report]].
 
 ## 증상
 빌드 맥을 Xcode 27.1(macOS 27.2)로 올린 뒤 `flutter build ios`가 실패한다. Pods 타깃 약 40개에서 같은 에러:

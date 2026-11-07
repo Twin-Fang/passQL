@@ -5,15 +5,15 @@ created: 2026-10-16
 topics: [ads, billing]
 symptoms: [Pro 회원에게 광고 노출, ad_providers.dart, "광고 조건 모바일·로그인 2개뿐", 결제 꺼짐 시 광고 미노출, 보상형 광고]
 root_cause: "광고 허용 조건이 모바일·로그인 2개뿐이라 Pro 회원에게도 광고가 나왔고, 첫 수정 뒤에는 결제 스위치가 꺼졌을 때 서버가 모두를 PRO로 내려줘 아무에게도 광고가 나오지 않았다"
-status: open
-resolution: null
+status: resolved
+resolution: "[[ISS-0304-ads-rewarded-banner-pro-hide-report]]"
 related: ["[[DEC-0005-ship-with-billing-switch-off]]"]
 source: "https://github.com/Twin-Fang/passQL/issues/499"
 ---
 
 # ISS-0304: 광고 도입(보상형·하단 배너) → Pro 회원 광고 숨김
 
-GitHub #499 (원본: 이슈 본문, 취소·재오픈 댓글, Pro 광고 숨김 리포트 댓글, 후속 댓글). 현재 열림(재오픈, 라벨 작업중).
+GitHub #499 (원본: 이슈 본문, 취소·재오픈 댓글, Pro 광고 숨김 리포트 댓글, 후속 댓글). 2026-11-07 닫힘, 완료 리포트 [[ISS-0304-ads-rewarded-banner-pro-hide-report]].
 
 ## 증상
 - 원래 제안(2026-10-16): 기본 사용자 수익 수단과 크레딧 광고 충전 경로가 없음. 보상형 광고(원할 때만, 서버 검증 콜백, 하루 한도), 하단 배너(홈·문제 목록 탭만, 못 받아오면 접힘), 광고 단위 ID·노출 여부는 관리자 설정, ATT·UMP 적용, Pro 사용자 광고 없음.

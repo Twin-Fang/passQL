@@ -58,7 +58,7 @@ related: []
 - [[ISS-0448-mypage-account-pass-area-promo-code]] (resolved, GitHub #816) — 마이페이지 계정·이용권 영역과 결제 유도, 할인 표시, 프로모션 코드
 - [[ISS-0447-full-screen-ad-show-failure-bonus-retry]] (resolved, GitHub #814) — 광고 표시 실패 시 전체 화면 광고 멈춤, 보너스 요청 재시도 없음
 - [[ISS-0443-free-daily-limit-bonus]] (resolved, GitHub #808) — 무료 하루 한도 보너스 (오늘의 세트 완료·정답률·보상형 광고)
-- [[ISS-0304-ads-rewarded-banner-pro-hide]] (open, GitHub #499) — 광고 도입(보상형·하단 배너) → Pro 회원 광고 숨김
+- [[ISS-0304-ads-rewarded-banner-pro-hide]] (resolved, GitHub #499) — 광고 도입(보상형·하단 배너) → Pro 회원 광고 숨김
 - [[ISS-0358-concept-learning-by-unit]] (open, GitHub #577) — 단원별 개념 학습 (수험서 대체)
 - [[ISS-0361-billing-switch-final-checks]] (open, GitHub #596) — 결제 스위치 켜기 전 최종 점검 (실구매·심사·최소 버전)
 - [[ISS-0400-business-info-display-kollylab]] (open, GitHub #658) — 앱·웹·사이트 사업자 정보 표기 (콜리랩)
