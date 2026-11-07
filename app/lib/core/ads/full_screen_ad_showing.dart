@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import '../logging/app_logger.dart';
 import 'full_screen_ad_guard.dart';
 
 /// 전체 화면 광고 표시 공통 (전면·앱 오프닝·보상형, #814): 콜백 연결 > show
@@ -30,14 +31,14 @@ void showFullScreenAd<T extends Ad>({
       onAdClicked: (_) => FullScreenAdGuard.recordAdClicked(),
       onAdDismissedFullScreenContent: (_) => closeOnce(),
       onAdFailedToShowFullScreenContent: (_, error) {
-        debugPrint('[ads $logLabel] show failed : ${error.code}');
+        AppLogger.warn('ads $logLabel', 'show failed : ${error.code}');
         closeOnce();
       },
     ),
   );
   unawaited(
     show().catchError((Object error) {
-      debugPrint('[ads $logLabel] show threw : $error');
+      AppLogger.warn('ads $logLabel', 'show threw : $error');
       closeOnce();
     }),
   );

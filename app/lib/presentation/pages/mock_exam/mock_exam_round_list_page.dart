@@ -140,11 +140,17 @@ class _RoundRow extends ConsumerWidget {
   }
 
   void _onTap(BuildContext context, WidgetRef ref) {
+    final lastAttempt = round.lastAttempt;
+    // 풀이 중 회차: 안내·시작 확인 없이 이어 풀기 (남은 시간은 서버 기준, #902)
+    if (lastAttempt != null &&
+        lastAttempt.status == MockExamAttemptStatus.inProgress) {
+      context.push(AppRoutes.mockExamAttempt(lastAttempt.attemptUuid));
+      return;
+    }
     if (round.canStart) {
       context.push(AppRoutes.mockExamGuide(round.roundUuid));
       return;
     }
-    final lastAttempt = round.lastAttempt;
     switch (round.startBlockReason) {
       case MockExamStartBlockReason.otherAttemptInProgress:
         showAppToast(context, '풀고 있는 모의고사를 먼저 마쳐 주세요');
