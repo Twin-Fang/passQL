@@ -2,7 +2,7 @@
 type: cluster
 topic: admin
 created: 2026-10-29
-members: 97
+members: 100
 status: active
 related: []
 ---
@@ -13,9 +13,10 @@ related: []
 관리자 Thymeleaf 화면과 관리자 API.
 
 ## 현재 상태 요약
-(2026-11-07) 관리자 화면의 변경 요청은 `layout.html` 공통 fetch 래퍼를 거친다 — [[DEC-0008-admin-csrf-common-fetch-wrapper]]. 프롬프트 키는 `PromptKey` 원본에서 목록을 만들고 수정 때 키를 바꿀 수 없다 — [[DEC-0265-prompt-key-enum-single-source]]. 모의고사 회차는 `/admin/mock-exams` 에서 자동 구성·검수·공개한다 — [[DEC-0264-mock-exam-fixed-rounds-server-judged]]. 문제 등록 선택지 정책 목록(`CURATED_ONLY`·`RESULT_MATCH` 포함)과 설정 카테고리는 단일 원본에서 읽는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 관리자 `/admin/question-format`에서 문항 형식 위반을 사유별로 보고 자동 정리를 미리보기한 뒤 선택 적용한다: [[ISS-0474-question-format-rule-forbidden-punctuation]] (#905, 운영 배포). 지문 표 자동 정리 적용은 #903 앱 보급과 최소 버전 상향 뒤: [[DEC-0279-stem-table-data-cleanup-after-min-version]] (#923 열림).
+(2026-11-07) 관리자 화면의 변경 요청은 `layout.html` 공통 fetch 래퍼를 거친다 — [[DEC-0008-admin-csrf-common-fetch-wrapper]]. 프롬프트 키는 `PromptKey` 원본에서 목록을 만들고 수정 때 키를 바꿀 수 없다 — [[DEC-0265-prompt-key-enum-single-source]]. 모의고사 회차는 `/admin/mock-exams` 에서 자동 구성·검수·공개한다 — [[DEC-0264-mock-exam-fixed-rounds-server-judged]]. 문제 등록 선택지 정책 목록(`CURATED_ONLY`·`RESULT_MATCH` 포함)과 설정 카테고리는 단일 원본에서 읽는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 관리자 `/admin/question-format`에서 문항 형식 위반을 사유별로 보고 자동 정리를 미리보기한 뒤 선택 적용한다: [[ISS-0474-question-format-rule-forbidden-punctuation]] (#905, 운영 배포). 지문 표 자동 정리 적용은 #903 앱 보급과 최소 버전 상향 뒤: [[DEC-0279-stem-table-data-cleanup-after-min-version]] (#923 열림). 관리자 전역 검색은 UUID·회원 번호(PQL-)·`@` 이메일·닉네임을 검색어 모양으로 가른다 — [[DEC-0281-admin-search-at-sign-routes-email]].
 
 ## 활성 결정
+- [[DEC-0281-admin-search-at-sign-routes-email]] — 관리자 전역 검색은 칸 하나, 검색어 모양으로 UUID > 회원 번호 > @ 이메일 > 닉네임
 - [[DEC-0008-admin-csrf-common-fetch-wrapper]] — 관리자 CSRF 헤더는 화면별이 아니라 `layout.html` 공통 fetch 래퍼에서 붙인다
 - [[DEC-0011-code-freeze-tunables-via-admin]] — 코드 프리즈 이후 모든 가변 설정·콘텐츠 변경은 DB/관리자 UI(`app_setting`) 경유
 - [[DEC-0025-redis-shared-app-settings]] — Spring이 `app_setting`을 Redis(`passql:settings:{key}`)에 쓰고 AI 서버가 읽어 설정을 공유
@@ -43,6 +44,8 @@ related: []
 - [[DEC-0081-admin-session-chain-yml-account]] → DEC-0130
 
 ## 관련 이슈
+- [[ISS-0483-admin-search-email]] (resolved, GitHub #934): 관리자 전역 검색 이메일 일부 일치(@ 포함 검색어)
+- [[ISS-0482-admin-search-member-code]] (resolved, GitHub #929): 관리자 전역 검색 회원 번호 지원, 첫 배포 500(JPA as() 형변환 없음 > text())
 - [[ISS-0480-stem-table-sql-format-data-cleanup-deferred]] (open, GitHub #923): 지문 중복 표와 SQL 서식 운영 데이터 정리, #903 앱 보급과 최소 버전 상향 뒤 적용
 - [[ISS-0474-question-format-rule-forbidden-punctuation]] (resolved, GitHub #905): 문제 형식 규칙 하네스: 줄표 금지, 표는 스키마 한 곳, SQL 서식, 운영 데이터와 프롬프트 정리
 - [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]] (resolved, GitHub #879) — 서버 전체 점검: AI 코멘트 LLM 호출 제한, OSIV DB 커넥션 점유, 내린 보기 묶음 채점, 설정 캐시, 예외 원문 노출

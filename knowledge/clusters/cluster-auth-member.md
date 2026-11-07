@@ -2,7 +2,7 @@
 type: cluster
 topic: auth-member
 created: 2026-10-29
-members: 60
+members: 64
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 로그인·회원가입·탈퇴·온보딩·프로필
 
 ## 현재 상태 요약
-(2026-11-07, 자동 생성) 활성 결정 15개, 열린 이슈 1개. 웹 토큰 재발급은 탭 간 Web Locks 로 한 번·`storage` 이벤트로 탭 동기화 — [[DEC-0269-web-reissue-single-across-tabs]], 재발급 실패는 401·`MEMBER_NOT_FOUND` 일 때만 로그아웃 — [[DEC-0270-reissue-logout-only-on-session-end]] (#881). 닉네임 변경 대기는 서버 값 `nicknameChangeAvailableAt` 하나로 표시 — [[ISS-0468-web-audit-cross-tab-reissue-logout]]. 프로필 상단에 계정 줄과 계정·이용권 화면 `/account`(가린 이메일 `maskedEmail`, 회원 번호 `memberCode` `PQL-xxxxxxxx`, 구매 내역)가 있고, 구매 내역·구매 복원·프로모션 코드 행은 `/account` 한 곳, 프로필은 "이용권 관리" 한 줄, 이 구조는 [[DEC-0263-pass-rows-on-account-screen-only]] (#863)에서 왔고, 닉네임 변경은 계정 화면 관리에서만(프로필 머리 펜 없음), 로그인 방법은 제공자 아이콘 + 이메일, 소셜 프로필 이미지 저장, 로그인 화면 최근 로그인 배지로 바뀌었다: [[DEC-0276-account-provider-icon-email-avatar]] (#908, DEC-0263 대체, main 머지, 배포 전). iOS 는 UIScene 수명주기로 바뀌어 네이버 복귀 URL 을 장면 이벤트로 받는다: [[ISS-0470-app-audit-uiscene-plan-flicker-sheet-dismiss]] (#880, 배포 전). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-07, 자동 생성) 활성 결정 15개, 열린 이슈 1개. 웹 토큰 재발급은 탭 간 Web Locks 로 한 번·`storage` 이벤트로 탭 동기화 — [[DEC-0269-web-reissue-single-across-tabs]], 재발급 실패는 401·`MEMBER_NOT_FOUND` 일 때만 로그아웃 — [[DEC-0270-reissue-logout-only-on-session-end]] (#881). 닉네임 변경 대기는 서버 값 `nicknameChangeAvailableAt` 하나로 표시 — [[ISS-0468-web-audit-cross-tab-reissue-logout]]. 프로필 상단에 계정 줄과 계정·이용권 화면 `/account`(가린 이메일 `maskedEmail`, 회원 번호 `memberCode` `PQL-xxxxxxxx`, 구매 내역)가 있고, 구매 내역·구매 복원·프로모션 코드 행은 `/account` 한 곳, 프로필은 "이용권 관리" 한 줄, 이 구조는 [[DEC-0263-pass-rows-on-account-screen-only]] (#863)에서 왔고, 닉네임 변경은 계정 화면 관리에서만(프로필 머리 펜 없음), 로그인 방법은 제공자 아이콘 + 이메일, 소셜 프로필 이미지 저장, 로그인 화면 최근 로그인 배지로 바뀌었다: [[DEC-0276-account-provider-icon-email-avatar]] (#908, DEC-0263 대체, main 머지, 배포 전). iOS 는 UIScene 수명주기로 바뀌어 네이버 복귀 URL 을 장면 이벤트로 받는다: [[ISS-0470-app-audit-uiscene-plan-flicker-sheet-dismiss]] (#880, 배포 전). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. 회원 번호(`PQL-` + UUID 앞 8자리)는 서버 `MemberCode` 한 곳에서 만들고 웹·앱 설정이 같은 값을 보여 준다 — [[ISS-0481-app-settings-member-code-footer]]. Android 네이버 앱 설치 기기 로그인 실패는 열림 — [[ISS-0486-android-naver-app-login-no-catagorized-error]].
 
 ## 활성 결정
 - [[DEC-0012-nickname-via-suh-random-engine]] — 닉네임은 자체 단어 테이블 대신 `suh-random-engine` 라이브러리로 생성
@@ -38,6 +38,10 @@ related: []
 - [[DEC-0263-pass-rows-on-account-screen-only]] → DEC-0276
 
 ## 관련 이슈
+- [[ISS-0486-android-naver-app-login-no-catagorized-error]] (open, GitHub #942): Android 네이버 앱 설치 기기 로그인 실패, Chrome 로그인 화면 재시도 수정 실기기 확인 대기
+- [[ISS-0483-admin-search-email]] (resolved, GitHub #934): 관리자 전역 검색 이메일 일부 일치(@ 포함 검색어)
+- [[ISS-0482-admin-search-member-code]] (resolved, GitHub #929): 관리자 전역 검색 회원 번호 지원, 첫 배포 500(JPA as() 형변환 없음 > text())
+- [[ISS-0481-app-settings-member-code-footer]] (resolved, GitHub #926): 앱 설정 하단 회원 ID(UUID)를 웹과 같은 회원 번호(PQL-)로
 - [[ISS-0476-account-login-method-icon-email-avatar]] (resolved, GitHub #908): 계정 표시 정리: 로그인 방법 아이콘과 이메일, 펜 제거, 소셜 프로필 이미지, 최근 로그인
 - [[ISS-0470-app-audit-uiscene-plan-flicker-sheet-dismiss]] (resolved, GitHub #880): 앱 전체 점검: iOS UIScene 대응, 새로고침 시 등급 깜빡임, 확인 중 시트 닫힘, 결제 로그
 - [[ISS-0468-web-audit-cross-tab-reissue-logout]] (resolved, GitHub #881) — 웹 전체 점검: 탭 두 개면 모든 기기 로그아웃, 재발급 실패 강제 로그아웃, 선택지 생성 오류 사유
