@@ -2,7 +2,7 @@
 type: cluster
 topic: ops-infra
 created: 2026-10-29
-members: 66
+members: 67
 status: active
 related: []
 ---
@@ -86,3 +86,4 @@ related: []
 - [[ISS-0377-admin-monitoring-refresh-and-alerts]] (resolved, GitHub #622) — 관리자 모니터링 자동 새로고침이 꺼져 있고 장애 외부 알림·시계열이 없음
 - [[ISS-0390-sql-validator-silent-default-fallback]] (resolved, GitHub #640) — `SqlSafetyValidator` 설정 조회 실패를 로그 없이 기본값으로 대체함
 - [[ISS-0405-home-first-load-skeleton-wait]] (resolved, GitHub #676) — 홈 첫 로딩 대기 시간 단축 — 지난 데이터 먼저 보여 주기
+- [[ISS-0487-synology-secret-upload-ssh-handshake-flaky]] (resolved, GitHub #950) — 시놀로지 시크릿 업로드가 NAS SSH 무차별 대입 급증으로 handshake 간헐 실패, 최대 3회 재시도

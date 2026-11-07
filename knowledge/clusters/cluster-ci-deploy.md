@@ -2,7 +2,7 @@
 type: cluster
 topic: ci-deploy
 created: 2026-10-29
-members: 65
+members: 66
 status: active
 related: []
 ---
@@ -85,3 +85,4 @@ CI/CD·배포·버전 관리·빌드
 - [[ISS-0403-ios-dependency-lockfiles-sync]] (resolved, GitHub #670) — iOS 의존성 고정 파일 갱신
 - [[ISS-0422-play-closed-testing-promote-default-off]] (resolved, GitHub #729) — Play 수동 배포 비공개 테스트 승급 기본값 끄기
 - [[ISS-0423-test-build-version-mismatch-android-ios]] (resolved, GitHub #731) — 앱 테스트 빌드가 같은 커밋인데 Android·iOS 버전이 다르게 올라감
+- [[ISS-0487-synology-secret-upload-ssh-handshake-flaky]] (resolved, GitHub #950) — 시놀로지 시크릿 업로드가 NAS SSH 무차별 대입 급증으로 handshake 간헐 실패, 최대 3회 재시도
