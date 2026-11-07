@@ -86,12 +86,18 @@ platform :ios do
       require "fileutils"
       # ⚠️ 로케일 디렉토리명은 deliver가 인정하는 코드만 (ko 유효, ko-KR 무효).
       locales = (ENV["DELIVER_LOCALES"] || "ko").split(",").map(&:strip).reject(&:empty?)
+      # 마케팅 URL 원본: ios/fastlane/marketing_url.txt (AdMob 앱 인증이 이 주소의 app-ads.txt 를 읽음, #783)
+      # 판매 중 버전은 잠겨 있어 새 버전 제출 때만 반영. 파일이 없거나 비면 ASC 기존값 유지
+      marketing_url_src = File.join(workspace, ENV["APP_ROOT"] || ".", "ios", "fastlane", "marketing_url.txt")
+      marketing_url = resolve_review_notes(marketing_url_src)
       locales.each do |loc|
         dir = File.join(metadata_path, loc)
         FileUtils.mkdir_p(dir)
         File.write(File.join(dir, "release_notes.txt"), release_notes)
+        File.write(File.join(dir, "marketing_url.txt"), marketing_url) if marketing_url
       end
       UI.message("📝 whatsNew 메타 작성: #{release_notes}")
+      UI.message("🔗 마케팅 URL: #{marketing_url || 'ASC 기존값 유지'}")
 
       # 심사 메모(Notes)는 ios/fastlane/review_notes.txt 를 원본으로 삼아 매번 그 내용을 넣는다.
       # 심사용 공용 계정이 없어 로그인 안내를 Notes 에만 두는 앱은 그 안내가 어긋나면 거절되므로 코드와 함께 관리한다.
