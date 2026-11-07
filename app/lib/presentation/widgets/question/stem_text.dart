@@ -127,19 +127,36 @@ class _StemListItemView extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final term = listItem.term;
-    if (term == null) return InlineCodeText(listItem.text);
-    return Column(
+    final content = term == null
+        ? InlineCodeText(listItem.text)
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              InlineCodeText(
+                term,
+                style: PassqlTypography.subheadlineSemibold.copyWith(
+                  color: colors.label,
+                ),
+              ),
+              const SizedBox(height: PassqlSpacing.xxs),
+              InlineCodeText(
+                listItem.text,
+                style: PassqlTypography.subheadline.copyWith(color: colors.label),
+              ),
+            ],
+          );
+    final ordinal = listItem.ordinal;
+    if (ordinal == null) return content;
+    // 번호 목록: 번호 + 내용 (내용 줄바꿈은 번호 오른쪽에 맞춤)
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        InlineCodeText(
-          term,
-          style: PassqlTypography.subheadlineSemibold.copyWith(color: colors.label),
+        Text(
+          ordinal,
+          style: PassqlTypography.callout.copyWith(color: colors.label),
         ),
-        const SizedBox(height: PassqlSpacing.xxs),
-        InlineCodeText(
-          listItem.text,
-          style: PassqlTypography.subheadline.copyWith(color: colors.label),
-        ),
+        const SizedBox(width: PassqlSpacing.xs),
+        Expanded(child: content),
       ],
     );
   }

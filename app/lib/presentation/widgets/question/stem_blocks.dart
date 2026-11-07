@@ -13,7 +13,7 @@ class StemParagraph extends StemBlock {
   final String text;
 }
 
-/// 줄 전체가 괄호로 싸인 보조 설명
+/// 줄 전체가 괄호로 싸인 보조 설명 (괄호 포함 원문 그대로)
 class StemNote extends StemBlock {
   const StemNote(this.text);
   final String text;
@@ -25,9 +25,10 @@ class StemQuestion extends StemBlock {
   final String text;
 }
 
-/// 목록 항목: `용어: 설명` 이면 term 있음, 아니면 text 만
+/// 목록 항목: `용어: 설명` 이면 term 있음, 번호 목록이면 ordinal ("1.") 유지 (보기가 번호를 가리킴)
 class StemListItem {
-  const StemListItem({this.term, required this.text});
+  const StemListItem({this.ordinal, this.term, required this.text});
+  final String? ordinal;
   final String? term;
   final String text;
 }
@@ -62,14 +63,14 @@ final RegExp _fenceRe = RegExp(r'```[A-Za-z]*\r?\n?([\s\S]*?)```');
 /// 표 이름 줄: `[EMP]`
 final RegExp _tableNameLineRe = RegExp(r'^\[([A-Za-z0-9_]+)\]$');
 
-/// 목록 줄: `- `, `• `, `* `, `1. `
-final RegExp _listLineRe = RegExp(r'^(?:[-•*]|\d+\.)\s+(.*)$');
+/// 목록 줄: `- `, `• `, `* `, `1. ` (번호는 group 1)
+final RegExp _listLineRe = RegExp(r'^(?:[-•*]|(\d+\.))\s+(.*)$');
 
 /// 목록 용어: 콜론 앞 1~20자 + 콜론 + 공백
 final RegExp _listTermRe = RegExp(r'^([^:：]{1,20})[:：]\s+(.+)$');
 
 /// 보조 설명 줄: 줄 전체가 괄호
-final RegExp _noteLineRe = RegExp(r'^\((.+)\)$');
+final RegExp _noteLineRe = RegExp(r'^\(.+\)$');
 
 /// 문장 끝: . ? ! 뒤 공백
 final RegExp _sentenceEndRe = RegExp(r'(?<=[.?!])\s+');
@@ -158,11 +159,11 @@ List<StemBlock> _parseLines(List<String> lines) {
       flushList();
     } else if (listMatch != null) {
       flushParagraph();
-      listItems.add(_toListItem(listMatch.group(1)!.trim()));
+      listItems.add(_toListItem(listMatch.group(1), listMatch.group(2)!.trim()));
     } else if (_noteLineRe.hasMatch(line)) {
       flushParagraph();
       flushList();
-      blocks.add(StemNote(_noteLineRe.firstMatch(line)!.group(1)!.trim()));
+      blocks.add(StemNote(line));
     } else {
       flushList();
       paragraphLines.add(line);
@@ -173,11 +174,12 @@ List<StemBlock> _parseLines(List<String> lines) {
   return blocks;
 }
 
-/// 목록 줄 글 > 용어·설명 (용어 형식이 아니면 글 그대로)
-StemListItem _toListItem(String text) {
+/// 목록 줄 글 > 번호·용어·설명 (용어 형식이 아니면 글 그대로)
+StemListItem _toListItem(String? ordinal, String text) {
   final termMatch = _listTermRe.firstMatch(text);
-  if (termMatch == null) return StemListItem(text: text);
+  if (termMatch == null) return StemListItem(ordinal: ordinal, text: text);
   return StemListItem(
+    ordinal: ordinal,
     term: termMatch.group(1)!.trim(),
     text: termMatch.group(2)!.trim(),
   );

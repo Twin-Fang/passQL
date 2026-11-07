@@ -20,6 +20,7 @@ void main() {
       StemList,
       StemQuestion,
     ]);
+    expect((blocks[1] as StemNote).text, '(반납예정일과 반납일은 별도 속성으로 있다)');
     final list = blocks[2] as StemList;
     expect(list.items.first.term, '대출번호');
     expect(list.items.first.text, '직전 번호에 1을 더해 붙이는 번호');
@@ -74,6 +75,13 @@ void main() {
       'SQL 2 (결과 행 수를 C4 라 한다)',
     ]);
     expect(codes.last.code, 'SELECT DISTINCT NAME FROM EMP;');
+  });
+
+  test('번호 목록은 번호를 남긴다 (보기가 번호를 가리킴)', () {
+    final blocks = parseStemBlocks('1. 기본키는 NULL 일 수 없다\n2. 외래키는 NULL 일 수 있다');
+    final items = (blocks.single as StemList).items;
+    expect(items.map((item) => item.ordinal), ['1.', '2.']);
+    expect(items.first.text, '기본키는 NULL 일 수 없다');
   });
 
   test('겹치는 지문 표가 없으면 스키마 표는 첫 코드 앞에', () {
