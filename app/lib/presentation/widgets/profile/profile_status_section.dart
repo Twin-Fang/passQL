@@ -45,6 +45,7 @@ class ProfileStatusSection extends ConsumerWidget {
         children: [
           ProfileAccountRow(
             nickname: nickname,
+            profileImageUrl: settings.valueOrNull?.profileImageUrl,
             authProvider: settings.valueOrNull?.authProvider,
             joinedAt: settings.valueOrNull?.joinedAt,
             isLoading: settings.isLoading && nickname.isEmpty,

@@ -24,8 +24,11 @@ class SettingsData {
   /// 가입 시각 (KST)
   final DateTime? joinedAt;
 
-  /// 가린 이메일 (이메일 없는 제공자면 null)
-  final String? maskedEmail;
+  /// 소셜 계정 이메일 (동의 안 함 등으로 없으면 null, #908)
+  final String? email;
+
+  /// 소셜 계정 프로필 이미지 주소 (없으면 null, #908)
+  final String? profileImageUrl;
 
   /// 회원 번호 표시값 (예: PQL-9B22FE8A, 옛 서버면 null)
   final String? memberCode;
@@ -36,12 +39,13 @@ class SettingsData {
     required this.choiceMode,
     this.authProvider,
     this.joinedAt,
-    this.maskedEmail,
+    this.email,
+    this.profileImageUrl,
     this.memberCode,
   });
 }
 
-/// 설정·계정 화면 회원 데이터: GET /members/me > 회원 ID·닉네임·선택지 모드·로그인 제공자·가입일·가린 이메일·회원 번호
+/// 설정·계정 화면 회원 데이터: GET /members/me > 회원 ID·닉네임·선택지 모드·로그인 제공자·가입일·이메일·프로필 이미지·회원 번호
 /// 로그아웃이면 로딩 유지 (API 호출 없음)
 final settingsDataProvider = FutureProvider.autoDispose<SettingsData>((
   ref,
@@ -56,7 +60,8 @@ final settingsDataProvider = FutureProvider.autoDispose<SettingsData>((
     choiceMode: me.choiceGenerationMode ?? ChoiceGenerationMode.practice,
     authProvider: SocialProvider.fromServerValue(me.authProvider),
     joinedAt: me.createdAt,
-    maskedEmail: me.maskedEmail,
+    email: me.email,
+    profileImageUrl: me.profileImageUrl,
     memberCode: me.memberCode,
   );
 });

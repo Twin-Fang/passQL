@@ -128,6 +128,7 @@ public class MemberService {
         member.setNickname("탈퇴회원_" + UuidUtils.toShortForm(memberUuid));
         member.setEmail(null);
         member.setEmailVerified(false);
+        member.setProfileImageUrl(null);
         member.setProviderUserId("withdrawn:" + memberUuid);
         member.softDelete(deleteReason);
 

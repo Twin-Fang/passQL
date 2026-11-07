@@ -1835,6 +1835,9 @@
             "format" : "date-time",
             "type" : "string"
           },
+          "email" : {
+            "type" : [ "string", "null" ]
+          },
           "isTestAccount" : {
             "type" : "boolean"
           },
@@ -1863,6 +1866,9 @@
             "format" : "date-time",
             "type" : [ "string", "null" ]
           },
+          "profileImageUrl" : {
+            "type" : [ "string", "null" ]
+          },
           "providerUserId" : {
             "type" : "string"
           },
@@ -1873,7 +1879,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "authProvider", "choiceGenerationMode", "createdAt", "isTestAccount", "lastSeenAt", "maskedEmail", "memberCode", "memberUuid", "nickname", "nicknameChangeAvailableAt", "nicknameChangedAt", "providerUserId", "role", "status" ],
+        "required" : [ "authProvider", "choiceGenerationMode", "createdAt", "email", "isTestAccount", "lastSeenAt", "maskedEmail", "memberCode", "memberUuid", "nickname", "nicknameChangeAvailableAt", "nicknameChangedAt", "profileImageUrl", "providerUserId", "role", "status" ],
         "type" : "object"
       },
       "MemberPlanResponse" : {
@@ -4484,7 +4490,7 @@
         "tags" : [ "Member" ]
       },
       "get" : {
-        "description" : "## 인증(JWT): **필요**\n\n## 요청 헤더\n- **`Authorization`**: Bearer {accessToken}\n\n## 반환값 (MemberMeResponse)\n- 회원 정보 전체\n- **`authProvider`**: 가입 제공자 (GOOGLE, KAKAO, NAVER, APPLE, GITHUB)\n- **`providerUserId`**: 제공자 사용자 ID (Google·Apple 은 Firebase uid). 탈퇴 재인증 시 같은 계정인지 대조용\n- **`createdAt`**: 가입 시각 KST (계정 화면 가입일)\n- **`nicknameChangeAvailableAt`**: 닉네임을 다시 바꿀 수 있는 시각 KST (마지막 변경 + 3일, 변경 이력 없으면 null)\n- **`maskedEmail`**: 가린 이메일 (아이디 앞 2자 + `***` + `@도메인`, 이메일 없으면 null)\n- **`memberCode`**: 회원 번호 표시값 (`PQL-` + 회원 UUID 앞 8자리 대문자, 문의 때 회원 확인용)\n\n## 설명\n- JWT AccessToken에서 회원 UUID를 추출하여 본인 정보를 조회한다.\n- last_seen_at을 throttled 방식으로 갱신한다.\n",
+        "description" : "## 인증(JWT): **필요**\n\n## 요청 헤더\n- **`Authorization`**: Bearer {accessToken}\n\n## 반환값 (MemberMeResponse)\n- 회원 정보 전체\n- **`authProvider`**: 가입 제공자 (GOOGLE, KAKAO, NAVER, APPLE, GITHUB)\n- **`providerUserId`**: 제공자 사용자 ID (Google·Apple 은 Firebase uid). 탈퇴 재인증 시 같은 계정인지 대조용\n- **`createdAt`**: 가입 시각 KST (계정 화면 가입일)\n- **`nicknameChangeAvailableAt`**: 닉네임을 다시 바꿀 수 있는 시각 KST (마지막 변경 + 3일, 변경 이력 없으면 null)\n- **`maskedEmail`**: 가린 이메일 (아이디 앞 2자 + `***` + `@도메인`, 이메일 없으면 null)\n- **`memberCode`**: 회원 번호 표시값 (`PQL-` + 회원 UUID 앞 8자리 대문자, 문의 때 회원 확인용)\n- **`email`**: 소셜 계정 이메일 원문 (본인 응답 전용, 동의 안 함 등으로 없으면 null)\n- **`profileImageUrl`**: 소셜 계정 프로필 이미지 https 주소 (없거나 기본 이미지면 null, 로그인 때마다 최신 값)\n\n## 설명\n- JWT AccessToken에서 회원 UUID를 추출하여 본인 정보를 조회한다.\n- last_seen_at을 throttled 방식으로 갱신한다.\n",
         "operationId" : "getMe",
         "responses" : {
           "200" : {

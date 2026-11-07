@@ -37,7 +37,11 @@ mixin _$MemberMeResponse {
       throw _privateConstructorUsedError; // 가린 이메일 (예: sq***@kakao.com, 이메일 없는 제공자면 null, #816)
   String? get maskedEmail =>
       throw _privateConstructorUsedError; // 회원 번호 표시값 (PQL- + UUID 앞 8자리 대문자): 문의 때 회원 확인 (#816)
-  String? get memberCode => throw _privateConstructorUsedError;
+  String? get memberCode =>
+      throw _privateConstructorUsedError; // 소셜 계정 이메일 원문 (본인 응답 전용, 없으면 null): 계정 화면 로그인 방법 (#908)
+  String? get email =>
+      throw _privateConstructorUsedError; // 소셜 계정 프로필 이미지 https 주소 (없으면 null > 닉네임 첫 글자): 프로필 머리 (#908)
+  String? get profileImageUrl => throw _privateConstructorUsedError;
 
   /// Serializes this MemberMeResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -67,6 +71,8 @@ abstract class $MemberMeResponseCopyWith<$Res> {
     DateTime? createdAt,
     String? maskedEmail,
     String? memberCode,
+    String? email,
+    String? profileImageUrl,
   });
 }
 
@@ -94,6 +100,8 @@ class _$MemberMeResponseCopyWithImpl<$Res, $Val extends MemberMeResponse>
     Object? createdAt = freezed,
     Object? maskedEmail = freezed,
     Object? memberCode = freezed,
+    Object? email = freezed,
+    Object? profileImageUrl = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -133,6 +141,14 @@ class _$MemberMeResponseCopyWithImpl<$Res, $Val extends MemberMeResponse>
                 ? _value.memberCode
                 : memberCode // ignore: cast_nullable_to_non_nullable
                       as String?,
+            email: freezed == email
+                ? _value.email
+                : email // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            profileImageUrl: freezed == profileImageUrl
+                ? _value.profileImageUrl
+                : profileImageUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -159,6 +175,8 @@ abstract class _$$MemberMeResponseImplCopyWith<$Res>
     DateTime? createdAt,
     String? maskedEmail,
     String? memberCode,
+    String? email,
+    String? profileImageUrl,
   });
 }
 
@@ -185,6 +203,8 @@ class __$$MemberMeResponseImplCopyWithImpl<$Res>
     Object? createdAt = freezed,
     Object? maskedEmail = freezed,
     Object? memberCode = freezed,
+    Object? email = freezed,
+    Object? profileImageUrl = freezed,
   }) {
     return _then(
       _$MemberMeResponseImpl(
@@ -224,6 +244,14 @@ class __$$MemberMeResponseImplCopyWithImpl<$Res>
             ? _value.memberCode
             : memberCode // ignore: cast_nullable_to_non_nullable
                   as String?,
+        email: freezed == email
+            ? _value.email
+            : email // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        profileImageUrl: freezed == profileImageUrl
+            ? _value.profileImageUrl
+            : profileImageUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -243,6 +271,8 @@ class _$MemberMeResponseImpl implements _MemberMeResponse {
     this.createdAt,
     this.maskedEmail,
     this.memberCode,
+    this.email,
+    this.profileImageUrl,
   });
 
   factory _$MemberMeResponseImpl.fromJson(Map<String, dynamic> json) =>
@@ -273,10 +303,16 @@ class _$MemberMeResponseImpl implements _MemberMeResponse {
   // 회원 번호 표시값 (PQL- + UUID 앞 8자리 대문자): 문의 때 회원 확인 (#816)
   @override
   final String? memberCode;
+  // 소셜 계정 이메일 원문 (본인 응답 전용, 없으면 null): 계정 화면 로그인 방법 (#908)
+  @override
+  final String? email;
+  // 소셜 계정 프로필 이미지 https 주소 (없으면 null > 닉네임 첫 글자): 프로필 머리 (#908)
+  @override
+  final String? profileImageUrl;
 
   @override
   String toString() {
-    return 'MemberMeResponse(memberUuid: $memberUuid, nickname: $nickname, choiceGenerationMode: $choiceGenerationMode, nicknameChangedAt: $nicknameChangedAt, authProvider: $authProvider, providerUserId: $providerUserId, createdAt: $createdAt, maskedEmail: $maskedEmail, memberCode: $memberCode)';
+    return 'MemberMeResponse(memberUuid: $memberUuid, nickname: $nickname, choiceGenerationMode: $choiceGenerationMode, nicknameChangedAt: $nicknameChangedAt, authProvider: $authProvider, providerUserId: $providerUserId, createdAt: $createdAt, maskedEmail: $maskedEmail, memberCode: $memberCode, email: $email, profileImageUrl: $profileImageUrl)';
   }
 
   @override
@@ -301,7 +337,10 @@ class _$MemberMeResponseImpl implements _MemberMeResponse {
             (identical(other.maskedEmail, maskedEmail) ||
                 other.maskedEmail == maskedEmail) &&
             (identical(other.memberCode, memberCode) ||
-                other.memberCode == memberCode));
+                other.memberCode == memberCode) &&
+            (identical(other.email, email) || other.email == email) &&
+            (identical(other.profileImageUrl, profileImageUrl) ||
+                other.profileImageUrl == profileImageUrl));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -317,6 +356,8 @@ class _$MemberMeResponseImpl implements _MemberMeResponse {
     createdAt,
     maskedEmail,
     memberCode,
+    email,
+    profileImageUrl,
   );
 
   /// Create a copy of MemberMeResponse
@@ -348,6 +389,8 @@ abstract class _MemberMeResponse implements MemberMeResponse {
     final DateTime? createdAt,
     final String? maskedEmail,
     final String? memberCode,
+    final String? email,
+    final String? profileImageUrl,
   }) = _$MemberMeResponseImpl;
 
   factory _MemberMeResponse.fromJson(Map<String, dynamic> json) =
@@ -371,7 +414,11 @@ abstract class _MemberMeResponse implements MemberMeResponse {
   @override
   String? get maskedEmail; // 회원 번호 표시값 (PQL- + UUID 앞 8자리 대문자): 문의 때 회원 확인 (#816)
   @override
-  String? get memberCode;
+  String? get memberCode; // 소셜 계정 이메일 원문 (본인 응답 전용, 없으면 null): 계정 화면 로그인 방법 (#908)
+  @override
+  String? get email; // 소셜 계정 프로필 이미지 https 주소 (없으면 null > 닉네임 첫 글자): 프로필 머리 (#908)
+  @override
+  String? get profileImageUrl;
 
   /// Create a copy of MemberMeResponse
   /// with the given fields replaced by the non-null parameter values.

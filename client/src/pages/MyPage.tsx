@@ -1,13 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import { Settings, Pencil, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { Settings, ChevronRight } from "lucide-react";
 import { useAuthStore } from "../stores/authStore";
 import { useStagger } from "../hooks/useStagger";
 import { useMember } from "../hooks/useMember";
 import { useWrongQuestions } from "../hooks/useWrongQuestions";
-import { isNicknameChangeWaiting, formatNicknameChangeWaitingMessage } from "../lib/nicknameCooldown";
-import NicknameChangeModal from "../components/NicknameChangeModal";
+import { formatDottedDate, LOGIN_PROVIDER_LABEL } from "../lib/loginProviderPresentation";
 import PlanChip from "../components/pro/PlanChip";
+import ProfileAvatar from "../components/ProfileAvatar";
+import LoginProviderIcon from "../components/LoginProviderIcon";
 import WrongQuestionListState from "../components/wrongNotes/WrongQuestionListState";
 import { WRONG_NOTES_PATH, WRONG_NOTES_PREVIEW_COUNT } from "../constants/wrongNotes";
 
@@ -16,8 +16,6 @@ export default function MyPage() {
   const uuid = useAuthStore((s) => s.memberUuid ?? "");
   const nickname = useAuthStore((s) => s.nickname ?? "");
   const { data: memberData } = useMember();
-  const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   const stagger = useStagger();
   const s0 = stagger(0);
@@ -27,23 +25,11 @@ export default function MyPage() {
   // 오답 미리보기 (프로 전용, 무료는 목록 상태 컴포넌트가 잠금 미리보기)
   const wrongQuestions = useWrongQuestions(WRONG_NOTES_PREVIEW_COUNT);
 
-  const showToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 2000);
-  };
-
-  const handleNicknameEditClick = () => {
-    // 대기 시각은 서버 값 (서버 거절 기준과 같음)
-    const nicknameChangeAvailableAt = memberData?.nicknameChangeAvailableAt ?? null;
-    if (nicknameChangeAvailableAt && isNicknameChangeWaiting(nicknameChangeAvailableAt)) {
-      showToast(formatNicknameChangeWaitingMessage(nicknameChangeAvailableAt));
-      return;
-    }
-    setIsNicknameModalOpen(true);
-  };
-
-  // 닉네임 첫 글자로 아바타 이니셜 생성
-  const avatarLetter = (nickname || uuid.slice(0, 1)).slice(0, 1).toUpperCase();
+  const displayName = nickname || uuid.slice(0, 8);
+  const authProvider = memberData?.authProvider;
+  const joinedAt = memberData?.createdAt;
+  // 예: [카카오 아이콘] 2026.10.16 가입 (아이콘이 로그인 방법, 가입일 모르면 "로그인")
+  const accountSummary = joinedAt ? `${formatDottedDate(joinedAt)} 가입` : authProvider ? "로그인" : "";
 
   const totalWrongCount = wrongQuestions.data?.totalCount ?? 0;
 
@@ -62,32 +48,33 @@ export default function MyPage() {
         </button>
       </section>
 
-      {/* 프로필 카드 */}
+      {/* 프로필 카드 (#908): 소셜 프로필 사진 + 닉네임 + 로그인 방법 아이콘·가입일, 닉네임 변경은 `관리`(설정 내 계정)에서만 */}
       <section className={`bg-surface-card border border-border rounded-2xl p-5 flex items-center gap-4 ${s1.className}`}>
-        {/* 아바타 */}
-        <div className="w-14 h-14 rounded-tile-large bg-brand flex items-center justify-center shrink-0">
-          <span className="text-2xl font-bold text-on-brand">{avatarLetter}</span>
-        </div>
+        <ProfileAvatar fallbackName={displayName} imageUrl={memberData?.profileImageUrl} />
         <div className="flex-1 min-w-0">
           {/* 닉네임 + 등급 칩 (결제 꺼짐이면 칩 없음, #578) */}
           <div className="flex items-center gap-2 min-w-0">
-            <p className="text-lg font-bold text-text-primary truncate">
-              {nickname || uuid.slice(0, 8)}
-            </p>
+            <p className="text-lg font-bold text-text-primary truncate">{displayName}</p>
             <PlanChip />
           </div>
-          <p className="text-xs text-text-caption mt-0.5">
-            마지막 학습 · {memberData?.nicknameChangedAt ? "최근" : "기록 없음"}
-          </p>
+          {accountSummary && (
+            <p className="flex items-center gap-1 text-xs text-text-secondary mt-0.5 min-w-0">
+              {authProvider && <LoginProviderIcon provider={authProvider} isSmall isLabelHidden />}
+              <span className="truncate">
+                {authProvider && <span className="sr-only">{LOGIN_PROVIDER_LABEL[authProvider]} </span>}
+                {accountSummary}
+              </span>
+            </p>
+          )}
         </div>
-        {/* 닉네임 수정 버튼 */}
         <button
           type="button"
-          onClick={handleNicknameEditClick}
-          className="w-8 h-8 bg-surface border border-border rounded-lg flex items-center justify-center transition-colors hover:text-brand text-text-caption"
-          aria-label="닉네임 변경"
+          onClick={() => navigate("/settings")}
+          className="flex items-center gap-0.5 min-h-11 px-1 text-sm font-semibold text-brand shrink-0"
+          aria-label="계정 관리"
         >
-          <Pencil size={14} />
+          관리
+          <ChevronRight size={14} aria-hidden="true" />
         </button>
       </section>
 
@@ -127,22 +114,6 @@ export default function MyPage() {
           />
         </div>
       </section>
-
-      {/* Toast */}
-      {toastMsg && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
-          <div className="bg-brand text-on-brand text-sm font-medium px-4 py-2.5 rounded-lg shadow-md whitespace-nowrap">
-            {toastMsg}
-          </div>
-        </div>
-      )}
-
-      <NicknameChangeModal
-        isOpen={isNicknameModalOpen}
-        currentNickname={nickname || ""}
-        onClose={() => setIsNicknameModalOpen(false)}
-        onSuccess={() => showToast("닉네임이 변경됐어요")}
-      />
     </div>
   );
 }

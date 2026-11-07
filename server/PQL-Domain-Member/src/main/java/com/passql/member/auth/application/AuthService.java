@@ -7,6 +7,7 @@ import com.passql.common.util.NicknameGenerator;
 import com.passql.member.auth.application.dto.command.LoginCommand;
 import com.passql.member.auth.application.dto.result.LoginResult;
 import com.passql.member.auth.domain.ProviderTokens;
+import com.passql.member.auth.domain.SocialProfile;
 import com.passql.member.auth.domain.Tokens;
 import com.passql.member.auth.infrastructure.jwt.JwtTokenProvider;
 import com.passql.member.auth.infrastructure.jwt.RefreshTokenClaims;
@@ -30,7 +31,7 @@ import java.util.UUID;
 
 /**
  * 인증: 소셜 로그인(가입 포함), 토큰 재발급, 로그아웃
- * 로그인: 토큰 검증(트랜잭션 밖) > 조회·가입(짧은 트랜잭션) > 자격 저장(짧은 트랜잭션) > 토큰 발급 (#516)
+ * 로그인: 토큰 검증(트랜잭션 밖) > 조회·가입(짧은 트랜잭션) > 소셜 정보 갱신·자격 저장(짧은 트랜잭션) > 토큰 발급 (#516, #908)
  * refresh token 은 기기(jti)별 저장·원자적 회전, 회전된 토큰 재사용 시 전체 세션 폐기, 옛 단일 키 형식 호환
  */
 @Slf4j
@@ -51,8 +52,9 @@ public class AuthService {
     private final Map<AuthProvider, SocialLoginStrategy> socialLoginStrategyMap;
     private final MemberSignUpService memberSignUpService;
     private final MemberSocialCredentialService memberSocialCredentialService;
+    private final SocialProfileSyncService socialProfileSyncService;
 
-    /** 클라이언트 토큰 로그인: 코드 전용 제공자 거부 > 발급 앱 검증 > 사용자 ID > 회원 조회·가입 */
+    /** 클라이언트 토큰 로그인: 코드 전용 제공자 거부 > 발급 앱 검증 > 사용자 정보(ID·이메일·이미지) > 회원 조회·가입 */
     // 제공자 API 호출(최대 5초 x 2) 동안 DB 커넥션 미보유: 클래스 기본 트랜잭션 해제, 저장은 각 Repository·Service 트랜잭션
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public LoginResult login(LoginCommand command) {
@@ -63,15 +65,15 @@ public class AuthService {
         }
         SocialLoginStrategy strategy = strategyOf(authProvider);
         strategy.verifyIssuedForThisApp(command.idToken());
-        String socialId = strategy.validateAndGetSocialId(command.idToken());
-        return loginVerifiedMember(authProvider, socialId, new ProviderTokens(command.idToken(), null));
+        SocialProfile socialProfile = strategy.fetchSocialProfile(command.idToken());
+        return loginVerifiedMember(authProvider, socialProfile, new ProviderTokens(command.idToken(), null));
     }
 
-    /** 서버가 인가 코드로 교환한 토큰 로그인: 사용자 ID > 회원 조회·가입 (출처는 교환 단계에서 보장) */
+    /** 서버가 인가 코드로 교환한 토큰 로그인: 사용자 정보(ID·이메일·이미지) > 회원 조회·가입 (출처는 교환 단계에서 보장) */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public LoginResult loginWithExchangedTokens(AuthProvider authProvider, ProviderTokens exchangedTokens) {
-        String socialId = strategyOf(authProvider).validateAndGetSocialId(exchangedTokens.accessToken());
-        return loginVerifiedMember(authProvider, socialId, exchangedTokens);
+        SocialProfile socialProfile = strategyOf(authProvider).fetchSocialProfile(exchangedTokens.accessToken());
+        return loginVerifiedMember(authProvider, socialProfile, exchangedTokens);
     }
 
     /** refresh token 재발급: 서명 검증 > 저장값 비교·삭제(원자적, 실패 시 재사용 판정) > 회원 확인 > 새 기기 키 발급 */
@@ -102,18 +104,35 @@ public class AuthService {
         return strategy;
     }
 
-    /** 검증된 제공자 키 > 기존 회원 또는 신규 가입 > 연결 해제용 자격 저장 > 토큰 발급 */
-    private LoginResult loginVerifiedMember(AuthProvider authProvider, String socialId, ProviderTokens providerTokens) {
-        ResolvedMember resolved = findActiveMember(authProvider, socialId)
+    /** 검증된 제공자 정보 > 기존 회원(소셜 정보 갱신) 또는 신규 가입 > 연결 해제용 자격 저장 > 토큰 발급 */
+    private LoginResult loginVerifiedMember(AuthProvider authProvider, SocialProfile socialProfile, ProviderTokens providerTokens) {
+        ResolvedMember resolved = findActiveMember(authProvider, socialProfile.socialId())
                 .map(existing -> new ResolvedMember(existing, false))
-                .orElseGet(() -> registerNewMember(socialId, authProvider));
+                .orElseGet(() -> registerNewMember(socialProfile, authProvider));
         Member member = resolved.member();
         boolean isNewMember = resolved.isNewMember();
 
+        if (!isNewMember) {
+            applyLatestProfileQuietly(member, socialProfile);
+        }
         saveCredentialQuietly(member.getMemberUuid(), authProvider, providerTokens);
         Tokens tokens = issueTokens(member);
         MemberActivityLogger.recordLogin(member.getMemberUuid(), authProvider, isNewMember);
         return LoginResult.of(member, isNewMember, tokens);
+    }
+
+    /** 기존 회원 이메일·프로필 이미지 갱신 (바뀐 값 있을 때만 저장, 실패해도 로그인 유지) */
+    private void applyLatestProfileQuietly(Member member, SocialProfile socialProfile) {
+        // 조회한 회원(트랜잭션 밖) 사본으로 변경 여부만 판정 > 바뀌었을 때만 저장 트랜잭션
+        if (!member.applySocialProfile(socialProfile.email(), socialProfile.isEmailVerified(), socialProfile.profileImageUrl())) {
+            return;
+        }
+        try {
+            socialProfileSyncService.applyLatestProfile(member.getMemberUuid(), socialProfile);
+        } catch (RuntimeException e) {
+            log.warn("[social login] profile sync failed memberUuid={} : {}",
+                    member.getMemberUuid(), e.getClass().getSimpleName());
+        }
     }
 
     /** 연결 해제용 자격 저장 (실패해도 로그인 유지, 탈퇴 시 해제만 건너뜀) */
@@ -134,11 +153,13 @@ public class AuthService {
      * 신규 가입 (별도 트랜잭션 저장): 유니크 충돌 시 제공자 키 재조회
      * 같은 제공자 키 회원이 이미 있으면 그 회원(동시 가입), 없으면 닉네임 충돌로 보고 재시도
      */
-    private ResolvedMember registerNewMember(String socialId, AuthProvider authProvider) {
+    private ResolvedMember registerNewMember(SocialProfile socialProfile, AuthProvider authProvider) {
+        String socialId = socialProfile.socialId();
         for (int attempt = 1; attempt <= NICKNAME_RETRY; attempt++) {
             String nickname = nicknameGenerator.generateUnique(
                     memberRepository::existsByNicknameAndIsDeletedFalse);
-            Member member = Member.signUp(socialId, authProvider, null, false, nickname);
+            Member member = Member.signUp(socialId, authProvider, socialProfile.email(),
+                    socialProfile.isEmailVerified(), socialProfile.profileImageUrl(), nickname);
             try {
                 return new ResolvedMember(memberSignUpService.saveInNewTransaction(member), true);
             } catch (DataIntegrityViolationException e) {

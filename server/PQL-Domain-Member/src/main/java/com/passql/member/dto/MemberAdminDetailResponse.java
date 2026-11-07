@@ -18,6 +18,8 @@ public record MemberAdminDetailResponse(
     String providerUserId,
     String email,
     Boolean emailVerified,
+    // 소셜 프로필 이미지 (없으면 null, #908)
+    String profileImageUrl,
     Boolean isTestAccount,
     LocalDateTime createdAt,
     LocalDateTime lastSeenAt,
@@ -37,6 +39,7 @@ public record MemberAdminDetailResponse(
             m.getProviderUserId(),
             m.getEmail(),
             m.getEmailVerified(),
+            m.getProfileImageUrl(),
             m.getIsTestAccount(),
             m.getCreatedAt(),
             m.getLastSeenAt(),

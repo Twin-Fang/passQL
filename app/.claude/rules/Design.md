@@ -82,6 +82,7 @@ lib/presentation/design/
 | `PassqlPopIn` | 톡 튀어나오는 등장 (반짝이, 결과 마크) |
 | `PassqlAiHeader` | AI 내용 머리: 반짝이 팝 + 제목 미끄러짐 |
 | `PassqlLogo` | 라이트/다크 워드마크 |
+| `PassqlAvatar` | 원형 프로필 사진: 이미지 주소 > 원형 자르기(표시 크기로 디코딩), 없음·불러오는 중·실패면 이름 첫 글자 원 (#908) |
 | `PassqlNotificationBellButton` | 홈 상단 종 아이콘(강조색) + 안 읽은 개수 배지(빨강 `countBadge`, 10 이상 9+, #756). 알림함 진입은 이 버튼으로만 (규칙 테스트) |
 | `PassqlLockedPreview` | 잠긴 기능 묶음: 흐린 가짜 미리보기 + 가운데 한 줄 + 알약 `이용권으로 열기`, 영역 전체 탭 > `onUnlock` (#576). 프로 안내 시트는 `widgets/pro/pro_offer_sheet.dart` 의 `showProOfferSheet` |
 | `PassqlPassTicket` (+`PassqlPassTicketTier`, `PassqlPassTicketField`) / `PassqlPassUsageGauge` | passQL PASS 탑승권 (#749): 본문(제목·경로·정보 칸·혜택 아이콘·footer) + 절취선 + 떼는 칸. 무료 회색·프로 그라데이션, 빛줄기·홀로그램·기울기 선택, 동작 줄이기면 효과 정지. 사용량 게이지는 빛이 지나감. 내 프로필·이용권 구매 시트·정보 시트가 쓴다 |
