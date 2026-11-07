@@ -38,8 +38,8 @@ class GithubSocialSignIn {
   static const String redirectUri = 'passql://auth/callback/github';
   // iOS CFBundleURLTypes·Android CallbackActivity intent-filter 에 등록한 스킴
   static const String callbackUrlScheme = 'passql';
-  // 회원 식별에 필요한 공개 프로필만 요청
-  static const String scope = 'read:user';
+  // 공개 프로필 + 이메일 목록 (비공개 이메일도 계정 표시에 쓰도록, #908, 웹 socialLoginRedirect.ts 와 같은 값)
+  static const String scope = 'read:user user:email';
   // 플랫폼 공통 사용자 취소 코드 (flutter_web_auth_2)
   static const String _cancelledErrorCode = 'CANCELED';
   // GitHub 인가 화면에서 사용자가 거부한 경우 error 값
