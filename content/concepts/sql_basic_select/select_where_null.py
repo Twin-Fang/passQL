@@ -24,13 +24,13 @@ CONCEPT = {
         "- NULL을 찾을 때는 `= NULL`이 아니라 **IS NULL**, 아닌 행은 `IS NOT NULL`을 써요.\n"
         "- NULL이 섞인 계산은 결과도 NULL이고, Oracle은 **빈 문자열**(`''`)도 NULL로 다뤄요."
     ),
-    "detailMd": f"""## 왜 헷갈릴까요 — 오류 없이 0행이 나와서 {{#why}}
+    "detailMd": f"""## 왜 헷갈릴까요: 오류 없이 0행이 나와서 {{#why}}
 
 "커미션이 없는 사원"을 찾으려고 `WHERE 커미션 = NULL`이라고 쓰면, 오류도 나지 않고 결과만 0행으로 나와요. 무엇이 잘못됐는지 알기 어려워서 시험에서도 자주 묻고, 아래 사원 표 하나로 모든 예시를 설명해요.
 
 {EMPLOYEE_COMMISSION_TABLE}
 
-## NULL은 값이 아니에요 — 0과도 빈칸과도 달라요 {{#definition}}
+## NULL은 값이 아니에요: 0과도 빈칸과도 달라요 {{#definition}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -45,7 +45,7 @@ NULL 규칙은 아래 두 줄로 외우고, 문제를 풀 때마다 NULL이 있�
 | 계산 (`+`, `-`, `*`, `/`) | NULL |
 | 비교 (`=`, `<>`, `>`, IN 등) | UNKNOWN, 그래서 WHERE에서 빠져요 |
 
-## 비교하면 UNKNOWN — 그래서 IS NULL로 찾아요 {{#unknown}}
+## 비교하면 UNKNOWN: 그래서 IS NULL로 찾아요 {{#unknown}}
 
 모르는 값과 무엇을 비교해도 맞는지 틀린지 알 수 없어서 결과가 UNKNOWN이 되고, WHERE 절은 참인 행만 남기니 그 행은 빠져요. NULL 여부를 확인하는 전용 연산자는 `IS NULL`과 `IS NOT NULL`이고, 이 둘은 UNKNOWN이 아니라 참이나 거짓으로 답해요.
 
@@ -61,13 +61,13 @@ SELECT 이름 FROM 사원 WHERE 커미션 IS NOT NULL; -- 커미션이 있는 �
 | `커미션 IS NULL` | 김민수, 최유나, 정하늘, 윤서연 |
 | `커미션 IS NOT NULL` | 이지은, 박서준, 한도윤, 오지민 |
 
-## NULL이 섞인 계산 — 결과도 NULL {{#null-arithmetic}}
+## NULL이 섞인 계산: 결과도 NULL {{#null-arithmetic}}
 
 김민수의 `급여 + 커미션`은 3000이 아니라 NULL이에요. 커미션이 없을 때 0으로 보고 더하려면 `NVL(커미션, 0)`을 쓰는데, NVL은 첫 값이 NULL이면 두 번째 값을 돌려주는 함수이고 4단원에서 자세히 다뤄요.
 
 {NULL_ARITHMETIC_EXAMPLE.markdown}
 
-## 자주 헷갈리는 점 — <>, NOT IN, AND·OR {{#confusing}}
+## 자주 헷갈리는 점: <>, NOT IN, AND, OR {{#confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -112,7 +112,7 @@ SELECT 이름 FROM 사원 WHERE 이름 = '';                          -- 빈 문
 | 커미션이 0인 박서준은 `커미션 IS NULL` 조건에 걸려요 | X | 0은 값이라서 박서준에게 IS NULL은 거짓이에요 |
 | `IS NOT NULL`의 결과는 UNKNOWN이 될 수 없어요 | O | IS NULL과 IS NOT NULL은 참이나 거짓으로만 답해요 |
 
-## 꼭 외울 것 — NULL이 끼면 무엇이 나오나 {{#memorize}}
+## 꼭 외울 것: NULL이 끼면 무엇이 나오나 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
@@ -127,7 +127,7 @@ SELECT 이름 FROM 사원 WHERE 이름 = '';                          -- 빈 문
 
 ## 시험에서는 이렇게 나와요 {{#exam-point}}
 
-예시 표를 주고 `<>`나 `NOT IN`을 쓴 SQL의 결과 행 수를 묻는 문제가 가장 많고, 조건 칸에 NULL이 있는 행부터 빼고 세면 실수가 줄어요. NULL을 찾는 올바른 조건, NULL이 섞인 계산 결과, 참·거짓·UNKNOWN의 AND와 OR 결과도 자주 물어요.""",
+예시 표를 주고 `<>`나 `NOT IN`을 쓴 SQL의 결과 행 수를 묻는 문제가 가장 많고, 조건 칸에 NULL이 있는 행부터 빼고 세면 실수가 줄어요. NULL을 찾는 올바른 조건, NULL이 섞인 계산 결과, 참, 거짓, UNKNOWN의 AND와 OR 결과도 자주 물어요.""",
     "checkQuestions": [
         question(1, "커미션이 NULL인 사원을 찾는 WHERE 조건으로 올바른 것은 무엇인가요?", "unknown",
                  "NULL과의 비교는 UNKNOWN이 되므로 = NULL로는 찾을 수 없어요. NULL 여부는 IS NULL로 확인해요.",

@@ -3,7 +3,7 @@
 from concept_bundle import choice, question, sql_check, sql_example
 from concept_dataset import DEPARTMENT_TABLE_MD, to_employee_table_md
 
-# 이 개념의 계산에 쓰는 열 전부 (관리자사번·급여·부서번호)
+# 이 개념의 계산에 쓰는 열 전부 (관리자사번, 급여, 부서번호)
 EMPLOYEE_TABLE = to_employee_table_md("사번", "이름", "관리자사번", "급여", "부서번호")
 
 # 본문 예시: SQL 블록 + 결과 표 = 검증 항목 (sql_example 한 원본)
@@ -37,7 +37,7 @@ CONCEPT = {
         "- `NOT IN` 서브쿼리 결과에 NULL이 하나라도 있으면 결과는 **0행**이에요.\n"
         "- `NOT EXISTS`는 **NULL과 상관없이** 짝이 없는 행을 찾아서, 사원이 없는 인사부를 돌려줘요."
     ),
-    "detailMd": f"""## 자기 부서 평균과 비교하기 — 사원마다 기준이 달라요 {{#why}}
+    "detailMd": f"""## 자기 부서 평균과 비교하기: 사원마다 기준이 달라요 {{#why}}
 
 전체 평균과 비교할 때는 서브쿼리가 값 하나만 구하면 됐어요. "자기 부서 평균보다 많은 사원"은 박서준은 개발부 평균과, 최유나는 영업부 평균과 비교해야 해서, 서브쿼리가 지금 보는 사원의 부서를 알아야 해요.
 
@@ -47,7 +47,7 @@ CONCEPT = {
 
 {DEPARTMENT_TABLE_MD}
 
-## 한 줄 정의 — 메인 쿼리의 열을 받아 쓰는 서브쿼리 {{#definition}}
+## 한 줄 정의: 메인 쿼리의 열을 받아 쓰는 서브쿼리 {{#definition}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -59,7 +59,7 @@ CONCEPT = {
 
 {DEPARTMENT_AVERAGE_EXAMPLE.markdown}
 
-## 행마다 다시 계산돼요 — 사원 한 명씩 따라가기 {{#row-by-row}}
+## 행마다 다시 계산돼요: 사원 한 명씩 따라가기 {{#row-by-row}}
 
 메인 쿼리가 사원 한 명을 볼 때마다 서브쿼리가 그 사원의 부서번호로 평균을 다시 구한다고 보면 돼요.
 
@@ -82,7 +82,7 @@ CONCEPT = {
 | 계산 | 한 번 구한 값을 모든 행이 함께 써요 | 메인 쿼리 행의 값이 바뀌면 결과도 바뀌어요 |
 | 혼자 실행 | 돼요 | 안 돼요 |
 
-## EXISTS와 NOT EXISTS — 행이 있는지만 봐요 {{#exists}}
+## EXISTS와 NOT EXISTS: 행이 있는지만 봐요 {{#exists}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -109,7 +109,7 @@ EXISTS는 값을 비교하지 않으니, 보통 연관 서브쿼리와 함께 "�
 | EXISTS 서브쿼리를 `SELECT 이름`으로 바꾸면 결과가 달라져요 | X | EXISTS는 값을 보지 않아서 `SELECT *`나 `SELECT 이름`도 결과가 같아요. `1`은 "값은 상관없다"는 관례예요 |
 | 연관 서브쿼리는 혼자 떼어 내 실행할 수 없어요 | O | 메인 쿼리의 열(`e.부서번호`)이 무엇인지 알아야 실행돼요 |
 
-## 자주 헷갈리는 점 — NOT IN 안의 NULL {{#confusing}}
+## 자주 헷갈리는 점: NOT IN 안의 NULL {{#confusing}}
 
 | 한 줄 공식 | 뜻 |
 |---|---|
@@ -161,7 +161,7 @@ WHERE NOT EXISTS (SELECT 1 FROM 부서 d WHERE d.부서번호 = e.부서번호);
 | `사번 NOT IN (SELECT 관리자사번 FROM 사원)`은 부하 직원이 없는 사원을 돌려줘요 | X | 관리자사번에 김민수의 NULL이 있어서 0행이에요 |
 | `NOT IN` 서브쿼리에 `IS NOT NULL`을 붙이면 NOT EXISTS와 같은 결과를 얻을 수 있어요 | O | NULL을 미리 빼면 UNKNOWN이 생기지 않아요 |
 
-## 꼭 외울 것 — NOT IN과 NOT EXISTS가 갈리는 곳 {{#memorize}}
+## 꼭 외울 것: NOT IN과 NOT EXISTS가 갈리는 곳 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
@@ -174,7 +174,7 @@ WHERE NOT EXISTS (SELECT 1 FROM 부서 d WHERE d.부서번호 = e.부서번호);
 | NOT IN 0행을 피하는 법 | NOT EXISTS로 바꾸거나 서브쿼리에 IS NOT NULL을 붙여요 |
 | EXISTS 안의 COUNT(*) | 0이라는 한 행이 있어서 언제나 참 |
 
-## 시험에서는 이렇게 나와요 — NULL부터 찾기 {{#exam-point}}
+## 시험에서는 이렇게 나와요: NULL부터 찾기 {{#exam-point}}
 
 NOT IN과 NOT EXISTS를 쓴 SQL 두 개를 주고 결과가 같은지, 각각 몇 행인지 묻는 문제가 자주 나와요. 서브쿼리가 돌려주는 열과 메인 쿼리에서 비교하는 열에 NULL이 있는지부터 확인하면 대부분 풀려요.
 

@@ -7,6 +7,8 @@ import com.passql.meta.entity.PromptTemplate;
 import com.passql.question.constant.ChoiceKind;
 import com.passql.question.constant.ChoiceSetSource;
 import com.passql.question.constant.ChoiceSetStatus;
+import com.passql.question.dto.QuestionFormatChoice;
+import com.passql.question.dto.QuestionFormatViolation;
 import com.passql.question.dto.ValidationReport;
 import com.passql.question.entity.Question;
 import com.passql.question.entity.QuestionChoiceSet;
@@ -67,17 +69,17 @@ public class ChoiceSetSaveService {
 
         List<GeneratedChoiceDto> choices = result.choices();
         for (int i = 0; i < choices.size(); i++) {
-            GeneratedChoiceDto c = choices.get(i);
+            GeneratedChoiceDto choice = toFormattedChoice(question, choices.get(i), ChoiceKind.SQL, false);
             // 샌드박스 결과 기반 is_correct 덮어쓰기
-            boolean correct = report.items().get(i).matchesExpected();
+            boolean isCorrectByExecution = report.items().get(i).matchesExpected();
             QuestionChoiceSetItem item = QuestionChoiceSetItem.builder()
                     .choiceSetUuid(set.getChoiceSetUuid())
-                    .choiceKey(c.key())
+                    .choiceKey(choice.key())
                     .sortOrder(i)
                     .kind(ChoiceKind.SQL)
-                    .body(c.body())
-                    .isCorrect(correct)
-                    .rationale(c.rationale())
+                    .body(choice.body())
+                    .isCorrect(isCorrectByExecution)
+                    .rationale(choice.rationale())
                     .build();
             choiceSetItemRepository.save(item);
         }
@@ -115,16 +117,16 @@ public class ChoiceSetSaveService {
 
         List<GeneratedChoiceDto> choices = result.choices();
         for (int i = 0; i < choices.size(); i++) {
-            GeneratedChoiceDto c = choices.get(i);
+            GeneratedChoiceDto choice = toFormattedChoice(question, choices.get(i), ChoiceKind.TEXT, true);
             // AI가 직접 is_correct를 판별 — 샌드박스 검증 없음
             QuestionChoiceSetItem item = QuestionChoiceSetItem.builder()
                     .choiceSetUuid(set.getChoiceSetUuid())
-                    .choiceKey(c.key())
+                    .choiceKey(choice.key())
                     .sortOrder(i)
                     .kind(ChoiceKind.TEXT)
-                    .body(c.body())
-                    .isCorrect(c.isCorrect())
-                    .rationale(c.rationale())
+                    .body(choice.body())
+                    .isCorrect(choice.isCorrect())
+                    .rationale(choice.rationale())
                     .build();
             choiceSetItemRepository.save(item);
         }
@@ -170,17 +172,18 @@ public class ChoiceSetSaveService {
 
         List<GeneratedChoiceDto> choices = result.choices();
         for (int i = 0; i < choices.size(); i++) {
-            GeneratedChoiceDto c = choices.get(i);
+            // 본문은 실행 결과 표 JSON > 근거만 정리
+            GeneratedChoiceDto choice = toFormattedChoice(question, choices.get(i), ChoiceKind.TEXT, false);
             // is_correct는 AI 판단이 아닌 실행 판정 결과로 덮어쓰기
-            boolean correct = correctMap.getOrDefault(c.key(), false);
+            boolean isCorrectByExecution = correctMap.getOrDefault(choice.key(), false);
             QuestionChoiceSetItem item = QuestionChoiceSetItem.builder()
                     .choiceSetUuid(set.getChoiceSetUuid())
-                    .choiceKey(c.key())
+                    .choiceKey(choice.key())
                     .sortOrder(i)
                     .kind(ChoiceKind.TEXT)   // RESULT_MATCH는 항상 TEXT
-                    .body(c.body())          // 실행 결과 표 JSON 배열 문자열
-                    .isCorrect(correct)
-                    .rationale(c.rationale())
+                    .body(choice.body())          // 실행 결과 표 JSON 배열 문자열
+                    .isCorrect(isCorrectByExecution)
+                    .rationale(choice.rationale())
                     .build();
             choiceSetItemRepository.save(item);
         }
@@ -190,6 +193,26 @@ public class ChoiceSetSaveService {
         // 커밋 후 선택지별 AI 해설 미리 생성 (#496)
         eventPublisher.publishEvent(new ChoiceSetReadyEvent(set.getChoiceSetUuid()));
         return set;
+    }
+
+    /**
+     * 생성 보기 저장 전 형식 정리 (#905): 줄표·가운뎃점 > ForbiddenPunctuationCleaner (근거 전부, 본문은 글 보기만), 남은 위반은 기록만
+     * SQL·결과 표 본문은 실행 검증본이라 바꾸지 않음, 거부하지 않는 이유: 지시문 반영 전 생성 실패가 회원 풀이를 막지 않게
+     */
+    private GeneratedChoiceDto toFormattedChoice(Question question, GeneratedChoiceDto choice, ChoiceKind bodyKind,
+                                                 boolean isBodyCleanable) {
+        boolean isSqlBody = bodyKind == ChoiceKind.SQL;
+        GeneratedChoiceDto formatted = new GeneratedChoiceDto(choice.key(),
+                isBodyCleanable ? ForbiddenPunctuationCleaner.clean(choice.body()) : choice.body(),
+                choice.isCorrect(), ForbiddenPunctuationCleaner.clean(choice.rationale()));
+        List<QuestionFormatViolation> remainingViolations = QuestionFormatRule.findChoiceViolations(
+                new QuestionFormatChoice(formatted.key(), isSqlBody, formatted.body(), formatted.rationale()));
+        if (!remainingViolations.isEmpty()) {
+            log.warn("[choice-gen format] remaining violations : questionUuid={}, choiceKey={}, reasons={}",
+                    question.getQuestionUuid(), formatted.key(),
+                    remainingViolations.stream().map(violation -> violation.reason().name()).distinct().toList());
+        }
+        return formatted;
     }
 
     /**

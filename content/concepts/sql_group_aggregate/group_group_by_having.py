@@ -5,7 +5,7 @@ from concept_dataset import DEPARTMENT_TABLE_MD, to_employee_table_md
 
 EMPLOYEE_DEPARTMENT_TABLE = to_employee_table_md("사번", "이름", "직급", "급여", "부서번호")
 
-# 부서별 인원·급여 합계 (본문 결과 표 = 검증 기대값)
+# 부서별 인원, 급여 합계 (본문 결과 표 = 검증 기대값)
 DEPARTMENT_SUMMARY_COLUMNS = ("부서번호", "인원", "급여합계")
 DEPARTMENT_SUMMARY_ROWS = [[10, 1, 3000], [20, 3, 7800], [30, 3, 8100], [None, 1, 2000]]
 DEPARTMENT_SUMMARY_EXAMPLE = sql_example(
@@ -39,7 +39,7 @@ ORDER_BY_AGGREGATE_EXAMPLE = sql_example(
 
 # KEEP 문단: 입사일 순서를 셀 수 있게 입사일 열까지 보임 (README 글쓰기 규칙 10)
 EMPLOYEE_HIRE_DATE_TABLE = to_employee_table_md("사번", "이름", "입사일", "급여", "부서번호")
-# 부서별 첫 입사자·마지막 입사자 급여 <-> 그냥 MAX(급여)
+# 부서별 첫 입사자, 마지막 입사자 급여 <-> 그냥 MAX(급여)
 KEEP_FIRST_LAST_EXAMPLE = sql_example(
     "SELECT 부서번호,\n"
     "       MAX(급여) KEEP (DENSE_RANK FIRST ORDER BY 입사일) AS 첫입사자급여,\n"
@@ -51,7 +51,7 @@ KEEP_FIRST_LAST_EXAMPLE = sql_example(
     ("부서번호", "첫입사자급여", "마지막입사자급여", "최고급여"),
     [[10, 3000, 3000, 3000], [20, 2500, 2500, 2800], [30, 3200, 2200, 3200], [None, 2000, 2000, 2000]],
 )
-# 동점 1위(20번 급여 2500: 1002·1005) > 앞 집계 함수가 하나를 고름
+# 동점 1위(20번 급여 2500: 1002, 1005) > 앞 집계 함수가 하나를 고름
 KEEP_TIE_EXAMPLE = sql_example(
     "SELECT MIN(사번) KEEP (DENSE_RANK FIRST ORDER BY 급여) AS 작은사번,\n"
     "       MAX(사번) KEEP (DENSE_RANK FIRST ORDER BY 급여) AS 큰사번\n"
@@ -74,13 +74,13 @@ CONCEPT = {
         "- 실행 순서는 FROM > WHERE > GROUP BY > HAVING > SELECT > ORDER BY라서 GROUP BY에는 **SELECT 별칭**을 못 써요.\n"
         "- 부서번호가 NULL인 행들도 한 그룹으로 묶여 결과에 한 행으로 나와요."
     ),
-    "detailMd": f"""## 부서마다 따로 계산 — GROUP BY가 필요한 이유 {{#why}}
+    "detailMd": f"""## 부서마다 따로 계산: GROUP BY가 필요한 이유 {{#why}}
 
 집계 함수만 쓰면 사원 전체가 한 묶음이라 결과가 1행으로 끝나요. "부서마다 몇 명이고 급여 합계는 얼마인가요?"처럼 묶음을 나눠 계산하려면 GROUP BY를 쓰고, 이 글은 아래 사원 표로 설명해요.
 
 {EMPLOYEE_DEPARTMENT_TABLE}
 
-## 한 줄 정의 — 묶는 GROUP BY, 거르는 HAVING {{#definition}}
+## 한 줄 정의: 묶는 GROUP BY, 거르는 HAVING {{#definition}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -104,7 +104,7 @@ CONCEPT = {
 
 {DEPARTMENT_TABLE_MD}
 
-## 실행 순서 — WHERE는 행을, HAVING은 그룹을 걸러요 {{#order}}
+## 실행 순서: WHERE는 행을, HAVING은 그룹을 걸러요 {{#order}}
 
 GROUP BY와 HAVING의 규칙은 대부분 절을 처리하는 순서에서 나와요. 적는 순서는 SELECT가 맨 앞이지만 실제 처리 순서는 아래와 같아요.
 
@@ -141,7 +141,7 @@ GROUP BY와 HAVING의 규칙은 대부분 절을 처리하는 순서에서 나�
 SELECT 부서번호, COUNT(*) FROM 사원 WHERE COUNT(*) >= 2 GROUP BY 부서번호;
 ```
 
-## SELECT에 쓸 수 있는 것 — GROUP BY 열과 집계 함수 {{#select-rule}}
+## SELECT에 쓸 수 있는 것: GROUP BY 열과 집계 함수 {{#select-rule}}
 
 20번 그룹에는 이지은, 박서준, 정하늘 세 명이 있어요. 그룹 하나가 결과 한 행이 되는데 이름은 세 개라서, SQL은 어느 이름을 보여 줄지 정할 수 없어요.
 
@@ -163,7 +163,7 @@ SELECT 부서번호, 이름, SUM(급여) FROM 사원 GROUP BY 부서번호;
 | GROUP BY 없이 일반 열과 집계 함수를 섞음 | ORA-00937(한 행으로 묶을 수 없는 그룹 함수) |
 | GROUP BY가 있는데 거기에 없는 열을 씀 | ORA-00979(GROUP BY에 없는 열) |
 
-## 자주 헷갈리는 점 — 별칭, NULL 그룹, HAVING만 쓰기 {{#confusing}}
+## 자주 헷갈리는 점: 별칭, NULL 그룹, HAVING만 쓰기 {{#confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -184,7 +184,7 @@ SELECT 부서번호 AS 부서, COUNT(*) FROM 사원 GROUP BY 부서;
 
 {ORDER_BY_AGGREGATE_EXAMPLE.markdown}
 
-## KEEP — 첫째·마지막 행의 값으로 집계 {{#keep}}
+## KEEP: 첫째, 마지막 행의 값으로 집계 {{#keep}}
 
 "부서마다 가장 먼저 입사한 사람의 급여"는 `MIN(입사일)`로도, `MAX(급여)`로도 구할 수 없어요. Oracle은 집계 함수 뒤에 **KEEP**을 붙여, 정해 둔 순서로 줄 세운 맨 앞이나 맨 뒤 행만 남기고 집계할 수 있어요.
 
@@ -211,7 +211,7 @@ SELECT 부서번호 AS 부서, COUNT(*) FROM 사원 GROUP BY 부서;
 
 30번 부서는 가장 먼저 입사한 최유나가 급여도 가장 커서 3200으로 같고, 가장 늦은 오지민의 2200이 LAST로 나와요. 사원이 한 명뿐인 10번과 NULL 그룹은 세 값이 모두 같아요.
 
-## KEEP의 함정 — 동점, 정렬 방향, DENSE_RANK만 {{#keep-trap}}
+## KEEP의 함정: 동점, 정렬 방향, DENSE_RANK만 {{#keep-trap}}
 
 20번 부서를 급여 순으로 줄 세우면 이지은(1002)과 정하늘(1005)이 2500으로 함께 1위라서 두 행이 남아요. 이때는 앞에 적은 집계 함수가 하나를 골라서, `MIN(사번)`이면 1002, `MAX(사번)`이면 1005가 나와요.
 
@@ -232,7 +232,7 @@ SELECT MAX(급여) KEEP (RANK FIRST ORDER BY 입사일) FROM 사원;
 
 KEEP 뒤에 `OVER (PARTITION BY 부서번호)`를 붙이면 행을 줄이지 않고 사원마다 부서의 값을 함께 보여 주는 윈도우 함수가 돼요. 윈도우 함수는 8단원에서 다뤄요.
 
-## 꼭 외울 것 — 어느 절에 무엇을 쓰나 {{#memorize}}
+## 꼭 외울 것: 어느 절에 무엇을 쓰나 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
@@ -300,7 +300,7 @@ WHERE와 HAVING이 함께 있는 SQL의 결과 행 수를 묻는 문제가 가�
     ],
     "relatedQuestionUuids": [],
     "sqlChecks": [
-        # 정의 예시 (부서별 인원·합계, 정렬 확인)
+        # 정의 예시 (부서별 인원, 합계, 정렬 확인)
         DEPARTMENT_SUMMARY_EXAMPLE.check,
         sql_check("SELECT 부서번호, COUNT(*) AS 인원, SUM(급여) AS 급여합계 FROM 사원 GROUP BY 부서번호 ORDER BY 부서번호",
                   DEPARTMENT_SUMMARY_ROWS, is_ordered=True),
@@ -310,7 +310,7 @@ WHERE와 HAVING이 함께 있는 SQL의 결과 행 수를 묻는 문제가 가�
         sql_error_check("SELECT 부서번호 AS 부서, COUNT(*) FROM 사원 GROUP BY 부서;", "ORA-00904"),
         # WHERE <-> HAVING (결과, WHERE 집계 오류, HAVING 열 제한)
         WHERE_HAVING_EXAMPLE.check,
-        # WHERE·HAVING 그림: 남는 사원 5명
+        # WHERE, HAVING 그림: 남는 사원 5명
         sql_check("SELECT 이름 FROM 사원 WHERE 급여 >= 2500 AND 부서번호 IN "
                   "(SELECT 부서번호 FROM 사원 WHERE 급여 >= 2500 GROUP BY 부서번호 HAVING COUNT(*) >= 2)",
                   [["이지은"], ["박서준"], ["최유나"], ["정하늘"], ["한도윤"]]),
@@ -332,14 +332,14 @@ WHERE와 HAVING이 함께 있는 SQL의 결과 행 수를 묻는 문제가 가�
         # 집계 중첩
         sql_check("SELECT MAX(SUM(급여)) FROM 사원 GROUP BY 부서번호", [[8100]]),
         sql_error_check("SELECT 부서번호, MAX(SUM(급여)) FROM 사원 GROUP BY 부서번호", "ORA-00937"),
-        # KEEP (첫·마지막 입사자 급여, 동점은 앞 함수로 선택, 정렬 방향, DENSE_RANK 필수)
+        # KEEP (첫, 마지막 입사자 급여, 동점은 앞 함수로 선택, 정렬 방향, DENSE_RANK 필수)
         KEEP_FIRST_LAST_EXAMPLE.check,
         KEEP_TIE_EXAMPLE.check,
         sql_check("SELECT 부서번호, MIN(급여) KEEP (DENSE_RANK FIRST ORDER BY 입사일) FROM 사원 GROUP BY 부서번호",
                   [[10, 3000], [20, 2500], [30, 3200], [None, 2000]]),
         sql_check("SELECT MAX(급여) KEEP (DENSE_RANK FIRST ORDER BY 입사일 DESC) FROM 사원 WHERE 부서번호 = 30", [[2200]]),
         sql_error_check("SELECT MAX(급여) KEEP (RANK FIRST ORDER BY 입사일) FROM 사원", "ORA-02000"),
-        # 확인 문제 보기·stemSql
+        # 확인 문제 보기, stemSql
         sql_error_check("SELECT 부서번호, 이름 FROM 사원 GROUP BY 부서번호", "ORA-00979"),
         sql_check("SELECT 부서번호, SUM(급여) FROM 사원 GROUP BY 부서번호", [[10, 3000], [20, 7800], [30, 8100], [None, 2000]]),
         sql_check("SELECT 부서번호, COUNT(*) FROM 사원 GROUP BY 부서번호 ORDER BY SUM(급여)",

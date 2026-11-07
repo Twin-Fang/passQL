@@ -2,7 +2,7 @@
 
 from concept_bundle import choice, question, sql_check, sql_error_check, sql_example
 
-# 고정·가변 길이 비교용 작은 표 (블록·검증 항목마다 새로 만듦)
+# 고정, 가변 길이 비교용 작은 표 (블록, 검증 항목마다 새로 만듦)
 CHAR_COMPARE_SETUP = (
     "CREATE TABLE 문자비교 (고정 CHAR(5), 가변 VARCHAR2(5));\n"
     "INSERT INTO 문자비교 VALUES ('AB', 'AB');"
@@ -30,7 +30,7 @@ CONCEPT = {
         "- `DATE`는 초까지, `TIMESTAMP`는 **초보다 작은 단위**까지 시각을 저장해요.\n"
         "- 아주 긴 문자는 `CLOB`, 파일 같은 이진 데이터는 `BLOB`에 담아요."
     ),
-    "detailMd": """## 왜 타입을 정할까요 — 열마다 담을 값을 미리 약속해요 {#why}
+    "detailMd": """## 왜 타입을 정할까요: 열마다 담을 값을 미리 약속해요 {#why}
 
 엑셀은 한 칸에 숫자를 적든 글자를 적든 막지 않아요. 데이터베이스는 테이블을 만들 때 열마다 담을 값의 종류와 크기를 먼저 정해 둬요.
 
@@ -59,7 +59,7 @@ CREATE TABLE 사원 (
 );
 ```
 
-## 자주 쓰는 타입 일곱 가지 — 문자·숫자·날짜·큰 데이터 {#definition}
+## 자주 쓰는 타입 일곱 가지: 문자, 숫자, 날짜, 큰 데이터 {#definition}
 
 시험에 나오는 Oracle 타입은 아래 일곱 가지가 거의 전부예요.
 
@@ -71,14 +71,14 @@ CREATE TABLE 사원 (
 | 날짜 | `DATE` | 날짜와 시각, 초 단위까지 | 입사일 |
 | 날짜 | `TIMESTAMP` | 날짜와 시각, 초보다 작은 단위까지 | 결제 시각 |
 | 큰 데이터 | `CLOB` | 아주 긴 문자 | 게시글 본문 |
-| 큰 데이터 | `BLOB` | 이미지·파일 같은 이진 데이터 | 사진, 첨부 파일 |
+| 큰 데이터 | `BLOB` | 이미지, 파일 같은 이진 데이터 | 사진, 첨부 파일 |
 
 | 용어 | 뜻 |
 |---|---|
 | CLOB (Character Large Object) | VARCHAR2에 다 못 담는 긴 문자를 담아요. VARCHAR2는 기본 설정에서 4000바이트까지만 들어가요 |
 | BLOB (Binary Large Object) | 사진이나 PDF처럼 글자가 아닌 이진 데이터를 담아요. CLOB와 함께 기가바이트 단위까지 저장할 수 있어요 |
 
-## CHAR와 VARCHAR2 — 남는 자리를 채우느냐의 차이 {#char-varchar2}
+## CHAR와 VARCHAR2: 남는 자리를 채우느냐의 차이 {#char-varchar2}
 
 | 구분 | `CHAR(n)` | `VARCHAR2(n)` |
 |---|---|---|
@@ -89,7 +89,7 @@ CREATE TABLE 사원 (
 | 최대 길이 (기본 설정) | 2000바이트 | 4000바이트 |
 | 어울리는 값 | 코드처럼 길이가 늘 같은 값 | 이름, 주소처럼 길이가 제각각인 값 |
 
-`INSERT`는 테이블에 행을 넣는 명령어로 INSERT·UPDATE·DELETE 개념에서 다뤄요. `LENGTH`는 글자 수를 세는 함수인데, 같은 'AB'를 넣어도 CHAR 열은 공백 세 칸이 붙어서 5가 나와요.
+`INSERT`는 테이블에 행을 넣는 명령어로 INSERT, UPDATE, DELETE 개념에서 다뤄요. `LENGTH`는 글자 수를 세는 함수인데, 같은 'AB'를 넣어도 CHAR 열은 공백 세 칸이 붙어서 5가 나와요.
 
 """ + CHAR_LENGTH_EXAMPLE.markdown + """
 
@@ -100,7 +100,7 @@ CREATE TABLE 문자비교 (고정 CHAR(5), 가변 VARCHAR2(5));
 INSERT INTO 문자비교 VALUES ('ABCDEF', 'A');   -- 오류: 고정 열에는 5글자까지만 들어가요 (ORA-12899)
 ```
 
-## NUMBER(p, s) — 넘친 소수는 반올림, 넘친 정수는 오류 {#number}
+## NUMBER(p, s): 넘친 소수는 반올림, 넘친 정수는 오류 {#number}
 
 | 용어 | 뜻 |
 |---|---|
@@ -129,7 +129,7 @@ SELECT 값 FROM 숫자;                 -- 123.46 한 행만 나와요
 |---|---|---|
 | NUMBER(5, 2)에서 소수가 넘치든 정수가 넘치든 반올림해서 넣어 줘요 | X | 소수만 반올림하고, 정수 부분이 세 자리를 넘으면 오류가 나요 |
 
-## DATE와 TIMESTAMP — 둘 다 시각까지 들어 있어요 {#date}
+## DATE와 TIMESTAMP: 둘 다 시각까지 들어 있어요 {#date}
 
 이름만 보면 `DATE`는 날짜만 담을 것 같지만 시, 분, 초까지 저장해요. `DATE '2026-10-27'`처럼 날짜만 적어 넣으면 시각은 자정(00:00:00)으로 채워져요.
 
@@ -146,7 +146,7 @@ SELECT 값 FROM 숫자;                 -- 123.46 한 행만 나와요
 |---|---|---|
 | 같은 시각을 넣어도 DATE 열에서는 소수 초가 사라져요 | O | DATE는 초까지만 저장해서 13:45:30만 남아요 |
 
-## 자주 헷갈리는 점 — 공백 비교, 바이트 길이, 자정 {#confusing}
+## 자주 헷갈리는 점: 공백 비교, 바이트 길이, 자정 {#confusing}
 
 CHAR(5) 열에 'AB'를 넣으면 실제로는 'AB   '처럼 뒤에 공백 세 칸이 붙어 저장돼요. 이 값을 무엇과 비교하느냐에 따라 공백을 채워 주는지가 달라져요.
 
@@ -174,7 +174,7 @@ SELECT COUNT(*) FROM 문자비교 WHERE 고정 = 가변;    -- 0이 나와요 ('
 | CLOB 열도 일반 문자처럼 `=`로 비교할 수 있어요 | `=`로 바로 비교하면 오류(ORA-00932, 데이터 타입 불일치)가 나요 |
 | Oracle의 VARCHAR와 VARCHAR2는 다르게 동작해요 | 지금은 똑같이 동작하고, Oracle은 VARCHAR2를 쓰도록 권해요 |
 
-## SQL Server와 이름이 달라요 — 같은 용도, 다른 이름 {#sql-server}
+## SQL Server와 이름이 달라요: 같은 용도, 다른 이름 {#sql-server}
 
 | 용도 | Oracle | SQL Server |
 |---|---|---|
@@ -194,7 +194,7 @@ SELECT COUNT(*) FROM 문자비교 WHERE 고정 = 가변;    -- 0이 나와요 ('
 |---|---|---|
 | SQL Server의 TIMESTAMP는 소수 초까지 담는 날짜 타입이에요 | X | 날짜가 아니라 행이 바뀔 때마다 자동으로 바뀌는 버전 번호예요 |
 
-## 꼭 외울 것 — 고정·가변 길이와 자릿수 {#memorize}
+## 꼭 외울 것: 고정, 가변 길이와 자릿수 {#memorize}
 
 | 외울 것 | 답 |
 |---|---|
@@ -209,7 +209,7 @@ SELECT COUNT(*) FROM 문자비교 WHERE 고정 = 가변;    -- 0이 나와요 ('
 
 ## 시험에서는 이렇게 나와요 {#exam-point}
 
-CHAR와 VARCHAR2의 차이가 가장 자주 나오고, 고정·가변 길이와 비교 방식을 함께 물어요. 비교 문제는 두 값이 모두 CHAR나 리터럴인지, 한쪽이 VARCHAR2인지부터 확인하면 풀려요.
+CHAR와 VARCHAR2의 차이가 가장 자주 나오고, 고정, 가변 길이와 비교 방식을 함께 물어요. 비교 문제는 두 값이 모두 CHAR나 리터럴인지, 한쪽이 VARCHAR2인지부터 확인하면 풀려요.
 
 `NUMBER(p, s)`는 넣을 수 있는 가장 큰 값이나 저장된 결과를 물어요. 정수 부분이 p - s자리를 넘는지부터 세어 보면 실수가 줄어요.""",
     "checkQuestions": [
@@ -250,11 +250,11 @@ CHAR와 VARCHAR2의 차이가 가장 자주 나오고, 고정·가변 길이와 
         # 문자와 숫자의 비교 방식 차이
         sql_check("SELECT CASE WHEN '10' < '9' THEN '작음' ELSE '큼' END FROM DUAL", [["작음"]]),
         sql_check("SELECT CASE WHEN 10 < 9 THEN '작음' ELSE '큼' END FROM DUAL", [["큼"]]),
-        # CHAR·VARCHAR2 길이, 길이 초과
+        # CHAR, VARCHAR2 길이, 길이 초과
         CHAR_LENGTH_EXAMPLE.check,
         sql_error_check("INSERT INTO 문자비교 VALUES ('ABCDEF', 'A')", "ORA-12899",
                         setup="CREATE TABLE 문자비교 (고정 CHAR(5), 가변 VARCHAR2(5));"),
-        # NUMBER 반올림·자리 초과
+        # NUMBER 반올림, 자리 초과
         sql_check("SELECT 값 FROM 숫자", [[123.46]],
                   setup="CREATE TABLE 숫자 (값 NUMBER(5, 2));\nINSERT INTO 숫자 VALUES (123.456);"),
         sql_error_check("INSERT INTO 숫자 VALUES (1234.5)", "ORA-01438", setup="CREATE TABLE 숫자 (값 NUMBER(5, 2));"),
@@ -263,7 +263,7 @@ CHAR와 VARCHAR2의 차이가 가장 자주 나오고, 고정·가변 길이와 
                   setup="CREATE TABLE 숫자 (값 NUMBER(5, 2));\nINSERT INTO 숫자 VALUES (-999.99);\nINSERT INTO 숫자 VALUES (999.99);"),
         sql_check("SELECT 값 FROM 숫자", [[12346]],
                   setup="CREATE TABLE 숫자 (값 NUMBER(5));\nINSERT INTO 숫자 VALUES (12345.6);"),
-        # DATE·TIMESTAMP 소수 초, DATE 자정 비교
+        # DATE, TIMESTAMP 소수 초, DATE 자정 비교
         DATE_TIMESTAMP_EXAMPLE.check,
         sql_check("SELECT TO_CHAR(DATE '2026-10-27', 'HH24:MI:SS') FROM DUAL", [["00:00:00"]]),
         sql_check("SELECT COUNT(*) FROM 날짜비교 WHERE 일시 = DATE '2026-10-27'", [[0]],

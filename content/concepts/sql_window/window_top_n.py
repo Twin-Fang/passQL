@@ -63,7 +63,7 @@ FROM (SELECT 이름, 급여, RANK() OVER (ORDER BY 급여 DESC) AS 순위
 WHERE 급여 < 3000 AND 순위 = 1;"""
 
 # 순위 함수별 결과 행 수 (전체 사원, 급여 내림차순)
-# 행 수는 동점끼리 순서와 무관 > 사번 없이 급여만 기준 (RANK·DENSE_RANK 동점 유지)
+# 행 수는 동점끼리 순서와 무관 > 사번 없이 급여만 기준 (RANK, DENSE_RANK 동점 유지)
 RANK_COUNT_SQL_TEMPLATE = "SELECT COUNT(*) FROM (SELECT {function} OVER (ORDER BY 급여 DESC) AS 순위 FROM 사원) WHERE 순위 <= {limit}"
 RANK_COUNT_ROWS = [("ROW_NUMBER()", 5, 5), ("RANK()", 5, 6), ("DENSE_RANK()", 5, 6),
                    ("ROW_NUMBER()", 6, 6), ("RANK()", 6, 6), ("DENSE_RANK()", 6, 7)]
@@ -94,7 +94,7 @@ CONCEPT = {
         "- 동점자를 모두 넣으려면 RANK나 DENSE_RANK를, 정확히 N명만 뽑으려면 **ROW_NUMBER**를 써요.\n"
         "- ROWNUM과 `FETCH FIRST N ROWS`는 **결과 전체에서만** N개를 자르고, 부서별로 나눠 뽑지는 못해요."
     ),
-    "detailMd": f"""## 부서마다 상위 몇 명 — 왜 윈도우 함수일까요 {{#why}}
+    "detailMd": f"""## 부서마다 상위 몇 명: 왜 윈도우 함수일까요 {{#why}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -107,7 +107,7 @@ SELECT 기본 단원의 ROWNUM이나 `FETCH FIRST`는 결과 전체에서 앞의
 
 {EMPLOYEE_BASE_TABLE}
 
-## 기본 틀 — 안에서 순위, 바깥에서 거르기 {{#definition}}
+## 기본 틀: 안에서 순위, 바깥에서 거르기 {{#definition}}
 
 ```sql
 -- 문법
@@ -125,13 +125,13 @@ WHERE 순위 <= N;
 
 인라인 뷰를 거쳐야 하는 이유는 실행 순서에 있어요. 윈도우 함수는 WHERE가 끝난 뒤에 계산되기 때문에, 같은 SELECT 문의 WHERE에서는 쓸 수 없어요.
 
-## 작은 예시 — 회사 전체 상위 3명 {{#small-example}}
+## 작은 예시: 회사 전체 상위 3명 {{#small-example}}
 
 PARTITION BY 없이 회사 전체에서 급여 상위 3명을 뽑으면 아래와 같아요.
 
 {TOP_THREE_EXAMPLE.markdown}
 
-## 부서별 상위 2명 — RANK와 ROW_NUMBER로 비교 {{#partition}}
+## 부서별 상위 2명: RANK와 ROW_NUMBER로 비교 {{#partition}}
 
 인라인 뷰 안의 OVER에 `PARTITION BY 부서번호`를 넣으면 부서마다 1위부터 순위가 다시 시작돼요. 바깥에서 `순위 <= 2`로 거르면 부서별 상위 2명이 남아요.
 
@@ -169,7 +169,7 @@ PARTITION BY 없이 회사 전체에서 급여 상위 3명을 뽑으면 아래�
 
 ROW_NUMBER는 동점이어도 2와 3을 나눠 주기 때문에 정하늘이 빠졌어요. 사번을 두 번째 정렬 기준으로 넣어서 이지은이 2번이 됐고, 사번이 없었다면 누가 남을지는 정해지지 않아요.
 
-## 어떤 순위 함수를 쓰느냐에 따라 — 남는 행 수가 달라요 {{#rank-choice}}
+## 어떤 순위 함수를 쓰느냐에 따라: 남는 행 수가 달라요 {{#rank-choice}}
 
 회사 전체를 급여 내림차순으로 줄 세우면, 이지은과 정하늘이 RANK와 DENSE_RANK에서 함께 5위예요. 그다음인 오지민은 RANK로 7위, DENSE_RANK로 6위예요.
 
@@ -184,7 +184,7 @@ ROW_NUMBER는 동점이어도 2와 3을 나눠 주기 때문에 정하늘이 빠
 | 동점자를 함께 넣고, 순위 번호는 건너뛰기 | RANK |
 | 동점자를 함께 넣고, 순위 번호는 촘촘하게 | DENSE_RANK |
 
-## ROWNUM, FETCH FIRST와 비교 — 부서별로는 못 잘라요 {{#compare}}
+## ROWNUM, FETCH FIRST와 비교: 부서별로는 못 잘라요 {{#compare}}
 
 | 용어 | 뜻 |
 |---|---|
@@ -242,16 +242,16 @@ ROWNUM 함정을 위 사원 표로 보면, `WHERE ROWNUM <= 3 ORDER BY 급여 DE
 | FETCH FIRST 3 ROWS WITH TIES로 부서마다 상위 3명을 뽑을 수 있어요 | X | FETCH FIRST는 결과 전체에서만 잘라서, 부서별로 나누려면 PARTITION BY를 쓴 순위 함수가 필요해요 |
 | ROW_NUMBER로 순위 <= 3을 거르면 동점자가 있어도 3행이에요 | O | ROW_NUMBER는 동점에도 서로 다른 번호를 줘요 |
 
-## 꼭 외울 것 — 몇 명이 남나 {{#memorize}}
+## 꼭 외울 것: 몇 명이 남나 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
 | 순위로 거르는 자리 | 인라인 뷰 바깥의 WHERE |
 | 같은 SELECT의 WHERE에 쓰면 | 오류 (ORA-30483, 윈도우 함수를 쓸 수 없는 자리) |
 | `ROW_NUMBER <= N` | 동점이 있어도 정확히 N행 |
-| RANK·DENSE_RANK <= N | 동점이 경계에 걸리면 N행보다 많을 수 있어요 |
+| RANK, DENSE_RANK <= N | 동점이 경계에 걸리면 N행보다 많을 수 있어요 |
 | 부서별 상위 N명 | 순위 함수 OVER 안에 PARTITION BY |
-| ROWNUM·FETCH FIRST | 결과 전체에서만 잘라요, 부서별로는 못 해요 |
+| ROWNUM, FETCH FIRST | 결과 전체에서만 잘라요, 부서별로는 못 해요 |
 | `FETCH ... WITH TIES` | N번째 행과 정렬 값이 같은 행까지 함께 |
 | 조건을 인라인 뷰 안에 두면 | 순위를 매기기 전에 걸러서 결과가 달라요 |
 
@@ -325,7 +325,7 @@ ROWNUM 함정을 위 사원 표로 보면, `WHERE ROWNUM <= 3 ORDER BY 급여 DE
                   [["윤서연"], ["오지민"]]),
         sql_check("SELECT 이름, 급여 FROM 사원 WHERE ROWNUM <= 3 ORDER BY 급여 DESC",
                   [["김민수", 3000], ["박서준", 2800], ["이지은", 2500]], is_ordered=True),
-        # 확인 문제 2·4·5번 stemSql
+        # 확인 문제 2, 4, 5번 stemSql
         sql_check(DEPARTMENT_RANK_STEM_SQL, [["박서준"], ["이지은"], ["정하늘"]]),
         sql_check(DENSE_RANK_STEM_SQL, [["최유나"], ["김민수"], ["박서준"], ["한도윤"], ["이지은"], ["정하늘"], ["오지민"]]),
         sql_check(FETCH_STEM_SQL, FETCH_WITH_TIES_ROWS),

@@ -4,7 +4,7 @@ from concept_bundle import choice, question, sql_check, sql_example
 from concept_dataset import to_employee_table_md, to_insert_statements, to_markdown_table
 
 EMPLOYEE_PIVOT_TABLE = to_employee_table_md("사번", "이름", "직급", "급여", "부서번호")
-# 원본 테이블을 그대로 PIVOT 할 때 결과 계산에 쓰는 열 (사번이 사원마다 달라 8행, 칸 값은 이름·급여·부서번호)
+# 원본 테이블을 그대로 PIVOT 할 때 결과 계산에 쓰는 열 (사번이 사원마다 달라 8행, 칸 값은 이름, 급여, 부서번호)
 EMPLOYEE_WHOLE_TABLE_KEY_TABLE = to_employee_table_md("사번", "이름", "급여", "부서번호")
 EMPLOYEE_ALL_COLUMN_NAMES = "사번, 이름, 직급, 관리자사번, 입사일, 급여, 커미션, 부서번호"
 
@@ -20,7 +20,7 @@ CREATE_MONTHLY_SALES_SQL = "\n".join(
     + to_insert_statements("월별매출", MONTHLY_SALES_ROWS)
 )
 
-# 본문 SQL·결과 표와 검증 항목의 원본
+# 본문 SQL, 결과 표와 검증 항목의 원본
 GROUP_BY_SQL = """SELECT 부서번호, SUM(급여) AS 급여합계
 FROM 사원
 GROUP BY 부서번호
@@ -137,7 +137,7 @@ CONCEPT = {
         "- PIVOT 안에는 집계 함수가 꼭 있어야 하고, IN 목록에는 상수만 쓸 수 있어요.\n"
         "- UNPIVOT은 여러 열을 행으로 풀고, 기본으로는 **NULL 칸의 행**을 만들지 않아요(`INCLUDE NULLS`를 쓰면 만들어요)."
     ),
-    "detailMd": f"""## 세로를 가로로 — 왜 표를 돌릴까요 {{#why}}
+    "detailMd": f"""## 세로를 가로로: 왜 표를 돌릴까요 {{#why}}
 
 부서별 급여 합계를 GROUP BY로 구하면 부서마다 한 행씩 세로로 쌓여요.
 
@@ -159,7 +159,7 @@ PIVOT 예시는 공통 사원 표의 직급, 급여, 부서번호를 써요.
 
 {EMPLOYEE_PIVOT_TABLE}
 
-## 한 줄 정의와 문법 — 집계 FOR 열 IN 값 {{#definition}}
+## 한 줄 정의와 문법: 집계 FOR 열 IN 값 {{#definition}}
 
 PIVOT은 FOR 뒤에 적은 열의 값 하나하나를 새 열로 만들고, 그 칸에 집계 함수로 계산한 값을 채워 넣는 연산이에요.
 
@@ -181,7 +181,7 @@ PIVOT (
 | 남은 열 | 집계와 FOR에 쓰이지 않은 열이에요. PIVOT이 이 열로 저절로 GROUP BY를 해서 행을 묶어요 |
 | 인라인 뷰 | FROM 절 안에 괄호로 넣은 SELECT예요. 남은 열을 내가 고르려고 써요 |
 
-## 예시 — 한 행으로, 직급별로, CASE로 {{#example}}
+## 예시: 한 행으로, 직급별로, CASE로 {{#example}}
 
 부서번호와 급여 두 열만 고르면 부서번호는 FOR에, 급여는 SUM에 쓰여서 남은 열이 하나도 없어요. 그래서 전체가 한 그룹이 되어 결과가 한 행으로 나와요.
 
@@ -209,7 +209,7 @@ PIVOT (
 
 결과는 앞의 PIVOT 예시와 행 하나 다르지 않아요. 시험에서는 "PIVOT과 결과가 같은 SQL"을 고르는 보기로 자주 나와요.
 
-## 자주 헷갈리는 점 — 몇 행이 나오나 {{#confusing}}
+## 자주 헷갈리는 점: 몇 행이 나오나 {{#confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -242,7 +242,7 @@ PIVOT (
 | 인라인 뷰에 부서번호와 급여만 넣고 `SUM(급여)`로 PIVOT하면 한 행이 나와요 | O | 두 열이 모두 PIVOT 안에서 쓰여서 묶는 기준이 남지 않아요 |
 | PIVOT 결과에서 사원이 없는 부서의 COUNT 칸은 NULL이에요 | X | COUNT는 셀 행이 없으면 0이고, NULL이 되는 것은 SUM이에요 |
 
-## IN 목록·별칭·집계 함수 — 문법 규칙 {{#in-list}}
+## IN 목록, 별칭, 집계 함수: 문법 규칙 {{#in-list}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -266,7 +266,7 @@ PIVOT (
 
 {NO_ALIAS_EXAMPLE.markdown}
 
-## UNPIVOT — 열을 행으로 눕혀요 {{#unpivot}}
+## UNPIVOT: 열을 행으로 눕혀요 {{#unpivot}}
 
 UNPIVOT은 같은 종류의 값이 여러 열에 나뉘어 있을 때 그 열들을 행으로 풀어 줘요. 아래 월별매출 표에서 부산의 2월 매출은 아직 없어서 NULL이에요.
 
@@ -301,7 +301,7 @@ UNPIVOT [INCLUDE NULLS] (
 
 {to_markdown_table(("지점", "월", "매출"), UNPIVOT_INCLUDE_NULLS_ROWS)}
 
-## UNPIVOT에서 헷갈리는 점 — 별칭과 되돌리기 {{#unpivot-confusing}}
+## UNPIVOT에서 헷갈리는 점: 별칭과 되돌리기 {{#unpivot-confusing}}
 
 | 헷갈리는 말 | 실제로는 |
 |---|---|
@@ -324,7 +324,7 @@ UNPIVOT [INCLUDE NULLS] (
 |---|---|---|
 | UNPIVOT에 `INCLUDE NULLS`를 쓰면 월별매출 결과는 6행이에요 | O | 부산의 이월 NULL 칸도 행으로 만들어서 지점마다 3행씩이에요 |
 
-## 꼭 외울 것 — 행 수와 열 수를 정하는 것 {{#memorize}}
+## 꼭 외울 것: 행 수와 열 수를 정하는 것 {{#memorize}}
 
 | 외울 것 | 답 |
 |---|---|
@@ -337,7 +337,7 @@ UNPIVOT [INCLUDE NULLS] (
 | UNPIVOT과 NULL 칸 | 기본 EXCLUDE NULLS라 행이 안 생겨요 (INCLUDE NULLS면 생김) |
 | PIVOT 없이 같은 결과 | CASE와 SUM, GROUP BY로 만들어요 |
 
-## 시험에서는 이렇게 나와요 — 행 수와 칸 값 {{#exam-point}}
+## 시험에서는 이렇게 나와요: 행 수와 칸 값 {{#exam-point}}
 
 PIVOT SQL을 주고 결과 표의 행 수나 특정 칸의 값을 묻는 문제가 가장 많아요.
 

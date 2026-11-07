@@ -7,12 +7,14 @@ import com.passql.question.constant.ExecutionMode;
 import com.passql.question.dto.ExecuteResult;
 import com.passql.question.dto.ImportItemResult;
 import com.passql.question.dto.PostgresCompatibleSql;
+import com.passql.question.dto.QuestionFormatCheckResult;
+import com.passql.question.dto.QuestionFormatInput;
 import com.passql.question.dto.QuestionExportDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * 가져오기 항목 1건 검증: 필수 필드·토픽·실행 모드 확인, Oracle 문법 치환·감지, 정답 SQL 샌드박스 실행
+ * 가져오기 항목 1건 검증: 필수 필드·고정 보기·형식 규칙·토픽·실행 모드 확인, Oracle 문법 치환·감지, 정답 SQL 샌드박스 실행
  * 결과 상태 3개: OK(실행 성공), SKIP(개념 문제·Oracle 전용 문법), FAIL(사유 기록)
  */
 @Component
@@ -23,7 +25,7 @@ public class QuestionImportItemValidator {
     private final SandboxExecutor sandboxExecutor;
     private final OracleSqlCompatibilityConverter oracleSqlCompatibilityConverter;
 
-    /** 가져오기 항목 1건 검증: 필수 필드 > 토픽 > 실행 모드 > Oracle 문법 > 샌드박스 실행 */
+    /** 가져오기 항목 1건 검증: 필수 필드 > 고정 보기 > 형식 규칙 > 토픽 > 실행 모드 > Oracle 문법 > 샌드박스 실행 */
     public ImportItemResult validate(int index, QuestionExportDto item, String stemPreview, String importAction) {
         // 필수 필드 검증
         if (item.topicCode() == null || item.topicCode().isBlank()
@@ -42,6 +44,14 @@ public class QuestionImportItemValidator {
         if (choiceRejectReason != null) {
             return new ImportItemResult(index, stemPreview, item.topicCode(), item.difficulty(),
                     item.executionMode(), "FAIL", null, null, choiceRejectReason, importAction);
+        }
+
+        // 문항 형식 규칙 (#905, 사유별 목록은 가져오기 검증 화면에 표시)
+        QuestionFormatCheckResult formatResult = QuestionFormatRule.check(QuestionFormatInput.from(item));
+        if (!formatResult.isPassed()) {
+            return new ImportItemResult(index, stemPreview, item.topicCode(), item.difficulty(),
+                    item.executionMode(), "FAIL", null, null,
+                    "형식 규칙 위반 " + formatResult.violations().size() + "건", importAction, formatResult.violations());
         }
 
         // topicCode 유효성

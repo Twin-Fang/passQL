@@ -3,6 +3,7 @@ package com.passql.application.service.statsanalysis;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.passql.common.util.UuidUtils;
+import com.passql.question.service.ForbiddenPunctuationCleaner;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -48,7 +49,8 @@ public final class AiAnalysisInsightParser {
                 continue;
             }
             JsonNode textNode = insight.path("text");
-            String sentence = textNode.isTextual() ? toValidSentence(textNode.asText()) : null;
+            // 응답 전 줄표·가운뎃점 정리 (#905)
+            String sentence = textNode.isTextual() ? toValidSentence(ForbiddenPunctuationCleaner.clean(textNode.asText())) : null;
             if (sentence != null) {
                 insightByTopicUuid.put(topicUuid, sentence);
             }
@@ -59,7 +61,8 @@ public final class AiAnalysisInsightParser {
     /** 세션 코멘트 LLM 원문 {"insight":"..."} > 한 문장 (없거나 버린 문장이면 null) */
     public static String parseSingle(String rawOutput) throws Exception {
         JsonNode textNode = OBJECT_MAPPER.readTree(stripCodeFence(rawOutput)).path("insight");
-        return textNode.isTextual() ? toValidSentence(textNode.asText()) : null;
+        // 응답 전 줄표·가운뎃점 정리 (#905, 통계 분석·세션 코멘트 공통)
+        return textNode.isTextual() ? toValidSentence(ForbiddenPunctuationCleaner.clean(textNode.asText())) : null;
     }
 
     static String stripCodeFence(String rawOutput) {
