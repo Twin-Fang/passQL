@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import '../../../core/utils/question_difficulty.dart';
 import '../../../data/models/question/question_detail.dart';
+import '../../../data/models/question/question_schema_table.dart';
 import '../../../data/models/question/sse_event.dart';
 import '../../providers/question_providers.dart';
 import '../../design/design.dart';
@@ -82,10 +83,15 @@ class QuestionHeader extends StatelessWidget {
   }
 }
 
-/// 문제 지문 카드.
+/// 문제 지문 카드 (스키마 표도 카드 안 표 자리에, #903)
 class QuestionStem extends StatelessWidget {
   final String stem;
-  const QuestionStem({super.key, required this.stem});
+  final List<QuestionSchemaTable> schemaTables;
+  const QuestionStem({
+    super.key,
+    required this.stem,
+    this.schemaTables = const [],
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +100,9 @@ class QuestionStem extends StatelessWidget {
         horizontal: PassqlSpacing.md,
         vertical: PassqlSpacing.xs,
       ),
-      child: PassqlCard(child: StemText(stem)),
+      child: PassqlCard(
+        child: StemText(stem, schemaTables: schemaTables),
+      ),
     );
   }
 }

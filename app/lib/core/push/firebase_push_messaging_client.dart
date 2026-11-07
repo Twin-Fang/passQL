@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 
+import '../logging/app_logger.dart';
 import '../utils/external_url_launcher.dart';
 import 'push_link.dart';
 import 'push_messaging_client.dart';
@@ -41,7 +41,7 @@ class FirebasePushMessagingClient extends PushMessagingClient {
     try {
       return await launchExternalUrl(_iosAppSettingsUrl);
     } catch (error) {
-      debugPrint('[push] open settings failed : $error');
+      AppLogger.warn('push', 'open settings failed : $error');
       return false;
     }
   }
@@ -53,7 +53,7 @@ class FirebasePushMessagingClient extends PushMessagingClient {
       return await _messaging.getToken();
     } catch (error) {
       // 시뮬레이터·APNs 미설정(aps-environment 없음)은 정상 상황이라 수집하지 않음
-      debugPrint('[push] token unavailable : $error');
+      AppLogger.warn('push', 'token unavailable : $error');
       return null;
     }
   }

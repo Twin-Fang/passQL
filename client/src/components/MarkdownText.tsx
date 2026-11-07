@@ -86,11 +86,8 @@ function MdInlineCode({ children }: { children?: React.ReactNode }) {
 
 function MdPre({ children }: { children?: React.ReactNode }) {
   // 코드 블록은 애니메이션 없이 그대로 — 들여쓰기/포맷 보호
-  return (
-    <pre className="bg-surface-code rounded-lg px-4 py-3 text-xs leading-relaxed whitespace-pre-wrap wrap-break-word font-mono my-2">
-      {children}
-    </pre>
-  );
+  // 지문 코드 상자와 같은 테두리 상자 (#903)
+  return <pre className="sql-code-box my-2">{children}</pre>;
 }
 
 function MdUl({ children }: { children?: React.ReactNode }) {

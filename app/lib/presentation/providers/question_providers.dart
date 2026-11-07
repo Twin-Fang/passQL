@@ -13,10 +13,12 @@ import '../../data/models/question/question_detail.dart';
 import '../../data/models/question/sse_event.dart';
 import '../../data/models/question/submit_request.dart';
 import '../../data/models/question/submit_result.dart';
+import 'choice_mode_switch_plan.dart';
 import 'plan_providers.dart';
 import 'question_interaction_state.dart';
 import 'settings_providers.dart';
 
+export 'choice_mode_switch_plan.dart';
 export 'question_interaction_state.dart';
 import 'sql_execution_pacing.dart';
 
@@ -26,17 +28,32 @@ final questionDetailProvider = FutureProvider.autoDispose
       return ref.read(questionApiProvider).getQuestion(questionUuid);
     });
 
-/// 문제 풀이 상호작용: 선택지 준비(기존 세트 재사용 또는 SSE 생성) > 선택·실행 > 제출
+/// 이 화면에서 받아 둔 선택지 세트 (보기 방식을 다시 바꿀 때 재사용)
+typedef PreparedChoiceSet = ({String choiceSetId, List<ChoiceItem> choices});
+
+/// 문제 풀이 상호작용: 선택지 준비(기존 세트 재사용 또는 SSE 생성) > 보기 방식 변경 반영 > 선택·실행 > 제출
 /// questionUuid별 autoDispose family.
 class QuestionInteractionNotifier
     extends AutoDisposeFamilyNotifier<QuestionInteractionState, String> {
   /// 바로 쓸 수 있는 선택지 세트 상태값 (서버 choice_set.status)
   static const _readyChoiceSetStatus = 'OK';
 
+  static const _generatingStatusMessage = '선택지 생성 중...';
+
   StreamSubscription<SseEvent>? _sseSubscription;
 
   /// 화면을 떠나 정리됐는지 (모드 응답을 기다리는 동안 떠난 경우 상태를 바꾸지 않음)
   bool _isDisposed = false;
+
+  /// 진행 중인 SSE 생성의 모드 (없으면 null). 보기 방식을 바꿔도 끊지 않고 결과만 보관 (#907)
+  ChoiceGenerationMode? _inFlightGenerationMode;
+
+  /// 진행 중인 SSE 결과를 화면에 보여 줄지 (다른 세트로 바꿔 둔 동안은 보관만)
+  bool _isSseResultShown = true;
+
+  /// 받아 둔 세트: 검증된 보기(상세의 OK 세트 또는 연습 모드 생성), AI 새 보기(새 보기 모드 생성)
+  PreparedChoiceSet? _readyChoiceSet;
+  PreparedChoiceSet? _freshChoiceSet;
 
   String get _questionUuid => arg;
 
@@ -59,6 +76,10 @@ class QuestionInteractionNotifier
       await startSseGeneration();
       return;
     }
+    _readyChoiceSet = (
+      choiceSetId: readyChoiceSet.choiceSetUuid,
+      choices: readyChoiceSet.items,
+    );
     final isFreshChoiceMode = await _isFreshChoiceModeEffective();
     if (_isDisposed) return;
     if (isFreshChoiceMode) {
@@ -74,14 +95,18 @@ class QuestionInteractionNotifier
     final modeSubscription = ref.listen(choiceModeProvider, (_, _) {});
     try {
       await ref.read(choiceModeProvider.future);
-      return ref.read(effectiveChoiceModeProvider).valueOrNull ==
-          ChoiceGenerationMode.real;
+      return _currentEffectiveChoiceMode() == ChoiceGenerationMode.real;
     } catch (_) {
       return false;
     } finally {
       modeSubscription.close();
     }
   }
+
+  /// 지금 실효 모드 (모름이면 검증된 보기)
+  ChoiceGenerationMode _currentEffectiveChoiceMode() =>
+      ref.read(effectiveChoiceModeProvider).valueOrNull ??
+      ChoiceGenerationMode.practice;
 
   /// 기존 OK 선택지 세트를 바로 사용 (SSE 불필요).
   void useExistingChoiceSet(String choiceSetId, List<ChoiceItem> items) {
@@ -91,12 +116,57 @@ class QuestionInteractionNotifier
     );
   }
 
+  /// 풀이 중 보기 방식 변경(저장 성공 뒤) 반영: 제출 전이면 지금 문제 보기 교체, 제출 중·뒤면 다음 풀이부터 (#907)
+  /// 생성 비용 때문에 받아 둔 세트·진행 중 생성을 먼저 씀 (판정은 planChoiceModeSwitch)
+  ChoiceModeSwitchAction applyChoiceModeChange() {
+    final action = planChoiceModeSwitch(
+      hasSubmissionStarted: state.isSubmitting || state.hasSubmitted,
+      targetMode: _currentEffectiveChoiceMode(),
+      hasReadyChoiceSet: _readyChoiceSet != null,
+      hasFreshChoiceSet: _freshChoiceSet != null,
+      inFlightGenerationMode: _inFlightGenerationMode,
+    );
+    switch (action) {
+      case ChoiceModeSwitchAction.keepUntilNextSolve:
+        break;
+      case ChoiceModeSwitchAction.showReadyChoiceSet:
+        _showPreparedChoiceSet(_readyChoiceSet!);
+      case ChoiceModeSwitchAction.showFreshChoiceSet:
+        _showPreparedChoiceSet(_freshChoiceSet!);
+      case ChoiceModeSwitchAction.awaitInFlightGeneration:
+        _isSseResultShown = true;
+        state = _clearedForNewChoices().copyWith(
+          isGeneratingChoices: true,
+          sseStatusMessage: _generatingStatusMessage,
+        );
+      case ChoiceModeSwitchAction.generateChoices:
+        state = _clearedForNewChoices();
+        unawaited(startSseGeneration());
+    }
+    return action;
+  }
+
+  /// 받아 둔 세트로 교체 (진행 중 생성은 끊지 않고 결과만 보관)
+  void _showPreparedChoiceSet(PreparedChoiceSet choiceSet) {
+    _isSseResultShown = false;
+    state = _clearedForNewChoices().copyWith(
+      activeChoiceSetId: choiceSet.choiceSetId,
+      activeChoices: choiceSet.choices,
+    );
+  }
+
+  /// 보기 교체용 빈 상태 (선택·실행 결과는 버리고 SQL 실행 캐시만 유지)
+  QuestionInteractionState _clearedForNewChoices() =>
+      QuestionInteractionState(executeCache: state.executeCache);
+
   /// SSE로 선택지 생성 시작.
   Future<void> startSseGeneration() async {
+    _isSseResultShown = true;
+    _inFlightGenerationMode = _currentEffectiveChoiceMode();
     state = state.copyWith(
       isGeneratingChoices: true,
       clearSseError: true,
-      sseStatusMessage: '선택지 생성 중...',
+      sseStatusMessage: _generatingStatusMessage,
     );
 
     await _sseSubscription?.cancel();
@@ -105,20 +175,13 @@ class QuestionInteractionNotifier
         .generateChoices(questionUuid: _questionUuid)
         .listen(
           _onSseEvent,
-          onError: (_) {
-            state = state.copyWith(
-              isGeneratingChoices: false,
-              sseError: SseErrorEvent('STREAM_ERROR', true),
-            );
-          },
+          onError: (_) =>
+              _finishGenerationWithError(SseErrorEvent('STREAM_ERROR', true)),
           // complete/error 이벤트 없이 스트림이 끝난 경우(프록시 타임아웃, 네트워크 전환 등)에도
           // 스피너가 영원히 남지 않도록 재시도 가능한 오류로 바꾼다.
           onDone: () {
-            if (state.isGeneratingChoices) {
-              state = state.copyWith(
-                isGeneratingChoices: false,
-                sseError: SseErrorEvent('STREAM_CLOSED', true),
-              );
+            if (_inFlightGenerationMode != null) {
+              _finishGenerationWithError(SseErrorEvent('STREAM_CLOSED', true));
             }
           },
         );
@@ -127,8 +190,15 @@ class QuestionInteractionNotifier
   void _onSseEvent(SseEvent event) {
     switch (event) {
       case SseStatusEvent(:final message):
-        state = state.copyWith(sseStatusMessage: message);
+        if (_isSseResultShown) {
+          state = state.copyWith(sseStatusMessage: message);
+        }
       case SseCompleteEvent(:final choices, :final choiceSetId):
+        _rememberGeneratedChoiceSet((
+          choiceSetId: choiceSetId,
+          choices: choices,
+        ));
+        if (!_isSseResultShown) return;
         state = state.copyWith(
           isGeneratingChoices: false,
           activeChoiceSetId: choiceSetId,
@@ -136,11 +206,25 @@ class QuestionInteractionNotifier
           clearSseError: true,
         );
       case final SseErrorEvent errorEvent:
-        state = state.copyWith(
-          isGeneratingChoices: false,
-          sseError: errorEvent,
-        );
+        _finishGenerationWithError(errorEvent);
     }
+  }
+
+  /// 생성 결과 보관 (생성 모드 기준: 새 보기 모드면 AI 새 보기, 그 외 검증된 보기 자리)
+  void _rememberGeneratedChoiceSet(PreparedChoiceSet choiceSet) {
+    if (_inFlightGenerationMode == ChoiceGenerationMode.real) {
+      _freshChoiceSet = choiceSet;
+    } else {
+      _readyChoiceSet ??= choiceSet;
+    }
+    _inFlightGenerationMode = null;
+  }
+
+  /// 생성 실패 마무리 (보관만 하던 생성이면 화면은 그대로)
+  void _finishGenerationWithError(SseErrorEvent errorEvent) {
+    _inFlightGenerationMode = null;
+    if (!_isSseResultShown) return;
+    state = state.copyWith(isGeneratingChoices: false, sseError: errorEvent);
   }
 
   /// 선택지 클릭: 고르기만 (실행은 [runChoice], #727)
@@ -248,6 +332,7 @@ class QuestionInteractionNotifier
       throw exception.asAppException;
     }
     // 제출 성공 뒤 (등급 갱신 오류가 제출 실패로 바뀌지 않게 try 밖)
+    state = state.copyWith(hasSubmitted: true);
     _refreshDailyUsageIfCounted();
     // 신고 시 어떤 선택지 세트를 풀었는지 알려야 하므로 결과에 붙여 둔다.
     return submitResult.copyWith(choiceSetUuid: choiceSetId);

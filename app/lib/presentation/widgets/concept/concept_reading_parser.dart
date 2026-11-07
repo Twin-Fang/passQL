@@ -30,8 +30,8 @@ class ConceptSectionTitle {
 
 /// 개념 본문 마크다운 > 화면 조각 (서버·콘텐츠 형식은 그대로, 앱 렌더러에서만 나눔, #835)
 abstract final class ConceptReadingParser {
-  // 문단 제목 안 부제 구분 ("제목 — 부제", 옛 앱은 한 줄 제목으로 보임, #848)
-  static const String _subtitleSeparator = ' — ';
+  // 문단 제목 안 부제 구분 ("제목: 부제", 줄표 "제목 — 부제"는 옛 콘텐츠, 옛 앱은 한 줄 제목으로 보임, #848 #905)
+  static const List<String> _subtitleSeparators = [': ', ' — '];
   // 글머리 줄 ("- 내용" / "* 내용")
   static final RegExp _bulletLineRe = RegExp(r'^\s*[-*]\s+(.+)$');
   // 문단 맨 앞 굵은 문장 (**문장**)
@@ -56,12 +56,21 @@ abstract final class ConceptReadingParser {
 
   /// 문단 제목 > 큰 제목 + 부제 (구분자가 없으면 부제 없음)
   static ConceptSectionTitle splitTitle(String rawTitle) {
-    final separatorIndex = rawTitle.indexOf(_subtitleSeparator);
+    // 가장 앞에 나온 구분자 기준
+    var separatorIndex = -1;
+    var separator = '';
+    for (final candidate in _subtitleSeparators) {
+      final index = rawTitle.indexOf(candidate);
+      if (index >= 0 && (separatorIndex < 0 || index < separatorIndex)) {
+        separatorIndex = index;
+        separator = candidate;
+      }
+    }
     if (separatorIndex < 0) {
       return ConceptSectionTitle(title: rawTitle.trim(), subtitle: null);
     }
     final subtitle = rawTitle
-        .substring(separatorIndex + _subtitleSeparator.length)
+        .substring(separatorIndex + separator.length)
         .trim();
     return ConceptSectionTitle(
       title: rawTitle.substring(0, separatorIndex).trim(),

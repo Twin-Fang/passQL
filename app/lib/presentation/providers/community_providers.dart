@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/logging/app_logger.dart';
 import '../../core/network/api_call.dart';
 import '../../core/network/safe_call.dart';
 import '../../data/community/community_image_compressor.dart';
@@ -75,7 +76,7 @@ class CommunityFeedNotifier
         ),
       );
     } catch (error) {
-      debugPrint('[community feed] load more failed : $error');
+      AppLogger.warn('community feed', 'load more failed : $error');
       state = AsyncData(current.copyWith(isLoadingMore: false));
     }
   }
@@ -163,7 +164,7 @@ class CommunityPostsNotifier
         ),
       );
     } catch (error) {
-      debugPrint('[community posts] load more failed : $error');
+      AppLogger.warn('community posts', 'load more failed : $error');
       state = AsyncData(current.copyWith(isLoadingMore: false));
     }
   }
