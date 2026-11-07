@@ -986,6 +986,8 @@ export interface paths {
          *     - **`nicknameChangeAvailableAt`**: 닉네임을 다시 바꿀 수 있는 시각 KST (마지막 변경 + 3일, 변경 이력 없으면 null)
          *     - **`maskedEmail`**: 가린 이메일 (아이디 앞 2자 + `***` + `@도메인`, 이메일 없으면 null)
          *     - **`memberCode`**: 회원 번호 표시값 (`PQL-` + 회원 UUID 앞 8자리 대문자, 문의 때 회원 확인용)
+         *     - **`email`**: 소셜 계정 이메일 원문 (본인 응답 전용, 동의 안 함 등으로 없으면 null)
+         *     - **`profileImageUrl`**: 소셜 계정 프로필 이미지 https 주소 (없거나 기본 이미지면 null, 로그인 때마다 최신 값)
          *
          *     ## 설명
          *     - JWT AccessToken에서 회원 UUID를 추출하여 본인 정보를 조회한다.
@@ -2921,6 +2923,7 @@ export interface components {
             choiceGenerationMode: "PRACTICE" | "REAL" | null;
             /** Format: date-time */
             createdAt: string;
+            email: string | null;
             isTestAccount: boolean;
             /** Format: date-time */
             lastSeenAt: string;
@@ -2933,6 +2936,7 @@ export interface components {
             nicknameChangeAvailableAt: string | null;
             /** Format: date-time */
             nicknameChangedAt: string | null;
+            profileImageUrl: string | null;
             providerUserId: string;
             role: string;
             status: string;

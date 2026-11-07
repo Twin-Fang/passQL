@@ -6,6 +6,7 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.member.auth.domain.SocialProfile;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
@@ -23,16 +24,17 @@ public abstract class FirebaseLoginStrategy implements SocialLoginStrategy {
     /** 이 전략이 받는 Firebase 로그인 제공자 값 (예: google.com) */
     protected abstract String expectedSignInProvider();
 
-    /** Firebase 토큰 검증 > 로그인 제공자 <-> 이 전략 제공자 (다르면 INVALID_SOCIAL_TOKEN) > uid */
+    /** Firebase 토큰 검증 > 로그인 제공자 <-> 이 전략 제공자 (다르면 INVALID_SOCIAL_TOKEN) > uid·이메일·사진 (Apple 은 사진 없음) */
     @Override
-    public String validateAndGetSocialId(String idToken) {
+    public SocialProfile fetchSocialProfile(String idToken) {
         FirebaseToken firebaseToken = verifyIdToken(idToken);
         String signInProvider = SocialStrategyResponses.stringOf(
                 SocialStrategyResponses.childOf(firebaseToken.getClaims(), FIREBASE_CLAIM), SIGN_IN_PROVIDER_CLAIM);
         if (!expectedSignInProvider().equals(signInProvider)) {
             throw SocialStrategyResponses.rejectedToken(getAuthProvider(), "firebase sign-in provider mismatch");
         }
-        return firebaseToken.getUid();
+        return new SocialProfile(firebaseToken.getUid(), firebaseToken.getEmail(),
+                firebaseToken.isEmailVerified(), firebaseToken.getPicture());
     }
 
     private FirebaseToken verifyIdToken(String idToken) {
