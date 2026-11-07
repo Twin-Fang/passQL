@@ -13,7 +13,7 @@ related: []
 로그인·회원가입·탈퇴·온보딩·프로필
 
 ## 현재 상태 요약
-(2026-11-07, 자동 생성) 활성 결정 15개, 열린 이슈 2개. 웹 토큰 재발급은 탭 간 Web Locks 로 한 번·`storage` 이벤트로 탭 동기화 — [[DEC-0269-web-reissue-single-across-tabs]], 재발급 실패는 401·`MEMBER_NOT_FOUND` 일 때만 로그아웃 — [[DEC-0270-reissue-logout-only-on-session-end]] (#881). 닉네임 변경 대기는 서버 값 `nicknameChangeAvailableAt` 하나로 표시 — [[ISS-0468-web-audit-cross-tab-reissue-logout]]. 프로필 상단에 계정 줄과 계정·이용권 화면 `/account`(가린 이메일 `maskedEmail`, 회원 번호 `memberCode` `PQL-xxxxxxxx`, 구매 내역)가 있고, 구매 내역·구매 복원·프로모션 코드 행은 `/account` 한 곳, 프로필은 "이용권 관리" 한 줄, 이 구조는 [[DEC-0263-pass-rows-on-account-screen-only]] (#863)에서 왔고, 닉네임 변경은 계정 화면 관리에서만(프로필 머리 펜 없음), 로그인 방법은 제공자 아이콘 + 이메일, 소셜 프로필 이미지 저장, 로그인 화면 최근 로그인 배지로 바뀌었다: [[DEC-0276-account-provider-icon-email-avatar]] (#908, DEC-0263 대체, main 머지, 배포 전). iOS 는 UIScene 수명주기로 바뀌어 네이버 복귀 URL 을 장면 이벤트로 받는다: [[ISS-0470-app-audit-uiscene-plan-flicker-sheet-dismiss]] (#880, 배포 전). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-07, 자동 생성) 활성 결정 15개, 열린 이슈 1개. 웹 토큰 재발급은 탭 간 Web Locks 로 한 번·`storage` 이벤트로 탭 동기화 — [[DEC-0269-web-reissue-single-across-tabs]], 재발급 실패는 401·`MEMBER_NOT_FOUND` 일 때만 로그아웃 — [[DEC-0270-reissue-logout-only-on-session-end]] (#881). 닉네임 변경 대기는 서버 값 `nicknameChangeAvailableAt` 하나로 표시 — [[ISS-0468-web-audit-cross-tab-reissue-logout]]. 프로필 상단에 계정 줄과 계정·이용권 화면 `/account`(가린 이메일 `maskedEmail`, 회원 번호 `memberCode` `PQL-xxxxxxxx`, 구매 내역)가 있고, 구매 내역·구매 복원·프로모션 코드 행은 `/account` 한 곳, 프로필은 "이용권 관리" 한 줄, 이 구조는 [[DEC-0263-pass-rows-on-account-screen-only]] (#863)에서 왔고, 닉네임 변경은 계정 화면 관리에서만(프로필 머리 펜 없음), 로그인 방법은 제공자 아이콘 + 이메일, 소셜 프로필 이미지 저장, 로그인 화면 최근 로그인 배지로 바뀌었다: [[DEC-0276-account-provider-icon-email-avatar]] (#908, DEC-0263 대체, main 머지, 배포 전). iOS 는 UIScene 수명주기로 바뀌어 네이버 복귀 URL 을 장면 이벤트로 받는다: [[ISS-0470-app-audit-uiscene-plan-flicker-sheet-dismiss]] (#880, 배포 전). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0012-nickname-via-suh-random-engine]] — 닉네임은 자체 단어 테이블 대신 `suh-random-engine` 라이브러리로 생성
@@ -44,7 +44,7 @@ related: []
 - [[ISS-0461-plan-aligned-options-new-choices-mode]] (resolved, GitHub #863) — 요금제에 맞춘 옵션 재배치: 실전 모드 이름과 위치, 광고 제거 혜택, 중복 진입점
 - [[ISS-0448-mypage-account-pass-area-promo-code]] (resolved, GitHub #816) — 마이페이지 계정·이용권 영역과 결제 유도, 할인 표시, 프로모션 코드
 - [[ISS-0312-kakao-naver-github-apple-login]] (open, GitHub #509) — 카카오, 네이버, GitHub, Apple 로그인 지원
-- [[ISS-0398-per-type-notification-preferences]] (open, GitHub #653) — 알림 종류별 수신 설정 (앱 설정 화면 + 서버 저장)
+- [[ISS-0398-per-type-notification-preferences]] (resolved, GitHub #653) — 알림 종류별 수신 설정 (앱 설정 화면 + 서버 저장)
 - [[ISS-0009-member-domain-module-entity]] (resolved, GitHub #6) — Member 도메인 모듈 신규 생성 및 확장 가능한 Entity 설계
 - [[ISS-0025-admin-member-management]] (resolved, GitHub #33) — 관리자 회원 관리 페이지
 - [[ISS-0146-oauth-jwt-auth-system]] (resolved, GitHub #271) — 서버에 인증이 전혀 없고 익명 가입만 가능

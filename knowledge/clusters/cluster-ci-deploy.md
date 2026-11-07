@@ -13,7 +13,7 @@ related: []
 CI/CD·배포·버전 관리·빌드
 
 ## 현재 상태 요약
-(2026-11-04, 자동 생성) 활성 결정 20개, 열린 이슈 2개. 빌드 프로파일 `build-profile.json`의 `test`가 개발자 도구 값을 켜고 `release`가 꺼짐을 검증한다 — [[DEC-0240-dev-tools-two-layer-gate-test-builds]]. release 단계는 iOS·Android 스토어 워크플로 모두에 있고, 규칙 테스트가 두 워크플로의 `APP_FLAVOR` 부재와 release 적용을 검사한다 — [[DEC-0246-dev-tools-no-prod-writes-store-exclusion]] (main 머지, 작성 시점 미배포). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-04, 자동 생성) 활성 결정 20개, 열린 이슈 1개. 빌드 프로파일 `build-profile.json`의 `test`가 개발자 도구 값을 켜고 `release`가 꺼짐을 검증한다 — [[DEC-0240-dev-tools-two-layer-gate-test-builds]]. release 단계는 iOS·Android 스토어 워크플로 모두에 있고, 규칙 테스트가 두 워크플로의 `APP_FLAVOR` 부재와 release 적용을 검사한다 — [[DEC-0246-dev-tools-no-prod-writes-store-exclusion]] (main 머지, 작성 시점 미배포). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0009-main-verify-deploy-branch-release]] — `main`은 빌드 검증만, 실제 배포는 `deploy` 브랜치에서만 트리거
@@ -45,7 +45,7 @@ CI/CD·배포·버전 관리·빌드
 - [[ISS-0449-dev-tools-store-build-guard]] (resolved, GitHub #820) — 개발자 도구 스토어 빌드 차단 보장 (컴파일 상수, Android 스토어 프로파일, 규칙 테스트)
 - [[ISS-0444-test-build-dev-tools-overlay]] (resolved, GitHub #809) — 테스트 빌드 개발자 도구 (빌드 프로파일 test/release)
 - [[ISS-0355-store-review-status-tracking-issue]] (open, GitHub #570) — 스토어 심사 상태 자동 알림 (구독용, 닫지 않음)
-- [[ISS-0424-xcode27-pod-deployment-target]] (open, GitHub #732) — Xcode 27에서 iOS 빌드 실패 — Pod 최소 iOS 버전 미달
+- [[ISS-0424-xcode27-pod-deployment-target]] (resolved, GitHub #732) — Xcode 27에서 iOS 빌드 실패 — Pod 최소 iOS 버전 미달
 - [[ISS-0006-init-ai-and-spring-servers]] (resolved, GitHub #1) — AI 서버·Spring 서버 초기 프로젝트 구성
 - [[ISS-0016-vercel-git-auto-deploy]] (resolved, GitHub #19) — Vercel Git Integration 자동 배포 설정
 - [[ISS-0028-server-pr-preview-build-check]] (resolved, GitHub #38) — Spring/FastAPI PR Preview 빌드 워크플로우와 빌드체크 전용 명령어

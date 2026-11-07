@@ -5,15 +5,15 @@ created: 2026-10-25
 topics: [notification, auth-member]
 symptoms: ["알림 종류별 끄기 없음", "자동 알림 수신 설정", member_notification_preference, "시스템 알림 전체 끔"]
 root_cause: "자동 알림 5종(#649)이 생겼지만 회원이 종류를 골라 끌 방법이 없었다"
-status: open
-resolution: null
+status: resolved
+resolution: "[[ISS-0398-per-type-notification-preferences-report]]"
 related: ["[[ISS-0396-duolingo-style-return-notifications]]"]
 source: "https://github.com/Twin-Fang/passQL/issues/653"
 ---
 
 # ISS-0398: 알림 종류별 수신 설정 (앱 설정 화면 + 서버 저장)
 
-GitHub #653 (원본: 이슈 본문과 댓글). 이슈는 열려 있다(라벨 작업중).
+GitHub #653 (원본: 이슈 본문과 댓글). 2026-11-07 닫힘, 완료 리포트 [[ISS-0398-per-type-notification-preferences-report]].
 
 ## 증상
 GitHub #649로 자동 알림 5종이 생겼지만 사용자가 종류를 골라 끌 방법이 없다. 알림이 너무 자주 오면 사용자가 시스템 알림 전체를 꺼 재방문 수단을 잃는다. 스토어 심사·피로도 대응으로도 종류별 끄기가 필요하다(이슈 본문).

@@ -7,7 +7,7 @@ symptoms: ["줄표 AI 티", "em dash en dash 보기", "가운뎃점 나열", "�
 root_cause: "문제 가져오기 검증과 생성 경로에 내용 형식 규칙이 없었고, 문제 하네스가 지문에 데이터 표를 붙였으며, 프롬프트 지시만으로는 LLM 이 금지 문자를 계속 썼다"
 status: resolved
 resolution: "[[ISS-0474-question-format-rule-forbidden-punctuation-report]]"
-related: ["[[DEC-0277-no-dash-middle-dot-server-cleaner]]", "[[ISS-0472-stem-readability-blocks-single-table]]", "[[DEC-0076-markdown-rules-for-generated-content]]", "[[DEC-0256-concept-lesson-blocks-by-table-header]]"]
+related: ["[[DEC-0277-no-dash-middle-dot-server-cleaner]]", "[[ISS-0472-stem-readability-blocks-single-table]]", "[[DEC-0076-markdown-rules-for-generated-content]]", "[[DEC-0256-concept-lesson-blocks-by-table-header]]", "[[ISS-0480-stem-table-sql-format-data-cleanup-deferred]]", "[[DEC-0279-stem-table-data-cleanup-after-min-version]]"]
 source: "https://github.com/Twin-Fang/passQL/issues/905"
 ---
 

@@ -2,7 +2,7 @@
 type: cluster
 topic: practice
 created: 2026-10-29
-members: 167
+members: 168
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 문제 풀이·제출·실행 결과·오늘의 세트·데일리 챌린지·실전 모드
 
 ## 현재 상태 요약
-(2026-11-07, 자동 생성) 활성 결정 39개, 열린 이슈 3개. 풀이 화면 보기 방식 칩은 제출 전이면 지금 문제부터, 제출 뒤면 다음 풀이부터 적용하고 같은 화면 생성은 겹치지 않으며, 오답 노트 다시 풀기에서는 숨긴다. 바꾸는 곳은 풀이 칩과 설정이고 웹도 회원 방식을 지킨다: [[DEC-0275-choice-mode-chip-applies-before-submit]] (#907, #913, DEC-0261 대체). 지문은 블록으로 나눠 그리고 표는 지문 카드 안 한 가지 모양(행 전부, 같은 컬럼 표 한 번): [[DEC-0278-stem-blocks-single-table-shape]] (#903). 풀이 화면 메모(끄면 터치 통과, 서버 저장 없음): [[ISS-0473-solving-memo-pen-toggle]]. 풀이 중 모의고사 회차는 안내 없이 이어 풀기: [[ISS-0471-mock-exam-resume-shows-start-guide]]. 이상 2026-11-07 main 머지, 배포 전. 내린 보기 묶음(DISABLED·REPORTED)·비활성 문제는 열기·채점 모두 `CHOICE_SET_UNAVAILABLE`, 무료 제출은 샌드박스를 실행하지 않는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 무료 하루 한도 판정은 제출 기록 트랜잭션 안 회원 행 잠금 뒤 — [[DEC-0271-daily-limit-judged-in-submit-record-tx]] (PR #898 머지, [[ISS-0469-billing-switch-unverified-screens-races]] 열림). 웹 선택지 생성 시작 전 거부는 `errorCode` 사유를 보여 준다 — [[ISS-0468-web-audit-cross-tab-reissue-logout]]. SQLD 모의고사(고정 회차, 서버 판정, 무료 1회) — [[DEC-0264-mock-exam-fixed-rounds-server-judged]] (PR #889 머지, 이슈 #866 열림). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-07, 자동 생성) 활성 결정 39개, 열린 이슈 2개. 풀이 화면 보기 방식 칩은 제출 전이면 지금 문제부터, 제출 뒤면 다음 풀이부터 적용하고 같은 화면 생성은 겹치지 않으며, 오답 노트 다시 풀기에서는 숨긴다. 바꾸는 곳은 풀이 칩과 설정이고 웹도 회원 방식을 지킨다: [[DEC-0275-choice-mode-chip-applies-before-submit]] (#907, #913, DEC-0261 대체). 지문은 블록으로 나눠 그리고 표는 지문 카드 안 한 가지 모양(행 전부, 같은 컬럼 표 한 번): [[DEC-0278-stem-blocks-single-table-shape]] (#903). 풀이 화면 메모(끄면 터치 통과, 서버 저장 없음): [[ISS-0473-solving-memo-pen-toggle]]. 풀이 중 모의고사 회차는 안내 없이 이어 풀기: [[ISS-0471-mock-exam-resume-shows-start-guide]]. 이상 2026-11-07 main 머지, 배포 전. 내린 보기 묶음(DISABLED·REPORTED)·비활성 문제는 열기·채점 모두 `CHOICE_SET_UNAVAILABLE`, 무료 제출은 샌드박스를 실행하지 않는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 무료 하루 한도 판정은 제출 기록 트랜잭션 안 회원 행 잠금 뒤 — [[DEC-0271-daily-limit-judged-in-submit-record-tx]] (PR #898 머지, [[ISS-0469-billing-switch-unverified-screens-races]] 열림). 웹 선택지 생성 시작 전 거부는 `errorCode` 사유를 보여 준다 — [[ISS-0468-web-audit-cross-tab-reissue-logout]]. SQLD 모의고사(고정 회차, 서버 판정, 무료 1회) — [[DEC-0264-mock-exam-fixed-rounds-server-judged]] (PR #889 머지, 이슈 #866 열림). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0017-fullscreen-result-screen]] — 제출 결과 화면은 풀스크린 1종으로 통일 (bottom sheet 변형 미채택)
@@ -68,6 +68,7 @@ related: []
 - [[DEC-0261-real-mode-renamed-new-choices]] → DEC-0275
 
 ## 관련 이슈
+- [[ISS-0479-sqld-real-format-trap-questions]] (resolved, GitHub #834): 실제 SQLD 출제 형식(결과 행 수, 오류 나는 SQL) 과 함정 문제 92개 등록, 결과 표 해설 지시문 교체, 개념형 AI 세트 8개 내림
 - [[ISS-0478-web-solving-ignores-fresh-choice-mode]] (resolved, GitHub #913): 웹 풀이가 AI 새 보기 설정을 무시함, 설정 이름 옛 표기, 칩 없음
 - [[ISS-0475-choice-mode-switch-current-question]] (resolved, GitHub #907): 보기 방식 바꾸면 지금 문제부터 바로 적용, 오답 노트에서는 칩 숨김
 - [[ISS-0473-solving-memo-pen-toggle]] (resolved, GitHub #904): 풀이 화면 메모: 켜고 끄는 펜, 끄면 보기 선택 그대로
@@ -80,7 +81,7 @@ related: []
 - [[ISS-0462-web-wrong-notes-page-404]] (resolved, GitHub #865) — 웹 마이페이지 오답 전체보기 404, 웹 오답 노트 화면 없음
 - [[ISS-0463-sqld-mock-exam]] (open, GitHub #866) — SQLD 모의고사: 50문항 90분, 과목별 과락, 프로 핵심 기능 (PR #889 머지, 리포트 전)
 - [[ISS-0451-result-table-choices-fabricated-unvalidated-sets]] (resolved, GitHub #828) — 결과 표 오답을 AI가 지어냄, 미검증 세트 저장, 직접 실행해보기에 결과 JSON
-- [[ISS-0412-ai-explanation-quality-cost-optimization]] (open, GitHub #699) — AI 해설 품질, 호출 빈도, 비용 최적화와 해설 시트 정리
+- [[ISS-0412-ai-explanation-quality-cost-optimization]] (resolved, GitHub #699) — AI 해설 품질, 호출 빈도, 비용 최적화와 해설 시트 정리
 - [[ISS-0022-daily-challenge-domain-api]] (resolved, GitHub #26) — Daily Challenge 도메인, 오늘의 챌린지 API, 관리자 화면
 - [[ISS-0023-random-question-recommendations-api]] (resolved, GitHub #27) — 랜덤 추천 문제 API (Question Recommendations)
 - [[ISS-0029-realtime-ai-choice-set-prefetch]] (resolved, GitHub #39) — 실시간 AI 선택지 세트 생성 및 프리페치 아키텍처
