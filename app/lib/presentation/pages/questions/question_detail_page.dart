@@ -17,7 +17,7 @@ import '../../widgets/question/choice_display_label.dart';
 import '../../../router/result_route_arguments.dart';
 
 /// 문제 상세 + 풀기 화면 (풀스크린).
-/// 진입 시 GET /questions/{uuid}, 선택지 없으면 SSE 자동 시작.
+/// 진입 시 GET /questions/{uuid} > 선택지 준비 (세트가 없거나 새 보기 모드면 SSE 자동 시작)
 class QuestionDetailPage extends ConsumerStatefulWidget {
   final String questionUuid;
 

@@ -38,16 +38,15 @@ enum ProOfferSheetOutcome {
 const String _sheetTitle = '이용권';
 
 /// 프로 안내 시트 (모든 진입점이 공유하는 한 장, #749): 문장 제목 > 기간 줄 > 들어온 이유 > 강조 혜택 > 내 이름 PRO 탑승권 > 달라지는 점 > 이용권 고르기(1개월이면 3개월 권유) > 복원 > 각주 + 아래 고정 구매 버튼
-/// 이용권 목록은 등급 응답 passOptions (서버 순서 3개월 먼저 > 첫 칸 기본 선택)
-/// [reason]: 진입점별 한 줄 (예: 오늘 무료 문제를 다 풀었어요)
-/// [isDailyLimitEntry]: 무료 하루 한도로 열림 > 이유 줄 아래 광고 보너스 버튼 (#808)
 /// 성공 > 시트 닫힘 > 호출 화면에서 토스트, 그 외 결과는 시트 안 한 줄 (확인 중에 닫아도 확인 결과로 토스트·연출·호출부 재시도)
 Future<ProOfferSheetOutcome> showProOfferSheet(
   BuildContext context,
   WidgetRef ref, {
+  // 진입점별 한 줄 (예: 오늘 무료 문제를 다 풀었어요)
   String? reason,
   // 탑승권 혜택 아이콘에서 열었을 때 그 혜택 순서(proBenefits 기준) > 시트가 그 줄을 강조 (#749)
   int? focusedBenefitIndex,
+  // 무료 하루 한도로 열림 > 이유 줄 아래 광고 보너스 버튼 (#808)
   bool isDailyLimitEntry = false,
 }) async {
   if (_isOfferSheetOpen) return ProOfferSheetOutcome.dismissed;
@@ -67,6 +66,7 @@ Future<ProOfferSheetOutcome> showProOfferSheet(
     final closedOutcome = await showPassqlSheet<ProOfferSheetOutcome>(
       context,
       builder: (_) => _ProOfferSheetBody(
+        // 등급 응답 이용권 목록 (서버 순서 3개월 먼저 > 첫 칸 기본 선택)
         passOptions: knownPlan?.passOptions ?? const [],
         activeProExpiresAt: activeProExpiresAt,
         dailyFreeLimit: knownPlan?.dailyFreeLimit ?? 0,
