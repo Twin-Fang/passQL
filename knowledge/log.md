@@ -184,3 +184,4 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-07 18:40 | W6 | update (#908 후속 GitHub user:email 범위, PR #937) | ISS-0476
 - 2026-11-07 18:40 | W2 | cluster update (새 항목, 활성 결정, 요약 문장) | cluster-admin, cluster-auth-member, cluster-ci-deploy, cluster-store-release, cluster-billing
 - 2026-11-07 18:42 | W2 | fix W10 (members 실제 수로) | cluster-admin 100, cluster-auth-member 64, cluster-billing 51, cluster-ci-deploy 65, cluster-store-release 65
+- 2026-11-07 19:14 | W6 | create issue+completion-report (#950), cluster add | ISS-0487, cluster-ci-deploy, cluster-ops-infra, cluster-security
