@@ -116,14 +116,20 @@ class MainActivity : FlutterFragmentActivity() {
             "isInMultiWindow" to (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode),
         )
 
+        // 응답 1회만 (SDK 콜백 중복 호출 시 Reply already submitted 로 앱 종료 방지)
+        var isReplied = false
         NaverIdLoginSDK.authenticate(this, object : NidOAuthCallback {
             override fun onSuccess() {
                 isNaverLoginInProgress = false
+                if (isReplied) return
+                isReplied = true
                 result.success(mapOf("accessToken" to NaverIdLoginSDK.getAccessToken(), "diagnostics" to diagnostics()))
             }
 
             override fun onFailure(errorCode: String, errorDescription: String) {
                 isNaverLoginInProgress = false
+                if (isReplied) return
+                isReplied = true
                 result.error(
                     NAVER_ERROR_LOGIN_FAILED,
                     errorDescription,

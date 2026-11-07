@@ -72,12 +72,11 @@ class NaverSocialSignIn {
     }
   }
 
-  /// Android: 네이버 앱 우선 로그인 > 실패(취소 아님)면 Chrome 로그인 화면으로 1회 재시도 > 액세스 토큰
+  /// Android: Chrome 로그인 화면(Custom Tab) 로그인 > 액세스 토큰
+  /// 네이버 앱 전환 경로는 쓰지 않음 (네이버 앱 설치 폴더블 실기기에서 앱 종료, #942)
   Future<SocialTokenCredential?> _fetchAndroidCredential() async {
     try {
-      final accessToken =
-          await _logInAndroid(_defaultBehavior) ??
-          await _logInAndroid(_customTabsBehavior);
+      final accessToken = await _logInAndroid(_customTabsBehavior);
       if (accessToken == null || accessToken.isEmpty) {
         AppLogger.warn('naver login', 'failed : empty access token');
         throw const SocialSignInException(_failureMessage);
@@ -92,7 +91,7 @@ class NaverSocialSignIn {
     }
   }
 
-  /// SDK 로그인 1회: 성공 > 토큰, 재시도할 실패 > null, 취소 > [_NaverLoginCancelled], 마지막 방식 실패 > 예외
+  /// SDK 로그인 1회: 성공 > 토큰, 취소 > [_NaverLoginCancelled], 실패 > 예외
   Future<String?> _logInAndroid(String behavior) async {
     try {
       final reply = await _androidLoginChannel.invokeMapMethod<String, dynamic>(
@@ -116,7 +115,6 @@ class NaverSocialSignIn {
             '${describeDiagnostics(details['diagnostics'])}',
       );
       if (isCancelledErrorCode(errorCode)) throw const _NaverLoginCancelled();
-      if (behavior == _defaultBehavior) return null;
       throw const SocialSignInException(_failureMessage);
     } on MissingPluginException {
       throw SocialSignInException.preparing();
@@ -140,8 +138,7 @@ class NaverSocialSignIn {
   static const MethodChannel _androidLoginChannel = MethodChannel(
     'passql/naver_login',
   );
-  // 로그인 방식 값 2개: default(네이버 앱 우선), customTabs(Chrome 로그인 화면만)
-  static const String _defaultBehavior = 'default';
+  // 로그인 방식 값: customTabs(Chrome 로그인 화면만, MainActivity 가 읽음)
   static const String _customTabsBehavior = 'customTabs';
 
   /// 플러그인 로그인 호출 (네이티브 응답 null > Map 변환 TypeError, 실패 결과로 변환)
