@@ -4,9 +4,9 @@ id: DEC-0261
 created: 2026-11-07
 reviewed: null
 topics: [practice, ai]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0275
 related: ["[[ISS-0461-plan-aligned-options-new-choices-mode]]", "[[ISS-0461-plan-aligned-options-new-choices-mode-report]]", "[[DEC-0251-practice-reuse-random-validated-sets]]", "[[DEC-0264-mock-exam-fixed-rounds-server-judged]]"]
 ---
 

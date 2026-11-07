@@ -4,9 +4,9 @@ id: DEC-0256
 created: 2026-11-05
 reviewed: null
 topics: [concept-learning, design-system]
-status: active
+status: superseded
 supersedes: DEC-0253
-superseded_by: null
+superseded_by: DEC-0277
 related: ["[[ISS-0456-concept-lesson-textbook-blocks]]", "[[DEC-0252-concept-reading-single-scroll]]", "[[DEC-0253-concept-collapse-only-long-later-sections]]"]
 ---
 

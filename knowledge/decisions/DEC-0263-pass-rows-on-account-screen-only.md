@@ -4,9 +4,9 @@ id: DEC-0263
 created: 2026-11-07
 reviewed: null
 topics: [design-system, billing, auth-member]
-status: active
+status: superseded
 supersedes: DEC-0243
-superseded_by: null
+superseded_by: DEC-0276
 related: ["[[ISS-0461-plan-aligned-options-new-choices-mode]]", "[[ISS-0461-plan-aligned-options-new-choices-mode-report]]", "[[DEC-0243-profile-top-card-style-a]]", "[[DEC-0239-free-daily-limit-bonus-three-kinds]]", "[[DEC-0005-ship-with-billing-switch-off]]", "[[DEC-0207-pass-ticket-upright-float-shadow]]", "[[DEC-0212-keep-benefit-icon-row-in-ticket]]"]
 ---
 

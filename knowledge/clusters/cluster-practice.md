@@ -2,7 +2,7 @@
 type: cluster
 topic: practice
 created: 2026-10-29
-members: 160
+members: 167
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 문제 풀이·제출·실행 결과·오늘의 세트·데일리 챌린지·실전 모드
 
 ## 현재 상태 요약
-(2026-11-07, 자동 생성) 활성 결정 38개, 열린 이슈 3개. 내린 보기 묶음(DISABLED·REPORTED)·비활성 문제는 열기·채점 모두 `CHOICE_SET_UNAVAILABLE`, 무료 제출은 샌드박스를 실행하지 않는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 무료 하루 한도 판정은 제출 기록 트랜잭션 안 회원 행 잠금 뒤 — [[DEC-0271-daily-limit-judged-in-submit-record-tx]] (PR #898 머지, [[ISS-0469-billing-switch-unverified-screens-races]] 열림). 웹 선택지 생성 시작 전 거부는 `errorCode` 사유를 보여 준다 — [[ISS-0468-web-audit-cross-tab-reissue-logout]]. 앱 "실전 모드"는 "새 보기로 풀기"로 바뀌었고 "실전"은 모의고사 이름 — [[DEC-0261-real-mode-renamed-new-choices]]. SQLD 모의고사(고정 회차, 서버 판정, 무료 1회) — [[DEC-0264-mock-exam-fixed-rounds-server-judged]] (PR #889 머지, 이슈 #866 열림). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-07, 자동 생성) 활성 결정 39개, 열린 이슈 3개. 풀이 화면 보기 방식 칩은 제출 전이면 지금 문제부터, 제출 뒤면 다음 풀이부터 적용하고 같은 화면 생성은 겹치지 않으며, 오답 노트 다시 풀기에서는 숨긴다. 바꾸는 곳은 풀이 칩과 설정이고 웹도 회원 방식을 지킨다: [[DEC-0275-choice-mode-chip-applies-before-submit]] (#907, #913, DEC-0261 대체). 지문은 블록으로 나눠 그리고 표는 지문 카드 안 한 가지 모양(행 전부, 같은 컬럼 표 한 번): [[DEC-0278-stem-blocks-single-table-shape]] (#903). 풀이 화면 메모(끄면 터치 통과, 서버 저장 없음): [[ISS-0473-solving-memo-pen-toggle]]. 풀이 중 모의고사 회차는 안내 없이 이어 풀기: [[ISS-0471-mock-exam-resume-shows-start-guide]]. 이상 2026-11-07 main 머지, 배포 전. 내린 보기 묶음(DISABLED·REPORTED)·비활성 문제는 열기·채점 모두 `CHOICE_SET_UNAVAILABLE`, 무료 제출은 샌드박스를 실행하지 않는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 무료 하루 한도 판정은 제출 기록 트랜잭션 안 회원 행 잠금 뒤 — [[DEC-0271-daily-limit-judged-in-submit-record-tx]] (PR #898 머지, [[ISS-0469-billing-switch-unverified-screens-races]] 열림). 웹 선택지 생성 시작 전 거부는 `errorCode` 사유를 보여 준다 — [[ISS-0468-web-audit-cross-tab-reissue-logout]]. SQLD 모의고사(고정 회차, 서버 판정, 무료 1회) — [[DEC-0264-mock-exam-fixed-rounds-server-judged]] (PR #889 머지, 이슈 #866 열림). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0017-fullscreen-result-screen]] — 제출 결과 화면은 풀스크린 1종으로 통일 (bottom sheet 변형 미채택)
@@ -51,9 +51,10 @@ related: []
 - [[DEC-0249-result-table-choices-from-executed-sql]] — 결과 표 문제 보기는 AI가 쓴 보기 SQL의 실제 실행 결과로만 (오답 표를 지어내지 않음)
 - [[DEC-0250-never-store-unvalidated-sql-choice-sets]] — SQL·결과 표 보기 세트는 샌드박스 검증 통과만 저장·노출, 전수 검증으로 기존 세트 재채점
 - [[DEC-0251-practice-reuse-random-validated-sets]] — 연습 모드는 검증 통과 세트 최신 5개 중 무작위, 실전 모드는 매번 생성
-- [[DEC-0261-real-mode-renamed-new-choices]] — "실전 모드" > "새 보기로 풀기"(AI 새 보기/검증된 보기), 풀이 화면 모드 칩, "실전"은 모의고사에만 (#863)
 - [[DEC-0264-mock-exam-fixed-rounds-server-judged]] — SQLD 모의고사: 관리자 고정 회차(검증 세트), 시간·채점·응시 수 서버 판정, 무료 1회 체험·프로 무제한 (#866)
 - [[DEC-0271-daily-limit-judged-in-submit-record-tx]] — 무료 하루 한도 판정은 제출 기록 트랜잭션 안, 회원 행 잠금 뒤 (#867, PR #898)
+- [[DEC-0275-choice-mode-chip-applies-before-submit]]: 보기 방식 칩은 제출 전이면 지금 문제부터, 제출 뒤면 다음 풀이부터, 생성 겹침 없음, 오답 노트에서 숨김, 바꾸는 곳은 풀이 칩과 설정 (#907, #913, DEC-0261 대체)
+- [[DEC-0278-stem-blocks-single-table-shape]]: 지문은 블록(단락, 보조 설명, 질문, 목록, 표, 코드)으로 앱과 웹 같은 규칙, 표는 지문 카드 안 한 가지 모양(컬럼 이름 + PK, FK, 행 전부), 같은 컬럼 표는 한 번 (#903)
 
 ## 대체된 결정 (역사)
 - [[DEC-0087-choice-generation-practice-real-mode]] → DEC-0251
@@ -64,8 +65,14 @@ related: []
 - [[DEC-0030-answer-sql-sandbox-ground-truth]] → DEC-0055
 - [[DEC-0085-daily-set-ten-questions-daily]] → DEC-0178
 - [[DEC-0147-keep-explanation-sheet-while-solving]] → DEC-0154
+- [[DEC-0261-real-mode-renamed-new-choices]] → DEC-0275
 
 ## 관련 이슈
+- [[ISS-0478-web-solving-ignores-fresh-choice-mode]] (resolved, GitHub #913): 웹 풀이가 AI 새 보기 설정을 무시함, 설정 이름 옛 표기, 칩 없음
+- [[ISS-0475-choice-mode-switch-current-question]] (resolved, GitHub #907): 보기 방식 바꾸면 지금 문제부터 바로 적용, 오답 노트에서는 칩 숨김
+- [[ISS-0473-solving-memo-pen-toggle]] (resolved, GitHub #904): 풀이 화면 메모: 켜고 끄는 펜, 끄면 보기 선택 그대로
+- [[ISS-0472-stem-readability-blocks-single-table]] (resolved, GitHub #903): 문제 지문 가독성: 단락, 목록, 질문 구분, 표 한 가지 모양, SQL 상자
+- [[ISS-0471-mock-exam-resume-shows-start-guide]] (resolved, GitHub #902): 풀이 중인 모의고사 회차에 다시 들어가면 90분 시작 안내가 뜸
 - [[ISS-0469-billing-switch-unverified-screens-races]] (open, GitHub #867, PR #898 머지) — 결제 스위치 켜기 전 미확인 화면과 경합 점검: 제출 거부 사유 시트, 동시 제출 한도, 점검 중 외부 콜백, 해외 가격
 - [[ISS-0468-web-audit-cross-tab-reissue-logout]] (resolved, GitHub #881) — 웹 전체 점검: 탭 두 개면 모든 기기 로그아웃, 재발급 실패 강제 로그아웃, 선택지 생성 오류 사유
 - [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]] (resolved, GitHub #879) — 서버 전체 점검: AI 코멘트 LLM 호출 제한, OSIV DB 커넥션 점유, 내린 보기 묶음 채점, 설정 캐시, 예외 원문 노출
