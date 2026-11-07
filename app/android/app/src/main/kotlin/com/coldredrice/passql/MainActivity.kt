@@ -9,6 +9,8 @@ import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugins.googlemobileads.GoogleMobileAdsPlugin
+import com.navercorp.nid.NaverIdLoginSDK
+import com.navercorp.nid.oauth.NidOAuthBehavior
 
 // 네이버 로그인 플러그인이 FlutterFragmentActivity 를 요구 (ActivityResult 등록, #509)
 class MainActivity : FlutterFragmentActivity() {
@@ -31,6 +33,24 @@ class MainActivity : FlutterFragmentActivity() {
             PassqlNativeAdFactory(this),
         )
         registerRingerModeChannel(flutterEngine)
+        registerNaverLoginBehaviorChannel(flutterEngine)
+    }
+
+    // 네이버 로그인 방식 바꾸기 채널 (#942): 네이버 앱 로그인이 실패한 기기에서 Chrome 로그인 화면으로 재시도
+    // 값 2개: default(네이버 앱 우선), customTabs(Chrome 로그인 화면만)
+    private fun registerNaverLoginBehaviorChannel(flutterEngine: FlutterEngine) {
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "passql/naver_login_behavior")
+            .setMethodCallHandler { call, result ->
+                if (call.method != "setBehavior") {
+                    result.notImplemented()
+                    return@setMethodCallHandler
+                }
+                NaverIdLoginSDK.behavior = when (call.argument<String>("behavior")) {
+                    "customTabs" -> NidOAuthBehavior.CUSTOMTABS
+                    else -> NidOAuthBehavior.DEFAULT
+                }
+                result.success(null)
+            }
     }
 
     // 소리 모드 조회 채널 (의견 진단 정보, #708): normal, vibrate, silent

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_naver_login/flutter_naver_login.dart';
@@ -9,7 +10,7 @@ import 'auth_session.dart';
 import 'social_credential.dart';
 import 'social_sign_in.dart';
 
-/// 네이버 로그인: 네이버 SDK 로그인 > 액세스 토큰
+/// 네이버 로그인: 네이버 SDK 로그인 > (Android 실패 시 Chrome 로그인 화면으로 1회 재시도) > 액세스 토큰
 /// SDK 설정(client id·secret·이름)은 네이티브 빌드 타임 주입 (Android 매니페스트, iOS Info.plist ← app/.env)
 class NaverSocialSignIn {
   NaverSocialSignIn({String Function()? readClientId})
@@ -25,7 +26,7 @@ class NaverSocialSignIn {
     // 키 없는 빌드(CI .env 누락 등) > SDK 오류 대신 준비 중 안내
     if (_readClientId().isEmpty) throw SocialSignInException.preparing();
     try {
-      final result = await _logIn();
+      final result = await _logInWithCustomTabsFallback();
       // 취소 > null (Android SDK 는 커스텀 탭 복귀 실패도 user_cancel 로 보고해 구분 불가, 로그만 남김)
       if (isCancelledResult(result)) {
         AppLogger.info(
@@ -65,6 +66,61 @@ class NaverSocialSignIn {
       throw const SocialSignInException(_failureMessage);
     }
   }
+
+  /// 로그인 > Android 에서 실패(취소 아님)면 Chrome 로그인 화면으로 1회 재시도 (#942)
+  /// 네이버 앱이 깔린 일부 기기에서 앱 간 로그인이 no_catagorized_error 로 실패, Chrome 경로는 정상
+  Future<NaverLoginResult> _logInWithCustomTabsFallback() async {
+    final result = await _logIn();
+    if (!shouldRetryWithCustomTabs(result, defaultTargetPlatform)) {
+      return result;
+    }
+    AppLogger.warn(
+      'naver login',
+      'app login failed, retry custom tabs : '
+          'error ${sanitizeForLog(result.errorMessage)}',
+    );
+    await _setLoginBehavior(_customTabsBehavior);
+    try {
+      return await _logIn();
+    } finally {
+      // 다음 로그인은 다시 네이버 앱 우선 (되는 기기는 한 번에 로그인)
+      await _setLoginBehavior(_defaultBehavior);
+    }
+  }
+
+  /// Chrome 로그인 화면 재시도 여부: Android + 실패 상태 + 취소 아님
+  static bool shouldRetryWithCustomTabs(
+    NaverLoginResult result,
+    TargetPlatform platform,
+  ) {
+    return platform == TargetPlatform.android &&
+        result.status == NaverLoginStatus.error &&
+        !isCancelledResult(result);
+  }
+
+  /// 네이티브 로그인 방식 지정 (채널 없는 플랫폼·실패는 무시, 기본 방식으로 진행)
+  Future<void> _setLoginBehavior(String behavior) async {
+    try {
+      await _loginBehaviorChannel.invokeMethod<void>('setBehavior', {
+        'behavior': behavior,
+      });
+    } on MissingPluginException {
+      // iOS 등 채널 없음
+    } on PlatformException catch (error) {
+      AppLogger.warn(
+        'naver login',
+        'set behavior failed : ${sanitizeForLog(error.code)}',
+      );
+    }
+  }
+
+  // MainActivity 의 로그인 방식 채널과 이름·값을 맞춤
+  static const MethodChannel _loginBehaviorChannel = MethodChannel(
+    'passql/naver_login_behavior',
+  );
+  // 로그인 방식 값 2개: default(네이버 앱 우선), customTabs(Chrome 로그인 화면만)
+  static const String _defaultBehavior = 'default';
+  static const String _customTabsBehavior = 'customTabs';
 
   /// 플러그인 로그인 호출 (네이티브 응답 null > Map 변환 TypeError, 실패 결과로 변환)
   Future<NaverLoginResult> _logIn() async {

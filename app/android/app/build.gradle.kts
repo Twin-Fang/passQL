@@ -105,6 +105,8 @@ tasks.matching { it.name == "preReleaseBuild" }.configureEach {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    // 네이버 로그인 방식(NaverIdLoginSDK.behavior) 지정용, flutter_naver_login 2.1.1 이 쓰는 SDK 와 같은 버전 (#942)
+    implementation("com.navercorp.nid:oauth:5.10.0")
 }
 
 flutter {
