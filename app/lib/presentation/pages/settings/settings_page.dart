@@ -175,7 +175,10 @@ class SettingsPage extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: PassqlSpacing.xl),
-                SettingsFooter(memberUuid: data?.memberUuid),
+                SettingsFooter(
+                  memberCode: data?.memberCode,
+                  memberUuid: data?.memberUuid,
+                ),
               ]),
             ),
           ),
