@@ -152,7 +152,7 @@ def render_footer(root):
   <div class="wrap">
     <div class="foot-top">
       <a class="nav-brand" href="{root}"><img class="brand-mark" src="{root}icon/mark.png" width="28" height="28" alt="" aria-hidden="true">passQL</a>
-      <p class="foot-tagline">책 없이 앱 하나로 SQLD 준비</p>
+      <p class="foot-tagline">외우지 말고, 실행해 보고 이해하는 SQLD</p>
     </div>
     <div class="foot-links">
       <a href="{root}sqld/">SQLD 준비</a>
@@ -222,7 +222,7 @@ def build_app_json_ld():
         "@type": "MobileApplication",
         "name": "passQL",
         "alternateName": ["패스큐엘", "passQL SQLD"],
-        "description": "책 없이 앱 하나로 SQLD 준비. 최신 출제 경향 문제, 보기 SQL 직접 실행, AI 해설, 단원별 개념 학습, 매일 5문제 오늘의 세트, 오답 노트, 합격 준비도.",
+        "description": "외우지 말고, 실행해 보고 이해하는 SQLD. 최신 출제 경향 문제, 보기 SQL 직접 실행, AI 해설, 단원별 개념 학습, 매일 5문제 오늘의 세트, 오답 노트, 합격 준비도.",
         "applicationCategory": "EducationalApplication",
         "operatingSystem": "iOS, Android, Web",
         "inLanguage": "ko",

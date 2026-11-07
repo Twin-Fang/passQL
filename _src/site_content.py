@@ -49,14 +49,14 @@ SQLD_SUBJECTS = [
 ]
 
 # ── 첫 화면 ──
-HOME_TITLE = "passQL — SQLD 문제 풀이 앱 | 최신 기출 경향, AI 해설, 매일 5문제"
-HOME_DESCRIPTION = ("책 없이 앱 하나로 SQLD 준비. 제58~62회 복원 기출 경향을 반영한 문제를 풀고, "
+HOME_TITLE = "passQL(패스큐엘) — SQLD 문제 풀이 앱 | 실행해 보고 이해하는 SQLD, AI 해설"
+HOME_DESCRIPTION = ("외우지 말고, 실행해 보고 이해하는 SQLD. 제58~62회 복원 기출 경향을 반영한 문제를 풀고, "
                     "보기 SQL을 직접 실행하고, 틀린 이유는 AI 해설로 바로 확인하세요. 단원별 개념 학습, 매일 5문제 오늘의 세트, 합격 준비도까지. iPhone·Android·웹.")
 
 HERO_EYEBROW = "SQLD 자격증 문제 풀이 앱"
-HERO_TITLE_LEAD = "SQLD,"
-HERO_TITLE_HIGHLIGHT = "앱 하나로"
-HERO_TITLE_TAIL = "끝내세요"
+HERO_TITLE_LEAD = "외우지 말고,"
+HERO_TITLE_HIGHLIGHT = "실행해 보고"
+HERO_TITLE_TAIL = "이해하는 SQLD"
 HERO_LEAD = ("두꺼운 수험서 대신 최신 출제 경향을 반영한 문제를 풀고, 틀린 이유는 AI 해설로 바로 확인하세요. "
              "매일 5문제부터 합격 준비도까지 passQL 하나면 충분해요.")
 # 첫 화면 핵심 3개: (아이콘, 문구)

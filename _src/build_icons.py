@@ -43,7 +43,7 @@ p {{ margin: 30px 0 0; font-size: 28px; font-weight: 600; color: #545463; }}
 </style></head><body>
 <div class="copy">
   <div class="brand"><img src="{icon_uri}" alt="">passQL</div>
-  <h1>SQLD,<br><span>앱 하나로</span> 끝내세요</h1>
+  <h1>외우지 말고,<br><span>실행해 보고</span> 이해하는 SQLD</h1>
   <p>최신 기출 경향 · SQL 직접 실행 · AI 해설</p>
   <div class="stores">App Store · Google Play · 웹</div>
 </div>
