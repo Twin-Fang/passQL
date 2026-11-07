@@ -44,6 +44,9 @@ class QuestionInteractionState {
   /// 제출 중 여부.
   final bool isSubmitting;
 
+  /// 이 풀이에서 제출을 마쳤는지 (보기 방식을 바꿔도 채점한 보기 유지, #907)
+  final bool hasSubmitted;
+
   const QuestionInteractionState({
     this.activeChoiceSetId,
     this.activeChoices = const [],
@@ -58,6 +61,7 @@ class QuestionInteractionState {
     this.sseStatusMessage,
     this.sseError,
     this.isSubmitting = false,
+    this.hasSubmitted = false,
   });
 
   QuestionInteractionState copyWith({
@@ -77,6 +81,7 @@ class QuestionInteractionState {
     SseErrorEvent? sseError,
     bool clearSseError = false,
     bool? isSubmitting,
+    bool? hasSubmitted,
   }) {
     return QuestionInteractionState(
       activeChoiceSetId: activeChoiceSetId ?? this.activeChoiceSetId,
@@ -96,6 +101,7 @@ class QuestionInteractionState {
       sseStatusMessage: sseStatusMessage ?? this.sseStatusMessage,
       sseError: clearSseError ? null : (sseError ?? this.sseError),
       isSubmitting: isSubmitting ?? this.isSubmitting,
+      hasSubmitted: hasSubmitted ?? this.hasSubmitted,
     );
   }
 }
