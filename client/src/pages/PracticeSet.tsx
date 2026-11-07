@@ -13,6 +13,7 @@ import LoadingOverlay from "../components/LoadingOverlay";
 import ProgressBar from "../components/ProgressBar";
 import PracticeTopBar from "../components/practice/PracticeTopBar";
 import PracticeQuestionScrollArea from "../components/practice/PracticeQuestionScrollArea";
+import { useSolvingMemo } from "../hooks/useSolvingMemo";
 import WaitingForQuestion from "../components/practice/WaitingForQuestion";
 import ExitPracticeConfirmModal from "../components/practice/ExitPracticeConfirmModal";
 import ExplanationPanel from "../components/aiExplanation/ExplanationPanel";
@@ -25,6 +26,8 @@ import ProAccessReasonModal from "../components/pro/ProAccessReasonModal";
 export default function PracticeSet() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
+  // 문제별 메모 (#904): 이 풀이 화면 동안만 메모리에
+  const solvingMemo = useSolvingMemo();
 
   const storeSessionId = usePracticeStore((s) => s.sessionId);
   const questions = usePracticeStore((s) => s.questions);
@@ -103,7 +106,7 @@ export default function PracticeSet() {
       </div>
 
       {displayQuestion ? (
-        <PracticeQuestionScrollArea hasFeedbackBar={!!feedback}>
+        <PracticeQuestionScrollArea hasFeedbackBar={!!feedback} memo={solvingMemo} memoPageKey={displayQuestion.questionUuid}>
           {/* 제출 후 showExecution=true — ChoiceCard 안에 SQL 실행 버튼 표시 */}
           <QuestionDetail
             key={displayQuestion.questionUuid}

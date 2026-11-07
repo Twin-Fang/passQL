@@ -18,7 +18,6 @@ import '../../widgets/exam_trend/latest_trend_tab_view.dart';
 import '../../widgets/pro/locked_preview_samples.dart';
 import '../../widgets/pro/pro_locked_section.dart';
 import '../../widgets/pro/pro_plan_chip_slot.dart';
-import '../../widgets/question/choice_mode_shortcut_row.dart';
 import '../../widgets/question/questions_tab_segmented_control.dart';
 import '../../widgets/question/topic_card.dart';
 import '../../widgets/mock_exam/mock_exam_entry_row.dart';
@@ -40,7 +39,7 @@ const _sectionPadding = EdgeInsets.fromLTRB(
 );
 
 /// 문제 탭: 보기 3개 (주제별 | 최신 경향 | 개념 TOP 10)
-/// 공통(모든 보기) > 세그먼트 아래 오답 노트 + 새 보기로 풀기 행
+/// 공통(모든 보기) > 세그먼트 아래 모의고사 + 오답 노트 행
 /// 주제별 > 토픽 선택 (토픽 행 탭 시 /questions/chapter?topic=CODE&topicName=NAME 이동)
 /// 최신 경향·개념 TOP 10 > 출제 경향 응답 (행 탭 시 그 토픽의 최신 경향 문제 풀기)
 /// 무료(결제 켜짐): 세그먼트 없이 풀기 방식(랜덤 풀기) + 토픽 골라 풀기·새 보기로 풀기·약점 추천 묶음 블러 (토픽 목록·출제 경향 요청 없음)
@@ -287,18 +286,14 @@ class _RandomPracticeSection extends ConsumerWidget {
   }
 }
 
-/// 세그먼트 아래 공통 영역: 모의고사 + 오답 노트 + 새 보기로 풀기 (보기와 상관없이 항상 보임)
+/// 세그먼트 아래 공통 영역: 모의고사 + 오답 노트 (보기와 상관없이 항상 보임, 보기 방식은 풀이 화면 칩·설정에서, #907)
 class _CommonShortcutSection extends StatelessWidget {
   const _CommonShortcutSection();
 
   @override
   Widget build(BuildContext context) {
     return const PassqlGroupedSection(
-      children: [
-        MockExamEntryRow(),
-        WrongNotesShortcutRow(),
-        ChoiceModeShortcutRow(),
-      ],
+      children: [MockExamEntryRow(), WrongNotesShortcutRow()],
     );
   }
 }

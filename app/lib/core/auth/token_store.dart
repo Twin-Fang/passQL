@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -14,10 +15,38 @@ class TokenStore {
 
   final FlutterSecureStorage _storage;
 
+  // iOS 쓰기: 재시동 뒤 첫 잠금 해제 이후 읽기 허용 (잠긴 화면에서 푸시로 깨어난 백그라운드 실행도 읽음)
+  static const IOSOptions _writeIosOptions = IOSOptions(
+    accessibility: KeychainAccessibility.first_unlock,
+  );
+  // iOS 삭제: 접근 등급 조건 없이 (예전 기본 등급 unlocked 로 저장된 값까지 지움)
+  static const IOSOptions _anyAccessibilityIosOptions = IOSOptions(
+    accessibility: null,
+  );
+
+  // Android 복호화 키 소실 표식 (기기 이전·백업 복원 > 저장분을 다시 읽을 수 없음)
+  static const List<String> _unrecoverableAndroidErrorMarkers = [
+    'BadPaddingException',
+    'AEADBadTagException',
+    'IllegalBlockSizeException',
+    'InvalidKeyException',
+    'UnrecoverableKeyException',
+    'KeyPermanentlyInvalidatedException',
+  ];
+
+  // 세션 키 5개 (삭제 대상)
+  static const List<String> _sessionKeys = [
+    StorageKeys.sessionAccessToken,
+    StorageKeys.sessionRefreshToken,
+    StorageKeys.sessionMemberUuid,
+    StorageKeys.sessionNickname,
+    StorageKeys.sessionAuthProvider,
+  ];
+
   AuthSession? _cache;
   bool _isLoaded = false;
 
-  /// 저장된 세션 조회. 없으면 null.
+  /// 저장된 세션 조회. 없거나 읽기 실패면 null (일시 오류는 캐시하지 않아 다음 호출에서 다시 읽음)
   Future<AuthSession?> read() async {
     if (_isLoaded) return _cache;
 
@@ -32,11 +61,12 @@ class TokenStore {
         _storage.read(key: StorageKeys.sessionAuthProvider),
       ]);
       [access, refresh, uuid, nickname, authProvider] = storedValues;
-    } catch (_) {
-      // 기기 이전이나 백업 복원으로 암호화 키가 사라지면 읽기가 예외를 던진다.
-      // 앱이 켜지지 않는 것보다 로그인 화면으로 가는 것이 낫다. 읽을 수 없는 저장분은 지운다.
+    } catch (error) {
+      // 이번 실행은 로그인 안 된 것으로 (앱이 켜지지 않는 것보다 로그인 화면이 나음)
+      // 복호화 키 소실만 저장분 삭제, 그 외(기기 잠김 등 일시 오류)는 보존 > 다음 읽기에서 다시 시도
+      if (!_isUnrecoverableReadError(error)) return null;
       try {
-        await _storage.deleteAll();
+        await _storage.deleteAll(iOptions: _anyAccessibilityIosOptions);
       } catch (_) {}
       _cache = null;
       _isLoaded = true;
@@ -64,24 +94,37 @@ class TokenStore {
     await _storage.write(
       key: StorageKeys.sessionAccessToken,
       value: session.accessToken,
+      iOptions: _writeIosOptions,
     );
     await _storage.write(
       key: StorageKeys.sessionRefreshToken,
       value: session.refreshToken,
+      iOptions: _writeIosOptions,
     );
     await _storage.write(
       key: StorageKeys.sessionMemberUuid,
       value: session.memberUuid,
+      iOptions: _writeIosOptions,
     );
     await _storage.write(
       key: StorageKeys.sessionNickname,
       value: session.nickname,
+      iOptions: _writeIosOptions,
     );
-    // 제공자 없는 세션은 이전 계정 값이 남지 않게 삭제
-    await _storage.write(
-      key: StorageKeys.sessionAuthProvider,
-      value: session.authProvider?.serverValue,
-    );
+    final authProviderValue = session.authProvider?.serverValue;
+    if (authProviderValue == null) {
+      // 제공자 없는 세션은 이전 계정 값이 남지 않게 삭제
+      await _storage.delete(
+        key: StorageKeys.sessionAuthProvider,
+        iOptions: _anyAccessibilityIosOptions,
+      );
+    } else {
+      await _storage.write(
+        key: StorageKeys.sessionAuthProvider,
+        value: authProviderValue,
+        iOptions: _writeIosOptions,
+      );
+    }
     _cache = session;
     _isLoaded = true;
   }
@@ -107,13 +150,18 @@ class TokenStore {
 
   /// 로그아웃 또는 세션 만료 시 전체 삭제.
   Future<void> clear() async {
-    await _storage.delete(key: StorageKeys.sessionAccessToken);
-    await _storage.delete(key: StorageKeys.sessionRefreshToken);
-    await _storage.delete(key: StorageKeys.sessionMemberUuid);
-    await _storage.delete(key: StorageKeys.sessionNickname);
-    await _storage.delete(key: StorageKeys.sessionAuthProvider);
+    for (final key in _sessionKeys) {
+      await _storage.delete(key: key, iOptions: _anyAccessibilityIosOptions);
+    }
     _cache = null;
     _isLoaded = true;
+  }
+
+  /// 다시 읽어도 소용없는 오류인가: Android 복호화 키 소실만 (iOS 키체인 오류는 잠김 등 일시 오류)
+  static bool _isUnrecoverableReadError(Object error) {
+    if (error is! PlatformException) return false;
+    final errorText = '${error.message} ${error.details}';
+    return _unrecoverableAndroidErrorMarkers.any(errorText.contains);
   }
 }
 

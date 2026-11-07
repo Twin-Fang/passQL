@@ -24,6 +24,8 @@ export const LOCKED_PREVIEW_CAPTIONS = {
   mockExamSubjectDetail: "과목별 점수 · 과락 · 토픽별 정답률",
   mockExamReview: "문항별 해설 · 보기별 근거 · 다음에 할 일",
   mockExamScoreTrend: "회차별 점수 추이 · 합격선 비교",
+  // 보기 방식 (#913): AI 새 보기
+  freshChoices: "풀 때마다 AI가 만드는 새 보기",
 } as const;
 
 // 사유 화면 3종 (앱 QuestionLoadErrorView 와 같은 문구)

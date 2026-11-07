@@ -24,10 +24,14 @@ class QuestionDetailPage extends ConsumerStatefulWidget {
   /// 알림 탭으로 들어왔는지: 첫 로드 실패에 프로 안내 시트를 띄우지 않음 (다시 시도부터는 띄움)
   final bool isPushEntry;
 
+  /// 오답 노트에서 다시 풀기로 들어왔는지: 보기 방식 칩 숨김, 회원 설정 방식 그대로 (#907)
+  final bool isWrongNoteRetry;
+
   const QuestionDetailPage({
     super.key,
     required this.questionUuid,
     this.isPushEntry = false,
+    this.isWrongNoteRetry = false,
   });
 
   @override
@@ -110,6 +114,7 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
               question: question,
               interaction: interaction,
               notifier: notifier,
+              shouldShowChoiceModeIndicator: !widget.isWrongNoteRetry,
             );
           },
         ),

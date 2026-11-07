@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/logging/app_logger.dart';
 import '../../core/network/api_call.dart';
 import '../../data/models/meta/app_config.dart';
 import '../../data/sources/api_providers.dart';
@@ -75,7 +76,7 @@ class NoticeListNotifier extends AutoDisposeAsyncNotifier<NoticeListState> {
         ),
       );
     } catch (error) {
-      debugPrint('[notice list] load more failed : $error');
+      AppLogger.warn('notice list', 'load more failed : $error');
       state = AsyncData(current.copyWith(isLoadingMore: false));
     }
   }

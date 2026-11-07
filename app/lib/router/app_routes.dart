@@ -22,6 +22,9 @@ abstract final class AppRoutes {
   static const String latestTrendQueryValue = 'true';
   // 문제 탭 보기 (값은 QuestionsTabView.queryValue)
   static const String questionsViewQuery = 'view';
+  // 문제 상세 진입 경로: 오답 노트 다시 풀기면 보기 방식 칩 숨김 (#907)
+  static const String questionEntryQuery = 'entry';
+  static const String wrongNoteEntryQueryValue = 'wrong-note';
 
   // 인증
   static const String login = '/login';
@@ -178,6 +181,10 @@ abstract final class AppRoutes {
 
   /// 문제 상세. [uuid]는 questionUuid.
   static String questionDetail(String uuid) => '$questions/$uuid';
+
+  /// 오답 노트에서 다시 풀기: 문제 상세와 같은 화면, 보기 방식 칩 없음 (#907)
+  static String wrongNoteRetry(String uuid) =>
+      '${questionDetail(uuid)}?$questionEntryQuery=$wrongNoteEntryQueryValue';
 
   /// 상세 화면 아래 결과 하위 경로
   static const String resultSubPath = 'result';

@@ -1,0 +1,55 @@
+/* 문제 지문 블록 (#903): SQL 코드 상자, 지문·스키마 공통 표 */
+
+/* 코드 속 한글은 본문 글꼴로 (JetBrains Mono 에 한글 없음 > Pretendard 로 넘김) */
+.sql-code-box,
+.question-table {
+  font-family: "JetBrains Mono", var(--font-ui);
+}
+
+/* SQL 코드 상자: 입력 칸과 구분되게 채움 없이 얇은 테두리, 긴 줄은 꺾지 않고 가로 스크롤 */
+.sql-code-box {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-tile);
+  background-color: transparent;
+  color: var(--color-text-primary);
+  font-size: var(--text-footnote);
+  line-height: 1.6;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* 마크다운 코드 블록 안 code 요소는 인라인 코드 모양(채움·작은 글자)을 버리고 상자 글꼴 그대로 */
+.sql-code-box code {
+  padding: 0;
+  background-color: transparent;
+  font: inherit;
+}
+
+/* 지문 표·스키마 표 공통: 머리글 연회색, 행 사이 구분선, 넓으면 바깥 상자가 가로 스크롤 */
+.question-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-footnote);
+  white-space: nowrap;
+}
+
+.question-table th {
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.question-table td {
+  padding: 7px 10px;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.question-table tbody tr + tr td {
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 50%, transparent);
+}

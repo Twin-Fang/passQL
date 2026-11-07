@@ -8,6 +8,7 @@ import '../../data/models/member/ad_bonus_request.dart';
 import '../../data/models/member/member_plan_response.dart';
 import '../../data/sources/api_providers.dart';
 import 'dev_plan_overrides.dart';
+import 'member_response_guard.dart';
 import 'session_reset.dart';
 
 export 'dev_plan_overrides.dart'
@@ -36,12 +37,14 @@ final isStoreBillingPlatformProvider = Provider<bool>(
 /// 회원 등급 단일 원본: GET /members/me/plan (회원별 autoDispose, 로그아웃이면 API 호출 없음)
 /// 첫 조회 실패 > 오류 상태(등급 모름, refresh·다음 build 에서 재시도), 이후 조회 실패 > 마지막 값 유지
 /// 서버 프로 접근 거부 신호 > 앱이 무료로 알고 있지 않으면 다시 받기 (만료·회수 반영)
+/// 회원 전환 전에 출발한 다시 받기·광고 보너스 응답은 버림 (이전 회원 등급이 새 회원을 덮지 않게)
 final planProvider =
     AsyncNotifierProvider.autoDispose<PlanNotifier, MemberPlanResponse>(
       PlanNotifier.new,
     );
 
-class PlanNotifier extends AutoDisposeAsyncNotifier<MemberPlanResponse> {
+class PlanNotifier extends AutoDisposeAsyncNotifier<MemberPlanResponse>
+    with MemberResponseGuard {
   /// 진행 중인 다시 받기 (동시 요청을 한 번으로 합침)
   Future<void>? _inFlightRefresh;
 
@@ -55,6 +58,9 @@ class PlanNotifier extends AutoDisposeAsyncNotifier<MemberPlanResponse> {
         .denials
         .listen((_) => refreshAfterProAccessDenied());
     ref.onDispose(denialSubscription.cancel);
+    advanceResponseGenerationOnDispose(ref);
+    // 이전 회원의 진행 중 요청에 합치지 않음
+    _inFlightRefresh = null;
     if (ref.watch(currentMemberUuidProvider) == null) {
       return waitForSignedInMember();
     }
@@ -64,8 +70,16 @@ class PlanNotifier extends AutoDisposeAsyncNotifier<MemberPlanResponse> {
 
   /// 구매·복원·앱 복귀·제출 때 다시 받기 (실패하면 현재 상태 유지: 마지막 값 또는 오류)
   /// 진행 중이면 그 요청을 같이 기다림 (거부 신호·화면 안내가 겹쳐도 요청 1회)
-  Future<void> refresh() => _inFlightRefresh ??= _fetchLatestPlan()
-      .whenComplete(() => _inFlightRefresh = null);
+  Future<void> refresh() {
+    final existingRefresh = _inFlightRefresh;
+    if (existingRefresh != null) return existingRefresh;
+    late final Future<void> startedRefresh;
+    startedRefresh = _fetchLatestPlan().whenComplete(() {
+      // 회원 전환 뒤 새로 시작한 요청 표시는 지우지 않음
+      if (identical(_inFlightRefresh, startedRefresh)) _inFlightRefresh = null;
+    });
+    return _inFlightRefresh = startedRefresh;
+  }
 
   /// 구매 확인 뒤 다시 받기: 확인 전에 출발한 요청에 합치지 않고 그 요청이 끝난 뒤 새로 받음 (무료 응답 재사용 방지)
   Future<void> refreshAfterPurchase() async {
@@ -96,9 +110,11 @@ class PlanNotifier extends AutoDisposeAsyncNotifier<MemberPlanResponse> {
       reapplyDevOverrides();
       return;
     }
+    final requestGeneration = currentResponseGeneration;
     final grantedPlan = await ref
         .read(memberApiProvider)
         .grantAdBonus(AdBonusRequest(rewardNonce: rewardNonce));
+    if (isStaleResponse(requestGeneration)) return;
     state = AsyncData(_acceptServerPlan(grantedPlan));
   }
 
@@ -111,11 +127,13 @@ class PlanNotifier extends AutoDisposeAsyncNotifier<MemberPlanResponse> {
   }
 
   Future<void> _fetchLatestPlan() async {
+    final requestGeneration = currentResponseGeneration;
     final latestPlan = await safeCall(
       ref.read(memberApiProvider).getMyPlan(),
       label: 'plan',
     );
-    if (latestPlan != null) state = AsyncData(_acceptServerPlan(latestPlan));
+    if (latestPlan == null || isStaleResponse(requestGeneration)) return;
+    state = AsyncData(_acceptServerPlan(latestPlan));
   }
 
   /// 서버 등급 받기: 원본 보관 > 개발 강제값 반영
