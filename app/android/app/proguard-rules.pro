@@ -7,3 +7,9 @@
 -dontwarn com.navercorp.nid.oauth.NidOAuthLoginState
 -dontwarn com.navercorp.nid.oauth.OAuthLoginCallback
 -dontwarn com.navercorp.nid.profile.**
+
+# 네이버 SDK 5.12 는 Retrofit 프록시로 서비스 인터페이스를 만든다(NidServiceLocator 초기화).
+# R8 full mode 가 구현 없는 인터페이스로 보고 형변환을 throw ClassCastException 으로 바꿔 로그인 시 앱 종료 (#942)
+-keep class com.navercorp.nid.** { *; }
+-keep interface com.navercorp.nid.** { *; }
+-keepattributes Signature, InnerClasses, EnclosingMethod, *Annotation*
