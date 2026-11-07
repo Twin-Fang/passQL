@@ -1,0 +1,6 @@
+description=앱 코드 debugPrint 직접 사용 금지 (AppLogger 로: 릴리스·의견 보내기 로그에 남김, 디버그는 AppLogger 가 콘솔 출력)
+paths=app/lib/
+extensions=.dart
+pattern=\bdebugPrint\(
+# 공통 지점 2곳: AppLogger 디버그 콘솔 출력, 디버그 전용 Dio 콘솔 로그 (요청 본문 포함이라 파일 로그에 남기지 않음)
+exclude=app/lib/core/logging/app_logger.dart,app/lib/core/network/debug_log_interceptor.dart

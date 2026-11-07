@@ -1,8 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 
 import '../../core/billing/pro_purchase_port.dart';
+import '../../core/logging/app_logger.dart';
 import '../models/billing/play_verify_request.dart';
 import '../models/member/member_plan_response.dart';
 import 'play_account_identifier.dart';
@@ -66,7 +66,10 @@ class PlayPurchaseService extends StorePurchaseService {
   Future<void> onPurchaseUpdates(List<PurchaseDetails> purchases) async {
     for (final purchase in purchases) {
       final isPassPurchase = purchase.productID.isNotEmpty;
-      debugPrint('[billing] purchase update : status=${purchase.status.name}');
+      AppLogger.info(
+        'billing',
+        'purchase update : status=${purchase.status.name}',
+      );
       switch (purchase.status) {
         case PurchaseStatus.pending:
           completeActivePurchase(ProPurchaseOutcome.pending);
@@ -87,7 +90,7 @@ class PlayPurchaseService extends StorePurchaseService {
   /// 결제 오류: 이미 보유(미확인 구매 남음)면 재전송 후 등급으로 판정, 그 외 failed
   Future<void> _onPurchaseError(PurchaseDetails purchase) async {
     final errorMessage = purchase.error?.message ?? '';
-    debugPrint('[billing] purchase failed : $errorMessage');
+    AppLogger.warn('billing', 'purchase failed : $errorMessage');
     if (!hasActivePurchase) return;
     if (errorMessage.contains(_itemAlreadyOwnedMarker)) {
       await completeActivePurchaseFromServerPlan();

@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight, Flag, LayoutGrid } from "lucide-react";
+import { usePracticeBottomBarHeight } from "../../hooks/usePracticeBottomBarHeight";
 
 interface MockExamSolvingBottomBarProps {
   readonly hasPreviousQuestion: boolean;
@@ -29,8 +30,10 @@ export default function MockExamSolvingBottomBar({
   onPaletteOpenPressed,
   onSubmitPressed,
 }: MockExamSolvingBottomBarProps) {
+  // 바 높이 공개 > 메모 펜 버튼이 바 바로 위에 뜸 (#904)
+  const barRef = usePracticeBottomBarHeight();
   return (
-    <div className="fixed bottom-0 inset-x-0 z-20 bg-surface-card border-t border-border">
+    <div ref={barRef} className="fixed bottom-0 inset-x-0 z-20 bg-surface-card border-t border-border">
       <div className="mx-auto max-w-120 px-4 pt-3 pb-4 space-y-2">
         <div className="grid grid-cols-3 gap-2">
           <button type="button" className="btn btn-ghost gap-1" disabled={!hasPreviousQuestion} onClick={onPreviousPressed}>

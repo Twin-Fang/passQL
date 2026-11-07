@@ -7,10 +7,12 @@ import MockExamQuestionView from "./MockExamQuestionView";
 import MockExamSolvingBottomBar from "./MockExamSolvingBottomBar";
 import MockExamAnswerPaletteSheet from "./MockExamAnswerPaletteSheet";
 import MockExamSubmitStatusOverlay from "./MockExamSubmitStatusOverlay";
+import SolvingMemoBoard from "../solvingMemo/SolvingMemoBoard";
 import { useMockExamCountdown } from "../../hooks/useMockExamCountdown";
 import { useMockExamAnswerSync } from "../../hooks/useMockExamAnswerSync";
 import { useMockExamSubmit } from "../../hooks/useMockExamSubmit";
 import { usePracticeExitGuard } from "../../hooks/usePracticeExitGuard";
+import { useSolvingMemo } from "../../hooks/useSolvingMemo";
 import { groupBySubject, toSolvingCells } from "../../lib/mockExamPresentation";
 import { MOCK_EXAM_ROUNDS_PATH } from "../../constants/mockExamRoutes";
 import { MOCK_EXAM_LEAVE_CONFIRM, MOCK_EXAM_SUBMIT_CONFIRM } from "../../constants/mockExamCopy";
@@ -36,6 +38,8 @@ export default function MockExamSolvingScreen({ syncedSheet, onSyncRequested }: 
   const [isSubmitConfirmOpen, setIsSubmitConfirmOpen] = useState(false);
   const [isAttemptClosed, setIsAttemptClosed] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  // 문항별 메모 (#904): 이 응시 화면 동안만 메모리에, 나가거나 제출하면 사라짐
+  const solvingMemo = useSolvingMemo();
 
   const { remainingSeconds, announcement, syncRemainingSeconds } = useMockExamCountdown({
     serverRemainingSeconds: initialSyncedSheet.sheet.remainingSeconds,
@@ -137,13 +141,15 @@ export default function MockExamSolvingScreen({ syncedSheet, onSyncRequested }: 
       </header>
 
       <div ref={scrollAreaRef} className="flex-1 overflow-y-auto px-4 pt-2 pb-36">
-        <MockExamQuestionView
-          key={currentQuestion.questionNumber}
-          question={currentQuestion}
-          selectedChoiceKey={currentAnswer?.selectedChoiceKey ?? null}
-          isUnsaved={answerSync.failedQuestionNumbers.has(currentQuestion.questionNumber)}
-          onChoicePressed={onChoicePressed}
-        />
+        <SolvingMemoBoard memo={solvingMemo} pageKey={String(currentQuestion.questionNumber)}>
+          <MockExamQuestionView
+            key={currentQuestion.questionNumber}
+            question={currentQuestion}
+            selectedChoiceKey={currentAnswer?.selectedChoiceKey ?? null}
+            isUnsaved={answerSync.failedQuestionNumbers.has(currentQuestion.questionNumber)}
+            onChoicePressed={onChoicePressed}
+          />
+        </SolvingMemoBoard>
       </div>
 
       <MockExamSolvingBottomBar
