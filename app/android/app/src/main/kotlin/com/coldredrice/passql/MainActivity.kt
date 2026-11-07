@@ -10,7 +10,9 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugins.googlemobileads.GoogleMobileAdsPlugin
 import com.navercorp.nid.NaverIdLoginSDK
-import com.navercorp.nid.oauth.NidOAuthBehavior
+import com.navercorp.nid.NidOAuth
+import com.navercorp.nid.oauth.domain.`enum`.NidOAuthBehavior
+import com.navercorp.nid.oauth.util.NidOAuthCallback
 
 // 네이버 로그인 플러그인이 FlutterFragmentActivity 를 요구 (ActivityResult 등록, #509)
 class MainActivity : FlutterFragmentActivity() {
@@ -33,24 +35,7 @@ class MainActivity : FlutterFragmentActivity() {
             PassqlNativeAdFactory(this),
         )
         registerRingerModeChannel(flutterEngine)
-        registerNaverLoginBehaviorChannel(flutterEngine)
-    }
-
-    // 네이버 로그인 방식 바꾸기 채널 (#942): 네이버 앱 로그인이 실패한 기기에서 Chrome 로그인 화면으로 재시도
-    // 값 2개: default(네이버 앱 우선), customTabs(Chrome 로그인 화면만)
-    private fun registerNaverLoginBehaviorChannel(flutterEngine: FlutterEngine) {
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "passql/naver_login_behavior")
-            .setMethodCallHandler { call, result ->
-                if (call.method != "setBehavior") {
-                    result.notImplemented()
-                    return@setMethodCallHandler
-                }
-                NaverIdLoginSDK.behavior = when (call.argument<String>("behavior")) {
-                    "customTabs" -> NidOAuthBehavior.CUSTOMTABS
-                    else -> NidOAuthBehavior.DEFAULT
-                }
-                result.success(null)
-            }
+        registerNaverLoginChannel(flutterEngine)
     }
 
     // 소리 모드 조회 채널 (의견 진단 정보, #708): normal, vibrate, silent
@@ -73,6 +58,67 @@ class MainActivity : FlutterFragmentActivity() {
             }
     }
 
+    // 네이버 로그인 채널 (#942): flutter_naver_login 2.1.1 은 SDK 5.10 전용이라 Android 로그인만 SDK 5.12 를 직접 부름
+    // 메서드 3개: login(behavior: default 네이버 앱 우선 | customTabs Chrome 로그인 화면), logout, deleteToken(연동 해제)
+    private fun registerNaverLoginChannel(flutterEngine: FlutterEngine) {
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "passql/naver_login")
+            .setMethodCallHandler { call, result ->
+                if (!ensureNaverSdkInitialized()) {
+                    result.error(NAVER_ERROR_NOT_INITIALIZED, "naver sdk not initialized", null)
+                    return@setMethodCallHandler
+                }
+                when (call.method) {
+                    "login" -> logInWithNaver(call.argument<String>("behavior"), result)
+                    "logout" -> NaverIdLoginSDK.logout(replyOnce(result))
+                    "deleteToken" -> NidOAuth.disconnect(replyOnce(result))
+                    else -> result.notImplemented()
+                }
+            }
+    }
+
+    /** 로그인 방식 지정 > SDK 로그인 > 성공이면 액세스 토큰, 실패면 SDK 오류 코드·설명 */
+    private fun logInWithNaver(behavior: String?, result: MethodChannel.Result) {
+        NaverIdLoginSDK.behavior =
+            if (behavior == "customTabs") NidOAuthBehavior.CUSTOMTABS else NidOAuthBehavior.DEFAULT
+        NaverIdLoginSDK.authenticate(this, object : NidOAuthCallback {
+            override fun onSuccess() {
+                result.success(mapOf("accessToken" to NaverIdLoginSDK.getAccessToken()))
+            }
+
+            override fun onFailure(errorCode: String, errorDescription: String) {
+                result.error(
+                    NAVER_ERROR_LOGIN_FAILED,
+                    errorDescription,
+                    mapOf(
+                        "errorCode" to NaverIdLoginSDK.getLastErrorCode().code,
+                        "errorDescription" to NaverIdLoginSDK.getLastErrorDescription(),
+                    ),
+                )
+            }
+        })
+    }
+
+    /** 로그아웃·연동 해제 응답 (실패도 성공으로 돌려 앱 흐름은 계속, 원인은 Dart 로그) */
+    private fun replyOnce(result: MethodChannel.Result) = object : NidOAuthCallback {
+        override fun onSuccess() = result.success(null)
+        override fun onFailure(errorCode: String, errorDescription: String) =
+            result.success(mapOf("errorCode" to errorCode, "errorDescription" to errorDescription))
+    }
+
+    /** SDK 초기화 확인 (플러그인이 앱 시작 때 초기화, 안 됐으면 빌드 리소스 값으로 직접) */
+    private fun ensureNaverSdkInitialized(): Boolean {
+        if (NaverIdLoginSDK.isInitialized()) return true
+        val clientId = getString(R.string.naver_client_id)
+        if (clientId.isEmpty()) return false
+        NaverIdLoginSDK.initialize(
+            applicationContext,
+            clientId,
+            getString(R.string.naver_client_secret),
+            getString(R.string.naver_client_name),
+        )
+        return NaverIdLoginSDK.isInitialized()
+    }
+
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
         GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, PassqlStripNativeAdFactory.FACTORY_ID)
         GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, PassqlNativeAdFactory.FACTORY_ID)
@@ -88,5 +134,11 @@ class MainActivity : FlutterFragmentActivity() {
             NotificationManager.IMPORTANCE_HIGH,
         )
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+    }
+
+    companion object {
+        // 네이버 로그인 채널 오류 코드 (Dart naver_social_sign_in.dart 와 같은 값)
+        private const val NAVER_ERROR_LOGIN_FAILED = "naver_login_failed"
+        private const val NAVER_ERROR_NOT_INITIALIZED = "naver_not_initialized"
     }
 }

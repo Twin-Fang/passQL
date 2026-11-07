@@ -1,50 +1,21 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter_naver_login/interface/types/naver_login_result.dart';
-import 'package:flutter_naver_login/interface/types/naver_login_status.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passql_app/core/auth/naver_social_sign_in.dart';
 
-// 네이버 로그인 Chrome 로그인 화면 재시도 판정 (#942): Android 실패만, 취소·성공·iOS 는 재시도 안 함
+// Android 네이버 로그인 취소 판정 (#942): 취소면 조용히 로그인 화면 유지, 그 외 실패는 Chrome 로그인 화면 재시도
 void main() {
-  final appLoginFailure = NaverLoginResult(
-    status: NaverLoginStatus.error,
-    errorMessage:
-        'errorCode:no_catagorized_error, errorDesc:no_catagorized_error',
-  );
-
-  test('Android 에서 네이버 앱 로그인 실패면 재시도한다', () {
+  test('SDK 취소 코드는 취소로 본다', () {
+    expect(NaverSocialSignIn.isCancelledErrorCode('user_cancel'), isTrue);
     expect(
-      NaverSocialSignIn.shouldRetryWithCustomTabs(
-        appLoginFailure,
-        TargetPlatform.android,
-      ),
+      NaverSocialSignIn.isCancelledErrorCode('CLIENT_USER_CANCEL'),
       isTrue,
     );
   });
 
-  test('취소, 성공, iOS 는 재시도하지 않는다', () {
-    final cancelled = NaverLoginResult(status: NaverLoginStatus.loggedOut);
-    final loggedIn = NaverLoginResult(status: NaverLoginStatus.loggedIn);
+  test('분류되지 않은 오류와 코드 없음은 취소가 아니다', () {
     expect(
-      NaverSocialSignIn.shouldRetryWithCustomTabs(
-        cancelled,
-        TargetPlatform.android,
-      ),
+      NaverSocialSignIn.isCancelledErrorCode('no_catagorized_error'),
       isFalse,
     );
-    expect(
-      NaverSocialSignIn.shouldRetryWithCustomTabs(
-        loggedIn,
-        TargetPlatform.android,
-      ),
-      isFalse,
-    );
-    expect(
-      NaverSocialSignIn.shouldRetryWithCustomTabs(
-        appLoginFailure,
-        TargetPlatform.iOS,
-      ),
-      isFalse,
-    );
+    expect(NaverSocialSignIn.isCancelledErrorCode(null), isFalse);
   });
 }
