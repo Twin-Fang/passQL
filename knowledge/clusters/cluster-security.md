@@ -2,7 +2,7 @@
 type: cluster
 topic: security
 created: 2026-10-29
-members: 48
+members: 49
 status: active
 related: []
 ---
@@ -67,3 +67,4 @@ related: []
 - [[ISS-0308-question-api-exposes-answers]] (resolved, GitHub #503) — 문제 조회 API가 정답, 해설, 정답 SQL을 사용자에게 노출
 - [[ISS-0316-social-login-token-unlink-account-switch]] (resolved, GitHub #516) — 소셜 로그인 토큰 검증 강화, 탈퇴 연결 해제, 계정 전환 시 이전 회원 데이터 노출
 - [[ISS-0378-admin-audit-log-search-access-events]] (resolved, GitHub #623) — 관리자 감사 로그에 동작 필터·검색이 없고 접근 이벤트가 기록되지 않는 것으로 보임
+- [[ISS-0487-synology-secret-upload-ssh-handshake-flaky]] (resolved, GitHub #950) — 시놀로지 시크릿 업로드가 NAS SSH 무차별 대입 급증으로 handshake 간헐 실패, 최대 3회 재시도

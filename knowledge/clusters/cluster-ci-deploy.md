@@ -2,7 +2,7 @@
 type: cluster
 topic: ci-deploy
 created: 2026-10-29
-members: 63
+members: 66
 status: active
 related: []
 ---
@@ -13,9 +13,10 @@ related: []
 CI/CD·배포·버전 관리·빌드
 
 ## 현재 상태 요약
-(2026-11-04, 자동 생성) 활성 결정 20개, 열린 이슈 1개. 빌드 프로파일 `build-profile.json`의 `test`가 개발자 도구 값을 켜고 `release`가 꺼짐을 검증한다 — [[DEC-0240-dev-tools-two-layer-gate-test-builds]]. release 단계는 iOS·Android 스토어 워크플로 모두에 있고, 규칙 테스트가 두 워크플로의 `APP_FLAVOR` 부재와 release 적용을 검사한다 — [[DEC-0246-dev-tools-no-prod-writes-store-exclusion]] (main 머지, 작성 시점 미배포). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-04, 자동 생성) 활성 결정 20개, 열린 이슈 1개. 빌드 프로파일 `build-profile.json`의 `test`가 개발자 도구 값을 켜고 `release`가 꺼짐을 검증한다 — [[DEC-0240-dev-tools-two-layer-gate-test-builds]]. release 단계는 iOS·Android 스토어 워크플로 모두에 있고, 규칙 테스트가 두 워크플로의 `APP_FLAVOR` 부재와 release 적용을 검사한다 — [[DEC-0246-dev-tools-no-prod-writes-store-exclusion]] (main 머지, 작성 시점 미배포). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. iOS 배포는 App Store 에 심사 대기·심사 중 버전이 있으면 TestFlight 만 올린다 — [[DEC-0280-ios-deploy-skip-app-store-step-while-in-review]]. iOS 배포 워크플로는 실행 브랜치와 관계없이 main 을 체크아웃한다 — [[ISS-0484-ios-deploy-mutates-version-in-review]].
 
 ## 활성 결정
+- [[DEC-0280-ios-deploy-skip-app-store-step-while-in-review]] — 심사 대기·심사 중 버전이 있거나 확인 불가면 iOS 배포는 TestFlight 업로드만
 - [[DEC-0009-main-verify-deploy-branch-release]] — `main`은 빌드 검증만, 실제 배포는 `deploy` 브랜치에서만 트리거
 - [[DEC-0060-vercel-server-side-build-deploy]] — Vercel 배포 워크플로는 runner에서 빌드하지 않고 `vercel deploy --prod --yes`로 Vercel 서버 빌드에 맡긴다
 - [[DEC-0070-app-version-from-version-yml]] — 웹 앱 버전(`__APP_VERSION__`)은 빌드 타임에 루트 `version.yml`을 직접 읽어 주입한다
@@ -41,6 +42,7 @@ CI/CD·배포·버전 관리·빌드
 - [[DEC-0021-vercel-git-integration-deploy-branch]] → DEC-0060
 
 ## 관련 이슈
+- [[ISS-0484-ios-deploy-mutates-version-in-review]] (resolved, GitHub #939): 심사 대기 중 iOS 배포가 대기 버전 표기·메타데이터를 바꾸고 실패 > TestFlight 만
 - [[ISS-0452-server-only-release-triggers-store-submit]] (resolved, GitHub #840) — 서버만 바꾼 릴리스에도 버전 줄 변경으로 스토어 심사 제출 자동 실행 > pubspec 제외
 - [[ISS-0449-dev-tools-store-build-guard]] (resolved, GitHub #820) — 개발자 도구 스토어 빌드 차단 보장 (컴파일 상수, Android 스토어 프로파일, 규칙 테스트)
 - [[ISS-0444-test-build-dev-tools-overlay]] (resolved, GitHub #809) — 테스트 빌드 개발자 도구 (빌드 프로파일 test/release)
@@ -83,3 +85,4 @@ CI/CD·배포·버전 관리·빌드
 - [[ISS-0403-ios-dependency-lockfiles-sync]] (resolved, GitHub #670) — iOS 의존성 고정 파일 갱신
 - [[ISS-0422-play-closed-testing-promote-default-off]] (resolved, GitHub #729) — Play 수동 배포 비공개 테스트 승급 기본값 끄기
 - [[ISS-0423-test-build-version-mismatch-android-ios]] (resolved, GitHub #731) — 앱 테스트 빌드가 같은 커밋인데 Android·iOS 버전이 다르게 올라감
+- [[ISS-0487-synology-secret-upload-ssh-handshake-flaky]] (resolved, GitHub #950) — 시놀로지 시크릿 업로드가 NAS SSH 무차별 대입 급증으로 handshake 간헐 실패, 최대 3회 재시도

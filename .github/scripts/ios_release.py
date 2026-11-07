@@ -52,6 +52,13 @@ CLOSED_STORE_STATES = CLOSED_VERSION_STATES | {
     "DEVELOPER_REMOVED_FROM_SALE", "REMOVED_FROM_SALE",
 }
 
+# 심사 대기·심사 중 상태. 이 버전이 있으면 App Store 단계를 건너뛴다 (deliver 가 표기·메타데이터를 바꾼 뒤 실패, #939)
+REVIEW_LOCKED_STATES = {"WAITING_FOR_REVIEW", "IN_REVIEW"}
+# App Store 단계를 거치는 배포 모드 (Fastfile 과 같은 이름·별칭)
+APP_STORE_DEPLOY_MODES = {"appstore_prepare", "appstore_submit", "store_prepare", "store_submit"}
+# 조회 실패 등으로 확인하지 못했을 때 표기
+REVIEW_LOCK_UNKNOWN = "상태 확인 불가"
+
 _ANSI = re.compile(r"\x1b\[[0-9;]*m")
 _NO_REASON = "업로드 실패 (사유를 로그에서 찾지 못함)"
 
@@ -505,15 +512,40 @@ def _phase_build(cfg: _Cfg, info: dict) -> None:
     info.update(attempts=1, ipa_path=str(ipa))
 
 
+def review_locked_version(versions: list[dict]) -> str | None:
+    """심사 대기·심사 중 버전 문자열 (없으면 None). 신형·구형 상태 필드 둘 다 본다."""
+    for v in versions:
+        if v.get("appVersionState") in REVIEW_LOCKED_STATES or v.get("appStoreState") in REVIEW_LOCKED_STATES:
+            return v.get("version") or REVIEW_LOCK_UNKNOWN
+    return None
+
+
+def _find_review_locked_version(cfg: _Cfg) -> str | None:
+    """ASC 조회 > 심사 중 버전. 조회가 안 되면 확인 불가로 보고 App Store 단계를 막는다."""
+    try:
+        token, app_id = _asc_context(cfg)
+        return review_locked_version(asc_client.list_app_store_versions(app_id, token))
+    except asc_client.AscError as e:
+        print(f"경고: 심사 중 버전 조회 불가 ({e}), App Store 단계를 건너뜁니다", file=sys.stderr)
+        return REVIEW_LOCK_UNKNOWN
+
+
 def _phase_upload(cfg: _Cfg, info: dict) -> None:
     st = _load_state(cfg)
     version, number, attempt, ipa = st["version"], st["build_number"], st["attempt"], Path(st["ipa_path"])
     info.update(build_number=number, version=version, attempts=attempt, ipa_path=str(ipa),
                 built_at_utc=build_number.describe(number))
+    # 심사 대기·심사 중 버전이 있으면 TestFlight 업로드만 (버전 표기·메타데이터·제출 손대지 않음, #939)
+    locked_version = None
+    if cfg.mode != "test" and os.environ.get("DEPLOY_MODE", "").strip() in APP_STORE_DEPLOY_MODES:
+        locked_version = _find_review_locked_version(cfg)
+    if locked_version:
+        info["app_store_skipped"] = f"{locked_version} 심사 대기·심사 중"
+        print(f"::notice::App Store 단계 건너뜀: {locked_version} 심사 대기·심사 중 (TestFlight 업로드만)")
     while True:
         env = dict(os.environ)
         env.update(IPA_PATH=str(ipa), BUILD_NUMBER=str(number), APP_VERSION=version)
-        if cfg.mode == "test":
+        if cfg.mode == "test" or locked_version:
             # 테스트 빌드가 심사 제출까지 가지 않도록 이미 다른 값이 들어와 있어도 못 박는다 (#601)
             env["DEPLOY_MODE"] = "store_only"
         rc, out = run_cmd(["bundle", "exec", "fastlane", "deploy"], str(cfg.ios_dir), env)

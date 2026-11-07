@@ -2,7 +2,7 @@
 type: cluster
 topic: store-release
 created: 2026-10-29
-members: 62
+members: 65
 status: active
 related: []
 ---
@@ -16,6 +16,7 @@ related: []
 (2026-11-04, 자동 생성) 활성 결정 18개, 열린 이슈 5개. 앱 아이콘이 시안 8번으로 바뀌었다 — [[DEC-0242-app-icon-lavender-two-line-pass-ql]]: 사용자 기기에는 스토어 새 버전에서 바뀌고, Play 스토어 목록 아이콘(512px)은 Play Console에서 따로 올려야 한다. 프로모션 코드는 스토어 코드(App Store 오퍼 코드, Play 프로모 코드)만 쓴다 — [[DEC-0244-promo-code-store-codes-only]]. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
+- [[DEC-0280-ios-deploy-skip-app-store-step-while-in-review]] — 심사 대기·심사 중 버전이 있거나 확인 불가면 iOS 배포는 TestFlight 업로드만
 - [[DEC-0065-source-available-license-no-commercial]] — 저장소 라이선스를 MIT에서 자체 Source-Available License 1.0으로 — 상업적 이용 영구 금지
 - [[DEC-0082-legal-table-separate-from-app-setting]] — 약관(이용약관·개인정보처리방침)은 `AppSetting`이 아닌 독립 `legal` 테이블에서 관리한다
 - [[DEC-0095-account-deletion-anonymize-soft-delete]] — 회원 탈퇴는 식별 정보 즉시 제거 + 닉네임 익명화 + 소프트 삭제, 재로그인은 새 회원
@@ -43,6 +44,8 @@ related: []
 - [[DEC-0169-store-listing-korean-only]] — 스토어 홍보 이미지·설명은 한국어만 만들고, 문구는 `scenes.json`에서 도구로 렌더링한다 (대체: DEC-0233)
 
 ## 관련 이슈
+- [[ISS-0485-billing-test-setup-e2e]] (open, GitHub #941): 결제 시험 환경 세팅과 결제 E2E (Play 서비스 계정·SSV 설정 비어 있음)
+- [[ISS-0484-ios-deploy-mutates-version-in-review]] (resolved, GitHub #939): 심사 대기 중 iOS 배포가 대기 버전 표기·메타데이터를 바꾸고 실패 > TestFlight 만
 - [[ISS-0452-server-only-release-triggers-store-submit]] (resolved, GitHub #840) — 서버만 바꾼 릴리스에도 버전 줄 변경으로 스토어 심사 제출 자동 실행 > pubspec 제외
 - [[ISS-0450-promo-site-dynamic-revamp]] (resolved, GitHub #823) — 홍보 페이지 다이나믹 개편, 새 아이콘·새 기능·Play 공개 반영
 - [[ISS-0446-app-icon-light-lavender-background]] (resolved, GitHub #766) — 앱 아이콘 배경을 밝게 (어두운 남색 배경에서 글자가 안 보임)

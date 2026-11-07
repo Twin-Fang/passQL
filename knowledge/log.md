@@ -178,3 +178,10 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-07 15:10 | W6 | ingest issue (open) + decision (W4: DEC-0277·DEC-0278 충돌 없음, 적용 시점만 정함) | ISS-0480 (#923), DEC-0279
 - 2026-11-07 15:10 | W6 | update (related, 남은 일 운영 적용 결과) | ISS-0474, ISS-0474-report
 - 2026-11-07 15:10 | W2 | cluster update (resolved 표시, 새 항목, 요약 문장, 열린 이슈·활성 결정 수, members 실제 수로) | cluster-ads, cluster-practice, cluster-ai, cluster-billing, cluster-ci-deploy, cluster-auth-member, cluster-notification, cluster-question-bank, cluster-admin
+- 2026-11-07 18:40 | W6 | ingest issue + report | ISS-0481, ISS-0481-report (#926), ISS-0482, ISS-0482-report (#929), ISS-0483, ISS-0483-report (#934), ISS-0484, ISS-0484-report (#939)
+- 2026-11-07 18:40 | W6 | ingest issue (open) | ISS-0485 (#941), ISS-0486 (#942)
+- 2026-11-07 18:40 | W4 | decision (충돌 없음: DEC-0201·ISS-0452 와 보완 관계) | DEC-0280 (#939), DEC-0281 (#929·#934)
+- 2026-11-07 18:40 | W6 | update (#908 후속 GitHub user:email 범위, PR #937) | ISS-0476
+- 2026-11-07 18:40 | W2 | cluster update (새 항목, 활성 결정, 요약 문장) | cluster-admin, cluster-auth-member, cluster-ci-deploy, cluster-store-release, cluster-billing
+- 2026-11-07 18:42 | W2 | fix W10 (members 실제 수로) | cluster-admin 100, cluster-auth-member 64, cluster-billing 51, cluster-ci-deploy 65, cluster-store-release 65
+- 2026-11-07 19:14 | W6 | create issue+completion-report (#950), cluster add | ISS-0487, cluster-ci-deploy, cluster-ops-infra, cluster-security
