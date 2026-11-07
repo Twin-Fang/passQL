@@ -34,8 +34,12 @@ class QuestionSolvingBody extends StatelessWidget {
     this.submitResult,
     this.gradedSelectedKey,
     this.shouldAlwaysAllowRetry = false,
+    this.shouldShowChoiceModeIndicator = true,
     this.topBadge,
   });
+
+  /// 보기 방식 칩을 보일지 (오답 노트 다시 풀기는 숨김: 바꾸면 다른 오답 문제까지 바뀌어서, #907)
+  final bool shouldShowChoiceModeIndicator;
 
   /// 문제 맨 위에 붙이는 배지 (온보딩에서 들어온 첫 문제의 '첫 문제')
   final Widget? topBadge;
@@ -106,8 +110,12 @@ class QuestionSolvingBody extends StatelessWidget {
               schemaDdl: question.schemaDdl,
               schemaSampleData: question.schemaSampleData,
             ),
-          // 지금 보기 방식 (AI 새 보기·검증된 보기, 누르면 바꾸는 시트)
-          const ChoiceModeIndicator(),
+          // 지금 보기 방식 (AI 새 보기·검증된 보기, 누르면 바꾸는 시트 > 지금 문제에 반영)
+          if (shouldShowChoiceModeIndicator)
+            ChoiceModeIndicator(
+              hasSubmitted: interaction.hasSubmitted,
+              onModeChanged: notifier.applyChoiceModeChange,
+            ),
           QuestionChoices(
             interaction: interaction,
             notifier: notifier,

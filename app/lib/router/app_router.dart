@@ -414,6 +414,9 @@ abstract final class AppRouter {
         builder: (_, state) => QuestionDetailPage(
           questionUuid: state.pathParameters[AppRoutes.questionUuidParameter]!,
           isPushEntry: state.extra is PushEntryMarker,
+          isWrongNoteRetry:
+              state.uri.queryParameters[AppRoutes.questionEntryQuery] ==
+              AppRoutes.wrongNoteEntryQueryValue,
         ),
         routes: [
           GoRoute(

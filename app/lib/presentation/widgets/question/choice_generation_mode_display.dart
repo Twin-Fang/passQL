@@ -1,7 +1,7 @@
 import '../../../data/models/member/choice_generation_mode.dart';
 
 /// 선택지 생성 방식의 화면 문구 단일 원본: 켜고 끄는 이름 + 모드별 짧은 이름·한 줄 설명
-/// "실전"은 모의고사(#866) 이름이라 쓰지 않음 (#863). 설정 ChoiceModeTile·문제 탭 ChoiceModeShortcutRow·풀이 ChoiceModeIndicator 공용
+/// "실전"은 모의고사(#866) 이름이라 쓰지 않음 (#863). 설정 ChoiceModeTile·풀이 ChoiceModeIndicator 공용
 extension ChoiceGenerationModeDisplay on ChoiceGenerationMode {
   /// 켜고 끄는 기능 이름 (켜면 real)
   static const String freshChoicesTitle = '새 보기로 풀기';

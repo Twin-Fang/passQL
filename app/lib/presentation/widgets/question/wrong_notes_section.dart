@@ -99,7 +99,7 @@ class _WrongRow extends StatelessWidget {
     ].join(' · ');
 
     return PassqlPressable(
-      onTap: () => context.push(AppRoutes.questionDetail(item.questionUuid)),
+      onTap: () => context.push(AppRoutes.wrongNoteRetry(item.questionUuid)),
       // 읽는 순서: 오답 > 지문 > 토픽·시점 (화면 글자는 덮음)
       semanticLabel: [
         '오답',
