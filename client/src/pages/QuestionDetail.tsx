@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AiExplanationSheet from "../components/AiExplanationSheet";
-import { SchemaViewer } from "../components/SchemaViewer";
 import { SqlPlayground } from "../components/SqlPlayground";
 import LoadingOverlay from "../components/LoadingOverlay";
 import ExitPracticeConfirmModal from "../components/practice/ExitPracticeConfirmModal";
@@ -38,7 +37,7 @@ interface QuestionDetailProps {
 }
 
 /**
- * 문제 풀이 화면: 지문 > 스키마 > 선택지(SSE 생성 포함) > SQL 실행기 > 제출
+ * 문제 풀이 화면: 지문(스키마 표 포함) > 선택지(SSE 생성 포함) > SQL 실행기 > 제출
  * 단독 라우트와 연습·데일리 화면(practiceMode) 공용
  */
 export default function QuestionDetail({
@@ -122,16 +121,12 @@ export default function QuestionDetail({
         />
       )}
 
-      {/* 문제 지문 (토글) */}
+      {/* 문제 지문 (토글, 스키마 표는 지문 카드 안) */}
       <QuestionStemToggle
         stem={question.stem}
         isStemOpen={isStemOpen}
         onToggle={() => setIsStemOpen((prev) => !prev)}
         isLatestTrend={question.isLatestTrend}
-      />
-
-      {/* 테이블 (지문 바로 아래, 스키마 없는 개념형은 렌더 안 함) */}
-      <SchemaViewer
         schemaTables={question.schemaTables}
         schemaDdl={question.schemaDdl}
         schemaSampleData={question.schemaSampleData}
