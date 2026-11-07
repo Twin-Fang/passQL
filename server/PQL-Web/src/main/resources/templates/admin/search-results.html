@@ -10,7 +10,7 @@
         <div class="card-body p-4">
             <p class="text-sm text-base-content/70">
                 검색어 <strong th:text="${searchResult.keyword}">keyword</strong>
-                <span th:if="${searchResult.isEmpty()}"> — 일치하는 회원·문제가 없습니다. (회원·문제 UUID 전체, 회원 번호 PQL-XXXXXXXX, 회원 닉네임 일부를 입력하세요)</span>
+                <span th:if="${searchResult.isEmpty()}"> — 일치하는 회원·문제가 없습니다. (회원·문제 UUID 전체, 회원 번호 PQL-XXXXXXXX, 이메일 일부(@ 포함), 회원 닉네임 일부를 입력하세요)</span>
             </p>
         </div>
     </div>
