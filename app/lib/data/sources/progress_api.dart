@@ -5,6 +5,8 @@ import '../models/progress/heatmap_response.dart';
 import '../models/progress/topic_analysis_response.dart';
 import '../models/progress/wrong_questions_response.dart';
 import '../models/progress/ai_comment_response.dart';
+import '../models/progress/accuracy_detail_response.dart';
+import '../models/progress/study_pattern_response.dart';
 
 part 'progress_api.g.dart';
 
@@ -38,4 +40,12 @@ abstract class ProgressApiClient {
   Future<WrongQuestionsResponse> getWrongQuestions({
     @Query('size') int? size,
   });
+
+  /// 학습 패턴: 최근 4주 날짜별 풀이, 최근 12주 요일·시간대 분포, 학습일·최장 연속 (#909, 무료)
+  @GET('/progress/study-pattern')
+  Future<StudyPatternResponse> getStudyPattern();
+
+  /// 정답률 상세: 난이도별 정답률, 오답 정리, 주별 남은 오답 (#909, 프로 > 무료는 403)
+  @GET('/progress/accuracy-detail')
+  Future<AccuracyDetailResponse> getAccuracyDetail();
 }

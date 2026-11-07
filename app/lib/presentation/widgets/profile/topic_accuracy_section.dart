@@ -18,12 +18,15 @@ const int _statsBenefitIndex = 5;
 // 잠금 자리표시 막대 크기 (값 대신 회색 막대, 화면에서 블러 금지 규칙)
 const double _placeholderValueWidth = 36;
 const double _placeholderHeight = 10;
-// 꼭짓점이 3개는 돼야 면이 생긴다 (그보다 적으면 차트를 고를 수 없음)
+// 꼭짓점이 3개는 돼야 면이 생긴다 (그보다 적으면 차트 없이 목록만)
 const int _minChartTopicCount = 3;
 
-/// 내 프로필 영역별 정답률 (#749): 레이더·막대 두 장을 목록 하나로 합침.
+// 영역별 정답률 판정 기간 표기 (서버 topic-analysis 최근 7일, DEC-0043)
+const String _periodLabel = '최근 7일';
+
+/// 내 프로필 영역별 정답률 (#749, #909): 위 8각 차트(꼭짓점 = 토픽 순서) + 아래 목록(정렬 토글은 목록 바로 위).
 /// 줄 = 토픽 타일 + 영역 이름 + 푼 수 + 오른쪽 정답률(약한 영역은 빨강). 누르면 그 영역 문제로.
-/// 제목 줄 오른쪽 아이콘 한 쌍으로 목록 <-> 8각 차트 (차트일 때 정렬은 숨김, 고른 보기는 화면에 있는 동안만)
+/// 차트는 영역 3개 이상이고 기간 안에 푼 영역이 있을 때만 (없으면 안내 한 줄 + 목록)
 /// [isLocked] (무료·결제 켜짐): topic-analysis 를 부르지 않으므로 토픽 목록으로 이름만 보이고 값은 자리표시
 class TopicAccuracySection extends ConsumerStatefulWidget {
   const TopicAccuracySection({
@@ -43,7 +46,6 @@ class TopicAccuracySection extends ConsumerStatefulWidget {
 class _TopicAccuracySectionState extends ConsumerState<TopicAccuracySection> {
   TopicAccuracySort _sort = TopicAccuracySort.lowestRate;
   bool _isExpanded = false;
-  bool _isChart = false;
 
   @override
   Widget build(BuildContext context) {
@@ -57,133 +59,67 @@ class _TopicAccuracySectionState extends ConsumerState<TopicAccuracySection> {
       topics: topics,
       sort: _sort,
     );
-    final canShowChart = stats.length >= _minChartTopicCount;
-    final isChart = _isChart && canShowChart;
+    final hasSolvedTopic = rows.any((row) => !row.isUnsolved);
+    final canShowChart = stats.length >= _minChartTopicCount && hasSolvedTopic;
     final visibleRows = _isExpanded
         ? rows
         : rows.take(_collapsedRowCount).toList();
     final colors = context.passqlColors;
     return PassqlSection(
       title: '영역별 정답률',
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
+      trailing: Text(
+        _periodLabel,
+        style: PassqlTypography.footnote.copyWith(color: colors.secondaryLabel),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (!isChart)
-            _SortToggle(
-              sort: _sort,
-              onToggle: () => setState(
-                () => _sort = _sort == TopicAccuracySort.lowestRate
-                    ? TopicAccuracySort.mostSolved
-                    : TopicAccuracySort.lowestRate,
+          if (canShowChart)
+            TopicAccuracyRadar(
+              key: const Key('topic-accuracy-radar'),
+              rows: buildTopicChartRows(stats: stats, topics: topics),
+            )
+          else if (!hasSolvedTopic)
+            Text(
+              '$_periodLabel 동안 푼 문제가 없어요. 영역을 눌러 바로 풀어 보세요',
+              style: PassqlTypography.subheadline.copyWith(
+                color: colors.secondaryLabel,
               ),
             ),
-          if (canShowChart) ...[
-            const SizedBox(width: PassqlSpacing.xs),
-            _ViewToggle(
-              isChart: isChart,
-              onChanged: (value) => setState(() => _isChart = value),
+          const SizedBox(height: PassqlSpacing.sm),
+          // 정렬은 목록에만 걸리므로 목록 바로 위 (차트 꼭짓점 순서는 고정)
+          if (hasSolvedTopic)
+            Align(
+              alignment: Alignment.centerRight,
+              child: _SortToggle(
+                sort: _sort,
+                onToggle: () => setState(
+                  () => _sort = _sort == TopicAccuracySort.lowestRate
+                      ? TopicAccuracySort.mostSolved
+                      : TopicAccuracySort.lowestRate,
+                ),
+              ),
             ),
-          ],
-        ],
-      ),
-      child: PassqlFadeSwitcher(
-        child: isChart
-            ? TopicAccuracyRadar(
-                key: const Key('topic-accuracy-radar'),
-                rows: buildTopicChartRows(stats: stats, topics: topics),
-              )
-            : Column(
-                key: const ValueKey('topic-accuracy-list'),
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (final row in visibleRows)
-                    _TopicAccuracyRowTile(row: row),
-                  if (rows.length > _collapsedRowCount && !_isExpanded)
-                    PassqlPressable(
-                      onTap: () => setState(() => _isExpanded = true),
-                      hasMinimumTouchTarget: true,
-                      semanticLabel: '전체 ${rows.length}개 영역 보기',
-                      child: Center(
-                        child: Text(
-                          '전체 ${rows.length}개 영역 보기',
-                          style: PassqlTypography.footnote.copyWith(
-                            color: colors.secondaryLabel,
-                          ),
-                        ),
+          Column(
+            key: const ValueKey('topic-accuracy-list'),
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final row in visibleRows) _TopicAccuracyRowTile(row: row),
+              if (rows.length > _collapsedRowCount && !_isExpanded)
+                PassqlPressable(
+                  onTap: () => setState(() => _isExpanded = true),
+                  hasMinimumTouchTarget: true,
+                  semanticLabel: '전체 ${rows.length}개 영역 보기',
+                  child: Center(
+                    child: Text(
+                      '전체 ${rows.length}개 영역 보기',
+                      style: PassqlTypography.footnote.copyWith(
+                        color: colors.secondaryLabel,
                       ),
                     ),
-                ],
-              ),
-      ),
-    );
-  }
-}
-
-/// 보기 고르기: 회색 트랙 위 목록·차트 아이콘 한 쌍, 고른 쪽만 흰 알약 (세그먼트보다 작게 제목 줄 안에)
-class _ViewToggle extends StatelessWidget {
-  const _ViewToggle({required this.isChart, required this.onChanged});
-
-  final bool isChart;
-  final ValueChanged<bool> onChanged;
-
-  // 아이콘 한 칸 크기 (트랙 안, 누르는 영역은 44 로 넓힘)
-  static const double _cellSize = 28;
-  static const double _trackPadding = 2;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    Widget cell({
-      required IconData icon,
-      required bool isSelected,
-      required String label,
-      required bool isChartCell,
-    }) {
-      return PassqlSemanticButton(
-        label: label,
-        isSelected: isSelected,
-        onTap: () => onChanged(isChartCell),
-        child: PassqlPressable(
-          onTap: () => onChanged(isChartCell),
-          child: AnimatedContainer(
-            duration: PassqlMotion.durationOf(context, PassqlMotion.fast),
-            curve: PassqlMotion.curve,
-            width: _cellSize,
-            height: _cellSize,
-            decoration: BoxDecoration(
-              color: isSelected ? colors.cardElevated : null,
-              borderRadius: BorderRadius.circular(PassqlRadius.sm),
-            ),
-            child: Icon(
-              icon,
-              size: PassqlIconSize.sm,
-              color: isSelected ? colors.label : colors.iconSecondary,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(_trackPadding),
-      decoration: BoxDecoration(
-        color: colors.fill,
-        borderRadius: BorderRadius.circular(PassqlRadius.sm + _trackPadding),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          cell(
-            icon: CupertinoIcons.list_bullet,
-            isSelected: !isChart,
-            label: '목록으로 보기',
-            isChartCell: false,
-          ),
-          cell(
-            icon: CupertinoIcons.hexagon,
-            isSelected: isChart,
-            label: '차트로 보기',
-            isChartCell: true,
+                  ),
+                ),
+            ],
           ),
         ],
       ),
@@ -282,8 +218,11 @@ class _LockedTopicAccuracy extends ConsumerWidget {
             .take(_collapsedRowCount)
             .toList();
     // 통계 혜택을 강조해 연 이용권 시트 (잠긴 행·안내 한 줄 공통)
-    void openOfferSheet() =>
-        showProOfferSheet(context, ref, focusedBenefitIndex: _statsBenefitIndex);
+    void openOfferSheet() => showProOfferSheet(
+      context,
+      ref,
+      focusedBenefitIndex: _statsBenefitIndex,
+    );
     return PassqlSection(
       title: '영역별 정답률',
       trailing: Row(
