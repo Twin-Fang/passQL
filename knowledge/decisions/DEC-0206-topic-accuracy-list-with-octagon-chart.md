@@ -4,9 +4,9 @@ id: DEC-0206
 created: 2026-10-29
 reviewed: null
 topics: [progress-stats, design-system]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0274
 related: ["[[ISS-0428-app-profile-tab-redesign]]", "[[ISS-0428-app-profile-tab-redesign-report]]"]
 ---
 

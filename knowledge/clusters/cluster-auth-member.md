@@ -2,7 +2,7 @@
 type: cluster
 topic: auth-member
 created: 2026-10-29
-members: 57
+members: 60
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 로그인·회원가입·탈퇴·온보딩·프로필
 
 ## 현재 상태 요약
-(2026-11-07, 자동 생성) 활성 결정 15개, 열린 이슈 2개. 웹 토큰 재발급은 탭 간 Web Locks 로 한 번·`storage` 이벤트로 탭 동기화 — [[DEC-0269-web-reissue-single-across-tabs]], 재발급 실패는 401·`MEMBER_NOT_FOUND` 일 때만 로그아웃 — [[DEC-0270-reissue-logout-only-on-session-end]] (#881). 닉네임 변경 대기는 서버 값 `nicknameChangeAvailableAt` 하나로 표시 — [[ISS-0468-web-audit-cross-tab-reissue-logout]]. 프로필 상단에 계정 줄(로그인 방법 배지·가입일)과 계정·이용권 화면 `/account`(가린 이메일 `maskedEmail`, 회원 번호 `memberCode` `PQL-xxxxxxxx`, 구매 내역)가 있고, 구매 내역·구매 복원·프로모션 코드 행은 `/account` 한 곳, 프로필은 "이용권 관리" 한 줄, 닉네임은 프로필 연필 표시와 계정 화면 닉네임 행에서 바꾼다 — [[DEC-0263-pass-rows-on-account-screen-only]] (#863, DEC-0243 대체). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-07, 자동 생성) 활성 결정 15개, 열린 이슈 2개. 웹 토큰 재발급은 탭 간 Web Locks 로 한 번·`storage` 이벤트로 탭 동기화 — [[DEC-0269-web-reissue-single-across-tabs]], 재발급 실패는 401·`MEMBER_NOT_FOUND` 일 때만 로그아웃 — [[DEC-0270-reissue-logout-only-on-session-end]] (#881). 닉네임 변경 대기는 서버 값 `nicknameChangeAvailableAt` 하나로 표시 — [[ISS-0468-web-audit-cross-tab-reissue-logout]]. 프로필 상단에 계정 줄과 계정·이용권 화면 `/account`(가린 이메일 `maskedEmail`, 회원 번호 `memberCode` `PQL-xxxxxxxx`, 구매 내역)가 있고, 구매 내역·구매 복원·프로모션 코드 행은 `/account` 한 곳, 프로필은 "이용권 관리" 한 줄, 이 구조는 [[DEC-0263-pass-rows-on-account-screen-only]] (#863)에서 왔고, 닉네임 변경은 계정 화면 관리에서만(프로필 머리 펜 없음), 로그인 방법은 제공자 아이콘 + 이메일, 소셜 프로필 이미지 저장, 로그인 화면 최근 로그인 배지로 바뀌었다: [[DEC-0276-account-provider-icon-email-avatar]] (#908, DEC-0263 대체, main 머지, 배포 전). iOS 는 UIScene 수명주기로 바뀌어 네이버 복귀 URL 을 장면 이벤트로 받는다: [[ISS-0470-app-audit-uiscene-plan-flicker-sheet-dismiss]] (#880, 배포 전). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0012-nickname-via-suh-random-engine]] — 닉네임은 자체 단어 테이블 대신 `suh-random-engine` 라이브러리로 생성
@@ -28,15 +28,18 @@ related: []
 - [[DEC-0180-social-login-disabled-opacity-only]] — 소셜 로그인 버튼은 비활성일 때 회색으로 바꾸지 않고 투명도만 낮춘다 (브랜드 색 유지)
 - [[DEC-0184-new-member-onboarding-to-first-question]] — 앱 온보딩은 신규 가입자에게만 계정당 한 번, 4장 뒤 오늘의 세트 첫 문제로 이어지고 알림 권한은 묻지 않는다
 - [[DEC-0185-withdraw-fixed-confirm-phrase]] — 회원 탈퇴는 고정 문구 `탈퇴하기`를 입력해야 버튼이 활성화된다 (앱·웹 공통, 공통 확인창 옵션)
-- [[DEC-0263-pass-rows-on-account-screen-only]] — 프로필 상단 A안 유지, 구매 내역·복원·프로모션 코드 행은 `/account` 한 곳·프로필은 "이용권 관리" 한 줄 (#863, DEC-0243 대체)
 - [[DEC-0269-web-reissue-single-across-tabs]] — 웹 재발급은 탭 간 Web Locks 로 한 번, 잠금 안 저장값 재확인, `storage` 이벤트로 탭 동기화 (#881)
 - [[DEC-0270-reissue-logout-only-on-session-end]] — 웹 재발급 실패는 401·`MEMBER_NOT_FOUND` 만 로그아웃, 네트워크·타임아웃·5xx 는 세션 유지 (#881)
+- [[DEC-0276-account-provider-icon-email-avatar]]: 닉네임 변경은 계정 화면 관리에서만(펜 없음), 로그인 방법은 제공자 아이콘 + 이메일, 소셜 프로필 이미지, 최근 로그인 배지 (#908, DEC-0263 대체)
 
 ## 대체된 결정 (역사)
 - [[DEC-0088-app-settings-tab-as-mypage]] → null
 - [[DEC-0243-profile-top-card-style-a]] → DEC-0263
+- [[DEC-0263-pass-rows-on-account-screen-only]] → DEC-0276
 
 ## 관련 이슈
+- [[ISS-0476-account-login-method-icon-email-avatar]] (resolved, GitHub #908): 계정 표시 정리: 로그인 방법 아이콘과 이메일, 펜 제거, 소셜 프로필 이미지, 최근 로그인
+- [[ISS-0470-app-audit-uiscene-plan-flicker-sheet-dismiss]] (resolved, GitHub #880): 앱 전체 점검: iOS UIScene 대응, 새로고침 시 등급 깜빡임, 확인 중 시트 닫힘, 결제 로그
 - [[ISS-0468-web-audit-cross-tab-reissue-logout]] (resolved, GitHub #881) — 웹 전체 점검: 탭 두 개면 모든 기기 로그아웃, 재발급 실패 강제 로그아웃, 선택지 생성 오류 사유
 - [[ISS-0461-plan-aligned-options-new-choices-mode]] (resolved, GitHub #863) — 요금제에 맞춘 옵션 재배치: 실전 모드 이름과 위치, 광고 제거 혜택, 중복 진입점
 - [[ISS-0448-mypage-account-pass-area-promo-code]] (resolved, GitHub #816) — 마이페이지 계정·이용권 영역과 결제 유도, 할인 표시, 프로모션 코드

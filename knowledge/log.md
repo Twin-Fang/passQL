@@ -161,3 +161,13 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-07 07:14 | W2 | cluster update (entries, 현재 상태 요약) | cluster-ops-infra, cluster-security, cluster-practice, cluster-ai, cluster-admin, cluster-auth-member, cluster-dev-workflow, cluster-billing, cluster-ads
 - 2026-11-07 07:14 | W2 | fix members count W10 (이번 추가분 반영) | cluster-admin, cluster-ads, cluster-ai, cluster-auth-member, cluster-billing, cluster-dev-workflow, cluster-ops-infra, cluster-practice, cluster-security
 - 2026-11-07 07:15 | W6 | update open issue·decisions (PR #898 머지, 리포트 댓글 게시 반영 — 이슈는 사람 확인 남아 열림) | ISS-0469, DEC-0271, DEC-0272, DEC-0273, cluster-ads, cluster-billing, cluster-ops-infra, cluster-practice
+- 2026-11-07 13:34 | W6 | ingest issue + report, decision (W4: DEC-0004·DEC-0043 충돌 없음) | ISS-0477, ISS-0477-report, DEC-0274 (#909)
+- 2026-11-07 13:34 | W4 | supersede | DEC-0206 -> DEC-0274 (status·superseded_by only)
+- 2026-11-07 13:34 | W6 | ingest issue + report, decision (W4: DEC-0251·DEC-0264 충돌 없음) | ISS-0475, ISS-0475-report, ISS-0478, ISS-0478-report, DEC-0275 (#907, #913)
+- 2026-11-07 13:34 | W4 | supersede | DEC-0261 -> DEC-0275 (status·superseded_by only)
+- 2026-11-07 13:34 | W6 | ingest issue + report, decision (W4: DEC-0095 충돌 없음) | ISS-0476, ISS-0476-report, DEC-0276 (#908)
+- 2026-11-07 13:34 | W4 | supersede | DEC-0263 -> DEC-0276 (status·superseded_by only)
+- 2026-11-07 13:34 | W6 | ingest issue + report, decision (W4: DEC-0256 문단 제목 구분자 부분 충돌, 사용자 결정 대기, DEC-0256 active 유지) | ISS-0474, ISS-0474-report, DEC-0277 (#905)
+- 2026-11-07 13:34 | W6 | ingest issue + report, decision (W4: DEC-0255 코드 속 한글 글꼴·DEC-0256 문단 제목 구분자 부분 충돌, 사용자 결정 대기, 두 노트 active 유지) | ISS-0472, ISS-0472-report, DEC-0278 (#903)
+- 2026-11-07 13:34 | W6 | ingest issue + report | ISS-0470, ISS-0470-report (#880), ISS-0471, ISS-0471-report (#902), ISS-0473, ISS-0473-report (#904)
+- 2026-11-07 13:34 | W2 | cluster update (entries, supersede moves, 현재 상태 요약, members 실제 수로) | cluster-practice, cluster-question-bank, cluster-progress-stats, cluster-auth-member, cluster-ai, cluster-concept-learning, cluster-design-system, cluster-billing, cluster-ads, cluster-admin

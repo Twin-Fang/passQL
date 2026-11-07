@@ -2,7 +2,7 @@
 type: cluster
 topic: question-bank
 created: 2026-10-29
-members: 76
+members: 80
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 문제 등록·품질·검증·신고·토픽·난이도
 
 ## 현재 상태 요약
-(2026-10-29, 자동 생성) 활성 결정 21개, 열린 이슈 0개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-07, 자동 생성) 활성 결정 22개, 열린 이슈 0개. 문항 형식 규칙 단일 원본 `QuestionFormatRule`(사유별 결과, 규칙 7개)을 가져오기, 관리자 저장과 편집, 모의고사 공개 검사가 거치고, 문항과 생성 글에는 줄표와 가운뎃점을 쓰지 않으며 데이터 표는 스키마 표 한 곳: [[DEC-0277-no-dash-middle-dot-server-cleaner]] (#905, 운영 데이터와 프롬프트 정리 완료, 코드 배포 전). 지문 화면 규칙: [[DEC-0278-stem-blocks-single-table-shape]] (#903). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0038-question-json-roundtrip-format]] — 문제 JSON 내보내기·가져오기는 `questionUuid` 유무로 신규/업데이트를 가르고, 토픽은 `topicUuid` 대신 `topicCode`로 쓴다
@@ -36,6 +36,8 @@ related: []
 - [[DEC-0226-vector-prune-after-deactivation-commit]] — 문제 비활성화 후 벡터 정리는 `QuestionsDeactivatedEvent` 커밋 후 리스너에서 1회, 실패는 로그만
 - [[DEC-0228-concept-ai-only-rewritten-as-curated]] — `AI_ONLY` 개념 문제 49개는 비활성화하고 상황·결과형 고정 보기(`CURATED_ONLY`) 문제로 재작성 (오답은 실제 오개념, 결과형은 Oracle 21c 검증)
 - [[DEC-0249-result-table-choices-from-executed-sql]] — 결과 표 문제 보기는 AI가 쓴 보기 SQL의 실제 실행 결과로만 (오답 표를 지어내지 않음)
+- [[DEC-0277-no-dash-middle-dot-server-cleaner]]: 문항과 생성 글에 줄표, 가운뎃점 금지(짝은 용어: 분류, 나열은 쉼표), 프롬프트 맨 앞 규칙 + 서버 ForbiddenPunctuationCleaner, 데이터 표는 스키마 한 곳 (#905)
+- [[DEC-0278-stem-blocks-single-table-shape]]: 지문은 블록(단락, 보조 설명, 질문, 목록, 표, 코드)으로 앱과 웹 같은 규칙, 표는 지문 카드 안 한 가지 모양(컬럼 이름 + PK, FK, 행 전부), 같은 컬럼 표는 한 번 (#903)
 
 ## 대체된 결정 (역사)
 - [[DEC-0050-result-match-text-choices]] → DEC-0249
@@ -45,6 +47,8 @@ related: []
 - [[DEC-0044-bulk-delete-per-item-transaction]] → null
 
 ## 관련 이슈
+- [[ISS-0474-question-format-rule-forbidden-punctuation]] (resolved, GitHub #905): 문제 형식 규칙 하네스: 줄표 금지, 표는 스키마 한 곳, SQL 서식, 운영 데이터와 프롬프트 정리
+- [[ISS-0472-stem-readability-blocks-single-table]] (resolved, GitHub #903): 문제 지문 가독성: 단락, 목록, 질문 구분, 표 한 가지 모양, SQL 상자
 - [[ISS-0451-result-table-choices-fabricated-unvalidated-sets]] (resolved, GitHub #828) — 결과 표 오답을 AI가 지어냄, 미검증 세트 저장, 직접 실행해보기에 결과 JSON
 - [[ISS-0029-realtime-ai-choice-set-prefetch]] (resolved, GitHub #39) — 실시간 AI 선택지 세트 생성 및 프리페치 아키텍처
 - [[ISS-0032-admin-direct-question-register]] (resolved, GitHub #46) — 관리자 퀴즈 문제 직접 등록

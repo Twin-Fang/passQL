@@ -2,7 +2,7 @@
 type: cluster
 topic: ads
 created: 2026-10-29
-members: 16
+members: 17
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 광고
 
 ## 현재 상태 요약
-(2026-11-07) 결제로 산 프로는 광고가 꺼지고, 이용권 혜택 목록에 광고 제거가 있다 — [[DEC-0262-pro-benefits-seven-ad-removal]]. 앱 광고는 수익 우선으로 조정 중이다. 홈·통계 인라인 카드 광고(`AdInlineCard`)와 탭 셸 하단 한 줄 네이티브 띠([[DEC-0153-single-native-strip-under-tab-bar]])는 그대로이고, 결과 화면 전면 광고는 첫 결과 1회 건너뛰고 3분 간격·하루 5회, 탭 화면 복귀 시 앱 오프닝 광고(1시간 간격·하루 3회, 첫 실행·30초 미만·광고 이탈 제외)가 추가됐다 — [[DEC-0238-app-open-ad-and-interstitial-cap-retune]]. 전체 화면 광고는 `FullScreenAdGuard` 한 곳에서 겹침을 막고, 3종 모두 표시 공통 함수(`full_screen_ad_showing.dart`)가 닫힘·표시 실패·`show()` 예외를 1회만 처리한다 — [[ISS-0447-full-screen-ad-show-failure-bonus-retry]]. 무료 한도 소진 시 보상형 광고로 +5문제(하루 2회)를 여는 경로가 생겼고, 보너스 기록 일시 실패는 1회 재시도한다 — [[DEC-0239-free-daily-limit-bonus-three-kinds]](결제 스위치가 꺼져 아직 사용자에게 안 보임). #787·#808·#814는 2026-11-04 릴리스(#817)로 서버는 운영, 앱은 테스트 트랙(TestFlight·Play 내부 테스트)에 반영됐다. 점검 모드에서도 AdMob 보상 서버 검증 콜백은 통과한다 — [[DEC-0273-maintenance-mode-passes-external-callbacks]] (PR #898 머지, 실광고 빌드 보상 기록 확인은 [[ISS-0469-billing-switch-unverified-screens-races]]). 열린 이슈 3개.
+(2026-11-07) 결제로 산 프로는 광고가 꺼지고, 이용권 혜택 목록에 광고 제거가 있다 — [[DEC-0262-pro-benefits-seven-ad-removal]]. 앱 광고는 수익 우선으로 조정 중이다. 홈·통계 인라인 카드 광고(`AdInlineCard`)와 탭 셸 하단 한 줄 네이티브 띠([[DEC-0153-single-native-strip-under-tab-bar]])는 그대로이고, 결과 화면 전면 광고는 첫 결과 1회 건너뛰고 3분 간격·하루 5회, 탭 화면 복귀 시 앱 오프닝 광고(1시간 간격·하루 3회, 첫 실행·30초 미만·광고 이탈 제외)가 추가됐다 — [[DEC-0238-app-open-ad-and-interstitial-cap-retune]]. 전체 화면 광고는 `FullScreenAdGuard` 한 곳에서 겹침을 막고, 3종 모두 표시 공통 함수(`full_screen_ad_showing.dart`)가 닫힘·표시 실패·`show()` 예외를 1회만 처리한다 — [[ISS-0447-full-screen-ad-show-failure-bonus-retry]]. 무료 한도 소진 시 보상형 광고로 +5문제(하루 2회)를 여는 경로가 생겼고, 보너스 기록 일시 실패는 1회 재시도한다 — [[DEC-0239-free-daily-limit-bonus-three-kinds]](결제 스위치가 꺼져 아직 사용자에게 안 보임). #787·#808·#814는 2026-11-04 릴리스(#817)로 서버는 운영, 앱은 테스트 트랙(TestFlight·Play 내부 테스트)에 반영됐다. 점검 모드에서도 AdMob 보상 서버 검증 콜백은 통과한다 — [[DEC-0273-maintenance-mode-passes-external-callbacks]] (PR #898 머지, 실광고 빌드 보상 기록 확인은 [[ISS-0469-billing-switch-unverified-screens-races]]). 광고 보너스 확인 중 시트를 닫아도 결과 안내가 남고, 광고 경로 로그는 `AppLogger`로 남는다: [[ISS-0470-app-audit-uiscene-plan-flicker-sheet-dismiss]] (#880, main 머지, 배포 전). 열린 이슈 3개.
 
 ## 활성 결정
 - [[DEC-0153-single-native-strip-under-tab-bar]] — 탭별 적응형 배너 대신 메인 탭바 아래 한 줄 네이티브 광고 띠 하나를 상시 둔다
@@ -26,6 +26,7 @@ related: []
 - [[DEC-0148-inline-card-ads-interstitial-cap]] → DEC-0238
 
 ## 관련 이슈
+- [[ISS-0470-app-audit-uiscene-plan-flicker-sheet-dismiss]] (resolved, GitHub #880): 앱 전체 점검: iOS UIScene 대응, 새로고침 시 등급 깜빡임, 확인 중 시트 닫힘, 결제 로그
 - [[ISS-0469-billing-switch-unverified-screens-races]] (open, GitHub #867, PR #898 머지) — 결제 스위치 켜기 전 미확인 화면과 경합 점검: 제출 거부 사유 시트, 동시 제출 한도, 점검 중 외부 콜백, 해외 가격
 - [[ISS-0447-full-screen-ad-show-failure-bonus-retry]] (resolved, GitHub #814) — 광고 표시 실패 시 전체 화면 광고 멈춤, 보너스 요청 재시도 없음
 - [[ISS-0442-app-open-ad-interstitial-cap-relax]] (resolved, GitHub #787) — 앱 오프닝 광고 추가와 결과 화면 전면 광고 빈도 완화

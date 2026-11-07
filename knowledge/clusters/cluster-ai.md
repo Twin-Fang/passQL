@@ -2,7 +2,7 @@
 type: cluster
 topic: ai
 created: 2026-10-29
-members: 114
+members: 119
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 
 ## 현재 상태 요약
-(2026-11-07, 자동 생성) 활성 결정 41개, 열린 이슈 2개. 통계 AI 분석은 서버 판정 + LLM 한 문장 — [[DEC-0259-ai-analysis-server-decides-llm-explains]], 예상 점수 — [[DEC-0260-exam-forecast-score-thresholds]]. 프롬프트 키 원본은 `PromptKey` — [[DEC-0265-prompt-key-enum-single-source]]. LLM 재시도·대체 호출은 `error_kind` 기준 — [[DEC-0267-ai-retry-fallback-by-error-kind]]. AI 코멘트는 없는·남의 세션이면 LLM 없이 고정 응답, 회원별 요청 제한, 재색인은 트랜잭션 밖 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-07, 자동 생성) 활성 결정 42개, 열린 이슈 2개. AI 생성 글(보기 근거와 본문, 해설, 통계 분석, 세션 코멘트)은 저장, 응답 전에 서버 `ForbiddenPunctuationCleaner` 하나로 줄표와 가운뎃점을 정리하고, 생성 프롬프트 12개는 맨 앞에 문체 규칙: [[DEC-0277-no-dash-middle-dot-server-cleaner]] (#905). AI 새 보기 칩은 제출 전 지금 문제부터 적용, 같은 화면 생성 겹침 없음, 웹도 회원 방식을 지킴: [[DEC-0275-choice-mode-chip-applies-before-submit]] (#907, #913, DEC-0261 대체). 이상 main 머지, 배포 전. 통계 AI 분석은 서버 판정 + LLM 한 문장 — [[DEC-0259-ai-analysis-server-decides-llm-explains]], 예상 점수 — [[DEC-0260-exam-forecast-score-thresholds]]. 프롬프트 키 원본은 `PromptKey` — [[DEC-0265-prompt-key-enum-single-source]]. LLM 재시도·대체 호출은 `error_kind` 기준 — [[DEC-0267-ai-retry-fallback-by-error-kind]]. AI 코멘트는 없는·남의 세션이면 LLM 없이 고정 응답, 회원별 요청 제한, 재색인은 트랜잭션 밖 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
 
 ## 활성 결정
 - [[DEC-0025-redis-shared-app-settings]] — Spring이 `app_setting`을 Redis(`passql:settings:{key}`)에 쓰고 AI 서버가 읽어 설정을 공유
@@ -54,9 +54,10 @@ AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 - [[DEC-0258-ai-comment-pro-only-all-forms]] — AI 코멘트는 결과·통계 모두 프로 전용 (#699 무료 하루 1회 폐지, #860)
 - [[DEC-0259-ai-analysis-server-decides-llm-explains]] — 통계 AI 분석: 서버가 판정·우선순위·문구, LLM 은 토픽별 헷갈리는 개념 한 문장 (#861)
 - [[DEC-0260-exam-forecast-score-thresholds]] — 과목별 예상 점수는 서버 계산(1과목 data_modeling×10, 2과목 8토픽 평균×40, ×2점), 과목 40% 미만 과락·70점 합격권·54~68 합격선 근처 (#862)
-- [[DEC-0261-real-mode-renamed-new-choices]] — "실전 모드" > "새 보기로 풀기"(AI 새 보기/검증된 보기), 풀이 화면 모드 칩, "실전"은 모의고사에만 (#863)
 - [[DEC-0265-prompt-key-enum-single-source]] — 프롬프트 키는 `PromptKey` enum 단일 원본, 관리자 수정에서 키 변경 불가 (#875)
 - [[DEC-0267-ai-retry-fallback-by-error-kind]] — LLM 재시도는 연결 실패·429만, 직접 LLM 대체·서킷·선택지 재시도는 `error_kind`로 판정 (#877)
+- [[DEC-0275-choice-mode-chip-applies-before-submit]]: 보기 방식 칩은 제출 전이면 지금 문제부터, 제출 뒤면 다음 풀이부터, 생성 겹침 없음, 오답 노트에서 숨김, 바꾸는 곳은 풀이 칩과 설정 (#907, #913, DEC-0261 대체)
+- [[DEC-0277-no-dash-middle-dot-server-cleaner]]: 문항과 생성 글에 줄표, 가운뎃점 금지(짝은 용어: 분류, 나열은 쉼표), 프롬프트 맨 앞 규칙 + 서버 ForbiddenPunctuationCleaner, 데이터 표는 스키마 한 곳 (#905)
 
 ## 대체된 결정 (역사)
 - [[DEC-0087-choice-generation-practice-real-mode]] → DEC-0251
@@ -69,8 +70,12 @@ AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 - [[DEC-0099-explain-model-gemini-3-5-flash-lite]] → null
 - [[DEC-0133-encrypted-gemini-key-single-source]] → DEC-0188
 - [[DEC-0147-keep-explanation-sheet-while-solving]] → DEC-0154
+- [[DEC-0261-real-mode-renamed-new-choices]] → DEC-0275
 
 ## 관련 이슈
+- [[ISS-0478-web-solving-ignores-fresh-choice-mode]] (resolved, GitHub #913): 웹 풀이가 AI 새 보기 설정을 무시함, 설정 이름 옛 표기, 칩 없음
+- [[ISS-0475-choice-mode-switch-current-question]] (resolved, GitHub #907): 보기 방식 바꾸면 지금 문제부터 바로 적용, 오답 노트에서는 칩 숨김
+- [[ISS-0474-question-format-rule-forbidden-punctuation]] (resolved, GitHub #905): 문제 형식 규칙 하네스: 줄표 금지, 표는 스키마 한 곳, SQL 서식, 운영 데이터와 프롬프트 정리
 - [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]] (resolved, GitHub #879) — 서버 전체 점검: AI 코멘트 LLM 호출 제한, OSIV DB 커넥션 점유, 내린 보기 묶음 채점, 설정 캐시, 예외 원문 노출
 - [[ISS-0460-ai-analysis-forecast-concept-links]] (resolved, GitHub #862) — 통계 AI 분석 보강: 과목별 예상 점수, 개념 바로 가기, 빈 데이터 안내, 세션 코멘트 개편
 - [[ISS-0464-admin-prompt-key-single-source]] (resolved, GitHub #875) — 관리자 프롬프트 수정 화면 키 목록 누락으로 저장 시 키가 바뀜, 프롬프트 키 한 곳으로
