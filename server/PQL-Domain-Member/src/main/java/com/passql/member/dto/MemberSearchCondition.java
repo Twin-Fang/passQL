@@ -18,6 +18,8 @@ public class MemberSearchCondition {
     private String memberUuid;
     // 회원 UUID 앞 8자리 일치 (회원 번호 PQL-XXXXXXXX 검색, 소문자, #929)
     private String memberUuidPrefix;
+    // 소셜 계정 이메일 일부 일치 (대소문자 무관, 이메일 없는 회원은 제외, #934)
+    private String email;
     private MemberStatus status;
     private MemberRole role;
 
