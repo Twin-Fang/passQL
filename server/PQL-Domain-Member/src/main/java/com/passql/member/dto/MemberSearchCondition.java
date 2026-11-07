@@ -16,6 +16,8 @@ public class MemberSearchCondition {
     private String nickname;
     // 회원 UUID 정확히 일치 (형식이 틀리면 결과 없음)
     private String memberUuid;
+    // 회원 UUID 앞 8자리 일치 (회원 번호 PQL-XXXXXXXX 검색, 소문자, #929)
+    private String memberUuidPrefix;
     private MemberStatus status;
     private MemberRole role;
 

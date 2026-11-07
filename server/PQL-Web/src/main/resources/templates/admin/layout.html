@@ -103,11 +103,11 @@
                 <span class="badge badge-primary badge-sm">Admin</span>
             </div>
 
-            <!-- 전역 검색: 회원·문제 UUID, 회원 닉네임 (결과 1건이면 바로 상세) -->
+            <!-- 전역 검색: 회원·문제 UUID, 회원 번호(PQL-), 회원 닉네임 (결과 1건이면 바로 상세) -->
             <form th:action="@{/admin/search}" method="get" class="px-4 pt-4" role="search">
                 <label class="input input-sm input-bordered flex items-center gap-2 w-full">
                     <i data-lucide="search" class="size-4 opacity-60"></i>
-                    <input type="search" name="q" class="grow" placeholder="회원·문제 UUID, 닉네임" autocomplete="off"
+                    <input type="search" name="q" class="grow" placeholder="UUID, 회원 번호(PQL-), 닉네임" autocomplete="off"
                            aria-label="전역 검색"/>
                 </label>
             </form>
