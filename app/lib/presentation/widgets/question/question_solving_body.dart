@@ -83,46 +83,50 @@ class QuestionSolvingBody extends StatelessWidget {
       padding: EdgeInsets.only(
         bottom: MediaQuery.paddingOf(context).bottom + PassqlSpacing.xl,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (topBadge != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                PassqlSpacing.md,
-                PassqlSpacing.md,
-                PassqlSpacing.md,
-                0,
+      // 메모 층 (#904): 메모 틀(PassqlMemoScope) 안에서만 동작, 밖이면 내용 그대로
+      child: PassqlMemoCanvas(
+        pageKey: questionUuid,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (topBadge != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  PassqlSpacing.md,
+                  PassqlSpacing.md,
+                  PassqlSpacing.md,
+                  0,
+                ),
+                child: Align(alignment: Alignment.centerLeft, child: topBadge),
               ),
-              child: Align(alignment: Alignment.centerLeft, child: topBadge),
+            // 난이도 + 실행 모드 뱃지
+            QuestionHeader(question: question),
+            QuestionStem(stem: question.stem),
+            // 테이블 컬럼·샘플 행 (EXECUTABLE 모드에서만, 지문 바로 아래 기본 펼침)
+            if (_isExecutable)
+              SchemaSection(
+                tables: question.schemaTables,
+                schemaDdl: question.schemaDdl,
+                schemaSampleData: question.schemaSampleData,
+              ),
+            // 지금 보기 방식 (AI 새 보기·검증된 보기, 누르면 바꾸는 시트)
+            const ChoiceModeIndicator(),
+            QuestionChoices(
+              interaction: interaction,
+              notifier: notifier,
+              isExecutable: _isExecutable,
+              submitResult: submitResult,
+              gradedSelectedKey: gradedSelectedKey,
+              shouldAlwaysAllowRetry: shouldAlwaysAllowRetry,
             ),
-          // 난이도 + 실행 모드 뱃지
-          QuestionHeader(question: question),
-          QuestionStem(stem: question.stem),
-          // 테이블 컬럼·샘플 행 (EXECUTABLE 모드에서만, 지문 바로 아래 기본 펼침)
-          if (_isExecutable)
-            SchemaSection(
-              tables: question.schemaTables,
-              schemaDdl: question.schemaDdl,
-              schemaSampleData: question.schemaSampleData,
+            _ExecutionOutcomeSection(
+              outcomeKey: _executionOutcomeKey,
+              outcome: _buildExecutionOutcome(context),
             ),
-          // 지금 보기 방식 (AI 새 보기·검증된 보기, 누르면 바꾸는 시트)
-          const ChoiceModeIndicator(),
-          QuestionChoices(
-            interaction: interaction,
-            notifier: notifier,
-            isExecutable: _isExecutable,
-            submitResult: submitResult,
-            gradedSelectedKey: gradedSelectedKey,
-            shouldAlwaysAllowRetry: shouldAlwaysAllowRetry,
-          ),
-          _ExecutionOutcomeSection(
-            outcomeKey: _executionOutcomeKey,
-            outcome: _buildExecutionOutcome(context),
-          ),
-          if (submitResult != null && _isExecutable)
-            ..._buildGradedExecutionSections(submitResult!),
-        ],
+            if (submitResult != null && _isExecutable)
+              ..._buildGradedExecutionSections(submitResult!),
+          ],
+        ),
       ),
     );
   }
