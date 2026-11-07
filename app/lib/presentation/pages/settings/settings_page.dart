@@ -13,12 +13,10 @@ import '../../providers/auth_provider.dart';
 import '../../providers/notification_preference_providers.dart';
 import '../../providers/settings_providers.dart';
 import '../../widgets/common/app_toast.dart';
-import '../../widgets/settings/business_info_group.dart';
 import '../../widgets/settings/choice_mode_tile.dart';
 import '../../widgets/settings/notification_preference_tiles.dart';
 import '../../widgets/settings/push_notification_tile.dart';
 import '../../widgets/settings/theme_mode_tile.dart';
-import '../../widgets/settings/open_source_licenses.dart';
 import '../../widgets/settings/settings_footer.dart';
 import '../../widgets/settings/settings_group.dart';
 
@@ -147,26 +145,16 @@ class SettingsPage extends ConsumerWidget {
                         AppRoutes.legal(LegalType.privacyPolicy.serverValue),
                       ),
                     ),
+                    // 앱 정보 (#658): 버전 표시, 누르면 빌드 번호·사업자 정보·라이선스
                     SettingsRow(
-                      icon: CupertinoIcons.doc_on_clipboard,
-                      title: '오픈소스 라이선스',
-                      onTap: () => showOpenSourceLicenses(
-                        context,
-                        appVersion: appVersion,
-                      ),
+                      icon: CupertinoIcons.info,
+                      title: '앱 정보',
+                      trailing: appVersion == null ? null : Text(appVersion),
+                      onTap: () => context.push(AppRoutes.appInfo),
                     ),
-                    if (appVersion != null)
-                      SettingsRow(
-                        icon: CupertinoIcons.info,
-                        title: '버전',
-                        trailing: Text(appVersion),
-                        shouldShowChevron: false,
-                      ),
                   ],
                 ),
                 const SizedBox(height: PassqlSpacing.xl),
-                // 사업자 정보 (#658, 값 없으면 간격까지 숨김)
-                const BusinessInfoGroup(),
                 // 계정 작업은 한 묶음, 되돌릴 수 없는 탈퇴는 맨 아래 (#774)
                 SettingsGroup(
                   children: [

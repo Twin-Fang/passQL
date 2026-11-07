@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-// Settings는 마이페이지 톱니바퀴·프로필 카드로 진입하는 서브페이지 — 내 계정(닉네임·로그인 방법, #908)·문제풀이 모드·이용안내·앱정보·약관·사업자 정보·계정(로그아웃/탈퇴)을 다룸
+// Settings는 마이페이지 톱니바퀴·프로필 카드로 진입하는 서브페이지 — 내 계정(닉네임·로그인 방법, #908)·문제풀이 모드·이용안내·앱 정보(버전, 사업자 정보 화면으로)·약관·계정(로그아웃/탈퇴)을 다룸
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, LogOut, ExternalLink } from "lucide-react";
 import { withdraw } from "../api/members";
@@ -17,7 +17,6 @@ import SubpageLayout from "../components/SubpageLayout";
 import AccountInfoSection from "../components/AccountInfoSection";
 import { useRecentLoginProviderStore } from "../stores/recentLoginProviderStore";
 import LegalModal from "../components/LegalModal";
-import { useBusinessInfoLines } from "../hooks/useBusinessInfoLines";
 import { LEGAL_TITLE } from "../api/legal";
 import type { LegalType } from "../types/api";
 import { IS_GOOGLE_PLAY_PUBLIC } from "../constants/appStoreRelease";
@@ -41,7 +40,6 @@ export default function Settings() {
   const { androidUrl, iosUrl, hasAny: hasAppLinks } = useAppLinks();
   // 약관 본문 모달 (로그인 화면과 같은 컴포넌트, #658)
   const [openedLegalType, setOpenedLegalType] = useState<LegalType | null>(null);
-  const businessInfoLines = useBusinessInfoLines();
   // 탈퇴 시 제공자 확인용 회원 정보
   const { data: memberData } = useMember();
 
@@ -52,7 +50,7 @@ export default function Settings() {
   const s0 = stagger(1); // 이용안내 섹션
   const s1 = stagger(2); // 문제풀이 섹션
   const s2 = stagger(3); // 앱 정보 섹션
-  const s3 = stagger(4); // 약관·사업자 정보 섹션
+  const s3 = stagger(4); // 약관 섹션
   const s4 = stagger(5); // 로그아웃 섹션
   const s5 = stagger(6); // 로고 + 카피라이트
 
@@ -140,11 +138,12 @@ export default function Settings() {
       <section className={s2.className}>
         <SettingsSection label="앱 정보">
           <div className="bg-surface-card border-y border-border divide-y divide-border">
+            {/* 앱 정보 (#658): 버전 표시, 누르면 사업자 정보까지 */}
             <SettingsRow
-              label="버전"
-              value={
-                <p className="text-sm text-text-caption">{__APP_VERSION__}</p>
-              }
+              label="앱 정보"
+              value={<p className="text-sm text-text-caption">{__APP_VERSION__}</p>}
+              action={<ChevronRight size={16} className="text-text-caption" />}
+              onClick={() => navigate("/settings/app-info")}
             />
             {/* 스토어 링크가 설정된 플랫폼만 노출 (#433) */}
             {/* Play 비공개 중엔 홈 배너와 같이 "출시 준비 중" 비활성 (#531, #658) */}
@@ -174,9 +173,9 @@ export default function Settings() {
         </SettingsSection>
       </section>
 
-      {/* 약관·사업자 정보 (#658) — 사업자 정보는 서버 값 없으면 숨김 */}
+      {/* 약관 (사업자 정보는 앱 정보 화면, #658) */}
       <section className={s3.className}>
-        <SettingsSection label="약관 및 사업자 정보">
+        <SettingsSection label="약관">
           <div className="bg-surface-card border-y border-border divide-y divide-border">
             {(["TERMS_OF_SERVICE", "PRIVACY_POLICY"] as const).map((legalType) => (
               <SettingsRow
@@ -185,13 +184,6 @@ export default function Settings() {
                 value={null}
                 action={<ChevronRight size={16} className="text-text-caption" />}
                 onClick={() => setOpenedLegalType(legalType)}
-              />
-            ))}
-            {businessInfoLines.map((line) => (
-              <SettingsRow
-                key={line.label}
-                label={line.label}
-                value={<p className="text-sm text-text-secondary break-all">{line.value}</p>}
               />
             ))}
           </div>
