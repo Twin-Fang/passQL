@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchMe, regenerateNickname, checkNickname, changeNickname, updateChoiceGenerationMode } from "../api/members";
 import { useAuthStore } from "../stores/authStore";
 import { useMemberQueryScope } from "./useMemberQueryScope";
-import type { NicknameCheckResponse, NicknameChangeResponse, ChoiceGenerationMode } from "../types/api";
+import type { NicknameCheckResponse, NicknameChangeResponse, ChoiceGenerationMode, MemberMeResponse } from "../types/api";
 
 export function useMember() {
   const { memberUuid, isMemberQueryEnabled } = useMemberQueryScope();
@@ -62,7 +62,7 @@ export function useChangeNickname() {
   });
 }
 
-// 선택지 생성 모드 변경 뮤테이션 — 성공 시 member 쿼리 무효화
+// 선택지 생성 모드 변경 뮤테이션 — 성공 시 캐시에 저장값 바로 반영(풀이 칩이 재조회를 기다리지 않게) > member 쿼리 무효화
 export function useUpdateChoiceGenerationMode() {
   const queryClient = useQueryClient();
 
@@ -72,7 +72,10 @@ export function useUpdateChoiceGenerationMode() {
     ChoiceGenerationMode
   >({
     mutationFn: (mode: ChoiceGenerationMode) => updateChoiceGenerationMode(mode),
-    onSuccess: () => {
+    onSuccess: ({ choiceGenerationMode }) => {
+      queryClient.setQueriesData<MemberMeResponse>({ queryKey: ["member"] }, (member) =>
+        member ? { ...member, choiceGenerationMode } : member,
+      );
       queryClient.invalidateQueries({ queryKey: ["member"] });
     },
   });
