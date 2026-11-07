@@ -19,8 +19,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * 관리자 전역 검색: 입력 1개 > 회원(UUID·회원 번호·닉네임)·문제(UUID) 후보
- * UUID 형식이면 회원·문제 정확 일치, 회원 번호(PQL-XXXXXXXX)면 UUID 앞자리 일치, 아니면 닉네임 부분 일치 (결과 최대 20건)
+ * 관리자 전역 검색: 입력 1개 > 회원(UUID·회원 번호·이메일·닉네임)·문제(UUID) 후보
+ * UUID 형식이면 회원·문제 정확 일치, 회원 번호(PQL-XXXXXXXX)면 UUID 앞자리 일치, @ 가 있으면 이메일 일부 일치, 아니면 닉네임 일부 일치 (결과 최대 20건)
  */
 @Service
 @RequiredArgsConstructor
@@ -29,6 +29,8 @@ public class AdminGlobalSearchService {
 
     // 회원 닉네임 검색 결과 최대 건수
     private static final int MAX_MEMBER_RESULT_COUNT = 20;
+    // 이메일 검색으로 보는 글자 (닉네임에는 @ 를 쓸 수 없음)
+    private static final char EMAIL_SEPARATOR = '@';
     // 문제 본문 미리보기 길이 (자)
     private static final int QUESTION_STEM_PREVIEW_LENGTH = 80;
 
@@ -70,6 +72,9 @@ public class AdminGlobalSearchService {
         if (memberUuidPrefix.isPresent()) {
             return new Result(keyword, findMembersByUuidPrefix(memberUuidPrefix.get()), List.of());
         }
+        if (keyword.indexOf(EMAIL_SEPARATOR) >= 0) {
+            return new Result(keyword, findMembersByEmail(keyword), List.of());
+        }
         return new Result(keyword, findMembersByNickname(keyword), List.of());
     }
 
@@ -81,6 +86,12 @@ public class AdminGlobalSearchService {
     private List<MemberAdminListResponse> findMembersByUuidPrefix(String memberUuidPrefix) {
         MemberSearchCondition condition = new MemberSearchCondition();
         condition.setMemberUuidPrefix(memberUuidPrefix);
+        return searchMembersIncludingTest(condition);
+    }
+
+    private List<MemberAdminListResponse> findMembersByEmail(String email) {
+        MemberSearchCondition condition = new MemberSearchCondition();
+        condition.setEmail(email);
         return searchMembersIncludingTest(condition);
     }
 

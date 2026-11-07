@@ -85,6 +85,14 @@ public class MemberSpecification {
     }
 
     /** 회원 UUID 정확히 일치 (비면 조건 없음, 형식이 틀리면 결과 없음) */
+    /** 이메일 일부 일치 (대소문자 무관, 비면 조건 없음, #934) */
+    public static Specification<Member> emailContains(String email) {
+        return (root, query, cb) ->
+            email == null || email.isBlank()
+                ? cb.conjunction()
+                : cb.like(cb.lower(root.get("email")), "%" + email.trim().toLowerCase() + "%");
+    }
+
     /** 회원 UUID 앞 8자리 일치 (회원 번호 검색, 소문자 16진수 8자리. 비면 조건 없음, #929) */
     public static Specification<Member> memberUuidStartsWith(String memberUuidPrefix) {
         return (root, query, cb) ->

@@ -65,7 +65,7 @@ public class MemberAdminService {
     @Lazy
     private MemberAdminService self;
 
-    /** 회원 목록 검색: 필터(닉네임·UUID·회원 번호·상태·역할·기간·이용권) > 선택 정렬 > 페이지 > 프로 이용 여부 부착 */
+    /** 회원 목록 검색: 필터(닉네임·UUID·회원 번호·이메일·상태·역할·기간·이용권) > 선택 정렬 > 페이지 > 프로 이용 여부 부착 */
     public Page<MemberAdminListResponse> searchMembers(MemberSearchCondition cond, Pageable pageable) {
         LocalDateTime now = LocalDateTime.now();
         Specification<Member> spec = Specification
@@ -73,6 +73,7 @@ public class MemberAdminService {
             .and(MemberSpecification.nicknameContains(cond.getNickname()))
             .and(MemberSpecification.memberUuidEquals(cond.getMemberUuid()))
             .and(MemberSpecification.memberUuidStartsWith(cond.getMemberUuidPrefix()))
+            .and(MemberSpecification.emailContains(cond.getEmail()))
             .and(MemberSpecification.statusEquals(cond.getStatus()))
             .and(MemberSpecification.roleEquals(cond.getRole()))
             .and(MemberSpecification.joinedAfter(cond.getJoinedFrom()))
