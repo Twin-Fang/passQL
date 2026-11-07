@@ -30,7 +30,7 @@ const NoticeDetail = lazy(() => import("./pages/NoticeDetail"));
 const ExamTrend = lazy(() => import("./pages/ExamTrend"));
 const Settings = lazy(() => import("./pages/Settings"));
 const SettingsFeedback = lazy(() => import("./pages/SettingsFeedback"));
-const SettingsBusinessInfo = lazy(() => import("./pages/SettingsBusinessInfo"));
+const SettingsAppInfo = lazy(() => import("./pages/SettingsAppInfo"));
 const Community = lazy(() => import("./pages/Community"));
 const CommunityQuestion = lazy(() => import("./pages/CommunityQuestion"));
 const CommunityMine = lazy(() => import("./pages/CommunityMine"));
@@ -155,10 +155,10 @@ const router = createBrowserRouter([
             path: "settings/feedback",
             element: <SettingsFeedback />,
           },
-          // 사업자 정보 서브페이지 (#658) — 설정 > 약관 및 사업자 정보에서 진입
+          // 앱 정보 서브페이지 (#658): 버전, 사업자 정보. 설정 > 앱 정보에서 진입
           {
-            path: "settings/business-info",
-            element: <SettingsBusinessInfo />,
+            path: "settings/app-info",
+            element: <SettingsAppInfo />,
           },
           // 공지 목록·상세 (#529) — 배너·알림함 공지에서 진입, 경로는 lib/noticePresentation 과 같음
           {

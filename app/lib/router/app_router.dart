@@ -7,7 +7,7 @@ import '../presentation/flows/question_flow.dart';
 import '../presentation/flows/concept_related_flow.dart';
 import '../presentation/flows/random_practice_flow.dart';
 import '../presentation/pages/community/blocked_members_page.dart';
-import '../presentation/pages/settings/business_info_page.dart';
+import '../presentation/pages/settings/app_info_page.dart';
 import '../presentation/pages/concepts/concept_page.dart';
 import '../presentation/pages/concepts/concept_topic_page.dart';
 import '../presentation/pages/concepts/concepts_home_page.dart';
@@ -292,9 +292,9 @@ abstract final class AppRouter {
         builder: (_, _) => const BlockedMembersPage(),
       ),
       GoRoute(
-        path: AppRoutes.businessInfo,
+        path: AppRoutes.appInfo,
         parentNavigatorKey: _rootKey,
-        builder: (_, _) => const BusinessInfoPage(),
+        builder: (_, _) => const AppInfoPage(),
       ),
 
       // 풀스크린: 계정·이용권 관리 (#816, 프로필 계정 줄에서 진입)

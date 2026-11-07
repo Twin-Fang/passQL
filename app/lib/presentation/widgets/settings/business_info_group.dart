@@ -40,7 +40,7 @@ List<BusinessInfoLine> toBusinessInfoLines(BusinessInfo businessInfo) {
   ];
 }
 
-/// 사업자 정보 화면의 묶음 (#658, 설정에서는 한 줄로 진입)
+/// 앱 정보 화면의 사업자 정보 묶음 (#658)
 /// 원본은 서버 app-config businessInfo, 오프라인·구버전 서버·상호 없음 > 그리지 않음
 class BusinessInfoGroup extends ConsumerWidget {
   const BusinessInfoGroup({super.key});
@@ -55,6 +55,7 @@ class BusinessInfoGroup extends ConsumerWidget {
 
     // 값이 길어도 줄바꿈되게 제목=항목 이름, 부제=값
     return SettingsGroup(
+      title: '사업자 정보',
       children: [
         for (final line in businessInfoLines)
           SettingsRow(
