@@ -12,6 +12,7 @@ import '../../../router/app_routes.dart';
 import '../../../router/result_route_arguments.dart';
 import '../../design/design.dart';
 import '../../providers/mock_exam_countdown.dart';
+import '../../providers/mock_exam_providers.dart';
 import '../../providers/mock_exam_session_notifier.dart';
 import '../../providers/mock_exam_session_state.dart';
 import '../../widgets/common/app_toast.dart';
@@ -138,7 +139,10 @@ class _MockExamSolvingPageState extends ConsumerState<MockExamSolvingPage>
       confirmLabel: '나가기',
       isDestructive: false,
     );
-    if (isConfirmed && mounted) context.pop();
+    if (!isConfirmed || !mounted) return;
+    // 목록의 이어 풀기 띠(남은 시간·답한 문항)를 나간 시점 값으로 (#902)
+    ref.invalidate(mockExamRoundsProvider);
+    context.pop();
   }
 
   void _goToResult() {

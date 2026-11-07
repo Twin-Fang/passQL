@@ -91,6 +91,12 @@ final currentAppVersionProvider = FutureProvider<String>((ref) async {
   return packageInfo.version;
 });
 
+/// 설치된 앱 빌드 번호 (앱 정보 화면)
+final currentAppBuildNumberProvider = FutureProvider<String>((ref) async {
+  final packageInfo = await PackageInfo.fromPlatform();
+  return packageInfo.buildNumber;
+});
+
 /// 앱 시작 설정 1회 조회. 네트워크·서버 오류·시간 초과면 null (앱 사용을 막지 않음)
 final appConfigProvider = FutureProvider<AppConfig?>((ref) async {
   try {

@@ -99,6 +99,9 @@ abstract final class AppRoutes {
   /// 차단한 사용자 관리 (#525). 설정에서 진입
   static const String blockedMembers = '/settings/blocked-members';
 
+  /// 앱 정보: 버전, 빌드 번호, 사업자 정보, 오픈소스 라이선스 (#658). 설정 > 정보에서 진입
+  static const String appInfo = '/settings/app-info';
+
   /// 계정·이용권 관리 (#816). 프로필 계정 줄 `관리`·프로모션 코드 행에서 진입
   static const String account = '/account';
 

@@ -47,11 +47,7 @@ public final class StreakCalculator {
         return streak;
     }
 
-    /**
-     * 지금까지 가장 길게 이어진 연속 학습 일수 (#909)
-     *
-     * @param dates distinct 날짜 목록 (정렬 무관)
-     */
+    /** 지금까지 가장 길게 이어진 연속 학습 일수 (#909, dates: 날짜 목록, 중복·순서 무관) */
     public static int calculateLongest(List<Date> dates) {
         if (dates == null || dates.isEmpty()) {
             return 0;
