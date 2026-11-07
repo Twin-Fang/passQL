@@ -98,11 +98,15 @@ class QuestionSolvingBody extends StatelessWidget {
             ),
           // 난이도 + 실행 모드 뱃지
           QuestionHeader(question: question),
-          QuestionStem(stem: question.stem),
-          // 테이블 컬럼·샘플 행 (EXECUTABLE 모드에서만, 지문 바로 아래 기본 펼침)
-          if (_isExecutable)
+          // 지문 + 테이블 (테이블은 지문 카드 안, #903)
+          QuestionStem(
+            stem: question.stem,
+            schemaTables: question.schemaTables,
+          ),
+          // 테이블을 해석하지 못해 DDL 원문만 있을 때 원문 상자
+          if (_isExecutable && question.schemaTables.isEmpty)
             SchemaSection(
-              tables: question.schemaTables,
+              tables: const [],
               schemaDdl: question.schemaDdl,
               schemaSampleData: question.schemaSampleData,
             ),
