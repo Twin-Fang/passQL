@@ -1,8 +1,10 @@
 package com.passql.web.controller.admin;
 
+import com.passql.application.controltower.ControlTowerAttentionService;
 import com.passql.application.feedback.FeedbackAdminService;
 import com.passql.application.feedback.FeedbackAttachmentReader;
 import com.passql.application.storage.ObjectStorageException;
+import com.passql.meta.constant.AppSettingKeys;
 import com.passql.meta.constant.FeedbackStatus;
 import com.passql.meta.dto.FeedbackBulkStatusRequest;
 import com.passql.meta.dto.FeedbackMemoUpdateRequest;
@@ -42,8 +44,9 @@ public class AdminFeedbackController {
     private final FeedbackService feedbackService;
     private final FeedbackAdminService feedbackAdminService;
     private final FeedbackAttachmentReader feedbackAttachmentReader;
+    private final ControlTowerAttentionService controlTowerAttentionService;
 
-    /** 건의 목록 (#628): 상태·키워드·회원(UUID·닉네임)·기간 검색, 최신순 */
+    /** 건의 목록 (#628): 상태·키워드·회원(UUID·닉네임)·기간 검색, 최신순 + 관제소 연동 상태 (#959) */
     @GetMapping
     @AdminPage(menu = AdminMenu.FEEDBACKS)
     public String list(Model model, FeedbackSearchCondition condition,
@@ -59,6 +62,9 @@ public class AdminFeedbackController {
         model.addAttribute("pendingCount", statusCounts.get(FeedbackStatus.PENDING));
         model.addAttribute("reviewedCount", statusCounts.get(FeedbackStatus.REVIEWED));
         model.addAttribute("appliedCount", statusCounts.get(FeedbackStatus.APPLIED));
+        // 관제소 연동 섹션 (#959): 켜기/끄기는 앱 설정 저장 API(감사 기록 포함)로 전환
+        model.addAttribute("controlTowerAttentionStatus", controlTowerAttentionService.getAdminStatus());
+        model.addAttribute("controlTowerAttentionSettingKey", AppSettingKeys.CONTROL_TOWER_ATTENTION_ENABLED);
         return "admin/feedbacks";
     }
 

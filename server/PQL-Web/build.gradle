@@ -27,6 +27,13 @@ dependencies {
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.3.0'
 }
 
+// 서버 버전 > BuildProperties (관제소 attention source.app_version, #959), 빌드마다 바뀌는 시각은 제외
+springBoot {
+    buildInfo {
+        excludes = ['time']
+    }
+}
+
 tasks.named('bootJar') {
     archiveFileName = 'app.jar'
     // 비밀 설정 3개 jar 제외 (공개 이미지 유출 방지): 운영은 호스트 config/ 를 /app/config 로 마운트해 읽음

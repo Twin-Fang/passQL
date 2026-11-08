@@ -62,6 +62,8 @@ suh-logger:
     - "admin/login"
     # Docker 헬스체크(5초 간격)가 요청 로그의 99%를 차지해 실제 요청이 묻힌다 (#436)
     - "actuator/health"
+    # 관제소 수집(1분 간격)은 X-Control-Token 헤더가 있고 요청 로그를 덮어 제외 (#959)
+    - "control/attention"
 
 springdoc:
   swagger-ui:
@@ -74,6 +76,16 @@ springdoc:
 admin:
   username: ${ADMIN_USERNAME:admin}
   password-hash: ${ADMIN_PASSWORD_HASH:}
+
+# 관제소 확인할 일 연동 (#959): GET /control/attention, 켜기/끄기는 app_setting control_tower.attention.enabled
+# token: 관제소 CONTROL_PULL_TOKEN_<PROJECT>__<SOURCE> 와 같은 값 (비면 항상 401), token-previous: 교체 중 이전 값
+# 값은 환경변수 또는 운영 application-prod.yml 로만 넣는다 (커밋 금지)
+# admin-base-url: 관제소 알림의 관리자 화면 링크 기준 (https 만, 비우면 링크 생략)
+control-tower:
+  attention:
+    token: ${CONTROL_TOWER_ATTENTION_TOKEN:}
+    token-previous: ${CONTROL_TOWER_ATTENTION_TOKEN_PREVIOUS:}
+    admin-base-url: ${CONTROL_TOWER_ADMIN_BASE_URL:https://api.passql.suhsaechan.kr}
 
 # 인가 코드 로그인 (#509): client-id 가 비면 그 제공자는 "준비 중". 키는 application-prod.yml 또는 환경변수로만 넣는다.
 # allowed-redirect-uris: 운영 웹 콜백({origin}/auth/callback/{provider})과 앱 콜백(passql://), 이 목록 밖 주소로는 코드를 교환하지 않는다.
