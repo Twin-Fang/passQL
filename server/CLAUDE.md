@@ -6,6 +6,7 @@
 
 - `/admin/**` 경로: 세션 기반 폼 로그인 (`AdminSecurityConfig`, `@Order(1)`)
 - `/api/**` 경로: JWT 무상태 인증 (`SecurityConfig`, `@Order(2)`)
+- `/actuator/prometheus` 경로: 수집기 전용 Bearer 토큰 (`MetricsScrapeSecurityConfig`, `@Order(0)`, `passql.metrics.scrape-token` 비면 항상 401) (#957)
 - 관리자 계정은 환경변수(`ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`)로 관리
 
 ---

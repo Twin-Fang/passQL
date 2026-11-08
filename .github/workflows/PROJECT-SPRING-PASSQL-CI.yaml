@@ -67,6 +67,11 @@ jobs:
         working-directory: server
         run: ./gradlew :PQL-Web:test --tests 'com.passql.web.contract.OpenApiContractTest'
 
+      # /actuator/prometheus 수집기 토큰 보호·헬스체크 공개 유지 (DB 없이 실행) (#957)
+      - name: 지표 수집 보안 검사
+        working-directory: server
+        run: ./gradlew :PQL-Web:test --tests 'com.passql.web.config.MetricsScrapeSecurityIntegrationTest' --tests 'com.passql.web.config.PrometheusScrapeTokenFilterTest'
+
       # Spring DTO <-> AI 서버 계약 스냅샷 (ai/tests/snapshots, AI 서버 pytest 와 같은 파일) (#877)
       - name: AI 서버 계약 검사
         working-directory: server

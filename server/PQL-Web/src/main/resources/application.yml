@@ -62,6 +62,29 @@ suh-logger:
     - "admin/login"
     # Docker 헬스체크(5초 간격)가 요청 로그의 99%를 차지해 실제 요청이 묻힌다 (#436)
     - "actuator/health"
+    # Prometheus 수집(15초 간격) 요청 로그 노이즈 제외 (#957)
+    - "actuator/prometheus"
+
+# 관리 엔드포인트 2개: health(헬스체크·공개), prometheus(수집기 전용 토큰, MetricsScrapeSecurityConfig) (#957)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  metrics:
+    # 지표 공통 태그 application=passql (blue/green 컨테이너 구분은 Prometheus instance 라벨)
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      # 응답 시간 분위수(p95·p99)를 Prometheus histogram_quantile 로 계산하기 위한 버킷
+      percentiles-histogram:
+        http.server.requests: true
+
+# 지표 수집기 전용 토큰 (Authorization: Bearer <값>). 비면 /actuator/prometheus 항상 401 (fail-closed)
+# 실제 값은 application-prod.yml(GitHub Secret APPLICATION_PROD_YML)에만 둔다
+passql:
+  metrics:
+    scrape-token: ${PASSQL_METRICS_SCRAPE_TOKEN:}
 
 springdoc:
   swagger-ui:
