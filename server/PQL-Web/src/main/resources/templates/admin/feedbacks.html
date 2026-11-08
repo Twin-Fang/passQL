@@ -26,6 +26,57 @@
         </button>
     </div>
 
+    <!-- 관제소 연동 (#959): 켜기/끄기, 마지막 수집 시각, 토큰 설정 여부(값 표시 안 함), 내보내는 항목 -->
+    <div class="collapse collapse-arrow bg-base-100 shadow mb-4" th:with="attention=${controlTowerAttentionStatus}">
+        <input type="checkbox" aria-label="관제소 연동 펼치기"/>
+        <div class="collapse-title flex flex-wrap items-center gap-2 text-sm font-semibold">
+            <i data-lucide="radar" class="size-4"></i>관제소 연동
+            <span class="badge badge-sm" th:classappend="${attention.isEnabled()} ? 'badge-success' : 'badge-ghost'"
+                  th:text="${attention.isEnabled()} ? '켜짐' : '꺼짐'">꺼짐</span>
+            <span th:unless="${attention.hasConfiguredToken()}" class="badge badge-sm badge-warning">토큰 없음</span>
+        </div>
+        <div class="collapse-content text-sm">
+            <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mb-3">
+                <label class="label cursor-pointer gap-2 p-0">
+                    <span class="label-text">연동 사용</span>
+                    <input type="checkbox" id="controlTowerAttentionToggle" class="toggle toggle-sm toggle-success"
+                           th:checked="${attention.isEnabled()}"
+                           th:data-setting-key="${controlTowerAttentionSettingKey}"
+                           onchange="toggleControlTowerAttention(this)"/>
+                </label>
+                <span>마지막 관제소 수집:
+                    <span class="font-medium"
+                          th:text="${attention.lastCollectedAt() != null ? #temporals.format(attention.lastCollectedAt(), 'yyyy-MM-dd HH:mm:ss') : '기록 없음'}">기록 없음</span>
+                </span>
+                <span>수집 토큰:
+                    <span class="font-medium" th:text="${attention.hasConfiguredToken()} ? '설정됨' : '없음'">없음</span>
+                    <span th:if="${attention.hasConfiguredPreviousToken()}" class="text-base-content/60">(이전 토큰 함께 허용)</span>
+                </span>
+            </div>
+            <p class="text-xs text-base-content/60 mb-2">
+                관제소가 <code>GET /control/attention</code> 으로 아래 항목을 가져갑니다. 끄면 404, 토큰이 없거나 틀리면 401.
+                마지막 수집 시각은 서버 재시작 시 비워집니다.
+            </p>
+            <div class="overflow-x-auto">
+                <table class="table table-xs">
+                    <thead>
+                    <tr><th>key</th><th>이름</th><th>개수</th><th>누적</th><th>수준</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item : ${attention.previewItems()}">
+                        <td><code th:text="${item.key()}">feedback.new</code></td>
+                        <td th:text="${item.label()}">새 의견</td>
+                        <td th:text="${item.count()}">0</td>
+                        <td th:text="${item.total() != null ? item.total() : '-'}">-</td>
+                        <td><span class="badge badge-xs" th:classappend="${item.level().name() != 'OK'} ? 'badge-info' : 'badge-ghost'"
+                                  th:text="${item.level().toJsonValue()}">ok</span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <!-- 검색 바 (#628): 상태, 내용 키워드, 회원(UUID 또는 닉네임), 제출 기간 -->
     <div class="card bg-base-100 shadow mb-4">
         <div class="card-body p-3">
