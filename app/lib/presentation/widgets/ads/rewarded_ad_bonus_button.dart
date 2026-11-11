@@ -49,9 +49,12 @@ class _RewardedAdBonusButtonState extends ConsumerState<RewardedAdBonusButton> {
   /// 마지막 실패 안내 (버튼 아래 한 줄)
   String? _statusMessage;
 
+  /// 공정 사용 상한에 닿음 (오늘은 광고를 더 봐도 같은 거부 > 버튼 비활성 유지)
+  bool _hasReachedFairUseLimit = false;
+
   /// 시청·확인 시작 알림 > 진행 (결과 Future 는 시트 밖 호출부도 기다림)
   void _startBonusAttempt() {
-    if (_isBusy) return;
+    if (_isBusy || _hasReachedFairUseLimit) return;
     setState(() {
       _isBusy = true;
       _statusMessage = null;
@@ -90,6 +93,8 @@ class _RewardedAdBonusButtonState extends ConsumerState<RewardedAdBonusButton> {
           return true;
         } catch (error) {
           failureMessage = _failureMessageOf(error);
+          _hasReachedFairUseLimit =
+              error.asAppException.code == ErrorCode.fairUseDailyLimitReached;
         }
       case RewardedAdOutcome.unavailable:
         failureMessage = rewardedAdUnavailableMessage;
@@ -154,9 +159,11 @@ class _RewardedAdBonusButtonState extends ConsumerState<RewardedAdBonusButton> {
     if (!ref.watch(shouldShowProUiProvider)) return const SizedBox.shrink();
     final canUseAds = ref.watch(adsEnabledProvider);
     final colors = context.passqlColors;
-    // 한 줄 우선순위: 진행 중 > 광고 못 씀 > 마지막 결과
+    // 한 줄 우선순위: 진행 중 > 공정 사용 상한 > 광고 못 씀 > 마지막 결과
     final statusMessage = _isBusy
         ? rewardedAdCheckingMessage
+        : _hasReachedFairUseLimit
+        ? fairUseLimitResetNotice
         : canUseAds
         ? _statusMessage
         : rewardedAdUnavailableMessage;
@@ -167,7 +174,9 @@ class _RewardedAdBonusButtonState extends ConsumerState<RewardedAdBonusButton> {
           label: '광고 보기',
           icon: CupertinoIcons.play_fill,
           isLoading: _isBusy,
-          onPressed: canUseAds ? _startBonusAttempt : null,
+          onPressed: canUseAds && !_hasReachedFairUseLimit
+              ? _startBonusAttempt
+              : null,
         ),
         if (statusMessage != null) ...[
           const SizedBox(height: PassqlSpacing.xs),

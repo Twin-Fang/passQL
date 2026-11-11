@@ -1,12 +1,11 @@
 import 'package:flutter/widgets.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import 'daily_limit_reward_view.dart';
 
 /// 제출·진입 단계에서 한도로 막혔을 때 같은 화면을 시트로 (#963): 광고 보상·구매로 풀리면 true
-/// 세트 풀러 가기 > 시트를 닫고 호출 화면에서 세트 화면을 쌓음, 광고 확인 중에 그냥 닫으면 그 확인 결과로 판정
+/// 세트 풀러 가기 > 시트를 닫고 호출 화면에서 세트 열기 (풀이 흐름 안이면 교체, 홈·문제 탭이면 쌓기)
+/// 광고 확인 중에 그냥 닫으면 그 확인 결과로 판정
 Future<bool> showDailyLimitRewardSheet(BuildContext context) async {
   Future<bool>? pendingAdBonus;
   var shouldOpenDailySet = false;
@@ -24,7 +23,7 @@ Future<bool> showDailyLimitRewardSheet(BuildContext context) async {
   );
   if (isUnlocked != null) {
     if (shouldOpenDailySet && context.mounted) {
-      context.push<void>(AppRoutes.dailySet);
+      openDailySetFromDailyLimit(context);
     }
     return isUnlocked;
   }

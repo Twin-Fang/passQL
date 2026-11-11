@@ -4,12 +4,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/error/error_code.dart';
-import '../../../data/models/member/member_plan_response.dart';
 import '../../../router/app_routes.dart';
+import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
 import '../../providers/plan_providers.dart';
 import '../ads/rewarded_ad_bonus_button.dart';
 import '../pro/pro_offer_sheet.dart';
+import 'daily_limit_daily_set_card.dart';
 
 // 등급 응답에 값이 없을 때의 수치 (DEC-0239: 기본 한도 10, 보너스 1회 5문제)
 const int _fallbackDailyFreeLimit = 10;
@@ -19,8 +20,19 @@ const int _fallbackBonusQuestionCount = 5;
 bool isFreeDailyLimitError(Object error) =>
     error.asAppException.code == ErrorCode.freeDailyLimitReached;
 
+/// 한도 화면에서 오늘의 세트 열기: 풀이 흐름 안이면 지금 흐름을 세트로 교체, 밖(홈·문제 탭 진입)이면 쌓기
+/// 흐름 위에 쌓으면 세트를 나갈 때 원래 흐름까지 닫힘 (제출한 답은 서버에 저장돼 교체해도 잃지 않음)
+void openDailySetFromDailyLimit(BuildContext context) {
+  if (isTopScreenSolvingFlow(context)) {
+    context.pushReplacement(AppRoutes.dailySet);
+  } else {
+    context.push(AppRoutes.dailySet);
+  }
+}
+
 /// 무료 하루 한도 화면 (A안, #963): 제목 > 광고 보고 더 풀기(주 버튼) > 오늘의 세트 보너스 > 이용권 한 줄
 /// 막다른 길 없음: 광고·세트·이용권 모두 갈 곳이 있고, 광고 보상·구매로 풀리면 [onUnlocked]
+/// 세트는 풀이 흐름 안이면 지금 흐름을 세트로 교체 ([openDailySetFromDailyLimit])
 class DailyLimitRewardView extends ConsumerWidget {
   const DailyLimitRewardView({
     super.key,
@@ -32,7 +44,7 @@ class DailyLimitRewardView extends ConsumerWidget {
   /// 광고 보상 연출을 닫았거나 이용권을 샀을 때 (같은 문제 다시 받기, 시트면 닫기)
   final VoidCallback onUnlocked;
 
-  /// 오늘의 세트로 가기 (없으면 세트 화면을 쌓고 돌아오면 [onUnlocked])
+  /// 오늘의 세트로 가기 (없으면 [openDailySetFromDailyLimit], 시트는 닫은 뒤 호출 화면에서 열기)
   final VoidCallback? onOpenDailySet;
 
   /// 광고 시청·확인 시작 (시트를 닫아도 결과를 기다릴 때)
@@ -83,10 +95,11 @@ class DailyLimitRewardView extends ConsumerWidget {
               onBonusAttemptStarted: onAdBonusAttemptStarted,
             ),
             const SizedBox(height: PassqlSpacing.md),
-            _DailySetBonusCard(
+            DailyLimitDailySetCard(
               dailyBonus: dailyBonus,
               bonusQuestionCount: bonusQuestionCount,
-              onOpenDailySet: () => _openDailySet(context),
+              onOpenDailySet:
+                  onOpenDailySet ?? () => openDailySetFromDailyLimit(context),
             ),
             const SizedBox(height: PassqlSpacing.xs),
             PassqlButton(
@@ -116,14 +129,6 @@ class DailyLimitRewardView extends ConsumerWidget {
           ref.read(freeRemainingSolvesProvider) ?? bonusQuestionCount,
       totalQuestionCount: knownPlan?.effectiveTodayFreeLimit,
     );
-    if (context.mounted) onUnlocked();
-  }
-
-  /// 오늘의 세트: 호출부 이동이 있으면 그것, 없으면 세트 화면 쌓기 > 돌아오면 다시 받기 (세트 보너스로 풀렸을 수 있음)
-  Future<void> _openDailySet(BuildContext context) async {
-    final onOpenDailySet = this.onOpenDailySet;
-    if (onOpenDailySet != null) return onOpenDailySet();
-    await context.push<void>(AppRoutes.dailySet);
     if (context.mounted) onUnlocked();
   }
 
@@ -190,106 +195,6 @@ class _AdBonusCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// 오늘의 세트 카드: 보너스 2줄(받았으면 받았어요) > 세트를 끝내기 전이면 풀러 가기 버튼
-class _DailySetBonusCard extends StatelessWidget {
-  const _DailySetBonusCard({
-    required this.dailyBonus,
-    required this.bonusQuestionCount,
-    required this.onOpenDailySet,
-  });
-
-  /// 오늘 받은 보너스 (등급을 모르면 null > 둘 다 안 받음으로 표시)
-  final DailyFreeBonus? dailyBonus;
-  final int bonusQuestionCount;
-  final VoidCallback onOpenDailySet;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    final isCompletionEarned = dailyBonus?.isDailySetCompletionEarned ?? false;
-    final isAccuracyEarned = dailyBonus?.isDailySetAccuracyEarned ?? false;
-    return PassqlCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            '오늘의 세트로 더 열기',
-            style: PassqlTypography.footnoteSemibold.copyWith(
-              color: colors.secondaryLabel,
-            ),
-          ),
-          const SizedBox(height: PassqlSpacing.sm),
-          _DailySetBonusRow(
-            icon: CupertinoIcons.checkmark_alt,
-            label: '세트 5문제 모두 풀기',
-            bonusQuestionCount: bonusQuestionCount,
-            isEarned: isCompletionEarned,
-          ),
-          const SizedBox(height: PassqlSpacing.sm),
-          _DailySetBonusRow(
-            icon: CupertinoIcons.star_fill,
-            label: '세트 4문제 이상 맞히기',
-            bonusQuestionCount: bonusQuestionCount,
-            isEarned: isAccuracyEarned,
-          ),
-          // 세트를 끝냈으면 두 보너스 판정이 끝나 갈 곳 없음
-          if (!isCompletionEarned) ...[
-            const SizedBox(height: PassqlSpacing.md),
-            PassqlButton(
-              label: '오늘의 세트 풀러 가기',
-              variant: PassqlButtonVariant.tinted,
-              size: PassqlButtonSize.regular,
-              onPressed: onOpenDailySet,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-/// 세트 보너스 한 줄: 아이콘 + 조건 + 오른쪽 +N(받았으면 받았어요)
-class _DailySetBonusRow extends StatelessWidget {
-  const _DailySetBonusRow({
-    required this.icon,
-    required this.label,
-    required this.bonusQuestionCount,
-    required this.isEarned,
-  });
-
-  final IconData icon;
-  final String label;
-  final int bonusQuestionCount;
-  final bool isEarned;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    return Row(
-      children: [
-        PassqlIconTile(
-          icon: icon,
-          color: isEarned ? colors.secondaryLabel : colors.correct,
-        ),
-        const SizedBox(width: PassqlSpacing.sm),
-        Expanded(
-          child: Text(
-            label,
-            style: PassqlTypography.subheadline.copyWith(color: colors.label),
-          ),
-        ),
-        const SizedBox(width: PassqlSpacing.xs),
-        Text(
-          isEarned ? '받았어요' : '+$bonusQuestionCount',
-          style: PassqlTypography.footnoteSemibold.copyWith(
-            color: isEarned ? colors.secondaryLabel : colors.correctText,
-          ),
-        ),
-      ],
     );
   }
 }

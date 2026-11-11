@@ -47,5 +47,15 @@ void leaveSolvingFlow(BuildContext context) {
   ).popUntil((_) => remainingPopCount-- <= 0);
 }
 
+/// 맨 위 화면이 풀이 흐름인지 (모달 시트는 화면 목록에 없어 그 아래 화면 기준)
+/// 흐름 안에서 다른 흐름을 열 때 쌓지 않고 교체할지 판단: 쌓으면 나갈 때 아래 흐름까지 함께 닫힘 (#963)
+bool isTopScreenSolvingFlow(BuildContext context) {
+  final routeMatches = GoRouter.of(
+    context,
+  ).routerDelegate.currentConfiguration.matches;
+  return routeMatches.isNotEmpty &&
+      _isSolvingFlowRoute(routeMatches.last.route);
+}
+
 bool _isSolvingFlowRoute(RouteBase route) =>
     route is GoRoute && _solvingFlowRoutePaths.contains(route.path);
