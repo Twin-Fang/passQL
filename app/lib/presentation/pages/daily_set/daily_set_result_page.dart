@@ -12,7 +12,7 @@ import '../../../router/result_route_arguments.dart';
 import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
 import '../../providers/daily_set_providers.dart';
-import '../../widgets/ads/rewarded_interstitial_offer.dart';
+import '../../widgets/ads/rewarded_interstitial_on_result.dart';
 import '../../widgets/daily_set/daily_set_bonus_card.dart';
 import '../../widgets/notification/study_result_seen_recorder.dart';
 import '../../widgets/review/store_review_prompt_on_result.dart';

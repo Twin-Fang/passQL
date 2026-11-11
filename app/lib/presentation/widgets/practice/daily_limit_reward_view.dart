@@ -32,6 +32,7 @@ void openDailySetFromDailyLimit(BuildContext context) {
 
 /// 무료 하루 한도 화면 (A안, #963): 제목 > 광고 보고 더 풀기(주 버튼) > 오늘의 세트 보너스 > 이용권 한 줄
 /// 막다른 길 없음: 광고·세트·이용권 모두 갈 곳이 있고, 광고 보상·구매로 풀리면 [onUnlocked]
+/// 남은 수가 늦게 늘어도(광고 확인 지연 > 다음 등급 조회) 「이어서 풀기」 주 버튼으로 [onUnlocked]
 /// 세트는 풀이 흐름 안이면 지금 흐름을 세트로 교체 ([openDailySetFromDailyLimit])
 class DailyLimitRewardView extends ConsumerWidget {
   const DailyLimitRewardView({
@@ -61,6 +62,8 @@ class DailyLimitRewardView extends ConsumerWidget {
     final bonusQuestionCount = (dailyBonus?.bonusQuestionCount ?? 0) > 0
         ? dailyBonus!.bonusQuestionCount
         : _fallbackBonusQuestionCount;
+    // 보너스가 등급에 반영돼 풀 문제가 생겼는가 (본문·시트 공통)
+    final hasUnlockedSolves = (ref.watch(freeRemainingSolvesProvider) ?? 0) > 0;
     return SafeArea(
       top: false,
       child: SingleChildScrollView(
@@ -87,6 +90,14 @@ class DailyLimitRewardView extends ConsumerWidget {
                 color: colors.secondaryLabel,
               ),
             ),
+            if (hasUnlockedSolves) ...[
+              const SizedBox(height: PassqlSpacing.md),
+              PassqlButton(
+                key: const Key('daily-limit-continue-solving'),
+                label: '이어서 풀기',
+                onPressed: onUnlocked,
+              ),
+            ],
             const SizedBox(height: PassqlSpacing.md),
             _AdBonusCard(
               bonusQuestionCount: bonusQuestionCount,

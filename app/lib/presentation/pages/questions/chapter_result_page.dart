@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import '../../../presentation/providers/chapter_providers.dart';
 import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
-import '../../widgets/ads/rewarded_interstitial_offer.dart';
+import '../../widgets/ads/rewarded_interstitial_on_result.dart';
 import '../../widgets/notification/study_result_seen_recorder.dart';
 
 /// 챕터 완료 결과 화면 — 점수·요약·분석·문항별 결과를 한 화면 스크롤로 보여준다.
