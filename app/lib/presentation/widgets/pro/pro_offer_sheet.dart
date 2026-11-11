@@ -288,7 +288,6 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
                           daysUntilExam: daysUntil,
                           limit: widget.dailyFreeLimit,
                         ),
-                  dailyFreeLimit: widget.dailyFreeLimit,
                   focusedBenefit: _focusedBenefitOf(benefits),
                 ),
                 const SizedBox(height: PassqlSpacing.md),

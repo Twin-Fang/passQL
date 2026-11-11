@@ -1,9 +1,10 @@
 import 'package:flutter/cupertino.dart';
 
 import '../../design/design.dart';
+import 'pro_discount_badge.dart';
 
-/// 이용권 1칸 (결제 시트에서 하나 고름, #749): 라디오 > 이름 + 아래 작은 글자(월 환산·만료일) > 원래 값 줄긋기 + 가격 + 하루 가격(#816).
-/// 할인이 있으면 왼쪽 위 빨간 리본. 선택 칸 = 강조 테두리 + 옅은 강조 배경 (선택지 카드와 같은 규칙)
+/// 이용권 1칸 (결제 시트에서 하나 고름, #749): 라디오 > 기간 + 작은 할인 배지 + 만료일 > 가격 (#963)
+/// 선택 칸 = 강조 테두리 + 옅은 강조 배경 (선택지 카드와 같은 규칙)
 /// 스크린리더는 이름·가격·할인·만료일을 한 번에 읽음
 class ProPassOptionTile extends StatelessWidget {
   const ProPassOptionTile({
@@ -12,11 +13,8 @@ class ProPassOptionTile extends StatelessWidget {
     required this.displayPrice,
     required this.isSelected,
     required this.onTap,
-    this.ribbonLabel,
-    this.undiscountedPrice,
-    this.monthlyLabel,
+    this.discountPercent,
     this.expiryLabel,
-    this.dailyPriceLabel,
   });
 
   /// 예: 3개월
@@ -27,33 +25,20 @@ class ProPassOptionTile extends StatelessWidget {
   final bool isSelected;
   final VoidCallback? onTap;
 
-  /// 예: 25% 할인 (null 이면 리본 없음)
-  final String? ribbonLabel;
-
-  /// 할인 전 값 (예: 13,200원, 줄긋기)
-  final String? undiscountedPrice;
-
-  /// 예: 월 3,300원 (강조색)
-  final String? monthlyLabel;
+  /// 할인율(예: 25, null 이면 배지 없음)
+  final int? discountPercent;
 
   /// 예: 2027.01.26까지
   final String? expiryLabel;
 
-  /// 예: 하루 약 110원 (가격 아래, 리본 있는 칸은 강조색)
-  final String? dailyPriceLabel;
-
   // 선택 칸 테두리 두께 (선택 1.5 · 기본 1, 선택지 카드와 같은 규격)
   static const double _selectedBorderWidth = 1.5;
   static const double _idleBorderWidth = 1;
-  // 리본이 칸 위 테두리에 걸치는 높이
-  static const double _ribbonOverlap = 10;
 
   String get _semanticLabel => [
     label,
     ?displayPrice,
-    ?ribbonLabel,
-    ?monthlyLabel,
-    ?dailyPriceLabel,
+    if (discountPercent != null) '$discountPercent% 할인',
     ?expiryLabel,
   ].join(', ');
 
@@ -61,11 +46,8 @@ class ProPassOptionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final displayPrice = this.displayPrice;
-    final ribbonLabel = this.ribbonLabel;
-    final undiscountedPrice = this.undiscountedPrice;
-    final monthlyLabel = this.monthlyLabel;
+    final discountPercent = this.discountPercent;
     final expiryLabel = this.expiryLabel;
-    final dailyPriceLabel = this.dailyPriceLabel;
     final tile = AnimatedContainer(
       duration: PassqlMotion.durationOf(context, PassqlMotion.fast),
       curve: PassqlMotion.curve,
@@ -95,19 +77,21 @@ class ProPassOptionTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: PassqlTypography.headline.copyWith(
-                    color: colors.label,
-                  ),
-                ),
-                if (monthlyLabel != null)
-                  Text(
-                    monthlyLabel,
-                    style: PassqlTypography.footnoteSemibold.copyWith(
-                      color: colors.accentText,
+                // 기간 옆 작은 할인 배지 (좁은 폭이면 줄바꿈)
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: PassqlSpacing.xs,
+                  children: [
+                    Text(
+                      label,
+                      style: PassqlTypography.headline.copyWith(
+                        color: colors.label,
+                      ),
                     ),
-                  ),
+                    if (discountPercent != null)
+                      ProDiscountBadge(discountPercent: discountPercent),
+                  ],
+                ),
                 if (expiryLabel != null)
                   Text(
                     expiryLabel,
@@ -120,35 +104,9 @@ class ProPassOptionTile extends StatelessWidget {
           ),
           if (displayPrice != null) ...[
             const SizedBox(width: PassqlSpacing.xs),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                if (undiscountedPrice != null)
-                  Text(
-                    undiscountedPrice,
-                    style: PassqlTypography.caption.copyWith(
-                      color: colors.secondaryLabel,
-                      decoration: TextDecoration.lineThrough,
-                    ),
-                  ),
-                Text(
-                  displayPrice,
-                  style: PassqlTypography.title3.copyWith(color: colors.label),
-                ),
-                if (dailyPriceLabel != null)
-                  Text(
-                    dailyPriceLabel,
-                    style:
-                        (ribbonLabel == null
-                                ? PassqlTypography.caption
-                                : PassqlTypography.captionSemibold)
-                            .copyWith(
-                              color: ribbonLabel == null
-                                  ? colors.secondaryLabel
-                                  : colors.accentText,
-                            ),
-                  ),
-              ],
+            Text(
+              displayPrice,
+              style: PassqlTypography.title3.copyWith(color: colors.label),
             ),
           ],
         ],
@@ -158,41 +116,7 @@ class ProPassOptionTile extends StatelessWidget {
       label: _semanticLabel,
       isSelected: isSelected,
       onTap: onTap,
-      child: PassqlPressable(
-        onTap: onTap,
-        child: Padding(
-          padding: EdgeInsets.only(
-            top: ribbonLabel == null ? 0 : _ribbonOverlap,
-          ),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              tile,
-              if (ribbonLabel != null)
-                Positioned(
-                  top: -_ribbonOverlap,
-                  left: PassqlSpacing.sm,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: PassqlSpacing.xs,
-                      vertical: PassqlSpacing.hairlineGap,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colors.wrong,
-                      borderRadius: BorderRadius.circular(PassqlRadius.sm),
-                    ),
-                    child: Text(
-                      ribbonLabel,
-                      style: PassqlTypography.captionSemibold.copyWith(
-                        color: colors.onSemantic,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
+      child: PassqlPressable(onTap: onTap, child: tile),
     );
   }
 }

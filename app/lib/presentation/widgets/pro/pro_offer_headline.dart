@@ -12,7 +12,6 @@ class ProOfferHeadline extends StatelessWidget {
     required this.daysUntilExam,
     required this.activeProExpiresAt,
     required this.freeCap,
-    required this.dailyFreeLimit,
     required this.focusedBenefit,
   });
 
@@ -24,7 +23,6 @@ class ProOfferHeadline extends StatelessWidget {
 
   /// 시험까지 무료 최대 문제 수 (null 이면 기간 줄 생략)
   final int? freeCap;
-  final int dailyFreeLimit;
 
   /// 탑승권 혜택 아이콘에서 열었을 때 강조할 혜택
   final ProBenefit? focusedBenefit;
@@ -63,30 +61,18 @@ class ProOfferHeadline extends StatelessWidget {
                         text: '제한 없이',
                         style: TextStyle(color: colors.accentText),
                       ),
-                      const TextSpan(text: ' 풀고 합격해요'),
+                      const TextSpan(text: ' 풀어요'),
                     ],
             ),
           ),
         ),
         if (freeCap != null) ...[
           const SizedBox(height: PassqlSpacing.xxs),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  '무료로는 시험까지 랜덤 최대 $freeCap문제',
-                  style: PassqlTypography.footnote.copyWith(
-                    color: colors.secondaryLabel,
-                  ),
-                ),
-              ),
-              Text(
-                '$daysUntil일 × $dailyFreeLimit문제',
-                style: PassqlTypography.footnote.copyWith(
-                  color: colors.secondaryLabel,
-                ),
-              ),
-            ],
+          Text(
+            '무료로는 시험까지 랜덤 최대 $freeCap문제',
+            style: PassqlTypography.footnote.copyWith(
+              color: colors.secondaryLabel,
+            ),
           ),
           const SizedBox(height: PassqlSpacing.xs),
           Divider(
