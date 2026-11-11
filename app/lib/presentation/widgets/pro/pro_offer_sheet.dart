@@ -5,7 +5,6 @@ import '../../../core/billing/pass_option_pricing.dart';
 import '../../../core/billing/pro_purchase_port.dart';
 import '../../../core/utils/app_clock.dart';
 import '../../../core/utils/exam_dday.dart';
-import '../../../core/utils/profile_pass_values.dart';
 import '../../../data/models/member/member_plan_response.dart';
 import '../../design/design.dart';
 import '../../providers/home_providers.dart';
@@ -36,7 +35,7 @@ enum ProOfferSheetOutcome {
 /// 구매 버튼 기본 문구(이용권 목록이 없을 때)
 const String _sheetTitle = '이용권';
 
-/// 프로 안내 시트 (모든 진입점이 공유하는 한 장, #749): 문장 제목 > 기간 줄 > 강조 혜택 > 내 이름 PRO 탑승권 > 달라지는 점 > 이용권 고르기(1개월이면 3개월 권유) > 복원 > 각주 + 아래 고정 구매 버튼
+/// 프로 안내 시트 (모든 진입점이 공유하는 한 장, #749): 문장 제목 > 강조 혜택 > 내 이름 PRO 탑승권 > 달라지는 점 > 이용권 고르기(기간 옆 할인 배지) > 복원 > 각주 + 아래 고정 구매 버튼
 /// 성공 > 시트 닫힘 > 호출 화면에서 토스트, 그 외 결과는 시트 안 한 줄 (확인 중에 닫아도 확인 결과로 토스트·연출·호출부 재시도)
 Future<ProOfferSheetOutcome> showProOfferSheet(
   BuildContext context,
@@ -261,7 +260,8 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
     final activeProExpiresAt = widget.activeProExpiresAt;
     final isExtending = activeProExpiresAt != null;
     // 승객 칸: 시트가 떠 있는 동안 닉네임이 도착하면 채움 (홈에서 바로 열면 아직 안 불러온 상태)
-    final nickname = ref.watch(settingsDataProvider).valueOrNull?.nickname ?? '';
+    final nickname =
+        ref.watch(settingsDataProvider).valueOrNull?.nickname ?? '';
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -281,13 +281,6 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
                 ProOfferHeadline(
                   daysUntilExam: daysUntil,
                   activeProExpiresAt: activeProExpiresAt,
-                  // 연장이면 무료 최대치 줄 없음 (이미 제한 없이 푸는 중)
-                  freeCap: isExtending
-                      ? null
-                      : freeCapUntilExam(
-                          daysUntilExam: daysUntil,
-                          limit: widget.dailyFreeLimit,
-                        ),
                   focusedBenefit: _focusedBenefitOf(benefits),
                 ),
                 const SizedBox(height: PassqlSpacing.md),

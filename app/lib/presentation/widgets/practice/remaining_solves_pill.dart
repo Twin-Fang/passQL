@@ -1,10 +1,17 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../design/design.dart';
 import '../../providers/plan_providers.dart';
 
-/// 오늘 남은 무료 랜덤 문제 수 알약: 값이 늘면 한 번 튐 (보상 수령), null 이면 그리지 않음
+/// 남은 수가 이 값 이하(1 이상)면 미리 알림 색 (마지막 1~2문제)
+const int lowRemainingSolvesThreshold = 2;
+
+/// 남은 무료 문제가 곧 떨어지는가 (0은 한도 화면이 맡아 제외)
+bool isLowRemainingSolves(int remainingCount) =>
+    remainingCount >= 1 && remainingCount <= lowRemainingSolvesThreshold;
+
+/// 오늘 남은 무료 랜덤 문제 수 알약: 값이 늘면 한 번 튐 (보상 수령), 1~2문제 남으면 경고 색, null 이면 그리지 않음
 class RemainingSolvesPill extends ConsumerStatefulWidget {
   const RemainingSolvesPill({super.key});
 
@@ -49,7 +56,13 @@ class _RemainingSolvesPillState extends ConsumerState<RemainingSolvesPill>
     if (remainingCount == null) return const SizedBox.shrink();
     return ScaleTransition(
       scale: _scale,
-      child: PassqlBadge(text: '오늘 남은 $remainingCount문제'),
+      child: isLowRemainingSolves(remainingCount)
+          ? PassqlBadge(
+              text: '오늘 남은 $remainingCount문제',
+              kind: PassqlBadgeKind.warning,
+              icon: CupertinoIcons.hourglass,
+            )
+          : PassqlBadge(text: '오늘 남은 $remainingCount문제'),
     );
   }
 }
