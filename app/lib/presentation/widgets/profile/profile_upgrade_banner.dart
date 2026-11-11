@@ -60,7 +60,11 @@ class ProfileUpgradeBanner extends ConsumerWidget {
                 ),
               ),
               if (discount != null)
-                ProDiscountBadge(discountPercent: discount.discountPercent),
+                ProDiscountBadge(
+                  discountPercent: discount.discountPercent,
+                  isShortLabel: false,
+                  isOnStrongColor: true,
+                ),
             ],
           ),
           const SizedBox(height: PassqlSpacing.xs),

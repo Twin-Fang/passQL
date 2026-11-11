@@ -12,10 +12,14 @@ class PassqlProMark extends StatelessWidget {
     super.key,
     this.size = PassqlIconSize.sm,
     this.withLabel = false,
+    this.isDecorative = false,
   });
 
   final double size;
   final bool withLabel;
+
+  /// 옆에 이미 `PRO` 글자가 있어 스크린리더가 읽을 필요 없을 때
+  final bool isDecorative;
 
   /// 마크 에셋 (assets/pro_mark.png)
   static const String _assetPath = 'assets/pro_mark.png';
@@ -26,8 +30,8 @@ class PassqlProMark extends StatelessWidget {
       _assetPath,
       width: size,
       height: size,
-      // 글자가 옆에 있으면 글자가 읽어 주므로 마크는 읽지 않음
-      excludeFromSemantics: withLabel,
+      // 글자가 옆에 있으면 글자가 읽어 줌
+      excludeFromSemantics: withLabel || isDecorative,
       semanticLabel: 'PRO',
     );
     if (!withLabel) return mark;

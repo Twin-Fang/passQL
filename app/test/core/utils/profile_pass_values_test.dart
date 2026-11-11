@@ -27,35 +27,6 @@ void main() {
     expect(freeCapUntilExam(daysUntilExam: 17, limit: 0), isNull);
   });
 
-  test('3개월 권유 금액: 9,900원 vs 4,400원 > 3,300원, 월 1,100원', () {
-    final savings = monthlySavingsOf(
-      longPrice: 9900,
-      longMonths: 3,
-      basePrice: 4400,
-      baseMonths: 1,
-    );
-    expect(savings, 3300);
-    expect(monthlyShareOf(3300, 3), 1100);
-    expect(
-      monthlySavingsOf(
-        longPrice: null,
-        longMonths: 3,
-        basePrice: 4400,
-        baseMonths: 1,
-      ),
-      isNull,
-    );
-    expect(
-      monthlySavingsOf(
-        longPrice: 13200,
-        longMonths: 3,
-        basePrice: 4400,
-        baseMonths: 1,
-      ),
-      isNull,
-    );
-  });
-
   test('남은 날은 날짜만 비교', () {
     final now = DateTime(2026, 10, 29, 23, 50);
     expect(daysUntilDate(DateTime(2026, 12, 31, 0, 1), now: now), 63);

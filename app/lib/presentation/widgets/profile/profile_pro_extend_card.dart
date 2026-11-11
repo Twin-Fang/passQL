@@ -41,7 +41,10 @@ class ProfileProExtendCard extends ConsumerWidget {
               ),
             ),
             if (discount != null)
-              ProDiscountBadge(discountPercent: discount.discountPercent),
+              ProDiscountBadge(
+                discountPercent: discount.discountPercent,
+                isShortLabel: false,
+              ),
           ],
         ),
         const SizedBox(height: PassqlSpacing.xxs),

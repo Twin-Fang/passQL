@@ -4,7 +4,7 @@ import '../../../core/utils/exam_dday.dart';
 import '../../design/design.dart';
 import 'pro_benefits.dart';
 
-/// 프로 안내 시트 머리: 문장 제목 > 기간 줄(무료 최대치) > 강조 혜택
+/// 프로 안내 시트 머리: PRO 마크 > 문장 제목 > 무료 최대치 줄 > 강조 혜택
 /// 이용 중이면 제목만 연장 문장 (N일 남은 이용권, 이어서 연장해요)
 class ProOfferHeadline extends StatelessWidget {
   const ProOfferHeadline({
