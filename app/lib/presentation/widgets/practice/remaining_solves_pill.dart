@@ -22,10 +22,14 @@ class _RemainingSolvesPillState extends ConsumerState<RemainingSolvesPill>
     vsync: this,
     duration: PassqlMotion.emphasized,
   );
-  late final Animation<double> _scale = TweenSequence<double>([
-    TweenSequenceItem(tween: Tween(begin: 1.0, end: _peakScale), weight: 1),
-    TweenSequenceItem(tween: Tween(begin: _peakScale, end: 1.0), weight: 1),
-  ]).chain(CurveTween(curve: PassqlMotion.springCurve)).animate(_controller);
+  late final Animation<double> _scale =
+      TweenSequence<double>([
+        TweenSequenceItem(tween: Tween(begin: 1.0, end: _peakScale), weight: 1),
+        TweenSequenceItem(tween: Tween(begin: _peakScale, end: 1.0), weight: 1),
+      ]).animate(
+        // 곡선은 시퀀스 바깥 입력(0..1)에 적용하면 오버슈트가 assert 에 걸리므로 컨트롤러 쪽에 둠
+        CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+      );
 
   @override
   void dispose() {

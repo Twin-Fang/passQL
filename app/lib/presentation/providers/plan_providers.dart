@@ -175,11 +175,14 @@ extension MemberPlanDailyUsage on MemberPlanResponse {
 
 /// 오늘 받은 보너스 작은 칩 문구 (오늘의 세트 완료·정답, 광고는 받은 문제 합)
 extension DailyFreeBonusChipLabels on DailyFreeBonus {
-  List<String> get chipLabels => [
-    if (isDailySetCompletionEarned) '세트 완료 +$bonusQuestionCount',
-    if (isDailySetAccuracyEarned) '정답 +$bonusQuestionCount',
-    if (adBonusUsedCount > 0) '광고 +${adBonusUsedCount * bonusQuestionCount}',
-  ];
+  List<String> get chipLabels => bonusQuestionCount <= 0
+      ? const []
+      : [
+          if (isDailySetCompletionEarned) '세트 완료 +$bonusQuestionCount',
+          if (isDailySetAccuracyEarned) '정답 +$bonusQuestionCount',
+          if (adBonusUsedCount > 0)
+            '광고 +${adBonusUsedCount * bonusQuestionCount}',
+        ];
 }
 
 /// 오늘 남은 무료 랜덤 문제 수: 결제 UI 대상 무료 회원이면 값, 프로·결제 꺼짐·등급 모름이면 null
