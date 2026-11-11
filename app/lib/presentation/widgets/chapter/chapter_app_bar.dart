@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
+import '../practice/remaining_solves_pill.dart';
 
 /// 챕터 플로우 상단 바.
 ///
@@ -20,6 +21,9 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// 토픽 뱃지 왼쪽 보조 버튼 (해설함 등)
   final Widget? accessory;
 
+  /// 랜덤 풀이면 남은 문제 수 알약을 보조 버튼 옆에 붙임 (무료·결제 켜짐일 때만 그려짐)
+  final bool shouldShowRemainingSolves;
+
   const ChapterAppBar({
     super.key,
     required this.topicName,
@@ -28,6 +32,7 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.isAnswered,
     this.shouldConfirmExit = false,
     this.accessory,
+    this.shouldShowRemainingSolves = false,
   });
 
   double get _progress {
@@ -53,12 +58,13 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
             if (context.mounted) leaveSolvingFlow(context);
           },
           // 토픽 이름은 보조 정보라 오른쪽 작은 뱃지로 둔다.
-          trailing: accessory == null
+          trailing: accessory == null && !shouldShowRemainingSolves
               ? PassqlBadge(text: topicName)
               : Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    accessory!,
+                    ?accessory,
+                    if (shouldShowRemainingSolves) const RemainingSolvesPill(),
                     Flexible(child: PassqlBadge(text: topicName)),
                   ],
                 ),

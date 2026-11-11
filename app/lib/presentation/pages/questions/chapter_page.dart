@@ -19,6 +19,7 @@ import '../../widgets/chapter/chapter_app_bar.dart';
 import '../../../data/models/question/question_detail.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/chapter/chapter_feedback_bar.dart';
+import '../../flows/random_practice_flow.dart';
 import '../../widgets/pro/pro_access_feedback.dart';
 import '../../widgets/question/choice_display_label.dart';
 import '../../../router/app_routes.dart';
@@ -384,6 +385,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
         isAnswered: chapter.isAnswered,
         shouldConfirmExit: hasStarted,
         accessory: const AiExplanationHistoryButton(),
+        shouldShowRemainingSolves: widget.flow is RandomPracticeFlow,
       ),
       // 문제 교체: 옆으로 미끄러지며 바뀜 (문제마다 key), 같은 문제 안 로딩 > 내용은 페이드
       // 해설 시트는 본문 위에 떠서 하단 바를 가리지 않음 (다음 문제로 넘어가면 닫히고 해설함에서 다시 열 수 있음)

@@ -1,76 +1,66 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../flows/random_practice_flow.dart';
 import '../../providers/plan_providers.dart';
-import '../pro/pro_access_feedback.dart';
-import '../pro/pro_offer_sheet.dart';
+import '../practice/open_random_practice.dart';
 
-/// 홈 오늘의 세트 구간 안 랜덤 풀기 행: 탭 > 랜덤 풀기 풀이, 무료(결제 켜짐)면 오른쪽에 오늘 랜덤 n / 10
-/// 무료 한도 소진: 부제 > 다시 열리는 때, 화살표 없음, 탭 > 프로 안내 시트 (§4-4 11번째 문제)
+// 한도 소진 부제 (광고·오늘의 세트로 더 열 수 있음)
+const String _limitReachedSubtitle = '광고나 오늘의 세트로 더 열 수 있어요';
+
+/// 홈 오늘의 세트 구간 안 랜덤 풀기 행: 탭 > 랜덤 풀기 풀이, 무료(결제 켜짐)면 오른쪽에 오늘 남은 N문제
+/// 오늘 받은 보너스는 작은 칩, 한도 소진: 부제 > 더 여는 방법, 화살표 없음, 탭 > 안내 시트 (openRandomPractice)
 class RandomPracticeRow extends ConsumerWidget {
   const RandomPracticeRow({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.passqlColors;
-    final knownPlan = ref.watch(knownPlanProvider);
-    final hasDailyUsage =
-        ref.watch(shouldShowProUiProvider) &&
-        knownPlan != null &&
-        knownPlan.dailyFreeLimit > 0;
-    final isDailyLimitReached =
-        hasDailyUsage && knownPlan.isDailyFreeLimitReached;
+    final remainingCount = ref.watch(freeRemainingSolvesProvider);
+    final bonusChipLabels =
+        ref.watch(knownPlanProvider)?.dailyBonus.chipLabels ?? const <String>[];
+    final isDailyLimitReached = remainingCount == 0;
     return PassqlListRow(
       title: RandomPracticeFlow.displayName,
       subtitle: isDailyLimitReached
-          ? freeDailyLimitResetNotice
+          ? _limitReachedSubtitle
           : RandomPracticeFlow.summary,
       leading: PassqlIconTile(
         icon: CupertinoIcons.shuffle,
         color: colors.accent,
       ),
-      trailing: hasDailyUsage
-          ? Text(
-              '오늘 랜덤 ${knownPlan.todayRandomSolvedCount} / '
-              '${knownPlan.effectiveTodayFreeLimit}',
-              style: PassqlTypography.footnoteSemibold.copyWith(
-                color: colors.secondaryLabel,
-              ),
-            )
-          : null,
+      trailing: remainingCount == null
+          ? null
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '오늘 남은 $remainingCount문제',
+                  style: PassqlTypography.footnoteSemibold.copyWith(
+                    color: colors.secondaryLabel,
+                  ),
+                ),
+                if (bonusChipLabels.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: PassqlSpacing.xxs),
+                    child: Wrap(
+                      spacing: PassqlSpacing.xxs,
+                      children: [
+                        for (final label in bonusChipLabels)
+                          PassqlBadge(
+                            text: label,
+                            kind: PassqlBadgeKind.success,
+                          ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
       hasChevron: !isDailyLimitReached,
       hasHorizontalPadding: false,
-      onTap: () => isDailyLimitReached
-          ? _openAfterUsageSync(context, ref)
-          : context.push(AppRoutes.randomPractice),
+      onTap: () => openRandomPractice(context, ref),
     );
-  }
-
-  /// 한도 소진으로 보일 때 탭: 등급 다시 받기(날짜 변경·구매 반영) > 여전히 한도면 시트, 아니면 풀이 진입
-  /// 시트에서 광고 보너스·구매로 한도가 풀렸으면 이어서 풀이 진입 (#808)
-  Future<void> _openAfterUsageSync(BuildContext context, WidgetRef ref) async {
-    await ref.read(planProvider.notifier).refresh();
-    if (!context.mounted) return;
-    final latestPlan = ref.read(knownPlanProvider);
-    final isStillLimited =
-        ref.read(shouldShowProUiProvider) &&
-        latestPlan?.isDailyFreeLimitReached == true;
-    if (isStillLimited) {
-      final sheetOutcome = await showProOfferSheet(
-        context,
-        ref,
-        reason: freeDailyLimitSheetReason,
-        isDailyLimitEntry: true,
-      );
-      if (!context.mounted ||
-          sheetOutcome == ProOfferSheetOutcome.dismissed) {
-        return;
-      }
-    }
-    context.push(AppRoutes.randomPractice);
   }
 }
