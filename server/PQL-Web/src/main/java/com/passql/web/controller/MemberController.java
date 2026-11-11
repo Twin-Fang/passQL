@@ -67,7 +67,7 @@ public class MemberController implements MemberControllerDocs {
         return memberPurchaseHistoryService.getPurchaseHistory(loginMember.memberUuid());
     }
 
-    // 보상형 광고 시청 뒤 무료 한도 +5 (하루 2회, #808), 본문 없는 출시 앱 요청 허용 (#860)
+    // 보상형 광고 시청 뒤 무료 한도 +5 (횟수 제한 없음, #808 #963), 본문 없는 출시 앱 요청 허용 (#860)
     @PostMapping("/me/plan/ad-bonus")
     public MemberPlanResponse grantAdBonus(
         @AuthMember LoginMember loginMember,

@@ -12,6 +12,7 @@ public interface AdRewardCallbackControllerDocs {
 
     @ApiLogs({
         @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 860, description = "AdMob 보상형 광고 서버 검증(SSV) 콜백 추가: 서명 확인 후 광고 보너스 기록"),
+        @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 963, description = "광고 보너스 횟수 제한 없앰, 하루 200 공정 사용 상한에 도달하면 기록 없이 200"),
     })
     @Operation(
         summary = "AdMob 보상형 광고 서버 검증 콜백",
@@ -27,7 +28,7 @@ public interface AdRewardCallbackControllerDocs {
             ## 처리
             - 서명 확인 > 허용 광고 단위(`ads.reward.ssv_ad_unit_ids`, 비면 확인 안 함) > 회원·거래 ID > 광고 보너스 1회 기록
             - 같은 `transaction_id`·같은 회원 `custom_data` 는 다시 기록하지 않음
-            - 결제 꺼짐·프로 회원, 오늘 2회 소진, 회원 없음은 기록 없이 200
+            - 결제 꺼짐·프로 회원, 오늘 랜덤 풀이가 하루 200 공정 사용 상한에 도달, 회원 없음은 기록 없이 200
 
             ## 에러코드
             - **`ACCESS_DENIED`** (403): 서명 불일치·형식 오류
