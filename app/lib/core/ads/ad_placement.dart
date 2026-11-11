@@ -17,7 +17,7 @@ enum AdPlacement {
   interstitialResult('INTERSTITIAL_RESULT'),
   // 백그라운드에서 탭 화면으로 돌아올 때 앱 오프닝 광고 (첫 실행 제외, #787)
   appOpenResume('APP_OPEN'),
-  // 무료 하루 한도 시트에서 사용자가 눌러 보는 보상형 광고 (+5문제, 하루 2회, #808)
+  // 한도 화면에서 사용자가 눌러 보는 보상형 광고 (+5문제, 횟수 제한 없음, #808 #963)
   rewardedDailyBonus('REWARDED_DAILY_BONUS'),
   // 결과 화면 보상형 전면 광고 (안내 5초 뒤 시작, 끝까지 보면 +5문제): 챕터 결과 진입·오늘의 세트 결과 떠날 때 (#963)
   rewardedInterstitialResult('REWARDED_INTERSTITIAL_RESULT');

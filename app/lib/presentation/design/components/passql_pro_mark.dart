@@ -5,18 +5,18 @@ import '../tokens/passql_icon_size.dart';
 import '../tokens/passql_spacing.dart';
 import '../tokens/passql_typography.dart';
 
-/// PRO 마크: 보라 둥근 사각 + 흰 반짝임 아이콘 (투명 배경, [withLabel]이면 오른쪽에 `PRO` 글자)
+/// PRO 마크: 보라 둥근 사각 + 흰 반짝임 아이콘 (투명 배경, [shouldShowLabel]이면 오른쪽에 `PRO` 글자)
 /// 마크 에셋은 이 부품만 부름
 class PassqlProMark extends StatelessWidget {
   const PassqlProMark({
     super.key,
     this.size = PassqlIconSize.sm,
-    this.withLabel = false,
+    this.shouldShowLabel = false,
     this.isDecorative = false,
   });
 
   final double size;
-  final bool withLabel;
+  final bool shouldShowLabel;
 
   /// 옆에 이미 `PRO` 글자가 있어 스크린리더가 읽을 필요 없을 때
   final bool isDecorative;
@@ -31,10 +31,10 @@ class PassqlProMark extends StatelessWidget {
       width: size,
       height: size,
       // 글자가 옆에 있으면 글자가 읽어 줌
-      excludeFromSemantics: withLabel || isDecorative,
+      excludeFromSemantics: shouldShowLabel || isDecorative,
       semanticLabel: 'PRO',
     );
-    if (!withLabel) return mark;
+    if (!shouldShowLabel) return mark;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

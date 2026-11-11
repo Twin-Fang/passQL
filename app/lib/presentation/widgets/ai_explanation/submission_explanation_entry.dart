@@ -40,11 +40,11 @@ AiExplanationEntry? watchSubmissionExplanationEntry(
   String questionUuid,
   ChapterState chapter,
 ) {
-  final result = chapter.lastSubmitResult;
-  if (!chapter.isAnswered || result == null) return null;
+  final submissionResult = chapter.lastSubmitResult;
+  if (!chapter.isAnswered || submissionResult == null) return null;
   final request = ChoiceExplanationRequest.fromSubmission(
     questionUuid: questionUuid,
-    result: result,
+    result: submissionResult,
     selectedChoiceKey: chapter.lastSelectedKey,
   );
   if (request == null) return null;
