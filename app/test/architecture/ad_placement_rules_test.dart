@@ -29,15 +29,15 @@ const List<String> _adModulePaths = [
 const Map<String, String> _allowedAdModuleUsers = {
   'lib/main.dart': '앱 시작 첫 프레임 뒤 iOS 추적 허용 질문 1회 (광고를 그리지 않음)',
   'lib/presentation/widgets/app_shell.dart':
-      '메인 탭 4개 공통 하단 탭 바 아래 한 줄 띠 + 결과 화면 전면 광고 미리 불러오기 + 탭 화면 복귀 앱 오프닝 광고',
+      '메인 탭 4개 공통 하단 탭 바 아래 한 줄 띠 + 탭 화면 복귀 앱 오프닝 광고',
   'lib/presentation/pages/home/home_page.dart': '학습 현황 아래 인라인 배너 구간 1개',
   'lib/presentation/pages/profile/profile_page.dart': '통계 콘텐츠 맨 아래 인라인 배너 카드 1개',
   'lib/presentation/pages/questions/topic_list_page.dart':
       '토픽 목록 사이 네이티브 1칸 + 최신 경향(유형 <-> 공부 팁)·개념 TOP 10(5위 <-> 6위) 네이티브 각 1칸',
   'lib/presentation/pages/daily_set/daily_set_result_page.dart':
-      '오늘의 세트를 막 끝낸 결과 화면 진입 전면 광고',
+      '오늘의 세트를 막 끝낸 결과 화면을 떠날 때 보상형 전면 광고 안내 1회 (진입 때 세트 보상 연출과 겹치지 않게, #963)',
   'lib/presentation/pages/questions/chapter_result_page.dart':
-      '챕터를 끝까지 푼 결과 화면 진입 전면 광고',
+      '챕터를 끝까지 푼 결과 화면 진입 보상형 전면 광고 안내 1회 (#963)',
   'lib/presentation/widgets/dev_tools/dev_plan_tools_tab.dart':
       '개발자 도구 등급·결제 탭의 광고 구역 (디버그·개발용 빌드에서만 보임, 테스트 광고, #809·#819)',
   'lib/presentation/widgets/dev_tools/dev_diagnostics_tab.dart':

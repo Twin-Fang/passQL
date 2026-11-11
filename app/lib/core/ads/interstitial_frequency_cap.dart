@@ -1,3 +1,5 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../storage/device_preferences.dart';
 import '../storage/storage_keys.dart';
 
@@ -87,7 +89,8 @@ class SharedPreferencesInterstitialShowHistoryStore
   }
 }
 
-/// 전면 광고 빈도 제한 3개: 설치 후 첫 결과 1회는 광고 없음, 노출 간격 3분 이상, 하루 최대 5회 (기기 현지 날짜 기준, #787)
+/// 결과 화면 전면 광고 빈도 제한 3개: 설치 후 첫 결과 1회는 광고 없음, 노출 간격 3분 이상, 하루 최대 5회 (기기 현지 날짜 기준, #787)
+/// 보상형 전면(#963)은 안내 대화상자를 띄운 때를 노출로 셈 (건너뛰어도 1회)
 class InterstitialFrequencyCap {
   InterstitialFrequencyCap(this._store);
 
@@ -154,3 +157,9 @@ class InterstitialFrequencyCap {
   static int _shownCountOn(InterstitialShowHistory history, DateTime now) =>
       history.shownDayKey == dayKeyOf(now) ? history.shownCountOfDay : 0;
 }
+
+/// 앱 전체에서 하나 (챕터 결과·오늘의 세트 결과가 같은 기록을 공유)
+final interstitialFrequencyCapProvider = Provider<InterstitialFrequencyCap>(
+  (ref) =>
+      InterstitialFrequencyCap(SharedPreferencesInterstitialShowHistoryStore()),
+);

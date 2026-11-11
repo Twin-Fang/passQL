@@ -12,7 +12,7 @@ import '../../../router/result_route_arguments.dart';
 import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
 import '../../providers/daily_set_providers.dart';
-import '../../widgets/ads/interstitial_ad_on_enter.dart';
+import '../../widgets/ads/rewarded_interstitial_offer.dart';
 import '../../widgets/daily_set/daily_set_bonus_card.dart';
 import '../../widgets/notification/study_result_seen_recorder.dart';
 import '../../widgets/review/store_review_prompt_on_result.dart';
@@ -33,21 +33,23 @@ class DailySetResultPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final outcome = this.outcome;
     if (outcome != null) {
-      // 풀이를 막 끝낸 진입에만 전면 광고·스토어 평가 요청 시도 (홈 '이미 완료' 카드 진입은 제외)
+      // 풀이를 막 끝낸 진입에만 스토어 평가 요청(진입)·보상형 전면 광고 제안(떠날 때) (홈 '이미 완료' 카드 진입은 제외)
+      // 광고 제안은 진입 때 뜨는 세트 보상 연출·평가 요청과 겹치지 않게 닫기·뒤로가기 때 (#963)
       // 결과를 본 기록 > 탭 화면 복귀 때 알림 권한 사전 안내 시점
       // 좋은 결과: 순위 반영 성공 + 정답률 60% 이상
       final total = outcome.results.length;
       return StudyResultSeenRecorder(
-        child: InterstitialAdOnEnter(
-          child: StoreReviewPromptOnResult(
-            trigger: StoreReviewTrigger.dailySet,
-            isGoodResult:
-                outcome.saveError == null &&
-                StoreReviewPromptRule.isGoodDailySetScore(
-                  correctCount: outcome.correctCount,
-                  questionCount: total,
-                ),
-            child: _ResultBody(
+        child: StoreReviewPromptOnResult(
+          trigger: StoreReviewTrigger.dailySet,
+          isGoodResult:
+              outcome.saveError == null &&
+              StoreReviewPromptRule.isGoodDailySetScore(
+                correctCount: outcome.correctCount,
+                questionCount: total,
+              ),
+          child: RewardedInterstitialOnLeave(
+            onLeave: leaveSolvingFlow,
+            builder: (_, leaveWithAdOffer) => _ResultBody(
               correctCount: outcome.correctCount,
               total: total,
               results: outcome.results
@@ -56,6 +58,7 @@ class DailySetResultPage extends ConsumerWidget {
               saveError: outcome.saveError,
               completedRank: outcome.completed?.rank,
               isJustCompleted: true,
+              onClose: leaveWithAdOffer,
             ),
           ),
         ),
@@ -138,6 +141,7 @@ class _ResultBody extends ConsumerWidget {
     this.saveError,
     this.completedRank,
     this.isJustCompleted = false,
+    this.onClose,
   });
 
   final int correctCount;
@@ -154,6 +158,9 @@ class _ResultBody extends ConsumerWidget {
 
   /// 풀이를 막 끝낸 진입 (기록에서 다시 열면 false > 보상 연출 생략)
   final bool isJustCompleted;
+
+  /// 닫기 동작 (생략하면 바로 풀이 흐름 나가기, 방금 완료 진입은 광고 제안 뒤 나가기)
+  final VoidCallback? onClose;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -234,7 +241,10 @@ class _ResultBody extends ConsumerWidget {
           variant: PassqlButtonVariant.tinted,
           onPressed: () => context.push(AppRoutes.leaderboard),
         ),
-        PassqlButton(label: '닫기', onPressed: () => leaveSolvingFlow(context)),
+        PassqlButton(
+          label: '닫기',
+          onPressed: onClose ?? () => leaveSolvingFlow(context),
+        ),
       ],
     );
   }

@@ -19,7 +19,8 @@ abstract final class StorageKeys {
   // 탭 화면에 처음 들어온 시각 (epoch 밀리초, 두 번째 실행 판단)
   static const String pushPermissionPromptFirstShellVisitAt =
       'push_permission_prompt_first_shell_visit_at';
-  // 마지막 전면 광고 노출 시각 (epoch 밀리초)
+  // 결과 화면 전면 광고 기록 4개 (일반 전면 > 보상형 전면 안내로 바뀌어도 같은 키 이어 씀, #963)
+  // 마지막 전면 광고 노출 시각 (보상형 전면은 안내를 띄운 시각, epoch 밀리초)
   static const String interstitialLastShownAt =
       'ads_interstitial_last_shown_at_ms';
   // 전면 광고 노출 횟수를 센 날짜 (yyyy-MM-dd)
