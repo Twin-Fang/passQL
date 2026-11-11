@@ -43,6 +43,8 @@ class _DailySetBonusCardState extends ConsumerState<DailySetBonusCard> {
   Future<void> _refreshThenCelebrate() async {
     await ref.read(planProvider.notifier).refresh();
     if (!mounted || !widget.shouldCelebrate) return;
+    // 기다리는 사이 다른 창(광고 안내·잠금 창 등)이 떴거나 화면을 떠났으면 연출 생략 (창 위에 쌓지 않음, #963)
+    if (ModalRoute.of(context)?.isCurrent != true) return;
     final knownPlan = ref.read(knownPlanProvider);
     final dailyBonus = knownPlan?.dailyBonus;
     if (!ref.read(shouldShowProUiProvider) || dailyBonus == null) return;

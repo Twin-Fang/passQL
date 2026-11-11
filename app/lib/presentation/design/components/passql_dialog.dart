@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 
 import '../tokens/passql_spacing.dart';
@@ -65,11 +67,45 @@ Future<void> showPassqlBlockingProgress(BuildContext context) {
   return showCupertinoDialog<void>(
     context: context,
     barrierDismissible: false,
-    builder: (_) => const PopScope(
-      canPop: false,
-      child: Center(
-        child: PassqlLoadingIndicator(size: PassqlLoadingSize.blocking),
-      ),
+    builder: (_) => const _BlockingProgressBody(),
+  );
+}
+
+/// 진행 중 화면 잠금 창 + 이 창만 닫는 함수 (기다리는 사이 다른 창이 위에 쌓여도 그 창은 닫지 않음, #963)
+VoidCallback showPassqlBlockingProgressWithCloser(BuildContext context) {
+  final navigator = Navigator.of(context, rootNavigator: true);
+  final blockingRoute = CupertinoDialogRoute<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => const _BlockingProgressBody(),
+  );
+  unawaited(navigator.push(blockingRoute));
+  return () => closePassqlDialogRoute(navigator, blockingRoute);
+}
+
+/// 창 경로 하나만 닫기: 맨 위면 pop, 위에 다른 창이 쌓였으면 그 경로만 제거 (위 창은 그대로, 이미 닫혔으면 무시)
+void closePassqlDialogRoute<T>(
+  NavigatorState navigator,
+  Route<T> route, [
+  T? result,
+]) {
+  if (!route.isActive) return;
+  if (route.isCurrent) {
+    navigator.pop(result);
+  } else {
+    navigator.removeRoute(route, result);
+  }
+}
+
+/// 잠금 창 본문: 가운데 로딩 표시, 뒤로가기 막음
+class _BlockingProgressBody extends StatelessWidget {
+  const _BlockingProgressBody();
+
+  @override
+  Widget build(BuildContext context) => const PopScope(
+    canPop: false,
+    child: Center(
+      child: PassqlLoadingIndicator(size: PassqlLoadingSize.blocking),
     ),
   );
 }

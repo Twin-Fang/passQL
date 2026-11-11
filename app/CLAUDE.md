@@ -130,6 +130,7 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 - `.env` 키: `PASSQL_ADMOB_{ANDROID|IOS}_APP_ID`, `PASSQL_ADMOB_{ANDROID|IOS}_{NATIVE_STRIP|BANNER_HOME|BANNER_STATS|NATIVE_QUESTIONS|APP_OPEN|REWARDED_DAILY_BONUS|REWARDED_INTERSTITIAL_RESULT}` (뒷부분은 `AdPlacement.envSuffix`).
   앱 ID 는 빌드 타임 값: Android 는 `build.gradle.kts` 가 직접 읽고, iOS 는 `pod install` 때 `tool/gen_ios_admob_config.sh` 가 `ios/Flutter/AdMob.xcconfig`(커밋 제외)로 만든다. 비면 Google 테스트 앱 ID.
 - iOS 추적 허용(ATT)은 앱 시작 첫 프레임 뒤 1회. 거부면 비개인화 요청.
+- 보상형 형식(보상형·보상형 전면) 광고 단위를 새로 만들면 AdMob 에서 서버 측 확인(SSV)을 켜고 서버 `ads.reward.ssv_ad_unit_ids` 에 단위 ID 를 추가한다. 빠지면 보너스 확인이 끝내 검증 대기로 실패한다 (#860·#963).
 
 ## 코드 생성
 

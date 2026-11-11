@@ -65,13 +65,19 @@ class _RewardedInterstitialIntroPanelState
     setState(() => _remainingSeconds--);
   }
 
-  /// 타이머 멈춘 뒤 1회만 닫기 (건너뛰기·카운트다운 끝 공통)
+  /// 타이머 멈춘 뒤 1회만 자기 창 닫기 (건너뛰기·카운트다운 끝 공통)
+  /// 위에 다른 창(세트 보상 연출 등)이 쌓였으면 그 창은 두고 이 창만 제거 + 광고 시작 안 함
   void _closeWith({required bool shouldStartAd}) {
     final countdownTimer = _countdownTimer;
-    if (countdownTimer == null) return;
+    final introRoute = ModalRoute.of<bool>(context);
+    if (countdownTimer == null || introRoute == null) return;
     countdownTimer.cancel();
     _countdownTimer = null;
-    Navigator.of(context).pop(shouldStartAd);
+    closePassqlDialogRoute<bool>(
+      Navigator.of(context),
+      introRoute,
+      shouldStartAd && introRoute.isCurrent,
+    );
   }
 
   @override
