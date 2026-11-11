@@ -38,8 +38,8 @@ public class FeatureAccessPolicy {
     // 무료 하루 랜덤 문제 기본 한도 (개, 보너스 제외)
     public static final int DAILY_FREE_LIMIT = 10;
 
-    // 프로 하루 공정 사용 한도 (개, 화면에 드러내지 않음)
-    public static final int DAILY_PRO_FAIR_USE_LIMIT = 200;
+    // 하루 공정 사용 한도 (개, 무료·프로 공통, 화면에 드러내지 않음)
+    public static final int DAILY_FAIR_USE_LIMIT = 200;
 
     // 등급 응답 문자열
     private static final String PLAN_PRO = "PRO";
@@ -172,7 +172,7 @@ public class FeatureAccessPolicy {
     }
 
     /**
-     * 하루 문제 수 판정 (열기·제출 공통): 스위치 > 오늘의 문제 > 예전에 푼 문제(모의고사 제외) > 오늘 제출한 수(무료 10 + 보너스, 프로 200)
+     * 하루 문제 수 판정 (열기·제출 공통): 스위치 > 오늘의 문제 > 예전에 푼 문제(모의고사 제외) > 오늘 제출한 수(공정 사용 200 공통, 무료는 10 + 보너스)
      * 회원 기준 결제 꺼짐, 오늘의 문제, 제출 이력 있는 문제는 항상 통과
      */
     private void assertWithinDailyQuestionLimit(UUID memberUuid, UUID questionUuid, String actionForLog) {
@@ -190,12 +190,13 @@ public class FeatureAccessPolicy {
 
         // 오늘 제출한 문제 수 <-> 등급별 한도
         int todayRandomSolvedCount = dailyQuestionCounter.countTodayRandomSolved(memberUuid);
+        // 공정 사용 상한 (무료·프로 공통)
+        if (todayRandomSolvedCount >= DAILY_FAIR_USE_LIMIT) {
+            log.info("[pro access] rejected 429 : fair use daily limit, action={}, member={}, count={}",
+                actionForLog, memberUuid, todayRandomSolvedCount);
+            throw new CustomException(ErrorCode.FAIR_USE_DAILY_LIMIT_REACHED);
+        }
         if (isPro(memberUuid)) {
-            if (todayRandomSolvedCount >= DAILY_PRO_FAIR_USE_LIMIT) {
-                log.info("[pro access] rejected 429 : fair use daily limit, action={}, member={}, count={}",
-                    actionForLog, memberUuid, todayRandomSolvedCount);
-                throw new CustomException(ErrorCode.FAIR_USE_DAILY_LIMIT_REACHED);
-            }
             return;
         }
         int todayFreeLimit = DAILY_FREE_LIMIT + dailyFreeBonusReader.readToday(memberUuid).totalBonusQuestionCount();

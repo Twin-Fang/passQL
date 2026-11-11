@@ -1,11 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
+import '../practice/remaining_solves_pill.dart';
 
 /// 챕터 플로우 상단 바.
 ///
 /// [닫기] | N / total | [topicName 뱃지]
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 진행 막대
+/// 연속 흐름([isContinuous])은 `N번째 문제`, 진행 막대 없음 (#963)
 class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String topicName;
   final int currentIndex;
@@ -20,6 +22,15 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// 토픽 뱃지 왼쪽 보조 버튼 (해설함 등)
   final Widget? accessory;
 
+  /// 랜덤 풀이면 남은 문제 수 알약을 보조 버튼 옆에 붙임 (무료·결제 켜짐일 때만 그려짐)
+  final bool shouldShowRemainingSolves;
+
+  /// 끝없이 이어 푸는 흐름: 제목 `N번째 문제`, 진행 막대 숨김
+  final bool isContinuous;
+
+  /// 닫기 동작 대체 (있으면 확인 창 없이 이것만 호출, 연속 흐름의 요약 이동)
+  final VoidCallback? onExit;
+
   const ChapterAppBar({
     super.key,
     required this.topicName,
@@ -28,6 +39,9 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.isAnswered,
     this.shouldConfirmExit = false,
     this.accessory,
+    this.shouldShowRemainingSolves = false,
+    this.isContinuous = false,
+    this.onExit,
   });
 
   double get _progress {
@@ -35,10 +49,11 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
     return isAnswered ? (currentIndex + 1) / total : currentIndex / total;
   }
 
-  // 내비게이션 바 + 진행 막대 높이
+  // 내비게이션 바 + 진행 막대 높이 (연속 흐름은 막대 없음)
   @override
-  Size get preferredSize =>
-      const Size.fromHeight(PassqlSize.navBar + PassqlSize.progressBarHeight);
+  Size get preferredSize => Size.fromHeight(
+    PassqlSize.navBar + (isContinuous ? 0 : PassqlSize.progressBarHeight),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -46,24 +61,29 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         PassqlNavBar(
-          title: '${currentIndex + 1} / $total',
+          title: isContinuous
+              ? '${currentIndex + 1}번째 문제'
+              : '${currentIndex + 1} / $total',
           leading: PassqlNavLeading.close,
           onLeadingTap: () async {
+            final onExit = this.onExit;
+            if (onExit != null) return onExit();
             if (shouldConfirmExit && !await confirmChapterExit(context)) return;
             if (context.mounted) leaveSolvingFlow(context);
           },
           // 토픽 이름은 보조 정보라 오른쪽 작은 뱃지로 둔다.
-          trailing: accessory == null
+          trailing: accessory == null && !shouldShowRemainingSolves
               ? PassqlBadge(text: topicName)
               : Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    accessory!,
+                    ?accessory,
+                    if (shouldShowRemainingSolves) const RemainingSolvesPill(),
                     Flexible(child: PassqlBadge(text: topicName)),
                   ],
                 ),
         ),
-        PassqlProgressBar(value: _progress),
+        if (!isContinuous) PassqlProgressBar(value: _progress),
       ],
     );
   }

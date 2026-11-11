@@ -185,3 +185,7 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-07 18:40 | W2 | cluster update (새 항목, 활성 결정, 요약 문장) | cluster-admin, cluster-auth-member, cluster-ci-deploy, cluster-store-release, cluster-billing
 - 2026-11-07 18:42 | W2 | fix W10 (members 실제 수로) | cluster-admin 100, cluster-auth-member 64, cluster-billing 51, cluster-ci-deploy 65, cluster-store-release 65
 - 2026-11-07 19:14 | W6 | create issue+completion-report (#950), cluster add | ISS-0487, cluster-ci-deploy, cluster-ops-infra, cluster-security
+- 2026-11-12 02:49 | W4 | supersede | DEC-0239 -> DEC-0282 (광고 보너스 횟수 제한 없음, 사용자 지시 #963)
+- 2026-11-12 02:49 | W6 | create | DEC-0282, DEC-0283, DEC-0284, DEC-0285
+- 2026-11-12 02:49 | W6 | create | ISS-0488 (resolved), ISS-0488-report
+- 2026-11-12 02:51 | W2 | update | cluster-billing, cluster-ads, cluster-practice, cluster-design-system (DEC-0282~0285, ISS-0488 반영, DEC-0239 역사로)

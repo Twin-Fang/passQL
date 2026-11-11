@@ -29,8 +29,15 @@ abstract class QuestionFlow {
   /// 신규 가입 온보딩에서 들어온 풀이인지 (첫 문제 배지·첫 문제 뒤 축하 화면)
   bool get isOnboarding => false;
 
+  /// 끝없이 이어 푸는 흐름인지 (랜덤 풀기, #963)
+  /// true 면 마지막 문제 뒤 [loadMoreQuestionUuids] 로 이어 받고, 나가기는 확인 없이 [onCompleted]
+  bool get isContinuous => false;
+
   /// 풀 문제의 UUID 목록. 실패하면 사용자에게 보여줄 수 있는 예외를 던진다.
   Future<List<String>> loadQuestionUuids(WidgetRef ref);
+
+  /// 이어 풀 문제 UUID 목록 (지금 목록에 없는 것만). 빈 목록이면 더 풀 문제 없음 > 완료
+  Future<List<String>> loadMoreQuestionUuids(WidgetRef ref) async => const [];
 
   /// 풀이 시작 정보. 기본은 처음부터, 이어 풀기가 있는 흐름만 덮어쓴다 (#566)
   Future<ChapterStart> loadStart(WidgetRef ref) async =>

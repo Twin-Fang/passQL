@@ -6,7 +6,7 @@ package com.passql.application.entitlement;
  * @param isDailySetCompletionEarned 오늘의 세트 완료 보너스 받음
  * @param isDailySetAccuracyEarned   오늘의 세트 정답률 보너스 받음
  * @param adBonusUsedCount           오늘 받은 광고 보너스 횟수
- * @param adBonusMaxCount            하루 광고 보너스 최대 횟수
+ * @param adBonusMaxCount            옛 앱 호환용, 항상 받은 횟수 + 1 (횟수 제한 없음)
  * @param bonusQuestionCount         보너스 1회분 문제 수
  */
 public record DailyFreeBonus(

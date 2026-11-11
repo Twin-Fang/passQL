@@ -48,7 +48,7 @@ class MockExamSubmittedArguments {
   const MockExamSubmittedArguments();
 }
 
-/// 결과 화면 4종 이동 인자(GoRouterState.extra) 해석 공통 지점: 타입이 다르면 null (결과 없음·서버 기록 화면)
+/// 결과 화면 이동 인자(GoRouterState.extra) 해석 공통 지점: 타입이 다르면 null (결과 없음·서버 기록 화면)
 abstract final class ResultRouteArguments {
   /// 문제 결과: QuestionResultArguments 또는 옛 형식 SubmitResult(정답 라벨 없음)
   static QuestionResultArguments? questionResultOf(Object? extra) =>
@@ -62,7 +62,7 @@ abstract final class ResultRouteArguments {
   static DailySetOutcome? dailySetOutcomeOf(Object? extra) =>
       extra is DailySetOutcome ? extra : null;
 
-  /// 챕터 결과 요약
+  /// 챕터 결과 요약 (랜덤 풀기 요약도 같은 인자)
   static ChapterSummary? chapterSummaryOf(Object? extra) =>
       extra is ChapterSummary ? extra : null;
 

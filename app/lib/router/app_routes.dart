@@ -171,8 +171,11 @@ abstract final class AppRoutes {
       '&$topicNameQuery=${Uri.encodeComponent(topicName)}'
       '${isLatestTrendOnly ? '&$latestTrendQuery=$latestTrendQueryValue' : ''}';
 
-  /// 랜덤 풀기 풀이 (전 범위 10문제, 홈·문제 탭에서 진입, #576)
+  /// 랜덤 풀기 풀이 (전 범위 이어 풀기, 홈·문제 탭에서 진입, #576·#963)
   static const String randomPractice = '/random-practice';
+
+  /// 랜덤 풀기 그만두기 요약. 풀이 화면을 대신해 열림. extra: 이번에 푼 결과(ChapterSummary)
+  static const String randomPracticeSummary = '/random-practice/summary';
 
   /// 옛 출제 경향 경로. 문제 탭 '최신 경향' 보기로 리다이렉트 (#523 > #574)
   static const String examTrend = '/exam-trend';

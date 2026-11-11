@@ -1,17 +1,9 @@
-import '../utils/profile_pass_values.dart';
 import 'pass_discount.dart';
 import 'pro_purchase_port.dart';
 
-/// 1개월 > 긴 이용권 권유 재료: 바꿀 이용권, 아끼는 금액(원), 월 환산 금액(원)
-typedef PassUpgradeSuggestion<Option> = ({
-  Option longOption,
-  int savings,
-  int monthlyShare,
-});
-
-/// 이용권 목록 가격 계산: 기준(가장 짧은) 이용권, 할인, 할인 전 값, 긴 이용권 권유
+/// 이용권 목록 가격 계산: 기준(가장 짧은) 이용권, 할인, 할인 전 값, 하루 가격
 /// 이용권 모델은 상품 ID·이용 일수 읽는 함수로만 받음 (core 는 data 모델 import 금지)
-/// 할인율은 통화와 무관(같은 통화끼리), 원 금액(할인 전 값·하루·월 환산·아끼는 금액)은 원화 가격일 때만 (#867)
+/// 할인율은 통화와 무관(같은 통화끼리), 원 금액(할인 전 값·하루 가격)은 원화 가격일 때만 (#867)
 class PassOptionPricing<Option> {
   const PassOptionPricing({
     required this.options,
@@ -57,7 +49,6 @@ class PassOptionPricing<Option> {
   }
 
   /// 가장 짧은 이용권 대비 할인 (가격 없음·통화 다름·할인 없음·기준 칸 자신이면 null)
-  /// 월 환산 금액은 원화일 때만 의미 > 화면은 [monthlyPriceOf] 로 읽음
   PassDiscount? discountOf(Option option) {
     final base = baseOption;
     if (base == null || !_hasSameCurrency(option, base)) return null;
@@ -68,10 +59,6 @@ class PassOptionPricing<Option> {
       basePassMonths: _monthsOf(base),
     );
   }
-
-  /// 월 환산 가격(원, 100원 단위): 할인이 있고 원화일 때만
-  int? monthlyPriceOf(Option option) =>
-      _isKoreanWonPriced(option) ? discountOf(option)?.monthlyPrice : null;
 
   /// 할인 전 값(원, 반올림): 기준 이용권을 같은 기간만큼 샀을 때 (할인이 있고 원화일 때만)
   int? undiscountedPriceOf(Option option) {
@@ -104,32 +91,5 @@ class PassOptionPricing<Option> {
       }
     }
     return bestOption;
-  }
-
-  /// 기준(가장 짧은) 칸을 골랐을 때 가장 긴 이용권 권유 (없음·원화 아님 > null, 아끼는 금액을 원으로 보여 줌)
-  PassUpgradeSuggestion<Option>? upgradeSuggestionFor(Option? selectedOption) {
-    final base = baseOption;
-    if (selectedOption == null || selectedOption != base) return null;
-    final longOption = options.reduce(
-      (longer, candidate) => durationDaysOf(candidate) > durationDaysOf(longer)
-          ? candidate
-          : longer,
-    );
-    if (longOption == base) return null;
-    if (!_isKoreanWonPriced(selectedOption) || !_isKoreanWonPriced(longOption)) {
-      return null;
-    }
-    final savings = monthlySavingsOf(
-      longPrice: _rawPriceOf(longOption),
-      longMonths: _monthsOf(longOption),
-      basePrice: _rawPriceOf(base as Option),
-      baseMonths: _monthsOf(base),
-    );
-    if (savings == null) return null;
-    return (
-      longOption: longOption,
-      savings: savings,
-      monthlyShare: monthlyShareOf(savings, _monthsOf(longOption)),
-    );
   }
 }

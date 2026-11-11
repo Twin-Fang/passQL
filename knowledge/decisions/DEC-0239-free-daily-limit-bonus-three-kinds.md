@@ -4,9 +4,9 @@ id: DEC-0239
 created: 2026-11-04
 reviewed: null
 topics: [billing, ads]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0282
 related: ["[[DEC-0004-free-pro-feature-boundary]]", "[[DEC-0178-daily-set-five-questions]]", "[[DEC-0005-ship-with-billing-switch-off]]", "[[DEC-0238-app-open-ad-and-interstitial-cap-retune]]", "[[ISS-0443-free-daily-limit-bonus]]", "[[ISS-0443-free-daily-limit-bonus-report]]", "[[ISS-0361-billing-switch-final-checks]]"]
 ---
 

@@ -109,21 +109,6 @@ void main() {
     expect(find.byKey(const Key('pro-offer-focused-benefit')), findsNothing);
   });
 
-  testWidgets('1개월을 고르면 3개월 권유 줄이 나온다', (tester) async {
-    // 권유 줄은 단어 단위 줄바꿈(PassqlKeepAllText)이라 원문으로 찾음
-    Finder upsellContaining(String part) => find.byWidgetPredicate(
-      (widget) => widget is PassqlKeepAllText && widget.text.contains(part),
-    );
-    await _openSheet(tester);
-    expect(upsellContaining('3개월로 바꾸면'), findsNothing);
-    // 구매 버튼이 아래에 고정돼 있어 칸을 스크롤로 먼저 보이게 한다
-    await tester.ensureVisible(find.text('1개월'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('1개월'));
-    await tester.pumpAndSettle();
-    expect(upsellContaining('3,300원 아껴요'), findsOneWidget);
-  });
-
   testWidgets('큰 글자, 좁은 폭에서도 혜택 줄이 넘치지 않는다', (tester) async {
     // 앱 글자 크기 상한(1.3배)과 좁은 폰(320pt)
     tester.view.physicalSize = const Size(320, 700);

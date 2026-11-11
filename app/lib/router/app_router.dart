@@ -34,6 +34,7 @@ import '../presentation/pages/notification/notification_inbox_page.dart';
 import '../presentation/pages/questions/topic_list_page.dart';
 import '../presentation/pages/questions/chapter_page.dart';
 import '../presentation/pages/questions/chapter_result_page.dart';
+import '../presentation/pages/questions/random_practice_summary_page.dart';
 import '../presentation/pages/questions/question_detail_page.dart';
 import '../presentation/pages/result/result_page.dart';
 import '../presentation/pages/profile/profile_page.dart';
@@ -440,6 +441,14 @@ abstract final class AppRouter {
         path: AppRoutes.chapterResult,
         parentNavigatorKey: _rootKey,
         builder: (_, state) => ChapterResultPage(
+          summary: ResultRouteArguments.chapterSummaryOf(state.extra),
+        ),
+      ),
+      // 풀스크린: 랜덤 풀기 요약 (랜덤 풀이 화면을 대신해 열림, #963)
+      GoRoute(
+        path: AppRoutes.randomPracticeSummary,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => RandomPracticeSummaryPage(
           summary: ResultRouteArguments.chapterSummaryOf(state.extra),
         ),
       ),

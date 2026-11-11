@@ -60,7 +60,7 @@ class DailyFreeBonus with _$DailyFreeBonus {
     @Default(false) bool isDailySetAccuracyEarned,
     // 오늘 받은 광고 보너스 횟수
     @Default(0) int adBonusUsedCount,
-    // 하루 광고 보너스 최대 횟수
+    // 옛 앱 호환 값 (서버가 받은 횟수 + 1 을 줌, 횟수 제한 없음 #963). 새 앱은 0보다 큰지(광고 보너스 대상)만 봄
     @Default(0) int adBonusMaxCount,
     // 보너스 1회분 문제 수
     @Default(0) int bonusQuestionCount,
@@ -69,12 +69,8 @@ class DailyFreeBonus with _$DailyFreeBonus {
   factory DailyFreeBonus.fromJson(Map<String, dynamic> json) =>
       _$DailyFreeBonusFromJson(json);
 
-  /// 오늘 광고 보너스를 더 받을 수 있는가
-  bool get hasRemainingAdBonus => adBonusUsedCount < adBonusMaxCount;
-
-  /// 오늘 남은 광고 보너스 횟수
-  int get remainingAdBonusCount =>
-      hasRemainingAdBonus ? adBonusMaxCount - adBonusUsedCount : 0;
+  /// 광고 보너스 대상 회원인가 (무료·결제 켜짐이면 서버가 0보다 큰 값을 줌, 횟수 제한 없음)
+  bool get canEarnAdBonus => adBonusMaxCount > 0;
 }
 
 /// 이용권 1종: 스토어 상품 ID, 이용 일수, 지금 사면 될 만료일 (KST)
