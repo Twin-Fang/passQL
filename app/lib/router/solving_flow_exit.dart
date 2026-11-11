@@ -3,13 +3,15 @@ import 'package:go_router/go_router.dart';
 
 import 'app_routes.dart';
 
-// 풀이 흐름을 이루는 루트 라우트 경로 (문제 상세, 결과, 챕터, 챕터 결과, 오늘의 세트, 세트 결과)
+// 풀이 흐름을 이루는 루트 라우트 경로 (문제 상세, 결과, 챕터, 챕터 결과, 랜덤 풀기, 랜덤 요약, 오늘의 세트, 세트 결과)
 // app_router.dart 의 해당 GoRoute.path 와 같은 상수를 쓴다.
 const Set<String> _solvingFlowRoutePaths = {
   AppRoutes.questionDetailPattern,
   AppRoutes.resultSubPath,
   AppRoutes.questionChapter,
   AppRoutes.chapterResult,
+  AppRoutes.randomPractice,
+  AppRoutes.randomPracticeSummary,
   AppRoutes.dailySet,
   AppRoutes.dailySetResult,
 };

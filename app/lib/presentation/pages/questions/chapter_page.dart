@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -34,6 +36,7 @@ import '../../widgets/question/question_solving_skeleton.dart';
 ///
 /// 문제 묶음을 순서대로 풀고 마지막 제출 후 흐름(`QuestionFlow`)이 정한 곳으로 이동한다.
 /// 토픽 챕터, 데일리 세트가 이 화면을 함께 쓴다.
+/// 연속 흐름(랜덤 풀기)은 남은 문제가 적어지면 이어 받고, 나가면 그때까지의 요약으로 간다 (#963).
 class ChapterPage extends ConsumerStatefulWidget {
   final QuestionFlow flow;
 
@@ -57,6 +60,18 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
   /// 마지막 문제 이후 완료 처리(점수 등록 등)가 진행 중인지. 중복 실행과 연타를 막는다.
   bool _isCompleting = false;
 
+  /// 연속 흐름에서 남은 문제가 이 수 이하면 백그라운드로 이어 받기
+  static const int _loadMoreRemainingThreshold = 2;
+
+  /// 진행 중인 이어 받기 (미리 받기·마지막 문제 [다음] 공용, 중복 요청 방지)
+  Future<void>? _pendingMoreQuestionsLoad;
+
+  /// 백그라운드 이어 받기를 요청했던 목록 길이 (같은 길이에서 한 번만, 빈 응답 반복 방지)
+  int? _backgroundLoadRequestedQuestionCount;
+
+  /// 마지막 문제에서 [다음]을 눌러 이어 받기를 기다리는 중 (버튼 로딩·연타 방지)
+  bool _isWaitingMoreQuestions = false;
+
   /// 이 화면에서 답안을 한 번이라도 제출했는지. 벗어날 때 학습 현황을 갱신할지 정한다.
   bool _hasSubmittedAny = false;
 
@@ -75,6 +90,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     super.initState();
     _container = ProviderScope.containerOf(context, listen: false);
     _clearOnboardingOnceListLoaded();
+    _listenToLoadMoreQuestionsWhenRunningLow();
     // 첫 프레임 이후 문제 목록 로드
     Future.microtask(() {
       if (!mounted) return;
@@ -277,8 +293,13 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
   }
 
   /// 다음 문제·결과로 넘어가기 전, 온보딩 첫 문제였으면 축하 화면을 한 번 띄운다.
+  /// 연속 흐름의 마지막 문제면 이어 받기 > 받은 게 있으면 다음 문제, 없으면 요약
   Future<void> _goNext(ChapterState chapter) async {
-    if (_isCompleting || _isShowingOnboardingCelebration) return;
+    if (_isCompleting ||
+        _isShowingOnboardingCelebration ||
+        _isWaitingMoreQuestions) {
+      return;
+    }
     if (widget.flow.isOnboarding && !_hasShownOnboardingCelebration) {
       setState(() => _hasShownOnboardingCelebration = true);
       // 축하 화면이 뜨는 사이 [다음] 연타로 문제를 건너뛰지 않게 막는다.
@@ -290,13 +311,100 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
       _isShowingOnboardingCelebration = false;
       if (!mounted) return;
     }
-    if (chapter.isLastQuestion) {
+    // 백그라운드 이어 받기가 목록을 늘렸을 수 있어 최신 상태로 판정
+    final isLastQuestion = ref
+        .read(chapterProvider(widget.flow.id))
+        .isLastQuestion;
+    if (!isLastQuestion) {
+      _moveToNextQuestion();
+    } else if (widget.flow.isContinuous) {
+      await _continueWithMoreQuestions();
+    } else {
+      _complete();
+    }
+  }
+
+  /// 다음 문제로 이동 (새 문제를 풀 때는 지난 해설 시트를 닫음, 해설함·백그라운드 조회는 유지)
+  void _moveToNextQuestion() {
+    ref.read(aiExplanationSessionProvider.notifier).closePanel();
+    ref.read(chapterProvider(widget.flow.id).notifier).nextQuestion();
+  }
+
+  /// 연속 흐름 마지막 문제의 [다음]: 이어 받기 대기 > 늘었으면 다음 문제, 그대로면 요약 (실패는 토스트 후 다시 누를 수 있게)
+  Future<void> _continueWithMoreQuestions() async {
+    setState(() => _isWaitingMoreQuestions = true);
+    try {
+      await _loadMoreQuestions();
+    } catch (exception, stackTrace) {
+      reportIfUnexpectedFailure(
+        exception,
+        stackTrace,
+        reason: 'chapterLoadMore:${widget.flow.id}',
+      );
+      if (mounted) showAppToast(context, exception.asAppException.message);
+      return;
+    } finally {
+      if (mounted) setState(() => _isWaitingMoreQuestions = false);
+    }
+    if (!mounted) return;
+    if (ref.read(chapterProvider(widget.flow.id)).isLastQuestion) {
       _complete();
     } else {
-      // 새 문제를 풀 때는 지난 해설 시트를 닫음 (해설함·백그라운드 조회는 유지)
-      ref.read(aiExplanationSessionProvider.notifier).closePanel();
-      ref.read(chapterProvider(widget.flow.id).notifier).nextQuestion();
+      _moveToNextQuestion();
     }
+  }
+
+  /// 이어 받기 1회 (진행 중이면 같은 요청을 기다림): 흐름이 준 새 문제 > 목록 끝에 덧붙임
+  Future<void> _loadMoreQuestions() =>
+      _pendingMoreQuestionsLoad ??= _fetchAndAppendMoreQuestions().whenComplete(
+        () => _pendingMoreQuestionsLoad = null,
+      );
+
+  Future<void> _fetchAndAppendMoreQuestions() async {
+    final moreQuestionUuids = await widget.flow.loadMoreQuestionUuids(ref);
+    if (!mounted) return;
+    ref
+        .read(chapterProvider(widget.flow.id).notifier)
+        .appendQuestionUuids(moreQuestionUuids);
+  }
+
+  /// 연속 흐름: 남은 문제가 [_loadMoreRemainingThreshold] 이하가 되면 백그라운드 이어 받기 (실패는 조용히, 마지막 [다음]에서 다시)
+  void _listenToLoadMoreQuestionsWhenRunningLow() {
+    if (!widget.flow.isContinuous) return;
+    ref.listenManual(chapterProvider(widget.flow.id), (_, chapter) {
+      if (chapter.isLoadingList ||
+          chapter.listError != null ||
+          chapter.questionUuids.isEmpty) {
+        return;
+      }
+      final questionCount = chapter.questionUuids.length;
+      final remainingCount = questionCount - 1 - chapter.currentIndex;
+      if (remainingCount > _loadMoreRemainingThreshold) return;
+      if (_backgroundLoadRequestedQuestionCount == questionCount) return;
+      _backgroundLoadRequestedQuestionCount = questionCount;
+      unawaited(
+        _loadMoreQuestions().catchError((
+          Object exception,
+          StackTrace stackTrace,
+        ) {
+          reportIfUnexpectedFailure(
+            exception,
+            stackTrace,
+            reason: 'chapterPrefetchMore:${widget.flow.id}',
+          );
+        }),
+      );
+    });
+  }
+
+  /// 연속 흐름 나가기 (닫기·뒤로가기): 푼 문제가 있으면 확인 없이 요약, 없으면 바로 닫기
+  void _leaveContinuousFlow() {
+    if (_isCompleting) return;
+    if (ref.read(chapterProvider(widget.flow.id)).results.isEmpty) {
+      leaveSolvingFlow(context);
+      return;
+    }
+    _complete();
   }
 
   /// 마지막 문제까지 끝남 — 요약을 만들어 이후 처리는 흐름에 맡긴다.
@@ -386,6 +494,8 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
         shouldConfirmExit: hasStarted,
         accessory: const AiExplanationHistoryButton(),
         shouldShowRemainingSolves: widget.flow is RandomPracticeFlow,
+        isContinuous: widget.flow.isContinuous,
+        onExit: widget.flow.isContinuous ? _leaveContinuousFlow : null,
       ),
       // 문제 교체: 옆으로 미끄러지며 바뀜 (문제마다 key), 같은 문제 안 로딩 > 내용은 페이드
       // 해설 시트는 본문 위에 떠서 하단 바를 가리지 않음 (다음 문제로 넘어가면 닫히고 해설함에서 다시 열 수 있음)
@@ -472,7 +582,10 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
                 interaction.activeChoices,
                 chapter.lastSubmitResult!.correctKey,
               ),
-              isLastQuestion: chapter.isLastQuestion,
+              // 연속 흐름은 늘 [다음] (끝은 나가기로 정함)
+              isLastQuestion:
+                  chapter.isLastQuestion && !widget.flow.isContinuous,
+              isLoadingNext: _isWaitingMoreQuestions,
               onNext: () => _goNext(chapter),
             ),
     );
@@ -494,6 +607,16 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
       ],
     );
     // 시스템 뒤로가기(Android 백 버튼, iOS 스와이프)도 홈 아이콘과 같은 확인을 거친다.
+    // 연속 흐름은 푼 문제가 있으면 확인 없이 요약으로
+    if (widget.flow.isContinuous) {
+      return PopScope(
+        canPop: chapter.results.isEmpty,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) _leaveContinuousFlow();
+        },
+        child: body,
+      );
+    }
     return PopScope(
       canPop: !hasStarted,
       onPopInvokedWithResult: (didPop, _) async {

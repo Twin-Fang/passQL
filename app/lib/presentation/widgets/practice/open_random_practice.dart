@@ -9,12 +9,17 @@ import '../pro/pro_offer_sheet.dart';
 
 /// 랜덤 풀기 진입 (홈 줄·문제 탭 행 공통): 한도 남음 > 풀이, 한도 소진 > 등급 갱신 > 여전히 소진이면 안내 시트
 /// 시트에서 광고 보너스·구매로 한도가 풀렸으면 이어서 풀이 진입 (#808)
-Future<void> openRandomPractice(BuildContext context, WidgetRef ref) async {
+/// [shouldReplaceCurrentRoute]: 지금 화면 자리를 풀이로 교체 (랜덤 요약의 계속 풀기, #963)
+Future<void> openRandomPractice(
+  BuildContext context,
+  WidgetRef ref, {
+  bool shouldReplaceCurrentRoute = false,
+}) async {
   final isDailyLimitReached =
       ref.read(shouldShowProUiProvider) &&
       ref.read(knownPlanProvider)?.isDailyFreeLimitReached == true;
   if (!isDailyLimitReached) {
-    context.push(AppRoutes.randomPractice);
+    _pushRandomPractice(context, shouldReplaceCurrentRoute);
     return;
   }
   // 날짜 변경·구매 반영을 위해 등급 다시 받기
@@ -34,5 +39,13 @@ Future<void> openRandomPractice(BuildContext context, WidgetRef ref) async {
       return;
     }
   }
-  context.push(AppRoutes.randomPractice);
+  _pushRandomPractice(context, shouldReplaceCurrentRoute);
+}
+
+void _pushRandomPractice(BuildContext context, bool shouldReplaceCurrentRoute) {
+  if (shouldReplaceCurrentRoute) {
+    context.pushReplacement(AppRoutes.randomPractice);
+  } else {
+    context.push(AppRoutes.randomPractice);
+  }
 }
