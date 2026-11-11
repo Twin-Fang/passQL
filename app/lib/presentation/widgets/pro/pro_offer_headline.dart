@@ -40,6 +40,11 @@ class ProOfferHeadline extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: PassqlProMark(withLabel: true),
+        ),
+        const SizedBox(height: PassqlSpacing.xs),
         // 「이용권」 글자 대신 숫자를 강조한 문장 제목 (스크린리더 머리글 역할)
         Semantics(
           header: true,
