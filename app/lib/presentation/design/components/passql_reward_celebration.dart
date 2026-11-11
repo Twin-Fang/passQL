@@ -143,16 +143,24 @@ class _RemainingGauge extends StatelessWidget {
           child: Stack(
             children: [
               Positioned.fill(child: ColoredBox(color: colors.separator)),
-              TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0, end: fillRatio),
-                duration: PassqlMotion.durationOf(
-                  context,
-                  PassqlMotion.scoreFill,
-                ),
-                curve: PassqlMotion.curve,
-                builder: (_, animatedRatio, _) => FractionallySizedBox(
-                  widthFactor: animatedRatio,
-                  child: ColoredBox(color: colors.accent),
+              // Positioned 는 Stack 직계여야 하므로 빌더 바깥에 둠
+              Positioned.fill(
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: fillRatio),
+                  duration: PassqlMotion.durationOf(
+                    context,
+                    PassqlMotion.scoreFill,
+                  ),
+                  curve: PassqlMotion.curve,
+                  // 트랙 전체 높이를 채우고 왼쪽에서 차오름
+                  builder: (_, animatedRatio, _) => Align(
+                    alignment: Alignment.centerLeft,
+                    child: FractionallySizedBox(
+                      widthFactor: animatedRatio,
+                      heightFactor: 1,
+                      child: ColoredBox(color: colors.accent),
+                    ),
+                  ),
                 ),
               ),
             ],
