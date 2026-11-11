@@ -28,7 +28,7 @@ class _RemainingSolvesPillState extends ConsumerState<RemainingSolvesPill>
         TweenSequenceItem(tween: Tween(begin: _peakScale, end: 1.0), weight: 1),
       ]).animate(
         // 곡선은 시퀀스 바깥 입력(0..1)에 적용하면 오버슈트가 assert 에 걸리므로 컨트롤러 쪽에 둠
-        CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+        CurvedAnimation(parent: _controller, curve: PassqlMotion.curve),
       );
 
   @override
