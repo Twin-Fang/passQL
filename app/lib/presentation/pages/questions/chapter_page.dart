@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,16 +5,17 @@ import 'package:uuid/uuid.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../core/monitoring/crash_reporter.dart';
 import '../../../data/models/question/submit_result.dart';
+import '../../../presentation/flows/continuous_question_loader.dart';
 import '../../../presentation/flows/question_flow.dart';
 import '../../../presentation/providers/ai_explanation_session_provider.dart';
 import '../../../presentation/providers/chapter_providers.dart';
-import '../../../presentation/providers/choice_explanation_providers.dart';
 import '../../../presentation/providers/learning_refresh.dart';
 import '../../../presentation/providers/onboarding_providers.dart';
 import '../../../presentation/providers/plan_providers.dart';
 import '../../../presentation/providers/question_providers.dart';
 import '../../widgets/ai_explanation/ai_explanation_dock.dart';
 import '../../widgets/ai_explanation/ai_explanation_history_button.dart';
+import '../../widgets/ai_explanation/submission_explanation_entry.dart';
 import '../../widgets/chapter/chapter_app_bar.dart';
 import '../../../data/models/question/question_detail.dart';
 import '../../widgets/common/app_toast.dart';
@@ -60,14 +59,16 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
   /// 마지막 문제 이후 완료 처리(점수 등록 등)가 진행 중인지. 중복 실행과 연타를 막는다.
   bool _isCompleting = false;
 
-  /// 연속 흐름에서 남은 문제가 이 수 이하면 백그라운드로 이어 받기
-  static const int _loadMoreRemainingThreshold = 2;
+  /// 풀이 화면을 이미 떠났는지 (요약 이동·닫기). 교체 애니메이션 중 늦게 끝난 이어 받기의 중복 이동 방지
+  bool _hasLeftFlow = false;
 
-  /// 진행 중인 이어 받기 (미리 받기·마지막 문제 [다음] 공용, 중복 요청 방지)
-  Future<void>? _pendingMoreQuestionsLoad;
-
-  /// 백그라운드 이어 받기를 요청했던 목록 길이 (같은 길이에서 한 번만, 빈 응답 반복 방지)
-  int? _backgroundLoadRequestedQuestionCount;
+  /// 연속 흐름 이어 받기 (#963)
+  late final ContinuousQuestionLoader _continuousQuestionLoader =
+      ContinuousQuestionLoader(
+        flow: widget.flow,
+        ref: ref,
+        isMounted: () => mounted,
+      );
 
   /// 마지막 문제에서 [다음]을 눌러 이어 받기를 기다리는 중 (버튼 로딩·연타 방지)
   bool _isWaitingMoreQuestions = false;
@@ -90,7 +91,9 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     super.initState();
     _container = ProviderScope.containerOf(context, listen: false);
     _clearOnboardingOnceListLoaded();
-    _listenToLoadMoreQuestionsWhenRunningLow();
+    if (widget.flow.isContinuous) {
+      _continuousQuestionLoader.listenToLoadMoreWhenRunningLow();
+    }
     // 첫 프레임 이후 문제 목록 로드
     Future.microtask(() {
       if (!mounted) return;
@@ -221,60 +224,13 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
         .read(chapterProvider(widget.flow.id).notifier)
         .recordSubmission(submitResult, selectedKey);
     _refetchNextQuestionDetailIfFree();
-    _addExplanationEntry(
+    addSubmissionExplanationEntry(
+      ref,
       questionUuid: currentUuid,
       result: submitResult,
       selectedKey: selectedKey,
       questionNumber: questionNumber,
       displayLabelByChoiceKey: displayLabelByChoiceKey,
-    );
-  }
-
-  /// 해설함에 이번 제출 추가 > 미리보기용 해설 조회가 바로 시작되고 다음 문제로 가도 계속됨
-  void _addExplanationEntry({
-    required String questionUuid,
-    required SubmitResult result,
-    required String selectedKey,
-    required int questionNumber,
-    required Map<String, String> displayLabelByChoiceKey,
-  }) {
-    final request = ChoiceExplanationRequest.fromSubmission(
-      questionUuid: questionUuid,
-      result: result,
-      selectedChoiceKey: selectedKey,
-    );
-    if (request == null) return;
-    ref
-        .read(aiExplanationSessionProvider.notifier)
-        .addEntry(
-          AiExplanationEntry(
-            request: request,
-            isCorrect: result.isCorrect,
-            questionNumber: questionNumber,
-            displayLabelByChoiceKey: displayLabelByChoiceKey,
-            rationale: result.rationale,
-            correctChoiceKey: result.correctKey,
-          ),
-        );
-  }
-
-  /// 현재 문제 제출의 해설함 항목 (세트를 몰라 해설이 없으면 null)
-  AiExplanationEntry? _currentExplanationEntry(
-    String questionUuid,
-    ChapterState chapter,
-  ) {
-    final result = chapter.lastSubmitResult;
-    if (!chapter.isAnswered || result == null) return null;
-    final request = ChoiceExplanationRequest.fromSubmission(
-      questionUuid: questionUuid,
-      result: result,
-      selectedChoiceKey: chapter.lastSelectedKey,
-    );
-    if (request == null) return null;
-    return ref.watch(
-      aiExplanationSessionProvider.select(
-        (session) => session.entryById(request.id),
-      ),
     );
   }
 
@@ -309,7 +265,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
         extra: chapter.isLastQuestion,
       );
       _isShowingOnboardingCelebration = false;
-      if (!mounted) return;
+      if (!mounted || _hasLeftFlow) return;
     }
     // 백그라운드 이어 받기가 목록을 늘렸을 수 있어 최신 상태로 판정
     final isLastQuestion = ref
@@ -334,19 +290,22 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
   Future<void> _continueWithMoreQuestions() async {
     setState(() => _isWaitingMoreQuestions = true);
     try {
-      await _loadMoreQuestions();
+      await _continuousQuestionLoader.loadMoreQuestions();
     } catch (exception, stackTrace) {
       reportIfUnexpectedFailure(
         exception,
         stackTrace,
         reason: 'chapterLoadMore:${widget.flow.id}',
       );
-      if (mounted) showAppToast(context, exception.asAppException.message);
+      if (mounted && !_hasLeftFlow) {
+        showAppToast(context, exception.asAppException.message);
+      }
       return;
     } finally {
       if (mounted) setState(() => _isWaitingMoreQuestions = false);
     }
-    if (!mounted) return;
+    // 기다리는 사이 나가기로 요약에 갔으면 다시 이동하지 않음
+    if (!mounted || _hasLeftFlow) return;
     if (ref.read(chapterProvider(widget.flow.id)).isLastQuestion) {
       _complete();
     } else {
@@ -354,53 +313,11 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     }
   }
 
-  /// 이어 받기 1회 (진행 중이면 같은 요청을 기다림): 흐름이 준 새 문제 > 목록 끝에 덧붙임
-  Future<void> _loadMoreQuestions() =>
-      _pendingMoreQuestionsLoad ??= _fetchAndAppendMoreQuestions().whenComplete(
-        () => _pendingMoreQuestionsLoad = null,
-      );
-
-  Future<void> _fetchAndAppendMoreQuestions() async {
-    final moreQuestionUuids = await widget.flow.loadMoreQuestionUuids(ref);
-    if (!mounted) return;
-    ref
-        .read(chapterProvider(widget.flow.id).notifier)
-        .appendQuestionUuids(moreQuestionUuids);
-  }
-
-  /// 연속 흐름: 남은 문제가 [_loadMoreRemainingThreshold] 이하가 되면 백그라운드 이어 받기 (실패는 조용히, 마지막 [다음]에서 다시)
-  void _listenToLoadMoreQuestionsWhenRunningLow() {
-    if (!widget.flow.isContinuous) return;
-    ref.listenManual(chapterProvider(widget.flow.id), (_, chapter) {
-      if (chapter.isLoadingList ||
-          chapter.listError != null ||
-          chapter.questionUuids.isEmpty) {
-        return;
-      }
-      final questionCount = chapter.questionUuids.length;
-      final remainingCount = questionCount - 1 - chapter.currentIndex;
-      if (remainingCount > _loadMoreRemainingThreshold) return;
-      if (_backgroundLoadRequestedQuestionCount == questionCount) return;
-      _backgroundLoadRequestedQuestionCount = questionCount;
-      unawaited(
-        _loadMoreQuestions().catchError((
-          Object exception,
-          StackTrace stackTrace,
-        ) {
-          reportIfUnexpectedFailure(
-            exception,
-            stackTrace,
-            reason: 'chapterPrefetchMore:${widget.flow.id}',
-          );
-        }),
-      );
-    });
-  }
-
   /// 연속 흐름 나가기 (닫기·뒤로가기): 푼 문제가 있으면 확인 없이 요약, 없으면 바로 닫기
   void _leaveContinuousFlow() {
-    if (_isCompleting) return;
+    if (_isCompleting || _hasLeftFlow) return;
     if (ref.read(chapterProvider(widget.flow.id)).results.isEmpty) {
+      _hasLeftFlow = true;
       leaveSolvingFlow(context);
       return;
     }
@@ -409,13 +326,14 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
 
   /// 마지막 문제까지 끝남 — 요약을 만들어 이후 처리는 흐름에 맡긴다.
   Future<void> _complete() async {
-    if (_isCompleting) return;
+    if (_isCompleting || _hasLeftFlow) return;
     setState(() => _isCompleting = true);
     final summary = ref
         .read(chapterProvider(widget.flow.id).notifier)
         .buildSummary(widget.flow.title);
     try {
       await widget.flow.onCompleted(context, ref, summary, _sessionUuid);
+      _hasLeftFlow = true;
     } catch (exception, stackTrace) {
       // 완료 처리에서 예상 밖 오류가 나도 화면이 멈추지 않게 하고, 다시 시도할 수 있게 잠금을 푼다.
       reportIfUnexpectedFailure(
@@ -443,29 +361,23 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     final flowId = widget.flow.id;
     final chapter = ref.watch(chapterProvider(flowId));
 
-    // 로딩 중
-    if (chapter.isLoadingList) {
+    // 목록 로딩 중 / 에러 또는 빈 목록
+    if (chapter.isLoadingList ||
+        chapter.listError != null ||
+        chapter.questionUuids.isEmpty) {
       return PassqlStatusScaffold(
         title: widget.flow.title,
         leading: PassqlNavLeading.close,
         onLeadingTap: () => leaveSolvingFlow(context),
-        body: PassqlStatusView.loading(),
-      );
-    }
-
-    // 에러 또는 빈 목록
-    if (chapter.listError != null || chapter.questionUuids.isEmpty) {
-      return PassqlStatusScaffold(
-        title: widget.flow.title,
-        leading: PassqlNavLeading.close,
-        onLeadingTap: () => leaveSolvingFlow(context),
-        body: PassqlStatusView.error(
-          message: chapter.listError ?? '문제가 없어요',
-          // 문제 목록을 다시 불러온다. (오늘의 세트를 이미 끝냈다면 다시 불러도 같은 안내가 나온다)
-          onRetry: () => ref
-              .read(chapterProvider(widget.flow.id).notifier)
-              .load(() => widget.flow.loadStart(ref)),
-        ),
+        body: chapter.isLoadingList
+            ? PassqlStatusView.loading()
+            : PassqlStatusView.error(
+                message: chapter.listError ?? '문제가 없어요',
+                // 문제 목록을 다시 불러온다. (오늘의 세트를 이미 끝냈다면 다시 불러도 같은 안내가 나온다)
+                onRetry: () => ref
+                    .read(chapterProvider(widget.flow.id).notifier)
+                    .load(() => widget.flow.loadStart(ref)),
+              ),
       );
     }
 
@@ -481,7 +393,11 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
 
     // 한 문제라도 제출했거나 2번째 문제 이상이면 "풀이 시작"으로 본다.
     final hasStarted = chapter.currentIndex > 0 || chapter.isAnswered;
-    final explanationEntry = _currentExplanationEntry(currentUuid, chapter);
+    final explanationEntry = watchSubmissionExplanationEntry(
+      ref,
+      currentUuid,
+      chapter,
+    );
 
     final scaffold = Scaffold(
       // 하단 바(글래스) 뒤로 본문이 비쳐 보이도록 body 를 바 아래까지 확장한다.
@@ -608,19 +524,11 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
     );
     // 시스템 뒤로가기(Android 백 버튼, iOS 스와이프)도 홈 아이콘과 같은 확인을 거친다.
     // 연속 흐름은 푼 문제가 있으면 확인 없이 요약으로
-    if (widget.flow.isContinuous) {
-      return PopScope(
-        canPop: chapter.results.isEmpty,
-        onPopInvokedWithResult: (didPop, _) {
-          if (!didPop) _leaveContinuousFlow();
-        },
-        child: body,
-      );
-    }
     return PopScope(
-      canPop: !hasStarted,
+      canPop: widget.flow.isContinuous ? chapter.results.isEmpty : !hasStarted,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
+        if (widget.flow.isContinuous) return _leaveContinuousFlow();
         if (await confirmChapterExit(context) && context.mounted) {
           leaveSolvingFlow(context);
         }
