@@ -1308,7 +1308,7 @@ export interface paths {
          *     - **`dailyBonus`**: 오늘 받은 무료 한도 보너스
          *       - `isDailySetCompletionEarned`: 오늘의 세트 완료(배정 문제 전부 제출) +5
          *       - `isDailySetAccuracyEarned`: 오늘의 세트 정답 80% 이상 +5
-         *       - `adBonusUsedCount` / `adBonusMaxCount`: 광고 보너스 받은 횟수 / 하루 최대 (2)
+         *       - `adBonusUsedCount` / `adBonusMaxCount`: 광고 보너스 받은 횟수 / 하루 최대 (횟수 제한 없음, 받은 횟수 + 1 을 내려줌)
          *       - `bonusQuestionCount`: 보너스 1회분 문제 수 (5)
          */
         get: operations["getMyPlan"];
@@ -1343,13 +1343,13 @@ export interface paths {
          *     - 보너스를 반영한 내 등급 (`todayFreeLimit` +5, `dailyBonus.adBonusUsedCount` +1)
          *
          *     ## 설명
-         *     - 앱이 보상형 광고 보상 콜백 뒤에 호출한다 (하루 2회 상한)
+         *     - 앱이 보상형 광고 보상 콜백 뒤에 호출한다 (횟수 제한 없음, 하루 200 공정 사용 상한)
          *     - 같은 `rewardNonce` 가 이미 기록됐으면(서버 검증 콜백 포함) 다시 쌓지 않고 현재 등급 반환
          *     - `ads.reward.ssv_required` 꺼짐: 이 호출로 기록 / 켜짐: 기록하지 않고 AdMob 서버 검증 콜백 기록만 확인
          *     - 결제 꺼짐·프로 회원은 쌓지 않고 현재 등급을 그대로 반환한다
          *
          *     ## 에러코드
-         *     - **`AD_BONUS_DAILY_LIMIT_REACHED`** (409): 오늘 광고 보너스를 모두 받음
+         *     - **`FAIR_USE_DAILY_LIMIT_REACHED`** (429): 오늘 하루 200 공정 사용 상한에 도달
          *     - **`AD_BONUS_VERIFICATION_PENDING`** (409): 검증 필수인데 콜백이 아직 안 옴 (잠시 뒤 다시 호출)
          *     - **`AD_BONUS_APP_UPDATE_REQUIRED`** (426): 검증 필수인데 `rewardNonce` 없음 (옛 앱)
          */
