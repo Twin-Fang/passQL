@@ -55,6 +55,7 @@ class DailySetResultPage extends ConsumerWidget {
                   .toList(),
               saveError: outcome.saveError,
               completedRank: outcome.completed?.rank,
+              isJustCompleted: true,
             ),
           ),
         ),
@@ -136,6 +137,7 @@ class _ResultBody extends ConsumerWidget {
     required this.results,
     this.saveError,
     this.completedRank,
+    this.isJustCompleted = false,
   });
 
   final int correctCount;
@@ -149,6 +151,9 @@ class _ResultBody extends ConsumerWidget {
 
   /// 완료 응답의 내 순위 (풀이 직후에만, 순위표를 기다리지 않고 바로 표시)
   final int? completedRank;
+
+  /// 풀이를 막 끝낸 진입 (기록에서 다시 열면 false > 보상 연출 생략)
+  final bool isJustCompleted;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -170,7 +175,11 @@ class _ResultBody extends ConsumerWidget {
             ),
           ),
         // 완료로 받은 무료 한도 보너스 (무료 회원만 보임, #808)
-        if (saveError == null) DailySetBonusCard(assignedQuestionCount: total),
+        if (saveError == null)
+          DailySetBonusCard(
+            assignedQuestionCount: total,
+            shouldCelebrate: isJustCompleted,
+          ),
         if (results.isNotEmpty)
           PassqlGroupedSection(
             header: '문제별 결과',
