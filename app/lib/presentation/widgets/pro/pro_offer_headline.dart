@@ -4,7 +4,7 @@ import '../../../core/utils/exam_dday.dart';
 import '../../design/design.dart';
 import 'pro_benefits.dart';
 
-/// 프로 안내 시트 머리: 문장 제목 > 기간 줄(무료 최대치) > 들어온 이유 > 강조 혜택
+/// 프로 안내 시트 머리: 문장 제목 > 기간 줄(무료 최대치) > 강조 혜택
 /// 이용 중이면 제목만 연장 문장 (N일 남은 이용권, 이어서 연장해요)
 class ProOfferHeadline extends StatelessWidget {
   const ProOfferHeadline({
@@ -13,7 +13,6 @@ class ProOfferHeadline extends StatelessWidget {
     required this.activeProExpiresAt,
     required this.freeCap,
     required this.dailyFreeLimit,
-    required this.reason,
     required this.focusedBenefit,
   });
 
@@ -26,7 +25,6 @@ class ProOfferHeadline extends StatelessWidget {
   /// 시험까지 무료 최대 문제 수 (null 이면 기간 줄 생략)
   final int? freeCap;
   final int dailyFreeLimit;
-  final String? reason;
 
   /// 탑승권 혜택 아이콘에서 열었을 때 강조할 혜택
   final ProBenefit? focusedBenefit;
@@ -35,7 +33,6 @@ class ProOfferHeadline extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final daysUntil = daysUntilExam;
-    final reason = this.reason;
     final focusedBenefit = this.focusedBenefit;
     final activeProExpiresAt = this.activeProExpiresAt;
     final proDaysLeft = activeProExpiresAt == null
@@ -96,15 +93,6 @@ class ProOfferHeadline extends StatelessWidget {
             height: PassqlSize.hairline * 3,
             thickness: PassqlSize.hairline * 3,
             color: colors.label,
-          ),
-        ],
-        if (reason != null) ...[
-          const SizedBox(height: PassqlSpacing.xs),
-          PassqlKeepAllText(
-            reason,
-            style: PassqlTypography.subheadlineSemibold.copyWith(
-              color: colors.accentText,
-            ),
           ),
         ],
         if (focusedBenefit != null) ...[

@@ -7,7 +7,7 @@ import '../../../presentation/providers/learning_refresh.dart';
 import '../../../presentation/providers/question_providers.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
-import '../../widgets/common/app_toast.dart';
+import '../../widgets/practice/daily_limit_reward_view.dart';
 import '../../widgets/pro/pro_access_feedback.dart';
 import '../../widgets/question/question_sections.dart';
 import '../../widgets/question/question_load_error_view.dart';
@@ -44,15 +44,15 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
   /// 이번 로드 실패의 프로 접근 안내를 띄웠는지 (다시 시도하면 내림)
   late bool _isProAccessNoticed = widget.isPushEntry;
 
-  /// 상세 실패 1회 안내: 프로 접근 오류면 시트·토스트 > 시트로 열렸을 때만(프로 전환·광고 보너스) 다시 받기
+  /// 상세 실패 1회 안내: 프로 접근 오류면 시트·토스트 > 시트로 열렸을 때만(프로 전환) 다시 받기
+  /// 무료 하루 한도는 본문 한도 화면이 맡음 (#963)
   void _showProAccessFeedbackOnce(Object error) {
-    if (_isProAccessNoticed) return;
+    if (_isProAccessNoticed || isFreeDailyLimitError(error)) return;
     _isProAccessNoticed = true;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final feedbackResult = await showProAccessFeedback(context, ref, error);
-      if (feedbackResult == ProAccessFeedbackResult.sheetUnlocked &&
-          mounted) {
+      if (feedbackResult == ProAccessFeedbackResult.sheetUnlocked && mounted) {
         _retryQuestionDetail();
       }
     });
@@ -137,23 +137,14 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
       submitResult = await notifier.submit();
     } on AppException catch (exception) {
       if (!context.mounted) return;
-      // 제출 시점 하루 한도·프로 필요 > 사유 시트(광고 보너스·이용권), 시트로 열리면 다시 제출 (#867)
-      final feedbackResult = await showProAccessFeedback(
+      // 제출 시점 하루 한도·프로 필요 > 한도 시트(광고·세트)·이용권 시트, 풀리면 다시 제출 (#867·#963)
+      final shouldResubmit = await showSubmitFailureFeedback(
         context,
         ref,
         exception,
       );
-      if (!context.mounted) return;
-      switch (feedbackResult) {
-        case ProAccessFeedbackResult.sheetUnlocked:
-          return _submitAnswer(context, notifier);
-        case ProAccessFeedbackResult.shown:
-          return;
-        case ProAccessFeedbackResult.notHandled:
-          // 실패 원인별 문구 (네트워크, 서버 오류, 입력 오류 등)
-          showAppToast(context, exception.message);
-          return;
-      }
+      if (!shouldResubmit || !context.mounted) return;
+      return _submitAnswer(context, notifier);
     }
     if (!context.mounted || submitResult == null) return;
     // 풀이 결과가 홈과 통계에 반영되도록 캐시를 비운다.
