@@ -70,10 +70,22 @@ class FeatureAccessPolicyDailyLimitTest {
     @Test
     void 결제_꺼짐이면_수와_관계없이_통과한다() {
         givenBillingEnabled(false);
-        when(dailyQuestionCounter.countTodayRandomSolved(MEMBER_UUID)).thenReturn(FeatureAccessPolicy.DAILY_PRO_FAIR_USE_LIMIT);
+        when(dailyQuestionCounter.countTodayRandomSolved(MEMBER_UUID)).thenReturn(FeatureAccessPolicy.DAILY_FAIR_USE_LIMIT);
 
         assertThatCode(() -> featureAccessPolicy.assertCanSubmitQuestion(MEMBER_UUID, QUESTION_UUID))
             .doesNotThrowAnyException();
+    }
+
+    @Test
+    void 무료도_오늘_200문제면_공정_사용_상한으로_막는다() {
+        givenBillingEnabled(true);
+        // 광고 보너스 50회 = 한도 260, 상한 200이 먼저 막음
+        when(dailyFreeBonusReader.readToday(MEMBER_UUID)).thenReturn(new DailyFreeBonus(false, false, 50, 51, 5));
+        when(dailyQuestionCounter.countTodayRandomSolved(MEMBER_UUID)).thenReturn(FeatureAccessPolicy.DAILY_FAIR_USE_LIMIT);
+
+        assertThatThrownBy(() -> featureAccessPolicy.assertCanOpenQuestion(MEMBER_UUID, QUESTION_UUID))
+            .isInstanceOfSatisfying(CustomException.class,
+                exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.FAIR_USE_DAILY_LIMIT_REACHED));
     }
 
     /** 전체 결제 스위치 (미리보기 회원 목록은 비움) */
