@@ -5,14 +5,12 @@ import '../../../core/billing/pass_option_pricing.dart';
 import '../../../core/billing/pro_purchase_port.dart';
 import '../../../core/utils/app_clock.dart';
 import '../../../core/utils/exam_dday.dart';
-import '../../../core/utils/profile_pass_values.dart';
 import '../../../data/models/member/member_plan_response.dart';
 import '../../design/design.dart';
 import '../../providers/home_providers.dart';
 import '../../providers/plan_providers.dart';
 import '../../providers/profile_pass_providers.dart';
 import '../../providers/settings_providers.dart';
-import '../ads/rewarded_ad_bonus_button.dart';
 import '../common/app_toast.dart';
 import 'pro_benefits.dart';
 import 'pro_offer_benefit_list.dart';
@@ -27,27 +25,23 @@ import 'pro_purchase_feedback.dart';
 /// 시트 본문이 사라질 때(닫힘 연출 끝·화면 해체) 내려감
 bool _isOfferSheetOpen = false;
 
-/// 시트 결과 3종 (호출부가 이어서 할 일을 정함, #808)
+/// 시트 결과 2종 (호출부가 이어서 할 일을 정함, #808)
+/// 광고 보너스는 한도 화면이 맡음 (DailyLimitRewardView, #963)
 enum ProOfferSheetOutcome {
   dismissed, // 그냥 닫음 또는 이미 다른 시트가 떠 있어 열지 않음
   purchased, // 이용권 구매·복원 성공
-  adBonusGranted, // 광고 보너스로 오늘 한도가 늘어남
 }
 
 /// 구매 버튼 기본 문구(이용권 목록이 없을 때)
 const String _sheetTitle = '이용권';
 
-/// 프로 안내 시트 (모든 진입점이 공유하는 한 장, #749): 문장 제목 > 기간 줄 > 들어온 이유 > 강조 혜택 > 내 이름 PRO 탑승권 > 달라지는 점 > 이용권 고르기(1개월이면 3개월 권유) > 복원 > 각주 + 아래 고정 구매 버튼
+/// 프로 안내 시트 (모든 진입점이 공유하는 한 장, #749): 문장 제목 > 강조 혜택 > 내 이름 PRO 탑승권 > 달라지는 점 > 이용권 고르기(기간 옆 할인 배지) > 복원 > 각주 + 아래 고정 구매 버튼
 /// 성공 > 시트 닫힘 > 호출 화면에서 토스트, 그 외 결과는 시트 안 한 줄 (확인 중에 닫아도 확인 결과로 토스트·연출·호출부 재시도)
 Future<ProOfferSheetOutcome> showProOfferSheet(
   BuildContext context,
   WidgetRef ref, {
-  // 진입점별 한 줄 (예: 오늘 무료 문제를 다 풀었어요)
-  String? reason,
   // 탑승권 혜택 아이콘에서 열었을 때 그 혜택 순서(proBenefits 기준) > 시트가 그 줄을 강조 (#749)
   int? focusedBenefitIndex,
-  // 무료 하루 한도로 열림 > 이유 줄 아래 광고 보너스 버튼 (#808)
-  bool isDailyLimitEntry = false,
 }) async {
   if (_isOfferSheetOpen) return ProOfferSheetOutcome.dismissed;
   _isOfferSheetOpen = true;
@@ -60,7 +54,7 @@ Future<ProOfferSheetOutcome> showProOfferSheet(
       : null;
   // 시트가 닫힐 때 호출 화면이 이미 사라졌을 수 있어 ref 는 기다리기 전에 읽어 둔다
   final revealNotifier = ref.read(profilePassRevealPendingProvider.notifier);
-  // 시트 안에서 마지막으로 시작한 결제·광고 보너스 확인 (닫힌 뒤에도 끝까지 기다림)
+  // 시트 안에서 마지막으로 시작한 결제 확인 (닫힌 뒤에도 끝까지 기다림)
   Future<ProOfferSheetOutcome>? pendingConfirmation;
   try {
     final closedOutcome = await showPassqlSheet<ProOfferSheetOutcome>(
@@ -70,8 +64,6 @@ Future<ProOfferSheetOutcome> showProOfferSheet(
         passOptions: knownPlan?.passOptions ?? const [],
         activeProExpiresAt: activeProExpiresAt,
         dailyFreeLimit: knownPlan?.dailyFreeLimit ?? 0,
-        reason: reason,
-        isDailyLimitEntry: isDailyLimitEntry,
         onConfirmationStarted: (confirmation) =>
             pendingConfirmation = confirmation,
         focusedBenefitIndex: focusedBenefitIndex,
@@ -95,22 +87,6 @@ Future<ProOfferSheetOutcome> showProOfferSheet(
         );
       }
       return ProOfferSheetOutcome.purchased;
-    }
-    if (outcome == ProOfferSheetOutcome.adBonusGranted) {
-      if (context.mounted) {
-        final bonusQuestionCount =
-            ref.read(knownPlanProvider)?.dailyBonus.bonusQuestionCount ?? 0;
-        // 광고 직후 결제 권유 (#816 유도 5): 토스트 버튼으로 시트 다시 열기 (호출 화면이 살아 있을 때만)
-        showAppToast(
-          context,
-          adBonusGrantedMessageOf(bonusQuestionCount),
-          actionLabel: '광고 없이 풀기',
-          onAction: () {
-            if (context.mounted) showProOfferSheet(context, ref);
-          },
-        );
-      }
-      return ProOfferSheetOutcome.adBonusGranted;
     }
     return ProOfferSheetOutcome.dismissed;
   } catch (_) {
@@ -142,8 +118,6 @@ class _ProOfferSheetBody extends ConsumerStatefulWidget {
     required this.passOptions,
     required this.activeProExpiresAt,
     required this.dailyFreeLimit,
-    required this.reason,
-    required this.isDailyLimitEntry,
     required this.onConfirmationStarted,
     required this.focusedBenefitIndex,
   });
@@ -153,12 +127,8 @@ class _ProOfferSheetBody extends ConsumerStatefulWidget {
   /// 이용 중인 프로 만료일 (무료·만료면 null)
   final DateTime? activeProExpiresAt;
   final int dailyFreeLimit;
-  final String? reason;
 
-  /// 무료 하루 한도로 열림 (광고 보너스 버튼 대상)
-  final bool isDailyLimitEntry;
-
-  /// 결제·광고 보너스 확인 시작 (시트가 닫혀도 호출부가 결과를 기다림)
+  /// 결제 확인 시작 (시트가 닫혀도 호출부가 결과를 기다림)
   final void Function(Future<ProOfferSheetOutcome> confirmation)
   onConfirmationStarted;
 
@@ -290,7 +260,8 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
     final activeProExpiresAt = widget.activeProExpiresAt;
     final isExtending = activeProExpiresAt != null;
     // 승객 칸: 시트가 떠 있는 동안 닉네임이 도착하면 채움 (홈에서 바로 열면 아직 안 불러온 상태)
-    final nickname = ref.watch(settingsDataProvider).valueOrNull?.nickname ?? '';
+    final nickname =
+        ref.watch(settingsDataProvider).valueOrNull?.nickname ?? '';
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -310,25 +281,8 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
                 ProOfferHeadline(
                   daysUntilExam: daysUntil,
                   activeProExpiresAt: activeProExpiresAt,
-                  // 연장이면 무료 최대치 줄 없음 (이미 제한 없이 푸는 중)
-                  freeCap: isExtending
-                      ? null
-                      : freeCapUntilExam(
-                          daysUntilExam: daysUntil,
-                          limit: widget.dailyFreeLimit,
-                        ),
-                  dailyFreeLimit: widget.dailyFreeLimit,
-                  reason: widget.reason,
                   focusedBenefit: _focusedBenefitOf(benefits),
                 ),
-                // 하루 한도로 열림 > 결제 대신 광고로 한도 늘리기 (보일 조건은 버튼이 판단, #808)
-                if (widget.isDailyLimitEntry) ...[
-                  const SizedBox(height: PassqlSpacing.md),
-                  RewardedAdBonusButton(
-                    onBonusAttemptStarted: _reportAdBonusAttempt,
-                    onBonusGranted: _closeAfterAdBonus,
-                  ),
-                ],
                 const SizedBox(height: PassqlSpacing.md),
                 ProOfferTicketPreview(
                   nickname: nickname,
@@ -375,20 +329,6 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
       ],
     );
   }
-
-  /// 광고 보너스 시청·확인 시작 > 호출부에 결과 Future 전달
-  void _reportAdBonusAttempt(Future<bool> isBonusGranted) =>
-      widget.onConfirmationStarted(
-        _toSheetOutcome(
-          isBonusGranted,
-          isUnlocked: (isGranted) => isGranted,
-          unlockedOutcome: ProOfferSheetOutcome.adBonusGranted,
-        ),
-      );
-
-  /// 광고 보너스 반영 > 시트 닫기 (호출 화면에서 토스트)
-  void _closeAfterAdBonus() =>
-      _closeSheetWith(ProOfferSheetOutcome.adBonusGranted);
 
   /// 시트가 맨 위일 때만 닫기 (이미 닫히는 중이면 pop 이 아래 화면을 닫음 > 결과는 확인 Future 로 전달됨)
   void _closeSheetWith(ProOfferSheetOutcome outcome) {

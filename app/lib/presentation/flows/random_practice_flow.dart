@@ -8,7 +8,7 @@ import '../providers/chapter_providers.dart';
 import '../providers/random_practice_providers.dart';
 import 'question_flow.dart';
 
-/// 랜덤 풀기 흐름: 전 범위에서 10문제 > 같은 풀이 화면 > 챕터 결과 (무료·프로 공통, #576)
+/// 랜덤 풀기 흐름: 전 범위 문제를 끊김 없이 이어 풀기 > 나가면 이번에 푼 문제 요약 (무료·프로 공통, #576·#963)
 class RandomPracticeFlow extends QuestionFlow {
   const RandomPracticeFlow();
 
@@ -26,8 +26,25 @@ class RandomPracticeFlow extends QuestionFlow {
   String get title => displayName;
 
   @override
+  bool get isContinuous => true;
+
+  @override
   Future<List<String>> loadQuestionUuids(WidgetRef ref) =>
       ref.read(randomPracticeServiceProvider).fetchQuestionUuids();
+
+  /// 같은 랜덤 목록 다시 받기 > 지금 목록에 있는 문제 빼기 (서버가 안 푼 문제를 앞에 둠)
+  @override
+  Future<List<String>> loadMoreQuestionUuids(WidgetRef ref) async {
+    // 화면이 닫히면 ref 를 못 쓰므로 받기 전에 지금 목록을 잡아 둠
+    final loadedQuestionUuids = ref
+        .read(chapterProvider(id))
+        .questionUuids
+        .toSet();
+    final fetchedQuestionUuids = await loadQuestionUuids(ref);
+    return fetchedQuestionUuids
+        .where((questionUuid) => !loadedQuestionUuids.contains(questionUuid))
+        .toList();
+  }
 
   @override
   Future<void> onCompleted(
@@ -45,7 +62,7 @@ class RandomPracticeFlow extends QuestionFlow {
               .length,
           questionCount: summary.results.length,
         );
-    // 풀이 화면 자리를 결과로 교체 (뒤로 가기 > 진입 전 화면)
-    context.pushReplacement(AppRoutes.chapterResult, extra: summary);
+    // 풀이 화면 자리를 요약으로 교체 (뒤로 가기 > 진입 전 화면)
+    context.pushReplacement(AppRoutes.randomPracticeSummary, extra: summary);
   }
 }

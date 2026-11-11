@@ -117,8 +117,8 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 ## 광고 (AdMob, #506·#527)
 
 - 자리 원본은 `AdPlacement`(lib/core/ads/ad_placement.dart). 탭 셸 하단 탭 바 아래 한 줄 네이티브 띠(메인 탭 5개 공통 1개), 콘텐츠 안 인라인 배너 카드 `AdInlineCard`(홈 학습 현황 아래 구간, 프로필 통계 맨 아래),
-  문제 탭 네이티브 3칸(주제별 토픽 5개 뒤, 최신 경향 유형 <-> 공부 팁, 개념 TOP 10 5위 <-> 6위), 오늘의 세트·챕터 결과 진입 전면(설치 후 첫 결과 2회 제외·5분 간격·하루 3회, 기기 저장),
-  백그라운드에서 탭 화면 복귀 앱 오프닝(#787, 첫 실행 제외·1시간 간격·하루 3회), 무료 하루 한도 이용권 시트의 보상형 광고 버튼(#808, 사용자가 눌러서만·하루 2회). 화면 안 광고는 '광고' 라벨(`AdLabel`) 필수.
+  문제 탭 네이티브 3칸(주제별 토픽 5개 뒤, 최신 경향 유형 <-> 공부 팁, 개념 TOP 10 5위 <-> 6위), 결과 화면 보상형 전면(#963, 안내 5초·건너뛰기 뒤 시작, 끝까지 보면 광고 보너스 +5와 같은 기록: 챕터 결과 진입·오늘의 세트 결과 떠날 때, 무료·결제 켜짐만, 설치 후 첫 결과 1회 제외·3분 간격·하루 5회, 기기 저장),
+  백그라운드에서 탭 화면 복귀 앱 오프닝(#787, 첫 실행 제외·1시간 간격·하루 3회), 무료 하루 한도 화면의 보상형 광고 버튼(#808·#963, 사용자가 눌러서만·횟수 제한 없음). 화면 안 광고는 '광고' 라벨(`AdLabel`) 필수.
 - 한 줄 띠 (#527): `AdNativeStripSlot` > `GoogleAdNativeStripLoader`(factoryId `passqlStrip`, 색·배지 문구는 customOptions) > 네이티브 팩토리
   (Android `PassqlStripNativeAdFactory.kt` + `res/layout/passql_strip_native_ad.xml`, iOS `ios/Runner/PassqlStripNativeAdFactory.swift`, 등록은 `MainActivity`·`AppDelegate.didInitializeImplicitFlutterEngine`).
 - iOS SKAdNetwork 식별자는 Google AdMob iOS 시작 가이드 권장 목록 50개(`Info.plist`). Google 이 목록을 바꾸면 함께 갱신.
@@ -127,9 +127,10 @@ tokens(passql_*.dart: 색·글자·간격·모서리·크기·아이콘 크기·
 - 토픽 목록 네이티브 카드 (#522): `AdNativeSlot` > `GoogleAdNativeLoader`(factoryId `passqlNativeCard`, 미디어 120 이상) > 네이티브 팩토리
   (Android `PassqlNativeAdFactory.kt` + `res/layout/passql_native_ad_card.xml`, iOS `ios/Runner/PassqlNativeAdFactory.swift`, 등록은 띠와 같은 곳). 모양 값은 Dart `NativeAdCardStyle` 원본.
 - 허용 조건 `adsEnabledProvider`: 모바일 + 로그인. 디버그·프로필은 Google 테스트 단위 고정, 릴리스는 `.env` 값(비면 광고 없음).
-- `.env` 키: `PASSQL_ADMOB_{ANDROID|IOS}_APP_ID`, `PASSQL_ADMOB_{ANDROID|IOS}_{NATIVE_STRIP|BANNER_HOME|BANNER_STATS|NATIVE_QUESTIONS|INTERSTITIAL_RESULT|APP_OPEN|REWARDED_DAILY_BONUS}` (뒷부분은 `AdPlacement.envSuffix`).
+- `.env` 키: `PASSQL_ADMOB_{ANDROID|IOS}_APP_ID`, `PASSQL_ADMOB_{ANDROID|IOS}_{NATIVE_STRIP|BANNER_HOME|BANNER_STATS|NATIVE_QUESTIONS|APP_OPEN|REWARDED_DAILY_BONUS|REWARDED_INTERSTITIAL_RESULT}` (뒷부분은 `AdPlacement.envSuffix`).
   앱 ID 는 빌드 타임 값: Android 는 `build.gradle.kts` 가 직접 읽고, iOS 는 `pod install` 때 `tool/gen_ios_admob_config.sh` 가 `ios/Flutter/AdMob.xcconfig`(커밋 제외)로 만든다. 비면 Google 테스트 앱 ID.
 - iOS 추적 허용(ATT)은 앱 시작 첫 프레임 뒤 1회. 거부면 비개인화 요청.
+- 보상형 형식(보상형·보상형 전면) 광고 단위를 새로 만들면 AdMob 에서 서버 측 확인(SSV)을 켜고 서버 `ads.reward.ssv_ad_unit_ids` 에 단위 ID 를 추가한다. 빠지면 보너스 확인이 끝내 검증 대기로 실패한다 (#860·#963).
 
 ## 코드 생성
 

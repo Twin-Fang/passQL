@@ -15,6 +15,7 @@ import '../../providers/pro_ui_providers.dart';
 import '../../widgets/ads/ad_native_slot.dart';
 import '../../widgets/exam_trend/concept_ranking_tab_view.dart';
 import '../../widgets/exam_trend/latest_trend_tab_view.dart';
+import '../../widgets/practice/open_random_practice.dart';
 import '../../widgets/pro/locked_preview_samples.dart';
 import '../../widgets/pro/pro_locked_section.dart';
 import '../../widgets/pro/pro_plan_chip_slot.dart';
@@ -274,7 +275,7 @@ class _RandomPracticeSection extends ConsumerWidget {
               title: RandomPracticeFlow.displayName,
               subtitle: RandomPracticeFlow.summary,
               hasChevron: true,
-              onTap: () => context.push(AppRoutes.randomPractice),
+              onTap: () => openRandomPractice(context, ref),
             ),
           ],
         ),

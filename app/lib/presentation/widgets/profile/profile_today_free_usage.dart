@@ -69,7 +69,7 @@ class ProfileTodayFreeUsage extends StatelessWidget {
   }
 }
 
-/// 보너스 칸 3개: 세트 완료 +N, 세트 정답률 +N, 광고 남은 횟수 (광고 보너스가 없는 날이면 2칸)
+/// 보너스 칸 3개: 세트 완료 +N, 세트 정답률 +N, 광고 (+N씩, 받았으면 받은 횟수), 광고 보너스 대상 아니면 2칸
 class _BonusChips extends StatelessWidget {
   const _BonusChips({required this.bonus});
 
@@ -96,15 +96,16 @@ class _BonusChips extends StatelessWidget {
             ? colors.correctText
             : colors.secondaryLabel,
       ),
-      if (bonus.adBonusMaxCount > 0)
+      // 광고는 횟수 제한 없음 > 남은 횟수 대신 1회분과 받은 횟수
+      if (bonus.canEarnAdBonus)
         _BonusChip(
           label: '광고 보기',
-          statusText: bonus.hasRemainingAdBonus
-              ? '${bonus.remainingAdBonusCount}번 남음'
-              : '다 받음',
-          valueColor: bonus.hasRemainingAdBonus
-              ? colors.accentText
-              : colors.secondaryLabel,
+          statusText: bonus.adBonusUsedCount > 0
+              ? '${bonus.adBonusUsedCount}번 받음'
+              : '$bonusText씩',
+          valueColor: bonus.adBonusUsedCount > 0
+              ? colors.correctText
+              : colors.accentText,
         ),
     ];
     return Row(

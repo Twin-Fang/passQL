@@ -1,7 +1,7 @@
 name: passql_app
 description: "passQL - SQL 학습 앱"
 publish_to: none
-version: 1.94.5+514
+version: 1.96.0+516
 environment:
   sdk: ^3.9.2
 dependencies:
@@ -80,6 +80,7 @@ flutter:
     - .env
     - assets/logo.png
     - assets/logo_dark.png
+    - assets/pro_mark.png
     # 오픈소스 라이선스 화면에 싣는 글꼴 라이선스 (OFL)
     - assets/fonts/D2Coding-OFL.txt
     - assets/fonts/Pretendard-OFL.txt

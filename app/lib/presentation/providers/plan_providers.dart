@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/billing/pro_access_denied_signal.dart';
 import '../../core/network/safe_call.dart';
 import '../../core/utils/app_clock.dart';
+import '../../core/utils/profile_pass_values.dart';
 import '../../data/models/member/ad_bonus_request.dart';
 import '../../data/models/member/member_plan_response.dart';
 import '../../data/sources/api_providers.dart';
@@ -171,6 +172,30 @@ extension MemberPlanDailyUsage on MemberPlanResponse {
       effectiveTodayFreeLimit > 0 &&
       todayRandomSolvedCount >= effectiveTodayFreeLimit;
 }
+
+/// 오늘 받은 보너스 작은 칩 문구 (오늘의 세트 완료·정답, 광고는 받은 문제 합)
+extension DailyFreeBonusChipLabels on DailyFreeBonus {
+  List<String> get chipLabels => bonusQuestionCount <= 0
+      ? const []
+      : [
+          if (isDailySetCompletionEarned) '세트 완료 +$bonusQuestionCount',
+          if (isDailySetAccuracyEarned) '정답 +$bonusQuestionCount',
+          if (adBonusUsedCount > 0)
+            '광고 +${adBonusUsedCount * bonusQuestionCount}',
+        ];
+}
+
+/// 오늘 남은 무료 랜덤 문제 수: 결제 UI 대상 무료 회원이면 값, 프로·결제 꺼짐·등급 모름이면 null
+/// 홈 줄·랜덤 풀이 상단 알약·이후 한도 화면이 같은 값을 읽음 (남은 수 계산 단일 지점)
+final freeRemainingSolvesProvider = Provider.autoDispose<int?>((ref) {
+  if (!ref.watch(shouldShowProUiProvider)) return null;
+  final knownPlan = ref.watch(knownPlanProvider);
+  if (knownPlan == null || knownPlan.effectiveTodayFreeLimit <= 0) return null;
+  return remainingFreeSolves(
+    used: knownPlan.todayRandomSolvedCount,
+    limit: knownPlan.effectiveTodayFreeLimit,
+  );
+});
 
 /// 프로(이용권 보유) 여부. 등급을 모르면 false
 final isProProvider = Provider.autoDispose<bool>(

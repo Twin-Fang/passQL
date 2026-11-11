@@ -100,6 +100,9 @@ public final class AppSettingKeys {
     // app_setting: 같은 종류 알림 재발송 대기 (분)
     public static final String MONITOR_ALERT_COOLDOWN_MINUTES = "monitor.alert.cooldown_minutes";
 
+    // app_setting: 관제소 확인할 일 연동 (true 수집 응답, false GET /control/attention 404, #959)
+    public static final String CONTROL_TOWER_ATTENTION_ENABLED = "control_tower.attention.enabled";
+
     private AppSettingKeys() {
     }
 }

@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../design/design.dart';
 import 'ads/ad_native_strip_slot.dart';
 import 'ads/app_open_ad_on_resume.dart';
-import 'ads/interstitial_ad_preloader.dart';
 import 'app_gate/recommended_update_prompter.dart';
 import 'common/app_lifecycle_refresher.dart';
 import 'notification/notification_permission_prompter.dart';
@@ -52,13 +51,10 @@ class AppShell extends ConsumerWidget {
         extendBody: true,
         // 탭 첫 진입 시 권장 업데이트 안내 1회 (#464)
         // 알림 권한 안내는 홈 첫 진입 후 1회 (앱 자체 시트 > 시스템 창)
-        // 결과 화면 전면 광고는 탭 화면에 들어온 뒤 미리 불러 둠
         // 백그라운드에서 탭 화면으로 돌아오면 앱 오프닝 광고 1회 시도 (#787)
-        body: InterstitialAdPreloader(
-          child: AppOpenAdOnResume(
-            child: NotificationPermissionPrompter(
-              child: RecommendedUpdatePrompter(child: navigationShell),
-            ),
+        body: AppOpenAdOnResume(
+          child: NotificationPermissionPrompter(
+            child: RecommendedUpdatePrompter(child: navigationShell),
           ),
         ),
         // 탭 바 + 아래 한 줄 광고 띠(메인 탭 공통, 실패 시 높이 0). extendBody 라 본문 하단 여백에 띠 높이도 반영

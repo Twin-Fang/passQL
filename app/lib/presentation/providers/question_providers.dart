@@ -339,10 +339,9 @@ class QuestionInteractionNotifier
   }
 
   /// 무료(결제 UI 대상) 제출 성공 > 등급 다시 받기 (홈·설정의 오늘 랜덤 n/10 갱신, 기다리지 않음)
-  /// 생략 2가지: 결제 UI 대상 아님(프로·결제 꺼짐·iOS = 사용량 표시 없음), 이미 한도(더 늘지 않음)
+  /// 생략: 결제 UI 대상 아님(프로·결제 꺼짐·iOS = 사용량 표시 없음). 한도여도 갱신(남은 수·보상 반영)
   void _refreshDailyUsageIfCounted() {
     if (!ref.read(shouldShowProUiProvider)) return;
-    if (ref.read(knownPlanProvider)?.isDailyFreeLimitReached == true) return;
     unawaited(ref.read(planProvider.notifier).refresh());
   }
 
