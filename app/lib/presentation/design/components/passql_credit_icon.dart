@@ -18,6 +18,8 @@ class PassqlCreditIcon extends StatelessWidget {
       _assetPath,
       width: size,
       height: size,
+      // 기본 맞춤(scaleDown)은 에셋 원래 크기(24pt)보다 키우지 않아 큰 자리(보상 창)에서 작게 남음
+      fit: BoxFit.contain,
       excludeFromSemantics: true,
     );
   }

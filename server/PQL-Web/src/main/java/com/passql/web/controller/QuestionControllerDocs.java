@@ -157,6 +157,8 @@ public interface QuestionControllerDocs {
               description = "다른 문제의 선택지 세트 제출 400 QUIZ_SESSION_CHOICE_SET_MISMATCH, 하루 문제 수 제한을 제출에도 적용(403 FREE_DAILY_LIMIT_REACHED·429 FAIR_USE_DAILY_LIMIT_REACHED), 무료 회원 같은 세트 재제출은 rationale 없음"),
       @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 879,
               description = "choiceSetId·selectedChoiceKey 필수(없으면 400 VALIDATION_ERROR), 내린 세트 404 CHOICE_SET_UNAVAILABLE, 비활성 문제 404 QUESTION_NOT_FOUND, 실행 결과를 못 보는 회원은 샌드박스 실행 생략"),
+      @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 999,
+              description = "FULL_EXPLANATION 잠긴 응답에 basicExplanation(정답 보기 저장 근거)·lockedExplanationOutline(상세 해설 섹션 종류·대략 글자 수) 추가"),
   })
   @Operation(summary = "문제 제출",
       description = "선택지 제출 후 정답 여부 + SQL 실행 결과 비교 반환. JWT 인증 필요. " +

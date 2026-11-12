@@ -9,13 +9,9 @@ class OnboardingSlide extends StatelessWidget {
     required this.visual,
     required this.title,
     this.subtitle,
-    this.backdrop,
   });
 
   final Widget visual;
-
-  /// 시각 요소 뒤에 화면 좌우 끝까지 깔리는 장식 (키워드 스티커). 제목·버튼은 가리지 않는다.
-  final Widget? backdrop;
   final String title;
   final String? subtitle;
 
@@ -50,15 +46,6 @@ class OnboardingSlide extends StatelessWidget {
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                if (backdrop != null)
-                  // 좌우 여백 밖(화면 끝)까지 넓혀 스티커가 가장자리에서 잘려 보이게
-                  Positioned(
-                    left: -PassqlSpacing.md,
-                    right: -PassqlSpacing.md,
-                    top: 0,
-                    bottom: 0,
-                    child: backdrop!,
-                  ),
                 // 세로 가운데. 스크롤 뷰로 감싸 카드가 남은 높이를 다 채우지 않고 내용 높이만 차지하게 한다
                 // (작은 화면에서 넘치면 잘림, 넘김은 페이지 스와이프와 겹치지 않게 막음)
                 Positioned.fill(

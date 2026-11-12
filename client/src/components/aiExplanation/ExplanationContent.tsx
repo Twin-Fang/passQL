@@ -78,6 +78,8 @@ interface ExplanationContentProps {
   readonly displayLabelByChoiceKey: DisplayLabelByChoiceKey;
   // 무료(결제 켜짐): 서버가 판정 외 섹션을 비워 보냄 > 판정 아래 잠금 미리보기 (#578)
   readonly isFullExplanationLocked?: boolean;
+  // 무료 기본 해설 (정답 보기 저장 근거): 잠겼을 때 판정 아래 그대로 보임 (#999)
+  readonly basicExplanation?: string | null;
 }
 
 /**
@@ -87,6 +89,7 @@ export default function ExplanationContent({
   explanation,
   displayLabelByChoiceKey,
   isFullExplanationLocked = false,
+  basicExplanation = null,
 }: ExplanationContentProps) {
   const isCorrect = explanation.isSelectedCorrect;
   const correctLabel = toDisplayLabel(displayLabelByChoiceKey, explanation.correctChoiceKey);
@@ -114,6 +117,12 @@ export default function ExplanationContent({
           }`}
         />
       </div>
+
+      {isFullExplanationLocked && basicExplanation?.trim() && (
+        <ExplanationSection title={`정답 ${correctLabel} 근거`} icon={<Target size={13} />}>
+          <InlineMarkdownText text={basicExplanation} className="text-sm leading-relaxed text-text-primary" />
+        </ExplanationSection>
+      )}
 
       {isFullExplanationLocked && <ExplanationLockedPreview />}
 

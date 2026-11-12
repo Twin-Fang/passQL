@@ -36,6 +36,10 @@ mixin _$SubmitResult {
   ChoiceExplanation? get structuredExplanation =>
       throw _privateConstructorUsedError; // 무료 응답에서 뺀 묶음 이름 (EXECUTION_RESULT, FULL_EXPLANATION), 없으면 빈 목록
   List<String> get lockedSections =>
+      throw _privateConstructorUsedError; // 무료 기본 해설: 정답 보기 저장 근거 (FULL_EXPLANATION 잠긴 응답만, #999)
+  String? get basicExplanation =>
+      throw _privateConstructorUsedError; // 잠긴 상세 해설 구성: 섹션 종류·대략 글자 수 (FULL_EXPLANATION 잠긴 응답만, #999)
+  ExplanationOutline? get lockedExplanationOutline =>
       throw _privateConstructorUsedError; // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
   @JsonKey(includeFromJson: false, includeToJson: false)
   String? get choiceSetUuid => throw _privateConstructorUsedError;
@@ -69,6 +73,8 @@ abstract class $SubmitResultCopyWith<$Res> {
     String? explanation,
     ChoiceExplanation? structuredExplanation,
     List<String> lockedSections,
+    String? basicExplanation,
+    ExplanationOutline? lockedExplanationOutline,
     @JsonKey(includeFromJson: false, includeToJson: false)
     String? choiceSetUuid,
   });
@@ -76,6 +82,7 @@ abstract class $SubmitResultCopyWith<$Res> {
   $ExecuteResultCopyWith<$Res>? get selectedResult;
   $ExecuteResultCopyWith<$Res>? get correctResult;
   $ChoiceExplanationCopyWith<$Res>? get structuredExplanation;
+  $ExplanationOutlineCopyWith<$Res>? get lockedExplanationOutline;
 }
 
 /// @nodoc
@@ -104,6 +111,8 @@ class _$SubmitResultCopyWithImpl<$Res, $Val extends SubmitResult>
     Object? explanation = freezed,
     Object? structuredExplanation = freezed,
     Object? lockedSections = null,
+    Object? basicExplanation = freezed,
+    Object? lockedExplanationOutline = freezed,
     Object? choiceSetUuid = freezed,
   }) {
     return _then(
@@ -152,6 +161,14 @@ class _$SubmitResultCopyWithImpl<$Res, $Val extends SubmitResult>
                 ? _value.lockedSections
                 : lockedSections // ignore: cast_nullable_to_non_nullable
                       as List<String>,
+            basicExplanation: freezed == basicExplanation
+                ? _value.basicExplanation
+                : basicExplanation // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            lockedExplanationOutline: freezed == lockedExplanationOutline
+                ? _value.lockedExplanationOutline
+                : lockedExplanationOutline // ignore: cast_nullable_to_non_nullable
+                      as ExplanationOutline?,
             choiceSetUuid: freezed == choiceSetUuid
                 ? _value.choiceSetUuid
                 : choiceSetUuid // ignore: cast_nullable_to_non_nullable
@@ -204,6 +221,22 @@ class _$SubmitResultCopyWithImpl<$Res, $Val extends SubmitResult>
       return _then(_value.copyWith(structuredExplanation: value) as $Val);
     });
   }
+
+  /// Create a copy of SubmitResult
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ExplanationOutlineCopyWith<$Res>? get lockedExplanationOutline {
+    if (_value.lockedExplanationOutline == null) {
+      return null;
+    }
+
+    return $ExplanationOutlineCopyWith<$Res>(_value.lockedExplanationOutline!, (
+      value,
+    ) {
+      return _then(_value.copyWith(lockedExplanationOutline: value) as $Val);
+    });
+  }
 }
 
 /// @nodoc
@@ -227,6 +260,8 @@ abstract class _$$SubmitResultImplCopyWith<$Res>
     String? explanation,
     ChoiceExplanation? structuredExplanation,
     List<String> lockedSections,
+    String? basicExplanation,
+    ExplanationOutline? lockedExplanationOutline,
     @JsonKey(includeFromJson: false, includeToJson: false)
     String? choiceSetUuid,
   });
@@ -237,6 +272,8 @@ abstract class _$$SubmitResultImplCopyWith<$Res>
   $ExecuteResultCopyWith<$Res>? get correctResult;
   @override
   $ChoiceExplanationCopyWith<$Res>? get structuredExplanation;
+  @override
+  $ExplanationOutlineCopyWith<$Res>? get lockedExplanationOutline;
 }
 
 /// @nodoc
@@ -264,6 +301,8 @@ class __$$SubmitResultImplCopyWithImpl<$Res>
     Object? explanation = freezed,
     Object? structuredExplanation = freezed,
     Object? lockedSections = null,
+    Object? basicExplanation = freezed,
+    Object? lockedExplanationOutline = freezed,
     Object? choiceSetUuid = freezed,
   }) {
     return _then(
@@ -312,6 +351,14 @@ class __$$SubmitResultImplCopyWithImpl<$Res>
             ? _value._lockedSections
             : lockedSections // ignore: cast_nullable_to_non_nullable
                   as List<String>,
+        basicExplanation: freezed == basicExplanation
+            ? _value.basicExplanation
+            : basicExplanation // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        lockedExplanationOutline: freezed == lockedExplanationOutline
+            ? _value.lockedExplanationOutline
+            : lockedExplanationOutline // ignore: cast_nullable_to_non_nullable
+                  as ExplanationOutline?,
         choiceSetUuid: freezed == choiceSetUuid
             ? _value.choiceSetUuid
             : choiceSetUuid // ignore: cast_nullable_to_non_nullable
@@ -336,6 +383,8 @@ class _$SubmitResultImpl implements _SubmitResult {
     this.explanation,
     this.structuredExplanation,
     final List<String> lockedSections = const [],
+    this.basicExplanation,
+    this.lockedExplanationOutline,
     @JsonKey(includeFromJson: false, includeToJson: false) this.choiceSetUuid,
   }) : _lockedSections = lockedSections;
 
@@ -376,6 +425,12 @@ class _$SubmitResultImpl implements _SubmitResult {
     return EqualUnmodifiableListView(_lockedSections);
   }
 
+  // 무료 기본 해설: 정답 보기 저장 근거 (FULL_EXPLANATION 잠긴 응답만, #999)
+  @override
+  final String? basicExplanation;
+  // 잠긴 상세 해설 구성: 섹션 종류·대략 글자 수 (FULL_EXPLANATION 잠긴 응답만, #999)
+  @override
+  final ExplanationOutline? lockedExplanationOutline;
   // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -383,7 +438,7 @@ class _$SubmitResultImpl implements _SubmitResult {
 
   @override
   String toString() {
-    return 'SubmitResult(isCorrect: $isCorrect, correctKey: $correctKey, rationale: $rationale, selectedResult: $selectedResult, correctResult: $correctResult, correctSql: $correctSql, selectedSql: $selectedSql, submissionUuid: $submissionUuid, explanation: $explanation, structuredExplanation: $structuredExplanation, lockedSections: $lockedSections, choiceSetUuid: $choiceSetUuid)';
+    return 'SubmitResult(isCorrect: $isCorrect, correctKey: $correctKey, rationale: $rationale, selectedResult: $selectedResult, correctResult: $correctResult, correctSql: $correctSql, selectedSql: $selectedSql, submissionUuid: $submissionUuid, explanation: $explanation, structuredExplanation: $structuredExplanation, lockedSections: $lockedSections, basicExplanation: $basicExplanation, lockedExplanationOutline: $lockedExplanationOutline, choiceSetUuid: $choiceSetUuid)';
   }
 
   @override
@@ -415,6 +470,13 @@ class _$SubmitResultImpl implements _SubmitResult {
               other._lockedSections,
               _lockedSections,
             ) &&
+            (identical(other.basicExplanation, basicExplanation) ||
+                other.basicExplanation == basicExplanation) &&
+            (identical(
+                  other.lockedExplanationOutline,
+                  lockedExplanationOutline,
+                ) ||
+                other.lockedExplanationOutline == lockedExplanationOutline) &&
             (identical(other.choiceSetUuid, choiceSetUuid) ||
                 other.choiceSetUuid == choiceSetUuid));
   }
@@ -434,6 +496,8 @@ class _$SubmitResultImpl implements _SubmitResult {
     explanation,
     structuredExplanation,
     const DeepCollectionEquality().hash(_lockedSections),
+    basicExplanation,
+    lockedExplanationOutline,
     choiceSetUuid,
   );
 
@@ -464,6 +528,8 @@ abstract class _SubmitResult implements SubmitResult {
     final String? explanation,
     final ChoiceExplanation? structuredExplanation,
     final List<String> lockedSections,
+    final String? basicExplanation,
+    final ExplanationOutline? lockedExplanationOutline,
     @JsonKey(includeFromJson: false, includeToJson: false)
     final String? choiceSetUuid,
   }) = _$SubmitResultImpl;
@@ -492,7 +558,11 @@ abstract class _SubmitResult implements SubmitResult {
   @override
   ChoiceExplanation? get structuredExplanation; // 무료 응답에서 뺀 묶음 이름 (EXECUTION_RESULT, FULL_EXPLANATION), 없으면 빈 목록
   @override
-  List<String> get lockedSections; // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
+  List<String> get lockedSections; // 무료 기본 해설: 정답 보기 저장 근거 (FULL_EXPLANATION 잠긴 응답만, #999)
+  @override
+  String? get basicExplanation; // 잠긴 상세 해설 구성: 섹션 종류·대략 글자 수 (FULL_EXPLANATION 잠긴 응답만, #999)
+  @override
+  ExplanationOutline? get lockedExplanationOutline; // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   String? get choiceSetUuid;

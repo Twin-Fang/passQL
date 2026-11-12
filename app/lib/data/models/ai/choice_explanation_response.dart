@@ -3,6 +3,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'choice_explanation.dart';
+import 'explanation_outline.dart';
 
 part 'choice_explanation_response.freezed.dart';
 part 'choice_explanation_response.g.dart';
@@ -36,6 +37,9 @@ class ChoiceExplanationResponse with _$ChoiceExplanationResponse {
     int? promptVersion,
     // 무료 응답에서 뺀 묶음 이름 (FULL_EXPLANATION), 없으면 빈 목록
     @Default([]) List<String> lockedSections,
+    // 무료 기본 해설·잠긴 상세 해설 구성 (FULL_EXPLANATION 잠긴 응답만, #999)
+    String? basicExplanation,
+    ExplanationOutline? lockedExplanationOutline,
   }) = _ChoiceExplanationResponse;
 
   factory ChoiceExplanationResponse.fromJson(Map<String, dynamic> json) =>

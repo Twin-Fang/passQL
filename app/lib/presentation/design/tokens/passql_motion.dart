@@ -69,6 +69,11 @@ abstract final class PassqlMotion {
   // 잠금화면 소개 미니 폰 (#990): 잠금 > 문제 화면 올라옴 한 단계 (이만큼씩 번갈아 반복)
   static const lockScreenIllustrationStep = Duration(milliseconds: 1600);
 
+  // 풀이 상단 칸 진행 바 (#999): 지금 칸 숨쉬기 한 주기
+  static const segmentBreathePeriod = Duration(milliseconds: 1400);
+  // 크레딧 보상 창 연출 전체 (#999): 동전 팝·빛 > 불꽃 > +N > SQL 한 줄 > 기본 게이지 > 보너스 게이지·숫자
+  static const rewardCelebration = Duration(milliseconds: 2100);
+
   static const afterRouteTransitionDelay = Duration(milliseconds: 300);
 
   /// 접근성 "동작 줄이기"가 켜져 있으면 연출을 생략한다.
