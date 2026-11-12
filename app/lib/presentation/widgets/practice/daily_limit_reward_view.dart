@@ -10,6 +10,7 @@ import '../../design/design.dart';
 import '../../providers/plan_providers.dart';
 import '../ads/rewarded_ad_bonus_button.dart';
 import '../pro/pro_offer_sheet.dart';
+import 'credit_balance_header.dart';
 import 'daily_limit_daily_set_card.dart';
 
 // 등급 응답에 값이 없을 때의 수치 (DEC-0239: 기본 한도 10, 보너스 1회 5문제)
@@ -38,12 +39,16 @@ class DailyLimitRewardView extends ConsumerWidget {
   const DailyLimitRewardView({
     super.key,
     required this.onUnlocked,
+    this.canContinueInPlace = false,
     this.onOpenDailySet,
     this.onAdBonusAttemptStarted,
   });
 
   /// 광고 보상 연출을 닫았거나 이용권을 샀을 때 (같은 문제 다시 받기, 시트면 닫기)
   final VoidCallback onUnlocked;
+
+  /// 풀이 화면 본문에서 막힌 경우: 크레딧이 생기면 `이어서 풀기` 를 보임 (시트는 닫으면 되므로 false)
+  final bool canContinueInPlace;
 
   /// 오늘의 세트로 가기 (없으면 [openDailySetFromDailyLimit], 시트는 닫은 뒤 호출 화면에서 열기)
   final VoidCallback? onOpenDailySet;
@@ -77,44 +82,41 @@ class DailyLimitRewardView extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Semantics(
-              header: true,
-              child: Text(
-                // 남은 문제가 있으면(상단 알약으로 연 경우) 남은 수, 없으면 소진 안내
-                hasUnlockedSolves
-                    ? '크레딧 $remainingSolves개 남았어요'
-                    : '오늘 크레딧을\n다 썼어요',
-                style: PassqlTypography.title2.copyWith(color: colors.label),
-              ),
+            // 잔액: 아이콘 + 큰 숫자 + 게이지 (보너스 구간은 초록)
+            CreditBalanceHeader(
+              remainingCount: remainingSolves,
+              baseLimit: dailyFreeLimit,
+              totalLimit: knownPlan?.effectiveTodayFreeLimit ?? dailyFreeLimit,
             ),
             const SizedBox(height: PassqlSpacing.xs),
             PassqlKeepAllText(
-              '랜덤 풀기 1문제에 크레딧 1개를 써요. 내일 0시에 $dailyFreeLimit개가 새로 채워져요.',
-              style: PassqlTypography.subheadline.copyWith(
+              '랜덤 풀기 1문제에 크레딧 1개 · 내일 0시에 $dailyFreeLimit개 충전',
+              style: PassqlTypography.footnote.copyWith(
                 color: colors.secondaryLabel,
               ),
             ),
-            if (hasUnlockedSolves) ...[
+            // 풀이 화면 안에서 막혔다가 크레딧이 생긴 경우에만 그 자리에서 이어 풀기
+            if (canContinueInPlace && hasUnlockedSolves) ...[
               const SizedBox(height: PassqlSpacing.md),
               PassqlButton(
                 key: const Key('daily-limit-continue-solving'),
                 label: '이어서 풀기',
+                variant: PassqlButtonVariant.tinted,
                 onPressed: onUnlocked,
               ),
             ],
+            // 이용권이 주 버튼 (화면의 유일한 채운 버튼)
+            const SizedBox(height: PassqlSpacing.md),
+            PassqlButton(
+              label: 'PRO로 광고 없이 제한 없이 풀기',
+              onPressed: () => _openPassSheet(context, ref),
+            ),
             const SizedBox(height: PassqlSpacing.md),
             _AdBonusCard(
               bonusQuestionCount: bonusQuestionCount,
               onBonusGranted: () =>
                   _celebrateAdBonus(context, ref, bonusQuestionCount),
               onBonusAttemptStarted: onAdBonusAttemptStarted,
-            ),
-            // 이용권: 광고 버튼 바로 아래 같은 폭·같은 크기 (#966)
-            const SizedBox(height: PassqlSpacing.xs),
-            PassqlButton(
-              label: 'PRO로 광고 없이 제한 없이 풀기',
-              variant: PassqlButtonVariant.tinted,
-              onPressed: () => _openPassSheet(context, ref),
             ),
             const SizedBox(height: PassqlSpacing.md),
             DailyLimitDailySetCard(

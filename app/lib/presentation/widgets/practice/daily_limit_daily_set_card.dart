@@ -90,14 +90,17 @@ class DailyLimitDailySetCard extends StatelessWidget {
   }
 }
 
+// 오늘 못 받게 된 보너스의 크레딧 수 흐림 정도
+const double _missedOpacity = 0.5;
+
 /// 세트 보너스 한 줄 상태 3종
 enum _BonusRowState {
-  obtainable, // 아직 받을 수 있음: 크레딧 +N
-  earned, // 받았어요
-  missed, // 세트를 끝냈지만 못 받음: 오늘은 받지 못했어요
+  obtainable, // 아직 받을 수 있음: 빈 원 + 강조색 크레딧 수
+  earned, // 받음: 초록 체크 + 초록 크레딧 수
+  missed, // 세트를 끝냈지만 못 받음: 회색 빼기 + 흐린 줄 그은 크레딧 수
 }
 
-/// 세트 보너스 한 줄: 상태 표시(빈 원·초록 체크·회색 빼기) + 조건 + 오른쪽 크레딧 수(받을 수 있음) 또는 상태 문구
+/// 세트 보너스 한 줄: 상태 아이콘(빈 원·초록 체크·회색 빼기) + 조건 + 오른쪽 크레딧 수 (상태는 글자 대신 아이콘·색으로)
 class _DailySetBonusRow extends StatelessWidget {
   const _DailySetBonusRow({
     required this.label,
@@ -134,8 +137,10 @@ class _DailySetBonusRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: PassqlSpacing.xs),
-        switch (state) {
-          _BonusRowState.obtainable => Row(
+        // 오른쪽은 늘 크레딧 수: 받을 수 있음 강조색, 받음 초록, 못 받음 흐리게 줄 그음
+        Opacity(
+          opacity: state == _BonusRowState.missed ? _missedOpacity : 1,
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               const PassqlCreditIcon(),
@@ -143,24 +148,19 @@ class _DailySetBonusRow extends StatelessWidget {
               Text(
                 '+$bonusQuestionCount',
                 style: PassqlTypography.subheadlineSemibold.copyWith(
-                  color: colors.accentText,
+                  color: switch (state) {
+                    _BonusRowState.obtainable => colors.accentText,
+                    _BonusRowState.earned => colors.correctText,
+                    _BonusRowState.missed => colors.secondaryLabel,
+                  },
+                  decoration: state == _BonusRowState.missed
+                      ? TextDecoration.lineThrough
+                      : null,
                 ),
               ),
             ],
           ),
-          _BonusRowState.earned => Text(
-            '받았어요',
-            style: PassqlTypography.footnoteSemibold.copyWith(
-              color: colors.correctText,
-            ),
-          ),
-          _BonusRowState.missed => Text(
-            '오늘은 못 받았어요',
-            style: PassqlTypography.footnote.copyWith(
-              color: colors.secondaryLabel,
-            ),
-          ),
-        },
+        ),
       ],
     );
   }

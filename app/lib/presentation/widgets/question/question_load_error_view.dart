@@ -36,7 +36,10 @@ class QuestionLoadErrorView extends ConsumerWidget {
     final exception = error.asAppException;
     final shouldShowProUi = ref.watch(shouldShowProUiProvider);
     if (shouldShowProUi && isFreeDailyLimitError(error)) {
-      return DailyLimitRewardView(onUnlocked: onRetry);
+      return DailyLimitRewardView(
+        onUnlocked: onRetry,
+        canContinueInPlace: true,
+      );
     }
     final (
       IconData? icon,
