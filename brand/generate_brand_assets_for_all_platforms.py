@@ -21,10 +21,17 @@ from brand_color_consistency import find_brand_color_mismatches, load_brand_colo
 BRAND_DIRECTORY = Path(__file__).resolve().parent
 REPOSITORY_ROOT = BRAND_DIRECTORY.parent
 
-# 이미지 원본 3개: 가로 로고(투명), 앱 아이콘, 적응형 아이콘 전경 (색 원본 brand-colors.json 은 brand_color_consistency.py 에서 읽음)
+# 이미지 원본 4개: 가로 로고(투명), 앱 아이콘, 적응형 아이콘 전경, 크레딧 아이콘(투명) (색 원본 brand-colors.json 은 brand_color_consistency.py 에서 읽음)
 SOURCE_LOGO_HORIZONTAL = BRAND_DIRECTORY / "logo_horizontal.png"
 SOURCE_APP_ICON = BRAND_DIRECTORY / "app_icon_1024.png"
 SOURCE_APP_ICON_ADAPTIVE_FOREGROUND = BRAND_DIRECTORY / "app_icon_adaptive_foreground.png"
+SOURCE_CREDIT_ICON = BRAND_DIRECTORY / "credit_icon_1024.png"
+
+# 크레딧 아이콘 앱 사본: 1배 기준 96px (가장 큰 표시 = 보상 창 80pt, 3배 288px 로 선명하게, #999)
+CREDIT_ICON_BASE_PIXELS = 96
+FLUTTER_ASSET_SCALE_DIRECTORIES = {1: "app/assets", 2: "app/assets/2.0x", 3: "app/assets/3.0x"}
+# 투명 여백 잘라낸 뒤 사방 여백 비율 (작은 알약 16pt 에서도 꽉 차 보이게)
+CREDIT_ICON_PADDING_RATIO = 0.03
 
 # 다크 로고 변환 기준 (#453): 어두운 무채색 글자만 흰색, 그라데이션 QL 은 유지
 DARK_LOGO_MAXIMUM_BRIGHTNESS = 120
@@ -124,6 +131,16 @@ def build_square_icon(size_pixels: int) -> Image.Image:
     return Image.open(SOURCE_APP_ICON).convert("RGB").resize((size_pixels, size_pixels), Image.Resampling.LANCZOS)
 
 
+def build_credit_icon(size_pixels: int) -> Image.Image:
+    """크레딧 아이콘 원본 > 투명 여백 잘라냄 > 정사각 + 작은 여백 > 목표 크기"""
+    source = Image.open(SOURCE_CREDIT_ICON).convert("RGBA")
+    cropped = source.crop(source.getchannel("A").getbbox())
+    side = round(max(cropped.size) * (1 + CREDIT_ICON_PADDING_RATIO * 2))
+    canvas = Image.new("RGBA", (side, side), (0, 0, 0, 0))
+    canvas.paste(cropped, ((side - cropped.width) // 2, (side - cropped.height) // 2), cropped)
+    return canvas.resize((size_pixels, size_pixels), Image.Resampling.LANCZOS)
+
+
 def build_largest_server_favicon() -> Image.Image:
     # ICO 저장 시 이 이미지에서 SERVER_FAVICON_SIZES_PIXELS 크기들을 함께 축소해 담음
     return build_square_icon(max(width for width, _ in SERVER_FAVICON_SIZES_PIXELS))
@@ -167,6 +184,11 @@ def list_brand_asset_copies() -> list[BrandAssetCopy]:
                        build_image=build_largest_server_favicon, image_format="ICO"),
         BrandAssetCopy(f"{IOS_LAUNCH_IMAGE_DIRECTORY}/Contents.json", build_text=build_ios_launch_image_contents_json),
     ]
+
+    # 크레딧 아이콘 앱 사본 (1·2·3배, PassqlCreditIcon 만 사용)
+    for scale, directory in FLUTTER_ASSET_SCALE_DIRECTORIES.items():
+        copies.append(BrandAssetCopy(f"{directory}/credit.png",
+                                     build_image=lambda s=CREDIT_ICON_BASE_PIXELS * scale: build_credit_icon(s)))
 
     # iOS 시작 화면 로고 (라이트·다크 x 1·2·3배)
     for scale, suffix in IOS_SCALE_SUFFIXES.items():

@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../tokens/passql_icon_size.dart';
 
-/// 크레딧 아이콘 (#971): 인디고 동전 모양 (투명 배경). 옆 글자가 뜻을 읽어 주므로 스크린리더에서는 제외
+/// 크레딧 아이콘 (#971, #999): 3D 둥근 사각 젬 + 번개 (투명 배경, 원본 brand/credit_icon_1024.png). 옆 글자가 뜻을 읽어 주므로 스크린리더에서는 제외
 /// 크레딧 에셋은 이 부품만 부름
 class PassqlCreditIcon extends StatelessWidget {
   const PassqlCreditIcon({super.key, this.size = PassqlIconSize.sm});
