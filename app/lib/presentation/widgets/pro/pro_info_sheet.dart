@@ -193,10 +193,7 @@ class _ProInfoSheetBodyState extends ConsumerState<_ProInfoSheetBody> {
               PassqlPassTicketField('수험생', nickname),
               if (daysLeft != null) PassqlPassTicketField('남은 날', '$daysLeft일'),
               if (examDate != null)
-                PassqlPassTicketField(
-                  '시험일',
-                  '${examDate.month.toString().padLeft(2, '0')}.${examDate.day.toString().padLeft(2, '0')}',
-                ),
+                PassqlPassTicketField('시험일', formatDottedMonthDay(examDate)),
             ],
             benefitIcons: [for (final benefit in benefits) benefit.icon],
             stubLabel: '사용 중',

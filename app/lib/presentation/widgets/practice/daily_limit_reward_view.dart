@@ -9,6 +9,7 @@ import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
 import '../../providers/plan_providers.dart';
 import '../ads/rewarded_ad_bonus_button.dart';
+import '../pro/pro_access_feedback.dart';
 import '../pro/pro_offer_sheet.dart';
 import 'credit_balance_header.dart';
 import 'credit_exhausted_query.dart';
@@ -97,9 +98,8 @@ class DailyLimitRewardView extends ConsumerWidget {
             const SizedBox(height: PassqlSpacing.xs),
             // 0개면 충전 시각은 제목 아래에 이미 있음
             PassqlKeepAllText(
-              remainingSolves == 0
-                  ? '랜덤 풀기 1문제에 크레딧 1개'
-                  : '랜덤 풀기 1문제에 크레딧 1개 · 내일 0시에 $dailyFreeLimit개 충전',
+              '랜덤 풀기 1문제에 크레딧 1개'
+              '${remainingSolves == 0 ? '' : ' · 내일 0시에 $dailyFreeLimit개 충전'}',
               style: PassqlTypography.footnote.copyWith(
                 color: colors.secondaryLabel,
               ),
@@ -192,7 +192,7 @@ class _CreditSheetTitle extends StatelessWidget {
               child: Semantics(
                 header: true,
                 child: Text(
-                  isCreditsExhausted ? '오늘 크레딧을 다 썼어요' : '오늘 크레딧',
+                  isCreditsExhausted ? freeDailyLimitReason : '오늘 크레딧',
                   style: PassqlTypography.headline.copyWith(
                     color: colors.label,
                   ),

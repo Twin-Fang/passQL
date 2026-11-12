@@ -23,7 +23,7 @@ import static org.springframework.util.StringUtils.hasText;
 /**
  * 응답 일부 빼기 단일 지점: 제출 응답, 선택지 해설 응답, 모의고사 결과에서 무료 회원 몫이 아닌 묶음 제거 > lockedSections 표시
  * 무료: 판정 한 줄·정답 여부·정답 키·기본 해설(정답 보기 근거)·상세 해설 구성 유지, 고른 보기 근거는 세트 첫 제출만 (#999)
- * 프로(결제 꺼짐 포함)·오늘의 세트 문제(#992)는 원본 그대로
+ * 프로(결제 꺼짐 포함)·오늘의 세트 문제(제출·해설, #992)는 원본 그대로
  */
 @Component
 @RequiredArgsConstructor

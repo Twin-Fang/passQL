@@ -2,7 +2,7 @@
 type: cluster
 topic: home
 created: 2026-10-29
-members: 71
+members: 72
 status: active
 related: []
 ---
@@ -41,6 +41,7 @@ related: []
 - [[DEC-0167-five-tabs-with-text-labels]] → DEC-0171
 
 ## 관련 이슈
+- [[ISS-0497-ui-ux-cleanup-18]] (resolved, #993): 다음에 할 일과 구간 버튼 중복 제거
 - [[ISS-0495-welcome-guide-3d-illustration]] (resolved, GitHub #985, PR #986): 환영 안내 손 아이콘 > 3D 일러스트
 - [[ISS-0493-first-launch-push-prompt-common-sense-fixes]] (resolved, GitHub #980, PR #981): 첫 실행 알림 안내 없음, 결과 화면 번호뿐인 목록, 크레딧 0일 때 홈 광고 권유
 - [[ISS-0491-first-run-guide-home-next-step]] (resolved, GitHub #975): 첫 화면·홈에 차별점과 지금 할 일이 없음, 무료 회원 안내 구간 없음

@@ -54,9 +54,10 @@ class ProfileAccountRow extends StatelessWidget {
     if (hasError) {
       return PassqlPressable(
         onTap: onRetry,
-        semanticLabel: '정보를 불러오지 못했어요, 다시 시도',
+        semanticLabel:
+            '${PassqlLoadFailureCopy.messageOf('정보를')}, ${PassqlLoadFailureCopy.retryLabel}',
         child: Text(
-          '정보를 불러오지 못했어요 · 다시 시도',
+          '${PassqlLoadFailureCopy.messageOf('정보를')} · ${PassqlLoadFailureCopy.retryLabel}',
           style: PassqlTypography.footnote.copyWith(
             color: colors.secondaryLabel,
           ),
