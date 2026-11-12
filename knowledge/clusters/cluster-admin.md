@@ -2,7 +2,7 @@
 type: cluster
 topic: admin
 created: 2026-10-29
-members: 101
+members: 105
 status: active
 related: []
 ---
@@ -13,9 +13,11 @@ related: []
 관리자 Thymeleaf 화면과 관리자 API.
 
 ## 현재 상태 요약
-(2026-11-07) 관리자 화면의 변경 요청은 `layout.html` 공통 fetch 래퍼를 거친다 — [[DEC-0008-admin-csrf-common-fetch-wrapper]]. 프롬프트 키는 `PromptKey` 원본에서 목록을 만들고 수정 때 키를 바꿀 수 없다 — [[DEC-0265-prompt-key-enum-single-source]]. 모의고사 회차는 `/admin/mock-exams` 에서 자동 구성·검수·공개한다 — [[DEC-0264-mock-exam-fixed-rounds-server-judged]]. 문제 등록 선택지 정책 목록(`CURATED_ONLY`·`RESULT_MATCH` 포함)과 설정 카테고리는 단일 원본에서 읽는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 관리자 `/admin/question-format`에서 문항 형식 위반을 사유별로 보고 자동 정리를 미리보기한 뒤 선택 적용한다: [[ISS-0474-question-format-rule-forbidden-punctuation]] (#905, 운영 배포). 지문 표 자동 정리 적용은 #903 앱 보급과 최소 버전 상향 뒤: [[DEC-0279-stem-table-data-cleanup-after-min-version]] (#923 열림). 관리자 전역 검색은 UUID·회원 번호(PQL-)·`@` 이메일·닉네임을 검색어 모양으로 가른다 — [[DEC-0281-admin-search-at-sign-routes-email]].
+(2026-11-12) 관리자 화면의 변경 요청은 `layout.html` 공통 fetch 래퍼를 거친다 — [[DEC-0008-admin-csrf-common-fetch-wrapper]]. 프롬프트 키는 `PromptKey` 원본에서 목록을 만들고 수정 때 키를 바꿀 수 없다 — [[DEC-0265-prompt-key-enum-single-source]]. 모의고사 회차는 `/admin/mock-exams` 에서 자동 구성·검수·공개한다 — [[DEC-0264-mock-exam-fixed-rounds-server-judged]]. 문제 등록 선택지 정책 목록(`CURATED_ONLY`·`RESULT_MATCH` 포함)과 설정 카테고리는 단일 원본에서 읽는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 관리자 `/admin/question-format`에서 문항 형식 위반을 사유별로 보고 자동 정리를 미리보기한 뒤 선택 적용한다: [[ISS-0474-question-format-rule-forbidden-punctuation]] (#905, 운영 배포). 지문 표 자동 정리 적용은 #903 앱 보급과 최소 버전 상향 뒤: [[DEC-0279-stem-table-data-cleanup-after-min-version]] (#923 열림). 관리자 전역 검색은 UUID·회원 번호(PQL-)·`@` 이메일·닉네임을 검색어 모양으로 가른다 — [[DEC-0281-admin-search-at-sign-routes-email]]. (2026-11-12) 시험 일정은 공식 페이지 자동 수집으로 바뀌었고 관리자 시험 일정 화면에 수집 상태·지금 수집·실패 경고가 있다 — [[DEC-0293-exam-schedule-rule-based-auto-sync]](DEC-0108 대체). `/admin/subscriptions`는 결제 관리 탭 5개(실수령액·결제 목록·환불 점검·알림 기록·요약) — [[ISS-0509-admin-billing-payout-app-store-refund-check]], 실수령액 가정은 [[DEC-0296-payout-estimate-krw-vat-fee-settings]].
 
 ## 활성 결정
+- [[DEC-0293-exam-schedule-rule-based-auto-sync]] — SQLD 시험 일정은 공식 페이지를 규칙 기반으로 매일 자동 수집, 해석 이상이면 덮어쓰지 않음, 수동 입력은 대체 (#991, DEC-0108 대체)
+- [[DEC-0296-payout-estimate-krw-vat-fee-settings]] — 관리자 실수령액은 원화 부가세 10% 포함 가정·스토어 수수료 15%를 뺀 추정치, 요율은 설정값 (#1032)
 - [[DEC-0281-admin-search-at-sign-routes-email]] — 관리자 전역 검색은 칸 하나, 검색어 모양으로 UUID > 회원 번호 > @ 이메일 > 닉네임
 - [[DEC-0008-admin-csrf-common-fetch-wrapper]] — 관리자 CSRF 헤더는 화면별이 아니라 `layout.html` 공통 fetch 래퍼에서 붙인다
 - [[DEC-0011-code-freeze-tunables-via-admin]] — 코드 프리즈 이후 모든 가변 설정·콘텐츠 변경은 DB/관리자 UI(`app_setting`) 경유
@@ -25,7 +27,6 @@ related: []
 - [[DEC-0067-short-meaningful-table-names]] — 문제 스키마 테이블 이름은 시험 회차·번호 대신 짧고 의미 있는 이름으로
 - [[DEC-0082-legal-table-separate-from-app-setting]] — 약관(이용약관·개인정보처리방침)은 `AppSetting`이 아닌 독립 `legal` 테이블에서 관리한다
 - [[DEC-0107-sensitive-key-suffix-match]] — 설정 키 민감 판정은 `. _ -`로 나눈 조각이 민감 단어로 끝날 때만
-- [[DEC-0108-exam-schedule-manual-entry-with-checks]] — 시험 일정은 자동 추가하지 않고 관리자가 공식 공고를 보고 넣는다 — 관리자 화면이 확인 시점을 알린다
 - [[DEC-0127-question-delete-as-deactivation]] — 관리자 문제 삭제(단건·일괄)는 `isActive` 비활성화로 하고 영구 삭제는 없앤다
 - [[DEC-0130-admin-accounts-roles-lockout-rate-limit]] — 관리자 계정은 `admin_account` 테이블(ADMIN/VIEWER), yml 기본 계정은 시드·폴백으로 유지, 로그인 잠금과 인메모리 요청 제한
 - [[DEC-0131-member-notification-inbox-single-entry]] — 회원 알림함은 `알림`/`공지` 두 탭, 생성 입구는 `MemberNotificationService` 하나, 일반 알림 90일 보관, 웹 브라우저 푸시는 하지 않음
@@ -37,6 +38,7 @@ related: []
 - [[DEC-0279-stem-table-data-cleanup-after-min-version]]: 운영 지문 표 자동 정리는 #903 앱이 두 스토어에 나오고 최소 지원 버전을 올린 뒤 적용, 그 전까지 데이터 그대로 (#905, #923)
 
 ## 대체된 결정 (역사)
+- [[DEC-0108-exam-schedule-manual-entry-with-checks]] → DEC-0293
 - [[DEC-0026-sensitive-settings-masked-readonly]] → DEC-0107
 - [[DEC-0036-cross-domain-delete-service-in-web]] → null
 - [[DEC-0037-question-hard-delete-cascade]] → DEC-0127
@@ -44,6 +46,8 @@ related: []
 - [[DEC-0081-admin-session-chain-yml-account]] → DEC-0130
 
 ## 관련 이슈
+- [[ISS-0506-sqld-exam-schedule-auto-sync]] (resolved, #991, PR #1025): SQLD 시험 일정 자동 수집, 앱 시험 일정 화면, 접수·발표 자동 알림 5종(운영 켬)
+- [[ISS-0509-admin-billing-payout-app-store-refund-check]] (resolved, #1032, PR #1033): 관리자 결제 관리(실수령액·결제 목록·App Store 환불 점검·알림 기록)
 - [[ISS-0494-play-refund-without-revoke-not-reclaimed]] (resolved, GitHub #984, PR #987): 구독·매출 현황에 환불 회수 확인 기록과 지금 확인 버튼
 - [[ISS-0483-admin-search-email]] (resolved, GitHub #934): 관리자 전역 검색 이메일 일부 일치(@ 포함 검색어)
 - [[ISS-0482-admin-search-member-code]] (resolved, GitHub #929): 관리자 전역 검색 회원 번호 지원, 첫 배포 500(JPA as() 형변환 없음 > text())

@@ -2,7 +2,7 @@
 type: cluster
 topic: home
 created: 2026-10-29
-members: 72
+members: 73
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 홈 화면·추천
 
 ## 현재 상태 요약
-(2026-10-29, 자동 생성) 활성 결정 21개, 열린 이슈 0개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 홈 상단 바는 로고 + 시험 D-day 배지와 크레딧 알약, 오늘의 세트와 랜덤 풀기는 별도 구간 — [[ISS-0489-pass-sheet-home-profile-cleanup]], [[ISS-0490-credit-term-purchase-funnel-events]].
+(2026-11-12, 자동 생성) 활성 결정 21개, 열린 이슈 0개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 홈 상단 바는 로고 + 시험 D-day 배지와 크레딧 알약, 오늘의 세트와 랜덤 풀기는 별도 구간 — [[ISS-0489-pass-sheet-home-profile-cleanup]], [[ISS-0490-credit-term-purchase-funnel-events]]. (2026-11-12) 홈 시험 D-day 배지에 지금 단계 한 줄이 붙고 누르면 시험 일정 화면으로 간다 — [[ISS-0506-sqld-exam-schedule-auto-sync]].
 
 ## 활성 결정
 - [[DEC-0034-greeting-nickname-template-message-type]] — 인사말 응답은 `nickname`·`{nickname}` 템플릿·`messageType`으로 나누고, 이모지·아이콘은 프론트가 정한다
@@ -41,6 +41,7 @@ related: []
 - [[DEC-0167-five-tabs-with-text-labels]] → DEC-0171
 
 ## 관련 이슈
+- [[ISS-0506-sqld-exam-schedule-auto-sync]] (resolved, #991, PR #1025): SQLD 시험 일정 자동 수집, 앱 시험 일정 화면, 접수·발표 자동 알림 5종(운영 켬)
 - [[ISS-0497-ui-ux-cleanup-18]] (resolved, #993): 다음에 할 일과 구간 버튼 중복 제거
 - [[ISS-0495-welcome-guide-3d-illustration]] (resolved, GitHub #985, PR #986): 환영 안내 손 아이콘 > 3D 일러스트
 - [[ISS-0493-first-launch-push-prompt-common-sense-fixes]] (resolved, GitHub #980, PR #981): 첫 실행 알림 안내 없음, 결과 화면 번호뿐인 목록, 크레딧 0일 때 홈 광고 권유
