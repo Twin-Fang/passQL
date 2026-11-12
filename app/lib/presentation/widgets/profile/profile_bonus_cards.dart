@@ -54,7 +54,7 @@ class ProfileBonusCards extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          '문제 더 받기',
+          '크레딧 더 받기',
           style: PassqlTypography.footnoteSemibold.copyWith(
             color: context.passqlColors.secondaryLabel,
           ),
@@ -90,7 +90,7 @@ class _BonusCard extends StatelessWidget {
   final String label;
   final String valueText;
 
-  /// 아직 안 받았을 때(또는 광고) 아래 한 줄. 받은 뒤에는 `받았어요`
+  /// 아직 안 받았을 때(또는 광고) 아래 한 줄. 받은 뒤에는 글자 없이 초록 체크만
   final String captionWhenAvailable;
   final _BonusCardState state;
 
@@ -126,11 +126,13 @@ class _BonusCard extends StatelessWidget {
         colors.accentText,
       ),
     };
-    final caption = state == _BonusCardState.earned
-        ? '받았어요'
-        : captionWhenAvailable;
+    // 받은 카드는 초록 체크가 상태를 말함 (글자 없음, 줄 높이만 유지)
+    final isEarned = state == _BonusCardState.earned;
+    final caption = isEarned ? ' ' : captionWhenAvailable;
     return Semantics(
-      label: '$label, $valueText문제, $caption',
+      label: isEarned
+          ? '$label, 크레딧 $valueText 받음'
+          : '$label, 크레딧 $valueText, $caption',
       excludeSemantics: true,
       child: Container(
         padding: const EdgeInsets.symmetric(

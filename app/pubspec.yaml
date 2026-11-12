@@ -81,6 +81,7 @@ flutter:
     - assets/logo.png
     - assets/logo_dark.png
     - assets/pro_mark.png
+    - assets/credit.png
     # 오픈소스 라이선스 화면에 싣는 글꼴 라이선스 (OFL)
     - assets/fonts/D2Coding-OFL.txt
     - assets/fonts/Pretendard-OFL.txt

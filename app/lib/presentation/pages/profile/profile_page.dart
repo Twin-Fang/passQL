@@ -12,9 +12,10 @@ import '../../providers/plan_providers.dart';
 import '../../providers/stats_providers.dart';
 import '../../widgets/ads/ad_inline_card.dart';
 import '../../widgets/common/app_toast.dart';
-import '../../widgets/profile/accuracy_detail_locked_section.dart';
+import '../../widgets/profile/profile_pro_analysis_locked_section.dart';
 import '../../widgets/profile/difficulty_accuracy_section.dart';
 import '../../widgets/profile/profile_mock_exam_trend_section.dart';
+import '../../widgets/profile/profile_plan_section.dart';
 import '../../widgets/profile/profile_status_section.dart';
 import '../../widgets/profile/study_record_section.dart';
 import '../../widgets/profile/study_time_pattern_section.dart';
@@ -107,25 +108,34 @@ class _StatsContent extends StatelessWidget {
         accuracyDetail?.difficultyStats.isNotEmpty ?? false;
     final sections = <Widget>[
       ProfileStatusSection(progress: progress),
-      // AI 분석은 스스로 앞 띠를 두고, 없으면 띠째 접힌다
-      if (hasRecords) const _StatsAiCommentSection(),
-      if (hasRecords) ...[
-        const PassqlSectionGap(),
-        TopicAccuracySection(
-          topicStats: data.topicAnalysis?.topicStats,
-          isLocked: isAnalysisLocked,
-        ),
+      // 크레딧·이용권 구간 (스스로 앞 띠, 결제 꺼짐이면 없음)
+      const ProfilePlanSection(),
+      // 광고 1칸: 이용권 구간 바로 아래 (뜬 때만 앞 띠 + 구간, 맨 아래에 두면 거의 안 보임, #971)
+      const AdInlineCard(placement: AdPlacement.bannerStats, isSection: true),
+      // 무료(결제 켜짐): 볼 수 있는 구간 먼저, 프로 분석은 맨 아래 한 칸으로 모음 (#971)
+      if (hasRecords && isAnalysisLocked) ...[
         if (studyPattern != null) ...[
           const PassqlSectionGap(),
           StudyRecordSection(studyPattern: studyPattern),
           const PassqlSectionGap(),
           StudyTimePatternSection(studyPattern: studyPattern),
         ],
-        // 프로 묶음: 무료(결제 켜짐)는 잠금 한 칸, 프로는 응답 있을 때만 두 구간
-        if (isAnalysisLocked) ...[
+        const PassqlSectionGap(),
+        const ProfileProAnalysisLockedSection(),
+      ],
+      // 프로·결제 꺼짐: AI 분석은 스스로 앞 띠를 두고, 없으면 띠째 접힌다
+      if (hasRecords && !isAnalysisLocked) ...[
+        const _StatsAiCommentSection(),
+        const PassqlSectionGap(),
+        TopicAccuracySection(topicStats: data.topicAnalysis?.topicStats),
+        if (studyPattern != null) ...[
           const PassqlSectionGap(),
-          const AccuracyDetailLockedSection(),
-        ] else if (accuracyDetail != null) ...[
+          StudyRecordSection(studyPattern: studyPattern),
+          const PassqlSectionGap(),
+          StudyTimePatternSection(studyPattern: studyPattern),
+        ],
+        // 응답 있을 때만 두 구간
+        if (accuracyDetail != null) ...[
           if (hasDifficultyStats) ...[
             const PassqlSectionGap(),
             DifficultyAccuracySection(
@@ -136,7 +146,7 @@ class _StatsContent extends StatelessWidget {
           WrongNoteProgressSection(accuracyDetail: accuracyDetail),
         ],
         // 모의고사 추이는 스스로 앞 띠를 두고, 기록이 없으면 띠째 없음
-        if (!isAnalysisLocked) const ProfileMockExamTrendSection(),
+        const ProfileMockExamTrendSection(),
       ],
     ];
 
@@ -146,14 +156,12 @@ class _StatsContent extends StatelessWidget {
         const PassqlSectionGap(),
         for (var index = 0; index < sections.length; index++)
           PassqlReveal(index: index, child: sections[index]),
-        // 콘텐츠 맨 아래 광고 1칸 (뜬 때만 앞 띠 + 구간, 홈과 같은 방식)
-        const AdInlineCard(placement: AdPlacement.bannerStats, isSection: true),
       ],
     );
   }
 }
 
-/// AI 코멘트 자리: 무료(결제 켜짐)면 잠금 자리, 기다리는 동안 스켈레톤, 오면 구간으로 교체, 실패하면 다시 시도 자리, 없으면 앞 띠와 함께 접힘
+/// AI 코멘트 자리 (프로·결제 꺼짐만, 무료 잠금은 맨 아래 프로 분석 한 칸): 기다리는 동안 스켈레톤, 오면 구간으로 교체, 실패하면 다시 시도 자리, 없으면 앞 띠와 함께 접힘
 class _StatsAiCommentSection extends ConsumerWidget {
   const _StatsAiCommentSection();
 
@@ -162,9 +170,7 @@ class _StatsAiCommentSection extends ConsumerWidget {
     final aiCommentAsync = ref.watch(statsAiCommentProvider);
     final aiComment = aiCommentAsync.value;
     final Widget content;
-    if (ref.watch(shouldShowProUiProvider)) {
-      content = const AiAnalysisLockedSection(key: ValueKey('locked'));
-    } else if (aiCommentAsync.isLoading && aiComment == null) {
+    if (aiCommentAsync.isLoading && aiComment == null) {
       content = const AiAnalysisCardSkeleton(key: ValueKey('loading'));
     } else if (aiCommentAsync.hasError && aiComment == null) {
       content = AiAnalysisErrorSection(

@@ -9,7 +9,7 @@ import '../practice/daily_limit_reward_sheet.dart';
 import 'pro_offer_sheet.dart';
 
 /// 무료 하루 한도 사유 한 줄 (한도 화면 제목, 시트 이유 첫 줄)
-const String freeDailyLimitReason = '오늘 무료 문제를 다 풀었어요';
+const String freeDailyLimitReason = '오늘 크레딧을 다 썼어요';
 
 /// 무료 하루 한도가 다시 열리는 때 (KST 0시, 스펙 §3)
 const String freeDailyLimitResetNotice = '내일 0시에 다시 열려요';

@@ -7,7 +7,7 @@ import '../practice/remaining_solves_pill.dart';
 ///
 /// [닫기] | N / total | [topicName 뱃지]
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 진행 막대
-/// 연속 흐름([isContinuous])은 `N번째 문제`, 진행 막대 없음 (#963)
+/// 연속 흐름([isContinuous])은 제목이 흐름 이름(랜덤 풀기), 오른쪽은 해설함 + 크레딧 알약만, 진행 막대 없음 (#963, #971)
 class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String topicName;
   final int currentIndex;
@@ -22,10 +22,10 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// 토픽 뱃지 왼쪽 보조 버튼 (해설함 등)
   final Widget? accessory;
 
-  /// 랜덤 풀이면 남은 문제 수 알약을 보조 버튼 옆에 붙임 (무료·결제 켜짐일 때만 그려짐)
+  /// 랜덤 풀이면 크레딧 알약(아이콘 + 숫자)을 보조 버튼 옆에 붙임 (무료·결제 켜짐일 때만 그려짐)
   final bool shouldShowRemainingSolves;
 
-  /// 끝없이 이어 푸는 흐름: 제목 `N번째 문제`, 진행 막대 숨김
+  /// 끝없이 이어 푸는 흐름: 제목은 흐름 이름(몇 번째인지는 의미가 없어 적지 않음), 진행 막대 숨김
   final bool isContinuous;
 
   /// 닫기 동작 대체 (있으면 확인 창 없이 이것만 호출, 연속 흐름의 요약 이동)
@@ -61,9 +61,7 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         PassqlNavBar(
-          title: isContinuous
-              ? '${currentIndex + 1}번째 문제'
-              : '${currentIndex + 1} / $total',
+          title: isContinuous ? topicName : '${currentIndex + 1} / $total',
           leading: PassqlNavLeading.close,
           onLeadingTap: () async {
             final onExit = this.onExit;
@@ -71,17 +69,16 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
             if (shouldConfirmExit && !await confirmChapterExit(context)) return;
             if (context.mounted) leaveSolvingFlow(context);
           },
-          // 토픽 이름은 보조 정보라 오른쪽 작은 뱃지로 둔다.
-          trailing: accessory == null && !shouldShowRemainingSolves
-              ? PassqlBadge(text: topicName)
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ?accessory,
-                    if (shouldShowRemainingSolves) const RemainingSolvesPill(),
-                    Flexible(child: PassqlBadge(text: topicName)),
-                  ],
-                ),
+          // 토픽 이름은 보조 정보라 오른쪽 작은 뱃지로 둔다 (연속 흐름은 제목이 이름이라 뱃지 없음)
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ?accessory,
+              if (shouldShowRemainingSolves)
+                const RemainingSolvesPill(isCompact: true),
+              if (!isContinuous) Flexible(child: PassqlBadge(text: topicName)),
+            ],
+          ),
         ),
         if (!isContinuous) PassqlProgressBar(value: _progress),
       ],

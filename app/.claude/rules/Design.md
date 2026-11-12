@@ -52,7 +52,7 @@ lib/presentation/design/
 | `PassqlActivityRings` | 바깥에서 안쪽으로 겹친 진행 링 (홈 합격 준비도 정확도·범위·최신성, #701). 링마다 비율·색, 가운데 글자 선택. 링은 스크린리더에서 숨기고 쓰는 쪽이 범례와 묶어 읽힘 |
 | `PassqlSection` / `PassqlSectionGap` / `PassqlSectionHeader` / `PassqlSectionLink` | 홈식 구간: 좌우 끝까지 닿는 card 면(좌우 md·위아래 lg)과 구간 사이 md 높이 background 띠. 제목 줄은 높이 44 고정 title3(+ 앞 아이콘·오른쪽 요소), 오른쪽 이동 링크는 글자 + › 한 모양 (#701). `isCompactTitle`: 작은 타일 + 15pt 제목 (문제 탭 경향 구간, #726) |
 | `PassqlGroupedSection` / `PassqlListRow` / `PassqlCheckRow` / `PassqlIconTile` | iOS 설정 앱식 목록 묶음·행·선택 행·아이콘 타일 (`isCompact`: 26pt 구간 제목용, #726) |
-| `PassqlNavBar` / `PassqlNavButton` / `PassqlLargeTitleScrollView` | 상단 바(제목 글자 대신 가운데 위젯 `middle` 가능), 뒤로/닫기 버튼, 큰 제목 탭 화면 틀 |
+| `PassqlNavBar` / `PassqlNavButton` / `PassqlLargeTitleScrollView` | 상단 바(제목 글자 대신 가운데 위젯 `middle` 가능), 뒤로/닫기 버튼, 탭 화면 틀(탭 첫 화면은 제목과 오른쪽 요소가 한 줄인 고정 바, 뒤로 갈 수 있는 화면은 접히는 큰 제목, #971) |
 | `PassqlBrandBarScrollView` | 홈 탭 화면 틀: 로고 또는 `leading`(왼쪽)·trailing(오른쪽) 한 줄 고정 바, 내용이 밑으로 지나가면 글래스 + 헤어라인 (#530) |
 | `PassqlTabBar` / `PassqlTabIcon` (+`PassqlTabIconKind`) | 하단 탭 바: 아이콘 + 라벨, 하단 여백 기준 `PassqlTabBar.bottomPaddingOf`. 아이콘은 직접 그림(비선택 선, 선택은 같은 윤곽을 강조색으로 채우고 체크·말풍선 사이 틈·집게 둘레만 뚫음), 새로 선택될 때만 아이콘 일부가 움직임(동작 줄이기면 정지, #755) |
 | `PassqlTabBarWithBottomStrip` | 탭 바 아래 한 줄 띠(광고, #527): 순서 탭 바 > 띠(위 헤어라인·표면색 `backgroundOf`·높이 `PassqlSize.bottomStrip`) > 홈 인디케이터 여백. 내용은 `AdNativeStripSlot` 이 채움 |
@@ -85,8 +85,9 @@ lib/presentation/design/
 | `PassqlLogo` | 라이트/다크 워드마크 |
 | `PassqlAvatar` | 원형 프로필 사진: 이미지 주소 > 원형 자르기(표시 크기로 디코딩), 없음·불러오는 중·실패면 이름 첫 글자 원 (#908) |
 | `PassqlNotificationBellButton` | 홈 상단 종 아이콘(강조색) + 안 읽은 개수 배지(빨강 `countBadge`, 10 이상 9+, #756). 알림함 진입은 이 버튼으로만 (규칙 테스트) |
-| `PassqlLockedPreview` | 잠긴 기능 묶음: 흐린 가짜 미리보기 + 가운데 한 줄 + 알약 `이용권으로 열기`, 영역 전체 탭 > `onUnlock` (#576). 프로 안내 시트는 `widgets/pro/pro_offer_sheet.dart` 의 `showProOfferSheet` |
+| `PassqlLockedPreview` | 잠긴 기능 묶음: 흐린 가짜 미리보기 + 가운데 한 줄(해요체 문장) + 알약 `PRO로 보기`, 영역 전체 탭 > `onUnlock` (#576). 프로 안내 시트는 `widgets/pro/pro_offer_sheet.dart` 의 `showProOfferSheet` |
 | `PassqlPassTicket` (+`PassqlPassTicketTier`, `PassqlPassTicketField`) / `PassqlPassUsageGauge` | passQL PASS 탑승권 (#749): 본문(제목·경로·정보 칸·혜택 아이콘·footer) + 절취선 + 떼는 칸. 무료 회색·프로 그라데이션, 빛줄기·홀로그램·기울기 선택, 동작 줄이기면 효과 정지. 사용량 게이지는 빛이 지나감. 내 프로필·이용권 구매 시트·정보 시트가 쓴다 |
+| `PassqlCreditIcon` | 크레딧 아이콘 에셋(번개 동전, #971). 무료 한도 표시는 이 아이콘 + 숫자로만 (상단 알약 `RemainingSolvesPill`, 프로필 오늘 크레딧, 세트 보너스 줄) |
 | `PassqlPlanChip` | 등급 칩: 무료 회색 `FREE`(탭 가능) · 프로 보라 `PRO`(탭 없음) (#576) |
 | `PassqlTextScaleLimit` | 시스템 글자 크기 상한(`MaterialApp.builder` 한 곳에서 앱 전체 적용, #486) |
 | `PassqlNavLeading` / `PassqlTabItem` | 상단 바 왼쪽 버튼 종류(없음·뒤로·닫기), 탭 바 항목 |
@@ -114,3 +115,40 @@ lib/presentation/design/
 - 파일 하나에 주된 타입 하나, 파일명 = 타입명. boolean 속성은 `is/has/can/should` 로 시작
 - 색·크기는 토큰에서 가져온다. 컴포넌트 안에서만 쓰는 규격 숫자는 이름 있는 상수 + 한 줄 주석
 - 라이트·다크 양쪽에서 확인한다 (pro-launch 캡처, 기능 테스트는 두지 않음 #680)
+
+## 5. 화면 원칙 (2026-11-12 사용자 피드백에서 굳힌 것, #963·#966·#971)
+
+새 화면을 만들거나 고칠 때 아래를 먼저 지킨다. 어기는 시안은 보여 주기 전에 고친다.
+
+### 5.1 정보는 한 번만, 필요한 곳에만
+- 같은 값(크레딧 수, 받은 보너스, 시험 D-day)을 한 화면에 두 번 적지 않는다. 늘 보여야 하는 값은 상단 바 한 곳, 자세한 것은 눌러서 여는 시트
+- 가격을 설득하는 덧말(하루 약 N원, 월 환산, "가장 많이 골라요", 다른 상품 권유 줄)을 붙이지 않는다. 가격·줄 그은 정가·할인율만
+- 목록 행 오른쪽에 상태 글자·칩을 여러 개 쌓지 않는다. 행은 아이콘·제목·한 줄 설명·화살표
+
+### 5.2 접지 않고 한 번에
+- 비교는 표로 한 번에 보인다 (무료·프로 비교표). "N가지 더 보기·접기"로 숨기지 않는다
+- 표의 왼쪽 제목은 짧은 명사(문제, 광고, 해설). 줄바꿈 없이 한 화면에 들어가게 줄 수와 줄 높이를 정한다
+
+### 5.3 일반적인 앱의 자리 규칙
+- 상단 바: 왼쪽 로고(또는 화면 제목), 오른쪽 재화(크레딧 아이콘 + 숫자)·알림. 재화를 누르면 받는 방법과 구매가 한 시트에
+- 부족할 때만 모달: 크레딧이 0일 때 안내 시트, 평소에는 방해하지 않는다
+- 서로 다른 기능은 다른 구간으로 나눈다 (오늘의 세트와 랜덤 풀기를 한 카드에 넣지 않는다)
+- 상태 배지(완료 등)는 값의 오른쪽 끝에 둔다
+
+### 5.4 한 단어, 한 아이콘
+- 무료 한도는 `크레딧`으로만 부른다 ("남은 문제", "문제 더 받기", "+N문제" 금지). 랜덤 풀기 1문제 = 크레딧 1개
+- 같은 뜻에는 같은 아이콘 하나. 혜택마다 색이 다른 알록달록한 타일 대신 한 색 픽토그램
+- 잠금 문구는 명사 나열(`A · B · C`) 대신 해요체 한 문장, 버튼은 `PRO로 보기`
+- 은유를 쓸 때도 낯선 말은 피한다 (탑승권의 `승객` 대신 `수험생`)
+
+### 5.5 카드 구성
+- 고르는 카드(이용권)는 나란히 놓고 값(가격)을 가장 크게, 선택 표시는 오른쪽 위
+- 받는 방법 카드(크레딧 더 받기)는 아이콘 원 > 이름 > 수량 > 상태 한 줄. 받은 것은 초록, 지금 할 수 있는 것은 강조색
+- 한 시트 안 카드들은 같은 머리 구성(아이콘 타일 + 제목 + 한 줄 설명)을 쓴다
+- 흰 구간 면 위에 흰 카드를 또 얹지 않는다 (카드 안 카드 금지). 구간 면 위에서는 테두리·옅은 바탕으로만 묶는다
+
+### 5.6 시안을 보여 줄 때
+- 지금 화면을 실제 코드로 렌더해 먼저 보고, 그 위에서 바꾼 것을 다시 렌더해 나란히 보여 준다 (HTML 로 새로 그린 그림은 실제와 달라 보인다)
+- 라이트·다크 둘 다, 스크롤 없이 한 화면에 들어가는지, 글자가 줄바꿈으로 깨지지 않는지 확인한 뒤에 보여 준다
+- 에셋(`Image.asset`)은 테스트 렌더에서 `precacheImage` 로 미리 불러와야 그림에 찍힌다
+

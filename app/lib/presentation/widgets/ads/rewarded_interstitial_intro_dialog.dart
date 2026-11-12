@@ -100,7 +100,7 @@ class _RewardedInterstitialIntroPanelState
             ),
             const SizedBox(height: PassqlSpacing.md),
             Text(
-              '광고를 보면 ${widget.bonusQuestionCount}문제가 더 열려요',
+              '광고를 보면 크레딧 ${widget.bonusQuestionCount}개를 받아요',
               textAlign: TextAlign.center,
               style: PassqlTypography.title3.copyWith(color: colors.label),
             ),

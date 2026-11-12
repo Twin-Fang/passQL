@@ -60,6 +60,7 @@ class HomePage extends ConsumerWidget {
           ],
         ),
         data: (data) => _HomeShell(
+          leading: ExamDdayBarTitle(schedule: data.examSchedule),
           onRefresh: () async {
             // 공지 배너(안 읽은 중요 공지)도 함께 갱신
             ref.invalidate(
@@ -81,17 +82,21 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-/// 로딩·오류·내용 공통 틀: 상단 바(왼쪽 로고) + 오른쪽 남은 문제 알약(무료)·PRO 칩·종 아이콘 (#966)
+/// 로딩·오류·내용 공통 틀: 상단 바(왼쪽 로고 + 시험 D-day 배지) + 오른쪽 크레딧 알약(무료)·PRO 칩·종 아이콘 (#966, #971)
 class _HomeShell extends ConsumerWidget {
   final Future<void> Function()? onRefresh;
   final List<Widget> slivers;
 
-  const _HomeShell({this.onRefresh, required this.slivers});
+  /// 내용 상태의 로고 + 시험 D-day 배지 (로딩·오류는 null > 로고만)
+  final Widget? leading;
+
+  const _HomeShell({this.onRefresh, required this.slivers, this.leading});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PassqlBrandBarScrollView(
       onRefresh: onRefresh,
+      leading: leading,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -159,9 +164,6 @@ class _HomeContent extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 시험 D-day 한 줄 (상단 바에서 본문 첫 줄로, #966)
-            ExamDdayBarTitle(schedule: data.examSchedule),
-            const SizedBox(height: PassqlSpacing.sm),
             // 인사 + 본문 + 시험 상황 배지 (상단 바 아래 화면 제목 자리)
             if (greeting != null) GreetingSection(greeting: greeting),
             // 관리자 공지 (안 읽은 중요 공지 첫 건, 닫기 = 서버 읽음)

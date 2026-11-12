@@ -10,12 +10,10 @@ abstract final class LockedPreviewCaptions {
   static const String examTrend = '최근 기출 비중과 이번 회차 예상을 봐요';
   static const String freshChoices = '풀 때마다 AI가 새 보기를 만들어요';
   static const String conceptTopics = '3단원부터 모든 개념과 확인 문제를 봐요';
-  static const String aiAnalysis = 'AI가 약점을 짚고 다음 공부를 추천해요';
   static const String mockExamDetail = '과목별 점수와 약점, 다음에 할 일을 봐요';
   static const String mockExamReview = '문항별 정답과 보기 해설을 봐요';
   static const String mockExamTrend = '회차별 점수 변화를 봐요';
-  static const String topicAccuracy = '영역별 정답률로 약한 영역을 찾아요';
-  static const String accuracyDetail = '어느 난이도에서 틀리는지, 오답이 줄고 있는지 봐요';
+  static const String proAnalysis = 'AI 분석과 영역·난이도별 약점, 오답 정리를 봐요';
 }
 
 // 가짜 미리보기: 서버의 잠긴 내용이 아니라 모양만 그럴듯한 고정 예시 (통신을 가로채도 얻을 것이 없게)
@@ -202,21 +200,6 @@ class MockExamTrendLockedSample extends StatelessWidget {
     return const _SampleCard(
       children: [
         _SampleSection(title: '제1회 → 제3회', body: '54점 → 62점 → 70점, 합격선을 넘었어요.'),
-      ],
-    );
-  }
-}
-
-/// 프로필 난이도별 정답률·오답 정리 자리 (#909)
-class AccuracyDetailLockedSample extends StatelessWidget {
-  const AccuracyDetailLockedSample({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const _SampleCard(
-      children: [
-        _SampleSection(title: '난이도별 정답률', body: '쉬움 92%, 보통 74%, 어려움 48%'),
-        _SampleSection(title: '오답 정리', body: '틀린 문제 24개 중 15개를 다시 맞혔어요.'),
       ],
     );
   }

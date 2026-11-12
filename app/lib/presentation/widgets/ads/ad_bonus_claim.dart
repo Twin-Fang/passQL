@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/ads/rewarded_ad_player.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../core/error/error_code.dart';
+import '../../../core/monitoring/app_analytics.dart';
 import '../../providers/plan_providers.dart';
 import '../../providers/session_reset.dart';
 
@@ -37,6 +40,7 @@ abstract final class AdBonusClaim {
               customData: rewardNonce,
             ),
     );
+    unawaited(AppAnalytics.current.logAdBonusResult(outcome.name));
     if (outcome == RewardedAdOutcome.rewarded) {
       await _confirmAdBonus(container, rewardNonce);
     }

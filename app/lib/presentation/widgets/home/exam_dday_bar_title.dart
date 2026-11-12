@@ -19,8 +19,8 @@ String examDdaySpokenLabel(int days) {
   return '시험 ${days.abs()}일 지남';
 }
 
-/// 홈 본문 첫 줄: 시험 D-day + 회차·날짜 (#701, 상단 바에서 본문으로 #966)
-/// 일정이 없거나 날짜를 읽지 못하면 로고 + '시험 일정 준비 중'
+/// 홈 상단 바 왼쪽: 로고 + 시험 D-day 배지 (#701, #971). 일정이 없거나 날짜를 읽지 못하면 로고만
+/// 스크린리더는 `시험까지 18일, SQLD 63회 · 11월 14일` 로 읽음
 class ExamDdayBarTitle extends StatelessWidget {
   const ExamDdayBarTitle({super.key, this.schedule});
 
@@ -28,56 +28,22 @@ class ExamDdayBarTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    final subtitleStyle = PassqlTypography.caption.copyWith(
-      color: colors.secondaryLabel,
-    );
-    final days = schedule == null ? null : daysUntilExam(schedule!.examDate);
-    if (days == null) {
-      return Semantics(
-        header: true,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const PassqlLogo(height: PassqlSize.navBarLogoHeight),
-            const SizedBox(width: PassqlSpacing.xs),
-            Flexible(
-              child: Text(
-                '시험 일정 준비 중',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: subtitleStyle,
-              ),
-            ),
-          ],
-        ),
-      );
+    final schedule = this.schedule;
+    final days = schedule == null ? null : daysUntilExam(schedule.examDate);
+    const logo = PassqlLogo(height: PassqlSize.navBarLogoHeight);
+    if (schedule == null || days == null) {
+      return Semantics(header: true, child: logo);
     }
-    final subtitle = examBarSubtitle(schedule!);
     return Semantics(
       header: true,
-      label: '${examDdaySpokenLabel(days)}, $subtitle',
+      label: '${examDdaySpokenLabel(days)}, ${examBarSubtitle(schedule)}',
       excludeSemantics: true,
-      // 좁은 폭·큰 글자에서는 회차·날짜가 먼저 줄고 D-day 는 남는다
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: TextBaseline.alphabetic,
         children: [
-          Text(
-            examDdayLabel(days),
-            maxLines: 1,
-            style: PassqlTypography.title2.copyWith(color: colors.accentText),
-          ),
+          logo,
           const SizedBox(width: PassqlSpacing.xs),
-          Flexible(
-            child: Text(
-              subtitle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: subtitleStyle,
-            ),
-          ),
+          PassqlBadge(text: examDdayLabel(days)),
         ],
       ),
     );

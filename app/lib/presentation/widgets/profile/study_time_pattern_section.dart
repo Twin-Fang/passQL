@@ -34,6 +34,12 @@ class StudyTimePatternSection extends StatelessWidget {
         busiestHour < hourCounts.length;
     return PassqlSection(
       title: '공부하는 시간',
+      // 구간 제목 앞 아이콘: 프로필 구간 모두 같은 모양 (#971)
+      leading: PassqlIconTile(
+        icon: CupertinoIcons.clock_fill,
+        color: context.passqlColors.accent,
+        isCompact: true,
+      ),
       trailing: Text(
         '최근 $weekCount주',
         style: PassqlTypography.footnote.copyWith(color: colors.secondaryLabel),
