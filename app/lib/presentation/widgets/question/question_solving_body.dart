@@ -11,6 +11,7 @@ import '../../providers/question_feature_lock_providers.dart';
 import '../../providers/question_providers.dart';
 import '../pro/locked_preview_samples.dart';
 import '../pro/pro_locked_section.dart';
+import '../pro/pro_offer_sheet.dart';
 import 'ai_explain_sheet.dart';
 import 'choice_display_label.dart';
 import 'choice_mode_indicator.dart';
@@ -132,6 +133,9 @@ class QuestionSolvingBody extends StatelessWidget {
                 final shouldShowFreeTrialNote = ref.watch(
                   shouldShowDailySetFreeTrialNoteProvider(questionUuid),
                 );
+                final isRunLocked = ref.watch(
+                  isQuestionExecutionLockedProvider(questionUuid),
+                );
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -145,6 +149,9 @@ class QuestionSolvingBody extends StatelessWidget {
                       gradedSelectedKey: gradedSelectedKey,
                       shouldAlwaysAllowRetry: shouldAlwaysAllowRetry,
                       shouldShowRunChoiceHint: !shouldShowFreeTrialNote,
+                      isRunLocked: isRunLocked,
+                      onLockedRunTap: () =>
+                          showSqlExecuteProOffer(context, ref),
                     ),
                   ],
                 );

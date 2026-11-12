@@ -67,6 +67,9 @@ abstract final class AnalyticsParameterNames {
   /// 이용권 시트 종류: 1 연장(이미 프로), 0 새 구매
   static const String isExtending = 'is_extending';
 
+  /// 이용권 시트 진입점: sql_execute (없으면 보내지 않음)
+  static const String source = 'source';
+
   /// 결제 결과: success, pending, cancelled, failed, unavailable / 광고 결과: rewarded, dismissedWithoutReward, unavailable
   static const String outcome = 'outcome';
 

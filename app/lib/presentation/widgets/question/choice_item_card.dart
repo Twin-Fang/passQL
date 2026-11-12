@@ -29,6 +29,9 @@ class ChoiceItemCard extends StatelessWidget {
   /// 이 보기를 지금 실행 중인지 (버튼 로딩 표시)
   final bool isRunning;
 
+  /// ▶ 실행이 PRO 전용인지 (무료: 같은 ▶ + 작은 PRO 마크, 누르면 안내 시트)
+  final bool isRunLocked;
+
   const ChoiceItemCard({
     super.key,
     required this.item,
@@ -38,6 +41,7 @@ class ChoiceItemCard extends StatelessWidget {
     this.onGradedTap,
     this.onRunTap,
     this.isRunning = false,
+    this.isRunLocked = false,
   });
 
   @override
@@ -74,6 +78,7 @@ class ChoiceItemCard extends StatelessWidget {
                 choiceLabel: displayLabel,
                 onTap: onRunTap!,
                 isRunning: isRunning,
+                isLocked: isRunLocked,
               ),
         child: body,
       ),
@@ -111,27 +116,52 @@ class _RunChoiceIconButton extends StatelessWidget {
     required this.choiceLabel,
     required this.onTap,
     required this.isRunning,
+    required this.isLocked,
   });
 
   final String choiceLabel;
   final VoidCallback onTap;
   final bool isRunning;
 
+  /// PRO 전용 > ▶ 모서리에 PRO 마크 (버튼은 정상 색 그대로, 눌러 보게)
+  final bool isLocked;
+
+  /// PRO 마크를 ▶ 바깥으로 살짝 걸침 (칸 폭은 그대로)
+  static const double _proMarkOverhangPixels = -PassqlSpacing.xxs;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
+    final playIcon = Icon(
+      CupertinoIcons.play_circle_fill,
+      size: PassqlIconSize.xl,
+      color: colors.accent,
+    );
     return PassqlPressable(
       onTap: isRunning ? null : onTap,
-      semanticLabel: '보기 $choiceLabel 실행',
+      semanticLabel: isLocked
+          ? '보기 $choiceLabel 실행, PRO'
+          : '보기 $choiceLabel 실행',
       child: isRunning
           ? const SizedBox.square(
               dimension: PassqlIconSize.xl,
               child: PassqlLoadingIndicator(),
             )
-          : Icon(
-              CupertinoIcons.play_circle_fill,
-              size: PassqlIconSize.xl,
-              color: colors.accent,
+          : !isLocked
+          ? playIcon
+          : Stack(
+              clipBehavior: Clip.none,
+              children: [
+                playIcon,
+                const Positioned(
+                  right: _proMarkOverhangPixels,
+                  bottom: _proMarkOverhangPixels,
+                  child: PassqlProMark(
+                    size: PassqlIconSize.xxs,
+                    isDecorative: true,
+                  ),
+                ),
+              ],
             ),
     );
   }

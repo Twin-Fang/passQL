@@ -120,11 +120,14 @@ class AppAnalytics {
     {AnalyticsParameterNames.reviewTrigger: triggerName},
   );
 
-  /// 이용권 시트 열림 (구매 흐름 첫 단계, #971)
-  Future<void> logPassSheetOpened({required bool isExtending}) =>
-      _backend.logEvent(AnalyticsEventNames.passSheetOpened, {
-        AnalyticsParameterNames.isExtending: isExtending ? 1 : 0,
-      });
+  /// 이용권 시트 열림 (구매 흐름 첫 단계, #971). [source]: 진입점 (sql_execute 등, 없으면 생략)
+  Future<void> logPassSheetOpened({
+    required bool isExtending,
+    String? source,
+  }) => _backend.logEvent(AnalyticsEventNames.passSheetOpened, {
+    AnalyticsParameterNames.isExtending: isExtending ? 1 : 0,
+    AnalyticsParameterNames.source: ?source,
+  });
 
   /// 이용권 카드 선택
   Future<void> logPassOptionSelected(String productId) => _backend.logEvent(
