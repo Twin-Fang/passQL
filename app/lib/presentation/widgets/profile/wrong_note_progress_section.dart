@@ -21,6 +21,12 @@ class WrongNoteProgressSection extends StatelessWidget {
     final change = weeklyRemainingWrongChange(trend);
     return PassqlSection(
       title: '오답 정리',
+      // 구간 제목 앞 아이콘: 프로필 구간 모두 같은 모양 (#971)
+      leading: PassqlIconTile(
+        icon: CupertinoIcons.xmark_square_fill,
+        color: context.passqlColors.accent,
+        isCompact: true,
+      ),
       child: everWrongCount == 0
           ? Text(
               '아직 틀린 문제가 없어요',
@@ -68,7 +74,8 @@ class WrongNoteProgressSection extends StatelessWidget {
                     bars: [
                       for (var index = 0; index < trend.length; index++)
                         PassqlBarChartBar(
-                          totalValue: trend[index].remainingWrongCount.toDouble(),
+                          totalValue: trend[index].remainingWrongCount
+                              .toDouble(),
                           accentValue: index == trend.length - 1 ? null : 0,
                           label: index == trend.length - 1
                               ? '이번 주'

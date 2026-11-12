@@ -24,7 +24,7 @@ Future<void> _pump(WidgetTester tester, List<TopicStat> stats) {
         theme: PassqlTheme.light,
         home: Scaffold(
           body: SingleChildScrollView(
-            child: TopicAccuracySection(topicStats: stats, isLocked: false),
+            child: TopicAccuracySection(topicStats: stats),
           ),
         ),
       ),

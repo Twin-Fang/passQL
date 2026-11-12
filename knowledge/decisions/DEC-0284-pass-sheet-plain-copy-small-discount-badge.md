@@ -4,9 +4,9 @@ id: DEC-0284
 created: 2026-11-12
 reviewed: null
 topics: [billing, design-system]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0286
 related: ["[[ISS-0488-free-practice-reward-flow]]", "[[DEC-0003-one-and-three-month-pass]]", "[[DEC-0272-non-krw-price-hides-won-amounts]]", "[[DEC-0262-pro-benefits-seven-ad-removal]]"]
 ---
 

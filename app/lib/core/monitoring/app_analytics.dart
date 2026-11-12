@@ -120,6 +120,43 @@ class AppAnalytics {
     {AnalyticsParameterNames.reviewTrigger: triggerName},
   );
 
+  /// 이용권 시트 열림 (구매 흐름 첫 단계, #971)
+  Future<void> logPassSheetOpened({required bool isExtending}) =>
+      _backend.logEvent(AnalyticsEventNames.passSheetOpened, {
+        AnalyticsParameterNames.isExtending: isExtending ? 1 : 0,
+      });
+
+  /// 이용권 카드 선택
+  Future<void> logPassOptionSelected(String productId) => _backend.logEvent(
+    AnalyticsEventNames.passOptionSelected,
+    {AnalyticsParameterNames.productId: productId},
+  );
+
+  /// 구매 버튼 누름 (스토어 결제 창 띄우기 직전)
+  Future<void> logPassPurchaseStarted(String productId) => _backend.logEvent(
+    AnalyticsEventNames.passPurchaseStarted,
+    {AnalyticsParameterNames.productId: productId},
+  );
+
+  /// 결제 결과. [outcomeName]: success, pending, cancelled, failed, unavailable
+  Future<void> logPassPurchaseResult({
+    required String productId,
+    required String outcomeName,
+  }) => _backend.logEvent(AnalyticsEventNames.passPurchaseResult, {
+    AnalyticsParameterNames.productId: productId,
+    AnalyticsParameterNames.outcome: outcomeName,
+  });
+
+  /// 문제 더 받기(한도) 시트 열림
+  Future<void> logDailyLimitSheetOpened() =>
+      _backend.logEvent(AnalyticsEventNames.dailyLimitSheetOpened, const {});
+
+  /// 광고 보너스 결과. [outcomeName]: rewarded, dismissedWithoutReward, unavailable
+  Future<void> logAdBonusResult(String outcomeName) => _backend.logEvent(
+    AnalyticsEventNames.adBonusResult,
+    {AnalyticsParameterNames.outcome: outcomeName},
+  );
+
   Future<void> logScreenView(String screenName) =>
       _backend.logScreenView(screenName);
 

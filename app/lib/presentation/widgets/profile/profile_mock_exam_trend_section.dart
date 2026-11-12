@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -24,6 +24,12 @@ class ProfileMockExamTrendSection extends ConsumerWidget {
         const PassqlSectionGap(),
         PassqlSection(
           title: '모의고사 점수 추이',
+          // 구간 제목 앞 아이콘: 프로필 구간 모두 같은 모양 (#971)
+          leading: PassqlIconTile(
+            icon: CupertinoIcons.graph_square_fill,
+            color: context.passqlColors.accent,
+            isCompact: true,
+          ),
           child: MockExamTrendChart(
             history: history,
             onAttemptTap: (attemptUuid) =>

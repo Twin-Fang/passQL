@@ -2,7 +2,7 @@
 type: cluster
 topic: home
 created: 2026-10-29
-members: 66
+members: 69
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 홈 화면·추천
 
 ## 현재 상태 요약
-(2026-10-29, 자동 생성) 활성 결정 21개, 열린 이슈 0개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-10-29, 자동 생성) 활성 결정 21개, 열린 이슈 0개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 홈 상단 바는 로고 + 시험 D-day 배지와 크레딧 알약, 오늘의 세트와 랜덤 풀기는 별도 구간 — [[ISS-0489-pass-sheet-home-profile-cleanup]], [[ISS-0490-credit-term-purchase-funnel-events]].
 
 ## 활성 결정
 - [[DEC-0034-greeting-nickname-template-message-type]] — 인사말 응답은 `nickname`·`{nickname}` 템플릿·`messageType`으로 나누고, 이모지·아이콘은 프론트가 정한다
@@ -41,6 +41,9 @@ related: []
 - [[DEC-0167-five-tabs-with-text-labels]] → DEC-0171
 
 ## 관련 이슈
+- [[ISS-0491-first-run-guide-home-next-step]] (resolved, GitHub #975): 첫 화면·홈에 차별점과 지금 할 일이 없음, 무료 회원 안내 구간 없음
+- [[ISS-0489-pass-sheet-home-profile-cleanup]] (resolved, GitHub #966, PR #968): 이용권 시트 혜택 접기·정가 없는 할인, 잠금 문구 딱딱함, 홈·프로필 카드에 기능이 섞임
+- [[ISS-0490-credit-term-purchase-funnel-events]] (resolved, GitHub #971, PR #973): 구매·광고 흐름 분석 이벤트 없음, 한도·보상 표현이 여러 말로 겹침(크레딧으로 통일), 탭 제목 정렬
 - [[ISS-0431-app-home-top-bell-notice-banner]] (resolved, GitHub #756) — 홈 알림 아이콘 색과 공지 배너 개편
 - [[ISS-0019-exam-schedule-domain-api]] (resolved, GitHub #23) — SQLD/SQLP Exam Schedule 도메인 및 시험 일정 관리 API
 - [[ISS-0020-home-greeting-api]] (resolved, GitHub #24) — 홈 화면 인사말 API (Greeting)

@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -78,18 +79,42 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           padding: const EdgeInsets.symmetric(horizontal: PassqlSpacing.xl),
           child: Column(
             children: [
-              // 로고는 위쪽 빈 공간 가운데, 버튼은 엄지가 닿기 쉬운 하단(약관 바로 위)에 고정한다.
-              const Spacer(),
-              // 워드마크 이미지에 앱 이름이 이미 들어 있으므로 이름 텍스트를 따로 두지 않는다.
-              const PassqlLogo(height: PassqlSize.loginLogoHeight),
-              const SizedBox(height: PassqlSpacing.xs),
-              Text(
-                'SQL 자격증, 문제로 합격까지',
-                style: PassqlTypography.subheadline.copyWith(
-                  color: colors.secondaryLabel,
+              // 로고·소개는 위쪽 빈 공간 가운데(작은 화면은 스크롤), 버튼은 엄지가 닿기 쉬운 하단(약관 바로 위)에 고정한다.
+              Expanded(
+                child: Center(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // 워드마크 이미지에 앱 이름이 이미 들어 있으므로 이름 텍스트를 따로 두지 않는다.
+                        const PassqlLogo(height: PassqlSize.loginLogoHeight),
+                        const SizedBox(height: PassqlSpacing.md),
+                        Text(
+                          _headline,
+                          textAlign: TextAlign.center,
+                          style: PassqlTypography.title3.copyWith(
+                            color: colors.label,
+                          ),
+                        ),
+                        const SizedBox(height: PassqlSpacing.md),
+                        // 다른 SQLD 앱과 다른 점 세 가지 (#975): 묶음은 가운데, 줄은 왼쪽 맞춤
+                        IntrinsicWidth(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              for (final feature in _features)
+                                _FeatureLine(
+                                  icon: feature.icon,
+                                  text: feature.text,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-              const Spacer(),
               for (final (index, provider) in _visibleProviders.indexed) ...[
                 if (index > 0) const SizedBox(height: PassqlSpacing.sm),
                 SocialLoginButton(
@@ -118,6 +143,45 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// 첫 화면 소개: 한 줄 + 세 가지 (실제로 있는 기능만 적음)
+const String _headline = 'SQL을 직접 실행하고\nAI와 함께 푸는 SQLD';
+const List<({IconData icon, String text})> _features = [
+  (icon: CupertinoIcons.play_fill, text: '보기 SQL을 직접 실행해 결과를 확인해요'),
+  (icon: CupertinoIcons.sparkles, text: '틀린 이유를 AI가 바로 설명해요'),
+  (icon: CupertinoIcons.bolt_fill, text: '풀 때마다 AI가 새 보기를 만들어요'),
+];
+
+/// 소개 한 줄: 강조색 아이콘 + 문장 (가운데 묶음 안에서 왼쪽 정렬)
+class _FeatureLine extends StatelessWidget {
+  const _FeatureLine({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: PassqlSpacing.xxs),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: PassqlIconSize.md, color: colors.accent),
+          const SizedBox(width: PassqlSpacing.xs),
+          Flexible(
+            child: Text(
+              text,
+              style: PassqlTypography.subheadline.copyWith(
+                color: colors.secondaryLabel,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -23,6 +23,12 @@ class StudyRecordSection extends StatelessWidget {
     final weekCount = studyPattern.dailyWindowDays ~/ DateTime.daysPerWeek;
     return PassqlSection(
       title: '최근 $weekCount주 학습',
+      // 구간 제목 앞 아이콘: 프로필 구간 모두 같은 모양 (#971)
+      leading: PassqlIconTile(
+        icon: CupertinoIcons.calendar,
+        color: context.passqlColors.accent,
+        isCompact: true,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

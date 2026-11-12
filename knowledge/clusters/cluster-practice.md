@@ -2,7 +2,7 @@
 type: cluster
 topic: practice
 created: 2026-10-29
-members: 172
+members: 176
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 문제 풀이·제출·실행 결과·오늘의 세트·데일리 챌린지·실전 모드
 
 ## 현재 상태 요약
-(2026-11-07, 자동 생성) 활성 결정 39개, 열린 이슈 2개. 풀이 화면 보기 방식 칩은 제출 전이면 지금 문제부터, 제출 뒤면 다음 풀이부터 적용하고 같은 화면 생성은 겹치지 않으며, 오답 노트 다시 풀기에서는 숨긴다. 바꾸는 곳은 풀이 칩과 설정이고 웹도 회원 방식을 지킨다: [[DEC-0275-choice-mode-chip-applies-before-submit]] (#907, #913, DEC-0261 대체). 지문은 블록으로 나눠 그리고 표는 지문 카드 안 한 가지 모양(행 전부, 같은 컬럼 표 한 번): [[DEC-0278-stem-blocks-single-table-shape]] (#903). 풀이 화면 메모(끄면 터치 통과, 서버 저장 없음): [[ISS-0473-solving-memo-pen-toggle]]. 풀이 중 모의고사 회차는 안내 없이 이어 풀기: [[ISS-0471-mock-exam-resume-shows-start-guide]]. 이상 2026-11-07 main 머지, 배포 전. 내린 보기 묶음(DISABLED·REPORTED)·비활성 문제는 열기·채점 모두 `CHOICE_SET_UNAVAILABLE`, 무료 제출은 샌드박스를 실행하지 않는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 무료 하루 한도 판정은 제출 기록 트랜잭션 안 회원 행 잠금 뒤 — [[DEC-0271-daily-limit-judged-in-submit-record-tx]] (PR #898 머지, [[ISS-0469-billing-switch-unverified-screens-races]] 열림). 웹 선택지 생성 시작 전 거부는 `errorCode` 사유를 보여 준다 — [[ISS-0468-web-audit-cross-tab-reissue-logout]]. SQLD 모의고사(고정 회차, 서버 판정, 무료 1회) — [[DEC-0264-mock-exam-fixed-rounds-server-judged]] (PR #889 머지, 이슈 #866 열림). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 무료 랜덤 풀기는 10문제 묶음 없이 이어 풀고 남은 수를 늘 보여 주며, 서버는 안 푼 문제를 먼저 낸다 — [[DEC-0283-daily-limit-view-reward-first]], [[DEC-0282-ad-bonus-unlimited-fair-use-200]] (#963, PR #964).
+(2026-11-07, 자동 생성) 활성 결정 39개, 열린 이슈 2개. 풀이 화면 보기 방식 칩은 제출 전이면 지금 문제부터, 제출 뒤면 다음 풀이부터 적용하고 같은 화면 생성은 겹치지 않으며, 오답 노트 다시 풀기에서는 숨긴다. 바꾸는 곳은 풀이 칩과 설정이고 웹도 회원 방식을 지킨다: [[DEC-0275-choice-mode-chip-applies-before-submit]] (#907, #913, DEC-0261 대체). 지문은 블록으로 나눠 그리고 표는 지문 카드 안 한 가지 모양(행 전부, 같은 컬럼 표 한 번): [[DEC-0278-stem-blocks-single-table-shape]] (#903). 풀이 화면 메모(끄면 터치 통과, 서버 저장 없음): [[ISS-0473-solving-memo-pen-toggle]]. 풀이 중 모의고사 회차는 안내 없이 이어 풀기: [[ISS-0471-mock-exam-resume-shows-start-guide]]. 이상 2026-11-07 main 머지, 배포 전. 내린 보기 묶음(DISABLED·REPORTED)·비활성 문제는 열기·채점 모두 `CHOICE_SET_UNAVAILABLE`, 무료 제출은 샌드박스를 실행하지 않는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 무료 하루 한도 판정은 제출 기록 트랜잭션 안 회원 행 잠금 뒤 — [[DEC-0271-daily-limit-judged-in-submit-record-tx]] (PR #898 머지, [[ISS-0469-billing-switch-unverified-screens-races]] 열림). 웹 선택지 생성 시작 전 거부는 `errorCode` 사유를 보여 준다 — [[ISS-0468-web-audit-cross-tab-reissue-logout]]. SQLD 모의고사(고정 회차, 서버 판정, 무료 1회) — [[DEC-0264-mock-exam-fixed-rounds-server-judged]] (PR #889 머지, 이슈 #866 열림). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 무료 랜덤 풀기는 10문제 묶음 없이 이어 풀고 남은 수를 늘 보여 주며, 서버는 안 푼 문제를 먼저 낸다 — [[DEC-0283-daily-limit-view-reward-first]], [[DEC-0282-ad-bonus-unlimited-fair-use-200]] (#963, PR #964). (2026-11-12) 무료 랜덤 한도는 크레딧, 풀이 상단은 제목·해설함·크레딧 알약만 — [[DEC-0287-credit-term-top-bar-balance]].
 
 ## 활성 결정
 - [[DEC-0017-fullscreen-result-screen]] — 제출 결과 화면은 풀스크린 1종으로 통일 (bottom sheet 변형 미채택)
@@ -58,6 +58,7 @@ related: []
 - [[DEC-0282-ad-bonus-unlimited-fair-use-200]] — 광고 보너스 +5 횟수 제한 없음, 무료·프로 공통 하루 200 공정 사용 상한, 옛 앱 호환 `adBonusMaxCount = 받은 횟수 + 1` (#963, DEC-0239 대체)
 - [[DEC-0283-daily-limit-view-reward-first]] — 무료 랜덤은 끊기지 않게 이어 풀기, 남은 수 상시 표시, 한도 화면은 광고 > 오늘의 세트 > 이용권 한 줄 (#963)
 - [[DEC-0285-result-rewarded-interstitial]] — 결과 화면 일반 전면 광고 > 보상형 전면 광고(+5), 토픽 결과는 들어올 때·세트 결과는 떠날 때 (#963)
+- [[DEC-0287-credit-term-top-bar-balance]] — 무료 한도는 `크레딧`, 잔액은 탭 상단 바 알약(누르면 크레딧 시트: PRO 주 버튼 > 광고 > 오늘의 세트), 상태는 아이콘·색 (#966, #971)
 
 ## 대체된 결정 (역사)
 - [[DEC-0087-choice-generation-practice-real-mode]] → DEC-0251
@@ -71,6 +72,9 @@ related: []
 - [[DEC-0261-real-mode-renamed-new-choices]] → DEC-0275
 
 ## 관련 이슈
+- [[ISS-0491-first-run-guide-home-next-step]] (resolved, GitHub #975): 첫 화면·홈에 차별점과 지금 할 일이 없음, 무료 회원 안내 구간 없음
+- [[ISS-0489-pass-sheet-home-profile-cleanup]] (resolved, GitHub #966, PR #968): 이용권 시트 혜택 접기·정가 없는 할인, 잠금 문구 딱딱함, 홈·프로필 카드에 기능이 섞임
+- [[ISS-0490-credit-term-purchase-funnel-events]] (resolved, GitHub #971, PR #973): 구매·광고 흐름 분석 이벤트 없음, 한도·보상 표현이 여러 말로 겹침(크레딧으로 통일), 탭 제목 정렬
 - [[ISS-0488-free-practice-reward-flow]] (resolved, GitHub #963, PR #964): 무료 랜덤 10문제 끊김, 남은 한도 안 보임, 한도 화면 광고 버튼 묻힘, 세트 보너스 표시 없음, 이용권 시트 문구 과다
 - [[ISS-0479-sqld-real-format-trap-questions]] (resolved, GitHub #834): 실제 SQLD 출제 형식(결과 행 수, 오류 나는 SQL) 과 함정 문제 92개 등록, 결과 표 해설 지시문 교체, 개념형 AI 세트 8개 내림
 - [[ISS-0478-web-solving-ignores-fresh-choice-mode]] (resolved, GitHub #913): 웹 풀이가 AI 새 보기 설정을 무시함, 설정 이름 옛 표기, 칩 없음

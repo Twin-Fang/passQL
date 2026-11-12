@@ -126,6 +126,8 @@ class _RewardedAdBonusButtonState extends ConsumerState<RewardedAdBonusButton> {
         PassqlButton(
           label: '광고 보기',
           icon: CupertinoIcons.play_fill,
+          // 크레딧 시트의 주 버튼은 이용권 (#971)
+          variant: PassqlButtonVariant.tinted,
           isLoading: _isBusy,
           onPressed: canUseAds && !_hasReachedFairUseLimit
               ? _startBonusAttempt

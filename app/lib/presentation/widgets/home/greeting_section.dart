@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../data/models/home/greeting_response.dart';
 import '../../design/design.dart';
 
-/// 홈 인사 영역 (상단 바 아래 첫 줄): 인사 > 본문 > 시험 상황 배지
+/// 홈 인사 영역 (상단 바 아래 첫 줄): 인사 > 본문 (시험 상황은 상단 바 D-day 배지가 말함, #971)
 /// 인사·본문 모두 말줄임 없이 단어 단위 줄바꿈 (좁은 화면·큰 글자에서도 전부 보임)
 class GreetingSection extends StatelessWidget {
   final GreetingResponse greeting;
@@ -25,23 +25,10 @@ class GreetingSection extends StatelessWidget {
     return body.isEmpty ? null : body;
   }
 
-  // COUNTDOWN 은 시험 일정 카드의 D-일수와 겹쳐 배지를 두지 않음 (#648)
-  static String? _subTextFor(String type) {
-    switch (type) {
-      case 'EXAM_DAY':
-        return '오늘 시험이에요!';
-      case 'URGENT':
-        return '시험이 얼마 남지 않았어요';
-      default:
-        return null;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final body = resolveBody(greeting);
-    final sub = _subTextFor(greeting.messageType);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -56,15 +43,6 @@ class GreetingSection extends StatelessWidget {
           PassqlKeepAllText(
             body,
             style: PassqlTypography.body.copyWith(color: colors.secondaryLabel),
-          ),
-        ],
-        if (sub != null) ...[
-          const SizedBox(height: PassqlSpacing.xs),
-          PassqlBadge(
-            text: sub,
-            kind: greeting.messageType == 'EXAM_DAY'
-                ? PassqlBadgeKind.important
-                : PassqlBadgeKind.warning,
           ),
         ],
       ],

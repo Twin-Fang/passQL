@@ -13,13 +13,13 @@ export const CHOICE_MODE_SHEET_TITLE = "보기 방식";
 
 // 모드별 짧은 이름 (풀이 칩·스크린리더)
 export const CHOICE_MODE_SHORT_NAME: Readonly<Record<ChoiceGenerationMode, string>> = {
-  PRACTICE: "검증된 보기",
+  PRACTICE: "기본 보기",
   REAL: "AI 새 보기",
 };
 
 // 모드별 한 줄 설명 (스위치 아래)
 export const CHOICE_MODE_DESCRIPTION: Readonly<Record<ChoiceGenerationMode, string>> = {
-  PRACTICE: "검증된 보기를 먼저 써요",
+  PRACTICE: "늘 같은 보기로 풀어요",
   REAL: "풀 때마다 AI가 새 보기를 만들어요",
 };
 

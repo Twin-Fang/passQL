@@ -4,8 +4,6 @@ import '../../../core/utils/profile_pass_values.dart';
 import '../../../data/models/progress/ai_comment_response.dart';
 import '../../../data/models/progress/ai_stats_analysis.dart';
 import '../../design/design.dart';
-import '../pro/locked_preview_samples.dart';
-import '../pro/pro_locked_section.dart';
 import '../question/markdown_lite_text.dart';
 import 'ai_analysis_action_buttons.dart';
 import 'ai_analysis_finding_row.dart';
@@ -157,28 +155,6 @@ class _AiAnalysisNoteLine extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// 무료(결제 켜짐) AI 분석 자리: 같은 머리 + 잠금 미리보기 (AI 코멘트 프로 전용, #860)
-class AiAnalysisLockedSection extends StatelessWidget {
-  const AiAnalysisLockedSection({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const PassqlSection(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          PassqlAiHeader(title: 'AI 분석'),
-          SizedBox(height: PassqlSpacing.sm),
-          ProLockedSection(
-            preview: AiAnalysisLockedSample(),
-            caption: LockedPreviewCaptions.aiAnalysis,
-          ),
-        ],
-      ),
     );
   }
 }

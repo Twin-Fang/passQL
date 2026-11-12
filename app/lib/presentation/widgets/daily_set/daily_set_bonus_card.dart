@@ -86,7 +86,7 @@ class _DailySetBonusCardState extends ConsumerState<DailySetBonusCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '+$earnedQuestionCount문제 열렸어요',
+            '크레딧 +$earnedQuestionCount개 받았어요',
             style: PassqlTypography.title1.copyWith(color: colors.accentText),
           ),
           const SizedBox(height: PassqlSpacing.sm),
@@ -104,7 +104,7 @@ class _DailySetBonusCardState extends ConsumerState<DailySetBonusCard> {
             Padding(
               padding: const EdgeInsets.only(top: PassqlSpacing.sm),
               child: Text(
-                '$_accuracyBonusCorrectCount개 이상 맞히면 $bonusQuestionCount문제 더 열려요',
+                '$_accuracyBonusCorrectCount개 이상 맞히면 크레딧 $bonusQuestionCount개를 더 받아요',
                 style: PassqlTypography.subheadline.copyWith(
                   color: colors.secondaryLabel,
                 ),

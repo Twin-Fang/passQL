@@ -78,7 +78,7 @@ class _RewardCelebrationPanel extends StatelessWidget {
             PassqlPopIn(
               isRotating: false,
               child: Text(
-                '+$bonusQuestionCount문제',
+                '크레딧 +$bonusQuestionCount',
                 style: PassqlTypography.largeTitle.copyWith(
                   color: colors.accentText,
                 ),
@@ -119,7 +119,7 @@ class _RemainingCountText extends StatelessWidget {
       duration: PassqlMotion.durationOf(context, PassqlMotion.scoreFill),
       curve: PassqlMotion.curve,
       builder: (_, animatedCount, _) => Text(
-        '오늘 남은 ${animatedCount.round()}문제',
+        '오늘 크레딧 ${animatedCount.round()}개',
         style: PassqlTypography.headline.copyWith(color: colors.label),
       ),
     );
