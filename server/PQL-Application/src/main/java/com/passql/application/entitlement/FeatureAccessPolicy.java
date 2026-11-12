@@ -49,7 +49,7 @@ public class FeatureAccessPolicy {
     // app_settings concept.free_topic_count 읽기 실패·행 없음 기본값 (단원 수)
     private static final int CONCEPT_FREE_TOPIC_COUNT_BY_DEFAULT = 2;
     // app_settings billing.preview_member_uuids 구분자 (쉼표)
-    private static final String PREVIEW_MEMBER_UUID_DELIMITER = ",";
+    public static final String PREVIEW_MEMBER_UUID_DELIMITER = ",";
     // 잘못된 목록 항목 로그 최대 길이 (자)
     private static final int INVALID_ENTRY_LOG_MAX_LENGTH = 40;
 

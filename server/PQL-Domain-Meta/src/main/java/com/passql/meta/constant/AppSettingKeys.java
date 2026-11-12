@@ -103,6 +103,17 @@ public final class AppSettingKeys {
     // app_setting: 관제소 확인할 일 연동 (true 수집 응답, false GET /control/attention 404, #959)
     public static final String CONTROL_TOWER_ATTENTION_ENABLED = "control_tower.attention.enabled";
 
+    // 앱 운영 화면(/admin/app-operation)에 전용 입력이 있는 키 (일반 설정 표는 읽기 전용, 저장 API 는 운영 스크립트 호환으로 허용, #961)
+    public static final Set<String> APP_OPERATION_MANAGED_KEYS = Set.of(
+            APP_MINIMUM_VERSION_IOS, APP_MINIMUM_VERSION_ANDROID,
+            APP_RECOMMENDED_VERSION_IOS, APP_RECOMMENDED_VERSION_ANDROID,
+            APP_MAINTENANCE_ENABLED, APP_MAINTENANCE_MESSAGE, APP_MAINTENANCE_STARTS_AT, APP_MAINTENANCE_ENDS_AT,
+            BILLING_ANDROID_ENABLED, BILLING_PREVIEW_MEMBER_UUIDS);
+
+    public static boolean isManagedByAppOperation(String key) {
+        return APP_OPERATION_MANAGED_KEYS.contains(key);
+    }
+
     private AppSettingKeys() {
     }
 }

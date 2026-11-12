@@ -32,9 +32,6 @@ public class AppSettingService {
 
     // settingKey 구분자(. _ -) 단위 조각이 이 단어로 끝나면 값을 마스킹 처리
     private static final Set<String> MASK_KEYWORDS = Set.of("key", "secret", "password", "token");
-    // SECRET 목록 표시 문구 (긴 값도 마스크 대신 설정 여부만)
-    static final String SECRET_CONFIGURED_LABEL = "설정됨";
-    static final String SECRET_NOT_CONFIGURED_LABEL = "미설정";
 
     private final AppSettingRepository appSettingRepository;
     private final AppSettingCache appSettingCache;
@@ -131,7 +128,9 @@ public class AppSettingService {
                             s.getCategory(),
                             s.getDescription(),
                             isSensitive,
-                            AppSettingKeys.isRestartRequired(s.getSettingKey())
+                            AppSettingKeys.isRestartRequired(s.getSettingKey()),
+                            isSecretSetting(s) && StringUtils.hasText(s.getValueText()),
+                            AppSettingKeys.isManagedByAppOperation(s.getSettingKey())
                     );
                 })
                 .toList();
@@ -147,10 +146,10 @@ public class AppSettingService {
                 .toList();
     }
 
-    /** 목록 표시값: SECRET > 설정됨·미설정, 그 외 민감 > 마스킹, 일반 > 원문 */
+    /** 목록 표시값: SECRET > 빈 값 (설정 여부는 SettingView.isSecretConfigured), 그 외 민감 > 마스킹, 일반 > 원문 */
     private String toDisplayValue(AppSetting setting, boolean isSensitive) {
         if (isSecretSetting(setting)) {
-            return StringUtils.hasText(setting.getValueText()) ? SECRET_CONFIGURED_LABEL : SECRET_NOT_CONFIGURED_LABEL;
+            return "";
         }
         return isSensitive ? toMaskedDisplayValue(setting) : setting.getValueText();
     }

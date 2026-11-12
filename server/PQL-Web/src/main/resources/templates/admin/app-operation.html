@@ -51,14 +51,16 @@
                               th:text="${operationSettings.maintenanceMessage}"></textarea>
                 </div>
 
-                <!-- 버전 (플랫폼별) -->
-                <div class="grid gap-4 md:grid-cols-2">
+                <!-- 버전 (플랫폼별), data-release-version: 서버 빌드 버전 (미배포 버전 경고 기준, 없으면 빈 값) -->
+                <div class="grid gap-4 md:grid-cols-2" id="versionSettings"
+                     th:data-release-version="${billingOperation.releaseVersion}">
                     <div class="rounded-box border border-base-300 p-4 space-y-2">
                         <h4 class="font-semibold flex items-center gap-2"><i data-lucide="apple" class="size-4"></i>iOS</h4>
                         <label class="flex flex-col gap-1">
                             <span class="label-text text-xs">최소 지원 버전 (미만이면 사용 차단)</span>
                             <input type="text" id="iosMinimumVersion" class="input input-bordered input-sm font-mono version-input w-full"
-                                   placeholder="0.0.0" th:value="${operationSettings.iosMinimumVersion}"/>
+                                   placeholder="0.0.0" th:value="${operationSettings.iosMinimumVersion}"
+                                   th:data-saved-value="${operationSettings.iosMinimumVersion}"/>
                         </label>
                         <label class="flex flex-col gap-1">
                             <span class="label-text text-xs">권장 버전 (미만이면 업데이트 안내)</span>
@@ -71,7 +73,8 @@
                         <label class="flex flex-col gap-1">
                             <span class="label-text text-xs">최소 지원 버전 (미만이면 사용 차단)</span>
                             <input type="text" id="androidMinimumVersion" class="input input-bordered input-sm font-mono version-input w-full"
-                                   placeholder="0.0.0" th:value="${operationSettings.androidMinimumVersion}"/>
+                                   placeholder="0.0.0" th:value="${operationSettings.androidMinimumVersion}"
+                                   th:data-saved-value="${operationSettings.androidMinimumVersion}"/>
                         </label>
                         <label class="flex flex-col gap-1">
                             <span class="label-text text-xs">권장 버전 (미만이면 업데이트 안내)</span>
@@ -90,6 +93,8 @@
                 </div>
             </div>
         </div>
+
+        <th:block th:replace="~{admin/fragments/app-operation-billing :: billing-card}"></th:block>
 
         <!-- 공지 -->
         <div class="card bg-base-100 shadow">
@@ -176,7 +181,7 @@
         </div>
     </div>
 
-    <!-- 앱 운영 설정 변경 이력 (감사 로그의 app.* 설정 변경) -->
+    <!-- 앱 운영 설정 변경 이력 (감사 로그 중 이 화면 전용 키: 점검·버전·결제 스위치·미리보기 회원) -->
     <div class="card bg-base-100 shadow mt-4">
         <div class="card-body p-4">
             <h3 class="card-title text-base"><i data-lucide="history" class="size-5"></i>설정 변경 이력 (최근 30건)</h3>
@@ -270,6 +275,7 @@
 </th:block>
 
 <th:block layout:fragment="js">
+    <script th:src="@{/js/admin/app-operation-billing.js}"></script>
     <script>
         lucide.createIcons();
 
@@ -300,7 +306,45 @@
             }
         }
 
-        // 점검·버전 저장: 형식 검증 > PUT > 결과 알림
+        // 최소 지원 버전 입력 (저장 전 변경 전후 확인 대상)
+        const MINIMUM_VERSION_INPUTS = [
+            {id: 'iosMinimumVersion', platformName: 'iOS'},
+            {id: 'androidMinimumVersion', platformName: 'Android'}
+        ];
+
+        // x.y.z 비교: version 이 baseVersion 보다 높으면 true
+        function isVersionHigher(version, baseVersion) {
+            const versionParts = version.split('.').map(Number);
+            const baseVersionParts = baseVersion.split('.').map(Number);
+            for (let index = 0; index < versionParts.length; index++) {
+                if (versionParts[index] !== baseVersionParts[index]) return versionParts[index] > baseVersionParts[index];
+            }
+            return false;
+        }
+
+        // 저장 전 확인 문구: 최소 버전 변경 전후 + 영향 + 미배포 버전 경고, 점검 모드 켜짐 (확인할 것 없으면 빈 문자열)
+        function buildSaveConfirmMessage(isMaintenanceEnabled) {
+            const releaseVersion = document.getElementById('versionSettings').dataset.releaseVersion || '';
+            const lines = [];
+            MINIMUM_VERSION_INPUTS.forEach(({id, platformName}) => {
+                const input = document.getElementById(id);
+                const newVersion = input.value.trim();
+                if (newVersion === input.dataset.savedValue) return;
+                lines.push(platformName + ' 최소 지원 버전: ' + input.dataset.savedValue + ' > ' + newVersion);
+                if (VERSION_PATTERN.test(releaseVersion) && isVersionHigher(newVersion, releaseVersion)) {
+                    lines.push('  경고: ' + newVersion + ' 은 현재 서버 빌드 버전(' + releaseVersion + ')보다 높습니다. 아직 배포되지 않은 버전일 수 있습니다.');
+                }
+            });
+            if (lines.length) {
+                lines.push('새 최소 버전 미만 사용자는 업데이트 전까지 앱을 쓸 수 없습니다.');
+            }
+            if (isMaintenanceEnabled) {
+                lines.push('점검 모드를 켠 상태로 저장합니다. 앱 사용과 회원 API 가 막힙니다.');
+            }
+            return lines.join('\n');
+        }
+
+        // 점검·버전 저장: 형식 검증 > 확인 창(최소 버전 변경·점검 켜짐) > PUT > 새로고침
         async function saveOperationSettings() {
             let hasInvalidVersion = false;
             VERSION_INPUT_IDS.forEach(id => {
@@ -310,11 +354,12 @@
                 if (!isValid) hasInvalidVersion = true;
             });
             if (hasInvalidVersion) {
-                showToast('버전은 x.y.z 형식의 숫자로 입력해 주세요.', 'error');
+                AdminUi.toast('버전은 x.y.z 형식의 숫자로 입력해 주세요.', 'error');
                 return;
             }
             const isMaintenanceEnabled = document.getElementById('isMaintenanceEnabled').checked;
-            if (isMaintenanceEnabled && !confirm('점검 모드를 켠 상태로 저장합니다. 앱 사용과 회원 API 가 막힙니다. 계속할까요?')) {
+            const confirmMessage = buildSaveConfirmMessage(isMaintenanceEnabled);
+            if (confirmMessage && !await AdminUi.confirmDanger(confirmMessage, {title: '저장 전 확인', confirmLabel: '저장'})) {
                 return;
             }
             const request = {
@@ -327,16 +372,13 @@
                 maintenanceStartsAt: document.getElementById('maintenanceStartsAt').value || null,
                 maintenanceEndsAt: document.getElementById('maintenanceEndsAt').value || null
             };
-            const response = await fetch('/admin/app-operation/settings', {
-                method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(request)
-            });
-            if (response.ok) {
-                location.reload();
-            } else {
-                showToast(await readErrorMessage(response, '저장에 실패했습니다.'), 'error');
+            try {
+                await AdminApi.put('/admin/app-operation/settings', request);
+            } catch (error) {
+                AdminUi.showError(error);
+                return;
             }
+            AdminUi.reloadWithToast('저장했습니다.');
         }
 
         // 공지 모달 열기 (dataset 없으면 새 공지)
