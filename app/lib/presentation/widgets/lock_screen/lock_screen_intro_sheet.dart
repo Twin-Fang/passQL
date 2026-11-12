@@ -106,7 +106,7 @@ class _LockScreenIntroBody extends StatelessWidget {
 
 /// 학습을 끝낸 결과 화면에서 소개 시트 1회 시도 (화면에는 아무것도 그리지 않음)
 /// [hasStudiedEnoughToday]: 세트 완료면 true, 랜덤 풀기면 오늘 제출 3개 이상
-/// 결과 연출(보상·평가 창)과 겹치지 않게 잠깐 기다린 뒤, 결과 화면이 여전히 맨 위일 때만
+/// 결과 연출(보상·평가 창)이 닫혀 결과 화면이 맨 위가 될 때까지 기다렸다가 1회 판정
 class LockScreenIntroOnResult extends ConsumerStatefulWidget {
   const LockScreenIntroOnResult({
     super.key,
@@ -124,26 +124,34 @@ class LockScreenIntroOnResult extends ConsumerStatefulWidget {
 
 class _LockScreenIntroOnResultState
     extends ConsumerState<LockScreenIntroOnResult> {
-  // 결과 화면 진입 뒤 기다림 (진입 연출이 끝난 뒤)
-  static const Duration _showDelay = Duration(milliseconds: 1500);
+  // 결과 화면 진입 뒤 첫 확인까지 기다림 (진입 연출이 끝난 뒤), 이후 같은 간격으로 다시 확인
+  static const Duration _checkInterval = Duration(milliseconds: 1500);
+  // 보상 창 등이 오래 떠 있어도 이 횟수까지만 다시 확인 (약 1분)
+  static const int _maximumCheckCount = 40;
 
-  Timer? _showTimer;
+  Timer? _checkTimer;
+  int _checkCount = 0;
 
   @override
   void initState() {
     super.initState();
-    if (!ref.read(isLockScreenAvailableProvider)) return;
-    _showTimer = Timer(_showDelay, _showIfEligible);
+    _checkTimer = Timer.periodic(_checkInterval, (_) => _checkOnce());
   }
 
   @override
   void dispose() {
-    _showTimer?.cancel();
+    _checkTimer?.cancel();
     super.dispose();
   }
 
-  Future<void> _showIfEligible() async {
-    if (!mounted || ModalRoute.of(context)?.isCurrent != true) return;
+  /// 확인 1회: 결과 화면이 맨 위 아니면 다음 확인으로 미룸 > 맨 위면 판정 1회 후 종료
+  Future<void> _checkOnce() async {
+    _checkCount += 1;
+    if (!mounted || _checkCount > _maximumCheckCount) return _stopChecking();
+    if (ModalRoute.of(context)?.isCurrent != true) return;
+    _stopChecking();
+    // 앱 설정 응답이 늦게 와도 반영되게 판정 시점에 읽음
+    if (!ref.read(isLockScreenAvailableProvider)) return;
     final shouldShow = await shouldShowLockScreenIntro(
       ref,
       hasStudiedEnoughToday: widget.hasStudiedEnoughToday(ref),
@@ -151,6 +159,11 @@ class _LockScreenIntroOnResultState
     if (!shouldShow || !mounted) return;
     if (ModalRoute.of(context)?.isCurrent != true) return;
     await showLockScreenIntroSheet(context);
+  }
+
+  void _stopChecking() {
+    _checkTimer?.cancel();
+    _checkTimer = null;
   }
 
   @override

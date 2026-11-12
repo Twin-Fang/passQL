@@ -67,7 +67,7 @@ abstract final class StorageKeys {
       'lock_screen_intro_last_shown_at_ms';
   static const String lockScreenIntroShownCount =
       'lock_screen_intro_shown_count';
-  // 잠금화면 문제를 한 번이라도 켰는지 (bool, 설정 행 NEW 배지는 켜기 전까지)
+  // 잠금화면 문제를 한 번이라도 켰는지 (bool, 첫 켜기 때 서버 기본 간격 적용)
   static const String lockScreenEverEnabled = 'lock_screen_ever_enabled';
 
   // ─── 보안 저장소 (Keychain/Keystore, 인증 세션) ───
