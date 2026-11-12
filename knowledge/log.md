@@ -204,3 +204,7 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-12 17:30 | W6 | create | ISS-0496~0498·0500 (resolved) + report (#992·#993·#995·#1005), ISS-0499 (open, #1002), DEC-0289
 - 2026-11-12 17:30 | W2 | update | cluster-billing, practice, ai, home, design-system, community, notification, auth-member, store-release, ci-deploy, dev-workflow
 - 2026-11-12 17:31 | W2 | fix | members count 11 clusters
+- 2026-11-12 19:57 | W4 | supersede | DEC-0004 -> DEC-0291 (무료 기본 해설 공개, #999 이슈 본문 대체 명시), DEC-0278 -> DEC-0292 (표 이름 기준 대체·짧은 이름표 코드 제목, #1015 예상 동작)
+- 2026-11-12 19:57 | W6 | create | ISS-0501~0504 (resolved) + report (#990·#1015·#1016·#1017), DEC-0290, DEC-0291, DEC-0292
+- 2026-11-12 19:57 | W2 | update | cluster-practice, billing, ads, store-release, question-bank, design-system, concept-learning, dev-workflow
+- 2026-11-12 19:57 | W2 | fix | members count: ads 25, billing 68, concept-learning 22, design-system 162, dev-workflow 77, practice 187, question-bank 86, store-release 68
