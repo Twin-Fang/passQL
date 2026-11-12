@@ -3076,6 +3076,15 @@
       },
       "RoundSummary" : {
         "properties" : {
+          "bestAttemptFailReason" : {
+            "description" : "최고 점수 응시(동점이면 최근)의 불합격 이유",
+            "enum" : [ "NONE", "SUBJECT_FAIL", "TOTAL_SCORE_BELOW" ],
+            "type" : [ "string", "null" ]
+          },
+          "bestAttemptIsPassed" : {
+            "description" : "최고 점수 응시(동점이면 최근)의 합격 여부 (과락 포함)",
+            "type" : [ "boolean", "null" ]
+          },
           "bestScore" : {
             "format" : "int32",
             "type" : [ "integer", "null" ]
@@ -3114,7 +3123,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "bestScore", "canStart", "isFreeTrialRound", "lastAttempt", "roundNumber", "roundUuid", "startBlockReason", "submittedAttemptCount", "title" ],
+        "required" : [ "bestAttemptFailReason", "bestAttemptIsPassed", "bestScore", "canStart", "isFreeTrialRound", "lastAttempt", "roundNumber", "roundUuid", "startBlockReason", "submittedAttemptCount", "title" ],
         "type" : "object"
       },
       "SheetQuestion" : {
