@@ -12,6 +12,7 @@ import '../../../router/push_link_routes.dart';
 import '../../providers/notification_inbox_providers.dart';
 
 /// 알림함 항목 열기: 분석 기록 > 읽음 처리 > 공지는 공지 상세 화면(#529), 알림은 허용 목록 화면 이동
+/// 풀스크린 이동은 알림함 위에 쌓아 뒤로 가기로 알림함 복귀 (#995)
 /// 이동 정보가 허용 목록 밖이거나 없으면 읽음 처리만 함
 Future<void> openNotificationItem(
   BuildContext context,
@@ -39,5 +40,11 @@ Future<void> openNotificationItem(
     PushDataKeys.linkTarget: item.linkTarget,
     PushDataKeys.questionUuid: item.linkQuestionUuid,
   });
-  if (link != null) await openPushLink(GoRouter.of(context), link);
+  if (link != null) {
+    await openPushLink(
+      GoRouter.of(context),
+      link,
+      shouldStackOnCurrentScreen: true,
+    );
+  }
 }

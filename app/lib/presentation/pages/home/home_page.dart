@@ -56,7 +56,7 @@ class HomePage extends ConsumerWidget {
           slivers: [
             PassqlSliverFillStatus(
               child: PassqlStatusView.error(
-                message: '데이터를 불러오지 못했어요.',
+                message: PassqlLoadFailureCopy.messageOf('데이터를'),
                 onRetry: () => invalidateHomeData(ref.invalidate),
               ),
             ),

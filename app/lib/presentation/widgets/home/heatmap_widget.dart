@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import '../../../core/utils/app_clock.dart';
+import '../../../core/utils/date_format.dart';
 import '../../../data/models/progress/heatmap_response.dart';
 import '../../design/design.dart';
 import 'section_or_card.dart';
@@ -86,8 +87,7 @@ class HeatmapWidget extends StatelessWidget {
     return '최근 ${days.length}일 학습 기록, 학습한 날 $studiedDayCount일, 푼 문제 $solvedTotal개';
   }
 
-  String _toDateKey(DateTime date) =>
-      '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  String _toDateKey(DateTime date) => formatIsoDate(date);
 
   @override
   Widget build(BuildContext context) {

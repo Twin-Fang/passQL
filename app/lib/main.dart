@@ -16,6 +16,7 @@ import 'core/monitoring/firebase_analytics_backend.dart';
 import 'core/monitoring/firebase_crash_reporter.dart';
 import 'core/notification/app_icon_badge_updater.dart';
 import 'core/push/firebase_push_messaging_client.dart';
+import 'core/utils/app_locale_settings.dart';
 import 'presentation/design/design.dart';
 import 'presentation/providers/app_icon_badge_sync.dart';
 import 'presentation/providers/auth_provider.dart';
@@ -127,6 +128,9 @@ class PassqlApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'passQL',
       debugShowCheckedModeBanner: false,
+      locale: AppLocaleSettings.locale,
+      supportedLocales: AppLocaleSettings.supportedLocales,
+      localizationsDelegates: AppLocaleSettings.localizationsDelegates,
       theme: PassqlTheme.light,
       darkTheme: PassqlTheme.dark,
       // 설정 > 화면 모드에서 고른 값(기본: 시스템 설정 따르기).

@@ -31,7 +31,7 @@ export const LOCKED_PREVIEW_CAPTIONS = {
 } as const;
 
 // 사유 화면 3종 (앱 QuestionLoadErrorView 와 같은 문구)
-export const FREE_DAILY_LIMIT_REASON = "오늘 무료 문제를 다 풀었어요";
+export const FREE_DAILY_LIMIT_REASON = "오늘 크레딧을 다 썼어요";
 export const FREE_DAILY_LIMIT_RESET_NOTICE = "내일 0시에 다시 열려요";
 export const FAIR_USE_DAILY_LIMIT_REASON = "오늘 풀 수 있는 문제를 모두 풀었어요";
 export const FAIR_USE_LIMIT_RESET_NOTICE = "내일 0시에 다시 풀 수 있어요";

@@ -7,7 +7,7 @@ import '../../providers/report_providers.dart';
 import '../common/app_toast.dart';
 import 'report_sheet.dart';
 
-/// 제출 결과 화면에 붙이는 "문제 신고" 아이콘 버튼 (글자 없음, 스크린리더·툴팁에 문구).
+/// 제출 결과 화면에 붙이는 "문제 신고" 버튼: 깃발 아이콘 + 짧은 글자 '신고' (스크린리더·툴팁은 전체 문구).
 ///
 /// 이미 신고한 제출이면 비활성화하고 채운 깃발 + "신고 완료"로 알린다.
 class ReportButton extends ConsumerWidget {
@@ -38,13 +38,23 @@ class ReportButton extends ConsumerWidget {
       child: Tooltip(
         message: label,
         child: CupertinoButton(
-          padding: EdgeInsets.zero,
+          padding: const EdgeInsets.symmetric(horizontal: PassqlSpacing.xs),
           minimumSize: const Size.square(PassqlSize.minTouchTarget),
           onPressed: reported ? null : () => _open(context, target),
-          child: Icon(
-            reported ? CupertinoIcons.flag_fill : CupertinoIcons.flag,
-            size: PassqlIconSize.md,
-            color: color,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                reported ? CupertinoIcons.flag_fill : CupertinoIcons.flag,
+                size: PassqlIconSize.md,
+                color: color,
+              ),
+              const SizedBox(width: PassqlSpacing.xxs),
+              Text(
+                reported ? '신고 완료' : '신고',
+                style: PassqlTypography.footnote.copyWith(color: color),
+              ),
+            ],
           ),
         ),
       ),

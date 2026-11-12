@@ -59,7 +59,7 @@ export function useAnswerFeedbackExecution(state: AnswerFeedbackState | null) {
       resultCacheRef.current = { ...resultCacheRef.current, [choice.key]: result };
       setResultCache((prev) => ({ ...prev, [choice.key]: result }));
     } catch (err) {
-      const message = toUserErrorMessage(err, "실행에 실패했습니다");
+      const message = toUserErrorMessage(err, "실행하지 못했어요");
       setExecutionErrorByKey((prev) => ({ ...prev, [choice.key]: message }));
     } finally {
       executingKeyRef.current.delete(choice.key);

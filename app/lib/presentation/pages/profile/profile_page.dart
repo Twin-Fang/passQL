@@ -52,7 +52,7 @@ class ProfilePage extends ConsumerWidget {
           slivers: [
             PassqlSliverFillStatus(
               child: PassqlStatusView.error(
-                message: '기록을 불러오지 못했어요',
+                message: PassqlLoadFailureCopy.messageOf('기록을'),
                 onRetry: () => ref.invalidate(statsDataProvider),
               ),
             ),

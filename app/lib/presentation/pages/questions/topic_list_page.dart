@@ -27,7 +27,7 @@ import '../../../router/questions_tab_view.dart';
 const int _nativeAdAfterTopicCount = 5;
 
 /// 토픽 목록 머리글 (스켈레톤과 같은 자리)
-const _topicListHeader = '학습할 토픽을 선택하세요';
+const _topicListHeader = '학습할 토픽을 골라 보세요';
 
 /// 내용 묶음 사이 가로·위 여백
 const _sectionPadding = EdgeInsets.fromLTRB(
@@ -126,7 +126,7 @@ class TopicListPage extends ConsumerWidget {
       return [
         PassqlSliverFillStatus(
           child: PassqlStatusView.error(
-            message: '토픽을 불러올 수 없어요',
+            message: PassqlLoadFailureCopy.messageOf('토픽을'),
             onRetry: () => ref.invalidate(topicsProvider),
           ),
         ),
@@ -234,7 +234,7 @@ class TopicListPage extends ConsumerWidget {
               child: Padding(
                 padding: statePadding,
                 child: PassqlStatusView.error(
-                  message: '출제 경향을 불러올 수 없어요',
+                  message: PassqlLoadFailureCopy.messageOf('출제 경향을'),
                   onRetry: () => ref.invalidate(examTrendReportProvider),
                 ),
               ),

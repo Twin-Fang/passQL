@@ -135,7 +135,7 @@ class _ConceptQuickCheckCardState extends State<ConceptQuickCheckCard> {
               ),
               const SizedBox(width: PassqlSpacing.xs),
               Text(
-                isCorrect ? '맞았어요' : '정답은 $answerMark 예요',
+                isCorrect ? '맞았어요' : '정답은 $answerMark예요',
                 style: PassqlTypography.subheadlineSemibold.copyWith(
                   color: isCorrect ? colors.correctText : colors.wrongText,
                 ),

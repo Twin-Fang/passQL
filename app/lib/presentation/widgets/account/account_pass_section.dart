@@ -35,7 +35,7 @@ class AccountPassSection extends ConsumerWidget {
         if (expiresAt != null)
           PassqlListRow(
             title: '만료일',
-            trailing: Text(_formatDottedDateTime(expiresAt)),
+            trailing: Text(formatDottedDateTime(expiresAt)),
           ),
         if (isFreeBillingTarget)
           PassqlListRow(
@@ -50,13 +50,6 @@ class AccountPassSection extends ConsumerWidget {
         ),
       ],
     );
-  }
-
-  /// 만료 시각 > 2027.01.26 23:59
-  static String _formatDottedDateTime(DateTime time) {
-    final hour = time.hour.toString().padLeft(2, '0');
-    final minute = time.minute.toString().padLeft(2, '0');
-    return '${formatDottedDate(time)} $hour:$minute';
   }
 }
 

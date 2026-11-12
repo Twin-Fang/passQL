@@ -1,5 +1,6 @@
 import { Users } from "lucide-react";
 import NotificationBell from "./NotificationBell";
+import CreditBadge from "./pro/CreditBadge";
 import logo from "../assets/logo/logo.png";
 
 interface MobileHeaderProps {
@@ -13,6 +14,8 @@ export default function MobileHeader({ onTeamClick }: MobileHeaderProps) {
       <img src={logo} alt="passQL" className="h-6 w-auto" />
 
       <div className="flex items-center gap-2">
+        {/* 오늘 남은 크레딧 (무료만) > 알림 순 (앱 상단 바 오른쪽과 같은 자리) */}
+        <CreditBadge />
         <NotificationBell />
         {/* 팀 아이콘 — 모달 오픈은 부모(AppLayout)가 담당 */}
         <button

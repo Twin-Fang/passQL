@@ -29,7 +29,7 @@ export const SqlPlayground = memo(function SqlPlayground({
     } catch (err) {
       // 네트워크 오류·5xx 등 API 호출 자체가 실패한 경우 — 이전 결과 초기화
       setResult(null);
-      setNetworkError(toUserErrorMessage(err, "실행 요청에 실패했습니다"));
+      setNetworkError(toUserErrorMessage(err, "실행하지 못했어요"));
     } finally {
       setIsExecuting(false);
     }
