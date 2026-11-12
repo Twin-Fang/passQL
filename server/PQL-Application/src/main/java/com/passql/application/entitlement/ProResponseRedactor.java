@@ -134,8 +134,19 @@ public class ProResponseRedactor {
             .findFirst()
             .orElse(null);
         int choiceCount = items.isEmpty() ? DEFAULT_CHOICE_COUNT : items.size();
-        return new LockedExplanationMaterial(correctRationale,
+        return new LockedExplanationMaterial(selectBasicExplanation(fullExplanation, correctRationale),
             ExplanationOutlineBuilder.buildOrDefault(fullExplanation, choiceCount));
+    }
+
+    /**
+     * 무료 기본 해설: 생성된 해설의 정답 근거(2~3문장) > 없으면 정답 보기 저장 근거
+     * 저장 근거는 "문제의 SQL을 그대로 실행한 결과예요" 같은 한 줄이 많음 (보기별 분석·핵심 개념은 계속 PRO)
+     */
+    static String selectBasicExplanation(ChoiceExplanation fullExplanation, String correctRationale) {
+        if (fullExplanation != null && hasText(fullExplanation.correctReason())) {
+            return fullExplanation.correctReason().strip();
+        }
+        return correctRationale;
     }
 
     /** 잠긴 응답에 더하는 값 2개: 기본 해설(없으면 null), 상세 해설 구성 */
