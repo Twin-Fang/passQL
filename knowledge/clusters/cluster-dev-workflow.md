@@ -2,7 +2,7 @@
 type: cluster
 topic: dev-workflow
 created: 2026-10-29
-members: 75
+members: 76
 status: active
 related: []
 ---
@@ -51,6 +51,7 @@ related: []
 - [[DEC-0068-dev-mode-hidden-easter-egg]] → null
 
 ## 관련 이슈
+- [[ISS-0500-code-consult-today-changes]] (resolved, #1005): 하루 변경분 code-consult check
 - [[ISS-0468-web-audit-cross-tab-reissue-logout]] (resolved, GitHub #881) — 웹 전체 점검: 탭 두 개면 모든 기기 로그아웃, 재발급 실패 강제 로그아웃, 선택지 생성 오류 사유
 - [[ISS-0454-dev-tools-situation-simulation]] (resolved, GitHub #819) — 개발자 도구 확장 (결제 켜짐, 온보딩, 시험일, 날짜 넘기기, 로그, 푸시, 권한 흉내)
 - [[ISS-0449-dev-tools-store-build-guard]] (resolved, GitHub #820) — 개발자 도구 스토어 빌드 차단 보장 (컴파일 상수, Android 스토어 프로파일, 규칙 테스트)

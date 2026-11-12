@@ -2,7 +2,7 @@
 type: cluster
 topic: auth-member
 created: 2026-10-29
-members: 65
+members: 66
 status: active
 related: []
 ---
@@ -38,6 +38,7 @@ related: []
 - [[DEC-0263-pass-rows-on-account-screen-only]] → DEC-0276
 
 ## 관련 이슈
+- [[ISS-0498-second-audit-ui-state-35]] (resolved, #995): 세션 만료 안내·탈퇴 시 이용권 소멸 안내
 - [[ISS-0491-first-run-guide-home-next-step]] (resolved, GitHub #975): 첫 화면·홈에 차별점과 지금 할 일이 없음, 무료 회원 안내 구간 없음
 - [[ISS-0486-android-naver-app-login-no-catagorized-error]] (open, GitHub #942): Android 네이버 앱 설치 기기 로그인 실패, Chrome 로그인 화면 재시도 수정 실기기 확인 대기
 - [[ISS-0483-admin-search-email]] (resolved, GitHub #934): 관리자 전역 검색 이메일 일부 일치(@ 포함 검색어)

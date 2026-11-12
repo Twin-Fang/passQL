@@ -2,7 +2,7 @@
 type: cluster
 topic: community
 created: 2026-10-29
-members: 24
+members: 25
 status: active
 related: []
 ---
@@ -26,6 +26,7 @@ related: []
 - [[DEC-0157-community-bottom-tab]] → DEC-0167
 
 ## 관련 이슈
+- [[ISS-0498-second-audit-ui-state-35]] (resolved, #995): 풀고 온 의견 잠금 해제·작성 중 이탈 확인
 - [[ISS-0382-admin-community-post-report-bulk]] (open, GitHub #627) — 관리자 토론 게시글·신고에 일괄 처리·처리 사유·제재 연계·통계가 없음
 - [[ISS-0415-feedback-single-submit-attachments-diagnostics]] (open, GitHub #708) — 의견 보내기 개편 — 단건 전송, 이미지 첨부, 진단 정보와 로그
 - [[ISS-0426-app-community-tab-list-redesign]] (open, GitHub #741) — 앱 토론 탭 첫 화면·의견 화면을 게시판 목록·댓글 모양으로 개편

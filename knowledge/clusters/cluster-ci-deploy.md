@@ -2,7 +2,7 @@
 type: cluster
 topic: ci-deploy
 created: 2026-10-29
-members: 66
+members: 67
 status: active
 related: []
 ---
@@ -42,6 +42,7 @@ CI/CD·배포·버전 관리·빌드
 - [[DEC-0021-vercel-git-integration-deploy-branch]] → DEC-0060
 
 ## 관련 이슈
+- [[ISS-0499-play-fgs-declaration-lock-screen]] (open, #1002): upload_to_play_store 거절
 - [[ISS-0484-ios-deploy-mutates-version-in-review]] (resolved, GitHub #939): 심사 대기 중 iOS 배포가 대기 버전 표기·메타데이터를 바꾸고 실패 > TestFlight 만
 - [[ISS-0452-server-only-release-triggers-store-submit]] (resolved, GitHub #840) — 서버만 바꾼 릴리스에도 버전 줄 변경으로 스토어 심사 제출 자동 실행 > pubspec 제외
 - [[ISS-0449-dev-tools-store-build-guard]] (resolved, GitHub #820) — 개발자 도구 스토어 빌드 차단 보장 (컴파일 상수, Android 스토어 프로파일, 규칙 테스트)

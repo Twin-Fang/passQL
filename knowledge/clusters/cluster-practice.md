@@ -2,7 +2,7 @@
 type: cluster
 topic: practice
 created: 2026-10-29
-members: 178
+members: 181
 status: active
 related: []
 ---
@@ -72,6 +72,8 @@ related: []
 - [[DEC-0261-real-mode-renamed-new-choices]] → DEC-0275
 
 ## 관련 이슈
+- [[ISS-0496-daily-set-free-trial-sql-ai]] (resolved, #992): 오늘의 세트 무료 SQL 실행·AI 해설 체험
+- [[ISS-0498-second-audit-ui-state-35]] (resolved, #995): 풀이·결과·상태 처리 2차 점검
 - [[ISS-0492-credit-history-server-and-screen]] (resolved, GitHub #974, PR #978): 날짜별 크레딧 내역 API 없음 > credit-history API와 내역 화면
 - [[ISS-0493-first-launch-push-prompt-common-sense-fixes]] (resolved, GitHub #980, PR #981): 첫 실행 알림 안내 없음, 결과 화면 번호뿐인 목록, 크레딧 0일 때 홈 광고 권유
 - [[ISS-0491-first-run-guide-home-next-step]] (resolved, GitHub #975): 첫 화면·홈에 차별점과 지금 할 일이 없음, 무료 회원 안내 구간 없음
