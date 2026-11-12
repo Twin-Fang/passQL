@@ -73,3 +73,23 @@ const List<String> _koreanWeekdayNames = ['월', '화', '수', '목', '금', '�
 /// 날짜 > "11월 12일 수" (잠금화면 시계 옆)
 String formatMonthDayWeekday(DateTime time) =>
     '${formatMonthDay(time)} ${_koreanWeekdayNames[time.weekday - 1]}';
+
+/// 날짜 > "8.22" (시험 일정 타임라인처럼 앞 0 없는 짧은 점 구분, #991)
+String formatCompactDottedMonthDay(DateTime time) =>
+    '${time.month}.${time.day}';
+
+/// 날짜 > "11.14 (토)" (시험 일정 다음 시험 날짜, #991)
+String formatCompactDottedMonthDayWeekday(DateTime time) =>
+    '${formatCompactDottedMonthDay(time)} (${_koreanWeekdayNames[time.weekday - 1]})';
+
+/// 기간 > "10.12~16" (같은 달이면 끝 날짜만) / "4.27~5.1" (#991)
+String formatCompactDottedDateRange(DateTime start, DateTime end) {
+  final endText = start.month == end.month
+      ? '${end.day}'
+      : formatCompactDottedMonthDay(end);
+  return '${formatCompactDottedMonthDay(start)}~$endText';
+}
+
+/// 시각 > "06:00" (24시간제 시·분 두 자리, 시험 일정 수집 시각 #991)
+String formatHourMinute(DateTime time) =>
+    '${_twoDigits(time.hour)}:${_twoDigits(time.minute)}';
