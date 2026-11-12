@@ -27,6 +27,25 @@ class OnboardingSlide extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // 제목·부제가 위, 그림이 아래 (읽는 순서대로, #975)
+          const SizedBox(height: PassqlSpacing.md),
+          Semantics(
+            header: true,
+            child: Text(
+              title,
+              style: PassqlTypography.title1.copyWith(color: colors.label),
+            ),
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: PassqlSpacing.xs),
+            Text(
+              subtitle!,
+              style: PassqlTypography.callout.copyWith(
+                color: colors.secondaryLabel,
+              ),
+            ),
+          ],
+          const SizedBox(height: PassqlSpacing.lg),
           Expanded(
             child: Stack(
               clipBehavior: Clip.none,
@@ -53,20 +72,6 @@ class OnboardingSlide extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: PassqlSpacing.lg),
-          Text(
-            title,
-            style: PassqlTypography.title1.copyWith(color: colors.label),
-          ),
-          if (subtitle != null) ...[
-            const SizedBox(height: PassqlSpacing.xs),
-            Text(
-              subtitle!,
-              style: PassqlTypography.callout.copyWith(
-                color: colors.secondaryLabel,
-              ),
-            ),
-          ],
           const SizedBox(height: PassqlSpacing.md),
         ],
       ),

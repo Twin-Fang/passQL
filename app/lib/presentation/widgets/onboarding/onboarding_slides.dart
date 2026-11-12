@@ -7,11 +7,10 @@ import '../../design/design.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/home_providers.dart';
 import '../question/execute_result_card.dart';
-import 'onboarding_keyword_stickers.dart';
 import 'onboarding_slide.dart';
 import 'onboarding_sql_card.dart';
 
-/// 온보딩 4장: INSERT(환영) > SELECT(직접 실행) > EXPLAIN(AI 해설) > COMMIT(매일 약속)
+/// 온보딩 4장: INSERT(환영) > SELECT(직접 실행) > EXPLAIN(AI 해설) > 5문제 실력 확인
 /// 예시 SQL·결과·해설은 고정 값이다 (서버 호출 없음).
 const List<Widget> onboardingSlides = [
   _InsertSlide(),
@@ -159,12 +158,16 @@ class _ExplainSlide extends StatelessWidget {
   }
 }
 
-/// 4장: 하루 5문제 약속 + 키워드 스티커 + 시험 D-day
+/// 4장: 5문제 실력 확인 안내 (#975): 미리보기 카드(문제 5칸 > 안내 세 줄) + 시험 D-day
 class _CommitSlide extends ConsumerWidget {
   const _CommitSlide();
 
+  // 실력 확인 문제 수 (오늘의 세트 하루 상한과 같은 값, 서버 AdminDailyChallengeService)
+  static const int _questionCount = 5;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.passqlColors;
     final examDate = ref.watch(
       homeOverviewProvider.select(
         (overview) => overview.valueOrNull?.examSchedule?.examDate,
@@ -172,31 +175,126 @@ class _CommitSlide extends ConsumerWidget {
     );
     final remainingDays = examDate == null ? null : daysUntilExam(examDate);
     return OnboardingSlide(
-      title: '5문제로\n지금 실력부터 확인해요',
+      title: '$_questionCount문제로\n지금 실력부터 확인해요',
       // 세트 문제는 같지만 순서는 회원마다 달라서, 같은 문제라는 단정 대신 순위 경쟁을 알린다
       subtitle: '오늘의 세트는 매일 새로 열리고 순위도 겨뤄요.',
-      backdrop: const OnboardingKeywordStickers(stickers: commitStickers),
       visual: Center(
         child: PassqlCard(
           isCardTapExposedToScreenReader: false,
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Expanded(
-                child: PassqlCodeBlock(
-                  code: 'COMMIT; -- 매일 5문제',
-                  isSelectable: false,
-                  hasBackground: false,
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '오늘의 세트',
+                      style: PassqlTypography.headline.copyWith(
+                        color: colors.label,
+                      ),
+                    ),
+                  ),
+                  // 지난 시험이거나 일정을 모르면 숨김 (지난 날짜로 약속하지 않는다)
+                  if (remainingDays != null && remainingDays >= 0)
+                    PassqlBadge(
+                      text: examDdayLabel(remainingDays),
+                      kind: PassqlBadgeKind.warning,
+                    ),
+                ],
               ),
-              // 지난 시험이거나 일정을 모르면 숨김 (지난 날짜로 약속하지 않는다)
-              if (remainingDays != null && remainingDays >= 0)
-                PassqlBadge(
-                  text: examDdayLabel(remainingDays),
-                  kind: PassqlBadgeKind.warning,
-                ),
+              const SizedBox(height: PassqlSpacing.md),
+              const _QuestionSteps(count: _questionCount),
+              const SizedBox(height: PassqlSpacing.md),
+              const _CheckLine(
+                icon: CupertinoIcons.timer,
+                text: '$_questionCount문제, 금방 끝나요',
+              ),
+              const _CheckLine(
+                icon: CupertinoIcons.bolt_fill,
+                text: '크레딧을 쓰지 않아요',
+              ),
+              const _CheckLine(
+                icon: CupertinoIcons.chart_bar_fill,
+                text: '끝나면 합격 준비도가 채워져요',
+              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// 문제 칸 줄: 번호 원 N개를 선으로 이음 (첫 칸만 강조색 = 지금 시작할 문제)
+class _QuestionSteps extends StatelessWidget {
+  const _QuestionSteps({required this.count});
+
+  final int count;
+
+  // 번호 원 지름, 잇는 선 두께
+  static const double _stepSize = 36;
+  static const double _connectorHeight = 2;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    return ExcludeSemantics(
+      child: Row(
+        children: [
+          for (var index = 0; index < count; index++) ...[
+            if (index > 0)
+              Expanded(
+                child: Container(
+                  height: _connectorHeight,
+                  color: colors.separator,
+                ),
+              ),
+            Container(
+              width: _stepSize,
+              height: _stepSize,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: index == 0 ? colors.accent : colors.fill,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                '${index + 1}',
+                style: PassqlTypography.subheadlineSemibold.copyWith(
+                  color: index == 0 ? colors.onAccent : colors.secondaryLabel,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// 안내 한 줄: 강조색 아이콘 + 문장
+class _CheckLine extends StatelessWidget {
+  const _CheckLine({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: PassqlSpacing.xxs),
+      child: Row(
+        children: [
+          Icon(icon, size: PassqlIconSize.md, color: colors.accent),
+          const SizedBox(width: PassqlSpacing.xs),
+          Expanded(
+            child: Text(
+              text,
+              style: PassqlTypography.subheadline.copyWith(color: colors.label),
+            ),
+          ),
+        ],
       ),
     );
   }
