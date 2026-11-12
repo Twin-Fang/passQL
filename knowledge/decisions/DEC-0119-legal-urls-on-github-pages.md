@@ -4,9 +4,9 @@ id: DEC-0119
 created: 2026-10-15
 reviewed: null
 topics: [store-release]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0294
 related: ["[[ISS-0264-architecture-audit-commonization-refactor]]", "[[ISS-0268-web-brand-color-token-lint]]", "[[ISS-0268-web-brand-color-token-lint-report]]"]
 ---
 
