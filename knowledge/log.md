@@ -209,3 +209,7 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-12 19:57 | W2 | update | cluster-practice, billing, ads, store-release, question-bank, design-system, concept-learning, dev-workflow
 - 2026-11-12 19:57 | W2 | fix | members count: ads 25, billing 68, concept-learning 22, design-system 162, dev-workflow 77, practice 187, question-bank 86, store-release 68
 - 2026-11-12 21:40 | W6 | create completion-report ISS-0505 (#1029) | ISS-0505
+- 2026-11-12 23:20 | W4 | supersede | DEC-0108 -> DEC-0293 (시험 일정 자동 수집, #991 이슈 본문 명시), DEC-0119 -> DEC-0294 (소개 사이트·약관 주소 보유 도메인 이전, #1027 이슈 본문 명시)
+- 2026-11-12 23:20 | W6 | create | ISS-0506·0507·0509 (resolved) + report (#991·#1014·#1032), ISS-0508 (open, #1027), DEC-0293~DEC-0299
+- 2026-11-12 23:20 | W2 | update | cluster-admin, notification, home, design-system, billing, store-release, ops-infra, ci-deploy
+- 2026-11-12 23:24 | W2 | fix | members count: admin 105, billing 73, ci-deploy 68, design-system 164, home 73, notification 22, ops-infra 69, store-release 71; 현재 상태 요약 날짜 2026-11-12

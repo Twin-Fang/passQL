@@ -2,7 +2,7 @@
 type: cluster
 topic: ops-infra
 created: 2026-10-29
-members: 67
+members: 69
 status: active
 related: []
 ---
@@ -13,9 +13,10 @@ related: []
 운영 서버·로그·모니터링·DB·Flyway·인프라·성능
 
 ## 현재 상태 요약
-(2026-11-07, 자동 생성) 활성 결정 21개, 열린 이슈 3개. 서버는 OSIV 를 끄고 응답 DTO 를 서비스 안에서 만든다 — [[DEC-0268-server-osiv-off]] (#879, 설정 캐시는 커밋 뒤 쓰기·TTL, 시간대는 `ServiceTimeZone` 한 곳 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]). 점검 모드에서도 외부 콜백(AdMob 보상 검증·App Store 알림)은 통과하고 경로는 `ExternalCallbackPaths` 한 곳 — [[DEC-0273-maintenance-mode-passes-external-callbacks]] (PR #898 머지). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-12, 자동 생성) 활성 결정 21개, 열린 이슈 3개. 서버는 OSIV 를 끄고 응답 DTO 를 서비스 안에서 만든다 — [[DEC-0268-server-osiv-off]] (#879, 설정 캐시는 커밋 뒤 쓰기·TTL, 시간대는 `ServiceTimeZone` 한 곳 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]). 점검 모드에서도 외부 콜백(AdMob 보상 검증·App Store 알림)은 통과하고 경로는 `ExternalCallbackPaths` 한 곳 — [[DEC-0273-maintenance-mode-passes-external-callbacks]] (PR #898 머지). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 소개 사이트를 시놀로지 nginx 컨테이너 `passql-site`로 직접 서빙(DSM 리버스 프록시, Let's Encrypt) — [[DEC-0294-intro-site-self-hosted-own-domain]].
 
 ## 활성 결정
+- [[DEC-0294-intro-site-self-hosted-own-domain]] — 소개 사이트·약관 공개 주소는 passql.suhsaechan.kr(시놀로지 직접 서빙), github.io는 경로별 이동 페이지 (#1027, DEC-0119 대체)
 - [[DEC-0010-spring-multimodule-layering]] — Spring 서버는 `PQL-Common` → `PQL-Domain-*` → `PQL-Application` → `PQL-Web` 단방향 멀티모듈
 - [[DEC-0014-explicit-soft-delete-filter]] — 소프트 딜리트는 `@SQLDelete` 없이 `is_deleted` 컬럼 + `AndIsDeletedFalse` 메서드로 명시 필터링
 - [[DEC-0019-never-edit-applied-migrations]] — 기존 Flyway 마이그레이션은 수정하지 않고 `version.yml` 기준 새 버전 파일로 추가, 시드는 멱등
@@ -42,6 +43,7 @@ related: []
 - [[DEC-0036-cross-domain-delete-service-in-web]] → null
 
 ## 관련 이슈
+- [[ISS-0508-search-visibility-site-domain-aso]] (open, #1027): 소개 사이트 개편·passql.suhsaechan.kr 이전·스토어 검색 최적화, Play 검토 제출·App Store 이름/부제/키워드 남음
 - [[ISS-0469-billing-switch-unverified-screens-races]] (open, GitHub #867, PR #898 머지) — 결제 스위치 켜기 전 미확인 화면과 경합 점검: 제출 거부 사유 시트, 동시 제출 한도, 점검 중 외부 콜백, 해외 가격
 - [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]] (resolved, GitHub #879) — 서버 전체 점검: AI 코멘트 LLM 호출 제한, OSIV DB 커넥션 점유, 내린 보기 묶음 채점, 설정 캐시, 예외 원문 노출
 - [[ISS-0357-choice-set-ai-server-half-failing]] (open, GitHub #575) — 선택지 생성 AI 서버 호출 절반 실패, 원인 조사

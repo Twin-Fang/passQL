@@ -4,9 +4,9 @@ id: DEC-0108
 created: 2026-10-08
 reviewed: null
 topics: [admin]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0293
 related: ["[[ISS-0243-selected-exam-schedule-past-dday-plus]]", "[[ISS-0243-selected-exam-schedule-past-dday-plus-report]]"]
 ---
 
