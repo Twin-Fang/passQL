@@ -36,6 +36,8 @@ abstract final class StorageKeys {
   static const String appOpenAdShownDay = 'ads_app_open_shown_day';
   // 위 날짜의 앱 오프닝 광고 노출 횟수
   static const String appOpenAdShownCount = 'ads_app_open_shown_count';
+  // 홈 첫 방문 환영 안내 시트를 봤는지 (bool, 기기에서 한 번만, #975)
+  static const String homeWelcomeGuideSeen = 'home_welcome_guide_seen';
   // 신규 가입 후 온보딩을 아직 마치지 않았는지 (bool, 로그인 세션이 끝나면 지움)
   static const String onboardingPending = 'onboarding_pending';
   // 내 프로필 프로 탑승권을 접어 두었는지 (bool, 없으면 접힘, #749)

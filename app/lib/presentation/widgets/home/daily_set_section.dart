@@ -87,8 +87,9 @@ class DailySetSection extends StatelessWidget {
           ),
           const SizedBox(height: PassqlSpacing.sm),
         ],
-        // 홈에서 유일한 채운 버튼 (한 화면 한 강조)
+        // 홈의 채운 버튼은 「다음에 할 일」 카드 하나라 여기는 보조 모양 (#975)
         PassqlButton(
+          variant: PassqlButtonVariant.tinted,
           label: completed
               ? '결과 보기'
               : available
