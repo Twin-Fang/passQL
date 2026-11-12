@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../design/design.dart';
 import '../../providers/plan_providers.dart';
 import '../practice/credit_gauge.dart';
+import '../pro/pro_access_feedback.dart';
 
 // 등급 응답에 값이 없을 때의 하루 기본 크레딧 (DEC-0239)
 const int _fallbackDailyFreeLimit = 10;
@@ -38,7 +39,7 @@ class LockScreenExhaustedView extends ConsumerWidget {
             Semantics(
               header: true,
               child: PassqlKeepAllText(
-                '오늘 크레딧을 다 썼어요',
+                freeDailyLimitReason,
                 textAlign: TextAlign.center,
                 style: PassqlTypography.title2.copyWith(color: colors.label),
               ),

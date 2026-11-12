@@ -191,7 +191,7 @@ class AiAnalysisErrorSection extends StatelessWidget {
                 ),
               ),
               PassqlButton(
-                label: '다시 시도',
+                label: PassqlLoadFailureCopy.retryLabel,
                 onPressed: onRetry,
                 variant: PassqlButtonVariant.tinted,
                 size: PassqlButtonSize.small,
