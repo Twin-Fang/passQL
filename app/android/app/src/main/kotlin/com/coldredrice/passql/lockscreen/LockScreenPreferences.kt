@@ -69,8 +69,8 @@ class LockScreenPreferences(context: Context) {
     val remainingCredits: Int?
         get() {
             if (preferences.getString(KEY_STATUS_DATE, null) != today()) return null
-            val value = preferences.getInt(KEY_REMAINING_CREDITS, UNKNOWN_CREDITS)
-            return if (value == UNKNOWN_CREDITS) null else value
+            val storedCredits = preferences.getInt(KEY_REMAINING_CREDITS, UNKNOWN_CREDITS)
+            return if (storedCredits == UNKNOWN_CREDITS) null else storedCredits
         }
 
     val isPro: Boolean

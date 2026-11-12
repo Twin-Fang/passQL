@@ -19,20 +19,20 @@ import org.springframework.transaction.annotation.Transactional;
 public class LockScreenSettingService {
 
     // 스위치 기본값: 꺼짐 (설정 장애로 잠금화면이 갑자기 켜지지 않게)
-    private static final boolean DEFAULT_ENABLED = false;
+    private static final boolean DEFAULT_IS_ENABLED = false;
     // 기본 표시 간격 (분)
     public static final int DEFAULT_INTERVAL_MINUTES = 30;
     // 실행형 SQL 출제 기본값: 포함
-    private static final boolean DEFAULT_EXECUTABLE_INCLUDED = true;
+    private static final boolean DEFAULT_IS_EXECUTABLE_INCLUDED = true;
 
     private final AppSettingService appSettingService;
 
     public boolean isEnabled() {
-        return readBooleanOrDefault(AppSettingKeys.LOCKSCREEN_ENABLED, DEFAULT_ENABLED);
+        return readBooleanOrDefault(AppSettingKeys.LOCKSCREEN_ENABLED, DEFAULT_IS_ENABLED);
     }
 
     public boolean isExecutableIncluded() {
-        return readBooleanOrDefault(AppSettingKeys.LOCKSCREEN_INCLUDE_EXECUTABLE, DEFAULT_EXECUTABLE_INCLUDED);
+        return readBooleanOrDefault(AppSettingKeys.LOCKSCREEN_INCLUDE_EXECUTABLE, DEFAULT_IS_EXECUTABLE_INCLUDED);
     }
 
     /** 기본 표시 간격 (분, 0 은 화면 켤 때마다, 음수·읽기 실패 > 30) */
@@ -64,12 +64,12 @@ public class LockScreenSettingService {
                 before.isExecutableIncluded(), request.isExecutableIncluded());
     }
 
-    private boolean readBooleanOrDefault(String key, boolean defaultValue) {
+    private boolean readBooleanOrDefault(String key, boolean isTrueByDefault) {
         try {
-            return appSettingService.getBooleanOrDefault(key, defaultValue);
+            return appSettingService.getBooleanOrDefault(key, isTrueByDefault);
         } catch (RuntimeException e) {
             log.warn("[lockscreen setting] read failed, using default : key={}, reason={}", key, e.getClass().getSimpleName());
-            return defaultValue;
+            return isTrueByDefault;
         }
     }
 }

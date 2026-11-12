@@ -48,9 +48,8 @@ public interface QuestionRepository extends JpaRepository<Question, UUID>, JpaSp
     List<String> findPlayableActiveQuestionUuids();
 
     /**
-     * 생성 대기 없이 바로 열 수 있는 활성 문제 uuid (#990 잠금화면 출제 후보)
-     * OK 세트 3가지: 검증 통과 세트, 개념형(CONCEPT_ONLY) 세트, 고정 보기 문제의 고정 세트 (ChoiceSetResolver 연습 모드 재사용 조건과 동일)
-     * isExecutableExcluded=true 면 실행형(EXECUTABLE) 제외, HYBRID 는 출제 미지원이라 제외
+     * 생성 대기 없이 바로 열 수 있는 활성 문제 uuid (#990): OK 세트 3가지(검증 통과, CONCEPT_ONLY, 고정 보기) = ChoiceSetResolver 연습 모드 재사용 조건
+     * isExecutableExcluded=true 면 EXECUTABLE 제외, HYBRID 는 출제 미지원이라 항상 제외
      */
     @Query("SELECT q.questionUuid FROM Question q WHERE q.isActive = true"
             + " AND q.choiceSetPolicy <> com.passql.question.constant.ChoiceSetPolicy.HYBRID"

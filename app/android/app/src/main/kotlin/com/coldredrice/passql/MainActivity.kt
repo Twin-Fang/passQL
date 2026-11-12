@@ -61,7 +61,7 @@ class MainActivity : FlutterFragmentActivity() {
         LockScreenRoutes.pendingRoute = route
     }
 
-    // 네이티브 광고 팩토리 2개 등록 (엔진 수명과 함께): 탭 바 아래 한 줄 띠(#527), 문제 탭 카드 (Dart NativeAd factoryId 가 이 이름을 찾음)
+    // 엔진 연결 (엔진 수명과 함께): 네이티브 광고 팩토리 2개(탭 바 아래 띠 #527, 문제 탭 카드 — Dart factoryId 가 이 이름을 찾음), 채널 3개(벨소리, 네이버 로그인, 잠금화면)
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         GoogleMobileAdsPlugin.registerNativeAdFactory(

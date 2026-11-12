@@ -141,8 +141,8 @@ class _LockScreenQuestionViewState
   Widget _buildGradedSection(BuildContext context) {
     final colors = context.passqlColors;
     final state = widget.state;
-    final result = state.submitResult!;
-    final rationale = result.rationale?.trim();
+    final submitResult = state.submitResult!;
+    final rationale = submitResult.rationale?.trim();
     return PassqlReveal(
       index: 0,
       child: Padding(
@@ -158,12 +158,12 @@ class _LockScreenQuestionViewState
             Align(
               alignment: Alignment.centerLeft,
               child: PassqlPopIn(
-                child: PassqlResultMark(isCorrect: result.isCorrect),
+                child: PassqlResultMark(isCorrect: submitResult.isCorrect),
               ),
             ),
             if (state.isExecutable) ...[
               const SizedBox(height: PassqlSpacing.sm),
-              _buildExecutionResult(context, result.correctResult),
+              _buildExecutionResult(context, submitResult.correctResult),
             ],
             if (rationale != null && rationale.isNotEmpty) ...[
               const SizedBox(height: PassqlSpacing.sm),
