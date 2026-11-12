@@ -6,7 +6,109 @@
 
 <th:block layout:fragment="content">
 
-    <!-- 공식 공고 확인 (#411) — 날짜는 매년 바뀌고 자동으로 가져올 수 없어 사람이 확인해 추가한다 -->
+    <!-- SQLD 일정 자동 수집 상태 (#991): 마지막 성공·마지막 시도, 실패 사유·원문 일부, 지금 수집 -->
+    <div class="card bg-base-100 shadow mb-4">
+        <div class="card-body p-4 gap-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                    <h3 class="card-title text-base">
+                        <i data-lucide="refresh-cw" class="size-5"></i>
+                        일정 자동 수집
+                        <span class="text-xs font-normal text-base-content/50">매일 06:05 공식 페이지에서 SQLD 일정 수집</span>
+                    </h3>
+                    <p class="text-xs text-base-content/60 mt-1">
+                        마지막 성공:
+                        <b th:if="${latestSuccessSyncRun != null}"
+                           th:text="${#temporals.format(latestSuccessSyncRun.startedAt, 'yyyy-MM-dd HH:mm')}">2026-11-12 06:05</b>
+                        <b th:if="${latestSuccessSyncRun == null}">기록 없음</b>
+                        <span th:if="${latestSuccessSyncRun != null}"
+                              th:text="'(' + ${latestSuccessSyncRun.scheduleYear} + '년, ' + ${latestSuccessSyncRun.collectedRoundCount} + '회차)'">(2026년, 4회차)</span>
+                    </p>
+                    <p class="text-xs text-base-content/60 mt-1">
+                        마지막 시도:
+                        <span th:if="${latestSyncRun == null}">기록 없음</span>
+                        <th:block th:if="${latestSyncRun != null}">
+                            <span th:text="${#temporals.format(latestSyncRun.startedAt, 'yyyy-MM-dd HH:mm')}">2026-11-12 06:05</span>
+                            (<span th:text="${latestSyncRun.triggerType.label}">자동</span>)
+                            <span class="badge badge-sm ml-1"
+                                  th:classappend="${latestSyncRun.isSuccess} ? 'badge-success' : 'badge-error'"
+                                  th:text="${latestSyncRun.isSuccess} ? '성공' : '실패'">성공</span>
+                        </th:block>
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <a th:href="@{/admin/audit-logs(targetType='EXAM_SCHEDULE')}" class="btn btn-sm btn-outline">
+                        <i data-lucide="history" class="size-4"></i>
+                        변경 이력
+                    </a>
+                    <button type="button" id="syncNowButton" class="btn btn-sm btn-primary" onclick="syncExamSchedulesNow(this)">
+                        <i data-lucide="download" class="size-4"></i>
+                        지금 수집
+                    </button>
+                </div>
+            </div>
+
+            <!-- 마지막 시도 실패: 무엇이 문제인지 + 원문 일부, 일정은 그대로 -->
+            <div th:if="${latestSyncRun != null and !latestSyncRun.isSuccess}" class="alert alert-error py-3">
+                <div class="w-full space-y-2">
+                    <p class="text-sm font-medium">
+                        수집 실패: <span th:text="${latestSyncRun.failureReason != null} ? ${latestSyncRun.failureReason.label} : '알 수 없음'">표 없음</span>
+                        · 일정은 바꾸지 않았습니다.
+                    </p>
+                    <p class="text-xs opacity-80" th:if="${latestSyncRun.failureDetail != null}">
+                        상세: <code th:text="${latestSyncRun.failureDetail}">header columns expected 9 but 8</code>
+                    </p>
+                    <details th:if="${latestSyncRun.sourceExcerpt != null and !latestSyncRun.sourceExcerpt.isEmpty()}">
+                        <summary class="text-xs cursor-pointer">원문 일부 보기</summary>
+                        <pre class="text-xs whitespace-pre-wrap break-all bg-base-100 text-base-content rounded p-2 mt-1 max-h-48 overflow-auto"
+                             th:text="${latestSyncRun.sourceExcerpt}">&lt;tr&gt;...&lt;/tr&gt;</pre>
+                    </details>
+                    <div class="flex flex-wrap gap-2">
+                        <a th:href="${officialUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-xs">
+                            <i data-lucide="external-link" class="size-3"></i>
+                            공식 페이지 확인
+                        </a>
+                        <a href="#manualScheduleForm" class="btn btn-xs">
+                            <i data-lucide="pencil" class="size-3"></i>
+                            수동 입력으로
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 최근 수집 10건 -->
+            <details th:if="${!recentSyncRuns.isEmpty()}">
+                <summary class="text-xs cursor-pointer text-base-content/60">최근 수집 기록</summary>
+                <div class="overflow-x-auto mt-2">
+                    <table class="table table-xs">
+                        <thead><tr>
+                            <th>시각</th><th>방식</th><th>결과</th><th>연도(근거)</th>
+                            <th class="text-right">회차</th><th class="text-right">추가</th><th class="text-right">변경</th><th class="text-right">고정 건너뜀</th><th>새 연도</th>
+                        </tr></thead>
+                        <tbody>
+                        <tr th:each="run : ${recentSyncRuns}">
+                            <td th:text="${#temporals.format(run.startedAt, 'MM-dd HH:mm')}">11-12 06:05</td>
+                            <td th:text="${run.triggerType.label}">자동</td>
+                            <td>
+                                <span th:if="${run.isSuccess}" class="badge badge-xs badge-success">성공</span>
+                                <span th:unless="${run.isSuccess}" class="badge badge-xs badge-error"
+                                      th:text="${run.failureReason != null} ? ${run.failureReason.label} : '실패'">실패</span>
+                            </td>
+                            <td th:text="${run.scheduleYear != null} ? ${run.scheduleYear} + ' (' + ${run.yearSource} + ')' : '-'">2026 (HEADING)</td>
+                            <td class="text-right" th:text="${run.collectedRoundCount}">4</td>
+                            <td class="text-right" th:text="${run.createdCount}">0</td>
+                            <td class="text-right" th:text="${run.updatedCount}">0</td>
+                            <td class="text-right" th:text="${run.skippedLockedCount}">0</td>
+                            <td th:text="${run.publishedYear != null} ? ${run.publishedYear} : '-'">-</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <!-- 공식 공고 확인 (#411) — 자동 수집이 실패하거나 SQLP 일정을 넣을 때 사람이 확인해 추가한다 -->
     <div class="card bg-base-100 shadow mb-4">
         <div class="card-body p-4">
             <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
@@ -65,7 +167,7 @@
                 <i data-lucide="plus-circle" class="size-5"></i>
                 회차 추가
             </h3>
-            <form th:action="@{/admin/exam-schedules}" method="post" class="flex flex-wrap items-end gap-3">
+            <form id="manualScheduleForm" th:action="@{/admin/exam-schedules}" method="post" class="flex flex-wrap items-end gap-3">
                 <div class="form-control">
                     <label class="label"><span class="label-text">자격증</span></label>
                     <select name="certType" class="select select-bordered select-sm" required>
@@ -124,7 +226,12 @@
                     <tr>
                         <th>자격증</th>
                         <th>회차</th>
+                        <th>원서접수</th>
+                        <th>수험표</th>
                         <th>시험일</th>
+                        <th>사전점수·재검토</th>
+                        <th>합격 발표</th>
+                        <th>출처</th>
                         <th class="w-20">선택</th>
                         <th class="w-28">액션</th>
                     </tr>
@@ -138,9 +245,20 @@
                                   th:text="${s.certType}">SQLD</span>
                         </td>
                         <td th:text="'제' + ${s.round} + '회'">제61회</td>
-                        <td>
+                        <td class="whitespace-nowrap"
+                            th:text="${s.applicationStartDate != null and s.applicationEndDate != null} ? ${#temporals.format(s.applicationStartDate, 'M.d')} + '~' + ${#temporals.format(s.applicationEndDate, 'M.d')} : '-'">4.27~5.1</td>
+                        <td th:text="${s.admissionTicketDate != null} ? ${#temporals.format(s.admissionTicketDate, 'M.d')} : '-'">5.15</td>
+                        <td class="whitespace-nowrap">
                             <span th:text="${s.examDate}">2026-05-31</span>
                             <span th:if="${s.examDate.isBefore(today)}" class="badge badge-ghost badge-xs ml-1">지남</span>
+                        </td>
+                        <td class="whitespace-nowrap"
+                            th:text="${s.preliminaryScoreStartDate != null and s.preliminaryScoreEndDate != null} ? ${#temporals.format(s.preliminaryScoreStartDate, 'M.d')} + '~' + ${#temporals.format(s.preliminaryScoreEndDate, 'M.d')} : '-'">6.12~6.16</td>
+                        <td th:text="${s.resultAnnouncementDate != null} ? ${#temporals.format(s.resultAnnouncementDate, 'M.d')} : '-'">6.19</td>
+                        <td class="whitespace-nowrap">
+                            <span class="badge badge-xs" th:classappend="${s.source.name() == 'AUTO'} ? 'badge-info' : 'badge-ghost'"
+                                  th:text="${s.source.label}">자동</span>
+                            <span th:if="${s.isManualLocked}" class="badge badge-xs badge-warning" title="자동 수집이 덮어쓰지 않음">고정</span>
                         </td>
                         <td>
                             <input type="radio" name="selected" class="radio radio-primary radio-sm"
@@ -153,6 +271,13 @@
                                     th:data-uuid="${s.examScheduleUuid}"
                                     th:data-round="${s.round}"
                                     th:data-exam-date="${s.examDate}"
+                                    th:data-application-start-date="${s.applicationStartDate}"
+                                    th:data-application-end-date="${s.applicationEndDate}"
+                                    th:data-admission-ticket-date="${s.admissionTicketDate}"
+                                    th:data-preliminary-score-start-date="${s.preliminaryScoreStartDate}"
+                                    th:data-preliminary-score-end-date="${s.preliminaryScoreEndDate}"
+                                    th:data-result-announcement-date="${s.resultAnnouncementDate}"
+                                    th:data-is-manual-locked="${s.isManualLocked}"
                                     onclick="openEditSchedule(this.dataset)">
                                 <i data-lucide="pencil" class="size-4"></i>
                             </button>
@@ -165,7 +290,7 @@
                     </tr>
 
                     <tr th:if="${schedules == null or schedules.isEmpty()}">
-                        <td colspan="5" class="text-center text-base-content/40 py-8">
+                        <td colspan="10" class="text-center text-base-content/40 py-8">
                             <i data-lucide="calendar-x" class="size-8 mx-auto mb-2 opacity-30"></i>
                             <p class="text-sm">등록된 시험 일정이 없습니다.</p>
                         </td>
@@ -208,6 +333,38 @@
                     <input id="editExamDate" type="date" class="input input-sm input-bordered"/>
                 </label>
             </div>
+            <!-- 나머지 일정 (#991, 비우면 없음) -->
+            <div class="grid grid-cols-2 gap-3 mt-3">
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">원서접수 시작</span>
+                    <input id="editApplicationStartDate" type="date" class="input input-sm input-bordered"/>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">원서접수 마감</span>
+                    <input id="editApplicationEndDate" type="date" class="input input-sm input-bordered"/>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">수험표 발급</span>
+                    <input id="editAdmissionTicketDate" type="date" class="input input-sm input-bordered"/>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">합격 발표</span>
+                    <input id="editResultAnnouncementDate" type="date" class="input input-sm input-bordered"/>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">사전점수·재검토 시작</span>
+                    <input id="editPreliminaryScoreStartDate" type="date" class="input input-sm input-bordered"/>
+                </label>
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">사전점수·재검토 마감</span>
+                    <input id="editPreliminaryScoreEndDate" type="date" class="input input-sm input-bordered"/>
+                </label>
+            </div>
+            <label class="label cursor-pointer justify-start gap-2 mt-3">
+                <input id="editIsManualLocked" type="checkbox" class="checkbox checkbox-sm"/>
+                <span class="label-text text-sm">수동 고정 (자동 수집이 이 회차를 덮어쓰지 않음)</span>
+            </label>
+            <p class="text-xs text-base-content/60">고정하지 않으면 다음 자동 수집 때 공식 값과 다른 칸이 공식 값으로 바뀌고 변경 이력에 남습니다.</p>
             <div class="modal-action">
                 <form method="dialog"><button class="btn btn-ghost btn-sm">취소</button></form>
                 <button class="btn btn-primary btn-sm" onclick="saveSchedule()">저장</button>
@@ -224,21 +381,59 @@
 
         let editingScheduleUuid = null;
 
+        // 수정 모달의 선택 일정 칸: 입력 id <-> data-* 이름 <-> 요청 필드 (#991)
+        const OPTIONAL_DATE_FIELDS = [
+            { inputId: 'editApplicationStartDate', name: 'applicationStartDate' },
+            { inputId: 'editApplicationEndDate', name: 'applicationEndDate' },
+            { inputId: 'editAdmissionTicketDate', name: 'admissionTicketDate' },
+            { inputId: 'editPreliminaryScoreStartDate', name: 'preliminaryScoreStartDate' },
+            { inputId: 'editPreliminaryScoreEndDate', name: 'preliminaryScoreEndDate' },
+            { inputId: 'editResultAnnouncementDate', name: 'resultAnnouncementDate' }
+        ];
+
         function openEditSchedule(dataset) {
             editingScheduleUuid = dataset.uuid;
             document.getElementById('editRound').value = dataset.round;
             document.getElementById('editExamDate').value = dataset.examDate;
+            OPTIONAL_DATE_FIELDS.forEach(field => {
+                document.getElementById(field.inputId).value = dataset[field.name] || '';
+            });
+            document.getElementById('editIsManualLocked').checked = dataset.isManualLocked === 'true';
             document.getElementById('editScheduleModal').showModal();
         }
 
         function saveSchedule() {
             const body = {
                 round: parseInt(document.getElementById('editRound').value, 10),
-                examDate: document.getElementById('editExamDate').value
+                examDate: document.getElementById('editExamDate').value,
+                isManualLocked: document.getElementById('editIsManualLocked').checked
             };
+            // 빈 칸 > null (일정 없음)
+            OPTIONAL_DATE_FIELDS.forEach(field => {
+                body[field.name] = document.getElementById(field.inputId).value || null;
+            });
             AdminApi.put('/admin/exam-schedules/' + editingScheduleUuid, body)
                 .then(() => AdminUi.reloadWithToast('시험 일정을 수정했습니다.'))
                 .catch(error => AdminUi.showError(error));
+        }
+
+        // 지금 수집 (#991): 공식 페이지 1회 수집 > 결과 토스트 후 새로고침 (실패해도 일정은 그대로)
+        function syncExamSchedulesNow(button) {
+            button.disabled = true;
+            AdminApi.post('/admin/exam-schedules/sync')
+                .then(result => {
+                    if (result.isSkipped) {
+                        AdminUi.reloadWithToast('다른 서버가 수집 중입니다. 잠시 뒤 다시 확인하세요.', 'error');
+                    } else if (result.isSuccess) {
+                        AdminUi.reloadWithToast(`수집 성공: ${result.scheduleYear}년, 추가 ${result.createdCount} · 변경 ${result.updatedCount} · 고정 건너뜀 ${result.skippedLockedCount}`);
+                    } else {
+                        AdminUi.reloadWithToast(`수집 실패: ${result.failureReasonLabel}. 일정은 바꾸지 않았습니다.`, 'error');
+                    }
+                })
+                .catch(error => {
+                    button.disabled = false;
+                    AdminUi.showError(error);
+                });
         }
 
         // 일괄 등록: 붙여넣은 텍스트 > 서버 해석·등록 (잘못된 줄은 서버가 줄 번호와 함께 거부)

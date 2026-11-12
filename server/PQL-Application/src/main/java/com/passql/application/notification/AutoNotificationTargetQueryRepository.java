@@ -92,7 +92,9 @@ public class AutoNotificationTargetQueryRepository {
             case DAILY_SET_REMINDER -> DAILY_SET_NOT_SOLVED;
             case STREAK_RISK -> STREAK_AT_RISK;
             case COMEBACK_SHORT, COMEBACK_LONG -> LAST_SEEN_EXACT_DAYS_AGO;
-            case EXAM_COUNTDOWN -> "";
+            // 시험 일정 규칙: 대상은 전체 수신 동의 회원, 발송일 판정은 ExamNotificationOccasionFinder
+            case EXAM_COUNTDOWN, EXAM_SCHEDULE_PUBLISHED, EXAM_APPLICATION_OPEN, EXAM_APPLICATION_CLOSING,
+                 EXAM_ADMISSION_TICKET, EXAM_RESULT_ANNOUNCED -> "";
         };
     }
 }

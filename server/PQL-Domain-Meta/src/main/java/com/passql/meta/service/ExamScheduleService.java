@@ -6,13 +6,18 @@ import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.common.util.ServiceTimeZone;
+import com.passql.meta.client.DataqSchedulePageClient;
 import com.passql.meta.constant.CertType;
+import com.passql.meta.constant.ExamScheduleSource;
 import com.passql.meta.dto.ExamScheduleBulkResult;
 import com.passql.meta.dto.ExamScheduleCreateRequest;
 import com.passql.meta.dto.ExamScheduleResponse;
 import com.passql.meta.dto.ExamScheduleUpdateRequest;
+import com.passql.meta.dto.SqldExamScheduleOverviewResponse;
 import com.passql.meta.entity.ExamSchedule;
+import com.passql.meta.entity.ExamScheduleSyncRun;
 import com.passql.meta.repository.ExamScheduleRepository;
+import com.passql.meta.repository.ExamScheduleSyncRunRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -20,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -38,6 +44,7 @@ public class ExamScheduleService {
     private static final int MAX_REPORTED_PARSE_ERRORS = 5;
 
     private final ExamScheduleRepository examScheduleRepository;
+    private final ExamScheduleSyncRunRepository examScheduleSyncRunRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     public List<ExamScheduleResponse> getSchedulesByCertType(CertType certType) {
@@ -70,6 +77,25 @@ public class ExamScheduleService {
         return upcoming.isPresent() ? upcoming : selected;
     }
 
+    /** 앱 시험 일정 화면 (#991): 그해 SQLD 회차(연도 없으면 KST 올해) + 다가오는 시험 + 마지막 수집 성공 시각 */
+    public SqldExamScheduleOverviewResponse getSqldOverview(Integer year) {
+        LocalDate today = getTodayInKorea();
+        int targetYear = year == null ? today.getYear() : year;
+        List<ExamScheduleResponse> schedules = examScheduleRepository.findByCertTypeOrderByRoundAsc(CertType.SQLD).stream()
+                .filter(schedule -> schedule.getExamDate().getYear() == targetYear)
+                .map(ExamScheduleResponse::from)
+                .toList();
+        ExamScheduleResponse nextSchedule = examScheduleRepository
+                .findFirstByCertTypeAndExamDateGreaterThanEqualOrderByExamDateAsc(CertType.SQLD, today)
+                .map(ExamScheduleResponse::from)
+                .orElse(null);
+        LocalDateTime lastCollectedAt = examScheduleSyncRunRepository.findFirstByIsSuccessTrueOrderByStartedAtDesc()
+                .map(ExamScheduleSyncRun::getFinishedAt)
+                .orElse(null);
+        return new SqldExamScheduleOverviewResponse(targetYear, schedules, nextSchedule, lastCollectedAt,
+                DataqSchedulePageClient.OFFICIAL_SCHEDULE_URL);
+    }
+
     public List<ExamScheduleResponse> getAllSchedules(CertType certType) {
         if (certType == null) {
             return examScheduleRepository.findAllByOrderByCertTypeAscRoundAsc().stream()
@@ -100,7 +126,7 @@ public class ExamScheduleService {
         return ExamScheduleResponse.from(saved);
     }
 
-    /** 시험 일정 수정 (#479): 회차 바뀌면 중복 검사 > 회차·시험일 교체 */
+    /** 시험 일정 수정 (#479, #991): 회차 바뀌면 중복 검사 > 회차·일정 교체 > 출처 수동 (수동 고정은 요청값이 있을 때만 변경) */
     @Transactional
     public void updateSchedule(UUID examScheduleUuid, ExamScheduleUpdateRequest request) {
         ExamSchedule schedule = examScheduleRepository.findById(examScheduleUuid)
@@ -112,6 +138,16 @@ public class ExamScheduleService {
         Map<String, Object> before = toScheduleAuditSummary(schedule);
         schedule.setRound(request.round());
         schedule.setExamDate(request.examDate());
+        schedule.setApplicationStartDate(request.applicationStartDate());
+        schedule.setApplicationEndDate(request.applicationEndDate());
+        schedule.setAdmissionTicketDate(request.admissionTicketDate());
+        schedule.setPreliminaryScoreStartDate(request.preliminaryScoreStartDate());
+        schedule.setPreliminaryScoreEndDate(request.preliminaryScoreEndDate());
+        schedule.setResultAnnouncementDate(request.resultAnnouncementDate());
+        schedule.setSource(ExamScheduleSource.MANUAL);
+        if (request.isManualLocked() != null) {
+            schedule.setIsManualLocked(request.isManualLocked());
+        }
         eventPublisher.publishEvent(AdminAuditEvent.of(AdminAuditTargetType.EXAM_SCHEDULE, examScheduleUuid,
                 AdminAuditAction.UPDATE, before, toScheduleAuditSummary(schedule)));
     }
@@ -205,6 +241,11 @@ public class ExamScheduleService {
     /** 감사 기록용 일정 요약 */
     private Map<String, Object> toScheduleAuditSummary(ExamSchedule schedule) {
         return AdminAuditEvent.summary("certType", schedule.getCertType(), "round", schedule.getRound(),
-                "examDate", schedule.getExamDate());
+                "examDate", schedule.getExamDate(), "applicationStartDate", schedule.getApplicationStartDate(),
+                "applicationEndDate", schedule.getApplicationEndDate(), "admissionTicketDate", schedule.getAdmissionTicketDate(),
+                "preliminaryScoreStartDate", schedule.getPreliminaryScoreStartDate(),
+                "preliminaryScoreEndDate", schedule.getPreliminaryScoreEndDate(),
+                "resultAnnouncementDate", schedule.getResultAnnouncementDate(),
+                "source", schedule.getSource(), "isManualLocked", schedule.getIsManualLocked());
     }
 }
