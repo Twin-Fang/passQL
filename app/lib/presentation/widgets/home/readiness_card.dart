@@ -4,7 +4,7 @@ import '../../design/design.dart';
 
 /// toneKey → 한국어 코멘트 텍스트.
 const Map<String, String> _toneMessages = {
-  'NO_EXAM': '시험 일정을 선택하고\n맞춤 학습을 시작해보세요.',
+  'NO_EXAM': '시험 일정이 정해지면\n남은 날에 맞춰 안내해 드려요.',
   'ONBOARDING': '오늘부터 SQL 학습을 시작해볼까요?\n꾸준히 하면 합격할 수 있어요!',
   'POST_EXAM': '수고하셨어요!\n다음 시험 준비를 시작해볼까요?',
   'TODAY': '오늘이 시험 당일이에요!\n지금까지 공부한 것을 믿어요.',

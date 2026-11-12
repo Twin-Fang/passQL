@@ -192,3 +192,6 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-12 10:25 | W4 | supersede | DEC-0284 -> DEC-0286 (정가 줄긋기 복원, 사용자 지시 #966)
 - 2026-11-12 10:25 | W6 | create | DEC-0286, DEC-0287, ISS-0489 (resolved) + report, ISS-0490 (open)
 - 2026-11-12 10:25 | W2 | update | cluster-billing, cluster-design-system, cluster-practice, cluster-ads, cluster-home
+- 2026-11-12 10:47 | W6 | update | ISS-0490 open -> resolved + report (#971, PR #973)
+- 2026-11-12 10:47 | W6 | create | ISS-0491 (resolved) + report (#975)
+- 2026-11-12 10:47 | W2 | update | cluster-home, cluster-auth-member, cluster-practice, cluster-design-system, cluster-billing, cluster-ads

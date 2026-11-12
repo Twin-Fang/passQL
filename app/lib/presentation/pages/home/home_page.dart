@@ -26,6 +26,8 @@ import '../../widgets/home/exam_dday_bar_title.dart';
 import '../../widgets/home/exam_trend_home_section.dart';
 import '../../widgets/home/fallback_stats_section.dart';
 import '../../widgets/home/greeting_section.dart';
+import '../../widgets/home/home_next_step_card.dart';
+import '../../widgets/home/home_welcome_guide.dart';
 import '../../widgets/home/heatmap_widget.dart';
 import '../../widgets/home/readiness_card.dart';
 import '../../widgets/mock_exam/mock_exam_entry_row.dart';
@@ -166,6 +168,18 @@ class _HomeContent extends ConsumerWidget {
           children: [
             // 인사 + 본문 + 시험 상황 배지 (상단 바 아래 화면 제목 자리)
             if (greeting != null) GreetingSection(greeting: greeting),
+            // 다음에 할 일 한 가지 (홈의 유일한 채운 버튼, #975)
+            if (greeting != null) const SizedBox(height: PassqlSpacing.md),
+            HomeNextStepCard(
+              dailySetQuestionCount: dailySet?.questions.length ?? 0,
+              canSolveDailySet:
+                  dailySet != null &&
+                  !dailySet.alreadyCompleted &&
+                  dailySet.questions.isNotEmpty,
+              onStartDailySet: () => context.push(AppRoutes.dailySet),
+            ),
+            // 첫 방문 환영 안내 (기기에서 한 번만 시트)
+            const HomeWelcomeGuideTrigger(),
             // 관리자 공지 (안 읽은 중요 공지 첫 건, 닫기 = 서버 읽음)
             if (notice != null) ...[
               if (greeting != null) const SizedBox(height: PassqlSpacing.sm),
