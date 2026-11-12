@@ -36,6 +36,7 @@ class _DevPushToolsSectionState extends ConsumerState<DevPushToolsSection> {
     PushLinkTarget.questions => '문제 탭',
     PushLinkTarget.questionDetail => '문제 상세',
     PushLinkTarget.stats => '통계',
+    PushLinkTarget.examSchedule => '시험 일정',
   };
 
   /// 시트 닫기 > 흉내 알림 1건 (받는 방식에 따라 수신 또는 탭)

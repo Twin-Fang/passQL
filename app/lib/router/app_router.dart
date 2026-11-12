@@ -22,6 +22,7 @@ import '../presentation/pages/home/home_page.dart';
 import '../presentation/pages/legal/legal_page.dart';
 import '../presentation/pages/lock_screen/lock_screen_permission_page.dart';
 import '../presentation/pages/lock_screen/lock_screen_preview_page.dart';
+import '../presentation/pages/exam_schedule/exam_schedule_page.dart';
 import '../presentation/pages/mock_exam/mock_exam_guide_page.dart';
 import '../presentation/pages/mock_exam/mock_exam_result_page.dart';
 import '../presentation/pages/mock_exam/mock_exam_review_page.dart';
@@ -392,6 +393,13 @@ abstract final class AppRouter {
         path: AppRoutes.lockScreenPermission,
         parentNavigatorKey: _rootKey,
         builder: (_, _) => const LockScreenPermissionPage(),
+      ),
+
+      // 풀스크린: SQLD 시험 일정 (#991, 홈 D-day 배지·푸시에서 진입)
+      GoRoute(
+        path: AppRoutes.examSchedule,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const ExamSchedulePage(),
       ),
 
       // SQLD 모의고사 (#866): 목록 > 안내 > 풀이 > 결과 > 문항 해설

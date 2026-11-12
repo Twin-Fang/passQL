@@ -212,6 +212,9 @@ abstract final class AppRoutes {
   /// 챕터 결과. 챕터 화면을 대신해 열려 뒤로 가면 챕터 진입 전 화면(문제 목록)으로 돌아간다.
   static const String chapterResult = '/chapter-result';
 
+  /// SQLD 시험 일정 (#991). 홈 D-day 배지·푸시 EXAM_SCHEDULE 에서 진입 (서버 PushLinkTarget.EXAM_SCHEDULE_APP_ROUTE 와 같은 값)
+  static const String examSchedule = '/exam-schedule';
+
   // SQLD 모의고사 (#866)
   /// 회차 목록. 홈 모의고사 구간·문제 탭 모의고사 행에서 진입
   static const String mockExams = '/mock-exams';

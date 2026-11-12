@@ -63,7 +63,10 @@ class HomePage extends ConsumerWidget {
           ],
         ),
         data: (data) => _HomeShell(
-          leading: ExamDdayBarTitle(schedule: data.examSchedule),
+          leading: ExamDdayBarTitle(
+            schedule: data.examSchedule,
+            onTap: () => context.push(AppRoutes.examSchedule),
+          ),
           onRefresh: () async {
             // 공지 배너(안 읽은 중요 공지)도 함께 갱신
             ref.invalidate(
