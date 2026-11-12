@@ -4,8 +4,9 @@ import '../../../core/utils/profile_pass_values.dart';
 import '../../../data/models/member/member_plan_response.dart';
 import '../../design/design.dart';
 import '../../providers/plan_providers.dart';
+import 'profile_bonus_cards.dart';
 
-/// 무료 오늘 남은 문제 (#816 A안): 제목·초기화 안내 > 남은 수 큰 숫자 / 오늘 한도 > 사용량 게이지 > 보너스 칸(세트 완료·세트 정답률·광고)
+/// 무료 오늘 남은 문제 (#816 A안): 제목·초기화 안내 > 남은 수 큰 숫자 / 오늘 한도 > 사용량 게이지 > 문제 더 받기 카드(세트 완료·세트 정답률·광고)
 /// 남은 수 = 오늘 유효 한도(보너스 포함) - 오늘 푼 랜덤 문제 (0 아래로 내려가지 않음), 초기화는 KST 0시
 class ProfileTodayFreeUsage extends StatelessWidget {
   const ProfileTodayFreeUsage({super.key, required this.plan});
@@ -63,107 +64,8 @@ class ProfileTodayFreeUsage extends StatelessWidget {
         const SizedBox(height: PassqlSpacing.xs),
         PassqlPassUsageGauge(value: limit <= 0 ? 0 : used / limit),
         const SizedBox(height: PassqlSpacing.sm),
-        _BonusChips(bonus: plan.dailyBonus),
+        ProfileBonusCards(bonus: plan.dailyBonus),
       ],
-    );
-  }
-}
-
-/// 보너스 칸 3개: 세트 완료 +N, 세트 정답률 +N, 광고 (+N씩, 받았으면 받은 횟수), 광고 보너스 대상 아니면 2칸
-class _BonusChips extends StatelessWidget {
-  const _BonusChips({required this.bonus});
-
-  final DailyFreeBonus bonus;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    final bonusText = '+${bonus.bonusQuestionCount}';
-    String earnedTextOf(bool isEarned) =>
-        isEarned ? '$bonusText 받음' : '$bonusText 가능';
-    final chips = [
-      _BonusChip(
-        label: '세트 완료',
-        statusText: earnedTextOf(bonus.isDailySetCompletionEarned),
-        valueColor: bonus.isDailySetCompletionEarned
-            ? colors.correctText
-            : colors.secondaryLabel,
-      ),
-      _BonusChip(
-        label: '세트 정답 80%',
-        statusText: earnedTextOf(bonus.isDailySetAccuracyEarned),
-        valueColor: bonus.isDailySetAccuracyEarned
-            ? colors.correctText
-            : colors.secondaryLabel,
-      ),
-      // 광고는 횟수 제한 없음 > 남은 횟수 대신 1회분과 받은 횟수
-      if (bonus.canEarnAdBonus)
-        _BonusChip(
-          label: '광고 보기',
-          statusText: bonus.adBonusUsedCount > 0
-              ? '${bonus.adBonusUsedCount}번 받음'
-              : '$bonusText씩',
-          valueColor: bonus.adBonusUsedCount > 0
-              ? colors.correctText
-              : colors.accentText,
-        ),
-    ];
-    return Row(
-      children: [
-        for (var index = 0; index < chips.length; index++) ...[
-          if (index > 0) const SizedBox(width: PassqlSpacing.xs),
-          Expanded(child: chips[index]),
-        ],
-      ],
-    );
-  }
-}
-
-/// 보너스 칸 1개: 위 라벨 + 아래 상태 (회색 칸)
-class _BonusChip extends StatelessWidget {
-  const _BonusChip({
-    required this.label,
-    required this.statusText,
-    required this.valueColor,
-  });
-
-  final String label;
-  final String statusText;
-  final Color valueColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: PassqlSpacing.xxs,
-        vertical: PassqlSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: colors.fill,
-        borderRadius: BorderRadius.circular(PassqlRadius.md),
-      ),
-      child: Column(
-        children: [
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: PassqlTypography.caption.copyWith(
-              color: colors.secondaryLabel,
-            ),
-          ),
-          const SizedBox(height: PassqlSpacing.hairlineGap),
-          Text(
-            statusText,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: PassqlTypography.footnoteSemibold.copyWith(
-              color: valueColor,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

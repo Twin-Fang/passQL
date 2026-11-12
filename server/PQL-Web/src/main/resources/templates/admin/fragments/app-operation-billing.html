@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- 결제: 스위치, 켜기 전 점검표(읽기 전용), 미리보기 회원 (#961) — 동작은 static/js/admin/app-operation-billing.js -->
+<div th:fragment="billing-card" class="card bg-base-100 shadow">
+    <div class="card-body p-4 space-y-4">
+        <h3 class="card-title text-base">
+            <i data-lucide="credit-card" class="size-5"></i>
+            결제
+        </h3>
+
+        <!-- 결제 스위치 -->
+        <div class="rounded-box border border-base-300 p-4 space-y-2">
+            <div class="flex items-center gap-3">
+                <span class="font-semibold">결제 스위치</span>
+                <span th:if="${billingOperation.isBillingEnabled}" class="badge badge-success badge-sm">켜짐</span>
+                <span th:unless="${billingOperation.isBillingEnabled}" class="badge badge-ghost badge-sm">꺼짐</span>
+                <button class="btn btn-sm ml-auto"
+                        th:classappend="${billingOperation.isBillingEnabled} ? 'btn-outline' : 'btn-primary'"
+                        th:data-next-enabled="${!billingOperation.isBillingEnabled}"
+                        onclick="changeBillingEnabled(this.dataset.nextEnabled === 'true')"
+                        th:text="${billingOperation.isBillingEnabled} ? '끄기' : '켜기'">켜기</button>
+            </div>
+            <p class="text-xs text-base-content/60">
+                켜면 무료·프로 제한이 적용되고 앱에 결제 화면이 보입니다. 끄면 모든 기능이 열립니다.
+                미리보기 회원은 스위치가 꺼져 있어도 결제 켜짐으로 취급합니다.
+            </p>
+        </div>
+
+        <!-- 켜기 전 점검표: 상태 표시만 (비밀 값은 설정 여부 배지, 값은 내려오지 않음) -->
+        <div class="rounded-box border border-base-300 p-4 space-y-2">
+            <h4 class="font-semibold">켜기 전 점검표</h4>
+            <table class="table table-sm">
+                <tbody>
+                <tr th:each="readinessItem : ${billingOperation.readinessItems}" class="billing-readiness-row"
+                    th:data-label="${readinessItem.label}"
+                    th:data-is-ready="${readinessItem.isReady}"
+                    th:data-status-text="${readinessItem.statusText}">
+                    <td class="w-56" th:text="${readinessItem.label}">Play 서비스 계정 키</td>
+                    <td>
+                        <span class="badge badge-sm"
+                              th:classappend="${readinessItem.isReady} ? 'badge-success' : 'badge-warning'"
+                              th:text="${readinessItem.statusText}">설정됨</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <p class="text-xs text-base-content/60">
+                노란 배지는 확인이 필요한 항목입니다. 켜기를 막지는 않고 확인 창에서 다시 알려 줍니다.
+                키·단위 ID·검증 필수는 <a class="link" th:href="@{/admin/settings}">앱 설정</a>에서,
+                최소 버전은 위 버전 설정에서 바꿉니다.
+            </p>
+        </div>
+
+        <!-- 미리보기 회원: 인원 수, 추가(회원 UUID), 삭제 -->
+        <div class="rounded-box border border-base-300 p-4 space-y-2">
+            <h4 class="font-semibold">
+                미리보기 회원
+                <span class="badge badge-ghost badge-sm" th:text="|${#lists.size(billingOperation.previewMembers)}명|">0명</span>
+            </h4>
+            <ul class="space-y-1">
+                <li th:each="previewMember : ${billingOperation.previewMembers}" class="flex items-center gap-2 text-sm">
+                    <span class="font-mono text-xs" th:text="${previewMember.entry}">00000000-0000-0000-0000-000000000000</span>
+                    <span th:if="${previewMember.nickname != null}" th:text="${previewMember.nickname}">닉네임</span>
+                    <span th:if="${previewMember.nickname == null}" class="badge badge-warning badge-xs">회원 없음</span>
+                    <button class="btn btn-xs btn-ghost text-error"
+                            th:data-entry="${previewMember.entry}"
+                            onclick="removeBillingPreviewMember(this.dataset.entry)">삭제</button>
+                </li>
+                <li th:if="${#lists.isEmpty(billingOperation.previewMembers)}" class="text-sm text-base-content/50">
+                    미리보기 회원이 없습니다.
+                </li>
+            </ul>
+            <div class="flex gap-2">
+                <input type="text" id="billingPreviewMemberUuid" class="input input-bordered input-sm font-mono w-96 max-w-full"
+                       placeholder="회원 UUID (회원 관리 화면에서 복사)"/>
+                <button class="btn btn-sm btn-outline" onclick="addBillingPreviewMember()">
+                    <i data-lucide="plus" class="size-4"></i>
+                    추가
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

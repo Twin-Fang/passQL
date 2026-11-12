@@ -30,7 +30,7 @@ public class AdBonusGrantService {
     // app_settings ads.reward.ssv_required 읽기 실패·행 없음 기본값 (꺼짐 = 앱 신고로도 기록)
     private static final boolean IS_SSV_REQUIRED_BY_DEFAULT = false;
     // app_settings ads.reward.ssv_ad_unit_ids 구분자 (쉼표)
-    private static final String AD_UNIT_ID_DELIMITER = ",";
+    public static final String AD_UNIT_ID_DELIMITER = ",";
     // 보상 표식 허용 형식 (앱은 UUID, 영문·숫자·하이픈 64자 이하)
     private static final Pattern REWARD_NONCE_PATTERN = Pattern.compile("[0-9A-Za-z-]{1,64}");
     // AdMob 거래 ID 최대 길이 (자, member_daily_ad_bonus.ssv_transaction_id 길이)

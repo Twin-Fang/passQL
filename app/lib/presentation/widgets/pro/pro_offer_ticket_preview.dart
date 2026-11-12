@@ -44,7 +44,7 @@ class ProOfferTicketPreview extends StatelessWidget {
               ? 'SQLD'
               : '${schedule.certType} ${schedule.round}회',
           fields: [
-            PassqlPassTicketField('승객', nickname),
+            PassqlPassTicketField('수험생', nickname),
             if (selectedOption != null)
               PassqlPassTicketField(
                 '이용권',

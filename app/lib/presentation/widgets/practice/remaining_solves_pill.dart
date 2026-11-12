@@ -12,8 +12,13 @@ bool isLowRemainingSolves(int remainingCount) =>
     remainingCount >= 1 && remainingCount <= lowRemainingSolvesThreshold;
 
 /// 오늘 남은 무료 랜덤 문제 수 알약: 값이 늘면 한 번 튐 (보상 수령), 1~2문제 남으면 경고 색, null 이면 그리지 않음
+/// [isCompact] 상단 바용: 번개 아이콘 + 숫자만, [onTap] 누르면 문제 더 받기 시트 (#966)
 class RemainingSolvesPill extends ConsumerStatefulWidget {
-  const RemainingSolvesPill({super.key});
+  const RemainingSolvesPill({super.key, this.isCompact = false, this.onTap});
+
+  /// true 면 `오늘 남은 N문제` 대신 숫자만
+  final bool isCompact;
+  final VoidCallback? onTap;
 
   @override
   ConsumerState<RemainingSolvesPill> createState() =>
@@ -54,15 +59,25 @@ class _RemainingSolvesPillState extends ConsumerState<RemainingSolvesPill>
     });
     final remainingCount = ref.watch(freeRemainingSolvesProvider);
     if (remainingCount == null) return const SizedBox.shrink();
+    final isLow = isLowRemainingSolves(remainingCount) || remainingCount == 0;
+    final badge = PassqlBadge(
+      text: widget.isCompact ? '$remainingCount' : '오늘 남은 $remainingCount문제',
+      kind: isLow ? PassqlBadgeKind.warning : PassqlBadgeKind.topic,
+      icon: isLow
+          ? CupertinoIcons.hourglass
+          : (widget.isCompact ? CupertinoIcons.bolt_fill : null),
+    );
+    final onTap = widget.onTap;
     return ScaleTransition(
       scale: _scale,
-      child: isLowRemainingSolves(remainingCount)
-          ? PassqlBadge(
-              text: '오늘 남은 $remainingCount문제',
-              kind: PassqlBadgeKind.warning,
-              icon: CupertinoIcons.hourglass,
-            )
-          : PassqlBadge(text: '오늘 남은 $remainingCount문제'),
+      child: onTap == null
+          ? badge
+          : PassqlPressable(
+              hasMinimumTouchTarget: true,
+              onTap: onTap,
+              semanticLabel: '오늘 남은 $remainingCount문제, 문제 더 받기',
+              child: badge,
+            ),
     );
   }
 }

@@ -19,7 +19,7 @@ String examDdaySpokenLabel(int days) {
   return '시험 ${days.abs()}일 지남';
 }
 
-/// 홈 상단 바 왼쪽 제목: 로고 자리에 시험 D-day + 회차·날짜 (#701)
+/// 홈 본문 첫 줄: 시험 D-day + 회차·날짜 (#701, 상단 바에서 본문으로 #966)
 /// 일정이 없거나 날짜를 읽지 못하면 로고 + '시험 일정 준비 중'
 class ExamDdayBarTitle extends StatelessWidget {
   const ExamDdayBarTitle({super.key, this.schedule});

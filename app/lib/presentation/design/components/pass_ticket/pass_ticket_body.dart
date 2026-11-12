@@ -132,7 +132,6 @@ class _TicketBody extends StatelessWidget {
                   for (var index = 0; index < benefitIcons.length; index++)
                     _BenefitIcon(
                       icon: benefitIcons[index].icon,
-                      color: benefitIcons[index].color,
                       isPro: isPro,
                       onTap: onBenefitTap == null
                           ? null
@@ -152,17 +151,15 @@ class _TicketBody extends StatelessWidget {
   }
 }
 
-/// 혜택 아이콘: 무료는 회색·흐림(잠김), 프로는 색 + 흰 테두리
+/// 혜택 아이콘: 한 색 픽토그램 (반투명 흰 타일 + 흰 글리프, #966). 무료는 회색·흐림(잠김)
 class _BenefitIcon extends StatelessWidget {
   const _BenefitIcon({
     required this.icon,
-    required this.color,
     required this.isPro,
     required this.onTap,
   });
 
   final IconData icon;
-  final Color color;
   final bool isPro;
   final VoidCallback? onTap;
 
@@ -174,17 +171,9 @@ class _BenefitIcon extends StatelessWidget {
       height: _benefitIconSize,
       decoration: BoxDecoration(
         color: isPro
-            ? color
+            ? colors.onAccent.withValues(alpha: _proBenefitTileAlpha)
             : colors.iconSecondary.withValues(alpha: _lockedBenefitAlpha),
         borderRadius: BorderRadius.circular(PassqlRadius.sm * 0.75),
-        border: isPro
-            ? Border.all(
-                color: colors.onAccent.withValues(
-                  alpha: _proBenefitBorderAlpha,
-                ),
-                width: PassqlSize.hairline * 3,
-              )
-            : null,
       ),
       child: Icon(icon, size: _benefitGlyphSize, color: colors.onAccent),
     );

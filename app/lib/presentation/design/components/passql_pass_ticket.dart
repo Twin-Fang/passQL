@@ -37,6 +37,8 @@ const double _glowOffsetY = 8;
 const double _benefitIconSize = 22;
 const double _benefitGlyphSize = 13;
 const double _barcodeHeight = 28;
+// 세로로 세운 바코드 길이 (회전 전 폭)
+const double _barcodeLength = 52;
 const double _titleLetterSpacing = 0.6;
 // 정보 칸 라벨 글자 크기: 값(13)보다 한 단계 더 작게 해 값이 먼저 읽히게
 const double _fieldLabelSize = 11;
@@ -52,7 +54,7 @@ const double _proSubtleTextAlpha = 0.78;
 const double _proPerforationAlpha = 0.45;
 const double _proDashLineAlpha = 0.55;
 const double _proHighlightedFieldAlpha = 0.22;
-const double _proBenefitBorderAlpha = 0.6;
+const double _proBenefitTileAlpha = 0.22;
 // 무료 잠긴 혜택 아이콘 바탕 / 바코드 무늬 투명도
 const double _lockedBenefitAlpha = 0.4;
 const double _barcodeAlpha = 0.75;
