@@ -23,6 +23,12 @@ class DifficultyAccuracySection extends StatelessWidget {
     final colors = context.passqlColors;
     return PassqlSection(
       title: '난이도별 정답률',
+      // 구간 제목 앞 아이콘: 프로필 구간 모두 같은 모양 (#971)
+      leading: PassqlIconTile(
+        icon: CupertinoIcons.chart_bar_fill,
+        color: context.passqlColors.accent,
+        isCompact: true,
+      ),
       trailing: Text(
         '전체 기록',
         style: PassqlTypography.footnote.copyWith(color: colors.secondaryLabel),

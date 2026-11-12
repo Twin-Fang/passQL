@@ -7,16 +7,11 @@ import '../../../data/models/progress/topic_stat.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/topic_providers.dart';
-import '../pro/locked_preview_samples.dart';
-import '../pro/pro_locked_section.dart';
 import 'topic_accuracy_radar.dart';
 import 'topic_accuracy_rows.dart';
 
 // 처음 보이는 줄 수 (나머지는 "전체 N개 영역 보기"로 펼침)
 const int _collapsedRowCount = 4;
-// 잠금 자리표시 막대 크기 (값 대신 회색 막대, 화면에서 블러 금지 규칙)
-const double _placeholderValueWidth = 36;
-const double _placeholderHeight = 10;
 // 꼭짓점이 3개는 돼야 면이 생긴다 (그보다 적으면 차트 없이 목록만)
 const int _minChartTopicCount = 3;
 
@@ -26,16 +21,13 @@ const String _periodLabel = '최근 7일';
 /// 내 프로필 영역별 정답률 (#749, #909): 위 8각 차트(꼭짓점 = 토픽 순서) + 아래 목록(정렬 토글은 목록 바로 위).
 /// 줄 = 토픽 타일 + 영역 이름 + 푼 수 + 오른쪽 정답률(약한 영역은 빨강). 누르면 그 영역 문제로.
 /// 차트는 영역 3개 이상이고 기간 안에 푼 영역이 있을 때만 (없으면 안내 한 줄 + 목록)
-/// [isLocked] (무료·결제 켜짐): topic-analysis 를 부르지 않으므로 토픽 목록으로 이름만 보이고 값은 자리표시
 class TopicAccuracySection extends ConsumerStatefulWidget {
   const TopicAccuracySection({
     super.key,
     required this.topicStats,
-    required this.isLocked,
   });
 
   final List<TopicStat>? topicStats;
-  final bool isLocked;
 
   @override
   ConsumerState<TopicAccuracySection> createState() =>
@@ -50,7 +42,6 @@ class _TopicAccuracySectionState extends ConsumerState<TopicAccuracySection> {
   Widget build(BuildContext context) {
     // 토픽 목록은 문제 탭과 같은 캐시 (실패해도 줄은 그리고 아이콘만 기본값)
     final topics = ref.watch(topicsProvider).valueOrNull ?? const <TopicTree>[];
-    if (widget.isLocked) return _LockedTopicAccuracy(topics: topics);
     final stats = widget.topicStats;
     if (stats == null || stats.isEmpty) return const SizedBox.shrink();
     final rows = buildTopicAccuracyRows(
@@ -66,6 +57,12 @@ class _TopicAccuracySectionState extends ConsumerState<TopicAccuracySection> {
     final colors = context.passqlColors;
     return PassqlSection(
       title: '영역별 정답률',
+      // 구간 제목 앞 아이콘: 프로필 구간 모두 같은 모양 (#971)
+      leading: PassqlIconTile(
+        icon: CupertinoIcons.hexagon_fill,
+        color: context.passqlColors.accent,
+        isCompact: true,
+      ),
       trailing: Text(
         _periodLabel,
         style: PassqlTypography.footnote.copyWith(color: colors.secondaryLabel),
@@ -198,46 +195,6 @@ class _TopicAccuracyRowTile extends StatelessWidget {
           : () => context.push(
               AppRoutes.questionChapterOf(topicCode: code, topicName: row.name),
             ),
-    );
-  }
-}
-
-/// 잠금(무료·결제 켜짐): 다른 잠금 자리와 같은 모양 (흐린 미리보기 + 한 줄 + PRO로 보기, #966)
-/// 미리보기는 토픽 이름·타일만 진짜 값, 값 자리는 회색 막대
-class _LockedTopicAccuracy extends StatelessWidget {
-  const _LockedTopicAccuracy({required this.topics});
-
-  final List<TopicTree> topics;
-
-  @override
-  Widget build(BuildContext context) {
-    final previewTopics =
-        ([...topics]
-              ..sort((a, b) => (a.sortOrder ?? 0).compareTo(b.sortOrder ?? 0)))
-            .take(_collapsedRowCount)
-            .toList();
-    return PassqlSection(
-      title: '영역별 정답률',
-      child: ProLockedSection(
-        caption: LockedPreviewCaptions.topicAccuracy,
-        preview: Column(
-          children: [
-            for (final topic in previewTopics)
-              PassqlListRow(
-                title: topic.displayName,
-                hasHorizontalPadding: false,
-                leading: PassqlIconTile(
-                  icon: topicIconFor(topic.code),
-                  color: topicColorFor(topic.code, context.themeBrightness),
-                ),
-                trailing: const PassqlSkeletonBox(
-                  width: _placeholderValueWidth,
-                  height: _placeholderHeight,
-                ),
-              ),
-          ],
-        ),
-      ),
     );
   }
 }
