@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import '../../../data/models/member/member_plan_response.dart';
 import '../../design/design.dart';
 
-/// 한도 화면의 오늘의 세트 카드: 보너스 2줄(받을 수 있음·받았어요·오늘은 못 받음) > 세트를 끝내기 전이면 풀러 가기 버튼
+/// 크레딧 시트의 오늘의 세트 카드: 머리(제목·한 줄 설명) > 보너스 2줄(받을 수 있음·받았어요·오늘은 못 받음) > 세트를 끝내기 전이면 풀러 가기 버튼
 class DailyLimitDailySetCard extends StatelessWidget {
   const DailyLimitDailySetCard({
     super.key,
@@ -26,15 +26,37 @@ class DailyLimitDailySetCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            '오늘의 세트로 더 열기',
-            style: PassqlTypography.footnoteSemibold.copyWith(
-              color: colors.secondaryLabel,
-            ),
+          // 머리: 광고 카드와 같은 구성 (아이콘 타일 + 제목 + 한 줄 설명)
+          Row(
+            children: [
+              PassqlIconTile(
+                icon: CupertinoIcons.square_list_fill,
+                color: colors.accent,
+              ),
+              const SizedBox(width: PassqlSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '오늘의 세트로 크레딧 받기',
+                      style: PassqlTypography.headline.copyWith(
+                        color: colors.label,
+                      ),
+                    ),
+                    Text(
+                      '하루 한 번, 최대 ${bonusQuestionCount * 2}개',
+                      style: PassqlTypography.footnote.copyWith(
+                        color: colors.secondaryLabel,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: PassqlSpacing.sm),
+          const SizedBox(height: PassqlSpacing.md),
           _DailySetBonusRow(
-            icon: CupertinoIcons.checkmark_alt,
             label: '세트 5문제 모두 풀기',
             bonusQuestionCount: bonusQuestionCount,
             state: isCompletionEarned
@@ -43,7 +65,6 @@ class DailyLimitDailySetCard extends StatelessWidget {
           ),
           const SizedBox(height: PassqlSpacing.sm),
           _DailySetBonusRow(
-            icon: CupertinoIcons.star_fill,
             label: '세트 4문제 이상 맞히기',
             bonusQuestionCount: bonusQuestionCount,
             // 세트를 끝냈는데 못 받았으면 오늘은 더 받을 수 없음
@@ -71,21 +92,19 @@ class DailyLimitDailySetCard extends StatelessWidget {
 
 /// 세트 보너스 한 줄 상태 3종
 enum _BonusRowState {
-  obtainable, // 아직 받을 수 있음: 초록 +N
+  obtainable, // 아직 받을 수 있음: 크레딧 +N
   earned, // 받았어요
   missed, // 세트를 끝냈지만 못 받음: 오늘은 받지 못했어요
 }
 
-/// 세트 보너스 한 줄: 아이콘 + 조건 + 오른쪽 상태 (+N·받았어요·오늘은 받지 못했어요)
+/// 세트 보너스 한 줄: 상태 표시(빈 원·초록 체크·회색 빼기) + 조건 + 오른쪽 크레딧 수(받을 수 있음) 또는 상태 문구
 class _DailySetBonusRow extends StatelessWidget {
   const _DailySetBonusRow({
-    required this.icon,
     required this.label,
     required this.bonusQuestionCount,
     required this.state,
   });
 
-  final IconData icon;
   final String label;
   final int bonusQuestionCount;
   final _BonusRowState state;
@@ -93,13 +112,20 @@ class _DailySetBonusRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final isObtainable = state == _BonusRowState.obtainable;
+    final (stateIcon, stateIconColor) = switch (state) {
+      _BonusRowState.obtainable => (CupertinoIcons.circle, colors.iconSecondary),
+      _BonusRowState.earned => (
+        CupertinoIcons.checkmark_circle_fill,
+        colors.correct,
+      ),
+      _BonusRowState.missed => (
+        CupertinoIcons.minus_circle,
+        colors.iconSecondary,
+      ),
+    };
     return Row(
       children: [
-        PassqlIconTile(
-          icon: icon,
-          color: isObtainable ? colors.correct : colors.secondaryLabel,
-        ),
+        Icon(stateIcon, size: PassqlIconSize.xl, color: stateIconColor),
         const SizedBox(width: PassqlSpacing.sm),
         Expanded(
           child: Text(
@@ -108,16 +134,33 @@ class _DailySetBonusRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: PassqlSpacing.xs),
-        Text(
-          switch (state) {
-            _BonusRowState.obtainable => '+$bonusQuestionCount',
-            _BonusRowState.earned => '받았어요',
-            _BonusRowState.missed => '오늘은 받지 못했어요',
-          },
-          style: PassqlTypography.footnoteSemibold.copyWith(
-            color: isObtainable ? colors.correctText : colors.secondaryLabel,
+        switch (state) {
+          _BonusRowState.obtainable => Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const PassqlCreditIcon(),
+              const SizedBox(width: PassqlSpacing.xxs),
+              Text(
+                '+$bonusQuestionCount',
+                style: PassqlTypography.subheadlineSemibold.copyWith(
+                  color: colors.accentText,
+                ),
+              ),
+            ],
           ),
-        ),
+          _BonusRowState.earned => Text(
+            '받았어요',
+            style: PassqlTypography.footnoteSemibold.copyWith(
+              color: colors.correctText,
+            ),
+          ),
+          _BonusRowState.missed => Text(
+            '오늘은 못 받았어요',
+            style: PassqlTypography.footnote.copyWith(
+              color: colors.secondaryLabel,
+            ),
+          ),
+        },
       ],
     );
   }
