@@ -66,6 +66,9 @@ abstract final class PassqlMotion {
   static const onboardingRunDuration = Duration(milliseconds: 800);
   static const onboardingSceneStep = Duration(milliseconds: 600);
 
+  // 잠금화면 소개 미니 폰 (#990): 잠금 > 문제 화면 올라옴 한 단계 (이만큼씩 번갈아 반복)
+  static const lockScreenIllustrationStep = Duration(milliseconds: 1600);
+
   static const afterRouteTransitionDelay = Duration(milliseconds: 300);
 
   /// 접근성 "동작 줄이기"가 켜져 있으면 연출을 생략한다.

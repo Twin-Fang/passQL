@@ -22,6 +22,16 @@ abstract final class AnalyticsEventNames {
   static const String passPurchaseResult = 'pass_purchase_result';
   static const String dailyLimitSheetOpened = 'daily_limit_sheet_opened';
   static const String adBonusResult = 'ad_bonus_result';
+
+  // 잠금화면 문제 퍼널 (#990): 소개 > 미리보기 > 권한 단계 > 켜짐 > 표시 > 풀이·닫기·소진
+  static const String lockScreenIntroShown = 'lockscreen_intro_shown';
+  static const String lockScreenPreviewAnswered = 'lockscreen_preview_answered';
+  static const String lockScreenEnabled = 'lockscreen_enabled';
+  static const String lockScreenPermissionStep = 'lockscreen_permission_step';
+  static const String lockScreenQuestionShown = 'lockscreen_question_shown';
+  static const String lockScreenAnswered = 'lockscreen_answered';
+  static const String lockScreenDismissed = 'lockscreen_dismissed';
+  static const String lockScreenExhaustedShown = 'lockscreen_exhausted_shown';
 }
 
 /// 분석 이벤트 파라미터 이름 (값은 문자열·숫자만, 이메일·닉네임·SQL 답안 원문 금지)
@@ -59,4 +69,13 @@ abstract final class AnalyticsParameterNames {
 
   /// 결제 결과: success, pending, cancelled, failed, unavailable / 광고 결과: rewarded, dismissedWithoutReward, unavailable
   static const String outcome = 'outcome';
+
+  /// 잠금화면 권한 단계: overlay, notification, battery, samsung_power
+  static const String permissionStep = 'step';
+
+  /// 권한 켜짐: 1 켜짐, 0 꺼짐
+  static const String isGranted = 'granted';
+
+  /// 회원 등급: free, pro
+  static const String tier = 'tier';
 }

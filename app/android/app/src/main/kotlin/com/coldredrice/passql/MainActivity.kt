@@ -2,6 +2,7 @@ package com.coldredrice.passql
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.Intent
 import android.content.res.Configuration
 import android.media.AudioManager
 import android.os.Build
@@ -12,6 +13,8 @@ import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugins.googlemobileads.GoogleMobileAdsPlugin
+import com.coldredrice.passql.lockscreen.LockScreenChannel
+import com.coldredrice.passql.lockscreen.LockScreenRoutes
 import com.navercorp.nid.NaverIdLoginSDK
 import com.navercorp.nid.NidOAuth
 import com.navercorp.nid.oauth.domain.`enum`.NidOAuthBehavior
@@ -32,9 +35,30 @@ class MainActivity : FlutterFragmentActivity() {
     private fun describeWindow(config: Configuration): String =
         "${config.screenWidthDp}x${config.screenHeightDp}dp " +
             if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) "landscape" else "portrait"
+    // 잠금화면 채널 (#990): 새 intent 의 이동 경로를 Dart 에 바로 전달할 때 씀
+    private var lockScreenChannel: MethodChannel? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 엔진 준비 전에 받아 둠 > Dart 시작 후 takePendingRoute 로 꺼냄
+        rememberLockScreenRoute(intent)
         super.onCreate(savedInstanceState)
         createDefaultNotificationChannel()
+    }
+
+    // 이미 떠 있을 때 잠금화면·알림에서 열림 > 경로를 Dart 로 바로 보냄
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val route = intent.getStringExtra(LockScreenRoutes.EXTRA_ROUTE) ?: return
+        intent.removeExtra(LockScreenRoutes.EXTRA_ROUTE)
+        lockScreenChannel?.invokeMethod(LockScreenChannel.METHOD_OPEN_ROUTE, route)
+            ?: run { LockScreenRoutes.pendingRoute = route }
+    }
+
+    private fun rememberLockScreenRoute(intent: Intent?) {
+        val route = intent?.getStringExtra(LockScreenRoutes.EXTRA_ROUTE) ?: return
+        intent.removeExtra(LockScreenRoutes.EXTRA_ROUTE)
+        LockScreenRoutes.pendingRoute = route
     }
 
     // 네이티브 광고 팩토리 2개 등록 (엔진 수명과 함께): 탭 바 아래 한 줄 띠(#527), 문제 탭 카드 (Dart NativeAd factoryId 가 이 이름을 찾음)
@@ -52,6 +76,8 @@ class MainActivity : FlutterFragmentActivity() {
         )
         registerRingerModeChannel(flutterEngine)
         registerNaverLoginChannel(flutterEngine)
+        lockScreenChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, LockScreenChannel.CHANNEL_NAME)
+            .apply { setMethodCallHandler(LockScreenChannel(applicationContext) { this@MainActivity }) }
     }
 
     // 소리 모드 조회 채널 (의견 진단 정보, #708): normal, vibrate, silent
@@ -201,6 +227,8 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
+        lockScreenChannel?.setMethodCallHandler(null)
+        lockScreenChannel = null
         GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, PassqlStripNativeAdFactory.FACTORY_ID)
         GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, PassqlNativeAdFactory.FACTORY_ID)
         super.cleanUpFlutterEngine(flutterEngine)

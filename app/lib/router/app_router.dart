@@ -20,6 +20,8 @@ import '../presentation/pages/app_gate/maintenance_page.dart';
 import '../presentation/pages/feedback/feedback_page.dart';
 import '../presentation/pages/home/home_page.dart';
 import '../presentation/pages/legal/legal_page.dart';
+import '../presentation/pages/lock_screen/lock_screen_permission_page.dart';
+import '../presentation/pages/lock_screen/lock_screen_preview_page.dart';
 import '../presentation/pages/mock_exam/mock_exam_guide_page.dart';
 import '../presentation/pages/mock_exam/mock_exam_result_page.dart';
 import '../presentation/pages/mock_exam/mock_exam_review_page.dart';
@@ -371,6 +373,18 @@ abstract final class AppRouter {
         path: AppRoutes.leaderboard,
         parentNavigatorKey: _rootKey,
         builder: (_, _) => const LeaderboardPage(),
+      ),
+
+      // 잠금화면 문제 (#990, Android): 미리 풀어 보기 > 권한 단계
+      GoRoute(
+        path: AppRoutes.lockScreenPreview,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const LockScreenPreviewPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.lockScreenPermission,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const LockScreenPermissionPage(),
       ),
 
       // SQLD 모의고사 (#866): 목록 > 안내 > 풀이 > 결과 > 문항 해설

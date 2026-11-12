@@ -362,6 +362,11 @@ public class QuestionService {
         return questionRepository.findPlayableActiveQuestionUuids().stream().map(UUID::fromString).toList();
     }
 
+    /** 선택지 생성 대기 없이 바로 열 수 있는 활성 문제 uuid (잠금화면 출제 후보, isExecutableExcluded 면 실행형 제외) */
+    public List<UUID> findReadyActiveQuestionUuids(boolean isExecutableExcluded) {
+        return questionRepository.findReadyActiveQuestionUuids(isExecutableExcluded, ChoiceSetSource.CURATED_SOURCES);
+    }
+
     /**
      * AI 추천 결과(questionUuid 목록)를 받아 QuestionSummary 목록으로 변환.
      * Application 레이어의 RecommendationService에서 호출한다.

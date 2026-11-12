@@ -13,6 +13,8 @@ abstract final class LockedPreviewCaptions {
   static const String mockExamDetail = '과목별 점수와 약점, 다음에 할 일을 봐요';
   static const String mockExamReview = '문항별 정답과 보기 해설을 봐요';
   static const String mockExamTrend = '회차별 점수 변화를 봐요';
+  // 잠금화면 실행형 문제 결과 자리 (#990)
+  static const String lockScreenExecutionResult = '내 답과 정답 SQL을 실행해 비교해요';
   static const String proAnalysis = 'AI 분석과 영역·난이도별 약점, 오답 정리를 봐요';
 }
 

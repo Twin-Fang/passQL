@@ -40,9 +40,10 @@ public class AppOperationService {
 
     private final AppSettingService appSettingService;
     private final AppNoticeService appNoticeService;
+    private final LockScreenSettingService lockScreenSettingService;
 
     /**
-     * 앱 시작 설정: 플랫폼별 버전 정책 + 점검 상태 + 노출 공지 + Android 결제 스위치 + 사업자 정보
+     * 앱 시작 설정: 플랫폼별 버전 정책 + 점검 상태 + 노출 공지 + Android 결제 스위치 + 사업자 정보 + 잠금화면 설정
      */
     public AppConfigResponse getAppConfig() {
         AppLinksResponse storeLinks = appSettingService.getAppLinks();
@@ -58,7 +59,10 @@ public class AppOperationService {
                 new AppMaintenanceResponse(isUnderMaintenance(), readSettingOrDefault(AppSettingKeys.APP_MAINTENANCE_MESSAGE, "")),
                 appNoticeService.getVisibleNotices(),
                 isAndroidBillingEnabled(),
-                readBusinessInfo()
+                readBusinessInfo(),
+                lockScreenSettingService.isEnabled(),
+                lockScreenSettingService.getDefaultIntervalMinutes(),
+                lockScreenSettingService.isExecutableIncluded()
         );
     }
 

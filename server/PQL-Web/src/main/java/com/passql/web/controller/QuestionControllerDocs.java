@@ -5,6 +5,7 @@ import com.passql.member.auth.presentation.annotation.AuthMember;
 import com.passql.member.auth.presentation.security.LoginMember;
 import com.passql.question.dto.ExecuteResult;
 import com.passql.question.dto.ExecuteSqlRequest;
+import com.passql.question.dto.LockScreenQuestionResponse;
 import com.passql.question.dto.QuestionDetail;
 import com.passql.question.dto.QuestionSummary;
 import com.passql.question.dto.RecommendationsRequest;
@@ -56,6 +57,32 @@ public interface QuestionControllerDocs {
   ResponseEntity<List<QuestionSummary>> getRandomQuestions(
       @AuthMember LoginMember loginMember,
       @RequestParam(defaultValue = "10") int size
+  );
+
+  @ApiLogs({
+      @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 990, description = "잠금화면 문제 1개 API 추가 (바로 열 수 있는 문제만, 안 푼 문제 우선)"),
+  })
+  @Operation(summary = "잠금화면 문제 1개",
+      description = """
+          ## 인증(JWT): **필요**
+          Android 잠금화면 위에 띄울 문제 1개를 고른다.
+
+          ## 요청 파라미터
+          - isExecutableExcluded (선택, 기본 false): true 면 실행형(EXECUTABLE) 제외 (앱 "객관식만" 옵션)
+
+          ## 선택 규칙
+          - 선택지 세트가 준비된 문제만 (AI 선택지 생성 SSE 대기 없음)
+          - 안 푼 문제 우선, 없으면 푼 문제 (랜덤 풀기와 같은 규칙)
+          - 관리자 설정 lockscreen.include_executable=false 면 요청과 무관하게 실행형 제외
+
+          ## 반환값
+          - 200 LockScreenQuestionResponse { questionUuid }
+          - 204: 관리자 설정 lockscreen.enabled=false 이거나 출제할 문제 없음
+          - 하루 문제 수 제한은 여기서 판정하지 않음 (GET /questions/{questionUuid}·제출에서 기존대로)
+          """)
+  ResponseEntity<LockScreenQuestionResponse> getLockScreenQuestion(
+      @AuthMember LoginMember loginMember,
+      @RequestParam(defaultValue = "false") boolean isExecutableExcluded
   );
 
   @ApiLogs({

@@ -1,4 +1,4 @@
-/// 기기 저장 키 원본 28개: 일반 저장소(DevicePreferences) 23개 + 보안 저장소(TokenStore) 5개
+/// 기기 저장 키 원본 31개: 일반 저장소(DevicePreferences) 26개 + 보안 저장소(TokenStore) 5개
 /// 값은 기존 설치의 저장 데이터를 읽는 키 > 문자열 값을 바꾸지 않음
 abstract final class StorageKeys {
   // ─── 일반 저장소 (SharedPreferences, 앱 삭제 시 함께 지워짐) ───
@@ -62,6 +62,13 @@ abstract final class StorageKeys {
       'store_review_last_requested_app_version';
   // 마지막으로 로그인에 성공한 제공자 서버 값 (KAKAO 등, 로그아웃해도 유지·탈퇴 시 삭제, #908)
   static const String recentLoginProvider = 'recent_login_provider';
+  // 잠금화면 문제 소개 (#990): 소개 시트 마지막 노출 시각 (epoch 밀리초), 노출 횟수 (최대 2회: 처음 + 7일 뒤)
+  static const String lockScreenIntroLastShownAt =
+      'lock_screen_intro_last_shown_at_ms';
+  static const String lockScreenIntroShownCount =
+      'lock_screen_intro_shown_count';
+  // 잠금화면 문제를 한 번이라도 켰는지 (bool, 설정 행 NEW 배지는 켜기 전까지)
+  static const String lockScreenEverEnabled = 'lock_screen_ever_enabled';
 
   // ─── 보안 저장소 (Keychain/Keystore, 인증 세션) ───
 
