@@ -2,17 +2,17 @@
   "redirects": [
     {
       "source": "/legal/terms.html",
-      "destination": "https://twin-fang.github.io/passQL/terms.html",
+      "destination": "https://passql.suhsaechan.kr/terms.html",
       "permanent": true
     },
     {
       "source": "/legal/privacy.html",
-      "destination": "https://twin-fang.github.io/passQL/privacy.html",
+      "destination": "https://passql.suhsaechan.kr/privacy.html",
       "permanent": true
     },
     {
       "source": "/legal/delete-account.html",
-      "destination": "https://twin-fang.github.io/passQL/delete-account.html",
+      "destination": "https://passql.suhsaechan.kr/delete-account.html",
       "permanent": true
     }
   ],
