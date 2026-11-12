@@ -106,11 +106,16 @@ class LockScreenBridge {
     : _channel = channel ?? const MethodChannel(_channelName),
       isLockScreenSupported =
           isSupported ??
-          (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+          (isLockScreenShipped &&
+              !kIsWeb &&
+              defaultTargetPlatform == TargetPlatform.android) {
     if (isLockScreenSupported) _channel.setMethodCallHandler(_onNativeCall);
   }
 
   static const String _channelName = 'passql/lock_screen';
+
+  // 잠금화면 기능 출시 여부: Play 포그라운드 서비스 권한 신고 전까지 false (AndroidManifest 서비스·권한 선언과 함께 바꿈, #1002)
+  static const bool isLockScreenShipped = false;
 
   final MethodChannel _channel;
 
