@@ -15,6 +15,7 @@ import '../../widgets/common/app_toast.dart';
 import '../../widgets/profile/profile_pro_analysis_locked_section.dart';
 import '../../widgets/profile/difficulty_accuracy_section.dart';
 import '../../widgets/profile/profile_mock_exam_trend_section.dart';
+import '../../widgets/profile/profile_plan_section.dart';
 import '../../widgets/profile/profile_status_section.dart';
 import '../../widgets/profile/study_record_section.dart';
 import '../../widgets/profile/study_time_pattern_section.dart';
@@ -107,6 +108,10 @@ class _StatsContent extends StatelessWidget {
         accuracyDetail?.difficultyStats.isNotEmpty ?? false;
     final sections = <Widget>[
       ProfileStatusSection(progress: progress),
+      // 크레딧·이용권 구간 (스스로 앞 띠, 결제 꺼짐이면 없음)
+      const ProfilePlanSection(),
+      // 광고 1칸: 이용권 구간 바로 아래 (뜬 때만 앞 띠 + 구간, 맨 아래에 두면 거의 안 보임, #971)
+      const AdInlineCard(placement: AdPlacement.bannerStats, isSection: true),
       // 무료(결제 켜짐): 볼 수 있는 구간 먼저, 프로 분석은 맨 아래 한 칸으로 모음 (#971)
       if (hasRecords && isAnalysisLocked) ...[
         if (studyPattern != null) ...[
@@ -151,8 +156,6 @@ class _StatsContent extends StatelessWidget {
         const PassqlSectionGap(),
         for (var index = 0; index < sections.length; index++)
           PassqlReveal(index: index, child: sections[index]),
-        // 콘텐츠 맨 아래 광고 1칸 (뜬 때만 앞 띠 + 구간, 홈과 같은 방식)
-        const AdInlineCard(placement: AdPlacement.bannerStats, isSection: true),
       ],
     );
   }
