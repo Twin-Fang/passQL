@@ -11,8 +11,8 @@ class DailySetFreeTrialNote extends StatelessWidget {
   final bool isExecutable;
 
   static const String _executableNote =
-      '오늘의 세트에서는 SQL 실행과 AI 해설을 무료로 써 볼 수 있어요';
-  static const String _conceptNote = '오늘의 세트에서는 AI 해설을 무료로 써 볼 수 있어요';
+      '오늘의 세트에서는 SQL 실행과 AI 해설을 볼 수 있어요!';
+  static const String _conceptNote = '오늘의 세트에서는 AI 해설을 볼 수 있어요!';
 
   @override
   Widget build(BuildContext context) {

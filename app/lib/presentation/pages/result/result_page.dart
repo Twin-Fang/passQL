@@ -153,9 +153,16 @@ class ResultPage extends ConsumerWidget {
           ),
         // 해설: AI 해설 본문(실패 시 근거 폴백 포함) 또는 생성 근거
         if (explanationEntry != null)
+          // 머리는 다른 해설 자리와 같은 AI 머리(반짝이 아이콘 + 제목)
           PassqlCard(
-            title: 'AI 해설',
-            child: AiExplanationContent(entry: explanationEntry),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const PassqlAiHeader(title: 'AI 해설'),
+                const SizedBox(height: PassqlSpacing.sm),
+                AiExplanationContent(entry: explanationEntry),
+              ],
+            ),
           )
         else if (result.rationale != null && result.rationale!.isNotEmpty)
           PassqlCard(
