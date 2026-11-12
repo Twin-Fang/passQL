@@ -7,7 +7,12 @@ import '../../design/design.dart';
 /// 흩뿌린 키워드 스티커 하나. 위치는 영역 비율(Alignment)이라 기기 폭이 달라도 배치가 유지된다.
 /// x·y 가 ±1 을 넘으면 가장자리 밖으로 일부 잘려 화면 밖까지 이어지는 느낌을 준다.
 class OnboardingSticker {
-  const OnboardingSticker(this.keyword, this.kind, this.alignment, this.degrees);
+  const OnboardingSticker(
+    this.keyword,
+    this.kind,
+    this.alignment,
+    this.degrees,
+  );
 
   final String keyword;
 
@@ -21,16 +26,51 @@ class OnboardingSticker {
 
 /// 첫 문제 축하 배치: 가운데 카드 띠를 비우고 위아래·좌우로 흩뿌림
 const List<OnboardingSticker> celebrationStickers = [
-  OnboardingSticker('SELECT', PassqlBadgeKind.topic, Alignment(-1.1, -0.9), -14),
+  OnboardingSticker(
+    'SELECT',
+    PassqlBadgeKind.topic,
+    Alignment(-1.1, -0.9),
+    -14,
+  ),
   OnboardingSticker('JOIN', PassqlBadgeKind.warning, Alignment(0.1, -0.75), 10),
-  OnboardingSticker('NULL', PassqlBadgeKind.important, Alignment(0.95, -0.95), -6),
-  OnboardingSticker('GROUP BY', PassqlBadgeKind.success, Alignment(-0.55, -0.4), 7),
-  OnboardingSticker('HAVING', PassqlBadgeKind.neutral, Alignment(0.65, -0.45), -10),
+  OnboardingSticker(
+    'NULL',
+    PassqlBadgeKind.important,
+    Alignment(0.95, -0.95),
+    -6,
+  ),
+  OnboardingSticker(
+    'GROUP BY',
+    PassqlBadgeKind.success,
+    Alignment(-0.55, -0.4),
+    7,
+  ),
+  OnboardingSticker(
+    'HAVING',
+    PassqlBadgeKind.neutral,
+    Alignment(0.65, -0.45),
+    -10,
+  ),
   OnboardingSticker('WHERE', PassqlBadgeKind.neutral, Alignment(-1.15, 0.4), 8),
   OnboardingSticker('UPDATE', PassqlBadgeKind.topic, Alignment(1.1, 0.35), -12),
-  OnboardingSticker('COMMIT', PassqlBadgeKind.success, Alignment(-0.35, 0.75), -4),
-  OnboardingSticker('DISTINCT', PassqlBadgeKind.warning, Alignment(0.45, 0.85), 9),
-  OnboardingSticker('INDEX', PassqlBadgeKind.important, Alignment(-1.1, 1.0), 12),
+  OnboardingSticker(
+    'COMMIT',
+    PassqlBadgeKind.success,
+    Alignment(-0.35, 0.75),
+    -4,
+  ),
+  OnboardingSticker(
+    'DISTINCT',
+    PassqlBadgeKind.warning,
+    Alignment(0.45, 0.85),
+    9,
+  ),
+  OnboardingSticker(
+    'INDEX',
+    PassqlBadgeKind.important,
+    Alignment(-1.1, 1.0),
+    12,
+  ),
 ];
 
 /// 영역 전체에 깔리는 장식 스티커 층. 순서대로 톡톡 튀어나오고, 스크린리더는 읽지 않는다.

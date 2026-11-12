@@ -7,6 +7,8 @@ import '../../design/design.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/home_providers.dart';
 import '../question/execute_result_card.dart';
+import '../question/markdown_lite_text.dart';
+import 'onboarding_run_reveal.dart';
 import 'onboarding_slide.dart';
 import 'onboarding_sql_card.dart';
 
@@ -75,34 +77,39 @@ class _SelectSlide extends StatelessWidget {
       title: '보기를 직접\n실행해 볼 수 있어요',
       subtitle: '결과를 눈으로 비교하면 답이 보여요.',
       visual: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const PassqlCodeBlock(
-                code: 'SELECT ENAME FROM EMP\nWHERE SAL >= 3000;',
-                isSelectable: false,
-              ),
-              ExecuteResultCard(
-                result: _successResult,
-                executedChoiceLabel: 'A',
-                margin: const EdgeInsets.symmetric(
-                  vertical: PassqlSpacing.xs,
-                ),
-              ),
-              const SizedBox(height: PassqlSpacing.xs),
-              const PassqlCodeBlock(
-                code: 'SELECT ENAME FROM EMP\nHAVING SAL >= 3000;',
-                isSelectable: false,
-              ),
-              ExecuteResultCard(
-                result: _errorResult,
-                executedChoiceLabel: 'B',
-                margin: const EdgeInsets.symmetric(
-                  vertical: PassqlSpacing.xs,
-                ),
-              ),
-            ],
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const PassqlCodeBlock(
+            code: 'SELECT ENAME FROM EMP\nWHERE SAL >= 3000;',
+            isSelectable: false,
           ),
+          // 실행 중 > 실행 결과 (A 먼저, B 는 한 박자 뒤)
+          OnboardingRunReveal(
+            startDelay: PassqlMotion.onboardingSceneStep,
+            child: ExecuteResultCard(
+              result: _successResult,
+              executedChoiceLabel: 'A',
+              margin: const EdgeInsets.symmetric(vertical: PassqlSpacing.xs),
+            ),
+          ),
+          const SizedBox(height: PassqlSpacing.xs),
+          const PassqlCodeBlock(
+            code: 'SELECT ENAME FROM EMP\nHAVING SAL >= 3000;',
+            isSelectable: false,
+          ),
+          OnboardingRunReveal(
+            startDelay:
+                PassqlMotion.onboardingSceneStep * 2 +
+                PassqlMotion.onboardingRunDuration,
+            child: ExecuteResultCard(
+              result: _errorResult,
+              executedChoiceLabel: 'B',
+              margin: const EdgeInsets.symmetric(vertical: PassqlSpacing.xs),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -113,13 +120,6 @@ class _ExplainSlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    final bodyStyle = PassqlTypography.explanationBody.copyWith(
-      color: colors.label,
-    );
-    final emphasisStyle = PassqlTypography.explanationEmphasis.copyWith(
-      color: colors.label,
-    );
     return OnboardingSlide(
       title: '틀려도 괜찮아요,\n이유를 바로 알려 줘요',
       subtitle: '틀린 문제는 오답 노트에 모아 둬요.',
@@ -137,17 +137,11 @@ class _ExplainSlide extends StatelessWidget {
                 children: [
                   const PassqlAiHeader(title: 'AI 해설'),
                   const SizedBox(height: PassqlSpacing.xs),
-                  Text.rich(
-                    TextSpan(
-                      style: bodyStyle,
-                      children: [
-                        TextSpan(text: 'HAVING', style: emphasisStyle),
-                        const TextSpan(text: '은 GROUP BY로 묶은 결과를 거를 때 써요. '),
-                        const TextSpan(text: '묶지 않은 행을 거르려면 '),
-                        TextSpan(text: 'WHERE', style: emphasisStyle),
-                        const TextSpan(text: '를 써야 해요.'),
-                      ],
-                    ),
+                  // 실제 해설처럼 단어가 차례로 나타남 (동작 줄이기면 바로)
+                  const MarkdownLiteText(
+                    '**HAVING**은 GROUP BY로 묶은 결과를 거를 때 써요. '
+                    '묶지 않은 행을 거르려면 **WHERE**를 써야 해요.',
+                    isAnimated: true,
                   ),
                   const SizedBox(height: PassqlSpacing.sm),
                   const PassqlTextSkeleton(lineCount: 2),
