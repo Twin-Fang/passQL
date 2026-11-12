@@ -52,7 +52,7 @@ const double _proSubtleTextAlpha = 0.78;
 const double _proPerforationAlpha = 0.45;
 const double _proDashLineAlpha = 0.55;
 const double _proHighlightedFieldAlpha = 0.22;
-const double _proBenefitBorderAlpha = 0.6;
+const double _proBenefitTileAlpha = 0.22;
 // 무료 잠긴 혜택 아이콘 바탕 / 바코드 무늬 투명도
 const double _lockedBenefitAlpha = 0.4;
 const double _barcodeAlpha = 0.75;

@@ -13,7 +13,8 @@ import '../../providers/profile_pass_providers.dart';
 import '../../providers/settings_providers.dart';
 import '../common/app_toast.dart';
 import 'pro_benefits.dart';
-import 'pro_offer_benefit_list.dart';
+import 'pro_comparison_rows.dart';
+import 'pro_offer_comparison_table.dart';
 import 'pro_offer_buy_bar.dart';
 import 'pro_offer_headline.dart';
 import 'pro_offer_pass_option_list.dart';
@@ -291,11 +292,6 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
                   benefits: benefits,
                   activeProExpiresAt: activeProExpiresAt,
                 ),
-                // 「PRO로 달라지는 점」은 무료 회원용 (연장이면 이미 쓰는 혜택)
-                if (!isExtending) ...[
-                  const SizedBox(height: PassqlSpacing.xl),
-                  ProOfferBenefitList(benefits: benefits),
-                ],
                 const SizedBox(height: PassqlSpacing.md),
                 // 이용권 고르기 (서버 순서대로, 결제 중에는 바꿀 수 없음)
                 ProOfferPassOptionList(
@@ -303,6 +299,15 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
                   selectedOption: selectedOption,
                   onSelect: _isBusy ? null : _select,
                 ),
+                // 무료 회원: 가격 아래 무료·프로 비교표를 접지 않고 한 번에 (연장이면 이미 쓰는 혜택, #966)
+                if (!isExtending) ...[
+                  const SizedBox(height: PassqlSpacing.sm),
+                  ProOfferComparisonTable(
+                    rows: proComparisonRows(
+                      dailyFreeLimit: widget.dailyFreeLimit,
+                    ),
+                  ),
+                ],
                 ProOfferPaymentNotes(
                   isIos: ref.read(targetPlatformProvider) == TargetPlatform.iOS,
                   onRestoreTap: _isBusy
