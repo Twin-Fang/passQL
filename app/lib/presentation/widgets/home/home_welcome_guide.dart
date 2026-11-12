@@ -6,7 +6,7 @@ import '../../../core/storage/storage_keys.dart';
 import '../../design/design.dart';
 import '../../providers/plan_providers.dart';
 
-/// 홈 첫 방문 환영 안내 (#975): 기기에서 한 번만 시트로 띄움 (오늘의 세트·크레딧·AI 기능 쓰는 법)
+/// 홈 첫 방문 환영 안내 (#975): 기기에서 한 번만 짧은 시트로 띄움 (오늘의 세트·크레딧·AI 기능, 한 줄씩 차례로 떠오름)
 /// 자리만 차지하지 않는 위젯 (홈 목록에 끼워 두면 첫 프레임 뒤 판정)
 class HomeWelcomeGuideTrigger extends ConsumerStatefulWidget {
   const HomeWelcomeGuideTrigger({super.key});
@@ -48,6 +48,8 @@ class _HomeWelcomeGuideTriggerState
   Widget build(BuildContext context) => const SizedBox.shrink();
 }
 
+/// 환영 안내 본문: 대표 아이콘이 톡 튀어나옴 > 제목 > 한 줄 세 개가 차례로 떠오름 > 시작하기
+/// 한 줄 = 아이콘 + 짧은 문장 (설명 줄 없이 시트 높이를 줄임), 동작 줄이기면 바로 보임
 class _HomeWelcomeGuideBody extends StatelessWidget {
   const _HomeWelcomeGuideBody({
     required this.hasCredits,
@@ -65,12 +67,21 @@ class _HomeWelcomeGuideBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
+    final lines = [
+      (icon: CupertinoIcons.square_list_fill, text: '오늘의 세트는 매일 새로 열려요'),
+      if (hasCredits)
+        (icon: CupertinoIcons.bolt_fill, text: '랜덤 풀기는 크레딧 1개로 1문제'),
+      (
+        icon: CupertinoIcons.sparkles,
+        text: isProLocked ? 'PRO는 AI 해설과 SQL 직접 실행까지' : 'AI 해설과 SQL 직접 실행까지',
+      ),
+    ];
     return SafeArea(
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
           PassqlSpacing.md,
-          PassqlSpacing.xs,
+          0,
           PassqlSpacing.md,
           PassqlSpacing.md,
         ),
@@ -78,36 +89,51 @@ class _HomeWelcomeGuideBody extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Semantics(
-              header: true,
-              child: Text(
-                '환영해요,\npassQL은 이렇게 써요',
-                style: PassqlTypography.title2.copyWith(color: colors.label),
+            // 대표 아이콘 (톡 튀어나옴)
+            Center(
+              child: PassqlPopIn(
+                child: Container(
+                  width: PassqlSize.sheetHeroCircle,
+                  height: PassqlSize.sheetHeroCircle,
+                  decoration: BoxDecoration(
+                    color: colors.accentTint,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    CupertinoIcons.hand_raised_fill,
+                    size: PassqlIconSize.sheetHero,
+                    color: colors.accent,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: PassqlSpacing.sm),
-            _GuideRow(
-              icon: CupertinoIcons.square_list_fill,
-              title: '오늘의 세트',
-              description: hasCredits
-                  ? '매일 새 문제를 크레딧 없이 풀어요'
-                  : '매일 새 문제로 실력을 확인해요',
-            ),
-            if (hasCredits)
-              const _GuideRow(
-                icon: CupertinoIcons.bolt_fill,
-                title: '크레딧',
-                description: '랜덤 풀기 1문제에 1개, 매일 새로 채워져요',
+            PassqlReveal(
+              index: 1,
+              child: Semantics(
+                header: true,
+                child: Text(
+                  '환영해요!',
+                  textAlign: TextAlign.center,
+                  style: PassqlTypography.title2.copyWith(color: colors.label),
+                ),
               ),
-            _GuideRow(
-              icon: CupertinoIcons.sparkles,
-              title: 'AI 해설과 SQL 직접 실행',
-              description: isProLocked
-                  ? 'PRO에서 틀린 이유를 AI가 설명하고 보기를 실행해요'
-                  : '틀린 이유를 AI가 설명하고 보기를 직접 실행해요',
             ),
             const SizedBox(height: PassqlSpacing.md),
-            PassqlButton(label: '시작하기', onPressed: onStart),
+            // 한 줄씩 차례로 떠오름
+            for (var index = 0; index < lines.length; index++)
+              PassqlReveal(
+                index: index + 2,
+                child: _GuideLine(
+                  icon: lines[index].icon,
+                  text: lines[index].text,
+                ),
+              ),
+            const SizedBox(height: PassqlSpacing.md),
+            PassqlReveal(
+              index: lines.length + 2,
+              child: PassqlButton(label: '시작하기', onPressed: onStart),
+            ),
           ],
         ),
       ),
@@ -115,26 +141,30 @@ class _HomeWelcomeGuideBody extends StatelessWidget {
   }
 }
 
-/// 안내 한 줄: 아이콘 타일 + 이름 + 한 줄 설명 (설정 화면 행과 같은 모양)
-class _GuideRow extends StatelessWidget {
-  const _GuideRow({
-    required this.icon,
-    required this.title,
-    required this.description,
-  });
+/// 안내 한 줄: 강조색 아이콘 + 짧은 문장
+class _GuideLine extends StatelessWidget {
+  const _GuideLine({required this.icon, required this.text});
 
   final IconData icon;
-  final String title;
-  final String description;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
-    return PassqlListRow(
-      title: title,
-      subtitle: description,
-      leading: PassqlIconTile(icon: icon, color: context.passqlColors.accent),
-      hasChevron: false,
-      hasHorizontalPadding: false,
+    final colors = context.passqlColors;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: PassqlSpacing.xxs),
+      child: Row(
+        children: [
+          Icon(icon, size: PassqlIconSize.lg, color: colors.accent),
+          const SizedBox(width: PassqlSpacing.sm),
+          Expanded(
+            child: Text(
+              text,
+              style: PassqlTypography.subheadline.copyWith(color: colors.label),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

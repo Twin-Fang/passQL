@@ -51,7 +51,7 @@ lib/presentation/design/
 | `PassqlBarChart` / `PassqlBarChartBar` | 세로 막대 차트 (프로필 학습 통계, #909): 바닥선 + 막대(강조 몫은 강조색, 나머지는 옅은 강조색) + 아래 축 글자(칸보다 길면 양옆으로 넘침). 값은 최댓값 기준 비율, 처음 그릴 때 자람(동작 줄이기면 정지), 스크린리더는 `semanticLabel` 한 문장 |
 | `PassqlActivityRings` | 바깥에서 안쪽으로 겹친 진행 링 (홈 합격 준비도 정확도·범위·최신성, #701). 링마다 비율·색, 가운데 글자 선택. 링은 스크린리더에서 숨기고 쓰는 쪽이 범례와 묶어 읽힘 |
 | `PassqlSection` / `PassqlSectionGap` / `PassqlSectionHeader` / `PassqlSectionLink` | 홈식 구간: 좌우 끝까지 닿는 card 면(좌우 md·위아래 lg)과 구간 사이 md 높이 background 띠. 제목 줄은 높이 44 고정 title3(+ 앞 아이콘·오른쪽 요소), 오른쪽 이동 링크는 글자 + › 한 모양 (#701). `isCompactTitle`: 작은 타일 + 15pt 제목 (문제 탭 경향 구간, #726) |
-| `PassqlGroupedSection` / `PassqlListRow` / `PassqlCheckRow` / `PassqlIconTile` | iOS 설정 앱식 목록 묶음·행·선택 행·아이콘 타일 (`isCompact`: 26pt 구간 제목용, #726) |
+| `PassqlGroupedSection` / `PassqlListRow` / `PassqlCheckRow` / `PassqlIconTile` | iOS 설정 앱식 목록 묶음·행·선택 행·아이콘 타일 (`isCompact`: 26pt 구간 제목용, #726). 묶음 머리글 오른쪽 요소는 `headerTrailing` (크레딧 내역 날짜별 남은 수, #974) |
 | `PassqlNavBar` / `PassqlNavButton` / `PassqlLargeTitleScrollView` | 상단 바(제목 글자 대신 가운데 위젯 `middle` 가능), 뒤로/닫기 버튼, 탭 화면 틀(탭 첫 화면은 제목과 오른쪽 요소가 한 줄인 고정 바, 뒤로 갈 수 있는 화면은 접히는 큰 제목, #971) |
 | `PassqlBrandBarScrollView` | 홈 탭 화면 틀: 로고 또는 `leading`(왼쪽)·trailing(오른쪽) 한 줄 고정 바, 내용이 밑으로 지나가면 글래스 + 헤어라인 (#530) |
 | `PassqlTabBar` / `PassqlTabIcon` (+`PassqlTabIconKind`) | 하단 탭 바: 아이콘 + 라벨, 하단 여백 기준 `PassqlTabBar.bottomPaddingOf`. 아이콘은 직접 그림(비선택 선, 선택은 같은 윤곽을 강조색으로 채우고 체크·말풍선 사이 틈·집게 둘레만 뚫음), 새로 선택될 때만 아이콘 일부가 움직임(동작 줄이기면 정지, #755) |

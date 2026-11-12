@@ -1062,6 +1062,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/members/me/credit-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 내 크레딧 사용 내역 조회
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 요청 헤더
+         *     - **`Authorization`**: Bearer {accessToken}
+         *
+         *     ## 요청 파라미터
+         *     - **`days`** (선택): 조회 일수, 오늘 포함 (기본 14, 1 ~ 30)
+         *
+         *     ## 반환값 (CreditHistoryResponse)
+         *     - **`days`**: 날짜별 내역, 오늘 먼저 (크레딧 1개 = 랜덤 풀기 1문제)
+         *       - `date`: 날짜 KST (`yyyy-MM-dd`)
+         *       - `baseCredits`: 하루 기본 크레딧 (10)
+         *       - `dailySetCompletionCredits`: 오늘의 세트 완료 보너스로 받은 크레딧 (5 또는 0)
+         *       - `dailySetAccuracyCredits`: 오늘의 세트 정답 80% 보너스로 받은 크레딧 (5 또는 0)
+         *       - `adBonusCount` / `adBonusCredits`: 광고 보너스 받은 횟수 / 받은 크레딧 (횟수 x 5)
+         *       - `usedCredits`: 그날 쓴 크레딧 (랜덤 풀기로 제출한 서로 다른 문제 수, `todayRandomSolvedCount` 와 같은 기준)
+         *       - `remainingCredits`: 남은 크레딧 (받은 합 - 쓴 수, 0 미만은 0, 지난 날짜는 그날이 끝난 시점 값)
+         *
+         *     ## 설명
+         *     - 오늘은 항상 들어가고, 받은 보너스도 쓴 것도 없는 지난 날짜는 목록에서 빠진다
+         *     - 결제 꺼짐·프로 회원은 크레딧을 쓰지 않으므로 빈 목록 (지금 등급 기준, 과거에 프로였던 날은 따지지 않음)
+         *     - 제출·세트 완료·광고 보너스 기록에서 내 등급 조회의 오늘 값과 같은 규칙으로 날짜별 계산한다 (오늘 값은 `todayFreeLimit`·`todayRandomSolvedCount`·`dailyBonus` 와 일치)
+         *     - `baseCredits` 는 지금 기본 한도 (과거 설정값 이력 없음). 예전에 푼 문제를 다시 풀어도 `usedCredits` 에 들어가므로 받은 합보다 클 수 있다
+         *
+         *     ## 에러코드
+         *     - **`INVALID_INPUT_VALUE`** (400): `days` 가 1 ~ 30 밖
+         */
+        get: operations["getMyCreditHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/members/me/nickname": {
         parameters: {
             query?: never;
@@ -2743,6 +2788,27 @@ export interface components {
             orderIndex: number;
             /** Format: uuid */
             topicUuid: string;
+        };
+        CreditHistoryDayResponse: {
+            /** Format: int32 */
+            adBonusCount: number;
+            /** Format: int32 */
+            adBonusCredits: number;
+            /** Format: int32 */
+            baseCredits: number;
+            /** Format: int32 */
+            dailySetAccuracyCredits: number;
+            /** Format: int32 */
+            dailySetCompletionCredits: number;
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            remainingCredits: number;
+            /** Format: int32 */
+            usedCredits: number;
+        };
+        CreditHistoryResponse: {
+            days: components["schemas"]["CreditHistoryDayResponse"][];
         };
         DailyFreeBonus: {
             /** Format: int32 */
@@ -4559,6 +4625,28 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    getMyCreditHistory: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CreditHistoryResponse"];
+                };
             };
         };
     };

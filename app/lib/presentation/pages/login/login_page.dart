@@ -97,16 +97,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                         ),
                         const SizedBox(height: PassqlSpacing.md),
-                        // 다른 SQLD 앱과 다른 점 세 가지 (#975): 묶음은 가운데, 줄은 왼쪽 맞춤
-                        IntrinsicWidth(
+                        // 다른 SQLD 앱과 다른 점 세 가지 (#975): 흰 카드 안 아이콘 타일 + 이름 + 한 줄
+                        PassqlCard(
+                          isCardTapExposedToScreenReader: false,
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               for (final feature in _features)
-                                _FeatureLine(
-                                  icon: feature.icon,
-                                  text: feature.text,
-                                ),
+                                _FeatureLine(feature: feature),
                             ],
                           ),
                         ),
@@ -150,39 +148,41 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
 // 첫 화면 소개: 한 줄 + 세 가지 (실제로 있는 기능만 적음)
 const String _headline = 'SQL을 직접 실행하고\nAI와 함께 푸는 SQLD';
-const List<({IconData icon, String text})> _features = [
-  (icon: CupertinoIcons.play_fill, text: '보기 SQL을 직접 실행해 결과를 확인해요'),
-  (icon: CupertinoIcons.sparkles, text: '틀린 이유를 AI가 바로 설명해요'),
-  (icon: CupertinoIcons.bolt_fill, text: '풀 때마다 AI가 새 보기를 만들어요'),
+const List<({IconData icon, String title, String description})> _features = [
+  (
+    icon: CupertinoIcons.play_fill,
+    title: 'SQL 직접 실행',
+    description: '보기를 실행해 결과로 확인해요',
+  ),
+  (
+    icon: CupertinoIcons.sparkles,
+    title: 'AI 해설',
+    description: '틀린 이유를 바로 설명해 줘요',
+  ),
+  (
+    icon: CupertinoIcons.bolt_fill,
+    title: 'AI 새 보기',
+    description: '풀 때마다 새로운 보기로 풀어요',
+  ),
 ];
 
-/// 소개 한 줄: 강조색 아이콘 + 문장 (가운데 묶음 안에서 왼쪽 정렬)
+/// 소개 한 줄: 아이콘 타일 + 이름 + 한 줄 설명 (설정 화면 행과 같은 모양, 누르지 않음)
 class _FeatureLine extends StatelessWidget {
-  const _FeatureLine({required this.icon, required this.text});
+  const _FeatureLine({required this.feature});
 
-  final IconData icon;
-  final String text;
+  final ({IconData icon, String title, String description}) feature;
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: PassqlSpacing.xxs),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: PassqlIconSize.md, color: colors.accent),
-          const SizedBox(width: PassqlSpacing.xs),
-          Flexible(
-            child: Text(
-              text,
-              style: PassqlTypography.subheadline.copyWith(
-                color: colors.secondaryLabel,
-              ),
-            ),
-          ),
-        ],
+    return PassqlListRow(
+      title: feature.title,
+      subtitle: feature.description,
+      leading: PassqlIconTile(
+        icon: feature.icon,
+        color: context.passqlColors.accent,
       ),
+      hasChevron: false,
+      hasHorizontalPadding: false,
     );
   }
 }

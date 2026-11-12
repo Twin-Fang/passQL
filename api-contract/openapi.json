@@ -1209,6 +1209,56 @@
         "required" : [ "completedCount", "conceptCount", "displayName", "isLocked", "orderIndex", "topicUuid" ],
         "type" : "object"
       },
+      "CreditHistoryDayResponse" : {
+        "properties" : {
+          "adBonusCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "adBonusCredits" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "baseCredits" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "dailySetAccuracyCredits" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "dailySetCompletionCredits" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "date" : {
+            "format" : "date",
+            "type" : "string"
+          },
+          "remainingCredits" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "usedCredits" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "adBonusCount", "adBonusCredits", "baseCredits", "dailySetAccuracyCredits", "dailySetCompletionCredits", "date", "remainingCredits", "usedCredits" ],
+        "type" : "object"
+      },
+      "CreditHistoryResponse" : {
+        "properties" : {
+          "days" : {
+            "items" : {
+              "$ref" : "#/components/schemas/CreditHistoryDayResponse"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "days" ],
+        "type" : "object"
+      },
       "DailyFreeBonus" : {
         "properties" : {
           "adBonusMaxCount" : {
@@ -4683,6 +4733,35 @@
         },
         "summary" : "차단 해제",
         "tags" : [ "MemberBlock" ]
+      }
+    },
+    "/api/members/me/credit-history" : {
+      "get" : {
+        "description" : "## 인증(JWT): **필요**\n\n## 요청 헤더\n- **`Authorization`**: Bearer {accessToken}\n\n## 요청 파라미터\n- **`days`** (선택): 조회 일수, 오늘 포함 (기본 14, 1 ~ 30)\n\n## 반환값 (CreditHistoryResponse)\n- **`days`**: 날짜별 내역, 오늘 먼저 (크레딧 1개 = 랜덤 풀기 1문제)\n  - `date`: 날짜 KST (`yyyy-MM-dd`)\n  - `baseCredits`: 하루 기본 크레딧 (10)\n  - `dailySetCompletionCredits`: 오늘의 세트 완료 보너스로 받은 크레딧 (5 또는 0)\n  - `dailySetAccuracyCredits`: 오늘의 세트 정답 80% 보너스로 받은 크레딧 (5 또는 0)\n  - `adBonusCount` / `adBonusCredits`: 광고 보너스 받은 횟수 / 받은 크레딧 (횟수 x 5)\n  - `usedCredits`: 그날 쓴 크레딧 (랜덤 풀기로 제출한 서로 다른 문제 수, `todayRandomSolvedCount` 와 같은 기준)\n  - `remainingCredits`: 남은 크레딧 (받은 합 - 쓴 수, 0 미만은 0, 지난 날짜는 그날이 끝난 시점 값)\n\n## 설명\n- 오늘은 항상 들어가고, 받은 보너스도 쓴 것도 없는 지난 날짜는 목록에서 빠진다\n- 결제 꺼짐·프로 회원은 크레딧을 쓰지 않으므로 빈 목록 (지금 등급 기준, 과거에 프로였던 날은 따지지 않음)\n- 제출·세트 완료·광고 보너스 기록에서 내 등급 조회의 오늘 값과 같은 규칙으로 날짜별 계산한다 (오늘 값은 `todayFreeLimit`·`todayRandomSolvedCount`·`dailyBonus` 와 일치)\n- `baseCredits` 는 지금 기본 한도 (과거 설정값 이력 없음). 예전에 푼 문제를 다시 풀어도 `usedCredits` 에 들어가므로 받은 합보다 클 수 있다\n\n## 에러코드\n- **`INVALID_INPUT_VALUE`** (400): `days` 가 1 ~ 30 밖\n",
+        "operationId" : "getMyCreditHistory",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "days",
+          "required" : false,
+          "schema" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CreditHistoryResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "내 크레딧 사용 내역 조회",
+        "tags" : [ "Member" ]
       }
     },
     "/api/members/me/nickname" : {

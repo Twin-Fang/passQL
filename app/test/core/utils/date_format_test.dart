@@ -21,4 +21,14 @@ void main() {
       expect(formatSlashMonthDayTime(DateTime(2026, 12, 31)), '12/31 00:00');
     });
   });
+
+  test('formatRecentDayTitle: 오늘·어제는 낱말, 그 전은 월 일 (달이 바뀌어도 어제)', () {
+    final today = DateTime(2026, 11, 1, 23, 30);
+    expect(formatRecentDayTitle(DateTime(2026, 11, 1), today: today), '오늘');
+    expect(formatRecentDayTitle(DateTime(2026, 10, 31), today: today), '어제');
+    expect(
+      formatRecentDayTitle(DateTime(2026, 10, 30), today: today),
+      '10월 30일',
+    );
+  });
 }
