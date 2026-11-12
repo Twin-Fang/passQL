@@ -3,7 +3,7 @@
 ## 구조
 
 ```
-브라우저 > Cloudflare DNS (CNAME, DNS 전용) > suh-project.synology.me
+브라우저 > Cloudflare DNS (CNAME, DNS 전용) > NAS DDNS 주소(pro-launch 자격 `synology-chan4760` 의 host)
   > DSM 리버스 프록시 (80·443) > Traefik localhost:8079 > 컨테이너 passql-site (nginx:1.27-alpine :80)
 ```
 
@@ -11,7 +11,7 @@ api.passql.suhsaechan.kr 백엔드와 같은 경로다. 호스트 포트를 새�
 
 | 구성 | 값 |
 |---|---|
-| DNS (Cloudflare suhsaechan.kr) | `passql`·`www.passql` CNAME > `suh-project.synology.me`, 프록시 꺼짐(DNS 전용), TTL 자동 |
+| DNS (Cloudflare suhsaechan.kr) | `passql`·`www.passql` CNAME > `NAS DDNS 주소(pro-launch 자격 `synology-chan4760` 의 host)`, 프록시 꺼짐(DNS 전용), TTL 자동 |
 | DSM 리버스 프록시 4개 | `passql`·`www.passql` 각각 443(HSTS, `X-Forwarded-Proto: https`) · 80(`X-Forwarded-Proto: http`) > `http://localhost:8079` (설명 `passQL-SITE ...`) |
 | 인증서 (Let's Encrypt, DSM 자동 갱신) | `passql.suhsaechan.kr`(DSM id mYlOMK) · `www.passql.suhsaechan.kr`(OKUSU9), 443 규칙에 각각 연결 |
 | Traefik 라우터 | `passql-site`: ``Host(`passql.suhsaechan.kr`) || Host(`www.passql.suhsaechan.kr`)`` (compose 라벨) |
@@ -32,7 +32,7 @@ bash _src/synology/deploy_synology.sh
 
 1. `python3 -I _src/build_site.py --out <임시폴더> --custom-domain` 로 새 주소 기준 사이트 생성
 2. `_src/site_verification/*.html` 복사 (지우면 검색엔진 소유 확인이 풀림)
-3. tar 묶음을 ssh(포트 2022, 계정 chan4760)로 보내 NAS 에서 풀고 `html/` 을 NAS 로컬 `rsync --delete` 로 맞춤
+3. tar 묶음을 ssh(접속 정보는 pro-launch 자격 `synology-chan4760`, `NAS_CRED` 로 변경)로 보내 NAS 에서 풀고 `html/` 을 NAS 로컬 `rsync --delete` 로 맞춤
 4. 공개 주소 4개 상태 코드 출력
 
 - 비밀번호는 ssh 가 묻는다. 자동화할 때는 환경변수 `SSHPASS` 에 넣으면 `sshpass -e` 로 넘긴다(명령줄에 쓰지 않는다).

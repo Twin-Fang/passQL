@@ -1,12 +1,27 @@
 #!/usr/bin/env bash
 # passQL 소개 사이트 시놀로지 배포: 빌드 > 확인 파일 복사 > tar·ssh 업로드(html·설정) > 공개 주소 확인
 # 사용: gh-pages 작업 트리 루트에서  bash _src/synology/deploy_synology.sh
-# 비밀번호: 환경변수 SSHPASS 가 있으면 sshpass -e 로 전달, 없으면 ssh 가 직접 물어봄
+# 접속 정보: pro-launch 저장 자격(기본 synology-chan4760, NAS_CRED 로 변경) — 레포에 주소·포트·계정을 두지 않음
+# 비밀번호: SSHPASS 가 없으면 같은 자격에서 읽어 sshpass -e 로 전달 (출력 안 함)
 set -euo pipefail
 
-NAS_HOST="suh-project.synology.me"
-NAS_PORT="2022"
-NAS_USER="chan4760"
+NAS_CRED="${NAS_CRED:-synology-chan4760}"
+LAUNCH_CLI="${PROJECTOPS_HOME:-$HOME/.projectops}/bin/launch_cli.py"
+# 자격 필드 1개 읽기 (password 만 --reveal)
+read_cred_field() {
+  local reveal_flag=""
+  [ "$1" = "password" ] && reveal_flag="--reveal"
+  PYTHONIOENCODING=utf-8 python3 "$LAUNCH_CLI" cred show --name "$NAS_CRED" $reveal_flag \
+    | python3 -I -c "import sys,json; print(json.load(sys.stdin)['credential'].get('$1',''))"
+}
+NAS_HOST="$(read_cred_field host)"
+NAS_PORT="$(read_cred_field port)"
+NAS_USER="$(read_cred_field user)"
+[ -n "$NAS_HOST" ] && [ -n "$NAS_USER" ] || { echo "[site deploy] pro-launch cred '$NAS_CRED' not found" >&2; exit 1; }
+if [ -z "${SSHPASS:-}" ] && command -v sshpass >/dev/null; then
+  SSHPASS="$(read_cred_field password)"
+  export SSHPASS
+fi
 # 컨테이너 passql-site 가 바인드하는 폴더 (html/, nginx.conf, security-headers.inc, docker-compose.yml)
 REMOTE_DIR="/volume1/projects/passql/site"
 SITE_URL="https://passql.suhsaechan.kr"
