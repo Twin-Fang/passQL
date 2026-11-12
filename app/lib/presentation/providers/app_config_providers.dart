@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../core/config/app_build_flavor.dart';
 import '../../core/logging/app_logger.dart';
 import '../../core/storage/device_preferences.dart';
 import '../../core/storage/storage_keys.dart';
@@ -49,10 +50,12 @@ class AppLaunchDecision {
 }
 
 /// 앱 시작 판정: 점검 > 최소 버전 미만 > 정상 순 (설정 없음 > 정상)
+/// 개발용 빌드는 최소 버전 판정만 건너뜀, 점검은 그대로 막음 (#962)
 AppLaunchDecision decideAppLaunch({
   required AppConfig? config,
   required String currentVersion,
   required bool isIos,
+  bool isMinimumVersionCheckSkipped = false,
 }) {
   if (config == null) {
     return AppLaunchDecision.open(currentVersion: currentVersion);
@@ -63,10 +66,8 @@ AppLaunchDecision decideAppLaunch({
   final AppLaunchGate gate;
   if (config.maintenance.isUnderMaintenance) {
     gate = AppLaunchGate.maintenance;
-  } else if (AppVersion.isLowerThan(
-    currentVersion,
-    versionPolicy.minimumVersion,
-  )) {
+  } else if (!isMinimumVersionCheckSkipped &&
+      AppVersion.isLowerThan(currentVersion, versionPolicy.minimumVersion)) {
     gate = AppLaunchGate.forceUpdate;
   } else {
     gate = AppLaunchGate.open;
@@ -121,6 +122,8 @@ final appLaunchDecisionProvider = FutureProvider<AppLaunchDecision>((
     config: config,
     currentVersion: currentVersion,
     isIos: defaultTargetPlatform == TargetPlatform.iOS,
+    // 테스트 빌드 버전은 출시 버전과 따로 매겨짐 (컴파일 상수, 스토어 빌드는 false)
+    isMinimumVersionCheckSkipped: AppBuildFlavor.isDevBuild,
   );
 });
 
