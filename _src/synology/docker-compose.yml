@@ -1,0 +1,24 @@
+# passQL 소개 사이트 컨테이너 (시놀로지 /volume1/projects/passql/site)
+# 호스트 포트 없음: Traefik(traefik-network) 이 Host 규칙으로 라우팅 > api.passql 백엔드와 같은 방식
+services:
+  passql-site:
+    image: nginx:1.27-alpine
+    container_name: passql-site
+    restart: unless-stopped
+    volumes:
+      # 정적 파일·설정은 읽기 전용 바인드 > 파일만 rsync 하면 재시작 없이 반영
+      - ./html:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./security-headers.inc:/etc/nginx/conf.d/security-headers.inc:ro
+    networks:
+      - traefik-network
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.passql-site.entrypoints: web
+      traefik.http.routers.passql-site.rule: Host(`passql.suhsaechan.kr`) || Host(`www.passql.suhsaechan.kr`)
+      traefik.http.routers.passql-site.service: passql-site
+      traefik.http.services.passql-site.loadbalancer.server.port: "80"
+
+networks:
+  traefik-network:
+    external: true
