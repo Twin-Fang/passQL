@@ -23,12 +23,12 @@ List<CreditHistoryEntry> buildCreditHistoryEntries(
     ),
     if (day.dailySetCompletionCredits > 0)
       CreditHistoryEntry(
-        label: '오늘의 세트 완료',
+        label: '세트 완료',
         amount: day.dailySetCompletionCredits,
       ),
     if (day.dailySetAccuracyCredits > 0)
       CreditHistoryEntry(
-        label: '오늘의 세트 정답 80%',
+        label: '세트 정답 80%',
         amount: day.dailySetAccuracyCredits,
       ),
     if (day.adBonusCredits > 0)
