@@ -39,10 +39,7 @@ class ProOfferComparisonTable extends StatelessWidget {
         children: [
           const _HeaderRow(),
           for (var index = 0; index < rows.length; index++)
-            _ComparisonRow(
-              row: rows[index],
-              isLast: index == rows.length - 1,
-            ),
+            _ComparisonRow(row: rows[index], isLast: index == rows.length - 1),
         ],
       ),
     );
@@ -117,10 +114,7 @@ class _ComparisonRow extends StatelessWidget {
     final separator = isLast
         ? null
         : Border(
-            bottom: BorderSide(
-              color: colors.separator,
-              width: _separatorWidth,
-            ),
+            bottom: BorderSide(color: colors.separator, width: _separatorWidth),
           );
     return Semantics(
       label: _semanticLabel,

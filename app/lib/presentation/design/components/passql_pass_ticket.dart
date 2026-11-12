@@ -37,6 +37,8 @@ const double _glowOffsetY = 8;
 const double _benefitIconSize = 22;
 const double _benefitGlyphSize = 13;
 const double _barcodeHeight = 28;
+// 세로로 세운 바코드 길이 (회전 전 폭)
+const double _barcodeLength = 52;
 const double _titleLetterSpacing = 0.6;
 // 정보 칸 라벨 글자 크기: 값(13)보다 한 단계 더 작게 해 값이 먼저 읽히게
 const double _fieldLabelSize = 11;

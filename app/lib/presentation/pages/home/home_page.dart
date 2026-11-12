@@ -19,6 +19,8 @@ import '../../widgets/common/app_toast.dart';
 import '../../widgets/community/community_daily_discussion_card.dart';
 import '../../widgets/home/app_notice_banner.dart';
 import '../../widgets/home/daily_set_section.dart';
+import '../../widgets/home/random_practice_row.dart';
+import '../../flows/random_practice_flow.dart';
 import '../../widgets/home/daily_study_tip_card.dart';
 import '../../widgets/home/exam_dday_bar_title.dart';
 import '../../widgets/home/exam_trend_home_section.dart';
@@ -182,7 +184,7 @@ class _HomeContent extends ConsumerWidget {
         ),
       ),
 
-      // 오늘의 세트: 다른 구간과 같은 제목 줄(순위 ›는 세트가 있을 때만) > 버튼 > 랜덤 풀기 행
+      // 오늘의 세트: 다른 구간과 같은 제목 줄(순위 ›는 세트가 있을 때만) > 버튼
       PassqlSection(
         title: '오늘의 세트',
         trailing: hasDailySet
@@ -194,12 +196,18 @@ class _HomeContent extends ConsumerWidget {
             : null,
         child: DailySetSection(
           dailySet: data.dailySet,
-          isRandomPracticeVisible: ref.watch(isRandomPracticeVisibleProvider),
           onStart: () => context.push(AppRoutes.dailySet),
           onViewResult: () => context.push(AppRoutes.dailySetResult),
           onBrowse: () => context.go(AppRoutes.questions),
         ),
       ),
+
+      // 랜덤 풀기: 오늘의 세트와 다른 풀이라 별도 구간 (결제 켜짐일 때만, #576, #966)
+      if (ref.watch(isRandomPracticeVisibleProvider))
+        const PassqlSection(
+          title: RandomPracticeFlow.displayName,
+          child: RandomPracticeRow(),
+        ),
 
       // 모의고사 (#866): 오늘 할 일 다음, 풀이 중이면 이어 풀기
       const PassqlSection(

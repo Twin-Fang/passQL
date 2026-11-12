@@ -195,7 +195,7 @@ class _ProInfoSheetBodyState extends ConsumerState<_ProInfoSheetBody> {
                 ? 'SQLD'
                 : '${schedule.certType} ${schedule.round}회',
             fields: [
-              PassqlPassTicketField('승객', nickname),
+              PassqlPassTicketField('수험생', nickname),
               if (daysLeft != null) PassqlPassTicketField('남은 날', '$daysLeft일'),
               if (examDate != null)
                 PassqlPassTicketField(

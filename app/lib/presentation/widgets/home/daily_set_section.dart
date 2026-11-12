@@ -1,9 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import '../../../data/models/daily_set/daily_set_models.dart';
 import '../../design/design.dart';
-import 'random_practice_row.dart';
 
-/// 홈 첫 구간 안 오늘의 세트: (완료 결과) > 버튼 > 랜덤 풀기 행. 제목·순위 링크는 홈의 구간 제목 줄
+/// 홈 첫 구간 안 오늘의 세트: (완료 결과) > 버튼. 제목·순위 링크는 홈의 구간 제목 줄, 랜덤 풀기는 홈의 별도 구간 (#966)
 ///
 /// 상태는 세 가지다: 풀 수 있음 / 이미 완료 / 준비 중(불러오지 못한 경우 포함).
 /// 구간 면은 홈 화면이 감싼다 (이 위젯은 내용만).
@@ -11,7 +10,6 @@ class DailySetSection extends StatelessWidget {
   const DailySetSection({
     super.key,
     required this.dailySet,
-    required this.isRandomPracticeVisible,
     required this.onStart,
     required this.onViewResult,
     required this.onBrowse,
@@ -19,9 +17,6 @@ class DailySetSection extends StatelessWidget {
 
   /// null 이면 불러오지 못한 것으로 보고 준비 중으로 표시한다.
   final DailySetTodayResponse? dailySet;
-
-  /// 랜덤 풀기 행 표시 (결제 켜짐일 때만, #576)
-  final bool isRandomPracticeVisible;
 
   /// 풀이 시작.
   final VoidCallback onStart;
@@ -47,17 +42,36 @@ class DailySetSection extends StatelessWidget {
       children: [
         // 버튼이 구간의 주인공 (#701). 다 푼 날만 결과를 버튼 위에
         if (completed) ...[
-          Wrap(
-            spacing: PassqlSpacing.xs,
-            runSpacing: PassqlSpacing.xxs,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              PassqlBadge(text: '완료', kind: PassqlBadgeKind.success),
-              PassqlKeepAllText(
-                '오늘의 세트 ${data?.correctCount ?? 0} / $total 정답',
-                style: PassqlTypography.headline.copyWith(color: colors.label),
-              ),
-            ],
+          // 큰 점수 + 오른쪽 완료 배지
+          Semantics(
+            label: '오늘의 세트 완료, $total문제 중 ${data?.correctCount ?? 0}개 정답',
+            excludeSemantics: true,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '${data?.correctCount ?? 0}',
+                          style: PassqlTypography.title1.copyWith(
+                            color: colors.label,
+                          ),
+                        ),
+                        TextSpan(
+                          text: ' / $total 정답',
+                          style: PassqlTypography.subheadlineSemibold.copyWith(
+                            color: colors.secondaryLabel,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const PassqlBadge(text: '완료', kind: PassqlBadgeKind.success),
+              ],
+            ),
           ),
           if (results != null && results.isNotEmpty) ...[
             const SizedBox(height: PassqlSpacing.sm),
@@ -86,10 +100,6 @@ class DailySetSection extends StatelessWidget {
               ? onStart
               : onBrowse,
         ),
-        if (isRandomPracticeVisible) ...[
-          const SizedBox(height: PassqlSpacing.xs),
-          const RandomPracticeRow(),
-        ],
       ],
     );
   }

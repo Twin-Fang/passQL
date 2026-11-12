@@ -75,7 +75,9 @@ class ProPassOptionTile extends StatelessWidget {
                 child: Text(
                   label,
                   style: PassqlTypography.subheadlineSemibold.copyWith(
-                    color: isSelected ? colors.accentText : colors.secondaryLabel,
+                    color: isSelected
+                        ? colors.accentText
+                        : colors.secondaryLabel,
                   ),
                 ),
               ),
@@ -133,8 +135,8 @@ class ProPassOptionTile extends StatelessWidget {
     final discountPercent = this.discountPercent;
     final footnote = PassqlTypography.footnote;
     return SizedBox(
-      height: (footnote.fontSize ?? 0) * (footnote.height ?? 1) +
-          PassqlSpacing.xxs,
+      height:
+          (footnote.fontSize ?? 0) * (footnote.height ?? 1) + PassqlSpacing.xxs,
       child: FittedBox(
         fit: BoxFit.scaleDown,
         alignment: Alignment.centerLeft,

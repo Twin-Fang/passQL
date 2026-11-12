@@ -117,7 +117,10 @@ class ConceptTopicsLockedSample extends StatelessWidget {
   Widget build(BuildContext context) {
     return const _SampleCard(
       children: [
-        _SampleSection(title: '3. DDL / DML / TCL', body: '개념 7개 · 데이터 타입, 제약조건, MERGE'),
+        _SampleSection(
+          title: '3. DDL / DML / TCL',
+          body: '개념 7개 · 데이터 타입, 제약조건, MERGE',
+        ),
         _SampleSection(title: '4. SQL 함수', body: '개념 6개 · 문자, 숫자, 날짜, NULL 함수'),
         _SampleSection(title: '5. 조인', body: '개념 6개 · INNER, OUTER, SELF 조인'),
       ],

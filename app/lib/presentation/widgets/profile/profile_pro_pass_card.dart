@@ -62,7 +62,7 @@ class _ProfileProPassCardState extends ConsumerState<ProfileProPassCard> {
           ? 'SQLD'
           : '${schedule.certType} ${schedule.round}회',
       fields: [
-        PassqlPassTicketField('승객', widget.nickname),
+        PassqlPassTicketField('수험생', widget.nickname),
         if (expiresAt != null)
           PassqlPassTicketField('만료일', formatDottedDate(expiresAt)),
         if (passName != null) PassqlPassTicketField('이용권', passName),
