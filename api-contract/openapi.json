@@ -596,6 +596,10 @@
       },
       "ChoiceExplanationResponse" : {
         "properties" : {
+          "basicExplanation" : {
+            "description" : "무료 기본 해설: 정답 보기에 저장된 근거 (FULL_EXPLANATION 잠긴 응답만)",
+            "type" : [ "string", "null" ]
+          },
           "choiceSetUuid" : {
             "description" : "해설 대상 선택지 세트",
             "format" : "uuid",
@@ -604,6 +608,13 @@
           "explanation" : {
             "oneOf" : [ {
               "$ref" : "#/components/schemas/ChoiceExplanation"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "lockedExplanationOutline" : {
+            "oneOf" : [ {
+              "$ref" : "#/components/schemas/ExplanationOutline"
             }, {
               "type" : "null"
             } ]
@@ -639,7 +650,7 @@
             "type" : [ "string", "null" ]
           }
         },
-        "required" : [ "choiceSetUuid", "explanation", "lockedSections", "promptVersion", "retryAfterMilliseconds", "selectedChoiceKey", "status", "text" ],
+        "required" : [ "basicExplanation", "choiceSetUuid", "explanation", "lockedExplanationOutline", "lockedSections", "promptVersion", "retryAfterMilliseconds", "selectedChoiceKey", "status", "text" ],
         "type" : "object"
       },
       "ChoiceGenerationModeUpdateRequest" : {
@@ -1622,6 +1633,43 @@
           }
         },
         "required" : [ "questionUuid" ],
+        "type" : "object"
+      },
+      "ExplanationOutline" : {
+        "properties" : {
+          "choiceCount" : {
+            "description" : "보기 개수",
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "sections" : {
+            "description" : "섹션 목록 (화면 배치 순서)",
+            "items" : {
+              "$ref" : "#/components/schemas/ExplanationOutlineSection"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "choiceCount", "sections" ],
+        "type" : "object"
+      },
+      "ExplanationOutlineSection" : {
+        "properties" : {
+          "itemCharacterCounts" : {
+            "description" : "항목별 대략 글자 수 (10자 단위 올림, 항목 수 = 목록 길이)",
+            "items" : {
+              "format" : "int32",
+              "type" : "integer"
+            },
+            "type" : "array"
+          },
+          "kind" : {
+            "description" : "섹션 종류",
+            "enum" : [ "CORRECT_REASON", "EXAM_TIP", "KEY_CONCEPTS", "CONFUSING_POINTS", "CHOICE_ANALYSES" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "itemCharacterCounts", "kind" ],
         "type" : "object"
       },
       "FeedbackSubmitRequest" : {
@@ -3354,6 +3402,10 @@
       },
       "SubmitResult" : {
         "properties" : {
+          "basicExplanation" : {
+            "description" : "무료 기본 해설: 정답 보기에 저장된 근거 (FULL_EXPLANATION 잠긴 응답만)",
+            "type" : [ "string", "null" ]
+          },
           "correctKey" : {
             "type" : [ "string", "null" ]
           },
@@ -3372,6 +3424,13 @@
           },
           "isCorrect" : {
             "type" : "boolean"
+          },
+          "lockedExplanationOutline" : {
+            "oneOf" : [ {
+              "$ref" : "#/components/schemas/ExplanationOutline"
+            }, {
+              "type" : "null"
+            } ]
           },
           "lockedSections" : {
             "description" : "무료 회원 응답에서 뺀 묶음 이름 (EXECUTION_RESULT, FULL_EXPLANATION), 없으면 빈 목록",
@@ -3405,7 +3464,7 @@
             "type" : [ "string", "null" ]
           }
         },
-        "required" : [ "correctKey", "correctResult", "correctSql", "explanation", "isCorrect", "lockedSections", "rationale", "selectedResult", "selectedSql", "structuredExplanation", "submissionUuid" ],
+        "required" : [ "basicExplanation", "correctKey", "correctResult", "correctSql", "explanation", "isCorrect", "lockedExplanationOutline", "lockedSections", "rationale", "selectedResult", "selectedSql", "structuredExplanation", "submissionUuid" ],
         "type" : "object"
       },
       "SubtopicItem" : {

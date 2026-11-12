@@ -10,7 +10,7 @@ import 'ai_explanation_sections.dart';
 import 'ai_explanation_verdict.dart';
 
 /// 전체 해설 본문 (패널·단건 결과 공통): 상태별 기다림 > 구조화 섹션 / 마크다운 > 실패 안내·재시도·폴백
-/// 무료(결제 켜짐, FULL_EXPLANATION 잠김): 판정 한 줄 + 블러 (판정이 비어 오거나 실패하고 폴백도 없으면 제출 결과로 조립한 판정, #867)
+/// 무료(결제 켜짐, FULL_EXPLANATION 잠김): 판정 한 줄 > 기본 해설 > 흐린 상세 해설 (판정이 비어 오거나 실패하고 폴백도 없으면 제출 결과로 조립한 판정, #867·#999)
 class AiExplanationContent extends ConsumerWidget {
   const AiExplanationContent({super.key, required this.entry});
 
@@ -28,11 +28,21 @@ class AiExplanationContent extends ConsumerWidget {
     final fallbackText = explanationState.hasMarkdownText
         ? explanationState.markdownText
         : entry.rationale;
+    // 무료 몫: 조회 응답 > 제출 응답 (정답이면 고른 보기 근거가 곧 정답 근거)
+    final basicExplanation =
+        explanationState.basicExplanation ??
+        entry.request.initialBasicExplanation ??
+        (entry.isCorrect ? entry.rationale : null);
+    final explanationOutline =
+        explanationState.explanationOutline ??
+        entry.request.initialExplanationOutline;
     final verdictOnlySections = AiExplanationSections(
       key: const ValueKey('verdictOnly'),
       explanation: verdictOnlyExplanationOf(entry),
       entry: entry,
       isFullExplanationLocked: true,
+      basicExplanation: basicExplanation,
+      explanationOutline: explanationOutline,
     );
     final Widget body = switch (explanationState.phase) {
       ChoiceExplanationPhase.loading => _LoadingBody(
@@ -47,6 +57,8 @@ class AiExplanationContent extends ConsumerWidget {
           explanation: structuredExplanation,
           entry: entry,
           isFullExplanationLocked: isFullExplanationLocked,
+          basicExplanation: basicExplanation,
+          explanationOutline: explanationOutline,
         ),
       // 판정까지 비어 온 무료 응답: 제출 결과로 조립한 판정 + 블러
       ChoiceExplanationPhase.ready when isFullExplanationLocked =>

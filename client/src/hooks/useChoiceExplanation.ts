@@ -14,6 +14,8 @@ export interface ChoiceExplanationTarget {
   readonly initialExplanation: ChoiceExplanation | null;
   // 제출 응답의 잠긴 묶음 (initialExplanation 과 함께 즉시 표시)
   readonly initialLockedSections: readonly string[];
+  // 제출 응답의 무료 기본 해설 (잠긴 응답만, #999)
+  readonly initialBasicExplanation: string | null;
   // 실패·구조화 없음일 때 마크다운 폴백
   readonly fallbackText: string | null;
 }
@@ -32,6 +34,8 @@ export interface ChoiceExplanationView {
   readonly markdownText: string | null;
   // 무료 응답에서 서버가 뺀 묶음 (FULL_EXPLANATION), 없으면 빈 목록
   readonly lockedSections: readonly string[];
+  // 무료 기본 해설: 조회 응답 > 제출 응답 (잠긴 응답만, 그 외 null)
+  readonly basicExplanation: string | null;
   readonly retry: () => void;
 }
 
@@ -51,6 +55,8 @@ function toReadyResponse(target: ChoiceExplanationTarget, explanation: ChoiceExp
     promptVersion: null,
     retryAfterMilliseconds: null,
     lockedSections: [...target.initialLockedSections],
+    basicExplanation: target.initialBasicExplanation,
+    lockedExplanationOutline: null,
   };
 }
 
@@ -101,7 +107,8 @@ export function useChoiceExplanation(target: ChoiceExplanationTarget): ChoiceExp
   // 같은 GENERATING 응답은 data 참조가 그대로라 dataUpdatedAt 을 읽어 응답마다 다시 렌더되게 구독
   const hasReceivedResponse = query.dataUpdatedAt > 0;
   const receivedResponseCount = hasReceivedResponse ? (queryClient.getQueryState(queryKey)?.dataUpdateCount ?? 0) : 0;
-  return toExplanationView(query.data, query.isError, receivedResponseCount, target.fallbackText, retry);
+  const view = toExplanationView(query.data, query.isError, receivedResponseCount, target.fallbackText, retry);
+  return { ...view, basicExplanation: query.data?.basicExplanation ?? target.initialBasicExplanation };
 }
 
 /** 조회 응답 + 오류 여부 + 받은 응답 수 > 화면 상태 */
@@ -111,8 +118,8 @@ function toExplanationView(
   receivedResponseCount: number,
   fallbackText: string | null,
   retry: () => void,
-): ChoiceExplanationView {
-  const failed = (markdownText: string | null): ChoiceExplanationView => ({
+): Omit<ChoiceExplanationView, "basicExplanation"> {
+  const failed = (markdownText: string | null): Omit<ChoiceExplanationView, "basicExplanation"> => ({
     phase: "failed",
     explanation: null,
     markdownText: markdownText || fallbackText,
