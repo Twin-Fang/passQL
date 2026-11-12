@@ -4,17 +4,18 @@ import '../../design/design.dart';
 
 /// 잠금 자리별 가운데 한 줄 (스펙 4-1, 화면은 이 상수만 씀)
 abstract final class LockedPreviewCaptions {
-  static const String explanation = '보기별 해설 · 함정 · 시험 팁';
-  static const String executionResult = '보기 SQL을 직접 실행해 결과 비교';
-  static const String practiceModes = '토픽 골라 풀기 · 새 보기로 풀기 · 약점 추천';
-  static const String examTrend = '최근 기출 토픽 비중 · 이번 회차 예상';
-  static const String freshChoices = '풀 때마다 AI가 만드는 새 보기';
-  static const String conceptTopics = '3단원부터 모든 개념과 확인 문제';
-  static const String aiAnalysis = 'AI 약점 분석 · 다음 공부 추천';
-  static const String mockExamDetail = '과목별 점수 · 토픽별 약점 · 다음에 할 일';
-  static const String mockExamReview = '문항별 정답과 보기 해설';
-  static const String mockExamTrend = '회차별 점수 추이';
-  static const String accuracyDetail = '어느 난이도에서 틀리는지, 오답이 줄고 있는지';
+  static const String explanation = '보기마다 왜 맞고 틀린지 알려 드려요';
+  static const String executionResult = '보기 SQL을 직접 실행해 결과를 비교해요';
+  static const String practiceModes = '토픽을 골라 풀고 약점 추천도 받아요';
+  static const String examTrend = '최근 기출 비중과 이번 회차 예상을 봐요';
+  static const String freshChoices = '풀 때마다 AI가 새 보기를 만들어요';
+  static const String conceptTopics = '3단원부터 모든 개념과 확인 문제를 봐요';
+  static const String aiAnalysis = 'AI가 약점을 짚고 다음 공부를 추천해요';
+  static const String mockExamDetail = '과목별 점수와 약점, 다음에 할 일을 봐요';
+  static const String mockExamReview = '문항별 정답과 보기 해설을 봐요';
+  static const String mockExamTrend = '회차별 점수 변화를 봐요';
+  static const String topicAccuracy = '영역별 정답률로 약한 영역을 찾아요';
+  static const String accuracyDetail = '어느 난이도에서 틀리는지, 오답이 줄고 있는지 봐요';
 }
 
 // 가짜 미리보기: 서버의 잠긴 내용이 아니라 모양만 그럴듯한 고정 예시 (통신을 가로채도 얻을 것이 없게)
@@ -116,7 +117,10 @@ class ConceptTopicsLockedSample extends StatelessWidget {
   Widget build(BuildContext context) {
     return const _SampleCard(
       children: [
-        _SampleSection(title: '3. DDL / DML / TCL', body: '개념 7개 · 데이터 타입, 제약조건, MERGE'),
+        _SampleSection(
+          title: '3. DDL / DML / TCL',
+          body: '개념 7개 · 데이터 타입, 제약조건, MERGE',
+        ),
         _SampleSection(title: '4. SQL 함수', body: '개념 6개 · 문자, 숫자, 날짜, NULL 함수'),
         _SampleSection(title: '5. 조인', body: '개념 6개 · INNER, OUTER, SELF 조인'),
       ],

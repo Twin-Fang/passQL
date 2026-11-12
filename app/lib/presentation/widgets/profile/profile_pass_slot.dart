@@ -96,7 +96,7 @@ class _FreePass extends ConsumerWidget {
           PassqlPassTicketField('남은 날', examDdayLabel(exam.days)),
         ] else
           const PassqlPassTicketField('시험 일정', '준비 중'),
-        PassqlPassTicketField('승객', nickname),
+        PassqlPassTicketField('수험생', nickname),
       ],
       benefitIcons: _benefitIconsOf(context, baseLimit),
       stubLabel: 'PRO로\n업그레이드',
@@ -245,7 +245,7 @@ class _ProPassState extends ConsumerState<_ProPass> {
       destination: exam.destination,
       // 이용권 정보 시트와 같은 칸 순서 (만료일은 시트·접힌 줄·스크린리더가 알려 준다)
       fields: [
-        PassqlPassTicketField('승객', widget.nickname),
+        PassqlPassTicketField('수험생', widget.nickname),
         if (daysLeft != null) PassqlPassTicketField('남은 날', '$daysLeft일'),
         if (examDate != null) PassqlPassTicketField('시험일', examDate),
       ],

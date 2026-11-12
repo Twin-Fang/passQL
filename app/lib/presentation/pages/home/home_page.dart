@@ -19,6 +19,8 @@ import '../../widgets/common/app_toast.dart';
 import '../../widgets/community/community_daily_discussion_card.dart';
 import '../../widgets/home/app_notice_banner.dart';
 import '../../widgets/home/daily_set_section.dart';
+import '../../widgets/home/random_practice_row.dart';
+import '../../flows/random_practice_flow.dart';
 import '../../widgets/home/daily_study_tip_card.dart';
 import '../../widgets/home/exam_dday_bar_title.dart';
 import '../../widgets/home/exam_trend_home_section.dart';
@@ -58,7 +60,6 @@ class HomePage extends ConsumerWidget {
           ],
         ),
         data: (data) => _HomeShell(
-          leading: ExamDdayBarTitle(schedule: data.examSchedule),
           onRefresh: () async {
             // 공지 배너(안 읽은 중요 공지)도 함께 갱신
             ref.invalidate(
@@ -80,25 +81,21 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-/// 로딩·오류·내용 공통 틀: 상단 바(왼쪽 로고 또는 시험 D-day) + 오른쪽 등급 칩·종 아이콘
+/// 로딩·오류·내용 공통 틀: 상단 바(왼쪽 로고) + 오른쪽 남은 문제 알약(무료)·PRO 칩·종 아이콘 (#966)
 class _HomeShell extends ConsumerWidget {
   final Future<void> Function()? onRefresh;
   final List<Widget> slivers;
 
-  /// 내용 상태의 시험 D-day 제목 (로딩·오류는 null > 로고)
-  final Widget? leading;
-
-  const _HomeShell({this.onRefresh, required this.slivers, this.leading});
+  const _HomeShell({this.onRefresh, required this.slivers});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PassqlBrandBarScrollView(
       onRefresh: onRefresh,
-      leading: leading,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 결제 꺼짐·등급 모름이면 빈 자리 (종 아이콘만)
+          // 무료 = 오늘 남은 문제 알약, 프로 = PRO 칩, 결제 꺼짐·등급 모름이면 빈 자리 (종 아이콘만)
           const ProPlanChipSlot(),
           PassqlNotificationBellButton(
             unreadCount: ref.watch(
@@ -162,6 +159,9 @@ class _HomeContent extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // 시험 D-day 한 줄 (상단 바에서 본문 첫 줄로, #966)
+            ExamDdayBarTitle(schedule: data.examSchedule),
+            const SizedBox(height: PassqlSpacing.sm),
             // 인사 + 본문 + 시험 상황 배지 (상단 바 아래 화면 제목 자리)
             if (greeting != null) GreetingSection(greeting: greeting),
             // 관리자 공지 (안 읽은 중요 공지 첫 건, 닫기 = 서버 읽음)
@@ -182,7 +182,7 @@ class _HomeContent extends ConsumerWidget {
         ),
       ),
 
-      // 오늘의 세트: 다른 구간과 같은 제목 줄(순위 ›는 세트가 있을 때만) > 버튼 > 랜덤 풀기 행
+      // 오늘의 세트: 다른 구간과 같은 제목 줄(순위 ›는 세트가 있을 때만) > 버튼
       PassqlSection(
         title: '오늘의 세트',
         trailing: hasDailySet
@@ -194,12 +194,18 @@ class _HomeContent extends ConsumerWidget {
             : null,
         child: DailySetSection(
           dailySet: data.dailySet,
-          isRandomPracticeVisible: ref.watch(isRandomPracticeVisibleProvider),
           onStart: () => context.push(AppRoutes.dailySet),
           onViewResult: () => context.push(AppRoutes.dailySetResult),
           onBrowse: () => context.go(AppRoutes.questions),
         ),
       ),
+
+      // 랜덤 풀기: 오늘의 세트와 다른 풀이라 별도 구간 (결제 켜짐일 때만, #576, #966)
+      if (ref.watch(isRandomPracticeVisibleProvider))
+        const PassqlSection(
+          title: RandomPracticeFlow.displayName,
+          child: RandomPracticeRow(),
+        ),
 
       // 모의고사 (#866): 오늘 할 일 다음, 풀이 중이면 이어 풀기
       const PassqlSection(

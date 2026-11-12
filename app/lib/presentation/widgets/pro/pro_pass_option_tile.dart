@@ -3,8 +3,8 @@ import 'package:flutter/cupertino.dart';
 import '../../design/design.dart';
 import 'pro_discount_badge.dart';
 
-/// 이용권 1칸 (결제 시트에서 하나 고름, #749): 라디오 > 기간 + 작은 할인 배지 + 만료일 > 가격 (#963)
-/// 선택 칸 = 강조 테두리 + 옅은 강조 배경 (선택지 카드와 같은 규칙)
+/// 이용권 카드 1장 (결제 시트에서 하나 고름, #749, #966): 기간 + 선택 표시 > 큰 가격 > 줄 그은 정가 + 할인율 > 만료일
+/// 선택 카드 = 강조 테두리 + 옅은 강조 배경 (선택지 카드와 같은 규칙)
 /// 스크린리더는 이름·가격·할인·만료일을 한 번에 읽음
 class ProPassOptionTile extends StatelessWidget {
   const ProPassOptionTile({
@@ -13,6 +13,7 @@ class ProPassOptionTile extends StatelessWidget {
     required this.displayPrice,
     required this.isSelected,
     required this.onTap,
+    this.originalPriceLabel,
     this.discountPercent,
     this.expiryLabel,
   });
@@ -25,13 +26,16 @@ class ProPassOptionTile extends StatelessWidget {
   final bool isSelected;
   final VoidCallback? onTap;
 
+  /// 할인 전 값 (예: ₩13,200, 줄 그어 보임. 할인 없음·원화 아님 > null)
+  final String? originalPriceLabel;
+
   /// 할인율(예: 25, null 이면 배지 없음)
   final int? discountPercent;
 
   /// 예: 2027.01.26까지
   final String? expiryLabel;
 
-  // 선택 칸 테두리 두께 (선택 1.5 · 기본 1, 선택지 카드와 같은 규격)
+  // 선택 카드 테두리 두께 (선택 1.5 · 기본 1, 선택지 카드와 같은 규격)
   static const double _selectedBorderWidth = 1.5;
   static const double _idleBorderWidth = 1;
 
@@ -46,7 +50,6 @@ class ProPassOptionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final displayPrice = this.displayPrice;
-    final discountPercent = this.discountPercent;
     final expiryLabel = this.expiryLabel;
     final tile = AnimatedContainer(
       duration: PassqlMotion.durationOf(context, PassqlMotion.fast),
@@ -62,51 +65,56 @@ class ProPassOptionTile extends StatelessWidget {
           width: isSelected ? _selectedBorderWidth : _idleBorderWidth,
         ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 라디오 (선택 = 채운 원, 기본 = 빈 원)
-          Icon(
-            isSelected
-                ? CupertinoIcons.largecircle_fill_circle
-                : CupertinoIcons.circle,
-            size: PassqlIconSize.xl,
-            color: isSelected ? colors.accent : colors.iconSecondary,
-          ),
-          const SizedBox(width: PassqlSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 기간 옆 작은 할인 배지 (좁은 폭이면 줄바꿈)
-                Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: PassqlSpacing.xs,
-                  children: [
-                    Text(
-                      label,
-                      style: PassqlTypography.headline.copyWith(
-                        color: colors.label,
-                      ),
-                    ),
-                    if (discountPercent != null)
-                      ProDiscountBadge(discountPercent: discountPercent),
-                  ],
-                ),
-                if (expiryLabel != null)
-                  Text(
-                    expiryLabel,
-                    style: PassqlTypography.footnote.copyWith(
-                      color: colors.secondaryLabel,
-                    ),
+          // 기간 + 선택 표시 (선택 = 채운 체크, 기본 = 빈 원)
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: PassqlTypography.subheadlineSemibold.copyWith(
+                    color: isSelected
+                        ? colors.accentText
+                        : colors.secondaryLabel,
                   ),
-              ],
+                ),
+              ),
+              Icon(
+                isSelected
+                    ? CupertinoIcons.checkmark_circle_fill
+                    : CupertinoIcons.circle,
+                size: PassqlIconSize.xl,
+                color: isSelected ? colors.accent : colors.iconSecondary,
+              ),
+            ],
+          ),
+          const SizedBox(height: PassqlSpacing.hairlineGap),
+          // 가격 (좁은 폭·큰 글자에서는 줄여 한 줄 유지)
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              displayPrice ?? ' ',
+              maxLines: 1,
+              style: PassqlTypography.title2.copyWith(color: colors.label),
             ),
           ),
-          if (displayPrice != null) ...[
-            const SizedBox(width: PassqlSpacing.xs),
-            Text(
-              displayPrice,
-              style: PassqlTypography.title3.copyWith(color: colors.label),
+          const SizedBox(height: PassqlSpacing.hairlineGap),
+          _buildDiscountLine(context),
+          if (expiryLabel != null) ...[
+            const SizedBox(height: PassqlSpacing.xxs),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                expiryLabel,
+                maxLines: 1,
+                style: PassqlTypography.caption.copyWith(
+                  color: colors.secondaryLabel,
+                ),
+              ),
             ),
           ],
         ],
@@ -117,6 +125,44 @@ class ProPassOptionTile extends StatelessWidget {
       isSelected: isSelected,
       onTap: onTap,
       child: PassqlPressable(onTap: onTap, child: tile),
+    );
+  }
+
+  /// 줄 그은 정가 + 할인율 배지 (할인 없는 카드도 같은 높이를 차지해 두 카드 줄이 맞음)
+  Widget _buildDiscountLine(BuildContext context) {
+    final colors = context.passqlColors;
+    final originalPriceLabel = this.originalPriceLabel;
+    final discountPercent = this.discountPercent;
+    final footnote = PassqlTypography.footnote;
+    return SizedBox(
+      height:
+          (footnote.fontSize ?? 0) * (footnote.height ?? 1) + PassqlSpacing.xxs,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (originalPriceLabel != null) ...[
+              Text(
+                originalPriceLabel,
+                maxLines: 1,
+                style: footnote.copyWith(
+                  color: colors.secondaryLabel,
+                  decoration: TextDecoration.lineThrough,
+                  decorationColor: colors.secondaryLabel,
+                ),
+              ),
+              const SizedBox(width: PassqlSpacing.xs),
+            ],
+            if (discountPercent != null)
+              ProDiscountBadge(
+                discountPercent: discountPercent,
+                isOnTint: isSelected,
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

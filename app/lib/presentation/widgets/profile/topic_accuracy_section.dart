@@ -7,14 +7,13 @@ import '../../../data/models/progress/topic_stat.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/topic_providers.dart';
-import '../pro/pro_offer_sheet.dart';
+import '../pro/locked_preview_samples.dart';
+import '../pro/pro_locked_section.dart';
 import 'topic_accuracy_radar.dart';
 import 'topic_accuracy_rows.dart';
 
 // 처음 보이는 줄 수 (나머지는 "전체 N개 영역 보기"로 펼침)
 const int _collapsedRowCount = 4;
-// 통계(약점 분석) 혜택의 proBenefits 순서 > 잠금 줄에서 시트를 열 때 그 혜택을 강조
-const int _statsBenefitIndex = 5;
 // 잠금 자리표시 막대 크기 (값 대신 회색 막대, 화면에서 블러 금지 규칙)
 const double _placeholderValueWidth = 36;
 const double _placeholderHeight = 10;
@@ -203,110 +202,41 @@ class _TopicAccuracyRowTile extends StatelessWidget {
   }
 }
 
-/// 잠금(무료·결제 켜짐): 토픽 이름·타일만 진짜 값, 값 자리는 회색 막대, 행·아래 한 줄 어디를 눌러도 > 이용권 시트
-class _LockedTopicAccuracy extends ConsumerWidget {
+/// 잠금(무료·결제 켜짐): 다른 잠금 자리와 같은 모양 (흐린 미리보기 + 한 줄 + PRO로 보기, #966)
+/// 미리보기는 토픽 이름·타일만 진짜 값, 값 자리는 회색 막대
+class _LockedTopicAccuracy extends StatelessWidget {
   const _LockedTopicAccuracy({required this.topics});
 
   final List<TopicTree> topics;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colors = context.passqlColors;
+  Widget build(BuildContext context) {
     final previewTopics =
         ([...topics]
               ..sort((a, b) => (a.sortOrder ?? 0).compareTo(b.sortOrder ?? 0)))
             .take(_collapsedRowCount)
             .toList();
-    // 통계 혜택을 강조해 연 이용권 시트 (잠긴 행·안내 한 줄 공통)
-    void openOfferSheet() => showProOfferSheet(
-      context,
-      ref,
-      focusedBenefitIndex: _statsBenefitIndex,
-    );
     return PassqlSection(
       title: '영역별 정답률',
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            CupertinoIcons.lock_fill,
-            size: PassqlIconSize.xs,
-            color: colors.iconSecondary,
-          ),
-          const SizedBox(width: PassqlSpacing.hairlineGap),
-          Text(
-            'PRO',
-            style: PassqlTypography.footnoteSemibold.copyWith(
-              color: colors.secondaryLabel,
-            ),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // 흐린 숫자는 읽어 봐야 의미가 없어 한 문장으로만 읽힌다 (행을 눌러도 이용권 시트)
-          PassqlPressable(
-            onTap: openOfferSheet,
-            semanticLabel: '영역별 정답률은 PRO에서 볼 수 있어요, 이용권 보기',
-            child: Column(
-              children: [
-                for (final topic in previewTopics)
-                  PassqlListRow(
-                    title: topic.displayName,
-                    hasHorizontalPadding: false,
-                    leading: PassqlIconTile(
-                      icon: topicIconFor(topic.code),
-                      color: topicColorFor(topic.code, context.themeBrightness),
-                    ),
-                    trailing: const PassqlSkeletonBox(
-                      width: _placeholderValueWidth,
-                      height: _placeholderHeight,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: PassqlSpacing.xs),
-          PassqlPressable(
-            onTap: openOfferSheet,
-            semanticLabel: '약한 영역 찾기는 PRO, 이용권 보기',
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: PassqlSpacing.sm,
-                vertical: PassqlSpacing.sm,
+      child: ProLockedSection(
+        caption: LockedPreviewCaptions.topicAccuracy,
+        preview: Column(
+          children: [
+            for (final topic in previewTopics)
+              PassqlListRow(
+                title: topic.displayName,
+                hasHorizontalPadding: false,
+                leading: PassqlIconTile(
+                  icon: topicIconFor(topic.code),
+                  color: topicColorFor(topic.code, context.themeBrightness),
+                ),
+                trailing: const PassqlSkeletonBox(
+                  width: _placeholderValueWidth,
+                  height: _placeholderHeight,
+                ),
               ),
-              decoration: BoxDecoration(
-                color: colors.accentTint,
-                borderRadius: BorderRadius.circular(PassqlRadius.md),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    CupertinoIcons.lock,
-                    size: PassqlIconSize.sm,
-                    color: colors.accentText,
-                  ),
-                  const SizedBox(width: PassqlSpacing.xs),
-                  Expanded(
-                    child: Text(
-                      '약한 영역 찾기는 PRO',
-                      style: PassqlTypography.footnote.copyWith(
-                        color: colors.label,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    '이용권 보기 ›',
-                    style: PassqlTypography.footnoteSemibold.copyWith(
-                      color: colors.accentText,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

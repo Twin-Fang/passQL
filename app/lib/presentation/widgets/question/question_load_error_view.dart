@@ -10,7 +10,7 @@ import '../pro/pro_access_feedback.dart';
 
 /// 문제 상세를 못 받았을 때의 본문: 프로 접근 오류면 사유 화면, 그 외는 일반 오류 + 다시 시도
 /// 사유 3종: 무료 하루 한도(사유 + 내일 0시), 공정 사용 한도(사유 + 내일 0시), 프로 필요(사유)
-/// 결제 UI 대상이면 무료 한도 > 한도 화면(광고·세트·이용권, 풀리면 [onRetry], #963), 프로 필요 > '이용권으로 열기' > 시트로 프로가 되면 [onRetry]
+/// 결제 UI 대상이면 무료 한도 > 한도 화면(광고·세트·이용권, 풀리면 [onRetry], #963), 프로 필요 > 'PRO로 보기' > 시트로 프로가 되면 [onRetry]
 class QuestionLoadErrorView extends ConsumerWidget {
   const QuestionLoadErrorView({
     super.key,
@@ -78,7 +78,7 @@ class QuestionLoadErrorView extends ConsumerWidget {
     );
   }
 
-  /// '이용권으로 열기': 프로 접근 안내 공통 지점 > 시트로 프로가 되면 다시 받기
+  /// 'PRO로 보기': 프로 접근 안내 공통 지점 > 시트로 프로가 되면 다시 받기
   Future<void> _openProOffer(BuildContext context, WidgetRef ref) async {
     final feedbackResult = await showProAccessFeedback(context, ref, error);
     if (feedbackResult == ProAccessFeedbackResult.sheetUnlocked) onRetry();

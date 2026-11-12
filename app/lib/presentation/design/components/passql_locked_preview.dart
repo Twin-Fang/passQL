@@ -25,7 +25,7 @@ class PassqlLockedPreview extends StatelessWidget {
   final VoidCallback onUnlock;
 
   /// 알약 버튼 문구 (모든 잠금 자리 공통)
-  static const String unlockLabel = '이용권으로 열기';
+  static const String unlockLabel = 'PRO로 보기';
 
   // 미리보기 투명도 (흐려도 윤곽이 남게)
   static const double _previewOpacity = 0.7;
