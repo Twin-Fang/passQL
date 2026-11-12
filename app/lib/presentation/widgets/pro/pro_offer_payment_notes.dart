@@ -6,7 +6,7 @@ import '../../design/design.dart';
 const String _footnote = '자동 결제 없음 · 기간이 끝나면 무료로 돌아가요';
 
 /// iOS 결제 수단 안내 (App Store 결제 시트 안내, 다른 결제 경로 언급 금지)
-const String _appleIdPaymentNotice = '구매는 Apple ID 계정으로 결제됩니다.';
+const String _appleIdPaymentNotice = '구매는 Apple ID 계정으로 결제돼요';
 
 /// 프로 안내 시트 아래 안내: iOS 결제 수단 > 복원 한 줄 > 각주
 class ProOfferPaymentNotes extends StatelessWidget {

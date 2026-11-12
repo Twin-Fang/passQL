@@ -168,9 +168,9 @@ class _HomeContent extends ConsumerWidget {
           children: [
             // 인사 + 본문 + 시험 상황 배지 (상단 바 아래 화면 제목 자리)
             if (greeting != null) GreetingSection(greeting: greeting),
-            // 다음에 할 일 한 가지 (홈의 유일한 채운 버튼, #975)
-            if (greeting != null) const SizedBox(height: PassqlSpacing.md),
+            // 다음에 할 일 한 가지 (홈의 유일한 채운 버튼, #975). 위 간격은 카드가 가짐 (숨으면 간격도 없음)
             HomeNextStepCard(
+              hasTopGap: greeting != null,
               dailySetQuestionCount: dailySet?.questions.length ?? 0,
               canSolveDailySet:
                   dailySet != null &&
@@ -225,8 +225,11 @@ class _HomeContent extends ConsumerWidget {
 
       // 모의고사 (#866): 오늘 할 일 다음, 풀이 중이면 이어 풀기
       const PassqlSection(
-        title: 'SQLD 모의고사',
-        child: MockExamEntryRow(hasHorizontalPadding: false),
+        title: MockExamEntryRow.defaultTitle,
+        child: MockExamEntryRow(
+          title: '실제 시험처럼 풀기',
+          hasHorizontalPadding: false,
+        ),
       ),
     ];
 

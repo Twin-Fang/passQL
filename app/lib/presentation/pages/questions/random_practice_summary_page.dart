@@ -8,8 +8,9 @@ import '../../design/design.dart';
 import '../../providers/chapter_providers.dart';
 import '../../widgets/notification/study_result_seen_recorder.dart';
 import '../../widgets/practice/open_random_practice.dart';
+import '../../widgets/result/solved_question_list_section.dart';
 
-/// 랜덤 풀기 그만두기 요약: 맞힌 수 > 틀린 문제 다시 보기 > 계속 풀기·홈으로 (#963)
+/// 랜덤 풀기 그만두기 요약: 맞힌 수 > 이번에 푼 문제(틀린 문제 먼저, 토픽·지문) > 계속 풀기·홈으로 (#963, #980)
 /// 이동 인자 [summary] 로 렌더링 (없으면 결과 없음 화면). 전면 광고 없음
 class RandomPracticeSummaryPage extends ConsumerWidget {
   const RandomPracticeSummaryPage({super.key, this.summary});
@@ -43,21 +44,19 @@ class RandomPracticeSummaryPage extends ConsumerWidget {
       child: PassqlResultScaffold(
         title: _title,
         onClose: () => leaveSolvingFlow(context),
-        header: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            PassqlScoreHeader(score: correctCount, total: solvedCount),
-            const SizedBox(height: PassqlSpacing.md),
-            Text(
-              '$solvedCount문제 중 $correctCount개 맞혔어요',
-              textAlign: TextAlign.center,
-              style: PassqlTypography.title2.copyWith(
-                color: context.passqlColors.label,
-              ),
-            ),
-          ],
-        ),
-        sections: [_WrongQuestionsSection(results: summary.results)],
+        // 맞힌 수·정답률은 점수 고리가 보여 줌 (같은 값 문장 반복 없음)
+        header: PassqlScoreHeader(score: correctCount, total: solvedCount),
+        sections: [
+          SolvedQuestionListSection(
+            solvedQuestions: [
+              for (final result in summary.results)
+                (
+                  questionUuid: result.questionUuid,
+                  isCorrect: result.isCorrect,
+                ),
+            ],
+          ),
+        ],
         actions: [
           PassqlButton(
             label: '홈으로',
@@ -75,40 +74,6 @@ class RandomPracticeSummaryPage extends ConsumerWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// 틀린 문제 다시 보기 목록: 행 탭 > 문제 상세 (모두 맞혔으면 한 줄 안내)
-class _WrongQuestionsSection extends StatelessWidget {
-  const _WrongQuestionsSection({required this.results});
-
-  final List<ChapterResult> results;
-
-  @override
-  Widget build(BuildContext context) {
-    final wrongRows = <Widget>[
-      for (var index = 0; index < results.length; index++)
-        if (!results[index].isCorrect)
-          PassqlListRow(
-            leading: const PassqlResultMark(isCorrect: false),
-            title: '${index + 1}번째 문제',
-            hasChevron: true,
-            onTap: () => context.push(
-              AppRoutes.questionDetail(results[index].questionUuid),
-            ),
-          ),
-    ];
-    return PassqlGroupedSection(
-      header: '틀린 문제 다시 보기',
-      children: wrongRows.isNotEmpty
-          ? wrongRows
-          : const [
-              PassqlListRow(
-                leading: PassqlResultMark(isCorrect: true),
-                title: '틀린 문제가 없어요',
-              ),
-            ],
     );
   }
 }

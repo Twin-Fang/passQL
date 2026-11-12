@@ -123,15 +123,16 @@ class _ResultBody extends ConsumerWidget {
                       AppRoutes.mockExamReview(attemptUuid, questionNumber),
                     ),
             ),
-            const SizedBox(height: PassqlSpacing.sm),
-            Text(
-              examResult.isReviewLocked
-                  ? '번호를 누르면 이용권 안내가 열려요'
-                  : '번호를 누르면 정답과 보기 해설을 볼 수 있어요',
-              style: PassqlTypography.footnote.copyWith(
-                color: colors.secondaryLabel,
+            // 잠금이면 아래 잠금 자리가 같은 안내를 하므로 생략
+            if (!examResult.isReviewLocked) ...[
+              const SizedBox(height: PassqlSpacing.sm),
+              Text(
+                '번호를 누르면 정답과 보기 해설을 볼 수 있어요',
+                style: PassqlTypography.footnote.copyWith(
+                  color: colors.secondaryLabel,
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),

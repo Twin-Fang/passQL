@@ -55,7 +55,8 @@ class TopicListPage extends ConsumerWidget {
           title: '문제',
           trailing: ProPlanChipSlot(),
           slivers: [
-            _RandomPracticeSection(),
+            // 무료로 쓸 수 있는 모의고사 1회도 같은 묶음에 (#980)
+            _RandomPracticeSection(hasMockExamRow: true),
             SliverPadding(
               padding: _sectionPadding,
               sliver: SliverToBoxAdapter(
@@ -252,9 +253,12 @@ class TopicListPage extends ConsumerWidget {
   }
 }
 
-/// 풀기 방식 묶음: 랜덤 풀기 (무료·프로 공통, #576). 결제 꺼짐이면 빈 sliver (진입 없음)
+/// 풀기 방식 묶음: 랜덤 풀기 (무료·프로 공통, #576) + 무료면 모의고사. 결제 꺼짐이면 빈 sliver (진입 없음)
 class _RandomPracticeSection extends ConsumerWidget {
-  const _RandomPracticeSection();
+  const _RandomPracticeSection({this.hasMockExamRow = false});
+
+  /// 모의고사 행을 함께 둘지 (무료는 세그먼트 아래 공통 영역이 없어 여기에)
+  final bool hasMockExamRow;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -277,6 +281,7 @@ class _RandomPracticeSection extends ConsumerWidget {
               hasChevron: true,
               onTap: () => openRandomPractice(context, ref),
             ),
+            if (hasMockExamRow) const MockExamEntryRow(),
           ],
         ),
       ),

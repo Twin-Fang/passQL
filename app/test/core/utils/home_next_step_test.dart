@@ -48,4 +48,16 @@ void main() {
       HomeNextStep.browseQuestions,
     );
   });
+
+  test('크레딧 0 이고 모의고사 무료 1회가 남았으면 모의고사', () {
+    expect(
+      decideHomeNextStep(
+        canSolveDailySet: false,
+        isRandomPracticeVisible: true,
+        remainingCredits: 0,
+        hasMockExamTrial: true,
+      ),
+      HomeNextStep.mockExamTrial,
+    );
+  });
 }

@@ -4,8 +4,9 @@ import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
 import '../../widgets/ads/rewarded_interstitial_on_result.dart';
 import '../../widgets/notification/study_result_seen_recorder.dart';
+import '../../widgets/result/solved_question_list_section.dart';
 
-/// 챕터 완료 결과 화면 — 점수·요약·분석·문항별 결과를 한 화면 스크롤로 보여준다.
+/// 챕터 완료 결과 화면: 점수 고리 > 분석(피드백·시간) > 푼 문제(틀린 문제 먼저)
 ///
 /// 이동 인자 [summary] 로 렌더링 (없으면 결과 없음 화면).
 class ChapterResultPage extends StatelessWidget {
@@ -32,8 +33,6 @@ class ChapterResultPage extends StatelessWidget {
         .where((result) => result.isCorrect)
         .length;
     final total = summary.results.length;
-    final wrongCount = total - correctCount;
-    final totalSec = (summary.totalDurationMs / 1000).round();
 
     // 챕터를 끝까지 푼 진입에만 보상형 전면 광고 제안 (결과 없음 화면은 제외, #963)
     // 결과를 본 기록 > 탭 화면 복귀 때 알림 권한 사전 안내 시점
@@ -48,36 +47,7 @@ class ChapterResultPage extends StatelessWidget {
             caption: summary.topicName,
           ),
           sections: [
-            // 요약 지표 3칸
-            Row(
-              children: [
-                Expanded(
-                  child: _Metric(
-                    value: '$correctCount',
-                    label: '정답',
-                    color: context.passqlColors.correctText,
-                  ),
-                ),
-                const SizedBox(width: PassqlSpacing.sm),
-                Expanded(
-                  child: _Metric(
-                    value: '$wrongCount',
-                    label: '오답',
-                    color: wrongCount > 0
-                        ? context.passqlColors.wrongText
-                        : context.passqlColors.secondaryLabel,
-                  ),
-                ),
-                const SizedBox(width: PassqlSpacing.sm),
-                Expanded(
-                  child: _Metric(
-                    value: '$totalSec초',
-                    label: '소요 시간',
-                    color: context.passqlColors.label,
-                  ),
-                ),
-              ],
-            ),
+            // 정답 수·정답률은 점수 고리가 보여 줌 > 분석은 피드백과 시간만
             PassqlCard(
               title: '분석',
               child: _Analysis(
@@ -86,25 +56,15 @@ class ChapterResultPage extends StatelessWidget {
                 totalDurationMs: summary.totalDurationMs,
               ),
             ),
-            PassqlGroupedSection(
-              header: '문항별 결과',
-              children: [
-                for (var i = 0; i < summary.results.length; i++)
-                  PassqlListRow(
-                    leading: PassqlResultMark(
-                      isCorrect: summary.results[i].isCorrect,
-                      label: '${i + 1}번',
-                    ),
-                    title: summary.results[i].isCorrect ? '정답' : '오답',
-                    trailing: Text(
-                      '${(summary.results[i].durationMs / 1000).toStringAsFixed(1)}초',
-                      style: PassqlTypography.subheadline.copyWith(
-                        color: context.passqlColors.secondaryLabel,
-                        fontFeatures: PassqlTypography.tabular,
-                      ),
-                    ),
+            SolvedQuestionListSection(
+              solvedQuestions: [
+                for (final result in summary.results)
+                  (
+                    questionUuid: result.questionUuid,
+                    isCorrect: result.isCorrect,
                   ),
               ],
+              isTopicShown: false,
             ),
           ],
           actions: [
@@ -119,54 +79,7 @@ class ChapterResultPage extends StatelessWidget {
   }
 }
 
-/// 숫자 + 라벨 지표 카드.
-class _Metric extends StatelessWidget {
-  const _Metric({
-    required this.value,
-    required this.label,
-    required this.color,
-  });
-  final String value;
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    return PassqlCard(
-      padding: const EdgeInsets.symmetric(
-        horizontal: PassqlSpacing.sm,
-        vertical: PassqlSpacing.md,
-      ),
-      child: SizedBox(
-        width: double.infinity,
-        child: Column(
-          children: [
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                value,
-                style: PassqlTypography.title2.copyWith(
-                  color: color,
-                  fontFeatures: PassqlTypography.tabular,
-                ),
-              ),
-            ),
-            const SizedBox(height: PassqlSpacing.xxs),
-            Text(
-              label,
-              style: PassqlTypography.footnote.copyWith(
-                color: colors.secondaryLabel,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// 정확도에 따른 한 줄 피드백과 평균 풀이 시간.
+/// 정확도에 따른 한 줄 피드백과 풀이 시간(전체·문제당 평균).
 class _Analysis extends StatelessWidget {
   const _Analysis({
     required this.total,
@@ -181,6 +94,7 @@ class _Analysis extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final accuracy = total > 0 ? (correctCount / total * 100).round() : 0;
+    final totalSec = (totalDurationMs / 1000).round();
     final avgSec = total > 0
         ? (totalDurationMs / total / 1000).toStringAsFixed(1)
         : '0';
@@ -205,7 +119,7 @@ class _Analysis extends StatelessWidget {
         ),
         const SizedBox(height: PassqlSpacing.xs),
         Text(
-          '문제당 평균 $avgSec초 · 정확도 $accuracy%',
+          '모두 $totalSec초 · 문제당 평균 $avgSec초',
           style: PassqlTypography.footnote.copyWith(
             color: colors.secondaryLabel,
           ),

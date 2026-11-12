@@ -57,7 +57,7 @@ class DailyLimitDailySetCard extends StatelessWidget {
           ),
           const SizedBox(height: PassqlSpacing.md),
           _DailySetBonusRow(
-            label: '세트 5문제 모두 풀기',
+            label: '세트 완료',
             bonusQuestionCount: bonusQuestionCount,
             state: isCompletionEarned
                 ? _BonusRowState.earned
@@ -65,7 +65,7 @@ class DailyLimitDailySetCard extends StatelessWidget {
           ),
           const SizedBox(height: PassqlSpacing.sm),
           _DailySetBonusRow(
-            label: '세트 4문제 이상 맞히기',
+            label: '세트 정답 80%',
             bonusQuestionCount: bonusQuestionCount,
             // 세트를 끝냈는데 못 받았으면 오늘은 더 받을 수 없음
             state: isAccuracyEarned
