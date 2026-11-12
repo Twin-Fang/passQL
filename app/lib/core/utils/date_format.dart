@@ -12,6 +12,20 @@ String formatSlashMonthDayTime(DateTime time) {
       '${twoDigits(time.hour)}:${twoDigits(time.minute)}';
 }
 
+/// 두 시각이 같은 달력 날짜인가
+bool isSameCalendarDay(DateTime first, DateTime second) =>
+    first.year == second.year &&
+    first.month == second.month &&
+    first.day == second.day;
+
+/// 날짜 > "오늘 / 어제 / 11월 10일" (날짜별 묶음 머리글, [today] 기준, #974)
+String formatRecentDayTitle(DateTime day, {required DateTime today}) {
+  if (isSameCalendarDay(day, today)) return '오늘';
+  final yesterday = DateTime(today.year, today.month, today.day - 1);
+  if (isSameCalendarDay(day, yesterday)) return '어제';
+  return '${day.month}월 ${day.day}일';
+}
+
 /// 날짜 > "2026.10.18" (공지 게시일 등 날짜만 보이는 자리)
 String formatDottedDate(DateTime time) {
   final month = time.month.toString().padLeft(2, '0');
