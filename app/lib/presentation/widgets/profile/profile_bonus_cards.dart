@@ -54,7 +54,7 @@ class ProfileBonusCards extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          '문제 더 받기',
+          '크레딧 더 받기',
           style: PassqlTypography.footnoteSemibold.copyWith(
             color: context.passqlColors.secondaryLabel,
           ),
@@ -130,7 +130,7 @@ class _BonusCard extends StatelessWidget {
         ? '받았어요'
         : captionWhenAvailable;
     return Semantics(
-      label: '$label, $valueText문제, $caption',
+      label: '$label, 크레딧 $valueText, $caption',
       excludeSemantics: true,
       child: Container(
         padding: const EdgeInsets.symmetric(

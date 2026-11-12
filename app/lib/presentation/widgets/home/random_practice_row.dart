@@ -9,7 +9,7 @@ import '../practice/open_random_practice.dart';
 // 행 제목 (구간 제목이 `랜덤 풀기` 라 행은 풀이 방식을 말함)
 const String _rowTitle = '한 문제씩 이어서 풀기';
 // 한도 소진 부제 (광고·오늘의 세트로 더 열 수 있음)
-const String _limitReachedSubtitle = '광고나 오늘의 세트로 더 열 수 있어요';
+const String _limitReachedSubtitle = '광고나 오늘의 세트로 크레딧을 받을 수 있어요';
 
 /// 홈 랜덤 풀기 구간의 행: 탭 > 랜덤 풀기 풀이 (오늘 남은 문제 수는 상단 바 알약이 보여 줌, #966)
 /// 한도 소진: 부제 > 더 여는 방법, 화살표 없음, 탭 > 안내 시트 (openRandomPractice)

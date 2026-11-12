@@ -26,7 +26,7 @@ class ProfileTodayFreeUsage extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                '오늘 남은 문제',
+                '오늘 크레딧',
                 style: PassqlTypography.headline.copyWith(color: colors.label),
               ),
             ),
@@ -40,25 +40,33 @@ class ProfileTodayFreeUsage extends StatelessWidget {
         ),
         const SizedBox(height: PassqlSpacing.xxs),
         Semantics(
-          label: '오늘 남은 문제 $remaining개, 오늘 $limit문제 중',
+          label: '오늘 크레딧 $remaining개 남음, 오늘 $limit개 중',
           excludeSemantics: true,
-          child: Text.rich(
-            TextSpan(
-              children: [
+          // 크레딧 아이콘 + 큰 숫자 + 오늘 한도
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const PassqlCreditIcon(size: PassqlIconSize.xxl),
+              const SizedBox(width: PassqlSpacing.xs),
+              Text.rich(
                 TextSpan(
-                  text: '$remaining',
-                  style: PassqlTypography.largeTitle.copyWith(
-                    color: colors.accentText,
-                  ),
+                  children: [
+                    TextSpan(
+                      text: '$remaining',
+                      style: PassqlTypography.largeTitle.copyWith(
+                        color: colors.accentText,
+                      ),
+                    ),
+                    TextSpan(
+                      text: ' / $limit',
+                      style: PassqlTypography.subheadline.copyWith(
+                        color: colors.secondaryLabel,
+                      ),
+                    ),
+                  ],
                 ),
-                TextSpan(
-                  text: ' / $limit문제',
-                  style: PassqlTypography.subheadline.copyWith(
-                    color: colors.secondaryLabel,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: PassqlSpacing.xs),

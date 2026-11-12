@@ -82,14 +82,14 @@ class DailyLimitRewardView extends ConsumerWidget {
               child: Text(
                 // 남은 문제가 있으면(상단 알약으로 연 경우) 남은 수, 없으면 소진 안내
                 hasUnlockedSolves
-                    ? '오늘 $remainingSolves문제 남았어요'
-                    : '오늘 무료 문제를\n다 풀었어요',
+                    ? '크레딧 $remainingSolves개 남았어요'
+                    : '오늘 크레딧을\n다 썼어요',
                 style: PassqlTypography.title2.copyWith(color: colors.label),
               ),
             ),
             const SizedBox(height: PassqlSpacing.xs),
             PassqlKeepAllText(
-              '아래 방법으로 더 받을 수 있어요. 내일 0시에는 $dailyFreeLimit문제가 새로 열려요.',
+              '랜덤 풀기 1문제에 크레딧 1개를 써요. 내일 0시에 $dailyFreeLimit개가 새로 채워져요.',
               style: PassqlTypography.subheadline.copyWith(
                 color: colors.secondaryLabel,
               ),
@@ -187,7 +187,7 @@ class _AdBonusCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '광고 보고 $bonusQuestionCount문제 더',
+                      '광고 보고 크레딧 $bonusQuestionCount개 받기',
                       style: PassqlTypography.headline.copyWith(
                         color: colors.label,
                       ),

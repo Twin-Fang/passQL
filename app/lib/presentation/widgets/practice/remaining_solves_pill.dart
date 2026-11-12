@@ -12,11 +12,11 @@ bool isLowRemainingSolves(int remainingCount) =>
     remainingCount >= 1 && remainingCount <= lowRemainingSolvesThreshold;
 
 /// 오늘 남은 무료 랜덤 문제 수 알약: 값이 늘면 한 번 튐 (보상 수령), 1~2문제 남으면 경고 색, null 이면 그리지 않음
-/// [isCompact] 상단 바용: 번개 아이콘 + 숫자만, [onTap] 누르면 문제 더 받기 시트 (#966)
+/// [isCompact] 상단 바용: 크레딧 아이콘 + 숫자만, [onTap] 누르면 크레딧 더 받기 시트 (#966, #971)
 class RemainingSolvesPill extends ConsumerStatefulWidget {
   const RemainingSolvesPill({super.key, this.isCompact = false, this.onTap});
 
-  /// true 면 `오늘 남은 N문제` 대신 숫자만
+  /// true 면 `크레딧 N` 대신 숫자만
   final bool isCompact;
   final VoidCallback? onTap;
 
@@ -60,12 +60,32 @@ class _RemainingSolvesPillState extends ConsumerState<RemainingSolvesPill>
     final remainingCount = ref.watch(freeRemainingSolvesProvider);
     if (remainingCount == null) return const SizedBox.shrink();
     final isLow = isLowRemainingSolves(remainingCount) || remainingCount == 0;
-    final badge = PassqlBadge(
-      text: widget.isCompact ? '$remainingCount' : '오늘 남은 $remainingCount문제',
-      kind: isLow ? PassqlBadgeKind.warning : PassqlBadgeKind.topic,
-      icon: isLow
-          ? CupertinoIcons.hourglass
-          : (widget.isCompact ? CupertinoIcons.bolt_fill : null),
+    final colors = context.passqlColors;
+    // 동전 아이콘 + 숫자 (상단 바는 숫자만, 풀이 화면은 `크레딧 N`), 얼마 안 남으면 경고 색
+    final badge = Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: PassqlSpacing.xs,
+        vertical: PassqlSpacing.xxs,
+      ),
+      decoration: BoxDecoration(
+        color: isLow
+            ? colors.warning.withValues(alpha: PassqlBadge.backgroundAlpha)
+            : colors.accentTint,
+        borderRadius: BorderRadius.circular(PassqlRadius.capsule),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const PassqlCreditIcon(),
+          const SizedBox(width: PassqlSpacing.xxs),
+          Text(
+            widget.isCompact ? '$remainingCount' : '크레딧 $remainingCount',
+            style: PassqlTypography.footnoteSemibold.copyWith(
+              color: isLow ? colors.warningText : colors.accentText,
+            ),
+          ),
+        ],
+      ),
     );
     final onTap = widget.onTap;
     return ScaleTransition(
@@ -75,7 +95,7 @@ class _RemainingSolvesPillState extends ConsumerState<RemainingSolvesPill>
           : PassqlPressable(
               hasMinimumTouchTarget: true,
               onTap: onTap,
-              semanticLabel: '오늘 남은 $remainingCount문제, 문제 더 받기',
+              semanticLabel: '오늘 크레딧 $remainingCount개, 크레딧 더 받기',
               child: badge,
             ),
     );
