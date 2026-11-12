@@ -12,7 +12,8 @@ import io.flutter.plugin.common.MethodChannel
  * Dart 진입점 lockScreenMain, 채널 passql/lock_screen 은 엔진 생성 때 한 번 등록
  */
 object LockScreenEngine {
-    private const val ENGINE_ID = "passql_lock_screen_engine"
+    // FlutterEngineCache 키 (LockScreenActivity.getCachedEngineId 가 같은 값을 씀)
+    const val ENGINE_ID = "passql_lock_screen_engine"
     private const val DART_ENTRYPOINT = "lockScreenMain"
     // 진입점이 main.dart 가 아닌 파일에 있어 라이브러리 경로를 함께 지정 (pubspec name 기준)
     private const val DART_ENTRYPOINT_LIBRARY = "package:passql_app/lock_screen_main.dart"
