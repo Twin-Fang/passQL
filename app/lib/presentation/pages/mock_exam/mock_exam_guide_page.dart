@@ -123,7 +123,7 @@ class _MockExamGuidePageState extends ConsumerState<MockExamGuidePage> {
                           const PassqlCallout(
                             kind: PassqlCalloutKind.accent,
                             icon: CupertinoIcons.gift,
-                            label: '무료 체험',
+                            label: '무료 1회',
                             child: Text(
                               '무료 체험은 1회예요. 점수와 합격 여부는 바로 보이고, 과목별 분석과 문항 해설은 PRO로 볼 수 있어요.',
                             ),

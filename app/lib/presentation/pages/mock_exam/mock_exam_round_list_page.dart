@@ -132,7 +132,7 @@ class _RoundRow extends ConsumerWidget {
       ),
       trailing:
           round.isFreeTrialRound && round.canStart && round.lastAttempt == null
-          ? const PassqlBadge(text: '무료 체험', kind: PassqlBadgeKind.success)
+          ? const PassqlBadge(text: '무료 1회', kind: PassqlBadgeKind.success)
           : null,
       hasChevron: true,
       onTap: () => _onTap(context, ref),
