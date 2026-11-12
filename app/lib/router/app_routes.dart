@@ -150,6 +150,20 @@ abstract final class AppRoutes {
   /// 오늘의 세트 결과.
   static const String dailySetResult = '/daily-set/result';
 
+  /// 세트 결과에서 틀린 문제 차례로 다시 풀기 (#1035). questions 쿼리: 문제 uuid 쉼표 구분
+  static const String dailySetRetry = '/daily-set/retry';
+
+  /// 다시 풀 문제 uuid 목록 쿼리 키
+  static const String dailySetRetryQuestionsQuery = 'questions';
+
+  /// 다시 풀 문제 uuid 구분자
+  static const String dailySetRetryQuestionDelimiter = ',';
+
+  /// 틀린 문제 다시 풀기 진입: /daily-set/retry?questions=uuid1,uuid2
+  static String dailySetRetryOf(List<String> questionUuids) =>
+      '$dailySetRetry?$dailySetRetryQuestionsQuery='
+      '${questionUuids.join(dailySetRetryQuestionDelimiter)}';
+
   // 온보딩
   /// 신규 가입자 온보딩 (탭 셸 밖, 알림 권한 안내가 끼어들지 않게).
   static const String onboarding = '/onboarding';

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../data/models/community/community_models.dart';
 import '../presentation/flows/daily_set_flow.dart';
+import '../presentation/flows/daily_set_retry_flow.dart';
 import '../presentation/flows/question_flow.dart';
 import '../presentation/flows/concept_related_flow.dart';
 import '../presentation/flows/random_practice_flow.dart';
@@ -375,6 +376,22 @@ abstract final class AppRouter {
         parentNavigatorKey: _rootKey,
         builder: (_, state) => DailySetResultPage(
           outcome: ResultRouteArguments.dailySetOutcomeOf(state.extra),
+        ),
+      ),
+      // 세트 결과에서 틀린 문제 차례로 다시 풀기 (#1035)
+      GoRoute(
+        path: AppRoutes.dailySetRetry,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => ChapterPage(
+          flow: DailySetRetryFlow(
+            questionUuids:
+                (state.uri.queryParameters[AppRoutes
+                            .dailySetRetryQuestionsQuery] ??
+                        '')
+                    .split(AppRoutes.dailySetRetryQuestionDelimiter)
+                    .where((questionUuid) => questionUuid.isNotEmpty)
+                    .toList(),
+          ),
         ),
       ),
       GoRoute(
