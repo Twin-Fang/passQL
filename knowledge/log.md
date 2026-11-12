@@ -208,3 +208,4 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-12 19:57 | W6 | create | ISS-0501~0504 (resolved) + report (#990·#1015·#1016·#1017), DEC-0290, DEC-0291, DEC-0292
 - 2026-11-12 19:57 | W2 | update | cluster-practice, billing, ads, store-release, question-bank, design-system, concept-learning, dev-workflow
 - 2026-11-12 19:57 | W2 | fix | members count: ads 25, billing 68, concept-learning 22, design-system 162, dev-workflow 77, practice 187, question-bank 86, store-release 68
+- 2026-11-12 21:40 | W6 | create completion-report ISS-0505 (#1029) | ISS-0505
