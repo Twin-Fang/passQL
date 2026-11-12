@@ -9,8 +9,10 @@ def rules_of(findings):
 
 
 def test_valid_fixture_has_no_error_or_warning(not_in_question, pick_question):
-    for question in (not_in_question, pick_question):
-        assert [finding for finding in lint_question(question) if finding.severity != "info"] == []
+    assert [finding for finding in lint_question(pick_question) if finding.severity != "info"] == []
+    # T1(ID)·T2(ID): 이름 다른 같은 컬럼 표 경고만 (#1017)
+    assert rules_of([finding for finding in lint_question(not_in_question) if finding.severity != "info"]) == {
+        "stem.same-columns-different-name": "warning"}
 
 
 def test_v2_wrong_choice_without_why_plausible_is_error(not_in_question):
@@ -80,6 +82,15 @@ def test_table_row_as_string_is_shape_error(not_in_question):
 def test_table_different_from_insert_data_is_error(not_in_question):
     not_in_question["tables"][0]["rows"] = [[1], [2], [4]]
     assert rules_of(lint_question(not_in_question))["data.table-mismatch"] == "error"
+
+
+def test_table_name_checks(not_in_question):
+    # 지문 SQL 이 없는 표 참조 + 같은 이름 표 2개 (#1017)
+    not_in_question["displaySql"] = "SELECT COUNT(*) FROM T1 WHERE ID NOT IN (SELECT ID FROM T3);"
+    not_in_question["tables"].append(dict(not_in_question["tables"][0]))
+    rules = rules_of(lint_question(not_in_question))
+    assert rules["stem.table-reference-missing"] == "error"
+    assert rules["stem.table-duplicate-name"] == "error"
 
 
 def test_ordered_rows_without_order_by_is_warning(not_in_question):
