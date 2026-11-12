@@ -27,7 +27,7 @@ class QuestionChoices extends StatelessWidget {
   /// 실행형 보기 위 실행 안내 줄을 보일지 (오늘의 세트 체험 안내가 대신하면 false, #992)
   final bool shouldShowRunChoiceHint;
 
-  /// 실행이 PRO 전용인지 (무료·체험 문제 아님): ▶ 에 PRO 마크, 누르면 [onLockedRunTap]
+  /// 실행이 PRO 전용인지 (무료·체험 문제 아님): '▶ 실행' 모양은 같고 누르면 [onLockedRunTap]
   final bool isRunLocked;
 
   /// 잠긴 ▶ 를 눌렀을 때 (실행 없이 PRO 안내)
@@ -80,7 +80,7 @@ class QuestionChoices extends StatelessWidget {
       children: [
         // 실행형 보기 안내: 채점 전 > 제출하면 실행 가능, 채점 뒤 > 실행 아이콘 안내 (#727)
         if (hasRunnableChoice && shouldShowRunChoiceHint)
-          _RunChoiceHint(isGraded: submitResult != null, isLocked: isRunLocked),
+          _RunChoiceHint(isGraded: submitResult != null),
         for (final (displayIndex, item) in interaction.activeChoices.indexed)
           // 채점 직후 정답 보기를 하단 피드백 바 위로 (#551)
           RevealAboveBottomBarOnTrigger(
@@ -91,9 +91,9 @@ class QuestionChoices extends StatelessWidget {
     );
   }
 
-  /// 보기 카드 1개: 탭은 고르기, 채점 뒤 실행형 SQL 보기는 카드 탭·▶ 아이콘으로 실행
+  /// 보기 카드 1개: 탭은 고르기, 채점 뒤 실행형 SQL 보기는 카드 탭·'▶ 실행'으로 실행
   /// 채점 전 실행 막음 (결과를 묻는 문제라 실행하면 정답이 보임)
-  /// PRO 전용이면 ▶ 는 실행 없이 PRO 안내, 카드 탭은 기존대로 결과 자리 잠금 표시
+  /// PRO 전용이면 '▶ 실행'은 실행 없이 PRO 안내, 카드 탭은 기존대로 결과 자리 잠금 표시
   Widget _buildChoiceCard(int displayIndex, ChoiceItem item) {
     final isRunnable = isExecutable && item.isSql && submitResult != null;
     void runThisChoice() =>
@@ -118,25 +118,15 @@ class QuestionChoices extends StatelessWidget {
       onRunTap: isRunnable ? runButtonTap : null,
       isRunning:
           interaction.isExecuting && interaction.executedChoiceKey == item.key,
-      isRunLocked: isRunLocked,
     );
   }
 }
 
-/// 실행형 문제 보기 위 한 줄 안내: ▶ 아이콘 + 실제 DB 실행 설명 (채점 전·후·PRO 전용 문구 다름)
+/// 실행형 문제 보기 위 한 줄 안내: ▶ 아이콘 + 실제 DB 실행 설명 (채점 전·후 문구 다름)
 class _RunChoiceHint extends StatelessWidget {
-  const _RunChoiceHint({required this.isGraded, required this.isLocked});
+  const _RunChoiceHint({required this.isGraded});
 
   final bool isGraded;
-
-  /// PRO 전용 실행 (무료)
-  final bool isLocked;
-
-  String get _message {
-    if (!isGraded) return '제출하면 보기마다 실제 DB에서 실행해 볼 수 있어요';
-    if (isLocked) return 'PRO는 ▶로 보기마다 실제 DB 실행 결과를 볼 수 있어요';
-    return '보기를 누르면 실제 DB에서 실행한 결과를 볼 수 있어요';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +148,9 @@ class _RunChoiceHint extends StatelessWidget {
           const SizedBox(width: PassqlSpacing.xs),
           Expanded(
             child: Text(
-              _message,
+              isGraded
+                  ? '보기를 누르면 실제 DB에서 실행한 결과를 볼 수 있어요'
+                  : '제출하면 보기마다 실제 DB에서 실행해 볼 수 있어요',
               style: PassqlTypography.footnote.copyWith(
                 color: colors.secondaryLabel,
               ),

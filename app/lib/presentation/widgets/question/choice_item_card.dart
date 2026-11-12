@@ -11,7 +11,7 @@ import 'stem_text.dart';
 /// 선택지 데이터(ChoiceItem) 1건 카드: kind="SQL"이면 코드 블록, kind="TEXT"이면 텍스트.
 /// TEXT 이면서 본문이 결과 행 JSON 배열이면(실행 결과형, RESULT_MATCH) 작은 표로 보여 준다.
 /// 선택·채점 상태의 모양은 [PassqlChoiceCard]가 정한다.
-/// [onRunTap] 이 있으면(채점 뒤 실행형 SQL 보기) 채점 표시 아래 ▶ 실행 (#727).
+/// [onRunTap] 이 있으면(채점 뒤 실행형 SQL 보기) 본문 아래 오른쪽에 '▶ 실행' 알약 (#727).
 class ChoiceItemCard extends StatelessWidget {
   final ChoiceItem item;
 
@@ -29,9 +29,6 @@ class ChoiceItemCard extends StatelessWidget {
   /// 이 보기를 지금 실행 중인지 (버튼 로딩 표시)
   final bool isRunning;
 
-  /// ▶ 실행이 PRO 전용인지 (무료: 같은 ▶ + 작은 PRO 마크, 누르면 안내 시트)
-  final bool isRunLocked;
-
   const ChoiceItemCard({
     super.key,
     required this.item,
@@ -41,13 +38,12 @@ class ChoiceItemCard extends StatelessWidget {
     this.onGradedTap,
     this.onRunTap,
     this.isRunning = false,
-    this.isRunLocked = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final resultRows = item.isSql ? null : parseResultRows(item.body);
-    final Widget body = item.isSql
+    final Widget content = item.isSql
         // 선택 가능한 코드면 카드 탭과 겹치므로 선택은 끄고, 길게 누르면 SQL 전체 복사
         ? _CopyOnLongPress(
             text: item.body,
@@ -61,6 +57,25 @@ class ChoiceItemCard extends StatelessWidget {
         : resultRows != null
         ? ResultRowsTable(rows: resultRows)
         : InlineCodeText(item.body);
+    final runTap = onRunTap;
+    // 실행 가능한 SQL 보기(채점 뒤): 본문 아래 오른쪽 '▶ 실행' (채점 아이콘 칸은 ✓/✕만)
+    final Widget body = runTap == null
+        ? content
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              content,
+              const SizedBox(height: PassqlSpacing.xs),
+              Align(
+                alignment: Alignment.centerRight,
+                child: _RunChoiceButton(
+                  choiceLabel: displayLabel,
+                  onTap: runTap,
+                  isRunning: isRunning,
+                ),
+              ),
+            ],
+          );
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: PassqlSpacing.md,
@@ -71,15 +86,6 @@ class ChoiceItemCard extends StatelessWidget {
         state: state,
         onTap: onTap,
         onGradedTap: onGradedTap,
-        // 실행 가능한 SQL 보기(채점 뒤): 정답·오답 표시 아래 ▶ (코드 폭 그대로)
-        trailingAccessory: onRunTap == null
-            ? null
-            : _RunChoiceIconButton(
-                choiceLabel: displayLabel,
-                onTap: onRunTap!,
-                isRunning: isRunning,
-                isLocked: isRunLocked,
-              ),
         child: body,
       ),
     );
@@ -109,60 +115,35 @@ class _CopyOnLongPress extends StatelessWidget {
   }
 }
 
-/// 보기 실행 아이콘: 강조색 ▶ 원 아이콘 (실행 중이면 로딩)
-/// 채점 아이콘 칸 폭 그대로 (넓히면 코드 폭이 줄어듦), 카드 전체 탭도 실행이라 작은 영역으로 충분
-class _RunChoiceIconButton extends StatelessWidget {
-  const _RunChoiceIconButton({
+/// 보기 실행 알약: '▶ 실행' 작은 버튼 (실행 중이면 로딩, 누르는 영역 44)
+/// 잠김(무료) 여부와 무관하게 같은 모양, 잠김 처리는 [onTap] 쪽에서
+class _RunChoiceButton extends StatelessWidget {
+  const _RunChoiceButton({
     required this.choiceLabel,
     required this.onTap,
     required this.isRunning,
-    required this.isLocked,
   });
 
   final String choiceLabel;
   final VoidCallback onTap;
   final bool isRunning;
 
-  /// PRO 전용 > ▶ 모서리에 PRO 마크 (버튼은 정상 색 그대로, 눌러 보게)
-  final bool isLocked;
-
-  /// PRO 마크를 ▶ 바깥으로 살짝 걸침 (칸 폭은 그대로)
-  static const double _proMarkOverhangPixels = -PassqlSpacing.xxs;
-
   @override
   Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    final playIcon = Icon(
-      CupertinoIcons.play_circle_fill,
-      size: PassqlIconSize.xl,
-      color: colors.accent,
-    );
-    return PassqlPressable(
-      onTap: isRunning ? null : onTap,
-      semanticLabel: isLocked
-          ? '보기 $choiceLabel 실행, PRO'
-          : '보기 $choiceLabel 실행',
-      child: isRunning
-          ? const SizedBox.square(
-              dimension: PassqlIconSize.xl,
-              child: PassqlLoadingIndicator(),
-            )
-          : !isLocked
-          ? playIcon
-          : Stack(
-              clipBehavior: Clip.none,
-              children: [
-                playIcon,
-                const Positioned(
-                  right: _proMarkOverhangPixels,
-                  bottom: _proMarkOverhangPixels,
-                  child: PassqlProMark(
-                    size: PassqlIconSize.xxs,
-                    isDecorative: true,
-                  ),
-                ),
-              ],
-            ),
+    final semanticTap = isRunning ? null : onTap;
+    // 버튼 글자('실행') 대신 어느 보기인지 읽게 함
+    return PassqlSemanticButton(
+      label: '보기 $choiceLabel 실행',
+      onTap: semanticTap,
+      child: PassqlButton(
+        label: '실행',
+        icon: CupertinoIcons.play_fill,
+        onPressed: onTap,
+        isLoading: isRunning,
+        variant: PassqlButtonVariant.tinted,
+        size: PassqlButtonSize.small,
+        isFullWidth: false,
+      ),
     );
   }
 }
