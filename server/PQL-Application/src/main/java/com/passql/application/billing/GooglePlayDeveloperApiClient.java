@@ -6,6 +6,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.androidpublisher.AndroidPublisher;
 import com.google.api.services.androidpublisher.AndroidPublisherScopes;
+import com.google.api.services.androidpublisher.model.BatchGetOrdersResponse;
 import com.google.api.services.androidpublisher.model.Money;
 import com.google.api.services.androidpublisher.model.Order;
 import com.google.api.services.androidpublisher.model.ProductPurchase;
@@ -48,6 +49,10 @@ public class GooglePlayDeveloperApiClient implements PlayDeveloperApiClient {
     private static final Set<Integer> INVALID_PURCHASE_STATUS_CODES = Set.of(400, 404, 410);
     // Play API 호출 앱 이름 (User-Agent)
     private static final String APPLICATION_NAME = "passQL";
+    // orders.batchget 요청 1회 최대 주문 수
+    private static final int MAXIMUM_ORDER_IDS_PER_BATCH = 1000;
+    // Order.state: 전액 환불 (부분 환불 PARTIALLY_REFUNDED 는 회수하지 않음)
+    private static final String ORDER_STATE_REFUNDED = "REFUNDED";
 
     private final AppSettingService appSettingService;
 
@@ -135,6 +140,31 @@ public class GooglePlayDeveloperApiClient implements PlayDeveloperApiClient {
             throw toCustomException("list voided purchases", exception);
         }
         return voidedPurchaseTokens;
+    }
+
+    @Override
+    public List<String> findRefundedOrderIds(List<String> orderIds) {
+        List<String> refundedOrderIds = new ArrayList<>();
+        try {
+            // 요청 1회 최대 주문 수 단위로 나눠 조회
+            for (int fromIndex = 0; fromIndex < orderIds.size(); fromIndex += MAXIMUM_ORDER_IDS_PER_BATCH) {
+                List<String> batchOrderIds = orderIds.subList(fromIndex,
+                    Math.min(fromIndex + MAXIMUM_ORDER_IDS_PER_BATCH, orderIds.size()));
+                BatchGetOrdersResponse response = getAndroidPublisher().orders().batchget(PACKAGE_NAME)
+                    .setOrderIds(batchOrderIds)
+                    .execute();
+                if (response.getOrders() != null) {
+                    response.getOrders().stream()
+                        .filter(order -> ORDER_STATE_REFUNDED.equals(order.getState()))
+                        .map(Order::getOrderId)
+                        .filter(StringUtils::hasText)
+                        .forEach(refundedOrderIds::add);
+                }
+            }
+        } catch (IOException exception) {
+            throw toCustomException("batch get orders", exception);
+        }
+        return refundedOrderIds;
     }
 
     /** 키 확인 > 키가 같으면 기존 클라이언트, 바뀌었으면 새로 생성 (키 없음 EXTERNAL_API_ERROR) */

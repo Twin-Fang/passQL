@@ -83,6 +83,32 @@
             </section>
         </div>
     </div>
+
+    <!-- 환불 회수 확인 (#984): subscription-refund-check.js 가 /admin/api/subscriptions/refund-checks 조회·즉시 실행 -->
+    <section id="refundCheckBlock" class="card bg-base-100 shadow-sm">
+        <div class="card-body p-4 gap-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                    <h2 class="font-bold">환불 회수 확인 <span class="text-xs font-normal text-base-content/50">매일 04:50 자동, Play 환불 구매의 프로 기간 회수</span></h2>
+                    <p class="text-xs text-base-content/60 mt-1">
+                        마지막 실행: <span id="refundCheckLatestTime">-</span>
+                        <span id="refundCheckLatestBadge" class="badge badge-sm badge-ghost ml-1">-</span>
+                    </p>
+                </div>
+                <button type="button" id="refundCheckRunButton" class="btn btn-sm btn-primary">지금 확인</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead><tr>
+                        <th>시각</th><th>실행 방식</th>
+                        <th class="text-right">취소 목록</th><th class="text-right">확인 주문</th>
+                        <th class="text-right">환불 주문</th><th class="text-right">회수</th><th>실패 사유</th>
+                    </tr></thead>
+                    <tbody id="refundCheckRunBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
 </div>
 </th:block>
 
@@ -92,5 +118,6 @@
     <script th:src="@{/js/admin/admin-chart.js}"></script>
     <script th:src="@{/js/admin/admin-period-filter.js}"></script>
     <script th:src="@{/js/admin/subscriptions.js}"></script>
+    <script th:src="@{/js/admin/subscription-refund-check.js}"></script>
 </th:block>
 </html>

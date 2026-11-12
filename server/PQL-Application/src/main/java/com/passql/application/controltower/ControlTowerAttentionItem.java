@@ -26,4 +26,10 @@ public record ControlTowerAttentionItem(
         ControlTowerAttentionLevel level = count > 0 ? ControlTowerAttentionLevel.INFO : ControlTowerAttentionLevel.OK;
         return new ControlTowerAttentionItem(key, label, KIND_COUNT, level, group, adminUrl, count, total);
     }
+
+    /** 개수 > 경고 count 항목 (0 ok, 1 이상 warning, 수집 실패처럼 바로 볼 일) */
+    static ControlTowerAttentionItem warningCount(String key, String label, String group, String adminUrl, long count) {
+        ControlTowerAttentionLevel level = count > 0 ? ControlTowerAttentionLevel.WARNING : ControlTowerAttentionLevel.OK;
+        return new ControlTowerAttentionItem(key, label, KIND_COUNT, level, group, adminUrl, count, null);
+    }
 }

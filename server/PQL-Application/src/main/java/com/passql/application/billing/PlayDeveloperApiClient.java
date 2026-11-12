@@ -25,6 +25,9 @@ public interface PlayDeveloperApiClient {
     /** 구매 소모 처리 (purchases.products.consume, 소모해야 같은 상품 재구매 가능) */
     void consume(String productId, String purchaseToken);
 
-    /** since 이후 환불·취소된 구매 토큰 목록 (purchases.voidedpurchases.list) */
+    /** since 이후 환불·취소된 구매 토큰 목록 (purchases.voidedpurchases.list, 권한 회수 없는 환불은 빠짐) */
     List<String> listVoidedPurchaseTokens(Instant since);
+
+    /** 주문 번호 중 전액 환불된 주문 번호 (orders.batchget 상태 REFUNDED, 권한 회수 없는 환불 포함) */
+    List<String> findRefundedOrderIds(List<String> orderIds);
 }
