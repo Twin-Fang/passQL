@@ -11,7 +11,7 @@ const int lowRemainingSolvesThreshold = 2;
 bool isLowRemainingSolves(int remainingCount) =>
     remainingCount >= 1 && remainingCount <= lowRemainingSolvesThreshold;
 
-/// 오늘 남은 무료 랜덤 문제 수 알약: 값이 늘면 한 번 튐 (보상 수령), 1~2문제 남으면 경고 색, null 이면 그리지 않음
+/// 오늘 남은 무료 랜덤 문제 수 알약: 값이 바뀌면 한 번 튐 (보상 수령·사용), 1~2문제 남으면 경고 색, null 이면 그리지 않음
 /// [isCompact] 상단 바용: 크레딧 아이콘 + 숫자만, [onTap] 누르면 크레딧 더 받기 시트 (#966, #971)
 class RemainingSolvesPill extends ConsumerStatefulWidget {
   const RemainingSolvesPill({super.key, this.isCompact = false, this.onTap});
@@ -51,9 +51,9 @@ class _RemainingSolvesPillState extends ConsumerState<RemainingSolvesPill>
 
   @override
   Widget build(BuildContext context) {
-    // 남은 수 증가 > 한 번 튐 (줄어들 때는 가만히)
+    // 크레딧 수가 바뀌면 한 번 튐 (받았을 때·썼을 때 모두, 숫자가 바뀐 것을 알아채게)
     ref.listen<int?>(freeRemainingSolvesProvider, (previous, next) {
-      if (previous != null && next != null && next > previous) {
+      if (previous != null && next != null && next != previous) {
         _controller.forward(from: 0);
       }
     });
