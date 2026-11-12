@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Google Play Developer API 경계: 구매 조회, 주문 금액 조회, 소모, 환불 목록
+ * Google Play Developer API 경계: 구매 조회, 주문 금액 조회, 소모, 환불 목록, 주문 환불 상태 조회
  * Play 라이브러리 타입은 구현체 안에만 둠 (테스트는 가짜 구현)
  */
 public interface PlayDeveloperApiClient {

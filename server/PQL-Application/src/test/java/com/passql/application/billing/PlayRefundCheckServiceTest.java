@@ -75,7 +75,7 @@ class PlayRefundCheckServiceTest {
     void 취소_목록에_없어도_주문이_전액_환불이면_회수하고_건수를_기록한다() {
         when(playDeveloperApiClient.findRefundedOrderIds(anyList())).thenReturn(List.of(REFUNDED_ORDER_ID));
 
-        RefundCheckRunResponse result = playRefundCheckService.runRefundCheck(RefundCheckTriggerType.SCHEDULED);
+        RefundCheckRunResponse runResponse = playRefundCheckService.runRefundCheck(RefundCheckTriggerType.SCHEDULED);
 
         verify(entitlementPurchaseRevoker).revokeAndRecalculate(any(), any());
         verify(playDeveloperApiClient).findRefundedOrderIds(List.of(REFUNDED_ORDER_ID));
@@ -87,7 +87,7 @@ class PlayRefundCheckServiceTest {
         assertThat(savedRun.getRevokedCount()).isEqualTo(1);
         assertThat(savedRun.getFailureReason()).isNull();
         assertThat(savedRun.getFinishedAt()).isNotNull();
-        assertThat(result.isSucceeded()).isTrue();
+        assertThat(runResponse.isSucceeded()).isTrue();
     }
 
     @Test
@@ -103,13 +103,13 @@ class PlayRefundCheckServiceTest {
     void 주문_조회가_실패하면_회수_없이_실패_사유를_기록한다() {
         when(playDeveloperApiClient.findRefundedOrderIds(anyList())).thenThrow(new IllegalStateException("play down"));
 
-        RefundCheckRunResponse result = playRefundCheckService.runRefundCheck(RefundCheckTriggerType.ADMIN);
+        RefundCheckRunResponse runResponse = playRefundCheckService.runRefundCheck(RefundCheckTriggerType.ADMIN);
 
         verify(entitlementPurchaseRevoker, never()).revokeAndRecalculate(any(), any());
         BillingRefundCheckRun savedRun = captureSavedRun();
         assertThat(savedRun.getFailureReason()).isEqualTo(RefundCheckFailureReason.ORDER_LOOKUP_FAILED);
         assertThat(savedRun.getCheckedOrderCount()).isEqualTo(1);
-        assertThat(result.isSucceeded()).isFalse();
+        assertThat(runResponse.isSucceeded()).isFalse();
     }
 
     @Test
