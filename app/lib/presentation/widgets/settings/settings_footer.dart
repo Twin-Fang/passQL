@@ -48,7 +48,7 @@ class SettingsFooter extends StatelessWidget {
     Future<void> copyMemberIdentifier() async {
       await Clipboard.setData(ClipboardData(text: identifier.value));
       if (!context.mounted) return;
-      showAppToast(context, '${identifier.label}가 복사되었습니다.');
+      showAppToast(context, '${identifier.label}를 복사했어요');
     }
 
     return PassqlSemanticButton(

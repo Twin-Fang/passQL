@@ -174,7 +174,7 @@ class _RoundRow extends ConsumerWidget {
       return '최고 ${round.bestScore}점 · 마지막 $passText · ${round.submittedAttemptCount}회 응시';
     }
     return switch (round.startBlockReason) {
-      MockExamStartBlockReason.proRequired => '이용권으로 열려요',
+      MockExamStartBlockReason.proRequired => 'PRO로 풀 수 있어요',
       MockExamStartBlockReason.freeTrialUsed => '무료 체험을 사용했어요',
       _ => '아직 안 풀었어요',
     };

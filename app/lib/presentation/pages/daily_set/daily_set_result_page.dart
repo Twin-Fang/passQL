@@ -15,6 +15,7 @@ import '../../providers/daily_set_providers.dart';
 import '../../widgets/ads/rewarded_interstitial_on_result.dart';
 import '../../widgets/daily_set/daily_set_bonus_card.dart';
 import '../../widgets/notification/study_result_seen_recorder.dart';
+import '../../widgets/result/solved_question_list_section.dart';
 import '../../widgets/review/store_review_prompt_on_result.dart';
 
 /// 상단 바·점수 머리에 쓰는 화면 이름
@@ -52,9 +53,13 @@ class DailySetResultPage extends ConsumerWidget {
             builder: (_, leaveWithAdOffer) => _ResultBody(
               correctCount: outcome.correctCount,
               total: total,
-              results: outcome.results
-                  .map((result) => result.isCorrect)
-                  .toList(),
+              solvedQuestions: [
+                for (final result in outcome.results)
+                  (
+                    questionUuid: result.questionUuid,
+                    isCorrect: result.isCorrect,
+                  ),
+              ],
               saveError: outcome.saveError,
               completedRank: outcome.completed?.rank,
               isJustCompleted: true,
@@ -122,11 +127,20 @@ class _RecordBody extends ConsumerWidget {
         final complete =
             results != null &&
             results.isNotEmpty &&
+            results.length == data.questions.length &&
             results.every((isCorrect) => isCorrect != null);
         return _ResultBody(
           correctCount: data.correctCount ?? 0,
           total: data.questions.length,
-          results: complete ? results.cast<bool>() : const [],
+          solvedQuestions: complete
+              ? [
+                  for (var i = 0; i < data.questions.length; i++)
+                    (
+                      questionUuid: data.questions[i].questionUuid,
+                      isCorrect: results[i]!,
+                    ),
+                ]
+              : const [],
         );
       },
     );
@@ -137,7 +151,7 @@ class _ResultBody extends ConsumerWidget {
   const _ResultBody({
     required this.correctCount,
     required this.total,
-    required this.results,
+    required this.solvedQuestions,
     this.saveError,
     this.completedRank,
     this.isJustCompleted = false,
@@ -147,8 +161,8 @@ class _ResultBody extends ConsumerWidget {
   final int correctCount;
   final int total;
 
-  /// 문제별 정오답. 풀이 직후에만 있다.
-  final List<bool> results;
+  /// 문제별 정오답 (기록이 빠진 문제가 있으면 빈 목록)
+  final List<SolvedQuestion> solvedQuestions;
 
   /// 점수 등록 실패 사유.
   final String? saveError;
@@ -187,17 +201,8 @@ class _ResultBody extends ConsumerWidget {
             assignedQuestionCount: total,
             shouldCelebrate: isJustCompleted,
           ),
-        if (results.isNotEmpty)
-          PassqlGroupedSection(
-            header: '문제별 결과',
-            children: [
-              for (var i = 0; i < results.length; i++)
-                PassqlListRow(
-                  title: '${i + 1}번',
-                  trailing: PassqlResultMark(isCorrect: results[i]),
-                ),
-            ],
-          ),
+        if (solvedQuestions.isNotEmpty)
+          SolvedQuestionListSection(solvedQuestions: solvedQuestions),
         PassqlCard(
           title: '오늘의 순위',
           trailing: myRank == null

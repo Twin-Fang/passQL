@@ -64,9 +64,8 @@ class HomeNextStepCard extends ConsumerWidget {
       ),
       HomeNextStep.randomPractice => (
         '랜덤 풀기로 이어 가요',
-        remainingCredits == null
-            ? '안 푼 문제부터 골라 드려요'
-            : '크레딧 $remainingCredits개 남았어요',
+        // 남은 크레딧 수는 상단 바 알약이 보여 줌 (한 화면 한 번)
+        '안 푼 문제부터 골라 드려요',
         '이어서 풀기',
         () => openRandomPractice(context, ref),
       ),

@@ -225,8 +225,11 @@ class _HomeContent extends ConsumerWidget {
 
       // 모의고사 (#866): 오늘 할 일 다음, 풀이 중이면 이어 풀기
       const PassqlSection(
-        title: 'SQLD 모의고사',
-        child: MockExamEntryRow(hasHorizontalPadding: false),
+        title: MockExamEntryRow.defaultTitle,
+        child: MockExamEntryRow(
+          title: '실제 시험처럼 풀기',
+          hasHorizontalPadding: false,
+        ),
       ),
     ];
 
