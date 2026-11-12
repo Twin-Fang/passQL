@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SQLD 문제 풀이 앱 passQL — 교재 없이 앱 하나로 SQLD 준비</title>
-<meta name="description" content="교재 없이 앱 하나로 SQLD 준비. 최신 기출 경향 문제를 풀고 보기 SQL을 직접 실행해 보고, 틀린 이유는 AI 해설로 확인하세요. 실전 모의고사, 시험 일정 알림, 오늘의 세트까지 무료로 시작.">
+<meta name="description" content="교재 없이 앱 하나로 SQLD 준비. 최신 기출 경향 문제를 풀고 보기 SQL을 직접 실행해 보고, 틀린 이유는 AI 해설로 확인하세요. 오늘의 세트, 모의고사 체험, 시험 일정 알림은 무료로 시작.">
 <link rel="canonical" href="https://twin-fang.github.io/passQL/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="passQL">
 <meta property="og:locale" content="ko_KR">
 <meta property="og:title" content="SQLD 문제 풀이 앱 passQL — 교재 없이 앱 하나로 SQLD 준비">
-<meta property="og:description" content="교재 없이 앱 하나로 SQLD 준비. 최신 기출 경향 문제를 풀고 보기 SQL을 직접 실행해 보고, 틀린 이유는 AI 해설로 확인하세요. 실전 모의고사, 시험 일정 알림, 오늘의 세트까지 무료로 시작.">
+<meta property="og:description" content="교재 없이 앱 하나로 SQLD 준비. 최신 기출 경향 문제를 풀고 보기 SQL을 직접 실행해 보고, 틀린 이유는 AI 해설로 확인하세요. 오늘의 세트, 모의고사 체험, 시험 일정 알림은 무료로 시작.">
 <meta property="og:url" content="https://twin-fang.github.io/passQL/">
 <meta property="og:image" content="https://twin-fang.github.io/passQL/icon/og.png">
 <meta property="og:image:width" content="1200">
@@ -18,7 +18,7 @@
 <meta property="og:image:alt" content="passQL — SQLD 문제 풀이 앱">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="SQLD 문제 풀이 앱 passQL — 교재 없이 앱 하나로 SQLD 준비">
-<meta name="twitter:description" content="교재 없이 앱 하나로 SQLD 준비. 최신 기출 경향 문제를 풀고 보기 SQL을 직접 실행해 보고, 틀린 이유는 AI 해설로 확인하세요. 실전 모의고사, 시험 일정 알림, 오늘의 세트까지 무료로 시작.">
+<meta name="twitter:description" content="교재 없이 앱 하나로 SQLD 준비. 최신 기출 경향 문제를 풀고 보기 SQL을 직접 실행해 보고, 틀린 이유는 AI 해설로 확인하세요. 오늘의 세트, 모의고사 체험, 시험 일정 알림은 무료로 시작.">
 <meta name="twitter:image" content="https://twin-fang.github.io/passQL/icon/og.png">
 <meta name="apple-itunes-app" content="app-id=6762165005">
 <meta name="color-scheme" content="light dark">
@@ -103,7 +103,7 @@
    "name": "passQL은 무료인가요?",
    "acceptedAnswer": {
     "@type": "Answer",
-    "text": "네, 무료로 내려받아 바로 시작할 수 있고 지금은 SQL 실행, 보기별 AI 해설, 최신 출제 경향까지 모든 기능이 열려 있어요. 나중에 Pro 이용권(1개월·3개월, 자동 결제 없음)이 생기면 무료로는 하루 일정량을 풀 수 있어요."
+    "text": "무료로 내려받아 바로 시작할 수 있어요. 무료로는 랜덤 풀기 하루 크레딧 10개(보너스로 더 받기 가능)와 오늘의 세트 5문제를 풀고, 세트 안에서는 SQL 실행과 정답 해설을 체험할 수 있어요. 모의고사 1회 체험, 시험 일정과 알림도 무료예요. Pro 이용권(1개월·3개월, 자동 결제 없음)은 제한 없는 풀이, 모든 문제 SQL 실행, 보기별 상세 답안지, 모의고사 전체와 과목별 분석, 약점 분석, 출제 경향, 광고 제거를 열어 줘요."
    }
   },
   {
@@ -258,8 +258,8 @@
         <p class="stat-label">매일 오늘의 세트</p>
       </li>
       <li class="stat reveal">
-        <p class="stat-number"><span data-count-to="0">0</span><small>원</small></p>
-        <p class="stat-label">지금은 모든 기능 무료</p>
+        <p class="stat-number"><span data-count-to="1">1</span><small>회</small></p>
+        <p class="stat-label">모의고사 무료 체험</p>
       </li>
     </ul>
   </div>
@@ -615,14 +615,36 @@
       </figure>
   </div>
 </section>
-<section id="plan" class="section">
+<section id="free" class="section">
   <div class="wrap narrow">
     <div class="free-card reveal">
-      <span class="free-badge"><span class="ms" aria-hidden="true">celebration</span>0원</span>
-      <h2>지금은 모든 기능이 무료예요</h2>
-      <p class="sec-lead">SQL 실행, 보기별 AI 해설, 최신 경향, 개념 학습까지 전부 열려 있어요. 가입만 하면 바로 풀 수 있어요.</p>
-      <ul class="free-points"><li><span class="ms" aria-hidden="true">terminal</span>보기 SQL 직접 실행</li><li><span class="ms" aria-hidden="true">auto_awesome</span>보기별 AI 해설</li><li><span class="ms" aria-hidden="true">trending_up</span>최신 출제 경향</li><li><span class="ms" aria-hidden="true">school</span>단원별 개념 학습</li></ul>
+      <span class="free-badge"><span class="ms" aria-hidden="true">celebration</span>무료로 시작</span>
+      <h2>무료로도 이만큼 할 수 있어요</h2>
+      <p class="sec-lead">가입만 하면 랜덤 풀기 하루 크레딧 10개와 오늘의 세트 5문제를 풀 수 있어요. 세트 안에서는 SQL 실행과 정답 해설까지 체험해요.</p>
+      <ul class="free-points"><li><span class="ms" aria-hidden="true">local_fire_department</span>오늘의 세트 5문제</li><li><span class="ms" aria-hidden="true">auto_awesome</span>틀리면 정답 해설</li><li><span class="ms" aria-hidden="true">timer</span>모의고사 1회 체험</li><li><span class="ms" aria-hidden="true">notifications_active</span>시험 일정 · 알림</li></ul>
     </div>
+  </div>
+</section>
+<section id="plan" class="section band">
+  <div class="wrap narrow">
+    <p class="kicker">무료와 Pro</p>
+    <h2>무료로 시작하고, 필요할 때 Pro로</h2>
+    <p class="sec-lead">먼저 무료로 풀어 보고, 시험이 가까워지면 이용권으로 전부 열어요.</p>
+    <div class="plan-card">
+      <table class="plan">
+        <thead><tr><th scope="col"><span class="sr-only">항목</span></th><th scope="col">무료</th><th scope="col" class="plan-pro"><span class="ms" aria-hidden="true">workspace_premium</span>Pro</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">랜덤 풀기</th><td>크레딧 하루 10개</td><td>제한 없음</td></tr>
+          <tr><th scope="row">SQL 직접 실행</th><td>오늘의 세트</td><td>모든 문제</td></tr>
+          <tr><th scope="row">해설</th><td>정답 해설 (세트 전체)</td><td>보기별 상세 답안지</td></tr>
+          <tr><th scope="row">새 보기 · 토픽</th><td class="plan-no"><span class="ms" aria-hidden="true">remove</span><span class="sr-only">제공 안 함</span></td><td class="plan-yes"><span class="ms" aria-hidden="true">check_circle</span><span class="sr-only">포함</span></td></tr>
+          <tr><th scope="row">출제 경향</th><td class="plan-no"><span class="ms" aria-hidden="true">remove</span><span class="sr-only">제공 안 함</span></td><td class="plan-yes"><span class="ms" aria-hidden="true">check_circle</span><span class="sr-only">포함</span></td></tr>
+          <tr><th scope="row">통계</th><td>기본</td><td>약점 분석</td></tr>
+          <tr><th scope="row">광고 제거</th><td class="plan-no"><span class="ms" aria-hidden="true">remove</span><span class="sr-only">제공 안 함</span></td><td class="plan-yes"><span class="ms" aria-hidden="true">check_circle</span><span class="sr-only">포함</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="plan-note">모의고사는 무료로 1회 체험하고, Pro는 전체 회차와 과목별 분석까지 볼 수 있어요. 무료 크레딧은 보너스로 더 받을 수 있어요. Pro 이용권은 1개월·3개월 두 가지이며 자동 결제되지 않아요. 가격은 앱에서 확인할 수 있어요.</p>
   </div>
 </section>
 <section id="faq" class="section">
@@ -631,7 +653,7 @@
     <div class="faq">
       <details class="faq-item">
         <summary>passQL은 무료인가요?<span class="ms faq-chevron" aria-hidden="true">expand_more</span></summary>
-        <p>네, 무료로 내려받아 바로 시작할 수 있고 지금은 SQL 실행, 보기별 AI 해설, 최신 출제 경향까지 모든 기능이 열려 있어요. 나중에 Pro 이용권(1개월·3개월, 자동 결제 없음)이 생기면 무료로는 하루 일정량을 풀 수 있어요.</p>
+        <p>무료로 내려받아 바로 시작할 수 있어요. 무료로는 랜덤 풀기 하루 크레딧 10개(보너스로 더 받기 가능)와 오늘의 세트 5문제를 풀고, 세트 안에서는 SQL 실행과 정답 해설을 체험할 수 있어요. 모의고사 1회 체험, 시험 일정과 알림도 무료예요. Pro 이용권(1개월·3개월, 자동 결제 없음)은 제한 없는 풀이, 모든 문제 SQL 실행, 보기별 상세 답안지, 모의고사 전체와 과목별 분석, 약점 분석, 출제 경향, 광고 제거를 열어 줘요.</p>
       </details>
       <details class="faq-item">
         <summary>SQLD 시험 범위를 모두 다루나요?<span class="ms faq-chevron" aria-hidden="true">expand_more</span></summary>

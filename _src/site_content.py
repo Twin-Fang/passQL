@@ -10,7 +10,8 @@ from urllib.parse import urlparse
 GITHUB_PAGES_SITE_URL = "https://twin-fang.github.io/passQL/"
 CUSTOM_DOMAIN_HOST = "passql.suhsaechan.kr"
 CUSTOM_DOMAIN_SITE_URL = f"https://{CUSTOM_DOMAIN_HOST}/"
-# 도메인 이전 스위치: DNS(CNAME > twin-fang.github.io) 확인 후 True > 재생성 시 CNAME 파일·canonical·sitemap 이 새 주소로
+# GitHub Pages 커스텀 도메인 스위치: True 면 gh-pages 루트에 CNAME 파일까지 생성
+# 시놀로지 직접 서빙은 이 값과 무관하게 build_site.py --out <폴더> --custom-domain 으로 생성 (CNAME 없음)
 IS_CUSTOM_DOMAIN_ACTIVE = False
 SITE_URL = CUSTOM_DOMAIN_SITE_URL if IS_CUSTOM_DOMAIN_ACTIVE else GITHUB_PAGES_SITE_URL
 # 사이트 루트 경로: 404 처럼 깊이를 모르는 페이지의 절대 경로 기준 ("/passQL/" 또는 "/")
@@ -28,6 +29,14 @@ CONTACT_EMAIL = "chan4760@naver.com"
 # 법적 문구 원본: 운영 DB legal 테이블 (관리자 > 약관 관리에서 수정) > 빌드 시 이 API 로 읽음
 LEGAL_API_URL = "https://api.passql.suhsaechan.kr/api/meta/legal/"
 OG_IMAGE_URL = SITE_URL + "icon/og.png"
+
+
+def apply_site_url(site_url):
+    """빌드 중 사이트 주소 교체 (--custom-domain): 주소에서 나오는 값 3개를 함께 바꿈"""
+    global SITE_URL, SITE_ROOT_PATH, OG_IMAGE_URL
+    SITE_URL = site_url
+    SITE_ROOT_PATH = urlparse(site_url).path
+    OG_IMAGE_URL = site_url + "icon/og.png"
 
 # 운영자 표기 (푸터·JSON-LD). 빈 값이면 그 줄을 렌더하지 않음, 주소는 표기하지 않음
 # 앱·웹 원본(서버 app_setting business.*, #658)과 같은 값 유지
@@ -62,7 +71,8 @@ SQLD_SCHEDULE_STEPS = [
 
 # 무료·Pro 비교 노출 여부: 운영 결제 스위치(app_settings billing.android.enabled)와 맞춤
 # False = 결제 꺼짐 > 비교표 대신 "지금 모든 기능 무료" 안내 (#823). 가격은 스토어가 정하므로 숫자를 쓰지 않음
-IS_PRO_PLAN_VISIBLE = False
+# 운영 GET /api/meta/app-config isAndroidBillingEnabled: true 확인 (#1027)
+IS_PRO_PLAN_VISIBLE = True
 
 # 시험 범위: 운영 API /api/meta/topics 의 주제 9개 (sortOrder 순), 주제 설명은 일반 시험 범위 수준 (#1027)
 # 과락 = 과목 배점의 40% 미만 (1과목 20점 중 8점, 2과목 80점 중 32점)
@@ -108,7 +118,7 @@ PASS_EXAMPLES = [(4, 26), (3, 30), (10, 20), (5, 20)]
 # ── 첫 화면 ──
 HOME_TITLE = "SQLD 문제 풀이 앱 passQL — 교재 없이 앱 하나로 SQLD 준비"
 HOME_DESCRIPTION = ("교재 없이 앱 하나로 SQLD 준비. 최신 기출 경향 문제를 풀고 보기 SQL을 직접 실행해 보고, "
-                    "틀린 이유는 AI 해설로 확인하세요. 실전 모의고사, 시험 일정 알림, 오늘의 세트까지 무료로 시작.")
+                    "틀린 이유는 AI 해설로 확인하세요. 오늘의 세트, 모의고사 체험, 시험 일정 알림은 무료로 시작.")
 
 HERO_EYEBROW = "SQLD 자격증 문제 풀이 앱"
 HERO_TITLE_LEAD = "교재 없이,"
@@ -225,8 +235,8 @@ STAT_COUNTERS = [
     (5, "회차", "최근 기출 경향 분석"),
     (5, "문제", "매일 오늘의 세트"),
 ]
-# 결제 꺼짐 동안 네 번째 숫자 (IS_PRO_PLAN_VISIBLE False 일 때만)
-FREE_STAT_COUNTER = (0, "원", "지금은 모든 기능 무료")
+# 네 번째 숫자: 무료로 할 수 있는 것 (결제 켜짐·꺼짐 공통)
+FREE_STAT_COUNTER = (1, "회", "모의고사 무료 체험")
 
 # 기능 자세히 (화면 + 설명, 스크롤 효과): (캡처, 꼬리표, 제목, 설명, 떠 있는 카드 아이콘, 카드 글)
 SHOWCASE_ITEMS = [
@@ -247,25 +257,30 @@ SHOWCASE_ITEMS = [
      "speed", "정답률 78%"),
 ]
 
-# 무료·Pro 비교 (원본: main app/lib/presentation/widgets/pro/pro_plan_comparison_table.dart): (항목, 무료, Pro), None = 제공 안 함
+# 무료·Pro 비교 (원본: main app/lib/presentation/widgets/pro/pro_benefits.dart proBenefits, 숨김 행 제외): (항목, 무료, Pro), None = 제공 안 함
+# 무료 하루 크레딧 수 = pro_benefits.dart _fallbackDailyFreeLimit (서버 값이 바뀌면 함께 수정)
+FREE_DAILY_CREDIT_COUNT = 10
 PLAN_ROWS = [
-    ("문제 풀이", "하루 일정량", "제한 없음"),
-    ("AI 해설", "한 줄 요약", "보기별 전체"),
-    ("보기 SQL 직접 실행", None, "포함"),
-    ("실전 모드 · 토픽", None, "포함"),
-    ("최신 출제 경향", None, "포함"),
-    ("학습 통계", "기본", "약점 분석"),
+    ("랜덤 풀기", f"크레딧 하루 {FREE_DAILY_CREDIT_COUNT}개", "제한 없음"),
+    ("SQL 직접 실행", "오늘의 세트", "모든 문제"),
+    ("해설", "정답 해설 (세트 전체)", "보기별 상세 답안지"),
+    ("새 보기 · 토픽", None, "포함"),
+    ("출제 경향", None, "포함"),
+    ("통계", "기본", "약점 분석"),
+    ("광고 제거", None, "포함"),
 ]
-PLAN_NOTE = "Pro 이용권은 1개월·3개월 두 가지이며 자동 결제되지 않아요. 가격은 앱에서 확인할 수 있어요."
+PLAN_NOTE = ("모의고사는 무료로 1회 체험하고, Pro는 전체 회차와 과목별 분석까지 볼 수 있어요. 무료 크레딧은 보너스로 더 받을 수 있어요. "
+             "Pro 이용권은 1개월·3개월 두 가지이며 자동 결제되지 않아요. 가격은 앱에서 확인할 수 있어요.")
 
-# 결제 꺼짐 동안 비교표 대신 보이는 안내 (IS_PRO_PLAN_VISIBLE False)
-FREE_NOW_TITLE = "지금은 모든 기능이 무료예요"
-FREE_NOW_LEAD = "SQL 실행, 보기별 AI 해설, 최신 경향, 개념 학습까지 전부 열려 있어요. 가입만 하면 바로 풀 수 있어요."
+# 무료로 시작 안내 (비교표 위, 결제 켜짐·꺼짐 공통): 무료 범위는 pro_benefits.dart 무료 값과 맞춤
+FREE_NOW_TITLE = "무료로도 이만큼 할 수 있어요"
+FREE_NOW_LEAD = (f"가입만 하면 랜덤 풀기 하루 크레딧 {FREE_DAILY_CREDIT_COUNT}개와 오늘의 세트 5문제를 풀 수 있어요. "
+                 "세트 안에서는 SQL 실행과 정답 해설까지 체험해요.")
 FREE_NOW_POINTS = [
-    ("terminal", "보기 SQL 직접 실행"),
-    ("auto_awesome", "보기별 AI 해설"),
-    ("trending_up", "최신 출제 경향"),
-    ("school", "단원별 개념 학습"),
+    ("local_fire_department", "오늘의 세트 5문제"),
+    ("auto_awesome", "틀리면 정답 해설"),
+    ("timer", "모의고사 1회 체험"),
+    ("notifications_active", "시험 일정 · 알림"),
 ]
 
 FINAL_CTA_TITLE = "시험 전까지, 하루 5문제부터"
@@ -274,8 +289,9 @@ FINAL_CTA_LEAD = "오늘의 세트 한 번만 풀어 보세요. 어디가 약한
 # 앱 FAQ (첫 화면 + FAQPage JSON-LD)
 HOME_FAQS = [  # 앞 APP_FAQ_COUNT_ON_FAQ_PAGE 개는 FAQ 페이지에도 실림
     ("passQL은 무료인가요?",
-     "네, 무료로 내려받아 바로 시작할 수 있고 지금은 SQL 실행, 보기별 AI 해설, 최신 출제 경향까지 모든 기능이 열려 있어요. "
-     "나중에 Pro 이용권(1개월·3개월, 자동 결제 없음)이 생기면 무료로는 하루 일정량을 풀 수 있어요."),
+     f"무료로 내려받아 바로 시작할 수 있어요. 무료로는 랜덤 풀기 하루 크레딧 {FREE_DAILY_CREDIT_COUNT}개(보너스로 더 받기 가능)와 오늘의 세트 5문제를 풀고, "
+     "세트 안에서는 SQL 실행과 정답 해설을 체험할 수 있어요. 모의고사 1회 체험, 시험 일정과 알림도 무료예요. "
+     "Pro 이용권(1개월·3개월, 자동 결제 없음)은 제한 없는 풀이, 모든 문제 SQL 실행, 보기별 상세 답안지, 모의고사 전체와 과목별 분석, 약점 분석, 출제 경향, 광고 제거를 열어 줘요."),
     ("SQLD 시험 범위를 모두 다루나요?",
      "SQLD 두 과목의 범위를 9개 주제로 나눠 문제를 제공해요. 1과목 데이터 모델링, 2과목 SELECT·DDL/DML/TCL·함수·JOIN·서브쿼리·그룹함수·윈도우 함수·계층과 PIVOT이에요."),
     ("개념 공부도 앱에서 할 수 있나요?",

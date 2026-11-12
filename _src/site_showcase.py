@@ -71,9 +71,7 @@ def render_marquee():
 
 def render_stat_counters():
     """숫자로 보는 passQL: site.js 가 화면에 들어올 때 0부터 올림 (JS 없으면 최종 숫자)"""
-    counters = list(content.STAT_COUNTERS)
-    if not content.IS_PRO_PLAN_VISIBLE:
-        counters.append(content.FREE_STAT_COUNTER)
+    counters = list(content.STAT_COUNTERS) + [content.FREE_STAT_COUNTER]
     items = "".join(
         f"""
       <li class="stat reveal">
@@ -119,15 +117,13 @@ def render_showcase_section():
 
 
 def render_free_now_section():
-    """결제 꺼짐 동안 비교표 자리: 모든 기능 무료 안내 (IS_PRO_PLAN_VISIBLE 이 True 면 빈 문자열)"""
-    if content.IS_PRO_PLAN_VISIBLE:
-        return ""
+    """무료로 시작 안내 카드 (결제 켜짐이면 아래에 무료·Pro 비교표가 이어짐)"""
     points = "".join(f"<li>{render_symbol(icon_name)}{escape(text)}</li>" for icon_name, text in content.FREE_NOW_POINTS)
     return f"""
-<section id="plan" class="section">
+<section id="free" class="section">
   <div class="wrap narrow">
     <div class="free-card reveal">
-      <span class="free-badge">{render_symbol("celebration")}0원</span>
+      <span class="free-badge">{render_symbol("celebration")}무료로 시작</span>
       <h2>{escape(content.FREE_NOW_TITLE)}</h2>
       <p class="sec-lead">{escape(content.FREE_NOW_LEAD)}</p>
       <ul class="free-points">{points}</ul>
