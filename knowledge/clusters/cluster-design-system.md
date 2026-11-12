@@ -2,7 +2,7 @@
 type: cluster
 topic: design-system
 created: 2026-10-29
-members: 160
+members: 162
 status: active
 related: []
 ---
@@ -13,9 +13,10 @@ related: []
 디자인 토큰·공통 UI 컴포넌트·폰트·테마
 
 ## 현재 상태 요약
-(2026-11-07, 자동 생성) 활성 결정 50개, 열린 이슈 3개. 2026-11-07 main 머지(배포 전): 풀이 메모 컴포넌트 `PassqlMemoScope`([[ISS-0473-solving-memo-pen-toggle]]), 차트 `PassqlBarChart`([[DEC-0274-stats-radar-above-list-study-pattern-free]], DEC-0206 대체), 아바타 `PassqlAvatar`와 제공자 아이콘([[DEC-0276-account-provider-icon-email-avatar]], DEC-0263 대체), 지문 표 한 가지 모양과 테두리 SQL 상자([[DEC-0278-stem-blocks-single-table-shape]]). 코드 상자 속 한글은 본문 글꼴(DEC-0255 를 DEC-0278 이 대체, 코드 글꼴 D2Coding 부분 글꼴은 그대로). 코드 글꼴은 D2Coding 부분 글꼴(#849, 한글은 본문 글꼴로 바뀌어 [[DEC-0278-stem-blocks-single-table-shape]]가 대체). 하단 탭 바는 아이콘 + 라벨을 바 안 세로 가운데, 높이 50 — [[DEC-0241-tab-bar-content-vertically-centered]] (#817 릴리스 반영). 앱 아이콘은 연보라 그라데이션 + `pass`/`QL` 2줄 — [[DEC-0242-app-icon-lavender-two-line-pass-ql]] (main 머지, 작성 시점 미배포). 프로필 상단은 A안(카드형)이고 프로필·정보 시트 탑승권 칸 통일([[DEC-0208-pass-ticket-fields-unified]])은 대체됐으며, 이용권 행은 `/account` 한 곳·프로필은 "이용권 관리" 한 줄(DEC-0263 에서 정하고 [[DEC-0276-account-provider-icon-email-avatar]]가 이어받음). 이용권 혜택은 광고 제거를 더한 7개 — [[DEC-0262-pro-benefits-seven-ad-removal]] (DEC-0205 대체). 개념 글 `**` 는 외울 말 형광펜(`memorizeHighlight` 토큰) — [[DEC-0266-concept-bold-highlight-memorize-section]]. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 이용권 시트 작은 할인 배지·PRO 마크·보상 연출(`passql_reward_celebration`) — [[DEC-0284-pass-sheet-plain-copy-small-discount-badge]] (#963). (2026-11-12) 화면 원칙(정보 한 번만, 접지 않기, 한 단어 한 아이콘)을 `Design.md` 5장에 적음 — [[DEC-0287-credit-term-top-bar-balance]], [[DEC-0286-pass-sheet-comparison-table-price-cards]].
+(2026-11-07, 자동 생성) 활성 결정 50개, 열린 이슈 3개. 2026-11-07 main 머지(배포 전): 풀이 메모 컴포넌트 `PassqlMemoScope`([[ISS-0473-solving-memo-pen-toggle]]), 차트 `PassqlBarChart`([[DEC-0274-stats-radar-above-list-study-pattern-free]], DEC-0206 대체), 아바타 `PassqlAvatar`와 제공자 아이콘([[DEC-0276-account-provider-icon-email-avatar]], DEC-0263 대체), 지문 표 한 가지 모양과 테두리 SQL 상자([[DEC-0278-stem-blocks-single-table-shape]]). 코드 상자 속 한글은 본문 글꼴(DEC-0255 를 DEC-0278 이 대체, 코드 글꼴 D2Coding 부분 글꼴은 그대로). 코드 글꼴은 D2Coding 부분 글꼴(#849, 한글은 본문 글꼴로 바뀌어 [[DEC-0278-stem-blocks-single-table-shape]]가 대체). 하단 탭 바는 아이콘 + 라벨을 바 안 세로 가운데, 높이 50 — [[DEC-0241-tab-bar-content-vertically-centered]] (#817 릴리스 반영). 앱 아이콘은 연보라 그라데이션 + `pass`/`QL` 2줄 — [[DEC-0242-app-icon-lavender-two-line-pass-ql]] (main 머지, 작성 시점 미배포). 프로필 상단은 A안(카드형)이고 프로필·정보 시트 탑승권 칸 통일([[DEC-0208-pass-ticket-fields-unified]])은 대체됐으며, 이용권 행은 `/account` 한 곳·프로필은 "이용권 관리" 한 줄(DEC-0263 에서 정하고 [[DEC-0276-account-provider-icon-email-avatar]]가 이어받음). 이용권 혜택은 광고 제거를 더한 7개 — [[DEC-0262-pro-benefits-seven-ad-removal]] (DEC-0205 대체). 개념 글 `**` 는 외울 말 형광펜(`memorizeHighlight` 토큰) — [[DEC-0266-concept-bold-highlight-memorize-section]]. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 이용권 시트 작은 할인 배지·PRO 마크·보상 연출(`passql_reward_celebration`) — [[DEC-0284-pass-sheet-plain-copy-small-discount-badge]] (#963). (2026-11-12) 화면 원칙(정보 한 번만, 접지 않기, 한 단어 한 아이콘)을 `Design.md` 5장에 적음 — [[DEC-0287-credit-term-top-bar-balance]], [[DEC-0286-pass-sheet-comparison-table-price-cards]]. (2026-11-12) 지문 표 대체는 이름 기준, 코드 제목은 짧은 이름표 주석만 — [[DEC-0292-stem-table-match-by-name-short-code-caption]](DEC-0278 대체).
 
 ## 활성 결정
+- [[DEC-0292-stem-table-match-by-name-short-code-caption]] — 스키마 표는 이름이 같은 지문 표 자리에만, 코드 제목은 짧은 이름표 주석만 (#1015, DEC-0278 대체)
 - [[DEC-0017-fullscreen-result-screen]] — 제출 결과 화면은 풀스크린 1종으로 통일 (bottom sheet 변형 미채택)
 - [[DEC-0057-confirm-modal-bottom-sheet-all-sizes]] — `ConfirmModal`은 데스크톱도 화면 너비 100% 바텀시트 단일 레이아웃
 - [[DEC-0059-ai-question-terminology]] — 사용자 화면의 "문제"를 "AI문제"로 통일하고 lucide `Sparkles`를 AI 표시 전용 아이콘으로 쓴다
@@ -66,11 +67,11 @@ related: []
 - [[DEC-0266-concept-bold-highlight-memorize-section]] — 개념 글 `**` 형광펜, 개념마다 꼭 외울 것(`#memorize`, `| 외울 것 | 답 |`) 문단, 표 폭 빌드 점검 (#876)
 - [[DEC-0274-stats-radar-above-list-study-pattern-free]]: 영역별 정답률은 레이더 그래프 위, 목록 아래(토글 없음), 학습 패턴 무료, 정답률 상세(난이도, 오답 정리) 프로 (#909, DEC-0206 대체)
 - [[DEC-0276-account-provider-icon-email-avatar]]: 닉네임 변경은 계정 화면 관리에서만(펜 없음), 로그인 방법은 제공자 아이콘 + 이메일, 소셜 프로필 이미지, 최근 로그인 배지 (#908, DEC-0263 대체)
-- [[DEC-0278-stem-blocks-single-table-shape]]: 지문은 블록(단락, 보조 설명, 질문, 목록, 표, 코드)으로 앱과 웹 같은 규칙, 표는 지문 카드 안 한 가지 모양(컬럼 이름 + PK, FK, 행 전부), 같은 컬럼 표는 한 번 (#903)
 - [[DEC-0286-pass-sheet-comparison-table-price-cards]] — 이용권 시트: 나란한 가격 카드(줄 그은 정가 + -25%), 접지 않는 무료·프로 비교표, 탑승권 한 색 아이콘·수험생 (#966, DEC-0284 대체)
 - [[DEC-0287-credit-term-top-bar-balance]] — 무료 한도는 `크레딧`, 잔액은 탭 상단 바 알약(누르면 크레딧 시트: PRO 주 버튼 > 광고 > 오늘의 세트), 상태는 아이콘·색 (#966, #971)
 
 ## 대체된 결정 (역사)
+- [[DEC-0278-stem-blocks-single-table-shape]] → DEC-0292
 - [[DEC-0284-pass-sheet-plain-copy-small-discount-badge]] → DEC-0286
 - [[DEC-0018-four-tab-bottom-navigation]] → null
 - [[DEC-0022-design-md-single-source-of-truth]] → DEC-0121
@@ -85,6 +86,7 @@ related: []
 - [[DEC-0255-code-font-d2coding-subset]] → DEC-0278
 
 ## 관련 이슈
+- [[ISS-0502-stem-table-same-columns-overwritten]] (resolved, #1015): 이름 다른 같은 컬럼 표가 지문 표를 덮음, 제약 주석이 코드 제목으로
 - [[ISS-0497-ui-ux-cleanup-18]] (resolved, #993): 같은 정보 한 번·한 색 아이콘·공통 잠금 창
 - [[ISS-0498-second-audit-ui-state-35]] (resolved, #995): PassqlMessageSlot·PassqlLoadFailureCopy·날짜 형식 공통화
 - [[ISS-0495-welcome-guide-3d-illustration]] (resolved, GitHub #985, PR #986): 환영 일러스트 부품·크기 토큰, 큰 일러스트는 3D 허용
