@@ -16,7 +16,7 @@ const double _buttonBackgroundAlpha = 0.24;
 // 권유 한 줄 (이용권 시트 머리와 같은 문구)
 const String _headline = '제한 없이, 광고 없이 풀어요';
 
-/// 무료 업그레이드 배너 (#816 A안, 정보 줄임 #971): 한 줄 권유 > 대표 이용권 가격 + 정가 줄긋기 + 할인율 > 이용권 보기
+/// 무료 업그레이드 배너 (#816 A안, 정보 줄임 #971): PRO 젬 + 이름 > 한 줄 권유 > 대표 이용권 가격 + 정가 줄긋기 + 할인율 > 이용권 보기
 /// 대표 이용권 = 할인이 가장 큰 이용권(없으면 첫 칸). 스토어 가격을 못 읽으면(시뮬레이터 등) 가격 줄만 숨기고 버튼은 유지
 class ProfileUpgradeBanner extends ConsumerWidget {
   const ProfileUpgradeBanner({super.key});
@@ -44,11 +44,18 @@ class ProfileUpgradeBanner extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            'passQL PRO',
-            style: PassqlTypography.footnoteSemibold.copyWith(
-              color: subtleColor,
-            ),
+          // PRO 젬 + 이름: "제한 없이" 권유를 무한대 그림으로 먼저 보이게 (#1014)
+          Row(
+            children: [
+              const PassqlProIcon(size: PassqlIconSize.xl, isDecorative: true),
+              const SizedBox(width: PassqlSpacing.xxs),
+              Text(
+                'passQL PRO',
+                style: PassqlTypography.footnoteSemibold.copyWith(
+                  color: subtleColor,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: PassqlSpacing.xxs),
           Text(

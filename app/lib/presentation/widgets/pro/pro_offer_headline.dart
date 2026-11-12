@@ -4,7 +4,7 @@ import '../../../core/utils/exam_dday.dart';
 import '../../design/design.dart';
 import 'pro_benefits.dart';
 
-/// 프로 안내 시트 머리: PRO 마크 > 문장 제목 > 강조 혜택
+/// 프로 안내 시트 머리: PRO 젬(3D 스핀 등장) > 문장 제목 > 강조 혜택
 /// 이용 중이면 제목만 연장 문장 (N일 남은 이용권, 이어서 연장해요)
 class ProOfferHeadline extends StatelessWidget {
   const ProOfferHeadline({
@@ -41,9 +41,14 @@ class ProOfferHeadline extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // PRO = 무한 젬: 크게 한 바퀴 돌며 등장, 손가락으로 끌면 살짝 기욺 (#1014)
         const Align(
           alignment: Alignment.centerLeft,
-          child: PassqlProMark(shouldShowLabel: true),
+          child: Passql3dTilt(
+            isSpinningIn: true,
+            canDragTilt: true,
+            child: PassqlProIcon(size: PassqlIconSize.proOfferHero),
+          ),
         ),
         const SizedBox(height: PassqlSpacing.xs),
         // 「이용권」 글자 대신 숫자를 강조한 문장 제목 (스크린리더 머리글 역할)

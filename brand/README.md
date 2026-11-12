@@ -20,6 +20,7 @@ CI: `.github/workflows/PROJECT-COMMON-BRAND-ASSETS-CHECK.yaml` 이 `--check` 를
 | `app_icon_1024.png` | 앱 아이콘, 불투명 (1024x1024). `compose_app_icon.py` 가 가로 로고로 만든다 (연보라 그라데이션 `appIconGradient` 위 pass·QL) |
 | `app_icon_adaptive_foreground.png` | Android 적응형 아이콘 전경, 투명 (1024x1024). `compose_app_icon.py` 가 원형 안전 영역 안에 만든다 |
 | `credit_icon_1024.png` | 크레딧 아이콘, 투명 배경 (1024x1024, 3D 둥근 사각 젬 + 번개, #999 Codex 생성) |
+| `pro_icon_1024.png` | PRO 아이콘, 투명 배경 (1024x1024, 크레딧 젬과 같은 화풍의 둥근 사각 젬 + 무한대, #1014 생성). 1개월·3개월 공통 1종 |
 | `brand-colors.json` | 브랜드 색 (accent 라이트·다크, 아이콘 배경, 시작 화면 배경, OG 배경) |
 
 ## 사본 (원본 > 사본)
@@ -27,6 +28,7 @@ CI: `.github/workflows/PROJECT-COMMON-BRAND-ASSETS-CHECK.yaml` 이 `--check` 를
 | 원본 | 사본 | 만드는 방법 |
 |------|------|-------------|
 | `credit_icon_1024.png` | `app/assets/credit.png`, `app/assets/2.0x/credit.png`, `app/assets/3.0x/credit.png` | 투명 여백 잘라냄 > 여백 3% > 96·192·288px |
+| `pro_icon_1024.png` | `app/assets/pro_icon.png`, `app/assets/2.0x/pro_icon.png`, `app/assets/3.0x/pro_icon.png` | 크레딧과 같음: 투명 여백 잘라냄 > 여백 3% > 96·192·288px |
 | `logo_horizontal.png` | `app/assets/logo.png`, `server/PQL-Web/src/main/resources/static/images/logo.png` | 그대로 복사 |
 | `logo_horizontal.png` | `client/src/assets/logo/logo.png` | 높이 120px 축소 (웹 최대 표시 40px x 3배, 번들 크기 절감 #497) |
 | `logo_horizontal.png` | `app/assets/logo_dark.png`, `server/.../static/images/logo_dark.png` | 다크 변환: 불투명 픽셀 중 max(R,G,B)<120 이고 채도 차이<70 > 흰색, 알파 유지 (#453) |

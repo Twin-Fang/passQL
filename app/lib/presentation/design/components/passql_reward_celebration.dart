@@ -6,6 +6,7 @@ import '../../../core/utils/daily_set_bonus_rule.dart';
 import '../passql_haptics.dart';
 import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
+import 'passql_3d_tilt.dart';
 import 'passql_button.dart';
 import 'passql_code_block.dart';
 import 'passql_credit_icon.dart';
@@ -31,7 +32,7 @@ abstract final class PassqlRewardSql {
       'UPDATE 크레딧\nSET 오늘 = 오늘 + $bonusCreditCount;';
 }
 
-/// 보상 연출: 동전 팝·빛·불꽃 > +N 크레딧 > 이유 > UPDATE 한 줄·결과 > 오늘 크레딧 이전 > 이후 + 기본·보너스 게이지 > 주 버튼
+/// 보상 연출: 동전 3D 스핀·빛 쓸기·불꽃 > +N 크레딧 > 이유 > UPDATE 한 줄·결과 > 오늘 크레딧 이전 > 이후 + 기본·보너스 게이지 > 주 버튼
 /// [dailyBaseCreditCount] 오늘 기본 한도, [todayBonusCreditCount] 오늘 받은 보너스 합 (모르면 이번 보상 기준)
 Future<void> showPassqlRewardCelebration(
   BuildContext context, {
@@ -92,7 +93,8 @@ class _RewardCelebrationPanel extends StatefulWidget {
 class _RewardCelebrationPanelState extends State<_RewardCelebrationPanel>
     with SingleTickerProviderStateMixin {
   // 연출 구간 (전체 PassqlMotion.rewardCelebration 기준 비율)
-  static const Interval _coinInterval = Interval(0.07, 0.36);
+  // 동전 3D 스핀·빛 쓸기 (#1014): 약 0.1s > 1.05s, 한 바퀴 뒤 빛이 지나가도록 팝보다 길게
+  static const Interval _coinInterval = Interval(0.05, 0.5);
   static const Interval _glowInterval = Interval(0.07, 0.64);
   static const Interval _sparkInterval = Interval(0.18, 0.49);
   static const Interval _titleInterval = Interval(0.26, 0.43);
@@ -218,7 +220,7 @@ class _RewardCelebrationPanelState extends State<_RewardCelebrationPanel>
   }
 }
 
-/// 크레딧 동전: 빛 번짐 + 8개 불꽃 퍼짐 + 동전 팝(0 > 1.15 > 1배, -20° > 6° > 0°)
+/// 크레딧 동전: 빛 번짐 + 8개 불꽃 퍼짐 + 동전 3D 스핀 등장·빛 쓸기 (Passql3dTilt)
 class _RewardCoin extends StatelessWidget {
   const _RewardCoin({
     required this.coinProgress,
@@ -235,23 +237,6 @@ class _RewardCoin extends StatelessWidget {
   static const double _sparkDiameter = 6;
   static const double _sparkTravel = 60;
   static const double _glowOutset = 14;
-  // 동전 팝 키프레임 (70% 지점에서 가장 큼)
-  static const double _popPeakPoint = 0.7;
-  static const double _popPeakScale = 1.15;
-  static const double _startDegrees = -20;
-  static const double _peakDegrees = 6;
-
-  double _coinScaleOf(double progress) => progress < _popPeakPoint
-      ? _popPeakScale * progress / _popPeakPoint
-      : _popPeakScale -
-            (_popPeakScale - 1) *
-                (progress - _popPeakPoint) /
-                (1 - _popPeakPoint);
-
-  double _coinDegreesOf(double progress) => progress < _popPeakPoint
-      ? _startDegrees +
-            (_peakDegrees - _startDegrees) * progress / _popPeakPoint
-      : _peakDegrees * (1 - (progress - _popPeakPoint) / (1 - _popPeakPoint));
 
   @override
   Widget build(BuildContext context) {
@@ -260,23 +245,19 @@ class _RewardCoin extends StatelessWidget {
       child: SizedBox.square(
         dimension: PassqlIconSize.rewardCoin,
         child: AnimatedBuilder(
-          animation: coinProgress,
-          builder: (_, _) => Stack(
+          animation: Listenable.merge([glowProgress, sparkProgress]),
+          child: Passql3dTilt(
+            spinInProgress: coinProgress,
+            child: const PassqlCreditIcon(size: PassqlIconSize.rewardCoin),
+          ),
+          builder: (_, coin) => Stack(
             clipBehavior: Clip.none,
             alignment: Alignment.center,
             children: [
               _buildGlow(colors),
               for (var index = 0; index < _sparkCount; index++)
                 _buildSpark(colors, index),
-              Transform.rotate(
-                angle: _coinDegreesOf(coinProgress.value) * math.pi / 180,
-                child: Transform.scale(
-                  scale: _coinScaleOf(coinProgress.value),
-                  child: const PassqlCreditIcon(
-                    size: PassqlIconSize.rewardCoin,
-                  ),
-                ),
-              ),
+              coin!,
             ],
           ),
         ),

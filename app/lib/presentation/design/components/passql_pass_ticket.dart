@@ -6,6 +6,7 @@ import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
 import '../topic_appearance.dart';
 import 'passql_pressable.dart';
+import 'passql_pro_icon.dart';
 
 // 탑승권 조각 4개: 본문, 떼는 칸, 효과(빛줄기·홀로그램), 외곽·점선·바코드 그리기
 part 'pass_ticket/pass_ticket_body.dart';
@@ -158,6 +159,7 @@ class PassqlPassTicket extends StatelessWidget {
                     child: const SizedBox(width: PassqlSize.hairline * 2),
                   ),
                   _TicketStub(
+                    isPro: _isPro,
                     label: stubLabel,
                     textColor: _isPro ? colors.onAccent : colors.accentText,
                     barcodeColor: foreground,
