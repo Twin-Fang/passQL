@@ -193,7 +193,9 @@ class _HomeReadinessBody extends StatelessWidget {
         excludeSemantics: true,
         child: Row(
           children: [
-            const PassqlReadinessRing(value: 0),
+            PassqlActivityRings(
+              rings: [(value: 0, color: colors.accent)],
+            ),
             const SizedBox(width: PassqlSpacing.md),
             Expanded(
               child: Column(
@@ -231,15 +233,14 @@ class _HomeReadinessBody extends StatelessWidget {
           child: Row(
             children: [
               // 링 하나 = 합격 준비도 (가운데 점수)
-              PassqlReadinessRing(
-                value: readiness.score,
-                // 링이 차오르는 동안 숫자도 0에서 올라감
-                centerBuilder: (context, animatedValue) => Column(
+              PassqlActivityRings(
+                rings: [(value: readiness.score, color: colors.accent)],
+                center: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '${(animatedValue * 100).round()}%',
-                      style: PassqlTypography.title1.copyWith(
+                      '$scorePercent%',
+                      style: PassqlTypography.title2.copyWith(
                         color: colors.label,
                         fontFeatures: PassqlTypography.tabular,
                       ),
