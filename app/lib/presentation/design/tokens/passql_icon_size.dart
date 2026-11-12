@@ -12,4 +12,5 @@ abstract final class PassqlIconSize {
   static const double sheetHero = 30; // 안내 시트 대표 아이콘 (64pt 원 안)
   static const double statusPlaceholder = 44; // 빈·오류 상태 화면
   static const double resultMarkLarge = 64; // 채점 결과 큰 표시
+  static const double rewardCoin = 80; // 보상 창 크레딧 동전 (에셋 최대 72px@3x, 더 키우면 흐려짐, #999)
 }

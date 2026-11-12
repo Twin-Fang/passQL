@@ -15,16 +15,14 @@ String formatDottedMonthDay(DateTime time) =>
 String formatIsoDate(DateTime time) =>
     '${time.year}-${_twoDigits(time.month)}-${_twoDigits(time.day)}';
 
-/// "10월 2일 15:05" 형태로 표기한다. 날짜 라이브러리 없이 필요한 만큼만 쓴다.
+/// 시각 > "10월 2일 15:05"
 String formatMonthDayTime(DateTime time) =>
     '${formatMonthDay(time)} ${_twoDigits(time.hour)}:${_twoDigits(time.minute)}';
 
 /// "10/07 08:48" (월/일 24시간제 시각, 의견 작성 시각처럼 좁은 줄에 넣는 자리, #741)
-String formatSlashMonthDayTime(DateTime time) {
-  String twoDigits(int value) => value.toString().padLeft(2, '0');
-  return '${twoDigits(time.month)}/${twoDigits(time.day)} '
-      '${twoDigits(time.hour)}:${twoDigits(time.minute)}';
-}
+String formatSlashMonthDayTime(DateTime time) =>
+    '${_twoDigits(time.month)}/${_twoDigits(time.day)} '
+    '${_twoDigits(time.hour)}:${_twoDigits(time.minute)}';
 
 /// 두 시각이 같은 달력 날짜인가
 bool isSameCalendarDay(DateTime first, DateTime second) =>
@@ -49,11 +47,8 @@ String formatElapsedMinutesSeconds(Duration elapsed) {
 }
 
 /// 날짜 > "2026.10.18" (공지 게시일 등 날짜만 보이는 자리)
-String formatDottedDate(DateTime time) {
-  final month = time.month.toString().padLeft(2, '0');
-  final day = time.day.toString().padLeft(2, '0');
-  return '${time.year}.$month.$day';
-}
+String formatDottedDate(DateTime time) =>
+    '${time.year}.${_twoDigits(time.month)}.${_twoDigits(time.day)}';
 
 /// 시각 > "2027.01.26 23:59" (이용권 만료 시각)
 String formatDottedDateTime(DateTime time) =>
@@ -63,8 +58,8 @@ String formatDottedDateTime(DateTime time) =>
 String formatIso8601WithOffset(DateTime moment) {
   final offset = moment.timeZoneOffset;
   final sign = offset.isNegative ? '-' : '+';
-  final hours = offset.inHours.abs().toString().padLeft(2, '0');
-  final minutes = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
+  final hours = _twoDigits(offset.inHours.abs());
+  final minutes = _twoDigits(offset.inMinutes.abs() % 60);
   return '${moment.toIso8601String()}$sign$hours:$minutes';
 }
 

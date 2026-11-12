@@ -32,6 +32,12 @@ _$SubmitResultImpl _$$SubmitResultImplFromJson(
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  basicExplanation: json['basicExplanation'] as String?,
+  lockedExplanationOutline: json['lockedExplanationOutline'] == null
+      ? null
+      : ExplanationOutline.fromJson(
+          json['lockedExplanationOutline'] as Map<String, dynamic>,
+        ),
 );
 
 Map<String, dynamic> _$$SubmitResultImplToJson(_$SubmitResultImpl instance) =>
@@ -47,4 +53,6 @@ Map<String, dynamic> _$$SubmitResultImplToJson(_$SubmitResultImpl instance) =>
       'explanation': instance.explanation,
       'structuredExplanation': instance.structuredExplanation,
       'lockedSections': instance.lockedSections,
+      'basicExplanation': instance.basicExplanation,
+      'lockedExplanationOutline': instance.lockedExplanationOutline,
     };

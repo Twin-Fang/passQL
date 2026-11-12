@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import '../../../data/models/ai/choice_explanation.dart';
+import '../../../data/models/ai/explanation_outline.dart';
 import '../../design/design.dart';
 import '../../providers/ai_explanation_session_provider.dart';
 import '../pro/locked_preview_samples.dart';
@@ -8,13 +9,15 @@ import '../pro/pro_locked_section.dart';
 import '../question/markdown_lite_text.dart';
 import 'ai_explanation_choice_analysis_list.dart';
 import 'ai_explanation_inline_text.dart';
+import 'ai_explanation_outline_preview.dart';
 import 'ai_explanation_verdict.dart';
 
 /// 구조화 해설 본문: 판정 배지 > 정답 근거 > 시험 팁 > 핵심 개념 > 헷갈리는 지점 > 보기별 판단
 /// 시험 팁은 풀이 직후 가장 먼저 기억할 한 줄이라 긴 섹션보다 앞
 /// 비어 있는 섹션은 그리지 않음
-/// [isFullExplanationLocked] (무료, 결제 켜짐): 판정 아래 블러 (서버가 판정 외 섹션을 비워 보냄)
+/// [isFullExplanationLocked] (무료, 결제 켜짐): 판정 > 기본 해설 > 서버 구성 모양 그대로 흐린 상세 해설 (#999)
 /// [isVerdictAnimated]: 판정 줄 단어 단위 등장 > 끝난 뒤 나머지 섹션 차례로 (온보딩 예시)
+/// [isVerdictShown]: false 면 판정 줄 없이 (잠금 미리보기 안쪽)
 class AiExplanationSections extends StatelessWidget {
   const AiExplanationSections({
     super.key,
@@ -22,12 +25,22 @@ class AiExplanationSections extends StatelessWidget {
     required this.entry,
     this.isFullExplanationLocked = false,
     this.isVerdictAnimated = false,
+    this.isVerdictShown = true,
+    this.basicExplanation,
+    this.explanationOutline,
   });
 
   final ChoiceExplanation explanation;
   final AiExplanationEntry entry;
   final bool isFullExplanationLocked;
   final bool isVerdictAnimated;
+  final bool isVerdictShown;
+
+  /// 무료 기본 해설 (정답 보기 저장 근거, 잠겼을 때만 그림)
+  final String? basicExplanation;
+
+  /// 잠긴 상세 해설 구성 (없으면 고정 예시 미리보기)
+  final ExplanationOutline? explanationOutline;
 
   @override
   Widget build(BuildContext context) {
@@ -44,16 +57,33 @@ class AiExplanationSections extends StatelessWidget {
     final confusingPoints = explanation.confusingPoints
         .where((point) => point.trim().isNotEmpty)
         .toList();
+    final lockedBasicExplanation = basicExplanation?.trim() ?? '';
+    final lockedOutline = explanationOutline;
     final sections = <Widget>[
-      _VerdictBanner(
-        isCorrect: explanation.isSelectedCorrect,
-        verdict: verdict,
-        isAnimated: isVerdictAnimated,
-      ),
+      if (isVerdictShown)
+        _VerdictBanner(
+          isCorrect: explanation.isSelectedCorrect,
+          verdict: verdict,
+          isAnimated: isVerdictAnimated,
+        ),
+      if (isFullExplanationLocked && lockedBasicExplanation.isNotEmpty)
+        _ExplanationSection(
+          icon: CupertinoIcons.checkmark_seal_fill,
+          title: '정답 $correctLabel 해설',
+          toneColor: colors.correctText,
+          child: AiExplanationInlineText(lockedBasicExplanation),
+        ),
       if (isFullExplanationLocked)
-        const ProLockedSection(
-          preview: ExplanationLockedSample(),
+        ProLockedSection(
+          preview: lockedOutline == null
+              ? const ExplanationLockedSample()
+              : AiExplanationOutlinePreview(
+                  outline: lockedOutline,
+                  entry: entry,
+                ),
           caption: LockedPreviewCaptions.explanation,
+          // 상세 답안지는 길어서 안내를 위쪽에 (작은 화면도 첫 화면에 보이게)
+          isCaptionAtTop: true,
         ),
       if (explanation.correctReason.trim().isNotEmpty)
         _ExplanationSection(

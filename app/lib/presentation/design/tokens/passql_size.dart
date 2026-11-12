@@ -23,6 +23,8 @@ abstract final class PassqlSize {
   static const double scoreRingMini = 22; // 머리가 접혔을 때 제목 옆 고리
   static const double scoreRingMiniStroke = 4;
   static const double unitSegmentHeight = 6; // 단원 진행 칸 막대 (개념 하나 = 칸 하나)
+  static const double segmentedProgressHeight = 8; // 풀이 상단 칸 진행 바 (문제 하나 = 칸 하나, #999)
+  static const double rewardGaugeHeight = 12; // 보상 창 오늘 크레딧 게이지 (기본·보너스 구간, #999)
   static const double loginLogoHeight = 44;
   static const double footerLogoHeight = 20;
   static const double navBarLogoHeight = 24; // 홈 상단 바 워드마크 (바 높이 44 안, 종 아이콘과 시각 무게 맞춤)

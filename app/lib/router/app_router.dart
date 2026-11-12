@@ -358,9 +358,16 @@ abstract final class AppRouter {
       GoRoute(
         path: AppRoutes.onboardingCelebration,
         parentNavigatorKey: _rootKey,
-        builder: (_, state) => OnboardingCelebrationPage(
-          isLastQuestion: state.extra is bool && state.extra! as bool,
-        ),
+        builder: (_, state) {
+          // 인자가 없으면(복원 등) 1문제 세트로 보고 진행 바 1/1
+          final arguments = state.extra is OnboardingCelebrationArguments
+              ? state.extra! as OnboardingCelebrationArguments
+              : (isLastQuestion: false, setQuestionCount: 1);
+          return OnboardingCelebrationPage(
+            isLastQuestion: arguments.isLastQuestion,
+            setQuestionCount: arguments.setQuestionCount,
+          );
+        },
       ),
       GoRoute(
         path: AppRoutes.dailySetResult,

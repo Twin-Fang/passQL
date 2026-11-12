@@ -11,6 +11,7 @@ class ProLockedSection extends ConsumerWidget {
     super.key,
     required this.preview,
     required this.caption,
+    this.isCaptionAtTop = false,
   });
 
   /// 가짜 미리보기 (locked_preview_samples.dart)
@@ -19,11 +20,15 @@ class ProLockedSection extends ConsumerWidget {
   /// 가운데 한 줄 (LockedPreviewCaptions)
   final String caption;
 
+  /// 한 줄·버튼 위쪽 배치 (긴 미리보기용, PassqlLockedPreview 참고)
+  final bool isCaptionAtTop;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PassqlLockedPreview(
       preview: preview,
       caption: caption,
+      isCaptionAtTop: isCaptionAtTop,
       onUnlock: () => showProOfferSheet(context, ref),
     );
   }

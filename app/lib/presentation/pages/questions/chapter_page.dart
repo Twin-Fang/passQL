@@ -20,7 +20,6 @@ import '../../widgets/chapter/chapter_app_bar.dart';
 import '../../../data/models/question/question_detail.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/chapter/chapter_feedback_bar.dart';
-import '../../flows/random_practice_flow.dart';
 import '../../widgets/pro/pro_access_feedback.dart';
 import '../../widgets/question/choice_display_label.dart';
 import '../../../router/app_routes.dart';
@@ -195,7 +194,10 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
       _isShowingOnboardingCelebration = true;
       await context.push<void>(
         AppRoutes.onboardingCelebration,
-        extra: chapter.isLastQuestion,
+        extra: (
+          isLastQuestion: chapter.isLastQuestion,
+          setQuestionCount: chapter.questionUuids.length,
+        ),
       );
       _isShowingOnboardingCelebration = false;
       if (!mounted || _hasLeftFlow) return;
@@ -347,13 +349,16 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
       // 하단 바(글래스) 뒤로 본문이 비쳐 보이도록 body 를 바 아래까지 확장한다.
       extendBody: true,
       appBar: ChapterAppBar(
-        topicName: widget.flow.title,
+        flowTitle: widget.flow.title,
+        // 캡션 영역 이름: 지금 문제의 영역 (상세 로딩 전이면 흐름 이름만)
+        areaName: detailAsync.valueOrNull?.topicName,
         currentIndex: chapter.currentIndex,
         total: chapter.questionUuids.length,
-        isAnswered: chapter.isAnswered,
+        answeredCorrectness: [
+          for (final result in chapter.results) result.isCorrect,
+        ],
         shouldConfirmExit: hasStarted,
         accessory: const AiExplanationHistoryButton(),
-        shouldShowRemainingSolves: widget.flow is RandomPracticeFlow,
         isContinuous: widget.flow.isContinuous,
         onExit: widget.flow.isContinuous ? _leaveContinuousFlow : null,
       ),

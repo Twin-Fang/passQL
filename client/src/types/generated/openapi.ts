@@ -2588,12 +2588,15 @@ export interface components {
             verdict: string;
         };
         ChoiceExplanationResponse: {
+            /** @description 무료 기본 해설: 정답 보기에 저장된 근거 (FULL_EXPLANATION 잠긴 응답만) */
+            basicExplanation: string | null;
             /**
              * Format: uuid
              * @description 해설 대상 선택지 세트
              */
             choiceSetUuid: string;
             explanation: components["schemas"]["ChoiceExplanation"] | null;
+            lockedExplanationOutline: components["schemas"]["ExplanationOutline"] | null;
             /** @description 무료 회원 응답에서 뺀 묶음 이름 (FULL_EXPLANATION), 없으면 빈 목록 */
             lockedSections: string[];
             /**
@@ -2988,6 +2991,24 @@ export interface components {
             /** Format: uuid */
             questionUuid: string;
             sql?: string;
+        };
+        ExplanationOutline: {
+            /**
+             * Format: int32
+             * @description 보기 개수
+             */
+            choiceCount: number;
+            /** @description 섹션 목록 (화면 배치 순서) */
+            sections: components["schemas"]["ExplanationOutlineSection"][];
+        };
+        ExplanationOutlineSection: {
+            /** @description 항목별 대략 글자 수 (10자 단위 올림, 항목 수 = 목록 길이) */
+            itemCharacterCounts: number[];
+            /**
+             * @description 섹션 종류
+             * @enum {string}
+             */
+            kind: "CORRECT_REASON" | "EXAM_TIP" | "KEY_CONCEPTS" | "CONFUSING_POINTS" | "CHOICE_ANALYSES";
         };
         FeedbackSubmitRequest: {
             content: string;
@@ -3659,11 +3680,14 @@ export interface components {
             sessionUuid?: string | null;
         };
         SubmitResult: {
+            /** @description 무료 기본 해설: 정답 보기에 저장된 근거 (FULL_EXPLANATION 잠긴 응답만) */
+            basicExplanation: string | null;
             correctKey: string | null;
             correctResult: components["schemas"]["ExecuteResult"] | null;
             correctSql: string | null;
             explanation: string | null;
             isCorrect: boolean;
+            lockedExplanationOutline: components["schemas"]["ExplanationOutline"] | null;
             /** @description 무료 회원 응답에서 뺀 묶음 이름 (EXECUTION_RESULT, FULL_EXPLANATION), 없으면 빈 목록 */
             lockedSections: string[];
             rationale: string | null;

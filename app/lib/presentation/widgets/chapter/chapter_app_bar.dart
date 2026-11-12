@@ -4,29 +4,30 @@ import '../../design/design.dart';
 import '../practice/daily_limit_reward_sheet.dart';
 import '../practice/remaining_solves_pill.dart';
 
-/// 챕터 플로우 상단 바.
-///
-/// [닫기] | N / total | [topicName 뱃지]
-/// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 진행 막대
-/// 연속 흐름([isContinuous])은 제목이 흐름 이름(랜덤 풀기), 오른쪽은 해설함 + 크레딧 알약만, 진행 막대 없음 (#963, #971)
+/// 풀이 흐름 상단 바 (#999)
+/// [닫기] | 칸 N개 진행 바 | [해설함] [크레딧 알약]
+/// 흐름 이름 · 영역 이름 (작은 캡션)
+/// 연속 흐름([isContinuous], 랜덤 풀기)은 끝이 없어 칸 없이 캡션만, 닫기는 [onExit] (#963)
 class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final String topicName;
+  /// 흐름 이름 (오늘의 세트, 토픽 이름, 랜덤 풀기)
+  final String flowTitle;
+
+  /// 지금 문제의 영역 이름 (없거나 흐름 이름과 같으면 캡션에 흐름 이름만)
+  final String? areaName;
+
   final int currentIndex;
   final int total;
 
-  /// 제출 완료 여부 — true이면 프로그레스 바를 (currentIndex + 1) / total로 계산.
-  final bool isAnswered;
+  /// 앞에서부터 푼 문제의 정답 여부 (풀이 상태 provider 의 결과 그대로)
+  final List<bool> answeredCorrectness;
 
   /// 풀이를 시작했으면 홈으로 나가기 전에 확인한다(실수로 눌러 흐름을 잃지 않게).
   final bool shouldConfirmExit;
 
-  /// 토픽 뱃지 왼쪽 보조 버튼 (해설함 등)
+  /// 크레딧 알약 왼쪽 보조 버튼 (해설함 등)
   final Widget? accessory;
 
-  /// 랜덤 풀이면 크레딧 알약(아이콘 + 숫자)을 보조 버튼 옆에 붙임 (무료·결제 켜짐일 때만 그려짐)
-  final bool shouldShowRemainingSolves;
-
-  /// 끝없이 이어 푸는 흐름: 제목은 흐름 이름(몇 번째인지는 의미가 없어 적지 않음), 진행 막대 숨김
+  /// 끝없이 이어 푸는 흐름: 칸 진행 바 없음
   final bool isContinuous;
 
   /// 닫기 동작 대체 (있으면 확인 창 없이 이것만 호출, 연속 흐름의 요약 이동)
@@ -34,59 +35,113 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   const ChapterAppBar({
     super.key,
-    required this.topicName,
+    required this.flowTitle,
+    this.areaName,
     required this.currentIndex,
     required this.total,
-    required this.isAnswered,
+    required this.answeredCorrectness,
     this.shouldConfirmExit = false,
     this.accessory,
-    this.shouldShowRemainingSolves = false,
     this.isContinuous = false,
     this.onExit,
   });
 
-  double get _progress {
-    if (total == 0) return 0;
-    return isAnswered ? (currentIndex + 1) / total : currentIndex / total;
+  // 캡션 줄 높이 (footnote 한 줄 + 아래 여백)
+  static const double _captionRowHeight = 26;
+
+  @override
+  Size get preferredSize =>
+      const Size.fromHeight(PassqlSize.navBar + _captionRowHeight);
+
+  /// 결과·지금 위치 > 칸 상태 (푼 칸 정오, 지금 칸, 나머지 안 품)
+  List<PassqlProgressSegmentState> get _segmentStates => [
+    for (var index = 0; index < total; index++)
+      if (index < answeredCorrectness.length)
+        answeredCorrectness[index]
+            ? PassqlProgressSegmentState.correct
+            : PassqlProgressSegmentState.wrong
+      else if (index == currentIndex)
+        PassqlProgressSegmentState.current
+      else
+        PassqlProgressSegmentState.pending,
+  ];
+
+  /// 캡션: 흐름 이름 · 영역 이름 (영역이 없거나 같으면 흐름 이름만)
+  String get _caption {
+    final area = areaName;
+    if (area == null || area.isEmpty || area == flowTitle) return flowTitle;
+    return '$flowTitle · $area';
   }
 
-  // 내비게이션 바 + 진행 막대 높이 (연속 흐름은 막대 없음)
-  @override
-  Size get preferredSize => Size.fromHeight(
-    PassqlSize.navBar + (isContinuous ? 0 : PassqlSize.progressBarHeight),
-  );
+  Future<void> _onClosePressed(BuildContext context) async {
+    final onExit = this.onExit;
+    if (onExit != null) return onExit();
+    if (shouldConfirmExit && !await confirmChapterExit(context)) return;
+    if (context.mounted) leaveSolvingFlow(context);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        PassqlNavBar(
-          title: isContinuous ? topicName : '${currentIndex + 1} / $total',
-          leading: PassqlNavLeading.close,
-          onLeadingTap: () async {
-            final onExit = this.onExit;
-            if (onExit != null) return onExit();
-            if (shouldConfirmExit && !await confirmChapterExit(context)) return;
-            if (context.mounted) leaveSolvingFlow(context);
-          },
-          // 토픽 이름은 보조 정보라 오른쪽 작은 뱃지로 둔다 (연속 흐름은 제목이 이름이라 뱃지 없음)
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ?accessory,
-              // 누르면 탭 화면 상단 알약과 같은 크레딧 시트
-              if (shouldShowRemainingSolves)
-                RemainingSolvesPill(
-                  isCompact: true,
-                  onTap: () => showDailyLimitRewardSheet(context),
+    final colors = context.passqlColors;
+    return ColoredBox(
+      color: colors.background,
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: PassqlSize.navBar,
+              child: Row(
+                children: [
+                  // 닫기 아이콘이 화면 왼쪽 여백(md)에 맞게
+                  const SizedBox(width: PassqlSpacing.xxs),
+                  PassqlNavButton(
+                    kind: PassqlNavLeading.close,
+                    onTap: () => _onClosePressed(context),
+                  ),
+                  Expanded(
+                    child: isContinuous
+                        ? const SizedBox.shrink()
+                        : PassqlSegmentedProgress(
+                            segmentStates: _segmentStates,
+                            semanticValue: '${currentIndex + 1} / $total',
+                          ),
+                  ),
+                  const SizedBox(width: PassqlSpacing.xs),
+                  ?accessory,
+                  // 누르면 탭 화면 상단 알약과 같은 크레딧 시트 (프로·결제 꺼짐이면 그려지지 않음)
+                  RemainingSolvesPill(
+                    isCompact: true,
+                    onTap: () => showDailyLimitRewardSheet(context),
+                  ),
+                  const SizedBox(width: PassqlSpacing.md),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: _captionRowHeight,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: PassqlSpacing.md,
                 ),
-              if (!isContinuous) Flexible(child: PassqlBadge(text: topicName)),
-            ],
-          ),
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    _caption,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: PassqlTypography.footnoteSemibold.copyWith(
+                      color: colors.secondaryLabel,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-        if (!isContinuous) PassqlProgressBar(value: _progress),
-      ],
+      ),
     );
   }
 }

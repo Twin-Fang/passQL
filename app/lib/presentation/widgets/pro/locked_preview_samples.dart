@@ -4,7 +4,8 @@ import '../../design/design.dart';
 
 /// 잠금 자리별 가운데 한 줄 (스펙 4-1, 화면은 이 상수만 씀)
 abstract final class LockedPreviewCaptions {
-  static const String explanation = '보기마다 왜 맞고 틀린지 알려 드려요';
+  // 무료 해설 아래 상세 해설 자리 (#999)
+  static const String explanation = 'PRO 상세 답안지로 보기마다 왜 맞고 틀린지 봐요';
   static const String executionResult = '보기 SQL을 직접 실행해 결과를 비교해요';
   static const String practiceModes = '토픽을 골라 풀고 약점 추천도 받아요';
   static const String examTrend = '최근 기출 비중과 이번 회차 예상을 봐요';
@@ -16,6 +17,18 @@ abstract final class LockedPreviewCaptions {
   // 잠금화면 실행형 문제 결과 자리 (#990)
   static const String lockScreenExecutionResult = '내 답과 정답 SQL을 실행해 비교해요';
   static const String proAnalysis = 'AI 분석과 영역·난이도별 약점, 오답 정리를 봐요';
+}
+
+/// 잠긴 상세 해설 자리 글: 뜻 없는 한국어 음절 묶음, 길이만 서버 구성에 맞춤 (#999)
+abstract final class LockedPreviewPlaceholder {
+  static const String _repeatedText = '가나다라 마바사 아자차카 타파하 거너더 러머버서 어저처 커터퍼허 ';
+
+  /// [characterCount] 글자 자리 글 (반복해 자르고 끝 공백 제거)
+  static String textOfLength(int characterCount) {
+    if (characterCount <= 0) return '';
+    final repeatCount = characterCount ~/ _repeatedText.length + 1;
+    return (_repeatedText * repeatCount).substring(0, characterCount).trimRight();
+  }
 }
 
 // 가짜 미리보기: 서버의 잠긴 내용이 아니라 모양만 그럴듯한 고정 예시 (통신을 가로채도 얻을 것이 없게)

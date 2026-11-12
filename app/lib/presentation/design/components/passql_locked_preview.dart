@@ -16,6 +16,7 @@ class PassqlLockedPreview extends StatelessWidget {
     required this.caption,
     required this.onUnlock,
     this.unlockButtonLabel = unlockLabel,
+    this.isCaptionAtTop = false,
   });
 
   /// 흐리게 깔 그럴듯한 가짜 미리보기 (서버의 잠긴 내용이 아님)
@@ -27,6 +28,9 @@ class PassqlLockedPreview extends StatelessWidget {
 
   /// 알약 버튼 문구 (잠금 해제 후 앱에서 여는 자리처럼 뜻을 더 밝혀야 할 때만 바꿈)
   final String unlockButtonLabel;
+
+  /// 한 줄·버튼을 위쪽에 둘지 (긴 미리보기에서 작은 화면도 스크롤 없이 보이게), 기본은 가운데
+  final bool isCaptionAtTop;
 
   /// 알약 버튼 기본 문구 (모든 잠금 자리 공통)
   static const String unlockLabel = 'PRO로 보기';
@@ -85,11 +89,19 @@ class PassqlLockedPreview extends StatelessWidget {
                     ),
                   ),
                 ),
-                // 가운데 한 줄 + 알약 버튼
+                // 한 줄 + 알약 버튼 (가운데 또는 위쪽)
                 Positioned.fill(
-                  child: Center(
+                  child: Align(
+                    alignment: isCaptionAtTop
+                        ? Alignment.topCenter
+                        : Alignment.center,
                     child: Padding(
-                      padding: const EdgeInsets.all(PassqlSpacing.sm),
+                      padding: EdgeInsets.fromLTRB(
+                        PassqlSpacing.sm,
+                        isCaptionAtTop ? PassqlSpacing.xxl : PassqlSpacing.sm,
+                        PassqlSpacing.sm,
+                        PassqlSpacing.sm,
+                      ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [

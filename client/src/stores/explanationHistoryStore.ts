@@ -19,6 +19,8 @@ export interface ExplanationHistoryEntry {
   readonly initialExplanation: ChoiceExplanation | null;
   // 제출 응답의 잠긴 묶음 (무료면 FULL_EXPLANATION, #578)
   readonly initialLockedSections: readonly string[];
+  // 제출 응답의 무료 기본 해설 (정답 보기 저장 근거, 잠긴 응답만, #999)
+  readonly initialBasicExplanation: string | null;
   // 구조화 해설 실패 시 마크다운 폴백 (제출 응답 explanation 또는 rationale)
   readonly fallbackText: string | null;
 }
@@ -91,6 +93,7 @@ export function buildExplanationHistoryEntry({
     correctChoiceKey: result.correctKey ?? null,
     initialExplanation: result.structuredExplanation ?? null,
     initialLockedSections: result.lockedSections ?? [],
+    initialBasicExplanation: result.basicExplanation ?? null,
     fallbackText: result.explanation || result.rationale || null,
   };
 }

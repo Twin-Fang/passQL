@@ -167,6 +167,10 @@ extension MemberPlanDailyUsage on MemberPlanResponse {
   int get effectiveTodayFreeLimit =>
       todayFreeLimit > 0 ? todayFreeLimit : dailyFreeLimit;
 
+  /// 오늘 받은 보너스 합 (유효 한도 - 기본 한도, 보상 창 게이지 보너스 구간)
+  int get todayBonusFreeLimit => (effectiveTodayFreeLimit - dailyFreeLimit)
+      .clamp(0, effectiveTodayFreeLimit);
+
   /// 오늘 무료 랜덤 한도를 다 썼는가 (한도 0 = 결제 꺼짐·값 없음이면 false)
   bool get isDailyFreeLimitReached =>
       effectiveTodayFreeLimit > 0 &&

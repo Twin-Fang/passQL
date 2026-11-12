@@ -27,7 +27,6 @@ List<Widget> buildLockScreenSettingsRows(WidgetRef ref) {
 }
 
 /// 잠금화면 문제 토글: 켤 때 필수 권한 없으면 권한 단계로, 켜진 뒤 권한이 빠지면 "권한 필요"(누르면 권한 단계)
-/// 한 번도 안 켰으면 NEW 배지
 class LockScreenToggleTile extends ConsumerStatefulWidget {
   const LockScreenToggleTile({super.key});
 
@@ -75,7 +74,6 @@ class _LockScreenToggleTileState extends ConsumerState<LockScreenToggleTile> {
     final lockScreenState = lockScreenAsync.valueOrNull;
     final isEnabled = lockScreenState?.settings.isEnabled ?? false;
     final isPermissionMissing = lockScreenState?.isPermissionMissing ?? false;
-    final isNew = lockScreenState != null && !lockScreenState.hasEverEnabled;
     return SettingsRow(
       icon: CupertinoIcons.lock_fill,
       iconColor: colors.accent,
@@ -85,20 +83,11 @@ class _LockScreenToggleTileState extends ConsumerState<LockScreenToggleTile> {
       onTap: isPermissionMissing
           ? () => context.push(AppRoutes.lockScreenPermission)
           : null,
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (isNew) ...[
-            const PassqlBadge(text: 'NEW', kind: PassqlBadgeKind.important),
-            const SizedBox(width: PassqlSpacing.xs),
-          ],
-          CupertinoSwitch(
-            value: isEnabled,
-            activeTrackColor: colors.accent,
-            // 읽는 중에는 값을 모르므로 막음
-            onChanged: lockScreenAsync.hasValue ? _change : null,
-          ),
-        ],
+      trailing: CupertinoSwitch(
+        value: isEnabled,
+        activeTrackColor: colors.accent,
+        // 읽는 중에는 값을 모르므로 막음
+        onChanged: lockScreenAsync.hasValue ? _change : null,
       ),
     );
   }

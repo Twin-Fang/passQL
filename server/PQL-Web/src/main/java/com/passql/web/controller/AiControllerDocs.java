@@ -67,6 +67,7 @@ public interface AiControllerDocs {
   @ApiLogs({
       @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 521, description = "선택지 구조화 해설 조회 API 추가 (기다리지 않고 READY/GENERATING/FAILED 상태 반환, 생성 중이면 재조회)"),
       @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 992, description = "오늘의 세트 문제는 무료 회원도 전체 해설 (lockedSections 에 FULL_EXPLANATION 없음)"),
+      @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 999, description = "FULL_EXPLANATION 잠긴 응답: basicExplanation·lockedExplanationOutline 추가, 생성 중·실패도 READY (무료 몫은 기다릴 AI 글 없음)"),
   })
   @Operation(
       summary = "선택지 구조화 해설 조회",

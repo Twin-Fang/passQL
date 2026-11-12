@@ -2,7 +2,7 @@
 type: cluster
 topic: design-system
 created: 2026-10-29
-members: 158
+members: 160
 status: active
 related: []
 ---
@@ -85,6 +85,8 @@ related: []
 - [[DEC-0255-code-font-d2coding-subset]] → DEC-0278
 
 ## 관련 이슈
+- [[ISS-0497-ui-ux-cleanup-18]] (resolved, #993): 같은 정보 한 번·한 색 아이콘·공통 잠금 창
+- [[ISS-0498-second-audit-ui-state-35]] (resolved, #995): PassqlMessageSlot·PassqlLoadFailureCopy·날짜 형식 공통화
 - [[ISS-0495-welcome-guide-3d-illustration]] (resolved, GitHub #985, PR #986): 환영 일러스트 부품·크기 토큰, 큰 일러스트는 3D 허용
 - [[ISS-0491-first-run-guide-home-next-step]] (resolved, GitHub #975): 첫 화면·홈에 차별점과 지금 할 일이 없음, 무료 회원 안내 구간 없음
 - [[ISS-0489-pass-sheet-home-profile-cleanup]] (resolved, GitHub #966, PR #968): 이용권 시트 혜택 접기·정가 없는 할인, 잠금 문구 딱딱함, 홈·프로필 카드에 기능이 섞임

@@ -35,7 +35,11 @@ mixin _$ChoiceExplanationResponse {
   int? get retryAfterMilliseconds => throw _privateConstructorUsedError;
   int? get promptVersion =>
       throw _privateConstructorUsedError; // 무료 응답에서 뺀 묶음 이름 (FULL_EXPLANATION), 없으면 빈 목록
-  List<String> get lockedSections => throw _privateConstructorUsedError;
+  List<String> get lockedSections =>
+      throw _privateConstructorUsedError; // 무료 기본 해설·잠긴 상세 해설 구성 (FULL_EXPLANATION 잠긴 응답만, #999)
+  String? get basicExplanation => throw _privateConstructorUsedError;
+  ExplanationOutline? get lockedExplanationOutline =>
+      throw _privateConstructorUsedError;
 
   /// Serializes this ChoiceExplanationResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -64,9 +68,12 @@ abstract class $ChoiceExplanationResponseCopyWith<$Res> {
     int? retryAfterMilliseconds,
     int? promptVersion,
     List<String> lockedSections,
+    String? basicExplanation,
+    ExplanationOutline? lockedExplanationOutline,
   });
 
   $ChoiceExplanationCopyWith<$Res>? get explanation;
+  $ExplanationOutlineCopyWith<$Res>? get lockedExplanationOutline;
 }
 
 /// @nodoc
@@ -95,6 +102,8 @@ class _$ChoiceExplanationResponseCopyWithImpl<
     Object? retryAfterMilliseconds = freezed,
     Object? promptVersion = freezed,
     Object? lockedSections = null,
+    Object? basicExplanation = freezed,
+    Object? lockedExplanationOutline = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -130,6 +139,14 @@ class _$ChoiceExplanationResponseCopyWithImpl<
                 ? _value.lockedSections
                 : lockedSections // ignore: cast_nullable_to_non_nullable
                       as List<String>,
+            basicExplanation: freezed == basicExplanation
+                ? _value.basicExplanation
+                : basicExplanation // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            lockedExplanationOutline: freezed == lockedExplanationOutline
+                ? _value.lockedExplanationOutline
+                : lockedExplanationOutline // ignore: cast_nullable_to_non_nullable
+                      as ExplanationOutline?,
           )
           as $Val,
     );
@@ -146,6 +163,22 @@ class _$ChoiceExplanationResponseCopyWithImpl<
 
     return $ChoiceExplanationCopyWith<$Res>(_value.explanation!, (value) {
       return _then(_value.copyWith(explanation: value) as $Val);
+    });
+  }
+
+  /// Create a copy of ChoiceExplanationResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ExplanationOutlineCopyWith<$Res>? get lockedExplanationOutline {
+    if (_value.lockedExplanationOutline == null) {
+      return null;
+    }
+
+    return $ExplanationOutlineCopyWith<$Res>(_value.lockedExplanationOutline!, (
+      value,
+    ) {
+      return _then(_value.copyWith(lockedExplanationOutline: value) as $Val);
     });
   }
 }
@@ -169,10 +202,14 @@ abstract class _$$ChoiceExplanationResponseImplCopyWith<$Res>
     int? retryAfterMilliseconds,
     int? promptVersion,
     List<String> lockedSections,
+    String? basicExplanation,
+    ExplanationOutline? lockedExplanationOutline,
   });
 
   @override
   $ChoiceExplanationCopyWith<$Res>? get explanation;
+  @override
+  $ExplanationOutlineCopyWith<$Res>? get lockedExplanationOutline;
 }
 
 /// @nodoc
@@ -201,6 +238,8 @@ class __$$ChoiceExplanationResponseImplCopyWithImpl<$Res>
     Object? retryAfterMilliseconds = freezed,
     Object? promptVersion = freezed,
     Object? lockedSections = null,
+    Object? basicExplanation = freezed,
+    Object? lockedExplanationOutline = freezed,
   }) {
     return _then(
       _$ChoiceExplanationResponseImpl(
@@ -236,6 +275,14 @@ class __$$ChoiceExplanationResponseImplCopyWithImpl<$Res>
             ? _value._lockedSections
             : lockedSections // ignore: cast_nullable_to_non_nullable
                   as List<String>,
+        basicExplanation: freezed == basicExplanation
+            ? _value.basicExplanation
+            : basicExplanation // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        lockedExplanationOutline: freezed == lockedExplanationOutline
+            ? _value.lockedExplanationOutline
+            : lockedExplanationOutline // ignore: cast_nullable_to_non_nullable
+                  as ExplanationOutline?,
       ),
     );
   }
@@ -254,6 +301,8 @@ class _$ChoiceExplanationResponseImpl implements _ChoiceExplanationResponse {
     this.retryAfterMilliseconds,
     this.promptVersion,
     final List<String> lockedSections = const [],
+    this.basicExplanation,
+    this.lockedExplanationOutline,
   }) : _lockedSections = lockedSections;
 
   factory _$ChoiceExplanationResponseImpl.fromJson(Map<String, dynamic> json) =>
@@ -291,9 +340,15 @@ class _$ChoiceExplanationResponseImpl implements _ChoiceExplanationResponse {
     return EqualUnmodifiableListView(_lockedSections);
   }
 
+  // 무료 기본 해설·잠긴 상세 해설 구성 (FULL_EXPLANATION 잠긴 응답만, #999)
+  @override
+  final String? basicExplanation;
+  @override
+  final ExplanationOutline? lockedExplanationOutline;
+
   @override
   String toString() {
-    return 'ChoiceExplanationResponse(choiceSetUuid: $choiceSetUuid, selectedChoiceKey: $selectedChoiceKey, status: $status, explanation: $explanation, text: $text, retryAfterMilliseconds: $retryAfterMilliseconds, promptVersion: $promptVersion, lockedSections: $lockedSections)';
+    return 'ChoiceExplanationResponse(choiceSetUuid: $choiceSetUuid, selectedChoiceKey: $selectedChoiceKey, status: $status, explanation: $explanation, text: $text, retryAfterMilliseconds: $retryAfterMilliseconds, promptVersion: $promptVersion, lockedSections: $lockedSections, basicExplanation: $basicExplanation, lockedExplanationOutline: $lockedExplanationOutline)';
   }
 
   @override
@@ -316,7 +371,14 @@ class _$ChoiceExplanationResponseImpl implements _ChoiceExplanationResponse {
             const DeepCollectionEquality().equals(
               other._lockedSections,
               _lockedSections,
-            ));
+            ) &&
+            (identical(other.basicExplanation, basicExplanation) ||
+                other.basicExplanation == basicExplanation) &&
+            (identical(
+                  other.lockedExplanationOutline,
+                  lockedExplanationOutline,
+                ) ||
+                other.lockedExplanationOutline == lockedExplanationOutline));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -331,6 +393,8 @@ class _$ChoiceExplanationResponseImpl implements _ChoiceExplanationResponse {
     retryAfterMilliseconds,
     promptVersion,
     const DeepCollectionEquality().hash(_lockedSections),
+    basicExplanation,
+    lockedExplanationOutline,
   );
 
   /// Create a copy of ChoiceExplanationResponse
@@ -361,6 +425,8 @@ abstract class _ChoiceExplanationResponse implements ChoiceExplanationResponse {
     final int? retryAfterMilliseconds,
     final int? promptVersion,
     final List<String> lockedSections,
+    final String? basicExplanation,
+    final ExplanationOutline? lockedExplanationOutline,
   }) = _$ChoiceExplanationResponseImpl;
 
   factory _ChoiceExplanationResponse.fromJson(Map<String, dynamic> json) =
@@ -382,7 +448,11 @@ abstract class _ChoiceExplanationResponse implements ChoiceExplanationResponse {
   @override
   int? get promptVersion; // 무료 응답에서 뺀 묶음 이름 (FULL_EXPLANATION), 없으면 빈 목록
   @override
-  List<String> get lockedSections;
+  List<String> get lockedSections; // 무료 기본 해설·잠긴 상세 해설 구성 (FULL_EXPLANATION 잠긴 응답만, #999)
+  @override
+  String? get basicExplanation;
+  @override
+  ExplanationOutline? get lockedExplanationOutline;
 
   /// Create a copy of ChoiceExplanationResponse
   /// with the given fields replaced by the non-null parameter values.
