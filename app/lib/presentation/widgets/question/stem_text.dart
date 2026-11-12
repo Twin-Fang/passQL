@@ -74,7 +74,8 @@ class _StemBlockView extends StatelessWidget {
             _CodeCaption(caption: caption),
             const SizedBox(height: PassqlSpacing.xxs),
           ],
-          PassqlCodeBlock(code: code),
+          // 캡션이 아닌 제약 설명 `--` 주석은 코드 안 회색 줄
+          PassqlCodeBlock(code: code, shouldColorCommentLines: true),
         ],
       ),
     };
