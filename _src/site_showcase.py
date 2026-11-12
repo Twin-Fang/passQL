@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
-"""첫 화면 움직이는 조각 (#823): 폰 목업·첫 화면 폰·주제 띠·숫자·기능 자세히·무료 안내
-움직임은 site.js(화면 바꾸기·스크롤 기울기·숫자 올리기), 모양은 effects.css
+"""첫 화면 조각 (#823, #1027): 폰 목업·첫 화면 폰·주제 띠·숫자·기능 자세히·중간 다운로드·시험 정보·무료 안내
+움직임은 site.js(화면 바꾸기·스크롤 기울기·숫자 올리기), 모양은 effects.css·style.css
 """
 
 import site_content as content
-from site_head import escape, render_symbol
+from site_head import escape, render_store_buttons, render_symbol
+from site_schedule import format_step_dates, to_exam_name
+
+# 첫 화면 시험 정보 카드에 보이는 기본 정보 항목 (SQLD_EXAM_FACTS 의 항목 이름)
+HOME_EXAM_FACT_LABELS = ["문항 수", "합격", "과락", "응시료"]
 
 # 캡처 원본 크기 비율 (1206x2622 > WebP 560 폭)
 SCREENSHOT_WIDTH_PIXELS = 560
@@ -127,6 +131,67 @@ def render_free_now_section():
       <h2>{escape(content.FREE_NOW_TITLE)}</h2>
       <p class="sec-lead">{escape(content.FREE_NOW_LEAD)}</p>
       <ul class="free-points">{points}</ul>
+    </div>
+  </div>
+</section>"""
+
+
+def render_exam_info_section(next_round):
+    """시험 정보 허브: 기본 정보 4칸 + 다음 시험 일정 + 안내 페이지 바로가기"""
+    fact_by_label = {label: (icon_name, value, note) for icon_name, label, value, note in content.SQLD_EXAM_FACTS}
+    facts = "".join(
+        f"""
+          <li>{render_symbol(fact_by_label[label][0])}<span>{escape(label)}</span><strong>{escape(fact_by_label[label][1])}</strong></li>"""
+        for label in HOME_EXAM_FACT_LABELS
+    )
+    steps = "".join(
+        f"""
+          <li>{render_symbol(icon_name)}<span>{escape(step_name)}</span><strong>{escape(format_step_dates(next_round, step_key))}</strong></li>"""
+        for step_key, step_name, icon_name in content.SQLD_SCHEDULE_STEPS
+    )
+    links = "".join(
+        f"""
+        <a class="related-card" href="{path}"><span class="related-icon">{render_symbol(page["icon"])}</span>"""
+        f"""<span><strong>{escape(page["menu_name"])}</strong><small>{escape(page["summary"])}</small></span>{render_symbol("arrow_forward", "related-arrow")}</a>"""
+        for path, page in content.GUIDE_PAGES.items()
+    )
+    return f"""
+<section id="exam" class="section">
+  <div class="wrap">
+    <p class="kicker">SQLD 시험 정보</p>
+    <h2>시험 정보도 여기서 한 번에</h2>
+    <p class="sec-lead">일정, 과목, 합격 기준, 공부 방법까지. 공식 공고를 바탕으로 정리했어요.</p>
+    <div class="exam-hub">
+      <div class="exam-card">
+        <h3>{render_symbol("checklist")}SQLD 한눈에</h3>
+        <ul class="exam-facts">{facts}
+        </ul>
+        <a class="exam-more" href="sqld/pass/">합격 기준 자세히 {render_symbol("arrow_forward")}</a>
+      </div>
+      <div class="exam-card exam-card-accent">
+        <h3>{render_symbol("calendar_month")}다음 시험 · {escape(to_exam_name(next_round))}</h3>
+        <ul class="exam-steps">{steps}
+        </ul>
+        <a class="exam-more" href="sqld/schedule/">{content.SQLD_EXAM_YEAR} 전체 일정 보기 {render_symbol("arrow_forward")}</a>
+      </div>
+    </div>
+    <div class="related-grid exam-links">{links}
+    </div>
+  </div>
+</section>"""
+
+
+def render_mid_cta():
+    """기능 자세히 다음 중간 다운로드 띠 (CTA 반복)"""
+    return f"""
+<section class="mid-cta">
+  <div class="wrap">
+    <div class="mid-cta-in">
+      <div>
+        <p class="mid-cta-title">교재 없이, 오늘 5문제부터</p>
+        <p class="mid-cta-lead">무료로 내려받아 소셜 계정으로 바로 시작해요.</p>
+      </div>
+      {render_store_buttons("", "cta-compact")}
     </div>
   </div>
 </section>"""

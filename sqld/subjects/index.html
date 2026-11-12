@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQLD 과목·출제 범위 — 1과목·2과목 주제 9개 정리 | passQL</title>
+<meta name="description" content="SQLD 1과목 데이터 모델링의 이해(10문항)와 2과목 SQL 기본 및 활용(40문항)의 출제 범위를 SELECT, JOIN, 서브쿼리, 윈도우 함수 등 주제 9개로 나눠 설명해요.">
+<link rel="canonical" href="https://twin-fang.github.io/passQL/sqld/subjects/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="passQL">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="SQLD 과목·출제 범위 — 1과목·2과목 주제 9개 정리 | passQL">
+<meta property="og:description" content="SQLD 1과목 데이터 모델링의 이해(10문항)와 2과목 SQL 기본 및 활용(40문항)의 출제 범위를 SELECT, JOIN, 서브쿼리, 윈도우 함수 등 주제 9개로 나눠 설명해요.">
+<meta property="og:url" content="https://twin-fang.github.io/passQL/sqld/subjects/">
+<meta property="og:image" content="https://twin-fang.github.io/passQL/icon/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="passQL — SQLD 문제 풀이 앱">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SQLD 과목·출제 범위 — 1과목·2과목 주제 9개 정리 | passQL">
+<meta name="twitter:description" content="SQLD 1과목 데이터 모델링의 이해(10문항)와 2과목 SQL 기본 및 활용(40문항)의 출제 범위를 SELECT, JOIN, 서브쿼리, 윈도우 함수 등 주제 9개로 나눠 설명해요.">
+<meta name="twitter:image" content="https://twin-fang.github.io/passQL/icon/og.png">
+<meta name="apple-itunes-app" content="app-id=6762165005">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="../../favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../../icon/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../../icon/favicon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0..1,0&amp;icon_names=arrow_forward,auto_awesome,calendar_month,category,celebration,check_circle,checklist,chevron_left,chevron_right,close,compare_arrows,description,download,edit_note,event,expand_more,fact_check,flag,forum,help,how_to_reg,language,lightbulb,local_fire_department,mail,menu_book,notifications_active,open_in_new,payments,person,quiz,remove,route,schedule,school,shuffle,speed,terminal,timer,trending_up,update,verified,workspace_premium&amp;display=block">
+<link rel="stylesheet" href="../../style.css">
+<link rel="stylesheet" href="../../effects.css">
+<script>document.documentElement.classList.add("js")</script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "BreadcrumbList",
+ "itemListElement": [
+  {
+   "@type": "ListItem",
+   "position": 1,
+   "name": "passQL",
+   "item": "https://twin-fang.github.io/passQL/"
+  },
+  {
+   "@type": "ListItem",
+   "position": 2,
+   "name": "SQLD 안내",
+   "item": "https://twin-fang.github.io/passQL/sqld/"
+  },
+  {
+   "@type": "ListItem",
+   "position": 3,
+   "name": "과목·범위",
+   "item": "https://twin-fang.github.io/passQL/sqld/subjects/"
+  }
+ ]
+}
+</script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "FAQPage",
+ "mainEntity": [
+  {
+   "@type": "Question",
+   "name": "SQLD 시험은 어떻게 구성되나요?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "필기 시험만 있습니다. 데이터 모델링의 이해 10문항, SQL 기본 및 활용 40문항, 모두 50문항 객관식이며 시험 시간은 90분입니다."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "SQLD는 어려운가요?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "50문항 중 40문항이 SQL이고, 짧은 쿼리의 결과 행 수나 값을 직접 따라가 계산하는 문제가 많습니다. SQL을 처음 본다면 문법을 외우기보다 결과를 확인하며 익히는 시간이 필요합니다."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "SQLD와 SQLP는 무엇이 다른가요?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "SQLP(SQL 전문가)는 상위 자격으로 필기 3과목에 실기가 더해지고, 응시 자격 요건이 있습니다. SQLD 범위인 데이터 모델링과 SQL 기본 및 활용은 SQLP 필기와 겹칩니다."
+   }
+  }
+ ]
+}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">본문으로 건너뛰기</a>
+<nav class="nav" aria-label="주요 메뉴">
+  <div class="nav-in">
+    <a class="nav-brand" href="../../">
+      <img class="brand-mark" src="../../icon/mark.png" width="28" height="28" alt="" aria-hidden="true">
+      passQL
+    </a>
+    <div class="nav-menu">
+      <a href="../../sqld/schedule/">시험 일정</a>
+      <a href="../../sqld/subjects/" aria-current="page">과목·범위</a>
+      <a href="../../sqld/pass/">합격 기준</a>
+      <a href="../../sqld/study/">공부 방법</a>
+      <a href="../../sqld/faq/">자주 묻는 질문</a>
+      <a href="../../sqlp/">SQLP 안내</a>
+    </div>
+    <a class="nav-cta" href="https://apps.apple.com/kr/app/passql/id6762165005" rel="noopener" data-android-href="https://play.google.com/store/apps/details?id=com.coldredrice.passql"><span class="ms" aria-hidden="true">download</span>앱 받기</a>
+  </div>
+</nav>
+
+<main id="main">
+<header class="hero hero-guide">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="현재 위치"><ol><li><a href="../../">passQL</a></li><li><a href="../../sqld/">SQLD 안내</a></li><li aria-current="page">과목·범위</li></ol></nav>
+    <h1>SQLD <span class="hl">과목·출제 범위</span></h1>
+    <p class="lead">SQLD는 1과목 데이터 모델링의 이해와 2과목 SQL 기본 및 활용, 두 과목으로 치러요. 과목별 문항 수와 주제 9개를 정리했어요.</p>
+  </div>
+</header>
+
+<section class="section-tight ">
+  <div class="wrap">
+    <h2>두 과목, 50문항</h2>
+    <p class="sec-lead">1과목은 10문항이지만 과락이 있어 버릴 수 없고, 2과목 SQL이 배점의 80%를 차지해요.</p>
+    <div class="subject-overview-grid">
+      <article class="subject-overview">
+        <h3>1과목 · 데이터 모델링의 이해</h3>
+        <div class="subject-numbers">
+          <p><strong>10</strong><span>문항</span></p>
+          <p><strong>20</strong><span>점 배점</span></p>
+          <p><strong>8</strong><span>점 미만 과락</span></p>
+        </div>
+        <div class="share-bar" role="img" aria-label="전체 배점 중 20%"><span style="width:20%"></span></div>
+        <p class="subject-chapters">세부 구성: 데이터 모델링의 이해 · 데이터 모델과 SQL</p>
+      </article>
+      <article class="subject-overview">
+        <h3>2과목 · SQL 기본 및 활용</h3>
+        <div class="subject-numbers">
+          <p><strong>40</strong><span>문항</span></p>
+          <p><strong>80</strong><span>점 배점</span></p>
+          <p><strong>32</strong><span>점 미만 과락</span></p>
+        </div>
+        <div class="share-bar" role="img" aria-label="전체 배점 중 80%"><span style="width:80%"></span></div>
+        <p class="subject-chapters">세부 구성: SQL 기본 · SQL 활용 · 관리 구문</p>
+      </article>
+    </div>
+  </div>
+</section>
+<section class="section-tight ">
+  <div class="wrap">
+    <h2>1과목 · 데이터 모델링의 이해</h2>
+    <p class="sec-lead">10문항 · 주제 1개</p>
+    <div class="topic-grid">
+      <article class="topic-card">
+        <h3>데이터 모델링</h3>
+        <p>엔터티·속성·관계·식별자를 구분하고, 정규화가 데이터 정합성과 SQL에 주는 영향을 이해해요.</p>
+      </article>
+    </div>
+  </div>
+</section>
+<section class="section-tight ">
+  <div class="wrap">
+    <h2>2과목 · SQL 기본 및 활용</h2>
+    <p class="sec-lead">40문항 · 주제 8개</p>
+    <div class="topic-grid">
+      <article class="topic-card">
+        <h3>SELECT 기본</h3>
+        <p>SELECT·FROM·WHERE·ORDER BY 기본 문법, 연산자 우선순위, NULL 비교와 정렬 순서.</p>
+      </article>
+      <article class="topic-card">
+        <h3>DDL / DML / TCL</h3>
+        <p>테이블을 만들고 바꾸는 DDL, 데이터를 넣고 고치는 DML, COMMIT·ROLLBACK 트랜잭션 제어.</p>
+      </article>
+      <article class="topic-card">
+        <h3>SQL 함수</h3>
+        <p>문자·숫자·날짜 함수와 형 변환, NVL·COALESCE·CASE 같은 NULL·조건 처리 함수.</p>
+      </article>
+      <article class="topic-card">
+        <h3>JOIN</h3>
+        <p>INNER·OUTER·CROSS·NATURAL JOIN과 조인 조건, 표준(ANSI) 조인 문법.</p>
+      </article>
+      <article class="topic-card">
+        <h3>서브쿼리</h3>
+        <p>WHERE·FROM·SELECT 절 서브쿼리, 단일 행·다중 행 비교, IN·EXISTS, 인라인 뷰.</p>
+      </article>
+      <article class="topic-card">
+        <h3>그룹함수 / 집계</h3>
+        <p>GROUP BY·HAVING, 집계 함수의 NULL 처리, ROLLUP·CUBE·GROUPING SETS.</p>
+      </article>
+      <article class="topic-card">
+        <h3>윈도우 함수</h3>
+        <p>RANK·DENSE_RANK·ROW_NUMBER 순위, 누적 합계, LAG·LEAD 같은 행 순서 함수.</p>
+      </article>
+      <article class="topic-card">
+        <h3>계층 / PIVOT</h3>
+        <p>START WITH·CONNECT BY 계층 쿼리와 PIVOT·UNPIVOT 행열 전환.</p>
+      </article>
+    </div>
+  </div>
+</section>
+<section class="callout-section">
+  <div class="wrap">
+    <div class="app-callout">
+      <div class="app-callout-copy">
+        <img class="app-callout-mark" src="../../icon/mark.png" width="56" height="56" alt="" aria-hidden="true" loading="lazy">
+        <h2>주제를 골라 바로 풀어 보세요</h2>
+        <p>passQL은 시험 범위를 이 9개 주제로 나눴어요. 약한 주제만 골라 풀고, 보기 SQL을 실행해 결과로 확인해요.</p>
+        <ul class="app-callout-points"><li><span class="ms" aria-hidden="true">category</span>9개 주제별 문제</li><li><span class="ms" aria-hidden="true">terminal</span>보기 SQL 직접 실행</li><li><span class="ms" aria-hidden="true">speed</span>주제별 정답률</li></ul>
+      </div>
+      <div class="cta cta-compact">
+        <a class="btn btn-primary btn-store btn-app-store" href="https://apps.apple.com/kr/app/passql/id6762165005" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.8 1.2 1.8 2.6 3.1 2.5 1.3-.1 1.7-.8 3.2-.8s1.9.8 3.2.8c1.3 0 2.2-1.2 3-2.5.9-1.4 1.3-2.7 1.3-2.8 0 0-2.6-1-2.6-4.1zM13.9 5c.7-.8 1.2-2 1-3.1-1 0-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.4z"/></svg><span><small>무료 다운로드</small>App Store</span></a>
+        <a class="btn btn-store btn-play" href="https://play.google.com/store/apps/details?id=com.coldredrice.passql" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 2.3 13.4 12l-9.8 9.7c-.4-.2-.6-.6-.6-1.1V3.4c0-.5.2-.9.6-1.1zm11 8.5 2.6-2.6 3.4 1.9c.9.5.9 1.8 0 2.3l-3.4 1.9-2.6-2.6-1.2-1.2zM5 1.6l10.8 6.2-2.4 2.4zm8.4 12.2 2.4 2.4L5 22.4z"/></svg><span><small>다운로드</small>Google Play</span></a>
+        <a class="btn btn-ghost" href="https://passql.vercel.app" rel="noopener"><span class="ms" aria-hidden="true">language</span>웹에서 바로 풀기</a>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="faq" class="section">
+  <div class="wrap narrow">
+    <h2>SQLD 과목 자주 묻는 질문</h2>
+    <div class="faq">
+      <details class="faq-item">
+        <summary>SQLD 시험은 어떻게 구성되나요?<span class="ms faq-chevron" aria-hidden="true">expand_more</span></summary>
+        <p>필기 시험만 있습니다. 데이터 모델링의 이해 10문항, SQL 기본 및 활용 40문항, 모두 50문항 객관식이며 시험 시간은 90분입니다.</p>
+      </details>
+      <details class="faq-item">
+        <summary>SQLD는 어려운가요?<span class="ms faq-chevron" aria-hidden="true">expand_more</span></summary>
+        <p>50문항 중 40문항이 SQL이고, 짧은 쿼리의 결과 행 수나 값을 직접 따라가 계산하는 문제가 많습니다. SQL을 처음 본다면 문법을 외우기보다 결과를 확인하며 익히는 시간이 필요합니다.</p>
+      </details>
+      <details class="faq-item">
+        <summary>SQLD와 SQLP는 무엇이 다른가요?<span class="ms faq-chevron" aria-hidden="true">expand_more</span></summary>
+        <p>SQLP(SQL 전문가)는 상위 자격으로 필기 3과목에 실기가 더해지고, 응시 자격 요건이 있습니다. SQLD 범위인 데이터 모델링과 SQL 기본 및 활용은 SQLP 필기와 겹칩니다.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="section related">
+  <div class="wrap">
+    <p class="kicker">함께 보면 좋은 안내</p>
+    <h2>SQLD 준비, 여기서 한 번에</h2>
+    <div class="related-grid">
+      <a class="related-card" href="../../sqld/">
+        <span class="related-icon"><span class="ms" aria-hidden="true">school</span></span>
+        <span><strong>SQLD 안내</strong><small>시험 형식, 과목, 합격 기준을 한 페이지로</small></span>
+        <span class="ms related-arrow" aria-hidden="true">arrow_forward</span>
+      </a>
+      <a class="related-card" href="../../sqld/schedule/">
+        <span class="related-icon"><span class="ms" aria-hidden="true">calendar_month</span></span>
+        <span><strong>시험 일정</strong><small>제60~63회 접수·시험·발표 날짜</small></span>
+        <span class="ms related-arrow" aria-hidden="true">arrow_forward</span>
+      </a>
+      <a class="related-card" href="../../sqld/pass/">
+        <span class="related-icon"><span class="ms" aria-hidden="true">verified</span></span>
+        <span><strong>합격 기준</strong><small>60점 합격, 과락 8점 · 32점, 응시료</small></span>
+        <span class="ms related-arrow" aria-hidden="true">arrow_forward</span>
+      </a>
+      <a class="related-card" href="../../sqld/study/">
+        <span class="related-icon"><span class="ms" aria-hidden="true">route</span></span>
+        <span><strong>공부 방법</strong><small>2주 · 4주 로드맵과 과락 피하는 순서</small></span>
+        <span class="ms related-arrow" aria-hidden="true">arrow_forward</span>
+      </a>
+      <a class="related-card" href="../../sqld/faq/">
+        <span class="related-icon"><span class="ms" aria-hidden="true">help</span></span>
+        <span><strong>자주 묻는 질문</strong><small>난이도, 독학, 교재, SQLP 차이</small></span>
+        <span class="ms related-arrow" aria-hidden="true">arrow_forward</span>
+      </a>
+      <a class="related-card" href="../../sqlp/">
+        <span class="related-icon"><span class="ms" aria-hidden="true">workspace_premium</span></span>
+        <span><strong>SQLP 안내</strong><small>필기 3과목 + 실기, SQLD와 겹치는 범위</small></span>
+        <span class="ms related-arrow" aria-hidden="true">arrow_forward</span>
+      </a>
+    </div>
+  </div>
+</section>
+<section class="final-cta">
+  <div class="wrap narrow">
+    <img class="final-mark" src="../../icon/mark.png" width="88" height="88" alt="" aria-hidden="true" loading="lazy">
+    <h2>교재 없이, 앱 하나로 SQLD 준비</h2>
+    <p class="sec-lead">외우지 말고 실행해 보고 이해하세요. 문제, SQL 실행, AI 해설, 모의고사, 시험 일정 알림까지 passQL 하나로 이어져요.</p>
+    <div class="cta">
+        <a class="btn btn-primary btn-store btn-app-store" href="https://apps.apple.com/kr/app/passql/id6762165005" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.8 1.2 1.8 2.6 3.1 2.5 1.3-.1 1.7-.8 3.2-.8s1.9.8 3.2.8c1.3 0 2.2-1.2 3-2.5.9-1.4 1.3-2.7 1.3-2.8 0 0-2.6-1-2.6-4.1zM13.9 5c.7-.8 1.2-2 1-3.1-1 0-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.4z"/></svg><span><small>무료 다운로드</small>App Store</span></a>
+        <a class="btn btn-store btn-play" href="https://play.google.com/store/apps/details?id=com.coldredrice.passql" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 2.3 13.4 12l-9.8 9.7c-.4-.2-.6-.6-.6-1.1V3.4c0-.5.2-.9.6-1.1zm11 8.5 2.6-2.6 3.4 1.9c.9.5.9 1.8 0 2.3l-3.4 1.9-2.6-2.6-1.2-1.2zM5 1.6l10.8 6.2-2.4 2.4zm8.4 12.2 2.4 2.4L5 22.4z"/></svg><span><small>다운로드</small>Google Play</span></a>
+        <a class="btn btn-ghost" href="https://passql.vercel.app" rel="noopener"><span class="ms" aria-hidden="true">language</span>웹에서 바로 풀기</a>
+      </div>
+    <p class="official-note"><span class="ms" aria-hidden="true">open_in_new</span>시험 일정·접수·응시료는 공식 공지가 기준이에요. <a href="https://www.dataq.or.kr" rel="noopener">데이터자격검정 바로가기</a></p>
+  </div>
+</section>
+</main>
+<script src="../../site.js" defer></script>
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="nav-brand" href="../../"><img class="brand-mark" src="../../icon/mark.png" width="28" height="28" alt="" aria-hidden="true">passQL</a>
+        <p class="foot-tagline">교재 없이 앱 하나로 SQLD 준비<br>외우지 말고, 실행해 보고 이해하는 SQLD</p>
+      </div>
+      <div class="foot-col">
+        <p class="foot-head">SQLD 시험 정보</p>
+        <ul><li><a href="../../sqld/">SQLD 안내</a></li><li><a href="../../sqld/schedule/">시험 일정</a></li><li><a href="../../sqld/subjects/">과목·범위</a></li><li><a href="../../sqld/pass/">합격 기준</a></li><li><a href="../../sqld/study/">공부 방법</a></li><li><a href="../../sqld/faq/">자주 묻는 질문</a></li><li><a href="../../sqlp/">SQLP 안내</a></li></ul>
+      </div>
+      <div class="foot-col">
+        <p class="foot-head">앱 받기</p>
+        <ul><li><a href="https://apps.apple.com/kr/app/passql/id6762165005" rel="noopener">App Store</a></li><li><a href="https://play.google.com/store/apps/details?id=com.coldredrice.passql" rel="noopener">Google Play</a></li><li><a href="https://passql.vercel.app" rel="noopener">웹에서 풀기</a></li></ul>
+      </div>
+      <div class="foot-col">
+        <p class="foot-head">안내</p>
+        <ul>
+          <li><a href="../../terms.html">이용약관</a></li>
+          <li><a href="../../privacy.html"><strong>개인정보처리방침</strong></a></li>
+          <li><a href="../../delete-account.html">계정 삭제</a></li>
+          <li><a href="mailto:chan4760@naver.com">문의</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="foot-operator"><span>상호 콜리랩(KOLLYLAB)</span><span>대표자 서새찬</span><span>사업자등록번호 331-37-01670</span><span>문의 <a href="mailto:chan4760@naver.com">chan4760@naver.com</a></span></p>
+    <p class="foot-copy">© 2026 콜리랩(KOLLYLAB). SQLD·SQLP는 한국데이터산업진흥원의 자격 명칭입니다. 시험 일정·기준은 공식 공지가 우선합니다.</p>
+  </div>
+</footer>
+</body>
+</html>

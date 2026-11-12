@@ -1,4 +1,4 @@
-// passQL 소개 사이트 동작 (#650, #823): 시험 D-day > Android 설치 주소 > 등장 효과 > 숫자 올리기
+// passQL 소개 사이트 동작 (#650, #823, #1027): 시험 D-day > 일정 회차 표시 > Android 설치 주소 > 등장 효과 > 숫자 올리기
 // > 첫 화면 캡처 바꾸기 > 스크롤 효과(첫 화면 폰 세우기·기능 폰 기울기·화면 모음 가운데 강조) > 화면 모음 넘기기
 (function () {
   "use strict";
@@ -46,6 +46,26 @@
     document.querySelectorAll("[data-dday-show]").forEach(function (element) {
       element.querySelector("[data-dday-label]").textContent = label;
       element.hidden = false;
+    });
+  }
+
+  // 일정 페이지 회차 카드: 지난 회차 흐리게, 방문 날짜 기준 다음 회차 강조 (JS 없으면 모두 같은 모양)
+  function markScheduleRounds() {
+    var isNextFound = false;
+    document.querySelectorAll("[data-round-exam]").forEach(function (card) {
+      var badge = card.querySelector("[data-round-badge]");
+      var daysUntil = calculateDaysUntil(card.getAttribute("data-round-exam"));
+      if (daysUntil < 0) {
+        card.classList.add("is-past");
+        badge.textContent = "지난 회차";
+      } else if (!isNextFound) {
+        isNextFound = true;
+        card.classList.add("is-next");
+        badge.textContent = "다음 시험 · " + toDdayLabel(daysUntil);
+      } else {
+        return;
+      }
+      badge.hidden = false;
     });
   }
 
@@ -180,6 +200,7 @@
   }
 
   renderExamCountdown();
+  markScheduleRounds();
   applyAndroidStoreLinks();
   revealOnScroll();
   cycleHeroScreens();

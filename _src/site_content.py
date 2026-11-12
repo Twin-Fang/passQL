@@ -1,9 +1,20 @@
 # -*- coding: utf-8 -*-
-"""소개 사이트 문구·주소 단일 원본 (#505, #650): build_site.py 가 읽어 페이지·sitemap·JSON-LD 생성
+"""소개 사이트 문구·주소 단일 원본 (#505, #650, #1027): build_site.py 가 읽어 페이지·sitemap·JSON-LD 생성
 문제 총 개수·"N문제 이상" 같은 문제 은행 규모 수치는 쓰지 않음 (#636, #660)
+학습 콘텐츠(개념 글·문제) 원문은 싣지 않음 — 공개 시험 정보와 앱 소개만 (#1027)
 """
 
-SITE_URL = "https://twin-fang.github.io/passQL/"
+from urllib.parse import urlparse
+
+# 사이트 주소 2개: 지금 GitHub Pages 기본 주소, 이전할 보유 도메인 (#1027)
+GITHUB_PAGES_SITE_URL = "https://twin-fang.github.io/passQL/"
+CUSTOM_DOMAIN_HOST = "passql.suhsaechan.kr"
+CUSTOM_DOMAIN_SITE_URL = f"https://{CUSTOM_DOMAIN_HOST}/"
+# 도메인 이전 스위치: DNS(CNAME > twin-fang.github.io) 확인 후 True > 재생성 시 CNAME 파일·canonical·sitemap 이 새 주소로
+IS_CUSTOM_DOMAIN_ACTIVE = False
+SITE_URL = CUSTOM_DOMAIN_SITE_URL if IS_CUSTOM_DOMAIN_ACTIVE else GITHUB_PAGES_SITE_URL
+# 사이트 루트 경로: 404 처럼 깊이를 모르는 페이지의 절대 경로 기준 ("/passQL/" 또는 "/")
+SITE_ROOT_PATH = urlparse(SITE_URL).path
 WEB_APP_URL = "https://passql.vercel.app"
 APP_STORE_URL = "https://apps.apple.com/kr/app/passql/id6762165005"
 APP_STORE_ID = "6762165005"
@@ -11,6 +22,8 @@ APP_STORE_ID = "6762165005"
 IS_PLAY_STORE_PUBLIC = True
 PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.coldredrice.passql"
 OFFICIAL_EXAM_URL = "https://www.dataq.or.kr"
+# 공식 시험 일정·원서접수 페이지
+OFFICIAL_SCHEDULE_URL = "https://www.dataq.or.kr/www/accept/schedule.do"
 CONTACT_EMAIL = "chan4760@naver.com"
 # 법적 문구 원본: 운영 DB legal 테이블 (관리자 > 약관 관리에서 수정) > 빌드 시 이 API 로 읽음
 LEGAL_API_URL = "https://api.passql.suhsaechan.kr/api/meta/legal/"
@@ -24,41 +37,85 @@ OPERATOR_BUSINESS_REGISTRATION_NUMBER = "331-37-01670"
 # 통신판매업 신고번호 (신고 처리 중이라 빈 값, 번호 나오면 입력)
 OPERATOR_MAIL_ORDER_SALES_NUMBER = ""
 
-# 첫 화면 D-day 기준 시험 (JS 가 방문 날짜 기준으로 남은 날 계산, 회차가 바뀌면 여기만 수정)
-NEXT_EXAM_NAME = "SQLD 제63회"
-NEXT_EXAM_DATE = "2026-11-14"
-NEXT_EXAM_DATE_LABEL = "2026년 11월 14일 (토)"
+# ── SQLD 시험 일정 (2026 공식 공고 값) ──
+# 첫 화면 D-day·일정 페이지·Event JSON-LD 가 함께 읽음. 다음 시험은 빌드 날짜 기준으로 고름(site_schedule.py)
+# 서버 수집 API(GET /api/exam-schedules/sqld, #991)가 공개 응답이 되면 빌드 시 그 값으로 대체 가능
+SQLD_EXAM_YEAR = 2026
+SQLD_EXAM_ROUNDS = [
+    {"round": 60, "application_start": "2026-02-02", "application_end": "2026-02-06", "admission_ticket": "2026-02-20",
+     "exam": "2026-03-07", "score_preview_start": "2026-03-20", "score_preview_end": "2026-03-24", "result": "2026-03-27"},
+    {"round": 61, "application_start": "2026-04-27", "application_end": "2026-05-01", "admission_ticket": "2026-05-15",
+     "exam": "2026-05-31", "score_preview_start": "2026-06-12", "score_preview_end": "2026-06-16", "result": "2026-06-19"},
+    {"round": 62, "application_start": "2026-07-20", "application_end": "2026-07-24", "admission_ticket": "2026-08-07",
+     "exam": "2026-08-22", "score_preview_start": "2026-09-04", "score_preview_end": "2026-09-08", "result": "2026-09-11"},
+    {"round": 63, "application_start": "2026-10-12", "application_end": "2026-10-16", "admission_ticket": "2026-10-30",
+     "exam": "2026-11-14", "score_preview_start": "2026-11-27", "score_preview_end": "2026-12-01", "result": "2026-12-04"},
+]
+# 일정 단계: (키, 이름, 아이콘) — 기간 단계는 *_start·*_end 두 키
+SQLD_SCHEDULE_STEPS = [
+    ("application", "원서접수", "how_to_reg"),
+    ("admission_ticket", "수험표 발급", "description"),
+    ("exam", "시험일", "edit_note"),
+    ("score_preview", "사전점수 공개", "fact_check"),
+    ("result", "합격자 발표", "verified"),
+]
 
 # 무료·Pro 비교 노출 여부: 운영 결제 스위치(app_settings billing.android.enabled)와 맞춤
 # False = 결제 꺼짐 > 비교표 대신 "지금 모든 기능 무료" 안내 (#823). 가격은 스토어가 정하므로 숫자를 쓰지 않음
 IS_PRO_PLAN_VISIBLE = False
 
-# 시험 범위: 운영 API /api/meta/topics 의 주제 9개 (sortOrder 순)
+# 시험 범위: 운영 API /api/meta/topics 의 주제 9개 (sortOrder 순), 주제 설명은 일반 시험 범위 수준 (#1027)
+# 과락 = 과목 배점의 40% 미만 (1과목 20점 중 8점, 2과목 80점 중 32점)
 SQLD_SUBJECTS = [
     {
         "name": "1과목 · 데이터 모델링의 이해",
-        "topics": ["데이터 모델링"],
+        "question_count": 10, "points": 20, "fail_under_points": 8,
+        "chapters": ["데이터 모델링의 이해", "데이터 모델과 SQL"],
+        "topics": [
+            ("데이터 모델링", "엔터티·속성·관계·식별자를 구분하고, 정규화가 데이터 정합성과 SQL에 주는 영향을 이해해요."),
+        ],
     },
     {
         "name": "2과목 · SQL 기본 및 활용",
+        "question_count": 40, "points": 80, "fail_under_points": 32,
+        "chapters": ["SQL 기본", "SQL 활용", "관리 구문"],
         "topics": [
-            "SELECT 기본", "DDL / DML / TCL", "SQL 함수", "JOIN",
-            "서브쿼리", "그룹함수 / 집계", "윈도우 함수", "계층 / PIVOT",
+            ("SELECT 기본", "SELECT·FROM·WHERE·ORDER BY 기본 문법, 연산자 우선순위, NULL 비교와 정렬 순서."),
+            ("DDL / DML / TCL", "테이블을 만들고 바꾸는 DDL, 데이터를 넣고 고치는 DML, COMMIT·ROLLBACK 트랜잭션 제어."),
+            ("SQL 함수", "문자·숫자·날짜 함수와 형 변환, NVL·COALESCE·CASE 같은 NULL·조건 처리 함수."),
+            ("JOIN", "INNER·OUTER·CROSS·NATURAL JOIN과 조인 조건, 표준(ANSI) 조인 문법."),
+            ("서브쿼리", "WHERE·FROM·SELECT 절 서브쿼리, 단일 행·다중 행 비교, IN·EXISTS, 인라인 뷰."),
+            ("그룹함수 / 집계", "GROUP BY·HAVING, 집계 함수의 NULL 처리, ROLLUP·CUBE·GROUPING SETS."),
+            ("윈도우 함수", "RANK·DENSE_RANK·ROW_NUMBER 순위, 누적 합계, LAG·LEAD 같은 행 순서 함수."),
+            ("계층 / PIVOT", "START WITH·CONNECT BY 계층 쿼리와 PIVOT·UNPIVOT 행열 전환."),
         ],
     },
 ]
 
+# 시험 기본 정보 (합격 기준 페이지·첫 화면 요약): (아이콘, 항목, 값, 보조 설명)
+SQLD_EXAM_FACTS = [
+    ("timer", "시험 시간", "90분", "필기 객관식 한 번"),
+    ("quiz", "문항 수", "50문항", "1과목 10 · 2과목 40"),
+    ("checklist", "배점", "문항당 2점", "100점 만점"),
+    ("verified", "합격", "60점 이상", "과목별 과락이 없을 때"),
+    ("flag", "과락", "8점 · 32점 미만", "1과목 · 2과목 각 40% 미만"),
+    ("payments", "응시료", "50,000원", "회차마다 같은 금액"),
+    ("person", "응시 자격", "제한 없음", "학력·전공·경력 무관"),
+]
+SQLD_EXAM_FEE_WON = 50000
+# 합격 계산 예시: (1과목 맞힌 수, 2과목 맞힌 수) — 점수·판정은 생성 시 계산
+PASS_EXAMPLES = [(4, 26), (3, 30), (10, 20), (5, 20)]
 # ── 첫 화면 ──
-HOME_TITLE = "passQL(패스큐엘) — SQLD 문제 풀이 앱 | 실행해 보고 이해하는 SQLD, AI 해설"
-HOME_DESCRIPTION = ("외우지 말고, 실행해 보고 이해하는 SQLD. 제58~62회 복원 기출 경향을 반영한 문제를 풀고, "
-                    "보기 SQL을 직접 실행하고, 틀린 이유는 AI 해설로 바로 확인하세요. 단원별 개념 학습, 매일 5문제 오늘의 세트, 합격 준비도까지. iPhone·Android·웹.")
+HOME_TITLE = "SQLD 문제 풀이 앱 passQL — 교재 없이 앱 하나로 SQLD 준비"
+HOME_DESCRIPTION = ("교재 없이 앱 하나로 SQLD 준비. 최신 기출 경향 문제를 풀고 보기 SQL을 직접 실행해 보고, "
+                    "틀린 이유는 AI 해설로 확인하세요. 실전 모의고사, 시험 일정 알림, 오늘의 세트까지 무료로 시작.")
 
 HERO_EYEBROW = "SQLD 자격증 문제 풀이 앱"
-HERO_TITLE_LEAD = "외우지 말고,"
-HERO_TITLE_HIGHLIGHT = "실행해 보고"
-HERO_TITLE_TAIL = "이해하는 SQLD"
-HERO_LEAD = ("두꺼운 수험서 대신 최신 출제 경향을 반영한 문제를 풀고, 틀린 이유는 AI 해설로 바로 확인하세요. "
-             "매일 5문제부터 합격 준비도까지 passQL 하나면 충분해요.")
+HERO_TITLE_LEAD = "교재 없이,"
+HERO_TITLE_HIGHLIGHT = "앱 하나로"
+HERO_TITLE_TAIL = "SQLD 준비"
+HERO_LEAD = ("외우지 말고, 실행해 보고 이해하는 SQLD. 최신 출제 경향 문제를 풀고 보기 SQL을 직접 실행해 결과로 확인하고, "
+             "틀린 이유는 AI 해설로 바로 짚어요. 모의고사와 시험 일정 알림까지 앱 하나로 이어져요.")
 # 첫 화면 핵심 3개: (아이콘, 문구)
 HERO_POINTS = [
     ("local_fire_department", "매일 5문제 오늘의 세트"),
@@ -79,7 +136,7 @@ PAIN_POINTS = [
      "하루 5문제 오늘의 세트와 연속 학습일, 시험 D-day 알림이 매일 공부를 이어 줘요."),
 ]
 
-# 기능 카드: (아이콘, 제목, 설명) — 4열 x 3줄
+# 기능 카드: (아이콘, 제목, 설명) — 4열 x 3줄 (원본 기능: main app/lib/presentation/pages/*)
 FEATURES = [
     ("local_fire_department", "오늘의 세트",
      "매일 모든 회원이 같은 5문제를 풀고 순위를 확인해요. 부담 없는 분량이라 매일 이어 가기 좋아요."),
@@ -101,10 +158,10 @@ FEATURES = [
      "틀린 문제는 오답 노트에 모여 다시 풀어요. 연습과 실전 풀이 모드를 골라 쓸 수 있어요."),
     ("speed", "합격 준비도",
      "정답률, 영역별 약점, AI 분석으로 지금 얼마나 준비됐는지, 어디를 더 풀지 보여 줘요."),
-    ("forum", "토론",
-     "헷갈리는 문제는 다른 수험생과 이야기 나눠요. 같은 시험을 준비하는 사람들이 모여 있어요."),
-    ("notifications_active", "알림 · D-day",
-     "오늘의 세트가 열리면, 시험이 다가오면 알려 드려요. 시험까지 남은 날도 홈에서 바로 보여요."),
+    ("timer", "실전 모의고사",
+     "실제 시험처럼 50문항을 시간 안에 풀어요. 제출하면 점수와 합격·과락을 바로 알려 줘요."),
+    ("notifications_active", "시험 일정 · 접수 알림",
+     "회차별 원서접수·시험일·발표를 한 화면에 보여 주고, 접수가 열리면 알려 드려요. D-day도 홈에서 바로 보여요."),
 ]
 
 # 학습 흐름 4단계: (아이콘, 제목, 설명)
@@ -214,13 +271,15 @@ FREE_NOW_POINTS = [
 FINAL_CTA_TITLE = "시험 전까지, 하루 5문제부터"
 FINAL_CTA_LEAD = "오늘의 세트 한 번만 풀어 보세요. 어디가 약한지 바로 보여요."
 
-# 페이지 공통 FAQ (index 화면 + FAQPage JSON-LD)
-HOME_FAQS = [
+# 앱 FAQ (첫 화면 + FAQPage JSON-LD)
+HOME_FAQS = [  # 앞 APP_FAQ_COUNT_ON_FAQ_PAGE 개는 FAQ 페이지에도 실림
     ("passQL은 무료인가요?",
      "네, 무료로 내려받아 바로 시작할 수 있고 지금은 SQL 실행, 보기별 AI 해설, 최신 출제 경향까지 모든 기능이 열려 있어요. "
      "나중에 Pro 이용권(1개월·3개월, 자동 결제 없음)이 생기면 무료로는 하루 일정량을 풀 수 있어요."),
     ("SQLD 시험 범위를 모두 다루나요?",
      "SQLD 두 과목의 범위를 9개 주제로 나눠 문제를 제공해요. 1과목 데이터 모델링, 2과목 SELECT·DDL/DML/TCL·함수·JOIN·서브쿼리·그룹함수·윈도우 함수·계층과 PIVOT이에요."),
+    ("개념 공부도 앱에서 할 수 있나요?",
+     "네. 단원마다 꼭 기억할 것, 자세한 설명, 확인 문제를 순서대로 볼 수 있어요. 개념을 읽고 바로 문제로 확인해요."),
     ("최신 출제 경향은 어떻게 반영하나요?",
      "제58~62회 복원 기출과 수험생 후기를 분석해 과목별 비중, 최근 늘어난 유형, 자주 나오는 개념 TOP 10을 정리했어요. '최신 경향' 표시가 붙은 문제부터 골라 풀 수 있어요."),
     ("하루에 얼마나 공부하면 되나요?",
@@ -231,20 +290,43 @@ HOME_FAQS = [
      "네. passql.vercel.app 에서 로그인하면 앱과 같은 학습 기록으로 이어서 풀 수 있어요."),
     ("Android에서도 쓸 수 있나요?",
      "네. Google Play에서 passQL을 내려받을 수 있어요. iPhone은 App Store, PC는 웹에서 같은 계정으로 이어서 풀 수 있어요."),
-    ("개념 공부도 앱에서 할 수 있나요?",
-     "네. 단원마다 꼭 기억할 것, 자세한 설명, 확인 문제를 순서대로 볼 수 있어요. 개념을 읽고 바로 문제로 확인해요."),
 ]
 
-SQLD_FAQS = [
-    ("SQLD 시험은 어떻게 구성되나요?",
+# SQLD 시험 FAQ (#1027): FAQ 페이지 전체 + 안내 페이지별로 키로 골라 씀. 확실하지 않은 수치(합격률 등)는 쓰지 않음
+SQLD_EXAM_FAQS = [  # (키, 질문, 답) — 키로 페이지마다 골라 씀
+    ("format", "SQLD 시험은 어떻게 구성되나요?",
      "필기 시험만 있습니다. 데이터 모델링의 이해 10문항, SQL 기본 및 활용 40문항, 모두 50문항 객관식이며 시험 시간은 90분입니다."),
-    ("SQLD 합격 기준은 무엇인가요?",
-     "100점 만점에 60점 이상이면 합격입니다. 다만 한 과목이라도 40% 미만이면 과락으로 불합격입니다."),
-    ("SQLD 공부는 어떻게 시작하면 좋나요?",
+    ("pass", "SQLD 합격 기준은 무엇인가요?",
+     "문항당 2점, 100점 만점에 60점 이상이면 합격입니다. 다만 1과목 8점(20점의 40%) 미만이거나 2과목 32점(80점의 40%) 미만이면 과락으로 불합격입니다."),
+    ("start", "SQLD 공부는 어떻게 시작하면 좋나요?",
      "배점이 큰 2과목 SQL부터 문제로 익히고, 과락을 피하도록 1과목 데이터 모델링도 함께 풀어 두는 것이 좋습니다. passQL의 합격 준비도와 주제별 분석으로 약한 주제를 찾을 수 있습니다."),
-    ("시험 일정과 접수는 어디서 확인하나요?",
-     "한국데이터산업진흥원 데이터자격검정 사이트(dataq.or.kr)에서 확인하고 접수합니다. passQL 앱에서도 응시할 회차를 고를 수 있습니다."),
+    ("schedule", "시험 일정과 접수는 어디서 확인하나요?",
+     "한국데이터산업진흥원 데이터자격검정 사이트(dataq.or.kr)에서 확인하고 접수합니다. 2026년 회차별 일정은 이 사이트의 SQLD 시험 일정 페이지에 정리했고, passQL 앱에서는 접수가 열릴 때 알림을 받을 수 있습니다."),
+    ("about", "SQLD는 어떤 자격증인가요?",
+     "SQL 개발자(SQL Developer) 자격으로, 한국데이터산업진흥원이 시행합니다. 데이터 모델링을 이해하고 SQL을 작성·해석하는 능력을 평가합니다."),
+    ("fee", "응시 자격과 응시료는 어떻게 되나요?",
+     "응시 자격 제한이 없어 누구나 응시할 수 있습니다. 응시료는 50,000원입니다."),
+    ("frequency", "SQLD 시험은 1년에 몇 번 있나요?",
+     "2026년에는 3월, 5월, 8월, 11월 네 번(제60~63회) 시행됩니다. 회차마다 원서접수, 수험표 발급, 사전점수 공개, 합격자 발표 날짜가 따로 있습니다."),
+    ("difficulty", "SQLD는 어려운가요?",
+     "50문항 중 40문항이 SQL이고, 짧은 쿼리의 결과 행 수나 값을 직접 따라가 계산하는 문제가 많습니다. SQL을 처음 본다면 문법을 외우기보다 결과를 확인하며 익히는 시간이 필요합니다."),
+    ("non_major", "비전공자도 SQLD를 딸 수 있나요?",
+     "응시 자격 제한이 없고, 시험 범위가 SELECT 같은 기본 문법부터 시작해 비전공자도 준비할 수 있습니다. 기본 문법을 먼저 익히고 JOIN, 서브쿼리, 윈도우 함수 순서로 넓혀 가면 좋습니다."),
+    ("self_study", "독학으로 준비할 수 있나요?",
+     "네. 시험 범위가 공식적으로 정해져 있어 범위별로 문제를 풀고 해설로 이유를 확인하는 방식으로 혼자 준비할 수 있습니다."),
+    ("textbook", "교재가 꼭 있어야 하나요?",
+     "꼭 필요하지는 않습니다. passQL은 단원별 개념 학습, 주제별 문제, AI 해설, 모의고사를 앱 하나에 담아 교재 없이 준비할 수 있게 만들었습니다. 개념을 책으로 정리하는 편이 맞다면 함께 봐도 좋습니다."),
+    ("score_preview", "사전점수 공개는 무엇인가요?",
+     "합격자 발표 전에 내 점수를 먼저 확인할 수 있는 기간입니다. 최종 합격 여부는 합격자 발표일에 확정됩니다."),
+    ("pass_rate", "합격률은 어느 정도인가요?",
+     "합격률은 회차마다 달라 이 사이트에서는 숫자를 싣지 않습니다. 공식 통계는 데이터자격검정 사이트에서 확인할 수 있습니다."),
+    ("validity", "SQLD 자격에 유효기간이 있나요?",
+     "유효기간과 갱신 여부는 시행 기관 정책에 따르므로 데이터자격검정 사이트의 공식 안내로 확인하세요."),
+    ("sqlp", "SQLD와 SQLP는 무엇이 다른가요?",
+     "SQLP(SQL 전문가)는 상위 자격으로 필기 3과목에 실기가 더해지고, 응시 자격 요건이 있습니다. SQLD 범위인 데이터 모델링과 SQL 기본 및 활용은 SQLP 필기와 겹칩니다."),
 ]
+# FAQ 페이지에 함께 싣는 앱 FAQ 개수 (HOME_FAQS 앞에서부터)
+APP_FAQ_COUNT_ON_FAQ_PAGE = 4
 
 SQLP_FAQS = [
     ("SQLP 시험은 어떻게 구성되나요?",
@@ -253,4 +335,96 @@ SQLP_FAQS = [
      "SQLD와 겹치는 데이터 모델링, SQL 기본 및 활용 범위를 연습할 수 있습니다. SQL 고급 활용 및 튜닝 과목과 실기 문제는 아직 제공하지 않습니다."),
     ("SQLP 응시 자격과 일정은 어디서 확인하나요?",
      "한국데이터산업진흥원 데이터자격검정 사이트(dataq.or.kr)의 공식 공지에서 확인할 수 있습니다."),
+]
+
+# ── 안내 페이지 목록 (#1027) ──
+# 상단 보조 메뉴·하단 링크·빵부스러기·sitemap·관련 글 카드가 모두 이 목록을 읽음
+# 키 = 경로, parent = 빵부스러기 상위 경로(None 이면 첫 화면 바로 아래), title 60자·description 150자 이내
+GUIDE_PAGES = {
+    "sqld/": {
+        "menu_name": "SQLD 안내", "parent": None, "priority": "0.9", "icon": "school",
+        "title": "SQLD 시험 안내 — 과목, 합격 기준, 공부 순서 한눈에 | passQL",
+        "description": "SQLD(SQL 개발자) 시험 형식, 과목별 문항 수, 합격 기준과 과락, 과락 없이 60점 넘기는 공부 순서를 한 페이지에 정리했어요. 시험 범위 9개 주제는 passQL 앱에서 풀어 보세요.",
+        "summary": "시험 형식, 과목, 합격 기준을 한 페이지로",
+    },
+    "sqld/schedule/": {
+        "menu_name": "시험 일정", "parent": "sqld/", "priority": "0.9", "icon": "calendar_month",
+        "title": "2026 SQLD 시험 일정 — 회차별 원서접수·시험일·발표일 | passQL",
+        "description": "2026년 SQLD 제60~63회 원서접수, 수험표 발급, 시험일, 사전점수 공개, 합격자 발표 일정을 회차별로 정리했어요. 접수는 데이터자격검정 공식 사이트에서, 일정 알림은 passQL 앱에서.",
+        "summary": "제60~63회 접수·시험·발표 날짜",
+    },
+    "sqld/subjects/": {
+        "menu_name": "과목·범위", "parent": "sqld/", "priority": "0.8", "icon": "category",
+        "title": "SQLD 과목·출제 범위 — 1과목·2과목 주제 9개 정리 | passQL",
+        "description": "SQLD 1과목 데이터 모델링의 이해(10문항)와 2과목 SQL 기본 및 활용(40문항)의 출제 범위를 SELECT, JOIN, 서브쿼리, 윈도우 함수 등 주제 9개로 나눠 설명해요.",
+        "summary": "1과목 10문항 · 2과목 40문항, 주제 9개",
+    },
+    "sqld/pass/": {
+        "menu_name": "합격 기준", "parent": "sqld/", "priority": "0.8", "icon": "verified",
+        "title": "SQLD 합격 기준·과락 — 60점 합격, 과목별 과락 점수 | passQL",
+        "description": "SQLD는 90분 50문항, 문항당 2점으로 60점 이상이면 합격이에요. 1과목 8점, 2과목 32점 미만은 과락. 점수 계산 예시와 응시료(50,000원), 응시 자격까지 정리했어요.",
+        "summary": "60점 합격, 과락 8점 · 32점, 응시료",
+    },
+    "sqld/study/": {
+        "menu_name": "공부 방법", "parent": "sqld/", "priority": "0.8", "icon": "route",
+        "title": "SQLD 공부 방법 — 비전공자 2~4주 독학 로드맵 | passQL",
+        "description": "SQL이 처음인 비전공자도 따라 할 수 있는 SQLD 2주·4주 독학 로드맵. 주차별로 무엇을 풀지, 과락을 피하는 순서, 시험 직전 점검까지 교재 없이 앱 하나로 준비하는 방법을 정리했어요.",
+        "summary": "2주 · 4주 로드맵과 과락 피하는 순서",
+    },
+    "sqld/faq/": {
+        "menu_name": "자주 묻는 질문", "parent": "sqld/", "priority": "0.7", "icon": "help",
+        "title": "SQLD 자주 묻는 질문 — 난이도·독학·교재·SQLP 차이 | passQL",
+        "description": "SQLD는 어려운가요? 비전공자도 독학할 수 있나요? 교재가 꼭 필요한가요? 응시료, 시험 횟수, 사전점수 공개, SQLP와의 차이까지 SQLD 수험생이 자주 묻는 질문에 답했어요.",
+        "summary": "난이도, 독학, 교재, SQLP 차이",
+    },
+    "sqlp/": {
+        "menu_name": "SQLP 안내", "parent": None, "priority": "0.7", "icon": "workspace_premium",
+        "title": "SQLP 시험 안내 — 필기 과목과 SQLD와의 차이 | passQL",
+        "description": "SQLP(SQL 전문가) 필기 3과목 구성과 SQLD와 겹치는 범위, passQL로 연습할 수 있는 부분을 정리했어요. 데이터 모델링, SQL 기본 및 활용 문제를 AI 해설과 함께 풀어 보세요.",
+        "summary": "필기 3과목 + 실기, SQLD와 겹치는 범위",
+    },
+}
+# 상단 보조 메뉴 순서 (첫 화면 포함 모든 페이지)
+GUIDE_MENU_PATHS = ["sqld/schedule/", "sqld/subjects/", "sqld/pass/", "sqld/study/", "sqld/faq/", "sqlp/"]
+
+# ── 공부 방법 페이지 ──
+# 원칙: (아이콘, 제목, 설명)
+STUDY_PRINCIPLES = [
+    ("terminal", "2과목은 결과를 따라가며", "40문항이 SQL이고, 결과 행 수·값을 계산하는 문제가 많아요. 문법을 외우기보다 실행 결과로 확인하며 익혀요."),
+    ("flag", "1과목은 과락부터 막기", "10문항 중 4문항(8점) 미만이면 과락이에요. 분량이 적어도 처음부터 꾸준히 섞어 풀어요."),
+    ("lightbulb", "틀린 문제는 이유까지", "정답만 보고 넘기면 같은 함정에 또 빠져요. 내가 고른 보기가 왜 틀렸는지까지 확인해요."),
+    ("timer", "마지막 주는 실전처럼", "90분 50문항을 한 번에 풀어 시간 배분과 과락 여부를 미리 점검해요."),
+]
+# 로드맵: (플랜 이름, 대상, [(주차, 할 일 제목, 할 일 설명, 앱 기능)])
+STUDY_ROADMAPS = [
+    ("4주 플랜", "SQL을 처음 보는 비전공자", [
+        ("1주차", "SQL 기본기", "SELECT·WHERE·ORDER BY와 함수, NULL 처리를 익혀요. 짧은 쿼리를 직접 실행해 결과를 확인해요.", "개념 학습 · 보기 SQL 실행"),
+        ("2주차", "JOIN · 서브쿼리 · 집계", "2과목에서 비중이 큰 주제예요. 주제별로 풀고 틀린 문제는 해설로 이유를 확인해요.", "주제별 문제 · AI 해설"),
+        ("3주차", "윈도우 함수 · 계층 · 1과목", "남은 2과목 주제와 1과목 데이터 모델링을 채우고, 오답을 다시 풀어요.", "오답 노트 · 합격 준비도"),
+        ("4주차", "실전 감각", "모의고사로 90분 50문항을 풀고 과락 과목이 없는지 확인해요. 약한 주제만 다시 돌려요.", "모의고사 · 시험 일정 알림"),
+    ]),
+    ("2주 플랜", "SQL을 써 본 적 있는 분", [
+        ("1주차", "2과목 전 범위 훑기", "주제 8개를 빠르게 풀며 약한 주제를 찾아요. 윈도우 함수·계층 쿼리처럼 낯선 문법부터 채워요.", "주제별 문제 · 합격 준비도"),
+        ("2주차", "1과목 · 모의고사 반복", "1과목 데이터 모델링으로 과락을 막고, 모의고사와 오답 복습을 번갈아 해요.", "모의고사 · 오답 노트"),
+    ]),
+]
+# 하루 루틴: (아이콘, 제목, 설명)
+STUDY_DAILY_ROUTINE = [
+    ("local_fire_department", "오늘의 세트 5문제", "매일 열리는 5문제로 공부를 시작해요. 부담 없는 분량이라 매일 이어 가기 좋아요."),
+    ("auto_awesome", "AI 해설로 이유 확인", "틀린 보기가 왜 틀렸는지, 시험장에서 기억할 포인트를 바로 읽어요."),
+    ("edit_note", "오답 노트로 한 번 더", "틀린 문제만 모아 다시 풀어 같은 실수를 줄여요."),
+]
+# 시험 직전 점검: 문구 목록 (준비물 세부는 수험표 공지가 기준)
+STUDY_EXAM_CHECKLIST = [
+    "수험표 발급일에 시험장과 입실 시간을 확인해요.",
+    "신분증 등 준비물은 수험표 공지대로 챙겨요.",
+    "1과목 과락(8점 미만) 위험이 없는지 마지막으로 점검해요.",
+    "사전점수 공개 기간에 점수를 확인하고, 합격자 발표일을 기다려요.",
+]
+
+# 일정 페이지 앱 안내 (#991 시험 일정 화면·접수 알림)
+SCHEDULE_APP_POINTS = [
+    ("notifications_active", "원서접수가 열리면 알림"),
+    ("event", "홈에서 시험 D-day 확인"),
+    ("timer", "시험 전 실전 모의고사"),
 ]

@@ -1,24 +1,22 @@
 # -*- coding: utf-8 -*-
-"""첫 화면(index) 생성 (#650, #823): 첫 화면 > 주제 띠 > 숫자 > 고민 > 기능 자세히 > 기능 > 학습 흐름 > 최신 경향
-> 범위 > 화면 > 무료 안내 또는 요금 > FAQ > 다운로드
+"""첫 화면(index) 생성 (#650, #823, #1027): 첫 화면 > 주제 띠 > 숫자 > 고민 > 기능 자세히 > 중간 다운로드 > 기능
+> 시험 정보 > 학습 흐름 > 최신 경향 > 범위 > 화면 > 무료 안내 또는 요금 > FAQ > 다운로드
 문구는 site_content.py, 모양은 style.css·effects.css, 동작(D-day·화면 바꾸기·스크롤 효과·숫자)은 site.js
 """
 
 import site_content as content
 from site_head import (
-    build_app_json_ld, build_faq_json_ld, escape, render_faq_section, render_footer,
-    render_head, render_nav, render_store_buttons, render_subject_cards, render_symbol,
+    escape, render_faq_section, render_footer, render_head, render_nav, render_store_buttons,
+    render_subject_cards, render_symbol,
 )
+from site_schedule import find_next_exam_round, format_long_date, to_exam_name
+from site_schema import build_app_json_ld, build_faq_json_ld, build_organization_json_ld, build_website_json_ld
 from site_showcase import (
-    render_free_now_section, render_hero_phone, render_marquee, render_phone, render_showcase_section,
-    render_stat_counters,
+    render_exam_info_section, render_free_now_section, render_hero_phone, render_marquee, render_mid_cta,
+    render_phone, render_showcase_section, render_stat_counters,
 )
 
-# 상단 바 구역 링크: (앵커, 이름)
-HOME_SECTION_LINKS = [("#showcase", "기능"), ("#trend", "최신 경향"), ("#faq", "자주 묻는 질문")]
-
-
-def render_hero():
+def render_hero(next_round):
     points = "".join(
         f"<li>{render_symbol(icon_name)}{escape(text)}</li>" for icon_name, text in content.HERO_POINTS
     )
@@ -29,29 +27,30 @@ def render_hero():
     <div class="hero-copy">
       <img class="hero-icon" src="icon/mark.png" width="84" height="84" alt="" aria-hidden="true">
       <p class="eyebrow">{render_symbol("check_circle")}{escape(content.HERO_EYEBROW)}</p>
-      <p class="hero-dday" data-dday-show hidden>{render_symbol("event")}{escape(content.NEXT_EXAM_NAME)}까지 <strong data-dday-label></strong></p>
-      <h1>{escape(content.HERO_TITLE_LEAD)}<br><span class="hl">{escape(content.HERO_TITLE_HIGHLIGHT)}</span> {escape(content.HERO_TITLE_TAIL)}</h1>
+      <p class="hero-dday" data-dday-show hidden>{render_symbol("event")}{escape(to_exam_name(next_round))}까지 <strong data-dday-label></strong></p>
+      <h1>{escape(content.HERO_TITLE_LEAD)}<br><span class="hl">{escape(content.HERO_TITLE_HIGHLIGHT)}</span> <span class="nowrap">{escape(content.HERO_TITLE_TAIL)}</span></h1>
       <p class="lead">{escape(content.HERO_LEAD)}</p>
       <ul class="hero-points">{points}</ul>
       {render_store_buttons("")}
       <p class="note">{escape(content.HERO_STORE_NOTE)}</p>
     </div>
     <div class="hero-art">
-      {render_dday_card()}
+      {render_dday_card(next_round)}
       {render_hero_phone()}
     </div>
   </div>
 </header>"""
 
 
-def render_dday_card():
+def render_dday_card(next_round):
     """시험 D-day 카드: 숫자는 site.js 가 방문 날짜로 계산 (JS 없으면 날짜만)"""
-    return f"""<div class="dday-card" data-exam-date="{content.NEXT_EXAM_DATE}">
+    exam_date_label = format_long_date(next_round["exam"])
+    return f"""<div class="dday-card" data-exam-date="{next_round['exam']}">
         {render_symbol("event")}
         <div>
-          <p class="dday-label">{escape(content.NEXT_EXAM_NAME)}까지</p>
-          <p class="dday-count" data-dday-count>{escape(content.NEXT_EXAM_DATE_LABEL)}</p>
-          <p class="dday-date" data-dday-date hidden>{escape(content.NEXT_EXAM_DATE_LABEL)}</p>
+          <p class="dday-label">{escape(to_exam_name(next_round))}까지</p>
+          <p class="dday-count" data-dday-count>{escape(exam_date_label)}</p>
+          <p class="dday-date" data-dday-date hidden>{escape(exam_date_label)}</p>
         </div>
       </div>"""
 
@@ -237,42 +236,34 @@ def render_plan_section():
 </section>"""
 
 
-def render_final_cta():
+def render_final_cta(next_round):
     return f"""
 <section class="final-cta">
   <div class="wrap narrow">
     <img class="final-mark" src="icon/mark.png" width="88" height="88" alt="" aria-hidden="true">
     <h2>{escape(content.FINAL_CTA_TITLE)}</h2>
-    <p class="final-dday">{render_symbol("event")}<span data-dday-inline>{escape(content.NEXT_EXAM_NAME)} · {escape(content.NEXT_EXAM_DATE_LABEL)}</span></p>
+    <p class="final-dday">{render_symbol("event")}<span data-dday-inline>{escape(to_exam_name(next_round))} · {escape(format_long_date(next_round["exam"]))}</span></p>
     <p class="sec-lead">{escape(content.FINAL_CTA_LEAD)}</p>
     {render_store_buttons("")}
   </div>
 </section>"""
 
 
-def build_website_json_ld():
-    return {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "passQL",
-        "url": content.SITE_URL,
-        "inLanguage": "ko",
-        "publisher": {"@type": "Organization", "name": content.OPERATOR_BUSINESS_NAME, "url": content.SITE_URL,
-                      "logo": content.SITE_URL + "icon/mark.png", "email": content.CONTACT_EMAIL},
-    }
-
-
 def render_home_page():
     root = ""
+    next_round = find_next_exam_round()
     head = render_head(
         content.HOME_TITLE, content.HOME_DESCRIPTION, "", root,
-        [build_app_json_ld(), build_website_json_ld(), build_faq_json_ld(content.HOME_FAQS)],
+        [build_app_json_ld(), build_website_json_ld(), build_organization_json_ld(), build_faq_json_ld(content.HOME_FAQS)],
     )
+    faq_more_link = f'\n    <p class="faq-more"><a href="sqld/faq/">SQLD 시험 질문 더 보기 {render_symbol("arrow_forward")}</a></p>'
     body = "".join([
-        '\n<main id="main">', render_hero(), render_marquee(), render_stat_counters(), render_pain_section(),
-        render_showcase_section(), render_feature_section(), render_flow_section(), render_trend_section(),
-        render_scope_section(), render_screen_gallery(), render_free_now_section(), render_plan_section(),
-        "\n" + render_faq_section(content.HOME_FAQS), render_final_cta(), "\n</main>\n",
+        '\n<main id="main">', render_hero(next_round), render_marquee(), render_stat_counters(), render_pain_section(),
+        render_showcase_section(), render_mid_cta(), render_feature_section(), render_exam_info_section(next_round),
+        render_flow_section(), render_trend_section(), render_scope_section(), render_screen_gallery(),
+        render_free_now_section(), render_plan_section(),
+        "\n" + render_faq_section(content.HOME_FAQS, more_link_html=faq_more_link), render_final_cta(next_round),
+        "\n</main>\n",
     ])
-    return (head + render_nav(root, HOME_SECTION_LINKS) + body
+    return (head + render_nav(root) + body
             + '<script src="site.js" defer></script>\n' + render_footer(root))

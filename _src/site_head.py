@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-"""페이지 공통 조각: <head> 메타·JSON-LD·상단 바·하단 (#505)"""
+"""페이지 공통 조각: <head> 메타·JSON-LD 출력·상단 바·빵부스러기·하단 (#505, #1027)
+JSON-LD 내용은 site_schema.py, 페이지 목록·문구는 site_content.py
+"""
 
 import html
 import json
@@ -13,10 +15,12 @@ def escape(text):
 
 # Material Symbols 아이콘 이름 원본 (웹폰트 icon_names 부분 집합 > 쓰는 글리프만 내려받음)
 MATERIAL_SYMBOL_NAMES = frozenset({
-    "arrow_forward", "auto_awesome", "calendar_month", "category", "celebration", "check_circle", "chevron_left",
-    "chevron_right", "close", "compare_arrows", "download", "edit_note", "event", "expand_more", "forum", "help",
-    "language", "local_fire_department", "mail", "menu_book", "notifications_active", "remove",
-    "schedule", "school", "shuffle", "speed", "terminal", "trending_up", "update", "workspace_premium",
+    "arrow_forward", "auto_awesome", "calendar_month", "category", "celebration", "check_circle", "checklist",
+    "chevron_left", "chevron_right", "close", "compare_arrows", "description", "download", "edit_note", "event",
+    "expand_more", "fact_check", "flag", "forum", "help", "how_to_reg", "language", "lightbulb",
+    "local_fire_department", "mail", "menu_book", "notifications_active", "open_in_new", "payments", "person",
+    "quiz", "remove", "route", "schedule", "school", "shuffle", "speed", "terminal", "timer", "trending_up",
+    "update", "verified", "workspace_premium",
 })
 # 글꼴: 본문 Pretendard, 아이콘 Material Symbols Rounded (채움 0..1 축만)
 PRETENDARD_STYLESHEET_URL = "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
@@ -87,10 +91,12 @@ def render_head(title, description, path, root, json_ld_items=(), is_indexable=T
 """
 
 
-def render_nav(root, section_links=()):
-    """상단 바: 로고 + (첫 화면 구역 링크) + SQLD 안내 + 시작하기"""
-    section_anchors = "".join(
-        f'\n      <a class="nav-section" href="{href}">{escape(label)}</a>' for href, label in section_links
+def render_nav(root, current_path=None):
+    """상단 바: 로고 + 안내 페이지 메뉴(모바일은 둘째 줄 가로 넘김) + 앱 받기"""
+    menu_links = "".join(
+        f'\n      <a href="{root}{path}"{' aria-current="page"' if path == current_path else ''}>'
+        f'{escape(content.GUIDE_PAGES[path]["menu_name"])}</a>'
+        for path in content.GUIDE_MENU_PATHS
     )
     return f"""<body>
 <a class="skip-link" href="#main">본문으로 건너뛰기</a>
@@ -100,13 +106,29 @@ def render_nav(root, section_links=()):
       <img class="brand-mark" src="{root}icon/mark.png" width="28" height="28" alt="" aria-hidden="true">
       passQL
     </a>
-    <div class="nav-links">{section_anchors}
-      <a href="{root}sqld/">SQLD 안내</a>
-      <a class="nav-cta" href="{content.APP_STORE_URL}" rel="noopener"{render_play_link_attribute()}>{render_symbol("download")}앱 받기</a>
+    <div class="nav-menu">{menu_links}
     </div>
+    <a class="nav-cta" href="{content.APP_STORE_URL}" rel="noopener"{render_play_link_attribute()}>{render_symbol("download")}앱 받기</a>
   </div>
 </nav>
 """
+
+
+def build_crumbs(path):
+    """경로 > 빵부스러기 [(이름, 경로)] (첫 화면 > 상위 안내 > 현재)"""
+    crumbs = []
+    while path is not None:
+        crumbs.insert(0, (content.GUIDE_PAGES[path]["menu_name"], path))
+        path = content.GUIDE_PAGES[path]["parent"]
+    return [("passQL", "")] + crumbs
+
+
+def render_crumbs(root, crumbs):
+    """화면 빵부스러기 (마지막은 현재 페이지라 링크 없음)"""
+    items = "".join(
+        f'<li><a href="{root}{path}">{escape(name)}</a></li>' for name, path in crumbs[:-1]
+    ) + f'<li aria-current="page">{escape(crumbs[-1][0])}</li>'
+    return f'<nav class="crumbs" aria-label="현재 위치"><ol>{items}</ol></nav>'
 
 
 APPLE_LOGO_SVG = ('<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.8 1.2 1.8 2.6 3.1 2.5 1.3-.1 1.7-.8 3.2-.8s1.9.8 3.2.8c1.3 0 2.2-1.2 3-2.5.9-1.4 1.3-2.7 1.3-2.8 0 0-2.6-1-2.6-4.1zM13.9 5c.7-.8 1.2-2 1-3.1-1 0-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.4z"/></svg>')
@@ -148,22 +170,39 @@ def render_operator_lines():
 
 
 def render_footer(root):
+    """하단: 브랜드 + 링크 3묶음(SQLD 시험 정보·앱·약관) + 운영자 표기"""
+    exam_links = "".join(
+        f'<li><a href="{root}{path}">{escape(page["menu_name"])}</a></li>' for path, page in content.GUIDE_PAGES.items()
+    )
+    play_link = (f'<li><a href="{content.PLAY_STORE_URL}" rel="noopener">Google Play</a></li>'
+                 if content.IS_PLAY_STORE_PUBLIC else "")
     return f"""<footer class="foot">
   <div class="wrap">
-    <div class="foot-top">
-      <a class="nav-brand" href="{root}"><img class="brand-mark" src="{root}icon/mark.png" width="28" height="28" alt="" aria-hidden="true">passQL</a>
-      <p class="foot-tagline">외우지 말고, 실행해 보고 이해하는 SQLD</p>
-    </div>
-    <div class="foot-links">
-      <a href="{root}sqld/">SQLD 준비</a>
-      <a href="{root}sqlp/">SQLP 준비</a>
-      <a href="{root}terms.html">이용약관</a>
-      <a href="{root}privacy.html"><strong>개인정보처리방침</strong></a>
-      <a href="{root}delete-account.html">계정 삭제</a>
-      <a href="mailto:{content.CONTACT_EMAIL}">문의</a>
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="nav-brand" href="{root}"><img class="brand-mark" src="{root}icon/mark.png" width="28" height="28" alt="" aria-hidden="true">passQL</a>
+        <p class="foot-tagline">교재 없이 앱 하나로 SQLD 준비<br>외우지 말고, 실행해 보고 이해하는 SQLD</p>
+      </div>
+      <div class="foot-col">
+        <p class="foot-head">SQLD 시험 정보</p>
+        <ul>{exam_links}</ul>
+      </div>
+      <div class="foot-col">
+        <p class="foot-head">앱 받기</p>
+        <ul><li><a href="{content.APP_STORE_URL}" rel="noopener">App Store</a></li>{play_link}<li><a href="{content.WEB_APP_URL}" rel="noopener">웹에서 풀기</a></li></ul>
+      </div>
+      <div class="foot-col">
+        <p class="foot-head">안내</p>
+        <ul>
+          <li><a href="{root}terms.html">이용약관</a></li>
+          <li><a href="{root}privacy.html"><strong>개인정보처리방침</strong></a></li>
+          <li><a href="{root}delete-account.html">계정 삭제</a></li>
+          <li><a href="mailto:{content.CONTACT_EMAIL}">문의</a></li>
+        </ul>
+      </div>
     </div>
     {render_operator_lines()}
-    <p class="foot-copy">© 2026 {escape(content.OPERATOR_BUSINESS_NAME)}. SQLD·SQLP는 한국데이터산업진흥원의 자격 명칭입니다.</p>
+    <p class="foot-copy">© 2026 {escape(content.OPERATOR_BUSINESS_NAME)}. SQLD·SQLP는 한국데이터산업진흥원의 자격 명칭입니다. 시험 일정·기준은 공식 공지가 우선합니다.</p>
   </div>
 </footer>
 </body>
@@ -171,8 +210,9 @@ def render_footer(root):
 """
 
 
-def render_faq_section(faqs, heading="자주 묻는 질문"):
-    items = "".join(
+def render_faq_items(faqs):
+    """질문 접기 목록 (FAQ 구역·FAQ 페이지 묶음 공용)"""
+    return "".join(
         f"""
       <details class="faq-item">
         <summary>{escape(question)}{render_symbol("expand_more", "faq-chevron")}</summary>
@@ -180,58 +220,17 @@ def render_faq_section(faqs, heading="자주 묻는 질문"):
       </details>"""
         for question, answer in faqs
     )
+
+
+def render_faq_section(faqs, heading="자주 묻는 질문", more_link_html=""):
     return f"""<section id="faq" class="section">
   <div class="wrap narrow">
     <h2>{escape(heading)}</h2>
-    <div class="faq">{items}
-    </div>
+    <div class="faq">{render_faq_items(faqs)}
+    </div>{more_link_html}
   </div>
 </section>
 """
-
-
-def build_faq_json_ld(faqs):
-    """화면 FAQ <-> FAQPage JSON-LD (같은 원본)"""
-    return {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        "mainEntity": [
-            {"@type": "Question", "name": question,
-             "acceptedAnswer": {"@type": "Answer", "text": answer}}
-            for question, answer in faqs
-        ],
-    }
-
-
-def build_breadcrumb_json_ld(page_name, path):
-    return {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-            {"@type": "ListItem", "position": 1, "name": "passQL", "item": content.SITE_URL},
-            {"@type": "ListItem", "position": 2, "name": page_name, "item": content.SITE_URL + path},
-        ],
-    }
-
-
-def build_app_json_ld():
-    """MobileApplication: 앱 정보 + 설치 주소 + 무료"""
-    install_urls = [content.APP_STORE_URL] + ([content.PLAY_STORE_URL] if content.IS_PLAY_STORE_PUBLIC else [])
-    return {
-        "@context": "https://schema.org",
-        "@type": "MobileApplication",
-        "name": "passQL",
-        "alternateName": ["패스큐엘", "passQL SQLD"],
-        "description": "외우지 말고, 실행해 보고 이해하는 SQLD. 최신 출제 경향 문제, 보기 SQL 직접 실행, AI 해설, 단원별 개념 학습, 매일 5문제 오늘의 세트, 오답 노트, 합격 준비도.",
-        "applicationCategory": "EducationalApplication",
-        "operatingSystem": "iOS, Android, Web",
-        "inLanguage": "ko",
-        "url": content.SITE_URL,
-        "downloadUrl": install_urls,
-        "installUrl": install_urls,
-        "image": content.OG_IMAGE_URL,
-        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "KRW"},
-    }
 
 
 def render_subject_cards():
@@ -240,7 +239,7 @@ def render_subject_cards():
         f"""
       <div class="subject">
         <h3>{escape(subject["name"])}</h3>
-        <ul class="chips">{"".join(f"<li>{escape(topic)}</li>" for topic in subject["topics"])}</ul>
+        <ul class="chips">{"".join(f"<li>{escape(topic_name)}</li>" for topic_name, _ in subject["topics"])}</ul>
       </div>"""
         for subject in content.SQLD_SUBJECTS
     )
