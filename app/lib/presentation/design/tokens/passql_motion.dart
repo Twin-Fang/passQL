@@ -62,6 +62,10 @@ abstract final class PassqlMotion {
   static const pressedScale = 0.97;
 
   // 화면 전환이 끝난 뒤 시작할 연출의 지연 (전환에 묻히지 않게)
+  // 온보딩 연출 (#975): 실행 중 표시 유지 시간, 장면 사이 간격
+  static const onboardingRunDuration = Duration(milliseconds: 800);
+  static const onboardingSceneStep = Duration(milliseconds: 600);
+
   static const afterRouteTransitionDelay = Duration(milliseconds: 300);
 
   /// 접근성 "동작 줄이기"가 켜져 있으면 연출을 생략한다.

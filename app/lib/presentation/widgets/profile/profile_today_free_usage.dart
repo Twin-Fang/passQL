@@ -1,11 +1,12 @@
 import 'package:flutter/widgets.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/utils/profile_pass_values.dart';
 import '../../../data/models/member/member_plan_response.dart';
+import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/plan_providers.dart';
 import '../practice/credit_balance_header.dart';
-import 'credit_today_history_sheet.dart';
 import 'profile_bonus_cards.dart';
 
 /// 무료 오늘 남은 문제 (#816 A안): 제목·내역 링크 > 남은 수 큰 숫자 / 오늘 한도 > 사용량 게이지 > 문제 더 받기 카드(세트 완료·세트 정답률·광고)
@@ -32,11 +33,11 @@ class ProfileTodayFreeUsage extends StatelessWidget {
                 style: PassqlTypography.headline.copyWith(color: colors.label),
               ),
             ),
-            // 오늘 받은·쓴 내역 (다시 채워지는 때도 그 안에서 안내)
+            // 날짜별 받은·쓴 내역 화면
             PassqlSectionLink(
               label: '내역',
-              semanticLabel: '오늘 크레딧 내역 보기',
-              onTap: () => showCreditTodayHistorySheet(context, plan),
+              semanticLabel: '크레딧 내역 보기',
+              onTap: () => context.push(AppRoutes.creditHistory),
             ),
           ],
         ),

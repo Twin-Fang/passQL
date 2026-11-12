@@ -105,6 +105,9 @@ abstract final class AppRoutes {
   /// 계정·이용권 관리 (#816). 프로필 계정 줄 `관리`·프로모션 코드 행에서 진입
   static const String account = '/account';
 
+  /// 크레딧 내역: 날짜별 받은·쓴 크레딧 (#974). 프로필 오늘 크레딧 `내역`에서 진입
+  static const String creditHistory = '/account/credit-history';
+
   /// 알림함 (알림·공지 탭). 홈 종 아이콘에서 진입
   static const String notificationInbox = '/notifications';
 

@@ -40,6 +40,7 @@ import '../presentation/pages/result/result_page.dart';
 import '../presentation/pages/profile/profile_page.dart';
 import '../presentation/pages/settings/settings_page.dart';
 import '../presentation/pages/account/account_page.dart';
+import '../presentation/pages/account/credit_history_page.dart';
 import '../presentation/pages/questions/wrong_notes_page.dart';
 import '../presentation/widgets/app_shell.dart';
 import 'app_launch_gate_routing.dart';
@@ -303,6 +304,13 @@ abstract final class AppRouter {
         path: AppRoutes.account,
         parentNavigatorKey: _rootKey,
         builder: (_, _) => const AccountPage(),
+      ),
+
+      // 풀스크린: 크레딧 내역 (#974, 프로필 오늘 크레딧 `내역`에서 진입)
+      GoRoute(
+        path: AppRoutes.creditHistory,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const CreditHistoryPage(),
       ),
 
       // 풀스크린: 챕터 플로우 (/questions/chapter?topic=CODE&topicName=NAME)
