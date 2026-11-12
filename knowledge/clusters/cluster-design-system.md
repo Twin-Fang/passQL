@@ -2,7 +2,7 @@
 type: cluster
 topic: design-system
 created: 2026-10-29
-members: 156
+members: 157
 status: active
 related: []
 ---
@@ -85,8 +85,9 @@ related: []
 - [[DEC-0255-code-font-d2coding-subset]] → DEC-0278
 
 ## 관련 이슈
+- [[ISS-0491-first-run-guide-home-next-step]] (resolved, GitHub #975): 첫 화면·홈에 차별점과 지금 할 일이 없음, 무료 회원 안내 구간 없음
 - [[ISS-0489-pass-sheet-home-profile-cleanup]] (resolved, GitHub #966, PR #968): 이용권 시트 혜택 접기·정가 없는 할인, 잠금 문구 딱딱함, 홈·프로필 카드에 기능이 섞임
-- [[ISS-0490-credit-term-purchase-funnel-events]] (open, GitHub #971): 구매·광고 흐름 분석 이벤트 없음, 한도·보상 표현이 여러 말로 겹침(크레딧으로 통일), 탭 제목 정렬
+- [[ISS-0490-credit-term-purchase-funnel-events]] (resolved, GitHub #971, PR #973): 구매·광고 흐름 분석 이벤트 없음, 한도·보상 표현이 여러 말로 겹침(크레딧으로 통일), 탭 제목 정렬
 - [[ISS-0488-free-practice-reward-flow]] (resolved, GitHub #963, PR #964): 무료 랜덤 10문제 끊김, 남은 한도 안 보임, 한도 화면 광고 버튼 묻힘, 세트 보너스 표시 없음, 이용권 시트 문구 과다
 - [[ISS-0477-stats-radar-default-study-pattern]] (resolved, GitHub #909): 통계 화면 개편: 육각형 그래프 기본, 차트와 학습 통계 추가
 - [[ISS-0473-solving-memo-pen-toggle]] (resolved, GitHub #904): 풀이 화면 메모: 켜고 끄는 펜, 끄면 보기 선택 그대로

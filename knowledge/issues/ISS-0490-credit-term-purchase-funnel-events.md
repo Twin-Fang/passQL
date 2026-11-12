@@ -5,8 +5,8 @@ created: 2026-11-12
 topics: [billing, practice, ads, design-system, home]
 symptoms: ["구매 흐름 분석 이벤트 없음", "남은 문제 문구 여러 곳", "랜덤 풀이 상단 칩 많음", "N번째 문제", "받았어요 오늘은 받지 못했어요", "탭 제목 오른쪽 정렬 안 맞음", "검증된 보기", "시험이 얼마 남지 않았어요 태그", "하루 약 110원"]
 root_cause: "결제를 켠 뒤 구매·광고 단계 로그가 없었고, 한도·보상을 가리키는 말과 표시가 화면마다 달라 정보가 겹쳐 보였다"
-status: open
-resolution: null
+status: resolved
+resolution: "[[ISS-0490-credit-term-purchase-funnel-events-report]]"
 related: ["[[DEC-0287-credit-term-top-bar-balance]]", "[[ISS-0489-pass-sheet-home-profile-cleanup]]"]
 source: "https://github.com/Twin-Fang/passQL/issues/971"
 ---

@@ -2,7 +2,7 @@
 type: cluster
 topic: practice
 created: 2026-10-29
-members: 175
+members: 176
 status: active
 related: []
 ---
@@ -72,8 +72,9 @@ related: []
 - [[DEC-0261-real-mode-renamed-new-choices]] → DEC-0275
 
 ## 관련 이슈
+- [[ISS-0491-first-run-guide-home-next-step]] (resolved, GitHub #975): 첫 화면·홈에 차별점과 지금 할 일이 없음, 무료 회원 안내 구간 없음
 - [[ISS-0489-pass-sheet-home-profile-cleanup]] (resolved, GitHub #966, PR #968): 이용권 시트 혜택 접기·정가 없는 할인, 잠금 문구 딱딱함, 홈·프로필 카드에 기능이 섞임
-- [[ISS-0490-credit-term-purchase-funnel-events]] (open, GitHub #971): 구매·광고 흐름 분석 이벤트 없음, 한도·보상 표현이 여러 말로 겹침(크레딧으로 통일), 탭 제목 정렬
+- [[ISS-0490-credit-term-purchase-funnel-events]] (resolved, GitHub #971, PR #973): 구매·광고 흐름 분석 이벤트 없음, 한도·보상 표현이 여러 말로 겹침(크레딧으로 통일), 탭 제목 정렬
 - [[ISS-0488-free-practice-reward-flow]] (resolved, GitHub #963, PR #964): 무료 랜덤 10문제 끊김, 남은 한도 안 보임, 한도 화면 광고 버튼 묻힘, 세트 보너스 표시 없음, 이용권 시트 문구 과다
 - [[ISS-0479-sqld-real-format-trap-questions]] (resolved, GitHub #834): 실제 SQLD 출제 형식(결과 행 수, 오류 나는 SQL) 과 함정 문제 92개 등록, 결과 표 해설 지시문 교체, 개념형 AI 세트 8개 내림
 - [[ISS-0478-web-solving-ignores-fresh-choice-mode]] (resolved, GitHub #913): 웹 풀이가 AI 새 보기 설정을 무시함, 설정 이름 옛 표기, 칩 없음
