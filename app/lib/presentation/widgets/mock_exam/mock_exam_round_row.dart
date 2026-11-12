@@ -10,10 +10,11 @@ import '../../design/design.dart';
 import '../common/app_toast.dart';
 import '../pro/pro_offer_sheet.dart';
 
-/// 회차 행 상태 5종 (오른쪽 표시 기준, 위에서부터 우선)
+/// 회차 행 상태 5종 (첫 줄 표시 기준, 위에서부터 우선)
 enum _RoundRowState { inProgress, attempted, locked, freeTrial, notStarted }
 
-/// 회차 행: 번호 배지 + 제목·부가 한 줄 + 상태(진행·최고 점수·무료 1회·PRO)
+/// 회차 행: 번호 배지 + 첫 줄(최고 점수·합격 배지 / 진행 / 미응시·무료·PRO) + 작은 둘째 줄 + 쉐브론
+/// 제목은 번호 배지와 겹쳐 화면에서 빼고 읽기 문구에만 둠
 /// 탭: 풀이 중 > 이어 풀기, 시작 가능 > 안내, 체험 소진·이용권 필요 > (지난 결과 있으면 결과) 아니면 이용권 안내, 다른 회차 풀이 중 > 안내 문구
 class MockExamRoundRow extends ConsumerWidget {
   const MockExamRoundRow({
@@ -32,6 +33,8 @@ class MockExamRoundRow extends ConsumerWidget {
   /// 묶음 구분선 들여쓰기: 행 좌우 여백 + 배지 + 배지 옆 간격 (제목 시작선에 맞춤)
   static const double separatorIndent =
       PassqlSpacing.md + PassqlSize.mockExamRoundBadge + PassqlSpacing.sm;
+
+  static const String _notStartedText = '아직 안 풀었어요';
 
   bool get _isLocked =>
       !round.canStart &&
@@ -57,61 +60,109 @@ class MockExamRoundRow extends ConsumerWidget {
     return _RoundRowState.notStarted;
   }
 
+  /// 최고 기록 응시 판정 > 배지 문구 (과락이면 사유 붙임, 판정 모르면 null)
+  String? get _bestResultText {
+    final isPassed = round.bestAttemptIsPassed;
+    if (isPassed == null) return null;
+    if (isPassed) return '합격';
+    return round.bestAttemptFailReason == MockExamFailReason.subjectFail
+        ? '불합격 · 과락'
+        : '불합격';
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = _state;
+    final subtitle = _subtitleOf(state);
     return PassqlListRow(
       title: round.title,
-      subtitle: _subtitleOf(state),
+      titleContent: _headlineOf(state),
+      subtitle: subtitle,
+      semanticLabel: '${round.title}, ${_headlineSemanticOf(state)}, $subtitle',
       leading: _RoundNumberBadge(
         roundNumber: round.roundNumber,
         isLocked: _isLocked,
       ),
-      trailing: _trailingOf(state),
       hasChevron: true,
       onTap: () => _onTap(context, ref),
     );
   }
 
-  /// 상태 > 부가 한 줄 (풀이 중 남은 시간 / 응시 횟수·마지막 날짜 / 시험 형식)
-  String _subtitleOf(_RoundRowState state) {
-    if (state == _RoundRowState.inProgress) {
-      final ownAttempt = _ownInProgressAttempt;
-      if (ownAttempt == null) return '풀이 중';
-      // 1분 미만도 0분이 아니라 1분으로 (올림)
-      final remainingMinutes = (ownAttempt.remainingSeconds + 59) ~/ 60;
-      return '풀이 중 · 남은 시간 $remainingMinutes분';
-    }
-    if (round.submittedAttemptCount > 0) {
-      final submittedAt = DateTime.tryParse(
-        round.lastAttempt?.submittedAt ?? '',
-      )?.toLocal();
-      final countText = '${round.submittedAttemptCount}회 응시';
-      return submittedAt == null
-          ? countText
-          : '$countText · 마지막 ${formatDottedMonthDay(submittedAt)}';
-    }
-    return '${rule.questionCount}문항 · ${rule.durationMinutes}분';
-  }
-
-  Widget? _trailingOf(_RoundRowState state) => switch (state) {
-    _RoundRowState.inProgress => _InProgressProgress(
+  /// 상태 > 첫 줄 (최고 점수+합격 배지 / 풀이 중 진행 / 미응시+무료·PRO)
+  Widget _headlineOf(_RoundRowState state) => switch (state) {
+    _RoundRowState.inProgress => _InProgressHeadline(
       answeredCount: _ownInProgressAttempt?.answeredCount,
       questionCount: rule.questionCount,
     ),
-    _RoundRowState.attempted => _BestScore(
-      bestScore: round.bestScore!,
-      passScore: rule.passScore,
-      isLastPassed: round.lastAttempt?.isPassed,
+    _RoundRowState.attempted => _HeadlineLine(
+      text: '최고 ',
+      score: round.bestScore,
+      isScorePassed: round.bestAttemptIsPassed ?? false,
+      trailing: _bestResultText == null
+          ? null
+          : PassqlBadge(
+              text: _bestResultText!,
+              kind: round.bestAttemptIsPassed!
+                  ? PassqlBadgeKind.success
+                  : PassqlBadgeKind.important,
+            ),
     ),
     // 누르면 행 탭이 PRO 안내를 띄움
-    _RoundRowState.locked => const PassqlPlanChip(isPro: true),
-    _RoundRowState.freeTrial => const PassqlBadge(
-      text: '무료 1회',
-      kind: PassqlBadgeKind.success,
+    _RoundRowState.locked => const _HeadlineLine(
+      text: _notStartedText,
+      trailing: PassqlPlanChip(isPro: true),
     ),
-    _RoundRowState.notStarted => null,
+    _RoundRowState.freeTrial => const _HeadlineLine(
+      text: _notStartedText,
+      trailing: PassqlBadge(text: '무료 1회', kind: PassqlBadgeKind.success),
+    ),
+    _RoundRowState.notStarted => const _HeadlineLine(text: _notStartedText),
   };
+
+  /// 상태 > 첫 줄 읽기 문구 (화면 첫 줄과 같은 정보)
+  String _headlineSemanticOf(_RoundRowState state) => switch (state) {
+    _RoundRowState.inProgress =>
+      _ownInProgressAttempt == null
+          ? '풀이 중'
+          : '풀이 중 ${_ownInProgressAttempt!.answeredCount}/${rule.questionCount}',
+    _RoundRowState.attempted => [
+      '최고 ${round.bestScore}점',
+      ?_bestResultText,
+    ].join(' '),
+    _RoundRowState.locked => '$_notStartedText, PRO',
+    _RoundRowState.freeTrial => '$_notStartedText, 무료 1회',
+    _RoundRowState.notStarted => _notStartedText,
+  };
+
+  /// 상태 > 둘째 줄 (풀이 중 남은 시간 / 마지막 결과·응시 횟수 / 시험 형식)
+  String _subtitleOf(_RoundRowState state) {
+    final ruleText = '${rule.questionCount}문항 · ${rule.durationMinutes}분';
+    if (state == _RoundRowState.inProgress) {
+      final ownAttempt = _ownInProgressAttempt;
+      if (ownAttempt == null) return ruleText;
+      // 1분 미만도 0분이 아니라 1분으로 (올림)
+      final remainingMinutes = (ownAttempt.remainingSeconds + 59) ~/ 60;
+      return '남은 시간 $remainingMinutes분';
+    }
+    final attemptCount = round.submittedAttemptCount;
+    if (attemptCount == 0) return ruleText;
+    final countText = '$attemptCount회 응시';
+    final lastAttempt = round.lastAttempt;
+    // 2회 이상: 마지막 결과 + 횟수
+    if (attemptCount > 1) {
+      final lastScore = lastAttempt?.totalScore;
+      final isLastPassed = lastAttempt?.isPassed;
+      if (lastScore == null || isLastPassed == null) return countText;
+      return '마지막 $lastScore점 ${isLastPassed ? '합격' : '불합격'} · $countText';
+    }
+    // 1회: 횟수 + 응시 날짜
+    final submittedAt = DateTime.tryParse(
+      lastAttempt?.submittedAt ?? '',
+    )?.toLocal();
+    return submittedAt == null
+        ? countText
+        : '$countText · ${formatDottedMonthDay(submittedAt)}';
+  }
 
   void _onTap(BuildContext context, WidgetRef ref) {
     final lastAttempt = round.lastAttempt;
@@ -212,9 +263,59 @@ class _RoundNumberBadge extends StatelessWidget {
   }
 }
 
-/// 풀이 중 진행: "23/50" + 짧은 막대 (답한 수 모르면 막대 없이 "풀이 중")
-class _InProgressProgress extends StatelessWidget {
-  const _InProgressProgress({
+/// 첫 줄 공통: 보조 글자("최고 "·"아직 안 풀었어요") + (선택) 점수 + (선택) 배지·칩
+/// 좁은 폭·큰 글자에서는 배지가 다음 줄로 내려감
+class _HeadlineLine extends StatelessWidget {
+  const _HeadlineLine({
+    required this.text,
+    this.score,
+    this.isScorePassed = false,
+    this.trailing,
+  });
+
+  final String text;
+  final int? score;
+
+  /// 점수 색 기준: 그 응시의 실제 합격 여부 (과락이면 총점이 높아도 초록 아님)
+  final bool isScorePassed;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    final scoreColor = isScorePassed ? colors.correctText : colors.label;
+    return Wrap(
+      spacing: PassqlSpacing.xs,
+      runSpacing: PassqlSpacing.hairlineGap,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text.rich(
+          TextSpan(
+            text: text,
+            style: PassqlTypography.subheadlineSemibold.copyWith(
+              color: colors.secondaryLabel,
+            ),
+            children: [
+              if (score != null)
+                TextSpan(
+                  text: '$score점',
+                  style: PassqlTypography.title3.copyWith(
+                    color: scoreColor,
+                    fontFeatures: PassqlTypography.tabular,
+                  ),
+                ),
+            ],
+          ),
+        ),
+        ?trailing,
+      ],
+    );
+  }
+}
+
+/// 풀이 중 첫 줄: "풀이 중" + "23/50" + 짧은 막대 (답한 수 모르면 "풀이 중"만)
+class _InProgressHeadline extends StatelessWidget {
+  const _InProgressHeadline({
     required this.answeredCount,
     required this.questionCount,
   });
@@ -227,81 +328,27 @@ class _InProgressProgress extends StatelessWidget {
     final colors = context.passqlColors;
     final answered = answeredCount;
     if (answered == null || questionCount <= 0) {
-      return const PassqlBadge(text: '풀이 중');
+      return const _HeadlineLine(text: '풀이 중');
     }
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Text(
-          '$answered/$questionCount',
-          style: PassqlTypography.footnoteSemibold.copyWith(
-            color: colors.accentText,
-            fontFeatures: PassqlTypography.tabular,
+    return _HeadlineLine(
+      text: '풀이 중',
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$answered/$questionCount',
+            style: PassqlTypography.footnoteSemibold.copyWith(
+              color: colors.accentText,
+              fontFeatures: PassqlTypography.tabular,
+            ),
           ),
-        ),
-        const SizedBox(height: PassqlSpacing.xxs),
-        SizedBox(
-          width: PassqlSize.mockExamRoundProgressWidth,
-          child: PassqlProgressBar(value: answered / questionCount),
-        ),
-      ],
-    );
-  }
-}
-
-/// 최고 점수 "72점" (합격선 이상 초록) + 마지막 응시 합격·불합격 배지
-class _BestScore extends StatelessWidget {
-  const _BestScore({
-    required this.bestScore,
-    required this.passScore,
-    required this.isLastPassed,
-  });
-
-  final int bestScore;
-  final int passScore;
-
-  /// 마지막 응시 합격 여부 (과락 포함 서버 판정, 모르면 배지 없음)
-  final bool? isLastPassed;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    final scoreColor = bestScore >= passScore ? colors.correctText : colors.label;
-    final isPassed = isLastPassed;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Text.rich(
-          TextSpan(
-            children: [
-              TextSpan(
-                text: '$bestScore',
-                style: PassqlTypography.title3.copyWith(
-                  color: scoreColor,
-                  fontFeatures: PassqlTypography.tabular,
-                ),
-              ),
-              TextSpan(
-                text: '점',
-                style: PassqlTypography.footnoteSemibold.copyWith(
-                  color: scoreColor,
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (isPassed != null) ...[
-          const SizedBox(height: PassqlSpacing.hairlineGap),
-          PassqlBadge(
-            text: isPassed ? '합격' : '불합격',
-            kind: isPassed
-                ? PassqlBadgeKind.success
-                : PassqlBadgeKind.important,
+          const SizedBox(width: PassqlSpacing.xs),
+          SizedBox(
+            width: PassqlSize.mockExamRoundProgressWidth,
+            child: PassqlProgressBar(value: answered / questionCount),
           ),
         ],
-      ],
+      ),
     );
   }
 }
