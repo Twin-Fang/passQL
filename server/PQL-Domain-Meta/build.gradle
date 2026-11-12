@@ -9,4 +9,7 @@ jar { enabled = true; archiveClassifier = '' }
 
 dependencies {
     api project(':PQL-Common')
+
+    // 시험 일정 공식 페이지 HTML 해석 (#991)
+    implementation 'org.jsoup:jsoup:1.18.1'
 }

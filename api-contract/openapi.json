@@ -1417,6 +1417,18 @@
       },
       "ExamScheduleResponse" : {
         "properties" : {
+          "admissionTicketDate" : {
+            "format" : "date",
+            "type" : "string"
+          },
+          "applicationEndDate" : {
+            "format" : "date",
+            "type" : "string"
+          },
+          "applicationStartDate" : {
+            "format" : "date",
+            "type" : "string"
+          },
           "certType" : {
             "type" : "string"
           },
@@ -1428,15 +1440,42 @@
             "format" : "uuid",
             "type" : "string"
           },
+          "isManualLocked" : {
+            "type" : "boolean"
+          },
           "isSelected" : {
             "type" : "boolean"
+          },
+          "lastCollectedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "phase" : {
+            "enum" : [ "BEFORE_APPLICATION", "APPLICATION_OPEN", "WAITING_ADMISSION_TICKET", "WAITING_EXAM", "WAITING_RESULT", "FINISHED" ],
+            "type" : "string"
+          },
+          "preliminaryScoreEndDate" : {
+            "format" : "date",
+            "type" : "string"
+          },
+          "preliminaryScoreStartDate" : {
+            "format" : "date",
+            "type" : "string"
+          },
+          "resultAnnouncementDate" : {
+            "format" : "date",
+            "type" : "string"
           },
           "round" : {
             "format" : "int32",
             "type" : "integer"
+          },
+          "source" : {
+            "enum" : [ "AUTO", "MANUAL" ],
+            "type" : "string"
           }
         },
-        "required" : [ "certType", "examDate", "examScheduleUuid", "isSelected", "round" ],
+        "required" : [ "admissionTicketDate", "applicationEndDate", "applicationStartDate", "certType", "examDate", "examScheduleUuid", "isManualLocked", "isSelected", "lastCollectedAt", "phase", "preliminaryScoreEndDate", "preliminaryScoreStartDate", "resultAnnouncementDate", "round", "source" ],
         "type" : "object"
       },
       "ExamTrendConcept" : {
@@ -3240,6 +3279,32 @@
         },
         "type" : "object"
       },
+      "SqldExamScheduleOverviewResponse" : {
+        "properties" : {
+          "lastCollectedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "nextSchedule" : {
+            "$ref" : "#/components/schemas/ExamScheduleResponse"
+          },
+          "officialScheduleUrl" : {
+            "type" : "string"
+          },
+          "schedules" : {
+            "items" : {
+              "$ref" : "#/components/schemas/ExamScheduleResponse"
+            },
+            "type" : "array"
+          },
+          "year" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "lastCollectedAt", "nextSchedule", "officialScheduleUrl", "schedules", "year" ],
+        "type" : "object"
+      },
       "SseEmitter" : {
         "properties" : {
           "timeout" : {
@@ -4589,7 +4654,7 @@
     },
     "/api/exam-schedules" : {
       "get" : {
-        "description" : "## 인증(JWT): **불필요**\n\n## 요청 파라미터\n- **`certType`** (optional): 자격증 종류 필터 (SQLD / SQLP). 미입력 시 전체 조회\n\n## 반환값 (List<ExamScheduleResponse>)\n- certType + round 오름차순 정렬\n- 각 행: examScheduleUuid, certType, round, examDate, isSelected\n",
+        "description" : "## 인증(JWT): **불필요**\n\n## 요청 파라미터\n- **`certType`** (optional): 자격증 종류 필터 (SQLD / SQLP). 미입력 시 전체 조회\n\n## 반환값 (List<ExamScheduleResponse>)\n- certType + round 오름차순 정렬\n- 각 행: examScheduleUuid, certType, round, examDate, isSelected\n- 일정 (#991, 없으면 null): applicationStartDate·applicationEndDate(원서접수), admissionTicketDate(수험표 발급),\n  preliminaryScoreStartDate·preliminaryScoreEndDate(사전점수 공개·재검토 접수), resultAnnouncementDate(합격 발표)\n- source: AUTO(공식 페이지 자동 수집) / MANUAL(관리자 입력), isManualLocked, lastCollectedAt\n- phase (서버 계산, KST 오늘 기준): BEFORE_APPLICATION 접수 전 / APPLICATION_OPEN 접수 중 /\n  WAITING_ADMISSION_TICKET 수험표 대기 / WAITING_EXAM 시험 대기(수험표 발급~시험 당일) / WAITING_RESULT 발표 대기 / FINISHED 끝(발표일부터)\n",
         "operationId" : "getSchedules",
         "parameters" : [ {
           "in" : "query",
@@ -4635,6 +4700,35 @@
           }
         },
         "summary" : "현재 선택된 시험 일정 조회",
+        "tags" : [ "ExamSchedule" ]
+      }
+    },
+    "/api/exam-schedules/sqld" : {
+      "get" : {
+        "description" : "## 인증(JWT): **불필요**\n\n## 요청 파라미터\n- **`year`** (optional): 시험일 기준 연도. 미입력 시 올해(KST)\n\n## 반환값 (SqldExamScheduleOverviewResponse)\n- **`year`**: 조회 연도\n- **`schedules`**: 그해 SQLD 회차 (회차 오름차순, 각 행은 GET /api/exam-schedules 와 같은 형태 + phase)\n- **`nextSchedule`**: 오늘 이후 가장 가까운 SQLD 시험 (연도 무관, 없으면 null)\n- **`lastCollectedAt`**: 마지막 자동 수집 성공 시각 (KST, 없으면 null)\n- **`officialScheduleUrl`**: 공식 일정·접수 페이지 (데이터자격검정)\n",
+        "operationId" : "getSqldOverview",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "year",
+          "required" : false,
+          "schema" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SqldExamScheduleOverviewResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "SQLD 한 해 시험 일정 (앱 시험 일정 화면)",
         "tags" : [ "ExamSchedule" ]
       }
     },

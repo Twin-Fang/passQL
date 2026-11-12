@@ -1,13 +1,16 @@
 package com.passql.web.controller.admin;
 
 import com.passql.meta.constant.CertType;
+import com.passql.meta.constant.ExamScheduleSyncTrigger;
 import com.passql.meta.dto.ExamScheduleBulkRequest;
 import com.passql.meta.dto.ExamScheduleBulkResult;
 import com.passql.meta.dto.ExamScheduleCreateRequest;
 import com.passql.meta.dto.ExamScheduleResponse;
+import com.passql.meta.dto.ExamScheduleSyncResult;
 import com.passql.meta.dto.ExamScheduleUpdateRequest;
 import com.passql.meta.service.ExamScheduleCoverageService;
 import com.passql.meta.service.ExamScheduleService;
+import com.passql.meta.service.ExamScheduleSyncService;
 import com.passql.web.support.AdminMenu;
 import com.passql.web.support.AdminPage;
 import jakarta.validation.Valid;
@@ -27,6 +30,7 @@ public class AdminExamScheduleController {
 
     private final ExamScheduleService examScheduleService;
     private final ExamScheduleCoverageService coverageService;
+    private final ExamScheduleSyncService examScheduleSyncService;
 
     @GetMapping
     @AdminPage(menu = AdminMenu.EXAM_SCHEDULES)
@@ -46,6 +50,10 @@ public class AdminExamScheduleController {
         model.addAttribute("checkedAt", coverageService.getCheckedAt().orElse(null));
         model.addAttribute("checkStale", coverageService.isCheckStale());
         model.addAttribute("staleDays", ExamScheduleCoverageService.STALE_CHECK_DAYS);
+        // 자동 수집 상태 카드 (#991): 마지막 시도·마지막 성공·최근 10건
+        model.addAttribute("latestSyncRun", examScheduleSyncService.findLatestRun().orElse(null));
+        model.addAttribute("latestSuccessSyncRun", examScheduleSyncService.findLatestSuccessRun().orElse(null));
+        model.addAttribute("recentSyncRuns", examScheduleSyncService.findRecentRuns());
         return "admin/exam-schedules";
     }
 
@@ -69,6 +77,13 @@ public class AdminExamScheduleController {
         return ResponseEntity.ok(examScheduleService.deletePastSchedules());
     }
 
+    /** 지금 수집 (#991): 공식 페이지 1회 수집, 실패해도 200 + 실패 사유 (일정은 그대로) */
+    @PostMapping("/sync")
+    @ResponseBody
+    public ResponseEntity<ExamScheduleSyncResult> syncNow() {
+        return ResponseEntity.ok(examScheduleSyncService.syncNow(ExamScheduleSyncTrigger.ADMIN));
+    }
+
     /** 공식 공고를 확인했다고 오늘 날짜를 남긴다 */
     @PostMapping("/announcement-checked")
     public String markChecked() {
@@ -76,7 +91,7 @@ public class AdminExamScheduleController {
         return "redirect:/admin/exam-schedules";
     }
 
-    /** 회차·시험일 수정 (#479) */
+    /** 회차·일정·수동 고정 수정 (#479, #991) */
     @PutMapping("/{uuid}")
     @ResponseBody
     public ResponseEntity<Void> update(@PathVariable("uuid") UUID uuid,

@@ -35,6 +35,13 @@ abstract final class PassqlSize {
   static const double mockExamRoundBadge = 44; // 모의고사 회차 번호 배지 한 변 (숫자 + "회")
   static const double mockExamRoundLockBadge = 18; // 잠긴 회차 배지 모서리 자물쇠 원
   static const double mockExamRoundProgressWidth = 56; // 풀이 중 회차 진행 막대 폭 ("23/50" 글자 폭 정도)
+  // 시험 일정 (#991): 가로 단계 점·진행선, 세로 타임라인 점(시험은 한 단계 크게)·날짜 칸 폭("10.12" 굵은 글자 폭)
+  static const double examStepDot = 14;
+  static const double examStepLine = 2;
+  static const double examTimelineDot = 12;
+  static const double examTimelineExamDot = 14;
+  static const double examTimelineDateColumn = 40;
+  static const double examPhaseDot = 6; // 단계 칩 앞 깜빡이는 점
   static const double iconTile = 29;
   static const double iconTileCompact = 26; // 구간 제목 앞 타일 (행 타일보다 한 단계 작게, #726)
   static const double blurSigma = 20;

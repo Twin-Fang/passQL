@@ -7,13 +7,15 @@ abstract final class PushDataKeys {
   static const String questionUuid = 'questionUuid';
 }
 
-/// 알림 탭 시 이동 화면 허용 목록 5종 (서버 PushLinkTarget 이름과 1:1)
+/// 알림 탭 시 이동 화면 허용 목록 6종 (서버 PushLinkTarget 이름과 1:1)
 enum PushLinkTarget {
   home('HOME'),
   dailySet('DAILY_SET'),
   questions('QUESTIONS'),
   questionDetail('QUESTION_DETAIL'),
-  stats('STATS');
+  stats('STATS'),
+  // 시험 일정 화면 (#991)
+  examSchedule('EXAM_SCHEDULE');
 
   const PushLinkTarget(this.serverValue);
 

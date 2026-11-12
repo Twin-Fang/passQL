@@ -816,6 +816,11 @@ export interface paths {
          *     ## 반환값 (List<ExamScheduleResponse>)
          *     - certType + round 오름차순 정렬
          *     - 각 행: examScheduleUuid, certType, round, examDate, isSelected
+         *     - 일정 (#991, 없으면 null): applicationStartDate·applicationEndDate(원서접수), admissionTicketDate(수험표 발급),
+         *       preliminaryScoreStartDate·preliminaryScoreEndDate(사전점수 공개·재검토 접수), resultAnnouncementDate(합격 발표)
+         *     - source: AUTO(공식 페이지 자동 수집) / MANUAL(관리자 입력), isManualLocked, lastCollectedAt
+         *     - phase (서버 계산, KST 오늘 기준): BEFORE_APPLICATION 접수 전 / APPLICATION_OPEN 접수 중 /
+         *       WAITING_ADMISSION_TICKET 수험표 대기 / WAITING_EXAM 시험 대기(수험표 발급~시험 당일) / WAITING_RESULT 발표 대기 / FINISHED 끝(발표일부터)
          */
         get: operations["getSchedules"];
         put?: never;
@@ -842,6 +847,36 @@ export interface paths {
          *     - 선택된 일정이 없으면 200 OK + null body (홈화면 greeting fallback 처리)
          */
         get: operations["getSelected"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/exam-schedules/sqld": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * SQLD 한 해 시험 일정 (앱 시험 일정 화면)
+         * @description ## 인증(JWT): **불필요**
+         *
+         *     ## 요청 파라미터
+         *     - **`year`** (optional): 시험일 기준 연도. 미입력 시 올해(KST)
+         *
+         *     ## 반환값 (SqldExamScheduleOverviewResponse)
+         *     - **`year`**: 조회 연도
+         *     - **`schedules`**: 그해 SQLD 회차 (회차 오름차순, 각 행은 GET /api/exam-schedules 와 같은 형태 + phase)
+         *     - **`nextSchedule`**: 오늘 이후 가장 가까운 SQLD 시험 (연도 무관, 없으면 null)
+         *     - **`lastCollectedAt`**: 마지막 자동 수집 성공 시각 (KST, 없으면 null)
+         *     - **`officialScheduleUrl`**: 공식 일정·접수 페이지 (데이터자격검정)
+         */
+        get: operations["getSqldOverview"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2910,14 +2945,33 @@ export interface components {
             message: string;
         };
         ExamScheduleResponse: {
+            /** Format: date */
+            admissionTicketDate: string;
+            /** Format: date */
+            applicationEndDate: string;
+            /** Format: date */
+            applicationStartDate: string;
             certType: string;
             /** Format: date */
             examDate: string;
             /** Format: uuid */
             examScheduleUuid: string;
+            isManualLocked: boolean;
             isSelected: boolean;
+            /** Format: date-time */
+            lastCollectedAt: string;
+            /** @enum {string} */
+            phase: "BEFORE_APPLICATION" | "APPLICATION_OPEN" | "WAITING_ADMISSION_TICKET" | "WAITING_EXAM" | "WAITING_RESULT" | "FINISHED";
+            /** Format: date */
+            preliminaryScoreEndDate: string;
+            /** Format: date */
+            preliminaryScoreStartDate: string;
+            /** Format: date */
+            resultAnnouncementDate: string;
             /** Format: int32 */
             round: number;
+            /** @enum {string} */
+            source: "AUTO" | "MANUAL";
         };
         ExamTrendConcept: {
             description: string;
@@ -3605,6 +3659,15 @@ export interface components {
             empty: boolean;
             sorted: boolean;
             unsorted: boolean;
+        };
+        SqldExamScheduleOverviewResponse: {
+            /** Format: date-time */
+            lastCollectedAt: string;
+            nextSchedule: components["schemas"]["ExamScheduleResponse"];
+            officialScheduleUrl: string;
+            schedules: components["schemas"]["ExamScheduleResponse"][];
+            /** Format: int32 */
+            year: number;
         };
         SseEmitter: {
             /** Format: int64 */
@@ -4533,6 +4596,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ExamScheduleResponse"];
+                };
+            };
+        };
+    };
+    getSqldOverview: {
+        parameters: {
+            query?: {
+                year?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SqldExamScheduleOverviewResponse"];
                 };
             };
         };
