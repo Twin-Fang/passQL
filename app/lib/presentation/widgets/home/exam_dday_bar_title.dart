@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../../../core/utils/exam_dday.dart';
+import '../../../core/utils/date_format.dart';
 import '../../../data/models/exam/exam_schedule_response.dart';
 import '../../design/design.dart';
 
@@ -9,7 +10,7 @@ String examBarSubtitle(ExamScheduleResponse schedule) {
   final round = '${schedule.certType} ${schedule.round}회';
   final date = DateTime.tryParse(schedule.examDate);
   if (date == null) return round;
-  return '$round · ${date.month}월 ${date.day}일';
+  return '$round · ${formatMonthDay(date)}';
 }
 
 /// 스크린리더 낭독: 'D-18' 대신 '시험까지 18일'

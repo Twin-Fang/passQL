@@ -16,7 +16,7 @@ class _TicketBody extends StatelessWidget {
   final bool isPro;
   final String destination;
   final List<PassqlPassTicketField> fields;
-  final List<({IconData icon, Color color})> benefitIcons;
+  final List<IconData> benefitIcons;
   final Widget? footer;
   final Color foreground;
   final Color subtle;
@@ -131,7 +131,7 @@ class _TicketBody extends StatelessWidget {
                 children: [
                   for (var index = 0; index < benefitIcons.length; index++)
                     _BenefitIcon(
-                      icon: benefitIcons[index].icon,
+                      icon: benefitIcons[index],
                       isPro: isPro,
                       onTap: onBenefitTap == null
                           ? null

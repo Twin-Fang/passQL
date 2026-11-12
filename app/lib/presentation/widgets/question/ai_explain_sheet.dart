@@ -67,7 +67,7 @@ class AiExplainSheet extends ConsumerWidget {
               key: const ValueKey('error'),
               constraints: const BoxConstraints(minHeight: _placeholderHeight),
               child: PassqlStatusView.error(
-                message: 'AI 해설을 불러올 수 없어요',
+                message: PassqlLoadFailureCopy.messageOf('AI 해설을'),
                 onRetry: () => ref.invalidate(aiExplanationProvider(request)),
               ),
             ),

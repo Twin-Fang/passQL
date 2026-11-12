@@ -937,7 +937,12 @@ mixin _$AppConfig {
       throw _privateConstructorUsedError; // 서버 결제 스위치 (false 면 잠금·칩·시트를 그리지 않음)
   bool get isAndroidBillingEnabled =>
       throw _privateConstructorUsedError; // 사업자 정보 (구버전 서버면 빈 값 > 섹션 숨김)
-  BusinessInfo get businessInfo => throw _privateConstructorUsedError;
+  BusinessInfo get businessInfo =>
+      throw _privateConstructorUsedError; // 잠금화면 문제 (#990): 전체 스위치(false 면 메뉴 숨김), 기본 간격(분, 0 = 매번), 실행형 출제 여부
+  bool get isLockScreenEnabled => throw _privateConstructorUsedError;
+  int get lockScreenDefaultIntervalMinutes =>
+      throw _privateConstructorUsedError;
+  bool get isLockScreenExecutableIncluded => throw _privateConstructorUsedError;
 
   /// Serializes this AppConfig to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -961,6 +966,9 @@ abstract class $AppConfigCopyWith<$Res> {
     List<AppNotice> notices,
     bool isAndroidBillingEnabled,
     BusinessInfo businessInfo,
+    bool isLockScreenEnabled,
+    int lockScreenDefaultIntervalMinutes,
+    bool isLockScreenExecutableIncluded,
   });
 
   $AppPlatformVersionPolicyCopyWith<$Res> get ios;
@@ -990,6 +998,9 @@ class _$AppConfigCopyWithImpl<$Res, $Val extends AppConfig>
     Object? notices = null,
     Object? isAndroidBillingEnabled = null,
     Object? businessInfo = null,
+    Object? isLockScreenEnabled = null,
+    Object? lockScreenDefaultIntervalMinutes = null,
+    Object? isLockScreenExecutableIncluded = null,
   }) {
     return _then(
       _value.copyWith(
@@ -1017,6 +1028,20 @@ class _$AppConfigCopyWithImpl<$Res, $Val extends AppConfig>
                 ? _value.businessInfo
                 : businessInfo // ignore: cast_nullable_to_non_nullable
                       as BusinessInfo,
+            isLockScreenEnabled: null == isLockScreenEnabled
+                ? _value.isLockScreenEnabled
+                : isLockScreenEnabled // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            lockScreenDefaultIntervalMinutes:
+                null == lockScreenDefaultIntervalMinutes
+                ? _value.lockScreenDefaultIntervalMinutes
+                : lockScreenDefaultIntervalMinutes // ignore: cast_nullable_to_non_nullable
+                      as int,
+            isLockScreenExecutableIncluded:
+                null == isLockScreenExecutableIncluded
+                ? _value.isLockScreenExecutableIncluded
+                : isLockScreenExecutableIncluded // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -1079,6 +1104,9 @@ abstract class _$$AppConfigImplCopyWith<$Res>
     List<AppNotice> notices,
     bool isAndroidBillingEnabled,
     BusinessInfo businessInfo,
+    bool isLockScreenEnabled,
+    int lockScreenDefaultIntervalMinutes,
+    bool isLockScreenExecutableIncluded,
   });
 
   @override
@@ -1111,6 +1139,9 @@ class __$$AppConfigImplCopyWithImpl<$Res>
     Object? notices = null,
     Object? isAndroidBillingEnabled = null,
     Object? businessInfo = null,
+    Object? isLockScreenEnabled = null,
+    Object? lockScreenDefaultIntervalMinutes = null,
+    Object? isLockScreenExecutableIncluded = null,
   }) {
     return _then(
       _$AppConfigImpl(
@@ -1138,6 +1169,19 @@ class __$$AppConfigImplCopyWithImpl<$Res>
             ? _value.businessInfo
             : businessInfo // ignore: cast_nullable_to_non_nullable
                   as BusinessInfo,
+        isLockScreenEnabled: null == isLockScreenEnabled
+            ? _value.isLockScreenEnabled
+            : isLockScreenEnabled // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        lockScreenDefaultIntervalMinutes:
+            null == lockScreenDefaultIntervalMinutes
+            ? _value.lockScreenDefaultIntervalMinutes
+            : lockScreenDefaultIntervalMinutes // ignore: cast_nullable_to_non_nullable
+                  as int,
+        isLockScreenExecutableIncluded: null == isLockScreenExecutableIncluded
+            ? _value.isLockScreenExecutableIncluded
+            : isLockScreenExecutableIncluded // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -1153,6 +1197,9 @@ class _$AppConfigImpl implements _AppConfig {
     final List<AppNotice> notices = const [],
     this.isAndroidBillingEnabled = false,
     this.businessInfo = const BusinessInfo(),
+    this.isLockScreenEnabled = false,
+    this.lockScreenDefaultIntervalMinutes = 30,
+    this.isLockScreenExecutableIncluded = true,
   }) : _notices = notices;
 
   factory _$AppConfigImpl.fromJson(Map<String, dynamic> json) =>
@@ -1184,10 +1231,20 @@ class _$AppConfigImpl implements _AppConfig {
   @override
   @JsonKey()
   final BusinessInfo businessInfo;
+  // 잠금화면 문제 (#990): 전체 스위치(false 면 메뉴 숨김), 기본 간격(분, 0 = 매번), 실행형 출제 여부
+  @override
+  @JsonKey()
+  final bool isLockScreenEnabled;
+  @override
+  @JsonKey()
+  final int lockScreenDefaultIntervalMinutes;
+  @override
+  @JsonKey()
+  final bool isLockScreenExecutableIncluded;
 
   @override
   String toString() {
-    return 'AppConfig(ios: $ios, android: $android, maintenance: $maintenance, notices: $notices, isAndroidBillingEnabled: $isAndroidBillingEnabled, businessInfo: $businessInfo)';
+    return 'AppConfig(ios: $ios, android: $android, maintenance: $maintenance, notices: $notices, isAndroidBillingEnabled: $isAndroidBillingEnabled, businessInfo: $businessInfo, isLockScreenEnabled: $isLockScreenEnabled, lockScreenDefaultIntervalMinutes: $lockScreenDefaultIntervalMinutes, isLockScreenExecutableIncluded: $isLockScreenExecutableIncluded)';
   }
 
   @override
@@ -1206,7 +1263,21 @@ class _$AppConfigImpl implements _AppConfig {
                 ) ||
                 other.isAndroidBillingEnabled == isAndroidBillingEnabled) &&
             (identical(other.businessInfo, businessInfo) ||
-                other.businessInfo == businessInfo));
+                other.businessInfo == businessInfo) &&
+            (identical(other.isLockScreenEnabled, isLockScreenEnabled) ||
+                other.isLockScreenEnabled == isLockScreenEnabled) &&
+            (identical(
+                  other.lockScreenDefaultIntervalMinutes,
+                  lockScreenDefaultIntervalMinutes,
+                ) ||
+                other.lockScreenDefaultIntervalMinutes ==
+                    lockScreenDefaultIntervalMinutes) &&
+            (identical(
+                  other.isLockScreenExecutableIncluded,
+                  isLockScreenExecutableIncluded,
+                ) ||
+                other.isLockScreenExecutableIncluded ==
+                    isLockScreenExecutableIncluded));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1219,6 +1290,9 @@ class _$AppConfigImpl implements _AppConfig {
     const DeepCollectionEquality().hash(_notices),
     isAndroidBillingEnabled,
     businessInfo,
+    isLockScreenEnabled,
+    lockScreenDefaultIntervalMinutes,
+    isLockScreenExecutableIncluded,
   );
 
   /// Create a copy of AppConfig
@@ -1243,6 +1317,9 @@ abstract class _AppConfig implements AppConfig {
     final List<AppNotice> notices,
     final bool isAndroidBillingEnabled,
     final BusinessInfo businessInfo,
+    final bool isLockScreenEnabled,
+    final int lockScreenDefaultIntervalMinutes,
+    final bool isLockScreenExecutableIncluded,
   }) = _$AppConfigImpl;
 
   factory _AppConfig.fromJson(Map<String, dynamic> json) =
@@ -1259,7 +1336,13 @@ abstract class _AppConfig implements AppConfig {
   @override
   bool get isAndroidBillingEnabled; // 사업자 정보 (구버전 서버면 빈 값 > 섹션 숨김)
   @override
-  BusinessInfo get businessInfo;
+  BusinessInfo get businessInfo; // 잠금화면 문제 (#990): 전체 스위치(false 면 메뉴 숨김), 기본 간격(분, 0 = 매번), 실행형 출제 여부
+  @override
+  bool get isLockScreenEnabled;
+  @override
+  int get lockScreenDefaultIntervalMinutes;
+  @override
+  bool get isLockScreenExecutableIncluded;
 
   /// Create a copy of AppConfig
   /// with the given fields replaced by the non-null parameter values.

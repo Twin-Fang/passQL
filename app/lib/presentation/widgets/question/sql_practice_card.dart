@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/question/question_schema_table.dart';
 import '../../design/design.dart';
-import '../../providers/plan_providers.dart';
+import '../../providers/question_feature_lock_providers.dart';
 import '../../providers/sql_practice_providers.dart';
 import '../pro/locked_preview_samples.dart';
 import '../pro/pro_locked_section.dart';
@@ -49,7 +49,9 @@ class SqlPracticeCard extends ConsumerWidget {
     final practice = ref.watch(sqlPracticeProvider(questionUuid));
     final notifier = ref.read(sqlPracticeProvider(questionUuid).notifier);
     final currentSql = practice.draftSql ?? _startSqlOf(practice.start);
-    final isExecutionLocked = ref.watch(shouldShowProUiProvider);
+    final isExecutionLocked = ref.watch(
+      isQuestionExecutionLockedProvider(questionUuid),
+    );
 
     /// 실행: 잠금이면 이용권 시트, 아니면 실제 DB 실행
     Future<void> runOrOpenOffer(String sql) async {
@@ -87,7 +89,7 @@ class SqlPracticeCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              '정답 SQL 의 값을 바꿔 실제 DB 에서 실행해 보세요',
+              '정답 SQL의 값을 바꿔 실제 DB에서 실행해 보세요',
               style: PassqlTypography.footnote.copyWith(
                 color: colors.secondaryLabel,
               ),
@@ -154,7 +156,7 @@ class _PracticeSqlPreview extends StatelessWidget {
         ),
         child: sql.trim().isEmpty
             ? Text(
-                '눌러서 SQL 을 써 보세요',
+                '눌러서 SQL을 써 보세요',
                 style: PassqlTypography.code.copyWith(
                   color: colors.secondaryLabel,
                 ),

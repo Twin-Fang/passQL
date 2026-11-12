@@ -24,6 +24,9 @@ class QuestionChoices extends StatelessWidget {
   /// true면 재시도가 불가능한 오류여도 "다시 시도"를 보여 막다른 길을 만들지 않는다.
   final bool shouldAlwaysAllowRetry;
 
+  /// 실행형 보기 위 실행 안내 줄을 보일지 (오늘의 세트 체험 안내가 대신하면 false, #992)
+  final bool shouldShowRunChoiceHint;
+
   const QuestionChoices({
     super.key,
     required this.interaction,
@@ -32,6 +35,7 @@ class QuestionChoices extends StatelessWidget {
     this.submitResult,
     this.gradedSelectedKey,
     this.shouldAlwaysAllowRetry = false,
+    this.shouldShowRunChoiceHint = true,
   });
 
   @override
@@ -67,7 +71,8 @@ class QuestionChoices extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // 실행형 보기 안내: 채점 전 > 제출하면 실행 가능, 채점 뒤 > 실행 아이콘 안내 (#727)
-        if (hasRunnableChoice) _RunChoiceHint(isGraded: submitResult != null),
+        if (hasRunnableChoice && shouldShowRunChoiceHint)
+          _RunChoiceHint(isGraded: submitResult != null),
         for (final (displayIndex, item) in interaction.activeChoices.indexed)
           // 채점 직후 정답 보기를 하단 피드백 바 위로 (#551)
           RevealAboveBottomBarOnTrigger(
@@ -131,8 +136,8 @@ class _RunChoiceHint extends StatelessWidget {
           Expanded(
             child: Text(
               isGraded
-                  ? '보기를 누르면 실제 DB 에서 실행한 결과를 볼 수 있어요'
-                  : '제출하면 보기마다 실제 DB 에서 실행해 볼 수 있어요',
+                  ? '보기를 누르면 실제 DB에서 실행한 결과를 볼 수 있어요'
+                  : '제출하면 보기마다 실제 DB에서 실행해 볼 수 있어요',
               style: PassqlTypography.footnote.copyWith(
                 color: colors.secondaryLabel,
               ),

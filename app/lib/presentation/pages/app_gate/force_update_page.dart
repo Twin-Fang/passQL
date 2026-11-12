@@ -20,7 +20,7 @@ class ForceUpdatePage extends ConsumerWidget {
       title: '업데이트가 필요해요',
       message: hasStoreUrl
           ? '새 버전이 나왔어요.\n최신 버전으로 업데이트한 뒤 이용해 주세요.'
-          : '새 버전이 나왔어요.\n스토어에서 passQL 을 검색해 업데이트해 주세요.',
+          : '새 버전이 나왔어요.\n스토어에서 passQL을 검색해 업데이트해 주세요.',
       detail: decision == null
           ? null
           : '현재 버전 ${decision.currentVersion} · 필요 버전 ${decision.versionPolicy.minimumVersion} 이상',

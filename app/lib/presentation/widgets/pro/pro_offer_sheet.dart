@@ -268,7 +268,7 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
     final benefits = proBenefits(dailyFreeLimit: widget.dailyFreeLimit);
     final activeProExpiresAt = widget.activeProExpiresAt;
     final isExtending = activeProExpiresAt != null;
-    // 승객 칸: 시트가 떠 있는 동안 닉네임이 도착하면 채움 (홈에서 바로 열면 아직 안 불러온 상태)
+    // 수험생 칸: 시트가 떠 있는 동안 닉네임이 도착하면 채움 (홈에서 바로 열면 아직 안 불러온 상태)
     final nickname =
         ref.watch(settingsDataProvider).valueOrNull?.nickname ?? '';
 

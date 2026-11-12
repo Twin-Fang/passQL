@@ -184,7 +184,7 @@ class AiAnalysisErrorSection extends StatelessWidget {
               const SizedBox(width: PassqlSpacing.xxs),
               Expanded(
                 child: Text(
-                  '분석을 불러오지 못했어요',
+                  PassqlLoadFailureCopy.messageOf('분석을'),
                   style: PassqlTypography.subheadline.copyWith(
                     color: colors.secondaryLabel,
                   ),

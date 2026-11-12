@@ -120,6 +120,32 @@ class _QuestionApiClient implements QuestionApiClient {
   }
 
   @override
+  Future<HttpResponse<dynamic>> getLockScreenQuestion(
+    bool isExecutableExcluded,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'isExecutableExcluded': isExecutableExcluded,
+    };
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<HttpResponse<dynamic>>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/questions/lockscreen',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch(_options);
+    final _value = _result.data;
+    final httpResponse = HttpResponse(_value, _result);
+    return httpResponse;
+  }
+
+  @override
   Future<QuestionDetail> getQuestion(String questionUuid) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};

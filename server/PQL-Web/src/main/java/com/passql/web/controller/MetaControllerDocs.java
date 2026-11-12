@@ -108,6 +108,7 @@ public interface MetaControllerDocs {
       @ApiLog(date = "2026.10.15", author = Author.SUHSAECHAN, issueNumber = 464, description = "앱 시작 설정 조회 API 추가 — 최소/권장 버전, 점검, 공지"),
       @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 529, description = "공지에 게시 시각 publishedAt 추가"),
       @ApiLog(date = "2026.10.26", author = Author.SUHSAECHAN, issueNumber = 658, description = "사업자 정보 businessInfo 추가"),
+      @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 990, description = "잠금화면 문제 설정 isLockScreenEnabled·lockScreenDefaultIntervalMinutes·isLockScreenExecutableIncluded 추가"),
   })
   @Operation(
       summary = "앱 시작 설정 조회",
@@ -135,6 +136,9 @@ public interface MetaControllerDocs {
           - businessInfo (BusinessInfoResponse) — 사업자 정보 표기 (관리자 설정 business.*)
             - companyName: 상호 (null 이면 사업자 정보 섹션 숨김)
             - representativeName, registrationNumber, contactEmail, mailOrderSalesNumber: null 이면 그 줄 숨김
+          - isLockScreenEnabled: 잠금화면 문제 풀기 전체 스위치 (false 면 앱 메뉴 숨김, 관리자 설정 lockscreen.enabled)
+          - lockScreenDefaultIntervalMinutes: 잠금화면 문제 기본 표시 간격 (분, 0 은 화면 켤 때마다, 사용자가 바꾸기 전 값)
+          - isLockScreenExecutableIncluded: 잠금화면에 실행형 SQL 문제 출제 여부 (false 면 객관식만)
           """
   )
   ResponseEntity<AppConfigResponse> getAppConfig();

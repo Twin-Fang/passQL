@@ -98,7 +98,7 @@ class _InProgressCard extends StatelessWidget {
           ),
           const SizedBox(height: PassqlSpacing.md),
           PassqlButton(
-            label: '이어 풀기',
+            label: '이어서 풀기',
             onPressed: () => context.push(
               AppRoutes.mockExamAttempt(inProgressAttempt.attemptUuid),
             ),

@@ -32,7 +32,7 @@ class TopicCard extends StatelessWidget {
       ),
       title: topic.displayName,
       // 서브토픽이 있을 때만 개수를 보여 준다(없으면 "0개"만 반복돼 의미가 없다)
-      subtitle: activeSubtopicCount > 0 ? '$activeSubtopicCount개 서브토픽' : null,
+      subtitle: activeSubtopicCount > 0 ? '세부 토픽 $activeSubtopicCount개' : null,
       // 9개 중 대부분에 붙어 글자 배지는 소음이 되므로 불꽃 아이콘만 (스크린리더는 '최신 경향')
       trailing: hasLatestTrendQuestion
           ? Semantics(

@@ -16,6 +16,7 @@ class NotificationInboxState {
     required this.items,
     this.nextCursor,
     this.isLoadingMore = false,
+    this.hasLoadMoreFailed = false,
   });
 
   final List<NotificationItem> items;
@@ -24,15 +25,20 @@ class NotificationInboxState {
   final String? nextCursor;
   final bool isLoadingMore;
 
+  /// 다음 페이지 받기 실패 (목록 끝 '다시 불러오기' 줄 표시)
+  final bool hasLoadMoreFailed;
+
   bool get hasMore => nextCursor != null;
 
   NotificationInboxState copyWith({
     List<NotificationItem>? items,
     bool? isLoadingMore,
+    bool? hasLoadMoreFailed,
   }) => NotificationInboxState(
     items: items ?? this.items,
     nextCursor: nextCursor,
     isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+    hasLoadMoreFailed: hasLoadMoreFailed ?? this.hasLoadMoreFailed,
   );
 }
 
@@ -66,11 +72,13 @@ class NotificationInboxNotifier
     await future;
   }
 
-  /// 다음 페이지 이어 붙이기 (마지막 페이지·로딩 중·실패 > 변화 없음)
+  /// 다음 페이지 이어 붙이기 (마지막 페이지·로딩 중 > 변화 없음, 실패 > 실패 표시만)
   Future<void> loadMore() async {
     final current = state.valueOrNull;
     if (current == null || !current.hasMore || current.isLoadingMore) return;
-    state = AsyncData(current.copyWith(isLoadingMore: true));
+    state = AsyncData(
+      current.copyWith(isLoadingMore: true, hasLoadMoreFailed: false),
+    );
     try {
       final page = await ref
           .read(notificationApiProvider)
@@ -86,7 +94,9 @@ class NotificationInboxNotifier
       );
     } catch (error) {
       AppLogger.warn('notification inbox', 'load more failed : $error');
-      state = AsyncData(current.copyWith(isLoadingMore: false));
+      state = AsyncData(
+        current.copyWith(isLoadingMore: false, hasLoadMoreFailed: true),
+      );
     }
   }
 

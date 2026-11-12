@@ -84,7 +84,9 @@ class PassqlPassTicket extends StatelessWidget {
   /// 경로 끝 (예: SQLD 63회, 일정이 없으면 SQLD)
   final String destination;
   final List<PassqlPassTicketField> fields;
-  final List<({IconData icon, Color color})> benefitIcons;
+
+  /// 혜택 아이콘 (한 색 픽토그램, 색은 등급별로 탑승권이 정함)
+  final List<IconData> benefitIcons;
 
   /// 떼는 칸 글자 (줄바꿈 포함 가능)
   final String stubLabel;

@@ -60,14 +60,14 @@ export default function Login() {
       completeLogin(provider, await login({ authProvider: provider, idToken }));
     } catch (err) {
       if (err instanceof ApiError) {
-        setError("로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
+        setError("로그인 처리 중 오류가 생겼어요. 다시 시도해 주세요.");
       } else if (err instanceof Error && err.message.includes("popup-closed-by-user")) {
         // 사용자가 팝업을 직접 닫은 경우 — 에러 메시지 불필요
       } else if (err instanceof Error && err.message.includes("operation-not-allowed")) {
         // 웹 Firebase 에 이 제공자가 아직 설정되지 않음
         setError(`${LOGIN_PROVIDER_LABEL[provider]} 로그인은 준비 중입니다.`);
       } else {
-        setError("로그인에 실패했습니다. 다시 시도해주세요.");
+        setError("로그인에 실패했어요. 다시 시도해 주세요.");
       }
     } finally {
       setLoadingProvider(null);
@@ -89,7 +89,7 @@ export default function Login() {
       // 페이지를 떠나므로 로딩 표시는 그대로 둔다
       window.location.assign(await buildAuthorizeUrl(provider, config.clientId));
     } catch {
-      setError("로그인에 실패했습니다. 다시 시도해주세요.");
+      setError("로그인에 실패했어요. 다시 시도해 주세요.");
       setLoadingProvider(null);
     }
   };

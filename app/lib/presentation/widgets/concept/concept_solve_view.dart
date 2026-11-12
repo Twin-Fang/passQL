@@ -58,7 +58,7 @@ class ConceptSolveView extends ConsumerWidget {
     return questions.when(
       loading: () => const PassqlStatusView.loading(),
       error: (_, _) => PassqlStatusView.error(
-        message: '확인 문제를 불러오지 못했어요.',
+        message: PassqlLoadFailureCopy.messageOf('확인 문제를'),
         onRetry: () =>
             ref.invalidate(conceptCheckQuestionsProvider(conceptUuid)),
       ),

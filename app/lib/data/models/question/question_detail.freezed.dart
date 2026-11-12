@@ -38,7 +38,9 @@ mixin _$QuestionDetail {
   String? get hint => throw _privateConstructorUsedError;
   List<ChoiceSetSummary> get choiceSets =>
       throw _privateConstructorUsedError; // 최신 출제 경향 반영 문제 ('최신 경향' 배지, 구버전 서버면 false, #523)
-  bool get isLatestTrend => throw _privateConstructorUsedError;
+  bool get isLatestTrend =>
+      throw _privateConstructorUsedError; // 오늘의 세트 무료 체험: 무료 회원도 이 문제에서 SQL 실행·AI 해설 사용 (구버전 서버면 false, #992)
+  bool get isDailySetFreeTrial => throw _privateConstructorUsedError;
 
   /// Serializes this QuestionDetail to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -73,6 +75,7 @@ abstract class $QuestionDetailCopyWith<$Res> {
     String? hint,
     List<ChoiceSetSummary> choiceSets,
     bool isLatestTrend,
+    bool isDailySetFreeTrial,
   });
 }
 
@@ -106,6 +109,7 @@ class _$QuestionDetailCopyWithImpl<$Res, $Val extends QuestionDetail>
     Object? hint = freezed,
     Object? choiceSets = null,
     Object? isLatestTrend = null,
+    Object? isDailySetFreeTrial = null,
   }) {
     return _then(
       _value.copyWith(
@@ -169,6 +173,10 @@ class _$QuestionDetailCopyWithImpl<$Res, $Val extends QuestionDetail>
                 ? _value.isLatestTrend
                 : isLatestTrend // ignore: cast_nullable_to_non_nullable
                       as bool,
+            isDailySetFreeTrial: null == isDailySetFreeTrial
+                ? _value.isDailySetFreeTrial
+                : isDailySetFreeTrial // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -200,6 +208,7 @@ abstract class _$$QuestionDetailImplCopyWith<$Res>
     String? hint,
     List<ChoiceSetSummary> choiceSets,
     bool isLatestTrend,
+    bool isDailySetFreeTrial,
   });
 }
 
@@ -232,6 +241,7 @@ class __$$QuestionDetailImplCopyWithImpl<$Res>
     Object? hint = freezed,
     Object? choiceSets = null,
     Object? isLatestTrend = null,
+    Object? isDailySetFreeTrial = null,
   }) {
     return _then(
       _$QuestionDetailImpl(
@@ -295,6 +305,10 @@ class __$$QuestionDetailImplCopyWithImpl<$Res>
             ? _value.isLatestTrend
             : isLatestTrend // ignore: cast_nullable_to_non_nullable
                   as bool,
+        isDailySetFreeTrial: null == isDailySetFreeTrial
+            ? _value.isDailySetFreeTrial
+            : isDailySetFreeTrial // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -319,6 +333,7 @@ class _$QuestionDetailImpl implements _QuestionDetail {
     this.hint,
     final List<ChoiceSetSummary> choiceSets = const [],
     this.isLatestTrend = false,
+    this.isDailySetFreeTrial = false,
   }) : _schemaTables = schemaTables,
        _choiceSets = choiceSets;
 
@@ -373,10 +388,14 @@ class _$QuestionDetailImpl implements _QuestionDetail {
   @override
   @JsonKey()
   final bool isLatestTrend;
+  // 오늘의 세트 무료 체험: 무료 회원도 이 문제에서 SQL 실행·AI 해설 사용 (구버전 서버면 false, #992)
+  @override
+  @JsonKey()
+  final bool isDailySetFreeTrial;
 
   @override
   String toString() {
-    return 'QuestionDetail(questionUuid: $questionUuid, topicName: $topicName, subtopicName: $subtopicName, difficulty: $difficulty, executionMode: $executionMode, stem: $stem, schemaDisplay: $schemaDisplay, schemaDdl: $schemaDdl, schemaSampleData: $schemaSampleData, schemaIntent: $schemaIntent, schemaTables: $schemaTables, answerSql: $answerSql, hint: $hint, choiceSets: $choiceSets, isLatestTrend: $isLatestTrend)';
+    return 'QuestionDetail(questionUuid: $questionUuid, topicName: $topicName, subtopicName: $subtopicName, difficulty: $difficulty, executionMode: $executionMode, stem: $stem, schemaDisplay: $schemaDisplay, schemaDdl: $schemaDdl, schemaSampleData: $schemaSampleData, schemaIntent: $schemaIntent, schemaTables: $schemaTables, answerSql: $answerSql, hint: $hint, choiceSets: $choiceSets, isLatestTrend: $isLatestTrend, isDailySetFreeTrial: $isDailySetFreeTrial)';
   }
 
   @override
@@ -415,7 +434,9 @@ class _$QuestionDetailImpl implements _QuestionDetail {
               _choiceSets,
             ) &&
             (identical(other.isLatestTrend, isLatestTrend) ||
-                other.isLatestTrend == isLatestTrend));
+                other.isLatestTrend == isLatestTrend) &&
+            (identical(other.isDailySetFreeTrial, isDailySetFreeTrial) ||
+                other.isDailySetFreeTrial == isDailySetFreeTrial));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -437,6 +458,7 @@ class _$QuestionDetailImpl implements _QuestionDetail {
     hint,
     const DeepCollectionEquality().hash(_choiceSets),
     isLatestTrend,
+    isDailySetFreeTrial,
   );
 
   /// Create a copy of QuestionDetail
@@ -473,6 +495,7 @@ abstract class _QuestionDetail implements QuestionDetail {
     final String? hint,
     final List<ChoiceSetSummary> choiceSets,
     final bool isLatestTrend,
+    final bool isDailySetFreeTrial,
   }) = _$QuestionDetailImpl;
 
   factory _QuestionDetail.fromJson(Map<String, dynamic> json) =
@@ -507,7 +530,9 @@ abstract class _QuestionDetail implements QuestionDetail {
   @override
   List<ChoiceSetSummary> get choiceSets; // 최신 출제 경향 반영 문제 ('최신 경향' 배지, 구버전 서버면 false, #523)
   @override
-  bool get isLatestTrend;
+  bool get isLatestTrend; // 오늘의 세트 무료 체험: 무료 회원도 이 문제에서 SQL 실행·AI 해설 사용 (구버전 서버면 false, #992)
+  @override
+  bool get isDailySetFreeTrial;
 
   /// Create a copy of QuestionDetail
   /// with the given fields replaced by the non-null parameter values.

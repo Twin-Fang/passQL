@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
+import '../../../core/utils/daily_set_bonus_rule.dart';
 import '../../../data/models/member/member_plan_response.dart';
 import '../../design/design.dart';
 
@@ -57,7 +58,7 @@ class DailyLimitDailySetCard extends StatelessWidget {
           ),
           const SizedBox(height: PassqlSpacing.md),
           _DailySetBonusRow(
-            label: '세트 완료',
+            label: DailySetBonusRule.completionLabel,
             bonusQuestionCount: bonusQuestionCount,
             state: isCompletionEarned
                 ? _BonusRowState.earned
@@ -65,7 +66,7 @@ class DailyLimitDailySetCard extends StatelessWidget {
           ),
           const SizedBox(height: PassqlSpacing.sm),
           _DailySetBonusRow(
-            label: '세트 정답 80%',
+            label: DailySetBonusRule.accuracyLabel,
             bonusQuestionCount: bonusQuestionCount,
             // 세트를 끝냈는데 못 받았으면 오늘은 더 받을 수 없음
             state: isAccuracyEarned
@@ -116,7 +117,10 @@ class _DailySetBonusRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final (stateIcon, stateIconColor) = switch (state) {
-      _BonusRowState.obtainable => (CupertinoIcons.circle, colors.iconSecondary),
+      _BonusRowState.obtainable => (
+        CupertinoIcons.circle,
+        colors.iconSecondary,
+      ),
       _BonusRowState.earned => (
         CupertinoIcons.checkmark_circle_fill,
         colors.correct,

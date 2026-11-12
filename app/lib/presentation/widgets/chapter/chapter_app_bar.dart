@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
+import '../practice/daily_limit_reward_sheet.dart';
 import '../practice/remaining_solves_pill.dart';
 
 /// 챕터 플로우 상단 바.
@@ -74,8 +75,12 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               ?accessory,
+              // 누르면 탭 화면 상단 알약과 같은 크레딧 시트
               if (shouldShowRemainingSolves)
-                const RemainingSolvesPill(isCompact: true),
+                RemainingSolvesPill(
+                  isCompact: true,
+                  onTap: () => showDailyLimitRewardSheet(context),
+                ),
               if (!isContinuous) Flexible(child: PassqlBadge(text: topicName)),
             ],
           ),

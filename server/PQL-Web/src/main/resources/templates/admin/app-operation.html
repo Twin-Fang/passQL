@@ -96,6 +96,8 @@
 
         <th:block th:replace="~{admin/fragments/app-operation-billing :: billing-card}"></th:block>
 
+        <th:block th:replace="~{admin/fragments/app-operation-lockscreen :: lockscreen-card}"></th:block>
+
         <!-- 공지 -->
         <div class="card bg-base-100 shadow">
             <div class="card-body p-4">
@@ -276,6 +278,7 @@
 
 <th:block layout:fragment="js">
     <script th:src="@{/js/admin/app-operation-billing.js}"></script>
+    <script th:src="@{/js/admin/app-operation-lockscreen.js}"></script>
     <script>
         lucide.createIcons();
 

@@ -31,9 +31,9 @@ void openDailySetFromDailyLimit(BuildContext context) {
   }
 }
 
-/// 무료 하루 한도 화면 (A안, #963): 제목 > 광고 보고 더 풀기(주 버튼) > 오늘의 세트 보너스 > 이용권 한 줄
+/// 크레딧 화면 (A안, #963): 제목·내역 링크(0개면 다 쓴 이유와 충전 시각) > 잔액 > PRO(주 버튼) > 광고 보너스 > 오늘의 세트 보너스
 /// 막다른 길 없음: 광고·세트·이용권 모두 갈 곳이 있고, 광고 보상·구매로 풀리면 [onUnlocked]
-/// 남은 수가 늦게 늘어도(광고 확인 지연 > 다음 등급 조회) 「이어서 풀기」 주 버튼으로 [onUnlocked]
+/// 남은 수가 늦게 늘어도(광고 확인 지연 > 다음 등급 조회) 「이어서 풀기」 버튼으로 [onUnlocked]
 /// 세트는 풀이 흐름 안이면 지금 흐름을 세트로 교체 ([openDailySetFromDailyLimit])
 class DailyLimitRewardView extends ConsumerWidget {
   const DailyLimitRewardView({
@@ -82,6 +82,8 @@ class DailyLimitRewardView extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            _CreditSheetTitle(isCreditsExhausted: remainingSolves == 0),
+            const SizedBox(height: PassqlSpacing.sm),
             // 잔액: 아이콘 + 큰 숫자 + 게이지 (보너스 구간은 초록)
             CreditBalanceHeader(
               remainingCount: remainingSolves,
@@ -89,8 +91,11 @@ class DailyLimitRewardView extends ConsumerWidget {
               totalLimit: knownPlan?.effectiveTodayFreeLimit ?? dailyFreeLimit,
             ),
             const SizedBox(height: PassqlSpacing.xs),
+            // 0개면 충전 시각은 제목 아래에 이미 있음
             PassqlKeepAllText(
-              '랜덤 풀기 1문제에 크레딧 1개 · 내일 0시에 $dailyFreeLimit개 충전',
+              remainingSolves == 0
+                  ? '랜덤 풀기 1문제에 크레딧 1개'
+                  : '랜덤 풀기 1문제에 크레딧 1개 · 내일 0시에 $dailyFreeLimit개 충전',
               style: PassqlTypography.footnote.copyWith(
                 color: colors.secondaryLabel,
               ),
@@ -155,6 +160,51 @@ class DailyLimitRewardView extends ConsumerWidget {
     if (sheetOutcome == ProOfferSheetOutcome.purchased && context.mounted) {
       onUnlocked();
     }
+  }
+}
+
+/// 시트 제목 줄: 제목 + 내역 링크, 크레딧 0개면 다 쓴 이유 > 충전 시각 한 줄 (#993)
+class _CreditSheetTitle extends StatelessWidget {
+  const _CreditSheetTitle({required this.isCreditsExhausted});
+
+  final bool isCreditsExhausted;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Semantics(
+                header: true,
+                child: Text(
+                  isCreditsExhausted ? '오늘 크레딧을 다 썼어요' : '오늘 크레딧',
+                  style: PassqlTypography.headline.copyWith(
+                    color: colors.label,
+                  ),
+                ),
+              ),
+            ),
+            // 날짜별 받은·쓴 내역 (프로필 오늘 크레딧과 같은 링크, 루트 화면이라 시트 위에 열림)
+            PassqlSectionLink(
+              label: '내역',
+              semanticLabel: '크레딧 내역 보기',
+              onTap: () => context.push(AppRoutes.creditHistory),
+            ),
+          ],
+        ),
+        if (isCreditsExhausted)
+          Text(
+            '내일 0시에 다시 채워져요',
+            style: PassqlTypography.subheadline.copyWith(
+              color: colors.secondaryLabel,
+            ),
+          ),
+      ],
+    );
   }
 }
 

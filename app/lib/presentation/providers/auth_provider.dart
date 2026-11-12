@@ -192,7 +192,15 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
       provider == SocialProvider.apple || provider == SocialProvider.google;
 
   /// 재발급 실패 등으로 세션이 이미 지워진 뒤 상태만 로그아웃으로 맞춘다.
-  void expire() => state = const AsyncData(null);
+  /// 로그인 상태였을 때만 로그인 화면 안내 문구 보관 (조용히 튕기지 않게, #995)
+  void expire() {
+    if (state.valueOrNull == null) return;
+    ref.read(loginNoticeProvider.notifier).state = sessionExpiredNoticeMessage;
+    state = const AsyncData(null);
+  }
+
+  // 세션 만료로 로그인 화면에 돌아왔을 때 안내
+  static const String sessionExpiredNoticeMessage = '로그인이 만료됐어요. 다시 로그인해 주세요';
 
   /// 이용 제한 회원 로그아웃: 로그인 화면 안내 문구 보관 > 로그아웃 상태 > 기기 세션·소셜 로그인 정리
   /// 서버 토큰 폐기는 생략 (제재 회원은 회원 API 가 거부됨)

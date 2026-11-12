@@ -5,6 +5,7 @@ import '../../design/design.dart';
 import '../../providers/ai_explanation_session_provider.dart';
 import '../pro/locked_preview_samples.dart';
 import '../pro/pro_locked_section.dart';
+import '../question/markdown_lite_text.dart';
 import 'ai_explanation_choice_analysis_list.dart';
 import 'ai_explanation_inline_text.dart';
 import 'ai_explanation_verdict.dart';
@@ -13,21 +14,29 @@ import 'ai_explanation_verdict.dart';
 /// 시험 팁은 풀이 직후 가장 먼저 기억할 한 줄이라 긴 섹션보다 앞
 /// 비어 있는 섹션은 그리지 않음
 /// [isFullExplanationLocked] (무료, 결제 켜짐): 판정 아래 블러 (서버가 판정 외 섹션을 비워 보냄)
+/// [isVerdictAnimated]: 판정 줄 단어 단위 등장 > 끝난 뒤 나머지 섹션 차례로 (온보딩 예시)
 class AiExplanationSections extends StatelessWidget {
   const AiExplanationSections({
     super.key,
     required this.explanation,
     required this.entry,
     this.isFullExplanationLocked = false,
+    this.isVerdictAnimated = false,
   });
 
   final ChoiceExplanation explanation;
   final AiExplanationEntry entry;
   final bool isFullExplanationLocked;
+  final bool isVerdictAnimated;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
+    final verdict = composeAiExplanationVerdict(explanation, entry);
+    // 판정 줄 단어가 다 나온 뒤 나머지 섹션 시작
+    final sectionRevealDelay = isVerdictAnimated
+        ? MarkdownLiteText.animationDurationOf(verdict)
+        : Duration.zero;
     final correctLabel = entry.displayLabelOf(explanation.correctChoiceKey);
     final keyConcepts = explanation.keyConcepts
         .where((concept) => concept.name.trim().isNotEmpty)
@@ -38,7 +47,8 @@ class AiExplanationSections extends StatelessWidget {
     final sections = <Widget>[
       _VerdictBanner(
         isCorrect: explanation.isSelectedCorrect,
-        verdict: composeAiExplanationVerdict(explanation, entry),
+        verdict: verdict,
+        isAnimated: isVerdictAnimated,
       ),
       if (isFullExplanationLocked)
         const ProLockedSection(
@@ -84,7 +94,11 @@ class AiExplanationSections extends StatelessWidget {
       children: [
         for (var index = 0; index < sections.length; index++) ...[
           if (index > 0) const SizedBox(height: PassqlSpacing.lg),
-          PassqlReveal(index: index, child: sections[index]),
+          PassqlReveal(
+            index: index,
+            delay: index == 0 ? Duration.zero : sectionRevealDelay,
+            child: sections[index],
+          ),
         ],
       ],
     );
@@ -93,15 +107,23 @@ class AiExplanationSections extends StatelessWidget {
 
 /// 판정 배지: 정답/오답 색 옅은 바탕 + 아이콘 + 판정 한 줄
 class _VerdictBanner extends StatelessWidget {
-  const _VerdictBanner({required this.isCorrect, required this.verdict});
+  const _VerdictBanner({
+    required this.isCorrect,
+    required this.verdict,
+    required this.isAnimated,
+  });
 
   final bool isCorrect;
   final String verdict;
+  final bool isAnimated;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final textColor = isCorrect ? colors.correctText : colors.wrongText;
+    final verdictStyle = PassqlTypography.explanationEmphasis.copyWith(
+      color: textColor,
+    );
     return Container(
       padding: const EdgeInsets.all(PassqlSpacing.sm),
       decoration: BoxDecoration(
@@ -120,12 +142,13 @@ class _VerdictBanner extends StatelessWidget {
           ),
           const SizedBox(width: PassqlSpacing.xs),
           Expanded(
-            child: AiExplanationInlineText(
-              verdict,
-              style: PassqlTypography.explanationEmphasis.copyWith(
-                color: textColor,
-              ),
-            ),
+            child: isAnimated
+                ? MarkdownLiteText(
+                    verdict,
+                    isAnimated: true,
+                    baseStyle: verdictStyle,
+                  )
+                : AiExplanationInlineText(verdict, style: verdictStyle),
           ),
         ],
       ),

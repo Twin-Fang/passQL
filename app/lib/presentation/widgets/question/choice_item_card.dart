@@ -1,7 +1,10 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
+
 import '../../../data/models/question/choice_item.dart';
 import '../../../data/models/question/submit_result.dart';
 import '../../design/design.dart';
+import '../common/app_toast.dart';
 import 'result_rows_table.dart';
 import 'stem_text.dart';
 
@@ -41,12 +44,15 @@ class ChoiceItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final resultRows = item.isSql ? null : parseResultRows(item.body);
     final Widget body = item.isSql
-        // 선택 가능한 코드면 카드 탭과 길게 누르기가 겹치므로 선택은 끈다.
-        ? PassqlCodeBlock(
-            code: item.body,
-            isSelectable: false,
-            // 선택지 카드가 이미 상자라 코드 상자를 한 번 더 두지 않는다
-            hasBackground: false,
+        // 선택 가능한 코드면 카드 탭과 겹치므로 선택은 끄고, 길게 누르면 SQL 전체 복사
+        ? _CopyOnLongPress(
+            text: item.body,
+            child: PassqlCodeBlock(
+              code: item.body,
+              isSelectable: false,
+              // 선택지 카드가 이미 상자라 코드 상자를 한 번 더 두지 않는다
+              hasBackground: false,
+            ),
           )
         : resultRows != null
         ? ResultRowsTable(rows: resultRows)
@@ -71,6 +77,29 @@ class ChoiceItemCard extends StatelessWidget {
               ),
         child: body,
       ),
+    );
+  }
+}
+
+/// 길게 누르면 글 복사 > 햅틱 + '복사했어요' (짧은 탭은 바깥 카드의 고르기 그대로, #995)
+class _CopyOnLongPress extends StatelessWidget {
+  const _CopyOnLongPress({required this.text, required this.child});
+
+  final String text;
+  final Widget child;
+
+  Future<void> _copy(BuildContext context) async {
+    await Clipboard.setData(ClipboardData(text: text));
+    await PassqlHaptics.playLight();
+    if (context.mounted) showAppToast(context, '복사했어요');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      onLongPressHint: 'SQL 복사',
+      onLongPress: () => _copy(context),
+      child: GestureDetector(onLongPress: () => _copy(context), child: child),
     );
   }
 }

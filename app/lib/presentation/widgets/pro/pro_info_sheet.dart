@@ -19,7 +19,7 @@ import 'pro_purchase_feedback.dart';
 /// 정보 시트 닫힘 사유 2종: 복원 성공 > 토스트, 연장 > 이용권 시트
 enum _ProInfoSheetResult { restored, extend }
 
-/// 이용권 정보 시트 (#749): 문장 제목(오늘 더 푼 문제) > 기간 줄 > 내 탑승권 > 이용 중인 혜택(접힘) > 구매일·주문 번호(복사) > 연장 버튼 > 작은 복원
+/// 이용권 정보 시트 (#749): 문장 제목(오늘 더 푼 문제) > 기간 줄 > 내 탑승권(남은 날) > 이용 중인 혜택(펼친 목록) > 구매일·주문 번호(복사) > 연장 버튼 > 작은 복원
 /// 구매일·주문 번호는 서버가 주기 전까지 null 이고, 값이 있을 때만 행을 그림
 /// 연장: 정보 시트 닫힘 > 이용권 시트 (시트 위에 시트를 겹치지 않음, 서버가 현재 만료일 뒤로 이어 붙임)
 Future<void> showProInfoSheet(
@@ -90,9 +90,6 @@ class _ProInfoSheetBodyState extends ConsumerState<_ProInfoSheetBody> {
     });
   }
 
-  /// 「이용 중인 혜택」 펼쳤는지 (이미 쓰는 혜택이라 기본 접힘)
-  bool _isBenefitListExpanded = false;
-
   Future<void> _copyOrderId(String orderId) async {
     await Clipboard.setData(ClipboardData(text: orderId));
     if (!mounted) return;
@@ -148,15 +145,13 @@ class _ProInfoSheetBodyState extends ConsumerState<_ProInfoSheetBody> {
                         ),
                         const TextSpan(text: ' 더 풀었어요!'),
                       ]
+                    // 남은 날은 탑승권 칸 한 곳에만
                     : [
-                        if (daysLeft != null && daysLeft > 0) ...[
-                          TextSpan(
-                            text: '$daysLeft일',
-                            style: TextStyle(color: colors.accentText),
-                          ),
-                          const TextSpan(text: ' 동안\n'),
-                        ],
-                        const TextSpan(text: '제한 없이 풀 수 있어요'),
+                        TextSpan(
+                          text: '제한 없이',
+                          style: TextStyle(color: colors.accentText),
+                        ),
+                        const TextSpan(text: ' 풀 수 있어요'),
                       ],
               ),
             ),
@@ -203,80 +198,50 @@ class _ProInfoSheetBodyState extends ConsumerState<_ProInfoSheetBody> {
                   '${examDate.month.toString().padLeft(2, '0')}.${examDate.day.toString().padLeft(2, '0')}',
                 ),
             ],
-            benefitIcons: [
-              for (final benefit in benefits)
-                (icon: benefit.icon, color: benefitColorOf(context, benefit)),
-            ],
+            benefitIcons: [for (final benefit in benefits) benefit.icon],
             stubLabel: '사용 중',
             hasSweep: true,
             isFloating: true,
             semanticLabel: 'passQL PRO PASS, 이용권 사용 중',
           ),
           const SizedBox(height: PassqlSpacing.xl),
-          // 이용 중인 혜택: 기본 접힘 한 줄, 누르면 펼침
-          PassqlPressable(
-            hasMinimumTouchTarget: true,
-            onTap: () => setState(
-              () => _isBenefitListExpanded = !_isBenefitListExpanded,
-            ),
-            semanticLabel:
-                '이용 중인 혜택 ${benefits.length}가지, ${_isBenefitListExpanded ? '접기' : '펼치기'}',
-            child: Row(
-              children: [
-                Text(
-                  '이용 중인 혜택 ',
-                  style: PassqlTypography.headline.copyWith(
-                    color: colors.label,
-                  ),
-                ),
-                Text(
-                  '${benefits.length}가지',
-                  style: PassqlTypography.headline.copyWith(
-                    color: colors.accentText,
-                  ),
-                ),
-                const Spacer(),
-                Icon(
-                  _isBenefitListExpanded
-                      ? CupertinoIcons.chevron_up
-                      : CupertinoIcons.chevron_down,
-                  size: PassqlIconSize.xs,
-                  color: colors.iconSecondary,
-                ),
-              ],
+          // 이용 중인 혜택: 접지 않고 한 번에 (아이콘은 한 색)
+          Semantics(
+            header: true,
+            child: Text(
+              '이용 중인 혜택',
+              style: PassqlTypography.headline.copyWith(color: colors.label),
             ),
           ),
-          if (_isBenefitListExpanded)
-            for (final benefit in benefits)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: PassqlSpacing.xxs,
-                ),
-                child: Row(
-                  children: [
-                    PassqlIconTile(
-                      icon: benefit.icon,
-                      color: benefitColorOf(context, benefit),
-                      isCompact: true,
-                    ),
-                    const SizedBox(width: PassqlSpacing.xs),
-                    Expanded(
-                      child: Text(
-                        benefit.label,
-                        style: PassqlTypography.subheadline.copyWith(
-                          color: colors.label,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      benefitInUseLabel(benefit),
-                      style: PassqlTypography.subheadlineSemibold.copyWith(
+          const SizedBox(height: PassqlSpacing.xs),
+          for (final benefit in benefits)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: PassqlSpacing.xxs),
+              child: Row(
+                children: [
+                  PassqlIconTile(
+                    icon: benefit.icon,
+                    color: colors.accent,
+                    isCompact: true,
+                  ),
+                  const SizedBox(width: PassqlSpacing.xs),
+                  Expanded(
+                    child: Text(
+                      benefit.label,
+                      style: PassqlTypography.subheadline.copyWith(
                         color: colors.label,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  Text(
+                    benefitInUseLabel(benefit),
+                    style: PassqlTypography.subheadlineSemibold.copyWith(
+                      color: colors.label,
+                    ),
+                  ),
+                ],
               ),
+            ),
           const SizedBox(height: PassqlSpacing.sm),
           if (purchasedAt != null)
             _InfoRow(

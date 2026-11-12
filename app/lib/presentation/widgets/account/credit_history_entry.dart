@@ -1,3 +1,4 @@
+import '../../../core/utils/daily_set_bonus_rule.dart';
 import '../../../data/models/member/credit_history_response.dart';
 
 /// 크레딧 내역 한 줄 (#971, #974): 받은 것은 양수, 쓴 것은 음수
@@ -23,12 +24,12 @@ List<CreditHistoryEntry> buildCreditHistoryEntries(
     ),
     if (day.dailySetCompletionCredits > 0)
       CreditHistoryEntry(
-        label: '세트 완료',
+        label: DailySetBonusRule.completionLabel,
         amount: day.dailySetCompletionCredits,
       ),
     if (day.dailySetAccuracyCredits > 0)
       CreditHistoryEntry(
-        label: '세트 정답 80%',
+        label: DailySetBonusRule.accuracyLabel,
         amount: day.dailySetAccuracyCredits,
       ),
     if (day.adBonusCredits > 0)

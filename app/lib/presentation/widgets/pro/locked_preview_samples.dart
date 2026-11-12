@@ -8,11 +8,13 @@ abstract final class LockedPreviewCaptions {
   static const String executionResult = '보기 SQL을 직접 실행해 결과를 비교해요';
   static const String practiceModes = '토픽을 골라 풀고 약점 추천도 받아요';
   static const String examTrend = '최근 기출 비중과 이번 회차 예상을 봐요';
-  static const String freshChoices = '풀 때마다 AI가 새 보기를 만들어요';
   static const String conceptTopics = '3단원부터 모든 개념과 확인 문제를 봐요';
   static const String mockExamDetail = '과목별 점수와 약점, 다음에 할 일을 봐요';
   static const String mockExamReview = '문항별 정답과 보기 해설을 봐요';
+  static const String mockExamResult = '과목별 약점과 문항별 보기 해설을 봐요';
   static const String mockExamTrend = '회차별 점수 변화를 봐요';
+  // 잠금화면 실행형 문제 결과 자리 (#990)
+  static const String lockScreenExecutionResult = '내 답과 정답 SQL을 실행해 비교해요';
   static const String proAnalysis = 'AI 분석과 영역·난이도별 약점, 오답 정리를 봐요';
 }
 
@@ -28,15 +30,15 @@ class ExplanationLockedSample extends StatelessWidget {
       children: [
         _SampleSection(
           title: '정답 근거',
-          body: 'GROUP BY 절에 없는 컬럼은 집계 함수 없이 SELECT 에 쓸 수 없어요.',
+          body: 'GROUP BY 절에 없는 컬럼은 집계 함수 없이 SELECT에 쓸 수 없어요.',
         ),
         _SampleSection(
           title: '핵심 개념',
-          body: 'WHERE 는 그룹으로 묶기 전에, HAVING 은 묶은 뒤에 조건을 걸어요.',
+          body: 'WHERE는 그룹으로 묶기 전에, HAVING은 묶은 뒤에 조건을 걸어요.',
         ),
         _SampleSection(
           title: '헷갈리는 지점',
-          body: 'COUNT(*) 는 NULL 도 세고, COUNT(컬럼) 은 NULL 을 빼고 세요.',
+          body: 'COUNT(*)는 NULL도 세고, COUNT(컬럼)은 NULL을 빼고 세요.',
         ),
         _SampleSection(title: '시험 팁', body: '보기마다 실행 순서를 한 줄씩 적어 보면 함정이 보여요.'),
       ],
@@ -183,7 +185,7 @@ class MockExamReviewLockedSample extends StatelessWidget {
       children: [
         _SampleSection(
           title: '23번 · 정답 C',
-          body: 'GROUP BY 가 없으면 조건이 거짓이어도 COUNT 는 0 한 행을 돌려줘요.',
+          body: 'GROUP BY가 없으면 조건이 거짓이어도 COUNT는 0 한 행을 돌려줘요.',
         ),
         _SampleSection(title: '내가 고른 B', body: '공집합으로 착각하기 쉬운 함정이에요.'),
       ],
@@ -200,20 +202,6 @@ class MockExamTrendLockedSample extends StatelessWidget {
     return const _SampleCard(
       children: [
         _SampleSection(title: '제1회 → 제3회', body: '54점 → 62점 → 70점, 합격선을 넘었어요.'),
-      ],
-    );
-  }
-}
-
-/// 새 보기로 풀기 선택 자리 (설정·풀이 화면 보기 방식 시트)
-class FreshChoicesLockedSample extends StatelessWidget {
-  const FreshChoicesLockedSample({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const _SampleCard(
-      children: [
-        _SampleSection(title: 'AI 새 보기', body: '같은 문제도 매번 다른 함정 보기로 다시 풀어요.'),
       ],
     );
   }

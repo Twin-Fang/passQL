@@ -1575,6 +1575,9 @@ export interface paths {
          *     - businessInfo (BusinessInfoResponse) — 사업자 정보 표기 (관리자 설정 business.*)
          *       - companyName: 상호 (null 이면 사업자 정보 섹션 숨김)
          *       - representativeName, registrationNumber, contactEmail, mailOrderSalesNumber: null 이면 그 줄 숨김
+         *     - isLockScreenEnabled: 잠금화면 문제 풀기 전체 스위치 (false 면 앱 메뉴 숨김, 관리자 설정 lockscreen.enabled)
+         *     - lockScreenDefaultIntervalMinutes: 잠금화면 문제 기본 표시 간격 (분, 0 은 화면 켤 때마다, 사용자가 바꾸기 전 값)
+         *     - isLockScreenExecutableIncluded: 잠금화면에 실행형 SQL 문제 출제 여부 (false 면 객관식만)
          */
         get: operations["getAppConfig"];
         put?: never;
@@ -2153,6 +2156,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/questions/lockscreen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 잠금화면 문제 1개
+         * @description ## 인증(JWT): **필요**
+         *     Android 잠금화면 위에 띄울 문제 1개를 고른다.
+         *
+         *     ## 요청 파라미터
+         *     - isExecutableExcluded (선택, 기본 false): true 면 실행형(EXECUTABLE) 제외 (앱 "객관식만" 옵션)
+         *
+         *     ## 선택 규칙
+         *     - 선택지 세트가 준비된 문제만 (AI 선택지 생성 SSE 대기 없음)
+         *     - 안 푼 문제 우선, 없으면 푼 문제 (랜덤 풀기와 같은 규칙)
+         *     - 관리자 설정 lockscreen.include_executable=false 면 요청과 무관하게 실행형 제외
+         *
+         *     ## 반환값
+         *     - 200 LockScreenQuestionResponse { questionUuid }
+         *     - 204: 관리자 설정 lockscreen.enabled=false 이거나 출제할 문제 없음
+         *     - 하루 문제 수 제한은 여기서 판정하지 않음 (GET /questions/{questionUuid}·제출에서 기존대로)
+         */
+        get: operations["getLockScreenQuestion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/questions/random": {
         parameters: {
             query?: never;
@@ -2224,7 +2261,7 @@ export interface paths {
         put?: never;
         /**
          * SQL 실행
-         * @description EXECUTABLE 문제만 허용. body: { "sql": "SELECT ..." }. CONCEPT_ONLY 문제에 호출 시 400 INVALID_EXECUTION_MODE 반환.
+         * @description EXECUTABLE 문제만 허용. body: { "sql": "SELECT ..." }. CONCEPT_ONLY 문제에 호출 시 400 INVALID_EXECUTION_MODE 반환. 결제 켜짐 무료 회원은 오늘의 세트 문제만 실행, 그 외 403 PRO_REQUIRED.
          */
         post: operations["executeChoice"];
         delete?: never;
@@ -2453,6 +2490,10 @@ export interface components {
             businessInfo: components["schemas"]["BusinessInfoResponse"];
             ios: components["schemas"]["AppPlatformVersionResponse"];
             isAndroidBillingEnabled: boolean;
+            isLockScreenEnabled: boolean;
+            isLockScreenExecutableIncluded: boolean;
+            /** Format: int32 */
+            lockScreenDefaultIntervalMinutes: number;
             maintenance: components["schemas"]["AppMaintenanceResponse"];
             notices: components["schemas"]["AppNoticeResponse"][];
         };
@@ -3050,6 +3091,10 @@ export interface components {
             /** @enum {string} */
             type: "TERMS_OF_SERVICE" | "PRIVACY_POLICY";
         };
+        LockScreenQuestionResponse: {
+            /** Format: uuid */
+            questionUuid: string;
+        };
         LoginRequest: {
             /** @enum {string} */
             authProvider: "GOOGLE" | "KAKAO" | "NAVER" | "APPLE" | "GITHUB";
@@ -3354,6 +3399,8 @@ export interface components {
             /** @enum {string|null} */
             executionMode: "EXECUTABLE" | "CONCEPT_ONLY" | null;
             hint: string | null;
+            /** @description 오늘의 세트 무료 체험 여부: 무료 회원이 이 문제에서 SQL 실행·AI 해설을 쓸 수 있으면 true (프로·결제 꺼짐은 false, #992) */
+            isDailySetFreeTrial: boolean;
             /** @description 최신 출제 경향 반영 문제 여부 ('최신 경향' 배지, #523) */
             isLatestTrend: boolean;
             /** Format: uuid */
@@ -5454,6 +5501,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PageQuestionSummary"];
+                };
+            };
+        };
+    };
+    getLockScreenQuestion: {
+        parameters: {
+            query?: {
+                isExecutableExcluded?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LockScreenQuestionResponse"];
                 };
             };
         };

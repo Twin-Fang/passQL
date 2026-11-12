@@ -15,6 +15,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     required this.wrong,
     required this.wrongText,
     required this.wrongTint,
+    required this.correctRowHighlight,
+    required this.wrongRowHighlight,
     required this.warning,
     required this.warningText,
     required this.memorize,
@@ -52,6 +54,9 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
   final Color wrong;
   final Color wrongText;
   final Color wrongTint;
+  /// 실행 결과 비교 표에서 한쪽에만 있는 행 바탕 (Tint 보다 진하게, 표 글자 4.5 유지)
+  final Color correctRowHighlight;
+  final Color wrongRowHighlight;
   final Color warning;
 
   /// 주황 글자 (배지·별점). warning 은 채움·점·큰 아이콘용
@@ -116,6 +121,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     // 중요 배지(옅은 빨강) 위 4.5 이상
     wrongText: Color(0xFFC40012),
     wrongTint: Color(0x1AFF3B30),
+    correctRowHighlight: Color(0x3834C759),
+    wrongRowHighlight: Color(0x33FF3B30),
     warning: Color(0xFFFF9500),
     // 주황 그대로는 흰 바탕 2.2 > 갈색 계열로 어둡게
     warningText: Color(0xFF9A4500),
@@ -157,6 +164,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     wrong: Color(0xFFFF453A),
     wrongText: Color(0xFFFF6961),
     wrongTint: Color(0x33FF453A),
+    correctRowHighlight: Color(0x4D30D158),
+    wrongRowHighlight: Color(0x4DFF453A),
     warning: Color(0xFFFF9F0A),
     warningText: Color(0xFFFF9F0A),
     memorize: Color(0xFFFFD60A),
@@ -196,6 +205,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
         wrong: wrong,
         wrongText: wrongText,
         wrongTint: wrongTint,
+        correctRowHighlight: correctRowHighlight,
+        wrongRowHighlight: wrongRowHighlight,
         warning: warning,
         warningText: warningText,
         memorize: memorize,
@@ -236,6 +247,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
       wrong: lerpColor(wrong, other.wrong),
       wrongText: lerpColor(wrongText, other.wrongText),
       wrongTint: lerpColor(wrongTint, other.wrongTint),
+      correctRowHighlight: lerpColor(correctRowHighlight, other.correctRowHighlight),
+      wrongRowHighlight: lerpColor(wrongRowHighlight, other.wrongRowHighlight),
       warning: lerpColor(warning, other.warning),
       warningText: lerpColor(warningText, other.warningText),
       memorize: lerpColor(memorize, other.memorize),

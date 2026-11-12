@@ -32,7 +32,7 @@ class ConceptTopicPage extends ConsumerWidget {
       body: conceptList.when(
         loading: () => const PassqlListSkeleton(),
         error: (_, _) => PassqlStatusView.error(
-          message: '개념 목록을 불러오지 못했어요.',
+          message: PassqlLoadFailureCopy.messageOf('개념 목록을'),
           onRetry: () => ref.invalidate(conceptListProvider(topicUuid)),
         ),
         data: (list) => list.isLocked

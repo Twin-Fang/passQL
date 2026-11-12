@@ -5,6 +5,7 @@ import com.passql.member.auth.presentation.annotation.AuthMember;
 import com.passql.member.auth.presentation.security.LoginMember;
 import com.passql.question.dto.ExecuteResult;
 import com.passql.question.dto.ExecuteSqlRequest;
+import com.passql.question.dto.LockScreenQuestionResponse;
 import com.passql.question.dto.QuestionDetail;
 import com.passql.question.dto.QuestionSummary;
 import com.passql.question.dto.RecommendationsRequest;
@@ -59,6 +60,32 @@ public interface QuestionControllerDocs {
   );
 
   @ApiLogs({
+      @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 990, description = "잠금화면 문제 1개 API 추가 (바로 열 수 있는 문제만, 안 푼 문제 우선)"),
+  })
+  @Operation(summary = "잠금화면 문제 1개",
+      description = """
+          ## 인증(JWT): **필요**
+          Android 잠금화면 위에 띄울 문제 1개를 고른다.
+
+          ## 요청 파라미터
+          - isExecutableExcluded (선택, 기본 false): true 면 실행형(EXECUTABLE) 제외 (앱 "객관식만" 옵션)
+
+          ## 선택 규칙
+          - 선택지 세트가 준비된 문제만 (AI 선택지 생성 SSE 대기 없음)
+          - 안 푼 문제 우선, 없으면 푼 문제 (랜덤 풀기와 같은 규칙)
+          - 관리자 설정 lockscreen.include_executable=false 면 요청과 무관하게 실행형 제외
+
+          ## 반환값
+          - 200 LockScreenQuestionResponse { questionUuid }
+          - 204: 관리자 설정 lockscreen.enabled=false 이거나 출제할 문제 없음
+          - 하루 문제 수 제한은 여기서 판정하지 않음 (GET /questions/{questionUuid}·제출에서 기존대로)
+          """)
+  ResponseEntity<LockScreenQuestionResponse> getLockScreenQuestion(
+      @AuthMember LoginMember loginMember,
+      @RequestParam(defaultValue = "false") boolean isExecutableExcluded
+  );
+
+  @ApiLogs({
       @ApiLog(date = "2026.04.08", author = Author.SUHSAECHAN, issueNumber = 6, description = "추천 문제 조회 API 추가"),
       @ApiLog(date = "2026.04.08", author = Author.SUHSAECHAN, issueNumber = 22, description = "네이티브 쿼리를 exclude 유무 기준 2분기로 분리하여 UUID 바인딩 타입 안전성 확보"),
       @ApiLog(date = "2026.04.13", author = Author.SUHSAECHAN, issueNumber = 63, description = "memberUuid 파라미터 추가 — RAG 기반 개인화 추천 도입, RecommendationService 위임, 오답 없거나 AI 실패 시 RANDOM fallback"),
@@ -81,6 +108,7 @@ public interface QuestionControllerDocs {
       @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 520, description = "schemaTables 추가: schemaDdl·schemaSampleData 를 테이블별 컬럼(이름·타입·PK·FK)·샘플 행으로 해석해 제공"),
       @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 523, description = "isLatestTrend 추가: 최신 출제 경향 반영 문제 여부 ('최신 경향' 배지)"),
       @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 879, description = "비활성 문제는 404 QUESTION_NOT_FOUND"),
+      @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 992, description = "isDailySetFreeTrial 추가: 무료 회원이 오늘의 세트 문제에서 SQL 실행·AI 해설을 쓸 수 있는지"),
   })
   @Operation(summary = "문제 상세 조회", description = "풀이용 상세. 정답 SQL·정답 여부·해설은 내려가지 않는다(제출 응답에서만 제공).")
   ResponseEntity<QuestionDetail> getQuestion(
@@ -93,11 +121,14 @@ public interface QuestionControllerDocs {
       @ApiLog(date = "2026.04.08", author = Author.SUHSAECHAN, issueNumber = 22, description = "PathVariable: Long id → UUID questionUuid"),
       @ApiLog(date = "2026.04.10", author = Author.SUHSAECHAN, issueNumber = 70, description = "QuestionExecutionService 경유로 전환: sandboxDbName 기반 실행, CONCEPT_ONLY 에러 처리 추가"),
       @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 879, description = "본문 Map → ExecuteSqlRequest(필드 이름 sql 그대로), 빈 sql 은 400 VALIDATION_ERROR"),
+      @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 992, description = "무료 회원도 오늘의 세트 문제는 실행 가능 (그 외 문제는 403 PRO_REQUIRED)"),
   })
   @Operation(summary = "SQL 실행",
       description = "EXECUTABLE 문제만 허용. body: { \"sql\": \"SELECT ...\" }. " +
-          "CONCEPT_ONLY 문제에 호출 시 400 INVALID_EXECUTION_MODE 반환.")
+          "CONCEPT_ONLY 문제에 호출 시 400 INVALID_EXECUTION_MODE 반환. " +
+          "결제 켜짐 무료 회원은 오늘의 세트 문제만 실행, 그 외 403 PRO_REQUIRED.")
   ResponseEntity<ExecuteResult> executeChoice(
+      @AuthMember LoginMember loginMember,
       @PathVariable UUID questionUuid,
       @RequestBody ExecuteSqlRequest request
   );

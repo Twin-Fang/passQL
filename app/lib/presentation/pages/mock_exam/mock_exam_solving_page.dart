@@ -18,9 +18,10 @@ import '../../providers/mock_exam_session_state.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/mock_exam/mock_exam_palette_sheet.dart';
 import '../../widgets/mock_exam/mock_exam_question_view.dart';
+import '../../widgets/mock_exam/mock_exam_solving_action_bar.dart';
 import '../../widgets/mock_exam/mock_exam_timer_chip.dart';
 
-/// 모의고사 풀이 (#866): 남은 시간·문항 이동·표시·번호판·제출, 시간 끝 자동 제출
+/// 모의고사 풀이 (#866): 남은 시간·문항 이동·표시·문항 목록·제출, 시간 끝 자동 제출
 /// 정답·해설·SQL 실행·광고 없음. 답은 보기 탭마다 서버 저장, 남은 시간은 서버 값 + 단조 시계
 class MockExamSolvingPage extends ConsumerStatefulWidget {
   const MockExamSolvingPage({super.key, required this.attemptUuid});
@@ -135,7 +136,7 @@ class _MockExamSolvingPageState extends ConsumerState<MockExamSolvingPage>
     final isConfirmed = await showPassqlConfirmDialog(
       context,
       title: '시험을 잠시 나갈까요?',
-      message: '시간은 계속 흘러요. 목록에서 이어 풀 수 있어요.',
+      message: '시간은 계속 흘러요. 목록에서 이어서 풀 수 있어요.',
       confirmLabel: '나가기',
       isDestructive: false,
     );
@@ -261,7 +262,7 @@ class _NavTrailing extends StatelessWidget {
   }
 }
 
-/// 문항 본문 + 하단 버튼 줄 (이전·표시·번호판·다음 또는 제출)
+/// 문항 본문 + 하단 버튼 줄 (이전·표시·문항 목록·다음 또는 제출)
 class _SolvingBody extends StatelessWidget {
   const _SolvingBody({
     required this.session,
@@ -319,48 +320,16 @@ class _SolvingBody extends StatelessWidget {
             ),
           ),
         ),
-        PassqlBottomActionBar(
-          actions: [
-            Row(
-              children: [
-                Expanded(
-                  child: PassqlButton(
-                    label: '이전',
-                    variant: PassqlButtonVariant.tinted,
-                    size: PassqlButtonSize.regular,
-                    onPressed: session.isFirstQuestion ? null : onPrevious,
-                  ),
-                ),
-                const SizedBox(width: PassqlSpacing.xs),
-                Expanded(
-                  child: PassqlButton(
-                    label: answer.isFlagged ? '표시됨' : '표시',
-                    variant: PassqlButtonVariant.tinted,
-                    size: PassqlButtonSize.regular,
-                    onPressed: onToggleFlag,
-                  ),
-                ),
-                const SizedBox(width: PassqlSpacing.xs),
-                Expanded(
-                  child: PassqlButton(
-                    label: '번호판',
-                    variant: PassqlButtonVariant.tinted,
-                    size: PassqlButtonSize.regular,
-                    onPressed: onOpenPalette,
-                  ),
-                ),
-                const SizedBox(width: PassqlSpacing.xs),
-                Expanded(
-                  child: PassqlButton(
-                    label: session.isLastQuestion ? '제출' : '다음',
-                    size: PassqlButtonSize.regular,
-                    isLoading: session.isSubmitting,
-                    onPressed: session.isLastQuestion ? onSubmit : onNext,
-                  ),
-                ),
-              ],
-            ),
-          ],
+        MockExamSolvingActionBar(
+          isFirstQuestion: session.isFirstQuestion,
+          isLastQuestion: session.isLastQuestion,
+          isFlagged: answer.isFlagged,
+          isSubmitting: session.isSubmitting,
+          onPrevious: onPrevious,
+          onNext: onNext,
+          onToggleFlag: onToggleFlag,
+          onOpenQuestionList: onOpenPalette,
+          onSubmit: onSubmit,
         ),
       ],
     );

@@ -2,7 +2,7 @@
 type: cluster
 topic: admin
 created: 2026-10-29
-members: 100
+members: 101
 status: active
 related: []
 ---
@@ -44,6 +44,7 @@ related: []
 - [[DEC-0081-admin-session-chain-yml-account]] → DEC-0130
 
 ## 관련 이슈
+- [[ISS-0494-play-refund-without-revoke-not-reclaimed]] (resolved, GitHub #984, PR #987): 구독·매출 현황에 환불 회수 확인 기록과 지금 확인 버튼
 - [[ISS-0483-admin-search-email]] (resolved, GitHub #934): 관리자 전역 검색 이메일 일부 일치(@ 포함 검색어)
 - [[ISS-0482-admin-search-member-code]] (resolved, GitHub #929): 관리자 전역 검색 회원 번호 지원, 첫 배포 500(JPA as() 형변환 없음 > text())
 - [[ISS-0480-stem-table-sql-format-data-cleanup-deferred]] (open, GitHub #923): 지문 중복 표와 SQL 서식 운영 데이터 정리, #903 앱 보급과 최소 버전 상향 뒤 적용
