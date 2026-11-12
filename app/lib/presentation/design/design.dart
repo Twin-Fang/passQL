@@ -44,6 +44,7 @@ export 'components/passql_plan_chip.dart';
 export 'components/passql_pop_in.dart';
 export 'components/passql_pressable.dart';
 export 'components/passql_pro_mark.dart';
+export 'components/passql_welcome_illustration.dart';
 export 'components/passql_progress_bar.dart';
 export 'components/passql_activity_rings.dart';
 export 'components/passql_refresh_control.dart';
