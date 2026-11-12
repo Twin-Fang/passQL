@@ -109,19 +109,19 @@ class DailyLimitRewardView extends ConsumerWidget {
                   _celebrateAdBonus(context, ref, bonusQuestionCount),
               onBonusAttemptStarted: onAdBonusAttemptStarted,
             ),
+            // 이용권: 광고 버튼 바로 아래 같은 폭·같은 크기 (#966)
+            const SizedBox(height: PassqlSpacing.xs),
+            PassqlButton(
+              label: 'PRO로 광고 없이 제한 없이 풀기',
+              variant: PassqlButtonVariant.tinted,
+              onPressed: () => _openPassSheet(context, ref),
+            ),
             const SizedBox(height: PassqlSpacing.md),
             DailyLimitDailySetCard(
               dailyBonus: dailyBonus,
               bonusQuestionCount: bonusQuestionCount,
               onOpenDailySet:
                   onOpenDailySet ?? () => openDailySetFromDailyLimit(context),
-            ),
-            const SizedBox(height: PassqlSpacing.xs),
-            PassqlButton(
-              label: 'PRO로 광고 없이 제한 없이 풀기',
-              variant: PassqlButtonVariant.tinted,
-              size: PassqlButtonSize.regular,
-              onPressed: () => _openPassSheet(context, ref),
             ),
           ],
         ),
