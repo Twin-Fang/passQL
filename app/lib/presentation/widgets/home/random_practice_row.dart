@@ -12,7 +12,7 @@ const String _rowTitle = '한 문제씩 이어서 풀기';
 const String _limitReachedSubtitle = '광고나 오늘의 세트로 더 열 수 있어요';
 
 /// 홈 랜덤 풀기 구간의 행: 탭 > 랜덤 풀기 풀이, 무료(결제 켜짐)면 오른쪽에 오늘 남은 N문제
-/// 오늘 받은 보너스는 작은 칩, 한도 소진: 부제 > 더 여는 방법, 화살표 없음, 탭 > 안내 시트 (openRandomPractice)
+/// 한도 소진: 부제 > 더 여는 방법, 화살표 없음, 탭 > 안내 시트 (openRandomPractice)
 class RandomPracticeRow extends ConsumerWidget {
   const RandomPracticeRow({super.key});
 
@@ -20,8 +20,6 @@ class RandomPracticeRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.passqlColors;
     final remainingCount = ref.watch(freeRemainingSolvesProvider);
-    final bonusChipLabels =
-        ref.watch(knownPlanProvider)?.dailyBonus.chipLabels ?? const <String>[];
     final isDailyLimitReached = remainingCount == 0;
     return PassqlListRow(
       title: _rowTitle,
@@ -34,31 +32,11 @@ class RandomPracticeRow extends ConsumerWidget {
       ),
       trailing: remainingCount == null
           ? null
-          : Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '오늘 남은 $remainingCount문제',
-                  style: PassqlTypography.footnoteSemibold.copyWith(
-                    color: colors.secondaryLabel,
-                  ),
-                ),
-                if (bonusChipLabels.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: PassqlSpacing.xxs),
-                    child: Wrap(
-                      spacing: PassqlSpacing.xxs,
-                      children: [
-                        for (final label in bonusChipLabels)
-                          PassqlBadge(
-                            text: label,
-                            kind: PassqlBadgeKind.success,
-                          ),
-                      ],
-                    ),
-                  ),
-              ],
+          : Text(
+              '오늘 남은 $remainingCount문제',
+              style: PassqlTypography.footnoteSemibold.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
       hasChevron: !isDailyLimitReached,
       hasHorizontalPadding: false,

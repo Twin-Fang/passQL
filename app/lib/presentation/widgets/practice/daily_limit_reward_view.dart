@@ -63,7 +63,8 @@ class DailyLimitRewardView extends ConsumerWidget {
         ? dailyBonus!.bonusQuestionCount
         : _fallbackBonusQuestionCount;
     // 보너스가 등급에 반영돼 풀 문제가 생겼는가 (본문·시트 공통)
-    final hasUnlockedSolves = (ref.watch(freeRemainingSolvesProvider) ?? 0) > 0;
+    final remainingSolves = ref.watch(freeRemainingSolvesProvider) ?? 0;
+    final hasUnlockedSolves = remainingSolves > 0;
     return SafeArea(
       top: false,
       child: SingleChildScrollView(
@@ -79,13 +80,16 @@ class DailyLimitRewardView extends ConsumerWidget {
             Semantics(
               header: true,
               child: Text(
-                '오늘 무료 문제를\n다 풀었어요',
+                // 남은 문제가 있으면(상단 알약으로 연 경우) 남은 수, 없으면 소진 안내
+                hasUnlockedSolves
+                    ? '오늘 $remainingSolves문제 남았어요'
+                    : '오늘 무료 문제를\n다 풀었어요',
                 style: PassqlTypography.title2.copyWith(color: colors.label),
               ),
             ),
             const SizedBox(height: PassqlSpacing.xs),
             PassqlKeepAllText(
-              '아래 방법으로 더 풀 수 있어요. 내일 0시에는 $dailyFreeLimit문제가 새로 열려요.',
+              '아래 방법으로 더 받을 수 있어요. 내일 0시에는 $dailyFreeLimit문제가 새로 열려요.',
               style: PassqlTypography.subheadline.copyWith(
                 color: colors.secondaryLabel,
               ),
@@ -114,8 +118,8 @@ class DailyLimitRewardView extends ConsumerWidget {
             ),
             const SizedBox(height: PassqlSpacing.xs),
             PassqlButton(
-              label: '광고 없이 제한 없이 풀기 (PRO) ›',
-              variant: PassqlButtonVariant.plain,
+              label: 'PRO로 광고 없이 제한 없이 풀기',
+              variant: PassqlButtonVariant.tinted,
               size: PassqlButtonSize.regular,
               onPressed: () => _openPassSheet(context, ref),
             ),
