@@ -6,10 +6,12 @@ import '../../../router/app_routes.dart';
 import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
 import '../../providers/chapter_providers.dart';
+import '../../providers/question_providers.dart';
 import '../../widgets/notification/study_result_seen_recorder.dart';
 import '../../widgets/practice/open_random_practice.dart';
+import '../../widgets/question/stem_text.dart';
 
-/// 랜덤 풀기 그만두기 요약: 맞힌 수 > 틀린 문제 다시 보기 > 계속 풀기·홈으로 (#963)
+/// 랜덤 풀기 그만두기 요약: 맞힌 수 > 이번에 푼 문제(틀린 문제 먼저, 토픽·지문) > 계속 풀기·홈으로 (#963, #980)
 /// 이동 인자 [summary] 로 렌더링 (없으면 결과 없음 화면). 전면 광고 없음
 class RandomPracticeSummaryPage extends ConsumerWidget {
   const RandomPracticeSummaryPage({super.key, this.summary});
@@ -57,7 +59,7 @@ class RandomPracticeSummaryPage extends ConsumerWidget {
             ),
           ],
         ),
-        sections: [_WrongQuestionsSection(results: summary.results)],
+        sections: [_SolvedQuestionsSection(results: summary.results)],
         actions: [
           PassqlButton(
             label: '홈으로',
@@ -79,36 +81,56 @@ class RandomPracticeSummaryPage extends ConsumerWidget {
   }
 }
 
-/// 틀린 문제 다시 보기 목록: 행 탭 > 문제 상세 (모두 맞혔으면 한 줄 안내)
-class _WrongQuestionsSection extends StatelessWidget {
-  const _WrongQuestionsSection({required this.results});
+/// 이번에 푼 문제 목록 (#980): 틀린 문제 먼저, 줄마다 정답·오답 표시 + 토픽 + 지문 한 줄, 탭 > 문제 상세
+class _SolvedQuestionsSection extends StatelessWidget {
+  const _SolvedQuestionsSection({required this.results});
 
   final List<ChapterResult> results;
 
   @override
   Widget build(BuildContext context) {
-    final wrongRows = <Widget>[
-      for (var index = 0; index < results.length; index++)
-        if (!results[index].isCorrect)
-          PassqlListRow(
-            leading: const PassqlResultMark(isCorrect: false),
-            title: '${index + 1}번째 문제',
-            hasChevron: true,
-            onTap: () => context.push(
-              AppRoutes.questionDetail(results[index].questionUuid),
-            ),
-          ),
+    final orderedResults = [
+      ...results.where((result) => !result.isCorrect),
+      ...results.where((result) => result.isCorrect),
     ];
+    final wrongCount = results.where((result) => !result.isCorrect).length;
     return PassqlGroupedSection(
-      header: '틀린 문제 다시 보기',
-      children: wrongRows.isNotEmpty
-          ? wrongRows
-          : const [
-              PassqlListRow(
-                leading: PassqlResultMark(isCorrect: true),
-                title: '틀린 문제가 없어요',
-              ),
-            ],
+      header: wrongCount > 0 ? '틀린 문제 $wrongCount개부터 다시 봐요' : '이번에 푼 문제',
+      children: [
+        for (final result in orderedResults) _SolvedQuestionRow(result: result),
+      ],
+    );
+  }
+}
+
+/// 푼 문제 한 줄: 정답·오답 표시 + 토픽 이름 + 지문 첫 줄 (불러오는 동안·실패면 `문제`)
+class _SolvedQuestionRow extends ConsumerWidget {
+  const _SolvedQuestionRow({required this.result});
+
+  final ChapterResult result;
+
+  // 지문 미리보기 최대 길이 (한 줄에 들어갈 만큼)
+  static const int _stemPreviewLength = 40;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final detail = ref
+        .watch(questionDetailProvider(result.questionUuid))
+        .valueOrNull;
+    final stem = detail == null
+        ? null
+        : stripCodeFences(detail.stem).replaceAll(RegExp(r'\s+'), ' ').trim();
+    return PassqlListRow(
+      leading: PassqlResultMark(isCorrect: result.isCorrect),
+      title: detail?.topicName ?? '문제',
+      subtitle: stem == null
+          ? null
+          : (stem.length > _stemPreviewLength
+                ? '${stem.substring(0, _stemPreviewLength)}…'
+                : stem),
+      titleMaxLines: 1,
+      hasChevron: true,
+      onTap: () => context.push(AppRoutes.questionDetail(result.questionUuid)),
     );
   }
 }

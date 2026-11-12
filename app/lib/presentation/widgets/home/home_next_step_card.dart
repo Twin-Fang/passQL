@@ -5,19 +5,20 @@ import 'package:go_router/go_router.dart';
 import '../../../core/utils/home_next_step.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
+import '../../providers/mock_exam_providers.dart';
 import '../../providers/plan_providers.dart';
 import '../../providers/pro_ui_providers.dart';
-import '../practice/daily_limit_reward_sheet.dart';
 import '../practice/open_random_practice.dart';
 
 /// 홈 「다음에 할 일」 카드 (#975): 지금 할 한 가지를 제목·한 줄·버튼으로 (홈의 유일한 채운 버튼)
-/// 판정은 decideHomeNextStep, 이 위젯은 문구와 이동만
+/// 판정은 decideHomeNextStep, 이 위젯은 문구와 이동만. 크레딧을 다 쓴 날은 모의고사 무료 1회 안내, 그것도 없으면 숨김
 class HomeNextStepCard extends ConsumerWidget {
   const HomeNextStepCard({
     super.key,
     required this.dailySetQuestionCount,
     required this.canSolveDailySet,
     required this.onStartDailySet,
+    this.hasTopGap = false,
   });
 
   /// 오늘의 세트 문제 수 (제목에 표시)
@@ -27,6 +28,9 @@ class HomeNextStepCard extends ConsumerWidget {
   final bool canSolveDailySet;
   final VoidCallback onStartDailySet;
 
+  /// 위 요소(인사말)와 띄울지
+  final bool hasTopGap;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.passqlColors;
@@ -35,7 +39,16 @@ class HomeNextStepCard extends ConsumerWidget {
       canSolveDailySet: canSolveDailySet,
       isRandomPracticeVisible: ref.watch(isRandomPracticeVisibleProvider),
       remainingCredits: remainingCredits,
+      hasMockExamTrial:
+          ref
+              .watch(mockExamRoundsProvider)
+              .valueOrNull
+              ?.rounds
+              .any((round) => round.isFreeTrialRound && round.canStart) ??
+          false,
     );
+    // 크레딧을 다 쓴 날은 카드를 숨김 (홈 첫 화면에서 광고·결제를 앞세우지 않음, 상단 크레딧 알약이 안내)
+    if (nextStep == HomeNextStep.earnCredits) return const SizedBox.shrink();
     final (
       String title,
       String subtitle,
@@ -57,11 +70,13 @@ class HomeNextStepCard extends ConsumerWidget {
         '이어서 풀기',
         () => openRandomPractice(context, ref),
       ),
-      HomeNextStep.earnCredits => (
-        '오늘 크레딧을 다 썼어요',
-        '광고를 보거나 PRO로 이어서 풀 수 있어요',
-        '크레딧 받기',
-        () => showDailyLimitRewardSheet(context),
+      // 위에서 숨김 (switch 완결용)
+      HomeNextStep.earnCredits => ('', '', '', () {}),
+      HomeNextStep.mockExamTrial => (
+        'SQLD 모의고사 1회 무료',
+        '실제 시험처럼 풀고 합격 판정을 받아 봐요',
+        '모의고사 풀기',
+        () => context.push(AppRoutes.mockExams),
       ),
       HomeNextStep.browseQuestions => (
         '문제를 골라 풀어요',
@@ -70,7 +85,7 @@ class HomeNextStepCard extends ConsumerWidget {
         () => context.go(AppRoutes.questions),
       ),
     };
-    return Container(
+    final card = Container(
       padding: const EdgeInsets.all(PassqlSpacing.md),
       decoration: BoxDecoration(
         color: colors.accentTint,
@@ -104,6 +119,11 @@ class HomeNextStepCard extends ConsumerWidget {
           PassqlButton(label: buttonLabel, onPressed: onPressed),
         ],
       ),
+    );
+    if (!hasTopGap) return card;
+    return Padding(
+      padding: const EdgeInsets.only(top: PassqlSpacing.md),
+      child: card,
     );
   }
 }

@@ -168,9 +168,9 @@ class _HomeContent extends ConsumerWidget {
           children: [
             // 인사 + 본문 + 시험 상황 배지 (상단 바 아래 화면 제목 자리)
             if (greeting != null) GreetingSection(greeting: greeting),
-            // 다음에 할 일 한 가지 (홈의 유일한 채운 버튼, #975)
-            if (greeting != null) const SizedBox(height: PassqlSpacing.md),
+            // 다음에 할 일 한 가지 (홈의 유일한 채운 버튼, #975). 위 간격은 카드가 가짐 (숨으면 간격도 없음)
             HomeNextStepCard(
+              hasTopGap: greeting != null,
               dailySetQuestionCount: dailySet?.questions.length ?? 0,
               canSolveDailySet:
                   dailySet != null &&

@@ -3,10 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/storage/device_preferences.dart';
 import '../../../core/storage/storage_keys.dart';
+import '../../../core/push/push_messaging_client.dart';
+import '../../../data/push/push_notification_service.dart';
 import '../../design/design.dart';
 import '../../providers/plan_providers.dart';
+import '../../providers/push_notification_providers.dart';
+import '../notification/notification_permission_flow.dart';
 
 /// 홈 첫 방문 환영 안내 (#975): 기기에서 한 번만 짧은 시트로 띄움 (오늘의 세트·크레딧·AI 기능, 한 줄씩 차례로 떠오름)
+/// 닫으면 알림 허용 안내로 이어짐 (#980)
 /// 자리만 차지하지 않는 위젯 (홈 목록에 끼워 두면 첫 프레임 뒤 판정)
 class HomeWelcomeGuideTrigger extends ConsumerStatefulWidget {
   const HomeWelcomeGuideTrigger({super.key});
@@ -42,6 +47,23 @@ class _HomeWelcomeGuideTriggerState
         onStart: () => Navigator.of(sheetContext).pop(),
       ),
     );
+    // 환영 시트를 닫으면 알림 허용을 바로 안내 (#980, 권한 미결정·나중에 후 7일 지났을 때만)
+    if (mounted) await _promptNotificationPermissionIfUndecided();
+  }
+
+  /// 알림 권한이 아직 결정되지 않았으면 안내 시트 (이미 허용·거부했으면 묻지 않음)
+  Future<void> _promptNotificationPermissionIfUndecided() async {
+    final permissionStatus = await ref
+        .read(pushNotificationServiceProvider)
+        .readPermissionStatus();
+    if (permissionStatus != PushPermissionStatus.notDetermined || !mounted) {
+      return;
+    }
+    if (!await ref.read(pushPermissionPromptStoreProvider).canPromptNow()) {
+      return;
+    }
+    if (!mounted || ModalRoute.of(context)?.isCurrent != true) return;
+    await runNotificationPermissionPrompt(context, ref);
   }
 
   @override
