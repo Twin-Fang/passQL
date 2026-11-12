@@ -2,7 +2,7 @@
 type: cluster
 topic: notification
 created: 2026-10-29
-members: 18
+members: 19
 status: active
 related: []
 ---
@@ -25,6 +25,7 @@ related: []
 - [[DEC-0216-count-badge-contrast-exception]] — 안 읽은 개수 배지는 iOS 시스템 빨강 + 흰 숫자 (DEC-0168 조건부 예외)
 
 ## 관련 이슈
+- [[ISS-0493-first-launch-push-prompt-common-sense-fixes]] (resolved, GitHub #980, PR #981): 첫 실행 알림 안내 없음, 결과 화면 번호뿐인 목록, 크레딧 0일 때 홈 광고 권유
 - [[ISS-0431-app-home-top-bell-notice-banner]] (resolved, GitHub #756) — 홈 알림 아이콘 색과 공지 배너 개편
 - [[ISS-0273-fcm-push-notifications]] (open, GitHub #467) — FCM 푸시 알림 (토큰 등록, 발송 화면, 앱 수신)
 - [[ISS-0396-duolingo-style-return-notifications]] (open, GitHub #649) — 듀오링고식 재방문 알림·부가 기능 설계와 관리자 제어
