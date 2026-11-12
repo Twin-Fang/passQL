@@ -70,7 +70,7 @@ class _HomeWelcomeGuideTriggerState
   Widget build(BuildContext context) => const SizedBox.shrink();
 }
 
-/// 환영 안내 본문: 대표 아이콘이 톡 튀어나옴 > 제목 > 한 줄 세 개가 차례로 떠오름 > 시작하기
+/// 환영 안내 본문: 3D 일러스트가 톡 튀어나옴 > 제목 > 한 줄 세 개가 차례로 떠오름 > 시작하기
 /// 한 줄 = 아이콘 + 짧은 문장 (설명 줄 없이 시트 높이를 줄임), 동작 줄이기면 바로 보임
 class _HomeWelcomeGuideBody extends StatelessWidget {
   const _HomeWelcomeGuideBody({
@@ -111,25 +111,11 @@ class _HomeWelcomeGuideBody extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 대표 아이콘 (톡 튀어나옴)
-            Center(
-              child: PassqlPopIn(
-                child: Container(
-                  width: PassqlSize.sheetHeroCircle,
-                  height: PassqlSize.sheetHeroCircle,
-                  decoration: BoxDecoration(
-                    color: colors.accentTint,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    CupertinoIcons.hand_raised_fill,
-                    size: PassqlIconSize.sheetHero,
-                    color: colors.accent,
-                  ),
-                ),
-              ),
+            // 대표 3D 일러스트 (톡 튀어나옴)
+            const Center(
+              child: PassqlPopIn(child: PassqlWelcomeIllustration()),
             ),
-            const SizedBox(height: PassqlSpacing.sm),
+            const SizedBox(height: PassqlSpacing.xs),
             PassqlReveal(
               index: 1,
               child: Semantics(

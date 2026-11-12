@@ -2,7 +2,7 @@
 type: cluster
 topic: billing
 created: 2026-10-29
-members: 59
+members: 60
 status: active
 related: []
 ---
@@ -54,6 +54,7 @@ related: []
 - [[DEC-0263-pass-rows-on-account-screen-only]] → DEC-0276
 
 ## 관련 이슈
+- [[ISS-0492-credit-history-server-and-screen]] (resolved, GitHub #974, PR #978): 날짜별 크레딧 내역 API 없음 > credit-history API와 내역 화면
 - [[ISS-0489-pass-sheet-home-profile-cleanup]] (resolved, GitHub #966, PR #968): 이용권 시트 혜택 접기·정가 없는 할인, 잠금 문구 딱딱함, 홈·프로필 카드에 기능이 섞임
 - [[ISS-0490-credit-term-purchase-funnel-events]] (resolved, GitHub #971, PR #973): 구매·광고 흐름 분석 이벤트 없음, 한도·보상 표현이 여러 말로 겹침(크레딧으로 통일), 탭 제목 정렬
 - [[ISS-0488-free-practice-reward-flow]] (resolved, GitHub #963, PR #964): 무료 랜덤 10문제 끊김, 남은 한도 안 보임, 한도 화면 광고 버튼 묻힘, 세트 보너스 표시 없음, 이용권 시트 문구 과다

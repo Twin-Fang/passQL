@@ -28,7 +28,8 @@ public enum AdminAuditAction {
     ROLE_CHANGE("권한 변경"),
     REINDEX("재색인"),
     SESSION_TERMINATE("세션 강제 종료"),
-    CANCEL("취소");
+    CANCEL("취소"),
+    RUN("즉시 실행");
 
     // 화면 표시 이름
     private final String label;

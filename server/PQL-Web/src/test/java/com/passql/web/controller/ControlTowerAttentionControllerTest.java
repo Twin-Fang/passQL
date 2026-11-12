@@ -1,8 +1,10 @@
 package com.passql.web.controller;
 
+import com.passql.application.billing.PlayRefundCheckService;
 import com.passql.application.controltower.ControlTowerAttentionProperties;
 import com.passql.application.controltower.ControlTowerAttentionService;
 import com.passql.application.controltower.ControlTowerAttentionTokenVerifier;
+import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.common.exception.GlobalExceptionHandler;
 import com.passql.meta.constant.AppSettingKeys;
 import com.passql.meta.constant.FeedbackStatus;
@@ -55,7 +57,7 @@ class ControlTowerAttentionControllerTest {
         ObjectProvider<BuildProperties> buildPropertiesProvider = mock(ObjectProvider.class);
         ControlTowerAttentionService service = new ControlTowerAttentionService(properties,
             new ControlTowerAttentionTokenVerifier(properties), feedbackService, appSettingService,
-            new MockEnvironment(), buildPropertiesProvider);
+            mock(FeatureAccessPolicy.class), mock(PlayRefundCheckService.class), new MockEnvironment(), buildPropertiesProvider);
         mockMvc = MockMvcBuilders.standaloneSetup(new ControlTowerAttentionController(service))
             .setControllerAdvice(new GlobalExceptionHandler())
             .build();

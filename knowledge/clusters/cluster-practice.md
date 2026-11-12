@@ -2,7 +2,7 @@
 type: cluster
 topic: practice
 created: 2026-10-29
-members: 176
+members: 178
 status: active
 related: []
 ---
@@ -72,6 +72,8 @@ related: []
 - [[DEC-0261-real-mode-renamed-new-choices]] → DEC-0275
 
 ## 관련 이슈
+- [[ISS-0492-credit-history-server-and-screen]] (resolved, GitHub #974, PR #978): 날짜별 크레딧 내역 API 없음 > credit-history API와 내역 화면
+- [[ISS-0493-first-launch-push-prompt-common-sense-fixes]] (resolved, GitHub #980, PR #981): 첫 실행 알림 안내 없음, 결과 화면 번호뿐인 목록, 크레딧 0일 때 홈 광고 권유
 - [[ISS-0491-first-run-guide-home-next-step]] (resolved, GitHub #975): 첫 화면·홈에 차별점과 지금 할 일이 없음, 무료 회원 안내 구간 없음
 - [[ISS-0489-pass-sheet-home-profile-cleanup]] (resolved, GitHub #966, PR #968): 이용권 시트 혜택 접기·정가 없는 할인, 잠금 문구 딱딱함, 홈·프로필 카드에 기능이 섞임
 - [[ISS-0490-credit-term-purchase-funnel-events]] (resolved, GitHub #971, PR #973): 구매·광고 흐름 분석 이벤트 없음, 한도·보상 표현이 여러 말로 겹침(크레딧으로 통일), 탭 제목 정렬

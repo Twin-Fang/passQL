@@ -21,7 +21,8 @@ public enum AdminAuditTargetType {
     NOTIFICATION("알림"),
     COMMUNITY_POST("커뮤니티 글"),
     EMBEDDING_INDEX("임베딩 색인"),
-    AI_CONNECTION("AI 연결");
+    AI_CONNECTION("AI 연결"),
+    BILLING_REFUND_CHECK("환불 회수 확인");
 
     // 화면 표시 이름
     private final String label;

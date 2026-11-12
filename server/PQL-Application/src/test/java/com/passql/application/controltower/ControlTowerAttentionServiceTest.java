@@ -1,6 +1,8 @@
 package com.passql.application.controltower;
 
+import com.passql.application.billing.PlayRefundCheckService;
 import com.passql.application.constant.ControlTowerAttentionLevel;
+import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.constant.AppSettingKeys;
@@ -28,6 +30,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * 관제소 attention 스냅샷 (#959): 꺼짐 404 > 토큰 401 > 의견 항목 2개(0건 포함, 0 ok·1 이상 info)
+ * 결제 켜짐이면 환불 회수 확인 항목 추가 (#984, 확인 필요 1 warning)
  */
 class ControlTowerAttentionServiceTest {
 
@@ -36,6 +39,8 @@ class ControlTowerAttentionServiceTest {
 
     private final FeedbackService feedbackService = mock(FeedbackService.class);
     private final AppSettingService appSettingService = mock(AppSettingService.class);
+    private final FeatureAccessPolicy featureAccessPolicy = mock(FeatureAccessPolicy.class);
+    private final PlayRefundCheckService playRefundCheckService = mock(PlayRefundCheckService.class);
     private final MockEnvironment environment = new MockEnvironment();
 
     @BeforeEach
@@ -127,6 +132,28 @@ class ControlTowerAttentionServiceTest {
         assertThat(response.items()).allSatisfy(item -> assertThat(item.adminUrl()).isNull());
     }
 
+    @Test
+    void 결제가_켜져_있고_환불_회수_확인이_필요하면_warning_항목을_더한다() {
+        when(featureAccessPolicy.isBillingEnabled()).thenReturn(true);
+        when(playRefundCheckService.needsRefundCheckAttention()).thenReturn(true);
+
+        ControlTowerAttentionItem refundCheck = serviceOf(TOKEN).collectSnapshot(TOKEN).items().get(2);
+
+        assertThat(refundCheck.key()).isEqualTo("billing.refund_check_failed");
+        assertThat(refundCheck.count()).isEqualTo(1);
+        assertThat(refundCheck.level()).isEqualTo(ControlTowerAttentionLevel.WARNING);
+        assertThat(refundCheck.adminUrl()).isEqualTo("/admin/subscriptions");
+    }
+
+    @Test
+    void 결제가_꺼져_있으면_환불_회수_확인_항목을_내보내지_않는다() {
+        when(featureAccessPolicy.isBillingEnabled()).thenReturn(false);
+
+        assertThat(serviceOf(TOKEN).collectSnapshot(TOKEN).items()).extracting(ControlTowerAttentionItem::key)
+            .doesNotContain("billing.refund_check_failed");
+        verify(playRefundCheckService, never()).needsRefundCheckAttention();
+    }
+
     private void assertUnauthorized(ControlTowerAttentionService service, String presentedToken) {
         assertThatThrownBy(() -> service.collectSnapshot(presentedToken))
             .isInstanceOfSatisfying(CustomException.class,
@@ -157,6 +184,6 @@ class ControlTowerAttentionServiceTest {
         ObjectProvider<BuildProperties> buildPropertiesProvider = mock(ObjectProvider.class);
         when(buildPropertiesProvider.getIfAvailable()).thenReturn(new BuildProperties(buildInfo));
         return new ControlTowerAttentionService(properties, new ControlTowerAttentionTokenVerifier(properties),
-            feedbackService, appSettingService, environment, buildPropertiesProvider);
+            feedbackService, appSettingService, featureAccessPolicy, playRefundCheckService, environment, buildPropertiesProvider);
     }
 }
