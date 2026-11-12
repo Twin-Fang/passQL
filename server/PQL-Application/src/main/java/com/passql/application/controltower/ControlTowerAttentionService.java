@@ -1,5 +1,7 @@
 package com.passql.application.controltower;
 
+import com.passql.application.billing.PlayRefundCheckService;
+import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.common.util.ServiceTimeZone;
@@ -17,13 +19,14 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * 관제소 확인할 일(attention v1) 연동: 수집 요청 검증, 의견함 스냅샷 생성, 관리자 화면 상태
- * 스냅샷 = 의견 상태별 개수 집계 1회 (GROUP BY), 마지막 수집 시각은 메모리 보관 (재시작 시 비움)
+ * 관제소 확인할 일(attention v1) 연동: 수집 요청 검증, 의견함·환불 회수 확인 스냅샷 생성, 관리자 화면 상태
+ * 스냅샷 = 의견 상태별 개수 집계 1회 (GROUP BY) + 결제 켜짐이면 환불 회수 확인 상태, 마지막 수집 시각은 메모리 보관 (재시작 시 비움)
  */
 @Service
 @RequiredArgsConstructor
@@ -46,11 +49,18 @@ public class ControlTowerAttentionService {
     private static final String FEEDBACK_GROUP = "의견함";
     // 관리자 의견 목록 상태 필터: /admin/feedbacks?status=PENDING (admin_base_url 뒤에 붙음)
     private static final String FEEDBACK_ADMIN_PATH_FORMAT = "/admin/feedbacks?status=%s";
+    // 환불 회수 확인 (#984): 최근 실행 실패 또는 26시간 안에 성공 없음 > 1
+    static final String BILLING_REFUND_CHECK_KEY = "billing.refund_check_failed";
+    private static final String BILLING_REFUND_CHECK_LABEL = "환불 회수 확인 실패";
+    private static final String BILLING_GROUP = "결제";
+    private static final String BILLING_REFUND_CHECK_ADMIN_PATH = "/admin/subscriptions";
 
     private final ControlTowerAttentionProperties properties;
     private final ControlTowerAttentionTokenVerifier tokenVerifier;
     private final FeedbackService feedbackService;
     private final AppSettingService appSettingService;
+    private final FeatureAccessPolicy featureAccessPolicy;
+    private final PlayRefundCheckService playRefundCheckService;
     private final Environment environment;
     private final ObjectProvider<BuildProperties> buildPropertiesProvider;
 
@@ -87,15 +97,24 @@ public class ControlTowerAttentionService {
         return ControlTowerAttentionResponse.of(buildSource(), Instant.now().truncatedTo(ChronoUnit.MILLIS), buildItems());
     }
 
-    /** 의견 상태별 개수 > 항목 2개 (0건도 포함, total = 전체 의견 수, 의견 행은 지우지 않아 줄지 않음) */
+    /**
+     * 항목: 의견 상태별 개수 2개(0건도 포함, total = 전체 의견 수, 의견 행은 지우지 않아 줄지 않음)
+     * + 결제 켜짐이면 환불 회수 확인 1개 (결제 꺼짐이면 확인 작업이 의미 없어 생략)
+     */
     List<ControlTowerAttentionItem> buildItems() {
         Map<FeedbackStatus, Long> countByStatus = feedbackService.countByStatus();
         long totalFeedbackCount = countByStatus.values().stream().mapToLong(Long::longValue).sum();
-        return List.of(
+        List<ControlTowerAttentionItem> items = new ArrayList<>(List.of(
             ControlTowerAttentionItem.count(FEEDBACK_NEW_KEY, FEEDBACK_NEW_LABEL, FEEDBACK_GROUP,
                 toFeedbackAdminPath(FeedbackStatus.PENDING), countByStatus.get(FeedbackStatus.PENDING), totalFeedbackCount),
             ControlTowerAttentionItem.count(FEEDBACK_IN_PROGRESS_KEY, FEEDBACK_IN_PROGRESS_LABEL, FEEDBACK_GROUP,
-                toFeedbackAdminPath(FeedbackStatus.REVIEWED), countByStatus.get(FeedbackStatus.REVIEWED), null));
+                toFeedbackAdminPath(FeedbackStatus.REVIEWED), countByStatus.get(FeedbackStatus.REVIEWED), null)));
+        if (featureAccessPolicy.isBillingEnabled()) {
+            items.add(ControlTowerAttentionItem.warningCount(BILLING_REFUND_CHECK_KEY, BILLING_REFUND_CHECK_LABEL,
+                BILLING_GROUP, findHttpsAdminBaseUrl() == null ? null : BILLING_REFUND_CHECK_ADMIN_PATH,
+                playRefundCheckService.needsRefundCheckAttention() ? 1 : 0));
+        }
+        return List.copyOf(items);
     }
 
     private ControlTowerAttentionSource buildSource() {
