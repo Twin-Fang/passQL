@@ -5,7 +5,7 @@ import '../../core/monitoring/crash_reporter.dart';
 import '../../data/models/question/execute_request.dart';
 import '../../data/models/question/execute_result.dart';
 import '../../data/sources/api_providers.dart';
-import 'plan_providers.dart';
+import 'question_feature_lock_providers.dart';
 import 'sql_execution_pacing.dart';
 
 /// 실습 칸 시작 SQL 3종: 정답, 내 답(오답일 때만), 빈 칸
@@ -79,11 +79,11 @@ class SqlPracticeNotifier
     state = state.copyWith(draftSql: sql);
   }
 
-  /// 실행: 빈 SQL 무시 > 무료(결제 켜짐)면 잠금 > 앱 캐시 > POST /execute(서버도 결과 캐시) > 결과 또는 실패 사유
+  /// 실행: 빈 SQL 무시 > 무료(결제 켜짐, 오늘의 세트 체험 문제 제외)면 잠금 > 앱 캐시 > POST /execute(서버도 결과 캐시) > 결과 또는 실패 사유
   /// 캐시로 즉시 끝나도 실행 중 표시는 최소 시간 유지
   Future<void> run(String sql) async {
     if (sql.trim().isEmpty || state.isExecuting) return;
-    final isExecutionLocked = ref.read(shouldShowProUiProvider);
+    final isExecutionLocked = ref.read(isQuestionExecutionLockedProvider(arg));
     state = state.copyWith(
       clearExecuteResult: true,
       clearExecuteFailure: true,

@@ -251,7 +251,8 @@ public class QuestionService {
                 answerSql,
                 question.getHint(),
                 choiceSets,
-                Boolean.TRUE.equals(question.getIsLatestTrend())
+                Boolean.TRUE.equals(question.getIsLatestTrend()),
+                false
         );
     }
 
@@ -360,6 +361,11 @@ public class QuestionService {
     /** 풀 수 있는 활성 문제 uuid 전체 (랜덤 풀기 후보) */
     public List<UUID> findPlayableActiveQuestionUuids() {
         return questionRepository.findPlayableActiveQuestionUuids().stream().map(UUID::fromString).toList();
+    }
+
+    /** 선택지 생성 대기 없이 바로 열 수 있는 활성 문제 uuid (잠금화면 출제 후보, isExecutableExcluded 면 실행형 제외) */
+    public List<UUID> findReadyActiveQuestionUuids(boolean isExecutableExcluded) {
+        return questionRepository.findReadyActiveQuestionUuids(isExecutableExcluded, ChoiceSetSource.CURATED_SOURCES);
     }
 
     /**

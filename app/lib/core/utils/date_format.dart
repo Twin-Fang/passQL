@@ -49,3 +49,14 @@ String formatIso8601WithOffset(DateTime moment) {
   final minutes = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
   return '${moment.toIso8601String()}$sign$hours:$minutes';
 }
+
+/// 시각 > "9:41" (잠금화면 작은 시계, 24시간제·시는 앞 0 없음)
+String formatClockTime(DateTime time) =>
+    '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
+
+// 요일 짧은 이름 (DateTime.weekday 1=월 ~ 7=일)
+const List<String> _koreanWeekdayNames = ['월', '화', '수', '목', '금', '토', '일'];
+
+/// 날짜 > "11월 12일 수" (잠금화면 시계 옆)
+String formatMonthDayWeekday(DateTime time) =>
+    '${time.month}월 ${time.day}일 ${_koreanWeekdayNames[time.weekday - 1]}';

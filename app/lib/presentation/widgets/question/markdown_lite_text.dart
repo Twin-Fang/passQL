@@ -24,11 +24,26 @@ class MarkdownLiteText extends StatefulWidget {
     super.key,
     this.isAnimated = false,
     this.style = MarkdownLiteStyle.explanation,
+    this.baseStyle,
   });
 
   final String text;
   final bool isAnimated;
   final MarkdownLiteStyle style;
+
+  /// 글자 모양 덮어쓰기 (null 이면 [style] 기본 본문 + label, 판정 줄처럼 의미색 굵은 글자)
+  final TextStyle? baseStyle;
+
+  /// 단어 등장 전체 시간 = 첫 지연 + (단어 수 - 1) × 간격 + 단어 하나 시간 (뒤 연출을 이어 붙일 때 기준)
+  static Duration animationDurationOf(String text) {
+    final wordCount = text
+        .split(_MarkdownLiteTextState._whitespaceRe)
+        .where((token) => token.isNotEmpty)
+        .length;
+    return PassqlMotion.wordInitialDelay +
+        PassqlMotion.wordStep * (wordCount > 0 ? wordCount - 1 : 0) +
+        PassqlMotion.fast;
+  }
 
   @override
   State<MarkdownLiteText> createState() => _MarkdownLiteTextState();
@@ -60,10 +75,9 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
     super.didChangeDependencies();
     if (!widget.isAnimated || _controller != null) return;
     if (PassqlMotion.isReduced(context)) return;
-    final wordCount = _countWords(widget.text);
     _controller = AnimationController(
       vsync: this,
-      duration: _totalDurationOf(wordCount),
+      duration: MarkdownLiteText.animationDurationOf(widget.text),
     )..forward();
   }
 
@@ -84,22 +98,15 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
   /// 큰 본문 글자 (공지·개념 레슨)
   bool get _isArticle => widget.style != MarkdownLiteStyle.explanation;
 
-  /// 전체 시간 = 첫 지연 + (단어 수 - 1) × 간격 + 단어 하나 시간
-  Duration _totalDurationOf(int wordCount) =>
-      PassqlMotion.wordInitialDelay +
-      PassqlMotion.wordStep * (wordCount > 0 ? wordCount - 1 : 0) +
-      PassqlMotion.fast;
-
-  int _countWords(String text) =>
-      text.split(_whitespaceRe).where((token) => token.isNotEmpty).length;
-
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final base = (_isArticle
-            ? PassqlTypography.articleBody
-            : PassqlTypography.explanationBody)
-        .copyWith(color: colors.label);
+    final base =
+        widget.baseStyle ??
+        (_isArticle
+                ? PassqlTypography.articleBody
+                : PassqlTypography.explanationBody)
+            .copyWith(color: colors.label);
     // 문단 사이(빈 줄) 간격: 긴 글은 넓게
     final paragraphGap = _isArticle ? PassqlSpacing.md : PassqlSpacing.sm;
     _disposeLinkRecognizers();
@@ -195,6 +202,10 @@ class _MarkdownLiteTextState extends State<MarkdownLiteText>
 
   /// 굵게 모양: 개념 레슨은 외울 말 형광펜(불투명 바탕 위 label 4.5 이상), 그 외는 굵은 글자
   TextStyle _emphasisStyleOf(PassqlColors colors) => switch (widget.style) {
+    // 글자 모양을 덮어썼으면 같은 색·크기의 굵은 글꼴 (AiExplanationInlineText 굵게와 같은 방식)
+    _ when widget.baseStyle != null => widget.baseStyle!.copyWith(
+      fontFamily: PassqlTypography.subheadlineSemibold.fontFamily,
+    ),
     MarkdownLiteStyle.lesson => PassqlTypography.articleEmphasis.copyWith(
       color: colors.label,
       backgroundColor: colors.memorizeHighlight,

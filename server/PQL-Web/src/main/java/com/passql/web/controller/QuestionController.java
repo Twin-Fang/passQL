@@ -4,8 +4,10 @@ import com.passql.application.entitlement.DailyQuestionSubmitAdmission;
 import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.application.entitlement.ProFeature;
 import com.passql.application.entitlement.ProResponseRedactor;
+import com.passql.application.entitlement.QuestionFeatureAccessPolicy;
 import com.passql.web.support.RequiresProFeature;
 import com.passql.application.service.ChoiceGenerationStreamService;
+import com.passql.application.service.LockScreenQuestionService;
 import com.passql.application.service.QuestionExecutionService;
 import com.passql.application.service.RandomPracticeService;
 import com.passql.application.service.RecommendationService;
@@ -13,6 +15,7 @@ import com.passql.member.auth.presentation.annotation.AuthMember;
 import com.passql.member.auth.presentation.security.LoginMember;
 import com.passql.question.dto.ExecuteResult;
 import com.passql.question.dto.ExecuteSqlRequest;
+import com.passql.question.dto.LockScreenQuestionResponse;
 import com.passql.question.dto.QuestionDetail;
 import com.passql.question.dto.QuestionSummary;
 import com.passql.question.dto.RecommendationsRequest;
@@ -43,10 +46,12 @@ public class QuestionController implements QuestionControllerDocs {
     private final QuestionService questionService;
     private final RecommendationService recommendationService;
     private final RandomPracticeService randomPracticeService;
+    private final LockScreenQuestionService lockScreenQuestionService;
     private final QuestionExecutionService questionExecutionService;
     private final SubmissionService submissionService;
     private final ChoiceGenerationStreamService choiceGenerationStreamService;
     private final FeatureAccessPolicy featureAccessPolicy;
+    private final QuestionFeatureAccessPolicy questionFeatureAccessPolicy;
     private final ProResponseRedactor proResponseRedactor;
     private final DailyQuestionSubmitAdmission dailyQuestionSubmitAdmission;
 
@@ -74,6 +79,17 @@ public class QuestionController implements QuestionControllerDocs {
         return ResponseEntity.ok(randomPracticeService.findRandomQuestions(loginMember.memberUuid(), size));
     }
 
+    // 잠금화면 문제 1개: 출제할 문제 없음·기능 꺼짐 > 204, 한도는 상세 열기·제출에서 판정 (#990)
+    @GetMapping("/lockscreen")
+    public ResponseEntity<LockScreenQuestionResponse> getLockScreenQuestion(
+        @AuthMember LoginMember loginMember,
+        @RequestParam(defaultValue = "false") boolean isExecutableExcluded
+    ) {
+        return lockScreenQuestionService.findLockScreenQuestion(loginMember.memberUuid(), isExecutableExcluded)
+            .map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
     // GET → POST 전환: 제외 UUID 목록이 쿼리스트링으로 누적되면 Tomcat 8KB 헤더 한도 초과 → 400 발생
     @RequiresProFeature(ProFeature.RECOMMENDATION)
     @PostMapping("/recommendations")
@@ -95,15 +111,19 @@ public class QuestionController implements QuestionControllerDocs {
     ) {
         // 하루 문제 수 제한 (무료 10, 프로 200)
         featureAccessPolicy.assertCanOpenQuestion(loginMember.memberUuid(), questionUuid);
-        return ResponseEntity.ok(questionService.getQuestionForSolving(questionUuid));
+        // 오늘의 세트 무료 체험 표시 (앱이 실행·해설 잠금을 이 문제에서 풀어 그림, #992)
+        boolean isDailySetFreeTrial = questionFeatureAccessPolicy.isDailySetFreeTrial(loginMember.memberUuid(), questionUuid);
+        return ResponseEntity.ok(questionService.getQuestionForSolving(questionUuid).withDailySetFreeTrial(isDailySetFreeTrial));
     }
 
-    @RequiresProFeature(ProFeature.SQL_EXECUTION)
     @PostMapping("/{questionUuid}/execute")
     public ResponseEntity<ExecuteResult> executeChoice(
+        @AuthMember LoginMember loginMember,
         @PathVariable UUID questionUuid,
         @Valid @RequestBody ExecuteSqlRequest request
     ) {
+        // 프로 또는 오늘의 세트 문제만 실행 (문제 기준이라 어노테이션 잠금 대신 직접 판정, #992)
+        questionFeatureAccessPolicy.requireFeature(loginMember.memberUuid(), ProFeature.SQL_EXECUTION, questionUuid);
         // questionUuid.toString()이 아닌 question의 sandboxDbName 기반으로 실행
         return ResponseEntity.ok(questionExecutionService.executeChoice(questionUuid, request.sql()));
     }
@@ -128,9 +148,9 @@ public class QuestionController implements QuestionControllerDocs {
         // 하루 문제 수 제한은 기록 트랜잭션 안에서 회원 잠금 > 판정 (제출 시점 수 #860, 동시 제출 #867)
         SubmitResult submitResult = submissionService.submit(
                 loginMember.memberUuid(), questionUuid, request.choiceSetId(), request.selectedChoiceKey(), request.sessionUuid(),
-                featureAccessPolicy.canUse(loginMember.memberUuid(), ProFeature.SQL_EXECUTION),
+                questionFeatureAccessPolicy.canUse(loginMember.memberUuid(), ProFeature.SQL_EXECUTION, questionUuid),
                 dailyQuestionSubmitAdmission.forQuestion(loginMember.memberUuid(), questionUuid));
         return ResponseEntity.ok(proResponseRedactor.redactSubmitResult(
-                loginMember.memberUuid(), request.choiceSetId(), submitResult));
+                loginMember.memberUuid(), questionUuid, request.choiceSetId(), submitResult));
     }
 }

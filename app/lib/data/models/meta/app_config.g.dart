@@ -99,14 +99,23 @@ _$AppConfigImpl _$$AppConfigImplFromJson(
   businessInfo: json['businessInfo'] == null
       ? const BusinessInfo()
       : BusinessInfo.fromJson(json['businessInfo'] as Map<String, dynamic>),
+  isLockScreenEnabled: json['isLockScreenEnabled'] as bool? ?? false,
+  lockScreenDefaultIntervalMinutes:
+      (json['lockScreenDefaultIntervalMinutes'] as num?)?.toInt() ?? 30,
+  isLockScreenExecutableIncluded:
+      json['isLockScreenExecutableIncluded'] as bool? ?? true,
 );
 
-Map<String, dynamic> _$$AppConfigImplToJson(_$AppConfigImpl instance) =>
-    <String, dynamic>{
-      'ios': instance.ios,
-      'android': instance.android,
-      'maintenance': instance.maintenance,
-      'notices': instance.notices,
-      'isAndroidBillingEnabled': instance.isAndroidBillingEnabled,
-      'businessInfo': instance.businessInfo,
-    };
+Map<String, dynamic> _$$AppConfigImplToJson(
+  _$AppConfigImpl instance,
+) => <String, dynamic>{
+  'ios': instance.ios,
+  'android': instance.android,
+  'maintenance': instance.maintenance,
+  'notices': instance.notices,
+  'isAndroidBillingEnabled': instance.isAndroidBillingEnabled,
+  'businessInfo': instance.businessInfo,
+  'isLockScreenEnabled': instance.isLockScreenEnabled,
+  'lockScreenDefaultIntervalMinutes': instance.lockScreenDefaultIntervalMinutes,
+  'isLockScreenExecutableIncluded': instance.isLockScreenExecutableIncluded,
+};

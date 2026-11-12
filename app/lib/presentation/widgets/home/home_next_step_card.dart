@@ -8,6 +8,9 @@ import '../../design/design.dart';
 import '../../providers/mock_exam_providers.dart';
 import '../../providers/plan_providers.dart';
 import '../../providers/pro_ui_providers.dart';
+import '../../providers/lock_screen_providers.dart';
+import '../lock_screen/lock_screen_intro_sheet.dart';
+import '../lock_screen/lock_screen_phone_illustration.dart';
 import '../practice/open_random_practice.dart';
 
 /// 홈 다음 할 일 판정 재료 모으기 (카드와 홈 구간이 같은 값을 씀: 카드가 맡은 구간 버튼은 홈이 숨김, #993)
@@ -26,6 +29,8 @@ HomeNextStep watchHomeNextStep(
           ?.rounds
           .any((round) => round.isFreeTrialRound && round.canStart) ??
       false,
+  canSuggestLockScreen:
+      ref.watch(canSuggestLockScreenProvider).valueOrNull ?? false,
 );
 
 /// 홈 「다음에 할 일」 카드 (#975): 지금 할 한 가지를 제목·한 줄·버튼으로 (홈의 유일한 채운 버튼)
@@ -67,6 +72,12 @@ class HomeNextStepCard extends ConsumerWidget {
         '오늘의 세트 풀기',
         onStartDailySet,
       ),
+      HomeNextStep.lockScreen => (
+        '잠금화면에서 한 문제씩',
+        '화면 켤 때 가볍게 이어서 풀어요',
+        '알아보기',
+        () => showLockScreenIntroSheet(context),
+      ),
       HomeNextStep.randomPractice => (
         '랜덤 풀기로 이어 가요',
         // 남은 크레딧 수는 상단 바 알약이 보여 줌 (한 화면 한 번)
@@ -105,19 +116,39 @@ class HomeNextStepCard extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: PassqlSpacing.xxs),
-          Semantics(
-            header: true,
-            child: Text(
-              title,
-              style: PassqlTypography.title3.copyWith(color: colors.label),
-            ),
-          ),
-          const SizedBox(height: PassqlSpacing.hairlineGap),
-          Text(
-            subtitle,
-            style: PassqlTypography.subheadline.copyWith(
-              color: colors.secondaryLabel,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Semantics(
+                      header: true,
+                      child: Text(
+                        title,
+                        style: PassqlTypography.title3.copyWith(
+                          color: colors.label,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: PassqlSpacing.hairlineGap),
+                    Text(
+                      subtitle,
+                      style: PassqlTypography.subheadline.copyWith(
+                        color: colors.secondaryLabel,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // 잠금화면 소개: 미니 폰 그림
+              if (nextStep == HomeNextStep.lockScreen) ...[
+                const SizedBox(width: PassqlSpacing.sm),
+                const LockScreenPhoneIllustration(
+                  width: LockScreenPhoneIllustration.cardWidth,
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: PassqlSpacing.sm),
           PassqlButton(label: buttonLabel, onPressed: onPressed),

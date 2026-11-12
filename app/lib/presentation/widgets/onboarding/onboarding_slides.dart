@@ -2,12 +2,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/exam_dday.dart';
+import '../../../data/models/ai/choice_explanation.dart';
 import '../../../data/models/question/execute_result.dart';
 import '../../design/design.dart';
+import '../../providers/ai_explanation_session_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/choice_explanation_providers.dart';
 import '../../providers/home_providers.dart';
+import '../ai_explanation/ai_explanation_sections.dart';
 import '../question/execute_result_card.dart';
-import '../question/markdown_lite_text.dart';
 import 'onboarding_run_reveal.dart';
 import 'onboarding_slide.dart';
 import 'onboarding_sql_card.dart';
@@ -114,41 +117,78 @@ class _SelectSlide extends StatelessWidget {
   }
 }
 
-/// 3장: 틀린 이유를 AI 가 바로 설명
+/// 3장: 틀린 이유를 AI 가 바로 설명 (실제 결과 화면의 구조화 해설 부품 그대로, 2장 A·B 보기 이어서)
 class _ExplainSlide extends StatelessWidget {
   const _ExplainSlide();
 
+  // 예시 보기 키 (2장 A: WHERE 성공, B: HAVING 오류), 화면 라벨도 같은 글자
+  static const _whereChoiceKey = 'A';
+  static const _havingChoiceKey = 'B';
+
+  // 서버 호출 없는 고정 해설 > 요청 키는 자리 값
+  static const _sampleEntry = AiExplanationEntry(
+    request: ChoiceExplanationRequest(
+      questionUuid: 'onboarding-sample',
+      choiceSetUuid: 'onboarding-sample',
+      selectedChoiceKey: _havingChoiceKey,
+    ),
+    isCorrect: false,
+    displayLabelByChoiceKey: {
+      _whereChoiceKey: _whereChoiceKey,
+      _havingChoiceKey: _havingChoiceKey,
+    },
+    correctChoiceKey: _whereChoiceKey,
+  );
+
+  // 섹션 3개: 판정·시험 팁·보기별 판단 (작은 화면은 시험 팁 생략)
+  static const _sampleExplanation = ChoiceExplanation(
+    selectedChoiceKey: _havingChoiceKey,
+    correctChoiceKey: _whereChoiceKey,
+    examTip: '집계 조건은 HAVING, 행 조건은 WHERE',
+    choiceAnalyses: [
+      ChoiceAnalysis(
+        choiceKey: _whereChoiceKey,
+        isCorrect: true,
+        reason: '행 조건이라 `WHERE`로 걸러요.',
+      ),
+      ChoiceAnalysis(
+        choiceKey: _havingChoiceKey,
+        reason: '`HAVING`은 그룹 조건 전용이에요.',
+      ),
+    ],
+  );
+
+  // 시험 팁까지 들어가는 화면 높이 (SE 667 은 생략, mini 812 이상은 표시)
+  static const double _examTipMinimumScreenHeight = 760;
+
   @override
   Widget build(BuildContext context) {
+    final hasRoomForExamTip =
+        MediaQuery.sizeOf(context).height >= _examTipMinimumScreenHeight;
     return OnboardingSlide(
       title: '틀려도 괜찮아요,\n이유를 바로 알려 줘요',
       subtitle: '틀린 문제는 오답 노트에 모아 둬요.',
       visual: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const PassqlCodeBlock(code: 'EXPLAIN 내_오답;', isSelectable: false),
-            const SizedBox(height: PassqlSpacing.sm),
-            PassqlCard(
-              isCardTapExposedToScreenReader: false,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const PassqlAiHeader(title: 'AI 해설'),
-                  const SizedBox(height: PassqlSpacing.xs),
-                  // 실제 해설처럼 단어가 차례로 나타남 (동작 줄이기면 바로)
-                  const MarkdownLiteText(
-                    '**HAVING**은 GROUP BY로 묶은 결과를 거를 때 써요. '
-                    '묶지 않은 행을 거르려면 **WHERE**를 써야 해요.',
-                    isAnimated: true,
-                  ),
-                  const SizedBox(height: PassqlSpacing.sm),
-                  const PassqlTextSkeleton(lineCount: 2),
-                ],
+        child: PassqlCard(
+          isCardTapExposedToScreenReader: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const PassqlAiHeader(title: 'AI 해설'),
+              const SizedBox(height: PassqlSpacing.sm),
+              // 실제 해설처럼: 글 줄 스켈레톤 잠깐 > 판정 줄 단어 등장 > 섹션 차례로 (동작 줄이기면 바로 최종)
+              OnboardingRunReveal(
+                loadingPlaceholder: const PassqlTextSkeleton(lineCount: 4),
+                child: AiExplanationSections(
+                  explanation: hasRoomForExamTip
+                      ? _sampleExplanation
+                      : _sampleExplanation.copyWith(examTip: ''),
+                  entry: _sampleEntry,
+                  isVerdictAnimated: true,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

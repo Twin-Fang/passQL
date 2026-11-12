@@ -12,6 +12,7 @@ import '../../../router/result_route_arguments.dart';
 import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
 import '../../providers/daily_set_providers.dart';
+import '../../widgets/lock_screen/lock_screen_intro_sheet.dart';
 import '../../widgets/ads/rewarded_interstitial_on_result.dart';
 import '../../widgets/daily_set/daily_set_bonus_card.dart';
 import '../../widgets/notification/study_result_seen_recorder.dart';
@@ -39,31 +40,35 @@ class DailySetResultPage extends ConsumerWidget {
       // 결과를 본 기록 > 탭 화면 복귀 때 알림 권한 사전 안내 시점
       // 좋은 결과: 순위 반영 성공 + 정답률 60% 이상
       final total = outcome.results.length;
+      // 세트를 막 끝냄 > 잠금화면 소개 1회 (#990)
       return StudyResultSeenRecorder(
-        child: StoreReviewPromptOnResult(
-          trigger: StoreReviewTrigger.dailySet,
-          isGoodResult:
-              outcome.saveError == null &&
-              StoreReviewPromptRule.isGoodDailySetScore(
+        child: LockScreenIntroOnResult(
+          hasStudiedEnoughToday: (_) => true,
+          child: StoreReviewPromptOnResult(
+            trigger: StoreReviewTrigger.dailySet,
+            isGoodResult:
+                outcome.saveError == null &&
+                StoreReviewPromptRule.isGoodDailySetScore(
+                  correctCount: outcome.correctCount,
+                  questionCount: total,
+                ),
+            child: RewardedInterstitialOnLeave(
+              onLeave: leaveSolvingFlow,
+              builder: (_, leaveWithAdOffer) => _ResultBody(
                 correctCount: outcome.correctCount,
-                questionCount: total,
+                total: total,
+                solvedQuestions: [
+                  for (final result in outcome.results)
+                    (
+                      questionUuid: result.questionUuid,
+                      isCorrect: result.isCorrect,
+                    ),
+                ],
+                saveError: outcome.saveError,
+                completedRank: outcome.completed?.rank,
+                isJustCompleted: true,
+                onClose: leaveWithAdOffer,
               ),
-          child: RewardedInterstitialOnLeave(
-            onLeave: leaveSolvingFlow,
-            builder: (_, leaveWithAdOffer) => _ResultBody(
-              correctCount: outcome.correctCount,
-              total: total,
-              solvedQuestions: [
-                for (final result in outcome.results)
-                  (
-                    questionUuid: result.questionUuid,
-                    isCorrect: result.isCorrect,
-                  ),
-              ],
-              saveError: outcome.saveError,
-              completedRank: outcome.completed?.rank,
-              isJustCompleted: true,
-              onClose: leaveWithAdOffer,
             ),
           ),
         ),

@@ -9,9 +9,11 @@ import com.passql.meta.dto.AppNoticeActiveRequest;
 import com.passql.meta.dto.AppNoticeResponse;
 import com.passql.meta.dto.AppNoticeSaveRequest;
 import com.passql.meta.dto.AppOperationSettingsRequest;
+import com.passql.meta.dto.LockScreenSettingsRequest;
 import com.passql.meta.service.AppNoticeService;
 import com.passql.meta.service.AppOperationChangeHistoryService;
 import com.passql.meta.service.AppOperationService;
+import com.passql.meta.service.LockScreenSettingService;
 import com.passql.member.service.PushNotificationService;
 import com.passql.web.service.AdminNoticePushService;
 import jakarta.validation.Valid;
@@ -28,7 +30,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * 관리자 앱 운영: 점검(예약 포함)·버전 설정 저장, 결제 스위치·미리보기 회원·켜기 전 점검표, 설정 변경 이력, 공지 등록·수정·삭제·활성 전환 (#464, #630, #961)
+ * 관리자 앱 운영: 점검(예약 포함)·버전 설정 저장, 결제 스위치·미리보기 회원·켜기 전 점검표, 잠금화면 문제 설정, 설정 변경 이력, 공지 등록·수정·삭제·활성 전환 (#464, #630, #961, #990)
  */
 @Controller
 @RequestMapping("/admin/app-operation")
@@ -42,6 +44,7 @@ public class AdminAppOperationController {
     private final AppOperationChangeHistoryService appOperationChangeHistoryService;
     private final AdminNoticePushService adminNoticePushService;
     private final BillingOperationService billingOperationService;
+    private final LockScreenSettingService lockScreenSettingService;
 
     @GetMapping
     public String page(Model model) {
@@ -53,6 +56,7 @@ public class AdminAppOperationController {
         long noticeAudienceCount = pushNotificationService.countAllInboxRecipients();
         model.addAttribute("operationSettings", appOperationService.getOperationSettings());
         model.addAttribute("billingOperation", billingOperationService.getBillingOperationView());
+        model.addAttribute("lockScreenSettings", lockScreenSettingService.getSettings());
         model.addAttribute("notices", notices);
         model.addAttribute("noticeReadCounts", readCountByNoticeUuid);
         model.addAttribute("noticeAudienceCount", noticeAudienceCount);
@@ -75,6 +79,14 @@ public class AdminAppOperationController {
     @ResponseBody
     public ResponseEntity<Void> changeBillingEnabled(@Valid @RequestBody BillingSwitchRequest request) {
         billingOperationService.changeBillingEnabled(request.isEnabled());
+        return ResponseEntity.ok().build();
+    }
+
+    /** 잠금화면 문제 설정 저장 — 본문 {isEnabled, defaultIntervalMinutes(0~1440), isExecutableIncluded} (#990) */
+    @PutMapping("/lockscreen")
+    @ResponseBody
+    public ResponseEntity<Void> updateLockScreenSettings(@Valid @RequestBody LockScreenSettingsRequest request) {
+        lockScreenSettingService.updateSettings(request);
         return ResponseEntity.ok().build();
     }
 
