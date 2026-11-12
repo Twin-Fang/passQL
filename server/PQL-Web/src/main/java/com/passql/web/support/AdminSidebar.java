@@ -24,7 +24,7 @@ public final class AdminSidebar {
             new Group("개요", List.of(
                     item("dashboard", "/admin", "layout-dashboard", "대시보드"),
                     item("statistics", "/admin/statistics", "chart-line", "AI 사용량·통계"),
-                    item("subscriptions", "/admin/subscriptions", "credit-card", "구독·매출 현황"),
+                    item("subscriptions", "/admin/subscriptions", "credit-card", "결제 관리"),
                     item("retention", "/admin/retention", "repeat", "리텐션·코호트"))),
             new Group("회원·커뮤니티", List.of(
                     item("members", "/admin/members", "users", "회원 관리"),

@@ -84,6 +84,15 @@ public final class AppSettingKeys {
     public static final String ADS_REWARD_SSV_AD_UNIT_IDS = "ads.reward.ssv_ad_unit_ids";
     // app_setting: Play Developer API 서비스 계정 키 JSON (SECRET, 암호문 저장, 관리자 화면에서 변경, 비면 결제 확인 불가)
     public static final String BILLING_PLAY_SERVICE_ACCOUNT_JSON = "billing.play_service_account_json";
+    // app_setting: Google Play·App Store 수수료율 (%, 관리자 결제 관리 실수령액 추정, #1032)
+    public static final String BILLING_FEE_RATE_PERCENT_PLAY = "billing.fee_rate_percent.play";
+    public static final String BILLING_FEE_RATE_PERCENT_APP_STORE = "billing.fee_rate_percent.app_store";
+    // app_setting: 원화 판매가 포함 부가세율 (%, 스토어가 떼고 정산, 원화 매출에만 적용)
+    public static final String BILLING_KRW_VAT_RATE_PERCENT = "billing.krw_vat_rate_percent";
+    // app_setting: App Store 환불 점검 운영 404 > 샌드박스 재조회 (true 사용, false 운영만)
+    public static final String BILLING_APP_STORE_SANDBOX_FALLBACK_ENABLED = "billing.app_store.sandbox_fallback_enabled";
+    // app_setting: App Store 환불 요청(CONSUMPTION_REQUEST) 소비 정보 자동 응답 (true 응답, false 접수만)
+    public static final String BILLING_APP_STORE_CONSUMPTION_RESPONSE_ENABLED = "billing.app_store.consumption_response_enabled";
 
     // app_setting: 장애 알림 사용 여부 (true 사용, false 미사용, 웹훅 URL 이 비면 발송 안 함)
     public static final String MONITOR_ALERT_ENABLED = "monitor.alert.enabled";

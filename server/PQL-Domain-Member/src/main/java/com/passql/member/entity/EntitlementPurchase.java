@@ -82,6 +82,9 @@ public class EntitlementPurchase extends BaseEntity {
     @Column(nullable = false)
     private Boolean isConsumed = false;
 
+    // 회수(REVOKED) 시각 (환불 알림·환불 점검·관리자 회수 공통, 회수 전 null, #1032)
+    private LocalDateTime revokedAt;
+
     /** 검증 완료 구매 생성 (소모 전 상태, grantedDays 는 옛 회차 패스면 null) */
     public static EntitlementPurchase verified(UUID memberUuid, PurchaseStore store, String productId, String orderId,
                                                String purchaseToken, LocalDateTime purchasedAt,
@@ -99,9 +102,10 @@ public class EntitlementPurchase extends BaseEntity {
         return purchase;
     }
 
-    /** 환불 등으로 회수 표시 */
-    public void markRevoked() {
+    /** 환불 등으로 회수 표시 + 회수 시각 */
+    public void markRevoked(LocalDateTime revokedAt) {
         this.status = PurchaseStatus.REVOKED;
+        this.revokedAt = revokedAt;
     }
 
     /** 스토어 소모 완료 표시 */
