@@ -11,6 +11,7 @@ import '../../providers/plan_providers.dart';
 import '../ads/rewarded_ad_bonus_button.dart';
 import '../pro/pro_offer_sheet.dart';
 import 'credit_balance_header.dart';
+import 'credit_exhausted_query.dart';
 import 'daily_limit_daily_set_card.dart';
 
 // 등급 응답에 값이 없을 때의 수치 (DEC-0239: 기본 한도 10, 보너스 1회 5문제)
@@ -82,7 +83,10 @@ class DailyLimitRewardView extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _CreditSheetTitle(isCreditsExhausted: remainingSolves == 0),
+            _CreditSheetTitle(
+              isCreditsExhausted: remainingSolves == 0,
+              dailyFreeLimit: dailyFreeLimit,
+            ),
             const SizedBox(height: PassqlSpacing.sm),
             // 잔액: 아이콘 + 큰 숫자 + 게이지 (보너스 구간은 초록)
             CreditBalanceHeader(
@@ -149,7 +153,8 @@ class DailyLimitRewardView extends ConsumerWidget {
       reasonText: PassqlRewardReason.adWatched,
       remainingAfter:
           ref.read(freeRemainingSolvesProvider) ?? bonusQuestionCount,
-      totalQuestionCount: knownPlan?.effectiveTodayFreeLimit,
+      dailyBaseCreditCount: knownPlan?.dailyFreeLimit,
+      todayBonusCreditCount: knownPlan?.todayBonusFreeLimit,
     );
     if (context.mounted) onUnlocked();
   }
@@ -163,11 +168,17 @@ class DailyLimitRewardView extends ConsumerWidget {
   }
 }
 
-/// 시트 제목 줄: 제목 + 내역 링크, 크레딧 0개면 다 쓴 이유 > 충전 시각 한 줄 (#993)
+/// 시트 제목 줄: 제목 + 내역 링크, 크레딧 0개면 다 쓴 이유 > SELECT 0 rows·충전 시각 (#993, #999)
 class _CreditSheetTitle extends StatelessWidget {
-  const _CreditSheetTitle({required this.isCreditsExhausted});
+  const _CreditSheetTitle({
+    required this.isCreditsExhausted,
+    required this.dailyFreeLimit,
+  });
 
   final bool isCreditsExhausted;
+
+  /// 0시에 채워지는 하루 기본 크레딧 수
+  final int dailyFreeLimit;
 
   @override
   Widget build(BuildContext context) {
@@ -196,13 +207,11 @@ class _CreditSheetTitle extends StatelessWidget {
             ),
           ],
         ),
-        if (isCreditsExhausted)
-          Text(
-            '내일 0시에 다시 채워져요',
-            style: PassqlTypography.subheadline.copyWith(
-              color: colors.secondaryLabel,
-            ),
-          ),
+        // 다 썼으면 SELECT 0 rows 한 줄로 충전 시각 (#999)
+        if (isCreditsExhausted) ...[
+          const SizedBox(height: PassqlSpacing.xs),
+          CreditExhaustedQuery(dailyFreeLimit: dailyFreeLimit),
+        ],
       ],
     );
   }

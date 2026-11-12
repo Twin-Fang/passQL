@@ -8,9 +8,9 @@ import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
 import '../../widgets/ads/rewarded_interstitial_on_result.dart';
 import '../../widgets/notification/study_result_seen_recorder.dart';
-import '../../widgets/result/solved_question_list_section.dart';
+import '../../widgets/result/solved_question_result_table.dart';
 
-/// 챕터 완료 결과 화면: 점수 고리(흐름 이름) > 분석(피드백·시간) > 푼 문제(틀린 문제 먼저) > 오답 노트(틀린 문제 있을 때)·완료
+/// 챕터 완료 결과 화면: 점수 고리(흐름 이름) > 분석(피드백·시간) > 푼 문제 표(틀린 문제 먼저) > 오답 노트(틀린 문제 있을 때)·완료
 ///
 /// 이동 인자 [summary] 로 렌더링 (없으면 결과 없음 화면).
 class ChapterResultPage extends StatelessWidget {
@@ -20,6 +20,9 @@ class ChapterResultPage extends StatelessWidget {
 
   // 상단 바 제목 (랜덤 풀기 요약과 같은 말, 토픽 이름은 점수 고리 캡션)
   static const String _title = '이번에 푼 문제';
+
+  // 결과 표 위 SQL 문 (#999)
+  static const String _resultQuery = 'SELECT 문제, 결과\nFROM 챕터;';
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +67,10 @@ class ChapterResultPage extends StatelessWidget {
                 totalDurationMs: summary.totalDurationMs,
               ),
             ),
-            SolvedQuestionListSection(
+            // 틀린 문제 먼저, 많으면 앞 5행만 보이고 펼침
+            SolvedQuestionResultTable(
+              query: _resultQuery,
+              isWrongFirst: true,
               solvedQuestions: [
                 for (final result in summary.results)
                   (

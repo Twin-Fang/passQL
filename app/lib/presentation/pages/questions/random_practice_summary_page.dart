@@ -11,9 +11,9 @@ import '../../providers/plan_providers.dart';
 import '../../widgets/lock_screen/lock_screen_intro_sheet.dart';
 import '../../widgets/notification/study_result_seen_recorder.dart';
 import '../../widgets/practice/open_random_practice.dart';
-import '../../widgets/result/solved_question_list_section.dart';
+import '../../widgets/result/solved_question_result_table.dart';
 
-/// 랜덤 풀기 그만두기 요약: 맞힌 수 > 이번에 푼 문제(틀린 문제 먼저, 토픽·지문) > 계속 풀기·홈으로 (#963, #980)
+/// 랜덤 풀기 그만두기 요약: 맞힌 수 > 이번에 푼 문제 표(틀린 문제 먼저, 토픽) > 계속 풀기·홈으로 (#963, #980)
 /// 이동 인자 [summary] 로 렌더링 (없으면 결과 없음 화면). 전면 광고 없음
 class RandomPracticeSummaryPage extends ConsumerWidget {
   const RandomPracticeSummaryPage({super.key, this.summary});
@@ -21,6 +21,9 @@ class RandomPracticeSummaryPage extends ConsumerWidget {
   final ChapterSummary? summary;
 
   static const String _title = '이번에 푼 문제';
+
+  // 결과 표 위 SQL 문 (#999)
+  static const String _resultQuery = 'SELECT 영역, 결과\nFROM 랜덤_풀기;';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -56,7 +59,10 @@ class RandomPracticeSummaryPage extends ConsumerWidget {
           // 맞힌 수·정답률은 점수 고리가 보여 줌 (같은 값 문장 반복 없음)
           header: PassqlScoreHeader(score: correctCount, total: solvedCount),
           sections: [
-            SolvedQuestionListSection(
+            // 틀린 문제 먼저, 많으면 앞 5행만 보이고 펼침
+            SolvedQuestionResultTable(
+              query: _resultQuery,
+              isWrongFirst: true,
               solvedQuestions: [
                 for (final result in summary.results)
                   (

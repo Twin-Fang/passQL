@@ -58,7 +58,8 @@ class _DailySetBonusCardState extends ConsumerState<DailySetBonusCard> {
           PassqlRewardReason.dailySetAccurateOf(widget.assignedQuestionCount),
       ].join('\n'),
       remainingAfter: ref.read(freeRemainingSolvesProvider) ?? 0,
-      totalQuestionCount: knownPlan?.effectiveTodayFreeLimit,
+      dailyBaseCreditCount: knownPlan?.dailyFreeLimit,
+      todayBonusCreditCount: knownPlan?.todayBonusFreeLimit,
       actionLabel: '확인',
     );
   }

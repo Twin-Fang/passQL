@@ -184,7 +184,7 @@ class RewardedInterstitialOffer {
     }
   }
 
-  /// 보너스 반영 뒤 보상 연출 (크레딧 +N, 남은 크레딧 차오름)
+  /// 보너스 반영 뒤 보상 연출 (크레딧 +N, 오늘 크레딧 이전 > 이후, 기본·보너스 게이지)
   Future<void> _celebrateAdBonus(BuildContext context, int bonusQuestionCount) {
     final knownPlan = _container.read(knownPlanProvider);
     return showPassqlRewardCelebration(
@@ -193,7 +193,8 @@ class RewardedInterstitialOffer {
       reasonText: PassqlRewardReason.adWatched,
       remainingAfter:
           _container.read(freeRemainingSolvesProvider) ?? bonusQuestionCount,
-      totalQuestionCount: knownPlan?.effectiveTodayFreeLimit,
+      dailyBaseCreditCount: knownPlan?.dailyFreeLimit,
+      todayBonusCreditCount: knownPlan?.todayBonusFreeLimit,
       actionLabel: '확인',
     );
   }
