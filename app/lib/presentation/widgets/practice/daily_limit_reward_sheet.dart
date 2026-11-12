@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 
+import '../../../core/monitoring/app_analytics.dart';
 import '../../design/design.dart';
 import 'daily_limit_reward_view.dart';
 
@@ -7,6 +10,7 @@ import 'daily_limit_reward_view.dart';
 /// 세트 풀러 가기 > 시트를 닫고 호출 화면에서 세트 열기 (풀이 흐름 안이면 교체, 홈·문제 탭이면 쌓기)
 /// 광고 확인 중에 그냥 닫으면 그 확인 결과로 판정
 Future<bool> showDailyLimitRewardSheet(BuildContext context) async {
+  unawaited(AppAnalytics.current.logDailyLimitSheetOpened());
   Future<bool>? pendingAdBonus;
   var shouldOpenDailySet = false;
   final isUnlocked = await showPassqlSheet<bool>(

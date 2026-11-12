@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/billing/pass_option_pricing.dart';
 import '../../../core/billing/pro_purchase_port.dart';
+import '../../../core/monitoring/app_analytics.dart';
 import '../../../core/utils/app_clock.dart';
 import '../../../core/utils/exam_dday.dart';
 import '../../../data/models/member/member_plan_response.dart';
@@ -54,6 +57,11 @@ Future<ProOfferSheetOutcome> showProOfferSheet(
       ? proExpiresAt
       : null;
   // 시트가 닫힐 때 호출 화면이 이미 사라졌을 수 있어 ref 는 기다리기 전에 읽어 둔다
+  unawaited(
+    AppAnalytics.current.logPassSheetOpened(
+      isExtending: activeProExpiresAt != null,
+    ),
+  );
   final revealNotifier = ref.read(profilePassRevealPendingProvider.notifier);
   // 시트 안에서 마지막으로 시작한 결제 확인 (닫힌 뒤에도 끝까지 기다림)
   Future<ProOfferSheetOutcome>? pendingConfirmation;
@@ -326,7 +334,7 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
           isLoading: _isBusy || _isPriceLoading,
           onPressed: (selectedOption == null || selectedPrice == null)
               ? null
-              : () => _run(() => port.purchasePass(selectedOption.productId)),
+              : () => _run(() => _purchaseWithAnalytics(port, selectedOption)),
           inlineMessage:
               _statusMessage ??
               (isPriceUnavailable ? proPurchaseUnavailableMessage : null),
@@ -341,8 +349,28 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
     Navigator.of(context).pop(outcome);
   }
 
-  void _select(PassOption option) => setState(() {
-    _selectedOption = option;
-    _statusMessage = null;
-  });
+  /// 결제: 시작·결과를 분석 이벤트로 남김 (구매 흐름 어디서 빠지는지 보는 용도, #971)
+  Future<ProPurchaseOutcome> _purchaseWithAnalytics(
+    ProPurchasePort port,
+    PassOption option,
+  ) async {
+    final analytics = AppAnalytics.current;
+    unawaited(analytics.logPassPurchaseStarted(option.productId));
+    final outcome = await port.purchasePass(option.productId);
+    unawaited(
+      analytics.logPassPurchaseResult(
+        productId: option.productId,
+        outcomeName: outcome.name,
+      ),
+    );
+    return outcome;
+  }
+
+  void _select(PassOption option) {
+    unawaited(AppAnalytics.current.logPassOptionSelected(option.productId));
+    setState(() {
+      _selectedOption = option;
+      _statusMessage = null;
+    });
+  }
 }
