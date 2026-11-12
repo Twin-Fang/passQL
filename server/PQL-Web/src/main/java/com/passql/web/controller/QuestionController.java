@@ -4,6 +4,7 @@ import com.passql.application.entitlement.DailyQuestionSubmitAdmission;
 import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.application.entitlement.ProFeature;
 import com.passql.application.entitlement.ProResponseRedactor;
+import com.passql.application.entitlement.QuestionFeatureAccessPolicy;
 import com.passql.web.support.RequiresProFeature;
 import com.passql.application.service.ChoiceGenerationStreamService;
 import com.passql.application.service.QuestionExecutionService;
@@ -47,6 +48,7 @@ public class QuestionController implements QuestionControllerDocs {
     private final SubmissionService submissionService;
     private final ChoiceGenerationStreamService choiceGenerationStreamService;
     private final FeatureAccessPolicy featureAccessPolicy;
+    private final QuestionFeatureAccessPolicy questionFeatureAccessPolicy;
     private final ProResponseRedactor proResponseRedactor;
     private final DailyQuestionSubmitAdmission dailyQuestionSubmitAdmission;
 
@@ -95,15 +97,19 @@ public class QuestionController implements QuestionControllerDocs {
     ) {
         // 하루 문제 수 제한 (무료 10, 프로 200)
         featureAccessPolicy.assertCanOpenQuestion(loginMember.memberUuid(), questionUuid);
-        return ResponseEntity.ok(questionService.getQuestionForSolving(questionUuid));
+        // 오늘의 세트 무료 체험 표시 (앱이 실행·해설 잠금을 이 문제에서 풀어 그림, #992)
+        boolean isDailySetFreeTrial = questionFeatureAccessPolicy.isDailySetFreeTrial(loginMember.memberUuid(), questionUuid);
+        return ResponseEntity.ok(questionService.getQuestionForSolving(questionUuid).withDailySetFreeTrial(isDailySetFreeTrial));
     }
 
-    @RequiresProFeature(ProFeature.SQL_EXECUTION)
     @PostMapping("/{questionUuid}/execute")
     public ResponseEntity<ExecuteResult> executeChoice(
+        @AuthMember LoginMember loginMember,
         @PathVariable UUID questionUuid,
         @Valid @RequestBody ExecuteSqlRequest request
     ) {
+        // 프로 또는 오늘의 세트 문제만 실행 (문제 기준이라 어노테이션 잠금 대신 직접 판정, #992)
+        questionFeatureAccessPolicy.requireFeature(loginMember.memberUuid(), ProFeature.SQL_EXECUTION, questionUuid);
         // questionUuid.toString()이 아닌 question의 sandboxDbName 기반으로 실행
         return ResponseEntity.ok(questionExecutionService.executeChoice(questionUuid, request.sql()));
     }
@@ -128,9 +134,9 @@ public class QuestionController implements QuestionControllerDocs {
         // 하루 문제 수 제한은 기록 트랜잭션 안에서 회원 잠금 > 판정 (제출 시점 수 #860, 동시 제출 #867)
         SubmitResult submitResult = submissionService.submit(
                 loginMember.memberUuid(), questionUuid, request.choiceSetId(), request.selectedChoiceKey(), request.sessionUuid(),
-                featureAccessPolicy.canUse(loginMember.memberUuid(), ProFeature.SQL_EXECUTION),
+                questionFeatureAccessPolicy.canUse(loginMember.memberUuid(), ProFeature.SQL_EXECUTION, questionUuid),
                 dailyQuestionSubmitAdmission.forQuestion(loginMember.memberUuid(), questionUuid));
         return ResponseEntity.ok(proResponseRedactor.redactSubmitResult(
-                loginMember.memberUuid(), request.choiceSetId(), submitResult));
+                loginMember.memberUuid(), questionUuid, request.choiceSetId(), submitResult));
     }
 }
