@@ -34,7 +34,7 @@ class AccountInfoSection extends ConsumerWidget {
           children: [
             PassqlListRow(
               title: PassqlLoadFailureCopy.messageOf('정보를'),
-              trailing: const Text('다시 시도'),
+              trailing: const Text(PassqlLoadFailureCopy.retryLabel),
               onTap: () => ref.invalidate(settingsDataProvider),
             ),
           ],

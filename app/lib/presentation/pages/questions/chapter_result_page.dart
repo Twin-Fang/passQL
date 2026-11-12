@@ -34,7 +34,7 @@ class ChapterResultPage extends StatelessWidget {
         onLeadingTap: () => leaveSolvingFlow(context),
         body: PassqlStatusView.empty(
           icon: CupertinoIcons.exclamationmark_circle,
-          title: '결과를 불러올 수 없어요',
+          title: PassqlLoadFailureCopy.resultLoadFailedTitle,
         ),
       );
     }

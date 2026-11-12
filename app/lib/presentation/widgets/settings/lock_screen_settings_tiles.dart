@@ -154,16 +154,16 @@ class _LockScreenQuestionTypeTile extends ConsumerWidget {
       title: '문제 종류',
       trailing: Text(isExecutableExcluded ? _choiceOnlyLabel : _allLabel),
       onTap: () async {
-        final selected = await _showOptionSheet<bool>(
+        final shouldExcludeExecutable = await _showOptionSheet<bool>(
           context,
           title: '문제 종류',
           options: const [(false, _allLabel), (true, _choiceOnlyLabel)],
           selectedValue: isExecutableExcluded,
         );
-        if (selected != null) {
+        if (shouldExcludeExecutable != null) {
           await ref
               .read(lockScreenStateProvider.notifier)
-              .updateExecutableExcluded(selected);
+              .updateExecutableExcluded(shouldExcludeExecutable);
         }
       },
     );
@@ -191,15 +191,18 @@ class _LockScreenChoiceModeTile extends ConsumerWidget {
       title: '선택지 방식',
       trailing: Text(isFreshChoiceMode ? _freshLabel : _basicLabel),
       onTap: () async {
-        final selected = await _showOptionSheet<bool>(
+        final shouldUseFreshChoiceMode = await _showOptionSheet<bool>(
           context,
           title: '선택지 방식',
           options: const [(false, _basicLabel), (true, _freshLabel)],
           selectedValue: isFreshChoiceMode,
         );
-        if (selected == null || selected == isFreshChoiceMode) return;
+        if (shouldUseFreshChoiceMode == null ||
+            shouldUseFreshChoiceMode == isFreshChoiceMode) {
+          return;
+        }
         // AI 생성은 뜨기까지 기다릴 수 있어 한 번 확인 (취소면 기본 유지)
-        if (selected && context.mounted) {
+        if (shouldUseFreshChoiceMode && context.mounted) {
           final isConfirmed = await showPassqlConfirmDialog(
             context,
             title: 'AI로 새로 만들까요?',
@@ -211,7 +214,7 @@ class _LockScreenChoiceModeTile extends ConsumerWidget {
         }
         await ref
             .read(lockScreenStateProvider.notifier)
-            .updateFreshChoiceMode(selected);
+            .updateFreshChoiceMode(shouldUseFreshChoiceMode);
       },
     );
   }
