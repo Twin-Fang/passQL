@@ -198,3 +198,6 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-12 12:20 | W6 | create | ISS-0492 (resolved) + report (#974), ISS-0493 (resolved) + report (#980)
 - 2026-11-12 12:20 | W2 | update | cluster-billing, cluster-practice, cluster-home, cluster-notification
 - 2026-11-12 12:21 | W2 | fix | members count: cluster-billing 60, cluster-home 70, cluster-notification 19, cluster-practice 178
+- 2026-11-12 13:40 | W6 | create | ISS-0494 (resolved) + report (#984), DEC-0288, ISS-0495 (resolved) + report (#985)
+- 2026-11-12 13:40 | W2 | update | cluster-billing, cluster-admin, cluster-home, cluster-design-system
+- 2026-11-12 13:41 | W2 | fix | members count: cluster-admin 101, cluster-billing 62, cluster-design-system 158, cluster-home 71
