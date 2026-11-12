@@ -41,7 +41,7 @@ class InAppReviewStoreReviewRequester implements StoreReviewRequester {
 }
 
 /// 학습 결과 화면의 스토어 평가 요청 (#864)
-/// 완료 기록 > 판정 > 결과 감상 대기 > 전면 광고 닫힘 대기 > 화면 확인 > 시스템 창 > 요청 기록
+/// 완료 기록 > 판정 > 결과 감상 대기 > 전면 광고 닫힘 대기 > 결과 화면을 덮은 창 닫힘 대기 > 화면 확인 > 시스템 창 > 요청 기록
 class StoreReviewPrompter {
   StoreReviewPrompter({
     required StoreReviewPromptHistoryStore historyStore,
@@ -60,6 +60,12 @@ class StoreReviewPrompter {
 
   /// 전면 광고 닫힘을 기다리는 최대 시간 (닫힘 콜백 유실 시 대기 상태가 남지 않게)
   static const Duration fullScreenAdMaximumWait = Duration(minutes: 2);
+
+  /// 결과 화면을 덮은 창(세트 보상 연출 등)이 닫히길 기다리는 최대 시간 (#1027)
+  static const Duration coveredResultMaximumWait = Duration(minutes: 1);
+
+  /// 덮은 창이 닫혔는지 확인하는 간격
+  static const Duration coveredResultCheckInterval = Duration(milliseconds: 500);
 
   final StoreReviewPromptHistoryStore _historyStore;
   final StoreReviewRequester _requester;
@@ -114,6 +120,7 @@ class StoreReviewPrompter {
     required bool Function() isResultStillVisible,
   }) async {
     await _waitUntilResultViewed();
+    await _waitUntilResultUncovered(isResultStillVisible);
     if (FullScreenAdGuard.isFullScreenAdShowing || !isResultStillVisible()) {
       AppLogger.info('store review', 'skipped : result screen left or ad showing');
       return;
@@ -142,6 +149,24 @@ class StoreReviewPrompter {
       onTimeout: () {},
     );
     await Future<void>.delayed(resultViewingDelay);
+  }
+
+  // 보상 연출 창이 결과 화면을 덮으면 닫힐 때까지 > 닫힌 뒤 다시 읽을 시간 (떠났으면 최대 시간 뒤 포기)
+  Future<void> _waitUntilResultUncovered(
+    bool Function() isResultStillVisible,
+  ) async {
+    if (isResultStillVisible()) return;
+    // 시계 대신 확인 횟수로 상한 (기기 시각 변경·고정 시계와 무관)
+    final maximumCheckCount =
+        coveredResultMaximumWait.inMilliseconds ~/
+        coveredResultCheckInterval.inMilliseconds;
+    for (var checkCount = 0; checkCount < maximumCheckCount; checkCount++) {
+      await Future<void>.delayed(coveredResultCheckInterval);
+      if (isResultStillVisible()) {
+        await Future<void>.delayed(resultViewingDelay);
+        return;
+      }
+    }
   }
 
   Future<void> _recordRequested(String appVersion) async {
