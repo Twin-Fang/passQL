@@ -213,3 +213,7 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-12 23:20 | W6 | create | ISS-0506·0507·0509 (resolved) + report (#991·#1014·#1032), ISS-0508 (open, #1027), DEC-0293~DEC-0299
 - 2026-11-12 23:20 | W2 | update | cluster-admin, notification, home, design-system, billing, store-release, ops-infra, ci-deploy
 - 2026-11-12 23:24 | W2 | fix | members count: admin 105, billing 73, ci-deploy 68, design-system 164, home 73, notification 22, ops-infra 69, store-release 71; 현재 상태 요약 날짜 2026-11-12
+- 2026-11-13 00:15 | W6 | create | ISS-0511 (resolved, #1041) + completion report ISS-0511, 원본 사본 _sources/issues (로컬)
+- 2026-11-13 00:15 | W4 | create | DEC-0301 (모의고사 순위), DEC-0302 (환영 시트·알림 미리보기), DEC-0303 (난이도 별·카운트업·키 배지·과락 칸) — 활성 결정과 충돌 없음, 대체 없음 (DEC-0132·0149·0264·0287·0292 유지)
+- 2026-11-13 00:15 | W2 | update | cluster-design-system, practice, home, notification, progress-stats (활성 결정·관련 이슈·현재 상태 요약 한 줄)
+- 2026-11-13 00:16 | W2 | fix | members count: design-system 166, home 75, notification 24, practice 190, progress-stats 47
