@@ -8,10 +8,10 @@ abstract final class LockedPreviewCaptions {
   static const String executionResult = '보기 SQL을 직접 실행해 결과를 비교해요';
   static const String practiceModes = '토픽을 골라 풀고 약점 추천도 받아요';
   static const String examTrend = '최근 기출 비중과 이번 회차 예상을 봐요';
-  static const String freshChoices = '풀 때마다 AI가 새 보기를 만들어요';
   static const String conceptTopics = '3단원부터 모든 개념과 확인 문제를 봐요';
   static const String mockExamDetail = '과목별 점수와 약점, 다음에 할 일을 봐요';
   static const String mockExamReview = '문항별 정답과 보기 해설을 봐요';
+  static const String mockExamResult = '과목별 약점과 문항별 보기 해설을 봐요';
   static const String mockExamTrend = '회차별 점수 변화를 봐요';
   static const String proAnalysis = 'AI 분석과 영역·난이도별 약점, 오답 정리를 봐요';
 }
@@ -200,20 +200,6 @@ class MockExamTrendLockedSample extends StatelessWidget {
     return const _SampleCard(
       children: [
         _SampleSection(title: '제1회 → 제3회', body: '54점 → 62점 → 70점, 합격선을 넘었어요.'),
-      ],
-    );
-  }
-}
-
-/// 새 보기로 풀기 선택 자리 (설정·풀이 화면 보기 방식 시트)
-class FreshChoicesLockedSample extends StatelessWidget {
-  const FreshChoicesLockedSample({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const _SampleCard(
-      children: [
-        _SampleSection(title: 'AI 새 보기', body: '같은 문제도 매번 다른 함정 보기로 다시 풀어요.'),
       ],
     );
   }

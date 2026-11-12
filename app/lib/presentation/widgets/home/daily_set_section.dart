@@ -13,6 +13,7 @@ class DailySetSection extends StatelessWidget {
     required this.onStart,
     required this.onViewResult,
     required this.onBrowse,
+    this.shouldShowBrowseButton = true,
   });
 
   /// null 이면 불러오지 못한 것으로 보고 준비 중으로 표시한다.
@@ -26,6 +27,9 @@ class DailySetSection extends StatelessWidget {
 
   /// 세트가 없을 때 문제 목록으로 이동.
   final VoidCallback onBrowse;
+
+  /// 세트가 없을 때 문제 목록 버튼을 둘지 (「다음에 할 일」 카드가 같은 곳으로 보내면 false, #993)
+  final bool shouldShowBrowseButton;
 
   @override
   Widget build(BuildContext context) {
@@ -85,22 +89,23 @@ class DailySetSection extends StatelessWidget {
               color: colors.secondaryLabel,
             ),
           ),
-          const SizedBox(height: PassqlSpacing.sm),
+          if (shouldShowBrowseButton) const SizedBox(height: PassqlSpacing.sm),
         ],
         // 홈의 채운 버튼은 「다음에 할 일」 카드 하나라 여기는 보조 모양 (#975)
-        PassqlButton(
-          variant: PassqlButtonVariant.tinted,
-          label: completed
-              ? '결과 보기'
-              : available
-              ? '오늘의 세트 풀기'
-              : '문제 풀기',
-          onPressed: completed
-              ? onViewResult
-              : available
-              ? onStart
-              : onBrowse,
-        ),
+        if (completed || available || shouldShowBrowseButton)
+          PassqlButton(
+            variant: PassqlButtonVariant.tinted,
+            label: completed
+                ? '결과 보기'
+                : available
+                ? '오늘의 세트 풀기'
+                : '문제 풀기',
+            onPressed: completed
+                ? onViewResult
+                : available
+                ? onStart
+                : onBrowse,
+          ),
       ],
     );
   }

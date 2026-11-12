@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/ads/ad_placement.dart';
 import '../../../core/utils/app_clock.dart';
+import '../../../core/utils/home_next_step.dart';
 import '../../../data/models/notification/notification_models.dart';
 import '../../../router/app_routes.dart';
 import '../../../router/questions_tab_view.dart';
@@ -19,7 +20,6 @@ import '../../widgets/common/app_toast.dart';
 import '../../widgets/community/community_daily_discussion_card.dart';
 import '../../widgets/home/app_notice_banner.dart';
 import '../../widgets/home/daily_set_section.dart';
-import '../../widgets/home/random_practice_row.dart';
 import '../../flows/random_practice_flow.dart';
 import '../../widgets/home/daily_study_tip_card.dart';
 import '../../widgets/home/exam_dday_bar_title.dart';
@@ -32,6 +32,7 @@ import '../../widgets/home/heatmap_widget.dart';
 import '../../widgets/home/readiness_card.dart';
 import '../../widgets/mock_exam/mock_exam_entry_row.dart';
 import '../../widgets/home/recommendations_section.dart';
+import '../../widgets/practice/random_practice_row.dart';
 import '../../widgets/pro/pro_plan_chip_slot.dart';
 
 /// 홈 화면.
@@ -102,7 +103,7 @@ class _HomeShell extends ConsumerWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 무료 = 오늘 남은 문제 알약, 프로 = PRO 칩, 결제 꺼짐·등급 모름이면 빈 자리 (종 아이콘만)
+          // 무료 = 크레딧 알약, 프로 = PRO 칩, 결제 꺼짐·등급 모름이면 빈 자리 (종 아이콘만)
           const ProPlanChipSlot(),
           PassqlNotificationBellButton(
             unreadCount: ref.watch(
@@ -142,6 +143,14 @@ class _HomeContent extends ConsumerWidget {
         dailySet != null &&
         (dailySet.alreadyCompleted || dailySet.questions.isNotEmpty);
     final progress = data.progress;
+    // 다음에 할 일 카드가 맡은 곳은 아래 구간의 같은 버튼을 숨김 (같은 곳 버튼 하나, #993)
+    final nextStep = watchHomeNextStep(
+      ref,
+      canSolveDailySet:
+          dailySet != null &&
+          !dailySet.alreadyCompleted &&
+          dailySet.questions.isNotEmpty,
+    );
     // 첫 구간 아래쪽: 준비도 링, 없으면 푼 문제·정답률 (면은 첫 구간이 감쌈)
     final Widget? status = readiness != null
         ? ReadinessCard(readiness: readiness, isSection: true)
@@ -170,12 +179,9 @@ class _HomeContent extends ConsumerWidget {
             if (greeting != null) GreetingSection(greeting: greeting),
             // 다음에 할 일 한 가지 (홈의 유일한 채운 버튼, #975). 위 간격은 카드가 가짐 (숨으면 간격도 없음)
             HomeNextStepCard(
+              nextStep: nextStep,
               hasTopGap: greeting != null,
               dailySetQuestionCount: dailySet?.questions.length ?? 0,
-              canSolveDailySet:
-                  dailySet != null &&
-                  !dailySet.alreadyCompleted &&
-                  dailySet.questions.isNotEmpty,
               onStartDailySet: () => context.push(AppRoutes.dailySet),
             ),
             // 첫 방문 환영 안내 (기기에서 한 번만 시트)
@@ -199,36 +205,46 @@ class _HomeContent extends ConsumerWidget {
       ),
 
       // 오늘의 세트: 다른 구간과 같은 제목 줄(순위 ›는 세트가 있을 때만) > 버튼
-      PassqlSection(
-        title: '오늘의 세트',
-        trailing: hasDailySet
-            ? PassqlSectionLink(
-                label: '순위',
-                semanticLabel: '오늘의 순위 보기',
-                onTap: () => context.push(AppRoutes.leaderboard),
-              )
-            : null,
-        child: DailySetSection(
-          dailySet: data.dailySet,
-          onStart: () => context.push(AppRoutes.dailySet),
-          onViewResult: () => context.push(AppRoutes.dailySetResult),
-          onBrowse: () => context.go(AppRoutes.questions),
+      // 아직 안 푼 날은 다음에 할 일 카드가 시작 버튼을 맡아 구간째 숨김 (다 푼 날은 결과·순위)
+      if (nextStep != HomeNextStep.dailySet)
+        PassqlSection(
+          title: '오늘의 세트',
+          trailing: hasDailySet
+              ? PassqlSectionLink(
+                  label: '순위',
+                  semanticLabel: '오늘의 순위 보기',
+                  onTap: () => context.push(AppRoutes.leaderboard),
+                )
+              : null,
+          child: DailySetSection(
+            dailySet: data.dailySet,
+            onStart: () => context.push(AppRoutes.dailySet),
+            onViewResult: () => context.push(AppRoutes.dailySetResult),
+            onBrowse: () => context.go(AppRoutes.questions),
+            shouldShowBrowseButton: nextStep != HomeNextStep.browseQuestions,
+          ),
         ),
-      ),
 
       // 랜덤 풀기: 오늘의 세트와 다른 풀이라 별도 구간 (결제 켜짐일 때만, #576, #966)
-      if (ref.watch(isRandomPracticeVisibleProvider))
+      // 다음에 할 일 카드가 랜덤 풀기를 맡은 날은 숨김
+      if (ref.watch(isRandomPracticeVisibleProvider) &&
+          nextStep != HomeNextStep.randomPractice)
         const PassqlSection(
           title: RandomPracticeFlow.displayName,
-          child: RandomPracticeRow(),
+          child: RandomPracticeRow(
+            title: '한 문제씩 이어서 풀기',
+            hasHorizontalPadding: false,
+          ),
         ),
 
-      // 모의고사 (#866): 오늘 할 일 다음, 풀이 중이면 이어 풀기
-      const PassqlSection(
+      // 모의고사 (#866): 오늘 할 일 다음, 풀이 중이면 이어서 풀기
+      // 다음에 할 일 카드가 무료 1회를 안내하면 행의 같은 배지는 숨김
+      PassqlSection(
         title: MockExamEntryRow.defaultTitle,
         child: MockExamEntryRow(
           title: '실제 시험처럼 풀기',
           hasHorizontalPadding: false,
+          shouldShowFreeTrialBadge: nextStep != HomeNextStep.mockExamTrial,
         ),
       ),
     ];

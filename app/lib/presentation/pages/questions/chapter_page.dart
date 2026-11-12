@@ -260,7 +260,9 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
   /// 마지막 문제까지 끝남 — 요약을 만들어 이후 처리는 흐름에 맡긴다.
   Future<void> _complete() async {
     if (_isCompleting || _hasLeftFlow) return;
-    setState(() => _isCompleting = true);
+    _isCompleting = true;
+    // 완료 처리(점수 등록)가 길어질 수 있어 공통 잠금 창으로 화면을 막음 (이 창만 닫음)
+    final closeBlockingProgress = showPassqlBlockingProgressWithCloser(context);
     final summary = ref
         .read(chapterProvider(widget.flow.id).notifier)
         .buildSummary(widget.flow.title);
@@ -276,7 +278,9 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
       );
       if (mounted) showAppToast(context, '완료 처리에 실패했어요. 다시 시도해 주세요.');
     } finally {
-      if (mounted) setState(() => _isCompleting = false);
+      // 잠금 창 닫기 (성공·실패 공통, 다음 화면으로 바뀌며 이미 닫혔으면 무시)
+      closeBlockingProgress();
+      _isCompleting = false;
     }
   }
 
@@ -456,22 +460,6 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
             ),
     );
 
-    // 완료 처리(점수 등록)가 길어질 수 있어, 진행 중에는 화면을 잠그고 로딩을 보여준다.
-    // 트리 모양을 고정한다. 완료 처리 여부로 Scaffold 의 부모가 바뀌면 피드백 바가 다시 만들어져 햅틱이 또 울린다.
-    final body = Stack(
-      children: [
-        scaffold,
-        if (_isCompleting) ...[
-          ModalBarrier(
-            dismissible: false,
-            color: context.passqlColors.label.withValues(alpha: 0.2),
-          ),
-          const Center(
-            child: PassqlLoadingIndicator(size: PassqlLoadingSize.blocking),
-          ),
-        ],
-      ],
-    );
     // 시스템 뒤로가기(Android 백 버튼, iOS 스와이프)도 홈 아이콘과 같은 확인을 거친다.
     // 연속 흐름은 푼 문제가 있으면 확인 없이 요약으로
     return PopScope(
@@ -483,7 +471,7 @@ class _ChapterPageState extends ConsumerState<ChapterPage> {
           leaveSolvingFlow(context);
         }
       },
-      child: body,
+      child: scaffold,
     );
   }
 }

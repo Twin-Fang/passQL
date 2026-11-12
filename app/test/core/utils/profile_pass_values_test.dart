@@ -19,6 +19,12 @@ void main() {
     expect(extraSolvedToday(used: 5, limit: 10), isNull);
   });
 
+  test('연장 카드는 만료가 기준 일수 이내일 때만 (만료일 모름은 숨김)', () {
+    expect(shouldSuggestProExtension(proExtendSuggestionDays), isTrue);
+    expect(shouldSuggestProExtension(proExtendSuggestionDays + 1), isFalse);
+    expect(shouldSuggestProExtension(null), isFalse);
+  });
+
   test('남은 날은 날짜만 비교', () {
     final now = DateTime(2026, 10, 29, 23, 50);
     expect(daysUntilDate(DateTime(2026, 12, 31, 0, 1), now: now), 63);

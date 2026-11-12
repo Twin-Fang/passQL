@@ -184,7 +184,7 @@ class RewardedInterstitialOffer {
     }
   }
 
-  /// 보너스 반영 뒤 보상 연출 (+N문제, 남은 수 차오름)
+  /// 보너스 반영 뒤 보상 연출 (크레딧 +N, 남은 크레딧 차오름)
   Future<void> _celebrateAdBonus(BuildContext context, int bonusQuestionCount) {
     final knownPlan = _container.read(knownPlanProvider);
     return showPassqlRewardCelebration(

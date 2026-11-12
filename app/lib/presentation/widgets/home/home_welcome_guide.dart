@@ -92,10 +92,12 @@ class _HomeWelcomeGuideBody extends StatelessWidget {
     final lines = [
       (icon: CupertinoIcons.square_list_fill, text: '오늘의 세트는 매일 새로 열려요'),
       if (hasCredits)
-        (icon: CupertinoIcons.bolt_fill, text: '랜덤 풀기는 크레딧 1개로 1문제'),
+        (icon: CupertinoIcons.bolt_fill, text: '랜덤 풀기는 1문제에 크레딧 1개를 써요'),
       (
         icon: CupertinoIcons.sparkles,
-        text: isProLocked ? 'PRO는 AI 해설과 SQL 직접 실행까지' : 'AI 해설과 SQL 직접 실행까지',
+        text: isProLocked
+            ? 'PRO는 AI 해설과 SQL 직접 실행도 써요'
+            : 'AI 해설과 SQL 직접 실행도 쓸 수 있어요',
       ),
     ];
     return SafeArea(

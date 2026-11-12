@@ -26,6 +26,14 @@ String formatRecentDayTitle(DateTime day, {required DateTime today}) {
   return '${day.month}월 ${day.day}일';
 }
 
+/// 걸린 시간 > 'N분 N초' (1분 미만이면 'N초', 초 단위 반올림)
+String formatElapsedMinutesSeconds(Duration elapsed) {
+  final totalSeconds = (elapsed.inMilliseconds / 1000).round();
+  final minutes = totalSeconds ~/ 60;
+  final seconds = totalSeconds % 60;
+  return minutes > 0 ? '$minutes분 $seconds초' : '$seconds초';
+}
+
 /// 날짜 > "2026.10.18" (공지 게시일 등 날짜만 보이는 자리)
 String formatDottedDate(DateTime time) {
   final month = time.month.toString().padLeft(2, '0');

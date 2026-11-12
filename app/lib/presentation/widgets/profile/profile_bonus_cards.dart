@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
+import '../../../core/utils/daily_set_bonus_rule.dart';
 import '../../../data/models/member/member_plan_response.dart';
 import '../../design/design.dart';
 
@@ -9,7 +10,7 @@ const double _iconCircleSize = 36;
 /// 보너스 카드 상태 3종: 받음(초록), 받을 수 있음(기본), 광고(강조색, 횟수 제한 없음)
 enum _BonusCardState { earned, available, ad }
 
-/// 「문제 더 받기」 카드 3장 (#966): 세트 완료 +N, 세트 정답 80% +N, 광고 +N씩(횟수 제한 없음)
+/// 크레딧 받는 방법 카드 3장 (#966): 세트 완료 +N, 세트 정답 80% +N, 광고 +N씩(횟수 제한 없음)
 /// 광고 보너스 대상이 아니면 2장
 class ProfileBonusCards extends StatelessWidget {
   const ProfileBonusCards({super.key, required this.bonus});
@@ -22,7 +23,7 @@ class ProfileBonusCards extends StatelessWidget {
     final cards = [
       _BonusCard(
         icon: CupertinoIcons.checkmark_alt,
-        label: '세트 완료',
+        label: DailySetBonusRule.completionLabel,
         valueText: bonusText,
         captionWhenAvailable: '오늘의 세트를 끝내면',
         state: bonus.isDailySetCompletionEarned
@@ -31,9 +32,10 @@ class ProfileBonusCards extends StatelessWidget {
       ),
       _BonusCard(
         icon: CupertinoIcons.scope,
-        label: '세트 정답 80%',
+        label: DailySetBonusRule.accuracyLabel,
         valueText: bonusText,
-        captionWhenAvailable: '세트 정답이 80%면',
+        captionWhenAvailable:
+            '세트 정답이 ${DailySetBonusRule.accuracyPercentThreshold}%면',
         state: bonus.isDailySetAccuracyEarned
             ? _BonusCardState.earned
             : _BonusCardState.available,

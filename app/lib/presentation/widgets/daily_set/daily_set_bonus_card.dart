@@ -3,16 +3,14 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/utils/daily_set_bonus_rule.dart';
 import '../../../data/models/member/member_plan_response.dart';
 import '../../design/design.dart';
 import '../../providers/plan_providers.dart';
 import '../practice/open_random_practice.dart';
 
-// 정답률 보너스 기준 (%, 서버 DailyFreeBonusRule.ACCURACY_PERCENT_THRESHOLD 와 같은 값)
-const int _accuracyBonusPercentThreshold = 80;
-
 /// 오늘의 세트 결과 보너스 카드 (#808): 결제 UI 대상 무료 회원 + 받은 보너스 있을 때만
-/// 진입 시 등급 다시 받기(방금 완료 반영) > 보상 연출(방금 완료 진입만) + 강조 카드(+N문제, 이유 칩, 이어 풀기)
+/// 진입 시 등급 다시 받기(방금 완료 반영) > 보상 연출(방금 완료 진입만) + 강조 카드(크레딧 +N, 이유 칩, 랜덤 풀기 보조 버튼)
 /// 정답률 미달이면 다음 기준 안내
 class DailySetBonusCard extends ConsumerStatefulWidget {
   const DailySetBonusCard({
@@ -57,7 +55,7 @@ class _DailySetBonusCardState extends ConsumerState<DailySetBonusCard> {
         if (dailyBonus.isDailySetCompletionEarned)
           PassqlRewardReason.dailySetCompleted,
         if (dailyBonus.isDailySetAccuracyEarned)
-          PassqlRewardReason.dailySetAccurate,
+          PassqlRewardReason.dailySetAccurateOf(widget.assignedQuestionCount),
       ].join('\n'),
       remainingAfter: ref.read(freeRemainingSolvesProvider) ?? 0,
       totalQuestionCount: knownPlan?.effectiveTodayFreeLimit,
@@ -65,10 +63,9 @@ class _DailySetBonusCardState extends ConsumerState<DailySetBonusCard> {
     );
   }
 
-  /// 정답률 보너스에 필요한 맞힌 수 (배정 수의 80% 올림)
+  /// 정답률 보너스에 필요한 맞힌 수
   int get _accuracyBonusCorrectCount =>
-      (widget.assignedQuestionCount * _accuracyBonusPercentThreshold + 99) ~/
-      100;
+      DailySetBonusRule.accuracyCorrectCountOf(widget.assignedQuestionCount);
 
   @override
   Widget build(BuildContext context) {
@@ -95,24 +92,26 @@ class _DailySetBonusCardState extends ConsumerState<DailySetBonusCard> {
             runSpacing: PassqlSpacing.xs,
             children: [
               if (dailyBonus.isDailySetCompletionEarned)
-                const PassqlBadge(text: '세트 완료'),
+                const PassqlBadge(text: DailySetBonusRule.completionLabel),
               if (dailyBonus.isDailySetAccuracyEarned)
-                PassqlBadge(text: '정답 $_accuracyBonusCorrectCount개 이상'),
+                const PassqlBadge(text: DailySetBonusRule.accuracyLabel),
             ],
           ),
           if (!dailyBonus.isDailySetAccuracyEarned)
             Padding(
               padding: const EdgeInsets.only(top: PassqlSpacing.sm),
               child: Text(
-                '$_accuracyBonusCorrectCount개 이상 맞히면 크레딧 $bonusQuestionCount개를 더 받아요',
+                '${DailySetBonusRule.accuracyLabel}($_accuracyBonusCorrectCount개 이상)를 채우면 크레딧 $bonusQuestionCount개를 더 받아요',
                 style: PassqlTypography.subheadline.copyWith(
                   color: colors.secondaryLabel,
                 ),
               ),
             ),
           const SizedBox(height: PassqlSpacing.md),
+          // 결과 화면의 채운 버튼은 아래 닫기 하나라 보조 모양
           PassqlButton(
             label: '랜덤 풀기로 이어 가기',
+            variant: PassqlButtonVariant.tinted,
             onPressed: () => openRandomPractice(context, ref),
           ),
         ],

@@ -135,7 +135,7 @@ class _MockExamSolvingPageState extends ConsumerState<MockExamSolvingPage>
     final isConfirmed = await showPassqlConfirmDialog(
       context,
       title: '시험을 잠시 나갈까요?',
-      message: '시간은 계속 흘러요. 목록에서 이어 풀 수 있어요.',
+      message: '시간은 계속 흘러요. 목록에서 이어서 풀 수 있어요.',
       confirmLabel: '나가기',
       isDestructive: false,
     );

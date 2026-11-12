@@ -96,10 +96,7 @@ class _FocusedBenefitRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          PassqlIconTile(
-            icon: benefit.icon,
-            color: benefitColorOf(context, benefit),
-          ),
+          PassqlIconTile(icon: benefit.icon, color: colors.accent),
           const SizedBox(width: PassqlSpacing.sm),
           Expanded(
             child: Column(

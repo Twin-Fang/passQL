@@ -18,7 +18,7 @@ import '../../widgets/review/store_review_prompt_on_result.dart';
 import '../../widgets/stats/ai_analysis_action_buttons.dart';
 
 /// 모의고사 결과 (#866): 합격·불합격 > 과목·토픽(프로) > 다음에 할 일(프로) > 정오 번호판 > 문항 해설(프로)
-/// 무료는 서버가 뺀 묶음(lockedSections) 자리에 잠금 미리보기, 정오 번호판은 공개
+/// 무료는 서버가 뺀 묶음(lockedSections)을 잠금 자리 하나로 (첫 잠긴 묶음 자리, 둘 다면 합침, #993), 정오 번호판은 공개
 class MockExamResultPage extends ConsumerWidget {
   const MockExamResultPage({
     super.key,
@@ -85,13 +85,11 @@ class _ResultBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.passqlColors;
     final nextStep = examResult.nextStep;
+    final lockedSection = _lockedSectionOf(examResult);
     final sections = <Widget>[
       MockExamScoreHero(examResult: examResult),
       if (examResult.isSubjectDetailLocked)
-        const ProLockedSection(
-          preview: MockExamDetailLockedSample(),
-          caption: LockedPreviewCaptions.mockExamDetail,
-        )
+        ?lockedSection
       else if (examResult.subjects.isNotEmpty)
         MockExamSubjectBreakdown(examResult: examResult),
       if (nextStep != null)
@@ -136,11 +134,9 @@ class _ResultBody extends ConsumerWidget {
           ],
         ),
       ),
-      if (examResult.isReviewLocked)
-        const ProLockedSection(
-          preview: MockExamReviewLockedSample(),
-          caption: LockedPreviewCaptions.mockExamReview,
-        ),
+      // 과목이 잠겼으면 위에서 이미 합쳐 보임
+      if (examResult.isReviewLocked && !examResult.isSubjectDetailLocked)
+        ?lockedSection,
     ];
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -157,4 +153,28 @@ class _ResultBody extends ConsumerWidget {
       ],
     );
   }
+
+  /// 잠긴 묶음 > 잠금 자리 하나: 과목·토픽, 문항 해설, 둘 다면 미리보기 둘을 한 자리에 (없으면 null)
+  static Widget? _lockedSectionOf(MockExamResultResponse examResult) =>
+      switch ((examResult.isSubjectDetailLocked, examResult.isReviewLocked)) {
+        (true, true) => const ProLockedSection(
+          preview: Column(
+            children: [
+              MockExamDetailLockedSample(),
+              SizedBox(height: PassqlSpacing.sm),
+              MockExamReviewLockedSample(),
+            ],
+          ),
+          caption: LockedPreviewCaptions.mockExamResult,
+        ),
+        (true, false) => const ProLockedSection(
+          preview: MockExamDetailLockedSample(),
+          caption: LockedPreviewCaptions.mockExamDetail,
+        ),
+        (false, true) => const ProLockedSection(
+          preview: MockExamReviewLockedSample(),
+          caption: LockedPreviewCaptions.mockExamReview,
+        ),
+        (false, false) => null,
+      };
 }

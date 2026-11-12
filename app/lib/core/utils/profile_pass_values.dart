@@ -17,6 +17,13 @@ int? extraSolvedToday({required int used, required int limit}) {
   return extra >= 1 ? extra : null;
 }
 
+// 프로필 이어서 연장 카드를 보이는 남은 날 기준 (일, 만료가 가까울 때만 권유)
+const int proExtendSuggestionDays = 14;
+
+/// 이어서 연장 카드를 보일지: 남은 날이 기준 이하 (만료일 모름 = 숨김, #993)
+bool shouldSuggestProExtension(int? daysLeft) =>
+    daysLeft != null && daysLeft <= proExtendSuggestionDays;
+
 /// AI 분석 아래 작은 시각 문구 (#749): 오늘이면 "오늘 오전 9:12 분석", 다른 날이면 "10월 27일 분석"
 /// 서버 generatedAt(ISO 문자열)이 없거나 읽지 못하면 null > 줄을 그리지 않는다
 String? aiAnalyzedLabel(String? generatedAt, {DateTime? now}) {
