@@ -72,11 +72,8 @@ class ProOfferTicketPreview extends StatelessWidget {
   }
 }
 
-/// 날짜 > MM.dd
-String _monthDayOf(DateTime date) => formatDottedMonthDay(date);
-
 /// ISO 날짜 문자열 > MM.dd (읽지 못하면 원문 그대로)
 String _monthDayOfText(String isoDate) {
   final date = DateTime.tryParse(isoDate);
-  return date == null ? isoDate : _monthDayOf(date);
+  return date == null ? isoDate : formatDottedMonthDay(date);
 }

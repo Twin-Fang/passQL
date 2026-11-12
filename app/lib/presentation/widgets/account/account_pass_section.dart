@@ -107,8 +107,12 @@ class _PurchaseHistoryRows extends ConsumerWidget {
       body = historyAsync.hasError
           ? PassqlPressable(
               onTap: () => ref.invalidate(purchaseHistoryProvider),
-              semanticLabel: '구매 내역을 불러오지 못했어요, 다시 시도',
-              child: Text('불러오지 못했어요 · 다시 시도', style: caption),
+              semanticLabel:
+                  '${PassqlLoadFailureCopy.messageOf('구매 내역을')}, ${PassqlLoadFailureCopy.retryLabel}',
+              child: Text(
+                '${PassqlLoadFailureCopy.genericMessage} · ${PassqlLoadFailureCopy.retryLabel}',
+                style: caption,
+              ),
             )
           : const Align(
               alignment: Alignment.centerLeft,
