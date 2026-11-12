@@ -130,7 +130,7 @@ class QuestionSseError extends StatelessWidget {
             ),
             if (onRetry != null)
               PassqlButton(
-                label: '다시 시도',
+                label: PassqlLoadFailureCopy.retryLabel,
                 onPressed: onRetry,
                 variant: PassqlButtonVariant.plain,
                 size: PassqlButtonSize.small,

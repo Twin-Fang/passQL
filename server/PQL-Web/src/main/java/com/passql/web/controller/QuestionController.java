@@ -22,6 +22,7 @@ import com.passql.question.dto.RecommendationsRequest;
 import com.passql.question.dto.RecommendationsResponse;
 import com.passql.question.dto.SubmitRequest;
 import com.passql.question.dto.SubmitResult;
+import com.passql.question.service.QuestionDetailService;
 import com.passql.question.service.QuestionService;
 import com.passql.submission.service.SubmissionService;
 import jakarta.validation.Valid;
@@ -44,6 +45,7 @@ import java.util.UUID;
 public class QuestionController implements QuestionControllerDocs {
 
     private final QuestionService questionService;
+    private final QuestionDetailService questionDetailService;
     private final RecommendationService recommendationService;
     private final RandomPracticeService randomPracticeService;
     private final LockScreenQuestionService lockScreenQuestionService;
@@ -113,7 +115,7 @@ public class QuestionController implements QuestionControllerDocs {
         featureAccessPolicy.assertCanOpenQuestion(loginMember.memberUuid(), questionUuid);
         // 오늘의 세트 무료 체험 표시 (앱이 실행·해설 잠금을 이 문제에서 풀어 그림, #992)
         boolean isDailySetFreeTrial = questionFeatureAccessPolicy.isDailySetFreeTrial(loginMember.memberUuid(), questionUuid);
-        return ResponseEntity.ok(questionService.getQuestionForSolving(questionUuid).withDailySetFreeTrial(isDailySetFreeTrial));
+        return ResponseEntity.ok(questionDetailService.getQuestionForSolving(questionUuid).withDailySetFreeTrial(isDailySetFreeTrial));
     }
 
     @PostMapping("/{questionUuid}/execute")

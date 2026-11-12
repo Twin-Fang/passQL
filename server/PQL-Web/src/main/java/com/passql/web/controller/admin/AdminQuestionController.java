@@ -15,6 +15,8 @@ import com.passql.question.entity.Question;
 import com.passql.question.service.AdminQuestionQualityService;
 import com.passql.question.service.QuestionGenerateService;
 import com.passql.question.service.QuestionLatestTrendService;
+import com.passql.question.service.AdminQuestionSearchService;
+import com.passql.question.service.QuestionDetailService;
 import com.passql.question.service.QuestionService;
 import com.passql.question.service.QuestionVectorIndexService;
 import com.passql.web.service.AdminQuestionBulkUpdateService;
@@ -42,6 +44,8 @@ import java.util.UUID;
 public class AdminQuestionController {
 
     private final QuestionService questionService;
+    private final QuestionDetailService questionDetailService;
+    private final AdminQuestionSearchService adminQuestionSearchService;
     private final QuestionGenerateService questionGenerateService;
     private final QuestionVectorIndexService questionVectorIndexService;
     private final MetaService metaService;
@@ -59,7 +63,7 @@ public class AdminQuestionController {
         boolean isQualitySort = AdminQuestionSortType.fromRequestValueOrNewest(condition.getSort()).isQualitySort();
         Pageable pageable = isQualitySort ? AdminPageRequest.of(page, size, Sort.unsorted()) : AdminPageRequest.newestFirst(page, size);
         model.addAttribute("questions", adminQuestionQualityService.attachQualityStats(
-                questionService.searchQuestionsForAdmin(condition, pageable)));
+                adminQuestionSearchService.searchQuestionsForAdmin(condition, pageable)));
         model.addAttribute("condition", condition);
         model.addAttribute("sortTypes", AdminQuestionSortType.values());
         model.addAttribute("topics", metaService.getTopicTree());
@@ -115,7 +119,7 @@ public class AdminQuestionController {
     @GetMapping("/{uuid}")
     @AdminPage(menu = AdminMenu.QUESTIONS, title = "문제 상세")
     public String detail(@PathVariable UUID uuid, Model model) {
-        QuestionDetail question = questionService.getQuestionForAdmin(uuid);
+        QuestionDetail question = questionDetailService.getQuestionForAdmin(uuid);
         model.addAttribute("question", question);
         model.addAttribute("isQuestionActive", questionService.isQuestionActive(uuid));
         model.addAttribute("quality", adminQuestionQualityService.getQualityDetail(uuid));

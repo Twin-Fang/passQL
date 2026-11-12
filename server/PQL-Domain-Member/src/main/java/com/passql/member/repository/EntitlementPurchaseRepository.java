@@ -73,6 +73,10 @@ public interface EntitlementPurchaseRepository extends JpaRepository<Entitlement
     List<EntitlementPurchase> findVerifiedPurchasesOfActiveProMembers(@Param("store") PurchaseStore store,
                                                                       @Param("now") LocalDateTime now);
 
+    /** 스토어·상태별 구매 중 purchasedAt 이후 구매 (App Store 환불 점검 대상, #1032) */
+    List<EntitlementPurchase> findByStoreAndStatusAndPurchasedAtAfter(PurchaseStore store, PurchaseStatus status,
+                                                                      LocalDateTime purchasedAt);
+
     /** 회원의 상태별 구매 이력 (환불 후 남은 유효 구매 재생으로 만료일 재계산) */
     List<EntitlementPurchase> findByMemberUuidAndStatus(UUID memberUuid, PurchaseStatus status);
 

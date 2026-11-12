@@ -18,7 +18,7 @@ import com.passql.question.repository.QuestionChoiceSetRepository;
 import com.passql.question.repository.QuestionRepository;
 import com.passql.question.service.ChoiceExplanationComposer;
 import com.passql.question.service.ForbiddenPunctuationCleaner;
-import com.passql.question.service.QuestionService;
+import com.passql.question.service.QuestionChoiceSetQueryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.PageRequest;
@@ -88,7 +88,7 @@ public class ChoiceExplanationService {
                     explanation, ChoiceExplanationComposer.toMarkdown(explanation), choiceSet.getExplanationPromptVersion(), null);
         }
 
-        boolean isCuratedSet = QuestionService.isCuratedChoiceSet(question, choiceSet);
+        boolean isCuratedSet = QuestionChoiceSetQueryService.isCuratedChoiceSet(question, choiceSet);
         String fallbackText = isCuratedSet ? curatedExplanationText(selectedItem) : legacyExplanationTextOrNull(selectedItem);
         boolean isClaimed = requestBackgroundGeneration(choiceSetUuid);
         boolean isGenerating = isClaimed || choiceSet.getExplanationStatus() == null
@@ -197,7 +197,7 @@ public class ChoiceExplanationService {
         List<QuestionChoiceSetItem> items = choiceSetItemRepository.findByChoiceSetUuidOrderBySortOrderAsc(choiceSetUuid);
         // 실행형 SQL 보기는 실측 결과를 근거로 (해설이 실제 결과와 반대로 쓰는 것 방지, #555)
         // 고정 세트 메모는 Oracle 실행 검증본 > 따라야 할 근거로 전달 (#716)
-        boolean isRationaleVerified = QuestionService.isCuratedChoiceSet(question, getChoiceSet(choiceSetUuid));
+        boolean isRationaleVerified = QuestionChoiceSetQueryService.isCuratedChoiceSet(question, getChoiceSet(choiceSetUuid));
         ChoiceSetExplanationGenerationResult result = explanationGenerator.generate(question, items,
                 executionEvidenceCollector.collectResultSummaryByChoiceKey(question, items), isRationaleVerified);
         if (!result.isSuccessful()) {

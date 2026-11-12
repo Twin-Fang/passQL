@@ -48,7 +48,7 @@ class DailySetResultPage extends ConsumerWidget {
       // 풀이를 막 끝낸 진입에만 스토어 평가 요청(진입)·보상형 전면 광고 제안(떠날 때) (홈 '이미 완료' 카드 진입은 제외)
       // 광고 제안은 진입 때 뜨는 세트 보상 연출·평가 요청과 겹치지 않게 닫기·뒤로가기 때 (#963)
       // 결과를 본 기록 > 탭 화면 복귀 때 알림 권한 사전 안내 시점
-      // 좋은 결과: 순위 반영 성공 + 정답률 60% 이상
+      // 좋은 결과: 순위 반영 성공 + 정답률 80% 이상
       final total = outcome.results.length;
       // 세트를 막 끝냄 > 잠금화면 소개 1회 (#990)
       return StudyResultSeenRecorder(

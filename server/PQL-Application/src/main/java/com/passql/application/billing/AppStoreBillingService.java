@@ -22,11 +22,10 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 /**
- * App Store 이용권 결제(PassProduct 1개월·3개월 비갱신 구독): 구매 확인·등급 부여, 서버 알림 환불 회수 (#578)
+ * App Store 이용권 결제(PassProduct 1개월·3개월 비갱신 구독): 구매 확인·등급 부여, 환불 거래 회수 (#578, 알림 처리는 AppStoreNotificationService)
  * 서명 검증(SignedDataVerifier) > 거래 대조 > 기록·등급 한 트랜잭션 (소모 개념 없음, 기록은 소모 완료로 저장)
  */
 @Slf4j
@@ -37,8 +36,6 @@ public class AppStoreBillingService {
     static final String NON_RENEWING_SUBSCRIPTION_TYPE = "Non-Renewing Subscription";
     // purchase_token 저장값: 접두사 + transactionId (Play 토큰과 구분, 거래 JWS 원문은 저장하지 않음)
     static final String PURCHASE_TOKEN_PREFIX = "appstore:";
-    // 등급 회수 대상 알림 유형 2개: REFUND 환불, REVOKE 가족 공유 해제 등 회수
-    private static final Set<String> REVOKING_NOTIFICATION_TYPES = Set.of("REFUND", "REVOKE");
 
     private final AppStoreSignedDataVerifier appStoreSignedDataVerifier;
     private final EntitlementPurchaseRepository entitlementPurchaseRepository;
@@ -122,27 +119,12 @@ public class AppStoreBillingService {
     }
 
     /**
-     * 서버 알림 V2: 서명 검증(실패 400) > REFUND·REVOKE 만 해당 거래 회수 > 그 외 유형은 기록만
-     * 기록 없는 거래·이미 회수한 거래는 건너뜀 (Apple 재전송 안전)
+     * 환불·회수 거래 1건 회수 (서버 알림 REFUND·REVOKE, App Store 환불 점검 공통, #1032)
+     * App Store 검증 상태 구매만 회수 > 등급 재계산, 기록 없음·이미 회수면 false (반복 실행 안전)
      */
-    public void handleNotification(AppStoreNotificationRequest request) {
-        AppStoreNotification notification = appStoreSignedDataVerifier.verifyNotification(request.signedPayload());
-        if (!REVOKING_NOTIFICATION_TYPES.contains(notification.notificationType())) {
-            log.info("[billing] app store notification ignored : type={}, subtype={}, notification={}",
-                notification.notificationType(), notification.subtype(), notification.notificationUuid());
-            return;
-        }
-        if (notification.transaction() == null) {
-            log.warn("[billing] app store notification ignored : type={}, no transaction, notification={}",
-                notification.notificationType(), notification.notificationUuid());
-            return;
-        }
-        String transactionId = notification.transaction().transactionId();
+    public boolean revokeVerifiedPurchase(String transactionId) {
         Boolean isRevoked = transactionTemplate.execute(status -> revokePurchaseIfVerified(transactionId));
-        if (!Boolean.TRUE.equals(isRevoked)) {
-            log.info("[billing] app store notification ignored : type={}, transaction={}, no verified purchase",
-                notification.notificationType(), transactionId);
-        }
+        return Boolean.TRUE.equals(isRevoked);
     }
 
     /** App Store 거래 > purchase_token 저장값 ("appstore:" + transactionId) */

@@ -10,7 +10,7 @@ import com.passql.question.dto.DailyChallengeCopyRequest;
 import com.passql.question.dto.DailyChallengeRangeRequest;
 import com.passql.question.dto.DailyChallengeRangeResult;
 import com.passql.question.service.AdminDailyChallengeService;
-import com.passql.question.service.QuestionService;
+import com.passql.question.service.AdminQuestionSearchService;
 import com.passql.web.support.AdminMenu;
 import com.passql.web.support.AdminPage;
 import com.passql.web.support.AdminPageRequest;
@@ -34,7 +34,7 @@ public class AdminDailyChallengeController {
     private static final int CANDIDATE_PAGE_SIZE = 20;
 
     private final AdminDailyChallengeService adminDailyChallengeService;
-    private final QuestionService questionService;
+    private final AdminQuestionSearchService adminQuestionSearchService;
     private final MetaService metaService;
 
     /** 어드민 화면 (토픽 필터 목록 포함) */
@@ -66,7 +66,7 @@ public class AdminDailyChallengeController {
         condition.setKeyword(keyword);
         condition.setTopic(topic);
         condition.setDifficulty(difficulty);
-        Page<AdminQuestionListItem> candidatePage = questionService.searchQuestionsForAdmin(
+        Page<AdminQuestionListItem> candidatePage = adminQuestionSearchService.searchQuestionsForAdmin(
                 condition, AdminPageRequest.newestFirst(page, CANDIDATE_PAGE_SIZE));
         return ResponseEntity.ok(new DailyChallengeCandidatePage(candidatePage.getContent(),
                 candidatePage.getNumber(), candidatePage.getTotalPages(), candidatePage.getTotalElements()));

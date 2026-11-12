@@ -93,6 +93,19 @@ public class AppSettingService {
         }
     }
 
+    /** 실수 설정 (행 없음·형식 오류는 기본값, #1032 수수료율) */
+    public double getDoubleOrDefault(String key, double defaultValue) {
+        try {
+            double value = Double.parseDouble(getString(key).trim());
+            return Double.isFinite(value) ? value : defaultValue;
+        } catch (CustomException e) {
+            return defaultValue;
+        } catch (NumberFormatException e) {
+            log.warn("[app-setting get-double] default used : invalid decimal format : key={}, default={}", key, defaultValue);
+            return defaultValue;
+        }
+    }
+
     /** 불리언 설정 (행 없음은 기본값, true/false 외 값은 false) */
     public boolean getBooleanOrDefault(String key, boolean defaultValue) {
         String value;

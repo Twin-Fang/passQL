@@ -114,17 +114,17 @@ class PlayRefundCheckServiceTest {
 
     @Test
     void 최근_실행이_실패했거나_26시간_안에_성공이_없으면_확인이_필요하다() {
-        BillingRefundCheckRun failedRun = BillingRefundCheckRun.start(RefundCheckTriggerType.SCHEDULED, LocalDateTime.now(FIXED_CLOCK));
+        BillingRefundCheckRun failedRun = BillingRefundCheckRun.start(PurchaseStore.PLAY, RefundCheckTriggerType.SCHEDULED, LocalDateTime.now(FIXED_CLOCK));
         failedRun.recordFailure(RefundCheckFailureReason.ORDER_LOOKUP_FAILED);
-        when(billingRefundCheckRunRepository.findFirstByOrderByStartedAtDesc()).thenReturn(Optional.of(failedRun));
-        when(billingRefundCheckRunRepository.existsByFailureReasonIsNullAndStartedAtAfter(any())).thenReturn(true);
+        when(billingRefundCheckRunRepository.findFirstByStoreOrderByStartedAtDesc(PurchaseStore.PLAY)).thenReturn(Optional.of(failedRun));
+        when(billingRefundCheckRunRepository.existsByStoreAndFailureReasonIsNullAndStartedAtAfter(any(), any())).thenReturn(true);
         assertThat(playRefundCheckService.needsRefundCheckAttention()).isTrue();
 
-        BillingRefundCheckRun succeededRun = BillingRefundCheckRun.start(RefundCheckTriggerType.SCHEDULED, LocalDateTime.now(FIXED_CLOCK));
-        when(billingRefundCheckRunRepository.findFirstByOrderByStartedAtDesc()).thenReturn(Optional.of(succeededRun));
+        BillingRefundCheckRun succeededRun = BillingRefundCheckRun.start(PurchaseStore.PLAY, RefundCheckTriggerType.SCHEDULED, LocalDateTime.now(FIXED_CLOCK));
+        when(billingRefundCheckRunRepository.findFirstByStoreOrderByStartedAtDesc(PurchaseStore.PLAY)).thenReturn(Optional.of(succeededRun));
         assertThat(playRefundCheckService.needsRefundCheckAttention()).isFalse();
 
-        when(billingRefundCheckRunRepository.existsByFailureReasonIsNullAndStartedAtAfter(any())).thenReturn(false);
+        when(billingRefundCheckRunRepository.existsByStoreAndFailureReasonIsNullAndStartedAtAfter(any(), any())).thenReturn(false);
         assertThat(playRefundCheckService.needsRefundCheckAttention()).isTrue();
     }
 

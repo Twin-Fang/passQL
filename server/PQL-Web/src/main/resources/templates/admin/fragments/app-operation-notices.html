@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- 공지 목록 (#529) — 동작은 static/js/admin/app-operation-notices.js -->
+<div th:fragment="notice-card" class="card bg-base-100 shadow">
+    <div class="card-body p-4">
+        <div class="flex items-center justify-between mb-2">
+            <h3 class="card-title text-base">
+                <i data-lucide="megaphone" class="size-5"></i>
+                공지
+                <span class="text-xs font-normal text-base-content/60"
+                      th:text="|읽음률 분모 ${noticeAudienceCount}명 · 순서 = 중요 > 우선순위 > 최근 등록|">읽음률 분모</span>
+            </h3>
+            <button class="btn btn-sm btn-primary" onclick="openNoticeModal(null)">
+                <i data-lucide="plus" class="size-4"></i>
+                새 공지
+            </button>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="table table-sm">
+                <thead>
+                <tr>
+                    <th>제목</th>
+                    <th class="w-48">노출 기간 (KST)</th>
+                    <th class="w-20">중요</th>
+                    <th class="w-16">우선순위</th>
+                    <th class="w-32">읽은 회원 (대상 대비)</th>
+                    <th class="w-20">상태</th>
+                    <th class="w-48">액션</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="notice : ${notices}" th:classappend="${notice.isActive} ? '' : 'opacity-50'">
+                    <td>
+                        <div class="font-semibold" th:text="${notice.title}">공지 제목</div>
+                        <div class="text-xs text-base-content/60 line-clamp-1" th:text="${notice.body}">본문</div>
+                    </td>
+                    <td class="text-xs font-mono whitespace-nowrap">
+                        <span th:text="${notice.startsAt != null} ? ${#temporals.format(notice.startsAt, 'yyyy-MM-dd HH:mm')} : '즉시'">즉시</span>
+                        ~
+                        <span th:text="${notice.endsAt != null} ? ${#temporals.format(notice.endsAt, 'yyyy-MM-dd HH:mm')} : '무기한'">무기한</span>
+                    </td>
+                    <td><span th:if="${notice.isImportant}" class="badge badge-warning badge-sm">중요</span></td>
+                    <td class="text-xs font-mono" th:text="${notice.displayPriority}">0</td>
+                    <td class="text-xs font-mono"
+                        th:text="|${noticeReadCounts.getOrDefault(notice.noticeUuid, 0L)}명 (${noticeReadRatePercents.getOrDefault(notice.noticeUuid, 0L)}%)|">0명 (0%)</td>
+                    <td>
+                        <span th:if="${notice.isActive}" class="badge badge-success badge-sm">활성</span>
+                        <span th:unless="${notice.isActive}" class="badge badge-ghost badge-sm">비활성</span>
+                    </td>
+                    <td>
+                        <div class="flex gap-1">
+                        <button class="btn btn-xs btn-ghost"
+                                th:data-uuid="${notice.noticeUuid}"
+                                th:data-title="${notice.title}"
+                                th:data-body="${notice.body}"
+                                th:data-starts-at="${notice.startsAt != null} ? ${#temporals.format(notice.startsAt, 'yyyy-MM-dd''T''HH:mm')} : ''"
+                                th:data-ends-at="${notice.endsAt != null} ? ${#temporals.format(notice.endsAt, 'yyyy-MM-dd''T''HH:mm')} : ''"
+                                th:data-is-active="${notice.isActive}"
+                                th:data-is-important="${notice.isImportant}"
+                                th:data-display-priority="${notice.displayPriority}"
+                                onclick="openNoticeModal(this.dataset)">
+                            <i data-lucide="pencil" class="size-3"></i>
+                            수정
+                        </button>
+                        <button class="btn btn-xs btn-ghost"
+                                th:data-uuid="${notice.noticeUuid}"
+                                th:data-next-active="${!notice.isActive}"
+                                onclick="changeNoticeActive(this.dataset.uuid, this.dataset.nextActive === 'true')"
+                                th:text="${notice.isActive} ? '비활성화' : '활성화'">비활성화</button>
+                        <button class="btn btn-xs btn-ghost text-error"
+                                th:data-uuid="${notice.noticeUuid}"
+                                th:data-title="${notice.title}"
+                                onclick="deleteNotice(this.dataset.uuid, this.dataset.title)">삭제</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${notices.isEmpty()}">
+                    <td colspan="7" class="text-center text-base-content/50 py-6">등록된 공지가 없습니다.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 공지 등록·수정 모달 -->
+<dialog th:fragment="notice-modal" id="noticeModal" class="modal">
+    <div class="modal-box space-y-3">
+        <h3 class="font-bold text-lg" id="noticeModalTitle">새 공지</h3>
+        <input type="hidden" id="noticeUuid"/>
+        <label class="flex flex-col gap-1">
+            <span class="label-text text-xs">제목 (100자 이내)</span>
+            <input type="text" id="noticeTitle" class="input input-bordered input-sm w-full" maxlength="100"/>
+        </label>
+        <label class="flex flex-col gap-1">
+            <span class="label-text text-xs">본문 (2000자 이내)</span>
+            <textarea id="noticeBody" class="textarea textarea-bordered w-full" rows="5" maxlength="2000"></textarea>
+            <!-- 앱·웹 공지 상세가 그리는 마크다운 범위 (#529) -->
+            <span class="text-xs text-base-content/60">
+                본문은 마크다운을 지원합니다: <code>**굵게**</code> · <code>- 목록</code> · <code>[링크 이름](https://...)</code> · 빈 줄로 문단 구분
+            </span>
+        </label>
+        <div class="grid grid-cols-2 gap-2">
+            <label class="flex flex-col gap-1">
+                <span class="label-text text-xs">노출 시작 (비우면 즉시)</span>
+                <input type="datetime-local" id="noticeStartsAt" class="input input-bordered input-sm w-full"/>
+            </label>
+            <label class="flex flex-col gap-1">
+                <span class="label-text text-xs">노출 종료 (비우면 무기한)</span>
+                <input type="datetime-local" id="noticeEndsAt" class="input input-bordered input-sm w-full"/>
+            </label>
+        </div>
+        <label class="flex flex-col gap-1 w-48">
+            <span class="label-text text-xs">우선순위 (클수록 먼저, -100~100)</span>
+            <input type="number" id="noticeDisplayPriority" class="input input-bordered input-sm w-full" min="-100" max="100" value="0"/>
+        </label>
+        <div class="flex gap-6">
+            <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="noticeIsActive" class="checkbox checkbox-sm" checked/>
+                <span class="text-sm">활성</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="noticeIsImportant" class="checkbox checkbox-sm"/>
+                <span class="text-sm">중요 (맨 앞 노출)</span>
+            </label>
+        </div>
+        <!-- 미리보기: 앱 공지 상세와 같은 마크다운 범위(굵게·목록·링크·문단)를 단순 렌더 -->
+        <div id="noticePreview" class="hidden rounded-box border border-base-300 p-3 space-y-1 text-sm">
+            <p id="noticePreviewTitle" class="font-bold"></p>
+            <div id="noticePreviewBody" class="space-y-2"></div>
+        </div>
+        <!-- 새 공지에만: 등록과 함께 전체 푸시 (노출 시작이 미래면 그 시각에 예약 발송, 비활성 공지는 보내지 않음) -->
+        <label id="noticeSendPushField" class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="noticeSendPush" class="checkbox checkbox-sm"/>
+            <span class="text-sm">등록과 함께 전체 회원에게 푸시 발송 (알림함에도 쌓임)</span>
+        </label>
+        <div class="modal-action">
+            <form method="dialog"><button class="btn btn-sm">취소</button></form>
+            <button class="btn btn-sm btn-outline" onclick="toggleNoticePreview()">미리보기</button>
+            <button class="btn btn-sm btn-primary" onclick="saveNotice()">저장</button>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
+
+</body>
+</html>

@@ -1,3 +1,4 @@
+import '../utils/daily_set_bonus_rule.dart';
 import 'store_review_prompt_history.dart';
 
 /// 평가 요청 판정 결과 7종: 요청 가능 1개 + 거부 사유 6개
@@ -23,16 +24,14 @@ abstract final class StoreReviewPromptRule {
   /// 이전 요청 뒤 다시 묻지 않는 기간 (90일)
   static const Duration requestCooldown = Duration(days: 90);
 
-  /// 오늘의 세트 좋은 결과 기준 정답률 (60% 이상)
-  static const double goodDailySetCorrectRatio = 0.6;
-
-  /// 오늘의 세트 점수가 좋은 결과인지 (문항 없음 > 아님)
+  /// 오늘의 세트 점수가 좋은 결과인지: 세트 정답률 보너스 기준(80%)과 같은 선 (#1027, 문항 없음 > 아님)
   static bool isGoodDailySetScore({
     required int correctCount,
     required int questionCount,
   }) {
     if (questionCount <= 0) return false;
-    return correctCount / questionCount >= goodDailySetCorrectRatio;
+    return correctCount >=
+        DailySetBonusRule.accuracyCorrectCountOf(questionCount);
   }
 
   /// 판정 순서: 결과 > 첫날 > 학습한 날 > 완료 횟수 > 같은 버전 > 90일 간격

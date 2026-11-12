@@ -12,7 +12,7 @@ import '../../flows/concept_related_flow.dart';
 import '../../providers/concept_providers.dart';
 import '../../widgets/concept/concept_read_view.dart';
 import '../../widgets/concept/concept_reading_parser.dart';
-import '../../widgets/concept/concept_result_view.dart';
+import '../../widgets/concept/concept_unit_progress.dart';
 import '../../widgets/concept/concept_solve_view.dart';
 import '../../widgets/pro/locked_preview_samples.dart';
 import '../../widgets/pro/pro_locked_section.dart';

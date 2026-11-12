@@ -1,6 +1,7 @@
 package com.passql.member.entity;
 
 import com.passql.common.entity.BaseEntity;
+import com.passql.member.constant.PurchaseStore;
 import com.passql.member.constant.RefundCheckFailureReason;
 import com.passql.member.constant.RefundCheckTriggerType;
 import jakarta.persistence.Column;
@@ -20,8 +21,9 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * Play 환불 회수 확인 1회 실행 기록 (#984): 실행 방식, 시작·종료 시각, 단계별 건수, 실패 사유
+ * 스토어 환불 회수 확인 1회 실행 기록 (Play #984, App Store #1032): 스토어, 실행 방식, 시작·종료 시각, 단계별 건수, 실패 사유
  * 실패 사유 null = 끝까지 성공, 실패해도 그때까지의 건수는 남김
+ * App Store: checkedOrderCount 조회한 거래 수, refundedOrderCount Apple 이 회수 표시한 거래 수 (voidedPurchaseCount 미사용 0)
  */
 @Entity
 @Table(name = "billing_refund_check_run",
@@ -34,6 +36,11 @@ public class BillingRefundCheckRun extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(updatable = false, nullable = false)
     private UUID billingRefundCheckRunUuid;
+
+    // 확인한 스토어 (PLAY, APP_STORE)
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20, nullable = false)
+    private PurchaseStore store;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)
@@ -65,8 +72,10 @@ public class BillingRefundCheckRun extends BaseEntity {
     private RefundCheckFailureReason failureReason;
 
     /** 실행 시작 기록 (건수 0, 실패 사유 없음) */
-    public static BillingRefundCheckRun start(RefundCheckTriggerType triggerType, LocalDateTime startedAt) {
+    public static BillingRefundCheckRun start(PurchaseStore store, RefundCheckTriggerType triggerType,
+                                              LocalDateTime startedAt) {
         BillingRefundCheckRun run = new BillingRefundCheckRun();
+        run.store = store;
         run.triggerType = triggerType;
         run.startedAt = startedAt;
         return run;

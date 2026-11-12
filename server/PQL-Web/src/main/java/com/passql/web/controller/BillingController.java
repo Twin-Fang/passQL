@@ -2,6 +2,7 @@ package com.passql.web.controller;
 
 import com.passql.application.billing.AppStoreBillingService;
 import com.passql.application.billing.AppStoreNotificationRequest;
+import com.passql.application.billing.AppStoreNotificationService;
 import com.passql.application.billing.AppStoreVerifyRequest;
 import com.passql.application.billing.PlayBillingService;
 import com.passql.application.billing.PlayVerifyRequest;
@@ -22,6 +23,7 @@ public class BillingController implements BillingControllerDocs {
 
     private final PlayBillingService playBillingService;
     private final AppStoreBillingService appStoreBillingService;
+    private final AppStoreNotificationService appStoreNotificationService;
 
     // Play 구매 확인 > 등급 부여·소모 > 내 등급
     @PostMapping("/play/verify")
@@ -41,9 +43,9 @@ public class BillingController implements BillingControllerDocs {
         return appStoreBillingService.verify(loginMember.memberUuid(), request);
     }
 
-    // App Store 서버 알림 V2 수신 (인증 없음, Apple 서명으로 검증) > 환불·회수 반영
+    // App Store 서버 알림 V2 수신 (인증 없음, Apple 서명으로 검증) > 환불·회수·환불 요청 반영, 수신 기록 (#1032)
     @PostMapping("/app-store/notifications")
     public void receiveAppStoreNotification(@Valid @RequestBody AppStoreNotificationRequest request) {
-        appStoreBillingService.handleNotification(request);
+        appStoreNotificationService.handleNotification(request);
     }
 }
