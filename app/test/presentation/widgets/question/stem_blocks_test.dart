@@ -98,4 +98,45 @@ void main() {
       StemCode,
     ]);
   });
+
+  test('컬럼이 같아도 이름이 다른 지문 표는 스키마 표로 바꾸지 않는다', () {
+    const stem =
+        '[EMP]\n'
+        '| ID | DEPT_NO |\n'
+        '| --- | --- |\n'
+        '| 1 | 10 |\n'
+        '\n'
+        '[PROJ]\n'
+        '| ID | DEPT_NO |\n'
+        '| --- | --- |\n'
+        '| 1 | 10 |';
+    const projSchemaTable = QuestionSchemaTable(
+      tableName: 'PROJ',
+      columns: [
+        QuestionSchemaColumn(name: 'ID', isPrimaryKey: true),
+        QuestionSchemaColumn(name: 'DEPT_NO', isForeignKey: true),
+      ],
+    );
+    final blocks = parseStemBlocks(stem, schemaTables: [projSchemaTable]);
+
+    final tables = blocks.whereType<StemTable>().toList();
+    expect(tables.map((table) => table.name), ['EMP', 'PROJ']);
+    expect(tables.first.columns.first.isPrimaryKey, isFalse);
+    expect(tables.last.columns.first.isPrimaryKey, isTrue);
+    expect(tables.last.rows, [
+      ['1', '10'],
+    ]);
+  });
+
+  test('제약 설명 주석은 캡션이 아니라 코드 안 주석으로 남긴다', () {
+    const stem =
+        '```sql\n'
+        '-- EMP.DEPT_NO : REFERENCES DEPT(DEPT_NO) ON DELETE SET NULL\n'
+        'DELETE FROM DEPT WHERE DEPT_NO = 10;\n'
+        '```';
+    final code = parseStemBlocks(stem).single as StemCode;
+
+    expect(code.caption, isNull);
+    expect(code.code, startsWith('-- EMP.DEPT_NO : REFERENCES'));
+  });
 }

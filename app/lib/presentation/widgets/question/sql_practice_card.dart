@@ -11,9 +11,6 @@ import '../pro/pro_offer_sheet.dart';
 import 'execute_result_card.dart';
 import 'sql_practice_editor_sheet.dart';
 
-// 프로 안내 시트 강조 혜택: SQL 직접 실행 (proBenefits 순서)
-const int _sqlExecutionBenefitIndex = 1;
-
 /// 채점 뒤 직접 실행해보기 칸: 시작 SQL(정답·내 답·빈 칸) > 고치기 시트 > 실제 DB 실행 결과 (#727)
 /// 무료·결제 켜짐: 실행 > 요청 없이 이용권 시트 (실행 결과 잠금은 위 결과 칸 하나만)
 class SqlPracticeCard extends ConsumerWidget {
@@ -56,11 +53,7 @@ class SqlPracticeCard extends ConsumerWidget {
     /// 실행: 잠금이면 이용권 시트, 아니면 실제 DB 실행
     Future<void> runOrOpenOffer(String sql) async {
       if (isExecutionLocked) {
-        await showProOfferSheet(
-          context,
-          ref,
-          focusedBenefitIndex: _sqlExecutionBenefitIndex,
-        );
+        await showSqlExecuteProOffer(context, ref);
         return;
       }
       await notifier.run(sql);

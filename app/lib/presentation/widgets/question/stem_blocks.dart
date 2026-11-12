@@ -80,6 +80,18 @@ final RegExp _hangulRe = RegExp(r'[가-힣]');
 /// 코드 라벨 주석 줄: `-- SQL 1`
 final RegExp _codeLabelLineRe = RegExp(r'^--\s*(.+)$');
 
+/// 캡션 끝 괄호 설명: `SQL 2 (결과 행 수를 C4 라 한다)` > 라벨 `SQL 2`
+final RegExp _captionTrailingNoteRe = RegExp(r'^(.*?)\s*\([^()]*\)$');
+
+/// 캡션 라벨 최대 길이 (넘으면 제약 설명 같은 코드 주석으로 봄)
+const int _maximumCaptionLabelLength = 20;
+
+/// 캡션 라벨에 있으면 코드 주석으로 보는 글: `:`·`(`·SQL 키워드 (예: `EMP.DEPT_NO : REFERENCES ...`)
+final RegExp _codeCommentMarkerRe = RegExp(
+  r'[:(]|\b(?:SELECT|FROM|WHERE|SET|UPDATE|INSERT|DELETE|REFERENCES|ON|CASCADE|CREATE|ALTER|DROP|NULL)\b',
+  caseSensitive: false,
+);
+
 /// 지문 + 스키마 표 > 블록 목록: 코드 펜스 분리 > 글 블록 나누기 > 스키마 표 배치
 List<StemBlock> parseStemBlocks(
   String stem, {
@@ -217,7 +229,7 @@ List<StemBlock> _splitQuestions(List<String> lines) {
 bool _isQuestionSentence(String sentence) =>
     sentence.endsWith('?') && _hangulRe.hasMatch(sentence);
 
-/// 코드 펜스 안 > 캡션별 코드 (맨 첫 줄·빈 줄 다음 줄의 `--` 주석이 캡션)
+/// 코드 펜스 안 > 캡션별 코드 (맨 첫 줄·빈 줄 다음 줄의 짧은 이름표 `--` 주석만 캡션, 나머지 주석은 코드에 남김)
 List<StemCode> _parseCodeBlocks(String code) {
   final codes = <StemCode>[];
   String? caption;
@@ -231,10 +243,15 @@ List<StemCode> _parseCodeBlocks(String code) {
 
   var isAtSegmentStart = true;
   for (final line in code.trimRight().split('\n')) {
-    final labelMatch = _codeLabelLineRe.firstMatch(line.trim());
-    if (isAtSegmentStart && labelMatch != null) {
+    final captionText = _codeLabelLineRe
+        .firstMatch(line.trim())
+        ?.group(1)
+        ?.trim();
+    if (isAtSegmentStart &&
+        captionText != null &&
+        _isCaptionLabel(captionText)) {
       flushCode();
-      caption = labelMatch.group(1)!.trim();
+      caption = captionText;
       isAtSegmentStart = false;
       continue;
     }
@@ -245,22 +262,42 @@ List<StemCode> _parseCodeBlocks(String code) {
   return codes;
 }
 
-/// 스키마 표 배치: 같은 컬럼 지문 표 자리 대체 > 없으면 첫 표·코드 앞 > 첫 질문 앞 > 맨 끝
+/// 짧은 이름표 주석인지: 끝 괄호 설명 뺀 라벨 20자 이하 + `:`·`(`·SQL 키워드 없음 (`SQL 1`, `쿼리 A`)
+bool _isCaptionLabel(String captionText) {
+  final label =
+      _captionTrailingNoteRe.firstMatch(captionText)?.group(1)?.trim() ??
+      captionText;
+  return label.isNotEmpty &&
+      label.length <= _maximumCaptionLabelLength &&
+      !_codeCommentMarkerRe.hasMatch(label);
+}
+
+/// 스키마 표 배치: 같은 표 지문 표 자리 대체(지문 표 하나에 한 번) > 없으면 첫 표·코드 앞 > 첫 질문 앞 > 맨 끝
 List<StemBlock> _placeSchemaTables(
   List<StemBlock> blocks,
   List<QuestionSchemaTable> schemaTables,
 ) {
   final placed = List<StemBlock>.of(blocks);
+  final replacedIndexes = <int>{};
   final unmatchedTables = <StemTable>[];
   for (final schemaTable in schemaTables) {
     final table = _toStemTable(schemaTable);
-    final duplicateIndex = placed.indexWhere(
-      (block) =>
-          block is StemTable &&
-          block.columnSignature == table.columnSignature,
-    );
+    var duplicateIndex = -1;
+    for (var index = 0; index < placed.length; index++) {
+      final block = placed[index];
+      if (block is StemTable &&
+          !replacedIndexes.contains(index) &&
+          _isSameTable(block, table)) {
+        duplicateIndex = index;
+        break;
+      }
+    }
     if (duplicateIndex >= 0) {
-      placed[duplicateIndex] = table;
+      placed[duplicateIndex] = _withStemRowsIfSchemaEmpty(
+        table,
+        placed[duplicateIndex] as StemTable,
+      );
+      replacedIndexes.add(duplicateIndex);
     } else {
       unmatchedTables.add(table);
     }
@@ -276,6 +313,33 @@ List<StemBlock> _placeSchemaTables(
   if (insertIndex < 0) insertIndex = placed.length;
   placed.insertAll(insertIndex, unmatchedTables);
   return placed;
+}
+
+/// 지문 표 <-> 스키마 표 같은 표인지: 양쪽 이름 있으면 이름(대소문자 무시), 없으면 컬럼 이름 목록
+/// (컬럼만 보면 EMP(ID, DEPT_NO) 자리에 PROJ(ID, DEPT_NO) 가 들어가 EMP 데이터가 사라짐)
+bool _isSameTable(StemTable stemTable, StemTable schemaTable) {
+  final stemName = stemTable.name?.trim().toUpperCase() ?? '';
+  final schemaName = schemaTable.name?.trim().toUpperCase() ?? '';
+  if (stemName.isNotEmpty && schemaName.isNotEmpty) {
+    return stemName == schemaName;
+  }
+  return stemTable.columnSignature == schemaTable.columnSignature;
+}
+
+/// 스키마 표에 예시 행이 없고 컬럼이 같으면 지문 표 행 유지 (지문 데이터 소실 방지)
+StemTable _withStemRowsIfSchemaEmpty(
+  StemTable schemaTable,
+  StemTable stemTable,
+) {
+  final shouldKeepStemRows =
+      schemaTable.rows.isEmpty &&
+      stemTable.columnSignature == schemaTable.columnSignature;
+  if (!shouldKeepStemRows) return schemaTable;
+  return StemTable(
+    name: schemaTable.name,
+    columns: schemaTable.columns,
+    rows: stemTable.rows,
+  );
 }
 
 StemTable _toStemTable(QuestionSchemaTable table) => StemTable(

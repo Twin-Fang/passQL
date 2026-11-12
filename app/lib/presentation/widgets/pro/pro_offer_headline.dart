@@ -12,6 +12,7 @@ class ProOfferHeadline extends StatelessWidget {
     required this.daysUntilExam,
     required this.activeProExpiresAt,
     required this.focusedBenefit,
+    this.reasonMessage,
   });
 
   /// 시험까지 남은 날 (일정 없으면 null)
@@ -23,12 +24,16 @@ class ProOfferHeadline extends StatelessWidget {
   /// 탑승권 혜택 아이콘에서 열었을 때 강조할 혜택
   final ProBenefit? focusedBenefit;
 
+  /// 특정 기능에서 열었을 때 제목 아래 가치 한 줄
+  final String? reasonMessage;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final daysUntil = daysUntilExam;
     final focusedBenefit = this.focusedBenefit;
     final activeProExpiresAt = this.activeProExpiresAt;
+    final reasonMessage = this.reasonMessage;
     final proDaysLeft = activeProExpiresAt == null
         ? null
         : daysUntilDate(activeProExpiresAt);
@@ -67,6 +72,16 @@ class ProOfferHeadline extends StatelessWidget {
             ),
           ),
         ),
+        if (reasonMessage != null) ...[
+          const SizedBox(height: PassqlSpacing.xxs),
+          Text(
+            reasonMessage,
+            key: const Key('pro-offer-reason'),
+            style: PassqlTypography.subheadline.copyWith(
+              color: colors.secondaryLabel,
+            ),
+          ),
+        ],
         if (focusedBenefit != null) ...[
           const SizedBox(height: PassqlSpacing.sm),
           _FocusedBenefitRow(

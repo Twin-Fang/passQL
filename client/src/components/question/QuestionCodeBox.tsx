@@ -4,6 +4,9 @@ interface QuestionCodeBoxProps {
   readonly caption?: string | null;
 }
 
+// -- 로 시작하는 주석 줄 (지문 제약 설명 주석)
+const COMMENT_LINE_PATTERN = /^\s*--/;
+
 // 캡션 끝 괄호 설명: "SQL 2 (설명)" > 제목 "SQL 2", 설명 "(설명)"
 const CAPTION_TRAILING_NOTE_PATTERN = /^(.*?)\s*(\([^()]*\))$/;
 
@@ -23,7 +26,17 @@ export default function QuestionCodeBox({ code, caption = null }: QuestionCodeBo
           {captionNote ? <span className="ml-1 font-normal text-text-secondary">{captionNote}</span> : null}
         </figcaption>
       ) : null}
-      {code ? <pre className="sql-code-box">{code}</pre> : null}
+      {code ? <pre className="sql-code-box">{toCommentAwareLines(code)}</pre> : null}
     </figure>
   );
+}
+
+/** 코드 > 줄 조각 (-- 주석 줄만 보조 글자색, 줄바꿈 유지) */
+function toCommentAwareLines(code: string) {
+  return code.split("\n").map((line, lineIndex) => (
+    <span key={lineIndex} className={COMMENT_LINE_PATTERN.test(line) ? "text-text-secondary" : undefined}>
+      {lineIndex > 0 ? "\n" : null}
+      {line}
+    </span>
+  ));
 }
