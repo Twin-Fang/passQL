@@ -251,7 +251,8 @@ public class QuestionService {
                 answerSql,
                 question.getHint(),
                 choiceSets,
-                Boolean.TRUE.equals(question.getIsLatestTrend())
+                Boolean.TRUE.equals(question.getIsLatestTrend()),
+                false
         );
     }
 

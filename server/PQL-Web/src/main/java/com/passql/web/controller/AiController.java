@@ -2,6 +2,7 @@ package com.passql.web.controller;
 
 import com.passql.application.entitlement.ProFeature;
 import com.passql.application.entitlement.ProResponseRedactor;
+import com.passql.application.entitlement.QuestionFeatureAccessPolicy;
 import com.passql.web.support.RequiresProFeature;
 import com.passql.ai.dto.AiResult;
 import com.passql.ai.dto.DiffExplainRequest;
@@ -31,23 +32,25 @@ public class AiController implements AiControllerDocs {
     private final RecommendationService recommendationService;
     // 무료 회원 응답에서 전체 해설을 빼는 단일 지점
     private final ProResponseRedactor proResponseRedactor;
+    // 오류·오답 AI 해설은 문제 기준 잠금 (오늘의 세트 문제는 무료도 사용, #992)
+    private final QuestionFeatureAccessPolicy questionFeatureAccessPolicy;
 
-    @RequiresProFeature(ProFeature.ERROR_EXPLANATION)
     @PostMapping("/explain-error")
     public ResponseEntity<AiResult> explainError(
         @AuthMember LoginMember loginMember,
         @Valid @RequestBody ExplainErrorRequest request
     ) {
+        questionFeatureAccessPolicy.requireFeature(loginMember.memberUuid(), ProFeature.ERROR_EXPLANATION, request.questionUuid());
         return ResponseEntity.ok(aiExplainService.explainError(
             loginMember.memberUuid(), request.questionUuid(), request.sql(), request.errorMessage()));
     }
 
-    @RequiresProFeature(ProFeature.ERROR_EXPLANATION)
     @PostMapping("/diff-explain")
     public ResponseEntity<AiResult> diffExplain(
         @AuthMember LoginMember loginMember,
         @Valid @RequestBody DiffExplainRequest request
     ) {
+        questionFeatureAccessPolicy.requireFeature(loginMember.memberUuid(), ProFeature.ERROR_EXPLANATION, request.questionUuid());
         return ResponseEntity.ok(aiExplainService.diffExplain(
             loginMember.memberUuid(), request.questionUuid(), request.selectedChoiceKey()));
     }
@@ -61,7 +64,7 @@ public class AiController implements AiControllerDocs {
     ) {
         ChoiceExplanationResponse response = aiExplainService.getChoiceExplanation(
             loginMember.memberUuid(), questionUuid, choiceSetUuid, selectedChoiceKey);
-        return ResponseEntity.ok(proResponseRedactor.redactChoiceExplanation(loginMember.memberUuid(), response));
+        return ResponseEntity.ok(proResponseRedactor.redactChoiceExplanation(loginMember.memberUuid(), questionUuid, response));
     }
 
     @RequiresProFeature(ProFeature.RECOMMENDATION)

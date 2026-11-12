@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/question/question_schema_table.dart';
 import '../../design/design.dart';
-import '../../providers/plan_providers.dart';
+import '../../providers/question_feature_lock_providers.dart';
 import '../../providers/sql_practice_providers.dart';
 import '../pro/locked_preview_samples.dart';
 import '../pro/pro_locked_section.dart';
@@ -49,7 +49,9 @@ class SqlPracticeCard extends ConsumerWidget {
     final practice = ref.watch(sqlPracticeProvider(questionUuid));
     final notifier = ref.read(sqlPracticeProvider(questionUuid).notifier);
     final currentSql = practice.draftSql ?? _startSqlOf(practice.start);
-    final isExecutionLocked = ref.watch(shouldShowProUiProvider);
+    final isExecutionLocked = ref.watch(
+      isQuestionExecutionLockedProvider(questionUuid),
+    );
 
     /// 실행: 잠금이면 이용권 시트, 아니면 실제 DB 실행
     Future<void> runOrOpenOffer(String sql) async {

@@ -28,6 +28,8 @@ class QuestionDetail with _$QuestionDetail {
     @Default([]) List<ChoiceSetSummary> choiceSets,
     // 최신 출제 경향 반영 문제 ('최신 경향' 배지, 구버전 서버면 false, #523)
     @Default(false) bool isLatestTrend,
+    // 오늘의 세트 무료 체험: 무료 회원도 이 문제에서 SQL 실행·AI 해설 사용 (구버전 서버면 false, #992)
+    @Default(false) bool isDailySetFreeTrial,
   }) = _QuestionDetail;
 
   factory QuestionDetail.fromJson(Map<String, dynamic> json) =>

@@ -18,6 +18,7 @@ import static org.springframework.util.StringUtils.hasText;
 /**
  * 응답 일부 빼기 단일 지점: 제출 응답, 선택지 해설 응답, 모의고사 결과에서 무료 회원 몫이 아닌 묶음 제거 > lockedSections 표시
  * 무료: 이유 없는 판정 한 줄·정답 여부·정답 키 유지, 보기 근거(rationale)는 세트 첫 제출만, 프로(결제 꺼짐 포함)는 원본 그대로
+ * 제출·해설 응답은 문제 기준 판정 (오늘의 세트 문제는 무료도 원본, #992)
  */
 @Component
 @RequiredArgsConstructor
@@ -27,15 +28,16 @@ public class ProResponseRedactor {
     private static final long FIRST_SUBMISSION_COUNT = 1;
 
     private final FeatureAccessPolicy featureAccessPolicy;
+    private final QuestionFeatureAccessPolicy questionFeatureAccessPolicy;
     private final SubmissionRepository submissionRepository;
 
     /**
      * 제출 응답: 실행 결과·SQL 제거(SQL_EXECUTION), 해설 글 제거·구조화 해설은 내 선택·정답 표시와 판정만 남김(FULL_EXPLANATION)
      * 무료 같은 세트 재제출 > 보기 근거도 제거 (제출은 이미 저장된 뒤라 이번 제출 포함 2건 이상이면 재제출)
      */
-    public SubmitResult redactSubmitResult(UUID memberUuid, UUID choiceSetUuid, SubmitResult result) {
-        boolean shouldHideExecution = !featureAccessPolicy.canUse(memberUuid, ProFeature.SQL_EXECUTION);
-        boolean shouldHideExplanation = !featureAccessPolicy.canUse(memberUuid, ProFeature.FULL_EXPLANATION);
+    public SubmitResult redactSubmitResult(UUID memberUuid, UUID questionUuid, UUID choiceSetUuid, SubmitResult result) {
+        boolean shouldHideExecution = !questionFeatureAccessPolicy.canUse(memberUuid, ProFeature.SQL_EXECUTION, questionUuid);
+        boolean shouldHideExplanation = !questionFeatureAccessPolicy.canUse(memberUuid, ProFeature.FULL_EXPLANATION, questionUuid);
         if (!shouldHideExecution && !shouldHideExplanation) {
             return result;
         }
@@ -68,8 +70,8 @@ public class ProResponseRedactor {
     }
 
     /** 선택지 해설 응답: 마크다운 글 제거, 구조화 해설은 판정만 남김 (상태·세트·고른 보기는 유지해 앱 폴링 그대로) */
-    public ChoiceExplanationResponse redactChoiceExplanation(UUID memberUuid, ChoiceExplanationResponse response) {
-        if (featureAccessPolicy.canUse(memberUuid, ProFeature.FULL_EXPLANATION)) {
+    public ChoiceExplanationResponse redactChoiceExplanation(UUID memberUuid, UUID questionUuid, ChoiceExplanationResponse response) {
+        if (questionFeatureAccessPolicy.canUse(memberUuid, ProFeature.FULL_EXPLANATION, questionUuid)) {
             return response;
         }
         List<String> lockedSections = new ArrayList<>(response.lockedSections());

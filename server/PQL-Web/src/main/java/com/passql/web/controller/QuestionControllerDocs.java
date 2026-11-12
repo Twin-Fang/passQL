@@ -108,6 +108,7 @@ public interface QuestionControllerDocs {
       @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 520, description = "schemaTables 추가: schemaDdl·schemaSampleData 를 테이블별 컬럼(이름·타입·PK·FK)·샘플 행으로 해석해 제공"),
       @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 523, description = "isLatestTrend 추가: 최신 출제 경향 반영 문제 여부 ('최신 경향' 배지)"),
       @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 879, description = "비활성 문제는 404 QUESTION_NOT_FOUND"),
+      @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 992, description = "isDailySetFreeTrial 추가: 무료 회원이 오늘의 세트 문제에서 SQL 실행·AI 해설을 쓸 수 있는지"),
   })
   @Operation(summary = "문제 상세 조회", description = "풀이용 상세. 정답 SQL·정답 여부·해설은 내려가지 않는다(제출 응답에서만 제공).")
   ResponseEntity<QuestionDetail> getQuestion(
@@ -120,11 +121,14 @@ public interface QuestionControllerDocs {
       @ApiLog(date = "2026.04.08", author = Author.SUHSAECHAN, issueNumber = 22, description = "PathVariable: Long id → UUID questionUuid"),
       @ApiLog(date = "2026.04.10", author = Author.SUHSAECHAN, issueNumber = 70, description = "QuestionExecutionService 경유로 전환: sandboxDbName 기반 실행, CONCEPT_ONLY 에러 처리 추가"),
       @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 879, description = "본문 Map → ExecuteSqlRequest(필드 이름 sql 그대로), 빈 sql 은 400 VALIDATION_ERROR"),
+      @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 992, description = "무료 회원도 오늘의 세트 문제는 실행 가능 (그 외 문제는 403 PRO_REQUIRED)"),
   })
   @Operation(summary = "SQL 실행",
       description = "EXECUTABLE 문제만 허용. body: { \"sql\": \"SELECT ...\" }. " +
-          "CONCEPT_ONLY 문제에 호출 시 400 INVALID_EXECUTION_MODE 반환.")
+          "CONCEPT_ONLY 문제에 호출 시 400 INVALID_EXECUTION_MODE 반환. " +
+          "결제 켜짐 무료 회원은 오늘의 세트 문제만 실행, 그 외 403 PRO_REQUIRED.")
   ResponseEntity<ExecuteResult> executeChoice(
+      @AuthMember LoginMember loginMember,
       @PathVariable UUID questionUuid,
       @RequestBody ExecuteSqlRequest request
   );
