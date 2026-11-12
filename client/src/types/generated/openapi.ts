@@ -3596,6 +3596,13 @@ export interface components {
             reported: boolean;
         };
         RoundSummary: {
+            /**
+             * @description 최고 점수 응시(동점이면 최근)의 불합격 이유
+             * @enum {string|null}
+             */
+            bestAttemptFailReason: "NONE" | "SUBJECT_FAIL" | "TOTAL_SCORE_BELOW" | null;
+            /** @description 최고 점수 응시(동점이면 최근)의 합격 여부 (과락 포함) */
+            bestAttemptIsPassed: boolean | null;
             /** Format: int32 */
             bestScore: number | null;
             canStart: boolean;

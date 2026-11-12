@@ -11,7 +11,7 @@ const int lowRemainingSolvesThreshold = 2;
 bool isLowRemainingSolves(int remainingCount) =>
     remainingCount >= 1 && remainingCount <= lowRemainingSolvesThreshold;
 
-/// 오늘 남은 무료 랜덤 문제 수 알약: 값이 바뀌면 한 번 튐 (보상 수령·사용), 1~2문제 남으면 경고 색, null 이면 그리지 않음
+/// 오늘 남은 무료 랜덤 문제 수 알약: 값이 바뀌면 한 번 튐 + 젬 뒤집기 (보상 수령·사용), 1~2문제 남으면 경고 색, null 이면 그리지 않음
 /// [isCompact] 상단 바용: 크레딧 아이콘 + 숫자만, [onTap] 누르면 크레딧 더 받기 시트 (#966, #971)
 class RemainingSolvesPill extends ConsumerStatefulWidget {
   const RemainingSolvesPill({super.key, this.isCompact = false, this.onTap});
@@ -76,7 +76,11 @@ class _RemainingSolvesPillState extends ConsumerState<RemainingSolvesPill>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const PassqlCreditIcon(),
+          // 값이 바뀌면 젬이 살짝 뒤집힘 (알약 튐과 함께, #1014)
+          Passql3dTilt(
+            flipTrigger: remainingCount,
+            child: const PassqlCreditIcon(),
+          ),
           const SizedBox(width: PassqlSpacing.xxs),
           Text(
             widget.isCompact ? '$remainingCount' : '크레딧 $remainingCount',

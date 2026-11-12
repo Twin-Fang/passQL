@@ -4,9 +4,9 @@ id: DEC-0278
 created: 2026-11-07
 reviewed: null
 topics: [practice, question-bank, design-system, concept-learning]
-status: active
+status: superseded
 supersedes: DEC-0255
-superseded_by: null
+superseded_by: DEC-0292
 related: ["[[ISS-0472-stem-readability-blocks-single-table]]", "[[ISS-0472-stem-readability-blocks-single-table-report]]", "[[DEC-0277-no-dash-middle-dot-server-cleaner]]", "[[DEC-0255-code-font-d2coding-subset]]", "[[DEC-0256-concept-lesson-blocks-by-table-header]]", "[[DEC-0074-shared-markdowntext-component]]"]
 ---
 

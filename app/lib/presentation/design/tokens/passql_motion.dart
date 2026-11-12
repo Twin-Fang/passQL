@@ -73,6 +73,10 @@ abstract final class PassqlMotion {
   static const segmentBreathePeriod = Duration(milliseconds: 1400);
   // 크레딧 보상 창 연출 전체 (#999): 동전 팝·빛 > 불꽃 > +N > SQL 한 줄 > 기본 게이지 > 보너스 게이지·숫자
   static const rewardCelebration = Duration(milliseconds: 2100);
+  // 젬 3D 연출 (#1014): 등장 한 바퀴 스핀·빛 쓸기, 값 바뀔 때 작은 뒤집기, 손 뗀 뒤 기울기 복귀
+  static const gemSpinIn = Duration(milliseconds: 1000);
+  static const gemFlip = Duration(milliseconds: 450);
+  static const gemTiltRelease = Duration(milliseconds: 350);
 
   static const afterRouteTransitionDelay = Duration(milliseconds: 300);
 

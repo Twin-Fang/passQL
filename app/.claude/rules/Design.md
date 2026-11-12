@@ -91,6 +91,8 @@ lib/presentation/design/
 | `PassqlLockedPreview` | 잠긴 기능 묶음: 흐린 가짜 미리보기 + 가운데 한 줄(해요체 문장) + 알약 `PRO로 보기`, 영역 전체 탭 > `onUnlock` (#576). 프로 안내 시트는 `widgets/pro/pro_offer_sheet.dart` 의 `showProOfferSheet` |
 | `PassqlPassTicket` (+`PassqlPassTicketTier`, `PassqlPassTicketField`) / `PassqlPassUsageGauge` | passQL PASS 탑승권 (#749): 본문(제목·경로·정보 칸·혜택 아이콘·footer) + 절취선 + 떼는 칸. 무료 회색·프로 그라데이션, 빛줄기·홀로그램·기울기 선택, 동작 줄이기면 효과 정지. 사용량 게이지는 빛이 지나감. 내 프로필·이용권 구매 시트·정보 시트가 쓴다 |
 | `PassqlCreditIcon` | 크레딧 아이콘 에셋(번개 동전, #971). 무료 한도 표시는 이 아이콘 + 숫자로만 (상단 알약 `RemainingSolvesPill`, 프로필 오늘 크레딧, 세트 보너스 줄) |
+| `PassqlProIcon` | PRO 아이콘 에셋(무한 젬, #1014, 원본 brand/pro_icon_1024.png). 쓰는 곳: 이용권 시트 머리(큰 크기 + 3D 스핀), 탑승권 프로 떼는 칸, 프로필 업그레이드 배너 |
+| `Passql3dTilt` | 젬 3D 연출(#1014): 원근 회전 등장 스핀 + 빛 쓸기, 값 바뀔 때 작은 뒤집기, 드래그 기울기. 동작 줄이기면 정지 |
 | `PassqlPlanChip` | 등급 칩: 무료 회색 `FREE`(탭 가능) · 프로 보라 `PRO`(탭 없음) (#576) |
 | `PassqlTextScaleLimit` | 시스템 글자 크기 상한(`MaterialApp.builder` 한 곳에서 앱 전체 적용, #486) |
 | `PassqlNavLeading` / `PassqlTabItem` | 상단 바 왼쪽 버튼 종류(없음·뒤로·닫기), 탭 바 항목 |

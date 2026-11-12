@@ -4,9 +4,9 @@ id: DEC-0004
 created: 2026-10-22
 reviewed: null
 topics: [billing]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0291
 related: ["[[ISS-0003-free-pro-plan-android-exam-pass]]", "[[DEC-0239-free-daily-limit-bonus-three-kinds]]"]
 ---
 

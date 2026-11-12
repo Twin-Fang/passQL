@@ -123,6 +123,12 @@ _$MockExamRoundSummaryImpl _$$MockExamRoundSummaryImplFromJson(
   ),
   submittedAttemptCount: (json['submittedAttemptCount'] as num).toInt(),
   bestScore: (json['bestScore'] as num?)?.toInt(),
+  bestAttemptIsPassed: json['bestAttemptIsPassed'] as bool?,
+  bestAttemptFailReason: $enumDecodeNullable(
+    _$MockExamFailReasonEnumMap,
+    json['bestAttemptFailReason'],
+    unknownValue: MockExamFailReason.unknown,
+  ),
   lastAttempt: json['lastAttempt'] == null
       ? null
       : MockExamLastAttempt.fromJson(
@@ -142,6 +148,9 @@ Map<String, dynamic> _$$MockExamRoundSummaryImplToJson(
       _$MockExamStartBlockReasonEnumMap[instance.startBlockReason],
   'submittedAttemptCount': instance.submittedAttemptCount,
   'bestScore': instance.bestScore,
+  'bestAttemptIsPassed': instance.bestAttemptIsPassed,
+  'bestAttemptFailReason':
+      _$MockExamFailReasonEnumMap[instance.bestAttemptFailReason],
   'lastAttempt': instance.lastAttempt,
 };
 
@@ -150,6 +159,13 @@ const _$MockExamStartBlockReasonEnumMap = {
   MockExamStartBlockReason.freeTrialUsed: 'FREE_TRIAL_USED',
   MockExamStartBlockReason.otherAttemptInProgress: 'OTHER_ATTEMPT_IN_PROGRESS',
   MockExamStartBlockReason.unknown: 'unknown',
+};
+
+const _$MockExamFailReasonEnumMap = {
+  MockExamFailReason.none: 'NONE',
+  MockExamFailReason.subjectFail: 'SUBJECT_FAIL',
+  MockExamFailReason.totalScoreBelow: 'TOTAL_SCORE_BELOW',
+  MockExamFailReason.unknown: 'unknown',
 };
 
 _$MockExamLastAttemptImpl _$$MockExamLastAttemptImplFromJson(
