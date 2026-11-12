@@ -267,6 +267,7 @@ throw new CustomException(ErrorCode.NOT_SELECT);
 - 무료·프로 등급 판정 (#576): `PQL-Application` `FeatureAccessPolicy`만 (등급·한도·결제 스위치 직접 조회 금지). 기능 전체 잠금은 `@RequiresProFeature`, 응답 일부 빼기는 `ProResponseRedactor`
 - 스토어 구매 기록·등급 반영 (Play·App Store): `PQL-Application` `StorePurchaseRecorder`, 환불 회수는 `EntitlementPurchaseRevoker`
 - App Store JWS 검증 (#578): `AppStoreSignedDataVerifier` (Apple `SignedDataVerifier` 직접 생성 금지, 루트 인증서 `PQL-Application` `resources/apple-root-certificates/`)
+- App Store Server API 호출 (#1032): `AppStoreServerApiClient` (거래 조회·소비 정보 응답, 인앱 결제 키 `passql.billing.app-store.server-api.*`, 없으면 호출 없이 건너뜀). 알림 처리·수신 기록은 `AppStoreNotificationService`
 - SHA-256 hex: `PQL-Common` `Sha256Hex` (MessageDigest 직접 조립 금지)
 - 예외 detail 에 `e.getMessage()` 원문을 붙이지 않는다 (응답으로 나감). 원문은 로그·cause 로만
 

@@ -1,0 +1,60 @@
+<!doctype html>
+<!-- 결제 관리 > 결제 목록 탭 (#1032): 동작은 static/js/admin/billing-purchases.js -->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<th:block th:fragment="purchases-panel">
+<section data-tab-panel="purchases" hidden class="space-y-4">
+    <!-- 필터: 스토어·상태·구매일 -->
+    <form id="purchaseFilterForm" class="flex flex-wrap items-end gap-3">
+        <label class="form-control">
+            <span class="label-text text-xs mb-1">스토어</span>
+            <select name="store" class="select select-sm select-bordered w-36">
+                <option value="">전체</option>
+                <option value="PLAY">Google Play</option>
+                <option value="APP_STORE">App Store</option>
+            </select>
+        </label>
+        <label class="form-control">
+            <span class="label-text text-xs mb-1">상태</span>
+            <select name="status" class="select select-sm select-bordered w-32">
+                <option value="">전체</option>
+                <option value="VERIFIED">정상</option>
+                <option value="REVOKED">회수</option>
+            </select>
+        </label>
+        <label class="form-control">
+            <span class="label-text text-xs mb-1">구매일 시작</span>
+            <input type="date" name="from" class="input input-sm input-bordered w-40"/>
+        </label>
+        <label class="form-control">
+            <span class="label-text text-xs mb-1">구매일 끝</span>
+            <input type="date" name="to" class="input input-sm input-bordered w-40"/>
+        </label>
+        <button type="submit" class="btn btn-sm btn-primary">조회</button>
+        <a id="purchaseCsvLink" class="btn btn-sm btn-outline gap-1" href="/admin/api/subscriptions/purchases.csv" download>
+            <i data-lucide="download" class="size-4"></i>CSV
+        </a>
+    </form>
+
+    <section id="purchaseBlock" class="card bg-base-100 shadow-sm">
+        <div class="card-body p-4 gap-3">
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead><tr>
+                        <th>구매 시각</th><th>스토어</th><th>상품</th><th>상태</th><th class="text-right">금액</th>
+                        <th>만료</th><th>회수 시각</th><th>주문 번호</th><th>회원</th><th></th>
+                    </tr></thead>
+                    <tbody id="purchaseBody"></tbody>
+                </table>
+            </div>
+            <div class="flex items-center justify-between text-xs text-base-content/60">
+                <span id="purchasePageInfo">-</span>
+                <div class="join">
+                    <button type="button" id="purchasePreviousButton" class="btn btn-xs join-item">이전</button>
+                    <button type="button" id="purchaseNextButton" class="btn btn-xs join-item">다음</button>
+                </div>
+            </div>
+        </div>
+    </section>
+</section>
+</th:block>
+</html>

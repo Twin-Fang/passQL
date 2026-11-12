@@ -1,0 +1,28 @@
+<!doctype html>
+<!-- 결제 관리 > 알림 기록 탭 (#1032): App Store 서버 알림 수신 기록, 동작은 static/js/admin/billing-app-store.js -->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<th:block th:fragment="notifications-panel">
+<section id="appStoreNotificationBlock" data-tab-panel="notifications" hidden class="card bg-base-100 shadow-sm">
+    <div class="card-body p-4 gap-3">
+        <h2 class="font-bold">App Store 알림 기록
+            <span class="text-xs font-normal text-base-content/50">Apple 이 보낸 서버 알림 (환불 요청은 노란색, 서명 원문은 저장하지 않음)</span>
+        </h2>
+        <div class="overflow-x-auto">
+            <table class="table table-sm">
+                <thead><tr>
+                    <th>수신 시각</th><th>유형</th><th>하위 유형</th><th>거래 ID</th><th>환경</th><th>처리 결과</th><th>알림 ID</th>
+                </tr></thead>
+                <tbody id="appStoreNotificationBody"></tbody>
+            </table>
+        </div>
+        <div class="flex items-center justify-between text-xs text-base-content/60">
+            <span id="appStoreNotificationPageInfo">-</span>
+            <div class="join">
+                <button type="button" id="appStoreNotificationPreviousButton" class="btn btn-xs join-item">이전</button>
+                <button type="button" id="appStoreNotificationNextButton" class="btn btn-xs join-item">다음</button>
+            </div>
+        </div>
+    </div>
+</section>
+</th:block>
+</html>

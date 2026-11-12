@@ -83,7 +83,7 @@ public class PlayRefundCheckService {
      * 단계 실패는 사유만 남기고 다음 단계 진행, 기록은 성공·실패 공통
      */
     public synchronized RefundCheckRunResponse runRefundCheck(RefundCheckTriggerType triggerType) {
-        BillingRefundCheckRun run = BillingRefundCheckRun.start(triggerType, LocalDateTime.now(clock));
+        BillingRefundCheckRun run = BillingRefundCheckRun.start(PurchaseStore.PLAY, triggerType, LocalDateTime.now(clock));
         try {
             if (!playDeveloperApiClient.isConfigured()) {
                 log.info("[billing refund check] skipped : service account not configured");
@@ -108,19 +108,20 @@ public class PlayRefundCheckService {
 
     /** 최근 실행 기록 (관리자 화면, 최신순 14건) */
     public List<RefundCheckRunResponse> getRecentRuns() {
-        return billingRefundCheckRunRepository.findAllByOrderByStartedAtDesc(PageRequest.of(0, RECENT_RUN_COUNT)).stream()
+        return billingRefundCheckRunRepository.findAllByStoreOrderByStartedAtDesc(PurchaseStore.PLAY, PageRequest.of(0, RECENT_RUN_COUNT)).stream()
             .map(RefundCheckRunResponse::from)
             .toList();
     }
 
     /** 확인 필요 여부: 가장 최근 실행 실패, 또는 26시간 안에 성공 실행 없음 (기록이 하나도 없어도 true) */
     public boolean needsRefundCheckAttention() {
-        Optional<BillingRefundCheckRun> latestRun = billingRefundCheckRunRepository.findFirstByOrderByStartedAtDesc();
+        Optional<BillingRefundCheckRun> latestRun = billingRefundCheckRunRepository.findFirstByStoreOrderByStartedAtDesc(PurchaseStore.PLAY);
         if (latestRun.isPresent() && !latestRun.get().isSucceeded()) {
             return true;
         }
         LocalDateTime successfulSince = LocalDateTime.now(clock).minus(SUCCESSFUL_RUN_MAXIMUM_INTERVAL);
-        return !billingRefundCheckRunRepository.existsByFailureReasonIsNullAndStartedAtAfter(successfulSince);
+        return !billingRefundCheckRunRepository.existsByStoreAndFailureReasonIsNullAndStartedAtAfter(
+            PurchaseStore.PLAY, successfulSince);
     }
 
     /** 최근 30일 취소 구매 토큰 > 토큰별 회수 (조회 실패 > 사유 기록) */
