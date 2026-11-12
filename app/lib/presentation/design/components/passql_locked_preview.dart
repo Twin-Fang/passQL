@@ -15,6 +15,7 @@ class PassqlLockedPreview extends StatelessWidget {
     required this.preview,
     required this.caption,
     required this.onUnlock,
+    this.unlockButtonLabel = unlockLabel,
   });
 
   /// 흐리게 깔 그럴듯한 가짜 미리보기 (서버의 잠긴 내용이 아님)
@@ -24,7 +25,10 @@ class PassqlLockedPreview extends StatelessWidget {
   final String caption;
   final VoidCallback onUnlock;
 
-  /// 알약 버튼 문구 (모든 잠금 자리 공통)
+  /// 알약 버튼 문구 (잠금 해제 후 앱에서 여는 자리처럼 뜻을 더 밝혀야 할 때만 바꿈)
+  final String unlockButtonLabel;
+
+  /// 알약 버튼 기본 문구 (모든 잠금 자리 공통)
   static const String unlockLabel = 'PRO로 보기';
 
   // 미리보기 투명도 (흐려도 윤곽이 남게)
@@ -38,7 +42,7 @@ class PassqlLockedPreview extends StatelessWidget {
     final colors = context.passqlColors;
     return Semantics(
       button: true,
-      label: '$caption, $unlockLabel',
+      label: '$caption, $unlockButtonLabel',
       // 하위 의미를 지우므로 누르기 동작을 여기서 다시 준다 (화면 낭독기)
       onTap: onUnlock,
       excludeSemantics: true,
@@ -97,7 +101,7 @@ class PassqlLockedPreview extends StatelessWidget {
                           ),
                           const SizedBox(height: PassqlSpacing.xs),
                           PassqlButton(
-                            label: unlockLabel,
+                            label: unlockButtonLabel,
                             onPressed: onUnlock,
                             size: PassqlButtonSize.small,
                             isFullWidth: false,

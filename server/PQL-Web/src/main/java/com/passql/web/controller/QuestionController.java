@@ -6,6 +6,7 @@ import com.passql.application.entitlement.ProFeature;
 import com.passql.application.entitlement.ProResponseRedactor;
 import com.passql.web.support.RequiresProFeature;
 import com.passql.application.service.ChoiceGenerationStreamService;
+import com.passql.application.service.LockScreenQuestionService;
 import com.passql.application.service.QuestionExecutionService;
 import com.passql.application.service.RandomPracticeService;
 import com.passql.application.service.RecommendationService;
@@ -13,6 +14,7 @@ import com.passql.member.auth.presentation.annotation.AuthMember;
 import com.passql.member.auth.presentation.security.LoginMember;
 import com.passql.question.dto.ExecuteResult;
 import com.passql.question.dto.ExecuteSqlRequest;
+import com.passql.question.dto.LockScreenQuestionResponse;
 import com.passql.question.dto.QuestionDetail;
 import com.passql.question.dto.QuestionSummary;
 import com.passql.question.dto.RecommendationsRequest;
@@ -43,6 +45,7 @@ public class QuestionController implements QuestionControllerDocs {
     private final QuestionService questionService;
     private final RecommendationService recommendationService;
     private final RandomPracticeService randomPracticeService;
+    private final LockScreenQuestionService lockScreenQuestionService;
     private final QuestionExecutionService questionExecutionService;
     private final SubmissionService submissionService;
     private final ChoiceGenerationStreamService choiceGenerationStreamService;
@@ -72,6 +75,17 @@ public class QuestionController implements QuestionControllerDocs {
         @RequestParam(defaultValue = "" + RandomPracticeService.DEFAULT_SIZE) int size
     ) {
         return ResponseEntity.ok(randomPracticeService.findRandomQuestions(loginMember.memberUuid(), size));
+    }
+
+    // 잠금화면 문제 1개: 출제할 문제 없음·기능 꺼짐 > 204, 한도는 상세 열기·제출에서 판정 (#990)
+    @GetMapping("/lockscreen")
+    public ResponseEntity<LockScreenQuestionResponse> getLockScreenQuestion(
+        @AuthMember LoginMember loginMember,
+        @RequestParam(defaultValue = "false") boolean isExecutableExcluded
+    ) {
+        return lockScreenQuestionService.findLockScreenQuestion(loginMember.memberUuid(), isExecutableExcluded)
+            .map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     // GET → POST 전환: 제외 UUID 목록이 쿼리스트링으로 누적되면 Tomcat 8KB 헤더 한도 초과 → 400 발생

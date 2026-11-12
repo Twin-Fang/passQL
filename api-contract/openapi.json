@@ -318,6 +318,16 @@
           "isAndroidBillingEnabled" : {
             "type" : "boolean"
           },
+          "isLockScreenEnabled" : {
+            "type" : "boolean"
+          },
+          "isLockScreenExecutableIncluded" : {
+            "type" : "boolean"
+          },
+          "lockScreenDefaultIntervalMinutes" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
           "maintenance" : {
             "$ref" : "#/components/schemas/AppMaintenanceResponse"
           },
@@ -328,7 +338,7 @@
             "type" : "array"
           }
         },
-        "required" : [ "android", "businessInfo", "ios", "isAndroidBillingEnabled", "maintenance", "notices" ],
+        "required" : [ "android", "businessInfo", "ios", "isAndroidBillingEnabled", "isLockScreenEnabled", "isLockScreenExecutableIncluded", "lockScreenDefaultIntervalMinutes", "maintenance", "notices" ],
         "type" : "object"
       },
       "AppLinksResponse" : {
@@ -1867,6 +1877,16 @@
           }
         },
         "required" : [ "content", "status", "title", "type" ],
+        "type" : "object"
+      },
+      "LockScreenQuestionResponse" : {
+        "properties" : {
+          "questionUuid" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        },
+        "required" : [ "questionUuid" ],
         "type" : "object"
       },
       "LoginRequest" : {
@@ -5156,7 +5176,7 @@
     },
     "/api/meta/app-config" : {
       "get" : {
-        "description" : "## 인증(JWT): **불필요**\n앱 시작 시 1회 호출. 점검 중에도 503 없이 응답한다.\n\n## 요청 파라미터\n- 없음\n\n## 반환값 (AppConfigResponse)\n- ios / android (AppPlatformVersionResponse)\n  - minimumVersion: 최소 지원 버전 (x.y.z). 앱 버전이 이보다 낮으면 업데이트 전까지 사용 차단\n  - recommendedVersion: 권장 버전 (x.y.z). 앱 버전이 이보다 낮으면 닫을 수 있는 업데이트 안내\n  - storeUrl: 스토어 링크 (없으면 null)\n  - 기본값 0.0.0 = 차단·안내 없음\n- maintenance (AppMaintenanceResponse)\n  - isUnderMaintenance: 점검 중 여부. true 이면 meta·auth 외 /api 요청은 503 SERVICE_UNDER_MAINTENANCE\n  - message: 점검 문구 (비면 앱 기본 문구)\n- notices (List<AppNoticeResponse>)\n  - 지금 노출할 공지. 중요 공지 먼저, 그다음 최근 등록 순\n  - noticeUuid, title, body, startsAt, endsAt(KST, null 가능), isActive, isImportant\n  - publishedAt: 게시 시각 (노출 시작, 없으면 등록 시각, KST)\n- isAndroidBillingEnabled: Android 결제 스위치\n- businessInfo (BusinessInfoResponse) — 사업자 정보 표기 (관리자 설정 business.*)\n  - companyName: 상호 (null 이면 사업자 정보 섹션 숨김)\n  - representativeName, registrationNumber, contactEmail, mailOrderSalesNumber: null 이면 그 줄 숨김\n",
+        "description" : "## 인증(JWT): **불필요**\n앱 시작 시 1회 호출. 점검 중에도 503 없이 응답한다.\n\n## 요청 파라미터\n- 없음\n\n## 반환값 (AppConfigResponse)\n- ios / android (AppPlatformVersionResponse)\n  - minimumVersion: 최소 지원 버전 (x.y.z). 앱 버전이 이보다 낮으면 업데이트 전까지 사용 차단\n  - recommendedVersion: 권장 버전 (x.y.z). 앱 버전이 이보다 낮으면 닫을 수 있는 업데이트 안내\n  - storeUrl: 스토어 링크 (없으면 null)\n  - 기본값 0.0.0 = 차단·안내 없음\n- maintenance (AppMaintenanceResponse)\n  - isUnderMaintenance: 점검 중 여부. true 이면 meta·auth 외 /api 요청은 503 SERVICE_UNDER_MAINTENANCE\n  - message: 점검 문구 (비면 앱 기본 문구)\n- notices (List<AppNoticeResponse>)\n  - 지금 노출할 공지. 중요 공지 먼저, 그다음 최근 등록 순\n  - noticeUuid, title, body, startsAt, endsAt(KST, null 가능), isActive, isImportant\n  - publishedAt: 게시 시각 (노출 시작, 없으면 등록 시각, KST)\n- isAndroidBillingEnabled: Android 결제 스위치\n- businessInfo (BusinessInfoResponse) — 사업자 정보 표기 (관리자 설정 business.*)\n  - companyName: 상호 (null 이면 사업자 정보 섹션 숨김)\n  - representativeName, registrationNumber, contactEmail, mailOrderSalesNumber: null 이면 그 줄 숨김\n- isLockScreenEnabled: 잠금화면 문제 풀기 전체 스위치 (false 면 앱 메뉴 숨김, 관리자 설정 lockscreen.enabled)\n- lockScreenDefaultIntervalMinutes: 잠금화면 문제 기본 표시 간격 (분, 0 은 화면 켤 때마다, 사용자가 바꾸기 전 값)\n- isLockScreenExecutableIncluded: 잠금화면에 실행형 SQL 문제 출제 여부 (false 면 객관식만)\n",
         "operationId" : "getAppConfig",
         "responses" : {
           "200" : {
@@ -5782,6 +5802,35 @@
           }
         },
         "summary" : "문제 목록 조회",
+        "tags" : [ "Question" ]
+      }
+    },
+    "/api/questions/lockscreen" : {
+      "get" : {
+        "description" : "## 인증(JWT): **필요**\nAndroid 잠금화면 위에 띄울 문제 1개를 고른다.\n\n## 요청 파라미터\n- isExecutableExcluded (선택, 기본 false): true 면 실행형(EXECUTABLE) 제외 (앱 \"객관식만\" 옵션)\n\n## 선택 규칙\n- 선택지 세트가 준비된 문제만 (AI 선택지 생성 SSE 대기 없음)\n- 안 푼 문제 우선, 없으면 푼 문제 (랜덤 풀기와 같은 규칙)\n- 관리자 설정 lockscreen.include_executable=false 면 요청과 무관하게 실행형 제외\n\n## 반환값\n- 200 LockScreenQuestionResponse { questionUuid }\n- 204: 관리자 설정 lockscreen.enabled=false 이거나 출제할 문제 없음\n- 하루 문제 수 제한은 여기서 판정하지 않음 (GET /questions/{questionUuid}·제출에서 기존대로)\n",
+        "operationId" : "getLockScreenQuestion",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "isExecutableExcluded",
+          "required" : false,
+          "schema" : {
+            "default" : false,
+            "type" : "boolean"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LockScreenQuestionResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "잠금화면 문제 1개",
         "tags" : [ "Question" ]
       }
     },

@@ -1,10 +1,11 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'app_bootstrap.dart';
+// 잠금화면 엔진 진입점을 앱 컴파일에 포함 (어디서도 import 하지 않으면 빌드에서 빠짐, #990)
+export 'lock_screen_main.dart' show lockScreenMain;
 import 'core/ads/ad_consent.dart';
 import 'core/auth/install_guard.dart';
 import 'core/auth/token_store.dart';
@@ -13,18 +14,19 @@ import 'core/logging/app_log_lifecycle_observer.dart';
 import 'core/logging/app_logger.dart';
 import 'core/monitoring/firebase_analytics_backend.dart';
 import 'core/monitoring/firebase_crash_reporter.dart';
-import 'core/network/dio_client.dart';
 import 'core/notification/app_icon_badge_updater.dart';
 import 'core/push/firebase_push_messaging_client.dart';
 import 'presentation/design/design.dart';
 import 'presentation/providers/app_icon_badge_sync.dart';
 import 'presentation/providers/auth_provider.dart';
+import 'presentation/providers/lock_screen_providers.dart';
 import 'presentation/providers/monitoring_member_sync.dart';
 import 'presentation/providers/onboarding_providers.dart';
 import 'presentation/providers/pro_purchase_sync.dart';
 import 'presentation/providers/push_notification_providers.dart';
 import 'presentation/providers/theme_mode_provider.dart';
 import 'presentation/widgets/dev_tools/dev_tools_overlay.dart';
+import 'presentation/widgets/lock_screen/lock_screen_route_handler.dart';
 import 'router/app_launch_gate_routing.dart';
 import 'router/app_router.dart';
 import 'router/screen_view_tracker.dart';
@@ -33,11 +35,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // 앱 로그 시작 (오류 훅 등록보다 먼저) > 시작 로그 + 생명주기 관찰
   await _startAppLogging();
-  await dotenv.load(fileName: '.env');
-  // 서버 주소 누락은 첫 요청이 아니라 시작 시점에 실패
-  readBackendBaseUrl();
-  // google-services.json / GoogleService-Info.plist 의 설정으로 초기화한다.
-  await Firebase.initializeApp();
+  await prepareAppEnvironment();
   startAppIconBadge();
 
   // 서로 무관한 시작 준비 병렬 실행 (SDK 설정 3종, 재설치 세션 정리, 화면 모드 읽기)
@@ -89,6 +87,8 @@ Future<void> main() async {
   startPushNotificationSync(container, AppRouter.router);
   startAppIconBadgeSync(container);
   startProPurchaseSync(container, AppRouter.router);
+  // 잠금화면 상태 알림 갱신 (Android, #990)
+  startLockScreenStatusSync(container);
 
   // 앱 시작 설정 1회 조회 > 점검·강제 업데이트 차단 분기 (실패해도 진행, #464)
   await AppLaunchGateRouting.bindAndLoad(container);
@@ -133,8 +133,14 @@ class PassqlApp extends ConsumerWidget {
       themeMode: ref.watch(themeModeProvider),
       routerConfig: AppRouter.router,
       // 시스템 글자 크기는 상한까지만 반영 > 개발자 도구 플로팅 버튼 (디버그·개발용 빌드만, #809)
-      builder: (context, child) =>
-          DevToolsOverlay.wrap(context, PassqlTextScaleLimit.wrap(context, child)),
+      // 잠금화면에서 연 경로 처리 (#990)
+      builder: (context, child) => LockScreenRouteHandler(
+        navigatorKey: AppRouter.rootNavigatorKey,
+        child: DevToolsOverlay.wrap(
+          context,
+          PassqlTextScaleLimit.wrap(context, child),
+        ),
+      ),
     );
   }
 }

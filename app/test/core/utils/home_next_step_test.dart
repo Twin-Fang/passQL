@@ -60,4 +60,25 @@ void main() {
       HomeNextStep.mockExamTrial,
     );
   });
+
+  test('세트를 끝냈고 잠금화면을 권할 수 있으면 잠금화면 소개 (세트가 남았으면 세트 먼저, #990)', () {
+    expect(
+      decideHomeNextStep(
+        canSolveDailySet: false,
+        isRandomPracticeVisible: true,
+        remainingCredits: 3,
+        canSuggestLockScreen: true,
+      ),
+      HomeNextStep.lockScreen,
+    );
+    expect(
+      decideHomeNextStep(
+        canSolveDailySet: true,
+        isRandomPracticeVisible: true,
+        remainingCredits: 3,
+        canSuggestLockScreen: true,
+      ),
+      HomeNextStep.dailySet,
+    );
+  });
 }

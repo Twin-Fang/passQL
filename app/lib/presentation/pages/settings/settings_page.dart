@@ -14,6 +14,7 @@ import '../../providers/notification_preference_providers.dart';
 import '../../providers/settings_providers.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/settings/choice_mode_tile.dart';
+import '../../widgets/settings/lock_screen_settings_tiles.dart';
 import '../../widgets/settings/notification_preference_tiles.dart';
 import '../../widgets/settings/push_notification_tile.dart';
 import '../../widgets/settings/theme_mode_tile.dart';
@@ -96,7 +97,14 @@ class SettingsPage extends ConsumerWidget {
             ),
             sliver: SliverList.list(
               children: passqlRevealInOrder([
-                const SettingsGroup(title: '학습', children: [ChoiceModeTile()]),
+                // 학습: 보기 방식 + 잠금화면 문제 (Android + 서버 스위치, #990)
+                SettingsGroup(
+                  title: '학습',
+                  children: [
+                    const ChoiceModeTile(),
+                    ...buildLockScreenSettingsRows(ref),
+                  ],
+                ),
                 const SizedBox(height: PassqlSpacing.xl),
                 const SettingsGroup(title: '화면', children: [ThemeModeTile()]),
                 const SizedBox(height: PassqlSpacing.xl),

@@ -157,6 +157,49 @@ class AppAnalytics {
     {AnalyticsParameterNames.outcome: outcomeName},
   );
 
+  /// 잠금화면 소개 시트 노출
+  Future<void> logLockScreenIntroShown() =>
+      _backend.logEvent(AnalyticsEventNames.lockScreenIntroShown, const {});
+
+  /// 잠금화면 미리보기 풀이 (로컬 채점)
+  Future<void> logLockScreenPreviewAnswered({required bool isCorrect}) =>
+      _backend.logEvent(AnalyticsEventNames.lockScreenPreviewAnswered, {
+        AnalyticsParameterNames.isCorrect: isCorrect ? 1 : 0,
+      });
+
+  /// 잠금화면 켜짐
+  Future<void> logLockScreenEnabled() =>
+      _backend.logEvent(AnalyticsEventNames.lockScreenEnabled, const {});
+
+  /// 권한 단계 확인 결과. [stepName]: overlay, notification, battery, samsung_power
+  Future<void> logLockScreenPermissionStep({
+    required String stepName,
+    required bool isGranted,
+  }) => _backend.logEvent(AnalyticsEventNames.lockScreenPermissionStep, {
+    AnalyticsParameterNames.permissionStep: stepName,
+    AnalyticsParameterNames.isGranted: isGranted ? 1 : 0,
+  });
+
+  /// 잠금화면 문제 표시. [tierName]: free, pro
+  Future<void> logLockScreenQuestionShown(String tierName) => _backend.logEvent(
+    AnalyticsEventNames.lockScreenQuestionShown,
+    {AnalyticsParameterNames.tier: tierName},
+  );
+
+  /// 잠금화면 문제 채점 결과
+  Future<void> logLockScreenAnswered({required bool isCorrect}) =>
+      _backend.logEvent(AnalyticsEventNames.lockScreenAnswered, {
+        AnalyticsParameterNames.isCorrect: isCorrect ? 1 : 0,
+      });
+
+  /// 잠금화면 닫기 (닫기 버튼·잠금 해제)
+  Future<void> logLockScreenDismissed() =>
+      _backend.logEvent(AnalyticsEventNames.lockScreenDismissed, const {});
+
+  /// 잠금화면 크레딧 소진 화면 노출
+  Future<void> logLockScreenExhaustedShown() =>
+      _backend.logEvent(AnalyticsEventNames.lockScreenExhaustedShown, const {});
+
   Future<void> logScreenView(String screenName) =>
       _backend.logScreenView(screenName);
 

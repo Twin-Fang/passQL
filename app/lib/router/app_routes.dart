@@ -157,6 +157,13 @@ abstract final class AppRoutes {
   /// 온보딩에서 들어온 첫 문제 뒤 축하. extra: 마지막 문제였는지(bool)
   static const String onboardingCelebration = '/onboarding/celebration';
 
+  // 잠금화면 문제 (#990, Android)
+  /// 미리 풀어 보기 (권한 없이 앱 안에서 샘플 1문제). 소개 시트에서 진입
+  static const String lockScreenPreview = '/lock-screen/preview';
+
+  /// 켜기 권한 단계 (4단계). 미리 풀어 보기·설정 토글·"권한 필요" 행에서 진입
+  static const String lockScreenPermission = '/lock-screen/permission';
+
   /// 리더보드.
   static const String leaderboard = '/leaderboard';
 

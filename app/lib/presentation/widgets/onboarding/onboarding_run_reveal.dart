@@ -4,17 +4,21 @@ import 'package:flutter/widgets.dart';
 
 import '../../design/design.dart';
 
-/// 온보딩 연출 (#975): [startDelay] 뒤 `실행 중…`(스피너)을 잠깐 보이고 [child](실행 결과)로 바꿈
+/// 온보딩 연출 (#975): [startDelay] 뒤 `실행 중…`(스피너) 또는 [loadingPlaceholder]를 잠깐 보이고 [child](결과)로 바꿈
 /// 동작 줄이기면 처음부터 결과. 스크린리더는 결과만 읽음
 class OnboardingRunReveal extends StatefulWidget {
   const OnboardingRunReveal({
     super.key,
     required this.child,
     this.startDelay = Duration.zero,
+    this.loadingPlaceholder,
   });
 
   final Widget child;
   final Duration startDelay;
+
+  /// 실행 중 자리 대신 보일 것 (예: AI 해설 글 줄 스켈레톤), null 이면 `실행 중…` 한 줄
+  final Widget? loadingPlaceholder;
 
   @override
   State<OnboardingRunReveal> createState() => _OnboardingRunRevealState();
@@ -65,6 +69,13 @@ class _OnboardingRunRevealState extends State<OnboardingRunReveal> {
         _RunPhase.done => KeyedSubtree(
           key: const ValueKey('done'),
           child: widget.child,
+        ),
+        _ when widget.loadingPlaceholder != null => ExcludeSemantics(
+          key: ValueKey(_phase),
+          child: Opacity(
+            opacity: _phase == _RunPhase.running ? 1 : 0,
+            child: widget.loadingPlaceholder,
+          ),
         ),
         // 대기·실행 중은 같은 높이의 한 줄 (결과로 바뀔 때 아래가 덜 튀게)
         _ => ExcludeSemantics(
