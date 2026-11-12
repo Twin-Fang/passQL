@@ -2214,6 +2214,27 @@
         "required" : [ "actions", "headline", "message" ],
         "type" : "object"
       },
+      "MockExamRanking" : {
+        "properties" : {
+          "rankPosition" : {
+            "description" : "내 순위 (1부터, 동점은 같은 순위)",
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "takerCount" : {
+            "description" : "순위 계산에 든 응시자 수 (회원 수)",
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "topPercent" : {
+            "description" : "상위 퍼센트 (1~100, 올림)",
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "rankPosition", "takerCount", "topPercent" ],
+        "type" : "object"
+      },
       "MockExamResultResponse" : {
         "properties" : {
           "attemptUuid" : {
@@ -2268,6 +2289,13 @@
             },
             "type" : "array"
           },
+          "ranking" : {
+            "oneOf" : [ {
+              "$ref" : "#/components/schemas/MockExamRanking"
+            }, {
+              "type" : "null"
+            } ]
+          },
           "reviews" : {
             "items" : {
               "$ref" : "#/components/schemas/QuestionReview"
@@ -2314,7 +2342,7 @@
             "type" : "integer"
           }
         },
-        "required" : [ "attemptUuid", "correctCount", "elapsedSeconds", "failReason", "isPassed", "lockedSections", "maxScore", "nextStep", "passScore", "questionCount", "questionMarks", "reviews", "roundNumber", "roundUuid", "startedAt", "subjects", "submitReason", "submittedAt", "title", "topics", "totalScore" ],
+        "required" : [ "attemptUuid", "correctCount", "elapsedSeconds", "failReason", "isPassed", "lockedSections", "maxScore", "nextStep", "passScore", "questionCount", "questionMarks", "ranking", "reviews", "roundNumber", "roundUuid", "startedAt", "subjects", "submitReason", "submittedAt", "title", "topics", "totalScore" ],
         "type" : "object"
       },
       "MockExamRoundListResponse" : {
@@ -5599,7 +5627,7 @@
     },
     "/api/mock-exams/attempts/{attemptUuid}/result" : {
       "get" : {
-        "description" : "총점·합격·불합격 이유·문항 정오 공개. 과목별 점수·토픽별 정답률·문항 해설·다음에 할 일은 프로 전용(무료는 빈 값 + lockedSections). 풀이 중 409 MOCK_EXAM_NOT_SUBMITTED.",
+        "description" : "총점·합격·불합격 이유·회차 순위(응시자 10명 미만 null)·문항 정오 공개. 과목별 점수·토픽별 정답률·문항 해설·다음에 할 일은 프로 전용(무료는 빈 값 + lockedSections). 풀이 중 409 MOCK_EXAM_NOT_SUBMITTED.",
         "operationId" : "getResult",
         "parameters" : [ {
           "in" : "path",

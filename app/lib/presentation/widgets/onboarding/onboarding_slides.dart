@@ -244,15 +244,16 @@ class _CommitSlide extends ConsumerWidget {
               const _QuestionSteps(count: _questionCount),
               const SizedBox(height: PassqlSpacing.md),
               const _CheckLine(
-                icon: CupertinoIcons.timer,
+                leading: _CheckLineIcon(CupertinoIcons.timer),
                 text: '$_questionCount문제, 금방 끝나요',
               ),
+              // 크레딧은 어디서나 같은 젬 아이콘 (#1041)
               const _CheckLine(
-                icon: CupertinoIcons.bolt_fill,
+                leading: PassqlCreditIcon(size: PassqlIconSize.md),
                 text: '크레딧을 쓰지 않아요',
               ),
               const _CheckLine(
-                icon: CupertinoIcons.chart_bar_fill,
+                leading: _CheckLineIcon(CupertinoIcons.chart_bar_fill),
                 text: '끝나면 합격 준비도가 채워져요',
               ),
             ],
@@ -309,11 +310,11 @@ class _QuestionSteps extends StatelessWidget {
   }
 }
 
-/// 안내 한 줄: 강조색 아이콘 + 문장
+/// 안내 한 줄: 앞 아이콘(강조색 아이콘 또는 크레딧 젬) + 문장
 class _CheckLine extends StatelessWidget {
-  const _CheckLine({required this.icon, required this.text});
+  const _CheckLine({required this.leading, required this.text});
 
-  final IconData icon;
+  final Widget leading;
   final String text;
 
   @override
@@ -323,7 +324,7 @@ class _CheckLine extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: PassqlSpacing.xxs),
       child: Row(
         children: [
-          Icon(icon, size: PassqlIconSize.md, color: colors.accent),
+          leading,
           const SizedBox(width: PassqlSpacing.xs),
           Expanded(
             child: Text(
@@ -335,4 +336,15 @@ class _CheckLine extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 안내 한 줄 앞 강조색 아이콘
+class _CheckLineIcon extends StatelessWidget {
+  const _CheckLineIcon(this.icon);
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) =>
+      Icon(icon, size: PassqlIconSize.md, color: context.passqlColors.accent);
 }

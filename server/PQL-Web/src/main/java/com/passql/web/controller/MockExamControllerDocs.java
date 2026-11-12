@@ -51,6 +51,7 @@ public interface MockExamControllerDocs {
 
   @ApiLogs({
       @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 866, description = "모의고사 제출 API 추가"),
+      @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 1041, description = "회차 순위(ranking: 순위·응시자 수·상위 %) 추가, 무료도 공개"),
   })
   @Operation(summary = "제출 (멱등)",
       description = "기기에 남은 답 묶음은 마감 + 15초 안 도착분만 반영 > 채점 > 결과. 이미 채점된 응시는 같은 결과.")
@@ -58,9 +59,10 @@ public interface MockExamControllerDocs {
 
   @ApiLogs({
       @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 866, description = "모의고사 결과 API 추가"),
+      @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 1041, description = "회차 순위(ranking: 순위·응시자 수·상위 %) 추가, 무료도 공개"),
   })
   @Operation(summary = "결과",
-      description = "총점·합격·불합격 이유·문항 정오 공개. 과목별 점수·토픽별 정답률·문항 해설·다음에 할 일은 프로 전용(무료는 빈 값 + lockedSections). 풀이 중 409 MOCK_EXAM_NOT_SUBMITTED.")
+      description = "총점·합격·불합격 이유·회차 순위(응시자 10명 미만 null)·문항 정오 공개. 과목별 점수·토픽별 정답률·문항 해설·다음에 할 일은 프로 전용(무료는 빈 값 + lockedSections). 풀이 중 409 MOCK_EXAM_NOT_SUBMITTED.")
   ResponseEntity<MockExamResultResponse> getResult(LoginMember loginMember, UUID attemptUuid);
 
   @ApiLogs({

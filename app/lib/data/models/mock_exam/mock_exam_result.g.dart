@@ -32,6 +32,9 @@ _$MockExamResultResponseImpl _$$MockExamResultResponseImplFromJson(
     json['failReason'],
     unknownValue: MockExamFailReason.unknown,
   ),
+  ranking: json['ranking'] == null
+      ? null
+      : MockExamRanking.fromJson(json['ranking'] as Map<String, dynamic>),
   subjects:
       (json['subjects'] as List<dynamic>?)
           ?.map(
@@ -84,6 +87,7 @@ Map<String, dynamic> _$$MockExamResultResponseImplToJson(
   'questionCount': instance.questionCount,
   'isPassed': instance.isPassed,
   'failReason': _$MockExamFailReasonEnumMap[instance.failReason]!,
+  'ranking': instance.ranking,
   'subjects': instance.subjects,
   'topics': instance.topics,
   'questionMarks': instance.questionMarks,
@@ -103,6 +107,22 @@ const _$MockExamFailReasonEnumMap = {
   MockExamFailReason.subjectFail: 'SUBJECT_FAIL',
   MockExamFailReason.totalScoreBelow: 'TOTAL_SCORE_BELOW',
   MockExamFailReason.unknown: 'unknown',
+};
+
+_$MockExamRankingImpl _$$MockExamRankingImplFromJson(
+  Map<String, dynamic> json,
+) => _$MockExamRankingImpl(
+  rankPosition: (json['rankPosition'] as num).toInt(),
+  takerCount: (json['takerCount'] as num).toInt(),
+  topPercent: (json['topPercent'] as num).toInt(),
+);
+
+Map<String, dynamic> _$$MockExamRankingImplToJson(
+  _$MockExamRankingImpl instance,
+) => <String, dynamic>{
+  'rankPosition': instance.rankPosition,
+  'takerCount': instance.takerCount,
+  'topPercent': instance.topPercent,
 };
 
 _$MockExamSubjectResultImpl _$$MockExamSubjectResultImplFromJson(

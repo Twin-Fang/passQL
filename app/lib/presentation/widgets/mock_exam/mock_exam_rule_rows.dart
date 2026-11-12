@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import '../../../data/models/mock_exam/mock_exam_round_list.dart';
 import '../../design/design.dart';
 
-/// 시험 형식 안내 (회차 목록 머리·시험 안내 공용): 숫자 요약 3칸 > 과목 구성 한 줄 > 과락 주의 상자 > (시험 안내만) 불릿 3개
+/// 시험 형식 안내 (회차 목록 머리·시험 안내 공용): 숫자 요약 3칸 > 과목별 과락 기준 칸 > (시험 안내만) 불릿 3개
 /// 숫자는 서버 examRule 에서만, 눌리는 모양(행·쉐브론·눌림 효과) 없음
 class MockExamRuleRows extends StatelessWidget {
   const MockExamRuleRows({
@@ -19,13 +19,6 @@ class MockExamRuleRows extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    final subjectSummary = rule.subjects
-        .map((subject) => '${subject.name} ${subject.questionCount}문항')
-        .join(' · ');
-    final failSummary = rule.subjects
-        .map((subject) => '${subject.name} ${subject.failBelowScore}점')
-        .join(', ');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -55,30 +48,13 @@ class MockExamRuleRows extends StatelessWidget {
                   ],
                 ),
               ),
-              if (subjectSummary.isNotEmpty) ...[
-                const SizedBox(height: PassqlSpacing.sm),
-                Text(
-                  subjectSummary,
-                  textAlign: TextAlign.center,
-                  style: PassqlTypography.footnote.copyWith(
-                    color: colors.secondaryLabel,
-                  ),
-                ),
-              ],
             ],
           ),
         ),
-        if (failSummary.isNotEmpty) ...[
+        // 과락 기준은 경고색 없이 과목별로 넘어야 할 점수 (#1041)
+        if (rule.subjects.isNotEmpty) ...[
           const SizedBox(height: PassqlSpacing.sm),
-          PassqlCallout(
-            kind: PassqlCalloutKind.warning,
-            icon: CupertinoIcons.exclamationmark_triangle_fill,
-            label: '과목별 과락',
-            child: PassqlKeepAllText(
-              '$failSummary 미만이면 총점과 상관없이 불합격',
-              style: PassqlTypography.subheadline.copyWith(color: colors.label),
-            ),
-          ),
+          _SubjectCutoffCard(subjects: rule.subjects),
         ],
         if (isDetailed) ...[
           const SizedBox(height: PassqlSpacing.md),
@@ -101,6 +77,107 @@ class MockExamRuleRows extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// 과목별 과락 기준: 제목 + 한 줄 설명 > 과목마다 칸 (과목·문항 수 / 기준 점수 이상)
+class _SubjectCutoffCard extends StatelessWidget {
+  const _SubjectCutoffCard({required this.subjects});
+
+  final List<MockExamSubjectRule> subjects;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    return PassqlCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            '과목별 과락 기준',
+            style: PassqlTypography.subheadlineSemibold.copyWith(
+              color: colors.label,
+            ),
+          ),
+          const SizedBox(height: PassqlSpacing.hairlineGap),
+          PassqlKeepAllText(
+            '한 과목이라도 기준 미만이면 총점과 상관없이 불합격이에요',
+            style: PassqlTypography.footnote.copyWith(
+              color: colors.secondaryLabel,
+            ),
+          ),
+          const SizedBox(height: PassqlSpacing.sm),
+          // 과목 칸 나란히 (높이는 가장 큰 칸 기준)
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final (index, subject) in subjects.indexed) ...[
+                  if (index > 0) const SizedBox(width: PassqlSpacing.xs),
+                  Expanded(child: _SubjectCutoffCell(subject: subject)),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 과목 칸 하나: 과목 이름(작게) > 기준 점수 이상(굵게) > 문항 수·만점(작게)
+class _SubjectCutoffCell extends StatelessWidget {
+  const _SubjectCutoffCell({required this.subject});
+
+  final MockExamSubjectRule subject;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    return Semantics(
+      container: true,
+      label:
+          '${subject.name} ${subject.questionCount}문항 ${subject.maxScore}점 만점, ${subject.failBelowScore}점 이상',
+      excludeSemantics: true,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          // 카드·시트 위 옅은 칸 (라이트·다크 모두 회색 채움)
+          color: colors.fill,
+          borderRadius: BorderRadius.circular(PassqlRadius.sm),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: PassqlSpacing.sm,
+            vertical: PassqlSpacing.xs,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              PassqlKeepAllText(
+                subject.name,
+                style: PassqlTypography.caption.copyWith(
+                  color: colors.secondaryLabel,
+                ),
+              ),
+              const SizedBox(height: PassqlSpacing.hairlineGap),
+              Text(
+                '${subject.failBelowScore}점 이상',
+                style: PassqlTypography.subheadlineSemibold.copyWith(
+                  color: colors.label,
+                  fontFeatures: PassqlTypography.tabular,
+                ),
+              ),
+              Text(
+                '${subject.questionCount}문항 · ${subject.maxScore}점 만점',
+                style: PassqlTypography.caption.copyWith(
+                  color: colors.secondaryLabel,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -1,14 +1,21 @@
 /// 알림 권한 안내 문구 (시트·설정 안내 공통 원본, 서비스 알림만 안내하고 광고·마케팅 표현 금지)
 abstract final class NotificationPermissionTexts {
-  static const String sheetTitle = '중요한 소식을 알려 드릴까요?';
-  static const String sheetDescription = '공부에 꼭 필요한 소식만 보내 드릴게요';
+  static const String sheetTitle = '시험 접수일, 놓치지 않게 알려 드릴까요?';
+  static const String sheetDescription = '이런 알림만 보내요';
 
-  /// 받게 되는 소식 3가지
-  static const List<String> receivedNewsLines = [
-    '서비스 공지·점검 안내',
-    '신고한 문제의 처리 결과',
-    '시험 일정·학습 알림',
+  /// 미리 보여 줄 알림 2개 (제목, 본문, 받은 때): 서버 원서접수 마감 D-1·신고 처리 결과 알림 문구 그대로 (#1041)
+  static const List<({String title, String body, String receivedAt})>
+  previewNotifications = [
+    (title: 'SQLD 원서접수 마감 D-1', body: '내일 원서접수가 끝나요', receivedAt: '지금'),
+    (
+      title: '신고하신 문제를 처리했어요',
+      body: '제보해 주신 내용을 확인하고 처리를 마쳤어요',
+      receivedAt: '어제',
+    ),
   ];
+
+  /// 보내는 알림 종류 한 줄 요약
+  static const String sentKindsSummary = '시험 일정 · 학습 알림 · 신고 처리 결과 · 점검 안내만 보내요';
 
   static const String optionalNotice = '알림을 꺼도 모든 기능을 쓸 수 있어요';
   static const String acceptLabel = '알림 받기';
