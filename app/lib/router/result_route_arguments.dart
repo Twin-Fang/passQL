@@ -7,6 +7,9 @@ class QuestionResultArguments {
   final SubmitResult result;
   final String? correctDisplayLabel;
 
+  /// 정답 보기 본문 (개념 보기는 SQL 이 없어 라벨만으로는 내용을 알 수 없음, #995)
+  final String? correctChoiceBody;
+
   /// 고른 보기 키 (없으면 서버가 마지막 제출로 찾음)
   final String? selectedChoiceKey;
 
@@ -16,6 +19,7 @@ class QuestionResultArguments {
   const QuestionResultArguments({
     required this.result,
     this.correctDisplayLabel,
+    this.correctChoiceBody,
     this.selectedChoiceKey,
     this.displayLabelByChoiceKey = const {},
   });

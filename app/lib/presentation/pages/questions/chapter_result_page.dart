@@ -122,7 +122,7 @@ class _Analysis extends StatelessWidget {
     } else if (accuracy >= 70) {
       feedback = '잘 하고 있어요! 틀린 문제를 다시 복습해보세요.';
     } else if (accuracy >= 50) {
-      feedback = '조금 더 연습이 필요해요. 오답 문제를 꼭 확인하세요.';
+      feedback = '조금 더 연습이 필요해요. 오답 문제를 꼭 확인해 보세요.';
     } else {
       feedback = '다시 한 번 도전해보세요. 꾸준히 풀다 보면 실력이 쌓여요!';
     }

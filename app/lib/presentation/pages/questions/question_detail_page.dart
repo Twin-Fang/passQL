@@ -11,6 +11,7 @@ import '../../widgets/practice/daily_limit_reward_view.dart';
 import '../../widgets/pro/pro_access_feedback.dart';
 import '../../widgets/question/question_sections.dart';
 import '../../widgets/question/question_load_error_view.dart';
+import '../../widgets/question/question_pro_access_notice.dart';
 import '../../widgets/question/question_solving_body.dart';
 import '../../widgets/question/question_solving_skeleton.dart';
 import '../../widgets/question/choice_display_label.dart';
@@ -58,6 +59,30 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
     });
   }
 
+  /// 선택지 생성 실패 안내 (챕터 풀이와 같은 공통 지점, #995)
+  final QuestionProAccessNotice _proAccessNotice = QuestionProAccessNotice();
+
+  /// 알림 진입 첫 선택지 실패 이벤트: 시트 없이 본문 안내만 (§4-5), 다시 시도한 실패부터 시트
+  Object? _pushEntryChoiceFailure;
+
+  void _noticeChoiceGenerationFailureOnce(
+    QuestionInteractionState interaction,
+    QuestionInteractionNotifier notifier,
+  ) {
+    final sseError = interaction.sseError;
+    if (sseError == null) return;
+    if (widget.isPushEntry && _pushEntryChoiceFailure == null) {
+      _pushEntryChoiceFailure = sseError;
+    }
+    if (identical(sseError, _pushEntryChoiceFailure)) return;
+    _proAccessNotice.showOnceForChoiceGeneration(
+      context,
+      ref,
+      interaction,
+      notifier,
+    );
+  }
+
   /// 문제 상세 다시 받기 (오류 안내도 다시 가능)
   void _retryQuestionDetail() {
     _isProAccessNoticed = false;
@@ -73,6 +98,9 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
     final notifier = ref.read(
       questionInteractionProvider(widget.questionUuid).notifier,
     );
+    _noticeChoiceGenerationFailureOnce(interaction, notifier);
+    // 선택지 받기가 하루 한도로 막힘 > 본문은 한도 화면, 하단 바 없음
+    final choiceLimitFailure = dailyLimitFailureOfChoiceGeneration(interaction);
 
     return Scaffold(
       // 하단 제출 바(글래스) 뒤로 본문이 비쳐 보이도록 body 를 바 아래까지 확장한다.
@@ -108,6 +136,13 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
               });
             }
 
+            if (choiceLimitFailure != null) {
+              return QuestionLoadErrorView(
+                key: const ValueKey('limit'),
+                error: choiceLimitFailure,
+                onRetry: notifier.startSseGeneration,
+              );
+            }
             return QuestionSolvingBody(
               key: const ValueKey('data'),
               questionUuid: widget.questionUuid,
@@ -115,11 +150,13 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
               interaction: interaction,
               notifier: notifier,
               shouldShowChoiceModeIndicator: !widget.isWrongNoteRetry,
+              // 재시도가 소용없는 오류여도 다시 눌러 볼 수 있게 (막다른 길 방지)
+              shouldAlwaysAllowRetry: true,
             );
           },
         ),
       ),
-      bottomNavigationBar: detailAsync.hasValue
+      bottomNavigationBar: detailAsync.hasValue && choiceLimitFailure == null
           ? QuestionSubmitBar(
               interaction: interaction,
               onSubmit: () => _submitAnswer(context, notifier),
@@ -157,6 +194,10 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
       extra: QuestionResultArguments(
         result: submitResult,
         correctDisplayLabel: findChoiceDisplayLabel(
+          interaction.activeChoices,
+          submitResult.correctKey,
+        ),
+        correctChoiceBody: findChoiceBody(
           interaction.activeChoices,
           submitResult.correctKey,
         ),

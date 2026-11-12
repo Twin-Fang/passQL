@@ -21,13 +21,19 @@ class PushEntryMarker {
 
 /// 알림 탭 이동: 탭 루트는 바로 이동, 풀스크린은 홈 위에 쌓음 (뒤로 가기 > 홈)
 /// 홈이 아니면 홈 이동이 반영된 뒤 push (먼저 push 하면 늦게 끝난 go 가 덮어씀)
-Future<void> openPushLink(GoRouter router, PushLink link) async {
+/// [shouldStackOnCurrentScreen]: 알림함에서 연 풀스크린은 지금 화면 위에 쌓음 (뒤로 가기 > 알림함, #995)
+Future<void> openPushLink(
+  GoRouter router,
+  PushLink link, {
+  bool shouldStackOnCurrentScreen = false,
+}) async {
   final location = toPushLinkLocation(link);
   if (AppRoutes.tabRoots.contains(location)) {
     router.go(location);
     return;
   }
-  if (router.state.matchedLocation != AppRoutes.home) {
+  if (!shouldStackOnCurrentScreen &&
+      router.state.matchedLocation != AppRoutes.home) {
     final homeApplied = _waitForNextRouteChange(router);
     router.go(AppRoutes.home);
     await homeApplied;

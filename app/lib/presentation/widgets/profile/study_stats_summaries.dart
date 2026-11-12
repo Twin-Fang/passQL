@@ -1,3 +1,4 @@
+import '../../../core/utils/date_format.dart';
 import '../../../data/models/progress/weekly_wrong_count.dart';
 
 /// 요일 이름 (서버 weekdayAttemptCounts·busiestWeekdayIndex 순서: 월 0 ~ 일 6)
@@ -17,7 +18,7 @@ String toSpokenHourLabel(int hour) {
 String toMonthDayLabel(String isoDate) {
   final parsed = DateTime.tryParse(isoDate);
   if (parsed == null) return isoDate;
-  return '${parsed.month}/${parsed.day}';
+  return formatSlashMonthDay(parsed);
 }
 
 /// 정답률 % (반올림, 풀이 없으면 0)

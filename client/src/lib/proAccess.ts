@@ -42,6 +42,12 @@ export function shouldShowProBadgeForPlan(plan: MemberPlanResponse | undefined):
   return !!plan && plan.isBillingEnabled && plan.plan === PLAN_PRO;
 }
 
+/** 오늘 남은 크레딧 (앱 remainingFreeSolves 와 같은 계산, 0 아래로 내려가지 않음). 잠금 UI 대상이 아니면 null */
+export function remainingCreditsOfPlan(plan: MemberPlanResponse | undefined): number | null {
+  if (!plan || !shouldShowProUiForPlan(plan)) return null;
+  return Math.max(0, plan.todayFreeLimit - plan.todayRandomSolvedCount);
+}
+
 /** 오류 > 프로 접근 오류 코드 (그 외 오류는 null) */
 export function toProAccessErrorCode(error: unknown): ProAccessErrorCode | null {
   return toProAccessErrorCodeFromErrorCode(toApiErrorCode(error));

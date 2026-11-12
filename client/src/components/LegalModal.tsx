@@ -86,7 +86,7 @@ export default function LegalModal({
           {fetchError && (
             <div className="flex flex-col items-center gap-3 py-8">
               <p className="text-sm text-semantic-error text-center">
-                {LEGAL_TITLE[type]}을 불러오지 못했습니다.
+                {LEGAL_TITLE[type]}을 불러오지 못했어요
               </p>
               <button
                 type="button"

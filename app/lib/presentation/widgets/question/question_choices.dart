@@ -136,8 +136,8 @@ class _RunChoiceHint extends StatelessWidget {
           Expanded(
             child: Text(
               isGraded
-                  ? '보기를 누르면 실제 DB 에서 실행한 결과를 볼 수 있어요'
-                  : '제출하면 보기마다 실제 DB 에서 실행해 볼 수 있어요',
+                  ? '보기를 누르면 실제 DB에서 실행한 결과를 볼 수 있어요'
+                  : '제출하면 보기마다 실제 DB에서 실행해 볼 수 있어요',
               style: PassqlTypography.footnote.copyWith(
                 color: colors.secondaryLabel,
               ),

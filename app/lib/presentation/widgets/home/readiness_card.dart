@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/utils/readiness_guide_message.dart';
 import '../../../data/models/progress/readiness_response.dart';
 import '../../design/design.dart';
 
@@ -37,11 +38,17 @@ class ReadinessCard extends StatelessWidget {
     // 홈: 겹친 링(정확도·범위·최신성) + 오른쪽 범례 (#701). 통계 화면은 아래 카드 그대로
     // 면은 홈이 감싼다 (인사말과 같은 첫 구간). 인사말 바로 아래라 제목 없이 링부터 (#701),
     // '합격 준비도' 는 스크린리더 문구에 들어 있다
+    // 홈 링 아래 문구는 준비도 수치 한 줄 (시험 임박 문구는 D-day 배지·인사말과 겹쳐 쓰지 않음, #995)
     if (isSection) {
       return _HomeReadinessBody(
         readiness: readiness,
         scorePercent: scorePercent,
-        message: message,
+        message: readinessGuideMessage(
+          score: readiness.score,
+          accuracy: readiness.accuracy,
+          coverage: readiness.coverage,
+          recency: readiness.recency,
+        ),
       );
     }
 

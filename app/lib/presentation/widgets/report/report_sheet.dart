@@ -144,20 +144,7 @@ class _ReportSheetState extends ConsumerState<ReportSheet> {
                 ),
               ),
             ],
-            SizedBox(
-              height: PassqlSize.messageSlotHeight,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: _error == null
-                    ? null
-                    : Text(
-                        _error!,
-                        style: PassqlTypography.caption.copyWith(
-                          color: colors.wrongText,
-                        ),
-                      ),
-              ),
-            ),
+            PassqlMessageSlot(message: _error),
             PassqlButton(
               label: '신고하기',
               isLoading: _isSending,

@@ -45,9 +45,10 @@ class QuestionHeader extends StatelessWidget {
                           ? CupertinoIcons.star_fill
                           : CupertinoIcons.star,
                       size: PassqlIconSize.sm,
+                      // 별 대비 3:1 이상: 채운 별 warningText, 빈 별 iconSecondary
                       color: i < difficulty
-                          ? colors.warning
-                          : colors.tertiaryLabel,
+                          ? colors.warningText
+                          : colors.iconSecondary,
                     ),
                   ),
                 ),

@@ -9,6 +9,8 @@ import '../../core/auth/token_store.dart';
 import '../../core/billing/pro_access_denied_interceptor.dart';
 import '../../core/billing/pro_access_denied_signal.dart';
 import '../../core/network/dio_client.dart';
+import '../../core/network/service_maintenance_interceptor.dart';
+import '../../core/network/service_maintenance_signal.dart';
 import 'ai_api.dart';
 import 'auth_api.dart';
 import 'billing_api.dart';
@@ -39,6 +41,7 @@ final authApiProvider = Provider<AuthApi>(
 /// 모든 요청에 Bearer 토큰을 붙이고 401 시 자동 재발급한다.
 /// 이용 제한(403 MEMBER_SUSPENDED) 응답은 이용 제한 신호로 알린다.
 /// 프로 접근 거부(403 PRO_REQUIRED·FREE_DAILY_LIMIT_REACHED) 응답은 프로 접근 거부 신호로 알린다.
+/// 점검 중(SERVICE_UNDER_MAINTENANCE) 응답은 점검 신호로 알린다.
 final dioProvider = Provider<Dio>((ref) {
   final dio = buildBackendDio();
   dio.interceptors.insert(
@@ -65,6 +68,15 @@ final dioProvider = Provider<Dio>((ref) {
     2,
     ProAccessDeniedInterceptor(
       onProAccessDenied: ref.read(proAccessDeniedSignalProvider).announceDenied,
+    ),
+  );
+  // 점검 신호만 보냄 (설정 재조회·점검 화면 이동은 구독하는 AppLaunchGateRouting 몫)
+  dio.interceptors.insert(
+    3,
+    ServiceMaintenanceInterceptor(
+      onServiceUnderMaintenance: ref
+          .read(serviceMaintenanceSignalProvider)
+          .announceUnderMaintenance,
     ),
   );
   return dio;

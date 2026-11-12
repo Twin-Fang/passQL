@@ -48,8 +48,8 @@ class _RecommendedUpdatePrompterState
       context,
       title: '새 버전이 나왔어요',
       message: hasStoreUrl
-          ? '더 나아진 passQL 을 최신 버전 $recommendedVersion 에서 만나 보세요.'
-          : '스토어에서 passQL 최신 버전 $recommendedVersion 으로 업데이트할 수 있어요.',
+          ? '더 나아진 passQL을 최신 버전 $recommendedVersion에서 만나 보세요.'
+          : '스토어에서 passQL 최신 버전 $recommendedVersion으로 업데이트할 수 있어요.',
       confirmLabel: hasStoreUrl ? '업데이트' : '확인',
       cancelLabel: '나중에',
       isDestructive: false,

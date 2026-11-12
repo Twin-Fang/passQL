@@ -48,7 +48,7 @@ class NotificationListRow extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 안 읽음 점 (읽으면 자리만 유지해 제목 정렬 고정)
+            // 안 읽음 점 (읽으면 자리만 유지해 제목 정렬 고정), 종 아이콘 개수 배지와 같은 색
             Padding(
               padding: const EdgeInsets.only(top: PassqlSpacing.xs),
               child: Container(
@@ -56,7 +56,7 @@ class NotificationListRow extends StatelessWidget {
                 height: PassqlSize.unreadDot,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: item.isRead ? null : colors.warning,
+                  color: item.isRead ? null : colors.countBadge,
                 ),
               ),
             ),
