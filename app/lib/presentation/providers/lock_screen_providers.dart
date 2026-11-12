@@ -10,6 +10,7 @@ import '../../core/storage/device_preferences.dart';
 import '../../core/storage/storage_keys.dart';
 import '../../core/utils/app_clock.dart';
 import '../../data/models/member/member_plan_response.dart';
+import 'dev_situation_overrides.dart';
 import 'app_config_providers.dart';
 import 'plan_providers.dart';
 
@@ -28,10 +29,12 @@ String toLockScreenIntervalLabel(int intervalMinutes) =>
       _ => '$intervalMinutes분마다',
     };
 
-/// 잠금화면 기능을 보일지: Android + 서버 전체 스위치 켜짐 (설정 못 받으면 숨김)
+/// 잠금화면 기능을 보일지: Android + (서버 전체 스위치 켜짐 또는 개발자 도구 강제 켜기) (설정 못 받으면 숨김)
 final isLockScreenAvailableProvider = Provider<bool>((ref) {
   if (!ref.watch(lockScreenBridgeProvider).isLockScreenSupported) return false;
-  return ref.watch(appConfigProvider).valueOrNull?.isLockScreenEnabled ?? false;
+  final isServerEnabled =
+      ref.watch(appConfigProvider).valueOrNull?.isLockScreenEnabled ?? false;
+  return isServerEnabled || ref.watch(devLockScreenForcedProvider);
 });
 
 /// 서버 기본 간격 (분, 사용자가 고르기 전 값)

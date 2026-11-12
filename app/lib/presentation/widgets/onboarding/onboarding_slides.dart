@@ -137,14 +137,15 @@ class _ExplainSlide extends StatelessWidget {
                 children: [
                   const PassqlAiHeader(title: 'AI 해설'),
                   const SizedBox(height: PassqlSpacing.xs),
-                  // 실제 해설처럼 단어가 차례로 나타남 (동작 줄이기면 바로)
-                  const MarkdownLiteText(
-                    '**HAVING**은 GROUP BY로 묶은 결과를 거를 때 써요. '
-                    '묶지 않은 행을 거르려면 **WHERE**를 써야 해요.',
-                    isAnimated: true,
+                  // 실제 해설처럼: 글 줄 스켈레톤 잠깐 > 단어가 차례로 나타남 (동작 줄이기면 바로 글)
+                  const OnboardingRunReveal(
+                    loadingPlaceholder: PassqlTextSkeleton(lineCount: 2),
+                    child: MarkdownLiteText(
+                      '**HAVING**은 GROUP BY로 묶은 결과를 거를 때 써요. '
+                      '묶지 않은 행을 거르려면 **WHERE**를 써야 해요.',
+                      isAnimated: true,
+                    ),
                   ),
-                  const SizedBox(height: PassqlSpacing.sm),
-                  const PassqlTextSkeleton(lineCount: 2),
                 ],
               ),
             ),
