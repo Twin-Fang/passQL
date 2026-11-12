@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,13 +8,12 @@ import '../../../presentation/providers/exam_trend_providers.dart';
 import '../../../presentation/providers/topic_providers.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
-import '../../flows/random_practice_flow.dart';
 import '../../providers/plan_providers.dart';
 import '../../providers/pro_ui_providers.dart';
 import '../../widgets/ads/ad_native_slot.dart';
 import '../../widgets/exam_trend/concept_ranking_tab_view.dart';
 import '../../widgets/exam_trend/latest_trend_tab_view.dart';
-import '../../widgets/practice/open_random_practice.dart';
+import '../../widgets/practice/random_practice_row.dart';
 import '../../widgets/pro/locked_preview_samples.dart';
 import '../../widgets/pro/pro_locked_section.dart';
 import '../../widgets/pro/pro_plan_chip_slot.dart';
@@ -271,16 +269,8 @@ class _RandomPracticeSection extends ConsumerWidget {
         child: PassqlGroupedSection(
           header: '풀기 방식',
           children: [
-            PassqlListRow(
-              leading: PassqlIconTile(
-                icon: CupertinoIcons.shuffle,
-                color: context.passqlColors.accent,
-              ),
-              title: RandomPracticeFlow.displayName,
-              subtitle: RandomPracticeFlow.summary,
-              hasChevron: true,
-              onTap: () => openRandomPractice(context, ref),
-            ),
+            // 크레딧 0 부제·화살표 판정은 홈 행과 같음
+            const RandomPracticeRow(),
             if (hasMockExamRow) const MockExamEntryRow(),
           ],
         ),

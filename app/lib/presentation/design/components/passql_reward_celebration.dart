@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/utils/daily_set_bonus_rule.dart';
 import '../passql_haptics.dart';
 import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
@@ -11,9 +12,12 @@ const double _gaugeHeight = 8;
 
 /// 보상 연출 이유 문구 (광고·세트 완료·세트 정답, 보상 받은 화면 공통)
 abstract final class PassqlRewardReason {
-  static const adWatched = '광고를 끝까지 봐서 열렸어요';
-  static const dailySetCompleted = '오늘의 세트를 끝내서 열렸어요';
-  static const dailySetAccurate = '세트에서 4개 이상 맞혀서 열렸어요';
+  static const adWatched = '광고를 끝까지 봐서 받았어요';
+  static const dailySetCompleted = '오늘의 세트를 끝내서 받았어요';
+
+  /// 세트 정답 80%: 배정 문제 수 > 기준 맞힌 수를 문장에 (예: 5문제 > 4개)
+  static String dailySetAccurateOf(int assignedQuestionCount) =>
+      '${DailySetBonusRule.accuracyLabel}(${DailySetBonusRule.accuracyCorrectCountOf(assignedQuestionCount)}개 이상)를 채워서 받았어요';
 }
 
 /// 보상 연출: 가운데 패널에 +N문제 팝 > 이유 > 남은 수 게이지·숫자 차오름 > 주 버튼
