@@ -2,7 +2,7 @@
 type: cluster
 topic: practice
 created: 2026-10-29
-members: 181
+members: 187
 status: active
 related: []
 ---
@@ -13,9 +13,12 @@ related: []
 문제 풀이·제출·실행 결과·오늘의 세트·데일리 챌린지·실전 모드
 
 ## 현재 상태 요약
-(2026-11-07, 자동 생성) 활성 결정 39개, 열린 이슈 2개. 풀이 화면 보기 방식 칩은 제출 전이면 지금 문제부터, 제출 뒤면 다음 풀이부터 적용하고 같은 화면 생성은 겹치지 않으며, 오답 노트 다시 풀기에서는 숨긴다. 바꾸는 곳은 풀이 칩과 설정이고 웹도 회원 방식을 지킨다: [[DEC-0275-choice-mode-chip-applies-before-submit]] (#907, #913, DEC-0261 대체). 지문은 블록으로 나눠 그리고 표는 지문 카드 안 한 가지 모양(행 전부, 같은 컬럼 표 한 번): [[DEC-0278-stem-blocks-single-table-shape]] (#903). 풀이 화면 메모(끄면 터치 통과, 서버 저장 없음): [[ISS-0473-solving-memo-pen-toggle]]. 풀이 중 모의고사 회차는 안내 없이 이어 풀기: [[ISS-0471-mock-exam-resume-shows-start-guide]]. 이상 2026-11-07 main 머지, 배포 전. 내린 보기 묶음(DISABLED·REPORTED)·비활성 문제는 열기·채점 모두 `CHOICE_SET_UNAVAILABLE`, 무료 제출은 샌드박스를 실행하지 않는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 무료 하루 한도 판정은 제출 기록 트랜잭션 안 회원 행 잠금 뒤 — [[DEC-0271-daily-limit-judged-in-submit-record-tx]] (PR #898 머지, [[ISS-0469-billing-switch-unverified-screens-races]] 열림). 웹 선택지 생성 시작 전 거부는 `errorCode` 사유를 보여 준다 — [[ISS-0468-web-audit-cross-tab-reissue-logout]]. SQLD 모의고사(고정 회차, 서버 판정, 무료 1회) — [[DEC-0264-mock-exam-fixed-rounds-server-judged]] (PR #889 머지, 이슈 #866 열림). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 무료 랜덤 풀기는 10문제 묶음 없이 이어 풀고 남은 수를 늘 보여 주며, 서버는 안 푼 문제를 먼저 낸다 — [[DEC-0283-daily-limit-view-reward-first]], [[DEC-0282-ad-bonus-unlimited-fair-use-200]] (#963, PR #964). (2026-11-12) 무료 랜덤 한도는 크레딧, 풀이 상단은 제목·해설함·크레딧 알약만 — [[DEC-0287-credit-term-top-bar-balance]].
+(2026-11-07, 자동 생성) 활성 결정 39개, 열린 이슈 2개. 풀이 화면 보기 방식 칩은 제출 전이면 지금 문제부터, 제출 뒤면 다음 풀이부터 적용하고 같은 화면 생성은 겹치지 않으며, 오답 노트 다시 풀기에서는 숨긴다. 바꾸는 곳은 풀이 칩과 설정이고 웹도 회원 방식을 지킨다: [[DEC-0275-choice-mode-chip-applies-before-submit]] (#907, #913, DEC-0261 대체). 지문은 블록으로 나눠 그리고 표는 지문 카드 안 한 가지 모양(행 전부, 같은 컬럼 표 한 번): [[DEC-0278-stem-blocks-single-table-shape]] (#903). 풀이 화면 메모(끄면 터치 통과, 서버 저장 없음): [[ISS-0473-solving-memo-pen-toggle]]. 풀이 중 모의고사 회차는 안내 없이 이어 풀기: [[ISS-0471-mock-exam-resume-shows-start-guide]]. 이상 2026-11-07 main 머지, 배포 전. 내린 보기 묶음(DISABLED·REPORTED)·비활성 문제는 열기·채점 모두 `CHOICE_SET_UNAVAILABLE`, 무료 제출은 샌드박스를 실행하지 않는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 무료 하루 한도 판정은 제출 기록 트랜잭션 안 회원 행 잠금 뒤 — [[DEC-0271-daily-limit-judged-in-submit-record-tx]] (PR #898 머지, [[ISS-0469-billing-switch-unverified-screens-races]] 열림). 웹 선택지 생성 시작 전 거부는 `errorCode` 사유를 보여 준다 — [[ISS-0468-web-audit-cross-tab-reissue-logout]]. SQLD 모의고사(고정 회차, 서버 판정, 무료 1회) — [[DEC-0264-mock-exam-fixed-rounds-server-judged]] (PR #889 머지, 이슈 #866 열림). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 무료 랜덤 풀기는 10문제 묶음 없이 이어 풀고 남은 수를 늘 보여 주며, 서버는 안 푼 문제를 먼저 낸다 — [[DEC-0283-daily-limit-view-reward-first]], [[DEC-0282-ad-bonus-unlimited-fair-use-200]] (#963, PR #964). (2026-11-12) 무료 랜덤 한도는 크레딧, 풀이 상단은 제목·해설함·크레딧 알약만 — [[DEC-0287-credit-term-top-bar-balance]]. (2026-11-12) 잠금화면 문제(Android)는 무료도 하루 크레딧을 같이 쓰고 프로는 한 문제 더 — [[DEC-0290-lock-screen-question-policy]](배포 앱은 Play 권한 신고 전까지 숨김, [[ISS-0499-play-fgs-declaration-lock-screen]]). 무료 해설은 기본 해설 한 단락 공개 — [[DEC-0291-free-basic-explanation-pro-detail-shape-only]]. 지문 스키마 표는 이름 기준 대체 — [[DEC-0292-stem-table-match-by-name-short-code-caption]]. 결과 요약 위에서 연 문제를 닫으면 요약으로 — [[ISS-0503-result-summary-close-goes-home]].
 
 ## 활성 결정
+- [[DEC-0290-lock-screen-question-policy]] — 잠금화면 문제(Android): 무료도 하루 크레딧 공유, 프로 한 문제 더, 광고·결제는 잠금 풀고 앱에서 (#990, 현재 배포 앱은 #1002로 숨김)
+- [[DEC-0291-free-basic-explanation-pro-detail-shape-only]] — 무료/프로 경계: 무료도 정답 해설(기본 해설) 한 단락, PRO 상세 답안지는 구성·길이만 흐리게 (#999, DEC-0004 대체)
+- [[DEC-0292-stem-table-match-by-name-short-code-caption]] — 스키마 표는 이름이 같은 지문 표 자리에만, 코드 제목은 짧은 이름표 주석만 (#1015, DEC-0278 대체)
 - [[DEC-0017-fullscreen-result-screen]] — 제출 결과 화면은 풀스크린 1종으로 통일 (bottom sheet 변형 미채택)
 - [[DEC-0040-choice-response-hides-answer]] — 선택지 생성 응답에는 정답·해설을 넣지 않고, 정답 판정은 제출 시 서버가 `choiceSetId`의 선택지 세트로 한다
 - [[DEC-0041-result-screen-by-execution-mode]] — 제출 결과는 `executionMode`로 나눈다 — EXECUTABLE은 SQL과 실행 결과 비교, CONCEPT_ONLY는 텍스트 비교만
@@ -54,13 +57,13 @@ related: []
 - [[DEC-0264-mock-exam-fixed-rounds-server-judged]] — SQLD 모의고사: 관리자 고정 회차(검증 세트), 시간·채점·응시 수 서버 판정, 무료 1회 체험·프로 무제한 (#866)
 - [[DEC-0271-daily-limit-judged-in-submit-record-tx]] — 무료 하루 한도 판정은 제출 기록 트랜잭션 안, 회원 행 잠금 뒤 (#867, PR #898)
 - [[DEC-0275-choice-mode-chip-applies-before-submit]]: 보기 방식 칩은 제출 전이면 지금 문제부터, 제출 뒤면 다음 풀이부터, 생성 겹침 없음, 오답 노트에서 숨김, 바꾸는 곳은 풀이 칩과 설정 (#907, #913, DEC-0261 대체)
-- [[DEC-0278-stem-blocks-single-table-shape]]: 지문은 블록(단락, 보조 설명, 질문, 목록, 표, 코드)으로 앱과 웹 같은 규칙, 표는 지문 카드 안 한 가지 모양(컬럼 이름 + PK, FK, 행 전부), 같은 컬럼 표는 한 번 (#903)
 - [[DEC-0282-ad-bonus-unlimited-fair-use-200]] — 광고 보너스 +5 횟수 제한 없음, 무료·프로 공통 하루 200 공정 사용 상한, 옛 앱 호환 `adBonusMaxCount = 받은 횟수 + 1` (#963, DEC-0239 대체)
 - [[DEC-0283-daily-limit-view-reward-first]] — 무료 랜덤은 끊기지 않게 이어 풀기, 남은 수 상시 표시, 한도 화면은 광고 > 오늘의 세트 > 이용권 한 줄 (#963)
 - [[DEC-0285-result-rewarded-interstitial]] — 결과 화면 일반 전면 광고 > 보상형 전면 광고(+5), 토픽 결과는 들어올 때·세트 결과는 떠날 때 (#963)
 - [[DEC-0287-credit-term-top-bar-balance]] — 무료 한도는 `크레딧`, 잔액은 탭 상단 바 알약(누르면 크레딧 시트: PRO 주 버튼 > 광고 > 오늘의 세트), 상태는 아이콘·색 (#966, #971)
 
 ## 대체된 결정 (역사)
+- [[DEC-0278-stem-blocks-single-table-shape]] → DEC-0292
 - [[DEC-0087-choice-generation-practice-real-mode]] → DEC-0251
 - [[DEC-0055-multiple-correct-ai-fallback-save]] → DEC-0250
 - [[DEC-0050-result-match-text-choices]] → DEC-0249
@@ -72,6 +75,9 @@ related: []
 - [[DEC-0261-real-mode-renamed-new-choices]] → DEC-0275
 
 ## 관련 이슈
+- [[ISS-0501-lock-screen-question-android]] (resolved, #990): 잠금화면 위 SQLD 문제 1개(Android), 서버 출제 API·운영 설정 3개
+- [[ISS-0502-stem-table-same-columns-overwritten]] (resolved, #1015): 이름 다른 같은 컬럼 표가 지문 표를 덮음, 제약 주석이 코드 제목으로
+- [[ISS-0503-result-summary-close-goes-home]] (resolved, #1016): 결과 요약 위에서 연 문제 닫으면 홈으로
 - [[ISS-0496-daily-set-free-trial-sql-ai]] (resolved, #992): 오늘의 세트 무료 SQL 실행·AI 해설 체험
 - [[ISS-0498-second-audit-ui-state-35]] (resolved, #995): 풀이·결과·상태 처리 2차 점검
 - [[ISS-0492-credit-history-server-and-screen]] (resolved, GitHub #974, PR #978): 날짜별 크레딧 내역 API 없음 > credit-history API와 내역 화면
