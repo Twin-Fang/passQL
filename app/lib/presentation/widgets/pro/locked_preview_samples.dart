@@ -43,15 +43,15 @@ class ExplanationLockedSample extends StatelessWidget {
       children: [
         _SampleSection(
           title: '정답 근거',
-          body: 'GROUP BY 절에 없는 컬럼은 집계 함수 없이 SELECT 에 쓸 수 없어요.',
+          body: 'GROUP BY 절에 없는 컬럼은 집계 함수 없이 SELECT에 쓸 수 없어요.',
         ),
         _SampleSection(
           title: '핵심 개념',
-          body: 'WHERE 는 그룹으로 묶기 전에, HAVING 은 묶은 뒤에 조건을 걸어요.',
+          body: 'WHERE는 그룹으로 묶기 전에, HAVING은 묶은 뒤에 조건을 걸어요.',
         ),
         _SampleSection(
           title: '헷갈리는 지점',
-          body: 'COUNT(*) 는 NULL 도 세고, COUNT(컬럼) 은 NULL 을 빼고 세요.',
+          body: 'COUNT(*)는 NULL도 세고, COUNT(컬럼)은 NULL을 빼고 세요.',
         ),
         _SampleSection(title: '시험 팁', body: '보기마다 실행 순서를 한 줄씩 적어 보면 함정이 보여요.'),
       ],
@@ -198,7 +198,7 @@ class MockExamReviewLockedSample extends StatelessWidget {
       children: [
         _SampleSection(
           title: '23번 · 정답 C',
-          body: 'GROUP BY 가 없으면 조건이 거짓이어도 COUNT 는 0 한 행을 돌려줘요.',
+          body: 'GROUP BY가 없으면 조건이 거짓이어도 COUNT는 0 한 행을 돌려줘요.',
         ),
         _SampleSection(title: '내가 고른 B', body: '공집합으로 착각하기 쉬운 함정이에요.'),
       ],

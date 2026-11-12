@@ -89,7 +89,7 @@ class SqlPracticeCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              '정답 SQL 의 값을 바꿔 실제 DB 에서 실행해 보세요',
+              '정답 SQL의 값을 바꿔 실제 DB에서 실행해 보세요',
               style: PassqlTypography.footnote.copyWith(
                 color: colors.secondaryLabel,
               ),
@@ -156,7 +156,7 @@ class _PracticeSqlPreview extends StatelessWidget {
         ),
         child: sql.trim().isEmpty
             ? Text(
-                '눌러서 SQL 을 써 보세요',
+                '눌러서 SQL을 써 보세요',
                 style: PassqlTypography.code.copyWith(
                   color: colors.secondaryLabel,
                 ),

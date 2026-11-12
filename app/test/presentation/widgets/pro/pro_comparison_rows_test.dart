@@ -20,5 +20,8 @@ void main() {
     expect(byLabel['광고']?.free, '있음');
     expect(byLabel['광고']?.pro, '없음');
     expect(byLabel['모의고사']?.free, '1회 체험');
+    // 무료도 오늘의 세트는 실행·전체 해설 (#992)
+    expect(byLabel['SQL 실행']?.free, '오늘의 세트');
+    expect(byLabel['해설']?.free, '한 줄 (세트 전체)');
   });
 }

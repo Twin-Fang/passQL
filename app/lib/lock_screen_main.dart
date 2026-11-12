@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app_bootstrap.dart';
 import 'core/monitoring/firebase_analytics_backend.dart';
 import 'core/monitoring/firebase_crash_reporter.dart';
+import 'core/utils/app_locale_settings.dart';
 import 'presentation/design/design.dart';
 import 'presentation/pages/lock_screen/lock_screen_page.dart';
 import 'presentation/providers/auth_provider.dart';
@@ -48,6 +49,9 @@ class LockScreenApp extends ConsumerWidget {
     return MaterialApp(
       title: 'passQL',
       debugShowCheckedModeBanner: false,
+      locale: AppLocaleSettings.locale,
+      supportedLocales: AppLocaleSettings.supportedLocales,
+      localizationsDelegates: AppLocaleSettings.localizationsDelegates,
       theme: PassqlTheme.light,
       darkTheme: PassqlTheme.dark,
       themeMode: ref.watch(themeModeProvider),

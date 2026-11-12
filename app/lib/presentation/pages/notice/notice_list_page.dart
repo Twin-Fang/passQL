@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
+import '../../widgets/common/load_more_status_sliver.dart';
 import '../../providers/notice_providers.dart';
 import '../../widgets/common/load_more_scroll_metrics.dart';
 import '../../widgets/notice/notice_list_row.dart';
@@ -56,7 +57,7 @@ class _NoticeListPageState extends ConsumerState<NoticeListPage> {
           ? PassqlStatusView.error(
               message: noticeList.error is AppException
                   ? (noticeList.error! as AppException).message
-                  : '공지를 불러오지 못했어요.',
+                  : PassqlLoadFailureCopy.messageOf('공지를'),
               onRetry: () => ref.invalidate(noticeListProvider),
             )
           : const PassqlStatusView.loading();
@@ -94,20 +95,19 @@ class _NoticeListPageState extends ConsumerState<NoticeListPage> {
                     NoticeListRow(
                       key: ValueKey(notice.noticeUuid),
                       notice: notice,
-                      onTap: () =>
-                          context.push(AppRoutes.noticeDetail(notice.noticeUuid)),
+                      onTap: () => context.push(
+                        AppRoutes.noticeDetail(notice.noticeUuid),
+                      ),
                     ),
                 ],
               ),
             ),
           ),
-        if (listState.isLoadingMore)
-          const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(PassqlSpacing.md),
-              child: Center(child: PassqlLoadingIndicator()),
-            ),
-          ),
+        LoadMoreStatusSliver(
+          isLoadingMore: listState.isLoadingMore,
+          hasLoadMoreFailed: listState.hasLoadMoreFailed,
+          onRetry: ref.read(noticeListProvider.notifier).loadMore,
+        ),
         SliverToBoxAdapter(
           child: SizedBox(
             height: MediaQuery.paddingOf(context).bottom + PassqlSpacing.xl,

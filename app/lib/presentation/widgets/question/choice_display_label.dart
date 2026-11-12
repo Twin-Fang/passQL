@@ -12,6 +12,15 @@ String? findChoiceDisplayLabel(List<ChoiceItem> choices, String? choiceKey) {
   return displayIndex < 0 ? choiceKey : toChoiceDisplayLabel(displayIndex);
 }
 
+/// 보기 목록 + choiceKey > 보기 본문 (목록에 없거나 키가 없으면 null)
+String? findChoiceBody(List<ChoiceItem> choices, String? choiceKey) {
+  if (choiceKey == null) return null;
+  for (final choice in choices) {
+    if (choice.key == choiceKey) return choice.body;
+  }
+  return null;
+}
+
 /// 보기 목록 > {choiceKey: 표시 라벨} (넣는 순서 = 화면 순서, 해설 보기별 판단 정렬·라벨에 사용)
 Map<String, String> choiceDisplayLabelsOf(List<ChoiceItem> choices) => {
   for (var displayIndex = 0; displayIndex < choices.length; displayIndex++)

@@ -21,7 +21,7 @@ class ExecuteResultComparison {
       );
     }
     if (_hasError(correctResult)) {
-      return const ExecuteResultComparison(summary: '정답 SQL 을 실행하지 못했어요');
+      return const ExecuteResultComparison(summary: '정답 SQL을 실행하지 못했어요');
     }
     if (!_isSameColumns(myResult.columns, correctResult.columns)) {
       return const ExecuteResultComparison(summary: '조회한 열이 정답과 달라요');

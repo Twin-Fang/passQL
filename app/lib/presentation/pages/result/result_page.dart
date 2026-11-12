@@ -16,6 +16,8 @@ import '../../widgets/pro/locked_preview_samples.dart';
 import '../../widgets/pro/pro_locked_section.dart';
 import '../../widgets/question/execute_result_card.dart';
 import '../../widgets/question/execution_comparison_card.dart';
+import '../../widgets/question/result_rows_table.dart';
+import '../../widgets/question/stem_text.dart';
 import '../../widgets/question/sql_practice_card.dart';
 import '../../widgets/report/report_button.dart';
 import '../../widgets/result/similar_questions_section.dart';
@@ -74,6 +76,12 @@ class ResultPage extends ConsumerWidget {
     final correctTitle = !isCorrect && correctLabel != null
         ? '정답 ($correctLabel)'
         : '정답';
+    // 개념 보기 정답 본문 (풀이 화면이 넘겨준 값, 없거나 비면 라벨만)
+    final correctChoiceBody = arguments?.correctChoiceBody?.trim();
+    final conceptCorrectBody =
+        correctChoiceBody == null || correctChoiceBody.isEmpty
+        ? null
+        : correctChoiceBody;
     final selectedResult = result.selectedResult;
     final correctResult = result.correctResult;
     // 실습 입력 보조용 표·열 이름: 풀이 화면이 이미 불러온 문제 상세에서만 (새로 요청하지 않음)
@@ -94,7 +102,7 @@ class ResultPage extends ConsumerWidget {
             title: '내 답',
             child: PassqlCodeBlock(code: result.selectedSql!),
           ),
-        // EXECUTABLE: 정답 SQL, CONCEPT_ONLY: 정답 키만 텍스트로.
+        // EXECUTABLE: 정답 SQL, CONCEPT_ONLY: 정답 보기 라벨 + 본문 (본문 모르면 라벨만)
         if (result.correctSql != null)
           PassqlCard(
             title: correctTitle,
@@ -102,11 +110,18 @@ class ResultPage extends ConsumerWidget {
           )
         else
           PassqlCard(
-            title: correctTitle,
-            child: Text(
-              correctLabel ?? '-',
-              style: PassqlTypography.callout.copyWith(color: colors.label),
-            ),
+            // 본문을 보여 주면 정답·오답 모두 제목에 보기 라벨
+            title: conceptCorrectBody == null || correctLabel == null
+                ? correctTitle
+                : '정답 ($correctLabel)',
+            child: conceptCorrectBody == null
+                ? Text(
+                    correctLabel ?? '-',
+                    style: PassqlTypography.callout.copyWith(
+                      color: colors.label,
+                    ),
+                  )
+                : _ConceptChoiceBody(body: conceptCorrectBody),
           ),
         // 카드가 이미 좌우 inset 을 가지므로 목록 inset 과 겹치지 않게 가로 여백을 뺀다.
         // 오답: 내 답 vs 정답 실행 결과 비교, 정답: 정답 실행 결과 (#727)
@@ -171,6 +186,25 @@ class ResultPage extends ConsumerWidget {
       actions: [
         PassqlButton(label: '닫기', onPressed: () => leaveSolvingFlow(context)),
       ],
+    );
+  }
+}
+
+/// 개념 정답 보기 본문: 결과 행 JSON 이면 작은 표, 아니면 인라인 코드 섞인 글 (보기 카드와 같은 표시)
+class _ConceptChoiceBody extends StatelessWidget {
+  const _ConceptChoiceBody({required this.body});
+
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    final resultRows = parseResultRows(body);
+    if (resultRows != null) return ResultRowsTable(rows: resultRows);
+    return InlineCodeText(
+      body,
+      style: PassqlTypography.callout.copyWith(
+        color: context.passqlColors.label,
+      ),
     );
   }
 }

@@ -37,15 +37,16 @@ List<ProBenefit> proBenefits({required int dailyFreeLimit}) {
       pro: '제한 없음',
       icon: CupertinoIcons.shuffle,
     ),
+    // 무료도 오늘의 세트 문제는 실행·전체 해설 체험 (#992)
     const ProBenefit(
       label: 'SQL 직접 실행',
-      free: null,
-      pro: null,
+      free: '오늘의 세트',
+      pro: '모든 문제',
       icon: CupertinoIcons.play_fill,
     ),
     const ProBenefit(
       label: '해설',
-      free: '한 줄',
+      free: '한 줄 (세트 전체)',
       pro: '보기별 전체',
       icon: CupertinoIcons.sparkles,
     ),

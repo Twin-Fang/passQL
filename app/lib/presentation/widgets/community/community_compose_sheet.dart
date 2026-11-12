@@ -7,6 +7,7 @@ import '../../../core/logging/app_logger.dart';
 import '../../../data/community/community_image_compressor.dart';
 import '../../design/design.dart';
 import '../../providers/community_providers.dart';
+import '../common/draft_discard_guard.dart';
 
 /// 의견 작성 바텀시트: 본문(500자 카운터) + 사진 최대 2장 + '내 풀이 같이 보여주기' 토글 + UGC 안내
 /// 사진은 고르는 즉시 폰에서 WebP 로 압축, 등록하기에서 순차 업로드 > 글 작성. 등록되면 true 를 돌려주며 닫힘
@@ -19,6 +20,8 @@ class CommunityComposeSheet extends ConsumerStatefulWidget {
       showPassqlSheet<bool>(
         context,
         title: '의견 쓰기',
+        // 끌어내리다 쓴 글을 잃지 않게 닫기는 바깥 탭·뒤로가기 + 확인만
+        isDragDismissible: false,
         builder: (_) => CommunityComposeSheet(query: query),
       );
 
@@ -54,6 +57,9 @@ class _CommunityComposeSheetState extends ConsumerState<CommunityComposeSheet> {
       !_isSending &&
       !_isPreparingImage &&
       _contentController.text.trim().isNotEmpty;
+
+  bool get _hasDraft =>
+      _contentController.text.trim().isNotEmpty || _imageDrafts.isNotEmpty;
 
   bool get _canAddImage =>
       !_isSending &&
@@ -147,125 +153,122 @@ class _CommunityComposeSheetState extends ConsumerState<CommunityComposeSheet> {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        PassqlSpacing.md,
-        PassqlSpacing.xxs,
-        PassqlSpacing.md,
-        PassqlSpacing.md,
-      ),
-      // 시트 안 빈 곳을 누르거나 끌어내리면 키보드를 닫는다 (#741).
-      // translucent 라 안쪽 버튼·입력칸의 탭은 그대로 먼저 받는다
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-        child: SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 사진 첨부를 입력칸 위에 (#741): 사진을 먼저 고르고 설명을 쓰는 흐름
-              _ImageAttachRow(
-                drafts: _imageDrafts,
-                isPreparing: _isPreparingImage,
-                isLocked: _isSending,
-                onAddTap: _canAddImage ? _pickImage : null,
-                onRemoveTap: _removeImage,
-              ),
-              const SizedBox(height: PassqlSpacing.sm),
-              Container(
-                padding: const EdgeInsets.all(PassqlSpacing.sm),
-                decoration: BoxDecoration(
-                  color: colors.fill,
-                  borderRadius: BorderRadius.circular(PassqlRadius.md),
+    return DraftDiscardGuard(
+      // 등록 성공 닫기(pop)는 확인을 거치지 않음
+      hasDraft: _hasDraft,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          PassqlSpacing.md,
+          PassqlSpacing.xxs,
+          PassqlSpacing.md,
+          PassqlSpacing.md,
+        ),
+        // 시트 안 빈 곳을 누르거나 끌어내리면 키보드를 닫는다 (#741).
+        // translucent 라 안쪽 버튼·입력칸의 탭은 그대로 먼저 받는다
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 사진 첨부를 입력칸 위에 (#741): 사진을 먼저 고르고 설명을 쓰는 흐름
+                _ImageAttachRow(
+                  drafts: _imageDrafts,
+                  isPreparing: _isPreparingImage,
+                  isLocked: _isSending,
+                  onAddTap: _canAddImage ? _pickImage : null,
+                  onRemoveTap: _removeImage,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                const SizedBox(height: PassqlSpacing.sm),
+                Container(
+                  padding: const EdgeInsets.all(PassqlSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: colors.fill,
+                    borderRadius: BorderRadius.circular(PassqlRadius.md),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      CupertinoTextField.borderless(
+                        controller: _contentController,
+                        enabled: !_isSending,
+                        autofocus: true,
+                        minLines: 4,
+                        maxLines: 6,
+                        maxLength: CommunityComposeSheet.maxContentLength,
+                        padding: EdgeInsets.zero,
+                        placeholder: '헷갈린 점이나 풀이 팁을 남겨 보세요',
+                        placeholderStyle: PassqlTypography.body.copyWith(
+                          color: colors.secondaryLabel,
+                        ),
+                        style: PassqlTypography.body.copyWith(
+                          color: colors.label,
+                        ),
+                        cursorColor: colors.accent,
+                        onChanged: (_) => setState(() => _errorMessage = null),
+                      ),
+                      Text(
+                        '${_contentController.text.characters.length}/'
+                        '${CommunityComposeSheet.maxContentLength}',
+                        style: PassqlTypography.caption.copyWith(
+                          color: colors.secondaryLabel,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: PassqlSpacing.sm),
+                Row(
                   children: [
-                    CupertinoTextField.borderless(
-                      controller: _contentController,
-                      enabled: !_isSending,
-                      autofocus: true,
-                      minLines: 4,
-                      maxLines: 6,
-                      maxLength: CommunityComposeSheet.maxContentLength,
-                      padding: EdgeInsets.zero,
-                      placeholder: '헷갈린 점이나 풀이 팁을 남겨 보세요',
-                      placeholderStyle: PassqlTypography.body.copyWith(
-                        color: colors.secondaryLabel,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '내 풀이 같이 보여주기',
+                            style: PassqlTypography.body.copyWith(
+                              color: colors.label,
+                            ),
+                          ),
+                          Text(
+                            '정답 여부와 시도 횟수가 글에 함께 표시돼요',
+                            style: PassqlTypography.footnote.copyWith(
+                              color: colors.secondaryLabel,
+                            ),
+                          ),
+                        ],
                       ),
-                      style: PassqlTypography.body.copyWith(
-                        color: colors.label,
-                      ),
-                      cursorColor: colors.accent,
-                      onChanged: (_) => setState(() => _errorMessage = null),
                     ),
-                    Text(
-                      '${_contentController.text.characters.length}/'
-                      '${CommunityComposeSheet.maxContentLength}',
-                      style: PassqlTypography.caption.copyWith(
-                        color: colors.secondaryLabel,
-                      ),
+                    CupertinoSwitch(
+                      value: _shouldIncludeSolveSnapshot,
+                      activeTrackColor: colors.accent,
+                      onChanged: _isSending
+                          ? null
+                          : (isOn) => setState(
+                              () => _shouldIncludeSolveSnapshot = isOn,
+                            ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: PassqlSpacing.sm),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '내 풀이 같이 보여주기',
-                          style: PassqlTypography.body.copyWith(
-                            color: colors.label,
-                          ),
-                        ),
-                        Text(
-                          '정답 여부와 시도 횟수가 글에 함께 표시돼요',
-                          style: PassqlTypography.footnote.copyWith(
-                            color: colors.secondaryLabel,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  CupertinoSwitch(
-                    value: _shouldIncludeSolveSnapshot,
-                    activeTrackColor: colors.accent,
-                    onChanged: _isSending
-                        ? null
-                        : (isOn) => setState(
-                            () => _shouldIncludeSolveSnapshot = isOn,
-                          ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: PassqlSize.messageSlotHeight,
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    _errorMessage ??
-                        _progressMessage ??
-                        CommunityComposeSheet.policyNotice,
-                    style: PassqlTypography.caption.copyWith(
-                      color: _errorMessage == null
-                          ? colors.secondaryLabel
-                          : colors.wrongText,
-                    ),
-                  ),
+                PassqlMessageSlot(
+                  message:
+                      _errorMessage ??
+                      _progressMessage ??
+                      CommunityComposeSheet.policyNotice,
+                  tone: _errorMessage == null
+                      ? PassqlMessageSlotTone.neutral
+                      : PassqlMessageSlotTone.error,
                 ),
-              ),
-              PassqlButton(
-                label: '등록하기',
-                isLoading: _isSending,
-                onPressed: _canSubmit ? _submit : null,
-              ),
-            ],
+                PassqlButton(
+                  label: '등록하기',
+                  isLoading: _isSending,
+                  onPressed: _canSubmit ? _submit : null,
+                ),
+              ],
+            ),
           ),
         ),
       ),

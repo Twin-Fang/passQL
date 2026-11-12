@@ -33,7 +33,7 @@ class AccountInfoSection extends ConsumerWidget {
           header: _header,
           children: [
             PassqlListRow(
-              title: '정보를 불러오지 못했어요',
+              title: PassqlLoadFailureCopy.messageOf('정보를'),
               trailing: const Text('다시 시도'),
               onTap: () => ref.invalidate(settingsDataProvider),
             ),

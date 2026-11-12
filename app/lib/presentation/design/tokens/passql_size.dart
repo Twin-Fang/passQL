@@ -31,7 +31,7 @@ abstract final class PassqlSize {
   // 오픈소스 라이선스 화면 상단 로고 높이
   static const double licensePageLogoHeight = 32;
   static const double messageSlotHeight =
-      28; // 입력 아래 안내·오류 한 줄 자리 (나타나도 레이아웃이 밀리지 않게 고정)
+      28; // 입력 아래 안내·오류 문구 자리 최소 높이 (PassqlMessageSlot, 긴 문구는 늘어남)
   static const double iconTile = 29;
   static const double iconTileCompact = 26; // 구간 제목 앞 타일 (행 타일보다 한 단계 작게, #726)
   static const double blurSigma = 20;

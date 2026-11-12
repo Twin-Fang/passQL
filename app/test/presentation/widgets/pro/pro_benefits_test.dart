@@ -14,9 +14,11 @@ void main() {
       '광고 제거',
     ]);
     expect(benefitFreeToProLabel(benefits[0]), '크레딧 하루 10개 → 제한 없음');
-    expect(benefitFreeToProLabel(benefits[1]), '포함');
+    expect(benefitFreeToProLabel(benefits[1]), '오늘의 세트 → 모든 문제');
+    expect(benefitFreeToProLabel(benefits[3]), '포함');
     expect(benefitInUseLabel(benefits[5]), '약점 분석');
-    expect(benefitInUseLabel(benefits[1]), '사용 중');
+    expect(benefitInUseLabel(benefits[1]), '모든 문제');
+    expect(benefitInUseLabel(benefits[3]), '사용 중');
   });
 
   test('한도 0이면 기본 10', () {

@@ -1,3 +1,5 @@
+import 'date_format.dart';
+
 /// 과거 시각을 "오늘 / 어제 / N일 전" 으로 표현한다.
 ///
 /// [now] 는 테스트에서 기준 시각을 고정하기 위한 주입 지점이다.
@@ -31,5 +33,5 @@ String formatNotificationElapsed(DateTime? time, {DateTime? now}) {
       .inDays;
   if (calendarDays == 1) return '어제';
   if (calendarDays < _daysLimit) return '$calendarDays일 전';
-  return '${time.month}월 ${time.day}일';
+  return formatMonthDay(time);
 }

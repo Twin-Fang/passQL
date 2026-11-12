@@ -25,7 +25,7 @@ export default function RouteError({ notFound = false }: { readonly notFound?: b
           <p className="text-sm text-text-secondary leading-relaxed">
             {isNotFound
               ? "주소가 바뀌었거나 없는 페이지예요."
-              : "잠시 후 다시 시도해보세요. 문제가 반복되면 페이지를 새로고침해 주세요."}
+              : "잠시 후 다시 시도해 보세요. 문제가 반복되면 페이지를 새로고침해 주세요."}
           </p>
         </div>
         <div className="flex gap-2 mt-2">

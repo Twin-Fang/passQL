@@ -72,7 +72,10 @@ class _ConceptLoadError extends StatelessWidget {
         message: '아직 공개되지 않았거나 내려간 개념이에요.',
       );
     }
-    return PassqlStatusView.error(message: '개념을 불러오지 못했어요.', onRetry: onRetry);
+    return PassqlStatusView.error(
+      message: PassqlLoadFailureCopy.messageOf('개념을'),
+      onRetry: onRetry,
+    );
   }
 }
 

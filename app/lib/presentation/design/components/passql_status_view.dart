@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
 import 'passql_button.dart';
+import 'passql_load_failure_copy.dart';
 import 'passql_loading_indicator.dart';
 
 /// 로딩·빈 상태·오류를 한 모양으로. 화면마다 오류 뷰를 따로 만들지 않는다.
@@ -98,7 +99,7 @@ class PassqlStatusView extends StatelessWidget {
             if (onRetry != null) ...[
               const SizedBox(height: PassqlSpacing.md),
               PassqlButton(
-                label: '다시 시도',
+                label: PassqlLoadFailureCopy.retryLabel,
                 onPressed: onRetry,
                 variant: PassqlButtonVariant.tinted,
                 size: PassqlButtonSize.small,
