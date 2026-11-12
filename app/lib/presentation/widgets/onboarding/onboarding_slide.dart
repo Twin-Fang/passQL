@@ -65,7 +65,8 @@ class OnboardingSlide extends StatelessWidget {
                   child: Center(
                     child: SingleChildScrollView(
                       physics: const NeverScrollableScrollPhysics(),
-                      child: visual,
+                      // 장을 처음 볼 때 그림이 아래에서 살짝 떠오름 (제목 다음 순서, 동작 줄이기면 바로)
+                      child: PassqlReveal(index: 1, child: visual),
                     ),
                   ),
                 ),

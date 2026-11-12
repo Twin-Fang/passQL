@@ -29,8 +29,11 @@ class _InsertSlide extends ConsumerWidget {
       authProvider.select((session) => session.valueOrNull?.nickname ?? ''),
     );
     return OnboardingSlide(
-      title: '환영해요,\n방금 1행이 추가됐어요',
-      subtitle: 'passQL에서 SQLD 합격까지 함께해요.',
+      // 닉네임을 알면 이름을 불러 줌 (아직 모르면 이름 없이)
+      title: nickname.isEmpty
+          ? '반가워요,\nSQLD 합격까지 함께해요'
+          : '$nickname님,\nSQLD 합격까지 함께해요',
+      subtitle: '실제 SQL을 실행하며 감을 익혀요.',
       visual: Center(
         child: OnboardingSqlCard(
           code: "INSERT INTO 수험생\nVALUES ('$nickname');",
