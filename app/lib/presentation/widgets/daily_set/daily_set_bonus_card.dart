@@ -8,10 +8,11 @@ import '../../../data/models/member/member_plan_response.dart';
 import '../../design/design.dart';
 import '../../providers/plan_providers.dart';
 import '../practice/open_random_practice.dart';
+import 'daily_set_bonus_check_rows.dart';
 
 /// 오늘의 세트 결과 보너스 카드 (#808): 결제 UI 대상 무료 회원 + 받은 보너스 있을 때만
-/// 진입 시 등급 다시 받기(방금 완료 반영) > 보상 연출(방금 완료 진입만) + 강조 카드(크레딧 +N, 이유 칩, 랜덤 풀기 보조 버튼)
-/// 정답률 미달이면 다음 기준 안내
+/// 진입 시 등급 다시 받기(방금 완료 반영) > 보상 연출(방금 완료 진입만) + 카드(머리 합계 +N > 받은 보너스 체크 줄 > 랜덤 풀기 보조 버튼)
+/// 정답률 미달이면 다음 세트 기준 한 줄
 class DailySetBonusCard extends ConsumerStatefulWidget {
   const DailySetBonusCard({
     super.key,
@@ -78,36 +79,58 @@ class _DailySetBonusCardState extends ConsumerState<DailySetBonusCard> {
     if (earnedQuestionCount == 0) return const SizedBox.shrink();
     final colors = context.passqlColors;
     final bonusQuestionCount = dailyBonus.bonusQuestionCount;
-    // 못 받은 정답률 보너스는 다음 기준 안내 줄로
     return PassqlCard(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            '크레딧 +$earnedQuestionCount개 받았어요',
-            style: PassqlTypography.title1.copyWith(color: colors.accentText),
-          ),
-          const SizedBox(height: PassqlSpacing.sm),
-          Wrap(
-            spacing: PassqlSpacing.xs,
-            runSpacing: PassqlSpacing.xs,
+          // 머리: 제목 + 오늘 세트로 받은 합계 강조
+          Row(
             children: [
-              if (dailyBonus.isDailySetCompletionEarned)
-                const PassqlBadge(text: DailySetBonusRule.completionLabel),
-              if (dailyBonus.isDailySetAccuracyEarned)
-                const PassqlBadge(text: DailySetBonusRule.accuracyLabel),
-            ],
-          ),
-          if (!dailyBonus.isDailySetAccuracyEarned)
-            Padding(
-              padding: const EdgeInsets.only(top: PassqlSpacing.sm),
-              child: Text(
-                '${DailySetBonusRule.accuracyLabel}($_accuracyBonusCorrectCount개 이상)를 채우면 크레딧 $bonusQuestionCount개를 더 받아요',
-                style: PassqlTypography.subheadline.copyWith(
-                  color: colors.secondaryLabel,
+              Expanded(
+                child: Text(
+                  '오늘의 세트 보너스',
+                  style: PassqlTypography.headline.copyWith(
+                    color: colors.label,
+                  ),
                 ),
               ),
+              const PassqlCreditIcon(size: PassqlIconSize.xl),
+              const SizedBox(width: PassqlSpacing.xxs),
+              Text(
+                '+$earnedQuestionCount',
+                style: PassqlTypography.title3.copyWith(
+                  color: colors.correctText,
+                  fontFeatures: PassqlTypography.tabular,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: PassqlSpacing.md),
+          // 받은 줄만 (못 받은 보너스를 흐린 줄로 늘어놓지 않음)
+          DailySetBonusCheckRows(
+            dailyBonus: dailyBonus,
+            bonusQuestionCount: bonusQuestionCount,
+            shouldShowEarnedOnly: true,
+          ),
+          // 못 받은 정답률 보너스는 다음 세트 기준 한 줄 (긍정형)
+          if (!dailyBonus.isDailySetAccuracyEarned) ...[
+            const SizedBox(height: PassqlSpacing.sm),
+            Text.rich(
+              TextSpan(
+                text: '다음 세트에서 $_accuracyBonusCorrectCount개 이상 맞히면 ',
+                children: [
+                  const WidgetSpan(
+                    alignment: PlaceholderAlignment.middle,
+                    child: PassqlCreditIcon(size: PassqlIconSize.xs),
+                  ),
+                  TextSpan(text: '+$bonusQuestionCount 더'),
+                ],
+              ),
+              style: PassqlTypography.footnote.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
+          ],
           const SizedBox(height: PassqlSpacing.md),
           // 결과 화면의 채운 버튼은 아래 닫기 하나라 보조 모양
           PassqlButton(

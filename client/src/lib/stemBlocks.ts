@@ -51,6 +51,13 @@ const LIST_TERM_PATTERN = /^([^:]{1,20}):\s+(.+)$/;
 const NOTE_LINE_PATTERN = /^\s*\(.*\)\s*$/;
 // 코드 캡션 주석 (-- SQL 1)
 const CODE_CAPTION_PATTERN = /^\s*--\s+(.*\S)\s*$/;
+// 캡션 끝 괄호 설명: SQL 2 (결과 행 수를 C4 라 한다) > 라벨 SQL 2
+const CAPTION_TRAILING_NOTE_PATTERN = /^(.*?)\s*\([^()]*\)$/;
+// 캡션 라벨 최대 길이 (넘으면 제약 설명 같은 코드 주석으로 봄)
+const MAXIMUM_CAPTION_LABEL_LENGTH = 20;
+// 캡션 라벨에 있으면 코드 주석으로 보는 글: : ( SQL 키워드 (예: EMP.DEPT_NO : REFERENCES ...)
+const CODE_COMMENT_MARKER_PATTERN =
+  /[:(]|\b(?:SELECT|FROM|WHERE|SET|UPDATE|INSERT|DELETE|REFERENCES|ON|CASCADE|CREATE|ALTER|DROP|NULL)\b/i;
 // 문장 경계: . ? ! 뒤 공백
 const SENTENCE_BOUNDARY_PATTERN = /[.?!](?=\s)/g;
 const HANGUL_PATTERN = /[가-힣]/;
@@ -237,7 +244,7 @@ function splitSentencesKeepingSpacing(text: string): string[] {
   return sentences;
 }
 
-// ── 규칙 7: 코드 캡션 (맨 첫 줄·빈 줄 다음 -- 주석) ──────────────
+// ── 규칙 7: 코드 캡션 (맨 첫 줄·빈 줄 다음 짧은 이름표 -- 주석만, 나머지 주석은 코드에 남김) ──
 
 function splitCodeIntoCaptionedBlocks(codeLines: readonly string[]): StemBlock[] {
   const sections: { caption: string | null; lines: string[] }[] = [{ caption: null, lines: [] }];
@@ -245,7 +252,7 @@ function splitCodeIntoCaptionedBlocks(codeLines: readonly string[]): StemBlock[]
   codeLines.forEach((line, lineIndex) => {
     const isAfterBlankLine = lineIndex === 0 || codeLines[lineIndex - 1].trim() === "";
     const captionMatch = isAfterBlankLine ? CODE_CAPTION_PATTERN.exec(line) : null;
-    if (captionMatch) sections.push({ caption: captionMatch[1], lines: [] });
+    if (captionMatch && isCaptionLabel(captionMatch[1])) sections.push({ caption: captionMatch[1], lines: [] });
     else sections[sections.length - 1].lines.push(line);
   });
 
@@ -253,6 +260,12 @@ function splitCodeIntoCaptionedBlocks(codeLines: readonly string[]): StemBlock[]
     .map((section) => ({ caption: section.caption, code: trimBlankEdgeLines(section.lines) }))
     .filter((section) => section.caption !== null || section.code !== "")
     .map((section): StemBlock => ({ kind: "code", caption: section.caption, code: section.code }));
+}
+
+/** 짧은 이름표 주석인지: 끝 괄호 설명 뺀 라벨 20자 이하 + : ( SQL 키워드 없음 (SQL 1, 쿼리 A) */
+function isCaptionLabel(captionText: string): boolean {
+  const label = (CAPTION_TRAILING_NOTE_PATTERN.exec(captionText)?.[1] ?? captionText).trim();
+  return label !== "" && label.length <= MAXIMUM_CAPTION_LABEL_LENGTH && !CODE_COMMENT_MARKER_PATTERN.test(label);
 }
 
 /** 앞뒤 빈 줄만 지움 (들여쓰기 유지) */

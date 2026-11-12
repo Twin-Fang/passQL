@@ -15,6 +15,7 @@ class PassqlCodeBlock extends StatelessWidget {
     this.hasBackground = true,
     this.highlightedKeywords = const {},
     this.shouldColorStringLiterals = false,
+    this.shouldColorCommentLines = false,
   });
 
   /// 화면 SQL 말투 블록(결과·첫 문제·크레딧 소진)이 칠하는 키워드 공통 목록 (#999)
@@ -41,6 +42,12 @@ class PassqlCodeBlock extends StatelessWidget {
   /// true면 작은따옴표 문자열('오늘')을 정답색 글자로 (#999)
   final bool shouldColorStringLiterals;
 
+  /// true면 `--` 로 시작하는 주석 줄을 보조 글자색으로 (지문 제약 설명 주석)
+  final bool shouldColorCommentLines;
+
+  /// `--` 로 시작하는 줄 전체 (앞 공백 포함)
+  static const String _commentLinePattern = r'^[ \t]*--[^\n]*';
+
   /// 작은따옴표 문자열 리터럴
   static final RegExp _stringLiteralRe = RegExp(r"'[^']*'");
 
@@ -53,7 +60,12 @@ class PassqlCodeBlock extends StatelessWidget {
     final style = PassqlTypography.code.copyWith(color: colors.label);
     final span = TextSpan(
       style: style,
-      children: _toCodeSpans(style, colors.accentText, colors.correctText),
+      children: _toCodeSpans(
+        style,
+        colors.accentText,
+        colors.correctText,
+        colors.secondaryLabel,
+      ),
     );
     final codeText = isSelectable ? SelectableText.rich(span) : Text.rich(span);
     return Container(
@@ -80,6 +92,7 @@ class PassqlCodeBlock extends StatelessWidget {
     TextStyle codeStyle,
     Color keywordColor,
     Color stringLiteralColor,
+    Color commentColor,
   ) {
     final hangulStyle = PassqlTypography.callout.copyWith(
       fontSize: codeStyle.fontSize,
@@ -94,7 +107,18 @@ class PassqlCodeBlock extends StatelessWidget {
         spans.add(TextSpan(text: code.substring(cursor, match.start)));
       }
       final matchedText = match.group(0)!;
-      if (shouldColorStringLiterals && matchedText.startsWith("'")) {
+      if (shouldColorCommentLines && matchedText.trimLeft().startsWith('--')) {
+        // 주석 안 한글도 본문 글꼴 유지, 색만 보조 글자색
+        spans.add(
+          TextSpan(
+            style: TextStyle(color: commentColor),
+            children: _toHangulAwareSpans(
+              matchedText,
+              hangulStyle.copyWith(color: commentColor),
+            ),
+          ),
+        );
+      } else if (shouldColorStringLiterals && matchedText.startsWith("'")) {
         // 문자열 안 한글도 본문 글꼴 유지, 색만 정답색
         spans.add(
           TextSpan(
@@ -135,15 +159,16 @@ class PassqlCodeBlock extends StatelessWidget {
     return spans;
   }
 
-  /// 따로 칠할 덩어리: 문자열(선택) 또는 키워드(단어 경계) 또는 한글 음절 덩어리
+  /// 따로 칠할 덩어리: 주석 줄(선택) 또는 문자열(선택) 또는 키워드(단어 경계) 또는 한글 음절 덩어리
   RegExp _segmentPattern() {
     final alternatives = [
+      if (shouldColorCommentLines) _commentLinePattern,
       if (shouldColorStringLiterals) _stringLiteralRe.pattern,
       if (highlightedKeywords.isNotEmpty)
         '\\b(?:${highlightedKeywords.map(RegExp.escape).join('|')})\\b',
       _hangulRunRe.pattern,
     ];
     if (alternatives.length == 1) return _hangulRunRe;
-    return RegExp(alternatives.join('|'));
+    return RegExp(alternatives.join('|'), multiLine: true);
   }
 }

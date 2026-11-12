@@ -32,6 +32,9 @@ abstract final class PassqlSize {
   static const double licensePageLogoHeight = 32;
   static const double messageSlotHeight =
       28; // 입력 아래 안내·오류 문구 자리 최소 높이 (PassqlMessageSlot, 긴 문구는 늘어남)
+  static const double mockExamRoundBadge = 44; // 모의고사 회차 번호 배지 한 변 (숫자 + "회")
+  static const double mockExamRoundLockBadge = 18; // 잠긴 회차 배지 모서리 자물쇠 원
+  static const double mockExamRoundProgressWidth = 56; // 풀이 중 회차 진행 막대 폭 ("23/50" 글자 폭 정도)
   static const double iconTile = 29;
   static const double iconTileCompact = 26; // 구간 제목 앞 타일 (행 타일보다 한 단계 작게, #726)
   static const double blurSigma = 20;

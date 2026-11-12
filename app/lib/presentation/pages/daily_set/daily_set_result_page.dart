@@ -281,11 +281,25 @@ class _ResultBody extends ConsumerWidget {
       // 주 버튼 전체 폭(긴 문구가 줄바꿈되지 않게) > 아래 보조 버튼
       // 틀린 문제 있음: 틀린 N문제 다시 풀기(첫 틀린 문제 상세) > 닫기, 다 맞힘: 닫기 > 전체 순위
       primaryAction: hasWrongQuestion
-          ? PassqlButton(
-              label: '틀린 ${wrongQuestions.length}문제 다시 풀기',
-              onPressed: () => context.push(
-                AppRoutes.questionDetail(wrongQuestions.first.questionUuid),
-              ),
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                PassqlButton(
+                  label: '틀린 ${wrongQuestions.length}문제 다시 풀기',
+                  onPressed: () => context.push(
+                    AppRoutes.questionDetail(wrongQuestions.first.questionUuid),
+                  ),
+                ),
+                const SizedBox(height: PassqlSpacing.xs),
+                // 서버가 오늘의 세트 배정 문제를 하루 한도 수에서 빼고 셈 (FeatureAccessPolicy·DailyQuestionCounter)
+                Text(
+                  '다시 풀기는 크레딧을 쓰지 않아요',
+                  textAlign: TextAlign.center,
+                  style: PassqlTypography.footnote.copyWith(
+                    color: colors.secondaryLabel,
+                  ),
+                ),
+              ],
             )
           : PassqlButton(label: '닫기', onPressed: close),
       actions: [

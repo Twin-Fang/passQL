@@ -115,6 +115,41 @@ describe("toStemBlocks", () => {
     expect(beforeQuestion.map((block) => block.kind)).toEqual(["paragraph", "table", "question"]);
     expect(atEnd.map((block) => block.kind)).toEqual(["paragraph", "table"]);
   });
+
+  it("스키마 배치: 컬럼이 같아도 이름이 다른 지문 표는 대체하지 않음", () => {
+    const projSchemaTable: QuestionSchemaTable = {
+      tableName: "PROJ",
+      columns: [
+        { name: "ID", type: "NUMBER", isPrimaryKey: true, isForeignKey: false },
+        { name: "DEPT_NO", type: "NUMBER", isPrimaryKey: false, isForeignKey: true },
+      ],
+      sampleRows: [],
+    };
+    const blocks = toStemBlocks(
+      "[EMP]\n| ID | DEPT_NO |\n| --- | --- |\n| 1 | 10 |\n\n[PROJ]\n| ID | DEPT_NO |\n| --- | --- |\n| 1 | 10 |",
+      [projSchemaTable],
+    );
+    const tables = blocks.flatMap((block) => (block.kind === "table" ? [block.table] : []));
+
+    expect(tables.map((table) => table.name)).toEqual(["EMP", "PROJ"]);
+    expect(tables[0].columns[0].isPrimaryKey).toBe(false);
+    expect(tables[1].columns[0].isPrimaryKey).toBe(true);
+    expect(tables[1].rows).toEqual([["1", "10"]]);
+  });
+
+  it("코드 캡션: 제약 설명 주석은 캡션이 아니라 코드 안 주석", () => {
+    const blocks = toStemBlocks(
+      "```sql\n-- EMP.DEPT_NO : REFERENCES DEPT(DEPT_NO) ON DELETE SET NULL\nDELETE FROM DEPT WHERE DEPT_NO = 10;\n```",
+    );
+
+    expect(blocks).toEqual([
+      {
+        kind: "code",
+        caption: null,
+        code: "-- EMP.DEPT_NO : REFERENCES DEPT(DEPT_NO) ON DELETE SET NULL\nDELETE FROM DEPT WHERE DEPT_NO = 10;",
+      },
+    ]);
+  });
 });
 
 describe("toStemPreviewLine", () => {
