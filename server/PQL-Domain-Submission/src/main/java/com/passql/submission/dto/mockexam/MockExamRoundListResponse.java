@@ -1,6 +1,7 @@
 package com.passql.submission.dto.mockexam;
 
 import com.passql.submission.constant.MockExamAttemptStatus;
+import com.passql.submission.constant.MockExamFailReason;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
@@ -29,6 +30,8 @@ public record MockExamRoundListResponse(
         @Schema(nullable = true) MockExamStartBlockReason startBlockReason,
         int submittedAttemptCount,
         @Schema(nullable = true) Integer bestScore,
+        @Schema(nullable = true, description = "최고 점수 응시(동점이면 최근)의 합격 여부 (과락 포함)") Boolean bestAttemptIsPassed,
+        @Schema(nullable = true, description = "최고 점수 응시(동점이면 최근)의 불합격 이유") MockExamFailReason bestAttemptFailReason,
         @Schema(nullable = true) LastAttempt lastAttempt
     ) {
     }

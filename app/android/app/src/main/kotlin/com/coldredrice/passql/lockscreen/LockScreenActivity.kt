@@ -2,21 +2,20 @@ package com.coldredrice.passql.lockscreen
 
 import android.app.Activity
 import android.app.KeyguardManager
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import com.coldredrice.passql.MainActivity
-import io.flutter.embedding.android.FlutterActivity
-import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.embedding.android.FlutterFragmentActivity
 import java.lang.ref.WeakReference
 
 /**
  * 잠금화면 위 문제 화면: 잠금 위 표시·화면 켜기 > 캐시 엔진(lockScreenMain) 붙이기 > 보일 때마다 Dart 에 알림
  * 해제는 KeyguardManager 로 잠금을 풀고(사용자 인증) 나서 앱 열기 (Play 정책: 광고·결제는 잠금 해제 후 앱에서)
  */
-class LockScreenActivity : FlutterActivity() {
+// MainActivity 와 같은 FlutterFragmentActivity: 엔진에 붙는 네이버 로그인 플러그인이 활동을 이 타입으로 캐스팅함 (#1002)
+class LockScreenActivity : FlutterFragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         showOverKeyguard()
         super.onCreate(savedInstanceState)
@@ -35,7 +34,11 @@ class LockScreenActivity : FlutterActivity() {
     }
 
     // 엔진은 서비스와 함께 사는 캐시 엔진 (활동이 닫혀도 유지)
-    override fun provideFlutterEngine(context: Context): FlutterEngine = LockScreenEngine.obtain(context)
+    // FlutterFragmentActivity 는 캐시 엔진 id 경로에서만 destroyEngineWithFragment(false)를 지킴 > 새 엔진 경로면 닫을 때 엔진 파괴
+    override fun getCachedEngineId(): String {
+        LockScreenEngine.obtain(this)
+        return LockScreenEngine.ENGINE_ID
+    }
 
     override fun shouldDestroyEngineWithHost(): Boolean = false
 
