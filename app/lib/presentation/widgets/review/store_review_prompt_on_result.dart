@@ -18,7 +18,7 @@ class StoreReviewPromptOnResult extends ConsumerStatefulWidget {
 
   final StoreReviewTrigger trigger;
 
-  /// 좋은 결과인지 (오늘의 세트 정답률 60% 이상, 모의고사 합격)
+  /// 좋은 결과인지 (오늘의 세트 정답률 80% 이상, 모의고사 합격)
   final bool isGoodResult;
   final Widget child;
 
