@@ -2,7 +2,7 @@
 type: cluster
 topic: practice
 created: 2026-10-29
-members: 176
+members: 179
 status: active
 related: []
 ---
@@ -59,6 +59,7 @@ related: []
 - [[DEC-0283-daily-limit-view-reward-first]] — 무료 랜덤은 끊기지 않게 이어 풀기, 남은 수 상시 표시, 한도 화면은 광고 > 오늘의 세트 > 이용권 한 줄 (#963)
 - [[DEC-0285-result-rewarded-interstitial]] — 결과 화면 일반 전면 광고 > 보상형 전면 광고(+5), 토픽 결과는 들어올 때·세트 결과는 떠날 때 (#963)
 - [[DEC-0287-credit-term-top-bar-balance]] — 무료 한도는 `크레딧`, 잔액은 탭 상단 바 알약(누르면 크레딧 시트: PRO 주 버튼 > 광고 > 오늘의 세트), 상태는 아이콘·색 (#966, #971)
+- [[DEC-0290-credit-history-computed-from-limit-records]] — 크레딧 내역은 따로 저장하지 않고 한도 판정과 같은 메서드로 날짜별 계산(최근 14일), DEC-0287의 "오늘 내역만" 부분 대체 (#974)
 
 ## 대체된 결정 (역사)
 - [[DEC-0087-choice-generation-practice-real-mode]] → DEC-0251
@@ -72,6 +73,8 @@ related: []
 - [[DEC-0261-real-mode-renamed-new-choices]] → DEC-0275
 
 ## 관련 이슈
+- [[ISS-0492-first-launch-notification-prompt]] (resolved, GitHub #980, PR #981): 처음 켠 날 알림 권한을 묻지 않음, 크레딧 0일 때 홈 광고 카드, 결과 화면 번호만 있는 목록
+- [[ISS-0493-credit-history-screen]] (resolved, GitHub #974, PR #978): 크레딧 내역이 오늘 요약뿐, 날짜별 받고 쓴 내역 없음 > 원본 기록에서 계산
 - [[ISS-0491-first-run-guide-home-next-step]] (resolved, GitHub #975): 첫 화면·홈에 차별점과 지금 할 일이 없음, 무료 회원 안내 구간 없음
 - [[ISS-0489-pass-sheet-home-profile-cleanup]] (resolved, GitHub #966, PR #968): 이용권 시트 혜택 접기·정가 없는 할인, 잠금 문구 딱딱함, 홈·프로필 카드에 기능이 섞임
 - [[ISS-0490-credit-term-purchase-funnel-events]] (resolved, GitHub #971, PR #973): 구매·광고 흐름 분석 이벤트 없음, 한도·보상 표현이 여러 말로 겹침(크레딧으로 통일), 탭 제목 정렬

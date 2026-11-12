@@ -195,3 +195,10 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-12 10:47 | W6 | update | ISS-0490 open -> resolved + report (#971, PR #973)
 - 2026-11-12 10:47 | W6 | create | ISS-0491 (resolved) + report (#975)
 - 2026-11-12 10:47 | W2 | update | cluster-home, cluster-auth-member, cluster-practice, cluster-design-system, cluster-billing, cluster-ads
+- 2026-11-12 11:44 | W7 | create | DOC-0001 (billing 구현 코드 추적, internal) + _sources/docs/DOC-0001-billing-implementation-code-trace.md
+- 2026-11-12 11:44 | W2 | update | cluster-billing (핵심 문서 절 추가, members 59→60)
+- 2026-11-12 17:29 | W4 | supersede | DEC-0149 -> DEC-0288 (처음 켤 때 알림 안내, 사용자 요청 #980)
+- 2026-11-12 17:29 | W6 | create | DEC-0288, DEC-0289, DEC-0290, DEC-0291, DEC-0292, DEC-0293
+- 2026-11-12 17:29 | W6 | create | ISS-0492 (#980), ISS-0493 (#974), ISS-0494 (#962), ISS-0495 (#961), ISS-0496 (#858), ISS-0497 (#826) — 각 issue(resolved) + report, _sources/issues 원본
+- 2026-11-12 17:29 | W2 | update | cluster-notification, cluster-home, cluster-practice, cluster-ads, cluster-billing, cluster-ci-deploy, cluster-store-release, cluster-admin, cluster-design-system (새 항목, 활성 결정, DEC-0149 역사로)
+- 2026-11-12 17:29 | W2 | fix W10 (members 실제 수로) | cluster-admin 102, cluster-ads 26, cluster-billing 65, cluster-ci-deploy 70, cluster-design-system 158, cluster-home 72, cluster-notification 20, cluster-practice 179, cluster-store-release 67

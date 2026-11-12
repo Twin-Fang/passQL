@@ -2,7 +2,7 @@
 type: cluster
 topic: home
 created: 2026-10-29
-members: 69
+members: 72
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 홈 화면·추천
 
 ## 현재 상태 요약
-(2026-10-29, 자동 생성) 활성 결정 21개, 열린 이슈 0개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 홈 상단 바는 로고 + 시험 D-day 배지와 크레딧 알약, 오늘의 세트와 랜덤 풀기는 별도 구간 — [[ISS-0489-pass-sheet-home-profile-cleanup]], [[ISS-0490-credit-term-purchase-funnel-events]].
+(2026-10-29, 자동 생성) 활성 결정 21개, 열린 이슈 0개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 홈 상단 바는 로고 + 시험 D-day 배지와 크레딧 알약, 오늘의 세트와 랜덤 풀기는 별도 구간 — [[ISS-0489-pass-sheet-home-profile-cleanup]], [[ISS-0490-credit-term-purchase-funnel-events]]. (2026-11-12) 홈 「다음에 할 일」 카드는 광고를 권하지 않고, 크레딧이 0이면 모의고사 무료 1회 카드를 보이거나 숨긴다 — [[DEC-0289-home-next-step-no-ad-card-mock-trial]].
 
 ## 활성 결정
 - [[DEC-0034-greeting-nickname-template-message-type]] — 인사말 응답은 `nickname`·`{nickname}` 템플릿·`messageType`으로 나누고, 이모지·아이콘은 프론트가 정한다
@@ -35,12 +35,15 @@ related: []
 - [[DEC-0191-home-order-readiness-then-daily-set]] — 앱 홈 순서는 합격 준비도(내 상태) → 오늘의 세트(행동) → 출제 경향 → 추천 → 학습 현황 → 광고 → 공부 팁 → 토론
 - [[DEC-0192-readiness-activity-rings]] — 앱 홈 합격 준비도는 겹친 링 3개(정확도·범위·최신성) + 범례로, 색은 기존 앱 토큰
 - [[DEC-0204-profile-drops-info-shown-elsewhere]] — 앱 프로필 탭은 "내 기록을 보는 곳" — 다른 탭에 이미 있는 정보는 빼고 내 상태 > AI 분석 > 영역별 정답률 > 광고 순으로 둔다
+- [[DEC-0288-first-launch-notification-prompt-after-welcome]] — 알림 권한 안내는 처음 켤 때 홈 환영 안내 「시작하기」 직후(미결정·다시 물어도 될 때만), 안내 시트 거침 (#980, DEC-0149 대체)
+- [[DEC-0289-home-next-step-no-ad-card-mock-trial]] — 홈 「다음에 할 일」 카드는 광고를 권하지 않고, 크레딧 0이면 모의고사 무료 1회 카드 또는 숨김 (#980)
 
 ## 대체된 결정 (역사)
 - [[DEC-0033-readiness-replaces-progress-rate]] → DEC-0078
 - [[DEC-0167-five-tabs-with-text-labels]] → DEC-0171
 
 ## 관련 이슈
+- [[ISS-0492-first-launch-notification-prompt]] (resolved, GitHub #980, PR #981): 처음 켠 날 알림 권한을 묻지 않음, 크레딧 0일 때 홈 광고 카드, 결과 화면 번호만 있는 목록
 - [[ISS-0491-first-run-guide-home-next-step]] (resolved, GitHub #975): 첫 화면·홈에 차별점과 지금 할 일이 없음, 무료 회원 안내 구간 없음
 - [[ISS-0489-pass-sheet-home-profile-cleanup]] (resolved, GitHub #966, PR #968): 이용권 시트 혜택 접기·정가 없는 할인, 잠금 문구 딱딱함, 홈·프로필 카드에 기능이 섞임
 - [[ISS-0490-credit-term-purchase-funnel-events]] (resolved, GitHub #971, PR #973): 구매·광고 흐름 분석 이벤트 없음, 한도·보상 표현이 여러 말로 겹침(크레딧으로 통일), 탭 제목 정렬

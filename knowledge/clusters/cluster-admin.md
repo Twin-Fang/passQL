@@ -2,7 +2,7 @@
 type: cluster
 topic: admin
 created: 2026-10-29
-members: 100
+members: 102
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 관리자 Thymeleaf 화면과 관리자 API.
 
 ## 현재 상태 요약
-(2026-11-07) 관리자 화면의 변경 요청은 `layout.html` 공통 fetch 래퍼를 거친다 — [[DEC-0008-admin-csrf-common-fetch-wrapper]]. 프롬프트 키는 `PromptKey` 원본에서 목록을 만들고 수정 때 키를 바꿀 수 없다 — [[DEC-0265-prompt-key-enum-single-source]]. 모의고사 회차는 `/admin/mock-exams` 에서 자동 구성·검수·공개한다 — [[DEC-0264-mock-exam-fixed-rounds-server-judged]]. 문제 등록 선택지 정책 목록(`CURATED_ONLY`·`RESULT_MATCH` 포함)과 설정 카테고리는 단일 원본에서 읽는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 관리자 `/admin/question-format`에서 문항 형식 위반을 사유별로 보고 자동 정리를 미리보기한 뒤 선택 적용한다: [[ISS-0474-question-format-rule-forbidden-punctuation]] (#905, 운영 배포). 지문 표 자동 정리 적용은 #903 앱 보급과 최소 버전 상향 뒤: [[DEC-0279-stem-table-data-cleanup-after-min-version]] (#923 열림). 관리자 전역 검색은 UUID·회원 번호(PQL-)·`@` 이메일·닉네임을 검색어 모양으로 가른다 — [[DEC-0281-admin-search-at-sign-routes-email]].
+(2026-11-07) 관리자 화면의 변경 요청은 `layout.html` 공통 fetch 래퍼를 거친다 — [[DEC-0008-admin-csrf-common-fetch-wrapper]]. 프롬프트 키는 `PromptKey` 원본에서 목록을 만들고 수정 때 키를 바꿀 수 없다 — [[DEC-0265-prompt-key-enum-single-source]]. 모의고사 회차는 `/admin/mock-exams` 에서 자동 구성·검수·공개한다 — [[DEC-0264-mock-exam-fixed-rounds-server-judged]]. 문제 등록 선택지 정책 목록(`CURATED_ONLY`·`RESULT_MATCH` 포함)과 설정 카테고리는 단일 원본에서 읽는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 관리자 `/admin/question-format`에서 문항 형식 위반을 사유별로 보고 자동 정리를 미리보기한 뒤 선택 적용한다: [[ISS-0474-question-format-rule-forbidden-punctuation]] (#905, 운영 배포). 지문 표 자동 정리 적용은 #903 앱 보급과 최소 버전 상향 뒤: [[DEC-0279-stem-table-data-cleanup-after-min-version]] (#923 열림). 관리자 전역 검색은 UUID·회원 번호(PQL-)·`@` 이메일·닉네임을 검색어 모양으로 가른다 — [[DEC-0281-admin-search-at-sign-routes-email]]. (2026-11-12) 최소·권장 버전과 결제 켜기 준비(스위치, 미리보기 회원, 점검표)는 `/admin/app-operation` 한 곳에서 바꾸고, 일반 설정 표에서 그 키는 읽기 전용이다 — [[DEC-0292-admin-app-operation-single-entry]].
 
 ## 활성 결정
 - [[DEC-0281-admin-search-at-sign-routes-email]] — 관리자 전역 검색은 칸 하나, 검색어 모양으로 UUID > 회원 번호 > @ 이메일 > 닉네임
@@ -35,6 +35,7 @@ related: []
 - [[DEC-0264-mock-exam-fixed-rounds-server-judged]] — SQLD 모의고사: 관리자 고정 회차(검증 세트), 시간·채점·응시 수 서버 판정, 무료 1회 체험·프로 무제한 (#866)
 - [[DEC-0265-prompt-key-enum-single-source]] — 프롬프트 키는 `PromptKey` enum 단일 원본, 관리자 수정에서 키 변경 불가 (#875)
 - [[DEC-0279-stem-table-data-cleanup-after-min-version]]: 운영 지문 표 자동 정리는 #903 앱이 두 스토어에 나오고 최소 지원 버전을 올린 뒤 적용, 그 전까지 데이터 그대로 (#905, #923)
+- [[DEC-0292-admin-app-operation-single-entry]] — 최소·권장 버전과 결제 켜기 준비는 `/admin/app-operation` 한 곳, 최소 버전 경고는 서버 빌드 버전 비교, 일반 설정 API는 호환 유지 (#961)
 
 ## 대체된 결정 (역사)
 - [[DEC-0026-sensitive-settings-masked-readonly]] → DEC-0107
@@ -44,6 +45,7 @@ related: []
 - [[DEC-0081-admin-session-chain-yml-account]] → DEC-0130
 
 ## 관련 이슈
+- [[ISS-0495-admin-app-operation-settings]] (resolved, GitHub #961, PR #969): 최소 버전 입구가 둘, 결제 켜기 전 점검표 없음, 비밀 설정 미설정 문구 오해
 - [[ISS-0483-admin-search-email]] (resolved, GitHub #934): 관리자 전역 검색 이메일 일부 일치(@ 포함 검색어)
 - [[ISS-0482-admin-search-member-code]] (resolved, GitHub #929): 관리자 전역 검색 회원 번호 지원, 첫 배포 500(JPA as() 형변환 없음 > text())
 - [[ISS-0480-stem-table-sql-format-data-cleanup-deferred]] (open, GitHub #923): 지문 중복 표와 SQL 서식 운영 데이터 정리, #903 앱 보급과 최소 버전 상향 뒤 적용

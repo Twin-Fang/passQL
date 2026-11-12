@@ -2,7 +2,7 @@
 type: cluster
 topic: notification
 created: 2026-10-29
-members: 18
+members: 20
 status: active
 related: []
 ---
@@ -13,18 +13,20 @@ related: []
 푸시·알림
 
 ## 현재 상태 요약
-(2026-10-29, 자동 생성) 활성 결정 3개, 열린 이슈 2개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-10-29, 자동 생성) 활성 결정 3개, 열린 이슈 2개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 알림 권한 안내는 처음 켤 때 홈 환영 안내 「시작하기」 직후에도 뜬다 — [[DEC-0288-first-launch-notification-prompt-after-welcome]] (DEC-0149 대체).
 
 ## 활성 결정
 - [[DEC-0131-member-notification-inbox-single-entry]] — 회원 알림함은 `알림`/`공지` 두 탭, 생성 입구는 `MemberNotificationService` 하나, 일반 알림 90일 보관, 웹 브라우저 푸시는 하지 않음
 - [[DEC-0132-push-permission-pre-prompt-sheet]] — 알림 권한은 앱 안내 시트 뒤 "알림 받기"를 눌렀을 때만 시스템 창으로 요청, "나중에"는 7일간 다시 묻지 않음
-- [[DEC-0149-contextual-notification-permission-prompt]] — 알림 권한 안내 시트는 가입 직후가 아니라 결과 화면을 본 뒤 탭 복귀 시나 두 번째 실행부터 띄운다
+- [[DEC-0288-first-launch-notification-prompt-after-welcome]] — 알림 권한 안내는 처음 켤 때 홈 환영 안내 「시작하기」 직후(미결정·다시 물어도 될 때만), 안내 시트 거침 (#980, DEC-0149 대체)
 
 ## 대체된 결정 (역사)
+- [[DEC-0149-contextual-notification-permission-prompt]] → DEC-0288
 - 없음
 - [[DEC-0216-count-badge-contrast-exception]] — 안 읽은 개수 배지는 iOS 시스템 빨강 + 흰 숫자 (DEC-0168 조건부 예외)
 
 ## 관련 이슈
+- [[ISS-0492-first-launch-notification-prompt]] (resolved, GitHub #980, PR #981): 처음 켠 날 알림 권한을 묻지 않음, 크레딧 0일 때 홈 광고 카드, 결과 화면 번호만 있는 목록
 - [[ISS-0431-app-home-top-bell-notice-banner]] (resolved, GitHub #756) — 홈 알림 아이콘 색과 공지 배너 개편
 - [[ISS-0273-fcm-push-notifications]] (open, GitHub #467) — FCM 푸시 알림 (토큰 등록, 발송 화면, 앱 수신)
 - [[ISS-0396-duolingo-style-return-notifications]] (open, GitHub #649) — 듀오링고식 재방문 알림·부가 기능 설계와 관리자 제어

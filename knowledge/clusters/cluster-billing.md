@@ -2,7 +2,7 @@
 type: cluster
 topic: billing
 created: 2026-10-29
-members: 59
+members: 65
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 무료/프로 등급, 이용권 상품과 가격, 스토어(Play·App Store) 결제 검증, 결제 스위치. 서버 `FeatureAccessPolicy`가 등급 판정의 유일한 지점이다.
 
 ## 현재 상태 요약
-(2026-11-12) 상품은 1개월권 ₩4,400·3개월권 ₩9,900 기간제 이용권, 자동 갱신 없음, 3개월권 기본 선택 — [[DEC-0003-one-and-three-month-pass]]. 무료/프로 경계는 [[DEC-0004-free-pro-feature-boundary]]. Android(Play 일회성)·iOS(비갱신 구독) 결제와 iOS·웹 잠금은 구현됐지만 결제 스위치는 전체로는 꺼진 채 — [[DEC-0005-ship-with-billing-switch-off]]. 2026-10-23부터 관리자 설정 `billing.preview_member_uuids`에 등록된 심사 계정만 결제가 켜지고, iOS 1.41.0 + 이용권 2개가 심사 대기 중이다. 켜기 전 남은 일(Apple 심사 결과, 실구매·환불 확인, Play 프로덕션, 최소 버전 1.41.0 상향)은 [[ISS-0361-billing-switch-final-checks]](열림, GitHub #596). 무료 랜덤 풀기 한도는 기본 10 + 보너스 3종(세트 완료 +5, 세트 정답률 80% +5, 보상형 광고 +5×2, 최대 30)이고, 응답은 `dailyFreeLimit`(기본 10) 외에 `todayFreeLimit`·`dailyBonus`를 준다 — [[DEC-0239-free-daily-limit-bonus-three-kinds]](2026-11-04 #817 릴리스로 서버 운영 반영, 앱은 테스트 트랙). 한도 초기화는 하루(KST 0시)를 유지하고 시간 충전은 하지 않는다 — [[DEC-0245-free-limit-daily-reset-kept]]. 프로필 상단은 A안(계정 줄, 무료 오늘 남은 문제·업그레이드 배너, 프로 PRO 탑승권 카드 + 이어서 연장)이고, 구매 내역·구매 복원·프로모션 코드 행은 계정·이용권 화면 `/account` 한 곳·프로필은 "이용권 관리" 한 줄이고 이 구조는 [[DEC-0276-account-provider-icon-email-avatar]] (#908, DEC-0263 대체)가 이어받았다. 통계 정답률 상세(난이도별, 오답 정리)는 프로 `TOPIC_ANALYSIS`, 학습 패턴은 무료: [[DEC-0274-stats-radar-above-list-study-pattern-free]] (#909). 결제나 광고 보너스 확인 중 시트를 닫아도 결과 안내와 재시도가 남는다: [[ISS-0470-app-audit-uiscene-plan-flicker-sheet-dismiss]] (#880). 이상 main 머지, 배포 전. 내 구매 내역 API(`GET /api/members/me/purchases`), 이용권 시트 할인 리본·하루 가격이 있다. 이용권 혜택은 `pro_benefits.dart` 원본, 실제 잠금만, 광고 제거를 더한 7개 — [[DEC-0262-pro-benefits-seven-ad-removal]] (DEC-0205 대체). 프로 핵심 기능 SQLD 모의고사는 무료 1회 체험·프로 무제한 — [[DEC-0264-mock-exam-fixed-rounds-server-judged]] (PR #889 머지, 이슈 #866 열림). 프로모션 코드는 스토어 코드만 쓴다 — [[DEC-0244-promo-code-store-codes-only]]. 결제 스위치를 켤 때 최소 지원 버전을 보너스 기능이 들어간 버전으로 올려야 한다. 켜기 전 미확인 화면·경합 점검은 [[ISS-0469-billing-switch-unverified-screens-races]](열림, GitHub #867, PR #898 머지): 하루 한도 판정은 제출 기록 트랜잭션 안 회원 행 잠금 뒤 — [[DEC-0271-daily-limit-judged-in-submit-record-tx]], 원화가 아닌 스토어 가격은 원 환산 금액을 숨김 — [[DEC-0272-non-krw-price-hides-won-amounts]], 점검 모드에서도 외부 콜백 통과 — [[DEC-0273-maintenance-mode-passes-external-callbacks]]. 실기기 한도 소진·광고 보너스·동시 제출 확인과 `ads.reward.ssv_required` 켜기는 사람이 할 일로 남았다. 결제 시험 환경 세팅·E2E 는 열림, 운영 `billing.play_service_account_json`·`ads.reward.ssv_ad_unit_ids` 가 비어 있다 — [[ISS-0485-billing-test-setup-e2e]]. (2026-11-12) 결제 스위치를 켠 뒤 무료 흐름을 다시 짰다(#963, PR #964): 광고 보너스 횟수 제한 없음 + 하루 200 공정 사용 상한 — [[DEC-0282-ad-bonus-unlimited-fair-use-200]](DEC-0239 대체), 한도 화면은 보상 먼저 — [[DEC-0283-daily-limit-view-reward-first]], 이용권 시트는 권유 문구 없이 작은 할인 배지 — [[DEC-0284-pass-sheet-plain-copy-small-discount-badge]]. (2026-11-12) 이용권 시트는 나란한 가격 카드와 무료·프로 비교표 — [[DEC-0286-pass-sheet-comparison-table-price-cards]](DEC-0284 대체), 무료 한도는 크레딧으로 부르고 상단 알약에서 크레딧 시트로 — [[DEC-0287-credit-term-top-bar-balance]]. 구매·광고 흐름 분석 이벤트는 [[ISS-0490-credit-term-purchase-funnel-events]].
+(2026-11-12) 상품은 1개월권 ₩4,400·3개월권 ₩9,900 기간제 이용권, 자동 갱신 없음, 3개월권 기본 선택 — [[DEC-0003-one-and-three-month-pass]]. 무료/프로 경계는 [[DEC-0004-free-pro-feature-boundary]]. Android(Play 일회성)·iOS(비갱신 구독) 결제와 iOS·웹 잠금은 구현됐지만 결제 스위치는 전체로는 꺼진 채 — [[DEC-0005-ship-with-billing-switch-off]]. 2026-10-23부터 관리자 설정 `billing.preview_member_uuids`에 등록된 심사 계정만 결제가 켜지고, iOS 1.41.0 + 이용권 2개가 심사 대기 중이다. 켜기 전 남은 일(Apple 심사 결과, 실구매·환불 확인, Play 프로덕션, 최소 버전 1.41.0 상향)은 [[ISS-0361-billing-switch-final-checks]](열림, GitHub #596). 무료 랜덤 풀기 한도는 기본 10 + 보너스 3종(세트 완료 +5, 세트 정답률 80% +5, 보상형 광고 +5×2, 최대 30)이고, 응답은 `dailyFreeLimit`(기본 10) 외에 `todayFreeLimit`·`dailyBonus`를 준다 — [[DEC-0239-free-daily-limit-bonus-three-kinds]](2026-11-04 #817 릴리스로 서버 운영 반영, 앱은 테스트 트랙). 한도 초기화는 하루(KST 0시)를 유지하고 시간 충전은 하지 않는다 — [[DEC-0245-free-limit-daily-reset-kept]]. 프로필 상단은 A안(계정 줄, 무료 오늘 남은 문제·업그레이드 배너, 프로 PRO 탑승권 카드 + 이어서 연장)이고, 구매 내역·구매 복원·프로모션 코드 행은 계정·이용권 화면 `/account` 한 곳·프로필은 "이용권 관리" 한 줄이고 이 구조는 [[DEC-0276-account-provider-icon-email-avatar]] (#908, DEC-0263 대체)가 이어받았다. 통계 정답률 상세(난이도별, 오답 정리)는 프로 `TOPIC_ANALYSIS`, 학습 패턴은 무료: [[DEC-0274-stats-radar-above-list-study-pattern-free]] (#909). 결제나 광고 보너스 확인 중 시트를 닫아도 결과 안내와 재시도가 남는다: [[ISS-0470-app-audit-uiscene-plan-flicker-sheet-dismiss]] (#880). 이상 main 머지, 배포 전. 내 구매 내역 API(`GET /api/members/me/purchases`), 이용권 시트 할인 리본·하루 가격이 있다. 이용권 혜택은 `pro_benefits.dart` 원본, 실제 잠금만, 광고 제거를 더한 7개 — [[DEC-0262-pro-benefits-seven-ad-removal]] (DEC-0205 대체). 프로 핵심 기능 SQLD 모의고사는 무료 1회 체험·프로 무제한 — [[DEC-0264-mock-exam-fixed-rounds-server-judged]] (PR #889 머지, 이슈 #866 열림). 프로모션 코드는 스토어 코드만 쓴다 — [[DEC-0244-promo-code-store-codes-only]]. 결제 스위치를 켤 때 최소 지원 버전을 보너스 기능이 들어간 버전으로 올려야 한다. 켜기 전 미확인 화면·경합 점검은 [[ISS-0469-billing-switch-unverified-screens-races]](열림, GitHub #867, PR #898 머지): 하루 한도 판정은 제출 기록 트랜잭션 안 회원 행 잠금 뒤 — [[DEC-0271-daily-limit-judged-in-submit-record-tx]], 원화가 아닌 스토어 가격은 원 환산 금액을 숨김 — [[DEC-0272-non-krw-price-hides-won-amounts]], 점검 모드에서도 외부 콜백 통과 — [[DEC-0273-maintenance-mode-passes-external-callbacks]]. 실기기 한도 소진·광고 보너스·동시 제출 확인과 `ads.reward.ssv_required` 켜기는 사람이 할 일로 남았다. 결제 시험 환경 세팅·E2E 는 열림, 운영 `billing.play_service_account_json`·`ads.reward.ssv_ad_unit_ids` 가 비어 있다 — [[ISS-0485-billing-test-setup-e2e]]. (2026-11-12) 결제 스위치를 켠 뒤 무료 흐름을 다시 짰다(#963, PR #964): 광고 보너스 횟수 제한 없음 + 하루 200 공정 사용 상한 — [[DEC-0282-ad-bonus-unlimited-fair-use-200]](DEC-0239 대체), 한도 화면은 보상 먼저 — [[DEC-0283-daily-limit-view-reward-first]], 이용권 시트는 권유 문구 없이 작은 할인 배지 — [[DEC-0284-pass-sheet-plain-copy-small-discount-badge]]. (2026-11-12) 이용권 시트는 나란한 가격 카드와 무료·프로 비교표 — [[DEC-0286-pass-sheet-comparison-table-price-cards]](DEC-0284 대체), 무료 한도는 크레딧으로 부르고 상단 알약에서 크레딧 시트로 — [[DEC-0287-credit-term-top-bar-balance]]. 구매·광고 흐름 분석 이벤트는 [[ISS-0490-credit-term-purchase-funnel-events]]. (2026-11-12) 프로필 크레딧 「내역」은 날짜별 화면이며, 따로 저장하지 않고 한도 판정 원본에서 계산한다 — [[DEC-0290-credit-history-computed-from-limit-records]]. 결제 스위치·미리보기 회원·켜기 전 점검표는 관리자 앱 운영 화면 한 곳에 있다 — [[DEC-0292-admin-app-operation-single-entry]].
 
 ## 활성 결정
 - [[DEC-0003-one-and-three-month-pass]] — 1개월권 ₩4,400 · 3개월권 ₩9,900 기간제 이용권 (자동 갱신 없음)
@@ -42,6 +42,9 @@ related: []
 - [[DEC-0283-daily-limit-view-reward-first]] — 무료 랜덤은 끊기지 않게 이어 풀기, 남은 수 상시 표시, 한도 화면은 광고 > 오늘의 세트 > 이용권 한 줄 (#963)
 - [[DEC-0286-pass-sheet-comparison-table-price-cards]] — 이용권 시트: 나란한 가격 카드(줄 그은 정가 + -25%), 접지 않는 무료·프로 비교표, 탑승권 한 색 아이콘·수험생 (#966, DEC-0284 대체)
 - [[DEC-0287-credit-term-top-bar-balance]] — 무료 한도는 `크레딧`, 잔액은 탭 상단 바 알약(누르면 크레딧 시트: PRO 주 버튼 > 광고 > 오늘의 세트), 상태는 아이콘·색 (#966, #971)
+- [[DEC-0289-home-next-step-no-ad-card-mock-trial]] — 홈 「다음에 할 일」 카드는 광고를 권하지 않고, 크레딧 0이면 모의고사 무료 1회 카드 또는 숨김 (#980)
+- [[DEC-0290-credit-history-computed-from-limit-records]] — 크레딧 내역은 따로 저장하지 않고 한도 판정과 같은 메서드로 날짜별 계산(최근 14일), DEC-0287의 "오늘 내역만" 부분 대체 (#974)
+- [[DEC-0292-admin-app-operation-single-entry]] — 최소·권장 버전과 결제 켜기 준비는 `/admin/app-operation` 한 곳, 최소 버전 경고는 서버 빌드 버전 비교, 일반 설정 API는 호환 유지 (#961)
 
 ## 대체된 결정 (역사)
 - [[DEC-0284-pass-sheet-plain-copy-small-discount-badge]] → DEC-0286
@@ -53,7 +56,12 @@ related: []
 - [[DEC-0243-profile-top-card-style-a]] → DEC-0263
 - [[DEC-0263-pass-rows-on-account-screen-only]] → DEC-0276
 
+## 핵심 문서
+- [[DOC-0001-billing-implementation-code-trace]] (internal, 2026-11-12 코드 기준) — 결제 구현 지도: Android·iOS 구매 검증, 이용권 저장·회수·만료 계산, 결제 스위치, 서버·앱·웹 역할 분담. 열린 질문: Play verify에 결제 스위치 검사 없음(iOS만 있음)
+
 ## 관련 이슈
+- [[ISS-0493-credit-history-screen]] (resolved, GitHub #974, PR #978): 크레딧 내역이 오늘 요약뿐, 날짜별 받고 쓴 내역 없음 > 원본 기록에서 계산
+- [[ISS-0495-admin-app-operation-settings]] (resolved, GitHub #961, PR #969): 최소 버전 입구가 둘, 결제 켜기 전 점검표 없음, 비밀 설정 미설정 문구 오해
 - [[ISS-0489-pass-sheet-home-profile-cleanup]] (resolved, GitHub #966, PR #968): 이용권 시트 혜택 접기·정가 없는 할인, 잠금 문구 딱딱함, 홈·프로필 카드에 기능이 섞임
 - [[ISS-0490-credit-term-purchase-funnel-events]] (resolved, GitHub #971, PR #973): 구매·광고 흐름 분석 이벤트 없음, 한도·보상 표현이 여러 말로 겹침(크레딧으로 통일), 탭 제목 정렬
 - [[ISS-0488-free-practice-reward-flow]] (resolved, GitHub #963, PR #964): 무료 랜덤 10문제 끊김, 남은 한도 안 보임, 한도 화면 광고 버튼 묻힘, 세트 보너스 표시 없음, 이용권 시트 문구 과다
