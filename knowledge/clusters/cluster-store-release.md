@@ -2,7 +2,7 @@
 type: cluster
 topic: store-release
 created: 2026-10-29
-members: 65
+members: 66
 status: active
 related: []
 ---
@@ -44,6 +44,7 @@ related: []
 - [[DEC-0169-store-listing-korean-only]] — 스토어 홍보 이미지·설명은 한국어만 만들고, 문구는 `scenes.json`에서 도구로 렌더링한다 (대체: DEC-0233)
 
 ## 관련 이슈
+- [[ISS-0499-play-fgs-declaration-lock-screen]] (open, #1002): Play 포그라운드 서비스 권한 미신고 업로드 거절, 잠금화면 임시 제외
 - [[ISS-0485-billing-test-setup-e2e]] (open, GitHub #941): 결제 시험 환경 세팅과 결제 E2E (Play 서비스 계정·SSV 설정 비어 있음)
 - [[ISS-0484-ios-deploy-mutates-version-in-review]] (resolved, GitHub #939): 심사 대기 중 iOS 배포가 대기 버전 표기·메타데이터를 바꾸고 실패 > TestFlight 만
 - [[ISS-0452-server-only-release-triggers-store-submit]] (resolved, GitHub #840) — 서버만 바꾼 릴리스에도 버전 줄 변경으로 스토어 심사 제출 자동 실행 > pubspec 제외

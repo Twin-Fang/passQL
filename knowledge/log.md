@@ -201,3 +201,6 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-12 13:40 | W6 | create | ISS-0494 (resolved) + report (#984), DEC-0288, ISS-0495 (resolved) + report (#985)
 - 2026-11-12 13:40 | W2 | update | cluster-billing, cluster-admin, cluster-home, cluster-design-system
 - 2026-11-12 13:41 | W2 | fix | members count: cluster-admin 101, cluster-billing 62, cluster-design-system 158, cluster-home 71
+- 2026-11-12 17:30 | W6 | create | ISS-0496~0498·0500 (resolved) + report (#992·#993·#995·#1005), ISS-0499 (open, #1002), DEC-0289
+- 2026-11-12 17:30 | W2 | update | cluster-billing, practice, ai, home, design-system, community, notification, auth-member, store-release, ci-deploy, dev-workflow
+- 2026-11-12 17:31 | W2 | fix | members count 11 clusters
