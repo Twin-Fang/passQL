@@ -942,9 +942,9 @@ export interface paths {
          *
          *     ## 요청 (multipart/form-data)
          *     - **`request`** (application/json, 필수): `{ "content": "..." }` (앞뒤 공백 제거 후 1~500자)
-         *     - **`images`** (선택, 0~10개): WebP 원본 (장당 600KB 이하, 긴 변 1920px 이하)
+         *     - **`images`** (선택, 0~5개): WebP 원본 (장당 300KB 이하, 긴 변 1280px 이하)
          *     - **`diagnostics`** (선택, application/json): 진단 정보 JSON 객체 (32KB 이하)
-         *     - **`log`** (선택, application/gzip): 앱 로그 gzip (2MB 이하)
+         *     - **`log`** (선택, application/gzip): 앱 로그 gzip (512KB 이하)
          *
          *     ## 반환값 (FeedbackSubmitResponse)
          *     - **`feedbackUuid`**: 생성된 의견 UUID
