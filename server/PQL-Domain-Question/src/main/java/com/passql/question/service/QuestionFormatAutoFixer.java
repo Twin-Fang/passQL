@@ -15,13 +15,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 문항 형식 자동 정리 (#905): 지문 표(스키마 중복 삭제·스키마로 옮김) > 목록 기호 > 줄표·가운뎃점(ForbiddenPunctuationCleaner)
+ * 문항 형식 자동 정리 (#905): 지문 표(스키마 중복 삭제·스키마로 옮김) > 지문 SQL SELECT 목록 줄바꿈(#923) > 목록 기호 > 줄표·가운뎃점
  * 형식 검사(QuestionFormatRule)가 자동 정리 가능으로 표시한 위반만 고침, 나머지는 손으로
  */
 public final class QuestionFormatAutoFixer {
 
     public static final String FIX_REMOVE_DUPLICATED_TABLE = "스키마와 같은 지문 표 삭제";
     public static final String FIX_MOVE_TABLE_TO_SCHEMA = "지문 표 > 스키마 표";
+    public static final String FIX_SELECT_LIST_LINE_BREAK = "SELECT 목록 줄바꿈";
     public static final String FIX_LIST_MARKER = "목록 기호 > \"- \"";
     public static final String FIX_PUNCTUATION = "줄표, 가운뎃점 정리";
 
@@ -58,6 +59,11 @@ public final class QuestionFormatAutoFixer {
             appliedFixes.add(tableFix.fixName());
         }
 
+        // 지문 SQL 코드 블록 SELECT 목록 (블록마다 토큰 동일일 때만)
+        String selectListFixedStem = breakStemSelectLists(stem);
+        if (!Objects.equals(selectListFixedStem, stem)) appliedFixes.add(FIX_SELECT_LIST_LINE_BREAK);
+        stem = selectListFixedStem;
+
         String markerFixedStem = replaceListMarkers(stem);
         if (!Objects.equals(markerFixedStem, stem)) appliedFixes.add(FIX_LIST_MARKER);
         String dashFixedStem = ForbiddenPunctuationCleaner.clean(markerFixedStem);
@@ -80,7 +86,7 @@ public final class QuestionFormatAutoFixer {
         for (int index = tableBlocks.size() - 1; index >= 0; index--) {
             TableBlock table = tableBlocks.get(index);
             QuestionSchemaTable matchingSchemaTable = QuestionFormatRule.findSchemaTableWithSameColumns(table, schemaTables);
-            if (matchingSchemaTable != null && !matchingSchemaTable.sampleRows().isEmpty()) {
+            if (QuestionFormatRule.isDuplicateOfSchemaTable(table, matchingSchemaTable)) {
                 return new TableFix(removeTable(layout, table), schemaDdl, schemaSampleData, FIX_REMOVE_DUPLICATED_TABLE);
             }
             boolean isDataTable = matchingSchemaTable != null || table.labelName() != null;
@@ -101,6 +107,26 @@ public final class QuestionFormatAutoFixer {
             if (!isRemoved) keptLines.add(layout.lines().get(lineIndex));
         }
         return EXTRA_BLANK_LINES.matcher(String.join("\n", keptLines)).replaceAll("\n\n").strip();
+    }
+
+    // 지문 sql·언어 없는 코드 블록 > SqlSelectListLineBreaker (아래 블록부터 바꿔 줄 번호 유지)
+    private static String breakStemSelectLists(String stem) {
+        if (stem == null) return null;
+        StemMarkdownLayout layout = StemMarkdownLayout.parse(stem);
+        List<String> lines = new ArrayList<>(layout.lines());
+        boolean hasChanged = false;
+        List<StemMarkdownLayout.CodeBlock> codeBlocks = layout.codeBlocks();
+        for (int index = codeBlocks.size() - 1; index >= 0; index--) {
+            StemMarkdownLayout.CodeBlock codeBlock = codeBlocks.get(index);
+            if (!codeBlock.isSqlCode()) continue;
+            String brokenContent = SqlSelectListLineBreaker.breakLongSelectLists(codeBlock.content());
+            if (brokenContent.equals(codeBlock.content())) continue;
+            int firstLineIndex = codeBlock.firstContentLineIndex();
+            lines.subList(firstLineIndex, firstLineIndex + codeBlock.contentLineCount()).clear();
+            lines.addAll(firstLineIndex, List.of(brokenContent.split("\n", -1)));
+            hasChanged = true;
+        }
+        return hasChanged ? String.join("\n", lines) : stem;
     }
 
     // 글 줄의 * • 등 목록 기호 > "- "

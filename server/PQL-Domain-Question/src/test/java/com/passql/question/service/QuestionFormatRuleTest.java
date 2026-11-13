@@ -81,6 +81,17 @@ class QuestionFormatRuleTest {
     }
 
     @Test
+    @DisplayName("2 행 0개 지문 표: 머리글이 스키마 표 컬럼과 같으면 중복(자동 삭제) (#923)")
+    void rejectsHeaderOnlyStemTable() {
+        String headerOnly = "[EMP]\n| EMPNO | ENAME | DEPTNO |\n| --- | --- | --- |\n\n" + CLEAN_STEM;
+        var inputWithoutSample = new QuestionFormatInput(headerOnly, null, EMP_DDL, null, false, List.of());
+        List<QuestionFormatViolation> violations = QuestionFormatRule.check(inputWithoutSample).violations();
+        assertThat(violations).extracting(QuestionFormatViolation::reason)
+                .containsExactly(QuestionFormatViolationReason.STEM_TABLE_DUPLICATES_SCHEMA);
+        assertThat(QuestionFormatAutoFixer.fix(inputWithoutSample).stem()).isEqualTo(CLEAN_STEM);
+    }
+
+    @Test
     @DisplayName("2 예외 목록: 비교표(머리말 없음·스키마와 다른 컬럼), 결과 표([결과] 한글 머리말)는 허용")
     void allowsNonDataTables() {
         String comparisonTable = "| 구분 | DELETE | TRUNCATE |\n|---|---|---|\n| 되돌리기 | 가능 | 불가 |\n\n둘의 차이로 옳은 것은?";
@@ -115,6 +126,16 @@ class QuestionFormatRuleTest {
                 .containsExactly(QuestionFormatViolationReason.SQL_KOREAN_COMMENT);
         assertThat(reasonsOf(stemOnly("결과가 같은 것은?\n```sql\n-- (가)\nSELECT ENAME FROM EMP;\n\n-- (나)\nSELECT ENAME FROM EMP\n```")))
                 .isEmpty();
+    }
+
+    @Test
+    @DisplayName("5 SQL 수행 주체 라벨: \"-- <주체> 가/이 수행\" 은 24자까지, \";\" 다음 줄도 허용, 일반 라벨은 12자 유지 (#923)")
+    void allowsActorLabelComment() {
+        String actorLabels = "순서대로 수행한 결과는?\n```sql\n-- DBA 가 수행\nGRANT CREATE TABLE TO A;\n"
+                + "-- ORDERS 소유자 OWNER 가 수행\nGRANT SELECT ON ORDERS TO A;\n```";
+        assertThat(reasonsOf(stemOnly(actorLabels))).isEmpty();
+        assertThat(reasonsOf(stemOnly("결과는?\n```sql\n-- 첫 번째로 실행하는 문장\nSELECT ENAME\nFROM EMP\n```")))
+                .containsExactly(QuestionFormatViolationReason.SQL_KOREAN_COMMENT);
     }
 
     @Test

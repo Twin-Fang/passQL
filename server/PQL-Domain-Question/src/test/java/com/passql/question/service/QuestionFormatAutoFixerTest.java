@@ -50,6 +50,28 @@ class QuestionFormatAutoFixerTest {
     }
 
     @Test
+    @DisplayName("SELECT 목록 줄바꿈: 항목마다 첫 항목 열에 맞추고 같은 줄 FROM 은 다음 줄, 리터럴 안 쉼표는 그대로 (#923)")
+    void breaksLongSelectList() {
+        String sql = "SELECT DEPT_ID, NVL(COMM, 0) AS C, 'A, B, C' AS LABEL FROM EMP;";
+        assertThat(SqlSelectListLineBreaker.breakLongSelectLists(sql))
+                .isEqualTo("SELECT DEPT_ID,\n       NVL(COMM, 0) AS C,\n       'A, B, C' AS LABEL\nFROM EMP;");
+        String stem = "결과는?\n\n```sql\nSELECT DEPT_ID, COUNT(*) AS CNT, SUM(SAL) AS TOTAL\nFROM EMP\n```";
+        var fixResult = QuestionFormatAutoFixer.fix(new QuestionFormatInput(stem, null, null, null, true, List.of()));
+        assertThat(fixResult.stem())
+                .isEqualTo("결과는?\n\n```sql\nSELECT DEPT_ID,\n       COUNT(*) AS CNT,\n       SUM(SAL) AS TOTAL\nFROM EMP\n```");
+        assertThat(fixResult.appliedFixes()).containsExactly(QuestionFormatAutoFixer.FIX_SELECT_LIST_LINE_BREAK);
+    }
+
+    @Test
+    @DisplayName("SELECT 목록 토큰 판정: 공백만 다르면 같음, 글자가 다르면 계획 제외 (#923)")
+    void detectsTokenChange() {
+        assertThat(SqlSelectListLineBreaker.hasSameTokens("SELECT A, B FROM T", "SELECT A,\n       B\nFROM T")).isTrue();
+        assertThat(SqlSelectListLineBreaker.hasSameTokens("SELECT A, B FROM T", "SELECT A,\n       C\nFROM T")).isFalse();
+        String shortList = "SELECT A, B FROM T";
+        assertThat(SqlSelectListLineBreaker.breakLongSelectLists(shortList)).isSameAs(shortList);
+    }
+
+    @Test
     @DisplayName("스키마와 같은 지문 표: 머리말 줄까지 지우고 스키마는 그대로")
     void removesDuplicatedTable() {
         String ddl = "CREATE TABLE T (ID NUMBER, A VARCHAR2(1));";
