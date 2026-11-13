@@ -50,7 +50,8 @@ lib/presentation/design/
 | `PassqlCard` | 그림자 없는 카드, 제목·우측 요소, 바깥 높이 채움(`shouldChildFillHeight`, 2열 높이 맞춤) |
 | `PassqlMarqueeText` | 한 줄 흐르는 글자(마퀴, 홈 공지 #701): 넘칠 때만 멈춤 > 흐름 반복(`isAlwaysScrolling` 이면 짧아도 흐름, 홈 공지 #756), 속도·멈춤·간격은 `PassqlMotion.marquee*`, 동작 줄이기면 말줄임, 스크린리더는 전체 문장 한 번 |
 | `PassqlBarChart` / `PassqlBarChartBar` | 세로 막대 차트 (프로필 학습 통계, #909): 바닥선 + 막대(강조 몫은 강조색, 나머지는 옅은 강조색) + 아래 축 글자(칸보다 길면 양옆으로 넘침). 값은 최댓값 기준 비율, 처음 그릴 때 자람(동작 줄이기면 정지), 스크린리더는 `semanticLabel` 한 문장 |
-| `PassqlActivityRings` | 바깥에서 안쪽으로 겹친 진행 링 (홈 합격 준비도 정확도·범위·최신성, #701). 링마다 비율·색, 가운데 글자 선택. 링은 스크린리더에서 숨기고 쓰는 쪽이 범례와 묶어 읽힘 |
+| `PassqlReadinessRing` | 홈 합격 준비도 링 하나 (#972): 두꺼운 링, 강조색 > 이용권 보라로 번지는 채움과 옅은 빛, 가운데 글자 선택. 차오름은 쓰는 쪽이 `value` 를 올려 지표 막대와 맞춤. 링은 스크린리더에서 숨기고 쓰는 쪽이 지표와 묶어 읽힘 |
+| `PassqlActivityRings` | 바깥에서 안쪽으로 겹친 진행 링 (#701). 링마다 비율·색, 가운데 글자 선택. 링은 스크린리더에서 숨기고 쓰는 쪽이 범례와 묶어 읽힘 (홈 준비도는 #972 에서 `PassqlReadinessRing` 으로 교체, 현재 사용처 없음) |
 | `PassqlSection` / `PassqlSectionGap` / `PassqlSectionHeader` / `PassqlSectionLink` | 홈식 구간: 좌우 끝까지 닿는 card 면(좌우 md·위아래 lg)과 구간 사이 md 높이 background 띠. 제목 줄은 높이 44 고정 title3(+ 앞 아이콘·오른쪽 요소), 오른쪽 이동 링크는 글자 + › 한 모양 (#701). `isCompactTitle`: 작은 타일 + 15pt 제목 (문제 탭 경향 구간, #726) |
 | `PassqlGroupedSection` / `PassqlListRow` / `PassqlCheckRow` / `PassqlIconTile` | iOS 설정 앱식 목록 묶음·행·선택 행·아이콘 타일 (`isCompact`: 26pt 구간 제목용, #726). 묶음 머리글 오른쪽 요소는 `headerTrailing` (크레딧 내역 날짜별 남은 수, #974) |
 | `PassqlNavBar` / `PassqlNavButton` / `PassqlLargeTitleScrollView` | 상단 바(제목 글자 대신 가운데 위젯 `middle` 가능), 뒤로/닫기 버튼, 탭 화면 틀(탭 첫 화면은 제목과 오른쪽 요소가 한 줄인 고정 바, 뒤로 갈 수 있는 화면은 접히는 큰 제목, #971) |
@@ -76,7 +77,7 @@ lib/presentation/design/
 | `PassqlQueryStatusLine` | SQL 실행 결과 한 줄(성공 ✓ 정답색·경고 ! 주황): 첫 문제 완료 `1행 수정됨`, 크레딧 소진 `0 rows` (#999) |
 | `PassqlMemoScope` / `PassqlMemoCanvas` / `PassqlMemoController` | 풀이 화면 메모 (#904): 틀(펜 버튼·도구 막대·켬 안내)은 문항 영역을, 층(Canvas)은 스크롤 내용을 감쌈. 켬이면 한 손가락 그리기·두 손가락 스크롤, 끔이면 메모는 흐리게 남고 터치는 전부 아래로. 컨트롤러는 화면 State 가 들고 응시 동안만 메모리에 (문항별 획·되돌리기). 틀 밖의 층은 내용만 그림 |
 | `PassqlCallout` (+`PassqlCalloutKind`) | 강조 상자: 옅은 의미색 바탕 + 왼쪽 막대 + 아이콘·라벨 한 줄 + 내용 (강조·주의·외울 것 3종). 개념 학습 한 줄 핵심·자주 틀리는 점·시험 포인트 (#835), 꼭 외울 것 카드 (#876) |
-| `PassqlBadge` (+`PassqlBadgeKind`) / `PassqlLatestTrendBadge` / `PassqlProgressBar` | 의미별 캡슐 태그(주제·보조·완료·연속·중요·AI·최신 경향·외울 것, 아이콘·테두리), '최신 경향' 배지(문구 원본, #523), 진행 막대 |
+| `PassqlBadge` (+`PassqlBadgeKind`) / `PassqlLatestTrendBadge` / `PassqlProgressBar` | 의미별 캡슐 태그(주제·보조·완료·연속·중요·AI·최신 경향·외울 것, 아이콘·테두리), '최신 경향' 배지(문구 원본, #523), 진행 막대(`height` 두께, `isFillAnimated: false` 면 쓰는 쪽이 차오름을 직접 맞춤) |
 | `PassqlSegmentedProgress` (+`PassqlProgressSegmentState`) / `showPassqlRewardCelebration` | 풀이 상단 칸 N개 진행 바(맞힘 correct·틀림 wrong·지금 칸 accent 숨쉬기, 채점 칸 한 번 튐, #999). 크레딧 보상 창: 동전 팝·빛·불꽃 > +N > 이유 > `UPDATE` 한 줄·실행 결과 > 오늘 크레딧 이전 > 이후 + 기본(accent)·보너스(correct) 게이지. 동작 줄이기면 마지막 모습만 |
 | `PassqlReveal` / `passqlRevealInOrder` | 처음 그려질 때 페이드 + 위로 8px, 순번별 지연(상한 8) (#495) |
 | `PassqlScrollReveal` | 스크롤로 화면에 들어올 때 한 번 페이드 + 위로, 순번별 지연 (개념 레슨 블록, #848). 스크롤 영역 밖이면 바로 등장, 동작 줄이기면 정지 |
