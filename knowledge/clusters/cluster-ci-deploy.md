@@ -2,7 +2,7 @@
 type: cluster
 topic: ci-deploy
 created: 2026-10-29
-members: 68
+members: 72
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 CI/CD·배포·버전 관리·빌드
 
 ## 현재 상태 요약
-(2026-11-12, 자동 생성) 활성 결정 20개, 열린 이슈 1개. 빌드 프로파일 `build-profile.json`의 `test`가 개발자 도구 값을 켜고 `release`가 꺼짐을 검증한다 — [[DEC-0240-dev-tools-two-layer-gate-test-builds]]. release 단계는 iOS·Android 스토어 워크플로 모두에 있고, 규칙 테스트가 두 워크플로의 `APP_FLAVOR` 부재와 release 적용을 검사한다 — [[DEC-0246-dev-tools-no-prod-writes-store-exclusion]] (main 머지, 작성 시점 미배포). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. iOS 배포는 App Store 에 심사 대기·심사 중 버전이 있으면 TestFlight 만 올린다 — [[DEC-0280-ios-deploy-skip-app-store-step-while-in-review]]. iOS 배포 워크플로는 실행 브랜치와 관계없이 main 을 체크아웃한다 — [[ISS-0484-ios-deploy-mutates-version-in-review]]. (2026-11-12) 배포 워크플로가 인앱 결제 키 Secret `APP_STORE_IAP_*`를 컨테이너에 연결 — [[DEC-0298-app-store-iap-key-separate-secret]].
+(2026-11-12, 자동 생성) 활성 결정 20개, 열린 이슈 1개. 빌드 프로파일 `build-profile.json`의 `test`가 개발자 도구 값을 켜고 `release`가 꺼짐을 검증한다 — [[DEC-0240-dev-tools-two-layer-gate-test-builds]]. release 단계는 iOS·Android 스토어 워크플로 모두에 있고, 규칙 테스트가 두 워크플로의 `APP_FLAVOR` 부재와 release 적용을 검사한다 — [[DEC-0246-dev-tools-no-prod-writes-store-exclusion]] (main 머지, 작성 시점 미배포). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. iOS 배포는 App Store 에 심사 대기·심사 중 버전이 있으면 TestFlight 만 올린다 — [[DEC-0280-ios-deploy-skip-app-store-step-while-in-review]]. iOS 배포 워크플로는 실행 브랜치와 관계없이 main 을 체크아웃한다 — [[ISS-0484-ios-deploy-mutates-version-in-review]]. (2026-11-12) 배포 워크플로가 인앱 결제 키 Secret `APP_STORE_IAP_*`를 컨테이너에 연결 — [[DEC-0298-app-store-iap-key-separate-secret]]. (2026-11-12) 개발용 테스트 빌드는 최소 지원 버전 비교를 건너뛴다(점검 중은 막음) — [[DEC-0307-dev-build-skips-minimum-version]]. Ruby 쓰는 Android 잡은 `ubuntu-24.04` 고정 — [[DEC-0309-android-ruby-jobs-pin-ubuntu-2404]].
 
 ## 활성 결정
 - [[DEC-0298-app-store-iap-key-separate-secret]] — App Store Server API 인앱 결제 키는 별도 Secret APP_STORE_IAP_* 3개, 없으면 환불 점검 건너뜀 (#1032)
@@ -38,11 +38,15 @@ CI/CD·배포·버전 관리·빌드
 - [[DEC-0202-test-build-shared-version-adjust-no-block]] — 앱 테스트 빌드는 막지 않고 닫힌 버전이면 다음 패치로 올리며, Android도 iOS 번들 ID 기준의 같은 판단을 쓴다
 - [[DEC-0240-dev-tools-two-layer-gate-test-builds]] — 테스트 빌드 프로파일만 `APP_FLAVOR=dev`·`APP_SHOW_DEV_TOOLS=true`를 켜고 release는 개발 키 꺼짐 검증
 - [[DEC-0246-dev-tools-no-prod-writes-store-exclusion]] — 개발자 도구에 운영 데이터 변경 기능 없음, 스토어 빌드 제외는 컴파일 상수 + 두 스토어 워크플로 release 프로파일 + 규칙 테스트
+- [[DEC-0307-dev-build-skips-minimum-version]] — 개발용 빌드(컴파일 상수)는 최소 지원 버전 비교를 건너뛰고, 점검 중에는 막는다 (#962)
+- [[DEC-0309-android-ruby-jobs-pin-ubuntu-2404]] — Ruby 쓰는 Android 잡 4개는 Ruby 3.4.1 유지, 러너를 `ubuntu-24.04`로 고정 (#826)
 
 ## 대체된 결정 (역사)
 - [[DEC-0021-vercel-git-integration-deploy-branch]] → DEC-0060
 
 ## 관련 이슈
+- [[ISS-0512-test-build-minimum-version-block]] (resolved, GitHub #962, PR #967): 최소 지원 버전을 올리면 테스트 빌드도 업데이트 필요 화면에 막힘
+- [[ISS-0515-android-ci-ruby-ubuntu-2604]] (resolved, GitHub #826, PR #827): ubuntu-latest(26.04)에 Ruby 3.4.1 없어 Android 빌드·Play 배포 실패
 - [[ISS-0499-play-fgs-declaration-lock-screen]] (open, #1002): upload_to_play_store 거절
 - [[ISS-0484-ios-deploy-mutates-version-in-review]] (resolved, GitHub #939): 심사 대기 중 iOS 배포가 대기 버전 표기·메타데이터를 바꾸고 실패 > TestFlight 만
 - [[ISS-0452-server-only-release-triggers-store-submit]] (resolved, GitHub #840) — 서버만 바꾼 릴리스에도 버전 줄 변경으로 스토어 심사 제출 자동 실행 > pubspec 제외

@@ -2,7 +2,7 @@
 type: cluster
 topic: ai
 created: 2026-10-29
-members: 121
+members: 122
 status: active
 related: []
 ---
@@ -71,6 +71,9 @@ AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 - [[DEC-0133-encrypted-gemini-key-single-source]] → DEC-0188
 - [[DEC-0147-keep-explanation-sheet-while-solving]] → DEC-0154
 - [[DEC-0261-real-mode-renamed-new-choices]] → DEC-0275
+
+## 핵심 문서
+- [[DOC-0004-ai-implementation-code-trace]] (internal, 2026-11-13 코드 기준) — AI 호출 지도: AI 서버 경로(생성·색인·추천)와 Spring 직접 LLM 경로(해설·분석), 연결 우선순위 대체. 열린 질문: 루트 문서의 통신 구조와 실제 경로 차이
 
 ## 관련 이슈
 - [[ISS-0496-daily-set-free-trial-sql-ai]] (resolved, #992): 무료 회원 세트 문제 AI 해설 허용

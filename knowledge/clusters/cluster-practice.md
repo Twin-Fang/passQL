@@ -2,7 +2,7 @@
 type: cluster
 topic: practice
 created: 2026-10-29
-members: 192
+members: 194
 status: active
 related: []
 ---
@@ -65,6 +65,7 @@ related: []
 - [[DEC-0283-daily-limit-view-reward-first]] — 무료 랜덤은 끊기지 않게 이어 풀기, 남은 수 상시 표시, 한도 화면은 광고 > 오늘의 세트 > 이용권 한 줄 (#963)
 - [[DEC-0285-result-rewarded-interstitial]] — 결과 화면 일반 전면 광고 > 보상형 전면 광고(+5), 토픽 결과는 들어올 때·세트 결과는 떠날 때 (#963)
 - [[DEC-0287-credit-term-top-bar-balance]] — 무료 한도는 `크레딧`, 잔액은 탭 상단 바 알약(누르면 크레딧 시트: PRO 주 버튼 > 광고 > 오늘의 세트), 상태는 아이콘·색 (#966, #971)
+- [[DEC-0306-credit-history-computed-from-limit-records]] — 크레딧 내역은 따로 저장하지 않고 한도 판정과 같은 메서드로 날짜별 계산(최근 14일), DEC-0287의 "오늘 내역만" 부분 대체 (#974)
 
 ## 대체된 결정 (역사)
 - [[DEC-0278-stem-blocks-single-table-shape]] → DEC-0292
@@ -77,6 +78,9 @@ related: []
 - [[DEC-0085-daily-set-ten-questions-daily]] → DEC-0178
 - [[DEC-0147-keep-explanation-sheet-while-solving]] → DEC-0154
 - [[DEC-0261-real-mode-renamed-new-choices]] → DEC-0275
+
+## 핵심 문서
+- [[DOC-0003-practice-implementation-code-trace]] (internal, 2026-11-13 코드 기준) — 풀이 구현 지도: 열기·SSE 선택지·실행·제출 채점, 하루 한도 판정(열기·제출 공통), 보너스·크레딧 내역, 오늘의 세트
 
 ## 관련 이슈
 - [[ISS-0511-qa-1112-ui-polish-eight]] (resolved, #1041, PR #1042): 11/12 QA UI 개선 8건 — 환영 시트·알림 안내·모의고사 순위·크레딧 아이콘·PK FK·난이도 별·카운트업·과락 칸

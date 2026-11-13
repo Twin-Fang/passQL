@@ -7,7 +7,7 @@ symptoms: ["크레딧 사용 내역", "크레딧이 왜 이만큼 남았지", "�
 root_cause: "크레딧 받은 수·쓴 수를 날짜별로 돌려주는 서버 API가 없어 앱은 오늘 하루만 시트로 보여줄 수 있었다"
 status: resolved
 resolution: "[[ISS-0492-credit-history-server-and-screen-report]]"
-related: ["[[DEC-0287-credit-term-top-bar-balance]]", "[[DEC-0282-ad-bonus-unlimited-fair-use-200]]"]
+related: ["[[DEC-0287-credit-term-top-bar-balance]]", "[[DEC-0282-ad-bonus-unlimited-fair-use-200]]", "[[DEC-0306-credit-history-computed-from-limit-records]]"]
 source: "https://github.com/Twin-Fang/passQL/issues/974"
 ---
 
