@@ -12,6 +12,7 @@ import '../../../router/result_route_arguments.dart';
 import '../../../router/solving_flow_exit.dart';
 import '../../design/design.dart';
 import '../../providers/daily_set_providers.dart';
+import '../../providers/daily_set_retry_providers.dart';
 import '../../widgets/lock_screen/lock_screen_intro_sheet.dart';
 import '../../widgets/ads/rewarded_interstitial_on_result.dart';
 import '../../widgets/daily_set/daily_set_bonus_card.dart';
@@ -197,8 +198,14 @@ class _ResultBody extends ConsumerWidget {
     final board = ref.watch(leaderboardProvider);
     // 내 순위: 완료 응답 우선 > 순위표의 내 줄
     final myRank = completedRank ?? board.valueOrNull?.myEntry?.rank;
+    // 다시 풀어 맞힌 문제는 남은 오답에서 뺌 (세트 점수는 그대로, #1035)
+    final retriedCorrectUuids = ref.watch(dailySetRetriedCorrectUuidsProvider);
     final wrongQuestions = solvedQuestions
-        .where((solved) => !solved.isCorrect)
+        .where(
+          (solved) =>
+              !solved.isCorrect &&
+              !retriedCorrectUuids.contains(solved.questionUuid),
+        )
         .toList();
     final hasWrongQuestion = wrongQuestions.isNotEmpty;
     final close = onClose ?? () => leaveSolvingFlow(context);
@@ -225,6 +232,7 @@ class _ResultBody extends ConsumerWidget {
           SolvedQuestionResultTable(
             query: _dailySetResultQuery,
             solvedQuestions: solvedQuestions,
+            retriedCorrectQuestionUuids: retriedCorrectUuids,
           )
         else
           Center(child: PassqlScoreHeader(score: correctCount, total: total)),
@@ -279,7 +287,7 @@ class _ResultBody extends ConsumerWidget {
         ),
       ],
       // 주 버튼 전체 폭(긴 문구가 줄바꿈되지 않게) > 아래 보조 버튼
-      // 틀린 문제 있음: 틀린 N문제 다시 풀기(첫 틀린 문제 상세) > 닫기, 다 맞힘: 닫기 > 전체 순위
+      // 남은 오답 있음: 틀린 N문제 다시 풀기(오답 차례로 풀기 흐름, #1035) > 닫기, 없음: 닫기 > 전체 순위
       primaryAction: hasWrongQuestion
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -287,7 +295,9 @@ class _ResultBody extends ConsumerWidget {
                 PassqlButton(
                   label: '틀린 ${wrongQuestions.length}문제 다시 풀기',
                   onPressed: () => context.push(
-                    AppRoutes.questionDetail(wrongQuestions.first.questionUuid),
+                    AppRoutes.dailySetRetryOf([
+                      for (final solved in wrongQuestions) solved.questionUuid,
+                    ]),
                   ),
                 ),
                 const SizedBox(height: PassqlSpacing.xs),

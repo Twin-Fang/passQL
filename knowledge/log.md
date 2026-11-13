@@ -213,3 +213,5 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-12 23:20 | W6 | create | ISS-0506·0507·0509 (resolved) + report (#991·#1014·#1032), ISS-0508 (open, #1027), DEC-0293~DEC-0299
 - 2026-11-12 23:20 | W2 | update | cluster-admin, notification, home, design-system, billing, store-release, ops-infra, ci-deploy
 - 2026-11-12 23:24 | W2 | fix | members count: admin 105, billing 73, ci-deploy 68, design-system 164, home 73, notification 22, ops-infra 69, store-release 71; 현재 상태 요약 날짜 2026-11-12
+- 2026-11-12 23:50 | W6 | create | ISS-0510 (resolved) + report (#1035), DEC-0300; W2 update cluster-practice(190)·design-system(166)·home(75)
+- 2026-11-12 23:52 | W2 | fix | members count: practice 189, design-system 165, home 74 (완료 리포트 제외 기준)

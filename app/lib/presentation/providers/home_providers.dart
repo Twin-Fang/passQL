@@ -11,6 +11,7 @@ import '../../data/models/progress/heatmap_response.dart';
 import '../../data/models/progress/progress_response.dart';
 import '../../data/models/exam/exam_schedule_response.dart';
 import 'dev_situation_overrides.dart';
+import 'mock_exam_providers.dart';
 import 'pro_ui_providers.dart';
 import 'session_reset.dart';
 
@@ -117,21 +118,21 @@ final homeRecommendationsProvider =
 /// 로그아웃이면 빈 묶음 (API 호출 없음)
 final homeLearningStatusProvider =
     FutureProvider.autoDispose<HomeLearningStatus>((ref) async {
-  if (ref.watch(currentMemberUuidProvider) == null) {
-    return const HomeLearningStatus();
-  }
-  final progressClient = ref.read(progressApiProvider);
-  final progress = SafeCallSlot(progressClient.getProgress());
-  final dailySet = SafeCallSlot(ref.read(dailySetApiProvider).getToday());
-  // getHeatmap(from, to): null 이면 서버 기본 기간
-  final heatmap = SafeCallSlot(progressClient.getHeatmap(null, null));
-  await safeCallAll([progress, dailySet, heatmap]);
-  return HomeLearningStatus(
-    progress: progress.value,
-    dailySet: dailySet.value,
-    heatmap: heatmap.value,
-  );
-});
+      if (ref.watch(currentMemberUuidProvider) == null) {
+        return const HomeLearningStatus();
+      }
+      final progressClient = ref.read(progressApiProvider);
+      final progress = SafeCallSlot(progressClient.getProgress());
+      final dailySet = SafeCallSlot(ref.read(dailySetApiProvider).getToday());
+      // getHeatmap(from, to): null 이면 서버 기본 기간
+      final heatmap = SafeCallSlot(progressClient.getHeatmap(null, null));
+      await safeCallAll([progress, dailySet, heatmap]);
+      return HomeLearningStatus(
+        progress: progress.value,
+        dailySet: dailySet.value,
+        heatmap: heatmap.value,
+      );
+    });
 
 /// 홈 화면 데이터: [homeOverviewProvider] + [homeLearningStatusProvider] 합침 (추천 문제는 기다리지 않음, #676)
 ///
@@ -174,6 +175,8 @@ void invalidateHomeData(void Function(ProviderOrFamily provider) invalidate) {
   invalidate(_serverExamScheduleProvider);
   invalidate(homeRecommendationsProvider);
   invalidate(homeLearningStatusProvider);
+  // 다음에 할 일 카드의 모의고사 무료 1회 판정 (웹 등 앱 밖 응시 반영, #1035)
+  invalidate(mockExamRoundsProvider);
   // 테스트에서 합친 Provider 만 override 해도 다시 불러오도록 함께 비움
   invalidate(homeDataProvider);
 }

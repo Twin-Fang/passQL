@@ -2,7 +2,7 @@
 type: cluster
 topic: home
 created: 2026-10-29
-members: 73
+members: 74
 status: active
 related: []
 ---
@@ -41,6 +41,7 @@ related: []
 - [[DEC-0167-five-tabs-with-text-labels]] → DEC-0171
 
 ## 관련 이슈
+- [[ISS-0510-daily-set-retry-wrong-and-qa-fixes]] (resolved, #1035, PR #1040): 시험 일정 지난 일정 펼침 버튼을 목록 맨 위로, 홈 새로고침 시 모의고사 회차 목록 갱신(외 오늘의 세트 다시 풀기 등)
 - [[ISS-0506-sqld-exam-schedule-auto-sync]] (resolved, #991, PR #1025): SQLD 시험 일정 자동 수집, 앱 시험 일정 화면, 접수·발표 자동 알림 5종(운영 켬)
 - [[ISS-0497-ui-ux-cleanup-18]] (resolved, #993): 다음에 할 일과 구간 버튼 중복 제거
 - [[ISS-0495-welcome-guide-3d-illustration]] (resolved, GitHub #985, PR #986): 환영 안내 손 아이콘 > 3D 일러스트
