@@ -43,8 +43,8 @@ def apply_site_url(site_url):
 OPERATOR_BUSINESS_NAME = "콜리랩(KOLLYLAB)"
 OPERATOR_REPRESENTATIVE_NAME = "서새찬"
 OPERATOR_BUSINESS_REGISTRATION_NUMBER = "331-37-01670"
-# 통신판매업 신고번호 (신고 처리 중이라 빈 값, 번호 나오면 입력)
-OPERATOR_MAIL_ORDER_SALES_NUMBER = ""
+# 통신판매업 신고번호 (강남구청 2026-10-30 발급)
+OPERATOR_MAIL_ORDER_SALES_NUMBER = "제2026-서울강남-06142호"
 
 # ── SQLD 시험 일정 (2026 공식 공고 값) ──
 # 첫 화면 D-day·일정 페이지·Event JSON-LD 가 함께 읽음. 다음 시험은 빌드 날짜 기준으로 고름(site_schedule.py)
