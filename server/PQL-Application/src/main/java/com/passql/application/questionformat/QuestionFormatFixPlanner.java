@@ -10,6 +10,7 @@ import com.passql.question.entity.QuestionChoiceSetItem;
 import com.passql.question.service.ChoiceExplanationComposer;
 import com.passql.question.service.ForbiddenPunctuationCleaner;
 import com.passql.question.service.QuestionFormatAutoFixer;
+import com.passql.question.service.SqlSelectListLineBreaker;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -19,6 +20,7 @@ import java.util.Set;
 
 /**
  * 문제 1개 자동 정리 계획 (#905): 문제 필드(QuestionFormatAutoFixer) + 공유 세트 보기 글·세트 해설 줄표·가운뎃점(ForbiddenPunctuationCleaner)
+ * + SQL 보기 본문 SELECT 목록 줄바꿈(SqlSelectListLineBreaker, 토큰 다르면 계획 제외, #923) > 같은 세트 보기 그대로 갱신
  * 미리보기와 적용이 같은 계획을 씀 (적용 시 서버가 다시 계산, 화면 값은 믿지 않음)
  */
 final class QuestionFormatFixPlanner {
@@ -55,7 +57,7 @@ final class QuestionFormatFixPlanner {
         List<QuestionFormatFieldChange> changes = new ArrayList<>();
         Set<String> fixNames = new LinkedHashSet<>();
 
-        // 문제 필드 (지문 표·목록 기호·줄표·가운뎃점)
+        // 문제 필드 (지문 표·지문 SQL SELECT 목록·목록 기호·줄표·가운뎃점)
         QuestionFormatAutoFixer.Result questionResult = QuestionFormatAutoFixer.fix(QuestionFormatInput.from(question, List.of()));
         fixNames.addAll(questionResult.appliedFixes());
         addChange(changes, FIELD_STEM, question.getStem(), questionResult.stem());
@@ -63,8 +65,9 @@ final class QuestionFormatFixPlanner {
         addChange(changes, FIELD_SCHEMA_DDL, question.getSchemaDdl(), questionResult.schemaDdl());
         addChange(changes, FIELD_SCHEMA_SAMPLE_DATA, question.getSchemaSampleData(), questionResult.schemaSampleData());
 
-        // 공유 세트 보기 글·세트 해설 줄표·가운뎃점
+        // 공유 세트 보기 글·세트 해설 줄표·가운뎃점, SQL 보기 본문 SELECT 목록
         List<ItemTextFix> itemFixes = new ArrayList<>();
+        boolean hasPunctuationFix = false;
         List<SetExplanationFix> explanationFixes = new ArrayList<>();
         for (QuestionChoiceSet choiceSet : scope.setsOf(question.getQuestionUuid())) {
             String setLabel = "세트 " + UuidUtils.toShortForm(choiceSet.getChoiceSetUuid());
@@ -73,9 +76,15 @@ final class QuestionFormatFixPlanner {
                 String itemLabel = setLabel + " 보기 " + item.getChoiceKey();
                 int changeCountBefore = changes.size();
                 addChange(changes, itemLabel + " 본문", item.getBody(), itemFix.body());
+                int changeCountAfterBody = changes.size();
                 addChange(changes, itemLabel + " 근거", item.getRationale(), itemFix.rationale());
                 addChange(changes, itemLabel + " 해설", item.getExplanation(), itemFix.explanation());
                 if (changes.size() > changeCountBefore) itemFixes.add(itemFix);
+                // 정리 이름: SQL 본문 > SELECT 목록 줄바꿈, 그 밖 글(글 본문·근거·해설) > 줄표·가운뎃점
+                boolean isSqlBodyChanged = item.getKind() == ChoiceKind.SQL && changeCountAfterBody > changeCountBefore;
+                if (isSqlBodyChanged) fixNames.add(QuestionFormatAutoFixer.FIX_SELECT_LIST_LINE_BREAK);
+                int textChangeStart = isSqlBodyChanged ? changeCountAfterBody : changeCountBefore;
+                hasPunctuationFix |= changes.size() > textChangeStart;
             }
             String cleanedExplanationJson = cleanExplanationJson(choiceSet.getExplanationJson());
             if (!Objects.equals(cleanedExplanationJson, choiceSet.getExplanationJson())) {
@@ -83,17 +92,26 @@ final class QuestionFormatFixPlanner {
                 addChange(changes, setLabel + " 해설", choiceSet.getExplanationJson(), cleanedExplanationJson);
             }
         }
-        if (!itemFixes.isEmpty() || !explanationFixes.isEmpty()) fixNames.add(QuestionFormatAutoFixer.FIX_PUNCTUATION);
+        if (hasPunctuationFix || !explanationFixes.isEmpty()) fixNames.add(QuestionFormatAutoFixer.FIX_PUNCTUATION);
         return new Plan(question, questionResult, itemFixes, explanationFixes, List.copyOf(fixNames), changes);
     }
 
-    // 보기 글: 근거·해설은 항상, 본문은 글 보기만 (SQL·결과 표 JSON 은 실행 검증본이라 그대로)
+    // 보기 글: 근거·해설은 항상, 본문은 글 보기 줄표·가운뎃점 / SQL 보기 SELECT 목록 줄바꿈 (결과 표 JSON 은 그대로)
     private static ItemTextFix planItem(QuestionChoiceSetItem item) {
-        String body = item.getBody();
-        boolean isTextBody = item.getKind() == ChoiceKind.TEXT && body != null
-                && (body.isBlank() || JSON_BODY_PREFIXES.indexOf(body.strip().charAt(0)) < 0);
-        return new ItemTextFix(item, isTextBody ? ForbiddenPunctuationCleaner.clean(body) : body,
+        return new ItemTextFix(item, planItemBody(item),
                 ForbiddenPunctuationCleaner.clean(item.getRationale()), ForbiddenPunctuationCleaner.clean(item.getExplanation()));
+    }
+
+    // SQL 본문은 공백만 바뀌어 실행 결과 동일, 토큰이 달라지면 원문 유지 (계획 제외)
+    private static String planItemBody(QuestionChoiceSetItem item) {
+        String body = item.getBody();
+        if (body == null) return null;
+        if (item.getKind() == ChoiceKind.SQL) {
+            String brokenBody = SqlSelectListLineBreaker.breakLongSelectLists(body);
+            return SqlSelectListLineBreaker.hasSameTokens(body, brokenBody) ? brokenBody : body;
+        }
+        boolean isTextBody = body.isBlank() || JSON_BODY_PREFIXES.indexOf(body.strip().charAt(0)) < 0;
+        return isTextBody ? ForbiddenPunctuationCleaner.clean(body) : body;
     }
 
     // 세트 해설 JSON > 해석 > 글 정리 > JSON (해석 못 하면 원문 유지)
