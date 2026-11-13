@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 알림 설정(app_setting): 보관 기간, 신고 처리 결과 알림 사용 여부 조회·저장
+ * 알림 설정(app_setting): 보관 기간, 신고 처리 결과 알림 사용 여부, 자동 알림 하루 상한 조회·저장
  * 저장은 AppSettingService.save 경유 (값 형식 검사, 설정 변경 감사 로그)
  */
 @Service
@@ -21,6 +21,10 @@ public class NotificationSettingService {
     public static final int DEFAULT_RETENTION_DAYS = 90;
     public static final int MIN_RETENTION_DAYS = 7;
     public static final int MAX_RETENTION_DAYS = 365;
+    // 회원당 하루 자동 알림 기본값·허용 범위 (건)
+    public static final int DEFAULT_AUTO_DAILY_LIMIT_PER_MEMBER = 1;
+    public static final int MIN_AUTO_DAILY_LIMIT_PER_MEMBER = 1;
+    public static final int MAX_AUTO_DAILY_LIMIT_PER_MEMBER = 5;
 
     private final AppSettingService appSettingService;
 
@@ -41,6 +45,23 @@ public class NotificationSettingService {
         return appSettingService.getBooleanOrDefault(AppSettingKeys.NOTIFICATION_REPORT_RESOLVED_ENABLED, true);
     }
 
+    /** 회원당 하루 자동 알림 상한 (범위 밖·형식 오류면 기본 1건) */
+    public int getAutoDailyLimitPerMember() {
+        int configuredLimit = appSettingService.getIntOrDefault(AppSettingKeys.NOTIFICATION_AUTO_DAILY_LIMIT_PER_MEMBER,
+                DEFAULT_AUTO_DAILY_LIMIT_PER_MEMBER);
+        return isAutoDailyLimitInRange(configuredLimit) ? configuredLimit : DEFAULT_AUTO_DAILY_LIMIT_PER_MEMBER;
+    }
+
+    /** 하루 상한 저장: 범위 검증 > 저장 (감사 로그는 AppSettingService.save) */
+    @Transactional
+    public void updateAutoDailyLimitPerMember(Integer dailyLimitPerMember) {
+        if (dailyLimitPerMember == null || !isAutoDailyLimitInRange(dailyLimitPerMember)) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "하루 자동 알림 상한은 "
+                    + MIN_AUTO_DAILY_LIMIT_PER_MEMBER + "~" + MAX_AUTO_DAILY_LIMIT_PER_MEMBER + "건이어야 합니다.");
+        }
+        appSettingService.save(AppSettingKeys.NOTIFICATION_AUTO_DAILY_LIMIT_PER_MEMBER, String.valueOf(dailyLimitPerMember));
+    }
+
     /** 저장: 보관 일수 범위 검증 > 바뀐 키만 저장 */
     @Transactional
     public void updateSettings(NotificationSettings requested) {
@@ -56,6 +77,10 @@ public class NotificationSettingService {
             appSettingService.save(AppSettingKeys.NOTIFICATION_REPORT_RESOLVED_ENABLED,
                     String.valueOf(requested.isReportResolvedEnabled()));
         }
+    }
+
+    private static boolean isAutoDailyLimitInRange(int dailyLimitPerMember) {
+        return dailyLimitPerMember >= MIN_AUTO_DAILY_LIMIT_PER_MEMBER && dailyLimitPerMember <= MAX_AUTO_DAILY_LIMIT_PER_MEMBER;
     }
 
     private static boolean isRetentionDaysInRange(int retentionDays) {

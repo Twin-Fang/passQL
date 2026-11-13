@@ -1,11 +1,13 @@
 package com.passql.web.controller.admin;
 
 import com.passql.application.notification.AutoNotificationService;
+import com.passql.application.notification.NotificationSettingService;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.common.util.ServiceTimeZone;
 import com.passql.member.constant.AutoNotificationRuleType;
 import com.passql.member.constant.PushLinkTarget;
+import com.passql.web.dto.notification.AutoNotificationDailyLimitUpdateRequest;
 import com.passql.web.dto.notification.AutoNotificationRuleUpdateRequest;
 import com.passql.web.support.AdminMenu;
 import com.passql.web.support.AdminPage;
@@ -26,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 관리자 자동 알림 화면: 재방문 알림 규칙 5종 켜기/끄기·시각·일수·문구·이동 화면, 대상 수 미리보기, 최근 7일 발송 건수
+ * 관리자 자동 알림 화면: 규칙별 켜기/끄기·시각·일수·문구·이동 화면, 회원당 하루 상한, 대상 수 미리보기, 최근 7일 발송·열람·복귀
  */
 @Controller
 @RequestMapping("/admin/auto-notifications")
@@ -44,6 +46,9 @@ public class AdminAutoNotificationController {
                 .filter(linkTarget -> !linkTarget.isQuestionUuidRequired()).toList();
         model.addAttribute("linkTargets", linkTargets);
         model.addAttribute("recentSentDays", AutoNotificationService.RECENT_SENT_DAYS);
+        model.addAttribute("dailyLimitPerMember", autoNotificationService.getDailyLimitPerMember());
+        model.addAttribute("minDailyLimitPerMember", NotificationSettingService.MIN_AUTO_DAILY_LIMIT_PER_MEMBER);
+        model.addAttribute("maxDailyLimitPerMember", NotificationSettingService.MAX_AUTO_DAILY_LIMIT_PER_MEMBER);
         return "admin/auto-notifications";
     }
 
@@ -55,6 +60,14 @@ public class AdminAutoNotificationController {
         PushLinkTarget linkTarget = request.linkTarget() == null ? null : PushLinkTarget.fromRequestValue(request.linkTarget());
         autoNotificationService.updateRule(type, Boolean.TRUE.equals(request.isEnabled()), request.sendHour(),
                 request.thresholdDays(), request.title(), request.body(), linkTarget);
+        return ResponseEntity.ok().build();
+    }
+
+    /** 회원당 하루 자동 알림 상한 저장 (app_setting notification.auto.daily_limit_per_member) */
+    @PutMapping("/daily-limit")
+    @ResponseBody
+    public ResponseEntity<Void> updateDailyLimit(@RequestBody AutoNotificationDailyLimitUpdateRequest request) {
+        autoNotificationService.updateDailyLimitPerMember(request.dailyLimitPerMember());
         return ResponseEntity.ok().build();
     }
 
