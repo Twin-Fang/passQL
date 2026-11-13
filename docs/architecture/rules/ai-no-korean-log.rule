@@ -1,0 +1,4 @@
+description=ai 로그 호출 인자에 한글 금지 (로그는 영어 + 기능 접두사 "[feature] ...", 괄호 2단 중첩까지 판정)
+paths=ai/src/
+extensions=.py
+pattern=\b(?:logger|logging)\.(?:debug|info|warning|warn|error|exception|critical|log)\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*?[가-힣ㄱ-ㅎㅏ-ㅣ]
