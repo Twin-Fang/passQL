@@ -245,8 +245,11 @@ export type NicknameCheckResponse = ApiSchemas["NicknameCheckResponse"];
 
 export type NicknameChangeResponse = ApiSchemas["NicknameChangeResponse"];
 
-// 내 등급 (#576): plan "FREE" | "PRO" (계약은 string) / 결제 꺼짐이면 isBillingEnabled false, 전원 프로 취급
+// 내 등급 (#576): 결제 꺼짐이면 isBillingEnabled false, 전원 프로 취급
 export type MemberPlanResponse = ApiSchemas["MemberPlanResponse"];
+
+// 등급 값 "FREE" | "PRO" (계약 enum, #791)
+export type MemberPlan = MemberPlanResponse["plan"];
 
 // 서버 오류 코드 (ErrorResponse.errorCode)
 export type ApiErrorCode = ApiSchemas["ErrorCode"];
