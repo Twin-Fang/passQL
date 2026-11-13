@@ -114,8 +114,8 @@ class LockScreenBridge {
 
   static const String _channelName = 'passql/lock_screen';
 
-  // 잠금화면 기능 출시 여부: Play 포그라운드 서비스 권한 신고 전까지 false (AndroidManifest 서비스·권한 선언과 함께 바꿈, #1002)
-  static const bool isLockScreenShipped = false;
+  // 잠금화면 기능 출시 여부: AndroidManifest 포그라운드 서비스·권한 선언과 함께 바꿈 (#1002 임시 제외, #1043 복구)
+  static const bool isLockScreenShipped = true;
 
   final MethodChannel _channel;
 
