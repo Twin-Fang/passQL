@@ -1,6 +1,7 @@
 package com.passql.application.entitlement;
 
 import com.passql.common.util.ServiceTimeZone;
+import com.passql.common.util.LogValueSanitizer;
 import com.passql.common.util.UuidUtils;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
@@ -284,17 +285,9 @@ public class FeatureAccessPolicy {
     private UUID toUuidOrNull(String entry) {
         UUID memberUuid = UuidUtils.parseOrEmpty(entry).orElse(null);
         if (memberUuid == null) {
-            log.warn("[feature access] billing preview member ignored : invalid uuid={}", sanitizeForLog(entry));
+            log.warn("[feature access] billing preview member ignored : invalid uuid={}", LogValueSanitizer.toLogSafeIdentifier(entry, INVALID_ENTRY_LOG_MAX_LENGTH));
         }
         return memberUuid;
-    }
-
-    /** 로그용 값 정리 (UUID 문자 외 > ?, 40자 제한) */
-    private static String sanitizeForLog(String value) {
-        String limitedValue = value.length() > INVALID_ENTRY_LOG_MAX_LENGTH
-            ? value.substring(0, INVALID_ENTRY_LOG_MAX_LENGTH)
-            : value;
-        return limitedValue.replaceAll("[^0-9A-Za-z-]", "?");
     }
 
     /** 유효한 프로 등급 행 (PRO 이고 만료일이 지금 이후), 없으면 null */

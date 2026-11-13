@@ -137,3 +137,4 @@ docker run -e ENVIRONMENT=dev -v "$PWD/.env.dev:/app/.env.dev:ro" -p 8093:8093 p
 - **민감 정보 커밋 금지** — `.env*`, API 키, 토큰을 git에 올리지 않는다.
 - **답변은 항상 한국어로** — 코드/커맨드 제외.
 - **모르면 모른다고 말하기** — 확실하지 않은 내용 추측 금지.
+- **로그 문구 한글 금지** — 영어 + 기능 접두사(`[feature] ...`). `docs/architecture/rules/ai-no-korean-log.rule` 이 판정한다 (#789).
