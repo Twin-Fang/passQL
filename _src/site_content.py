@@ -123,8 +123,8 @@ HERO_EYEBROW = "SQLD 자격증 문제 풀이 앱"
 HERO_TITLE_LEAD = "교재 없이,"
 HERO_TITLE_HIGHLIGHT = "앱 하나로"
 HERO_TITLE_TAIL = "SQLD 준비"
-HERO_LEAD = ("개념은 핵심만 보고, 최신 출제 경향 문제를 풀고, 보기 SQL을 직접 실행해 결과로 확인해요. "
-             "틀린 이유는 AI 해설이 바로 짚어 줘요.")
+# 아래 흐름 구간(STORY_STEPS)과 같은 기능 나열을 반복하지 않게 한 줄 요약만 (#1062)
+HERO_LEAD = "외우지 말고, 실행해 보고 이해하는 SQLD. 무료로 시작해서 매일 조금씩 합격 준비도를 채워요."
 # 첫 화면 핵심 3개: (아이콘, 문구)
 HERO_POINTS = [
     ("local_fire_department", "매일 5문제 오늘의 세트"),
@@ -158,16 +158,15 @@ AWARD_BADGES = [
     ("REAL DB", "보기 SQL 실행", "결과로 확인"),
 ]
 
-# ── 공부 순서 스크롤 이야기: (폰 화면 단계, 아이콘, 제목, 설명) ──
-# 폰 화면 단계: concept 실제 개념 학습 캡처, 0 문제, 2 실행 결과, 3 정답, 4 AI 해설 (site_demo.js 와 같은 값)
+# ── 공부 순서 스크롤 이야기: (단계 키, 아이콘, 제목, 설명, 실제 앱 캡처 shots/ 파일) ──
+# 넓은 화면: 고정 폰 화면이 단계 캡처로 바뀜 / 좁은 화면: 단계 글 아래 캡처 (#1062)
 STORY_STEPS = [
-    ("concept", "menu_book", "개념은 핵심만", "단원마다 꼭 기억할 것만 추려 두었어요. 읽고 바로 문제로 넘어가요."),
-    ("0", "local_fire_department", "최신 경향 문제를 하루 5문제씩", "이번 시험에 늘어난 유형부터 오늘의 세트로 풀어요."),
-    ("2", "terminal", "보기 SQL을 직접 실행해요", "보기마다 실제 DB 결과를 보면 외우지 않아도 차이가 보여요."),
-    ("3", "check_circle", "정답은 바로, 기록은 쌓이게", "맞힌 문제와 틀린 문제가 자동으로 정리돼요."),
-    ("4", "auto_awesome", "틀린 이유는 AI 해설로", "내가 고른 보기에 맞춰 왜 틀렸는지 설명해요."),
+    ("concept", "menu_book", "개념은 핵심만", "단원마다 꼭 기억할 것만 추려 두었어요. 읽고 바로 문제로 넘어가요.", "concept-light.webp"),
+    ("today", "local_fire_department", "최신 경향 문제를 하루 5문제씩", "이번 시험에 늘어난 유형부터 오늘의 세트로 풀어요.", "home.webp"),
+    ("execute", "terminal", "보기 SQL을 직접 실행해요", "보기마다 실제 DB 결과를 보면 외우지 않아도 차이가 보여요.", "execute.webp"),
+    ("record", "check_circle", "정답은 바로, 기록은 쌓이게", "오답 노트와 단원별 진도가 자동으로 정리돼요.", "questions.webp"),
+    ("ai", "auto_awesome", "틀린 이유는 AI 해설로", "내가 고른 보기에 맞춰 왜 틀렸는지 설명해요.", "ai.webp"),
 ]
-STORY_CONCEPT_SCREENSHOT = "concept-light.webp"
 
 # ── 후기: (별점 1~5, 후기, 이름 가림·소개) — 운영자 결정 (#1057) ──
 REVIEWS_AVERAGE_LABEL = "4.9"

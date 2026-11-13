@@ -114,18 +114,23 @@ def render_award_section():
 
 
 def render_story_section():
-    """공부 순서: 왼쪽 글이 지나가면 오른쪽 고정 폰 화면이 그 단계로 바뀜"""
+    """공부 순서: 넓은 화면은 왼쪽 글을 지나면 고정 폰이 그 단계 실제 앱 캡처로, 좁은 화면은 단계 글 아래 캡처 (#1062)"""
     steps = "".join(
         f"""
       <li class="story-step" data-story-step="{step}">
         <p class="story-num">{render_symbol(icon_name)}0{index + 1}</p>
         <h3>{escape(title)}</h3>
         <p>{escape(text)}</p>
+        <img class="story-inline-shot" src="shots/{shot}" width="560" height="1218" alt="passQL {escape(title)} 화면" loading="lazy" decoding="async">
       </li>"""
-        for index, (step, icon_name, title, text) in enumerate(content.STORY_STEPS)
+        for index, (step, icon_name, title, text, shot) in enumerate(content.STORY_STEPS)
     )
-    concept_layer = (f'<img class="demo-concept" src="shots/{content.STORY_CONCEPT_SCREENSHOT}" width="560" height="1218" '
-                     f'alt="" loading="lazy" decoding="async">')
+    # 고정 폰: 단계마다 캡처 한 장씩 겹쳐 두고 demo.js 가 지금 단계만 보이게 함
+    shot_layers = "".join(
+        f'<img class="story-shot{" is-current" if index == 0 else ""}" data-story-shot="{step}" src="shots/{shot}" '
+        f'width="560" height="1218" alt="" loading="lazy" decoding="async">'
+        for index, (step, _icon_name, _title, _text, shot) in enumerate(content.STORY_STEPS)
+    )
     return f"""
 <section id="how" class="section story-section">
   <div class="wrap">
@@ -134,7 +139,7 @@ def render_story_section():
     <div class="story">
       <ol class="story-steps">{steps}
       </ol>
-      <div class="story-pin" data-story-demo>{render_demo_phone("is-story", concept_layer)}</div>
+      <div class="story-pin" data-story-demo aria-hidden="true"><div class="demo-phone is-story"><div class="story-screen">{shot_layers}</div></div></div>
     </div>
   </div>
 </section>"""

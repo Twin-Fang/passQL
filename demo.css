@@ -138,8 +138,9 @@
 .js .award .leaf { opacity: 0; transform: scale(0); transition: opacity 0.25s, transform 0.45s var(--demo-pop); transition-delay: calc(var(--i) * 70ms + 0.25s); }
 .js .award.is-visible .stem { stroke-dashoffset: 0; }
 .js .award.is-visible .leaf { opacity: 1; transform: none; }
-.award p { margin: 0; text-align: center; line-height: 1.2; }
-.award small { display: block; font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; color: var(--muted); }
+.award p { margin: 0; max-width: 64%; text-align: center; line-height: 1.2; }
+/* 휘장 윗·아랫줄: 잎 안쪽 폭(약 64%)을 넘지 않게 작은 글자, 줄바꿈 없음 (#1062) */
+.award small { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.01em; white-space: nowrap; color: var(--muted); }
 .award strong {
   display: block; margin: 5px 0; font-size: 21px; letter-spacing: -0.02em;
   background: linear-gradient(105deg, var(--text) 42%, var(--award-gold) 50%, var(--text) 58%); background-size: 300% 100%; background-position: 100% 0;
@@ -156,8 +157,13 @@
 .story-num { display: flex; align-items: center; gap: 10px; margin: 0; font-weight: 800; color: var(--accent-text); }
 .story-num .ms { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--accent-tint); font-size: 20px; }
 .story-step h3 { margin: 14px 0 12px; font-size: clamp(28px, 4vw, 42px); }
-.story-step p:last-child { margin: 0; max-width: 26em; color: var(--muted); font-size: 18px; }
+.story-step p:last-of-type { margin: 0; max-width: 26em; color: var(--muted); font-size: 18px; }
 .story-pin { position: sticky; top: calc(50vh - 300px); height: 620px; }
+/* 고정 폰 화면: 단계별 실제 앱 캡처를 겹쳐 두고 지금 단계만 보임 (#1062) */
+.story-screen { position: relative; width: 100%; height: 100%; overflow: hidden; border-radius: 38px; background: var(--demo-app-bg); }
+.story-shot { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; opacity: 0; transform: scale(1.03); transition: opacity 0.45s, transform 0.45s var(--ease); }
+.story-shot.is-current { opacity: 1; transform: none; }
+.story-inline-shot { display: none; }
 
 /* ── 후기 흐름 ── */
 .reviews { overflow: hidden; }
@@ -196,10 +202,16 @@
   .hero-demo-layout .hero-in { grid-template-columns: 1fr; text-align: center; }
   .hero-demo-layout .lead { margin-inline: auto; }
   .hero-demo-layout .cta { justify-content: center; }
-  .story { grid-template-columns: 1fr; }
-  .story-pin { order: -1; top: 70px; z-index: 2; height: auto; display: flex; justify-content: center; transform: scale(0.6); transform-origin: top center; margin-bottom: -240px; }
-  .story-step { min-height: 62vh; padding: 16px; border-radius: 16px; background: rgba(255, 255, 255, 0.92); }
-  .award { width: 200px; height: 126px; }
+  /* 좁은 화면: 고정 폰을 빼고 단계 글 아래 그 단계 캡처 (메뉴·글과 겹치지 않음, #1062) */
+  .story { grid-template-columns: 1fr; gap: 0; }
+  .story-pin { display: none; }
+  .story-step { min-height: 0; padding: 28px 0; align-items: center; text-align: center; }
+  .js .story-step { opacity: 1; transform: none; }
+  .story-step p:last-of-type { margin-inline: auto; }
+  .story-inline-shot { display: block; width: min(260px, 68vw); height: auto; margin: 20px auto 0; border: 8px solid var(--device-frame); border-radius: 36px; box-shadow: var(--shadow-phone); }
+  .award { width: 210px; height: 132px; }
+  .award p { max-width: 66%; }
+  .award small { font-size: 9.5px; letter-spacing: 0; }
   .award strong { font-size: 17px; }
 }
 @media (max-width: 420px) { .demo-chips { width: 300px; } }

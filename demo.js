@@ -81,18 +81,16 @@
     });
   }
 
-  /** 공부 순서 이야기: 화면 가운데에 온 단계 글 > 고정 폰 화면을 그 단계로 (concept 는 실제 개념 학습 캡처) */
+  /** 공부 순서 이야기: 화면 가운데에 온 단계 글 > 고정 폰을 그 단계 실제 앱 캡처로 (#1062) */
   function bindStory() {
     var stage = document.querySelector("[data-story-demo]");
     if (!stage || !("IntersectionObserver" in window)) return;
-    var app = stage.querySelector("[data-demo-app]");
+    var shots = Array.prototype.slice.call(stage.querySelectorAll("[data-story-shot]"));
     var steps = Array.prototype.slice.call(document.querySelectorAll("[data-story-step]"));
     function showStep(stepElement) {
-      steps.forEach(function (element) { element.classList.toggle("is-current", element === stepElement); });
       var step = stepElement.getAttribute("data-story-step");
-      app.classList.toggle("is-concept", step === "concept");
-      setPhoneStep(app, step === "concept" ? 0 : Number(step));
-      if (step === "2") { app.classList.add("s1"); window.setTimeout(function () { showTap(app, ".is-answer"); }, 60); }
+      steps.forEach(function (element) { element.classList.toggle("is-current", element === stepElement); });
+      shots.forEach(function (shot) { shot.classList.toggle("is-current", shot.getAttribute("data-story-shot") === step); });
     }
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) { if (entry.isIntersecting) showStep(entry.target); });
