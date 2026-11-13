@@ -54,6 +54,7 @@ export 'components/passql_welcome_illustration.dart';
 export 'components/passql_progress_bar.dart';
 export 'components/passql_query_result_table.dart';
 export 'components/passql_query_status_line.dart';
+export 'components/passql_readiness_ring.dart';
 export 'components/passql_activity_rings.dart';
 export 'components/passql_refresh_control.dart';
 export 'components/passql_result_mark.dart';

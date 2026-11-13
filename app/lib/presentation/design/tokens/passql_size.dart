@@ -22,6 +22,10 @@ abstract final class PassqlSize {
   static const double scoreRingCompactStroke = 7;
   static const double scoreRingMini = 22; // 머리가 접혔을 때 제목 옆 고리
   static const double scoreRingMiniStroke = 4;
+  // 홈 합격 준비도 (#972): 링 하나 지름·두께, 오른쪽 지표 막대 높이
+  static const double readinessRing = 132;
+  static const double readinessRingStroke = 16;
+  static const double readinessMetricBarHeight = 8;
   static const double unitSegmentHeight = 6; // 단원 진행 칸 막대 (개념 하나 = 칸 하나)
   static const double segmentedProgressHeight = 8; // 풀이 상단 칸 진행 바 (문제 하나 = 칸 하나, #999)
   static const double rewardGaugeHeight = 12; // 보상 창 오늘 크레딧 게이지 (기본·보너스 구간, #999)
