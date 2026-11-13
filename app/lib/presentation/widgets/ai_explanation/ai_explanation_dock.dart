@@ -218,7 +218,7 @@ class _AiExplanationDockState extends ConsumerState<AiExplanationDock> {
               child: _SheetHeader(
                 title: shownEntry == null
                     ? '해설함'
-                    : 'AI 해설 · ${shownEntry.questionTitle}',
+                    : 'AI 해설 | ${shownEntry.questionTitle}',
                 entryCount: session.entries.length,
                 isShowingHistory: isShowingHistory,
                 canReturnToEntry: isShowingHistory && openedEntry != null,

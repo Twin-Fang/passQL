@@ -67,6 +67,8 @@ public final class AppSettingKeys {
     public static final String NOTIFICATION_RETENTION_DAYS = "notification.retention_days";
     // app_setting: 신고 처리 결과 자동 알림 (true 사용, false 미사용)
     public static final String NOTIFICATION_REPORT_RESOLVED_ENABLED = "notification.report_resolved.enabled";
+    // app_setting: 회원당 하루 자동 알림 최대 건수 (건, 기본 1, 범위 밖이면 기본값, #649)
+    public static final String NOTIFICATION_AUTO_DAILY_LIMIT_PER_MEMBER = "notification.auto.daily_limit_per_member";
 
     // app_setting: Android 결제 스위치 (true 무료/프로 제한 적용과 결제 UI 노출, false 모든 기능 허용)
     public static final String BILLING_ANDROID_ENABLED = "billing.android.enabled";
@@ -84,6 +86,15 @@ public final class AppSettingKeys {
     public static final String ADS_REWARD_SSV_AD_UNIT_IDS = "ads.reward.ssv_ad_unit_ids";
     // app_setting: Play Developer API 서비스 계정 키 JSON (SECRET, 암호문 저장, 관리자 화면에서 변경, 비면 결제 확인 불가)
     public static final String BILLING_PLAY_SERVICE_ACCOUNT_JSON = "billing.play_service_account_json";
+    // app_setting: Google Play·App Store 수수료율 (%, 관리자 결제 관리 실수령액 추정, #1032)
+    public static final String BILLING_FEE_RATE_PERCENT_PLAY = "billing.fee_rate_percent.play";
+    public static final String BILLING_FEE_RATE_PERCENT_APP_STORE = "billing.fee_rate_percent.app_store";
+    // app_setting: 원화 판매가 포함 부가세율 (%, 스토어가 떼고 정산, 원화 매출에만 적용)
+    public static final String BILLING_KRW_VAT_RATE_PERCENT = "billing.krw_vat_rate_percent";
+    // app_setting: App Store 환불 점검 운영 404 > 샌드박스 재조회 (true 사용, false 운영만)
+    public static final String BILLING_APP_STORE_SANDBOX_FALLBACK_ENABLED = "billing.app_store.sandbox_fallback_enabled";
+    // app_setting: App Store 환불 요청(CONSUMPTION_REQUEST) 소비 정보 자동 응답 (true 응답, false 접수만)
+    public static final String BILLING_APP_STORE_CONSUMPTION_RESPONSE_ENABLED = "billing.app_store.consumption_response_enabled";
 
     // app_setting: 장애 알림 사용 여부 (true 사용, false 미사용, 웹훅 URL 이 비면 발송 안 함)
     public static final String MONITOR_ALERT_ENABLED = "monitor.alert.enabled";
@@ -103,12 +114,20 @@ public final class AppSettingKeys {
     // app_setting: 관제소 확인할 일 연동 (true 수집 응답, false GET /control/attention 404, #959)
     public static final String CONTROL_TOWER_ATTENTION_ENABLED = "control_tower.attention.enabled";
 
-    // 앱 운영 화면(/admin/app-operation)에 전용 입력이 있는 키 (일반 설정 표는 읽기 전용, 저장 API 는 운영 스크립트 호환으로 허용, #961)
+    // app_setting: 잠금화면 문제 풀기 전체 스위치 (true 앱 메뉴 노출·출제, false 메뉴 숨김·출제 204, #990)
+    public static final String LOCKSCREEN_ENABLED = "lockscreen.enabled";
+    // app_setting: 잠금화면 문제 기본 표시 간격 (분, 마지막 표시 후 최소 간격, 사용자가 바꾸기 전 앱 기본값)
+    public static final String LOCKSCREEN_DEFAULT_INTERVAL_MINUTES = "lockscreen.default_interval_minutes";
+    // app_setting: 잠금화면 실행형 SQL 문제 출제 (true 객관식·실행형 모두, false 객관식만)
+    public static final String LOCKSCREEN_INCLUDE_EXECUTABLE = "lockscreen.include_executable";
+
+    // 앱 운영 화면(/admin/app-operation)에 전용 입력이 있는 키 (일반 설정 표는 읽기 전용, 저장 API 는 운영 스크립트 호환으로 허용, #961, #990)
     public static final Set<String> APP_OPERATION_MANAGED_KEYS = Set.of(
             APP_MINIMUM_VERSION_IOS, APP_MINIMUM_VERSION_ANDROID,
             APP_RECOMMENDED_VERSION_IOS, APP_RECOMMENDED_VERSION_ANDROID,
             APP_MAINTENANCE_ENABLED, APP_MAINTENANCE_MESSAGE, APP_MAINTENANCE_STARTS_AT, APP_MAINTENANCE_ENDS_AT,
-            BILLING_ANDROID_ENABLED, BILLING_PREVIEW_MEMBER_UUIDS);
+            BILLING_ANDROID_ENABLED, BILLING_PREVIEW_MEMBER_UUIDS,
+            LOCKSCREEN_ENABLED, LOCKSCREEN_DEFAULT_INTERVAL_MINUTES, LOCKSCREEN_INCLUDE_EXECUTABLE);
 
     public static boolean isManagedByAppOperation(String key) {
         return APP_OPERATION_MANAGED_KEYS.contains(key);

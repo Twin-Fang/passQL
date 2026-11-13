@@ -136,10 +136,14 @@ public final class QuestionFormatRule {
         }
     }
 
-    /** 지문 표와 컬럼 구성(대소문자 무시, 순서 무관)이 같은 스키마 표 (없으면 null) */
+    /**
+     * 지문 표와 같은 스키마 표 (없으면 null): 머리말 이름 있으면 같은 이름 표만, 없으면 컬럼 구성(대소문자 무시, 순서 무관)
+     * (컬럼만 보면 [PROJ](ID, DEPT_NO) 를 EMP 표로 오판해 지문 데이터를 지우거나 다른 표에 INSERT, #1017)
+     */
     static QuestionSchemaTable findSchemaTableWithSameColumns(TableBlock table, List<QuestionSchemaTable> schemaTables) {
         Set<String> tableColumns = new HashSet<>(table.upperColumnNames());
         for (QuestionSchemaTable schemaTable : schemaTables) {
+            if (table.labelName() != null && !schemaTable.tableName().equalsIgnoreCase(table.labelName())) continue;
             Set<String> schemaColumns = new HashSet<>();
             schemaTable.columns().forEach(column -> schemaColumns.add(column.name().toUpperCase(Locale.ROOT)));
             if (schemaColumns.equals(tableColumns) && schemaTable.columns().size() == table.headerCells().size()) {

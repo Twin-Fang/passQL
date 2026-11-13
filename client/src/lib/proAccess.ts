@@ -6,16 +6,16 @@ import {
   FREE_DAILY_LIMIT_RESET_NOTICE,
   PRO_REQUIRED_REASON,
 } from "../constants/proAccessCopy";
-import type { ApiErrorCode, MemberPlanResponse } from "../types/api";
+import type { ApiErrorCode, MemberPlan, MemberPlanResponse } from "../types/api";
 
 /**
  * 무료/프로 판정 공통 (#578): 등급 > 잠금 UI 여부, 오류 > 사유, lockedSections > 잠긴 묶음
  * 판정 원본은 서버 (결제 꺼짐이면 서버가 잠그지 않음 > 웹도 아무것도 그리지 않음)
  */
 
-// 등급 응답 plan 값 (계약은 string)
-const PLAN_FREE = "FREE";
-const PLAN_PRO = "PRO";
+// 등급 응답 plan 값 (계약 enum 에서 좁힘 > 서버가 값을 바꾸면 tsc 실패)
+const PLAN_FREE: MemberPlan = "FREE";
+const PLAN_PRO: MemberPlan = "PRO";
 
 // 서버 프로 접근 오류 3종 (계약 ErrorCode 에서 좁힘 > 서버가 이름을 바꾸면 tsc 실패)
 export type ProAccessErrorCode = Extract<
@@ -40,6 +40,12 @@ export function shouldShowProUiForPlan(plan: MemberPlanResponse | undefined): bo
 /** PRO 칩을 그릴지: 결제 켜짐 + 프로 */
 export function shouldShowProBadgeForPlan(plan: MemberPlanResponse | undefined): boolean {
   return !!plan && plan.isBillingEnabled && plan.plan === PLAN_PRO;
+}
+
+/** 오늘 남은 크레딧 (앱 remainingFreeSolves 와 같은 계산, 0 아래로 내려가지 않음). 잠금 UI 대상이 아니면 null */
+export function remainingCreditsOfPlan(plan: MemberPlanResponse | undefined): number | null {
+  if (!plan || !shouldShowProUiForPlan(plan)) return null;
+  return Math.max(0, plan.todayFreeLimit - plan.todayRandomSolvedCount);
 }
 
 /** 오류 > 프로 접근 오류 코드 (그 외 오류는 null) */

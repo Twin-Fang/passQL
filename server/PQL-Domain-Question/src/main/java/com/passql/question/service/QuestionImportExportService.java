@@ -41,6 +41,7 @@ public class QuestionImportExportService {
     private final TopicRepository topicRepository;
     private final QuestionGenerateService questionGenerateService;
     private final QuestionService questionService;
+    private final QuestionChoiceSetQueryService questionChoiceSetQueryService;
     private final ApplicationEventPublisher eventPublisher;
     private final QuestionImportItemValidator importItemValidator;
     private final OracleSqlCompatibilityConverter oracleSqlCompatibilityConverter;
@@ -302,7 +303,7 @@ public class QuestionImportExportService {
                 q.getSchemaSampleData(),
                 q.getSchemaIntent(),
                 q.getAnswerSql(),
-                q.getChoiceSetPolicy() == ChoiceSetPolicy.CURATED_ONLY ? questionService.findActiveCuratedChoices(q.getQuestionUuid()) : null
+                q.getChoiceSetPolicy() == ChoiceSetPolicy.CURATED_ONLY ? questionChoiceSetQueryService.findActiveCuratedChoices(q.getQuestionUuid()) : null
         )).toList();
     }
 }

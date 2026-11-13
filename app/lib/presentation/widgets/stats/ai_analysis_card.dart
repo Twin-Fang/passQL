@@ -87,7 +87,7 @@ class _AiStatsAnalysisBody extends StatelessWidget {
       if (strength != null)
         _AiAnalysisNoteLine(
           icon: CupertinoIcons.star,
-          text: '강점 · ${strength.topicName} ${strength.correctRatePercent}%',
+          text: '강점 | ${strength.topicName} ${strength.correctRatePercent}%',
         ),
       if (analysis.nextGoal case final nextGoal?)
         _AiAnalysisNoteLine(icon: CupertinoIcons.scope, text: nextGoal),
@@ -184,14 +184,14 @@ class AiAnalysisErrorSection extends StatelessWidget {
               const SizedBox(width: PassqlSpacing.xxs),
               Expanded(
                 child: Text(
-                  '분석을 불러오지 못했어요',
+                  PassqlLoadFailureCopy.messageOf('분석을'),
                   style: PassqlTypography.subheadline.copyWith(
                     color: colors.secondaryLabel,
                   ),
                 ),
               ),
               PassqlButton(
-                label: '다시 시도',
+                label: PassqlLoadFailureCopy.retryLabel,
                 onPressed: onRetry,
                 variant: PassqlButtonVariant.tinted,
                 size: PassqlButtonSize.small,

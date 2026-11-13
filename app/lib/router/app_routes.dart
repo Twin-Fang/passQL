@@ -150,12 +150,33 @@ abstract final class AppRoutes {
   /// 오늘의 세트 결과.
   static const String dailySetResult = '/daily-set/result';
 
+  /// 세트 결과에서 틀린 문제 차례로 다시 풀기 (#1035). questions 쿼리: 문제 uuid 쉼표 구분
+  static const String dailySetRetry = '/daily-set/retry';
+
+  /// 다시 풀 문제 uuid 목록 쿼리 키
+  static const String dailySetRetryQuestionsQuery = 'questions';
+
+  /// 다시 풀 문제 uuid 구분자
+  static const String dailySetRetryQuestionDelimiter = ',';
+
+  /// 틀린 문제 다시 풀기 진입: /daily-set/retry?questions=uuid1,uuid2
+  static String dailySetRetryOf(List<String> questionUuids) =>
+      '$dailySetRetry?$dailySetRetryQuestionsQuery='
+      '${questionUuids.join(dailySetRetryQuestionDelimiter)}';
+
   // 온보딩
   /// 신규 가입자 온보딩 (탭 셸 밖, 알림 권한 안내가 끼어들지 않게).
   static const String onboarding = '/onboarding';
 
-  /// 온보딩에서 들어온 첫 문제 뒤 축하. extra: 마지막 문제였는지(bool)
+  /// 온보딩에서 들어온 첫 문제 뒤 축하. extra: OnboardingCelebrationArguments(마지막 문제였는지, 세트 문제 수)
   static const String onboardingCelebration = '/onboarding/celebration';
+
+  // 잠금화면 문제 (#990, Android)
+  /// 미리 풀어 보기 (권한 없이 앱 안에서 샘플 1문제). 소개 시트에서 진입
+  static const String lockScreenPreview = '/lock-screen/preview';
+
+  /// 켜기 권한 단계 (4단계). 미리 풀어 보기·설정 토글·"권한 필요" 행에서 진입
+  static const String lockScreenPermission = '/lock-screen/permission';
 
   /// 리더보드.
   static const String leaderboard = '/leaderboard';
@@ -204,6 +225,9 @@ abstract final class AppRoutes {
 
   /// 챕터 결과. 챕터 화면을 대신해 열려 뒤로 가면 챕터 진입 전 화면(문제 목록)으로 돌아간다.
   static const String chapterResult = '/chapter-result';
+
+  /// SQLD 시험 일정 (#991). 홈 D-day 배지·푸시 EXAM_SCHEDULE 에서 진입 (서버 PushLinkTarget.EXAM_SCHEDULE_APP_ROUTE 와 같은 값)
+  static const String examSchedule = '/exam-schedule';
 
   // SQLD 모의고사 (#866)
   /// 회차 목록. 홈 모의고사 구간·문제 탭 모의고사 행에서 진입

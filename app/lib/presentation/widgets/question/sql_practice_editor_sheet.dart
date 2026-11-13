@@ -111,7 +111,7 @@ class _SqlPracticeEditorState extends State<_SqlPracticeEditor> {
                       _notifyDraftChanged();
                     },
                     decoration: InputDecoration.collapsed(
-                      hintText: 'SELECT 부터 써 보세요',
+                      hintText: 'SELECT부터 써 보세요',
                       hintStyle: PassqlTypography.code.copyWith(
                         color: colors.secondaryLabel,
                       ),

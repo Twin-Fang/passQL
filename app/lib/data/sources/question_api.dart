@@ -39,6 +39,13 @@ abstract class QuestionApiClient {
   @GET('/questions/random')
   Future<List<QuestionSummary>> getRandomQuestions({@Query('size') int? size});
 
+  /// 잠금화면 문제 1개 (#990): 200 { questionUuid } 또는 204(낼 문제 없음·기능 꺼짐)
+  /// 204 는 본문이 없어 모델 대신 응답 그대로 받음 (해석은 lockScreenQuestionUuidOf)
+  @GET('/questions/lockscreen')
+  Future<HttpResponse<dynamic>> getLockScreenQuestion(
+    @Query('isExecutableExcluded') bool isExecutableExcluded,
+  );
+
   /// 문제 상세 조회.
   @GET('/questions/{questionUuid}')
   Future<QuestionDetail> getQuestion(

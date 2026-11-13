@@ -62,6 +62,17 @@ class QuestionFormatAutoFixerTest {
     }
 
     @Test
+    @DisplayName("이름 다른 같은 컬럼 지문 표: 다른 스키마 표 중복으로 지우지 않고 제 이름 표로 옮김 (#1017)")
+    void keepsSameColumnTableWithDifferentName() {
+        String ddl = "CREATE TABLE EMP (ID NUMBER, DEPT_NO NUMBER);";
+        String sample = "INSERT INTO EMP VALUES (1, 10);";
+        String stem = "[PROJ]\n| ID | DEPT_NO |\n|---|---|\n| 7 | 20 |\n\n결과는?";
+        var fixResult = QuestionFormatAutoFixer.fix(new QuestionFormatInput(stem, null, ddl, sample, false, List.of()));
+        assertThat(fixResult.appliedFixes()).containsExactly(QuestionFormatAutoFixer.FIX_MOVE_TABLE_TO_SCHEMA);
+        assertThat(fixResult.schemaSampleData()).contains("INSERT INTO PROJ VALUES (7, 20);");
+    }
+
+    @Test
     @DisplayName("개념형 지문 데이터 표: CREATE TABLE + INSERT 로 옮기고 표 삭제 (자료형 추론, NULL 유지)")
     void movesTableToSchema() {
         String stem = "[TAB1]\n| C1 | C2 |\n|---|---|\n| 1 | A |\n| 2 | NULL |\n\n결과는?";

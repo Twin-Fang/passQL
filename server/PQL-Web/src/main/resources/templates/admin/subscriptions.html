@@ -3,12 +3,27 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{admin/layout}">
 
-<th:block layout:fragment="title">구독·매출 현황</th:block>
+<th:block layout:fragment="title">결제 관리</th:block>
 
 <th:block layout:fragment="content">
-<!-- 구독·매출 현황 (#619): subscriptions.js 가 /admin/api/subscriptions/summary 를 기간별로 불러옴 -->
-<div class="space-y-5 max-w-[1400px]">
+<!-- 결제 관리 (#619, #1032): 탭 5개 (실수령액·결제 목록·환불 점검·알림 기록·판매 현황), 탭 전환은 billing-management.js -->
+<div id="billingManagementPage" class="space-y-5 max-w-[1400px]" th:data-can-write-admin="${canWriteAdmin == true}">
 
+    <div role="tablist" class="tabs tabs-border" id="billingTabList">
+        <button type="button" role="tab" class="tab tab-active" data-tab="payout">실수령액</button>
+        <button type="button" role="tab" class="tab" data-tab="purchases">결제 목록</button>
+        <button type="button" role="tab" class="tab" data-tab="refund-checks">환불 점검</button>
+        <button type="button" role="tab" class="tab" data-tab="notifications">알림 기록</button>
+        <button type="button" role="tab" class="tab" data-tab="summary">판매 현황</button>
+    </div>
+
+    <th:block th:replace="~{admin/fragments/billing-payout :: payout-panel}"></th:block>
+    <th:block th:replace="~{admin/fragments/billing-purchases :: purchases-panel}"></th:block>
+    <th:block th:replace="~{admin/fragments/billing-refund-checks :: app-store-refund-check-panel}"></th:block>
+    <th:block th:replace="~{admin/fragments/billing-notifications :: notifications-panel}"></th:block>
+
+    <!-- 판매 현황 (#619): subscriptions.js 가 /admin/api/subscriptions/summary 를 기간별로 불러옴 -->
+    <div data-tab-panel="summary" hidden class="space-y-5">
     <th:block th:replace="~{admin/fragments/statistics-period-filter :: period-filter}"></th:block>
 
     <div id="subscriptionBlock" class="space-y-5">
@@ -83,6 +98,33 @@
             </section>
         </div>
     </div>
+    </div>
+
+    <!-- Play 환불 회수 확인 (#984): 환불 점검 탭, subscription-refund-check.js 가 /admin/api/subscriptions/refund-checks 조회·즉시 실행 -->
+    <section id="refundCheckBlock" data-tab-panel="refund-checks" hidden class="card bg-base-100 shadow-sm">
+        <div class="card-body p-4 gap-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                    <h2 class="font-bold">Google Play 환불 확인 <span class="text-xs font-normal text-base-content/50">매일 04:50 자동, Play 환불 구매의 프로 기간 회수</span></h2>
+                    <p class="text-xs text-base-content/60 mt-1">
+                        마지막 실행: <span id="refundCheckLatestTime">-</span>
+                        <span id="refundCheckLatestBadge" class="badge badge-sm badge-ghost ml-1">-</span>
+                    </p>
+                </div>
+                <button type="button" id="refundCheckRunButton" class="btn btn-sm btn-primary">지금 확인</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead><tr>
+                        <th>시각</th><th>실행 방식</th>
+                        <th class="text-right">취소 목록</th><th class="text-right">확인 주문</th>
+                        <th class="text-right">환불 주문</th><th class="text-right">회수</th><th>실패 사유</th>
+                    </tr></thead>
+                    <tbody id="refundCheckRunBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
 </div>
 </th:block>
 
@@ -92,5 +134,11 @@
     <script th:src="@{/js/admin/admin-chart.js}"></script>
     <script th:src="@{/js/admin/admin-period-filter.js}"></script>
     <script th:src="@{/js/admin/subscriptions.js}"></script>
+    <script th:src="@{/js/admin/subscription-refund-check.js}"></script>
+    <script th:src="@{/js/admin/admin-reason-prompt.js}"></script>
+    <script th:src="@{/js/admin/billing-management.js}"></script>
+    <script th:src="@{/js/admin/billing-payout.js}"></script>
+    <script th:src="@{/js/admin/billing-purchases.js}"></script>
+    <script th:src="@{/js/admin/billing-app-store.js}"></script>
 </th:block>
 </html>

@@ -1124,6 +1124,12 @@ mixin _$MockExamRoundSummary {
       throw _privateConstructorUsedError;
   int get submittedAttemptCount => throw _privateConstructorUsedError;
   int? get bestScore => throw _privateConstructorUsedError;
+
+  /// 최고 점수 응시(동점이면 최근)의 합격 여부·불합격 이유 (과락 포함 서버 판정)
+  bool? get bestAttemptIsPassed => throw _privateConstructorUsedError;
+  @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
+  MockExamFailReason? get bestAttemptFailReason =>
+      throw _privateConstructorUsedError;
   MockExamLastAttempt? get lastAttempt => throw _privateConstructorUsedError;
 
   /// Serializes this MockExamRoundSummary to a JSON map.
@@ -1153,6 +1159,9 @@ abstract class $MockExamRoundSummaryCopyWith<$Res> {
     MockExamStartBlockReason? startBlockReason,
     int submittedAttemptCount,
     int? bestScore,
+    bool? bestAttemptIsPassed,
+    @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
+    MockExamFailReason? bestAttemptFailReason,
     MockExamLastAttempt? lastAttempt,
   });
 
@@ -1185,6 +1194,8 @@ class _$MockExamRoundSummaryCopyWithImpl<
     Object? startBlockReason = freezed,
     Object? submittedAttemptCount = null,
     Object? bestScore = freezed,
+    Object? bestAttemptIsPassed = freezed,
+    Object? bestAttemptFailReason = freezed,
     Object? lastAttempt = freezed,
   }) {
     return _then(
@@ -1221,6 +1232,14 @@ class _$MockExamRoundSummaryCopyWithImpl<
                 ? _value.bestScore
                 : bestScore // ignore: cast_nullable_to_non_nullable
                       as int?,
+            bestAttemptIsPassed: freezed == bestAttemptIsPassed
+                ? _value.bestAttemptIsPassed
+                : bestAttemptIsPassed // ignore: cast_nullable_to_non_nullable
+                      as bool?,
+            bestAttemptFailReason: freezed == bestAttemptFailReason
+                ? _value.bestAttemptFailReason
+                : bestAttemptFailReason // ignore: cast_nullable_to_non_nullable
+                      as MockExamFailReason?,
             lastAttempt: freezed == lastAttempt
                 ? _value.lastAttempt
                 : lastAttempt // ignore: cast_nullable_to_non_nullable
@@ -1264,6 +1283,9 @@ abstract class _$$MockExamRoundSummaryImplCopyWith<$Res>
     MockExamStartBlockReason? startBlockReason,
     int submittedAttemptCount,
     int? bestScore,
+    bool? bestAttemptIsPassed,
+    @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
+    MockExamFailReason? bestAttemptFailReason,
     MockExamLastAttempt? lastAttempt,
   });
 
@@ -1293,6 +1315,8 @@ class __$$MockExamRoundSummaryImplCopyWithImpl<$Res>
     Object? startBlockReason = freezed,
     Object? submittedAttemptCount = null,
     Object? bestScore = freezed,
+    Object? bestAttemptIsPassed = freezed,
+    Object? bestAttemptFailReason = freezed,
     Object? lastAttempt = freezed,
   }) {
     return _then(
@@ -1329,6 +1353,14 @@ class __$$MockExamRoundSummaryImplCopyWithImpl<$Res>
             ? _value.bestScore
             : bestScore // ignore: cast_nullable_to_non_nullable
                   as int?,
+        bestAttemptIsPassed: freezed == bestAttemptIsPassed
+            ? _value.bestAttemptIsPassed
+            : bestAttemptIsPassed // ignore: cast_nullable_to_non_nullable
+                  as bool?,
+        bestAttemptFailReason: freezed == bestAttemptFailReason
+            ? _value.bestAttemptFailReason
+            : bestAttemptFailReason // ignore: cast_nullable_to_non_nullable
+                  as MockExamFailReason?,
         lastAttempt: freezed == lastAttempt
             ? _value.lastAttempt
             : lastAttempt // ignore: cast_nullable_to_non_nullable
@@ -1351,6 +1383,9 @@ class _$MockExamRoundSummaryImpl implements _MockExamRoundSummary {
     this.startBlockReason,
     required this.submittedAttemptCount,
     this.bestScore,
+    this.bestAttemptIsPassed,
+    @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
+    this.bestAttemptFailReason,
     this.lastAttempt,
   });
 
@@ -1374,12 +1409,19 @@ class _$MockExamRoundSummaryImpl implements _MockExamRoundSummary {
   final int submittedAttemptCount;
   @override
   final int? bestScore;
+
+  /// 최고 점수 응시(동점이면 최근)의 합격 여부·불합격 이유 (과락 포함 서버 판정)
+  @override
+  final bool? bestAttemptIsPassed;
+  @override
+  @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
+  final MockExamFailReason? bestAttemptFailReason;
   @override
   final MockExamLastAttempt? lastAttempt;
 
   @override
   String toString() {
-    return 'MockExamRoundSummary(roundUuid: $roundUuid, roundNumber: $roundNumber, title: $title, isFreeTrialRound: $isFreeTrialRound, canStart: $canStart, startBlockReason: $startBlockReason, submittedAttemptCount: $submittedAttemptCount, bestScore: $bestScore, lastAttempt: $lastAttempt)';
+    return 'MockExamRoundSummary(roundUuid: $roundUuid, roundNumber: $roundNumber, title: $title, isFreeTrialRound: $isFreeTrialRound, canStart: $canStart, startBlockReason: $startBlockReason, submittedAttemptCount: $submittedAttemptCount, bestScore: $bestScore, bestAttemptIsPassed: $bestAttemptIsPassed, bestAttemptFailReason: $bestAttemptFailReason, lastAttempt: $lastAttempt)';
   }
 
   @override
@@ -1402,6 +1444,10 @@ class _$MockExamRoundSummaryImpl implements _MockExamRoundSummary {
                 other.submittedAttemptCount == submittedAttemptCount) &&
             (identical(other.bestScore, bestScore) ||
                 other.bestScore == bestScore) &&
+            (identical(other.bestAttemptIsPassed, bestAttemptIsPassed) ||
+                other.bestAttemptIsPassed == bestAttemptIsPassed) &&
+            (identical(other.bestAttemptFailReason, bestAttemptFailReason) ||
+                other.bestAttemptFailReason == bestAttemptFailReason) &&
             (identical(other.lastAttempt, lastAttempt) ||
                 other.lastAttempt == lastAttempt));
   }
@@ -1418,6 +1464,8 @@ class _$MockExamRoundSummaryImpl implements _MockExamRoundSummary {
     startBlockReason,
     submittedAttemptCount,
     bestScore,
+    bestAttemptIsPassed,
+    bestAttemptFailReason,
     lastAttempt,
   );
 
@@ -1450,6 +1498,9 @@ abstract class _MockExamRoundSummary implements MockExamRoundSummary {
     final MockExamStartBlockReason? startBlockReason,
     required final int submittedAttemptCount,
     final int? bestScore,
+    final bool? bestAttemptIsPassed,
+    @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
+    final MockExamFailReason? bestAttemptFailReason,
     final MockExamLastAttempt? lastAttempt,
   }) = _$MockExamRoundSummaryImpl;
 
@@ -1473,6 +1524,13 @@ abstract class _MockExamRoundSummary implements MockExamRoundSummary {
   int get submittedAttemptCount;
   @override
   int? get bestScore;
+
+  /// 최고 점수 응시(동점이면 최근)의 합격 여부·불합격 이유 (과락 포함 서버 판정)
+  @override
+  bool? get bestAttemptIsPassed;
+  @override
+  @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
+  MockExamFailReason? get bestAttemptFailReason;
   @override
   MockExamLastAttempt? get lastAttempt;
 

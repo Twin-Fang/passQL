@@ -12,7 +12,7 @@ import '../../flows/concept_related_flow.dart';
 import '../../providers/concept_providers.dart';
 import '../../widgets/concept/concept_read_view.dart';
 import '../../widgets/concept/concept_reading_parser.dart';
-import '../../widgets/concept/concept_result_view.dart';
+import '../../widgets/concept/concept_unit_progress.dart';
 import '../../widgets/concept/concept_solve_view.dart';
 import '../../widgets/pro/locked_preview_samples.dart';
 import '../../widgets/pro/pro_locked_section.dart';
@@ -72,7 +72,10 @@ class _ConceptLoadError extends StatelessWidget {
         message: '아직 공개되지 않았거나 내려간 개념이에요.',
       );
     }
-    return PassqlStatusView.error(message: '개념을 불러오지 못했어요.', onRetry: onRetry);
+    return PassqlStatusView.error(
+      message: PassqlLoadFailureCopy.messageOf('개념을'),
+      onRetry: onRetry,
+    );
   }
 }
 
@@ -141,7 +144,7 @@ class _ConceptStudyScaffold extends ConsumerWidget {
         : ConceptUnitProgress(
             label: topicOrder == null
                 ? topicConcepts.displayName
-                : '${topicOrder + 1}단원 · ${topicConcepts.displayName}',
+                : '${topicOrder + 1}단원 | ${topicConcepts.displayName}',
             solvedCountBefore:
                 study.topicSolvedCountAtStart ?? topicSolvedCount,
             solvedCount: topicSolvedCount,

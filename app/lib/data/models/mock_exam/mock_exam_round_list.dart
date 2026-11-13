@@ -81,6 +81,11 @@ class MockExamRoundSummary with _$MockExamRoundSummary {
     MockExamStartBlockReason? startBlockReason,
     required int submittedAttemptCount,
     int? bestScore,
+
+    /// 최고 점수 응시(동점이면 최근)의 합격 여부·불합격 이유 (과락 포함 서버 판정)
+    bool? bestAttemptIsPassed,
+    @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
+    MockExamFailReason? bestAttemptFailReason,
     MockExamLastAttempt? lastAttempt,
   }) = _MockExamRoundSummary;
 

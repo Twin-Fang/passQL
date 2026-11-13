@@ -82,7 +82,7 @@ class LeaderboardPage extends ConsumerWidget {
                 else
                   // 제목이 없으면 참가자가 나뿐일 때 "내 순위"와 같은 행이 두 번 나온 것처럼 보인다.
                   PassqlGroupedSection(
-                    header: '전체 순위 · ${data.entries.length}명',
+                    header: '전체 순위 | ${data.entries.length}명',
                     children: [
                       for (final entry in data.entries)
                         LeaderboardRow(

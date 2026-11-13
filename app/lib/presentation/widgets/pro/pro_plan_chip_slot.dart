@@ -8,7 +8,7 @@ import '../practice/daily_limit_reward_sheet.dart';
 import '../practice/remaining_solves_pill.dart';
 import 'pro_offer_sheet.dart';
 
-/// 탭 화면 상단 등급 자리: 무료 = 오늘 남은 문제 알약(누르면 문제 더 받기·이용권 시트, 남은 수를 모르면 FREE 칩) / 프로 PRO / 결제 꺼짐·등급 모름이면 빈 자리
+/// 탭 화면 상단 등급 자리: 무료 = 크레딧 알약(누르면 크레딧 시트, 남은 수를 모르면 FREE 칩) / 프로 PRO / 결제 꺼짐·등급 모름이면 빈 자리
 class ProPlanChipSlot extends ConsumerWidget {
   const ProPlanChipSlot({super.key});
 

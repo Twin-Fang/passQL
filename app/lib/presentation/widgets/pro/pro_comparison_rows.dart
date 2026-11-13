@@ -14,9 +14,8 @@ class ProComparisonRow {
 
 // 표 왼쪽 제목: 혜택 이름 > 짧은 이름 (표 3칸이 한 화면 폭에 들어가게, 없으면 혜택 이름 그대로)
 const Map<String, String> _shortLabelByBenefitLabel = {
-  '문제 풀이': '문제',
   'SQL 직접 실행': 'SQL 실행',
-  '새 보기·토픽': '새 보기',
+  '새 보기, 토픽': '새 보기',
 };
 
 // 광고 제거 혜택은 표에서 `광고: 있음 / 없음` 으로 읽히게

@@ -45,10 +45,10 @@ public class EntitlementPurchaseRevoker {
 
     /**
      * 구매 회수: REVOKED 표시 > 관리자 부여 > 그대로, 남은 VERIFIED 구매 재생 만료일이 미래 > 그 날짜로, 아니면 FREE
-     * now: 재생 결과의 유효 판정 기준 시각 (KST)
+     * now: 회수 시각이자 재생 결과의 유효 판정 기준 시각 (KST)
      */
     public RevocationResult revokeAndRecalculate(EntitlementPurchase purchase, LocalDateTime now) {
-        purchase.markRevoked();
+        purchase.markRevoked(now);
 
         Optional<MemberEntitlement> entitlementOptional =
             memberEntitlementRepository.findForUpdateByMemberUuid(purchase.getMemberUuid());

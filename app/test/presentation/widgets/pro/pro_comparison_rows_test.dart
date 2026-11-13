@@ -13,12 +13,15 @@ void main() {
     );
   });
 
-  test('문제 줄은 무료 한도를, 광고·모의고사 줄은 무료·프로 값을 보인다', () {
+  test('랜덤 풀기 줄은 무료 크레딧을, 광고·모의고사 줄은 무료·프로 값을 보인다', () {
     final rows = proComparisonRows(dailyFreeLimit: 10);
     final byLabel = {for (final row in rows) row.label: row};
-    expect(byLabel['문제']?.free, '하루 10개');
+    expect(byLabel['랜덤 풀기']?.free, '크레딧 하루 10개');
     expect(byLabel['광고']?.free, '있음');
     expect(byLabel['광고']?.pro, '없음');
     expect(byLabel['모의고사']?.free, '1회 체험');
+    // 무료도 오늘의 세트는 실행·전체 해설 (#992)
+    expect(byLabel['SQL 실행']?.free, '오늘의 세트');
+    expect(byLabel['해설']?.free, '정답 해설 (세트 전체)');
   });
 }

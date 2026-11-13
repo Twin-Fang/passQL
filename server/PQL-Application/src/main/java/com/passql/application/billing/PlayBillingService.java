@@ -2,8 +2,6 @@ package com.passql.application.billing;
 
 import com.passql.application.billing.StorePurchaseRecorder.PlanExtension;
 import com.passql.application.billing.StorePurchaseRecorder.VerifiedStorePurchase;
-import com.passql.application.entitlement.EntitlementPurchaseRevoker;
-import com.passql.application.entitlement.EntitlementPurchaseRevoker.RevocationResult;
 import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.application.entitlement.MemberPlanResponse;
 import com.passql.common.exception.CustomException;
@@ -22,15 +20,11 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
 
 import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Play 이용권 결제(PassProduct 1개월·3개월): 구매 확인·등급 부여, 소모, 환불 회수
+ * Play 이용권 결제(PassProduct 1개월·3개월): 구매 확인·등급 부여, 소모 (환불 회수는 PlayRefundCheckService)
  * 기록·등급 변경은 한 트랜잭션(ON CONFLICT 저장) > 커밋 후 소모 (소모 실패는 다음 확인 요청에서 재시도)
  */
 @Slf4j
@@ -42,15 +36,12 @@ public class PlayBillingService {
     private static final int PURCHASE_STATE_PENDING = 2;
     // Play consumptionState: 1 소모 완료
     private static final int CONSUMPTION_STATE_CONSUMED = 1;
-    // 환불 조회 기간 (Play 허용 최대 30일, 요청 지연 여유 10분)
-    private static final Duration VOIDED_PURCHASE_LOOKBACK = Duration.ofDays(30).minusMinutes(10);
-    // 주문 번호 없는 구매의 대체값: 접두사 + SHA-256(토큰) 16진수 앞 32자
-    private static final String FALLBACK_ORDER_ID_PREFIX = "PLAY-NO-ORDER-";
+    // 주문 번호 없는 구매의 대체값: 접두사 + SHA-256(토큰) 16진수 앞 32자 (PlayRefundCheckService 가 주문 조회에서 제외)
+    static final String FALLBACK_ORDER_ID_PREFIX = "PLAY-NO-ORDER-";
     private static final int FALLBACK_ORDER_ID_HEX_LENGTH = 32;
 
     private final PlayDeveloperApiClient playDeveloperApiClient;
     private final EntitlementPurchaseRepository entitlementPurchaseRepository;
-    private final EntitlementPurchaseRevoker entitlementPurchaseRevoker;
     private final StorePurchaseRecorder storePurchaseRecorder;
     private final FeatureAccessPolicy featureAccessPolicy;
     private final TransactionTemplate transactionTemplate;
@@ -59,23 +50,20 @@ public class PlayBillingService {
     @Autowired
     public PlayBillingService(PlayDeveloperApiClient playDeveloperApiClient,
                               EntitlementPurchaseRepository entitlementPurchaseRepository,
-                              EntitlementPurchaseRevoker entitlementPurchaseRevoker,
                               StorePurchaseRecorder storePurchaseRecorder,
                               FeatureAccessPolicy featureAccessPolicy,
                               TransactionTemplate transactionTemplate) {
-        this(playDeveloperApiClient, entitlementPurchaseRepository, entitlementPurchaseRevoker,
-            storePurchaseRecorder, featureAccessPolicy, transactionTemplate, Clock.system(ServiceTimeZone.ZONE));
+        this(playDeveloperApiClient, entitlementPurchaseRepository, storePurchaseRecorder, featureAccessPolicy,
+            transactionTemplate, Clock.system(ServiceTimeZone.ZONE));
     }
 
     PlayBillingService(PlayDeveloperApiClient playDeveloperApiClient,
                        EntitlementPurchaseRepository entitlementPurchaseRepository,
-                       EntitlementPurchaseRevoker entitlementPurchaseRevoker,
                        StorePurchaseRecorder storePurchaseRecorder,
                        FeatureAccessPolicy featureAccessPolicy,
                        TransactionTemplate transactionTemplate, Clock clock) {
         this.playDeveloperApiClient = playDeveloperApiClient;
         this.entitlementPurchaseRepository = entitlementPurchaseRepository;
-        this.entitlementPurchaseRevoker = entitlementPurchaseRevoker;
         this.storePurchaseRecorder = storePurchaseRecorder;
         this.featureAccessPolicy = featureAccessPolicy;
         this.transactionTemplate = transactionTemplate;
@@ -138,33 +126,6 @@ public class PlayBillingService {
             consumeAndMark(savedPurchase);
         }
         return featureAccessPolicy.getPlan(memberUuid);
-    }
-
-    /**
-     * 환불 회수: 최근 30일 환불 토큰 조회 > 검증 상태 구매만 REVOKED > 회원 만료일 재계산
-     * 이미 회수한 구매는 건너뜀 (반복 실행 안전), 서비스 계정 키 없으면 건너뜀
-     */
-    public void revokeVoidedPurchases() {
-        if (!playDeveloperApiClient.isConfigured()) {
-            log.info("[billing] voided purchase check skipped : service account not configured");
-            return;
-        }
-        Instant since = clock.instant().minus(VOIDED_PURCHASE_LOOKBACK);
-        List<String> voidedPurchaseTokens = playDeveloperApiClient.listVoidedPurchaseTokens(since);
-
-        // 건별 트랜잭션 (한 건 실패가 나머지를 막지 않음)
-        int revokedCount = 0;
-        for (String purchaseToken : voidedPurchaseTokens) {
-            try {
-                Boolean isRevoked = transactionTemplate.execute(status -> revokePurchaseIfVerified(purchaseToken));
-                if (Boolean.TRUE.equals(isRevoked)) {
-                    revokedCount++;
-                }
-            } catch (RuntimeException exception) {
-                log.warn("[billing] revoke failed : cause={}", exception.getClass().getSimpleName());
-            }
-        }
-        log.info("[billing] voided purchases checked : voided={}, revoked={}", voidedPurchaseTokens.size(), revokedCount);
     }
 
     /**
@@ -253,26 +214,5 @@ public class PlayBillingService {
         transactionTemplate.executeWithoutResult(status -> entitlementPurchaseRepository
             .findByPurchaseToken(purchaseToken)
             .ifPresent(EntitlementPurchase::markConsumed));
-    }
-
-    /** 환불 토큰 1건: 검증 상태 구매만 회수 > 회원 등급 재계산(공통 회수기), 회수했으면 true */
-    private boolean revokePurchaseIfVerified(String purchaseToken) {
-        Optional<EntitlementPurchase> verifiedPurchase = entitlementPurchaseRepository.findByPurchaseToken(purchaseToken)
-            .filter(purchase -> purchase.getStatus() == PurchaseStatus.VERIFIED);
-        if (verifiedPurchase.isEmpty()) {
-            return false;
-        }
-        EntitlementPurchase purchase = verifiedPurchase.get();
-        RevocationResult revocationResult = entitlementPurchaseRevoker.revokeAndRecalculate(purchase, LocalDateTime.now(clock));
-        // 재계산 종류별 로그 (등급 행 없음, 관리자 부여 유지, 만료일 변경)
-        switch (revocationResult.kind()) {
-            case NO_ENTITLEMENT -> log.info("[billing] revoked : member={}, order={}, no entitlement",
-                purchase.getMemberUuid(), purchase.getOrderId());
-            case ADMIN_GRANT_KEPT -> log.info("[billing] revoked : member={}, order={}, admin grant kept",
-                purchase.getMemberUuid(), purchase.getOrderId());
-            case RECALCULATED -> log.info("[billing] revoked : member={}, order={}, expires {} -> {}",
-                purchase.getMemberUuid(), purchase.getOrderId(), revocationResult.beforeExpiresAt(), revocationResult.afterExpiresAt());
-        }
-        return true;
     }
 }

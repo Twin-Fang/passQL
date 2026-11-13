@@ -6,6 +6,8 @@ import com.passql.common.audit.constant.AdminAuditTargetType;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.constant.AppSettingKeys;
+import com.passql.meta.constant.AppSettingValueRange;
+import com.passql.meta.constant.AppSettingValueRanges;
 import com.passql.meta.constant.AppSettingValueType;
 import com.passql.meta.crypto.SettingSecretCipher;
 import com.passql.meta.dto.AppLinksResponse;
@@ -93,6 +95,19 @@ public class AppSettingService {
         }
     }
 
+    /** 실수 설정 (행 없음·형식 오류는 기본값, #1032 수수료율) */
+    public double getDoubleOrDefault(String key, double defaultValue) {
+        try {
+            double value = Double.parseDouble(getString(key).trim());
+            return Double.isFinite(value) ? value : defaultValue;
+        } catch (CustomException e) {
+            return defaultValue;
+        } catch (NumberFormatException e) {
+            log.warn("[app-setting get-double] default used : invalid decimal format : key={}, default={}", key, defaultValue);
+            return defaultValue;
+        }
+    }
+
     /** 불리언 설정 (행 없음은 기본값, true/false 외 값은 false) */
     public boolean getBooleanOrDefault(String key, boolean defaultValue) {
         String value;
@@ -121,6 +136,7 @@ public class AppSettingService {
                 .map(s -> {
                     // 키 이름 기준 민감 + SECRET 타입 (키 이름에 key/token 이 없는 비밀값도 마스킹·비밀 저장 경로)
                     boolean isSensitive = isSensitiveKey(s.getSettingKey()) || isSecretSetting(s);
+                    Optional<AppSettingValueRange> valueRange = AppSettingValueRanges.findRange(s.getSettingKey());
                     return new SettingView(
                             s.getSettingKey(),
                             s.getValueType(),
@@ -130,7 +146,9 @@ public class AppSettingService {
                             isSensitive,
                             AppSettingKeys.isRestartRequired(s.getSettingKey()),
                             isSecretSetting(s) && StringUtils.hasText(s.getValueText()),
-                            AppSettingKeys.isManagedByAppOperation(s.getSettingKey())
+                            AppSettingKeys.isManagedByAppOperation(s.getSettingKey()),
+                            valueRange.map(AppSettingValueRange::toMinimumText).orElse(null),
+                            valueRange.map(AppSettingValueRange::toMaximumText).orElse(null)
                     );
                 })
                 .toList();
@@ -165,7 +183,7 @@ public class AppSettingService {
         }
     }
 
-    /** 설정 저장: 행 조회 > value_type 형식 검사 > DB 반영 > 커밋 뒤 Redis 반영 */
+    /** 설정 저장: 행 조회 > value_type 형식 검사 > 키별 범위 검사 > DB 반영 > 커밋 뒤 Redis 반영 */
     @Transactional
     public void save(String key, String value) {
         AppSetting setting = appSettingRepository.findBySettingKey(key)
@@ -175,6 +193,7 @@ public class AppSettingService {
             throw new CustomException(ErrorCode.SETTING_SENSITIVE_UPDATE_FORBIDDEN);
         }
         validateValueMatchesType(setting, value);
+        validateValueInRange(key, value);
         String previousValue = setting.getValueText();
         setting.setValueText(value);
         appSettingRepository.save(setting);
@@ -281,6 +300,14 @@ public class AppSettingService {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE,
                     setting.getSettingKey() + " 값은 " + valueType + " 형식이어야 합니다.");
         }
+    }
+
+    /** 키별 허용 범위 밖 값 거부 (범위 없는 키는 통과, 범위 원본은 AppSettingValueRanges) */
+    private static void validateValueInRange(String key, String value) {
+        AppSettingValueRanges.findRejectionReason(key, value).ifPresent(rejectionReason -> {
+            log.warn("[app-setting save] rejected 400 : value out of range : key={}", key);
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, rejectionReason);
+        });
     }
 
     /**

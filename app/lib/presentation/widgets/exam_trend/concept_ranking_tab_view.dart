@@ -28,7 +28,7 @@ class ConceptRankingTabView extends StatelessWidget {
     final concepts = report.frequentConcepts;
     // 예전 고정 문구('최근 4회 합산')는 데이터와 어긋나 서버 근거·갱신일로 대체
     final basisCaption =
-        '${report.basisDescription} · ${report.updatedDate} 갱신';
+        '${report.basisDescription} | ${report.updatedDate} 갱신';
     final hasAdSlot =
         adSlot != null && concepts.length > _adSlotAfterConceptCount;
     if (!hasAdSlot) {

@@ -73,7 +73,7 @@ class AiExplanationPreviewCard extends ConsumerWidget {
             ),
           ),
           PassqlButton(
-            label: '다시 시도',
+            label: PassqlLoadFailureCopy.retryLabel,
             variant: PassqlButtonVariant.plain,
             size: PassqlButtonSize.small,
             isFullWidth: false,

@@ -40,7 +40,9 @@ class BlockedMembersPage extends ConsumerWidget {
       body: blockedMembers.when(
         loading: () => const PassqlStatusView.loading(),
         error: (error, _) => PassqlStatusView.error(
-          message: error is AppException ? error.message : '목록을 불러오지 못했어요.',
+          message: error is AppException
+              ? error.message
+              : PassqlLoadFailureCopy.messageOf('목록을'),
           onRetry: () => ref.invalidate(blockedMembersProvider),
         ),
         data: (members) => members.isEmpty

@@ -1,5 +1,5 @@
 /**
- * 관리자 자동 알림 화면: 규칙 카드별 저장, 켜기/끄기 라벨, 잠금 화면 미리보기, 지금 대상 수
+ * 관리자 자동 알림 화면: 회원당 하루 상한 저장, 규칙 카드별 저장, 켜기/끄기 라벨, 잠금 화면 미리보기, 지금 대상 수
  * 요청·토스트는 admin-fetch.js (AdminApi, AdminUi)
  */
 (function () {
@@ -31,6 +31,17 @@
             body: field(card, 'body').value,
             linkTarget: field(card, 'linkTarget').value
         };
+    }
+
+    // 회원당 하루 상한 저장
+    const dailyLimitCard = document.querySelector('[data-role="daily-limit-card"]');
+    if (dailyLimitCard) {
+        dailyLimitCard.querySelector('[data-action="save-daily-limit"]').addEventListener('click', () => {
+            const request = { dailyLimitPerMember: parseInt(field(dailyLimitCard, 'dailyLimitPerMember').value, 10) };
+            AdminApi.put('/admin/auto-notifications/daily-limit', request)
+                .then(() => AdminUi.reloadWithToast('저장했습니다.'))
+                .catch(error => AdminUi.showError(error, '저장에 실패했습니다.'));
+        });
     }
 
     document.querySelectorAll('[data-rule-type]').forEach(card => {

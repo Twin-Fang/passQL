@@ -45,6 +45,7 @@ class ResultRowsTable extends StatelessWidget {
       ],
       highlightedRowIndexes = const {},
       highlightColor = null,
+      highlightMarker = null,
       shouldWrapCellsToFit = false;
 
   /// 열 목록과 위치 기준 행(SQL 실행 결과용). 같은 이름의 열이 있어도 값이 사라지지 않는다.
@@ -54,6 +55,7 @@ class ResultRowsTable extends StatelessWidget {
     required List<List<Object?>> rows,
     this.highlightedRowIndexes = const {},
     this.highlightColor,
+    this.highlightMarker,
     this.shouldWrapCellsToFit = false,
   }) : _rows = rows;
 
@@ -65,6 +67,9 @@ class ResultRowsTable extends StatelessWidget {
 
   /// [highlightedRowIndexes] 행 배경색 (옅은 정답·오답 색)
   final Color? highlightColor;
+
+  /// 지정 행 앞 표시 글자(+·−): 있으면 맨 앞에 표시 칸을 둬 색 없이도 다른 행을 구분 (#995)
+  final String? highlightMarker;
 
   /// 넘치면 칸 안 줄바꿈으로 화면 폭에 맞춤 (개념 비교 표, #876). 낱말 폭 합도 넘치면 가로 스크롤
   final bool shouldWrapCellsToFit;
@@ -88,7 +93,7 @@ class ResultRowsTable extends StatelessWidget {
           ),
         ),
         child: Text(
-          '결과 없음 · 0행',
+          '결과 없음 | 0행',
           textAlign: TextAlign.center,
           style: PassqlTypography.subheadline.copyWith(
             color: colors.secondaryLabel,
@@ -105,10 +110,23 @@ class ResultRowsTable extends StatelessWidget {
     );
 
     // 칸 글자·스타일: 머리 줄 > 값 줄 (NULL > 흐린 NULL 문구, 그 외 > 글자 종류별 글꼴, 모자란 칸은 빈칸)
-    final headerCells = [for (final column in columns) (column, headerStyle)];
+    // 표시 칸(있으면 맨 앞): 지정 행만 표시 글자, 나머지는 빈칸
+    final marker = highlightMarker;
+    final markerStyle = PassqlTypography.footnoteSemibold.copyWith(
+      color: colors.label,
+    );
+    final headerCells = [
+      if (marker != null) ('', headerStyle),
+      for (final column in columns) (column, headerStyle),
+    ];
     final valueCellsByRow = [
-      for (final row in _rows)
+      for (final (rowIndex, row) in _rows.indexed)
         [
+          if (marker != null)
+            (
+              highlightedRowIndexes.contains(rowIndex) ? marker : '',
+              markerStyle,
+            ),
           for (var i = 0; i < columns.length; i++)
             _valueCellOf(i < row.length ? row[i] : '', colors, nullCellStyle),
         ],
@@ -128,11 +146,10 @@ class ResultRowsTable extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final fittedWidths = shouldWrapCellsToFit
-                ? _fittedColumnWidthsOf(
-                    context,
-                    [headerCells, ...valueCellsByRow],
-                    constraints.maxWidth,
-                  )
+                ? _fittedColumnWidthsOf(context, [
+                    headerCells,
+                    ...valueCellsByRow,
+                  ], constraints.maxWidth)
                 : null;
             final table = _buildTable(
               colors,
@@ -218,7 +235,10 @@ class ResultRowsTable extends StatelessWidget {
         vertical: PassqlSpacing.xs,
       ),
       // 줄바꿈할 때는 한글 낱말 중간에서 끊기지 않게
-      child: Text(isWrapping ? keepWordsTogether(cell.$1) : cell.$1, style: cell.$2),
+      child: Text(
+        isWrapping ? keepWordsTogether(cell.$1) : cell.$1,
+        style: cell.$2,
+      ),
     );
 
     return Table(
@@ -229,7 +249,9 @@ class ResultRowsTable extends StatelessWidget {
               for (final (column, width) in fittedWidths.indexed)
                 column: FixedColumnWidth(width),
             },
-      border: TableBorder(horizontalInside: BorderSide(color: colors.separator)),
+      border: TableBorder(
+        horizontalInside: BorderSide(color: colors.separator),
+      ),
       children: [
         TableRow(
           decoration: BoxDecoration(color: colors.fill),

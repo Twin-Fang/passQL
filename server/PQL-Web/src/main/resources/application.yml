@@ -129,6 +129,18 @@ resilience4j:
         ignore-exceptions:
           - com.passql.ai.client.AiServerReportedFailureException
 
+# App Store Server API 인앱 결제 키 (#1032): App Store 환불 점검·환불 요청 소비 정보 응답
+# 값은 환경변수(배포 워크플로우가 GitHub Secret APP_STORE_IAP_* 로 주입) 또는 운영 application-prod.yml 로만 넣는다 (커밋 금지)
+# 개인 키: private-key-path(p8 파일) 우선, 없으면 private-key-base64(p8 파일 내용 base64), 하나라도 비면 점검을 건너뛰고 관리자 화면 "키 미설정"
+passql:
+  billing:
+    app-store:
+      server-api:
+        issuer-id: ${APP_STORE_IAP_ISSUER_ID:}
+        key-id: ${APP_STORE_IAP_KEY_ID:}
+        private-key-path: ${APP_STORE_IAP_KEY_PATH:}
+        private-key-base64: ${APP_STORE_IAP_KEY_P8_BASE64:}
+
 ---
 # 로컬 개발(dev 프로필) 전용: Vite 개발 서버 콜백 허용 (#516, 운영 prod 프로필에는 적용되지 않음)
 spring:
@@ -140,3 +152,4 @@ social-login:
     - http://localhost:5173/auth/callback/kakao
     - http://localhost:5173/auth/callback/naver
     - http://localhost:5173/auth/callback/github
+

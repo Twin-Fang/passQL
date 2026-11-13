@@ -19,12 +19,16 @@ CI: `.github/workflows/PROJECT-COMMON-BRAND-ASSETS-CHECK.yaml` 이 `--check` 를
 | `logo_horizontal.png` | 가로 로고, 투명 배경 (1336x364) |
 | `app_icon_1024.png` | 앱 아이콘, 불투명 (1024x1024). `compose_app_icon.py` 가 가로 로고로 만든다 (연보라 그라데이션 `appIconGradient` 위 pass·QL) |
 | `app_icon_adaptive_foreground.png` | Android 적응형 아이콘 전경, 투명 (1024x1024). `compose_app_icon.py` 가 원형 안전 영역 안에 만든다 |
+| `credit_icon_1024.png` | 크레딧 아이콘, 투명 배경 (1024x1024, 3D 둥근 사각 젬 + 번개, #999 Codex 생성) |
+| `pro_icon_1024.png` | PRO 아이콘, 투명 배경 (1024x1024, 크레딧 젬과 같은 화풍의 둥근 사각 젬 + 무한대, #1014 생성). 1개월·3개월 공통 1종 |
 | `brand-colors.json` | 브랜드 색 (accent 라이트·다크, 아이콘 배경, 시작 화면 배경, OG 배경) |
 
 ## 사본 (원본 > 사본)
 
 | 원본 | 사본 | 만드는 방법 |
 |------|------|-------------|
+| `credit_icon_1024.png` | `app/assets/credit.png`, `app/assets/2.0x/credit.png`, `app/assets/3.0x/credit.png` | 투명 여백 잘라냄 > 여백 3% > 96·192·288px |
+| `pro_icon_1024.png` | `app/assets/pro_icon.png`, `app/assets/2.0x/pro_icon.png`, `app/assets/3.0x/pro_icon.png` | 크레딧과 같음: 투명 여백 잘라냄 > 여백 3% > 96·192·288px |
 | `logo_horizontal.png` | `app/assets/logo.png`, `server/PQL-Web/src/main/resources/static/images/logo.png` | 그대로 복사 |
 | `logo_horizontal.png` | `client/src/assets/logo/logo.png` | 높이 120px 축소 (웹 최대 표시 40px x 3배, 번들 크기 절감 #497) |
 | `logo_horizontal.png` | `app/assets/logo_dark.png`, `server/.../static/images/logo_dark.png` | 다크 변환: 불투명 픽셀 중 max(R,G,B)<120 이고 채도 차이<70 > 흰색, 알파 유지 (#453) |
@@ -41,7 +45,11 @@ CI: `.github/workflows/PROJECT-COMMON-BRAND-ASSETS-CHECK.yaml` 이 `--check` 를
 `brand-colors.json` <-> 아래 값이 다르면 `--check` 실패:
 Android `values/colors.xml`·`values-night/colors.xml` (`splash_background`, `ic_launcher_background`),
 `app/pubspec.yaml` `adaptive_icon_background`, iOS `LaunchBackground.colorset`.
-accent 는 기록용이다. 코드 토큰 원본은 각 스택 디자인 토큰 파일이다.
+
+`accent` 사본 5곳도 같은 검사 대상 (#791): 앱 `passql_colors.dart` (`accent`·`accentTint`·`passGlow` RGB, 라이트·다크),
+웹 `tokens.css` `--color-brand`, 푸시 `FirebasePushMessageSender` `ANDROID_ACCENT_COLOR`, 관리자 `auto-notifications.html` 미리보기.
+강조색을 바꾸면 `brand-colors.json` 과 이 5곳을 함께 고친다.
+accent 는 일치 검사 기준이다. 화면 코드가 참조하는 원본은 각 스택 디자인 토큰 파일이다.
 
 ## 범위 밖
 

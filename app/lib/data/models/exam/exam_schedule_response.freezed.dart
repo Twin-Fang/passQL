@@ -25,7 +25,18 @@ mixin _$ExamScheduleResponse {
   String get certType => throw _privateConstructorUsedError;
   int get round => throw _privateConstructorUsedError;
   String get examDate => throw _privateConstructorUsedError;
-  bool get isSelected => throw _privateConstructorUsedError;
+  bool get isSelected => throw _privateConstructorUsedError; // 원서 접수 시작·마감
+  String? get applicationStartDate => throw _privateConstructorUsedError;
+  String? get applicationEndDate =>
+      throw _privateConstructorUsedError; // 수험표 발급
+  String? get admissionTicketDate =>
+      throw _privateConstructorUsedError; // 사전 점수 공개·재검토 접수 시작·마감
+  String? get preliminaryScoreStartDate => throw _privateConstructorUsedError;
+  String? get preliminaryScoreEndDate =>
+      throw _privateConstructorUsedError; // 합격 발표
+  String? get resultAnnouncementDate => throw _privateConstructorUsedError;
+  @JsonKey(unknownEnumValue: ExamSchedulePhase.unknown)
+  ExamSchedulePhase get phase => throw _privateConstructorUsedError;
 
   /// Serializes this ExamScheduleResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -50,6 +61,14 @@ abstract class $ExamScheduleResponseCopyWith<$Res> {
     int round,
     String examDate,
     bool isSelected,
+    String? applicationStartDate,
+    String? applicationEndDate,
+    String? admissionTicketDate,
+    String? preliminaryScoreStartDate,
+    String? preliminaryScoreEndDate,
+    String? resultAnnouncementDate,
+    @JsonKey(unknownEnumValue: ExamSchedulePhase.unknown)
+    ExamSchedulePhase phase,
   });
 }
 
@@ -76,6 +95,13 @@ class _$ExamScheduleResponseCopyWithImpl<
     Object? round = null,
     Object? examDate = null,
     Object? isSelected = null,
+    Object? applicationStartDate = freezed,
+    Object? applicationEndDate = freezed,
+    Object? admissionTicketDate = freezed,
+    Object? preliminaryScoreStartDate = freezed,
+    Object? preliminaryScoreEndDate = freezed,
+    Object? resultAnnouncementDate = freezed,
+    Object? phase = null,
   }) {
     return _then(
       _value.copyWith(
@@ -99,6 +125,34 @@ class _$ExamScheduleResponseCopyWithImpl<
                 ? _value.isSelected
                 : isSelected // ignore: cast_nullable_to_non_nullable
                       as bool,
+            applicationStartDate: freezed == applicationStartDate
+                ? _value.applicationStartDate
+                : applicationStartDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            applicationEndDate: freezed == applicationEndDate
+                ? _value.applicationEndDate
+                : applicationEndDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            admissionTicketDate: freezed == admissionTicketDate
+                ? _value.admissionTicketDate
+                : admissionTicketDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            preliminaryScoreStartDate: freezed == preliminaryScoreStartDate
+                ? _value.preliminaryScoreStartDate
+                : preliminaryScoreStartDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            preliminaryScoreEndDate: freezed == preliminaryScoreEndDate
+                ? _value.preliminaryScoreEndDate
+                : preliminaryScoreEndDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            resultAnnouncementDate: freezed == resultAnnouncementDate
+                ? _value.resultAnnouncementDate
+                : resultAnnouncementDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            phase: null == phase
+                ? _value.phase
+                : phase // ignore: cast_nullable_to_non_nullable
+                      as ExamSchedulePhase,
           )
           as $Val,
     );
@@ -120,6 +174,14 @@ abstract class _$$ExamScheduleResponseImplCopyWith<$Res>
     int round,
     String examDate,
     bool isSelected,
+    String? applicationStartDate,
+    String? applicationEndDate,
+    String? admissionTicketDate,
+    String? preliminaryScoreStartDate,
+    String? preliminaryScoreEndDate,
+    String? resultAnnouncementDate,
+    @JsonKey(unknownEnumValue: ExamSchedulePhase.unknown)
+    ExamSchedulePhase phase,
   });
 }
 
@@ -142,6 +204,13 @@ class __$$ExamScheduleResponseImplCopyWithImpl<$Res>
     Object? round = null,
     Object? examDate = null,
     Object? isSelected = null,
+    Object? applicationStartDate = freezed,
+    Object? applicationEndDate = freezed,
+    Object? admissionTicketDate = freezed,
+    Object? preliminaryScoreStartDate = freezed,
+    Object? preliminaryScoreEndDate = freezed,
+    Object? resultAnnouncementDate = freezed,
+    Object? phase = null,
   }) {
     return _then(
       _$ExamScheduleResponseImpl(
@@ -165,6 +234,34 @@ class __$$ExamScheduleResponseImplCopyWithImpl<$Res>
             ? _value.isSelected
             : isSelected // ignore: cast_nullable_to_non_nullable
                   as bool,
+        applicationStartDate: freezed == applicationStartDate
+            ? _value.applicationStartDate
+            : applicationStartDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        applicationEndDate: freezed == applicationEndDate
+            ? _value.applicationEndDate
+            : applicationEndDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        admissionTicketDate: freezed == admissionTicketDate
+            ? _value.admissionTicketDate
+            : admissionTicketDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        preliminaryScoreStartDate: freezed == preliminaryScoreStartDate
+            ? _value.preliminaryScoreStartDate
+            : preliminaryScoreStartDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        preliminaryScoreEndDate: freezed == preliminaryScoreEndDate
+            ? _value.preliminaryScoreEndDate
+            : preliminaryScoreEndDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        resultAnnouncementDate: freezed == resultAnnouncementDate
+            ? _value.resultAnnouncementDate
+            : resultAnnouncementDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        phase: null == phase
+            ? _value.phase
+            : phase // ignore: cast_nullable_to_non_nullable
+                  as ExamSchedulePhase,
       ),
     );
   }
@@ -179,6 +276,14 @@ class _$ExamScheduleResponseImpl implements _ExamScheduleResponse {
     required this.round,
     required this.examDate,
     required this.isSelected,
+    this.applicationStartDate,
+    this.applicationEndDate,
+    this.admissionTicketDate,
+    this.preliminaryScoreStartDate,
+    this.preliminaryScoreEndDate,
+    this.resultAnnouncementDate,
+    @JsonKey(unknownEnumValue: ExamSchedulePhase.unknown)
+    this.phase = ExamSchedulePhase.unknown,
   });
 
   factory _$ExamScheduleResponseImpl.fromJson(Map<String, dynamic> json) =>
@@ -194,10 +299,29 @@ class _$ExamScheduleResponseImpl implements _ExamScheduleResponse {
   final String examDate;
   @override
   final bool isSelected;
+  // 원서 접수 시작·마감
+  @override
+  final String? applicationStartDate;
+  @override
+  final String? applicationEndDate;
+  // 수험표 발급
+  @override
+  final String? admissionTicketDate;
+  // 사전 점수 공개·재검토 접수 시작·마감
+  @override
+  final String? preliminaryScoreStartDate;
+  @override
+  final String? preliminaryScoreEndDate;
+  // 합격 발표
+  @override
+  final String? resultAnnouncementDate;
+  @override
+  @JsonKey(unknownEnumValue: ExamSchedulePhase.unknown)
+  final ExamSchedulePhase phase;
 
   @override
   String toString() {
-    return 'ExamScheduleResponse(examScheduleUuid: $examScheduleUuid, certType: $certType, round: $round, examDate: $examDate, isSelected: $isSelected)';
+    return 'ExamScheduleResponse(examScheduleUuid: $examScheduleUuid, certType: $certType, round: $round, examDate: $examDate, isSelected: $isSelected, applicationStartDate: $applicationStartDate, applicationEndDate: $applicationEndDate, admissionTicketDate: $admissionTicketDate, preliminaryScoreStartDate: $preliminaryScoreStartDate, preliminaryScoreEndDate: $preliminaryScoreEndDate, resultAnnouncementDate: $resultAnnouncementDate, phase: $phase)';
   }
 
   @override
@@ -213,7 +337,26 @@ class _$ExamScheduleResponseImpl implements _ExamScheduleResponse {
             (identical(other.examDate, examDate) ||
                 other.examDate == examDate) &&
             (identical(other.isSelected, isSelected) ||
-                other.isSelected == isSelected));
+                other.isSelected == isSelected) &&
+            (identical(other.applicationStartDate, applicationStartDate) ||
+                other.applicationStartDate == applicationStartDate) &&
+            (identical(other.applicationEndDate, applicationEndDate) ||
+                other.applicationEndDate == applicationEndDate) &&
+            (identical(other.admissionTicketDate, admissionTicketDate) ||
+                other.admissionTicketDate == admissionTicketDate) &&
+            (identical(
+                  other.preliminaryScoreStartDate,
+                  preliminaryScoreStartDate,
+                ) ||
+                other.preliminaryScoreStartDate == preliminaryScoreStartDate) &&
+            (identical(
+                  other.preliminaryScoreEndDate,
+                  preliminaryScoreEndDate,
+                ) ||
+                other.preliminaryScoreEndDate == preliminaryScoreEndDate) &&
+            (identical(other.resultAnnouncementDate, resultAnnouncementDate) ||
+                other.resultAnnouncementDate == resultAnnouncementDate) &&
+            (identical(other.phase, phase) || other.phase == phase));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -225,6 +368,13 @@ class _$ExamScheduleResponseImpl implements _ExamScheduleResponse {
     round,
     examDate,
     isSelected,
+    applicationStartDate,
+    applicationEndDate,
+    admissionTicketDate,
+    preliminaryScoreStartDate,
+    preliminaryScoreEndDate,
+    resultAnnouncementDate,
+    phase,
   );
 
   /// Create a copy of ExamScheduleResponse
@@ -252,6 +402,14 @@ abstract class _ExamScheduleResponse implements ExamScheduleResponse {
     required final int round,
     required final String examDate,
     required final bool isSelected,
+    final String? applicationStartDate,
+    final String? applicationEndDate,
+    final String? admissionTicketDate,
+    final String? preliminaryScoreStartDate,
+    final String? preliminaryScoreEndDate,
+    final String? resultAnnouncementDate,
+    @JsonKey(unknownEnumValue: ExamSchedulePhase.unknown)
+    final ExamSchedulePhase phase,
   }) = _$ExamScheduleResponseImpl;
 
   factory _ExamScheduleResponse.fromJson(Map<String, dynamic> json) =
@@ -266,7 +424,22 @@ abstract class _ExamScheduleResponse implements ExamScheduleResponse {
   @override
   String get examDate;
   @override
-  bool get isSelected;
+  bool get isSelected; // 원서 접수 시작·마감
+  @override
+  String? get applicationStartDate;
+  @override
+  String? get applicationEndDate; // 수험표 발급
+  @override
+  String? get admissionTicketDate; // 사전 점수 공개·재검토 접수 시작·마감
+  @override
+  String? get preliminaryScoreStartDate;
+  @override
+  String? get preliminaryScoreEndDate; // 합격 발표
+  @override
+  String? get resultAnnouncementDate;
+  @override
+  @JsonKey(unknownEnumValue: ExamSchedulePhase.unknown)
+  ExamSchedulePhase get phase;
 
   /// Create a copy of ExamScheduleResponse
   /// with the given fields replaced by the non-null parameter values.

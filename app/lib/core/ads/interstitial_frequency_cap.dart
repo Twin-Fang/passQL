@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../storage/device_preferences.dart';
 import '../storage/storage_keys.dart';
+import '../utils/date_format.dart';
 
 /// 전면 광고 노출 기록 4개: 마지막 노출 시각, 기록한 날짜, 그날 노출 횟수, 결과 화면 진입 누적 횟수
 class InterstitialShowHistory {
@@ -146,12 +147,7 @@ class InterstitialFrequencyCap {
   }
 
   /// 시각 > 현지 날짜 키 (yyyy-MM-dd)
-  static String dayKeyOf(DateTime time) {
-    final local = time.toLocal();
-    final month = local.month.toString().padLeft(2, '0');
-    final day = local.day.toString().padLeft(2, '0');
-    return '${local.year}-$month-$day';
-  }
+  static String dayKeyOf(DateTime time) => formatIsoDate(time.toLocal());
 
   // 기록 날짜가 오늘이 아니면 0회
   static int _shownCountOn(InterstitialShowHistory history, DateTime now) =>

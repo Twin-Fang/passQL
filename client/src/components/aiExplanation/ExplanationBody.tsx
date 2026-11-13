@@ -45,6 +45,7 @@ export default function ExplanationBody({ entry }: ExplanationBodyProps) {
         explanation={toVerdictOnlyExplanation(entry)}
         displayLabelByChoiceKey={entry.displayLabelByChoiceKey}
         isFullExplanationLocked
+        basicExplanation={explanationView.basicExplanation}
       />
     );
   }
@@ -72,6 +73,7 @@ export default function ExplanationBody({ entry }: ExplanationBodyProps) {
         explanation={explanationView.explanation}
         displayLabelByChoiceKey={entry.displayLabelByChoiceKey}
         isFullExplanationLocked={isExplanationLocked}
+        basicExplanation={explanationView.basicExplanation}
       />
     );
   }

@@ -52,7 +52,6 @@ public class TopicAnalysisService {
             return new TopicStat(
                 topicUuid,
                 topic.getDisplayName(),
-                (int) stat[0], // 구버전 앱 호환: 전체 문제 수 대신 푼 문제 수 (#632)
                 Math.round(stat[1] * 100.0) / 100.0,
                 (int) stat[0]
             );

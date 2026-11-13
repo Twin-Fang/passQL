@@ -71,7 +71,8 @@ class ExecutionComparisonCard extends StatelessWidget {
               titleColor: colors.wrongText,
               executeResult: myResult,
               highlightedRowIndexes: comparison.myOnlyRowIndexes,
-              highlightColor: colors.wrongTint,
+              highlightColor: colors.wrongRowHighlight,
+              highlightMarker: _myOnlyRowMarker,
             ),
             const SizedBox(height: PassqlSpacing.sm),
             _ComparedResultBlock(
@@ -79,12 +80,13 @@ class ExecutionComparisonCard extends StatelessWidget {
               titleColor: colors.correctText,
               executeResult: correctResult,
               highlightedRowIndexes: comparison.correctOnlyRowIndexes,
-              highlightColor: colors.correctTint,
+              highlightColor: colors.correctRowHighlight,
+              highlightMarker: _correctOnlyRowMarker,
             ),
             if (hasHighlightedRow) ...[
               const SizedBox(height: PassqlSpacing.xs),
               Text(
-                '색칠한 행은 상대 결과에 없는 행이에요',
+                '− 내 답에만 있는 행, + 정답에만 있는 행이에요',
                 style: PassqlTypography.caption.copyWith(
                   color: colors.secondaryLabel,
                 ),
@@ -96,9 +98,13 @@ class ExecutionComparisonCard extends StatelessWidget {
     );
   }
 
+  // 한쪽에만 있는 행 표시: 내 답에만(빠져야 할 행) −, 정답에만(나와야 할 행) +
+  static const String _myOnlyRowMarker = '−';
+  static const String _correctOnlyRowMarker = '+';
+
   /// 보기 라벨 + 역할 ("보기 B · 내 답")
   static String _titleOf(String? choiceLabel, String role) =>
-      choiceLabel == null ? role : '보기 $choiceLabel · $role';
+      choiceLabel == null ? role : '보기 $choiceLabel | $role';
 }
 
 /// 비교 한쪽: 제목 + (오류면 오류 코드·문구, 아니면 행 수 + 표)
@@ -109,6 +115,7 @@ class _ComparedResultBlock extends StatelessWidget {
     required this.executeResult,
     required this.highlightedRowIndexes,
     required this.highlightColor,
+    required this.highlightMarker,
   });
 
   final String title;
@@ -116,6 +123,7 @@ class _ComparedResultBlock extends StatelessWidget {
   final ExecuteResult executeResult;
   final Set<int> highlightedRowIndexes;
   final Color highlightColor;
+  final String highlightMarker;
 
   @override
   Widget build(BuildContext context) {
@@ -126,8 +134,8 @@ class _ComparedResultBlock extends StatelessWidget {
       children: [
         Text(
           hasError
-              ? '$title · 실행 오류'
-              : '$title · ${executeResult.rowCount ?? executeResult.rows.length}행',
+              ? '$title | 실행 오류'
+              : '$title | ${executeResult.rowCount ?? executeResult.rows.length}행',
           style: PassqlTypography.footnoteSemibold.copyWith(color: titleColor),
         ),
         const SizedBox(height: PassqlSpacing.xxs),
@@ -146,6 +154,7 @@ class _ComparedResultBlock extends StatelessWidget {
             ],
             highlightedRowIndexes: highlightedRowIndexes,
             highlightColor: highlightColor,
+            highlightMarker: highlightMarker,
           ),
       ],
     );

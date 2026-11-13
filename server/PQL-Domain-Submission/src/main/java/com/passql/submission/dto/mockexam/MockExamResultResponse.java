@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * 응시 결과: 총점·합격·불합격 이유·문항별 정오 (모두 공개)
+ * 응시 결과: 총점·합격·불합격 이유·회차 순위·문항별 정오 (모두 공개)
  * 과목별 점수·토픽별 정답률·문항 해설·다음에 할 일은 프로 전용 (무료는 비우고 lockedSections 표시)
  */
 public record MockExamResultResponse(
@@ -31,6 +31,7 @@ public record MockExamResultResponse(
     int questionCount,
     boolean isPassed,
     MockExamFailReason failReason,
+    @Schema(nullable = true, description = "같은 회차 응시자 중 내 위치 (응시자 10명 미만이면 null)") MockExamRanking ranking,
     List<SubjectResult> subjects,
     List<TopicResult> topics,
     List<QuestionMark> questionMarks,
@@ -73,13 +74,13 @@ public record MockExamResultResponse(
         mergedLockedSections.addAll(addedLockedSections);
         return new MockExamResultResponse(attemptUuid, roundUuid, roundNumber, title, submitReason, startedAt,
             submittedAt, elapsedSeconds, totalScore, maxScore, passScore, correctCount, questionCount, isPassed,
-            failReason, List.of(), List.of(), questionMarks, List.of(), null, mergedLockedSections);
+            failReason, ranking, List.of(), List.of(), questionMarks, List.of(), null, mergedLockedSections);
     }
 
     /** 다음에 할 일 붙이기 */
     public MockExamResultResponse withNextStep(MockExamNextStep plannedNextStep) {
         return new MockExamResultResponse(attemptUuid, roundUuid, roundNumber, title, submitReason, startedAt,
             submittedAt, elapsedSeconds, totalScore, maxScore, passScore, correctCount, questionCount, isPassed,
-            failReason, subjects, topics, questionMarks, reviews, plannedNextStep, lockedSections);
+            failReason, ranking, subjects, topics, questionMarks, reviews, plannedNextStep, lockedSections);
     }
 }

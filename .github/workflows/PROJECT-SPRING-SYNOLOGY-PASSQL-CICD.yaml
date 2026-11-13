@@ -162,6 +162,7 @@ jobs:
         env:
           APPLICATION_PROD_YML: ${{ secrets.APPLICATION_PROD_YML }}
           FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          APP_STORE_IAP_KEY_P8_BASE64: ${{ secrets.APP_STORE_IAP_KEY_P8_BASE64 }}
         run: |
           for NAME in APPLICATION_PROD_YML FIREBASE_SERVICE_ACCOUNT_JSON; do
             if [ -z "${!NAME}" ]; then echo "❌ Secret ${NAME} 미설정"; exit 1; fi
@@ -169,6 +170,14 @@ jobs:
             echo "::add-mask::${ENCODED}"
             echo "${NAME}_BASE64=${ENCODED}" >> "$GITHUB_ENV"
           done
+          # App Store 인앱 결제 키 (#1032, 선택): 이미 base64 라 공백만 제거, 없으면 서버가 App Store 환불 점검을 건너뜀
+          IAP_KEY_BASE64=$(printf '%s' "${APP_STORE_IAP_KEY_P8_BASE64}" | tr -d '[:space:]')
+          if [ -n "${IAP_KEY_BASE64}" ]; then
+            echo "::add-mask::${IAP_KEY_BASE64}"
+            echo "APP_STORE_IAP_KEY_P8_RUNTIME_BASE64=${IAP_KEY_BASE64}" >> "$GITHUB_ENV"
+          else
+            echo "ℹ️ Secret APP_STORE_IAP_KEY_P8_BASE64 미설정 — App Store 환불 점검 건너뜀"
+          fi
 
       - name: Deploy
         uses: appleboy/ssh-action@v1.0.3
@@ -192,6 +201,9 @@ jobs:
           RUNTIME_CONFIG_CONTAINER_PATH: ${{ env.RUNTIME_CONFIG_CONTAINER_PATH }}
           APPLICATION_PROD_YML_BASE64: ${{ env.APPLICATION_PROD_YML_BASE64 }}
           FIREBASE_SERVICE_ACCOUNT_JSON_BASE64: ${{ env.FIREBASE_SERVICE_ACCOUNT_JSON_BASE64 }}
+          APP_STORE_IAP_KEY_P8_RUNTIME_BASE64: ${{ env.APP_STORE_IAP_KEY_P8_RUNTIME_BASE64 }}
+          APP_STORE_IAP_KEY_ID: ${{ secrets.APP_STORE_IAP_KEY_ID }}
+          APP_STORE_IAP_ISSUER_ID: ${{ secrets.APP_STORE_IAP_ISSUER_ID }}
           SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -200,7 +212,7 @@ jobs:
           port: 2022
           command_timeout: 600s
           timeout: 60s
-          envs: PROJECT_NAME,IMAGE,SERVICE_DOMAIN,SPRING_PROFILE,CONTAINER_INTERNAL_PORT,TRAEFIK_NETWORK,TRAEFIK_ENTRYPOINT,TRAEFIK_INTERNAL_PORT,HEALTHCHECK_PATH,HEALTHCHECK_MAX_RETRIES,HEALTHCHECK_RETRY_INTERVAL,IN_FLIGHT_WAIT,VOLUME_HOST_PATH,VOLUME_CONTAINER_PATH,CONTAINER_LOG_MAX_SIZE,CONTAINER_LOG_MAX_FILE,RUNTIME_CONFIG_CONTAINER_PATH,APPLICATION_PROD_YML_BASE64,FIREBASE_SERVICE_ACCOUNT_JSON_BASE64,SERVER_PASSWORD
+          envs: PROJECT_NAME,IMAGE,SERVICE_DOMAIN,SPRING_PROFILE,CONTAINER_INTERNAL_PORT,TRAEFIK_NETWORK,TRAEFIK_ENTRYPOINT,TRAEFIK_INTERNAL_PORT,HEALTHCHECK_PATH,HEALTHCHECK_MAX_RETRIES,HEALTHCHECK_RETRY_INTERVAL,IN_FLIGHT_WAIT,VOLUME_HOST_PATH,VOLUME_CONTAINER_PATH,CONTAINER_LOG_MAX_SIZE,CONTAINER_LOG_MAX_FILE,RUNTIME_CONFIG_CONTAINER_PATH,APPLICATION_PROD_YML_BASE64,FIREBASE_SERVICE_ACCOUNT_JSON_BASE64,APP_STORE_IAP_KEY_P8_RUNTIME_BASE64,APP_STORE_IAP_KEY_ID,APP_STORE_IAP_ISSUER_ID,SERVER_PASSWORD
           # projectops PROJECT-SPRING-NONSTOP-TRAEFIK-CICD 흐름을 passQL 모노레포·볼륨에 맞춘 것.
           # 새 색 컨테이너를 띄워 Traefik 경유 헬스체크가 통과한 뒤에만 구 색을 내린다 — 실패하면 구 색이 계속 서비스한다.
           script: |
@@ -248,6 +260,19 @@ jobs:
             write_runtime_config application-prod.yml "${APPLICATION_PROD_YML_BASE64}"
             write_runtime_config firebase-service-account.json "${FIREBASE_SERVICE_ACCOUNT_JSON_BASE64}"
 
+            # App Store 인앱 결제 키 (#1032, 선택): 키 파일 + 식별자 2개가 모두 있을 때만 컨테이너 환경변수로 연결
+            # 식별자 형식 확인 (key ID 영숫자, issuer ID UUID) > 명령 인자 안전, 하나라도 없으면 서버가 "키 미설정"으로 건너뜀
+            IAP_ENV_ARGS=""
+            if [ -n "${APP_STORE_IAP_KEY_P8_RUNTIME_BASE64}" ] \
+              && printf '%s' "${APP_STORE_IAP_KEY_ID}" | grep -Eq '^[A-Z0-9]{6,20}$' \
+              && printf '%s' "${APP_STORE_IAP_ISSUER_ID}" | grep -Eq '^[0-9a-fA-F-]{36}$'; then
+              write_runtime_config app-store-iap-key.p8 "${APP_STORE_IAP_KEY_P8_RUNTIME_BASE64}"
+              IAP_ENV_ARGS="-e APP_STORE_IAP_KEY_ID=${APP_STORE_IAP_KEY_ID} -e APP_STORE_IAP_ISSUER_ID=${APP_STORE_IAP_ISSUER_ID} -e APP_STORE_IAP_KEY_PATH=${RUNTIME_CONFIG_CONTAINER_PATH}/app-store-iap-key.p8"
+              echo "🔐 App Store 인앱 결제 키 연결"
+            else
+              echo "ℹ️ App Store 인앱 결제 키 미설정 또는 형식 오류 — App Store 환불 점검 건너뜀"
+            fi
+
             # HTTP(80) 요청은 DSM 80 항목이 X-Forwarded-Proto: http 를 달아 8079로 보낸다 (#389).
             # X-Forwarded-Proto 가 http 일 때만 https로 영구 리다이렉트 — 443 경로(https)는 기존 라우터로 간다
             # drain 표식이 있으면 unhealthy → Traefik이 새 요청을 보내지 않는다
@@ -281,6 +306,7 @@ jobs:
               -e TZ=Asia/Seoul \
               -e "SPRING_PROFILES_ACTIVE=${SPRING_PROFILE}" \
               -e "FIREBASE_KEYPATH=${RUNTIME_CONFIG_CONTAINER_PATH}/firebase-service-account.json" \
+              ${IAP_ENV_ARGS} \
               -v /etc/localtime:/etc/localtime:ro \
               -v "${VOLUME_HOST_PATH}:${VOLUME_CONTAINER_PATH}" \
               -v "${CONFIG_HOST_DIR}:${RUNTIME_CONFIG_CONTAINER_PATH}:ro" \

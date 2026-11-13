@@ -6,6 +6,7 @@ import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
 import '../topic_appearance.dart';
 import 'passql_pressable.dart';
+import 'passql_pro_icon.dart';
 
 // 탑승권 조각 4개: 본문, 떼는 칸, 효과(빛줄기·홀로그램), 외곽·점선·바코드 그리기
 part 'pass_ticket/pass_ticket_body.dart';
@@ -84,7 +85,9 @@ class PassqlPassTicket extends StatelessWidget {
   /// 경로 끝 (예: SQLD 63회, 일정이 없으면 SQLD)
   final String destination;
   final List<PassqlPassTicketField> fields;
-  final List<({IconData icon, Color color})> benefitIcons;
+
+  /// 혜택 아이콘 (한 색 픽토그램, 색은 등급별로 탑승권이 정함)
+  final List<IconData> benefitIcons;
 
   /// 떼는 칸 글자 (줄바꿈 포함 가능)
   final String stubLabel;
@@ -156,6 +159,7 @@ class PassqlPassTicket extends StatelessWidget {
                     child: const SizedBox(width: PassqlSize.hairline * 2),
                   ),
                   _TicketStub(
+                    isPro: _isPro,
                     label: stubLabel,
                     textColor: _isPro ? colors.onAccent : colors.accentText,
                     barcodeColor: foreground,

@@ -23,13 +23,25 @@ abstract final class PassqlSize {
   static const double scoreRingMini = 22; // 머리가 접혔을 때 제목 옆 고리
   static const double scoreRingMiniStroke = 4;
   static const double unitSegmentHeight = 6; // 단원 진행 칸 막대 (개념 하나 = 칸 하나)
+  static const double segmentedProgressHeight = 8; // 풀이 상단 칸 진행 바 (문제 하나 = 칸 하나, #999)
+  static const double rewardGaugeHeight = 12; // 보상 창 오늘 크레딧 게이지 (기본·보너스 구간, #999)
   static const double loginLogoHeight = 44;
   static const double footerLogoHeight = 20;
   static const double navBarLogoHeight = 24; // 홈 상단 바 워드마크 (바 높이 44 안, 종 아이콘과 시각 무게 맞춤)
   // 오픈소스 라이선스 화면 상단 로고 높이
   static const double licensePageLogoHeight = 32;
   static const double messageSlotHeight =
-      28; // 입력 아래 안내·오류 한 줄 자리 (나타나도 레이아웃이 밀리지 않게 고정)
+      28; // 입력 아래 안내·오류 문구 자리 최소 높이 (PassqlMessageSlot, 긴 문구는 늘어남)
+  static const double mockExamRoundBadge = 44; // 모의고사 회차 번호 배지 한 변 (숫자 + "회")
+  static const double mockExamRoundLockBadge = 18; // 잠긴 회차 배지 모서리 자물쇠 원
+  static const double mockExamRoundProgressWidth = 56; // 풀이 중 회차 진행 막대 폭 ("23/50" 글자 폭 정도)
+  // 시험 일정 (#991): 가로 단계 점·진행선, 세로 타임라인 점(시험은 한 단계 크게)·날짜 칸 폭("10.12" 굵은 글자 폭)
+  static const double examStepDot = 14;
+  static const double examStepLine = 2;
+  static const double examTimelineDot = 12;
+  static const double examTimelineExamDot = 14;
+  static const double examTimelineDateColumn = 40;
+  static const double examPhaseDot = 6; // 단계 칩 앞 깜빡이는 점
   static const double iconTile = 29;
   static const double iconTileCompact = 26; // 구간 제목 앞 타일 (행 타일보다 한 단계 작게, #726)
   static const double blurSigma = 20;
@@ -39,6 +51,7 @@ abstract final class PassqlSize {
   static const double notificationBadge = 18; // 안 읽은 개수 배지 높이·한 자리 지름 (PassqlCountBadge)
   static const double unreadDot = 8; // 알림 항목 앞 안 읽음 점
   static const double sheetHeroCircle = 64; // 안내 시트 맨 위 대표 아이콘 원
+  static const double welcomeIllustration = 168; // 환영 안내 3D 일러스트 (assets 1x 크기와 같음)
 
   // 로딩 표시 반지름 3단계: 버튼·행 안, 섹션·시트, 화면 잠금
   static const double loadingIndicatorInlineRadius = 10;

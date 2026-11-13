@@ -72,6 +72,10 @@ class AppConfig with _$AppConfig {
     @Default(false) bool isAndroidBillingEnabled,
     // 사업자 정보 (구버전 서버면 빈 값 > 섹션 숨김)
     @Default(BusinessInfo()) BusinessInfo businessInfo,
+    // 잠금화면 문제 (#990): 전체 스위치(false 면 메뉴 숨김), 기본 간격(분, 0 = 매번), 실행형 출제 여부
+    @Default(false) bool isLockScreenEnabled,
+    @Default(30) int lockScreenDefaultIntervalMinutes,
+    @Default(true) bool isLockScreenExecutableIncluded,
   }) = _AppConfig;
 
   factory AppConfig.fromJson(Map<String, dynamic> json) =>

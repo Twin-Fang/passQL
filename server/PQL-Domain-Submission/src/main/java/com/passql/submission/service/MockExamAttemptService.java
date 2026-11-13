@@ -8,6 +8,7 @@ import com.passql.submission.constant.MockExamRoundStatus;
 import com.passql.submission.constant.MockExamSubmitReason;
 import com.passql.submission.dto.mockexam.MockExamAnswerSaveRequest;
 import com.passql.submission.dto.mockexam.MockExamAnswerSaveResponse;
+import com.passql.submission.dto.mockexam.MockExamRanking;
 import com.passql.submission.dto.mockexam.MockExamResultResponse;
 import com.passql.submission.dto.mockexam.MockExamSheetResponse;
 import com.passql.submission.dto.mockexam.MockExamStartBlockReason;
@@ -179,7 +180,14 @@ public class MockExamAttemptService {
             throw new CustomException(ErrorCode.MOCK_EXAM_NOT_SUBMITTED);
         }
         MockExamPaper paper = paperLoader.load(attempt.getMockExamRoundUuid());
-        return MockExamResultAssembler.assemble(attempt, paper, findAnswerByItemUuid(attemptUuid));
+        return MockExamResultAssembler.assemble(attempt, paper, findAnswerByItemUuid(attemptUuid), calculateRanking(attempt));
+    }
+
+    /** 회차 순위: 같은 회차 제출 응시 1회 조회 > 회원별 첫 응시 분포에 지금 점수 놓기 */
+    private MockExamRanking calculateRanking(MockExamAttempt attempt) {
+        return MockExamRankingCalculator.rank(
+            attemptRepository.findSubmittedScoresByRoundInSubmitOrder(attempt.getMockExamRoundUuid()),
+            attempt.getMemberUuid(), attempt.getTotalScore());
     }
 
     /** 회원의 마감 지난 풀이 중 응시 채점 (목록 진입 때, 진행 중 1개라 많아야 1건) */

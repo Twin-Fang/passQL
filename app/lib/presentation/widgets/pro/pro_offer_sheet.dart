@@ -36,6 +36,12 @@ enum ProOfferSheetOutcome {
   purchased, // 이용권 구매·복원 성공
 }
 
+/// 시트 진입점 (분석 이벤트 source 값)
+abstract final class ProOfferSources {
+  /// 풀이 화면 보기 ▶ 실행 (무료)
+  static const String sqlExecute = 'sql_execute';
+}
+
 /// 구매 버튼 기본 문구(이용권 목록이 없을 때)
 const String _sheetTitle = '이용권';
 
@@ -46,6 +52,10 @@ Future<ProOfferSheetOutcome> showProOfferSheet(
   WidgetRef ref, {
   // 탑승권 혜택 아이콘에서 열었을 때 그 혜택 순서(proBenefits 기준) > 시트가 그 줄을 강조 (#749)
   int? focusedBenefitIndex,
+  // 이 기능에서 열었을 때 제목 아래 가치 한 줄 (예: SQL 실행 ▶)
+  String? reasonMessage,
+  // 분석용 진입점 (ProOfferSources, 없으면 생략)
+  String? source,
 }) async {
   if (_isOfferSheetOpen) return ProOfferSheetOutcome.dismissed;
   _isOfferSheetOpen = true;
@@ -60,6 +70,7 @@ Future<ProOfferSheetOutcome> showProOfferSheet(
   unawaited(
     AppAnalytics.current.logPassSheetOpened(
       isExtending: activeProExpiresAt != null,
+      source: source,
     ),
   );
   final revealNotifier = ref.read(profilePassRevealPendingProvider.notifier);
@@ -76,6 +87,7 @@ Future<ProOfferSheetOutcome> showProOfferSheet(
         onConfirmationStarted: (confirmation) =>
             pendingConfirmation = confirmation,
         focusedBenefitIndex: focusedBenefitIndex,
+        reasonMessage: reasonMessage,
       ),
     );
     final outcome =
@@ -105,6 +117,22 @@ Future<ProOfferSheetOutcome> showProOfferSheet(
   }
 }
 
+// 프로 안내 시트 강조 혜택: SQL 직접 실행 (proBenefits 순서)
+const int _sqlExecutionBenefitIndex = 1;
+
+/// SQL 실행 잠금에서 여는 시트: SQL 직접 실행 강조 + 실행 가치 한 줄 + source=sql_execute
+/// 보기 ▶ 실행·직접 실행해보기 공통 (무료는 실행 API 를 부르지 않음)
+Future<ProOfferSheetOutcome> showSqlExecuteProOffer(
+  BuildContext context,
+  WidgetRef ref,
+) => showProOfferSheet(
+  context,
+  ref,
+  focusedBenefitIndex: _sqlExecutionBenefitIndex,
+  reasonMessage: 'SQL을 직접 실행해 보기마다 결과를 비교해 봐요',
+  source: ProOfferSources.sqlExecute,
+);
+
 /// 그냥 닫힘 > 진행 중이던 확인 결과 (없으면 dismissed)
 Future<ProOfferSheetOutcome> _awaitConfirmationAfterDismiss(
   Future<ProOfferSheetOutcome>? pendingConfirmation,
@@ -129,6 +157,7 @@ class _ProOfferSheetBody extends ConsumerStatefulWidget {
     required this.dailyFreeLimit,
     required this.onConfirmationStarted,
     required this.focusedBenefitIndex,
+    required this.reasonMessage,
   });
 
   final List<PassOption> passOptions;
@@ -143,6 +172,9 @@ class _ProOfferSheetBody extends ConsumerStatefulWidget {
 
   /// 탑승권 혜택 아이콘에서 열었으면 그 혜택 순서 (proBenefits 기준)
   final int? focusedBenefitIndex;
+
+  /// 제목 아래 가치 한 줄 (없으면 생략)
+  final String? reasonMessage;
 
   @override
   ConsumerState<_ProOfferSheetBody> createState() => _ProOfferSheetBodyState();
@@ -268,7 +300,7 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
     final benefits = proBenefits(dailyFreeLimit: widget.dailyFreeLimit);
     final activeProExpiresAt = widget.activeProExpiresAt;
     final isExtending = activeProExpiresAt != null;
-    // 승객 칸: 시트가 떠 있는 동안 닉네임이 도착하면 채움 (홈에서 바로 열면 아직 안 불러온 상태)
+    // 수험생 칸: 시트가 떠 있는 동안 닉네임이 도착하면 채움 (홈에서 바로 열면 아직 안 불러온 상태)
     final nickname =
         ref.watch(settingsDataProvider).valueOrNull?.nickname ?? '';
 
@@ -291,6 +323,7 @@ class _ProOfferSheetBodyState extends ConsumerState<_ProOfferSheetBody> {
                   daysUntilExam: daysUntil,
                   activeProExpiresAt: activeProExpiresAt,
                   focusedBenefit: _focusedBenefitOf(benefits),
+                  reasonMessage: widget.reasonMessage,
                 ),
                 const SizedBox(height: PassqlSpacing.md),
                 ProOfferTicketPreview(

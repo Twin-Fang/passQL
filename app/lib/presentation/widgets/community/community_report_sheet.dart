@@ -135,20 +135,7 @@ class _CommunityReportSheetState extends ConsumerState<CommunityReportSheet> {
                 cursorColor: colors.accent,
               ),
             ),
-            SizedBox(
-              height: PassqlSize.messageSlotHeight,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: _errorMessage == null
-                    ? null
-                    : Text(
-                        _errorMessage!,
-                        style: PassqlTypography.caption.copyWith(
-                          color: colors.wrongText,
-                        ),
-                      ),
-              ),
-            ),
+            PassqlMessageSlot(message: _errorMessage),
             PassqlButton(
               label: '신고하기',
               isLoading: _isSending,

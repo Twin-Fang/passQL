@@ -81,7 +81,7 @@ export default function ReportModal({
       if (err instanceof ApiError && err.status === 409) {
         onSuccess();
       } else {
-        setError("신고 제출에 실패했습니다. 잠시 후 다시 시도해주세요.");
+        setError("신고를 보내지 못했어요. 잠시 후 다시 시도해 주세요.");
       }
     } finally {
       setIsSubmitting(false);

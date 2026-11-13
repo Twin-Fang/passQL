@@ -35,7 +35,7 @@ class AccountPassSection extends ConsumerWidget {
         if (expiresAt != null)
           PassqlListRow(
             title: '만료일',
-            trailing: Text(_formatDottedDateTime(expiresAt)),
+            trailing: Text(formatDottedDateTime(expiresAt)),
           ),
         if (isFreeBillingTarget)
           PassqlListRow(
@@ -50,13 +50,6 @@ class AccountPassSection extends ConsumerWidget {
         ),
       ],
     );
-  }
-
-  /// 만료 시각 > 2027.01.26 23:59
-  static String _formatDottedDateTime(DateTime time) {
-    final hour = time.hour.toString().padLeft(2, '0');
-    final minute = time.minute.toString().padLeft(2, '0');
-    return '${formatDottedDate(time)} $hour:$minute';
   }
 }
 
@@ -85,7 +78,7 @@ class _PlanBadge extends StatelessWidget {
       child: Text(
         daysLeft == null
             ? PassqlPlanChip.proLabel
-            : '${PassqlPlanChip.proLabel} · $daysLeft일 남음',
+            : '${PassqlPlanChip.proLabel} | $daysLeft일 남음',
         style: PassqlTypography.captionSemibold.copyWith(
           color: colors.onAccent,
         ),
@@ -114,8 +107,12 @@ class _PurchaseHistoryRows extends ConsumerWidget {
       body = historyAsync.hasError
           ? PassqlPressable(
               onTap: () => ref.invalidate(purchaseHistoryProvider),
-              semanticLabel: '구매 내역을 불러오지 못했어요, 다시 시도',
-              child: Text('불러오지 못했어요 · 다시 시도', style: caption),
+              semanticLabel:
+                  '${PassqlLoadFailureCopy.messageOf('구매 내역을')}, ${PassqlLoadFailureCopy.retryLabel}',
+              child: Text(
+                '${PassqlLoadFailureCopy.genericMessage} | ${PassqlLoadFailureCopy.retryLabel}',
+                style: caption,
+              ),
             )
           : const Align(
               alignment: Alignment.centerLeft,

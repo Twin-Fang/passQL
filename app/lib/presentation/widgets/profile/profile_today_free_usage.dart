@@ -9,7 +9,7 @@ import '../../providers/plan_providers.dart';
 import '../practice/credit_balance_header.dart';
 import 'profile_bonus_cards.dart';
 
-/// 무료 오늘 남은 문제 (#816 A안): 제목·내역 링크 > 남은 수 큰 숫자 / 오늘 한도 > 사용량 게이지 > 문제 더 받기 카드(세트 완료·세트 정답률·광고)
+/// 무료 오늘 크레딧 (#816 A안): 제목·내역 링크 > 남은 크레딧 큰 숫자 / 오늘 한도 > 사용량 게이지 > 크레딧 받는 방법 카드(세트 완료·세트 정답 80%·광고)
 /// 남은 수 = 오늘 유효 한도(보너스 포함) - 오늘 푼 랜덤 문제 (0 아래로 내려가지 않음), 초기화는 KST 0시
 class ProfileTodayFreeUsage extends StatelessWidget {
   const ProfileTodayFreeUsage({super.key, required this.plan});

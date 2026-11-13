@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
+import 'passql_keep_all_text.dart';
 import 'passql_pressable.dart';
 
 class PassqlListRow extends StatelessWidget {
@@ -16,6 +17,8 @@ class PassqlListRow extends StatelessWidget {
     this.hasHorizontalPadding = true,
     this.isCentered = false,
     this.titleMaxLines,
+    this.titleContent,
+    this.semanticLabel,
     this.onTap,
   });
 
@@ -34,6 +37,12 @@ class PassqlListRow extends StatelessWidget {
 
   /// 제목 최대 줄 수 (넘치면 말줄임). null 이면 줄 수 제한 없음 (긴 개념 제목 두 줄까지, #764)
   final int? titleMaxLines;
+
+  /// 제목 글자 대신 그릴 첫 줄 (점수·배지처럼 꾸민 줄). 있으면 title 은 화면에 그리지 않음
+  final Widget? titleContent;
+
+  /// 행 전체 읽기 문구 (titleContent 처럼 글자를 합쳐 읽기 어려울 때)
+  final String? semanticLabel;
   final VoidCallback? onTap;
 
   /// 한 줄 제목일 때 행 높이가 44pt 가 되는 위아래 여백 (iOS 설정 앱 규격)
@@ -62,19 +71,23 @@ class PassqlListRow extends StatelessWidget {
                     : CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    title,
-                    maxLines: titleMaxLines,
-                    overflow: titleMaxLines == null
-                        ? null
-                        : TextOverflow.ellipsis,
-                    textAlign: isCentered ? TextAlign.center : null,
-                    style: PassqlTypography.body.copyWith(
-                      color: isDestructive ? colors.wrongText : colors.label,
-                    ),
-                  ),
+                  // 제목·부제 단어 단위 줄바꿈 (큰 글자에서 '써 / 요' 방지, #646)
+                  titleContent ??
+                      PassqlKeepAllText(
+                        title,
+                        maxLines: titleMaxLines,
+                        overflow: titleMaxLines == null
+                            ? null
+                            : TextOverflow.ellipsis,
+                        textAlign: isCentered ? TextAlign.center : null,
+                        style: PassqlTypography.body.copyWith(
+                          color: isDestructive
+                              ? colors.wrongText
+                              : colors.label,
+                        ),
+                      ),
                   if (subtitle != null)
-                    Text(
+                    PassqlKeepAllText(
                       subtitle!,
                       textAlign: isCentered ? TextAlign.center : null,
                       style: PassqlTypography.footnote.copyWith(
@@ -108,6 +121,10 @@ class PassqlListRow extends StatelessWidget {
     return onTap == null
         ? row
         // 라벨을 따로 주지 않음 > 제목·부제·trailing 글자를 한 번씩 합쳐 읽음
-        : PassqlPressable(onTap: onTap, child: row);
+        : PassqlPressable(
+            onTap: onTap,
+            semanticLabel: semanticLabel,
+            child: row,
+          );
   }
 }

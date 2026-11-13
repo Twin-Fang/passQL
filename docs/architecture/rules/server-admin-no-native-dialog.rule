@@ -1,0 +1,4 @@
+description=관리자 화면에서 브라우저 기본 alert()·confirm() 금지 (AdminUi.toast·confirmDanger·confirmBeforeSubmit 사용)
+paths=server/PQL-Web/src/main/resources/templates/admin/,server/PQL-Web/src/main/resources/static/js/admin/
+extensions=.html,.js
+pattern=(?<![.\w$])(?:alert|confirm)\(

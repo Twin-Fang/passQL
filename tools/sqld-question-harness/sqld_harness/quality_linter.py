@@ -23,6 +23,7 @@ from .question_schema import (
     is_current_schema,
 )
 from .sql_script import parse_simple_insert_rows, to_display_value
+from .table_reference_linter import lint_table_references
 
 # 묶음 규칙 finding 의 문제 id 자리 표시
 BATCH_QUESTION_ID = "(batch)"
@@ -49,6 +50,7 @@ def lint_question(question):
     _check_stem_clarity(question, add)
     _check_table_shape(question, add)
     _check_table_matches_data(question, add)
+    lint_table_references(question, add)
     _check_order_dependent_expect(question, add)
     if is_current_schema(question) and 0 < len(get_concepts(question)) < RECOMMENDED_MINIMUM_CONCEPT_COUNT:
         add(SEVERITY_INFO, "trend.concept-combination", "2026 경향: 개념 2~3개 결합 권장 (concepts 1개)")

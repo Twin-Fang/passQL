@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -84,10 +85,11 @@ public class ConceptBundleValidator {
         if (isBlank(item.detailMd())) {
             issues.add(new ConceptBundleItemIssue(tagKey, "detailMd", "required"));
         } else {
-            try {
+            Optional<String> detailViolationReason = detailSectionParser.findFormatViolation(item.detailMd());
+            if (detailViolationReason.isPresent()) {
+                issues.add(new ConceptBundleItemIssue(tagKey, "detailMd", detailViolationReason.get()));
+            } else {
                 anchors = detailSectionParser.findAnchors(item.detailMd());
-            } catch (IllegalArgumentException e) {
-                issues.add(new ConceptBundleItemIssue(tagKey, "detailMd", e.getMessage()));
             }
         }
 
