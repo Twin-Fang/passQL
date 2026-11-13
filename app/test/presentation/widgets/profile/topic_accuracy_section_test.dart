@@ -7,6 +7,8 @@ import 'package:passql_app/presentation/design/design.dart';
 import 'package:passql_app/presentation/providers/topic_providers.dart';
 import 'package:passql_app/presentation/widgets/profile/topic_accuracy_section.dart';
 
+import '../../../helpers/text_finders.dart';
+
 TopicStat _stat(String uuid, double rate) => TopicStat(
   topicUuid: uuid,
   displayName: '영역 $uuid',
@@ -24,7 +26,7 @@ Future<void> _pump(WidgetTester tester, List<TopicStat> stats) {
         theme: PassqlTheme.light,
         home: Scaffold(
           body: SingleChildScrollView(
-            child: TopicAccuracySection(topicStats: stats, isLocked: false),
+            child: TopicAccuracySection(topicStats: stats),
           ),
         ),
       ),
@@ -40,7 +42,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('topic-accuracy-radar')), findsOneWidget);
-    expect(find.text('영역 b'), findsOneWidget);
+    expect(findTextContainingIgnoringWordJoiners('영역 b'), findsOneWidget);
     expect(find.text('정답률 낮은 순'), findsOneWidget);
   });
 
@@ -48,6 +50,6 @@ void main() {
     await _pump(tester, stats.take(2).toList());
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('topic-accuracy-radar')), findsNothing);
-    expect(find.text('영역 a'), findsOneWidget);
+    expect(findTextContainingIgnoringWordJoiners('영역 a'), findsOneWidget);
   });
 }

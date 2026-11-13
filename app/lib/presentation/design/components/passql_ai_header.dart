@@ -60,6 +60,8 @@ class _PassqlAiHeaderState extends State<PassqlAiHeader>
           child: PassqlIconTile(
             icon: CupertinoIcons.sparkles,
             color: colors.accent,
+            // 다른 구간 제목 앞 타일과 같은 크기
+            isCompact: true,
           ),
         ),
         const SizedBox(width: PassqlSpacing.xs),

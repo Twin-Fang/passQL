@@ -2,14 +2,12 @@ package com.passql.application.entitlement;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.OptionalInt;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * 무료 하루 한도 보너스 판정 (#808): 세트 완료 +5, 정답률 80% 이상 +5, 광고 +5 × 2
+ * 무료 하루 한도 보너스 판정 (#808): 세트 완료 +5, 정답률 80% 이상 +5, 광고 횟수 제한 없음 +5씩
  */
 class DailyFreeBonusRuleTest {
 
@@ -57,21 +55,27 @@ class DailyFreeBonusRuleTest {
     }
 
     @Test
-    void 광고_보너스는_2회까지() {
-        assertEquals(10, DailyFreeBonusRule.calculate(new DailyFreeBonusInput(false, 0, 5, 0, 2)).totalBonusQuestionCount());
-        // 저장 이상으로 3회가 읽혀도 2회분만
-        assertEquals(10, DailyFreeBonusRule.calculate(new DailyFreeBonusInput(false, 0, 5, 0, 3)).totalBonusQuestionCount());
-        assertEquals(OptionalInt.of(1), DailyFreeBonusRule.nextAdBonusSlot(0));
-        assertEquals(OptionalInt.of(2), DailyFreeBonusRule.nextAdBonusSlot(1));
-        assertEquals(OptionalInt.empty(), DailyFreeBonusRule.nextAdBonusSlot(2));
+    void 광고_보너스는_횟수_제한_없이_다음_칸을_준다() {
+        assertEquals(1, DailyFreeBonusRule.nextAdBonusSlot(0));
+        assertEquals(3, DailyFreeBonusRule.nextAdBonusSlot(2));
+        assertEquals(38, DailyFreeBonusRule.nextAdBonusSlot(37));
     }
 
     @Test
-    void 최대_합계_20() {
+    void 광고_보너스_최대_횟수는_받은_횟수보다_하나_많다() {
+        DailyFreeBonus bonus = DailyFreeBonusRule.calculate(new DailyFreeBonusInput(true, 5, 5, 5, 3));
+
+        assertEquals(4, bonus.adBonusMaxCount());
+        assertEquals(3, bonus.adBonusUsedCount());
+        assertEquals((2 + 3) * 5, bonus.totalBonusQuestionCount());
+    }
+
+    @Test
+    void 세트_둘과_광고_2회_합계_20() {
         DailyFreeBonus bonus = DailyFreeBonusRule.calculate(new DailyFreeBonusInput(true, 5, 5, 5, 2));
 
         assertEquals(20, bonus.totalBonusQuestionCount());
-        assertEquals(2, bonus.adBonusMaxCount());
+        assertEquals(3, bonus.adBonusMaxCount());
         assertEquals(5, bonus.bonusQuestionCount());
     }
 }

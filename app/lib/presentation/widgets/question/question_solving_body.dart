@@ -1,17 +1,21 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/question/choice_item.dart';
 import '../../../data/models/question/question_detail.dart';
 import '../../../data/models/question/submit_result.dart';
 import '../../design/design.dart';
+import '../../providers/question_feature_lock_providers.dart';
 import '../../providers/question_providers.dart';
 import '../pro/locked_preview_samples.dart';
 import '../pro/pro_locked_section.dart';
+import '../pro/pro_offer_sheet.dart';
 import 'ai_explain_sheet.dart';
 import 'choice_display_label.dart';
 import 'choice_mode_indicator.dart';
+import 'daily_set_free_trial_note.dart';
 import 'execute_failure_card.dart';
 import 'execute_result_card.dart';
 import 'execution_comparison_card.dart';
@@ -123,13 +127,35 @@ class QuestionSolvingBody extends StatelessWidget {
                 hasSubmitted: interaction.hasSubmitted,
                 onModeChanged: notifier.applyChoiceModeChange,
               ),
-            QuestionChoices(
-              interaction: interaction,
-              notifier: notifier,
-              isExecutable: _isExecutable,
-              submitResult: submitResult,
-              gradedSelectedKey: gradedSelectedKey,
-              shouldAlwaysAllowRetry: shouldAlwaysAllowRetry,
+            // 보기 위 안내 한 줄: 무료 체험 문제면 체험 안내가 실행 안내를 대신함 (#992)
+            Consumer(
+              builder: (context, ref, _) {
+                final shouldShowFreeTrialNote = ref.watch(
+                  shouldShowDailySetFreeTrialNoteProvider(questionUuid),
+                );
+                final isRunLocked = ref.watch(
+                  isQuestionExecutionLockedProvider(questionUuid),
+                );
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (shouldShowFreeTrialNote)
+                      DailySetFreeTrialNote(isExecutable: _isExecutable),
+                    QuestionChoices(
+                      interaction: interaction,
+                      notifier: notifier,
+                      isExecutable: _isExecutable,
+                      submitResult: submitResult,
+                      gradedSelectedKey: gradedSelectedKey,
+                      shouldAlwaysAllowRetry: shouldAlwaysAllowRetry,
+                      shouldShowRunChoiceHint: !shouldShowFreeTrialNote,
+                      isRunLocked: isRunLocked,
+                      onLockedRunTap: () =>
+                          showSqlExecuteProOffer(context, ref),
+                    ),
+                  ],
+                );
+              },
             ),
             _ExecutionOutcomeSection(
               outcomeKey: _executionOutcomeKey,

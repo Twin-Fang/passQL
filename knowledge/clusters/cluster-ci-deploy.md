@@ -2,7 +2,7 @@
 type: cluster
 topic: ci-deploy
 created: 2026-10-29
-members: 66
+members: 68
 status: active
 related: []
 ---
@@ -13,9 +13,10 @@ related: []
 CI/CD·배포·버전 관리·빌드
 
 ## 현재 상태 요약
-(2026-11-04, 자동 생성) 활성 결정 20개, 열린 이슈 1개. 빌드 프로파일 `build-profile.json`의 `test`가 개발자 도구 값을 켜고 `release`가 꺼짐을 검증한다 — [[DEC-0240-dev-tools-two-layer-gate-test-builds]]. release 단계는 iOS·Android 스토어 워크플로 모두에 있고, 규칙 테스트가 두 워크플로의 `APP_FLAVOR` 부재와 release 적용을 검사한다 — [[DEC-0246-dev-tools-no-prod-writes-store-exclusion]] (main 머지, 작성 시점 미배포). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. iOS 배포는 App Store 에 심사 대기·심사 중 버전이 있으면 TestFlight 만 올린다 — [[DEC-0280-ios-deploy-skip-app-store-step-while-in-review]]. iOS 배포 워크플로는 실행 브랜치와 관계없이 main 을 체크아웃한다 — [[ISS-0484-ios-deploy-mutates-version-in-review]].
+(2026-11-12, 자동 생성) 활성 결정 20개, 열린 이슈 1개. 빌드 프로파일 `build-profile.json`의 `test`가 개발자 도구 값을 켜고 `release`가 꺼짐을 검증한다 — [[DEC-0240-dev-tools-two-layer-gate-test-builds]]. release 단계는 iOS·Android 스토어 워크플로 모두에 있고, 규칙 테스트가 두 워크플로의 `APP_FLAVOR` 부재와 release 적용을 검사한다 — [[DEC-0246-dev-tools-no-prod-writes-store-exclusion]] (main 머지, 작성 시점 미배포). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. iOS 배포는 App Store 에 심사 대기·심사 중 버전이 있으면 TestFlight 만 올린다 — [[DEC-0280-ios-deploy-skip-app-store-step-while-in-review]]. iOS 배포 워크플로는 실행 브랜치와 관계없이 main 을 체크아웃한다 — [[ISS-0484-ios-deploy-mutates-version-in-review]]. (2026-11-12) 배포 워크플로가 인앱 결제 키 Secret `APP_STORE_IAP_*`를 컨테이너에 연결 — [[DEC-0298-app-store-iap-key-separate-secret]].
 
 ## 활성 결정
+- [[DEC-0298-app-store-iap-key-separate-secret]] — App Store Server API 인앱 결제 키는 별도 Secret APP_STORE_IAP_* 3개, 없으면 환불 점검 건너뜀 (#1032)
 - [[DEC-0280-ios-deploy-skip-app-store-step-while-in-review]] — 심사 대기·심사 중 버전이 있거나 확인 불가면 iOS 배포는 TestFlight 업로드만
 - [[DEC-0009-main-verify-deploy-branch-release]] — `main`은 빌드 검증만, 실제 배포는 `deploy` 브랜치에서만 트리거
 - [[DEC-0060-vercel-server-side-build-deploy]] — Vercel 배포 워크플로는 runner에서 빌드하지 않고 `vercel deploy --prod --yes`로 Vercel 서버 빌드에 맡긴다
@@ -42,6 +43,7 @@ CI/CD·배포·버전 관리·빌드
 - [[DEC-0021-vercel-git-integration-deploy-branch]] → DEC-0060
 
 ## 관련 이슈
+- [[ISS-0499-play-fgs-declaration-lock-screen]] (open, #1002): upload_to_play_store 거절
 - [[ISS-0484-ios-deploy-mutates-version-in-review]] (resolved, GitHub #939): 심사 대기 중 iOS 배포가 대기 버전 표기·메타데이터를 바꾸고 실패 > TestFlight 만
 - [[ISS-0452-server-only-release-triggers-store-submit]] (resolved, GitHub #840) — 서버만 바꾼 릴리스에도 버전 줄 변경으로 스토어 심사 제출 자동 실행 > pubspec 제외
 - [[ISS-0449-dev-tools-store-build-guard]] (resolved, GitHub #820) — 개발자 도구 스토어 빌드 차단 보장 (컴파일 상수, Android 스토어 프로파일, 규칙 테스트)

@@ -1,0 +1,52 @@
+# ===================================================================
+# passQL 세컨드 브레인 볼트(knowledge/) 무결성 검사 (#754)
+# ===================================================================
+# knowledge/ 나 검사 도구가 바뀐 변경(PR, main 푸시)에서 vault.mjs check 를 돌린다.
+#
+# - 막는 것: 오류(E1~E7) — frontmatter 깨짐, 노트 번호(ISS-/DEC-) 중복, 깨진 링크, 대체 체인 비대칭 등
+# - 경고(W8 원본 없음·W11 클러스터 형태·W12 리뷰 후보)는 실패로 치지 않음 (종료 코드 0)
+# - _sources/ 원본은 로컬 전용(.gitignore)이라 CI 에서 W8 경고가 더 많이 보이는 것은 정상
+# - PR 체크아웃은 main 과의 병합 결과라, 이미 main 에 들어간 번호와 겹치면 여기서 잡힘
+#   (동시에 열린 PR 끼리는 먼저 머지된 뒤 남은 PR 을 다시 돌려야 잡힘)
+
+name: PASSQL-VAULT-CHECK
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'knowledge/**'
+      - 'second-brain/**'
+      - '.github/workflows/PROJECT-PASSQL-VAULT-CHECK.yaml'
+  push:
+    branches: [main]
+    paths:
+      - 'knowledge/**'
+      - 'second-brain/**'
+      - '.github/workflows/PROJECT-PASSQL-VAULT-CHECK.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: passql-vault-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  vault-check:
+    name: 볼트 무결성 검사
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # 종료 코드: 0 통과 · 1 오류 발견 · 2 도구 실패 (둘 다 실패 처리)
+      - name: 볼트 전체 검사
+        run: node second-brain/tools/vault.mjs check

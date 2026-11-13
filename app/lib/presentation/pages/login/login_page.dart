@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -78,18 +79,40 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           padding: const EdgeInsets.symmetric(horizontal: PassqlSpacing.xl),
           child: Column(
             children: [
-              // 로고는 위쪽 빈 공간 가운데, 버튼은 엄지가 닿기 쉬운 하단(약관 바로 위)에 고정한다.
-              const Spacer(),
-              // 워드마크 이미지에 앱 이름이 이미 들어 있으므로 이름 텍스트를 따로 두지 않는다.
-              const PassqlLogo(height: PassqlSize.loginLogoHeight),
-              const SizedBox(height: PassqlSpacing.xs),
-              Text(
-                'SQL 자격증, 문제로 합격까지',
-                style: PassqlTypography.subheadline.copyWith(
-                  color: colors.secondaryLabel,
+              // 로고·소개는 위쪽 빈 공간 가운데(작은 화면은 스크롤), 버튼은 엄지가 닿기 쉬운 하단(약관 바로 위)에 고정한다.
+              Expanded(
+                child: Center(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // 워드마크 이미지에 앱 이름이 이미 들어 있으므로 이름 텍스트를 따로 두지 않는다.
+                        const PassqlLogo(height: PassqlSize.loginLogoHeight),
+                        const SizedBox(height: PassqlSpacing.md),
+                        Text(
+                          _headline,
+                          textAlign: TextAlign.center,
+                          style: PassqlTypography.title3.copyWith(
+                            color: colors.label,
+                          ),
+                        ),
+                        const SizedBox(height: PassqlSpacing.md),
+                        // 다른 SQLD 앱과 다른 점 세 가지 (#975): 흰 카드 안 아이콘 타일 + 이름 + 한 줄
+                        PassqlCard(
+                          isCardTapExposedToScreenReader: false,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              for (final feature in _features)
+                                _FeatureLine(feature: feature),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-              const Spacer(),
               for (final (index, provider) in _visibleProviders.indexed) ...[
                 if (index > 0) const SizedBox(height: PassqlSpacing.sm),
                 SocialLoginButton(
@@ -119,6 +142,47 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+// 첫 화면 소개: 한 줄 + 세 가지 (실제로 있는 기능만 적음)
+const String _headline = 'SQL을 직접 실행하고\nAI와 함께 푸는 SQLD';
+const List<({IconData icon, String title, String description})> _features = [
+  (
+    icon: CupertinoIcons.play_fill,
+    title: 'SQL 직접 실행',
+    description: '보기를 실행해 결과로 확인해요',
+  ),
+  (
+    icon: CupertinoIcons.sparkles,
+    title: 'AI 해설',
+    description: '틀린 이유를 바로 설명해 줘요',
+  ),
+  (
+    icon: CupertinoIcons.bolt_fill,
+    title: 'AI 새 보기',
+    description: '풀 때마다 새로운 보기로 풀어요',
+  ),
+];
+
+/// 소개 한 줄: 아이콘 타일 + 이름 + 한 줄 설명 (설정 화면 행과 같은 모양, 누르지 않음)
+class _FeatureLine extends StatelessWidget {
+  const _FeatureLine({required this.feature});
+
+  final ({IconData icon, String title, String description}) feature;
+
+  @override
+  Widget build(BuildContext context) {
+    return PassqlListRow(
+      title: feature.title,
+      subtitle: feature.description,
+      leading: PassqlIconTile(
+        icon: feature.icon,
+        color: context.passqlColors.accent,
+      ),
+      hasChevron: false,
+      hasHorizontalPadding: false,
     );
   }
 }

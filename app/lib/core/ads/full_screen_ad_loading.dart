@@ -20,11 +20,13 @@ typedef FullScreenAdLoadStarter<T extends Ad> =
 /// 전체 화면 광고 1개 로드 공통 (전면·앱 오프닝·보상형): 요청 준비 > SDK 로드 > 시간 초과 대기
 /// 실패·미설정·시간 초과면 null (예외 없음), 시간 초과 뒤 늦게 온 광고는 해제
 /// [logLabel]: 로그 접두사 안 형식 이름 (예: interstitial > [ads interstitial])
+/// [loadTimeout]: 기본 30초, 사용자가 기다리는 자리는 더 짧게 (보상형 전면 미리 불러오기 5초)
 Future<T?> loadFullScreenAd<T extends Ad>({
   required AdRequestPreparer requestPreparer,
   required AdPlacement placement,
   required String logLabel,
   required FullScreenAdLoadStarter<T> startLoad,
+  Duration loadTimeout = fullScreenAdLoadTimeout,
 }) async {
   try {
     final preparedRequest = await requestPreparer.prepare(placement);
@@ -50,7 +52,7 @@ Future<T?> loadFullScreenAd<T extends Ad>({
       },
     );
     return await loadCompleter.future.timeout(
-      fullScreenAdLoadTimeout,
+      loadTimeout,
       onTimeout: () {
         AppLogger.warn('ads $logLabel', 'load timeout ${placement.name}');
         return null;

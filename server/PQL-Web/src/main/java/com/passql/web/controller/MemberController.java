@@ -2,6 +2,8 @@ package com.passql.web.controller;
 
 import com.passql.application.entitlement.AdBonusGrantService;
 import com.passql.application.entitlement.AdBonusRequest;
+import com.passql.application.entitlement.CreditHistoryResponse;
+import com.passql.application.entitlement.CreditHistoryService;
 import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.application.entitlement.MemberPlanResponse;
 import com.passql.application.entitlement.MemberPurchaseHistoryService;
@@ -49,6 +51,7 @@ public class MemberController implements MemberControllerDocs {
     private final FeatureAccessPolicy featureAccessPolicy;
     private final MemberPurchaseHistoryService memberPurchaseHistoryService;
     private final AdBonusGrantService adBonusGrantService;
+    private final CreditHistoryService creditHistoryService;
 
     @GetMapping("/me")
     public MemberMeResponse getMe(@AuthMember LoginMember loginMember) {
@@ -67,7 +70,16 @@ public class MemberController implements MemberControllerDocs {
         return memberPurchaseHistoryService.getPurchaseHistory(loginMember.memberUuid());
     }
 
-    // 보상형 광고 시청 뒤 무료 한도 +5 (하루 2회, #808), 본문 없는 출시 앱 요청 허용 (#860)
+    // 내 크레딧 사용 내역: 최근 N일 날짜별 받은 수·쓴 수·남은 수, 오늘 먼저 (days 없으면 14, #974)
+    @GetMapping("/me/credit-history")
+    public CreditHistoryResponse getMyCreditHistory(
+        @AuthMember LoginMember loginMember,
+        @RequestParam(required = false) Integer days
+    ) {
+        return creditHistoryService.getCreditHistory(loginMember.memberUuid(), days);
+    }
+
+    // 보상형 광고 시청 뒤 무료 한도 +5 (횟수 제한 없음, #808 #963), 본문 없는 출시 앱 요청 허용 (#860)
     @PostMapping("/me/plan/ad-bonus")
     public MemberPlanResponse grantAdBonus(
         @AuthMember LoginMember loginMember,

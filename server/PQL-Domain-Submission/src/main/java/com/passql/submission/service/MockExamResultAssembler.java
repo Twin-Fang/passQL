@@ -5,6 +5,7 @@ import com.passql.question.entity.QuestionChoiceSetItem;
 import com.passql.question.service.SchemaPreviewParser;
 import com.passql.submission.constant.MockExamSubject;
 import com.passql.submission.dto.mockexam.MockExamChoice;
+import com.passql.submission.dto.mockexam.MockExamRanking;
 import com.passql.submission.dto.mockexam.MockExamResultResponse;
 import com.passql.submission.entity.MockExamAnswer;
 import com.passql.submission.entity.MockExamAttempt;
@@ -28,7 +29,8 @@ public final class MockExamResultAssembler {
     }
 
     public static MockExamResultResponse assemble(MockExamAttempt attempt, MockExamPaper paper,
-                                                  Map<UUID, MockExamAnswer> answerByItemUuid) {
+                                                  Map<UUID, MockExamAnswer> answerByItemUuid,
+                                                  MockExamRanking ranking) {
         // 문항별 정오 (채점 때 저장한 값)
         List<MockExamResultResponse.QuestionMark> questionMarks = new ArrayList<>();
         List<MockExamResultResponse.QuestionReview> reviews = new ArrayList<>();
@@ -58,6 +60,7 @@ public final class MockExamResultAssembler {
             paper.items().size(),
             Boolean.TRUE.equals(attempt.getIsPassed()),
             attempt.getFailReason(),
+            ranking,
             toSubjectResults(paper, questionMarks),
             toTopicResults(paper, questionMarks),
             questionMarks,

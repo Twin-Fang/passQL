@@ -5,13 +5,14 @@ import 'package:go_router/go_router.dart';
 import '../core/push/push_link.dart';
 import 'app_routes.dart';
 
-/// 알림 이동 정보 > 앱 경로 (허용 목록 5종만, 그 외 경로 없음)
+/// 알림 이동 정보 > 앱 경로 (허용 목록 6종만, 그 외 경로 없음)
 String toPushLinkLocation(PushLink link) => switch (link.target) {
   PushLinkTarget.home => AppRoutes.home,
   PushLinkTarget.dailySet => AppRoutes.dailySet,
   PushLinkTarget.questions => AppRoutes.questions,
   PushLinkTarget.questionDetail => AppRoutes.questionDetail(link.questionUuid!),
   PushLinkTarget.stats => AppRoutes.stats,
+  PushLinkTarget.examSchedule => AppRoutes.examSchedule,
 };
 
 /// 알림 탭으로 들어온 화면 표시 (go_router extra): 진입 직후 프로 안내 시트 금지 (#576 §4-5)
@@ -21,13 +22,19 @@ class PushEntryMarker {
 
 /// 알림 탭 이동: 탭 루트는 바로 이동, 풀스크린은 홈 위에 쌓음 (뒤로 가기 > 홈)
 /// 홈이 아니면 홈 이동이 반영된 뒤 push (먼저 push 하면 늦게 끝난 go 가 덮어씀)
-Future<void> openPushLink(GoRouter router, PushLink link) async {
+/// [shouldStackOnCurrentScreen]: 알림함에서 연 풀스크린은 지금 화면 위에 쌓음 (뒤로 가기 > 알림함, #995)
+Future<void> openPushLink(
+  GoRouter router,
+  PushLink link, {
+  bool shouldStackOnCurrentScreen = false,
+}) async {
   final location = toPushLinkLocation(link);
   if (AppRoutes.tabRoots.contains(location)) {
     router.go(location);
     return;
   }
-  if (router.state.matchedLocation != AppRoutes.home) {
+  if (!shouldStackOnCurrentScreen &&
+      router.state.matchedLocation != AppRoutes.home) {
     final homeApplied = _waitForNextRouteChange(router);
     router.go(AppRoutes.home);
     await homeApplied;

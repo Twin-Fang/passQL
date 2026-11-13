@@ -1,14 +1,19 @@
 package com.passql.web.controller.admin;
 
+import com.passql.application.billing.BillingOperationService;
+import com.passql.application.billing.BillingPreviewMemberRequest;
+import com.passql.application.billing.BillingSwitchRequest;
 import com.passql.application.notification.MemberNotificationQueryService;
 import com.passql.meta.dto.AdminAppNoticeResponse;
 import com.passql.meta.dto.AppNoticeActiveRequest;
 import com.passql.meta.dto.AppNoticeResponse;
 import com.passql.meta.dto.AppNoticeSaveRequest;
 import com.passql.meta.dto.AppOperationSettingsRequest;
+import com.passql.meta.dto.LockScreenSettingsRequest;
 import com.passql.meta.service.AppNoticeService;
 import com.passql.meta.service.AppOperationChangeHistoryService;
 import com.passql.meta.service.AppOperationService;
+import com.passql.meta.service.LockScreenSettingService;
 import com.passql.member.service.PushNotificationService;
 import com.passql.web.service.AdminNoticePushService;
 import jakarta.validation.Valid;
@@ -25,7 +30,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * 관리자 앱 운영: 점검(예약 포함)·버전 설정 저장, 설정 변경 이력, 공지 등록·수정·삭제·활성 전환 (#464, #630)
+ * 관리자 앱 운영: 점검(예약 포함)·버전 설정 저장, 결제 스위치·미리보기 회원·켜기 전 점검표, 잠금화면 문제 설정, 설정 변경 이력, 공지 등록·수정·삭제·활성 전환 (#464, #630, #961, #990)
  */
 @Controller
 @RequestMapping("/admin/app-operation")
@@ -38,6 +43,8 @@ public class AdminAppOperationController {
     private final PushNotificationService pushNotificationService;
     private final AppOperationChangeHistoryService appOperationChangeHistoryService;
     private final AdminNoticePushService adminNoticePushService;
+    private final BillingOperationService billingOperationService;
+    private final LockScreenSettingService lockScreenSettingService;
 
     @GetMapping
     public String page(Model model) {
@@ -48,6 +55,8 @@ public class AdminAppOperationController {
         // 읽음률 분모: 알림함 대상 회원 수 (탈퇴 제외)
         long noticeAudienceCount = pushNotificationService.countAllInboxRecipients();
         model.addAttribute("operationSettings", appOperationService.getOperationSettings());
+        model.addAttribute("billingOperation", billingOperationService.getBillingOperationView());
+        model.addAttribute("lockScreenSettings", lockScreenSettingService.getSettings());
         model.addAttribute("notices", notices);
         model.addAttribute("noticeReadCounts", readCountByNoticeUuid);
         model.addAttribute("noticeAudienceCount", noticeAudienceCount);
@@ -62,6 +71,38 @@ public class AdminAppOperationController {
     @ResponseBody
     public ResponseEntity<Void> updateSettings(@RequestBody AppOperationSettingsRequest request) {
         appOperationService.updateOperationSettings(request);
+        return ResponseEntity.ok().build();
+    }
+
+    /** 결제 스위치 전환 — 본문 {isEnabled: boolean} (점검표 미충족이어도 저장, 확인은 화면 확인 창) */
+    @PutMapping("/billing/enabled")
+    @ResponseBody
+    public ResponseEntity<Void> changeBillingEnabled(@Valid @RequestBody BillingSwitchRequest request) {
+        billingOperationService.changeBillingEnabled(request.isEnabled());
+        return ResponseEntity.ok().build();
+    }
+
+    /** 잠금화면 문제 설정 저장 — 본문 {isEnabled, defaultIntervalMinutes(0~1440), isExecutableIncluded} (#990) */
+    @PutMapping("/lockscreen")
+    @ResponseBody
+    public ResponseEntity<Void> updateLockScreenSettings(@Valid @RequestBody LockScreenSettingsRequest request) {
+        lockScreenSettingService.updateSettings(request);
+        return ResponseEntity.ok().build();
+    }
+
+    /** 결제 미리보기 회원 추가 — 본문 {memberUuid} (형식 오류 400, 없는 회원 404) */
+    @PostMapping("/billing/preview-members")
+    @ResponseBody
+    public ResponseEntity<Void> addBillingPreviewMember(@Valid @RequestBody BillingPreviewMemberRequest request) {
+        billingOperationService.addPreviewMember(request.memberUuid());
+        return ResponseEntity.ok().build();
+    }
+
+    /** 결제 미리보기 항목 삭제 — 본문 {memberUuid: 목록에 저장된 항목 원문} */
+    @DeleteMapping("/billing/preview-members")
+    @ResponseBody
+    public ResponseEntity<Void> removeBillingPreviewMember(@Valid @RequestBody BillingPreviewMemberRequest request) {
+        billingOperationService.removePreviewMember(request.memberUuid());
         return ResponseEntity.ok().build();
     }
 

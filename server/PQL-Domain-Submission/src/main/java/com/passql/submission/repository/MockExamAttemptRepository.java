@@ -1,6 +1,7 @@
 package com.passql.submission.repository;
 
 import com.passql.submission.constant.MockExamAttemptStatus;
+import com.passql.submission.dto.mockexam.MockExamRoundScoreProjection;
 import com.passql.submission.entity.MockExamAttempt;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
@@ -36,6 +37,18 @@ public interface MockExamAttemptRepository extends JpaRepository<MockExamAttempt
     long countByMockExamRoundUuid(UUID mockExamRoundUuid);
 
     List<MockExamAttempt> findByMockExamRoundUuidAndStatus(UUID mockExamRoundUuid, MockExamAttemptStatus status);
+
+    /** 회차 순위 재료: 제출 응시 (회원, 총점) 제출 시각 오름차순 (회원별 첫 응시는 호출자가 고름) */
+    @Query("""
+            SELECT new com.passql.submission.dto.mockexam.MockExamRoundScoreProjection(a.memberUuid, a.totalScore)
+            FROM MockExamAttempt a
+            WHERE a.mockExamRoundUuid = :mockExamRoundUuid
+              AND a.status = com.passql.submission.constant.MockExamAttemptStatus.SUBMITTED
+              AND a.totalScore IS NOT NULL
+            ORDER BY a.submittedAt ASC, a.startedAt ASC
+            """)
+    List<MockExamRoundScoreProjection> findSubmittedScoresByRoundInSubmitOrder(
+        @Param("mockExamRoundUuid") UUID mockExamRoundUuid);
 
     /** 마감이 지난 풀이 중 응시 (자동 채점 대상) */
     List<MockExamAttempt> findTop100ByStatusAndDeadlineAtBeforeOrderByDeadlineAtAsc(MockExamAttemptStatus status,

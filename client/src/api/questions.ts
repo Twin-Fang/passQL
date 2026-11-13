@@ -122,7 +122,7 @@ export function generateChoices(
       }
 
       if (!response.body) {
-        callbacks.onError({ code: "NO_BODY", message: "응답 본문이 없습니다", retryable: true });
+        callbacks.onError({ code: "NO_BODY", message: "응답 본문이 없어요", retryable: true });
         return;
       }
 
@@ -215,7 +215,7 @@ export function generateChoices(
           // complete/error 없이 닫힌 경우 (서버 비정상 종료, abort 제외)
           if (!receivedTerminalEvent && !abortController.signal.aborted) {
             logSseDiagnostic("[SSE] STREAM_CLOSED: terminal 이벤트 없이 스트림 종료");
-            callbacks.onError({ code: "STREAM_CLOSED", message: "선택지 생성이 중단되었습니다", retryable: true });
+            callbacks.onError({ code: "STREAM_CLOSED", message: "선택지 생성이 중단됐어요", retryable: true });
           }
           break;
         }

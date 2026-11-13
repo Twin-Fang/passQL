@@ -68,7 +68,7 @@ class CommunityDailyDiscussionCard extends StatelessWidget {
                 const SizedBox(width: PassqlSpacing.xxs),
                 Flexible(
                   child: Text(
-                    '의견 ${card.postCount} · '
+                    '의견 ${card.postCount} | '
                     '${formatNotificationElapsed(card.lastActivityAt)}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

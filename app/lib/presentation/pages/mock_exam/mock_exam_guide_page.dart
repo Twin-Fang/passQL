@@ -102,7 +102,7 @@ class _MockExamGuidePageState extends ConsumerState<MockExamGuidePage> {
                         ),
                         const SizedBox(height: PassqlSpacing.xs),
                         Text(
-                          '조용한 곳에서 한 번에 풀어 보세요. 결과에서 과목별 점수와 과락을 바로 알려 드려요.',
+                          '조용한 곳에서 한 번에 풀어 보세요. 결과에서 점수와 합격, 과락을 바로 알려 드려요.',
                           style: PassqlTypography.subheadline.copyWith(
                             color: colors.secondaryLabel,
                           ),
@@ -123,9 +123,9 @@ class _MockExamGuidePageState extends ConsumerState<MockExamGuidePage> {
                           const PassqlCallout(
                             kind: PassqlCalloutKind.accent,
                             icon: CupertinoIcons.gift,
-                            label: '무료 체험',
+                            label: '무료 1회',
                             child: Text(
-                              '무료 체험은 1회예요. 점수와 합격 여부는 바로 보이고, 과목별 분석과 문항 해설은 이용권으로 열려요.',
+                              '무료 체험은 1회예요. 점수와 합격 여부는 바로 보이고, 과목별 분석과 문항 해설은 PRO로 볼 수 있어요.',
                             ),
                           ),
                         ],

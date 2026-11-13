@@ -24,7 +24,7 @@ export interface paths {
          *     ## 처리
          *     - 서명 확인 > 허용 광고 단위(`ads.reward.ssv_ad_unit_ids`, 비면 확인 안 함) > 회원·거래 ID > 광고 보너스 1회 기록
          *     - 같은 `transaction_id`·같은 회원 `custom_data` 는 다시 기록하지 않음
-         *     - 결제 꺼짐·프로 회원, 오늘 2회 소진, 회원 없음은 기록 없이 200
+         *     - 결제 꺼짐·프로 회원, 오늘 랜덤 풀이가 하루 200 공정 사용 상한에 도달, 회원 없음은 기록 없이 200
          *
          *     ## 에러코드
          *     - **`ACCESS_DENIED`** (403): 서명 불일치·형식 오류
@@ -248,7 +248,9 @@ export interface paths {
          *
          *     App Store Connect 의 App Store Server Notifications V2 URL(운영·샌드박스)로 등록한다.
          *     `REFUND`·`REVOKE` 알림이면 담긴 거래의 구매를 회수하고 회원 만료일을 남은 구매로 다시 계산한다.
+         *     `CONSUMPTION_REQUEST`(환불 요청)는 접수로 기록하고, 관리자 설정이 켜져 있으면 소비 정보를 Apple 에 보낸다.
          *     그 외 유형(`TEST` 포함)은 기록만 하고 200. 기록 없는 거래·이미 회수한 거래도 200 (재전송 안전).
+         *     모든 알림은 수신 기록(유형·거래 ID·처리 결과)을 남긴다. 서명 검증 실패도 결과만 기록한다.
          *
          *     ## 요청 바디 (AppStoreNotificationRequest)
          *     - **`signedPayload`**: Apple 알림 JWS (필수)
@@ -816,6 +818,11 @@ export interface paths {
          *     ## 반환값 (List<ExamScheduleResponse>)
          *     - certType + round 오름차순 정렬
          *     - 각 행: examScheduleUuid, certType, round, examDate, isSelected
+         *     - 일정 (#991, 없으면 null): applicationStartDate·applicationEndDate(원서접수), admissionTicketDate(수험표 발급),
+         *       preliminaryScoreStartDate·preliminaryScoreEndDate(사전점수 공개·재검토 접수), resultAnnouncementDate(합격 발표)
+         *     - source: AUTO(공식 페이지 자동 수집) / MANUAL(관리자 입력), isManualLocked, lastCollectedAt
+         *     - phase (서버 계산, KST 오늘 기준): BEFORE_APPLICATION 접수 전 / APPLICATION_OPEN 접수 중 /
+         *       WAITING_ADMISSION_TICKET 수험표 대기 / WAITING_EXAM 시험 대기(수험표 발급~시험 당일) / WAITING_RESULT 발표 대기 / FINISHED 끝(발표일부터)
          */
         get: operations["getSchedules"];
         put?: never;
@@ -842,6 +849,36 @@ export interface paths {
          *     - 선택된 일정이 없으면 200 OK + null body (홈화면 greeting fallback 처리)
          */
         get: operations["getSelected"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/exam-schedules/sqld": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * SQLD 한 해 시험 일정 (앱 시험 일정 화면)
+         * @description ## 인증(JWT): **불필요**
+         *
+         *     ## 요청 파라미터
+         *     - **`year`** (optional): 시험일 기준 연도. 미입력 시 올해(KST)
+         *
+         *     ## 반환값 (SqldExamScheduleOverviewResponse)
+         *     - **`year`**: 조회 연도
+         *     - **`schedules`**: 그해 SQLD 회차 (회차 오름차순, 각 행은 GET /api/exam-schedules 와 같은 형태 + phase)
+         *     - **`nextSchedule`**: 오늘 이후 가장 가까운 SQLD 시험 (연도 무관, 없으면 null)
+         *     - **`lastCollectedAt`**: 마지막 자동 수집 성공 시각 (KST, 없으면 null)
+         *     - **`officialScheduleUrl`**: 공식 일정·접수 페이지 (데이터자격검정)
+         */
+        get: operations["getSqldOverview"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1057,6 +1094,51 @@ export interface paths {
          *     - 응답 204 (본문 없음)
          */
         delete: operations["unblock"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/members/me/credit-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 내 크레딧 사용 내역 조회
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 요청 헤더
+         *     - **`Authorization`**: Bearer {accessToken}
+         *
+         *     ## 요청 파라미터
+         *     - **`days`** (선택): 조회 일수, 오늘 포함 (기본 14, 1 ~ 30)
+         *
+         *     ## 반환값 (CreditHistoryResponse)
+         *     - **`days`**: 날짜별 내역, 오늘 먼저 (크레딧 1개 = 랜덤 풀기 1문제)
+         *       - `date`: 날짜 KST (`yyyy-MM-dd`)
+         *       - `baseCredits`: 하루 기본 크레딧 (10)
+         *       - `dailySetCompletionCredits`: 오늘의 세트 완료 보너스로 받은 크레딧 (5 또는 0)
+         *       - `dailySetAccuracyCredits`: 오늘의 세트 정답 80% 보너스로 받은 크레딧 (5 또는 0)
+         *       - `adBonusCount` / `adBonusCredits`: 광고 보너스 받은 횟수 / 받은 크레딧 (횟수 x 5)
+         *       - `usedCredits`: 그날 쓴 크레딧 (랜덤 풀기로 제출한 서로 다른 문제 수, `todayRandomSolvedCount` 와 같은 기준)
+         *       - `remainingCredits`: 남은 크레딧 (받은 합 - 쓴 수, 0 미만은 0, 지난 날짜는 그날이 끝난 시점 값)
+         *
+         *     ## 설명
+         *     - 오늘은 항상 들어가고, 받은 보너스도 쓴 것도 없는 지난 날짜는 목록에서 빠진다
+         *     - 결제 꺼짐·프로 회원은 크레딧을 쓰지 않으므로 빈 목록 (지금 등급 기준, 과거에 프로였던 날은 따지지 않음)
+         *     - 제출·세트 완료·광고 보너스 기록에서 내 등급 조회의 오늘 값과 같은 규칙으로 날짜별 계산한다 (오늘 값은 `todayFreeLimit`·`todayRandomSolvedCount`·`dailyBonus` 와 일치)
+         *     - `baseCredits` 는 지금 기본 한도 (과거 설정값 이력 없음). 예전에 푼 문제를 다시 풀어도 `usedCredits` 에 들어가므로 받은 합보다 클 수 있다
+         *
+         *     ## 에러코드
+         *     - **`INVALID_INPUT_VALUE`** (400): `days` 가 1 ~ 30 밖
+         */
+        get: operations["getMyCreditHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1308,7 +1390,7 @@ export interface paths {
          *     - **`dailyBonus`**: 오늘 받은 무료 한도 보너스
          *       - `isDailySetCompletionEarned`: 오늘의 세트 완료(배정 문제 전부 제출) +5
          *       - `isDailySetAccuracyEarned`: 오늘의 세트 정답 80% 이상 +5
-         *       - `adBonusUsedCount` / `adBonusMaxCount`: 광고 보너스 받은 횟수 / 하루 최대 (2)
+         *       - `adBonusUsedCount` / `adBonusMaxCount`: 광고 보너스 받은 횟수 / 하루 최대 (횟수 제한 없음, 받은 횟수 + 1 을 내려줌)
          *       - `bonusQuestionCount`: 보너스 1회분 문제 수 (5)
          */
         get: operations["getMyPlan"];
@@ -1343,13 +1425,13 @@ export interface paths {
          *     - 보너스를 반영한 내 등급 (`todayFreeLimit` +5, `dailyBonus.adBonusUsedCount` +1)
          *
          *     ## 설명
-         *     - 앱이 보상형 광고 보상 콜백 뒤에 호출한다 (하루 2회 상한)
+         *     - 앱이 보상형 광고 보상 콜백 뒤에 호출한다 (횟수 제한 없음, 하루 200 공정 사용 상한)
          *     - 같은 `rewardNonce` 가 이미 기록됐으면(서버 검증 콜백 포함) 다시 쌓지 않고 현재 등급 반환
          *     - `ads.reward.ssv_required` 꺼짐: 이 호출로 기록 / 켜짐: 기록하지 않고 AdMob 서버 검증 콜백 기록만 확인
          *     - 결제 꺼짐·프로 회원은 쌓지 않고 현재 등급을 그대로 반환한다
          *
          *     ## 에러코드
-         *     - **`AD_BONUS_DAILY_LIMIT_REACHED`** (409): 오늘 광고 보너스를 모두 받음
+         *     - **`FAIR_USE_DAILY_LIMIT_REACHED`** (429): 오늘 하루 200 공정 사용 상한에 도달
          *     - **`AD_BONUS_VERIFICATION_PENDING`** (409): 검증 필수인데 콜백이 아직 안 옴 (잠시 뒤 다시 호출)
          *     - **`AD_BONUS_APP_UPDATE_REQUIRED`** (426): 검증 필수인데 `rewardNonce` 없음 (옛 앱)
          */
@@ -1530,6 +1612,9 @@ export interface paths {
          *     - businessInfo (BusinessInfoResponse) — 사업자 정보 표기 (관리자 설정 business.*)
          *       - companyName: 상호 (null 이면 사업자 정보 섹션 숨김)
          *       - representativeName, registrationNumber, contactEmail, mailOrderSalesNumber: null 이면 그 줄 숨김
+         *     - isLockScreenEnabled: 잠금화면 문제 풀기 전체 스위치 (false 면 앱 메뉴 숨김, 관리자 설정 lockscreen.enabled)
+         *     - lockScreenDefaultIntervalMinutes: 잠금화면 문제 기본 표시 간격 (분, 0 은 화면 켤 때마다, 사용자가 바꾸기 전 값)
+         *     - isLockScreenExecutableIncluded: 잠금화면에 실행형 SQL 문제 출제 여부 (false 면 객관식만)
          */
         get: operations["getAppConfig"];
         put?: never;
@@ -1764,7 +1849,7 @@ export interface paths {
         };
         /**
          * 결과
-         * @description 총점·합격·불합격 이유·문항 정오 공개. 과목별 점수·토픽별 정답률·문항 해설·다음에 할 일은 프로 전용(무료는 빈 값 + lockedSections). 풀이 중 409 MOCK_EXAM_NOT_SUBMITTED.
+         * @description 총점·합격·불합격 이유·회차 순위(응시자 10명 미만 null)·문항 정오 공개. 과목별 점수·토픽별 정답률·문항 해설·다음에 할 일은 프로 전용(무료는 빈 값 + lockedSections). 풀이 중 409 MOCK_EXAM_NOT_SUBMITTED.
          */
         get: operations["getResult"];
         put?: never;
@@ -2058,7 +2143,6 @@ export interface paths {
          *     - topicStats: 토픽별 집계 목록
          *       - topicUuid: 토픽 식별자
          *       - displayName: 토픽 표시명
-         *       - totalQuestionCount: (폐기 예정) solvedCount 와 같은 값, 구버전 앱 호환용. 전체 문제 수는 노출하지 않음
          *       - correctRate: 최근 7일 정답률 (0.0~1.0, 문제별 최근 시도 기준, 레이더차트용)
          *       - solvedCount: 최근 7일 내 푼 문제 수
          *     - Submission 없는 토픽도 correctRate=0.0, solvedCount=0으로 포함
@@ -2100,6 +2184,40 @@ export interface paths {
          * @description 토픽 골라 풀기 전용 (결제 켜짐 무료 회원 403 PRO_REQUIRED). latestTrend=true 면 최신 출제 경향 문제만. 응답 isLatestTrend 는 '최신 경향' 배지 표시 여부. size 최대 50 으로 보정.
          */
         get: operations["getQuestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/questions/lockscreen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 잠금화면 문제 1개
+         * @description ## 인증(JWT): **필요**
+         *     Android 잠금화면 위에 띄울 문제 1개를 고른다.
+         *
+         *     ## 요청 파라미터
+         *     - isExecutableExcluded (선택, 기본 false): true 면 실행형(EXECUTABLE) 제외 (앱 "객관식만" 옵션)
+         *
+         *     ## 선택 규칙
+         *     - 선택지 세트가 준비된 문제만 (AI 선택지 생성 SSE 대기 없음)
+         *     - 안 푼 문제 우선, 없으면 푼 문제 (랜덤 풀기와 같은 규칙)
+         *     - 관리자 설정 lockscreen.include_executable=false 면 요청과 무관하게 실행형 제외
+         *
+         *     ## 반환값
+         *     - 200 LockScreenQuestionResponse { questionUuid }
+         *     - 204: 관리자 설정 lockscreen.enabled=false 이거나 출제할 문제 없음
+         *     - 하루 문제 수 제한은 여기서 판정하지 않음 (GET /questions/{questionUuid}·제출에서 기존대로)
+         */
+        get: operations["getLockScreenQuestion"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2179,7 +2297,7 @@ export interface paths {
         put?: never;
         /**
          * SQL 실행
-         * @description EXECUTABLE 문제만 허용. body: { "sql": "SELECT ..." }. CONCEPT_ONLY 문제에 호출 시 400 INVALID_EXECUTION_MODE 반환.
+         * @description EXECUTABLE 문제만 허용. body: { "sql": "SELECT ..." }. CONCEPT_ONLY 문제에 호출 시 400 INVALID_EXECUTION_MODE 반환. 결제 켜짐 무료 회원은 오늘의 세트 문제만 실행, 그 외 403 PRO_REQUIRED.
          */
         post: operations["executeChoice"];
         delete?: never;
@@ -2408,6 +2526,10 @@ export interface components {
             businessInfo: components["schemas"]["BusinessInfoResponse"];
             ios: components["schemas"]["AppPlatformVersionResponse"];
             isAndroidBillingEnabled: boolean;
+            isLockScreenEnabled: boolean;
+            isLockScreenExecutableIncluded: boolean;
+            /** Format: int32 */
+            lockScreenDefaultIntervalMinutes: number;
             maintenance: components["schemas"]["AppMaintenanceResponse"];
             notices: components["schemas"]["AppNoticeResponse"][];
         };
@@ -2502,12 +2624,15 @@ export interface components {
             verdict: string;
         };
         ChoiceExplanationResponse: {
+            /** @description 무료 기본 해설: 정답 보기에 저장된 근거 (FULL_EXPLANATION 잠긴 응답만) */
+            basicExplanation: string | null;
             /**
              * Format: uuid
              * @description 해설 대상 선택지 세트
              */
             choiceSetUuid: string;
             explanation: components["schemas"]["ChoiceExplanation"] | null;
+            lockedExplanationOutline: components["schemas"]["ExplanationOutline"] | null;
             /** @description 무료 회원 응답에서 뺀 묶음 이름 (FULL_EXPLANATION), 없으면 빈 목록 */
             lockedSections: string[];
             /**
@@ -2744,6 +2869,27 @@ export interface components {
             /** Format: uuid */
             topicUuid: string;
         };
+        CreditHistoryDayResponse: {
+            /** Format: int32 */
+            adBonusCount: number;
+            /** Format: int32 */
+            adBonusCredits: number;
+            /** Format: int32 */
+            baseCredits: number;
+            /** Format: int32 */
+            dailySetAccuracyCredits: number;
+            /** Format: int32 */
+            dailySetCompletionCredits: number;
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            remainingCredits: number;
+            /** Format: int32 */
+            usedCredits: number;
+        };
+        CreditHistoryResponse: {
+            days: components["schemas"]["CreditHistoryDayResponse"][];
+        };
         DailyFreeBonus: {
             /** Format: int32 */
             adBonusMaxCount: number;
@@ -2800,14 +2946,33 @@ export interface components {
             message: string;
         };
         ExamScheduleResponse: {
+            /** Format: date */
+            admissionTicketDate: string;
+            /** Format: date */
+            applicationEndDate: string;
+            /** Format: date */
+            applicationStartDate: string;
             certType: string;
             /** Format: date */
             examDate: string;
             /** Format: uuid */
             examScheduleUuid: string;
+            isManualLocked: boolean;
             isSelected: boolean;
+            /** Format: date-time */
+            lastCollectedAt: string;
+            /** @enum {string} */
+            phase: "BEFORE_APPLICATION" | "APPLICATION_OPEN" | "WAITING_ADMISSION_TICKET" | "WAITING_EXAM" | "WAITING_RESULT" | "FINISHED";
+            /** Format: date */
+            preliminaryScoreEndDate: string;
+            /** Format: date */
+            preliminaryScoreStartDate: string;
+            /** Format: date */
+            resultAnnouncementDate: string;
             /** Format: int32 */
             round: number;
+            /** @enum {string} */
+            source: "AUTO" | "MANUAL";
         };
         ExamTrendConcept: {
             description: string;
@@ -2881,6 +3046,24 @@ export interface components {
             /** Format: uuid */
             questionUuid: string;
             sql?: string;
+        };
+        ExplanationOutline: {
+            /**
+             * Format: int32
+             * @description 보기 개수
+             */
+            choiceCount: number;
+            /** @description 섹션 목록 (화면 배치 순서) */
+            sections: components["schemas"]["ExplanationOutlineSection"][];
+        };
+        ExplanationOutlineSection: {
+            /** @description 항목별 대략 글자 수 (10자 단위 올림, 항목 수 = 목록 길이) */
+            itemCharacterCounts: number[];
+            /**
+             * @description 섹션 종류
+             * @enum {string}
+             */
+            kind: "CORRECT_REASON" | "EXAM_TIP" | "KEY_CONCEPTS" | "CONFUSING_POINTS" | "CHOICE_ANALYSES";
         };
         FeedbackSubmitRequest: {
             content: string;
@@ -2984,6 +3167,10 @@ export interface components {
             /** @enum {string} */
             type: "TERMS_OF_SERVICE" | "PRIVACY_POLICY";
         };
+        LockScreenQuestionResponse: {
+            /** Format: uuid */
+            questionUuid: string;
+        };
         LoginRequest: {
             /** @enum {string} */
             authProvider: "GOOGLE" | "KAKAO" | "NAVER" | "APPLE" | "GITHUB";
@@ -3034,7 +3221,8 @@ export interface components {
             /** Format: date-time */
             lastPurchasedAt: string | null;
             passOptions: components["schemas"]["PassOption"][];
-            plan: string;
+            /** @enum {string} */
+            plan: "FREE" | "PRO";
             /** Format: date-time */
             proExpiresAt: string | null;
             /**
@@ -3076,6 +3264,23 @@ export interface components {
             headline: string;
             message: string;
         };
+        MockExamRanking: {
+            /**
+             * Format: int32
+             * @description 내 순위 (1부터, 동점은 같은 순위)
+             */
+            rankPosition: number;
+            /**
+             * Format: int32
+             * @description 순위 계산에 든 응시자 수 (회원 수)
+             */
+            takerCount: number;
+            /**
+             * Format: int32
+             * @description 상위 퍼센트 (1~100, 올림)
+             */
+            topPercent: number;
+        };
         MockExamResultResponse: {
             /** Format: uuid */
             attemptUuid: string;
@@ -3099,6 +3304,7 @@ export interface components {
             /** Format: int32 */
             questionCount: number;
             questionMarks: components["schemas"]["QuestionMark"][];
+            ranking: components["schemas"]["MockExamRanking"] | null;
             reviews: components["schemas"]["QuestionReview"][];
             /** Format: int32 */
             roundNumber: number;
@@ -3288,6 +3494,8 @@ export interface components {
             /** @enum {string|null} */
             executionMode: "EXECUTABLE" | "CONCEPT_ONLY" | null;
             hint: string | null;
+            /** @description 오늘의 세트 무료 체험 여부: 무료 회원이 이 문제에서 SQL 실행·AI 해설을 쓸 수 있으면 true (프로·결제 꺼짐은 false, #992) */
+            isDailySetFreeTrial: boolean;
             /** @description 최신 출제 경향 반영 문제 여부 ('최신 경향' 배지, #523) */
             isLatestTrend: boolean;
             /** Format: uuid */
@@ -3408,6 +3616,13 @@ export interface components {
             reported: boolean;
         };
         RoundSummary: {
+            /**
+             * @description 최고 점수 응시(동점이면 최근)의 불합격 이유
+             * @enum {string|null}
+             */
+            bestAttemptFailReason: "NONE" | "SUBJECT_FAIL" | "TOTAL_SCORE_BELOW" | null;
+            /** @description 최고 점수 응시(동점이면 최근)의 합격 여부 (과락 포함) */
+            bestAttemptIsPassed: boolean | null;
             /** Format: int32 */
             bestScore: number | null;
             canStart: boolean;
@@ -3464,6 +3679,15 @@ export interface components {
             empty: boolean;
             sorted: boolean;
             unsorted: boolean;
+        };
+        SqldExamScheduleOverviewResponse: {
+            /** Format: date-time */
+            lastCollectedAt: string;
+            nextSchedule: components["schemas"]["ExamScheduleResponse"];
+            officialScheduleUrl: string;
+            schedules: components["schemas"]["ExamScheduleResponse"][];
+            /** Format: int32 */
+            year: number;
         };
         SseEmitter: {
             /** Format: int64 */
@@ -3546,11 +3770,14 @@ export interface components {
             sessionUuid?: string | null;
         };
         SubmitResult: {
+            /** @description 무료 기본 해설: 정답 보기에 저장된 근거 (FULL_EXPLANATION 잠긴 응답만) */
+            basicExplanation: string | null;
             correctKey: string | null;
             correctResult: components["schemas"]["ExecuteResult"] | null;
             correctSql: string | null;
             explanation: string | null;
             isCorrect: boolean;
+            lockedExplanationOutline: components["schemas"]["ExplanationOutline"] | null;
             /** @description 무료 회원 응답에서 뺀 묶음 이름 (EXECUTION_RESULT, FULL_EXPLANATION), 없으면 빈 목록 */
             lockedSections: string[];
             rationale: string | null;
@@ -3589,8 +3816,6 @@ export interface components {
             solvedCount: number;
             /** Format: uuid */
             topicUuid: string;
-            /** Format: int32 */
-            totalQuestionCount: number;
         };
         TopicTree: {
             code: string;
@@ -4393,6 +4618,28 @@ export interface operations {
             };
         };
     };
+    getSqldOverview: {
+        parameters: {
+            query?: {
+                year?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SqldExamScheduleOverviewResponse"];
+                };
+            };
+        };
+    };
     getLatestReport: {
         parameters: {
             query?: never;
@@ -4559,6 +4806,28 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    getMyCreditHistory: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CreditHistoryResponse"];
+                };
             };
         };
     };
@@ -5366,6 +5635,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PageQuestionSummary"];
+                };
+            };
+        };
+    };
+    getLockScreenQuestion: {
+        parameters: {
+            query?: {
+                isExecutableExcluded?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LockScreenQuestionResponse"];
                 };
             };
         };

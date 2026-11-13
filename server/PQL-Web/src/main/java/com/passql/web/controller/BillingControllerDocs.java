@@ -90,6 +90,7 @@ public interface BillingControllerDocs {
 
     @ApiLogs({
         @ApiLog(date = "2026.10.23", author = Author.SUHSAECHAN, issueNumber = 578, description = "App Store 서버 알림 V2 수신 API 추가 (REFUND·REVOKE 등급 회수)"),
+        @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 1032, description = "알림 수신 기록 저장, CONSUMPTION_REQUEST 환불 요청 접수·소비 정보 응답"),
     })
     @Operation(
         summary = "App Store 서버 알림 V2 수신",
@@ -98,7 +99,9 @@ public interface BillingControllerDocs {
 
             App Store Connect 의 App Store Server Notifications V2 URL(운영·샌드박스)로 등록한다.
             `REFUND`·`REVOKE` 알림이면 담긴 거래의 구매를 회수하고 회원 만료일을 남은 구매로 다시 계산한다.
+            `CONSUMPTION_REQUEST`(환불 요청)는 접수로 기록하고, 관리자 설정이 켜져 있으면 소비 정보를 Apple 에 보낸다.
             그 외 유형(`TEST` 포함)은 기록만 하고 200. 기록 없는 거래·이미 회수한 거래도 200 (재전송 안전).
+            모든 알림은 수신 기록(유형·거래 ID·처리 결과)을 남긴다. 서명 검증 실패도 결과만 기록한다.
 
             ## 요청 바디 (AppStoreNotificationRequest)
             - **`signedPayload`**: Apple 알림 JWS (필수)

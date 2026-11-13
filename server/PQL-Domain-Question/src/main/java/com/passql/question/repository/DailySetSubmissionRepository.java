@@ -16,6 +16,9 @@ public interface DailySetSubmissionRepository extends JpaRepository<DailySetSubm
 
     boolean existsByMemberUuidAndChallengeDate(UUID memberUuid, LocalDate challengeDate);
 
+    /** 회원의 기간 [from, to] 완료 기록 (날짜별 무료 한도 보너스 판정용) */
+    List<DailySetSubmission> findByMemberUuidAndChallengeDateBetween(UUID memberUuid, LocalDate from, LocalDate to);
+
     /** 오늘 날짜 기준 정답 수 내림차순, 완료 시각 오름차순으로 조회 */
     @Query("SELECT s FROM DailySetSubmission s WHERE s.challengeDate = :date " +
            "ORDER BY s.correctCount DESC, s.completedAt ASC")

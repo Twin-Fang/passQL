@@ -35,7 +35,7 @@ class NoticeDetailPage extends ConsumerWidget {
             : PassqlStatusView.error(
                 message: error is AppException
                     ? error.message
-                    : '공지를 불러오지 못했어요.',
+                    : PassqlLoadFailureCopy.messageOf('공지를'),
                 onRetry: () => ref.invalidate(noticeDetailProvider(noticeUuid)),
               ),
         data: (loadedNotice) => _NoticeArticle(notice: loadedNotice),
@@ -106,7 +106,8 @@ class _NoticeArticle extends StatelessWidget {
   static void _openNoticeList(BuildContext context) {
     final router = GoRouter.of(context);
     final matches = router.routerDelegate.currentConfiguration.matches;
-    final isListBelow = matches.length >= 2 &&
+    final isListBelow =
+        matches.length >= 2 &&
         matches[matches.length - 2].matchedLocation == AppRoutes.notices;
     if (isListBelow) {
       context.pop();

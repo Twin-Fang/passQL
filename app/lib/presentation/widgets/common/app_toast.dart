@@ -20,7 +20,7 @@ void showAppToast(
             textAlign: TextAlign.center,
             style: PassqlTypography.subheadlineSemibold.copyWith(color: colors.background)),
         // 배경과 반대 밝기라 라이트/다크 어디서나 눈에 띈다.
-        backgroundColor: colors.label.withValues(alpha: 0.88),
+        backgroundColor: colors.label.withValues(alpha: PassqlOpacity.toastBackground),
         behavior: SnackBarBehavior.floating,
         elevation: 0,
         // 버튼과 같은 모서리 (캡슐은 앱의 다른 요소와 어울리지 않음, #687)

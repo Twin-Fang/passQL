@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,12 +8,12 @@ import '../../../presentation/providers/exam_trend_providers.dart';
 import '../../../presentation/providers/topic_providers.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
-import '../../flows/random_practice_flow.dart';
 import '../../providers/plan_providers.dart';
 import '../../providers/pro_ui_providers.dart';
 import '../../widgets/ads/ad_native_slot.dart';
 import '../../widgets/exam_trend/concept_ranking_tab_view.dart';
 import '../../widgets/exam_trend/latest_trend_tab_view.dart';
+import '../../widgets/practice/random_practice_row.dart';
 import '../../widgets/pro/locked_preview_samples.dart';
 import '../../widgets/pro/pro_locked_section.dart';
 import '../../widgets/pro/pro_plan_chip_slot.dart';
@@ -28,7 +27,7 @@ import '../../../router/questions_tab_view.dart';
 const int _nativeAdAfterTopicCount = 5;
 
 /// 토픽 목록 머리글 (스켈레톤과 같은 자리)
-const _topicListHeader = '학습할 토픽을 선택하세요';
+const _topicListHeader = '학습할 토픽을 골라 보세요';
 
 /// 내용 묶음 사이 가로·위 여백
 const _sectionPadding = EdgeInsets.fromLTRB(
@@ -54,7 +53,8 @@ class TopicListPage extends ConsumerWidget {
           title: '문제',
           trailing: ProPlanChipSlot(),
           slivers: [
-            _RandomPracticeSection(),
+            // 무료로 쓸 수 있는 모의고사 1회도 같은 묶음에 (#980)
+            _RandomPracticeSection(hasMockExamRow: true),
             SliverPadding(
               padding: _sectionPadding,
               sliver: SliverToBoxAdapter(
@@ -126,7 +126,7 @@ class TopicListPage extends ConsumerWidget {
       return [
         PassqlSliverFillStatus(
           child: PassqlStatusView.error(
-            message: '토픽을 불러올 수 없어요',
+            message: PassqlLoadFailureCopy.messageOf('토픽을'),
             onRetry: () => ref.invalidate(topicsProvider),
           ),
         ),
@@ -234,7 +234,7 @@ class TopicListPage extends ConsumerWidget {
               child: Padding(
                 padding: statePadding,
                 child: PassqlStatusView.error(
-                  message: '출제 경향을 불러올 수 없어요',
+                  message: PassqlLoadFailureCopy.messageOf('출제 경향을'),
                   onRetry: () => ref.invalidate(examTrendReportProvider),
                 ),
               ),
@@ -251,9 +251,12 @@ class TopicListPage extends ConsumerWidget {
   }
 }
 
-/// 풀기 방식 묶음: 랜덤 풀기 (무료·프로 공통, #576). 결제 꺼짐이면 빈 sliver (진입 없음)
+/// 풀기 방식 묶음: 랜덤 풀기 (무료·프로 공통, #576) + 무료면 모의고사. 결제 꺼짐이면 빈 sliver (진입 없음)
 class _RandomPracticeSection extends ConsumerWidget {
-  const _RandomPracticeSection();
+  const _RandomPracticeSection({this.hasMockExamRow = false});
+
+  /// 모의고사 행을 함께 둘지 (무료는 세그먼트 아래 공통 영역이 없어 여기에)
+  final bool hasMockExamRow;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -266,16 +269,9 @@ class _RandomPracticeSection extends ConsumerWidget {
         child: PassqlGroupedSection(
           header: '풀기 방식',
           children: [
-            PassqlListRow(
-              leading: PassqlIconTile(
-                icon: CupertinoIcons.shuffle,
-                color: context.passqlColors.accent,
-              ),
-              title: RandomPracticeFlow.displayName,
-              subtitle: RandomPracticeFlow.summary,
-              hasChevron: true,
-              onTap: () => context.push(AppRoutes.randomPractice),
-            ),
+            // 크레딧 0 부제·화살표 판정은 홈 행과 같음
+            const RandomPracticeRow(),
+            if (hasMockExamRow) const MockExamEntryRow(),
           ],
         ),
       ),

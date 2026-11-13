@@ -4,17 +4,15 @@ import '../../../core/utils/exam_dday.dart';
 import '../../design/design.dart';
 import 'pro_benefits.dart';
 
-/// 프로 안내 시트 머리: 문장 제목 > 기간 줄(무료 최대치) > 들어온 이유 > 강조 혜택
+/// 프로 안내 시트 머리: PRO 젬(3D 스핀 등장) > 문장 제목 > 강조 혜택
 /// 이용 중이면 제목만 연장 문장 (N일 남은 이용권, 이어서 연장해요)
 class ProOfferHeadline extends StatelessWidget {
   const ProOfferHeadline({
     super.key,
     required this.daysUntilExam,
     required this.activeProExpiresAt,
-    required this.freeCap,
-    required this.dailyFreeLimit,
-    required this.reason,
     required this.focusedBenefit,
+    this.reasonMessage,
   });
 
   /// 시험까지 남은 날 (일정 없으면 null)
@@ -23,21 +21,19 @@ class ProOfferHeadline extends StatelessWidget {
   /// 이용 중인 프로 만료일 (무료·만료면 null > 구매 문장)
   final DateTime? activeProExpiresAt;
 
-  /// 시험까지 무료 최대 문제 수 (null 이면 기간 줄 생략)
-  final int? freeCap;
-  final int dailyFreeLimit;
-  final String? reason;
-
   /// 탑승권 혜택 아이콘에서 열었을 때 강조할 혜택
   final ProBenefit? focusedBenefit;
+
+  /// 특정 기능에서 열었을 때 제목 아래 가치 한 줄
+  final String? reasonMessage;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final daysUntil = daysUntilExam;
-    final reason = this.reason;
     final focusedBenefit = this.focusedBenefit;
     final activeProExpiresAt = this.activeProExpiresAt;
+    final reasonMessage = this.reasonMessage;
     final proDaysLeft = activeProExpiresAt == null
         ? null
         : daysUntilDate(activeProExpiresAt);
@@ -45,6 +41,16 @@ class ProOfferHeadline extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // PRO = 무한 젬: 크게 한 바퀴 돌며 등장, 손가락으로 끌면 살짝 기욺 (#1014)
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: Passql3dTilt(
+            isSpinningIn: true,
+            canDragTilt: true,
+            child: PassqlProIcon(size: PassqlIconSize.proOfferHero),
+          ),
+        ),
+        const SizedBox(height: PassqlSpacing.xs),
         // 「이용권」 글자 대신 숫자를 강조한 문장 제목 (스크린리더 머리글 역할)
         Semantics(
           header: true,
@@ -66,44 +72,18 @@ class ProOfferHeadline extends StatelessWidget {
                         text: '제한 없이',
                         style: TextStyle(color: colors.accentText),
                       ),
-                      const TextSpan(text: ' 풀고 합격해요'),
+                      const TextSpan(text: ' 풀어요'),
                     ],
             ),
           ),
         ),
-        if (freeCap != null) ...[
+        if (reasonMessage != null) ...[
           const SizedBox(height: PassqlSpacing.xxs),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  '무료로는 시험까지 랜덤 최대 $freeCap문제',
-                  style: PassqlTypography.footnote.copyWith(
-                    color: colors.secondaryLabel,
-                  ),
-                ),
-              ),
-              Text(
-                '$daysUntil일 × $dailyFreeLimit문제',
-                style: PassqlTypography.footnote.copyWith(
-                  color: colors.secondaryLabel,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: PassqlSpacing.xs),
-          Divider(
-            height: PassqlSize.hairline * 3,
-            thickness: PassqlSize.hairline * 3,
-            color: colors.label,
-          ),
-        ],
-        if (reason != null) ...[
-          const SizedBox(height: PassqlSpacing.xs),
-          PassqlKeepAllText(
-            reason,
-            style: PassqlTypography.subheadlineSemibold.copyWith(
-              color: colors.accentText,
+          Text(
+            reasonMessage,
+            key: const Key('pro-offer-reason'),
+            style: PassqlTypography.subheadline.copyWith(
+              color: colors.secondaryLabel,
             ),
           ),
         ],
@@ -136,10 +116,7 @@ class _FocusedBenefitRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          PassqlIconTile(
-            icon: benefit.icon,
-            color: benefitColorOf(context, benefit),
-          ),
+          PassqlIconTile(icon: benefit.icon, color: colors.accent),
           const SizedBox(width: PassqlSpacing.sm),
           Expanded(
             child: Column(

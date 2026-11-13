@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 import '../models/member/ad_bonus_request.dart';
 import '../models/member/choice_mode_models.dart';
+import '../models/member/credit_history_response.dart';
 import '../models/member/member_me_response.dart';
 import '../models/member/member_plan_response.dart';
 import '../models/member/nickname_models.dart';
@@ -26,7 +27,11 @@ abstract class MemberApiClient {
   @GET('/members/me/purchases')
   Future<List<PurchaseHistoryEntryResponse>> getMyPurchases();
 
-  /// 보상형 광고 시청 뒤 무료 한도 +5 (하루 2회, 넘으면 409 AD_BONUS_DAILY_LIMIT_REACHED, #808)
+  /// 내 크레딧 내역: 날짜별 받은 수·쓴 수·남은 수, 오늘 먼저 (days: 오늘 포함 조회 일수 1~30, #974)
+  @GET('/members/me/credit-history')
+  Future<CreditHistoryResponse> getMyCreditHistory(@Query('days') int days);
+
+  /// 보상형 광고 시청 뒤 무료 한도 +5 (횟수 제한 없음, 하루 200문제 공정 사용 상한이면 429 FAIR_USE_DAILY_LIMIT_REACHED, #808 #963)
   /// 서버 검증 켜짐이면 AdMob 콜백 기록 확인만 (도착 전 409 AD_BONUS_VERIFICATION_PENDING, #860)
   @POST('/members/me/plan/ad-bonus')
   Future<MemberPlanResponse> grantAdBonus(@Body() AdBonusRequest body);

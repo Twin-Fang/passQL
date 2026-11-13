@@ -185,3 +185,38 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-07 18:40 | W2 | cluster update (새 항목, 활성 결정, 요약 문장) | cluster-admin, cluster-auth-member, cluster-ci-deploy, cluster-store-release, cluster-billing
 - 2026-11-07 18:42 | W2 | fix W10 (members 실제 수로) | cluster-admin 100, cluster-auth-member 64, cluster-billing 51, cluster-ci-deploy 65, cluster-store-release 65
 - 2026-11-07 19:14 | W6 | create issue+completion-report (#950), cluster add | ISS-0487, cluster-ci-deploy, cluster-ops-infra, cluster-security
+- 2026-11-12 02:49 | W4 | supersede | DEC-0239 -> DEC-0282 (광고 보너스 횟수 제한 없음, 사용자 지시 #963)
+- 2026-11-12 02:49 | W6 | create | DEC-0282, DEC-0283, DEC-0284, DEC-0285
+- 2026-11-12 02:49 | W6 | create | ISS-0488 (resolved), ISS-0488-report
+- 2026-11-12 02:51 | W2 | update | cluster-billing, cluster-ads, cluster-practice, cluster-design-system (DEC-0282~0285, ISS-0488 반영, DEC-0239 역사로)
+- 2026-11-12 10:25 | W4 | supersede | DEC-0284 -> DEC-0286 (정가 줄긋기 복원, 사용자 지시 #966)
+- 2026-11-12 10:25 | W6 | create | DEC-0286, DEC-0287, ISS-0489 (resolved) + report, ISS-0490 (open)
+- 2026-11-12 10:25 | W2 | update | cluster-billing, cluster-design-system, cluster-practice, cluster-ads, cluster-home
+- 2026-11-12 10:47 | W6 | update | ISS-0490 open -> resolved + report (#971, PR #973)
+- 2026-11-12 10:47 | W6 | create | ISS-0491 (resolved) + report (#975)
+- 2026-11-12 10:47 | W2 | update | cluster-home, cluster-auth-member, cluster-practice, cluster-design-system, cluster-billing, cluster-ads
+- 2026-11-12 12:20 | W6 | create | ISS-0492 (resolved) + report (#974), ISS-0493 (resolved) + report (#980)
+- 2026-11-12 12:20 | W2 | update | cluster-billing, cluster-practice, cluster-home, cluster-notification
+- 2026-11-12 12:21 | W2 | fix | members count: cluster-billing 60, cluster-home 70, cluster-notification 19, cluster-practice 178
+- 2026-11-12 13:40 | W6 | create | ISS-0494 (resolved) + report (#984), DEC-0288, ISS-0495 (resolved) + report (#985)
+- 2026-11-12 13:40 | W2 | update | cluster-billing, cluster-admin, cluster-home, cluster-design-system
+- 2026-11-12 13:41 | W2 | fix | members count: cluster-admin 101, cluster-billing 62, cluster-design-system 158, cluster-home 71
+- 2026-11-12 17:30 | W6 | create | ISS-0496~0498·0500 (resolved) + report (#992·#993·#995·#1005), ISS-0499 (open, #1002), DEC-0289
+- 2026-11-12 17:30 | W2 | update | cluster-billing, practice, ai, home, design-system, community, notification, auth-member, store-release, ci-deploy, dev-workflow
+- 2026-11-12 17:31 | W2 | fix | members count 11 clusters
+- 2026-11-12 19:57 | W4 | supersede | DEC-0004 -> DEC-0291 (무료 기본 해설 공개, #999 이슈 본문 대체 명시), DEC-0278 -> DEC-0292 (표 이름 기준 대체·짧은 이름표 코드 제목, #1015 예상 동작)
+- 2026-11-12 19:57 | W6 | create | ISS-0501~0504 (resolved) + report (#990·#1015·#1016·#1017), DEC-0290, DEC-0291, DEC-0292
+- 2026-11-12 19:57 | W2 | update | cluster-practice, billing, ads, store-release, question-bank, design-system, concept-learning, dev-workflow
+- 2026-11-12 19:57 | W2 | fix | members count: ads 25, billing 68, concept-learning 22, design-system 162, dev-workflow 77, practice 187, question-bank 86, store-release 68
+- 2026-11-12 21:40 | W6 | create completion-report ISS-0505 (#1029) | ISS-0505
+- 2026-11-12 23:20 | W4 | supersede | DEC-0108 -> DEC-0293 (시험 일정 자동 수집, #991 이슈 본문 명시), DEC-0119 -> DEC-0294 (소개 사이트·약관 주소 보유 도메인 이전, #1027 이슈 본문 명시)
+- 2026-11-12 23:20 | W6 | create | ISS-0506·0507·0509 (resolved) + report (#991·#1014·#1032), ISS-0508 (open, #1027), DEC-0293~DEC-0299
+- 2026-11-12 23:20 | W2 | update | cluster-admin, notification, home, design-system, billing, store-release, ops-infra, ci-deploy
+- 2026-11-12 23:24 | W2 | fix | members count: admin 105, billing 73, ci-deploy 68, design-system 164, home 73, notification 22, ops-infra 69, store-release 71; 현재 상태 요약 날짜 2026-11-12
+- 2026-11-13 00:15 | W6 | create | ISS-0511 (resolved, #1041) + completion report ISS-0511, 원본 사본 _sources/issues (로컬)
+- 2026-11-13 00:15 | W4 | create | DEC-0301 (모의고사 순위), DEC-0302 (환영 시트·알림 미리보기), DEC-0303 (난이도 별·카운트업·키 배지·과락 칸) — 활성 결정과 충돌 없음, 대체 없음 (DEC-0132·0149·0264·0287·0292 유지)
+- 2026-11-13 00:15 | W2 | update | cluster-design-system, practice, home, notification, progress-stats (활성 결정·관련 이슈·현재 상태 요약 한 줄)
+- 2026-11-13 00:16 | W2 | fix | members count: design-system 166, home 75, notification 24, practice 190, progress-stats 47
+- 2026-11-12 23:50 | W6 | create | ISS-0510 (resolved) + report (#1035), DEC-0300; W2 update cluster-practice(190)·design-system(166)·home(75)
+- 2026-11-12 23:52 | W2 | fix | members count: practice 189, design-system 165, home 74 (완료 리포트 제외 기준)
+- 2026-11-13 22:10 | merge | main 병합 충돌 해소: 클러스터 3개에 #1035(ISS-0510)·#1041(ISS-0511) 항목 함께 유지, members 재계산 | cluster-design-system, cluster-home, cluster-practice

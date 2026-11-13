@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- 점검·버전 설정 — 동작은 static/js/admin/app-operation-settings.js -->
+<div th:fragment="settings-card" class="card bg-base-100 shadow">
+    <div class="card-body p-4 space-y-4">
+        <h3 class="card-title text-base">
+            <i data-lucide="wrench" class="size-5"></i>
+            점검 · 버전 설정
+        </h3>
+
+        <!-- 점검 -->
+        <div class="rounded-box border border-base-300 p-4 space-y-3">
+            <label class="flex items-center gap-3 cursor-pointer w-fit">
+                <input type="checkbox" id="isMaintenanceEnabled" class="toggle toggle-error"
+                       th:checked="${operationSettings.isMaintenanceEnabled}"/>
+                <span class="font-semibold">점검 모드</span>
+                <span id="maintenanceBadge" class="badge badge-error badge-sm"
+                      th:classappend="${operationSettings.isMaintenanceEnabled} ? '' : 'hidden'">점검 중</span>
+            </label>
+            <p class="text-xs text-base-content/60">
+                켜면 앱은 점검 화면을 띄우고, 서버는 /api/meta·/api/auth 외 회원 API 를 503 으로 막습니다. 관리자 페이지는 영향 없음.
+            </p>
+            <!-- 점검 예약: 시작~종료 구간 안이면 스위치와 무관하게 점검 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <label class="flex flex-col gap-1">
+                    <span class="label-text text-xs">예약 시작 (KST, 비우면 예약 없음)</span>
+                    <input type="datetime-local" id="maintenanceStartsAt" class="input input-bordered input-sm w-full"
+                           th:value="${operationSettings.maintenanceStartsAt != null} ? ${#temporals.format(operationSettings.maintenanceStartsAt, 'yyyy-MM-dd''T''HH:mm')} : ''"/>
+                </label>
+                <label class="flex flex-col gap-1">
+                    <span class="label-text text-xs">예약 종료 (비우면 스위치를 끌 때까지)</span>
+                    <input type="datetime-local" id="maintenanceEndsAt" class="input input-bordered input-sm w-full"
+                           th:value="${operationSettings.maintenanceEndsAt != null} ? ${#temporals.format(operationSettings.maintenanceEndsAt, 'yyyy-MM-dd''T''HH:mm')} : ''"/>
+                </label>
+            </div>
+            <p class="text-xs text-base-content/60">
+                현재 상태:
+                <span th:if="${operationSettings.isUnderMaintenanceNow}" class="badge badge-error badge-sm">점검 중</span>
+                <span th:unless="${operationSettings.isUnderMaintenanceNow}" class="badge badge-success badge-sm">정상</span>
+                (예약은 요청마다 판정, 시각이 되면 바로 적용)
+            </p>
+            <textarea id="maintenanceMessage" class="textarea textarea-bordered w-full" rows="3" maxlength="500"
+                      placeholder="점검 문구 (비우면 앱 기본 문구: 더 나은 서비스를 위해 점검 중이에요)"
+                      th:text="${operationSettings.maintenanceMessage}"></textarea>
+        </div>
+
+        <!-- 버전 (플랫폼별), data-release-version: 서버 빌드 버전 (미배포 버전 경고 기준, 없으면 빈 값) -->
+        <div class="grid gap-4 md:grid-cols-2" id="versionSettings"
+             th:data-release-version="${billingOperation.releaseVersion}">
+            <div class="rounded-box border border-base-300 p-4 space-y-2">
+                <h4 class="font-semibold flex items-center gap-2"><i data-lucide="apple" class="size-4"></i>iOS</h4>
+                <label class="flex flex-col gap-1">
+                    <span class="label-text text-xs">최소 지원 버전 (미만이면 사용 차단)</span>
+                    <input type="text" id="iosMinimumVersion" class="input input-bordered input-sm font-mono version-input w-full"
+                           placeholder="0.0.0" th:value="${operationSettings.iosMinimumVersion}"
+                           th:data-saved-value="${operationSettings.iosMinimumVersion}"/>
+                </label>
+                <label class="flex flex-col gap-1">
+                    <span class="label-text text-xs">권장 버전 (미만이면 업데이트 안내)</span>
+                    <input type="text" id="iosRecommendedVersion" class="input input-bordered input-sm font-mono version-input w-full"
+                           placeholder="0.0.0" th:value="${operationSettings.iosRecommendedVersion}"/>
+                </label>
+            </div>
+            <div class="rounded-box border border-base-300 p-4 space-y-2">
+                <h4 class="font-semibold flex items-center gap-2"><i data-lucide="smartphone" class="size-4"></i>Android</h4>
+                <label class="flex flex-col gap-1">
+                    <span class="label-text text-xs">최소 지원 버전 (미만이면 사용 차단)</span>
+                    <input type="text" id="androidMinimumVersion" class="input input-bordered input-sm font-mono version-input w-full"
+                           placeholder="0.0.0" th:value="${operationSettings.androidMinimumVersion}"
+                           th:data-saved-value="${operationSettings.androidMinimumVersion}"/>
+                </label>
+                <label class="flex flex-col gap-1">
+                    <span class="label-text text-xs">권장 버전 (미만이면 업데이트 안내)</span>
+                    <input type="text" id="androidRecommendedVersion" class="input input-bordered input-sm font-mono version-input w-full"
+                           placeholder="0.0.0" th:value="${operationSettings.androidRecommendedVersion}"/>
+                </label>
+            </div>
+        </div>
+        <p class="text-xs text-base-content/60">버전은 x.y.z 숫자 형식. 0.0.0 이면 차단·안내 없음. 스토어 링크는 앱 설정의 store.* 값을 사용.</p>
+
+        <div class="flex justify-end">
+            <button class="btn btn-primary btn-sm" onclick="saveOperationSettings()">
+                <i data-lucide="save" class="size-4"></i>
+                저장
+            </button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

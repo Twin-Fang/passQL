@@ -31,14 +31,13 @@ class DebugPlanOverrideNotifier extends Notifier<ProDebugPlan?> {
   }
 }
 
-/// 무료 한도 흉내 6종 (#809, 결제 켜짐 흉내 #816): 화면 표시만 바꿈, 서버 데이터는 그대로
+/// 무료 한도 흉내 5종 (#809, 결제 켜짐 흉내 #816): 화면 표시만 바꿈, 서버 데이터는 그대로
 enum DevLimitSimulation {
   none('끔 (서버값)'),
   // 결제 꺼진 서버에서 무료 화면(A안 카드·배너·계정 화면) 확인용: 보너스·사용량 없음
   billingOnFree('결제 켜짐 흉내 (무료, 한도 없음)'),
-  limitReached('한도 소진 (광고 2번 남음)'),
+  limitReached('한도 소진 (광고 안 봄)'),
   oneAdBonusUsed('한도 소진 (광고 1번 받음)'),
-  adBonusesUsedUp('한도 소진 (광고 다 씀)'),
   dailySetBonusesEarned('세트 보너스 받음 (+10)');
 
   const DevLimitSimulation(this.label);
@@ -62,11 +61,10 @@ class DevLimitSimulationNotifier extends Notifier<DevLimitSimulation> {
     state = simulation;
   }
 
-  /// 흉내 중 광고 보너스 1회: 2번 남음 > 1번 받음 > 다 씀 (서버 호출 대신)
+  /// 흉내 중 광고 보너스 1회: 안 봄 > 1번 받음, 이후는 그대로 (서버 호출 대신, 횟수 제한 없음)
   void recordSimulatedAdBonus() {
     state = switch (state) {
       DevLimitSimulation.limitReached => DevLimitSimulation.oneAdBonusUsed,
-      DevLimitSimulation.oneAdBonusUsed => DevLimitSimulation.adBonusesUsedUp,
       _ => state,
     };
   }
@@ -74,7 +72,6 @@ class DevLimitSimulationNotifier extends Notifier<DevLimitSimulation> {
 
 // 흉내에 쓰는 서버 규칙 값 (서버 DailyFreeBonusRule 과 같은 값)
 const int _simulatedBonusQuestionCount = 5;
-const int _simulatedAdBonusMaxCount = 2;
 const int _simulatedBaseLimitFallback = 10;
 
 /// 서버 등급 > 개발 강제값 반영: 등급 강제 > 한도 흉내 (흉내는 결제 켜진 무료 회원으로 바꿈)
@@ -95,15 +92,17 @@ MemberPlanResponse applyDevPlanOverrides(
   }
 
   // 흉내별 (광고 받은 횟수, 세트 보너스 받음, 한도 소진)
-  final (adBonusUsedCount, isDailySetBonusEarned, isLimitReached) =
-      switch (simulation) {
-        DevLimitSimulation.limitReached => (0, false, true),
-        DevLimitSimulation.oneAdBonusUsed => (1, false, true),
-        DevLimitSimulation.adBonusesUsedUp => (2, false, true),
-        DevLimitSimulation.dailySetBonusesEarned => (0, true, false),
-        DevLimitSimulation.billingOnFree ||
-        DevLimitSimulation.none => (0, false, false),
-      };
+  final (
+    adBonusUsedCount,
+    isDailySetBonusEarned,
+    isLimitReached,
+  ) = switch (simulation) {
+    DevLimitSimulation.limitReached => (0, false, true),
+    DevLimitSimulation.oneAdBonusUsed => (1, false, true),
+    DevLimitSimulation.dailySetBonusesEarned => (0, true, false),
+    DevLimitSimulation.billingOnFree ||
+    DevLimitSimulation.none => (0, false, false),
+  };
   final baseLimit = plan.dailyFreeLimit > 0
       ? plan.dailyFreeLimit
       : _simulatedBaseLimitFallback;
@@ -120,7 +119,8 @@ MemberPlanResponse applyDevPlanOverrides(
       isDailySetCompletionEarned: isDailySetBonusEarned,
       isDailySetAccuracyEarned: isDailySetBonusEarned,
       adBonusUsedCount: adBonusUsedCount,
-      adBonusMaxCount: _simulatedAdBonusMaxCount,
+      // 서버처럼 옛 앱 호환 값 = 받은 횟수 + 1 (횟수 제한 없음)
+      adBonusMaxCount: adBonusUsedCount + 1,
       bonusQuestionCount: _simulatedBonusQuestionCount,
     ),
   );

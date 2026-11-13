@@ -1,0 +1,5 @@
+description=로그용 값 정리 사본 금지 (sanitizeForLog 메서드·허용 문자 외 치환 복사 대신 공통 LogValueSanitizer 한 곳, #789)
+paths=server/PQL-Application/src/main/java/,server/PQL-Common/src/main/java/,server/PQL-Domain-AI/src/main/java/,server/PQL-Domain-Member/src/main/java/,server/PQL-Domain-Meta/src/main/java/,server/PQL-Domain-Question/src/main/java/,server/PQL-Domain-Submission/src/main/java/,server/PQL-Web/src/main/java/
+extensions=.java
+exclude=server/PQL-Common/src/main/java/com/passql/common/util/LogValueSanitizer.java
+pattern=\bsanitizeForLog\s*\(|replaceAll\(\s*"\[\^0-9A-Za-z

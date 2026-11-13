@@ -120,6 +120,89 @@ class AppAnalytics {
     {AnalyticsParameterNames.reviewTrigger: triggerName},
   );
 
+  /// 이용권 시트 열림 (구매 흐름 첫 단계, #971). [source]: 진입점 (sql_execute 등, 없으면 생략)
+  Future<void> logPassSheetOpened({
+    required bool isExtending,
+    String? source,
+  }) => _backend.logEvent(AnalyticsEventNames.passSheetOpened, {
+    AnalyticsParameterNames.isExtending: isExtending ? 1 : 0,
+    AnalyticsParameterNames.source: ?source,
+  });
+
+  /// 이용권 카드 선택
+  Future<void> logPassOptionSelected(String productId) => _backend.logEvent(
+    AnalyticsEventNames.passOptionSelected,
+    {AnalyticsParameterNames.productId: productId},
+  );
+
+  /// 구매 버튼 누름 (스토어 결제 창 띄우기 직전)
+  Future<void> logPassPurchaseStarted(String productId) => _backend.logEvent(
+    AnalyticsEventNames.passPurchaseStarted,
+    {AnalyticsParameterNames.productId: productId},
+  );
+
+  /// 결제 결과. [outcomeName]: success, pending, cancelled, failed, unavailable
+  Future<void> logPassPurchaseResult({
+    required String productId,
+    required String outcomeName,
+  }) => _backend.logEvent(AnalyticsEventNames.passPurchaseResult, {
+    AnalyticsParameterNames.productId: productId,
+    AnalyticsParameterNames.outcome: outcomeName,
+  });
+
+  /// 문제 더 받기(한도) 시트 열림
+  Future<void> logDailyLimitSheetOpened() =>
+      _backend.logEvent(AnalyticsEventNames.dailyLimitSheetOpened, const {});
+
+  /// 광고 보너스 결과. [outcomeName]: rewarded, dismissedWithoutReward, unavailable
+  Future<void> logAdBonusResult(String outcomeName) => _backend.logEvent(
+    AnalyticsEventNames.adBonusResult,
+    {AnalyticsParameterNames.outcome: outcomeName},
+  );
+
+  /// 잠금화면 소개 시트 노출
+  Future<void> logLockScreenIntroShown() =>
+      _backend.logEvent(AnalyticsEventNames.lockScreenIntroShown, const {});
+
+  /// 잠금화면 미리보기 풀이 (로컬 채점)
+  Future<void> logLockScreenPreviewAnswered({required bool isCorrect}) =>
+      _backend.logEvent(AnalyticsEventNames.lockScreenPreviewAnswered, {
+        AnalyticsParameterNames.isCorrect: isCorrect ? 1 : 0,
+      });
+
+  /// 잠금화면 켜짐
+  Future<void> logLockScreenEnabled() =>
+      _backend.logEvent(AnalyticsEventNames.lockScreenEnabled, const {});
+
+  /// 권한 단계 확인 결과. [stepName]: overlay, notification, battery, samsung_power
+  Future<void> logLockScreenPermissionStep({
+    required String stepName,
+    required bool isGranted,
+  }) => _backend.logEvent(AnalyticsEventNames.lockScreenPermissionStep, {
+    AnalyticsParameterNames.permissionStep: stepName,
+    AnalyticsParameterNames.isGranted: isGranted ? 1 : 0,
+  });
+
+  /// 잠금화면 문제 표시. [tierName]: free, pro
+  Future<void> logLockScreenQuestionShown(String tierName) => _backend.logEvent(
+    AnalyticsEventNames.lockScreenQuestionShown,
+    {AnalyticsParameterNames.tier: tierName},
+  );
+
+  /// 잠금화면 문제 채점 결과
+  Future<void> logLockScreenAnswered({required bool isCorrect}) =>
+      _backend.logEvent(AnalyticsEventNames.lockScreenAnswered, {
+        AnalyticsParameterNames.isCorrect: isCorrect ? 1 : 0,
+      });
+
+  /// 잠금화면 닫기 (닫기 버튼·잠금 해제)
+  Future<void> logLockScreenDismissed() =>
+      _backend.logEvent(AnalyticsEventNames.lockScreenDismissed, const {});
+
+  /// 잠금화면 크레딧 소진 화면 노출
+  Future<void> logLockScreenExhaustedShown() =>
+      _backend.logEvent(AnalyticsEventNames.lockScreenExhaustedShown, const {});
+
   Future<void> logScreenView(String screenName) =>
       _backend.logScreenView(screenName);
 

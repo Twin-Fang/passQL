@@ -61,6 +61,7 @@ public class AdminAuditLogViewHelper {
             case COMMUNITY_POST -> "/admin/community/posts";
             case EMBEDDING_INDEX -> "/admin/embeddings";
             case AI_CONNECTION -> "/admin/ai-connections";
+            case BILLING_REFUND_CHECK -> "/admin/subscriptions";
         };
     }
 

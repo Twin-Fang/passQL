@@ -29,7 +29,7 @@ export default function ReadinessSection({ progress, isLoading, isError, onRetry
       <section className={`bg-surface-card border border-border rounded-2xl p-4 sm:p-6 mb-4 ${staggerClassName}`}>
         <p className="text-sm text-text-secondary mb-3">합격 준비도</p>
         <div className="flex flex-col items-center gap-2 py-2 text-center">
-          <p className="text-sm text-text-caption">학습 데이터를 불러올 수 없습니다</p>
+          <p className="text-sm text-text-caption">학습 데이터를 불러오지 못했어요</p>
           <HomeRetryButton onRetry={onRetry} />
         </div>
       </section>

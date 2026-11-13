@@ -11,7 +11,7 @@ import com.passql.question.dto.SseErrorEvent;
 import com.passql.question.dto.SseStatusEvent;
 import com.passql.question.entity.QuestionChoiceSet;
 import com.passql.question.service.ChoiceSetResolver;
-import com.passql.question.service.QuestionService;
+import com.passql.question.service.QuestionChoiceSetQueryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -39,7 +39,7 @@ public class ChoiceGenerationStreamService {
     private final MemberService memberService;
     private final FeatureAccessPolicy featureAccessPolicy;
     private final ChoiceSetResolver choiceSetResolver;
-    private final QuestionService questionService;
+    private final QuestionChoiceSetQueryService questionChoiceSetQueryService;
     private final ObjectMapper objectMapper;
     private final Executor sseStreamExecutor;
 
@@ -47,13 +47,13 @@ public class ChoiceGenerationStreamService {
             MemberService memberService,
             FeatureAccessPolicy featureAccessPolicy,
             ChoiceSetResolver choiceSetResolver,
-            QuestionService questionService,
+            QuestionChoiceSetQueryService questionChoiceSetQueryService,
             ObjectMapper objectMapper,
             @Qualifier("sseStreamExecutor") Executor sseStreamExecutor) {
         this.memberService = memberService;
         this.featureAccessPolicy = featureAccessPolicy;
         this.choiceSetResolver = choiceSetResolver;
-        this.questionService = questionService;
+        this.questionChoiceSetQueryService = questionChoiceSetQueryService;
         this.objectMapper = objectMapper;
         this.sseStreamExecutor = sseStreamExecutor;
     }
@@ -80,7 +80,7 @@ public class ChoiceGenerationStreamService {
 
             sendStatus(emitter, new SseStatusEvent("validating", "SQL 실행 검증 중..."));
 
-            ChoiceSetGenerateResponse response = questionService.getChoiceSetForSolving(choiceSet.getChoiceSetUuid());
+            ChoiceSetGenerateResponse response = questionChoiceSetQueryService.getChoiceSetForSolving(choiceSet.getChoiceSetUuid());
             log.info("[generate-choices] SSE complete 전송: questionUuid={}, choiceSetUuid={}, itemCount={}",
                     questionUuid, choiceSet.getChoiceSetUuid(), response.choices().size());
             emitter.send(SseEmitter.event().name(EVENT_COMPLETE).data(objectMapper.writeValueAsString(response)));

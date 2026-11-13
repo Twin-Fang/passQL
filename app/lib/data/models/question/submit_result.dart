@@ -3,6 +3,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../ai/choice_explanation.dart';
+import '../ai/explanation_outline.dart';
 import 'execute_result.dart';
 
 part 'submit_result.freezed.dart';
@@ -27,6 +28,10 @@ class SubmitResult with _$SubmitResult {
     ChoiceExplanation? structuredExplanation,
     // 무료 응답에서 뺀 묶음 이름 (EXECUTION_RESULT, FULL_EXPLANATION), 없으면 빈 목록
     @Default([]) List<String> lockedSections,
+    // 무료 기본 해설: 정답 보기 저장 근거 (FULL_EXPLANATION 잠긴 응답만, #999)
+    String? basicExplanation,
+    // 잠긴 상세 해설 구성: 섹션 종류·대략 글자 수 (FULL_EXPLANATION 잠긴 응답만, #999)
+    ExplanationOutline? lockedExplanationOutline,
     // 서버 응답이 아니라 앱이 제출 시점에 붙이는 값(신고 시 어떤 선택지 세트였는지 전달).
     @JsonKey(includeFromJson: false, includeToJson: false)
     String? choiceSetUuid,

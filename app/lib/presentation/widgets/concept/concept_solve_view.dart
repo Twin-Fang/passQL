@@ -9,6 +9,7 @@ import '../common/app_toast.dart';
 import '../question/markdown_lite_text.dart';
 import '../question/stem_text.dart';
 import 'concept_result_view.dart';
+import 'concept_unit_progress.dart';
 
 /// 개념 풀기 화면 (#764): 점 진행 줄 > 지문·SQL > 보기 > (채점 후) 정답 표시·풀이·다시 읽기 > 하단 확인·다음
 /// 마지막 문제 다음은 결과 연출(ConceptResultView)
@@ -58,7 +59,7 @@ class ConceptSolveView extends ConsumerWidget {
     return questions.when(
       loading: () => const PassqlStatusView.loading(),
       error: (_, _) => PassqlStatusView.error(
-        message: '확인 문제를 불러오지 못했어요.',
+        message: PassqlLoadFailureCopy.messageOf('확인 문제를'),
         onRetry: () =>
             ref.invalidate(conceptCheckQuestionsProvider(conceptUuid)),
       ),

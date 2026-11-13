@@ -9,6 +9,7 @@ import '../../design/design.dart';
 import '../../providers/notification_inbox_providers.dart';
 import '../../providers/unread_notification_providers.dart';
 import '../common/app_toast.dart';
+import '../common/load_more_status_sliver.dart';
 import '../common/load_more_scroll_metrics.dart';
 import 'notification_list_row.dart';
 import 'open_notification_item.dart';
@@ -58,6 +59,10 @@ class _NotificationInboxListState extends ConsumerState<NotificationInboxList> {
       message: '새 공지가 올라오면 여기에서 볼 수 있어요',
     ),
   };
+
+  static const String _pastNoticesLabel = '지난 공지 전체 보기';
+
+  void _openPastNotices() => context.push(AppRoutes.notices);
 
   @override
   void initState() {
@@ -112,6 +117,7 @@ class _NotificationInboxListState extends ConsumerState<NotificationInboxList> {
       ),
     );
     final colors = context.passqlColors;
+    final isNoticeTab = widget.category == NotificationCategory.notice;
     return CustomScrollView(
       controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(
@@ -148,13 +154,15 @@ class _NotificationInboxListState extends ConsumerState<NotificationInboxList> {
             ),
           ),
         ),
+        // 빈 목록: 공지 탭은 빈 안내 안에 '지난 공지 전체 보기' (아래 링크와 따로 떠 있지 않게)
         if (inboxState.items.isEmpty)
-          SliverFillRemaining(
-            hasScrollBody: false,
+          PassqlSliverFillStatus(
             child: PassqlStatusView.empty(
               icon: CupertinoIcons.bell,
               title: _emptyTexts[widget.category]!.title,
               message: _emptyTexts[widget.category]!.message,
+              actionLabel: isNoticeTab ? _pastNoticesLabel : null,
+              onAction: isNoticeTab ? _openPastNotices : null,
             ),
           )
         else
@@ -174,14 +182,14 @@ class _NotificationInboxListState extends ConsumerState<NotificationInboxList> {
               ),
             ),
           ),
-        if (widget.category == NotificationCategory.notice)
+        if (isNoticeTab && inboxState.items.isNotEmpty)
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.only(top: PassqlSpacing.xs),
               child: Center(
                 child: PassqlButton(
-                  label: '지난 공지 전체 보기',
-                  onPressed: () => context.push(AppRoutes.notices),
+                  label: _pastNoticesLabel,
+                  onPressed: _openPastNotices,
                   variant: PassqlButtonVariant.plain,
                   size: PassqlButtonSize.small,
                   isFullWidth: false,
@@ -189,13 +197,11 @@ class _NotificationInboxListState extends ConsumerState<NotificationInboxList> {
               ),
             ),
           ),
-        if (inboxState.isLoadingMore)
-          const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(PassqlSpacing.md),
-              child: Center(child: PassqlLoadingIndicator()),
-            ),
-          ),
+        LoadMoreStatusSliver(
+          isLoadingMore: inboxState.isLoadingMore,
+          hasLoadMoreFailed: inboxState.hasLoadMoreFailed,
+          onRetry: _notifier.loadMore,
+        ),
         SliverToBoxAdapter(
           child: SizedBox(
             height: MediaQuery.paddingOf(context).bottom + PassqlSpacing.xl,
@@ -205,6 +211,7 @@ class _NotificationInboxListState extends ConsumerState<NotificationInboxList> {
     );
   }
 
-  static String _errorMessageOf(Object error) =>
-      error is AppException ? error.message : '알림을 불러오지 못했어요.';
+  static String _errorMessageOf(Object error) => error is AppException
+      ? error.message
+      : PassqlLoadFailureCopy.messageOf('알림을');
 }

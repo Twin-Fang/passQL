@@ -25,6 +25,10 @@ on:
       - 'client/public/favicon.png'
       - 'server/PQL-Web/src/main/resources/static/images/**'
       - 'server/PQL-Web/src/main/resources/static/favicon.ico'
+      - 'app/lib/presentation/design/tokens/passql_colors.dart'
+      - 'client/src/styles/tokens.css'
+      - 'server/PQL-Domain-Member/src/main/java/com/passql/member/push/FirebasePushMessageSender.java'
+      - 'server/PQL-Web/src/main/resources/templates/admin/auto-notifications.html'
       - '.github/workflows/PROJECT-COMMON-BRAND-ASSETS-CHECK.yaml'
   push:
     branches: [main]
@@ -41,6 +45,10 @@ on:
       - 'client/public/favicon.png'
       - 'server/PQL-Web/src/main/resources/static/images/**'
       - 'server/PQL-Web/src/main/resources/static/favicon.ico'
+      - 'app/lib/presentation/design/tokens/passql_colors.dart'
+      - 'client/src/styles/tokens.css'
+      - 'server/PQL-Domain-Member/src/main/java/com/passql/member/push/FirebasePushMessageSender.java'
+      - 'server/PQL-Web/src/main/resources/templates/admin/auto-notifications.html'
       - '.github/workflows/PROJECT-COMMON-BRAND-ASSETS-CHECK.yaml'
   workflow_dispatch:
 

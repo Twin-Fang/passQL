@@ -173,6 +173,13 @@ void main() {
     expect(adapter.lastRequest.queryParameters, {'size': 20});
   });
 
+  test('크레딧 내역은 조회 일수 days 만 쿼리로 보낸다 (#974)', () async {
+    await ignoreParse(MemberApiClient(dio).getMyCreditHistory(14));
+    expect(adapter.lastRequest.method, 'GET');
+    expect(adapter.lastRequest.path, '/members/me/credit-history');
+    expect(adapter.lastRequest.queryParameters, {'days': 14});
+  });
+
   test('건의는 POST /feedback 에 multipart FormData 로 보낸다', () async {
     await ignoreParse(
       FeedbackApiClient(

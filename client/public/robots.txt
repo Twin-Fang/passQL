@@ -1,10 +1,5 @@
-# 로그인 뒤 학습 화면은 색인 대상이 아니다 — 첫 화면(로그인)과 법적 고지만 허용
+# 웹 서비스 지원 중지 (#1044): 화면 주소는 전부 소개 사이트로 이동 — 색인 대상 없음
 User-agent: *
-Allow: /$
-Allow: /login
-Allow: /legal/
 # AdMob 앱 인증: 개발자 웹사이트 루트의 app-ads.txt 를 크롤러가 읽어야 함 (막히면 광고 게재 제한, #783)
 Allow: /app-ads.txt
 Disallow: /
-# 주소 원본: src/constants/siteUrls.ts PRODUCTION_SITE_URL (siteUrls.test.ts 가 일치 검사)
-Sitemap: https://passql.vercel.app/sitemap.xml

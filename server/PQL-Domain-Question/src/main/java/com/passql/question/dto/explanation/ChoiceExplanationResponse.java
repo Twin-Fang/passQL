@@ -12,6 +12,7 @@ import java.util.UUID;
  * - GENERATING: retryAfterMilliseconds 뒤 같은 요청으로 다시 조회 (text 는 옛 해설이 있으면 임시 표시용)
  * - FAILED: 재시도 상한 도달, text 는 옛 해설이 있으면 표시용 (없으면 null)
  * - lockedSections: 무료 회원 응답에서 뺀 묶음 이름 (FULL_EXPLANATION), 없으면 빈 목록 (#576)
+ * - basicExplanation·lockedExplanationOutline: FULL_EXPLANATION 잠긴 응답에만, 그 외 null (#999)
  */
 public record ChoiceExplanationResponse(
     @Schema(description = "해설 상태") ChoiceExplanationStatus status,
@@ -21,7 +22,9 @@ public record ChoiceExplanationResponse(
     @Schema(nullable = true, description = "마크다운 해설 (구조화 해설을 그린 글 또는 고정 세트 근거·옛 해설)") String text,
     @Schema(nullable = true, description = "해설을 만든 프롬프트 버전") Integer promptVersion,
     @Schema(nullable = true, description = "GENERATING 일 때 다시 조회할 간격 (밀리초)") Integer retryAfterMilliseconds,
-    @Schema(description = "무료 회원 응답에서 뺀 묶음 이름 (FULL_EXPLANATION), 없으면 빈 목록") List<String> lockedSections
+    @Schema(description = "무료 회원 응답에서 뺀 묶음 이름 (FULL_EXPLANATION), 없으면 빈 목록") List<String> lockedSections,
+    @Schema(nullable = true, description = "무료 기본 해설: 정답 보기에 저장된 근거 (FULL_EXPLANATION 잠긴 응답만)") String basicExplanation,
+    @Schema(nullable = true, description = "잠긴 상세 해설 구성: 섹션 종류·대략 글자 수만 (FULL_EXPLANATION 잠긴 응답만)") ExplanationOutline lockedExplanationOutline
 ) {
 
     public ChoiceExplanationResponse {
@@ -33,6 +36,6 @@ public record ChoiceExplanationResponse(
                                      ChoiceExplanation explanation, String text, Integer promptVersion,
                                      Integer retryAfterMilliseconds) {
         this(status, choiceSetUuid, selectedChoiceKey, explanation, text, promptVersion, retryAfterMilliseconds,
-            List.of());
+            List.of(), null, null);
     }
 }

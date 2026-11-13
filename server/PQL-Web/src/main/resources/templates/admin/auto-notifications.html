@@ -14,9 +14,34 @@
             <p class="font-semibold">사용자가 앱으로 다시 돌아오게 만드는 자동 알림 5종</p>
             <p class="text-base-content/70">
                 매시 정각에 발송 시각이 지금인 켜진 규칙만 나갑니다. 수신 동의한 기기가 있는 회원이 대상이고,
-                <b>회원당 하루 자동 알림은 최대 1건</b>입니다. 문구의 <code class="px-1 rounded bg-base-200">{days}</code> 는
+                <b>회원당 하루 자동 알림은 최대 <span th:text="${dailyLimitPerMember}">1</span>건</b>(같은 규칙은 하루 1건)입니다. 문구의 <code class="px-1 rounded bg-base-200">{days}</code> 는
                 미접속 일수 또는 시험까지 남은 일수로 바뀝니다. 처음에는 모두 꺼져 있으니 문구를 확인한 뒤 켜세요.
             </p>
+        </div>
+    </div>
+
+    <!-- 회원당 하루 상한 (app_setting notification.auto.daily_limit_per_member) -->
+    <div class="card bg-base-100 shadow-sm border border-base-300 mb-4" data-role="daily-limit-card">
+        <div class="card-body p-4 flex-row flex-wrap items-end justify-between gap-3">
+            <div>
+                <h3 class="font-semibold text-sm">회원당 하루 최대 자동 알림</h3>
+                <p class="text-xs text-base-content/60 mt-1">
+                    여러 규칙이 같은 날 겹치면 먼저 시각이 된 규칙부터 이 건수까지만 나갑니다. 과다 발송 방지용이니 작게 유지하세요.
+                </p>
+            </div>
+            <div class="flex items-end gap-2">
+                <label class="form-control">
+                    <span class="label-text text-xs mb-1">
+                        건수 (<span th:text="${minDailyLimitPerMember}">1</span>~<span th:text="${maxDailyLimitPerMember}">5</span>)
+                    </span>
+                    <input type="number" class="input input-bordered input-sm w-24" data-field="dailyLimitPerMember"
+                           th:min="${minDailyLimitPerMember}" th:max="${maxDailyLimitPerMember}" th:value="${dailyLimitPerMember}"/>
+                </label>
+                <button type="button" class="btn btn-sm btn-primary gap-1" data-action="save-daily-limit"
+                        th:disabled="${!canWriteAdmin}">
+                    <i data-lucide="save" class="size-4"></i>저장
+                </button>
+            </div>
         </div>
     </div>
 
@@ -92,7 +117,14 @@
                 <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-base-200">
                     <div class="flex flex-wrap items-center gap-2 text-xs text-base-content/70">
                         <span class="badge badge-ghost">최근 <span th:text="${recentSentDays}">7</span>일 발송
-                            <b class="ml-1" th:text="${view.recentSentCount}">0</b>건</span>
+                            <b class="ml-1" th:text="${view.recentStats.sentCount}">0</b>건</span>
+                        <!-- 열람·복귀 분모 = 알림함 알림과 연결된 발송 (집계 시작 전 발송은 제외) -->
+                        <span class="badge badge-ghost" title="알림함에서 읽은 건 / 집계 가능한 발송">
+                            열람 <b class="mx-1" th:text="${view.recentStats.readCount}">0</b>/
+                            <span class="ml-1" th:text="${view.recentStats.trackedCount}">0</span></span>
+                        <span class="badge badge-ghost" title="발송 후 24시간 안에 앱을 연 건 / 집계 가능한 발송">
+                            24시간 내 복귀 <b class="mx-1" th:text="${view.recentStats.returnedCount}">0</b>/
+                            <span class="ml-1" th:text="${view.recentStats.trackedCount}">0</span></span>
                         <span class="badge badge-outline hidden" data-role="target-count"></span>
                     </div>
                     <div class="flex gap-2">

@@ -134,7 +134,7 @@ class _SolveLine extends StatelessWidget {
   static const String _mineText = '(나)';
 
   // badgeText "정답 · 한 번에 해결" 에서 앞 단어와 나머지를 가르는 구분자
-  static const String _separator = ' · ';
+  static const String _separator = ' | ';
 
   @override
   Widget build(BuildContext context) {
@@ -188,8 +188,8 @@ class _IconAction extends StatelessWidget {
   /// 좋아요처럼 켜고 끄는 버튼만 값이 있음 (스크린리더 선택 상태)
   final bool? isSelected;
 
-  // 좋아요·메뉴 아이콘 칸 폭 (#741: 44 > 36 > 28, 세로 점 메뉴라 칸을 더 좁혀 하트와 붙임)
-  static const double width = 28;
+  // 좋아요·메뉴 아이콘 칸 폭 = 최소 터치 영역 (#995)
+  static const double width = PassqlSize.minTouchTarget;
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +199,7 @@ class _IconAction extends StatelessWidget {
       onTap: onTap,
       child: CupertinoButton(
         padding: EdgeInsets.zero,
-        // 두 아이콘이 붙어 보이게 폭만 줄인다 (높이는 44 유지)
+        // 누르는 영역 44x44
         minimumSize: const Size(width, PassqlSize.minTouchTarget),
         onPressed: onTap,
         child: Icon(icon, size: PassqlIconSize.md, color: color),

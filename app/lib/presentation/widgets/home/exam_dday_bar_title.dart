@@ -1,15 +1,18 @@
 import 'package:flutter/widgets.dart';
 
+import '../../../core/utils/app_clock.dart';
 import '../../../core/utils/exam_dday.dart';
+import '../../../core/utils/date_format.dart';
 import '../../../data/models/exam/exam_schedule_response.dart';
 import '../../design/design.dart';
+import '../exam_schedule/exam_schedule_labels.dart';
 
 /// 상단 바 부제: 'SQLD 63회 · 11월 14일' (날짜를 읽지 못하면 회차만)
 String examBarSubtitle(ExamScheduleResponse schedule) {
   final round = '${schedule.certType} ${schedule.round}회';
   final date = DateTime.tryParse(schedule.examDate);
   if (date == null) return round;
-  return '$round · ${date.month}월 ${date.day}일';
+  return '$round | ${formatMonthDay(date)}';
 }
 
 /// 스크린리더 낭독: 'D-18' 대신 '시험까지 18일'
@@ -19,66 +22,58 @@ String examDdaySpokenLabel(int days) {
   return '시험 ${days.abs()}일 지남';
 }
 
-/// 홈 상단 바 왼쪽 제목: 로고 자리에 시험 D-day + 회차·날짜 (#701)
-/// 일정이 없거나 날짜를 읽지 못하면 로고 + '시험 일정 준비 중'
+/// 홈 상단 바 왼쪽: 로고 + 시험 D-day 배지 (#701, #971). 일정이 없거나 날짜를 읽지 못하면 로고만
+/// 배지는 지금 단계 한 줄("접수 중 · 10.16 마감", "시험 D-2", #991), 누르면 시험 일정 화면
+/// 스크린리더는 `시험까지 18일, SQLD 63회 · 11월 14일` 로 읽음
 class ExamDdayBarTitle extends StatelessWidget {
-  const ExamDdayBarTitle({super.key, this.schedule});
+  const ExamDdayBarTitle({super.key, this.schedule, this.onTap, this.today});
 
   final ExamScheduleResponse? schedule;
 
+  /// 배지 누름 (시험 일정 화면 이동, null 이면 누를 수 없음)
+  final VoidCallback? onTap;
+
+  /// 기준 날짜 (null 이면 앱 시각)
+  final DateTime? today;
+
   @override
   Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    final subtitleStyle = PassqlTypography.caption.copyWith(
-      color: colors.secondaryLabel,
+    final schedule = this.schedule;
+    final today = this.today ?? AppClock.now();
+    final days = schedule == null
+        ? null
+        : daysUntilExam(schedule.examDate, now: today);
+    const logo = PassqlLogo(height: PassqlSize.navBarLogoHeight);
+    if (schedule == null || days == null) {
+      return Semantics(header: true, child: logo);
+    }
+    final title = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        logo,
+        const SizedBox(width: PassqlSpacing.xs),
+        Flexible(
+          child: PassqlBadge(text: examHomeBadgeTextOf(schedule, today)),
+        ),
+      ],
     );
-    final days = schedule == null ? null : daysUntilExam(schedule!.examDate);
-    if (days == null) {
+    final spokenLabel =
+        '${examDdaySpokenLabel(days)}, ${examBarSubtitle(schedule)}';
+    final onTap = this.onTap;
+    if (onTap == null) {
       return Semantics(
         header: true,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const PassqlLogo(height: PassqlSize.navBarLogoHeight),
-            const SizedBox(width: PassqlSpacing.xs),
-            Flexible(
-              child: Text(
-                '시험 일정 준비 중',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: subtitleStyle,
-              ),
-            ),
-          ],
-        ),
+        label: spokenLabel,
+        excludeSemantics: true,
+        child: title,
       );
     }
-    final subtitle = examBarSubtitle(schedule!);
     return Semantics(
       header: true,
-      label: '${examDdaySpokenLabel(days)}, $subtitle',
-      excludeSemantics: true,
-      // 좁은 폭·큰 글자에서는 회차·날짜가 먼저 줄고 D-day 는 남는다
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: TextBaseline.alphabetic,
-        children: [
-          Text(
-            examDdayLabel(days),
-            maxLines: 1,
-            style: PassqlTypography.title2.copyWith(color: colors.accentText),
-          ),
-          const SizedBox(width: PassqlSpacing.xs),
-          Flexible(
-            child: Text(
-              subtitle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: subtitleStyle,
-            ),
-          ),
-        ],
+      child: PassqlPressable(
+        onTap: onTap,
+        semanticLabel: '$spokenLabel, 시험 일정 보기',
+        child: title,
       ),
     );
   }

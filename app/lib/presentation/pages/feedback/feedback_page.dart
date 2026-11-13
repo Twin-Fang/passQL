@@ -12,17 +12,19 @@ import '../../design/design.dart';
 import '../../../router/app_routes.dart';
 import '../../providers/feedback_providers.dart';
 import '../../widgets/common/app_toast.dart';
+import '../../widgets/common/draft_discard_guard.dart';
 import '../../widgets/feedback/feedback_content_field.dart';
 import '../../widgets/feedback/feedback_diagnostics_check_row.dart';
 import '../../widgets/feedback/feedback_diagnostics_sheet.dart';
 import '../../widgets/feedback/feedback_image_strip.dart';
 
 const String _successToastMessage = '보내 주셔서 고마워요. 확인까지 2~3일 걸릴 수 있어요';
-const String _imageLimitToastMessage = '사진은 최대 ${FeedbackImageLimits.maxImageCount}장까지 보낼 수 있어요';
+const String _imageLimitToastMessage =
+    '사진은 최대 ${FeedbackImageLimits.maxImageCount}장까지 보낼 수 있어요';
 const String _sendFailedMessage = '의견을 보내지 못했어요. 잠시 후 다시 시도해 주세요.';
 const String _imageLoadFailedMessage = '사진을 불러오지 못했어요. 다시 선택해 주세요.';
 
-/// 의견 보내기 화면: 글 + 사진(최대 5장) + 진단 정보 동의를 한 번에 전송
+/// 문의·제안 보내기 화면: 글 + 사진(최대 5장) + 진단 정보 동의를 한 번에 전송
 class FeedbackPage extends ConsumerStatefulWidget {
   const FeedbackPage({super.key});
 
@@ -80,6 +82,9 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
       !_isSending &&
       !_isCompressingImage &&
       FeedbackValidator.isValid(_contentController.text);
+
+  bool get _hasDraft =>
+      _contentController.text.trim().isNotEmpty || _imageDrafts.isNotEmpty;
 
   bool get _canAddImage =>
       !_isSending && _imageDrafts.length < FeedbackImageLimits.maxImageCount;
@@ -218,72 +223,79 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    return Scaffold(
-      appBar: PassqlNavBar(title: '의견 보내기', leading: PassqlNavLeading.back),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: const EdgeInsets.all(PassqlSpacing.md),
-              children: [
-                Text(
-                  '앱에 바라는 점이나 불편한 점을 알려 주세요',
-                  style: PassqlTypography.headline.copyWith(
-                    color: colors.label,
+    return DraftDiscardGuard(
+      hasDraft: _hasDraft,
+      child: Scaffold(
+        appBar: PassqlNavBar(
+          title: '문의, 제안 보내기',
+          leading: PassqlNavLeading.back,
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: const EdgeInsets.all(PassqlSpacing.md),
+                children: [
+                  Text(
+                    '앱에 바라는 점이나 불편한 점을 알려 주세요',
+                    style: PassqlTypography.headline.copyWith(
+                      color: colors.label,
+                    ),
+                  ),
+                  const SizedBox(height: PassqlSpacing.sm),
+                  FeedbackContentField(
+                    controller: _contentController,
+                    isEnabled: !_isSending,
+                    onChanged: () => setState(() {}),
+                  ),
+                  const SizedBox(height: PassqlSpacing.md),
+                  FeedbackImageStrip(
+                    drafts: _imageDrafts,
+                    onAddPressed: _canAddImage ? _pickImages : null,
+                    onRemovePressed: _removeImage,
+                  ),
+                  const SizedBox(height: PassqlSpacing.md),
+                  FeedbackDiagnosticsCheckRow(
+                    isChecked: _shouldIncludeDiagnostics,
+                    onToggled: _isSending
+                        ? null
+                        : () => setState(
+                            () => _shouldIncludeDiagnostics =
+                                !_shouldIncludeDiagnostics,
+                          ),
+                    onShowPressed: _showDiagnosticsSheet,
+                  ),
+                ],
+              ),
+            ),
+            if (_errorMessage != null)
+              Container(
+                width: double.infinity,
+                color: colors.wrongTint,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: PassqlSpacing.md,
+                  vertical: PassqlSpacing.xs,
+                ),
+                child: Text(
+                  _errorMessage!,
+                  style: PassqlTypography.footnote.copyWith(
+                    color: colors.wrongText,
                   ),
                 ),
-                const SizedBox(height: PassqlSpacing.sm),
-                FeedbackContentField(
-                  controller: _contentController,
-                  isEnabled: !_isSending,
-                  onChanged: () => setState(() {}),
-                ),
-                const SizedBox(height: PassqlSpacing.md),
-                FeedbackImageStrip(
-                  drafts: _imageDrafts,
-                  onAddPressed: _canAddImage ? _pickImages : null,
-                  onRemovePressed: _removeImage,
-                ),
-                const SizedBox(height: PassqlSpacing.md),
-                FeedbackDiagnosticsCheckRow(
-                  isChecked: _shouldIncludeDiagnostics,
-                  onToggled: _isSending
-                      ? null
-                      : () => setState(
-                          () => _shouldIncludeDiagnostics =
-                              !_shouldIncludeDiagnostics,
-                        ),
-                  onShowPressed: _showDiagnosticsSheet,
+              ),
+            PassqlBottomActionBar(
+              actions: [
+                PassqlButton(
+                  label: '보내기',
+                  isLoading: _isSending,
+                  onPressed: _canSend ? _send : null,
                 ),
               ],
             ),
-          ),
-          if (_errorMessage != null)
-            Container(
-              width: double.infinity,
-              color: colors.wrongTint,
-              padding: const EdgeInsets.symmetric(
-                horizontal: PassqlSpacing.md,
-                vertical: PassqlSpacing.xs,
-              ),
-              child: Text(
-                _errorMessage!,
-                style: PassqlTypography.footnote.copyWith(
-                  color: colors.wrongText,
-                ),
-              ),
-            ),
-          PassqlBottomActionBar(
-            actions: [
-              PassqlButton(
-                label: '보내기',
-                isLoading: _isSending,
-                onPressed: _canSend ? _send : null,
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -13,6 +13,7 @@ class PassqlResultScaffold extends StatelessWidget {
     required this.header,
     required this.sections,
     required this.actions,
+    this.primaryAction,
   });
 
   final String title;
@@ -20,6 +21,9 @@ class PassqlResultScaffold extends StatelessWidget {
   final Widget header;
   final List<Widget> sections;
   final List<Widget> actions;
+
+  /// 하단 바 맨 위 전체 폭 주 버튼 (긴 문구, [actions] 는 그 아래 한 줄)
+  final Widget? primaryAction;
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +52,10 @@ class PassqlResultScaffold extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: PassqlBottomActionBar(actions: actions),
+      bottomNavigationBar: PassqlBottomActionBar(
+        top: primaryAction,
+        actions: actions,
+      ),
     );
   }
 }

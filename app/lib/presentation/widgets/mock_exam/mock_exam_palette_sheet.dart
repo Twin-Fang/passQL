@@ -6,7 +6,7 @@ import '../../providers/mock_exam_session_state.dart';
 import 'mock_exam_number_cell.dart';
 import 'mock_exam_number_grid.dart';
 
-/// 풀이 번호판 시트: 과목별 50칸(답함·표시·현재) + 안 푼·표시 수 + 제출
+/// 풀이 문항 목록 시트: 과목별 50칸(답함·표시·현재) + 안 푼·표시 수 + 제출
 /// 번호 탭 > 그 문항으로 이동하고 닫힘, 제출 탭 > 시트 닫고 제출 확인
 Future<void> showMockExamPaletteSheet(
   BuildContext context, {
@@ -16,7 +16,7 @@ Future<void> showMockExamPaletteSheet(
 }) {
   return showPassqlSheet<void>(
     context,
-    title: '문항 번호판',
+    title: '문항 목록',
     builder: (sheetContext) => _MockExamPaletteBody(
       session: session,
       onQuestionSelected: (questionIndex) {
@@ -70,7 +70,7 @@ class _MockExamPaletteBody extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            '안 푼 문항 ${session.unansweredCount}개 · 표시 ${session.flaggedCount}개',
+            '안 푼 문항 ${session.unansweredCount}개 | 표시 ${session.flaggedCount}개',
             style: PassqlTypography.subheadline.copyWith(
               color: colors.secondaryLabel,
             ),

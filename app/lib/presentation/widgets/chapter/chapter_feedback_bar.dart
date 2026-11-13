@@ -25,6 +25,9 @@ class ChapterFeedbackBar extends StatefulWidget {
   final VoidCallback? onOpenExplanation;
 
   final bool isLastQuestion;
+
+  /// 다음 문제를 이어 받는 중 (연속 흐름, 버튼 로딩)
+  final bool isLoadingNext;
   final VoidCallback onNext;
 
   const ChapterFeedbackBar({
@@ -35,6 +38,7 @@ class ChapterFeedbackBar extends StatefulWidget {
     this.explanationEntry,
     this.onOpenExplanation,
     required this.isLastQuestion,
+    this.isLoadingNext = false,
     required this.onNext,
   });
 
@@ -67,7 +71,7 @@ class _ChapterFeedbackBarState extends State<ChapterFeedbackBar> {
                   isCorrect: _result.isCorrect,
                   label: _result.isCorrect
                       ? '정답이에요'
-                      : '오답이에요 · 정답 ${widget.correctDisplayLabel ?? _result.correctKey ?? '-'}',
+                      : '오답이에요 | 정답 ${widget.correctDisplayLabel ?? _result.correctKey ?? '-'}',
                 ),
               ),
               // 의견 N 칩: 풀이 흐름에서 토론으로 가는 길 (결과 화면 칩과 같은 위젯)
@@ -111,6 +115,7 @@ class _ChapterFeedbackBarState extends State<ChapterFeedbackBar> {
       actions: [
         PassqlButton(
           label: widget.isLastQuestion ? '결과 보기' : '다음',
+          isLoading: widget.isLoadingNext,
           onPressed: widget.onNext,
         ),
       ],

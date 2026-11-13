@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/sources/api_providers.dart';
 
-/// 랜덤 풀기 1회 문제 수 (서버 size 상한 10)
+/// 랜덤 풀기 한 번에 받는 문제 수 (서버 size 상한 10, 다 풀어 가면 다시 받아 이어 붙임 #963)
 const randomPracticeQuestionCount = 10;
 
 /// 랜덤 풀기 문제 목록 조회: GET /questions/random (안 푼 문제 우선, 하루 한도는 상세 열기에서 서버가 적용)

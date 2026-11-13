@@ -23,7 +23,6 @@ TopicStat _$TopicStatFromJson(Map<String, dynamic> json) {
 mixin _$TopicStat {
   String get topicUuid => throw _privateConstructorUsedError;
   String get displayName => throw _privateConstructorUsedError;
-  int get totalQuestionCount => throw _privateConstructorUsedError;
   double get correctRate => throw _privateConstructorUsedError;
   int get solvedCount => throw _privateConstructorUsedError;
 
@@ -45,7 +44,6 @@ abstract class $TopicStatCopyWith<$Res> {
   $Res call({
     String topicUuid,
     String displayName,
-    int totalQuestionCount,
     double correctRate,
     int solvedCount,
   });
@@ -68,7 +66,6 @@ class _$TopicStatCopyWithImpl<$Res, $Val extends TopicStat>
   $Res call({
     Object? topicUuid = null,
     Object? displayName = null,
-    Object? totalQuestionCount = null,
     Object? correctRate = null,
     Object? solvedCount = null,
   }) {
@@ -82,10 +79,6 @@ class _$TopicStatCopyWithImpl<$Res, $Val extends TopicStat>
                 ? _value.displayName
                 : displayName // ignore: cast_nullable_to_non_nullable
                       as String,
-            totalQuestionCount: null == totalQuestionCount
-                ? _value.totalQuestionCount
-                : totalQuestionCount // ignore: cast_nullable_to_non_nullable
-                      as int,
             correctRate: null == correctRate
                 ? _value.correctRate
                 : correctRate // ignore: cast_nullable_to_non_nullable
@@ -112,7 +105,6 @@ abstract class _$$TopicStatImplCopyWith<$Res>
   $Res call({
     String topicUuid,
     String displayName,
-    int totalQuestionCount,
     double correctRate,
     int solvedCount,
   });
@@ -134,7 +126,6 @@ class __$$TopicStatImplCopyWithImpl<$Res>
   $Res call({
     Object? topicUuid = null,
     Object? displayName = null,
-    Object? totalQuestionCount = null,
     Object? correctRate = null,
     Object? solvedCount = null,
   }) {
@@ -148,10 +139,6 @@ class __$$TopicStatImplCopyWithImpl<$Res>
             ? _value.displayName
             : displayName // ignore: cast_nullable_to_non_nullable
                   as String,
-        totalQuestionCount: null == totalQuestionCount
-            ? _value.totalQuestionCount
-            : totalQuestionCount // ignore: cast_nullable_to_non_nullable
-                  as int,
         correctRate: null == correctRate
             ? _value.correctRate
             : correctRate // ignore: cast_nullable_to_non_nullable
@@ -171,7 +158,6 @@ class _$TopicStatImpl implements _TopicStat {
   const _$TopicStatImpl({
     required this.topicUuid,
     required this.displayName,
-    this.totalQuestionCount = 0,
     this.correctRate = 0.0,
     this.solvedCount = 0,
   });
@@ -185,9 +171,6 @@ class _$TopicStatImpl implements _TopicStat {
   final String displayName;
   @override
   @JsonKey()
-  final int totalQuestionCount;
-  @override
-  @JsonKey()
   final double correctRate;
   @override
   @JsonKey()
@@ -195,7 +178,7 @@ class _$TopicStatImpl implements _TopicStat {
 
   @override
   String toString() {
-    return 'TopicStat(topicUuid: $topicUuid, displayName: $displayName, totalQuestionCount: $totalQuestionCount, correctRate: $correctRate, solvedCount: $solvedCount)';
+    return 'TopicStat(topicUuid: $topicUuid, displayName: $displayName, correctRate: $correctRate, solvedCount: $solvedCount)';
   }
 
   @override
@@ -207,8 +190,6 @@ class _$TopicStatImpl implements _TopicStat {
                 other.topicUuid == topicUuid) &&
             (identical(other.displayName, displayName) ||
                 other.displayName == displayName) &&
-            (identical(other.totalQuestionCount, totalQuestionCount) ||
-                other.totalQuestionCount == totalQuestionCount) &&
             (identical(other.correctRate, correctRate) ||
                 other.correctRate == correctRate) &&
             (identical(other.solvedCount, solvedCount) ||
@@ -221,7 +202,6 @@ class _$TopicStatImpl implements _TopicStat {
     runtimeType,
     topicUuid,
     displayName,
-    totalQuestionCount,
     correctRate,
     solvedCount,
   );
@@ -244,7 +224,6 @@ abstract class _TopicStat implements TopicStat {
   const factory _TopicStat({
     required final String topicUuid,
     required final String displayName,
-    final int totalQuestionCount,
     final double correctRate,
     final int solvedCount,
   }) = _$TopicStatImpl;
@@ -256,8 +235,6 @@ abstract class _TopicStat implements TopicStat {
   String get topicUuid;
   @override
   String get displayName;
-  @override
-  int get totalQuestionCount;
   @override
   double get correctRate;
   @override

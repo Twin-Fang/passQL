@@ -1,6 +1,7 @@
 package com.passql.application.entitlement;
 
 import com.passql.common.util.ServiceTimeZone;
+import com.passql.common.util.LogValueSanitizer;
 import com.passql.common.util.UuidUtils;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
@@ -38,18 +39,15 @@ public class FeatureAccessPolicy {
     // 무료 하루 랜덤 문제 기본 한도 (개, 보너스 제외)
     public static final int DAILY_FREE_LIMIT = 10;
 
-    // 프로 하루 공정 사용 한도 (개, 화면에 드러내지 않음)
-    public static final int DAILY_PRO_FAIR_USE_LIMIT = 200;
+    // 하루 공정 사용 한도 (개, 무료·프로 공통, 화면에 드러내지 않음)
+    public static final int DAILY_FAIR_USE_LIMIT = 200;
 
-    // 등급 응답 문자열
-    private static final String PLAN_PRO = "PRO";
-    private static final String PLAN_FREE = "FREE";
     // app_settings: 안드로이드 결제 사용 여부 ('true' 사용, 'false'·행 없음·저장소 장애 미사용)
     private static final boolean IS_BILLING_ENABLED_BY_DEFAULT = false;
     // app_settings concept.free_topic_count 읽기 실패·행 없음 기본값 (단원 수)
     private static final int CONCEPT_FREE_TOPIC_COUNT_BY_DEFAULT = 2;
     // app_settings billing.preview_member_uuids 구분자 (쉼표)
-    private static final String PREVIEW_MEMBER_UUID_DELIMITER = ",";
+    public static final String PREVIEW_MEMBER_UUID_DELIMITER = ",";
     // 잘못된 목록 항목 로그 최대 길이 (자)
     private static final int INVALID_ENTRY_LOG_MAX_LENGTH = 40;
 
@@ -172,7 +170,7 @@ public class FeatureAccessPolicy {
     }
 
     /**
-     * 하루 문제 수 판정 (열기·제출 공통): 스위치 > 오늘의 문제 > 예전에 푼 문제(모의고사 제외) > 오늘 제출한 수(무료 10 + 보너스, 프로 200)
+     * 하루 문제 수 판정 (열기·제출 공통): 스위치 > 오늘의 문제 > 예전에 푼 문제(모의고사 제외) > 오늘 제출한 수(공정 사용 200 공통, 무료는 10 + 보너스)
      * 회원 기준 결제 꺼짐, 오늘의 문제, 제출 이력 있는 문제는 항상 통과
      */
     private void assertWithinDailyQuestionLimit(UUID memberUuid, UUID questionUuid, String actionForLog) {
@@ -190,12 +188,13 @@ public class FeatureAccessPolicy {
 
         // 오늘 제출한 문제 수 <-> 등급별 한도
         int todayRandomSolvedCount = dailyQuestionCounter.countTodayRandomSolved(memberUuid);
+        // 공정 사용 상한 (무료·프로 공통)
+        if (todayRandomSolvedCount >= DAILY_FAIR_USE_LIMIT) {
+            log.info("[pro access] rejected 429 : fair use daily limit, action={}, member={}, count={}",
+                actionForLog, memberUuid, todayRandomSolvedCount);
+            throw new CustomException(ErrorCode.FAIR_USE_DAILY_LIMIT_REACHED);
+        }
         if (isPro(memberUuid)) {
-            if (todayRandomSolvedCount >= DAILY_PRO_FAIR_USE_LIMIT) {
-                log.info("[pro access] rejected 429 : fair use daily limit, action={}, member={}, count={}",
-                    actionForLog, memberUuid, todayRandomSolvedCount);
-                throw new CustomException(ErrorCode.FAIR_USE_DAILY_LIMIT_REACHED);
-            }
             return;
         }
         int todayFreeLimit = DAILY_FREE_LIMIT + dailyFreeBonusReader.readToday(memberUuid).totalBonusQuestionCount();
@@ -236,7 +235,7 @@ public class FeatureAccessPolicy {
 
         return new MemberPlanResponse(
             isBillingEnabled,
-            isPro ? PLAN_PRO : PLAN_FREE,
+            isPro ? MemberPlan.PRO : MemberPlan.FREE,
             activeProExpiresAtOrNull,
             todayRandomSolvedCount,
             DAILY_FREE_LIMIT,
@@ -286,17 +285,9 @@ public class FeatureAccessPolicy {
     private UUID toUuidOrNull(String entry) {
         UUID memberUuid = UuidUtils.parseOrEmpty(entry).orElse(null);
         if (memberUuid == null) {
-            log.warn("[feature access] billing preview member ignored : invalid uuid={}", sanitizeForLog(entry));
+            log.warn("[feature access] billing preview member ignored : invalid uuid={}", LogValueSanitizer.toLogSafeIdentifier(entry, INVALID_ENTRY_LOG_MAX_LENGTH));
         }
         return memberUuid;
-    }
-
-    /** 로그용 값 정리 (UUID 문자 외 > ?, 40자 제한) */
-    private static String sanitizeForLog(String value) {
-        String limitedValue = value.length() > INVALID_ENTRY_LOG_MAX_LENGTH
-            ? value.substring(0, INVALID_ENTRY_LOG_MAX_LENGTH)
-            : value;
-        return limitedValue.replaceAll("[^0-9A-Za-z-]", "?");
     }
 
     /** 유효한 프로 등급 행 (PRO 이고 만료일이 지금 이후), 없으면 null */

@@ -256,7 +256,7 @@ throw new CustomException(ErrorCode.NOT_SELECT);
 - enum 요청값 변환: 각 enum 의 `fromRequestValue(String)` (잘못된 값 > `INVALID_INPUT_VALUE`)
 - 관리자 목록 페이지: `PQL-Web` `AdminPageRequest`
 - 관리자 화면 메뉴·제목: `@AdminPage(menu = AdminMenu.X)` (currentMenu·pageTitle 직접 넣지 않음)
-- 관리자 화면 요청·토스트·확인 창: `static/js/admin/admin-fetch.js` (`AdminApi`, `AdminUi`), `alert()`·`confirm()` 금지
+- 관리자 화면 요청·토스트·확인 창: `static/js/admin/admin-fetch.js` (`AdminApi`, `AdminUi`; 폼 제출 확인은 `AdminUi.confirmBeforeSubmit`), `alert()`·`confirm()` 금지 (규칙 `server-admin-no-native-dialog`)
 - 리다이렉트 후 저장 토스트: `AdminFlash.TOAST_MESSAGE` 플래시 속성
 - 미리보기 자르기: `TextPreview.truncate` / `truncateWithEllipsis` + 용도별 길이 상수
 - UUID 짧은 표기·문자열 파싱: `UuidUtils.toShortForm` / `UuidUtils.parseOrEmpty` (`UUID.fromString` try-catch 사본 금지)
@@ -268,6 +268,7 @@ throw new CustomException(ErrorCode.NOT_SELECT);
 - 무료·프로 등급 판정 (#576): `PQL-Application` `FeatureAccessPolicy`만 (등급·한도·결제 스위치 직접 조회 금지). 기능 전체 잠금은 `@RequiresProFeature`, 응답 일부 빼기는 `ProResponseRedactor`
 - 스토어 구매 기록·등급 반영 (Play·App Store): `PQL-Application` `StorePurchaseRecorder`, 환불 회수는 `EntitlementPurchaseRevoker`
 - App Store JWS 검증 (#578): `AppStoreSignedDataVerifier` (Apple `SignedDataVerifier` 직접 생성 금지, 루트 인증서 `PQL-Application` `resources/apple-root-certificates/`)
+- App Store Server API 호출 (#1032): `AppStoreServerApiClient` (거래 조회·소비 정보 응답, 인앱 결제 키 `passql.billing.app-store.server-api.*`, 없으면 호출 없이 건너뜀). 알림 처리·수신 기록은 `AppStoreNotificationService`
 - SHA-256 hex: `PQL-Common` `Sha256Hex` (MessageDigest 직접 조립 금지)
 - 예외 detail 에 `e.getMessage()` 원문을 붙이지 않는다 (응답으로 나감). 원문은 로그·cause 로만
 

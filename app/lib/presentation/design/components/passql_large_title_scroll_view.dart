@@ -5,7 +5,8 @@ import '../tokens/passql_tokens.dart';
 import 'passql_brand_bar_scroll_view.dart';
 import 'passql_refresh_control.dart';
 
-/// 탭 화면 공통 틀: 큰 제목이 스크롤하면 작은 제목 + 글래스 바로 접힌다.
+/// 탭 화면 공통 틀 (#971): 탭 첫 화면은 제목과 오른쪽 요소가 같은 줄인 고정 상단 바 (홈 상단 바와 같은 높이·여백)
+/// 뒤로 갈 수 있는 화면(설정 등)은 큰 제목이 스크롤하면 작은 제목 + 글래스 바로 접히는 iOS 바 (뒤로 버튼 유지)
 class PassqlLargeTitleScrollView extends StatelessWidget {
   const PassqlLargeTitleScrollView({
     super.key,
@@ -31,6 +32,36 @@ class PassqlLargeTitleScrollView extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
+    // 탭 첫 화면: 제목 한 줄 상단 바 (큰 제목이 아랫줄로 내려가 오른쪽 요소와 어긋나던 문제)
+    if (!(ModalRoute.of(context)?.canPop ?? false)) {
+      final trailing = this.trailing;
+      return PassqlBrandBarScrollView(
+        onRefresh: onRefresh,
+        leading: Semantics(
+          header: true,
+          child:
+              largeTitle ??
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: PassqlTypography.title2.copyWith(color: colors.label),
+              ),
+        ),
+        // 칩처럼 글자 요소는 화면 끝에서 md (아이콘 버튼은 바가 맞춰 줌)
+        trailing: trailing == null || isTrailingIconButton
+            ? trailing
+            : Padding(
+                padding: const EdgeInsets.only(
+                  right:
+                      PassqlSpacing.md -
+                      PassqlBrandBarScrollView.trailingEdgePadding,
+                ),
+                child: trailing,
+              ),
+        slivers: slivers,
+      );
+    }
     // 화면 배경색을 알려 주면 펼친 상태에선 바 배경·경계선이 투명하고,
     // 접힐 때만 글래스와 헤어라인이 나타난다(iOS scroll-edge 모양).
     return CupertinoPageScaffoldBackgroundColor(

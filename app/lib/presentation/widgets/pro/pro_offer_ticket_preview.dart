@@ -6,7 +6,7 @@ import '../../../data/models/member/member_plan_response.dart';
 import '../../design/design.dart';
 import 'pro_benefits.dart';
 
-/// 사면 받게 될 내 PRO 탑승권 미리보기 + 연장 만료일 줄 (고른 이용권 만료일이 바로 바뀜)
+/// 사면 받게 될 내 PRO 탑승권 미리보기 + 연장 만료일 줄 (고른 이용권 만료일은 이용권 카드 한 곳에만, #993)
 class ProOfferTicketPreview extends StatelessWidget {
   const ProOfferTicketPreview({
     super.key,
@@ -17,7 +17,7 @@ class ProOfferTicketPreview extends StatelessWidget {
     required this.activeProExpiresAt,
   });
 
-  /// 승객 칸
+  /// 수험생 칸
   final String nickname;
 
   /// 목적지·시험일 (없으면 SQLD, 시험일 칸 생략)
@@ -44,20 +44,11 @@ class ProOfferTicketPreview extends StatelessWidget {
               ? 'SQLD'
               : '${schedule.certType} ${schedule.round}회',
           fields: [
-            PassqlPassTicketField('승객', nickname),
-            if (selectedOption != null)
-              PassqlPassTicketField(
-                '이용권',
-                '${_monthDayOf(selectedOption.expiresAtIfPurchased)}까지',
-                isHighlighted: true,
-              ),
+            PassqlPassTicketField('수험생', nickname),
             if (schedule != null)
               PassqlPassTicketField('시험일', _monthDayOfText(schedule.examDate)),
           ],
-          benefitIcons: [
-            for (final benefit in benefits)
-              (icon: benefit.icon, color: benefitColorOf(context, benefit)),
-          ],
+          benefitIcons: [for (final benefit in benefits) benefit.icon],
           stubLabel: 'PRO',
           hasSweep: true,
           hasHolo: true,
@@ -69,7 +60,7 @@ class ProOfferTicketPreview extends StatelessWidget {
         if (activeProExpiresAt != null && selectedOption != null) ...[
           const SizedBox(height: PassqlSpacing.sm),
           Text(
-            '만료일 ${formatDottedDate(activeProExpiresAt)} > ${formatDottedDate(selectedOption.expiresAtIfPurchased)}',
+            '만료일 ${formatDottedDate(activeProExpiresAt)} → ${formatDottedDate(selectedOption.expiresAtIfPurchased)}',
             textAlign: TextAlign.center,
             style: PassqlTypography.footnote.copyWith(
               color: colors.secondaryLabel,
@@ -81,12 +72,8 @@ class ProOfferTicketPreview extends StatelessWidget {
   }
 }
 
-/// 날짜 > MM.dd
-String _monthDayOf(DateTime date) =>
-    '${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')}';
-
 /// ISO 날짜 문자열 > MM.dd (읽지 못하면 원문 그대로)
 String _monthDayOfText(String isoDate) {
   final date = DateTime.tryParse(isoDate);
-  return date == null ? isoDate : _monthDayOf(date);
+  return date == null ? isoDate : formatDottedMonthDay(date);
 }

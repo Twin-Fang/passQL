@@ -6,6 +6,7 @@ import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
 import '../topic_appearance.dart';
 import 'passql_pressable.dart';
+import 'passql_pro_icon.dart';
 
 // 탑승권 조각 4개: 본문, 떼는 칸, 효과(빛줄기·홀로그램), 외곽·점선·바코드 그리기
 part 'pass_ticket/pass_ticket_body.dart';
@@ -37,6 +38,8 @@ const double _glowOffsetY = 8;
 const double _benefitIconSize = 22;
 const double _benefitGlyphSize = 13;
 const double _barcodeHeight = 28;
+// 세로로 세운 바코드 길이 (회전 전 폭)
+const double _barcodeLength = 52;
 const double _titleLetterSpacing = 0.6;
 // 정보 칸 라벨 글자 크기: 값(13)보다 한 단계 더 작게 해 값이 먼저 읽히게
 const double _fieldLabelSize = 11;
@@ -52,7 +55,7 @@ const double _proSubtleTextAlpha = 0.78;
 const double _proPerforationAlpha = 0.45;
 const double _proDashLineAlpha = 0.55;
 const double _proHighlightedFieldAlpha = 0.22;
-const double _proBenefitBorderAlpha = 0.6;
+const double _proBenefitTileAlpha = 0.22;
 // 무료 잠긴 혜택 아이콘 바탕 / 바코드 무늬 투명도
 const double _lockedBenefitAlpha = 0.4;
 const double _barcodeAlpha = 0.75;
@@ -82,7 +85,9 @@ class PassqlPassTicket extends StatelessWidget {
   /// 경로 끝 (예: SQLD 63회, 일정이 없으면 SQLD)
   final String destination;
   final List<PassqlPassTicketField> fields;
-  final List<({IconData icon, Color color})> benefitIcons;
+
+  /// 혜택 아이콘 (한 색 픽토그램, 색은 등급별로 탑승권이 정함)
+  final List<IconData> benefitIcons;
 
   /// 떼는 칸 글자 (줄바꿈 포함 가능)
   final String stubLabel;
@@ -154,6 +159,7 @@ class PassqlPassTicket extends StatelessWidget {
                     child: const SizedBox(width: PassqlSize.hairline * 2),
                   ),
                   _TicketStub(
+                    isPro: _isPro,
                     label: stubLabel,
                     textColor: _isPro ? colors.onAccent : colors.accentText,
                     barcodeColor: foreground,

@@ -62,6 +62,22 @@ abstract final class PassqlMotion {
   static const pressedScale = 0.97;
 
   // 화면 전환이 끝난 뒤 시작할 연출의 지연 (전환에 묻히지 않게)
+  // 온보딩 연출 (#975): 실행 중 표시 유지 시간, 장면 사이 간격
+  static const onboardingRunDuration = Duration(milliseconds: 800);
+  static const onboardingSceneStep = Duration(milliseconds: 600);
+
+  // 잠금화면 소개 미니 폰 (#990): 잠금 > 문제 화면 올라옴 한 단계 (이만큼씩 번갈아 반복)
+  static const lockScreenIllustrationStep = Duration(milliseconds: 1600);
+
+  // 풀이 상단 칸 진행 바 (#999): 지금 칸 숨쉬기 한 주기
+  static const segmentBreathePeriod = Duration(milliseconds: 1400);
+  // 크레딧 보상 창 연출 전체 (#999): 동전 팝·빛 > 불꽃 > +N > SQL 한 줄 > 기본 게이지 > 보너스 게이지·숫자
+  static const rewardCelebration = Duration(milliseconds: 2100);
+  // 젬 3D 연출 (#1014): 등장 한 바퀴 스핀·빛 쓸기, 값 바뀔 때 작은 뒤집기, 손 뗀 뒤 기울기 복귀
+  static const gemSpinIn = Duration(milliseconds: 1000);
+  static const gemFlip = Duration(milliseconds: 450);
+  static const gemTiltRelease = Duration(milliseconds: 350);
+
   static const afterRouteTransitionDelay = Duration(milliseconds: 300);
 
   /// 접근성 "동작 줄이기"가 켜져 있으면 연출을 생략한다.
