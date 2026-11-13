@@ -109,7 +109,7 @@ platform :ios do
       end
 
       # 마케팅 URL: ios/fastlane/marketing_url.txt 원본 > 로케일마다 marketing_url.txt (AdMob iOS 앱 인증이 이 주소의 app-ads.txt 를 읽음, #864)
-      # 원본 값 = client/src/constants/siteUrls.ts PRODUCTION_SITE_URL, 파일이 없거나 비면 ASC 기존값 유지
+      # 원본 값 = client/src/constants/siteUrls.ts PUBLIC_LEGAL_SITE_URL(소개 사이트, #1057), 파일이 없거나 비면 ASC 기존값 유지
       marketing_src = File.join(workspace, ENV["APP_ROOT"] || ".", "ios", "fastlane", "marketing_url.txt")
       marketing_url = File.file?(marketing_src) ? File.read(marketing_src).strip : ""
       locales.each do |loc|
