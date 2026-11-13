@@ -104,7 +104,7 @@ class ExecutionComparisonCard extends StatelessWidget {
 
   /// 보기 라벨 + 역할 ("보기 B · 내 답")
   static String _titleOf(String? choiceLabel, String role) =>
-      choiceLabel == null ? role : '보기 $choiceLabel · $role';
+      choiceLabel == null ? role : '보기 $choiceLabel | $role';
 }
 
 /// 비교 한쪽: 제목 + (오류면 오류 코드·문구, 아니면 행 수 + 표)
@@ -134,8 +134,8 @@ class _ComparedResultBlock extends StatelessWidget {
       children: [
         Text(
           hasError
-              ? '$title · 실행 오류'
-              : '$title · ${executeResult.rowCount ?? executeResult.rows.length}행',
+              ? '$title | 실행 오류'
+              : '$title | ${executeResult.rowCount ?? executeResult.rows.length}행',
           style: PassqlTypography.footnoteSemibold.copyWith(color: titleColor),
         ),
         const SizedBox(height: PassqlSpacing.xxs),

@@ -42,10 +42,10 @@ class MockExamEntryRow extends ConsumerWidget {
             false);
     final String subtitle = inProgressAttempt != null
         // 풀이 중 상태는 오른쪽 배지가 말함
-        ? '제${inProgressAttempt.roundNumber}회 · 이어서 풀기'
+        ? '제${inProgressAttempt.roundNumber}회 | 이어서 풀기'
         : rule != null
-        ? '${rule.questionCount}문항 ${rule.durationMinutes}분 · 합격·과락 판정'
-        : '합격·과락까지 바로 판정';
+        ? '${rule.questionCount}문항 ${rule.durationMinutes}분 | 합격, 과락 판정'
+        : '합격, 과락까지 바로 판정';
     return PassqlListRow(
       title: title,
       subtitle: subtitle,

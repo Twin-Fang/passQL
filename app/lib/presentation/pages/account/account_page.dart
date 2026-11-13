@@ -20,7 +20,7 @@ class AccountPage extends ConsumerWidget {
     return Scaffold(
       // 이용권 묶음이 없으면(결제 꺼짐) 제목도 계정만
       appBar: PassqlNavBar(
-        title: isBillingUiTarget ? '계정·이용권' : '계정',
+        title: isBillingUiTarget ? '계정, 이용권' : '계정',
         leading: PassqlNavLeading.back,
       ),
       body: ListView(

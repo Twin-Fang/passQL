@@ -27,7 +27,7 @@ const notificationPreferenceRows = <NotificationPreferenceRowSpec>[
     group: NotificationPreferenceGroup.examCountdown,
     icon: CupertinoIcons.calendar,
     title: '시험 D-day',
-    subtitle: '시험 30일·7일·1일 전에 알려 드려요',
+    subtitle: '시험 30일, 7일, 1일 전에 알려 드려요',
   ),
 ];
 

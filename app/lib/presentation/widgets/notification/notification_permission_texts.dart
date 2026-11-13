@@ -5,9 +5,9 @@ abstract final class NotificationPermissionTexts {
 
   /// 받게 되는 소식 3가지
   static const List<String> receivedNewsLines = [
-    '서비스 공지·점검 안내',
+    '서비스 공지, 점검 안내',
     '신고한 문제의 처리 결과',
-    '시험 일정·학습 알림',
+    '시험 일정, 학습 알림',
   ];
 
   static const String optionalNotice = '알림을 꺼도 모든 기능을 쓸 수 있어요';

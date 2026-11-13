@@ -42,7 +42,7 @@ class ExamScheduleHeroCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '다음 시험 · 제${schedule.round}회 ${schedule.certType}',
+                      '다음 시험 | 제${schedule.round}회 ${schedule.certType}',
                       style: PassqlTypography.subheadlineSemibold.copyWith(
                         color: colors.secondaryLabel,
                       ),

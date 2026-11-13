@@ -104,7 +104,7 @@ class _DevSituationToolsTabState extends ConsumerState<DevSituationToolsTab> {
           header: '날짜 넘기기 흉내',
           footer:
               '자정이 지난 것처럼 날짜별 데이터를 다시 받고 무료 사용량을 새 날(0)로 보여요. '
-              '서버 한도·오늘의 세트는 서버 날짜 그대로예요',
+              '서버 한도, 오늘의 세트는 서버 날짜 그대로예요',
           children: [
             PassqlListRow(
               title: '앱 날짜',
@@ -147,7 +147,7 @@ class _DevSituationToolsTabState extends ConsumerState<DevSituationToolsTab> {
             ),
             PassqlListRow(
               title: '첫 설치 상태로',
-              subtitle: '설치 표식·첫 실행 기록 삭제 (다음 실행에 로그아웃)',
+              subtitle: '설치 표식, 첫 실행 기록 삭제 (다음 실행에 로그아웃)',
               isDestructive: true,
               onTap: _resetToFirstInstall,
             ),

@@ -136,7 +136,7 @@ class _TopicProgressSection extends ConsumerWidget {
           Text(
             topicOrder == null
                 ? list.displayName
-                : '${topicOrder + 1}단원 · ${list.displayName}',
+                : '${topicOrder + 1}단원 | ${list.displayName}',
             style: PassqlTypography.subheadline.copyWith(
               color: colors.secondaryLabel,
             ),

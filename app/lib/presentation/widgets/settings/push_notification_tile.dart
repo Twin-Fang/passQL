@@ -25,7 +25,7 @@ class PushNotificationTile extends ConsumerWidget {
       icon: CupertinoIcons.bell_fill,
       iconColor: colors.accent,
       title: '알림 받기',
-      subtitle: isEnabled ? '오늘의 세트·새 소식을 알려 드려요' : '알림을 보내지 않아요',
+      subtitle: isEnabled ? '오늘의 세트, 새 소식을 알려 드려요' : '알림을 보내지 않아요',
       shouldShowChevron: false,
       trailing: CupertinoSwitch(
         value: isEnabled,
