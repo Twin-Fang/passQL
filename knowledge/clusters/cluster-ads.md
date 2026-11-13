@@ -2,7 +2,7 @@
 type: cluster
 topic: ads
 created: 2026-10-29
-members: 27
+members: 28
 status: active
 related: []
 ---
@@ -30,6 +30,9 @@ related: []
 ## 대체된 결정 (역사)
 - [[DEC-0239-free-daily-limit-bonus-three-kinds]] → DEC-0282
 - [[DEC-0148-inline-card-ads-interstitial-cap]] → DEC-0238
+
+## 핵심 문서
+- [[DOC-0005-ads-implementation-code-trace]] (internal, 2026-11-13 코드 기준) — 광고 보상 지도: 앱 신고와 AdMob SSV 콜백 두 경로, 보상 표식·거래 ID 중복 방지, `ads.reward.ssv_required`
 
 ## 관련 이슈
 - [[ISS-0493-first-launch-push-prompt-common-sense-fixes]] (resolved, GitHub #980, PR #981): 첫 실행 알림 안내 없음, 결과 화면 번호뿐인 목록, 크레딧 0일 때 홈 광고 권유

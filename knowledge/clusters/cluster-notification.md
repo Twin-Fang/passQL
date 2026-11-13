@@ -2,7 +2,7 @@
 type: cluster
 topic: notification
 created: 2026-10-29
-members: 25
+members: 26
 status: active
 related: []
 ---
@@ -25,6 +25,9 @@ related: []
 ## 대체된 결정 (역사)
 - [[DEC-0149-contextual-notification-permission-prompt]] → DEC-0304
 - [[DEC-0216-count-badge-contrast-exception]] — 안 읽은 개수 배지는 iOS 시스템 빨강 + 흰 숫자 (DEC-0168 조건부 예외)
+
+## 핵심 문서
+- [[DOC-0006-notification-implementation-code-trace]] (internal, 2026-11-13 코드 기준) — 알림 지도: 알림함 저장 > 커밋 뒤 FCM 전달, 관리자 예약, 자동 알림 규칙. 열린 질문: 종류별 수신 설정은 자동 알림에만 적용
 
 ## 관련 이슈
 - [[ISS-0511-qa-1112-ui-polish-eight]] (resolved, #1041, PR #1042): 11/12 QA UI 개선 8건 — 환영 시트·알림 안내·모의고사 순위·크레딧 아이콘·PK FK·난이도 별·카운트업·과락 칸

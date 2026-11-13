@@ -2,7 +2,7 @@
 type: cluster
 topic: auth-member
 created: 2026-10-29
-members: 66
+members: 67
 status: active
 related: []
 ---
@@ -36,6 +36,9 @@ related: []
 - [[DEC-0088-app-settings-tab-as-mypage]] → null
 - [[DEC-0243-profile-top-card-style-a]] → DEC-0263
 - [[DEC-0263-pass-rows-on-account-screen-only]] → DEC-0276
+
+## 핵심 문서
+- [[DOC-0002-auth-member-implementation-code-trace]] (internal, 2026-11-13 코드 기준) — 로그인·가입·탈퇴 구현 지도: 제공자 토큰·인가 코드 로그인, 기기별 리프레시 회전, 탈퇴 익명화·연결 해제. 열린 질문: 탈퇴 뒤 액세스 토큰 잔여 유효, Google·Apple 전략 중복
 
 ## 관련 이슈
 - [[ISS-0498-second-audit-ui-state-35]] (resolved, #995): 세션 만료 안내·탈퇴 시 이용권 소멸 안내

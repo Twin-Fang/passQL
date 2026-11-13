@@ -2,7 +2,7 @@
 type: cluster
 topic: practice
 created: 2026-10-29
-members: 193
+members: 194
 status: active
 related: []
 ---
@@ -78,6 +78,9 @@ related: []
 - [[DEC-0085-daily-set-ten-questions-daily]] → DEC-0178
 - [[DEC-0147-keep-explanation-sheet-while-solving]] → DEC-0154
 - [[DEC-0261-real-mode-renamed-new-choices]] → DEC-0275
+
+## 핵심 문서
+- [[DOC-0003-practice-implementation-code-trace]] (internal, 2026-11-13 코드 기준) — 풀이 구현 지도: 열기·SSE 선택지·실행·제출 채점, 하루 한도 판정(열기·제출 공통), 보너스·크레딧 내역, 오늘의 세트
 
 ## 관련 이슈
 - [[ISS-0511-qa-1112-ui-polish-eight]] (resolved, #1041, PR #1042): 11/12 QA UI 개선 8건 — 환영 시트·알림 안내·모의고사 순위·크레딧 아이콘·PK FK·난이도 별·카운트업·과락 칸

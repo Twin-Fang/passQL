@@ -231,3 +231,5 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-13 14:30 | merge | 중복 제거(#1008): 브랜치 ISS-0492-first-launch-notification-prompt(#980)·ISS-0493-credit-history-screen(#974) + report 삭제, main의 ISS-0493-first-launch-push-prompt-common-sense-fixes·ISS-0492-credit-history-server-and-screen로 링크 교체, 두 노트 related에 DEC-0304·0305·0306 추가
 - 2026-11-13 14:30 | W2 | update | cluster-admin, ads, billing, ci-deploy, design-system, home, notification, practice, store-release: main 판 위에 #1008 항목 새 번호로 다시 적용
 - 2026-11-13 14:35 | W2 | fix W10 | members: admin 107, ads 27, billing 78, ci-deploy 72, design-system 168, home 78, notification 25, practice 193, store-release 73
+- 2026-11-13 15:40 | W7 | create | DOC-0002 (auth-member), DOC-0003 (practice), DOC-0004 (ai), DOC-0005 (ads), DOC-0006 (notification), DOC-0007 (question-bank) — 코드 흐름 구현 지도, internal, 코드 기준 main 118159a8, source 는 GitHub 커밋 트리 URL (#1008)
+- 2026-11-13 15:40 | W2 | update | cluster-auth-member, practice, ai, ads, notification, question-bank: 핵심 문서 절에 DOC-0002~0007 연결; fix W10 members ads 28, ai 122, auth-member 67, notification 26, practice 194, question-bank 87
