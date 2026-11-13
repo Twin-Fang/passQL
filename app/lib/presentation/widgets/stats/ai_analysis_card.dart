@@ -87,7 +87,7 @@ class _AiStatsAnalysisBody extends StatelessWidget {
       if (strength != null)
         _AiAnalysisNoteLine(
           icon: CupertinoIcons.star,
-          text: '강점 · ${strength.topicName} ${strength.correctRatePercent}%',
+          text: '강점 | ${strength.topicName} ${strength.correctRatePercent}%',
         ),
       if (analysis.nextGoal case final nextGoal?)
         _AiAnalysisNoteLine(icon: CupertinoIcons.scope, text: nextGoal),

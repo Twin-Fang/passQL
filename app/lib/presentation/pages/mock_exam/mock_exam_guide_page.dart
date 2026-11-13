@@ -102,7 +102,7 @@ class _MockExamGuidePageState extends ConsumerState<MockExamGuidePage> {
                         ),
                         const SizedBox(height: PassqlSpacing.xs),
                         Text(
-                          '조용한 곳에서 한 번에 풀어 보세요. 결과에서 점수와 합격·과락을 바로 알려 드려요.',
+                          '조용한 곳에서 한 번에 풀어 보세요. 결과에서 점수와 합격, 과락을 바로 알려 드려요.',
                           style: PassqlTypography.subheadline.copyWith(
                             color: colors.secondaryLabel,
                           ),

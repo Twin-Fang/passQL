@@ -12,7 +12,7 @@ String examBarSubtitle(ExamScheduleResponse schedule) {
   final round = '${schedule.certType} ${schedule.round}회';
   final date = DateTime.tryParse(schedule.examDate);
   if (date == null) return round;
-  return '$round · ${formatMonthDay(date)}';
+  return '$round | ${formatMonthDay(date)}';
 }
 
 /// 스크린리더 낭독: 'D-18' 대신 '시험까지 18일'

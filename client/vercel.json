@@ -14,6 +14,11 @@
       "source": "/legal/delete-account.html",
       "destination": "https://passql.suhsaechan.kr/delete-account.html",
       "permanent": true
+    },
+    {
+      "source": "/((?!app-ads\\.txt$)(?!robots\\.txt$)(?!google89a0d6ac0049ff75\\.html$).*)",
+      "destination": "https://passql.suhsaechan.kr/",
+      "permanent": true
     }
   ],
   "rewrites": [

@@ -15,7 +15,7 @@ abstract final class NotificationPermissionTexts {
   ];
 
   /// 보내는 알림 종류 한 줄 요약
-  static const String sentKindsSummary = '시험 일정 · 학습 알림 · 신고 처리 결과 · 점검 안내만 보내요';
+  static const String sentKindsSummary = '시험 일정, 학습 알림, 신고 처리 결과, 점검 안내만 보내요';
 
   static const String optionalNotice = '알림을 꺼도 모든 기능을 쓸 수 있어요';
   static const String acceptLabel = '알림 받기';

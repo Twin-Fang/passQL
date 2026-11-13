@@ -66,7 +66,7 @@ class MockExamRoundRow extends ConsumerWidget {
     if (isPassed == null) return null;
     if (isPassed) return '합격';
     return round.bestAttemptFailReason == MockExamFailReason.subjectFail
-        ? '불합격 · 과락'
+        ? '불합격 | 과락'
         : '불합격';
   }
 
@@ -136,7 +136,7 @@ class MockExamRoundRow extends ConsumerWidget {
 
   /// 상태 > 둘째 줄 (풀이 중 남은 시간 / 마지막 결과·응시 횟수 / 시험 형식)
   String _subtitleOf(_RoundRowState state) {
-    final ruleText = '${rule.questionCount}문항 · ${rule.durationMinutes}분';
+    final ruleText = '${rule.questionCount}문항 | ${rule.durationMinutes}분';
     if (state == _RoundRowState.inProgress) {
       final ownAttempt = _ownInProgressAttempt;
       if (ownAttempt == null) return ruleText;
@@ -153,7 +153,7 @@ class MockExamRoundRow extends ConsumerWidget {
       final lastScore = lastAttempt?.totalScore;
       final isLastPassed = lastAttempt?.isPassed;
       if (lastScore == null || isLastPassed == null) return countText;
-      return '마지막 $lastScore점 ${isLastPassed ? '합격' : '불합격'} · $countText';
+      return '마지막 $lastScore점 ${isLastPassed ? '합격' : '불합격'} | $countText';
     }
     // 1회: 횟수 + 응시 날짜
     final submittedAt = DateTime.tryParse(
@@ -161,7 +161,7 @@ class MockExamRoundRow extends ConsumerWidget {
     )?.toLocal();
     return submittedAt == null
         ? countText
-        : '$countText · ${formatDottedMonthDay(submittedAt)}';
+        : '$countText | ${formatDottedMonthDay(submittedAt)}';
   }
 
   void _onTap(BuildContext context, WidgetRef ref) {

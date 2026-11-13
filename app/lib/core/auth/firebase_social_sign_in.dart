@@ -27,7 +27,7 @@ class FirebaseSocialSignIn {
       final credential = switch (provider) {
         SocialProvider.google => await _googleCredential(),
         SocialProvider.apple => await _appleCredential(),
-        _ => throw ArgumentError.value(provider, 'provider', 'Firebase 로그인은 Google·Apple 만'),
+        _ => throw ArgumentError.value(provider, 'provider', 'Firebase 로그인은 Google, Apple 만'),
       };
       // 사용자가 중간에 취소했다.
       if (credential == null) return null;

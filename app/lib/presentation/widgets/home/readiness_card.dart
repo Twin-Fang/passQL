@@ -219,7 +219,7 @@ class _HomeReadinessBody extends StatelessWidget {
                   ),
                   const SizedBox(height: PassqlSpacing.xxs),
                   PassqlKeepAllText(
-                    '정확도 · 범위 · 최신성으로 계산해요',
+                    '정확도, 범위, 최신성으로 계산해요',
                     style: PassqlTypography.footnote.copyWith(
                       color: colors.secondaryLabel,
                     ),

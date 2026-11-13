@@ -71,7 +71,7 @@ class _ChapterFeedbackBarState extends State<ChapterFeedbackBar> {
                   isCorrect: _result.isCorrect,
                   label: _result.isCorrect
                       ? '정답이에요'
-                      : '오답이에요 · 정답 ${widget.correctDisplayLabel ?? _result.correctKey ?? '-'}',
+                      : '오답이에요 | 정답 ${widget.correctDisplayLabel ?? _result.correctKey ?? '-'}',
                 ),
               ),
               // 의견 N 칩: 풀이 흐름에서 토론으로 가는 길 (결과 화면 칩과 같은 위젯)

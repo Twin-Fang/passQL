@@ -95,7 +95,7 @@ class _DevDiagnosticsTabState extends ConsumerState<DevDiagnosticsTab> {
             PassqlListRow(
               title: '로그 보기',
               subtitle:
-                  '전체 ${recentEntries.length}건 · 네트워크 오류 $apiFailureCount건',
+                  '전체 ${recentEntries.length}건 | 네트워크 오류 $apiFailureCount건',
               hasChevron: true,
               onTap: _openLogSheet,
             ),

@@ -120,7 +120,7 @@ class _PassqlQueryResultTableState extends State<PassqlQueryResultTable> {
           ],
           const SizedBox(height: PassqlSpacing.xs),
           Text(
-            '${rows.length} ${rows.length == 1 ? 'row' : 'rows'} selected · 정답 $correctCount',
+            '${rows.length} ${rows.length == 1 ? 'row' : 'rows'} selected | 정답 $correctCount',
             style: PassqlTypography.codeCompact.copyWith(
               color: colors.secondaryLabel,
             ),

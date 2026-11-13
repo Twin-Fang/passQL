@@ -10,7 +10,7 @@ String composeAiExplanationVerdict(
   AiExplanationEntry entry,
 ) {
   final selectedReason = selectedChoiceReasonOf(explanation);
-  final reasonSuffix = selectedReason == null ? '' : ' · $selectedReason';
+  final reasonSuffix = selectedReason == null ? '' : ' | $selectedReason';
   if (explanation.isSelectedCorrect) return '정답$reasonSuffix';
   if (explanation.selectedChoiceKey.isEmpty ||
       explanation.correctChoiceKey.isEmpty) {
@@ -18,7 +18,7 @@ String composeAiExplanationVerdict(
   }
   final selectedLabel = entry.displayLabelOf(explanation.selectedChoiceKey);
   final correctLabel = entry.displayLabelOf(explanation.correctChoiceKey);
-  return '오답 · $selectedLabel 선택, 정답은 $correctLabel$reasonSuffix';
+  return '오답 | $selectedLabel 선택, 정답은 $correctLabel$reasonSuffix';
 }
 
 /// 고른 보기의 판정 이유 (없으면 null)

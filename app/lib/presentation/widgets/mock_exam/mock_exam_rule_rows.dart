@@ -43,7 +43,7 @@ class MockExamRuleRows extends StatelessWidget {
                     const _FigureDivider(),
                     _RuleFigure(
                       figure: '${rule.passScore}점',
-                      caption: '합격 · ${rule.maxScore}점 만점',
+                      caption: '합격 | ${rule.maxScore}점 만점',
                     ),
                   ],
                 ),
@@ -72,7 +72,7 @@ class MockExamRuleRows extends StatelessWidget {
           const SizedBox(height: PassqlSpacing.sm),
           const _RuleNote(
             icon: CupertinoIcons.eye_slash,
-            title: '풀이 중엔 정답·해설·SQL 실행이 없어요',
+            title: '풀이 중엔 정답, 해설, SQL 실행이 없어요',
             description: '실제 시험처럼 머릿속으로 풀어요',
           ),
         ],
@@ -169,7 +169,7 @@ class _SubjectCutoffCell extends StatelessWidget {
                 ),
               ),
               Text(
-                '${subject.questionCount}문항 · ${subject.maxScore}점 만점',
+                '${subject.questionCount}문항 | ${subject.maxScore}점 만점',
                 style: PassqlTypography.caption.copyWith(
                   color: colors.secondaryLabel,
                 ),

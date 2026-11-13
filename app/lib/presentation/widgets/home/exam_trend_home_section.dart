@@ -124,7 +124,7 @@ class _ExamTrendHomeSectionState extends State<ExamTrendHomeSection> {
                   children: [
                     if (widget.updatedDate != null)
                       TextSpan(
-                        text: ' · ${widget.updatedDate} 갱신',
+                        text: ' | ${widget.updatedDate} 갱신',
                         style: PassqlTypography.footnote.copyWith(
                           color: colors.secondaryLabel,
                         ),
