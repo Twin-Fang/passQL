@@ -472,7 +472,7 @@ mixin _$DailyFreeBonus {
   bool get isDailySetAccuracyEarned =>
       throw _privateConstructorUsedError; // 오늘 받은 광고 보너스 횟수
   int get adBonusUsedCount =>
-      throw _privateConstructorUsedError; // 하루 광고 보너스 최대 횟수
+      throw _privateConstructorUsedError; // 옛 앱 호환 값 (서버가 받은 횟수 + 1 을 줌, 횟수 제한 없음 #963). 새 앱은 0보다 큰지(광고 보너스 대상)만 봄
   int get adBonusMaxCount => throw _privateConstructorUsedError; // 보너스 1회분 문제 수
   int get bonusQuestionCount => throw _privateConstructorUsedError;
 
@@ -642,7 +642,7 @@ class _$DailyFreeBonusImpl extends _DailyFreeBonus {
   @override
   @JsonKey()
   final int adBonusUsedCount;
-  // 하루 광고 보너스 최대 횟수
+  // 옛 앱 호환 값 (서버가 받은 횟수 + 1 을 줌, 횟수 제한 없음 #963). 새 앱은 0보다 큰지(광고 보너스 대상)만 봄
   @override
   @JsonKey()
   final int adBonusMaxCount;
@@ -727,7 +727,7 @@ abstract class _DailyFreeBonus extends DailyFreeBonus {
   @override
   bool get isDailySetAccuracyEarned; // 오늘 받은 광고 보너스 횟수
   @override
-  int get adBonusUsedCount; // 하루 광고 보너스 최대 횟수
+  int get adBonusUsedCount; // 옛 앱 호환 값 (서버가 받은 횟수 + 1 을 줌, 횟수 제한 없음 #963). 새 앱은 0보다 큰지(광고 보너스 대상)만 봄
   @override
   int get adBonusMaxCount; // 보너스 1회분 문제 수
   @override
