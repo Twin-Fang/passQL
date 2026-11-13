@@ -14,11 +14,15 @@ class PassqlQueryResultRow {
   const PassqlQueryResultRow({
     required this.label,
     required this.isCorrect,
+    this.isRetriedCorrect = false,
     this.onTap,
   });
 
   final String label;
   final bool isCorrect;
+
+  /// 틀렸던 문제를 다시 풀어 맞혔는지 (배지는 처음 결과 그대로, `다시 ›` 자리에 `맞힘`, #1035)
+  final bool isRetriedCorrect;
 
   /// 행을 누르면 (문제 다시 풀기·해설). null 이면 누를 수 없음
   final VoidCallback? onTap;
@@ -153,6 +157,13 @@ class _PassqlQueryResultTableState extends State<PassqlQueryResultTable> {
         ),
         retry: row.isCorrect
             ? null
+            : row.isRetriedCorrect
+            ? Text(
+                '맞힘',
+                style: PassqlTypography.footnoteSemibold.copyWith(
+                  color: colors.correctText,
+                ),
+              )
             : Text(
                 '다시 ›',
                 style: PassqlTypography.footnoteSemibold.copyWith(
@@ -167,7 +178,7 @@ class _PassqlQueryResultTableState extends State<PassqlQueryResultTable> {
     return PassqlPressable(
       onTap: onTap,
       semanticLabel:
-          '${row.label}, ${row.isCorrect ? '정답, 문제 보기' : '오답, 다시 풀기'}',
+          '${row.label}, ${row.isCorrect ? '정답, 문제 보기' : row.isRetriedCorrect ? '오답, 다시 풀어 맞힘' : '오답, 다시 풀기'}',
       child: cells,
     );
   }

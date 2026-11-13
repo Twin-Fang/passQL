@@ -1849,7 +1849,7 @@ export interface paths {
         };
         /**
          * 결과
-         * @description 총점·합격·불합격 이유·문항 정오 공개. 과목별 점수·토픽별 정답률·문항 해설·다음에 할 일은 프로 전용(무료는 빈 값 + lockedSections). 풀이 중 409 MOCK_EXAM_NOT_SUBMITTED.
+         * @description 총점·합격·불합격 이유·회차 순위(응시자 10명 미만 null)·문항 정오 공개. 과목별 점수·토픽별 정답률·문항 해설·다음에 할 일은 프로 전용(무료는 빈 값 + lockedSections). 풀이 중 409 MOCK_EXAM_NOT_SUBMITTED.
          */
         get: operations["getResult"];
         put?: never;
@@ -3221,7 +3221,8 @@ export interface components {
             /** Format: date-time */
             lastPurchasedAt: string | null;
             passOptions: components["schemas"]["PassOption"][];
-            plan: string;
+            /** @enum {string} */
+            plan: "FREE" | "PRO";
             /** Format: date-time */
             proExpiresAt: string | null;
             /**
@@ -3263,6 +3264,23 @@ export interface components {
             headline: string;
             message: string;
         };
+        MockExamRanking: {
+            /**
+             * Format: int32
+             * @description 내 순위 (1부터, 동점은 같은 순위)
+             */
+            rankPosition: number;
+            /**
+             * Format: int32
+             * @description 순위 계산에 든 응시자 수 (회원 수)
+             */
+            takerCount: number;
+            /**
+             * Format: int32
+             * @description 상위 퍼센트 (1~100, 올림)
+             */
+            topPercent: number;
+        };
         MockExamResultResponse: {
             /** Format: uuid */
             attemptUuid: string;
@@ -3286,6 +3304,7 @@ export interface components {
             /** Format: int32 */
             questionCount: number;
             questionMarks: components["schemas"]["QuestionMark"][];
+            ranking: components["schemas"]["MockExamRanking"] | null;
             reviews: components["schemas"]["QuestionReview"][];
             /** Format: int32 */
             roundNumber: number;

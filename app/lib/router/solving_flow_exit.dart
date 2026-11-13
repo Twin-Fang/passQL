@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'app_routes.dart';
 
-// 풀이 흐름을 이루는 루트 라우트 경로 (문제 상세, 결과, 챕터, 챕터 결과, 랜덤 풀기, 랜덤 요약, 오늘의 세트, 세트 결과)
+// 풀이 흐름을 이루는 루트 라우트 경로 (문제 상세, 결과, 챕터, 챕터 결과, 랜덤 풀기, 랜덤 요약, 오늘의 세트, 세트 결과, 세트 다시 풀기)
 // app_router.dart 의 해당 GoRoute.path 와 같은 상수를 쓴다.
 const Set<String> _solvingFlowRoutePaths = {
   AppRoutes.questionDetailPattern,
@@ -14,6 +14,7 @@ const Set<String> _solvingFlowRoutePaths = {
   AppRoutes.randomPracticeSummary,
   AppRoutes.dailySet,
   AppRoutes.dailySetResult,
+  AppRoutes.dailySetRetry,
 };
 
 // 결과 요약 화면 3개 (세트 결과, 랜덤 요약, 챕터 결과): 그 위에서 연 문제(다시 풀기·문제 보기)를 닫으면 여기로 돌아옴

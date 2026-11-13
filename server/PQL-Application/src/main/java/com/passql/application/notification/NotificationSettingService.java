@@ -3,6 +3,7 @@ package com.passql.application.notification;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.constant.AppSettingKeys;
+import com.passql.meta.constant.AppSettingValueRanges;
 import com.passql.meta.service.AppSettingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,12 +20,14 @@ public class NotificationSettingService {
 
     // 알림 보관 기간 기본값·허용 범위 (일)
     public static final int DEFAULT_RETENTION_DAYS = 90;
-    public static final int MIN_RETENTION_DAYS = 7;
-    public static final int MAX_RETENTION_DAYS = 365;
+    public static final int MIN_RETENTION_DAYS = AppSettingValueRanges.NOTIFICATION_RETENTION_DAYS_MINIMUM;
+    public static final int MAX_RETENTION_DAYS = AppSettingValueRanges.NOTIFICATION_RETENTION_DAYS_MAXIMUM;
     // 회원당 하루 자동 알림 기본값·허용 범위 (건)
     public static final int DEFAULT_AUTO_DAILY_LIMIT_PER_MEMBER = 1;
-    public static final int MIN_AUTO_DAILY_LIMIT_PER_MEMBER = 1;
-    public static final int MAX_AUTO_DAILY_LIMIT_PER_MEMBER = 5;
+    public static final int MIN_AUTO_DAILY_LIMIT_PER_MEMBER =
+            AppSettingValueRanges.AUTO_NOTIFICATION_DAILY_LIMIT_PER_MEMBER_MINIMUM;
+    public static final int MAX_AUTO_DAILY_LIMIT_PER_MEMBER =
+            AppSettingValueRanges.AUTO_NOTIFICATION_DAILY_LIMIT_PER_MEMBER_MAXIMUM;
 
     private final AppSettingService appSettingService;
 

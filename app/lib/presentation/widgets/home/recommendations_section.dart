@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import '../../../core/utils/question_difficulty.dart';
 import '../../../data/models/home/question_summary.dart';
 import '../../design/design.dart';
 import '../question/stem_text.dart';
@@ -43,7 +42,6 @@ class RecommendationsSection extends StatelessWidget {
               ),
               child: _QuestionRow(
                 question: questions[i],
-                difficultyStars: toDifficultyStarText(questions[i].difficulty),
                 onTap: () => onQuestionTap?.call(questions[i].questionUuid),
               ),
             ),
@@ -74,19 +72,11 @@ class RecommendationsSection extends StatelessWidget {
   }
 }
 
-/// 난이도 별(★★☆☆☆) 글자 사이 간격
-const double _difficultyStarSpacing = 2;
-
 class _QuestionRow extends StatelessWidget {
   final QuestionSummary question;
-  final String difficultyStars;
   final VoidCallback? onTap;
 
-  const _QuestionRow({
-    required this.question,
-    required this.difficultyStars,
-    this.onTap,
-  });
+  const _QuestionRow({required this.question, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -114,19 +104,7 @@ class _QuestionRow extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: PassqlSpacing.xxs),
-          // 별 글리프 대신 '난이도 N / 5' 로 읽음
-          Semantics(
-            label:
-                '난이도 ${toClampedQuestionDifficulty(question.difficulty)} / $maximumQuestionDifficulty',
-            excludeSemantics: true,
-            child: Text(
-              difficultyStars,
-              style: PassqlTypography.caption.copyWith(
-                color: colors.warningText,
-                letterSpacing: _difficultyStarSpacing,
-              ),
-            ),
-          ),
+          PassqlDifficultyStars(difficulty: question.difficulty),
         ],
       ),
     );
