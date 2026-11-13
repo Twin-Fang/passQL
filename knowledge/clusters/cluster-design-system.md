@@ -2,7 +2,7 @@
 type: cluster
 topic: design-system
 created: 2026-10-29
-members: 165
+members: 167
 status: active
 related: []
 ---
@@ -13,9 +13,10 @@ related: []
 디자인 토큰·공통 UI 컴포넌트·폰트·테마
 
 ## 현재 상태 요약
-(2026-11-12, 자동 생성) 활성 결정 50개, 열린 이슈 3개. 2026-11-07 main 머지(배포 전): 풀이 메모 컴포넌트 `PassqlMemoScope`([[ISS-0473-solving-memo-pen-toggle]]), 차트 `PassqlBarChart`([[DEC-0274-stats-radar-above-list-study-pattern-free]], DEC-0206 대체), 아바타 `PassqlAvatar`와 제공자 아이콘([[DEC-0276-account-provider-icon-email-avatar]], DEC-0263 대체), 지문 표 한 가지 모양과 테두리 SQL 상자([[DEC-0278-stem-blocks-single-table-shape]]). 코드 상자 속 한글은 본문 글꼴(DEC-0255 를 DEC-0278 이 대체, 코드 글꼴 D2Coding 부분 글꼴은 그대로). 코드 글꼴은 D2Coding 부분 글꼴(#849, 한글은 본문 글꼴로 바뀌어 [[DEC-0278-stem-blocks-single-table-shape]]가 대체). 하단 탭 바는 아이콘 + 라벨을 바 안 세로 가운데, 높이 50 — [[DEC-0241-tab-bar-content-vertically-centered]] (#817 릴리스 반영). 앱 아이콘은 연보라 그라데이션 + `pass`/`QL` 2줄 — [[DEC-0242-app-icon-lavender-two-line-pass-ql]] (main 머지, 작성 시점 미배포). 프로필 상단은 A안(카드형)이고 프로필·정보 시트 탑승권 칸 통일([[DEC-0208-pass-ticket-fields-unified]])은 대체됐으며, 이용권 행은 `/account` 한 곳·프로필은 "이용권 관리" 한 줄(DEC-0263 에서 정하고 [[DEC-0276-account-provider-icon-email-avatar]]가 이어받음). 이용권 혜택은 광고 제거를 더한 7개 — [[DEC-0262-pro-benefits-seven-ad-removal]] (DEC-0205 대체). 개념 글 `**` 는 외울 말 형광펜(`memorizeHighlight` 토큰) — [[DEC-0266-concept-bold-highlight-memorize-section]]. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 이용권 시트 작은 할인 배지·PRO 마크·보상 연출(`passql_reward_celebration`) — [[DEC-0284-pass-sheet-plain-copy-small-discount-badge]] (#963). (2026-11-12) 화면 원칙(정보 한 번만, 접지 않기, 한 단어 한 아이콘)을 `Design.md` 5장에 적음 — [[DEC-0287-credit-term-top-bar-balance]], [[DEC-0286-pass-sheet-comparison-table-price-cards]]. (2026-11-12) 지문 표 대체는 이름 기준, 코드 제목은 짧은 이름표 주석만 — [[DEC-0292-stem-table-match-by-name-short-code-caption]](DEC-0278 대체). (2026-11-12) 3D 연출 공통 부품 `Passql3dTilt`(동작 줄이기면 정지)와 PRO 무한 젬 `PassqlProIcon` — [[DEC-0299-gem-3d-via-perspective-single-pro-gem]].
+(2026-11-12, 자동 생성) 활성 결정 50개, 열린 이슈 3개. 2026-11-07 main 머지(배포 전): 풀이 메모 컴포넌트 `PassqlMemoScope`([[ISS-0473-solving-memo-pen-toggle]]), 차트 `PassqlBarChart`([[DEC-0274-stats-radar-above-list-study-pattern-free]], DEC-0206 대체), 아바타 `PassqlAvatar`와 제공자 아이콘([[DEC-0276-account-provider-icon-email-avatar]], DEC-0263 대체), 지문 표 한 가지 모양과 테두리 SQL 상자([[DEC-0278-stem-blocks-single-table-shape]]). 코드 상자 속 한글은 본문 글꼴(DEC-0255 를 DEC-0278 이 대체, 코드 글꼴 D2Coding 부분 글꼴은 그대로). 코드 글꼴은 D2Coding 부분 글꼴(#849, 한글은 본문 글꼴로 바뀌어 [[DEC-0278-stem-blocks-single-table-shape]]가 대체). 하단 탭 바는 아이콘 + 라벨을 바 안 세로 가운데, 높이 50 — [[DEC-0241-tab-bar-content-vertically-centered]] (#817 릴리스 반영). 앱 아이콘은 연보라 그라데이션 + `pass`/`QL` 2줄 — [[DEC-0242-app-icon-lavender-two-line-pass-ql]] (main 머지, 작성 시점 미배포). 프로필 상단은 A안(카드형)이고 프로필·정보 시트 탑승권 칸 통일([[DEC-0208-pass-ticket-fields-unified]])은 대체됐으며, 이용권 행은 `/account` 한 곳·프로필은 "이용권 관리" 한 줄(DEC-0263 에서 정하고 [[DEC-0276-account-provider-icon-email-avatar]]가 이어받음). 이용권 혜택은 광고 제거를 더한 7개 — [[DEC-0262-pro-benefits-seven-ad-removal]] (DEC-0205 대체). 개념 글 `**` 는 외울 말 형광펜(`memorizeHighlight` 토큰) — [[DEC-0266-concept-bold-highlight-memorize-section]]. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 이용권 시트 작은 할인 배지·PRO 마크·보상 연출(`passql_reward_celebration`) — [[DEC-0284-pass-sheet-plain-copy-small-discount-badge]] (#963). (2026-11-12) 화면 원칙(정보 한 번만, 접지 않기, 한 단어 한 아이콘)을 `Design.md` 5장에 적음 — [[DEC-0287-credit-term-top-bar-balance]], [[DEC-0286-pass-sheet-comparison-table-price-cards]]. (2026-11-12) 지문 표 대체는 이름 기준, 코드 제목은 짧은 이름표 주석만 — [[DEC-0292-stem-table-match-by-name-short-code-caption]](DEC-0278 대체). (2026-11-12) 3D 연출 공통 부품 `Passql3dTilt`(동작 줄이기면 정지)와 PRO 무한 젬 `PassqlProIcon` — [[DEC-0299-gem-3d-via-perspective-single-pro-gem]]. (2026-11-13) 난이도 별·숫자 카운트업은 공통 부품 `PassqlDifficultyStars`·`PassqlCountUp`, 표 머리 PK·FK는 색 배지, 크레딧 뜻 번개는 모두 `PassqlCreditIcon` — [[ISS-0511-qa-1112-ui-polish-eight]].
 
 ## 활성 결정
+- [[DEC-0303-display-parts-difficulty-stars-count-up-key-badge-cutoff]] — 난이도 별 `PassqlDifficultyStars`, 숫자 `PassqlCountUp`, PK·FK 색 배지, 과락은 과목별 기준 칸 (#1041)
 - [[DEC-0299-gem-3d-via-perspective-single-pro-gem]] — 젬 3D는 3D 모델 대신 원근 회전 부품 Passql3dTilt, PRO 에셋은 무한 젬 1종 (#1014)
 - [[DEC-0292-stem-table-match-by-name-short-code-caption]] — 스키마 표는 이름이 같은 지문 표 자리에만, 코드 제목은 짧은 이름표 주석만 (#1015, DEC-0278 대체)
 - [[DEC-0017-fullscreen-result-screen]] — 제출 결과 화면은 풀스크린 1종으로 통일 (bottom sheet 변형 미채택)
@@ -87,6 +88,7 @@ related: []
 - [[DEC-0255-code-font-d2coding-subset]] → DEC-0278
 
 ## 관련 이슈
+- [[ISS-0511-qa-1112-ui-polish-eight]] (resolved, #1041, PR #1042): 11/12 QA UI 개선 8건 — 환영 시트·알림 안내·모의고사 순위·크레딧 아이콘·PK FK·난이도 별·카운트업·과락 칸
 - [[ISS-0510-daily-set-retry-wrong-and-qa-fixes]] (resolved, #1035, PR #1040): `PassqlCodeBlock` 좁은 폭 줄바꿈이 줄 머리로 떨어짐 > 원래 들여쓰기·첫 단어 뒤로 이어 쓰기, 주석 줄 회색 유지(외 다시 풀기 등 3건)
 - [[ISS-0507-credit-gem-3d-pro-asset]] (resolved, #1014, PR #1023): 크레딧 젬 3D 연출, PRO 무한 젬 에셋
 - [[ISS-0502-stem-table-same-columns-overwritten]] (resolved, #1015): 이름 다른 같은 컬럼 표가 지문 표를 덮음, 제약 주석이 코드 제목으로

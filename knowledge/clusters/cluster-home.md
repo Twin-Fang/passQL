@@ -2,7 +2,7 @@
 type: cluster
 topic: home
 created: 2026-10-29
-members: 74
+members: 76
 status: active
 related: []
 ---
@@ -13,9 +13,10 @@ related: []
 홈 화면·추천
 
 ## 현재 상태 요약
-(2026-11-12, 자동 생성) 활성 결정 21개, 열린 이슈 0개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 홈 상단 바는 로고 + 시험 D-day 배지와 크레딧 알약, 오늘의 세트와 랜덤 풀기는 별도 구간 — [[ISS-0489-pass-sheet-home-profile-cleanup]], [[ISS-0490-credit-term-purchase-funnel-events]]. (2026-11-12) 홈 시험 D-day 배지에 지금 단계 한 줄이 붙고 누르면 시험 일정 화면으로 간다 — [[ISS-0506-sqld-exam-schedule-auto-sync]].
+(2026-11-12, 자동 생성) 활성 결정 21개, 열린 이슈 0개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 홈 상단 바는 로고 + 시험 D-day 배지와 크레딧 알약, 오늘의 세트와 랜덤 풀기는 별도 구간 — [[ISS-0489-pass-sheet-home-profile-cleanup]], [[ISS-0490-credit-term-purchase-funnel-events]]. (2026-11-12) 홈 시험 D-day 배지에 지금 단계 한 줄이 붙고 누르면 시험 일정 화면으로 간다 — [[ISS-0506-sqld-exam-schedule-auto-sync]]. (2026-11-13) 홈 첫 진입 환영 시트는 오늘 할 일 3단계 + `오늘의 세트 시작하기` — [[ISS-0511-qa-1112-ui-polish-eight]].
 
 ## 활성 결정
+- [[DEC-0302-first-run-sheets-today-steps-notification-preview]] — 홈 첫 진입 환영 시트는 오늘 할 일 3단계 + 오늘의 세트 바로 시작, 알림 안내는 실제 알림 미리보기 카드 (#1041)
 - [[DEC-0034-greeting-nickname-template-message-type]] — 인사말 응답은 `nickname`·`{nickname}` 템플릿·`messageType`으로 나누고, 이모지·아이콘은 프론트가 정한다
 - [[DEC-0035-greeting-dday-weighted-mix]] — D-day 구간에도 일반 인사말을 섞고, 시험이 가까울수록 D-day 메시지 비중을 높인다
 - [[DEC-0039-home-sections-independent-failure]] — 홈 섹션은 API별로 독립 호출하고, `progress` 실패만 전체 에러 화면, 나머지는 조용히 숨긴다
@@ -41,6 +42,7 @@ related: []
 - [[DEC-0167-five-tabs-with-text-labels]] → DEC-0171
 
 ## 관련 이슈
+- [[ISS-0511-qa-1112-ui-polish-eight]] (resolved, #1041, PR #1042): 11/12 QA UI 개선 8건 — 환영 시트·알림 안내·모의고사 순위·크레딧 아이콘·PK FK·난이도 별·카운트업·과락 칸
 - [[ISS-0510-daily-set-retry-wrong-and-qa-fixes]] (resolved, #1035, PR #1040): 시험 일정 지난 일정 펼침 버튼을 목록 맨 위로, 홈 새로고침 시 모의고사 회차 목록 갱신(외 오늘의 세트 다시 풀기 등)
 - [[ISS-0506-sqld-exam-schedule-auto-sync]] (resolved, #991, PR #1025): SQLD 시험 일정 자동 수집, 앱 시험 일정 화면, 접수·발표 자동 알림 5종(운영 켬)
 - [[ISS-0497-ui-ux-cleanup-18]] (resolved, #993): 다음에 할 일과 구간 버튼 중복 제거
