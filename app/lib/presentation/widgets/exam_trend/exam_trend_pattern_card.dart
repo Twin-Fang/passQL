@@ -83,7 +83,8 @@ class ExamTrendPatternCard extends StatelessWidget {
           children: [
             _buildRisingBadge(colors),
             const SizedBox(height: PassqlSpacing.sm),
-            Text(
+            // 유형 이름 단어 단위 줄바꿈 ('NULL 함 / 정' 방지, #646)
+            PassqlKeepAllText(
               pattern.title,
               maxLines: _titleMaxLines,
               overflow: TextOverflow.ellipsis,
