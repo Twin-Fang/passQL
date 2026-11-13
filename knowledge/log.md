@@ -233,3 +233,5 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-13 14:35 | W2 | fix W10 | members: admin 107, ads 27, billing 78, ci-deploy 72, design-system 168, home 78, notification 25, practice 193, store-release 73
 - 2026-11-13 15:40 | W7 | create | DOC-0002 (auth-member), DOC-0003 (practice), DOC-0004 (ai), DOC-0005 (ads), DOC-0006 (notification), DOC-0007 (question-bank) — 코드 흐름 구현 지도, internal, 코드 기준 main 118159a8, source 는 GitHub 커밋 트리 URL (#1008)
 - 2026-11-13 15:40 | W2 | update | cluster-auth-member, practice, ai, ads, notification, question-bank: 핵심 문서 절에 DOC-0002~0007 연결; fix W10 members ads 28, ai 122, auth-member 67, notification 26, practice 194, question-bank 87
+- 2026-11-13 22:40 | W6 | issue 노트(진행 기록) 생성 + 원본 보존 | ISS-0516, _sources/issues/ISS-0516-intro-site-light-demo-store-urls.md
+- 2026-11-13 22:40 | W6 | 결정 노트 4개 생성, DEC-0112 > DEC-0311 대체 체인 | DEC-0310, DEC-0311, DEC-0312, DEC-0313, DEC-0112
