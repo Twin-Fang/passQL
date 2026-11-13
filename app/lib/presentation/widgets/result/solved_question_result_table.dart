@@ -20,6 +20,7 @@ class SolvedQuestionResultTable extends ConsumerWidget {
     this.isTopicShown = true,
     this.isWrongFirst = false,
     this.collapsedRowLimit = defaultCollapsedRowLimit,
+    this.retriedCorrectQuestionUuids = const {},
   });
 
   /// 표 위 SQL 문 (화면마다 상수 한 곳)
@@ -34,6 +35,9 @@ class SolvedQuestionResultTable extends ConsumerWidget {
 
   /// 접힌 상태에서 보일 행 수 (오늘의 세트 5문제는 접히지 않음)
   final int collapsedRowLimit;
+
+  /// 다시 풀어 맞힌 문제 uuid (오늘의 세트 다시 풀기, 행에 `맞힘` 표시, #1035)
+  final Set<String> retriedCorrectQuestionUuids;
 
   static const int defaultCollapsedRowLimit = 5;
 
@@ -57,6 +61,9 @@ class SolvedQuestionResultTable extends ConsumerWidget {
           PassqlQueryResultRow(
             label: _labelOf(ref, orderedQuestions[index], index),
             isCorrect: orderedQuestions[index].isCorrect,
+            isRetriedCorrect: retriedCorrectQuestionUuids.contains(
+              orderedQuestions[index].questionUuid,
+            ),
             onTap: () => context.push(
               AppRoutes.questionDetail(orderedQuestions[index].questionUuid),
             ),

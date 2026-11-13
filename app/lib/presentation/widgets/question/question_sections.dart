@@ -33,25 +33,9 @@ class QuestionHeader extends StatelessWidget {
         children: [
           Row(
             children: [
-              // 난이도 표시는 색만이 아니라 채움 여부(별 모양)로도 구분된다.
-              Semantics(
-                label: '난이도 $difficulty / $maximumQuestionDifficulty',
-                excludeSemantics: true,
-                child: Row(
-                  children: List.generate(
-                    maximumQuestionDifficulty,
-                    (i) => Icon(
-                      i < difficulty
-                          ? CupertinoIcons.star_fill
-                          : CupertinoIcons.star,
-                      size: PassqlIconSize.sm,
-                      // 별 대비 3:1 이상: 채운 별 warningText, 빈 별 iconSecondary
-                      color: i < difficulty
-                          ? colors.warningText
-                          : colors.iconSecondary,
-                    ),
-                  ),
-                ),
+              PassqlDifficultyStars(
+                difficulty: difficulty,
+                size: PassqlIconSize.sm,
               ),
               const SizedBox(width: PassqlSpacing.xs),
               PassqlBadge(

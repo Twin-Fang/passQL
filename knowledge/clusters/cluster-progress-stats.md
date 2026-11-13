@@ -2,7 +2,7 @@
 type: cluster
 topic: progress-stats
 created: 2026-10-29
-members: 46
+members: 47
 status: active
 related: []
 ---
@@ -13,9 +13,10 @@ related: []
 통계·합격 준비도·학습 현황·순위
 
 ## 현재 상태 요약
-(2026-11-07, 자동 생성) 활성 결정 12개, 열린 이슈 1개. 영역별 정답률은 레이더 그래프 위, 목록 아래(토글 없음)이고 학습 패턴(최근 4주 학습, 공부하는 시간)은 무료, 정답률 상세(난이도별, 오답 정리)는 프로, 판정은 서버 계산기: [[DEC-0274-stats-radar-above-list-study-pattern-free]] (#909, DEC-0206 대체, main 머지, 배포 전). 통계 AI 분석은 서버 판정 + LLM 한 문장 — [[DEC-0259-ai-analysis-server-decides-llm-explains]], 과목별 예상 점수·과락 판정 — [[DEC-0260-exam-forecast-score-thresholds]] (#862, 릴리스 #888). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-07, 자동 생성) 활성 결정 12개, 열린 이슈 1개. 영역별 정답률은 레이더 그래프 위, 목록 아래(토글 없음)이고 학습 패턴(최근 4주 학습, 공부하는 시간)은 무료, 정답률 상세(난이도별, 오답 정리)는 프로, 판정은 서버 계산기: [[DEC-0274-stats-radar-above-list-study-pattern-free]] (#909, DEC-0206 대체, main 머지, 배포 전). 통계 AI 분석은 서버 판정 + LLM 한 문장 — [[DEC-0259-ai-analysis-server-decides-llm-explains]], 과목별 예상 점수·과락 판정 — [[DEC-0260-exam-forecast-score-thresholds]] (#862, 릴리스 #888). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-13) 모의고사 결과 순위(상위 N%)는 [[DEC-0301-mock-exam-ranking-first-attempt-top-percent]].
 
 ## 활성 결정
+- [[DEC-0301-mock-exam-ranking-first-attempt-top-percent]] — 모의고사 결과에 같은 회차 "상위 N%" 한 줄, 회원별 첫 응시 기준·응시자 10명 미만 숨김·무료 공개 (#1041)
 - [[DEC-0024-progress-metric-definitions]] — 학습 진도 지표 정의 — 푼 문제는 distinct, 정답률은 문제별 마지막 시도, 스트릭은 하루 그레이스
 - [[DEC-0042-ai-comment-cache-evict-on-submit]] — AI 영역 분석 코멘트는 별도 API로 Redis 24시간 캐싱하고, 제출 시 직접 evict한다
 - [[DEC-0043-topic-correct-rate-last-7-days]] — 토픽별 정답률은 최근 7일 제출 중 문제별 최근 1회 기준, 토픽별 문제 수는 전체 활성 문제
@@ -34,6 +35,7 @@ related: []
 - [[DEC-0206-topic-accuracy-list-with-octagon-chart]] → DEC-0274
 
 ## 관련 이슈
+- [[ISS-0511-qa-1112-ui-polish-eight]] (resolved, #1041, PR #1042): 11/12 QA UI 개선 8건 — 환영 시트·알림 안내·모의고사 순위·크레딧 아이콘·PK FK·난이도 별·카운트업·과락 칸
 - [[ISS-0477-stats-radar-default-study-pattern]] (resolved, GitHub #909): 통계 화면 개편: 육각형 그래프 기본, 차트와 학습 통계 추가
 - [[ISS-0460-ai-analysis-forecast-concept-links]] (resolved, GitHub #862) — 통계 AI 분석 보강: 과목별 예상 점수, 개념 바로 가기, 빈 데이터 안내, 세션 코멘트 개편
 - [[ISS-0387-remove-total-question-count-compat]] (open, GitHub #632) — 카테고리별 전체 문제 수(`totalQuestionCount`) 응답 제거 — 구버전 앱 호환 처리와 최소 버전 상향

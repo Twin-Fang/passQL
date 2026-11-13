@@ -3,6 +3,7 @@ package com.passql.application.notification;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.meta.constant.AppSettingKeys;
+import com.passql.meta.constant.AppSettingValueRanges;
 import com.passql.meta.service.AppSettingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,8 +20,8 @@ public class NotificationSettingService {
 
     // 알림 보관 기간 기본값·허용 범위 (일)
     public static final int DEFAULT_RETENTION_DAYS = 90;
-    public static final int MIN_RETENTION_DAYS = 7;
-    public static final int MAX_RETENTION_DAYS = 365;
+    public static final int MIN_RETENTION_DAYS = AppSettingValueRanges.NOTIFICATION_RETENTION_DAYS_MINIMUM;
+    public static final int MAX_RETENTION_DAYS = AppSettingValueRanges.NOTIFICATION_RETENTION_DAYS_MAXIMUM;
 
     private final AppSettingService appSettingService;
 

@@ -42,9 +42,6 @@ public class FeatureAccessPolicy {
     // 하루 공정 사용 한도 (개, 무료·프로 공통, 화면에 드러내지 않음)
     public static final int DAILY_FAIR_USE_LIMIT = 200;
 
-    // 등급 응답 문자열
-    private static final String PLAN_PRO = "PRO";
-    private static final String PLAN_FREE = "FREE";
     // app_settings: 안드로이드 결제 사용 여부 ('true' 사용, 'false'·행 없음·저장소 장애 미사용)
     private static final boolean IS_BILLING_ENABLED_BY_DEFAULT = false;
     // app_settings concept.free_topic_count 읽기 실패·행 없음 기본값 (단원 수)
@@ -238,7 +235,7 @@ public class FeatureAccessPolicy {
 
         return new MemberPlanResponse(
             isBillingEnabled,
-            isPro ? PLAN_PRO : PLAN_FREE,
+            isPro ? MemberPlan.PRO : MemberPlan.FREE,
             activeProExpiresAtOrNull,
             todayRandomSolvedCount,
             DAILY_FREE_LIMIT,

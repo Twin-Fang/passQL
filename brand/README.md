@@ -45,7 +45,11 @@ CI: `.github/workflows/PROJECT-COMMON-BRAND-ASSETS-CHECK.yaml` 이 `--check` 를
 `brand-colors.json` <-> 아래 값이 다르면 `--check` 실패:
 Android `values/colors.xml`·`values-night/colors.xml` (`splash_background`, `ic_launcher_background`),
 `app/pubspec.yaml` `adaptive_icon_background`, iOS `LaunchBackground.colorset`.
-accent 는 기록용이다. 코드 토큰 원본은 각 스택 디자인 토큰 파일이다.
+
+`accent` 사본 5곳도 같은 검사 대상 (#791): 앱 `passql_colors.dart` (`accent`·`accentTint`·`passGlow` RGB, 라이트·다크),
+웹 `tokens.css` `--color-brand`, 푸시 `FirebasePushMessageSender` `ANDROID_ACCENT_COLOR`, 관리자 `auto-notifications.html` 미리보기.
+강조색을 바꾸면 `brand-colors.json` 과 이 5곳을 함께 고친다.
+accent 는 일치 검사 기준이다. 화면 코드가 참조하는 원본은 각 스택 디자인 토큰 파일이다.
 
 ## 범위 밖
 

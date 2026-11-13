@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
+import 'passql_keep_all_text.dart';
 import 'passql_pressable.dart';
 
 class PassqlListRow extends StatelessWidget {
@@ -70,8 +71,9 @@ class PassqlListRow extends StatelessWidget {
                     : CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // 제목·부제 단어 단위 줄바꿈 (큰 글자에서 '써 / 요' 방지, #646)
                   titleContent ??
-                      Text(
+                      PassqlKeepAllText(
                         title,
                         maxLines: titleMaxLines,
                         overflow: titleMaxLines == null
@@ -85,7 +87,7 @@ class PassqlListRow extends StatelessWidget {
                         ),
                       ),
                   if (subtitle != null)
-                    Text(
+                    PassqlKeepAllText(
                       subtitle!,
                       textAlign: isCentered ? TextAlign.center : null,
                       style: PassqlTypography.footnote.copyWith(
