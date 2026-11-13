@@ -107,7 +107,7 @@ class ExamTrendSummarySection extends StatelessWidget {
             ),
             const SizedBox(height: PassqlSpacing.xxs),
             Text(
-              '${report.basisDescription} · ${report.updatedDate} 갱신',
+              '${report.basisDescription} | ${report.updatedDate} 갱신',
               style: PassqlTypography.caption.copyWith(
                 color: colors.secondaryLabel,
               ),

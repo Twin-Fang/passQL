@@ -1,6 +1,7 @@
 package com.passql.application.entitlement;
 
 import com.passql.common.util.ServiceTimeZone;
+import com.passql.common.util.LogValueSanitizer;
 import com.passql.common.util.UuidUtils;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
@@ -41,9 +42,6 @@ public class FeatureAccessPolicy {
     // 하루 공정 사용 한도 (개, 무료·프로 공통, 화면에 드러내지 않음)
     public static final int DAILY_FAIR_USE_LIMIT = 200;
 
-    // 등급 응답 문자열
-    private static final String PLAN_PRO = "PRO";
-    private static final String PLAN_FREE = "FREE";
     // app_settings: 안드로이드 결제 사용 여부 ('true' 사용, 'false'·행 없음·저장소 장애 미사용)
     private static final boolean IS_BILLING_ENABLED_BY_DEFAULT = false;
     // app_settings concept.free_topic_count 읽기 실패·행 없음 기본값 (단원 수)
@@ -237,7 +235,7 @@ public class FeatureAccessPolicy {
 
         return new MemberPlanResponse(
             isBillingEnabled,
-            isPro ? PLAN_PRO : PLAN_FREE,
+            isPro ? MemberPlan.PRO : MemberPlan.FREE,
             activeProExpiresAtOrNull,
             todayRandomSolvedCount,
             DAILY_FREE_LIMIT,
@@ -287,17 +285,9 @@ public class FeatureAccessPolicy {
     private UUID toUuidOrNull(String entry) {
         UUID memberUuid = UuidUtils.parseOrEmpty(entry).orElse(null);
         if (memberUuid == null) {
-            log.warn("[feature access] billing preview member ignored : invalid uuid={}", sanitizeForLog(entry));
+            log.warn("[feature access] billing preview member ignored : invalid uuid={}", LogValueSanitizer.toLogSafeIdentifier(entry, INVALID_ENTRY_LOG_MAX_LENGTH));
         }
         return memberUuid;
-    }
-
-    /** 로그용 값 정리 (UUID 문자 외 > ?, 40자 제한) */
-    private static String sanitizeForLog(String value) {
-        String limitedValue = value.length() > INVALID_ENTRY_LOG_MAX_LENGTH
-            ? value.substring(0, INVALID_ENTRY_LOG_MAX_LENGTH)
-            : value;
-        return limitedValue.replaceAll("[^0-9A-Za-z-]", "?");
     }
 
     /** 유효한 프로 등급 행 (PRO 이고 만료일이 지금 이후), 없으면 null */

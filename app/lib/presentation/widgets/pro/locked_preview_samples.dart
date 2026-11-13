@@ -16,7 +16,7 @@ abstract final class LockedPreviewCaptions {
   static const String mockExamTrend = '회차별 점수 변화를 봐요';
   // 잠금화면 실행형 문제 결과 자리 (#990)
   static const String lockScreenExecutionResult = '내 답과 정답 SQL을 실행해 비교해요';
-  static const String proAnalysis = 'AI 분석과 영역·난이도별 약점, 오답 정리를 봐요';
+  static const String proAnalysis = 'AI 분석과 영역, 난이도별 약점, 오답 정리를 봐요';
 }
 
 /// 잠긴 상세 해설 자리 글: 뜻 없는 한국어 음절 묶음, 길이만 서버 구성에 맞춤 (#999)
@@ -107,7 +107,7 @@ class ExamTrendLockedSample extends StatelessWidget {
       children: [
         _SampleSection(
           title: '최근 기출 토픽 비중',
-          body: 'SQL 기본 및 활용 42% · SQL 최적화 기본 원리 18% · 관리 구문 14%',
+          body: 'SQL 기본 및 활용 42% | SQL 최적화 기본 원리 18% | 관리 구문 14%',
         ),
         _SampleSection(
           title: '이번 회차 예상',
@@ -132,10 +132,10 @@ class ConceptTopicsLockedSample extends StatelessWidget {
       children: [
         _SampleSection(
           title: '3. DDL / DML / TCL',
-          body: '개념 7개 · 데이터 타입, 제약조건, MERGE',
+          body: '개념 7개 | 데이터 타입, 제약조건, MERGE',
         ),
-        _SampleSection(title: '4. SQL 함수', body: '개념 6개 · 문자, 숫자, 날짜, NULL 함수'),
-        _SampleSection(title: '5. 조인', body: '개념 6개 · INNER, OUTER, SELF 조인'),
+        _SampleSection(title: '4. SQL 함수', body: '개념 6개 | 문자, 숫자, 날짜, NULL 함수'),
+        _SampleSection(title: '5. 조인', body: '개념 6개 | INNER, OUTER, SELF 조인'),
       ],
     );
   }
@@ -150,8 +150,8 @@ class AiAnalysisLockedSample extends StatelessWidget {
     return const _SampleCard(
       children: [
         _SampleSection(
-          title: '예상 점수 64점 · 합격선 근처',
-          body: '1과목 예상 6/10 · 2과목 예상 26/40',
+          title: '예상 점수 64점 | 합격선 근처',
+          body: '1과목 예상 6/10 | 2과목 예상 26/40',
         ),
         _SampleSection(
           title: '약한 영역',
@@ -176,11 +176,11 @@ class MockExamDetailLockedSample extends StatelessWidget {
       children: [
         _SampleSection(
           title: '1과목 데이터 모델링',
-          body: '14점 / 20점 · 정규화와 식별자에서 2문제를 놓쳤어요.',
+          body: '14점 / 20점 | 정규화와 식별자에서 2문제를 놓쳤어요.',
         ),
         _SampleSection(
           title: '2과목 SQL',
-          body: '52점 / 80점 · 윈도우 함수 정답률이 가장 낮아요.',
+          body: '52점 / 80점 | 윈도우 함수 정답률이 가장 낮아요.',
         ),
         _SampleSection(title: '다음에 할 일', body: '윈도우 함수 문제부터 다시 풀어 보세요.'),
       ],
@@ -197,7 +197,7 @@ class MockExamReviewLockedSample extends StatelessWidget {
     return const _SampleCard(
       children: [
         _SampleSection(
-          title: '23번 · 정답 C',
+          title: '23번 | 정답 C',
           body: 'GROUP BY가 없으면 조건이 거짓이어도 COUNT는 0 한 행을 돌려줘요.',
         ),
         _SampleSection(title: '내가 고른 B', body: '공집합으로 착각하기 쉬운 함정이에요.'),

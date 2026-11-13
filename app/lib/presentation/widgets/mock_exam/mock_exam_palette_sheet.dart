@@ -70,7 +70,7 @@ class _MockExamPaletteBody extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            '안 푼 문항 ${session.unansweredCount}개 · 표시 ${session.flaggedCount}개',
+            '안 푼 문항 ${session.unansweredCount}개 | 표시 ${session.flaggedCount}개',
             style: PassqlTypography.subheadline.copyWith(
               color: colors.secondaryLabel,
             ),

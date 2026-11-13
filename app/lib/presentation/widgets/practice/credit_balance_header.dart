@@ -35,22 +35,27 @@ class CreditBalanceHeader extends StatelessWidget {
               const PassqlCreditIcon(size: PassqlIconSize.xxl),
               const SizedBox(width: PassqlSpacing.xs),
               Expanded(
-                child: Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text: '$remainingCount',
-                        style: PassqlTypography.largeTitle.copyWith(
-                          color: colors.accentText,
+                // 남은 크레딧은 0에서 차오름, 값이 바뀌면 이전 값에서 이어짐 (#1041)
+                child: PassqlCountUp(
+                  value: remainingCount,
+                  builder: (context, displayedCount) => Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '$displayedCount',
+                          style: PassqlTypography.largeTitle.copyWith(
+                            color: colors.accentText,
+                            fontFeatures: PassqlTypography.tabular,
+                          ),
                         ),
-                      ),
-                      TextSpan(
-                        text: ' / $totalLimit',
-                        style: PassqlTypography.subheadline.copyWith(
-                          color: colors.secondaryLabel,
+                        TextSpan(
+                          text: ' / $totalLimit',
+                          style: PassqlTypography.subheadline.copyWith(
+                            color: colors.secondaryLabel,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

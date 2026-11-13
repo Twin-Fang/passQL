@@ -195,6 +195,13 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-12 10:47 | W6 | update | ISS-0490 open -> resolved + report (#971, PR #973)
 - 2026-11-12 10:47 | W6 | create | ISS-0491 (resolved) + report (#975)
 - 2026-11-12 10:47 | W2 | update | cluster-home, cluster-auth-member, cluster-practice, cluster-design-system, cluster-billing, cluster-ads
+- 2026-11-12 11:44 | W7 | create | DOC-0001 (billing 구현 코드 추적, internal) + _sources/docs/DOC-0001-billing-implementation-code-trace.md
+- 2026-11-12 11:44 | W2 | update | cluster-billing (핵심 문서 절 추가, members 59→60)
+- 2026-11-12 17:29 | W4 | supersede | DEC-0149 -> DEC-0288 (처음 켤 때 알림 안내, 사용자 요청 #980)
+- 2026-11-12 17:29 | W6 | create | DEC-0288, DEC-0289, DEC-0290, DEC-0291, DEC-0292, DEC-0293
+- 2026-11-12 17:29 | W6 | create | ISS-0492 (#980), ISS-0493 (#974), ISS-0494 (#962), ISS-0495 (#961), ISS-0496 (#858), ISS-0497 (#826) — 각 issue(resolved) + report, _sources/issues 원본
+- 2026-11-12 17:29 | W2 | update | cluster-notification, cluster-home, cluster-practice, cluster-ads, cluster-billing, cluster-ci-deploy, cluster-store-release, cluster-admin, cluster-design-system (새 항목, 활성 결정, DEC-0149 역사로)
+- 2026-11-12 17:29 | W2 | fix W10 (members 실제 수로) | cluster-admin 102, cluster-ads 26, cluster-billing 65, cluster-ci-deploy 70, cluster-design-system 158, cluster-home 72, cluster-notification 20, cluster-practice 179, cluster-store-release 67
 - 2026-11-12 12:20 | W6 | create | ISS-0492 (resolved) + report (#974), ISS-0493 (resolved) + report (#980)
 - 2026-11-12 12:20 | W2 | update | cluster-billing, cluster-practice, cluster-home, cluster-notification
 - 2026-11-12 12:21 | W2 | fix | members count: cluster-billing 60, cluster-home 70, cluster-notification 19, cluster-practice 178
@@ -213,3 +220,18 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-12 23:20 | W6 | create | ISS-0506·0507·0509 (resolved) + report (#991·#1014·#1032), ISS-0508 (open, #1027), DEC-0293~DEC-0299
 - 2026-11-12 23:20 | W2 | update | cluster-admin, notification, home, design-system, billing, store-release, ops-infra, ci-deploy
 - 2026-11-12 23:24 | W2 | fix | members count: admin 105, billing 73, ci-deploy 68, design-system 164, home 73, notification 22, ops-infra 69, store-release 71; 현재 상태 요약 날짜 2026-11-12
+- 2026-11-13 00:15 | W6 | create | ISS-0511 (resolved, #1041) + completion report ISS-0511, 원본 사본 _sources/issues (로컬)
+- 2026-11-13 00:15 | W4 | create | DEC-0301 (모의고사 순위), DEC-0302 (환영 시트·알림 미리보기), DEC-0303 (난이도 별·카운트업·키 배지·과락 칸) — 활성 결정과 충돌 없음, 대체 없음 (DEC-0132·0149·0264·0287·0292 유지)
+- 2026-11-13 00:15 | W2 | update | cluster-design-system, practice, home, notification, progress-stats (활성 결정·관련 이슈·현재 상태 요약 한 줄)
+- 2026-11-13 00:16 | W2 | fix | members count: design-system 166, home 75, notification 24, practice 190, progress-stats 47
+- 2026-11-12 23:50 | W6 | create | ISS-0510 (resolved) + report (#1035), DEC-0300; W2 update cluster-practice(190)·design-system(166)·home(75)
+- 2026-11-12 23:52 | W2 | fix | members count: practice 189, design-system 165, home 74 (완료 리포트 제외 기준)
+- 2026-11-13 22:10 | merge | main 병합 충돌 해소: 클러스터 3개에 #1035(ISS-0510)·#1041(ISS-0511) 항목 함께 유지, members 재계산 | cluster-design-system, cluster-home, cluster-practice
+- 2026-11-13 14:30 | merge | main 병합(#1008): 브랜치 번호가 main과 겹쳐 재부여 — DEC-0288~0293 -> DEC-0304~0309, ISS-0494~0497 -> ISS-0512~0515 (#962·#961·#858·#826), DEC-0149 superseded_by DEC-0304
+- 2026-11-13 14:30 | merge | 중복 제거(#1008): 브랜치 ISS-0492-first-launch-notification-prompt(#980)·ISS-0493-credit-history-screen(#974) + report 삭제, main의 ISS-0493-first-launch-push-prompt-common-sense-fixes·ISS-0492-credit-history-server-and-screen로 링크 교체, 두 노트 related에 DEC-0304·0305·0306 추가
+- 2026-11-13 14:30 | W2 | update | cluster-admin, ads, billing, ci-deploy, design-system, home, notification, practice, store-release: main 판 위에 #1008 항목 새 번호로 다시 적용
+- 2026-11-13 14:35 | W2 | fix W10 | members: admin 107, ads 27, billing 78, ci-deploy 72, design-system 168, home 78, notification 25, practice 193, store-release 73
+- 2026-11-13 15:40 | W7 | create | DOC-0002 (auth-member), DOC-0003 (practice), DOC-0004 (ai), DOC-0005 (ads), DOC-0006 (notification), DOC-0007 (question-bank) — 코드 흐름 구현 지도, internal, 코드 기준 main 118159a8, source 는 GitHub 커밋 트리 URL (#1008)
+- 2026-11-13 15:40 | W2 | update | cluster-auth-member, practice, ai, ads, notification, question-bank: 핵심 문서 절에 DOC-0002~0007 연결; fix W10 members ads 28, ai 122, auth-member 67, notification 26, practice 194, question-bank 87
+- 2026-11-13 22:40 | W6 | issue 노트(진행 기록) 생성 + 원본 보존 | ISS-0516, _sources/issues/ISS-0516-intro-site-light-demo-store-urls.md
+- 2026-11-13 22:40 | W6 | 결정 노트 4개 생성, DEC-0112 > DEC-0311 대체 체인 | DEC-0310, DEC-0311, DEC-0312, DEC-0313, DEC-0112

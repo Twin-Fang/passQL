@@ -4,6 +4,7 @@ import com.passql.application.ads.AdMobRewardCallback;
 import com.passql.application.ads.AdMobRewardCallbackVerifier;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.common.util.LogValueSanitizer;
 import com.passql.common.util.UuidUtils;
 import com.passql.member.repository.MemberDailyAdBonusRepository;
 import com.passql.meta.constant.AppSettingKeys;
@@ -75,14 +76,14 @@ public class AdBonusGrantService {
     public void grantByServerVerification(String rawQueryString) {
         AdMobRewardCallback callback = adMobRewardCallbackVerifier.verify(rawQueryString);
         if (!isAllowedAdUnit(callback.adUnit())) {
-            log.warn("[admob ssv] ignored : ad unit not allowed, adUnit={}", sanitizeForLog(callback.adUnit()));
+            log.warn("[admob ssv] ignored : ad unit not allowed, adUnit={}", LogValueSanitizer.toLogSafeIdentifier(callback.adUnit(), LOG_VALUE_MAX_LENGTH));
             return;
         }
         UUID memberUuid = UuidUtils.parseOrEmpty(callback.userId()).orElse(null);
         String transactionId = callback.transactionId();
         if (memberUuid == null || transactionId == null || transactionId.isBlank()
             || transactionId.length() > TRANSACTION_ID_MAX_LENGTH) {
-            log.info("[admob ssv] ignored : no member or transaction id, transactionId={}", sanitizeForLog(transactionId));
+            log.info("[admob ssv] ignored : no member or transaction id, transactionId={}", LogValueSanitizer.toLogSafeIdentifier(transactionId, LOG_VALUE_MAX_LENGTH));
             return;
         }
         if (featureAccessPolicy.isPro(memberUuid) || memberDailyAdBonusRepository.existsBySsvTransactionId(transactionId)) {
@@ -168,14 +169,5 @@ public class AdBonusGrantService {
     /** 표식 형식 확인, 비었거나 형식 밖이면 null */
     private static String toValidRewardNonceOrNull(String rewardNonce) {
         return rewardNonce != null && REWARD_NONCE_PATTERN.matcher(rewardNonce).matches() ? rewardNonce : null;
-    }
-
-    /** 로그용 값 정리 (영문·숫자·/-_ 외 > ?, 80자 제한) */
-    private static String sanitizeForLog(String value) {
-        if (value == null) {
-            return "null";
-        }
-        String limitedValue = value.length() > LOG_VALUE_MAX_LENGTH ? value.substring(0, LOG_VALUE_MAX_LENGTH) : value;
-        return limitedValue.replaceAll("[^0-9A-Za-z/_-]", "?");
     }
 }

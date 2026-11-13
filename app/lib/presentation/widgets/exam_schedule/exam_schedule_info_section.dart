@@ -22,7 +22,7 @@ class ExamScheduleInfoSection extends StatelessWidget {
         const PassqlListRow(
           title: '시험 시간',
           trailing: Text(
-            '${SqldExamFacts.examDurationMinutes}분 · ${SqldExamFacts.questionCount}문항',
+            '${SqldExamFacts.examDurationMinutes}분 | ${SqldExamFacts.questionCount}문항',
           ),
         ),
         PassqlListRow(
@@ -34,7 +34,7 @@ class ExamScheduleInfoSection extends StatelessWidget {
           trailing: Text(SqldExamFacts.eligibility),
         ),
         PassqlListRow(
-          title: '입실 시간·준비물',
+          title: '입실 시간, 준비물',
           trailing: Text(
             '공식 안내 ›',
             style: PassqlTypography.bodyMedium.copyWith(

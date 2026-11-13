@@ -96,7 +96,7 @@ class _WrongRow extends StatelessWidget {
     final meta = [
       if (item.topicName != null) item.topicName!,
       if (when.isNotEmpty) when,
-    ].join(' · ');
+    ].join(' | ');
 
     return PassqlPressable(
       onTap: () => context.push(AppRoutes.wrongNoteRetry(item.questionUuid)),

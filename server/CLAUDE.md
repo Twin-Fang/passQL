@@ -6,6 +6,7 @@
 
 - `/admin/**` 경로: 세션 기반 폼 로그인 (`AdminSecurityConfig`, `@Order(1)`)
 - `/api/**` 경로: JWT 무상태 인증 (`SecurityConfig`, `@Order(2)`)
+- `/actuator/prometheus` 경로: 수집기 전용 Bearer 토큰 (`MetricsScrapeSecurityConfig`, `@Order(0)`, `passql.metrics.scrape-token` 비면 항상 401) (#957)
 - 관리자 계정은 환경변수(`ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`)로 관리
 
 ---
@@ -255,7 +256,7 @@ throw new CustomException(ErrorCode.NOT_SELECT);
 - enum 요청값 변환: 각 enum 의 `fromRequestValue(String)` (잘못된 값 > `INVALID_INPUT_VALUE`)
 - 관리자 목록 페이지: `PQL-Web` `AdminPageRequest`
 - 관리자 화면 메뉴·제목: `@AdminPage(menu = AdminMenu.X)` (currentMenu·pageTitle 직접 넣지 않음)
-- 관리자 화면 요청·토스트·확인 창: `static/js/admin/admin-fetch.js` (`AdminApi`, `AdminUi`), `alert()`·`confirm()` 금지
+- 관리자 화면 요청·토스트·확인 창: `static/js/admin/admin-fetch.js` (`AdminApi`, `AdminUi`; 폼 제출 확인은 `AdminUi.confirmBeforeSubmit`), `alert()`·`confirm()` 금지 (규칙 `server-admin-no-native-dialog`)
 - 리다이렉트 후 저장 토스트: `AdminFlash.TOAST_MESSAGE` 플래시 속성
 - 미리보기 자르기: `TextPreview.truncate` / `truncateWithEllipsis` + 용도별 길이 상수
 - UUID 짧은 표기·문자열 파싱: `UuidUtils.toShortForm` / `UuidUtils.parseOrEmpty` (`UUID.fromString` try-catch 사본 금지)

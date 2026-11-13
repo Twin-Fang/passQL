@@ -4,13 +4,13 @@
  * 사본(vercel.json redirects, public/legal·robots·sitemap, iOS 마케팅 URL, 서버 소셜 콜백·CORS)은 siteUrls.test.ts 가 일치 검사
  */
 
-// 웹 운영 주소 (Vercel, og:url·og:image 기준, iOS 마케팅 URL 사본 app/ios/fastlane/marketing_url.txt 와 함께 바꿈)
+// 웹 운영 주소 (Vercel, og:url·og:image·서버 소셜 콜백·CORS 기준)
 export const PRODUCTION_SITE_URL = "https://passql.vercel.app";
 
 // 운영 API 기준 주소 (VITE_API_BASE_URL 미설정 시 기본값)
 export const PRODUCTION_API_BASE_URL = "https://api.passql.suhsaechan.kr/api";
 
-// 소개 사이트 (시놀로지 호스팅): 공개 약관 페이지, 웹 지원 중지 후 웹 화면 주소의 이동 대상 (#1044)
+// 소개 사이트 (시놀로지 호스팅): 공개 약관 페이지, 웹 지원 중지 후 웹 화면 주소의 이동 대상 (#1044), iOS 마케팅 URL 사본 app/ios/fastlane/marketing_url.txt (#1057)
 export const PUBLIC_LEGAL_SITE_URL = "https://passql.suhsaechan.kr";
 
 // 웹 /legal/{파일} > 공개 약관 페이지 파일 3개: 이용약관, 개인정보처리방침, 계정 삭제 안내

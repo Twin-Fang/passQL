@@ -4,10 +4,10 @@ id: DEC-0112
 created: 2026-10-08
 reviewed: null
 topics: [auth-member, store-release]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
-related: ["[[ISS-0247-web-withdrawal-app-release-banner]]", "[[ISS-0247-web-withdrawal-app-release-banner-report]]"]
+superseded_by: DEC-0311
+related: ["[[ISS-0247-web-withdrawal-app-release-banner]]", "[[ISS-0247-web-withdrawal-app-release-banner-report]]", "[[DEC-0311-web-app-support-stopped-code-kept]]"]
 ---
 
 # DEC-0112: 웹(React)·앱(Flutter) 투트랙 유지, 화면 1:1이 아니라 핵심 기능 동등성을 맞춘다

@@ -942,9 +942,9 @@ export interface paths {
          *
          *     ## 요청 (multipart/form-data)
          *     - **`request`** (application/json, 필수): `{ "content": "..." }` (앞뒤 공백 제거 후 1~500자)
-         *     - **`images`** (선택, 0~10개): WebP 원본 (장당 600KB 이하, 긴 변 1920px 이하)
+         *     - **`images`** (선택, 0~5개): WebP 원본 (장당 300KB 이하, 긴 변 1280px 이하)
          *     - **`diagnostics`** (선택, application/json): 진단 정보 JSON 객체 (32KB 이하)
-         *     - **`log`** (선택, application/gzip): 앱 로그 gzip (2MB 이하)
+         *     - **`log`** (선택, application/gzip): 앱 로그 gzip (512KB 이하)
          *
          *     ## 반환값 (FeedbackSubmitResponse)
          *     - **`feedbackUuid`**: 생성된 의견 UUID
@@ -1849,7 +1849,7 @@ export interface paths {
         };
         /**
          * 결과
-         * @description 총점·합격·불합격 이유·문항 정오 공개. 과목별 점수·토픽별 정답률·문항 해설·다음에 할 일은 프로 전용(무료는 빈 값 + lockedSections). 풀이 중 409 MOCK_EXAM_NOT_SUBMITTED.
+         * @description 총점·합격·불합격 이유·회차 순위(응시자 10명 미만 null)·문항 정오 공개. 과목별 점수·토픽별 정답률·문항 해설·다음에 할 일은 프로 전용(무료는 빈 값 + lockedSections). 풀이 중 409 MOCK_EXAM_NOT_SUBMITTED.
          */
         get: operations["getResult"];
         put?: never;
@@ -2143,7 +2143,6 @@ export interface paths {
          *     - topicStats: 토픽별 집계 목록
          *       - topicUuid: 토픽 식별자
          *       - displayName: 토픽 표시명
-         *       - totalQuestionCount: (폐기 예정) solvedCount 와 같은 값, 구버전 앱 호환용. 전체 문제 수는 노출하지 않음
          *       - correctRate: 최근 7일 정답률 (0.0~1.0, 문제별 최근 시도 기준, 레이더차트용)
          *       - solvedCount: 최근 7일 내 푼 문제 수
          *     - Submission 없는 토픽도 correctRate=0.0, solvedCount=0으로 포함
@@ -3222,7 +3221,8 @@ export interface components {
             /** Format: date-time */
             lastPurchasedAt: string | null;
             passOptions: components["schemas"]["PassOption"][];
-            plan: string;
+            /** @enum {string} */
+            plan: "FREE" | "PRO";
             /** Format: date-time */
             proExpiresAt: string | null;
             /**
@@ -3264,6 +3264,23 @@ export interface components {
             headline: string;
             message: string;
         };
+        MockExamRanking: {
+            /**
+             * Format: int32
+             * @description 내 순위 (1부터, 동점은 같은 순위)
+             */
+            rankPosition: number;
+            /**
+             * Format: int32
+             * @description 순위 계산에 든 응시자 수 (회원 수)
+             */
+            takerCount: number;
+            /**
+             * Format: int32
+             * @description 상위 퍼센트 (1~100, 올림)
+             */
+            topPercent: number;
+        };
         MockExamResultResponse: {
             /** Format: uuid */
             attemptUuid: string;
@@ -3287,6 +3304,7 @@ export interface components {
             /** Format: int32 */
             questionCount: number;
             questionMarks: components["schemas"]["QuestionMark"][];
+            ranking: components["schemas"]["MockExamRanking"] | null;
             reviews: components["schemas"]["QuestionReview"][];
             /** Format: int32 */
             roundNumber: number;
@@ -3798,8 +3816,6 @@ export interface components {
             solvedCount: number;
             /** Format: uuid */
             topicUuid: string;
-            /** Format: int32 */
-            totalQuestionCount: number;
         };
         TopicTree: {
             code: string;

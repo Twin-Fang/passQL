@@ -31,6 +31,6 @@ class ConceptUnitProgress {
   /// 이번 개념으로 단원을 다 끝냈는가 (단원 끝 한 장을 띄우는 조건)
   bool get isCompletedNow => hasIncrease && total > 0 && solvedCount >= total;
 
-  /// "2단원 · SELECT 기본" > "2단원" (없으면 전체 이름)
-  String get shortLabel => label.split(' · ').first;
+  /// "2단원 | SELECT 기본" > "2단원" (없으면 전체 이름)
+  String get shortLabel => label.split(' | ').first;
 }

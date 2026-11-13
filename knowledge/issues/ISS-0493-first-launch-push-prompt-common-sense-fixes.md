@@ -7,7 +7,7 @@ symptoms: ["알림 허용을 처음에 안 물어봄", "1번째 문제 3번째 �
 root_cause: "알림 권한 안내가 첫 실행 흐름에 연결되지 않았고, 결과 화면 3종이 번호뿐인 목록을 각자 만들었으며, 크레딧 0일 때 홈 다음 할 일이 광고 권유로만 갈라졌다"
 status: resolved
 resolution: "[[ISS-0493-first-launch-push-prompt-common-sense-fixes-report]]"
-related: ["[[ISS-0491-first-run-guide-home-next-step]]", "[[DEC-0264-mock-exam-fixed-rounds-server-judged]]"]
+related: ["[[ISS-0491-first-run-guide-home-next-step]]", "[[DEC-0264-mock-exam-fixed-rounds-server-judged]]", "[[DEC-0304-first-launch-notification-prompt-after-welcome]]", "[[DEC-0305-home-next-step-no-ad-card-mock-trial]]"]
 source: "https://github.com/Twin-Fang/passQL/issues/980"
 ---
 

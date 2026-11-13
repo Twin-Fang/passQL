@@ -160,7 +160,7 @@ class SettingsPage extends ConsumerWidget {
                   children: [
                     SettingsRow(
                       icon: CupertinoIcons.chat_bubble,
-                      title: '문의·제안 보내기',
+                      title: '문의, 제안 보내기',
                       onTap: () => context.push(AppRoutes.feedback),
                     ),
                     SettingsRow(

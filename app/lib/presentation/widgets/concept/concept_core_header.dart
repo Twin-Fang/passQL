@@ -40,7 +40,7 @@ class ConceptCoreHeader extends StatelessWidget {
                 ),
                 const SizedBox(width: PassqlSpacing.xxs),
                 Text(
-                  '약 $readMinutes분 · ${sections.length}개 구간',
+                  '약 $readMinutes분 | ${sections.length}개 구간',
                   style: PassqlTypography.footnote.copyWith(
                     color: colors.secondaryLabel,
                   ),

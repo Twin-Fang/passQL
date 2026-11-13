@@ -4,9 +4,9 @@ id: DEC-0149
 created: 2026-10-18
 reviewed: null
 topics: [notification]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0304
 related: ["[[ISS-0320-ads-cards-notification-sheet-home]]", "[[ISS-0320-ads-cards-notification-sheet-home-report]]"]
 ---
 

@@ -67,6 +67,8 @@ public final class AppSettingKeys {
     public static final String NOTIFICATION_RETENTION_DAYS = "notification.retention_days";
     // app_setting: 신고 처리 결과 자동 알림 (true 사용, false 미사용)
     public static final String NOTIFICATION_REPORT_RESOLVED_ENABLED = "notification.report_resolved.enabled";
+    // app_setting: 회원당 하루 자동 알림 최대 건수 (건, 기본 1, 범위 밖이면 기본값, #649)
+    public static final String NOTIFICATION_AUTO_DAILY_LIMIT_PER_MEMBER = "notification.auto.daily_limit_per_member";
 
     // app_setting: Android 결제 스위치 (true 무료/프로 제한 적용과 결제 UI 노출, false 모든 기능 허용)
     public static final String BILLING_ANDROID_ENABLED = "billing.android.enabled";

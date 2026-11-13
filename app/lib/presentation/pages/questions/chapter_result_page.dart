@@ -142,7 +142,7 @@ class _Analysis extends StatelessWidget {
         ),
         const SizedBox(height: PassqlSpacing.xs),
         Text(
-          '모두 $totalDurationText · 문제당 평균 $averageDurationText',
+          '모두 $totalDurationText | 문제당 평균 $averageDurationText',
           style: PassqlTypography.footnote.copyWith(
             color: colors.secondaryLabel,
           ),

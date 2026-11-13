@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 /**
  * 재방문 자동 알림 (#649): 매시 정각에 발송 시각이 현재 시(KST)인 켜진 규칙을 발송
- * 중복 발송 방지는 auto_notification_log 의 회원·날짜 유니크 선점이 담당 (블루-그린 동시 기동 포함)
+ * 중복 발송·하루 상한은 auto_notification_log 유니크 선점(회원·날짜·순번, 회원·날짜·규칙)이 담당 (블루-그린 동시 기동 포함)
  */
 @Slf4j
 @Component
