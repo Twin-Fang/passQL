@@ -57,7 +57,7 @@ class ProfileAccountRow extends StatelessWidget {
         semanticLabel:
             '${PassqlLoadFailureCopy.messageOf('정보를')}, ${PassqlLoadFailureCopy.retryLabel}',
         child: Text(
-          '${PassqlLoadFailureCopy.messageOf('정보를')} · ${PassqlLoadFailureCopy.retryLabel}',
+          '${PassqlLoadFailureCopy.messageOf('정보를')} | ${PassqlLoadFailureCopy.retryLabel}',
           style: PassqlTypography.footnote.copyWith(
             color: colors.secondaryLabel,
           ),

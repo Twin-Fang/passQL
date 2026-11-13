@@ -42,7 +42,7 @@ class DevPlanToolsTab extends ConsumerWidget {
         ),
         const SizedBox(height: PassqlSpacing.lg),
         PassqlGroupedSection(
-          header: '무료 한도 흉내 · 결제 켜짐 흉내',
+          header: '무료 한도 흉내 | 결제 켜짐 흉내',
           footer: '흉내 중에는 결제 켜진 무료 회원으로 보이고, 광고 보너스는 서버 대신 흉내 단계만 넘어가요',
           children: [
             for (final option in DevLimitSimulation.values)

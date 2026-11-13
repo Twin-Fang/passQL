@@ -124,7 +124,7 @@ class _MockExamSolvingPageState extends ConsumerState<MockExamSolvingPage>
       context,
       title: '제출할까요?',
       message:
-          '안 푼 문항 ${session.unansweredCount}개 · 표시한 문항 ${session.flaggedCount}개\n'
+          '안 푼 문항 ${session.unansweredCount}개 | 표시한 문항 ${session.flaggedCount}개\n'
           '제출하면 답을 바꿀 수 없어요.',
       confirmLabel: '제출',
       isDestructive: false,

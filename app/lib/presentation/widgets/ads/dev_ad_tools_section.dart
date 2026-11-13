@@ -39,7 +39,7 @@ class _DevAdToolsSectionState extends ConsumerState<DevAdToolsSection> {
     await AdFrequencyHistoryReset.resetAll();
     if (!mounted) return;
     setState(
-      () => _resultMessage = '빈도 기록 초기화: 다음 결과 화면·30초 뒤 복귀에서 바로 확인',
+      () => _resultMessage = '빈도 기록 초기화: 다음 결과 화면, 30초 뒤 복귀에서 바로 확인',
     );
   }
 
@@ -67,7 +67,7 @@ class _DevAdToolsSectionState extends ConsumerState<DevAdToolsSection> {
               ),
               const SizedBox(height: PassqlSpacing.xs),
               PassqlButton(
-                label: '전면·앱 오프닝 빈도 기록 초기화',
+                label: '전면, 앱 오프닝 빈도 기록 초기화',
                 variant: PassqlButtonVariant.tinted,
                 size: PassqlButtonSize.regular,
                 onPressed: _resetFrequencyHistory,

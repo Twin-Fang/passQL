@@ -23,7 +23,7 @@ class ForceUpdatePage extends ConsumerWidget {
           : '새 버전이 나왔어요.\n스토어에서 passQL을 검색해 업데이트해 주세요.',
       detail: decision == null
           ? null
-          : '현재 버전 ${decision.currentVersion} · 필요 버전 ${decision.versionPolicy.minimumVersion} 이상',
+          : '현재 버전 ${decision.currentVersion} | 필요 버전 ${decision.versionPolicy.minimumVersion} 이상',
       actionLabel: hasStoreUrl ? '업데이트하기' : null,
       onActionPressed: hasStoreUrl ? () => launchExternalUrl(storeUrl) : null,
     );

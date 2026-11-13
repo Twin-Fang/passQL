@@ -24,10 +24,10 @@ void main() {
     final schedule = _round63(ExamSchedulePhase.applicationOpen);
     final today = DateTime(2026, 10, 14);
     expect(examPhaseChipOf(schedule, today), (
-      text: '접수 중 · 마감까지 2일',
+      text: '접수 중 | 마감까지 2일',
       isUrgent: true,
     ));
-    expect(examHomeBadgeTextOf(schedule, today), '접수 중 · 10.16 마감');
+    expect(examHomeBadgeTextOf(schedule, today), '접수 중 | 10.16 마감');
   });
 
   test('시험 대기: 홈 배지는 시험 D-day, 단계는 시험 칸', () {

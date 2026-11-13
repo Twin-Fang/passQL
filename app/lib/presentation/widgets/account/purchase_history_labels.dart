@@ -46,7 +46,7 @@ String purchaseHistoryTitleOf(
     formatDottedDate(entry.purchasedAt),
     passNameOf(entry, durationDaysByProductId: durationDaysByProductId),
     ?storeLabel,
-  ].join(' · ');
+  ].join(' | ');
 }
 
 /// 구매 내역 한 줄 오른쪽: 9,900원 / 무료(운영 지급) / 환불됨 / 금액 모름이면 null

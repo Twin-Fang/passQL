@@ -22,7 +22,7 @@ class MockExamRuleRows extends StatelessWidget {
     final colors = context.passqlColors;
     final subjectSummary = rule.subjects
         .map((subject) => '${subject.name} ${subject.questionCount}문항')
-        .join(' · ');
+        .join(' | ');
     final failSummary = rule.subjects
         .map((subject) => '${subject.name} ${subject.failBelowScore}점')
         .join(', ');
@@ -50,7 +50,7 @@ class MockExamRuleRows extends StatelessWidget {
                     const _FigureDivider(),
                     _RuleFigure(
                       figure: '${rule.passScore}점',
-                      caption: '합격 · ${rule.maxScore}점 만점',
+                      caption: '합격 | ${rule.maxScore}점 만점',
                     ),
                   ],
                 ),
@@ -96,7 +96,7 @@ class MockExamRuleRows extends StatelessWidget {
           const SizedBox(height: PassqlSpacing.sm),
           const _RuleNote(
             icon: CupertinoIcons.eye_slash,
-            title: '풀이 중엔 정답·해설·SQL 실행이 없어요',
+            title: '풀이 중엔 정답, 해설, SQL 실행이 없어요',
             description: '실제 시험처럼 머릿속으로 풀어요',
           ),
         ],
