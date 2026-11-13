@@ -16,6 +16,9 @@ public final class AppSettingValueRanges {
     // 잠금화면 기본 표시 간격 (분, 0 은 화면 켤 때마다, 앱 운영 화면 요청 검증과 공통)
     public static final int LOCKSCREEN_INTERVAL_MINUTES_MINIMUM = 0;
     public static final int LOCKSCREEN_INTERVAL_MINUTES_MAXIMUM = 1440;
+    // 회원당 하루 자동 알림 (건, 자동 알림 화면과 공통)
+    public static final int AUTO_NOTIFICATION_DAILY_LIMIT_PER_MEMBER_MINIMUM = 1;
+    public static final int AUTO_NOTIFICATION_DAILY_LIMIT_PER_MEMBER_MAXIMUM = 5;
     // 하루 (분, 집계 구간·재발송 대기 상한)
     private static final int ONE_DAY_MINUTES = 1440;
 
@@ -38,6 +41,8 @@ public final class AppSettingValueRanges {
             Map.entry(AppSettingKeys.CONCEPT_FREE_TOPIC_COUNT, AppSettingValueRange.between(0, 100)),
             Map.entry(AppSettingKeys.LOCKSCREEN_DEFAULT_INTERVAL_MINUTES, AppSettingValueRange.between(
                     LOCKSCREEN_INTERVAL_MINUTES_MINIMUM, LOCKSCREEN_INTERVAL_MINUTES_MAXIMUM)),
+            Map.entry(AppSettingKeys.NOTIFICATION_AUTO_DAILY_LIMIT_PER_MEMBER, AppSettingValueRange.between(
+                    AUTO_NOTIFICATION_DAILY_LIMIT_PER_MEMBER_MINIMUM, AUTO_NOTIFICATION_DAILY_LIMIT_PER_MEMBER_MAXIMUM)),
             // 장애 알림 (기본 10분, 10건, 50%, 100%, 60분)
             Map.entry(AppSettingKeys.MONITOR_ALERT_WINDOW_MINUTES, AppSettingValueRange.between(1, ONE_DAY_MINUTES)),
             Map.entry(AppSettingKeys.MONITOR_ALERT_SERVER_ERROR_THRESHOLD_COUNT, AppSettingValueRange.between(1, 10000)),
