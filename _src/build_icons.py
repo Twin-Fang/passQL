@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""사이트 아이콘·공유 이미지 생성 (#823): 앱 아이콘 원본 1장 > mark·favicon·og
+"""사이트 아이콘·로고·공유 이미지 생성 (#823, #1057): 앱 아이콘 원본 > mark·favicon·og, 가로 로고 원본 > logo
 실행: python3 -I _src/build_icons.py <main 레포 루트>  (gh-pages 루트에서)
-원본: main brand/app_icon_1024.png (#766)·brand-colors.json, 글꼴 app/assets/fonts/Pretendard-*, 캡처 shots/execute.webp
+원본: main brand/app_icon_1024.png (#766)·logo_horizontal.png·brand-colors.json, 글꼴 app/assets/fonts/Pretendard-*, 캡처 shots/execute.webp
 og 는 Chrome 헤드리스로 찍음 (글꼴·한글 조판을 브라우저에 맡김)
 """
 
@@ -22,6 +22,8 @@ CHROME_PATH = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 MARK_SIZE_PIXELS = 192
 FAVICON_SIZES_PIXELS = (32, 180)
 FAVICON_ICO_SIZES = [(16, 16), (32, 32), (48, 48)]
+# 상단 바 로고 표시 높이 29px 의 레티나 여유 (가로는 비율 유지)
+LOGO_HEIGHT_PIXELS = 58
 # SNS 공유 미리보기 표준
 OG_SIZE_PIXELS = (1200, 630)
 
@@ -45,7 +47,7 @@ p {{ margin: 30px 0 0; font-size: 28px; font-weight: 600; color: #545463; }}
   <div class="brand"><img src="{icon_uri}" alt="">passQL</div>
   <h1>외우지 말고,<br><span>실행해 보고</span> 이해하는 SQLD</h1>
   <p>최신 기출 경향 · SQL 직접 실행 · AI 해설</p>
-  <div class="stores">App Store · Google Play · 웹</div>
+  <div class="stores">App Store · Google Play</div>
 </div>
 <div class="phone"><img src="{shot_uri}" alt=""></div>
 </body></html>"""
@@ -57,6 +59,13 @@ def write_resized_icons(brand_icon):
     for size in FAVICON_SIZES_PIXELS:
         brand_icon.resize((size, size), Image.LANCZOS).save(ICON_DIR / f"favicon-{size}.png", optimize=True)
     brand_icon.save(SITE_ROOT / "favicon.ico", sizes=FAVICON_ICO_SIZES)
+
+
+def write_logo(brand_logo_path):
+    """가로 로고(투명 배경) > 상단 바·하단용 logo.png"""
+    with Image.open(brand_logo_path) as logo:
+        logo_width = round(logo.width * LOGO_HEIGHT_PIXELS / logo.height)
+        logo.convert("RGBA").resize((logo_width, LOGO_HEIGHT_PIXELS), Image.LANCZOS).save(ICON_DIR / "logo.png", optimize=True)
 
 
 def write_open_graph_image(brand_icon_path, font_dir, brand_colors):
@@ -94,9 +103,10 @@ def main():
     brand_icon_path = main_root / "brand" / "app_icon_1024.png"
     brand_icon = Image.open(brand_icon_path).convert("RGB")
     write_resized_icons(brand_icon)
+    write_logo(main_root / "brand" / "logo_horizontal.png")
     brand_colors = json.loads((main_root / "brand" / "brand-colors.json").read_text(encoding="utf-8"))
     write_open_graph_image(brand_icon_path, main_root / "app" / "assets" / "fonts", brand_colors)
-    print("[site icons] wrote mark, favicon-32, favicon-180, favicon.ico, og")
+    print("[site icons] wrote mark, logo, favicon-32, favicon-180, favicon.ico, og")
 
 
 if __name__ == "__main__":

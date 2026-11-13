@@ -28,7 +28,7 @@ SITE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname(os.path.abspath(__file__))
 # 결과물 폴더 (기본 gh-pages 루트, --out 이면 그 폴더)
 output_directory = SITE_ROOT_DIRECTORY
 # --out 일 때 gh-pages 루트에서 그대로 복사하는 정적 자산 (생성하지 않는 파일)
-STATIC_ASSET_PATHS = ["style.css", "effects.css", "site.js", "favicon.ico", "icon", "shots"]
+STATIC_ASSET_PATHS = ["style.css", "effects.css", "demo.css", "site.js", "demo.js", "favicon.ico", "icon", "shots"]
 # 손 관리 페이지 원본 폴더 (gh-pages 루트가 이동 페이지로 바뀌어도 원본 유지)
 HAND_MANAGED_DIRECTORY = os.path.join(SITE_ROOT_DIRECTORY, "_src", "hand_managed")
 # 주소만 현재 사이트로 바꿔 결과물에 쓰는 손 관리 페이지

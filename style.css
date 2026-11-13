@@ -2,9 +2,9 @@
    색 원본: main 브랜치 brand/brand-colors.json accent, app/lib/presentation/design/tokens/passql_colors.dart
    화면 규칙: 색·모서리·그림자는 아래 토큰만 사용 */
 
-/* ── 토큰 (라이트) ── */
+/* ── 토큰 (밝은 화면 고정 #1057) ── */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --bg: #ffffff;
   --bg-soft: #f5f5fa;
   --surface: #ffffff;
@@ -33,30 +33,6 @@
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-/* ── 토큰 (다크) ── */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #000000;
-    --bg-soft: #0d0d14;
-    --surface: #1c1c1e;
-    --surface-2: #2c2c2e;
-    --line: #2f2f34;
-    --text: #f5f5f7;
-    --muted: #b4b4bc;
-    --dim: #9a9aa4;
-    --accent: #5e5ce6;
-    --accent-2: #bf5af2;
-    --accent-text: #9a98ff;
-    --accent-tint: rgba(94, 92, 230, 0.2);
-    --accent-glow: rgba(94, 92, 230, 0.35);
-    --fire: #ff9f0a;
-    --correct: #30d158;
-    --device-frame: #2a2a30;
-    --nav-bg: rgba(0, 0, 0, 0.72);
-    --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.04);
-    --shadow-phone: 0 30px 70px -20px rgba(94, 92, 230, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06);
-  }
-}
 
 /* ── 기본 ── */
 * { box-sizing: border-box; }

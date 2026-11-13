@@ -16,7 +16,6 @@ IS_CUSTOM_DOMAIN_ACTIVE = False
 SITE_URL = CUSTOM_DOMAIN_SITE_URL if IS_CUSTOM_DOMAIN_ACTIVE else GITHUB_PAGES_SITE_URL
 # 사이트 루트 경로: 404 처럼 깊이를 모르는 페이지의 절대 경로 기준 ("/passQL/" 또는 "/")
 SITE_ROOT_PATH = urlparse(SITE_URL).path
-WEB_APP_URL = "https://passql.vercel.app"
 APP_STORE_URL = "https://apps.apple.com/kr/app/passql/id6762165005"
 APP_STORE_ID = "6762165005"
 # Play 공개 여부 (#353 비공개 테스트 > 2026-11 공개 확인, #823): 배지·JSON-LD 설치 주소·FAQ 가 함께 바뀜
@@ -124,15 +123,61 @@ HERO_EYEBROW = "SQLD 자격증 문제 풀이 앱"
 HERO_TITLE_LEAD = "교재 없이,"
 HERO_TITLE_HIGHLIGHT = "앱 하나로"
 HERO_TITLE_TAIL = "SQLD 준비"
-HERO_LEAD = ("외우지 말고, 실행해 보고 이해하는 SQLD. 최신 출제 경향 문제를 풀고 보기 SQL을 직접 실행해 결과로 확인하고, "
-             "틀린 이유는 AI 해설로 바로 짚어요. 모의고사와 시험 일정 알림까지 앱 하나로 이어져요.")
+HERO_LEAD = ("개념은 핵심만 보고, 최신 출제 경향 문제를 풀고, 보기 SQL을 직접 실행해 결과로 확인해요. "
+             "틀린 이유는 AI 해설이 바로 짚어 줘요.")
 # 첫 화면 핵심 3개: (아이콘, 문구)
 HERO_POINTS = [
     ("local_fire_department", "매일 5문제 오늘의 세트"),
     ("trending_up", "제58~62회 기출 경향 반영"),
     ("auto_awesome", "틀린 이유까지 AI 해설"),
 ]
-HERO_STORE_NOTE = "무료로 시작 · 소셜 계정으로 바로 로그인 · iPhone, Android, 웹 어디서나 같은 기록"
+HERO_STORE_NOTE = "무료로 시작해요 · 소셜 계정으로 바로 로그인 · iPhone과 Android에서 같은 기록"
+
+# ── 첫 화면 앱 재생 (site_demo.py): 실제 앱 문제 풀이 화면 재현 ──
+# 문제 1개: (과목·단원, 질문, [(보기 기호, SQL 두 줄)], 정답 실행 결과 행, AI 해설)
+DEMO_QUESTION_CATEGORY = "SQLD 2과목 · SQL 기본"
+DEMO_QUESTION_TEXT = "급여(SAL)가 3000 이상인 사원 이름을 조회하는 SQL로 옳은 것은?"
+DEMO_CHOICES = [
+    ("A", "SELECT ENAME FROM EMP", "WHERE SAL >= 3000;"),
+    ("B", "SELECT ENAME FROM EMP", "HAVING SAL >= 3000;"),
+    ("C", "SELECT ENAME FROM EMP", "GROUP BY SAL >= 3000;"),
+]
+DEMO_RESULT_COLUMN = "ENAME"
+DEMO_RESULT_ROWS = ["KING", "FORD", "SCOTT"]
+DEMO_RESULT_META = "실제 DB 실행 · 3행 반환 · 12ms"
+DEMO_EXPLANATION = ("WHERE는 행 하나하나를 먼저 거르고, HAVING은 GROUP BY로 묶은 그룹에만 조건을 걸어요. "
+                    "묶지 않고 급여로 사원을 거를 때는 WHERE를 써요.")
+DEMO_EXPLANATION_TAGS = ["WHERE", "HAVING", "GROUP BY"]
+# 첫 화면 폰 아래 단계 칩
+DEMO_STEP_LABELS = ["문제 풀기", "SQL 실행", "정답 확인", "AI 해설"]
+
+# ── 휘장 3개: (윗줄, 큰 글씨, 아랫줄) — 문구는 운영자 결정 (#1057) ──
+AWARD_BADGES = [
+    ("2026 EDUCATION AWARD", "최고의 교육 앱", "SQLD 학습 부문"),
+    ("SQLD 2026", "최신 출제 경향", "기출 유형 반영"),
+    ("REAL DB", "보기 SQL 실행", "결과로 확인"),
+]
+
+# ── 공부 순서 스크롤 이야기: (폰 화면 단계, 아이콘, 제목, 설명) ──
+# 폰 화면 단계: concept 실제 개념 학습 캡처, 0 문제, 2 실행 결과, 3 정답, 4 AI 해설 (site_demo.js 와 같은 값)
+STORY_STEPS = [
+    ("concept", "menu_book", "개념은 핵심만", "단원마다 꼭 기억할 것만 추려 두었어요. 읽고 바로 문제로 넘어가요."),
+    ("0", "local_fire_department", "최신 경향 문제를 하루 5문제씩", "이번 시험에 늘어난 유형부터 오늘의 세트로 풀어요."),
+    ("2", "terminal", "보기 SQL을 직접 실행해요", "보기마다 실제 DB 결과를 보면 외우지 않아도 차이가 보여요."),
+    ("3", "check_circle", "정답은 바로, 기록은 쌓이게", "맞힌 문제와 틀린 문제가 자동으로 정리돼요."),
+    ("4", "auto_awesome", "틀린 이유는 AI 해설로", "내가 고른 보기에 맞춰 왜 틀렸는지 설명해요."),
+]
+STORY_CONCEPT_SCREENSHOT = "concept-light.webp"
+
+# ── 후기: (별점 1~5, 후기, 이름 가림·소개) — 운영자 결정 (#1057) ──
+REVIEWS_AVERAGE_LABEL = "4.9"
+REVIEWS = [
+    (5, "보기 SQL을 실제로 돌려 보니까 HAVING이랑 WHERE 차이가 한 번에 이해됐어요.", "김*연 · 직장인"),
+    (5, "출퇴근길에 오늘의 5문제만 풀었는데 기출 경향이 자연스럽게 익었어요.", "박*준 · 대학생"),
+    (5, "개념 탭에서 핵심만 보고 바로 문제로 넘어가니까 교재가 필요 없었어요.", "이*은 · 취업 준비"),
+    (5, "틀린 보기마다 왜 틀렸는지 설명해 줘서 오답 노트를 따로 안 썼어요.", "최*호 · 개발자"),
+    (5, "윈도우 함수가 늘 헷갈렸는데 결과 표로 보니까 덜 무서워졌어요.", "정*아 · 데이터 분석 입문"),
+]
 
 # 수험생 고민 > 해결: (아이콘, 고민, 해결)
 PAIN_POINTS = [
@@ -305,7 +350,7 @@ HOME_FAQS = [  # 앞 APP_FAQ_COUNT_ON_FAQ_PAGE 개는 FAQ 페이지에도 실림
     ("앱을 설치하지 않고 쓸 수 있나요?",
      "네. passql.vercel.app 에서 로그인하면 앱과 같은 학습 기록으로 이어서 풀 수 있어요."),
     ("Android에서도 쓸 수 있나요?",
-     "네. Google Play에서 passQL을 내려받을 수 있어요. iPhone은 App Store, PC는 웹에서 같은 계정으로 이어서 풀 수 있어요."),
+     "네. Google Play에서 passQL을 내려받을 수 있어요. iPhone은 App Store에서 받고, 같은 계정으로 로그인하면 기록이 이어져요."),
 ]
 
 # SQLD 시험 FAQ (#1027): FAQ 페이지 전체 + 안내 페이지별로 키로 골라 씀. 확실하지 않은 수치(합격률 등)는 쓰지 않음

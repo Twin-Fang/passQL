@@ -1,124 +1,57 @@
 # -*- coding: utf-8 -*-
-"""첫 화면(index) 생성 (#650, #823, #1027): 첫 화면 > 주제 띠 > 숫자 > 고민 > 기능 자세히 > 중간 다운로드 > 기능
-> 시험 정보 > 학습 흐름 > 최신 경향 > 범위 > 화면 > 무료 안내 > 요금(결제 켜짐) > FAQ > 다운로드
-문구는 site_content.py, 모양은 style.css·effects.css, 동작(D-day·화면 바꾸기·스크롤 효과·숫자)은 site.js
+"""첫 화면(index) 생성 (#650, #823, #1027, #1057): 첫 화면(앱 재생) > 휘장 > 공부 순서 이야기 > 후기 > 시험 정보
+> 최신 경향 > 요금(결제 켜짐) > FAQ > 다운로드 > 모바일 앱 받기 띠
+문구는 site_content.py, 모양은 style.css·effects.css·demo.css, 동작은 site.js(D-day·등장)·demo.js(재생·이야기·띠)
 """
 
 import site_content as content
 from site_head import (
-    escape, render_faq_section, render_footer, render_head, render_nav, render_store_buttons,
-    render_subject_cards, render_symbol,
+    escape, render_faq_section, render_footer, render_head, render_nav, render_play_link_attribute,
+    render_store_buttons, render_symbol,
 )
 from site_schedule import find_next_exam_round, format_long_date, to_exam_name
 from site_schema import build_app_json_ld, build_faq_json_ld, build_organization_json_ld, build_website_json_ld
-from site_showcase import (
-    render_exam_info_section, render_free_now_section, render_hero_phone, render_marquee, render_mid_cta,
-    render_phone, render_showcase_section, render_stat_counters,
-)
+from site_demo import render_award_section, render_hero_demo, render_review_section, render_story_section
+from site_showcase import render_exam_info_section, render_phone
 
 def render_hero(next_round):
-    points = "".join(
-        f"<li>{render_symbol(icon_name)}{escape(text)}</li>" for icon_name, text in content.HERO_POINTS
+    """첫 화면: 왼쪽 문구·스토어 버튼, 오른쪽 앱 재생 폰 (배경 빛·SQL 낱말은 demo.css)"""
+    floating_words = "".join(
+        f'<span style="--x:{x}%;--y:{y}%;--d:{delay}">{escape(word)}</span>'
+        for x, y, delay, word in HERO_FLOATING_SQL_WORDS
     )
     return f"""
-<header class="hero">
-  <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+<header class="hero hero-demo-layout">
+  <div class="hero-words" aria-hidden="true">{floating_words}</div>
   <div class="wrap hero-in">
     <div class="hero-copy">
-      <img class="hero-icon" src="icon/mark.png" width="84" height="84" alt="" aria-hidden="true">
       <p class="eyebrow">{render_symbol("check_circle")}{escape(content.HERO_EYEBROW)}</p>
-      <p class="hero-dday" data-dday-show hidden>{render_symbol("event")}{escape(to_exam_name(next_round))}까지 <strong data-dday-label></strong></p>
-      <h1>{escape(content.HERO_TITLE_LEAD)}<br><span class="hl">{escape(content.HERO_TITLE_HIGHLIGHT)}</span> <span class="nowrap">{escape(content.HERO_TITLE_TAIL)}</span></h1>
+      <p class="hero-dday" data-dday-show data-exam-date="{next_round['exam']}" hidden>{render_symbol("event")}{escape(to_exam_name(next_round))}까지 <strong data-dday-label></strong></p>
+      <h1>{escape(content.HERO_TITLE_LEAD)}<br><span class="hl-flow">{escape(content.HERO_TITLE_HIGHLIGHT)}</span> <span class="nowrap">{escape(content.HERO_TITLE_TAIL)}</span></h1>
       <p class="lead">{escape(content.HERO_LEAD)}</p>
-      <ul class="hero-points">{points}</ul>
       {render_store_buttons("")}
       <p class="note">{escape(content.HERO_STORE_NOTE)}</p>
     </div>
-    <div class="hero-art">
-      {render_dday_card(next_round)}
-      {render_hero_phone()}
-    </div>
+    {render_hero_demo()}
   </div>
 </header>"""
 
 
-def render_dday_card(next_round):
-    """시험 D-day 카드: 숫자는 site.js 가 방문 날짜로 계산 (JS 없으면 날짜만)"""
-    exam_date_label = format_long_date(next_round["exam"])
-    return f"""<div class="dday-card" data-exam-date="{next_round['exam']}">
-        {render_symbol("event")}
-        <div>
-          <p class="dday-label">{escape(to_exam_name(next_round))}까지</p>
-          <p class="dday-count" data-dday-count>{escape(exam_date_label)}</p>
-          <p class="dday-date" data-dday-date hidden>{escape(exam_date_label)}</p>
-        </div>
-      </div>"""
+# 첫 화면 배경에 떠다니는 SQL 낱말: (가로%, 세로%, 시작 지연 초, 낱말)
+HERO_FLOATING_SQL_WORDS = [
+    (4, 12, 0, "SELECT"), (40, 8, 2, "JOIN"), (52, 88, 4, "GROUP BY"), (6, 84, 6, "WHERE"),
+    (46, 48, 1, "HAVING"), (90, 90, 3, "ROW_NUMBER()"), (28, 94, 5, "NULL"),
+]
 
 
-def render_pain_section():
-    cards = "".join(
-        f"""
-      <article class="pain reveal">
-        <p class="pain-q">{render_symbol(icon_name)}{escape(question)}</p>
-        <p class="pain-a">{render_symbol("arrow_forward", "pain-arrow")}<span>{escape(answer)}</span></p>
-      </article>"""
-        for icon_name, question, answer in content.PAIN_POINTS
-    )
+def render_mobile_dock():
+    """모바일 아래쪽 앱 받기 띠: 첫 화면을 지나면 보이고 마지막 다운로드 구역이 보이면 숨음 (demo.js)"""
     return f"""
-<section id="why" class="section">
-  <div class="wrap">
-    <p class="kicker">수험생 고민</p>
-    <h2>SQLD 준비, 이런 고민 있죠?</h2>
-    <p class="sec-lead">passQL은 이 네 가지를 풀려고 만들었어요.</p>
-    <div class="pain-grid">{cards}
-    </div>
-  </div>
-</section>"""
-
-
-def render_feature_section():
-    cards = "".join(
-        f"""
-      <article class="feature reveal" style="--reveal-order:{index % 4}">
-        <span class="feature-icon">{render_symbol(icon_name)}</span>
-        <h3>{escape(title)}</h3>
-        <p>{escape(text)}</p>
-      </article>"""
-        for index, (icon_name, title, text) in enumerate(content.FEATURES)
-    )
-    return f"""
-<section id="features" class="section band">
-  <div class="wrap">
-    <p class="kicker">기능</p>
-    <h2>합격에 필요한 건 다 들어 있어요</h2>
-    <p class="sec-lead">문제, 해설, 경향, 기록까지. 다른 교재나 앱을 오가지 않아도 돼요.</p>
-    <div class="feature-grid">{cards}
-    </div>
-  </div>
-</section>"""
-
-
-def render_flow_section():
-    steps = "".join(
-        f"""
-      <li class="flow-step reveal">
-        <span class="flow-icon">{render_symbol(icon_name)}</span>
-        <span class="flow-num">STEP {index}</span>
-        <h3>{escape(title)}</h3>
-        <p>{escape(text)}</p>
-      </li>"""
-        for index, (icon_name, title, text) in enumerate(content.STUDY_STEPS, start=1)
-    )
-    return f"""
-<section id="flow" class="section">
-  <div class="wrap">
-    <p class="kicker">학습 흐름</p>
-    <h2>매일 이렇게 공부해요</h2>
-    <p class="sec-lead">같은 흐름을 반복하면 약한 주제부터 메워져요.</p>
-    <ol class="flow">{steps}
-    </ol>
-  </div>
-</section>"""
+<div class="app-dock" data-app-dock aria-hidden="true">
+  <img src="icon/mark.png" width="40" height="40" alt="">
+  <p><strong>passQL</strong>SQLD 문제 풀이 앱</p>
+  <a href="{content.APP_STORE_URL}" rel="noopener" tabindex="-1"{render_play_link_attribute()}>앱 받기</a>
+</div>"""
 
 
 def render_trend_section():
@@ -156,47 +89,6 @@ def render_trend_section():
   <div class="wrap">
     <ul class="patterns">{patterns}
     </ul>
-  </div>
-</section>"""
-
-
-def render_scope_section():
-    return f"""
-<section id="scope" class="section band">
-  <div class="wrap">
-    <p class="kicker">시험 범위</p>
-    <h2>SQLD 두 과목을 9개 주제로</h2>
-    <p class="sec-lead">주제를 골라 차근차근 풀거나, 자주 나오는 개념 TOP 10부터 잡을 수 있어요. <a href="sqld/">SQLD 시험 안내 보기</a></p>
-    <div class="subjects">{render_subject_cards()}
-    </div>
-  </div>
-</section>"""
-
-
-def render_screen_gallery():
-    shots = "".join(
-        f"""
-      <figure class="shot">
-        {render_phone(file_name, f"passQL {name} 화면. {caption}")}
-        <figcaption><strong>{escape(name)}</strong><span>{escape(caption)}</span></figcaption>
-      </figure>"""
-        for file_name, name, caption in content.SCREENSHOTS
-    )
-    return f"""
-<section id="screens" class="section">
-  <div class="wrap">
-    <div class="gallery-head">
-      <div>
-        <p class="kicker">앱 화면</p>
-        <h2>실제 화면을 먼저 보세요</h2>
-      </div>
-      <div class="gallery-buttons">
-        <button class="icon-btn" type="button" data-gallery-step="-1" aria-label="이전 화면">{render_symbol("chevron_left")}</button>
-        <button class="icon-btn" type="button" data-gallery-step="1" aria-label="다음 화면">{render_symbol("chevron_right")}</button>
-      </div>
-    </div>
-  </div>
-  <div class="gallery" data-gallery tabindex="0" aria-label="앱 화면 모음, 옆으로 넘겨 보기">{shots}
   </div>
 </section>"""
 
@@ -258,12 +150,10 @@ def render_home_page():
     )
     faq_more_link = f'\n    <p class="faq-more"><a href="sqld/faq/">SQLD 시험 질문 더 보기 {render_symbol("arrow_forward")}</a></p>'
     body = "".join([
-        '\n<main id="main">', render_hero(next_round), render_marquee(), render_stat_counters(), render_pain_section(),
-        render_showcase_section(), render_mid_cta(), render_feature_section(), render_exam_info_section(next_round),
-        render_flow_section(), render_trend_section(), render_scope_section(), render_screen_gallery(),
-        render_free_now_section(), render_plan_section(),
+        '\n<main id="main">', render_hero(next_round), render_award_section(), render_story_section(),
+        render_review_section(), render_exam_info_section(next_round), render_trend_section(), render_plan_section(),
         "\n" + render_faq_section(content.HOME_FAQS, more_link_html=faq_more_link), render_final_cta(next_round),
-        "\n</main>\n",
+        "\n</main>\n", render_mobile_dock(),
     ])
     return (head + render_nav(root) + body
-            + '<script src="site.js" defer></script>\n' + render_footer(root))
+            + '<script src="site.js" defer></script>\n<script src="demo.js" defer></script>\n' + render_footer(root))

@@ -28,9 +28,8 @@ MATERIAL_SYMBOLS_STYLESHEET_URL = (
     "https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0..1,0"
     "&icon_names=" + ",".join(sorted(MATERIAL_SYMBOL_NAMES)) + "&display=block"
 )
-# 브라우저 상단 색 (style.css --bg 라이트·다크와 같은 값)
+# 브라우저 상단 색 (style.css --bg 와 같은 값, 사이트는 밝은 화면 고정 #1057)
 THEME_COLOR_LIGHT = "#ffffff"
-THEME_COLOR_DARK = "#000000"
 
 
 def render_symbol(icon_name, extra_class=""):
@@ -74,9 +73,8 @@ def render_head(title, description, path, root, json_ld_items=(), is_indexable=T
 <meta name="twitter:description" content="{escape(description)}">
 <meta name="twitter:image" content="{content.OG_IMAGE_URL}">
 <meta name="apple-itunes-app" content="app-id={content.APP_STORE_ID}">
-<meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="{THEME_COLOR_LIGHT}" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="{THEME_COLOR_DARK}" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="{THEME_COLOR_LIGHT}">
 <link rel="icon" href="{root}favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="{root}icon/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="{root}icon/favicon-180.png">
@@ -86,7 +84,8 @@ def render_head(title, description, path, root, json_ld_items=(), is_indexable=T
 <link rel="stylesheet" href="{escape(MATERIAL_SYMBOLS_STYLESHEET_URL)}">
 <link rel="stylesheet" href="{root}style.css">
 <link rel="stylesheet" href="{root}effects.css">
-<script>document.documentElement.classList.add("js")</script>
+<link rel="stylesheet" href="{root}demo.css">
+<script>(function(h,n){{h.classList.add("js");var u=n.userAgent,isIpad=n.platform==="MacIntel"&&n.maxTouchPoints>1;if(/iPhone|iPad|iPod/.test(u)||isIpad)h.classList.add("is-ios");else if(/Android/.test(u))h.classList.add("is-android")}})(document.documentElement,navigator)</script>
 {json_ld_blocks}</head>
 """
 
@@ -103,8 +102,7 @@ def render_nav(root, current_path=None):
 <nav class="nav" aria-label="주요 메뉴">
   <div class="nav-in">
     <a class="nav-brand" href="{root}">
-      <img class="brand-mark" src="{root}icon/mark.png" width="28" height="28" alt="" aria-hidden="true">
-      passQL
+      <img class="brand-logo" src="{root}icon/logo.png" width="107" height="29" alt="passQL">
     </a>
     <div class="nav-menu">{menu_links}
     </div>
@@ -141,7 +139,7 @@ def render_play_link_attribute():
 
 
 def render_store_buttons(root, extra_class=""):
-    """다운로드 버튼: App Store + (Play 공개 시 Play) + 웹"""
+    """다운로드 버튼: App Store + (Play 공개 시 Play), 같은 폭·높이 (기기에 맞는 버튼만 보이기는 demo.css)"""
     play_button = (
         f"""
         <a class="btn btn-store btn-play" href="{content.PLAY_STORE_URL}" rel="noopener">{GOOGLE_PLAY_LOGO_SVG}<span><small>다운로드</small>Google Play</span></a>"""
@@ -150,7 +148,6 @@ def render_store_buttons(root, extra_class=""):
     class_names = f"cta {extra_class}".strip()
     return f"""<div class="{class_names}">
         <a class="btn btn-primary btn-store btn-app-store" href="{content.APP_STORE_URL}" rel="noopener">{APPLE_LOGO_SVG}<span><small>무료 다운로드</small>App Store</span></a>{play_button}
-        <a class="btn btn-ghost" href="{content.WEB_APP_URL}" rel="noopener">{render_symbol("language")}웹에서 바로 풀기</a>
       </div>"""
 
 
@@ -180,7 +177,7 @@ def render_footer(root):
   <div class="wrap">
     <div class="foot-grid">
       <div class="foot-brand">
-        <a class="nav-brand" href="{root}"><img class="brand-mark" src="{root}icon/mark.png" width="28" height="28" alt="" aria-hidden="true">passQL</a>
+        <a class="nav-brand" href="{root}"><img class="brand-logo" src="{root}icon/logo.png" width="107" height="29" alt="passQL"></a>
         <p class="foot-tagline">교재 없이 앱 하나로 SQLD 준비<br>외우지 말고, 실행해 보고 이해하는 SQLD</p>
       </div>
       <div class="foot-col">
@@ -189,7 +186,7 @@ def render_footer(root):
       </div>
       <div class="foot-col">
         <p class="foot-head">앱 받기</p>
-        <ul><li><a href="{content.APP_STORE_URL}" rel="noopener">App Store</a></li>{play_link}<li><a href="{content.WEB_APP_URL}" rel="noopener">웹에서 풀기</a></li></ul>
+        <ul><li><a href="{content.APP_STORE_URL}" rel="noopener">App Store</a></li>{play_link}</ul>
       </div>
       <div class="foot-col">
         <p class="foot-head">안내</p>

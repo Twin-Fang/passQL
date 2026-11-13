@@ -38,11 +38,14 @@
     if (!card) return;
     var label = toDdayLabel(calculateDaysUntil(card.getAttribute("data-exam-date")));
     if (!label) return;
-    card.querySelector("[data-dday-count]").textContent = label;
-    card.querySelector("[data-dday-date]").hidden = false;
+    // 일정 카드면 숫자·날짜 칸 채움 (첫 화면 알약은 그 칸이 없음)
+    var countElement = card.querySelector("[data-dday-count]");
+    if (countElement) countElement.textContent = label;
+    var dateElement = card.querySelector("[data-dday-date]");
+    if (dateElement) dateElement.hidden = false;
     var inlineElement = document.querySelector("[data-dday-inline]");
     if (inlineElement) inlineElement.textContent = inlineElement.textContent + " · " + label;
-    // 모바일 첫 화면 D-day 알약 (모바일은 D-day 카드를 숨기고 이 알약만 보임)
+    // 첫 화면 D-day 알약 (#1057 부터 모든 화면 크기)
     document.querySelectorAll("[data-dday-show]").forEach(function (element) {
       element.querySelector("[data-dday-label]").textContent = label;
       element.hidden = false;
