@@ -1,1 +1,0 @@
-passQL: SQLD 문제풀이·SQL 자격증
