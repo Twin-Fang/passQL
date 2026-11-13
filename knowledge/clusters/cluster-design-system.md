@@ -2,7 +2,7 @@
 type: cluster
 topic: design-system
 created: 2026-10-29
-members: 166
+members: 167
 status: active
 related: []
 ---
@@ -89,6 +89,7 @@ related: []
 
 ## 관련 이슈
 - [[ISS-0511-qa-1112-ui-polish-eight]] (resolved, #1041, PR #1042): 11/12 QA UI 개선 8건 — 환영 시트·알림 안내·모의고사 순위·크레딧 아이콘·PK FK·난이도 별·카운트업·과락 칸
+- [[ISS-0510-daily-set-retry-wrong-and-qa-fixes]] (resolved, #1035, PR #1040): `PassqlCodeBlock` 좁은 폭 줄바꿈이 줄 머리로 떨어짐 > 원래 들여쓰기·첫 단어 뒤로 이어 쓰기, 주석 줄 회색 유지(외 다시 풀기 등 3건)
 - [[ISS-0507-credit-gem-3d-pro-asset]] (resolved, #1014, PR #1023): 크레딧 젬 3D 연출, PRO 무한 젬 에셋
 - [[ISS-0502-stem-table-same-columns-overwritten]] (resolved, #1015): 이름 다른 같은 컬럼 표가 지문 표를 덮음, 제약 주석이 코드 제목으로
 - [[ISS-0497-ui-ux-cleanup-18]] (resolved, #993): 같은 정보 한 번·한 색 아이콘·공통 잠금 창

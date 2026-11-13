@@ -32,7 +32,6 @@ class _ExamScheduleTimelineState extends State<ExamScheduleTimeline> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.passqlColors;
     final events = examTimelineEventsOf(widget.schedules);
     if (events.isEmpty) return const SizedBox.shrink();
     final today = DateTime(
@@ -69,48 +68,66 @@ class _ExamScheduleTimelineState extends State<ExamScheduleTimeline> {
     }
     if (firstUpcomingIndex == -1) rows.add(_TodayLine(today: today));
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    // 펼침 버튼은 숨긴 지난 이벤트가 나타날 자리(목록 맨 위)에 둠 (#1035)
+    return PassqlGroupedSection(
+      header: '${widget.year}년 일정',
       children: [
-        PassqlGroupedSection(
-          header: '${widget.year}년 일정',
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: PassqlSpacing.md,
-                vertical: PassqlSpacing.xs,
-              ),
-              child: Column(children: rows),
-            ),
-          ],
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: PassqlSpacing.md,
+            vertical: PassqlSpacing.xs,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (hiddenPastCount > 0)
+                _ShowPastEventsButton(
+                  hiddenPastCount: hiddenPastCount,
+                  onTap: () => setState(() => _isPastExpanded = true),
+                ),
+              ...rows,
+            ],
+          ),
         ),
-        if (hiddenPastCount > 0)
-          PassqlPressable(
-            onTap: () => setState(() => _isPastExpanded = true),
-            hasMinimumTouchTarget: true,
-            semanticLabel: '지난 일정 $hiddenPastCount건 더 보기',
-            child: Padding(
-              padding: const EdgeInsets.only(top: PassqlSpacing.xs),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '지난 일정 $hiddenPastCount건 더 보기',
-                    style: PassqlTypography.footnote.copyWith(
-                      color: colors.secondaryLabel,
-                    ),
-                  ),
-                  const SizedBox(width: PassqlSpacing.xxs),
-                  Icon(
-                    CupertinoIcons.chevron_down,
-                    size: PassqlIconSize.xxs,
-                    color: colors.iconSecondary,
-                  ),
-                ],
-              ),
+      ],
+    );
+  }
+}
+
+/// 목록 맨 위 "지난 일정 N건 더 보기 ⌃" (누르면 위쪽으로 펼침)
+class _ShowPastEventsButton extends StatelessWidget {
+  const _ShowPastEventsButton({
+    required this.hiddenPastCount,
+    required this.onTap,
+  });
+
+  final int hiddenPastCount;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    return PassqlPressable(
+      onTap: onTap,
+      hasMinimumTouchTarget: true,
+      semanticLabel: '지난 일정 $hiddenPastCount건 더 보기',
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            '지난 일정 $hiddenPastCount건 더 보기',
+            style: PassqlTypography.footnote.copyWith(
+              color: colors.secondaryLabel,
             ),
           ),
-      ],
+          const SizedBox(width: PassqlSpacing.xxs),
+          Icon(
+            CupertinoIcons.chevron_up,
+            size: PassqlIconSize.xxs,
+            color: colors.iconSecondary,
+          ),
+        ],
+      ),
     );
   }
 }
