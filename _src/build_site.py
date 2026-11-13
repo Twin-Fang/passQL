@@ -23,6 +23,7 @@ from site_home import render_home_page  # noqa: E402
 from site_legal import LEGAL_PAGES, render_legal_page  # noqa: E402
 from site_redirect import render_redirect_page, render_redirect_robots, to_redirect_file_path  # noqa: E402
 from site_schedule import render_schedule_page  # noqa: E402
+from site_search_guides import render_app_page, render_mock_exam_page, render_trend_page  # noqa: E402
 
 SITE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # 결과물 폴더 (기본 gh-pages 루트, --out 이면 그 폴더)
@@ -44,6 +45,9 @@ GUIDE_PAGE_RENDERERS = {
     "sqld/study/": render_study_page,
     "sqld/faq/": render_faq_page,
     "sqlp/": render_sqlp_page,
+    "sqld/trend/": render_trend_page,
+    "sqld/mock-exam/": render_mock_exam_page,
+    "sqld/app/": render_app_page,
 }
 # sitemap 안내 외 주소 {경로: 우선순위}
 SITEMAP_EXTRA_PRIORITY_BY_PATH = {"privacy.html": "0.3", "terms.html": "0.3", "delete-account.html": "0.2"}

@@ -444,9 +444,28 @@ GUIDE_PAGES = {
         "description": "SQLP(SQL 전문가) 필기 3과목 구성과 SQLD와 겹치는 범위, passQL로 연습할 수 있는 부분을 정리했어요. 데이터 모델링, SQL 기본 및 활용 문제를 AI 해설과 함께 풀어 보세요.",
         "summary": "필기 3과목 + 실기, SQLD와 겹치는 범위",
     },
+    # 검색어별 안내 3장 (#1057): 기출 경향 · 모의고사 · 앱
+    "sqld/trend/": {
+        "menu_name": "기출 경향", "parent": "sqld/", "priority": "0.8", "icon": "trending_up",
+        "title": "SQLD 기출 경향 — 제58~62회 출제 유형과 과목별 비중 | passQL",
+        "description": "SQLD 제58~62회 복원 기출과 수험생 후기를 바탕으로 과목별 비중과 최근 늘어난 유형(NULL 함정, 결과 비교형, 오류 SQL, ROWNUM)을 정리했어요. 유형별 문제는 passQL 앱에서 풀어 보세요.",
+        "summary": "제58~62회 과목별 비중, 늘어난 유형 4가지",
+    },
+    "sqld/mock-exam/": {
+        "menu_name": "모의고사", "parent": "sqld/", "priority": "0.8", "icon": "timer",
+        "title": "SQLD 모의고사 — 50문항 90분, 실전처럼 연습하는 순서 | passQL",
+        "description": "SQLD 모의고사를 실제 시험처럼 50문항 90분으로 풀고, 60점 합격·과목별 과락 기준으로 채점해 약한 주제를 찾는 순서를 정리했어요. passQL 앱에서 모의고사 1회를 무료로 체험할 수 있어요.",
+        "summary": "50문항 90분 실전 연습과 채점 순서",
+    },
+    "sqld/app/": {
+        "menu_name": "SQLD 앱", "parent": "sqld/", "priority": "0.8", "icon": "quiz",
+        "title": "SQLD 공부 앱 passQL — 교재 없이 SQL 자격증 준비 | passQL",
+        "description": "SQLD 문제 풀이 앱 passQL로 교재 없이 SQL 자격증을 준비하는 방법. 단원별 개념 학습, 최신 경향 문제, 보기 SQL 직접 실행, AI 해설, 모의고사, 시험 일정 알림을 무료로 시작해요.",
+        "summary": "개념, 문제, SQL 실행, AI 해설을 앱 하나로",
+    },
 }
 # 상단 보조 메뉴 순서 (첫 화면 포함 모든 페이지)
-GUIDE_MENU_PATHS = ["sqld/schedule/", "sqld/subjects/", "sqld/pass/", "sqld/study/", "sqld/faq/", "sqlp/"]
+GUIDE_MENU_PATHS = ["sqld/schedule/", "sqld/subjects/", "sqld/pass/", "sqld/trend/", "sqld/study/", "sqld/faq/", "sqlp/"]
 
 # ── 공부 방법 페이지 ──
 # 원칙: (아이콘, 제목, 설명)
@@ -488,4 +507,19 @@ SCHEDULE_APP_POINTS = [
     ("notifications_active", "원서접수가 열리면 알림"),
     ("event", "홈에서 시험 D-day 확인"),
     ("timer", "시험 전 실전 모의고사"),
+]
+
+
+# ── 모의고사 안내 (#1057): 실전 연습 순서 (아이콘, 제목, 설명) ──
+MOCK_EXAM_STEPS = [
+    ("timer", "시간을 재고 한 번에", "실제 시험처럼 90분 안에 50문항을 끊지 않고 풀어요. 중간에 해설을 보지 않아야 실제 점수에 가까워요."),
+    ("checklist", "합격선과 과락부터 채점", "총점 60점을 넘었는지와 함께 1과목 8점, 2과목 32점 과락선을 넘었는지 따로 확인해요."),
+    ("auto_awesome", "틀린 문제는 이유까지", "정답만 확인하지 말고 내가 고른 보기가 왜 틀렸는지 해설로 짚어요. 보기 SQL을 실행해 결과로 확인하면 오래 남아요."),
+    ("trending_up", "약한 주제로 돌아가기", "틀린 문제가 몰린 주제를 골라 다시 풀어요. 다음 모의고사는 그 주제를 메운 뒤에 봐요."),
+]
+# 모의고사 시간 배분 예시: (구간, 설명)
+MOCK_EXAM_TIME_PLAN = [
+    ("1과목 10문항", "개념 적용형이 많아 15분 안팎으로 먼저 끝내요."),
+    ("2과목 40문항", "결과를 따라가는 추적형이 많아 60분 안팎을 써요."),
+    ("검토", "남은 시간에 표시해 둔 문제와 답안 표기를 다시 봐요."),
 ]
