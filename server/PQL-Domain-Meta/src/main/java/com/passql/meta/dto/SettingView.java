@@ -15,5 +15,8 @@ public record SettingView(
         // SECRET 값 저장 여부 (SECRET 아니면 false)
         boolean isSecretConfigured,
         // 앱 운영 화면 전용 키 (일반 설정 표에서는 읽기 전용)
-        boolean isManagedByAppOperation
+        boolean isManagedByAppOperation,
+        // 허용 범위 (AppSettingValueRanges, 범위 없는 키는 null)
+        String minimumValue,
+        String maximumValue
 ) {}
